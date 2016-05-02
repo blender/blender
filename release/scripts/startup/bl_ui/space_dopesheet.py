@@ -92,8 +92,6 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
                 row.prop(dopesheet, "show_lattices", text="")
             if bpy.data.armatures:
                 row.prop(dopesheet, "show_armatures", text="")
-            if bpy.data.particles:
-                row.prop(dopesheet, "show_particles", text="")
             if bpy.data.speakers:
                 row.prop(dopesheet, "show_speakers", text="")
             if bpy.data.linestyles:

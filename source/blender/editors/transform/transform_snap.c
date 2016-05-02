@@ -489,8 +489,6 @@ static void initSnappingMode(TransInfo *t)
 {
 	ToolSettings *ts = t->settings;
 	Object *obedit = t->obedit;
-	Scene *scene = t->scene;
-	Base *base_act = scene->basact;
 
 	if (t->spacetype == SPACE_NODE) {
 		/* force project off when not supported */
@@ -528,12 +526,6 @@ static void initSnappingMode(TransInfo *t)
 			else {
 				t->tsnap.modeSelect = t->tsnap.snap_self ? SNAP_ALL : SNAP_NOT_OBEDIT;
 			}
-		}
-		/* Particles edit mode*/
-		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist
-		         (obedit == NULL && base_act && base_act->object && base_act->object->mode & OB_MODE_PARTICLE_EDIT))
-		{
-			t->tsnap.modeSelect = SNAP_ALL;
 		}
 		/* Object mode */
 		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist

@@ -1074,8 +1074,6 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 				UI_icon_draw(x, y, ICON_MODIFIER); break;
 			case TSE_LINKED_OB:
 				UI_icon_draw(x, y, ICON_OBJECT_DATA); break;
-			case TSE_LINKED_PSYS:
-				UI_icon_draw(x, y, ICON_PARTICLES); break;
 			case TSE_MODIFIER:
 			{
 				Object *ob = (Object *)tselem->id;
@@ -1103,10 +1101,6 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 						UI_icon_draw(x, y, ICON_MOD_SOFT); break;
 					case eModifierType_Boolean: 
 						UI_icon_draw(x, y, ICON_MOD_BOOLEAN); break;
-					case eModifierType_ParticleSystem: 
-						UI_icon_draw(x, y, ICON_MOD_PARTICLES); break;
-					case eModifierType_ParticleInstance:
-						UI_icon_draw(x, y, ICON_MOD_PARTICLES); break;
 					case eModifierType_EdgeSplit:
 						UI_icon_draw(x, y, ICON_MOD_EDGESPLIT); break;
 					case eModifierType_Array:

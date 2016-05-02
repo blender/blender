@@ -43,7 +43,6 @@
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 #include "DNA_object_types.h"
@@ -2206,7 +2205,6 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	AnimData *adt;
-	ParticleSystem *psys;
 	Material *ma, ***matarar;
 	Lamp *la;
 	ID *id;
@@ -2273,9 +2271,6 @@ static int make_local_exec(bContext *C, wmOperator *op)
 				}
 			}
 		}
-
-		for (psys = ob->particlesystem.first; psys; psys = psys->next)
-			id_make_local(&psys->part->id, false);
 
 		adt = BKE_animdata_from_id(&ob->id);
 		if (adt) BKE_animdata_make_local(adt);

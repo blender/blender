@@ -1008,39 +1008,6 @@ typedef struct ImagePaintSettings {
 } ImagePaintSettings;
 
 /* ------------------------------------------- */
-/* Particle Edit */
-
-/* Settings for a Particle Editing Brush */
-typedef struct ParticleBrushData {
-	short size;						/* common setting */
-	short step, invert, count;		/* for specific brushes only */
-	int flag;
-	float strength;
-} ParticleBrushData;
-
-/* Particle Edit Mode Settings */
-typedef struct ParticleEditSettings {
-	short flag;
-	short totrekey;
-	short totaddkey;
-	short brushtype;
-
-	ParticleBrushData brush[7]; /* 7 = PE_TOT_BRUSH */
-	void *paintcursor;			/* runtime */
-
-	float emitterdist, rt;
-
-	int selectmode;
-	int edittype;
-
-	int draw_step, fade_frames;
-
-	struct Scene *scene;
-	struct Object *object;
-	struct Object *shape_object;
-} ParticleEditSettings;
-
-/* ------------------------------------------- */
 /* Sculpt */
 
 /* Sculpt */
@@ -1371,9 +1338,6 @@ typedef struct ToolSettings {
 	/* Image Paint (8 byttse aligned please!) */
 	struct ImagePaintSettings imapaint;
 
-	/* Particle Editing */
-	struct ParticleEditSettings particle;
-	
 	/* Transform Proportional Area of Effect */
 	float proportional_size;
 

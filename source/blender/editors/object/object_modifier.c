@@ -41,6 +41,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_force.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_bitmap.h"
@@ -71,7 +72,6 @@
 #include "BKE_object_deform.h"
 #include "BKE_ocean.h"
 #include "BKE_paint.h"
-#include "BKE_particle.h"
 #include "BKE_softbody.h"
 #include "BKE_editmesh.h"
 
@@ -111,64 +111,56 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 		}
 	}
 	
-	if (type == eModifierType_ParticleSystem) {
-		/* don't need to worry about the new modifier's name, since that is set to the number
-		 * of particle systems which shouldn't have too many duplicates 
-		 */
-		new_md = object_add_particle_system(scene, ob, name);
+	/* get new modifier data to add */
+	new_md = modifier_new(type);
+	
+	if (mti->flags & eModifierTypeFlag_RequiresOriginalData) {
+		md = ob->modifiers.first;
+		
+		while (md && modifierType_getInfo(md->type)->type == eModifierTypeType_OnlyDeform)
+			md = md->next;
+		
+		BLI_insertlinkbefore(&ob->modifiers, md, new_md);
 	}
-	else {
-		/* get new modifier data to add */
-		new_md = modifier_new(type);
+	else
+		BLI_addtail(&ob->modifiers, new_md);
+
+	if (name) {
+		BLI_strncpy_utf8(new_md->name, name, sizeof(new_md->name));
+	}
+
+	/* make sure modifier data has unique name */
+
+	modifier_unique_name(&ob->modifiers, new_md);
+	
+	/* special cases */
+	if (type == eModifierType_Softbody) {
+		if (!ob->soft) {
+			ob->soft = sbNew(scene);
+			ob->softflag |= OB_SB_GOAL | OB_SB_EDGES;
+		}
+	}
+	else if (type == eModifierType_Collision) {
+		if (!ob->pd)
+			ob->pd = object_add_collision_fields(0);
 		
-		if (mti->flags & eModifierTypeFlag_RequiresOriginalData) {
-			md = ob->modifiers.first;
-			
-			while (md && modifierType_getInfo(md->type)->type == eModifierTypeType_OnlyDeform)
-				md = md->next;
-			
-			BLI_insertlinkbefore(&ob->modifiers, md, new_md);
-		}
-		else
-			BLI_addtail(&ob->modifiers, new_md);
+		ob->pd->deflect = 1;
+	}
+	else if (type == eModifierType_Surface) {
+		/* pass */
+	}
+	else if (type == eModifierType_Multires) {
+		/* set totlvl from existing MDISPS layer if object already had it */
+		multiresModifier_set_levels_from_disps((MultiresModifierData *)new_md, ob);
 
-		if (name) {
-			BLI_strncpy_utf8(new_md->name, name, sizeof(new_md->name));
+		if (ob->mode & OB_MODE_SCULPT) {
+			/* ensure that grid paint mask layer is created */
+			BKE_sculpt_mask_layers_ensure(ob, (MultiresModifierData *)new_md);
 		}
-
-		/* make sure modifier data has unique name */
-
-		modifier_unique_name(&ob->modifiers, new_md);
-		
-		/* special cases */
-		if (type == eModifierType_Softbody) {
-			if (!ob->soft) {
-				ob->soft = sbNew(scene);
-				ob->softflag |= OB_SB_GOAL | OB_SB_EDGES;
-			}
-		}
-		else if (type == eModifierType_Collision) {
-			if (!ob->pd)
-				ob->pd = object_add_collision_fields(0);
-			
-			ob->pd->deflect = 1;
-		}
-		else if (type == eModifierType_Surface) {
-			/* pass */
-		}
-		else if (type == eModifierType_Multires) {
-			/* set totlvl from existing MDISPS layer if object already had it */
-			multiresModifier_set_levels_from_disps((MultiresModifierData *)new_md, ob);
-
-			if (ob->mode & OB_MODE_SCULPT) {
-				/* ensure that grid paint mask layer is created */
-				BKE_sculpt_mask_layers_ensure(ob, (MultiresModifierData *)new_md);
-			}
-		}
-		else if (type == eModifierType_Skin) {
-			/* ensure skin-node customdata exists */
-			BKE_mesh_ensure_skin_customdata(ob->data);
-		}
+	}
+	else if (type == eModifierType_Skin) {
+		/* ensure skin-node customdata exists */
+		BKE_mesh_ensure_skin_customdata(ob->data);
 	}
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -280,14 +272,7 @@ static bool object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
 	}
 
 	/* special cases */
-	if (md->type == eModifierType_ParticleSystem) {
-		ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
-
-		BLI_remlink(&ob->particlesystem, psmd->psys);
-		psys_free(ob, psmd->psys);
-		psmd->psys = NULL;
-	}
-	else if (md->type == eModifierType_Softbody) {
+	if (md->type == eModifierType_Softbody) {
 		if (ob->soft) {
 			sbFree(ob->soft);
 			ob->soft = NULL;
@@ -312,12 +297,6 @@ static bool object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
 		/* Delete MVertSkin layer if not used by another skin modifier */
 		if (object_modifier_safe_to_delete(bmain, ob, md, eModifierType_Skin))
 			modifier_skin_customdata_delete(ob);
-	}
-
-	if (ELEM(md->type, eModifierType_Softbody, eModifierType_Cloth) &&
-	    BLI_listbase_is_empty(&ob->particlesystem))
-	{
-		ob->mode &= ~OB_MODE_PARTICLE_EDIT;
 	}
 
 	DAG_relations_tag_update(bmain);
@@ -407,115 +386,6 @@ int ED_object_modifier_move_down(ReportList *reports, Object *ob, ModifierData *
 		BLI_remlink(&ob->modifiers, md);
 		BLI_insertlinkafter(&ob->modifiers, md->next, md);
 	}
-
-	return 1;
-}
-
-int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *scene, Object *ob, ModifierData *md)
-{
-	Object *obn;
-	ParticleSystem *psys;
-	ParticleCacheKey *key, **cache;
-	ParticleSettings *part;
-	Mesh *me;
-	MVert *mvert;
-	MEdge *medge;
-	int a, k, kmax;
-	int totvert = 0, totedge = 0, cvert = 0;
-	int totpart = 0, totchild = 0;
-
-	if (md->type != eModifierType_ParticleSystem) return 0;
-	if (ob && ob->mode & OB_MODE_PARTICLE_EDIT) return 0;
-
-	psys = ((ParticleSystemModifierData *)md)->psys;
-	part = psys->part;
-
-	if (part->ren_as != PART_DRAW_PATH || psys->pathcache == NULL)
-		return 0;
-
-	totpart = psys->totcached;
-	totchild = psys->totchildcache;
-
-	if (totchild && (part->draw & PART_DRAW_PARENT) == 0)
-		totpart = 0;
-
-	/* count */
-	cache = psys->pathcache;
-	for (a = 0; a < totpart; a++) {
-		key = cache[a];
-
-		if (key->segments > 0) {
-			totvert += key->segments + 1;
-			totedge += key->segments;
-		}
-	}
-
-	cache = psys->childcache;
-	for (a = 0; a < totchild; a++) {
-		key = cache[a];
-
-		if (key->segments > 0) {
-			totvert += key->segments + 1;
-			totedge += key->segments;
-		}
-	}
-
-	if (totvert == 0) return 0;
-
-	/* add new mesh */
-	obn = BKE_object_add(bmain, scene, OB_MESH, NULL);
-	me = obn->data;
-	
-	me->totvert = totvert;
-	me->totedge = totedge;
-	
-	me->mvert = CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
-	me->medge = CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
-	me->mface = CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, 0);
-	
-	mvert = me->mvert;
-	medge = me->medge;
-
-	/* copy coordinates */
-	cache = psys->pathcache;
-	for (a = 0; a < totpart; a++) {
-		key = cache[a];
-		kmax = key->segments;
-		for (k = 0; k <= kmax; k++, key++, cvert++, mvert++) {
-			copy_v3_v3(mvert->co, key->co);
-			if (k) {
-				medge->v1 = cvert - 1;
-				medge->v2 = cvert;
-				medge->flag = ME_EDGEDRAW | ME_EDGERENDER | ME_LOOSEEDGE;
-				medge++;
-			}
-			else {
-				/* cheap trick to select the roots */
-				mvert->flag |= SELECT;
-			}
-		}
-	}
-
-	cache = psys->childcache;
-	for (a = 0; a < totchild; a++) {
-		key = cache[a];
-		kmax = key->segments;
-		for (k = 0; k <= kmax; k++, key++, cvert++, mvert++) {
-			copy_v3_v3(mvert->co, key->co);
-			if (k) {
-				medge->v1 = cvert - 1;
-				medge->v2 = cvert;
-				medge->flag = ME_EDGEDRAW | ME_EDGERENDER | ME_LOOSEEDGE;
-				medge++;
-			}
-			else {
-				/* cheap trick to select the roots */
-				mvert->flag |= SELECT;
-			}
-		}
-	}
-
-	DAG_relations_tag_update(bmain);
 
 	return 1;
 }
@@ -648,20 +518,6 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 	else {
 		BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
 		return 0;
-	}
-
-	/* lattice modifier can be applied to particle system too */
-	if (ob->particlesystem.first) {
-
-		ParticleSystem *psys = ob->particlesystem.first;
-
-		for (; psys; psys = psys->next) {
-			
-			if (psys->part->type != PART_HAIR)
-				continue;
-
-			psys_apply_hair_lattice(scene, ob, psys);
-		}
 	}
 
 	return 1;
@@ -872,21 +728,13 @@ ModifierData *edit_modifier_property_get(wmOperator *op, Object *ob, int type)
 static int modifier_remove_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
-	int mode_orig = ob->mode;
 	
 	if (!md || !ED_object_modifier_remove(op->reports, bmain, ob, md))
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
-
-	/* if cloth/softbody was removed, particle mode could be cleared */
-	if (mode_orig & OB_MODE_PARTICLE_EDIT)
-		if ((ob->mode & OB_MODE_PARTICLE_EDIT) == 0)
-			if (scene->basact && scene->basact->object == ob)
-				WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1039,47 +887,6 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	
 	RNA_def_enum(ot->srna, "apply_as", modifier_apply_as_items, MODIFIER_APPLY_DATA, "Apply as", "How to apply the modifier to the geometry");
-	edit_modifier_properties(ot);
-}
-
-/************************ convert modifier operator *********************/
-
-static int modifier_convert_exec(bContext *C, wmOperator *op)
-{
-	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
-	Object *ob = ED_object_active_context(C);
-	ModifierData *md = edit_modifier_property_get(op, ob, 0);
-	
-	if (!md || !ED_object_modifier_convert(op->reports, bmain, scene, ob, md))
-		return OPERATOR_CANCELLED;
-
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
-	
-	return OPERATOR_FINISHED;
-}
-
-static int modifier_convert_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{
-	if (edit_modifier_invoke_properties(C, op))
-		return modifier_convert_exec(C, op);
-	else
-		return OPERATOR_CANCELLED;
-}
-
-void OBJECT_OT_modifier_convert(wmOperatorType *ot)
-{
-	ot->name = "Convert Modifier";
-	ot->description = "Convert particles to a mesh object";
-	ot->idname = "OBJECT_OT_modifier_convert";
-
-	ot->invoke = modifier_convert_invoke;
-	ot->exec = modifier_convert_exec;
-	ot->poll = edit_modifier_poll;
-	
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	edit_modifier_properties(ot);
 }
 

@@ -108,7 +108,6 @@ struct DepsgraphNodeBuilder {
 	void build_object_constraints(Scene *scene, Object *ob);
 	void build_pose_constraints(Object *ob, bPoseChannel *pchan);
 	void build_rigidbody(Scene *scene);
-	void build_particles(Scene *scene, Object *ob);
 	void build_animdata(ID *id);
 	OperationDepsNode *build_driver(ID *id, FCurve *fcurve);
 	void build_ik_pose(Scene *scene, Object *ob, bPoseChannel *pchan, bConstraint *con);
@@ -266,7 +265,6 @@ struct DepsgraphRelationBuilder
 	void build_driver(ID *id, FCurve *fcurve);
 	void build_world(World *world);
 	void build_rigidbody(Scene *scene);
-	void build_particles(Scene *scene, Object *ob);
 	void build_ik_pose(Object *ob, bPoseChannel *pchan, bConstraint *con, RootPChanMap *root_map);
 	void build_splineik_pose(Object *ob, bPoseChannel *pchan, bConstraint *con, RootPChanMap *root_map);
 	void build_rig(Scene *scene, Object *ob);

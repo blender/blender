@@ -43,15 +43,14 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_particle_types.h"
 
 #include "BKE_depsgraph.h"
 #include "BKE_fluidsim.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
-#include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
 static StructRNA *rna_FluidSettings_refine(struct PointerRNA *ptr)
@@ -121,53 +120,9 @@ static void rna_FluidSettings_update_type(Main *bmain, Scene *scene, PointerRNA 
 {
 	Object *ob = (Object *)ptr->id.data;
 	FluidsimModifierData *fluidmd;
-	ParticleSystemModifierData *psmd;
-	ParticleSystem *psys, *next_psys;
-	ParticleSettings *part;
 	
 	fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 	fluidmd->fss->flag &= ~OB_FLUIDSIM_REVERSE; /* clear flag */
-
-	/* remove fluidsim particle system */
-	if (fluidmd->fss->type & OB_FLUIDSIM_PARTICLE) {
-		for (psys = ob->particlesystem.first; psys; psys = psys->next)
-			if (psys->part->type == PART_FLUID)
-				break;
-
-		if (ob->type == OB_MESH && !psys) {
-			/* add particle system */
-			part = psys_new_settings("ParticleSettings", bmain);
-			psys = MEM_callocN(sizeof(ParticleSystem), "particle_system");
-
-			part->type = PART_FLUID;
-			psys->part = part;
-			psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
-			BLI_strncpy(psys->name, "FluidParticles", sizeof(psys->name));
-			BLI_addtail(&ob->particlesystem, psys);
-
-			/* add modifier */
-			psmd = (ParticleSystemModifierData *)modifier_new(eModifierType_ParticleSystem);
-			BLI_strncpy(psmd->modifier.name, "FluidParticleSystem", sizeof(psmd->modifier.name));
-			psmd->psys = psys;
-			BLI_addtail(&ob->modifiers, psmd);
-			modifier_unique_name(&ob->modifiers, (ModifierData *)psmd);
-		}
-	}
-	else {
-		for (psys = ob->particlesystem.first; psys; psys = next_psys) {
-			next_psys = psys->next;
-			if (psys->part->type == PART_FLUID) {
-				/* clear modifier */
-				psmd = psys_get_modifier(ob, psys);
-				BLI_remlink(&ob->modifiers, psmd);
-				modifier_free((ModifierData *)psmd);
-
-				/* clear particle system */
-				BLI_remlink(&ob->particlesystem, psys);
-				psys_free(ob, psys);
-			}
-		}
-	}
 
 	rna_fluid_update(bmain, scene, ptr);
 }

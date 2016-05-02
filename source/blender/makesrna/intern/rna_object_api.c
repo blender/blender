@@ -146,54 +146,9 @@ static Mesh *rna_Object_to_mesh(
 	return rna_Main_meshes_new_from_object(G.main, reports, sce, ob, apply_modifiers, settings, calc_tessface, calc_undeformed);
 }
 
-/* mostly a copy from convertblender.c */
-static void dupli_render_particle_set(Scene *scene, Object *ob, int level, int enable)
-{
-	/* ugly function, but we need to set particle systems to their render
-	 * settings before calling object_duplilist, to get render level duplis */
-	Group *group;
-	GroupObject *go;
-	ParticleSystem *psys;
-	DerivedMesh *dm;
-	float mat[4][4];
-
-	unit_m4(mat);
-
-	if (level >= MAX_DUPLI_RECUR)
-		return;
-	
-	if (ob->transflag & OB_DUPLIPARTS) {
-		for (psys = ob->particlesystem.first; psys; psys = psys->next) {
-			if (ELEM(psys->part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
-				if (enable)
-					psys_render_set(ob, psys, mat, mat, 1, 1, 0.f);
-				else
-					psys_render_restore(ob, psys);
-			}
-		}
-
-		if (enable) {
-			/* this is to make sure we get render level duplis in groups:
-			 * the derivedmesh must be created before init_render_mesh,
-			 * since object_duplilist does dupliparticles before that */
-			dm = mesh_create_derived_render(scene, ob, CD_MASK_BAREMESH | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL);
-			dm->release(dm);
-
-			for (psys = ob->particlesystem.first; psys; psys = psys->next)
-				psys_get_modifier(ob, psys)->flag &= ~eParticleSystemFlag_psys_updated;
-		}
-	}
-
-	if (ob->dup_group == NULL) return;
-	group = ob->dup_group;
-
-	for (go = group->gobject.first; go; go = go->next)
-		dupli_render_particle_set(scene, go->ob, level + 1, enable);
-}
 /* When no longer needed, duplilist should be freed with Object.free_duplilist */
 static void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce, int settings)
 {
-	bool for_render = (settings == DAG_EVAL_RENDER);
 	EvaluationContext eval_ctx;
 	DEG_evaluation_context_init(&eval_ctx, settings);
 
@@ -209,11 +164,7 @@ static void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *
 		free_object_duplilist(ob->duplilist);
 		ob->duplilist = NULL;
 	}
-	if (for_render)
-		dupli_render_particle_set(sce, ob, 0, 1);
 	ob->duplilist = object_duplilist(&eval_ctx, sce, ob);
-	if (for_render)
-		dupli_render_particle_set(sce, ob, 0, 0);
 	/* ob->duplilist should now be freed with Object.free_duplilist */
 }
 

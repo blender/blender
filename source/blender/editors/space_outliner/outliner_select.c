@@ -664,20 +664,6 @@ static eOLDrawState tree_element_active_modifier(
 	return OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_active_psys(
-        bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tselem, const eOLSetState set)
-{
-	if (set != OL_SETSEL_NONE) {
-		Object *ob = (Object *)tselem->id;
-		
-		WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_EDITED, ob);
-		
-// XXX		extern_set_butspace(F7KEY, 0);
-	}
-	
-	return OL_DRAWSEL_NONE;
-}
-
 static int tree_element_active_constraint(
         bContext *C, TreeElement *UNUSED(te), TreeStoreElem *tselem, const eOLSetState set)
 {
@@ -856,8 +842,6 @@ eOLDrawState tree_element_type_active(
 				return OL_DRAWSEL_NORMAL;
 			}
 			break;
-		case TSE_LINKED_PSYS:
-			return tree_element_active_psys(C, scene, te, tselem, set);
 		case TSE_POSE_BASE:
 			return tree_element_active_pose(C, scene, te, tselem, set);
 		case TSE_POSE_CHANNEL:

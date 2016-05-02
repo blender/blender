@@ -62,7 +62,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_space_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
@@ -745,19 +744,6 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 				AnimData *adt = linestyle->adt;
 				
 				ale->flag = FILTER_LS_SCED(linestyle); 
-				
-				ale->key_data = (adt) ? adt->action : NULL;
-				ale->datatype = ALE_ACT;
-				
-				ale->adt = BKE_animdata_from_id(data);
-				break;
-			}
-			case ANIMTYPE_DSPART:
-			{
-				ParticleSettings *part = (ParticleSettings *)ale->data;
-				AnimData *adt = part->adt;
-				
-				ale->flag = FILTER_PART_OBJD(part);
 				
 				ale->key_data = (adt) ? adt->action : NULL;
 				ale->datatype = ALE_ACT;
@@ -1985,12 +1971,6 @@ static size_t animdata_filter_ds_textures(bAnimContext *ac, ListBase *anim_data,
 			mtex = (MTex **)(&wo->mtex);
 			break;
 		}
-		case ID_PA:
-		{
-			ParticleSettings *part = (ParticleSettings *)owner_id;
-			mtex = (MTex **)(&part->mtex);
-			break;
-		}
 		default: 
 		{
 			/* invalid/unsupported option */
@@ -2184,53 +2164,6 @@ static size_t animdata_filter_ds_modifiers(bAnimContext *ac, ListBase *anim_data
 }
 
 /* ............ */
-
-
-static size_t animdata_filter_ds_particles(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Object *ob, int filter_mode)
-{
-	ParticleSystem *psys;
-	size_t items = 0;
-
-	for (psys = ob->particlesystem.first; psys; psys = psys->next) {
-		ListBase tmp_data = {NULL, NULL};
-		size_t tmp_items = 0;
-		
-		/* if no material returned, skip - so that we don't get weird blank entries... */
-		if (ELEM(NULL, psys->part, psys->part->adt))
-			continue;
-		
-		/* add particle-system's animation data to temp collection */
-		BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_PART_OBJD(psys->part))
-		{
-			/* particle system's animation data */
-			tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)psys->part, filter_mode);
-			
-			/* textures */
-			if (!(ads->filterflag & ADS_FILTER_NOTEX))
-				tmp_items += animdata_filter_ds_textures(ac, &tmp_data, ads, (ID *)psys->part, filter_mode);
-		}
-		END_ANIMFILTER_SUBCHANNELS;
-		
-		/* did we find anything? */
-		if (tmp_items) {
-			/* include particle-expand widget first */
-			if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
-				/* check if filtering by active status */
-				if (ANIMCHANNEL_ACTIVEOK(psys->part)) {
-					ANIMCHANNEL_NEW_CHANNEL(psys->part, ANIMTYPE_DSPART, psys->part);
-				}
-			}
-			
-			/* now add the list of collected channels */
-			BLI_movelisttolist(anim_data, &tmp_data);
-			BLI_assert(BLI_listbase_is_empty(&tmp_data));
-			items += tmp_items;
-		}
-	}
-	
-	/* return the number of items added to the list */
-	return items;
-}
 
 
 static size_t animdata_filter_ds_obdata(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Object *ob, int filter_mode)
@@ -2506,11 +2439,6 @@ static size_t animdata_filter_dopesheet_ob(bAnimContext *ac, ListBase *anim_data
 		/* object data */
 		if (ob->data) {
 			tmp_items += animdata_filter_ds_obdata(ac, &tmp_data, ads, ob, filter_mode);
-		}
-		
-		/* particles */
-		if ((ob->particlesystem.first) && !(ads->filterflag & ADS_FILTER_NOPART)) {
-			tmp_items += animdata_filter_ds_particles(ac, &tmp_data, ads, ob, filter_mode);
 		}
 		
 		/* grease pencil */

@@ -151,7 +151,7 @@ typedef struct FluidsimSettings {
 #define OB_FLUIDSIM_OBSTACLE		8
 #define OB_FLUIDSIM_INFLOW			16
 #define OB_FLUIDSIM_OUTFLOW			32
-#define OB_FLUIDSIM_PARTICLE		64
+#define OB_FLUIDSIM_PARTICLE		64 /* DEPRECATED */
 #define OB_FLUIDSIM_CONTROL			128
 
 #define OB_TYPEFLAG_START       7

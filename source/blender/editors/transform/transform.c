@@ -42,6 +42,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"  /* PET modes */
 
 #include "BLI_alloca.h"
@@ -58,7 +59,6 @@
 #include "BKE_editmesh_bvh.h"
 #include "BKE_context.h"
 #include "BKE_constraint.h"
-#include "BKE_particle.h"
 #include "BKE_unit.h"
 #include "BKE_mask.h"
 #include "BKE_report.h"

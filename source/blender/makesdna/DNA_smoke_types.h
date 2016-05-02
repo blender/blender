@@ -189,7 +189,6 @@ typedef struct SmokeDomainSettings {
 typedef struct SmokeFlowSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
 	struct DerivedMesh *dm;
-	struct ParticleSystem *psys;
 	struct Tex *noise_texture;
 
 	/* initial velocity */

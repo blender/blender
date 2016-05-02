@@ -439,8 +439,7 @@ void ED_object_editmode_exit(bContext *C, int flag)
 		/* flag object caches as outdated */
 		BKE_ptcache_ids_from_object(&pidlist, obedit, scene, 0);
 		for (pid = pidlist.first; pid; pid = pid->next) {
-			if (pid->type != PTCACHE_TYPE_PARTICLES) /* particles don't need reset on geometry change */
-				pid->cache->flag |= PTCACHE_OUTDATED;
+			pid->cache->flag |= PTCACHE_OUTDATED;
 		}
 		BLI_freelistN(&pidlist);
 		
@@ -1582,13 +1581,9 @@ static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *UNUSED(
 
 	ob = CTX_data_active_object(C);
 	if (ob) {
-		const bool use_mode_particle_edit = (BLI_listbase_is_empty(&ob->particlesystem) == false) ||
-		                                    (ob->soft != NULL) ||
-		                                    (modifiers_findByType(ob, eModifierType_Cloth) != NULL);
 		while (input->identifier) {
 			if ((input->value == OB_MODE_EDIT && OB_TYPE_SUPPORT_EDITMODE(ob->type)) ||
 			    (input->value == OB_MODE_POSE && (ob->type == OB_ARMATURE)) ||
-			    (input->value == OB_MODE_PARTICLE_EDIT && use_mode_particle_edit) ||
 			    (ELEM(input->value, OB_MODE_SCULPT, OB_MODE_VERTEX_PAINT,
 			           OB_MODE_WEIGHT_PAINT, OB_MODE_TEXTURE_PAINT) && (ob->type == OB_MESH)) ||
 			    (input->value == OB_MODE_OBJECT))
@@ -1630,8 +1625,6 @@ static const char *object_mode_op_string(int mode)
 		return "PAINT_OT_weight_paint_toggle";
 	if (mode == OB_MODE_TEXTURE_PAINT)
 		return "PAINT_OT_texture_paint_toggle";
-	if (mode == OB_MODE_PARTICLE_EDIT)
-		return "PARTICLE_OT_particle_edit_toggle";
 	if (mode == OB_MODE_POSE)
 		return "OBJECT_OT_posemode_toggle";
 	if (mode == OB_MODE_GPENCIL)
@@ -1653,7 +1646,7 @@ static bool object_mode_compat_test(Object *ob, ObjectMode mode)
 		switch (ob->type) {
 			case OB_MESH:
 				if (mode & (OB_MODE_EDIT | OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT |
-				            OB_MODE_TEXTURE_PAINT | OB_MODE_PARTICLE_EDIT))
+				            OB_MODE_TEXTURE_PAINT))
 				{
 					return true;
 				}

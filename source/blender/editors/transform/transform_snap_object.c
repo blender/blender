@@ -913,21 +913,6 @@ static bool snapObjectsRay(
 		        r_loc, r_no, r_index, r_ob, r_obmat);
 	}
 
-	/* Need an exception for particle edit because the base is flagged with BA_HAS_RECALC_DATA
-	 * which makes the loop skip it, even the derived mesh will never change
-	 *
-	 * To solve that problem, we do it first as an exception.
-	 * */
-	base = base_act;
-	if (base && base->object && base->object->mode & OB_MODE_PARTICLE_EDIT) {
-		Object *ob = base->object;
-		retval |= snapObject(
-		        sctx, ob, ob->obmat, false, snap_to,
-		        mval, dist_px,
-		        ray_start, ray_normal, ray_origin, ray_depth,
-		        r_loc, r_no, r_index, r_ob, r_obmat);
-	}
-
 	for (base = sctx->scene->base.first; base != NULL; base = base->next) {
 		if ((BASE_VISIBLE_BGMODE(sctx->v3d_data.v3d, sctx->scene, base)) &&
 		    (base->flag & (BA_HAS_RECALC_OB | BA_HAS_RECALC_DATA)) == 0 &&

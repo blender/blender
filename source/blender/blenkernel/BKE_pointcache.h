@@ -35,7 +35,6 @@
 #include "DNA_ID.h"
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_object_force.h"
-#include "DNA_boid_types.h"
 #include <stdio.h> /* for FILE */
 
 /* Point cache clearing option, for BKE_ptcache_id_clear, before
@@ -62,12 +61,11 @@
 
 /* PTCacheID types */
 #define PTCACHE_TYPE_SOFTBODY           0
-#define PTCACHE_TYPE_PARTICLES          1
-#define PTCACHE_TYPE_CLOTH              2
-#define PTCACHE_TYPE_SMOKE_DOMAIN       3
-#define PTCACHE_TYPE_SMOKE_HIGHRES      4
-#define PTCACHE_TYPE_DYNAMICPAINT       5
-#define PTCACHE_TYPE_RIGIDBODY          6
+#define PTCACHE_TYPE_CLOTH              1
+#define PTCACHE_TYPE_SMOKE_DOMAIN       2
+#define PTCACHE_TYPE_SMOKE_HIGHRES      3
+#define PTCACHE_TYPE_DYNAMICPAINT       4
+#define PTCACHE_TYPE_RIGIDBODY          5
 
 /* high bits reserved for flags that need to be stored in file */
 #define PTCACHE_TYPEFLAG_COMPRESS       (1 << 16)
@@ -86,8 +84,7 @@ struct ClothModifierData;
 struct ListBase;
 struct Main;
 struct Object;
-struct ParticleKey;
-struct ParticleSystem;
+struct PointCacheKey;
 struct PointCache;
 struct Scene;
 struct SmokeModifierData;
@@ -106,7 +103,6 @@ typedef struct PTCacheData {
 	float ave[3];
 	float size;
 	float times[3];
-	struct BoidData boids;
 } PTCacheData;
 
 typedef struct PTCacheFile {
@@ -250,27 +246,24 @@ typedef struct PTCacheEdit {
 
 	struct PTCacheID pid;
 
-	/* particles stuff */
-	struct ParticleSystem *psys;
-	struct KDTree *emitter_field;
-	float *emitter_cosnos; /* localspace face centers and normals (average of its verts), from the derived mesh */
-	int *mirror_cache;
-
-	struct ParticleCacheKey **pathcache;    /* path cache (runtime) */
-	ListBase pathcachebufs;
-
 	int totpoint, totframes, totcached, edited;
 
 	unsigned char sel_col[3];
 	unsigned char nosel_col[3];
 } PTCacheEdit;
 
-/* Particle functions */
-void BKE_ptcache_make_particle_key(struct ParticleKey *key, int index, void **data, float time);
+typedef struct PointCacheKey {
+	float co[3];	/* location */
+	float vel[3];	/* velocity */
+	float rot[4];	/* rotation quaternion */
+	float ave[3];	/* angular velocity */
+	float time;		/* when this key happens */
+} PointCacheKey;
+
+void BKE_ptcache_make_key(struct PointCacheKey *key, int index, void **data, float time);
 
 /**************** Creating ID's ****************************/
 void BKE_ptcache_id_from_softbody(PTCacheID *pid, struct Object *ob, struct SoftBody *sb);
-void BKE_ptcache_id_from_particles(PTCacheID *pid, struct Object *ob, struct ParticleSystem *psys);
 void BKE_ptcache_id_from_cloth(PTCacheID *pid, struct Object *ob, struct ClothModifierData *clmd);
 void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeModifierData *smd);
 void BKE_ptcache_id_from_dynamicpaint(PTCacheID *pid, struct Object *ob, struct DynamicPaintSurface *surface);

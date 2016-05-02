@@ -45,7 +45,6 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 #include "DNA_sequence_types.h"
@@ -620,14 +619,6 @@ static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, Tree
 			}
 			else if (md->type == eModifierType_Hook) {
 				outliner_add_element(soops, &ten->subtree, ((HookModifierData *) md)->object, ten, TSE_LINKED_OB, 0);
-			}
-			else if (md->type == eModifierType_ParticleSystem) {
-				ParticleSystem *psys = ((ParticleSystemModifierData *) md)->psys;
-				TreeElement *ten_psys;
-				
-				ten_psys = outliner_add_element(soops, &ten->subtree, ob, te, TSE_LINKED_PSYS, 0);
-				ten_psys->directdata = psys;
-				ten_psys->name = psys->part->id.name + 2;
 			}
 		}
 	}

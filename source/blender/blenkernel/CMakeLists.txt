@@ -79,7 +79,6 @@ set(SRC
 	intern/blender_undo.c
 	intern/blendfile.c
 	intern/bmfont.c
-	intern/boids.c
 	intern/bpath.c
 	intern/brush.c
 	intern/bullet.c
@@ -148,10 +147,6 @@ set(SRC
 	intern/outliner_treehash.c
 	intern/packedFile.c
 	intern/paint.c
-	intern/particle.c
-	intern/particle_child.c
-	intern/particle_distribute.c
-	intern/particle_system.c
 	intern/pbvh.c
 	intern/pbvh_bmesh.c
 	intern/pointcache.c
@@ -203,7 +198,6 @@ set(SRC
 	BKE_blendfile.h
 	BKE_bmfont.h
 	BKE_bmfont_types.h
-	BKE_boids.h
 	BKE_bpath.h
 	BKE_brush.h
 	BKE_bullet.h
@@ -265,7 +259,6 @@ set(SRC
 	BKE_outliner_treehash.h
 	BKE_packedFile.h
 	BKE_paint.h
-	BKE_particle.h
 	BKE_pbvh.h
 	BKE_pointcache.h
 	BKE_property.h

@@ -47,7 +47,6 @@ struct Main;
 struct Material;
 struct MTex;
 struct OceanTex;
-struct ParticleSettings;
 struct PointDensity;
 struct Tex;
 struct TexMapping;
@@ -87,7 +86,6 @@ struct Tex *give_current_lamp_texture(struct Lamp *la);
 struct Tex *give_current_linestyle_texture(struct FreestyleLineStyle *linestyle);
 struct Tex *give_current_world_texture(struct World *world);
 struct Tex *give_current_brush_texture(struct Brush *br);
-struct Tex *give_current_particle_texture(struct ParticleSettings *part);
 
 struct bNode *give_current_material_texture_node(struct Material *ma);
 
@@ -99,7 +97,6 @@ void set_current_world_texture(struct World *wo, struct Tex *tex);
 void set_current_material_texture(struct Material *ma, struct Tex *tex);
 void set_current_lamp_texture(struct Lamp *la, struct Tex *tex);
 void set_current_linestyle_texture(struct FreestyleLineStyle *linestyle, struct Tex *tex);
-void set_current_particle_texture(struct ParticleSettings *part, struct Tex *tex);
 
 bool has_current_material_texture(struct Material *ma);
 

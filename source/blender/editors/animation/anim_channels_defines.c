@@ -42,7 +42,6 @@
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -315,7 +314,7 @@ static short acf_generic_group_offset(bAnimContext *ac, bAnimListElem *ale)
 			offset += U.widget_unit;
 		}
 		/* materials and particles animdata */
-		else if (ELEM(GS(ale->id->name), ID_MA, ID_PA))
+		else if (GS(ale->id->name) == ID_MA)
 			offset += (short)(0.7f * U.widget_unit);
 			
 		/* if not in Action Editor mode, action-groups (and their children) must carry some offset too... */
@@ -1909,7 +1908,7 @@ static int acf_dspart_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settin
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			return PART_DS_EXPAND;
+			return 0;
 			
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
 			return ADT_NLA_EVAL_OFF;
@@ -1927,22 +1926,18 @@ static int acf_dspart_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settin
 }
 
 /* get pointer to the setting */
-static void *acf_dspart_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
+static void *acf_dspart_setting_ptr(bAnimListElem *UNUSED(ale), eAnimChannel_Settings setting, short *type)
 {
-	ParticleSettings *part = (ParticleSettings *)ale->data;
-	
 	/* clear extra return data first */
 	*type = 0;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			return GET_ACF_FLAG_PTR(part->flag, type);
+			return NULL;
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
-			if (part->adt)
-				return GET_ACF_FLAG_PTR(part->adt->flag, type);
 			return NULL;
 		
 		default: /* unsupported */

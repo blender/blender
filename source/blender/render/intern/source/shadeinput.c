@@ -39,7 +39,6 @@
 #include "DNA_lamp_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_material_types.h"
-#include "DNA_particle_types.h"
 
 #include "BKE_scene.h"
 

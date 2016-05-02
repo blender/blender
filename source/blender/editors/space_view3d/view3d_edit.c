@@ -69,7 +69,6 @@
 #include "RNA_define.h"
 
 #include "ED_armature.h"
-#include "ED_particle.h"
 #include "ED_keyframing.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
@@ -3040,9 +3039,6 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	}
 	else if (BKE_paint_select_face_test(ob)) {
 		ok = paintface_minmax(ob, min, max);
-	}
-	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
-		ok = PE_minmax(scene, min, max);
 	}
 	else if (ob && (ob->mode & (OB_MODE_SCULPT | OB_MODE_TEXTURE_PAINT))) {
 		BKE_paint_stroke_get_average(scene, ob, min);

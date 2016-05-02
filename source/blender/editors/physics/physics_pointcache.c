@@ -37,16 +37,14 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_particle.h"
 #include "BKE_pointcache.h"
-
-#include "ED_particle.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -148,11 +146,8 @@ static void ptcache_job_endjob(void *customdata)
 static void ptcache_free_bake(PointCache *cache)
 {
 	if (cache->edit) {
-		if (!cache->edit->edited || 1) {// XXX okee("Lose changes done in particle mode?")) {
-			PE_free_ptcache_edit(cache->edit);
-			cache->edit = NULL;
-			cache->flag &= ~PTCACHE_BAKED;
-		}
+		cache->edit = NULL;
+		cache->flag &= ~PTCACHE_BAKED;
 	}
 	else {
 		cache->flag &= ~PTCACHE_BAKED;

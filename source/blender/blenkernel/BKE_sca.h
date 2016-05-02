@@ -83,7 +83,7 @@ void BKE_sca_controllers_id_loop(struct ListBase *contlist, SCAControllerIDFunc 
 void BKE_sca_actuators_id_loop(struct ListBase *atclist, SCAActuatorIDFunc func, void *userdata);
 
 
-const char *sca_state_name_get(Object *ob, short bit);
+const char *sca_state_name_get(struct Object *ob, short bit);
 
 #endif
 

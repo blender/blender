@@ -1385,37 +1385,6 @@ class CyclesTexture_PT_colors(CyclesButtonsPanel, Panel):
             layout.template_color_ramp(mapping, "color_ramp", expand=True)
 
 
-class CyclesParticle_PT_textures(CyclesButtonsPanel, Panel):
-    bl_label = "Textures"
-    bl_context = "particle"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        psys = context.particle_system
-        return psys and CyclesButtonsPanel.poll(context)
-
-    def draw(self, context):
-        layout = self.layout
-
-        psys = context.particle_system
-        part = psys.settings
-
-        row = layout.row()
-        row.template_list("TEXTURE_UL_texslots", "", part, "texture_slots", part, "active_texture_index", rows=2)
-
-        col = row.column(align=True)
-        col.operator("texture.slot_move", text="", icon='TRIA_UP').type = 'UP'
-        col.operator("texture.slot_move", text="", icon='TRIA_DOWN').type = 'DOWN'
-        col.menu("TEXTURE_MT_specials", icon='DOWNARROW_HLT', text="")
-
-        if not part.active_texture:
-            layout.template_ID(part, "active_texture", new="texture.new")
-        else:
-            slot = part.texture_slots[part.active_texture_index]
-            layout.template_ID(slot, "texture", new="texture.new")
-
-
 class CyclesRender_PT_CurveRendering(CyclesButtonsPanel, Panel):
     bl_label = "Cycles Hair Rendering"
     bl_context = "particle"
@@ -1560,37 +1529,6 @@ class CyclesRender_PT_debug(CyclesButtonsPanel, Panel):
         col.prop(cscene, "debug_use_opencl_debug", text="Debug")
 
 
-class CyclesParticle_PT_CurveSettings(CyclesButtonsPanel, Panel):
-    bl_label = "Cycles Hair Settings"
-    bl_context = "particle"
-
-    @classmethod
-    def poll(cls, context):
-        scene = context.scene
-        ccscene = scene.cycles_curves
-        psys = context.particle_system
-        use_curves = ccscene.use_curves and psys
-        return CyclesButtonsPanel.poll(context) and use_curves and psys.settings.type == 'HAIR'
-
-    def draw(self, context):
-        layout = self.layout
-
-        psys = context.particle_settings
-        cpsys = psys.cycles
-
-        row = layout.row()
-        row.prop(cpsys, "shape", text="Shape")
-
-        layout.label(text="Thickness:")
-        row = layout.row()
-        row.prop(cpsys, "root_width", text="Root")
-        row.prop(cpsys, "tip_width", text="Tip")
-
-        row = layout.row()
-        row.prop(cpsys, "radius_scale", text="Scaling")
-        row.prop(cpsys, "use_closetip", text="Close tip")
-
-
 class CyclesScene_PT_simplify(CyclesButtonsPanel, Panel):
     bl_label = "Simplify"
     bl_context = "scene"
@@ -1613,12 +1551,10 @@ class CyclesScene_PT_simplify(CyclesButtonsPanel, Panel):
         col = split.column()
         col.label(text="Viewport:")
         col.prop(rd, "simplify_subdivision", text="Subdivision")
-        col.prop(rd, "simplify_child_particles", text="Child Particles")
 
         col = split.column()
         col.label(text="Render:")
         col.prop(rd, "simplify_subdivision_render", text="Subdivision")
-        col.prop(rd, "simplify_child_particles_render", text="Child Particles")
 
         col = layout.column()
         col.prop(cscene, "use_camera_cull")
@@ -1732,24 +1668,9 @@ def get_panels():
         "TEXTURE_PT_ocean",
         "TEXTURE_PT_influence",
         "TEXTURE_PT_colors",
-        "PARTICLE_PT_context_particles",
-        "PARTICLE_PT_custom_props",
-        "PARTICLE_PT_emission",
-        "PARTICLE_PT_hair_dynamics",
-        "PARTICLE_PT_cache",
-        "PARTICLE_PT_velocity",
-        "PARTICLE_PT_rotation",
-        "PARTICLE_PT_physics",
         "SCENE_PT_rigid_body_world",
         "SCENE_PT_rigid_body_cache",
         "SCENE_PT_rigid_body_field_weights",
-        "PARTICLE_PT_boidbrain",
-        "PARTICLE_PT_render",
-        "PARTICLE_PT_draw",
-        "PARTICLE_PT_children",
-        "PARTICLE_PT_field_weights",
-        "PARTICLE_PT_force_fields",
-        "PARTICLE_PT_vertexgroups",
         "MATERIAL_PT_custom_props",
         "MATERIAL_PT_freestyle_line",
         "BONE_PT_custom_props",

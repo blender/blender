@@ -56,7 +56,6 @@ EnumPropertyItem rna_enum_prop_dynamicpaint_type_items[] = {
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_particle.h"
 
 
 static char *rna_DynamicPaintCanvasSettings_path(PointerRNA *ptr)
@@ -955,38 +954,6 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_NEGATE_VOLUME);
 	RNA_def_property_ui_text(prop, "Negate Volume", "Negate influence inside the volume");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_redoModifier");
-	
-
-	/*
-	 *   Particle
-	 */
-	prop = RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "psys");
-	RNA_def_property_struct_type(prop, "ParticleSystem");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Particle Systems", "The particle system to paint with");
-	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_reset_dependency");
-
-	
-	prop = RNA_def_property(srna, "use_particle_radius", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_PART_RAD);
-	RNA_def_property_ui_text(prop, "Use Particle Radius", "Use radius from particle settings");
-	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_redoModifier");
-	
-	prop = RNA_def_property(srna, "solid_radius", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "particle_radius");
-	RNA_def_property_range(prop, 0.01, 10.0);
-	RNA_def_property_ui_range(prop, 0.01, 2.0, 5, 3);
-	RNA_def_property_ui_text(prop, "Solid Radius", "Radius that will be painted solid");
-	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_redoModifier");
-
-	prop = RNA_def_property(srna, "smooth_radius", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "particle_smooth");
-	RNA_def_property_range(prop, 0.0, 10.0);
-	RNA_def_property_ui_range(prop, 0.0, 1.0, 5, -1);
-	RNA_def_property_ui_text(prop, "Smooth Radius", "Smooth falloff added after solid radius");
-	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_redoModifier");
-	
 
 	/*
 	 * Color ramps

@@ -42,53 +42,8 @@
 
 /***************************** particles ***********************************/
 
-static void operatortypes_particle(void)
+static void operatortypes_rigidbody(void)
 {
-	WM_operatortype_append(PARTICLE_OT_select_all);
-	WM_operatortype_append(PARTICLE_OT_select_roots);
-	WM_operatortype_append(PARTICLE_OT_select_tips);
-	WM_operatortype_append(PARTICLE_OT_select_random);
-	WM_operatortype_append(PARTICLE_OT_select_linked);
-	WM_operatortype_append(PARTICLE_OT_select_less);
-	WM_operatortype_append(PARTICLE_OT_select_more);
-
-	WM_operatortype_append(PARTICLE_OT_hide);
-	WM_operatortype_append(PARTICLE_OT_reveal);
-
-	WM_operatortype_append(PARTICLE_OT_rekey);
-	WM_operatortype_append(PARTICLE_OT_subdivide);
-	WM_operatortype_append(PARTICLE_OT_remove_doubles);
-	WM_operatortype_append(PARTICLE_OT_weight_set);
-	WM_operatortype_append(PARTICLE_OT_delete);
-	WM_operatortype_append(PARTICLE_OT_mirror);
-
-	WM_operatortype_append(PARTICLE_OT_brush_edit);
-
-	WM_operatortype_append(PARTICLE_OT_shape_cut);
-
-	WM_operatortype_append(PARTICLE_OT_particle_edit_toggle);
-	WM_operatortype_append(PARTICLE_OT_edited_clear);
-
-	WM_operatortype_append(PARTICLE_OT_unify_length);
-
-
-	WM_operatortype_append(OBJECT_OT_particle_system_add);
-	WM_operatortype_append(OBJECT_OT_particle_system_remove);
-
-	WM_operatortype_append(PARTICLE_OT_new);
-	WM_operatortype_append(PARTICLE_OT_new_target);
-	WM_operatortype_append(PARTICLE_OT_target_remove);
-	WM_operatortype_append(PARTICLE_OT_target_move_up);
-	WM_operatortype_append(PARTICLE_OT_target_move_down);
-	WM_operatortype_append(PARTICLE_OT_connect_hair);
-	WM_operatortype_append(PARTICLE_OT_disconnect_hair);
-	WM_operatortype_append(PARTICLE_OT_copy_particle_systems);
-
-	WM_operatortype_append(PARTICLE_OT_dupliob_copy);
-	WM_operatortype_append(PARTICLE_OT_dupliob_remove);
-	WM_operatortype_append(PARTICLE_OT_dupliob_move_up);
-	WM_operatortype_append(PARTICLE_OT_dupliob_move_down);
-
 	WM_operatortype_append(RIGIDBODY_OT_object_add);
 	WM_operatortype_append(RIGIDBODY_OT_object_remove);
 
@@ -104,73 +59,6 @@ static void operatortypes_particle(void)
 	WM_operatortype_append(RIGIDBODY_OT_world_add);
 	WM_operatortype_append(RIGIDBODY_OT_world_remove);
 //	WM_operatortype_append(RIGIDBODY_OT_world_export);
-}
-
-static void keymap_particle(wmKeyConfig *keyconf)
-{
-	wmKeyMapItem *kmi;
-	wmKeyMap *keymap;
-	
-	keymap = WM_keymap_find(keyconf, "Particle", 0, 0);
-	keymap->poll = PE_poll;
-	
-	kmi = WM_keymap_add_item(keymap, "PARTICLE_OT_select_all", AKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
-	kmi = WM_keymap_add_item(keymap, "PARTICLE_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
-
-	WM_keymap_add_item(keymap, "PARTICLE_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
-
-	kmi = WM_keymap_add_item(keymap, "PARTICLE_OT_select_linked", LKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", false);
-	kmi = WM_keymap_add_item(keymap, "PARTICLE_OT_select_linked", LKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", true);
-
-	WM_keymap_add_item(keymap, "PARTICLE_OT_delete", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_delete", DELKEY, KM_PRESS, 0, 0);
-
-	WM_keymap_add_item(keymap, "PARTICLE_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
-	kmi = WM_keymap_add_item(keymap, "PARTICLE_OT_hide", HKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", false);
-	kmi = WM_keymap_add_item(keymap, "PARTICLE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", true);
-
-	kmi = WM_keymap_verify_item(keymap, "VIEW3D_OT_manipulator", LEFTMOUSE, KM_PRESS, KM_ANY, 0);
-	RNA_boolean_set(kmi->ptr, "release_confirm", true);
-
-	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "PARTICLE_OT_brush_edit", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
-
-	/* size radial control */
-	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path_primary", "tool_settings.particle_edit.brush.size");
-
-	/* size radial control */
-	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "data_path_primary", "tool_settings.particle_edit.brush.strength");
-
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_particle_specials", WKEY, KM_PRESS, 0, 0);
-	
-	WM_keymap_add_item(keymap, "PARTICLE_OT_weight_set", KKEY, KM_PRESS, KM_SHIFT, 0);
-
-	ED_keymap_proportional_cycle(keyconf, keymap);
-	ED_keymap_proportional_editmode(keyconf, keymap, false);
-}
-
-/******************************* boids *************************************/
-
-static void operatortypes_boids(void)
-{
-	WM_operatortype_append(BOID_OT_rule_add);
-	WM_operatortype_append(BOID_OT_rule_del);
-	WM_operatortype_append(BOID_OT_rule_move_up);
-	WM_operatortype_append(BOID_OT_rule_move_down);
-
-	WM_operatortype_append(BOID_OT_state_add);
-	WM_operatortype_append(BOID_OT_state_del);
-	WM_operatortype_append(BOID_OT_state_move_up);
-	WM_operatortype_append(BOID_OT_state_move_down);
 }
 
 /********************************* fluid ***********************************/
@@ -218,16 +106,14 @@ static void operatortypes_dynamicpaint(void)
 
 void ED_operatortypes_physics(void)
 {
-	operatortypes_particle();
-	operatortypes_boids();
+	operatortypes_rigidbody();
 	operatortypes_fluid();
 	operatortypes_pointcache();
 	operatortypes_dynamicpaint();
 }
 
-void ED_keymap_physics(wmKeyConfig *keyconf)
+void ED_keymap_physics(wmKeyConfig *UNUSED(keyconf))
 {
-	keymap_particle(keyconf);
 	//keymap_pointcache(keyconf);
 }
 

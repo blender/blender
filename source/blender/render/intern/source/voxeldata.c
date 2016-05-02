@@ -63,7 +63,6 @@
 #include "DNA_texture_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_smoke_types.h"
 
@@ -369,20 +368,8 @@ static void init_frame_smoke(VoxelData *vd, int cfra)
 
 static void init_frame_hair(VoxelData *vd, int UNUSED(cfra))
 {
-	Object *ob;
-	ModifierData *md;
-	
 	vd->dataset = NULL;
 	if (vd->object == NULL) return;
-	ob = vd->object;
-	
-	if ((md = (ModifierData *)modifiers_findByType(ob, eModifierType_ParticleSystem))) {
-		ParticleSystemModifierData *pmd = (ParticleSystemModifierData *)md;
-		
-		if (pmd->psys && pmd->psys->clmd) {
-			vd->ok |= BPH_cloth_solver_get_texture_data(ob, pmd->psys->clmd, vd);
-		}
-	}
 }
 
 void cache_voxeldata(Tex *tex, int scene_frame)

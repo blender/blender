@@ -115,9 +115,6 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 			case PTCACHE_TYPE_SOFTBODY:
 				if (!(stime->cache_display & TIME_CACHE_SOFTBODY)) continue;
 				break;
-			case PTCACHE_TYPE_PARTICLES:
-				if (!(stime->cache_display & TIME_CACHE_PARTICLES)) continue;
-				break;
 			case PTCACHE_TYPE_CLOTH:
 				if (!(stime->cache_display & TIME_CACHE_CLOTH)) continue;
 				break;
@@ -177,10 +174,6 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 		switch (pid->type) {
 			case PTCACHE_TYPE_SOFTBODY:
 				col[0] = 1.0;   col[1] = 0.4;   col[2] = 0.02;
-				col[3] = 0.1;
-				break;
-			case PTCACHE_TYPE_PARTICLES:
-				col[0] = 1.0;   col[1] = 0.1;   col[2] = 0.02;
 				col[3] = 0.1;
 				break;
 			case PTCACHE_TYPE_CLOTH:
@@ -431,7 +424,6 @@ static void time_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_POINTCACHE:
 				case ND_MODIFIER:
-				case ND_PARTICLE:
 				case ND_KEYS:
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);

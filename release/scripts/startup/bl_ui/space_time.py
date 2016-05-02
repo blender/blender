@@ -171,7 +171,6 @@ class TIME_MT_cache(Menu):
         col = layout.column()
         col.enabled = st.show_cache
         col.prop(st, "cache_softbody")
-        col.prop(st, "cache_particles")
         col.prop(st, "cache_cloth")
         col.prop(st, "cache_smoke")
         col.prop(st, "cache_dynamicpaint")

@@ -49,7 +49,6 @@
 #include "BKE_screen.h"
 
 #include "ED_armature.h"
-#include "ED_particle.h"
 #include "ED_curve.h"
 #include "ED_gpencil.h"
 #include "ED_mball.h"
@@ -97,11 +96,6 @@ void ED_undo_push(bContext *C, const char *str)
 			undo_push_lattice(C, str);
 		else if (obedit->type == OB_ARMATURE)
 			undo_push_armature(C, str);
-	}
-	else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
-		if (U.undosteps == 0) return;
-
-		PE_undo_push(CTX_data_scene(C), str);
 	}
 	else if (obact && obact->mode & OB_MODE_SCULPT) {
 		/* do nothing for now */
@@ -177,12 +171,6 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 		}
 		else if (obact && obact->mode & OB_MODE_SCULPT) {
 			ED_undo_paint_step(C, UNDO_PAINT_MESH, step, undoname);
-		}
-		else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
-			if (step == 1)
-				PE_undo(scene);
-			else
-				PE_redo(scene);
 		}
 		else if (U.uiflag & USER_GLOBALUNDO) {
 			// note python defines not valid here anymore.
@@ -272,9 +260,6 @@ bool ED_undo_is_valid(const bContext *C, const char *undoname)
 		else if (obact && obact->mode & OB_MODE_SCULPT) {
 			if (ED_undo_paint_is_valid(UNDO_PAINT_MESH, undoname))
 				return 1;
-		}
-		else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
-			return PE_undo_is_valid(CTX_data_scene(C));
 		}
 		
 		if (U.uiflag & USER_GLOBALUNDO) {
@@ -435,8 +420,7 @@ void ED_undo_operator_repeat_cb_evt(bContext *C, void *arg_op, int UNUSED(arg_ev
 enum {
 	UNDOSYSTEM_GLOBAL   = 1,
 	UNDOSYSTEM_EDITMODE = 2,
-	UNDOSYSTEM_PARTICLE = 3,
-	UNDOSYSTEM_IMAPAINT = 4
+	UNDOSYSTEM_IMAPAINT = 3
 };
 
 static int get_undo_system(bContext *C)
@@ -462,9 +446,7 @@ static int get_undo_system(bContext *C)
 	}
 	else {
 		if (obact) {
-			if (obact->mode & OB_MODE_PARTICLE_EDIT)
-				return UNDOSYSTEM_PARTICLE;
-			else if (obact->mode & OB_MODE_TEXTURE_PAINT) {
+			if (obact->mode & OB_MODE_TEXTURE_PAINT) {
 				if (!ED_undo_paint_empty(UNDO_PAINT_IMAGE))
 					return UNDOSYSTEM_IMAPAINT;
 			}
@@ -486,10 +468,7 @@ static EnumPropertyItem *rna_undo_itemf(bContext *C, int undosys, int *totitem)
 	while (true) {
 		const char *name = NULL;
 		
-		if (undosys == UNDOSYSTEM_PARTICLE) {
-			name = PE_undo_get_name(CTX_data_scene(C), i, &active);
-		}
-		else if (undosys == UNDOSYSTEM_EDITMODE) {
+		if (undosys == UNDOSYSTEM_EDITMODE) {
 			name = undo_editmode_get_name(C, i, &active);
 		}
 		else if (undosys == UNDOSYSTEM_IMAPAINT) {
@@ -566,10 +545,7 @@ static int undo_history_exec(bContext *C, wmOperator *op)
 		int undosys = get_undo_system(C);
 		int item = RNA_int_get(op->ptr, "item");
 		
-		if (undosys == UNDOSYSTEM_PARTICLE) {
-			PE_undo_number(CTX_data_scene(C), item);
-		}
-		else if (undosys == UNDOSYSTEM_EDITMODE) {
+		if (undosys == UNDOSYSTEM_EDITMODE) {
 			undo_editmode_number(C, item + 1);
 			WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
 		}

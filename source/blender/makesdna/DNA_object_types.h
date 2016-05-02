@@ -51,7 +51,6 @@ struct Material;
 struct PartDeflect;
 struct SoftBody;
 struct FluidsimSettings;
-struct ParticleSystem;
 struct DerivedMesh;
 struct SculptSession;
 struct bGPdata;
@@ -263,7 +262,6 @@ typedef struct Object {
 	ListBase constraints;		/* object constraints */
 	ListBase nlastrips  DNA_DEPRECATED;			// XXX deprecated... old animation system
 	ListBase hooks  DNA_DEPRECATED;				// XXX deprecated... old animation system
-	ListBase particlesystem;	/* particle systems */
 	
 	struct PartDeflect *pd;		/* particle deflector/attractor/collision data */
 	struct SoftBody *soft;		/* if exists, saved in file */
@@ -332,9 +330,6 @@ typedef struct DupliObject {
 	/* persistent identifier for a dupli object, for inter-frame matching of
 	 * objects with motion blur, or inter-update matching for syncing */
 	int persistent_id[8]; /* MAX_DUPLI_RECUR */
-
-	/* particle this dupli was generated from */
-	struct ParticleSystem *particle_system;
 } DupliObject;
 
 /* **************** OBJECT ********************* */
@@ -673,7 +668,7 @@ typedef enum ObjectMode {
 	OB_MODE_VERTEX_PAINT  = 1 << 2,
 	OB_MODE_WEIGHT_PAINT  = 1 << 3,
 	OB_MODE_TEXTURE_PAINT = 1 << 4,
-	OB_MODE_PARTICLE_EDIT = 1 << 5,
+	/*OB_MODE_PARTICLE_EDIT = 1 << 5,*/ /* DEPRECATED */
 	OB_MODE_POSE          = 1 << 6,
 	OB_MODE_GPENCIL       = 1 << 7,  /* NOTE: Just a dummy to make the UI nicer */
 } ObjectMode;

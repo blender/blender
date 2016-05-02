@@ -55,7 +55,6 @@
 #include "DNA_object_fluidsim.h"
 #include "DNA_object_force.h"
 #include "DNA_object_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_text_types.h"
@@ -462,7 +461,6 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 		{
 			Object *ob = (Object *)id;
 			ModifierData *md;
-			ParticleSystem *psys;
 
 #define BPATH_TRAVERSE_POINTCACHE(ptcaches)                                    \
 	{                                                                          \
@@ -513,10 +511,6 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 
 			if (ob->soft) {
 				BPATH_TRAVERSE_POINTCACHE(ob->soft->ptcaches);
-			}
-
-			for (psys = ob->particlesystem.first; psys; psys = psys->next) {
-				BPATH_TRAVERSE_POINTCACHE(psys->ptcaches);
 			}
 
 #undef BPATH_TRAVERSE_POINTCACHE

@@ -63,7 +63,6 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_packedFile.h"
-#include "BKE_particle.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_sca.h"
@@ -360,7 +359,6 @@ static const char *template_id_browse_tip(StructRNA *type)
 			case ID_AC:  return N_("Browse Action to be linked");
 			case ID_NT:  return N_("Browse Node Tree to be linked");
 			case ID_BR:  return N_("Browse Brush to be linked");
-			case ID_PA:  return N_("Browse Particle Settings to be linked");
 			case ID_GD:  return N_("Browse Grease Pencil Data to be linked");
 			case ID_MC:  return N_("Browse Movie Clip to be linked");
 			case ID_MSK: return N_("Browse Mask to be linked");
@@ -516,7 +514,6 @@ static void template_ID(
 		                                 BLT_I18NCONTEXT_ID_ACTION,
 		                                 BLT_I18NCONTEXT_ID_NODETREE,
 		                                 BLT_I18NCONTEXT_ID_BRUSH,
-		                                 BLT_I18NCONTEXT_ID_PARTICLESETTINGS,
 		                                 BLT_I18NCONTEXT_ID_GPENCIL,
 		                                 BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE,
 		);
@@ -784,16 +781,6 @@ static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
 	ED_undo_push(C, "Modifier convert to real");
 }
 
-static int modifier_can_delete(ModifierData *md)
-{
-	/* fluid particle modifier can't be deleted here */
-	if (md->type == eModifierType_ParticleSystem)
-		if (((ParticleSystemModifierData *)md)->psys->part->type == PART_FLUID)
-			return 0;
-
-	return 1;
-}
-
 /* Check whether Modifier is a simulation or not, this is used for switching to the physics/particles context tab */
 static int modifier_is_simulation(ModifierData *md)
 {
@@ -802,10 +789,6 @@ static int modifier_is_simulation(ModifierData *md)
 	          eModifierType_Softbody, eModifierType_Surface, eModifierType_DynamicPaint))
 	{
 		return 1;
-	}
-	/* Particle Tab */
-	else if (md->type == eModifierType_ParticleSystem) {
-		return 2;
 	}
 	else {
 		return 0;
@@ -921,17 +904,13 @@ static uiLayout *draw_modifier(
 		
 		UI_block_emboss_set(block, UI_EMBOSS_NONE);
 		/* When Modifier is a simulation, show button to switch to context rather than the delete button. */
-		if (modifier_can_delete(md) &&
-		    (!modifier_is_simulation(md) ||
-		     STREQ(scene->r.engine, RE_engine_id_BLENDER_GAME)))
+		if (!modifier_is_simulation(md) ||
+		    STREQ(scene->r.engine, RE_engine_id_BLENDER_GAME))
 		{
 			uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
 		}
 		else if (modifier_is_simulation(md) == 1) {
 			uiItemStringO(row, "", ICON_BUTS, "WM_OT_properties_context_change", "context", "PHYSICS");
-		}
-		else if (modifier_is_simulation(md) == 2) {
-			uiItemStringO(row, "", ICON_BUTS, "WM_OT_properties_context_change", "context", "PARTICLES");
 		}
 		UI_block_emboss_set(block, UI_EMBOSS);
 	}
@@ -947,34 +926,20 @@ static uiLayout *draw_modifier(
 			/* only here obdata, the rest of modifiers is ob level */
 			UI_block_lock_set(block, BKE_object_obdata_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 			
-			if (md->type == eModifierType_ParticleSystem) {
-				ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
-				
-				if (!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
-					if (ELEM(psys->part->ren_as, PART_DRAW_GR, PART_DRAW_OB))
-						uiItemO(row, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Convert"), ICON_NONE,
-						        "OBJECT_OT_duplicates_make_real");
-					else if (psys->part->ren_as == PART_DRAW_PATH && psys->pathcache)
-						uiItemO(row, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Convert"), ICON_NONE,
-						        "OBJECT_OT_modifier_convert");
-				}
-			}
-			else {
-				uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
-				uiItemEnumO(row, "OBJECT_OT_modifier_apply", CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
-				            0, "apply_as", MODIFIER_APPLY_DATA);
-				
-				if (modifier_isSameTopology(md) && !modifier_isNonGeometrical(md)) {
-					uiItemEnumO(row, "OBJECT_OT_modifier_apply",
-					            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply as Shape Key"),
-					            0, "apply_as", MODIFIER_APPLY_SHAPE);
-				}
+			uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
+			uiItemEnumO(row, "OBJECT_OT_modifier_apply", CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
+			            0, "apply_as", MODIFIER_APPLY_DATA);
+			
+			if (modifier_isSameTopology(md) && !modifier_isNonGeometrical(md)) {
+				uiItemEnumO(row, "OBJECT_OT_modifier_apply",
+				            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply as Shape Key"),
+				            0, "apply_as", MODIFIER_APPLY_SHAPE);
 			}
 			
 			UI_block_lock_clear(block);
 			UI_block_lock_set(block, ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);
 			
-			if (!ELEM(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem,
+			if (!ELEM(md->type, eModifierType_Fluidsim, eModifierType_Softbody,
 			           eModifierType_Cloth, eModifierType_Smoke))
 			{
 				uiItemO(row, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy"), ICON_NONE,

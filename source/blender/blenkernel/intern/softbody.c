@@ -1499,7 +1499,7 @@ static void scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow)
 	SoftBody *sb = ob->soft;
 	ListBase *do_effector = NULL;
 
-	do_effector = pdInitEffectors(scene, ob, NULL, sb->effector_weights, true);
+	do_effector = pdInitEffectors(scene, ob, sb->effector_weights, true);
 	_scan_for_ext_spring_forces(scene, ob, timenow, 0, sb->totspring, do_effector);
 	pdEndEffectors(&do_effector);
 }
@@ -1519,7 +1519,7 @@ static void sb_sfesf_threads_run(Scene *scene, struct Object *ob, float timenow,
 	int i, totthread, left, dec;
 	int lowsprings =100; /* wild guess .. may increase with better thread management 'above' or even be UI option sb->spawn_cf_threads_nopts */
 
-	do_effector= pdInitEffectors(scene, ob, NULL, ob->soft->effector_weights, true);
+	do_effector= pdInitEffectors(scene, ob, ob->soft->effector_weights, true);
 
 	/* figure the number of threads while preventing pretty pointless threading overhead */
 	totthread= BKE_scene_num_threads(scene);
@@ -2209,7 +2209,7 @@ static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, fl
 		sb_sfesf_threads_run(scene, ob, timenow, sb->totspring, NULL);
 
 	/* after spring scan because it uses Effoctors too */
-	do_effector= pdInitEffectors(scene, ob, NULL, sb->effector_weights, true);
+	do_effector= pdInitEffectors(scene, ob, sb->effector_weights, true);
 
 	if (do_deflector) {
 		float defforce[3];
@@ -2271,7 +2271,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 
 		if (do_springcollision || do_aero)  scan_for_ext_spring_forces(scene, ob, timenow);
 		/* after spring scan because it uses Effoctors too */
-		do_effector= pdInitEffectors(scene, ob, NULL, ob->soft->effector_weights, true);
+		do_effector= pdInitEffectors(scene, ob, ob->soft->effector_weights, true);
 
 		if (do_deflector) {
 			float defforce[3];

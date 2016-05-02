@@ -97,7 +97,7 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
                             'CONSTRAINT')  # RB_TODO needs better icon
 
 
-# cache-type can be 'PSYS' 'HAIR' 'SMOKE' etc
+# cache-type can be 'CLOTH', 'SMOKE' etc
 
 def point_cache_ui(self, context, cache, enabled, cachetype):
     layout = self.layout
@@ -113,11 +113,9 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         col.operator("ptcache.remove", icon='ZOOMOUT', text="")
 
     row = layout.row()
-    if cachetype in {'PSYS', 'HAIR', 'SMOKE'}:
+    if cachetype == 'SMOKE':
         row.prop(cache, "use_external")
-
-        if cachetype == 'SMOKE':
-            row.prop(cache, "use_library_path", "Use Lib Path")
+        row.prop(cache, "use_library_path", "Use Lib Path")
 
     if cache.use_external:
         split = layout.split(percentage=0.35)
@@ -141,7 +139,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
     if not cache.use_external or cachetype == 'SMOKE':
         row = layout.row(align=True)
 
-        if cachetype not in {'PSYS', 'DYNAMIC_PAINT'}:
+        if cachetype != 'DYNAMIC_PAINT':
             row.enabled = enabled
             row.prop(cache, "frame_start")
             row.prop(cache, "frame_end")

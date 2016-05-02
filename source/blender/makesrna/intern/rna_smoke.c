@@ -52,7 +52,6 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_particle.h"
 
 #include "smoke_API.h"
 
@@ -761,13 +760,6 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Temp. Diff.", "Temperature difference to ambient temperature");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
 	
-	prop = RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "psys");
-	RNA_def_property_struct_type(prop, "ParticleSystem");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Particle Systems", "Particle systems emitted from the object");
-	RNA_def_property_update(prop, 0, "rna_Smoke_reset_dependency");
-
 	prop = RNA_def_property(srna, "smoke_flow_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, smoke_flow_types);

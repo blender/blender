@@ -29,7 +29,6 @@
 #include "DNA_cloth_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
-#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
 
@@ -475,53 +474,25 @@ static char *rna_SoftBodySettings_path(PointerRNA *ptr)
 	return BLI_sprintfN("modifiers[\"%s\"].settings", name_esc);
 }
 
-static int particle_id_check(PointerRNA *ptr)
-{
-	ID *id = ptr->id.data;
-
-	return (GS(id->name) == ID_PA);
-}
-
 static void rna_FieldSettings_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	if (particle_id_check(ptr)) {
-		ParticleSettings *part = (ParticleSettings *)ptr->id.data;
+	Object *ob = (Object *)ptr->id.data;
 
-		if (part->pd->forcefield != PFIELD_TEXTURE && part->pd->tex) {
-			id_us_min(&part->pd->tex->id);
-			part->pd->tex = NULL;
-		}
-
-		if (part->pd2 && part->pd2->forcefield != PFIELD_TEXTURE && part->pd2->tex) {
-			id_us_min(&part->pd2->tex->id);
-			part->pd2->tex = NULL;
-		}
-
-		DAG_id_tag_update(&part->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME | PSYS_RECALC_RESET);
-		WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
-
+	if (ob->pd->forcefield != PFIELD_TEXTURE && ob->pd->tex) {
+		id_us_min(&ob->pd->tex->id);
+		ob->pd->tex = NULL;
 	}
-	else {
-		Object *ob = (Object *)ptr->id.data;
 
-		if (ob->pd->forcefield != PFIELD_TEXTURE && ob->pd->tex) {
-			id_us_min(&ob->pd->tex->id);
-			ob->pd->tex = NULL;
-		}
-
-		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
-		WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
-	}
+	DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
 
 static void rna_FieldSettings_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	if (!particle_id_check(ptr)) {
-		Object *ob = (Object *)ptr->id.data;
-		ED_object_check_force_modifiers(bmain, scene, ob);
-		WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
-		WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
-	}
+	Object *ob = (Object *)ptr->id.data;
+	ED_object_check_force_modifiers(bmain, scene, ob);
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
+	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 }
 
 static void rna_FieldSettings_type_set(PointerRNA *ptr, int value)
@@ -530,46 +501,39 @@ static void rna_FieldSettings_type_set(PointerRNA *ptr, int value)
 
 	part_deflect->forcefield = value;
 
-	if (!particle_id_check(ptr)) {
-		Object *ob = (Object *)ptr->id.data;
-		ob->pd->forcefield = value;
-		if (ELEM(value, PFIELD_WIND, PFIELD_VORTEX)) {
-			ob->empty_drawtype = OB_SINGLE_ARROW;
-		}
-		else {
-			ob->empty_drawtype = OB_PLAINAXES;
-		}
+	Object *ob = (Object *)ptr->id.data;
+	ob->pd->forcefield = value;
+	if (ELEM(value, PFIELD_WIND, PFIELD_VORTEX)) {
+		ob->empty_drawtype = OB_SINGLE_ARROW;
+	}
+	else {
+		ob->empty_drawtype = OB_PLAINAXES;
 	}
 }
 
 static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	if (particle_id_check(ptr)) {
-		DAG_id_tag_update((ID *)ptr->id.data, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME | PSYS_RECALC_RESET);
-	}
-	else {
-		Object *ob = (Object *)ptr->id.data;
+	Object *ob = (Object *)ptr->id.data;
 
-		/* do this before scene sort, that one checks for CU_PATH */
+	/* do this before scene sort, that one checks for CU_PATH */
 #if 0 /* XXX */
-		if (ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE) {
-			Curve *cu = ob->data;
-			cu->flag |= (CU_PATH | CU_3D);
-			do_curvebuts(B_CU3D);  /* all curves too */
-		}
+	if (ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE) {
+		Curve *cu = ob->data;
+		cu->flag |= (CU_PATH | CU_3D);
+		do_curvebuts(B_CU3D);  /* all curves too */
+	}
 #endif
 
-		rna_FieldSettings_shape_update(bmain, scene, ptr);
+	rna_FieldSettings_shape_update(bmain, scene, ptr);
 
-		DAG_relations_tag_update(bmain);
+	DAG_relations_tag_update(bmain);
 
-		if (ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE)
-			DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
-		else
-			DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+	if (ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE)
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+	else
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 
-		WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
-	}
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
 
 static char *rna_FieldSettings_path(PointerRNA *ptr)
@@ -578,22 +542,12 @@ static char *rna_FieldSettings_path(PointerRNA *ptr)
 	
 	/* Check through all possible places the settings can be to find the right one */
 	
-	if (particle_id_check(ptr)) {
-		/* particle system force field */
-		ParticleSettings *part = (ParticleSettings *)ptr->id.data;
-		
-		if (part->pd == pd)
-			return BLI_sprintfN("force_field_1");
-		else if (part->pd2 == pd)
-			return BLI_sprintfN("force_field_2");
-	}
-	else {
-		/* object force field */
-		Object *ob = (Object *)ptr->id.data;
-		
-		if (ob->pd == pd)
-			return BLI_sprintfN("field");
-	}
+	/* object force field */
+	Object *ob = (Object *)ptr->id.data;
+	
+	if (ob->pd == pd)
+		return BLI_sprintfN("field");
+	
 	return NULL;
 }
 
@@ -610,7 +564,7 @@ static void rna_EffectorWeight_update(Main *UNUSED(bmain), Scene *UNUSED(scene),
 		}
 	}
 	else {
-		DAG_id_tag_update(id, OB_RECALC_DATA | PSYS_RECALC_RESET);
+		DAG_id_tag_update(id, OB_RECALC_DATA);
 		WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 	}
 }
@@ -619,7 +573,7 @@ static void rna_EffectorWeight_dependency_update(Main *bmain, Scene *UNUSED(scen
 {
 	DAG_relations_tag_update(bmain);
 
-	DAG_id_tag_update((ID *)ptr->id.data, OB_RECALC_DATA | PSYS_RECALC_RESET);
+	DAG_id_tag_update((ID *)ptr->id.data, OB_RECALC_DATA);
 
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 }
@@ -629,68 +583,59 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
 	EffectorWeights *ew = (EffectorWeights *)ptr->data;
 	/* Check through all possible places the settings can be to find the right one */
 	
-	if (particle_id_check(ptr)) {
-		/* particle effector weights */
-		ParticleSettings *part = (ParticleSettings *)ptr->id.data;
-		
-		if (part->effector_weights == ew)
-			return BLI_sprintfN("effector_weights");
+	Object *ob = (Object *)ptr->id.data;
+	ModifierData *md;
+
+	/* check softbody modifier */
+	md = (ModifierData *)modifiers_findByType(ob, eModifierType_Softbody);
+	if (md) {
+		/* no pointer from modifier data to actual softbody storage, would be good to add */
+		if (ob->soft->effector_weights == ew) {
+			char name_esc[sizeof(md->name) * 2];
+			BLI_strescape(name_esc, md->name, sizeof(name_esc));
+			return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
+		}
 	}
-	else {
-		Object *ob = (Object *)ptr->id.data;
-		ModifierData *md;
-
-		/* check softbody modifier */
-		md = (ModifierData *)modifiers_findByType(ob, eModifierType_Softbody);
-		if (md) {
-			/* no pointer from modifier data to actual softbody storage, would be good to add */
-			if (ob->soft->effector_weights == ew) {
-				char name_esc[sizeof(md->name) * 2];
-				BLI_strescape(name_esc, md->name, sizeof(name_esc));
-				return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
-			}
+	
+	/* check cloth modifier */
+	md = (ModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+	if (md) {
+		ClothModifierData *cmd = (ClothModifierData *)md;
+		if (cmd->sim_parms->effector_weights == ew) {
+			char name_esc[sizeof(md->name) * 2];
+			BLI_strescape(name_esc, md->name, sizeof(name_esc));
+			return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
 		}
-		
-		/* check cloth modifier */
-		md = (ModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-		if (md) {
-			ClothModifierData *cmd = (ClothModifierData *)md;
-			if (cmd->sim_parms->effector_weights == ew) {
-				char name_esc[sizeof(md->name) * 2];
-				BLI_strescape(name_esc, md->name, sizeof(name_esc));
-				return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
-			}
+	}
+	
+	/* check smoke modifier */
+	md = (ModifierData *)modifiers_findByType(ob, eModifierType_Smoke);
+	if (md) {
+		SmokeModifierData *smd = (SmokeModifierData *)md;
+		if (smd->domain->effector_weights == ew) {
+			char name_esc[sizeof(md->name) * 2];
+			BLI_strescape(name_esc, md->name, sizeof(name_esc));
+			return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
 		}
-		
-		/* check smoke modifier */
-		md = (ModifierData *)modifiers_findByType(ob, eModifierType_Smoke);
-		if (md) {
-			SmokeModifierData *smd = (SmokeModifierData *)md;
-			if (smd->domain->effector_weights == ew) {
-				char name_esc[sizeof(md->name) * 2];
-				BLI_strescape(name_esc, md->name, sizeof(name_esc));
-				return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
-			}
-		}
+	}
 
-		/* check dynamic paint modifier */
-		md = (ModifierData *)modifiers_findByType(ob, eModifierType_DynamicPaint);
-		if (md) {
-			DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+	/* check dynamic paint modifier */
+	md = (ModifierData *)modifiers_findByType(ob, eModifierType_DynamicPaint);
+	if (md) {
+		DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 
-			if (pmd->canvas) {
-				DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
+		if (pmd->canvas) {
+			DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
 
-				for (; surface; surface = surface->next) {
-					if (surface->effector_weights == ew) {
-						char name_esc[sizeof(md->name) * 2];
-						char name_esc_surface[sizeof(surface->name) * 2];
+			for (; surface; surface = surface->next) {
+				if (surface->effector_weights == ew) {
+					char name_esc[sizeof(md->name) * 2];
+					char name_esc_surface[sizeof(surface->name) * 2];
 
-						BLI_strescape(name_esc, md->name, sizeof(name_esc));
-						BLI_strescape(name_esc_surface, surface->name, sizeof(name_esc_surface));
-						return BLI_sprintfN("modifiers[\"%s\"].canvas_settings.canvas_surfaces[\"%s\"]"
-						                    ".effector_weights", name_esc, name_esc_surface);
-					}
+					BLI_strescape(name_esc, md->name, sizeof(name_esc));
+					BLI_strescape(name_esc_surface, surface->name, sizeof(name_esc_surface));
+					return BLI_sprintfN("modifiers[\"%s\"].canvas_settings.canvas_surfaces[\"%s\"]"
+					                    ".effector_weights", name_esc, name_esc_surface);
 				}
 			}
 		}
@@ -734,9 +679,6 @@ static EnumPropertyItem *rna_Effector_shape_itemf(bContext *UNUSED(C), PointerRN
 {
 	Object *ob = NULL;
 
-	if (particle_id_check(ptr))
-		return empty_shape_items;
-	
 	ob = (Object *)ptr->id.data;
 	
 	if (ob->type == OB_CURVE) {

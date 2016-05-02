@@ -44,6 +44,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_group_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
 
@@ -57,7 +58,6 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
-#include "BKE_particle.h"
 #include "BKE_scene.h"
 #include "BKE_editmesh.h"
 #include "BKE_anim.h"
@@ -818,327 +818,6 @@ const DupliGenerator gen_dupli_faces = {
     make_duplis_faces               /* make_duplis */
 };
 
-/* OB_DUPLIPARTS */
-static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem *psys)
-{
-	Scene *scene = ctx->scene;
-	Object *par = ctx->object;
-	bool for_render = ctx->eval_ctx->mode == DAG_EVAL_RENDER;
-	bool use_texcoords = ELEM(ctx->eval_ctx->mode, DAG_EVAL_RENDER, DAG_EVAL_PREVIEW);
-
-	GroupObject *go;
-	Object *ob = NULL, **oblist = NULL, obcopy, *obcopylist = NULL;
-	DupliObject *dob;
-	ParticleDupliWeight *dw;
-	ParticleSettings *part;
-	ParticleData *pa;
-	ChildParticle *cpa = NULL;
-	ParticleKey state;
-	ParticleCacheKey *cache;
-	float ctime, pa_time, scale = 1.0f;
-	float tmat[4][4], mat[4][4], pamat[4][4], vec[3], size = 0.0;
-	float (*obmat)[4];
-	int a, b, hair = 0;
-	int totpart, totchild, totgroup = 0 /*, pa_num */;
-	const bool dupli_type_hack = !BKE_scene_use_new_shading_nodes(scene);
-
-	int no_draw_flag = PARS_UNEXIST;
-
-	if (psys == NULL) return;
-
-	part = psys->part;
-
-	if (part == NULL)
-		return;
-
-	if (!psys_check_enabled(par, psys))
-		return;
-
-	if (!for_render)
-		no_draw_flag |= PARS_NO_DISP;
-
-	ctime = BKE_scene_frame_get(scene); /* NOTE: in old animsys, used parent object's timeoffset... */
-
-	totpart = psys->totpart;
-	totchild = psys->totchild;
-
-	BLI_srandom((unsigned int)(31415926 + psys->seed));
-
-	if ((psys->renderdata || part->draw_as == PART_DRAW_REND) && ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
-		ParticleSimulationData sim = {NULL};
-		sim.scene = scene;
-		sim.ob = par;
-		sim.psys = psys;
-		sim.psmd = psys_get_modifier(par, psys);
-		/* make sure emitter imat is in global coordinates instead of render view coordinates */
-		invert_m4_m4(par->imat, par->obmat);
-
-		/* first check for loops (particle system object used as dupli object) */
-		if (part->ren_as == PART_DRAW_OB) {
-			if (ELEM(part->dup_ob, NULL, par))
-				return;
-		}
-		else { /*PART_DRAW_GR */
-			if (part->dup_group == NULL || BLI_listbase_is_empty(&part->dup_group->gobject))
-				return;
-
-			if (BLI_findptr(&part->dup_group->gobject, par, offsetof(GroupObject, ob))) {
-				return;
-			}
-		}
-
-		/* if we have a hair particle system, use the path cache */
-		if (part->type == PART_HAIR) {
-			if (psys->flag & PSYS_HAIR_DONE)
-				hair = (totchild == 0 || psys->childcache) && psys->pathcache;
-			if (!hair)
-				return;
-
-			/* we use cache, update totchild according to cached data */
-			totchild = psys->totchildcache;
-			totpart = psys->totcached;
-		}
-
-		psys_check_group_weights(part);
-
-		psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
-
-		/* gather list of objects or single object */
-		if (part->ren_as == PART_DRAW_GR) {
-			if (ctx->do_update) {
-				BKE_group_handle_recalc_and_update(ctx->eval_ctx, scene, par, part->dup_group);
-			}
-
-			if (part->draw & PART_DRAW_COUNT_GR) {
-				for (dw = part->dupliweights.first; dw; dw = dw->next)
-					totgroup += dw->count;
-			}
-			else {
-				for (go = part->dup_group->gobject.first; go; go = go->next)
-					totgroup++;
-			}
-
-			/* we also copy the actual objects to restore afterwards, since
-			 * BKE_object_where_is_calc_time will change the object which breaks transform */
-			oblist = MEM_callocN((size_t)totgroup * sizeof(Object *), "dupgroup object list");
-			obcopylist = MEM_callocN((size_t)totgroup * sizeof(Object), "dupgroup copy list");
-
-			if (part->draw & PART_DRAW_COUNT_GR && totgroup) {
-				dw = part->dupliweights.first;
-
-				for (a = 0; a < totgroup; dw = dw->next) {
-					for (b = 0; b < dw->count; b++, a++) {
-						oblist[a] = dw->ob;
-						obcopylist[a] = *dw->ob;
-					}
-				}
-			}
-			else {
-				go = part->dup_group->gobject.first;
-				for (a = 0; a < totgroup; a++, go = go->next) {
-					oblist[a] = go->ob;
-					obcopylist[a] = *go->ob;
-				}
-			}
-		}
-		else {
-			ob = part->dup_ob;
-			obcopy = *ob;
-		}
-
-		if (totchild == 0 || part->draw & PART_DRAW_PARENT)
-			a = 0;
-		else
-			a = totpart;
-
-		for (pa = psys->particles; a < totpart + totchild; a++, pa++) {
-			if (a < totpart) {
-				/* handle parent particle */
-				if (pa->flag & no_draw_flag)
-					continue;
-
-				/* pa_num = pa->num; */ /* UNUSED */
-				pa_time = pa->time;
-				size = pa->size;
-			}
-			else {
-				/* handle child particle */
-				cpa = &psys->child[a - totpart];
-
-				/* pa_num = a; */ /* UNUSED */
-				pa_time = psys->particles[cpa->parent].time;
-				size = psys_get_child_size(psys, cpa, ctime, NULL);
-			}
-
-			/* some hair paths might be non-existent so they can't be used for duplication */
-			if (hair && psys->pathcache &&
-			    ((a < totpart && psys->pathcache[a]->segments < 0) ||
-			     (a >= totpart && psys->childcache[a - totpart]->segments < 0)))
-			{
-				continue;
-			}
-
-			if (part->ren_as == PART_DRAW_GR) {
-				/* prevent divide by zero below [#28336] */
-				if (totgroup == 0)
-					continue;
-
-				/* for groups, pick the object based on settings */
-				if (part->draw & PART_DRAW_RAND_GR)
-					b = BLI_rand() % totgroup;
-				else
-					b = a % totgroup;
-
-				ob = oblist[b];
-				obmat = oblist[b]->obmat;
-			}
-			else {
-				obmat = ob->obmat;
-			}
-
-			if (hair) {
-				/* hair we handle separate and compute transform based on hair keys */
-				if (a < totpart) {
-					cache = psys->pathcache[a];
-					psys_get_dupli_path_transform(&sim, pa, NULL, cache, pamat, &scale);
-				}
-				else {
-					cache = psys->childcache[a - totpart];
-					psys_get_dupli_path_transform(&sim, NULL, cpa, cache, pamat, &scale);
-				}
-
-				copy_v3_v3(pamat[3], cache->co);
-				pamat[3][3] = 1.0f;
-
-			}
-			else {
-				/* first key */
-				state.time = ctime;
-				if (psys_get_particle_state(&sim, a, &state, 0) == 0) {
-					continue;
-				}
-				else {
-					float tquat[4];
-					normalize_qt_qt(tquat, state.rot);
-					quat_to_mat4(pamat, tquat);
-					copy_v3_v3(pamat[3], state.co);
-					pamat[3][3] = 1.0f;
-				}
-			}
-
-			if (part->ren_as == PART_DRAW_GR && psys->part->draw & PART_DRAW_WHOLE_GR) {
-				for (go = part->dup_group->gobject.first, b = 0; go; go = go->next, b++) {
-
-					copy_m4_m4(tmat, oblist[b]->obmat);
-					/* apply particle scale */
-					mul_mat3_m4_fl(tmat, size * scale);
-					mul_v3_fl(tmat[3], size * scale);
-					/* group dupli offset, should apply after everything else */
-					if (!is_zero_v3(part->dup_group->dupli_ofs))
-						sub_v3_v3(tmat[3], part->dup_group->dupli_ofs);
-					/* individual particle transform */
-					mul_m4_m4m4(mat, pamat, tmat);
-
-					dob = make_dupli(ctx, go->ob, mat, a, false, false);
-					dob->particle_system = psys;
-					if (use_texcoords)
-						psys_get_dupli_texture(psys, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
-				}
-			}
-			else {
-				/* to give ipos in object correct offset */
-				BKE_object_where_is_calc_time(scene, ob, ctime - pa_time);
-
-				copy_v3_v3(vec, obmat[3]);
-				obmat[3][0] = obmat[3][1] = obmat[3][2] = 0.0f;
-
-				/* particle rotation uses x-axis as the aligned axis, so pre-rotate the object accordingly */
-				if ((part->draw & PART_DRAW_ROTATE_OB) == 0) {
-					float xvec[3], q[4], size_mat[4][4], original_size[3];
-
-					mat4_to_size(original_size, obmat);
-					size_to_mat4(size_mat, original_size);
-
-					xvec[0] = -1.f;
-					xvec[1] = xvec[2] = 0;
-					vec_to_quat(q, xvec, ob->trackflag, ob->upflag);
-					quat_to_mat4(obmat, q);
-					obmat[3][3] = 1.0f;
-
-					/* add scaling if requested */
-					if ((part->draw & PART_DRAW_NO_SCALE_OB) == 0)
-						mul_m4_m4m4(obmat, obmat, size_mat);
-				}
-				else if (part->draw & PART_DRAW_NO_SCALE_OB) {
-					/* remove scaling */
-					float size_mat[4][4], original_size[3];
-
-					mat4_to_size(original_size, obmat);
-					size_to_mat4(size_mat, original_size);
-					invert_m4(size_mat);
-
-					mul_m4_m4m4(obmat, obmat, size_mat);
-				}
-
-				mul_m4_m4m4(tmat, pamat, obmat);
-				mul_mat3_m4_fl(tmat, size * scale);
-
-				copy_m4_m4(mat, tmat);
-
-				if (part->draw & PART_DRAW_GLOBAL_OB)
-					add_v3_v3v3(mat[3], mat[3], vec);
-
-				dob = make_dupli(ctx, ob, mat, a, false, false);
-				dob->particle_system = psys;
-				if (use_texcoords)
-					psys_get_dupli_texture(psys, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
-				/* XXX blender internal needs this to be set to dupligroup to render
-				 * groups correctly, but we don't want this hack for cycles */
-				if (dupli_type_hack && ctx->group)
-					dob->type = OB_DUPLIGROUP;
-			}
-		}
-
-		/* restore objects since they were changed in BKE_object_where_is_calc_time */
-		if (part->ren_as == PART_DRAW_GR) {
-			for (a = 0; a < totgroup; a++)
-				*(oblist[a]) = obcopylist[a];
-		}
-		else
-			*ob = obcopy;
-	}
-
-	/* clean up */
-	if (oblist)
-		MEM_freeN(oblist);
-	if (obcopylist)
-		MEM_freeN(obcopylist);
-
-	if (psys->lattice_deform_data) {
-		end_latt_deform(psys->lattice_deform_data);
-		psys->lattice_deform_data = NULL;
-	}
-}
-
-static void make_duplis_particles(const DupliContext *ctx)
-{
-	ParticleSystem *psys;
-	int psysid;
-
-	/* particle system take up one level in id, the particles another */
-	for (psys = ctx->object->particlesystem.first, psysid = 0; psys; psys = psys->next, psysid++) {
-		/* particles create one more level for persistent psys index */
-		DupliContext pctx;
-		copy_dupli_context(&pctx, ctx, ctx->object, NULL, psysid, false);
-		make_duplis_particle_system(&pctx, psys);
-	}
-}
-
-const DupliGenerator gen_dupli_particles = {
-    OB_DUPLIPARTS,                  /* type */
-    make_duplis_particles           /* make_duplis */
-};
-
 /* ------------- */
 
 /* select dupli generator from given context */
@@ -1154,10 +833,7 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
 	if (ctx->eval_ctx->mode == DAG_EVAL_RENDER ? (restrictflag & OB_RESTRICT_RENDER) : (restrictflag & OB_RESTRICT_VIEW))
 		return NULL;
 
-	if (transflag & OB_DUPLIPARTS) {
-		return &gen_dupli_particles;
-	}
-	else if (transflag & OB_DUPLIVERTS) {
+	if (transflag & OB_DUPLIVERTS) {
 		if (ctx->object->type == OB_MESH) {
 			return &gen_dupli_verts;
 		}
@@ -1215,11 +891,7 @@ int count_duplilist(Object *ob)
 		if (ob->transflag & OB_DUPLIVERTS) {
 			if (ob->type == OB_MESH) {
 				if (ob->transflag & OB_DUPLIVERTS) {
-					ParticleSystem *psys = ob->particlesystem.first;
 					int pdup = 0;
-
-					for (; psys; psys = psys->next)
-						pdup += psys->totpart;
 
 					if (pdup == 0) {
 						Mesh *me = ob->data;

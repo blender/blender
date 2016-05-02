@@ -35,7 +35,6 @@
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 #include "DNA_node_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_scene_types.h" /* MAXFRAME only */
 
 #include "BLI_utildefines.h"
@@ -253,20 +252,6 @@ void rna_TextureSlot_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 		case ID_LS:
 			WM_main_add_notifier(NC_LINESTYLE, id);
 			break;
-		case ID_PA:
-		{
-			MTex *mtex = ptr->data;
-			int recalc = OB_RECALC_DATA;
-
-			if (mtex->mapto & PAMAP_INIT)
-				recalc |= PSYS_RECALC_RESET;
-			if (mtex->mapto & PAMAP_CHILD)
-				recalc |= PSYS_RECALC_CHILD;
-
-			DAG_id_tag_update(id, recalc);
-			WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
-			break;
-		}
 	}
 }
 
@@ -434,29 +419,6 @@ static void rna_Envmap_update_generic(Main *bmain, Scene *scene, PointerRNA *ptr
 		BKE_texture_envmap_free_data(tex->env);
 	}
 	rna_Texture_update(bmain, scene, ptr);
-}
-
-static PointerRNA rna_PointDensity_psys_get(PointerRNA *ptr)
-{
-	PointDensity *pd = ptr->data;
-	Object *ob = pd->object;
-	ParticleSystem *psys = NULL;
-	PointerRNA value;
-
-	if (ob && pd->psys)
-		psys = BLI_findlink(&ob->particlesystem, pd->psys - 1);
-
-	RNA_pointer_create(&ob->id, &RNA_ParticleSystem, psys, &value);
-	return value;
-}
-
-static void rna_PointDensity_psys_set(PointerRNA *ptr, PointerRNA value)
-{
-	PointDensity *pd = ptr->data;
-	Object *ob = pd->object;
-
-	if (ob && value.id.data == ob)
-		pd->psys = BLI_findindex(&ob->particlesystem, value.data) + 1;
 }
 
 static char *rna_PointDensity_path(PointerRNA *UNUSED(ptr))
@@ -1696,13 +1658,6 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object");
 	RNA_def_property_ui_text(prop, "Object", "Object to take point data from");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
-	
-	prop = RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Particle System", "Particle System to render as points");
-	RNA_def_property_struct_type(prop, "ParticleSystem");
-	RNA_def_property_pointer_funcs(prop, "rna_PointDensity_psys_get", "rna_PointDensity_psys_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	

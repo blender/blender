@@ -87,7 +87,7 @@ typedef struct TreeStore {
 #define TSE_SEQUENCE        26  /* NO ID */
 #define TSE_SEQ_STRIP       27  /* NO ID */
 #define TSE_SEQUENCE_DUP    28  /* NO ID */
-#define TSE_LINKED_PSYS     29
+/* #define TSE_LINKED_PSYS     29 */ /* DEPRECATED */
 #define TSE_RNA_STRUCT      30  /* NO ID */
 #define TSE_RNA_PROPERTY    31  /* NO ID */
 #define TSE_RNA_ARRAY_ELEM  32  /* NO ID */

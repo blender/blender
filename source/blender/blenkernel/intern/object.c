@@ -102,7 +102,6 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_property.h"
 #include "BKE_rigidbody.h"
@@ -159,15 +158,6 @@ void BKE_object_update_base_layer(struct Scene *scene, Object *ob)
 	}
 }
 
-void BKE_object_free_particlesystems(Object *ob)
-{
-	ParticleSystem *psys;
-
-	while ((psys = BLI_pophead(&ob->particlesystem))) {
-		psys_free(ob, psys);
-	}
-}
-
 void BKE_object_free_softbody(Object *ob)
 {
 	if (ob->soft) {
@@ -205,9 +195,6 @@ void BKE_object_free_modifiers(Object *ob)
 	while ((md = BLI_pophead(&ob->modifiers))) {
 		modifier_free(md);
 	}
-
-	/* particle modifiers were freed, so free the particlesystems as well */
-	BKE_object_free_particlesystems(ob);
 
 	/* same for softbody */
 	BKE_object_free_softbody(ob);
@@ -300,8 +287,6 @@ void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_sr
 		modifier_unique_name(&ob_dst->modifiers, nmd);
 	}
 
-	BKE_object_copy_particlesystems(ob_dst, ob_src);
-
 	/* TODO: smoke?, cloth? */
 }
 
@@ -345,39 +330,7 @@ void BKE_object_free_derived_caches(Object *ob)
 
 void BKE_object_free_caches(Object *object)
 {
-	ModifierData *md;
 	short update_flag = 0;
-
-	/* Free particle system caches holding paths. */
-	if (object->particlesystem.first) {
-		ParticleSystem *psys;
-		for (psys = object->particlesystem.first;
-		     psys != NULL;
-		     psys = psys->next)
-		{
-			psys_free_path_cache(psys, psys->edit);
-			update_flag |= PSYS_RECALC_REDO;
-		}
-	}
-
-	/* Free memory used by cached derived meshes in the particle system modifiers. */
-	for (md = object->modifiers.first; md != NULL; md = md->next) {
-		if (md->type == eModifierType_ParticleSystem) {
-			ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
-			if (psmd->dm_final != NULL) {
-				psmd->dm_final->needsFree = 1;
-				psmd->dm_final->release(psmd->dm_final);
-				psmd->dm_final = NULL;
-				if (psmd->dm_deformed != NULL) {
-					psmd->dm_deformed->needsFree = 1;
-					psmd->dm_deformed->release(psmd->dm_deformed);
-					psmd->dm_deformed = NULL;
-				}
-				psmd->flag |= eParticleSystemFlag_file_loaded;
-				update_flag |= OB_RECALC_DATA;
-			}
-		}
-	}
 
 	/* Tag object for update, so once memory critical operation is over and
 	 * scene update routines are back to it's business the object will be
@@ -631,65 +584,6 @@ void BKE_object_unlink(Main *bmain, Object *ob)
 		}
 #endif // XXX old animation system
 
-		/* particle systems */
-		if (obt->particlesystem.first) {
-			ParticleSystem *tpsys = obt->particlesystem.first;
-			for (; tpsys; tpsys = tpsys->next) {
-				BoidState *state = NULL;
-				BoidRule *rule = NULL;
-
-				ParticleTarget *pt = tpsys->targets.first;
-				for (; pt; pt = pt->next) {
-					if (pt->ob == ob) {
-						pt->ob = NULL;
-						DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
-						break;
-					}
-				}
-
-				if (tpsys->target_ob == ob) {
-					tpsys->target_ob = NULL;
-					DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
-				}
-
-				if (tpsys->part->dup_ob == ob)
-					tpsys->part->dup_ob = NULL;
-
-				if (tpsys->part->phystype == PART_PHYS_BOIDS) {
-					ParticleData *pa;
-					BoidParticle *bpa;
-					int p;
-
-					for (p = 0, pa = tpsys->particles; p < tpsys->totpart; p++, pa++) {
-						bpa = pa->boid;
-						if (bpa->ground == ob)
-							bpa->ground = NULL;
-					}
-				}
-				if (tpsys->part->boids) {
-					for (state = tpsys->part->boids->states.first; state; state = state->next) {
-						for (rule = state->rules.first; rule; rule = rule->next) {
-							if (rule->type == eBoidRuleType_Avoid) {
-								BoidRuleGoalAvoid *gabr = (BoidRuleGoalAvoid *)rule;
-								if (gabr->ob == ob)
-									gabr->ob = NULL;
-							}
-							else if (rule->type == eBoidRuleType_FollowLeader) {
-								BoidRuleFollowLeader *flbr = (BoidRuleFollowLeader *)rule;
-								if (flbr->ob == ob)
-									flbr->ob = NULL;
-							}
-						}
-					}
-				}
-				
-				if (tpsys->parent == ob)
-					tpsys->parent = NULL;
-			}
-			if (ob->pd)
-				DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
-		}
-
 		/* levels of detail */
 		for (lod = obt->lodlevels.first; lod; lod = lod->next) {
 			if (lod->source == ob)
@@ -744,8 +638,6 @@ void BKE_object_unlink(Main *bmain, Object *ob)
 		if (sce->id.lib == NULL) {
 			if (sce->camera == ob) sce->camera = NULL;
 			if (sce->toolsettings->skgen_template == ob) sce->toolsettings->skgen_template = NULL;
-			if (sce->toolsettings->particle.object == ob) sce->toolsettings->particle.object = NULL;
-			if (sce->toolsettings->particle.shape_object == ob) sce->toolsettings->particle.shape_object = NULL;
 
 #ifdef DURIAN_CAMERA_SWITCH
 			{
@@ -1287,119 +1179,6 @@ BulletSoftBody *copy_bulletsoftbody(BulletSoftBody *bsb)
 	return bsbn;
 }
 
-ParticleSystem *BKE_object_copy_particlesystem(ParticleSystem *psys)
-{
-	ParticleSystem *psysn;
-	ParticleData *pa;
-	int p;
-
-	psysn = MEM_dupallocN(psys);
-	psysn->particles = MEM_dupallocN(psys->particles);
-	psysn->child = MEM_dupallocN(psys->child);
-
-	if (psys->part->type == PART_HAIR) {
-		for (p = 0, pa = psysn->particles; p < psysn->totpart; p++, pa++)
-			pa->hair = MEM_dupallocN(pa->hair);
-	}
-
-	if (psysn->particles && (psysn->particles->keys || psysn->particles->boid)) {
-		ParticleKey *key = psysn->particles->keys;
-		BoidParticle *boid = psysn->particles->boid;
-
-		if (key)
-			key = MEM_dupallocN(key);
-		
-		if (boid)
-			boid = MEM_dupallocN(boid);
-		
-		for (p = 0, pa = psysn->particles; p < psysn->totpart; p++, pa++) {
-			if (boid)
-				pa->boid = boid++;
-			if (key) {
-				pa->keys = key;
-				key += pa->totkey;
-			}
-		}
-	}
-
-	if (psys->clmd) {
-		psysn->clmd = (ClothModifierData *)modifier_new(eModifierType_Cloth);
-		modifier_copyData((ModifierData *)psys->clmd, (ModifierData *)psysn->clmd);
-		psys->hair_in_dm = psys->hair_out_dm = NULL;
-	}
-
-	BLI_duplicatelist(&psysn->targets, &psys->targets);
-
-	psysn->pathcache = NULL;
-	psysn->childcache = NULL;
-	psysn->edit = NULL;
-	psysn->pdd = NULL;
-	psysn->effectors = NULL;
-	psysn->tree = NULL;
-	psysn->bvhtree = NULL;
-	
-	BLI_listbase_clear(&psysn->pathcachebufs);
-	BLI_listbase_clear(&psysn->childcachebufs);
-	psysn->renderdata = NULL;
-	
-	psysn->pointcache = BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches, false);
-
-	/* XXX - from reading existing code this seems correct but intended usage of
-	 * pointcache should /w cloth should be added in 'ParticleSystem' - campbell */
-	if (psysn->clmd) {
-		psysn->clmd->point_cache = psysn->pointcache;
-	}
-
-	id_us_plus((ID *)psysn->part);
-
-	return psysn;
-}
-
-void BKE_object_copy_particlesystems(Object *ob_dst, const Object *ob_src)
-{
-	ParticleSystem *psys, *npsys;
-	ModifierData *md;
-
-	if (ob_dst->type != OB_MESH) {
-		/* currently only mesh objects can have soft body */
-		return;
-	}
-
-	BLI_listbase_clear(&ob_dst->particlesystem);
-	for (psys = ob_src->particlesystem.first; psys; psys = psys->next) {
-		npsys = BKE_object_copy_particlesystem(psys);
-
-		BLI_addtail(&ob_dst->particlesystem, npsys);
-
-		/* need to update particle modifiers too */
-		for (md = ob_dst->modifiers.first; md; md = md->next) {
-			if (md->type == eModifierType_ParticleSystem) {
-				ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
-				if (psmd->psys == psys)
-					psmd->psys = npsys;
-			}
-			else if (md->type == eModifierType_DynamicPaint) {
-				DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
-				if (pmd->brush) {
-					if (pmd->brush->psys == psys) {
-						pmd->brush->psys = npsys;
-					}
-				}
-			}
-			else if (md->type == eModifierType_Smoke) {
-				SmokeModifierData *smd = (SmokeModifierData *) md;
-				
-				if (smd->type == MOD_SMOKE_TYPE_FLOW) {
-					if (smd->flow) {
-						if (smd->flow->psys == psys)
-							smd->flow->psys = npsys;
-					}
-				}
-			}
-		}
-	}
-}
-
 void BKE_object_copy_softbody(Object *ob_dst, const Object *ob_src)
 {
 	if (ob_src->soft) {
@@ -1558,8 +1337,6 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, bool copy_caches)
 	obn->rigidbody_object = BKE_rigidbody_copy_object(ob);
 	obn->rigidbody_constraint = BKE_rigidbody_copy_constraint(ob);
 
-	BKE_object_copy_particlesystems(obn, ob);
-	
 	obn->derivedDeform = NULL;
 	obn->derivedFinal = NULL;
 
@@ -1603,17 +1380,12 @@ static void extern_local_object__modifiersForeachIDLink(
 
 static void extern_local_object(Object *ob)
 {
-	ParticleSystem *psys;
-
 	id_lib_extern((ID *)ob->data);
 	id_lib_extern((ID *)ob->dup_group);
 	id_lib_extern((ID *)ob->poselib);
 	id_lib_extern((ID *)ob->gpd);
 
 	extern_local_matarar(ob->mat, ob->totcol);
-
-	for (psys = ob->particlesystem.first; psys; psys = psys->next)
-		id_lib_extern((ID *)psys->part);
 
 	modifiers_foreachIDLink(ob, extern_local_object__modifiersForeachIDLink, NULL);
 

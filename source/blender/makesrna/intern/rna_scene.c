@@ -29,7 +29,6 @@
 #include "DNA_brush_types.h"
 #include "DNA_group_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_linestyle_types.h"
@@ -1557,7 +1556,6 @@ static void rna_Scene_editmesh_select_mode_update(Main *UNUSED(bmain), Scene *sc
 static void object_simplify_update(Object *ob)
 {
 	ModifierData *md;
-	ParticleSystem *psys;
 
 	if ((ob->id.tag & LIB_TAG_DOIT) == 0) {
 		return;
@@ -1566,14 +1564,11 @@ static void object_simplify_update(Object *ob)
 	ob->id.tag &= ~LIB_TAG_DOIT;
 
 	for (md = ob->modifiers.first; md; md = md->next) {
-		if (ELEM(md->type, eModifierType_Subsurf, eModifierType_Multires, eModifierType_ParticleSystem)) {
+		if (ELEM(md->type, eModifierType_Subsurf, eModifierType_Multires)) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 	}
 
-	for (psys = ob->particlesystem.first; psys; psys = psys->next)
-		psys->recalc |= PSYS_RECALC_CHILD;
-	
 	if (ob->dup_group) {
 		GroupObject *gob;
 
@@ -2143,10 +2138,6 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	prop = RNA_def_property(srna, "uv_sculpt", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "uvsculpt");
 	RNA_def_property_ui_text(prop, "UV Sculpt", "");
-
-	prop = RNA_def_property(srna, "particle_edit", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "particle");
-	RNA_def_property_ui_text(prop, "Particle Edit", "");
 
 	prop = RNA_def_property(srna, "use_uv_sculpt", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "use_uv_sculpt", 1);
@@ -6094,20 +6085,10 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Simplify Subdivision", "Global maximum subdivision level");
 	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
 
-	prop = RNA_def_property(srna, "simplify_child_particles", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_sdna(prop, NULL, "simplify_particles");
-	RNA_def_property_ui_text(prop, "Simplify Child Particles", "Global child particles percentage");
-	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
-
 	prop = RNA_def_property(srna, "simplify_subdivision_render", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "simplify_subsurf_render");
 	RNA_def_property_ui_range(prop, 0, 6, 1, -1);
 	RNA_def_property_ui_text(prop, "Simplify Subdivision", "Global maximum subdivision level during rendering");
-	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
-
-	prop = RNA_def_property(srna, "simplify_child_particles_render", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_sdna(prop, NULL, "simplify_particles_render");
-	RNA_def_property_ui_text(prop, "Simplify Child Particles", "Global child particles percentage during rendering");
 	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
 
 	prop = RNA_def_property(srna, "simplify_shadow_samples", PROP_INT, PROP_UNSIGNED);

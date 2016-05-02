@@ -108,7 +108,6 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_particle.h"
 #include "BKE_packedFile.h"
 #include "BKE_speaker.h"
 #include "BKE_sound.h"
@@ -348,9 +347,6 @@ bool id_make_local(ID *id, bool test)
 		case ID_BR:
 			if (!test) BKE_brush_make_local((Brush *)id);
 			return true;
-		case ID_PA:
-			if (!test) BKE_particlesettings_make_local((ParticleSettings *)id);
-			return true;
 		case ID_WM:
 			return false; /* can't be linked */
 		case ID_GD:
@@ -442,9 +438,6 @@ bool id_copy(ID *id, ID **newid, bool test)
 			return true;
 		case ID_BR:
 			if (!test) *newid = (ID *)BKE_brush_copy((Brush *)id);
-			return true;
-		case ID_PA:
-			if (!test) *newid = (ID *)BKE_particlesettings_copy((ParticleSettings *)id);
 			return true;
 		case ID_WM:
 			return false;  /* can't be copied from here */
@@ -574,8 +567,6 @@ ListBase *which_libbase(Main *mainlib, short type)
 			return &(mainlib->nodetree);
 		case ID_BR:
 			return &(mainlib->brush);
-		case ID_PA:
-			return &(mainlib->particle);
 		case ID_WM:
 			return &(mainlib->wm);
 		case ID_GD:
@@ -727,7 +718,6 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++] = &(main->palettes);
 	lb[a++] = &(main->paintcurves);
 	lb[a++] = &(main->brush);
-	lb[a++] = &(main->particle);
 	lb[a++] = &(main->speaker);
 
 	lb[a++] = &(main->world);
@@ -839,9 +829,6 @@ void *BKE_libblock_alloc_notest(short type)
 			break;
 		case ID_BR:
 			id = MEM_callocN(sizeof(Brush), "brush");
-			break;
-		case ID_PA:
-			id = MEM_callocN(sizeof(ParticleSettings), "ParticleSettings");
 			break;
 		case ID_WM:
 			id = MEM_callocN(sizeof(wmWindowManager), "Window manager");
@@ -983,9 +970,6 @@ void BKE_libblock_init_empty(ID *id)
 			break;
 		case ID_BR:
 			BKE_brush_init((Brush *)id);
-			break;
-		case ID_PA:
-			/* Nothing to do. */
 			break;
 		case ID_PC:
 			/* Nothing to do. */
@@ -1260,9 +1244,6 @@ void BKE_libblock_free_ex(Main *bmain, void *idv, bool do_id_user)
 			break;
 		case ID_BR:
 			BKE_brush_free((Brush *)id);
-			break;
-		case ID_PA:
-			BKE_particlesettings_free((ParticleSettings *)id);
 			break;
 		case ID_WM:
 			if (free_windowmanager_cb)

@@ -304,11 +304,6 @@ void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr)
 	PTCacheID pid;
 	
 	BKE_ptcache_id_from_cloth(&pid, ob, clmd);
-
-	// don't do anything as long as we're in editmode!
-	if (pid.cache->edit && ob->mode & OB_MODE_PARTICLE_EDIT)
-		return;
-	
 	BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_AFTER, framenr);
 }
 
@@ -365,7 +360,7 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 		mul_m4_v3(ob->obmat, verts->xconst);
 	}
 
-	effectors = pdInitEffectors(clmd->scene, ob, NULL, clmd->sim_parms->effector_weights, true);
+	effectors = pdInitEffectors(clmd->scene, ob, clmd->sim_parms->effector_weights, true);
 
 	/* Support for dynamic vertex groups, changing from frame to frame */
 	cloth_apply_vgroup ( clmd, result );

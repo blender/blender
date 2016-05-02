@@ -298,7 +298,7 @@ typedef struct wmNotifier {
 #define ND_MODIFIER			(24<<16)
 #define ND_KEYS				(25<<16)
 #define ND_CONSTRAINT		(26<<16)
-#define ND_PARTICLE			(27<<16)
+/*#define ND_PARTICLE			(27<<16)*/ /* DEPRECATED */
 #define ND_POINTCACHE		(28<<16)
 #define ND_PARENT			(29<<16)
 #define ND_LOD				(30<<16)

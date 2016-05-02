@@ -82,7 +82,6 @@
 #include "DNA_object_fluidsim.h" // NT
 #include "DNA_object_types.h"
 #include "DNA_packedFile_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_property_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_text_types.h"
@@ -134,7 +133,6 @@
 #include "BKE_node.h" // for tree type defines
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_sca.h" // for init_actuator
@@ -4014,263 +4012,9 @@ static void lib_link_partdeflect(FileData *fd, ID *id, PartDeflect *pd)
 		pd->f_source = newlibadr(fd, id->lib, pd->f_source);
 }
 
-static void lib_link_particlesettings(FileData *fd, Main *main)
-{
-	ParticleSettings *part;
-	ParticleDupliWeight *dw;
-	MTex *mtex;
-	int a;
-	
-	for (part = main->particle.first; part; part = part->id.next) {
-		if (part->id.tag & LIB_TAG_NEED_LINK) {
-			lib_link_animdata(fd, &part->id, part->adt);
-			part->ipo = newlibadr_us(fd, part->id.lib, part->ipo); // XXX deprecated - old animation system
-			
-			part->dup_ob = newlibadr(fd, part->id.lib, part->dup_ob);
-			part->dup_group = newlibadr(fd, part->id.lib, part->dup_group);
-			part->eff_group = newlibadr(fd, part->id.lib, part->eff_group);
-			part->bb_ob = newlibadr(fd, part->id.lib, part->bb_ob);
-			
-			lib_link_partdeflect(fd, &part->id, part->pd);
-			lib_link_partdeflect(fd, &part->id, part->pd2);
-			
-			if (part->effector_weights)
-				part->effector_weights->group = newlibadr(fd, part->id.lib, part->effector_weights->group);
-			
-			if (part->dupliweights.first && part->dup_group) {
-				int index_ok = 0;
-				/* check for old files without indices (all indexes 0) */
-				if (BLI_listbase_is_single(&part->dupliweights)) {
-					/* special case for only one object in the group */
-					index_ok = 1;
-				}
-				else {
-					for (dw = part->dupliweights.first; dw; dw = dw->next) {
-						if (dw->index > 0) {
-							index_ok = 1;
-							break;
-						}
-					}
-				}
-
-				if (index_ok) {
-					/* if we have indexes, let's use them */
-					for (dw = part->dupliweights.first; dw; dw = dw->next) {
-						GroupObject *go = (GroupObject *)BLI_findlink(&part->dup_group->gobject, dw->index);
-						dw->ob = go ? go->ob : NULL;
-					}
-				}
-				else {
-					/* otherwise try to get objects from own library (won't work on library linked groups) */
-					for (dw = part->dupliweights.first; dw; dw = dw->next) {
-						dw->ob = newlibadr(fd, part->id.lib, dw->ob);
-					}
-				}
-			}
-			else {
-				BLI_listbase_clear(&part->dupliweights);
-			}
-			
-			if (part->boids) {
-				BoidState *state = part->boids->states.first;
-				BoidRule *rule;
-				for (; state; state=state->next) {
-					rule = state->rules.first;
-					for (; rule; rule=rule->next) {
-						switch (rule->type) {
-							case eBoidRuleType_Goal:
-							case eBoidRuleType_Avoid:
-							{
-								BoidRuleGoalAvoid *brga = (BoidRuleGoalAvoid*)rule;
-								brga->ob = newlibadr(fd, part->id.lib, brga->ob);
-								break;
-							}
-							case eBoidRuleType_FollowLeader:
-							{
-								BoidRuleFollowLeader *brfl = (BoidRuleFollowLeader*)rule;
-								brfl->ob = newlibadr(fd, part->id.lib, brfl->ob);
-								break;
-							}
-						}
-					}
-				}
-			}
-
-			for (a = 0; a < MAX_MTEX; a++) {
-				mtex= part->mtex[a];
-				if (mtex) {
-					mtex->tex = newlibadr_us(fd, part->id.lib, mtex->tex);
-					mtex->object = newlibadr(fd, part->id.lib, mtex->object);
-				}
-			}
-			
-			part->id.tag &= ~LIB_TAG_NEED_LINK;
-		}
-	}
-}
-
 static void direct_link_partdeflect(PartDeflect *pd)
 {
 	if (pd) pd->rng = NULL;
-}
-
-static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
-{
-	int a;
-	
-	part->adt = newdataadr(fd, part->adt);
-	part->pd = newdataadr(fd, part->pd);
-	part->pd2 = newdataadr(fd, part->pd2);
-
-	direct_link_animdata(fd, part->adt);
-	direct_link_partdeflect(part->pd);
-	direct_link_partdeflect(part->pd2);
-
-	part->clumpcurve = newdataadr(fd, part->clumpcurve);
-	if (part->clumpcurve)
-		direct_link_curvemapping(fd, part->clumpcurve);
-	part->roughcurve = newdataadr(fd, part->roughcurve);
-	if (part->roughcurve)
-		direct_link_curvemapping(fd, part->roughcurve);
-
-	part->effector_weights = newdataadr(fd, part->effector_weights);
-	if (!part->effector_weights)
-		part->effector_weights = BKE_add_effector_weights(part->eff_group);
-
-	link_list(fd, &part->dupliweights);
-
-	part->boids = newdataadr(fd, part->boids);
-	part->fluid = newdataadr(fd, part->fluid);
-
-	if (part->boids) {
-		BoidState *state;
-		link_list(fd, &part->boids->states);
-		
-		for (state=part->boids->states.first; state; state=state->next) {
-			link_list(fd, &state->rules);
-			link_list(fd, &state->conditions);
-			link_list(fd, &state->actions);
-		}
-	}
-	for (a = 0; a < MAX_MTEX; a++) {
-		part->mtex[a] = newdataadr(fd, part->mtex[a]);
-	}
-}
-
-static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase *particles)
-{
-	ParticleSystem *psys, *psysnext;
-
-	for (psys=particles->first; psys; psys=psysnext) {
-		psysnext = psys->next;
-		
-		psys->part = newlibadr_us(fd, id->lib, psys->part);
-		if (psys->part) {
-			ParticleTarget *pt = psys->targets.first;
-			
-			for (; pt; pt=pt->next)
-				pt->ob=newlibadr(fd, id->lib, pt->ob);
-			
-			psys->parent = newlibadr(fd, id->lib, psys->parent);
-			psys->target_ob = newlibadr(fd, id->lib, psys->target_ob);
-			
-			if (psys->clmd) {
-				/* XXX - from reading existing code this seems correct but intended usage of
-				 * pointcache /w cloth should be added in 'ParticleSystem' - campbell */
-				psys->clmd->point_cache = psys->pointcache;
-				psys->clmd->ptcaches.first = psys->clmd->ptcaches.last= NULL;
-				psys->clmd->coll_parms->group = newlibadr(fd, id->lib, psys->clmd->coll_parms->group);
-				psys->clmd->modifier.error = NULL;
-			}
-		}
-		else {
-			/* particle modifier must be removed before particle system */
-			ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
-			BLI_remlink(&ob->modifiers, psmd);
-			modifier_free((ModifierData *)psmd);
-			
-			BLI_remlink(particles, psys);
-			MEM_freeN(psys);
-		}
-	}
-}
-static void direct_link_particlesystems(FileData *fd, ListBase *particles)
-{
-	ParticleSystem *psys;
-	ParticleData *pa;
-	int a;
-	
-	for (psys=particles->first; psys; psys=psys->next) {
-		psys->particles=newdataadr(fd, psys->particles);
-		
-		if (psys->particles && psys->particles->hair) {
-			for (a=0, pa=psys->particles; a<psys->totpart; a++, pa++)
-				pa->hair=newdataadr(fd, pa->hair);
-		}
-		
-		if (psys->particles && psys->particles->keys) {
-			for (a=0, pa=psys->particles; a<psys->totpart; a++, pa++) {
-				pa->keys= NULL;
-				pa->totkey= 0;
-			}
-			
-			psys->flag &= ~PSYS_KEYED;
-		}
-		
-		if (psys->particles && psys->particles->boid) {
-			pa = psys->particles;
-			pa->boid = newdataadr(fd, pa->boid);
-			for (a=1, pa++; a<psys->totpart; a++, pa++)
-				pa->boid = (pa-1)->boid + 1;
-		}
-		else if (psys->particles) {
-			for (a=0, pa=psys->particles; a<psys->totpart; a++, pa++)
-				pa->boid = NULL;
-		}
-		
-		psys->fluid_springs = newdataadr(fd, psys->fluid_springs);
-		
-		psys->child = newdataadr(fd, psys->child);
-		psys->effectors = NULL;
-		
-		link_list(fd, &psys->targets);
-		
-		psys->edit = NULL;
-		psys->free_edit = NULL;
-		psys->pathcache = NULL;
-		psys->childcache = NULL;
-		BLI_listbase_clear(&psys->pathcachebufs);
-		BLI_listbase_clear(&psys->childcachebufs);
-		psys->pdd = NULL;
-		psys->renderdata = NULL;
-		
-		if (psys->clmd) {
-			psys->clmd = newdataadr(fd, psys->clmd);
-			psys->clmd->clothObject = NULL;
-			psys->clmd->hairdata = NULL;
-			
-			psys->clmd->sim_parms= newdataadr(fd, psys->clmd->sim_parms);
-			psys->clmd->coll_parms= newdataadr(fd, psys->clmd->coll_parms);
-			
-			if (psys->clmd->sim_parms) {
-				psys->clmd->sim_parms->effector_weights = NULL;
-				if (psys->clmd->sim_parms->presets > 10)
-					psys->clmd->sim_parms->presets = 0;
-			}
-			
-			psys->hair_in_dm = psys->hair_out_dm = NULL;
-			psys->clmd->solver_result = NULL;
-		}
-
-		direct_link_pointcache_list(fd, &psys->ptcaches, &psys->pointcache, 0);
-		if (psys->clmd) {
-			psys->clmd->point_cache = psys->pointcache;
-		}
-
-		psys->tree = NULL;
-		psys->bvhtree = NULL;
-	}
-	return;
 }
 
 /* ************ READ MESH ***************** */
@@ -4882,7 +4626,6 @@ static void lib_link_object(FileData *fd, Main *main)
 			if (ob->soft)
 				ob->soft->effector_weights->group = newlibadr(fd, ob->id.lib, ob->soft->effector_weights->group);
 			
-			lib_link_particlesystems(fd, ob, &ob->id, &ob->particlesystem);
 			lib_link_modifiers(fd, ob);
 
 			if (ob->rigidbody_constraint) {
@@ -5053,7 +4796,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->flow->dm = NULL;
 				smd->flow->verts_old = NULL;
 				smd->flow->numverts = 0;
-				smd->flow->psys = newdataadr(fd, smd->flow->psys);
 			}
 			else if (smd->type == MOD_SMOKE_TYPE_COLL) {
 				smd->flow = NULL;
@@ -5099,7 +4841,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			if (pmd->brush) {
 				pmd->brush = newdataadr(fd, pmd->brush);
 				pmd->brush->pmd = pmd;
-				pmd->brush->psys = newdataadr(fd, pmd->brush->psys);
 				pmd->brush->paint_ramp = newdataadr(fd, pmd->brush->paint_ramp);
 				pmd->brush->vel_ramp = newdataadr(fd, pmd->brush->vel_ramp);
 				pmd->brush->dm = NULL;
@@ -5152,15 +4893,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			if (hmd->curfalloff) {
 				direct_link_curvemapping(fd, hmd->curfalloff);
 			}
-		}
-		else if (md->type == eModifierType_ParticleSystem) {
-			ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
-			
-			psmd->dm_final = NULL;
-			psmd->dm_deformed = NULL;
-			psmd->psys= newdataadr(fd, psmd->psys);
-			psmd->flag &= ~eParticleSystemFlag_psys_updated;
-			psmd->flag |= eParticleSystemFlag_file_loaded;
 		}
 		else if (md->type == eModifierType_Explode) {
 			ExplodeModifierData *psmd = (ExplodeModifierData *)md;
@@ -5257,7 +4989,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	 * See [#34776, #42780] for more information.
 	 */
 	if (fd->memfile || (ob->id.tag & (LIB_TAG_EXTERN | LIB_TAG_INDIRECT))) {
-		ob->mode &= ~(OB_MODE_EDIT | OB_MODE_PARTICLE_EDIT);
+		ob->mode &= ~OB_MODE_EDIT;
 		if (!fd->memfile) {
 			ob->mode &= ~OB_MODE_POSE;
 		}
@@ -5379,9 +5111,6 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->rigidbody_constraint = newdataadr(fd, ob->rigidbody_constraint);
 	if (ob->rigidbody_constraint)
 		ob->rigidbody_constraint->physics_constraint = NULL;
-
-	link_list(fd, &ob->particlesystem);
-	direct_link_particlesystems(fd, &ob->particlesystem);
 	
 	link_list(fd, &ob->prop);
 	for (prop = ob->prop.first; prop; prop = prop->next) {
@@ -5592,8 +5321,6 @@ static void lib_link_scene(FileData *fd, Main *main)
 				        newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.canvas);
 			
 			sce->toolsettings->skgen_template = newlibadr(fd, sce->id.lib, sce->toolsettings->skgen_template);
-			
-			sce->toolsettings->particle.shape_object = newlibadr(fd, sce->id.lib, sce->toolsettings->particle.shape_object);
 			
 			for (base = sce->base.first; base; base = next) {
 				next = base->next;
@@ -5840,9 +5567,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		direct_link_paint(fd, &sce->toolsettings->imapaint.paint);
 
 		sce->toolsettings->imapaint.paintcursor = NULL;
-		sce->toolsettings->particle.paintcursor = NULL;
-		sce->toolsettings->particle.scene = NULL;
-		sce->toolsettings->particle.object = NULL;
 		sce->toolsettings->gp_sculpt.paintcursor = NULL;
 
 		/* in rare cases this is needed, see [#33806] */
@@ -7831,7 +7555,6 @@ static const char *dataname(short id_code)
 		case ID_SO: return "Data from SO";
 		case ID_NT: return "Data from NT";
 		case ID_BR: return "Data from BR";
-		case ID_PA: return "Data from PA";
 		case ID_PAL: return "Data from PAL";
 		case ID_PC: return "Data from PCRV";
 		case ID_GD: return "Data from GD";
@@ -8055,9 +7778,6 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 		case ID_BR:
 			direct_link_brush(fd, (Brush*)id);
 			break;
-		case ID_PA:
-			direct_link_particlesettings(fd, (ParticleSettings*)id);
-			break;
 		case ID_GD:
 			direct_link_gpencil(fd, (bGPdata *)id);
 			break;
@@ -8264,7 +7984,6 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_brush(fd, main);
 	lib_link_palette(fd, main);
 	lib_link_paint_curve(fd, main);
-	lib_link_particlesettings(fd, main);
 	lib_link_movieclip(fd, main);
 	lib_link_mask(fd, main);
 	lib_link_linestyle(fd, main);
@@ -8772,26 +8491,6 @@ static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
 		expand_animdata_nlastrips(fd, mainvar, &nlt->strips);
 }	
 
-static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSettings *part)
-{
-	int a;
-	
-	expand_doit(fd, mainvar, part->dup_ob);
-	expand_doit(fd, mainvar, part->dup_group);
-	expand_doit(fd, mainvar, part->eff_group);
-	expand_doit(fd, mainvar, part->bb_ob);
-	
-	if (part->adt)
-		expand_animdata(fd, mainvar, part->adt);
-	
-	for (a = 0; a < MAX_MTEX; a++) {
-		if (part->mtex[a]) {
-			expand_doit(fd, mainvar, part->mtex[a]->tex);
-			expand_doit(fd, mainvar, part->mtex[a]->object);
-		}
-	}
-}
-
 static void expand_group(FileData *fd, Main *mainvar, Group *group)
 {
 	GroupObject *go;
@@ -9094,7 +8793,6 @@ static void expand_object_expandModifiers(
 
 static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 {
-	ParticleSystem *psys;
 	bSensor *sens;
 	bController *cont;
 	bActuator *act;
@@ -9150,9 +8848,6 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		expand_doit(fd, mainvar, ob->proxy);
 	if (ob->proxy_group)
 		expand_doit(fd, mainvar, ob->proxy_group);
-	
-	for (psys = ob->particlesystem.first; psys; psys = psys->next)
-		expand_doit(fd, mainvar, psys->part);
 	
 	for (sens = ob->sensors.first; sens; sens = sens->next) {
 		if (sens->type == SENS_MESSAGE) {
@@ -9512,9 +9207,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
 						break;
 					case ID_IP:
 						expand_ipo(fd, mainvar, (Ipo *)id); // XXX deprecated - old animation system
-						break;
-					case ID_PA:
-						expand_particlesettings(fd, mainvar, (ParticleSettings *)id);
 						break;
 					case ID_MC:
 						expand_movieclip(fd, mainvar, (MovieClip *)id);

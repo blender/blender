@@ -46,13 +46,13 @@
 #include "DNA_world_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_linestyle_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_context.h"
 #include "BKE_action.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
-#include "BKE_particle.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h"
 #include "BKE_linestyle.h"
@@ -339,34 +339,6 @@ static int buttons_context_path_pose_bone(ButsContextPath *path)
 	return 0;
 }
 
-
-static int buttons_context_path_particle(ButsContextPath *path)
-{
-	Object *ob;
-	ParticleSystem *psys;
-	PointerRNA *ptr = &path->ptr[path->len - 1];
-
-	/* if we already have (pinned) particle settings, we're done */
-	if (RNA_struct_is_a(ptr->type, &RNA_ParticleSettings)) {
-		return 1;
-	}
-	/* if we have an object, get the active particle system */
-	if (buttons_context_path_object(path)) {
-		ob = path->ptr[path->len - 1].data;
-
-		if (ob && ob->type == OB_MESH) {
-			psys = psys_get_current(ob);
-
-			RNA_pointer_create(&ob->id, &RNA_ParticleSystem, psys, &path->ptr[path->len]);
-			path->len++;
-			return 1;
-		}
-	}
-
-	/* no path to a particle system possible */
-	return 0;
-}
-
 static int buttons_context_path_brush(ButsContextPath *path)
 {
 	Scene *scene;
@@ -421,8 +393,6 @@ static int buttons_context_path_texture(ButsContextPath *path, ButsContextTextur
 				buttons_context_path_world(path);
 			else if (GS(id->name) == ID_LA)
 				buttons_context_path_data(path, OB_LAMP);
-			else if (GS(id->name) == ID_PA)
-				buttons_context_path_particle(path);
 			else if (GS(id->name) == ID_OB)
 				buttons_context_path_object(path);
 			else if (GS(id->name) == ID_LS)
@@ -441,7 +411,6 @@ static int buttons_context_path_texture(ButsContextPath *path, ButsContextTextur
 		Material *ma;
 		Lamp *la;
 		World *wo;
-		ParticleSystem *psys;
 		FreestyleLineStyle *ls;
 		Tex *tex;
 		PointerRNA *ptr = &path->ptr[path->len - 1];
@@ -460,28 +429,6 @@ static int buttons_context_path_texture(ButsContextPath *path, ButsContextTextur
 				RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
 				path->len++;
 				return 1;
-			}
-		}
-		/* try particles */
-		else if ((path->tex_ctx == SB_TEXC_PARTICLES) && buttons_context_path_particle(path)) {
-			if (path->ptr[path->len - 1].type == &RNA_ParticleSettings) {
-				ParticleSettings *part = path->ptr[path->len - 1].data;
-
-				tex = give_current_particle_texture(part);
-				RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
-				path->len++;
-				return 1;
-			}
-			else {
-				psys = path->ptr[path->len - 1].data;
-
-				if (psys && psys->part && GS(psys->part->id.name) == ID_PA) {
-					tex = give_current_particle_texture(psys->part);
-
-					RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
-					path->len++;
-					return 1;
-				}
 			}
 		}
 		/* try material */
@@ -609,9 +556,6 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			break;
 		case BCONTEXT_DATA:
 			found = buttons_context_path_data(path, -1);
-			break;
-		case BCONTEXT_PARTICLE:
-			found = buttons_context_path_particle(path);
 			break;
 		case BCONTEXT_MATERIAL:
 			found = buttons_context_path_material(path, false, (sbuts->texuser != NULL));
@@ -900,14 +844,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		ButsContextTexture *ct = sbuts->texuser;
 		PointerRNA *ptr;
 
-		/* Particles slots are used in both old and new textures handling. */
-		if ((ptr = get_pointer_type(path, &RNA_ParticleSystem))) {
-			ParticleSettings *part = ((ParticleSystem *)ptr->data)->part;
-
-			if (part)
-				CTX_data_pointer_set(result, &part->id, &RNA_ParticleSettingsTextureSlot, part->mtex[(int)part->texact]);
-		}
-		else if (ct) {
+		if (ct) {
 			return 0;  /* new shading system */
 		}
 		else if ((ptr = get_pointer_type(path, &RNA_Material))) {
@@ -961,38 +898,6 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 	}
 	else if (CTX_data_equals(member, "pose_bone")) {
 		set_pointer_type(path, result, &RNA_PoseBone);
-		return 1;
-	}
-	else if (CTX_data_equals(member, "particle_system")) {
-		set_pointer_type(path, result, &RNA_ParticleSystem);
-		return 1;
-	}
-	else if (CTX_data_equals(member, "particle_system_editable")) {
-		if (PE_poll((bContext *)C))
-			set_pointer_type(path, result, &RNA_ParticleSystem);
-		else
-			CTX_data_pointer_set(result, NULL, &RNA_ParticleSystem, NULL);
-		return 1;
-	}
-	else if (CTX_data_equals(member, "particle_settings")) {
-		/* only available when pinned */
-		PointerRNA *ptr = get_pointer_type(path, &RNA_ParticleSettings);
-		
-		if (ptr && ptr->data) {
-			CTX_data_pointer_set(result, ptr->id.data, &RNA_ParticleSettings, ptr->data);
-			return 1;
-		}
-		else {
-			/* get settings from active particle system instead */
-			ptr = get_pointer_type(path, &RNA_ParticleSystem);
-			
-			if (ptr && ptr->data) {
-				ParticleSettings *part = ((ParticleSystem *)ptr->data)->part;
-				CTX_data_pointer_set(result, ptr->id.data, &RNA_ParticleSettings, part);
-				return 1;
-			}
-		}
-		set_pointer_type(path, result, &RNA_ParticleSettings);
 		return 1;
 	}
 	else if (CTX_data_equals(member, "cloth")) {
@@ -1163,14 +1068,6 @@ ID *buttons_context_id_path(const bContext *C)
 	if (path->len) {
 		for (a = path->len - 1; a >= 0; a--) {
 			ptr = &path->ptr[a];
-
-			/* pin particle settings instead of system, since only settings are an idblock*/
-			if (sbuts->mainb == BCONTEXT_PARTICLE && sbuts->flag & SB_PIN_CONTEXT) {
-				if (ptr->type == &RNA_ParticleSystem && ptr->data) {
-					ParticleSystem *psys = (ParticleSystem *)ptr->data;
-					return &psys->part->id;
-				}
-			}
 
 			if (ptr->id.data) {
 				return ptr->id.data;

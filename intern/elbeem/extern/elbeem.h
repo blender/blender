@@ -111,7 +111,7 @@ typedef struct elbeemSimulationSettings {
 #define OB_FLUIDSIM_OBSTACLE    8
 #define OB_FLUIDSIM_INFLOW      16
 #define OB_FLUIDSIM_OUTFLOW     32
-#define OB_FLUIDSIM_PARTICLE    64
+#define OB_FLUIDSIM_PARTICLE    64 /* DEPRECATED */
 #define OB_FLUIDSIM_CONTROL 	128
 
 // defines for elbeemMesh->obstacleType below (low bits) high bits (>=64) are reserved for mFsSurfGenSetting flags which are defined in solver_class.h

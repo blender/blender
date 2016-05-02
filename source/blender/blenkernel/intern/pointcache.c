@@ -41,7 +41,6 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
-#include "DNA_particle_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
@@ -61,11 +60,11 @@
 #include "BKE_anim.h"
 #include "BKE_cloth.h"
 #include "BKE_dynamicpaint.h"
+#include "BKE_key.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_smoke.h"
@@ -130,12 +129,12 @@ static int ptcache_data_size[] = {
 		3 * sizeof(float), // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST
 		sizeof(float), // BPHYS_DATA_SIZE
 		3 * sizeof(float), // BPHYS_DATA_TIMES
-		sizeof(BoidData) // case BPHYS_DATA_BOIDS
+		0 // case BPHYS_DATA_BOIDS
 };
 
 static int ptcache_extra_datasize[] = {
 	0,
-	sizeof(ParticleSpring)
+	0
 };
 
 /* forward declerations */
@@ -194,11 +193,41 @@ static void ptcache_softbody_read(int index, void *soft_v, void **data, float UN
 		PTCACHE_DATA_TO(data, BPHYS_DATA_VELOCITY, 0, bp->vec);
 	}
 }
+
+static void interpolate_particle_keys(short type, PointCacheKey keys[4], float dt, PointCacheKey *result, bool velocity)
+{
+	float t[4];
+
+	if (type < 0) {
+		interp_cubic_v3(result->co, result->vel, keys[1].co, keys[1].vel, keys[2].co, keys[2].vel, dt);
+	}
+	else {
+		key_curve_position_weights(dt, t, type);
+
+		interp_v3_v3v3v3v3(result->co, keys[0].co, keys[1].co, keys[2].co, keys[3].co, t);
+
+		if (velocity) {
+			float temp[3];
+
+			if (dt > 0.999f) {
+				key_curve_position_weights(dt - 0.001f, t, type);
+				interp_v3_v3v3v3v3(temp, keys[0].co, keys[1].co, keys[2].co, keys[3].co, t);
+				sub_v3_v3v3(result->vel, result->co, temp);
+			}
+			else {
+				key_curve_position_weights(dt + 0.001f, t, type);
+				interp_v3_v3v3v3v3(temp, keys[0].co, keys[1].co, keys[2].co, keys[3].co, t);
+				sub_v3_v3v3(result->vel, temp, result->co);
+			}
+		}
+	}
+}
+
 static void ptcache_softbody_interpolate(int index, void *soft_v, void **data, float cfra, float cfra1, float cfra2, float *old_data)
 {
 	SoftBody *soft= soft_v;
 	BodyPoint *bp = soft->bpoint + index;
-	ParticleKey keys[4];
+	PointCacheKey keys[4];
 	float dfra;
 
 	if (cfra1 == cfra2)
@@ -212,14 +241,14 @@ static void ptcache_softbody_interpolate(int index, void *soft_v, void **data, f
 		memcpy(keys[2].vel, old_data + 3, 3 * sizeof(float));
 	}
 	else
-		BKE_ptcache_make_particle_key(keys+2, 0, data, cfra2);
+		BKE_ptcache_make_key(keys+2, 0, data, cfra2);
 
 	dfra = cfra2 - cfra1;
 
 	mul_v3_fl(keys[1].vel, dfra);
 	mul_v3_fl(keys[2].vel, dfra);
 
-	psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, keys, 1);
+	interpolate_particle_keys(-1, keys, (cfra - cfra1) / dfra, keys, 1);
 
 	mul_v3_fl(keys->vel, 1.0f / dfra);
 
@@ -236,8 +265,7 @@ static void ptcache_softbody_error(void *UNUSED(soft_v), const char *UNUSED(mess
 	/* ignored for now */
 }
 
-/* Particle functions */
-void BKE_ptcache_make_particle_key(ParticleKey *key, int index, void **data, float time)
+void BKE_ptcache_make_key(PointCacheKey *key, int index, void **data, float time)
 {
 	PTCACHE_DATA_TO(data, BPHYS_DATA_LOCATION, index, key->co);
 	PTCACHE_DATA_TO(data, BPHYS_DATA_VELOCITY, index, key->vel);
@@ -252,229 +280,6 @@ void BKE_ptcache_make_particle_key(ParticleKey *key, int index, void **data, flo
 
 	PTCACHE_DATA_TO(data, BPHYS_DATA_AVELOCITY, index, key->ave);
 	key->time = time;
-}
-static int  ptcache_particle_write(int index, void *psys_v, void **data, int cfra)
-{
-	ParticleSystem *psys= psys_v;
-	ParticleData *pa = psys->particles + index;
-	BoidParticle *boid = (psys->part->phystype == PART_PHYS_BOIDS) ? pa->boid : NULL;
-	float times[3];
-	int step = psys->pointcache->step;
-
-	/* No need to store unborn or died particles outside cache step bounds */
-	if (data[BPHYS_DATA_INDEX] && (cfra < pa->time - step || cfra > pa->dietime + step))
-		return 0;
-
-	times[0] = pa->time;
-	times[1] = pa->dietime;
-	times[2] = pa->lifetime;
-
-	PTCACHE_DATA_FROM(data, BPHYS_DATA_INDEX, &index);
-	PTCACHE_DATA_FROM(data, BPHYS_DATA_LOCATION, pa->state.co);
-	PTCACHE_DATA_FROM(data, BPHYS_DATA_VELOCITY, pa->state.vel);
-	PTCACHE_DATA_FROM(data, BPHYS_DATA_ROTATION, pa->state.rot);
-	PTCACHE_DATA_FROM(data, BPHYS_DATA_AVELOCITY, pa->state.ave);
-	PTCACHE_DATA_FROM(data, BPHYS_DATA_SIZE, &pa->size);
-	PTCACHE_DATA_FROM(data, BPHYS_DATA_TIMES, times);
-
-	if (boid) {
-		PTCACHE_DATA_FROM(data, BPHYS_DATA_BOIDS, &boid->data);
-	}
-
-	/* return flag 1+1=2 for newly born particles to copy exact birth location to previously cached frame */
-	return 1 + (pa->state.time >= pa->time && pa->prev_state.time <= pa->time);
-}
-static void ptcache_particle_read(int index, void *psys_v, void **data, float cfra, float *old_data)
-{
-	ParticleSystem *psys= psys_v;
-	ParticleData *pa;
-	BoidParticle *boid;
-	float timestep = 0.04f * psys->part->timetweak;
-
-	if (index >= psys->totpart)
-		return;
-
-	pa = psys->particles + index;
-	boid = (psys->part->phystype == PART_PHYS_BOIDS) ? pa->boid : NULL;
-
-	if (cfra > pa->state.time)
-		memcpy(&pa->prev_state, &pa->state, sizeof(ParticleKey));
-
-	if (old_data) {
-		/* old format cache */
-		memcpy(&pa->state, old_data, sizeof(ParticleKey));
-		return;
-	}
-
-	BKE_ptcache_make_particle_key(&pa->state, 0, data, cfra);
-
-	/* set frames cached before birth to birth time */
-	if (cfra < pa->time)
-		pa->state.time = pa->time;
-	else if (cfra > pa->dietime)
-		pa->state.time = pa->dietime;
-
-	if (data[BPHYS_DATA_SIZE]) {
-		PTCACHE_DATA_TO(data, BPHYS_DATA_SIZE, 0, &pa->size);
-	}
-	
-	if (data[BPHYS_DATA_TIMES]) {
-		float times[3];
-		PTCACHE_DATA_TO(data, BPHYS_DATA_TIMES, 0, &times);
-		pa->time = times[0];
-		pa->dietime = times[1];
-		pa->lifetime = times[2];
-	}
-
-	if (boid) {
-		PTCACHE_DATA_TO(data, BPHYS_DATA_BOIDS, 0, &boid->data);
-	}
-
-	/* determine velocity from previous location */
-	if (data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_VELOCITY]) {
-		if (cfra > pa->prev_state.time) {
-			sub_v3_v3v3(pa->state.vel, pa->state.co, pa->prev_state.co);
-			mul_v3_fl(pa->state.vel, (cfra - pa->prev_state.time) * timestep);
-		}
-		else {
-			sub_v3_v3v3(pa->state.vel, pa->prev_state.co, pa->state.co);
-			mul_v3_fl(pa->state.vel, (pa->prev_state.time - cfra) * timestep);
-		}
-	}
-
-	/* default to no rotation */
-	if (data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_ROTATION]) {
-		unit_qt(pa->state.rot);
-	}
-}
-static void ptcache_particle_interpolate(int index, void *psys_v, void **data, float cfra, float cfra1, float cfra2, float *old_data)
-{
-	ParticleSystem *psys= psys_v;
-	ParticleData *pa;
-	ParticleKey keys[4];
-	float dfra, timestep = 0.04f * psys->part->timetweak;
-
-	if (index >= psys->totpart)
-		return;
-
-	pa = psys->particles + index;
-
-	/* particle wasn't read from first cache so can't interpolate */
-	if ((int)cfra1 < pa->time - psys->pointcache->step || (int)cfra1 > pa->dietime + psys->pointcache->step)
-		return;
-
-	cfra = MIN2(cfra, pa->dietime);
-	cfra1 = MIN2(cfra1, pa->dietime);
-	cfra2 = MIN2(cfra2, pa->dietime);
-
-	if (cfra1 == cfra2)
-		return;
-
-	memcpy(keys+1, &pa->state, sizeof(ParticleKey));
-	if (old_data)
-		memcpy(keys+2, old_data, sizeof(ParticleKey));
-	else
-		BKE_ptcache_make_particle_key(keys+2, 0, data, cfra2);
-
-	/* determine velocity from previous location */
-	if (data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_VELOCITY]) {
-		if (keys[1].time > keys[2].time) {
-			sub_v3_v3v3(keys[2].vel, keys[1].co, keys[2].co);
-			mul_v3_fl(keys[2].vel, (keys[1].time - keys[2].time) * timestep);
-		}
-		else {
-			sub_v3_v3v3(keys[2].vel, keys[2].co, keys[1].co);
-			mul_v3_fl(keys[2].vel, (keys[2].time - keys[1].time) * timestep);
-		}
-	}
-
-	/* determine rotation from velocity */
-	if (data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_ROTATION]) {
-		vec_to_quat(keys[2].rot, keys[2].vel, OB_NEGX, OB_POSZ);
-	}
-
-	if (cfra > pa->time)
-		cfra1 = MAX2(cfra1, pa->time);
-
-	dfra = cfra2 - cfra1;
-
-	mul_v3_fl(keys[1].vel, dfra * timestep);
-	mul_v3_fl(keys[2].vel, dfra * timestep);
-
-	psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, &pa->state, 1);
-	interp_qt_qtqt(pa->state.rot, keys[1].rot, keys[2].rot, (cfra - cfra1) / dfra);
-
-	mul_v3_fl(pa->state.vel, 1.f / (dfra * timestep));
-
-	pa->state.time = cfra;
-}
-
-static int  ptcache_particle_totpoint(void *psys_v, int UNUSED(cfra))
-{
-	ParticleSystem *psys = psys_v;
-	return psys->totpart;
-}
-
-static void ptcache_particle_error(void *UNUSED(psys_v), const char *UNUSED(message))
-{
-	/* ignored for now */
-}
-
-static int  ptcache_particle_totwrite(void *psys_v, int cfra)
-{
-	ParticleSystem *psys = psys_v;
-	ParticleData *pa= psys->particles;
-	int p, step = psys->pointcache->step;
-	int totwrite = 0;
-
-	if (cfra == 0)
-		return psys->totpart;
-
-	for (p=0; p<psys->totpart; p++, pa++)
-		totwrite += (cfra >= pa->time - step && cfra <= pa->dietime + step);
-
-	return totwrite;
-}
-
-static void ptcache_particle_extra_write(void *psys_v, PTCacheMem *pm, int UNUSED(cfra))
-{
-	ParticleSystem *psys = psys_v;
-	PTCacheExtra *extra = NULL;
-
-	if (psys->part->phystype == PART_PHYS_FLUID &&
-		psys->part->fluid && psys->part->fluid->flag & SPH_VISCOELASTIC_SPRINGS &&
-		psys->tot_fluidsprings && psys->fluid_springs) {
-
-		extra = MEM_callocN(sizeof(PTCacheExtra), "Point cache: fluid extra data");
-
-		extra->type = BPHYS_EXTRA_FLUID_SPRINGS;
-		extra->totdata = psys->tot_fluidsprings;
-
-		extra->data = MEM_callocN(extra->totdata * ptcache_extra_datasize[extra->type], "Point cache: extra data");
-		memcpy(extra->data, psys->fluid_springs, extra->totdata * ptcache_extra_datasize[extra->type]);
-
-		BLI_addtail(&pm->extradata, extra);
-	}
-}
-
-static void ptcache_particle_extra_read(void *psys_v, PTCacheMem *pm, float UNUSED(cfra))
-{
-	ParticleSystem *psys = psys_v;
-	PTCacheExtra *extra = pm->extradata.first;
-
-	for (; extra; extra=extra->next) {
-		switch (extra->type) {
-			case BPHYS_EXTRA_FLUID_SPRINGS:
-			{
-				if (psys->fluid_springs)
-					MEM_freeN(psys->fluid_springs);
-
-				psys->fluid_springs = MEM_dupallocN(extra->data);
-				psys->tot_fluidsprings = psys->alloc_fluidsprings = extra->totdata;
-				break;
-			}
-		}
-	}
 }
 
 /* Cloth functions */
@@ -512,7 +317,7 @@ static void ptcache_cloth_interpolate(int index, void *cloth_v, void **data, flo
 	ClothModifierData *clmd= cloth_v;
 	Cloth *cloth= clmd->clothObject;
 	ClothVertex *vert = cloth->verts + index;
-	ParticleKey keys[4];
+	PointCacheKey keys[4];
 	float dfra;
 
 	if (cfra1 == cfra2)
@@ -526,14 +331,14 @@ static void ptcache_cloth_interpolate(int index, void *cloth_v, void **data, flo
 		memcpy(keys[2].vel, old_data + 6, 3 * sizeof(float));
 	}
 	else
-		BKE_ptcache_make_particle_key(keys+2, 0, data, cfra2);
+		BKE_ptcache_make_key(keys+2, 0, data, cfra2);
 
 	dfra = cfra2 - cfra1;
 
 	mul_v3_fl(keys[1].vel, dfra);
 	mul_v3_fl(keys[2].vel, dfra);
 
-	psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, keys, 1);
+	interpolate_particle_keys(-1, keys, (cfra - cfra1) / dfra, keys, 1);
 
 	mul_v3_fl(keys->vel, 1.0f / dfra);
 
@@ -1337,8 +1142,8 @@ static void ptcache_rigidbody_interpolate(int index, void *rb_v, void **data, fl
 		RigidBodyOb *rbo = ob->rigidbody_object;
 		
 		if (rbo->type == RBO_TYPE_ACTIVE) {
-			ParticleKey keys[4];
-			ParticleKey result;
+			PointCacheKey keys[4];
+			PointCacheKey result;
 			float dfra;
 			
 			memset(keys, 0, sizeof(keys));
@@ -1351,13 +1156,13 @@ static void ptcache_rigidbody_interpolate(int index, void *rb_v, void **data, fl
 				memcpy(keys[2].rot, data + 3, 4 * sizeof(float));
 			}
 			else {
-				BKE_ptcache_make_particle_key(&keys[2], 0, data, cfra2);
+				BKE_ptcache_make_key(&keys[2], 0, data, cfra2);
 			}
 			
 			dfra = cfra2 - cfra1;
 		
 			/* note: keys[0] and keys[3] unused for type < 1 (crappy) */
-			psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, &result, true);
+			interpolate_particle_keys(-1, keys, (cfra - cfra1) / dfra, &result, true);
 			interp_qt_qtqt(result.rot, keys[1].rot, keys[2].rot, (cfra - cfra1) / dfra);
 			
 			copy_v3_v3(rbo->pos, result.co);
@@ -1412,68 +1217,6 @@ void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
 	pid->info_types= 0;
 
 	pid->stack_index = pid->cache->index;
-
-	pid->default_step = 10;
-	pid->max_step = 20;
-	pid->file_type = PTCACHE_FILE_PTCACHE;
-}
-void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *psys)
-{
-	memset(pid, 0, sizeof(PTCacheID));
-
-	pid->ob= ob;
-	pid->calldata= psys;
-	pid->type= PTCACHE_TYPE_PARTICLES;
-	pid->stack_index= psys->pointcache->index;
-	pid->cache= psys->pointcache;
-	pid->cache_ptr= &psys->pointcache;
-	pid->ptcaches= &psys->ptcaches;
-
-	if (psys->part->type != PART_HAIR)
-		pid->flag |= PTCACHE_VEL_PER_SEC;
-
-	pid->totpoint				= ptcache_particle_totpoint;
-	pid->totwrite				= ptcache_particle_totwrite;
-	pid->error					= ptcache_particle_error;
-
-	pid->write_point				= ptcache_particle_write;
-	pid->read_point				= ptcache_particle_read;
-	pid->interpolate_point		= ptcache_particle_interpolate;
-
-	pid->write_stream			= NULL;
-	pid->read_stream			= NULL;
-
-	pid->write_openvdb_stream	= NULL;
-	pid->read_openvdb_stream	= NULL;
-
-	pid->write_extra_data		= NULL;
-	pid->read_extra_data		= NULL;
-	pid->interpolate_extra_data	= NULL;
-
-	pid->write_header			= ptcache_basic_header_write;
-	pid->read_header			= ptcache_basic_header_read;
-
-	pid->data_types = (1<<BPHYS_DATA_LOCATION) | (1<<BPHYS_DATA_VELOCITY) | (1<<BPHYS_DATA_INDEX);
-
-	if (psys->part->phystype == PART_PHYS_BOIDS)
-		pid->data_types|= (1<<BPHYS_DATA_AVELOCITY) | (1<<BPHYS_DATA_ROTATION) | (1<<BPHYS_DATA_BOIDS);
-	else if (psys->part->phystype == PART_PHYS_FLUID && psys->part->fluid && psys->part->fluid->flag & SPH_VISCOELASTIC_SPRINGS) {
-		pid->write_extra_data = ptcache_particle_extra_write;
-		pid->read_extra_data = ptcache_particle_extra_read;
-	}
-
-	if (psys->part->flag & PART_ROTATIONS) {
-		pid->data_types|= (1<<BPHYS_DATA_ROTATION);
-
-		if (psys->part->rotmode != PART_ROT_VEL  ||
-		    psys->part->avemode == PART_AVE_RAND ||
-		    psys->part->avefac != 0.0f)
-		{
-			pid->data_types |= (1 << BPHYS_DATA_AVELOCITY);
-		}
-	}
-
-	pid->info_types= (1<<BPHYS_DATA_TIMES);
 
 	pid->default_step = 10;
 	pid->max_step = 20;
@@ -1651,7 +1394,6 @@ void BKE_ptcache_id_from_rigidbody(PTCacheID *pid, Object *ob, RigidBodyWorld *r
 void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int duplis)
 {
 	PTCacheID *pid;
-	ParticleSystem *psys;
 	ModifierData *md;
 
 	lb->first= lb->last= NULL;
@@ -1659,26 +1401,6 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 	if (ob->soft) {
 		pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
 		BKE_ptcache_id_from_softbody(pid, ob, ob->soft);
-		BLI_addtail(lb, pid);
-	}
-
-	for (psys=ob->particlesystem.first; psys; psys=psys->next) {
-		if (psys->part==NULL)
-			continue;
-		
-		/* check to make sure point cache is actually used by the particles */
-		if (ELEM(psys->part->phystype, PART_PHYS_NO, PART_PHYS_KEYED))
-			continue;
-
-		/* hair needs to be included in id-list for cache edit mode to work */
-		/* if (psys->part->type == PART_HAIR && (psys->flag & PSYS_HAIR_DYNAMICS)==0) */
-		/*	continue; */
-			
-		if (psys->part->type == PART_FLUID)
-			continue;
-
-		pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
-		BKE_ptcache_id_from_particles(pid, ob, psys);
 		BLI_addtail(lb, pid);
 	}
 
@@ -2102,7 +1824,6 @@ static void ptcache_file_pointers_init(PTCacheFile *pf)
 	pf->cur[BPHYS_DATA_AVELOCITY] =	(data_types & (1<<BPHYS_DATA_AVELOCITY))?		&pf->data.ave	: NULL;
 	pf->cur[BPHYS_DATA_SIZE] =		(data_types & (1<<BPHYS_DATA_SIZE))		?		&pf->data.size	: NULL;
 	pf->cur[BPHYS_DATA_TIMES] =		(data_types & (1<<BPHYS_DATA_TIMES))	?		&pf->data.times	: NULL;
-	pf->cur[BPHYS_DATA_BOIDS] =		(data_types & (1<<BPHYS_DATA_BOIDS))	?		&pf->data.boids	: NULL;
 }
 
 /* Check to see if point number "index" is in pm, uses binary search for index data. */
@@ -2223,8 +1944,6 @@ static int ptcache_old_elemsize(PTCacheID *pid)
 {
 	if (pid->type==PTCACHE_TYPE_SOFTBODY)
 		return 6 * sizeof(float);
-	else if (pid->type==PTCACHE_TYPE_PARTICLES)
-		return sizeof(ParticleKey);
 	else if (pid->type==PTCACHE_TYPE_CLOTH)
 		return 9 * sizeof(float);
 
@@ -3261,8 +2980,6 @@ int  BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 			cloth_free_modifier(pid->calldata);
 		else if (pid->type == PTCACHE_TYPE_SOFTBODY)
 			sbFreeSimulation(pid->calldata);
-		else if (pid->type == PTCACHE_TYPE_PARTICLES)
-			psys_reset(pid->calldata, PSYS_RESET_DEPSGRAPH);
 #if 0
 		else if (pid->type == PTCACHE_TYPE_SMOKE_DOMAIN)
 			smokeModifier_reset(pid->calldata);
@@ -3282,36 +2999,14 @@ int  BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 int  BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 {
 	PTCacheID pid;
-	ParticleSystem *psys;
 	ModifierData *md;
-	int reset, skip;
+	int reset;
 
 	reset= 0;
-	skip= 0;
 
 	if (ob->soft) {
 		BKE_ptcache_id_from_softbody(&pid, ob, ob->soft);
 		reset |= BKE_ptcache_id_reset(scene, &pid, mode);
-	}
-
-	for (psys=ob->particlesystem.first; psys; psys=psys->next) {
-		/* children or just redo can be calculated without resetting anything */
-		if (psys->recalc & PSYS_RECALC_REDO || psys->recalc & PSYS_RECALC_CHILD)
-			skip = 1;
-		/* Baked cloth hair has to be checked too, because we don't want to reset */
-		/* particles or cloth in that case -jahka */
-		else if (psys->clmd) {
-			BKE_ptcache_id_from_cloth(&pid, ob, psys->clmd);
-			if (mode == PSYS_RESET_ALL || !(psys->part->type == PART_HAIR && (pid.cache->flag & PTCACHE_BAKED))) 
-				reset |= BKE_ptcache_id_reset(scene, &pid, mode);
-			else
-				skip = 1;
-		}
-
-		if (skip == 0 && psys->part) {
-			BKE_ptcache_id_from_particles(&pid, ob, psys);
-			reset |= BKE_ptcache_id_reset(scene, &pid, mode);
-		}
 	}
 
 	for (md=ob->modifiers.first; md; md=md->next) {
@@ -3553,14 +3248,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 		/* cache/bake a single object */
 		cache = pid->cache;
 		if ((cache->flag & PTCACHE_BAKED)==0) {
-			if (pid->type==PTCACHE_TYPE_PARTICLES) {
-				ParticleSystem *psys= pid->calldata;
-
-				/* a bit confusing, could make this work better in the UI */
-				if (psys->part->type == PART_EMITTER)
-					psys_get_pointcache_start_end(scene, pid->calldata, &cache->startframe, &cache->endframe);
-			}
-			else if (pid->type == PTCACHE_TYPE_SMOKE_HIGHRES) {
+			if (pid->type == PTCACHE_TYPE_SMOKE_HIGHRES) {
 				/* get all pids from the object and search for smoke low res */
 				ListBase pidlist2;
 				PTCacheID *pid2;
@@ -3604,15 +3292,6 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 			for (pid=pidlist.first; pid; pid=pid->next) {
 				cache = pid->cache;
 				if ((cache->flag & PTCACHE_BAKED)==0) {
-					if (pid->type==PTCACHE_TYPE_PARTICLES) {
-						ParticleSystem *psys = (ParticleSystem*)pid->calldata;
-						/* skip hair & keyed particles */
-						if (psys->part->type == PART_HAIR || psys->part->phystype == PART_PHYS_KEYED)
-							continue;
-
-						psys_get_pointcache_start_end(scene, pid->calldata, &cache->startframe, &cache->endframe);
-					}
-
 					if ((cache->flag & PTCACHE_REDO_NEEDED || (cache->flag & PTCACHE_SIMULATION_VALID)==0) &&
 					    (render || bake))
 					{
@@ -3708,10 +3387,6 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 			BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
 			for (pid=pidlist.first; pid; pid=pid->next) {
-				/* skip hair particles */
-				if (pid->type==PTCACHE_TYPE_PARTICLES && ((ParticleSystem*)pid->calldata)->part->type == PART_HAIR)
-					continue;
-
 				cache = pid->cache;
 
 				if (baker->quick_step > 1)
