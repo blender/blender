@@ -146,12 +146,6 @@ protected:
 		int users[SVM_STACK_SIZE];
 	};
 
-	struct StackBackup {
-		Stack stack;
-		vector<int> offsets;
-		ShaderNodeSet done;
-	};
-
 	/* Global state of the compiler accessible from the compilation routines. */
 	struct CompilerState {
 		CompilerState(ShaderGraph *graph);
@@ -175,9 +169,6 @@ protected:
 		 */
 		vector<bool> nodes_done_flag;
 	};
-
-	void stack_backup(StackBackup& backup, ShaderNodeSet& done);
-	void stack_restore(StackBackup& backup, ShaderNodeSet& done);
 
 	void stack_clear_temporary(ShaderNode *node);
 	int stack_size(ShaderSocketType type);

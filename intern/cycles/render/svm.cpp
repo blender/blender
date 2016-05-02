@@ -185,34 +185,6 @@ void SVMCompiler::stack_clear_offset(ShaderSocketType type, int offset)
 		active_stack.users[offset + i]--;
 }
 
-void SVMCompiler::stack_backup(StackBackup& backup, ShaderNodeSet& done)
-{
-	backup.done = done;
-	backup.stack = active_stack;
-
-	foreach(ShaderNode *node, current_graph->nodes) {
-		foreach(ShaderInput *input, node->inputs)
-			backup.offsets.push_back(input->stack_offset);
-		foreach(ShaderOutput *output, node->outputs)
-			backup.offsets.push_back(output->stack_offset);
-	}
-}
-
-void SVMCompiler::stack_restore(StackBackup& backup, ShaderNodeSet& done)
-{
-	int i = 0;
-
-	done = backup.done;
-	active_stack = backup.stack;
-
-	foreach(ShaderNode *node, current_graph->nodes) {
-		foreach(ShaderInput *input, node->inputs)
-			input->stack_offset = backup.offsets[i++];
-		foreach(ShaderOutput *output, node->outputs)
-			output->stack_offset = backup.offsets[i++];
-	}
-}
-
 void SVMCompiler::stack_assign(ShaderInput *input)
 {
 	/* stack offset assign? */
