@@ -45,6 +45,7 @@
  * arm7 architecture does have both 32 and 64bit atomics, however
  * it's gcc doesn't have __GCC_HAVE_SYNC_COMPARE_AND_SWAP_n defined.
  */
+#  define JE_FORCE_SYNC_COMPARE_AND_SWAP_1
 #  define JE_FORCE_SYNC_COMPARE_AND_SWAP_8
 #  define JE_FORCE_SYNC_COMPARE_AND_SWAP_4
 #endif
@@ -398,6 +399,12 @@ atomic_fetch_and_and_uint8(uint8_t *p, uint8_t b)
 #else
 	return _InterlockedAnd8((char *)p, (char)b);
 #endif
+}
+#elif defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_1)
+ATOMIC_INLINE uint8_t
+atomic_fetch_and_and_uint8(uint8_t *p, uint8_t b)
+{
+	return __sync_fetch_and_and(p, b);
 }
 #else
 #  error "Missing implementation for 8-bit atomic operations"
