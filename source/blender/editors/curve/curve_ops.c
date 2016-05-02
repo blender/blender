@@ -87,6 +87,7 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_split);
 	WM_operatortype_append(CURVE_OT_duplicate);
 	WM_operatortype_append(CURVE_OT_delete);
+	WM_operatortype_append(CURVE_OT_dissolve_verts);
 
 	WM_operatortype_append(CURVE_OT_spline_type_set);
 	WM_operatortype_append(CURVE_OT_radius_set);
@@ -262,8 +263,12 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CURVE_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_make_segment", FKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_cyclic_toggle", CKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "CURVE_OT_delete", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "CURVE_OT_delete", DELKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_curve_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_curve_delete", DELKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "CURVE_OT_dissolve_verts", XKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "CURVE_OT_dissolve_verts", DELKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_tilt_clear", TKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "TRANSFORM_OT_tilt", TKEY, KM_PRESS, KM_CTRL, 0);
