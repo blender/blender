@@ -80,6 +80,22 @@ MINLINE void copy_vnvn(
 	}
 }
 
+MINLINE void copy_vnfl_vndb(
+        float v0[], const double v1[], const uint dims)
+{
+	for (uint j = 0; j < dims; j++) {
+		v0[j] = (float)v1[j];
+	}
+}
+
+MINLINE void copy_vndb_vnfl(
+        double v0[], const float v1[], const uint dims)
+{
+	for (uint j = 0; j < dims; j++) {
+		v0[j] = (double)v1[j];
+	}
+}
+
 MINLINE double dot_vnvn(
         const double v0[], const double v1[], const uint dims)
 {

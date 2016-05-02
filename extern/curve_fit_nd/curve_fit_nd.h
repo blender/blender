@@ -79,6 +79,43 @@ int curve_fit_cubic_to_points_fl(
         unsigned int **r_cubic_orig_index,
         unsigned int **r_corners_index_array, unsigned int *r_corners_index_len);
 
+/**
+ * Takes a flat array of points and evalues that to calculate handle lengths.
+ *
+ * \param points, points_len: The array of points to calculate a cubics from.
+ * \param dims: The number of dimensions for for each element in \a points.
+ * \param error_threshold: the error threshold to allow for,
+ * \param tan_l, tan_r: Normalized tangents the handles will be aligned to.
+ * Note that tangents must both point along the direction of the \a points,
+ * so \a tan_l points in the same direction of the resulting handle,
+ * where \a tan_r will point the opposite direction of its handle.
+ *
+ * \param r_handle_l, r_handle_r: Resulting calculated handles.
+ * \param r_error_sq: The maximum distance  (squared) this curve diverges from \a points.
+ */
+int curve_fit_cubic_to_points_single_db(
+        const double *points,
+        const uint    points_len,
+        const uint    dims,
+        const double  error_threshold,
+        const double tan_l[],
+        const double tan_r[],
+
+        double  r_handle_l[],
+        double  r_handle_r[],
+        double *r_error_sq);
+
+int curve_fit_cubic_to_points_single_fl(
+        const float  *points,
+        const uint    points_len,
+        const uint    dims,
+        const float   error_threshold,
+        const float   tan_l[],
+        const float   tan_r[],
+
+        float   r_handle_l[],
+        float   r_handle_r[],
+        float  *r_error_sq);
 
 /* curve_fit_corners_detect.c */
 

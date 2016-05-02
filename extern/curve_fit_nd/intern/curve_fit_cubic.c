@@ -109,9 +109,14 @@ typedef struct Cubic {
 	*_p3 = _p2 + (dims); ((void)0)
 
 
+static size_t cubic_alloc_size(const uint dims)
+{
+	return sizeof(Cubic) + (sizeof(double) * 4 * dims);
+}
+
 static Cubic *cubic_alloc(const uint dims)
 {
-	return malloc(sizeof(Cubic) + (sizeof(double) * 4 * dims));
+	return malloc(cubic_alloc_size(dims));
 }
 
 static void cubic_init(
@@ -286,20 +291,19 @@ static void cubic_calc_acceleration(
 }
 
 /**
- * Returns a 'measure' of the maximal discrepancy of the points specified
+ * Returns a 'measure' of the maximum distance (squared) of the points specified
  * by points_offset from the corresponding cubic(u[]) points.
  */
-static void cubic_calc_error(
+static double cubic_calc_error(
         const Cubic *cubic,
         const double *points_offset,
         const uint points_offset_len,
         const double *u,
         const uint dims,
 
-        double *r_error_sq_max,
         uint *r_error_index)
 {
-	double error_sq_max = 0.0;
+	double error_max_sq = 0.0;
 	uint   error_index = 0;
 
 	const double *pt_real = points_offset + dims;
@@ -313,14 +317,14 @@ static void cubic_calc_error(
 		cubic_evaluate(cubic, u[i], dims, pt_eval);
 
 		const double err_sq = len_squared_vnvn(pt_real, pt_eval, dims);
-		if (err_sq >= error_sq_max) {
-			error_sq_max = err_sq;
+		if (err_sq >= error_max_sq) {
+			error_max_sq = err_sq;
 			error_index = i;
 		}
 	}
 
-	*r_error_sq_max   = error_sq_max;
 	*r_error_index = error_index;
+	return error_max_sq;
 }
 
 /**
@@ -695,7 +699,7 @@ static bool cubic_reparameterize(
 }
 
 
-static void fit_cubic_to_points(
+static bool fit_cubic_to_points(
         const double *points_offset,
         const uint    points_offset_len,
 #ifdef USE_LENGTH_CACHE
@@ -703,19 +707,15 @@ static void fit_cubic_to_points(
 #endif
         const double  tan_l[],
         const double  tan_r[],
-        const double  error_threshold,
+        const double  error_threshold_sq,
         const uint    dims,
-        /* fill in the list */
-        CubicList *clist)
+
+        Cubic *r_cubic, double *r_error_max_sq, uint *r_split_index)
 {
 	const uint iteration_max = 4;
-	const double error_sq = sq(error_threshold);
-
-	Cubic *cubic;
 
 	if (points_offset_len == 2) {
-		cubic = cubic_alloc(dims);
-		CUBIC_VARS(cubic, dims, p0, p1, p2, p3);
+		CUBIC_VARS(r_cubic, dims, p0, p1, p2, p3);
 
 		copy_vnvn(p0, &points_offset[0 * dims], dims);
 		copy_vnvn(p3, &points_offset[1 * dims], dims);
@@ -725,11 +725,9 @@ static void fit_cubic_to_points(
 		madd_vn_vnvn_fl(p2, p3, tan_r, dist, dims);
 
 #ifdef USE_ORIG_INDEX_DATA
-		cubic->orig_span = 1;
+		r_cubic->orig_span = 1;
 #endif
-
-		cubic_list_prepend(clist, cubic);
-		return;
+		return true;
 	}
 
 	double *u = malloc(sizeof(double) * points_offset_len);
@@ -740,55 +738,97 @@ static void fit_cubic_to_points(
 #endif
 	        u);
 
-	cubic = cubic_alloc(dims);
-
-	double error_sq_max;
+	double error_max_sq;
 	uint split_index;
 
 	/* Parameterize points, and attempt to fit curve */
 	cubic_from_points(
-	        points_offset, points_offset_len, u, tan_l, tan_r, dims, cubic);
+	        points_offset, points_offset_len, u, tan_l, tan_r, dims, r_cubic);
 
 	/* Find max deviation of points to fitted curve */
-	cubic_calc_error(
-	        cubic, points_offset, points_offset_len, u, dims,
-	        &error_sq_max, &split_index);
+	error_max_sq = cubic_calc_error(
+	        r_cubic, points_offset, points_offset_len, u, dims,
+	        &split_index);
 
-	if (error_sq_max < error_sq) {
+	*r_error_max_sq = error_max_sq;
+	*r_split_index  = split_index;
+
+	if (error_max_sq < error_threshold_sq) {
 		free(u);
-		cubic_list_prepend(clist, cubic);
-		return;
+		return true;
 	}
 	else {
+		Cubic *cubic_test = alloca(cubic_alloc_size(dims));
+		*cubic_test = *r_cubic;
+
 		/* If error not too large, try some reparameterization and iteration */
 		double *u_prime = malloc(sizeof(double) * points_offset_len);
 		for (uint iter = 0; iter < iteration_max; iter++) {
 			if (!cubic_reparameterize(
-			        cubic, points_offset, points_offset_len, u, dims, u_prime))
+			        cubic_test, points_offset, points_offset_len, u, dims, u_prime))
 			{
 				break;
 			}
 
 			cubic_from_points(
 			        points_offset, points_offset_len, u_prime,
-			        tan_l, tan_r, dims, cubic);
-			cubic_calc_error(
-			        cubic, points_offset, points_offset_len, u_prime, dims,
-			        &error_sq_max, &split_index);
+			        tan_l, tan_r, dims, cubic_test);
+			error_max_sq = cubic_calc_error(
+			        cubic_test, points_offset, points_offset_len, u_prime, dims,
+			        &split_index);
 
-			if (error_sq_max < error_sq) {
+			if (error_max_sq < error_threshold_sq) {
 				free(u_prime);
 				free(u);
-				cubic_list_prepend(clist, cubic);
-				return;
+
+				*r_cubic = *cubic_test;
+				*r_error_max_sq = error_max_sq;
+				*r_split_index  = split_index;
+				return true;
+			}
+			else if (error_max_sq < *r_error_max_sq) {
+				*r_cubic = *cubic_test;
+				*r_error_max_sq = error_max_sq;
+				*r_split_index = split_index;
 			}
 
 			SWAP(double *, u, u_prime);
 		}
 		free(u_prime);
-	}
+		free(u);
 
-	free(u);
+		return false;
+	}
+}
+
+static void fit_cubic_to_points_recursive(
+        const double *points_offset,
+        const uint    points_offset_len,
+#ifdef USE_LENGTH_CACHE
+        const double *points_length_cache,
+#endif
+        const double  tan_l[],
+        const double  tan_r[],
+        const double  error_threshold_sq,
+        const uint    dims,
+        /* fill in the list */
+        CubicList *clist)
+{
+	Cubic *cubic = cubic_alloc(dims);
+	uint split_index;
+	double error_max_sq;
+
+	if (fit_cubic_to_points(
+	        points_offset, points_offset_len,
+#ifdef USE_LENGTH_CACHE
+	        points_length_cache,
+#endif
+	        tan_l, tan_r, error_threshold_sq, dims,
+	        cubic, &error_max_sq, &split_index))
+	{
+		cubic_list_prepend(clist, cubic);
+		return;
+	}
 	cubic_free(cubic);
 
 
@@ -831,18 +871,18 @@ static void fit_cubic_to_points(
 		normalize_vn(tan_center, dims);
 	}
 
-	fit_cubic_to_points(
+	fit_cubic_to_points_recursive(
 	        points_offset, split_index + 1,
 #ifdef USE_LENGTH_CACHE
 	        points_length_cache,
 #endif
-	        tan_l, tan_center, error_threshold, dims, clist);
-	fit_cubic_to_points(
+	        tan_l, tan_center, error_threshold_sq, dims, clist);
+	fit_cubic_to_points_recursive(
 	        &points_offset[split_index * dims], points_offset_len - split_index,
 #ifdef USE_LENGTH_CACHE
 	        points_length_cache + split_index,
 #endif
-	        tan_center, tan_r, error_threshold, dims, clist);
+	        tan_center, tan_r, error_threshold_sq, dims, clist);
 
 }
 
@@ -904,6 +944,8 @@ int curve_fit_cubic_to_points_db(
 		corner_index_array[corner_index++] = corners[0];
 	}
 
+	const double error_threshold_sq = sq(error_threshold);
+
 	for (uint i = 1; i < corners_len; i++) {
 		const uint points_offset_len = corners[i] - corners[i - 1] + 1;
 		const uint first_point = corners[i - 1];
@@ -933,12 +975,12 @@ int curve_fit_cubic_to_points_db(
 			        points_length_cache);
 #endif
 
-			fit_cubic_to_points(
+			fit_cubic_to_points_recursive(
 			        &points[first_point * dims], points_offset_len,
 #ifdef USE_LENGTH_CACHE
 			        points_length_cache,
 #endif
-			        tan_l, tan_r, error_threshold, dims, &clist);
+			        tan_l, tan_r, error_threshold_sq, dims, &clist);
 		}
 		else if (points_len == 1) {
 			assert(points_offset_len == 1);
@@ -1015,9 +1057,7 @@ int curve_fit_cubic_to_points_fl(
 	const uint points_flat_len = points_len * dims;
 	double *points_db = malloc(sizeof(double) * points_flat_len);
 
-	for (uint i = 0; i < points_flat_len; i++) {
-		points_db[i] = (double)points[i];
-	}
+	copy_vndb_vnfl(points_db, points, points_flat_len);
 
 	double *cubic_array_db = NULL;
 	float  *cubic_array_fl = NULL;
@@ -1041,6 +1081,102 @@ int curve_fit_cubic_to_points_fl(
 
 	*r_cubic_array = cubic_array_fl;
 	*r_cubic_array_len = cubic_array_len;
+
+	return result;
+}
+
+/**
+ * Fit a single cubic to points.
+ */
+int curve_fit_cubic_to_points_single_db(
+        const double *points,
+        const uint    points_len,
+        const uint    dims,
+        const double  error_threshold,
+        const double tan_l[],
+        const double tan_r[],
+
+        double  r_handle_l[],
+        double  r_handle_r[],
+        double  *r_error_max_sq)
+{
+	Cubic *cubic = alloca(cubic_alloc_size(dims));
+
+	uint split_index;
+
+	/* in this instance theres no advantage in using length cache,
+	 * since we're not recursively calculating values. */
+#ifdef USE_LENGTH_CACHE
+	double *points_length_cache = malloc(sizeof(double) * points_len);
+	points_calc_coord_length_cache(
+	        points, points_len, dims,
+	        points_length_cache);
+#endif
+
+	fit_cubic_to_points(
+	        points, points_len,
+#ifdef USE_LENGTH_CACHE
+	        points_length_cache,
+#endif
+	        tan_l, tan_r, error_threshold, dims,
+
+	        cubic, r_error_max_sq, &split_index);
+
+#ifdef USE_LENGTH_CACHE
+	free(points_length_cache);
+#endif
+
+	copy_vnvn(r_handle_l, CUBIC_PT(cubic, 1, dims), dims);
+	copy_vnvn(r_handle_r, CUBIC_PT(cubic, 2, dims), dims);
+
+	return 0;
+}
+
+int curve_fit_cubic_to_points_single_fl(
+        const float  *points,
+        const uint    points_len,
+        const uint    dims,
+        const float   error_threshold,
+        const float   tan_l[],
+        const float   tan_r[],
+
+        float   r_handle_l[],
+        float   r_handle_r[],
+        float  *r_error_sq)
+{
+	const uint points_flat_len = points_len * dims;
+	double *points_db = malloc(sizeof(double) * points_flat_len);
+
+	copy_vndb_vnfl(points_db, points, points_flat_len);
+
+#ifdef USE_VLA
+	double tan_l_db[dims];
+	double tan_r_db[dims];
+	double r_handle_l_db[dims];
+	double r_handle_r_db[dims];
+#else
+	double *tan_l_db = alloca(sizeof(double) * dims);
+	double *tan_r_db = alloca(sizeof(double) * dims);
+	double *r_handle_l_db = alloca(sizeof(double) * dims);
+	double *r_handle_r_db = alloca(sizeof(double) * dims);
+#endif
+	double r_error_sq_db;
+
+	copy_vndb_vnfl(tan_l_db, tan_l, dims);
+	copy_vndb_vnfl(tan_r_db, tan_r, dims);
+
+	int result = curve_fit_cubic_to_points_single_db(
+	        points_db, points_len, dims,
+	        (double)error_threshold,
+	        tan_l_db, tan_r_db,
+	        r_handle_l_db, r_handle_r_db,
+	        &r_error_sq_db);
+
+	free(points_db);
+
+	copy_vnfl_vndb(r_handle_l, r_handle_l_db, dims);
+	copy_vnfl_vndb(r_handle_r, r_handle_r_db, dims);
+	*r_error_sq = (float)r_error_sq_db;
 
 	return result;
 }
