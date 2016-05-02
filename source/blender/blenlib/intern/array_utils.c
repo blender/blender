@@ -170,3 +170,119 @@ void _bli_array_binary_or(
 		*(dst++) = *(src_a++) | *(src_b++);
 	}
 }
+
+/**
+ * Utility function to iterate over contiguous items in an array.
+ *
+ * \param use_wrap: Detect contiguous ranges across the first/last points.
+ * In this case the second index of \a span_step may be lower than the first,
+ * which indicates the values are wrapped.
+ * \param use_delimit_bounds: When false, ranges that defined by the start/end indices are excluded.
+ * This option has no effect when \a use_wrap is enabled.
+ * \param test_fn: Function to test if the item should be included in the range.
+ * \param user_data: User data for \a test_fn.
+ * \param span_step: Indices to iterate over,
+ * initialize both values to the array length to initialize iteration.
+ * \param: r_span_len: The length of the span, useful when \a use_wrap is enabled,
+ * where calculating the length isnt a simple subtraction.
+ */
+bool _bli_array_iter_span(
+        const void *arr,
+        unsigned int arr_len, size_t arr_stride,
+        bool use_wrap, bool use_delimit_bounds,
+        bool (*test_fn)(const void *arr_item, void *user_data), void *user_data,
+        unsigned int span_step[2], unsigned int *r_span_len)
+{
+	if (arr_len == 0) {
+		return false;
+	}
+
+	const unsigned int arr_stride_uint = (unsigned int)arr_stride;
+	const void *item_prev;
+	bool test_prev;
+
+	unsigned int i_curr;
+
+	if ((span_step[0] == arr_len) && (span_step[1] == arr_len)) {
+		if (use_wrap) {
+			item_prev = POINTER_OFFSET(arr, (arr_len - 1) * arr_stride_uint);
+			i_curr = 0;
+			test_prev = test_fn(item_prev, user_data);
+		}
+		else if (use_delimit_bounds == false) {
+			item_prev = arr;
+			i_curr = 1;
+			test_prev = test_fn(item_prev, user_data);
+		}
+		else {
+			item_prev = NULL;
+			i_curr = 0;
+			test_prev = false;
+		}
+	}
+	else if ((i_curr = span_step[1] + 2) < arr_len) {
+		item_prev = POINTER_OFFSET(arr, (span_step[1] + 1) * arr_stride_uint);
+		test_prev = test_fn(item_prev, user_data);
+	}
+	else {
+		return false;
+	}
+	BLI_assert(i_curr < arr_len);
+
+	const void *item_curr = POINTER_OFFSET(arr, i_curr * arr_stride_uint);
+
+	while (i_curr < arr_len) {
+		bool test_curr = test_fn(item_curr, user_data);
+		if ((test_prev == false) &&
+		    (test_curr == true))
+		{
+			unsigned int span_len;
+			unsigned int i_step_prev = i_curr;
+
+			if (use_wrap) {
+				unsigned int i_step = i_curr + 1;
+				if (UNLIKELY(i_step == arr_len)) {
+					i_step = 0;
+				}
+				while (test_fn(POINTER_OFFSET(arr, i_step * arr_stride_uint), user_data)) {
+					i_step_prev = i_step;
+					i_step++;
+					if (UNLIKELY(i_step == arr_len)) {
+						i_step = 0;
+					}
+				}
+
+				span_len = (i_step_prev - ((i_step_prev >= i_curr) ? i_curr : (i_curr + arr_len))) + 1;
+			}
+			else {
+				unsigned int i_step = i_curr + 1;
+				while ((i_step != arr_len) &&
+				       test_fn(POINTER_OFFSET(arr, i_step * arr_stride_uint), user_data))
+				{
+					i_step_prev = i_step;
+					i_step++;
+				}
+
+				span_len = (i_step_prev - i_curr) + 1;
+
+				if ((use_delimit_bounds == false) && (i_step_prev == arr_len - 1)) {
+					return false;
+				}
+			}
+
+			span_step[0] = i_curr;
+			span_step[1] = i_step_prev;
+			*r_span_len  = span_len;
+
+			return true;
+		}
+
+		test_prev = test_curr;
+
+		item_prev = item_curr;
+		item_curr = POINTER_OFFSET(item_curr, arr_stride_uint);
+		i_curr++;
+	}
+
+	return false;
+}
