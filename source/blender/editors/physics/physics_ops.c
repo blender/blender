@@ -68,19 +68,6 @@ static void operatortypes_fluid(void)
 	WM_operatortype_append(FLUID_OT_bake);
 }
 
-/**************************** point cache **********************************/
-
-static void operatortypes_pointcache(void)
-{
-	WM_operatortype_append(PTCACHE_OT_bake_all);
-	WM_operatortype_append(PTCACHE_OT_free_bake_all);
-	WM_operatortype_append(PTCACHE_OT_bake);
-	WM_operatortype_append(PTCACHE_OT_free_bake);
-	WM_operatortype_append(PTCACHE_OT_bake_from_cache);
-	WM_operatortype_append(PTCACHE_OT_add);
-	WM_operatortype_append(PTCACHE_OT_remove);
-}
-
 /********************************* dynamic paint ***********************************/
 
 static void operatortypes_dynamicpaint(void)
@@ -92,30 +79,15 @@ static void operatortypes_dynamicpaint(void)
 	WM_operatortype_append(DPAINT_OT_output_toggle);
 }
 
-//static void keymap_pointcache(wmWindowManager *wm)
-//{
-//	wmKeyMap *keymap = WM_keymap_find(wm, "Pointcache", 0, 0);
-//	
-//	WM_keymap_add_item(keymap, "PHYSICS_OT_bake_all", AKEY, KM_PRESS, 0, 0);
-//	WM_keymap_add_item(keymap, "PHYSICS_OT_free_all", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
-//	WM_keymap_add_item(keymap, "PHYSICS_OT_bake_particle_system", PADMINUS, KM_PRESS, KM_CTRL, 0);
-//	WM_keymap_add_item(keymap, "PHYSICS_OT_free_particle_system", LKEY, KM_PRESS, 0, 0);
-//}
-
 /****************************** general ************************************/
 
 void ED_operatortypes_physics(void)
 {
 	operatortypes_rigidbody();
 	operatortypes_fluid();
-	operatortypes_pointcache();
 	operatortypes_dynamicpaint();
 }
 
 void ED_keymap_physics(wmKeyConfig *UNUSED(keyconf))
 {
-	//keymap_pointcache(keyconf);
 }
-
-
-

@@ -592,8 +592,6 @@ typedef struct ClothModifierData {
 	struct Cloth *clothObject;            /* The internal data structure for cloth. */
 	struct ClothSimSettings *sim_parms;   /* definition is in DNA_cloth_types.h */
 	struct ClothCollSettings *coll_parms; /* definition is in DNA_cloth_types.h */
-	struct PointCache *point_cache;       /* definition is in DNA_object_force.h */
-	struct ListBase ptcaches;
 	/* XXX nasty hack, remove once hair can be separated from cloth modifier data */
 	struct ClothHairData *hairdata;
 	/* grid geometry values of hair continuum */
@@ -746,7 +744,6 @@ typedef struct FluidsimModifierData {
 	ModifierData modifier;
 
 	struct FluidsimSettings *fss;   /* definition is in DNA_object_fluidsim.h */
-	struct PointCache *point_cache; /* definition is in DNA_object_force.h */
 } FluidsimModifierData;
 
 typedef struct ShrinkwrapModifierData {

@@ -80,7 +80,6 @@ EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 
 #include "BKE_context.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_pointcache.h"
 #include "BKE_depsgraph.h"
 #include "BKE_pbvh.h"
 

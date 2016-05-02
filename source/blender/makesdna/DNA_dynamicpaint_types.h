@@ -108,8 +108,6 @@ typedef struct DynamicPaintSurface {
 	struct EffectorWeights *effector_weights;
 
 	/* cache */
-	struct PointCache *pointcache;
-	struct ListBase ptcaches;
 	int current_frame;
 
 	/* surface */

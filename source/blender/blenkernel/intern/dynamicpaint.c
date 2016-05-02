@@ -47,6 +47,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
@@ -66,7 +67,6 @@
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 
@@ -837,8 +837,7 @@ static void surface_freeUnusedData(DynamicPaintSurface *surface)
 	if (!surface->data) return;
 
 	/* free bakedata if not active or surface is baked */
-	if (!(surface->flags & MOD_DPAINT_ACTIVE) ||
-	    (surface->pointcache && surface->pointcache->flag & PTCACHE_BAKED))
+	if (!(surface->flags & MOD_DPAINT_ACTIVE))
 	{
 		free_bakeData(surface->data);
 	}
@@ -871,10 +870,6 @@ void dynamicPaint_freeSurfaceData(DynamicPaintSurface *surface)
 
 void dynamicPaint_freeSurface(DynamicPaintSurface *surface)
 {
-	/* point cache */
-	BKE_ptcache_free_list(&(surface->ptcaches));
-	surface->pointcache = NULL;
-
 	if (surface->effector_weights)
 		MEM_freeN(surface->effector_weights);
 	surface->effector_weights = NULL;
@@ -934,11 +929,6 @@ DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSettings *c
 	surface->canvas = canvas;
 	surface->format = MOD_DPAINT_SURFACE_F_VERTEX;
 	surface->type = MOD_DPAINT_SURFACE_T_PAINT;
-
-	/* cache */
-	surface->pointcache = BKE_ptcache_add(&(surface->ptcaches));
-	surface->pointcache->flag |= PTCACHE_DISK_CACHE;
-	surface->pointcache->step = 1;
 
 	/* Set initial values */
 	surface->flags = MOD_DPAINT_ANTIALIAS | MOD_DPAINT_MULALPHA | MOD_DPAINT_DRY_LOG | MOD_DPAINT_DISSOLVE_LOG |
@@ -1804,15 +1794,6 @@ static DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd,
 	return result;
 }
 
-/* update cache frame range */
-void dynamicPaint_cacheUpdateFrames(DynamicPaintSurface *surface)
-{
-	if (surface->pointcache) {
-		surface->pointcache->startframe = surface->start_frame;
-		surface->pointcache->endframe = surface->end_frame;
-	}
-}
-
 static void canvas_copyDerivedMesh(DynamicPaintCanvasSettings *canvas, DerivedMesh *dm)
 {
 	if (canvas->dm) {
@@ -1857,29 +1838,10 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 			CLAMP(current_frame, surface->start_frame, surface->end_frame);
 
 			if (no_surface_data || current_frame != surface->current_frame || (int)scene->r.cfra == surface->start_frame) {
-				PointCache *cache = surface->pointcache;
-				PTCacheID pid;
 				surface->current_frame = current_frame;
 
-				/* read point cache */
-				BKE_ptcache_id_from_dynamicpaint(&pid, ob, surface);
-				pid.cache->startframe = surface->start_frame;
-				pid.cache->endframe = surface->end_frame;
-				BKE_ptcache_id_time(&pid, scene, (float)scene->r.cfra, NULL, NULL, NULL);
-
-				/* reset non-baked cache at first frame */
-				if ((int)scene->r.cfra == surface->start_frame && !(cache->flag & PTCACHE_BAKED)) {
-					cache->flag |= PTCACHE_REDO_NEEDED;
-					BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
-					cache->flag &= ~PTCACHE_REDO_NEEDED;
-				}
-
-				/* try to read from cache */
-				if (BKE_ptcache_read(&pid, (float)scene->r.cfra)) {
-					BKE_ptcache_validate(cache, (int)scene->r.cfra);
-				}
-				/* if read failed and we're on surface range do recalculate */
-				else if ((int)scene->r.cfra == current_frame && !(cache->flag & PTCACHE_BAKED)) {
+				/* if we're on surface range do recalculate */
+				if ((int)scene->r.cfra == current_frame) {
 					/* calculate surface frame */
 					canvas->flags |= MOD_DPAINT_BAKING;
 					dynamicPaint_calculateFrame(surface, scene, ob, current_frame);
@@ -1891,9 +1853,6 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 					{
 						canvas_copyDerivedMesh(canvas, dm);
 					}
-
-					BKE_ptcache_validate(cache, surface->current_frame);
-					BKE_ptcache_write(&pid, surface->current_frame);
 				}
 			}
 		}

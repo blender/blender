@@ -21,7 +21,6 @@ import bpy
 from bpy.types import Panel, UIList
 
 from bl_ui.properties_physics_common import (
-        point_cache_ui,
         effector_weights_ui,
         )
 
@@ -384,28 +383,6 @@ class PHYSICS_PT_dp_effects(PhysicButtonsPanel, Panel):
             row = layout.row()
             row.active = surface.use_shrink
             row.prop(surface, "shrink_speed")
-
-
-class PHYSICS_PT_dp_cache(PhysicButtonsPanel, Panel):
-    bl_label = "Dynamic Paint Cache"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        md = context.dynamic_paint
-        rd = context.scene.render
-        return (md and
-                md.ui_type == 'CANVAS' and
-                md.canvas_settings and
-                md.canvas_settings.canvas_surfaces.active and
-                md.canvas_settings.canvas_surfaces.active.is_cache_user and
-                (not rd.use_game_engine))
-
-    def draw(self, context):
-        surface = context.dynamic_paint.canvas_settings.canvas_surfaces.active
-        cache = surface.point_cache
-
-        point_cache_ui(self, context, cache, (cache.is_baked is False), 'DYNAMIC_PAINT')
 
 
 class PHYSICS_PT_dp_brush_source(PhysicButtonsPanel, Panel):

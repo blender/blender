@@ -83,7 +83,6 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
@@ -6127,8 +6126,6 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 		for (i = 0; i < t->total; i++) {
 			TransData *td = t->data + i;
-			ListBase pidlist;
-			PTCacheID *pid;
 			ob = td->ob;
 
 			if (td->flag & TD_NOACTION)
@@ -6136,17 +6133,6 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			
 			if (td->flag & TD_SKIP)
 				continue;
-
-			/* flag object caches as outdated */
-			BKE_ptcache_ids_from_object(&pidlist, ob, t->scene, MAX_DUPLI_RECUR);
-			for (pid = pidlist.first; pid; pid = pid->next) {
-				pid->cache->flag |= PTCACHE_OUTDATED;
-			}
-			BLI_freelistN(&pidlist);
-
-			/* pointcache refresh */
-			if (BKE_ptcache_object_reset(t->scene, ob, PTCACHE_RESET_OUTDATED))
-				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 			/* Needed for proper updating of "quick cached" dynamics. */
 			/* Creates troubles for moving animated objects without */

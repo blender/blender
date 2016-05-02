@@ -34,6 +34,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_force.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -45,7 +46,6 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_global.h"
 #include "BKE_modifier.h"
-#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 
 static void initData(ModifierData *md) 

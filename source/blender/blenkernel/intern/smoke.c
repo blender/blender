@@ -56,6 +56,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_object_force.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
@@ -76,7 +77,6 @@
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_smoke.h"
 #include "BKE_texture.h"
@@ -355,9 +355,6 @@ static void smokeModifier_freeDomain(SmokeModifierData *smd)
 			MEM_freeN(smd->domain->effector_weights);
 		smd->domain->effector_weights = NULL;
 
-		BKE_ptcache_free_list(&(smd->domain->ptcaches[0]));
-		smd->domain->point_cache[0] = NULL;
-
 		MEM_freeN(smd->domain);
 		smd->domain = NULL;
 	}
@@ -482,13 +479,6 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 
 			smd->domain->smd = smd;
 
-			smd->domain->point_cache[0] = BKE_ptcache_add(&(smd->domain->ptcaches[0]));
-			smd->domain->point_cache[0]->flag |= PTCACHE_DISK_CACHE;
-			smd->domain->point_cache[0]->step = 1;
-
-			/* Deprecated */
-			smd->domain->point_cache[1] = NULL;
-			BLI_listbase_clear(&smd->domain->ptcaches[1]);
 			/* set some standard values */
 			smd->domain->fluid = NULL;
 			smd->domain->fluid_mutex = BLI_rw_mutex_alloc();
@@ -533,7 +523,6 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->domain->openvdb_comp = VDB_COMPRESSION_ZIP;
 #endif
 			smd->domain->data_depth = 0;
-			smd->domain->cache_file_format = PTCACHE_FILE_PTCACHE;
 		}
 		else if (smd->type & MOD_SMOKE_TYPE_FLOW)
 		{
@@ -2429,28 +2418,16 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 	else if (smd->type & MOD_SMOKE_TYPE_DOMAIN)
 	{
 		SmokeDomainSettings *sds = smd->domain;
-		PointCache *cache = NULL;
-		PTCacheID pid;
-		int startframe, endframe, framenr;
-		float timescale;
-
-		framenr = scene->r.cfra;
+		int startframe = scene->r.sfra, endframe = scene->r.efra, framenr = scene->r.cfra;
 
 		//printf("time: %d\n", scene->r.cfra);
 
-		cache = sds->point_cache[0];
-		BKE_ptcache_id_from_smoke(&pid, ob, smd);
-		BKE_ptcache_id_time(&pid, scene, framenr, &startframe, &endframe, &timescale);
-
 		if (!smd->domain->fluid || framenr == startframe)
 		{
-			BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
 			smokeModifier_reset_ex(smd, false);
-			BKE_ptcache_validate(cache, framenr);
-			cache->flag &= ~PTCACHE_REDO_NEEDED;
 		}
 
-		if (!smd->domain->fluid && (framenr != startframe) && (smd->domain->flags & MOD_SMOKE_FILE_LOAD) == 0 && (cache->flag & PTCACHE_BAKED) == 0)
+		if (!smd->domain->fluid && (framenr != startframe) && (smd->domain->flags & MOD_SMOKE_FILE_LOAD) == 0)
 			return;
 
 		smd->domain->flags &= ~MOD_SMOKE_FILE_LOAD;
@@ -2466,13 +2443,6 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 			return;
 		}
 
-		/* try to read from cache */
-		if (BKE_ptcache_read(&pid, (float)framenr) == PTCACHE_READ_EXACT) {
-			BKE_ptcache_validate(cache, framenr);
-			smd->time = framenr;
-			return;
-		}
-
 		/* only calculate something when we advanced a single frame */
 		if (framenr != (int)smd->time + 1)
 			return;
@@ -2484,11 +2454,6 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 #ifdef DEBUG_TIME
 		double start = PIL_check_seconds_timer();
 #endif
-
-		/* if on second frame, write cache for first frame */
-		if ((int)smd->time == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact == 0)) {
-			BKE_ptcache_write(&pid, startframe);
-		}
 
 		// set new time
 		smd->time = scene->r.cfra;
@@ -2519,10 +2484,6 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 		{
 			smoke_turbulence_step(sds->wt, sds->fluid);
 		}
-
-		BKE_ptcache_validate(cache, framenr);
-		if (framenr != startframe)
-			BKE_ptcache_write(&pid, framenr);
 
 #ifdef DEBUG_TIME
 		double end = PIL_check_seconds_timer();

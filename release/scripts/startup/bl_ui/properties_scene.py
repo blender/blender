@@ -27,7 +27,6 @@ from bpy.types import (
 from rna_prop_ui import PropertyPanel
 
 from bl_ui.properties_physics_common import (
-        point_cache_ui,
         effector_weights_ui,
         )
 
@@ -369,24 +368,6 @@ class SCENE_PT_rigid_body_world(SceneButtonsPanel, Panel):
             col = split.column()
             col.prop(rbw, "steps_per_second", text="Steps Per Second")
             col.prop(rbw, "solver_iterations", text="Solver Iterations")
-
-
-class SCENE_PT_rigid_body_cache(SceneButtonsPanel, Panel):
-    bl_label = "Rigid Body Cache"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    @classmethod
-    def poll(cls, context):
-        rd = context.scene.render
-        scene = context.scene
-        return scene and scene.rigidbody_world and (rd.engine in cls.COMPAT_ENGINES)
-
-    def draw(self, context):
-        scene = context.scene
-        rbw = scene.rigidbody_world
-
-        point_cache_ui(self, context, rbw.point_cache, rbw.point_cache.is_baked is False and rbw.enabled, 'RIGID_BODY')
 
 
 class SCENE_PT_rigid_body_field_weights(SceneButtonsPanel, Panel):

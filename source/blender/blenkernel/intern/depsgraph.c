@@ -54,6 +54,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
@@ -77,7 +78,6 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_tracking.h"
@@ -1795,38 +1795,6 @@ static unsigned int flush_layer_node(Scene *sce, DagNode *node, int curtime)
 	return node->lay;
 }
 
-/* node was checked to have lasttime != curtime, and is of type ID_OB */
-static void flush_pointcache_reset(Main *bmain, Scene *scene, DagNode *node,
-                                   int curtime, unsigned int lay, bool reset)
-{
-	DagAdjList *itA;
-	Object *ob;
-	
-	node->lasttime = curtime;
-	
-	for (itA = node->child; itA; itA = itA->next) {
-		if (itA->node->type == ID_OB) {
-			if (itA->node->lasttime != curtime) {
-				ob = (Object *)(itA->node->ob);
-
-				if (reset || (ob->recalc & OB_RECALC_ALL)) {
-					if (BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH)) {
-						/* Don't tag nodes which are on invisible layer. */
-						if (itA->node->lay & lay) {
-							ob->recalc |= OB_RECALC_DATA;
-							lib_id_recalc_data_tag(bmain, &ob->id);
-						}
-					}
-
-					flush_pointcache_reset(bmain, scene, itA->node, curtime, lay, true);
-				}
-				else
-					flush_pointcache_reset(bmain, scene, itA->node, curtime, lay, false);
-			}
-		}
-	}
-}
-
 /* flush layer flags to dependencies */
 static void dag_scene_flush_layers(Scene *sce, int lay)
 {
@@ -1904,7 +1872,6 @@ void DAG_scene_flush_update(Main *bmain, Scene *sce, unsigned int lay, const sho
 {
 	DagNode *firstnode;
 	DagAdjList *itA;
-	Object *ob;
 	int lasttime;
 
 	if (!DEG_depsgraph_use_legacy()) {
@@ -1932,24 +1899,6 @@ void DAG_scene_flush_update(Main *bmain, Scene *sce, unsigned int lay, const sho
 	if (!time) {
 		sce->theDag->time++;  /* so we know which nodes were accessed */
 		lasttime = sce->theDag->time;
-		for (itA = firstnode->child; itA; itA = itA->next) {
-			if (itA->node->lasttime != lasttime && itA->node->type == ID_OB) {
-				ob = (Object *)(itA->node->ob);
-
-				if (ob->recalc & OB_RECALC_ALL) {
-					if (BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH)) {
-						ob->recalc |= OB_RECALC_DATA;
-						lib_id_recalc_data_tag(bmain, &ob->id);
-					}
-
-					flush_pointcache_reset(bmain, sce, itA->node, lasttime,
-					                       lay, true);
-				}
-				else
-					flush_pointcache_reset(bmain, sce, itA->node, lasttime,
-					                       lay, false);
-			}
-		}
 	}
 	
 	dag_tag_renderlayers(sce, lay);
@@ -2466,7 +2415,6 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 	/* set flags & pointcache for object */
 	if (GS(id->name) == ID_OB) {
 		ob = (Object *)id;
-		BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH);
 
 		/* So if someone tagged object recalc directly,
 		 * id_tag_update bit-field stays relevant
@@ -2497,7 +2445,6 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 				if (!(ob && obt == ob) && obt->data == id) {
 					obt->recalc |= OB_RECALC_DATA;
 					lib_id_recalc_data_tag(bmain, &obt->id);
-					BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
 				}
 			}
 		}
@@ -2536,7 +2483,6 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 					obt->flag |= (OB_RECALC_OB | OB_RECALC_DATA);
 					lib_id_recalc_tag(bmain, &obt->id);
 					lib_id_recalc_data_tag(bmain, &obt->id);
-					BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
 				}
 			}
 		}

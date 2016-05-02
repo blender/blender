@@ -225,7 +225,7 @@ static int read_voxeldata_header(FILE *fp, struct VoxelData *vd)
 	return 1;
 }
 
-static void init_frame_smoke(VoxelData *vd, int cfra)
+static void init_frame_smoke(VoxelData *vd, int UNUSED(cfra))
 {
 #ifdef WITH_SMOKE
 	Object *ob;
@@ -248,9 +248,7 @@ static void init_frame_smoke(VoxelData *vd, int cfra)
 				return;
 			}
 
-			if (cfra < sds->point_cache[0]->startframe)
-				;  /* don't show smoke before simulation starts, this could be made an option in the future */
-			else if (vd->smoked_type == TEX_VD_SMOKEHEAT) {
+			if (vd->smoked_type == TEX_VD_SMOKEHEAT) {
 				size_t totRes;
 				size_t i;
 				float *heat;

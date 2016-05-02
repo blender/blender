@@ -55,7 +55,6 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
-#include "BKE_pointcache.h"
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"
 

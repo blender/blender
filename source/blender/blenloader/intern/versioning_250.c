@@ -53,6 +53,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_fluidsim.h" // NT
+#include "DNA_object_force.h"
 #include "DNA_object_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
@@ -78,7 +79,6 @@
 #include "BKE_mesh.h" // for ME_ defines (patching)
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
-#include "BKE_pointcache.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
 #include "BKE_texture.h"

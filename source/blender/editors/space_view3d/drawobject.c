@@ -37,6 +37,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_object_force.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
@@ -71,7 +72,6 @@
 #include "BKE_movieclip.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
 #include "BKE_unit.h"
@@ -6694,6 +6694,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		/* only draw domains */
 		if (smd->domain) {
 			SmokeDomainSettings *sds = smd->domain;
+			const bool show_smoke = true; /* XXX was checking cached frame range before */
 			float viewnormal[3];
 
 			glLoadMatrixf(rv3d->viewmat);
@@ -6734,7 +6735,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			}
 
 			/* don't show smoke before simulation starts, this could be made an option in the future */
-			if (sds->fluid && CFRA >= sds->point_cache[0]->startframe) {
+			if (sds->fluid && show_smoke) {
 				float p0[3], p1[3];
 
 				/* get view vector */

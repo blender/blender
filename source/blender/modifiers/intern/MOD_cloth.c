@@ -37,6 +37,7 @@
 #include "DNA_cloth_types.h"
 #include "DNA_key_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_force.h"
 #include "DNA_object_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -51,7 +52,6 @@
 #include "BKE_key.h"
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
-#include "BKE_pointcache.h"
 
 #include "depsgraph_private.h"
 
@@ -63,10 +63,9 @@ static void initData(ModifierData *md)
 	
 	clmd->sim_parms = MEM_callocN(sizeof(ClothSimSettings), "cloth sim parms");
 	clmd->coll_parms = MEM_callocN(sizeof(ClothCollSettings), "cloth coll parms");
-	clmd->point_cache = BKE_ptcache_add(&clmd->ptcaches);
 	
 	/* check for alloc failing */
-	if (!clmd->sim_parms || !clmd->coll_parms || !clmd->point_cache)
+	if (!clmd->sim_parms || !clmd->coll_parms)
 		return;
 	
 	cloth_init(clmd);
@@ -188,15 +187,10 @@ static void copyData(ModifierData *md, ModifierData *target)
 	if (tclmd->coll_parms)
 		MEM_freeN(tclmd->coll_parms);
 	
-	BKE_ptcache_free_list(&tclmd->ptcaches);
-	tclmd->point_cache = NULL;
-
 	tclmd->sim_parms = MEM_dupallocN(clmd->sim_parms);
 	if (clmd->sim_parms->effector_weights)
 		tclmd->sim_parms->effector_weights = MEM_dupallocN(clmd->sim_parms->effector_weights);
 	tclmd->coll_parms = MEM_dupallocN(clmd->coll_parms);
-	tclmd->point_cache = BKE_ptcache_add(&tclmd->ptcaches);
-	tclmd->point_cache->step = 1;
 	tclmd->clothObject = NULL;
 	tclmd->hairdata = NULL;
 	tclmd->solver_result = NULL;
@@ -224,9 +218,6 @@ static void freeData(ModifierData *md)
 		}
 		if (clmd->coll_parms)
 			MEM_freeN(clmd->coll_parms);
-		
-		BKE_ptcache_free_list(&clmd->ptcaches);
-		clmd->point_cache = NULL;
 		
 		if (clmd->hairdata)
 			MEM_freeN(clmd->hairdata);
