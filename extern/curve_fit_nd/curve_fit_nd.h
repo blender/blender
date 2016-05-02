@@ -94,24 +94,24 @@ int curve_fit_cubic_to_points_fl(
  * \param r_error_sq: The maximum distance  (squared) this curve diverges from \a points.
  */
 int curve_fit_cubic_to_points_single_db(
-        const double *points,
-        const uint    points_len,
-        const uint    dims,
-        const double  error_threshold,
-        const double tan_l[],
-        const double tan_r[],
+        const double      *points,
+        const unsigned int points_len,
+        const unsigned int dims,
+        const double       error_threshold,
+        const double       tan_l[],
+        const double       tan_r[],
 
         double  r_handle_l[],
         double  r_handle_r[],
         double *r_error_sq);
 
 int curve_fit_cubic_to_points_single_fl(
-        const float  *points,
-        const uint    points_len,
-        const uint    dims,
-        const float   error_threshold,
-        const float   tan_l[],
-        const float   tan_r[],
+        const float       *points,
+        const unsigned int points_len,
+        const unsigned int dims,
+        const float        error_threshold,
+        const float        tan_l[],
+        const float        tan_r[],
 
         float   r_handle_l[],
         float   r_handle_r[],
