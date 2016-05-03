@@ -2838,6 +2838,8 @@ static void view3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
 	float afm[3];
 	float size;
 
+	ED_view3d_smooth_view_finish(C, v3d, ar);
+
 	/* SMOOTHVIEW */
 	float new_ofs[3];
 	float new_dist;
@@ -3196,6 +3198,8 @@ static int viewcenter_cursor_exec(bContext *C, wmOperator *op)
 		ARegion *ar = CTX_wm_region(C);
 		const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
+		ED_view3d_smooth_view_finish(C, v3d, ar);
+
 		/* non camera center */
 		float new_ofs[3];
 		negate_v3_v3(new_ofs, ED_view3d_cursor3d_get(scene, v3d));
@@ -3234,6 +3238,8 @@ static int viewcenter_pick_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 	if (rv3d) {
 		float new_ofs[3];
 		const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
+
+		ED_view3d_smooth_view_finish(C, v3d, ar);
 
 		view3d_operator_needs_opengl(C);
 
@@ -3840,6 +3846,8 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 	ED_view3d_context_user_region(C, &v3d, &ar);
 	rv3d = ar->regiondata;
 
+	ED_view3d_smooth_view_finish(C, v3d, ar);
+
 	viewnum = RNA_enum_get(op->ptr, "type");
 	align_active = RNA_boolean_get(op->ptr, "align_active");
 
@@ -3989,6 +3997,8 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 		ED_view3d_context_user_region(C, &v3d, &ar);
 		rv3d = ar->regiondata;
 	}
+
+	ED_view3d_smooth_view_finish(C, v3d, ar);
 
 	if ((rv3d->viewlock & RV3D_LOCKED) == 0 || (view_opposite != RV3D_VIEW_USER)) {
 		if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d)) {
@@ -4195,6 +4205,9 @@ static int viewroll_exec(bContext *C, wmOperator *op)
 
 	rv3d = ar->regiondata;
 	if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d)) {
+
+		ED_view3d_smooth_view_finish(C, v3d, ar);
+
 		int type = RNA_enum_get(op->ptr, "type");
 		float angle = (type == 0) ? RNA_float_get(op->ptr, "angle") : DEG2RADF(U.pad_rot_angle);
 		float mousevec[3];

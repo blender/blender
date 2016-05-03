@@ -337,16 +337,11 @@ void ED_view3d_smooth_view(
 }
 
 /* only meant for timer usage */
-static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *ar, bool sync_boxview)
 {
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	RegionView3D *rv3d = ar->regiondata;
 	struct SmoothView3DStore *sms = rv3d->sms;
 	float step, step_inv;
-	
-	/* escape if not our timer */
-	if (rv3d->smooth_timer == NULL || rv3d->smooth_timer != event->customdata)
-		return OPERATOR_PASS_THROUGH;
 	
 	if (sms->time_allowed != 0.0)
 		step = (float)((rv3d->smooth_timer->duration) / sms->time_allowed);
@@ -404,8 +399,9 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const w
 
 	}
 	
-	if (rv3d->viewlock & RV3D_BOXVIEW)
-		view3d_boxview_copy(CTX_wm_area(C), CTX_wm_region(C));
+	if (sync_boxview && (rv3d->viewlock & RV3D_BOXVIEW)) {
+		view3d_boxview_copy(CTX_wm_area(C), ar);
+	}
 
 	/* note: this doesn't work right because the v3d->lens is now used in ortho mode r51636,
 	 * when switching camera in quad-view the other ortho views would zoom & reset.
@@ -416,10 +412,41 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const w
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 	}
 	else {
-		ED_region_tag_redraw(CTX_wm_region(C));
+		ED_region_tag_redraw(ar);
 	}
-	
+}
+
+static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	ARegion *ar = CTX_wm_region(C);
+	RegionView3D *rv3d = ar->regiondata;
+
+	/* escape if not our timer */
+	if (rv3d->smooth_timer == NULL || rv3d->smooth_timer != event->customdata) {
+		return OPERATOR_PASS_THROUGH;
+	}
+
+	view3d_smoothview_apply(C, v3d, ar, true);
+
 	return OPERATOR_FINISHED;
+}
+
+void ED_view3d_smooth_view_finish(
+        bContext *C,
+        View3D *v3d, ARegion *ar)
+{
+	RegionView3D *rv3d = ar->regiondata;
+
+	if (rv3d && rv3d->sms) {
+		rv3d->sms->time_allowed = 0.0;  /* force finishing */
+		view3d_smoothview_apply(C, v3d, ar, false);
+
+		/* force update of view matrix so tools that run immediately after
+		 * can use them without redrawing first */
+		Scene *scene = CTX_data_scene(C);
+		ED_view3d_update_viewmat(scene, v3d, ar, NULL, NULL);
+	}
 }
 
 void VIEW3D_OT_smoothview(wmOperatorType *ot)

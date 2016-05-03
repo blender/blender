@@ -229,6 +229,10 @@ void ED_view3d_smooth_view(
         struct View3D *v3d, struct ARegion *ar, const int smooth_viewtx,
         const V3D_SmoothParams *sview);
 
+void ED_view3d_smooth_view_finish(
+        struct bContext *C,
+        struct View3D *v3d, struct ARegion *ar);
+
 void view3d_winmatrix_set(ARegion *ar, const View3D *v3d, const rctf *rect);
 void view3d_viewmatrix_set(Scene *scene, const View3D *v3d, RegionView3D *rv3d);
 
