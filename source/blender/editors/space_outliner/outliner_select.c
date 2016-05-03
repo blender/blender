@@ -612,6 +612,8 @@ static void tree_element_active_ebone__sel(bContext *C, Scene *scene, bArmature 
 static eOLDrawState tree_element_active_ebone(
         bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tselem), const eOLSetState set, bool recursive)
 {
+	BLI_assert(scene->obedit != NULL);
+
 	bArmature *arm = scene->obedit->data;
 	EditBone *ebone = te->directdata;
 	eOLDrawState status = OL_DRAWSEL_NONE;
@@ -915,11 +917,14 @@ static bool do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, Sp
 		/* name and first icon */
 		else if (mval[0] > te->xs + UI_UNIT_X && mval[0] < te->xend) {
 			
-			/* always makes active object */
-			if (tselem->type != TSE_SEQUENCE && tselem->type != TSE_SEQ_STRIP && tselem->type != TSE_SEQUENCE_DUP)
+			/* always makes active object, except for some specific types.
+			 * Note about TSE_EBONE: In case of a same ID_AR datablock shared among several objects, we do not want
+			 * to switch out of edit mode (see T48328 for details). */
+			if (!ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP, TSE_EBONE)) {
 				tree_element_set_active_object(C, scene, soops, te,
 				                               (extend && tselem->type == 0) ? OL_SETSEL_EXTEND : OL_SETSEL_NORMAL,
 				                               recursive && tselem->type == 0);
+			}
 			
 			if (tselem->type == 0) { // the lib blocks
 				/* editmode? */
