@@ -315,12 +315,12 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	if (unit->system) {
 		/* Use GRID_MIN_PX * 2 for units because very very small grid
 		 * items are less useful when dealing with units */
-		void *usys;
+		const void *usys;
 		int len, i;
 		double dx_scalar;
 		float blend_fac;
 
-		bUnit_GetSystem(&usys, &len, unit->system, B_UNIT_LENGTH);
+		bUnit_GetSystem(unit->system, B_UNIT_LENGTH, &usys, &len);
 
 		if (usys) {
 			i = len;
@@ -455,10 +455,10 @@ float ED_scene_grid_scale(Scene *scene, const char **grid_unit)
 {
 	/* apply units */
 	if (scene->unit.system) {
-		void *usys;
+		const void *usys;
 		int len;
 
-		bUnit_GetSystem(&usys, &len, scene->unit.system, B_UNIT_LENGTH);
+		bUnit_GetSystem(scene->unit.system, B_UNIT_LENGTH, &usys, &len);
 
 		if (usys) {
 			int i = bUnit_GetBaseUnit(usys);

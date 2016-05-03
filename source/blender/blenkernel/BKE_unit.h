@@ -54,11 +54,11 @@ bool bUnit_IsValid(int system, int type);
 /* loop over scales, coudl add names later */
 //double bUnit_Iter(void **unit, char **name, int system, int type);
 
-void        bUnit_GetSystem(void **usys_pt, int *len, int system, int type);
-int         bUnit_GetBaseUnit(void *usys_pt);
-const char *bUnit_GetName(void *usys_pt, int index);
-const char *bUnit_GetNameDisplay(void *usys_pt, int index);
-double      bUnit_GetScaler(void *usys_pt, int index);
+void        bUnit_GetSystem(int system, int type, void const **r_usys_pt, int *r_len);
+int         bUnit_GetBaseUnit(const void *usys_pt);
+const char *bUnit_GetName(const void *usys_pt, int index);
+const char *bUnit_GetNameDisplay(const void *usys_pt, int index);
+double      bUnit_GetScaler(const void *usys_pt, int index);
 
 /* aligned with PropertyUnit */
 enum {
