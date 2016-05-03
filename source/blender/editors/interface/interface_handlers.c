@@ -2945,19 +2945,6 @@ static bool ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, const in
 }
 
 #ifdef WITH_INPUT_IME
-/* test if the translation context allows IME input - used to
- * avoid weird character drawing if IME inputs non-ascii chars */
-static bool ui_ime_is_lang_supported(void)
-{
-	const char *uilng = BLT_lang_get();
-	if (U.transopts & USER_DOTRANSLATE) {
-		return STREQ(uilng, "zh_CN") ||
-		       STREQ(uilng, "zh_TW") ||
-		       STREQ(uilng, "ja_JP");
-	}
-	return false;
-}
-
 /* enable ime, and set up uibut ime data */
 static void ui_textedit_ime_begin(wmWindow *win, uiBut *UNUSED(but))
 {
@@ -3079,7 +3066,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 	WM_cursor_modal_set(win, BC_TEXTEDITCURSOR);
 
 #ifdef WITH_INPUT_IME
-	if (is_num_but == false && ui_ime_is_lang_supported()) {
+	if (is_num_but == false && BLT_lang_is_ime_supported()) {
 		ui_textedit_ime_begin(win, but);
 	}
 #endif
@@ -3406,7 +3393,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 #ifdef WITH_INPUT_IME
 		    &&
 		    !is_ime_composing &&
-		    (!WM_event_is_ime_switch(event) || !ui_ime_is_lang_supported())
+			(!WM_event_is_ime_switch(event) || !BLT_lang_is_ime_supported())
 #endif
 		    )
 		{

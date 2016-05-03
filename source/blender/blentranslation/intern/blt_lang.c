@@ -64,6 +64,12 @@ static int num_locales = 0;
 static EnumPropertyItem *locales_menu = NULL;
 static int num_locales_menu = 0;
 
+#ifdef WITH_INPUT_IME
+/* Cached IME support flags */
+static bool ime_is_lang_supported = false;
+static void blt_lang_check_ime_supported(void);
+#endif
+
 static void free_locales(void)
 {
 	if (locales) {
@@ -280,6 +286,7 @@ void BLT_lang_set(const char *str)
 #else
 	(void)str;
 #endif
+	blt_lang_check_ime_supported();
 }
 
 /* Get the current locale (short code, e.g. es_ES). */
@@ -354,4 +361,33 @@ void BLT_lang_locale_explode(
 	if (_t && !language) {
 		MEM_freeN(_t);
 	}
+}
+
+/* Test if the translation context allows IME input - used to
+ * avoid weird character drawing if IME inputs non-ascii chars.
+ */
+static void blt_lang_check_ime_supported(void)
+{
+#ifdef WITH_INPUT_IME
+	const char *uilng = BLT_lang_get();
+	if (U.transopts & USER_DOTRANSLATE) {
+		ime_is_lang_supported = STREQ(uilng, "zh_CN") ||
+		                        STREQ(uilng, "zh_TW") ||
+		                        STREQ(uilng, "ja_JP");
+	}
+	else {
+		ime_is_lang_supported = false;
+	}
+#else
+	ime_is_lang_supported = false;
+#endif
+}
+
+bool BLT_lang_is_ime_supported(void)
+{
+#ifdef WITH_INPUT_IME
+	return ime_is_lang_supported;
+#else
+	return false;
+#endif
 }
