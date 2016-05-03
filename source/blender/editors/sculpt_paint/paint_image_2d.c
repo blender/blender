@@ -302,8 +302,8 @@ static void brush_painter_mask_imbuf_partial_update(BrushPainter *painter, const
 		srcx = srcy = 0;
 		w = cache->tex_mask_old_w;
 		h = cache->tex_mask_old_h;
-		destx = (int)painter->lastpaintpos[0] - (int)pos[0]  + (diameter / 2 - w / 2);
-		desty = (int)painter->lastpaintpos[1] - (int)pos[1]  + (diameter / 2 - h / 2);
+		destx = (int)floorf(painter->lastpaintpos[0]) - (int)floorf(pos[0])  + (diameter / 2 - w / 2);
+		desty = (int)floorf(painter->lastpaintpos[1]) - (int)floorf(pos[1])  + (diameter / 2 - h / 2);
 
 		/* hack, use temporary rects so that clipping works */
 		IMB_rectclip(&maskibuf, &maskibuf_old, &destx, &desty, &srcx, &srcy, &w, &h);
@@ -570,8 +570,8 @@ static void brush_painter_imbuf_partial_update(BrushPainter *painter, const floa
 		srcx = srcy = 0;
 		w = oldtexibuf->x;
 		h = oldtexibuf->y;
-		destx = (int)painter->lastpaintpos[0] - (int)pos[0] + (diameter / 2 - w / 2);
-		desty = (int)painter->lastpaintpos[1] - (int)pos[1] + (diameter / 2 - h / 2);
+		destx = (int)floorf(painter->lastpaintpos[0]) - (int)floorf(pos[0]) + (diameter / 2 - w / 2);
+		desty = (int)floorf(painter->lastpaintpos[1]) - (int)floorf(pos[1]) + (diameter / 2 - h / 2);
 
 		IMB_rectclip(cache->texibuf, oldtexibuf, &destx, &desty, &srcx, &srcy, &w, &h);
 	}
@@ -641,8 +641,8 @@ static void brush_painter_2d_tex_mapping(ImagePaintState *s, int diameter, const
 		mapping->ymax = 1.0f;
 	}
 	else /* if (mapmode == MTEX_MAP_MODE_TILED) */ {
-		mapping->xmin = (int)(-diameter * 0.5) + (int)pos[0] - (int)startpos[0];
-		mapping->ymin = (int)(-diameter * 0.5) + (int)pos[1] - (int)startpos[1];
+		mapping->xmin = (int)(-diameter * 0.5) + (int)floorf(pos[0]) - (int)floorf(startpos[0]);
+		mapping->ymin = (int)(-diameter * 0.5) + (int)floorf(pos[1]) - (int)floorf(startpos[1]);
 		mapping->xmax = 1.0f;
 		mapping->ymax = 1.0f;
 	}
@@ -758,8 +758,8 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s, BrushPainter *pai
 	}
 	else if (do_partial_update) {
 		/* do only partial update of texture */
-		int dx = (int)painter->lastpaintpos[0] - (int)pos[0];
-		int dy = (int)painter->lastpaintpos[1] - (int)pos[1];
+		int dx = (int)floorf(painter->lastpaintpos[0]) - (int)floorf(pos[0]);
+		int dy = (int)floorf(painter->lastpaintpos[1]) - (int)floorf(pos[1]);
 
 		if ((dx != 0) || (dy != 0)) {
 			brush_painter_imbuf_partial_update(painter, pos, diameter);
