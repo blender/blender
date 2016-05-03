@@ -42,6 +42,15 @@ static bNodeSocketTemplate sh_node_mapping_out[] = {
 	{	-1, 0, ""	}
 };
 
+static void *node_shader_initexec_mapping(bNodeExecContext *UNUSED(context),
+                                          bNode *node,
+                                          bNodeInstanceKey UNUSED(key))
+{
+	TexMapping *texmap = node->storage;
+	BKE_texture_mapping_init(texmap);
+	return NULL;
+}
+
 /* do the regular mapping options for blender textures */
 static void node_shader_exec_mapping(void *UNUSED(data), int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
 {
@@ -103,7 +112,7 @@ void register_node_type_sh_mapping(void)
 	node_type_size(&ntype, 320, 160, 360);
 	node_type_init(&ntype, node_shader_init_mapping);
 	node_type_storage(&ntype, "TexMapping", node_free_standard_storage, node_copy_standard_storage);
-	node_type_exec(&ntype, NULL, NULL, node_shader_exec_mapping);
+	node_type_exec(&ntype, node_shader_initexec_mapping, NULL, node_shader_exec_mapping);
 	node_type_gpu(&ntype, gpu_shader_mapping);
 	
 	nodeRegisterType(&ntype);
