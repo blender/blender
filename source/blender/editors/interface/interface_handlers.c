@@ -2950,11 +2950,12 @@ static bool ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, const in
 static bool ui_ime_is_lang_supported(void)
 {
 	const char *uilng = BLT_lang_get();
-	const bool is_lang_supported = STREQ(uilng, "zh_CN") ||
-	                               STREQ(uilng, "zh_TW") ||
-	                               STREQ(uilng, "ja_JP");
-
-	return ((U.transopts & USER_DOTRANSLATE) && is_lang_supported);
+	if (U.transopts & USER_DOTRANSLATE) {
+		return STREQ(uilng, "zh_CN") ||
+		       STREQ(uilng, "zh_TW") ||
+		       STREQ(uilng, "ja_JP");
+	}
+	return false;
 }
 
 /* enable ime, and set up uibut ime data */
@@ -3405,7 +3406,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 #ifdef WITH_INPUT_IME
 		    &&
 		    !is_ime_composing &&
-		    !WM_event_is_ime_switch(event)
+		    (!WM_event_is_ime_switch(event) || !ui_ime_is_lang_supported())
 #endif
 		    )
 		{
