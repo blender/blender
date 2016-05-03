@@ -54,6 +54,10 @@
 
 #include "MEM_guardedalloc.h"
 
+/* Cached IME support flags */
+static bool ime_is_lang_supported = false;
+static void blt_lang_check_ime_supported(void);
+
 #ifdef WITH_INTERNATIONAL
 
 #include "boost_locale_wrapper.h"
@@ -63,12 +67,6 @@ static const char **locales = NULL;
 static int num_locales = 0;
 static EnumPropertyItem *locales_menu = NULL;
 static int num_locales_menu = 0;
-
-#ifdef WITH_INPUT_IME
-/* Cached IME support flags */
-static bool ime_is_lang_supported = false;
-static void blt_lang_check_ime_supported(void);
-#endif
 
 static void free_locales(void)
 {
