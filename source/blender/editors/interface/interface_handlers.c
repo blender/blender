@@ -8451,8 +8451,8 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar, 
 	}
 
 	if (val == KM_PRESS) {
-		if (ELEM(type, UPARROWKEY, DOWNARROWKEY) ||
-		    ((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->ctrl)))
+		if ((ELEM(type, UPARROWKEY, DOWNARROWKEY) && !IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) ||
+		    ((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->ctrl && !IS_EVENT_MOD(event, shift, alt, oskey))))
 		{
 			const int value_orig = RNA_property_int_get(&listbox->rnapoin, listbox->rnaprop);
 			int value, min, max, inc;
