@@ -9823,8 +9823,16 @@ static int ui_region_handler(bContext *C, const wmEvent *event, void *UNUSED(use
 
 	retval = ui_handler_panel_region(C, event, ar, listbox ? listbox : but);
 
-	if (retval == WM_UI_HANDLER_CONTINUE && listbox)
+	if (retval == WM_UI_HANDLER_CONTINUE && listbox) {
 		retval = ui_handle_list_event(C, event, ar, listbox);
+
+		/* interactions with the listbox should disable tips */
+		if (retval == WM_UI_HANDLER_BREAK) {
+			if (but) {
+				UI_but_tooltip_timer_remove(C, but);
+			}
+		}
+	}
 
 	if (retval == WM_UI_HANDLER_CONTINUE) {
 		if (but)
