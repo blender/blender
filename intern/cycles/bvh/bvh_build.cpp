@@ -629,6 +629,9 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 
 			bounds[type_index].grow(ref.bounds());
 			visibility[type_index] |= objects[ref.prim_object()]->visibility;
+			if (ref.prim_type() & PRIMITIVE_ALL_CURVE) {
+				visibility[type_index] |= PATH_RAY_CURVE;
+			}
 			++num_new_prims;
 		}
 		else {
