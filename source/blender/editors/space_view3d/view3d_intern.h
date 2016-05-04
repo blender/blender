@@ -229,7 +229,7 @@ void ED_view3d_smooth_view(
         struct View3D *v3d, struct ARegion *ar, const int smooth_viewtx,
         const V3D_SmoothParams *sview);
 
-void ED_view3d_smooth_view_finish(
+void ED_view3d_smooth_view_force_finish(
         struct bContext *C,
         struct View3D *v3d, struct ARegion *ar);
 

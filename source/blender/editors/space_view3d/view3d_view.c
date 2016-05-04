@@ -432,7 +432,11 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const w
 	return OPERATOR_FINISHED;
 }
 
-void ED_view3d_smooth_view_finish(
+/**
+ * Apply the smoothview immediately, use when we need to start a new view operation.
+ * (so we don't end up half-applying a view operation when pressing keys quickly).
+ */
+void ED_view3d_smooth_view_force_finish(
         bContext *C,
         View3D *v3d, ARegion *ar)
 {
