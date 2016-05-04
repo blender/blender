@@ -1229,6 +1229,8 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		return OPERATOR_PASS_THROUGH;
 	}
 
+	ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->ar);
+
 	/* switch from camera view when: */
 	if (view3d_ensure_persp(vod->v3d, vod->ar)) {
 		/* If we're switching from camera view to the perspective one,
@@ -1648,6 +1650,8 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		viewops_data_create_ex(C, op, event,
 		                       (U.uiflag & USER_ORBIT_SELECTION) != 0, false);
 
+		ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->ar);
+
 		vod = op->customdata;
 		v3d = vod->v3d;
 		rv3d = vod->rv3d;
@@ -1713,6 +1717,8 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 		viewops_data_alloc(C, op);
 		viewops_data_create_ex(C, op, event,
 		                       (U.uiflag & USER_ORBIT_SELECTION) != 0, false);
+
+		ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->ar);
 
 		vod = op->customdata;
 		v3d = vod->v3d;
@@ -2023,6 +2029,8 @@ static int viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	viewops_data_alloc(C, op);
 	viewops_data_create(C, op, event);
 	vod = op->customdata;
+
+	ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->ar);
 
 	if (event->type == MOUSEPAN) {
 		/* invert it, trackpad scroll follows same principle as 2d windows this way */
@@ -2503,6 +2511,8 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	viewops_data_create(C, op, event);
 	vod = op->customdata;
 
+	ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->ar);
+
 	/* if one or the other zoom position aren't set, set from event */
 	if (!RNA_struct_property_is_set(op->ptr, "mx") || !RNA_struct_property_is_set(op->ptr, "my")) {
 		RNA_int_set(op->ptr, "mx", event->x);
@@ -2742,6 +2752,8 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		viewops_data_free(C, op);
 		return OPERATOR_PASS_THROUGH;
 	}
+
+	ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->ar);
 
 	/* needs to run before 'viewops_data_create' so the backup 'rv3d->ofs' is correct */
 	/* switch from camera view when: */
@@ -4259,6 +4271,8 @@ static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		viewops_data_alloc(C, op);
 		viewops_data_create(C, op, event);
 		vod = op->customdata;
+
+		ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->ar);
 
 		/* overwrite the mouse vector with the view direction */
 		normalize_v3_v3(vod->mousevec, vod->rv3d->viewinv[2]);
