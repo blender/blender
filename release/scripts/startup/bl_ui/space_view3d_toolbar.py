@@ -597,7 +597,8 @@ class VIEW3D_PT_tools_curveedit_options_stroke(View3DPanel, Panel):
 
         col = layout.column()
         if cps.depth_mode == 'SURFACE':
-            col.prop(cps, "radius_offset")
+            col.prop(cps, "surface_offset")
+            col.prop(cps, "use_offset_absolute")
             col.prop(cps, "use_stroke_endpoints")
             if cps.use_stroke_endpoints:
                 colsub = layout.column(align=True)

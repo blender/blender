@@ -1275,7 +1275,7 @@ typedef struct CurvePaintSettings {
 	int error_threshold;
 	float radius_min, radius_max;
 	float radius_taper_start, radius_taper_end;
-	float radius_offset;
+	float surface_offset;
 	float corner_angle;
 } CurvePaintSettings;
 
@@ -1284,6 +1284,7 @@ enum {
 	CURVE_PAINT_FLAG_CORNERS_DETECT             = (1 << 0),
 	CURVE_PAINT_FLAG_PRESSURE_RADIUS            = (1 << 1),
 	CURVE_PAINT_FLAG_DEPTH_STROKE_ENDPOINTS     = (1 << 2),
+	CURVE_PAINT_FLAG_DEPTH_STROKE_OFFSET_ABS    = (1 << 3),
 };
 
 /* CurvePaintSettings.depth_mode */

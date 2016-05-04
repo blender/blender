@@ -194,6 +194,8 @@ struct CurveDrawData {
 		/* offset projection by this value */
 		bool use_offset;
 		float    offset[3];  /* worldspace */
+		float    surface_offset;
+		bool     use_surface_offset_absolute;
 	} project;
 
 	/* cursor sampling */
@@ -204,7 +206,6 @@ struct CurveDrawData {
 
 	struct {
 		float min, max, range;
-		float offset;
 	} radius;
 
 	struct {
@@ -243,7 +244,10 @@ static float stroke_elem_radius(const struct CurveDrawData *cdd, const struct St
 
 static void stroke_elem_pressure_set(const struct CurveDrawData *cdd, struct StrokeElem *selem, float pressure)
 {
-	if ((cdd->radius.offset != 0.0f) && !is_zero_v3(selem->normal_local)) {
+	if ((cdd->project.surface_offset != 0.0f) &&
+	    !cdd->project.use_surface_offset_absolute &&
+	    !is_zero_v3(selem->normal_local))
+	{
 		const float adjust = stroke_elem_radius_from_pressure(cdd, pressure) -
 		                     stroke_elem_radius_from_pressure(cdd, selem->pressure);
 		madd_v3_v3fl(selem->location_local, selem->normal_local, adjust);
@@ -269,7 +273,7 @@ static void stroke_elem_interp(
 static bool stroke_elem_project(
         const struct CurveDrawData *cdd,
         const int mval_i[2], const float mval_fl[2],
-        const float radius_offset, const float radius,
+        float surface_offset, const float radius,
         float r_location_world[3], float r_normal_world[3])
 {
 	View3D *v3d = cdd->vc.v3d;
@@ -307,10 +311,11 @@ static bool stroke_elem_project(
 						zero_v3(r_normal_world);
 					}
 
-					if (radius_offset != 0.0f) {
+					if (surface_offset != 0.0f) {
+						const float offset = cdd->project.use_surface_offset_absolute ? 1.0f : radius;
 						float normal[3];
 						if (depth_read_normal(&cdd->vc, &cdd->mats, mval_i, normal)) {
-							madd_v3_v3fl(r_location_world, normal, radius_offset * radius);
+							madd_v3_v3fl(r_location_world, normal, offset * surface_offset);
 							if (r_normal_world) {
 								copy_v3_v3(r_normal_world, normal);
 							}
@@ -333,14 +338,14 @@ static bool stroke_elem_project(
 static bool stroke_elem_project_fallback(
         const struct CurveDrawData *cdd,
         const int mval_i[2], const float mval_fl[2],
-        const float radius_offset, const float radius,
+        const float surface_offset, const float radius,
         const float location_fallback_depth[3],
         float r_location_world[3], float r_location_local[3],
         float r_normal_world[3], float r_normal_local[3])
 {
 	bool is_depth_found = stroke_elem_project(
 	        cdd, mval_i, mval_fl,
-	        radius_offset, radius,
+	        surface_offset, radius,
 	        r_location_world, r_normal_world);
 	if (is_depth_found == false) {
 		ED_view3d_win_to_3d(cdd->vc.ar, location_fallback_depth, mval_fl, r_location_world);
@@ -372,7 +377,7 @@ static bool stroke_elem_project_fallback_elem(
 	const float radius = stroke_elem_radius(cdd, selem);
 	return stroke_elem_project_fallback(
 	        cdd, mval_i, selem->mval,
-	        cdd->radius.offset, radius,
+	        cdd->project.surface_offset, radius,
 	        location_fallback_depth,
 	        selem->location_world, selem->location_local,
 	        selem->normal_world, selem->normal_local);
@@ -637,7 +642,7 @@ static void curve_draw_event_add_first(wmOperator *op, const wmEvent *event)
 
 		/* Special case for when we only have offset applied on the first-hit,
 		 * the remaining stroke must be offset too. */
-		if (cdd->radius.offset != 0.0f) {
+		if (cdd->project.surface_offset != 0.0f) {
 			const float mval_fl[2] = {UNPACK2(event->mval)};
 
 			float location_no_offset[3];
@@ -688,7 +693,8 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
 	cdd->radius.min = cps->radius_min;
 	cdd->radius.max = cps->radius_max;
 	cdd->radius.range = cps->radius_max - cps->radius_min;
-	cdd->radius.offset = cps->radius_offset;
+	cdd->project.surface_offset = cps->surface_offset;
+	cdd->project.use_surface_offset_absolute = (cps->flag & CURVE_PAINT_FLAG_DEPTH_STROKE_OFFSET_ABS) != 0;
 
 	cdd->stroke_elem_pool = BLI_mempool_create(
 	        sizeof(struct StrokeElem), 0, 512, BLI_MEMPOOL_ALLOW_ITER);
