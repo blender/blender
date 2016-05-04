@@ -689,6 +689,8 @@ typedef struct NodeColorBalance {
 	float slope[3];
 	float offset[3];
 	float power[3];
+	float offset_basis;
+	char _pad[4];
 	
 	/* LGG parameters */
 	float lift[3];

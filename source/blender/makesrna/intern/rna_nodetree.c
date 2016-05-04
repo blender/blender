@@ -5892,6 +5892,12 @@ static void def_cmp_colorbalance(StructRNA *srna)
 	RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Slope", "Correction for Highlights");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeColorBalance_update_cdl");
+
+	prop = RNA_def_property(srna, "offset_basis", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop,  -FLT_MAX, FLT_MAX);
+	RNA_def_property_ui_range(prop, -1.0, 1.0, 1.0, 2);
+	RNA_def_property_ui_text(prop, "Basis", "Support negative color by using this as the RGB basis");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeColorBalance_update_cdl");
 }
 
 static void def_cmp_huecorrect(StructRNA *srna)
