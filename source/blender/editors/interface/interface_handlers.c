@@ -7873,6 +7873,19 @@ static void button_activate_exit(
 		ui_apply_but_undo(but);
 		ui_apply_but_autokey(C, but);
 
+#ifdef USE_ALLSELECT
+		{
+			/* only RNA from this button is used */
+			uiBut but_temp = *but;
+			uiSelectContextStore  *selctx_data = &data->select_others;
+			for (int i = 0; i < selctx_data->elems_len; i++) {
+				uiSelectContextElem *other = &selctx_data->elems[i];
+				but_temp.rnapoin = other->ptr;
+				ui_apply_but_autokey(C, &but_temp);
+			}
+		}
+#endif
+
 		/* popup menu memory */
 		if (block->flag & UI_BLOCK_POPUP_MEMORY)
 			ui_popup_menu_memory_set(block, but);
