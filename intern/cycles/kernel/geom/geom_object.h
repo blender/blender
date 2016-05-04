@@ -538,7 +538,7 @@ ccl_device_inline void bvh_instance_motion_pop_factor(KernelGlobals *kg,
                                                       float *t_fac,
                                                       Transform *itfm)
 {
-	*t_fac /= len(transform_direction(itfm, ray->D));
+	*t_fac = 1.0f / len(transform_direction(itfm, ray->D));
 	*P = ray->P;
 	*dir = bvh_clamp_direction(ray->D);
 	*idir = bvh_inverse_direction(*dir);
