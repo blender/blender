@@ -260,9 +260,16 @@ int BM_iter_mesh_bitmap_from_filter(
 	BMIter iter;
 	BMElem *ele;
 	int i;
+	int bitmap_enabled = 0;
 
 	BM_ITER_MESH_INDEX (ele, &iter, bm, itype, i) {
-		BLI_BITMAP_SET(bitmap, i, test_fn(ele, user_data));
+		if (test_fn(ele, user_data)) {
+			BLI_BITMAP_ENABLE(bitmap, i);
+			bitmap_enabled++;
+		}
+		else {
+			BLI_BITMAP_DISABLE(bitmap, i);
+		}
 	}
 
 	return i;
@@ -280,24 +287,24 @@ int BM_iter_mesh_bitmap_from_filter_tessface(
 	BMIter iter;
 	BMFace *f;
 	int i;
-	int j = 0;
+	int bitmap_enabled = 0;
 
 	BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
 		if (test_fn(f, user_data)) {
-			for (int A = 2; A < f->len; A++) {
-				BLI_BITMAP_ENABLE(bitmap, j);
-				j++;
+			for (int tri = 2; tri < f->len; tri++) {
+				BLI_BITMAP_ENABLE(bitmap, bitmap_enabled);
+				bitmap_enabled++;
 			}
 		}
 		else {
-			for (int A = 2; A < f->len; A++) {
-				BLI_BITMAP_DISABLE(bitmap, j);
-				j++;
+			for (int tri = 2; tri < f->len; tri++) {
+				BLI_BITMAP_DISABLE(bitmap, bitmap_enabled);
+				bitmap_enabled++;
 			}
 		}
 	}
 
-	return j;
+	return bitmap_enabled;
 }
 
 /**
