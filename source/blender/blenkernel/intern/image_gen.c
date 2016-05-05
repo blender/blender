@@ -362,14 +362,16 @@ void BKE_image_buf_fill_checker_color(unsigned char *rect, float *rect_float, in
 
 	checker_board_text(rect, rect_float, width, height, 128, 2);
 
-	/* TODO(sergey): Currently it's easier to fill in form buffer and
-	 * linearize it afterwards. This could be optimized with some smart
-	 * trickery around blending factors and such.
-	 */
-	IMB_buffer_float_from_float(rect_float, rect_float,
-	                            4,
-	                            IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB,
-	                            true,
-	                            width, height,
-	                            width, width);
+	if (rect_float != NULL) {
+		/* TODO(sergey): Currently it's easier to fill in form buffer and
+		 * linearize it afterwards. This could be optimized with some smart
+		 * trickery around blending factors and such.
+		 */
+		IMB_buffer_float_from_float(rect_float, rect_float,
+		                            4,
+		                            IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB,
+		                            true,
+		                            width, height,
+		                            width, width);
+	}
 }
