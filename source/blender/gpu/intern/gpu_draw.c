@@ -509,10 +509,10 @@ static void gpu_verify_reflection(Image *ima)
 	}
 }
 
-typedef struct VerifyTreadInitData {
+typedef struct VerifyThreadInitData {
 	ImBuf *ibuf;
 	float *srgb_frect;
-} VerifyTreadInitData;
+} VerifyThreadInitData;
 
 typedef struct VerifyThreadData {
 	ImBuf *ibuf;
@@ -547,7 +547,7 @@ static void verify_thread_init(void *data_v,
                                void *init_data_v)
 {
 	VerifyThreadData *data = (VerifyThreadData *) data_v;
-	VerifyTreadInitData *init_data = (VerifyTreadInitData *) init_data_v;
+	VerifyThreadInitData *init_data = (VerifyThreadInitData *) init_data_v;
 	data->ibuf = init_data->ibuf;
 	data->srgb_frect = init_data->srgb_frect;
 	data->start_line = start_line;
@@ -573,7 +573,7 @@ static void gpu_verify_high_bit_srgb_buffer(float *srgb_frect,
 		                                      0, ibuf->y);
 	}
 	else {
-		VerifyTreadInitData init_data;
+		VerifyThreadInitData init_data;
 		init_data.ibuf = ibuf;
 		init_data.srgb_frect = srgb_frect;
 		IMB_processor_apply_threaded(ibuf->y,
