@@ -432,7 +432,7 @@ static BVHTree *bvhtree_from_mesh_verts_create_tree(
 		if (verts_mask) {
 			BLI_assert(IN_RANGE(verts_num_active, 0, verts_num));
 		}
-		else if (!verts_mask) {
+		else {
 			verts_num_active = verts_num;
 		}
 
@@ -841,15 +841,10 @@ static BVHTree *bvhtree_from_editmesh_looptri_create_tree(
 	int i;
 
 	if (looptri_num) {
-		if (looptri_mask && looptri_num_active == -1) {
-			looptri_num_active = 0;
-			for (i = 0; i < looptri_num; i++) {
-				if (BLI_BITMAP_TEST_BOOL(looptri_mask, i)) {
-					looptri_num_active++;
-				}
-			}
+		if (looptri_mask) {
+			BLI_assert(IN_RANGE(looptri_num_active, 0, looptri_num));
 		}
-		else if (!looptri_mask) {
+		else {
 			looptri_num_active = looptri_num;
 		}
 
@@ -896,15 +891,10 @@ static BVHTree *bvhtree_from_mesh_looptri_create_tree(
 	int i;
 
 	if (looptri_num) {
-		if (looptri_mask && looptri_num_active == -1) {
-			looptri_num_active = 0;
-			for (i = 0; i < looptri_num; i++) {
-				if (BLI_BITMAP_TEST_BOOL(looptri_mask, i)) {
-					looptri_num_active++;
-				}
-			}
+		if (looptri_mask) {
+			BLI_assert(IN_RANGE(looptri_num_active, 0, looptri_num));
 		}
-		else if (!looptri_mask) {
+		else {
 			looptri_num_active = looptri_num;
 		}
 
