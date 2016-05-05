@@ -471,11 +471,16 @@ static void cubic_from_points(
 	 * so only problems absurd of approximation and not for bugs in the code.
 	 */
 
+	bool use_clamp = true;
+
 	/* flip check to catch nan values */
 	if (!(alpha_l >= 0.0) ||
 	    !(alpha_r >= 0.0))
 	{
 		alpha_l = alpha_r = len_vnvn(p0, p3, dims) / 3.0;
+
+		/* skip clamping when we're using default handles */
+		use_clamp = false;
 	}
 
 	double *p1 = CUBIC_PT(r_cubic, 1, dims);
@@ -497,64 +502,66 @@ static void cubic_from_points(
 	/* ------------------------------------
 	 * Clamping (we could make it optional)
 	 */
+	if (use_clamp) {
 #ifdef USE_VLA
-	double center[dims];
+		double center[dims];
 #else
-	double *center = alloca(sizeof(double) * dims);
+		double *center = alloca(sizeof(double) * dims);
 #endif
-	points_calc_center_weighted(points_offset, points_offset_len, dims, center);
+		points_calc_center_weighted(points_offset, points_offset_len, dims, center);
 
-	const double clamp_scale = 3.0;  /* clamp to 3x */
-	double dist_sq_max = 0.0;
+		const double clamp_scale = 3.0;  /* clamp to 3x */
+		double dist_sq_max = 0.0;
 
-	{
-		const double *pt = points_offset;
-		for (uint i = 0; i < points_offset_len; i++, pt += dims) {
+		{
+			const double *pt = points_offset;
+			for (uint i = 0; i < points_offset_len; i++, pt += dims) {
 #if 0
-			double dist_sq_test = sq(len_vnvn(center, pt, dims) * clamp_scale);
+				double dist_sq_test = sq(len_vnvn(center, pt, dims) * clamp_scale);
 #else
-			/* do inline */
-			double dist_sq_test = 0.0;
-			for (uint j = 0; j < dims; j++) {
-				dist_sq_test += sq((pt[j] - center[j]) * clamp_scale);
-			}
+				/* do inline */
+				double dist_sq_test = 0.0;
+				for (uint j = 0; j < dims; j++) {
+					dist_sq_test += sq((pt[j] - center[j]) * clamp_scale);
+				}
 #endif
-			dist_sq_max = max(dist_sq_max, dist_sq_test);
-		}
-	}
-
-	double p1_dist_sq = len_squared_vnvn(center, p1, dims);
-	double p2_dist_sq = len_squared_vnvn(center, p2, dims);
-
-	if (p1_dist_sq > dist_sq_max ||
-	    p2_dist_sq > dist_sq_max)
-	{
-
-		alpha_l = alpha_r = len_vnvn(p0, p3, dims) / 3.0;
-
-		/*
-		 * p1 = p0 - (tan_l * alpha_l);
-		 * p2 = p3 + (tan_r * alpha_r);
-		 */
-		for (uint j = 0; j < dims; j++) {
-			p1[j] = p0[j] - (tan_l[j] * alpha_l);
-			p2[j] = p3[j] + (tan_r[j] * alpha_r);
+				dist_sq_max = max(dist_sq_max, dist_sq_test);
+			}
 		}
 
-		p1_dist_sq = len_squared_vnvn(center, p1, dims);
-		p2_dist_sq = len_squared_vnvn(center, p2, dims);
-	}
+		double p1_dist_sq = len_squared_vnvn(center, p1, dims);
+		double p2_dist_sq = len_squared_vnvn(center, p2, dims);
 
-	/* clamp within the 3x radius */
-	if (p1_dist_sq > dist_sq_max) {
-		isub_vnvn(p1, center, dims);
-		imul_vn_fl(p1, sqrt(dist_sq_max) / sqrt(p1_dist_sq), dims);
-		iadd_vnvn(p1, center, dims);
-	}
-	if (p2_dist_sq > dist_sq_max) {
-		isub_vnvn(p2, center, dims);
-		imul_vn_fl(p2, sqrt(dist_sq_max) / sqrt(p2_dist_sq), dims);
-		iadd_vnvn(p2, center, dims);
+		if (p1_dist_sq > dist_sq_max ||
+		    p2_dist_sq > dist_sq_max)
+		{
+
+			alpha_l = alpha_r = len_vnvn(p0, p3, dims) / 3.0;
+
+			/*
+			 * p1 = p0 - (tan_l * alpha_l);
+			 * p2 = p3 + (tan_r * alpha_r);
+			 */
+			for (uint j = 0; j < dims; j++) {
+				p1[j] = p0[j] - (tan_l[j] * alpha_l);
+				p2[j] = p3[j] + (tan_r[j] * alpha_r);
+			}
+
+			p1_dist_sq = len_squared_vnvn(center, p1, dims);
+			p2_dist_sq = len_squared_vnvn(center, p2, dims);
+		}
+
+		/* clamp within the 3x radius */
+		if (p1_dist_sq > dist_sq_max) {
+			isub_vnvn(p1, center, dims);
+			imul_vn_fl(p1, sqrt(dist_sq_max) / sqrt(p1_dist_sq), dims);
+			iadd_vnvn(p1, center, dims);
+		}
+		if (p2_dist_sq > dist_sq_max) {
+			isub_vnvn(p2, center, dims);
+			imul_vn_fl(p2, sqrt(dist_sq_max) / sqrt(p2_dist_sq), dims);
+			iadd_vnvn(p2, center, dims);
+		}
 	}
 	/* end clamping */
 }
