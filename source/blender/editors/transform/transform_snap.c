@@ -486,6 +486,35 @@ bool validSnappingNormal(TransInfo *t)
 	return false;
 }
 
+static bool bm_edge_is_snap_target(BMEdge *e, void *UNUSED(user_data))
+{
+	if (BM_elem_flag_test(e, BM_ELEM_SELECT | BM_ELEM_HIDDEN) ||
+	    BM_elem_flag_test(e->v1, BM_ELEM_SELECT) ||
+	    BM_elem_flag_test(e->v2, BM_ELEM_SELECT))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+static bool bm_face_is_snap_target(BMFace *f, void *UNUSED(user_data))
+{
+	if (BM_elem_flag_test(f, BM_ELEM_SELECT | BM_ELEM_HIDDEN)) {
+		return false;
+	}
+
+	BMLoop *l_iter, *l_first;
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		if (BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
+			return false;
+		}
+	} while ((l_iter = l_iter->next) != l_first);
+
+	return true;
+}
+
 static void initSnappingMode(TransInfo *t)
 {
 	ToolSettings *ts = t->settings;
@@ -577,8 +606,8 @@ static void initSnappingMode(TransInfo *t)
 				ED_transform_snap_object_context_set_editmesh_callbacks(
 				        t->tsnap.object_context,
 				        (bool (*)(BMVert *, void *))BM_elem_cb_check_hflag_disabled,
-				        (bool (*)(BMEdge *, void *))BM_elem_cb_check_hflag_disabled,
-				        (bool (*)(BMFace *, void *))BM_elem_cb_check_hflag_disabled,
+				        bm_edge_is_snap_target,
+				        bm_face_is_snap_target,
 				        SET_UINT_IN_POINTER((BM_ELEM_SELECT | BM_ELEM_HIDDEN)));
 			}
 		}
