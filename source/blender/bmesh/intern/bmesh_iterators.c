@@ -287,18 +287,21 @@ int BM_iter_mesh_bitmap_from_filter_tessface(
 	BMIter iter;
 	BMFace *f;
 	int i;
+	int j = 0;
 	int bitmap_enabled = 0;
 
 	BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
 		if (test_fn(f, user_data)) {
 			for (int tri = 2; tri < f->len; tri++) {
-				BLI_BITMAP_ENABLE(bitmap, bitmap_enabled);
+				BLI_BITMAP_ENABLE(bitmap, j);
 				bitmap_enabled++;
+				j++;
 			}
 		}
 		else {
 			for (int tri = 2; tri < f->len; tri++) {
-				BLI_BITMAP_DISABLE(bitmap, bitmap_enabled);
+				BLI_BITMAP_DISABLE(bitmap, j);
+				j++;
 			}
 		}
 	}
