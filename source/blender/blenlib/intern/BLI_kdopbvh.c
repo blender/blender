@@ -1114,6 +1114,14 @@ void BLI_bvhtree_update_tree(BVHTree *tree)
 	for (; index >= root; index--)
 		node_join(tree, *index);
 }
+/**
+ * Number of times #BLI_bvhtree_insert has been called.
+ * mainly useful for asserts functions to check we added the correct number.
+ */
+int BLI_bvhtree_get_size(const BVHTree *tree)
+{
+	return tree->totleaf;
+}
 
 float BLI_bvhtree_getepsilon(const BVHTree *tree)
 {

@@ -419,6 +419,7 @@ static BVHTree *bvhtree_from_editmesh_verts_create_tree(
 			}
 			BLI_bvhtree_insert(tree, i, eve->co, 1);
 		}
+		BLI_assert(BLI_bvhtree_get_size(tree) == verts_num_active);
 		BLI_bvhtree_balance(tree);
 	}
 
@@ -454,7 +455,7 @@ static BVHTree *bvhtree_from_mesh_verts_create_tree(
 				}
 				BLI_bvhtree_insert(tree, i, vert[i].co, 1);
 			}
-
+			BLI_assert(BLI_bvhtree_get_size(tree) == verts_num_active);
 			BLI_bvhtree_balance(tree);
 		}
 	}
@@ -728,6 +729,7 @@ static BVHTree *bvhtree_from_mesh_faces_create_tree(
 					BLI_bvhtree_insert(tree, i, co[0], face[i].v4 ? 4 : 3);
 				}
 			}
+			BLI_assert(BLI_bvhtree_get_size(tree) == faces_num_active);
 			BLI_bvhtree_balance(tree);
 		}
 	}
@@ -892,6 +894,7 @@ static BVHTree *bvhtree_from_editmesh_looptri_create_tree(
 					}
 				}
 			}
+			BLI_assert(BLI_bvhtree_get_size(tree) == looptri_num_active);
 			BLI_bvhtree_balance(tree);
 		}
 	}
@@ -938,6 +941,7 @@ static BVHTree *bvhtree_from_mesh_looptri_create_tree(
 					BLI_bvhtree_insert(tree, i, co[0], 3);
 				}
 			}
+			BLI_assert(BLI_bvhtree_get_size(tree) == looptri_num_active);
 			BLI_bvhtree_balance(tree);
 		}
 	}
