@@ -5125,6 +5125,17 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 	             "bridge_loops edges=%he use_pairs=%b use_cyclic=%b use_merge=%b merge_factor=%f twist_offset=%i",
 	             edge_hflag, use_pairs, use_cyclic, use_merge, merge_factor, twist_offset);
 
+	if (use_faces && totface_del) {
+		int i;
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
+		for (i = 0; i < totface_del; i++) {
+			BM_elem_flag_enable(totface_del_arr[i], BM_ELEM_TAG);
+		}
+		BMO_op_callf(em->bm, BMO_FLAG_DEFAULTS,
+		             "delete geom=%hf context=%i",
+		             BM_ELEM_TAG, DEL_FACES);
+	}
+
 	BMO_op_exec(em->bm, &bmop);
 
 	if (!BMO_error_occurred(em->bm)) {
@@ -5132,17 +5143,6 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 		if (use_merge == false) {
 			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 			BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
-		}
-
-		if (use_faces && totface_del) {
-			int i;
-			BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
-			for (i = 0; i < totface_del; i++) {
-				BM_elem_flag_enable(totface_del_arr[i], BM_ELEM_TAG);
-			}
-			BMO_op_callf(em->bm, BMO_FLAG_DEFAULTS,
-			             "delete geom=%hf context=%i",
-			             BM_ELEM_TAG, DEL_FACES);
 		}
 
 		if (use_merge == false) {
