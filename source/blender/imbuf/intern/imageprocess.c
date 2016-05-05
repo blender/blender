@@ -377,6 +377,8 @@ void IMB_processor_apply_threaded(int buffer_lines, int handle_size, void *init_
 typedef struct ScanlineGlobalData {
 	void *custom_data;
 	ScanlineThreadFunc do_thread;
+	int scanlines_per_task;
+	int total_scanlines;
 } ScanlineGlobalData;
 
 typedef struct ScanlineTask {
@@ -388,50 +390,41 @@ static void processor_apply_scanline_func(TaskPool * __restrict pool,
                                           void *taskdata,
                                           int UNUSED(threadid))
 {
-	ScanlineTask *task = (ScanlineTask *)taskdata;
 	ScanlineGlobalData *data = (ScanlineGlobalData*)BLI_task_pool_userdata(pool);
+	int start_scanline = GET_INT_FROM_POINTER(taskdata);
+	int num_scanlines = min_ii(data->scanlines_per_task,
+	                           data->total_scanlines - start_scanline);
 	data->do_thread(data->custom_data,
-	                task->start_scanline,
-	                task->num_scanlines);
+	                start_scanline,
+	                num_scanlines);
 }
 
-void IMB_processor_apply_threaded_scanlines(int buffer_lines,
+void IMB_processor_apply_threaded_scanlines(int total_scanlines,
                                             ScanlineThreadFunc do_thread,
                                             void *custom_data)
 {
+	const int scanlines_per_task = 64;
 	ScanlineGlobalData data;
 	data.custom_data = custom_data;
 	data.do_thread = do_thread;
-	const int lines_per_task = 64;
-	const int total_tasks = (buffer_lines + lines_per_task - 1) / lines_per_task;
+	data.scanlines_per_task = scanlines_per_task;
+	data.total_scanlines = total_scanlines;
+	const int total_tasks = (total_scanlines + scanlines_per_task - 1) / scanlines_per_task;
 	TaskScheduler *task_scheduler = BLI_task_scheduler_get();
 	TaskPool *task_pool = BLI_task_pool_create(task_scheduler, &data);
-	ScanlineTask *handles = MEM_mallocN(sizeof(ScanlineTask) * total_tasks,
-	                      "processor apply threaded handles");
 	for (int i = 0, start_line = 0; i < total_tasks; i++) {
-		ScanlineTask *handle = &handles[i];
-		handle->start_scanline = start_line;
-		if (i < total_tasks - 1) {
-			handle->num_scanlines = lines_per_task;
-		}
-		else {
-			handle->num_scanlines = buffer_lines - start_line;
-		}
-
 		BLI_task_pool_push(task_pool,
 		                   processor_apply_scanline_func,
-		                   handle,
+		                   SET_INT_IN_POINTER(start_line),
 		                   false,
 		                   TASK_PRIORITY_LOW);
-
-		start_line += lines_per_task;
+		start_line += scanlines_per_task;
 	}
 
 	/* work and wait until tasks are done */
 	BLI_task_pool_work_and_wait(task_pool);
 
 	/* Free memory. */
-	MEM_freeN(handles);
 	BLI_task_pool_free(task_pool);
 }
 
