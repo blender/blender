@@ -107,6 +107,8 @@
 
 #include "paint_intern.h"
 
+static void partial_redraw_array_init(ImagePaintPartialRedraw *pr);
+
 /* Defines and Structs */
 /* FTOCHAR as inline function */
 BLI_INLINE unsigned char f_to_char(const float val)
@@ -3647,7 +3649,7 @@ static void project_paint_build_proj_ima(
 		projIma->ibuf = BKE_image_acquire_ibuf(projIma->ima, NULL, NULL);
 		size = sizeof(void **) * IMAPAINT_TILE_NUMBER(projIma->ibuf->x) * IMAPAINT_TILE_NUMBER(projIma->ibuf->y);
 		projIma->partRedrawRect =  BLI_memarena_alloc(arena, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
-		memset(projIma->partRedrawRect, 0, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
+		partial_redraw_array_init(projIma->partRedrawRect);
 		projIma->undoRect = (volatile void **) BLI_memarena_alloc(arena, size);
 		memset((void *)projIma->undoRect, 0, size);
 		projIma->maskRect = BLI_memarena_alloc(arena, size);
@@ -3998,8 +4000,8 @@ static void project_paint_end(ProjPaintState *ps)
 /* 1 = an undo, -1 is a redo. */
 static void partial_redraw_single_init(ImagePaintPartialRedraw *pr)
 {
-	pr->x1 = 10000000;
-	pr->y1 = 10000000;
+	pr->x1 = INT_MAX;
+	pr->y1 = INT_MAX;
 
 	pr->x2 = -1;
 	pr->y2 = -1;
@@ -5359,9 +5361,6 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 		float pos[2] = {0.0, 0.0};
 		float lastpos[2] = {0.0, 0.0};
 		int a;
-
-		for (a = 0; a < ps.image_tot; a++)
-			partial_redraw_array_init(ps.projImages[a].partRedrawRect);
 
 		project_paint_op(&ps, lastpos, pos);
 
