@@ -299,7 +299,6 @@ int BM_iter_mesh_bitmap_from_filter_tessface(
 		else {
 			for (int tri = 2; tri < f->len; tri++) {
 				BLI_BITMAP_DISABLE(bitmap, bitmap_enabled);
-				bitmap_enabled++;
 			}
 		}
 	}
