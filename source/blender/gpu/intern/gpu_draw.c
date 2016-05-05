@@ -509,16 +509,9 @@ static void gpu_verify_reflection(Image *ima)
 	}
 }
 
-typedef struct VerifyThreadInitData {
-	ImBuf *ibuf;
-	float *srgb_frect;
-} VerifyThreadInitData;
-
 typedef struct VerifyThreadData {
 	ImBuf *ibuf;
 	float *srgb_frect;
-	int start_line;
-	int height;
 } VerifyThreadData;
 
 static void gpu_verify_high_bit_srgb_buffer_slice(float *srgb_frect,
@@ -541,27 +534,15 @@ static void gpu_verify_high_bit_srgb_buffer_slice(float *srgb_frect,
 	IMB_buffer_float_clamp(current_srgb_frect, ibuf->x, height);
 }
 
-static void verify_thread_init(void *data_v,
-                               int start_line,
-                               int height,
-                               void *init_data_v)
-{
-	VerifyThreadData *data = (VerifyThreadData *) data_v;
-	VerifyThreadInitData *init_data = (VerifyThreadInitData *) init_data_v;
-	data->ibuf = init_data->ibuf;
-	data->srgb_frect = init_data->srgb_frect;
-	data->start_line = start_line;
-	data->height = height;
-}
-
-static void *verify_thread_do(void *data_v)
+static void verify_thread_do(void *data_v,
+                             int start_scanline,
+                             int num_scanlines)
 {
 	VerifyThreadData *data = (VerifyThreadData *)data_v;
 	gpu_verify_high_bit_srgb_buffer_slice(data->srgb_frect,
 	                                      data->ibuf,
-	                                      data->start_line,
-	                                      data->height);
-	return NULL;
+	                                      start_scanline,
+	                                      num_scanlines);
 }
 
 static void gpu_verify_high_bit_srgb_buffer(float *srgb_frect,
@@ -573,14 +554,10 @@ static void gpu_verify_high_bit_srgb_buffer(float *srgb_frect,
 		                                      0, ibuf->y);
 	}
 	else {
-		VerifyThreadInitData init_data;
-		init_data.ibuf = ibuf;
-		init_data.srgb_frect = srgb_frect;
-		IMB_processor_apply_threaded(ibuf->y,
-		                             sizeof(VerifyThreadData),
-		                             &init_data,
-		                             verify_thread_init,
-		                             verify_thread_do);
+		VerifyThreadData data;
+		data.ibuf = ibuf;
+		data.srgb_frect = srgb_frect;
+		IMB_processor_apply_threaded_scanlines(ibuf->y, verify_thread_do, &data);
 	}
 }
 

@@ -580,6 +580,14 @@ void IMB_processor_apply_threaded(int buffer_lines, int handle_size, void *init_
                                                       void *customdata),
                                   void *(do_thread) (void *));
 
+typedef void (*ScanlineThreadFunc) (void *custom_data,
+                                    int start_scanline,
+                                    int num_scanlines);
+void IMB_processor_apply_threaded_scanlines(int buffer_lines,
+                                            ScanlineThreadFunc do_thread,
+                                            void *custom_data);
+
+
 /* ffmpeg */
 void IMB_ffmpeg_init(void);
 const char *IMB_ffmpeg_last_error(void);

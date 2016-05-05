@@ -374,6 +374,67 @@ void IMB_processor_apply_threaded(int buffer_lines, int handle_size, void *init_
 	BLI_task_pool_free(task_pool);
 }
 
+typedef struct ScanlineGlobalData {
+	void *custom_data;
+	ScanlineThreadFunc do_thread;
+} ScanlineGlobalData;
+
+typedef struct ScanlineTask {
+	int start_scanline;
+	int num_scanlines;
+} ScanlineTask;
+
+static void processor_apply_scanline_func(TaskPool * __restrict pool,
+                                          void *taskdata,
+                                          int UNUSED(threadid))
+{
+	ScanlineTask *task = (ScanlineTask *)taskdata;
+	ScanlineGlobalData *data = (ScanlineGlobalData*)BLI_task_pool_userdata(pool);
+	data->do_thread(data->custom_data,
+	                task->start_scanline,
+	                task->num_scanlines);
+}
+
+void IMB_processor_apply_threaded_scanlines(int buffer_lines,
+                                            ScanlineThreadFunc do_thread,
+                                            void *custom_data)
+{
+	ScanlineGlobalData data;
+	data.custom_data = custom_data;
+	data.do_thread = do_thread;
+	const int lines_per_task = 64;
+	const int total_tasks = (buffer_lines + lines_per_task - 1) / lines_per_task;
+	TaskScheduler *task_scheduler = BLI_task_scheduler_get();
+	TaskPool *task_pool = BLI_task_pool_create(task_scheduler, &data);
+	ScanlineTask *handles = MEM_mallocN(sizeof(ScanlineTask) * total_tasks,
+	                      "processor apply threaded handles");
+	for (int i = 0, start_line = 0; i < total_tasks; i++) {
+		ScanlineTask *handle = &handles[i];
+		handle->start_scanline = start_line;
+		if (i < total_tasks - 1) {
+			handle->num_scanlines = lines_per_task;
+		}
+		else {
+			handle->num_scanlines = buffer_lines - start_line;
+		}
+
+		BLI_task_pool_push(task_pool,
+		                   processor_apply_scanline_func,
+		                   handle,
+		                   false,
+		                   TASK_PRIORITY_LOW);
+
+		start_line += lines_per_task;
+	}
+
+	/* work and wait until tasks are done */
+	BLI_task_pool_work_and_wait(task_pool);
+
+	/* Free memory. */
+	MEM_freeN(handles);
+	BLI_task_pool_free(task_pool);
+}
+
 /* Alpha-under */
 
 void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[3])
