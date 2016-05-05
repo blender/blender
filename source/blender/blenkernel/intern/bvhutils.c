@@ -396,15 +396,10 @@ static BVHTree *bvhtree_from_editmesh_verts_create_tree(
 	BVHTree *tree = NULL;
 	int i;
 	BM_mesh_elem_table_ensure(em->bm, BM_VERT);
-	if (verts_mask && verts_num_active == -1) {
-		verts_num_active = 0;
-		for (i = 0; i < verts_num; i++) {
-			if (BLI_BITMAP_TEST_BOOL(verts_mask, i)) {
-				verts_num_active++;
-			}
-		}
+	if (verts_mask) {
+		BLI_assert(IN_RANGE(verts_num_active, 0, verts_num));
 	}
-	else if (!verts_mask) {
+	else {
 		verts_num_active = verts_num;
 	}
 
@@ -434,13 +429,8 @@ static BVHTree *bvhtree_from_mesh_verts_create_tree(
 	BVHTree *tree = NULL;
 	int i;
 	if (vert) {
-		if (verts_mask && verts_num_active == -1) {
-			verts_num_active = 0;
-			for (i = 0; i < verts_num; i++) {
-				if (BLI_BITMAP_TEST_BOOL(verts_mask, i)) {
-					verts_num_active++;
-				}
-			}
+		if (verts_mask) {
+			BLI_assert(IN_RANGE(verts_num_active, 0, verts_num));
 		}
 		else if (!verts_mask) {
 			verts_num_active = verts_num;
@@ -697,15 +687,10 @@ static BVHTree *bvhtree_from_mesh_faces_create_tree(
 	int i;
 
 	if (faces_num) {
-		if (faces_mask && faces_num_active == -1) {
-			faces_num_active = 0;
-			for (i = 0; i < faces_num; i++) {
-				if (BLI_BITMAP_TEST_BOOL(faces_mask, i)) {
-					faces_num_active++;
-				}
-			}
+		if (faces_mask) {
+			BLI_assert(IN_RANGE(faces_num_active, 0, faces_num));
 		}
-		else if (!faces_mask) {
+		else {
 			faces_num_active = faces_num;
 		}
 
