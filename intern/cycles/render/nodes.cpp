@@ -1544,7 +1544,9 @@ ConvertNode::ConvertNode(ShaderSocketType from_, ShaderSocketType to_, bool auto
 		assert(0);
 }
 
-bool ConvertNode::constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value)
+bool ConvertNode::constant_fold(ShaderGraph * /*graph*/,
+                                ShaderOutput * /*socket*/,
+                                float3 *optimized_value)
 {
 	ShaderInput *in = inputs[0];
 	float3 value = in->value;
@@ -4264,7 +4266,9 @@ void BumpNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_bump");
 }
 
-bool BumpNode::constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value)
+bool BumpNode::constant_fold(ShaderGraph *graph,
+                             ShaderOutput * /*socket*/,
+                             float3 * /*optimized_value*/)
 {
 	ShaderInput *height_in = input("Height");
 	ShaderInput *normal_in = input("Normal");
