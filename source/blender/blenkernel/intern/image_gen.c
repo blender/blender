@@ -33,6 +33,9 @@
 
 #include "BKE_image.h"
 
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+
 #include "BLF_api.h"
 
 void BKE_image_buf_fill_color(unsigned char *rect, float *rect_float, int width, int height, const float color[4])
@@ -41,9 +44,11 @@ void BKE_image_buf_fill_color(unsigned char *rect, float *rect_float, int width,
 
 	/* blank image */
 	if (rect_float) {
+		float linear_color[4];
+		srgb_to_linearrgb_v4(linear_color, color);
 		for (y = 0; y < height; y++) {
 			for (x = 0; x < width; x++) {
-				copy_v4_v4(rect_float, color);
+				copy_v4_v4(rect_float, linear_color);
 				rect_float += 4;
 			}
 		}
@@ -84,6 +89,12 @@ void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int widt
 	float hsv[3] = {0.0f, 0.9f, 0.9f};
 	float rgb[3];
 
+	float dark_linear_color, bright_linear_color;
+	if (rect_float != NULL) {
+		dark_linear_color = srgb_to_linearrgb(0.25f);
+		bright_linear_color = srgb_to_linearrgb(0.58f);
+	}
+
 	/* checkers */
 	for (y = 0; y < height; y++) {
 		dark = powf(-1.0f, floorf(y / checkerwidth));
@@ -93,11 +104,11 @@ void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int widt
 			
 			if (rect_float) {
 				if (dark > 0) {
-					rect_float[0] = rect_float[1] = rect_float[2] = 0.25f;
+					rect_float[0] = rect_float[1] = rect_float[2] = dark_linear_color;
 					rect_float[3] = 1.0f;
 				}
 				else {
-					rect_float[0] = rect_float[1] = rect_float[2] = 0.58f;
+					rect_float[0] = rect_float[1] = rect_float[2] = bright_linear_color;
 					rect_float[3] = 1.0f;
 				}
 				rect_float += 4;
@@ -143,9 +154,7 @@ void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int widt
 					}
 					
 					if (rect_float) {
-						rect_float[0] = rgb[0];
-						rect_float[1] = rgb[1];
-						rect_float[2] = rgb[2];
+						srgb_to_linearrgb_v3_v3(rect_float, rgb);
 						rect_float[3] = 1.0f;
 					}
 				}
@@ -352,4 +361,15 @@ void BKE_image_buf_fill_checker_color(unsigned char *rect, float *rect_float, in
 	checker_board_grid_fill(rect, rect_float, width, height, 1.0f / 4.0f);
 
 	checker_board_text(rect, rect_float, width, height, 128, 2);
+
+	/* TODO(sergey): Currently it's easier to fill in form buffer and
+	 * linearize it afterwards. This could be optimized with some smart
+	 * trickery around blending factors and such.
+	 */
+	IMB_buffer_float_from_float(rect_float, rect_float,
+	                            4,
+	                            IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB,
+	                            true,
+	                            width, height,
+	                            width, width);
 }
