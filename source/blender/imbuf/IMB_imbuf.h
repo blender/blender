@@ -439,6 +439,9 @@ void IMB_buffer_float_from_byte(float *rect_to, const unsigned char *rect_from,
 void IMB_buffer_float_from_float(float *rect_to, const float *rect_from,
 	int channels_from, int profile_to, int profile_from, bool predivide,
 	int width, int height, int stride_to, int stride_from);
+void IMB_buffer_float_from_float_threaded(float *rect_to, const float *rect_from,
+	int channels_from, int profile_to, int profile_from, bool predivide,
+	int width, int height, int stride_to, int stride_from);
 void IMB_buffer_float_from_float_mask(float *rect_to, const float *rect_from,
 	int channels_from, int width, int height, int stride_to, int stride_from, char *mask);
 void IMB_buffer_byte_from_byte(unsigned char *rect_to, const unsigned char *rect_from,

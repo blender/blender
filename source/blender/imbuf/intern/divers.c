@@ -532,6 +532,76 @@ void IMB_buffer_float_from_float(float *rect_to, const float *rect_from,
 	}
 }
 
+typedef struct FloatToFloatThreadData {
+	float *rect_to;
+	const float *rect_from;
+	int channels_from;
+	int profile_to;
+	int profile_from;
+	bool predivide;
+	int width;
+	int stride_to;
+	int stride_from;
+} FloatToFloatThreadData;
+
+static void imb_buffer_float_from_float_thread_do(void *data_v,
+                                                  int start_scanline,
+                                                  int num_scanlines)
+{
+	FloatToFloatThreadData *data = (FloatToFloatThreadData *)data_v;
+	size_t offset_from = ((size_t)start_scanline) * data->stride_from * data->channels_from;
+	size_t offset_to = ((size_t)start_scanline) * data->stride_to * data->channels_from;
+	IMB_buffer_float_from_float(data->rect_to + offset_to,
+	                            data->rect_from + offset_from,
+	                            data->channels_from,
+	                            data->profile_to,
+	                            data->profile_from,
+	                            data->predivide,
+	                            data->width,
+	                            num_scanlines,
+	                            data->stride_to,
+	                            data->stride_from);
+}
+
+void IMB_buffer_float_from_float_threaded(float *rect_to,
+                                          const float *rect_from,
+                                          int channels_from,
+                                          int profile_to,
+                                          int profile_from,
+                                          bool predivide,
+                                          int width,
+                                          int height,
+                                          int stride_to,
+                                          int stride_from)
+{
+	if (((size_t)width) * height < 64 * 64) {
+		IMB_buffer_float_from_float(rect_to,
+		                            rect_from,
+		                            channels_from,
+		                            profile_to,
+		                            profile_from,
+		                            predivide,
+		                            width,
+		                            height,
+		                            stride_to,
+		                            stride_from);
+	}
+	else {
+		FloatToFloatThreadData data;
+		data.rect_to = rect_to;
+		data.rect_from = rect_from;
+		data.channels_from = channels_from;
+		data.profile_to = profile_to;
+		data.profile_from = profile_from;
+		data.predivide = predivide;
+		data.width = width;
+		data.stride_to = stride_to;
+		data.stride_from = stride_from;
+		IMB_processor_apply_threaded_scanlines(
+		    height, imb_buffer_float_from_float_thread_do, &data);
+	}
+}
+
 /* float to float pixels, output 4-channel RGBA */
 void IMB_buffer_float_from_float_mask(float *rect_to, const float *rect_from, int channels_from,
                                       int width, int height, int stride_to, int stride_from, char *mask)
