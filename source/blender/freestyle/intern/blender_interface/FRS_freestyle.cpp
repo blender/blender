@@ -628,15 +628,19 @@ Render *FRS_do_stroke_rendering(Render *re, SceneRenderLayer *srl, int render)
 			re->stats_draw(re->sdh, &re->i);
 			re->i.infostr = NULL;
 			g_freestyle.scene = re->scene;
-			controller->DrawStrokes();
-			freestyle_render = controller->RenderStrokes(re, true);
+			int strokeCount = controller->DrawStrokes();
+			if (strokeCount > 0) {
+				freestyle_render = controller->RenderStrokes(re, true);
+			}
 			controller->CloseFile();
 			g_freestyle.scene = NULL;
 
 			// composite result
-			FRS_composite_result(re, srl, freestyle_render);
-			RE_FreeRenderResult(freestyle_render->result);
-			freestyle_render->result = NULL;
+			if (freestyle_render) {
+				FRS_composite_result(re, srl, freestyle_render);
+				RE_FreeRenderResult(freestyle_render->result);
+				freestyle_render->result = NULL;
+			}
 		}
 	}
 

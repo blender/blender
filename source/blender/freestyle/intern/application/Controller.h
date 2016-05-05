@@ -75,7 +75,7 @@ public:
 	void ComputeSteerableViewMap();
 	void saveSteerableViewMapImages();
 	void toggleEdgeTesselationNature(Nature::EdgeNature iNature);
-	void DrawStrokes();
+	int DrawStrokes();
 	void ResetRenderCount();
 	Render *RenderStrokes(Render *re, bool render);
 	void SwapStyleModules(unsigned i1, unsigned i2);
