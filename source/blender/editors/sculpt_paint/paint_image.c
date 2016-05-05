@@ -498,8 +498,10 @@ void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short te
 	if (texpaint || (sima && sima->lock)) {
 		int w = imapaintpartial.x2 - imapaintpartial.x1;
 		int h = imapaintpartial.y2 - imapaintpartial.y1;
-		/* Testing with partial update in uv editor too */
-		GPU_paint_update_image(image, (sima ? &sima->iuser : NULL), imapaintpartial.x1, imapaintpartial.y1, w, h); //!texpaint);
+		if (w && h) {
+			/* Testing with partial update in uv editor too */
+			GPU_paint_update_image(image, (sima ? &sima->iuser : NULL), imapaintpartial.x1, imapaintpartial.y1, w, h);
+		}
 	}
 }
 
