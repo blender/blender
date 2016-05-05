@@ -569,16 +569,18 @@ static void initSnappingMode(TransInfo *t)
 
 	if (t->flag & (T_OBJECT | T_EDIT)) {
 		if (t->spacetype == SPACE_VIEW3D) {
-			t->tsnap.object_context = ED_transform_snap_object_context_create_view3d(
-			        G.main, t->scene, SNAP_OBJECT_USE_CACHE,
-			        t->ar, t->view);
+			if (t->tsnap.object_context == NULL) {
+				t->tsnap.object_context = ED_transform_snap_object_context_create_view3d(
+				        G.main, t->scene, SNAP_OBJECT_USE_CACHE,
+				        t->ar, t->view);
 
-			ED_transform_snap_object_context_set_editmesh_callbacks(
-			        t->tsnap.object_context,
-			        (bool (*)(BMVert *, void *))BM_elem_cb_check_hflag_disabled,
-			        (bool (*)(BMEdge *, void *))BM_elem_cb_check_hflag_disabled,
-			        (bool (*)(BMFace *, void *))BM_elem_cb_check_hflag_disabled,
-			        SET_UINT_IN_POINTER((BM_ELEM_SELECT | BM_ELEM_HIDDEN)));
+				ED_transform_snap_object_context_set_editmesh_callbacks(
+				        t->tsnap.object_context,
+				        (bool (*)(BMVert *, void *))BM_elem_cb_check_hflag_disabled,
+				        (bool (*)(BMEdge *, void *))BM_elem_cb_check_hflag_disabled,
+				        (bool (*)(BMFace *, void *))BM_elem_cb_check_hflag_disabled,
+				        SET_UINT_IN_POINTER((BM_ELEM_SELECT | BM_ELEM_HIDDEN)));
+			}
 		}
 	}
 }
