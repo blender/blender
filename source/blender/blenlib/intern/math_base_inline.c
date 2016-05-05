@@ -352,7 +352,7 @@ MALWAYS_INLINE __m128 _bli_math_improve_5throot_solution(
 	__m128 approx4 = _mm_mul_ps(approx2, approx2);
 	__m128 t = _mm_div_ps(x, approx4);
 	__m128 summ = _mm_add_ps(_mm_mul_ps(_mm_set1_ps(4.0f), old_result), t); /* fma */
-	return _mm_mul_ps(summ, _mm_set1_ps(1.0f/5.0f));
+	return _mm_mul_ps(summ, _mm_set1_ps(1.0f / 5.0f));
 }
 
 /* Calculate powf(x, 2.4). Working domain: 1e-10 < x < 1e+10 */

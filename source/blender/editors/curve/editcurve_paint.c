@@ -485,7 +485,7 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 			        selem->location_local[2] - location_prev[2]);
 			location_prev = selem->location_local;
 			const float radius = stroke_elem_radius(cdd, selem);
-			gluSphere(qobj, radius , 12, 8);
+			gluSphere(qobj, radius, 12, 8);
 
 			location_prev = selem->location_local;
 		}

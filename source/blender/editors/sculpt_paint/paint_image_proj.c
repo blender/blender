@@ -5866,7 +5866,7 @@ static int add_simple_uvs_exec(bContext *C, wmOperator *UNUSED(op))
 	ED_mesh_uv_texture_ensure(me, NULL);
 
 	BM_mesh_bm_from_me(
-	        bm, me,(&(struct BMeshFromMeshParams){
+	        bm, me, (&(struct BMeshFromMeshParams){
 	            .calc_face_normal = true,
 	        }));
 	/* select all uv loops first - pack parameters needs this to make sure charts are registered */

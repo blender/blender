@@ -390,7 +390,7 @@ static void processor_apply_scanline_func(TaskPool * __restrict pool,
                                           void *taskdata,
                                           int UNUSED(threadid))
 {
-	ScanlineGlobalData *data = (ScanlineGlobalData*)BLI_task_pool_userdata(pool);
+	ScanlineGlobalData *data = BLI_task_pool_userdata(pool);
 	int start_scanline = GET_INT_FROM_POINTER(taskdata);
 	int num_scanlines = min_ii(data->scanlines_per_task,
 	                           data->total_scanlines - start_scanline);

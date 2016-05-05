@@ -958,8 +958,9 @@ static bool snapEditMesh(
 				hit.dist = local_depth;
 
 				if (treedata->tree &&
-					BLI_bvhtree_ray_cast(treedata->tree, ray_start_local, ray_normal_local, 0.0f,
-					        &hit, treedata->raycast_callback, treedata) != -1)
+				    BLI_bvhtree_ray_cast(
+				        treedata->tree, ray_start_local, ray_normal_local, 0.0f,
+				        &hit, treedata->raycast_callback, treedata) != -1)
 				{
 					hit.dist += len_diff;
 					hit.dist /= local_scale;
@@ -989,9 +990,9 @@ static bool snapEditMesh(
 				nearest.index = -1;
 				nearest.dist_sq = local_depth * local_depth;
 				if (treedata->tree &&
-					BLI_bvhtree_find_nearest_to_ray(
-					        treedata->tree, ray_start_local, ray_normal_local,
-					        &nearest, NULL, NULL) != -1)
+				    BLI_bvhtree_find_nearest_to_ray(
+				            treedata->tree, ray_start_local, ray_normal_local,
+				            &nearest, NULL, NULL) != -1)
 				{
 					const BMVert *v = BM_vert_at_index(em->bm, nearest.index);
 					retval = snapVertex(
@@ -1009,8 +1010,8 @@ static bool snapEditMesh(
 					BMEdge *eed = BM_edge_at_index(em->bm, i);
 
 					if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) &&
-						!BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) &&
-						!BM_elem_flag_test(eed->v2, BM_ELEM_SELECT))
+					    !BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) &&
+					    !BM_elem_flag_test(eed->v2, BM_ELEM_SELECT))
 					{
 						short v1no[3], v2no[3];
 						normal_float_to_short_v3(v1no, eed->v1->no);
