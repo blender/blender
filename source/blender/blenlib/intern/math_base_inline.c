@@ -33,7 +33,6 @@
 #include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #ifdef __SSE2__
 #  include <emmintrin.h>

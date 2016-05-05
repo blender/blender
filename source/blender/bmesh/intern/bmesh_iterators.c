@@ -31,6 +31,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_bitmap.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
@@ -248,6 +249,55 @@ void *BMO_iter_as_arrayN(
 		*r_len = 0;
 		return NULL;
 	}
+}
+
+int BM_iter_mesh_bitmap_from_filter(
+        const char itype, BMesh *bm,
+        BLI_bitmap *bitmap,
+        bool (*test_fn)(BMElem *, void *user_data),
+        void *user_data)
+{
+	BMIter iter;
+	BMElem *ele;
+	int i;
+
+	BM_ITER_MESH_INDEX (ele, &iter, bm, itype, i) {
+		BLI_BITMAP_SET(bitmap, i, test_fn(ele, user_data));
+	}
+
+	return i;
+}
+
+/**
+ * Needed when we want to check faces, but return a loop aligned array.
+ */
+int BM_iter_mesh_bitmap_from_filter_tessface(
+        BMesh *bm,
+        BLI_bitmap *bitmap,
+        bool (*test_fn)(BMFace *, void *user_data),
+        void *user_data)
+{
+	BMIter iter;
+	BMFace *f;
+	int i;
+	int j = 0;
+
+	BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
+		if (test_fn(f, user_data)) {
+			for (int A = 2; A < f->len; A++) {
+				BLI_BITMAP_ENABLE(bitmap, j);
+				j++;
+			}
+		}
+		else {
+			for (int A = 2; A < f->len; A++) {
+				BLI_BITMAP_DISABLE(bitmap, j);
+				j++;
+			}
+		}
+	}
+
+	return j;
 }
 
 /**

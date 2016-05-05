@@ -68,6 +68,7 @@
 #include "ED_node.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
+#include "ED_transform_snap_object_context.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -571,6 +572,13 @@ static void initSnappingMode(TransInfo *t)
 			t->tsnap.object_context = ED_transform_snap_object_context_create_view3d(
 			        G.main, t->scene, SNAP_OBJECT_USE_CACHE,
 			        t->ar, t->view);
+
+			ED_transform_snap_object_context_set_editmesh_callbacks(
+			        t->tsnap.object_context,
+			        (bool (*)(BMVert *, void *))BM_elem_cb_check_hflag_disabled,
+			        (bool (*)(BMEdge *, void *))BM_elem_cb_check_hflag_disabled,
+			        (bool (*)(BMFace *, void *))BM_elem_cb_check_hflag_disabled,
+			        SET_UINT_IN_POINTER((BM_ELEM_SELECT | BM_ELEM_HIDDEN)));
 		}
 	}
 }
@@ -1335,6 +1343,20 @@ struct PeelRayCast_Data {
 	ListBase *depth_peels;
 };
 
+struct PeelEditMeshRayCast_Data {
+	BVHTreeFromEditMesh bvhdata;
+
+	/* internal vars for adding peel */
+	Object *ob;
+	const float(*obmat)[4];
+	const float(*timat)[3];
+
+	const float *ray_start;  /* globalspace */
+
+	/* output list */
+	ListBase *depth_peels;
+};
+
 static void peelRayCast_cb(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
 	struct PeelRayCast_Data *data = userdata;
@@ -1359,8 +1381,32 @@ static void peelRayCast_cb(void *userdata, int index, const BVHTreeRay *ray, BVH
 	}
 }
 
+static void peelEditMeshRayCast_cb(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
+{
+	struct PeelEditMeshRayCast_Data *data = userdata;
+
+	data->bvhdata.raycast_callback(&data->bvhdata, index, ray, hit);
+
+	if (hit->index != -1) {
+		/* get all values in worldspace */
+		float location[3], normal[3];
+		float depth;
+
+		/* worldspace location */
+		mul_v3_m4v3(location, (float(*)[4])data->obmat, hit->co);
+		depth = len_v3v3(location, data->ray_start);
+
+		/* worldspace normal */
+		copy_v3_v3(normal, hit->no);
+		mul_m3_v3((float(*)[3])data->timat, normal);
+		normalize_v3(normal);
+
+		addDepthPeel(data->depth_peels, depth, location, normal, data->ob);
+	}
+}
+
 static bool peelDerivedMesh(
-        Object *ob, DerivedMesh *dm, BMEditMesh *em, float obmat[4][4],
+        Object *ob, DerivedMesh *dm, float obmat[4][4],
         const float ray_start[3], const float ray_normal[3], const float UNUSED(mval[2]),
         ListBase *depth_peels)
 {
@@ -1402,8 +1448,6 @@ static bool peelDerivedMesh(
 		if (test == true) {
 			struct PeelRayCast_Data data;
 
-			data.bvhdata.em_evil = em;
-			data.bvhdata.em_evil_all = false;
 			bvhtree_from_mesh_looptri(&data.bvhdata, dm, 0.0f, 4, 6);
 
 			if (data.bvhdata.tree != NULL) {
@@ -1415,8 +1459,9 @@ static bool peelDerivedMesh(
 				data.polynors = dm->getPolyDataArray(dm, CD_NORMAL);  /* can be NULL */
 				data.depth_peels = depth_peels;
 
-				BLI_bvhtree_ray_cast_all(data.bvhdata.tree, ray_start_local, ray_normal_local, 0.0f,
-				                         peelRayCast_cb, &data);
+				BLI_bvhtree_ray_cast_all(
+				        data.bvhdata.tree, ray_start_local, ray_normal_local, 0.0f,
+				        peelRayCast_cb, &data);
 			}
 
 			free_bvhtree_from_mesh(&data.bvhdata);
@@ -1424,7 +1469,59 @@ static bool peelDerivedMesh(
 	}
 
 	return retval;
-} 
+}
+
+static bool peelEditMesh(
+        Object *ob, BMEditMesh *em, float obmat[4][4],
+        const float ray_start[3], const float ray_normal[3],
+        ListBase *depth_peels)
+{
+	bool retval = false;
+	int totvert = em->bm->totvert;
+
+	if (totvert > 0) {
+		float imat[4][4];
+		float timat[3][3]; /* transpose inverse matrix for normals */
+		float ray_start_local[3], ray_normal_local[3];
+		bool test = true;
+
+		invert_m4_m4(imat, obmat);
+
+		transpose_m3_m4(timat, imat);
+
+		mul_v3_m4v3(ray_start_local, imat, ray_start);
+		mul_v3_mat3_m4v3(ray_normal_local, imat, ray_normal);
+
+		if (test == true) {
+			struct PeelEditMeshRayCast_Data data;
+
+			BLI_bitmap *looptri_mask = BLI_BITMAP_NEW(em->tottri, __func__);
+			int looptri_num_active = BM_iter_mesh_bitmap_from_filter_tessface(
+			        em->bm, looptri_mask,
+			        BM_elem_cb_check_hflag_enabled_simple(BMFace *, (BM_ELEM_SELECT | BM_ELEM_HIDDEN)));
+
+			bvhtree_from_editmesh_looptri_ex(&data.bvhdata, em, looptri_mask, looptri_num_active, 0.0f, 4, 6);
+
+			MEM_freeN(looptri_mask);
+
+			if (data.bvhdata.tree != NULL) {
+				data.ob = ob;
+				data.obmat = (const float(*)[4])obmat;
+				data.timat = (const float(*)[3])timat;
+				data.ray_start = ray_start;
+				data.depth_peels = depth_peels;
+
+				BLI_bvhtree_ray_cast_all(
+				        data.bvhdata.tree, ray_start_local, ray_normal_local, 0.0f,
+				        peelEditMeshRayCast_cb, &data);
+			}
+
+			free_bvhtree_from_editmesh(&data.bvhdata);
+		}
+	}
+
+	return retval;
+}
 
 static bool peelObjects(
         Scene *scene, View3D *v3d, ARegion *ar, Object *obedit,
@@ -1452,24 +1549,21 @@ static bool peelObjects(
 					
 					if (dob->type == OB_MESH) {
 						BMEditMesh *em;
-						DerivedMesh *dm = NULL;
 						bool val;
 
 						if (dob != obedit) {
+							DerivedMesh *dm;
 							dm = mesh_get_derived_final(scene, dob, CD_MASK_BAREMESH);
-							
-							val = peelDerivedMesh(dob, dm, NULL, dob->obmat, ray_start, ray_normal, mval, r_depth_peels);
+							val = peelDerivedMesh(dob, dm, dob->obmat, ray_start, ray_normal, mval, r_depth_peels);
+
+							dm->release(dm);
 						}
 						else {
 							em = BKE_editmesh_from_object(dob);
-							dm = editbmesh_get_derived_cage(scene, obedit, em, CD_MASK_BAREMESH);
-							
-							val = peelDerivedMesh(dob, dm, em, dob->obmat, ray_start, ray_normal, mval, r_depth_peels);
+							val = peelEditMesh(dob, em, dob->obmat, ray_start, ray_normal, r_depth_peels);
 						}
 
 						retval = retval || val;
-						
-						dm->release(dm);
 					}
 				}
 				
@@ -1482,14 +1576,14 @@ static bool peelObjects(
 				if (ob != obedit && ((snap_select == SNAP_NOT_SELECTED && (base->flag & (SELECT | BA_WAS_SEL)) == 0) || ELEM(snap_select, SNAP_ALL, SNAP_NOT_OBEDIT))) {
 					DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 					
-					val = peelDerivedMesh(ob, dm, NULL, ob->obmat, ray_start, ray_normal, mval, r_depth_peels);
+					val = peelDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, r_depth_peels);
 					dm->release(dm);
 				}
 				else if (ob == obedit && snap_select != SNAP_NOT_OBEDIT) {
 					BMEditMesh *em = BKE_editmesh_from_object(ob);
 					DerivedMesh *dm = editbmesh_get_derived_cage(scene, obedit, em, CD_MASK_BAREMESH);
 					
-					val = peelDerivedMesh(ob, dm, NULL, ob->obmat, ray_start, ray_normal, mval, r_depth_peels);
+					val = peelDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, r_depth_peels);
 					dm->release(dm);
 				}
 					

@@ -208,6 +208,18 @@ void    *BMO_iter_as_arrayN(
         int *r_len,
         /* optional args to avoid an alloc (normally stack array) */
         void **stack_array, int stack_array_size);
+
+int BM_iter_mesh_bitmap_from_filter(
+        const char itype, BMesh *bm,
+        unsigned int *bitmap,
+        bool (*test_fn)(BMElem *, void *user_data),
+        void *user_data);
+int BM_iter_mesh_bitmap_from_filter_tessface(
+        BMesh *bm,
+        unsigned int *bitmap,
+        bool (*test_fn)(BMFace *, void *user_data),
+        void *user_data);
+
 int     BM_iter_elem_count_flag(const char itype, void *data, const char hflag, const bool value);
 int     BMO_iter_elem_count_flag(BMesh *bm, const char itype, void *data, const short oflag, const bool value);
 int     BM_iter_mesh_count(const char itype, BMesh *bm);

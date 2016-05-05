@@ -47,6 +47,7 @@
 #include "BIF_generate.h"
 
 #include "ED_transform.h"
+#include "ED_transform_snap_object_context.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

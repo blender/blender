@@ -59,6 +59,7 @@ struct wmTimer;
 struct ARegion;
 struct ReportList;
 struct EditBone;
+struct SnapObjectContext;
 
 /* transinfo->redraw */
 typedef enum {
@@ -105,7 +106,7 @@ typedef struct TransSnap {
 	/**
 	 * Re-usable snap context data.
 	 */
-	SnapObjectContext *object_context;
+	struct SnapObjectContext *object_context;
 } TransSnap;
 
 typedef struct TransCon {
