@@ -668,7 +668,7 @@ static bool snapDerivedMesh(
 			}
 		}
 
-		if (treedata) {
+		if (treedata && treedata->tree == NULL) {
 			switch (snap_to) {
 				case SCE_SNAP_MODE_FACE:
 					bvhtree_from_mesh_looptri(treedata, dm, 0.0f, 4, 6);
