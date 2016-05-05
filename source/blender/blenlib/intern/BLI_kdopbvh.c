@@ -1123,7 +1123,7 @@ int BLI_bvhtree_get_size(const BVHTree *tree)
 	return tree->totleaf;
 }
 
-float BLI_bvhtree_getepsilon(const BVHTree *tree)
+float BLI_bvhtree_get_epsilon(const BVHTree *tree)
 {
 	return tree->epsilon;
 }

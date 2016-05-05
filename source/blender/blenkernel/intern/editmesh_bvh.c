@@ -544,7 +544,7 @@ BVHTreeOverlap *BKE_bmbvh_overlap(const BMBVHTree *bmtree_a, const BMBVHTree *bm
 
 	data.tree_pair[0] = bmtree_a;
 	data.tree_pair[1] = bmtree_b;
-	data.epsilon = max_ff(BLI_bvhtree_getepsilon(bmtree_a->tree), BLI_bvhtree_getepsilon(bmtree_b->tree));
+	data.epsilon = max_ff(BLI_bvhtree_get_epsilon(bmtree_a->tree), BLI_bvhtree_get_epsilon(bmtree_b->tree));
 
 	return BLI_bvhtree_overlap(bmtree_a->tree, bmtree_b->tree, r_overlap_tot, bmbvh_overlap_cb, &data);
 }

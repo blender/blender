@@ -189,7 +189,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 				
 				/* check if GUI setting has changed for bvh */
 				if (collmd->bvhtree) {
-					if (ob->pd->pdef_sboft != BLI_bvhtree_getepsilon(collmd->bvhtree)) {
+					if (ob->pd->pdef_sboft != BLI_bvhtree_get_epsilon(collmd->bvhtree)) {
 						BLI_bvhtree_free(collmd->bvhtree);
 						collmd->bvhtree = bvhtree_build_from_mvert(
 						        collmd->current_x,

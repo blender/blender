@@ -224,7 +224,7 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 	float w1, w2, w3, u1, u2, u3;
 	float v1[3], v2[3], relativeVelocity[3];
 	float magrelVel;
-	float epsilon2 = BLI_bvhtree_getepsilon ( collmd->bvhtree );
+	float epsilon2 = BLI_bvhtree_get_epsilon ( collmd->bvhtree );
 
 	cloth1 = clmd->clothObject;
 
@@ -396,7 +396,7 @@ static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,
 #endif
 	double distance = 0;
 	float epsilon1 = clmd->coll_parms->epsilon;
-	float epsilon2 = BLI_bvhtree_getepsilon ( collmd->bvhtree );
+	float epsilon2 = BLI_bvhtree_get_epsilon ( collmd->bvhtree );
 
 	tri_a = &clmd->clothObject->tri[overlap->indexA];
 	tri_b = &collmd->tri[overlap->indexB];
@@ -909,7 +909,7 @@ static bool cloth_points_collision_response_static(ClothModifierData *clmd, Coll
 	// float w1, w2;
 	float u1, u2, u3;
 	float v1[3], v2_old[3], v2_new[3], v_rel_old[3], v_rel_new[3];
-	float epsilon2 = BLI_bvhtree_getepsilon ( collmd->bvhtree );
+	float epsilon2 = BLI_bvhtree_get_epsilon ( collmd->bvhtree );
 
 	for ( ; collpair != collision_end; collpair++ ) {
 		float margin_distance = (float)(collpair->distance - (double)epsilon2);
@@ -1249,7 +1249,7 @@ int cloth_points_objcollision(Object *ob, ClothModifierData *clmd, float step, f
 			
 			/* search for overlapping collision pairs */
 			overlap = BLI_bvhtree_overlap(cloth_bvh, collmd->bvhtree, &result, NULL, NULL);
-			epsilon = BLI_bvhtree_getepsilon(collmd->bvhtree);
+			epsilon = BLI_bvhtree_get_epsilon(collmd->bvhtree);
 			
 			// go to next object if no overlap is there
 			if (result && overlap) {
@@ -1375,7 +1375,7 @@ void cloth_find_point_contacts(Object *ob, ClothModifierData *clmd, float step, 
 		
 		/* search for overlapping collision pairs */
 		overlap = BLI_bvhtree_overlap(cloth_bvh, collmd->bvhtree, &result, NULL, NULL);
-		epsilon = BLI_bvhtree_getepsilon(collmd->bvhtree);
+		epsilon = BLI_bvhtree_get_epsilon(collmd->bvhtree);
 		
 		// go to next object if no overlap is there
 		if (result && overlap) {
