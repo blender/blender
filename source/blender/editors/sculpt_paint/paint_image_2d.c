@@ -42,6 +42,7 @@
 #include "BLI_math_color_blend.h"
 #include "BLI_stack.h"
 #include "BLI_bitmap.h"
+#include "BLI_task.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -1019,6 +1020,64 @@ static void paint_2d_convert_brushco(ImBuf *ibufb, const float pos[2], int ipos[
 	ipos[1] = (int)floorf((pos[1] - ibufb->y / 2));
 }
 
+static void paint_2d_do_making_brush(ImagePaintState *s,
+                                     ImagePaintRegion *region,
+                                     unsigned short *curveb,
+                                     unsigned short *texmaskb,
+                                     ImBuf *frombuf,
+                                     float mask_max,
+                                     short blend,
+                                     int tilex, int tiley,
+                                     int tilew, int tileh)
+{
+	ImBuf tmpbuf;
+	IMB_initImBuf(&tmpbuf, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, 0);
+
+	for (int ty = tiley; ty <= tileh; ty++) {
+		for (int tx = tilex; tx <= tilew; tx++) {
+			/* retrieve original pixels + mask from undo buffer */
+			unsigned short *mask;
+			int origx = region->destx - tx * IMAPAINT_TILE_SIZE;
+			int origy = region->desty - ty * IMAPAINT_TILE_SIZE;
+
+			if (s->canvas->rect_float)
+				tmpbuf.rect_float = image_undo_find_tile(s->image, s->canvas, tx, ty, &mask, false);
+			else
+				tmpbuf.rect = image_undo_find_tile(s->image, s->canvas, tx, ty, &mask, false);
+
+			IMB_rectblend(s->canvas, &tmpbuf, frombuf, mask,
+			              curveb, texmaskb, mask_max,
+			              region->destx, region->desty,
+			              origx, origy,
+			              region->srcx, region->srcy,
+			              region->width, region->height,
+			              blend, ((s->brush->flag & BRUSH_ACCUMULATE) != 0));
+		}
+	}
+}
+
+typedef struct Paint2DForeachData {
+	ImagePaintState *s;
+	ImagePaintRegion *region;
+	unsigned short *curveb;
+	unsigned short *texmaskb;
+	ImBuf *frombuf;
+	float mask_max;
+	short blend;
+	int tilex;
+	int tilew;
+} Paint2DForeachData;
+
+static void paint_2d_op_foreach_do(void *data_v, const int iter)
+{
+	Paint2DForeachData *data = (Paint2DForeachData *)data_v;
+	paint_2d_do_making_brush(data->s, data->region, data->curveb,
+	                         data->texmaskb, data->frombuf, data->mask_max,
+	                         data->blend,
+	                         data->tilex, iter,
+	                         data->tilew, iter);
+}
+
 static int paint_2d_op(void *state, ImBuf *ibufb, unsigned short *curveb, unsigned short *texmaskb, const float lastpos[2], const float pos[2])
 {
 	ImagePaintState *s = ((ImagePaintState *)state);
@@ -1072,45 +1131,40 @@ static int paint_2d_op(void *state, ImBuf *ibufb, unsigned short *curveb, unsign
 	
 		if (s->do_masking) {
 			/* masking, find original pixels tiles from undo buffer to composite over */
-			int tilex, tiley, tilew, tileh, tx, ty;
-			ImBuf *tmpbuf;
+			int tilex, tiley, tilew, tileh;
 
 			imapaint_region_tiles(s->canvas, region[a].destx, region[a].desty,
 			                      region[a].width, region[a].height,
 			                      &tilex, &tiley, &tilew, &tileh);
 
-			tmpbuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, 0);
-
-			for (ty = tiley; ty <= tileh; ty++) {
-				for (tx = tilex; tx <= tilew; tx++) {
-					/* retrieve original pixels + mask from undo buffer */
-					unsigned short *mask;
-					int origx = region[a].destx - tx * IMAPAINT_TILE_SIZE;
-					int origy = region[a].desty - ty * IMAPAINT_TILE_SIZE;
-
-					if (s->canvas->rect_float)
-						tmpbuf->rect_float = image_undo_find_tile(s->image, s->canvas, tx, ty, &mask, false);
-					else
-						tmpbuf->rect = image_undo_find_tile(s->image, s->canvas, tx, ty, &mask, false);
-
-					IMB_rectblend(s->canvas, tmpbuf, frombuf, mask,
-					              curveb, texmaskb, mask_max,
-					              region[a].destx, region[a].desty,
-					              origx, origy,
-					              region[a].srcx, region[a].srcy,
-					              region[a].width, region[a].height, blend, ((s->brush->flag & BRUSH_ACCUMULATE) != 0));
-				}
+			if (tiley == tileh) {
+				paint_2d_do_making_brush(s, &region[a], curveb, texmaskb, frombuf,
+				                         mask_max, blend, tilex, tiley, tilew, tileh);
 			}
+			else {
+				Paint2DForeachData data;
+				data.s = s;
+				data.region = &region[a];
+				data.curveb = curveb;
+				data.texmaskb = texmaskb;
+				data.frombuf = frombuf;
+				data.mask_max = mask_max;
+				data.blend = blend;
+				data.tilex = tilex;
+				data.tilew = tilew;
+				BLI_task_parallel_range(tiley, tileh + 1, &data,
+				                        paint_2d_op_foreach_do,
+				                        true);
 
-			IMB_freeImBuf(tmpbuf);
+			}
 		}
 		else {
 			/* no masking, composite brush directly onto canvas */
-			IMB_rectblend(s->canvas, s->canvas, frombuf, NULL, curveb, texmaskb, mask_max,
-			              region[a].destx, region[a].desty,
-			              region[a].destx, region[a].desty,
-			              region[a].srcx, region[a].srcy,
-			              region[a].width, region[a].height, blend, false);
+			IMB_rectblend_threaded(s->canvas, s->canvas, frombuf, NULL, curveb, texmaskb, mask_max,
+			                       region[a].destx, region[a].desty,
+			                       region[a].destx, region[a].desty,
+			                       region[a].srcx, region[a].srcy,
+			                       region[a].width, region[a].height, blend, false);
 		}
 	}
 

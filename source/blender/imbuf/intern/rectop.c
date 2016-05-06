@@ -693,6 +693,69 @@ void IMB_rectblend(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf, unsigned short *dmask,
 	}
 }
 
+typedef struct RectBlendThreadData {
+	ImBuf *dbuf, *obuf, *sbuf;
+	unsigned short *dmask, *curvemask, *texmask;
+	float mask_max;
+	int destx, desty, origx, origy;
+	int srcx, srcy, width;
+	IMB_BlendMode mode;
+	bool accumulate;
+} RectBlendThreadData;
+
+static void rectblend_thread_do(void *data_v,
+                                int start_scanline,
+                                int num_scanlines)
+{
+	RectBlendThreadData *data = (RectBlendThreadData *)data_v;
+	IMB_rectblend(data->dbuf, data->obuf, data->sbuf,
+	              data->dmask, data->curvemask, data->texmask,
+	              data->mask_max,
+	              data->destx,
+	              data->desty + start_scanline,
+	              data->origx,
+	              data->origy + start_scanline,
+	              data->srcx,
+	              data->srcy + start_scanline,
+	              data->width, num_scanlines,
+	              data->mode, data->accumulate);
+}
+
+void IMB_rectblend_threaded(ImBuf *dbuf, ImBuf *obuf, ImBuf *sbuf,
+                            unsigned short *dmask, unsigned short *curvemask,
+                            unsigned short *texmask, float mask_max,
+                            int destx, int desty, int origx, int origy,
+                            int srcx, int srcy, int width, int height,
+                            IMB_BlendMode mode, bool accumulate)
+{
+	if (((size_t)width) * height < 64 * 64) {
+		IMB_rectblend(dbuf, obuf, sbuf, dmask, curvemask, texmask,
+		              mask_max, destx,  desty, origx, origy,
+		              srcx, srcy, width, height, mode, accumulate);
+	}
+	else {
+		RectBlendThreadData data;
+		data.dbuf = dbuf;
+		data.obuf = obuf;
+		data.sbuf = sbuf;
+		data.dmask = dmask;
+		data.curvemask = curvemask;
+		data.texmask = texmask;
+		data.mask_max = mask_max;
+		data.destx = destx;
+		data.desty = desty;
+		data.origx = origx;
+		data.origy = origy;
+		data.srcx = srcx;
+		data.srcy = srcy;
+		data.width = width;
+		data.mode = mode;
+		data.accumulate = accumulate;
+		IMB_processor_apply_threaded_scanlines(
+		    height, rectblend_thread_do, &data);
+	}
+}
+
 /* fill */
 
 void IMB_rectfill(ImBuf *drect, const float col[4])

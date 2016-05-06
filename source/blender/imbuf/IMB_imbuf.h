@@ -130,7 +130,18 @@ void IMB_freeImBuf(struct ImBuf *ibuf);
  * \attention Defined in allocimbuf.c
  */
 struct ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y,
-                             unsigned char d, unsigned int flags);
+                             unsigned char planes, unsigned int flags);
+
+/**
+ * Initialize given ImBuf.
+ *
+ * Use in cases when temporary image buffer is allocated on stack.
+ *
+ * \attention Defined in allocimbuf.c
+ */
+bool IMB_initImBuf(struct ImBuf *ibuf,
+                   unsigned int x, unsigned int y,
+                   unsigned char planes, unsigned int flags);
 
 /**
  * Create a copy of a pixel buffer and wrap it to a new ImBuf
@@ -210,6 +221,10 @@ void IMB_rectclip(struct ImBuf *dbuf, struct ImBuf *sbuf, int *destx,
 void IMB_rectcpy(struct ImBuf *drect, struct ImBuf *srect, int destx,
 	int desty, int srcx, int srcy, int width, int height);
 void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *obuf, struct ImBuf *sbuf,
+	unsigned short *dmask, unsigned short *curvemask, unsigned short *mmask, float mask_max,
+	int destx,  int desty, int origx, int origy, int srcx, int srcy,
+	int width, int height, IMB_BlendMode mode, bool accumulate);
+void IMB_rectblend_threaded(struct ImBuf *dbuf, struct ImBuf *obuf, struct ImBuf *sbuf,
 	unsigned short *dmask, unsigned short *curvemask, unsigned short *mmask, float mask_max,
 	int destx,  int desty, int origx, int origy, int srcx, int srcy,
 	int width, int height, IMB_BlendMode mode, bool accumulate);
