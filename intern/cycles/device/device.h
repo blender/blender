@@ -103,6 +103,9 @@ public:
 	/* Use subsurface scattering materials. */
 	bool use_subsurface;
 
+	/* Use volume materials. */
+	bool use_volume;
+
 	/* Use branched integrator. */
 	bool use_integrator_branched;
 
@@ -118,6 +121,7 @@ public:
 		use_camera_motion = false;
 		use_baking = false;
 		use_subsurface = false;
+		use_volume = false;
 		use_integrator_branched = false;
 	}
 
@@ -132,6 +136,7 @@ public:
 		         use_camera_motion == requested_features.use_camera_motion &&
 		         use_baking == requested_features.use_baking &&
 		         use_subsurface == requested_features.use_subsurface &&
+		         use_volume == requested_features.use_volume &&
 		         use_integrator_branched == requested_features.use_integrator_branched);
 	}
 
@@ -160,6 +165,9 @@ public:
 		}
 		if(!use_baking) {
 			build_options += " -D__NO_BAKING__";
+		}
+		if(!use_volume) {
+			build_options += " -D__NO_VOLUME__";
 		}
 		if(!use_subsurface) {
 			build_options += " -D__NO_SUBSURFACE__";

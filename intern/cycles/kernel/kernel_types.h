@@ -120,6 +120,7 @@ CCL_NAMESPACE_BEGIN
 #    define __CAMERA_MOTION__
 #    define __OBJECT_MOTION__
 #    define __HAIR__
+#    define __BAKING__
 #    ifdef __KERNEL_EXPERIMENTAL__
 #      define __TRANSPARENT_SHADOWS__
 #    endif
@@ -167,13 +168,14 @@ CCL_NAMESPACE_BEGIN
 #  define __CAMERA_MOTION__
 #  define __OBJECT_MOTION__
 #  define __HAIR__
+#  define __BAKING__
 #endif
 
 #ifdef WITH_CYCLES_DEBUG
 #  define __KERNEL_DEBUG__
 #endif
 
-/* Scene-based selective featrues compilation. */
+/* Scene-based selective features compilation. */
 #ifdef __NO_CAMERA_MOTION__
 #  undef __CAMERA_MOTION__
 #endif
@@ -183,8 +185,15 @@ CCL_NAMESPACE_BEGIN
 #ifdef __NO_HAIR__
 #  undef __HAIR__
 #endif
+#ifdef __NO_VOLUME__
+#  undef __VOLUME__
+#  undef __VOLUME_SCATTER__
+#endif
 #ifdef __NO_SUBSURFACE__
 #  undef __SUBSURFACE__
+#endif
+#ifdef __NO_BAKING__
+#  undef __BAKING__
 #endif
 #ifdef __NO_BRANCHED_PATH__
 #  undef __BRANCHED_PATH__
