@@ -2027,11 +2027,18 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 
 	if (ibuf->invalid_rect.xmin != ibuf->invalid_rect.xmax) {
 		if ((ibuf->userflags & IB_DISPLAY_BUFFER_INVALID) == 0) {
-			IMB_partial_display_buffer_update(ibuf, ibuf->rect_float, (unsigned char *) ibuf->rect,
-			                                  ibuf->x, 0, 0, applied_view_settings, display_settings,
-			                                  ibuf->invalid_rect.xmin, ibuf->invalid_rect.ymin,
-			                                  ibuf->invalid_rect.xmax, ibuf->invalid_rect.ymax,
-			                                  false);
+			IMB_partial_display_buffer_update_threaded(ibuf,
+			                                           ibuf->rect_float,
+			                                           (unsigned char *) ibuf->rect,
+			                                           ibuf->x,
+			                                           0, 0,
+			                                           applied_view_settings,
+			                                           display_settings,
+			                                           ibuf->invalid_rect.xmin,
+			                                           ibuf->invalid_rect.ymin,
+			                                           ibuf->invalid_rect.xmax,
+			                                           ibuf->invalid_rect.ymax,
+			                                           false);
 		}
 
 		BLI_rcti_init(&ibuf->invalid_rect, 0, 0, 0, 0);
@@ -2609,10 +2616,16 @@ void IMB_colormanagement_colorspace_items_add(EnumPropertyItem **items, int *tot
  * the rest buffers would be marked as dirty
  */
 
-static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffer, const float *linear_buffer,
-                                       const unsigned char *byte_buffer, int display_stride, int linear_stride,
-                                       int linear_offset_x, int linear_offset_y, ColormanageProcessor *cm_processor,
-                                       const int xmin, const int ymin, const int xmax, const int ymax)
+static void partial_buffer_update_rect(ImBuf *ibuf,
+                                       unsigned char *display_buffer,
+                                       const float *linear_buffer,
+                                       const unsigned char *byte_buffer,
+                                       int display_stride,
+                                       int linear_stride,
+                                       int linear_offset_x, int linear_offset_y,
+                                       ColormanageProcessor *cm_processor,
+                                       const int xmin, const int ymin,
+                                       const int xmax, const int ymax)
 {
 	int x, y;
 	int channels = ibuf->channels;
@@ -2731,12 +2744,50 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 	}
 }
 
-void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, const unsigned char *byte_buffer,
-                                       int stride, int offset_x, int offset_y,
-                                       const ColorManagedViewSettings *view_settings,
-                                       const ColorManagedDisplaySettings *display_settings,
-                                       int xmin, int ymin, int xmax, int ymax,
-                                       bool copy_display_to_byte_buffer)
+typedef struct PartialThreadData {
+	ImBuf *ibuf;
+	unsigned char *display_buffer;
+	const float *linear_buffer;
+	const unsigned char *byte_buffer;
+	int display_stride;
+	int linear_stride;
+	int linear_offset_x, linear_offset_y;
+	ColormanageProcessor *cm_processor;
+	int xmin, ymin, xmax;
+} PartialThreadData;
+
+static void partial_buffer_update_rect_thread_do(void *data_v,
+                                                 int start_scanline,
+                                                 int num_scanlines)
+{
+	PartialThreadData *data = (PartialThreadData *)data_v;
+	int ymin = data->ymin + start_scanline;
+	partial_buffer_update_rect(data->ibuf,
+	                           data->display_buffer,
+	                           data->linear_buffer,
+	                           data->byte_buffer,
+	                           data->display_stride,
+	                           data->linear_stride,
+	                           data->linear_offset_x,
+	                           data->linear_offset_y,
+	                           data->cm_processor,
+	                           data->xmin,
+	                           ymin,
+	                           data->xmax,
+	                           ymin + num_scanlines);
+}
+
+static void imb_partial_display_buffer_update_ex(ImBuf *ibuf,
+                                                 const float *linear_buffer,
+                                                 const unsigned char *byte_buffer,
+                                                 int stride,
+                                                 int offset_x, int offset_y,
+                                                 const ColorManagedViewSettings *view_settings,
+                                                 const ColorManagedDisplaySettings *display_settings,
+                                                 int xmin, int ymin,
+                                                 int xmax, int ymax,
+                                                 bool copy_display_to_byte_buffer,
+                                                 bool do_threads)
 {
 	ColormanageCacheViewSettings cache_view_settings;
 	ColormanageCacheDisplaySettings cache_display_settings;
@@ -2755,16 +2806,20 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
 
 		BLI_lock_thread(LOCK_COLORMANAGE);
 
-		if ((ibuf->userflags & IB_DISPLAY_BUFFER_INVALID) == 0)
-			display_buffer = colormanage_cache_get(ibuf, &cache_view_settings, &cache_display_settings, &cache_handle);
+		if ((ibuf->userflags & IB_DISPLAY_BUFFER_INVALID) == 0) {
+			display_buffer = colormanage_cache_get(ibuf,
+			                                       &cache_view_settings,
+			                                       &cache_display_settings,
+			                                       &cache_handle);
+		}
 
-		/* in some rare cases buffer's dimension could be changing directly from
+		/* In some rare cases buffer's dimension could be changing directly from
 		 * different thread
 		 * this i.e. happens when image editor acquires render result
 		 */
 		buffer_width = ibuf->x;
 
-		/* mark all other buffers as invalid */
+		/* Mark all other buffers as invalid. */
 		memset(ibuf->display_buffer_flags, 0, global_tot_display * sizeof(unsigned int));
 		ibuf->display_buffer_flags[display_index] |= view_flag;
 
@@ -2789,15 +2844,42 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
 		 * it first and byte buffer is likely to be out of date here.
 		 */
 		if (linear_buffer == NULL && byte_buffer != NULL) {
-			skip_transform = is_ibuf_rect_in_display_space(ibuf, view_settings, display_settings);
+			skip_transform = is_ibuf_rect_in_display_space(ibuf,
+			                                               view_settings,
+			                                               display_settings);
 		}
 
 		if (!skip_transform) {
-			cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
+			cm_processor = IMB_colormanagement_display_processor_new(
+			        view_settings, display_settings);
 		}
 
-		partial_buffer_update_rect(ibuf, display_buffer, linear_buffer, byte_buffer, buffer_width, stride,
-		                           offset_x, offset_y, cm_processor, xmin, ymin, xmax, ymax);
+		if (do_threads) {
+			PartialThreadData data;
+			data.ibuf = ibuf;
+			data.display_buffer = display_buffer;
+			data.linear_buffer = linear_buffer;
+			data.byte_buffer = byte_buffer;
+			data.display_stride = buffer_width;
+			data.linear_stride = stride;
+			data.linear_offset_x = offset_x;
+			data.linear_offset_y = offset_y;
+			data.cm_processor = cm_processor;
+			data.xmin = xmin;
+			data.ymin = ymin;
+			data.xmax = xmax;
+			IMB_processor_apply_threaded_scanlines(
+			    ymax - ymin, partial_buffer_update_rect_thread_do, &data);
+		}
+		else {
+			partial_buffer_update_rect(ibuf,
+			                           display_buffer, linear_buffer, byte_buffer,
+			                           buffer_width,
+			                           stride,
+			                           offset_x, offset_y,
+			                           cm_processor,
+			                           xmin, ymin, xmax, ymax);
+		}
 
 		if (cm_processor) {
 			IMB_colormanagement_processor_free(cm_processor);
@@ -2810,9 +2892,62 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
 		int y;
 		for (y = ymin; y < ymax; y++) {
 			size_t index = (size_t)y * buffer_width * 4;
-			memcpy((unsigned char *)ibuf->rect + index, display_buffer + index, (size_t)(xmax - xmin) * 4);
+			memcpy((unsigned char *)ibuf->rect + index,
+			       display_buffer + index,
+			       (size_t)(xmax - xmin) * 4);
 		}
 	}
+}
+
+void IMB_partial_display_buffer_update(ImBuf *ibuf,
+                                       const float *linear_buffer,
+                                       const unsigned char *byte_buffer,
+                                       int stride,
+                                       int offset_x, int offset_y,
+                                       const ColorManagedViewSettings *view_settings,
+                                       const ColorManagedDisplaySettings *display_settings,
+                                       int xmin, int ymin,
+                                       int xmax, int ymax,
+                                       bool copy_display_to_byte_buffer)
+{
+	imb_partial_display_buffer_update_ex(ibuf,
+	                                     linear_buffer,
+	                                     byte_buffer,
+	                                     stride,
+	                                     offset_x, offset_y,
+	                                     view_settings,
+	                                     display_settings,
+	                                     xmin, ymin,
+	                                     xmax, ymax,
+	                                     copy_display_to_byte_buffer,
+	                                     false);
+
+}
+
+void IMB_partial_display_buffer_update_threaded(struct ImBuf *ibuf,
+                                                const float *linear_buffer,
+                                                const unsigned char *byte_buffer,
+                                                int stride,
+                                                int offset_x, int offset_y,
+                                                const struct ColorManagedViewSettings *view_settings,
+                                                const struct ColorManagedDisplaySettings *display_settings,
+                                                int xmin, int ymin, int xmax, int ymax,
+                                                bool copy_display_to_byte_buffer)
+{
+	int width = xmax - xmin;
+	int height = ymax - ymin;
+	bool do_threads = (((size_t)width) * height >= 64 * 64);
+	imb_partial_display_buffer_update_ex(ibuf,
+	                                     linear_buffer,
+	                                     byte_buffer,
+	                                     stride,
+	                                     offset_x, offset_y,
+	                                     view_settings,
+	                                     display_settings,
+	                                     xmin, ymin,
+	                                     xmax, ymax,
+	                                     copy_display_to_byte_buffer,
+	                                     do_threads);
 }
 
 void IMB_partial_display_buffer_update_delayed(ImBuf *ibuf, int xmin, int ymin, int xmax, int ymax)
