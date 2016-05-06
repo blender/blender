@@ -526,7 +526,12 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 		}
 
 		if ((sima->flag & (SI_SHOW_R | SI_SHOW_G | SI_SHOW_B)) == 0) {
-			glaDrawImBuf_glsl_ctx(C, ibuf, x, y, GL_NEAREST);
+			int clip_max_x, clip_max_y;
+			UI_view2d_view_to_region(&ar->v2d,
+			                         ar->v2d.cur.xmax, ar->v2d.cur.ymax,
+			                         &clip_max_x, &clip_max_y);
+			glaDrawImBuf_glsl_ctx_clipping(C, ibuf, x, y, GL_NEAREST,
+			                               0, 0, clip_max_x, clip_max_y);
 		}
 		else {
 			unsigned char *display_buffer;
