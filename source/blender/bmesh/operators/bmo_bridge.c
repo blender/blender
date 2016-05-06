@@ -262,7 +262,7 @@ static void bridge_loop_pair(
 		if (bm->totface) {
 			struct BMEdgeLoopStore *estore_pair[2] = {el_store_a, el_store_b};
 			int i;
-			int winding_votes = 0;
+			int winding_votes[2] = {0, 0};
 			int winding_dir = 1;
 			for (i = 0; i < 2; i++, winding_dir = -winding_dir) {
 				LinkData *el;
@@ -271,15 +271,49 @@ static void bridge_loop_pair(
 					if (el_next) {
 						BMEdge *e = BM_edge_exists(el->data, el_next->data);
 						if (e && BM_edge_is_boundary(e)) {
-							winding_votes += ((e->l->v == el->data) ? winding_dir : -winding_dir);
+							winding_votes[i] += ((e->l->v == el->data) ? winding_dir : -winding_dir);
 						}
 					}
 				}
 			}
 
-			if (winding_votes < 0) {
-				BM_edgeloop_flip(bm, el_store_a);
-				BM_edgeloop_flip(bm, el_store_b);
+			if (winding_votes[0] || winding_votes[1]) {
+				bool flip[2] = {false, false};
+
+				/* for direction aligned loops we can't rely on the directly we have,
+				 * use the winding defined by the connected faces (see T48356). */
+				if (fabsf(dot_a) < eps) {
+					if (winding_votes[0] < 0) {
+						flip[0] = !flip[0];
+						winding_votes[0] *= -1;
+
+					}
+				}
+				if (fabsf(dot_b) < eps) {
+					if (winding_votes[1] < 0) {
+						flip[1] = !flip[1];
+						winding_votes[1] *= -1;
+					}
+				}
+
+				/* when both loops contradict the winding, flip them so surrounding geometry matches */
+				if ((winding_votes[0] + winding_votes[1]) < 0) {
+					flip[0] = !flip[0];
+					flip[1] = !flip[1];
+
+					/* valid but unused */
+#if 0
+					winding_votes[0] *= -1;
+					winding_votes[1] *= -1;
+#endif
+				}
+
+				if (flip[0]) {
+					BM_edgeloop_flip(bm, el_store_a);
+				}
+				if (flip[1]) {
+					BM_edgeloop_flip(bm, el_store_b);
+				}
 			}
 		}
 	}
