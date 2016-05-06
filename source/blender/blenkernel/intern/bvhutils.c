@@ -397,7 +397,7 @@ static BVHTree *bvhtree_from_editmesh_verts_create_tree(
 	int i;
 	BM_mesh_elem_table_ensure(em->bm, BM_VERT);
 	if (verts_mask) {
-		BLI_assert(IN_RANGE(verts_num_active, 0, verts_num));
+		BLI_assert(IN_RANGE(verts_num_active, -1, verts_num));
 	}
 	else {
 		verts_num_active = verts_num;
@@ -430,7 +430,7 @@ static BVHTree *bvhtree_from_mesh_verts_create_tree(
 	int i;
 	if (vert) {
 		if (verts_mask) {
-			BLI_assert(IN_RANGE(verts_num_active, 0, verts_num));
+			BLI_assert(IN_RANGE(verts_num_active, -1, verts_num));
 		}
 		else {
 			verts_num_active = verts_num;
@@ -688,7 +688,7 @@ static BVHTree *bvhtree_from_mesh_faces_create_tree(
 
 	if (faces_num) {
 		if (faces_mask) {
-			BLI_assert(IN_RANGE(faces_num_active, 0, faces_num));
+			BLI_assert(IN_RANGE(faces_num_active, -1, faces_num));
 		}
 		else {
 			faces_num_active = faces_num;
@@ -842,7 +842,7 @@ static BVHTree *bvhtree_from_editmesh_looptri_create_tree(
 
 	if (looptri_num) {
 		if (looptri_mask) {
-			BLI_assert(IN_RANGE(looptri_num_active, 0, looptri_num));
+			BLI_assert(IN_RANGE(looptri_num_active, -1, looptri_num));
 		}
 		else {
 			looptri_num_active = looptri_num;
@@ -892,7 +892,7 @@ static BVHTree *bvhtree_from_mesh_looptri_create_tree(
 
 	if (looptri_num) {
 		if (looptri_mask) {
-			BLI_assert(IN_RANGE(looptri_num_active, 0, looptri_num));
+			BLI_assert(IN_RANGE(looptri_num_active, -1, looptri_num));
 		}
 		else {
 			looptri_num_active = looptri_num;
