@@ -647,13 +647,15 @@ void DM_generate_tangent_tessface_data(DerivedMesh *dm, bool generate)
 void DM_update_materials(DerivedMesh *dm, Object *ob)
 {
 	int i, totmat = ob->totcol + 1; /* materials start from 1, default material is 0 */
-	dm->totmat = totmat;
 
-	/* invalidate old materials */
-	if (dm->mat)
-		MEM_freeN(dm->mat);
+	if (dm->totmat != totmat) {
+		dm->totmat = totmat;
+		/* invalidate old materials */
+		if (dm->mat)
+			MEM_freeN(dm->mat);
 
-	dm->mat = MEM_callocN(totmat * sizeof(*dm->mat), "DerivedMesh.mat");
+		dm->mat = MEM_mallocN(totmat * sizeof(*dm->mat), "DerivedMesh.mat");
+	}
 
 	/* we leave last material as empty - rationale here is being able to index
 	 * the materials by using the mf->mat_nr directly and leaving the last
@@ -661,6 +663,7 @@ void DM_update_materials(DerivedMesh *dm, Object *ob)
 	for (i = 0; i < totmat - 1; i++) {
 		dm->mat[i] = give_current_material(ob, i + 1);
 	}
+	dm->mat[i] = NULL;
 }
 
 MLoopUV *DM_paint_uvlayer_active_get(DerivedMesh *dm, int mat_nr)
