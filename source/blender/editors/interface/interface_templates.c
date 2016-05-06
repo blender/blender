@@ -2947,7 +2947,11 @@ void uiTemplateList(
 	/* We tag the list id with the list type... */
 	BLI_snprintf(ui_list_id, sizeof(ui_list_id), "%s_%s", ui_list_type->idname, list_id ? list_id : "");
 
-	ar = CTX_wm_region(C);
+	/* Allows to work in popups. */
+	ar = CTX_wm_menu(C);
+	if (ar == NULL) {
+		ar = CTX_wm_region(C);
+	}
 	ui_list = BLI_findstring(&ar->ui_lists, ui_list_id, offsetof(uiList, list_id));
 
 	if (!ui_list) {
