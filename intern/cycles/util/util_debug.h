@@ -46,6 +46,18 @@ public:
 		bool qbvh;
 	};
 
+	/* Descriptor of CUDA feature-set to be used. */
+	struct CUDA {
+		CUDA();
+
+		/* Reset flags to their defaults. */
+		void reset();
+
+		/* Whether adaptive feature based runtime compile is enabled or not.
+		 * Requires the CUDA Toolkit and only works on Linux atm. */
+		bool adaptive_compile;
+	};
+
 	/* Descriptor of OpenCL feature-set to be used. */
 	struct OpenCL {
 		OpenCL();
@@ -106,6 +118,9 @@ public:
 
 	/* Requested CPU flags. */
 	CPU cpu;
+
+	/* Requested CUDA flags. */
+	CUDA cuda;
 
 	/* Requested OpenCL flags. */
 	OpenCL opencl;

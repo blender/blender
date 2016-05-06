@@ -1554,6 +1554,10 @@ class CyclesRender_PT_debug(CyclesButtonsPanel, Panel):
         col.prop(cscene, "debug_use_qbvh")
 
         col = layout.column()
+        col.label('CUDA Flags:')
+        col.prop(cscene, "debug_use_cuda_adaptive_compile")
+
+        col = layout.column()
         col.label('OpenCL Flags:')
         col.prop(cscene, "debug_opencl_kernel_type", text="Kernel")
         col.prop(cscene, "debug_opencl_device_type", text="Device")

@@ -41,11 +41,6 @@
 #include "util_types.h"
 #include "util_time.h"
 
-/* use feature-adaptive kernel compilation.
- * Requires CUDA toolkit to be installed and currently only works on Linux.
- */
-/* #define KERNEL_USE_ADAPTIVE */
-
 CCL_NAMESPACE_BEGIN
 
 #ifndef WITH_CUDA_DYNLOAD
@@ -245,12 +240,20 @@ public:
 		return true;
 	}
 
+	bool use_adaptive_compilation()
+	{
+		return DebugFlags().cuda.adaptive_compile;
+	}
+
 	string compile_kernel(const DeviceRequestedFeatures& requested_features)
 	{
 		/* compute cubin name */
 		int major, minor;
 		cuDeviceComputeCapability(&major, &minor, cuDevId);
 		string cubin;
+
+		/* adaptive compile */
+		bool use_adaptive_compile = use_adaptive_compilation();
 
 		/* attempt to use kernel provided with blender */
 		cubin = path_get(string_printf("lib/kernel_sm_%d%d.cubin", major, minor));
@@ -264,17 +267,19 @@ public:
 		string kernel_path = path_get("kernel");
 		string md5 = path_files_md5_hash(kernel_path);
 
-#ifdef KERNEL_USE_ADAPTIVE
-		string feature_build_options = requested_features.get_build_options();
-		string device_md5 = util_md5_string(feature_build_options);
-		cubin = string_printf("cycles_kernel_%s_sm%d%d_%s.cubin",
-		                      device_md5.c_str(),
-		                      major, minor,
-		                      md5.c_str());
-#else
-		(void)requested_features;
-		cubin = string_printf("cycles_kernel_sm%d%d_%s.cubin", major, minor, md5.c_str());
-#endif
+		string feature_build_options;
+		if(use_adaptive_compile) {
+			feature_build_options = requested_features.get_build_options();
+			string device_md5 = util_md5_string(feature_build_options);
+			cubin = string_printf("cycles_kernel_%s_sm%d%d_%s.cubin",
+		                          device_md5.c_str(),
+		                          major, minor,
+		                          md5.c_str());
+		}
+		else {
+			(void)requested_features;
+			cubin = string_printf("cycles_kernel_sm%d%d_%s.cubin", major, minor, md5.c_str());
+		}
 
 		cubin = path_user_get(path_join("cache", cubin));
 		VLOG(1) << "Testing for locally compiled kernel " << cubin;
@@ -331,9 +336,8 @@ public:
 			"-DNVCC -D__KERNEL_CUDA_VERSION__=%d",
 			nvcc, major, minor, machine, kernel.c_str(), cubin.c_str(), include.c_str(), cuda_version);
 
-#ifdef KERNEL_USE_ADAPTIVE
-		command += " " + feature_build_options;
-#endif
+		if(use_adaptive_compile)
+			command += " " + feature_build_options;
 
 		const char* extra_cflags = getenv("CYCLES_CUDA_EXTRA_CFLAGS");
 		if(extra_cflags) {
