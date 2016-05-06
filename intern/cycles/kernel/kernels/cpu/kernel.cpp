@@ -90,13 +90,13 @@ void kernel_tex_copy(KernelGlobals *kg,
 #define KERNEL_IMAGE_TEX(type, ttype, tname)
 #include "kernel_textures.h"
 
-	else if(strstr(name, "__tex_image_float")) {
+	else if(strstr(name, "__tex_image_float4")) {
 		texture_image_float4 *tex = NULL;
-		int id = atoi(name + strlen("__tex_image_float_"));
+		int id = atoi(name + strlen("__tex_image_float4_"));
 		int array_index = id;
 
-		if(array_index >= 0 && array_index < MAX_FLOAT_IMAGES) {
-			tex = &kg->texture_float_images[array_index];
+		if(array_index >= 0 && array_index < MAX_FLOAT4_IMAGES) {
+			tex = &kg->texture_float4_images[array_index];
 		}
 
 		if(tex) {
@@ -106,10 +106,10 @@ void kernel_tex_copy(KernelGlobals *kg,
 			tex->extension = extension;
 		}
 	}
-	else if(strstr(name, "__tex_image")) {
+	else if(strstr(name, "__tex_image_byte")) {
 		texture_image_uchar4 *tex = NULL;
-		int id = atoi(name + strlen("__tex_image_"));
-		int array_index = id - MAX_FLOAT_IMAGES;
+		int id = atoi(name + strlen("__tex_image_byte_"));
+		int array_index = id - MAX_FLOAT4_IMAGES;
 
 		if(array_index >= 0 && array_index < MAX_BYTE_IMAGES) {
 			tex = &kg->texture_byte_images[array_index];

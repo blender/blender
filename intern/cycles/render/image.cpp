@@ -42,31 +42,31 @@ ImageManager::ImageManager(const DeviceInfo& info)
 	/* CPU */
 	if(info.type == DEVICE_CPU) {
 		tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_IMAGES_CPU;
-		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_IMAGES_CPU;
+		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_CPU;
 		tex_image_byte_start = TEX_IMAGE_BYTE_START_CPU;
 	}
 	/* CUDA (Fermi) */
 	else if((info.type == DEVICE_CUDA || info.type == DEVICE_MULTI) && !info.extended_images) {
 		tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_IMAGES_CUDA;
-		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_IMAGES_CUDA;
+		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_CUDA;
 		tex_image_byte_start = TEX_IMAGE_BYTE_START_CUDA;
 	}
 	/* CUDA (Kepler and above) */
 	else if((info.type == DEVICE_CUDA || info.type == DEVICE_MULTI) && info.extended_images) {
 		tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_IMAGES_CUDA_KEPLER;
-		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_IMAGES_CUDA_KEPLER;
+		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_CUDA_KEPLER;
 		tex_image_byte_start = TEX_IMAGE_BYTE_START_CUDA_KELPER;
 	}
 	/* OpenCL */
 	else if(info.pack_images) {
 		tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_IMAGES_OPENCL;
-		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_IMAGES_OPENCL;
+		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_OPENCL;
 		tex_image_byte_start = TEX_IMAGE_BYTE_START_OPENCL;
 	}
 	/* Should never happen */
 	else {
 		tex_num_images[IMAGE_DATA_TYPE_BYTE] = 0;
-		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = 0;
+		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = 0;
 		tex_image_byte_start = 0;
 		assert(0);
 	}
@@ -184,14 +184,14 @@ int ImageManager::flattened_slot_to_type_index(int slot, ImageDataType *type)
 		return slot -= tex_image_byte_start;
 	}
 	else {
-		*type = IMAGE_DATA_TYPE_FLOAT;
+		*type = IMAGE_DATA_TYPE_FLOAT4;
 		return slot;
 	}
 }
 
 string ImageManager::name_from_type(int type)
 {
-	if(type == IMAGE_DATA_TYPE_FLOAT)
+	if(type == IMAGE_DATA_TYPE_FLOAT4)
 		return "float";
 	else
 		return "byte";
@@ -225,7 +225,7 @@ int ImageManager::add_image(const string& filename,
 	/* Load image info and find out if we need a float texture. */
 	is_float = (pack_images)? false: is_float_image(filename, builtin_data, is_linear);
 
-	ImageDataType type = is_float? IMAGE_DATA_TYPE_FLOAT : IMAGE_DATA_TYPE_BYTE;
+	ImageDataType type = is_float? IMAGE_DATA_TYPE_FLOAT4 : IMAGE_DATA_TYPE_BYTE;
 
 	/* Fnd existing image. */
 	for(slot = 0; slot < images[type].size(); slot++) {
@@ -641,8 +641,8 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 	string filename = path_filename(images[type][slot_offset]->filename);
 	progress->set_status("Updating Images", "Loading " + filename);
 
-	if(type == IMAGE_DATA_TYPE_FLOAT) {
-		device_vector<float4>& tex_img = dscene->tex_float_image[slot_offset];
+	if(type == IMAGE_DATA_TYPE_FLOAT4) {
+		device_vector<float4>& tex_img = dscene->tex_float4_image[slot_offset];
 
 		if(tex_img.device_pointer) {
 			thread_scoped_lock device_lock(device_mutex);
@@ -661,9 +661,9 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 
 		string name;
 
-		if(slot >= 100) name = string_printf("__tex_image_float_%d", slot);
-		else if(slot >= 10) name = string_printf("__tex_image_float_0%d", slot);
-		else name = string_printf("__tex_image_float_00%d", slot);
+		if(slot >= 100) name = string_printf("__tex_image_float4_%d", slot);
+		else if(slot >= 10) name = string_printf("__tex_image_float4_0%d", slot);
+		else name = string_printf("__tex_image_float4_00%d", slot);
 
 		if(!pack_images) {
 			thread_scoped_lock device_lock(device_mutex);
@@ -674,7 +674,7 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 		}
 	}
 	else {
-		device_vector<uchar4>& tex_img = dscene->tex_image[slot_offset];
+		device_vector<uchar4>& tex_img = dscene->tex_byte_image[slot_offset];
 
 		if(tex_img.device_pointer) {
 			thread_scoped_lock device_lock(device_mutex);
@@ -693,9 +693,9 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 
 		string name;
 
-		if(slot >= 100) name = string_printf("__tex_image_%d", slot);
-		else if(slot >= 10) name = string_printf("__tex_image_0%d", slot);
-		else name = string_printf("__tex_image_00%d", slot);
+		if(slot >= 100) name = string_printf("__tex_image_byte_%d", slot);
+		else if(slot >= 10) name = string_printf("__tex_image_byte_0%d", slot);
+		else name = string_printf("__tex_image_byte_00%d", slot);
 
 		if(!pack_images) {
 			thread_scoped_lock device_lock(device_mutex);
@@ -725,8 +725,8 @@ void ImageManager::device_free_image(Device *device, DeviceScene *dscene, int sl
 			((OSL::TextureSystem*)osl_texture_system)->invalidate(filename);
 #endif
 		}
-		else if(type == IMAGE_DATA_TYPE_FLOAT) {
-			device_vector<float4>& tex_img = dscene->tex_float_image[slot_offset];
+		else if(type == IMAGE_DATA_TYPE_FLOAT4) {
+			device_vector<float4>& tex_img = dscene->tex_float4_image[slot_offset];
 
 			if(tex_img.device_pointer) {
 				thread_scoped_lock device_lock(device_mutex);
@@ -739,7 +739,7 @@ void ImageManager::device_free_image(Device *device, DeviceScene *dscene, int sl
 			images[type][slot_offset] = NULL;
 		}
 		else {
-			device_vector<uchar4>& tex_img = dscene->tex_image[slot_offset];
+			device_vector<uchar4>& tex_img = dscene->tex_byte_image[slot_offset];
 
 			if(tex_img.device_pointer) {
 				thread_scoped_lock device_lock(device_mutex);
@@ -824,7 +824,7 @@ void ImageManager::device_pack_images(Device *device,
 		if(!images[type][slot])
 			continue;
 
-		device_vector<uchar4>& tex_img = dscene->tex_image[slot];
+		device_vector<uchar4>& tex_img = dscene->tex_byte_image[slot];
 		size += tex_img.size();
 	}
 
@@ -837,7 +837,7 @@ void ImageManager::device_pack_images(Device *device,
 		if(!images[type][slot])
 			continue;
 
-		device_vector<uchar4>& tex_img = dscene->tex_image[slot];
+		device_vector<uchar4>& tex_img = dscene->tex_byte_image[slot];
 
 		/* todo: support 3D textures, only CPU for now */
 

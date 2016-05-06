@@ -32,11 +32,11 @@ struct OSLShadingSystem;
 #  endif
 
 #  define MAX_BYTE_IMAGES   1024
-#  define MAX_FLOAT_IMAGES  1024
+#  define MAX_FLOAT4_IMAGES  1024
 
 typedef struct KernelGlobals {
 	texture_image_uchar4 texture_byte_images[MAX_BYTE_IMAGES];
-	texture_image_float4 texture_float_images[MAX_FLOAT_IMAGES];
+	texture_image_float4 texture_float4_images[MAX_FLOAT4_IMAGES];
 
 #  define KERNEL_TEX(type, ttype, name) ttype name;
 #  define KERNEL_IMAGE_TEX(type, ttype, name)

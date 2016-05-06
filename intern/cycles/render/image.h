@@ -36,7 +36,7 @@ public:
 	~ImageManager();
 
 	enum ImageDataType {
-		IMAGE_DATA_TYPE_FLOAT = 0,
+		IMAGE_DATA_TYPE_FLOAT4 = 0,
 		IMAGE_DATA_TYPE_BYTE = 1,
 
 		IMAGE_DATA_NUM_TYPES

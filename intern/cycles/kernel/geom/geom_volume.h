@@ -34,11 +34,11 @@ ccl_device float4 volume_image_texture_3d(int id, float x, float y, float z)
 {
 	float4 r;
 	switch(id) {
-		case 0: r = kernel_tex_image_interp_3d(__tex_image_float3d_000, x, y, z); break;
-		case 1: r = kernel_tex_image_interp_3d(__tex_image_float3d_001, x, y, z); break;
-		case 2: r = kernel_tex_image_interp_3d(__tex_image_float3d_002, x, y, z); break;
-		case 3: r = kernel_tex_image_interp_3d(__tex_image_float3d_003, x, y, z); break;
-		case 4: r = kernel_tex_image_interp_3d(__tex_image_float3d_004, x, y, z); break;
+		case 0: r = kernel_tex_image_interp_3d(__tex_image_float4_3d_000, x, y, z); break;
+		case 1: r = kernel_tex_image_interp_3d(__tex_image_float4_3d_001, x, y, z); break;
+		case 2: r = kernel_tex_image_interp_3d(__tex_image_float4_3d_002, x, y, z); break;
+		case 3: r = kernel_tex_image_interp_3d(__tex_image_float4_3d_003, x, y, z); break;
+		case 4: r = kernel_tex_image_interp_3d(__tex_image_float4_3d_004, x, y, z); break;
 	}
 	return r;
 }

@@ -483,7 +483,7 @@ public:
 			 */
 			vector<string> tokens;
 			string_split(tokens, name, "_");
-			bind_name = string_printf("__tex_image_%s3d_%s",
+			bind_name = string_printf("__tex_image_%s_3d_%s",
 			                          tokens[2].c_str(),
 			                          tokens[3].c_str());
 		}
