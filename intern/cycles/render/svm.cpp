@@ -81,7 +81,7 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 		compiler.background = ((int)i == scene->default_background);
 		compiler.compile(scene, shader, svm_nodes, i, &summary);
 
-		VLOG(1) << "Compilation summary:\n"
+		VLOG(2) << "Compilation summary:\n"
 		        << "Shader name: " << shader->name << "\n"
 		        << summary.full_report();
 	}
