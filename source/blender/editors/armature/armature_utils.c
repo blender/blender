@@ -179,7 +179,6 @@ EditBone *ED_armature_bone_find_shared_parent(EditBone *ebone_child[], const uns
 
 	/* accumulate */
 	for (i = 0; i < ebone_child_tot; i++) {
-		ebone_iter = ebone_child[i];
 		for (ebone_iter = ebone_child[i]->parent; ebone_iter; ebone_iter = ebone_iter->parent) {
 			EBONE_TEMP_UINT(ebone_iter) += 1;
 		}

@@ -578,7 +578,7 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 	unit = ring;
 
 	/* fill in the ring */
-	for (unit = ring, i = 0; i < root_node->degree; i++) {
+	for (i = 0; i < root_node->degree; i++) {
 		BArc *connectedArc = root_node->arcs[i];
 		
 		/* depth is store as a negative in flag. symmetry level is positive */

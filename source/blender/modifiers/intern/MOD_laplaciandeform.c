@@ -339,7 +339,6 @@ static void rotateDifferentialCoordinates(LaplacianSystem *sys)
 		pi[1] = EIG_linear_solver_variable_get(sys->context, 1, i);
 		pi[2] = EIG_linear_solver_variable_get(sys->context, 2, i);
 		zero_v3(ni);
-		num_fni = 0;
 		num_fni = sys->ringf_map[i].count;
 		for (fi = 0; fi < num_fni; fi++) {
 			const unsigned int *vin;
