@@ -33,6 +33,7 @@
 #include "BLI_kdopbvh.h"
 #include "BLI_memarena.h"
 #include "BLI_ghash.h"
+#include "BLI_linklist.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_armature_types.h"
@@ -659,6 +660,14 @@ static bool snapDerivedMesh(
 					sod->bvh_trees[tree_index] = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(*treedata));
 				}
 				treedata = sod->bvh_trees[tree_index];
+
+				/* the tree is owned by the DM and may have been freed since we last used! */
+				if (treedata && treedata->tree) {
+					if (BLI_linklist_index(dm->bvhCache, treedata->tree) == -1) {
+						free_bvhtree_from_mesh(treedata);
+
+					}
+				}
 			}
 		}
 		else {
