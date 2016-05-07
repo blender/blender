@@ -219,13 +219,28 @@ MINLINE double len_vnvn(
 	return sqrt(len_squared_vnvn(v0, v1, dims));
 }
 
-#if 0
-static double len_vn(
+MINLINE double len_vn(
 		const double v0[], const uint dims)
 {
 	return sqrt(len_squared_vn(v0, dims));
 }
-#endif
+
+/* special case, save us negating a copy, then getting the length */
+MINLINE double len_squared_negated_vnvn(
+		const double v0[], const double v1[], const uint dims)
+{
+	double d = 0.0;
+	for (uint j = 0; j < dims; j++) {
+		d += sq(v0[j] + v1[j]);
+	}
+	return d;
+}
+
+MINLINE double len_negated_vnvn(
+        const double v0[], const double v1[], const uint dims)
+{
+	return sqrt(len_squared_negated_vnvn(v0, v1, dims));
+}
 
 MINLINE double normalize_vn(
         double v0[], const uint dims)
