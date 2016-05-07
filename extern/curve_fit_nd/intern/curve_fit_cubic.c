@@ -46,7 +46,7 @@
 #define USE_LENGTH_CACHE
 
 /* store the indices in the cubic data so we can return the original indices,
- * useful when the caller has data assosiated with the curve. */
+ * useful when the caller has data associated with the curve. */
 #define USE_ORIG_INDEX_DATA
 
 typedef unsigned int uint;
@@ -291,7 +291,7 @@ static void cubic_calc_acceleration(
         double r_v[])
 {
 	CUBIC_VARS_CONST(cubic, dims, p0, p1, p2, p3);
-    const double s = 1.0 - t;
+	const double s = 1.0 - t;
 	for (uint j = 0; j < dims; j++) {
 		r_v[j] = 6.0 * ((p2[j] - 2.0 * p1[j] + p0[j]) * s +
 		                (p3[j] - 2.0 * p2[j] + p1[j]) * t);
@@ -735,10 +735,10 @@ static double points_calc_coord_length(
  * \note Return value may be `nan` caller must check for this.
  */
 static double cubic_find_root(
-		const Cubic *cubic,
-		const double p[],
-		const double u,
-		const uint dims)
+        const Cubic *cubic,
+        const double p[],
+        const double u,
+        const uint dims)
 {
 	/* Newton-Raphson Method. */
 	/* all vectors */

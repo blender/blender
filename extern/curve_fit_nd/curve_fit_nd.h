@@ -25,8 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __SPLINE_FIT__
-#define __SPLINE_FIT__
+#ifndef __CURVE_FIT_ND_H__
+#define __CURVE_FIT_ND_H__
 
 /** \file curve_fit_nd.h
  *  \ingroup curve_fit
@@ -159,4 +159,4 @@ int curve_fit_corners_detect_fl(
         unsigned int **r_corners,
         unsigned int  *r_corners_len);
 
-#endif  /* __SPLINE_FIT__ */
+#endif  /* __CURVE_FIT_ND_H__ */
