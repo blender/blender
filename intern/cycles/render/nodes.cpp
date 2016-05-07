@@ -3320,7 +3320,7 @@ void MixNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_mix");
 }
 
-bool MixNode::constant_fold(ShaderGraph *graph, ShaderOutput * /*socket*/, float3 * /*optimized_value*/)
+bool MixNode::constant_fold(ShaderGraph *graph, ShaderOutput * /*socket*/, float3 * optimized_value)
 {
 	if(type != ustring("Mix")) {
 		return false;
@@ -3332,22 +3332,27 @@ bool MixNode::constant_fold(ShaderGraph *graph, ShaderOutput * /*socket*/, float
 	ShaderOutput *color_out = output("Color");
 
 	/* remove useless mix colors nodes */
-	if(color1_in->link == color2_in->link) {
+	if(color1_in->link && color1_in->link == color2_in->link) {
 		graph->relink(this, color_out, color1_in->link);
 		return true;
 	}
 
 	/* remove unused mix color input when factor is 0.0 or 1.0 */
-	/* check for color links and make sure factor link is disconnected */
-	if(color1_in->link && color2_in->link && !fac_in->link) {
+	if(!fac_in->link) {
 		/* factor 0.0 */
 		if(fac_in->value.x == 0.0f) {
-			graph->relink(this, color_out, color1_in->link);
+			if (color1_in->link)
+				graph->relink(this, color_out, color1_in->link);
+			else
+				*optimized_value = color1_in->value;
 			return true;
 		}
 		/* factor 1.0 */
 		else if(fac_in->value.x == 1.0f) {
-			graph->relink(this, color_out, color2_in->link);
+			if (color2_in->link)
+				graph->relink(this, color_out, color2_in->link);
+			else
+				*optimized_value = color2_in->value;
 			return true;
 		}
 	}
