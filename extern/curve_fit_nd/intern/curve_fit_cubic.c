@@ -419,7 +419,8 @@ static double points_calc_circumference_factor(
 	const double dot = dot_vnvn(tan_l, tan_r, dims);
 	const double len_tangent = dot < 0.0 ? len_vnvn(tan_l, tan_r, dims) : len_negated_vnvn(tan_l, tan_r, dims);
 	if (len_tangent > DBL_EPSILON) {
-		double angle = acos(-fabs(dot));
+		/* only clamp to avoid precision error */
+		double angle = acos(max(-fabs(dot), -1.0));
 		/* Angle may be less than the length when the tangents define >180 degrees of the circle,
 		 * (tangents that point away from each other).
 		 * We could try support this but will likely cause extreme >1 scales which could cause other issues. */
