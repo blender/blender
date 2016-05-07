@@ -125,6 +125,8 @@ public:
 
 	void add(ShaderNode *node, const char *name, bool isfilepath = false);
 
+	void parameter(ShaderNode *node, const char *name);
+
 	void parameter(const char *name, float f);
 	void parameter_color(const char *name, float3 f);
 	void parameter_vector(const char *name, float3 f);

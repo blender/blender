@@ -18,6 +18,7 @@
 #define __GRAPH_H__
 
 #include "node.h"
+#include "node_type.h"
 
 #include "kernel_types.h"
 
@@ -79,32 +80,21 @@ enum ShaderNodeSpecialType {
 
 class ShaderInput {
 public:
-	ShaderInput(ShaderNode *parent, const char *name, SocketType::Type type);
+	ShaderInput(const SocketType& socket_type_, ShaderNode* parent_)
+	: socket_type(socket_type_), parent(parent_), link(NULL), stack_offset(SVM_STACK_INVALID)
+	{}
 
-	ustring name() { return name_; }
-	int flags() { return flags_; }
-	SocketType::Type type() { return type_; }
+	ustring name() { return socket_type.ui_name; }
+	int flags() { return socket_type.flags; }
+	SocketType::Type type() { return socket_type.type; }
 
-	void set(float f) { value_.x = f; }
-	void set(float3 f) { value_ = f; }
-	void set(int i) { value_.x = (float)i; }
-	void set(ustring s) { value_string_ = s; }
+	void set(float f) { ((Node*)parent)->set(socket_type, f); }
+	void set(float3 f) { ((Node*)parent)->set(socket_type, f); }
 
-	float3& value() { return value_; }
-	float& value_float() { return value_.x; }
-	ustring& value_string() { return value_string_; }
-
-	ustring name_;
-	SocketType::Type type_;
-
+	const SocketType& socket_type;
 	ShaderNode *parent;
 	ShaderOutput *link;
-
-	float3 value_;
-	ustring value_string_;
-
 	int stack_offset; /* for SVM compiler */
-	int flags_;
 };
 
 /* Output
@@ -113,17 +103,16 @@ public:
 
 class ShaderOutput {
 public:
-	ShaderOutput(ShaderNode *parent, const char *name, SocketType::Type type);
+	ShaderOutput(const SocketType& socket_type_, ShaderNode* parent_)
+	: socket_type(socket_type_), parent(parent_), stack_offset(SVM_STACK_INVALID)
+	{}
 
-	ustring name() { return name_; }
-	SocketType::Type type() { return type_; }
+	ustring name() { return socket_type.ui_name; }
+	SocketType::Type type() { return socket_type.type; }
 
-	ustring name_;
-	SocketType::Type type_;
-
+	const SocketType& socket_type;
 	ShaderNode *parent;
 	vector<ShaderInput*> links;
-
 	int stack_offset; /* for SVM compiler */
 };
 
@@ -132,19 +121,17 @@ public:
  * Shader node in graph, with input and output sockets. This is the virtual
  * base class for all node types. */
 
-class ShaderNode {
+class ShaderNode : public Node {
 public:
-	explicit ShaderNode(const char *name);
+	explicit ShaderNode(const NodeType *type);
 	virtual ~ShaderNode();
+
+	void create_inputs_outputs(const NodeType *type);
 
 	ShaderInput *input(const char *name);
 	ShaderOutput *output(const char *name);
 	ShaderInput *input(ustring name);
 	ShaderOutput *output(ustring name);
-
-	ShaderInput *add_input(const char *name, SocketType::Type type, float value=0.0f, int flags=0);
-	ShaderInput *add_input(const char *name, SocketType::Type type, float3 value, int flags=0);
-	ShaderOutput *add_output(const char *name, SocketType::Type type);
 
 	virtual ShaderNode *clone() const = 0;
 	virtual void attributes(Shader *shader, AttributeRequestSet *attributes);
@@ -171,7 +158,6 @@ public:
 	vector<ShaderInput*> inputs;
 	vector<ShaderOutput*> outputs;
 
-	ustring name; /* name, not required to be unique */
 	int id; /* index in graph node array */
 	ShaderBump bump; /* for bump mapping utility */
 	
@@ -207,23 +193,21 @@ public:
 	 * NOTE: If some node can't be de-duplicated for whatever reason it
 	 * is to be handled in the subclass.
 	 */
-	virtual bool equals(const ShaderNode *other)
-	{
-		return name == other->name &&
-		       bump == other->bump;
-	}
+	virtual bool equals(const ShaderNode& other);
 };
 
 
 /* Node definition utility macros */
 
 #define SHADER_NODE_CLASS(type) \
+	NODE_DECLARE; \
 	type(); \
 	virtual ShaderNode *clone() const { return new type(*this); } \
 	virtual void compile(SVMCompiler& compiler); \
 	virtual void compile(OSLCompiler& compiler); \
 
 #define SHADER_NODE_NO_CLONE_CLASS(type) \
+	NODE_DECLARE; \
 	type(); \
 	virtual void compile(SVMCompiler& compiler); \
 	virtual void compile(OSLCompiler& compiler); \

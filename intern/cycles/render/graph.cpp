@@ -51,72 +51,19 @@ bool check_node_inputs_traversed(const ShaderNode *node,
 	return true;
 }
 
-bool check_node_inputs_equals(const ShaderNode *node_a,
-                              const ShaderNode *node_b)
-{
-	if(node_a->inputs.size() != node_b->inputs.size()) {
-		/* Happens with BSDF closure nodes which are currently sharing the same
-		 * name for all the BSDF types, making it impossible to filter out
-		 * incompatible nodes.
-		 */
-		return false;
-	}
-	for(int i = 0; i < node_a->inputs.size(); ++i) {
-		ShaderInput *input_a = node_a->inputs[i],
-		            *input_b = node_b->inputs[i];
-		if(input_a->link == NULL && input_b->link == NULL) {
-			/* Unconnected inputs are expected to have the same value. */
-			if(input_a->value() != input_b->value()) {
-				return false;
-			}
-		}
-		else if(input_a->link != NULL && input_b->link != NULL) {
-			/* Expect links are to come from the same exact socket. */
-			if(input_a->link != input_b->link) {
-				return false;
-			}
-		}
-		else {
-			/* One socket has a link and another has not, inputs can't be
-			 * considered equal.
-			 */
-			return false;
-		}
-	}
-	return true;
-}
-
 }  /* namespace */
-
-/* Input and Output */
-
-ShaderInput::ShaderInput(ShaderNode *parent_, const char *name, SocketType::Type type)
-{
-	parent = parent_;
-	name_ = name;
-	type_ = type;
-	link = NULL;
-	value_ = make_float3(0.0f, 0.0f, 0.0f);
-	stack_offset = SVM_STACK_INVALID;
-	flags_ = 0;
-}
-
-ShaderOutput::ShaderOutput(ShaderNode *parent_, const char *name, SocketType::Type type)
-{
-	parent = parent_;
-	name_ = name;
-	type_ = type;
-	stack_offset = SVM_STACK_INVALID;
-}
 
 /* Node */
 
-ShaderNode::ShaderNode(const char *name_)
+ShaderNode::ShaderNode(const NodeType *type)
+: Node(type)
 {
-	name = name_;
+	name = type->name;
 	id = -1;
 	bump = SHADER_BUMP_NONE;
 	special_type = SHADER_SPECIAL_TYPE_NONE;
+
+	create_inputs_outputs(type);
 }
 
 ShaderNode::~ShaderNode()
@@ -126,6 +73,19 @@ ShaderNode::~ShaderNode()
 
 	foreach(ShaderOutput *socket, outputs)
 		delete socket;
+}
+
+void ShaderNode::create_inputs_outputs(const NodeType *type)
+{
+	foreach(const SocketType& socket, type->inputs) {
+		if(socket.flags & SocketType::LINKABLE) {
+			inputs.push_back(new ShaderInput(socket, this));
+		}
+	}
+
+	foreach(const SocketType& socket, type->outputs) {
+		outputs.push_back(new ShaderOutput(socket, this));
+	}
 }
 
 ShaderInput *ShaderNode::input(const char *name)
@@ -166,31 +126,6 @@ ShaderOutput *ShaderNode::output(ustring name)
 	return NULL;
 }
 
-ShaderInput *ShaderNode::add_input(const char *name, SocketType::Type type, float value, int flags)
-{
-	ShaderInput *input = new ShaderInput(this, name, type);
-	input->value_.x = value;
-	input->flags_ = flags;
-	inputs.push_back(input);
-	return input;
-}
-
-ShaderInput *ShaderNode::add_input(const char *name, SocketType::Type type, float3 value, int flags)
-{
-	ShaderInput *input = new ShaderInput(this, name, type);
-	input->value_ = value;
-	input->flags_ = flags;
-	inputs.push_back(input);
-	return input;
-}
-
-ShaderOutput *ShaderNode::add_output(const char *name, SocketType::Type type)
-{
-	ShaderOutput *output = new ShaderOutput(this, name, type);
-	outputs.push_back(output);
-	return output;
-}
-
 void ShaderNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
 	foreach(ShaderInput *input, inputs) {
@@ -207,6 +142,49 @@ void ShaderNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 			}
 		}
 	}
+}
+
+bool ShaderNode::equals(const ShaderNode& other)
+{
+	if (type != other.type || bump != other.bump)
+		return false;
+
+	assert(inputs.size() == other.inputs.size());
+
+	/* Compare unlinkable sockets */
+	foreach(const SocketType& socket, type->inputs) {
+		if(!(socket.flags & SocketType::LINKABLE)) {
+			if(!Node::equals_value(other, socket)) {
+				return false;
+			}
+		}
+	}
+
+	/* Compare linkable input sockets */
+	for(int i = 0; i < inputs.size(); ++i) {
+		ShaderInput *input_a = inputs[i],
+		            *input_b = other.inputs[i];
+		if(input_a->link == NULL && input_b->link == NULL) {
+			/* Unconnected inputs are expected to have the same value. */
+			if(!Node::equals_value(other, input_a->socket_type)) {
+				return false;
+			}
+		}
+		else if(input_a->link != NULL && input_b->link != NULL) {
+			/* Expect links are to come from the same exact socket. */
+			if(input_a->link != input_b->link) {
+				return false;
+			}
+		}
+		else {
+			/* One socket has a link and another has not, inputs can't be
+			 * considered equal.
+			 */
+			return false;
+		}
+	}
+
+	return true;
 }
 
 /* Graph */
@@ -470,8 +448,7 @@ void ShaderGraph::remove_proxy_nodes()
 					disconnect(to);
 
 					/* transfer the default input value to the target socket */
-					to->set(input->value());
-					to->set(input->value_string());
+					tonode->copy_value(to->socket_type, *proxy, input->socket_type);
 				}
 			}
 
@@ -542,7 +519,7 @@ void ShaderGraph::constant_fold()
 				vector<ShaderInput*> links(output->links);
 				for(size_t i = 0; i < links.size(); i++) {
 					if(i > 0)
-						links[i]->set(links[0]->value());
+						links[i]->parent->copy_value(links[i]->socket_type, *links[0]->parent, links[0]->socket_type);
 					disconnect(links[i]);
 				}
 			}
@@ -604,25 +581,11 @@ void ShaderGraph::deduplicate_nodes()
 		}
 		/* Try to merge this node with another one. */
 		foreach(ShaderNode *other_node, done[node->name]) {
-			if(node == other_node) {
-				/* Don't merge with self. */
-				continue;
-			}
-			if(node->name != other_node->name) {
-				/* Can only de-duplicate nodes of the same type. */
-				continue;
-			}
-			if(!check_node_inputs_equals(node, other_node)) {
-				/* Node inputs are different, can't merge them, */
-				continue;
-			}
-			if(!node->equals(other_node)) {
-				/* Node settings are different. */
-				continue;
-			}
-			/* TODO(sergey): Consider making it an utility function. */
-			for(int i = 0; i < node->outputs.size(); ++i) {
-				relink(node, node->outputs[i], other_node->outputs[i]);
+			if (node != other_node && node->equals(*other_node)) {
+				/* TODO(sergey): Consider making it an utility function. */
+				for(int i = 0; i < node->outputs.size(); ++i) {
+					relink(node, node->outputs[i], other_node->outputs[i]);
+				}
 			}
 			break;
 		}
@@ -927,14 +890,15 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
 
 		if(fin) {
 			/* mix closure: add node to mix closure weights */
-			ShaderNode *mix_node = add(new MixClosureWeightNode());
+			MixClosureWeightNode *mix_node = new MixClosureWeightNode();
+			add(mix_node);
 			ShaderInput *fac_in = mix_node->input("Fac"); 
 			ShaderInput *weight_in = mix_node->input("Weight"); 
 
 			if(fin->link)
 				connect(fin->link, fac_in);
 			else
-				fac_in->set(fin->value_float());
+				mix_node->fac = node->get_float(fin->socket_type);
 
 			if(weight_out)
 				connect(weight_out, weight_in);
@@ -961,20 +925,20 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
 			return;
 
 		/* already has a weight connected to it? add weights */
-		if(weight_in->link || weight_in->value_float() != 0.0f) {
-			ShaderNode *math_node = add(new MathNode());
-			ShaderInput *value1_in = math_node->input("Value1");
-			ShaderInput *value2_in = math_node->input("Value2");
+		float weight_value = node->get_float(weight_in->socket_type);
+		if(weight_in->link || weight_value != 0.0f) {
+			MathNode *math_node = new MathNode();
+			add(math_node);
 
 			if(weight_in->link)
-				connect(weight_in->link, value1_in);
+				connect(weight_in->link, math_node->input("Value1"));
 			else
-				value1_in->set(weight_in->value_float());
+				math_node->value1 = weight_value;
 
 			if(weight_out)
-				connect(weight_out, value2_in);
+				connect(weight_out, math_node->input("Value2"));
 			else
-				value2_in->set(1.0f);
+				math_node->value2 = 1.0f;
 
 			weight_out = math_node->output("Value");
 			if(weight_in->link)
@@ -985,7 +949,7 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
 		if(weight_out)
 			connect(weight_out, weight_in);
 		else
-			weight_in->set(weight_in->value_float() + 1.0f);
+			node->set(weight_in->socket_type, weight_value + 1.0f);
 	}
 }
 
