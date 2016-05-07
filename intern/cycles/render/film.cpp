@@ -428,6 +428,7 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 
 	/* update filter table */
 	vector<float> table = filter_table(filter_type, filter_width);
+	scene->lookup_tables->remove_table(&filter_table_offset);
 	filter_table_offset = scene->lookup_tables->add_table(dscene, table);
 	kfilm->filter_table_offset = (int)filter_table_offset;
 
@@ -443,10 +444,7 @@ void Film::device_free(Device * /*device*/,
                        DeviceScene * /*dscene*/,
                        Scene *scene)
 {
-	if(filter_table_offset != TABLE_OFFSET_INVALID) {
-		scene->lookup_tables->remove_table(filter_table_offset);
-		filter_table_offset = TABLE_OFFSET_INVALID;
-	}
+	scene->lookup_tables->remove_table(&filter_table_offset);
 }
 
 bool Film::modified(const Film& film)

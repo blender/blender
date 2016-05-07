@@ -404,8 +404,8 @@ void ShaderManager::device_update_common(Device *device,
 			}
 		}
 		beckmann_table_offset = scene->lookup_tables->add_table(dscene, beckmann_table);
-		ktables->beckmann_offset = (int)beckmann_table_offset;
 	}
+	ktables->beckmann_offset = (int)beckmann_table_offset;
 
 	/* integrator */
 	KernelIntegrator *kintegrator = &dscene->data.integrator;
@@ -418,10 +418,7 @@ void ShaderManager::device_update_common(Device *device,
 
 void ShaderManager::device_free_common(Device *device, DeviceScene *dscene, Scene *scene)
 {
-	if(beckmann_table_offset != TABLE_OFFSET_INVALID) {
-		scene->lookup_tables->remove_table(beckmann_table_offset);
-		beckmann_table_offset = TABLE_OFFSET_INVALID;
-	}
+	scene->lookup_tables->remove_table(&beckmann_table_offset);
 
 	device->tex_free(dscene->shader_flag);
 	dscene->shader_flag.clear();
