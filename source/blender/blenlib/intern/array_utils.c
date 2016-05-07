@@ -196,6 +196,9 @@ bool _bli_array_iter_span(
 	if (arr_len == 0) {
 		return false;
 	}
+	else if (use_wrap && (span_step[0] != arr_len) && (span_step[0] > span_step[1])) {
+		return false;
+	}
 
 	const unsigned int arr_stride_uint = (unsigned int)arr_stride;
 	const void *item_prev;
@@ -252,7 +255,12 @@ bool _bli_array_iter_span(
 					}
 				}
 
-				span_len = (i_step_prev - ((i_step_prev >= i_curr) ? i_curr : (i_curr + arr_len))) + 1;
+				if (i_step_prev < i_curr) {
+					span_len = (i_step_prev + (arr_len - i_curr)) + 1;
+				}
+				else {
+					span_len = (i_step_prev - i_curr) + 1;
+				}
 			}
 			else {
 				unsigned int i_step = i_curr + 1;
