@@ -98,11 +98,12 @@ static inline void curvemapping_minmax(/*const*/ BL::CurveMapping& cumap,
 }
 
 static inline void curvemapping_to_array(BL::CurveMapping& cumap,
-                                         float *data,
+                                         array<float>& data,
                                          int size)
 {
 	cumap.update();
 	BL::CurveMap curve = cumap.curves[0];
+	data.resize(size);
 	for(int i = 0; i < size; i++) {
 		float t = (float)i/(float)(size-1);
 		data[i] = curve.evaluate(t);

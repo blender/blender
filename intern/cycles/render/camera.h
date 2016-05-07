@@ -19,6 +19,8 @@
 
 #include "kernel_types.h"
 
+#include "node.h"
+
 #include "util_boundbox.h"
 #include "util_transform.h"
 #include "util_types.h"
@@ -35,8 +37,10 @@ class Scene;
  * Renderman, and Blender after remapping.
  */
 
-class Camera {
+class Camera : public Node {
 public:
+	NODE_DECLARE;
+
 	/* Specifies an offset for the shutter's time interval. */
 	enum MotionPosition {
 		/* Shutter opens at the current frame. */
@@ -69,7 +73,7 @@ public:
 	/* motion blur */
 	float shuttertime;
 	MotionPosition motion_position;
-	float shutter_curve[RAMP_TABLE_SIZE];
+	array<float> shutter_curve;
 	size_t shutter_table_offset;
 
 	/* ** Rolling shutter effect. ** */
@@ -177,7 +181,6 @@ public:
 	void device_update_volume(Device *device, DeviceScene *dscene, Scene *scene);
 	void device_free(Device *device, DeviceScene *dscene, Scene *scene);
 
-	bool modified(const Camera& cam);
 	bool motion_modified(const Camera& cam);
 	void tag_update();
 

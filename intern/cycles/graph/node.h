@@ -41,6 +41,7 @@ struct Node
 	void set(const SocketType& input, float value);
 	void set(const SocketType& input, float2 value);
 	void set(const SocketType& input, float3 value);
+	void set(const SocketType& input, const char *value);
 	void set(const SocketType& input, ustring value);
 	void set(const SocketType& input, const Transform& value);
 	void set(const SocketType& input, Node *value);

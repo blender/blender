@@ -104,6 +104,11 @@ void Node::set(const SocketType& input, float3 value)
 	get_socket_value<float3>(this, input) = value;
 }
 
+void Node::set(const SocketType& input, const char *value)
+{
+	set(input, ustring(value));
+}
+
 void Node::set(const SocketType& input, ustring value)
 {
 	if(input.type == SocketType::STRING) {

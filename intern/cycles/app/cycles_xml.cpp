@@ -281,46 +281,14 @@ static ShaderSocketType xml_read_socket_type(pugi::xml_node node, const char *na
 
 /* Camera */
 
-static void xml_read_camera(const XMLReadState& state, pugi::xml_node node)
+static void xml_read_camera(XMLReadState& state, pugi::xml_node node)
 {
 	Camera *cam = state.scene->camera;
 
 	xml_read_int(&cam->width, node, "width");
 	xml_read_int(&cam->height, node, "height");
 
-	if(xml_read_float(&cam->fov, node, "fov"))
-		cam->fov = DEG2RADF(cam->fov);
-
-	xml_read_float(&cam->nearclip, node, "nearclip");
-	xml_read_float(&cam->farclip, node, "farclip");
-	xml_read_float(&cam->aperturesize, node, "aperturesize"); // 0.5*focallength/fstop
-	xml_read_float(&cam->focaldistance, node, "focaldistance");
-	xml_read_float(&cam->shuttertime, node, "shuttertime");
-	xml_read_float(&cam->aperture_ratio, node, "aperture_ratio");
-
-	if(xml_equal_string(node, "type", "orthographic"))
-		cam->type = CAMERA_ORTHOGRAPHIC;
-	else if(xml_equal_string(node, "type", "perspective"))
-		cam->type = CAMERA_PERSPECTIVE;
-	else if(xml_equal_string(node, "type", "panorama"))
-		cam->type = CAMERA_PANORAMA;
-
-	if(xml_equal_string(node, "panorama_type", "equirectangular"))
-		cam->panorama_type = PANORAMA_EQUIRECTANGULAR;
-	else if(xml_equal_string(node, "panorama_type", "fisheye_equidistant"))
-		cam->panorama_type = PANORAMA_FISHEYE_EQUIDISTANT;
-	else if(xml_equal_string(node, "panorama_type", "fisheye_equisolid"))
-		cam->panorama_type = PANORAMA_FISHEYE_EQUISOLID;
-
-	xml_read_float(&cam->fisheye_fov, node, "fisheye_fov");
-	xml_read_float(&cam->fisheye_lens, node, "fisheye_lens");
-
-	xml_read_bool(&cam->use_spherical_stereo, node, "use_spherical_stereo");
-	xml_read_float(&cam->interocular_distance, node, "interocular_distance");
-	xml_read_float(&cam->convergence_distance, node, "convergence_distance");
-
-	xml_read_float(&cam->sensorwidth, node, "sensorwidth");
-	xml_read_float(&cam->sensorheight, node, "sensorheight");
+	xml_read_node(state, cam, node);
 
 	cam->matrix = state.tfm;
 

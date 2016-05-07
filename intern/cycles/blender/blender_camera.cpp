@@ -37,7 +37,7 @@ struct BlenderCamera {
 	float lens;
 	float shuttertime;
 	Camera::MotionPosition motion_position;
-	float shutter_curve[RAMP_TABLE_SIZE];
+	array<float> shutter_curve;
 
 	Camera::RollingShutterType rolling_shutter_type;
 	float rolling_shutter_duration;
@@ -460,7 +460,7 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 	cam->rolling_shutter_type = bcam->rolling_shutter_type;
 	cam->rolling_shutter_duration = bcam->rolling_shutter_duration;
 
-	memcpy(cam->shutter_curve, bcam->shutter_curve, sizeof(cam->shutter_curve));
+	cam->shutter_curve = bcam->shutter_curve;
 
 	/* border */
 	cam->border = bcam->border;
