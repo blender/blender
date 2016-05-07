@@ -473,7 +473,7 @@ bool OSLCompiler::node_skip_input(ShaderNode *node, ShaderInput *input)
 	if(!(input->usage & ShaderInput::USE_OSL))
 		return true;
 
-	if(node->name == ustring("output")) {
+	if(node->special_type == SHADER_SPECIAL_TYPE_OUTPUT) {
 		if(strcmp(input->name, "Surface") == 0 && current_type != SHADER_TYPE_SURFACE)
 			return true;
 		if(strcmp(input->name, "Volume") == 0 && current_type != SHADER_TYPE_VOLUME)

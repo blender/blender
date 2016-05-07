@@ -910,7 +910,7 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
 	 * avoid building a closure tree and then flattening it, and instead write it
 	 * directly to an array */
 	
-	if(node->name == ustring("mix_closure") || node->name == ustring("add_closure")) {
+	if(node->special_type == SHADER_SPECIAL_TYPE_COMBINE_CLOSURE) {
 		ShaderInput *fin = node->input("Fac");
 		ShaderInput *cl1in = node->input("Closure1");
 		ShaderInput *cl2in = node->input("Closure2");
