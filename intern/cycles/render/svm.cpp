@@ -120,22 +120,22 @@ SVMCompiler::SVMCompiler(ShaderManager *shader_manager_, ImageManager *image_man
 	compile_failed = false;
 }
 
-int SVMCompiler::stack_size(ShaderSocketType type)
+int SVMCompiler::stack_size(SocketType::Type type)
 {
 	int size = 0;
 	
 	switch(type) {
-		case SHADER_SOCKET_FLOAT:
-		case SHADER_SOCKET_INT:
+		case SocketType::FLOAT:
+		case SocketType::INT:
 			size = 1;
 			break;
-		case SHADER_SOCKET_COLOR:
-		case SHADER_SOCKET_VECTOR:
-		case SHADER_SOCKET_NORMAL:
-		case SHADER_SOCKET_POINT:
+		case SocketType::COLOR:
+		case SocketType::VECTOR:
+		case SocketType::NORMAL:
+		case SocketType::POINT:
 			size = 3;
 			break;
-		case SHADER_SOCKET_CLOSURE:
+		case SocketType::CLOSURE:
 			size = 0;
 			break;
 		default:
@@ -146,7 +146,7 @@ int SVMCompiler::stack_size(ShaderSocketType type)
 	return size;
 }
 
-int SVMCompiler::stack_find_offset(ShaderSocketType type)
+int SVMCompiler::stack_find_offset(SocketType::Type type)
 {
 	int size = stack_size(type);
 	int offset = -1;
@@ -175,7 +175,7 @@ int SVMCompiler::stack_find_offset(ShaderSocketType type)
 	return 0;
 }
 
-void SVMCompiler::stack_clear_offset(ShaderSocketType type, int offset)
+void SVMCompiler::stack_clear_offset(SocketType::Type type, int offset)
 {
 	int size = stack_size(type);
 
@@ -193,22 +193,22 @@ int SVMCompiler::stack_assign(ShaderInput *input)
 		}
 		else {
 			/* not linked to output -> add nodes to load default value */
-			input->stack_offset = stack_find_offset(input->type);
+			input->stack_offset = stack_find_offset(input->type());
 
-			if(input->type == SHADER_SOCKET_FLOAT) {
-				add_node(NODE_VALUE_F, __float_as_int(input->value.x), input->stack_offset);
+			if(input->type() == SocketType::FLOAT) {
+				add_node(NODE_VALUE_F, __float_as_int(input->value_float()), input->stack_offset);
 			}
-			else if(input->type == SHADER_SOCKET_INT) {
-				add_node(NODE_VALUE_F, (int)input->value.x, input->stack_offset);
+			else if(input->type() == SocketType::INT) {
+				add_node(NODE_VALUE_F, (int)input->value_float(), input->stack_offset);
 			}
-			else if(input->type == SHADER_SOCKET_VECTOR ||
-			        input->type == SHADER_SOCKET_NORMAL ||
-			        input->type == SHADER_SOCKET_POINT ||
-			        input->type == SHADER_SOCKET_COLOR)
+			else if(input->type() == SocketType::VECTOR ||
+			        input->type() == SocketType::NORMAL ||
+			        input->type() == SocketType::POINT ||
+			        input->type() == SocketType::COLOR)
 			{
 
 				add_node(NODE_VALUE_V, input->stack_offset);
-				add_node(NODE_VALUE_V, input->value);
+				add_node(NODE_VALUE_V, input->value());
 			}
 			else /* should not get called for closure */
 				assert(0);
@@ -222,7 +222,7 @@ int SVMCompiler::stack_assign(ShaderOutput *output)
 {
 	/* if no stack offset assigned yet, find one */
 	if(output->stack_offset == SVM_STACK_INVALID)
-		output->stack_offset = stack_find_offset(output->type);
+		output->stack_offset = stack_find_offset(output->type());
 
 	return output->stack_offset;
 }
@@ -247,11 +247,11 @@ void SVMCompiler::stack_link(ShaderInput *input, ShaderOutput *output)
 {
 	if(output->stack_offset == SVM_STACK_INVALID) {
 		assert(input->link);
-		assert(stack_size(output->type) == stack_size(input->link->type));
+		assert(stack_size(output->type()) == stack_size(input->link->type()));
 
 		output->stack_offset = input->link->stack_offset;
 
-		int size = stack_size(output->type);
+		int size = stack_size(output->type());
 
 		for(int i = 0; i < size; i++)
 			active_stack.users[output->stack_offset + i]++;
@@ -279,7 +279,7 @@ void SVMCompiler::stack_clear_users(ShaderNode *node, ShaderNodeSet& done)
 					all_done = false;
 
 			if(all_done) {
-				stack_clear_offset(output->type, output->stack_offset);
+				stack_clear_offset(output->type(), output->stack_offset);
 				output->stack_offset = SVM_STACK_INVALID;
 
 				foreach(ShaderInput *in, output->links)
@@ -293,7 +293,7 @@ void SVMCompiler::stack_clear_temporary(ShaderNode *node)
 {
 	foreach(ShaderInput *input, node->inputs) {
 		if(!input->link && input->stack_offset != SVM_STACK_INVALID) {
-			stack_clear_offset(input->type, input->stack_offset);
+			stack_clear_offset(input->type(), input->stack_offset);
 			input->stack_offset = SVM_STACK_INVALID;
 		}
 	}
@@ -446,7 +446,7 @@ void SVMCompiler::generate_closure_node(ShaderNode *node,
 	const char *weight_name = (current_type == SHADER_TYPE_VOLUME)? "VolumeMixWeight": "SurfaceMixWeight";
 	ShaderInput *weight_in = node->input(weight_name);
 
-	if(weight_in && (weight_in->link || weight_in->value.x != 1.0f))
+	if(weight_in && (weight_in->link || weight_in->value_float() != 1.0f))
 		mix_weight_offset = stack_assign(weight_in);
 	else
 		mix_weight_offset = SVM_STACK_INVALID;
@@ -479,7 +479,7 @@ void SVMCompiler::generated_shared_closure_nodes(ShaderNode *root_node,
 	}
 	else {
 		foreach(ShaderInput *in, node->inputs) {
-			if(in->type == SHADER_SOCKET_CLOSURE && in->link)
+			if(in->type() == SocketType::CLOSURE && in->link)
 				generated_shared_closure_nodes(root_node,
 				                               in->link->parent,
 				                               state,

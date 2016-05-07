@@ -127,42 +127,42 @@ static float3 get_node_output_vector(BL::Node& b_node, const string& name)
 	return make_float3(value[0], value[1], value[2]);
 }
 
-static ShaderSocketType convert_socket_type(BL::NodeSocket& b_socket)
+static SocketType::Type convert_socket_type(BL::NodeSocket& b_socket)
 {
 	switch(b_socket.type()) {
 		case BL::NodeSocket::type_VALUE:
-			return SHADER_SOCKET_FLOAT;
+			return SocketType::FLOAT;
 		case BL::NodeSocket::type_INT:
-			return SHADER_SOCKET_INT;
+			return SocketType::INT;
 		case BL::NodeSocket::type_VECTOR:
-			return SHADER_SOCKET_VECTOR;
+			return SocketType::VECTOR;
 		case BL::NodeSocket::type_RGBA:
-			return SHADER_SOCKET_COLOR;
+			return SocketType::COLOR;
 		case BL::NodeSocket::type_STRING:
-			return SHADER_SOCKET_STRING;
+			return SocketType::STRING;
 		case BL::NodeSocket::type_SHADER:
-			return SHADER_SOCKET_CLOSURE;
+			return SocketType::CLOSURE;
 		
 		default:
-			return SHADER_SOCKET_UNDEFINED;
+			return SocketType::UNDEFINED;
 	}
 }
 
 #ifdef WITH_OSL
-static ShaderSocketType convert_osl_socket_type(OSL::OSLQuery& query,
+static SocketType::Type convert_osl_socket_type(OSL::OSLQuery& query,
                                                 BL::NodeSocket& b_socket)
 {
-	ShaderSocketType socket_type = convert_socket_type(b_socket);
-	if(socket_type == SHADER_SOCKET_VECTOR) {
+	SocketType::Type socket_type = convert_socket_type(b_socket);
+	if(socket_type == SocketType::VECTOR) {
 		/* TODO(sergey): Do we need compatible_name() here? */
 		const OSL::OSLQuery::Parameter *param = query.getparam(b_socket.name());
 		assert(param != NULL);
 		if(param != NULL) {
 			if(param->type.vecsemantics == TypeDesc::POINT) {
-				socket_type = SHADER_SOCKET_POINT;
+				socket_type = SocketType::POINT;
 			}
 			else if(param->type.vecsemantics == TypeDesc::NORMAL) {
-				socket_type = SHADER_SOCKET_NORMAL;
+				socket_type = SocketType::NORMAL;
 			}
 		}
 	}
@@ -177,32 +177,30 @@ static void set_default_value(ShaderInput *input,
                               BL::ID& b_id)
 {
 	/* copy values for non linked inputs */
-	switch(input->type) {
-		case SHADER_SOCKET_FLOAT: {
-			input->set(get_float(b_sock.ptr, "default_value"));
+	switch(input->type()) {
+		case SocketType::FLOAT: {
+			input->value_float() = get_float(b_sock.ptr, "default_value");
 			break;
 		}
-		case SHADER_SOCKET_INT: {
-			input->set((float)get_int(b_sock.ptr, "default_value"));
+		case SocketType::INT: {
+			input->value_float() = (float)get_int(b_sock.ptr, "default_value");
 			break;
 		}
-		case SHADER_SOCKET_COLOR: {
-			input->set(float4_to_float3(get_float4(b_sock.ptr, "default_value")));
+		case SocketType::COLOR: {
+			input->value() = float4_to_float3(get_float4(b_sock.ptr, "default_value"));
 			break;
 		}
-		case SHADER_SOCKET_NORMAL:
-		case SHADER_SOCKET_POINT:
-		case SHADER_SOCKET_VECTOR: {
-			input->set(get_float3(b_sock.ptr, "default_value"));
+		case SocketType::NORMAL:
+		case SocketType::POINT:
+		case SocketType::VECTOR: {
+			input->value() = get_float3(b_sock.ptr, "default_value");
 			break;
 		}
-		case SHADER_SOCKET_STRING: {
-			input->set((ustring)blender_absolute_path(b_data, b_id, get_string(b_sock.ptr, "default_value")));
+		case SocketType::STRING: {
+			input->value_string() = (ustring)blender_absolute_path(b_data, b_id, get_string(b_sock.ptr, "default_value"));
 			break;
 		}
-
-		case SHADER_SOCKET_CLOSURE:
-		case SHADER_SOCKET_UNDEFINED:
+		default:
 			break;
 	}
 }
@@ -341,7 +339,7 @@ static ShaderNode *add_node(Scene *scene,
 		node = new HSVNode();
 	}
 	else if(b_node.is_a(&RNA_ShaderNodeRGBToBW)) {
-		node = new ConvertNode(SHADER_SOCKET_COLOR, SHADER_SOCKET_FLOAT);
+		node = new ConvertNode(SocketType::COLOR, SocketType::FLOAT);
 	}
 	else if(b_node.is_a(&RNA_ShaderNodeMath)) {
 		BL::ShaderNodeMath b_math_node(b_node);
@@ -1020,7 +1018,7 @@ static void add_nodes(Scene *scene,
 			BL::Node::internal_links_iterator b_link;
 			for(b_node->internal_links.begin(b_link); b_link != b_node->internal_links.end(); ++b_link) {
 				BL::NodeSocket to_socket(b_link->to_socket());
-				ShaderSocketType to_socket_type = convert_socket_type(to_socket);
+				SocketType::Type to_socket_type = convert_socket_type(to_socket);
 				ConvertNode *proxy = new ConvertNode(to_socket_type, to_socket_type, true);
 
 				input_map[b_link->from_socket().ptr.data] = proxy->inputs[0];
@@ -1043,7 +1041,7 @@ static void add_nodes(Scene *scene,
 			 * so that links have something to connect to and assert won't fail.
 			 */
 			for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
-				ShaderSocketType input_type = convert_socket_type(*b_input);
+				SocketType::Type input_type = convert_socket_type(*b_input);
 				ConvertNode *proxy = new ConvertNode(input_type, input_type, true);
 				graph->add(proxy);
 
@@ -1055,7 +1053,7 @@ static void add_nodes(Scene *scene,
 				set_default_value(proxy->inputs[0], *b_input, b_data, b_ntree);
 			}
 			for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
-				ShaderSocketType output_type = convert_socket_type(*b_output);
+				SocketType::Type output_type = convert_socket_type(*b_output);
 				ConvertNode *proxy = new ConvertNode(output_type, output_type, true);
 				graph->add(proxy);
 
@@ -1227,7 +1225,7 @@ void BlenderSync::sync_materials(bool update_all)
 				ShaderNode *closure, *out;
 
 				closure = graph->add(new DiffuseBsdfNode());
-				closure->input("Color")->value = get_float3(b_mat->diffuse_color());
+				closure->input("Color")->value() = get_float3(b_mat->diffuse_color());
 				out = graph->output();
 
 				graph->connect(closure->output("BSDF"), out->input("Surface"));
@@ -1276,7 +1274,7 @@ void BlenderSync::sync_world(bool update_all)
 			ShaderNode *closure, *out;
 
 			closure = graph->add(new BackgroundNode());
-			closure->input("Color")->value = get_float3(b_world.horizon_color());
+			closure->input("Color")->value() = get_float3(b_world.horizon_color());
 			out = graph->output();
 
 			graph->connect(closure->output("Background"), out->input("Surface"));
@@ -1369,8 +1367,8 @@ void BlenderSync::sync_lamps(bool update_all)
 				}
 
 				closure = graph->add(new EmissionNode());
-				closure->input("Color")->value = get_float3(b_lamp->color());
-				closure->input("Strength")->value.x = strength;
+				closure->input("Color")->value() = get_float3(b_lamp->color());
+				closure->input("Strength")->value_float() = strength;
 				out = graph->output();
 
 				graph->connect(closure->output("Emission"), out->input("Surface"));

@@ -456,7 +456,7 @@ void ShaderManager::add_default(Scene *scene)
 		ShaderGraph *graph = new ShaderGraph();
 
 		closure = graph->add(new DiffuseBsdfNode());
-		closure->input("Color")->value = make_float3(0.8f, 0.8f, 0.8f);
+		closure->input("Color")->value() = make_float3(0.8f, 0.8f, 0.8f);
 		out = graph->output();
 
 		graph->connect(closure->output("BSDF"), out->input("Surface"));
@@ -473,8 +473,8 @@ void ShaderManager::add_default(Scene *scene)
 		ShaderGraph *graph = new ShaderGraph();
 
 		closure = graph->add(new EmissionNode());
-		closure->input("Color")->value = make_float3(0.8f, 0.8f, 0.8f);
-		closure->input("Strength")->value.x = 0.0f;
+		closure->input("Color")->value() = make_float3(0.8f, 0.8f, 0.8f);
+		closure->input("Strength")->value_float() = 0.0f;
 		out = graph->output();
 
 		graph->connect(closure->output("Emission"), out->input("Surface"));

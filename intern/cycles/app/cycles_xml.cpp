@@ -214,7 +214,7 @@ static bool xml_equal_string(pugi::xml_node node, const char *name, const char *
 	return false;
 }
 
-static bool xml_read_enum(ustring *str, ShaderEnum& enm, pugi::xml_node node, const char *name)
+static bool xml_read_enum(ustring *str, NodeEnum& enm, pugi::xml_node node, const char *name)
 {
 	pugi::xml_attribute attr = node.attribute(name);
 
@@ -232,7 +232,7 @@ static bool xml_read_enum(ustring *str, ShaderEnum& enm, pugi::xml_node node, co
 	return false;
 }
 
-static bool xml_read_enum_value(int *value, ShaderEnum& enm, pugi::xml_node node, const char *name)
+static bool xml_read_enum_value(int *value, NodeEnum& enm, pugi::xml_node node, const char *name)
 {
 	pugi::xml_attribute attr = node.attribute(name);
 
@@ -250,33 +250,33 @@ static bool xml_read_enum_value(int *value, ShaderEnum& enm, pugi::xml_node node
 	return false;
 }
 
-static ShaderSocketType xml_read_socket_type(pugi::xml_node node, const char *name)
+static SocketType::Type xml_read_socket_type(pugi::xml_node node, const char *name)
 {
 	pugi::xml_attribute attr = node.attribute(name);
 
 	if(attr) {
 		string value = attr.value();
 		if(string_iequals(value, "float"))
-			return SHADER_SOCKET_FLOAT;
+			return SocketType::FLOAT;
 		else if(string_iequals(value, "int"))
-			return SHADER_SOCKET_INT;
+			return SocketType::INT;
 		else if(string_iequals(value, "color"))
-			return SHADER_SOCKET_COLOR;
+			return SocketType::COLOR;
 		else if(string_iequals(value, "vector"))
-			return SHADER_SOCKET_VECTOR;
+			return SocketType::VECTOR;
 		else if(string_iequals(value, "point"))
-			return SHADER_SOCKET_POINT;
+			return SocketType::POINT;
 		else if(string_iequals(value, "normal"))
-			return SHADER_SOCKET_NORMAL;
+			return SocketType::NORMAL;
 		else if(string_iequals(value, "closure color"))
-			return SHADER_SOCKET_CLOSURE;
+			return SocketType::CLOSURE;
 		else if(string_iequals(value, "string"))
-			return SHADER_SOCKET_STRING;
+			return SocketType::STRING;
 		else
 			fprintf(stderr, "Unknown shader socket type \"%s\" for attribute \"%s\".\n", value.c_str(), name);
 	}
 	
-	return SHADER_SOCKET_UNDEFINED;
+	return SocketType::UNDEFINED;
 }
 
 /* Camera */
@@ -371,8 +371,8 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 					if(!xml_read_string(&name, param, "name"))
 						continue;
 					
-					ShaderSocketType type = xml_read_socket_type(param, "type");
-					if(type == SHADER_SOCKET_UNDEFINED)
+					SocketType::Type type = xml_read_socket_type(param, "type");
+					if(type == SocketType::UNDEFINED)
 						continue;
 					
 					osl->add_input(ustring(name).c_str(), type);
@@ -382,8 +382,8 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 					if(!xml_read_string(&name, param, "name"))
 						continue;
 					
-					ShaderSocketType type = xml_read_socket_type(param, "type");
-					if(type == SHADER_SOCKET_UNDEFINED)
+					SocketType::Type type = xml_read_socket_type(param, "type");
+					if(type == SocketType::UNDEFINED)
 						continue;
 					
 					osl->add_output(ustring(name).c_str(), type);
@@ -699,7 +699,7 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 					ShaderNode *fromnode = nodemap[from_tokens[0]];
 
 					foreach(ShaderOutput *out, fromnode->outputs)
-						if(string_iequals(xml_socket_name(out->name), from_tokens[1]))
+						if(string_iequals(xml_socket_name(out->name().c_str()), from_tokens[1]))
 							output = out;
 
 					if(!output)
@@ -712,7 +712,7 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 					ShaderNode *tonode = nodemap[to_tokens[0]];
 
 					foreach(ShaderInput *in, tonode->inputs)
-						if(string_iequals(xml_socket_name(in->name), to_tokens[1]))
+						if(string_iequals(xml_socket_name(in->name().c_str()), to_tokens[1]))
 							input = in;
 
 					if(!input)
@@ -744,20 +744,20 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 			/* read input values */
 			for(pugi::xml_attribute attr = node.first_attribute(); attr; attr = attr.next_attribute()) {
 				foreach(ShaderInput *in, snode->inputs) {
-					if(string_iequals(in->name, attr.name())) {
-						switch(in->type) {
-							case SHADER_SOCKET_FLOAT:
-							case SHADER_SOCKET_INT:
-								xml_read_float(&in->value.x, node, attr.name());
+					if(string_iequals(in->name().c_str(), attr.name())) {
+						switch(in->type()) {
+							case SocketType::FLOAT:
+							case SocketType::INT:
+								xml_read_float(&in->value_float(), node, attr.name());
 								break;
-							case SHADER_SOCKET_COLOR:
-							case SHADER_SOCKET_VECTOR:
-							case SHADER_SOCKET_POINT:
-							case SHADER_SOCKET_NORMAL:
-								xml_read_float3(&in->value, node, attr.name());
+							case SocketType::COLOR:
+							case SocketType::VECTOR:
+							case SocketType::POINT:
+							case SocketType::NORMAL:
+								xml_read_float3(&in->value(), node, attr.name());
 								break;
-							case SHADER_SOCKET_STRING:
-								xml_read_ustring( &in->value_string, node, attr.name() );
+							case SocketType::STRING:
+								xml_read_ustring( &in->value_string(), node, attr.name() );
 								break;
 							default:
 								break;

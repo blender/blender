@@ -427,7 +427,7 @@ string OSLCompiler::id(ShaderNode *node)
 
 string OSLCompiler::compatible_name(ShaderNode *node, ShaderInput *input)
 {
-	string sname(input->name);
+	string sname(input->name().string());
 	size_t i;
 
 	/* strip whitespace */
@@ -436,7 +436,7 @@ string OSLCompiler::compatible_name(ShaderNode *node, ShaderInput *input)
 	
 	/* if output exists with the same name, add "In" suffix */
 	foreach(ShaderOutput *output, node->outputs) {
-		if(strcmp(input->name, output->name)==0) {
+		if(input->name() == output->name()) {
 			sname += "In";
 			break;
 		}
@@ -447,7 +447,7 @@ string OSLCompiler::compatible_name(ShaderNode *node, ShaderInput *input)
 
 string OSLCompiler::compatible_name(ShaderNode *node, ShaderOutput *output)
 {
-	string sname(output->name);
+	string sname(output->name().string());
 	size_t i;
 
 	/* strip whitespace */
@@ -456,7 +456,7 @@ string OSLCompiler::compatible_name(ShaderNode *node, ShaderOutput *output)
 	
 	/* if input exists with the same name, add "Out" suffix */
 	foreach(ShaderInput *input, node->inputs) {
-		if(strcmp(input->name, output->name)==0) {
+		if(input->name() == output->name()) {
 			sname += "Out";
 			break;
 		}
@@ -470,21 +470,21 @@ bool OSLCompiler::node_skip_input(ShaderNode *node, ShaderInput *input)
 	/* exception for output node, only one input is actually used
 	 * depending on the current shader type */
 	
-	if(!(input->usage & ShaderInput::USE_OSL))
+	if(input->flags() & SocketType::SVM_INTERNAL)
 		return true;
 
 	if(node->special_type == SHADER_SPECIAL_TYPE_OUTPUT) {
-		if(strcmp(input->name, "Surface") == 0 && current_type != SHADER_TYPE_SURFACE)
+		if(input->name() == "Surface" && current_type != SHADER_TYPE_SURFACE)
 			return true;
-		if(strcmp(input->name, "Volume") == 0 && current_type != SHADER_TYPE_VOLUME)
+		if(input->name() == "Volume" && current_type != SHADER_TYPE_VOLUME)
 			return true;
-		if(strcmp(input->name, "Displacement") == 0 && current_type != SHADER_TYPE_DISPLACEMENT)
+		if(input->name() == "Displacement" && current_type != SHADER_TYPE_DISPLACEMENT)
 			return true;
-		if(strcmp(input->name, "Normal") == 0)
+		if(input->name() == "Normal")
 			return true;
 	}
 	else if(node->special_type == SHADER_SPECIAL_TYPE_BUMP) {
-		if(strcmp(input->name, "Height") == 0)
+		if(input->name() == "Height")
 			return true;
 	}
 	else if(current_type == SHADER_TYPE_DISPLACEMENT && input->link && input->link->parent->special_type == SHADER_SPECIAL_TYPE_BUMP)
@@ -512,34 +512,35 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 			if(node_skip_input(node, input))
 				continue;
 			/* already has default value assigned */
-			else if(input->default_value != ShaderInput::NONE)
+			else if(input->flags() & SocketType::DEFAULT_LINK_MASK)
 				continue;
 
 			string param_name = compatible_name(node, input);
-			switch(input->type) {
-				case SHADER_SOCKET_COLOR:
-					parameter_color(param_name.c_str(), input->value);
+			switch(input->type()) {
+				case SocketType::COLOR:
+					parameter_color(param_name.c_str(), input->value());
 					break;
-				case SHADER_SOCKET_POINT:
-					parameter_point(param_name.c_str(), input->value);
+				case SocketType::POINT:
+					parameter_point(param_name.c_str(), input->value());
 					break;
-				case SHADER_SOCKET_VECTOR:
-					parameter_vector(param_name.c_str(), input->value);
+				case SocketType::VECTOR:
+					parameter_vector(param_name.c_str(), input->value());
 					break;
-				case SHADER_SOCKET_NORMAL:
-					parameter_normal(param_name.c_str(), input->value);
+				case SocketType::NORMAL:
+					parameter_normal(param_name.c_str(), input->value());
 					break;
-				case SHADER_SOCKET_FLOAT:
-					parameter(param_name.c_str(), input->value.x);
+				case SocketType::FLOAT:
+					parameter(param_name.c_str(), input->value_float());
 					break;
-				case SHADER_SOCKET_INT:
-					parameter(param_name.c_str(), (int)input->value.x);
+				case SocketType::INT:
+					parameter(param_name.c_str(), (int)input->value_float());
 					break;
-				case SHADER_SOCKET_STRING:
-					parameter(param_name.c_str(), input->value_string);
+				case SocketType::STRING:
+					parameter(param_name.c_str(), input->value_string());
 					break;
-				case SHADER_SOCKET_CLOSURE:
-				case SHADER_SOCKET_UNDEFINED:
+				case SocketType::CLOSURE:
+				case SocketType::UNDEFINED:
+				default:
 					break;
 			}
 		}
