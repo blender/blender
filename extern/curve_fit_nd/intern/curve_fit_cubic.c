@@ -119,6 +119,11 @@ static Cubic *cubic_alloc(const uint dims)
 	return malloc(cubic_alloc_size(dims));
 }
 
+static void cubic_copy(Cubic *cubic_dst, const Cubic *cubic_src, const uint dims)
+{
+	memcpy(cubic_dst, cubic_src, cubic_alloc_size(dims));
+}
+
 static void cubic_init(
         Cubic *cubic,
         const double p0[], const double p1[], const double p2[], const double p3[],
@@ -766,7 +771,7 @@ static bool fit_cubic_to_points(
 	}
 	else {
 		Cubic *cubic_test = alloca(cubic_alloc_size(dims));
-		*cubic_test = *r_cubic;
+		cubic_copy(cubic_test, r_cubic, dims);
 
 		/* If error not too large, try some reparameterization and iteration */
 		double *u_prime = malloc(sizeof(double) * points_offset_len);
@@ -788,13 +793,13 @@ static bool fit_cubic_to_points(
 				free(u_prime);
 				free(u);
 
-				*r_cubic = *cubic_test;
+				cubic_copy(r_cubic, cubic_test, dims);
 				*r_error_max_sq = error_max_sq;
 				*r_split_index  = split_index;
 				return true;
 			}
 			else if (error_max_sq < *r_error_max_sq) {
-				*r_cubic = *cubic_test;
+				cubic_copy(r_cubic, cubic_test, dims);
 				*r_error_max_sq = error_max_sq;
 				*r_split_index = split_index;
 			}
