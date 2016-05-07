@@ -19,6 +19,8 @@
 
 #include "kernel_types.h"
 
+#include "node.h"
+
 #include "util_types.h"
 #include "util_vector.h"
 
@@ -27,11 +29,13 @@ CCL_NAMESPACE_BEGIN
 class Device;
 class DeviceScene;
 class Progress;
-class Shader;
 class Scene;
+class Shader;
 
-class Light {
+class Light : public Node {
 public:
+	NODE_DECLARE;
+
 	Light();
 
 	LightType type;

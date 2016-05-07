@@ -40,13 +40,14 @@ NODE_DEFINE(Background)
 	SOCKET_INT(visibility, "Visibility", PATH_RAY_ALL_VISIBILITY);
 	SOCKET_BOOLEAN(transparent, "Transparent", false);
 
+	SOCKET_NODE(shader, "Shader", &Shader::node_type);
+
 	return type;
 }
 
 Background::Background()
 : Node(node_type)
 {
-	shader = NULL;
 	need_update = true;
 }
 

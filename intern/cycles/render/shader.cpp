@@ -131,19 +131,35 @@ static void beckmann_table_build(vector<float>& table)
 
 /* Shader */
 
-Shader::Shader()
+NODE_DEFINE(Shader)
 {
-	name = "";
+	NodeType* type = NodeType::add("shader", create);
+
+	SOCKET_BOOLEAN(use_mis, "Use MIS", true);
+	SOCKET_BOOLEAN(use_transparent_shadow, "Use Transparent Shadow", true);
+	SOCKET_BOOLEAN(heterogeneous_volume, "Heterogeneous Volume", true);
+
+	static NodeEnum volume_sampling_method_enum;
+	volume_sampling_method_enum.insert("distance", VOLUME_SAMPLING_DISTANCE);
+	volume_sampling_method_enum.insert("equiangular", VOLUME_SAMPLING_EQUIANGULAR);
+	volume_sampling_method_enum.insert("multiple_importance", VOLUME_SAMPLING_MULTIPLE_IMPORTANCE);
+	SOCKET_ENUM(volume_sampling_method, "Volume Sampling Method", volume_sampling_method_enum, VOLUME_SAMPLING_DISTANCE);
+
+	static NodeEnum volume_interpolation_method_enum;
+	volume_interpolation_method_enum.insert("linear", VOLUME_INTERPOLATION_LINEAR);
+	volume_interpolation_method_enum.insert("cubic", VOLUME_INTERPOLATION_CUBIC);
+	SOCKET_ENUM(volume_interpolation_method, "Volume Interpolation Method", volume_interpolation_method_enum, VOLUME_INTERPOLATION_LINEAR);
+
+	return type;
+}
+
+Shader::Shader()
+: Node(node_type)
+{
 	pass_id = 0;
 
 	graph = NULL;
 	graph_bump = NULL;
-
-	use_mis = true;
-	use_transparent_shadow = true;
-	heterogeneous_volume = true;
-	volume_sampling_method = VOLUME_SAMPLING_DISTANCE;
-	volume_interpolation_method = VOLUME_INTERPOLATION_LINEAR;
 
 	has_surface = false;
 	has_surface_transparent = false;

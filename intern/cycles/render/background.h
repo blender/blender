@@ -25,8 +25,8 @@ CCL_NAMESPACE_BEGIN
 
 class Device;
 class DeviceScene;
-class Shader;
 class Scene;
+class Shader;
 
 class Background : public Node {
 public:

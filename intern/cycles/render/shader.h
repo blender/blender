@@ -26,6 +26,8 @@
 #include "attribute.h"
 #include "kernel_types.h"
 
+#include "node.h"
+
 #include "util_map.h"
 #include "util_param.h"
 #include "util_string.h"
@@ -70,10 +72,10 @@ enum VolumeInterpolation {
  * volume and displacement, that the shader manager will compile and execute
  * separately. */
 
-class Shader {
+class Shader : public Node {
 public:
-	/* name */
-	string name;
+	NODE_DECLARE;
+
 	int pass_id;
 
 	/* shader graph */

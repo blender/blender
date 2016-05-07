@@ -341,8 +341,10 @@ static string xml_socket_name(const char *name)
 	return sname;
 }
 
-static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pugi::xml_node graph_node)
+static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml_node graph_node)
 {
+	xml_read_node(state, shader, graph_node);
+
 	ShaderGraph *graph = new ShaderGraph();
 
 	map<string, ShaderNode*> nodemap;
@@ -802,25 +804,9 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 	shader->tag_update(state.scene);
 }
 
-static void xml_read_shader(const XMLReadState& state, pugi::xml_node node)
+static void xml_read_shader(XMLReadState& state, pugi::xml_node node)
 {
 	Shader *shader = new Shader();
-
-	xml_read_string(&shader->name, node, "name");
-	xml_read_bool(&shader->use_mis, node, "use_mis");
-	xml_read_bool(&shader->use_transparent_shadow, node, "use_transparent_shadow");
-
-	/* Volume */
-	xml_read_bool(&shader->heterogeneous_volume, node, "heterogeneous_volume");
-	xml_read_int(&shader->volume_interpolation_method, node, "volume_interpolation_method");
-
-	if(xml_equal_string(node, "volume_sampling_method", "distance"))
-		shader->volume_sampling_method = VOLUME_SAMPLING_DISTANCE;
-	else if(xml_equal_string(node, "volume_sampling_method", "equiangular"))
-		shader->volume_sampling_method = VOLUME_SAMPLING_EQUIANGULAR;
-	else if(xml_equal_string(node, "volume_sampling_method", "multiple_importance"))
-		shader->volume_sampling_method = VOLUME_SAMPLING_MULTIPLE_IMPORTANCE;
-
 	xml_read_shader_graph(state, shader, node);
 	state.scene->shaders.push_back(shader);
 }
@@ -834,17 +820,6 @@ static void xml_read_background(XMLReadState& state, pugi::xml_node node)
 
 	/* Background Shader */
 	Shader *shader = state.scene->default_background;
-	
-	xml_read_bool(&shader->heterogeneous_volume, node, "heterogeneous_volume");
-	xml_read_int(&shader->volume_interpolation_method, node, "volume_interpolation_method");
-
-	if(xml_equal_string(node, "volume_sampling_method", "distance"))
-		shader->volume_sampling_method = VOLUME_SAMPLING_DISTANCE;
-	else if(xml_equal_string(node, "volume_sampling_method", "equiangular"))
-		shader->volume_sampling_method = VOLUME_SAMPLING_EQUIANGULAR;
-	else if(xml_equal_string(node, "volume_sampling_method", "multiple_importance"))
-		shader->volume_sampling_method = VOLUME_SAMPLING_MULTIPLE_IMPORTANCE;
-
 	xml_read_shader_graph(state, shader, node);
 }
 
@@ -1047,47 +1022,12 @@ static void xml_read_patch(const XMLReadState& state, pugi::xml_node node)
 
 /* Light */
 
-static void xml_read_light(const XMLReadState& state, pugi::xml_node node)
+static void xml_read_light(XMLReadState& state, pugi::xml_node node)
 {
 	Light *light = new Light();
+
 	light->shader = state.shader;
-
-	/* Light Type
-	 * 0: Point, 1: Sun, 3: Area, 5: Spot */
-	int type = 0;
-	xml_read_int(&type, node, "type");
-	light->type = (LightType)type;
-
-	/* Spot Light */
-	xml_read_float(&light->spot_angle, node, "spot_angle");
-	xml_read_float(&light->spot_smooth, node, "spot_smooth");
-
-	/* Area Light */
-	xml_read_float(&light->sizeu, node, "sizeu");
-	xml_read_float(&light->sizev, node, "sizev");
-	xml_read_float3(&light->axisu, node, "axisu");
-	xml_read_float3(&light->axisv, node, "axisv");
-
-	/* Portal? (Area light only) */
-	xml_read_bool(&light->is_portal, node, "is_portal");
-
-	/* Generic */
-	xml_read_float(&light->size, node, "size");
-	xml_read_float3(&light->dir, node, "dir");
-	xml_read_float3(&light->co, node, "P");
-	light->co = transform_point(&state.tfm, light->co);
-
-	/* Settings */
-	xml_read_bool(&light->cast_shadow, node, "cast_shadow");
-	xml_read_bool(&light->use_mis, node, "use_mis");
-	xml_read_int(&light->samples, node, "samples");
-	xml_read_int(&light->max_bounces, node, "max_bounces");
-
-	/* Ray Visibility */
-	xml_read_bool(&light->use_diffuse, node, "use_diffuse");
-	xml_read_bool(&light->use_glossy, node, "use_glossy");
-	xml_read_bool(&light->use_transmission, node, "use_transmission");
-	xml_read_bool(&light->use_scatter, node, "use_scatter");
+	xml_read_node(state, light, node);
 
 	state.scene->lights.push_back(light);
 }
