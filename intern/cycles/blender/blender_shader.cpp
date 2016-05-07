@@ -291,7 +291,7 @@ static ShaderNode *add_node(Scene *scene,
 		RGBRampNode *ramp = new RGBRampNode();
 		BL::ShaderNodeValToRGB b_ramp_node(b_node);
 		BL::ColorRamp b_color_ramp(b_ramp_node.color_ramp());
-		colorramp_to_array(b_color_ramp, ramp->ramp, RAMP_TABLE_SIZE);
+		colorramp_to_array(b_color_ramp, ramp->ramp, ramp->ramp_alpha, RAMP_TABLE_SIZE);
 		ramp->interpolate = b_color_ramp.interpolation() != BL::ColorRamp::interpolation_CONSTANT;
 		node = ramp;
 	}

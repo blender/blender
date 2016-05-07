@@ -58,14 +58,19 @@ static inline BL::Mesh object_to_mesh(BL::BlendData& data,
 }
 
 static inline void colorramp_to_array(BL::ColorRamp& ramp,
-                                      float4 *data,
+                                      array<float3>& ramp_color,
+                                      array<float>& ramp_alpha,
                                       int size)
 {
+	ramp_color.resize(size);
+	ramp_alpha.resize(size);
+
 	for(int i = 0; i < size; i++) {
 		float color[4];
 
 		ramp.evaluate((float)i/(float)(size-1), color);
-		data[i] = make_float4(color[0], color[1], color[2], color[3]);
+		ramp_color[i] = make_float3(color[0], color[1], color[2]);
+		ramp_alpha[i] = color[3];
 	}
 }
 
@@ -105,7 +110,7 @@ static inline void curvemapping_to_array(BL::CurveMapping& cumap,
 }
 
 static inline void curvemapping_color_to_array(BL::CurveMapping& cumap,
-                                               float4 *data,
+                                               array<float3>& data,
                                                int size,
                                                bool rgb_curve)
 {
@@ -131,6 +136,8 @@ static inline void curvemapping_color_to_array(BL::CurveMapping& cumap,
 	BL::CurveMap mapR = cumap.curves[0];
 	BL::CurveMap mapG = cumap.curves[1];
 	BL::CurveMap mapB = cumap.curves[2];
+
+	data.resize(size);
 
 	if(rgb_curve) {
 		BL::CurveMap mapI = cumap.curves[3];

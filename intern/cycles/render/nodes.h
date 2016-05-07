@@ -917,7 +917,7 @@ public:
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 	virtual bool equals(const ShaderNode * /*other*/) { return false; }
 
-	float4 curves[RAMP_TABLE_SIZE];
+	array<float3> curves;
 	float min_x, max_x;
 };
 
@@ -928,14 +928,15 @@ public:
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 	virtual bool equals(const ShaderNode * /*other*/) { return false; }
 
-	float4 curves[RAMP_TABLE_SIZE];
+	array<float3> curves;
 	float min_x, max_x;
 };
 
 class RGBRampNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(RGBRampNode)
-	float4 ramp[RAMP_TABLE_SIZE];
+	array<float3> ramp;
+	array<float> ramp_alpha;
 	bool interpolate;
 	virtual int get_group() { return NODE_GROUP_LEVEL_1; }
 	virtual bool equals(const ShaderNode * /*other*/) { return false; }
