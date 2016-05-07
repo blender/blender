@@ -75,18 +75,41 @@ void Mesh::Curve::bounds_grow(const int k, const float3 *curve_keys, const float
 
 /* Mesh */
 
+NODE_DEFINE(Mesh)
+{
+	NodeType* type = NodeType::add("mesh", create);
+
+	static NodeEnum displacement_method_enum;
+	displacement_method_enum.insert("bump", DISPLACE_BUMP);
+	displacement_method_enum.insert("true", DISPLACE_TRUE);
+	displacement_method_enum.insert("both", DISPLACE_BOTH);
+	SOCKET_ENUM(displacement_method, "Displacement Method", displacement_method_enum, DISPLACE_BUMP);
+
+	SOCKET_INT(motion_steps, "Motion Steps", 3);
+	SOCKET_BOOLEAN(use_motion_blur, "Use Motion Blur", false);
+
+	SOCKET_INT_ARRAY(triangles, "Triangles", array<int>());
+	SOCKET_POINT_ARRAY(verts, "Vertices", array<float3>());
+	SOCKET_INT_ARRAY(shader, "Shader", array<int>());
+	SOCKET_BOOLEAN_ARRAY(smooth, "Smooth", array<bool>());
+
+	SOCKET_POINT_ARRAY(curve_keys, "Curve Keys", array<float3>());
+	SOCKET_FLOAT_ARRAY(curve_radius, "Curve Radius", array<float>());
+	SOCKET_INT_ARRAY(curve_first_key, "Curve First Key", array<int>());
+	SOCKET_INT_ARRAY(curve_shader, "Curve Shader", array<int>());
+
+	return type;
+}
+
 Mesh::Mesh()
+: Node(node_type)
 {
 	need_update = true;
 	need_update_rebuild = false;
 	transform_applied = false;
 	transform_negative_scaled = false;
 	transform_normal = transform_identity();
-	displacement_method = DISPLACE_BUMP;
 	bounds = BoundBox::empty;
-
-	motion_steps = 3;
-	use_motion_blur = false;
 
 	bvh = NULL;
 

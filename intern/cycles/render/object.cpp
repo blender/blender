@@ -33,14 +33,25 @@ CCL_NAMESPACE_BEGIN
 
 /* Object */
 
-Object::Object()
+NODE_DEFINE(Object)
 {
-	name = "";
-	mesh = NULL;
-	tfm = transform_identity();
-	visibility = ~0;
-	random_id = 0;
-	pass_id = 0;
+	NodeType* type = NodeType::add("object", create);
+
+	SOCKET_NODE(mesh, "Mesh", &Mesh::node_type);
+	SOCKET_TRANSFORM(tfm, "Transform", transform_identity());
+	SOCKET_INT(visibility, "Visibility", ~0);
+	SOCKET_INT(random_id, "Random ID", 0);
+	SOCKET_INT(pass_id, "Pass ID", 0);
+	SOCKET_BOOLEAN(use_holdout, "Use Holdout", false);
+	SOCKET_POINT(dupli_generated, "Dupli Generated", make_float3(0.0f, 0.0f, 0.0f));
+	SOCKET_POINT2(dupli_uv, "Dupli UV", make_float2(0.0f, 0.0f));
+
+	return type;
+}
+
+Object::Object()
+: Node(node_type)
+{
 	particle_system = NULL;
 	particle_index = 0;
 	bounds = BoundBox::empty;
@@ -48,9 +59,6 @@ Object::Object()
 	motion.mid = transform_identity();
 	motion.post = transform_identity();
 	use_motion = false;
-	use_holdout = false;
-	dupli_generated = make_float3(0.0f, 0.0f, 0.0f);
-	dupli_uv = make_float2(0.0f, 0.0f);
 }
 
 Object::~Object()

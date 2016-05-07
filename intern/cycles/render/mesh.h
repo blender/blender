@@ -18,6 +18,7 @@
 #define __MESH_H__
 
 #include "attribute.h"
+#include "node.h"
 #include "shader.h"
 
 #include "util_boundbox.h"
@@ -42,8 +43,10 @@ class DiagSplit;
 
 /* Mesh */
 
-class Mesh {
+class Mesh : public Node {
 public:
+	NODE_DECLARE;
+
 	/* Mesh Triangle */
 	struct Triangle {
 		int v[3];
@@ -94,8 +97,6 @@ public:
 
 		DISPLACE_NUM_METHODS,
 	};
-
-	ustring name;
 
 	/* Mesh Data */
 	enum GeometryFlags {
