@@ -17,6 +17,8 @@
 #ifndef __BACKGROUND_H__
 #define __BACKGROUND_H__
 
+#include "node.h"
+
 #include "util_types.h"
 
 CCL_NAMESPACE_BEGIN
@@ -26,8 +28,10 @@ class DeviceScene;
 class Shader;
 class Scene;
 
-class Background {
+class Background : public Node {
 public:
+	NODE_DECLARE;
+
 	float ao_factor;
 	float ao_distance;
 
@@ -46,7 +50,6 @@ public:
 	void device_update(Device *device, DeviceScene *dscene, Scene *scene);
 	void device_free(Device *device, DeviceScene *dscene);
 
-	bool modified(const Background& background);
 	void tag_update(Scene *scene);
 };
 

@@ -28,18 +28,25 @@
 
 CCL_NAMESPACE_BEGIN
 
-Background::Background()
+NODE_DEFINE(Background)
 {
-	ao_factor = 0.0f;
-	ao_distance = FLT_MAX;
+	NodeType* type = NodeType::add("background", create);
 
-	use_shader = true;
-	use_ao = false;
+	SOCKET_INT(ao_factor, "AO Factor", 0.0f);
+	SOCKET_FLOAT(ao_distance, "AO Distance", FLT_MAX);
 
-	visibility = PATH_RAY_ALL_VISIBILITY;
+	SOCKET_BOOLEAN(use_shader, "Use Shader", true);
+	SOCKET_BOOLEAN(use_ao, "Use AO", false);
+	SOCKET_INT(visibility, "Visibility", PATH_RAY_ALL_VISIBILITY);
+	SOCKET_BOOLEAN(transparent, "Transparent", false);
+
+	return type;
+}
+
+Background::Background()
+: Node(node_type)
+{
 	shader = NULL;
-
-	transparent = false;
 	need_update = true;
 }
 
@@ -106,16 +113,6 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 
 void Background::device_free(Device * /*device*/, DeviceScene * /*dscene*/)
 {
-}
-
-bool Background::modified(const Background& background)
-{
-	return !(transparent == background.transparent &&
-		use_shader == background.use_shader &&
-		use_ao == background.use_ao &&
-		ao_factor == background.ao_factor &&
-		ao_distance == background.ao_distance &&
-		visibility == background.visibility);
 }
 
 void Background::tag_update(Scene *scene)

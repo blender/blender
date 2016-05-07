@@ -66,8 +66,8 @@ int BufferParams::get_passes_size()
 {
 	int size = 0;
 
-	foreach(Pass& pass, passes)
-		size += pass.components;
+	for(size_t i = 0; i < passes.size(); i++)
+		size += passes[i].components;
 	
 	return align_up(size, 4);
 }
@@ -160,7 +160,9 @@ bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int
 {
 	int pass_offset = 0;
 
-	foreach(Pass& pass, params.passes) {
+	for(size_t j = 0; j < params.passes.size(); j++) {
+		Pass& pass = params.passes[j];
+
 		if(pass.type != type) {
 			pass_offset += pass.components;
 			continue;
@@ -228,7 +230,8 @@ bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int
 			else if(pass.divide_type != PASS_NONE) {
 				/* RGB lighting passes that need to divide out color */
 				pass_offset = 0;
-				foreach(Pass& color_pass, params.passes) {
+				for(size_t k = 0; k < params.passes.size(); k++) {
+					Pass& color_pass = params.passes[k];
 					if(color_pass.type == pass.divide_type)
 						break;
 					pass_offset += color_pass.components;
@@ -276,7 +279,8 @@ bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int
 			else if(type == PASS_MOTION) {
 				/* need to normalize by number of samples accumulated for motion */
 				pass_offset = 0;
-				foreach(Pass& color_pass, params.passes) {
+				for(size_t k = 0; k < params.passes.size(); k++) {
+					Pass& color_pass = params.passes[k];
 					if(color_pass.type == PASS_MOTION_WEIGHT)
 						break;
 					pass_offset += color_pass.components;

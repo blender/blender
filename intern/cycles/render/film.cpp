@@ -39,10 +39,10 @@ static bool compare_pass_order(const Pass& a, const Pass& b)
 	return (a.components > b.components);
 }
 
-void Pass::add(PassType type, vector<Pass>& passes)
+void Pass::add(PassType type, array<Pass>& passes)
 {
-	foreach(Pass& existing_pass, passes)
-		if(existing_pass.type == type)
+	for(size_t i = 0; i < passes.size(); i++)
+		if(passes[i].type == type)
 			return;
 
 	Pass pass;
@@ -169,17 +169,17 @@ void Pass::add(PassType type, vector<Pass>& passes)
 #endif
 	}
 
-	passes.push_back(pass);
+	passes.push_back_slow(pass);
 
 	/* order from by components, to ensure alignment so passes with size 4
 	 * come first and then passes with size 1 */
-	sort(passes.begin(), passes.end(), compare_pass_order);
+	sort(&passes[0], &passes[0] + passes.size(), compare_pass_order);
 
 	if(pass.divide_type != PASS_NONE)
 		Pass::add(pass.divide_type, passes);
 }
 
-bool Pass::equals(const vector<Pass>& A, const vector<Pass>& B)
+bool Pass::equals(const array<Pass>& A, const array<Pass>& B)
 {
 	if(A.size() != B.size())
 		return false;
@@ -191,10 +191,10 @@ bool Pass::equals(const vector<Pass>& A, const vector<Pass>& B)
 	return true;
 }
 
-bool Pass::contains(const vector<Pass>& passes, PassType type)
+bool Pass::contains(const array<Pass>& passes, PassType type)
 {
-	foreach(const Pass& pass, passes)
-		if(pass.type == type)
+	for(size_t i = 0; i < passes.size(); i++)
+		if(passes[i].type == type)
 			return true;
 	
 	return false;
@@ -263,22 +263,37 @@ static vector<float> filter_table(FilterType type, float width)
 
 /* Film */
 
-Film::Film()
+NODE_DEFINE(Film)
 {
-	exposure = 0.8f;
+	NodeType* type = NodeType::add("film", create);
+
+	SOCKET_FLOAT(exposure, "Exposure", 0.8f);
+	SOCKET_FLOAT(pass_alpha_threshold, "Pass Alpha Threshold", 0.5f);
+
+	static NodeEnum filter_enum;
+	filter_enum.insert("box", FILTER_BOX);
+	filter_enum.insert("gaussian", FILTER_GAUSSIAN);
+	filter_enum.insert("blackman_harris", FILTER_BLACKMAN_HARRIS);
+
+	SOCKET_ENUM(filter_type, "Filter Type", filter_enum, FILTER_BOX);
+	SOCKET_FLOAT(filter_width, "Filter Width", 1.0f);
+
+	SOCKET_FLOAT(mist_start, "Mist Start", 0.0f);
+	SOCKET_FLOAT(mist_depth, "Mist Depth", 100.0f);
+	SOCKET_FLOAT(mist_falloff, "Mist Falloff", 1.0f);
+
+	SOCKET_BOOLEAN(use_sample_clamp, "Use Sample Clamp", false);
+
+	return type;
+}
+
+Film::Film()
+: Node(node_type)
+{
 	Pass::add(PASS_COMBINED, passes);
-	pass_alpha_threshold = 0.5f;
-
-	filter_type = FILTER_BOX;
-	filter_width = 1.0f;
-	filter_table_offset = TABLE_OFFSET_INVALID;
-
-	mist_start = 0.0f;
-	mist_depth = 100.0f;
-	mist_falloff = 1.0f;
 
 	use_light_visibility = false;
-	use_sample_clamp = false;
+	filter_table_offset = TABLE_OFFSET_INVALID;
 
 	need_update = true;
 }
@@ -302,7 +317,8 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	kfilm->pass_stride = 0;
 	kfilm->use_light_pass = use_light_visibility || use_sample_clamp;
 
-	foreach(Pass& pass, passes) {
+	for(size_t i = 0; i < passes.size(); i++) {
+		Pass& pass = passes[i];
 		kfilm->pass_flag |= pass.type;
 
 		switch(pass.type) {
@@ -449,18 +465,10 @@ void Film::device_free(Device * /*device*/,
 
 bool Film::modified(const Film& film)
 {
-	return !(exposure == film.exposure
-		&& Pass::equals(passes, film.passes)
-		&& pass_alpha_threshold == film.pass_alpha_threshold
-		&& use_sample_clamp == film.use_sample_clamp
-		&& filter_type == film.filter_type
-		&& filter_width == film.filter_width
-		&& mist_start == film.mist_start
-		&& mist_depth == film.mist_depth
-		&& mist_falloff == film.mist_falloff);
+	return Node::modified(film) || !Pass::equals(passes, film.passes);
 }
 
-void Film::tag_passes_update(Scene *scene, const vector<Pass>& passes_)
+void Film::tag_passes_update(Scene *scene, const array<Pass>& passes_)
 {
 	if(Pass::contains(passes, PASS_UV) != Pass::contains(passes_, PASS_UV)) {
 		scene->mesh_manager->tag_update(scene);

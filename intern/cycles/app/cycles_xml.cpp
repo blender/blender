@@ -279,18 +279,6 @@ static ShaderSocketType xml_read_socket_type(pugi::xml_node node, const char *na
 	return SHADER_SOCKET_UNDEFINED;
 }
 
-/* Film */
-
-static void xml_read_film(const XMLReadState& state, pugi::xml_node node)
-{
-	Film *film = state.scene->film;
-	
-	xml_read_float(&film->exposure, node, "exposure");
-
-	/* ToDo: Filter Type */
-	xml_read_float(&film->filter_width, node, "filter_width");
-}
-
 /* Camera */
 
 static void xml_read_camera(const XMLReadState& state, pugi::xml_node node)
@@ -839,15 +827,10 @@ static void xml_read_shader(const XMLReadState& state, pugi::xml_node node)
 
 /* Background */
 
-static void xml_read_background(const XMLReadState& state, pugi::xml_node node)
+static void xml_read_background(XMLReadState& state, pugi::xml_node node)
 {
 	/* Background Settings */
-	Background *bg = state.scene->background;
-
-	xml_read_float(&bg->ao_distance, node, "ao_distance");
-	xml_read_float(&bg->ao_factor, node, "ao_factor");
-
-	xml_read_bool(&bg->transparent, node, "transparent");
+	xml_read_node(state, state.scene->background, node);
 
 	/* Background Shader */
 	Shader *shader = state.scene->default_background;
@@ -1185,7 +1168,7 @@ static void xml_read_scene(XMLReadState& state, pugi::xml_node scene_node)
 {
 	for(pugi::xml_node node = scene_node.first_child(); node; node = node.next_sibling()) {
 		if(string_iequals(node.name(), "film")) {
-			xml_read_film(state, node);
+			xml_read_node(state, state.scene->film, node);
 		}
 		else if(string_iequals(node.name(), "integrator")) {
 			xml_read_node(state, state.scene->integrator, node);

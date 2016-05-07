@@ -50,7 +50,7 @@ public:
 	int full_height;
 
 	/* passes */
-	vector<Pass> passes;
+	array<Pass> passes;
 
 	/* functions */
 	BufferParams();

@@ -22,6 +22,8 @@
 
 #include "kernel_types.h"
 
+#include "node.h"
+
 CCL_NAMESPACE_BEGIN
 
 class Device;
@@ -44,15 +46,17 @@ public:
 	bool exposure;
 	PassType divide_type;
 
-	static void add(PassType type, vector<Pass>& passes);
-	static bool equals(const vector<Pass>& A, const vector<Pass>& B);
-	static bool contains(const vector<Pass>& passes, PassType);
+	static void add(PassType type, array<Pass>& passes);
+	static bool equals(const array<Pass>& A, const array<Pass>& B);
+	static bool contains(const array<Pass>& passes, PassType);
 };
 
-class Film {
+class Film : public Node {
 public:
+	NODE_DECLARE;
+
 	float exposure;
-	vector<Pass> passes;
+	array<Pass> passes;
 	float pass_alpha_threshold;
 
 	FilterType filter_type;
@@ -75,7 +79,7 @@ public:
 	void device_free(Device *device, DeviceScene *dscene, Scene *scene);
 
 	bool modified(const Film& film);
-	void tag_passes_update(Scene *scene, const vector<Pass>& passes_);
+	void tag_passes_update(Scene *scene, const array<Pass>& passes_);
 	void tag_update(Scene *scene);
 };
 
