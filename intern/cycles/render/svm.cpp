@@ -314,12 +314,12 @@ void SVMCompiler::add_node(int a, int b, int c, int d)
 	svm_nodes.push_back(make_int4(a, b, c, d));
 }
 
-void SVMCompiler::add_node(NodeType type, int a, int b, int c)
+void SVMCompiler::add_node(ShaderNodeType type, int a, int b, int c)
 {
 	svm_nodes.push_back(make_int4(type, a, b, c));
 }
 
-void SVMCompiler::add_node(NodeType type, const float3& f)
+void SVMCompiler::add_node(ShaderNodeType type, const float3& f)
 {
 	svm_nodes.push_back(make_int4(type,
 		__float_as_int(f.x),

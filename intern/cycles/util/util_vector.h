@@ -153,13 +153,28 @@ public:
 		mem_free(data_, capacity_);
 	}
 
-	bool operator==(const vector<T>& other)
+	bool operator==(const array<T>& other) const
 	{
 		if(datasize_ != other.datasize_) {
 			return false;
 		}
 
 		return memcmp(data_, other.data_, datasize_*sizeof(T)) == 0;
+	}
+
+	void steal_data(array& from)
+	{
+		if(this != &from) {
+			clear();
+
+			data_ = from.data_;
+			datasize_ = from.datasize_;
+			capacity_ = from.capacity_;
+
+			from.data_ = NULL;
+			from.datasize_ = 0;
+			from.capacity_ = 0;
+		}
 	}
 
 	T* resize(size_t newsize)

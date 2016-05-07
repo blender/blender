@@ -1,13 +1,14 @@
 
 set(INC
 	.
+	../bvh
 	../device
+	../graph
 	../kernel
 	../kernel/svm
-	../bvh
-	../util
 	../render
 	../subd
+	../util
 )
 set(INC_SYS
 )
@@ -20,6 +21,7 @@ set(LIBRARIES
 	cycles_render
 	cycles_bvh
 	cycles_subd
+	cycles_graph
 	cycles_util
 	${BLENDER_GL_LIBRARIES}
 	${CYCLES_APP_GLEW_LIBRARY}

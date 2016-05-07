@@ -103,9 +103,9 @@ public:
 	void stack_clear_offset(ShaderSocketType type, int offset);
 	void stack_link(ShaderInput *input, ShaderOutput *output);
 
-	void add_node(NodeType type, int a = 0, int b = 0, int c = 0);
+	void add_node(ShaderNodeType type, int a = 0, int b = 0, int c = 0);
 	void add_node(int a = 0, int b = 0, int c = 0, int d = 0);
-	void add_node(NodeType type, const float3& f);
+	void add_node(ShaderNodeType type, const float3& f);
 	void add_node(const float4& f);
 	uint attribute(ustring name);
 	uint attribute(AttributeStandard std);

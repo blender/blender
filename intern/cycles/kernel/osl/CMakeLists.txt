@@ -3,6 +3,7 @@ set(INC
 	.
 	..
 	../svm
+	../../graph
 	../../render
 	../../util
 	../../device

@@ -487,6 +487,7 @@ function(SETUP_BLENDER_SORTED_LIBS)
 	if(WITH_CYCLES)
 		list(APPEND BLENDER_LINK_LIBS
 			cycles_render
+			cycles_graph
 			cycles_bvh
 			cycles_device
 			cycles_kernel
@@ -600,6 +601,7 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		bf_intern_dualcon
 		bf_intern_cycles
 		cycles_render
+		cycles_graph
 		cycles_bvh
 		cycles_device
 		cycles_kernel
