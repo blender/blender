@@ -277,7 +277,6 @@ public:
 		                          md5.c_str());
 		}
 		else {
-			(void)requested_features;
 			cubin = string_printf("cycles_kernel_sm%d%d_%s.cubin", major, minor, md5.c_str());
 		}
 
