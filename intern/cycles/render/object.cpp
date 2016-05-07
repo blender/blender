@@ -137,12 +137,12 @@ void Object::apply_transform(bool apply_to_motion)
 
 		/* apply transform to curve keys */
 		for(size_t i = 0; i < mesh->curve_keys.size(); i++) {
-			float3 co = transform_point(&tfm, float4_to_float3(mesh->curve_keys[i]));
-			float radius = mesh->curve_keys[i].w * scalar;
+			float3 co = transform_point(&tfm, mesh->curve_keys[i]);
+			float radius = mesh->curve_radius[i] * scalar;
 
 			/* scale for curve radius is only correct for uniform scale */
-			mesh->curve_keys[i] = float3_to_float4(co);
-			mesh->curve_keys[i].w = radius;
+			mesh->curve_keys[i] = co;
+			mesh->curve_radius[i] = radius;
 		}
 
 		if(apply_to_motion) {
@@ -269,7 +269,9 @@ void ObjectManager::device_update_object_transform(UpdateObejctTransformState *s
 		state->surface_area_lock.unlock();
 
 		if(it == state->surface_area_map.end()) {
-			foreach(Mesh::Triangle& t, mesh->triangles) {
+			size_t num_triangles = mesh->num_triangles();
+			for(size_t j = 0; j < num_triangles; j++) {
+				Mesh::Triangle t = mesh->get_triangle(j);
 				float3 p1 = mesh->verts[t.v[0]];
 				float3 p2 = mesh->verts[t.v[1]];
 				float3 p3 = mesh->verts[t.v[2]];
@@ -288,7 +290,9 @@ void ObjectManager::device_update_object_transform(UpdateObejctTransformState *s
 		surface_area *= uniform_scale;
 	}
 	else {
-		foreach(Mesh::Triangle& t, mesh->triangles) {
+		size_t num_triangles = mesh->num_triangles();
+		for(size_t j = 0; j < num_triangles; j++) {
+			Mesh::Triangle t = mesh->get_triangle(j);
 			float3 p1 = transform_point(&tfm, mesh->verts[t.v[0]]);
 			float3 p2 = transform_point(&tfm, mesh->verts[t.v[1]]);
 			float3 p3 = transform_point(&tfm, mesh->verts[t.v[2]]);
@@ -360,7 +364,7 @@ void ObjectManager::device_update_object_transform(UpdateObejctTransformState *s
 	state->object_flag[object_index] = flag;
 
 	/* Have curves. */
-	if(mesh->curves.size()) {
+	if(mesh->num_curves()) {
 		state->have_curves = true;
 	}
 }

@@ -47,7 +47,7 @@ public:
 
 	void tag_update(Scene *scene);
 
-	vector<Particle> particles;
+	array<Particle> particles;
 };
 
 /* ParticleSystem Manager */

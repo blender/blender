@@ -247,7 +247,8 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 
 		/* count triangles */
 		if(have_emission) {
-			for(size_t i = 0; i < mesh->triangles.size(); i++) {
+			size_t mesh_num_triangles = mesh->num_triangles();
+			for(size_t i = 0; i < mesh_num_triangles; i++) {
 				int shader_index = mesh->shader[i];
 				Shader *shader = (shader_index < mesh->used_shaders.size()) ?
 					mesh->used_shaders[shader_index] : scene->default_surface;
@@ -319,7 +320,8 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 				use_light_visibility = true;
 			}
 
-			for(size_t i = 0; i < mesh->triangles.size(); i++) {
+			size_t mesh_num_triangles = mesh->num_triangles();
+			for(size_t i = 0; i < mesh_num_triangles; i++) {
 				int shader_index = mesh->shader[i];
 				Shader *shader = (shader_index < mesh->used_shaders.size()) ?
 					mesh->used_shaders[shader_index] : scene->default_surface;
@@ -331,7 +333,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 					distribution[offset].w = __int_as_float(object_id);
 					offset++;
 
-					Mesh::Triangle t = mesh->triangles[i];
+					Mesh::Triangle t = mesh->get_triangle(i);
 					float3 p1 = mesh->verts[t.v[0]];
 					float3 p2 = mesh->verts[t.v[1]];
 					float3 p3 = mesh->verts[t.v[2]];

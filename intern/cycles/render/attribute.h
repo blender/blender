@@ -58,7 +58,7 @@ public:
 	Attribute() {}
 	~Attribute();
 	void set(ustring name, TypeDesc type, AttributeElement element);
-	void reserve(int numverts, int numfaces, int numsteps, int numcurves, int numkeys, bool resize);
+	void resize(int numverts, int numfaces, int numsteps, int numcurves, int numkeys, bool reserve_only);
 
 	size_t data_sizeof() const;
 	size_t element_size(int numverts, int numfaces, int numsteps, int numcurves, int numkeys) const;
@@ -104,7 +104,7 @@ public:
 	AttributeSet();
 	~AttributeSet();
 
-	Attribute *add(ustring name, TypeDesc type, AttributeElement element, bool resize = true);
+	Attribute *add(ustring name, TypeDesc type, AttributeElement element);
 	Attribute *find(ustring name) const;
 	void remove(ustring name);
 
@@ -114,7 +114,7 @@ public:
 
 	Attribute *find(AttributeRequest& req);
 
-	void reserve();
+	void resize(bool reserve_only = false);
 	void clear();
 };
 

@@ -76,7 +76,7 @@ bool BlenderSync::sync_dupli_particle(BL::Object& b_ob,
 	pa.velocity = get_float3(b_pa.velocity());
 	pa.angular_velocity = get_float3(b_pa.angular_velocity());
 
-	psys->particles.push_back(pa);
+	psys->particles.push_back_slow(pa);
 
 	if(object->particle_index != psys->particles.size() - 1)
 		scene->object_manager->tag_update(scene);

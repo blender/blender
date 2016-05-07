@@ -51,13 +51,13 @@ void Attribute::set(ustring name_, TypeDesc type_, AttributeElement element_)
 		type == TypeDesc::TypeNormal || type == TypeDesc::TypeMatrix);
 }
 
-void Attribute::reserve(int numverts, int numtris, int numsteps, int numcurves, int numkeys, bool resize)
+void Attribute::resize(int numverts, int numtris, int numsteps, int numcurves, int numkeys, bool reserve_only)
 {
-	if(resize) {
-		buffer.resize(buffer_size(numverts, numtris, numsteps, numcurves, numkeys), 0);
+	if(reserve_only) {
+		buffer.reserve(buffer_size(numverts, numtris, numsteps, numcurves, numkeys));
 	}
 	else {
-		buffer.reserve(buffer_size(numverts, numtris, numsteps, numcurves, numkeys));
+		buffer.resize(buffer_size(numverts, numtris, numsteps, numcurves, numkeys), 0);
 	}
 }
 
@@ -263,7 +263,7 @@ AttributeSet::~AttributeSet()
 {
 }
 
-Attribute *AttributeSet::add(ustring name, TypeDesc type, AttributeElement element, bool resize)
+Attribute *AttributeSet::add(ustring name, TypeDesc type, AttributeElement element)
 {
 	Attribute *attr = find(name);
 
@@ -291,9 +291,9 @@ Attribute *AttributeSet::add(ustring name, TypeDesc type, AttributeElement eleme
 
 	/* this is weak .. */
 	if(triangle_mesh)
-		attr->reserve(triangle_mesh->verts.size(), triangle_mesh->triangles.size(), triangle_mesh->motion_steps, 0, 0, resize);
+		attr->resize(triangle_mesh->verts.size(), triangle_mesh->num_triangles(), triangle_mesh->motion_steps, 0, 0, false);
 	if(curve_mesh)
-		attr->reserve(0, 0, curve_mesh->motion_steps, curve_mesh->curves.size(), curve_mesh->curve_keys.size(), resize);
+		attr->resize(0, 0, curve_mesh->motion_steps, curve_mesh->num_curves(), curve_mesh->curve_keys.size(), false);
 	
 	return attr;
 }
@@ -448,13 +448,13 @@ Attribute *AttributeSet::find(AttributeRequest& req)
 		return find(req.std);
 }
 
-void AttributeSet::reserve()
+void AttributeSet::resize(bool reserve_only)
 {
 	foreach(Attribute& attr, attributes) {
 		if(triangle_mesh)
-			attr.reserve(triangle_mesh->verts.size(), triangle_mesh->triangles.size(), triangle_mesh->motion_steps, 0, 0, true);
+			attr.resize(triangle_mesh->verts.size(), triangle_mesh->num_triangles(), triangle_mesh->motion_steps, 0, 0, reserve_only);
 		if(curve_mesh)
-			attr.reserve(0, 0, 0, curve_mesh->curves.size(), curve_mesh->curve_keys.size(), true);
+			attr.resize(0, 0, 0, curve_mesh->num_curves(), curve_mesh->curve_keys.size(), reserve_only);
 	}
 }
 

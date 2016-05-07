@@ -63,23 +63,23 @@ public:
 	ParticleCurveData();
 	~ParticleCurveData();
 
-	vector<int> psys_firstcurve;
-	vector<int> psys_curvenum;
-	vector<int> psys_shader;
+	array<int> psys_firstcurve;
+	array<int> psys_curvenum;
+	array<int> psys_shader;
 
-	vector<float> psys_rootradius;
-	vector<float> psys_tipradius;
-	vector<float> psys_shape;
-	vector<bool> psys_closetip;
+	array<float> psys_rootradius;
+	array<float> psys_tipradius;
+	array<float> psys_shape;
+	array<bool> psys_closetip;
 
-	vector<int> curve_firstkey;
-	vector<int> curve_keynum;
-	vector<float> curve_length;
-	vector<float3> curve_uv;
-	vector<float3> curve_vcol;
+	array<int> curve_firstkey;
+	array<int> curve_keynum;
+	array<float> curve_length;
+	array<float3> curve_uv;
+	array<float3> curve_vcol;
 
-	vector<float3> curvekey_co;
-	vector<float> curvekey_time;
+	array<float3> curvekey_co;
+	array<float> curvekey_time;
 };
 
 /* HairSystem Manager */

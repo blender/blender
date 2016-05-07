@@ -128,11 +128,11 @@ void BVH::pack_triangle(int idx, float4 storage[3])
 	const Mesh *mesh = objects[tob]->mesh;
 
 	int tidx = pack.prim_index[idx];
-	const int *vidx = mesh->triangles[tidx].v;
+	Mesh::Triangle t = mesh->get_triangle(tidx);
 	const float3* vpos = &mesh->verts[0];
-	float3 v0 = vpos[vidx[0]];
-	float3 v1 = vpos[vidx[1]];
-	float3 v2 = vpos[vidx[2]];
+	float3 v0 = vpos[t.v[0]];
+	float3 v1 = vpos[t.v[1]];
+	float3 v2 = vpos[t.v[2]];
 
 	storage[0] = float3_to_float4(v0);
 	storage[1] = float3_to_float4(v1);
@@ -506,10 +506,10 @@ void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility
 				if(pack.prim_type[prim] & PRIMITIVE_ALL_CURVE) {
 					/* curves */
 					int str_offset = (params.top_level)? mesh->curve_offset: 0;
-					const Mesh::Curve& curve = mesh->curves[pidx - str_offset];
+					Mesh::Curve curve = mesh->get_curve(pidx - str_offset);
 					int k = PRIMITIVE_UNPACK_SEGMENT(pack.prim_type[prim]);
 
-					curve.bounds_grow(k, &mesh->curve_keys[0], bbox);
+					curve.bounds_grow(k, &mesh->curve_keys[0], &mesh->curve_radius[0], bbox);
 
 					visibility |= PATH_RAY_CURVE;
 
@@ -520,17 +520,17 @@ void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility
 						if(attr) {
 							size_t mesh_size = mesh->curve_keys.size();
 							size_t steps = mesh->motion_steps - 1;
-							float4 *key_steps = attr->data_float4();
+							float3 *key_steps = attr->data_float3();
 
 							for(size_t i = 0; i < steps; i++)
-								curve.bounds_grow(k, key_steps + i*mesh_size, bbox);
+								curve.bounds_grow(k, key_steps + i*mesh_size, &mesh->curve_radius[0], bbox);
 						}
 					}
 				}
 				else {
 					/* triangles */
 					int tri_offset = (params.top_level)? mesh->tri_offset: 0;
-					const Mesh::Triangle& triangle = mesh->triangles[pidx - tri_offset];
+					Mesh::Triangle triangle = mesh->get_triangle(pidx - tri_offset);
 					const float3 *vpos = &mesh->verts[0];
 
 					triangle.bounds_grow(vpos, bbox);
@@ -770,10 +770,10 @@ void QBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 				if(pack.prim_type[prim] & PRIMITIVE_ALL_CURVE) {
 					/* Curves. */
 					int str_offset = (params.top_level)? mesh->curve_offset: 0;
-					const Mesh::Curve& curve = mesh->curves[pidx - str_offset];
+					Mesh::Curve curve = mesh->get_curve(pidx - str_offset);
 					int k = PRIMITIVE_UNPACK_SEGMENT(pack.prim_type[prim]);
 
-					curve.bounds_grow(k, &mesh->curve_keys[0], bbox);
+					curve.bounds_grow(k, &mesh->curve_keys[0], &mesh->curve_radius[0], bbox);
 
 					visibility |= PATH_RAY_CURVE;
 
@@ -784,17 +784,17 @@ void QBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 						if(attr) {
 							size_t mesh_size = mesh->curve_keys.size();
 							size_t steps = mesh->motion_steps - 1;
-							float4 *key_steps = attr->data_float4();
+							float3 *key_steps = attr->data_float3();
 
 							for(size_t i = 0; i < steps; i++)
-								curve.bounds_grow(k, key_steps + i*mesh_size, bbox);
+								curve.bounds_grow(k, key_steps + i*mesh_size, &mesh->curve_radius[0], bbox);
 						}
 					}
 				}
 				else {
 					/* Triangles. */
 					int tri_offset = (params.top_level)? mesh->tri_offset: 0;
-					const Mesh::Triangle& triangle = mesh->triangles[pidx - tri_offset];
+					Mesh::Triangle triangle = mesh->get_triangle(pidx - tri_offset);
 					const float3 *vpos = &mesh->verts[0];
 
 					triangle.bounds_grow(vpos, bbox);
