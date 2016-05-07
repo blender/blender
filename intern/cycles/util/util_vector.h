@@ -114,21 +114,30 @@ public:
 
 	array(const array& from)
 	{
-		*this = from;
-	}
-
-	array& operator=(const array& from)
-	{
-		if(from.datasize == 0) {
+		if(from.datasize_ == 0) {
 			data_ = NULL;
 			datasize_ = 0;
 			capacity_ = 0;
 		}
 		else {
-			data_ = mem_allocate(from.datasize);
-			memcpy(data_, from.data, from.datasize*sizeof(T));
+			data_ = mem_allocate(from.datasize_);
+			memcpy(data_, from.data_, from.datasize_*sizeof(T));
 			datasize_ = from.datasize_;
 			capacity_ = datasize_;
+		}
+	}
+
+	array& operator=(const array& from)
+	{
+		if(this != &from) {
+			clear();
+
+			if(from.datasize_ > 0) {
+				data_ = mem_allocate(from.datasize_);
+				memcpy(data_, from.data_, from.datasize_*sizeof(T));
+				datasize_ = from.datasize_;
+				capacity_ = datasize_;
+			}
 		}
 
 		return *this;
@@ -136,11 +145,11 @@ public:
 
 	array& operator=(const vector<T>& from)
 	{
-		datasize_ = from.size();
-		capacity_ = datasize_;
-		data_ = NULL;
+		clear();
 
-		if(datasize_ > 0) {
+		if(from.size() > 0) {
+			datasize_ = from.size();
+			capacity_ = datasize_;
 			data_ = mem_allocate(datasize_);
 			memcpy(data_, &from[0], datasize_*sizeof(T));
 		}
@@ -153,27 +162,44 @@ public:
 		mem_free(data_, capacity_);
 	}
 
+	bool operator==(const vector<T>& other)
+	{
+		if (datasize_ != other.datasize_)
+			return false;
+
+		return memcmp(data_, other.data_, datasize_*sizeof(T)) == 0;
+	}
+
+	void steal_data(array& from)
+	{
+		if (this != &from)
+		{
+			clear();
+
+			data_ = from.data_;
+			datasize_ = from.datasize_;
+			capacity_ = from.capacity_;
+
+			from.data_ = NULL;
+			from.datasize_ = 0;
+			from.capacity_ = 0;
+		}
+	}
+
 	T* resize(size_t newsize)
 	{
 		if(newsize == 0) {
 			clear();
 		}
-		else if(newsize != datasize_) {
-			if(newsize > capacity_) {
-				T *newdata = mem_allocate(newsize);
-				if(newdata == NULL) {
-					/* Allocation failed, likely out of memory. */
-					clear();
-					return NULL;
-				}
-				else if(data_ != NULL) {
-					memcpy(newdata, data_, ((datasize_ < newsize)? datasize_: newsize)*sizeof(T));
-					mem_free(data_, capacity_);
-				}
-				data_ = newdata;
-				capacity_ = newsize;
+		else if(newsize != capacity_) {
+			T *newdata = mem_allocate(newsize);
+			if(data_ != NULL) {
+				memcpy(newdata, data_, ((datasize_ < newsize)? datasize_: newsize)*sizeof(T));
+				mem_free(data_, capacity_);
 			}
+			data_ = newdata;
 			datasize_ = newsize;
+			capacity_ = newsize;
 		}
 		return data_;
 	}
@@ -188,9 +214,19 @@ public:
 		capacity_ = 0;
 	}
 
+	size_t empty() const
+	{
+		return datasize_ == 0;
+	}
+
 	size_t size() const
 	{
 		return datasize_;
+	}
+
+	const T* data() const
+	{
+		return data_;
 	}
 
 	T& operator[](size_t i) const
@@ -199,7 +235,8 @@ public:
 		return data_[i];
 	}
 
-	void reserve(size_t newcapacity) {
+	void reserve(size_t newcapacity)
+	{
 		if(newcapacity > capacity_) {
 			T *newdata = mem_allocate(newcapacity);
 			if(data_ != NULL) {
@@ -211,8 +248,26 @@ public:
 		}
 	}
 
-	size_t capacity() const {
+	size_t capacity() const
+	{
 		return capacity_;
+	}
+
+	// do not use this method unless you are sure the code is not performance critical
+	void push_back_slow(const T& t)
+	{
+		if (capacity_ == datasize_)
+		{
+			reserve(datasize_ == 0 ? 1 : (size_t)((datasize_ + 1) * 1.2));
+		}
+
+		data_[datasize_++] = t;
+	}
+
+	void push_back_reserved(const T& t)
+	{
+		assert(datasize_ < capacity_);
+		push_back_slow(t);
 	}
 
 protected:
