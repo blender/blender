@@ -437,7 +437,7 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			/* Generate inputs/outputs from node sockets
 			 *
 			 * Note: ShaderInput/ShaderOutput store shallow string copies only!
-			 * Socket names must be stored in the extra lists instead. */
+			 * So we register them as ustring to ensure the pointer stays valid. */
 			/* read input values */
 			for(pugi::xml_node param = node.first_child(); param; param = param.next_sibling()) {
 				if(string_iequals(param.name(), "input")) {
@@ -449,8 +449,7 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 					if(type == SHADER_SOCKET_UNDEFINED)
 						continue;
 					
-					osl->input_names.push_back(ustring(name));
-					osl->add_input(osl->input_names.back().c_str(), type);
+					osl->add_input(ustring(name).c_str(), type);
 				}
 				else if(string_iequals(param.name(), "output")) {
 					string name;
@@ -461,8 +460,7 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 					if(type == SHADER_SOCKET_UNDEFINED)
 						continue;
 					
-					osl->output_names.push_back(ustring(name));
-					osl->add_output(osl->output_names.back().c_str(), type);
+					osl->add_output(ustring(name).c_str(), type);
 				}
 			}
 			
