@@ -20,6 +20,8 @@
 #include <algorithm>
 #include <iterator>
 
+#include "node_xml.h"
+
 #include "background.h"
 #include "camera.h"
 #include "film.h"
@@ -48,7 +50,7 @@ CCL_NAMESPACE_BEGIN
 
 /* XML reading state */
 
-struct XMLReadState {
+struct XMLReadState : public XMLReader {
 	Scene *scene;		/* scene pointer */
 	Transform tfm;		/* current transform state */
 	bool smooth;		/* smooth normal state */
@@ -287,58 +289,6 @@ static void xml_read_film(const XMLReadState& state, pugi::xml_node node)
 
 	/* ToDo: Filter Type */
 	xml_read_float(&film->filter_width, node, "filter_width");
-}
-
-/* Integrator */
-
-static void xml_read_integrator(const XMLReadState& state, pugi::xml_node node)
-{
-	Integrator *integrator = state.scene->integrator;
-	
-	/* Branched Path */
-	bool branched = false;
-	xml_read_bool(&branched, node, "branched");
-
-	if(branched) {
-		integrator->method = Integrator::BRANCHED_PATH;
-
-		xml_read_int(&integrator->diffuse_samples, node, "diffuse_samples");
-		xml_read_int(&integrator->glossy_samples, node, "glossy_samples");
-		xml_read_int(&integrator->transmission_samples, node, "transmission_samples");
-		xml_read_int(&integrator->ao_samples, node, "ao_samples");
-		xml_read_int(&integrator->mesh_light_samples, node, "mesh_light_samples");
-		xml_read_int(&integrator->subsurface_samples, node, "subsurface_samples");
-		xml_read_int(&integrator->volume_samples, node, "volume_samples");
-		xml_read_bool(&integrator->sample_all_lights_direct, node, "sample_all_lights_direct");
-		xml_read_bool(&integrator->sample_all_lights_indirect, node, "sample_all_lights_indirect");
-	}
-	
-	/* Bounces */
-	xml_read_int(&integrator->min_bounce, node, "min_bounce");
-	xml_read_int(&integrator->max_bounce, node, "max_bounce");
-	
-	xml_read_int(&integrator->max_diffuse_bounce, node, "max_diffuse_bounce");
-	xml_read_int(&integrator->max_glossy_bounce, node, "max_glossy_bounce");
-	xml_read_int(&integrator->max_transmission_bounce, node, "max_transmission_bounce");
-	xml_read_int(&integrator->max_volume_bounce, node, "max_volume_bounce");
-	
-	/* Transparency */
-	xml_read_int(&integrator->transparent_min_bounce, node, "transparent_min_bounce");
-	xml_read_int(&integrator->transparent_max_bounce, node, "transparent_max_bounce");
-	xml_read_bool(&integrator->transparent_shadows, node, "transparent_shadows");
-	
-	/* Volume */
-	xml_read_float(&integrator->volume_step_size, node, "volume_step_size");
-	xml_read_int(&integrator->volume_max_steps, node, "volume_max_steps");
-	
-	/* Various Settings */
-	xml_read_bool(&integrator->caustics_reflective, node, "caustics_reflective");
-	xml_read_bool(&integrator->caustics_refractive, node, "caustics_refractive");
-	xml_read_float(&integrator->filter_glossy, node, "filter_glossy");
-	
-	xml_read_int(&integrator->seed, node, "seed");
-	xml_read_float(&integrator->sample_clamp_direct, node, "sample_clamp_direct");
-	xml_read_float(&integrator->sample_clamp_indirect, node, "sample_clamp_indirect");
 }
 
 /* Camera */
@@ -1229,16 +1179,16 @@ static void xml_read_state(XMLReadState& state, pugi::xml_node node)
 
 /* Scene */
 
-static void xml_read_include(const XMLReadState& state, const string& src);
+static void xml_read_include(XMLReadState& state, const string& src);
 
-static void xml_read_scene(const XMLReadState& state, pugi::xml_node scene_node)
+static void xml_read_scene(XMLReadState& state, pugi::xml_node scene_node)
 {
 	for(pugi::xml_node node = scene_node.first_child(); node; node = node.next_sibling()) {
 		if(string_iequals(node.name(), "film")) {
 			xml_read_film(state, node);
 		}
 		else if(string_iequals(node.name(), "integrator")) {
-			xml_read_integrator(state, node);
+			xml_read_node(state, state.scene->integrator, node);
 		}
 		else if(string_iequals(node.name(), "camera")) {
 			xml_read_camera(state, node);
@@ -1283,7 +1233,7 @@ static void xml_read_scene(const XMLReadState& state, pugi::xml_node scene_node)
 
 /* Include */
 
-static void xml_read_include(const XMLReadState& state, const string& src)
+static void xml_read_include(XMLReadState& state, const string& src)
 {
 	/* open XML document */
 	pugi::xml_document doc;
