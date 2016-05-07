@@ -3976,6 +3976,7 @@ static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
 		drawviewborder(scene, ar, v3d);
 	}
 	else if (v3d->flag2 & V3D_RENDER_BORDER) {
+		glLineWidth(1.0f);
 		setlinestyle(3);
 		cpack(0x4040FF);
 
