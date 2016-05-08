@@ -177,15 +177,15 @@ int ImageManager::type_index_to_flattened_slot(int slot, ImageDataType type)
 		return slot;
 }
 
-int ImageManager::flattened_slot_to_type_index(int slot, ImageDataType *type)
+int ImageManager::flattened_slot_to_type_index(int flat_slot, ImageDataType *type)
 {
-	if(slot >= tex_image_byte_start) {
+	if(flat_slot >= tex_image_byte_start) {
 		*type = IMAGE_DATA_TYPE_BYTE4;
-		return slot - tex_image_byte_start;
+		return flat_slot - tex_image_byte_start;
 	}
 	else {
 		*type = IMAGE_DATA_TYPE_FLOAT4;
-		return slot;
+		return flat_slot;
 	}
 }
 
@@ -285,10 +285,10 @@ int ImageManager::add_image(const string& filename,
 	return type_index_to_flattened_slot(slot, type);
 }
 
-void ImageManager::remove_image(int slot)
+void ImageManager::remove_image(int flat_slot)
 {
 	ImageDataType type;
-	slot = flattened_slot_to_type_index(slot, &type);
+	int slot = flattened_slot_to_type_index(flat_slot, &type);
 
 	Image *image = images[type][slot];
 	assert(image && image->users >= 1);
@@ -655,9 +655,10 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageD
 
 		string name;
 
-		if(slot >= 100) name = string_printf("__tex_image_float4_%d", slot);
-		else if(slot >= 10) name = string_printf("__tex_image_float4_0%d", slot);
-		else name = string_printf("__tex_image_float4_00%d", slot);
+		int flat_slot = type_index_to_flattened_slot(slot, type);
+		if(flat_slot >= 100) name = string_printf("__tex_image_float4_%d", flat_slot);
+		else if(flat_slot >= 10) name = string_printf("__tex_image_float4_0%d", flat_slot);
+		else name = string_printf("__tex_image_float4_00%d", flat_slot);
 
 		if(!pack_images) {
 			thread_scoped_lock device_lock(device_mutex);
@@ -687,9 +688,10 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageD
 
 		string name;
 
-		if(slot >= 100) name = string_printf("__tex_image_byte_%d", slot);
-		else if(slot >= 10) name = string_printf("__tex_image_byte_0%d", slot);
-		else name = string_printf("__tex_image_byte_00%d", slot);
+		int flat_slot = type_index_to_flattened_slot(slot, type);
+		if(flat_slot >= 100) name = string_printf("__tex_image_byte_%d", flat_slot);
+		else if(flat_slot >= 10) name = string_printf("__tex_image_byte_0%d", flat_slot);
+		else name = string_printf("__tex_image_byte_00%d", flat_slot);
 
 		if(!pack_images) {
 			thread_scoped_lock device_lock(device_mutex);
@@ -775,11 +777,11 @@ void ImageManager::device_update(Device *device, DeviceScene *dscene, Progress& 
 
 void ImageManager::device_update_slot(Device *device,
                                       DeviceScene *dscene,
-                                      int slot,
+                                      int flat_slot,
                                       Progress *progress)
 {
 	ImageDataType type;
-	slot = flattened_slot_to_type_index(slot, &type);
+	int slot = flattened_slot_to_type_index(flat_slot, &type);
 
 	Image *image = images[type][slot];
 	assert(image != NULL);

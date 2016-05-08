@@ -51,7 +51,7 @@ public:
 	              InterpolationType interpolation,
 	              ExtensionType extension,
 	              bool use_alpha);
-	void remove_image(int slot);
+	void remove_image(int flat_slot);
 	void remove_image(const string& filename,
 	                  void *builtin_data,
 	                  InterpolationType interpolation,
@@ -63,7 +63,7 @@ public:
 	bool is_float_image(const string& filename, void *builtin_data, bool& is_linear);
 
 	void device_update(Device *device, DeviceScene *dscene, Progress& progress);
-	void device_update_slot(Device *device, DeviceScene *dscene, int slot, Progress *progress);
+	void device_update_slot(Device *device, DeviceScene *dscene, int flat_slot, Progress *progress);
 	void device_free(Device *device, DeviceScene *dscene);
 	void device_free_builtin(Device *device, DeviceScene *dscene);
 
@@ -105,7 +105,7 @@ private:
 	bool file_load_float_image(Image *img, device_vector<float4>& tex_img);
 
 	int type_index_to_flattened_slot(int slot, ImageDataType type);
-	int flattened_slot_to_type_index(int slot, ImageDataType *type);
+	int flattened_slot_to_type_index(int flat_slot, ImageDataType *type);
 	string name_from_type(int type);
 
 	void device_load_image(Device *device, DeviceScene *dscene, ImageDataType type, int slot, Progress *progess);
