@@ -137,6 +137,30 @@ static void do_version_constraints_stretch_to_limits(ListBase *lb)
 	}
 }
 
+static void do_version_action_editor_properties_region(ListBase *regionbase)
+{
+	ARegion *ar;
+	
+	for (ar = regionbase->first; ar; ar = ar->next) {
+		if (ar->regiontype == RGN_TYPE_UI) {
+			/* already exists */
+			return;
+		}
+		else if (ar->regiontype == RGN_TYPE_WINDOW) {
+			/* add new region here */
+			ARegion *arnew = MEM_callocN(sizeof(ARegion), "buttons for action");
+			
+			BLI_insertlinkbefore(regionbase, ar, arnew);
+			
+			arnew->regiontype = RGN_TYPE_UI;
+			arnew->alignment = RGN_ALIGN_RIGHT;
+			arnew->flag = RGN_FLAG_HIDDEN;
+			
+			return;
+		}
+	}
+}
+
 void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 {
 	if (!MAIN_VERSION_ATLEAST(main, 270, 0)) {
@@ -1109,5 +1133,22 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			SEQ_END
 		}
 
+		/* Adding "Properties" region to DopeSheet */
+		for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+				/* handle pushed-back space data first */
+				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_ACTION) {
+						SpaceAction *saction = (SpaceAction *)sl;
+						do_version_action_editor_properties_region(&saction->regionbase);
+					}
+				}
+				
+				/* active spacedata info must be handled too... */
+				if (sa->spacetype == SPACE_ACTION) {
+					do_version_action_editor_properties_region(&sa->regionbase);
+				}
+			}
+		}
 	}
 }
