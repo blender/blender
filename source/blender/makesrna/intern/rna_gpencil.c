@@ -816,7 +816,7 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, 3);
 	RNA_def_property_ui_text(prop, "Iterations",
 	                         "Number of times to smooth newly created strokes."
-	                         "Smoothing strength is halved on each successive round of smoothing applied.");
+	                         "Smoothing strength is halved on each successive round of smoothing applied");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
 	/* Subdivision level for new strokes */

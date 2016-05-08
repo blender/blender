@@ -4817,7 +4817,7 @@ static float calculate_point_length(PTCacheEditPoint *point)
 	KEY_K;
 	LOOP_KEYS {
 		if (k > 0) {
-			length += len_v3v3((key - 1)->co, key->co);;
+			length += len_v3v3((key - 1)->co, key->co);
 		}
 	}
 	return length;

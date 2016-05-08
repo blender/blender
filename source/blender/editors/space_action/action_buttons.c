@@ -74,7 +74,7 @@
 
 /* ******************* general ******************************** */
 
-void action_buttons_register(ARegionType *art)
+void action_buttons_register(ARegionType *UNUSED(art))
 {
 #if 0
 	PanelType *pt;

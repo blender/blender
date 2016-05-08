@@ -1119,7 +1119,7 @@ static int curve_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 			/* use view plane (when set or as fallback when surface can't be found) */
 			if (cdd->project.use_depth == false) {
-				plane_co = ED_view3d_cursor3d_get(cdd->vc.scene, v3d);;
+				plane_co = ED_view3d_cursor3d_get(cdd->vc.scene, v3d);
 				plane_no = rv3d->viewinv[2];
 				cdd->project.use_plane = true;
 			}

@@ -1426,7 +1426,7 @@ int filelist_files_ensure(FileList *filelist)
 		filelist_filter(filelist);
 	}
 
-	return filelist->filelist.nbr_entries_filtered;;
+	return filelist->filelist.nbr_entries_filtered;
 }
 
 static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int index)
