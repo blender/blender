@@ -301,11 +301,25 @@ typedef struct RawArray {
 	int stride;
 } RawArray;
 
+/**
+ * This struct is are typically defined in arrays which define an *enum* for RNA,
+ * which is used by the RNA API both for user-interface and the Python API.
+ */
 typedef struct EnumPropertyItem {
+	/** The internal value of the enum, not exposed to users. */
 	int value;
+	/**
+	 * Note that identifiers must be unique within the array,
+	 * by convention they're upper case with underscores for separators.
+	 * - An empty string is used to define menu separators.
+	 * - NULL denotes the end of the array of items.
+	 */
 	const char *identifier;
+	/** Optional icon, typically 'ICON_NONE' */
 	int icon;
+	/** Name displayed in the interface. */
 	const char *name;
+	/** Longer description used in the interface. */
 	const char *description;
 } EnumPropertyItem;
 
