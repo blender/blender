@@ -767,7 +767,7 @@ void ImageManager::device_update(Device *device, DeviceScene *dscene, Progress& 
 				continue;
 
 			if(images[type][slot]->users == 0) {
-				device_free_image(device, dscene, slot + tex_image_byte_start);
+				device_free_image(device, dscene, type_index_to_flattened_slot(slot, (ImageDataType)type));
 			}
 			else if(images[type][slot]->need_load) {
 				if(!osl_texture_system || images[type][slot]->builtin_data)
