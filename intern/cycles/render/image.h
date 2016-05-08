@@ -37,7 +37,7 @@ public:
 
 	enum ImageDataType {
 		IMAGE_DATA_TYPE_FLOAT4 = 0,
-		IMAGE_DATA_TYPE_BYTE = 1,
+		IMAGE_DATA_TYPE_BYTE4 = 1,
 
 		IMAGE_DATA_NUM_TYPES
 	};
@@ -108,8 +108,8 @@ private:
 	int flattened_slot_to_type_index(int slot, ImageDataType *type);
 	string name_from_type(int type);
 
-	void device_load_image(Device *device, DeviceScene *dscene, int slot, Progress *progess);
-	void device_free_image(Device *device, DeviceScene *dscene, int slot);
+	void device_load_image(Device *device, DeviceScene *dscene, ImageDataType type, int slot, Progress *progess);
+	void device_free_image(Device *device, DeviceScene *dscene, ImageDataType type, int slot);
 
 	void device_pack_images(Device *device, DeviceScene *dscene, Progress& progess);
 };

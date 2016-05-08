@@ -41,31 +41,31 @@ ImageManager::ImageManager(const DeviceInfo& info)
 
 	/* CPU */
 	if(info.type == DEVICE_CPU) {
-		tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_IMAGES_CPU;
+		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE_IMAGES_CPU;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_CPU;
 		tex_image_byte_start = TEX_IMAGE_BYTE_START_CPU;
 	}
 	/* CUDA (Fermi) */
 	else if((info.type == DEVICE_CUDA || info.type == DEVICE_MULTI) && !info.extended_images) {
-		tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_IMAGES_CUDA;
+		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE_IMAGES_CUDA;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_CUDA;
 		tex_image_byte_start = TEX_IMAGE_BYTE_START_CUDA;
 	}
 	/* CUDA (Kepler and above) */
 	else if((info.type == DEVICE_CUDA || info.type == DEVICE_MULTI) && info.extended_images) {
-		tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_IMAGES_CUDA_KEPLER;
+		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE_IMAGES_CUDA_KEPLER;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_CUDA_KEPLER;
 		tex_image_byte_start = TEX_IMAGE_BYTE_START_CUDA_KELPER;
 	}
 	/* OpenCL */
 	else if(info.pack_images) {
-		tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_IMAGES_OPENCL;
+		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE_IMAGES_OPENCL;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_OPENCL;
 		tex_image_byte_start = TEX_IMAGE_BYTE_START_OPENCL;
 	}
 	/* Should never happen */
 	else {
-		tex_num_images[IMAGE_DATA_TYPE_BYTE] = 0;
+		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = 0;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = 0;
 		tex_image_byte_start = 0;
 		assert(0);
@@ -171,7 +171,7 @@ bool ImageManager::is_float_image(const string& filename, void *builtin_data, bo
 
 int ImageManager::type_index_to_flattened_slot(int slot, ImageDataType type)
 {
-	if(type == IMAGE_DATA_TYPE_BYTE)
+	if(type == IMAGE_DATA_TYPE_BYTE4)
 		return slot + tex_image_byte_start;
 	else
 		return slot;
@@ -180,8 +180,8 @@ int ImageManager::type_index_to_flattened_slot(int slot, ImageDataType type)
 int ImageManager::flattened_slot_to_type_index(int slot, ImageDataType *type)
 {
 	if(slot >= tex_image_byte_start) {
-		*type = IMAGE_DATA_TYPE_BYTE;
-		return slot -= tex_image_byte_start;
+		*type = IMAGE_DATA_TYPE_BYTE4;
+		return slot - tex_image_byte_start;
 	}
 	else {
 		*type = IMAGE_DATA_TYPE_FLOAT4;
@@ -225,7 +225,7 @@ int ImageManager::add_image(const string& filename,
 	/* Load image info and find out if we need a float texture. */
 	is_float = (pack_images)? false: is_float_image(filename, builtin_data, is_linear);
 
-	ImageDataType type = is_float? IMAGE_DATA_TYPE_FLOAT4 : IMAGE_DATA_TYPE_BYTE;
+	ImageDataType type = is_float? IMAGE_DATA_TYPE_FLOAT4 : IMAGE_DATA_TYPE_BYTE4;
 
 	/* Fnd existing image. */
 	for(slot = 0; slot < images[type].size(); slot++) {
@@ -290,16 +290,16 @@ void ImageManager::remove_image(int slot)
 	ImageDataType type;
 	slot = flattened_slot_to_type_index(slot, &type);
 
-	assert(images[type][slot] != NULL);
+	Image *image = images[type][slot];
+	assert(image && image->users >= 1);
 
 	/* decrement user count */
-	images[type][slot]->users--;
-	assert(images[type][slot]->users >= 0);
+	image->users--;
 
 	/* don't remove immediately, rather do it all together later on. one of
 	 * the reasons for this is that on shader changes we add and remove nodes
 	 * that use them, but we do not want to reload the image all the time. */
-	if(images[type][slot]->users == 0)
+	if(image->users == 0)
 		need_update = true;
 }
 
@@ -622,27 +622,21 @@ bool ImageManager::file_load_float_image(Image *img, device_vector<float4>& tex_
 	return true;
 }
 
-void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int slot, Progress *progress)
+void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageDataType type, int slot, Progress *progress)
 {
 	if(progress->get_cancel())
 		return;
 	
-	Image *img;
-	ImageDataType type;
-	int slot_offset;
-
-	slot_offset = flattened_slot_to_type_index(slot, &type);
-
-	img = images[type][slot_offset];
+	Image *img = images[type][slot];
 
 	if(osl_texture_system && !img->builtin_data)
 		return;
 
-	string filename = path_filename(images[type][slot_offset]->filename);
+	string filename = path_filename(images[type][slot]->filename);
 	progress->set_status("Updating Images", "Loading " + filename);
 
 	if(type == IMAGE_DATA_TYPE_FLOAT4) {
-		device_vector<float4>& tex_img = dscene->tex_float4_image[slot_offset];
+		device_vector<float4>& tex_img = dscene->tex_float4_image[slot];
 
 		if(tex_img.device_pointer) {
 			thread_scoped_lock device_lock(device_mutex);
@@ -674,7 +668,7 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 		}
 	}
 	else {
-		device_vector<uchar4>& tex_img = dscene->tex_byte_image[slot_offset];
+		device_vector<uchar4>& tex_img = dscene->tex_byte_image[slot];
 
 		if(tex_img.device_pointer) {
 			thread_scoped_lock device_lock(device_mutex);
@@ -709,14 +703,9 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 	img->need_load = false;
 }
 
-void ImageManager::device_free_image(Device *device, DeviceScene *dscene, int slot)
+void ImageManager::device_free_image(Device *device, DeviceScene *dscene, ImageDataType type, int slot)
 {
-	Image *img;
-	ImageDataType type;
-
-	int slot_offset = flattened_slot_to_type_index(slot, &type);
-
-	img = images[type][slot_offset];
+	Image *img = images[type][slot];
 
 	if(img) {
 		if(osl_texture_system && !img->builtin_data) {
@@ -726,7 +715,7 @@ void ImageManager::device_free_image(Device *device, DeviceScene *dscene, int sl
 #endif
 		}
 		else if(type == IMAGE_DATA_TYPE_FLOAT4) {
-			device_vector<float4>& tex_img = dscene->tex_float4_image[slot_offset];
+			device_vector<float4>& tex_img = dscene->tex_float4_image[slot];
 
 			if(tex_img.device_pointer) {
 				thread_scoped_lock device_lock(device_mutex);
@@ -735,11 +724,11 @@ void ImageManager::device_free_image(Device *device, DeviceScene *dscene, int sl
 
 			tex_img.clear();
 
-			delete images[type][slot_offset];
-			images[type][slot_offset] = NULL;
+			delete images[type][slot];
+			images[type][slot] = NULL;
 		}
 		else {
-			device_vector<uchar4>& tex_img = dscene->tex_byte_image[slot_offset];
+			device_vector<uchar4>& tex_img = dscene->tex_byte_image[slot];
 
 			if(tex_img.device_pointer) {
 				thread_scoped_lock device_lock(device_mutex);
@@ -748,8 +737,8 @@ void ImageManager::device_free_image(Device *device, DeviceScene *dscene, int sl
 
 			tex_img.clear();
 
-			delete images[type][slot_offset];
-			images[type][slot_offset] = NULL;
+			delete images[type][slot];
+			images[type][slot] = NULL;
 		}
 	}
 }
@@ -767,11 +756,11 @@ void ImageManager::device_update(Device *device, DeviceScene *dscene, Progress& 
 				continue;
 
 			if(images[type][slot]->users == 0) {
-				device_free_image(device, dscene, type_index_to_flattened_slot(slot, (ImageDataType)type));
+				device_free_image(device, dscene, (ImageDataType)type, slot);
 			}
 			else if(images[type][slot]->need_load) {
 				if(!osl_texture_system || images[type][slot]->builtin_data)
-					pool.push(function_bind(&ImageManager::device_load_image, this, device, dscene, type_index_to_flattened_slot(slot, (ImageDataType)type), &progress));
+					pool.push(function_bind(&ImageManager::device_load_image, this, device, dscene, (ImageDataType)type, slot, &progress));
 			}
 		}
 	}
@@ -789,21 +778,20 @@ void ImageManager::device_update_slot(Device *device,
                                       int slot,
                                       Progress *progress)
 {
-	Image *image;
 	ImageDataType type;
-
 	slot = flattened_slot_to_type_index(slot, &type);
 
-	assert(images[type][slot] != NULL);
-	image = images[type][slot];
+	Image *image = images[type][slot];
+	assert(image != NULL);
 
 	if(image->users == 0) {
-		device_free_image(device, dscene, slot);
+		device_free_image(device, dscene, type, slot);
 	}
 	else if(image->need_load) {
 		if(!osl_texture_system || image->builtin_data)
 			device_load_image(device,
 			                  dscene,
+			                  type,
 			                  slot,
 			                  progress);
 	}
@@ -818,7 +806,7 @@ void ImageManager::device_pack_images(Device *device,
 	size_t size = 0;
 
 	/* Only byte textures are supported atm */
-	ImageDataType type = IMAGE_DATA_TYPE_BYTE;
+	ImageDataType type = IMAGE_DATA_TYPE_BYTE4;
 
 	for(size_t slot = 0; slot < images[type].size(); slot++) {
 		if(!images[type][slot])
@@ -872,7 +860,7 @@ void ImageManager::device_free_builtin(Device *device, DeviceScene *dscene)
 	for(int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
 		for(size_t slot = 0; slot < images[type].size(); slot++) {
 			if(images[type][slot] && images[type][slot]->builtin_data)
-				device_free_image(device, dscene, type_index_to_flattened_slot(slot, (ImageDataType)type));
+				device_free_image(device, dscene, (ImageDataType)type, slot);
 		}
 	}
 }
@@ -881,7 +869,7 @@ void ImageManager::device_free(Device *device, DeviceScene *dscene)
 {
 	for(int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
 		for(size_t slot = 0; slot < images[type].size(); slot++) {
-			device_free_image(device, dscene, type_index_to_flattened_slot(slot, (ImageDataType)type));
+			device_free_image(device, dscene, (ImageDataType)type, slot);
 		}
 		images[type].clear();
 	}
