@@ -629,6 +629,8 @@ class GreasePencilDataPanel:
         col = layout.column(align=True)
         col.label(text="New Stroke Quality:")
         col.prop(gpl, "pen_smooth_factor")
+        col.prop(gpl, "pen_smooth_steps")
+        col.separator()
         col.prop(gpl, "pen_subdivision_steps")
 
 

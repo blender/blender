@@ -716,11 +716,18 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 			}
 		}
 		
-		/* smooth stroke - only if there's something to do */
-		/* NOTE: No pressure smoothing, or else we get annoying thickness changes while drawing... */
+		/* smooth stroke after subdiv - only if there's something to do 
+		 * for each iteration, the factor is reduced to get a better smoothing without changing too much 
+		 * the original stroke
+		 */
 		if (gpl->draw_smoothfac > 0.0f) {
-			for (i = 0; i < gps->totpoints; i++) {
-				gp_smooth_stroke(gps, i, gpl->draw_smoothfac, false);
+			float reduce = 0.0f;
+			for (int r = 0; r < gpl->draw_smoothlvl; ++r) {
+				for (i = 0; i < gps->totpoints; i++) {
+					/* NOTE: No pressure smoothing, or else we get annoying thickness changes while drawing... */
+					gp_smooth_stroke(gps, i, gpl->draw_smoothfac - reduce, false);
+				}
+				reduce += 0.25f;  // reduce the factor
 			}
 		}
 		

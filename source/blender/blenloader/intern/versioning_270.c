@@ -1040,6 +1040,15 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 
+		/* init grease pencil smooth level iterations */
+		for (bGPdata *gpd = main->gpencil.first; gpd; gpd = gpd->id.next) {
+			for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+				if (gpl->draw_smoothlvl == 0) {
+					gpl->draw_smoothlvl = 1;
+				}
+			}
+		}
+
 		for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {

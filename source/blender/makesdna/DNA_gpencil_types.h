@@ -146,8 +146,9 @@ typedef struct bGPDlayer {
 							 * this is used for the name of the layer  too and kept unique. */
 	
 	float draw_smoothfac;   /* amount of smoothing to apply to newly created strokes */
+	short draw_smoothlvl;   /* number of times to apply smooth factor to new strokes */
 	short sublevel;         /* number of times to subdivide new strokes */
-	short pad[5];           /* padding for compiler error */
+	short pad[4];           /* padding for compiler error */
 } bGPDlayer;
 
 /* bGPDlayer->flag */
