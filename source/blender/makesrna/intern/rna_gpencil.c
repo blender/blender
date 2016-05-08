@@ -770,18 +770,18 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "ghost_before_range", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gstep");
-	RNA_def_property_range(prop, 0, 120);
+	RNA_def_property_range(prop, -1, 120);
 	RNA_def_property_ui_text(prop, "Frames Before",
 	                         "Maximum number of frames to show before current frame "
-	                         "(0 = show only the previous sketch)");
+	                         "(0 = show only the previous sketch,  -1 = Don't show any frames before current)");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 	
 	prop = RNA_def_property(srna, "ghost_after_range", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gstep_next");
-	RNA_def_property_range(prop, 0, 120);
+	RNA_def_property_range(prop, -1, 120);
 	RNA_def_property_ui_text(prop, "Frames After",
 	                         "Maximum number of frames to show after current frame "
-	                         "(0 = show only the next sketch)");
+	                         "(0 = show only the next sketch,  -1 = Don't show any frames after current)");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 	
 	prop = RNA_def_property(srna, "use_ghost_custom_colors", PROP_BOOLEAN, PROP_NONE);

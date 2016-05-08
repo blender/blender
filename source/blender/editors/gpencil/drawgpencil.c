@@ -1067,7 +1067,7 @@ static void gp_draw_onionskins(bGPDlayer *gpl, bGPDframe *gpf, int offsx, int of
 		copy_v3_v3(color, gpl->color);
 	}
 	
-	if (gpl->gstep) {
+	if (gpl->gstep > 0) {
 		bGPDframe *gf;
 		float fac;
 		
@@ -1084,12 +1084,15 @@ static void gp_draw_onionskins(bGPDlayer *gpl, bGPDframe *gpf, int offsx, int of
 				break;
 		}
 	}
-	else {
+	else if (gpl->gstep == 0) {
 		/* draw the strokes for the ghost frames (at half of the alpha set by user) */
 		if (gpf->prev) {
 			color[3] = (alpha / 7);
 			gp_draw_strokes(gpf->prev, offsx, offsy, winx, winy, dflag, debug, lthick, color, color);
 		}
+	}
+	else {
+		/* don't draw - disabled */
 	}
 	
 	
@@ -1101,7 +1104,7 @@ static void gp_draw_onionskins(bGPDlayer *gpl, bGPDframe *gpf, int offsx, int of
 		copy_v3_v3(color, gpl->color);
 	}
 	
-	if (gpl->gstep_next) {
+	if (gpl->gstep_next > 0) {
 		bGPDframe *gf;
 		float fac;
 		
@@ -1118,12 +1121,15 @@ static void gp_draw_onionskins(bGPDlayer *gpl, bGPDframe *gpf, int offsx, int of
 				break;
 		}
 	}
-	else {
+	else if (gpl->gstep_next == 0) {
 		/* draw the strokes for the ghost frames (at half of the alpha set by user) */
 		if (gpf->next) {
 			color[3] = (alpha / 4);
 			gp_draw_strokes(gpf->next, offsx, offsy, winx, winy, dflag, debug, lthick, color, color);
 		}
+	}
+	else {
+		/* don't draw - disabled */
 	}
 	
 	/* 3) restore alpha */
