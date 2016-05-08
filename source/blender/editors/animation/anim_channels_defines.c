@@ -3818,6 +3818,9 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
 	/* send notifiers before doing anything else... */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
+	if (ale_setting->type == ANIMTYPE_GPLAYER)
+		WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, NULL);
+	
 	/* verify animation context */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return;
