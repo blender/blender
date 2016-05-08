@@ -570,15 +570,18 @@ class GreasePencilDataPanel:
         col.prop(gpl, "fill_alpha", text="Opacity", slider=True)
 
         # Options
+        col = layout.column(align=True)
+        col.active = not gpl.lock
+        col.prop(gpl, "line_width", slider=True)
+
+
         split = layout.split(percentage=0.5)
         split.active = not gpl.lock
 
         col = split.column(align=True)
-        col.prop(gpl, "line_width", slider=True)
         col.prop(gpl, "use_volumetric_strokes")
         col.prop(gpl, "show_points", text="Points")
         
-
         col = split.column(align=True)
         col.prop(gpl, "use_hq_fill")
         col.prop(gpl, "show_x_ray")
