@@ -29,6 +29,10 @@
  *  \ingroup curve_fit
  */
 
+#ifdef _MSC_VER
+#  define _USE_MATH_DEFINES
+#endif
+
 #include <math.h>
 #include <float.h>
 #include <stdbool.h>
@@ -38,12 +42,6 @@
 #include <stdlib.h>
 
 #include "../curve_fit_nd.h"
-
-/* Fix for compiling on MSVC */
-#ifndef M_PI
-#define M_PI        3.14159265358979323846  /* pi */
-#endif
-
 
 /* Take curvature into account when calculating the least square solution isn't usable. */
 #define USE_CIRCULAR_FALLBACK
