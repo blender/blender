@@ -80,7 +80,7 @@ typedef struct bGPDstroke {
 	
 	bGPDtriangle *triangles;/* tesselated triangles for GP Fill */
 	int tot_triangles;      /* number of triangles in array */
-	short  pad2[2];         /* avoid compiler align error */
+	int pad1, *pad2;
 
 	double inittime;		/* Init time of stroke */
 } bGPDstroke;
