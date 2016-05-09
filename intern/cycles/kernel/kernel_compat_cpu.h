@@ -40,6 +40,7 @@
 #include "util_simd.h"
 #include "util_half.h"
 #include "util_types.h"
+#include "util_texture.h"
 
 #define ccl_addr_space
 
@@ -106,6 +107,13 @@ template<typename T> struct texture_image  {
 	{
 		float f = 1.0f/255.0f;
 		return make_float4(r.x*f, r.y*f, r.z*f, r.w*f);
+	}
+
+	ccl_always_inline float4 read(float r)
+	{
+		/* TODO(dingto): Optimize this, so interpolation
+		 * happens on float instead of float4 */
+		return make_float4(r, r, r, 1.0f);
 	}
 
 	ccl_always_inline int wrap_periodic(int x, int width)
@@ -470,6 +478,7 @@ typedef texture<uint> texture_uint;
 typedef texture<int> texture_int;
 typedef texture<uint4> texture_uint4;
 typedef texture<uchar4> texture_uchar4;
+typedef texture_image<float> texture_image_float;
 typedef texture_image<float4> texture_image_float4;
 typedef texture_image<uchar4> texture_image_uchar4;
 
@@ -479,9 +488,21 @@ typedef texture_image<uchar4> texture_image_uchar4;
 #define kernel_tex_fetch_ssef(tex, index) (kg->tex.fetch_ssef(index))
 #define kernel_tex_fetch_ssei(tex, index) (kg->tex.fetch_ssei(index))
 #define kernel_tex_lookup(tex, t, offset, size) (kg->tex.lookup(t, offset, size))
-#define kernel_tex_image_interp(tex, x, y) ((tex < TEX_NUM_FLOAT4_IMAGES_CPU) ? kg->texture_float4_images[tex].interp(x, y) : kg->texture_byte4_images[tex - TEX_NUM_FLOAT4_IMAGES_CPU].interp(x, y))
-#define kernel_tex_image_interp_3d(tex, x, y, z) ((tex < TEX_NUM_FLOAT4_IMAGES_CPU) ? kg->texture_float4_images[tex].interp_3d(x, y, z) : kg->texture_byte4_images[tex - TEX_NUM_FLOAT4_IMAGES_CPU].interp_3d(x, y, z))
-#define kernel_tex_image_interp_3d_ex(tex, x, y, z, interpolation) ((tex < TEX_NUM_FLOAT4_IMAGES_CPU) ? kg->texture_float4_images[tex].interp_3d_ex(x, y, z, interpolation) : kg->texture_byte4_images[tex - TEX_NUM_FLOAT4_IMAGES_CPU].interp_3d_ex(x, y, z, interpolation))
+
+#define kernel_tex_image_interp(tex, x, y) \
+	((tex >= TEX_IMAGE_FLOAT_START_CPU) ? kg->texture_float_images[tex - TEX_IMAGE_FLOAT_START_CPU].interp(x, y) : \
+	(tex >= TEX_IMAGE_BYTE4_START_CPU) ? kg->texture_byte4_images[tex - TEX_IMAGE_BYTE4_START_CPU].interp(x, y) : \
+	kg->texture_float4_images[tex].interp(x, y))
+
+#define kernel_tex_image_interp_3d(tex, x, y, z) \
+	((tex >= TEX_IMAGE_FLOAT_START_CPU) ? kg->texture_float_images[tex - TEX_IMAGE_FLOAT_START_CPU].interp_3d(x, y, z) : \
+	(tex >= TEX_IMAGE_BYTE4_START_CPU) ? kg->texture_byte4_images[tex - TEX_IMAGE_BYTE4_START_CPU].interp_3d(x, y, z) : \
+	kg->texture_float4_images[tex].interp_3d(x, y, z))
+
+#define kernel_tex_image_interp_3d_ex(tex, x, y, z, interpolation) \
+	((tex >= TEX_IMAGE_FLOAT_START_CPU) ? kg->texture_float_images[tex - TEX_IMAGE_FLOAT_START_CPU].interp_3d_ex(x, y, z, interpolation) : \
+	(tex >= TEX_IMAGE_BYTE4_START_CPU) ? kg->texture_byte4_images[tex - TEX_IMAGE_BYTE4_START_CPU].interp_3d_ex(x, y, z, interpolation) : \
+	kg->texture_float4_images[tex].interp_3d_ex(x, y, z, interpolation))
 
 #define kernel_data (kg->__data)
 

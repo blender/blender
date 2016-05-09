@@ -19,7 +19,6 @@
 #include "scene.h"
 
 #include "util_foreach.h"
-#include "util_image.h"
 #include "util_path.h"
 #include "util_progress.h"
 #include "util_texture.h"
@@ -43,31 +42,41 @@ ImageManager::ImageManager(const DeviceInfo& info)
 	if(info.type == DEVICE_CPU) {
 		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_IMAGES_CPU;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_CPU;
+		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_IMAGES_CPU;
 		tex_image_byte4_start = TEX_IMAGE_BYTE4_START_CPU;
+		tex_image_float_start = TEX_IMAGE_FLOAT_START_CPU;
 	}
 	/* CUDA (Fermi) */
 	else if((info.type == DEVICE_CUDA || info.type == DEVICE_MULTI) && !info.extended_images) {
 		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_IMAGES_CUDA;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_CUDA;
+		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_IMAGES_CUDA;
 		tex_image_byte4_start = TEX_IMAGE_BYTE4_START_CUDA;
+		tex_image_float_start = TEX_IMAGE_FLOAT_START_CUDA;
 	}
 	/* CUDA (Kepler and above) */
 	else if((info.type == DEVICE_CUDA || info.type == DEVICE_MULTI) && info.extended_images) {
 		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_IMAGES_CUDA_KEPLER;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_CUDA_KEPLER;
+		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_IMAGES_CUDA_KEPLER;
 		tex_image_byte4_start = TEX_IMAGE_BYTE4_START_CUDA_KELPER;
+		tex_image_float_start = TEX_IMAGE_FLOAT_START_CUDA_KELPER;
 	}
 	/* OpenCL */
 	else if(info.pack_images) {
 		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_IMAGES_OPENCL;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_OPENCL;
+		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_IMAGES_OPENCL;
 		tex_image_byte4_start = TEX_IMAGE_BYTE4_START_OPENCL;
+		tex_image_float_start = TEX_IMAGE_FLOAT_START_OPENCL;
 	}
 	/* Should never happen */
 	else {
 		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = 0;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = 0;
+		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = 0;
 		tex_image_byte4_start = 0;
+		tex_image_float_start = 0;
 		assert(0);
 	}
 }
@@ -106,21 +115,30 @@ bool ImageManager::set_animation_frame_update(int frame)
 	return false;
 }
 
-bool ImageManager::is_float_image(const string& filename, void *builtin_data, bool& is_linear)
+ImageManager::ImageDataType ImageManager::get_image_metadata(const string& filename,
+                                                             void *builtin_data,
+                                                             bool& is_linear)
 {
 	bool is_float = false;
 	is_linear = false;
+	int channels = 4;
 
 	if(builtin_data) {
 		if(builtin_image_info_cb) {
-			int width, height, depth, channels;
+			int width, height, depth;
 			builtin_image_info_cb(filename, builtin_data, is_float, width, height, depth, channels);
 		}
 
-		if(is_float)
+		if(is_float) {
 			is_linear = true;
 
-		return is_float;
+			if(channels > 1)
+				return IMAGE_DATA_TYPE_FLOAT4;
+			else
+				return IMAGE_DATA_TYPE_FLOAT;
+		}
+		else
+			return IMAGE_DATA_TYPE_BYTE4;
 	}
 
 	ImageInput *in = ImageInput::create(filename);
@@ -142,6 +160,8 @@ bool ImageManager::is_float_image(const string& filename, void *builtin_data, bo
 					is_linear = true;
 				}
 			}
+
+			channels = spec.nchannels;
 
 			/* basic color space detection, not great but better than nothing
 			 * before we do OpenColorIO integration */
@@ -166,20 +186,34 @@ bool ImageManager::is_float_image(const string& filename, void *builtin_data, bo
 		delete in;
 	}
 
-	return is_float;
+	if(is_float) {
+		if(channels > 1)
+			return IMAGE_DATA_TYPE_FLOAT4;
+		else
+			return IMAGE_DATA_TYPE_FLOAT;
+	}
+	else
+		return IMAGE_DATA_TYPE_BYTE4;
 }
 
 int ImageManager::type_index_to_flattened_slot(int slot, ImageDataType type)
 {
 	if(type == IMAGE_DATA_TYPE_BYTE4)
 		return slot + tex_image_byte4_start;
+	else if(type == IMAGE_DATA_TYPE_FLOAT)
+		return slot + tex_image_float_start;
 	else
 		return slot;
 }
 
 int ImageManager::flattened_slot_to_type_index(int flat_slot, ImageDataType *type)
 {
-	if(flat_slot >= tex_image_byte4_start) {
+	if(flat_slot >= tex_image_float_start)
+	{
+		*type = IMAGE_DATA_TYPE_FLOAT;
+		return flat_slot - tex_image_float_start;
+	}
+	else if(flat_slot >= tex_image_byte4_start) {
 		*type = IMAGE_DATA_TYPE_BYTE4;
 		return flat_slot - tex_image_byte4_start;
 	}
@@ -192,9 +226,11 @@ int ImageManager::flattened_slot_to_type_index(int flat_slot, ImageDataType *typ
 string ImageManager::name_from_type(int type)
 {
 	if(type == IMAGE_DATA_TYPE_FLOAT4)
+		return "float4";
+	else if(type == IMAGE_DATA_TYPE_FLOAT)
 		return "float";
 	else
-		return "byte";
+		return "byte4";
 }
 
 static bool image_equals(ImageManager::Image *image,
@@ -222,10 +258,15 @@ int ImageManager::add_image(const string& filename,
 	Image *img;
 	size_t slot;
 
-	/* Load image info and find out if we need a float texture. */
-	is_float = is_float_image(filename, builtin_data, is_linear);
+	ImageDataType type = get_image_metadata(filename, builtin_data, is_linear);
 
-	ImageDataType type = is_float? IMAGE_DATA_TYPE_FLOAT4 : IMAGE_DATA_TYPE_BYTE4;
+	/* Do we have a float? */
+	if(type == IMAGE_DATA_TYPE_FLOAT || type == IMAGE_DATA_TYPE_FLOAT4)
+		is_float = true;
+
+	/* No float textures on GPU yet */
+	if(type == IMAGE_DATA_TYPE_FLOAT && tex_num_images[type] == 0)
+		type = IMAGE_DATA_TYPE_FLOAT4;
 
 	/* Fnd existing image. */
 	for(slot = 0; slot < images[type].size(); slot++) {
@@ -349,19 +390,16 @@ void ImageManager::tag_reload_image(const string& filename,
 	}
 }
 
-bool ImageManager::file_load_image(Image *img, device_vector<uchar4>& tex_img)
+bool ImageManager::file_load_image_generic(Image *img, ImageInput **in, int &width, int &height, int &depth, int &components)
 {
 	if(img->filename == "")
 		return false;
 
-	ImageInput *in = NULL;
-	int width, height, depth, components;
-
 	if(!img->builtin_data) {
 		/* load image from file through OIIO */
-		in = ImageInput::create(img->filename);
+		*in = ImageInput::create(img->filename);
 
-		if(!in)
+		if(!*in)
 			return false;
 
 		ImageSpec spec = ImageSpec();
@@ -370,8 +408,9 @@ bool ImageManager::file_load_image(Image *img, device_vector<uchar4>& tex_img)
 		if(img->use_alpha == false)
 			config.attribute("oiio:UnassociatedAlpha", 1);
 
-		if(!in->open(img->filename, spec, config)) {
-			delete in;
+		if(!(*in)->open(img->filename, spec, config)) {
+			delete *in;
+			*in = NULL;
 			return false;
 		}
 
@@ -391,13 +430,25 @@ bool ImageManager::file_load_image(Image *img, device_vector<uchar4>& tex_img)
 
 	/* we only handle certain number of components */
 	if(!(components >= 1 && components <= 4)) {
-		if(in) {
-			in->close();
-			delete in;
+		if(*in) {
+			(*in)->close();
+			delete *in;
+			*in = NULL;
 		}
 
 		return false;
 	}
+
+	return true;
+}
+
+bool ImageManager::file_load_byte4_image(Image *img, device_vector<uchar4>& tex_img)
+{
+	ImageInput *in = NULL;
+	int width, height, depth, components;
+
+	if(!file_load_image_generic(img, &in, width, height, depth, components))
+		return false;
 
 	/* read RGBA pixels */
 	uchar *pixels = (uchar*)tex_img.resize(width, height, depth);
@@ -476,54 +527,13 @@ bool ImageManager::file_load_image(Image *img, device_vector<uchar4>& tex_img)
 	return true;
 }
 
-bool ImageManager::file_load_float_image(Image *img, device_vector<float4>& tex_img)
+bool ImageManager::file_load_float4_image(Image *img, device_vector<float4>& tex_img)
 {
-	if(img->filename == "")
-		return false;
-
 	ImageInput *in = NULL;
 	int width, height, depth, components;
 
-	if(!img->builtin_data) {
-		/* load image from file through OIIO */
-		in = ImageInput::create(img->filename);
-
-		if(!in)
-			return false;
-
-		ImageSpec spec = ImageSpec();
-		ImageSpec config = ImageSpec();
-
-		if(img->use_alpha == false)
-			config.attribute("oiio:UnassociatedAlpha",1);
-
-		if(!in->open(img->filename, spec, config)) {
-			delete in;
-			return false;
-		}
-
-		/* we only handle certain number of components */
-		width = spec.width;
-		height = spec.height;
-		depth = spec.depth;
-		components = spec.nchannels;
-	}
-	else {
-		/* load image using builtin images callbacks */
-		if(!builtin_image_info_cb || !builtin_image_float_pixels_cb)
-			return false;
-
-		bool is_float;
-		builtin_image_info_cb(img->filename, img->builtin_data, is_float, width, height, depth, components);
-	}
-
-	if(components < 1 || width == 0 || height == 0) {
-		if(in) {
-			in->close();
-			delete in;
-		}
+	if(!file_load_image_generic(img, &in, width, height, depth, components))
 		return false;
-	}
 
 	/* read RGBA pixels */
 	float *pixels = (float*)tex_img.resize(width, height, depth);
@@ -622,6 +632,46 @@ bool ImageManager::file_load_float_image(Image *img, device_vector<float4>& tex_
 	return true;
 }
 
+bool ImageManager::file_load_float_image(Image *img, device_vector<float>& tex_img)
+{
+	ImageInput *in = NULL;
+	int width, height, depth, components;
+
+	if(!file_load_image_generic(img, &in, width, height, depth, components))
+		return false;
+
+	/* read BW pixels */
+	float *pixels = (float*)tex_img.resize(width, height, depth);
+	if(pixels == NULL) {
+		return false;
+	}
+
+	if(in) {
+		float *readpixels = pixels;
+
+		if(depth <= 1) {
+			int scanlinesize = width*components*sizeof(float);
+
+			in->read_image(TypeDesc::FLOAT,
+			               (uchar*)readpixels + (height-1)*scanlinesize,
+			               AutoStride,
+			               -scanlinesize,
+			               AutoStride);
+		}
+		else {
+			in->read_image(TypeDesc::FLOAT, (uchar*)readpixels);
+		}
+
+		in->close();
+		delete in;
+	}
+	else {
+		builtin_image_float_pixels_cb(img->filename, img->builtin_data, pixels);
+	}
+
+	return true;
+}
+
 void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageDataType type, int slot, Progress *progress)
 {
 	if(progress->get_cancel())
@@ -635,8 +685,45 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageD
 	string filename = path_filename(images[type][slot]->filename);
 	progress->set_status("Updating Images", "Loading " + filename);
 
+	/* Slot assignment */
+	int flat_slot = type_index_to_flattened_slot(slot, type);
+
+	string name;
+	if(flat_slot >= 100)
+		name = string_printf("__tex_image_%s_%d", name_from_type(type).c_str(), flat_slot);
+	else if(flat_slot >= 10)
+		name = string_printf("__tex_image_%s_0%d", name_from_type(type).c_str(), flat_slot);
+	else
+		name = string_printf("__tex_image_%s_00%d", name_from_type(type).c_str(), flat_slot);
+
 	if(type == IMAGE_DATA_TYPE_FLOAT4) {
 		device_vector<float4>& tex_img = dscene->tex_float4_image[slot];
+
+		if(tex_img.device_pointer) {
+			thread_scoped_lock device_lock(device_mutex);
+			device->tex_free(tex_img);
+		}
+
+		if(!file_load_float4_image(img, tex_img)) {
+			/* on failure to load, we set a 1x1 pixels pink image */
+			float *pixels = (float*)tex_img.resize(1, 1);
+
+			pixels[0] = TEX_IMAGE_MISSING_R;
+			pixels[1] = TEX_IMAGE_MISSING_G;
+			pixels[2] = TEX_IMAGE_MISSING_B;
+			pixels[3] = TEX_IMAGE_MISSING_A;
+		}
+
+		if(!pack_images) {
+			thread_scoped_lock device_lock(device_mutex);
+			device->tex_alloc(name.c_str(),
+			                  tex_img,
+			                  img->interpolation,
+			                  img->extension);
+		}
+	}
+	else if(type == IMAGE_DATA_TYPE_FLOAT) {
+		device_vector<float>& tex_img = dscene->tex_float_image[slot];
 
 		if(tex_img.device_pointer) {
 			thread_scoped_lock device_lock(device_mutex);
@@ -648,17 +735,7 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageD
 			float *pixels = (float*)tex_img.resize(1, 1);
 
 			pixels[0] = TEX_IMAGE_MISSING_R;
-			pixels[1] = TEX_IMAGE_MISSING_G;
-			pixels[2] = TEX_IMAGE_MISSING_B;
-			pixels[3] = TEX_IMAGE_MISSING_A;
 		}
-
-		string name;
-
-		int flat_slot = type_index_to_flattened_slot(slot, type);
-		if(flat_slot >= 100) name = string_printf("__tex_image_float4_%d", flat_slot);
-		else if(flat_slot >= 10) name = string_printf("__tex_image_float4_0%d", flat_slot);
-		else name = string_printf("__tex_image_float4_00%d", flat_slot);
 
 		if(!pack_images) {
 			thread_scoped_lock device_lock(device_mutex);
@@ -676,7 +753,7 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageD
 			device->tex_free(tex_img);
 		}
 
-		if(!file_load_image(img, tex_img)) {
+		if(!file_load_byte4_image(img, tex_img)) {
 			/* on failure to load, we set a 1x1 pixels pink image */
 			uchar *pixels = (uchar*)tex_img.resize(1, 1);
 
@@ -685,13 +762,6 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageD
 			pixels[2] = (TEX_IMAGE_MISSING_B * 255);
 			pixels[3] = (TEX_IMAGE_MISSING_A * 255);
 		}
-
-		string name;
-
-		int flat_slot = type_index_to_flattened_slot(slot, type);
-		if(flat_slot >= 100) name = string_printf("__tex_image_byte4_%d", flat_slot);
-		else if(flat_slot >= 10) name = string_printf("__tex_image_byte4_0%d", flat_slot);
-		else name = string_printf("__tex_image_byte4_00%d", flat_slot);
 
 		if(!pack_images) {
 			thread_scoped_lock device_lock(device_mutex);
@@ -718,6 +788,19 @@ void ImageManager::device_free_image(Device *device, DeviceScene *dscene, ImageD
 		}
 		else if(type == IMAGE_DATA_TYPE_FLOAT4) {
 			device_vector<float4>& tex_img = dscene->tex_float4_image[slot];
+
+			if(tex_img.device_pointer) {
+				thread_scoped_lock device_lock(device_mutex);
+				device->tex_free(tex_img);
+			}
+
+			tex_img.clear();
+
+			delete images[type][slot];
+			images[type][slot] = NULL;
+		}
+		else if(type == IMAGE_DATA_TYPE_FLOAT) {
+			device_vector<float>& tex_img = dscene->tex_float_image[slot];
 
 			if(tex_img.device_pointer) {
 				thread_scoped_lock device_lock(device_mutex);
