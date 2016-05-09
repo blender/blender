@@ -161,6 +161,7 @@ void BMO_mesh_delete_oflag_context(BMesh *bm, const short oflag, const int type)
 			break;
 		}
 		case DEL_FACES:
+		case DEL_FACES_KEEP_BOUNDARY:
 		{
 			/* go through and mark all edges and all verts of all faces for delete */
 			BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
@@ -190,11 +191,20 @@ void BMO_mesh_delete_oflag_context(BMesh *bm, const short oflag, const int type)
 			}
 			/* also mark all the vertices of remaining edges for keeping */
 			BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
+
+				/* Only exception to normal 'DEL_FACES' logic. */
+				if (type == DEL_FACES_KEEP_BOUNDARY) {
+					if (BM_edge_is_boundary(e)) {
+						BMO_elem_flag_disable(bm, e, oflag);
+					}
+				}
+
 				if (!BMO_elem_flag_test(bm, e, oflag)) {
 					BMO_elem_flag_disable(bm, e->v1, oflag);
 					BMO_elem_flag_disable(bm, e->v2, oflag);
 				}
 			}
+
 			/* now delete marked face */
 			bmo_remove_tagged_faces(bm, oflag);
 			/* delete marked edge */

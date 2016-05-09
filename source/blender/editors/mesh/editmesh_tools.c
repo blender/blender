@@ -5133,7 +5133,7 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 		}
 		BMO_op_callf(em->bm, BMO_FLAG_DEFAULTS,
 		             "delete geom=%hf context=%i",
-		             BM_ELEM_TAG, DEL_FACES);
+		             BM_ELEM_TAG, DEL_FACES_KEEP_BOUNDARY);
 	}
 
 	BMO_op_exec(em->bm, &bmop);
