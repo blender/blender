@@ -281,21 +281,17 @@ static void schedule_children(TaskPool *pool,
                               OperationDepsNode *node,
                               const int layers)
 {
-	for (OperationDepsNode::Relations::const_iterator it = node->outlinks.begin();
-	     it != node->outlinks.end();
-	     ++it)
+	DEPSNODE_RELATIONS_ITER_BEGIN(node->outlinks, rel)
 	{
-		DepsRelation *rel = *it;
 		OperationDepsNode *child = (OperationDepsNode *)rel->to;
 		BLI_assert(child->type == DEPSNODE_TYPE_OPERATION);
-
 		if (child->scheduled) {
 			/* Happens when having cyclic dependencies. */
 			continue;
 		}
-
 		schedule_node(pool, graph, layers, child, (rel->flag & DEPSREL_FLAG_CYCLIC) == 0);
 	}
+	DEPSNODE_RELATIONS_ITER_END;
 }
 
 /**
