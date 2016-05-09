@@ -93,7 +93,7 @@ public:
 
 private:
 	int tex_num_images[IMAGE_DATA_NUM_TYPES];
-	int tex_image_byte_start;
+	int tex_image_byte4_start;
 	thread_mutex device_mutex;
 	int animation_frame;
 

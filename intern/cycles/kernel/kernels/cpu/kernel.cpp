@@ -106,9 +106,9 @@ void kernel_tex_copy(KernelGlobals *kg,
 			tex->extension = extension;
 		}
 	}
-	else if(strstr(name, "__tex_image_byte")) {
+	else if(strstr(name, "__tex_image_byte4")) {
 		texture_image_uchar4 *tex = NULL;
-		int id = atoi(name + strlen("__tex_image_byte_"));
+		int id = atoi(name + strlen("__tex_image_byte4_"));
 		int array_index = id - MAX_FLOAT4_IMAGES;
 
 		if(array_index >= 0 && array_index < MAX_BYTE_IMAGES) {

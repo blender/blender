@@ -109,7 +109,7 @@ public:
 	device_vector<uint> sobol_directions;
 
 	/* cpu images */
-	device_vector<uchar4> tex_byte_image[TEX_NUM_BYTE_IMAGES_CPU];
+	device_vector<uchar4> tex_byte4_image[TEX_NUM_BYTE4_IMAGES_CPU];
 	device_vector<float4> tex_float4_image[TEX_NUM_FLOAT4_IMAGES_CPU];
 
 	/* opencl images */
