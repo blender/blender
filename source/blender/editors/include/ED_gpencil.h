@@ -86,6 +86,10 @@ bool ED_gpencil_has_keyframe_v3d(struct Scene *scene, struct Object *ob, int cfr
 bool ED_gpencil_stroke_can_use_direct(const struct ScrArea *sa, const struct bGPDstroke *gps);
 bool ED_gpencil_stroke_can_use(const struct bContext *C, const struct bGPDstroke *gps);
 
+bool ED_gpencil_stroke_minmax(
+        const struct bGPDstroke *gps, const bool use_select,
+        float r_min[3], float r_max[3]);
+
 /* ----------- Grease Pencil Operators ----------------- */
 
 void ED_keymap_gpencil(struct wmKeyConfig *keyconf);
