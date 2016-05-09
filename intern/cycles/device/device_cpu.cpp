@@ -27,6 +27,9 @@
 #include "device.h"
 #include "device_intern.h"
 
+/* Texture limits and slot info */
+#include "util_texture.h"
+
 #include "kernel.h"
 #include "kernel_compat_cpu.h"
 #include "kernel_types.h"
