@@ -83,7 +83,7 @@
  *		2 = invert
  *	- do_channels: whether to affect selection status of channels
  */
-static void deselect_graph_keys(bAnimContext *ac, short test, short sel, short do_channels)
+void deselect_graph_keys(bAnimContext *ac, bool test, short sel, bool do_channels)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
