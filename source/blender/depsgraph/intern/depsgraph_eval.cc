@@ -248,12 +248,8 @@ static void schedule_node(TaskPool *pool, Depsgraph *graph, int layers,
 		}
 
 		if (node->num_links_pending == 0) {
-			BLI_spin_lock(&graph->lock);
-			bool need_schedule = !node->scheduled;
-			node->scheduled = true;
-			BLI_spin_unlock(&graph->lock);
-
-			if (need_schedule) {
+			bool is_scheduled = atomic_fetch_and_or_uint8((uint8_t*)&node->scheduled, (uint8_t)true);
+			if (!is_scheduled) {
 				if (node->is_noop()) {
 					/* skip NOOP node, schedule children right away */
 					schedule_children(pool, graph, node, layers);
