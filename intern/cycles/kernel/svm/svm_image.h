@@ -30,11 +30,16 @@ CCL_NAMESPACE_BEGIN
 /* For OpenCL all images are packed in a single array, and we do manual lookup
  * and interpolation. */
 
-ccl_device_inline float4 svm_image_texture_read(KernelGlobals *kg, int offset)
+ccl_device_inline float4 svm_image_texture_read(KernelGlobals *kg, int id, int offset)
 {
-	uchar4 r = kernel_tex_fetch(__tex_image_packed, offset);
-	float f = 1.0f/255.0f;
-	return make_float4(r.x*f, r.y*f, r.z*f, r.w*f);
+	if(id >= TEX_NUM_FLOAT4_IMAGES) {
+		uchar4 r = kernel_tex_fetch(__tex_image_byte4_packed, offset);
+		float f = 1.0f/255.0f;
+		return make_float4(r.x*f, r.y*f, r.z*f, r.w*f);
+	}
+	else {
+		return kernel_tex_fetch(__tex_image_float4_packed, offset);
+	}
 }
 
 ccl_device_inline int svm_image_texture_wrap_periodic(int x, int width)
@@ -81,7 +86,7 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 			iy = svm_image_texture_wrap_clamp(iy, height);
 
 		}
-		r = svm_image_texture_read(kg, offset + ix + iy*width);
+		r = svm_image_texture_read(kg, id, offset + ix + iy*width);
 	}
 	else { /* We default to linear interpolation if it is not closest */
 		float tx = svm_image_texture_frac(x*width, &ix);
@@ -103,10 +108,10 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 		}
 
 
-		r = (1.0f - ty)*(1.0f - tx)*svm_image_texture_read(kg, offset + ix + iy*width);
-		r += (1.0f - ty)*tx*svm_image_texture_read(kg, offset + nix + iy*width);
-		r += ty*(1.0f - tx)*svm_image_texture_read(kg, offset + ix + niy*width);
-		r += ty*tx*svm_image_texture_read(kg, offset + nix + niy*width);
+		r = (1.0f - ty)*(1.0f - tx)*svm_image_texture_read(kg, id, offset + ix + iy*width);
+		r += (1.0f - ty)*tx*svm_image_texture_read(kg, id, offset + nix + iy*width);
+		r += ty*(1.0f - tx)*svm_image_texture_read(kg, id, offset + ix + niy*width);
+		r += ty*tx*svm_image_texture_read(kg, id, offset + nix + niy*width);
 	}
 
 	if(use_alpha && r.w != 1.0f && r.w != 0.0f) {

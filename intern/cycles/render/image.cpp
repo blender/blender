@@ -223,7 +223,7 @@ int ImageManager::add_image(const string& filename,
 	size_t slot;
 
 	/* Load image info and find out if we need a float texture. */
-	is_float = (pack_images)? false: is_float_image(filename, builtin_data, is_linear);
+	is_float = is_float_image(filename, builtin_data, is_linear);
 
 	ImageDataType type = is_float? IMAGE_DATA_TYPE_FLOAT4 : IMAGE_DATA_TYPE_BYTE4;
 
@@ -803,12 +803,16 @@ void ImageManager::device_pack_images(Device *device,
                                       DeviceScene *dscene,
                                       Progress& /*progess*/)
 {
-	/* for OpenCL, we pack all image textures inside a single big texture, and
-	 * will do our own interpolation in the kernel */
-	size_t size = 0;
+	/* For OpenCL, we pack all image textures into a single large texture, and
+	 * do our own interpolation in the kernel. */
+	size_t size = 0, offset = 0;
+	ImageDataType type;
 
-	/* Only byte textures are supported atm */
-	ImageDataType type = IMAGE_DATA_TYPE_BYTE4;
+	int info_size = tex_num_images[IMAGE_DATA_TYPE_FLOAT4] + tex_num_images[IMAGE_DATA_TYPE_BYTE4];
+	uint4 *info = dscene->tex_image_packed_info.resize(info_size);
+
+	/* Byte Textures*/
+	type = IMAGE_DATA_TYPE_BYTE4;
 
 	for(size_t slot = 0; slot < images[type].size(); slot++) {
 		if(!images[type][slot])
@@ -818,10 +822,7 @@ void ImageManager::device_pack_images(Device *device,
 		size += tex_img.size();
 	}
 
-	uint4 *info = dscene->tex_image_packed_info.resize(images[type].size());
-	uchar4 *pixels = dscene->tex_image_packed.resize(size);
-
-	size_t offset = 0;
+	uchar4 *pixels_byte = dscene->tex_image_byte4_packed.resize(size);
 
 	for(size_t slot = 0; slot < images[type].size(); slot++) {
 		if(!images[type][slot])
@@ -829,24 +830,61 @@ void ImageManager::device_pack_images(Device *device,
 
 		device_vector<uchar4>& tex_img = dscene->tex_byte4_image[slot];
 
+		/* The image options are packed
+		   bit 0 -> periodic
+		   bit 1 + 2 -> interpolation type */
+		uint8_t interpolation = (images[type][slot]->interpolation << 1) + 1;
+		info[type_index_to_flattened_slot(slot, type)] = make_uint4(tex_img.data_width, tex_img.data_height, offset, interpolation);
+
+		memcpy(pixels_byte+offset, (void*)tex_img.data_pointer, tex_img.memory_size());
+		offset += tex_img.size();
+	}
+
+	/* Float Textures*/
+	type = IMAGE_DATA_TYPE_FLOAT4;
+	size = 0, offset = 0;
+
+	for(size_t slot = 0; slot < images[type].size(); slot++) {
+		if(!images[type][slot])
+			continue;
+
+		device_vector<float4>& tex_img = dscene->tex_float4_image[slot];
+		size += tex_img.size();
+	}
+
+	float4 *pixels_float = dscene->tex_image_float4_packed.resize(size);
+
+	for(size_t slot = 0; slot < images[type].size(); slot++) {
+		if(!images[type][slot])
+			continue;
+
+		device_vector<float4>& tex_img = dscene->tex_float4_image[slot];
+
 		/* todo: support 3D textures, only CPU for now */
 
 		/* The image options are packed
 		   bit 0 -> periodic
 		   bit 1 + 2 -> interpolation type */
 		uint8_t interpolation = (images[type][slot]->interpolation << 1) + 1;
-		info[slot] = make_uint4(tex_img.data_width, tex_img.data_height, offset, interpolation);
+		info[type_index_to_flattened_slot(slot, type)] = make_uint4(tex_img.data_width, tex_img.data_height, offset, interpolation);
 
-		memcpy(pixels+offset, (void*)tex_img.data_pointer, tex_img.memory_size());
+		memcpy(pixels_float+offset, (void*)tex_img.data_pointer, tex_img.memory_size());
 		offset += tex_img.size();
 	}
 
-	if(dscene->tex_image_packed.size()) {
-		if(dscene->tex_image_packed.device_pointer) {
+	if(dscene->tex_image_byte4_packed.size()) {
+		if(dscene->tex_image_byte4_packed.device_pointer) {
 			thread_scoped_lock device_lock(device_mutex);
-			device->tex_free(dscene->tex_image_packed);
+			device->tex_free(dscene->tex_image_byte4_packed);
 		}
-		device->tex_alloc("__tex_image_packed", dscene->tex_image_packed);
+		device->tex_alloc("__tex_image_byte4_packed", dscene->tex_image_byte4_packed);
+	}
+	if(dscene->tex_image_float4_packed.size()) {
+		if(dscene->tex_image_float4_packed.device_pointer) {
+			thread_scoped_lock device_lock(device_mutex);
+			device->tex_free(dscene->tex_image_float4_packed);
+		}
+		device->tex_alloc("__tex_image_float4_packed", dscene->tex_image_float4_packed);
 	}
 	if(dscene->tex_image_packed_info.size()) {
 		if(dscene->tex_image_packed_info.device_pointer) {
@@ -876,10 +914,12 @@ void ImageManager::device_free(Device *device, DeviceScene *dscene)
 		images[type].clear();
 	}
 
-	device->tex_free(dscene->tex_image_packed);
+	device->tex_free(dscene->tex_image_byte4_packed);
+	device->tex_free(dscene->tex_image_float4_packed);
 	device->tex_free(dscene->tex_image_packed_info);
 
-	dscene->tex_image_packed.clear();
+	dscene->tex_image_byte4_packed.clear();
+	dscene->tex_image_float4_packed.clear();
 	dscene->tex_image_packed_info.clear();
 }
 
