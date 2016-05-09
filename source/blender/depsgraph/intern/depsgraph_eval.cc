@@ -248,7 +248,7 @@ static void schedule_node(TaskPool *pool, Depsgraph *graph, int layers,
 		}
 
 		if (node->num_links_pending == 0) {
-			bool is_scheduled = atomic_fetch_and_or_uint8((uint8_t*)&node->scheduled, (uint8_t)true);
+			bool is_scheduled = atomic_fetch_and_or_uint8((uint8_t *)&node->scheduled, (uint8_t)true);
 			if (!is_scheduled) {
 				if (node->is_noop()) {
 					/* skip NOOP node, schedule children right away */

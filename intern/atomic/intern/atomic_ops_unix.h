@@ -49,8 +49,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __ATOMIC_OPS_GCC_H__
-#define __ATOMIC_OPS_GCC_H__
+#ifndef __ATOMIC_OPS_UNIX_H__
+#define __ATOMIC_OPS_UNIX_H__
 
 #include "atomic_ops_utils.h"
 
@@ -177,4 +177,4 @@ ATOMIC_INLINE uint8_t atomic_fetch_and_or_uint8(uint8_t *p, uint8_t b)
 #  error "Missing implementation for 8-bit atomic operations"
 #endif
 
-#endif /* __ATOMIC_OPS_GCC_H__ */
+#endif /* __ATOMIC_OPS_UNIX_H__ */
