@@ -296,12 +296,13 @@ void ED_gpencil_strokes_copybuf_free(void)
 	for (gps = gp_strokes_copypastebuf.first; gps; gps = gpsn) {
 		gpsn = gps->next;
 		
-		MEM_freeN(gps->points);
-		MEM_freeN(gps->triangles);
+		if (gps->points)    MEM_freeN(gps->points);
+		if (gps->triangles) MEM_freeN(gps->triangles);
+		
 		BLI_freelinkN(&gp_strokes_copypastebuf, gps);
 	}
 	
-	BLI_listbase_clear(&gp_strokes_copypastebuf);
+	gp_strokes_copypastebuf.first = gp_strokes_copypastebuf.last = NULL;
 }
 
 /* --------------------- */
@@ -385,6 +386,14 @@ void GPENCIL_OT_copy(wmOperatorType *ot)
 
 /* --------------------- */
 /* Paste selected strokes */
+
+static int gp_strokes_paste_poll(bContext *C)
+{
+	/* 1) Must have GP layer to paste to...
+	 * 2) Copy buffer must at least have something (though it may be the wrong sort...)
+	 */
+	return (CTX_data_active_gpencil_layer(C) != NULL) && (!BLI_listbase_is_empty(&gp_strokes_copypastebuf));
+}
 
 static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 {
@@ -490,7 +499,7 @@ void GPENCIL_OT_paste(wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec = gp_strokes_paste_exec;
-	ot->poll = gp_stroke_edit_poll;
+	ot->poll = gp_strokes_paste_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
