@@ -2197,28 +2197,34 @@ void ED_vgroup_mirror(Object *ob,
 
 			EDBM_verts_mirror_cache_begin(em, 0, true, false, use_topology);
 
+			BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
+
 			/* Go through the list of editverts and assign them */
 			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-				if ((eve_mirr = EDBM_verts_mirror_get(em, eve))) {
-					if (eve_mirr != eve) {
-						sel = BM_elem_flag_test(eve, BM_ELEM_SELECT);
-						sel_mirr = BM_elem_flag_test(eve_mirr, BM_ELEM_SELECT);
+				if (!BM_elem_flag_test(eve, BM_ELEM_TAG)) {
+					if ((eve_mirr = EDBM_verts_mirror_get(em, eve))) {
+						if (eve_mirr != eve) {
+							if (!BM_elem_flag_test(eve_mirr, BM_ELEM_TAG)) {
+								sel = BM_elem_flag_test(eve, BM_ELEM_SELECT);
+								sel_mirr = BM_elem_flag_test(eve_mirr, BM_ELEM_SELECT);
 
-						if ((sel || sel_mirr) && (eve != eve_mirr)) {
-							dvert      = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
-							dvert_mirr = BM_ELEM_CD_GET_VOID_P(eve_mirr, cd_dvert_offset);
+								if ((sel || sel_mirr) && (eve != eve_mirr)) {
+									dvert      = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
+									dvert_mirr = BM_ELEM_CD_GET_VOID_P(eve_mirr, cd_dvert_offset);
 
-							VGROUP_MIRR_OP;
-							totmirr++;
+									VGROUP_MIRR_OP;
+									totmirr++;
+								}
+
+								/* don't use these again */
+								BM_elem_flag_enable(eve, BM_ELEM_TAG);
+								BM_elem_flag_enable(eve_mirr, BM_ELEM_TAG);
+							}
 						}
 					}
-
-					/* don't use these again */
-					EDBM_verts_mirror_cache_clear(em, eve);
-					EDBM_verts_mirror_cache_clear(em, eve_mirr);
-				}
-				else {
-					totfail++;
+					else {
+						totfail++;
+					}
 				}
 			}
 			EDBM_verts_mirror_cache_end(em);
