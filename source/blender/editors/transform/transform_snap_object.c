@@ -1014,7 +1014,7 @@ static bool snapEditMesh(
 			case SCE_SNAP_MODE_EDGE:
 			{
 				BM_mesh_elem_table_ensure(em->bm, BM_EDGE);
-				int totedge = em->bm->totvert;
+				int totedge = em->bm->totedge;
 				for (int i = 0; i < totedge; i++) {
 					BMEdge *eed = BM_edge_at_index(em->bm, i);
 
