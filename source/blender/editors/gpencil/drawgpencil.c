@@ -378,9 +378,10 @@ static void gp_stroke_2d_flat(bGPDspoint *points, int totpoints, float(*points2d
 static void gp_triangulate_stroke_fill(bGPDstroke *gps)
 {
 	BLI_assert(gps->totpoints >= 3);
-	
+	gps->tot_triangles = gps->totpoints - 2;
+
 	/* allocate memory for temporary areas */
-	unsigned int (*tmp_triangles)[3] = MEM_mallocN(sizeof(*tmp_triangles) * gps->totpoints, "GP Stroke temp triangulation");
+	unsigned int (*tmp_triangles)[3] = MEM_mallocN(sizeof(*tmp_triangles) * gps->tot_triangles, "GP Stroke temp triangulation");
 	float (*points2d)[2] = MEM_mallocN(sizeof(*points2d) * gps->totpoints, "GP Stroke temp 2d points");
 	
 	int direction = 0;
@@ -388,24 +389,7 @@ static void gp_triangulate_stroke_fill(bGPDstroke *gps)
 	/* convert to 2d and triangulate */
 	gp_stroke_2d_flat(gps->points, gps->totpoints, points2d, &direction);
 	BLI_polyfill_calc((const float(*)[2])points2d, (unsigned int)gps->totpoints, direction, (unsigned int(*)[3])tmp_triangles);
-	
-	/* count number of valid triangles, slower but safer */
-	gps->tot_triangles = 0;
-	for (int i = 0; i < gps->totpoints; i++) {
-		if ((tmp_triangles[i][0] >= 0) && (tmp_triangles[i][0] < gps->totpoints) &&
-		    (tmp_triangles[i][1] >= 0) && (tmp_triangles[i][1] < gps->totpoints) &&
-		    (tmp_triangles[i][2] >= 0) && (tmp_triangles[i][2] < gps->totpoints))
-		{
-			gps->tot_triangles++;
-		}
-	}
-	
-	if (gps->tot_triangles > gps->totpoints - 2) {
-		/* avoid problems with extra (unwanted) triangles getting created */
-		gps->tot_triangles = gps->totpoints - 2;
-	}
-	//printf("tot triangles: %d / %d  -  direction = %d\n", gps->tot_triangles, gps->totpoints, direction);
-	
+
 	/* save triangulation data in stroke cache */
 	if (gps->tot_triangles > 0) {
 		if (gps->triangles == NULL) {
