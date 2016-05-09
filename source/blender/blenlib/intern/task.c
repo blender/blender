@@ -344,7 +344,7 @@ static void task_scheduler_clear(TaskScheduler *scheduler, TaskPool *pool)
 
 static TaskPool *task_pool_create_ex(TaskScheduler *scheduler, void *userdata, const bool is_background)
 {
-	TaskPool *pool = MEM_callocN(sizeof(TaskPool), "TaskPool");
+	TaskPool *pool = MEM_mallocN(sizeof(TaskPool), "TaskPool");
 
 #ifndef NDEBUG
 	/* Assert we do not try to create a background pool from some parent task - those only work OK from main thread. */
@@ -360,6 +360,7 @@ static TaskPool *task_pool_create_ex(TaskScheduler *scheduler, void *userdata, c
 
 	pool->scheduler = scheduler;
 	pool->num = 0;
+	pool->done = 0;
 	pool->num_threads = 0;
 	pool->currently_running_tasks = 0;
 	pool->do_cancel = false;
@@ -425,7 +426,7 @@ void BLI_task_pool_push_ex(
         TaskPool *pool, TaskRunFunction run, void *taskdata,
         bool free_taskdata, TaskFreeFunction freedata, TaskPriority priority)
 {
-	Task *task = MEM_callocN(sizeof(Task), "Task");
+	Task *task = MEM_mallocN(sizeof(Task), "Task");
 
 	task->run = run;
 	task->taskdata = taskdata;
