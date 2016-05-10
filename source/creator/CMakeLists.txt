@@ -186,6 +186,9 @@ if(WITH_BUILDINFO)
 	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/_buildinfo.h
 		COMMAND ${CMAKE_COMMAND}
 		-DSOURCE_DIR=${CMAKE_SOURCE_DIR}
+		# overrides only used when non-empty strings
+		-DBUILD_DATE=${BUILDINFO_OVERRIDE_DATE}
+		-DBUILD_TIME=${BUILDINFO_OVERRIDE_TIME}
 		-P ${CMAKE_SOURCE_DIR}/build_files/cmake/buildinfo.cmake)
 
 	# buildinfo.h is a generated file

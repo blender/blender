@@ -218,6 +218,10 @@ if(${CMAKE_VERSION} VERSION_LESS 2.8.8)
 	# add_library OBJECT arg unsupported
 	set(WITH_BUILDINFO OFF)
 endif()
+set(BUILDINFO_OVERRIDE_DATE "" CACHE STRING "Use instead of the current date for reproducable builds (empty string disables this option)")
+set(BUILDINFO_OVERRIDE_TIME "" CACHE STRING "Use instead of the current time for reproducable builds (empty string disables this option)")
+mark_as_advanced(BUILDINFO_OVERRIDE_DATE)
+mark_as_advanced(BUILDINFO_OVERRIDE_TIME)
 
 option(WITH_IK_ITASC      "Enable ITASC IK solver (only disable for development & for incompatible C++ compilers)" ON)
 option(WITH_IK_SOLVER     "Enable Legacy IK solver (only disable for development)" ON)

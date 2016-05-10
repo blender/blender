@@ -1,5 +1,10 @@
-# This is called by cmake as an extermal process from
+# This is called by cmake as an external process from
 # ./source/creator/CMakeLists.txt to write ./source/creator/buildinfo.h
+# Caller must define:
+#   SOURCE_DIR
+# Optional overrides:
+#   BUILD_DATE
+#   BUILD_TIME
 
 # Extract working copy information for SOURCE_DIR into MY_XXX variables
 # with a default in case anything fails, for example when using git-svn
@@ -128,12 +133,19 @@ endif()
 # BUILD_PLATFORM and BUILD_PLATFORM are taken from CMake
 # but BUILD_DATE and BUILD_TIME are platform dependent
 if(UNIX)
-	execute_process(COMMAND date "+%Y-%m-%d" OUTPUT_VARIABLE BUILD_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
-	execute_process(COMMAND date "+%H:%M:%S" OUTPUT_VARIABLE BUILD_TIME OUTPUT_STRIP_TRAILING_WHITESPACE)
-endif()
-if(WIN32)
-	execute_process(COMMAND cmd /c date /t OUTPUT_VARIABLE BUILD_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
-	execute_process(COMMAND cmd /c time /t OUTPUT_VARIABLE BUILD_TIME OUTPUT_STRIP_TRAILING_WHITESPACE)
+	if(NOT BUILD_DATE)
+		execute_process(COMMAND date "+%Y-%m-%d" OUTPUT_VARIABLE BUILD_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
+	endif()
+	if(NOT BUILD_TIME)
+		execute_process(COMMAND date "+%H:%M:%S" OUTPUT_VARIABLE BUILD_TIME OUTPUT_STRIP_TRAILING_WHITESPACE)
+	endif()
+elseif(WIN32)
+	if(NOT BUILD_DATE)
+		execute_process(COMMAND cmd /c date /t OUTPUT_VARIABLE BUILD_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
+	endif()
+	if(NOT BUILD_TIME)
+		execute_process(COMMAND cmd /c time /t OUTPUT_VARIABLE BUILD_TIME OUTPUT_STRIP_TRAILING_WHITESPACE)
+	endif()
 endif()
 
 # Write a file with the BUILD_HASH define
