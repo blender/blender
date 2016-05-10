@@ -2096,13 +2096,18 @@ static void dvert_mirror_op(MDeformVert *dvert, MDeformVert *dvert_mirr,
 				MDeformWeight *dw =      defvert_find_index(dvert, act_vgroup);
 				MDeformWeight *dw_mirr = defvert_find_index(dvert_mirr, act_vgroup);
 
-				if (dw || dw_mirr) {
-					if (dw_mirr == NULL)
-						dw_mirr = defvert_verify_index(dvert_mirr, act_vgroup);
-					if (dw == NULL)
-						dw = defvert_verify_index(dvert, act_vgroup);
-
+				if (dw && dw_mirr) {
 					SWAP(float, dw->weight, dw_mirr->weight);
+				}
+				else if (dw) {
+					dw_mirr = defvert_verify_index(dvert_mirr, act_vgroup);
+					dw_mirr->weight = dw->weight;
+					defvert_remove_group(dvert, dw);
+				}
+				else if (dw_mirr) {
+					dw = defvert_verify_index(dvert, act_vgroup);
+					dw->weight = dw_mirr->weight;
+					defvert_remove_group(dvert_mirr, dw_mirr);
 				}
 			}
 		}
