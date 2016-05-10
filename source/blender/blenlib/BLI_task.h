@@ -84,7 +84,9 @@ void BLI_task_pool_push_ex(
         TaskPool *pool, TaskRunFunction run, void *taskdata,
         bool free_taskdata, TaskFreeFunction freedata, TaskPriority priority);
 void BLI_task_pool_push(TaskPool *pool, TaskRunFunction run,
-	void *taskdata, bool free_taskdata, TaskPriority priority);
+        void *taskdata, bool free_taskdata, TaskPriority priority);
+void BLI_task_pool_push_from_thread(TaskPool *pool, TaskRunFunction run,
+        void *taskdata, bool free_taskdata, TaskPriority priority, int thread_id);
 
 /* work and wait until all tasks are done */
 void BLI_task_pool_work_and_wait(TaskPool *pool);

@@ -122,7 +122,8 @@ void DEG_evaluation_context_free(EvaluationContext *eval_ctx)
 static void schedule_children(TaskPool *pool,
                               Depsgraph *graph,
                               OperationDepsNode *node,
-                              const int layers);
+                              const int layers,
+                              const int thread_id);
 
 struct DepsgraphEvalState {
 	EvaluationContext *eval_ctx;
@@ -132,7 +133,7 @@ struct DepsgraphEvalState {
 
 static void deg_task_run_func(TaskPool *pool,
                               void *taskdata,
-                              int UNUSED(threadid))
+                              int thread_id)
 {
 	DepsgraphEvalState *state = (DepsgraphEvalState *)BLI_task_pool_userdata(pool);
 	OperationDepsNode *node = (OperationDepsNode *)taskdata;
@@ -161,7 +162,7 @@ static void deg_task_run_func(TaskPool *pool,
 	                               node,
 	                               end_time - start_time);
 
-	schedule_children(pool, state->graph, node, state->layers);
+	schedule_children(pool, state->graph, node, state->layers, thread_id);
 }
 
 static void calculate_pending_parents(Depsgraph *graph, int layers)
@@ -235,7 +236,8 @@ static void calculate_eval_priority(OperationDepsNode *node)
  *                after a task has been completed.
  */
 static void schedule_node(TaskPool *pool, Depsgraph *graph, int layers,
-                          OperationDepsNode *node, bool dec_parents)
+                          OperationDepsNode *node, bool dec_parents,
+                          const int thread_id)
 {
 	int id_layers = node->owner->owner->layers;
 	
@@ -252,11 +254,16 @@ static void schedule_node(TaskPool *pool, Depsgraph *graph, int layers,
 			if (!is_scheduled) {
 				if (node->is_noop()) {
 					/* skip NOOP node, schedule children right away */
-					schedule_children(pool, graph, node, layers);
+					schedule_children(pool, graph, node, layers, thread_id);
 				}
 				else {
 					/* children are scheduled once this task is completed */
-					BLI_task_pool_push(pool, deg_task_run_func, node, false, TASK_PRIORITY_LOW);
+					BLI_task_pool_push_from_thread(pool,
+					                               deg_task_run_func,
+					                               node,
+					                               false,
+					                               TASK_PRIORITY_LOW,
+					                               thread_id);
 				}
 			}
 		}
@@ -272,14 +279,15 @@ static void schedule_graph(TaskPool *pool,
 	     ++it)
 	{
 		OperationDepsNode *node = *it;
-		schedule_node(pool, graph, layers, node, false);
+		schedule_node(pool, graph, layers, node, false, 0);
 	}
 }
 
 static void schedule_children(TaskPool *pool,
                               Depsgraph *graph,
                               OperationDepsNode *node,
-                              const int layers)
+                              const int layers,
+                              const int thread_id)
 {
 	DEPSNODE_RELATIONS_ITER_BEGIN(node->outlinks, rel)
 	{
@@ -289,7 +297,7 @@ static void schedule_children(TaskPool *pool,
 			/* Happens when having cyclic dependencies. */
 			continue;
 		}
-		schedule_node(pool, graph, layers, child, (rel->flag & DEPSREL_FLAG_CYCLIC) == 0);
+		schedule_node(pool, graph, layers, child, (rel->flag & DEPSREL_FLAG_CYCLIC) == 0, thread_id);
 	}
 	DEPSNODE_RELATIONS_ITER_END;
 }
