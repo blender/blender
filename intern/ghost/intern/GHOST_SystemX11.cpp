@@ -1500,6 +1500,7 @@ convertXKey(KeySym key)
 			GXMAP(type, XK_quoteright,   GHOST_kKeyQuote);
 			GXMAP(type, XK_quoteleft,    GHOST_kKeyAccentGrave);
 			GXMAP(type, XK_minus,        GHOST_kKeyMinus);
+			GXMAP(type, XK_plus,         GHOST_kKeyPlus);
 			GXMAP(type, XK_slash,        GHOST_kKeySlash);
 			GXMAP(type, XK_backslash,    GHOST_kKeyBackslash);
 			GXMAP(type, XK_equal,        GHOST_kKeyEqual);

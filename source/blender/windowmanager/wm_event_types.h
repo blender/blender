@@ -167,6 +167,7 @@ enum {
 	QUOTEKEY        = 0x00e4,  /* 228 */
 	ACCENTGRAVEKEY  = 0x00e5,  /* 229 */
 	MINUSKEY        = 0x00e6,  /* 230 */
+	PLUSKEY         = 0x00e7,  /* 231 */
 	SLASHKEY        = 0x00e8,  /* 232 */
 	BACKSLASHKEY    = 0x00e9,  /* 233 */
 	EQUALKEY        = 0x00ea,  /* 234 */

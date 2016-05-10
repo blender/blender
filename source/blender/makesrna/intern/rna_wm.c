@@ -263,6 +263,7 @@ EnumPropertyItem rna_enum_event_type_items[] = {
 	{QUOTEKEY, "QUOTE", 0, "\"", ""},
 	{ACCENTGRAVEKEY, "ACCENT_GRAVE", 0, "`", ""},
 	{MINUSKEY, "MINUS", 0, "-", ""},
+	{PLUSKEY, "PLUS", 0, "+", ""},
 	{SLASHKEY, "SLASH", 0, "/", ""},
 	{BACKSLASHKEY, "BACK_SLASH", 0, "\\", ""},
 	{EQUALKEY, "EQUAL", 0, "=", ""},

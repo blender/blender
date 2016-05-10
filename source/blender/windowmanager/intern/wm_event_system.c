@@ -2897,6 +2897,7 @@ static int convert_key(GHOST_TKey key)
 			case GHOST_kKeyQuote:           return QUOTEKEY;
 			case GHOST_kKeyComma:           return COMMAKEY;
 			case GHOST_kKeyMinus:           return MINUSKEY;
+			case GHOST_kKeyPlus:            return PLUSKEY;
 			case GHOST_kKeyPeriod:          return PERIODKEY;
 			case GHOST_kKeySlash:           return SLASHKEY;
 

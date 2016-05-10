@@ -897,6 +897,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 					}
 					break;
 				case GHOST_kKeyEqual:
+				case GHOST_kKeyPlus:
 				case GHOST_kKeyNumpadPlus:
 				{
 					if (val == 0) break;

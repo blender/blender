@@ -141,6 +141,7 @@ GPG_KeyboardDevice::GPG_KeyboardDevice(void)
 	m_reverseKeyTranslateTable[GHOST_kKeyQuote                 ] = KX_QUOTEKEY                 ;
 	m_reverseKeyTranslateTable[GHOST_kKeyAccentGrave           ] = KX_ACCENTGRAVEKEY           ;
 	m_reverseKeyTranslateTable[GHOST_kKeyMinus                 ] = KX_MINUSKEY                 ;
+	m_reverseKeyTranslateTable[GHOST_kKeyPlus                  ] = KX_PLUSKEY                  ;
 	m_reverseKeyTranslateTable[GHOST_kKeySlash                 ] = KX_SLASHKEY                 ;
 	m_reverseKeyTranslateTable[GHOST_kKeyBackslash             ] = KX_BACKSLASHKEY             ;
 	m_reverseKeyTranslateTable[GHOST_kKeyEqual                 ] = KX_EQUALKEY                 ;

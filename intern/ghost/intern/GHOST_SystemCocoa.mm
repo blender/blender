@@ -240,6 +240,7 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 
 				switch (recvChar) {
 					case '-': 	return GHOST_kKeyMinus;
+					case '+': 	return GHOST_kKeyPlus;
 					case '=': 	return GHOST_kKeyEqual;
 					case ',': 	return GHOST_kKeyComma;
 					case '.': 	return GHOST_kKeyPeriod;

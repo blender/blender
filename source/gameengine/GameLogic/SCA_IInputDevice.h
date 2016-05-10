@@ -129,6 +129,7 @@ public:
 		KX_COMMAKEY = 44,
 		KX_MINUSKEY = 45,
 		KX_PERIODKEY = 46,
+		KX_PLUSKEY = 47,
 		KX_ZEROKEY = 48,
 		
 		KX_ONEKEY,		// =49
