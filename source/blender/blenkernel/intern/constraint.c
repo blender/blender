@@ -538,7 +538,7 @@ static void contarget_get_lattice_mat(Object *ob, const char *substring, float m
 static void constraint_target_to_mat4(Object *ob, const char *substring, float mat[4][4], short from, short to, float headtail)
 {
 	/*	Case OBJECT */
-	if (!strlen(substring)) {
+	if (substring[0] == '\0') {
 		copy_m4_m4(mat, ob->obmat);
 		BKE_constraint_mat_convertspace(ob, NULL, mat, from, to, false);
 	}
