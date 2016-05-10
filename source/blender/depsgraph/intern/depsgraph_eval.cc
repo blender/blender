@@ -140,29 +140,101 @@ static void deg_task_run_func(TaskPool *pool,
 
 	BLI_assert(!node->is_noop() && "NOOP nodes should not actually be scheduled");
 
-	/* Get context. */
-	// TODO: who initialises this? "Init" operations aren't able to initialise it!!!
-	/* TODO(sergey): Wedon't use component contexts at this moment. */
-	/* ComponentDepsNode *comp = node->owner; */
-	BLI_assert(node->owner != NULL);
-	
-	/* Take note of current time. */
-	double start_time = PIL_check_seconds_timer();
-	DepsgraphDebug::task_started(state->graph, node);
-	
 	/* Should only be the case for NOOPs, which never get to this point. */
 	BLI_assert(node->evaluate);
-	
-	/* Perform operation. */
-	node->evaluate(state->eval_ctx);
-	
-	/* Note how long this took. */
-	double end_time = PIL_check_seconds_timer();
-	DepsgraphDebug::task_completed(state->graph,
-	                               node,
-	                               end_time - start_time);
 
-	schedule_children(pool, state->graph, node, state->layers, thread_id);
+	while (true) {
+		/* Get context. */
+		// TODO: who initialises this? "Init" operations aren't able to initialise it!!!
+		/* TODO(sergey): We don't use component contexts at this moment. */
+		/* ComponentDepsNode *comp = node->owner; */
+		BLI_assert(node->owner != NULL);
+
+		/* Since we're not leaving the thread for until the graph branches it is
+		 * possible to have NO-OP on the way. for which evaluate() will be NULL.
+		 * but that's all fine, we'll just scheduler it's children.
+		 */
+		if (node->evaluate) {
+			/* Take note of current time. */
+			double start_time = PIL_check_seconds_timer();
+			DepsgraphDebug::task_started(state->graph, node);
+
+			/* Perform operation. */
+			node->evaluate(state->eval_ctx);
+
+			/* Note how long this took. */
+			double end_time = PIL_check_seconds_timer();
+			DepsgraphDebug::task_completed(state->graph,
+			                               node,
+			                               end_time - start_time);
+		}
+
+		/* If there's only one outgoing link we try to immediately switch to
+		 * that node evaluation, without leaving the thread.
+		 *
+		 * It's only doable if the child don't have extra relations or all they
+		 * are satisfied.
+		 *
+		 * TODO(sergey): Checks here can be de-duplicated with the ones from
+		 * schedule_node(), however, how to do it nicely?
+		 */
+		if (node->outlinks.size() == 1) {
+			DepsRelation *rel = node->outlinks[0];
+			OperationDepsNode *child = (OperationDepsNode *)rel->to;
+			BLI_assert(child->type == DEPSNODE_TYPE_OPERATION);
+			if (!child->scheduled) {
+				int id_layers = child->owner->owner->layers;
+				if (!((child->flag & DEPSOP_FLAG_NEEDS_UPDATE) != 0 &&
+				      (id_layers & state->layers) != 0))
+				{
+					/* Node does not need an update, so can;t continue with the
+					 * chain and need to switch to another one by leaving the
+					 * thread.
+					 */
+					break;
+				}
+				if ((rel->flag & DEPSREL_FLAG_CYCLIC) == 0) {
+					BLI_assert(child->num_links_pending > 0);
+					atomic_sub_uint32(&child->num_links_pending, 1);
+				}
+				if (child->num_links_pending == 0) {
+					bool is_scheduled = atomic_fetch_and_or_uint8((uint8_t *)&child->scheduled, (uint8_t)true);
+					if (!is_scheduled) {
+						/* Node was not scheduled, switch to it! */
+						node = child;
+					}
+					else {
+						/* Someone else scheduled the node, leaving us
+						 * unemployed in this thread, we're leaving.
+						 */
+						break;
+					}
+				}
+				else {
+					/* There are other dependencies on the child, can't do
+					 * anything in the current thread.
+					 */
+					break;
+				}
+			}
+			else {
+				/* Happens when having cyclic dependencies.
+				 *
+				 * Nothing to do here, single child was already scheduled, we
+				 * can leave the thread now.
+				 */
+				break;
+			}
+		}
+		else {
+			/* TODO(sergey): It's possible to use one of the outgoing relations
+			 * as a chain which we'll try to keep alive, but it's a bit more
+			 * involved change.
+			 */
+			schedule_children(pool, state->graph, node, state->layers, thread_id);
+			break;
+		}
+	}
 }
 
 static void calculate_pending_parents(Depsgraph *graph, int layers)
