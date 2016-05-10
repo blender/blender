@@ -240,41 +240,52 @@ static void deg_task_run_func(TaskPool *pool,
 	}
 }
 
-static void calculate_pending_parents(Depsgraph *graph, int layers)
+typedef struct CalculatePengindData {
+	Depsgraph *graph;
+	int layers;
+} CalculatePengindData;
+
+static void calculate_pending_func(void *data_v, int i)
 {
-	for (Depsgraph::OperationNodes::const_iterator it_op = graph->operations.begin();
-	     it_op != graph->operations.end();
-	     ++it_op)
+	CalculatePengindData *data = (CalculatePengindData *)data_v;
+	Depsgraph *graph = data->graph;
+	int layers = data->layers;
+	OperationDepsNode *node = graph->operations[i];
+	IDDepsNode *id_node = node->owner->owner;
+
+	node->num_links_pending = 0;
+	node->scheduled = false;
+
+	/* count number of inputs that need updates */
+	if ((id_node->layers & layers) != 0 &&
+	    (node->flag & DEPSOP_FLAG_NEEDS_UPDATE) != 0)
 	{
-		OperationDepsNode *node = *it_op;
-		IDDepsNode *id_node = node->owner->owner;
-
-		node->num_links_pending = 0;
-		node->scheduled = false;
-
-		/* count number of inputs that need updates */
-		if ((id_node->layers & layers) != 0 &&
-		    (node->flag & DEPSOP_FLAG_NEEDS_UPDATE) != 0)
+		DEPSNODE_RELATIONS_ITER_BEGIN(node->inlinks, rel)
 		{
-			for (OperationDepsNode::Relations::const_iterator it_rel = node->inlinks.begin();
-			     it_rel != node->inlinks.end();
-			     ++it_rel)
+			if (rel->from->type == DEPSNODE_TYPE_OPERATION &&
+			    (rel->flag & DEPSREL_FLAG_CYCLIC) == 0)
 			{
-				DepsRelation *rel = *it_rel;
-				if (rel->from->type == DEPSNODE_TYPE_OPERATION &&
-				    (rel->flag & DEPSREL_FLAG_CYCLIC) == 0)
+				OperationDepsNode *from = (OperationDepsNode *)rel->from;
+				IDDepsNode *id_from_node = from->owner->owner;
+				if ((id_from_node->layers & layers) != 0 &&
+				    (from->flag & DEPSOP_FLAG_NEEDS_UPDATE) != 0)
 				{
-					OperationDepsNode *from = (OperationDepsNode *)rel->from;
-					IDDepsNode *id_from_node = from->owner->owner;
-					if ((id_from_node->layers & layers) != 0 &&
-					    (from->flag & DEPSOP_FLAG_NEEDS_UPDATE) != 0)
-					{
-						++node->num_links_pending;
-					}
+					++node->num_links_pending;
 				}
 			}
 		}
+		DEPSNODE_RELATIONS_ITER_END;
 	}
+}
+
+static void calculate_pending_parents(Depsgraph *graph, int layers)
+{
+	const int num_operations = graph->operations.size();
+	const bool do_threads = num_operations > 256;
+	CalculatePengindData data;
+	data.graph = graph;
+	data.layers = layers;
+	BLI_task_parallel_range(0, num_operations, &data, calculate_pending_func, do_threads);
 }
 
 #ifdef USE_EVAL_PRIORITY
