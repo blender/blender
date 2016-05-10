@@ -1399,11 +1399,15 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 	/* delete old geometry */
 	if (do_del) {
 		for (i = 0; i < BLI_array_count(deledges); i++) {
-			BM_edge_kill(bm, deledges[i]);
+			if (deledges[i]->l == NULL) {
+				BM_edge_kill(bm, deledges[i]);
+			}
 		}
 
 		for (i = 0; i < BLI_array_count(delverts); i++) {
-			BM_vert_kill(bm, delverts[i]);
+			if (delverts[i]->e == NULL) {
+				BM_vert_kill(bm, delverts[i]);
+			}
 		}
 	}
 	else {
