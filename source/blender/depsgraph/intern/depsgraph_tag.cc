@@ -282,7 +282,12 @@ void DEG_graph_flush_updates(Main *bmain, Depsgraph *graph)
 	     it != graph->operations.end();
 	     ++it)
 	{
+		/* ID node's done flag is used to avoid multiple editors update
+		 * for the same ID.
+		 */
 		OperationDepsNode *node = *it;
+		IDDepsNode *id_node = node->owner->owner;
+		id_node->done = 0;
 		node->scheduled = false;
 		node->owner->flags &= ~DEPSCOMP_FULLY_SCHEDULED;
 	}
@@ -301,7 +306,10 @@ void DEG_graph_flush_updates(Main *bmain, Depsgraph *graph)
 		OperationDepsNode *node = *it;
 		IDDepsNode *id_node = node->owner->owner;
 		queue.push(node);
-		deg_editors_id_update(bmain, id_node->id);
+		if (id_node->done == 0) {
+			deg_editors_id_update(bmain, id_node->id);
+			id_node->done = 1;
+		}
 		node->scheduled = true;
 	}
 
@@ -346,7 +354,10 @@ void DEG_graph_flush_updates(Main *bmain, Depsgraph *graph)
 				to_node->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
 				queue.push(to_node);
 				to_node->scheduled = true;
-				deg_editors_id_update(bmain, id_node->id);
+				if (id_node->done == 0) {
+					deg_editors_id_update(bmain, id_node->id);
+					id_node->done = 1;
+				}
 			}
 		}
 
