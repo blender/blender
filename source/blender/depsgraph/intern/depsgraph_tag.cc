@@ -42,6 +42,8 @@ extern "C" {
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BLI_task.h"
+
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
@@ -263,6 +265,19 @@ void DEG_id_type_tag(Main *bmain, short idtype)
 /* XXX This may get a dedicated implementation later if needed - lukas */
 typedef std::queue<OperationDepsNode *> FlushQueue;
 
+static void flush_init_func(void *data_v, int i)
+{
+	/* ID node's done flag is used to avoid multiple editors update
+	 * for the same ID.
+	 */
+	Depsgraph *graph = (Depsgraph *)data_v;
+	OperationDepsNode *node = graph->operations[i];
+	IDDepsNode *id_node = node->owner->owner;
+	id_node->done = 0;
+	node->scheduled = false;
+	node->owner->flags &= ~DEPSCOMP_FULLY_SCHEDULED;
+}
+
 /* Flush updates from tagged nodes outwards until all affected nodes are tagged. */
 void DEG_graph_flush_updates(Main *bmain, Depsgraph *graph)
 {
@@ -278,19 +293,9 @@ void DEG_graph_flush_updates(Main *bmain, Depsgraph *graph)
 	/* TODO(sergey): With a bit of flag magic we can get rid of this
 	 * extra loop.
 	 */
-	for (Depsgraph::OperationNodes::const_iterator it = graph->operations.begin();
-	     it != graph->operations.end();
-	     ++it)
-	{
-		/* ID node's done flag is used to avoid multiple editors update
-		 * for the same ID.
-		 */
-		OperationDepsNode *node = *it;
-		IDDepsNode *id_node = node->owner->owner;
-		id_node->done = 0;
-		node->scheduled = false;
-		node->owner->flags &= ~DEPSCOMP_FULLY_SCHEDULED;
-	}
+	const int num_operations = graph->operations.size();
+	const bool do_threads = num_operations > 256;
+	BLI_task_parallel_range(0, num_operations, graph, flush_init_func, do_threads);
 
 	FlushQueue queue;
 	/* Starting from the tagged "entry" nodes, flush outwards... */
@@ -395,23 +400,21 @@ void DEG_ids_flush_tagged(Main *bmain)
 	}
 }
 
+static void graph_clear_func(void *data_v, int i)
+{
+	Depsgraph *graph = (Depsgraph *)data_v;
+	OperationDepsNode *node = graph->operations[i];
+	/* Clear node's "pending update" settings. */
+	node->flag &= ~(DEPSOP_FLAG_DIRECTLY_MODIFIED | DEPSOP_FLAG_NEEDS_UPDATE);
+}
+
 /* Clear tags from all operation nodes. */
 void DEG_graph_clear_tags(Depsgraph *graph)
 {
 	/* Go over all operation nodes, clearing tags. */
-	for (Depsgraph::OperationNodes::const_iterator it = graph->operations.begin();
-	     it != graph->operations.end();
-	     ++it)
-	{
-		OperationDepsNode *node = *it;
-
-		/* Clear node's "pending update" settings. */
-		node->flag &= ~(DEPSOP_FLAG_DIRECTLY_MODIFIED | DEPSOP_FLAG_NEEDS_UPDATE);
-		/* Reset so that it can be bumped up again. */
-		node->num_links_pending = 0;
-		node->scheduled = false;
-	}
-
+	const int num_operations = graph->operations.size();
+	const bool do_threads = num_operations > 256;
+	BLI_task_parallel_range(0, num_operations, graph, graph_clear_func, do_threads);
 	/* Clear any entry tags which haven't been flushed. */
 	graph->entry_tags.clear();
 }
