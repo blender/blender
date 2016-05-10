@@ -230,28 +230,21 @@ static void task_free(TaskPool *pool, Task *task, const int thread_id)
 
 static void task_pool_num_decrease(TaskPool *pool, size_t done)
 {
-	BLI_mutex_lock(&pool->num_mutex);
-
 	BLI_assert(pool->num >= done);
 
-	pool->num -= done;
+	atomic_sub_z((size_t*)&pool->num, done);
 	atomic_sub_z(&pool->currently_running_tasks, done);
-	pool->done += done;
+	atomic_add_z((size_t*)&pool->done, done);
 
-	if (pool->num == 0)
+	if (pool->num == 0) {
 		BLI_condition_notify_all(&pool->num_cond);
-
-	BLI_mutex_unlock(&pool->num_mutex);
+	}
 }
 
 static void task_pool_num_increase(TaskPool *pool)
 {
-	BLI_mutex_lock(&pool->num_mutex);
-
-	pool->num++;
+	atomic_add_z((size_t*)&pool->num, 1);
 	BLI_condition_notify_all(&pool->num_cond);
-
-	BLI_mutex_unlock(&pool->num_mutex);
 }
 
 static bool task_scheduler_thread_wait_pop(TaskScheduler *scheduler, Task **task)
