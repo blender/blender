@@ -914,7 +914,7 @@ static void task_parallel_range_ex(
 		state.chunk_size = max_ii(1, (stop - start) / (num_tasks));
 	}
 
-	num_tasks = max_ii(1, (stop - start) / state.chunk_size);
+	num_tasks = min_ii(num_tasks, (stop - start) / state.chunk_size);
 
 	for (i = 0; i < num_tasks; i++) {
 		BLI_task_pool_push(task_pool,
