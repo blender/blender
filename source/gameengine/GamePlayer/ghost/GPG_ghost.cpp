@@ -406,9 +406,9 @@ static int GPG_PyNextFrame(void *state0)
 int main(
 	int argc,
 #ifdef WIN32
-	const char **UNUSED(argv_c)
+	char **UNUSED(argv_c)
 #else
-	const char **argv
+	char **argv
 #endif
 	)
 {
