@@ -144,6 +144,8 @@ void BKE_pose_channels_remove(
         struct Object *ob,
         bool (*filter_fn)(const char *bone_name, void *user_data), void *user_data);
 
+void                 BKE_pose_free_data_ex(struct bPose *pose, bool do_id_user);
+void                 BKE_pose_free_data(struct bPose *pose);
 void                 BKE_pose_free(struct bPose *pose);
 void                 BKE_pose_free_ex(struct bPose *pose, bool do_id_user);
 void                 BKE_pose_copy_data(struct bPose **dst, struct bPose *src, const bool copy_constraints);

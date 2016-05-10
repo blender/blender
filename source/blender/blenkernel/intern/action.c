@@ -824,26 +824,35 @@ void BKE_pose_channels_free(bPose *pose)
 	BKE_pose_channels_free_ex(pose, true);
 }
 
+void BKE_pose_free_data_ex(bPose *pose, bool do_id_user)
+{
+	/* free pose-channels */
+	BKE_pose_channels_free_ex(pose, do_id_user);
+
+	/* free pose-groups */
+	if (pose->agroups.first)
+		BLI_freelistN(&pose->agroups);
+
+	/* free IK solver state */
+	BIK_clear_data(pose);
+
+	/* free IK solver param */
+	if (pose->ikparam)
+		MEM_freeN(pose->ikparam);
+}
+
+void BKE_pose_free_data(bPose *pose)
+{
+	BKE_pose_free_data_ex(pose, true);
+}
+
 /**
  * Removes and deallocates all data from a pose, and also frees the pose.
  */
 void BKE_pose_free_ex(bPose *pose, bool do_id_user)
 {
 	if (pose) {
-		/* free pose-channels */
-		BKE_pose_channels_free_ex(pose, do_id_user);
-		
-		/* free pose-groups */
-		if (pose->agroups.first)
-			BLI_freelistN(&pose->agroups);
-		
-		/* free IK solver state */
-		BIK_clear_data(pose);
-		
-		/* free IK solver param */
-		if (pose->ikparam)
-			MEM_freeN(pose->ikparam);
-		
+		BKE_pose_free_data_ex(pose, do_id_user);
 		/* free pose */
 		MEM_freeN(pose);
 	}
@@ -1415,7 +1424,13 @@ void what_does_obaction(Object *ob, Object *workob, bPose *pose, bAction *act, c
 	
 	workob->pose = pose; /* need to set pose too, since this is used for both types of Action Constraint */
 	if (pose) {
-		BKE_pose_channels_hash_make(pose);
+		/* This function is most likely to be used with a temporary pose with a single bone in there.
+		 * For such cases it makes no sense to create hash since it'll only waste CPU ticks on memory
+		 * allocation and also will make lookup slower.
+		 */
+		if (pose->chanbase.first != pose->chanbase.last) {
+			BKE_pose_channels_hash_make(pose);
+		}
 		if (pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
 			BKE_pose_update_constraint_flags(pose);
 		}

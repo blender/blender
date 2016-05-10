@@ -2143,29 +2143,26 @@ static void actcon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintT
 		}
 		else if (cob->type == CONSTRAINT_OBTYPE_BONE) {
 			Object workob;
-			bPose *pose;
+			bPose pose = {0};
 			bPoseChannel *pchan, *tchan;
-			
-			/* make a temporary pose and evaluate using that */
-			pose = MEM_callocN(sizeof(bPose), "pose");
-			
+
 			/* make a copy of the bone of interest in the temp pose before evaluating action, so that it can get set 
 			 *	- we need to manually copy over a few settings, including rotation order, otherwise this fails
 			 */
 			pchan = cob->pchan;
 			
-			tchan = BKE_pose_channel_verify(pose, pchan->name);
+			tchan = BKE_pose_channel_verify(&pose, pchan->name);
 			tchan->rotmode = pchan->rotmode;
 			
 			/* evaluate action using workob (it will only set the PoseChannel in question) */
-			what_does_obaction(cob->ob, &workob, pose, data->act, pchan->name, t);
+			what_does_obaction(cob->ob, &workob, &pose, data->act, pchan->name, t);
 			
 			/* convert animation to matrices for use here */
 			BKE_pchan_calc_mat(tchan);
 			copy_m4_m4(ct->matrix, tchan->chan_mat);
 			
 			/* Clean up */
-			BKE_pose_free(pose);
+			BKE_pose_free_data(&pose);
 		}
 		else {
 			/* behavior undefined... */
