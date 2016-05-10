@@ -1449,6 +1449,12 @@ bool ED_transform_snap_object_project_view3d_ex(
 {
 	float ray_start[3], ray_normal[3], ray_orgigin[3];
 
+	float ray_depth_fallback;
+	if (ray_depth == NULL) {
+		ray_depth_fallback = BVH_RAYCAST_DIST_MAX;
+		ray_depth = &ray_depth_fallback;
+	}
+
 	if (!ED_view3d_win_to_ray_ex(
 	        sctx->v3d_data.ar, sctx->v3d_data.v3d,
 	        mval, ray_orgigin, ray_normal, ray_start, true))

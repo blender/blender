@@ -1287,8 +1287,6 @@ bool snapObjectsTransform(
         float *dist_px,
         float r_loc[3], float r_no[3])
 {
-	float ray_dist = BVH_RAYCAST_DIST_MAX;
-
 	return ED_transform_snap_object_project_view3d_ex(
 	        t->tsnap.object_context,
 	        &(const struct SnapObjectParams){
@@ -1297,8 +1295,7 @@ bool snapObjectsTransform(
 	            .use_object_edit = (t->flag & T_EDIT) != 0,
 	            .use_object_active = (t->options & CTX_GPENCIL_STROKES) == 0,
 	        },
-	        mval, dist_px,
-	        &ray_dist,
+	        mval, dist_px, NULL,
 	        r_loc, r_no, NULL);
 }
 
