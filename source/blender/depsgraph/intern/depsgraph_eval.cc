@@ -56,6 +56,9 @@ extern "C" {
 static bool use_legacy_depsgraph = true;
 #endif
 
+/* Unfinished and unused, and takes quite some pre-processing time. */
+#undef USE_EVAL_PRIORITY
+
 bool DEG_depsgraph_use_legacy(void)
 {
 #ifdef DISABLE_NEW_DEPSGRAPH
@@ -274,6 +277,7 @@ static void calculate_pending_parents(Depsgraph *graph, int layers)
 	}
 }
 
+#ifdef USE_EVAL_PRIORITY
 static void calculate_eval_priority(OperationDepsNode *node)
 {
 	if (node->done) {
@@ -302,6 +306,7 @@ static void calculate_eval_priority(OperationDepsNode *node)
 		node->eval_priority = 0.0f;
 	}
 }
+#endif
 
 /* Schedule a node if it needs evaluation.
  *   dec_parents: Decrement pending parents count, true when child nodes are scheduled
@@ -422,6 +427,7 @@ void DEG_evaluate_on_refresh_ex(EvaluationContext *eval_ctx,
 	}
 
 	/* Calculate priority for operation nodes. */
+#ifdef USE_EVAL_PRIORITY
 	for (Depsgraph::OperationNodes::const_iterator it = graph->operations.begin();
 	     it != graph->operations.end();
 	     ++it)
@@ -429,6 +435,7 @@ void DEG_evaluate_on_refresh_ex(EvaluationContext *eval_ctx,
 		OperationDepsNode *node = *it;
 		calculate_eval_priority(node);
 	}
+#endif
 
 	DepsgraphDebug::eval_begin(eval_ctx);
 
