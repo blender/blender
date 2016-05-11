@@ -526,7 +526,7 @@ BVHTree *bvhtree_from_mesh_verts(
 	bool vert_allocated;
 
 	BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_READ);
-	tree = bvhcache_find(&dm->bvhCache, BVHTREE_FROM_VERTS);
+	tree = bvhcache_find(dm->bvhCache, BVHTREE_FROM_VERTS);
 	BLI_rw_mutex_unlock(&cache_rwlock);
 
 	vert = DM_get_vert_array(dm, &vert_allocated);
@@ -534,7 +534,7 @@ BVHTree *bvhtree_from_mesh_verts(
 	/* Not in cache */
 	if (tree == NULL) {
 		BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_WRITE);
-		tree = bvhcache_find(&dm->bvhCache, BVHTREE_FROM_VERTS);
+		tree = bvhcache_find(dm->bvhCache, BVHTREE_FROM_VERTS);
 		if (tree == NULL) {
 
 			int vert_num = dm->getNumVerts(dm);
@@ -601,7 +601,7 @@ BVHTree *bvhtree_from_mesh_edges(
 	bool vert_allocated, edge_allocated;
 
 	BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_READ);
-	tree = bvhcache_find(&dm->bvhCache, BVHTREE_FROM_EDGES);
+	tree = bvhcache_find(dm->bvhCache, BVHTREE_FROM_EDGES);
 	BLI_rw_mutex_unlock(&cache_rwlock);
 
 	vert = DM_get_vert_array(dm, &vert_allocated);
@@ -610,7 +610,7 @@ BVHTree *bvhtree_from_mesh_edges(
 	/* Not in cache */
 	if (tree == NULL) {
 		BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_WRITE);
-		tree = bvhcache_find(&dm->bvhCache, BVHTREE_FROM_EDGES);
+		tree = bvhcache_find(dm->bvhCache, BVHTREE_FROM_EDGES);
 		if (tree == NULL) {
 			int i;
 			int numEdges = dm->getNumEdges(dm);
@@ -765,7 +765,7 @@ BVHTree *bvhtree_from_mesh_faces(
 	bool vert_allocated = false, face_allocated = false;
 
 	BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_READ);
-	tree = bvhcache_find(&dm->bvhCache, BVHTREE_FROM_FACES);
+	tree = bvhcache_find(dm->bvhCache, BVHTREE_FROM_FACES);
 	BLI_rw_mutex_unlock(&cache_rwlock);
 
 	vert = DM_get_vert_array(dm, &vert_allocated);
@@ -774,7 +774,7 @@ BVHTree *bvhtree_from_mesh_faces(
 	/* Not in cache */
 	if (tree == NULL) {
 		BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_WRITE);
-		tree = bvhcache_find(&dm->bvhCache, BVHTREE_FROM_FACES);
+		tree = bvhcache_find(dm->bvhCache, BVHTREE_FROM_FACES);
 		if (tree == NULL) {
 			int numFaces = dm->getNumTessFaces(dm);
 			BLI_assert(!(numFaces == 0 && dm->getNumPolys(dm) != 0));
@@ -1018,7 +1018,7 @@ BVHTree *bvhtree_from_mesh_looptri(
 	bool looptri_allocated = false;
 
 	BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_READ);
-	tree = bvhcache_find(&dm->bvhCache, BVHTREE_FROM_LOOPTRI);
+	tree = bvhcache_find(dm->bvhCache, BVHTREE_FROM_LOOPTRI);
 	BLI_rw_mutex_unlock(&cache_rwlock);
 
 	MPoly *mpoly;
@@ -1042,7 +1042,7 @@ BVHTree *bvhtree_from_mesh_looptri(
 	/* Not in cache */
 	if (tree == NULL) {
 		BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_WRITE);
-		tree = bvhcache_find(&dm->bvhCache, BVHTREE_FROM_LOOPTRI);
+		tree = bvhcache_find(dm->bvhCache, BVHTREE_FROM_LOOPTRI);
 		if (tree == NULL) {
 			int looptri_num = dm->getNumLoopTri(dm);
 			BLI_assert(!(looptri_num == 0 && dm->getNumPolys(dm) != 0));
@@ -1147,32 +1147,34 @@ typedef struct BVHCacheItem {
 
 } BVHCacheItem;
 
-static void bvhcacheitem_set_if_match(void *_cached, void *_search)
-{
-	BVHCacheItem *cached = (BVHCacheItem *)_cached;
-	BVHCacheItem *search = (BVHCacheItem *)_search;
-
-	if (search->type == cached->type) {
-		search->tree = cached->tree;
-	}
-} 
-
+/**
+ * Queries a bvhcache for the cache bvhtree of the request type
+ */
 BVHTree *bvhcache_find(BVHCache *cache, int type)
 {
-	BVHCacheItem item;
-	item.type = type;
-	item.tree = NULL;
-
-	BLI_linklist_apply(*cache, bvhcacheitem_set_if_match, &item);
-	return item.tree;
+	while (cache) {
+		const BVHCacheItem *item = cache->link;
+		if (item->type == type) {
+			return item->tree;
+		}
+		cache = cache->next;
+	}
+	return NULL;
 }
 
-void bvhcache_insert(BVHCache *cache, BVHTree *tree, int type)
+/**
+ * Inserts a BVHTree of the given type under the cache
+ * After that the caller no longer needs to worry when to free the BVHTree
+ * as that will be done when the cache is freed.
+ *
+ * A call to this assumes that there was no previous cached tree of the given type
+ */
+void bvhcache_insert(BVHCache **cache_p, BVHTree *tree, int type)
 {
 	BVHCacheItem *item = NULL;
 
 	assert(tree != NULL);
-	assert(bvhcache_find(cache, type) == NULL);
+	assert(bvhcache_find(*cache_p, type) == NULL);
 
 	item = MEM_mallocN(sizeof(BVHCacheItem), "BVHCacheItem");
 	assert(item != NULL);
@@ -1180,13 +1182,15 @@ void bvhcache_insert(BVHCache *cache, BVHTree *tree, int type)
 	item->type = type;
 	item->tree = tree;
 
-	BLI_linklist_prepend(cache, item);
+	BLI_linklist_prepend(cache_p, item);
 }
 
-
-void bvhcache_init(BVHCache *cache)
+/**
+ * inits and frees a bvhcache
+ */
+void bvhcache_init(BVHCache **cache_p)
 {
-	*cache = NULL;
+	*cache_p = NULL;
 }
 
 static void bvhcacheitem_free(void *_item)
@@ -1198,10 +1202,10 @@ static void bvhcacheitem_free(void *_item)
 }
 
 
-void bvhcache_free(BVHCache *cache)
+void bvhcache_free(BVHCache **cache_p)
 {
-	BLI_linklist_free(*cache, (LinkNodeFreeFP)bvhcacheitem_free);
-	*cache = NULL;
+	BLI_linklist_free(*cache_p, (LinkNodeFreeFP)bvhcacheitem_free);
+	*cache_p = NULL;
 }
 
 /** \} */
