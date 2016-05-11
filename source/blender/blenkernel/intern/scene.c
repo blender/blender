@@ -101,11 +101,6 @@
 
 #include "bmesh.h"
 
-#ifdef WIN32
-#else
-#  include <sys/time.h>
-#endif
-
 const char *RE_engine_id_BLENDER_RENDER = "BLENDER_RENDER";
 const char *RE_engine_id_BLENDER_GAME = "BLENDER_GAME";
 const char *RE_engine_id_CYCLES = "CYCLES";

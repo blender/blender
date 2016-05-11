@@ -36,10 +36,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#ifdef WIN32
-#  include "BLI_winstuff.h"
-#endif
-
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"

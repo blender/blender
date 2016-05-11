@@ -31,10 +31,6 @@
 
 #include <Python.h>
 
-#ifdef WIN32
-#  include "BLI_math_base.h"  /* finite */
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
