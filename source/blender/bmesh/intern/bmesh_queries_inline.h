@@ -146,6 +146,13 @@ BLI_INLINE bool BM_loop_is_adjacent(const BMLoop *l_a, const BMLoop *l_b)
 	return (ELEM(l_b, l_a->next, l_a->prev));
 }
 
+ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1)
+BLI_INLINE bool BM_loop_is_manifold(const BMLoop *l)
+{
+	return ((l != l->radial_next) &&
+	        (l == l->radial_next->radial_next));
+}
+
 /**
  * Check if we have a single wire edge user.
  */
