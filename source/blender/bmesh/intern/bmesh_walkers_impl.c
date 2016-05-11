@@ -785,7 +785,7 @@ static void *bmw_IslandWalker_yield(BMWalker *walker)
 	return iwalk->cur;
 }
 
-static void *bmw_IslandWalker_step(BMWalker *walker)
+static void *bmw_IslandWalker_step_ex(BMWalker *walker, bool only_manifold)
 {
 	BMwIslandWalker *iwalk, owalk;
 	BMLoop *l_iter, *l_first;
@@ -800,7 +800,27 @@ static void *bmw_IslandWalker_step(BMWalker *walker)
 			continue;
 		}
 
-		BMLoop *l_radial_iter = l_iter;
+		BMLoop *l_radial_iter;
+
+		if (only_manifold && (l_iter->radial_next != l_iter)) {
+			int face_count = 1;
+			/* check other faces (not this one), ensure only one other can be walked onto. */
+			l_radial_iter = l_iter->radial_next;
+			do {
+				if (bmw_mask_check_face(walker, l_radial_iter->f)) {
+					face_count++;
+					if (face_count == 3) {
+						break;
+					}
+				}
+			} while ((l_radial_iter = l_radial_iter->radial_next) != l_iter);
+
+			if (face_count != 2) {
+				continue;
+			}
+		}
+
+		l_radial_iter = l_iter;
 		while ((l_radial_iter = l_radial_iter->radial_next) != l_iter) {
 			BMFace *f = l_radial_iter->f;
 
@@ -825,6 +845,19 @@ static void *bmw_IslandWalker_step(BMWalker *walker)
 	} while ((l_iter = l_iter->next) != l_first);
 
 	return owalk.cur;
+}
+
+static void *bmw_IslandWalker_step(BMWalker *walker)
+{
+	return bmw_IslandWalker_step_ex(walker, false);
+}
+
+/**
+ * Ignore edges that don't have 2x usable faces.
+ */
+static void *bmw_IslandManifoldWalker_step(BMWalker *walker)
+{
+	return bmw_IslandWalker_step_ex(walker, true);
 }
 
 /** \} */
@@ -1601,6 +1634,16 @@ static BMWalker bmw_IslandWalker_Type = {
 	BM_EDGE | BM_FACE, /* valid restrict masks */
 };
 
+static BMWalker bmw_IslandManifoldWalker_Type = {
+	BM_FACE,
+	bmw_IslandWalker_begin,
+	bmw_IslandManifoldWalker_step,  /* only difference with BMW_ISLAND */
+	bmw_IslandWalker_yield,
+	sizeof(BMwIslandWalker),
+	BMW_BREADTH_FIRST,
+	BM_EDGE | BM_FACE, /* valid restrict masks */
+};
+
 static BMWalker bmw_EdgeLoopWalker_Type = {
 	BM_EDGE,
 	bmw_EdgeLoopWalker_begin,
@@ -1673,6 +1716,7 @@ BMWalker *bm_walker_types[] = {
 	&bmw_UVEdgeWalker_Type,             /* BMW_LOOPDATA_ISLAND */
 	&bmw_IslandboundWalker_Type,        /* BMW_ISLANDBOUND */
 	&bmw_IslandWalker_Type,             /* BMW_ISLAND */
+	&bmw_IslandManifoldWalker_Type,     /* BMW_ISLAND_MANIFOLD */
 	&bmw_ConnectedVertexWalker_Type,    /* BMW_CONNECTED_VERTEX */
 };
 
