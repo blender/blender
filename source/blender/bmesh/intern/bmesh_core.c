@@ -1246,7 +1246,6 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 	BLI_array_staticdeclare(deledges, BM_DEFAULT_NGON_STACK_SIZE);
 	BLI_array_staticdeclare(delverts, BM_DEFAULT_NGON_STACK_SIZE);
 	BMVert *v1 = NULL, *v2 = NULL;
-	const char *err = NULL;
 	int i, tote = 0;
 	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
 
@@ -1267,7 +1266,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 			int rlen = bm_loop_systag_count_radial(l_iter, _FLAG_JF);
 
 			if (rlen > 2) {
-				err = N_("Input faces do not form a contiguous manifold region");
+				/* Input faces do not form a contiguous manifold region */
 				goto error;
 			}
 			else if (rlen == 1) {
@@ -1328,9 +1327,8 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 
 	/* create region face */
 	f_new = tote ? BM_face_create_ngon(bm, v1, v2, edges, tote, faces[0], BM_CREATE_NOP) : NULL;
-	if (UNLIKELY(!f_new || BMO_error_occurred(bm))) {
-		if (!BMO_error_occurred(bm))
-			err = N_("Invalid boundary region to join faces");
+	if (UNLIKELY(f_new == NULL)) {
+		/* Invalid boundary region to join faces */
 		goto error;
 	}
 
@@ -1428,9 +1426,6 @@ error:
 	BLI_array_free(deledges);
 	BLI_array_free(delverts);
 
-	if (err) {
-		BMO_error_raise(bm, bm->currentop, BMERR_DISSOLVEFACES_FAILED, err);
-	}
 	return NULL;
 }
 
