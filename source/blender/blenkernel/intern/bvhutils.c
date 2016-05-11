@@ -1162,6 +1162,18 @@ BVHTree *bvhcache_find(BVHCache *cache, int type)
 	return NULL;
 }
 
+bool bvhcache_has_tree(const BVHCache *cache, const BVHTree *tree)
+{
+	while (cache) {
+		const BVHCacheItem *item = cache->link;
+		if (item->tree == tree) {
+			return true;
+		}
+		cache = cache->next;
+	}
+	return false;
+}
+
 /**
  * Inserts a BVHTree of the given type under the cache
  * After that the caller no longer needs to worry when to free the BVHTree
