@@ -786,7 +786,7 @@ static bool snapDerivedMesh(
 
 				/* the tree is owned by the DM and may have been freed since we last used! */
 				if (treedata && treedata->tree) {
-					if (treedata->cached && !bvhcache_has_tree(&dm->bvhCache, treedata->tree)) {
+					if (treedata->cached && !bvhcache_has_tree(dm->bvhCache, treedata->tree)) {
 						free_bvhtree_from_mesh(treedata);
 					}
 				}
