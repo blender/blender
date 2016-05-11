@@ -1573,7 +1573,7 @@ int BLI_bvhtree_find_nearest(
 
 
 /* Determines the distance that the ray must travel to hit the bounding volume of the given node */
-static float ray_nearest_hit(BVHRayCastData *data, const float bv[6])
+static float ray_nearest_hit(const BVHRayCastData *data, const float bv[6])
 {
 	int i;
 
