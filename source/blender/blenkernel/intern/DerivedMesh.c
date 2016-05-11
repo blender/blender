@@ -4000,7 +4000,7 @@ void DM_init_origspace(DerivedMesh *dm)
 			float p_nor[3], co[3];
 			float mat[3][3];
 
-			float min[2] = {FLT_MAX, FLT_MAX}, max[2] = {FLT_MIN, FLT_MIN};
+			float min[2] = {FLT_MAX, FLT_MAX}, max[2] = {-FLT_MAX, -FLT_MAX};
 			float translate[2], scale[2];
 
 			BKE_mesh_calc_poly_normal(mp, l, mv, p_nor);
