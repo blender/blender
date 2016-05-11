@@ -1288,7 +1288,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 				if (!d1 && !d2 && !BM_ELEM_API_FLAG_TEST(l_iter->e, _FLAG_JF)) {
 					/* don't remove an edge it makes up the side of another face
 					 * else this will remove the face as well - campbell */
-					if (!BM_edge_face_count_is_over(l_iter->e, 3)) {
+					if (!BM_edge_face_count_is_over(l_iter->e, 2)) {
 						if (do_del) {
 							BLI_array_append(deledges, l_iter->e);
 						}
@@ -1399,9 +1399,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 	/* delete old geometry */
 	if (do_del) {
 		for (i = 0; i < BLI_array_count(deledges); i++) {
-			if (deledges[i]->l == NULL) {
-				BM_edge_kill(bm, deledges[i]);
-			}
+			BM_edge_kill(bm, deledges[i]);
 		}
 
 		for (i = 0; i < BLI_array_count(delverts); i++) {
