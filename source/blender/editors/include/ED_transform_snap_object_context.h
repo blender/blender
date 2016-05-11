@@ -29,6 +29,7 @@ struct BMVert;
 struct BMEdge;
 struct BMFace;
 
+struct ListBase;
 struct Scene;
 struct Main;
 struct Object;
@@ -38,6 +39,24 @@ struct View3D;
 /* transform_snap_object.c */
 
 /* ED_transform_snap_object_*** API */
+
+/** used for storing multiple hits */
+struct SnapObjectHitDepth {
+	struct SnapObjectHitDepth *next, *prev;
+
+	float depth;
+	float co[3];
+	float no[3];
+	int index;
+
+	struct Object *ob;
+	float obmat[4][4];
+
+	/* needed to tell which ray-cast this was part of,
+	 * the same object may be part of many ray-casts when dupli's are used. */
+	unsigned int ob_uuid;
+};
+
 struct SnapObjectParams {
 	int snap_select;  /* SnapSelect */
 	union {
@@ -81,8 +100,15 @@ bool ED_transform_snap_object_project_ray_ex(
         struct Object **r_ob, float r_obmat[4][4]);
 bool ED_transform_snap_object_project_ray(
         SnapObjectContext *sctx,
-        const float ray_origin[3], const float ray_direction[3], float *ray_dist,
+        const float ray_origin[3], const float ray_direction[3], float *ray_depth,
         float r_co[3], float r_no[3]);
+
+bool ED_transform_snap_object_project_ray_all(
+        SnapObjectContext *sctx,
+        const struct SnapObjectParams *params,
+        const float ray_start[3], const float ray_normal[3],
+        float ray_depth, bool sort,
+        struct ListBase *r_hit_list);
 
 bool ED_transform_snap_object_project_view3d_ex(
         struct SnapObjectContext *sctx,
@@ -103,5 +129,12 @@ bool ED_transform_snap_object_project_view3d_mixed(
         const float mval_fl[2], float *dist_px,
         bool use_depth,
         float r_co[3], float r_no[3]);
+
+bool ED_transform_snap_object_project_all_view3d_ex(
+        SnapObjectContext *sctx,
+        const struct SnapObjectParams *params,
+        const float mval[2],
+        float ray_depth, bool sort,
+        ListBase *r_hit_list);
 
 #endif  /* __ED_TRANSFORM_SNAP_OBJECT_CONTEXT_H__ */

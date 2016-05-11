@@ -158,19 +158,6 @@ void BIF_draw_manipulator(const struct bContext *C);
 
 /* Snapping */
 
-
-typedef struct DepthPeel {
-	struct DepthPeel *next, *prev;
-
-	float depth;
-	float p[3];
-	float no[3];
-	struct Object *ob;
-	int flag;
-} DepthPeel;
-
-struct ListBase;
-
 typedef enum SnapSelect {
 	SNAP_ALL = 0,
 	SNAP_NOT_SELECTED = 1,
@@ -179,14 +166,18 @@ typedef enum SnapSelect {
 
 #define SNAP_MIN_DISTANCE 30
 
-bool peelObjectsTransForm(
-        struct TransInfo *t, const float mval[2], SnapSelect snap_select,
+bool peelObjectsTransform(
+        struct TransInfo *t, const float mval[2],
+        SnapSelect snap_select, bool use_peel_object,
         /* return args */
-        struct ListBase *r_depth_peels);
-bool peelObjectsContext(
-        struct bContext *C, const float mval[2], SnapSelect snap_select,
+        float r_loc[3], float r_no[3], float *r_thickness);
+bool peelObjectsSnapContext(
+        struct SnapObjectContext *sctx,
+        const float mval[2],
+        SnapSelect snap_select, bool use_peel_object,
         /* return args */
-        struct ListBase *r_depth_peels);
+        float r_loc[3], float r_no[3], float *r_thickness);
+
 bool snapObjectsTransform(
         struct TransInfo *t, const float mval[2], SnapSelect snap_select,
         float *dist_px,
