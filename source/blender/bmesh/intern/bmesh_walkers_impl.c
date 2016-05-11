@@ -788,22 +788,21 @@ static void *bmw_IslandWalker_yield(BMWalker *walker)
 static void *bmw_IslandWalker_step(BMWalker *walker)
 {
 	BMwIslandWalker *iwalk, owalk;
-	BMIter iter, liter;
-	BMFace *f;
-	BMLoop *l;
+	BMLoop *l_iter, *l_first;
 	
 	BMW_state_remove_r(walker, &owalk);
 	iwalk = &owalk;
 
-	l = BM_iter_new(&liter, walker->bm, BM_LOOPS_OF_FACE, iwalk->cur);
-	for ( ; l; l = BM_iter_step(&liter)) {
+	l_iter = l_first = BM_FACE_FIRST_LOOP(iwalk->cur);
+	do {
 		/* could skip loop here too, but don't add unless we need it */
-		if (!bmw_mask_check_edge(walker, l->e)) {
+		if (!bmw_mask_check_edge(walker, l_iter->e)) {
 			continue;
 		}
 
-		f = BM_iter_new(&iter, walker->bm, BM_FACES_OF_EDGE, l->e);
-		for ( ; f; f = BM_iter_step(&iter)) {
+		BMLoop *l_radial_iter = l_iter;
+		while ((l_radial_iter = l_radial_iter->radial_next) != l_iter) {
+			BMFace *f = l_radial_iter->f;
 
 			if (!bmw_mask_check_face(walker, f)) {
 				continue;
@@ -817,14 +816,14 @@ static void *bmw_IslandWalker_step(BMWalker *walker)
 			if (BLI_gset_haskey(walker->visit_set, f)) {
 				continue;
 			}
-			
+
 			iwalk = BMW_state_add(walker);
 			iwalk->cur = f;
 			BLI_gset_insert(walker->visit_set, f);
 			break;
 		}
-	}
-	
+	} while ((l_iter = l_iter->next) != l_first);
+
 	return owalk.cur;
 }
 
