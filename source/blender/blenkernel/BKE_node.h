@@ -642,12 +642,12 @@ void BKE_node_tree_unlink_id(ID *id, struct bNodeTree *ntree);
  * Examples:
  *
  * \code{.c}
- * FOREACH_NODETREE(bmain, nodetree) {
+ * FOREACH_NODETREE(bmain, nodetree, id) {
  *     if (id == nodetree)
  *         printf("This is a linkable node tree");
  * } FOREACH_NODETREE_END
  *
- * FOREACH_NODETREE(bmain, nodetree) {
+ * FOREACH_NODETREE(bmain, nodetree, id) {
  *     if (nodetree->idname == "ShaderNodeTree")
  *         printf("This is a shader node tree);
  *     if (GS(id) == ID_MA)
