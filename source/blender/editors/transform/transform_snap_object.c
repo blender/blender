@@ -685,9 +685,24 @@ static bool snapDerivedMesh(
 {
 	ARegion *ar = sctx->v3d_data.ar;
 	bool retval = false;
-	int totvert = dm->getNumVerts(dm);
 
-	if (totvert > 0) {
+	if (snap_to == SCE_SNAP_MODE_FACE) {
+		if (dm->getNumPolys(dm) == 0) {
+			return retval;
+		}
+	}
+	if (snap_to == SCE_SNAP_MODE_EDGE) {
+		if (dm->getNumEdges(dm) == 0) {
+			return retval;
+		}
+	}
+	else {
+		if (dm->getNumVerts(dm) == 0) {
+			return retval;
+		}
+	}
+
+	{
 		const bool do_ray_start_correction = (
 		         ELEM(snap_to, SCE_SNAP_MODE_FACE, SCE_SNAP_MODE_VERTEX) &&
 		         (sctx->use_v3d && !((RegionView3D *)sctx->v3d_data.ar->regiondata)->is_persp));
@@ -953,9 +968,24 @@ static bool snapEditMesh(
 {
 	ARegion *ar = sctx->v3d_data.ar;
 	bool retval = false;
-	int totvert = em->bm->totvert;
 
-	if (totvert > 0) {
+	if (snap_to == SCE_SNAP_MODE_FACE) {
+		if (em->bm->totface == 0) {
+			return retval;
+		}
+	}
+	if (snap_to == SCE_SNAP_MODE_EDGE) {
+		if (em->bm->totedge == 0) {
+			return retval;
+		}
+	}
+	else {
+		if (em->bm->totvert == 0) {
+			return retval;
+		}
+	}
+
+	{
 		const bool do_ray_start_correction = (
 		        ELEM(snap_to, SCE_SNAP_MODE_FACE, SCE_SNAP_MODE_VERTEX) &&
 		        (sctx->use_v3d && !((RegionView3D *)sctx->v3d_data.ar->regiondata)->is_persp));
