@@ -1892,7 +1892,9 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 	}
 	
 	/* custom bone may draw outline double-width */
-	glLineWidth(1.0f);
+	if (arm->flag & ARM_POSEMODE) {
+		glLineWidth(1.0f);
+	}
 
 	/* wire draw over solid only in posemode */
 	if ((dt <= OB_WIRE) || (arm->flag & ARM_POSEMODE) || ELEM(arm->drawtype, ARM_LINE, ARM_WIRE)) {
