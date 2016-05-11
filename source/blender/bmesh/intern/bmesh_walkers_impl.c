@@ -711,13 +711,6 @@ static void *bmw_IslandboundWalker_step(BMWalker *walker)
 	e = l->e;
 
 	v = BM_edge_other_vert(e, iwalk->lastv);
-
-	if (!BM_vert_is_manifold(v)) {
-		BMW_reset(walker);
-		BMO_error_raise(walker->bm, NULL, BMERR_WALKER_FAILED,
-		                "Non-manifold vert while searching region boundary");
-		return NULL;
-	}
 	
 	/* pop off current state */
 	BMW_state_remove(walker);
@@ -726,7 +719,7 @@ static void *bmw_IslandboundWalker_step(BMWalker *walker)
 	
 	while (1) {
 		l = BM_loop_other_edge_loop(l, v);
-		if (l != l->radial_next) {
+		if (BM_loop_is_manifold(l)) {
 			l = l->radial_next;
 			f = l->f;
 			e = l->e;
@@ -737,6 +730,7 @@ static void *bmw_IslandboundWalker_step(BMWalker *walker)
 			}
 		}
 		else {
+			/* treat non-manifold edges as boundaries */
 			f = l->f;
 			e = l->e;
 			break;
