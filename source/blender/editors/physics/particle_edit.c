@@ -4111,7 +4111,9 @@ static bool shape_cut_test_point(PEData *data, ParticleCacheKey *key)
 	userdata.bvhdata = data->shape_bvh;
 	userdata.num_hits = 0;
 	
-	BLI_bvhtree_ray_cast_all(shape_bvh->tree, key->co, dir, 0.0f, point_inside_bvh_cb, &userdata);
+	BLI_bvhtree_ray_cast_all(
+	        shape_bvh->tree, key->co, dir, 0.0f, BVH_RAYCAST_DIST_MAX,
+	        point_inside_bvh_cb, &userdata);
 	
 	/* for any point inside a watertight mesh the number of hits is uneven */
 	return (userdata.num_hits % 2) == 1;

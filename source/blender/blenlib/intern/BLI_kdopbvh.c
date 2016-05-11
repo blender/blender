@@ -1643,7 +1643,9 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 	 * before calling the ray-primitive functions */
 	/* XXX: temporary solution for particles until fast_ray_nearest_hit supports ray.radius */
 	float dist = (data->ray.radius == 0.0f) ? fast_ray_nearest_hit(data, node) : ray_nearest_hit(data, node->bv);
-	if (dist >= data->hit.dist) return;
+	if (dist >= data->hit.dist) {
+		return;
+	}
 
 	if (node->totnode == 0) {
 		if (data->callback) {
@@ -1670,6 +1672,9 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 	}
 }
 
+/**
+ * A version of #dfs_raycast with minor changes to reset the index & dist each ray cast.
+ */
 static void dfs_raycast_all(BVHRayCastData *data, BVHNode *node)
 {
 	int i;
@@ -1678,18 +1683,16 @@ static void dfs_raycast_all(BVHRayCastData *data, BVHNode *node)
 	 * before calling the ray-primitive functions */
 	/* XXX: temporary solution for particles until fast_ray_nearest_hit supports ray.radius */
 	float dist = (data->ray.radius == 0.0f) ? fast_ray_nearest_hit(data, node) : ray_nearest_hit(data, node->bv);
+	if (dist >= data->hit.dist) {
+		return;
+	}
 
 	if (node->totnode == 0) {
-		if (data->callback) {
-			data->hit.index = -1;
-			data->hit.dist = BVH_RAYCAST_DIST_MAX;
-			data->callback(data->userdata, node->index, &data->ray, &data->hit);
-		}
-		else {
-			data->hit.index = node->index;
-			data->hit.dist  = dist;
-			madd_v3_v3v3fl(data->hit.co, data->ray.origin, data->ray.direction, dist);
-		}
+		/* no need to check for 'data->callback' (using 'all' only makes sense with a callback). */
+		dist = data->hit.dist;
+		data->callback(data->userdata, node->index, &data->ray, &data->hit);
+		data->hit.index = -1;
+		data->hit.dist = dist;
 	}
 	else {
 		/* pick loop direction to dive into the tree (based on ray direction and split axis) */
@@ -1840,9 +1843,14 @@ float BLI_bvhtree_bb_raycast(const float bv[6], const float light_start[3], cons
 
 /**
  * Calls the callback for every ray intersection
+ *
+ * \note Using a \a callback which resets or never sets the #BVHTreeRayHit index & dist works too,
+ * however using this function means existing generic callbacks can be used from custom callbacks without
+ * having to handle resetting the hit beforehand.
+ * It also avoid redundant argument and return value which aren't meaningful when collecting multiple hits.
  */
-int BLI_bvhtree_ray_cast_all_ex(
-        BVHTree *tree, const float co[3], const float dir[3], float radius,
+void BLI_bvhtree_ray_cast_all_ex(
+        BVHTree *tree, const float co[3], const float dir[3], float radius, float hit_dist,
         BVHTree_RayCastCallback callback, void *userdata,
         int flag)
 {
@@ -1850,6 +1858,7 @@ int BLI_bvhtree_ray_cast_all_ex(
 	BVHNode *root = tree->nodes[tree->totleaf];
 
 	BLI_ASSERT_UNIT_V3(dir);
+	BLI_assert(callback != NULL);
 
 	data.tree = tree;
 
@@ -1863,20 +1872,18 @@ int BLI_bvhtree_ray_cast_all_ex(
 	bvhtree_ray_cast_data_precalc(&data, flag);
 
 	data.hit.index = -1;
-	data.hit.dist = BVH_RAYCAST_DIST_MAX;
+	data.hit.dist = hit_dist;
 
 	if (root) {
 		dfs_raycast_all(&data, root);
 	}
-
-	return data.hit.index;
 }
 
-int BLI_bvhtree_ray_cast_all(
-        BVHTree *tree, const float co[3], const float dir[3], float radius,
+void BLI_bvhtree_ray_cast_all(
+        BVHTree *tree, const float co[3], const float dir[3], float radius, float hit_dist,
         BVHTree_RayCastCallback callback, void *userdata)
 {
-	return BLI_bvhtree_ray_cast_all_ex(tree, co, dir, radius, callback, userdata, BVH_RAYCAST_DEFAULT);
+	BLI_bvhtree_ray_cast_all_ex(tree, co, dir, radius, hit_dist, callback, userdata, BVH_RAYCAST_DEFAULT);
 }
 
 

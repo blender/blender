@@ -1486,7 +1486,7 @@ static bool peelDerivedMesh(
 				data.depth_peels = depth_peels;
 
 				BLI_bvhtree_ray_cast_all(
-				        data.bvhdata.tree, ray_start_local, ray_normal_local, 0.0f,
+				        data.bvhdata.tree, ray_start_local, ray_normal_local, 0.0f, BVH_RAYCAST_DIST_MAX,
 				        peelRayCast_cb, &data);
 			}
 
@@ -1538,7 +1538,7 @@ static bool peelEditMesh(
 				data.depth_peels = depth_peels;
 
 				BLI_bvhtree_ray_cast_all(
-				        data.bvhdata.tree, ray_start_local, ray_normal_local, 0.0f,
+				        data.bvhdata.tree, ray_start_local, ray_normal_local, 0.0f, BVH_RAYCAST_DIST_MAX,
 				        peelEditMeshRayCast_cb, &data);
 			}
 
