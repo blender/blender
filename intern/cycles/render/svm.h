@@ -150,7 +150,7 @@ protected:
 
 	/* Global state of the compiler accessible from the compilation routines. */
 	struct CompilerState {
-		CompilerState(ShaderGraph *graph);
+		explicit CompilerState(ShaderGraph *graph);
 
 		/* ** Global state, used by various compilation steps. ** */
 

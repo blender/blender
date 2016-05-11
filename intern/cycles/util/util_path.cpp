@@ -92,7 +92,7 @@ public:
 	{
 	}
 
-	directory_iterator(const string& path)
+	explicit directory_iterator(const string& path)
 	: path_(path),
 	  path_info_(path, find_data_)
 	{
@@ -176,7 +176,7 @@ class directory_iterator {
 public:
 	class path_info {
 	public:
-		path_info(const string& path)
+		explicit path_info(const string& path)
 		: path_(path),
 		  entry_(NULL)
 		{
@@ -203,7 +203,7 @@ public:
 	{
 	}
 
-	directory_iterator(const string& path)
+	explicit directory_iterator(const string& path)
 	: path_(path),
 	  path_info_(path_),
 	  cur_entry_(0)

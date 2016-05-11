@@ -52,7 +52,7 @@ class Task
 {
 public:
 	Task() {};
-	Task(const TaskRunFunction& run_) : run(run_) {}
+	explicit Task(const TaskRunFunction& run_) : run(run_) {}
 
 	virtual ~Task() {}
 

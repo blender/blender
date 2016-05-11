@@ -73,7 +73,7 @@ public:
 	/* random number generator state */
 	device_vector<uint> rng_state;
 
-	RenderBuffers(Device *device);
+	explicit RenderBuffers(Device *device);
 	~RenderBuffers();
 
 	void reset(Device *device, BufferParams& params);

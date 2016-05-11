@@ -29,7 +29,7 @@ void time_sleep(double t);
 
 class scoped_timer {
 public:
-	scoped_timer(double *value) : value_(value)
+	explicit scoped_timer(double *value) : value_(value)
 	{
 		time_start_ = time_dt();
 	}

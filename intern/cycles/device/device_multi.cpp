@@ -35,7 +35,7 @@ class MultiDevice : public Device
 {
 public:
 	struct SubDevice {
-		SubDevice(Device *device_)
+		explicit SubDevice(Device *device_)
 		: device(device_) {}
 
 		Device *device;

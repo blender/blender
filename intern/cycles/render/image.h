@@ -32,7 +32,7 @@ class Progress;
 
 class ImageManager {
 public:
-	ImageManager(const DeviceInfo& info);
+	explicit ImageManager(const DeviceInfo& info);
 	~ImageManager();
 
 	enum ImageDataType {

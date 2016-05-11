@@ -177,7 +177,7 @@ public:
 
 class ShaderNode {
 public:
-	ShaderNode(const char *name);
+	explicit ShaderNode(const char *name);
 	virtual ~ShaderNode();
 
 	ShaderInput *input(const char *name);

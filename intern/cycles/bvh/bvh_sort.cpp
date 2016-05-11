@@ -40,7 +40,7 @@ struct BVHReferenceCompare {
 public:
 	int dim;
 
-	BVHReferenceCompare(int dim_)
+	explicit BVHReferenceCompare(int dim_)
 	{
 		dim = dim_;
 	}
@@ -184,7 +184,7 @@ void bvh_reference_sort(int start, int end, BVHReference *data, int dim)
 	}
 	else {
 		TaskPool task_pool;
-		bvh_reference_sort_threaded(&task_pool, data, start, end - 1, dim);
+		bvh_reference_sort_threaded(&task_pool, data, start, end - 1, compare);
 		task_pool.wait_work();
 	}
 }

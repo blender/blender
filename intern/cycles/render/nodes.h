@@ -75,7 +75,7 @@ public:
 
 class TextureNode : public ShaderNode {
 public:
-	TextureNode(const char *name_) : ShaderNode(name_) {}
+	explicit TextureNode(const char *name_) : ShaderNode(name_) {}
 	TextureMapping tex_mapping;
 
 	virtual bool equals(const ShaderNode *other) {
@@ -87,7 +87,7 @@ public:
 /* Any node which uses image manager's slot should be a subclass of this one. */
 class ImageSlotTextureNode : public TextureNode {
 public:
-	ImageSlotTextureNode(const char *name_) : TextureNode(name_) {
+	explicit ImageSlotTextureNode(const char *name_) : TextureNode(name_) {
 		special_type = SHADER_SPECIAL_TYPE_IMAGE_SLOT;
 	}
 	int slot;
@@ -379,7 +379,7 @@ public:
 
 class BsdfNode : public ShaderNode {
 public:
-	BsdfNode(bool scattering = false);
+	explicit BsdfNode(bool scattering = false);
 	SHADER_NODE_BASE_CLASS(BsdfNode);
 
 	bool has_spatial_varying() { return true; }

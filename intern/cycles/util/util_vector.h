@@ -98,7 +98,7 @@ public:
 	  capacity_(0)
 	{}
 
-	array(size_t newsize)
+	explicit array(size_t newsize)
 	{
 		if(newsize == 0) {
 			data_ = NULL;
