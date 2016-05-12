@@ -59,8 +59,8 @@ ImageManager::ImageManager(const DeviceInfo& info)
 		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_IMAGES_CUDA_KEPLER;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_CUDA_KEPLER;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_IMAGES_CUDA_KEPLER;
-		tex_image_byte4_start = TEX_IMAGE_BYTE4_START_CUDA_KELPER;
-		tex_image_float_start = TEX_IMAGE_FLOAT_START_CUDA_KELPER;
+		tex_image_byte4_start = TEX_IMAGE_BYTE4_START_CUDA_KEPLER;
+		tex_image_float_start = TEX_IMAGE_FLOAT_START_CUDA_KEPLER;
 	}
 	/* OpenCL */
 	else if(info.pack_images) {
