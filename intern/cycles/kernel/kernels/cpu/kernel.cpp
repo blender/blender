@@ -138,6 +138,22 @@ void kernel_tex_copy(KernelGlobals *kg,
 			tex->extension = extension;
 		}
 	}
+	else if(strstr(name, "__tex_image_byte")) {
+		texture_image_uchar *tex = NULL;
+		int id = atoi(name + strlen("__tex_image_byte_"));
+		int array_index = id - TEX_IMAGE_BYTE_START_CPU;
+
+		if(array_index >= 0 && array_index < TEX_NUM_BYTE_IMAGES_CPU) {
+			tex = &kg->texture_byte_images[array_index];
+		}
+
+		if(tex) {
+			tex->data = (uchar*)mem;
+			tex->dimensions_set(width, height, depth);
+			tex->interpolation = interpolation;
+			tex->extension = extension;
+		}
+	}
 	else
 		assert(0);
 }

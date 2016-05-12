@@ -40,6 +40,7 @@ public:
 		IMAGE_DATA_TYPE_FLOAT4 = 0,
 		IMAGE_DATA_TYPE_BYTE4 = 1,
 		IMAGE_DATA_TYPE_FLOAT = 2,
+		IMAGE_DATA_TYPE_BYTE = 3,
 
 		IMAGE_DATA_NUM_TYPES
 	};
@@ -97,6 +98,7 @@ private:
 	int tex_num_images[IMAGE_DATA_NUM_TYPES];
 	int tex_image_byte4_start;
 	int tex_image_float_start;
+	int tex_image_byte_start;
 	thread_mutex device_mutex;
 	int animation_frame;
 
@@ -106,6 +108,7 @@ private:
 
 	bool file_load_image_generic(Image *img, ImageInput **in, int &width, int &height, int &depth, int &components);
 	bool file_load_byte4_image(Image *img, device_vector<uchar4>& tex_img);
+	bool file_load_byte_image(Image *img, device_vector<uchar>& tex_img);
 	bool file_load_float4_image(Image *img, device_vector<float4>& tex_img);
 	bool file_load_float_image(Image *img, device_vector<float>& tex_img);
 
