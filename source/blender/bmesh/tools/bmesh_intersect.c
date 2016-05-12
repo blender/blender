@@ -771,16 +771,13 @@ static void bm_isect_tri_tri(
 				continue;
 			iv = bm_isect_edge_tri(s, fv_b[i_e0], fv_b[i_e1], fv_a, a_index, f_a_cos, f_a_nor, &side);
 			if (iv) {
-				/* check this wasn't handled above */
-				if (!(side >= IX_EDGE_TRI_EDGE0 && side <= IX_EDGE_TRI_EDGE2)) {
-					BLI_assert(BLI_array_findindex((void **)iv_ls_a, STACK_SIZE(iv_ls_a), iv) == -1);
-					BLI_assert(BLI_array_findindex((void **)iv_ls_b, STACK_SIZE(iv_ls_b), iv) == -1);
-					STACK_PUSH(iv_ls_a, iv);
-					STACK_PUSH(iv_ls_b, iv);
+				BLI_assert(BLI_array_findindex((void **)iv_ls_a, STACK_SIZE(iv_ls_a), iv) == -1);
+				BLI_assert(BLI_array_findindex((void **)iv_ls_b, STACK_SIZE(iv_ls_b), iv) == -1);
+				STACK_PUSH(iv_ls_a, iv);
+				STACK_PUSH(iv_ls_b, iv);
 #ifdef USE_DUMP
-					printf("  ('EDGE-TRI-B', %d),\n", side);
+				printf("  ('EDGE-TRI-B', %d),\n", side);
 #endif
-				}
 			}
 		}
 	}
