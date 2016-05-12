@@ -194,7 +194,10 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		BLI_array_append(faces, NULL);
 		BLI_array_append(regions, faces);
 	}
-	
+
+	/* track how many faces we should end up with */
+	int totface_target = bm->totface;
+
 	for (i = 0; i < BLI_array_count(regions); i++) {
 		BMFace *f_new;
 		int tot = 0;
@@ -216,6 +219,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 			if (act_face && bm->act_face == NULL) {
 				bm->act_face = f_new;
 			}
+			totface_target -= tot - 1;
 		}
 		else {
 			BMO_error_raise(bm, op, BMERR_DISSOLVEFACES_FAILED,
@@ -227,11 +231,12 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		 * unmark the original faces for deletion */
 		BMO_elem_flag_disable(bm, f_new, FACE_ORIG);
 		BMO_elem_flag_enable(bm, f_new, FACE_NEW);
-
 	}
 
-	BMO_op_callf(bm, op->flag, "delete geom=%ff context=%i", FACE_ORIG, DEL_FACES);
-
+	/* Typically no faces need to be deleted */
+	if (totface_target != bm->totface) {
+		BMO_op_callf(bm, op->flag, "delete geom=%ff context=%i", FACE_ORIG, DEL_FACES);
+	}
 
 	if (use_verts) {
 		BMIter viter;
