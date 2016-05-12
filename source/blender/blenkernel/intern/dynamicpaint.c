@@ -306,7 +306,7 @@ bool dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, Object 
 			return (CustomData_get_named_layer_index(&me->ldata, CD_MLOOPCOL, name) != -1);
 		}
 		else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
-			return (defgroup_name_index(ob, surface->output_name) != -1);
+			return (defgroup_name_index(ob, name) != -1);
 		}
 	}
 
