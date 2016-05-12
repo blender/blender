@@ -1401,9 +1401,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 		}
 
 		for (i = 0; i < BLI_array_count(delverts); i++) {
-			if (delverts[i]->e == NULL) {
-				BM_vert_kill(bm, delverts[i]);
-			}
+			BM_vert_kill(bm, delverts[i]);
 		}
 	}
 	else {
