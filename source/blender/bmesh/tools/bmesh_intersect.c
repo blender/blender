@@ -85,6 +85,8 @@
 /* insert bl_debug_draw_quad_clear... here */
 #endif
 
+// #define USE_DUMP
+
 static void tri_v3_scale(
         float v1[3], float v2[3], float v3[3],
         const float t)
@@ -652,7 +654,7 @@ static void bm_isect_tri_tri(
 #endif
 							if (e) {
 #ifdef USE_DUMP
-								printf("  adding to edge %d\n", BM_elem_index_get(e));
+								printf("# adding to edge %d\n", BM_elem_index_get(e));
 #endif
 								edge_verts_add(s, e, fv_b[i_b], true);
 							}
@@ -776,7 +778,7 @@ static void bm_isect_tri_tri(
 					STACK_PUSH(iv_ls_a, iv);
 					STACK_PUSH(iv_ls_b, iv);
 #ifdef USE_DUMP
-					printf("  ('EDGE-RAY-B', %d),\n", side);
+					printf("  ('EDGE-TRI-B', %d),\n", side);
 #endif
 				}
 			}
@@ -873,7 +875,7 @@ static void raycast_callback(void *userdata,
 #endif
 
 #ifdef USE_DUMP
-			printf("%s: Adding depth %f\n", __func__, depth);
+			printf("%s: Adding depth %f\n", __func__, dist);
 #endif
 			BLI_buffer_append(raycast_data->z_buffer, float, dist);
 		}
@@ -909,7 +911,7 @@ static int isect_bvhtree_point_v3(
 	                     &raycast_data);
 
 #ifdef USE_DUMP
-	printf("%s: Total intersections: %d\n", __func__, raycast_data.num_isect);
+	printf("%s: Total intersections: %d\n", __func__, z_buffer.count);
 #endif
 
 	int num_isect;
