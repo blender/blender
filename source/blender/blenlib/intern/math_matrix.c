@@ -1828,6 +1828,21 @@ bool is_zero_m4(float mat[4][4])
 	        is_zero_v4(mat[3]));
 }
 
+bool equals_m3m3(float mat1[3][3], float mat2[3][3])
+{
+	return (equals_v3v3(mat1[0], mat2[0]) &&
+	        equals_v3v3(mat1[1], mat2[1]) &&
+	        equals_v3v3(mat1[2], mat2[2]));
+}
+
+bool equals_m4m4(float mat1[4][4], float mat2[4][4])
+{
+	return (equals_v4v4(mat1[0], mat2[0]) &&
+	        equals_v4v4(mat1[1], mat2[1]) &&
+	        equals_v4v4(mat1[2], mat2[2]) &&
+	        equals_v4v4(mat1[3], mat2[3]));
+}
+
 /* make a 4x4 matrix out of 3 transform components */
 /* matrices are made in the order: scale * rot * loc */
 /* TODO: need to have a version that allows for rotation order... */

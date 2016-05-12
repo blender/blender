@@ -246,6 +246,9 @@ bool is_negative_m4(float mat[4][4]);
 bool is_zero_m3(float mat[3][3]);
 bool is_zero_m4(float mat[4][4]);
 
+bool equals_m3m3(float mat1[3][3], float mat2[3][3]);
+bool equals_m4m4(float mat1[4][4], float mat2[4][4]);
+
 /* SpaceTransform helper */
 typedef struct SpaceTransform {
 	float local2target[4][4];
