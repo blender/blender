@@ -126,7 +126,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	kintegrator->layer_flag = layer_flag << PATH_RAY_LAYER_SHIFT;
 
 	kintegrator->use_ambient_occlusion =
-		((dscene->data.film.pass_flag & PASS_AO) || dscene->data.background.ao_factor != 0.0f);
+		((Pass::contains(scene->film->passes, PASS_AO)) || dscene->data.background.ao_factor != 0.0f);
 	
 	kintegrator->sample_clamp_direct = (sample_clamp_direct == 0.0f)? FLT_MAX: sample_clamp_direct*3.0f;
 	kintegrator->sample_clamp_indirect = (sample_clamp_indirect == 0.0f)? FLT_MAX: sample_clamp_indirect*3.0f;
