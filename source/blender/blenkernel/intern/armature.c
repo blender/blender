@@ -41,6 +41,7 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_ghash.h"
+#include "BLI_task.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
@@ -48,6 +49,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_listBase.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
@@ -854,6 +856,32 @@ static void pchan_bone_deform(bPoseChannel *pchan, bPoseChanDeform *pdef_info, f
 	(*contrib) += weight;
 }
 
+typedef struct ArmatureBBoneDefmatsData {
+	bPoseChanDeform *pdef_info_array;
+	DualQuat *dualquats;
+	bool use_quaternion;
+} ArmatureBBoneDefmatsData;
+
+static void armature_bbone_defmats_cb(void *userdata, Link *iter, int index)
+{
+	ArmatureBBoneDefmatsData *data = userdata;
+	bPoseChannel *pchan = (bPoseChannel *)iter;
+
+	if (!(pchan->bone->flag & BONE_NO_DEFORM)) {
+		bPoseChanDeform *pdef_info = &data->pdef_info_array[index];
+		const bool use_quaternion = data->use_quaternion;
+
+		if (pchan->bone->segments > 1) {
+			pchan_b_bone_defmats(pchan, pdef_info, use_quaternion);
+		}
+
+		if (use_quaternion) {
+			pdef_info->dual_quat = &data->dualquats[index];
+			mat4_to_dquat(pdef_info->dual_quat, pchan->bone->arm_mat, pchan->chan_mat);
+		}
+	}
+}
+
 void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float (*vertexCos)[3],
                            float (*defMats)[3][3], int numVerts, int deformflag,
                            float (*prevCos)[3], const char *defgrp_name)
@@ -897,19 +925,10 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 
 	pdef_info_array = MEM_callocN(sizeof(bPoseChanDeform) * totchan, "bPoseChanDeform");
 
-	totchan = 0;
-	pdef_info = pdef_info_array;
-	for (pchan = armOb->pose->chanbase.first; pchan; pchan = pchan->next, pdef_info++) {
-		if (!(pchan->bone->flag & BONE_NO_DEFORM)) {
-			if (pchan->bone->segments > 1)
-				pchan_b_bone_defmats(pchan, pdef_info, use_quaternion);
-
-			if (use_quaternion) {
-				pdef_info->dual_quat = &dualquats[totchan++];
-				mat4_to_dquat(pdef_info->dual_quat, pchan->bone->arm_mat, pchan->chan_mat);
-			}
-		}
-	}
+	ArmatureBBoneDefmatsData data = {
+	    .pdef_info_array = pdef_info_array, .dualquats = dualquats, .use_quaternion = use_quaternion
+	};
+	BLI_task_parallel_listbase(&armOb->pose->chanbase, &data, armature_bbone_defmats_cb, totchan > 512);
 
 	/* get the def_nr for the overall armature vertex group if present */
 	armature_def_nr = defgroup_name_index(target, defgrp_name);
