@@ -2305,10 +2305,10 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface)
 						/* Check uv bb	*/
 						if ((faceBB[i].min[0] > (point[sample][0])) ||
 						    (faceBB[i].min[1] > (point[sample][1])) ||
-							(faceBB[i].max[0] < (point[sample][0])) ||
-							(faceBB[i].max[1] < (point[sample][1])))
+						    (faceBB[i].max[0] < (point[sample][0])) ||
+						    (faceBB[i].max[1] < (point[sample][1])))
 						{
-						    continue;
+							continue;
 						}
 
 						const float *uv1 = mloopuv[mlooptri[i].tri[0]].uv;
@@ -3584,7 +3584,8 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 		/* Proceed only if particle is active	*/
 		if ((pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN) == 0) ||
 		    (pa->alive == PARS_DEAD && (part->flag & PART_DIED) == 0) ||
-		    (pa->flag & PARS_UNEXIST)) {
+		    (pa->flag & PARS_UNEXIST))
+		{
 			continue;
 		}
 
@@ -3858,7 +3859,8 @@ static int dynamicPaint_paintSinglePoint(
 
 			/* color ramp */
 			if (brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP &&
-			    do_colorband(brush->paint_ramp, (1.0f - strength), colorband)) {
+			    do_colorband(brush->paint_ramp, (1.0f - strength), colorband))
+			{
 				strength = colorband[3];
 			}
 

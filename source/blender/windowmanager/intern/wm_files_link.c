@@ -412,9 +412,9 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	/* append, rather than linking */
 	if ((flag & FILE_LINK) == 0) {
 		const bool set_fake = RNA_boolean_get(op->ptr, "set_fake");
-		const bool do_recursive = RNA_boolean_get(op->ptr, "do_recursive");
+		const bool use_recursive = RNA_boolean_get(op->ptr, "use_recursive");
 
-		if (do_recursive) {
+		if (use_recursive) {
 			BKE_library_make_local(bmain, NULL, true, set_fake);
 		}
 		else {
@@ -515,6 +515,6 @@ void WM_OT_append(wmOperatorType *ot)
 	wm_link_append_properties_common(ot, false);
 	RNA_def_boolean(ot->srna, "set_fake", false, "Fake User",
 	                "Set Fake User for appended items (except Objects and Groups)");
-	RNA_def_boolean(ot->srna, "do_recursive", true, "Localize All",
+	RNA_def_boolean(ot->srna, "use_recursive", true, "Localize All",
 	                "Localize all appended data, including those indirectly linked from other libraries");
 }
