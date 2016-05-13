@@ -1783,7 +1783,7 @@ void BKE_main_id_clear_newpoins(Main *bmain)
 	}
 }
 
-static void lib_indirect_test_id(ID *id, Library *lib)
+static void lib_indirect_test_id(ID *id, const Library *lib)
 {
 #define LIBTAG(a) \
 	if (a && a->id.lib) { a->id.tag &= ~LIB_TAG_INDIRECT; a->id.tag |= LIB_TAG_EXTERN; } (void)0
