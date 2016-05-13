@@ -272,7 +272,7 @@ int BM_iter_mesh_bitmap_from_filter(
 		}
 	}
 
-	return i;
+	return bitmap_enabled;
 }
 
 /**
