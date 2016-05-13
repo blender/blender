@@ -28,6 +28,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_listBase.h"
+
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
@@ -750,16 +752,13 @@ size_t BLI_task_pool_tasks_done(TaskPool *pool)
  *
  * Main functions:
  * - #BLI_task_parallel_range
+ * - #BLI_task_parallel_listbase (#ListBase - double linked list)
  *
  * TODO:
- * - #BLI_task_parallel_foreach_listbase (#ListBase - double linked list)
  * - #BLI_task_parallel_foreach_link (#Link - single linked list)
  * - #BLI_task_parallel_foreach_ghash/gset (#GHash/#GSet - hash & set)
  * - #BLI_task_parallel_foreach_mempool (#BLI_mempool - iterate over mempools)
  *
- * Possible improvements:
- *
- * - Chunk iterations to reduce number of spin locks.
  */
 
 /* Allows to avoid using malloc for userdata_chunk in tasks, when small enough. */
@@ -934,7 +933,7 @@ static void task_parallel_range_ex(
 }
 
 /**
- * This function allows to parallelized for loops in a similar way to OpenMP's 'parallel for' statement.
+ * This function allows to parallelize for loops in a similar way to OpenMP's 'parallel for' statement.
  *
  * \param start First index to process.
  * \param stop Index to stop looping (excluded).
@@ -985,3 +984,115 @@ void BLI_task_parallel_range(
 #undef MALLOCA
 #undef MALLOCA_FREE
 
+typedef struct ParallelListbaseState {
+	void *userdata;
+	TaskParallelListbaseFunc func;
+
+	int chunk_size;
+	int index;
+	Link *link;
+	SpinLock lock;
+} ParallelListState;
+
+BLI_INLINE Link *parallel_listbase_next_iter_get(
+        ParallelListState * __restrict state,
+        int * __restrict index,
+        int * __restrict count)
+{
+	int task_count = 0;
+	BLI_spin_lock(&state->lock);
+	Link *result = state->link;
+	if (LIKELY(result != NULL)) {
+		*index = state->index;
+		while (state->link != NULL && task_count < state->chunk_size) {
+			++task_count;
+			state->link = state->link->next;
+		}
+		state->index += task_count;
+	}
+	BLI_spin_unlock(&state->lock);
+	*count = task_count;
+	return result;
+}
+
+static void parallel_listbase_func(
+        TaskPool * __restrict pool,
+        void *UNUSED(taskdata),
+        int UNUSED(threadid))
+{
+	ParallelListState * __restrict state = BLI_task_pool_userdata(pool);
+	Link *link;
+	int index, count;
+
+	while ((link = parallel_listbase_next_iter_get(state, &index, &count)) != NULL) {
+		for (int i = 0; i < count; ++i) {
+			state->func(state->userdata, link, index + i);
+			link = link->next;
+		}
+	}
+}
+
+/**
+ * This function allows to parallelize for loops over ListBase items.
+ *
+ * \param listbase The double linked list to loop over.
+ * \param userdata Common userdata passed to all instances of \a func.
+ * \param func Callback function.
+ * \param use_threading If \a true, actually split-execute loop in threads, else just do a sequential forloop
+ *                      (allows caller to use any kind of test to switch on parallelization or not).
+ *
+ * \note There is no static scheduling here, since it would need another full loop over items to count them...
+ */
+void BLI_task_parallel_listbase(
+        struct ListBase *listbase,
+        void *userdata,
+        TaskParallelListbaseFunc func,
+        const bool use_threading)
+{
+	TaskScheduler *task_scheduler;
+	TaskPool *task_pool;
+	ParallelListState state;
+	int i, num_threads, num_tasks;
+
+	if (BLI_listbase_is_empty(listbase)) {
+		return;
+	}
+
+	if (!use_threading) {
+		i = 0;
+		for (Link *link = listbase->first; link != NULL; link = link->next, ++i) {
+			func(userdata, link, i);
+		}
+		return;
+	}
+
+	task_scheduler = BLI_task_scheduler_get();
+	task_pool = BLI_task_pool_create(task_scheduler, &state);
+	num_threads = BLI_task_scheduler_num_threads(task_scheduler);
+
+	/* The idea here is to prevent creating task for each of the loop iterations
+	 * and instead have tasks which are evenly distributed across CPU cores and
+	 * pull next iter to be crunched using the queue.
+	 */
+	num_tasks = num_threads * 2;
+
+	state.index = 0;
+	state.link = listbase->first;
+	state.userdata = userdata;
+	state.func = func;
+	state.chunk_size = 32;
+	BLI_spin_init(&state.lock);
+
+	for (i = 0; i < num_tasks; i++) {
+		/* Use this pool's pre-allocated tasks. */
+		BLI_task_pool_push_from_thread(task_pool,
+		                               parallel_listbase_func,
+		                               NULL, false,
+		                               TASK_PRIORITY_HIGH, 0);
+	}
+
+	BLI_task_pool_work_and_wait(task_pool);
+	BLI_task_pool_free(task_pool);
+
+	BLI_spin_end(&state.lock);
+}

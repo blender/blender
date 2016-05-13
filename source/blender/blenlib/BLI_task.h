@@ -21,6 +21,9 @@
 #ifndef __BLI_TASK_H__
 #define __BLI_TASK_H__ 
 
+struct Link;
+struct ListBase;
+
 /** \file BLI_task.h
  *  \ingroup bli
  */
@@ -127,6 +130,15 @@ void BLI_task_parallel_range(
         int start, int stop,
         void *userdata,
         TaskParallelRangeFunc func,
+        const bool use_threading);
+
+typedef void (*TaskParallelListbaseFunc)(void *userdata,
+                                         struct Link *iter,
+                                         int index);
+void BLI_task_parallel_listbase(
+        struct ListBase *listbase,
+        void *userdata,
+        TaskParallelListbaseFunc func,
         const bool use_threading);
 
 #ifdef __cplusplus
