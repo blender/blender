@@ -197,6 +197,19 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
 	}
 
+	if (channels == 1 && (cp != NULL || fp != NULL)) {
+		if (fp != NULL) {
+			BLI_snprintf(str, sizeof(str), " Val:%-.3f |", fp[0]);
+		}
+		else if (cp != NULL) {
+			BLI_snprintf(str, sizeof(str), " Val:%-.3f |", cp[0] / 255.0f);
+		}
+		glColor3ub(255, 255, 255);
+		BLF_position(blf_mono_font, dx, dy, 0);
+		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+		dx += BLF_width(blf_mono_font, str, sizeof(str));
+	}
+
 	if (channels >= 3) {
 		glColor3ubv(red);
 		if (fp)
