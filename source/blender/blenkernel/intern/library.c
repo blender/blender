@@ -1830,9 +1830,14 @@ static void lib_indirect_test_id(ID *id, Library *lib)
 #undef LIBTAG
 }
 
-/* if lib!=NULL, only all from lib local
- * bmain is almost certainly G.main */
-void BKE_library_make_local(Main *bmain, Library *lib, bool untagged_only, bool set_fake)
+/** Make linked datablocks local.
+ *
+ * \param bmain Almost certainly G.main.
+ * \param lib If not NULL, only make local datablocks from this library.
+ * \param untagged_only If true, only make local datablocks not tagged with LIB_TAG_PRE_EXISTING.
+ * \param set_fake If true, set fake user on all localized datablocks (except group and objects ones).
+ */
+void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged_only, const bool set_fake)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
 	ID *id, *idn;
