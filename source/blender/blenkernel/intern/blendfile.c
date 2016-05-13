@@ -492,6 +492,9 @@ static void blendfile_write_partial_cb(void *UNUSED(handle), Main *UNUSED(bmain)
 		/* only tag for need-expand if not done, prevents eternal loops */
 		if ((id->tag & LIB_TAG_DOIT) == 0)
 			id->tag |= LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT;
+
+		if (id->lib && (id->lib->id.tag & LIB_TAG_DOIT) == 0)
+			id->lib->id.tag |= LIB_TAG_DOIT;
 	}
 }
 
