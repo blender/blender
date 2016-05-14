@@ -155,13 +155,8 @@ void BlenderSync::sync_light(BL::Object& b_parent,
 	light->dir = -transform_get_column(&tfm, 2);
 
 	/* shader */
-	vector<uint> used_shaders;
-
+	vector<Shader*> used_shaders;
 	find_shader(b_lamp, used_shaders, scene->default_light);
-
-	if(used_shaders.size() == 0)
-		used_shaders.push_back(scene->default_light);
-
 	light->shader = used_shaders[0];
 
 	/* shadow */

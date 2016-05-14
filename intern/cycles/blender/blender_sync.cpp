@@ -175,8 +175,8 @@ bool BlenderSync::sync_recalc()
 				world_recalc = true;
 			}
 			else if(b_world->node_tree() && b_world->use_nodes()) {
-				Shader *shader = scene->shaders[scene->default_background];
-				if(has_updated_objects && shader != NULL && shader->has_object_dependency) {
+				Shader *shader = scene->default_background;
+				if(has_updated_objects && shader->has_object_dependency) {
 					world_recalc = true;
 				}
 			}

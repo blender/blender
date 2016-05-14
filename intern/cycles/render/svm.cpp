@@ -66,9 +66,7 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 		svm_nodes.push_back(make_int4(NODE_SHADER_JUMP, 0, 0, 0));
 	}
 	
-	for(i = 0; i < scene->shaders.size(); i++) {
-		Shader *shader = scene->shaders[i];
-
+	foreach(Shader *shader, scene->shaders) {
 		if(progress.get_cancel()) return;
 
 		assert(shader->graph);
@@ -78,8 +76,8 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 
 		SVMCompiler::Summary summary;
 		SVMCompiler compiler(scene->shader_manager, scene->image_manager);
-		compiler.background = ((int)i == scene->default_background);
-		compiler.compile(scene, shader, svm_nodes, i, &summary);
+		compiler.background = (shader == scene->default_background);
+		compiler.compile(scene, shader, svm_nodes, shader->id, &summary);
 
 		VLOG(2) << "Compilation summary:\n"
 		        << "Shader name: " << shader->name << "\n"

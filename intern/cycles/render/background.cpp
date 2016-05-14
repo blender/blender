@@ -37,7 +37,7 @@ Background::Background()
 	use_ao = false;
 
 	visibility = PATH_RAY_ALL_VISIBILITY;
-	shader = 0;
+	shader = NULL;
 
 	transparent = false;
 	need_update = true;
@@ -54,10 +54,14 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	
 	device_free(device, dscene);
 
-	if(use_shader)
-		shader = scene->default_background;
+	Shader *bg_shader = shader;
+
+	if(use_shader) {
+		if(!bg_shader)
+			bg_shader = scene->default_background;
+	}
 	else
-		shader = scene->default_empty;
+		bg_shader = scene->default_empty;
 
 	/* set shader index and transparent option */
 	KernelBackground *kbackground = &dscene->data.background;
@@ -72,15 +76,15 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	}
 
 	kbackground->transparent = transparent;
-	kbackground->surface_shader = scene->shader_manager->get_shader_id(shader);
+	kbackground->surface_shader = scene->shader_manager->get_shader_id(bg_shader);
 
-	if(scene->shaders[shader]->has_volume)
+	if(bg_shader->has_volume)
 		kbackground->volume_shader = kbackground->surface_shader;
 	else
 		kbackground->volume_shader = SHADER_NONE;
 
 	/* No background node, make world shader invisible to all rays, to skip evaluation in kernel. */
-	if(scene->shaders[shader]->graph->nodes.size() <= 1) {
+	if(bg_shader->graph->nodes.size() <= 1) {
 		kbackground->surface_shader |= SHADER_EXCLUDE_ANY;
 	}
 	/* Background present, check visibilities */

@@ -37,18 +37,13 @@ typedef map<std::string, ConvertNode*> ProxyMap;
 /* Find */
 
 void BlenderSync::find_shader(BL::ID& id,
-                              vector<uint>& used_shaders,
-                              int default_shader)
+                              vector<Shader*>& used_shaders,
+                              Shader *default_shader)
 {
-	Shader *shader = (id)? shader_map.find(id): scene->shaders[default_shader];
+	Shader *shader = (id)? shader_map.find(id): default_shader;
 
-	for(size_t i = 0; i < scene->shaders.size(); i++) {
-		if(scene->shaders[i] == shader) {
-			used_shaders.push_back(i);
-			scene->shaders[i]->tag_used(scene);
-			break;
-		}
-	}
+	used_shaders.push_back(shader);
+	shader->tag_used(scene);
 }
 
 /* RNA translation utilities */
@@ -1207,7 +1202,7 @@ static void add_nodes(Scene *scene,
 
 void BlenderSync::sync_materials(bool update_all)
 {
-	shader_map.set_default(scene->shaders[scene->default_surface]);
+	shader_map.set_default(scene->default_surface);
 
 	/* material loop */
 	BL::BlendData::materials_iterator b_mat;
@@ -1262,7 +1257,7 @@ void BlenderSync::sync_world(bool update_all)
 	BL::World b_world = b_scene.world();
 
 	if(world_recalc || update_all || b_world.ptr.data != world_map) {
-		Shader *shader = scene->shaders[scene->default_background];
+		Shader *shader = scene->default_background;
 		ShaderGraph *graph = new ShaderGraph();
 
 		/* create nodes */
@@ -1342,7 +1337,7 @@ void BlenderSync::sync_world(bool update_all)
 
 void BlenderSync::sync_lamps(bool update_all)
 {
-	shader_map.set_default(scene->shaders[scene->default_light]);
+	shader_map.set_default(scene->default_light);
 
 	/* lamp loop */
 	BL::BlendData::lamps_iterator b_lamp;

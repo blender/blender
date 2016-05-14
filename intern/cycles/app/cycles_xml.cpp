@@ -52,7 +52,7 @@ struct XMLReadState {
 	Scene *scene;		/* scene pointer */
 	Transform tfm;		/* current transform state */
 	bool smooth;		/* smooth normal state */
-	int shader;			/* current shader */
+	Shader *shader;		/* current shader */
 	string base;		/* base path to current file*/
 	float dicing_rate;	/* current dicing rate */
 	Mesh::DisplacementMethod displacement_method;
@@ -60,7 +60,7 @@ struct XMLReadState {
 	XMLReadState()
 	  : scene(NULL),
 	    smooth(false),
-	    shader(0),
+	    shader(NULL),
 	    dicing_rate(0.0f),
 	    displacement_method(Mesh::DISPLACE_BUMP)
 	{
@@ -865,7 +865,7 @@ static void xml_read_background(const XMLReadState& state, pugi::xml_node node)
 	xml_read_bool(&bg->transparent, node, "transparent");
 
 	/* Background Shader */
-	Shader *shader = state.scene->shaders[state.scene->default_background];
+	Shader *shader = state.scene->default_background;
 	
 	xml_read_bool(&shader->heterogeneous_volume, node, "heterogeneous_volume");
 	xml_read_int(&shader->volume_interpolation_method, node, "volume_interpolation_method");
@@ -904,7 +904,7 @@ static void xml_read_mesh(const XMLReadState& state, pugi::xml_node node)
 	mesh->used_shaders.push_back(state.shader);
 
 	/* read state */
-	int shader = state.shader;
+	int shader = 0;
 	bool smooth = state.smooth;
 
 	mesh->displacement_method = state.displacement_method;
@@ -1064,7 +1064,7 @@ static void xml_read_patch(const XMLReadState& state, pugi::xml_node node)
 		mesh->used_shaders.push_back(state.shader);
 
 		/* split */
-		SubdParams sdparams(mesh, state.shader, state.smooth);
+		SubdParams sdparams(mesh, 0, state.smooth);
 		xml_read_float(&sdparams.dicing_rate, node, "dicing_rate");
 
 		DiagSplit dsplit(sdparams);
@@ -1161,17 +1161,14 @@ static void xml_read_state(XMLReadState& state, pugi::xml_node node)
 	string shadername;
 
 	if(xml_read_string(&shadername, node, "shader")) {
-		int i = 0;
 		bool found = false;
 
 		foreach(Shader *shader, state.scene->shaders) {
 			if(shader->name == shadername) {
-				state.shader = i;
+				state.shader = shader;
 				found = true;
 				break;
 			}
-
-			i++;
 		}
 
 		if(!found)

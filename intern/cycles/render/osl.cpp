@@ -99,7 +99,7 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 		thread_scoped_lock lock(ss_mutex);
 
 		OSLCompiler compiler((void*)this, (void*)ss, scene->image_manager);
-		compiler.background = (shader == scene->shaders[scene->default_background]);
+		compiler.background = (shader == scene->default_background);
 		compiler.compile(scene, og, shader);
 
 		if(shader->use_mis && shader->has_surface_emission)

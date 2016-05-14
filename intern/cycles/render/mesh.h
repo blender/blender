@@ -94,7 +94,7 @@ public:
 	vector<float4> curve_keys; /* co + radius */
 	vector<Curve> curves;
 
-	vector<uint> used_shaders;
+	vector<Shader*> used_shaders;
 	AttributeSet attributes;
 	AttributeSet curve_attributes;
 

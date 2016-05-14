@@ -185,9 +185,7 @@ void Object::tag_update(Scene *scene)
 		if(mesh->transform_applied)
 			mesh->need_update = true;
 
-		foreach(uint sindex, mesh->used_shaders) {
-			Shader *shader = scene->shaders[sindex];
-
+		foreach(Shader *shader, mesh->used_shaders) {
 			if(shader->use_mis && shader->has_surface_emission)
 				scene->light_manager->need_update = true;
 		}

@@ -27,6 +27,7 @@ CCL_NAMESPACE_BEGIN
 class Device;
 class DeviceScene;
 class Progress;
+class Shader;
 class Scene;
 
 class Light {
@@ -59,7 +60,7 @@ public:
 	bool is_portal;
 	bool is_enabled;
 
-	int shader;
+	Shader *shader;
 	int samples;
 	int max_bounces;
 

@@ -183,10 +183,10 @@ public:
 	BakeManager *bake_manager;
 
 	/* default shaders */
-	int default_surface;
-	int default_light;
-	int default_background;
-	int default_empty;
+	Shader *default_surface;
+	Shader *default_light;
+	Shader *default_background;
+	Shader *default_empty;
 
 	/* device */
 	Device *device;

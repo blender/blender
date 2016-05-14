@@ -32,8 +32,8 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 	bool has_displacement = false;
 
 	if(mesh->displacement_method != Mesh::DISPLACE_BUMP) {
-		foreach(uint sindex, mesh->used_shaders)
-			if(scene->shaders[sindex]->has_displacement)
+		foreach(Shader *shader, mesh->used_shaders)
+			if(shader->has_displacement)
 				has_displacement = true;
 	}
 	

@@ -23,6 +23,7 @@ CCL_NAMESPACE_BEGIN
 
 class Device;
 class DeviceScene;
+class Shader;
 class Scene;
 
 class Background {
@@ -34,7 +35,7 @@ public:
 	bool use_ao;
 
 	uint visibility;
-	uint shader;
+	Shader *shader;
 
 	bool transparent;
 	bool need_update;
