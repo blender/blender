@@ -44,6 +44,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "UI_interface.h"
+
 #include "ED_mesh.h"
 #include "ED_numinput.h"
 #include "ED_screen.h"
@@ -72,14 +74,12 @@ typedef struct {
 	float segments;     /* Segments as float so smooth mouse pan works in small increments */
 } BevelData;
 
-#define HEADER_LENGTH 180
-
 static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 {
 	const char *str = IFACE_("Confirm: (Enter/LMB), Cancel: (Esc/RMB), Mode: %s (M), Clamp Overlap: %s (C), "
 	                         "Vertex Only: %s (V), Offset: %s, Segments: %d");
 
-	char msg[HEADER_LENGTH];
+	char msg[UI_MAX_DRAW_STR];
 	ScrArea *sa = CTX_wm_area(C);
 	Scene *sce = CTX_data_scene(C);
 
@@ -98,7 +98,7 @@ static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 
 		RNA_property_enum_name_gettexted(C, op->ptr, prop, RNA_property_enum_get(op->ptr, prop), &type_str);
 
-		BLI_snprintf(msg, HEADER_LENGTH, str, type_str,
+		BLI_snprintf(msg, sizeof(msg), str, type_str,
 		             WM_bool_as_string(RNA_boolean_get(op->ptr, "clamp_overlap")),
 		             WM_bool_as_string(RNA_boolean_get(op->ptr, "vertex_only")),
 		             offset_str, RNA_int_get(op->ptr, "segments"));

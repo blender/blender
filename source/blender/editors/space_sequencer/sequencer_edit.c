@@ -1506,23 +1506,20 @@ static int sequencer_slip_exec(bContext *C, wmOperator *op)
 
 static void sequencer_slip_update_header(Scene *scene, ScrArea *sa, SlipData *data, int offset)
 {
-#define HEADER_LENGTH 40
-	char msg[HEADER_LENGTH];
+	char msg[UI_MAX_DRAW_STR];
 
 	if (sa) {
 		if (hasNumInput(&data->num_input)) {
 			char num_str[NUM_STR_REP_LEN];
 			outputNumInput(&data->num_input, num_str, &scene->unit);
-			BLI_snprintf(msg, HEADER_LENGTH, "Trim offset: %s", num_str);
+			BLI_snprintf(msg, sizeof(msg), IFACE_("Trim offset: %s"), num_str);
 		}
 		else {
-			BLI_snprintf(msg, HEADER_LENGTH, "Trim offset: %d", offset);
+			BLI_snprintf(msg, sizeof(msg), IFACE_("Trim offset: %d"), offset);
 		}
 	}
 
 	ED_area_headerprint(sa, msg);
-
-#undef HEADER_LENGTH
 }
 
 static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *event)

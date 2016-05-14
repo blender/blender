@@ -514,12 +514,10 @@ void NODE_OT_link_viewer(wmOperatorType *ot)
 
 static void node_link_update_header(bContext *C, bNodeLinkDrag *UNUSED(nldrag))
 {
-#define HEADER_LENGTH 256
-	char header[HEADER_LENGTH];
+	char header[UI_MAX_DRAW_STR];
 
-	BLI_strncpy(header, IFACE_("LMB: drag node link, RMB: cancel"), HEADER_LENGTH);
+	BLI_strncpy(header, IFACE_("LMB: drag node link, RMB: cancel"), sizeof(header));
 	ED_area_headerprint(CTX_wm_area(C), header);
-#undef HEADER_LENGTH
 }
 
 static int node_count_links(bNodeTree *ntree, bNodeSocket *sock)

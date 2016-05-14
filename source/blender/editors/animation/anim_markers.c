@@ -39,6 +39,8 @@
 #include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_main.h"
@@ -685,7 +687,7 @@ static void ed_marker_move_update_header(bContext *C, wmOperator *op)
 	MarkerMove *mm = op->customdata;
 	TimeMarker *marker, *selmarker = NULL;
 	const int offs = RNA_int_get(op->ptr, "frames");
-	char str[256];
+	char str[UI_MAX_DRAW_STR];
 	char str_offs[NUM_STR_REP_LEN];
 	int totmark;
 	const bool use_time = ed_marker_move_use_time(mm);
@@ -710,14 +712,14 @@ static void ed_marker_move_update_header(bContext *C, wmOperator *op)
 	if (totmark == 1 && selmarker) {
 		/* we print current marker value */
 		if (use_time) {
-			BLI_snprintf(str, sizeof(str), "Marker %.2f offset %s", FRA2TIME(selmarker->frame), str_offs);
+			BLI_snprintf(str, sizeof(str), IFACE_("Marker %.2f offset %s"), FRA2TIME(selmarker->frame), str_offs);
 		}
 		else {
-			BLI_snprintf(str, sizeof(str), "Marker %d offset %s", selmarker->frame, str_offs);
+			BLI_snprintf(str, sizeof(str), IFACE_("Marker %d offset %s"), selmarker->frame, str_offs);
 		}
 	}
 	else {
-		BLI_snprintf(str, sizeof(str), "Marker offset %s", str_offs);
+		BLI_snprintf(str, sizeof(str), IFACE_("Marker offset %s"), str_offs);
 	}
 
 	ED_area_headerprint(CTX_wm_area(C), str);

@@ -47,6 +47,8 @@
 
 #include "BIF_gl.h"
 
+#include "UI_interface.h"
+
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_view3d.h"
@@ -780,7 +782,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 	if (show_cuts) {
 		Scene *sce = CTX_data_scene(C);
-		char buf[64 + NUM_STR_REP_LEN * 2];
+		char buf[UI_MAX_DRAW_STR];
 		char str_rep[NUM_STR_REP_LEN * 2];
 		if (hasNumInput(&lcd->num)) {
 			outputNumInput(&lcd->num, str_rep, &sce->unit);

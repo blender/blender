@@ -51,6 +51,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "UI_interface.h"
+
 #include "ED_armature.h"
 #include "ED_keyframes_draw.h"
 #include "ED_markers.h"
@@ -544,7 +546,7 @@ static void pose_slide_reset(tPoseSlideOp *pso)
 /* draw percentage indicator in header */
 static void pose_slide_draw_status(tPoseSlideOp *pso)
 {
-	char status_str[256];
+	char status_str[UI_MAX_DRAW_STR];
 	char mode_str[32];
 	
 	switch (pso->mode) {
