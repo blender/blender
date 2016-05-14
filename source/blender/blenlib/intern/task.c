@@ -784,13 +784,13 @@ BLI_INLINE bool parallel_range_next_iter_get(
 {
 	uint32_t n, olditer, previter, newiter;
 
-	if (state->iter >= state->stop) {
+	if (UNLIKELY(state->iter >= state->stop)) {
 		return false;
 	}
 
 	do {
 		olditer = state->iter;
-		n = min_ii(state->chunk_size, state->stop - state->iter);
+		n = min_ii(state->chunk_size, state->stop - olditer);
 		newiter = olditer + n;
 		previter = atomic_cas_uint32((uint32_t *)&state->iter, olditer, newiter);
 	} while (UNLIKELY(previter != olditer));
