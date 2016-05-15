@@ -437,7 +437,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "maxres");
 	RNA_def_property_range(prop, 6, 512);
 	RNA_def_property_ui_range(prop, 24, 512, 2, -1);
-	RNA_def_property_ui_text(prop, "Max Res", "Maximal resolution used in the fluid domain");
+	RNA_def_property_ui_text(prop, "Max Res", "Maximal resolution used in the smoke domain");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
 
@@ -490,11 +490,11 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Collision Group", "Limit collisions to this group");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset_dependency");
 
-	prop = RNA_def_property(srna, "fluid_group", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "fluid_group");
+	prop = RNA_def_property(srna, "smoke_group", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "smoke_group");
 	RNA_def_property_struct_type(prop, "Group");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Fluid Group", "Limit fluid objects to this group");
+	RNA_def_property_ui_text(prop, "Smoke Group", "Limit smoke objects to this group");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset_dependency");
 
 	prop = RNA_def_property(srna, "effector_group", PROP_POINTER, PROP_NONE);
@@ -579,7 +579,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "vorticity");
 	RNA_def_property_range(prop, 0.01, 4.0);
 	RNA_def_property_ui_range(prop, 0.01, 4.0, 0.02, 5);
-	RNA_def_property_ui_text(prop, "Vorticity", "Amount of turbulence/rotation in fluid");
+	RNA_def_property_ui_text(prop, "Vorticity", "Amount of turbulence/rotation in the smoke");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
 	prop = RNA_def_property(srna, "density_grid", PROP_FLOAT, PROP_NONE);
@@ -673,7 +673,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_adaptive_domain", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_ADAPTIVE_DOMAIN);
-	RNA_def_property_ui_text(prop, "Adaptive Domain", "Adapt simulation resolution and size to fluid");
+	RNA_def_property_ui_text(prop, "Adaptive Domain", "Adapt the resolution and size of the smoke domain");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
 
@@ -688,14 +688,14 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "adapt_margin");
 	RNA_def_property_range(prop, 2, 24);
 	RNA_def_property_ui_range(prop, 2, 24, 2, -1);
-	RNA_def_property_ui_text(prop, "Margin", "Margin added around fluid to minimize boundary interference");
+	RNA_def_property_ui_text(prop, "Margin", "Margin added around the smoke to minimize boundary interference");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
 	prop = RNA_def_property(srna, "adapt_threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.01, 0.5);
 	RNA_def_property_ui_range(prop, 0.01, 0.5, 1.0, 5);
 	RNA_def_property_ui_text(prop, "Threshold",
-	                         "Maximum amount of fluid cell can contain before it is considered empty");
+	                         "Maximum amount of smoke cells can be contained before it is considered empty");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
 	prop = RNA_def_property(srna, "cache_file_format", PROP_ENUM, PROP_NONE);
