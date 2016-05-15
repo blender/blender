@@ -291,12 +291,8 @@ void preEditBoneDuplicate(ListBase *editbones)
 /**
  * Helper function for #postEditBoneDuplicate,
  * return the destination pchan from the original.
- *
- * \param use_orig_fallback: return the input value if no new channel is found.
  */
-static bPoseChannel *pchan_duplicate_map(
-        const bPose *pose, GHash *name_map,
-        bPoseChannel *pchan_src, bool use_orig_fallback)
+static bPoseChannel *pchan_duplicate_map(const bPose *pose, GHash *name_map, bPoseChannel *pchan_src)
 {
 	bPoseChannel *pchan_dst = NULL;
 	const char *name_src = pchan_src->name;
@@ -305,7 +301,7 @@ static bPoseChannel *pchan_duplicate_map(
 		pchan_dst = BKE_pose_channel_find_name(pose, name_dst);
 	}
 
-	if ((pchan_dst == NULL) && use_orig_fallback) {
+	if (pchan_dst == NULL) {
 		pchan_dst = pchan_src;
 	}
 
@@ -325,6 +321,9 @@ void postEditBoneDuplicate(struct ListBase *editbones, Object *ob)
 
 	for (EditBone *ebone_src = editbones->first; ebone_src; ebone_src = ebone_src->next) {
 		EditBone *ebone_dst = ebone_src->temp.ebone;
+		if (!ebone_dst) {
+			ebone_dst = ED_armature_bone_get_mirrored(editbones, ebone_src);
+		}
 		if (ebone_dst) {
 			BLI_ghash_insert(name_map, ebone_src->name, ebone_dst->name);
 		}
@@ -338,7 +337,7 @@ void postEditBoneDuplicate(struct ListBase *editbones, Object *ob)
 				bPoseChannel *pchan_dst = BKE_pose_channel_find_name(ob->pose, ebone_dst->name);
 				if (pchan_dst) {
 					if (pchan_src->custom_tx) {
-						pchan_dst->custom_tx = pchan_duplicate_map(ob->pose, name_map, pchan_src->custom_tx, true);
+						pchan_dst->custom_tx = pchan_duplicate_map(ob->pose, name_map, pchan_src->custom_tx);
 					}
 				}
 			}
@@ -682,7 +681,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	/*	Run though the list and fix the pointers */
+	/*	Run through the list and fix the pointers */
 	for (ebone_iter = arm->edbo->first; ebone_iter && ebone_iter != ebone_first_dupe; ebone_iter = ebone_iter->next) {
 		if (ebone_iter->temp.ebone) {
 			/* copy all flags except for ... */
