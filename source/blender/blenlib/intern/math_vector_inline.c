@@ -954,17 +954,17 @@ MINLINE bool is_zero_v4(const float v[4])
 
 MINLINE bool is_finite_v2(const float v[2])
 {
-	return (finite(v[0]) && finite(v[1]));
+	return (isfinite(v[0]) && isfinite(v[1]));
 }
 
 MINLINE bool is_finite_v3(const float v[3])
 {
-	return (finite(v[0]) && finite(v[1]) && finite(v[2]));
+	return (isfinite(v[0]) && isfinite(v[1]) && isfinite(v[2]));
 }
 
 MINLINE bool is_finite_v4(const float v[4])
 {
-	return (finite(v[0]) && finite(v[1]) && finite(v[2]) && finite(v[3]));
+	return (isfinite(v[0]) && isfinite(v[1]) && isfinite(v[2]) && isfinite(v[3]));
 }
 
 MINLINE bool is_one_v3(const float v[3])

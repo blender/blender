@@ -217,8 +217,8 @@ eV3DProjStatus ED_view3d_project_float_ex(const ARegion *ar, float perspmat[4][4
 	float tvec[2];
 	eV3DProjStatus ret = ed_view3d_project__internal(ar, perspmat, is_local, co, tvec, flag);
 	if (ret == V3D_PROJ_RET_OK) {
-		if (finite(tvec[0]) &&
-		    finite(tvec[1]))
+		if (isfinite(tvec[0]) &&
+		    isfinite(tvec[1]))
 		{
 			copy_v2_v2(r_co, tvec);
 		}

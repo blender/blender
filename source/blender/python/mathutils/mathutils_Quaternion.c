@@ -1165,9 +1165,9 @@ static void quat__axis_angle_sanitize(float axis[3], float *angle)
 {
 	if (axis) {
 		if (is_zero_v3(axis) ||
-		    !finite(axis[0]) ||
-		    !finite(axis[1]) ||
-		    !finite(axis[2]))
+		    !isfinite(axis[0]) ||
+		    !isfinite(axis[1]) ||
+		    !isfinite(axis[2]))
 		{
 			axis[0] = 1.0f;
 			axis[1] = 0.0f;
@@ -1182,7 +1182,7 @@ static void quat__axis_angle_sanitize(float axis[3], float *angle)
 	}
 
 	if (angle) {
-		if (!finite(*angle)) {
+		if (!isfinite(*angle)) {
 			*angle = 0.0f;
 		}
 	}

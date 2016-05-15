@@ -45,7 +45,7 @@
 
 #ifdef _WIN32
 #include "BLI_path_util.h"  /* BLI_setenv() */
-#include "BLI_math_base.h"  /* finite() */
+#include "BLI_math_base.h"  /* isfinite() */
 #endif
 
 /* array utility function */
@@ -1026,7 +1026,7 @@ bool PyC_RunString_AsNumber(const char *expr, double *value, const char *filenam
 		if (val == -1 && PyErr_Occurred()) {
 			ok = false;
 		}
-		else if (!finite(val)) {
+		else if (!isfinite(val)) {
 			*value = 0.0;
 		}
 		else {

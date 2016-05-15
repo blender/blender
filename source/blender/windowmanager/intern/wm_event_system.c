@@ -2359,7 +2359,7 @@ void wm_event_do_handlers(bContext *C)
 					
 					if (is_playing_sound == 0) {
 						const float time = BKE_sound_sync_scene(scene);
-						if (finite(time)) {
+						if (isfinite(time)) {
 							int ncfra = time * (float)FPS + 0.5f;
 							if (ncfra != scene->r.cfra) {
 								scene->r.cfra = ncfra;

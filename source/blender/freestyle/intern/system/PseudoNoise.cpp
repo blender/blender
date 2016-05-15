@@ -33,7 +33,7 @@
 
 static int modf_to_index(Freestyle::real x, unsigned int range)
 {
-	if (finite(x)) {
+	if (isfinite(x)) {
 		Freestyle::real tmp;
 		int i = abs((int)(modf(x, &tmp) * range));
 		BLI_assert(i >= 0 && i < range);

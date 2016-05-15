@@ -56,7 +56,7 @@ double double_round(double x, int ndigits)
 		pow2 = 1.0;
 		y = (x * pow1) * pow2;
 		/* if y overflows, then rounded value is exactly x */
-		if (!finite(y))
+		if (!isfinite(y))
 			return x;
 	}
 	else {
