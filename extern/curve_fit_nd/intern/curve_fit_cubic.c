@@ -429,14 +429,43 @@ static double points_calc_circumference_factor(
 		 * (tangents that point away from each other).
 		 * We could try support this but will likely cause extreme >1 scales which could cause other issues. */
 		// assert(angle >= len_tangent);
-		double factor = (angle / len_tangent) / (M_PI / 2);
-		factor = 1.0 - pow(1.0 - factor, 1.75);
-		assert(factor < 1.0 + DBL_EPSILON);
+		double factor = (angle / len_tangent);
+		assert(factor < (M_PI / 2) + DBL_EPSILON);
 		return factor;
 	}
 	else {
 		/* tangents are exactly aligned (think two opposite sides of a circle). */
-		return 1.0;
+		return (M_PI / 2);
+	}
+}
+
+/**
+ * Return the value which the distance between points will need to be scaled by,
+ * to define a handle, given both points are on a perfect circle.
+ *
+ * \note the return value will need to be multiplied by 1.3... for correct results.
+ */
+static double points_calc_circle_tangent_factor(
+        const double  tan_l[],
+        const double  tan_r[],
+        const uint dims)
+{
+	const double angle_sin = len_vnvn(tan_l, tan_r, dims) / 2.0;
+	if (angle_sin != 0.0) {
+		const double tan_dot = dot_vnvn(tan_l, tan_r, dims);
+		double scale;
+		if (tan_dot > -1.0) {
+			const double angle = acos(tan_dot) / 2.0;
+			const double angle_cos = cos(angle);
+			scale = (1.0 - angle_cos) / (angle_sin * 2.0);
+		}
+		else {
+			scale = 1.0 / 2.0;
+		}
+		return (scale / angle_sin);
+	}
+	else {
+		return (1.0 / 3.0) * 0.75;
 	}
 }
 
@@ -451,9 +480,20 @@ static double points_calc_cubic_scale(
         const double coords_length, uint dims)
 {
 	const double len_direct = len_vnvn(v_l, v_r, dims);
-	const double len_circle_factor = points_calc_circumference_factor(tan_l, tan_r, dims) * 1.75;
-	const double len_points = min(coords_length, len_circle_factor * len_direct);
-	return (len_direct + ((len_points - len_direct) * len_circle_factor)) / 3.0;
+	const double len_circle_factor = points_calc_circle_tangent_factor(tan_l, tan_r, dims);
+
+	/* if this curve is a circle, this value doesn't need modification */
+	const double len_circle_handle = (len_direct * (len_circle_factor / 0.75));
+
+	/* scale by the difference from the circumference distance */
+	const double len_circle = len_direct * points_calc_circumference_factor(tan_l, tan_r, dims);
+	double scale_handle = (coords_length / len_circle);
+
+	/* Could investigate an accurate calculation here,
+	 * though this gives close results */
+	scale_handle = ((scale_handle - 1.0) * 1.75) + 1.0;
+
+	return len_circle_handle * scale_handle;
 }
 
 static void cubic_from_points_fallback(
