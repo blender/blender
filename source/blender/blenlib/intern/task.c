@@ -776,23 +776,18 @@ typedef struct ParallelRangeState {
 
 	int iter;
 	int chunk_size;
-	SpinLock lock;
 } ParallelRangeState;
 
 BLI_INLINE bool parallel_range_next_iter_get(
         ParallelRangeState * __restrict state,
         int * __restrict iter, int * __restrict count)
 {
-	bool result = false;
-	BLI_spin_lock(&state->lock);
-	if (state->iter < state->stop) {
-		*count = min_ii(state->chunk_size, state->stop - state->iter);
-		*iter = state->iter;
-		state->iter += *count;
-		result = true;
-	}
-	BLI_spin_unlock(&state->lock);
-	return result;
+	uint32_t previter = atomic_fetch_and_add_uint32((uint32_t *)(&state->iter), state->chunk_size);
+
+	*iter = (int)previter;
+	*count = max_ii(0, min_ii(state->chunk_size, state->stop - previter));
+
+	return (previter < state->stop);
 }
 
 static void parallel_range_func(
@@ -897,7 +892,6 @@ static void task_parallel_range_ex(
 	 */
 	num_tasks = num_threads * 2;
 
-	BLI_spin_init(&state.lock);
 	state.start = start;
 	state.stop = stop;
 	state.userdata = userdata;
@@ -914,6 +908,7 @@ static void task_parallel_range_ex(
 	}
 
 	num_tasks = min_ii(num_tasks, (stop - start) / state.chunk_size);
+	atomic_fetch_and_add_uint32((uint32_t *)(&state.iter), 0);
 
 	for (i = 0; i < num_tasks; i++) {
 		BLI_task_pool_push(task_pool,
@@ -924,8 +919,6 @@ static void task_parallel_range_ex(
 
 	BLI_task_pool_work_and_wait(task_pool);
 	BLI_task_pool_free(task_pool);
-
-	BLI_spin_end(&state.lock);
 }
 
 /**
