@@ -450,22 +450,24 @@ static double points_calc_circle_tangent_factor(
         const double  tan_r[],
         const uint dims)
 {
-	const double angle_sin = len_vnvn(tan_l, tan_r, dims) / 2.0;
-	if (angle_sin != 0.0) {
-		const double tan_dot = dot_vnvn(tan_l, tan_r, dims);
-		double scale;
-		if (tan_dot > -1.0) {
-			const double angle = acos(tan_dot) / 2.0;
-			const double angle_cos = cos(angle);
-			scale = (1.0 - angle_cos) / (angle_sin * 2.0);
-		}
-		else {
-			scale = 1.0 / 2.0;
-		}
-		return (scale / angle_sin);
+	const double eps = 1e-8;
+	const double tan_dot = dot_vnvn(tan_l, tan_r, dims);
+	if (tan_dot > 1.0 - eps) {
+		/* no angle difference (use fallback, length wont make any difference) */
+		return (1.0 / 3.0) * 0.75;
+	}
+	else if (tan_dot < -1.0 + eps) {
+		/* parallele tangents (half-circle) */
+		return (1.0 / 2.0);
 	}
 	else {
-		return (1.0 / 3.0) * 0.75;
+		/* non-aligned tangents, calculate handle length */
+		const double angle = acos(tan_dot) / 2.0;
+
+		/* could also use 'angle_sin = len_vnvn(tan_l, tan_r, dims) / 2.0' */
+		const double angle_sin = sin(angle);
+		const double angle_cos = cos(angle);
+		return ((1.0 - angle_cos) / (angle_sin * 2.0)) / angle_sin;
 	}
 }
 
