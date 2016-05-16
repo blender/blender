@@ -76,6 +76,11 @@ ATOMIC_INLINE uint32_t atomic_cas_uint32(uint32_t *v, uint32_t old, uint32_t _ne
 	return InterlockedCompareExchange((long *)v, _new, old);
 }
 
+ATOMIC_INLINE uint32_t atomic_fetch_and_add_uint32(uint32_t *p, uint32_t x)
+{
+	return InterlockedExchangeAdd(p, x);
+}
+
 /******************************************************************************/
 /* 8-bit operations. */
 
