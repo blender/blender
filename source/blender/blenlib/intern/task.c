@@ -911,10 +911,10 @@ static void task_parallel_range_ex(
 	atomic_fetch_and_add_uint32((uint32_t *)(&state.iter), 0);
 
 	for (i = 0; i < num_tasks; i++) {
-		BLI_task_pool_push(task_pool,
-		                   parallel_range_func,
-		                   NULL, false,
-		                   TASK_PRIORITY_HIGH);
+		BLI_task_pool_push_from_thread(task_pool,
+		                               parallel_range_func,
+		                               NULL, false,
+		                               TASK_PRIORITY_HIGH, 0);
 	}
 
 	BLI_task_pool_work_and_wait(task_pool);
