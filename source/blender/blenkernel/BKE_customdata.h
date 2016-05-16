@@ -244,7 +244,7 @@ void CustomData_free_elem(struct CustomData *data, int index, int count);
  */
 void CustomData_interp(
         const struct CustomData *source, struct CustomData *dest,
-        int *src_indices, float *weights, float *sub_weights,
+        const int *src_indices, const float *weights, const float *sub_weights,
         int count, int dest_index);
 void CustomData_bmesh_interp_n(
         struct CustomData *data, const void **src_blocks, const float *weights,
@@ -358,7 +358,7 @@ void CustomData_file_write_prepare(
         struct CustomDataLayer **r_write_layers, struct CustomDataLayer *write_layers_buff, size_t write_layers_size);
 
 /* query info over types */
-void CustomData_file_write_info(int type, const char **structname, int *structnum);
+void CustomData_file_write_info(int type, const char **r_struct_name, int *r_struct_num);
 int CustomData_sizeof(int type);
 
 /* get the name of a layer type */

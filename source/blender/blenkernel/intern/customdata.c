@@ -2281,7 +2281,7 @@ void CustomData_free_elem(CustomData *data, int index, int count)
 #define SOURCE_BUF_SIZE 100
 
 void CustomData_interp(const CustomData *source, CustomData *dest,
-                       int *src_indices, float *weights, float *sub_weights,
+                       const int *src_indices, const float *weights, const float *sub_weights,
                        int count, int dest_index)
 {
 	int src_i, dest_i;
@@ -3309,12 +3309,12 @@ void CustomData_from_bmesh_block(const CustomData *source, CustomData *dest,
 
 }
 
-void CustomData_file_write_info(int type, const char **structname, int *structnum)
+void CustomData_file_write_info(int type, const char **r_struct_name, int *r_struct_num)
 {
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
 
-	*structname = typeInfo->structname;
-	*structnum = typeInfo->structnum;
+	*r_struct_name = typeInfo->structname;
+	*r_struct_num = typeInfo->structnum;
 }
 
 /**
