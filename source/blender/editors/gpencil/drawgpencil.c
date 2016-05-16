@@ -763,6 +763,7 @@ static void gp_draw_stroke_2d(bGPDspoint *points, int totpoints, short thickness
 		}
 		
 		glEnd();
+		glShadeModel(GL_SMOOTH);
 	}
 	
 	/* draw debug points of curve on top? (original stroke points) */

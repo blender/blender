@@ -376,6 +376,8 @@ static GPUShader *gpu_basic_shader(int options)
 			strcat(defines, "#define DRAW_LINE\n");
 			geom_glsl = datatoc_gpu_shader_basic_geom_glsl;
 		}
+		if (options & GPU_SHADER_FLAT_NORMAL)
+			strcat(defines, "#define USE_FLAT_NORMAL\n");
 		if (options & GPU_SHADER_SOLID_LIGHTING)
 			strcat(defines, "#define USE_SOLID_LIGHTING\n");
 		else if (options & GPU_SHADER_LIGHTING)
@@ -507,6 +509,12 @@ void GPU_basic_shader_bind(int options)
 				glDisable(GL_POLYGON_STIPPLE);
 		}
 
+		if (options & GPU_SHADER_FLAT_NORMAL) {
+			glShadeModel(GL_FLAT);
+		}
+		else {
+			glShadeModel(GL_SMOOTH);
+		}
 	}
 
 	GPU_MATERIAL_STATE.bound_options = options;

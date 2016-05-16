@@ -1995,8 +1995,9 @@ int GPU_object_material_bind(int nr, void *attribs)
 		}
 		else {
 			/* or do fixed function opengl material */
-			GPU_basic_shader_colors(GMS.matbuf[nr].diff,
-				GMS.matbuf[nr].spec, GMS.matbuf[nr].hard, GMS.matbuf[nr].alpha);
+			GPU_basic_shader_colors(
+			        GMS.matbuf[nr].diff,
+			        GMS.matbuf[nr].spec, GMS.matbuf[nr].hard, GMS.matbuf[nr].alpha);
 
 			if (GMS.two_sided_lighting)
 				GPU_basic_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_TWO_SIDED);
@@ -2289,8 +2290,6 @@ void GPU_state_init(void)
 	glDepthFunc(GL_LEQUAL);
 	/* scaling matrices */
 	glEnable(GL_NORMALIZE);
-
-	glShadeModel(GL_FLAT);
 
 	glDisable(GL_ALPHA_TEST);
 	glDisable(GL_BLEND);

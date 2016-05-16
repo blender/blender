@@ -2619,7 +2619,6 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 		if (BKE_pbvh_has_faces(ccgdm->pbvh)) {
 			BKE_pbvh_draw(ccgdm->pbvh, partial_redraw_planes, NULL,
 			              setMaterial, false, fast);
-			glShadeModel(GL_FLAT);
 		}
 
 		return;
@@ -3164,7 +3163,7 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 		MEM_freeN(matconv);
 	}
 
-	glShadeModel(GL_FLAT);
+	glShadeModel(GL_SMOOTH);
 }
 
 static void ccgDM_drawFacesGLSL(DerivedMesh *dm, DMSetMaterial setMaterial)

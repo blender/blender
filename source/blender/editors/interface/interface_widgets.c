@@ -712,8 +712,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 			unsigned char *col_pt = col_array;
 			
 			shadecolors4(col1, col2, wcol->inner, wcol->shadetop, wcol->shadedown);
-			
-			glShadeModel(GL_SMOOTH);
+
 			for (a = 0; a < wtb->totvert; a++, col_pt += 4) {
 				round_box_shade_col4_r(col_pt, col1, col2, wtb->inner_uv[a][wtb->draw_shadedir ? 1 : 0]);
 			}
@@ -725,8 +724,6 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 			glDrawArrays(GL_POLYGON, 0, wtb->totvert);
 			glDisableClientState(GL_VERTEX_ARRAY);
 			glDisableClientState(GL_COLOR_ARRAY);
-
-			glShadeModel(GL_FLAT);
 		}
 	}
 	
@@ -2311,8 +2308,6 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	
 	ui_color_picker_to_rgb(0.0f, 0.0f, hsv[2], colcent, colcent + 1, colcent + 2);
 
-	glShadeModel(GL_SMOOTH);
-
 	glBegin(GL_TRIANGLE_FAN);
 	glColor3fv(colcent);
 	glVertex2f(centx, centy);
@@ -2329,8 +2324,6 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 		glVertex2f(centx + co * radius, centy + si * radius);
 	}
 	glEnd();
-	
-	glShadeModel(GL_FLAT);
 	
 	/* fully rounded outline */
 	glPushMatrix();
@@ -2363,7 +2356,6 @@ void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, cons
 	float col1[4][3];   /* right half, rect bottom to top */
 
 	/* draw series of gouraud rects */
-	glShadeModel(GL_SMOOTH);
 	
 	switch (type) {
 		case UI_GRAD_SV:
@@ -2486,8 +2478,6 @@ void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, cons
 		}
 		glEnd();
 	}
-
-	glShadeModel(GL_FLAT);
 }
 
 bool ui_but_is_colorpicker_display_space(uiBut *but)
