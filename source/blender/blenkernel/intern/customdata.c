@@ -68,8 +68,6 @@
 #include <math.h>
 #include <string.h>
 
-#include "BLI_strict_flags.h"
-
 /* number of layers to add when growing a CustomData object */
 #define CUSTOMDATA_GROW 5
 
