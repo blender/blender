@@ -592,8 +592,6 @@ if(APPLE)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}")
 		add_definitions("-DMACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}")
 	endif()
-
-	option(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
 endif()
 
 
@@ -1954,20 +1952,8 @@ elseif(WIN32)
 
 elseif(APPLE)
 
-	if(${CMAKE_OSX_DEPLOYMENT_TARGET} STREQUAL "10.5" OR ${CMAKE_OSX_DEPLOYMENT_TARGET} STRGREATER "10.5")
-		set(WITH_LIBS10.5 ON CACHE BOOL "Use 10.5 libs" FORCE) # valid also for 10.6/7/8/9
-	endif()
-
 	if(NOT DEFINED LIBDIR)
-		if(WITH_LIBS10.5)
-			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-9.x.universal)
-		else()
-			if(CMAKE_OSX_ARCHITECTURES MATCHES i386)
-				set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-8.x.i386)
-			else()
-				set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-8.0.0-powerpc)
-			endif()
-		endif()
+		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-9.x.universal)
 	else()
 		message(STATUS "Using pre-compiled LIBDIR: ${LIBDIR}")
 	endif()
@@ -2082,9 +2068,7 @@ elseif(APPLE)
 	)
 	mark_as_advanced(SYSTEMSTUBS_LIBRARY)
 	if(SYSTEMSTUBS_LIBRARY)
-		list(APPEND PLATFORM_LINKLIBS stdc++ SystemStubs)
-	else()
-		list(APPEND PLATFORM_LINKLIBS stdc++)
+		list(APPEND PLATFORM_LINKLIBS SystemStubs)
 	endif()
 
 	set(PLATFORM_CFLAGS "-pipe -funsigned-char")
@@ -2095,6 +2079,12 @@ elseif(APPLE)
 			set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QuickTime")
 			# libSDL still needs 32bit carbon quicktime
 		endif()
+	endif()
+
+	if(WITH_CXX11)
+		list(APPEND PLATFORM_LINKLIBS c++)
+	else()
+		list(APPEND PLATFORM_LINKLIBS stdc++)
 	endif()
 
 	# XXX - SOME MAC DEV PLEASE TEST WITH THE SDK INSTALLED!
@@ -2323,6 +2313,11 @@ elseif(APPLE)
 	endif()
 	# Get rid of eventually clashes, we export some symbols explicite as local
 	set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -Xlinker -unexported_symbols_list -Xlinker ${CMAKE_SOURCE_DIR}/source/creator/osx_locals.map")
+
+	if(WITH_CXX11)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -stdlib=libc++")
+	endif()
 
 	# Suppress ranlib "has no symbols" warnings (workaround for T48250)
 	set(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
@@ -2682,7 +2677,9 @@ endif()
 if(WITH_LIBMV)
 	set(CERES_DEFINES)
 
-	if(SHARED_PTR_FOUND)
+	if(WITH_CXX11)
+		# nothing to be done
+	elseif(SHARED_PTR_FOUND)
 		if(SHARED_PTR_TR1_MEMORY_HEADER)
 			list(APPEND CERES_DEFINES -DCERES_TR1_MEMORY_HEADER)
 		endif()
@@ -2693,7 +2690,9 @@ if(WITH_LIBMV)
 		message(FATAL_ERROR "Ceres: Unable to find shared_ptr.")
 	endif()
 
-	if(HAVE_STD_UNORDERED_MAP_HEADER)
+	if(WITH_CXX11)
+		list(APPEND CERES_DEFINES -DCERES_STD_UNORDERED_MAP)
+	elseif(HAVE_STD_UNORDERED_MAP_HEADER)
 		if(HAVE_UNORDERED_MAP_IN_STD_NAMESPACE)
 			list(APPEND CERES_DEFINES -DCERES_STD_UNORDERED_MAP)
 		else()
