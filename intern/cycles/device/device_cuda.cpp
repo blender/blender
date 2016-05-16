@@ -562,7 +562,7 @@ public:
 
 					cuda_assert(cuMemcpy3D(&param));
 				}
-				if(mem.data_height > 1) {
+				else if(mem.data_height > 1) {
 					CUDA_MEMCPY2D param;
 					memset(&param, 0, sizeof(param));
 					param.dstMemoryType = CU_MEMORYTYPE_ARRAY;
