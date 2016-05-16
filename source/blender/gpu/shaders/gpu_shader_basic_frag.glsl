@@ -27,8 +27,11 @@
 #define STIPPLE_S3D_INTERLACE_CHECKERBOARD_SWAP        11
 
 #if defined(USE_SOLID_LIGHTING) || defined(USE_SCENE_LIGHTING)
+#if defined(USE_FLAT_NORMAL)
+varying vec3 eyespace_vert_pos;
+#else
 varying vec3 varying_normal;
-
+#endif
 #ifndef USE_SOLID_LIGHTING
 varying vec3 varying_position;
 #endif
@@ -137,7 +140,11 @@ void main()
 
 #if defined(USE_SOLID_LIGHTING) || defined(USE_SCENE_LIGHTING)
 	/* compute normal */
+#if defined(USE_FLAT_NORMAL)
+	vec3 N = normalize(cross(dFdx(eyespace_vert_pos), dFdy(eyespace_vert_pos)));
+#else
 	vec3 N = normalize(varying_normal);
+#endif
 
 #ifdef USE_TWO_SIDED
 	if (!gl_FrontFacing)

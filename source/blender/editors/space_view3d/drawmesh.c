@@ -495,7 +495,6 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 
 	memcpy(Gtexdraw.obcol, obcol, sizeof(obcol));
 	set_draw_settings_cached(1, NULL, NULL, Gtexdraw);
-	glShadeModel(GL_SMOOTH);
 	glCullFace(GL_BACK);
 }
 
@@ -527,7 +526,6 @@ static void draw_textured_end(void)
 		GPU_set_tpage(NULL, 0, 0);
 	}
 
-	glShadeModel(GL_FLAT);
 	glDisable(GL_CULL_FACE);
 	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 

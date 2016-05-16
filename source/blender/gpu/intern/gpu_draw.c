@@ -2207,8 +2207,6 @@ void GPU_state_init(void)
 	/* scaling matrices */
 	glEnable(GL_NORMALIZE);
 
-	glShadeModel(GL_FLAT);
-
 	glDisable(GL_ALPHA_TEST);
 	glDisable(GL_BLEND);
 	glDisable(GL_DEPTH_TEST);

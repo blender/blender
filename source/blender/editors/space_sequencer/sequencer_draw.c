@@ -593,7 +593,6 @@ void draw_shadedstrip(Sequence *seq, unsigned char col[3], float x1, float y1, f
 	ymid1 = (y2 - y1) * 0.25f + y1;
 	ymid2 = (y2 - y1) * 0.65f + y1;
 	
-	glShadeModel(GL_SMOOTH);
 	glBegin(GL_QUADS);
 	
 	if (seq->flag & SEQ_INVALID_EFFECT) { col[0] = 255; col[1] = 0; col[2] = 255; }

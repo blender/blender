@@ -368,7 +368,6 @@ static void vicon_disclosure_tri_right_draw(int x, int y, int w, int UNUSED(h), 
 	viconutil_set_point(pts[1], cx - d2, cy - d);
 	viconutil_set_point(pts[2], cx + d2, cy);
 
-	glShadeModel(GL_SMOOTH);
 	glBegin(GL_TRIANGLES);
 	glColor4f(0.8f, 0.8f, 0.8f, alpha);
 	glVertex2iv(pts[0]);
@@ -376,7 +375,6 @@ static void vicon_disclosure_tri_right_draw(int x, int y, int w, int UNUSED(h), 
 	glColor4f(0.3f, 0.3f, 0.3f, alpha);
 	glVertex2iv(pts[2]);
 	glEnd();
-	glShadeModel(GL_FLAT);
 
 	glColor4f(0.0f, 0.0f, 0.0f, 1);
 	viconutil_draw_lineloop_smooth(pts, 3);
@@ -395,13 +393,11 @@ static void vicon_small_tri_right_draw(int x, int y, int w, int UNUSED(h), float
 
 	glColor4f(0.2f, 0.2f, 0.2f, alpha);
 
-	glShadeModel(GL_SMOOTH);
 	glBegin(GL_TRIANGLES);
 	glVertex2iv(pts[0]);
 	glVertex2iv(pts[1]);
 	glVertex2iv(pts[2]);
 	glEnd();
-	glShadeModel(GL_FLAT);
 }
 
 static void vicon_disclosure_tri_down_draw(int x, int y, int w, int UNUSED(h), float alpha)
@@ -415,7 +411,6 @@ static void vicon_disclosure_tri_down_draw(int x, int y, int w, int UNUSED(h), f
 	viconutil_set_point(pts[1], cx - d, cy + d2);
 	viconutil_set_point(pts[2], cx, cy - d2);
 
-	glShadeModel(GL_SMOOTH);
 	glBegin(GL_TRIANGLES);
 	glColor4f(0.8f, 0.8f, 0.8f, alpha);
 	glVertex2iv(pts[0]);
@@ -423,7 +418,6 @@ static void vicon_disclosure_tri_down_draw(int x, int y, int w, int UNUSED(h), f
 	glColor4f(0.3f, 0.3f, 0.3f, alpha);
 	glVertex2iv(pts[2]);
 	glEnd();
-	glShadeModel(GL_FLAT);
 
 	glColor4f(0.0f, 0.0f, 0.0f, 1);
 	viconutil_draw_lineloop_smooth(pts, 3);

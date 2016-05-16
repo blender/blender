@@ -464,7 +464,6 @@ static void cdDM_drawFacesSolid(
 
 			BKE_pbvh_draw(cddm->pbvh, partial_redraw_planes, face_nors,
 			              setMaterial, false, false);
-			glShadeModel(GL_FLAT);
 			return;
 		}
 	}
@@ -472,7 +471,6 @@ static void cdDM_drawFacesSolid(
 	GPU_vertex_setup(dm);
 	GPU_normal_setup(dm);
 	GPU_triangle_setup(dm);
-	glShadeModel(GL_SMOOTH);
 	for (a = 0; a < dm->drawObject->totmaterial; a++) {
 		if (!setMaterial || setMaterial(dm->drawObject->materials[a].mat_nr + 1, NULL)) {
 			GPU_buffer_draw_elements(
@@ -481,8 +479,6 @@ static void cdDM_drawFacesSolid(
 		}
 	}
 	GPU_buffers_unbind();
-
-	glShadeModel(GL_FLAT);
 }
 
 static void cdDM_drawFacesTex_common(
@@ -550,8 +546,7 @@ static void cdDM_drawFacesTex_common(
 	if (mloopcol) {
 		GPU_color_setup(dm, colType);
 	}
-		
-	glShadeModel(GL_SMOOTH);
+
 	/* lastFlag = 0; */ /* UNUSED */
 	for (mat_index = 0; mat_index < dm->drawObject->totmaterial; mat_index++) {
 		GPUBufferMaterial *bufmat = dm->drawObject->materials + mat_index;
@@ -630,7 +625,6 @@ static void cdDM_drawFacesTex_common(
 	}
 
 	GPU_buffers_unbind();
-	glShadeModel(GL_FLAT);
 	
 }
 
@@ -739,9 +733,6 @@ static void cdDM_drawMappedFaces(
 			}
 		}
 	}
-		
-
-	glShadeModel(GL_SMOOTH);
 
 	tot_tri_elem = dm->drawObject->tot_triangle_point;
 
@@ -838,7 +829,6 @@ static void cdDM_drawMappedFaces(
 	}
 
 	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
-	glShadeModel(GL_FLAT);
 
 	GPU_buffers_unbind();
 
@@ -925,8 +915,6 @@ static void cdDM_drawMappedFacesGLSL(
 
 	matnr = -1;
 	do_draw = false;
-
-	glShadeModel(GL_SMOOTH);
 
 	if (setDrawOptions != NULL) {
 		DMVertexAttribs attribs;
@@ -1146,8 +1134,6 @@ static void cdDM_drawMappedFacesGLSL(
 		MEM_freeN(mat_orig_to_new);
 		MEM_freeN(matconv);
 	}
-	
-	glShadeModel(GL_FLAT);
 }
 
 static void cdDM_drawFacesGLSL(DerivedMesh *dm, DMSetMaterial setMaterial)
@@ -1195,8 +1181,6 @@ static void cdDM_drawMappedFacesMat(
 	}
 
 	matnr = -1;
-
-	glShadeModel(GL_SMOOTH);
 
 	memset(&attribs, 0, sizeof(attribs));
 
@@ -1253,8 +1237,6 @@ static void cdDM_drawMappedFacesMat(
 		cddm_draw_attrib_vertex(&attribs, mvert, a, vtri[2], ltri[2], 2, ln3, smoothnormal);
 	}
 	glEnd();
-
-	glShadeModel(GL_FLAT);
 }
 
 static void cdDM_drawMappedEdges(DerivedMesh *dm, DMSetDrawOptions setDrawOptions, void *userData)

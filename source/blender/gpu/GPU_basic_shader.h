@@ -50,7 +50,8 @@ typedef enum GPUBasicShaderOption {
 	GPU_SHADER_SOLID_LIGHTING =   (1 << 4),   /* use faster lighting (set automatically) */
 	GPU_SHADER_STIPPLE =          (1 << 5),   /* use stipple */
 	GPU_SHADER_LINE =             (1 << 6),   /* draw lines */
-	GPU_SHADER_OPTIONS_NUM = 7,
+	GPU_SHADER_FLAT_NORMAL =      (1 << 7),   /* use flat normals */
+	GPU_SHADER_OPTIONS_NUM = 8,
 	GPU_SHADER_OPTION_COMBINATIONS = (1 << GPU_SHADER_OPTIONS_NUM)
 } GPUBasicShaderOption;
 

@@ -3840,7 +3840,6 @@ static void navmesh_drawColored(DerivedMesh *dm)
 	/* if (GPU_buffer_legacy(dm) ) */ /* TODO - VBO draw code, not high priority - campbell */
 	{
 		DEBUG_VBO("Using legacy code. drawNavMeshColored\n");
-		//glShadeModel(GL_SMOOTH);
 		glBegin(glmode = GL_QUADS);
 		for (a = 0; a < dm->numTessFaceData; a++, mface++) {
 			int new_glmode = mface->v4 ? GL_QUADS : GL_TRIANGLES;
