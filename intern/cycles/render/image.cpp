@@ -233,13 +233,11 @@ int ImageManager::type_index_to_flattened_slot(int slot, ImageDataType type)
 
 int ImageManager::flattened_slot_to_type_index(int flat_slot, ImageDataType *type)
 {
-	if(flat_slot >= tex_image_byte_start)
-	{
+	if(flat_slot >= tex_image_byte_start) {
 		*type = IMAGE_DATA_TYPE_BYTE;
 		return flat_slot - tex_image_byte_start;
 	}
-	else if(flat_slot >= tex_image_float_start)
-	{
+	else if(flat_slot >= tex_image_float_start) {
 		*type = IMAGE_DATA_TYPE_FLOAT;
 		return flat_slot - tex_image_float_start;
 	}
@@ -306,10 +304,10 @@ int ImageManager::add_image(const string& filename,
 	for(slot = 0; slot < images[type].size(); slot++) {
 		img = images[type][slot];
 		if(img && image_equals(img,
-			                   filename,
-			                   builtin_data,
-			                   interpolation,
-			                   extension))
+		                       filename,
+		                       builtin_data,
+		                       interpolation,
+		                       extension))
 		{
 			if(img->frame != frame) {
 				img->frame = frame;
@@ -388,10 +386,10 @@ void ImageManager::remove_image(const string& filename,
 	for(int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
 		for(slot = 0; slot < images[type].size(); slot++) {
 			if(images[type][slot] && image_equals(images[type][slot],
-		                                          filename,
-		                                          builtin_data,
-		                                          interpolation,
-		                                          extension))
+			                                      filename,
+			                                      builtin_data,
+			                                      interpolation,
+			                                      extension))
 			{
 				remove_image(type_index_to_flattened_slot(slot, (ImageDataType)type));
 				return;
@@ -412,10 +410,10 @@ void ImageManager::tag_reload_image(const string& filename,
 	for(size_t type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
 		for(size_t slot = 0; slot < images[type].size(); slot++) {
 			if(images[type][slot] && image_equals(images[type][slot],
-		                                          filename,
-		                                          builtin_data,
-		                                          interpolation,
-		                                          extension))
+			                                      filename,
+			                                      builtin_data,
+			                                      interpolation,
+			                                      extension))
 			{
 				images[type][slot]->need_load = true;
 				break;
@@ -496,10 +494,10 @@ bool ImageManager::file_load_byte4_image(Image *img, device_vector<uchar4>& tex_
 			int scanlinesize = width*components*sizeof(uchar);
 
 			in->read_image(TypeDesc::UINT8,
-				(uchar*)pixels + (((size_t)height)-1)*scanlinesize,
-				AutoStride,
-				-scanlinesize,
-				AutoStride);
+			               (uchar*)pixels + (((size_t)height)-1)*scanlinesize,
+			               AutoStride,
+			               -scanlinesize,
+			               AutoStride);
 		}
 		else {
 			in->read_image(TypeDesc::UINT8, (uchar*)pixels);
@@ -580,10 +578,10 @@ bool ImageManager::file_load_byte_image(Image *img, device_vector<uchar>& tex_im
 			int scanlinesize = width*components*sizeof(uchar);
 
 			in->read_image(TypeDesc::UINT8,
-				(uchar*)pixels + (((size_t)height)-1)*scanlinesize,
-				AutoStride,
-				-scanlinesize,
-				AutoStride);
+			               (uchar*)pixels + (((size_t)height)-1)*scanlinesize,
+			               AutoStride,
+			               -scanlinesize,
+			               AutoStride);
 		}
 		else {
 			in->read_image(TypeDesc::UINT8, (uchar*)pixels);
@@ -627,10 +625,10 @@ bool ImageManager::file_load_float4_image(Image *img, device_vector<float4>& tex
 			int scanlinesize = width*components*sizeof(float);
 
 			in->read_image(TypeDesc::FLOAT,
-				(uchar*)readpixels + (height-1)*scanlinesize,
-				AutoStride,
-				-scanlinesize,
-				AutoStride);
+			               (uchar*)readpixels + (height-1)*scanlinesize,
+			               AutoStride,
+			               -scanlinesize,
+			               AutoStride);
 		}
 		else {
 			in->read_image(TypeDesc::FLOAT, (uchar*)readpixels);
@@ -817,7 +815,7 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageD
 			                  img->extension);
 		}
 	}
-	else if(type == IMAGE_DATA_TYPE_BYTE4){
+	else if(type == IMAGE_DATA_TYPE_BYTE4) {
 		device_vector<uchar4>& tex_img = dscene->tex_byte4_image[slot];
 
 		if(tex_img.device_pointer) {
@@ -901,7 +899,7 @@ void ImageManager::device_free_image(Device *device, DeviceScene *dscene, ImageD
 
 			tex_img.clear();
 		}
-		else if(type == IMAGE_DATA_TYPE_BYTE4){
+		else if(type == IMAGE_DATA_TYPE_BYTE4) {
 			device_vector<uchar4>& tex_img = dscene->tex_byte4_image[slot];
 
 			if(tex_img.device_pointer) {
