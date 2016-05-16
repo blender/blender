@@ -859,10 +859,17 @@ static void widget_draw_icon(
 		else if (but->flag & UI_ACTIVE) {}
 		else alpha = 0.5f;
 	}
-	
-	/* extra feature allows more alpha blending */
-	if ((but->type == UI_BTYPE_LABEL) && but->a1 == 1.0f)
-		alpha *= but->a2;
+	else if ((but->type == UI_BTYPE_LABEL)) {
+		/* extra feature allows more alpha blending */
+		if (but->a1 == 1.0f) {
+			alpha *= but->a2;
+		}
+	}
+	else if (ELEM(but->type, UI_BTYPE_BUT)) {
+		if (but->flag & UI_BUT_DISABLED) {
+			alpha *= 0.5f;
+		}
+	}
 	
 	glEnable(GL_BLEND);
 	
