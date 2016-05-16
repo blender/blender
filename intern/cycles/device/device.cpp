@@ -56,6 +56,8 @@ std::ostream& operator <<(std::ostream &os,
 	   << string_from_bool(requested_features.use_camera_motion)  << std::endl;
 	os << "Use Baking: "
 	   << string_from_bool(requested_features.use_baking)  << std::endl;
+	os << "Use Volume: "
+	   << string_from_bool(requested_features.use_volume)  << std::endl;
 	return os;
 }
 
