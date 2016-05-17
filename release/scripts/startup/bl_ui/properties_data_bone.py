@@ -175,8 +175,8 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
         sub = row.column(align=True)
         sub.label(text="Curve XY Offsets:")
         sub.prop(bbone, "bbone_curveinx", text="In X")
-        sub.prop(bbone, "bbone_curveiny", text="In Y")
         sub.prop(bbone, "bbone_curveoutx", text="Out X")
+        sub.prop(bbone, "bbone_curveiny", text="In Y")
         sub.prop(bbone, "bbone_curveouty", text="Out Y")
 
         sub = row.column(align=True)
