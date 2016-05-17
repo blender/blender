@@ -4926,6 +4926,9 @@ static void direct_link_pose(FileData *fd, bPose *pose)
 		pchan->child = newdataadr(fd, pchan->child);
 		pchan->custom_tx = newdataadr(fd, pchan->custom_tx);
 		
+		pchan->bbone_prev = newdataadr(fd, pchan->bbone_prev);
+		pchan->bbone_next = newdataadr(fd, pchan->bbone_next);
+		
 		direct_link_constraints(fd, &pchan->constraints);
 		
 		pchan->prop = newdataadr(fd, pchan->prop);

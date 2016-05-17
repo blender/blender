@@ -79,12 +79,15 @@ typedef enum eAction_TransformFlags {
 	ACT_TRANS_ROT   = (1 << 1),
 	/* scaling */
 	ACT_TRANS_SCALE = (1 << 2),
-
+	
+	/* bbone shape - for all the parameters, provided one is set */
+	ACT_TRANS_BBONE = (1 << 3),
+	
 	/* strictly not a transform, but custom properties are also
 	 * quite often used in modern rigs
 	 */
-	ACT_TRANS_PROP  = (1 << 3),
-
+	ACT_TRANS_PROP  = (1 << 4),
+	
 	/* all flags */
 	ACT_TRANS_ONLY  = (ACT_TRANS_LOC | ACT_TRANS_ROT | ACT_TRANS_SCALE),
 	ACT_TRANS_ALL   = (ACT_TRANS_ONLY | ACT_TRANS_PROP)

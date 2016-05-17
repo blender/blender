@@ -135,6 +135,7 @@ typedef struct Mat4 {
 	float mat[4][4];
 } Mat4;
 
+void equalize_bbone_bezier(float *data, int desired);
 void b_bone_spline_setup(struct bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BBONE_SUBDIV]);
 
 /* like EBONE_VISIBLE */

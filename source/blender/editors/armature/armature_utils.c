@@ -456,7 +456,16 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 		eBone->rad_tail = curBone->rad_tail;
 		eBone->segments = curBone->segments;
 		eBone->layer = curBone->layer;
-		
+
+		eBone->roll1 = curBone->roll1;
+		eBone->roll2 = curBone->roll2;
+		eBone->curveInX = curBone->curveInX;
+		eBone->curveInY = curBone->curveInY;
+		eBone->curveOutX = curBone->curveOutX;
+		eBone->curveOutY = curBone->curveOutY;
+		eBone->scaleIn = curBone->scaleIn;
+		eBone->scaleOut = curBone->scaleOut;
+
 		if (curBone->prop)
 			eBone->prop = IDP_CopyProperty(curBone->prop);
 		
@@ -611,7 +620,17 @@ void ED_armature_from_edit(bArmature *arm)
 		newBone->rad_tail = eBone->rad_tail;
 		newBone->segments = eBone->segments;
 		newBone->layer = eBone->layer;
-		
+
+		newBone->roll1 = eBone->roll1;
+		newBone->roll2 = eBone->roll2;
+		newBone->curveInX = eBone->curveInX;
+		newBone->curveInY = eBone->curveInY;
+		newBone->curveOutX = eBone->curveOutX;
+		newBone->curveOutY = eBone->curveOutY;
+		newBone->scaleIn = eBone->scaleIn;
+		newBone->scaleOut = eBone->scaleOut;
+
+
 		if (eBone->prop)
 			newBone->prop = IDP_CopyProperty(eBone->prop);
 	}

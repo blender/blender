@@ -146,6 +146,81 @@ class BONE_PT_transform_locks(BoneButtonsPanel, Panel):
             sub.prop(pchan, "lock_rotation_w", text="W")
 
 
+class BONE_PT_curved(BoneButtonsPanel, Panel):
+    bl_label = "Bendy Bones"
+    #bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        ob = context.object
+        bone = context.bone
+        arm = context.armature
+        pchan = None
+
+        if ob and bone:
+            pchan = ob.pose.bones[bone.name]
+            bbone = pchan
+        elif bone is None:
+            bone = context.edit_bone
+            bbone = bone
+        else:
+            bbone = bone
+
+        layout = self.layout
+        layout.prop(bone, "bbone_segments", text="Segments")
+
+        col = layout.column()
+        col.active = bone.bbone_segments > 1
+
+        row = col.row()
+        sub = row.column(align=True)
+        sub.label(text="Curve XY Offsets:")
+        sub.prop(bbone, "bbone_curveinx", text="In X")
+        sub.prop(bbone, "bbone_curveiny", text="In Y")
+        sub.prop(bbone, "bbone_curveoutx", text="Out X")
+        sub.prop(bbone, "bbone_curveouty", text="Out Y")
+
+        sub = row.column(align=True)
+        sub.label("Roll:")
+        sub.prop(bbone, "bbone_rollin", text="In")
+        sub.prop(bbone, "bbone_rollout", text="Out")
+        sub.prop(bone, "use_endroll_as_inroll")
+
+        row = col.row()
+        sub = row.column(align=True)
+        sub.label(text="Scale:")
+        sub.prop(bbone, "bbone_scalein", text="Scale In")
+        sub.prop(bbone, "bbone_scaleout", text="Scale Out")
+
+        sub = row.column(align=True)
+        sub.label("Easing:")
+        if pchan:
+            # XXX: have these also be an overlay?
+            sub.prop(bbone.bone, "bbone_in", text="Ease In")
+            sub.prop(bbone.bone, "bbone_out", text="Ease Out")
+        else:
+            sub.prop(bone, "bbone_in", text="Ease In")
+            sub.prop(bone, "bbone_out", text="Ease Out")
+
+        if pchan:
+            layout.separator()
+
+            col = layout.column()
+            col.prop(pchan, "use_bbone_custom_handles")
+
+            row = col.row()
+            row.active = pchan.use_bbone_custom_handles
+
+            sub = row.column(align=True)
+            sub.label(text="In:")
+            sub.prop_search(pchan, "bbone_custom_handle_start", ob.pose, "bones", text="")
+            sub.prop(pchan, "use_bbone_relative_start_handle", text="Relative")
+
+            sub = row.column(align=True)
+            sub.label(text="Out:")
+            sub.prop_search(pchan, "bbone_custom_handle_end", ob.pose, "bones", text="")
+            sub.prop(pchan, "use_bbone_relative_end_handle", text="Relative")
+
+
 class BONE_PT_relations(BoneButtonsPanel, Panel):
     bl_label = "Relations"
 
@@ -191,6 +266,7 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
         sub = col.column()
         sub.active = (not bone.parent or not bone.use_connect)
         sub.prop(bone, "use_local_location")
+
 
 
 class BONE_PT_display(BoneButtonsPanel, Panel):
@@ -348,28 +424,18 @@ class BONE_PT_deform(BoneButtonsPanel, Panel):
 
         layout.active = bone.use_deform
 
-        split = layout.split()
+        row = layout.row()
 
-        col = split.column()
+        col = row.column(align=True)
         col.label(text="Envelope:")
-
-        sub = col.column(align=True)
-        sub.prop(bone, "envelope_distance", text="Distance")
-        sub.prop(bone, "envelope_weight", text="Weight")
+        col.prop(bone, "envelope_distance", text="Distance")
+        col.prop(bone, "envelope_weight", text="Weight")
         col.prop(bone, "use_envelope_multiply", text="Multiply")
 
-        sub = col.column(align=True)
-        sub.label(text="Radius:")
-        sub.prop(bone, "head_radius", text="Head")
-        sub.prop(bone, "tail_radius", text="Tail")
-
-        col = split.column()
-        col.label(text="Curved Bones:")
-
-        sub = col.column(align=True)
-        sub.prop(bone, "bbone_segments", text="Segments")
-        sub.prop(bone, "bbone_in", text="Ease In")
-        sub.prop(bone, "bbone_out", text="Ease Out")
+        col = row.column(align=True)
+        col.label(text="Envelope Radius:")
+        col.prop(bone, "head_radius", text="Head")
+        col.prop(bone, "tail_radius", text="Tail")
 
 
 class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, Panel):

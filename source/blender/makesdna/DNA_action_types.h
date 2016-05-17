@@ -199,7 +199,8 @@ typedef struct bPoseChannel {
 	char constflag;                 /* for quick detecting which constraints affect this channel */
 	char selectflag;                /* copy of bone flag, so you can work with library armatures, not for runtime use */
 	char drawflag;
-	char pad0[5];
+	char bboneflag;
+	char pad0[4];
 
 	struct Bone         *bone;      /* set on read file or rebuild pose */
 	struct bPoseChannel *parent;    /* set on read file or rebuild pose */
@@ -242,7 +243,16 @@ typedef struct bPoseChannel {
 	float ikstretch;
 	float ikrotweight;              /* weight of joint rotation constraint */
 	float iklinweight;              /* weight of joint stretch constraint */
-
+	
+	/* curved bones settings - these are for animating, and are applied on top of the copies in pchan->bone */
+	float roll1, roll2;
+	float curveInX, curveInY;
+	float curveOutX, curveOutY;
+	float scaleIn, scaleOut;
+	
+	struct bPoseChannel *bbone_prev; /* next/prev bones to use as handle references when calculating bbones (optional) */
+	struct bPoseChannel *bbone_next;
+	
 	void        *temp;              /* use for outliner */
 } bPoseChannel;
 
@@ -253,17 +263,17 @@ typedef enum ePchan_Flag {
 	POSE_LOC        =   (1 << 0),
 	POSE_ROT        =   (1 << 1),
 	POSE_SIZE       =   (1 << 2),
-	/* old IK/cache stuff... */
-#if 0
-	POSE_IK_MAT     =   (1 << 3),
-	POSE_UNUSED2    =   (1 << 4),
-	POSE_UNUSED3    =   (1 << 5),
-	POSE_UNUSED4    =   (1 << 6),
-	POSE_UNUSED5    =   (1 << 7),
-	/* has Standard IK */
-	POSE_HAS_IK     =   (1 << 8),
-#endif
-	/* IK/Pose solving*/
+	
+	/* old IK/cache stuff
+	 * - used to be here from (1 << 3) to (1 << 8) 
+	 *   but has been repurposed since 2.77.2
+	 *   as they haven't been used in over 10 years
+	 */
+	
+	/* has BBone deforms */
+	POSE_BBONE_SHAPE =  (1 << 3),
+	
+	/* IK/Pose solving */
 	POSE_CHAIN      =   (1 << 9),
 	POSE_DONE       =   (1 << 10),
 	/* visualization */
@@ -317,6 +327,16 @@ typedef enum ePchan_DrawFlag {
 
 #define PCHAN_CUSTOM_DRAW_SIZE(pchan) \
 	(pchan)->custom_scale * (((pchan)->drawflag & PCHAN_DRAW_NO_CUSTOM_BONE_SIZE) ? 1.0f : (pchan)->bone->length)
+
+/* PoseChannel->bboneflag */
+typedef enum ePchan_BBoneFlag {
+	/* Use custom reference bones (for roll and handle alignment), instead of immediate neighbours */
+	PCHAN_BBONE_CUSTOM_HANDLES    = (1 << 1),
+	/* Evaluate start handle as being "relative" */
+	PCHAN_BBONE_CUSTOM_START_REL  = (1 << 2),
+	/* Evaluate end handle as being "relative" */
+	PCHAN_BBONE_CUSTOM_END_REL    = (1 << 3),
+} ePchan_BBoneFlag;
 
 /* PoseChannel->rotmode and Object->rotmode */
 typedef enum eRotationModes {

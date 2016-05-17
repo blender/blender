@@ -83,6 +83,15 @@ EditBone *ED_armature_edit_bone_add(bArmature *arm, const char *name)
 	bone->segments = 1;
 	bone->layer = arm->layer;
 	
+	bone->roll1 = 0.0f;
+	bone->roll2 = 0.0f;
+	bone->curveInX = 0.0f;
+	bone->curveInY = 0.0f;
+	bone->curveOutX = 0.0f;
+	bone->curveOutY = 0.0f;
+	bone->scaleIn = 1.0f;
+	bone->scaleOut = 1.0f;
+
 	return bone;
 }
 
@@ -890,6 +899,16 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 					newbone->segments = 1;
 					newbone->layer = ebone->layer;
 					
+					newbone->roll1 = ebone->roll1;
+					newbone->roll2 = ebone->roll2;
+					newbone->curveInX = ebone->curveInX;
+					newbone->curveInY = ebone->curveInY;
+					newbone->curveOutX = ebone->curveOutX;
+					newbone->curveOutY = ebone->curveOutY;
+					newbone->scaleIn = ebone->scaleIn;
+					newbone->scaleOut = ebone->scaleOut;
+
+
 					BLI_strncpy(newbone->name, ebone->name, sizeof(newbone->name));
 					
 					if (flipbone && forked) {   // only set if mirror edit

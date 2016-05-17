@@ -516,7 +516,9 @@ typedef enum eBConstraint_Flags {
 		/* indicates that constraint was added locally (i.e.  didn't come from the proxy-lib) */
 	CONSTRAINT_PROXY_LOCAL = (1<<8),
 		/* indicates that constraint is temporarily disabled (only used in GE) */
-	CONSTRAINT_OFF = (1<<9)
+	CONSTRAINT_OFF = (1<<9),
+		/* use bbone curve shape when calculating headtail values */
+	CONSTRAINT_BBONE_SHAPE = (1<<10),
 } eBConstraint_Flags;
 
 /* bConstraint->ownspace/tarspace */

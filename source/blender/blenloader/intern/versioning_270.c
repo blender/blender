@@ -34,6 +34,7 @@
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
+#include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
@@ -158,6 +159,16 @@ static void do_version_action_editor_properties_region(ListBase *regionbase)
 			
 			return;
 		}
+	}
+}
+
+static void do_version_bones_super_bbone(ListBase *lb)
+{
+	for (Bone *bone = lb->first; bone; bone = bone->next) {
+		bone->scaleIn = 1.0f;
+		bone->scaleOut = 1.0f;
+		
+		do_version_bones_super_bbone(&bone->childbase);
 	}
 }
 
@@ -1147,6 +1158,34 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				/* active spacedata info must be handled too... */
 				if (sa->spacetype == SPACE_ACTION) {
 					do_version_action_editor_properties_region(&sa->regionbase);
+				}
+			}
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 277, 2)) {
+		if (!DNA_struct_elem_find(fd->filesdna, "Bone", "float", "scaleIn")) {
+			for (bArmature *arm = main->armature.first; arm; arm = arm->id.next) {
+				do_version_bones_super_bbone(&arm->bonebase);
+			}
+		}
+		if (!DNA_struct_elem_find(fd->filesdna, "bPoseChannel", "float", "scaleIn")) {
+			for (Object *ob = main->object.first; ob; ob = ob->id.next) {
+				if (ob->pose) {
+					for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+						/* see do_version_bones_super_bbone()... */
+						pchan->scaleIn = 1.0f;
+						pchan->scaleOut = 1.0f;
+						
+						/* also make sure some legacy (unused for over a decade) flags are unset,
+						 * so that we can reuse them for stuff that matters now...
+						 * (i.e. POSE_IK_MAT, (unknown/unused x 4), POSE_HAS_IK)
+						 *
+						 * These seem to have been runtime flags used by the IK solver, but that stuff
+						 * should be able to be recalculated automatically anyway, so it should be fine.
+						 */
+						pchan->flag &= ~((1 << 3) | (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7) | (1 << 8));
+					}
 				}
 			}
 		}

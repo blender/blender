@@ -535,7 +535,7 @@ static void contarget_get_lattice_mat(Object *ob, const char *substring, float m
 
 /* generic function to get the appropriate matrix for most target cases */
 /* The cases where the target can be object data have not been implemented */
-static void constraint_target_to_mat4(Object *ob, const char *substring, float mat[4][4], short from, short to, float headtail)
+static void constraint_target_to_mat4(Object *ob, const char *substring, float mat[4][4], short from, short to, short flag, float headtail)
 {
 	/*	Case OBJECT */
 	if (substring[0] == '\0') {
@@ -572,6 +572,58 @@ static void constraint_target_to_mat4(Object *ob, const char *substring, float m
 			if (headtail < 0.000001f) {
 				/* skip length interpolation if set to head */
 				mul_m4_m4m4(mat, ob->obmat, pchan->pose_mat);
+			}
+			else if ((pchan->bone) && (pchan->bone->segments > 1) && (flag & CONSTRAINT_BBONE_SHAPE)) {
+				/* use point along bbone */
+				Mat4 bbone[MAX_BBONE_SUBDIV];
+				float tempmat[4][4];
+				float loc[3], fac;
+				
+				/* get bbone segments */
+				b_bone_spline_setup(pchan, 0, bbone);
+				
+				/* figure out which segment(s) the headtail value falls in */
+				fac = (float)pchan->bone->segments * headtail;
+				
+				if (fac >= pchan->bone->segments - 1) {
+					/* special case: end segment doesn't get created properly... */
+					float pt[3], sfac;
+					int index;
+					
+					/* bbone points are in bonespace, so need to move to posespace first */
+					index = pchan->bone->segments - 1;
+					mul_v3_m4v3(pt, pchan->pose_mat, bbone[index].mat[3]);
+					
+					/* interpolate between last segment point and the endpoint */
+					sfac = fac - (float)(pchan->bone->segments - 1); /* fac is just the "leftover" between penultimate and last points */
+					interp_v3_v3v3(loc, pt, pchan->pose_tail, sfac);
+				}
+				else {
+					/* get indices for finding interpolating between points along the bbone */
+					float pt_a[3], pt_b[3], pt[3];
+					int   index_a, index_b;
+					
+					index_a = floorf(fac);
+					CLAMP(index_a, 0, MAX_BBONE_SUBDIV - 1);
+					
+					index_b = ceilf(fac);
+					CLAMP(index_b, 0, MAX_BBONE_SUBDIV - 1);
+					
+					/* interpolate between these points */
+					copy_v3_v3(pt_a, bbone[index_a].mat[3]);
+					copy_v3_v3(pt_b, bbone[index_b].mat[3]);
+					
+					interp_v3_v3v3(pt, pt_a, pt_b, fac - floorf(fac));
+					
+					/* move the point from bone local space to pose space... */
+					mul_v3_m4v3(loc, pchan->pose_mat, pt);
+				}
+				
+				/* use interpolated distance for subtarget */
+				copy_m4_m4(tempmat, pchan->pose_mat);
+				copy_v3_v3(tempmat[3], loc);
+				
+				mul_m4_m4m4(mat, ob->obmat, tempmat);
 			}
 			else {
 				float tempmat[4][4], loc[3];
@@ -634,7 +686,7 @@ static bConstraintTypeInfo CTI_CONSTRNAME = {
 static void default_get_tarmat(bConstraint *con, bConstraintOb *UNUSED(cob), bConstraintTarget *ct, float UNUSED(ctime))
 {
 	if (VALID_CONS_TARGET(ct))
-		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
+		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->flag, con->headtail);
 	else if (ct)
 		unit_m4(ct->matrix);
 }
@@ -1102,7 +1154,7 @@ static void kinematic_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstrai
 	bKinematicConstraint *data = con->data;
 	
 	if (VALID_CONS_TARGET(ct)) 
-		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
+		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->flag, con->headtail);
 	else if (ct) {
 		if (data->flag & CONSTRAINT_IK_AUTO) {
 			Object *ob = cob->ob;
@@ -1985,7 +2037,7 @@ static void pycon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintTa
 		/* firstly calculate the matrix the normal way, then let the py-function override
 		 * this matrix if it needs to do so
 		 */
-		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
+		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->flag, con->headtail);
 		
 		/* only execute target calculation if allowed */
 #ifdef WITH_PYTHON
@@ -2097,7 +2149,7 @@ static void actcon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintT
 		unit_m4(ct->matrix);
 		
 		/* get the transform matrix of the target */
-		constraint_target_to_mat4(ct->tar, ct->subtarget, tempmat, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
+		constraint_target_to_mat4(ct->tar, ct->subtarget, tempmat, CONSTRAINT_SPACE_WORLD, ct->space, con->flag, con->headtail);
 		
 		/* determine where in transform range target is */
 		/* data->type is mapped as follows for backwards compatibility:
