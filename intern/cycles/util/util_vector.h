@@ -164,7 +164,7 @@ public:
 
 	bool operator==(const vector<T>& other)
 	{
-		if (datasize_ != other.datasize_)
+		if(datasize_ != other.datasize_)
 			return false;
 
 		return memcmp(data_, other.data_, datasize_*sizeof(T)) == 0;
@@ -172,7 +172,7 @@ public:
 
 	void steal_data(array& from)
 	{
-		if (this != &from)
+		if(this != &from)
 		{
 			clear();
 
@@ -256,7 +256,7 @@ public:
 	// do not use this method unless you are sure the code is not performance critical
 	void push_back_slow(const T& t)
 	{
-		if (capacity_ == datasize_)
+		if(capacity_ == datasize_)
 		{
 			reserve(datasize_ == 0 ? 1 : (size_t)((datasize_ + 1) * 1.2));
 		}

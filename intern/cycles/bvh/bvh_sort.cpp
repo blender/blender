@@ -125,7 +125,7 @@ static void bvh_reference_sort_threaded(TaskPool *task_pool,
 		if(compare.compare(data[left], data[right]) > 0) {
 			swap(data[left], data[right]);
 		}
-		if (compare.compare(data[center], data[right]) > 0) {
+		if(compare.compare(data[center], data[right]) > 0) {
 			swap(data[center], data[right]);
 		}
 		swap(data[center], data[right - 1]);

@@ -507,7 +507,7 @@ void ShaderGraph::constant_fold()
 		traverse_queue.pop();
 		done.insert(node);
 		foreach(ShaderOutput *output, node->outputs) {
-			if (output->links.size() == 0) {
+			if(output->links.size() == 0) {
 				continue;
 			}
 			/* Schedule node which was depending on the value,

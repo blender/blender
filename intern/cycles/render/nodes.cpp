@@ -1379,7 +1379,7 @@ void PointDensityTextureNode::compile(SVMCompiler& compiler)
 								  __float_as_int(0.0f),
 								  compiler.stack_assign(density_out));
 			}
-			if (use_color) {
+			if(use_color) {
 				compiler.add_node(NODE_VALUE_V, compiler.stack_assign(color_out));
 				compiler.add_node(NODE_VALUE_V, make_float3(TEX_IMAGE_MISSING_R,
 															TEX_IMAGE_MISSING_G,
@@ -3351,7 +3351,7 @@ bool MixNode::constant_fold(ShaderGraph *graph, ShaderOutput * /*socket*/, float
 	if(!fac_in->link) {
 		/* factor 0.0 */
 		if(fac_in->value.x == 0.0f) {
-			if (color1_in->link)
+			if(color1_in->link)
 				graph->relink(this, color_out, color1_in->link);
 			else
 				*optimized_value = color1_in->value;
@@ -3359,7 +3359,7 @@ bool MixNode::constant_fold(ShaderGraph *graph, ShaderOutput * /*socket*/, float
 		}
 		/* factor 1.0 */
 		else if(fac_in->value.x == 1.0f) {
-			if (color2_in->link)
+			if(color2_in->link)
 				graph->relink(this, color_out, color2_in->link);
 			else
 				*optimized_value = color2_in->value;
@@ -4322,7 +4322,7 @@ RGBCurvesNode::RGBCurvesNode()
 
 void RGBCurvesNode::compile(SVMCompiler& compiler)
 {
-	if (curves.size() == 0)
+	if(curves.size() == 0)
 		return;
 
 	ShaderInput *fac_in = input("Fac");
@@ -4343,7 +4343,7 @@ void RGBCurvesNode::compile(SVMCompiler& compiler)
 
 void RGBCurvesNode::compile(OSLCompiler& compiler)
 {
-	if (curves.size() == 0)
+	if(curves.size() == 0)
 		return;
 
 	compiler.parameter_color_array("ramp", curves);
@@ -4367,7 +4367,7 @@ VectorCurvesNode::VectorCurvesNode()
 
 void VectorCurvesNode::compile(SVMCompiler& compiler)
 {
-	if (curves.size() == 0)
+	if(curves.size() == 0)
 		return;
 
 	ShaderInput *fac_in = input("Fac");
@@ -4388,7 +4388,7 @@ void VectorCurvesNode::compile(SVMCompiler& compiler)
 
 void VectorCurvesNode::compile(OSLCompiler& compiler)
 {
-	if (curves.size() == 0)
+	if(curves.size() == 0)
 		return;
 
 	compiler.parameter_color_array("ramp", curves);
@@ -4411,7 +4411,7 @@ RGBRampNode::RGBRampNode()
 
 void RGBRampNode::compile(SVMCompiler& compiler)
 {
-	if (ramp.size() == 0 || ramp.size() != ramp_alpha.size())
+	if(ramp.size() == 0 || ramp.size() != ramp_alpha.size())
 		return;
 
 	ShaderInput *fac_in = input("Fac");
@@ -4432,7 +4432,7 @@ void RGBRampNode::compile(SVMCompiler& compiler)
 
 void RGBRampNode::compile(OSLCompiler& compiler)
 {
-	if (ramp.size() == 0 || ramp.size() != ramp_alpha.size())
+	if(ramp.size() == 0 || ramp.size() != ramp_alpha.size())
 		return;
 
 	compiler.parameter_color_array("ramp_color", ramp);
