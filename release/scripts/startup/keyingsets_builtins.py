@@ -395,7 +395,8 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
     # generator - all unlocked bone transforms + custom properties
     def generate(ksi, context, ks, bone):
         # loc, rot, scale - only include unlocked ones
-        ksi.doLoc(ks, bone)
+        if not bone.bone.use_connect:
+            ksi.doLoc(ks, bone)
 
         if bone.rotation_mode in {'QUATERNION', 'AXIS_ANGLE'}:
             ksi.doRot4d(ks, bone)
