@@ -59,14 +59,20 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 		/* intersect to find an opaque surface, or record all transparent surface hits */
 		Intersection hits_stack[STACK_MAX_HITS];
 		Intersection *hits = hits_stack;
-		uint max_hits = kernel_data.integrator.transparent_max_bounce - state->transparent_bounce - 1;
+		const int transparent_max_bounce = kernel_data.integrator.transparent_max_bounce;
+		uint max_hits = transparent_max_bounce - state->transparent_bounce - 1;
 
 		/* prefer to use stack but use dynamic allocation if too deep max hits
 		 * we need max_hits + 1 storage space due to the logic in
 		 * scene_intersect_shadow_all which will first store and then check if
 		 * the limit is exceeded */
-		if(max_hits + 1 > STACK_MAX_HITS)
-			hits = (Intersection*)malloc(sizeof(Intersection)*(max_hits + 1));
+		if(max_hits + 1 > STACK_MAX_HITS) {
+			if(kg->transparent_shadow_intersections == NULL) {
+				kg->transparent_shadow_intersections =
+				    (Intersection*)malloc(sizeof(Intersection)*(transparent_max_bounce + 1));
+			}
+			hits = kg->transparent_shadow_intersections;
+		}
 
 		uint num_hits;
 		blocked = scene_intersect_shadow_all(kg, ray, hits, max_hits, &num_hits);
@@ -147,14 +153,8 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 
 			*shadow = throughput;
 
-			if(hits != hits_stack)
-				free(hits);
 			return is_zero(throughput);
 		}
-
-		/* free dynamic storage */
-		if(hits != hits_stack)
-			free(hits);
 	}
 	else {
 		Intersection isect;
