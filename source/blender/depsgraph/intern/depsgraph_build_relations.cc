@@ -1690,7 +1690,9 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 			if (mom != ob) {
 				/* non-motherball -> cannot be directly evaluated! */
 				ComponentKey mom_key(&mom->id, DEPSNODE_TYPE_GEOMETRY);
+				ComponentKey transform_key(&ob->id, DEPSNODE_TYPE_TRANSFORM);
 				add_relation(geom_key, mom_key, DEPSREL_TYPE_GEOMETRY_EVAL, "Metaball Motherball");
+				add_relation(transform_key, mom_key, DEPSREL_TYPE_GEOMETRY_EVAL, "Metaball Motherball");
 			}
 			break;
 		}
