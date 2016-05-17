@@ -225,13 +225,28 @@ ccl_device float3 spherical_stereo_position(KernelGlobals *kg,
                                             float3 dir,
                                             float3 pos)
 {
-	const float interocular_offset = kernel_data.cam.interocular_offset;
+	float interocular_offset = kernel_data.cam.interocular_offset;
 
 	/* Interocular offset of zero means either non stereo, or stereo without
 	 * spherical stereo.
 	 */
 	if(interocular_offset == 0.0f) {
 		return pos;
+	}
+
+	if(kernel_data.cam.pole_merge_angle_to > 0.0f) {
+		float3 normalized_direction = normalize(dir);
+		const float pole_merge_angle_from = kernel_data.cam.pole_merge_angle_from,
+		            pole_merge_angle_to = kernel_data.cam.pole_merge_angle_to;
+		float altitude = fabsf(safe_asinf(normalized_direction.z));
+		if(altitude > pole_merge_angle_to) {
+			interocular_offset = 0.0f;
+		}
+		else if(altitude > pole_merge_angle_from) {
+			float fac = (altitude - pole_merge_angle_from) / (pole_merge_angle_to - pole_merge_angle_from);
+			float fade = cosf(fac * M_PI_2_F);
+			interocular_offset *= fade;
+		}
 	}
 
 	float3 up = make_float3(0.0f, 0.0f, 1.0f);

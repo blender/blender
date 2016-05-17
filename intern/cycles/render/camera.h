@@ -104,6 +104,9 @@ public:
 	bool use_spherical_stereo;
 	float interocular_distance;
 	float convergence_distance;
+	bool use_pole_merge;
+	float pole_merge_angle_from;
+	float pole_merge_angle_to;
 
 	/* anamorphic lens bokeh */
 	float aperture_ratio;
