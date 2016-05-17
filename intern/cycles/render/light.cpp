@@ -233,7 +233,9 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 		/* count triangles */
 		if(have_emission) {
 			for(size_t i = 0; i < mesh->triangles.size(); i++) {
-				Shader *shader = scene->shaders[mesh->shader[i]];
+				int shader_index = mesh->shader[i];
+				Shader *shader = (shader_index < mesh->used_shaders.size()) ?
+					mesh->used_shaders[shader_index] : scene->default_surface;
 
 				if(shader->use_mis && shader->has_surface_emission)
 					num_triangles++;
@@ -303,7 +305,9 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 			}
 
 			for(size_t i = 0; i < mesh->triangles.size(); i++) {
-				Shader *shader = scene->shaders[mesh->shader[i]];
+				int shader_index = mesh->shader[i];
+				Shader *shader = (shader_index < mesh->used_shaders.size()) ?
+					mesh->used_shaders[shader_index] : scene->default_surface;
 
 				if(shader->use_mis && shader->has_surface_emission) {
 					distribution[offset].x = totarea;
