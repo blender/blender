@@ -2144,15 +2144,7 @@ elseif(APPLE)
 
 	set(PLATFORM_CFLAGS "-pipe -funsigned-char")
 	set(PLATFORM_LINKFLAGS
-		"-fexceptions -framework CoreServices "
-		"-framework Foundation "
-		"-framework IOKit "
-		"-framework AppKit "
-		"-framework Cocoa "
-		"-framework Carbon "
-		"-framework AudioUnit "
-		"-framework AudioToolbox "
-		"-framework CoreAudio "
+		"-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa -framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio"
 	)
 	if(WITH_CODEC_QUICKTIME)
 		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QTKit")
@@ -2430,8 +2422,7 @@ elseif(APPLE)
 	endif()
 	# Get rid of eventually clashes, we export some symbols explicite as local
 	set(PLATFORM_LINKFLAGS
-		"${PLATFORM_LINKFLAGS} -Xlinker -unexported_symbols_list "
-		"-Xlinker ${CMAKE_SOURCE_DIR}/source/creator/osx_locals.map"
+		"${PLATFORM_LINKFLAGS} -Xlinker -unexported_symbols_list -Xlinker ${CMAKE_SOURCE_DIR}/source/creator/osx_locals.map"
 	)
 
 	if(WITH_CXX11)
