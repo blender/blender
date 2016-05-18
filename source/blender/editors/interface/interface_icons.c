@@ -511,6 +511,63 @@ static void vicon_keytype_jitter_draw(int x, int y, int w, int h, float alpha)
 	vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_JITTER);
 }
 
+static void vicon_colorset_draw(int index, int x, int y, int w, int h, float UNUSED(alpha))
+{
+	bTheme *btheme = UI_GetTheme();
+	ThemeWireColor *cs = &btheme->tarm[index];
+	
+	/* Draw three bands of color: One per color
+	 *    x-----a-----b-----c
+	 *    |  N  |  S  |  A  |
+	 *    x-----a-----b-----c
+	 */
+	const int a = x + w / 3;
+	const int b = x + w / 3 * 2;
+	const int c = x + w;
+	
+	/* XXX: Include alpha into this... */
+	/* normal */
+	glColor3ubv(cs->solid);
+	glRecti(x, y, a, y + h);
+	
+	/* selected */
+	glColor3ubv(cs->select);
+	glRecti(a, y, b, y + h);
+	
+	/* active */
+	glColor3ubv(cs->active);
+	glRecti(b, y, c, y + h);
+}
+
+#define DEF_VICON_COLORSET_DRAW_NTH(prefix, index)                                    \
+	static void vicon_colorset_draw_##prefix(int x, int y, int w, int h, float alpha) \
+	{                                                                                 \
+		vicon_colorset_draw(index, x, y, w, h, alpha);                                \
+	}
+	
+DEF_VICON_COLORSET_DRAW_NTH(01, 0)
+DEF_VICON_COLORSET_DRAW_NTH(02, 1)
+DEF_VICON_COLORSET_DRAW_NTH(03, 2)
+DEF_VICON_COLORSET_DRAW_NTH(04, 3)
+DEF_VICON_COLORSET_DRAW_NTH(05, 4)
+DEF_VICON_COLORSET_DRAW_NTH(06, 5)
+DEF_VICON_COLORSET_DRAW_NTH(07, 6)
+DEF_VICON_COLORSET_DRAW_NTH(08, 7)
+DEF_VICON_COLORSET_DRAW_NTH(09, 8)
+DEF_VICON_COLORSET_DRAW_NTH(10, 9)
+DEF_VICON_COLORSET_DRAW_NTH(11, 10)
+DEF_VICON_COLORSET_DRAW_NTH(12, 11)
+DEF_VICON_COLORSET_DRAW_NTH(13, 12)
+DEF_VICON_COLORSET_DRAW_NTH(14, 13)
+DEF_VICON_COLORSET_DRAW_NTH(15, 14)
+DEF_VICON_COLORSET_DRAW_NTH(16, 15)
+DEF_VICON_COLORSET_DRAW_NTH(17, 16)
+DEF_VICON_COLORSET_DRAW_NTH(18, 17)
+DEF_VICON_COLORSET_DRAW_NTH(19, 18)
+DEF_VICON_COLORSET_DRAW_NTH(20, 19)
+
+#undef DEF_VICON_COLORSET_DRAW_NTH
+
 #ifndef WITH_HEADLESS
 
 static void init_brush_icons(void)
@@ -741,6 +798,27 @@ static void init_internal_icons(void)
 	def_internal_vicon(VICO_KEYTYPE_BREAKDOWN_VEC, vicon_keytype_breakdown_draw);
 	def_internal_vicon(VICO_KEYTYPE_EXTREME_VEC, vicon_keytype_extreme_draw);
 	def_internal_vicon(VICO_KEYTYPE_JITTER_VEC, vicon_keytype_jitter_draw);
+	
+	def_internal_vicon(VICO_COLORSET_01_VEC, vicon_colorset_draw_01);
+	def_internal_vicon(VICO_COLORSET_02_VEC, vicon_colorset_draw_02);
+	def_internal_vicon(VICO_COLORSET_03_VEC, vicon_colorset_draw_03);
+	def_internal_vicon(VICO_COLORSET_04_VEC, vicon_colorset_draw_04);
+	def_internal_vicon(VICO_COLORSET_05_VEC, vicon_colorset_draw_05);
+	def_internal_vicon(VICO_COLORSET_06_VEC, vicon_colorset_draw_06);
+	def_internal_vicon(VICO_COLORSET_07_VEC, vicon_colorset_draw_07);
+	def_internal_vicon(VICO_COLORSET_08_VEC, vicon_colorset_draw_08);
+	def_internal_vicon(VICO_COLORSET_09_VEC, vicon_colorset_draw_09);
+	def_internal_vicon(VICO_COLORSET_10_VEC, vicon_colorset_draw_10);
+	def_internal_vicon(VICO_COLORSET_11_VEC, vicon_colorset_draw_11);
+	def_internal_vicon(VICO_COLORSET_12_VEC, vicon_colorset_draw_12);
+	def_internal_vicon(VICO_COLORSET_13_VEC, vicon_colorset_draw_13);
+	def_internal_vicon(VICO_COLORSET_14_VEC, vicon_colorset_draw_14);
+	def_internal_vicon(VICO_COLORSET_15_VEC, vicon_colorset_draw_15);
+	def_internal_vicon(VICO_COLORSET_16_VEC, vicon_colorset_draw_16);
+	def_internal_vicon(VICO_COLORSET_17_VEC, vicon_colorset_draw_17);
+	def_internal_vicon(VICO_COLORSET_18_VEC, vicon_colorset_draw_18);
+	def_internal_vicon(VICO_COLORSET_19_VEC, vicon_colorset_draw_19);
+	def_internal_vicon(VICO_COLORSET_20_VEC, vicon_colorset_draw_20);
 
 	IMB_freeImBuf(b16buf);
 	IMB_freeImBuf(b32buf);

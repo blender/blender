@@ -43,6 +43,8 @@
 
 #include "BLT_translation.h"
 
+#include "UI_resources.h"
+
 #include "WM_types.h"
 
 
@@ -65,26 +67,26 @@ EnumPropertyItem rna_enum_posebone_rotmode_items[] = {
 /* Bone and Group Color Sets */
 EnumPropertyItem rna_enum_color_sets_items[] = {
 	{0, "DEFAULT", 0, "Default Colors", ""},
-	{1, "THEME01", 0, "01 - Theme Color Set", ""},
-	{2, "THEME02", 0, "02 - Theme Color Set", ""},
-	{3, "THEME03", 0, "03 - Theme Color Set", ""},
-	{4, "THEME04", 0, "04 - Theme Color Set", ""},
-	{5, "THEME05", 0, "05 - Theme Color Set", ""},
-	{6, "THEME06", 0, "06 - Theme Color Set", ""},
-	{7, "THEME07", 0, "07 - Theme Color Set", ""},
-	{8, "THEME08", 0, "08 - Theme Color Set", ""},
-	{9, "THEME09", 0, "09 - Theme Color Set", ""},
-	{10, "THEME10", 0, "10 - Theme Color Set", ""},
-	{11, "THEME11", 0, "11 - Theme Color Set", ""},
-	{12, "THEME12", 0, "12 - Theme Color Set", ""},
-	{13, "THEME13", 0, "13 - Theme Color Set", ""},
-	{14, "THEME14", 0, "14 - Theme Color Set", ""},
-	{15, "THEME15", 0, "15 - Theme Color Set", ""},
-	{16, "THEME16", 0, "16 - Theme Color Set", ""},
-	{17, "THEME17", 0, "17 - Theme Color Set", ""},
-	{18, "THEME18", 0, "18 - Theme Color Set", ""},
-	{19, "THEME19", 0, "19 - Theme Color Set", ""},
-	{20, "THEME20", 0, "20 - Theme Color Set", ""},
+	{1, "THEME01", VICO_COLORSET_01_VEC, "01 - Theme Color Set", ""},
+	{2, "THEME02", VICO_COLORSET_02_VEC, "02 - Theme Color Set", ""},
+	{3, "THEME03", VICO_COLORSET_03_VEC, "03 - Theme Color Set", ""},
+	{4, "THEME04", VICO_COLORSET_04_VEC, "04 - Theme Color Set", ""},
+	{5, "THEME05", VICO_COLORSET_05_VEC, "05 - Theme Color Set", ""},
+	{6, "THEME06", VICO_COLORSET_06_VEC, "06 - Theme Color Set", ""},
+	{7, "THEME07", VICO_COLORSET_07_VEC, "07 - Theme Color Set", ""},
+	{8, "THEME08", VICO_COLORSET_08_VEC, "08 - Theme Color Set", ""},
+	{9, "THEME09", VICO_COLORSET_09_VEC, "09 - Theme Color Set", ""},
+	{10, "THEME10", VICO_COLORSET_10_VEC, "10 - Theme Color Set", ""},
+	{11, "THEME11", VICO_COLORSET_11_VEC, "11 - Theme Color Set", ""},
+	{12, "THEME12", VICO_COLORSET_12_VEC, "12 - Theme Color Set", ""},
+	{13, "THEME13", VICO_COLORSET_13_VEC, "13 - Theme Color Set", ""},
+	{14, "THEME14", VICO_COLORSET_14_VEC, "14 - Theme Color Set", ""},
+	{15, "THEME15", VICO_COLORSET_15_VEC, "15 - Theme Color Set", ""},
+	{16, "THEME16", VICO_COLORSET_16_VEC, "16 - Theme Color Set", ""},
+	{17, "THEME17", VICO_COLORSET_17_VEC, "17 - Theme Color Set", ""},
+	{18, "THEME18", VICO_COLORSET_18_VEC, "18 - Theme Color Set", ""},
+	{19, "THEME19", VICO_COLORSET_19_VEC, "19 - Theme Color Set", ""},
+	{20, "THEME20", VICO_COLORSET_20_VEC, "20 - Theme Color Set", ""},
 	{-1, "CUSTOM", 0, "Custom Color Set", ""},
 	{0, NULL, 0, NULL, NULL}
 };
