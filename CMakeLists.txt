@@ -823,21 +823,6 @@ set(PLATFORM_LINKFLAGS "")
 set(PLATFORM_LINKFLAGS_DEBUG "")
 
 
-# For alternate Python locations the commandline can be used to override detected/default cache settings, e.g:
-# On Unix:
-#   cmake ../blender \
-#         -D PYTHON_VERSION=3.5 \
-#         -D PYTHON_INCLUDE_DIR=/opt/py35/include/python3.5d \
-#         -D PYTHON_LIBRARY=/opt/py35/lib/libpython3.5d.so
-#
-# On Macs:
-#   cmake ../blender \
-#         -D PYTHON_INCLUDE_DIR=/System/Library/Frameworks/Python.framework/Versions/3.5/include/python3.5 \
-#         -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/config \
-#         -G Xcode
-#
-# When changing any of this remember to update the notes in doc/build_systems/cmake.txt
-
 #-----------------------------------------------------------------------------
 #Platform specifics
 
