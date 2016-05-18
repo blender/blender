@@ -633,7 +633,11 @@ void BKE_pose_constraints_evaluate(EvaluationContext *UNUSED(eval_ctx),
 {
 	Scene *scene = G.main->scene.first;
 	DEBUG_PRINT("%s on %s pchan %s\n", __func__, ob->id.name, pchan->name);
-	if (pchan->flag & POSE_IKTREE || pchan->flag & POSE_IKSPLINE) {
+	bArmature *arm = (bArmature *)ob->data;
+	if (arm->flag & ARM_RESTPOS) {
+		return;
+	}
+	else if (pchan->flag & POSE_IKTREE || pchan->flag & POSE_IKSPLINE) {
 		/* IK are being solved separately/ */
 	}
 	else {
