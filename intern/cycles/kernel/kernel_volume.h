@@ -627,6 +627,11 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg, PathState *sta
 		step_size = kernel_data.integrator.volume_step_size;
 		/* compute exact steps in advance for malloc */
 		max_steps = max((int)ceilf(ray->t/step_size), 1);
+		if(max_steps > global_max_steps) {
+			max_steps = global_max_steps;
+			step_size = ray->t / (float)max_steps;
+		}
+#ifdef __KERNEL_CPU__
 		/* NOTE: For the branched path tracing it's possible to have direct
 		 * and indirect light integration both having volume segments allocated.
 		 * We detect this using index in the pre-allocated memory. Currently we
@@ -640,17 +645,16 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg, PathState *sta
 		const int index = kg->decoupled_volume_steps_index;
 		assert(index < sizeof(kg->decoupled_volume_steps) /
 		               sizeof(*kg->decoupled_volume_steps));
-		if(max_steps > global_max_steps) {
-			max_steps = global_max_steps;
-			step_size = ray->t / (float)max_steps;
-		}
 		if(kg->decoupled_volume_steps[index] == NULL) {
 			kg->decoupled_volume_steps[index] =
 			        (VolumeStep*)malloc(sizeof(VolumeStep)*global_max_steps);
 		}
 		segment->steps = kg->decoupled_volume_steps[index];
-		random_jitter_offset = lcg_step_float(&state->rng_congruential) * step_size;
 		++kg->decoupled_volume_steps_index;
+#else
+		segment->steps = (VolumeStep*)malloc(sizeof(VolumeStep)*max_steps);
+#endif
+		random_jitter_offset = lcg_step_float(&state->rng_congruential) * step_size;
 	}
 	else {
 		max_steps = 1;
@@ -764,12 +768,16 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg, PathState *sta
 ccl_device void kernel_volume_decoupled_free(KernelGlobals *kg, VolumeSegment *segment)
 {
 	if(segment->steps != &segment->stack_step) {
+#ifdef __KERNEL_CPU__
 		/* NOTE: We only allow free last allocated segment.
 		 * No random order of alloc/free is supported.
 		 */
 		assert(kg->decoupled_volume_steps_index > 0);
 		assert(segment->steps == kg->decoupled_volume_steps[kg->decoupled_volume_steps_index - 1]);
 		--kg->decoupled_volume_steps_index;
+#else
+		free(segment->steps);
+#endif
 	}
 }
 
