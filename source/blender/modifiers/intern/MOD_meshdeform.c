@@ -520,6 +520,7 @@ ModifierTypeInfo modifierType_MeshDeform = {
 	/* structSize */        sizeof(MeshDeformModifierData),
 	/* type */              eModifierTypeType_OnlyDeform,
 	/* flags */             eModifierTypeFlag_AcceptsCVs |
+	                        eModifierTypeFlag_AcceptsLattice |
 	                        eModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          copyData,

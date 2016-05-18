@@ -207,6 +207,7 @@ ModifierTypeInfo modifierType_Armature = {
 	/* structSize */        sizeof(ArmatureModifierData),
 	/* type */              eModifierTypeType_OnlyDeform,
 	/* flags */             eModifierTypeFlag_AcceptsCVs |
+	                        eModifierTypeFlag_AcceptsLattice |
 	                        eModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          copyData,

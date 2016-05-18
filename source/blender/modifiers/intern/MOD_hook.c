@@ -417,6 +417,7 @@ ModifierTypeInfo modifierType_Hook = {
 	/* structSize */        sizeof(HookModifierData),
 	/* type */              eModifierTypeType_OnlyDeform,
 	/* flags */             eModifierTypeFlag_AcceptsCVs |
+	                        eModifierTypeFlag_AcceptsLattice |
 	                        eModifierTypeFlag_SupportsEditmode,
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,
