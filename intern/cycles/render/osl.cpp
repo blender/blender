@@ -908,7 +908,7 @@ void OSLCompiler::parameter_array(const char * /*name*/, const float /*f*/[], in
 {
 }
 
-void OSLCompiler::parameter_color_array(const char *name, const array<float3>& f)
+void OSLCompiler::parameter_color_array(const char * /*name*/, const array<float3>& /*f*/)
 {
 }
 

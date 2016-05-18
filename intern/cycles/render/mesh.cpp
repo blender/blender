@@ -1436,7 +1436,7 @@ bool Mesh::need_attribute(Scene *scene, AttributeStandard std)
 	return false;
 }
 
-bool Mesh::need_attribute(Scene *scene, ustring name)
+bool Mesh::need_attribute(Scene * /*scene*/, ustring name)
 {
 	if(name == ustring())
 		return false;
