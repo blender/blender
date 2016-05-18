@@ -1050,6 +1050,19 @@ macro(remove_strict_flags_file
 
 endmacro()
 
+# External libs may need 'signed char' to be default.
+macro(remove_cc_flag_unsigned_char)
+	if(CMAKE_C_COMPILER_ID MATCHES "^(GNU|Clang|Intel)$")
+		remove_cc_flag("-funsigned-char")
+	elseif(MSVC)
+		remove_cc_flag("/J")
+	else()
+		message(WARNING
+			"Compiler '${CMAKE_C_COMPILER_ID}' failed to disable 'unsigned char' flag."
+			"Build files need updating."
+		)
+	endif()
+endmacro()
 
 function(ADD_CHECK_C_COMPILER_FLAG
 	_CFLAGS

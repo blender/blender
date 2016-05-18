@@ -23,6 +23,8 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+remove_cc_flag_unsigned_char()
+
 set(INC 
 	Recast/Include
 	Detour/Include
