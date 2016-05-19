@@ -4718,6 +4718,8 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, const Sce
 #pragma omp parallel for schedule(static)
 	for (index = 0; index < sData->total_points; index++) {
 		float prev_point[3] = {0.0f, 0.0f, 0.0f};
+		float temp_nor[3];
+
 		if (do_velocity_data && !new_bdata) {
 			copy_v3_v3(prev_point, bData->realCoord[bData->s_pos[index]].v);
 		}
@@ -4726,15 +4728,14 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, const Sce
 		 */
 		if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
 			float n1[3], n2[3], n3[3];
-			ImgSeqFormatData *f_data = (ImgSeqFormatData *)sData->format_data;
-			PaintUVPoint *tPoint = &((PaintUVPoint *)f_data->uv_p)[index];
-			int ss;
+			const ImgSeqFormatData *f_data = (ImgSeqFormatData *)sData->format_data;
+			const PaintUVPoint *tPoint = &((PaintUVPoint *)f_data->uv_p)[index];
 
 			bData->s_num[index] = (surface->flags & MOD_DPAINT_ANTIALIAS) ? 5 : 1;
 			bData->s_pos[index] = index * bData->s_num[index];
 
 			/* per sample coordinates */
-			for (ss = 0; ss < bData->s_num[index]; ss++) {
+			for (int ss = 0; ss < bData->s_num[index]; ss++) {
 				interp_v3_v3v3v3(bData->realCoord[bData->s_pos[index] + ss].v,
 				                 canvas_verts[tPoint->v1].v,
 				                 canvas_verts[tPoint->v2].v,
@@ -4747,11 +4748,18 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, const Sce
 			normal_short_to_float_v3(n2, mvert[tPoint->v2].no);
 			normal_short_to_float_v3(n3, mvert[tPoint->v3].no);
 
-			interp_v3_v3v3v3(bData->bNormal[index].invNorm,
-			                 n1, n2, n3, f_data->barycentricWeights[index * bData->s_num[index]].v);
-			mul_mat3_m4_v3(ob->obmat, bData->bNormal[index].invNorm);
-			normalize_v3(bData->bNormal[index].invNorm);
-			negate_v3(bData->bNormal[index].invNorm);
+			interp_v3_v3v3v3(temp_nor, n1, n2, n3, f_data->barycentricWeights[index * bData->s_num[index]].v);
+			normalize_v3(temp_nor);
+			if (ELEM(surface->type, MOD_DPAINT_SURFACE_T_DISPLACE, MOD_DPAINT_SURFACE_T_WAVE)) {
+				/* Prepare surface normal directional scale to easily convert
+				 * brush intersection amount between global and local space */
+				float scaled_nor[3];
+				mul_v3_v3v3(scaled_nor, temp_nor, ob->size);
+				bData->bNormal[index].normal_scale = len_v3(scaled_nor);
+			}
+			mul_mat3_m4_v3(ob->obmat, temp_nor);
+			normalize_v3(temp_nor);
+			negate_v3_v3(bData->bNormal[index].invNorm, temp_nor);
 		}
 		else if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
 			int ss;
@@ -4778,35 +4786,17 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, const Sce
 			}
 
 			/* normal */
-			normal_short_to_float_v3(bData->bNormal[index].invNorm, mvert[index].no);
-			mul_mat3_m4_v3(ob->obmat, bData->bNormal[index].invNorm);
-			normalize_v3(bData->bNormal[index].invNorm);
-			negate_v3(bData->bNormal[index].invNorm);
-		}
-
-		/* Prepare surface normal directional scale to easily convert
-		 *  brush intersection amount between global and local space */
-		if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
-		    surface->type == MOD_DPAINT_SURFACE_T_WAVE)
-		{
-			float temp_nor[3];
-			if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
-				normal_short_to_float_v3(temp_nor, mvert[index].no);
-				normalize_v3(temp_nor);
+			normal_short_to_float_v3(temp_nor, mvert[index].no);
+			if (ELEM(surface->type, MOD_DPAINT_SURFACE_T_DISPLACE, MOD_DPAINT_SURFACE_T_WAVE)) {
+				/* Prepare surface normal directional scale to easily convert
+				 * brush intersection amount between global and local space */
+				float scaled_nor[3];
+				mul_v3_v3v3(scaled_nor, temp_nor, ob->size);
+				bData->bNormal[index].normal_scale = len_v3(scaled_nor);
 			}
-			else {
-				float n1[3], n2[3], n3[3];
-				ImgSeqFormatData *f_data = (ImgSeqFormatData *)sData->format_data;
-				PaintUVPoint *tPoint = &((PaintUVPoint *)f_data->uv_p)[index];
-
-				normal_short_to_float_v3(n1, mvert[tPoint->v1].no);
-				normal_short_to_float_v3(n2, mvert[tPoint->v2].no);
-				normal_short_to_float_v3(n3, mvert[tPoint->v3].no);
-				interp_v3_v3v3v3(temp_nor, n1, n2, n3, f_data->barycentricWeights[index * bData->s_num[index]].v);
-			}
-
-			mul_v3_v3(temp_nor, ob->size);
-			bData->bNormal[index].normal_scale = len_v3(temp_nor);
+			mul_mat3_m4_v3(ob->obmat, temp_nor);
+			normalize_v3(temp_nor);
+			negate_v3_v3(bData->bNormal[index].invNorm, temp_nor);
 		}
 
 		/* calculate speed vector */
