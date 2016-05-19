@@ -30,6 +30,46 @@ CCL_NAMESPACE_BEGIN
 
 /* Texture Mapping */
 
+static ShaderEnum texture_mapping_type_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("Point", TextureMapping::POINT);
+	enm.insert("Texture", TextureMapping::TEXTURE);
+	enm.insert("Vector", TextureMapping::VECTOR);
+	enm.insert("Normal", TextureMapping::NORMAL);
+
+	return enm;
+}
+
+static ShaderEnum texture_mapping_mapping_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("None", TextureMapping::NONE);
+	enm.insert("X", TextureMapping::X);
+	enm.insert("Y", TextureMapping::Y);
+	enm.insert("Z", TextureMapping::Z);
+
+	return enm;
+}
+
+static ShaderEnum texture_mapping_projection_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("Flat", TextureMapping::FLAT);
+	enm.insert("Cube", TextureMapping::CUBE);
+	enm.insert("Tube", TextureMapping::TUBE);
+	enm.insert("Sphere", TextureMapping::SPHERE);
+
+	return enm;
+}
+
+ShaderEnum TextureMapping::type_enum = texture_mapping_type_init();
+ShaderEnum TextureMapping::mapping_enum = texture_mapping_mapping_init();
+ShaderEnum TextureMapping::projection_enum = texture_mapping_projection_init();
+
 TextureMapping::TextureMapping()
 {
 	translation = make_float3(0.0f, 0.0f, 0.0f);

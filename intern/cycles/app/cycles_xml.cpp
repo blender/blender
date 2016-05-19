@@ -230,6 +230,24 @@ static bool xml_read_enum(ustring *str, ShaderEnum& enm, pugi::xml_node node, co
 	return false;
 }
 
+static bool xml_read_enum_value(int *value, ShaderEnum& enm, pugi::xml_node node, const char *name)
+{
+	pugi::xml_attribute attr = node.attribute(name);
+
+	if(attr) {
+		ustring ustr(attr.value());
+
+		if(enm.exists(ustr)) {
+			*value = enm[ustr];
+			return true;
+		}
+		else
+			fprintf(stderr, "Unknown value \"%s\" for attribute \"%s\".\n", ustr.c_str(), name);
+	}
+
+	return false;
+}
+
 static ShaderSocketType xml_read_socket_type(pugi::xml_node node, const char *name)
 {
 	pugi::xml_attribute attr = node.attribute(name);
@@ -529,7 +547,24 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			snode = bump;
 		}
 		else if(string_iequals(node.name(), "mapping")) {
-			snode = new MappingNode();
+			MappingNode *map = new MappingNode();
+
+			TextureMapping *texmap = &map->tex_mapping;
+			xml_read_enum_value((int*) &texmap->type, TextureMapping::type_enum, node, "type");
+			xml_read_enum_value((int*) &texmap->projection, TextureMapping::projection_enum, node, "projection");
+			xml_read_enum_value((int*) &texmap->x_mapping, TextureMapping::mapping_enum, node, "x_mapping");
+			xml_read_enum_value((int*) &texmap->y_mapping, TextureMapping::mapping_enum, node, "y_mapping");
+			xml_read_enum_value((int*) &texmap->z_mapping, TextureMapping::mapping_enum, node, "z_mapping");
+			xml_read_bool(&texmap->use_minmax, node, "use_minmax");
+			if(texmap->use_minmax) {
+				xml_read_float3(&texmap->min, node, "min");
+				xml_read_float3(&texmap->max, node, "max");
+			}
+			xml_read_float3(&texmap->translation, node, "translation");
+			xml_read_float3(&texmap->rotation, node, "rotation");
+			xml_read_float3(&texmap->scale, node, "scale");
+
+			snode = map;
 		}
 		else if(string_iequals(node.name(), "anisotropic_bsdf")) {
 			AnisotropicBsdfNode *aniso = new AnisotropicBsdfNode();

@@ -49,12 +49,15 @@ public:
 
 	enum Type { POINT = 0, TEXTURE = 1, VECTOR = 2, NORMAL = 3 };
 	Type type;
+	static ShaderEnum type_enum;
 
 	enum Mapping { NONE = 0, X = 1, Y = 2, Z = 3 };
 	Mapping x_mapping, y_mapping, z_mapping;
+	static ShaderEnum mapping_enum;
 
 	enum Projection { FLAT, CUBE, TUBE, SPHERE };
 	Projection projection;
+	static ShaderEnum projection_enum;
 
 	bool equals(const TextureMapping& other) {
 		return translation == other.translation &&
