@@ -527,15 +527,15 @@ static void vicon_colorset_draw(int index, int x, int y, int w, int h, float UNU
 	
 	/* XXX: Include alpha into this... */
 	/* normal */
-	glColor3ubv(cs->solid);
+	glColor3ubv((unsigned char *)cs->solid);
 	glRecti(x, y, a, y + h);
 	
 	/* selected */
-	glColor3ubv(cs->select);
+	glColor3ubv((unsigned char *)cs->select);
 	glRecti(a, y, b, y + h);
 	
 	/* active */
-	glColor3ubv(cs->active);
+	glColor3ubv((unsigned char *)cs->active);
 	glRecti(b, y, c, y + h);
 }
 
