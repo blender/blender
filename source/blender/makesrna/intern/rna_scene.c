@@ -5968,6 +5968,11 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Strip Metadata", "Use metadata from the strips in the sequencer");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
+	prop = RNA_def_property(srna, "use_stamp_memory", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_MEMORY);
+	RNA_def_property_ui_text(prop, "Stamp Peak Memory", "Include the peak memory usage in image metadata");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
 	prop = RNA_def_property(srna, "stamp_font_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "stamp_font_id");
 	RNA_def_property_range(prop, 8, 64);
