@@ -3277,7 +3277,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 							nearest.dist_sq = brush_radius * brush_radius; /* find_nearest uses squared distance */
 
 							/* Check volume collision	*/
-							if (brush->collision == MOD_DPAINT_COL_VOLUME || brush->collision == MOD_DPAINT_COL_VOLDIST)
+							if (ELEM(brush->collision, MOD_DPAINT_COL_VOLUME, MOD_DPAINT_COL_VOLDIST)) {
 								BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_dir, 0.0f,
 								                     &hit, mesh_tris_spherecast_dp, &treeData);
 								if (hit.index != -1) {
@@ -3321,9 +3321,10 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 										}
 									}
 								}
+							}
 
 							/* Check proximity collision	*/
-							if ((brush->collision == MOD_DPAINT_COL_DIST || brush->collision == MOD_DPAINT_COL_VOLDIST) &&
+							if (ELEM(brush->collision, MOD_DPAINT_COL_DIST, MOD_DPAINT_COL_VOLDIST) &&
 							    (!hit_found || (brush->flags & MOD_DPAINT_INVERSE_PROX)))
 							{
 								float proxDist = -1.0f;
