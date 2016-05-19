@@ -1239,7 +1239,8 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				 *       events). So we have to check which values this event actually contains!
 				 */
 
-#define AXIS_VALUE_GET(axis, val)  ((axis_first <= axis && axes_end > axis) && ((void)(val = data->axis_data[axis]), true))
+#define AXIS_VALUE_GET(axis, val) \
+	((axis_first <= axis && axes_end > axis) && ((void)(val = data->axis_data[axis - axis_first]), true))
 
 				if (AXIS_VALUE_GET(2, axis_value)) {
 					window->GetTabletData()->Pressure = axis_value / ((float)m_xtablet.PressureLevels);
