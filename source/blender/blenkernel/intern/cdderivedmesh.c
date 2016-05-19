@@ -495,11 +495,12 @@ static void cdDM_drawFacesTex_common(
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 	const MPoly *mpoly = cddm->mpoly;
 	MTexPoly *mtexpoly = DM_get_poly_data_layer(dm, CD_MTEXPOLY);
-	const  MLoopCol *mloopcol;
+	const  MLoopCol *mloopcol = NULL;
 	int i;
 	int colType, start_element, tot_drawn;
 	const bool use_hide = (flag & DM_DRAW_SKIP_HIDDEN) != 0;
 	const bool use_tface = (flag & DM_DRAW_USE_ACTIVE_UV) != 0;
+	const bool use_colors = (flag & DM_DRAW_USE_COLORS) != 0;
 	int totpoly;
 	int next_actualFace;
 	int mat_index;
@@ -529,15 +530,17 @@ static void cdDM_drawFacesTex_common(
 		}
 	}
 
-	colType = CD_TEXTURE_MLOOPCOL;
-	mloopcol = dm->getLoopDataArray(dm, colType);
-	if (!mloopcol) {
-		colType = CD_PREVIEW_MLOOPCOL;
+	if (use_colors) {
+		colType = CD_TEXTURE_MLOOPCOL;
 		mloopcol = dm->getLoopDataArray(dm, colType);
-	}
-	if (!mloopcol) {
-		colType = CD_MLOOPCOL;
-		mloopcol = dm->getLoopDataArray(dm, colType);
+		if (!mloopcol) {
+			colType = CD_PREVIEW_MLOOPCOL;
+			mloopcol = dm->getLoopDataArray(dm, colType);
+		}
+		if (!mloopcol) {
+			colType = CD_MLOOPCOL;
+			mloopcol = dm->getLoopDataArray(dm, colType);
+		}
 	}
 
 	GPU_vertex_setup(dm);
