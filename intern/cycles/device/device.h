@@ -54,7 +54,7 @@ public:
 	bool display_device;
 	bool advanced_shading;
 	bool pack_images;
-	bool extended_images; /* flag for GPU and Multi device */
+	bool has_bindless_textures; /* flag for GPU and Multi device */
 	bool use_split_kernel; /* Denotes if the device is going to run cycles using split-kernel */
 	vector<DeviceInfo> multi_devices;
 
@@ -66,7 +66,7 @@ public:
 		display_device = false;
 		advanced_shading = true;
 		pack_images = false;
-		extended_images = false;
+		has_bindless_textures = false;
 		use_split_kernel = false;
 	}
 };
@@ -230,6 +230,7 @@ public:
 		(void)interpolation;  /* Ignored. */
 		(void)extension;  /* Ignored. */
 	};
+
 	virtual void tex_free(device_memory& /*mem*/) {};
 
 	/* pixel memory */
