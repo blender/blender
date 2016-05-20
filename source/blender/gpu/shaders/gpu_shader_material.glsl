@@ -2321,7 +2321,7 @@ float integer_noise(int n)
 	n = (n + 1013) & 0x7fffffff;
 	n = (n >> 13) ^ n;
 	nn = (n * (n * n * 60493 + 19990303) + 1376312589) & 0x7fffffff;
-	return 0.5f * (float(nn) / 1073741824.0);
+	return 0.5 * (float(nn) / 1073741824.0);
 }
 
 int floor_to_int(float x)
@@ -2858,7 +2858,7 @@ void node_tex_magic(vec3 co, float scale, float distortion, float depth, out vec
 		z /= distortion;
 	}
 
-	color = vec4(0.5f - x, 0.5f - y, 0.5f - z, 1.0);
+	color = vec4(0.5 - x, 0.5 - y, 0.f - z, 1.0);
 	fac = (color.x + color.y + color.z) / 3.0;
 }
 
