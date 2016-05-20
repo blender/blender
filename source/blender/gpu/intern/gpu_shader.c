@@ -205,6 +205,10 @@ static void gpu_shader_standard_defines(char defines[MAX_DEFINE_LENGTH],
 	if (GPU_bicubic_bump_support())
 		strcat(defines, "#define BUMP_BICUBIC\n");
 
+	if (GLEW_VERSION_3_0) {
+		strcat(defines, "#define BIT_OPERATIONS\n");
+	}
+
 #ifdef WITH_OPENSUBDIV
 	/* TODO(sergey): Check whether we actually compiling shader for
 	 * the OpenSubdiv mesh.
