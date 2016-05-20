@@ -130,14 +130,8 @@ public:
 	array& operator=(const array& from)
 	{
 		if(this != &from) {
-			clear();
-
-			if(from.datasize_ > 0) {
-				data_ = mem_allocate(from.datasize_);
-				memcpy(data_, from.data_, from.datasize_*sizeof(T));
-				datasize_ = from.datasize_;
-				capacity_ = datasize_;
-			}
+			resize(from.size());
+			memcpy(data_, from.data_, datasize_*sizeof(T));
 		}
 
 		return *this;
@@ -145,12 +139,9 @@ public:
 
 	array& operator=(const vector<T>& from)
 	{
-		clear();
+		resize(from.size());
 
 		if(from.size() > 0) {
-			datasize_ = from.size();
-			capacity_ = datasize_;
-			data_ = mem_allocate(datasize_);
 			memcpy(data_, &from[0], datasize_*sizeof(T));
 		}
 
@@ -164,26 +155,11 @@ public:
 
 	bool operator==(const vector<T>& other)
 	{
-		if(datasize_ != other.datasize_)
+		if(datasize_ != other.datasize_) {
 			return false;
+		}
 
 		return memcmp(data_, other.data_, datasize_*sizeof(T)) == 0;
-	}
-
-	void steal_data(array& from)
-	{
-		if(this != &from)
-		{
-			clear();
-
-			data_ = from.data_;
-			datasize_ = from.datasize_;
-			capacity_ = from.capacity_;
-
-			from.data_ = NULL;
-			from.datasize_ = 0;
-			from.capacity_ = 0;
-		}
 	}
 
 	T* resize(size_t newsize)
@@ -191,15 +167,22 @@ public:
 		if(newsize == 0) {
 			clear();
 		}
-		else if(newsize != capacity_) {
-			T *newdata = mem_allocate(newsize);
-			if(data_ != NULL) {
-				memcpy(newdata, data_, ((datasize_ < newsize)? datasize_: newsize)*sizeof(T));
-				mem_free(data_, capacity_);
+		else if(newsize != datasize_) {
+			if(newsize > capacity_) {
+				T *newdata = mem_allocate(newsize);
+				if(newdata == NULL) {
+					/* Allocation failed, likely out of memory. */
+					clear();
+					return NULL;
+				}
+				else if(data_ != NULL) {
+					memcpy(newdata, data_, ((datasize_ < newsize)? datasize_: newsize)*sizeof(T));
+					mem_free(data_, capacity_);
+				}
+				data_ = newdata;
+				capacity_ = newsize;
 			}
-			data_ = newdata;
 			datasize_ = newsize;
-			capacity_ = newsize;
 		}
 		return data_;
 	}
