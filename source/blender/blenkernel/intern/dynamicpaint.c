@@ -2261,9 +2261,11 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface)
 		}
 
 		/* Loop through every pixel and check if pixel is uv-mapped on a canvas face. */
+		int ty;
 #pragma omp parallel for schedule(static)
-		for (int ty = 0; ty < h; ty++) {
-			for (int tx = 0; tx < w; tx++) {
+		for (ty = 0; ty < h; ty++) {
+			int tx;
+			for (tx = 0; tx < w; tx++) {
 				const int index = tx + w * ty;
 				PaintUVPoint *tPoint = &tempPoints[index];
 				float point[5][2];
@@ -2347,8 +2349,9 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface)
 		 *	(To avoid seams on uv island edges)
 		 */
 #pragma omp parallel for schedule(static)
-		for (int ty = 0; ty < h; ty++) {
-			for (int tx = 0; tx < w; tx++) {
+		for (ty = 0; ty < h; ty++) {
+			int tx;
+			for (tx = 0; tx < w; tx++) {
 				const int index = tx + w * ty;
 				PaintUVPoint *tPoint = &tempPoints[index];
 
@@ -2438,7 +2441,7 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface)
 			if (sData->adj_data) {
 				PaintAdjData *ed = sData->adj_data;
 				unsigned int n_pos = 0;
-				for (int ty = 0; ty < h; ty++) {
+				for (ty = 0; ty < h; ty++) {
 					for (int tx = 0; tx < w; tx++) {
 						const int index = tx + w * ty;
 
