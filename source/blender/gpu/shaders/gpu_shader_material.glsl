@@ -2329,6 +2329,57 @@ int floor_to_int(float x)
 	return int(floor(x));
 }
 
+uint hash(uint kx, uint ky, uint kz)
+{
+#define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))
+#define final(a,b,c) \
+{ \
+	c ^= b; c -= rot(b,14); \
+	a ^= c; a -= rot(c,11); \
+	b ^= a; b -= rot(a,25); \
+	c ^= b; c -= rot(b,16); \
+	a ^= c; a -= rot(c,4);  \
+	b ^= a; b -= rot(a,14); \
+	c ^= b; c -= rot(b,24); \
+}
+	// now hash the data!
+	uint a, b, c, len = 3u;
+	a = b = c = 0xdeadbeefu + (len << 2u) + 13u;
+
+	c += kz;
+	b += ky;
+	a += kx;
+	final(a, b, c);
+
+	return c;
+#undef rot
+#undef final
+}
+
+float bits_to_01(uint bits)
+{
+	float x = float(bits) * (1.0 / float(0xffffffffu));
+	return x;
+}
+
+float cellnoise(vec3 p)
+{
+	int ix = floor_to_int(p.x);
+	int iy = floor_to_int(p.y);
+	int iz = floor_to_int(p.z);
+
+	return bits_to_01(hash(uint(ix), uint(iy), uint(iz)));
+}
+
+vec3 cellnoise_color(vec3 p)
+{
+	float r = cellnoise(p);
+	float g = cellnoise(vec3(p.y, p.x, p.z));
+	float b = cellnoise(vec3(p.y, p.z, p.x));
+
+	return vec3(r, g, b);
+}
+
 /*********** NEW SHADER NODES ***************/
 
 #define NUM_LIGHTS 3
@@ -2828,10 +2879,72 @@ void node_tex_sky(vec3 co, out vec4 color)
 	color = vec4(1.0);
 }
 
-void node_tex_voronoi(vec3 co, float scale, out vec4 color, out float fac)
+void node_tex_voronoi(vec3 co, float scale, float coloring, out vec4 color, out float fac)
 {
-	color = vec4(1.0);
-	fac = 1.0;
+	vec3 p = co * scale;
+	int xx, yy, zz, xi, yi, zi;
+	float da[4];
+	vec3 pa[4];
+
+	xi = floor_to_int(p[0]);
+	yi = floor_to_int(p[1]);
+	zi = floor_to_int(p[2]);
+
+	da[0] = 1e+10;
+	da[1] = 1e+10;
+	da[2] = 1e+10;
+	da[3] = 1e+10;
+
+	for (xx = xi - 1; xx <= xi + 1; xx++) {
+		for (yy = yi - 1; yy <= yi + 1; yy++) {
+			for (zz = zi - 1; zz <= zi + 1; zz++) {
+				vec3 ip = vec3(xx, yy, zz);
+				vec3 vp = cellnoise_color(ip);
+				vec3 pd = p - (vp + ip);
+				float d = dot(pd, pd);
+				vp += vec3(xx, yy, zz);
+				if (d < da[0]) {
+					da[3] = da[2];
+					da[2] = da[1];
+					da[1] = da[0];
+					da[0] = d;
+					pa[3] = pa[2];
+					pa[2] = pa[1];
+					pa[1] = pa[0];
+					pa[0] = vp;
+				}
+				else if (d < da[1]) {
+					da[3] = da[2];
+					da[2] = da[1];
+					da[1] = d;
+
+					pa[3] = pa[2];
+					pa[2] = pa[1];
+					pa[1] = vp;
+				}
+				else if (d < da[2]) {
+					da[3] = da[2];
+					da[2] = d;
+
+					pa[3] = pa[2];
+					pa[2] = vp;
+				}
+				else if (d < da[3]) {
+					da[3] = d;
+					pa[3] = vp;
+				}
+			}
+		}
+	}
+
+	if (coloring == 0.0) {
+		fac = abs(da[0]);
+		color = vec4(fac, fac, fac, 1);
+	}
+	else {
+		color = vec4(cellnoise_color(pa[0]), 1);
+		fac = (color.x + color.y + color.z) * (1.0 / 3.0);
+	}
 }
 
 void node_tex_wave(vec3 co, float scale, float distortion, float detail, float detail_scale, out vec4 color, out float fac)
