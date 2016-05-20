@@ -3160,9 +3160,27 @@ void node_normal_map(vec4 tangent, vec3 normal, vec3 texnormal, out vec3 outnorm
 	outnormal = normalize(outnormal);
 }
 
-void node_bump(float strength, float dist, float height, vec3 N, out vec3 result)
+void node_bump(float strength, float dist, float height, vec3 N, vec3 surf_pos, out vec3 result)
 {
-	result = N;
+	vec3 dPdx = dFdx(surf_pos);
+	vec3 dPdy = dFdy(surf_pos);
+
+	/* Get surface tangents from normal. */
+	vec3 Rx = cross(dPdy, N);
+	vec3 Ry = cross(N, dPdx);
+
+	/* Compute surface gradient and determinant. */
+	float det = dot(dPdx, Rx);
+	float absdet = abs(det);
+
+	float dHdx = dFdx(height);
+	float dHdy = dFdy(height);
+	vec3 surfgrad = dHdx*Rx + dHdy*Ry;
+
+	strength = max(strength, 0.0);
+
+	result = normalize(absdet*N - dist*sign(det)*surfgrad);
+	result = normalize(strength*result + (1.0 - strength)*N);
 }
 
 /* output */

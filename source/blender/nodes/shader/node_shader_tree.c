@@ -199,11 +199,171 @@ void register_node_tree_type_sh(void)
 
 /* GPU material from shader nodes */
 
+/* Find an output node of the shader tree.
+ *
+ * NOTE: it will only return output which is NOT in the group, which isn't how
+ * render engines works but it's how the GPU shader compilation works. This we
+ * can change in the future and make it a generic function, but for now it stays
+ * private here.
+ */
+static bNode *ntree_shader_output_node(bNodeTree *ntree)
+{
+	/* Make sure we only have single node tagged as output. */
+	ntreeSetOutput(ntree);
+	for (bNode *node = ntree->nodes.first; node != NULL; node = node->next) {
+		if (node->flag & NODE_DO_OUTPUT) {
+			return node;
+		}
+	}
+	return NULL;
+}
+
+/* Find socket with a specified identifier. */
+static bNodeSocket *ntree_shader_node_find_socket(ListBase *sockets,
+                                                  const char *identifier)
+{
+	for (bNodeSocket *sock = sockets->first; sock != NULL; sock = sock->next) {
+		if (STREQ(sock->identifier, identifier)) {
+			return sock;
+		}
+	}
+	return NULL;
+}
+
+/* Find input socket with a specified identifier. */
+static bNodeSocket *ntree_shader_node_find_input(bNode *node,
+                                                 const char *identifier)
+{
+	return ntree_shader_node_find_socket(&node->inputs, identifier);
+}
+
+/* Find output socket with a specified identifier. */
+static bNodeSocket *ntree_shader_node_find_output(bNode *node,
+                                                  const char *identifier)
+{
+	return ntree_shader_node_find_socket(&node->outputs, identifier);
+}
+
+/* Check whether shader has a displacement.
+ *
+ * Will also return a node and it's socket which is connected to a displacement
+ * output. Additionally, link which is attached to the displacement output is
+ * also returned.
+ */
+static bool ntree_shader_has_displacement(bNodeTree *ntree,
+                                          bNode **r_node,
+                                          bNodeSocket **r_socket,
+                                          bNodeLink **r_link)
+{
+	bNode *output_node = ntree_shader_output_node(ntree);
+	if (output_node == NULL) {
+		/* We can't have displacement without output node, apparently. */
+		return false;
+	}
+	/* Make sure sockets links pointers are correct. */
+	ntreeUpdateTree(G.main, ntree);
+	bNodeSocket *displacement = ntree_shader_node_find_input(output_node,
+	                                                         "Displacement");
+
+	if (displacement == NULL) {
+		/* Non-cycles node is used as an output. */
+		return false;
+	}
+	if (displacement->link != NULL) {
+		*r_node = displacement->link->fromnode;
+		*r_socket = displacement->link->fromsock;
+		*r_link = displacement->link;
+	}
+	return displacement->link != NULL;
+}
+
+/* Use specified node and socket as an input for unconnected normal sockets. */
+static void ntree_shader_link_builtin_normal(bNodeTree *ntree,
+                                             bNode *node_from,
+                                             bNodeSocket *socket_from)
+{
+	for (bNode *node = ntree->nodes.first; node != NULL; node = node->next) {
+		if (node == node_from) {
+			/* Don't connect node itself! */
+			continue;
+		}
+		bNodeSocket *sock = ntree_shader_node_find_input(node, "Normal");
+		/* TODO(sergey): Can we do something smarter here than just a name-based
+		 * matching?
+		 */
+		if (sock == NULL) {
+			/* There's no Normal input, nothing to link. */
+			continue;
+		}
+		if (sock->link != NULL) {
+			/* Something is linked to the normal input already. can't
+			 * use other input for that.
+			 */
+			continue;
+		}
+		/* Create connection between specified node and the normal input. */
+		nodeAddLink(ntree, node_from, socket_from, node, sock);
+	}
+}
+
+/* Re-link displacement output to unconnected normal sockets via bump node.
+ * This way material with have proper displacement in the viewport.
+ */
+static void ntree_shader_relink_displacement(bNodeTree *ntree,
+                                             short compatibility)
+{
+	if (compatibility != NODE_NEW_SHADING) {
+		/* We can only deal with new shading system here. */
+		return;
+	}
+	bNode *displacement_node;
+	bNodeSocket *displacement_socket;
+	bNodeLink *displacement_link;
+	if (!ntree_shader_has_displacement(ntree,
+	                                   &displacement_node,
+	                                   &displacement_socket,
+	                                   &displacement_link))
+	{
+		/* There is no displacement output connected, nothing to re-link. */
+		return;
+	}
+	/* We have to disconnect displacement output socket, otherwise we'll have
+	 * cycles in the Cycles material :)
+	 */
+	nodeRemLink(ntree, displacement_link);
+	/* We can't connect displacement to normal directly, use bump node for that
+	 * and hope that it gives good enough approximation.
+	 */
+	bNode *bump_node = nodeAddStaticNode(NULL, ntree, SH_NODE_BUMP);
+	bNodeSocket *bump_input_socket = ntree_shader_node_find_input(bump_node, "Height");
+	bNodeSocket *bump_output_socket = ntree_shader_node_find_output(bump_node, "Normal");
+	BLI_assert(bump_input_socket != NULL);
+	BLI_assert(bump_output_socket != NULL);
+	/* Connect bump node to where displacement output was originally
+	 * connected to.
+	 */
+	nodeAddLink(ntree,
+	            displacement_node, displacement_socket,
+	            bump_node, bump_input_socket);
+	/* Connect all free-standing Normal inputs. */
+	ntree_shader_link_builtin_normal(ntree, bump_node, bump_output_socket);
+	/* TODO(sergey): Reconnect Geometry Info->Normal sockets to the new
+	 * bump node.
+	 */
+	/* We modified the tree, it needs to be updated now. */
+	ntreeUpdateTree(G.main, ntree);
+}
+
 void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat, short compatibility)
 {
 	/* localize tree to create links for reroute and mute */
 	bNodeTree *localtree = ntreeLocalize(ntree);
 	bNodeTreeExec *exec;
+
+	/* Perform all needed modifications on the tree in order to support
+	 * displacement/bump mapping.
+	 */
+	ntree_shader_relink_displacement(localtree, compatibility);
 
 	exec = ntreeShaderBeginExecTree(localtree);
 	ntreeExecGPUNodes(exec, mat, 1, compatibility);
