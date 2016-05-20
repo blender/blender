@@ -2315,6 +2315,20 @@ void generated_from_orco(vec3 orco, out vec3 generated)
 	generated = orco * 0.5 + vec3(0.5);
 }
 
+float integer_noise(int n)
+{
+	int nn;
+	n = (n + 1013) & 0x7fffffff;
+	n = (n >> 13) ^ n;
+	nn = (n * (n * n * 60493 + 19990303) + 1376312589) & 0x7fffffff;
+	return 0.5f * (float(nn) / 1073741824.0);
+}
+
+int floor_to_int(float x)
+{
+	return int(floor(x));
+}
+
 /*********** NEW SHADER NODES ***************/
 
 #define NUM_LIGHTS 3
@@ -2598,10 +2612,55 @@ void node_tex_checker(vec3 co, vec4 color1, vec4 color2, float scale, out vec4 c
 	fac = check ? 1.0 : 0.0;
 }
 
-void node_tex_brick(vec3 co, vec4 color1, vec4 color2, vec4 mortar, float scale, float mortar_size, float bias, float brick_width, float row_height, out vec4 color, out float fac)
+vec2 calc_brick_texture(vec3 p, float mortar_size, float bias,
+                        float brick_width, float row_height,
+                        float offset_amount, int offset_frequency,
+                        float squash_amount, int squash_frequency)
 {
-	color = vec4(1.0);
-	fac = 1.0;
+	int bricknum, rownum;
+	float offset = 0.0;
+	float x, y;
+
+	rownum = floor_to_int(p.y / row_height);
+
+	if(offset_frequency != 0 && squash_frequency != 0) {
+		brick_width *= (rownum % squash_frequency != 0) ? 1.0 : squash_amount; /* squash */
+		offset = (rownum % offset_frequency != 0) ? 0.0 : (brick_width*offset_amount); /* offset */
+	}
+
+	bricknum = floor_to_int((p.x+offset) / brick_width);
+
+	x = (p.x+offset) - brick_width*bricknum;
+	y = p.y - row_height*rownum;
+
+	return vec2(clamp((integer_noise((rownum << 16) + (bricknum & 0xFFFF)) + bias), 0.0, 1.0),
+	            (x < mortar_size || y < mortar_size ||
+	             x > (brick_width - mortar_size) ||
+	             y > (row_height - mortar_size)) ? 1.0 : 0.0);
+}
+
+void node_tex_brick(vec3 co,
+                    vec4 color1, vec4 color2,
+                    vec4 mortar, float scale,
+                    float mortar_size, float bias,
+                    float brick_width, float row_height,
+                    float offset_amount, float offset_frequency,
+                    float squash_amount, float squash_frequency,
+                    out vec4 color, out float fac)
+{
+	vec2 f2 = calc_brick_texture(co*scale,
+	                             mortar_size, bias,
+	                             brick_width, row_height,
+	                             offset_amount, int(offset_frequency),
+	                             squash_amount, int(squash_frequency));
+	float tint = f2.x;
+	float f = f2.y;
+	if(f != 1.0) {
+		float facm = 1.0 - tint;
+		color1 = facm * color1 + tint * color2;
+	}
+	color = (f == 1.0) ? mortar : color1;
+	fac = f;
 }
 
 void node_tex_clouds(vec3 co, float size, out vec4 color, out float fac)
