@@ -2356,6 +2356,11 @@ uint hash(uint kx, uint ky, uint kz)
 #undef final
 }
 
+uint hash(int kx, int ky, int kz)
+{
+	return hash(uint(kx), uint(ky), uint(kz));
+}
+
 float bits_to_01(uint bits)
 {
 	float x = float(bits) * (1.0 / float(0xffffffffu));
@@ -2378,6 +2383,12 @@ vec3 cellnoise_color(vec3 p)
 	float b = cellnoise(vec3(p.y, p.z, p.x));
 
 	return vec3(r, g, b);
+}
+
+float floorfrac(float x, out int i)
+{
+	i = floor_to_int(x);
+	return x - i;
 }
 
 /*********** NEW SHADER NODES ***************/
@@ -2868,10 +2879,109 @@ void node_tex_musgrave(vec3 co, float scale, float detail, float dimension, floa
 	fac = 1.0;
 }
 
+float noise_fade(float t)
+{
+	return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+}
+
+float noise_scale3(float result)
+{
+	return 0.9820 * result;
+}
+
+float noise_nerp(float t, float a, float b)
+{
+	return (1.0 - t) * a + t * b;
+}
+
+float noise_grad(uint hash, float x, float y, float z)
+{
+	uint h = hash & 15u;
+	float u = h < 8u ? x : y;
+	float vt = ((h == 12u) || (h == 14u)) ? x : z;
+	float v = h < 4u ? y : vt;
+	return (((h & 1u) != 0u) ? -u : u) + (((h & 2u) != 0u) ? -v : v);
+}
+
+float noise_perlin(float x, float y, float z)
+{
+	int X; float fx = floorfrac(x, X);
+	int Y; float fy = floorfrac(y, Y);
+	int Z; float fz = floorfrac(z, Z);
+
+	float u = noise_fade(fx);
+	float v = noise_fade(fy);
+	float w = noise_fade(fz);
+
+	float result;
+
+	result = noise_nerp(w, noise_nerp(v, noise_nerp(u, noise_grad(hash(X, Y, Z), fx, fy, fz ),
+	                                                noise_grad(hash(X+1, Y, Z), fx-1.0, fy, fz)),
+	                                  noise_nerp(u, noise_grad(hash(X, Y+1, Z), fx, fy - 1.0, fz),
+	                                             noise_grad(hash(X+1, Y+1, Z), fx-1.0, fy-1.0, fz))),
+	                    noise_nerp(v, noise_nerp(u, noise_grad(hash(X, Y, Z+1), fx, fy, fz-1.0),
+	                                             noise_grad(hash(X+1, Y, Z+1), fx-1.0, fy, fz-1.0)),
+	                               noise_nerp(u, noise_grad(hash(X, Y+1, Z+1), fx, fy-1.0, fz-1.0),
+	                                          noise_grad(hash(X+1, Y+1, Z+1), fx-1.0, fy-1.0, fz-1.0))));
+	return noise_scale3(result);
+}
+
+float noise(vec3 p)
+{
+	return 0.5 * noise_perlin(p.x, p.y, p.z) + 0.5;
+}
+
+float noise_turbulence(vec3 p, float octaves, int hard)
+{
+	float fscale = 1.0;
+	float amp = 1.0;
+	float sum = 0.0;
+	int i, n;
+	octaves = clamp(octaves, 0.0, 16.0);
+	n = int(octaves);
+	for (i = 0; i <= n; i++) {
+		float t = noise(fscale*p);
+		if (hard != 0) {
+			t = abs(2.0*t - 1.0);
+		}
+		sum += t*amp;
+		amp *= 0.5;
+		fscale *= 2.0;
+	}
+	float rmd = octaves - floor(octaves);
+	if  (rmd != 0.0) {
+		float t = noise(fscale*p);
+		if (hard != 0) {
+			t = abs(2.0*t - 1.0);
+		}
+		float sum2 = sum + t*amp;
+		sum *= (float(1 << n) / float((1 << (n+1)) - 1));
+		sum2 *= (float(1 << (n+1)) / float((1 << (n+2)) - 1));
+		return (1.0 - rmd)*sum + rmd*sum2;
+	}
+	else {
+		sum *= (float(1 << n) / float((1 << (n+1)) - 1));
+		return sum;
+	}
+}
+
 void node_tex_noise(vec3 co, float scale, float detail, float distortion, out vec4 color, out float fac)
 {
-	color = vec4(1.0);
-	fac = 1.0;
+	vec3 p = co * scale;
+	int hard = 0;
+	if (distortion != 0.0) {
+		vec3 r, offset = vec3(13.5, 13.5, 13.5);
+		r.x = noise(p + offset) * distortion;
+		r.y = noise(p) * distortion;
+		r.z = noise(p - offset) * distortion;
+		p += r;
+	}
+
+	fac = noise_turbulence(p, detail, hard);
+	color = vec4(fac,
+	             noise_turbulence(vec3(p.y, p.x, p.z), detail, hard),
+	             noise_turbulence(vec3(p.y, p.z, p.x), detail, hard),
+	             1);
 }
 
 void node_tex_sky(vec3 co, out vec4 color)
