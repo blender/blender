@@ -24,6 +24,7 @@
 #include "kernel_math.h"
 #include "kernel_types.h"
 #include "kernel_globals.h"
+#include "kernel_cpu_image.h"
 #include "kernel_film.h"
 #include "kernel_path.h"
 #include "kernel_path_branched.h"

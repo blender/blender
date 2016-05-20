@@ -496,23 +496,9 @@ typedef texture_image<uchar4> texture_image_uchar4;
 #define kernel_tex_fetch_ssei(tex, index) (kg->tex.fetch_ssei(index))
 #define kernel_tex_lookup(tex, t, offset, size) (kg->tex.lookup(t, offset, size))
 
-#define kernel_tex_image_interp(tex, x, y) \
-	((tex >= TEX_IMAGE_BYTE_START_CPU) ? kg->texture_byte_images[tex - TEX_IMAGE_BYTE_START_CPU].interp(x, y) : \
-	(tex >= TEX_IMAGE_FLOAT_START_CPU) ? kg->texture_float_images[tex - TEX_IMAGE_FLOAT_START_CPU].interp(x, y) : \
-	(tex >= TEX_IMAGE_BYTE4_START_CPU) ? kg->texture_byte4_images[tex - TEX_IMAGE_BYTE4_START_CPU].interp(x, y) : \
-	kg->texture_float4_images[tex].interp(x, y))
-
-#define kernel_tex_image_interp_3d(tex, x, y, z) \
-	((tex >= TEX_IMAGE_BYTE_START_CPU) ? kg->texture_byte_images[tex - TEX_IMAGE_BYTE_START_CPU].interp_3d(x, y, z) : \
-	(tex >= TEX_IMAGE_FLOAT_START_CPU) ? kg->texture_float_images[tex - TEX_IMAGE_FLOAT_START_CPU].interp_3d(x, y, z) : \
-	(tex >= TEX_IMAGE_BYTE4_START_CPU) ? kg->texture_byte4_images[tex - TEX_IMAGE_BYTE4_START_CPU].interp_3d(x, y, z) : \
-	kg->texture_float4_images[tex].interp_3d(x, y, z))
-
-#define kernel_tex_image_interp_3d_ex(tex, x, y, z, interpolation) \
-	((tex >= TEX_IMAGE_BYTE_START_CPU) ? kg->texture_byte_images[tex - TEX_IMAGE_BYTE_START_CPU].interp_3d_ex(x, y, z, interpolation) : \
-	(tex >= TEX_IMAGE_FLOAT_START_CPU) ? kg->texture_float_images[tex - TEX_IMAGE_FLOAT_START_CPU].interp_3d_ex(x, y, z, interpolation) : \
-	(tex >= TEX_IMAGE_BYTE4_START_CPU) ? kg->texture_byte4_images[tex - TEX_IMAGE_BYTE4_START_CPU].interp_3d_ex(x, y, z, interpolation) : \
-	kg->texture_float4_images[tex].interp_3d_ex(x, y, z, interpolation))
+#define kernel_tex_image_interp(tex,x,y) kernel_tex_image_interp_impl(kg,tex,x,y)
+#define kernel_tex_image_interp_3d(tex, x, y, z) kernel_tex_image_interp_3d_impl(kg,tex,x,y,z)
+#define kernel_tex_image_interp_3d_ex(tex, x, y, z, interpolation) kernel_tex_image_interp_3d_ex_impl(kg,tex, x, y, z, interpolation)
 
 #define kernel_data (kg->__data)
 

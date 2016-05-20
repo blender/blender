@@ -67,6 +67,7 @@ set(SRC_KERNELS_CPU_HEADERS
 	kernel.h
 	kernels/cpu/kernel_cpu.h
 	kernels/cpu/kernel_cpu_impl.h
+	kernels/cpu/kernel_cpu_image.h
 )
 
 set(SRC_CLOSURE_HEADERS
