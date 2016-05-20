@@ -598,7 +598,16 @@ void BKE_pose_copy_data(bPose **dst, bPose *src, const bool copy_constraints)
 	outPose = MEM_callocN(sizeof(bPose), "pose");
 	
 	BLI_duplicatelist(&outPose->chanbase, &src->chanbase);
-
+	
+	/* Rebuild ghash here too, so that name lookups below won't be too bad...
+	 * BUT this will have the penalty that the ghash will be built twice
+	 * if BKE_pose_rebuild() gets called after this...
+	 */
+	if (outPose->chanbase.first != outPose->chanbase.last) {
+		outPose->chanhash = NULL;
+		BKE_pose_channels_hash_make(outPose);
+	}
+	
 	outPose->iksolver = src->iksolver;
 	outPose->ikdata = NULL;
 	outPose->ikparam = MEM_dupallocN(src->ikparam);
@@ -610,9 +619,15 @@ void BKE_pose_copy_data(bPose **dst, bPose *src, const bool copy_constraints)
 			id_us_plus(&pchan->custom->id);
 		}
 
-		/* warning, O(n2) here, but it's a rarely used feature. */
+		/* warning, O(n2) here, if done without the hash, but these are rarely used features. */
 		if (pchan->custom_tx) {
 			pchan->custom_tx = BKE_pose_channel_find_name(outPose, pchan->custom_tx->name);
+		}
+		if (pchan->bbone_prev) {
+			pchan->bbone_prev = BKE_pose_channel_find_name(outPose, pchan->bbone_prev->name);
+		}
+		if (pchan->bbone_next) {
+			pchan->bbone_next = BKE_pose_channel_find_name(outPose, pchan->bbone_next->name);
 		}
 
 		if (copy_constraints) {
@@ -728,7 +743,7 @@ void BKE_pose_channels_remove(
         Object *ob,
         bool (*filter_fn)(const char *bone_name, void *user_data), void *user_data)
 {
-	/*  First erase any associated pose channel */
+	/* Erase any associated pose channel, along with any references to them */
 	if (ob->pose) {
 		bPoseChannel *pchan, *pchan_next;
 		bConstraint *con;
@@ -737,6 +752,7 @@ void BKE_pose_channels_remove(
 			pchan_next = pchan->next;
 
 			if (filter_fn(pchan->name, user_data)) {
+				/* Bone itself is being removed */
 				BKE_pose_channel_free(pchan);
 				if (ob->pose->chanhash) {
 					BLI_ghash_remove(ob->pose->chanhash, pchan->name, NULL, NULL);
@@ -744,6 +760,7 @@ void BKE_pose_channels_remove(
 				BLI_freelinkN(&ob->pose->chanbase, pchan);
 			}
 			else {
+				/* Maybe something the bone references is being removed instead? */
 				for (con = pchan->constraints.first; con; con = con->next) {
 					const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 					ListBase targets = {NULL, NULL};
@@ -766,6 +783,20 @@ void BKE_pose_channels_remove(
 						if (cti->flush_constraint_targets)
 							cti->flush_constraint_targets(con, &targets, 0);
 					}
+				}
+				
+				if (pchan->bbone_prev) {
+					if (filter_fn(pchan->bbone_prev->name, user_data))
+						pchan->bbone_prev = NULL;
+				}
+				if (pchan->bbone_next) {
+					if (filter_fn(pchan->bbone_next->name, user_data))
+						pchan->bbone_next = NULL;
+				}
+				
+				if (pchan->custom_tx) {
+					if (filter_fn(pchan->custom_tx->name, user_data))
+						pchan->custom_tx = NULL;
 				}
 			}
 		}
@@ -880,6 +911,15 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 	copy_m4_m4(pchan->pose_mat, (float(*)[4])chan->pose_mat);
 	pchan->flag = chan->flag;
 	
+	pchan->roll1 = chan->roll1;
+	pchan->roll2 = chan->roll2;
+	pchan->curveInX = chan->curveInX;
+	pchan->curveInY = chan->curveInY;
+	pchan->curveOutX = chan->curveOutX;
+	pchan->curveOutY = chan->curveOutY;
+	pchan->scaleIn = chan->scaleIn;
+	pchan->scaleOut = chan->scaleOut;
+	
 	con = chan->constraints.first;
 	for (pcon = pchan->constraints.first; pcon && con; pcon = pcon->next, con = con->next) {
 		pcon->enforce = con->enforce;
@@ -890,7 +930,7 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 /**
  * Copy the internal members of each pose channel including constraints
  * and ID-Props, used when duplicating bones in editmode.
- * (unlike copy_pose_channel_data which only).
+ * (unlike copy_pose_channel_data which only does posing-related stuff).
  *
  * \note use when copying bones in editmode (on returned value from #BKE_pose_channel_verify)
  */
@@ -913,6 +953,11 @@ void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_f
 	pchan->ikstretch = pchan_from->ikstretch;
 	pchan->ikrotweight = pchan_from->ikrotweight;
 	pchan->iklinweight = pchan_from->iklinweight;
+	
+	/* bbone settings (typically not animated) */
+	pchan->bboneflag = pchan_from->bboneflag;
+	pchan->bbone_next = pchan_from->bbone_next;
+	pchan->bbone_prev = pchan_from->bbone_prev;
 
 	/* constraints */
 	BKE_constraints_copy(&pchan->constraints, &pchan_from->constraints, true);
@@ -1353,8 +1398,13 @@ void BKE_pose_rest(bPose *pose)
 		unit_qt(pchan->quat);
 		unit_axis_angle(pchan->rotAxis, &pchan->rotAngle);
 		pchan->size[0] = pchan->size[1] = pchan->size[2] = 1.0f;
-
-		pchan->flag &= ~(POSE_LOC | POSE_ROT | POSE_SIZE);
+		
+		pchan->roll1 = pchan->roll2 = 0.0f;
+		pchan->curveInX = pchan->curveInY = 0.0f;
+		pchan->curveOutX = pchan->curveOutY = 0.0f;
+		pchan->scaleIn = pchan->scaleOut = 1.0f;
+		
+		pchan->flag &= ~(POSE_LOC | POSE_ROT | POSE_SIZE | POSE_BBONE_SHAPE);
 	}
 }
 
@@ -1389,9 +1439,19 @@ bool BKE_pose_copy_result(bPose *to, bPose *from)
 			copy_v3_v3(pchanto->pose_head, pchanfrom->pose_head);
 			copy_v3_v3(pchanto->pose_tail, pchanfrom->pose_tail);
 			
+			pchanto->roll1 = pchanfrom->roll1;
+			pchanto->roll2 = pchanfrom->roll2;
+			pchanto->curveInX = pchanfrom->curveInX;
+			pchanto->curveInY = pchanfrom->curveInY;
+			pchanto->curveOutX = pchanfrom->curveOutX;
+			pchanto->curveOutY = pchanfrom->curveOutY;
+			pchanto->scaleIn = pchanfrom->scaleIn;
+			pchanto->scaleOut = pchanfrom->scaleOut;
+			
 			pchanto->rotmode = pchanfrom->rotmode;
 			pchanto->flag = pchanfrom->flag;
 			pchanto->protectflag = pchanfrom->protectflag;
+			pchanto->bboneflag = pchanfrom->bboneflag;
 		}
 	}
 	return true;
