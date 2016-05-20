@@ -2310,6 +2310,11 @@ float hypot(float x, float y)
 	return sqrt(x*x + y*y);
 }
 
+void generated_from_orco(vec3 orco, out vec3 generated)
+{
+	generated = orco * 0.5 + vec3(0.5);
+}
+
 /*********** NEW SHADER NODES ***************/
 
 #define NUM_LIGHTS 3
@@ -2576,8 +2581,21 @@ void node_tex_gradient(vec3 co, out vec4 color, out float fac)
 
 void node_tex_checker(vec3 co, vec4 color1, vec4 color2, float scale, out vec4 color, out float fac)
 {
-	color = vec4(1.0);
-	fac = 1.0;
+	vec3 p = co * scale;
+
+	/* Prevent precision issues on unit coordinates. */
+	p.x = (p.x + 0.000001)*0.999999;
+	p.y = (p.y + 0.000001)*0.999999;
+	p.z = (p.z + 0.000001)*0.999999;
+
+	int xi = abs(int(floor(p.x)));
+	int yi = abs(int(floor(p.y)));
+	int zi = abs(int(floor(p.z)));
+
+	bool check = ((xi % 2 == yi % 2) == bool(zi % 2));
+
+	color = check ? color1 : color2;
+	fac = check ? 1.0 : 0.0;
 }
 
 void node_tex_brick(vec3 co, vec4 color1, vec4 color2, vec4 mortar, float scale, float mortar_size, float bias, float brick_width, float row_height, out vec4 color, out float fac)
