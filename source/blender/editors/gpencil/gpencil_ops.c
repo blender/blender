@@ -102,6 +102,10 @@ static void ed_keymap_gpencil_general(wmKeyConfig *keyconf)
 	/* Pie Menu - For standard tools */
 	WM_keymap_add_menu_pie(keymap, "GPENCIL_PIE_tool_palette", QKEY, KM_PRESS, 0, DKEY);
 	WM_keymap_add_menu_pie(keymap, "GPENCIL_PIE_settings_palette", WKEY, KM_PRESS, 0, DKEY);
+	
+	/* Delete Active Frame - For easier video tutorials/review sessions */
+	/* NOTE: This works even when not in EditMode */
+	WM_keymap_add_item(keymap, "GPENCIL_OT_active_frame_delete", XKEY, KM_PRESS, 0, DKEY);
 }
 
 /* ==================== */
@@ -230,9 +234,11 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	/* delete */
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_gpencil_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_gpencil_delete", DELKEY, KM_PRESS, 0, 0);
-
+	
 	WM_keymap_add_item(keymap, "GPENCIL_OT_dissolve", XKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "GPENCIL_OT_dissolve", DELKEY, KM_PRESS, KM_CTRL, 0);
+	
+	WM_keymap_add_item(keymap, "GPENCIL_OT_active_frame_delete", XKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	/* copy + paste */
 	WM_keymap_add_item(keymap, "GPENCIL_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);

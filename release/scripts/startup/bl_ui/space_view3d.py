@@ -2615,6 +2615,10 @@ class VIEW3D_MT_edit_gpencil_delete(Menu):
 
         layout.operator("gpencil.dissolve")
 
+        layout.separator()
+
+        layout.operator("gpencil.active_frame_delete")
+
 
 # Edit Curve
 # draw_curve is used by VIEW3D_MT_edit_curve and VIEW3D_MT_edit_surface
