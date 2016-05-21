@@ -262,6 +262,51 @@ void BKE_mesh_vert_loop_map_create(MeshElemMap **r_map, int **r_mem,
 }
 
 /**
+ * Generates a map where the key is the edge and the value is a list of looptris that use that edge.
+ * The lists are allocated from one memory pool.
+ */
+void BKE_mesh_vert_looptri_map_create(
+        MeshElemMap **r_map, int **r_mem,
+        const MVert *UNUSED(mvert), const int totvert,
+        const MLoopTri *mlooptri, const int totlooptri,
+        const MLoop *mloop, const int UNUSED(totloop))
+{
+	MeshElemMap *map = MEM_callocN(sizeof(MeshElemMap) * (size_t)totvert, __func__);
+	int *indices = MEM_mallocN(sizeof(int) * (size_t)totlooptri * 3, __func__);
+	int *index_step;
+	const MLoopTri *mlt;
+	int i;
+
+	/* count face users */
+	for (i = 0, mlt = mlooptri; i < totlooptri; mlt++, i++) {
+		for (int j = 3; j--;) {
+			map[mloop[mlt->tri[j]].v].count++;
+		}
+	}
+
+	/* create offsets */
+	index_step = indices;
+	for (i = 0; i < totvert; i++) {
+		map[i].indices = index_step;
+		index_step += map[i].count;
+
+		/* re-count, using this as an index below */
+		map[i].count = 0;
+	}
+
+	/* assign looptri-edge users */
+	for (i = 0, mlt = mlooptri; i < totlooptri; mlt++, i++) {
+		for (int j = 3; j--;) {
+			MeshElemMap *map_ele = &map[mloop[mlt->tri[j]].v];
+			map_ele->indices[map_ele->count++] = i;
+		}
+	}
+
+	*r_map = map;
+	*r_mem = indices;
+}
+
+/**
  * Generates a map where the key is the vertex and the value is a list of edges that use that vertex as an endpoint.
  * The lists are allocated from one memory pool.
  */
