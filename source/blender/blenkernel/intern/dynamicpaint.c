@@ -83,10 +83,6 @@
 
 #include "atomic_ops.h"
 
-#ifdef _OPENMP
-#  include <omp.h>
-#endif
-
 /* could enable at some point but for now there are far too many conversions */
 #ifdef __GNUC__
 //#  pragma GCC diagnostic ignored "-Wdouble-promotion"
