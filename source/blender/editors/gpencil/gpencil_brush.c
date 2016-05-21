@@ -866,13 +866,17 @@ static void gp_brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customda
 		
 		glTranslatef((float)x, (float)y, 0.0f);
 		
-		/* TODO: toggle between add and remove? */
-		glColor4ub(255, 255, 255, 128);
-		
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
 		
+		/* Inner Ring: Light color for action of the brush */
+		/* TODO: toggle between add and remove? */
+		glColor4ub(255, 255, 255, 200);
 		glutil_draw_lined_arc(0.0, M_PI * 2.0, brush->size, 40);
+		
+		/* Outer Ring: Dark color for contrast on light backgrounds (e.g. gray on white) */
+		glColor3ub(30, 30, 30);
+		glutil_draw_lined_arc(0.0, M_PI * 2.0, brush->size + 1, 40);
 		
 		glDisable(GL_BLEND);
 		glDisable(GL_LINE_SMOOTH);
