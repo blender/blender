@@ -282,6 +282,7 @@ typedef struct GPUInputUniform {
 	GPUDataType datatype;     /* type of uniform data */
 	struct Object *lamp;      /* when type=GPU_DYNAMIC_LAMP_... or GPU_DYNAMIC_SAMPLER_2DSHADOW */
 	struct Image *image;      /* when type=GPU_DYNAMIC_SAMPLER_2DIMAGE */
+	struct Material *material;/* when type=GPU_DYNAMIC_MAT_... */
 	int texnumber;            /* when type=GPU_DYNAMIC_SAMPLER, texture number: 0.. */
 	unsigned char *texpixels; /* for internally generated texture, pixel data in RGBA format */
 	int texsize;              /* size in pixel of the texture in texpixels buffer:
