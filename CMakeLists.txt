@@ -2145,24 +2145,6 @@ elseif(APPLE)
 		list(APPEND PLATFORM_LINKLIBS stdc++)
 	endif()
 
-	# XXX - SOME MAC DEV PLEASE TEST WITH THE SDK INSTALLED!
-	# ALSO SHOULD BE MOVED INTO OWN MODULE WHEN FUNCTIONAL
-	if(WITH_INPUT_NDOF)
-		# This thread it *should* work and check the framework - campbell
-		# http://www.cmake.org/pipermail/cmake/2005-December/007740.html
-		find_library(3DCONNEXION_CLIENT_FRAMEWORK
-			NAMES 3DconnexionClient
-		)
-		if(NOT 3DCONNEXION_CLIENT_FRAMEWORK)
-			set(WITH_INPUT_NDOF OFF)
-		endif()
-
-		if(WITH_INPUT_NDOF)
-			set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -F/Library/Frameworks -weak_framework 3DconnexionClient")
-			set(NDOF_INCLUDE_DIRS /Library/Frameworks/3DconnexionClient.framework/Headers )
-		endif()
-	endif()
-
 	if(WITH_JACK)
 		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -F/Library/Frameworks -weak_framework jackmp")
 	endif()
@@ -2228,10 +2210,6 @@ elseif(APPLE)
 		set(TIFF_INCLUDE_DIR ${TIFF}/include)
 		set(TIFF_LIBRARY tiff)
 		set(TIFF_LIBPATH ${TIFF}/lib)
-	endif()
-
-	if(WITH_INPUT_NDOF)
-		# linker needs "-weak_framework 3DconnexionClient"
 	endif()
 
 	if(WITH_BOOST)
