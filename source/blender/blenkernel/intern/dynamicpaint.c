@@ -2496,7 +2496,7 @@ static int dynamic_paint_find_neighbour_pixel(
 	}
 }
 
-int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface)
+int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface, float *progress, short *do_update)
 {
 	/* Antialias jitter point relative coords	*/
 	const int aa_samples = (surface->flags & MOD_DPAINT_ANTIALIAS) ? 5 : 1;
@@ -2516,6 +2516,9 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface)
 
 	Bounds2D *faceBB = NULL;
 	int *final_index;
+
+	*progress = 0.0f;
+	*do_update = true;
 
 	if (!dm)
 		return setError(canvas, N_("Canvas mesh not updated"));
@@ -2575,6 +2578,9 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface)
 			error = true;
 	}
 
+	*progress = 0.01f;
+	*do_update = true;
+
 	if (!error) {
 		for (int i = 0; i < tottri; i++) {
 			copy_v2_v2(faceBB[i].min, mloopuv[mlooptri[i].tri[0]].uv);
@@ -2585,6 +2591,9 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface)
 			}
 		}
 
+		*progress = 0.02f;
+		*do_update = true;
+
 		/* Loop through every pixel and check if pixel is uv-mapped on a canvas face. */
 		DynamicPaintCreateUVSurfaceData data = {
 		    .surface = surface, .tempPoints = tempPoints, .tempWeights = tempWeights,
@@ -2592,6 +2601,9 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface)
 		    .faceBB = faceBB,
 		};
 		BLI_task_parallel_range(0, h, &data, dynamic_paint_create_uv_surface_direct_cb, h > 64 || tottri > 1000);
+
+		*progress = 0.04f;
+		*do_update = true;
 
 		/*
 		 *	Now loop through every pixel that was left without index
@@ -2601,6 +2613,9 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface)
 		 */
 		data.active_points = &active_points;
 		BLI_task_parallel_range(0, h, &data, dynamic_paint_create_uv_surface_neighbor_cb, h > 64);
+
+		*progress = 0.06f;
+		*do_update = true;
 
 		/*	Generate surface adjacency data. */
 		{
@@ -2659,6 +2674,9 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface)
 				MEM_freeN(vert_to_looptri_map_mem);
 			}
 		}
+
+		*progress = 0.08f;
+		*do_update = true;
 
 		/* Create final surface data without inactive points */
 		ImgSeqFormatData *f_data = MEM_callocN(sizeof(*f_data), "ImgSeqFormatData");
@@ -2739,6 +2757,9 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface)
 
 		dynamicPaint_setInitialColor(scene, surface);
 	}
+
+	*progress = 0.09f;
+	*do_update = true;
 
 	return (error == 0);
 }
