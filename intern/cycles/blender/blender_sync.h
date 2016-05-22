@@ -185,7 +185,6 @@ private:
 		  use_surfaces(true),
 		  use_hair(true),
 		  use_viewport_visibility(false),
-		  use_localview(false),
 		  samples(0), bound_samples(false)
 		{}
 
@@ -200,7 +199,6 @@ private:
 		bool use_surfaces;
 		bool use_hair;
 		bool use_viewport_visibility;
-		bool use_localview;
 		int samples;
 		bool bound_samples;
 	} render_layer;

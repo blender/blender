@@ -50,7 +50,6 @@ NODE_DEFINE(Integrator)
 	SOCKET_BOOLEAN(caustics_refractive, "Refractive Caustics", true);
 	SOCKET_FLOAT(filter_glossy, "Filter Glossy", 0.0f);
 	SOCKET_INT(seed, "Seed", 0);
-	SOCKET_INT(layer_flag, "Layer Flag", ~0);
 	SOCKET_FLOAT(sample_clamp_direct, "Sample Clamp Direct", 0.0f);
 	SOCKET_FLOAT(sample_clamp_indirect, "Sample Clamp Indirect", 0.0f);
 	SOCKET_BOOLEAN(motion_blur, "Motion Blur", false);
@@ -137,7 +136,6 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	kintegrator->filter_glossy = (filter_glossy == 0.0f)? FLT_MAX: 1.0f/filter_glossy;
 
 	kintegrator->seed = hash_int(seed);
-	kintegrator->layer_flag = layer_flag << PATH_RAY_LAYER_SHIFT;
 
 	kintegrator->use_ambient_occlusion =
 		((Pass::contains(scene->film->passes, PASS_AO)) || dscene->data.background.ao_factor != 0.0f);

@@ -269,8 +269,6 @@ void BlenderSync::sync_integrator()
 	        SAMPLING_NUM_PATTERNS,
 	        SAMPLING_PATTERN_SOBOL);
 
-	integrator->layer_flag = render_layer.layer;
-
 	integrator->sample_clamp_direct = get_float(cscene, "sample_clamp_direct");
 	integrator->sample_clamp_indirect = get_float(cscene, "sample_clamp_indirect");
 #ifdef __CAMERA_MOTION__
@@ -377,8 +375,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D& b_v3d, const char *layer)
 			layer = layername.c_str();
 		}
 		else {
-			render_layer.use_localview = (b_v3d.local_view() ? true : false);
-			render_layer.scene_layer = get_layer(b_v3d.layers(), b_v3d.layers_local_view(), render_layer.use_localview);
+			render_layer.scene_layer = get_layer(b_v3d.layers(), b_v3d.layers_local_view());
 			render_layer.layer = render_layer.scene_layer;
 			render_layer.exclude_layer = 0;
 			render_layer.holdout_layer = 0;
@@ -421,7 +418,6 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D& b_v3d, const char *layer)
 			render_layer.use_surfaces = b_rlay->use_solid();
 			render_layer.use_hair = b_rlay->use_strand();
 			render_layer.use_viewport_visibility = false;
-			render_layer.use_localview = false;
 
 			render_layer.bound_samples = (use_layer_samples == 1);
 			if(use_layer_samples != 2) {

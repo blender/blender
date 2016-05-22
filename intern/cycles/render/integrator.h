@@ -51,7 +51,6 @@ public:
 	float filter_glossy;
 
 	int seed;
-	int layer_flag;
 
 	float sample_clamp_direct;
 	float sample_clamp_indirect;

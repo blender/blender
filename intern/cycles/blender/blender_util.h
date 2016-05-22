@@ -275,7 +275,6 @@ static inline uint get_layer(const BL::Array<int, 20>& array)
 
 static inline uint get_layer(const BL::Array<int, 20>& array,
                              const BL::Array<int, 8>& local_array,
-                             bool use_local,
                              bool is_light = false,
                              uint scene_layers = (1 << 20) - 1)
 {
@@ -299,13 +298,6 @@ static inline uint get_layer(const BL::Array<int, 20>& array,
 			if(local_array[i])
 				layer |= (1 << (20+i));
 	}
-
-	/* we don't have spare bits for localview (normally 20-28) because
-	 * PATH_RAY_LAYER_SHIFT uses 20-32. So - check if we have localview and if
-	 * so, shift local view bits down to 1-8, since this is done for the view
-	 * port only - it should be OK and not conflict with render layers. */
-	if(use_local)
-		layer >>= 20;
 
 	return layer;
 }

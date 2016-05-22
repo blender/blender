@@ -276,10 +276,7 @@ enum SamplingPattern {
 	SAMPLING_NUM_PATTERNS,
 };
 
-/* these flags values correspond to raytypes in osl.cpp, so keep them in sync!
- *
- * for ray visibility tests in BVH traversal, the upper 20 bits are used for
- * layer visibility tests. */
+/* these flags values correspond to raytypes in osl.cpp, so keep them in sync! */
 
 enum PathRayFlag {
 	PATH_RAY_CAMERA = 1,
@@ -303,9 +300,6 @@ enum PathRayFlag {
 	PATH_RAY_MIS_SKIP = 2048,
 	PATH_RAY_DIFFUSE_ANCESTOR = 4096,
 	PATH_RAY_SINGLE_PASS_DONE = 8192,
-
-	/* we need layer member flags to be the 20 upper bits */
-	PATH_RAY_LAYER_SHIFT = (32-20)
 };
 
 /* Closure Label */
@@ -1080,9 +1074,6 @@ typedef struct KernelIntegrator {
 
 	/* seed */
 	int seed;
-
-	/* render layer */
-	int layer_flag;
 
 	/* clamp */
 	float sample_clamp_direct;
