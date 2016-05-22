@@ -627,9 +627,9 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 	else
 		params.threads = 0;
 
-	params.cancel_timeout = get_float(cscene, "debug_cancel_timeout");
-	params.reset_timeout = get_float(cscene, "debug_reset_timeout");
-	params.text_timeout = get_float(cscene, "debug_text_timeout");
+	params.cancel_timeout = (double)get_float(cscene, "debug_cancel_timeout");
+	params.reset_timeout = (double)get_float(cscene, "debug_reset_timeout");
+	params.text_timeout = (double)get_float(cscene, "debug_text_timeout");
 
 	params.progressive_refine = get_boolean(cscene, "use_progressive_refine");
 

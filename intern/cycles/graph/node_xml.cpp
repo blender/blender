@@ -281,7 +281,7 @@ pugi::xml_node xml_write_node(Node *node, pugi::xml_node xml_root)
 			}
 			case SocketType::FLOAT:
 			{
-				attr = node->get_float(socket);
+				attr = (double)node->get_float(socket);
 				break;
 			}
 			case SocketType::FLOAT_ARRAY:
@@ -321,7 +321,7 @@ pugi::xml_node xml_write_node(Node *node, pugi::xml_node xml_root)
 			case SocketType::NORMAL:
 			{
 				float3 value = node->get_float3(socket);
-				attr = string_printf("%g %g %g", value.x, value.y, value.z).c_str();
+				attr = string_printf("%g %g %g", (double)value.x, (double)value.y, (double)value.z).c_str();
 				break;
 			}
 			case SocketType::COLOR_ARRAY:
@@ -332,7 +332,7 @@ pugi::xml_node xml_write_node(Node *node, pugi::xml_node xml_root)
 				std::stringstream ss;
 				const array<float3>& value = node->get_float3_array(socket);
 				for(size_t i = 0; i < value.size(); i++) {
-					ss << string_printf("%g %g %g", value[i].x, value[i].y, value[i].z);
+					ss << string_printf("%g %g %g", (double)value[i].x, (double)value[i].y, (double)value[i].z);
 					if(i != value.size() - 1) {
 						ss << " ";
 					}
@@ -343,7 +343,7 @@ pugi::xml_node xml_write_node(Node *node, pugi::xml_node xml_root)
 			case SocketType::POINT2:
 			{
 				float2 value = node->get_float2(socket);
-				attr = string_printf("%g %g", value.x, value.y).c_str();
+				attr = string_printf("%g %g", (double)value.x, (double)value.y).c_str();
 				break;
 			}
 			case SocketType::POINT2_ARRAY:
@@ -351,7 +351,7 @@ pugi::xml_node xml_write_node(Node *node, pugi::xml_node xml_root)
 				std::stringstream ss;
 				const array<float2>& value = node->get_float2_array(socket);
 				for(size_t i = 0; i < value.size(); i++) {
-					ss << string_printf("%g %g", value[i].x, value[i].y);
+					ss << string_printf("%g %g", (double)value[i].x, (double)value[i].y);
 					if(i != value.size() - 1) {
 						ss << " ";
 					}
@@ -383,7 +383,7 @@ pugi::xml_node xml_write_node(Node *node, pugi::xml_node xml_root)
 				Transform tfm = node->get_transform(socket);
 				std::stringstream ss;
 				for(int i = 0; i < 4; i++) {
-					ss << string_printf("%g %g %g %g", tfm[i][0], tfm[i][1], tfm[i][2], tfm[i][3]);
+					ss << string_printf("%g %g %g %g", (double)tfm[i][0], (double)tfm[i][1], (double)tfm[i][2], (double)tfm[i][3]);
 					if(i != 3) {
 						ss << " ";
 					}
@@ -399,7 +399,7 @@ pugi::xml_node xml_write_node(Node *node, pugi::xml_node xml_root)
 					const Transform& tfm = value[j];
 
 					for(int i = 0; i < 4; i++) {
-						ss << string_printf("%g %g %g %g", tfm[i][0], tfm[i][1], tfm[i][2], tfm[i][3]);
+						ss << string_printf("%g %g %g %g", (double)tfm[i][0], (double)tfm[i][1], (double)tfm[i][2], (double)tfm[i][3]);
 						if(j != value.size() - 1 || i != 3) {
 							ss << " ";
 						}

@@ -812,8 +812,8 @@ public:
 		printf("threads_per_block %d\n", threads_per_block);
 		printf("num_registers %d\n", num_registers);*/
 
-		int xthreads = (int)sqrt((float)threads_per_block);
-		int ythreads = (int)sqrt((float)threads_per_block);
+		int xthreads = (int)sqrt(threads_per_block);
+		int ythreads = (int)sqrt(threads_per_block);
 		int xblocks = (rtile.w + xthreads - 1)/xthreads;
 		int yblocks = (rtile.h + ythreads - 1)/ythreads;
 
@@ -866,8 +866,8 @@ public:
 		int threads_per_block;
 		cuda_assert(cuFuncGetAttribute(&threads_per_block, CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, cuFilmConvert));
 
-		int xthreads = (int)sqrt((float)threads_per_block);
-		int ythreads = (int)sqrt((float)threads_per_block);
+		int xthreads = (int)sqrt(threads_per_block);
+		int ythreads = (int)sqrt(threads_per_block);
 		int xblocks = (task.w + xthreads - 1)/xthreads;
 		int yblocks = (task.h + ythreads - 1)/ythreads;
 

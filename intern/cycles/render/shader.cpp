@@ -69,12 +69,12 @@ static void beckmann_table_rows(float *table, int row_from, int row_to)
 
 		/* for a given incident vector
 		 * integrate P22_{omega_i}(x_slope, 1, 1), Eq. (10) */
-		slope_x[0] = -beckmann_table_slope_max();
+		slope_x[0] = (double)-beckmann_table_slope_max();
 		CDF_P22_omega_i[0] = 0;
 
 		for(int index_slope_x = 1; index_slope_x < DATA_TMP_SIZE; ++index_slope_x) {
 			/* slope_x */
-			slope_x[index_slope_x] = -beckmann_table_slope_max() + 2.0f * beckmann_table_slope_max() * index_slope_x/(DATA_TMP_SIZE - 1.0f);
+			slope_x[index_slope_x] = (double)(-beckmann_table_slope_max() + 2.0f * beckmann_table_slope_max() * index_slope_x/(DATA_TMP_SIZE - 1.0f));
 
 			/* dot product with incident vector */
 			float dot_product = fmaxf(0.0f, -(float)slope_x[index_slope_x]*sin_theta + cos_theta);

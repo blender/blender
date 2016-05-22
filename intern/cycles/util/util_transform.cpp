@@ -158,7 +158,7 @@ Transform transform_inverse(const Transform& tfm)
 
 float4 transform_to_quat(const Transform& tfm)
 {
-	double trace = tfm[0][0] + tfm[1][1] + tfm[2][2];
+	double trace = (double)(tfm[0][0] + tfm[1][1] + tfm[2][2]);
 	float4 qt;
 
 	if(trace > 0.0) {

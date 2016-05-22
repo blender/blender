@@ -718,11 +718,11 @@ static void sky_texture_precompute_new(SunSky *sunsky, float3 dir, float turbidi
 	sunsky->theta = theta;
 	sunsky->phi = phi;
 
-	double solarElevation = M_PI_2_F - theta;
+	float solarElevation = M_PI_2_F - theta;
 
 	/* Initialize Sky Model */
 	ArHosekSkyModelState *sky_state;
-	sky_state = arhosek_xyz_skymodelstate_alloc_init(turbidity, ground_albedo, solarElevation);
+	sky_state = arhosek_xyz_skymodelstate_alloc_init((double)turbidity, (double)ground_albedo, (double)solarElevation);
 
 	/* Copy values from sky_state to SunSky */
 	for(int i = 0; i < 9; ++i) {
