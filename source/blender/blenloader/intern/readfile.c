@@ -6935,6 +6935,7 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 				/* render can be quite heavy, set to solid on load */
 				if (v3d->drawtype == OB_RENDER)
 					v3d->drawtype = OB_SOLID;
+				v3d->prev_drawtype = OB_SOLID;
 
 				if (v3d->fx_settings.dof)
 					v3d->fx_settings.dof = newdataadr(fd, v3d->fx_settings.dof);

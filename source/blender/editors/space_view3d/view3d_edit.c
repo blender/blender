@@ -4848,6 +4848,35 @@ void VIEW3D_OT_enable_manipulator(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+/* ************************* Toggle rendered shading *********************** */
+
+static int toggle_render_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	if (v3d->drawtype == OB_RENDER) {
+		v3d->drawtype = v3d->prev_drawtype;
+	}
+	else {
+		v3d->prev_drawtype = v3d->drawtype;
+		v3d->drawtype = OB_RENDER;
+	}
+	ED_view3d_shade_update(CTX_data_main(C), CTX_data_scene(C), v3d, CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_toggle_render(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Toggle Rendered Shading";
+	ot->description = "Toggle rendered shading mode of the viewport";
+	ot->idname = "VIEW3D_OT_toggle_render";
+
+	/* api callbacks */
+	ot->exec = toggle_render_exec;
+	ot->poll = ED_operator_view3d_active;
+}
+
 /* ************************* below the line! *********************** */
 
 
