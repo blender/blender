@@ -45,9 +45,9 @@ static void node_shader_init_attribute(bNodeTree *UNUSED(ntree), bNode *node)
 static int node_shader_gpu_attribute(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	NodeShaderAttribute *attr = node->storage;
-	GPUNodeLink *mtface = GPU_attribute(CD_MTFACE, attr->name);
+	GPUNodeLink *cd_attr = GPU_attribute(CD_AUTO_FROM_NAME, attr->name);
 
-	return GPU_stack_link(mat, "node_attribute", in, out, mtface);
+	return GPU_stack_link(mat, "node_attribute", in, out, cd_attr);
 }
 
 /* node type definition */

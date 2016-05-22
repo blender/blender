@@ -2573,11 +2573,11 @@ void node_gamma(vec4 col, float gamma, out vec4 outcol)
 
 /* geometry */
 
-void node_attribute(vec3 attr_uv, out vec4 outcol, out vec3 outvec, out float outf)
+void node_attribute(vec3 attr, out vec4 outcol, out vec3 outvec, out float outf)
 {
-	outcol = vec4(attr_uv, 1.0);
-	outvec = attr_uv;
-	outf = (attr_uv.x + attr_uv.y + attr_uv.z)/3.0;
+	outcol = vec4(attr, 1.0);
+	outvec = attr;
+	outf = (attr.x + attr.y + attr.z)/3.0;
 }
 
 void node_uvmap(vec3 attr_uv, out vec3 outvec)
