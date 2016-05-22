@@ -55,6 +55,7 @@ static T& get_socket_value(const Node *node, const SocketType& socket)
 	return (T&)*(((char*)node) + socket.struct_offset);
 }
 
+#ifndef NDEBUG
 static bool is_socket_float3(const SocketType& socket)
 {
 	return socket.type == SocketType::COLOR ||
@@ -70,6 +71,7 @@ static bool is_socket_array_float3(const SocketType& socket)
 		   socket.type == SocketType::VECTOR_ARRAY ||
 		   socket.type == SocketType::NORMAL_ARRAY;
 }
+#endif
 
 /* set values */
 void Node::set(const SocketType& input, bool value)
