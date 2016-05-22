@@ -141,19 +141,11 @@ ImageManager::ImageDataType ImageManager::get_image_metadata(const string& filen
 
 		if(is_float) {
 			is_linear = true;
-
-			if(channels > 1)
-				return IMAGE_DATA_TYPE_FLOAT4;
-			else
-				return IMAGE_DATA_TYPE_FLOAT;
+			return (channels > 1) ? IMAGE_DATA_TYPE_FLOAT4 : IMAGE_DATA_TYPE_FLOAT;
 		}
 		else {
-			if(channels > 1)
-				return IMAGE_DATA_TYPE_BYTE4;
-			else
-				return IMAGE_DATA_TYPE_BYTE;
+			return (channels > 1) ? IMAGE_DATA_TYPE_BYTE4 : IMAGE_DATA_TYPE_BYTE;
 		}
-
 	}
 
 	ImageInput *in = ImageInput::create(filename);
@@ -202,16 +194,10 @@ ImageManager::ImageDataType ImageManager::get_image_metadata(const string& filen
 	}
 
 	if(is_float) {
-		if(channels > 1)
-			return IMAGE_DATA_TYPE_FLOAT4;
-		else
-			return IMAGE_DATA_TYPE_FLOAT;
+		return (channels > 1) ? IMAGE_DATA_TYPE_FLOAT4 : IMAGE_DATA_TYPE_FLOAT;
 	}
 	else {
-		if(channels > 1)
-			return IMAGE_DATA_TYPE_BYTE4;
-		else
-			return IMAGE_DATA_TYPE_BYTE;
+		return (channels > 1) ? IMAGE_DATA_TYPE_BYTE4 : IMAGE_DATA_TYPE_BYTE;
 	}
 }
 
