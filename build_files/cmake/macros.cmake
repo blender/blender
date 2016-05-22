@@ -803,7 +803,15 @@ macro(TEST_UNORDERED_MAP_SUPPORT)
 	#  UNORDERED_MAP_NAMESPACE, namespace for unordered_map, if found
 
 	include(CheckIncludeFileCXX)
-	CHECK_INCLUDE_FILE_CXX("unordered_map" HAVE_STD_UNORDERED_MAP_HEADER)
+
+	# Workaround for newer GCC (6.x+) where C++11 was enabled by default, which lead us
+	# to a situation when there is <unordered_map> include but which can't be used uless
+	# C++11 is enabled.
+	if(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "6.0") AND (NOT WITH_CXX11))
+		set(HAVE_STD_UNORDERED_MAP_HEADER False)
+	else()
+		CHECK_INCLUDE_FILE_CXX("unordered_map" HAVE_STD_UNORDERED_MAP_HEADER)
+	endif()
 	if(HAVE_STD_UNORDERED_MAP_HEADER)
 		# Even so we've found unordered_map header file it doesn't
 		# mean unordered_map and unordered_set will be declared in

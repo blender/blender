@@ -478,9 +478,19 @@ if(WIN32)
 endif()
 
 # Experimental support of C11 and C++11
-option(WITH_C11 "Build with C11 standard enabled, for development use only!" OFF)
+#
+# We default options to whatever default standard in the current compiler.
+if(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "6.0") AND (NOT WITH_CXX11))
+	set(_c11_init ON)
+	set(_cxx11_init ON)
+else()
+	set(_c11_init OFF)
+	set(_cxx11_init OFF)
+endif()
+
+option(WITH_C11 "Build with C11 standard enabled, for development use only!" ${_c11_init})
 mark_as_advanced(WITH_C11)
-option(WITH_CXX11 "Build with C++11 standard enabled, for development use only!" OFF)
+option(WITH_CXX11 "Build with C++11 standard enabled, for development use only!" ${_cxx11_init})
 mark_as_advanced(WITH_CXX11)
 
 # Dependency graph
@@ -3024,11 +3034,21 @@ endif()
 
 if(WITH_CXX11)
 	if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+		# TODO(sergey): Do we want c++11 or gnu-c++11 here?
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 	elseif(MSVC12)
 		# Nothing special is needed, C++11 features are available by default.
 	else()
 		message(FATAL_ERROR "Compiler ${CMAKE_C_COMPILER_ID} is not supported for C++11 build yet")
+	endif()
+else()
+	# GCC-6 switched to C++11 by default, which would break linking with existing libraries
+	# by default. So we explicitly disable C++11 for a new GCC so no linking issues happens.
+	if(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "6.0"))
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++98")
+		# We also disable any of C++11 ABI from usage, so we wouldn't even try to
+		# link to stuff from std::__cxx11 namespace.
+		add_definitions("-D_GLIBCXX_USE_CXX11_ABI=0")
 	endif()
 endif()
 
