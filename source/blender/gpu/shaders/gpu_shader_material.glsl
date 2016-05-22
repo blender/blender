@@ -3160,8 +3160,11 @@ void node_normal_map(vec4 tangent, vec3 normal, vec3 texnormal, out vec3 outnorm
 	outnormal = normalize(outnormal);
 }
 
-void node_bump(float strength, float dist, float height, vec3 N, vec3 surf_pos, out vec3 result)
+void node_bump(float strength, float dist, float height, vec3 N, vec3 surf_pos, float invert, out vec3 result)
 {
+	if (invert != 0.0) {
+		dist *= -1.0;
+	}
 	vec3 dPdx = dFdx(surf_pos);
 	vec3 dPdy = dFdy(surf_pos);
 
