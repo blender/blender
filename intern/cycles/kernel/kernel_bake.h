@@ -30,6 +30,9 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 	Ray ray;
 	float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
 
+	/* emission shader data memory used by various functions */
+	ShaderData emission_sd;
+
 	ray.P = sd->P + sd->Ng;
 	ray.D = -sd->Ng;
 	ray.t = FLT_MAX;
@@ -41,7 +44,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 	path_radiance_init(&L_sample, kernel_data.film.use_light_pass);
 
 	/* init path state */
-	path_state_init(kg, &state, &rng, sample, NULL);
+	path_state_init(kg, &emission_sd, &state, &rng, sample, NULL);
 
 	/* evaluate surface shader */
 	float rbsdf = path_state_rng_1D(kg, &rng, &state, PRNG_BSDF);
@@ -56,7 +59,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 
 		/* sample ambient occlusion */
 		if(pass_filter & BAKE_FILTER_AO) {
-			kernel_path_ao(kg, sd, &L_sample, &state, &rng, throughput);
+			kernel_path_ao(kg, sd, &emission_sd, &L_sample, &state, &rng, throughput);
 		}
 
 		/* sample emission */
@@ -75,6 +78,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 			kernel_path_subsurface_init_indirect(&ss_indirect);
 			if(kernel_path_subsurface_scatter(kg,
 			                                  sd,
+			                                  &emission_sd,
 			                                  &L_sample,
 			                                  &state,
 			                                  &rng,
@@ -90,6 +94,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 					                                      &L_sample,
 					                                      &throughput);
 					kernel_path_indirect(kg,
+					                     &emission_sd,
 					                     &rng,
 					                     &ray,
 					                     throughput,
@@ -105,14 +110,14 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 
 		/* sample light and BSDF */
 		if(!is_sss_sample && (pass_filter & (BAKE_FILTER_DIRECT | BAKE_FILTER_INDIRECT))) {
-			kernel_path_surface_connect_light(kg, &rng, sd, throughput, &state, &L_sample);
+			kernel_path_surface_connect_light(kg, &rng, sd, &emission_sd, throughput, &state, &L_sample);
 
 			if(kernel_path_surface_bounce(kg, &rng, sd, &throughput, &state, &L_sample, &ray)) {
 #ifdef __LAMP_MIS__
 				state.ray_t = 0.0f;
 #endif
 				/* compute indirect light */
-				kernel_path_indirect(kg, &rng, &ray, throughput, 1, &state, &L_sample);
+				kernel_path_indirect(kg, &emission_sd, &rng, &ray, throughput, 1, &state, &L_sample);
 
 				/* sum and reset indirect light pass variables for the next samples */
 				path_radiance_sum_indirect(&L_sample);
@@ -126,7 +131,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 
 		/* sample ambient occlusion */
 		if(pass_filter & BAKE_FILTER_AO) {
-			kernel_branched_path_ao(kg, sd, &L_sample, &state, &rng, throughput);
+			kernel_branched_path_ao(kg, sd, &emission_sd, &L_sample, &state, &rng, throughput);
 		}
 
 		/* sample emission */
@@ -139,7 +144,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 		/* sample subsurface scattering */
 		if((pass_filter & BAKE_FILTER_SUBSURFACE) && (sd->flag & SD_BSSRDF)) {
 			/* when mixing BSSRDF and BSDF closures we should skip BSDF lighting if scattering was successful */
-			kernel_branched_path_subsurface_scatter(kg, sd, &L_sample, &state, &rng, &ray, throughput);
+			kernel_branched_path_subsurface_scatter(kg, sd, &emission_sd, &L_sample, &state, &rng, &ray, throughput);
 		}
 #endif
 
@@ -150,13 +155,13 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 			if(kernel_data.integrator.use_direct_light) {
 				int all = kernel_data.integrator.sample_all_lights_direct;
 				kernel_branched_path_surface_connect_light(kg, &rng,
-					sd, &state, throughput, 1.0f, &L_sample, all);
+					sd, &emission_sd, &state, throughput, 1.0f, &L_sample, all);
 			}
 #endif
 
 			/* indirect light */
 			kernel_branched_path_surface_indirect_light(kg, &rng,
-				sd, throughput, 1.0f, &state, &L_sample);
+				sd, &emission_sd, throughput, 1.0f, &state, &L_sample);
 		}
 	}
 #endif

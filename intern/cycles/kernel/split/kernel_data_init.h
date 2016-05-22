@@ -207,6 +207,7 @@ ccl_device void kernel_data_init(
 			L_transparent_coop[ray_index] = 0.0f;
 			path_radiance_init(&PathRadiance_coop[ray_index], kernel_data.film.use_light_pass);
 			path_state_init(kg,
+			                kg->sd_input,
 			                &PathState_coop[ray_index],
 			                &rng_coop[ray_index],
 			                my_sample,

@@ -20,7 +20,8 @@ CCL_NAMESPACE_BEGIN
 
 /* branched path tracing: connect path directly to position on one or more lights and add it to L */
 ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobals *kg, RNG *rng,
-	ShaderData *sd, PathState *state, float3 throughput, float num_samples_adjust, PathRadiance *L, int sample_all_lights)
+	ShaderData *sd, ShaderData *emission_sd, PathState *state, float3 throughput,
+	float num_samples_adjust, PathRadiance *L, int sample_all_lights)
 {
 #ifdef __EMISSION__
 	/* sample illumination from lights to find path contribution */
@@ -55,11 +56,11 @@ ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobal
 				LightSample ls;
 				lamp_light_sample(kg, i, light_u, light_v, ccl_fetch(sd, P), &ls);
 
-				if(direct_emission(kg, sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
+				if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
 					/* trace shadow ray */
 					float3 shadow;
 
-					if(!shadow_blocked(kg, state, &light_ray, &shadow)) {
+					if(!shadow_blocked(kg, emission_sd, state, &light_ray, &shadow)) {
 						/* accumulate */
 						path_radiance_accum_light(L, throughput*num_samples_inv, &L_light, shadow, num_samples_inv, state->bounce, is_lamp);
 					}
@@ -87,11 +88,11 @@ ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobal
 				LightSample ls;
 				light_sample(kg, light_t, light_u, light_v, ccl_fetch(sd, time), ccl_fetch(sd, P), state->bounce, &ls);
 
-				if(direct_emission(kg, sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
+				if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
 					/* trace shadow ray */
 					float3 shadow;
 
-					if(!shadow_blocked(kg, state, &light_ray, &shadow)) {
+					if(!shadow_blocked(kg, emission_sd, state, &light_ray, &shadow)) {
 						/* accumulate */
 						path_radiance_accum_light(L, throughput*num_samples_inv, &L_light, shadow, num_samples_inv, state->bounce, is_lamp);
 					}
@@ -109,11 +110,11 @@ ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobal
 		light_sample(kg, light_t, light_u, light_v, ccl_fetch(sd, time), ccl_fetch(sd, P), state->bounce, &ls);
 
 		/* sample random light */
-		if(direct_emission(kg, sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
+		if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
 			/* trace shadow ray */
 			float3 shadow;
 
-			if(!shadow_blocked(kg, state, &light_ray, &shadow)) {
+			if(!shadow_blocked(kg, emission_sd, state, &light_ray, &shadow)) {
 				/* accumulate */
 				path_radiance_accum_light(L, throughput*num_samples_adjust, &L_light, shadow, num_samples_adjust, state->bounce, is_lamp);
 			}
@@ -184,7 +185,8 @@ ccl_device bool kernel_branched_path_surface_bounce(KernelGlobals *kg, RNG *rng,
 #ifndef __SPLIT_KERNEL__
 /* path tracing: connect path directly to position on a light and add it to L */
 ccl_device_inline void kernel_path_surface_connect_light(KernelGlobals *kg, ccl_addr_space RNG *rng,
-	ShaderData *sd, float3 throughput, ccl_addr_space PathState *state, PathRadiance *L)
+	ShaderData *sd, ShaderData *emission_sd, float3 throughput, ccl_addr_space PathState *state,
+	PathRadiance *L)
 {
 #ifdef __EMISSION__
 	if(!(kernel_data.integrator.use_direct_light && (ccl_fetch(sd, flag) & SD_BSDF_HAS_EVAL)))
@@ -206,11 +208,11 @@ ccl_device_inline void kernel_path_surface_connect_light(KernelGlobals *kg, ccl_
 	LightSample ls;
 	light_sample(kg, light_t, light_u, light_v, ccl_fetch(sd, time), ccl_fetch(sd, P), state->bounce, &ls);
 
-	if(direct_emission(kg, sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
+	if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
 		/* trace shadow ray */
 		float3 shadow;
 
-		if(!shadow_blocked(kg, state, &light_ray, &shadow)) {
+		if(!shadow_blocked(kg, emission_sd, state, &light_ray, &shadow)) {
 			/* accumulate */
 			path_radiance_accum_light(L, throughput, &L_light, shadow, 1.0f, state->bounce, is_lamp);
 		}

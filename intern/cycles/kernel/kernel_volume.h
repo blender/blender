@@ -219,15 +219,14 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg, PathState 
 
 /* get the volume attenuation over line segment defined by ray, with the
  * assumption that there are no surfaces blocking light between the endpoints */
-ccl_device_noinline void kernel_volume_shadow(KernelGlobals *kg, PathState *state, Ray *ray, float3 *throughput)
+ccl_device_noinline void kernel_volume_shadow(KernelGlobals *kg, ShaderData *shadow_sd, PathState *state, Ray *ray, float3 *throughput)
 {
-	ShaderData sd;
-	shader_setup_from_volume(kg, &sd, ray);
+	shader_setup_from_volume(kg, shadow_sd, ray);
 
 	if(volume_stack_is_heterogeneous(kg, state->volume_stack))
-		kernel_volume_shadow_heterogeneous(kg, state, ray, &sd, throughput);
+		kernel_volume_shadow_heterogeneous(kg, state, ray, shadow_sd, throughput);
 	else
-		kernel_volume_shadow_homogeneous(kg, state, ray, &sd, throughput);
+		kernel_volume_shadow_homogeneous(kg, state, ray, shadow_sd, throughput);
 }
 
 /* Equi-angular sampling as in:
@@ -1000,6 +999,7 @@ ccl_device bool kernel_volume_use_decoupled(KernelGlobals *kg, bool heterogeneou
  * is inside of. */
 
 ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
+                                         ShaderData *stack_sd,
                                          Ray *ray,
                                          VolumeStack *stack)
 {
@@ -1040,28 +1040,27 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 		qsort(hits, num_hits, sizeof(Intersection), intersections_compare);
 
 		for(uint hit = 0; hit < num_hits; ++hit, ++isect) {
-			ShaderData sd;
-			shader_setup_from_ray(kg, &sd, isect, &volume_ray);
-			if(sd.flag & SD_BACKFACING) {
+			shader_setup_from_ray(kg, stack_sd, isect, &volume_ray);
+			if(stack_sd->flag & SD_BACKFACING) {
 				bool need_add = true;
 				for(int i = 0; i < enclosed_index && need_add; ++i) {
 					/* If ray exited the volume and never entered to that volume
 					 * it means that camera is inside such a volume.
 					 */
-					if(enclosed_volumes[i] == sd.object) {
+					if(enclosed_volumes[i] == stack_sd->object) {
 						need_add = false;
 					}
 				}
 				for(int i = 0; i < stack_index && need_add; ++i) {
 					/* Don't add intersections twice. */
-					if(stack[i].object == sd.object) {
+					if(stack[i].object == stack_sd->object) {
 						need_add = false;
 						break;
 					}
 				}
 				if(need_add) {
-					stack[stack_index].object = sd.object;
-					stack[stack_index].shader = sd.shader;
+					stack[stack_index].object = stack_sd->object;
+					stack[stack_index].shader = stack_sd->shader;
 					++stack_index;
 				}
 			}
@@ -1069,7 +1068,7 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 				/* If ray from camera enters the volume, this volume shouldn't
 				 * be added to the stack on exit.
 				 */
-				enclosed_volumes[enclosed_index++] = sd.object;
+				enclosed_volumes[enclosed_index++] = stack_sd->object;
 			}
 		}
 	}
@@ -1086,9 +1085,8 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 			break;
 		}
 
-		ShaderData sd;
-		shader_setup_from_ray(kg, &sd, &isect, &volume_ray);
-		if(sd.flag & SD_BACKFACING) {
+		shader_setup_from_ray(kg, stack_sd, &isect, &volume_ray);
+		if(stack_sd->flag & SD_BACKFACING) {
 			/* If ray exited the volume and never entered to that volume
 			 * it means that camera is inside such a volume.
 			 */
@@ -1097,20 +1095,20 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 				/* If ray exited the volume and never entered to that volume
 				 * it means that camera is inside such a volume.
 				 */
-				if(enclosed_volumes[i] == sd.object) {
+				if(enclosed_volumes[i] == stack_sd->object) {
 					need_add = false;
 				}
 			}
 			for(int i = 0; i < stack_index && need_add; ++i) {
 				/* Don't add intersections twice. */
-				if(stack[i].object == sd.object) {
+				if(stack[i].object == stack_sd->object) {
 					need_add = false;
 					break;
 				}
 			}
 			if(need_add) {
-				stack[stack_index].object = sd.object;
-				stack[stack_index].shader = sd.shader;
+				stack[stack_index].object = stack_sd->object;
+				stack[stack_index].shader = stack_sd->shader;
 				++stack_index;
 			}
 		}
@@ -1118,11 +1116,11 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 			/* If ray from camera enters the volume, this volume shouldn't
 			 * be added to the stack on exit.
 			 */
-			enclosed_volumes[enclosed_index++] = sd.object;
+			enclosed_volumes[enclosed_index++] = stack_sd->object;
 		}
 
 		/* Move ray forward. */
-		volume_ray.P = ray_offset(sd.P, -sd.Ng);
+		volume_ray.P = ray_offset(stack_sd->P, -stack_sd->Ng);
 		++step;
 	}
 #endif
@@ -1190,6 +1188,7 @@ ccl_device void kernel_volume_stack_enter_exit(KernelGlobals *kg, ShaderData *sd
 
 #ifdef __SUBSURFACE__
 ccl_device void kernel_volume_stack_update_for_subsurface(KernelGlobals *kg,
+                                                          ShaderData *stack_sd,
                                                           Ray *ray,
                                                           VolumeStack *stack)
 {
@@ -1210,9 +1209,8 @@ ccl_device void kernel_volume_stack_update_for_subsurface(KernelGlobals *kg,
 		qsort(hits, num_hits, sizeof(Intersection), intersections_compare);
 
 		for(uint hit = 0; hit < num_hits; ++hit, ++isect) {
-			ShaderData sd;
-			shader_setup_from_ray(kg, &sd, isect, &volume_ray);
-			kernel_volume_stack_enter_exit(kg, &sd, stack);
+			shader_setup_from_ray(kg, stack_sd, isect, &volume_ray);
+			kernel_volume_stack_enter_exit(kg, stack_sd, stack);
 		}
 	}
 #  else
@@ -1224,13 +1222,12 @@ ccl_device void kernel_volume_stack_update_for_subsurface(KernelGlobals *kg,
 	                             &isect,
 	                             PATH_RAY_ALL_VISIBILITY))
 	{
-		ShaderData sd;
-		shader_setup_from_ray(kg, &sd, &isect, &volume_ray);
-		kernel_volume_stack_enter_exit(kg, &sd, stack);
+		shader_setup_from_ray(kg, stack_sd, &isect, &volume_ray);
+		kernel_volume_stack_enter_exit(kg, stack_sd, stack);
 
 		/* Move ray forward. */
-		volume_ray.P = ray_offset(sd.P, -sd.Ng);
-		volume_ray.t -= sd.ray_length;
+		volume_ray.P = ray_offset(stack_sd->P, -stack_sd->Ng);
+		volume_ray.t -= stack_sd->ray_length;
 		++step;
 	}
 #  endif
