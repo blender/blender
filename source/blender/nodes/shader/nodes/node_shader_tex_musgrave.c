@@ -58,12 +58,17 @@ static void node_shader_init_tex_musgrave(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_tex_musgrave(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	if (!in[0].link)
+	if (!in[0].link) {
 		in[0].link = GPU_attribute(CD_ORCO, "");
+		GPU_link(mat, "generated_from_orco", in[0].link, &in[0].link);
+	}
 
 	node_shader_gpu_tex_mapping(mat, node, in, out);
 
-	return GPU_stack_link(mat, "node_tex_musgrave", in, out);
+	NodeTexMusgrave *tex = (NodeTexMusgrave *)node->storage;
+	float type = tex->musgrave_type;
+
+	return GPU_stack_link(mat, "node_tex_musgrave", in, out, GPU_uniform(&type));
 }
 
 /* node type definition */
