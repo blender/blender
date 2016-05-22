@@ -159,6 +159,8 @@ enum {
 	V3D_CACHE_TEXT_LOCALCLIP    = (1 << 4)
 };
 
+int view3d_effective_drawtype(const struct View3D *v3d);
+
 /* drawarmature.c */
 bool draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
                    const short dt, const short dflag, const unsigned char ob_wire_col[4],

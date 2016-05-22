@@ -227,16 +227,25 @@ static void ob_wire_color_blend_theme_id(const unsigned char ob_wire_col[4], con
 	glColor3fv(col);
 }
 
+int view3d_effective_drawtype(const struct View3D *v3d)
+{
+	if (v3d->drawtype == OB_RENDER) {
+		return v3d->prev_drawtype;
+	}
+	return v3d->drawtype;
+}
+
 /* this condition has been made more complex since editmode can draw textures */
 bool check_object_draw_texture(Scene *scene, View3D *v3d, const char drawtype)
 {
+	const int v3d_drawtype = view3d_effective_drawtype(v3d);
 	/* texture and material draw modes */
-	if (ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) && drawtype > OB_SOLID) {
+	if (ELEM(v3d_drawtype, OB_TEXTURE, OB_MATERIAL) && drawtype > OB_SOLID) {
 		return true;
 	}
 
 	/* textured solid */
-	if ((v3d->drawtype == OB_SOLID) &&
+	if ((v3d_drawtype == OB_SOLID) &&
 	    (v3d->flag2 & V3D_SOLID_TEX) &&
 	    (BKE_scene_use_new_shading_nodes(scene) == false))
 	{
@@ -298,7 +307,7 @@ bool draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, const char dt)
 	
 	if (v3d->flag2 & V3D_SHOW_SOLID_MATCAP)
 		return true;
-	
+
 	if (v3d->drawtype == OB_TEXTURE)
 		return (scene->gm.matmode == GAME_MAT_GLSL && !BKE_scene_use_new_shading_nodes(scene));
 	else if (v3d->drawtype == OB_MATERIAL && dt > OB_SOLID)
@@ -1661,7 +1670,8 @@ static void draw_viewport_object_reconstruction(
 		         v3d->bundle_size / 0.05f / camera_size[1],
 		         v3d->bundle_size / 0.05f / camera_size[2]);
 
-		if (v3d->drawtype == OB_WIRE) {
+		const int v3d_drawtype = view3d_effective_drawtype(v3d);
+		if (v3d_drawtype == OB_WIRE) {
 			if ((dflag & DRAW_CONSTCOLOR) == 0) {
 				if (selected && (track->flag & TRACK_CUSTOMCOLOR) == 0) {
 					glColor3ubv(ob_wire_col);
@@ -1673,7 +1683,7 @@ static void draw_viewport_object_reconstruction(
 
 			drawaxes(rv3d->viewmatob, 0.05f, v3d->bundle_drawtype);
 		}
-		else if (v3d->drawtype > OB_WIRE) {
+		else if (v3d_drawtype > OB_WIRE) {
 			if (v3d->bundle_drawtype == OB_EMPTY_SPHERE) {
 				/* selection outline */
 				if (selected) {
@@ -7597,7 +7607,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 
 	/* maximum drawtype */
 	char dt = v3d->drawtype;
-	if (dt == OB_RENDER) dt = OB_SOLID;
+	if (dt == OB_RENDER) dt = v3d->prev_drawtype;
 	dt = MIN2(dt, ob->dt);
 	if (v3d->zbuf == 0 && dt > OB_WIRE) dt = OB_WIRE;
 	short dtx = 0;

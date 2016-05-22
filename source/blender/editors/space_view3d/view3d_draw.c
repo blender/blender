@@ -2608,19 +2608,20 @@ static void gpu_update_lamps_shadows_world(Scene *scene, View3D *v3d)
 CustomDataMask ED_view3d_datamask(const Scene *scene, const View3D *v3d)
 {
 	CustomDataMask mask = 0;
+	const int drawtype = view3d_effective_drawtype(v3d);
 
-	if (ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) ||
-	    ((v3d->drawtype == OB_SOLID) && (v3d->flag2 & V3D_SOLID_TEX)))
+	if (ELEM(drawtype, OB_TEXTURE, OB_MATERIAL) ||
+	    ((drawtype == OB_SOLID) && (v3d->flag2 & V3D_SOLID_TEX)))
 	{
 		mask |= CD_MASK_MTEXPOLY | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL;
 
 		if (BKE_scene_use_new_shading_nodes(scene)) {
-			if (v3d->drawtype == OB_MATERIAL)
+			if (drawtype == OB_MATERIAL)
 				mask |= CD_MASK_ORCO;
 		}
 		else {
-			if ((scene->gm.matmode == GAME_MAT_GLSL && v3d->drawtype == OB_TEXTURE) || 
-			    (v3d->drawtype == OB_MATERIAL))
+			if ((scene->gm.matmode == GAME_MAT_GLSL && drawtype == OB_TEXTURE) || 
+			    (drawtype == OB_MATERIAL))
 			{
 				mask |= CD_MASK_ORCO;
 			}
