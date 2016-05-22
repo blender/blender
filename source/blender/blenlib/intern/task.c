@@ -858,11 +858,11 @@ static void task_parallel_range_ex(
 			}
 
 			for (i = start; i < stop; ++i) {
-				func_ex(userdata, userdata_chunk, i, 0);
+				func_ex(userdata, userdata_chunk_local, i, 0);
 			}
 
 			if (func_finalize) {
-				func_finalize(userdata, userdata_chunk);
+				func_finalize(userdata, userdata_chunk_local);
 			}
 
 			MALLOCA_FREE(userdata_chunk_local, userdata_chunk_size);
