@@ -16,17 +16,17 @@ float exp_blender(float f)
 
 float compatible_pow(float x, float y)
 {
-	if(y == 0.0) /* x^0 -> 1, including 0^0 */
+	if (y == 0.0) /* x^0 -> 1, including 0^0 */
 		return 1.0;
 
 	/* glsl pow doesn't accept negative x */
-	if(x < 0.0) {
-		if(mod(-y, 2.0) == 0.0)
+	if (x < 0.0) {
+		if (mod(-y, 2.0) == 0.0)
 			return pow(-x, y);
 		else
 			return -pow(-x, y);
 	}
-	else if(x == 0.0)
+	else if (x == 0.0)
 		return 0.0;
 
 	return pow(x, y);
@@ -77,11 +77,11 @@ void hsv_to_rgb(vec4 hsv, out vec4 outcol)
 	s = hsv[1];
 	v = hsv[2];
 
-	if(s==0.0) {
+	if (s==0.0) {
 		rgb = vec3(v, v, v);
 	}
 	else {
-		if(h==1.0)
+		if (h==1.0)
 			h = 0.0;
 		
 		h *= 6.0;
@@ -105,7 +105,7 @@ void hsv_to_rgb(vec4 hsv, out vec4 outcol)
 
 float srgb_to_linearrgb(float c)
 {
-	if(c < 0.04045)
+	if (c < 0.04045)
 		return (c < 0.0) ? 0.0: c * (1.0 / 12.92);
 	else
 		return pow((c + 0.055)*(1.0/1.055), 2.4);
@@ -113,7 +113,7 @@ float srgb_to_linearrgb(float c)
 
 float linearrgb_to_srgb(float c)
 {
-	if(c < 0.0031308)
+	if (c < 0.0031308)
 		return (c < 0.0) ? 0.0: c * 12.92;
 	else
 		return 1.055 * pow(c, 1.0/2.4) - 0.055;
@@ -201,9 +201,9 @@ void point_transform_m4v3(vec3 vin, mat4 mat, out vec3 vout)
 void mapping(vec3 vec, mat4 mat, vec3 minvec, vec3 maxvec, float domin, float domax, out vec3 outvec)
 {
 	outvec = (mat * vec4(vec, 1.0)).xyz;
-	if(domin == 1.0)
+	if (domin == 1.0)
 		outvec = max(outvec, minvec);
-	if(domax == 1.0)
+	if (domax == 1.0)
 		outvec = min(outvec, maxvec);
 }
 
@@ -299,7 +299,7 @@ void math_pow(float val1, float val2, out float outval)
 
 void math_log(float val1, float val2, out float outval)
 {
-	if(val1 > 0.0  && val2 > 0.0)
+	if (val1 > 0.0  && val2 > 0.0)
 		outval= log2(val1) / log2(val2);
 	else
 		outval= 0.0;
@@ -322,7 +322,7 @@ void math_round(float val, out float outval)
 
 void math_less_than(float val1, float val2, out float outval)
 {
-	if(val1 < val2)
+	if (val1 < val2)
 		outval = 1.0;
 	else
 		outval = 0.0;
@@ -330,7 +330,7 @@ void math_less_than(float val1, float val2, out float outval)
 
 void math_greater_than(float val1, float val2, out float outval)
 {
-	if(val1 > val2)
+	if (val1 > val2)
 		outval = 1.0;
 	else
 		outval = 0.0;
@@ -539,17 +539,17 @@ void mix_overlay(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 
 	outcol = col1;
 
-	if(outcol.r < 0.5)
+	if (outcol.r < 0.5)
 		outcol.r *= facm + 2.0*fac*col2.r;
 	else
 		outcol.r = 1.0 - (facm + 2.0*fac*(1.0 - col2.r))*(1.0 - outcol.r);
 
-	if(outcol.g < 0.5)
+	if (outcol.g < 0.5)
 		outcol.g *= facm + 2.0*fac*col2.g;
 	else
 		outcol.g = 1.0 - (facm + 2.0*fac*(1.0 - col2.g))*(1.0 - outcol.g);
 
-	if(outcol.b < 0.5)
+	if (outcol.b < 0.5)
 		outcol.b *= facm + 2.0*fac*col2.b;
 	else
 		outcol.b = 1.0 - (facm + 2.0*fac*(1.0 - col2.b))*(1.0 - outcol.b);
@@ -569,9 +569,9 @@ void mix_div(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 
 	outcol = col1;
 
-	if(col2.r != 0.0) outcol.r = facm*outcol.r + fac*outcol.r/col2.r;
-	if(col2.g != 0.0) outcol.g = facm*outcol.g + fac*outcol.g/col2.g;
-	if(col2.b != 0.0) outcol.b = facm*outcol.b + fac*outcol.b/col2.b;
+	if (col2.r != 0.0) outcol.r = facm*outcol.r + fac*outcol.r/col2.r;
+	if (col2.g != 0.0) outcol.g = facm*outcol.g + fac*outcol.g/col2.g;
+	if (col2.b != 0.0) outcol.b = facm*outcol.b + fac*outcol.b/col2.b;
 }
 
 void mix_diff(float fac, vec4 col1, vec4 col2, out vec4 outcol)
@@ -600,29 +600,29 @@ void mix_dodge(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 	fac = clamp(fac, 0.0, 1.0);
 	outcol = col1;
 
-	if(outcol.r != 0.0) {
+	if (outcol.r != 0.0) {
 		float tmp = 1.0 - fac*col2.r;
-		if(tmp <= 0.0)
+		if (tmp <= 0.0)
 			outcol.r = 1.0;
-		else if((tmp = outcol.r/tmp) > 1.0)
+		else if ((tmp = outcol.r/tmp) > 1.0)
 			outcol.r = 1.0;
 		else
 			outcol.r = tmp;
 	}
-	if(outcol.g != 0.0) {
+	if (outcol.g != 0.0) {
 		float tmp = 1.0 - fac*col2.g;
-		if(tmp <= 0.0)
+		if (tmp <= 0.0)
 			outcol.g = 1.0;
-		else if((tmp = outcol.g/tmp) > 1.0)
+		else if ((tmp = outcol.g/tmp) > 1.0)
 			outcol.g = 1.0;
 		else
 			outcol.g = tmp;
 	}
-	if(outcol.b != 0.0) {
+	if (outcol.b != 0.0) {
 		float tmp = 1.0 - fac*col2.b;
-		if(tmp <= 0.0)
+		if (tmp <= 0.0)
 			outcol.b = 1.0;
-		else if((tmp = outcol.b/tmp) > 1.0)
+		else if ((tmp = outcol.b/tmp) > 1.0)
 			outcol.b = 1.0;
 		else
 			outcol.b = tmp;
@@ -637,31 +637,31 @@ void mix_burn(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 	outcol = col1;
 
 	tmp = facm + fac*col2.r;
-	if(tmp <= 0.0)
+	if (tmp <= 0.0)
 		outcol.r = 0.0;
-	else if((tmp = (1.0 - (1.0 - outcol.r)/tmp)) < 0.0)
+	else if ((tmp = (1.0 - (1.0 - outcol.r)/tmp)) < 0.0)
 		outcol.r = 0.0;
-	else if(tmp > 1.0)
+	else if (tmp > 1.0)
 		outcol.r = 1.0;
 	else
 		outcol.r = tmp;
 
 	tmp = facm + fac*col2.g;
-	if(tmp <= 0.0)
+	if (tmp <= 0.0)
 		outcol.g = 0.0;
-	else if((tmp = (1.0 - (1.0 - outcol.g)/tmp)) < 0.0)
+	else if ((tmp = (1.0 - (1.0 - outcol.g)/tmp)) < 0.0)
 		outcol.g = 0.0;
-	else if(tmp > 1.0)
+	else if (tmp > 1.0)
 		outcol.g = 1.0;
 	else
 		outcol.g = tmp;
 
 	tmp = facm + fac*col2.b;
-	if(tmp <= 0.0)
+	if (tmp <= 0.0)
 		outcol.b = 0.0;
-	else if((tmp = (1.0 - (1.0 - outcol.b)/tmp)) < 0.0)
+	else if ((tmp = (1.0 - (1.0 - outcol.b)/tmp)) < 0.0)
 		outcol.b = 0.0;
-	else if(tmp > 1.0)
+	else if (tmp > 1.0)
 		outcol.b = 1.0;
 	else
 		outcol.b = tmp;
@@ -677,7 +677,7 @@ void mix_hue(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 	vec4 hsv, hsv2, tmp;
 	rgb_to_hsv(col2, hsv2);
 
-	if(hsv2.y != 0.0) {
+	if (hsv2.y != 0.0) {
 		rgb_to_hsv(outcol, hsv);
 		hsv.x = hsv2.x;
 		hsv_to_rgb(hsv, tmp); 
@@ -697,7 +697,7 @@ void mix_sat(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 	vec4 hsv, hsv2;
 	rgb_to_hsv(outcol, hsv);
 
-	if(hsv.y != 0.0) {
+	if (hsv.y != 0.0) {
 		rgb_to_hsv(col2, hsv2);
 
 		hsv.y = facm*hsv.y + fac*hsv2.y;
@@ -728,7 +728,7 @@ void mix_color(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 	vec4 hsv, hsv2, tmp;
 	rgb_to_hsv(col2, hsv2);
 
-	if(hsv2.y != 0.0) {
+	if (hsv2.y != 0.0) {
 		rgb_to_hsv(outcol, hsv);
 		hsv.x = hsv2.x;
 		hsv.y = hsv2.y;
@@ -794,11 +794,11 @@ void hue_sat(float hue, float sat, float value, float fac, vec4 col, out vec4 ou
 	rgb_to_hsv(col, hsv);
 
 	hsv[0] += (hue - 0.5);
-	if(hsv[0]>1.0) hsv[0]-=1.0; else if(hsv[0]<0.0) hsv[0]+= 1.0;
+	if (hsv[0]>1.0) hsv[0]-=1.0; else if (hsv[0]<0.0) hsv[0]+= 1.0;
 	hsv[1] *= sat;
-	if(hsv[1]>1.0) hsv[1]= 1.0; else if(hsv[1]<0.0) hsv[1]= 0.0;
+	if (hsv[1]>1.0) hsv[1]= 1.0; else if (hsv[1]<0.0) hsv[1]= 0.0;
 	hsv[2] *= value;
-	if(hsv[2]>1.0) hsv[2]= 1.0; else if(hsv[2]<0.0) hsv[2]= 0.0;
+	if (hsv[2]>1.0) hsv[2]= 1.0; else if (hsv[2]<0.0) hsv[2]= 0.0;
 
 	hsv_to_rgb(hsv, outcol);
 
@@ -976,17 +976,17 @@ void mtex_rgb_overlay(vec3 outcol, vec3 texcol, float fact, float facg, out vec3
 	fact *= facg;
 	facm = 1.0-fact;
 
-	if(outcol.r < 0.5)
+	if (outcol.r < 0.5)
 		incol.r = outcol.r*(facm + 2.0*fact*texcol.r);
 	else
 		incol.r = 1.0 - (facm + 2.0*fact*(1.0 - texcol.r))*(1.0 - outcol.r);
 
-	if(outcol.g < 0.5)
+	if (outcol.g < 0.5)
 		incol.g = outcol.g*(facm + 2.0*fact*texcol.g);
 	else
 		incol.g = 1.0 - (facm + 2.0*fact*(1.0 - texcol.g))*(1.0 - outcol.g);
 
-	if(outcol.b < 0.5)
+	if (outcol.b < 0.5)
 		incol.b = outcol.b*(facm + 2.0*fact*texcol.b);
 	else
 		incol.b = 1.0 - (facm + 2.0*fact*(1.0 - texcol.b))*(1.0 - outcol.b);
@@ -1009,9 +1009,9 @@ void mtex_rgb_div(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 inc
 	fact *= facg;
 	facm = 1.0-fact;
 
-	if(texcol.r != 0.0) incol.r = facm*outcol.r + fact*outcol.r/texcol.r;
-	if(texcol.g != 0.0) incol.g = facm*outcol.g + fact*outcol.g/texcol.g;
-	if(texcol.b != 0.0) incol.b = facm*outcol.b + fact*outcol.b/texcol.b;
+	if (texcol.r != 0.0) incol.r = facm*outcol.r + fact*outcol.r/texcol.r;
+	if (texcol.g != 0.0) incol.g = facm*outcol.g + fact*outcol.g/texcol.g;
+	if (texcol.b != 0.0) incol.b = facm*outcol.b + fact*outcol.b/texcol.b;
 }
 
 void mtex_rgb_diff(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 incol)
@@ -1043,11 +1043,11 @@ void mtex_rgb_light(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 i
 	fact *= facg;
 
 	col = fact*texcol.r;
-	if(col > outcol.r) incol.r = col; else incol.r = outcol.r;
+	if (col > outcol.r) incol.r = col; else incol.r = outcol.r;
 	col = fact*texcol.g;
-	if(col > outcol.g) incol.g = col; else incol.g = outcol.g;
+	if (col > outcol.g) incol.g = col; else incol.g = outcol.g;
 	col = fact*texcol.b;
-	if(col > outcol.b) incol.b = col; else incol.b = outcol.b;
+	if (col > outcol.b) incol.b = col; else incol.b = outcol.b;
 }
 
 void mtex_rgb_hue(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 incol)
@@ -1098,17 +1098,17 @@ void mtex_rgb_linear(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 
 {
 	fact *= facg;
 
-	if(texcol.r > 0.5)
+	if (texcol.r > 0.5)
 		incol.r = outcol.r + fact*(2.0*(texcol.r - 0.5));
 	else
 		incol.r = outcol.r + fact*(2.0*(texcol.r) - 1.0);
 
-	if(texcol.g > 0.5)
+	if (texcol.g > 0.5)
 		incol.g = outcol.g + fact*(2.0*(texcol.g - 0.5));
 	else
 		incol.g = outcol.g + fact*(2.0*(texcol.g) - 1.0);
 
-	if(texcol.b > 0.5)
+	if (texcol.b > 0.5)
 		incol.b = outcol.b + fact*(2.0*(texcol.b - 0.5));
 	else
 		incol.b = outcol.b + fact*(2.0*(texcol.b) - 1.0);
@@ -1119,7 +1119,7 @@ void mtex_value_vars(inout float fact, float facg, out float facm)
 	fact *= abs(facg);
 	facm = 1.0-fact;
 
-	if(facg < 0.0) {
+	if (facg < 0.0) {
 		float tmp = fact;
 		fact = facm;
 		facm = tmp;
@@ -1175,7 +1175,7 @@ void mtex_value_div(float outcol, float texcol, float fact, float facg, out floa
 	float facm;
 	mtex_value_vars(fact, facg, facm);
 
-	if(texcol != 0.0)
+	if (texcol != 0.0)
 		incol = facm*outcol + fact*outcol/texcol;
 	else
 		incol = 0.0;
@@ -1203,7 +1203,7 @@ void mtex_value_light(float outcol, float texcol, float fact, float facg, out fl
 	mtex_value_vars(fact, facg, facm);
 
 	float col = fact*texcol;
-	if(col > outcol) incol = col; else incol = outcol;
+	if (col > outcol) incol = col; else incol = outcol;
 }
 
 void mtex_value_clamp_positive(float fac, out float outfac)
@@ -1225,8 +1225,8 @@ void mtex_har_multiply_clamp(float har, out float outhar)
 {
 	har *= 128.0;
 
-	if(har < 1.0) outhar = 1.0;
-	else if(har > 511.0) outhar = 511.0;
+	if (har < 1.0) outhar = 1.0;
+	else if (har > 511.0) outhar = 511.0;
 	else outhar = har;
 }
 
@@ -1447,7 +1447,7 @@ void mtex_bump_bicubic( vec3 texco, sampler2D ima, float hScale,
 	
 	vec2 dHdxy = vec2(Hr - Hl, Hu - Hd);
 	float fBlend = clamp(1.0-textureQueryLOD(ima, texco.xy).x, 0.0, 1.0);
-	if(fBlend!=0.0)
+	if (fBlend!=0.0)
 	{
 		// the derivative of the bicubic sampling of level 0
 		ivec2 vDim;
@@ -1478,8 +1478,8 @@ void mtex_bump_bicubic( vec3 texco, sampler2D ima, float hScale,
 
 		mat4 H;
 		
-		for(int i = 0; i < 4; i++) {
-			for(int j = 0; j < 4; j++) {
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
 				ivec2 iTexTmp = iTexLocMod + ivec2(i,j);
 				
 				// wrap texture coordinates manually for texelFetch to work on uvs oitside the 0,1 range.
@@ -1668,7 +1668,7 @@ void lamp_visibility_sphere(float lampdist, float dist, float visifac, out float
 
 void lamp_visibility_spot_square(vec3 lampvec, mat4 lampimat, vec2 scale, vec3 lv, out float inpr)
 {
-	if(dot(lv, lampvec) > 0.0) {
+	if (dot(lv, lampvec) > 0.0) {
 		vec3 lvrot = (lampimat*vec4(lv, 0.0)).xyz;
 		/* without clever non-uniform scale, we could do: */
 		// float x = max(abs(lvrot.x / lvrot.z), abs(lvrot.y / lvrot.z));
@@ -1701,14 +1701,14 @@ void lamp_visibility_spot(float spotsi, float spotbl, float inpr, float visifac,
 {
 	float t = spotsi;
 
-	if(inpr <= t) {
+	if (inpr <= t) {
 		outvisifac = 0.0;
 	}
 	else {
 		t = inpr - t;
 
 		/* soft area */
-		if(spotbl != 0.0)
+		if (spotbl != 0.0)
 			inpr *= smoothstep(0.0, 1.0, t/spotbl);
 
 		outvisifac = visifac*inpr;
@@ -1816,7 +1816,7 @@ void shade_inp_area(vec3 position, vec3 lampco, vec3 lampvec, vec3 vn, mat4 area
 	vec3 co = position;
 	vec3 vec = co - lampco;
 
-	if(dot(vec, lampvec) < 0.0) {
+	if (dot(vec, lampvec) < 0.0) {
 		inp = 0.0;
 	}
 	else {
@@ -1833,10 +1833,10 @@ void shade_diffuse_oren_nayer(float nl, vec3 n, vec3 l, vec3 v, float rough, out
 	float nv = max(dot(n, v), 0.0);
 	float realnl = dot(n, l);
 
-	if(realnl < 0.0) {
+	if (realnl < 0.0) {
 		is = 0.0;
 	}
-	else if(nl < 0.0) {
+	else if (nl < 0.0) {
 		is = 0.0;
 	}
 	else {
@@ -1851,7 +1851,7 @@ void shade_diffuse_oren_nayer(float nl, vec3 n, vec3 l, vec3 v, float rough, out
 
 		float a, b;
 
-		if(Lit_A > View_A) {
+		if (Lit_A > View_A) {
 			a = Lit_A;
 			b = View_A;
 		}
@@ -1873,20 +1873,20 @@ void shade_diffuse_toon(vec3 n, vec3 l, vec3 v, float size, float tsmooth, out f
 	float rslt = dot(n, l);
 	float ang = acos(rslt);
 
-	if(ang < size) is = 1.0;
-	else if(ang > (size + tsmooth) || tsmooth == 0.0) is = 0.0;
+	if (ang < size) is = 1.0;
+	else if (ang > (size + tsmooth) || tsmooth == 0.0) is = 0.0;
 	else is = 1.0 - ((ang - size)/tsmooth);
 }
 
 void shade_diffuse_minnaert(float nl, vec3 n, vec3 v, float darkness, out float is)
 {
-	if(nl <= 0.0) {
+	if (nl <= 0.0) {
 		is = 0.0;
 	}
 	else {
 		float nv = max(dot(n, v), 0.0);
 
-		if(darkness <= 1.0)
+		if (darkness <= 1.0)
 			is = nl*pow(max(nv*nl, 0.1), darkness - 1.0);
 		else
 			is = nl*pow(1.0001 - nv, darkness - 1.0);
@@ -1898,18 +1898,18 @@ float fresnel_fac(vec3 view, vec3 vn, float grad, float fac)
 	float t1, t2;
 	float ffac;
 
-	if(fac==0.0) {
+	if (fac==0.0) {
 		ffac = 1.0;
 	}
 	else {
 		t1= dot(view, vn);
-		if(t1>0.0)  t2= 1.0+t1;
+		if (t1>0.0)  t2= 1.0+t1;
 		else t2= 1.0-t1;
 
 		t2= grad + (1.0-grad)*pow(t2, fac);
 
-		if(t2<0.0) ffac = 0.0;
-		else if(t2>1.0) ffac = 1.0;
+		if (t2<0.0) ffac = 0.0;
+		else if (t2>1.0) ffac = 1.0;
 		else ffac = t2;
 	}
 
@@ -1923,7 +1923,7 @@ void shade_diffuse_fresnel(vec3 vn, vec3 lv, vec3 view, float fac_i, float fac, 
 
 void shade_cubic(float is, out float outis)
 {
-	if(is>0.0 && is<1.0)
+	if (is>0.0 && is<1.0)
 		outis= smoothstep(0.0, 1.0, is);
 	else
 		outis= is;
@@ -1931,7 +1931,7 @@ void shade_cubic(float is, out float outis)
 
 void shade_visifac(float i, float visifac, float refl, out float outi)
 {
-	/*if(i > 0.0)*/
+	/*if (i > 0.0)*/
 		outi = max(i*visifac*refl, 0.0);
 	/*else
 		outi = i;*/
@@ -1944,7 +1944,7 @@ void shade_tangent_v_spec(vec3 tang, out vec3 vn)
 
 void shade_add_to_diffuse(float i, vec3 lampcol, vec3 col, out vec3 outcol)
 {
-	if(i > 0.0)
+	if (i > 0.0)
 		outcol = i*lampcol*col;
 	else
 		outcol = vec3(0.0, 0.0, 0.0);
@@ -1974,7 +1974,7 @@ void shade_cooktorr_spec(vec3 n, vec3 l, vec3 v, float hard, out float specfac)
 	vec3 h = normalize(v + l);
 	float nh = dot(n, h);
 
-	if(nh < 0.0) {
+	if (nh < 0.0) {
 		specfac = 0.0;
 	}
 	else {
@@ -1988,27 +1988,27 @@ void shade_cooktorr_spec(vec3 n, vec3 l, vec3 v, float hard, out float specfac)
 
 void shade_blinn_spec(vec3 n, vec3 l, vec3 v, float refrac, float spec_power, out float specfac)
 {
-	if(refrac < 1.0) {
+	if (refrac < 1.0) {
 		specfac = 0.0;
 	}
-	else if(spec_power == 0.0) {
+	else if (spec_power == 0.0) {
 		specfac = 0.0;
 	}
 	else {
-		if(spec_power<100.0)
+		if (spec_power<100.0)
 			spec_power= sqrt(1.0/spec_power);
 		else
 			spec_power= 10.0/spec_power;
 
 		vec3 h = normalize(v + l);
 		float nh = dot(n, h);
-		if(nh < 0.0) {
+		if (nh < 0.0) {
 			specfac = 0.0;
 		}
 		else {
 			float nv = max(dot(n, v), 0.01);
 			float nl = dot(n, l);
-			if(nl <= 0.01) {
+			if (nl <= 0.01) {
 				specfac = 0.0;
 			}
 			else {
@@ -2020,9 +2020,9 @@ void shade_blinn_spec(vec3 n, vec3 l, vec3 v, float refrac, float spec_power, ou
 
 				float g = 0.0;
 
-				if(a < b && a < c) g = a;
-				else if(b < a && b < c) g = b;
-				else if(c < a && c < b) g = c;
+				if (a < b && a < c) g = a;
+				else if (b < a && b < c) g = b;
+				else if (c < a && c < b) g = c;
 
 				float p = sqrt(((refrac * refrac)+(vh*vh)-1.0));
 				float f = (((p-vh)*(p-vh))/((p+vh)*(p+vh)))*(1.0+((((vh*(p+vh))-1.0)*((vh*(p+vh))-1.0))/(((vh*(p-vh))+1.0)*((vh*(p-vh))+1.0))));
@@ -2052,8 +2052,8 @@ void shade_toon_spec(vec3 n, vec3 l, vec3 v, float size, float tsmooth, out floa
 	float rslt = dot(h, n);
 	float ang = acos(rslt);
 
-	if(ang < size) rslt = 1.0;
-	else if(ang >= (size + tsmooth) || tsmooth == 0.0) rslt = 0.0;
+	if (ang < size) rslt = 1.0;
+	else if (ang >= (size + tsmooth) || tsmooth == 0.0) rslt = 0.0;
 	else rslt = 1.0 - ((ang - size)/tsmooth);
 
 	specfac = rslt;
@@ -2162,7 +2162,7 @@ void shade_clamp_positive(vec4 col, out vec4 outcol)
 
 void test_shadowbuf(vec3 rco, sampler2DShadow shadowmap, mat4 shadowpersmat, float shadowbias, float inp, out float result)
 {
-	if(inp <= 0.0) {
+	if (inp <= 0.0) {
 		result = 0.0;
 	}
 	else {
@@ -2180,7 +2180,7 @@ void test_shadowbuf(vec3 rco, sampler2DShadow shadowmap, mat4 shadowpersmat, flo
 
 void test_shadowbuf_vsm(vec3 rco, sampler2D shadowmap, mat4 shadowpersmat, float shadowbias, float bleedbias, float inp, out float result)
 {
-	if(inp <= 0.0) {
+	if (inp <= 0.0) {
 		result = 0.0;
 	}
 	else {
@@ -2190,7 +2190,7 @@ void test_shadowbuf_vsm(vec3 rco, sampler2D shadowmap, mat4 shadowpersmat, float
 			float dist = co.z/co.w;
 			float p = 0.0;
 			
-			if(dist <= moments.x)
+			if (dist <= moments.x)
 				p = 1.0;
 
 			float variance = moments.y - (moments.x*moments.x);
@@ -2214,7 +2214,7 @@ void shadows_only(vec3 rco, sampler2DShadow shadowmap, mat4 shadowpersmat, float
 {
 	result = vec3(1.0);
 
-	if(inp > 0.0) {
+	if (inp > 0.0) {
 		float shadfac;
 
 		test_shadowbuf(rco, shadowmap, shadowpersmat, shadowbias, inp, shadfac);
@@ -2226,7 +2226,7 @@ void shadows_only_vsm(vec3 rco, sampler2D shadowmap, mat4 shadowpersmat, float s
 {
 	result = vec3(1.0);
 
-	if(inp > 0.0) {
+	if (inp > 0.0) {
 		float shadfac;
 
 		test_shadowbuf_vsm(rco, shadowmap, shadowpersmat, shadowbias, bleedbias, inp, shadfac);
@@ -2249,14 +2249,14 @@ void shade_exposure_correct(vec3 col, float linfac, float logfac, out vec3 outco
 
 void shade_mist_factor(vec3 co, float enable, float miststa, float mistdist, float misttype, float misi, out float outfac)
 {
-	if(enable == 1.0) {
+	if (enable == 1.0) {
 		float fac, zcor;
 
 		zcor = (gl_ProjectionMatrix[3][3] == 0.0)? length(co): -co[2];
 		
 		fac = clamp((zcor - miststa) / mistdist, 0.0, 1.0);
-		if(misttype == 0.0) fac *= fac;
-		else if(misttype == 1.0);
+		if (misttype == 0.0) fac *= fac;
+		else if (misttype == 1.0);
 		else fac = sqrt(fac);
 
 		outfac = 1.0 - (1.0 - fac) * (1.0 - misi);
@@ -2292,7 +2292,7 @@ float fresnel_dielectric(vec3 Incoming, vec3 Normal, float eta)
 	float g = eta * eta - 1.0 + c * c;
 	float result;
 
-	if(g > 0.0) {
+	if (g > 0.0) {
 		g = sqrt(g);
 		float A =(g - c)/(g + c);
 		float B =(c *(g + c)- 1.0)/(c *(g - c)+ 1.0);
@@ -2405,7 +2405,7 @@ void node_bsdf_diffuse(vec4 color, float roughness, vec3 N, out vec4 result)
 	vec3 L = vec3(0.2);
 
 	/* directional lights */
-	for(int i = 0; i < NUM_LIGHTS; i++) {
+	for (int i = 0; i < NUM_LIGHTS; i++) {
 		vec3 light_position = gl_LightSource[i].position.xyz;
 		vec3 light_diffuse = gl_LightSource[i].diffuse.rgb;
 
@@ -2422,7 +2422,7 @@ void node_bsdf_glossy(vec4 color, float roughness, vec3 N, out vec4 result)
 	vec3 L = vec3(0.2);
 
 	/* directional lights */
-	for(int i = 0; i < NUM_LIGHTS; i++) {
+	for (int i = 0; i < NUM_LIGHTS; i++) {
 		vec3 light_position = gl_LightSource[i].position.xyz;
 		vec3 H = gl_LightSource[i].halfVector.xyz;
 		vec3 light_diffuse = gl_LightSource[i].diffuse.rgb;
@@ -2549,7 +2549,7 @@ void node_layer_weight(float blend, vec3 N, vec3 I, out float fresnel, out float
 
 	/* facing */
 	facing = abs(dot(I_view, N));
-	if(blend != 0.5) {
+	if (blend != 0.5) {
 		blend = clamp(blend, 0.0, 0.99999);
 		blend = (blend < 0.5)? 2.0*blend: 0.5/(1.0 - blend);
 		facing = pow(facing, blend);
@@ -2563,11 +2563,11 @@ void node_gamma(vec4 col, float gamma, out vec4 outcol)
 {
 	outcol = col;
 
-	if(col.r > 0.0)
+	if (col.r > 0.0)
 		outcol.r = compatible_pow(col.r, gamma);
-	if(col.g > 0.0)
+	if (col.g > 0.0)
 		outcol.g = compatible_pow(col.g, gamma);
-	if(col.b > 0.0)
+	if (col.b > 0.0)
 		outcol.b = compatible_pow(col.b, gamma);
 }
 
@@ -2657,30 +2657,30 @@ float calc_gradient(vec3 p, int gradient_type)
 	x = p.x;
 	y = p.y;
 	z = p.z;
-	if(gradient_type == 0) {  /* linear */
+	if (gradient_type == 0) {  /* linear */
 		return x;
 	}
-	else if(gradient_type == 1) {  /* quadratic */
+	else if (gradient_type == 1) {  /* quadratic */
 		float r = max(x, 0.0);
 		return r*r;
 	}
-	else if(gradient_type == 2) {  /* easing */
+	else if (gradient_type == 2) {  /* easing */
 		float r = min(max(x, 0.0), 1.0);
 		float t = r*r;
 		return (3.0*t - 2.0*t*r);
 	}
-	else if(gradient_type == 3) {  /* diagonal */
+	else if (gradient_type == 3) {  /* diagonal */
 		return (x + y) * 0.5;
 	}
-	else if(gradient_type == 4) {  /* radial */
+	else if (gradient_type == 4) {  /* radial */
 		return atan(y, x) / (M_PI * 2) + 0.5;
 	}
 	else {
 		float r = max(1.0 - sqrt(x*x + y*y + z*z), 0.0);
-		if(gradient_type == 5) {  /* quadratic sphere */
+		if (gradient_type == 5) {  /* quadratic sphere */
 			return r*r;
 		}
-		else if(gradient_type == 6) {  /* sphere */
+		else if (gradient_type == 6) {  /* sphere */
 			return r;
 		}
 	}
@@ -2726,7 +2726,7 @@ vec2 calc_brick_texture(vec3 p, float mortar_size, float bias,
 
 	rownum = floor_to_int(p.y / row_height);
 
-	if(offset_frequency != 0 && squash_frequency != 0) {
+	if (offset_frequency != 0 && squash_frequency != 0) {
 		brick_width *= (rownum % squash_frequency != 0) ? 1.0 : squash_amount; /* squash */
 		offset = (rownum % offset_frequency != 0) ? 0.0 : (brick_width*offset_amount); /* offset */
 	}
@@ -2758,7 +2758,7 @@ void node_tex_brick(vec3 co,
 	                             squash_amount, int(squash_frequency));
 	float tint = f2.x;
 	float f = f2.y;
-	if(f != 1.0) {
+	if (f != 1.0) {
 		float facm = 1.0 - tint;
 		color1 = facm * color1 + tint * color2;
 	}
@@ -2788,7 +2788,7 @@ void node_tex_environment_mirror_ball(vec3 co, sampler2D ima, out vec4 color)
 	nco.y -= 1.0;
 
 	float div = 2.0*sqrt(max(-0.5*nco.y, 0.0));
-	if(div > 0.0)
+	if (div > 0.0)
 		nco /= div;
 
 	float u = 0.5*(nco.x + 1.0);
@@ -2821,37 +2821,37 @@ void node_tex_magic(vec3 co, float scale, float distortion, float depth, out vec
 	float y = cos((-p.x + p.y - p.z)*5.0);
 	float z = -cos((-p.x - p.y + p.z)*5.0);
 
-	if(depth > 0) {
+	if (depth > 0) {
 		x *= distortion;
 		y *= distortion;
 		z *= distortion;
 		y = -cos(x-y+z);
 		y *= distortion;
-		if(depth > 1) {
+		if (depth > 1) {
 			x = cos(x-y-z);
 			x *= distortion;
-			if(depth > 2) {
+			if (depth > 2) {
 				z = sin(-x-y-z);
 				z *= distortion;
-				if(depth > 3) {
+				if (depth > 3) {
 					x = -cos(-x+y-z);
 					x *= distortion;
-					if(depth > 4) {
+					if (depth > 4) {
 						y = -sin(-x+y+z);
 						y *= distortion;
-						if(depth > 5) {
+						if (depth > 5) {
 							y = -cos(-x+y+z);
 							y *= distortion;
-							if(depth > 6) {
+							if (depth > 6) {
 								x = cos(x+y+z);
 								x *= distortion;
-								if(depth > 7) {
+								if (depth > 7) {
 									z = sin(x+y-z);
 									z *= distortion;
-									if(depth > 8) {
+									if (depth > 8) {
 										x = -cos(-x-y+z);
 										x *= distortion;
-										if(depth > 9) {
+										if (depth > 9) {
 											y = -sin(x-y+z);
 											y *= distortion;
 										}
@@ -2864,7 +2864,7 @@ void node_tex_magic(vec3 co, float scale, float distortion, float depth, out vec
 			}
 		}
 	}
-	if(distortion != 0.0) {
+	if (distortion != 0.0) {
 		distortion *= 2.0;
 		x /= distortion;
 		y /= distortion;
@@ -3012,14 +3012,14 @@ float noise_musgrave_fBm(vec3 p, float H, float lacunarity, float octaves)
 	float pwHL = pow(lacunarity, -H);
 	int i;
 
-	for(i = 0; i < int(octaves); i++) {
+	for (i = 0; i < int(octaves); i++) {
 		value += snoise(p) * pwr;
 		pwr *= pwHL;
 		p *= lacunarity;
 	}
 
 	rmd = octaves - floor(octaves);
-	if(rmd != 0.0)
+	if (rmd != 0.0)
 		value += rmd * snoise(p) * pwr;
 
 	return value;
@@ -3040,14 +3040,14 @@ float noise_musgrave_multi_fractal(vec3 p, float H, float lacunarity, float octa
 	float pwHL = pow(lacunarity, -H);
 	int i;
 
-	for(i = 0; i < int(octaves); i++) {
+	for (i = 0; i < int(octaves); i++) {
 		value *= (pwr * snoise(p) + 1.0);
 		pwr *= pwHL;
 		p *= lacunarity;
 	}
 
 	rmd = octaves - floor(octaves);
-	if(rmd != 0.0)
+	if (rmd != 0.0)
 		value *= (rmd * pwr * snoise(p) + 1.0); /* correct? */
 
 	return value;
@@ -3072,7 +3072,7 @@ float noise_musgrave_hetero_terrain(vec3 p, float H, float lacunarity, float oct
 	value = offset + snoise(p);
 	p *= lacunarity;
 
-	for(i = 1; i < int(octaves); i++) {
+	for (i = 1; i < int(octaves); i++) {
 		increment = (snoise(p) + offset) * pwr * value;
 		value += increment;
 		pwr *= pwHL;
@@ -3080,7 +3080,7 @@ float noise_musgrave_hetero_terrain(vec3 p, float H, float lacunarity, float oct
 	}
 
 	rmd = octaves - floor(octaves);
-	if(rmd != 0.0) {
+	if (rmd != 0.0) {
 		increment = (snoise(p) + offset) * pwr * value;
 		value += rmd * increment;
 	}
@@ -3107,8 +3107,8 @@ float noise_musgrave_hybrid_multi_fractal(vec3 p, float H, float lacunarity, flo
 	weight = gain * result;
 	p *= lacunarity;
 
-	for(i = 1; (weight > 0.001f) && (i < int(octaves)); i++) {
-		if(weight > 1.0)
+	for (i = 1; (weight > 0.001f) && (i < int(octaves)); i++) {
+		if (weight > 1.0)
 			weight = 1.0;
 
 		signal = (snoise(p) + offset) * pwr;
@@ -3119,7 +3119,7 @@ float noise_musgrave_hybrid_multi_fractal(vec3 p, float H, float lacunarity, flo
 	}
 
 	rmd = octaves - floor(octaves);
-	if(rmd != 0.0)
+	if (rmd != 0.0)
 		result += rmd * ((snoise(p) + offset) * pwr);
 
 	return result;
@@ -3145,7 +3145,7 @@ float noise_musgrave_ridged_multi_fractal(vec3 p, float H, float lacunarity, flo
 	result = signal;
 	weight = 1.0;
 
-	for(i = 1; i < int(octaves); i++) {
+	for (i = 1; i < int(octaves); i++) {
 		p *= lacunarity;
 		weight = clamp(signal * gain, 0.0, 1.0);
 		signal = offset - abs(snoise(p));
@@ -3291,15 +3291,15 @@ float calc_wave(vec3 p, float distortion, float detail, float detail_scale, int 
 {
 	float n;
 
-	if(wave_type == 0) /* type bands */
+	if (wave_type == 0) /* type bands */
 		n = (p.x + p.y + p.z) * 10.0;
 	else /* type rings */
 		n = length(p) * 20.0;
 
-	if(distortion != 0.0)
+	if (distortion != 0.0)
 		n += distortion * noise_turbulence(p*detail_scale, detail, 0);
 
-	if(wave_profile == 0) { /* profile sin */
+	if (wave_profile == 0) { /* profile sin */
 		return 0.5 + 0.5 * sin(n);
 	}
 	else { /* profile saw */

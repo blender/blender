@@ -52,13 +52,13 @@ void main(void)
      */
     float t0 = start.z + start.w;
     float t1 = end.z + end.w;
-    if(t0 < 0.0) {
-        if(t1 < 0.0) {
+    if (t0 < 0.0) {
+        if (t1 < 0.0) {
             return;
         }
         start = mix(start, end, (0 - t0) / (t1 - t0));
     }
-    if(t1 < 0.0) {
+    if (t1 < 0.0) {
         end = mix(start, end, (0 - t0) / (t1 - t0));
     }
 

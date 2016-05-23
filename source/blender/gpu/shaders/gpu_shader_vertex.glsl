@@ -29,7 +29,7 @@ void main()
 
 #ifdef CLIP_WORKAROUND
 	int i;
-	for(i = 0; i < 6; i++)
+	for (i = 0; i < 6; i++)
 		gl_ClipDistance[i] = dot(co, gl_ClipPlane[i]);
 #elif !defined(GPU_ATI)
 	// Setting gl_ClipVertex is necessary to get glClipPlane working on NVIDIA
