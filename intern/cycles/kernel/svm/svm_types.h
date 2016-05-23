@@ -370,6 +370,9 @@ typedef enum ShaderType {
 /* Closure */
 
 typedef enum ClosureType {
+	/* Special type, flags generic node as a non-BSDF. */
+	CLOSURE_NONE_ID,
+
 	CLOSURE_BSDF_ID,
 
 	/* Diffuse */

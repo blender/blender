@@ -237,6 +237,9 @@ public:
 	 */
 	virtual int get_feature() { return bump == SHADER_BUMP_NONE ? 0 : NODE_FEATURE_BUMP; }
 
+	/* Get closure ID to which the node compiles into. */
+	virtual ClosureType get_closure_type() { return CLOSURE_NONE_ID; }
+
 	/* Check whether settings of the node equals to another one.
 	 *
 	 * This is mainly used to check whether two nodes can be merged
