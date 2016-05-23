@@ -149,7 +149,7 @@ void color_to_normal(vec3 color, out vec3 normal)
 
 void vcol_attribute(vec4 attvcol, out vec4 vcol)
 {
-	vcol = vec4(attvcol.x/255.0, attvcol.y/255.0, attvcol.z/255.0, 1.0);
+	vcol = vec4(attvcol.x, attvcol.y, attvcol.z, 1.0);
 }
 
 void uv_attribute(vec2 attuv, out vec3 uv)
