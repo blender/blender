@@ -285,7 +285,7 @@ static float3 compute_face_normal(const Mesh::Triangle& t, float3 *verts)
 	float normlen = len(norm);
 
 	if(normlen == 0.0f)
-		return make_float3(0.0f, 0.0f, 0.0f);
+		return make_float3(1.0f, 0.0f, 0.0f);
 
 	return norm / normlen;
 }
