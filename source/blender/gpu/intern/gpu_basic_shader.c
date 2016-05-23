@@ -552,7 +552,8 @@ void GPU_basic_shader_light_set(int light_num, GPULightData *light)
 			GPU_MATERIAL_STATE.lights_directional |= light_bit;
 	}
 	else {
-		if (USE_GLSL) {
+		/* TODO(sergey): Needs revisit. */
+		if (USE_GLSL || true) {
 			/* glsl shader needs these zero to skip them */
 			const float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
