@@ -470,6 +470,10 @@ MINLINE float shell_v2v2_normalized_to_dist(const float a[2], const float b[2]);
 MINLINE float shell_v3v3_mid_normalized_to_dist(const float a[3], const float b[3]);
 MINLINE float shell_v2v2_mid_normalized_to_dist(const float a[2], const float b[2]);
 
+/********************************* Cubic (Bezier) *******************************/
+
+float cubic_tangent_factor_circle_v3(const float tan_l[3], const float tan_r[3]);
+
 /**************************** Inline Definitions ******************************/
 
 #if BLI_MATH_DO_INLINE
