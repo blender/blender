@@ -157,7 +157,10 @@ void uv_attribute(vec2 attuv, out vec3 uv)
 	uv = vec3(attuv*2.0 - vec2(1.0, 1.0), 0.0);
 }
 
-void geom(vec3 co, vec3 nor, mat4 viewinvmat, vec3 attorco, vec2 attuv, vec4 attvcol, out vec3 global, out vec3 local, out vec3 view, out vec3 orco, out vec3 uv, out vec3 normal, out vec4 vcol, out float vcol_alpha, out float frontback)
+void geom(
+        vec3 co, vec3 nor, mat4 viewinvmat, vec3 attorco, vec2 attuv, vec4 attvcol,
+        out vec3 global, out vec3 local, out vec3 view, out vec3 orco, out vec3 uv,
+        out vec3 normal, out vec4 vcol, out float vcol_alpha, out float frontback)
 {
 	local = co;
 	view = (gl_ProjectionMatrix[3][3] == 0.0)? normalize(local): vec3(0.0, 0.0, -1.0);
@@ -171,16 +174,19 @@ void geom(vec3 co, vec3 nor, mat4 viewinvmat, vec3 attorco, vec2 attuv, vec4 att
 	frontback = (gl_FrontFacing)? 1.0: 0.0;
 }
 
-void particle_info(vec4 sprops, vec3 loc, vec3 vel, vec3 avel, out float index, out float age, out float life_time, out vec3 location, out float size, out vec3 velocity, out vec3 angular_velocity)
+void particle_info(
+        vec4 sprops, vec3 loc, vec3 vel, vec3 avel,
+        out float index, out float age, out float life_time, out vec3 location,
+        out float size, out vec3 velocity, out vec3 angular_velocity)
 {
-    index = sprops.x;
-    age = sprops.y;
-    life_time = sprops.z;
-    size = sprops.w;
+	index = sprops.x;
+	age = sprops.y;
+	life_time = sprops.z;
+	size = sprops.w;
 
-    location = loc;
-    velocity = vel;
-    angular_velocity = avel;
+	location = loc;
+	velocity = vel;
+	angular_velocity = avel;
 }
 
 void vect_normalize(vec3 vin, out vec3 vout)
@@ -214,7 +220,9 @@ void camera(vec3 co, out vec3 outview, out float outdepth, out float outdist)
 	outview = normalize(co);
 }
 
-void lamp(vec4 col, float energy, vec3 lv, float dist, vec3 shadow, float visifac, out vec4 outcol, out vec3 outlv, out float outdist, out vec4 outshadow, out float outvisifac)
+void lamp(
+        vec4 col, float energy, vec3 lv, float dist, vec3 shadow, float visifac,
+        out vec4 outcol, out vec3 outlv, out float outdist, out vec4 outshadow, out float outvisifac)
 {
 	outcol = col * energy;
 	outlv = lv;
@@ -350,7 +358,7 @@ void math_modulo(float val1, float val2, out float outval)
 
 void math_abs(float val1, out float outval)
 {
-    outval = abs(val1);
+	outval = abs(val1);
 }
 
 void squeeze(float val, float width, float center, out float outval)
@@ -407,8 +415,8 @@ void vec_math_negate(vec3 v, out vec3 outv)
 
 void invert_z(vec3 v, out vec3 outv)
 {
-        v.z = -v.z;
-        outv = v;
+	v.z = -v.z;
+	outv = v;
 }
 
 void normal(vec3 dir, vec3 nor, out vec3 outnor, out float outdot)
@@ -936,7 +944,7 @@ void shade_norm(vec3 normal, out vec3 outnormal)
 
 void mtex_mirror(vec3 tcol, vec4 refcol, float tin, float colmirfac, out vec4 outrefcol)
 {
-    outrefcol = mix(refcol, vec4(1.0, tcol), tin*colmirfac);
+	outrefcol = mix(refcol, vec4(1.0, tcol), tin * colmirfac);
 }
 
 void mtex_rgb_blend(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 incol)
@@ -1242,7 +1250,7 @@ void mtex_alpha_to_col(vec4 col, float alpha, out vec4 outcol)
 
 void mtex_alpha_multiply_value(vec4 col, float value, out vec4 outcol)
 {
-    outcol = vec4(col.rgb, col.a * value);
+	outcol = vec4(col.rgb, col.a * value);
 }
 
 void mtex_rgbtoint(vec4 rgb, out float intensity)
@@ -1300,7 +1308,9 @@ void mtex_cube_map(vec3 co, samplerCube ima, out float value, out vec4 color)
 	value = 1.0;
 }
 
-void mtex_cube_map_refl(samplerCube ima, vec3 vp, vec3 vn, mat4 viewmatrixinverse, mat4 viewmatrix, out float value, out vec4 color)
+void mtex_cube_map_refl(
+        samplerCube ima, vec3 vp, vec3 vn, mat4 viewmatrixinverse, mat4 viewmatrix,
+        out float value, out vec4 color)
 {
 	vec3 viewdirection = vec3(viewmatrixinverse * vec4(vp, 0.0));
 	vec3 normaldirection = normalize(vec3(vec4(vn, 0.0) * viewmatrix));
@@ -1343,11 +1353,12 @@ mat3 to_mat3(mat4 m4)
 	return m3;
 }
 
-void mtex_bump_init_objspace( vec3 surf_pos, vec3 surf_norm,
-							  mat4 mView, mat4 mViewInv, mat4 mObj, mat4 mObjInv, 
-							  float fPrevMagnitude_in, vec3 vNacc_in,
-							  out float fPrevMagnitude_out, out vec3 vNacc_out, 
-							  out vec3 vR1, out vec3 vR2, out float fDet ) 
+void mtex_bump_init_objspace(
+        vec3 surf_pos, vec3 surf_norm,
+        mat4 mView, mat4 mViewInv, mat4 mObj, mat4 mObjInv,
+        float fPrevMagnitude_in, vec3 vNacc_in,
+        out float fPrevMagnitude_out, out vec3 vNacc_out,
+        out vec3 vR1, out vec3 vR2, out float fDet)
 {
 	mat3 obj2view = to_mat3(gl_ModelViewMatrix);
 	mat3 view2obj = to_mat3(gl_ModelViewMatrixInverse);
@@ -1370,10 +1381,11 @@ void mtex_bump_init_objspace( vec3 surf_pos, vec3 surf_norm,
 	fPrevMagnitude_out = fMagnitude;
 }
 
-void mtex_bump_init_texturespace( vec3 surf_pos, vec3 surf_norm, 
-								  float fPrevMagnitude_in, vec3 vNacc_in,
-								  out float fPrevMagnitude_out, out vec3 vNacc_out, 
-								  out vec3 vR1, out vec3 vR2, out float fDet ) 
+void mtex_bump_init_texturespace(
+        vec3 surf_pos, vec3 surf_norm,
+        float fPrevMagnitude_in, vec3 vNacc_in,
+        out float fPrevMagnitude_out, out vec3 vNacc_out,
+        out vec3 vR1, out vec3 vR2, out float fDet)
 {
 	vec3 vSigmaS = dFdx( surf_pos );
 	vec3 vSigmaT = dFdy( surf_pos );
@@ -1388,10 +1400,11 @@ void mtex_bump_init_texturespace( vec3 surf_pos, vec3 surf_norm,
 	fPrevMagnitude_out = fMagnitude;
 }
 
-void mtex_bump_init_viewspace( vec3 surf_pos, vec3 surf_norm, 
-							   float fPrevMagnitude_in, vec3 vNacc_in,
-							   out float fPrevMagnitude_out, out vec3 vNacc_out, 
-							   out vec3 vR1, out vec3 vR2, out float fDet ) 
+void mtex_bump_init_viewspace(
+        vec3 surf_pos, vec3 surf_norm,
+        float fPrevMagnitude_in, vec3 vNacc_in,
+        out float fPrevMagnitude_out, out vec3 vNacc_out,
+        out vec3 vR1, out vec3 vR2, out float fDet)
 {
 	vec3 vSigmaS = dFdx( surf_pos );
 	vec3 vSigmaT = dFdy( surf_pos );
@@ -1406,8 +1419,9 @@ void mtex_bump_init_viewspace( vec3 surf_pos, vec3 surf_norm,
 	fPrevMagnitude_out = fMagnitude;
 }
 
-void mtex_bump_tap3( vec3 texco, sampler2D ima, float hScale, 
-                     out float dBs, out float dBt )
+void mtex_bump_tap3(
+        vec3 texco, sampler2D ima, float hScale,
+        out float dBs, out float dBt)
 {
 	vec2 STll = texco.xy;
 	vec2 STlr = texco.xy + dFdx(texco.xy) ;
@@ -1424,8 +1438,9 @@ void mtex_bump_tap3( vec3 texco, sampler2D ima, float hScale,
 
 #ifdef BUMP_BICUBIC
 
-void mtex_bump_bicubic( vec3 texco, sampler2D ima, float hScale, 
-                     out float dBs, out float dBt ) 
+void mtex_bump_bicubic(
+        vec3 texco, sampler2D ima, float hScale,
+        out float dBs, out float dBt )
 {
 	float Hl;
 	float Hr;
@@ -1516,8 +1531,9 @@ void mtex_bump_bicubic( vec3 texco, sampler2D ima, float hScale,
 
 #endif
 
-void mtex_bump_tap5( vec3 texco, sampler2D ima, float hScale, 
-                     out float dBs, out float dBt ) 
+void mtex_bump_tap5(
+        vec3 texco, sampler2D ima, float hScale,
+        out float dBs, out float dBt)
 {
 	vec2 TexDx = dFdx(texco.xy);
 	vec2 TexDy = dFdy(texco.xy);
@@ -1539,8 +1555,9 @@ void mtex_bump_tap5( vec3 texco, sampler2D ima, float hScale,
 	dBt = hScale * (Hu - Hd);
 }
 
-void mtex_bump_deriv( vec3 texco, sampler2D ima, float ima_x, float ima_y, float hScale, 
-                     out float dBs, out float dBt ) 
+void mtex_bump_deriv(
+        vec3 texco, sampler2D ima, float ima_x, float ima_y, float hScale,
+        out float dBs, out float dBt)
 {
 	float s = 1.0;		// negate this if flipped texture coordinate
 	vec2 TexDx = dFdx(texco.xy);
@@ -1555,8 +1572,9 @@ void mtex_bump_deriv( vec3 texco, sampler2D ima, float ima_x, float ima_y, float
 	dBt = dBduv.x*TexDy.x + s*dBduv.y*TexDy.y;
 }
 
-void mtex_bump_apply( float fDet, float dBs, float dBt, vec3 vR1, vec3 vR2, vec3 vNacc_in,
-					  out vec3 vNacc_out, out vec3 perturbed_norm ) 
+void mtex_bump_apply(
+        float fDet, float dBs, float dBt, vec3 vR1, vec3 vR2, vec3 vNacc_in,
+        out vec3 vNacc_out, out vec3 perturbed_norm)
 {
 	vec3 vSurfGrad = sign(fDet) * ( dBs * vR1 + dBt * vR2 );
 	
@@ -1564,9 +1582,10 @@ void mtex_bump_apply( float fDet, float dBs, float dBt, vec3 vR1, vec3 vR2, vec3
 	perturbed_norm = normalize( vNacc_out );
 }
 
-void mtex_bump_apply_texspace( float fDet, float dBs, float dBt, vec3 vR1, vec3 vR2,
-                               sampler2D ima, vec3 texco, float ima_x, float ima_y, vec3 vNacc_in,
-							   out vec3 vNacc_out, out vec3 perturbed_norm ) 
+void mtex_bump_apply_texspace(
+        float fDet, float dBs, float dBt, vec3 vR1, vec3 vR2,
+        sampler2D ima, vec3 texco, float ima_x, float ima_y, vec3 vNacc_in,
+        out vec3 vNacc_out, out vec3 perturbed_norm)
 {
 	vec2 TexDx = dFdx(texco.xy);
 	vec2 TexDy = dFdy(texco.xy);
@@ -1574,7 +1593,7 @@ void mtex_bump_apply_texspace( float fDet, float dBs, float dBt, vec3 vR1, vec3 
 	vec3 vSurfGrad = sign(fDet) * ( 
 	            dBs / length( vec2(ima_x*TexDx.x, ima_y*TexDx.y) ) * vR1 + 
 	            dBt / length( vec2(ima_x*TexDy.x, ima_y*TexDy.y) ) * vR2 );
-				
+
 	vNacc_out = vNacc_in - vSurfGrad;
 	perturbed_norm = normalize( vNacc_out );
 }
@@ -1811,7 +1830,9 @@ float area_lamp_energy(mat4 area, vec3 co, vec3 vn)
 	return max(fac, 0.0);
 }
 
-void shade_inp_area(vec3 position, vec3 lampco, vec3 lampvec, vec3 vn, mat4 area, float areasize, float k, out float inp)
+void shade_inp_area(
+        vec3 position, vec3 lampco, vec3 lampvec, vec3 vn, mat4 area, float areasize, float k,
+        out float inp)
 {
 	vec3 co = position;
 	vec3 vec = co - lampco;
@@ -2024,8 +2045,10 @@ void shade_blinn_spec(vec3 n, vec3 l, vec3 v, float refrac, float spec_power, ou
 				else if (b < a && b < c) g = b;
 				else if (c < a && c < b) g = c;
 
-				float p = sqrt(((refrac * refrac)+(vh*vh)-1.0));
-				float f = (((p-vh)*(p-vh))/((p+vh)*(p+vh)))*(1.0+((((vh*(p+vh))-1.0)*((vh*(p+vh))-1.0))/(((vh*(p-vh))+1.0)*((vh*(p-vh))+1.0))));
+				float p = sqrt(((refrac * refrac) + (vh * vh) - 1.0));
+				float f = ((((p - vh) * (p - vh)) / ((p + vh) * (p + vh))) *
+				           (1.0 + ((((vh * (p + vh)) - 1.0) * ((vh * (p + vh)) - 1.0)) /
+				                   (((vh * (p - vh)) + 1.0) * ((vh * (p - vh)) + 1.0)))));
 				float ang = acos(nh);
 
 				specfac = max(f*g*exp_blender((-(ang*ang)/(2.0*spec_power*spec_power))), 0.0);
@@ -2076,7 +2099,7 @@ void shade_add_spec(float t, vec3 lampcol, vec3 speccol, out vec3 outcol)
 
 void shade_add_mirror(vec3 mir, vec4 refcol, vec3 combined, out vec3 result)
 {
-    result = mir*refcol.gba + (vec3(1.0) - mir*refcol.rrr)*combined;
+	result = mir * refcol.gba + (vec3(1.0) - mir * refcol.rrr) * combined;
 }
 
 void alpha_spec_correction(vec3 spec, float spectra, float alpha, out float outalpha)
@@ -2160,7 +2183,9 @@ void shade_clamp_positive(vec4 col, out vec4 outcol)
 	outcol = max(col, vec4(0.0));
 }
 
-void test_shadowbuf(vec3 rco, sampler2DShadow shadowmap, mat4 shadowpersmat, float shadowbias, float inp, out float result)
+void test_shadowbuf(
+        vec3 rco, sampler2DShadow shadowmap, mat4 shadowpersmat, float shadowbias, float inp,
+        out float result)
 {
 	if (inp <= 0.0) {
 		result = 0.0;
@@ -2178,7 +2203,9 @@ void test_shadowbuf(vec3 rco, sampler2DShadow shadowmap, mat4 shadowpersmat, flo
 	}
 }
 
-void test_shadowbuf_vsm(vec3 rco, sampler2D shadowmap, mat4 shadowpersmat, float shadowbias, float bleedbias, float inp, out float result)
+void test_shadowbuf_vsm(
+        vec3 rco, sampler2D shadowmap, mat4 shadowpersmat, float shadowbias, float bleedbias, float inp,
+        out float result)
 {
 	if (inp <= 0.0) {
 		result = 0.0;
@@ -2210,7 +2237,10 @@ void test_shadowbuf_vsm(vec3 rco, sampler2D shadowmap, mat4 shadowpersmat, float
 	}
 }
 
-void shadows_only(vec3 rco, sampler2DShadow shadowmap, mat4 shadowpersmat, float shadowbias, vec3 shadowcolor, float inp, out vec3 result)
+void shadows_only(
+        vec3 rco, sampler2DShadow shadowmap, mat4 shadowpersmat,
+        float shadowbias, vec3 shadowcolor, float inp,
+        out vec3 result)
 {
 	result = vec3(1.0);
 
@@ -2222,7 +2252,10 @@ void shadows_only(vec3 rco, sampler2DShadow shadowmap, mat4 shadowpersmat, float
 	}
 }
 
-void shadows_only_vsm(vec3 rco, sampler2D shadowmap, mat4 shadowpersmat, float shadowbias, float bleedbias, vec3 shadowcolor, float inp, out vec3 result)
+void shadows_only_vsm(
+        vec3 rco, sampler2D shadowmap, mat4 shadowpersmat,
+        float shadowbias, float bleedbias, vec3 shadowcolor, float inp,
+        out vec3 result)
 {
 	result = vec3(1.0);
 
@@ -2247,7 +2280,9 @@ void shade_exposure_correct(vec3 col, float linfac, float logfac, out vec3 outco
 	outcol = linfac*(1.0 - exp(col*logfac));
 }
 
-void shade_mist_factor(vec3 co, float enable, float miststa, float mistdist, float misttype, float misi, out float outfac)
+void shade_mist_factor(
+        vec3 co, float enable, float miststa, float mistdist, float misttype, float misi,
+        out float outfac)
 {
 	if (enable == 1.0) {
 		float fac, zcor;
@@ -2437,7 +2472,9 @@ void node_bsdf_glossy(vec4 color, float roughness, vec3 N, out vec4 result)
 	result = vec4(L*color.rgb, 1.0);
 }
 
-void node_bsdf_anisotropic(vec4 color, float roughness, float anisotropy, float rotation, vec3 N, vec3 T, out vec4 result)
+void node_bsdf_anisotropic(
+        vec4 color, float roughness, float anisotropy, float rotation, vec3 N, vec3 T,
+        out vec4 result)
 {
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
@@ -2471,7 +2508,9 @@ void node_bsdf_velvet(vec4 color, float sigma, vec3 N, out vec4 result)
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
 
-void node_subsurface_scattering(vec4 color, float scale, vec3 radius, float sharpen, float texture_blur, vec3 N, out vec4 result)
+void node_subsurface_scattering(
+        vec4 color, float scale, vec3 radius, float sharpen, float texture_blur, vec3 N,
+        out vec4 result)
 {
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
@@ -3310,7 +3349,9 @@ float calc_wave(vec3 p, float distortion, float detail, float detail_scale, int 
 }
 #endif  // BIT_OPERATIONS
 
-void node_tex_wave(vec3 co, float scale, float distortion, float detail, float detail_scale, float wave_type, float wave_profile, out vec4 color, out float fac)
+void node_tex_wave(
+        vec3 co, float scale, float distortion, float detail, float detail_scale, float wave_type, float wave_profile,
+        out vec4 color, out float fac)
 {
 #ifdef BIT_OPERATIONS
 	float f;

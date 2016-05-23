@@ -55,83 +55,83 @@ void main()
 {
 #if defined(USE_STIPPLE)
 #if defined(DRAW_LINE)
-    /* GLSL 1.3 */
-    if (!bool((1 << int(mod(t, 16))) & stipple_pattern))
-        discard;
+	/* GLSL 1.3 */
+	if (!bool((1 << int(mod(t, 16))) & stipple_pattern))
+		discard;
 #else
-        /* We have to use mod function and integer casting.
-         * This can be optimized further with the bitwise operations
-         * when GLSL 1.3 is supported. */
-        if (stipple_id == STIPPLE_HALFTONE ||
-            stipple_id == STIPPLE_S3D_INTERLACE_CHECKERBOARD ||
-            stipple_id == STIPPLE_S3D_INTERLACE_CHECKERBOARD_SWAP)
-        {
-            int result = int(mod(gl_FragCoord.x + gl_FragCoord.y, 2));
-            bool dis = result == 0;
-            if (stipple_id == STIPPLE_S3D_INTERLACE_CHECKERBOARD_SWAP)
-                dis = !dis;
-            if (dis)
-                discard;
-        }
-        else if (stipple_id == STIPPLE_QUARTTONE) {
-            int mody = int(mod(gl_FragCoord.y, 4));
-            int modx = int(mod(gl_FragCoord.x, 4));
-            if (mody == 0) {
-                if (modx != 2)
-                    discard;
-            }
-            else if (mody == 2){
-                if (modx != 0)
-                    discard;
-            }
-            else
-                discard;
-        }
-        else if (stipple_id == STIPPLE_CHECKER_8PX) {
-            int result = int(mod(int(gl_FragCoord.x)/8 + int(gl_FragCoord.y)/8, 2));
-            if (result != 0)
-                discard;
-        }
-        else if (stipple_id == STIPPLE_DIAG_STRIPES) {
-            int mody = int(mod(gl_FragCoord.y, 16));
-            int modx = int(mod(gl_FragCoord.x, 16));
-            if ((16 - modx > mody && mody > 8 - modx) || mody > 24 - modx)
-                discard;
-        }
-        else if (stipple_id == STIPPLE_DIAG_STRIPES_SWAP) {
-            int mody = int(mod(gl_FragCoord.y, 16));
-            int modx = int(mod(gl_FragCoord.x, 16));
-            if (!((16 - modx > mody && mody > 8 - modx) || mody > 24 - modx))
-                discard;
-        }
-        else if (stipple_id == STIPPLE_S3D_INTERLACE_ROW || stipple_id == STIPPLE_S3D_INTERLACE_ROW_SWAP) {
-            int result = int(mod(gl_FragCoord.y, 2));
-            bool dis = result == 0;
-            if (stipple_id == STIPPLE_S3D_INTERLACE_ROW_SWAP)
-                dis = !dis;
-            if (dis)
-                discard;
-        }
-        else if (stipple_id == STIPPLE_S3D_INTERLACE_COLUMN || stipple_id == STIPPLE_S3D_INTERLACE_COLUMN_SWAP) {
-            int result = int(mod(gl_FragCoord.x, 2));
-            bool dis = result != 0;
-            if (stipple_id == STIPPLE_S3D_INTERLACE_COLUMN_SWAP)
-                dis = !dis;
-            if (dis)
-                discard;
-        }
-        else if (stipple_id == STIPPLE_HEXAGON) {
-            int mody = int(mod(gl_FragCoord.y, 2));
-            int modx = int(mod(gl_FragCoord.x, 4));
-            if (mody != 0) {
-                if (modx != 1)
-                    discard;
-            }
-            else {
-                if (modx != 3)
-                    discard;
-            }
-        }
+	/* We have to use mod function and integer casting.
+	 * This can be optimized further with the bitwise operations
+	 * when GLSL 1.3 is supported. */
+	if (stipple_id == STIPPLE_HALFTONE ||
+	    stipple_id == STIPPLE_S3D_INTERLACE_CHECKERBOARD ||
+	    stipple_id == STIPPLE_S3D_INTERLACE_CHECKERBOARD_SWAP)
+	{
+		int result = int(mod(gl_FragCoord.x + gl_FragCoord.y, 2));
+		bool dis = result == 0;
+		if (stipple_id == STIPPLE_S3D_INTERLACE_CHECKERBOARD_SWAP)
+			dis = !dis;
+		if (dis)
+			discard;
+	}
+	else if (stipple_id == STIPPLE_QUARTTONE) {
+		int mody = int(mod(gl_FragCoord.y, 4));
+		int modx = int(mod(gl_FragCoord.x, 4));
+		if (mody == 0) {
+			if (modx != 2)
+				discard;
+		}
+		else if (mody == 2) {
+			if (modx != 0)
+				discard;
+		}
+		else
+			discard;
+	}
+	else if (stipple_id == STIPPLE_CHECKER_8PX) {
+		int result = int(mod(int(gl_FragCoord.x)/8 + int(gl_FragCoord.y) / 8, 2));
+		if (result != 0)
+			discard;
+	}
+	else if (stipple_id == STIPPLE_DIAG_STRIPES) {
+		int mody = int(mod(gl_FragCoord.y, 16));
+		int modx = int(mod(gl_FragCoord.x, 16));
+		if ((16 - modx > mody && mody > 8 - modx) || mody > 24 - modx)
+			discard;
+	}
+	else if (stipple_id == STIPPLE_DIAG_STRIPES_SWAP) {
+		int mody = int(mod(gl_FragCoord.y, 16));
+		int modx = int(mod(gl_FragCoord.x, 16));
+		if (!((16 - modx > mody && mody > 8 - modx) || mody > 24 - modx))
+			discard;
+	}
+	else if (stipple_id == STIPPLE_S3D_INTERLACE_ROW || stipple_id == STIPPLE_S3D_INTERLACE_ROW_SWAP) {
+		int result = int(mod(gl_FragCoord.y, 2));
+		bool dis = result == 0;
+		if (stipple_id == STIPPLE_S3D_INTERLACE_ROW_SWAP)
+			dis = !dis;
+		if (dis)
+			discard;
+	}
+	else if (stipple_id == STIPPLE_S3D_INTERLACE_COLUMN || stipple_id == STIPPLE_S3D_INTERLACE_COLUMN_SWAP) {
+		int result = int(mod(gl_FragCoord.x, 2));
+		bool dis = result != 0;
+		if (stipple_id == STIPPLE_S3D_INTERLACE_COLUMN_SWAP)
+			dis = !dis;
+		if (dis)
+			discard;
+	}
+	else if (stipple_id == STIPPLE_HEXAGON) {
+		int mody = int(mod(gl_FragCoord.y, 2));
+		int modx = int(mod(gl_FragCoord.x, 4));
+		if (mody != 0) {
+			if (modx != 1)
+				discard;
+		}
+		else {
+			if (modx != 3)
+				discard;
+		}
+	}
 #endif /* !DRAW_LINE */
 #endif /* USE_STIPPLE */
 
