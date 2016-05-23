@@ -514,6 +514,9 @@ public:
 
 	void compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2);
 	virtual int get_group() { return NODE_GROUP_LEVEL_1; }
+	virtual int get_feature() {
+		return ShaderNode::get_feature() | NODE_FEATURE_VOLUME;
+	}
 
 	ClosureType closure;
 
