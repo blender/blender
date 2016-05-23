@@ -936,9 +936,9 @@ static void xml_read_mesh(const XMLReadState& state, pugi::xml_node node)
 			index_offset = 0;
 			for(size_t i = 0; i < nverts.size(); i++) {
 				for(int j = 0; j < nverts[i]-2; j++) {
-					int v0 = verts[index_offset];
-					int v1 = verts[index_offset + j + 1];
-					int v2 = verts[index_offset + j + 2];
+					int v0 = index_offset;
+					int v1 = index_offset + j + 1;
+					int v2 = index_offset + j + 2;
 
 					assert(v0*2+1 < (int)UV.size());
 					assert(v1*2+1 < (int)UV.size());
