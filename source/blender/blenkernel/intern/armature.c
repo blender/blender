@@ -475,7 +475,7 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 {
 	bPoseChannel *next, *prev;
 	Bone *bone = pchan->bone;
-	float h1[3], h2[3], scale[3], length, hlength1, hlength2, roll1 = 0.0f, roll2;
+	float h1[3], h2[3], scale[3], length, roll1 = 0.0f, roll2;
 	float mat3[3][3], imat[4][4], posemat[4][4], scalemat[4][4], iscalemat[4][4];
 	float data[MAX_BBONE_SUBDIV + 1][4], *fp;
 	int a;
@@ -495,9 +495,6 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 			do_scale = 1;
 		}
 	}
-
-	hlength1 = bone->ease1 * length * 0.390464f; /* 0.5f * sqrt(2) * kappa, the handle length for near-perfect circles */
-	hlength2 = bone->ease2 * length * 0.390464f;
 
 	/* get "next" and "prev" bones - these are used for handle calculations */
 	if (pchan->bboneflag & PCHAN_BBONE_CUSTOM_HANDLES) {
@@ -563,7 +560,7 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 		}
 
 		normalize_v3(h1);
-		mul_v3_fl(h1, -hlength1);
+		negate_v3(h1);
 
 		if (prev->bone->segments == 1) {
 			/* find the previous roll to interpolate */
@@ -582,7 +579,7 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 		}
 	}
 	else {
-		h1[0] = 0.0f; h1[1] = hlength1; h1[2] = 0.0f;
+		h1[0] = 0.0f; h1[1] = 1.0; h1[2] = 0.0f;
 		roll1 = 0.0f;
 	}
 	if (next) {
@@ -635,12 +632,20 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 
 		roll2 = atan2f(mat3[2][0], mat3[2][2]);
 
-		/* and only now negate handle */
-		mul_v3_fl(h2, -hlength2);
 	}
 	else {
-		h2[0] = 0.0f; h2[1] = -hlength2; h2[2] = 0.0f;
+		h2[0] = 0.0f; h2[1] = 1.0f; h2[2] = 0.0f;
 		roll2 = 0.0;
+	}
+
+	{
+		const float circle_factor = length * (cubic_tangent_factor_circle_v3(h1, h2) / 0.75f);
+		const float hlength1 = bone->ease1 * circle_factor;
+		const float hlength2 = bone->ease2 * circle_factor;
+
+		/* and only now negate h2 */
+		mul_v3_fl(h1,  hlength1);
+		mul_v3_fl(h2, -hlength2);
 	}
 
 	/* Add effects from bbone properties over the top
