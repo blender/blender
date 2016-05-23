@@ -30,10 +30,13 @@
 #include <string.h>
 
 #include "BLI_utildefines.h"
+#include "BLI_task.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+
+#include "atomic_ops.h"
 
 #include "sequencer_intern.h"
 
@@ -450,41 +453,57 @@ static void draw_histogram_bar(ImBuf *ibuf, int x, float val, int col)
 
 #define HIS_STEPS 512
 
+typedef struct MakeHistogramViewData {
+	const ImBuf *ibuf;
+	uint32_t (*bins)[HIS_STEPS];
+} MakeHistogramViewData;
+
+static void make_histogram_view_from_ibuf_byte_cb_ex(
+        void *userdata, void *userdata_chunk, const int y, const int UNUSED(threadid))
+{
+	MakeHistogramViewData *data = userdata;
+	const ImBuf *ibuf = data->ibuf;
+	const unsigned char *src = (unsigned char *)ibuf->rect;
+
+	uint32_t (*cur_bins)[HIS_STEPS] = userdata_chunk;
+
+	for (int x = 0; x < ibuf->x; x++) {
+		const unsigned char *pixel = src + (y * ibuf->x + x) * 4;
+
+		for (int j = 3; j--;) {
+			cur_bins[j][pixel[j]]++;
+		}
+	}
+}
+
+static void make_histogram_view_from_ibuf_finalize(void *userdata, void *userdata_chunk)
+{
+	MakeHistogramViewData *data = userdata;
+	uint32_t (*bins)[HIS_STEPS] = data->bins;
+
+	uint32_t (*cur_bins)[HIS_STEPS] = userdata_chunk;
+
+	for (int j = 3; j--;) {
+		for (int i = 0; i < HIS_STEPS; i++) {
+			bins[j][i] += cur_bins[j][i];
+		}
+	}
+}
+
 static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
 {
 	ImBuf *rval = IMB_allocImBuf(515, 128, 32, IB_rect);
-	int x, y;
+	int x;
 	unsigned int nr, ng, nb;
-	const unsigned char *src = (unsigned char *)ibuf->rect;
 
 	unsigned int bins[3][HIS_STEPS];
 
 	memset(bins, 0, sizeof(bins));
 
-#pragma omp parallel for shared(bins, src, ibuf) private(x, y) if (ibuf->y >= 256)
-	for (y = 0; y < ibuf->y; y++) {
-		unsigned int cur_bins[3][HIS_STEPS];
-
-		memset(cur_bins, 0, sizeof(cur_bins));
-
-		for (x = 0; x < ibuf->x; x++) {
-			const unsigned char *pixel = src + (y * ibuf->x + x) * 4;
-
-			cur_bins[0][pixel[0]]++;
-			cur_bins[1][pixel[1]]++;
-			cur_bins[2][pixel[2]]++;
-		}
-
-#pragma omp critical
-		{
-			int i;
-			for (i = 0; i < HIS_STEPS; i++) {
-				bins[0][i] += cur_bins[0][i];
-				bins[1][i] += cur_bins[1][i];
-				bins[2][i] += cur_bins[2][i];
-			}
-		}
-	}
+	MakeHistogramViewData data = {.ibuf = ibuf, .bins = bins};
+	BLI_task_parallel_range_finalize(
+	            0, ibuf->y, &data, bins, sizeof(bins), make_histogram_view_from_ibuf_byte_cb_ex,
+	            make_histogram_view_from_ibuf_finalize, ibuf->y >= 256, false);
 
 	nr = nb = ng = 0;
 	for (x = 0; x < HIS_STEPS; x++) {
@@ -528,40 +547,38 @@ BLI_INLINE int get_bin_float(float f)
 	return (int) (((f + 0.25f) / 1.5f) * 512);
 }
 
+static void make_histogram_view_from_ibuf_float_cb_ex(
+        void *userdata, void *userdata_chunk, const int y, const int UNUSED(threadid))
+{
+	const MakeHistogramViewData *data = userdata;
+	const ImBuf *ibuf = data->ibuf;
+	const float *src = ibuf->rect_float;
+
+	uint32_t (*cur_bins)[HIS_STEPS] = userdata_chunk;
+
+	for (int x = 0; x < ibuf->x; x++) {
+		const float *pixel = src + (y * ibuf->x + x) * 4;
+
+		for (int j = 3; j--;) {
+			cur_bins[j][get_bin_float(pixel[j])]++;
+		}
+	}
+}
+
 static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 {
 	ImBuf *rval = IMB_allocImBuf(515, 128, 32, IB_rect);
-	int nr, ng, nb, x, y;
-	const float *src = ibuf->rect_float;
+	int nr, ng, nb;
+	int x;
 
 	unsigned int bins[3][HIS_STEPS];
 
 	memset(bins, 0, sizeof(bins));
 
-#pragma omp parallel for shared(bins, src, ibuf) private(x, y) if (ibuf->y >= 256)
-	for (y = 0; y < ibuf->y; y++) {
-		unsigned int cur_bins[3][HIS_STEPS];
-
-		memset(cur_bins, 0, sizeof(cur_bins));
-
-		for (x = 0; x < ibuf->x; x++) {
-			const float *pixel = src + (y * ibuf->x + x) * 4;
-
-			cur_bins[0][get_bin_float(pixel[0])]++;
-			cur_bins[1][get_bin_float(pixel[1])]++;
-			cur_bins[2][get_bin_float(pixel[2])]++;
-		}
-
-#pragma omp critical
-		{
-			int i;
-			for (i = 0; i < HIS_STEPS; i++) {
-				bins[0][i] += cur_bins[0][i];
-				bins[1][i] += cur_bins[1][i];
-				bins[2][i] += cur_bins[2][i];
-			}
-		}
-	}
+	MakeHistogramViewData data = {.ibuf = ibuf, .bins = bins};
+	BLI_task_parallel_range_finalize(
+	            0, ibuf->y, &data, bins, sizeof(bins), make_histogram_view_from_ibuf_float_cb_ex,
+	            make_histogram_view_from_ibuf_finalize, ibuf->y >= 256, false);
 
 	nr = nb = ng = 0;
 	for (x = 0; x < HIS_STEPS; x++) {
