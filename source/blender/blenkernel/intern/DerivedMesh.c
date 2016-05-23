@@ -3791,17 +3791,17 @@ void DM_draw_attrib_vertex(DMVertexAttribs *attribs, int a, int index, int vert,
 
 	/* vertex colors */
 	for (b = 0; b < attribs->totmcol; b++) {
-		GLubyte col[4];
+		GLfloat col[4];
 
 		if (attribs->mcol[b].array) {
 			const MLoopCol *cp = &attribs->mcol[b].array[loop];
-			copy_v4_v4_uchar(col, &cp->r);
+			rgba_uchar_to_float(col, &cp->r);
 		}
 		else {
-			col[0] = 0; col[1] = 0; col[2] = 0; col[3] = 0;
+			zero_v4(col);
 		}
 
-		glVertexAttrib4ubv(attribs->mcol[b].gl_index, col);
+		glVertexAttrib4fv(attribs->mcol[b].gl_index, col);
 	}
 
 	/* tangent for normal mapping */
