@@ -126,8 +126,6 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ShaderData *shadow_sd, 
 				/* stop if all light is blocked */
 				if(is_zero(throughput)) {
 					/* free dynamic storage */
-					if(hits != hits_stack)
-						free(hits);
 					return true;
 				}
 
