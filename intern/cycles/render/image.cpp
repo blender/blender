@@ -60,8 +60,8 @@ ImageManager::ImageManager(const DeviceInfo& info)
 		tex_image_byte_start = TEX_IMAGE_BYTE_START_CPU;
 	}
 	/* CUDA */
-	else if(device_type == DEVICE_CUDA && !info.has_bindless_textures) {
-		if(info.has_bindless_textures) {
+	else if(device_type == DEVICE_CUDA) {
+		if(!info.has_bindless_textures) {
 			/* Fermi */
 			tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_IMAGES_CUDA_KEPLER;
 			tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_CUDA_KEPLER;
