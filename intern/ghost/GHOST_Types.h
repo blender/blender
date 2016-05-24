@@ -249,6 +249,7 @@ typedef enum {
 	GHOST_kKeyQuote  = 0x27,
 	GHOST_kKeyComma  = ',',
 	GHOST_kKeyMinus  = '-',
+	GHOST_kKeyPlus   = '+',
 	GHOST_kKeyPeriod = '.',
 	GHOST_kKeySlash  = '/',
 

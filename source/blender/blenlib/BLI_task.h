@@ -21,6 +21,9 @@
 #ifndef __BLI_TASK_H__
 #define __BLI_TASK_H__ 
 
+struct Link;
+struct ListBase;
+
 /** \file BLI_task.h
  *  \ingroup bli
  */
@@ -84,7 +87,9 @@ void BLI_task_pool_push_ex(
         TaskPool *pool, TaskRunFunction run, void *taskdata,
         bool free_taskdata, TaskFreeFunction freedata, TaskPriority priority);
 void BLI_task_pool_push(TaskPool *pool, TaskRunFunction run,
-	void *taskdata, bool free_taskdata, TaskPriority priority);
+        void *taskdata, bool free_taskdata, TaskPriority priority);
+void BLI_task_pool_push_from_thread(TaskPool *pool, TaskRunFunction run,
+        void *taskdata, bool free_taskdata, TaskPriority priority, int thread_id);
 
 /* work and wait until all tasks are done */
 void BLI_task_pool_work_and_wait(TaskPool *pool);
@@ -114,17 +119,38 @@ size_t BLI_task_pool_tasks_done(TaskPool *pool);
 /* Parallel for routines */
 typedef void (*TaskParallelRangeFunc)(void *userdata, const int iter);
 typedef void (*TaskParallelRangeFuncEx)(void *userdata, void *userdata_chunk, const int iter, const int thread_id);
+typedef void (*TaskParallelRangeFuncFinalize)(void *userdata, void *userdata_chunk);
 void BLI_task_parallel_range_ex(
         int start, int stop,
         void *userdata,
         void *userdata_chunk,
-        const size_t userdata_chunk_size, TaskParallelRangeFuncEx func_ex,
+        const size_t userdata_chunk_size,
+        TaskParallelRangeFuncEx func_ex,
         const bool use_threading,
         const bool use_dynamic_scheduling);
 void BLI_task_parallel_range(
         int start, int stop,
         void *userdata,
         TaskParallelRangeFunc func,
+        const bool use_threading);
+
+void BLI_task_parallel_range_finalize(
+        int start, int stop,
+        void *userdata,
+        void *userdata_chunk,
+        const size_t userdata_chunk_size,
+        TaskParallelRangeFuncEx func_ex,
+        TaskParallelRangeFuncFinalize func_finalize,
+        const bool use_threading,
+        const bool use_dynamic_scheduling);
+
+typedef void (*TaskParallelListbaseFunc)(void *userdata,
+                                         struct Link *iter,
+                                         int index);
+void BLI_task_parallel_listbase(
+        struct ListBase *listbase,
+        void *userdata,
+        TaskParallelListbaseFunc func,
         const bool use_threading);
 
 #ifdef __cplusplus

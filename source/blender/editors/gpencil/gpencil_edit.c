@@ -170,6 +170,11 @@ static void gp_duplicate_points(const bGPDstroke *gps, ListBase *new_strokes)
 				/* make a stupid copy first of the entire stroke (to get the flags too) */
 				gpsd = MEM_dupallocN(gps);
 				
+				/* initialize triangle memory - will be calculated on next redraw */
+				gpsd->triangles = NULL;
+				gpsd->flag |= GP_STROKE_RECALC_CACHES;
+				gpsd->tot_triangles = 0;
+				
 				/* now, make a new points array, and copy of the relevant parts */
 				gpsd->points = MEM_callocN(sizeof(bGPDspoint) * len, "gps stroke points copy");
 				memcpy(gpsd->points, gps->points + start_idx, sizeof(bGPDspoint) * len);
@@ -222,6 +227,10 @@ static int gp_duplicate_exec(bContext *C, wmOperator *op)
 					/* make direct copies of the stroke and its points */
 					gpsd = MEM_dupallocN(gps);
 					gpsd->points = MEM_dupallocN(gps->points);
+					
+					/* triangle information - will be calculated on next redraw */
+					gpsd->flag |= GP_STROKE_RECALC_CACHES;
+					gpsd->triangles = NULL;
 					
 					/* add to temp buffer */
 					gpsd->next = gpsd->prev = NULL;
@@ -287,11 +296,13 @@ void ED_gpencil_strokes_copybuf_free(void)
 	for (gps = gp_strokes_copypastebuf.first; gps; gps = gpsn) {
 		gpsn = gps->next;
 		
-		MEM_freeN(gps->points);
+		if (gps->points)    MEM_freeN(gps->points);
+		if (gps->triangles) MEM_freeN(gps->triangles);
+		
 		BLI_freelinkN(&gp_strokes_copypastebuf, gps);
 	}
 	
-	BLI_listbase_clear(&gp_strokes_copypastebuf);
+	gp_strokes_copypastebuf.first = gp_strokes_copypastebuf.last = NULL;
 }
 
 /* --------------------- */
@@ -336,6 +347,11 @@ static int gp_strokes_copy_exec(bContext *C, wmOperator *op)
 					gpsd = MEM_dupallocN(gps);
 					gpsd->points = MEM_dupallocN(gps->points);
 					
+					/* triangles cache - will be recalculated on next redraw */
+					gpsd->flag |= GP_STROKE_RECALC_CACHES;
+					gpsd->tot_triangles = 0;
+					gpsd->triangles = NULL;
+					
 					/* add to temp buffer */
 					gpsd->next = gpsd->prev = NULL;
 					BLI_addtail(&gp_strokes_copypastebuf, gpsd);
@@ -370,6 +386,14 @@ void GPENCIL_OT_copy(wmOperatorType *ot)
 
 /* --------------------- */
 /* Paste selected strokes */
+
+static int gp_strokes_paste_poll(bContext *C)
+{
+	/* 1) Must have GP layer to paste to...
+	 * 2) Copy buffer must at least have something (though it may be the wrong sort...)
+	 */
+	return (CTX_data_active_gpencil_layer(C) != NULL) && (!BLI_listbase_is_empty(&gp_strokes_copypastebuf));
+}
 
 static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 {
@@ -450,8 +474,11 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 				bGPDstroke *new_stroke = MEM_dupallocN(gps);
 				
 				new_stroke->points = MEM_dupallocN(gps->points);
-				new_stroke->next = new_stroke->prev = NULL;
 				
+				new_stroke->flag |= GP_STROKE_RECALC_CACHES;
+				new_stroke->triangles = NULL;
+				
+				new_stroke->next = new_stroke->prev = NULL;
 				BLI_addtail(&gpf->strokes, new_stroke);
 			}
 		}
@@ -472,7 +499,7 @@ void GPENCIL_OT_paste(wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec = gp_strokes_paste_exec;
-	ot->poll = gp_stroke_edit_poll;
+	ot->poll = gp_strokes_paste_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -672,6 +699,7 @@ static int gp_delete_selected_strokes(bContext *C)
 			if (gps->flag & GP_STROKE_SELECT) {
 				/* free stroke memory arrays, then stroke itself */
 				if (gps->points) MEM_freeN(gps->points);
+				if (gps->triangles) MEM_freeN(gps->triangles);
 				BLI_freelinkN(&gpf->strokes, gps);
 				
 				changed = true;
@@ -732,6 +760,9 @@ static int gp_dissolve_selected_points(bContext *C)
 				if (tot <= 0) {
 					/* remove the entire stroke */
 					MEM_freeN(gps->points);
+					if (gps->triangles) {
+						MEM_freeN(gps->triangles);
+					}
 					BLI_freelinkN(&gpf->strokes, gps);
 				}
 				else {
@@ -752,6 +783,10 @@ static int gp_dissolve_selected_points(bContext *C)
 					/* save the new buffer */
 					gps->points = new_points;
 					gps->totpoints = tot;
+					
+					/* triangles cache needs to be recalculated */
+					gps->flag |= GP_STROKE_RECALC_CACHES;
+					gps->tot_triangles = 0;
 					
 					/* deselect the stroke, since none of its selected points will still be selected */
 					gps->flag &= ~GP_STROKE_SELECT;
@@ -842,6 +877,11 @@ void gp_stroke_delete_tagged_points(bGPDframe *gpf, bGPDstroke *gps, bGPDstroke 
 			tGPDeleteIsland *island = &islands[idx];
 			bGPDstroke *new_stroke  = MEM_dupallocN(gps);
 			
+			/* initialize triangle memory  - to be calculated on next redraw */
+			new_stroke->triangles = NULL;
+			new_stroke->flag |= GP_STROKE_RECALC_CACHES;
+			new_stroke->tot_triangles = 0;
+			
 			/* Compute new buffer size (+ 1 needed as the endpoint index is "inclusive") */
 			new_stroke->totpoints = island->end_idx - island->start_idx + 1;
 			new_stroke->points    = MEM_callocN(sizeof(bGPDspoint) * new_stroke->totpoints, "gp delete stroke fragment");
@@ -886,6 +926,9 @@ void gp_stroke_delete_tagged_points(bGPDframe *gpf, bGPDstroke *gps, bGPDstroke 
 	
 	/* Delete the old stroke */
 	MEM_freeN(gps->points);
+	if (gps->triangles) {
+		MEM_freeN(gps->triangles);
+	}
 	BLI_freelinkN(&gpf->strokes, gps);
 }
 

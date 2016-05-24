@@ -49,6 +49,8 @@
 #include "BLI_uvproject.h"
 #include "BLI_string.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_cdderivedmesh.h"
 #include "BKE_subsurf.h"
 #include "BKE_context.h"
@@ -61,6 +63,8 @@
 #include "BKE_editmesh.h"
 
 #include "PIL_time.h"
+
+#include "UI_interface.h"
 
 #include "ED_image.h"
 #include "ED_mesh.h"
@@ -554,12 +558,13 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
 	RNA_int_set(op->ptr, "iterations", ms->i);
 
 	if (interactive && (PIL_check_seconds_timer() - ms->lasttime > 0.5)) {
-		char str[100];
+		char str[UI_MAX_DRAW_STR];
 
 		param_flush(ms->handle);
 
 		if (sa) {
-			BLI_snprintf(str, sizeof(str), "Minimize Stretch. Blend %.2f (Press + and -, or scroll wheel to set)", ms->blend);
+			BLI_snprintf(str, sizeof(str),
+			             IFACE_("Minimize Stretch. Blend %.2f (Press + and -, or scroll wheel to set)"), ms->blend);
 			ED_area_headerprint(sa, str);
 		}
 

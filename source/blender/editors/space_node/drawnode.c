@@ -1953,6 +1953,7 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext *UNUSED(C
 		uiTemplateColorPicker(col, ptr, "offset", 1, 1, 0, 1);
 		row = uiLayoutRow(col, false);
 		uiItemR(row, ptr, "offset", 0, NULL, ICON_NONE);
+		uiItemR(col, ptr, "offset_basis", 0, NULL, ICON_NONE);
 		
 		col = uiLayoutColumn(split, false);
 		uiTemplateColorPicker(col, ptr, "power", 1, 1, 0, 1);

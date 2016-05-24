@@ -35,6 +35,8 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_unit.h"
 #include "BKE_gpencil.h"
@@ -47,6 +49,7 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_transform.h"
+#include "ED_transform_snap_object_context.h"
 #include "ED_space_api.h"
 
 #include "BLF_api.h"
@@ -719,13 +722,13 @@ static bool view3d_ruler_item_mousemove(
 
 static void view3d_ruler_header_update(ScrArea *sa)
 {
-	const char *text = "Ctrl+LMB: Add, "
-	                   "Del: Remove, "
-	                   "Ctrl+Drag: Snap, "
-	                   "Shift+Drag: Thickness, "
-	                   "Ctrl+C: Copy Value, "
-	                   "Enter: Store,  "
-	                   "Esc: Cancel";
+	const char *text = IFACE_("Ctrl+LMB: Add, "
+	                          "Del: Remove, "
+	                          "Ctrl+Drag: Snap, "
+	                          "Shift+Drag: Thickness, "
+	                          "Ctrl+C: Copy Value, "
+	                          "Enter: Store,  "
+	                          "Esc: Cancel");
 
 	ED_area_headerprint(sa, text);
 }

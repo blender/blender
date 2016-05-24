@@ -132,7 +132,9 @@ BVHTreeOverlap *BLI_bvhtree_overlap(
         const BVHTree *tree1, const BVHTree *tree2, unsigned int *r_overlap_tot,
         BVHTree_OverlapCallback callback, void *userdata);
 
-float BLI_bvhtree_getepsilon(const BVHTree *tree);
+int   BLI_bvhtree_get_size(const BVHTree *tree);
+
+float BLI_bvhtree_get_epsilon(const BVHTree *tree);
 
 /* find nearest node to the given coordinates
  * (if nearest is given it will only search nodes where square distance is smaller than nearest->dist) */
@@ -152,12 +154,12 @@ int BLI_bvhtree_ray_cast(
         BVHTree *tree, const float co[3], const float dir[3], float radius, BVHTreeRayHit *hit,
         BVHTree_RayCastCallback callback, void *userdata);
 
-int BLI_bvhtree_ray_cast_all_ex(
-        BVHTree *tree, const float co[3], const float dir[3], float radius,
+void BLI_bvhtree_ray_cast_all_ex(
+        BVHTree *tree, const float co[3], const float dir[3], float radius, float hit_dist,
         BVHTree_RayCastCallback callback, void *userdata,
         int flag);
-int BLI_bvhtree_ray_cast_all(
-        BVHTree *tree, const float co[3], const float dir[3], float radius,
+void BLI_bvhtree_ray_cast_all(
+        BVHTree *tree, const float co[3], const float dir[3], float radius, float hit_dist,
         BVHTree_RayCastCallback callback, void *userdata);
 
 float BLI_bvhtree_bb_raycast(const float bv[6], const float light_start[3], const float light_end[3], float pos[3]);

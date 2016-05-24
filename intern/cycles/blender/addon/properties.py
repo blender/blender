@@ -359,7 +359,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Distance between volume shader samples when rendering the volume "
                             "(lower values give more accurate and detailed results, but also increased render time)",
                 default=0.1,
-                min=0.0000001, max=100000.0, soft_min=0.01, soft_max=1.0
+                min=0.0000001, max=100000.0, soft_min=0.01, soft_max=1.0, precision=4
                 )
 
         cls.volume_max_steps = IntProperty(
@@ -593,6 +593,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         cls.debug_use_cpu_sse3 = BoolProperty(name="SSE3", default=True)
         cls.debug_use_cpu_sse2 = BoolProperty(name="SSE2", default=True)
         cls.debug_use_qbvh = BoolProperty(name="QBVH", default=True)
+
+        cls.debug_use_cuda_adaptive_compile = BoolProperty(name="Adaptive Compile", default=False)
 
         cls.debug_opencl_kernel_type = EnumProperty(
             name="OpenCL Kernel Type",

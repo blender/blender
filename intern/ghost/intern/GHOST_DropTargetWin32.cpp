@@ -75,7 +75,7 @@ HRESULT __stdcall GHOST_DropTargetWin32::QueryInterface(REFIID riid, void **ppvO
 		return S_OK;
 	}
 	else {
-		*ppvObj = 0;
+		*ppvObj = NULL;
 		return E_NOINTERFACE;
 	}
 }
@@ -97,8 +97,7 @@ ULONG __stdcall GHOST_DropTargetWin32::Release(void)
 {
 	ULONG refs = ::InterlockedDecrement(&m_cRef);
 		
-	if (refs == 0)
-	{
+	if (refs == 0) {
 		delete this;
 		return 0;
 	}

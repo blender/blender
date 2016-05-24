@@ -237,6 +237,13 @@ typedef struct View3D {
 	float stereo3d_convergence_factor;
 	float stereo3d_volume_alpha;
 	float stereo3d_convergence_alpha;
+
+	/* Previous viewport draw type.
+	 * Runtime-only, set in the rendered viewport otggle operator.
+	 */
+	short prev_drawtype;
+	short pad1;
+	float pad2;
 } View3D;
 
 

@@ -26,6 +26,8 @@
 #include "attribute.h"
 #include "kernel_types.h"
 
+#include "node.h"
+
 #include "util_map.h"
 #include "util_param.h"
 #include "util_string.h"
@@ -70,10 +72,10 @@ enum VolumeInterpolation {
  * volume and displacement, that the shader manager will compile and execute
  * separately. */
 
-class Shader {
+class Shader : public Node {
 public:
-	/* name */
-	string name;
+	NODE_DECLARE;
+
 	int pass_id;
 
 	/* shader graph */
@@ -112,6 +114,7 @@ public:
 	AttributeRequestSet attributes;
 
 	/* determined before compiling */
+	uint id;
 	bool used;
 
 #ifdef WITH_OSL
@@ -159,7 +162,7 @@ public:
 	uint get_attribute_id(AttributeStandard std);
 
 	/* get shader id for mesh faces */
-	int get_shader_id(uint shader, Mesh *mesh = NULL, bool smooth = false);
+	int get_shader_id(Shader *shader, Mesh *mesh = NULL, bool smooth = false);
 
 	/* add default shaders to scene, to use as default for things that don't
 	 * have any shader assigned explicitly */

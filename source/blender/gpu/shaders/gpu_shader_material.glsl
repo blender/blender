@@ -16,17 +16,17 @@ float exp_blender(float f)
 
 float compatible_pow(float x, float y)
 {
-	if(y == 0.0) /* x^0 -> 1, including 0^0 */
+	if (y == 0.0) /* x^0 -> 1, including 0^0 */
 		return 1.0;
 
 	/* glsl pow doesn't accept negative x */
-	if(x < 0.0) {
-		if(mod(-y, 2.0) == 0.0)
+	if (x < 0.0) {
+		if (mod(-y, 2.0) == 0.0)
 			return pow(-x, y);
 		else
 			return -pow(-x, y);
 	}
-	else if(x == 0.0)
+	else if (x == 0.0)
 		return 0.0;
 
 	return pow(x, y);
@@ -77,11 +77,11 @@ void hsv_to_rgb(vec4 hsv, out vec4 outcol)
 	s = hsv[1];
 	v = hsv[2];
 
-	if(s==0.0) {
+	if (s==0.0) {
 		rgb = vec3(v, v, v);
 	}
 	else {
-		if(h==1.0)
+		if (h==1.0)
 			h = 0.0;
 		
 		h *= 6.0;
@@ -105,7 +105,7 @@ void hsv_to_rgb(vec4 hsv, out vec4 outcol)
 
 float srgb_to_linearrgb(float c)
 {
-	if(c < 0.04045)
+	if (c < 0.04045)
 		return (c < 0.0) ? 0.0: c * (1.0 / 12.92);
 	else
 		return pow((c + 0.055)*(1.0/1.055), 2.4);
@@ -113,7 +113,7 @@ float srgb_to_linearrgb(float c)
 
 float linearrgb_to_srgb(float c)
 {
-	if(c < 0.0031308)
+	if (c < 0.0031308)
 		return (c < 0.0) ? 0.0: c * 12.92;
 	else
 		return 1.055 * pow(c, 1.0/2.4) - 0.055;
@@ -142,6 +142,20 @@ void color_to_normal(vec3 color, out vec3 normal)
 	normal.z =  2.0 * ((color.b) - 0.5);
 }
 
+void color_to_normal_new_shading(vec3 color, out vec3 normal)
+{
+	normal.x =  2.0 * ((color.r) - 0.5);
+	normal.y =  2.0 * ((color.g) - 0.5);
+	normal.z =  2.0 * ((color.b) - 0.5);
+}
+
+void color_to_blender_normal_new_shading(vec3 color, out vec3 normal)
+{
+	normal.x =  2.0 * ((color.r) - 0.5);
+	normal.y = -2.0 * ((color.g) - 0.5);
+	normal.z = -2.0 * ((color.b) - 0.5);
+}
+
 #define M_PI 3.14159265358979323846
 #define M_1_PI 0.31830988618379069
 
@@ -149,7 +163,7 @@ void color_to_normal(vec3 color, out vec3 normal)
 
 void vcol_attribute(vec4 attvcol, out vec4 vcol)
 {
-	vcol = vec4(attvcol.x/255.0, attvcol.y/255.0, attvcol.z/255.0, 1.0);
+	vcol = vec4(attvcol.x, attvcol.y, attvcol.z, 1.0);
 }
 
 void uv_attribute(vec2 attuv, out vec3 uv)
@@ -157,7 +171,10 @@ void uv_attribute(vec2 attuv, out vec3 uv)
 	uv = vec3(attuv*2.0 - vec2(1.0, 1.0), 0.0);
 }
 
-void geom(vec3 co, vec3 nor, mat4 viewinvmat, vec3 attorco, vec2 attuv, vec4 attvcol, out vec3 global, out vec3 local, out vec3 view, out vec3 orco, out vec3 uv, out vec3 normal, out vec4 vcol, out float vcol_alpha, out float frontback)
+void geom(
+        vec3 co, vec3 nor, mat4 viewinvmat, vec3 attorco, vec2 attuv, vec4 attvcol,
+        out vec3 global, out vec3 local, out vec3 view, out vec3 orco, out vec3 uv,
+        out vec3 normal, out vec4 vcol, out float vcol_alpha, out float frontback)
 {
 	local = co;
 	view = (gl_ProjectionMatrix[3][3] == 0.0)? normalize(local): vec3(0.0, 0.0, -1.0);
@@ -171,16 +188,19 @@ void geom(vec3 co, vec3 nor, mat4 viewinvmat, vec3 attorco, vec2 attuv, vec4 att
 	frontback = (gl_FrontFacing)? 1.0: 0.0;
 }
 
-void particle_info(vec4 sprops, vec3 loc, vec3 vel, vec3 avel, out float index, out float age, out float life_time, out vec3 location, out float size, out vec3 velocity, out vec3 angular_velocity)
+void particle_info(
+        vec4 sprops, vec3 loc, vec3 vel, vec3 avel,
+        out float index, out float age, out float life_time, out vec3 location,
+        out float size, out vec3 velocity, out vec3 angular_velocity)
 {
-    index = sprops.x;
-    age = sprops.y;
-    life_time = sprops.z;
-    size = sprops.w;
+	index = sprops.x;
+	age = sprops.y;
+	life_time = sprops.z;
+	size = sprops.w;
 
-    location = loc;
-    velocity = vel;
-    angular_velocity = avel;
+	location = loc;
+	velocity = vel;
+	angular_velocity = avel;
 }
 
 void vect_normalize(vec3 vin, out vec3 vout)
@@ -201,9 +221,9 @@ void point_transform_m4v3(vec3 vin, mat4 mat, out vec3 vout)
 void mapping(vec3 vec, mat4 mat, vec3 minvec, vec3 maxvec, float domin, float domax, out vec3 outvec)
 {
 	outvec = (mat * vec4(vec, 1.0)).xyz;
-	if(domin == 1.0)
+	if (domin == 1.0)
 		outvec = max(outvec, minvec);
-	if(domax == 1.0)
+	if (domax == 1.0)
 		outvec = min(outvec, maxvec);
 }
 
@@ -214,7 +234,9 @@ void camera(vec3 co, out vec3 outview, out float outdepth, out float outdist)
 	outview = normalize(co);
 }
 
-void lamp(vec4 col, float energy, vec3 lv, float dist, vec3 shadow, float visifac, out vec4 outcol, out vec3 outlv, out float outdist, out vec4 outshadow, out float outvisifac)
+void lamp(
+        vec4 col, float energy, vec3 lv, float dist, vec3 shadow, float visifac,
+        out vec4 outcol, out vec3 outlv, out float outdist, out vec4 outshadow, out float outvisifac)
 {
 	outcol = col * energy;
 	outlv = lv;
@@ -299,7 +321,7 @@ void math_pow(float val1, float val2, out float outval)
 
 void math_log(float val1, float val2, out float outval)
 {
-	if(val1 > 0.0  && val2 > 0.0)
+	if (val1 > 0.0  && val2 > 0.0)
 		outval= log2(val1) / log2(val2);
 	else
 		outval= 0.0;
@@ -322,7 +344,7 @@ void math_round(float val, out float outval)
 
 void math_less_than(float val1, float val2, out float outval)
 {
-	if(val1 < val2)
+	if (val1 < val2)
 		outval = 1.0;
 	else
 		outval = 0.0;
@@ -330,7 +352,7 @@ void math_less_than(float val1, float val2, out float outval)
 
 void math_greater_than(float val1, float val2, out float outval)
 {
-	if(val1 > val2)
+	if (val1 > val2)
 		outval = 1.0;
 	else
 		outval = 0.0;
@@ -350,7 +372,7 @@ void math_modulo(float val1, float val2, out float outval)
 
 void math_abs(float val1, out float outval)
 {
-    outval = abs(val1);
+	outval = abs(val1);
 }
 
 void squeeze(float val, float width, float center, out float outval)
@@ -407,8 +429,8 @@ void vec_math_negate(vec3 v, out vec3 outv)
 
 void invert_z(vec3 v, out vec3 outv)
 {
-        v.z = -v.z;
-        outv = v;
+	v.z = -v.z;
+	outv = v;
 }
 
 void normal(vec3 dir, vec3 nor, out vec3 outnor, out float outdot)
@@ -539,17 +561,17 @@ void mix_overlay(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 
 	outcol = col1;
 
-	if(outcol.r < 0.5)
+	if (outcol.r < 0.5)
 		outcol.r *= facm + 2.0*fac*col2.r;
 	else
 		outcol.r = 1.0 - (facm + 2.0*fac*(1.0 - col2.r))*(1.0 - outcol.r);
 
-	if(outcol.g < 0.5)
+	if (outcol.g < 0.5)
 		outcol.g *= facm + 2.0*fac*col2.g;
 	else
 		outcol.g = 1.0 - (facm + 2.0*fac*(1.0 - col2.g))*(1.0 - outcol.g);
 
-	if(outcol.b < 0.5)
+	if (outcol.b < 0.5)
 		outcol.b *= facm + 2.0*fac*col2.b;
 	else
 		outcol.b = 1.0 - (facm + 2.0*fac*(1.0 - col2.b))*(1.0 - outcol.b);
@@ -569,9 +591,9 @@ void mix_div(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 
 	outcol = col1;
 
-	if(col2.r != 0.0) outcol.r = facm*outcol.r + fac*outcol.r/col2.r;
-	if(col2.g != 0.0) outcol.g = facm*outcol.g + fac*outcol.g/col2.g;
-	if(col2.b != 0.0) outcol.b = facm*outcol.b + fac*outcol.b/col2.b;
+	if (col2.r != 0.0) outcol.r = facm*outcol.r + fac*outcol.r/col2.r;
+	if (col2.g != 0.0) outcol.g = facm*outcol.g + fac*outcol.g/col2.g;
+	if (col2.b != 0.0) outcol.b = facm*outcol.b + fac*outcol.b/col2.b;
 }
 
 void mix_diff(float fac, vec4 col1, vec4 col2, out vec4 outcol)
@@ -600,29 +622,29 @@ void mix_dodge(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 	fac = clamp(fac, 0.0, 1.0);
 	outcol = col1;
 
-	if(outcol.r != 0.0) {
+	if (outcol.r != 0.0) {
 		float tmp = 1.0 - fac*col2.r;
-		if(tmp <= 0.0)
+		if (tmp <= 0.0)
 			outcol.r = 1.0;
-		else if((tmp = outcol.r/tmp) > 1.0)
+		else if ((tmp = outcol.r/tmp) > 1.0)
 			outcol.r = 1.0;
 		else
 			outcol.r = tmp;
 	}
-	if(outcol.g != 0.0) {
+	if (outcol.g != 0.0) {
 		float tmp = 1.0 - fac*col2.g;
-		if(tmp <= 0.0)
+		if (tmp <= 0.0)
 			outcol.g = 1.0;
-		else if((tmp = outcol.g/tmp) > 1.0)
+		else if ((tmp = outcol.g/tmp) > 1.0)
 			outcol.g = 1.0;
 		else
 			outcol.g = tmp;
 	}
-	if(outcol.b != 0.0) {
+	if (outcol.b != 0.0) {
 		float tmp = 1.0 - fac*col2.b;
-		if(tmp <= 0.0)
+		if (tmp <= 0.0)
 			outcol.b = 1.0;
-		else if((tmp = outcol.b/tmp) > 1.0)
+		else if ((tmp = outcol.b/tmp) > 1.0)
 			outcol.b = 1.0;
 		else
 			outcol.b = tmp;
@@ -637,31 +659,31 @@ void mix_burn(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 	outcol = col1;
 
 	tmp = facm + fac*col2.r;
-	if(tmp <= 0.0)
+	if (tmp <= 0.0)
 		outcol.r = 0.0;
-	else if((tmp = (1.0 - (1.0 - outcol.r)/tmp)) < 0.0)
+	else if ((tmp = (1.0 - (1.0 - outcol.r)/tmp)) < 0.0)
 		outcol.r = 0.0;
-	else if(tmp > 1.0)
+	else if (tmp > 1.0)
 		outcol.r = 1.0;
 	else
 		outcol.r = tmp;
 
 	tmp = facm + fac*col2.g;
-	if(tmp <= 0.0)
+	if (tmp <= 0.0)
 		outcol.g = 0.0;
-	else if((tmp = (1.0 - (1.0 - outcol.g)/tmp)) < 0.0)
+	else if ((tmp = (1.0 - (1.0 - outcol.g)/tmp)) < 0.0)
 		outcol.g = 0.0;
-	else if(tmp > 1.0)
+	else if (tmp > 1.0)
 		outcol.g = 1.0;
 	else
 		outcol.g = tmp;
 
 	tmp = facm + fac*col2.b;
-	if(tmp <= 0.0)
+	if (tmp <= 0.0)
 		outcol.b = 0.0;
-	else if((tmp = (1.0 - (1.0 - outcol.b)/tmp)) < 0.0)
+	else if ((tmp = (1.0 - (1.0 - outcol.b)/tmp)) < 0.0)
 		outcol.b = 0.0;
-	else if(tmp > 1.0)
+	else if (tmp > 1.0)
 		outcol.b = 1.0;
 	else
 		outcol.b = tmp;
@@ -677,7 +699,7 @@ void mix_hue(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 	vec4 hsv, hsv2, tmp;
 	rgb_to_hsv(col2, hsv2);
 
-	if(hsv2.y != 0.0) {
+	if (hsv2.y != 0.0) {
 		rgb_to_hsv(outcol, hsv);
 		hsv.x = hsv2.x;
 		hsv_to_rgb(hsv, tmp); 
@@ -697,7 +719,7 @@ void mix_sat(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 	vec4 hsv, hsv2;
 	rgb_to_hsv(outcol, hsv);
 
-	if(hsv.y != 0.0) {
+	if (hsv.y != 0.0) {
 		rgb_to_hsv(col2, hsv2);
 
 		hsv.y = facm*hsv.y + fac*hsv2.y;
@@ -728,7 +750,7 @@ void mix_color(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 	vec4 hsv, hsv2, tmp;
 	rgb_to_hsv(col2, hsv2);
 
-	if(hsv2.y != 0.0) {
+	if (hsv2.y != 0.0) {
 		rgb_to_hsv(outcol, hsv);
 		hsv.x = hsv2.x;
 		hsv.y = hsv2.y;
@@ -794,11 +816,11 @@ void hue_sat(float hue, float sat, float value, float fac, vec4 col, out vec4 ou
 	rgb_to_hsv(col, hsv);
 
 	hsv[0] += (hue - 0.5);
-	if(hsv[0]>1.0) hsv[0]-=1.0; else if(hsv[0]<0.0) hsv[0]+= 1.0;
+	if (hsv[0]>1.0) hsv[0]-=1.0; else if (hsv[0]<0.0) hsv[0]+= 1.0;
 	hsv[1] *= sat;
-	if(hsv[1]>1.0) hsv[1]= 1.0; else if(hsv[1]<0.0) hsv[1]= 0.0;
+	if (hsv[1]>1.0) hsv[1]= 1.0; else if (hsv[1]<0.0) hsv[1]= 0.0;
 	hsv[2] *= value;
-	if(hsv[2]>1.0) hsv[2]= 1.0; else if(hsv[2]<0.0) hsv[2]= 0.0;
+	if (hsv[2]>1.0) hsv[2]= 1.0; else if (hsv[2]<0.0) hsv[2]= 0.0;
 
 	hsv_to_rgb(hsv, outcol);
 
@@ -936,7 +958,7 @@ void shade_norm(vec3 normal, out vec3 outnormal)
 
 void mtex_mirror(vec3 tcol, vec4 refcol, float tin, float colmirfac, out vec4 outrefcol)
 {
-    outrefcol = mix(refcol, vec4(1.0, tcol), tin*colmirfac);
+	outrefcol = mix(refcol, vec4(1.0, tcol), tin * colmirfac);
 }
 
 void mtex_rgb_blend(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 incol)
@@ -976,17 +998,17 @@ void mtex_rgb_overlay(vec3 outcol, vec3 texcol, float fact, float facg, out vec3
 	fact *= facg;
 	facm = 1.0-fact;
 
-	if(outcol.r < 0.5)
+	if (outcol.r < 0.5)
 		incol.r = outcol.r*(facm + 2.0*fact*texcol.r);
 	else
 		incol.r = 1.0 - (facm + 2.0*fact*(1.0 - texcol.r))*(1.0 - outcol.r);
 
-	if(outcol.g < 0.5)
+	if (outcol.g < 0.5)
 		incol.g = outcol.g*(facm + 2.0*fact*texcol.g);
 	else
 		incol.g = 1.0 - (facm + 2.0*fact*(1.0 - texcol.g))*(1.0 - outcol.g);
 
-	if(outcol.b < 0.5)
+	if (outcol.b < 0.5)
 		incol.b = outcol.b*(facm + 2.0*fact*texcol.b);
 	else
 		incol.b = 1.0 - (facm + 2.0*fact*(1.0 - texcol.b))*(1.0 - outcol.b);
@@ -1009,9 +1031,9 @@ void mtex_rgb_div(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 inc
 	fact *= facg;
 	facm = 1.0-fact;
 
-	if(texcol.r != 0.0) incol.r = facm*outcol.r + fact*outcol.r/texcol.r;
-	if(texcol.g != 0.0) incol.g = facm*outcol.g + fact*outcol.g/texcol.g;
-	if(texcol.b != 0.0) incol.b = facm*outcol.b + fact*outcol.b/texcol.b;
+	if (texcol.r != 0.0) incol.r = facm*outcol.r + fact*outcol.r/texcol.r;
+	if (texcol.g != 0.0) incol.g = facm*outcol.g + fact*outcol.g/texcol.g;
+	if (texcol.b != 0.0) incol.b = facm*outcol.b + fact*outcol.b/texcol.b;
 }
 
 void mtex_rgb_diff(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 incol)
@@ -1043,11 +1065,11 @@ void mtex_rgb_light(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 i
 	fact *= facg;
 
 	col = fact*texcol.r;
-	if(col > outcol.r) incol.r = col; else incol.r = outcol.r;
+	if (col > outcol.r) incol.r = col; else incol.r = outcol.r;
 	col = fact*texcol.g;
-	if(col > outcol.g) incol.g = col; else incol.g = outcol.g;
+	if (col > outcol.g) incol.g = col; else incol.g = outcol.g;
 	col = fact*texcol.b;
-	if(col > outcol.b) incol.b = col; else incol.b = outcol.b;
+	if (col > outcol.b) incol.b = col; else incol.b = outcol.b;
 }
 
 void mtex_rgb_hue(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 incol)
@@ -1098,17 +1120,17 @@ void mtex_rgb_linear(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 
 {
 	fact *= facg;
 
-	if(texcol.r > 0.5)
+	if (texcol.r > 0.5)
 		incol.r = outcol.r + fact*(2.0*(texcol.r - 0.5));
 	else
 		incol.r = outcol.r + fact*(2.0*(texcol.r) - 1.0);
 
-	if(texcol.g > 0.5)
+	if (texcol.g > 0.5)
 		incol.g = outcol.g + fact*(2.0*(texcol.g - 0.5));
 	else
 		incol.g = outcol.g + fact*(2.0*(texcol.g) - 1.0);
 
-	if(texcol.b > 0.5)
+	if (texcol.b > 0.5)
 		incol.b = outcol.b + fact*(2.0*(texcol.b - 0.5));
 	else
 		incol.b = outcol.b + fact*(2.0*(texcol.b) - 1.0);
@@ -1119,7 +1141,7 @@ void mtex_value_vars(inout float fact, float facg, out float facm)
 	fact *= abs(facg);
 	facm = 1.0-fact;
 
-	if(facg < 0.0) {
+	if (facg < 0.0) {
 		float tmp = fact;
 		fact = facm;
 		facm = tmp;
@@ -1175,7 +1197,7 @@ void mtex_value_div(float outcol, float texcol, float fact, float facg, out floa
 	float facm;
 	mtex_value_vars(fact, facg, facm);
 
-	if(texcol != 0.0)
+	if (texcol != 0.0)
 		incol = facm*outcol + fact*outcol/texcol;
 	else
 		incol = 0.0;
@@ -1203,7 +1225,7 @@ void mtex_value_light(float outcol, float texcol, float fact, float facg, out fl
 	mtex_value_vars(fact, facg, facm);
 
 	float col = fact*texcol;
-	if(col > outcol) incol = col; else incol = outcol;
+	if (col > outcol) incol = col; else incol = outcol;
 }
 
 void mtex_value_clamp_positive(float fac, out float outfac)
@@ -1225,8 +1247,8 @@ void mtex_har_multiply_clamp(float har, out float outhar)
 {
 	har *= 128.0;
 
-	if(har < 1.0) outhar = 1.0;
-	else if(har > 511.0) outhar = 511.0;
+	if (har < 1.0) outhar = 1.0;
+	else if (har > 511.0) outhar = 511.0;
 	else outhar = har;
 }
 
@@ -1242,7 +1264,7 @@ void mtex_alpha_to_col(vec4 col, float alpha, out vec4 outcol)
 
 void mtex_alpha_multiply_value(vec4 col, float value, out vec4 outcol)
 {
-    outcol = vec4(col.rgb, col.a * value);
+	outcol = vec4(col.rgb, col.a * value);
 }
 
 void mtex_rgbtoint(vec4 rgb, out float intensity)
@@ -1300,7 +1322,9 @@ void mtex_cube_map(vec3 co, samplerCube ima, out float value, out vec4 color)
 	value = 1.0;
 }
 
-void mtex_cube_map_refl(samplerCube ima, vec3 vp, vec3 vn, mat4 viewmatrixinverse, mat4 viewmatrix, out float value, out vec4 color)
+void mtex_cube_map_refl(
+        samplerCube ima, vec3 vp, vec3 vn, mat4 viewmatrixinverse, mat4 viewmatrix,
+        out float value, out vec4 color)
 {
 	vec3 viewdirection = vec3(viewmatrixinverse * vec4(vp, 0.0));
 	vec3 normaldirection = normalize(vec3(vec4(vn, 0.0) * viewmatrix));
@@ -1343,11 +1367,12 @@ mat3 to_mat3(mat4 m4)
 	return m3;
 }
 
-void mtex_bump_init_objspace( vec3 surf_pos, vec3 surf_norm,
-							  mat4 mView, mat4 mViewInv, mat4 mObj, mat4 mObjInv, 
-							  float fPrevMagnitude_in, vec3 vNacc_in,
-							  out float fPrevMagnitude_out, out vec3 vNacc_out, 
-							  out vec3 vR1, out vec3 vR2, out float fDet ) 
+void mtex_bump_init_objspace(
+        vec3 surf_pos, vec3 surf_norm,
+        mat4 mView, mat4 mViewInv, mat4 mObj, mat4 mObjInv,
+        float fPrevMagnitude_in, vec3 vNacc_in,
+        out float fPrevMagnitude_out, out vec3 vNacc_out,
+        out vec3 vR1, out vec3 vR2, out float fDet)
 {
 	mat3 obj2view = to_mat3(gl_ModelViewMatrix);
 	mat3 view2obj = to_mat3(gl_ModelViewMatrixInverse);
@@ -1370,10 +1395,11 @@ void mtex_bump_init_objspace( vec3 surf_pos, vec3 surf_norm,
 	fPrevMagnitude_out = fMagnitude;
 }
 
-void mtex_bump_init_texturespace( vec3 surf_pos, vec3 surf_norm, 
-								  float fPrevMagnitude_in, vec3 vNacc_in,
-								  out float fPrevMagnitude_out, out vec3 vNacc_out, 
-								  out vec3 vR1, out vec3 vR2, out float fDet ) 
+void mtex_bump_init_texturespace(
+        vec3 surf_pos, vec3 surf_norm,
+        float fPrevMagnitude_in, vec3 vNacc_in,
+        out float fPrevMagnitude_out, out vec3 vNacc_out,
+        out vec3 vR1, out vec3 vR2, out float fDet)
 {
 	vec3 vSigmaS = dFdx( surf_pos );
 	vec3 vSigmaT = dFdy( surf_pos );
@@ -1388,10 +1414,11 @@ void mtex_bump_init_texturespace( vec3 surf_pos, vec3 surf_norm,
 	fPrevMagnitude_out = fMagnitude;
 }
 
-void mtex_bump_init_viewspace( vec3 surf_pos, vec3 surf_norm, 
-							   float fPrevMagnitude_in, vec3 vNacc_in,
-							   out float fPrevMagnitude_out, out vec3 vNacc_out, 
-							   out vec3 vR1, out vec3 vR2, out float fDet ) 
+void mtex_bump_init_viewspace(
+        vec3 surf_pos, vec3 surf_norm,
+        float fPrevMagnitude_in, vec3 vNacc_in,
+        out float fPrevMagnitude_out, out vec3 vNacc_out,
+        out vec3 vR1, out vec3 vR2, out float fDet)
 {
 	vec3 vSigmaS = dFdx( surf_pos );
 	vec3 vSigmaT = dFdy( surf_pos );
@@ -1406,8 +1433,9 @@ void mtex_bump_init_viewspace( vec3 surf_pos, vec3 surf_norm,
 	fPrevMagnitude_out = fMagnitude;
 }
 
-void mtex_bump_tap3( vec3 texco, sampler2D ima, float hScale, 
-                     out float dBs, out float dBt )
+void mtex_bump_tap3(
+        vec3 texco, sampler2D ima, float hScale,
+        out float dBs, out float dBt)
 {
 	vec2 STll = texco.xy;
 	vec2 STlr = texco.xy + dFdx(texco.xy) ;
@@ -1424,8 +1452,9 @@ void mtex_bump_tap3( vec3 texco, sampler2D ima, float hScale,
 
 #ifdef BUMP_BICUBIC
 
-void mtex_bump_bicubic( vec3 texco, sampler2D ima, float hScale, 
-                     out float dBs, out float dBt ) 
+void mtex_bump_bicubic(
+        vec3 texco, sampler2D ima, float hScale,
+        out float dBs, out float dBt )
 {
 	float Hl;
 	float Hr;
@@ -1447,7 +1476,7 @@ void mtex_bump_bicubic( vec3 texco, sampler2D ima, float hScale,
 	
 	vec2 dHdxy = vec2(Hr - Hl, Hu - Hd);
 	float fBlend = clamp(1.0-textureQueryLOD(ima, texco.xy).x, 0.0, 1.0);
-	if(fBlend!=0.0)
+	if (fBlend!=0.0)
 	{
 		// the derivative of the bicubic sampling of level 0
 		ivec2 vDim;
@@ -1478,8 +1507,8 @@ void mtex_bump_bicubic( vec3 texco, sampler2D ima, float hScale,
 
 		mat4 H;
 		
-		for(int i = 0; i < 4; i++) {
-			for(int j = 0; j < 4; j++) {
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
 				ivec2 iTexTmp = iTexLocMod + ivec2(i,j);
 				
 				// wrap texture coordinates manually for texelFetch to work on uvs oitside the 0,1 range.
@@ -1516,8 +1545,9 @@ void mtex_bump_bicubic( vec3 texco, sampler2D ima, float hScale,
 
 #endif
 
-void mtex_bump_tap5( vec3 texco, sampler2D ima, float hScale, 
-                     out float dBs, out float dBt ) 
+void mtex_bump_tap5(
+        vec3 texco, sampler2D ima, float hScale,
+        out float dBs, out float dBt)
 {
 	vec2 TexDx = dFdx(texco.xy);
 	vec2 TexDy = dFdy(texco.xy);
@@ -1539,8 +1569,9 @@ void mtex_bump_tap5( vec3 texco, sampler2D ima, float hScale,
 	dBt = hScale * (Hu - Hd);
 }
 
-void mtex_bump_deriv( vec3 texco, sampler2D ima, float ima_x, float ima_y, float hScale, 
-                     out float dBs, out float dBt ) 
+void mtex_bump_deriv(
+        vec3 texco, sampler2D ima, float ima_x, float ima_y, float hScale,
+        out float dBs, out float dBt)
 {
 	float s = 1.0;		// negate this if flipped texture coordinate
 	vec2 TexDx = dFdx(texco.xy);
@@ -1555,8 +1586,9 @@ void mtex_bump_deriv( vec3 texco, sampler2D ima, float ima_x, float ima_y, float
 	dBt = dBduv.x*TexDy.x + s*dBduv.y*TexDy.y;
 }
 
-void mtex_bump_apply( float fDet, float dBs, float dBt, vec3 vR1, vec3 vR2, vec3 vNacc_in,
-					  out vec3 vNacc_out, out vec3 perturbed_norm ) 
+void mtex_bump_apply(
+        float fDet, float dBs, float dBt, vec3 vR1, vec3 vR2, vec3 vNacc_in,
+        out vec3 vNacc_out, out vec3 perturbed_norm)
 {
 	vec3 vSurfGrad = sign(fDet) * ( dBs * vR1 + dBt * vR2 );
 	
@@ -1564,9 +1596,10 @@ void mtex_bump_apply( float fDet, float dBs, float dBt, vec3 vR1, vec3 vR2, vec3
 	perturbed_norm = normalize( vNacc_out );
 }
 
-void mtex_bump_apply_texspace( float fDet, float dBs, float dBt, vec3 vR1, vec3 vR2,
-                               sampler2D ima, vec3 texco, float ima_x, float ima_y, vec3 vNacc_in,
-							   out vec3 vNacc_out, out vec3 perturbed_norm ) 
+void mtex_bump_apply_texspace(
+        float fDet, float dBs, float dBt, vec3 vR1, vec3 vR2,
+        sampler2D ima, vec3 texco, float ima_x, float ima_y, vec3 vNacc_in,
+        out vec3 vNacc_out, out vec3 perturbed_norm)
 {
 	vec2 TexDx = dFdx(texco.xy);
 	vec2 TexDy = dFdy(texco.xy);
@@ -1574,7 +1607,7 @@ void mtex_bump_apply_texspace( float fDet, float dBs, float dBt, vec3 vR1, vec3 
 	vec3 vSurfGrad = sign(fDet) * ( 
 	            dBs / length( vec2(ima_x*TexDx.x, ima_y*TexDx.y) ) * vR1 + 
 	            dBt / length( vec2(ima_x*TexDy.x, ima_y*TexDy.y) ) * vR2 );
-				
+
 	vNacc_out = vNacc_in - vSurfGrad;
 	perturbed_norm = normalize( vNacc_out );
 }
@@ -1668,7 +1701,7 @@ void lamp_visibility_sphere(float lampdist, float dist, float visifac, out float
 
 void lamp_visibility_spot_square(vec3 lampvec, mat4 lampimat, vec2 scale, vec3 lv, out float inpr)
 {
-	if(dot(lv, lampvec) > 0.0) {
+	if (dot(lv, lampvec) > 0.0) {
 		vec3 lvrot = (lampimat*vec4(lv, 0.0)).xyz;
 		/* without clever non-uniform scale, we could do: */
 		// float x = max(abs(lvrot.x / lvrot.z), abs(lvrot.y / lvrot.z));
@@ -1701,14 +1734,14 @@ void lamp_visibility_spot(float spotsi, float spotbl, float inpr, float visifac,
 {
 	float t = spotsi;
 
-	if(inpr <= t) {
+	if (inpr <= t) {
 		outvisifac = 0.0;
 	}
 	else {
 		t = inpr - t;
 
 		/* soft area */
-		if(spotbl != 0.0)
+		if (spotbl != 0.0)
 			inpr *= smoothstep(0.0, 1.0, t/spotbl);
 
 		outvisifac = visifac*inpr;
@@ -1811,12 +1844,14 @@ float area_lamp_energy(mat4 area, vec3 co, vec3 vn)
 	return max(fac, 0.0);
 }
 
-void shade_inp_area(vec3 position, vec3 lampco, vec3 lampvec, vec3 vn, mat4 area, float areasize, float k, out float inp)
+void shade_inp_area(
+        vec3 position, vec3 lampco, vec3 lampvec, vec3 vn, mat4 area, float areasize, float k,
+        out float inp)
 {
 	vec3 co = position;
 	vec3 vec = co - lampco;
 
-	if(dot(vec, lampvec) < 0.0) {
+	if (dot(vec, lampvec) < 0.0) {
 		inp = 0.0;
 	}
 	else {
@@ -1833,10 +1868,10 @@ void shade_diffuse_oren_nayer(float nl, vec3 n, vec3 l, vec3 v, float rough, out
 	float nv = max(dot(n, v), 0.0);
 	float realnl = dot(n, l);
 
-	if(realnl < 0.0) {
+	if (realnl < 0.0) {
 		is = 0.0;
 	}
-	else if(nl < 0.0) {
+	else if (nl < 0.0) {
 		is = 0.0;
 	}
 	else {
@@ -1851,7 +1886,7 @@ void shade_diffuse_oren_nayer(float nl, vec3 n, vec3 l, vec3 v, float rough, out
 
 		float a, b;
 
-		if(Lit_A > View_A) {
+		if (Lit_A > View_A) {
 			a = Lit_A;
 			b = View_A;
 		}
@@ -1873,20 +1908,20 @@ void shade_diffuse_toon(vec3 n, vec3 l, vec3 v, float size, float tsmooth, out f
 	float rslt = dot(n, l);
 	float ang = acos(rslt);
 
-	if(ang < size) is = 1.0;
-	else if(ang > (size + tsmooth) || tsmooth == 0.0) is = 0.0;
+	if (ang < size) is = 1.0;
+	else if (ang > (size + tsmooth) || tsmooth == 0.0) is = 0.0;
 	else is = 1.0 - ((ang - size)/tsmooth);
 }
 
 void shade_diffuse_minnaert(float nl, vec3 n, vec3 v, float darkness, out float is)
 {
-	if(nl <= 0.0) {
+	if (nl <= 0.0) {
 		is = 0.0;
 	}
 	else {
 		float nv = max(dot(n, v), 0.0);
 
-		if(darkness <= 1.0)
+		if (darkness <= 1.0)
 			is = nl*pow(max(nv*nl, 0.1), darkness - 1.0);
 		else
 			is = nl*pow(1.0001 - nv, darkness - 1.0);
@@ -1898,18 +1933,18 @@ float fresnel_fac(vec3 view, vec3 vn, float grad, float fac)
 	float t1, t2;
 	float ffac;
 
-	if(fac==0.0) {
+	if (fac==0.0) {
 		ffac = 1.0;
 	}
 	else {
 		t1= dot(view, vn);
-		if(t1>0.0)  t2= 1.0+t1;
+		if (t1>0.0)  t2= 1.0+t1;
 		else t2= 1.0-t1;
 
 		t2= grad + (1.0-grad)*pow(t2, fac);
 
-		if(t2<0.0) ffac = 0.0;
-		else if(t2>1.0) ffac = 1.0;
+		if (t2<0.0) ffac = 0.0;
+		else if (t2>1.0) ffac = 1.0;
 		else ffac = t2;
 	}
 
@@ -1923,7 +1958,7 @@ void shade_diffuse_fresnel(vec3 vn, vec3 lv, vec3 view, float fac_i, float fac, 
 
 void shade_cubic(float is, out float outis)
 {
-	if(is>0.0 && is<1.0)
+	if (is>0.0 && is<1.0)
 		outis= smoothstep(0.0, 1.0, is);
 	else
 		outis= is;
@@ -1931,7 +1966,7 @@ void shade_cubic(float is, out float outis)
 
 void shade_visifac(float i, float visifac, float refl, out float outi)
 {
-	/*if(i > 0.0)*/
+	/*if (i > 0.0)*/
 		outi = max(i*visifac*refl, 0.0);
 	/*else
 		outi = i;*/
@@ -1944,7 +1979,7 @@ void shade_tangent_v_spec(vec3 tang, out vec3 vn)
 
 void shade_add_to_diffuse(float i, vec3 lampcol, vec3 col, out vec3 outcol)
 {
-	if(i > 0.0)
+	if (i > 0.0)
 		outcol = i*lampcol*col;
 	else
 		outcol = vec3(0.0, 0.0, 0.0);
@@ -1974,7 +2009,7 @@ void shade_cooktorr_spec(vec3 n, vec3 l, vec3 v, float hard, out float specfac)
 	vec3 h = normalize(v + l);
 	float nh = dot(n, h);
 
-	if(nh < 0.0) {
+	if (nh < 0.0) {
 		specfac = 0.0;
 	}
 	else {
@@ -1988,27 +2023,27 @@ void shade_cooktorr_spec(vec3 n, vec3 l, vec3 v, float hard, out float specfac)
 
 void shade_blinn_spec(vec3 n, vec3 l, vec3 v, float refrac, float spec_power, out float specfac)
 {
-	if(refrac < 1.0) {
+	if (refrac < 1.0) {
 		specfac = 0.0;
 	}
-	else if(spec_power == 0.0) {
+	else if (spec_power == 0.0) {
 		specfac = 0.0;
 	}
 	else {
-		if(spec_power<100.0)
+		if (spec_power<100.0)
 			spec_power= sqrt(1.0/spec_power);
 		else
 			spec_power= 10.0/spec_power;
 
 		vec3 h = normalize(v + l);
 		float nh = dot(n, h);
-		if(nh < 0.0) {
+		if (nh < 0.0) {
 			specfac = 0.0;
 		}
 		else {
 			float nv = max(dot(n, v), 0.01);
 			float nl = dot(n, l);
-			if(nl <= 0.01) {
+			if (nl <= 0.01) {
 				specfac = 0.0;
 			}
 			else {
@@ -2020,12 +2055,14 @@ void shade_blinn_spec(vec3 n, vec3 l, vec3 v, float refrac, float spec_power, ou
 
 				float g = 0.0;
 
-				if(a < b && a < c) g = a;
-				else if(b < a && b < c) g = b;
-				else if(c < a && c < b) g = c;
+				if (a < b && a < c) g = a;
+				else if (b < a && b < c) g = b;
+				else if (c < a && c < b) g = c;
 
-				float p = sqrt(((refrac * refrac)+(vh*vh)-1.0));
-				float f = (((p-vh)*(p-vh))/((p+vh)*(p+vh)))*(1.0+((((vh*(p+vh))-1.0)*((vh*(p+vh))-1.0))/(((vh*(p-vh))+1.0)*((vh*(p-vh))+1.0))));
+				float p = sqrt(((refrac * refrac) + (vh * vh) - 1.0));
+				float f = ((((p - vh) * (p - vh)) / ((p + vh) * (p + vh))) *
+				           (1.0 + ((((vh * (p + vh)) - 1.0) * ((vh * (p + vh)) - 1.0)) /
+				                   (((vh * (p - vh)) + 1.0) * ((vh * (p - vh)) + 1.0)))));
 				float ang = acos(nh);
 
 				specfac = max(f*g*exp_blender((-(ang*ang)/(2.0*spec_power*spec_power))), 0.0);
@@ -2052,8 +2089,8 @@ void shade_toon_spec(vec3 n, vec3 l, vec3 v, float size, float tsmooth, out floa
 	float rslt = dot(h, n);
 	float ang = acos(rslt);
 
-	if(ang < size) rslt = 1.0;
-	else if(ang >= (size + tsmooth) || tsmooth == 0.0) rslt = 0.0;
+	if (ang < size) rslt = 1.0;
+	else if (ang >= (size + tsmooth) || tsmooth == 0.0) rslt = 0.0;
 	else rslt = 1.0 - ((ang - size)/tsmooth);
 
 	specfac = rslt;
@@ -2076,7 +2113,7 @@ void shade_add_spec(float t, vec3 lampcol, vec3 speccol, out vec3 outcol)
 
 void shade_add_mirror(vec3 mir, vec4 refcol, vec3 combined, out vec3 result)
 {
-    result = mir*refcol.gba + (vec3(1.0) - mir*refcol.rrr)*combined;
+	result = mir * refcol.gba + (vec3(1.0) - mir * refcol.rrr) * combined;
 }
 
 void alpha_spec_correction(vec3 spec, float spectra, float alpha, out float outalpha)
@@ -2160,9 +2197,11 @@ void shade_clamp_positive(vec4 col, out vec4 outcol)
 	outcol = max(col, vec4(0.0));
 }
 
-void test_shadowbuf(vec3 rco, sampler2DShadow shadowmap, mat4 shadowpersmat, float shadowbias, float inp, out float result)
+void test_shadowbuf(
+        vec3 rco, sampler2DShadow shadowmap, mat4 shadowpersmat, float shadowbias, float inp,
+        out float result)
 {
-	if(inp <= 0.0) {
+	if (inp <= 0.0) {
 		result = 0.0;
 	}
 	else {
@@ -2178,9 +2217,11 @@ void test_shadowbuf(vec3 rco, sampler2DShadow shadowmap, mat4 shadowpersmat, flo
 	}
 }
 
-void test_shadowbuf_vsm(vec3 rco, sampler2D shadowmap, mat4 shadowpersmat, float shadowbias, float bleedbias, float inp, out float result)
+void test_shadowbuf_vsm(
+        vec3 rco, sampler2D shadowmap, mat4 shadowpersmat, float shadowbias, float bleedbias, float inp,
+        out float result)
 {
-	if(inp <= 0.0) {
+	if (inp <= 0.0) {
 		result = 0.0;
 	}
 	else {
@@ -2190,7 +2231,7 @@ void test_shadowbuf_vsm(vec3 rco, sampler2D shadowmap, mat4 shadowpersmat, float
 			float dist = co.z/co.w;
 			float p = 0.0;
 			
-			if(dist <= moments.x)
+			if (dist <= moments.x)
 				p = 1.0;
 
 			float variance = moments.y - (moments.x*moments.x);
@@ -2210,11 +2251,14 @@ void test_shadowbuf_vsm(vec3 rco, sampler2D shadowmap, mat4 shadowpersmat, float
 	}
 }
 
-void shadows_only(vec3 rco, sampler2DShadow shadowmap, mat4 shadowpersmat, float shadowbias, vec3 shadowcolor, float inp, out vec3 result)
+void shadows_only(
+        vec3 rco, sampler2DShadow shadowmap, mat4 shadowpersmat,
+        float shadowbias, vec3 shadowcolor, float inp,
+        out vec3 result)
 {
 	result = vec3(1.0);
 
-	if(inp > 0.0) {
+	if (inp > 0.0) {
 		float shadfac;
 
 		test_shadowbuf(rco, shadowmap, shadowpersmat, shadowbias, inp, shadfac);
@@ -2222,11 +2266,14 @@ void shadows_only(vec3 rco, sampler2DShadow shadowmap, mat4 shadowpersmat, float
 	}
 }
 
-void shadows_only_vsm(vec3 rco, sampler2D shadowmap, mat4 shadowpersmat, float shadowbias, float bleedbias, vec3 shadowcolor, float inp, out vec3 result)
+void shadows_only_vsm(
+        vec3 rco, sampler2D shadowmap, mat4 shadowpersmat,
+        float shadowbias, float bleedbias, vec3 shadowcolor, float inp,
+        out vec3 result)
 {
 	result = vec3(1.0);
 
-	if(inp > 0.0) {
+	if (inp > 0.0) {
 		float shadfac;
 
 		test_shadowbuf_vsm(rco, shadowmap, shadowpersmat, shadowbias, bleedbias, inp, shadfac);
@@ -2247,16 +2294,18 @@ void shade_exposure_correct(vec3 col, float linfac, float logfac, out vec3 outco
 	outcol = linfac*(1.0 - exp(col*logfac));
 }
 
-void shade_mist_factor(vec3 co, float enable, float miststa, float mistdist, float misttype, float misi, out float outfac)
+void shade_mist_factor(
+        vec3 co, float enable, float miststa, float mistdist, float misttype, float misi,
+        out float outfac)
 {
-	if(enable == 1.0) {
+	if (enable == 1.0) {
 		float fac, zcor;
 
 		zcor = (gl_ProjectionMatrix[3][3] == 0.0)? length(co): -co[2];
 		
 		fac = clamp((zcor - miststa) / mistdist, 0.0, 1.0);
-		if(misttype == 0.0) fac *= fac;
-		else if(misttype == 1.0);
+		if (misttype == 0.0) fac *= fac;
+		else if (misttype == 1.0);
 		else fac = sqrt(fac);
 
 		outfac = 1.0 - (1.0 - fac) * (1.0 - misi);
@@ -2292,7 +2341,7 @@ float fresnel_dielectric(vec3 Incoming, vec3 Normal, float eta)
 	float g = eta * eta - 1.0 + c * c;
 	float result;
 
-	if(g > 0.0) {
+	if (g > 0.0) {
 		g = sqrt(g);
 		float A =(g - c)/(g + c);
 		float B =(c *(g + c)- 1.0)/(c *(g - c)+ 1.0);
@@ -2310,6 +2359,89 @@ float hypot(float x, float y)
 	return sqrt(x*x + y*y);
 }
 
+void generated_from_orco(vec3 orco, out vec3 generated)
+{
+	generated = orco * 0.5 + vec3(0.5);
+}
+
+float integer_noise(int n)
+{
+	int nn;
+	n = (n + 1013) & 0x7fffffff;
+	n = (n >> 13) ^ n;
+	nn = (n * (n * n * 60493 + 19990303) + 1376312589) & 0x7fffffff;
+	return 0.5 * (float(nn) / 1073741824.0);
+}
+
+int floor_to_int(float x)
+{
+	return int(floor(x));
+}
+
+#ifdef BIT_OPERATIONS
+uint hash(uint kx, uint ky, uint kz)
+{
+#define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))
+#define final(a,b,c) \
+{ \
+	c ^= b; c -= rot(b,14); \
+	a ^= c; a -= rot(c,11); \
+	b ^= a; b -= rot(a,25); \
+	c ^= b; c -= rot(b,16); \
+	a ^= c; a -= rot(c,4);  \
+	b ^= a; b -= rot(a,14); \
+	c ^= b; c -= rot(b,24); \
+}
+	// now hash the data!
+	uint a, b, c, len = 3u;
+	a = b = c = 0xdeadbeefu + (len << 2u) + 13u;
+
+	c += kz;
+	b += ky;
+	a += kx;
+	final(a, b, c);
+
+	return c;
+#undef rot
+#undef final
+}
+
+uint hash(int kx, int ky, int kz)
+{
+	return hash(uint(kx), uint(ky), uint(kz));
+}
+
+float bits_to_01(uint bits)
+{
+	float x = float(bits) * (1.0 / float(0xffffffffu));
+	return x;
+}
+
+float cellnoise(vec3 p)
+{
+	int ix = floor_to_int(p.x);
+	int iy = floor_to_int(p.y);
+	int iz = floor_to_int(p.z);
+
+	return bits_to_01(hash(uint(ix), uint(iy), uint(iz)));
+}
+
+vec3 cellnoise_color(vec3 p)
+{
+	float r = cellnoise(p);
+	float g = cellnoise(vec3(p.y, p.x, p.z));
+	float b = cellnoise(vec3(p.y, p.z, p.x));
+
+	return vec3(r, g, b);
+}
+#endif  // BIT_OPERATIONS
+
+float floorfrac(float x, out int i)
+{
+	i = floor_to_int(x);
+	return x - i;
+}
+
 /*********** NEW SHADER NODES ***************/
 
 #define NUM_LIGHTS 3
@@ -2322,7 +2454,7 @@ void node_bsdf_diffuse(vec4 color, float roughness, vec3 N, out vec4 result)
 	vec3 L = vec3(0.2);
 
 	/* directional lights */
-	for(int i = 0; i < NUM_LIGHTS; i++) {
+	for (int i = 0; i < NUM_LIGHTS; i++) {
 		vec3 light_position = gl_LightSource[i].position.xyz;
 		vec3 light_diffuse = gl_LightSource[i].diffuse.rgb;
 
@@ -2339,7 +2471,7 @@ void node_bsdf_glossy(vec4 color, float roughness, vec3 N, out vec4 result)
 	vec3 L = vec3(0.2);
 
 	/* directional lights */
-	for(int i = 0; i < NUM_LIGHTS; i++) {
+	for (int i = 0; i < NUM_LIGHTS; i++) {
 		vec3 light_position = gl_LightSource[i].position.xyz;
 		vec3 H = gl_LightSource[i].halfVector.xyz;
 		vec3 light_diffuse = gl_LightSource[i].diffuse.rgb;
@@ -2354,7 +2486,9 @@ void node_bsdf_glossy(vec4 color, float roughness, vec3 N, out vec4 result)
 	result = vec4(L*color.rgb, 1.0);
 }
 
-void node_bsdf_anisotropic(vec4 color, float roughness, float anisotropy, float rotation, vec3 N, vec3 T, out vec4 result)
+void node_bsdf_anisotropic(
+        vec4 color, float roughness, float anisotropy, float rotation, vec3 N, vec3 T,
+        out vec4 result)
 {
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
@@ -2388,7 +2522,9 @@ void node_bsdf_velvet(vec4 color, float sigma, vec3 N, out vec4 result)
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
 
-void node_subsurface_scattering(vec4 color, float scale, vec3 radius, float sharpen, float texture_blur, vec3 N, out vec4 result)
+void node_subsurface_scattering(
+        vec4 color, float scale, vec3 radius, float sharpen, float texture_blur, vec3 N,
+        out vec4 result)
 {
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
@@ -2466,7 +2602,7 @@ void node_layer_weight(float blend, vec3 N, vec3 I, out float fresnel, out float
 
 	/* facing */
 	facing = abs(dot(I_view, N));
-	if(blend != 0.5) {
+	if (blend != 0.5) {
 		blend = clamp(blend, 0.0, 0.99999);
 		blend = (blend < 0.5)? 2.0*blend: 0.5/(1.0 - blend);
 		facing = pow(facing, blend);
@@ -2480,21 +2616,24 @@ void node_gamma(vec4 col, float gamma, out vec4 outcol)
 {
 	outcol = col;
 
-	if(col.r > 0.0)
+	if (col.r > 0.0)
 		outcol.r = compatible_pow(col.r, gamma);
-	if(col.g > 0.0)
+	if (col.g > 0.0)
 		outcol.g = compatible_pow(col.g, gamma);
-	if(col.b > 0.0)
+	if (col.b > 0.0)
 		outcol.b = compatible_pow(col.b, gamma);
 }
 
 /* geometry */
 
-void node_attribute(vec3 attr_uv, out vec4 outcol, out vec3 outvec, out float outf)
+void node_attribute(vec3 attr, out vec4 outcol, out vec3 outvec, out float outf)
 {
-	outcol = vec4(attr_uv, 1.0);
-	outvec = attr_uv;
-	outf = (attr_uv.x + attr_uv.y + attr_uv.z)/3.0;
+	/* TODO(sergey): This needs linearization for vertex color.
+	 * But how to detect cases when input is linear and when it's srgb?
+	 */
+	outcol = vec4(attr, 1.0);
+	outvec = attr;
+	outf = (attr.x + attr.y + attr.z)/3.0;
 }
 
 void node_uvmap(vec3 attr_uv, out vec3 outvec)
@@ -2568,22 +2707,119 @@ void node_tex_coord_background(vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat, v
 
 /* textures */
 
-void node_tex_gradient(vec3 co, out vec4 color, out float fac)
+float calc_gradient(vec3 p, int gradient_type)
 {
-	color = vec4(1.0);
-	fac = 1.0;
+	float x, y, z;
+	x = p.x;
+	y = p.y;
+	z = p.z;
+	if (gradient_type == 0) {  /* linear */
+		return x;
+	}
+	else if (gradient_type == 1) {  /* quadratic */
+		float r = max(x, 0.0);
+		return r*r;
+	}
+	else if (gradient_type == 2) {  /* easing */
+		float r = min(max(x, 0.0), 1.0);
+		float t = r*r;
+		return (3.0*t - 2.0*t*r);
+	}
+	else if (gradient_type == 3) {  /* diagonal */
+		return (x + y) * 0.5;
+	}
+	else if (gradient_type == 4) {  /* radial */
+		return atan(y, x) / (M_PI * 2) + 0.5;
+	}
+	else {
+		float r = max(1.0 - sqrt(x*x + y*y + z*z), 0.0);
+		if (gradient_type == 5) {  /* quadratic sphere */
+			return r*r;
+		}
+		else if (gradient_type == 6) {  /* sphere */
+			return r;
+		}
+	}
+	return 0.0;
+}
+
+void node_tex_gradient(vec3 co, float gradient_type, out vec4 color, out float fac)
+{
+	float f = calc_gradient(co, int(gradient_type));
+	f = clamp(f, 0.0, 1.0);
+
+	color = vec4(f, f, f, 1.0);
+	fac = f;
 }
 
 void node_tex_checker(vec3 co, vec4 color1, vec4 color2, float scale, out vec4 color, out float fac)
 {
-	color = vec4(1.0);
-	fac = 1.0;
+	vec3 p = co * scale;
+
+	/* Prevent precision issues on unit coordinates. */
+	p.x = (p.x + 0.000001)*0.999999;
+	p.y = (p.y + 0.000001)*0.999999;
+	p.z = (p.z + 0.000001)*0.999999;
+
+	int xi = abs(int(floor(p.x)));
+	int yi = abs(int(floor(p.y)));
+	int zi = abs(int(floor(p.z)));
+
+	bool check = ((xi % 2 == yi % 2) == bool(zi % 2));
+
+	color = check ? color1 : color2;
+	fac = check ? 1.0 : 0.0;
 }
 
-void node_tex_brick(vec3 co, vec4 color1, vec4 color2, vec4 mortar, float scale, float mortar_size, float bias, float brick_width, float row_height, out vec4 color, out float fac)
+vec2 calc_brick_texture(vec3 p, float mortar_size, float bias,
+                        float brick_width, float row_height,
+                        float offset_amount, int offset_frequency,
+                        float squash_amount, int squash_frequency)
 {
-	color = vec4(1.0);
-	fac = 1.0;
+	int bricknum, rownum;
+	float offset = 0.0;
+	float x, y;
+
+	rownum = floor_to_int(p.y / row_height);
+
+	if (offset_frequency != 0 && squash_frequency != 0) {
+		brick_width *= (rownum % squash_frequency != 0) ? 1.0 : squash_amount; /* squash */
+		offset = (rownum % offset_frequency != 0) ? 0.0 : (brick_width*offset_amount); /* offset */
+	}
+
+	bricknum = floor_to_int((p.x+offset) / brick_width);
+
+	x = (p.x+offset) - brick_width*bricknum;
+	y = p.y - row_height*rownum;
+
+	return vec2(clamp((integer_noise((rownum << 16) + (bricknum & 0xFFFF)) + bias), 0.0, 1.0),
+	            (x < mortar_size || y < mortar_size ||
+	             x > (brick_width - mortar_size) ||
+	             y > (row_height - mortar_size)) ? 1.0 : 0.0);
+}
+
+void node_tex_brick(vec3 co,
+                    vec4 color1, vec4 color2,
+                    vec4 mortar, float scale,
+                    float mortar_size, float bias,
+                    float brick_width, float row_height,
+                    float offset_amount, float offset_frequency,
+                    float squash_amount, float squash_frequency,
+                    out vec4 color, out float fac)
+{
+	vec2 f2 = calc_brick_texture(co*scale,
+	                             mortar_size, bias,
+	                             brick_width, row_height,
+	                             offset_amount, int(offset_frequency),
+	                             squash_amount, int(squash_frequency));
+	float tint = f2.x;
+	float f = f2.y;
+	if (f != 1.0) {
+		float facm = 1.0 - tint;
+		color1 = facm * color1 + tint * color2;
+	}
+	color = (f == 1.0) ? mortar : color1;
+	fac = f;
 }
 
 void node_tex_clouds(vec3 co, float size, out vec4 color, out float fac)
@@ -2608,7 +2844,7 @@ void node_tex_environment_mirror_ball(vec3 co, sampler2D ima, out vec4 color)
 	nco.y -= 1.0;
 
 	float div = 2.0*sqrt(max(-0.5*nco.y, 0.0));
-	if(div > 0.0)
+	if (div > 0.0)
 		nco /= div;
 
 	float u = 0.5*(nco.x + 1.0);
@@ -2634,22 +2870,398 @@ void node_tex_image_empty(vec3 co, out vec4 color, out float alpha)
 	alpha = 0.0;
 }
 
-void node_tex_magic(vec3 p, float scale, float distortion, out vec4 color, out float fac)
+void node_tex_magic(vec3 co, float scale, float distortion, float depth, out vec4 color, out float fac)
 {
-	color = vec4(1.0);
-	fac = 1.0;
+	vec3 p = co * scale;
+	float x = sin((p.x + p.y + p.z)*5.0);
+	float y = cos((-p.x + p.y - p.z)*5.0);
+	float z = -cos((-p.x - p.y + p.z)*5.0);
+
+	if (depth > 0) {
+		x *= distortion;
+		y *= distortion;
+		z *= distortion;
+		y = -cos(x-y+z);
+		y *= distortion;
+		if (depth > 1) {
+			x = cos(x-y-z);
+			x *= distortion;
+			if (depth > 2) {
+				z = sin(-x-y-z);
+				z *= distortion;
+				if (depth > 3) {
+					x = -cos(-x+y-z);
+					x *= distortion;
+					if (depth > 4) {
+						y = -sin(-x+y+z);
+						y *= distortion;
+						if (depth > 5) {
+							y = -cos(-x+y+z);
+							y *= distortion;
+							if (depth > 6) {
+								x = cos(x+y+z);
+								x *= distortion;
+								if (depth > 7) {
+									z = sin(x+y-z);
+									z *= distortion;
+									if (depth > 8) {
+										x = -cos(-x-y+z);
+										x *= distortion;
+										if (depth > 9) {
+											y = -sin(x-y+z);
+											y *= distortion;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	if (distortion != 0.0) {
+		distortion *= 2.0;
+		x /= distortion;
+		y /= distortion;
+		z /= distortion;
+	}
+
+	color = vec4(0.5 - x, 0.5 - y, 0.f - z, 1.0);
+	fac = (color.x + color.y + color.z) / 3.0;
 }
 
-void node_tex_musgrave(vec3 co, float scale, float detail, float dimension, float lacunarity, float offset, float gain, out vec4 color, out float fac)
+#ifdef BIT_OPERATIONS
+float noise_fade(float t)
 {
-	color = vec4(1.0);
-	fac = 1.0;
+	return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
 }
+
+float noise_scale3(float result)
+{
+	return 0.9820 * result;
+}
+
+float noise_nerp(float t, float a, float b)
+{
+	return (1.0 - t) * a + t * b;
+}
+
+float noise_grad(uint hash, float x, float y, float z)
+{
+	uint h = hash & 15u;
+	float u = h < 8u ? x : y;
+	float vt = ((h == 12u) || (h == 14u)) ? x : z;
+	float v = h < 4u ? y : vt;
+	return (((h & 1u) != 0u) ? -u : u) + (((h & 2u) != 0u) ? -v : v);
+}
+
+float noise_perlin(float x, float y, float z)
+{
+	int X; float fx = floorfrac(x, X);
+	int Y; float fy = floorfrac(y, Y);
+	int Z; float fz = floorfrac(z, Z);
+
+	float u = noise_fade(fx);
+	float v = noise_fade(fy);
+	float w = noise_fade(fz);
+
+	float result;
+
+	result = noise_nerp(w, noise_nerp(v, noise_nerp(u, noise_grad(hash(X, Y, Z), fx, fy, fz ),
+	                                                noise_grad(hash(X+1, Y, Z), fx-1.0, fy, fz)),
+	                                  noise_nerp(u, noise_grad(hash(X, Y+1, Z), fx, fy - 1.0, fz),
+	                                             noise_grad(hash(X+1, Y+1, Z), fx-1.0, fy-1.0, fz))),
+	                    noise_nerp(v, noise_nerp(u, noise_grad(hash(X, Y, Z+1), fx, fy, fz-1.0),
+	                                             noise_grad(hash(X+1, Y, Z+1), fx-1.0, fy, fz-1.0)),
+	                               noise_nerp(u, noise_grad(hash(X, Y+1, Z+1), fx, fy-1.0, fz-1.0),
+	                                          noise_grad(hash(X+1, Y+1, Z+1), fx-1.0, fy-1.0, fz-1.0))));
+	return noise_scale3(result);
+}
+
+float noise(vec3 p)
+{
+	return 0.5 * noise_perlin(p.x, p.y, p.z) + 0.5;
+}
+
+float snoise(vec3 p)
+{
+	return noise_perlin(p.x, p.y, p.z);
+}
+
+float noise_turbulence(vec3 p, float octaves, int hard)
+{
+	float fscale = 1.0;
+	float amp = 1.0;
+	float sum = 0.0;
+	int i, n;
+	octaves = clamp(octaves, 0.0, 16.0);
+	n = int(octaves);
+	for (i = 0; i <= n; i++) {
+		float t = noise(fscale*p);
+		if (hard != 0) {
+			t = abs(2.0*t - 1.0);
+		}
+		sum += t*amp;
+		amp *= 0.5;
+		fscale *= 2.0;
+	}
+	float rmd = octaves - floor(octaves);
+	if  (rmd != 0.0) {
+		float t = noise(fscale*p);
+		if (hard != 0) {
+			t = abs(2.0*t - 1.0);
+		}
+		float sum2 = sum + t*amp;
+		sum *= (float(1 << n) / float((1 << (n+1)) - 1));
+		sum2 *= (float(1 << (n+1)) / float((1 << (n+2)) - 1));
+		return (1.0 - rmd)*sum + rmd*sum2;
+	}
+	else {
+		sum *= (float(1 << n) / float((1 << (n+1)) - 1));
+		return sum;
+	}
+}
+#endif  // BIT_OPERATIONS
 
 void node_tex_noise(vec3 co, float scale, float detail, float distortion, out vec4 color, out float fac)
 {
+#ifdef BIT_OPERATIONS
+	vec3 p = co * scale;
+	int hard = 0;
+	if (distortion != 0.0) {
+		vec3 r, offset = vec3(13.5, 13.5, 13.5);
+		r.x = noise(p + offset) * distortion;
+		r.y = noise(p) * distortion;
+		r.z = noise(p - offset) * distortion;
+		p += r;
+	}
+
+	fac = noise_turbulence(p, detail, hard);
+	color = vec4(fac,
+	             noise_turbulence(vec3(p.y, p.x, p.z), detail, hard),
+	             noise_turbulence(vec3(p.y, p.z, p.x), detail, hard),
+	             1);
+#else  // BIT_OPERATIONS
 	color = vec4(1.0);
 	fac = 1.0;
+#endif  // BIT_OPERATIONS
+}
+
+
+#ifdef BIT_OPERATIONS
+
+/* Musgrave fBm
+ *
+ * H: fractal increment parameter
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ *
+ * from "Texturing and Modelling: A procedural approach"
+ */
+
+float noise_musgrave_fBm(vec3 p, float H, float lacunarity, float octaves)
+{
+	float rmd;
+	float value = 0.0;
+	float pwr = 1.0;
+	float pwHL = pow(lacunarity, -H);
+	int i;
+
+	for (i = 0; i < int(octaves); i++) {
+		value += snoise(p) * pwr;
+		pwr *= pwHL;
+		p *= lacunarity;
+	}
+
+	rmd = octaves - floor(octaves);
+	if (rmd != 0.0)
+		value += rmd * snoise(p) * pwr;
+
+	return value;
+}
+
+/* Musgrave Multifractal
+ *
+ * H: highest fractal dimension
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ */
+
+float noise_musgrave_multi_fractal(vec3 p, float H, float lacunarity, float octaves)
+{
+	float rmd;
+	float value = 1.0;
+	float pwr = 1.0;
+	float pwHL = pow(lacunarity, -H);
+	int i;
+
+	for (i = 0; i < int(octaves); i++) {
+		value *= (pwr * snoise(p) + 1.0);
+		pwr *= pwHL;
+		p *= lacunarity;
+	}
+
+	rmd = octaves - floor(octaves);
+	if (rmd != 0.0)
+		value *= (rmd * pwr * snoise(p) + 1.0); /* correct? */
+
+	return value;
+}
+
+/* Musgrave Heterogeneous Terrain
+ *
+ * H: fractal dimension of the roughest area
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ * offset: raises the terrain from `sea level'
+ */
+
+float noise_musgrave_hetero_terrain(vec3 p, float H, float lacunarity, float octaves, float offset)
+{
+	float value, increment, rmd;
+	float pwHL = pow(lacunarity, -H);
+	float pwr = pwHL;
+	int i;
+
+	/* first unscaled octave of function; later octaves are scaled */
+	value = offset + snoise(p);
+	p *= lacunarity;
+
+	for (i = 1; i < int(octaves); i++) {
+		increment = (snoise(p) + offset) * pwr * value;
+		value += increment;
+		pwr *= pwHL;
+		p *= lacunarity;
+	}
+
+	rmd = octaves - floor(octaves);
+	if (rmd != 0.0) {
+		increment = (snoise(p) + offset) * pwr * value;
+		value += rmd * increment;
+	}
+
+	return value;
+}
+
+/* Hybrid Additive/Multiplicative Multifractal Terrain
+ *
+ * H: fractal dimension of the roughest area
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ * offset: raises the terrain from `sea level'
+ */
+
+float noise_musgrave_hybrid_multi_fractal(vec3 p, float H, float lacunarity, float octaves, float offset, float gain)
+{
+	float result, signal, weight, rmd;
+	float pwHL = pow(lacunarity, -H);
+	float pwr = pwHL;
+	int i;
+
+	result = snoise(p) + offset;
+	weight = gain * result;
+	p *= lacunarity;
+
+	for (i = 1; (weight > 0.001f) && (i < int(octaves)); i++) {
+		if (weight > 1.0)
+			weight = 1.0;
+
+		signal = (snoise(p) + offset) * pwr;
+		pwr *= pwHL;
+		result += weight * signal;
+		weight *= gain * signal;
+		p *= lacunarity;
+	}
+
+	rmd = octaves - floor(octaves);
+	if (rmd != 0.0)
+		result += rmd * ((snoise(p) + offset) * pwr);
+
+	return result;
+}
+
+/* Ridged Multifractal Terrain
+ *
+ * H: fractal dimension of the roughest area
+ * lacunarity: gap between successive frequencies
+ * octaves: number of frequencies in the fBm
+ * offset: raises the terrain from `sea level'
+ */
+
+float noise_musgrave_ridged_multi_fractal(vec3 p, float H, float lacunarity, float octaves, float offset, float gain)
+{
+	float result, signal, weight;
+	float pwHL = pow(lacunarity, -H);
+	float pwr = pwHL;
+	int i;
+
+	signal = offset - abs(snoise(p));
+	signal *= signal;
+	result = signal;
+	weight = 1.0;
+
+	for (i = 1; i < int(octaves); i++) {
+		p *= lacunarity;
+		weight = clamp(signal * gain, 0.0, 1.0);
+		signal = offset - abs(snoise(p));
+		signal *= signal;
+		signal *= weight;
+		result += signal * pwr;
+		pwr *= pwHL;
+	}
+
+	return result;
+}
+
+float svm_musgrave(int type,
+                   float dimension,
+                   float lacunarity,
+                   float octaves,
+                   float offset,
+                   float intensity,
+                   float gain,
+                   vec3 p)
+{
+	if (type == 0 /*NODE_MUSGRAVE_MULTIFRACTAL*/)
+		return intensity*noise_musgrave_multi_fractal(p, dimension, lacunarity, octaves);
+	else if (type == 1 /*NODE_MUSGRAVE_FBM*/)
+		return intensity*noise_musgrave_fBm(p, dimension, lacunarity, octaves);
+	else if (type == 2 /*NODE_MUSGRAVE_HYBRID_MULTIFRACTAL*/)
+		return intensity*noise_musgrave_hybrid_multi_fractal(p, dimension, lacunarity, octaves, offset, gain);
+	else if (type == 3 /*NODE_MUSGRAVE_RIDGED_MULTIFRACTAL*/)
+		return intensity*noise_musgrave_ridged_multi_fractal(p, dimension, lacunarity, octaves, offset, gain);
+	else if (type == 4 /*NODE_MUSGRAVE_HETERO_TERRAIN*/)
+		return intensity*noise_musgrave_hetero_terrain(p, dimension, lacunarity, octaves, offset);
+	return 0.0;
+}
+#endif  // #ifdef BIT_OPERATIONS
+
+void node_tex_musgrave(vec3 co,
+                       float scale,
+                       float detail,
+                       float dimension,
+                       float lacunarity,
+                       float offset,
+                       float gain,
+                       float type,
+                       out vec4 color,
+                       out float fac)
+{
+#ifdef BIT_OPERATIONS
+	fac = svm_musgrave(int(type),
+	                   dimension,
+	                   lacunarity,
+	                   detail,
+	                   offset,
+	                   1.0,
+	                   gain,
+	                   co*scale);
+#else
+	fac = 1.0;
+#endif
+
+	color = vec4(fac, fac, fac, 1.0);
 }
 
 void node_tex_sky(vec3 co, out vec4 color)
@@ -2657,16 +3269,117 @@ void node_tex_sky(vec3 co, out vec4 color)
 	color = vec4(1.0);
 }
 
-void node_tex_voronoi(vec3 co, float scale, out vec4 color, out float fac)
+void node_tex_voronoi(vec3 co, float scale, float coloring, out vec4 color, out float fac)
 {
+#ifdef BIT_OPERATIONS
+	vec3 p = co * scale;
+	int xx, yy, zz, xi, yi, zi;
+	float da[4];
+	vec3 pa[4];
+
+	xi = floor_to_int(p[0]);
+	yi = floor_to_int(p[1]);
+	zi = floor_to_int(p[2]);
+
+	da[0] = 1e+10;
+	da[1] = 1e+10;
+	da[2] = 1e+10;
+	da[3] = 1e+10;
+
+	for (xx = xi - 1; xx <= xi + 1; xx++) {
+		for (yy = yi - 1; yy <= yi + 1; yy++) {
+			for (zz = zi - 1; zz <= zi + 1; zz++) {
+				vec3 ip = vec3(xx, yy, zz);
+				vec3 vp = cellnoise_color(ip);
+				vec3 pd = p - (vp + ip);
+				float d = dot(pd, pd);
+				vp += vec3(xx, yy, zz);
+				if (d < da[0]) {
+					da[3] = da[2];
+					da[2] = da[1];
+					da[1] = da[0];
+					da[0] = d;
+					pa[3] = pa[2];
+					pa[2] = pa[1];
+					pa[1] = pa[0];
+					pa[0] = vp;
+				}
+				else if (d < da[1]) {
+					da[3] = da[2];
+					da[2] = da[1];
+					da[1] = d;
+
+					pa[3] = pa[2];
+					pa[2] = pa[1];
+					pa[1] = vp;
+				}
+				else if (d < da[2]) {
+					da[3] = da[2];
+					da[2] = d;
+
+					pa[3] = pa[2];
+					pa[2] = vp;
+				}
+				else if (d < da[3]) {
+					da[3] = d;
+					pa[3] = vp;
+				}
+			}
+		}
+	}
+
+	if (coloring == 0.0) {
+		fac = abs(da[0]);
+		color = vec4(fac, fac, fac, 1);
+	}
+	else {
+		color = vec4(cellnoise_color(pa[0]), 1);
+		fac = (color.x + color.y + color.z) * (1.0 / 3.0);
+	}
+#else  // BIT_OPERATIONS
 	color = vec4(1.0);
 	fac = 1.0;
+#endif  // BIT_OPERATIONS
 }
 
-void node_tex_wave(vec3 co, float scale, float distortion, float detail, float detail_scale, out vec4 color, out float fac)
+#ifdef BIT_OPERATIONS
+float calc_wave(vec3 p, float distortion, float detail, float detail_scale, int wave_type, int wave_profile)
 {
+	float n;
+
+	if (wave_type == 0) /* type bands */
+		n = (p.x + p.y + p.z) * 10.0;
+	else /* type rings */
+		n = length(p) * 20.0;
+
+	if (distortion != 0.0)
+		n += distortion * noise_turbulence(p*detail_scale, detail, 0);
+
+	if (wave_profile == 0) { /* profile sin */
+		return 0.5 + 0.5 * sin(n);
+	}
+	else { /* profile saw */
+		n /= 2.0 * M_PI;
+		n -= int(n);
+		return (n < 0.0)? n + 1.0: n;
+	}
+}
+#endif  // BIT_OPERATIONS
+
+void node_tex_wave(
+        vec3 co, float scale, float distortion, float detail, float detail_scale, float wave_type, float wave_profile,
+        out vec4 color, out float fac)
+{
+#ifdef BIT_OPERATIONS
+	float f;
+	f = calc_wave(co*scale, distortion, detail, detail_scale, int(wave_type), int(wave_profile));
+
+	color = vec4(f, f, f, 1.0);
+	fac = f;
+#else  // BIT_OPERATIONS
 	color = vec4(1.0);
-	fac = 1.0;
+	fac = 1;
+#endif  // BIT_OPERATIONS
 }
 
 /* light path */
@@ -2720,9 +3433,30 @@ void node_normal_map(vec4 tangent, vec3 normal, vec3 texnormal, out vec3 outnorm
 	outnormal = normalize(outnormal);
 }
 
-void node_bump(float strength, float dist, float height, vec3 N, out vec3 result)
+void node_bump(float strength, float dist, float height, vec3 N, vec3 surf_pos, float invert, out vec3 result)
 {
-	result = N;
+	if (invert != 0.0) {
+		dist *= -1.0;
+	}
+	vec3 dPdx = dFdx(surf_pos);
+	vec3 dPdy = dFdy(surf_pos);
+
+	/* Get surface tangents from normal. */
+	vec3 Rx = cross(dPdy, N);
+	vec3 Ry = cross(N, dPdx);
+
+	/* Compute surface gradient and determinant. */
+	float det = dot(dPdx, Rx);
+	float absdet = abs(det);
+
+	float dHdx = dFdx(height);
+	float dHdy = dFdy(height);
+	vec3 surfgrad = dHdx*Rx + dHdy*Ry;
+
+	strength = max(strength, 0.0);
+
+	result = normalize(absdet*N - dist*sign(det)*surfgrad);
+	result = normalize(strength*result + (1.0 - strength)*N);
 }
 
 /* output */

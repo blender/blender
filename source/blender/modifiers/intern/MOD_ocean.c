@@ -435,7 +435,7 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 	const float size_co_inv = 1.0f / (omd->size * omd->spatial_size);
 
 	/* can happen in when size is small, avoid bad array lookups later and quit now */
-	if (!finite(size_co_inv)) {
+	if (!isfinite(size_co_inv)) {
 		return derivedData;
 	}
 

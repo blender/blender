@@ -405,17 +405,37 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
 	/* BKE_main_unlock(bmain); */
 
-	wm_link_append_data_free(lapp_data);
-
 	/* mark all library linked objects to be updated */
 	BKE_main_lib_objects_recalc_all(bmain);
 	IMB_colormanagement_check_file_config(bmain);
 
 	/* append, rather than linking */
 	if ((flag & FILE_LINK) == 0) {
-		bool set_fake = RNA_boolean_get(op->ptr, "set_fake");
-		BKE_library_make_local(bmain, NULL, true, set_fake);
+		const bool set_fake = RNA_boolean_get(op->ptr, "set_fake");
+		const bool use_recursive = RNA_boolean_get(op->ptr, "use_recursive");
+
+		if (use_recursive) {
+			BKE_library_make_local(bmain, NULL, true, set_fake);
+		}
+		else {
+			LinkNode *itemlink;
+			GSet *done_libraries = BLI_gset_new_ex(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp,
+			                                       __func__, lapp_data->num_libraries);
+
+			for (itemlink = lapp_data->items.list; itemlink; itemlink = itemlink->next) {
+				ID *new_id = ((WMLinkAppendDataItem *)(itemlink->link))->new_id;
+
+				if (new_id && !BLI_gset_haskey(done_libraries, new_id->lib)) {
+					BKE_library_make_local(bmain, new_id->lib, true, set_fake);
+					BLI_gset_insert(done_libraries, new_id->lib);
+				}
+			}
+
+			BLI_gset_free(done_libraries, NULL);
+		}
 	}
+
+	wm_link_append_data_free(lapp_data);
 
 	/* important we unset, otherwise these object wont
 	 * link into other scenes from this blend file */
@@ -493,5 +513,8 @@ void WM_OT_append(wmOperatorType *ot)
 	        FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
 
 	wm_link_append_properties_common(ot, false);
-	RNA_def_boolean(ot->srna, "set_fake", false, "Fake User", "Set Fake User for appended items (except Objects and Groups)");
+	RNA_def_boolean(ot->srna, "set_fake", false, "Fake User",
+	                "Set Fake User for appended items (except Objects and Groups)");
+	RNA_def_boolean(ot->srna, "use_recursive", true, "Localize All",
+	                "Localize all appended data, including those indirectly linked from other libraries");
 }

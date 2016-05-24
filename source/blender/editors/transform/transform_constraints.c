@@ -267,9 +267,9 @@ static void axisProjection(TransInfo *t, const float axis[3], const float in[3],
 
 			/* possible some values become nan when
 			 * viewpoint and object are both zero */
-			if (!finite(out[0])) out[0] = 0.0f;
-			if (!finite(out[1])) out[1] = 0.0f;
-			if (!finite(out[2])) out[2] = 0.0f;
+			if (!isfinite(out[0])) out[0] = 0.0f;
+			if (!isfinite(out[1])) out[1] = 0.0f;
+			if (!isfinite(out[2])) out[2] = 0.0f;
 		}
 	}
 }

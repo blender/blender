@@ -3467,7 +3467,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
 		
 		if ((scene->audio.flag & AUDIO_SYNC) &&
 		    (sad->flag & ANIMPLAY_FLAG_REVERSE) == false &&
-		    finite(time = BKE_sound_sync_scene(scene)))
+		    isfinite(time = BKE_sound_sync_scene(scene)))
 		{
 			double newfra = (double)time * FPS;
 

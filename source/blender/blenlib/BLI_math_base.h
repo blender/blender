@@ -37,10 +37,6 @@
 #include <math.h>
 #include "BLI_math_inline.h"
 
-#ifdef __sun__
-#include <ieeefp.h> /* for finite() */
-#endif
-
 #ifndef M_PI
 #define M_PI        3.14159265358979323846  /* pi */
 #endif
@@ -145,12 +141,6 @@ static const int NAN_INT = 0x7FC00000;
 #endif
 
 #endif  /* C99, POSIX.1-2001 or MSVC12 (partial C99) */
-
-#ifdef WIN32
-#  if defined(_MSC_VER)
-#    define finite(n) _finite(n)
-#  endif
-#endif
 
 #if BLI_MATH_DO_INLINE
 #include "intern/math_base_inline.c"

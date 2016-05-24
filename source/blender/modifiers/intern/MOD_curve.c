@@ -164,6 +164,7 @@ ModifierTypeInfo modifierType_Curve = {
 	/* structSize */        sizeof(CurveModifierData),
 	/* type */              eModifierTypeType_OnlyDeform,
 	/* flags */             eModifierTypeFlag_AcceptsCVs |
+	                        eModifierTypeFlag_AcceptsLattice |
 	                        eModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          copyData,

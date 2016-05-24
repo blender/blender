@@ -4592,6 +4592,9 @@ static void direct_link_pose(FileData *fd, bPose *pose)
 		pchan->child = newdataadr(fd, pchan->child);
 		pchan->custom_tx = newdataadr(fd, pchan->custom_tx);
 		
+		pchan->bbone_prev = newdataadr(fd, pchan->bbone_prev);
+		pchan->bbone_next = newdataadr(fd, pchan->bbone_next);
+		
 		direct_link_constraints(fd, &pchan->constraints);
 		
 		pchan->prop = newdataadr(fd, pchan->prop);
@@ -5776,6 +5779,11 @@ static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
 			
 			for (gps = gpf->strokes.first; gps; gps = gps->next) {
 				gps->points = newdataadr(fd, gps->points);
+				
+				/* the triangulation is not saved, so need to be recalculated */
+				gps->flag |= GP_STROKE_RECALC_CACHES;
+				gps->triangles = NULL;
+				gps->tot_triangles = 0;
 			}
 		}
 	}
@@ -6544,6 +6552,7 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 				/* render can be quite heavy, set to solid on load */
 				if (v3d->drawtype == OB_RENDER)
 					v3d->drawtype = OB_SOLID;
+				v3d->prev_drawtype = OB_SOLID;
 
 				if (v3d->fx_settings.dof)
 					v3d->fx_settings.dof = newdataadr(fd, v3d->fx_settings.dof);

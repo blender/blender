@@ -740,7 +740,7 @@ static int edbm_spin_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
 	if (rv3d) {
 		prop = RNA_struct_find_property(op->ptr, "axis");
 		if (!RNA_property_is_set(op->ptr, prop)) {
-			RNA_property_float_set_array(op->ptr, prop, rv3d->viewinv[1]);
+			RNA_property_float_set_array(op->ptr, prop, rv3d->viewinv[2]);
 		}
 	}
 

@@ -82,7 +82,6 @@ typedef struct SK_Intersection {
 
 typedef struct SK_Sketch {
 	ListBase   strokes;
-	ListBase   depth_peels;
 	SK_Stroke *active_stroke;
 	SK_Stroke *gesture;
 	SK_Point   next_point;

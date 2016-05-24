@@ -58,7 +58,12 @@ void ColorBalanceNode::convertToOperations(NodeConverter &converter, const Compo
 	}
 	else {
 		ColorBalanceASCCDLOperation *operationCDL = new ColorBalanceASCCDLOperation();
-		operationCDL->setOffset(n->offset);
+
+		float offset[3];
+		copy_v3_fl(offset, n->offset_basis);
+		add_v3_v3(offset, n->offset);
+
+		operationCDL->setOffset(offset);
 		operationCDL->setPower(n->power);
 		operationCDL->setSlope(n->slope);
 		operation = operationCDL;

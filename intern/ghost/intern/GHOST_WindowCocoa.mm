@@ -663,7 +663,7 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 
 bool GHOST_WindowCocoa::getValid() const
 {
-	return GHOST_Window::getValid() && m_window != 0 && m_openGLView != 0;
+	return GHOST_Window::getValid() && m_window != NULL && m_openGLView != NULL;
 }
 
 void* GHOST_WindowCocoa::getOSWindow() const

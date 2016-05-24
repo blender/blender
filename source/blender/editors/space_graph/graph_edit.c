@@ -693,6 +693,14 @@ static int graphkeys_click_insert_exec(bContext *C, wmOperator *op)
 		short mapping_flag = ANIM_get_normalization_flags(&ac);
 		float scale, offset;
 		
+		/* preserve selection? */
+		if (RNA_boolean_get(op->ptr, "extend") == false) {
+			/* deselect all keyframes first, so that we can immediately start manipulating the newly added one(s)
+			 * - only affect the keyframes themselves, as we don't want channels popping in and out...
+			 */
+			deselect_graph_keys(&ac, false, SELECT_SUBTRACT, false);
+		}
+		
 		/* get frame and value from props */
 		frame = RNA_float_get(op->ptr, "frame");
 		val = RNA_float_get(op->ptr, "value");
@@ -782,6 +790,8 @@ void GRAPH_OT_click_insert(wmOperatorType *ot)
 	/* properties */
 	RNA_def_float(ot->srna, "frame", 1.0f, -FLT_MAX, FLT_MAX, "Frame Number", "Frame to insert keyframe on", 0, 100);
 	RNA_def_float(ot->srna, "value", 1.0f, -FLT_MAX, FLT_MAX, "Value", "Value for keyframe on", 0, 100);
+	
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection instead of deselecting everything first");
 }
 
 /* ******************** Copy/Paste Keyframes Operator ************************* */

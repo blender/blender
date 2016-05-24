@@ -607,8 +607,10 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 	vector<int, LeafStackAllocator> p_type[PRIMITIVE_NUM_TOTAL];
 	vector<int, LeafStackAllocator> p_index[PRIMITIVE_NUM_TOTAL];
 	vector<int, LeafStackAllocator> p_object[PRIMITIVE_NUM_TOTAL];
+
 	/* TODO(sergey): In theory we should be able to store references. */
-	vector<BVHReference, LeafStackAllocator> object_references;
+	typedef StackAllocator<256, BVHReference> LeafReferenceStackAllocator;
+	vector<BVHReference, LeafReferenceStackAllocator> object_references;
 
 	uint visibility[PRIMITIVE_NUM_TOTAL] = {0};
 	/* NOTE: Keep initializtion in sync with actual number of primitives. */
@@ -629,6 +631,9 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 
 			bounds[type_index].grow(ref.bounds());
 			visibility[type_index] |= objects[ref.prim_object()]->visibility;
+			if(ref.prim_type() & PRIMITIVE_ALL_CURVE) {
+				visibility[type_index] |= PATH_RAY_CURVE;
+			}
 			++num_new_prims;
 		}
 		else {

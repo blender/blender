@@ -95,17 +95,18 @@ public:
 	             int index,
 	             Summary *summary = NULL);
 
-	void stack_assign(ShaderOutput *output);
-	void stack_assign(ShaderInput *input);
+	int stack_assign(ShaderOutput *output);
+	int stack_assign(ShaderInput *input);
+	int stack_assign_if_linked(ShaderInput *input);
+	int stack_assign_if_linked(ShaderOutput *output);
 	int stack_find_offset(ShaderSocketType type);
 	void stack_clear_offset(ShaderSocketType type, int offset);
 	void stack_link(ShaderInput *input, ShaderOutput *output);
 
-	void add_node(NodeType type, int a = 0, int b = 0, int c = 0);
+	void add_node(ShaderNodeType type, int a = 0, int b = 0, int c = 0);
 	void add_node(int a = 0, int b = 0, int c = 0, int d = 0);
-	void add_node(NodeType type, const float3& f);
+	void add_node(ShaderNodeType type, const float3& f);
 	void add_node(const float4& f);
-	void add_array(float4 *f, int num);
 	uint attribute(ustring name);
 	uint attribute(AttributeStandard std);
 	uint encode_uchar4(uint x, uint y = 0, uint z = 0, uint w = 0);
@@ -146,15 +147,9 @@ protected:
 		int users[SVM_STACK_SIZE];
 	};
 
-	struct StackBackup {
-		Stack stack;
-		vector<int> offsets;
-		ShaderNodeSet done;
-	};
-
 	/* Global state of the compiler accessible from the compilation routines. */
 	struct CompilerState {
-		CompilerState(ShaderGraph *graph);
+		explicit CompilerState(ShaderGraph *graph);
 
 		/* ** Global state, used by various compilation steps. ** */
 
@@ -175,9 +170,6 @@ protected:
 		 */
 		vector<bool> nodes_done_flag;
 	};
-
-	void stack_backup(StackBackup& backup, ShaderNodeSet& done);
-	void stack_restore(StackBackup& backup, ShaderNodeSet& done);
 
 	void stack_clear_temporary(ShaderNode *node);
 	int stack_size(ShaderSocketType type);

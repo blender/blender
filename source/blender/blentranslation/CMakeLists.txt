@@ -53,4 +53,10 @@ if(WITH_PYTHON)
 	)
 endif()
 
+if(WIN32)
+	if(WITH_INPUT_IME)
+		add_definitions(-DWITH_INPUT_IME)
+	endif()
+endif()
+
 blender_add_lib(bf_blentranslation "${SRC}" "${INC}" "${INC_SYS}")

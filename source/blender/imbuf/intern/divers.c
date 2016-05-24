@@ -532,6 +532,76 @@ void IMB_buffer_float_from_float(float *rect_to, const float *rect_from,
 	}
 }
 
+typedef struct FloatToFloatThreadData {
+	float *rect_to;
+	const float *rect_from;
+	int channels_from;
+	int profile_to;
+	int profile_from;
+	bool predivide;
+	int width;
+	int stride_to;
+	int stride_from;
+} FloatToFloatThreadData;
+
+static void imb_buffer_float_from_float_thread_do(void *data_v,
+                                                  int start_scanline,
+                                                  int num_scanlines)
+{
+	FloatToFloatThreadData *data = (FloatToFloatThreadData *)data_v;
+	size_t offset_from = ((size_t)start_scanline) * data->stride_from * data->channels_from;
+	size_t offset_to = ((size_t)start_scanline) * data->stride_to * data->channels_from;
+	IMB_buffer_float_from_float(data->rect_to + offset_to,
+	                            data->rect_from + offset_from,
+	                            data->channels_from,
+	                            data->profile_to,
+	                            data->profile_from,
+	                            data->predivide,
+	                            data->width,
+	                            num_scanlines,
+	                            data->stride_to,
+	                            data->stride_from);
+}
+
+void IMB_buffer_float_from_float_threaded(float *rect_to,
+                                          const float *rect_from,
+                                          int channels_from,
+                                          int profile_to,
+                                          int profile_from,
+                                          bool predivide,
+                                          int width,
+                                          int height,
+                                          int stride_to,
+                                          int stride_from)
+{
+	if (((size_t)width) * height < 64 * 64) {
+		IMB_buffer_float_from_float(rect_to,
+		                            rect_from,
+		                            channels_from,
+		                            profile_to,
+		                            profile_from,
+		                            predivide,
+		                            width,
+		                            height,
+		                            stride_to,
+		                            stride_from);
+	}
+	else {
+		FloatToFloatThreadData data;
+		data.rect_to = rect_to;
+		data.rect_from = rect_from;
+		data.channels_from = channels_from;
+		data.profile_to = profile_to;
+		data.profile_from = profile_from;
+		data.predivide = predivide;
+		data.width = width;
+		data.stride_to = stride_to;
+		data.stride_from = stride_from;
+		IMB_processor_apply_threaded_scanlines(
+		    height, imb_buffer_float_from_float_thread_do, &data);
+	}
+}
+
 /* float to float pixels, output 4-channel RGBA */
 void IMB_buffer_float_from_float_mask(float *rect_to, const float *rect_from, int channels_from,
                                       int width, int height, int stride_to, int stride_from, char *mask)
@@ -674,25 +744,24 @@ void IMB_rect_from_float(ImBuf *ibuf)
 	ibuf->userflags &= ~IB_RECT_INVALID;
 }
 
-/* converts from linear float to sRGB byte for part of the texture, buffer will hold the changed part */
-void IMB_partial_rect_from_float(ImBuf *ibuf, float *buffer, int x, int y, int w, int h, bool is_data)
-{
-	const float *rect_float;
+typedef struct PartialThreadData {
+	ImBuf *ibuf;
+	float *buffer;
 	uchar *rect_byte;
-	int profile_from = IB_PROFILE_LINEAR_RGB;
+	const float *rect_float;
+	int width;
+	bool is_data;
+} PartialThreadData;
 
-	/* verify we have a float buffer */
-	if (ibuf->rect_float == NULL || buffer == NULL)
-		return;
-
-	/* create byte rect if it didn't exist yet */
-	if (ibuf->rect == NULL)
-		imb_addrectImBuf(ibuf);
-
-	/* do conversion */
-	rect_float = ibuf->rect_float + (x + ((size_t)y) * ibuf->x) * ibuf->channels;
-	rect_byte = (uchar *)ibuf->rect + (x + ((size_t)y) * ibuf->x) * 4;
-
+static void partial_rect_from_float_slice(float *buffer,
+                                          uchar *rect_byte,
+                                          ImBuf *ibuf,
+                                          const float *rect_float,
+                                          const int w,
+                                          const int h,
+                                          const bool is_data)
+{
+	const int profile_from = IB_PROFILE_LINEAR_RGB;
 	if (is_data) {
 		/* exception for non-color data, just copy float */
 		IMB_buffer_float_from_float(buffer, rect_float,
@@ -714,6 +783,58 @@ void IMB_partial_rect_from_float(ImBuf *ibuf, float *buffer, int x, int y, int w
 		IMB_buffer_byte_from_float(rect_byte, buffer,
 		                           4, ibuf->dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB, 0,
 		                           w, h, ibuf->x, w);
+	}
+}
+
+static void partial_rect_from_float_thread_do(void *data_v,
+                                              int start_scanline,
+                                              int num_scanlines)
+{
+	PartialThreadData *data = (PartialThreadData *)data_v;
+	ImBuf *ibuf = data->ibuf;
+	size_t global_offset = ((size_t)ibuf->x) * start_scanline;
+	size_t local_offset = ((size_t)data->width) * start_scanline;
+	partial_rect_from_float_slice(data->buffer + local_offset * ibuf->channels,
+	                              data->rect_byte + global_offset * 4,
+	                              ibuf,
+	                              data->rect_float + global_offset * ibuf->channels,
+	                              data->width,
+	                              num_scanlines,
+	                              data->is_data);
+}
+
+/* converts from linear float to sRGB byte for part of the texture, buffer will hold the changed part */
+void IMB_partial_rect_from_float(ImBuf *ibuf, float *buffer, int x, int y, int w, int h, bool is_data)
+{
+	const float *rect_float;
+	uchar *rect_byte;
+
+	/* verify we have a float buffer */
+	if (ibuf->rect_float == NULL || buffer == NULL)
+		return;
+
+	/* create byte rect if it didn't exist yet */
+	if (ibuf->rect == NULL)
+		imb_addrectImBuf(ibuf);
+
+	/* do conversion */
+	rect_float = ibuf->rect_float + (x + ((size_t)y) * ibuf->x) * ibuf->channels;
+	rect_byte = (uchar *)ibuf->rect + (x + ((size_t)y) * ibuf->x) * 4;
+
+	if (((size_t)w) * h < 64 * 64) {
+		partial_rect_from_float_slice(
+		        buffer, rect_byte, ibuf, rect_float, w, h, is_data);
+	}
+	else {
+		PartialThreadData data;
+		data.ibuf = ibuf;
+		data.buffer = buffer;
+		data.rect_byte = rect_byte;
+		data.rect_float = rect_float;
+		data.width = w;
+		data.is_data = is_data;
+		IMB_processor_apply_threaded_scanlines(
+		        h, partial_rect_from_float_thread_do, &data);
 	}
 
 	/* ensure user flag is reset */

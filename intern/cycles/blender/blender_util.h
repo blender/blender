@@ -58,14 +58,19 @@ static inline BL::Mesh object_to_mesh(BL::BlendData& data,
 }
 
 static inline void colorramp_to_array(BL::ColorRamp& ramp,
-                                      float4 *data,
+                                      array<float3>& ramp_color,
+                                      array<float>& ramp_alpha,
                                       int size)
 {
+	ramp_color.resize(size);
+	ramp_alpha.resize(size);
+
 	for(int i = 0; i < size; i++) {
 		float color[4];
 
 		ramp.evaluate((float)i/(float)(size-1), color);
-		data[i] = make_float4(color[0], color[1], color[2], color[3]);
+		ramp_color[i] = make_float3(color[0], color[1], color[2]);
+		ramp_alpha[i] = color[3];
 	}
 }
 
@@ -105,7 +110,7 @@ static inline void curvemapping_to_array(BL::CurveMapping& cumap,
 }
 
 static inline void curvemapping_color_to_array(BL::CurveMapping& cumap,
-                                               float4 *data,
+                                               array<float3>& data,
                                                int size,
                                                bool rgb_curve)
 {
@@ -131,6 +136,8 @@ static inline void curvemapping_color_to_array(BL::CurveMapping& cumap,
 	BL::CurveMap mapR = cumap.curves[0];
 	BL::CurveMap mapG = cumap.curves[1];
 	BL::CurveMap mapB = cumap.curves[2];
+
+	data.resize(size);
 
 	if(rgb_curve) {
 		BL::CurveMap mapI = cumap.curves[3];
@@ -268,7 +275,6 @@ static inline uint get_layer(const BL::Array<int, 20>& array)
 
 static inline uint get_layer(const BL::Array<int, 20>& array,
                              const BL::Array<int, 8>& local_array,
-                             bool use_local,
                              bool is_light = false,
                              uint scene_layers = (1 << 20) - 1)
 {
@@ -292,13 +298,6 @@ static inline uint get_layer(const BL::Array<int, 20>& array,
 			if(local_array[i])
 				layer |= (1 << (20+i));
 	}
-
-	/* we don't have spare bits for localview (normally 20-28) because
-	 * PATH_RAY_LAYER_SHIFT uses 20-32. So - check if we have localview and if
-	 * so, shift local view bits down to 1-8, since this is done for the view
-	 * port only - it should be OK and not conflict with render layers. */
-	if(use_local)
-		layer >>= 20;
 
 	return layer;
 }

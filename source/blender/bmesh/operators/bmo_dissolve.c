@@ -43,6 +43,7 @@
 #define FACE_MARK   1
 #define FACE_ORIG   2
 #define FACE_NEW    4
+#define FACE_TAG    8
 
 #define EDGE_MARK   1
 #define EDGE_TAG    2
@@ -156,19 +157,19 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_slot_buffer_flag_enable(bm, op->slots_in, "faces", BM_FACE, FACE_MARK);
+	BMO_slot_buffer_flag_enable(bm, op->slots_in, "faces", BM_FACE, FACE_MARK | FACE_TAG);
 	
 	/* collect region */
 	BMO_ITER (f, &oiter, op->slots_in, "faces", BM_FACE) {
 		BMFace *f_iter;
-		if (!BMO_elem_flag_test(bm, f, FACE_MARK)) {
+		if (!BMO_elem_flag_test(bm, f, FACE_TAG)) {
 			continue;
 		}
 
 		BLI_array_empty(faces);
 		faces = NULL; /* forces different allocatio */
 
-		BMW_init(&regwalker, bm, BMW_ISLAND,
+		BMW_init(&regwalker, bm, BMW_ISLAND_MANIFOLD,
 		         BMW_MASK_NOP, BMW_MASK_NOP, FACE_MARK,
 		         BMW_FLAG_NOP, /* no need to check BMW_FLAG_TEST_HIDDEN, faces are already marked by the bmo */
 		         BMW_NIL_LAY);
@@ -180,7 +181,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		
 		for (i = 0; i < BLI_array_count(faces); i++) {
 			f_iter = faces[i];
-			BMO_elem_flag_disable(bm, f_iter, FACE_MARK);
+			BMO_elem_flag_disable(bm, f_iter, FACE_TAG);
 			BMO_elem_flag_enable(bm, f_iter, FACE_ORIG);
 		}
 
@@ -193,7 +194,10 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		BLI_array_append(faces, NULL);
 		BLI_array_append(regions, faces);
 	}
-	
+
+	/* track how many faces we should end up with */
+	int totface_target = bm->totface;
+
 	for (i = 0; i < BLI_array_count(regions); i++) {
 		BMFace *f_new;
 		int tot = 0;
@@ -215,6 +219,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 			if (act_face && bm->act_face == NULL) {
 				bm->act_face = f_new;
 			}
+			totface_target -= tot - 1;
 		}
 		else {
 			BMO_error_raise(bm, op, BMERR_DISSOLVEFACES_FAILED,
@@ -226,11 +231,12 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		 * unmark the original faces for deletion */
 		BMO_elem_flag_disable(bm, f_new, FACE_ORIG);
 		BMO_elem_flag_enable(bm, f_new, FACE_NEW);
-
 	}
 
-	BMO_op_callf(bm, op->flag, "delete geom=%ff context=%i", FACE_ORIG, DEL_FACES);
-
+	/* Typically no faces need to be deleted */
+	if (totface_target != bm->totface) {
+		BMO_op_callf(bm, op->flag, "delete geom=%ff context=%i", FACE_ORIG, DEL_FACES);
+	}
 
 	if (use_verts) {
 		BMIter viter;

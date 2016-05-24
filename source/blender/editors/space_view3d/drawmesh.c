@@ -711,6 +711,8 @@ static void update_tface_color_layer(DerivedMesh *dm, bool use_mcol)
 			}
 		}
 	}
+
+	dm->dirty |= DM_DIRTY_MCOL_UPDATE_DRAW;
 }
 
 static DMDrawOption draw_tface_mapped__set_draw(void *userData, int origindex, int UNUSED(mat_nr))
@@ -997,7 +999,16 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 		else {
 			userData.me = NULL;
 
-			update_tface_color_layer(dm, !(ob->mode & OB_MODE_TEXTURE_PAINT));
+			if ((ob->mode & OB_MODE_ALL_PAINT) == 0) {
+
+				/* Note: this isn't efficient and runs on every redraw,
+				 * its needed so material colors are used for vertex colors.
+				 * In the future we will likely remove 'texface' so, just avoid running this where possible,
+				 * (when vertex paint or weight paint are used). */
+
+				update_tface_color_layer(dm, !(ob->mode & OB_MODE_TEXTURE_PAINT));
+			}
+
 			dm->drawFacesTex(
 			        dm, draw_tface__set_draw, compareDrawOptions,
 			        &userData, dm_draw_flag);
@@ -1181,7 +1192,8 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		set_face_cb = NULL;
 
 	/* test if we can use glsl */
-	bool glsl = (v3d->drawtype == OB_MATERIAL) && !picking;
+	const int drawtype = view3d_effective_drawtype(v3d);
+	bool glsl = (drawtype == OB_MATERIAL) && !picking;
 
 	GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
 

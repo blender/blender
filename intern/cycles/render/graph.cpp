@@ -290,18 +290,21 @@ void ShaderGraph::disconnect(ShaderInput *to)
 	from->links.erase(remove(from->links.begin(), from->links.end(), to), from->links.end());
 }
 
-void ShaderGraph::relink(vector<ShaderInput*> inputs, vector<ShaderInput*> outputs, ShaderOutput *output)
+void ShaderGraph::relink(ShaderNode *node, ShaderOutput *from, ShaderOutput *to)
 {
-	/* Remove nodes and re-link if output isn't NULL. */
-	foreach(ShaderInput *sock, inputs) {
+	/* Copy because disconnect modifies this list */
+	vector<ShaderInput*> outputs = from->links;
+
+	/* Bypass node by moving all links from "from" to "to" */
+	foreach(ShaderInput *sock, node->inputs) {
 		if(sock->link)
 			disconnect(sock);
 	}
 
 	foreach(ShaderInput *sock, outputs) {
 		disconnect(sock);
-		if(output)
-			connect(output, sock);
+		if(to)
+			connect(to, sock);
 	}
 }
 
@@ -411,39 +414,29 @@ void ShaderGraph::copy_nodes(ShaderNodeSet& nodes, ShaderNodeMap& nnodemap)
 /* Graph simplification */
 /* ******************** */
 
-/* Step 1: Remove unused nodes.
- * Remove nodes which are not needed in the graph, such as proxies,
- * mix nodes with a factor of 0 or 1, emission shaders without contribution...
+/* Step 1: Remove proxy nodes.
+ * These only exists temporarily when exporting groups, and we must remove them
+ * early so that node->attributes() and default links do not see them.
  */
-void ShaderGraph::remove_unneeded_nodes()
+void ShaderGraph::remove_proxy_nodes()
 {
 	vector<bool> removed(num_node_ids, false);
 	bool any_node_removed = false;
 
-	ShaderNode *geom = NULL;
-
-	/* find and unlink proxy nodes */
 	foreach(ShaderNode *node, nodes) {
 		if(node->special_type == SHADER_SPECIAL_TYPE_PROXY) {
-			ProxyNode *proxy = static_cast<ProxyNode*>(node);
+			ConvertNode *proxy = static_cast<ConvertNode*>(node);
 			ShaderInput *input = proxy->inputs[0];
 			ShaderOutput *output = proxy->outputs[0];
 
-			/* temp. copy of the output links list.
-			 * output->links is modified when we disconnect!
-			 */
-			vector<ShaderInput*> links(output->links);
-			ShaderOutput *from = input->link;
-
 			/* bypass the proxy node */
-			if(from) {
-				disconnect(input);
-				foreach(ShaderInput *to, links) {
-					disconnect(to);
-					connect(from, to);
-				}
+			if(input->link) {
+				relink(proxy, output, input->link);
 			}
 			else {
+				/* Copy because disconnect modifies this list */
+				vector<ShaderInput*> links(output->links);
+
 				foreach(ShaderInput *to, links) {
 					/* remove any autoconvert nodes too if they lead to
 					 * sockets with an automatically set default value */
@@ -465,131 +458,15 @@ void ShaderGraph::remove_unneeded_nodes()
 					}
 
 					disconnect(to);
-					
+
 					/* transfer the default input value to the target socket */
 					to->set(input->value);
 					to->set(input->value_string);
 				}
 			}
-			
+
 			removed[proxy->id] = true;
 			any_node_removed = true;
-		}
-		else if(node->special_type == SHADER_SPECIAL_TYPE_BACKGROUND) {
-			BackgroundNode *bg = static_cast<BackgroundNode*>(node);
-
-			if(bg->outputs[0]->links.size()) {
-				/* Black color or zero strength, remove node */
-				if((!bg->inputs[0]->link && bg->inputs[0]->value == make_float3(0.0f, 0.0f, 0.0f)) ||
-				   (!bg->inputs[1]->link && bg->inputs[1]->value.x == 0.0f))
-				{
-					vector<ShaderInput*> inputs = bg->outputs[0]->links;
-
-					relink(bg->inputs, inputs, NULL);
-					removed[bg->id] = true;
-					any_node_removed = true;
-				}
-			}
-		}
-		else if(node->special_type == SHADER_SPECIAL_TYPE_EMISSION) {
-			EmissionNode *em = static_cast<EmissionNode*>(node);
-
-			if(em->outputs[0]->links.size()) {
-				/* Black color or zero strength, remove node */
-				if((!em->inputs[0]->link && em->inputs[0]->value == make_float3(0.0f, 0.0f, 0.0f)) ||
-				   (!em->inputs[1]->link && em->inputs[1]->value.x == 0.0f))
-				{
-					vector<ShaderInput*> inputs = em->outputs[0]->links;
-
-					relink(em->inputs, inputs, NULL);
-					removed[em->id] = true;
-					any_node_removed = true;
-				}
-			}
-		}
-		else if(node->special_type == SHADER_SPECIAL_TYPE_BUMP) {
-			BumpNode *bump = static_cast<BumpNode*>(node);
-
-			if(bump->outputs[0]->links.size()) {
-				/* Height inputs is not connected. */
-				/* TODO(sergey): Ignore bump with zero strength. */
-				if(bump->inputs[0]->link == NULL) {
-					vector<ShaderInput*> inputs = bump->outputs[0]->links;
-					if(bump->inputs[4]->link == NULL) {
-						if(geom == NULL) {
-							geom = new GeometryNode();
-						}
-						relink(bump->inputs, inputs, geom->output("Normal"));
-					}
-					else {
-						relink(bump->inputs, inputs, bump->input("Normal")->link);
-					}
-					removed[bump->id] = true;
-					any_node_removed = true;
-				}
-			}
-		}
-		else if(node->special_type == SHADER_SPECIAL_TYPE_MIX_CLOSURE) {
-			MixClosureNode *mix = static_cast<MixClosureNode*>(node);
-
-			/* remove useless mix closures nodes */
-			if(mix->outputs[0]->links.size() && mix->inputs[1]->link == mix->inputs[2]->link) {
-				ShaderOutput *output = mix->inputs[1]->link;
-				vector<ShaderInput*> inputs = mix->outputs[0]->links;
-
-				relink(mix->inputs, inputs, output);
-				removed[mix->id] = true;
-				any_node_removed = true;
-			}
-		
-			/* remove unused mix closure input when factor is 0.0 or 1.0 */
-			/* check for closure links and make sure factor link is disconnected */
-			if(mix->outputs[0]->links.size() && mix->inputs[1]->link && mix->inputs[2]->link && !mix->inputs[0]->link) {
-				/* factor 0.0 */
-				if(mix->inputs[0]->value.x == 0.0f) {
-					ShaderOutput *output = mix->inputs[1]->link;
-					vector<ShaderInput*> inputs = mix->outputs[0]->links;
-
-					relink(mix->inputs, inputs, output);
-					removed[mix->id] = true;
-					any_node_removed = true;
-				}
-				/* factor 1.0 */
-				else if(mix->inputs[0]->value.x == 1.0f) {
-					ShaderOutput *output = mix->inputs[2]->link;
-					vector<ShaderInput*> inputs = mix->outputs[0]->links;
-
-					relink(mix->inputs, inputs, output);
-					removed[mix->id] = true;
-					any_node_removed = true;
-				}
-			}
-		}
-		else if(node->special_type == SHADER_SPECIAL_TYPE_MIX_RGB) {
-			MixNode *mix = static_cast<MixNode*>(node);
-
-			/* remove unused Mix RGB inputs when factor is 0.0 or 1.0 */
-			/* check for color links and make sure factor link is disconnected */
-			if(mix->outputs[0]->links.size() && mix->inputs[1]->link && mix->inputs[2]->link && !mix->inputs[0]->link) {
-				/* factor 0.0 */
-				if(mix->inputs[0]->value.x == 0.0f) {
-					ShaderOutput *output = mix->inputs[1]->link;
-					vector<ShaderInput*> inputs = mix->outputs[0]->links;
-
-					relink(mix->inputs, inputs, output);
-					removed[mix->id] = true;
-					any_node_removed = true;
-				}
-				/* factor 1.0 */
-				else if(mix->inputs[0]->value.x == 1.0f) {
-					ShaderOutput *output = mix->inputs[2]->link;
-					vector<ShaderInput*> inputs = mix->outputs[0]->links;
-
-					relink(mix->inputs, inputs, output);
-					removed[mix->id] = true;
-					any_node_removed = true;
-				}
-			}
 		}
 	}
 
@@ -605,10 +482,6 @@ void ShaderGraph::remove_unneeded_nodes()
 		}
 
 		nodes = newnodes;
-	}
-
-	if(geom != NULL) {
-		add(geom);
 	}
 }
 
@@ -634,6 +507,9 @@ void ShaderGraph::constant_fold()
 		traverse_queue.pop();
 		done.insert(node);
 		foreach(ShaderOutput *output, node->outputs) {
+			if(output->links.size() == 0) {
+				continue;
+			}
 			/* Schedule node which was depending on the value,
 			 * when possible. Do it before disconnect.
 			 */
@@ -652,7 +528,7 @@ void ShaderGraph::constant_fold()
 			}
 			/* Optimize current node. */
 			float3 optimized_value = make_float3(0.0f, 0.0f, 0.0f);
-			if(node->constant_fold(output, &optimized_value)) {
+			if(node->constant_fold(this, output, &optimized_value)) {
 				/* Apply optimized value to connected sockets. */
 				vector<ShaderInput*> links(output->links);
 				foreach(ShaderInput *input, links) {
@@ -737,8 +613,7 @@ void ShaderGraph::deduplicate_nodes()
 			}
 			/* TODO(sergey): Consider making it an utility function. */
 			for(int i = 0; i < node->outputs.size(); ++i) {
-				vector<ShaderInput*> inputs = node->outputs[i]->links;
-				relink(node->inputs, inputs, other_node->outputs[i]);
+				relink(node, node->outputs[i], other_node->outputs[i]);
 			}
 			break;
 		}
@@ -771,15 +646,9 @@ void ShaderGraph::break_cycles(ShaderNode *node, vector<bool>& visited, vector<b
 
 void ShaderGraph::clean(Scene *scene)
 {
-	/* Graph simplification:
-	 *  1: Remove unnecessary nodes
-	 *  2: Constant folding
-	 *  3: Simplification
-	 *  4: De-duplication
-	 */
+	/* Graph simplification */
 
-	/* 1: Remove proxy and unnecessary nodes. */
-	remove_unneeded_nodes();
+	/* 1: Remove proxy nodes was already done. */
 
 	/* 2: Constant folding. */
 	constant_fold();
@@ -892,7 +761,7 @@ void ShaderGraph::refine_bump_nodes()
 	 * to "center" input. */
 
 	foreach(ShaderNode *node, nodes) {
-		if(node->name == ustring("bump") && node->input("Height")->link) {
+		if(node->special_type == SHADER_SPECIAL_TYPE_BUMP && node->input("Height")->link) {
 			ShaderInput *bump_input = node->input("Height");
 			ShaderNodeSet nodes_bump;
 
@@ -1041,7 +910,7 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
 	 * avoid building a closure tree and then flattening it, and instead write it
 	 * directly to an array */
 	
-	if(node->name == ustring("mix_closure") || node->name == ustring("add_closure")) {
+	if(node->special_type == SHADER_SPECIAL_TYPE_COMBINE_CLOSURE) {
 		ShaderInput *fin = node->input("Fac");
 		ShaderInput *cl1in = node->input("Closure1");
 		ShaderInput *cl2in = node->input("Closure2");
@@ -1115,17 +984,18 @@ int ShaderGraph::get_num_closures()
 {
 	int num_closures = 0;
 	foreach(ShaderNode *node, nodes) {
-		if(node->special_type == SHADER_SPECIAL_TYPE_CLOSURE) {
-			BsdfNode *bsdf_node = static_cast<BsdfNode*>(node);
-			/* TODO(sergey): Make it more generic approach, maybe some utility
-			 * macros like CLOSURE_IS_FOO()?
-			 */
-			if(CLOSURE_IS_BSSRDF(bsdf_node->closure))
-				num_closures = num_closures + 3;
-			else if(CLOSURE_IS_GLASS(bsdf_node->closure))
-				num_closures = num_closures + 2;
-			else
-				num_closures = num_closures + 1;
+		ClosureType closure_type = node->get_closure_type();
+		if(closure_type == CLOSURE_NONE_ID) {
+			continue;
+		}
+		else if(CLOSURE_IS_BSSRDF(closure_type)) {
+			num_closures += 3;
+		}
+		else if(CLOSURE_IS_GLASS(closure_type)) {
+			num_closures += 2;
+		}
+		else {
+			++num_closures;
 		}
 	}
 	return num_closures;

@@ -197,6 +197,19 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 		dx += BLF_width(blf_mono_font, str, sizeof(str));
 	}
 
+	if (channels == 1 && (cp != NULL || fp != NULL)) {
+		if (fp != NULL) {
+			BLI_snprintf(str, sizeof(str), " Val:%-.3f |", fp[0]);
+		}
+		else if (cp != NULL) {
+			BLI_snprintf(str, sizeof(str), " Val:%-.3f |", cp[0] / 255.0f);
+		}
+		glColor3ub(255, 255, 255);
+		BLF_position(blf_mono_font, dx, dy, 0);
+		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
+		dx += BLF_width(blf_mono_font, str, sizeof(str));
+	}
+
 	if (channels >= 3) {
 		glColor3ubv(red);
 		if (fp)
@@ -526,7 +539,12 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 		}
 
 		if ((sima->flag & (SI_SHOW_R | SI_SHOW_G | SI_SHOW_B)) == 0) {
-			glaDrawImBuf_glsl_ctx(C, ibuf, x, y, GL_NEAREST);
+			int clip_max_x, clip_max_y;
+			UI_view2d_view_to_region(&ar->v2d,
+			                         ar->v2d.cur.xmax, ar->v2d.cur.ymax,
+			                         &clip_max_x, &clip_max_y);
+			glaDrawImBuf_glsl_ctx_clipping(C, ibuf, x, y, GL_NEAREST,
+			                               0, 0, clip_max_x, clip_max_y);
 		}
 		else {
 			unsigned char *display_buffer;

@@ -71,7 +71,7 @@ static void fcurves_to_pchan_links_get(ListBase *pfLinks, Object *ob, bAction *a
 	ListBase curves = {NULL, NULL};
 	int transFlags = action_get_item_transforms(act, ob, pchan, &curves);
 	
-	pchan->flag &= ~(POSE_LOC | POSE_ROT | POSE_SIZE);
+	pchan->flag &= ~(POSE_LOC | POSE_ROT | POSE_SIZE | POSE_BBONE_SHAPE);
 	
 	/* check if any transforms found... */
 	if (transFlags) {
@@ -96,6 +96,8 @@ static void fcurves_to_pchan_links_get(ListBase *pfLinks, Object *ob, bAction *a
 			pchan->flag |= POSE_ROT;
 		if (transFlags & ACT_TRANS_SCALE)
 			pchan->flag |= POSE_SIZE;
+		if (transFlags & ACT_TRANS_BBONE)
+			pchan->flag |= POSE_BBONE_SHAPE;
 			
 		/* store current transforms */
 		copy_v3_v3(pfl->oldloc, pchan->loc);
@@ -104,6 +106,16 @@ static void fcurves_to_pchan_links_get(ListBase *pfLinks, Object *ob, bAction *a
 		copy_qt_qt(pfl->oldquat, pchan->quat);
 		copy_v3_v3(pfl->oldaxis, pchan->rotAxis);
 		pfl->oldangle = pchan->rotAngle;
+		
+		/* store current bbone values */
+		pfl->roll1 = pchan->roll1;
+		pfl->roll2 = pchan->roll2;
+		pfl->curveInX = pchan->curveInX;
+		pfl->curveInY = pchan->curveInY;
+		pfl->curveOutX = pchan->curveOutX;
+		pfl->curveOutY = pchan->curveOutY;
+		pfl->scaleIn = pchan->scaleIn;
+		pfl->scaleOut = pchan->scaleOut;
 		
 		/* make copy of custom properties */
 		if (pchan->prop && (transFlags & ACT_TRANS_PROP))
@@ -133,6 +145,7 @@ void poseAnim_mapping_get(bContext *C, ListBase *pfLinks, Object *ob, bAction *a
 			fcurves_to_pchan_links_get(pfLinks, ob, act, pchan);
 		}
 		CTX_DATA_END;
+		
 	}
 }
 
@@ -198,6 +211,16 @@ void poseAnim_mapping_reset(ListBase *pfLinks)
 		copy_qt_qt(pchan->quat, pfl->oldquat);
 		copy_v3_v3(pchan->rotAxis, pfl->oldaxis);
 		pchan->rotAngle = pfl->oldangle;
+		
+		/* store current bbone values */
+		pchan->roll1 = pfl->roll1;
+		pchan->roll2 = pfl->roll2;
+		pchan->curveInX = pfl->curveInX;
+		pchan->curveInY = pfl->curveInY;
+		pchan->curveOutX = pfl->curveOutX;
+		pchan->curveOutY = pfl->curveOutY;
+		pchan->scaleIn = pfl->scaleIn;
+		pchan->scaleOut = pfl->scaleOut;
 		
 		/* just overwrite values of properties from the stored copies (there should be some) */
 		if (pfl->oldprops)

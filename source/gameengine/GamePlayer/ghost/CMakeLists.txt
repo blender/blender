@@ -77,6 +77,10 @@ set(SRC
 
 add_definitions(${GL_DEFINITIONS})
 
+if(WIN32)
+	blender_include_dirs(../../../../intern/utfconv)
+endif()
+
 if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()

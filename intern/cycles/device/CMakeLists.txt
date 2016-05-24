@@ -1,6 +1,7 @@
 
 set(INC
 	.
+	../graph
 	../kernel
 	../kernel/svm
 	../kernel/osl

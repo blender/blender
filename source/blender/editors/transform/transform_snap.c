@@ -68,6 +68,7 @@
 #include "ED_node.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
+#include "ED_transform_snap_object_context.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -485,6 +486,35 @@ bool validSnappingNormal(TransInfo *t)
 	return false;
 }
 
+static bool bm_edge_is_snap_target(BMEdge *e, void *UNUSED(user_data))
+{
+	if (BM_elem_flag_test(e, BM_ELEM_SELECT | BM_ELEM_HIDDEN) ||
+	    BM_elem_flag_test(e->v1, BM_ELEM_SELECT) ||
+	    BM_elem_flag_test(e->v2, BM_ELEM_SELECT))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+static bool bm_face_is_snap_target(BMFace *f, void *UNUSED(user_data))
+{
+	if (BM_elem_flag_test(f, BM_ELEM_SELECT | BM_ELEM_HIDDEN)) {
+		return false;
+	}
+
+	BMLoop *l_iter, *l_first;
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		if (BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
+			return false;
+		}
+	} while ((l_iter = l_iter->next) != l_first);
+
+	return true;
+}
+
 static void initSnappingMode(TransInfo *t)
 {
 	ToolSettings *ts = t->settings;
@@ -558,11 +588,18 @@ static void initSnappingMode(TransInfo *t)
 		t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
 	}
 
-	if (t->flag & (T_OBJECT | T_EDIT)) {
-		if (t->spacetype == SPACE_VIEW3D) {
+	if (t->spacetype == SPACE_VIEW3D) {
+		if (t->tsnap.object_context == NULL) {
 			t->tsnap.object_context = ED_transform_snap_object_context_create_view3d(
-			        G.main, t->scene, SNAP_OBJECT_USE_CACHE,
-			        t->ar, t->view);
+					G.main, t->scene, SNAP_OBJECT_USE_CACHE,
+					t->ar, t->view);
+
+			ED_transform_snap_object_context_set_editmesh_callbacks(
+					t->tsnap.object_context,
+					(bool (*)(BMVert *, void *))BM_elem_cb_check_hflag_disabled,
+					bm_edge_is_snap_target,
+					bm_face_is_snap_target,
+					SET_UINT_IN_POINTER((BM_ELEM_SELECT | BM_ELEM_HIDDEN)));
 		}
 	}
 }
@@ -918,86 +955,10 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 		mval[1] = t->mval[1];
 		
 		if (t->tsnap.mode == SCE_SNAP_MODE_VOLUME) {
-			ListBase depth_peels;
-			DepthPeel *p1, *p2;
-			const float *last_p = NULL;
-			float max_dist = FLT_MAX;
-			float p[3] = {0.0f, 0.0f, 0.0f};
-			
-			BLI_listbase_clear(&depth_peels);
-			
-			peelObjectsTransForm(t, mval, t->tsnap.modeSelect, &depth_peels);
-			
-//			if (LAST_SNAP_POINT_VALID)
-//			{
-//				last_p = LAST_SNAP_POINT;
-//			}
-//			else
-			{
-				last_p = t->tsnap.snapPoint;
-			}
-			
-			
-			for (p1 = depth_peels.first; p1; p1 = p1->next) {
-				if (p1->flag == 0) {
-					float vec[3];
-					float new_dist;
-					
-					p2 = NULL;
-					p1->flag = 1;
-		
-					/* if peeling objects, take the first and last from each object */
-					if (t->settings->snap_flag & SCE_SNAP_PEEL_OBJECT) {
-						DepthPeel *peel;
-						for (peel = p1->next; peel; peel = peel->next) {
-							if (peel->ob == p1->ob) {
-								peel->flag = 1;
-								p2 = peel;
-							}
-						}
-					}
-					/* otherwise, pair first with second and so on */
-					else {
-						for (p2 = p1->next; p2 && p2->ob != p1->ob; p2 = p2->next) {
-							/* nothing to do here */
-						}
-					}
-					
-					if (p2) {
-						p2->flag = 1;
-						
-						add_v3_v3v3(vec, p1->p, p2->p);
-						mul_v3_fl(vec, 0.5f);
-					}
-					else {
-						copy_v3_v3(vec, p1->p);
-					}
-
-					if (last_p == NULL) {
-						copy_v3_v3(p, vec);
-						max_dist = 0;
-						break;
-					}
-					
-					new_dist = len_squared_v3v3(last_p, vec);
-					
-					if (new_dist < max_dist) {
-						copy_v3_v3(p, vec);
-						max_dist = new_dist;
-					}
-				}
-			}
-			
-			if (max_dist != FLT_MAX) {
-				copy_v3_v3(loc, p);
-				/* XXX, is there a correct normal in this case ???, for now just z up */
-				no[0] = 0.0;
-				no[1] = 0.0;
-				no[2] = 1.0;
-				found = true;
-			}
-			
-			BLI_freelistN(&depth_peels);
+			found = peelObjectsTransform(
+			        t, mval, t->tsnap.modeSelect,
+			        (t->settings->snap_flag & SCE_SNAP_PEEL_OBJECT) != 0,
+			        loc, no, NULL);
 		}
 		else {
 			zero_v3(no);  /* objects won't set this */
@@ -1242,8 +1203,6 @@ bool snapObjectsTransform(
         float *dist_px,
         float r_loc[3], float r_no[3])
 {
-	float ray_dist = BVH_RAYCAST_DIST_MAX;
-
 	return ED_transform_snap_object_project_view3d_ex(
 	        t->tsnap.object_context,
 	        &(const struct SnapObjectParams){
@@ -1252,269 +1211,94 @@ bool snapObjectsTransform(
 	            .use_object_edit = (t->flag & T_EDIT) != 0,
 	            .use_object_active = (t->options & CTX_GPENCIL_STROKES) == 0,
 	        },
-	        mval, dist_px,
-	        &ray_dist,
+	        mval, dist_px, NULL,
 	        r_loc, r_no, NULL);
 }
 
 
 /******************** PEELING *********************************/
 
-
-static int cmpPeel(const void *arg1, const void *arg2)
+bool peelObjectsSnapContext(
+        SnapObjectContext *sctx,
+        const float mval[2], SnapSelect snap_select, bool use_peel_object,
+        /* return args */
+        float r_loc[3], float r_no[3], float *r_thickness)
 {
-	const DepthPeel *p1 = arg1;
-	const DepthPeel *p2 = arg2;
-	int val = 0;
-	
-	if (p1->depth < p2->depth) {
-		val = -1;
-	}
-	else if (p1->depth > p2->depth) {
-		val = 1;
-	}
-	
-	return val;
-}
+	ListBase depths_peel = {0};
+	ED_transform_snap_object_project_all_view3d_ex(
+	        sctx,
+	        &(const struct SnapObjectParams){
+	            .snap_to = SCE_SNAP_MODE_FACE,
+	            .snap_select = snap_select,
+	            .use_object_edit = true,
+	        },
+	        mval, -1.0f, false,
+	        &depths_peel);
 
-static void removeDoublesPeel(ListBase *depth_peels)
-{
-	DepthPeel *peel;
-	
-	for (peel = depth_peels->first; peel; peel = peel->next) {
-		DepthPeel *next_peel = peel->next;
-
-		if (next_peel && fabsf(peel->depth - next_peel->depth) < 0.0015f) {
-			peel->next = next_peel->next;
-			
-			if (next_peel->next) {
-				next_peel->next->prev = peel;
-			}
-			
-			MEM_freeN(next_peel);
-		}
-	}
-}
-
-static void addDepthPeel(ListBase *depth_peels, float depth, float p[3], float no[3], Object *ob)
-{
-	DepthPeel *peel = MEM_callocN(sizeof(DepthPeel), "DepthPeel");
-	
-	peel->depth = depth;
-	peel->ob = ob;
-	copy_v3_v3(peel->p, p);
-	copy_v3_v3(peel->no, no);
-	
-	BLI_addtail(depth_peels, peel);
-	
-	peel->flag = 0;
-}
-
-struct PeelRayCast_Data {
-	BVHTreeFromMesh bvhdata;
-
-	/* internal vars for adding peel */
-	Object *ob;
-	const float (*obmat)[4];
-	const float (*timat)[3];
-
-	const float *ray_start;  /* globalspace */
-
-	const MLoopTri *looptri;
-	const float (*polynors)[3];  /* optional, can be NULL */
-
-	/* output list */
-	ListBase *depth_peels;
-};
-
-static void peelRayCast_cb(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
-{
-	struct PeelRayCast_Data *data = userdata;
-
-	data->bvhdata.raycast_callback(&data->bvhdata, index, ray, hit);
-
-	if (hit->index != -1) {
-		/* get all values in worldspace */
-		float location[3], normal[3];
-		float depth;
-
-		/* worldspace location */
-		mul_v3_m4v3(location, (float (*)[4])data->obmat, hit->co);
-		depth = len_v3v3(location, data->ray_start);
-
-		/* worldspace normal */
-		copy_v3_v3(normal, data->polynors ? data->polynors[data->looptri[hit->index].poly] : hit->no);
-		mul_m3_v3((float (*)[3])data->timat, normal);
-		normalize_v3(normal);
-
-		addDepthPeel(data->depth_peels, depth, location, normal, data->ob);
-	}
-}
-
-static bool peelDerivedMesh(
-        Object *ob, DerivedMesh *dm, BMEditMesh *em, float obmat[4][4],
-        const float ray_start[3], const float ray_normal[3], const float UNUSED(mval[2]),
-        ListBase *depth_peels)
-{
-	bool retval = false;
-	int totvert = dm->getNumVerts(dm);
-	
-	if (totvert > 0) {
-		const MLoopTri *looptri = dm->getLoopTriArray(dm);
-		const int looptri_num = dm->getNumLoopTri(dm);
-		float imat[4][4];
-		float timat[3][3]; /* transpose inverse matrix for normals */
-		float ray_start_local[3], ray_normal_local[3];
-		bool test = true;
-
-		invert_m4_m4(imat, obmat);
-
-		transpose_m3_m4(timat, imat);
-		
-		mul_v3_m4v3(ray_start_local, imat, ray_start);
-		mul_v3_mat3_m4v3(ray_normal_local, imat, ray_normal);
-		
-		/* If number of vert is more than an arbitrary limit, 
-		 * test against boundbox first
-		 * */
-		if (looptri_num > 16) {
-			BoundBox *bb = BKE_object_boundbox_get(ob);
-
-			if (bb) {
-				BoundBox bb_temp;
-
-				/* We cannot aford a bbox with some null dimension, which may happen in some cases...
-				 * Threshold is rather high, but seems to be needed to get good behavior, see T46099. */
-				bb = BKE_boundbox_ensure_minimum_dimensions(bb, &bb_temp, 1e-1f);
-
-				test = BKE_boundbox_ray_hit_check(bb, ray_start_local, ray_normal_local, NULL);
+	if (!BLI_listbase_is_empty(&depths_peel)) {
+		/* At the moment we only use the hits of the first object */
+		struct SnapObjectHitDepth *hit_min = depths_peel.first;
+		for (struct SnapObjectHitDepth *iter = hit_min->next; iter; iter = iter->next) {
+			if (iter->depth < hit_min->depth) {
+				hit_min = iter;
 			}
 		}
-		
-		if (test == true) {
-			struct PeelRayCast_Data data;
+		struct SnapObjectHitDepth *hit_max = NULL;
 
-			data.bvhdata.em_evil = em;
-			data.bvhdata.em_evil_all = false;
-			bvhtree_from_mesh_looptri(&data.bvhdata, dm, 0.0f, 4, 6);
-
-			if (data.bvhdata.tree != NULL) {
-				data.ob = ob;
-				data.obmat = (const float (*)[4])obmat;
-				data.timat = (const float (*)[3])timat;
-				data.ray_start = ray_start;
-				data.looptri = looptri;
-				data.polynors = dm->getPolyDataArray(dm, CD_NORMAL);  /* can be NULL */
-				data.depth_peels = depth_peels;
-
-				BLI_bvhtree_ray_cast_all(data.bvhdata.tree, ray_start_local, ray_normal_local, 0.0f,
-				                         peelRayCast_cb, &data);
+		if (use_peel_object) {
+			/* if peeling objects, take the first and last from each object */
+			hit_max = hit_min;
+			for (struct SnapObjectHitDepth *iter = depths_peel.first; iter; iter = iter->next) {
+				if ((iter->depth > hit_max->depth) && (iter->ob_uuid == hit_min->ob_uuid)) {
+					hit_max = iter;
+				}
 			}
-
-			free_bvhtree_from_mesh(&data.bvhdata);
 		}
-	}
-
-	return retval;
-} 
-
-static bool peelObjects(
-        Scene *scene, View3D *v3d, ARegion *ar, Object *obedit,
-        const float mval[2], SnapSelect snap_select,
-        ListBase *r_depth_peels)
-{
-	Base *base;
-	bool retval = false;
-	float ray_start[3], ray_normal[3];
-	
-	if (ED_view3d_win_to_ray(ar, v3d, mval, ray_start, ray_normal, true) == false) {
-		return false;
-	}
-
-	for (base = scene->base.first; base != NULL; base = base->next) {
-		if (BASE_SELECTABLE(v3d, base)) {
-			Object *ob = base->object;
-
-			if (ob->transflag & OB_DUPLI) {
-				DupliObject *dupli_ob;
-				ListBase *lb = object_duplilist(G.main->eval_ctx, scene, ob);
-				
-				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {
-					Object *dob = dupli_ob->ob;
-					
-					if (dob->type == OB_MESH) {
-						BMEditMesh *em;
-						DerivedMesh *dm = NULL;
-						bool val;
-
-						if (dob != obedit) {
-							dm = mesh_get_derived_final(scene, dob, CD_MASK_BAREMESH);
-							
-							val = peelDerivedMesh(dob, dm, NULL, dob->obmat, ray_start, ray_normal, mval, r_depth_peels);
-						}
-						else {
-							em = BKE_editmesh_from_object(dob);
-							dm = editbmesh_get_derived_cage(scene, obedit, em, CD_MASK_BAREMESH);
-							
-							val = peelDerivedMesh(dob, dm, em, dob->obmat, ray_start, ray_normal, mval, r_depth_peels);
-						}
-
-						retval = retval || val;
-						
-						dm->release(dm);
+		else {
+			/* otherwise, pair first with second and so on */
+			for (struct SnapObjectHitDepth *iter = depths_peel.first; iter; iter = iter->next) {
+				if ((iter != hit_min) && (iter->ob_uuid == hit_min->ob_uuid)) {
+					if (hit_max == NULL) {
+						hit_max = iter;
+					}
+					else if (iter->depth < hit_max->depth) {
+						hit_max = iter;
 					}
 				}
-				
-				free_object_duplilist(lb);
 			}
-			
-			if (ob->type == OB_MESH) {
-				bool val = false;
-
-				if (ob != obedit && ((snap_select == SNAP_NOT_SELECTED && (base->flag & (SELECT | BA_WAS_SEL)) == 0) || ELEM(snap_select, SNAP_ALL, SNAP_NOT_OBEDIT))) {
-					DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
-					
-					val = peelDerivedMesh(ob, dm, NULL, ob->obmat, ray_start, ray_normal, mval, r_depth_peels);
-					dm->release(dm);
-				}
-				else if (ob == obedit && snap_select != SNAP_NOT_OBEDIT) {
-					BMEditMesh *em = BKE_editmesh_from_object(ob);
-					DerivedMesh *dm = editbmesh_get_derived_cage(scene, obedit, em, CD_MASK_BAREMESH);
-					
-					val = peelDerivedMesh(ob, dm, NULL, ob->obmat, ray_start, ray_normal, mval, r_depth_peels);
-					dm->release(dm);
-				}
-					
-				retval = retval || val;
-				
+			/* in this case has only one hit. treat as raycast */
+			if (hit_max == NULL) {
+				hit_max = hit_min;
 			}
 		}
+
+		mid_v3_v3v3(r_loc, hit_min->co, hit_max->co);
+
+		if (r_thickness) {
+			*r_thickness = hit_max->depth - hit_min->depth;
+		}
+
+		/* XXX, is there a correct normal in this case ???, for now just z up */
+		r_no[0] = 0.0;
+		r_no[1] = 0.0;
+		r_no[2] = 1.0;
+
+		BLI_freelistN(&depths_peel);
+		return true;
 	}
-	
-	BLI_listbase_sort(r_depth_peels, cmpPeel);
-	removeDoublesPeel(r_depth_peels);
-	
-	return retval;
+	return false;
 }
 
-bool peelObjectsTransForm(
-        TransInfo *t, const float mval[2], SnapSelect snap_select,
-        ListBase *r_depth_peels)
+bool peelObjectsTransform(
+        TransInfo *t,
+        const float mval[2], SnapSelect snap_select, bool use_peel_object,
+        /* return args */
+        float r_loc[3], float r_no[3], float *r_thickness)
 {
-	return peelObjects(t->scene, t->view, t->ar, t->obedit, mval, snap_select, r_depth_peels);
-}
-
-bool peelObjectsContext(
-        bContext *C, const float mval[2], SnapSelect snap_select,
-        ListBase *r_depth_peels)
-{
-	Scene *scene = CTX_data_scene(C);
-	ScrArea *sa = CTX_wm_area(C);
-	View3D *v3d = sa->spacedata.first;
-	ARegion *ar = CTX_wm_region(C);
-	Object *obedit = CTX_data_edit_object(C);
-
-	return peelObjects(scene, v3d, ar, obedit, mval, snap_select, r_depth_peels);
+	return peelObjectsSnapContext(
+	        t->tsnap.object_context,
+	        mval, snap_select, use_peel_object,
+	        r_loc, r_no, r_thickness);
 }
 
 /******************** NODES ***********************************/

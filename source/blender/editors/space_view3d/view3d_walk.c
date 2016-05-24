@@ -49,7 +49,7 @@
 
 #include "ED_screen.h"
 #include "ED_space_api.h"
-#include "ED_transform.h"
+#include "ED_transform_snap_object_context.h"
 
 #include "PIL_time.h" /* smoothview */
 

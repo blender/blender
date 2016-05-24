@@ -172,7 +172,6 @@ if(UNIX AND NOT APPLE)
 	set(_init_CODEC_FFMPEG                   OFF)
 	set(_init_CYCLES_OSL                     OFF)
 	set(_init_IMAGE_OPENEXR                  OFF)
-	set(_init_INPUT_NDOF                     OFF)
 	set(_init_JACK                           OFF)
 	set(_init_OPENCOLLADA                    OFF)
 	set(_init_OPENCOLORIO                    OFF)
@@ -218,6 +217,10 @@ if(${CMAKE_VERSION} VERSION_LESS 2.8.8)
 	# add_library OBJECT arg unsupported
 	set(WITH_BUILDINFO OFF)
 endif()
+set(BUILDINFO_OVERRIDE_DATE "" CACHE STRING "Use instead of the current date for reproducable builds (empty string disables this option)")
+set(BUILDINFO_OVERRIDE_TIME "" CACHE STRING "Use instead of the current time for reproducable builds (empty string disables this option)")
+mark_as_advanced(BUILDINFO_OVERRIDE_DATE)
+mark_as_advanced(BUILDINFO_OVERRIDE_TIME)
 
 option(WITH_IK_ITASC      "Enable ITASC IK solver (only disable for development & for incompatible C++ compilers)" ON)
 option(WITH_IK_SOLVER     "Enable Legacy IK solver (only disable for development)" ON)
@@ -474,9 +477,19 @@ if(WIN32)
 endif()
 
 # Experimental support of C11 and C++11
-option(WITH_C11 "Build with C11 standard enabled, for development use only!" OFF)
+#
+# We default options to whatever default standard in the current compiler.
+if(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "6.0") AND (NOT WITH_CXX11))
+	set(_c11_init ON)
+	set(_cxx11_init ON)
+else()
+	set(_c11_init OFF)
+	set(_cxx11_init OFF)
+endif()
+
+option(WITH_C11 "Build with C11 standard enabled, for development use only!" ${_c11_init})
 mark_as_advanced(WITH_C11)
-option(WITH_CXX11 "Build with C++11 standard enabled, for development use only!" OFF)
+option(WITH_CXX11 "Build with C++11 standard enabled, for development use only!" ${_cxx11_init})
 mark_as_advanced(WITH_CXX11)
 
 # Dependency graph
@@ -515,8 +528,8 @@ if(APPLE)
 
 	if(NOT CMAKE_OSX_ARCHITECTURES)
 		set(CMAKE_OSX_ARCHITECTURES x86_64 CACHE STRING
-		"Choose the architecture you want to build Blender for: i386, x86_64 or ppc"
-		FORCE)
+			"Choose the architecture you want to build Blender for: i386, x86_64 or ppc"
+			FORCE)
 	endif()
 
 	if(NOT DEFINED OSX_SYSTEM)
@@ -526,15 +539,20 @@ if(APPLE)
 		        OUTPUT_STRIP_TRAILING_WHITESPACE)
 	endif()
 
-	# workaround for incorrect cmake xcode lookup for developer previews - XCODE_VERSION does not take xcode-select path into accout
-	# but would always look into /Applications/Xcode.app while dev versions are named Xcode<version>-DP<preview_number>
-	execute_process(COMMAND xcode-select --print-path  OUTPUT_VARIABLE XCODE_CHECK OUTPUT_STRIP_TRAILING_WHITESPACE)
+	# workaround for incorrect cmake xcode lookup for developer previews - XCODE_VERSION does not
+	# take xcode-select path into account but would always look  into /Applications/Xcode.app
+	# while dev versions are named Xcode<version>-DP<preview_number>
+	execute_process(
+	        COMMAND xcode-select --print-path
+	        OUTPUT_VARIABLE XCODE_CHECK OUTPUT_STRIP_TRAILING_WHITESPACE)
 	string(REPLACE "/Contents/Developer" "" XCODE_BUNDLE ${XCODE_CHECK}) # truncate to bundlepath in any case
 	
 	if(${CMAKE_GENERATOR} MATCHES "Xcode")
 	
-		if(${XCODE_VERSION} VERSION_GREATER 4.2) # earlier xcode has no bundled developer dir, no sense in getting xcode path from
-			string(SUBSTRING "${XCODE_CHECK}" 14 6 DP_NAME) # reduce to XCode name without dp extension
+		# earlier xcode has no bundled developer dir, no sense in getting xcode path from
+		if(${XCODE_VERSION} VERSION_GREATER 4.2) 
+			# reduce to XCode name without dp extension
+			string(SUBSTRING "${XCODE_CHECK}" 14 6 DP_NAME) 
 			if(${DP_NAME} MATCHES Xcode5)
 				set(XCODE_VERSION 5)
 			endif()
@@ -561,25 +579,30 @@ if(APPLE)
 	message(STATUS "Detected OS X ${OSX_SYSTEM} and Xcode ${XCODE_VERSION} at ${XCODE_BUNDLE}")
 
 	if(${XCODE_VERSION} VERSION_LESS 4.3)
-		set(CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX${OSX_SYSTEM}.sdk CACHE PATH "" FORCE)  # use guaranteed existing sdk
+		# use guaranteed existing sdk
+		set(CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX${OSX_SYSTEM}.sdk CACHE PATH "" FORCE)
 	else()
-		# note: xcode-select path could be ambigous, cause /Applications/Xcode.app/Contents/Developer or /Applications/Xcode.app would be allowed
+		# note: xcode-select path could be ambigous,
+		# cause /Applications/Xcode.app/Contents/Developer or /Applications/Xcode.app would be allowed
 		# so i use a selfcomposed bundlepath here  
 		set(OSX_SYSROOT_PREFIX ${XCODE_BUNDLE}/Contents/Developer/Platforms/MacOSX.platform)
 		message(STATUS "OSX_SYSROOT_PREFIX: " ${OSX_SYSROOT_PREFIX})
 		set(OSX_DEVELOPER_PREFIX /Developer/SDKs/MacOSX${OSX_SYSTEM}.sdk) # use guaranteed existing sdk
 		set(CMAKE_OSX_SYSROOT ${OSX_SYSROOT_PREFIX}/${OSX_DEVELOPER_PREFIX} CACHE PATH "" FORCE)
 		if(${CMAKE_GENERATOR} MATCHES "Xcode")
-			set(CMAKE_XCODE_ATTRIBUTE_SDKROOT macosx${OSX_SYSTEM}) # to silence sdk not found warning, just overrides CMAKE_OSX_SYSROOT
+			# to silence sdk not found warning, just overrides CMAKE_OSX_SYSROOT
+			set(CMAKE_XCODE_ATTRIBUTE_SDKROOT macosx${OSX_SYSTEM})
 		endif()
 	endif()
 
 	if(OSX_SYSTEM MATCHES 10.9)
-		set(CMAKE_FIND_ROOT_PATH ${CMAKE_OSX_SYSROOT}) # make sure syslibs and headers are looked up in sdk ( expecially for 10.9 openGL atm. )
+		# make sure syslibs and headers are looked up in sdk ( expecially for 10.9 openGL atm. )
+		set(CMAKE_FIND_ROOT_PATH ${CMAKE_OSX_SYSROOT})
 	endif()
 
 	if(NOT CMAKE_OSX_DEPLOYMENT_TARGET)
-		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.6" CACHE STRING "" FORCE) # 10.6 is our min. target, if you use higher sdk, weak linking happens
+		# 10.6 is our min. target, if you use higher sdk, weak linking happens
+		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.6" CACHE STRING "" FORCE)
 	endif()
 	
 	if(NOT ${CMAKE_GENERATOR} MATCHES "Xcode")
@@ -588,8 +611,6 @@ if(APPLE)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}")
 		add_definitions("-DMACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}")
 	endif()
-
-	option(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
 endif()
 
 
@@ -597,7 +618,10 @@ endif()
 # Check for conflicting/unsupported configurations
 
 if(NOT WITH_BLENDER AND NOT WITH_PLAYER AND NOT WITH_CYCLES_STANDALONE)
-	message(FATAL_ERROR "At least one of WITH_BLENDER or WITH_PLAYER or WITH_CYCLES_STANDALONE must be enabled, nothing to do!")
+	message(FATAL_ERROR
+		"At least one of WITH_BLENDER or WITH_PLAYER or "
+		"WITH_CYCLES_STANDALONE must be enabled, nothing to do!"
+	)
 endif()
 
 if(NOT WITH_GAMEENGINE AND WITH_PLAYER)
@@ -661,7 +685,8 @@ if(NOT WITH_BOOST)
 	set_and_warn(WITH_OPENAL         OFF)  # depends on AUDASPACE
 	set_and_warn(WITH_GAMEENGINE     OFF)  # depends on AUDASPACE
 	set_and_warn(WITH_PLAYER         OFF)  # depends on GAMEENGINE
-elseif(WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_AUDASPACE OR WITH_INTERNATIONAL OR WITH_OPENVDB OR WITH_OPENCOLORIO OR WITH_MOD_BOOLEAN)
+elseif(WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_AUDASPACE OR WITH_INTERNATIONAL OR
+       WITH_OPENVDB OR WITH_OPENCOLORIO OR WITH_MOD_BOOLEAN)
 	# Keep enabled
 else()
 	# New dependency graph needs either Boost or C++11 for function bindings.
@@ -758,18 +783,22 @@ endif()
 
 if(WITH_INTERNATIONAL)
 	if(NOT EXISTS "${CMAKE_SOURCE_DIR}/release/datafiles/locale/languages")
-		message(WARNING "Translation path '${CMAKE_SOURCE_DIR}/release/datafiles/locale' is missing, "
-						"This is a 'git submodule', which are known not to work with bridges to other version "
-						"control systems, disabling 'WITH_INTERNATIONAL'.")
+		message(WARNING
+			"Translation path '${CMAKE_SOURCE_DIR}/release/datafiles/locale' is missing, "
+			"This is a 'git submodule', which are known not to work with bridges to other version "
+			"control systems, disabling 'WITH_INTERNATIONAL'."
+		)
 		set(WITH_INTERNATIONAL OFF)
 	endif()
 endif()
 
 if(WITH_PYTHON)
 	if(NOT EXISTS "${CMAKE_SOURCE_DIR}/release/scripts/addons/modules")
-		message(WARNING "Addons path '${CMAKE_SOURCE_DIR}/release/scripts/addons' is missing, "
-						"This is a 'git submodule', which are known not to work with bridges to other version "
-						"control systems: * CONTINUING WITHOUT ADDONS *")
+		message(WARNING
+			"Addons path '${CMAKE_SOURCE_DIR}/release/scripts/addons' is missing, "
+			"This is a 'git submodule', which are known not to work with bridges to other version "
+			"control systems: * CONTINUING WITHOUT ADDONS *"
+		)
 	endif()
 endif()
 
@@ -802,21 +831,6 @@ set(PLATFORM_LINKLIBS "")
 set(PLATFORM_LINKFLAGS "")
 set(PLATFORM_LINKFLAGS_DEBUG "")
 
-
-# For alternate Python locations the commandline can be used to override detected/default cache settings, e.g:
-# On Unix:
-#   cmake ../blender \
-#         -D PYTHON_VERSION=3.5 \
-#         -D PYTHON_INCLUDE_DIR=/opt/py35/include/python3.5d \
-#         -D PYTHON_LIBRARY=/opt/py35/lib/libpython3.5d.so
-#
-# On Macs:
-#   cmake ../blender \
-#         -D PYTHON_INCLUDE_DIR=/System/Library/Frameworks/Python.framework/Versions/3.5/include/python3.5 \
-#         -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/config \
-#         -G Xcode
-#
-# When changing any of this remember to update the notes in doc/build_systems/cmake.txt
 
 #-----------------------------------------------------------------------------
 #Platform specifics
@@ -1019,14 +1033,12 @@ if(UNIX AND NOT APPLE)
 
 	if(WITH_INPUT_NDOF)
 		find_package_wrapper(Spacenav)
-		if(NOT SPACENAV_FOUND)
-			set(WITH_INPUT_NDOF OFF)
-		endif()
-
-		# use generic names within blenders buildsystem.
 		if(SPACENAV_FOUND)
+			# use generic names within blenders buildsystem.
 			set(NDOF_INCLUDE_DIRS ${SPACENAV_INCLUDE_DIRS})
 			set(NDOF_LIBRARIES ${SPACENAV_LIBRARIES})
+		else()
+			set(WITH_INPUT_NDOF OFF)
 		endif()
 	endif()
 
@@ -1040,7 +1052,11 @@ if(UNIX AND NOT APPLE)
 			if(${OSL_LIBRARY_VERSION_MAJOR} EQUAL "1" AND ${OSL_LIBRARY_VERSION_MINOR} LESS "6")
 				# Note: --whole-archive is needed to force loading of all symbols in liboslexec,
 				# otherwise LLVM is missing the osl_allocate_closure_component function
-				set(OSL_LIBRARIES ${OSL_OSLCOMP_LIBRARY} -Wl,--whole-archive ${OSL_OSLEXEC_LIBRARY} -Wl,--no-whole-archive ${OSL_OSLQUERY_LIBRARY})
+				set(OSL_LIBRARIES
+					${OSL_OSLCOMP_LIBRARY}
+					-Wl,--whole-archive ${OSL_OSLEXEC_LIBRARY}
+					-Wl,--no-whole-archive ${OSL_OSLQUERY_LIBRARY}
+				)
 			endif()
 		else()
 			message(STATUS "OSL not found, disabling it from Cycles")
@@ -1111,7 +1127,13 @@ if(UNIX AND NOT APPLE)
 			set(PUGIXML_LIBRARIES "")
 		endif()
 
-		set(OPENIMAGEIO_LIBRARIES ${OPENIMAGEIO_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${ZLIB_LIBRARIES} ${BOOST_LIBRARIES})
+		set(OPENIMAGEIO_LIBRARIES
+			${OPENIMAGEIO_LIBRARIES}
+			${PNG_LIBRARIES}
+			${JPEG_LIBRARIES}
+			${ZLIB_LIBRARIES}
+			${BOOST_LIBRARIES}
+		)
 		set(OPENIMAGEIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
 		set(OPENIMAGEIO_DEFINITIONS "")
 
@@ -1152,7 +1174,9 @@ if(UNIX AND NOT APPLE)
 
 	if(WITH_LLVM OR WITH_SDL_DYNLOAD)
 		# Fix for conflict with Mesa llvmpipe
-		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -Wl,--version-script='${CMAKE_SOURCE_DIR}/source/creator/blender.map'")
+		set(PLATFORM_LINKFLAGS
+			"${PLATFORM_LINKFLAGS} -Wl,--version-script='${CMAKE_SOURCE_DIR}/source/creator/blender.map'"
+		)
 	endif()
 
 	if(WITH_OPENSUBDIV)
@@ -1255,7 +1279,10 @@ elseif(WIN32)
 		set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
 		set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /SAFESEH:NO")
 
-		list(APPEND PLATFORM_LINKLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid psapi Dbghelp)
+		list(APPEND PLATFORM_LINKLIBS
+			ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32
+			advapi32 shfolder shell32 ole32 oleaut32 uuid psapi Dbghelp
+		)
 
 		if(WITH_INPUT_IME)
 			list(APPEND PLATFORM_LINKLIBS imm32)
@@ -1293,7 +1320,8 @@ elseif(WIN32)
 		set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /MT")
 		set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} /MT")
 
-		set(PLATFORM_LINKFLAGS "/SUBSYSTEM:CONSOLE /STACK:2097152 /INCREMENTAL:NO /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcmrt.lib /NODEFAULTLIB:msvcurt.lib /NODEFAULTLIB:msvcrtd.lib")
+		set(PLATFORM_LINKFLAGS "/SUBSYSTEM:CONSOLE /STACK:2097152 /INCREMENTAL:NO ")
+		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcmrt.lib /NODEFAULTLIB:msvcurt.lib /NODEFAULTLIB:msvcrtd.lib ")
 
 		# Ignore meaningless for us linker warnings.
 		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} /ignore:4049 /ignore:4217 /ignore:4221")
@@ -1347,9 +1375,9 @@ elseif(WIN32)
 		# Add each of our libraries to our cmake_prefix_path so find_package() could work
 		file(GLOB children RELATIVE ${LIBDIR} ${LIBDIR}/*)
 		foreach(child ${children})
-		if(IS_DIRECTORY ${LIBDIR}/${child})
-			list(APPEND CMAKE_PREFIX_PATH  ${LIBDIR}/${child})
-		endif()
+			if(IS_DIRECTORY ${LIBDIR}/${child})
+				list(APPEND CMAKE_PREFIX_PATH  ${LIBDIR}/${child})
+			endif()
 		endforeach()
 
 		set(ZLIB_INCLUDE_DIRS ${LIBDIR}/zlib/include)
@@ -1454,23 +1482,28 @@ elseif(WIN32)
 				set(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCLUDE_DIR} ${OPENEXR}/include/OpenEXR)
 				set(OPENEXR_LIBPATH ${OPENEXR}/lib)
 				set(OPENEXR_LIBRARIES
-					optimized ${OPENEXR_LIBPATH}/Iex-2_2.lib debug ${OPENEXR_LIBPATH}/Iex-2_2_d.lib
-					optimized ${OPENEXR_LIBPATH}/Half.lib debug ${OPENEXR_LIBPATH}/Half_d.lib
-					optimized ${OPENEXR_LIBPATH}/IlmImf-2_2.lib debug ${OPENEXR_LIBPATH}/IlmImf-2_2_d.lib
-					optimized ${OPENEXR_LIBPATH}/Imath-2_2.lib debug ${OPENEXR_LIBPATH}/Imath-2_2_d.lib
-					optimized ${OPENEXR_LIBPATH}/IlmThread-2_2.lib debug ${OPENEXR_LIBPATH}/IlmThread-2_2_d.lib
+					optimized ${OPENEXR_LIBPATH}/Iex-2_2.lib
+					optimized ${OPENEXR_LIBPATH}/Half.lib
+					optimized ${OPENEXR_LIBPATH}/IlmImf-2_2.lib
+					optimized ${OPENEXR_LIBPATH}/Imath-2_2.lib
+					optimized ${OPENEXR_LIBPATH}/IlmThread-2_2.lib
+					debug ${OPENEXR_LIBPATH}/Iex-2_2_d.lib
+					debug ${OPENEXR_LIBPATH}/Half_d.lib
+					debug ${OPENEXR_LIBPATH}/IlmImf-2_2_d.lib
+					debug ${OPENEXR_LIBPATH}/Imath-2_2_d.lib
+					debug ${OPENEXR_LIBPATH}/IlmThread-2_2_d.lib
 				)
 			endif()
 		endif()
 
 		if(WITH_IMAGE_TIFF)
-		# Try to find tiff first then complain and set static and maybe wrong paths
-		find_package(TIFF)
-		if(NOT TIFF_FOUND)
-			message(WARNING "Using HARDCODED libtiff locations")
-			set(TIFF_LIBRARY ${LIBDIR}/tiff/lib/libtiff.lib)
-			set(TIFF_INCLUDE_DIR ${LIBDIR}/tiff/include)
-		endif()
+			# Try to find tiff first then complain and set static and maybe wrong paths
+			find_package(TIFF)
+			if(NOT TIFF_FOUND)
+				message(WARNING "Using HARDCODED libtiff locations")
+				set(TIFF_LIBRARY ${LIBDIR}/tiff/lib/libtiff.lib)
+				set(TIFF_INCLUDE_DIR ${LIBDIR}/tiff/include)
+			endif()
 		endif()
 
 		if(WITH_JACK)
@@ -1525,12 +1558,17 @@ elseif(WIN32)
 					set(BOOST_DEBUG_POSTFIX "vc140-mt-sgd-1_60.lib")
 				endif()
 				set(BOOST_LIBRARIES
-					optimized libboost_date_time-${BOOST_POSTFIX} optimized libboost_filesystem-${BOOST_POSTFIX}
+					optimized libboost_date_time-${BOOST_POSTFIX}
+					optimized libboost_filesystem-${BOOST_POSTFIX}
 					optimized libboost_regex-${BOOST_POSTFIX}
-					optimized libboost_system-${BOOST_POSTFIX} optimized libboost_thread-${BOOST_POSTFIX}
-					debug libboost_date_time-${BOOST_DEBUG_POSTFIX} debug libboost_filesystem-${BOOST_DEBUG_POSTFIX}
+					optimized libboost_system-${BOOST_POSTFIX}
+					optimized libboost_thread-${BOOST_POSTFIX}
+					debug libboost_date_time-${BOOST_DEBUG_POSTFIX}
+					debug libboost_filesystem-${BOOST_DEBUG_POSTFIX}
 					debug libboost_regex-${BOOST_DEBUG_POSTFIX}
-					debug libboost_system-${BOOST_DEBUG_POSTFIX} debug libboost_thread-${BOOST_DEBUG_POSTFIX})
+					debug libboost_system-${BOOST_DEBUG_POSTFIX}
+					debug libboost_thread-${BOOST_DEBUG_POSTFIX}
+				)
 				if(WITH_CYCLES_OSL)
 					set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
 						optimized libboost_wave-${BOOST_POSTFIX}
@@ -1659,7 +1697,8 @@ elseif(WIN32)
 			#endif
 			int main(void) { return 0; }
 			" 
-			WITH_MINGW64)
+			WITH_MINGW64
+		)
 		
 		if(NOT DEFINED LIBDIR)
 			if(WITH_MINGW64)
@@ -1680,7 +1719,10 @@ elseif(WIN32)
 			message(FATAL_ERROR "Windows requires pre-compiled libs at: '${LIBDIR}'")
 		endif()
 
-		list(APPEND PLATFORM_LINKLIBS -lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid -lwsock32 -lpsapi -ldbghelp)
+		list(APPEND PLATFORM_LINKLIBS
+			-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32
+			-lz -lstdc++ -lole32 -luuid -lwsock32 -lpsapi -ldbghelp
+		)
 
 		if(WITH_INPUT_IME)
 			list(APPEND PLATFORM_LINKLIBS -limm32)
@@ -1749,7 +1791,14 @@ elseif(WIN32)
 				${OPENCOLLADA}/include/opencollada/GeneratedSaxParser
 			)
 			set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib/opencollada)
-			set(OPENCOLLADA_LIBRARIES OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver buffer ftoa xml)
+			set(OPENCOLLADA_LIBRARIES
+				OpenCOLLADAStreamWriter
+				OpenCOLLADASaxFrameworkLoader
+				OpenCOLLADAFramework
+				OpenCOLLADABaseUtils
+				GeneratedSaxParser
+				UTF MathMLSolver buffer ftoa xml
+			)
 			set(PCRE_LIBRARIES pcre)
 		endif()
 
@@ -1822,12 +1871,14 @@ elseif(WIN32)
 			if(WITH_INTERNATIONAL)
 				set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
 					optimized boost_locale-${BOOST_POSTFIX}
-					debug boost_locale-${BOOST_DEBUG_POSTFIX}) 
+					debug boost_locale-${BOOST_DEBUG_POSTFIX}
+				)
 			endif()
 			if(WITH_CYCLES_OSL)
 				set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
 					optimized boost_wave-${BOOST_POSTFIX}
-					debug boost_wave-${BOOST_DEBUG_POSTFIX}) 
+					debug boost_wave-${BOOST_DEBUG_POSTFIX}
+				)
 			endif()
 			set(BOOST_LIBPATH ${BOOST}/lib)
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB -DBOOST_THREAD_USE_LIB ")
@@ -1936,7 +1987,14 @@ elseif(WIN32)
 		find_library(OSL_LIB_EXEC_DEBUG NAMES oslexec_d PATHS ${CYCLES_OSL}/lib)
 		find_library(OSL_LIB_COMP_DEBUG NAMES oslcomp_d PATHS ${CYCLES_OSL}/lib)
 		find_library(OSL_LIB_QUERY_DEBUG NAMES oslquery_d PATHS ${CYCLES_OSL}/lib)
-		list(APPEND OSL_LIBRARIES optimized ${OSL_LIB_COMP} optimized ${OSL_LIB_EXEC} optimized ${OSL_LIB_QUERY} debug ${OSL_LIB_EXEC_DEBUG} debug ${OSL_LIB_COMP_DEBUG} debug ${OSL_LIB_QUERY_DEBUG})
+		list(APPEND OSL_LIBRARIES
+			optimized ${OSL_LIB_COMP}
+			optimized ${OSL_LIB_EXEC}
+			optimized ${OSL_LIB_QUERY}
+			debug ${OSL_LIB_EXEC_DEBUG}
+			debug ${OSL_LIB_COMP_DEBUG}
+			debug ${OSL_LIB_QUERY_DEBUG}
+		)
 		find_path(OSL_INCLUDE_DIR OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
 		find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin)
 	
@@ -1950,20 +2008,8 @@ elseif(WIN32)
 
 elseif(APPLE)
 
-	if(${CMAKE_OSX_DEPLOYMENT_TARGET} STREQUAL "10.5" OR ${CMAKE_OSX_DEPLOYMENT_TARGET} STRGREATER "10.5")
-		set(WITH_LIBS10.5 ON CACHE BOOL "Use 10.5 libs" FORCE) # valid also for 10.6/7/8/9
-	endif()
-
 	if(NOT DEFINED LIBDIR)
-		if(WITH_LIBS10.5)
-			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-9.x.universal)
-		else()
-			if(CMAKE_OSX_ARCHITECTURES MATCHES i386)
-				set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-8.x.i386)
-			else()
-				set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-8.0.0-powerpc)
-			endif()
-		endif()
+		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-9.x.universal)
 	else()
 		message(STATUS "Using pre-compiled LIBDIR: ${LIBDIR}")
 	endif()
@@ -2021,11 +2067,15 @@ elseif(APPLE)
 			# set(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
 		else()
 			# module must be compiled against Python framework
-			set(PYTHON_INCLUDE_DIR "/Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}/include/python${PYTHON_VERSION}m")
-			set(PYTHON_EXECUTABLE "/Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}/bin/python${PYTHON_VERSION}m")
+			set(_py_framework "/Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}")
+
+			set(PYTHON_INCLUDE_DIR "${_py_framework}/include/python${PYTHON_VERSION}m")
+			set(PYTHON_EXECUTABLE "${_py_framework}/bin/python${PYTHON_VERSION}m")
+			set(PYTHON_LIBPATH "${_py_framework}/lib/python${PYTHON_VERSION}/config-${PYTHON_VERSION}m")
 			#set(PYTHON_LIBRARY python${PYTHON_VERSION})
-			set(PYTHON_LIBPATH "/Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}/lib/python${PYTHON_VERSION}/config-${PYTHON_VERSION}m")
 			#set(PYTHON_LINKFLAGS "-u _PyMac_Error -framework Python")  # won't  build with this enabled
+
+			unset(_py_framework)
 		endif()
 		
 		# uncached vars
@@ -2067,7 +2117,10 @@ elseif(APPLE)
 	if(WITH_CODEC_FFMPEG)
 		set(FFMPEG ${LIBDIR}/ffmpeg)
 		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
-		set(FFMPEG_LIBRARIES avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg)
+		set(FFMPEG_LIBRARIES
+			avcodec avdevice avformat avutil
+			mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg
+		)
 		set(FFMPEG_LIBPATH ${FFMPEG}/lib)
 	endif()
 
@@ -2078,13 +2131,13 @@ elseif(APPLE)
 	)
 	mark_as_advanced(SYSTEMSTUBS_LIBRARY)
 	if(SYSTEMSTUBS_LIBRARY)
-		list(APPEND PLATFORM_LINKLIBS stdc++ SystemStubs)
-	else()
-		list(APPEND PLATFORM_LINKLIBS stdc++)
+		list(APPEND PLATFORM_LINKLIBS SystemStubs)
 	endif()
 
 	set(PLATFORM_CFLAGS "-pipe -funsigned-char")
-	set(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa -framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio")
+	set(PLATFORM_LINKFLAGS
+		"-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa -framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio"
+	)
 	if(WITH_CODEC_QUICKTIME)
 		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QTKit")
 		if(CMAKE_OSX_ARCHITECTURES MATCHES i386)
@@ -2093,22 +2146,10 @@ elseif(APPLE)
 		endif()
 	endif()
 
-	# XXX - SOME MAC DEV PLEASE TEST WITH THE SDK INSTALLED!
-	# ALSO SHOULD BE MOVED INTO OWN MODULE WHEN FUNCTIONAL
-	if(WITH_INPUT_NDOF)
-		# This thread it *should* work and check the framework - campbell
-		# http://www.cmake.org/pipermail/cmake/2005-December/007740.html
-		find_library(3DCONNEXION_CLIENT_FRAMEWORK
-			NAMES 3DconnexionClient
-		)
-		if(NOT 3DCONNEXION_CLIENT_FRAMEWORK)
-			set(WITH_INPUT_NDOF OFF)
-		endif()
-
-		if(WITH_INPUT_NDOF)
-			set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -F/Library/Frameworks -weak_framework 3DconnexionClient")
-			set(NDOF_INCLUDE_DIRS /Library/Frameworks/3DconnexionClient.framework/Headers )
-		endif()
+	if(WITH_CXX11)
+		list(APPEND PLATFORM_LINKLIBS c++)
+	else()
+		list(APPEND PLATFORM_LINKLIBS stdc++)
 	endif()
 
 	if(WITH_JACK)
@@ -2116,7 +2157,8 @@ elseif(APPLE)
 	endif()
 	
 	if(WITH_PYTHON_MODULE OR WITH_PYTHON_FRAMEWORK)
-		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} /Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}/Python")# force cmake to link right framework
+		# force cmake to link right framework
+		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} /Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}/Python")
 	endif()
 	
 	if(WITH_OPENCOLLADA)
@@ -2131,10 +2173,18 @@ elseif(APPLE)
 		)
 
 		set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
-		set(OPENCOLLADA_LIBRARIES "OpenCOLLADASaxFrameworkLoader -lOpenCOLLADAFramework -lOpenCOLLADABaseUtils -lOpenCOLLADAStreamWriter -lMathMLSolver -lGeneratedSaxParser -lxml2 -lbuffer -lftoa")
+		set(OPENCOLLADA_LIBRARIES
+			OpenCOLLADASaxFrameworkLoader
+			-lOpenCOLLADAFramework
+			-lOpenCOLLADABaseUtils
+			-lOpenCOLLADAStreamWriter
+			-lMathMLSolver
+			-lGeneratedSaxParser
+			-lxml2 -lbuffer -lftoa
+		)
 		# Use UTF functions from collada if LLVM is not enabled
 		if(NOT WITH_LLVM)
-			set(OPENCOLLADA_LIBRARIES "${OPENCOLLADA_LIBRARIES} -lUTF")
+			list(APPEND OPENCOLLADA_LIBRARIES -lUTF)
 		endif()
 		# pcre is bundled with openCollada
 		#set(PCRE ${LIBDIR}/pcre)
@@ -2169,14 +2219,17 @@ elseif(APPLE)
 		set(TIFF_LIBPATH ${TIFF}/lib)
 	endif()
 
-	if(WITH_INPUT_NDOF)
-		# linker needs "-weak_framework 3DconnexionClient"
-	endif()
-
 	if(WITH_BOOST)
 		set(BOOST ${LIBDIR}/boost)
 		set(BOOST_INCLUDE_DIR ${BOOST}/include)
-		set(BOOST_LIBRARIES boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt boost_wave-mt)
+		set(BOOST_LIBRARIES
+			boost_date_time-mt
+			boost_filesystem-mt
+			boost_regex-mt
+			boost_system-mt
+			boost_thread-mt
+			boost_wave-mt
+		)
 		if(WITH_INTERNATIONAL)
 			list(APPEND BOOST_LIBRARIES boost_locale-mt)
 		endif()
@@ -2197,8 +2250,22 @@ elseif(APPLE)
 	if(WITH_OPENIMAGEIO)
 		set(OPENIMAGEIO ${LIBDIR}/openimageio)
 		set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO}/include)
-		set(OPENIMAGEIO_LIBRARIES ${OPENIMAGEIO}/lib/libOpenImageIO.a ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${TIFF_LIBRARY} ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES})
-		set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib ${JPEG_LIBPATH} ${PNG_LIBPATH} ${TIFF_LIBPATH} ${OPENEXR_LIBPATH} ${ZLIB_LIBPATH})
+		set(OPENIMAGEIO_LIBRARIES
+			${OPENIMAGEIO}/lib/libOpenImageIO.a
+			${PNG_LIBRARIES}
+			${JPEG_LIBRARIES}
+			${TIFF_LIBRARY}
+			${OPENEXR_LIBRARIES}
+			${ZLIB_LIBRARIES}
+		)
+		set(OPENIMAGEIO_LIBPATH
+			${OPENIMAGEIO}/lib
+			${JPEG_LIBPATH}
+			${PNG_LIBPATH}
+			${TIFF_LIBPATH}
+			${OPENEXR_LIBPATH}
+			${ZLIB_LIBPATH}
+		)
 		set(OPENIMAGEIO_DEFINITIONS "-DOIIO_STATIC_BUILD")
 		set(OPENIMAGEIO_IDIFF "${LIBDIR}/openimageio/bin/idiff")
 	endif()
@@ -2291,8 +2358,14 @@ elseif(APPLE)
 				include_directories(${LIBDIR}/openmp/include)
 				link_directories(${LIBDIR}/openmp/lib)
 				# This is a workaround for our helperbinaries ( datatoc, masgfmt, ... ),
-				# They are linked also to omp lib, so we need it in builddir for runtime exexcution, TODO: remove all unneeded dependencies from these
-				execute_process(COMMAND ditto -arch ${CMAKE_OSX_ARCHITECTURES} ${LIBDIR}/openmp/lib/libiomp5.dylib ${CMAKE_BINARY_DIR}/Resources/lib/libiomp5.dylib) # for intermediate binaries, in respect to lib ID
+				# They are linked also to omp lib, so we need it in builddir for runtime exexcution,
+				# TODO: remove all unneeded dependencies from these
+
+				# for intermediate binaries, in respect to lib ID
+				execute_process(
+				        COMMAND ditto -arch ${CMAKE_OSX_ARCHITECTURES}
+				        ${LIBDIR}/openmp/lib/libiomp5.dylib
+				        ${CMAKE_BINARY_DIR}/Resources/lib/libiomp5.dylib)
 			endif()
 		endif()
 	endif()
@@ -2318,7 +2391,14 @@ elseif(APPLE)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=1024")
 	endif()
 	# Get rid of eventually clashes, we export some symbols explicite as local
-	set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -Xlinker -unexported_symbols_list -Xlinker ${CMAKE_SOURCE_DIR}/source/creator/osx_locals.map")
+	set(PLATFORM_LINKFLAGS
+		"${PLATFORM_LINKFLAGS} -Xlinker -unexported_symbols_list -Xlinker ${CMAKE_SOURCE_DIR}/source/creator/osx_locals.map"
+	)
+
+	if(WITH_CXX11)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -stdlib=libc++")
+	endif()
 
 	# Suppress ranlib "has no symbols" warnings (workaround for T48250)
 	set(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
@@ -2336,38 +2416,50 @@ endif()
 
 if(WITH_CYCLES)
 	if(NOT WITH_OPENIMAGEIO)
-		message(FATAL_ERROR "Cycles requires WITH_OPENIMAGEIO, the library may not have been found. Configure OIIO or disable WITH_CYCLES")
+		message(FATAL_ERROR
+			"Cycles requires WITH_OPENIMAGEIO, the library may not have been found. "
+			"Configure OIIO or disable WITH_CYCLES"
+		)
 	endif()
 	if(NOT WITH_BOOST)
-		message(FATAL_ERROR "Cycles requires WITH_BOOST, the library may not have been found. Configure BOOST or disable WITH_CYCLES")
+		message(FATAL_ERROR
+			"Cycles requires WITH_BOOST, the library may not have been found. "
+			"Configure BOOST or disable WITH_CYCLES"
+		)
 	endif()
 
 	if(WITH_CYCLES_OSL)
 		if(NOT WITH_LLVM)
-			message(FATAL_ERROR "Cycles OSL requires WITH_LLVM, the library may not have been found. Configure LLVM or disable WITH_CYCLES_OSL")
+			message(FATAL_ERROR
+				"Cycles OSL requires WITH_LLVM, the library may not have been found. "
+				"Configure LLVM or disable WITH_CYCLES_OSL"
+			)
 		endif()
 	endif()
 endif()
 
 if(WITH_INTERNATIONAL)
 	if(NOT WITH_BOOST)
-		message(FATAL_ERROR "Internationalization requires WITH_BOOST, the library may not have been found. Configure BOOST or disable WITH_INTERNATIONAL")
+		message(FATAL_ERROR
+			"Internationalization requires WITH_BOOST, the library may not have been found. "
+			"Configure BOOST or disable WITH_INTERNATIONAL"
+		)
 	endif()
 endif()
 
 # See TEST_SSE_SUPPORT() for how this is defined.
 
-if(WITH_RAYOPTIMIZATION)
-	if(SUPPORT_SSE_BUILD)
-		set(PLATFORM_CFLAGS " ${COMPILER_SSE_FLAG} ${PLATFORM_CFLAGS}")
-		add_definitions(-D__SSE__ -D__MMX__)
-	endif()
-	if(SUPPORT_SSE2_BUILD)
-		set(PLATFORM_CFLAGS " ${COMPILER_SSE2_FLAG} ${PLATFORM_CFLAGS}")
-		add_definitions(-D__SSE2__)
-		if(NOT SUPPORT_SSE_BUILD) # dont double up
-			add_definitions(-D__MMX__)
-		endif()
+# Do it globally, SSE2 is required for quite some time now.
+# Doing it now allows to use SSE/SSE2 in inline headers.
+if(SUPPORT_SSE_BUILD)
+	set(PLATFORM_CFLAGS " ${COMPILER_SSE_FLAG} ${PLATFORM_CFLAGS}")
+	add_definitions(-D__SSE__ -D__MMX__)
+endif()
+if(SUPPORT_SSE2_BUILD)
+	set(PLATFORM_CFLAGS " ${COMPILER_SSE2_FLAG} ${PLATFORM_CFLAGS}")
+	add_definitions(-D__SSE2__)
+	if(NOT SUPPORT_SSE_BUILD) # dont double up
+		add_definitions(-D__MMX__)
 	endif()
 endif()
 
@@ -2437,7 +2529,10 @@ if(WITH_GL_PROFILE_COMPAT OR WITH_GL_PROFILE_CORE)
 elseif(WITH_GL_PROFILE_ES20)
 	if(WITH_SYSTEM_GLES)
 		if(NOT OPENGLES_LIBRARY)
-			message(FATAL_ERROR "Unable to find OpenGL ES libraries.  Install them or disable WITH_SYSTEM_GLES.")
+			message(FATAL_ERROR
+				"Unable to find OpenGL ES libraries. "
+				"Install them or disable WITH_SYSTEM_GLES."
+			)
 		endif()
 
 		list(APPEND BLENDER_GL_LIBRARIES OPENGLES_LIBRARY)
@@ -2449,7 +2544,10 @@ elseif(WITH_GL_PROFILE_ES20)
 		list(APPEND BLENDER_GL_LIBRARIES "${OPENGLES_LIBRARY}")
 
 		if(NOT OPENGLES_LIBRARY)
-			message(FATAL_ERROR "To compile WITH_GL_EGL you need to set OPENGLES_LIBRARY to the file path of an OpenGL ES 2.0 library.")
+			message(FATAL_ERROR
+				"To compile WITH_GL_EGL you need to set OPENGLES_LIBRARY "
+				"to the file path of an OpenGL ES 2.0 library."
+			)
 		endif()
 
 	endif()
@@ -2461,7 +2559,10 @@ elseif(WITH_GL_PROFILE_ES20)
 		mark_as_advanced(OPENGLES_DLL)
 
 		if(NOT OPENGLES_DLL)
-			message(FATAL_ERROR "To compile WITH_GL_PROFILE_ES20 you need to set OPENGLES_DLL to the file path of an OpenGL ES 2.0 runtime dynamic link library (DLL).")
+			message(FATAL_ERROR
+				"To compile WITH_GL_PROFILE_ES20 you need to set OPENGLES_DLL to the file "
+				"path of an OpenGL ES 2.0 runtime dynamic link library (DLL)."
+			)
 		endif()
 
 		if(WITH_GL_ANGLE)
@@ -2475,7 +2576,10 @@ elseif(WITH_GL_PROFILE_ES20)
 			mark_as_advanced(D3DCOMPILER_DLL)
 
 			if(D3DCOMPILER_DLL STREQUAL "")
-				message(FATAL_ERROR "To compile WITH_GL_ANGLE you need to set D3DCOMPILER_DLL to the file path of a copy of the DirectX redistributable DLL file: D3DCompiler_46.dll")
+				message(FATAL_ERROR
+					"To compile WITH_GL_ANGLE you need to set D3DCOMPILER_DLL to the file "
+					"path of a copy of the DirectX redistributable DLL file: D3DCompiler_46.dll"
+				)
 			endif()
 
 		endif()
@@ -2489,7 +2593,10 @@ if(WITH_GL_EGL)
 
 	if(WITH_SYSTEM_GLES)
 		if(NOT OPENGLES_EGL_LIBRARY)
-			message(FATAL_ERROR "Unable to find OpenGL ES libraries.  Install them or disable WITH_SYSTEM_GLES.")
+			message(FATAL_ERROR
+				"Unable to find OpenGL ES libraries. "
+				"Install them or disable WITH_SYSTEM_GLES."
+			)
 		endif()
 
 		list(APPEND BLENDER_GL_LIBRARIES OPENGLES_EGL_LIBRARY)
@@ -2501,7 +2608,10 @@ if(WITH_GL_EGL)
 		list(APPEND BLENDER_GL_LIBRARIES "${OPENGLES_LIBRARY}" "${OPENGLES_EGL_LIBRARY}")
 
 		if(NOT OPENGLES_EGL_LIBRARY)
-			message(FATAL_ERROR "To compile WITH_GL_EGL you need to set OPENGLES_EGL_LIBRARY to the file path of an EGL library.")
+			message(FATAL_ERROR
+				"To compile WITH_GL_EGL you need to set OPENGLES_EGL_LIBRARY "
+				"to the file path of an EGL library."
+			)
 		endif()
 
 	endif()
@@ -2513,7 +2623,10 @@ if(WITH_GL_EGL)
 		mark_as_advanced(OPENGLES_EGL_DLL)
 
 		if(NOT OPENGLES_EGL_DLL)
-			message(FATAL_ERROR "To compile WITH_GL_EGL you need to set OPENGLES_EGL_DLL to the file path of an EGL runtime dynamic link library (DLL).")
+			message(FATAL_ERROR
+				"To compile WITH_GL_EGL you need to set OPENGLES_EGL_DLL "
+				"to the file path of an EGL runtime dynamic link library (DLL)."
+			)
 		endif()
 
 	endif()
@@ -2678,7 +2791,9 @@ endif()
 if(WITH_LIBMV)
 	set(CERES_DEFINES)
 
-	if(SHARED_PTR_FOUND)
+	if(WITH_CXX11)
+		# nothing to be done
+	elseif(SHARED_PTR_FOUND)
 		if(SHARED_PTR_TR1_MEMORY_HEADER)
 			list(APPEND CERES_DEFINES -DCERES_TR1_MEMORY_HEADER)
 		endif()
@@ -2689,7 +2804,9 @@ if(WITH_LIBMV)
 		message(FATAL_ERROR "Ceres: Unable to find shared_ptr.")
 	endif()
 
-	if(HAVE_STD_UNORDERED_MAP_HEADER)
+	if(WITH_CXX11)
+		list(APPEND CERES_DEFINES -DCERES_STD_UNORDERED_MAP)
+	elseif(HAVE_STD_UNORDERED_MAP_HEADER)
 		if(HAVE_UNORDERED_MAP_IN_STD_NAMESPACE)
 			list(APPEND CERES_DEFINES -DCERES_STD_UNORDERED_MAP)
 		else()
@@ -2891,10 +3008,12 @@ endif()
 # be most problematic.
 if(WITH_PYTHON)
 	if(NOT EXISTS "${PYTHON_INCLUDE_DIR}/Python.h")
-		message(FATAL_ERROR "Missing: \"${PYTHON_INCLUDE_DIR}/Python.h\",\n"
-							"Set the cache entry 'PYTHON_INCLUDE_DIR' to point "
-							"to a valid python include path. Containing "
-							"Python.h for python version \"${PYTHON_VERSION}\"")
+		message(FATAL_ERROR
+			"Missing: \"${PYTHON_INCLUDE_DIR}/Python.h\",\n"
+			"Set the cache entry 'PYTHON_INCLUDE_DIR' to point "
+			"to a valid python include path. Containing "
+			"Python.h for python version \"${PYTHON_VERSION}\""
+		)
 	endif()
 
 	if(WIN32 OR APPLE)
@@ -2912,11 +3031,21 @@ endif()
 
 if(WITH_CXX11)
 	if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+		# TODO(sergey): Do we want c++11 or gnu-c++11 here?
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 	elseif(MSVC12)
 		# Nothing special is needed, C++11 features are available by default.
 	else()
 		message(FATAL_ERROR "Compiler ${CMAKE_C_COMPILER_ID} is not supported for C++11 build yet")
+	endif()
+else()
+	# GCC-6 switched to C++11 by default, which would break linking with existing libraries
+	# by default. So we explicitly disable C++11 for a new GCC so no linking issues happens.
+	if(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "6.0"))
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++98")
+		# We also disable any of C++11 ABI from usage, so we wouldn't even try to
+		# link to stuff from std::__cxx11 namespace.
+		add_definitions("-D_GLIBCXX_USE_CXX11_ABI=0")
 	endif()
 endif()
 
@@ -3032,7 +3161,7 @@ if(FIRST_RUN)
 		string(LENGTH "${_msg}" _len)
 		while("32" GREATER "${_len}")
 			set(_msg "${_msg} ")
-			 math(EXPR _len "${_len} + 1")
+			math(EXPR _len "${_len} + 1")
 		endwhile()
 
 		set(_config_msg "${_config_msg}\n${_msg}${${_setting}}" PARENT_SCOPE)

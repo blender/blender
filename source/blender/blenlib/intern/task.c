@@ -28,6 +28,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_listBase.h"
+
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
@@ -35,7 +37,16 @@
 
 #include "atomic_ops.h"
 
+/* Define this to enable some detailed statistic print. */
+#undef DEBUG_STATS
+
 /* Types */
+
+/* Number of per-thread pre-allocated tasks.
+ *
+ * For more details see description of TaskMemPool.
+ */
+#define MEMPOOL_SIZE 256
 
 typedef struct Task {
 	struct Task *next, *prev;
@@ -46,6 +57,50 @@ typedef struct Task {
 	TaskFreeFunction freedata;
 	TaskPool *pool;
 } Task;
+
+/* This is a per-thread storage of pre-allocated tasks.
+ *
+ * The idea behind this is simple: reduce amount of malloc() calls when pushing
+ * new task to the pool. This is done by keeping memory from the tasks which
+ * were finished already, so instead of freeing that memory we put it to the
+ * pool for the later re-use.
+ *
+ * The tricky part here is to avoid any inter-thread synchronization, hence no
+ * lock must exist around this pool. The pool will become an owner of the pointer
+ * from freed task, and only corresponding thread will be able to use this pool
+ * (no memory stealing and such).
+ *
+ * This leads to the following use of the pool:
+ *
+ * - task_push() should provide proper thread ID from which the task is being
+ *   pushed from.
+ *
+ * - Task allocation function which check corresponding memory pool and if there
+ *   is any memory in there it'll mark memory as re-used, remove it from the pool
+ *   and use that memory for the new task.
+ *
+ *   At this moment task queue owns the memory.
+ *
+ * - When task is done and task_free() is called the memory will be put to the
+ *  pool which corresponds to a thread which handled the task.
+ */
+typedef struct TaskMemPool {
+	/* Number of pre-allocated tasks in the pool. */
+	int num_tasks;
+	/* Pre-allocated task memory pointers. */
+	Task *tasks[MEMPOOL_SIZE];
+} TaskMemPool;
+
+#ifdef DEBUG_STATS
+typedef struct TaskMemPoolStats {
+	/* Number of allocations. */
+	int num_alloc;
+	/* Number of avoided allocations (pointer was re-used from the pool). */
+	int num_reuse;
+	/* Number of discarded memory due to pool saturation, */
+	int num_discard;
+} TaskMemPoolStats;
+#endif
 
 struct TaskPool {
 	TaskScheduler *scheduler;
@@ -62,14 +117,32 @@ struct TaskPool {
 
 	volatile bool do_cancel;
 
-	/* If set, this pool may never be work_and_wait'ed, which means TaskScheduler has to use its special
-	 * background fallback thread in case we are in single-threaded situation. */
+	/* If set, this pool may never be work_and_wait'ed, which means TaskScheduler
+	 * has to use its special background fallback thread in case we are in
+	 * single-threaded situation.
+	 */
 	bool run_in_background;
+
+	/* This pool is used for caching task pointers for thread id 0.
+	 * This could either point to a global scheduler's task_mempool[0] if the
+	 * pool is handled form the main thread or point to task_mempool_local
+	 * otherwise.
+	 *
+	 * This way we solve possible threading conflicts accessing same global
+	 * memory pool from multiple threads from which wait_work() is called.
+	 */
+	TaskMemPool *task_mempool;
+	TaskMemPool task_mempool_local;
+
+#ifdef DEBUG_STATS
+	TaskMemPoolStats *mempool_stats;
+#endif
 };
 
 struct TaskScheduler {
 	pthread_t *threads;
 	struct TaskThread *task_threads;
+	TaskMemPool *task_mempool;
 	int num_threads;
 	bool background_thread_only;
 
@@ -95,6 +168,63 @@ static void task_data_free(Task *task, const int thread_id)
 		else {
 			MEM_freeN(task->taskdata);
 		}
+	}
+}
+
+BLI_INLINE TaskMemPool *get_task_mempool(TaskPool *pool, const int thread_id)
+{
+	if (thread_id == 0) {
+		return pool->task_mempool;
+	}
+	return &pool->scheduler->task_mempool[thread_id];
+}
+
+static Task *task_alloc(TaskPool *pool, const int thread_id)
+{
+	assert(thread_id <= pool->scheduler->num_threads);
+	if (thread_id != -1) {
+		assert(thread_id >= 0);
+		TaskMemPool *mem_pool = get_task_mempool(pool, thread_id);
+		/* Try to re-use task memory from a thread local storage. */
+		if (mem_pool->num_tasks > 0) {
+			--mem_pool->num_tasks;
+			/* Success! We've just avoided task allocation. */
+#ifdef DEBUG_STATS
+			pool->mempool_stats[thread_id].num_reuse++;
+#endif
+			return mem_pool->tasks[mem_pool->num_tasks];
+		}
+		/* We are doomed to allocate new task data. */
+#ifdef DEBUG_STATS
+		pool->mempool_stats[thread_id].num_alloc++;
+#endif
+	}
+	return MEM_mallocN(sizeof(Task), "New task");
+}
+
+static void task_free(TaskPool *pool, Task *task, const int thread_id)
+{
+	task_data_free(task, thread_id);
+	assert(thread_id >= 0);
+	assert(thread_id <= pool->scheduler->num_threads);
+	TaskMemPool *mem_pool = get_task_mempool(pool, thread_id);
+	if (mem_pool->num_tasks < MEMPOOL_SIZE - 1) {
+		/* Successfully allowed the task to be re-used later. */
+		mem_pool->tasks[mem_pool->num_tasks] = task;
+		++mem_pool->num_tasks;
+	}
+	else {
+		/* Local storage saturated, no other way than just discard
+		 * the memory.
+		 *
+		 * TODO(sergey): We can perhaps store such pointer in a global
+		 * scheduler pool, maybe it'll be faster than discarding and
+		 * allocating again.
+		 */
+		MEM_freeN(task);
+#ifdef DEBUG_STATS
+		pool->mempool_stats[thread_id].num_discard++;
+#endif
 	}
 }
 
@@ -196,8 +326,7 @@ static void *task_scheduler_thread_run(void *thread_p)
 		task->run(pool, task->taskdata, thread_id);
 
 		/* delete task */
-		task_data_free(task, thread_id);
-		MEM_freeN(task);
+		task_free(pool, task, thread_id);
 
 		/* notify pool task was done */
 		task_pool_num_decrease(pool, 1);
@@ -249,6 +378,9 @@ TaskScheduler *BLI_task_scheduler_create(int num_threads)
 				fprintf(stderr, "TaskScheduler failed to launch thread %d/%d\n", i, num_threads);
 			}
 		}
+
+		scheduler->task_mempool = MEM_callocN(sizeof(*scheduler->task_mempool) * (num_threads + 1),
+		                                      "TaskScheduler task_mempool");
 	}
 
 	return scheduler;
@@ -279,6 +411,16 @@ void BLI_task_scheduler_free(TaskScheduler *scheduler)
 	/* Delete task thread data */
 	if (scheduler->task_threads) {
 		MEM_freeN(scheduler->task_threads);
+	}
+
+	/* Delete task memory pool */
+	if (scheduler->task_mempool) {
+		for (int i = 0; i <= scheduler->num_threads; ++i) {
+			for (int j = 0; j < scheduler->task_mempool[i].num_tasks; ++j) {
+				MEM_freeN(scheduler->task_mempool[i].tasks[j]);
+			}
+		}
+		MEM_freeN(scheduler->task_mempool);
 	}
 
 	/* delete leftover tasks */
@@ -344,7 +486,7 @@ static void task_scheduler_clear(TaskScheduler *scheduler, TaskPool *pool)
 
 static TaskPool *task_pool_create_ex(TaskScheduler *scheduler, void *userdata, const bool is_background)
 {
-	TaskPool *pool = MEM_callocN(sizeof(TaskPool), "TaskPool");
+	TaskPool *pool = MEM_mallocN(sizeof(TaskPool), "TaskPool");
 
 #ifndef NDEBUG
 	/* Assert we do not try to create a background pool from some parent task - those only work OK from main thread. */
@@ -360,6 +502,7 @@ static TaskPool *task_pool_create_ex(TaskScheduler *scheduler, void *userdata, c
 
 	pool->scheduler = scheduler;
 	pool->num = 0;
+	pool->done = 0;
 	pool->num_threads = 0;
 	pool->currently_running_tasks = 0;
 	pool->do_cancel = false;
@@ -370,6 +513,20 @@ static TaskPool *task_pool_create_ex(TaskScheduler *scheduler, void *userdata, c
 
 	pool->userdata = userdata;
 	BLI_mutex_init(&pool->user_mutex);
+
+	if (BLI_thread_is_main()) {
+		pool->task_mempool = scheduler->task_mempool;
+	}
+	else {
+		pool->task_mempool = &pool->task_mempool_local;
+		pool->task_mempool_local.num_tasks = 0;
+	}
+
+#ifdef DEBUG_STATS
+	pool->mempool_stats =
+	        MEM_callocN(sizeof(*pool->mempool_stats) * (scheduler->num_threads + 1),
+	                    "per-taskpool mempool stats");
+#endif
 
 	/* Ensure malloc will go fine from threads,
 	 *
@@ -416,16 +573,36 @@ void BLI_task_pool_free(TaskPool *pool)
 
 	BLI_mutex_end(&pool->user_mutex);
 
+	/* Free local memory pool, those pointers are lost forever. */
+	if (pool->task_mempool == &pool->task_mempool_local) {
+		for (int i = 0; i < pool->task_mempool_local.num_tasks; i++) {
+			MEM_freeN(pool->task_mempool_local.tasks[i]);
+		}
+	}
+
+#ifdef DEBUG_STATS
+	printf("Thread ID    Allocated   Reused   Discarded\n");
+	for (int i = 0; i < pool->scheduler->num_threads + 1; ++i) {
+		printf("%02d           %05d       %05d    %05d\n",
+		       i,
+		       pool->mempool_stats[i].num_alloc,
+		       pool->mempool_stats[i].num_reuse,
+		       pool->mempool_stats[i].num_discard);
+	}
+	MEM_freeN(pool->mempool_stats);
+#endif
+
 	MEM_freeN(pool);
 
 	BLI_end_threaded_malloc();
 }
 
-void BLI_task_pool_push_ex(
+static void task_pool_push(
         TaskPool *pool, TaskRunFunction run, void *taskdata,
-        bool free_taskdata, TaskFreeFunction freedata, TaskPriority priority)
+        bool free_taskdata, TaskFreeFunction freedata, TaskPriority priority,
+        int thread_id)
 {
-	Task *task = MEM_callocN(sizeof(Task), "Task");
+	Task *task = task_alloc(pool, thread_id);
 
 	task->run = run;
 	task->taskdata = taskdata;
@@ -436,10 +613,23 @@ void BLI_task_pool_push_ex(
 	task_scheduler_push(pool->scheduler, task, priority);
 }
 
+void BLI_task_pool_push_ex(
+        TaskPool *pool, TaskRunFunction run, void *taskdata,
+        bool free_taskdata, TaskFreeFunction freedata, TaskPriority priority)
+{
+	task_pool_push(pool, run, taskdata, free_taskdata, freedata, priority, -1);
+}
+
 void BLI_task_pool_push(
         TaskPool *pool, TaskRunFunction run, void *taskdata, bool free_taskdata, TaskPriority priority)
 {
 	BLI_task_pool_push_ex(pool, run, taskdata, free_taskdata, NULL, priority);
+}
+
+void BLI_task_pool_push_from_thread(TaskPool *pool, TaskRunFunction run,
+        void *taskdata, bool free_taskdata, TaskPriority priority, int thread_id)
+{
+	task_pool_push(pool, run, taskdata, free_taskdata, NULL, priority, thread_id);
 }
 
 void BLI_task_pool_work_and_wait(TaskPool *pool)
@@ -481,8 +671,7 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 			work_task->run(pool, work_task->taskdata, 0);
 
 			/* delete task */
-			task_data_free(task, 0);
-			MEM_freeN(work_task);
+			task_free(pool, task, 0);
 
 			/* notify pool task was done */
 			task_pool_num_decrease(pool, 1);
@@ -563,16 +752,13 @@ size_t BLI_task_pool_tasks_done(TaskPool *pool)
  *
  * Main functions:
  * - #BLI_task_parallel_range
+ * - #BLI_task_parallel_listbase (#ListBase - double linked list)
  *
  * TODO:
- * - #BLI_task_parallel_foreach_listbase (#ListBase - double linked list)
  * - #BLI_task_parallel_foreach_link (#Link - single linked list)
  * - #BLI_task_parallel_foreach_ghash/gset (#GHash/#GSet - hash & set)
  * - #BLI_task_parallel_foreach_mempool (#BLI_mempool - iterate over mempools)
  *
- * Possible improvements:
- *
- * - Chunk iterations to reduce number of spin locks.
  */
 
 /* Allows to avoid using malloc for userdata_chunk in tasks, when small enough. */
@@ -582,53 +768,38 @@ size_t BLI_task_pool_tasks_done(TaskPool *pool)
 typedef struct ParallelRangeState {
 	int start, stop;
 	void *userdata;
-	void *userdata_chunk;
-	size_t userdata_chunk_size;
 
 	TaskParallelRangeFunc func;
 	TaskParallelRangeFuncEx func_ex;
 
 	int iter;
 	int chunk_size;
-	SpinLock lock;
 } ParallelRangeState;
 
 BLI_INLINE bool parallel_range_next_iter_get(
         ParallelRangeState * __restrict state,
         int * __restrict iter, int * __restrict count)
 {
-	bool result = false;
-	BLI_spin_lock(&state->lock);
-	if (state->iter < state->stop) {
-		*count = min_ii(state->chunk_size, state->stop - state->iter);
-		*iter = state->iter;
-		state->iter += *count;
-		result = true;
-	}
-	BLI_spin_unlock(&state->lock);
-	return result;
+	uint32_t previter = atomic_fetch_and_add_uint32((uint32_t *)(&state->iter), state->chunk_size);
+
+	*iter = (int)previter;
+	*count = max_ii(0, min_ii(state->chunk_size, state->stop - previter));
+
+	return (previter < state->stop);
 }
 
 static void parallel_range_func(
         TaskPool * __restrict pool,
-        void *UNUSED(taskdata),
+        void *userdata_chunk,
         int threadid)
 {
 	ParallelRangeState * __restrict state = BLI_task_pool_userdata(pool);
 	int iter, count;
 
-	const bool use_userdata_chunk = (state->func_ex != NULL) &&
-	                                (state->userdata_chunk_size != 0) && (state->userdata_chunk != NULL);
-	void *userdata_chunk = use_userdata_chunk ? MALLOCA(state->userdata_chunk_size) : NULL;
-
 	while (parallel_range_next_iter_get(state, &iter, &count)) {
 		int i;
 
 		if (state->func_ex) {
-			if (use_userdata_chunk) {
-				memcpy(userdata_chunk, state->userdata_chunk, state->userdata_chunk_size);
-			}
-
 			for (i = 0; i < count; ++i) {
 				state->func_ex(state->userdata, userdata_chunk, iter + i, threadid);
 			}
@@ -639,8 +810,6 @@ static void parallel_range_func(
 			}
 		}
 	}
-
-	MALLOCA_FREE(userdata_chunk, state->userdata_chunk_size);
 }
 
 /**
@@ -655,6 +824,7 @@ static void task_parallel_range_ex(
         const size_t userdata_chunk_size,
         TaskParallelRangeFunc func,
         TaskParallelRangeFuncEx func_ex,
+        TaskParallelRangeFuncFinalize func_finalize,
         const bool use_threading,
         const bool use_dynamic_scheduling)
 {
@@ -662,6 +832,10 @@ static void task_parallel_range_ex(
 	TaskPool *task_pool;
 	ParallelRangeState state;
 	int i, num_threads, num_tasks;
+
+	void *userdata_chunk_local = NULL;
+	void *userdata_chunk_array = NULL;
+	const bool use_userdata_chunk = (func_ex != NULL) && (userdata_chunk_size != 0) && (userdata_chunk != NULL);
 
 	if (start == stop) {
 		return;
@@ -678,16 +852,17 @@ static void task_parallel_range_ex(
 	 */
 	if (!use_threading) {
 		if (func_ex) {
-			const bool use_userdata_chunk = (userdata_chunk_size != 0) && (userdata_chunk != NULL);
-			void *userdata_chunk_local = NULL;
-
 			if (use_userdata_chunk) {
 				userdata_chunk_local = MALLOCA(userdata_chunk_size);
 				memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
 			}
 
 			for (i = start; i < stop; ++i) {
-				func_ex(userdata, userdata_chunk, i, 0);
+				func_ex(userdata, userdata_chunk_local, i, 0);
+			}
+
+			if (func_finalize) {
+				func_finalize(userdata, userdata_chunk_local);
 			}
 
 			MALLOCA_FREE(userdata_chunk_local, userdata_chunk_size);
@@ -711,12 +886,9 @@ static void task_parallel_range_ex(
 	 */
 	num_tasks = num_threads * 2;
 
-	BLI_spin_init(&state.lock);
 	state.start = start;
 	state.stop = stop;
 	state.userdata = userdata;
-	state.userdata_chunk = userdata_chunk;
-	state.userdata_chunk_size = userdata_chunk_size;
 	state.func = func;
 	state.func_ex = func_ex;
 	state.iter = start;
@@ -727,23 +899,41 @@ static void task_parallel_range_ex(
 		state.chunk_size = max_ii(1, (stop - start) / (num_tasks));
 	}
 
-	num_tasks = max_ii(1, (stop - start) / state.chunk_size);
+	num_tasks = min_ii(num_tasks, (stop - start) / state.chunk_size);
+	atomic_fetch_and_add_uint32((uint32_t *)(&state.iter), 0);
+
+	if (use_userdata_chunk) {
+        userdata_chunk_array = MALLOCA(userdata_chunk_size * num_tasks);
+	}
 
 	for (i = 0; i < num_tasks; i++) {
-		BLI_task_pool_push(task_pool,
-		                   parallel_range_func,
-		                   NULL, false,
-		                   TASK_PRIORITY_HIGH);
+		if (use_userdata_chunk) {
+			userdata_chunk_local = (char *)userdata_chunk_array + (userdata_chunk_size * i);
+			memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
+		}
+		/* Use this pool's pre-allocated tasks. */
+		BLI_task_pool_push_from_thread(task_pool,
+		                               parallel_range_func,
+		                               userdata_chunk_local, false,
+		                               TASK_PRIORITY_HIGH, 0);
 	}
 
 	BLI_task_pool_work_and_wait(task_pool);
 	BLI_task_pool_free(task_pool);
 
-	BLI_spin_end(&state.lock);
+	if (use_userdata_chunk) {
+		if (func_finalize) {
+			for (i = 0; i < num_tasks; i++) {
+				userdata_chunk_local = (char *)userdata_chunk_array + (userdata_chunk_size * i);
+				func_finalize(userdata, userdata_chunk_local);
+			}
+		}
+        MALLOCA_FREE(userdata_chunk_array, userdata_chunk_size * num_tasks);
+	}
 }
 
 /**
- * This function allows to parallelized for loops in a similar way to OpenMP's 'parallel for' statement.
+ * This function allows to parallelize for loops in a similar way to OpenMP's 'parallel for' statement.
  *
  * \param start First index to process.
  * \param stop Index to stop looping (excluded).
@@ -767,7 +957,7 @@ void BLI_task_parallel_range_ex(
         const bool use_dynamic_scheduling)
 {
 	task_parallel_range_ex(
-	            start, stop, userdata, userdata_chunk, userdata_chunk_size, NULL, func_ex,
+	            start, stop, userdata, userdata_chunk, userdata_chunk_size, NULL, func_ex, NULL,
 	            use_threading, use_dynamic_scheduling);
 }
 
@@ -788,9 +978,153 @@ void BLI_task_parallel_range(
         TaskParallelRangeFunc func,
         const bool use_threading)
 {
-	task_parallel_range_ex(start, stop, userdata, NULL, 0, func, NULL, use_threading, false);
+	task_parallel_range_ex(start, stop, userdata, NULL, 0, func, NULL, NULL, use_threading, false);
+}
+
+/**
+ * This function allows to parallelize for loops in a similar way to OpenMP's 'parallel for' statement,
+ * with an additional 'finalize' func called from calling thread once whole range have been processed.
+ *
+ * \param start First index to process.
+ * \param stop Index to stop looping (excluded).
+ * \param userdata Common userdata passed to all instances of \a func.
+ * \param userdata_chunk Optional, each instance of looping chunks will get a copy of this data
+ *                       (similar to OpenMP's firstprivate).
+ * \param userdata_chunk_size Memory size of \a userdata_chunk.
+ * \param func_ex Callback function (advanced version).
+ * \param func_finalize Callback function, called after all workers have finisehd, useful to finalize accumulative tasks.
+ * \param use_threading If \a true, actually split-execute loop in threads, else just do a sequential forloop
+ *                      (allows caller to use any kind of test to switch on parallelization or not).
+ * \param use_dynamic_scheduling If \a true, the whole range is divided in a lot of small chunks (of size 32 currently),
+ *                               otherwise whole range is split in a few big chunks (num_threads * 2 chunks currently).
+ */
+void BLI_task_parallel_range_finalize(
+        int start, int stop,
+        void *userdata,
+        void *userdata_chunk,
+        const size_t userdata_chunk_size,
+        TaskParallelRangeFuncEx func_ex,
+        TaskParallelRangeFuncFinalize func_finalize,
+        const bool use_threading,
+        const bool use_dynamic_scheduling)
+{
+	task_parallel_range_ex(
+	            start, stop, userdata, userdata_chunk, userdata_chunk_size, NULL, func_ex, func_finalize,
+	            use_threading, use_dynamic_scheduling);
 }
 
 #undef MALLOCA
 #undef MALLOCA_FREE
 
+typedef struct ParallelListbaseState {
+	void *userdata;
+	TaskParallelListbaseFunc func;
+
+	int chunk_size;
+	int index;
+	Link *link;
+	SpinLock lock;
+} ParallelListState;
+
+BLI_INLINE Link *parallel_listbase_next_iter_get(
+        ParallelListState * __restrict state,
+        int * __restrict index,
+        int * __restrict count)
+{
+	int task_count = 0;
+	BLI_spin_lock(&state->lock);
+	Link *result = state->link;
+	if (LIKELY(result != NULL)) {
+		*index = state->index;
+		while (state->link != NULL && task_count < state->chunk_size) {
+			++task_count;
+			state->link = state->link->next;
+		}
+		state->index += task_count;
+	}
+	BLI_spin_unlock(&state->lock);
+	*count = task_count;
+	return result;
+}
+
+static void parallel_listbase_func(
+        TaskPool * __restrict pool,
+        void *UNUSED(taskdata),
+        int UNUSED(threadid))
+{
+	ParallelListState * __restrict state = BLI_task_pool_userdata(pool);
+	Link *link;
+	int index, count;
+
+	while ((link = parallel_listbase_next_iter_get(state, &index, &count)) != NULL) {
+		for (int i = 0; i < count; ++i) {
+			state->func(state->userdata, link, index + i);
+			link = link->next;
+		}
+	}
+}
+
+/**
+ * This function allows to parallelize for loops over ListBase items.
+ *
+ * \param listbase The double linked list to loop over.
+ * \param userdata Common userdata passed to all instances of \a func.
+ * \param func Callback function.
+ * \param use_threading If \a true, actually split-execute loop in threads, else just do a sequential forloop
+ *                      (allows caller to use any kind of test to switch on parallelization or not).
+ *
+ * \note There is no static scheduling here, since it would need another full loop over items to count them...
+ */
+void BLI_task_parallel_listbase(
+        struct ListBase *listbase,
+        void *userdata,
+        TaskParallelListbaseFunc func,
+        const bool use_threading)
+{
+	TaskScheduler *task_scheduler;
+	TaskPool *task_pool;
+	ParallelListState state;
+	int i, num_threads, num_tasks;
+
+	if (BLI_listbase_is_empty(listbase)) {
+		return;
+	}
+
+	if (!use_threading) {
+		i = 0;
+		for (Link *link = listbase->first; link != NULL; link = link->next, ++i) {
+			func(userdata, link, i);
+		}
+		return;
+	}
+
+	task_scheduler = BLI_task_scheduler_get();
+	task_pool = BLI_task_pool_create(task_scheduler, &state);
+	num_threads = BLI_task_scheduler_num_threads(task_scheduler);
+
+	/* The idea here is to prevent creating task for each of the loop iterations
+	 * and instead have tasks which are evenly distributed across CPU cores and
+	 * pull next iter to be crunched using the queue.
+	 */
+	num_tasks = num_threads * 2;
+
+	state.index = 0;
+	state.link = listbase->first;
+	state.userdata = userdata;
+	state.func = func;
+	state.chunk_size = 32;
+	BLI_spin_init(&state.lock);
+
+	for (i = 0; i < num_tasks; i++) {
+		/* Use this pool's pre-allocated tasks. */
+		BLI_task_pool_push_from_thread(task_pool,
+		                               parallel_listbase_func,
+		                               NULL, false,
+		                               TASK_PRIORITY_HIGH, 0);
+	}
+
+	BLI_task_pool_work_and_wait(task_pool);
+	BLI_task_pool_free(task_pool);
+
+	BLI_spin_end(&state.lock);
+}

@@ -3342,7 +3342,15 @@ install_ARCH() {
   OGG_DEV="libogg"
   THEORA_DEV="libtheora"
 
-  _packages="base-devel git cmake \
+  BASE_DEVEL="base-devel"
+
+  # Avoid conflicts when gcc-multilib is installed
+  pacman -Qi gcc-multilib &>/dev/null
+  if [ $? -eq 0 ]; then
+    BASE_DEVEL=`pacman -Sgq base-devel | sed -e 's/^gcc$/gcc-multilib/g' | paste -s -d' '`
+  fi
+
+  _packages="$BASE_DEVEL git cmake \
              libxi libxcursor libxrandr libxinerama glew libpng libtiff wget openal \
              $OPENJPEG_DEV $VORBIS_DEV $OGG_DEV $THEORA_DEV yasm sdl fftw intel-tbb \
              libxml2 yaml-cpp tinyxml python-requests jemalloc"

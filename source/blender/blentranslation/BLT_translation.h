@@ -54,6 +54,7 @@ const char *BLT_translate_do_iface(const char *msgctxt, const char *msgid);
 const char *BLT_translate_do_tooltip(const char *msgctxt, const char *msgid);
 const char *BLT_translate_do_new_dataname(const char *msgctxt, const char *msgid);
 
+bool BLT_lang_is_ime_supported(void);
 
 /* The "translation-marker" macro. */
 #define N_(msgid) msgid

@@ -57,8 +57,10 @@ static int node_shader_gpu_tex_magic(GPUMaterial *mat, bNode *node, bNodeExecDat
 	NodeTexMagic *tex = (NodeTexMagic *)node->storage;
 	float depth = tex->depth;
 
-	if (!in[0].link)
+	if (!in[0].link) {
 		in[0].link = GPU_attribute(CD_ORCO, "");
+		GPU_link(mat, "generated_from_orco", in[0].link, &in[0].link);
+	}
 
 	node_shader_gpu_tex_mapping(mat, node, in, out);
 

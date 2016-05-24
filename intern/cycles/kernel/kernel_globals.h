@@ -31,12 +31,14 @@ struct OSLThreadData;
 struct OSLShadingSystem;
 #  endif
 
-#  define MAX_BYTE_IMAGES   1024
-#  define MAX_FLOAT_IMAGES  1024
+struct Intersection;
+struct VolumeStep;
 
 typedef struct KernelGlobals {
-	texture_image_uchar4 texture_byte_images[MAX_BYTE_IMAGES];
-	texture_image_float4 texture_float_images[MAX_FLOAT_IMAGES];
+	texture_image_uchar4 texture_byte4_images[TEX_NUM_BYTE4_IMAGES_CPU];
+	texture_image_float4 texture_float4_images[TEX_NUM_FLOAT4_IMAGES_CPU];
+	texture_image_float texture_float_images[TEX_NUM_FLOAT_IMAGES_CPU];
+	texture_image_uchar texture_byte_images[TEX_NUM_BYTE_IMAGES_CPU];
 
 #  define KERNEL_TEX(type, ttype, name) ttype name;
 #  define KERNEL_IMAGE_TEX(type, ttype, name)
@@ -52,6 +54,14 @@ typedef struct KernelGlobals {
 	OSLThreadData *osl_tdata;
 #  endif
 
+	/* **** Run-time data ****  */
+
+	/* Heap-allocated storage for transparent shadows intersections. */
+	Intersection *transparent_shadow_intersections;
+
+	/* Storage for decoupled volume steps. */
+	VolumeStep *decoupled_volume_steps[2];
+	int decoupled_volume_steps_index;
 } KernelGlobals;
 
 #endif  /* __KERNEL_CPU__ */

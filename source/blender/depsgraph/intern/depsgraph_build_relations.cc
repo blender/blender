@@ -242,6 +242,13 @@ void DepsgraphRelationBuilder::build_scene(Main *bmain, Scene *scene)
 	 * created or not.
 	 */
 	BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+	/* XXX nested node trees are not included in tag-clearing above,
+	 * so we need to do this manually.
+	 */
+	FOREACH_NODETREE(bmain, nodetree, id) {
+		if (id != (ID *)nodetree)
+			nodetree->id.tag &= ~LIB_TAG_DOIT;
+	} FOREACH_NODETREE_END
 
 	if (scene->set) {
 		// TODO: link set to scene, especially our timesource...
@@ -1548,7 +1555,9 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 			if (mom != ob) {
 				/* non-motherball -> cannot be directly evaluated! */
 				ComponentKey mom_key(&mom->id, DEPSNODE_TYPE_GEOMETRY);
+				ComponentKey transform_key(&ob->id, DEPSNODE_TYPE_TRANSFORM);
 				add_relation(geom_key, mom_key, DEPSREL_TYPE_GEOMETRY_EVAL, "Metaball Motherball");
+				add_relation(transform_key, mom_key, DEPSREL_TYPE_GEOMETRY_EVAL, "Metaball Motherball");
 			}
 			break;
 		}

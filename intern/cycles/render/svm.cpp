@@ -66,9 +66,7 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 		svm_nodes.push_back(make_int4(NODE_SHADER_JUMP, 0, 0, 0));
 	}
 	
-	for(i = 0; i < scene->shaders.size(); i++) {
-		Shader *shader = scene->shaders[i];
-
+	foreach(Shader *shader, scene->shaders) {
 		if(progress.get_cancel()) return;
 
 		assert(shader->graph);
@@ -78,10 +76,10 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 
 		SVMCompiler::Summary summary;
 		SVMCompiler compiler(scene->shader_manager, scene->image_manager);
-		compiler.background = ((int)i == scene->default_background);
-		compiler.compile(scene, shader, svm_nodes, i, &summary);
+		compiler.background = (shader == scene->default_background);
+		compiler.compile(scene, shader, svm_nodes, shader->id, &summary);
 
-		VLOG(1) << "Compilation summary:\n"
+		VLOG(2) << "Compilation summary:\n"
 		        << "Shader name: " << shader->name << "\n"
 		        << summary.full_report();
 	}
@@ -185,35 +183,7 @@ void SVMCompiler::stack_clear_offset(ShaderSocketType type, int offset)
 		active_stack.users[offset + i]--;
 }
 
-void SVMCompiler::stack_backup(StackBackup& backup, ShaderNodeSet& done)
-{
-	backup.done = done;
-	backup.stack = active_stack;
-
-	foreach(ShaderNode *node, current_graph->nodes) {
-		foreach(ShaderInput *input, node->inputs)
-			backup.offsets.push_back(input->stack_offset);
-		foreach(ShaderOutput *output, node->outputs)
-			backup.offsets.push_back(output->stack_offset);
-	}
-}
-
-void SVMCompiler::stack_restore(StackBackup& backup, ShaderNodeSet& done)
-{
-	int i = 0;
-
-	done = backup.done;
-	active_stack = backup.stack;
-
-	foreach(ShaderNode *node, current_graph->nodes) {
-		foreach(ShaderInput *input, node->inputs)
-			input->stack_offset = backup.offsets[i++];
-		foreach(ShaderOutput *output, node->outputs)
-			output->stack_offset = backup.offsets[i++];
-	}
-}
-
-void SVMCompiler::stack_assign(ShaderInput *input)
+int SVMCompiler::stack_assign(ShaderInput *input)
 {
 	/* stack offset assign? */
 	if(input->stack_offset == SVM_STACK_INVALID) {
@@ -244,13 +214,33 @@ void SVMCompiler::stack_assign(ShaderInput *input)
 				assert(0);
 		}
 	}
+
+	return input->stack_offset;
 }
 
-void SVMCompiler::stack_assign(ShaderOutput *output)
+int SVMCompiler::stack_assign(ShaderOutput *output)
 {
 	/* if no stack offset assigned yet, find one */
 	if(output->stack_offset == SVM_STACK_INVALID)
 		output->stack_offset = stack_find_offset(output->type);
+
+	return output->stack_offset;
+}
+
+int SVMCompiler::stack_assign_if_linked(ShaderInput *input)
+{
+	if(input->link)
+		return stack_assign(input);
+
+	return SVM_STACK_INVALID;
+}
+
+int SVMCompiler::stack_assign_if_linked(ShaderOutput *output)
+{
+	if(!output->links.empty())
+		return stack_assign(output);
+
+	return SVM_STACK_INVALID;
 }
 
 void SVMCompiler::stack_link(ShaderInput *input, ShaderOutput *output)
@@ -324,12 +314,12 @@ void SVMCompiler::add_node(int a, int b, int c, int d)
 	svm_nodes.push_back(make_int4(a, b, c, d));
 }
 
-void SVMCompiler::add_node(NodeType type, int a, int b, int c)
+void SVMCompiler::add_node(ShaderNodeType type, int a, int b, int c)
 {
 	svm_nodes.push_back(make_int4(type, a, b, c));
 }
 
-void SVMCompiler::add_node(NodeType type, const float3& f)
+void SVMCompiler::add_node(ShaderNodeType type, const float3& f)
 {
 	svm_nodes.push_back(make_int4(type,
 		__float_as_int(f.x),
@@ -346,12 +336,6 @@ void SVMCompiler::add_node(const float4& f)
 		__float_as_int(f.w)));
 }
 
-void SVMCompiler::add_array(float4 *f, int num)
-{
-	for(int i = 0; i < num; i++)
-		add_node(f[i]);
-}
-
 uint SVMCompiler::attribute(ustring name)
 {
 	return shader_manager->get_attribute_id(name);
@@ -365,7 +349,7 @@ uint SVMCompiler::attribute(AttributeStandard std)
 bool SVMCompiler::node_skip_input(ShaderNode * /*node*/, ShaderInput *input)
 {
 	/* nasty exception .. */
-	if(current_type == SHADER_TYPE_DISPLACEMENT && input->link && input->link->parent->name == ustring("bump"))
+	if(current_type == SHADER_TYPE_DISPLACEMENT && input->link && input->link->parent->special_type == SHADER_SPECIAL_TYPE_BUMP)
 		return true;
 	
 	return false;
@@ -462,10 +446,8 @@ void SVMCompiler::generate_closure_node(ShaderNode *node,
 	const char *weight_name = (current_type == SHADER_TYPE_VOLUME)? "VolumeMixWeight": "SurfaceMixWeight";
 	ShaderInput *weight_in = node->input(weight_name);
 
-	if(weight_in && (weight_in->link || weight_in->value.x != 1.0f)) {
-		stack_assign(weight_in);
-		mix_weight_offset = weight_in->stack_offset;
-	}
+	if(weight_in && (weight_in->link || weight_in->value.x != 1.0f))
+		mix_weight_offset = stack_assign(weight_in);
 	else
 		mix_weight_offset = SVM_STACK_INVALID;
 
@@ -516,7 +498,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 
 	state->closure_done.insert(node);
 
-	if(node->name == ustring("mix_closure") || node->name == ustring("add_closure")) {
+	if(node->special_type == SHADER_SPECIAL_TYPE_COMBINE_CLOSURE) {
 		/* weighting is already taken care of in ShaderGraph::transform_multi_closure */
 		ShaderInput *cl1in = node->input("Closure1");
 		ShaderInput *cl2in = node->input("Closure2");
@@ -531,8 +513,6 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 			ShaderNodeSet dependencies;
 			find_dependencies(dependencies, state->nodes_done, facin);
 			generate_svm_nodes(dependencies, state);
-
-			stack_assign(facin);
 
 			/* execute shared dependencies. this is needed to allow skipping
 			 * of zero weight closures and their dependencies later, so we
@@ -587,7 +567,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 			/* generate instructions for input closure 1 */
 			if(cl1in->link) {
 				/* add instruction to skip closure and its dependencies if mix weight is zero */
-				svm_nodes.push_back(make_int4(NODE_JUMP_IF_ONE, 0, facin->stack_offset, 0));
+				svm_nodes.push_back(make_int4(NODE_JUMP_IF_ONE, 0, stack_assign(facin), 0));
 				int node_jump_skip_index = svm_nodes.size() - 1;
 
 				generate_multi_closure(root_node, cl1in->link->parent, state);
@@ -599,7 +579,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 			/* generate instructions for input closure 2 */
 			if(cl2in->link) {
 				/* add instruction to skip closure and its dependencies if mix weight is zero */
-				svm_nodes.push_back(make_int4(NODE_JUMP_IF_ZERO, 0, facin->stack_offset, 0));
+				svm_nodes.push_back(make_int4(NODE_JUMP_IF_ZERO, 0, stack_assign(facin), 0));
 				int node_jump_skip_index = svm_nodes.size() - 1;
 
 				generate_multi_closure(root_node, cl2in->link->parent, state);

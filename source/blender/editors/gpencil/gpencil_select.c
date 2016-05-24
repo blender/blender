@@ -349,6 +349,126 @@ void GPENCIL_OT_select_grouped(wmOperatorType *ot)
 }
 
 /* ********************************************** */
+/* Select First */
+
+static int gpencil_select_first_exec(bContext *C, wmOperator *op)
+{
+	const bool only_selected = RNA_boolean_get(op->ptr, "only_selected_strokes");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
+	
+	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+	{
+		/* skip stroke if we're only manipulating selected strokes */
+		if (only_selected && !(gps->flag & GP_STROKE_SELECT)) {
+			continue;
+		}
+		
+		/* select first point */
+		BLI_assert(gps->totpoints >= 1);
+		
+		gps->points->flag |= GP_SPOINT_SELECT;
+		gps->flag |= GP_STROKE_SELECT;
+		
+		/* deselect rest? */
+		if ((extend == false) && (gps->totpoints > 1)) {
+			/* start from index 1, to skip the first point that we'd just selected... */
+			bGPDspoint *pt = &gps->points[1];
+			int i = 1;
+			
+			for (; i < gps->totpoints; i++, pt++) {
+				pt->flag &= ~GP_SPOINT_SELECT;
+			}
+		}
+	}
+	CTX_DATA_END;
+	
+	/* updates */
+	WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_select_first(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select First";
+	ot->idname = "GPENCIL_OT_select_first";
+	ot->description = "Select first point in Grease Pencil strokes";
+	
+	/* callbacks */
+	ot->exec = gpencil_select_first_exec;
+	ot->poll = gpencil_select_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "only_selected_strokes", false, "Selected Strokes Only",
+	                "Only select the first point of strokes that already have points selected");
+	
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection instead of deselecting all other selected points");
+}
+
+/* ********************************************** */
+/* Select First */
+
+static int gpencil_select_last_exec(bContext *C, wmOperator *op)
+{
+	const bool only_selected = RNA_boolean_get(op->ptr, "only_selected_strokes");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
+	
+	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+	{
+		/* skip stroke if we're only manipulating selected strokes */
+		if (only_selected && !(gps->flag & GP_STROKE_SELECT)) {
+			continue;
+		}
+		
+		/* select last point */
+		BLI_assert(gps->totpoints >= 1);
+		
+		gps->points[gps->totpoints - 1].flag |= GP_SPOINT_SELECT;
+		gps->flag |= GP_STROKE_SELECT;
+		
+		/* deselect rest? */
+		if ((extend == false) && (gps->totpoints > 1)) {
+			/* don't include the last point... */
+			bGPDspoint *pt = gps->points;
+			int i = 1;
+			
+			for (; i < gps->totpoints - 1; i++, pt++) {
+				pt->flag &= ~GP_SPOINT_SELECT;
+			}
+		}
+	}
+	CTX_DATA_END;
+	
+	/* updates */
+	WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_select_last(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Last";
+	ot->idname = "GPENCIL_OT_select_last";
+	ot->description = "Select last point in Grease Pencil strokes";
+	
+	/* callbacks */
+	ot->exec = gpencil_select_last_exec;
+	ot->poll = gpencil_select_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "only_selected_strokes", false, "Selected Strokes Only",
+	                "Only select the last point of strokes that already have points selected");
+	
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection instead of deselecting all other selected points");
+}
+
+/* ********************************************** */
 /* Select More */
 
 static int gpencil_select_more_exec(bContext *C, wmOperator *UNUSED(op))

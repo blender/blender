@@ -2859,7 +2859,7 @@ static bool check_valid_camera_multiview(Scene *scene, Object *camera, ReportLis
 	SceneRenderView *srv;
 	bool active_view = false;
 
-	if ((scene->r.scemode & R_MULTIVIEW) == 0)
+	if (camera == NULL || (scene->r.scemode & R_MULTIVIEW) == 0)
 		return true;
 
 	for (srv = scene->r.views.first; srv; srv = srv->next) {

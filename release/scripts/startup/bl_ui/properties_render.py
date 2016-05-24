@@ -360,6 +360,7 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
         col.prop(rd, "use_stamp_render_time", text="RenderTime")
         col.prop(rd, "use_stamp_frame", text="Frame")
         col.prop(rd, "use_stamp_scene", text="Scene")
+        col.prop(rd, "use_stamp_memory", text="Memory")
 
         col = split.column()
         col.prop(rd, "use_stamp_camera", text="Camera")

@@ -291,7 +291,7 @@ public:
 	int id;
 	float3 co;
 	
-	SubdVert(int id_)
+	explicit SubdVert(int id_)
 	{
 		id = id_;
 		co = make_float3(0.0f, 0.0f, 0.0f);
@@ -307,7 +307,7 @@ public:
 	int numverts;
 	int verts[4];
 
-	SubdFace(int id_)
+	explicit SubdFace(int id_)
 	{
 		id = id_;
 		numverts = 0;

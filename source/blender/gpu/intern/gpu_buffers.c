@@ -823,7 +823,7 @@ void GPU_interleaved_attrib_setup(GPUBuffer *buffer, GPUAttrib data[], int numda
 	for (i = 0; i < numdata; i++) {
 		glEnableVertexAttribArray(data[i].index);
 		glVertexAttribPointer(data[i].index, data[i].size, data[i].type,
-		                         GL_FALSE, elementsize, BUFFER_OFFSET(offset));
+		                         GL_TRUE, elementsize, BUFFER_OFFSET(offset));
 		offset += data[i].size * GPU_typesize(data[i].type);
 		
 		attribData[i].index = data[i].index;

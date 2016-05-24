@@ -155,13 +155,8 @@ void BlenderSync::sync_light(BL::Object& b_parent,
 	light->dir = -transform_get_column(&tfm, 2);
 
 	/* shader */
-	vector<uint> used_shaders;
-
+	vector<Shader*> used_shaders;
 	find_shader(b_lamp, used_shaders, scene->default_light);
-
-	if(used_shaders.size() == 0)
-		used_shaders.push_back(scene->default_light);
-
 	light->shader = used_shaders[0];
 
 	/* shadow */
@@ -370,13 +365,12 @@ Object *BlenderSync::sync_object(BL::Object& b_parent,
 	}
 
 	/* make holdout objects on excluded layer invisible for non-camera rays */
-	if(use_holdout && (layer_flag & render_layer.exclude_layer))
+	if(use_holdout && (layer_flag & render_layer.exclude_layer)) {
 		visibility &= ~(PATH_RAY_ALL_VISIBILITY - PATH_RAY_CAMERA);
+	}
 
-	/* camera flag is not actually used, instead is tested against render layer
-	 * flags */
-	if(visibility & PATH_RAY_CAMERA) {
-		visibility |= layer_flag << PATH_RAY_LAYER_SHIFT;
+	/* hide objects not on render layer from camera rays */
+	if(!(layer_flag & render_layer.layer)) {
 		visibility &= ~PATH_RAY_CAMERA;
 	}
 
@@ -548,7 +542,6 @@ void BlenderSync::sync_objects(BL::SpaceView3D& b_v3d, float motion_time)
 			bool hide = (render_layer.use_viewport_visibility)? b_ob.hide(): b_ob.hide_render();
 			uint ob_layer = get_layer(b_base->layers(),
 			                          b_base->layers_local_view(),
-			                          render_layer.use_localview,
 			                          object_is_light(b_ob),
 			                          scene_layers);
 			hide = hide || !(ob_layer & scene_layer);

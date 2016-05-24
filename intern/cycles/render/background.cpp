@@ -28,18 +28,26 @@
 
 CCL_NAMESPACE_BEGIN
 
-Background::Background()
+NODE_DEFINE(Background)
 {
-	ao_factor = 0.0f;
-	ao_distance = FLT_MAX;
+	NodeType* type = NodeType::add("background", create);
 
-	use_shader = true;
-	use_ao = false;
+	SOCKET_INT(ao_factor, "AO Factor", 0.0f);
+	SOCKET_FLOAT(ao_distance, "AO Distance", FLT_MAX);
 
-	visibility = PATH_RAY_ALL_VISIBILITY;
-	shader = 0;
+	SOCKET_BOOLEAN(use_shader, "Use Shader", true);
+	SOCKET_BOOLEAN(use_ao, "Use AO", false);
+	SOCKET_INT(visibility, "Visibility", PATH_RAY_ALL_VISIBILITY);
+	SOCKET_BOOLEAN(transparent, "Transparent", false);
 
-	transparent = false;
+	SOCKET_NODE(shader, "Shader", &Shader::node_type);
+
+	return type;
+}
+
+Background::Background()
+: Node(node_type)
+{
 	need_update = true;
 }
 
@@ -54,10 +62,14 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	
 	device_free(device, dscene);
 
-	if(use_shader)
-		shader = scene->default_background;
+	Shader *bg_shader = shader;
+
+	if(use_shader) {
+		if(!bg_shader)
+			bg_shader = scene->default_background;
+	}
 	else
-		shader = scene->default_empty;
+		bg_shader = scene->default_empty;
 
 	/* set shader index and transparent option */
 	KernelBackground *kbackground = &dscene->data.background;
@@ -72,15 +84,15 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	}
 
 	kbackground->transparent = transparent;
-	kbackground->surface_shader = scene->shader_manager->get_shader_id(shader);
+	kbackground->surface_shader = scene->shader_manager->get_shader_id(bg_shader);
 
-	if(scene->shaders[shader]->has_volume)
+	if(bg_shader->has_volume)
 		kbackground->volume_shader = kbackground->surface_shader;
 	else
 		kbackground->volume_shader = SHADER_NONE;
 
 	/* No background node, make world shader invisible to all rays, to skip evaluation in kernel. */
-	if(scene->shaders[shader]->graph->nodes.size() <= 1) {
+	if(bg_shader->graph->nodes.size() <= 1) {
 		kbackground->surface_shader |= SHADER_EXCLUDE_ANY;
 	}
 	/* Background present, check visibilities */
@@ -102,16 +114,6 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 
 void Background::device_free(Device * /*device*/, DeviceScene * /*dscene*/)
 {
-}
-
-bool Background::modified(const Background& background)
-{
-	return !(transparent == background.transparent &&
-		use_shader == background.use_shader &&
-		use_ao == background.use_ao &&
-		ao_factor == background.ao_factor &&
-		ao_distance == background.ao_distance &&
-		visibility == background.visibility);
 }
 
 void Background::tag_update(Scene *scene)

@@ -382,9 +382,9 @@ int curve_fit_corners_detect_db(
 				uint i_best = i_span_start;
 				while (i_next < points_len) {
 					if ((points_angle[i_next] == 0.0) ||
-					   (len_squared_vnvn(
-					        &points[(i_next - 1) * dims],
-					        &points[i_next * dims], dims) > radius_min_sq))
+					    (len_squared_vnvn(
+					         &points[(i_next - 1) * dims],
+					         &points[i_next * dims], dims) > radius_min_sq))
 					{
 						break;
 					}

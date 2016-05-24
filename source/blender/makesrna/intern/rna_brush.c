@@ -530,10 +530,12 @@ static EnumPropertyItem *rna_Brush_direction_itemf(bContext *C, PointerRNA *ptr,
 					switch ((BrushMaskTool)me->mask_tool) {
 						case BRUSH_MASK_DRAW:
 							return prop_direction_items;
-							break;
+
 						case BRUSH_MASK_SMOOTH:
 							return prop_default_items;
-							break;
+
+						default:
+							return prop_default_items;
 					}
 
 				case SCULPT_TOOL_FLATTEN:
@@ -554,7 +556,6 @@ static EnumPropertyItem *rna_Brush_direction_itemf(bContext *C, PointerRNA *ptr,
 				default:
 					return prop_default_items;
 			}
-			break;
 
 		case ePaintTexture2D:
 		case ePaintTextureProjective:
@@ -565,7 +566,6 @@ static EnumPropertyItem *rna_Brush_direction_itemf(bContext *C, PointerRNA *ptr,
 				default:
 					return prop_default_items;
 			}
-			break;
 
 		default:
 			return prop_default_items;

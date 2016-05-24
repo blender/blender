@@ -167,6 +167,7 @@ struct wmWindowManager;
 #include "../blender/editors/include/ED_space_api.h"
 #include "../blender/editors/include/ED_text.h"
 #include "../blender/editors/include/ED_transform.h"
+#include "../blender/editors/include/ED_transform_snap_object_context.h"
 #include "../blender/editors/include/ED_uvedit.h"
 #include "../blender/editors/include/ED_view3d.h"
 #include "../blender/editors/include/UI_interface.h"

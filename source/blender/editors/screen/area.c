@@ -635,8 +635,8 @@ void ED_area_headerprint(ScrArea *sa, const char *str)
 		if (ar->regiontype == RGN_TYPE_HEADER) {
 			if (str) {
 				if (ar->headerstr == NULL)
-					ar->headerstr = MEM_mallocN(256, "headerprint");
-				BLI_strncpy(ar->headerstr, str, 256);
+					ar->headerstr = MEM_mallocN(UI_MAX_DRAW_STR, "headerprint");
+				BLI_strncpy(ar->headerstr, str, UI_MAX_DRAW_STR);
 			}
 			else if (ar->headerstr) {
 				MEM_freeN(ar->headerstr);

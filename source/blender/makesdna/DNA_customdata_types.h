@@ -75,6 +75,12 @@ typedef struct CustomData {
 
 /* CustomData.type */
 typedef enum CustomDataType {
+	/* Used by GLSL attributes in the cases when we need a delayed CD type
+	 * assignment (in the cases when we don't know in advance which layer
+	 * we are addressing).
+	 */
+	CD_AUTO_FROM_NAME   = -1,
+
 	CD_MVERT            = 0,
 #ifdef DNA_DEPRECATED
 	CD_MSTICKY          = 1,  /* DEPRECATED */

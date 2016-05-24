@@ -2620,6 +2620,10 @@ static void rna_def_curve_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CURVE_PAINT_FLAG_DEPTH_STROKE_ENDPOINTS);
 	RNA_def_property_ui_text(prop, "Only First", "Use the start of the stroke for the depth");
 
+	prop = RNA_def_property(srna, "use_offset_absolute", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CURVE_PAINT_FLAG_DEPTH_STROKE_OFFSET_ABS);
+	RNA_def_property_ui_text(prop, "Absolute Offset", "Apply a fixed offset (don't scale by the radius)");
+
 	prop = RNA_def_property(srna, "error_threshold", PROP_INT, PROP_PIXEL);
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Tolerance", "Allow deviation for a smoother, less precise line");
@@ -2650,7 +2654,7 @@ static void rna_def_curve_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_range(prop, 0.0f, 1.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Radius Max", "Taper factor for the radius of each point along the curve");
 
-	prop = RNA_def_property(srna, "radius_offset", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "surface_offset", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -10.0, 10.0);
 	RNA_def_property_ui_range(prop, -1.0f, 1.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Offset", "Offset the stroke from the surface");
@@ -5943,6 +5947,11 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_stamp_strip_meta", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_STRIPMETA);
 	RNA_def_property_ui_text(prop, "Strip Metadata", "Use metadata from the strips in the sequencer");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "use_stamp_memory", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_MEMORY);
+	RNA_def_property_ui_text(prop, "Stamp Peak Memory", "Include the peak memory usage in image metadata");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "stamp_font_size", PROP_INT, PROP_NONE);

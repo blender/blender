@@ -125,6 +125,7 @@ enum {
 	BMW_LOOPDATA_ISLAND,
 	BMW_ISLANDBOUND,
 	BMW_ISLAND,
+	BMW_ISLAND_MANIFOLD,
 	BMW_CONNECTED_VERTEX,
 	/* end of array index enum vals */
 

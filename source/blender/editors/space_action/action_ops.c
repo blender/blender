@@ -51,6 +51,9 @@
 
 void action_operatortypes(void)
 {
+	/* view */
+	WM_operatortype_append(ACTION_OT_properties);
+	
 	/* keyframes */
 	/* selection */
 	WM_operatortype_append(ACTION_OT_clickselect);
@@ -256,6 +259,13 @@ static void action_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 void action_keymap(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
+	
+	/* keymap for all regions */
+	keymap = WM_keymap_find(keyconf, "Dopesheet Generic", SPACE_ACTION, 0);
+	
+	/* region management... */
+	WM_keymap_add_item(keymap, "ACTION_OT_properties", NKEY, KM_PRESS, 0, 0);
+	
 	
 	/* channels */
 	/* Channels are not directly handled by the Action Editor module, but are inherited from the Animation module. 

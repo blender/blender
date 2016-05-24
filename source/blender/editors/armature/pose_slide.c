@@ -51,6 +51,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "UI_interface.h"
+
 #include "ED_armature.h"
 #include "ED_keyframes_draw.h"
 #include "ED_markers.h"
@@ -301,8 +303,8 @@ static void pose_slide_apply_vec3(tPoseSlideOp *pso, tPChanFCurveLink *pfl, floa
 	MEM_freeN(path);
 }
 
-/* helper for apply() - perform sliding for custom properties */
-static void pose_slide_apply_props(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
+/* helper for apply() - perform sliding for custom properties or bbone properties */
+static void pose_slide_apply_props(tPoseSlideOp *pso, tPChanFCurveLink *pfl, const char prop_prefix[])
 {
 	PointerRNA ptr = {{NULL}};
 	LinkData *ld;
@@ -311,8 +313,10 @@ static void pose_slide_apply_props(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 	/* setup pointer RNA for resolving paths */
 	RNA_pointer_create(NULL, &RNA_PoseBone, pfl->pchan, &ptr);
 	
-	/* custom properties are just denoted using ["..."][etc.] after the end of the base path, 
-	 * so just check for opening pair after the end of the path
+	/* - custom properties are just denoted using ["..."][etc.] after the end of the base path, 
+	 *   so just check for opening pair after the end of the path
+	 * - bbone properties are similar, but they always start with a prefix "bbone_*",
+	 *   so a similar method should work here for those too
 	 */
 	for (ld = pfl->fcurves.first; ld; ld = ld->next) {
 		FCurve *fcu = (FCurve *)ld->data;
@@ -326,7 +330,7 @@ static void pose_slide_apply_props(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 		 *	- pPtr is the chunk of the path which is left over
 		 */
 		bPtr = strstr(fcu->rna_path, pfl->pchan_path) + len;
-		pPtr = strstr(bPtr, "[\"");   /* dummy " for texteditor bugs */
+		pPtr = strstr(bPtr, prop_prefix);
 		
 		if (pPtr) {
 			/* use RNA to try and get a handle on this property, then, assuming that it is just
@@ -515,9 +519,16 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
 			}
 		}
 		
+		if (pchan->flag & POSE_BBONE_SHAPE) {
+			/* bbone properties - they all start a "bbone_" prefix */
+			pose_slide_apply_props(pso, pfl, "bbone_"); 
+		}
+		
 		if (pfl->oldprops) {
-			/* not strictly a transform, but contributes to the pose produced in many rigs */
-			pose_slide_apply_props(pso, pfl);
+			/* not strictly a transform, but custom properties contribute to the pose produced in many rigs
+			 * (e.g. the facial rigs used in Sintel)
+			 */
+			pose_slide_apply_props(pso, pfl, "[\"");  /* dummy " for texteditor bugs */
 		}
 	}
 	
@@ -544,7 +555,7 @@ static void pose_slide_reset(tPoseSlideOp *pso)
 /* draw percentage indicator in header */
 static void pose_slide_draw_status(tPoseSlideOp *pso)
 {
-	char status_str[256];
+	char status_str[UI_MAX_DRAW_STR];
 	char mode_str[32];
 	
 	switch (pso->mode) {

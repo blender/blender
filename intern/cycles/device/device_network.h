@@ -322,7 +322,7 @@ protected:
 
 class ServerDiscovery {
 public:
-	ServerDiscovery(bool discover = false)
+	explicit ServerDiscovery(bool discover = false)
 	: listen_socket(io_service), collect_servers(false)
 	{
 		/* setup listen socket */

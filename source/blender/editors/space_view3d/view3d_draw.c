@@ -315,12 +315,12 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	if (unit->system) {
 		/* Use GRID_MIN_PX * 2 for units because very very small grid
 		 * items are less useful when dealing with units */
-		void *usys;
+		const void *usys;
 		int len, i;
 		double dx_scalar;
 		float blend_fac;
 
-		bUnit_GetSystem(&usys, &len, unit->system, B_UNIT_LENGTH);
+		bUnit_GetSystem(unit->system, B_UNIT_LENGTH, &usys, &len);
 
 		if (usys) {
 			i = len;
@@ -455,10 +455,10 @@ float ED_scene_grid_scale(Scene *scene, const char **grid_unit)
 {
 	/* apply units */
 	if (scene->unit.system) {
-		void *usys;
+		const void *usys;
 		int len;
 
-		bUnit_GetSystem(&usys, &len, scene->unit.system, B_UNIT_LENGTH);
+		bUnit_GetSystem(scene->unit.system, B_UNIT_LENGTH, &usys, &len);
 
 		if (usys) {
 			int i = bUnit_GetBaseUnit(usys);
@@ -2602,19 +2602,20 @@ static void gpu_update_lamps_shadows_world(Scene *scene, View3D *v3d)
 CustomDataMask ED_view3d_datamask(const Scene *scene, const View3D *v3d)
 {
 	CustomDataMask mask = 0;
+	const int drawtype = view3d_effective_drawtype(v3d);
 
-	if (ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) ||
-	    ((v3d->drawtype == OB_SOLID) && (v3d->flag2 & V3D_SOLID_TEX)))
+	if (ELEM(drawtype, OB_TEXTURE, OB_MATERIAL) ||
+	    ((drawtype == OB_SOLID) && (v3d->flag2 & V3D_SOLID_TEX)))
 	{
 		mask |= CD_MASK_MTEXPOLY | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL;
 
 		if (BKE_scene_use_new_shading_nodes(scene)) {
-			if (v3d->drawtype == OB_MATERIAL)
+			if (drawtype == OB_MATERIAL)
 				mask |= CD_MASK_ORCO;
 		}
 		else {
-			if ((scene->gm.matmode == GAME_MAT_GLSL && v3d->drawtype == OB_TEXTURE) || 
-			    (v3d->drawtype == OB_MATERIAL))
+			if ((scene->gm.matmode == GAME_MAT_GLSL && drawtype == OB_TEXTURE) || 
+			    (drawtype == OB_MATERIAL))
 			{
 				mask |= CD_MASK_ORCO;
 			}
@@ -3961,6 +3962,7 @@ static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
 		drawviewborder(scene, ar, v3d);
 	}
 	else if (v3d->flag2 & V3D_RENDER_BORDER) {
+		glLineWidth(1.0f);
 		setlinestyle(3);
 		cpack(0x4040FF);
 

@@ -32,8 +32,8 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 	bool has_displacement = false;
 
 	if(mesh->displacement_method != Mesh::DISPLACE_BUMP) {
-		foreach(uint sindex, mesh->used_shaders)
-			if(scene->shaders[sindex]->has_displacement)
+		foreach(Shader *shader, mesh->used_shaders)
+			if(shader->has_displacement)
 				has_displacement = true;
 	}
 	
@@ -62,7 +62,9 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 
 	for(size_t i = 0; i < mesh->triangles.size(); i++) {
 		Mesh::Triangle t = mesh->triangles[i];
-		Shader *shader = scene->shaders[mesh->shader[i]];
+		int shader_index = mesh->shader[i];
+		Shader *shader = (shader_index < mesh->used_shaders.size()) ?
+			mesh->used_shaders[shader_index] : scene->default_surface;
 
 		if(!shader->has_displacement)
 			continue;
@@ -146,7 +148,9 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 	Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 	for(size_t i = 0; i < mesh->triangles.size(); i++) {
 		Mesh::Triangle t = mesh->triangles[i];
-		Shader *shader = scene->shaders[mesh->shader[i]];
+		int shader_index = mesh->shader[i];
+		Shader *shader = (shader_index < mesh->used_shaders.size()) ?
+			mesh->used_shaders[shader_index] : scene->default_surface;
 
 		if(!shader->has_displacement)
 			continue;

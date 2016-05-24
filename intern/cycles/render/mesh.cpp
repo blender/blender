@@ -285,7 +285,7 @@ static float3 compute_face_normal(const Mesh::Triangle& t, float3 *verts)
 	float normlen = len(norm);
 
 	if(normlen == 0.0f)
-		return make_float3(0.0f, 0.0f, 0.0f);
+		return make_float3(1.0f, 0.0f, 0.0f);
 
 	return norm / normlen;
 }
@@ -413,7 +413,9 @@ void Mesh::pack_normals(Scene *scene, uint *tri_shader, float4 *vnormal)
 		if(shader_ptr[i] != last_shader || last_smooth != smooth[i]) {
 			last_shader = shader_ptr[i];
 			last_smooth = smooth[i];
-			shader_id = scene->shader_manager->get_shader_id(last_shader, this, last_smooth);
+			Shader *shader = (last_shader < used_shaders.size()) ?
+				used_shaders[last_shader] : scene->default_surface;
+			shader_id = scene->shader_manager->get_shader_id(shader, this, last_smooth);
 		}
 
 		tri_shader[i] = shader_id;
@@ -483,7 +485,9 @@ void Mesh::pack_curves(Scene *scene, float4 *curve_key_co, float4 *curve_data, s
 		
 		for(size_t i = 0; i < curve_num; i++) {
 			Curve curve = curve_ptr[i];
-			shader_id = scene->shader_manager->get_shader_id(curve.shader, this, false);
+			Shader *shader = (curve.shader < used_shaders.size()) ?
+				used_shaders[curve.shader] : scene->default_surface;
+			shader_id = scene->shader_manager->get_shader_id(shader, this, false);
 
 			curve_data[i] = make_float4(
 				__int_as_float(curve.first_key + curvekey_offset),
@@ -545,8 +549,8 @@ void Mesh::tag_update(Scene *scene, bool rebuild)
 		scene->light_manager->need_update = true;
 	}
 	else {
-		foreach(uint sindex, used_shaders)
-			if(scene->shaders[sindex]->has_surface_emission)
+		foreach(Shader *shader, used_shaders)
+			if(shader->has_surface_emission)
 				scene->light_manager->need_update = true;
 	}
 
@@ -921,8 +925,7 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 
 		scene->need_global_attributes(mesh_attributes[i]);
 
-		foreach(uint sindex, mesh->used_shaders) {
-			Shader *shader = scene->shaders[sindex];
+		foreach(Shader *shader, mesh->used_shaders) {
 			mesh_attributes[i].add(shader->attributes);
 		}
 	}
@@ -1168,8 +1171,7 @@ void MeshManager::device_update_flags(Device * /*device*/,
 	/* update flags */
 	foreach(Mesh *mesh, scene->meshes) {
 		mesh->has_volume = false;
-		foreach(uint shader_index, mesh->used_shaders) {
-			const Shader *shader = scene->shaders[shader_index];
+		foreach(const Shader *shader, mesh->used_shaders) {
 			if(shader->has_volume) {
 				mesh->has_volume = true;
 			}
@@ -1192,8 +1194,7 @@ void MeshManager::device_update_displacement_images(Device *device,
 	set<int> bump_images;
 	foreach(Mesh *mesh, scene->meshes) {
 		if(mesh->need_update) {
-			foreach(uint shader_index, mesh->used_shaders) {
-				Shader *shader = scene->shaders[shader_index];
+			foreach(Shader *shader, mesh->used_shaders) {
 				if(shader->graph_bump == NULL) {
 					continue;
 				}
@@ -1210,7 +1211,7 @@ void MeshManager::device_update_displacement_images(Device *device,
 						                             progress);
 						return;
 					}
-					ImageSlotNode *image_node = static_cast<ImageSlotNode*>(node);
+					ImageSlotTextureNode *image_node = static_cast<ImageSlotTextureNode*>(node);
 					int slot = image_node->slot;
 					if(slot != -1) {
 						bump_images.insert(slot);
@@ -1239,8 +1240,8 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 
 	/* update normals */
 	foreach(Mesh *mesh, scene->meshes) {
-		foreach(uint shader, mesh->used_shaders) {
-			if(scene->shaders[shader]->need_update_attributes)
+		foreach(Shader *shader, mesh->used_shaders) {
+			if(shader->need_update_attributes)
 				mesh->need_update = true;
 		}
 
@@ -1428,20 +1429,20 @@ bool Mesh::need_attribute(Scene *scene, AttributeStandard std)
 	if(scene->need_global_attribute(std))
 		return true;
 
-	foreach(uint shader, used_shaders)
-		if(scene->shaders[shader]->attributes.find(std))
+	foreach(Shader *shader, used_shaders)
+		if(shader->attributes.find(std))
 			return true;
 	
 	return false;
 }
 
-bool Mesh::need_attribute(Scene *scene, ustring name)
+bool Mesh::need_attribute(Scene * /*scene*/, ustring name)
 {
 	if(name == ustring())
 		return false;
 
-	foreach(uint shader, used_shaders)
-		if(scene->shaders[shader]->attributes.find(name))
+	foreach(Shader *shader, used_shaders)
+		if(shader->attributes.find(name))
 			return true;
 	
 	return false;

@@ -29,16 +29,16 @@ CCL_NAMESPACE_BEGIN
 
 /* Return position normalized to 0..1 in mesh bounds */
 
-#ifdef __KERNEL_GPU__
+#if defined(__KERNEL_GPU__) && __CUDA_ARCH__ < 300
 ccl_device float4 volume_image_texture_3d(int id, float x, float y, float z)
 {
 	float4 r;
 	switch(id) {
-		case 0: r = kernel_tex_image_interp_3d(__tex_image_float3d_000, x, y, z); break;
-		case 1: r = kernel_tex_image_interp_3d(__tex_image_float3d_001, x, y, z); break;
-		case 2: r = kernel_tex_image_interp_3d(__tex_image_float3d_002, x, y, z); break;
-		case 3: r = kernel_tex_image_interp_3d(__tex_image_float3d_003, x, y, z); break;
-		case 4: r = kernel_tex_image_interp_3d(__tex_image_float3d_004, x, y, z); break;
+		case 0: r = kernel_tex_image_interp_3d(__tex_image_float4_3d_000, x, y, z); break;
+		case 1: r = kernel_tex_image_interp_3d(__tex_image_float4_3d_001, x, y, z); break;
+		case 2: r = kernel_tex_image_interp_3d(__tex_image_float4_3d_002, x, y, z); break;
+		case 3: r = kernel_tex_image_interp_3d(__tex_image_float4_3d_003, x, y, z); break;
+		case 4: r = kernel_tex_image_interp_3d(__tex_image_float4_3d_004, x, y, z); break;
 	}
 	return r;
 }
@@ -65,7 +65,13 @@ ccl_device float volume_attribute_float(KernelGlobals *kg, const ShaderData *sd,
 {
 	float3 P = volume_normalized_position(kg, sd, sd->P);
 #ifdef __KERNEL_GPU__
+#  if __CUDA_ARCH__ >= 300
+	CUtexObject tex = kernel_tex_fetch(__bindless_mapping, id);
+	float f = kernel_tex_image_interp_3d_float(tex, P.x, P.y, P.z);
+	float4 r = make_float4(f, f, f, 1.0);
+#  else
 	float4 r = volume_image_texture_3d(id, P.x, P.y, P.z);
+#  endif
 #else
 	float4 r;
 	if(sd->flag & SD_VOLUME_CUBIC)
@@ -77,7 +83,6 @@ ccl_device float volume_attribute_float(KernelGlobals *kg, const ShaderData *sd,
 	if(dx) *dx = 0.0f;
 	if(dy) *dy = 0.0f;
 
-	/* todo: support float textures to lower memory usage for single floats */
 	return average(float4_to_float3(r));
 }
 
@@ -85,7 +90,12 @@ ccl_device float3 volume_attribute_float3(KernelGlobals *kg, const ShaderData *s
 {
 	float3 P = volume_normalized_position(kg, sd, sd->P);
 #ifdef __KERNEL_GPU__
+#  if __CUDA_ARCH__ >= 300
+	CUtexObject tex = kernel_tex_fetch(__bindless_mapping, id);
+	float4 r = kernel_tex_image_interp_3d_float4(tex, P.x, P.y, P.z);
+#  else
 	float4 r = volume_image_texture_3d(id, P.x, P.y, P.z);
+#  endif
 #else
 	float4 r;
 	if(sd->flag & SD_VOLUME_CUBIC)

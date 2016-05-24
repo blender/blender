@@ -864,10 +864,10 @@ bool Controller::getComputeSteerableViewMapFlag() const
 	return _ComputeSteerableViewMap;
 }
 
-void Controller::DrawStrokes()
+int Controller::DrawStrokes()
 {
 	if (_ViewMap == 0)
-		return;
+		return 0;
 
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << "\n===  Stroke drawing  ===" << endl;
@@ -875,12 +875,14 @@ void Controller::DrawStrokes()
 	_Chrono.start();
 	_Canvas->Draw();
 	real d = _Chrono.stop();
+	int strokeCount = _Canvas->getStrokeCount();
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << "Strokes generation  : " << d << endl;
-		cout << "Stroke count  : " << _Canvas->getStrokeCount() << endl;
+		cout << "Stroke count  : " << strokeCount << endl;
 	}
 	resetModified();
 	DeleteViewMap();
+	return strokeCount;
 }
 
 void Controller::ResetRenderCount()

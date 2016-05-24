@@ -19,6 +19,8 @@
 
 #include "kernel_types.h"
 
+#include "node.h"
+
 #include "util_types.h"
 #include "util_vector.h"
 
@@ -28,9 +30,12 @@ class Device;
 class DeviceScene;
 class Progress;
 class Scene;
+class Shader;
 
-class Light {
+class Light : public Node {
 public:
+	NODE_DECLARE;
+
 	Light();
 
 	LightType type;
@@ -59,7 +64,7 @@ public:
 	bool is_portal;
 	bool is_enabled;
 
-	int shader;
+	Shader *shader;
 	int samples;
 	int max_bounces;
 

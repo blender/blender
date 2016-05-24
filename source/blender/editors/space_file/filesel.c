@@ -477,7 +477,7 @@ static void column_widths(FileSelectParams *params, struct FileLayout *layout)
 		layout->column_widths[i] = 0;
 	}
 
-	layout->column_widths[COLUMN_NAME] = ((float)params->thumbnail_size / 8.0f) * UI_UNIT_X;;
+	layout->column_widths[COLUMN_NAME] = ((float)params->thumbnail_size / 8.0f) * UI_UNIT_X;
 	/* Biggest possible reasonable values... */
 	layout->column_widths[COLUMN_DATE] = file_string_width(small_size ? "23/08/89" : "23-Dec-89");
 	layout->column_widths[COLUMN_TIME] = file_string_width("23:59");

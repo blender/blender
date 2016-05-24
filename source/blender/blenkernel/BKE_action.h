@@ -79,12 +79,15 @@ typedef enum eAction_TransformFlags {
 	ACT_TRANS_ROT   = (1 << 1),
 	/* scaling */
 	ACT_TRANS_SCALE = (1 << 2),
-
+	
+	/* bbone shape - for all the parameters, provided one is set */
+	ACT_TRANS_BBONE = (1 << 3),
+	
 	/* strictly not a transform, but custom properties are also
 	 * quite often used in modern rigs
 	 */
-	ACT_TRANS_PROP  = (1 << 3),
-
+	ACT_TRANS_PROP  = (1 << 4),
+	
 	/* all flags */
 	ACT_TRANS_ONLY  = (ACT_TRANS_LOC | ACT_TRANS_ROT | ACT_TRANS_SCALE),
 	ACT_TRANS_ALL   = (ACT_TRANS_ONLY | ACT_TRANS_PROP)
@@ -144,6 +147,8 @@ void BKE_pose_channels_remove(
         struct Object *ob,
         bool (*filter_fn)(const char *bone_name, void *user_data), void *user_data);
 
+void                 BKE_pose_free_data_ex(struct bPose *pose, bool do_id_user);
+void                 BKE_pose_free_data(struct bPose *pose);
 void                 BKE_pose_free(struct bPose *pose);
 void                 BKE_pose_free_ex(struct bPose *pose, bool do_id_user);
 void                 BKE_pose_copy_data(struct bPose **dst, struct bPose *src, const bool copy_constraints);

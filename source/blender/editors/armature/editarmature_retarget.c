@@ -1451,6 +1451,15 @@ static EditBone *add_editbonetolist(char *name, ListBase *list)
 	bone->segments = 1;
 	bone->layer =  1; //arm->layer;
 	
+	bone->roll1 = 0.0f;
+	bone->roll2 = 0.0f;
+	bone->curveInX = 0.0f;
+	bone->curveInY = 0.0f;
+	bone->curveOutX = 0.0f;
+	bone->curveOutY = 0.0f;
+	bone->scaleIn = 1.0f;
+	bone->scaleOut = 1.0f;
+
 	return bone;
 }
 #endif

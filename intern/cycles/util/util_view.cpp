@@ -222,7 +222,7 @@ static void view_idle(void)
 		glutPostRedisplay();
 	}
 
-	time_sleep(0.1f);
+	time_sleep(0.1);
 }
 
 void view_main_loop(const char *title, int width, int height,

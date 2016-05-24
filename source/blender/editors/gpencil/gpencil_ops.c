@@ -102,6 +102,10 @@ static void ed_keymap_gpencil_general(wmKeyConfig *keyconf)
 	/* Pie Menu - For standard tools */
 	WM_keymap_add_menu_pie(keymap, "GPENCIL_PIE_tool_palette", QKEY, KM_PRESS, 0, DKEY);
 	WM_keymap_add_menu_pie(keymap, "GPENCIL_PIE_settings_palette", WKEY, KM_PRESS, 0, DKEY);
+	
+	/* Delete Active Frame - For easier video tutorials/review sessions */
+	/* NOTE: This works even when not in EditMode */
+	WM_keymap_add_item(keymap, "GPENCIL_OT_active_frame_delete", XKEY, KM_PRESS, 0, DKEY);
 }
 
 /* ==================== */
@@ -140,6 +144,36 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path_primary", "user_preferences.edit.grease_pencil_eraser_radius");
 	
+	
+	/* Sculpting ------------------------------------- */
+	
+	/* Brush-Based Editing:
+	 *   EKEY + LMB                          = Single stroke, draw immediately 
+	 *        + Other Modifiers (Ctrl/Shift) = Invert, Smooth, etc.
+	 *
+	 * For the modal version, use D+E -> Sculpt
+	 */
+	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_paint", LEFTMOUSE, KM_PRESS, 0, EKEY);
+	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
+	
+	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_paint", LEFTMOUSE, KM_PRESS, KM_CTRL, EKEY);
+	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
+	/*RNA_boolean_set(kmi->ptr, "use_invert", true);*/
+	
+	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_paint", LEFTMOUSE, KM_PRESS, KM_SHIFT, EKEY);
+	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
+	/*RNA_boolean_set(kmi->ptr, "use_smooth", true);*/
+	
+	
+	/* Shift-FKEY = Sculpt Strength */
+	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path_primary", "tool_settings.gpencil_sculpt.brush.strength");
+	
+	/* Ctrl-FKEY = Sculpt Brush Size */
+	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_string_set(kmi->ptr, "data_path_primary", "tool_settings.gpencil_sculpt.brush.size");
+	
+	
 	/* Selection ------------------------------------- */
 	/* select all */
 	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_all", AKEY, KM_PRESS, 0, 0);
@@ -158,6 +192,15 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "deselect", false);
 	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_SHIFT | KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "deselect", true);
+	
+	/* In the Node Editor, lasso select needs ALT modifier too (as somehow CTRL+LMB drag gets taken for "cut" quite early)
+	 * There probably isn't too much harm adding this for other editors too as part of standard GP editing keymap. This hotkey
+	 * combo doesn't seem to see much use under standard scenarios?
+	 */
+	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "deselect", false);
+	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_SHIFT | KM_CTRL | KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "deselect", true);
 	
 	/* normal select */
@@ -191,9 +234,11 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	/* delete */
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_gpencil_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_gpencil_delete", DELKEY, KM_PRESS, 0, 0);
-
+	
 	WM_keymap_add_item(keymap, "GPENCIL_OT_dissolve", XKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "GPENCIL_OT_dissolve", DELKEY, KM_PRESS, KM_CTRL, 0);
+	
+	WM_keymap_add_item(keymap, "GPENCIL_OT_active_frame_delete", XKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	/* copy + paste */
 	WM_keymap_add_item(keymap, "GPENCIL_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
@@ -227,36 +272,6 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	
 	/* Move to Layer */
 	WM_keymap_add_item(keymap, "GPENCIL_OT_move_to_layer", MKEY, KM_PRESS, 0, 0);
-	
-	
-	
-	/* Brush-Based Editing:
-	 *   EKEY + LMB                          = Single stroke, draw immediately 
-	 *        + Other Modifiers (Ctrl/Shift) = Invert, Smooth, etc.
-	 *
-	 * For the modal version, use D+E -> Sculpt
-	 */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_paint", LEFTMOUSE, KM_PRESS, 0, EKEY);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-	
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_paint", LEFTMOUSE, KM_PRESS, KM_CTRL, EKEY);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-	/*RNA_boolean_set(kmi->ptr, "use_invert", true);*/
-	
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_brush_paint", LEFTMOUSE, KM_PRESS, KM_SHIFT, EKEY);
-	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
-	/*RNA_boolean_set(kmi->ptr, "use_smooth", true);*/
-	
-	
-	/* Shift-FKEY = Sculpt Strength */
-	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "data_path_primary", "tool_settings.gpencil_sculpt.brush.strength");
-	
-	/* Ctrl-FKEY = Sculpt Brush Size */
-	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "data_path_primary", "tool_settings.gpencil_sculpt.brush.size");
-	
-	
 	
 	
 	/* Transform Tools */
@@ -314,6 +329,8 @@ void ED_operatortypes_gpencil(void)
 	WM_operatortype_append(GPENCIL_OT_select_grouped);
 	WM_operatortype_append(GPENCIL_OT_select_more);
 	WM_operatortype_append(GPENCIL_OT_select_less);
+	WM_operatortype_append(GPENCIL_OT_select_first);
+	WM_operatortype_append(GPENCIL_OT_select_last);
 	
 	WM_operatortype_append(GPENCIL_OT_duplicate);
 	WM_operatortype_append(GPENCIL_OT_delete);

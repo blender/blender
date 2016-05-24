@@ -3060,7 +3060,7 @@ static ImBuf *do_gaussian_blur_effect(const SeqRenderData *context,
 
 	ibuf1 = out;
 	init_data.ibuf = ibuf1;
-	out = prepare_effect_imbufs(context, ibuf1, NULL, NULL);;
+	out = prepare_effect_imbufs(context, ibuf1, NULL, NULL);
 	init_data.out = out;
 
 	IMB_processor_apply_threaded(out->y,

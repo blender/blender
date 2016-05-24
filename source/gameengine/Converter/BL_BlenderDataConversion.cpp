@@ -281,7 +281,8 @@ static std::map<int, SCA_IInputDevice::KX_EnumInputs> create_translate_table()
 	m[QUOTEKEY			] = SCA_IInputDevice::KX_QUOTEKEY;                  
 	m[ACCENTGRAVEKEY	] = SCA_IInputDevice::KX_ACCENTGRAVEKEY;                  
 	m[MINUSKEY			] = SCA_IInputDevice::KX_MINUSKEY;                  
-	m[SLASHKEY			] = SCA_IInputDevice::KX_SLASHKEY;                  
+	m[PLUSKEY			] = SCA_IInputDevice::KX_PLUSKEY;
+	m[SLASHKEY			] = SCA_IInputDevice::KX_SLASHKEY;
 	m[BACKSLASHKEY		] = SCA_IInputDevice::KX_BACKSLASHKEY;                  
 	m[EQUALKEY			] = SCA_IInputDevice::KX_EQUALKEY;                  
 	m[LEFTBRACKETKEY	] = SCA_IInputDevice::KX_LEFTBRACKETKEY;                  

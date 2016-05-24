@@ -508,6 +508,58 @@ static void gpu_verify_reflection(Image *ima)
 	}
 }
 
+typedef struct VerifyThreadData {
+	ImBuf *ibuf;
+	float *srgb_frect;
+} VerifyThreadData;
+
+static void gpu_verify_high_bit_srgb_buffer_slice(float *srgb_frect,
+                                                  ImBuf *ibuf,
+                                                  const int start_line,
+                                                  const int height)
+{
+	size_t offset = ibuf->channels * start_line * ibuf->x;
+	float *current_srgb_frect = srgb_frect + offset;
+	float *current_rect_float = ibuf->rect_float + offset;
+	IMB_buffer_float_from_float(current_srgb_frect,
+	                            current_rect_float,
+	                            ibuf->channels,
+	                            IB_PROFILE_SRGB,
+	                            IB_PROFILE_LINEAR_RGB, true,
+	                            ibuf->x, height,
+	                            ibuf->x, ibuf->x);
+	IMB_buffer_float_unpremultiply(current_srgb_frect, ibuf->x, height);
+	/* Clamp buffer colors to 1.0 to avoid artifacts due to glu for hdr images. */
+	IMB_buffer_float_clamp(current_srgb_frect, ibuf->x, height);
+}
+
+static void verify_thread_do(void *data_v,
+                             int start_scanline,
+                             int num_scanlines)
+{
+	VerifyThreadData *data = (VerifyThreadData *)data_v;
+	gpu_verify_high_bit_srgb_buffer_slice(data->srgb_frect,
+	                                      data->ibuf,
+	                                      start_scanline,
+	                                      num_scanlines);
+}
+
+static void gpu_verify_high_bit_srgb_buffer(float *srgb_frect,
+                                            ImBuf *ibuf)
+{
+	if (ibuf->y < 64) {
+		gpu_verify_high_bit_srgb_buffer_slice(srgb_frect,
+		                                      ibuf,
+		                                      0, ibuf->y);
+	}
+	else {
+		VerifyThreadData data;
+		data.ibuf = ibuf;
+		data.srgb_frect = srgb_frect;
+		IMB_processor_apply_threaded_scanlines(ibuf->y, verify_thread_do, &data);
+	}
+}
+
 int GPU_verify_image(Image *ima, ImageUser *iuser, int textarget, int tftile, bool compare, bool mipmap, bool is_data)
 {
 	unsigned int *bind = NULL;
@@ -574,17 +626,18 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int textarget, int tftile, bo
 			 * a high precision format only if it is available */
 			use_high_bit_depth = true;
 		}
+		else if (ibuf->rect == NULL) {
+			IMB_rect_from_float(ibuf);
+		}
 		/* we may skip this in high precision, but if not, we need to have a valid buffer here */
 		else if (ibuf->userflags & IB_RECT_INVALID) {
 			IMB_rect_from_float(ibuf);
 		}
 
 		/* TODO unneeded when float images are correctly treated as linear always */
-		if (!is_data)
+		if (!is_data) {
 			do_color_management = true;
-
-		if (ibuf->rect == NULL)
-			IMB_rect_from_float(ibuf);
+		}
 	}
 
 	/* currently, tpage refresh is used by ima sequences */
@@ -621,12 +674,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int textarget, int tftile, bo
 			if (use_high_bit_depth) {
 				if (do_color_management) {
 					srgb_frect = MEM_mallocN(ibuf->x * ibuf->y * sizeof(float) * 4, "floar_buf_col_cor");
-					IMB_buffer_float_from_float(srgb_frect, ibuf->rect_float,
-						ibuf->channels, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, true,
-						ibuf->x, ibuf->y, ibuf->x, ibuf->x);
-					IMB_buffer_float_unpremultiply(srgb_frect, ibuf->x, ibuf->y);
-					/* clamp buffer colors to 1.0 to avoid artifacts due to glu for hdr images */
-					IMB_buffer_float_clamp(srgb_frect, ibuf->x, ibuf->y);
+					gpu_verify_high_bit_srgb_buffer(srgb_frect, ibuf);
 					frect = srgb_frect + texwinsy * ibuf->x + texwinsx;
 				}
 				else {
@@ -649,13 +697,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int textarget, int tftile, bo
 			if (use_high_bit_depth) {
 				if (do_color_management) {
 					frect = srgb_frect = MEM_mallocN(ibuf->x * ibuf->y * sizeof(*srgb_frect) * 4, "floar_buf_col_cor");
-					IMB_buffer_float_from_float(
-					        srgb_frect, ibuf->rect_float,
-					        ibuf->channels, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, true,
-					        ibuf->x, ibuf->y, ibuf->x, ibuf->x);
-					IMB_buffer_float_unpremultiply(srgb_frect, ibuf->x, ibuf->y);
-					/* clamp buffer colors to 1.0 to avoid artifacts due to glu for hdr images */
-					IMB_buffer_float_clamp(srgb_frect, ibuf->x, ibuf->y);
+					gpu_verify_high_bit_srgb_buffer(srgb_frect, ibuf);
 				}
 				else
 					frect = ibuf->rect_float;

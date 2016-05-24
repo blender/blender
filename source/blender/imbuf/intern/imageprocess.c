@@ -374,6 +374,60 @@ void IMB_processor_apply_threaded(int buffer_lines, int handle_size, void *init_
 	BLI_task_pool_free(task_pool);
 }
 
+typedef struct ScanlineGlobalData {
+	void *custom_data;
+	ScanlineThreadFunc do_thread;
+	int scanlines_per_task;
+	int total_scanlines;
+} ScanlineGlobalData;
+
+typedef struct ScanlineTask {
+	int start_scanline;
+	int num_scanlines;
+} ScanlineTask;
+
+static void processor_apply_scanline_func(TaskPool * __restrict pool,
+                                          void *taskdata,
+                                          int UNUSED(threadid))
+{
+	ScanlineGlobalData *data = BLI_task_pool_userdata(pool);
+	int start_scanline = GET_INT_FROM_POINTER(taskdata);
+	int num_scanlines = min_ii(data->scanlines_per_task,
+	                           data->total_scanlines - start_scanline);
+	data->do_thread(data->custom_data,
+	                start_scanline,
+	                num_scanlines);
+}
+
+void IMB_processor_apply_threaded_scanlines(int total_scanlines,
+                                            ScanlineThreadFunc do_thread,
+                                            void *custom_data)
+{
+	const int scanlines_per_task = 64;
+	ScanlineGlobalData data;
+	data.custom_data = custom_data;
+	data.do_thread = do_thread;
+	data.scanlines_per_task = scanlines_per_task;
+	data.total_scanlines = total_scanlines;
+	const int total_tasks = (total_scanlines + scanlines_per_task - 1) / scanlines_per_task;
+	TaskScheduler *task_scheduler = BLI_task_scheduler_get();
+	TaskPool *task_pool = BLI_task_pool_create(task_scheduler, &data);
+	for (int i = 0, start_line = 0; i < total_tasks; i++) {
+		BLI_task_pool_push(task_pool,
+		                   processor_apply_scanline_func,
+		                   SET_INT_IN_POINTER(start_line),
+		                   false,
+		                   TASK_PRIORITY_LOW);
+		start_line += scanlines_per_task;
+	}
+
+	/* work and wait until tasks are done */
+	BLI_task_pool_work_and_wait(task_pool);
+
+	/* Free memory. */
+	BLI_task_pool_free(task_pool);
+}
+
 /* Alpha-under */
 
 void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[3])

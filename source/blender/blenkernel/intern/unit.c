@@ -102,7 +102,7 @@ typedef struct bUnitDef {
 
 /* define a single unit */
 typedef struct bUnitCollection {
-	struct bUnitDef *units;
+	const struct bUnitDef *units;
 	int base_unit; /* basic unit index (when user doesn't specify unit explicitly) */
 	int flag; /* options for this system */
 	int length; /* to quickly find the last item */
@@ -113,7 +113,7 @@ static struct bUnitDef buDummyDef[] = { {"", NULL, "", NULL, NULL, 1.0, 0.0}, {N
 static struct bUnitCollection buDummyCollection = {buDummyDef, 0, 0, sizeof(buDummyDef)};
 
 /* Lengths */
-static struct bUnitDef buMetricLenDef[] = {
+static const struct bUnitDef buMetricLenDef[] = {
 	{"kilometer", "kilometers",     "km",  NULL, "Kilometers", UN_SC_KM, 0.0,     B_UNIT_DEF_NONE},
 	{"hectometer", "hectometers",   "hm",  NULL, "100 Meters", UN_SC_HM, 0.0,     B_UNIT_DEF_SUPPRESS},
 	{"dekameter", "dekameters",     "dam", NULL, "10 Meters",  UN_SC_DAM, 0.0,    B_UNIT_DEF_SUPPRESS},
@@ -131,7 +131,7 @@ static struct bUnitDef buMetricLenDef[] = {
 #endif
 	{NULL, NULL, NULL,	NULL, NULL, 0.0, 0.0}
 };
-static struct bUnitCollection buMetricLenCollection = {buMetricLenDef, 3, 0, sizeof(buMetricLenDef) / sizeof(bUnitDef)};
+static const struct bUnitCollection buMetricLenCollection = {buMetricLenDef, 3, 0, sizeof(buMetricLenDef) / sizeof(bUnitDef)};
 
 static struct bUnitDef buImperialLenDef[] = {
 	{"mile", "miles",       "mi", "m", "Miles",      UN_SC_MI, 0.0,  B_UNIT_DEF_NONE},
@@ -289,7 +289,7 @@ static struct bUnitCollection buCameraLenCollection = {buCameraLenDef, 3, 0, siz
 
 
 #define UNIT_SYSTEM_TOT (((sizeof(bUnitSystems) / B_UNIT_TYPE_TOT) / sizeof(void *)) - 1)
-static struct bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
+static const struct bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
 	{NULL, NULL, NULL, NULL, NULL, &buNaturalRotCollection, &buNaturalTimeCollection, NULL, NULL, NULL},
 	{NULL, &buMetricLenCollection, &buMetricAreaCollection, &buMetricVolCollection, &buMetricMassCollection, &buNaturalRotCollection, &buNaturalTimeCollection, &buMetricVelCollection, &buMetricAclCollection, &buCameraLenCollection}, /* metric */
 	{NULL, &buImperialLenCollection, &buImperialAreaCollection, &buImperialVolCollection, &buImperialMassCollection, &buNaturalRotCollection, &buNaturalTimeCollection, &buImperialVelCollection, &buImperialAclCollection, &buCameraLenCollection}, /* imperial */
@@ -299,20 +299,21 @@ static struct bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
 
 
 /* internal, has some option not exposed */
-static bUnitCollection *unit_get_system(int system, int type)
+static const bUnitCollection *unit_get_system(int system, int type)
 {
 	assert((system > -1) && (system < UNIT_SYSTEM_TOT) && (type > -1) && (type < B_UNIT_TYPE_TOT));
 	return bUnitSystems[system][type]; /* select system to use, metric/imperial/other? */
 }
 
-static bUnitDef *unit_default(bUnitCollection *usys)
+static const bUnitDef *unit_default(const bUnitCollection *usys)
 {
 	return &usys->units[usys->base_unit];
 }
 
-static bUnitDef *unit_best_fit(double value, bUnitCollection *usys, bUnitDef *unit_start, int suppress)
+static const bUnitDef *unit_best_fit(
+        double value, const bUnitCollection *usys, const bUnitDef *unit_start, int suppress)
 {
-	bUnitDef *unit;
+	const bUnitDef *unit;
 	double value_abs = value > 0.0 ? value : -value;
 
 	for (unit = unit_start ? unit_start : usys->units; unit->name; unit++) {
@@ -337,19 +338,21 @@ static bUnitDef *unit_best_fit(double value, bUnitCollection *usys, bUnitDef *un
 }
 
 /* convert into 2 units and 2 values for "2ft, 3inch" syntax */
-static void unit_dual_convert(double value, bUnitCollection *usys, bUnitDef **unit_a, bUnitDef **unit_b,
-                              double *value_a, double *value_b)
+static void unit_dual_convert(
+        double value, const bUnitCollection *usys,
+        bUnitDef const **r_unit_a, bUnitDef const **r_unit_b,
+        double *r_value_a, double *r_value_b)
 {
-	bUnitDef *unit = unit_best_fit(value, usys, NULL, 1);
+	const bUnitDef *unit = unit_best_fit(value, usys, NULL, 1);
 
-	*value_a = (value < 0.0 ? ceil : floor)(value / unit->scalar) * unit->scalar;
-	*value_b = value - (*value_a);
+	*r_value_a = (value < 0.0 ? ceil : floor)(value / unit->scalar) * unit->scalar;
+	*r_value_b = value - (*r_value_a);
 
-	*unit_a = unit;
-	*unit_b = unit_best_fit(*value_b, usys, *unit_a, 1);
+	*r_unit_a = unit;
+	*r_unit_b = unit_best_fit(*r_value_b, usys, *r_unit_a, 1);
 }
 
-static size_t unit_as_string(char *str, int len_max, double value, int prec, bUnitCollection *usys,
+static size_t unit_as_string(char *str, int len_max, double value, int prec, const bUnitCollection *usys,
                              /* non exposed options */
                              const bUnitDef *unit, char pad)
 {
@@ -422,14 +425,14 @@ static size_t unit_as_string(char *str, int len_max, double value, int prec, bUn
  */
 size_t bUnit_AsString(char *str, int len_max, double value, int prec, int system, int type, bool split, bool pad)
 {
-	bUnitCollection *usys = unit_get_system(system, type);
+	const bUnitCollection *usys = unit_get_system(system, type);
 
 	if (usys == NULL || usys->units[0].name == NULL)
 		usys = &buDummyCollection;
 
 	/* split output makes sense only for length, mass and time */
 	if (split && (type == B_UNIT_LENGTH || type == B_UNIT_MASS || type == B_UNIT_TIME || type == B_UNIT_CAMERA)) {
-		bUnitDef *unit_a, *unit_b;
+		const bUnitDef *unit_a, *unit_b;
 		double value_a, value_b;
 
 		unit_dual_convert(value, usys, &unit_a, &unit_b, &value_a, &value_b);
@@ -522,7 +525,7 @@ static bool ch_is_op(char op)
 	}
 }
 
-static int unit_scale_str(char *str, int len_max, char *str_tmp, double scale_pref, bUnitDef *unit,
+static int unit_scale_str(char *str, int len_max, char *str_tmp, double scale_pref, const bUnitDef *unit,
                           const char *replace_str)
 {
 	char *str_found;
@@ -571,7 +574,7 @@ static int unit_scale_str(char *str, int len_max, char *str_tmp, double scale_pr
 	return 0;
 }
 
-static int unit_replace(char *str, int len_max, char *str_tmp, double scale_pref, bUnitDef *unit)
+static int unit_replace(char *str, int len_max, char *str_tmp, double scale_pref, const bUnitDef *unit)
 {
 	int ofs = 0;
 	ofs += unit_scale_str(str + ofs, len_max - ofs, str_tmp, scale_pref, unit, unit->name_short);
@@ -581,7 +584,7 @@ static int unit_replace(char *str, int len_max, char *str_tmp, double scale_pref
 	return ofs;
 }
 
-static bool unit_find(const char *str, bUnitDef *unit)
+static bool unit_find(const char *str, const bUnitDef *unit)
 {
 	if (unit_find_str(str, unit->name_short))   return true;
 	if (unit_find_str(str, unit->name_plural))  return true;
@@ -591,12 +594,12 @@ static bool unit_find(const char *str, bUnitDef *unit)
 	return false;
 }
 
-static bUnitDef *unit_detect_from_str(bUnitCollection *usys, const char *str, const char *str_prev)
+static const bUnitDef *unit_detect_from_str(const bUnitCollection *usys, const char *str, const char *str_prev)
 {
 	/* Try to find a default unit from current or previous string.
 	 * This allows us to handle cases like 2 + 2mm, people would expect to get 4mm, not 2.002m!
 	 * Note this does not handle corner cases like 2 + 2cm + 1 + 2.5mm... We can't support everything. */
-	bUnitDef *unit = NULL;
+	const bUnitDef *unit = NULL;
 
 	/* see which units the new value has */
 	for (unit = usys->units; unit->name; unit++) {
@@ -636,9 +639,9 @@ static bUnitDef *unit_detect_from_str(bUnitCollection *usys, const char *str, co
  */
 bool bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double scale_pref, int system, int type)
 {
-	bUnitCollection *usys = unit_get_system(system, type);
+	const bUnitCollection *usys = unit_get_system(system, type);
 
-	bUnitDef *unit = NULL, *default_unit;
+	const bUnitDef *unit = NULL, *default_unit;
 	double scale_pref_base = scale_pref;
 	char str_tmp[TEMP_STR_SIZE];
 	bool changed = false;
@@ -679,7 +682,7 @@ bool bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sc
 		 * In other words, when in metrics, typing '2+2in' will give 2 meters 2 inches, not 4 inches.
 		 * I do think this is the desired behavior!
 		 */
-		bUnitCollection *usys_iter;
+		const bUnitCollection *usys_iter;
 		int system_iter;
 
 		for (system_iter = 0; system_iter < UNIT_SYSTEM_TOT; system_iter++) {
@@ -730,9 +733,9 @@ bool bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sc
 /* 45µm --> 45um */
 void bUnit_ToUnitAltName(char *str, int len_max, const char *orig_str, int system, int type)
 {
-	bUnitCollection *usys = unit_get_system(system, type);
+	const bUnitCollection *usys = unit_get_system(system, type);
 
-	bUnitDef *unit;
+	const bUnitDef *unit;
 
 	/* find and substitute all units */
 	for (unit = usys->units; unit->name; unit++) {
@@ -769,8 +772,8 @@ void bUnit_ToUnitAltName(char *str, int len_max, const char *orig_str, int syste
 
 double bUnit_ClosestScalar(double value, int system, int type)
 {
-	bUnitCollection *usys = unit_get_system(system, type);
-	bUnitDef *unit;
+	const bUnitCollection *usys = unit_get_system(system, type);
+	const bUnitDef *unit;
 
 	if (usys == NULL)
 		return -1;
@@ -784,7 +787,7 @@ double bUnit_ClosestScalar(double value, int system, int type)
 
 double bUnit_BaseScalar(int system, int type)
 {
-	bUnitCollection *usys = unit_get_system(system, type);
+	const bUnitCollection *usys = unit_get_system(system, type);
 	return unit_default(usys)->scalar;
 }
 
@@ -794,34 +797,34 @@ bool bUnit_IsValid(int system, int type)
 	return !(system < 0 || system > UNIT_SYSTEM_TOT || type < 0 || type > B_UNIT_TYPE_TOT);
 }
 
-void bUnit_GetSystem(void **usys_pt, int *len, int system, int type)
+void bUnit_GetSystem(int system, int type, void const **r_usys_pt, int *r_len)
 {
-	bUnitCollection *usys = unit_get_system(system, type);
-	*usys_pt = usys;
+	const bUnitCollection *usys = unit_get_system(system, type);
+	*r_usys_pt = usys;
 
 	if (usys == NULL) {
-		*len = 0;
+		*r_len = 0;
 		return;
 	}
 
-	*len = usys->length;
+	*r_len = usys->length;
 }
 
-int bUnit_GetBaseUnit(void *usys_pt)
+int bUnit_GetBaseUnit(const void *usys_pt)
 {
 	return ((bUnitCollection *)usys_pt)->base_unit;
 }
 
-const char *bUnit_GetName(void *usys_pt, int index)
+const char *bUnit_GetName(const void *usys_pt, int index)
 {
 	return ((bUnitCollection *)usys_pt)->units[index].name;
 }
-const char *bUnit_GetNameDisplay(void *usys_pt, int index)
+const char *bUnit_GetNameDisplay(const void *usys_pt, int index)
 {
 	return ((bUnitCollection *)usys_pt)->units[index].name_display;
 }
 
-double bUnit_GetScaler(void *usys_pt, int index)
+double bUnit_GetScaler(const void *usys_pt, int index)
 {
 	return ((bUnitCollection *)usys_pt)->units[index].scalar;
 }

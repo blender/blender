@@ -18,20 +18,21 @@
 #include "oslutil.h"
 
 shader node_rgb_ramp(
-	color ramp_color[RAMP_TABLE_SIZE] = {0.0},
-	float ramp_alpha[RAMP_TABLE_SIZE] = {0.0},
+	color ramp_color[] = {0.0},
+	float ramp_alpha[] = {0.0},
 	int ramp_interpolate = 1,
 
 	float Fac = 0.0,
 	output color Color = 0.0,
 	output float Alpha = 1.0)
 {
-	float f = clamp(Fac, 0.0, 1.0) * (RAMP_TABLE_SIZE - 1);
+	int table_size = arraylength(ramp_color);
+	float f = clamp(Fac, 0.0, 1.0) * (table_size - 1);
 
 	/* clamp int as well in case of NaN */
 	int i = (int)f;
 	if (i < 0) i = 0;
-	if (i >= RAMP_TABLE_SIZE) i = RAMP_TABLE_SIZE - 1;
+	if (i >= table_size) i = table_size - 1;
 	float t = f - (float)i;
 
 	Color = ramp_color[i];

@@ -102,6 +102,7 @@ void CURVE_OT_separate(struct wmOperatorType *ot);
 void CURVE_OT_split(struct wmOperatorType *ot);
 void CURVE_OT_duplicate(struct wmOperatorType *ot);
 void CURVE_OT_delete(struct wmOperatorType *ot);
+void CURVE_OT_dissolve_verts(struct wmOperatorType *ot);
 
 void CURVE_OT_spline_type_set(struct wmOperatorType *ot);
 void CURVE_OT_radius_set(struct wmOperatorType *ot);

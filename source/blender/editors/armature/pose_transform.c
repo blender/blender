@@ -367,9 +367,25 @@ static bPoseChannel *pose_bone_do_paste(Object *ob, bPoseChannel *chan, const bo
 				axis_angle_to_quat(pchan->quat, chan->rotAxis, pchan->rotAngle);
 		}
 		
+		/* B-Bone posing options should also be included... */
+		pchan->curveInX = chan->curveInX;
+		pchan->curveInY = chan->curveInY;
+		pchan->curveOutX = chan->curveOutX;
+		pchan->curveOutY = chan->curveOutY;
+		
+		pchan->roll1 = chan->roll1;
+		pchan->roll2 = chan->roll2;
+		pchan->scaleIn = chan->scaleIn;
+		pchan->scaleOut = chan->scaleOut;
+		
 		/* paste flipped pose? */
 		if (flip) {
 			pchan->loc[0] *= -1;
+			
+			pchan->curveInX *= -1;
+			pchan->curveOutX *= -1;
+			pchan->roll1 *= -1; // XXX?
+			pchan->roll2 *= -1; // XXX?
 			
 			/* has to be done as eulers... */
 			if (pchan->rotmode > 0) {
@@ -540,6 +556,9 @@ static void pchan_clear_scale(bPoseChannel *pchan)
 		pchan->size[1] = 1.0f;
 	if ((pchan->protectflag & OB_LOCK_SCALEZ) == 0)
 		pchan->size[2] = 1.0f;
+	
+	pchan->scaleIn = 1.0f;
+	pchan->scaleOut = 1.0f;
 }
 
 /* clear location of pose-channel */
@@ -650,6 +669,15 @@ static void pchan_clear_rot(bPoseChannel *pchan)
 			zero_v3(pchan->eul);
 		}
 	}
+	
+	/* Clear also Bendy Bone stuff - Roll is obvious, but Curve X/Y stuff is also kindof rotational in nature... */
+	pchan->roll1 = 0.0f;
+	pchan->roll2 = 0.0f;
+	
+	pchan->curveInX = 0.0f;
+	pchan->curveInY = 0.0f;
+	pchan->curveOutX = 0.0f;
+	pchan->curveOutY = 0.0f;
 }
 
 /* clear loc/rot/scale of pose-channel */

@@ -46,6 +46,18 @@ public:
 		bool qbvh;
 	};
 
+	/* Descriptor of CUDA feature-set to be used. */
+	struct CUDA {
+		CUDA();
+
+		/* Reset flags to their defaults. */
+		void reset();
+
+		/* Whether adaptive feature based runtime compile is enabled or not.
+		 * Requires the CUDA Toolkit and only works on Linux atm. */
+		bool adaptive_compile;
+	};
+
 	/* Descriptor of OpenCL feature-set to be used. */
 	struct OpenCL {
 		OpenCL();
@@ -107,6 +119,9 @@ public:
 	/* Requested CPU flags. */
 	CPU cpu;
 
+	/* Requested CUDA flags. */
+	CUDA cuda;
+
 	/* Requested OpenCL flags. */
 	OpenCL opencl;
 
@@ -115,11 +130,11 @@ private:
 
 #if (__cplusplus > 199711L)
 public:
-	DebugFlags(DebugFlags const& /*other*/)     = delete;
+	explicit DebugFlags(DebugFlags const& /*other*/)     = delete;
 	void operator=(DebugFlags const& /*other*/) = delete;
 #else
 private:
-	DebugFlags(DebugFlags const& /*other*/);
+	explicit DebugFlags(DebugFlags const& /*other*/);
 	void operator=(DebugFlags const& /*other*/);
 #endif
 };

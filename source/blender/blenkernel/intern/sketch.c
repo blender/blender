@@ -50,8 +50,6 @@ void freeSketch(SK_Sketch *sketch)
 		sk_freeStroke(stk);
 	}
 
-	BLI_freelistN(&sketch->depth_peels);
-
 	MEM_freeN(sketch);
 }
 

@@ -1,5 +1,6 @@
 
 set(INC
+	../graph
 	../render
 	../device
 	../kernel

@@ -205,6 +205,9 @@ class DOPESHEET_MT_view(Menu):
 
         st = context.space_data
 
+        layout.operator("action.properties", icon='MENU_PANEL')
+        layout.separator()
+
         layout.prop(st, "use_realtime_update")
         layout.prop(st, "show_frame_indicator")
         layout.prop(st, "show_sliders")

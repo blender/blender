@@ -60,37 +60,37 @@ base class --- :class:`KX_GameObject`
 
       :type: float (read only)
 
-   ..attribute:: shadowFrustumSize
+   .. attribute:: shadowFrustumSize
 
       Size of the frustum used for creating the shadowmap.
 
       :type: float (read only)
 
-   ..attribute:: shadowBindId
+   .. attribute:: shadowBindId
 
       The OpenGL shadow texture bind number/id.
 
       :type: int (read only)
 
-   ..attribute:: shadowMapType
+   .. attribute:: shadowMapType
 
       The shadow shadow map type (0 -> Simple; 1 -> Variance)
 
       :type: int (read only)
 
-   ..attribute:: shadowBias
+   .. attribute:: shadowBias
 
       The shadow buffer sampling bias.
 
       :type: float (read only)
 
-   ..attribute:: shadowBleedBias
+   .. attribute:: shadowBleedBias
 
       The bias for reducing light-bleed on variance shadow maps.
 
       :type: float (read only)
 
-   ..attribute:: useShadow
+   .. attribute:: useShadow
 
       Returns True if the light has Shadow option activated, else returns False.
 

@@ -51,7 +51,7 @@ CCL_NAMESPACE_BEGIN
  */
 #define NODE_FEATURE_ALL        (NODE_FEATURE_VOLUME|NODE_FEATURE_HAIR|NODE_FEATURE_BUMP)
 
-typedef enum NodeType {
+typedef enum ShaderNodeType {
 	NODE_END = 0,
 	NODE_CLOSURE_BSDF,
 	NODE_CLOSURE_EMISSION,
@@ -127,7 +127,7 @@ typedef enum NodeType {
 	NODE_HAIR_INFO,
 	NODE_UVMAP,
 	NODE_TEX_VOXEL,
-} NodeType;
+} ShaderNodeType;
 
 typedef enum NodeAttributeType {
 	NODE_ATTR_FLOAT = 0,
@@ -370,6 +370,9 @@ typedef enum ShaderType {
 /* Closure */
 
 typedef enum ClosureType {
+	/* Special type, flags generic node as a non-BSDF. */
+	CLOSURE_NONE_ID,
+
 	CLOSURE_BSDF_ID,
 
 	/* Diffuse */

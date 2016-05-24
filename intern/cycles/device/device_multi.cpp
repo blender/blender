@@ -35,7 +35,7 @@ class MultiDevice : public Device
 {
 public:
 	struct SubDevice {
-		SubDevice(Device *device_)
+		explicit SubDevice(Device *device_)
 		: device(device_) {}
 
 		Device *device;
@@ -352,7 +352,7 @@ static bool device_multi_add(vector<DeviceInfo>& devices, DeviceType type, bool 
 
 	info.advanced_shading = with_advanced_shading;
 	info.pack_images = false;
-	info.extended_images = true;
+	info.has_bindless_textures = true;
 
 	foreach(DeviceInfo& subinfo, devices) {
 		if(subinfo.type == type) {
@@ -376,7 +376,7 @@ static bool device_multi_add(vector<DeviceInfo>& devices, DeviceType type, bool 
 			if(subinfo.display_device)
 				info.display_device = true;
 			info.pack_images = info.pack_images || subinfo.pack_images;
-			info.extended_images = info.extended_images && subinfo.extended_images;
+			info.has_bindless_textures = info.has_bindless_textures && subinfo.has_bindless_textures;
 			num_added++;
 		}
 	}

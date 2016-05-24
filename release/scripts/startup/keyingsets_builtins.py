@@ -175,6 +175,22 @@ class BUILTIN_KSI_RotScale(KeyingSetInfo):
 
 # ------------
 
+# Bendy Bones
+class BUILTIN_KSI_BendyBones(KeyingSetInfo):
+    """Insert a keyframe for each of the BBone shape properties"""
+    bl_label = "BBone Shape"
+
+    # poll - use callback for selected bones
+    poll = keyingsets_utils.RKS_POLL_selected_bones
+
+    # iterator - use callback for selected bones
+    iterator = keyingsets_utils.RKS_ITER_selected_bones
+
+    # generator - use generator for bendy bone properties
+    generate = keyingsets_utils.RKS_GEN_bendy_bones
+
+# ------------
+
 
 # VisualLocation
 class BUILTIN_KSI_VisualLoc(KeyingSetInfo):
@@ -379,13 +395,17 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
     # generator - all unlocked bone transforms + custom properties
     def generate(ksi, context, ks, bone):
         # loc, rot, scale - only include unlocked ones
-        ksi.doLoc(ks, bone)
+        if not bone.bone.use_connect:
+            ksi.doLoc(ks, bone)
 
         if bone.rotation_mode in {'QUATERNION', 'AXIS_ANGLE'}:
             ksi.doRot4d(ks, bone)
         else:
             ksi.doRot3d(ks, bone)
         ksi.doScale(ks, bone)
+
+        # bbone properties?
+        ksi.doBBone(context, ks, bone)
 
         # custom props?
         ksi.doCustomProps(ks, bone)
@@ -463,6 +483,19 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
             for i in range(3):
                 if not bone.lock_scale[i]:
                     ksi.addProp(ks, bone, "scale", i)
+
+    # ----------------
+
+    # bendy bone properties
+    def doBBone(ksi, context, ks, pchan):
+        bone = pchan.bone
+        
+        # This check is crude, but is the best we can do for now
+        # It simply adds all of these if the bbone has segments
+        # (and the bone is a control bone). This may lead to some
+        # false positives...
+        if bone.bbone_segments > 1:
+            keyingsets_utils.RKS_GEN_bendy_bones(ksi, context, ks, pchan)
 
     # ----------------
 

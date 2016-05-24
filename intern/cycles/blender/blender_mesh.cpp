@@ -532,7 +532,7 @@ static void attr_create_pointiness(Scene *scene,
 static void create_mesh(Scene *scene,
                         Mesh *mesh,
                         BL::Mesh& b_mesh,
-                        const vector<uint>& used_shaders)
+                        const vector<Shader*>& used_shaders)
 {
 	/* count vertices and faces */
 	int numverts = b_mesh.vertices.length();
@@ -588,8 +588,7 @@ static void create_mesh(Scene *scene,
 	for(b_mesh.tessfaces.begin(f); f != b_mesh.tessfaces.end(); ++f, ++fi) {
 		int4 vi = get_int4(f->vertices_raw());
 		int n = (vi[3] == 0)? 3: 4;
-		int mi = clamp(f->material_index(), 0, used_shaders.size()-1);
-		int shader = used_shaders[mi];
+		int shader = clamp(f->material_index(), 0, used_shaders.size()-1);
 		bool smooth = f->use_smooth() || use_loop_normals;
 
 		/* split vertices if normal is different
@@ -660,14 +659,14 @@ static void create_subd_mesh(Scene *scene,
                              BL::Object& b_ob,
                              BL::Mesh& b_mesh,
                              PointerRNA *cmesh,
-                             const vector<uint>& used_shaders,
+                             const vector<Shader*>& used_shaders,
                              float dicing_rate,
                              int max_subdivisions)
 {
 	Mesh basemesh;
 	create_mesh(scene, &basemesh, b_mesh, used_shaders);
 
-	SubdParams sdparams(mesh, used_shaders[0], true, false);
+	SubdParams sdparams(mesh, 0, true, false);
 	sdparams.dicing_rate = max(0.1f, RNA_float_get(cmesh, "dicing_rate") * dicing_rate);
 	sdparams.max_level = max_subdivisions;
 
@@ -700,7 +699,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 	BL::Material material_override = render_layer.material_override;
 
 	/* find shader indices */
-	vector<uint> used_shaders;
+	vector<Shader*> used_shaders;
 
 	BL::Object::material_slots_iterator slot;
 	for(b_ob.material_slots.begin(slot); slot != b_ob.material_slots.end(); ++slot) {
@@ -742,8 +741,8 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 			 * because the shader needs different mesh attributes */
 			bool attribute_recalc = false;
 
-			foreach(uint shader, mesh->used_shaders)
-				if(scene->shaders[shader]->need_update_attributes)
+			foreach(Shader *shader, mesh->used_shaders)
+				if(shader->need_update_attributes)
 					attribute_recalc = true;
 
 			if(!attribute_recalc)

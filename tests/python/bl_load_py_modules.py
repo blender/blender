@@ -38,12 +38,46 @@ BLACKLIST = {
     'io_import_dxf',  # Because of cydxfentity.so dependency
     }
 
+# Some modules need to add to the `sys.path`.
+MODULE_SYS_PATHS = {
+    # Runs in a Python subprocess, so its expected its basedir can be imported.
+    "io_blend_utils.blendfile_pack": ".",
+    }
+
 if not bpy.app.build_options.freestyle:
     BLACKLIST.add("render_freestyle_svg")
 
 BLACKLIST_DIRS = (
     os.path.join(bpy.utils.resource_path('USER'), "scripts"),
     ) + tuple(addon_utils.paths()[1:])
+
+
+def module_names_recursive(mod_dir, *, parent=None):
+    """
+    a version of bpy.path.module_names that includes non-packages
+    """
+
+    is_package = os.path.exists(os.path.join(mod_dir, "__init__.py"))
+
+    for n in os.listdir(mod_dir):
+        if not n.startswith((".", "_")):
+            submod_full = os.path.join(mod_dir, n)
+            if os.path.isdir(submod_full):
+                if not parent:
+                    subparent = n
+                else:
+                    subparent = parent + "." + n
+                yield from module_names_recursive(submod_full, parent=subparent)
+            elif n.endswith(".py") and is_package is False:
+                submod = n[:-3]
+                if parent:
+                    submod = parent + "." + submod
+                yield submod, submod_full
+
+
+def module_names_all(mod_dir):
+    yield from bpy.path.module_names(mod_dir)
+    yield from module_names_recursive(mod_dir)
 
 
 def addon_modules_sorted():
@@ -130,11 +164,21 @@ def load_modules():
         filepath = m.__file__
         if os.path.basename(filepath).startswith("__init__."):
             mod_dir = os.path.dirname(filepath)
-            for submod, submod_full in bpy.path.module_names(mod_dir):
+            for submod, submod_full in module_names_all(mod_dir):
                 # fromlist is ignored, ugh.
                 mod_name_full = m.__name__ + "." + submod
+
+                sys_path_back = sys.path[:]
+
+                sys.path.extend([
+                    os.path.normpath(os.path.join(mod_dir, f))
+                    for f in MODULE_SYS_PATHS.get(mod_name_full, ())
+                    ])
+
                 __import__(mod_name_full)
                 mod_imp = sys.modules[mod_name_full]
+
+                sys.path[:] = sys_path_back
 
                 # check we load what we ask for.
                 assert(os.path.samefile(mod_imp.__file__, submod_full))

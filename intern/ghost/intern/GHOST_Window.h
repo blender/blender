@@ -106,7 +106,7 @@ public:
 	 * \return The validity of the window.
 	 */
 	virtual bool getValid() const { 
-		return m_context != 0;
+		return m_context != NULL;
 	}
 
 	/**

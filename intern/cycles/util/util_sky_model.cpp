@@ -301,7 +301,7 @@ double arhosekskymodel_radiance(ArHosekSkyModelState  *state,
 	int low_wl = (int)((wavelength - 320.0) / 40.0);
 
 	if(low_wl < 0 || low_wl >= 11)
-		return 0.0f;
+		return 0.0;
 
 	double interp = fmod((wavelength - 320.0 ) / 40.0, 1.0);
 

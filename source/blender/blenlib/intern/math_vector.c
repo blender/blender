@@ -336,6 +336,25 @@ void flip_v2_v2v2(float v[2], const float v1[2], const float v2[2])
 	v[1] = v1[1] + (v1[1] - v2[1]);
 }
 
+
+/********************************* Comparison ********************************/
+
+bool is_finite_v2(const float v[2])
+{
+	return (isfinite(v[0]) && isfinite(v[1]));
+}
+
+bool is_finite_v3(const float v[3])
+{
+	return (isfinite(v[0]) && isfinite(v[1]) && isfinite(v[2]));
+}
+
+bool is_finite_v4(const float v[4])
+{
+	return (isfinite(v[0]) && isfinite(v[1]) && isfinite(v[2]) && isfinite(v[3]));
+}
+
+
 /********************************** Angles ***********************************/
 
 /* Return the angle in radians between vecs 1-2 and 2-3 in radians
@@ -591,19 +610,28 @@ void project_v3_v3v3(float c[3], const float v1[3], const float v2[3])
  * Projecting will make \a c a copy of \a v orthogonal to \a v_plane.
  *
  * \note If \a v is exactly perpendicular to \a v_plane, \a c will just be a copy of \a v.
+ *
+ * \note This function is a convenience to call:
+ * \code{.c}
+ * project_v3_v3v3(c, v, v_plane);
+ * sub_v3_v3v3(c, v, c);
+ * \endcode
  */
 void project_plane_v3_v3v3(float c[3], const float v[3], const float v_plane[3])
 {
-	float delta[3];
-	project_v3_v3v3(delta, v, v_plane);
-	sub_v3_v3v3(c, v, delta);
+	const float mul = dot_v3v3(v, v_plane) / dot_v3v3(v_plane, v_plane);
+
+	c[0] = v[0] - (mul * v_plane[0]);
+	c[1] = v[1] - (mul * v_plane[1]);
+	c[2] = v[2] - (mul * v_plane[2]);
 }
 
 void project_plane_v2_v2v2(float c[2], const float v[2], const float v_plane[2])
 {
-	float delta[2];
-	project_v2_v2v2(delta, v, v_plane);
-	sub_v2_v2v2(c, v, delta);
+	const float mul = dot_v2v2(v, v_plane) / dot_v2v2(v_plane, v_plane);
+
+	c[0] = v[0] - (mul * v_plane[0]);
+	c[1] = v[1] - (mul * v_plane[1]);
 }
 
 /* project a vector on a plane defined by normal and a plane point p */
@@ -660,7 +688,7 @@ void ortho_basis_v3v3_v3(float r_n1[3], float r_n2[3], const float n[3])
 	if (f > eps) {
 		const float d = 1.0f / sqrtf(f);
 
-		BLI_assert(finite(d));
+		BLI_assert(isfinite(d));
 
 		r_n1[0] =  n[1] * d;
 		r_n1[1] = -n[0] * d;

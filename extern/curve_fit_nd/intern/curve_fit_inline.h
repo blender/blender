@@ -57,7 +57,7 @@ MINLINE double max(const double a, const double b)
 #endif
 
 MINLINE void zero_vn(
-		double v0[], const uint dims)
+        double v0[], const uint dims)
 {
 	for (uint j = 0; j < dims; j++) {
 		v0[j] = 0.0;
@@ -65,7 +65,7 @@ MINLINE void zero_vn(
 }
 
 MINLINE void flip_vn_vnvn(
-		double v_out[], const double v0[], const double v1[], const uint dims)
+        double v_out[], const double v0[], const double v1[], const uint dims)
 {
 	for (uint j = 0; j < dims; j++) {
 		v_out[j] = v0[j] + (v0[j] - v1[j]);
@@ -77,6 +77,22 @@ MINLINE void copy_vnvn(
 {
 	for (uint j = 0; j < dims; j++) {
 		v0[j] = v1[j];
+	}
+}
+
+MINLINE void copy_vnfl_vndb(
+        float v0[], const double v1[], const uint dims)
+{
+	for (uint j = 0; j < dims; j++) {
+		v0[j] = (float)v1[j];
+	}
+}
+
+MINLINE void copy_vndb_vnfl(
+        double v0[], const float v1[], const uint dims)
+{
+	for (uint j = 0; j < dims; j++) {
+		v0[j] = (double)v1[j];
 	}
 }
 
@@ -178,7 +194,7 @@ MINLINE void imul_vn_fl(double v0[], const double f, const uint dims)
 
 
 MINLINE double len_squared_vnvn(
-		const double v0[], const double v1[], const uint dims)
+        const double v0[], const double v1[], const uint dims)
 {
 	double d = 0.0;
 	for (uint j = 0; j < dims; j++) {
@@ -203,13 +219,28 @@ MINLINE double len_vnvn(
 	return sqrt(len_squared_vnvn(v0, v1, dims));
 }
 
-#if 0
-static double len_vn(
-		const double v0[], const uint dims)
+MINLINE double len_vn(
+        const double v0[], const uint dims)
 {
 	return sqrt(len_squared_vn(v0, dims));
 }
-#endif
+
+/* special case, save us negating a copy, then getting the length */
+MINLINE double len_squared_negated_vnvn(
+        const double v0[], const double v1[], const uint dims)
+{
+	double d = 0.0;
+	for (uint j = 0; j < dims; j++) {
+		d += sq(v0[j] + v1[j]);
+	}
+	return d;
+}
+
+MINLINE double len_negated_vnvn(
+        const double v0[], const double v1[], const uint dims)
+{
+	return sqrt(len_squared_negated_vnvn(v0, v1, dims));
+}
 
 MINLINE double normalize_vn(
         double v0[], const uint dims)

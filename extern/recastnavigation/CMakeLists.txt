@@ -23,9 +23,11 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+remove_cc_flag_unsigned_char()
+
 set(INC 
-		Recast/Include
-		Detour/Include
+	Recast/Include
+	Detour/Include
 )
 
 set(INC_SYS
@@ -33,38 +35,38 @@ set(INC_SYS
 )
 
 set(SRC 
-		recast-capi.cpp
-		recast-capi.h
+	recast-capi.cpp
+	recast-capi.h
 
 
-		Detour/Source/DetourCommon.cpp
-		Detour/Source/DetourNode.cpp
-		Detour/Source/DetourStatNavMesh.cpp
-		Detour/Source/DetourStatNavMeshBuilder.cpp
-		Detour/Source/DetourTileNavMesh.cpp
-		Detour/Source/DetourTileNavMeshBuilder.cpp
+	Detour/Source/DetourCommon.cpp
+	Detour/Source/DetourNode.cpp
+	Detour/Source/DetourStatNavMesh.cpp
+	Detour/Source/DetourStatNavMeshBuilder.cpp
+	Detour/Source/DetourTileNavMesh.cpp
+	Detour/Source/DetourTileNavMeshBuilder.cpp
 
-		Detour/Include/DetourCommon.h
-		Detour/Include/DetourNode.h
-		Detour/Include/DetourStatNavMesh.h
-		Detour/Include/DetourStatNavMeshBuilder.h
-		Detour/Include/DetourTileNavMesh.h
-		Detour/Include/DetourTileNavMeshBuilder.h
+	Detour/Include/DetourCommon.h
+	Detour/Include/DetourNode.h
+	Detour/Include/DetourStatNavMesh.h
+	Detour/Include/DetourStatNavMeshBuilder.h
+	Detour/Include/DetourTileNavMesh.h
+	Detour/Include/DetourTileNavMeshBuilder.h
 
-		Recast/Source/Recast.cpp
-		Recast/Source/RecastAlloc.cpp
-		Recast/Source/RecastArea.cpp
-		Recast/Source/RecastContour.cpp
-		Recast/Source/RecastFilter.cpp
-		Recast/Source/RecastLayers.cpp
-		Recast/Source/RecastMesh.cpp
-		Recast/Source/RecastMeshDetail.cpp
-		Recast/Source/RecastRasterization.cpp
-		Recast/Source/RecastRegion.cpp
+	Recast/Source/Recast.cpp
+	Recast/Source/RecastAlloc.cpp
+	Recast/Source/RecastArea.cpp
+	Recast/Source/RecastContour.cpp
+	Recast/Source/RecastFilter.cpp
+	Recast/Source/RecastLayers.cpp
+	Recast/Source/RecastMesh.cpp
+	Recast/Source/RecastMeshDetail.cpp
+	Recast/Source/RecastRasterization.cpp
+	Recast/Source/RecastRegion.cpp
 
-		Recast/Include/Recast.h
-		Recast/Include/RecastAlloc.h
-		Recast/Include/RecastAssert.h
+	Recast/Include/Recast.h
+	Recast/Include/RecastAlloc.h
+	Recast/Include/RecastAssert.h
 )
 
 blender_add_lib(extern_recastnavigation "${SRC}" "${INC}" "${INC_SYS}")

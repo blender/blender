@@ -2845,7 +2845,6 @@ void WM_OT_straightline_gesture(wmOperatorType *ot)
 #define WM_RADIAL_CONTROL_DISPLAY_SIZE (200 * U.pixelsize)
 #define WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE (35 * U.pixelsize)
 #define WM_RADIAL_CONTROL_DISPLAY_WIDTH (WM_RADIAL_CONTROL_DISPLAY_SIZE - WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE)
-#define WM_RADIAL_CONTROL_HEADER_LENGTH 180
 #define WM_RADIAL_MAX_STR 10
 
 typedef struct {
@@ -2871,7 +2870,7 @@ typedef struct {
 static void radial_control_update_header(wmOperator *op, bContext *C)
 {
 	RadialControl *rc = op->customdata;
-	char msg[WM_RADIAL_CONTROL_HEADER_LENGTH];
+	char msg[UI_MAX_DRAW_STR];
 	ScrArea *sa = CTX_wm_area(C);
 	Scene *scene = CTX_data_scene(C);
 	
@@ -2879,34 +2878,33 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
 		if (hasNumInput(&rc->num_input)) {
 			char num_str[NUM_STR_REP_LEN];
 			outputNumInput(&rc->num_input, num_str, &scene->unit);
-			BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %s", RNA_property_ui_name(rc->prop), num_str);
-			ED_area_headerprint(sa, msg);
+			BLI_snprintf(msg, sizeof(msg), "%s: %s", RNA_property_ui_name(rc->prop), num_str);
 		}
 		else {
 			const char *ui_name = RNA_property_ui_name(rc->prop);
 			switch (rc->subtype) {
 				case PROP_NONE:
 				case PROP_DISTANCE:
-					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %0.4f", ui_name, rc->current_value);
+					BLI_snprintf(msg, sizeof(msg), "%s: %0.4f", ui_name, rc->current_value);
 					break;
 				case PROP_PIXEL:
-					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %d", ui_name, (int)rc->current_value); /* XXX: round to nearest? */
+					BLI_snprintf(msg, sizeof(msg), "%s: %d", ui_name, (int)rc->current_value); /* XXX: round to nearest? */
 					break;
 				case PROP_PERCENTAGE:
-					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %3.1f%%", ui_name, rc->current_value);
+					BLI_snprintf(msg, sizeof(msg), "%s: %3.1f%%", ui_name, rc->current_value);
 					break;
 				case PROP_FACTOR:
-					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %1.3f", ui_name, rc->current_value);
+					BLI_snprintf(msg, sizeof(msg), "%s: %1.3f", ui_name, rc->current_value);
 					break;
 				case PROP_ANGLE:
-					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %3.2f", ui_name, RAD2DEGF(rc->current_value));
+					BLI_snprintf(msg, sizeof(msg), "%s: %3.2f", ui_name, RAD2DEGF(rc->current_value));
 					break;
 				default:
-					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s", ui_name); /* XXX: No value? */
+					BLI_snprintf(msg, sizeof(msg), "%s", ui_name); /* XXX: No value? */
 					break;
 			}
-			ED_area_headerprint(sa, msg);
 		}
+		ED_area_headerprint(sa, msg);
 	}
 }
 
@@ -4296,6 +4294,7 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border"); /* XXX TODO: zoom border should perhaps map rightmouse to zoom out instead of in+cancel */
 	WM_modalkeymap_assign(keymap, "IMAGE_OT_render_border");
+	WM_modalkeymap_assign(keymap, "IMAGE_OT_view_zoom_border");
 	WM_modalkeymap_assign(keymap, "GPENCIL_OT_select_border");
 }
 
@@ -4330,6 +4329,7 @@ static void gesture_zoom_border_modal_keymap(wmKeyConfig *keyconf)
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW2D_OT_zoom_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border");
+	WM_modalkeymap_assign(keymap, "IMAGE_OT_view_zoom_border");
 }
 
 /* default keymap for windows and screens, only call once per WM */

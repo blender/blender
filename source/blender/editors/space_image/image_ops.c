@@ -990,6 +990,62 @@ void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
 	              "Ratio", "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out", -FLT_MAX, FLT_MAX);
 }
 
+/********************** view border-zoom operator *********************/
+
+static int image_view_zoom_border_exec(bContext *C, wmOperator *op)
+{
+	SpaceImage *sima = CTX_wm_space_image(C);
+	ARegion *ar = CTX_wm_region(C);
+	rctf bounds;
+	const int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
+
+	WM_operator_properties_border_to_rctf(op, &bounds);
+
+	UI_view2d_region_to_view_rctf(&ar->v2d, &bounds, &bounds);
+
+	const struct {
+		float xof;
+		float yof;
+		float zoom;
+	} sima_view_prev = {
+		.xof = sima->xof,
+		.yof = sima->yof,
+		.zoom = sima->zoom,
+	};
+
+	sima_zoom_set_from_bounds(sima, ar, &bounds);
+
+	/* zoom out */
+	if (gesture_mode == GESTURE_MODAL_OUT) {
+		sima->xof = sima_view_prev.xof + (sima->xof - sima_view_prev.xof);
+		sima->yof = sima_view_prev.yof + (sima->yof - sima_view_prev.yof);
+		sima->zoom = sima_view_prev.zoom * (sima_view_prev.zoom / sima->zoom);
+	}
+
+	ED_region_tag_redraw(ar);
+
+	return OPERATOR_FINISHED;
+}
+
+void IMAGE_OT_view_zoom_border(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Zoom to Border";
+	ot->description = "Zoom in the view to the nearest item contained in the border";
+	ot->idname = "IMAGE_OT_view_zoom_border";
+
+	/* api callbacks */
+	ot->invoke = WM_border_select_invoke;
+	ot->exec = image_view_zoom_border_exec;
+	ot->modal = WM_border_select_modal;
+	ot->cancel = WM_border_select_cancel;
+
+	ot->poll = space_image_main_region_poll;
+
+	/* rna */
+	WM_operator_properties_gesture_border(ot, false);
+}
+
 /**************** load/replace/save callbacks ******************/
 static void image_filesel(bContext *C, wmOperator *op, const char *path)
 {
@@ -2770,8 +2826,8 @@ typedef struct ImageSampleInfo {
 	int *zp;
 	float *zfp;
 
-	int draw;
-	int color_manage;
+	bool draw;
+	bool color_manage;
 	int use_default_view;
 } ImageSampleInfo;
 
@@ -2845,7 +2901,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
 
 	if (ibuf == NULL) {
 		ED_space_image_release_buffer(sima, ibuf, lock);
-		info->draw = 0;
+		info->draw = false;
 		return;
 	}
 
@@ -2862,7 +2918,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
 
 		info->x = x;
 		info->y = y;
-		info->draw = 1;
+		info->draw = true;
 		info->channels = ibuf->channels;
 
 		info->colp = NULL;
@@ -2895,10 +2951,24 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
 		if (ibuf->rect_float) {
 			fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
 
-			info->colf[0] = fp[0];
-			info->colf[1] = fp[1];
-			info->colf[2] = fp[2];
-			info->colf[3] = fp[3];
+			if (ibuf->channels == 4) {
+				info->colf[0] = fp[0];
+				info->colf[1] = fp[1];
+				info->colf[2] = fp[2];
+				info->colf[3] = fp[3];
+			}
+			else if (ibuf->channels == 3) {
+				info->colf[0] = fp[0];
+				info->colf[1] = fp[1];
+				info->colf[2] = fp[2];
+				info->colf[3] = 1.0f;
+			}
+			else {
+				info->colf[0] = fp[0];
+				info->colf[1] = fp[0];
+				info->colf[2] = fp[0];
+				info->colf[3] = 1.0f;
+			}
 			info->colfp = info->colf;
 
 			copy_v4_v4(info->linearcol, info->colf);
@@ -2909,10 +2979,16 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
 		if (ibuf->zbuf) {
 			info->z = ibuf->zbuf[y * ibuf->x + x];
 			info->zp = &info->z;
+			if (ibuf->zbuf == (int*)ibuf->rect) {
+				info->colp = NULL;
+			}
 		}
 		if (ibuf->zbuf_float) {
 			info->zf = ibuf->zbuf_float[y * ibuf->x + x];
 			info->zfp = &info->zf;
+			if (ibuf->zbuf_float == ibuf->rect_float) {
+				info->colfp = NULL;
+			}
 		}
 
 		if (curve_mapping && ibuf->channels == 4) {

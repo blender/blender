@@ -572,6 +572,9 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	gps->flag = gpd->sbuffer_sflag;
 	gps->inittime = p->inittime;
 	
+	/* enable recalculation flag by default (only used if hq fill) */
+	gps->flag |= GP_STROKE_RECALC_CACHES;
+
 	/* allocate enough memory for a continuous array for storage points */
 	int sublevel = gpl->sublevel;
 	int new_totpoints = gps->totpoints;
@@ -580,7 +583,10 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		new_totpoints += new_totpoints - 1;
 	}
 	gps->points = MEM_callocN(sizeof(bGPDspoint) * new_totpoints, "gp_stroke_points");
-	
+	/* initialize triangle memory to dummy data */
+	gps->triangles = MEM_callocN(sizeof(bGPDtriangle), "GP Stroke triangulation");
+	gps->flag |= GP_STROKE_RECALC_CACHES;
+	gps->tot_triangles = 0;
 	/* set pointer to first non-initialized point */
 	pt = gps->points + (gps->totpoints - totelem);
 	
@@ -710,11 +716,18 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 			}
 		}
 		
-		/* smooth stroke - only if there's something to do */
-		/* NOTE: No pressure smoothing, or else we get annoying thickness changes while drawing... */
+		/* smooth stroke after subdiv - only if there's something to do 
+		 * for each iteration, the factor is reduced to get a better smoothing without changing too much 
+		 * the original stroke
+		 */
 		if (gpl->draw_smoothfac > 0.0f) {
-			for (i = 0; i < gps->totpoints; i++) {
-				gp_smooth_stroke(gps, i, gpl->draw_smoothfac, false);
+			float reduce = 0.0f;
+			for (int r = 0; r < gpl->draw_smoothlvl; ++r) {
+				for (i = 0; i < gps->totpoints; i++) {
+					/* NOTE: No pressure smoothing, or else we get annoying thickness changes while drawing... */
+					gp_smooth_stroke(gps, i, gpl->draw_smoothfac - reduce, false);
+				}
+				reduce += 0.25f;  // reduce the factor
 			}
 		}
 		
@@ -795,6 +808,8 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 		/* just free stroke */
 		if (gps->points)
 			MEM_freeN(gps->points);
+		if (gps->triangles)
+			MEM_freeN(gps->triangles);
 		BLI_freelinkN(&gpf->strokes, gps);
 	}
 	else if (gps->totpoints == 1) {
@@ -807,6 +822,8 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 				/* free stroke */
 				// XXX: pressure sensitive eraser should apply here too?
 				MEM_freeN(gps->points);
+				if (gps->triangles)
+					 MEM_freeN(gps->triangles);
 				BLI_freelinkN(&gpf->strokes, gps);
 			}
 		}

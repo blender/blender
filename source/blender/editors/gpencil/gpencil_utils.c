@@ -641,3 +641,21 @@ void gp_subdivide_stroke(bGPDstroke *gps, const int new_totpoints)
 }
 
 /* ******************************************************** */
+
+
+bool ED_gpencil_stroke_minmax(
+        const bGPDstroke *gps, const bool use_select,
+        float r_min[3], float r_max[3])
+{
+	const bGPDspoint *pt;
+	int i;
+	bool changed = false;
+
+	for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+		if ((use_select == false) || (pt->flag & GP_SPOINT_SELECT)) {;
+			minmax_v3v3_v3(r_min, r_max, &pt->x);
+			changed = true;
+		}
+	}
+	return changed;
+}

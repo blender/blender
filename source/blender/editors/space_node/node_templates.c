@@ -423,8 +423,8 @@ static int ui_compatible_sockets(int typeA, int typeB)
 
 static int ui_node_item_name_compare(const void *a, const void *b)
 {
-	const bNodeType* type_a = *(const bNodeType**)a;
-	const bNodeType* type_b = *(const bNodeType**)b;
+	const bNodeType *type_a = *(const bNodeType **)a;
+	const bNodeType *type_b = *(const bNodeType **)b;
 	return BLI_natstrcmp(type_a->ui_name, type_b->ui_name);
 }
 
@@ -462,7 +462,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 	}
 	NODE_TYPES_END
 
-	qsort(sorted_ntypes, BLI_array_count(sorted_ntypes), sizeof(bNodeType*), ui_node_item_name_compare);
+	qsort(sorted_ntypes, BLI_array_count(sorted_ntypes), sizeof(bNodeType *), ui_node_item_name_compare);
 
 	/* generate UI */
 	for (int j = 0; j < BLI_array_count(sorted_ntypes); j++) {

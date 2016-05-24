@@ -619,7 +619,9 @@ void BKE_pose_eval_bone(EvaluationContext *UNUSED(eval_ctx),
 			else {
 				/* TODO(sergey): Use time source node for time. */
 				float ctime = BKE_scene_frame_get(scene); /* not accurate... */
-				BKE_pose_where_is_bone(scene, ob, pchan, ctime, 1);
+				if ((pchan->flag & POSE_DONE) == 0) {
+					BKE_pose_where_is_bone(scene, ob, pchan, ctime, 1);
+				}
 			}
 		}
 	}
@@ -631,12 +633,18 @@ void BKE_pose_constraints_evaluate(EvaluationContext *UNUSED(eval_ctx),
 {
 	Scene *scene = G.main->scene.first;
 	DEBUG_PRINT("%s on %s pchan %s\n", __func__, ob->id.name, pchan->name);
-	if (pchan->flag & POSE_IKTREE || pchan->flag & POSE_IKSPLINE) {
+	bArmature *arm = (bArmature *)ob->data;
+	if (arm->flag & ARM_RESTPOS) {
+		return;
+	}
+	else if (pchan->flag & POSE_IKTREE || pchan->flag & POSE_IKSPLINE) {
 		/* IK are being solved separately/ */
 	}
 	else {
 		float ctime = BKE_scene_frame_get(scene); /* not accurate... */
-		BKE_pose_where_is_bone(scene, ob, pchan, ctime, 1);
+		if ((pchan->flag & POSE_DONE) == 0) {
+			BKE_pose_where_is_bone(scene, ob, pchan, ctime, 1);
+		}
 	}
 }
 

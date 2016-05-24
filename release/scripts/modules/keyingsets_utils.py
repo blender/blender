@@ -28,11 +28,14 @@ __all__ = (
     "RKS_POLL_selected_objects",
     "RKS_POLL_selected_bones",
     "RKS_POLL_selected_items",
+    "RKS_ITER_selected_object",
+    "RKS_ITER_selected_bones",
     "RKS_ITER_selected_item",
     "RKS_GEN_available",
     "RKS_GEN_location",
     "RKS_GEN_rotation",
     "RKS_GEN_scaling",
+    "RKS_GEN_bendy_bones",
     )
 
 import bpy
@@ -93,10 +96,16 @@ def RKS_ITER_selected_item(ksi, context, ks):
             ksi.generate(context, ks, ob)
 
 
-# all select objects only
+# all selected objects only
 def RKS_ITER_selected_objects(ksi, context, ks):
     for ob in context.selected_objects:
         ksi.generate(context, ks, ob)
+
+
+# all seelcted bones only
+def RKS_ITER_selected_bones(ksi, context, ks):
+    for bone in context.selected_pose_bones:
+        ksi.generate(context, ks, bone)
 
 ###########################
 # Generate Callbacks
@@ -207,3 +216,43 @@ def RKS_GEN_scaling(ksi, context, ks, data):
         ks.paths.add(id_block, path, group_method='NAMED', group_name=grouping)
     else:
         ks.paths.add(id_block, path)
+
+# ------
+
+# Property identifiers for Bendy Bones
+bbone_property_ids = (
+    "bbone_curveinx",
+    "bbone_curveiny",
+    "bbone_curveoutx",
+    "bbone_curveouty",
+
+    "bbone_rollin",
+    "bbone_rollout",
+
+    "bbone_scalein",
+    "bbone_scaleout",
+
+    # NOTE: These are in the nested bone struct 
+    # Do it this way to force them to be included
+    # in whatever actions are being keyed here
+    "bone.bbone_in",
+    "bone.bbone_out",
+)
+
+# Add Keying Set entries for bendy bones
+def RKS_GEN_bendy_bones(ksi, context, ks, data):
+    # get id-block and path info
+    # NOTE: This assumes that we're dealing with a bone here...
+    id_block, base_path, grouping = get_transform_generators_base_info(data)
+
+    # for each of the bendy bone properties, add a Keying Set entry for it...
+    for propname in bbone_property_ids:
+        # add the property name to the base path
+        path = path_add_property(base_path, propname)
+
+        # add Keying Set entry for this...
+        if grouping:
+            ks.paths.add(id_block, path, group_method='NAMED', group_name=grouping)
+        else:
+            ks.paths.add(id_block, path)
+

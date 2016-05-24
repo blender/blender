@@ -52,7 +52,7 @@ struct BMeshFromMeshParams {
 void BM_mesh_bm_from_me(
         BMesh *bm, struct Mesh *me,
         const struct BMeshFromMeshParams *params)
-ATTR_NONNULL(1, 2, 3);
+ATTR_NONNULL(1, 3);
 
 struct BMeshToMeshParams {
 	unsigned int calc_tessface : 1;

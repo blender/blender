@@ -284,7 +284,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 		bool fix_normal = true;
 
 		for (j = 0; j < 3; j++) {
-			if (!finite(mv->co[j])) {
+			if (!isfinite(mv->co[j])) {
 				PRINT_ERR("\tVertex %u: has invalid coordinate\n", i);
 
 				if (do_fixes) {
@@ -765,7 +765,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 
 			for (j = 0, dw = dv->dw; j < dv->totweight; j++, dw++) {
 				/* note, greater than max defgroups is accounted for in our code, but not < 0 */
-				if (!finite(dw->weight)) {
+				if (!isfinite(dw->weight)) {
 					PRINT_ERR("\tVertex deform %u, group %d has weight: %f\n", i, dw->def_nr, dw->weight);
 					if (do_fixes) {
 						dw->weight = 0.0f;

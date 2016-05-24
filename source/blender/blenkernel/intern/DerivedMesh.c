@@ -647,13 +647,15 @@ void DM_generate_tangent_tessface_data(DerivedMesh *dm, bool generate)
 void DM_update_materials(DerivedMesh *dm, Object *ob)
 {
 	int i, totmat = ob->totcol + 1; /* materials start from 1, default material is 0 */
-	dm->totmat = totmat;
 
-	/* invalidate old materials */
-	if (dm->mat)
-		MEM_freeN(dm->mat);
+	if (dm->totmat != totmat) {
+		dm->totmat = totmat;
+		/* invalidate old materials */
+		if (dm->mat)
+			MEM_freeN(dm->mat);
 
-	dm->mat = MEM_callocN(totmat * sizeof(*dm->mat), "DerivedMesh.mat");
+		dm->mat = MEM_mallocN(totmat * sizeof(*dm->mat), "DerivedMesh.mat");
+	}
 
 	/* we leave last material as empty - rationale here is being able to index
 	 * the materials by using the mf->mat_nr directly and leaving the last
@@ -661,6 +663,7 @@ void DM_update_materials(DerivedMesh *dm, Object *ob)
 	for (i = 0; i < totmat - 1; i++) {
 		dm->mat[i] = give_current_material(ob, i + 1);
 	}
+	dm->mat[i] = NULL;
 }
 
 MLoopUV *DM_paint_uvlayer_active_get(DerivedMesh *dm, int mat_nr)
@@ -3626,12 +3629,41 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 		dm->calcLoopTangents(dm, false, (const char (*)[MAX_NAME])tangent_names, tangent_names_count);
 
 	for (b = 0; b < gattribs->totlayer; b++) {
-		if (gattribs->layer[b].type == CD_MTFACE) {
+		int type = gattribs->layer[b].type;
+		layer = -1;
+		if (type == CD_AUTO_FROM_NAME) {
+			/* We need to deduct what exact layer is used.
+			 *
+			 * We do it based on the specified name.
+			 */
+			if (gattribs->layer[b].name[0]) {
+				layer = CustomData_get_named_layer_index(&dm->loopData, CD_TANGENT, gattribs->layer[b].name);
+				type = CD_TANGENT;
+				if (layer == -1) {
+					layer = CustomData_get_named_layer_index(ldata, CD_MLOOPCOL, gattribs->layer[b].name);
+					type = CD_MCOL;
+				}
+				if (layer == -1) {
+					layer = CustomData_get_named_layer_index(ldata, CD_MLOOPUV, gattribs->layer[b].name);
+					type = CD_MTFACE;
+				}
+				if (layer == -1) {
+					continue;
+				}
+			}
+			else {
+				/* Fall back to the UV layer, which matches old behavior. */
+				type = CD_MTFACE;
+			}
+		}
+		if (type == CD_MTFACE) {
 			/* uv coordinates */
-			if (gattribs->layer[b].name[0])
-				layer = CustomData_get_named_layer_index(ldata, CD_MLOOPUV, gattribs->layer[b].name);
-			else
-				layer = CustomData_get_active_layer_index(ldata, CD_MLOOPUV);
+			if (layer == -1) {
+				if (gattribs->layer[b].name[0])
+					layer = CustomData_get_named_layer_index(ldata, CD_MLOOPUV, gattribs->layer[b].name);
+				else
+					layer = CustomData_get_active_layer_index(ldata, CD_MLOOPUV);
+			}
 
 			a = attribs->tottface++;
 
@@ -3647,11 +3679,13 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 			attribs->tface[a].gl_index = gattribs->layer[b].glindex;
 			attribs->tface[a].gl_texco = gattribs->layer[b].gltexco;
 		}
-		else if (gattribs->layer[b].type == CD_MCOL) {
-			if (gattribs->layer[b].name[0])
-				layer = CustomData_get_named_layer_index(ldata, CD_MLOOPCOL, gattribs->layer[b].name);
-			else
-				layer = CustomData_get_active_layer_index(ldata, CD_MLOOPCOL);
+		else if (type == CD_MCOL) {
+			if (layer == -1) {
+				if (gattribs->layer[b].name[0])
+					layer = CustomData_get_named_layer_index(ldata, CD_MLOOPCOL, gattribs->layer[b].name);
+				else
+					layer = CustomData_get_active_layer_index(ldata, CD_MLOOPCOL);
+			}
 
 			a = attribs->totmcol++;
 
@@ -3667,13 +3701,14 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 
 			attribs->mcol[a].gl_index = gattribs->layer[b].glindex;
 		}
-		else if (gattribs->layer[b].type == CD_TANGENT) {
+		else if (type == CD_TANGENT) {
 			/* note, even with 'is_editmesh' this uses the derived-meshes loop data */
-
-			if (gattribs->layer[b].name[0])
-				layer = CustomData_get_named_layer_index(&dm->loopData, CD_TANGENT, gattribs->layer[b].name);
-			else
-				layer = CustomData_get_active_layer_index(&dm->loopData, CD_TANGENT);
+			if (layer == -1) {
+				if (gattribs->layer[b].name[0])
+					layer = CustomData_get_named_layer_index(&dm->loopData, CD_TANGENT, gattribs->layer[b].name);
+				else
+					layer = CustomData_get_active_layer_index(&dm->loopData, CD_TANGENT);
+			}
 
 			a = attribs->tottang++;
 
@@ -3688,9 +3723,11 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 
 			attribs->tang[a].gl_index = gattribs->layer[b].glindex;
 		}
-		else if (gattribs->layer[b].type == CD_ORCO) {
+		else if (type == CD_ORCO) {
 			/* original coordinates */
-			layer = CustomData_get_layer_index(vdata, CD_ORCO);
+			if (layer == -1) {
+				layer = CustomData_get_layer_index(vdata, CD_ORCO);
+			}
 			attribs->totorco = 1;
 
 			if (layer != -1) {
@@ -3754,17 +3791,17 @@ void DM_draw_attrib_vertex(DMVertexAttribs *attribs, int a, int index, int vert,
 
 	/* vertex colors */
 	for (b = 0; b < attribs->totmcol; b++) {
-		GLubyte col[4];
+		GLfloat col[4];
 
 		if (attribs->mcol[b].array) {
 			const MLoopCol *cp = &attribs->mcol[b].array[loop];
-			copy_v4_v4_uchar(col, &cp->r);
+			rgba_uchar_to_float(col, &cp->r);
 		}
 		else {
-			col[0] = 0; col[1] = 0; col[2] = 0; col[3] = 0;
+			zero_v4(col);
 		}
 
-		glVertexAttrib4ubv(attribs->mcol[b].gl_index, col);
+		glVertexAttrib4fv(attribs->mcol[b].gl_index, col);
 	}
 
 	/* tangent for normal mapping */
@@ -3996,7 +4033,7 @@ void DM_init_origspace(DerivedMesh *dm)
 			float p_nor[3], co[3];
 			float mat[3][3];
 
-			float min[2] = {FLT_MAX, FLT_MAX}, max[2] = {FLT_MIN, FLT_MIN};
+			float min[2] = {FLT_MAX, FLT_MAX}, max[2] = {-FLT_MAX, -FLT_MAX};
 			float translate[2], scale[2];
 
 			BKE_mesh_calc_poly_normal(mp, l, mv, p_nor);

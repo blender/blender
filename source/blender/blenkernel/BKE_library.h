@@ -119,7 +119,8 @@ void BKE_main_lib_objects_recalc_all(struct Main *bmain);
 /* (MAX_ID_NAME - 2) + 3 */
 void BKE_id_ui_prefix(char name[66 + 1], const struct ID *id);
 
-void BKE_library_make_local(struct Main *bmain, struct Library *lib, bool untagged_only, bool set_fake);
+void BKE_library_make_local(
+        struct Main *bmain, const struct Library *lib, const bool untagged_only, const bool set_fake);
 
 typedef void (*BKE_library_free_window_manager_cb)(struct bContext *, struct wmWindowManager *);
 typedef void (*BKE_library_free_notifier_reference_cb)(const void *);

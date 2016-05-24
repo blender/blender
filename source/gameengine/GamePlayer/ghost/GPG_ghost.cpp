@@ -116,10 +116,14 @@ extern char datatoc_bmonofont_ttf[];
 #include "RNA_define.h"
 
 #ifdef WIN32
-#include <windows.h>
-#if !defined(DEBUG)
-#include <wincon.h>
-#endif // !defined(DEBUG)
+#  include <windows.h>
+#  if !defined(DEBUG)
+#    include <wincon.h>
+#  endif // !defined(DEBUG)
+#  if defined(_MSC_VER) && defined(_M_X64)
+#    include <math.h> /* needed for _set_FMA3_enable */
+#  endif
+#  include "utfconv.h"
 #endif // WIN32
 
 #ifdef WITH_SDL_DYNLOAD
@@ -399,7 +403,14 @@ static int GPG_PyNextFrame(void *state0)
 	}
 }
 
-int main(int argc, char** argv)
+int main(
+	int argc,
+#ifdef WIN32
+	char **UNUSED(argv_c)
+#else
+	char **argv
+#endif
+	)
 {
 	int i;
 	int argc_py_clamped= argc; /* use this so python args can be added after ' - ' */
@@ -434,6 +445,34 @@ int main(int argc, char** argv)
 	bool samplesParFound = false;
 	GHOST_TUns16 aasamples = 0;
 	
+#ifdef WIN32
+	char **argv;
+	int argv_num;
+
+	/* We delay loading of openmp so we can set the policy here. */
+# if defined(_MSC_VER)
+	_putenv_s("OMP_WAIT_POLICY", "PASSIVE");
+# endif
+
+	/* FMA3 support in the 2013 CRT is broken on Vista and Windows 7 RTM (fixed in SP1). Just disable it. */
+#  if defined(_MSC_VER) && defined(_M_X64)
+	_set_FMA3_enable(0);
+#  endif
+
+	/* Win32 Unicode Args */
+	/* NOTE: cannot use guardedalloc malloc here, as it's not yet initialized
+	*       (it depends on the args passed in, which is what we're getting here!)
+	*/
+	{
+		wchar_t **argv_16 = CommandLineToArgvW(GetCommandLineW(), &argc);
+		argv = (char**)malloc(argc * sizeof(char *));
+		for (argv_num = 0; argv_num < argc; argv_num++) {
+			argv[argv_num] = alloc_utf_8_from_16(argv_16[argv_num], 0);
+		}
+		LocalFree(argv_16);
+	}
+#endif  /* WIN32 */
+
 #ifdef __linux__
 #ifdef __alpha__
 	signal (SIGFPE, SIG_IGN);
@@ -1164,6 +1203,14 @@ int main(int argc, char** argv)
 	}
 
 	BKE_tempdir_session_purge();
+
+#ifdef WIN32
+	while (argv_num) {
+		free(argv[--argv_num]);
+	}
+	free(argv);
+	argv = NULL;
+#endif
 
 	return error ? -1 : 0;
 }

@@ -245,11 +245,11 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 	 * for finding the best hit, to get the real dist,
 	 * measure the len_v3v3() from the input coord to hit.co */
 	BVHTreeRayHit hit;
-	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
+	void *treeData = NULL;
 
 	/* auxiliary target */
 	DerivedMesh *auxMesh    = NULL;
-	BVHTreeFromMesh auxData = NULL_BVHTreeFromMesh;
+	void *auxData = NULL;
 	SpaceTransform local2aux;
 
 	/* If the user doesn't allows to project in any direction of projection axis
@@ -285,19 +285,44 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 	}
 
 	/* use editmesh to avoid array allocation */
+	BMEditMesh *emtarget = NULL, *emaux = NULL;
+	BVHTreeFromEditMesh emtreedata_stack, emauxdata_stack;
+	BVHTreeFromMesh dmtreedata_stack, dmauxdata_stack;
+	BVHTree *targ_tree;
+	void *targ_callback;
 	if (calc->smd->target && calc->target->type == DM_TYPE_EDITBMESH) {
-		treeData.em_evil = BKE_editmesh_from_object(calc->smd->target);
-		treeData.em_evil_all = true;
+		emtarget = BKE_editmesh_from_object(calc->smd->target);
+		if ((targ_tree = bvhtree_from_editmesh_looptri(&emtreedata_stack, emtarget, 0.0, 4, 6))) {
+			targ_callback = emtreedata_stack.raycast_callback;
+			treeData = &emtreedata_stack;
+		}
 	}
-	if (calc->smd->auxTarget && auxMesh->type == DM_TYPE_EDITBMESH) {
-		auxData.em_evil = BKE_editmesh_from_object(calc->smd->auxTarget);
-		auxData.em_evil_all = true;
+	else {
+		if ((targ_tree = bvhtree_from_mesh_looptri(&dmtreedata_stack, calc->target, 0.0, 4, 6))) {
+			targ_callback = dmtreedata_stack.raycast_callback;
+			treeData = &dmtreedata_stack;
+		}
 	}
-
-	/* After sucessufuly build the trees, start projection vertexs */
-	if (bvhtree_from_mesh_looptri(&treeData, calc->target, 0.0, 4, 6) &&
-	    (auxMesh == NULL || bvhtree_from_mesh_looptri(&auxData, auxMesh, 0.0, 4, 6)))
-	{
+	if (targ_tree) {
+		BVHTree *aux_tree = NULL;
+		void *aux_callback;
+		if (auxMesh != NULL) {
+			/* use editmesh to avoid array allocation */
+			if (calc->smd->auxTarget && auxMesh->type == DM_TYPE_EDITBMESH) {
+				emaux = BKE_editmesh_from_object(calc->smd->auxTarget);
+				if ((aux_tree = bvhtree_from_editmesh_looptri(&emauxdata_stack, emaux, 0.0, 4, 6)) != NULL) {
+					aux_callback = emauxdata_stack.raycast_callback;
+					auxData = &emauxdata_stack;
+				}
+			}
+			else {
+				if ((aux_tree = bvhtree_from_mesh_looptri(&dmauxdata_stack, calc->target, 0.0, 4, 6)) != NULL) {
+					aux_callback = dmauxdata_stack.raycast_callback;
+					auxData = &dmauxdata_stack;
+				}
+			}
+		}
+		/* After sucessufuly build the trees, start projection vertexs */
 
 #ifndef __APPLE__
 #pragma omp parallel for private(i, hit) schedule(static) if (calc->numVerts > BKE_MESH_OMP_LIMIT)
@@ -340,15 +365,17 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 			/* Project over positive direction of axis */
 			if (calc->smd->shrinkOpts & MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR) {
 
-				if (auxData.tree) {
-					BKE_shrinkwrap_project_normal(0, tmp_co, tmp_no,
-					                              &local2aux, auxData.tree, &hit,
-					                              auxData.raycast_callback, &auxData);
+				if (aux_tree) {
+					BKE_shrinkwrap_project_normal(
+					        0, tmp_co, tmp_no,
+					        &local2aux, aux_tree, &hit,
+					        aux_callback, auxData);
 				}
 
-				BKE_shrinkwrap_project_normal(calc->smd->shrinkOpts, tmp_co, tmp_no,
-				                              &calc->local2target, treeData.tree, &hit,
-				                              treeData.raycast_callback, &treeData);
+				BKE_shrinkwrap_project_normal(
+				        calc->smd->shrinkOpts, tmp_co, tmp_no,
+				        &calc->local2target, targ_tree, &hit,
+				        targ_callback, treeData);
 			}
 
 			/* Project over negative direction of axis */
@@ -356,15 +383,17 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 				float inv_no[3];
 				negate_v3_v3(inv_no, tmp_no);
 
-				if (auxData.tree) {
-					BKE_shrinkwrap_project_normal(0, tmp_co, inv_no,
-					                              &local2aux, auxData.tree, &hit,
-					                              auxData.raycast_callback, &auxData);
+				if (aux_tree) {
+					BKE_shrinkwrap_project_normal(
+					        0, tmp_co, inv_no,
+					        &local2aux, aux_tree, &hit,
+					        aux_callback, auxData);
 				}
 
-				BKE_shrinkwrap_project_normal(calc->smd->shrinkOpts, tmp_co, inv_no,
-				                              &calc->local2target, treeData.tree, &hit,
-				                              treeData.raycast_callback, &treeData);
+				BKE_shrinkwrap_project_normal(
+				        calc->smd->shrinkOpts, tmp_co, inv_no,
+				        &calc->local2target, targ_tree, &hit,
+				        targ_callback, treeData);
 			}
 
 			/* don't set the initial dist (which is more efficient),
@@ -383,8 +412,14 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 	}
 
 	/* free data structures */
-	free_bvhtree_from_mesh(&treeData);
-	free_bvhtree_from_mesh(&auxData);
+	if (treeData) {
+		if (emtarget) free_bvhtree_from_editmesh(treeData);
+		else free_bvhtree_from_mesh(treeData);
+	}
+	if (auxData) {
+		if (emaux) free_bvhtree_from_editmesh(auxData);
+		else free_bvhtree_from_mesh(auxData);
+	}
 }
 
 /*

@@ -420,7 +420,8 @@ void ED_undo_operator_repeat_cb_evt(bContext *C, void *arg_op, int UNUSED(arg_ev
 enum {
 	UNDOSYSTEM_GLOBAL   = 1,
 	UNDOSYSTEM_EDITMODE = 2,
-	UNDOSYSTEM_IMAPAINT = 3
+	UNDOSYSTEM_IMAPAINT = 3,
+	UNDOSYSTEM_SCULPT   = 4,
 };
 
 static int get_undo_system(bContext *C)
@@ -450,6 +451,10 @@ static int get_undo_system(bContext *C)
 				if (!ED_undo_paint_empty(UNDO_PAINT_IMAGE))
 					return UNDOSYSTEM_IMAPAINT;
 			}
+			else if (obact->mode & OB_MODE_SCULPT) {
+				if (!ED_undo_paint_empty(UNDO_PAINT_MESH))
+					return UNDOSYSTEM_SCULPT;
+			}
 		}
 		if (U.uiflag & USER_GLOBALUNDO)
 			return UNDOSYSTEM_GLOBAL;
@@ -473,6 +478,9 @@ static EnumPropertyItem *rna_undo_itemf(bContext *C, int undosys, int *totitem)
 		}
 		else if (undosys == UNDOSYSTEM_IMAPAINT) {
 			name = ED_undo_paint_get_name(C, UNDO_PAINT_IMAGE, i, &active);
+		}
+		else if (undosys == UNDOSYSTEM_SCULPT) {
+			name = ED_undo_paint_get_name(C, UNDO_PAINT_MESH, i, &active);
 		}
 		else {
 			name = BKE_undo_get_name(i, &active);
@@ -551,6 +559,9 @@ static int undo_history_exec(bContext *C, wmOperator *op)
 		}
 		else if (undosys == UNDOSYSTEM_IMAPAINT) {
 			ED_undo_paint_step_num(C, UNDO_PAINT_IMAGE, item);
+		}
+		else if (undosys == UNDOSYSTEM_SCULPT) {
+			ED_undo_paint_step_num(C, UNDO_PAINT_MESH, item);
 		}
 		else {
 			ED_viewport_render_kill_jobs(CTX_wm_manager(C), CTX_data_main(C), true);

@@ -296,7 +296,6 @@ void BM_mesh_decimate_dissolve_ex(
 
 		/* --- setup heap --- */
 		eheap = BLI_heap_new_ex(einput_len);
-		eheap_table = _heap_table;
 
 		/* wire -> tag */
 		BM_ITER_MESH (e_iter, &iter, bm, BM_EDGES_OF_MESH) {

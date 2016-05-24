@@ -130,7 +130,18 @@ void IMB_freeImBuf(struct ImBuf *ibuf);
  * \attention Defined in allocimbuf.c
  */
 struct ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y,
-                             unsigned char d, unsigned int flags);
+                             unsigned char planes, unsigned int flags);
+
+/**
+ * Initialize given ImBuf.
+ *
+ * Use in cases when temporary image buffer is allocated on stack.
+ *
+ * \attention Defined in allocimbuf.c
+ */
+bool IMB_initImBuf(struct ImBuf *ibuf,
+                   unsigned int x, unsigned int y,
+                   unsigned char planes, unsigned int flags);
 
 /**
  * Create a copy of a pixel buffer and wrap it to a new ImBuf
@@ -210,6 +221,10 @@ void IMB_rectclip(struct ImBuf *dbuf, struct ImBuf *sbuf, int *destx,
 void IMB_rectcpy(struct ImBuf *drect, struct ImBuf *srect, int destx,
 	int desty, int srcx, int srcy, int width, int height);
 void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *obuf, struct ImBuf *sbuf,
+	unsigned short *dmask, unsigned short *curvemask, unsigned short *mmask, float mask_max,
+	int destx,  int desty, int origx, int origy, int srcx, int srcy,
+	int width, int height, IMB_BlendMode mode, bool accumulate);
+void IMB_rectblend_threaded(struct ImBuf *dbuf, struct ImBuf *obuf, struct ImBuf *sbuf,
 	unsigned short *dmask, unsigned short *curvemask, unsigned short *mmask, float mask_max,
 	int destx,  int desty, int origx, int origy, int srcx, int srcy,
 	int width, int height, IMB_BlendMode mode, bool accumulate);
@@ -439,6 +454,9 @@ void IMB_buffer_float_from_byte(float *rect_to, const unsigned char *rect_from,
 void IMB_buffer_float_from_float(float *rect_to, const float *rect_from,
 	int channels_from, int profile_to, int profile_from, bool predivide,
 	int width, int height, int stride_to, int stride_from);
+void IMB_buffer_float_from_float_threaded(float *rect_to, const float *rect_from,
+	int channels_from, int profile_to, int profile_from, bool predivide,
+	int width, int height, int stride_to, int stride_from);
 void IMB_buffer_float_from_float_mask(float *rect_to, const float *rect_from,
 	int channels_from, int width, int height, int stride_to, int stride_from, char *mask);
 void IMB_buffer_byte_from_byte(unsigned char *rect_to, const unsigned char *rect_from,
@@ -579,6 +597,14 @@ void IMB_processor_apply_threaded(int buffer_lines, int handle_size, void *init_
                                   void (init_handle) (void *handle, int start_line, int tot_line,
                                                       void *customdata),
                                   void *(do_thread) (void *));
+
+typedef void (*ScanlineThreadFunc) (void *custom_data,
+                                    int start_scanline,
+                                    int num_scanlines);
+void IMB_processor_apply_threaded_scanlines(int total_scanlines,
+                                            ScanlineThreadFunc do_thread,
+                                            void *custom_data);
+
 
 /* ffmpeg */
 void IMB_ffmpeg_init(void);

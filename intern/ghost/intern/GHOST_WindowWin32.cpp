@@ -339,8 +339,7 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
 		if (fpWTClose) {
 			if (m_tablet)
 				fpWTClose(m_tablet);
-			if (m_tabletData)
-				delete m_tabletData;
+			delete m_tabletData;
 			m_tabletData = NULL;
 		}
 	}

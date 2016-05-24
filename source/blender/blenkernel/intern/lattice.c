@@ -1082,6 +1082,7 @@ void BKE_lattice_modifiers_calc(Scene *scene, Object *ob)
 
 		md->scene = scene;
 		
+		if (!(mti->flags & eModifierTypeFlag_AcceptsLattice)) continue;
 		if (!(md->mode & eModifierMode_Realtime)) continue;
 		if (editmode && !(md->mode & eModifierMode_Editmode)) continue;
 		if (mti->isDisabled && mti->isDisabled(md, 0)) continue;

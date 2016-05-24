@@ -57,6 +57,18 @@ void DebugFlags::CPU::reset()
 	qbvh = true;
 }
 
+DebugFlags::CUDA::CUDA()
+  : adaptive_compile(false)
+{
+	reset();
+}
+
+void DebugFlags::CUDA::reset()
+{
+	if(getenv("CYCLES_CUDA_ADAPTIVE_COMPILE") != NULL)
+		adaptive_compile = true;
+}
+
 DebugFlags::OpenCL::OpenCL()
   : device_type(DebugFlags::OpenCL::DEVICE_ALL),
     kernel_type(DebugFlags::OpenCL::KERNEL_DEFAULT),
@@ -122,6 +134,9 @@ std::ostream& operator <<(std::ostream &os,
 	   << "  SSE4.1 : " << string_from_bool(debug_flags.cpu.sse41) << "\n"
 	   << "  SSE3   : " << string_from_bool(debug_flags.cpu.sse3)  << "\n"
 	   << "  SSE2   : " << string_from_bool(debug_flags.cpu.sse2)  << "\n";
+
+	os << "CUDA flags:\n"
+	   << " Adaptive Compile: " << string_from_bool(debug_flags.cuda.adaptive_compile) << "\n";
 
 	const char *opencl_device_type,
 	           *opencl_kernel_type;

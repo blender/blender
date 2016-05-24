@@ -28,6 +28,15 @@
 
 /** \file blender/blenlib/intern/scanfill.c
  *  \ingroup bli
+ *
+ * Triangulate multiple 2D/3D polygon with support for holes,
+ * use for tessellating curves, fonts and geometry.
+ * See main function #BLI_scanfill_calc
+ *
+ * Uses sweep-line method.
+ *
+ * \note There is a similar API in polyfill2d.c
+ * which uses ear clipping, but has no hole support.
  */
 
 #include <stdio.h>

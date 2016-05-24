@@ -1777,8 +1777,8 @@ static void rna_def_trackingReconstructedCameras(BlenderRNA *brna)
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Return interpolated camera matrix for a given frame");
 	RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame", "Frame number to find camera for", MINFRAME, MAXFRAME);
-	parm = RNA_def_float_matrix(func, "matrix", 4, 4, NULL, FLT_MIN, FLT_MAX, "Matrix",
-	                            "Interpolated camera matrix for a given frame", FLT_MIN, FLT_MAX);
+	parm = RNA_def_float_matrix(func, "matrix", 4, 4, NULL, -FLT_MAX, FLT_MAX, "Matrix",
+	                            "Interpolated camera matrix for a given frame", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);  /* needed for string return value */
 	RNA_def_function_output(func, parm);
 }

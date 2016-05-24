@@ -115,7 +115,7 @@ typedef struct ClothVertex {
 	float 	mass;		/* mass / weight of the vertex		*/
 	float 	goal;		/* goal, from SB			*/
 	float	impulse[3];	/* used in collision.c */
-	float	*xrest;		/* temporary valid for building springs */
+	float	xrest[3];   /* rest position of the vertex */
 	unsigned int impulse_count; /* same as above */
 	float 	avg_spring_len; /* average length of connected springs */
 	float 	struct_stiff;

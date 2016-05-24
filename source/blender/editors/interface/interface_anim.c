@@ -232,13 +232,8 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 		if (IS_AUTOKEY_ON(scene)) {
 			ReportList *reports = CTX_wm_reports(C);
 			ToolSettings *ts = scene->toolsettings;
-			PointerRNA ptr = {{NULL}};
-			PropertyRNA *prop = NULL;
-			int index;
 			
-			UI_context_active_but_prop_get(C, &ptr, &prop, &index);
-			
-			insert_keyframe_direct(reports, ptr, prop, fcu, cfra, ts->keyframe_type, 0);
+			insert_keyframe_direct(reports, but->rnapoin, but->rnaprop, fcu, cfra, ts->keyframe_type, 0);
 			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 		}
 	}
@@ -249,13 +244,8 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 		if (IS_AUTOKEY_ON(scene)) {
 			ReportList *reports = CTX_wm_reports(C);
 			ToolSettings *ts = scene->toolsettings;
-			PointerRNA ptr = {{NULL}};
-			PropertyRNA *prop = NULL;
-			int index;
 			
-			UI_context_active_but_prop_get(C, &ptr, &prop, &index);
-			
-			insert_keyframe_direct(reports, ptr, prop, fcu, cfra, ts->keyframe_type, INSERTKEY_DRIVER);
+			insert_keyframe_direct(reports, but->rnapoin, but->rnaprop, fcu, cfra, ts->keyframe_type, INSERTKEY_DRIVER);
 			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 		}
 	}

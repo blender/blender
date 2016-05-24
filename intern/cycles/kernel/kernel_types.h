@@ -120,6 +120,7 @@ CCL_NAMESPACE_BEGIN
 #    define __CAMERA_MOTION__
 #    define __OBJECT_MOTION__
 #    define __HAIR__
+#    define __BAKING__
 #    ifdef __KERNEL_EXPERIMENTAL__
 #      define __TRANSPARENT_SHADOWS__
 #    endif
@@ -167,13 +168,14 @@ CCL_NAMESPACE_BEGIN
 #  define __CAMERA_MOTION__
 #  define __OBJECT_MOTION__
 #  define __HAIR__
+#  define __BAKING__
 #endif
 
 #ifdef WITH_CYCLES_DEBUG
 #  define __KERNEL_DEBUG__
 #endif
 
-/* Scene-based selective featrues compilation. */
+/* Scene-based selective features compilation. */
 #ifdef __NO_CAMERA_MOTION__
 #  undef __CAMERA_MOTION__
 #endif
@@ -183,8 +185,15 @@ CCL_NAMESPACE_BEGIN
 #ifdef __NO_HAIR__
 #  undef __HAIR__
 #endif
+#ifdef __NO_VOLUME__
+#  undef __VOLUME__
+#  undef __VOLUME_SCATTER__
+#endif
 #ifdef __NO_SUBSURFACE__
 #  undef __SUBSURFACE__
+#endif
+#ifdef __NO_BAKING__
+#  undef __BAKING__
 #endif
 #ifdef __NO_BRANCHED_PATH__
 #  undef __BRANCHED_PATH__
@@ -267,10 +276,7 @@ enum SamplingPattern {
 	SAMPLING_NUM_PATTERNS,
 };
 
-/* these flags values correspond to raytypes in osl.cpp, so keep them in sync!
- *
- * for ray visibility tests in BVH traversal, the upper 20 bits are used for
- * layer visibility tests. */
+/* these flags values correspond to raytypes in osl.cpp, so keep them in sync! */
 
 enum PathRayFlag {
 	PATH_RAY_CAMERA = 1,
@@ -294,9 +300,6 @@ enum PathRayFlag {
 	PATH_RAY_MIS_SKIP = 2048,
 	PATH_RAY_DIFFUSE_ANCESTOR = 4096,
 	PATH_RAY_SINGLE_PASS_DONE = 8192,
-
-	/* we need layer member flags to be the 20 upper bits */
-	PATH_RAY_LAYER_SHIFT = (32-20)
 };
 
 /* Closure Label */
@@ -900,9 +903,10 @@ typedef struct KernelCamera {
 	float4 equirectangular_range;
 
 	/* stereo */
-	int pad1, pad2;
 	float interocular_offset;
 	float convergence_distance;
+	float pole_merge_angle_from;
+	float pole_merge_angle_to;
 
 	/* matrices */
 	Transform cameratoworld;
@@ -1070,9 +1074,6 @@ typedef struct KernelIntegrator {
 
 	/* seed */
 	int seed;
-
-	/* render layer */
-	int layer_flag;
 
 	/* clamp */
 	float sample_clamp_direct;

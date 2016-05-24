@@ -811,9 +811,9 @@ static BMVert *editbmesh_get_x_mirror_vert_spatial(Object *ob, BMEditMesh *em, c
 	int i;
 	
 	/* ignore nan verts */
-	if ((finite(co[0]) == false) ||
-	    (finite(co[1]) == false) ||
-	    (finite(co[2]) == false))
+	if ((isfinite(co[0]) == false) ||
+	    (isfinite(co[1]) == false) ||
+	    (isfinite(co[2]) == false))
 	{
 		return NULL;
 	}
@@ -902,8 +902,8 @@ static float *editmesh_get_mirror_uv(BMEditMesh *em, int axis, float *uv, float 
 	float cent[2];
 
 	/* ignore nan verts */
-	if (isnan(uv[0]) || !finite(uv[0]) ||
-	    isnan(uv[1]) || !finite(uv[1])
+	if (isnan(uv[0]) || !isfinite(uv[0]) ||
+	    isnan(uv[1]) || !isfinite(uv[1])
 	    )
 	{
 		return NULL;

@@ -27,7 +27,7 @@
  */
 
 #include <Python.h>
-#include <float.h> /* FLT_MIN/MAX */
+#include <float.h> /* FLT_MAX */
 
 #include "MEM_guardedalloc.h"
 

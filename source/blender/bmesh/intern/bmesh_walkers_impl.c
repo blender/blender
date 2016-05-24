@@ -711,13 +711,6 @@ static void *bmw_IslandboundWalker_step(BMWalker *walker)
 	e = l->e;
 
 	v = BM_edge_other_vert(e, iwalk->lastv);
-
-	if (!BM_vert_is_manifold(v)) {
-		BMW_reset(walker);
-		BMO_error_raise(walker->bm, NULL, BMERR_WALKER_FAILED,
-		                "Non-manifold vert while searching region boundary");
-		return NULL;
-	}
 	
 	/* pop off current state */
 	BMW_state_remove(walker);
@@ -726,7 +719,7 @@ static void *bmw_IslandboundWalker_step(BMWalker *walker)
 	
 	while (1) {
 		l = BM_loop_other_edge_loop(l, v);
-		if (l != l->radial_next) {
+		if (BM_loop_is_manifold(l)) {
 			l = l->radial_next;
 			f = l->f;
 			e = l->e;
@@ -737,6 +730,7 @@ static void *bmw_IslandboundWalker_step(BMWalker *walker)
 			}
 		}
 		else {
+			/* treat non-manifold edges as boundaries */
 			f = l->f;
 			e = l->e;
 			break;
@@ -791,25 +785,44 @@ static void *bmw_IslandWalker_yield(BMWalker *walker)
 	return iwalk->cur;
 }
 
-static void *bmw_IslandWalker_step(BMWalker *walker)
+static void *bmw_IslandWalker_step_ex(BMWalker *walker, bool only_manifold)
 {
 	BMwIslandWalker *iwalk, owalk;
-	BMIter iter, liter;
-	BMFace *f;
-	BMLoop *l;
+	BMLoop *l_iter, *l_first;
 	
 	BMW_state_remove_r(walker, &owalk);
 	iwalk = &owalk;
 
-	l = BM_iter_new(&liter, walker->bm, BM_LOOPS_OF_FACE, iwalk->cur);
-	for ( ; l; l = BM_iter_step(&liter)) {
+	l_iter = l_first = BM_FACE_FIRST_LOOP(iwalk->cur);
+	do {
 		/* could skip loop here too, but don't add unless we need it */
-		if (!bmw_mask_check_edge(walker, l->e)) {
+		if (!bmw_mask_check_edge(walker, l_iter->e)) {
 			continue;
 		}
 
-		f = BM_iter_new(&iter, walker->bm, BM_FACES_OF_EDGE, l->e);
-		for ( ; f; f = BM_iter_step(&iter)) {
+		BMLoop *l_radial_iter;
+
+		if (only_manifold && (l_iter->radial_next != l_iter)) {
+			int face_count = 1;
+			/* check other faces (not this one), ensure only one other can be walked onto. */
+			l_radial_iter = l_iter->radial_next;
+			do {
+				if (bmw_mask_check_face(walker, l_radial_iter->f)) {
+					face_count++;
+					if (face_count == 3) {
+						break;
+					}
+				}
+			} while ((l_radial_iter = l_radial_iter->radial_next) != l_iter);
+
+			if (face_count != 2) {
+				continue;
+			}
+		}
+
+		l_radial_iter = l_iter;
+		while ((l_radial_iter = l_radial_iter->radial_next) != l_iter) {
+			BMFace *f = l_radial_iter->f;
 
 			if (!bmw_mask_check_face(walker, f)) {
 				continue;
@@ -823,15 +836,28 @@ static void *bmw_IslandWalker_step(BMWalker *walker)
 			if (BLI_gset_haskey(walker->visit_set, f)) {
 				continue;
 			}
-			
+
 			iwalk = BMW_state_add(walker);
 			iwalk->cur = f;
 			BLI_gset_insert(walker->visit_set, f);
 			break;
 		}
-	}
-	
+	} while ((l_iter = l_iter->next) != l_first);
+
 	return owalk.cur;
+}
+
+static void *bmw_IslandWalker_step(BMWalker *walker)
+{
+	return bmw_IslandWalker_step_ex(walker, false);
+}
+
+/**
+ * Ignore edges that don't have 2x usable faces.
+ */
+static void *bmw_IslandManifoldWalker_step(BMWalker *walker)
+{
+	return bmw_IslandWalker_step_ex(walker, true);
 }
 
 /** \} */
@@ -1608,6 +1634,16 @@ static BMWalker bmw_IslandWalker_Type = {
 	BM_EDGE | BM_FACE, /* valid restrict masks */
 };
 
+static BMWalker bmw_IslandManifoldWalker_Type = {
+	BM_FACE,
+	bmw_IslandWalker_begin,
+	bmw_IslandManifoldWalker_step,  /* only difference with BMW_ISLAND */
+	bmw_IslandWalker_yield,
+	sizeof(BMwIslandWalker),
+	BMW_BREADTH_FIRST,
+	BM_EDGE | BM_FACE, /* valid restrict masks */
+};
+
 static BMWalker bmw_EdgeLoopWalker_Type = {
 	BM_EDGE,
 	bmw_EdgeLoopWalker_begin,
@@ -1680,6 +1716,7 @@ BMWalker *bm_walker_types[] = {
 	&bmw_UVEdgeWalker_Type,             /* BMW_LOOPDATA_ISLAND */
 	&bmw_IslandboundWalker_Type,        /* BMW_ISLANDBOUND */
 	&bmw_IslandWalker_Type,             /* BMW_ISLAND */
+	&bmw_IslandManifoldWalker_Type,     /* BMW_ISLAND_MANIFOLD */
 	&bmw_ConnectedVertexWalker_Type,    /* BMW_CONNECTED_VERTEX */
 };
 

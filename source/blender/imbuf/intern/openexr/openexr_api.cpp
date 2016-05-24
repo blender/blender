@@ -38,6 +38,32 @@
 #include <set>
 #include <errno.h>
 #include <algorithm>
+#include <iostream>
+
+#include <half.h>
+#include <Iex.h>
+#include <ImfVersion.h>
+#include <ImathBox.h>
+#include <ImfArray.h>
+#include <ImfIO.h>
+#include <ImfChannelList.h>
+#include <ImfPixelType.h>
+#include <ImfInputFile.h>
+#include <ImfOutputFile.h>
+#include <ImfCompression.h>
+#include <ImfCompressionAttribute.h>
+#include <ImfStringAttribute.h>
+#include <ImfStandardAttributes.h>
+
+/* multiview/multipart */
+#include <ImfMultiView.h>
+#include <ImfMultiPartInputFile.h>
+#include <ImfInputPart.h>
+#include <ImfOutputPart.h>
+#include <ImfMultiPartOutputFile.h>
+#include <ImfTiledOutputPart.h>
+#include <ImfPartType.h>
+#include <ImfPartHelper.h>
 
 #include "DNA_scene_types.h" /* For OpenEXR compression constants */
 
@@ -73,33 +99,6 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 
 #include "openexr_multi.h"
 }
-
-#include <iostream>
-
-#include <half.h>
-#include <Iex.h>
-#include <ImfVersion.h>
-#include <ImathBox.h>
-#include <ImfArray.h>
-#include <ImfIO.h>
-#include <ImfChannelList.h>
-#include <ImfPixelType.h>
-#include <ImfInputFile.h>
-#include <ImfOutputFile.h>
-#include <ImfCompression.h>
-#include <ImfCompressionAttribute.h>
-#include <ImfStringAttribute.h>
-#include <ImfStandardAttributes.h>
-
-/* multiview/multipart */
-#include <ImfMultiView.h>
-#include <ImfMultiPartInputFile.h>
-#include <ImfInputPart.h>
-#include <ImfOutputPart.h>
-#include <ImfMultiPartOutputFile.h>
-#include <ImfTiledOutputPart.h>
-#include <ImfPartType.h>
-#include <ImfPartHelper.h>
 
 extern "C" {
 #include "IMB_colormanagement.h"

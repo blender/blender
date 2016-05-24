@@ -588,6 +588,17 @@ static BMElem *edbm_elem_find_nearest(ViewContext *vc, const char htype)
 	return NULL;
 }
 
+static BMElem *edbm_elem_active_elem_or_face_get(BMesh *bm)
+{
+	BMElem *ele = BM_mesh_active_elem_get(bm);
+
+	if ((ele == NULL) && bm->act_face && BM_elem_flag_test(bm->act_face, BM_ELEM_SELECT)) {
+		ele = (BMElem *)bm->act_face;
+	}
+
+	return ele;
+}
+
 static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (RNA_struct_property_is_set(op->ptr, "index")) {
@@ -605,7 +616,7 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 	view3d_operator_needs_opengl(C);
 
 	BMElem *ele_src, *ele_dst;
-	if (!(ele_src = BM_mesh_active_elem_get(em->bm)) ||
+	if (!(ele_src = edbm_elem_active_elem_or_face_get(em->bm)) ||
 	    !(ele_dst = edbm_elem_find_nearest(&vc, ele_src->head.htype)))
 	{
 		/* special case, toggle edge tags even when we don't have a path */
@@ -655,7 +666,7 @@ static int edbm_shortest_path_pick_exec(bContext *C, wmOperator *op)
 	}
 
 	BMElem *ele_src, *ele_dst;
-	if (!(ele_src = BM_mesh_active_elem_get(em->bm)) ||
+	if (!(ele_src = edbm_elem_active_elem_or_face_get(em->bm)) ||
 	    !(ele_dst = EDBM_elem_from_index_any(em, index)))
 	{
 		return OPERATOR_CANCELLED;

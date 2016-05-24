@@ -261,6 +261,9 @@ static PyObject *GPU_export_shader(PyObject *UNUSED(self), PyObject *args, PyObj
 		if (uniform->lamp) {
 			PY_DICT_ADD_ID(dict, uniform, lamp);
 		}
+		if (uniform->material) {
+			PY_DICT_ADD_ID(dict, uniform, material);
+		}
 		if (uniform->image) {
 			PY_DICT_ADD_ID(dict, uniform, image);
 		}

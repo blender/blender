@@ -132,14 +132,14 @@ static void rna_def_camera_stereo_data(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "interocular_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, 0.0f, 100.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 1.f, 1, 2);
+	RNA_def_property_ui_range(prop, 0.0f, 1.f, 1, 3);
 	RNA_def_property_ui_text(prop, "Interocular Distance",
 	                         "Set the distance between the eyes - the stereo plane distance / 30 should be fine");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	prop = RNA_def_property(srna, "convergence_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, 0.00001f, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.00001f, 15.f, 1, 2);
+	RNA_def_property_ui_range(prop, 0.00001f, 15.f, 1, 3);
 	RNA_def_property_ui_text(prop, "Convergence Plane Distance",
 	                         "The converge point for the stereo cameras "
 	                         "(often the distance between a projector and the projection screen)");
@@ -150,6 +150,24 @@ static void rna_def_camera_stereo_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Spherical Stereo",
 	                         "Render every pixel rotating the camera around the "
 	                         "middle of the interocular distance");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+	prop = RNA_def_property(srna, "use_pole_merge", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_S3D_POLE_MERGE);
+	RNA_def_property_ui_text(prop, "Use Pole Merge",
+	                         "Fade interocular distance to 0 after the given cutoff angle");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+	prop = RNA_def_property(srna, "pole_merge_angle_from", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_range(prop, 0.0f, M_PI / 2.0f);
+	RNA_def_property_ui_text(prop, "Pole Merge Start Angle",
+	                         "Angle at which interocular distance starts to fade to 0");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+	prop = RNA_def_property(srna, "pole_merge_angle_to", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_range(prop, 0.0f, M_PI / 2.0f);
+	RNA_def_property_ui_text(prop, "Pole Merge End Angle",
+	                         "Angle at which interocular distance is 0");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 }
 

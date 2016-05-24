@@ -110,7 +110,7 @@ bool GHOST_WindowManager::getWindowFound(const GHOST_IWindow *window) const
 
 bool GHOST_WindowManager::getFullScreen(void) const
 {
-	return m_fullScreenWindow != 0;
+	return m_fullScreenWindow != NULL;
 }
 
 
@@ -140,13 +140,13 @@ GHOST_TSuccess GHOST_WindowManager::endFullScreen(void)
 {
 	GHOST_TSuccess success = GHOST_kFailure;
 	if (getFullScreen()) {
-		if (m_fullScreenWindow != 0) {
+		if (m_fullScreenWindow != NULL) {
 			//GHOST_PRINT("GHOST_WindowManager::endFullScreen(): deleting full-screen window\n");
 			setWindowInactive(m_fullScreenWindow);
 			m_fullScreenWindow->endFullScreen();
 			delete m_fullScreenWindow;
 			//GHOST_PRINT("GHOST_WindowManager::endFullScreen(): done\n");
-			m_fullScreenWindow = 0;
+			m_fullScreenWindow = NULL;
 			if (m_activeWindowBeforeFullScreen) {
 				setActiveWindow(m_activeWindowBeforeFullScreen);
 			}
@@ -181,7 +181,7 @@ GHOST_IWindow *GHOST_WindowManager::getActiveWindow(void) const
 void GHOST_WindowManager::setWindowInactive(const GHOST_IWindow *window)
 {
 	if (window == m_activeWindow) {
-		m_activeWindow = 0;
+		m_activeWindow = NULL;
 	}
 }
 

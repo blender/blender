@@ -129,7 +129,7 @@ public:
 	function<void(RenderTile&)> write_render_tile_cb;
 	function<void(RenderTile&)> update_render_tile_cb;
 
-	Session(const SessionParams& params);
+	explicit Session(const SessionParams& params);
 	~Session();
 
 	void start();
