@@ -172,7 +172,6 @@ if(UNIX AND NOT APPLE)
 	set(_init_CODEC_FFMPEG                   OFF)
 	set(_init_CYCLES_OSL                     OFF)
 	set(_init_IMAGE_OPENEXR                  OFF)
-	set(_init_INPUT_NDOF                     OFF)
 	set(_init_JACK                           OFF)
 	set(_init_OPENCOLLADA                    OFF)
 	set(_init_OPENCOLORIO                    OFF)
@@ -1034,14 +1033,12 @@ if(UNIX AND NOT APPLE)
 
 	if(WITH_INPUT_NDOF)
 		find_package_wrapper(Spacenav)
-		if(NOT SPACENAV_FOUND)
-			set(WITH_INPUT_NDOF OFF)
-		endif()
-
-		# use generic names within blenders buildsystem.
 		if(SPACENAV_FOUND)
+			# use generic names within blenders buildsystem.
 			set(NDOF_INCLUDE_DIRS ${SPACENAV_INCLUDE_DIRS})
 			set(NDOF_LIBRARIES ${SPACENAV_LIBRARIES})
+		else()
+			set(WITH_INPUT_NDOF OFF)
 		endif()
 	endif()
 
