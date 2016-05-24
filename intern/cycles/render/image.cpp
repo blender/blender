@@ -36,10 +36,21 @@ ImageManager::ImageManager(const DeviceInfo& info)
 	osl_texture_system = NULL;
 	animation_frame = 0;
 
+	/* In case of multiple devices used we need to know type of an actual
+	 * compute device.
+	 *
+	 * NOTE: We assume that all the devices are same type, otherwise we'll
+	 * be screwed on so many levels..
+	 */
+	DeviceType device_type = info.type;
+	if (device_type == DEVICE_MULTI) {
+		device_type = info.multi_devices[0].type;
+	}
+
 	/* Set image limits */
 
 	/* CPU */
-	if(info.type == DEVICE_CPU) {
+	if(device_type == DEVICE_CPU) {
 		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_IMAGES_CPU;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_CPU;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_IMAGES_CPU;
@@ -48,28 +59,31 @@ ImageManager::ImageManager(const DeviceInfo& info)
 		tex_image_float_start = TEX_IMAGE_FLOAT_START_CPU;
 		tex_image_byte_start = TEX_IMAGE_BYTE_START_CPU;
 	}
-	/* CUDA (Fermi) */
-	else if((info.type == DEVICE_CUDA || info.type == DEVICE_MULTI) && !info.has_bindless_textures) {
-		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_IMAGES_CUDA;
-		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_CUDA;
-		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_IMAGES_CUDA;
-		tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_IMAGES_CUDA;
-		tex_image_byte4_start = TEX_IMAGE_BYTE4_START_CUDA;
-		tex_image_float_start = TEX_IMAGE_FLOAT_START_CUDA;
-		tex_image_byte_start = TEX_IMAGE_BYTE_START_CUDA;
-	}
-	/* CUDA (Kepler and above) */
-	else if((info.type == DEVICE_CUDA || info.type == DEVICE_MULTI) && info.has_bindless_textures) {
-		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_IMAGES_CUDA_KEPLER;
-		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_CUDA_KEPLER;
-		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_IMAGES_CUDA_KEPLER;
-		tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_IMAGES_CUDA_KEPLER;
-		tex_image_byte4_start = TEX_IMAGE_BYTE4_START_CUDA_KEPLER;
-		tex_image_float_start = TEX_IMAGE_FLOAT_START_CUDA_KEPLER;
-		tex_image_byte_start = TEX_IMAGE_BYTE_START_CUDA_KEPLER;
+	/* CUDA */
+	else if(device_type == DEVICE_CUDA && !info.has_bindless_textures) {
+		if(info.has_bindless_textures) {
+			/* Fermi */
+			tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_IMAGES_CUDA_KEPLER;
+			tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_CUDA_KEPLER;
+			tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_IMAGES_CUDA_KEPLER;
+			tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_IMAGES_CUDA_KEPLER;
+			tex_image_byte4_start = TEX_IMAGE_BYTE4_START_CUDA_KEPLER;
+			tex_image_float_start = TEX_IMAGE_FLOAT_START_CUDA_KEPLER;
+			tex_image_byte_start = TEX_IMAGE_BYTE_START_CUDA_KEPLER;
+		}
+		else {
+			/* Kepler and above */
+			tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_IMAGES_CUDA;
+			tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_CUDA;
+			tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_IMAGES_CUDA;
+			tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_IMAGES_CUDA;
+			tex_image_byte4_start = TEX_IMAGE_BYTE4_START_CUDA;
+			tex_image_float_start = TEX_IMAGE_FLOAT_START_CUDA;
+			tex_image_byte_start = TEX_IMAGE_BYTE_START_CUDA;
+		}
 	}
 	/* OpenCL */
-	else if(info.pack_images) {
+	else if(device_type == DEVICE_OPENCL) {
 		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_IMAGES_OPENCL;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_IMAGES_OPENCL;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_IMAGES_OPENCL;
