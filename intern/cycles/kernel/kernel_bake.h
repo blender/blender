@@ -30,8 +30,8 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 	Ray ray;
 	float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
 
-	/* emission shader data memory used by various functions */
-	ShaderData emission_sd;
+	/* emission and indirect shader data memory used by various functions */
+	ShaderData emission_sd, indirect_sd;
 
 	ray.P = sd->P + sd->Ng;
 	ray.D = -sd->Ng;
@@ -94,6 +94,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 					                                      &L_sample,
 					                                      &throughput);
 					kernel_path_indirect(kg,
+					                     &indirect_sd,
 					                     &emission_sd,
 					                     &rng,
 					                     &ray,
@@ -117,7 +118,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 				state.ray_t = 0.0f;
 #endif
 				/* compute indirect light */
-				kernel_path_indirect(kg, &emission_sd, &rng, &ray, throughput, 1, &state, &L_sample);
+				kernel_path_indirect(kg, &indirect_sd, &emission_sd, &rng, &ray, throughput, 1, &state, &L_sample);
 
 				/* sum and reset indirect light pass variables for the next samples */
 				path_radiance_sum_indirect(&L_sample);
@@ -144,7 +145,8 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 		/* sample subsurface scattering */
 		if((pass_filter & BAKE_FILTER_SUBSURFACE) && (sd->flag & SD_BSSRDF)) {
 			/* when mixing BSSRDF and BSDF closures we should skip BSDF lighting if scattering was successful */
-			kernel_branched_path_subsurface_scatter(kg, sd, &emission_sd, &L_sample, &state, &rng, &ray, throughput);
+			kernel_branched_path_subsurface_scatter(kg, sd, &indirect_sd,
+				&emission_sd, &L_sample, &state, &rng, &ray, throughput);
 		}
 #endif
 
@@ -161,7 +163,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 
 			/* indirect light */
 			kernel_branched_path_surface_indirect_light(kg, &rng,
-				sd, &emission_sd, throughput, 1.0f, &state, &L_sample);
+				sd, &indirect_sd, &emission_sd, throughput, 1.0f, &state, &L_sample);
 		}
 	}
 #endif

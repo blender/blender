@@ -53,6 +53,7 @@
 CCL_NAMESPACE_BEGIN
 
 ccl_device void kernel_path_indirect(KernelGlobals *kg,
+                                     ShaderData *sd,
                                      ShaderData *emission_sd,
                                      RNG *rng,
                                      Ray *ray,
@@ -61,9 +62,6 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
                                      PathState *state,
                                      PathRadiance *L)
 {
-	/* shader data memory used for both volumes and surfaces, saves stack space */
-	ShaderData sd;
-
 	/* path iteration */
 	for(;;) {
 		/* intersect scene */
@@ -121,12 +119,12 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 				VolumeSegment volume_segment;
 
 				shader_setup_from_volume(kg,
-				                         &sd,
+				                         sd,
 				                         &volume_ray);
 				kernel_volume_decoupled_record(kg,
 				                               state,
 				                               &volume_ray,
-				                               &sd,
+				                               sd,
 				                               &volume_segment,
 				                               heterogeneous);
 
@@ -149,7 +147,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 					/* direct light sampling */
 					kernel_branched_path_volume_connect_light(kg,
 					                                          rng,
-					                                          &sd,
+					                                          sd,
 					                                          emission_sd,
 					                                          throughput,
 					                                          state,
@@ -167,7 +165,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 					result = kernel_volume_decoupled_scatter(kg,
 					                                         state,
 					                                         &volume_ray,
-					                                         &sd,
+					                                         sd,
 					                                         &throughput,
 					                                         rphase,
 					                                         rscatter,
@@ -182,7 +180,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 				if(result == VOLUME_PATH_SCATTERED) {
 					if(kernel_path_volume_bounce(kg,
 					                             rng,
-					                             &sd,
+					                             sd,
 					                             &throughput,
 					                             state,
 					                             L,
@@ -203,14 +201,14 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 			{
 				/* integrate along volume segment with distance sampling */
 				VolumeIntegrateResult result = kernel_volume_integrate(
-					kg, state, &sd, &volume_ray, L, &throughput, rng, heterogeneous);
+					kg, state, sd, &volume_ray, L, &throughput, rng, heterogeneous);
 
 #  ifdef __VOLUME_SCATTER__
 				if(result == VOLUME_PATH_SCATTERED) {
 					/* direct lighting */
 					kernel_path_volume_connect_light(kg,
 					                                 rng,
-					                                 &sd,
+					                                 sd,
 					                                 emission_sd,
 					                                 throughput,
 					                                 state,
@@ -219,7 +217,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 					/* indirect light bounce */
 					if(kernel_path_volume_bounce(kg,
 					                             rng,
-					                             &sd,
+					                             sd,
 					                             &throughput,
 					                             state,
 					                             L,
@@ -251,13 +249,13 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 
 		/* setup shading */
 		shader_setup_from_ray(kg,
-		                      &sd,
+		                      sd,
 		                      &isect,
 		                      ray);
 		float rbsdf = path_state_rng_1D_for_decision(kg, rng, state, PRNG_BSDF);
-		shader_eval_surface(kg, &sd, state, rbsdf, state->flag, SHADER_CONTEXT_INDIRECT);
+		shader_eval_surface(kg, sd, state, rbsdf, state->flag, SHADER_CONTEXT_INDIRECT);
 #ifdef __BRANCHED_PATH__
-		shader_merge_closures(&sd);
+		shader_merge_closures(sd);
 #endif
 
 		/* blurring of bsdf after bounces, for rays that have a small likelihood
@@ -267,15 +265,15 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 
 			if(blur_pdf < 1.0f) {
 				float blur_roughness = sqrtf(1.0f - blur_pdf)*0.5f;
-				shader_bsdf_blur(kg, &sd, blur_roughness);
+				shader_bsdf_blur(kg, sd, blur_roughness);
 			}
 		}
 
 #ifdef __EMISSION__
 		/* emission */
-		if(sd.flag & SD_EMISSION) {
+		if(sd->flag & SD_EMISSION) {
 			float3 emission = indirect_primitive_emission(kg,
-			                                              &sd,
+			                                              sd,
 			                                              isect.t,
 			                                              state->flag,
 			                                              state->ray_pdf);
@@ -305,30 +303,30 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 
 #ifdef __AO__
 		/* ambient occlusion */
-		if(kernel_data.integrator.use_ambient_occlusion || (sd.flag & SD_AO)) {
+		if(kernel_data.integrator.use_ambient_occlusion || (sd->flag & SD_AO)) {
 			float bsdf_u, bsdf_v;
 			path_state_rng_2D(kg, rng, state, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
 
 			float ao_factor = kernel_data.background.ao_factor;
 			float3 ao_N;
-			float3 ao_bsdf = shader_bsdf_ao(kg, &sd, ao_factor, &ao_N);
+			float3 ao_bsdf = shader_bsdf_ao(kg, sd, ao_factor, &ao_N);
 			float3 ao_D;
 			float ao_pdf;
 			float3 ao_alpha = make_float3(0.0f, 0.0f, 0.0f);
 
 			sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
 
-			if(dot(sd.Ng, ao_D) > 0.0f && ao_pdf != 0.0f) {
+			if(dot(sd->Ng, ao_D) > 0.0f && ao_pdf != 0.0f) {
 				Ray light_ray;
 				float3 ao_shadow;
 
-				light_ray.P = ray_offset(sd.P, sd.Ng);
+				light_ray.P = ray_offset(sd->P, sd->Ng);
 				light_ray.D = ao_D;
 				light_ray.t = kernel_data.background.ao_distance;
 #  ifdef __OBJECT_MOTION__
-				light_ray.time = sd.time;
+				light_ray.time = sd->time;
 #  endif
-				light_ray.dP = sd.dP;
+				light_ray.dP = sd->dP;
 				light_ray.dD = differential3_zero();
 
 				if(!shadow_blocked(kg, emission_sd, state, &light_ray, &ao_shadow)) {
@@ -346,9 +344,9 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 #ifdef __SUBSURFACE__
 		/* bssrdf scatter to a different location on the same object, replacing
 		 * the closures with a diffuse BSDF */
-		if(sd.flag & SD_BSSRDF) {
+		if(sd->flag & SD_BSSRDF) {
 			float bssrdf_probability;
-			ShaderClosure *sc = subsurface_scatter_pick_closure(kg, &sd, &bssrdf_probability);
+			ShaderClosure *sc = subsurface_scatter_pick_closure(kg, sd, &bssrdf_probability);
 
 			/* modify throughput for picking bssrdf or bsdf */
 			throughput *= bssrdf_probability;
@@ -364,7 +362,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 				                  PRNG_BSDF_U,
 				                  &bssrdf_u, &bssrdf_v);
 				subsurface_scatter_step(kg,
-				                        &sd,
+				                        sd,
 				                        state,
 				                        state->flag,
 				                        sc,
@@ -380,7 +378,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 			int all = kernel_data.integrator.sample_all_lights_indirect;
 			kernel_branched_path_surface_connect_light(kg,
 			                                           rng,
-			                                           &sd,
+			                                           sd,
 			                                           emission_sd,
 			                                           state,
 			                                           throughput,
@@ -390,7 +388,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		}
 #endif
 
-		if(!kernel_path_surface_bounce(kg, rng, &sd, &throughput, state, L, ray))
+		if(!kernel_path_surface_bounce(kg, rng, sd, &throughput, state, L, ray))
 			break;
 	}
 }
