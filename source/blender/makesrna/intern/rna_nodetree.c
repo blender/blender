@@ -803,6 +803,7 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports,
 
 		ntreeUpdateTree(G.main, ntree);
 
+		ED_node_tag_update_nodetree(G.main, ntree, ret->tonode);
 		WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 	}
 	return ret;
