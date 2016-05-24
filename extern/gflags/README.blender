@@ -1,5 +1,5 @@
 Project: Google Flags
-URL: http://code.google.com/p/google-gflags/
+URL: https://github.com/gflags/gflags
 License: New BSD
 Upstream version: 2.2.0 (9db82895)
 Local modifications:
@@ -17,3 +17,7 @@ Local modifications:
 
 - Applied some modifications from fork https://github.com/Nazg-Gul/gflags.git
   (see https://github.com/gflags/gflags/pull/129)
+
+- Avoid attemot of acquiring mutex lock in FlagRegistry::GlobalRegistry when
+  doing static flags initialization. See d81dd2d in Blender repository.
+
