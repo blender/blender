@@ -3269,17 +3269,18 @@ void DM_calc_loop_tangents_step_0(
         bool *rcalc_act, bool *rcalc_ren, int *ract_uv_n, int *rren_uv_n,
         char *ract_uv_name, char *rren_uv_name, char *rtangent_mask) {
 	/* Active uv in viewport */
+	int layer_index = CustomData_get_layer_index(loopData, CD_MLOOPUV);
 	*ract_uv_n = CustomData_get_active_layer(loopData, CD_MLOOPUV);
 	ract_uv_name[0] = 0;
 	if (*ract_uv_n != -1) {
-		strcpy(ract_uv_name, loopData->layers[*ract_uv_n].name);
+		strcpy(ract_uv_name, loopData->layers[*ract_uv_n + layer_index].name);
 	}
 
 	/* Active tangent in render */
 	*rren_uv_n = CustomData_get_render_layer(loopData, CD_MLOOPUV);
 	rren_uv_name[0] = 0;
 	if (*rren_uv_n != -1) {
-		strcpy(rren_uv_name, loopData->layers[*rren_uv_n].name);
+		strcpy(rren_uv_name, loopData->layers[*rren_uv_n + layer_index].name);
 	}
 
 	/* If active tangent not in tangent_names we take it into account */
