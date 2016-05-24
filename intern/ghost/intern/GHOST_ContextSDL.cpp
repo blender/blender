@@ -69,7 +69,7 @@ GHOST_ContextSDL::GHOST_ContextSDL(
 GHOST_ContextSDL::~GHOST_ContextSDL()
 {
 	if (m_context != NULL) {
-		if (m_window != 0 && m_context == SDL_GL_GetCurrentContext())
+		if (m_window != NULL && m_context == SDL_GL_GetCurrentContext())
 			SDL_GL_MakeCurrent(m_window, m_context);
 
 		if (m_context != s_sharedContext || s_sharedCount == 1) {

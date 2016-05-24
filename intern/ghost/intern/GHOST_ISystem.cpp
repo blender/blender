@@ -54,7 +54,7 @@
 #  endif
 #endif
 
-GHOST_ISystem *GHOST_ISystem::m_system = 0;
+GHOST_ISystem *GHOST_ISystem::m_system = NULL;
 
 
 GHOST_TSuccess GHOST_ISystem::createSystem()
@@ -76,7 +76,7 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
 #    endif
 #  endif
 #endif
-		success = m_system != 0 ? GHOST_kSuccess : GHOST_kFailure;
+		success = m_system != NULL ? GHOST_kSuccess : GHOST_kFailure;
 	}
 	else {
 		success = GHOST_kFailure;
@@ -92,7 +92,7 @@ GHOST_TSuccess GHOST_ISystem::disposeSystem()
 	GHOST_TSuccess success = GHOST_kSuccess;
 	if (m_system) {
 		delete m_system;
-		m_system = 0;
+		m_system = NULL;
 	}
 	else {
 		success = GHOST_kFailure;
