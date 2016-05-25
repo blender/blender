@@ -408,6 +408,14 @@ class Mesh(bpy_types.ID):
            the *vertices* argument. eg: [(5, 6, 8, 9), (1, 2, 3), ...]
 
         :type faces: iterable object
+
+        .. warning::
+
+           Invalid mesh data
+           *(out of range indices, edges with matching indices,
+           2 sided faces... etc)* are **not** prevented.
+           If the data used for mesh creation isn't known to be valid,
+           run :class:`Mesh.validate` after this function.
         """
         from itertools import chain, islice, accumulate
 
