@@ -82,6 +82,9 @@ struct OperationDepsNode : public DepsNode {
 
 	int flag;                     /* (eDepsOperation_Flag) extra settings affecting evaluation */
 
+	/* Extra customdata mask which needs to be evaluated for the object. */
+	uint64_t customdata_mask;
+
 	DEG_DEPSNODE_DECLARE;
 };
 

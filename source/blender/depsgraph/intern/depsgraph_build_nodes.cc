@@ -381,10 +381,10 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 
 	IDDepsNode *id_node = add_id_node(&ob->id);
 	id_node->layers = base->lay;
+	ob->customdata_mask = 0;
 
 	/* standard components */
 	build_object_transform(scene, ob);
-
 
 	/* object data */
 	if (ob->data) {
