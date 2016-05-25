@@ -55,6 +55,7 @@ extern "C" {
 #include "depsnode_component.h"
 #include "depsnode_operation.h"
 #include "depsgraph_intern.h"
+#include "depsgraph_util_foreach.h"
 
 /* ****************** */
 /* Graphviz Debugging */
@@ -1018,33 +1019,18 @@ bool DEG_debug_scene_relations_validate(Main *bmain,
 bool DEG_debug_consistency_check(Depsgraph *graph)
 {
 	/* Validate links exists in both directions. */
-	for (Depsgraph::OperationNodes::const_iterator it_op = graph->operations.begin();
-	     it_op != graph->operations.end();
-	     ++it_op)
-	{
-		OperationDepsNode *node = *it_op;
-		for (OperationDepsNode::Relations::const_iterator it_rel = node->outlinks.begin();
-		     it_rel != node->outlinks.end();
-		     ++it_rel)
-		{
-			DepsRelation *rel = *it_rel;
-
+	foreach (OperationDepsNode *node, graph->operations) {
+		foreach (DepsRelation *rel, node->outlinks) {
 			int counter1 = 0;
-			for (OperationDepsNode::Relations::const_iterator tmp_rel = node->outlinks.begin();
-			     tmp_rel != node->outlinks.end();
-			     ++tmp_rel)
-			{
-				if (*tmp_rel == rel) {
+			foreach (DepsRelation *tmp_rel, node->outlinks) {
+				if (tmp_rel == rel) {
 					++counter1;
 				}
 			}
 
 			int counter2 = 0;
-			for (OperationDepsNode::Relations::const_iterator tmp_rel = rel->to->inlinks.begin();
-			     tmp_rel != rel->to->inlinks.end();
-			     ++tmp_rel)
-			{
-				if (*tmp_rel == rel) {
+			foreach (DepsRelation *tmp_rel, rel->to->inlinks) {
+				if (tmp_rel == rel) {
 					++counter2;
 				}
 			}
@@ -1057,33 +1043,18 @@ bool DEG_debug_consistency_check(Depsgraph *graph)
 		}
 	}
 
-	for (Depsgraph::OperationNodes::const_iterator it_op = graph->operations.begin();
-	     it_op != graph->operations.end();
-	     ++it_op)
-	{
-		OperationDepsNode *node = *it_op;
-		for (OperationDepsNode::Relations::const_iterator it_rel = node->inlinks.begin();
-		     it_rel != node->inlinks.end();
-		     ++it_rel)
-		{
-			DepsRelation *rel = *it_rel;
-
+	foreach (OperationDepsNode *node, graph->operations) {
+		foreach (DepsRelation *rel, node->inlinks) {
 			int counter1 = 0;
-			for (OperationDepsNode::Relations::const_iterator tmp_rel = node->inlinks.begin();
-			     tmp_rel != node->inlinks.end();
-			     ++tmp_rel)
-			{
-				if (*tmp_rel == rel) {
+			foreach (DepsRelation *tmp_rel, node->inlinks) {
+				if (tmp_rel == rel) {
 					++counter1;
 				}
 			}
 
 			int counter2 = 0;
-			for (OperationDepsNode::Relations::const_iterator tmp_rel = rel->from->outlinks.begin();
-			     tmp_rel != rel->from->outlinks.end();
-			     ++tmp_rel)
-			{
-				if (*tmp_rel == rel) {
+			foreach (DepsRelation *tmp_rel, rel->from->outlinks) {
+				if (tmp_rel == rel) {
 					++counter2;
 				}
 			}
@@ -1096,30 +1067,18 @@ bool DEG_debug_consistency_check(Depsgraph *graph)
 	}
 
 	/* Validate node valency calculated in both directions. */
-	for (Depsgraph::OperationNodes::const_iterator it_op = graph->operations.begin();
-	     it_op != graph->operations.end();
-	     ++it_op)
-	{
-		OperationDepsNode *node = *it_op;
+	foreach (OperationDepsNode *node, graph->operations) {
 		node->num_links_pending = 0;
 		node->done = 0;
 	}
 
-	for (Depsgraph::OperationNodes::const_iterator it_op = graph->operations.begin();
-	     it_op != graph->operations.end();
-	     ++it_op)
-	{
-		OperationDepsNode *node = *it_op;
+	foreach (OperationDepsNode *node, graph->operations) {
 		if (node->done) {
 			printf("Node %s is twice in the operations!\n",
 			       node->identifier().c_str());
 			return false;
 		}
-		for (OperationDepsNode::Relations::const_iterator it_rel = node->outlinks.begin();
-		     it_rel != node->outlinks.end();
-		     ++it_rel)
-		{
-			DepsRelation *rel = *it_rel;
+		foreach (DepsRelation *rel, node->outlinks) {
 			if (rel->to->type == DEPSNODE_TYPE_OPERATION) {
 				OperationDepsNode *to = (OperationDepsNode *)rel->to;
 				BLI_assert(to->num_links_pending < to->inlinks.size());
@@ -1129,17 +1088,9 @@ bool DEG_debug_consistency_check(Depsgraph *graph)
 		node->done = 1;
 	}
 
-	for (Depsgraph::OperationNodes::const_iterator it_op = graph->operations.begin();
-	     it_op != graph->operations.end();
-	     ++it_op)
-	{
-		OperationDepsNode *node = *it_op;
+	foreach (OperationDepsNode *node, graph->operations) {
 		int num_links_pending = 0;
-		for (OperationDepsNode::Relations::const_iterator it_rel = node->inlinks.begin();
-		     it_rel != node->inlinks.end();
-		     ++it_rel)
-		{
-			DepsRelation *rel = *it_rel;
+		foreach (DepsRelation *rel, node->inlinks) {
 			if (rel->from->type == DEPSNODE_TYPE_OPERATION) {
 				++num_links_pending;
 			}

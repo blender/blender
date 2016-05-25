@@ -51,6 +51,7 @@ extern "C" {
 #include "depsnode_component.h"
 #include "depsnode_operation.h"
 #include "depsgraph_debug.h"
+#include "depsgraph_util_foreach.h"
 
 #ifdef WITH_LEGACY_DEPSGRAPH
 static bool use_legacy_depsgraph = true;
@@ -302,11 +303,7 @@ static void calculate_eval_priority(OperationDepsNode *node)
 		/* NOOP nodes have no cost */
 		node->eval_priority = node->is_noop() ? cost : 0.0f;
 
-		for (OperationDepsNode::Relations::const_iterator it = node->outlinks.begin();
-		     it != node->outlinks.end();
-		     ++it)
-		{
-			DepsRelation *rel = *it;
+		foreach (DepsRelation *rel, node->outlinks) {
 			OperationDepsNode *to = (OperationDepsNode *)rel->to;
 			BLI_assert(to->type == DEPSNODE_TYPE_OPERATION);
 			calculate_eval_priority(to);
@@ -362,11 +359,7 @@ static void schedule_graph(TaskPool *pool,
                            Depsgraph *graph,
                            const int layers)
 {
-	for (Depsgraph::OperationNodes::const_iterator it = graph->operations.begin();
-	     it != graph->operations.end();
-	     ++it)
-	{
-		OperationDepsNode *node = *it;
+	foreach (OperationDepsNode *node, graph->operations) {
 		schedule_node(pool, graph, layers, node, false, 0);
 	}
 }
@@ -429,21 +422,13 @@ void DEG_evaluate_on_refresh_ex(EvaluationContext *eval_ctx,
 	calculate_pending_parents(graph, layers);
 
 	/* Clear tags. */
-	for (Depsgraph::OperationNodes::const_iterator it = graph->operations.begin();
-	     it != graph->operations.end();
-	     ++it)
-	{
-		OperationDepsNode *node = *it;
+	foreach (OperationDepsNode *node, graph->operations) {
 		node->done = 0;
 	}
 
 	/* Calculate priority for operation nodes. */
 #ifdef USE_EVAL_PRIORITY
-	for (Depsgraph::OperationNodes::const_iterator it = graph->operations.begin();
-	     it != graph->operations.end();
-	     ++it)
-	{
-		OperationDepsNode *node = *it;
+	foreach (OperationDepsNode *node, graph->operations) {
 		calculate_eval_priority(node);
 	}
 #endif

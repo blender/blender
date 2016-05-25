@@ -46,6 +46,7 @@ extern "C" {
 #include "depsnode_component.h"
 #include "depsnode_operation.h"
 #include "depsgraph_intern.h"
+#include "depsgraph_util_foreach.h"
 
 /* *************** */
 /* Node Management */
@@ -100,11 +101,7 @@ string DepsNode::identifier() const
 
 void TimeSourceDepsNode::tag_update(Depsgraph *graph)
 {
-	for (DepsNode::Relations::const_iterator it = outlinks.begin();
-	     it != outlinks.end();
-	     ++it)
-	{
-		DepsRelation *rel = *it;
+	foreach (DepsRelation *rel, outlinks) {
 		DepsNode *node = rel->to;
 		node->tag_update(graph);
 	}

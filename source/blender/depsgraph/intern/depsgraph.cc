@@ -55,6 +55,7 @@ extern "C" {
 #include "depsnode_operation.h"
 #include "depsnode_component.h"
 #include "depsgraph_intern.h"
+#include "depsgraph_util_foreach.h"
 
 static DEG_EditorUpdateIDCb deg_editor_update_id_cb = NULL;
 static DEG_EditorUpdateSceneCb deg_editor_update_scene_cb = NULL;
@@ -295,11 +296,7 @@ void Depsgraph::remove_subgraph_node(SubgraphDepsNode *subgraph_node)
 
 void Depsgraph::clear_subgraph_nodes()
 {
-	for (Subgraphs::iterator it = subgraphs.begin();
-	     it != subgraphs.end();
-	     ++it)
-	{
-		SubgraphDepsNode *subgraph_node = *it;
+	foreach (SubgraphDepsNode *subgraph_node, subgraphs) {
 		OBJECT_GUARDED_DELETE(subgraph_node, SubgraphDepsNode);
 	}
 	subgraphs.clear();

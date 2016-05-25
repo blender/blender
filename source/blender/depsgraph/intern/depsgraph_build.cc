@@ -100,6 +100,7 @@ extern "C" {
 #include "depsgraph_intern.h"
 
 #include "depsgraph_util_cycle.h"
+#include "depsgraph_util_foreach.h"
 #include "depsgraph_util_transitive.h"
 
 /* ****************** */
@@ -184,18 +185,10 @@ static void deg_graph_build_finalize(Depsgraph *graph)
 {
 	std::stack<OperationDepsNode *> stack;
 
-	for (Depsgraph::OperationNodes::const_iterator it_op = graph->operations.begin();
-	     it_op != graph->operations.end();
-	     ++it_op)
-	{
-		OperationDepsNode *node = *it_op;
+	foreach (OperationDepsNode *node, graph->operations) {
 		node->done = 0;
 		node->num_links_pending = 0;
-		for (OperationDepsNode::Relations::const_iterator it_rel = node->inlinks.begin();
-		     it_rel != node->inlinks.end();
-		     ++it_rel)
-		{
-			DepsRelation *rel = *it_rel;
+		foreach (DepsRelation *rel, node->inlinks) {
 			if ((rel->from->type == DEPSNODE_TYPE_OPERATION) &&
 			    (rel->flag & DEPSREL_FLAG_CYCLIC) == 0)
 			{
@@ -212,11 +205,7 @@ static void deg_graph_build_finalize(Depsgraph *graph)
 	while (!stack.empty()) {
 		OperationDepsNode *node = stack.top();
 		if (node->done == 0 && node->outlinks.size() != 0) {
-			for (OperationDepsNode::Relations::const_iterator it_rel = node->outlinks.begin();
-			     it_rel != node->outlinks.end();
-			     ++it_rel)
-			{
-				DepsRelation *rel = *it_rel;
+			foreach (DepsRelation *rel, node->outlinks) {
 				if (rel->to->type == DEPSNODE_TYPE_OPERATION) {
 					OperationDepsNode *to = (OperationDepsNode *)rel->to;
 					if ((rel->flag & DEPSREL_FLAG_CYCLIC) == 0) {
@@ -233,11 +222,7 @@ static void deg_graph_build_finalize(Depsgraph *graph)
 		else {
 			stack.pop();
 			IDDepsNode *id_node = node->owner->owner;
-			for (OperationDepsNode::Relations::const_iterator it_rel = node->outlinks.begin();
-			     it_rel != node->outlinks.end();
-			     ++it_rel)
-			{
-				DepsRelation *rel = *it_rel;
+			foreach (DepsRelation *rel, node->outlinks) {
 				if (rel->to->type == DEPSNODE_TYPE_OPERATION) {
 					OperationDepsNode *to = (OperationDepsNode *)rel->to;
 					IDDepsNode *id_to = to->owner->owner;

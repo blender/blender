@@ -60,6 +60,7 @@ extern "C" {
 #include "depsnode_component.h"
 #include "depsnode_operation.h"
 #include "depsgraph_intern.h"
+#include "depsgraph_util_foreach.h"
 
 /* *********************** */
 /* Update Tagging/Flushing */
@@ -304,11 +305,7 @@ void DEG_graph_flush_updates(Main *bmain, Depsgraph *graph)
 	 * NOTE: Count how many nodes we need to handle - entry nodes may be
 	 *       component nodes which don't count for this purpose!
 	 */
-	for (Depsgraph::EntryTags::const_iterator it = graph->entry_tags.begin();
-	     it != graph->entry_tags.end();
-	     ++it)
-	{
-		OperationDepsNode *node = *it;
+	foreach (OperationDepsNode *node, graph->entry_tags) {
 		IDDepsNode *id_node = node->owner->owner;
 		queue.push(node);
 		if (id_node->done == 0) {
@@ -349,11 +346,7 @@ void DEG_graph_flush_updates(Main *bmain, Depsgraph *graph)
 		}
 
 		/* Flush to nodes along links... */
-		for (OperationDepsNode::Relations::const_iterator it = node->outlinks.begin();
-		     it != node->outlinks.end();
-		     ++it)
-		{
-			DepsRelation *rel = *it;
+		foreach (DepsRelation *rel, node->outlinks) {
 			OperationDepsNode *to_node = (OperationDepsNode *)rel->to;
 			if (to_node->scheduled == false) {
 				to_node->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
