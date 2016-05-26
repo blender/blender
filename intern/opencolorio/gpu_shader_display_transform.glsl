@@ -38,7 +38,7 @@ float read_curve_mapping(int table, int index)
 	 *               But is it actually correct to subtract 1 here?
 	 */
 	float texture_index = float(index) / float(curve_mapping_lut_size  - 1);
-	return texture1D(curve_mapping_texture, texture_index) [table];
+	return texture1D(curve_mapping_texture, texture_index)[table];
 }
 
 float curvemap_calc_extend(int table, float x, vec2 first, vec2 last)

@@ -49,7 +49,7 @@ void emit_flat(int index, vec3 normal)
 	varposition = outpt.v.position.xyz;
 
 	/* TODO(sergey): Only uniform subdivisions atm. */
-	vec2 quadst[4] = vec2[](vec2(0,0), vec2(1,0), vec2(1,1), vec2(0,1));
+	vec2 quadst[4] = vec2[](vec2(0, 0), vec2(1, 0), vec2(1, 1), vec2(0, 1));
 	vec2 st = quadst[index];
 
 	INTERP_FACE_VARYING_2(outpt.v.uv, osd_active_uv_offset, st);
@@ -70,7 +70,7 @@ void emit_smooth(int index)
 	varposition = outpt.v.position.xyz;
 
 	/* TODO(sergey): Only uniform subdivisions atm. */
-	vec2 quadst[4] = vec2[](vec2(0,0), vec2(1,0), vec2(1,1), vec2(0,1));
+	vec2 quadst[4] = vec2[](vec2(0, 0), vec2(1, 0), vec2(1, 1), vec2(0, 1));
 	vec2 st = quadst[index];
 
 	INTERP_FACE_VARYING_2(outpt.v.uv, osd_active_uv_offset, st);

@@ -1,6 +1,6 @@
 /*
-* Used the implementation of wide lines of Timo Suoranta (http://neure.dy.fi/wideline.html)
-*/
+ * Used the implementation of wide lines of Timo Suoranta (http://neure.dy.fi/wideline.html)
+ */
 
 #define PASSTHROUGH             0
 
