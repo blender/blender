@@ -78,6 +78,7 @@ int collada_export(struct Scene *sce,
 
                    int triangulate,
                    int use_object_instantiation,
+                   int use_blender_profile,
                    int sort_by_name,
                    BC_export_transformation_type export_transformation_type,
                    int open_sim);

@@ -48,6 +48,7 @@ public:
 
 	bool triangulate;
 	bool use_object_instantiation;
+	bool use_blender_profile;
 	bool sort_by_name;
 	BC_export_transformation_type export_transformation_type;
 	bool open_sim;

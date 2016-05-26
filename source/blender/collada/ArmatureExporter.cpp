@@ -150,6 +150,16 @@ std::string ArmatureExporter::get_joint_sid(Bone *bone, Object *ob_arm)
 	return get_joint_id(bone, ob_arm);
 }
 
+static bool is_leaf_bone(Bone *bone)
+{
+	for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
+		if (child->flag & BONE_CONNECTED) {
+			return false;
+		}
+	}
+	return true;
+}
+
 // parent_mat is armature-space
 void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene *sce,
                                      SceneExporter *se,
@@ -167,12 +177,22 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene *sce,
 		node.setNodeName(node_name);
 		node.setNodeSid(node_sid);
 
-#if 0 
-		if (BLI_listbase_is_empty(&bone->childbase) || BLI_listbase_count_ex(&bone->childbase, 2) == 2) {
-			add_blender_leaf_bone( bone, ob_arm, node);
+		if (this->export_settings->use_blender_profile)
+		{
+			if (bone->parent) {
+				if (bone->flag & BONE_CONNECTED) {
+					node.addExtraTechniqueParameter("blender", "connect", true);
+				}
+			}
+
+			if (is_leaf_bone(bone))
+			{
+				node.addExtraTechniqueParameter("blender", "tip_x", bone->arm_tail[0] - bone->arm_head[0]);
+				node.addExtraTechniqueParameter("blender", "tip_y", bone->arm_tail[1] - bone->arm_head[1]);
+				node.addExtraTechniqueParameter("blender", "tip_z", bone->arm_tail[2] - bone->arm_head[2]);
+			}
 		}
-		else {
-#endif
+
 			node.start();
 
 			add_bone_transform(ob_arm, bone, node);
@@ -226,25 +246,6 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene *sce,
 			}
 		}
 }
-
-//#if 1
-void ArmatureExporter::add_blender_leaf_bone(Bone *bone, Object *ob_arm, COLLADASW::Node& node)
-{
-	node.start();
-	
-	add_bone_transform(ob_arm, bone, node);
-	
-	node.addExtraTechniqueParameter("blender", "tip_x", bone->tail[0]);
-	node.addExtraTechniqueParameter("blender", "tip_y", bone->tail[1]);
-	node.addExtraTechniqueParameter("blender", "tip_z", bone->tail[2]);
-	
-	/*for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
-		add_bone_node(child, ob_arm, sce, se, child_objects);
-	}*/
-	node.end();
-	
-}
-//#endif
 
 void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW::Node& node)
 {

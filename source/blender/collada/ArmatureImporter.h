@@ -65,17 +65,27 @@ private:
 	char  name[MAXBONENAME];
 	int   chain_length;
 	bool  is_leaf;
+	float tail[3];
+	bool  use_connect;
 
 public:
 
 	BoneExtended(EditBone *aBone);
-	char *get_name();
-	int  get_chain_length();
 
 	void set_name(char *aName);
+	char *get_name();
+
 	void set_chain_length(const int aLength);
+	int  get_chain_length();
+
 	void set_leaf_bone(bool state);
 	bool is_leaf_bone();
+
+	void set_tail(float *vec);
+	float *get_tail();
+
+	void set_use_connect(int use_connect);
+	int get_use_connect();
 };
 
 class ArmatureImporter : private TransformReader
@@ -131,6 +141,7 @@ private:
 	void clear_extended_boneset();
 
 	void fix_leaf_bones(bArmature *armature, Bone *bone);
+	void fix_parent_connect(bArmature *armature, Bone *bone);
 	void connect_bone_chains(bArmature *armature, Bone *bone, const int max_chain_length);
 
 	void set_pose( Object *ob_arm,  COLLADAFW::Node *root_node, const char *parentname, float parent_mat[4][4]);
