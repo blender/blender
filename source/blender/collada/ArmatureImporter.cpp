@@ -210,18 +210,6 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 	return chain_length + 1;
 }
 
-/*
- * A bone is a leaf when it has no children or all children are not connected.
- */
-static bool is_leaf_bone(Bone *bone)
-{
-	for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
-		if (child->flag & BONE_CONNECTED)
-			return false;
-	}
-	return true;
-}
-
 /**
   * Collada only knows Joints, hence bones at the end of a bone chain
   * don't have a defined length. This function guesses reasonable
@@ -233,35 +221,39 @@ void ArmatureImporter::fix_leaf_bones(bArmature *armature, Bone *bone)
 	if (bone == NULL)
 		return;
 
-	if (is_leaf_bone(bone)) {
-		/* Collada only knows Joints, Here we guess a reasonable leaf bone length */
-		float leaf_length = (leaf_bone_length == FLT_MAX) ? 1.0 : leaf_bone_length;
+	if (bc_is_leaf_bone(bone)) {
 
-		EditBone *ebone = get_edit_bone(armature, bone->name);
-		float vec[3];
+		BoneExtended *be = extended_bones[bone->name];
+		if (be == NULL || !be->has_custom_tail()) {
 
-		if (ebone->parent != NULL) {
-			EditBone *parent = ebone->parent;
-			sub_v3_v3v3(vec, ebone->head, parent->head);
-			if (len_squared_v3(vec) < MINIMUM_BONE_LENGTH)
-			{
-				sub_v3_v3v3(vec, parent->tail, parent->head);
+			/* Collada only knows Joints, Here we guess a reasonable leaf bone length */
+			float leaf_length = (leaf_bone_length == FLT_MAX) ? 1.0 : leaf_bone_length;
+
+			EditBone *ebone = get_edit_bone(armature, bone->name);
+			float vec[3];
+
+			if (ebone->parent != NULL) {
+				EditBone *parent = ebone->parent;
+				sub_v3_v3v3(vec, ebone->head, parent->head);
+				if (len_squared_v3(vec) < MINIMUM_BONE_LENGTH)
+				{
+					sub_v3_v3v3(vec, parent->tail, parent->head);
+				}
 			}
-		}
-		else {
-			vec[2] = 0.1f;
-			sub_v3_v3v3(vec, ebone->tail, ebone->head);
-		}
+			else {
+				vec[2] = 0.1f;
+				sub_v3_v3v3(vec, ebone->tail, ebone->head);
+			}
 
-		normalize_v3_v3(vec, vec);
-		mul_v3_fl(vec, leaf_length);
-		add_v3_v3v3(ebone->tail, ebone->head, vec);
+			normalize_v3_v3(vec, vec);
+			mul_v3_fl(vec, leaf_length);
+			add_v3_v3v3(ebone->tail, ebone->head, vec);
+		}
 	}
 
 	for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
 		fix_leaf_bones(armature, child);
 	}
-
 }
 
 void ArmatureImporter::fix_parent_connect(bArmature *armature, Bone *bone)
@@ -949,6 +941,7 @@ BoneExtended::BoneExtended(EditBone *aBone)
 	this->tail[1]      = 0.5f;
 	this->tail[2]      = 0.0f;
 	this->use_connect  = -1;
+	this->has_tail     = false;
 }
 
 char *BoneExtended::get_name() 
@@ -986,6 +979,12 @@ void BoneExtended::set_tail(float vec[])
 	this->tail[0] = vec[0];
 	this->tail[1] = vec[1];
 	this->tail[2] = vec[2];
+	this->has_tail = true;
+}
+
+bool BoneExtended::has_custom_tail()
+{
+	return this->has_tail;
 }
 
 float *BoneExtended::get_tail()

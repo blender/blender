@@ -150,16 +150,6 @@ std::string ArmatureExporter::get_joint_sid(Bone *bone, Object *ob_arm)
 	return get_joint_id(bone, ob_arm);
 }
 
-static bool is_leaf_bone(Bone *bone)
-{
-	for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
-		if (child->flag & BONE_CONNECTED) {
-			return false;
-		}
-	}
-	return true;
-}
-
 // parent_mat is armature-space
 void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene *sce,
                                      SceneExporter *se,
@@ -185,7 +175,7 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene *sce,
 				}
 			}
 
-			if (is_leaf_bone(bone))
+			if (bc_is_leaf_bone(bone))
 			{
 				node.addExtraTechniqueParameter("blender", "tip_x", bone->arm_tail[0] - bone->arm_head[0]);
 				node.addExtraTechniqueParameter("blender", "tip_y", bone->arm_tail[1] - bone->arm_head[1]);

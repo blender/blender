@@ -67,6 +67,7 @@ private:
 	bool  is_leaf;
 	float tail[3];
 	bool  use_connect;
+	bool  has_tail;
 
 public:
 
@@ -83,6 +84,7 @@ public:
 
 	void set_tail(float *vec);
 	float *get_tail();
+	bool has_custom_tail();
 
 	void set_use_connect(int use_connect);
 	int get_use_connect();

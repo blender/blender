@@ -87,7 +87,7 @@ extern void bc_match_scale(Object *ob, UnitConverter &bc_unit, bool scale_to_sce
 extern void bc_match_scale(std::vector<Object *> *objects_done, UnitConverter &unit_converter, bool scale_to_scene);
 
 extern void bc_triangulate_mesh(Mesh *me);
-
+extern bool bc_is_leaf_bone(Bone *bone);
 
 class BCPolygonNormalsIndices
 {

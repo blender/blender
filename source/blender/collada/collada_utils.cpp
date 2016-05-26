@@ -366,3 +366,15 @@ void bc_triangulate_mesh(Mesh *me)
 	BM_mesh_bm_to_me(bm, me, &bm_to_me_params);
 	BM_mesh_free(bm);
 }
+
+/*
+* A bone is a leaf when it has no children or all children are not connected.
+*/
+bool bc_is_leaf_bone(Bone *bone)
+{
+	for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
+		if (child->flag & BONE_CONNECTED)
+			return false;
+	}
+	return true;
+}
