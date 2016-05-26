@@ -21,6 +21,12 @@ extern "C" {
 /* Resizing the hash has a huge cost over global filling operation! */
 //#define GHASH_RESERVE
 
+/* Run the longest tests! */
+//#define GHASH_RUN_BIG
+
+/* Size of 'small case' ghash (number of entries). */
+#define TESTCASE_SIZE_SMALL 17
+
 #define PRINTF_GHASH_STATS(_gh) \
 { \
 	double q, lf, var, pempty, poverloaded; \
@@ -31,7 +37,6 @@ extern "C" {
 	       "Empty buckets: %.2f%%\n\tOverloaded buckets: %.2f%% (biggest bucket: %d)\n", \
 	       BLI_ghash_size(_gh), q, var, lf, pempty * 100.0, poverloaded * 100.0, bigb); \
 } void (0)
-
 
 /* Str: whole text, lines and words from a 'corpus' text. */
 
@@ -223,12 +228,14 @@ TEST(ghash, IntGHash12000)
 	int_ghash_tests(ghash, "IntGHash - GHash - 12000", 12000);
 }
 
+#ifdef GHASH_RUN_BIG
 TEST(ghash, IntGHash100000000)
 {
 	GHash *ghash = BLI_ghash_new(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, __func__);
 
 	int_ghash_tests(ghash, "IntGHash - GHash - 100000000", 100000000);
 }
+#endif
 
 TEST(ghash, IntMurmur2a12000)
 {
@@ -237,13 +244,14 @@ TEST(ghash, IntMurmur2a12000)
 	int_ghash_tests(ghash, "IntGHash - Murmur - 12000", 12000);
 }
 
+#ifdef GHASH_RUN_BIG
 TEST(ghash, IntMurmur2a100000000)
 {
 	GHash *ghash = BLI_ghash_new(BLI_ghashutil_inthash_p_murmur, BLI_ghashutil_intcmp, __func__);
 
 	int_ghash_tests(ghash, "IntGHash - Murmur - 100000000", 100000000);
 }
-
+#endif
 
 /* Int: random 50M integers. */
 
@@ -302,12 +310,14 @@ TEST(ghash, IntRandGHash12000)
 	randint_ghash_tests(ghash, "RandIntGHash - GHash - 12000", 12000);
 }
 
+#ifdef GHASH_RUN_BIG
 TEST(ghash, IntRandGHash50000000)
 {
 	GHash *ghash = BLI_ghash_new(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, __func__);
 
 	randint_ghash_tests(ghash, "RandIntGHash - GHash - 50000000", 50000000);
 }
+#endif
 
 TEST(ghash, IntRandMurmur2a12000)
 {
@@ -316,12 +326,14 @@ TEST(ghash, IntRandMurmur2a12000)
 	randint_ghash_tests(ghash, "RandIntGHash - Murmur - 12000", 12000);
 }
 
+#ifdef GHASH_RUN_BIG
 TEST(ghash, IntRandMurmur2a50000000)
 {
 	GHash *ghash = BLI_ghash_new(BLI_ghashutil_inthash_p_murmur, BLI_ghashutil_intcmp, __func__);
 
 	randint_ghash_tests(ghash, "RandIntGHash - Murmur - 50000000", 50000000);
 }
+#endif
 
 static unsigned int ghashutil_tests_nohash_p(const void *p)
 {
@@ -340,13 +352,14 @@ TEST(ghash, Int4NoHash12000)
 	randint_ghash_tests(ghash, "RandIntGHash - No Hash - 12000", 12000);
 }
 
+#ifdef GHASH_RUN_BIG
 TEST(ghash, Int4NoHash50000000)
 {
 	GHash *ghash = BLI_ghash_new(ghashutil_tests_nohash_p, ghashutil_tests_cmp_p, __func__);
 
 	randint_ghash_tests(ghash, "RandIntGHash - No Hash - 50000000", 50000000);
 }
-
+#endif
 
 /* Int_v4: 20M of randomly-generated integer vectors. */
 
@@ -409,12 +422,14 @@ TEST(ghash, Int4GHash2000)
 	int4_ghash_tests(ghash, "Int4GHash - GHash - 2000", 2000);
 }
 
+#ifdef GHASH_RUN_BIG
 TEST(ghash, Int4GHash20000000)
 {
 	GHash *ghash = BLI_ghash_new(BLI_ghashutil_uinthash_v4_p, BLI_ghashutil_uinthash_v4_cmp, __func__);
 
 	int4_ghash_tests(ghash, "Int4GHash - GHash - 20000000", 20000000);
 }
+#endif
 
 TEST(ghash, Int4Murmur2a2000)
 {
@@ -423,9 +438,99 @@ TEST(ghash, Int4Murmur2a2000)
 	int4_ghash_tests(ghash, "Int4GHash - Murmur - 2000", 2000);
 }
 
+#ifdef GHASH_RUN_BIG
 TEST(ghash, Int4Murmur2a20000000)
 {
 	GHash *ghash = BLI_ghash_new(BLI_ghashutil_uinthash_v4_p_murmur, BLI_ghashutil_uinthash_v4_cmp, __func__);
 
 	int4_ghash_tests(ghash, "Int4GHash - Murmur - 20000000", 20000000);
+}
+#endif
+
+/* MultiSmall: create and manipulate a lot of very small ghashes (90% < 10 items, 9% < 100 items, 1% < 1000 items). */
+
+static void multi_small_ghash_tests_one(GHash *ghash, RNG *rng, const unsigned int nbr)
+{
+	unsigned int *data = (unsigned int *)MEM_mallocN(sizeof(*data) * (size_t)nbr, __func__);
+	unsigned int *dt;
+	unsigned int i;
+
+	for (i = nbr, dt = data; i--; dt++) {
+		*dt = BLI_rng_get_uint(rng);
+	}
+
+#ifdef GHASH_RESERVE
+	BLI_ghash_reserve(ghash, nbr);
+#endif
+
+	for (i = nbr, dt = data; i--; dt++) {
+		BLI_ghash_insert(ghash, SET_UINT_IN_POINTER(*dt), SET_UINT_IN_POINTER(*dt));
+	}
+
+	for (i = nbr, dt = data; i--; dt++) {
+		void *v = BLI_ghash_lookup(ghash, SET_UINT_IN_POINTER(*dt));
+		EXPECT_EQ(*dt, GET_UINT_FROM_POINTER(v));
+	}
+
+	BLI_ghash_clear(ghash, NULL, NULL);
+}
+
+static void multi_small_ghash_tests(GHash *ghash, const char *id, const unsigned int nbr)
+{
+	printf("\n========== STARTING %s ==========\n", id);
+
+	RNG *rng = BLI_rng_new(0);
+
+	TIMEIT_START(multi_small_ghash);
+
+	unsigned int i = nbr;
+	while (i--) {
+		const int nbr = 1 + (BLI_rng_get_int(rng) % TESTCASE_SIZE_SMALL) * (!(i % 100) ? 100 : (!(i % 10) ? 10 : 1));
+		multi_small_ghash_tests_one(ghash, rng, nbr);
+	}
+
+	TIMEIT_END(multi_small_ghash);
+
+	TIMEIT_START(multi_small2_ghash);
+
+	unsigned int i = nbr;
+	while (i--) {
+		const int nbr = 1 + (BLI_rng_get_int(rng) % TESTCASE_SIZE_SMALL) / 2 * (!(i % 100) ? 100 : (!(i % 10) ? 10 : 1));
+		multi_small_ghash_tests_one(ghash, rng, nbr);
+	}
+
+	TIMEIT_END(multi_small2_ghash);
+
+	BLI_ghash_free(ghash, NULL, NULL);
+	BLI_rng_free(rng);
+
+	printf("========== ENDED %s ==========\n\n", id);
+}
+
+TEST(ghash, MultiRandIntGHash2000)
+{
+	GHash *ghash = BLI_ghash_new(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, __func__);
+
+	multi_small_ghash_tests(ghash, "MultiSmall RandIntGHash - GHash - 2000", 2000);
+}
+
+TEST(ghash, MultiRandIntGHash200000)
+{
+	GHash *ghash = BLI_ghash_new(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, __func__);
+
+	multi_small_ghash_tests(ghash, "MultiSmall RandIntGHash - GHash - 200000", 200000);
+}
+
+TEST(ghash, MultiRandIntMurmur2a2000)
+{
+	GHash *ghash = BLI_ghash_new(BLI_ghashutil_inthash_p_murmur, BLI_ghashutil_intcmp, __func__);
+
+	multi_small_ghash_tests(ghash, "MultiSmall RandIntGHash - Murmur2a - 2000", 2000);
+}
+
+TEST(ghash, MultiRandIntMurmur2a200000)
+{
+	GHash *ghash = BLI_ghash_new(BLI_ghashutil_inthash_p_murmur, BLI_ghashutil_intcmp, __func__);
+
+	multi_small_ghash_tests(ghash, "MultiSmall RandIntGHash - Murmur2a - 200000", 200000);
 }
