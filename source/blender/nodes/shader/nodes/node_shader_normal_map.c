@@ -133,29 +133,33 @@ static int gpu_shader_normal_map(GPUMaterial *mat, bNode *node, bNodeExecData *U
 
 		/* **************** CYCLES ******************** */
 
-		GPU_link(mat, "direction_transform_m4v3", negnorm, GPU_builtin(GPU_INVERSE_VIEW_MATRIX), &negnorm);
-
 		switch (nm->space) {
 			case SHD_NORMAL_MAP_TANGENT:
 				GPU_link(mat, "color_to_normal_new_shading", realnorm, &realnorm);
 				GPU_link(mat, "node_normal_map", GPU_attribute(CD_TANGENT, nm->uv_map), negnorm, realnorm, &realnorm);
-				break;
+				GPU_link(mat, "vec_math_mix", strength, realnorm, GPU_builtin(GPU_VIEW_NORMAL), &out[0].link);
+				/* for uniform scale this is sufficient to match Cycles */
+				GPU_link(mat, "direction_transform_m4v3", out[0].link, GPU_builtin(GPU_INVERSE_VIEW_MATRIX), &out[0].link);
+				GPU_link(mat, "vect_normalize", out[0].link, &out[0].link);
+				return true;
 			case SHD_NORMAL_MAP_OBJECT:
+				GPU_link(mat, "direction_transform_m4v3", negnorm, GPU_builtin(GPU_INVERSE_VIEW_MATRIX), &negnorm);
 				GPU_link(mat, "color_to_normal_new_shading", realnorm, &realnorm);
 				GPU_link(mat, "direction_transform_m4v3", realnorm, GPU_builtin(GPU_OBJECT_MATRIX),  &realnorm);
 				break;
 			case SHD_NORMAL_MAP_BLENDER_OBJECT:
+				GPU_link(mat, "direction_transform_m4v3", negnorm, GPU_builtin(GPU_INVERSE_VIEW_MATRIX), &negnorm);
 				GPU_link(mat, "color_to_blender_normal_new_shading", realnorm, &realnorm);
 				GPU_link(mat, "direction_transform_m4v3", realnorm, GPU_builtin(GPU_OBJECT_MATRIX),  &realnorm);
 				break;
 			case SHD_NORMAL_MAP_WORLD:
+				GPU_link(mat, "direction_transform_m4v3", negnorm, GPU_builtin(GPU_INVERSE_VIEW_MATRIX), &negnorm);
 				GPU_link(mat, "color_to_normal_new_shading", realnorm, &realnorm);
 				break;
 			case SHD_NORMAL_MAP_BLENDER_WORLD:
+				GPU_link(mat, "direction_transform_m4v3", negnorm, GPU_builtin(GPU_INVERSE_VIEW_MATRIX), &negnorm);
 				GPU_link(mat, "color_to_blender_normal_new_shading", realnorm, &realnorm);
 				break;
-
-		GPU_link(mat, "vect_normalize", realnorm, &realnorm);
 		}
 
 	} else {
