@@ -54,9 +54,10 @@ ImageManager::ImageManager(const DeviceInfo& info)
 		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_ ## ARCH; \
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_ ## ARCH; \
 		tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_ ## ARCH; \
-		tex_image_byte4_start = TEX_START_BYTE4_ ## ARCH; \
-		tex_image_float_start = TEX_START_FLOAT_ ## ARCH; \
-		tex_image_byte_start = TEX_START_BYTE_ ## ARCH; \
+		tex_start_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_START_FLOAT4_ ## ARCH; \
+		tex_start_images[IMAGE_DATA_TYPE_BYTE4] = TEX_START_BYTE4_ ## ARCH; \
+		tex_start_images[IMAGE_DATA_TYPE_FLOAT] = TEX_START_FLOAT_ ## ARCH; \
+		tex_start_images[IMAGE_DATA_TYPE_BYTE] = TEX_START_BYTE_ ## ARCH; \
 	}
 
 	if(device_type == DEVICE_CPU) {
@@ -74,14 +75,15 @@ ImageManager::ImageManager(const DeviceInfo& info)
 		SET_TEX_IMAGES_LIMITS(OPENCL);
 	}
 	else {
-		/* Should never happen */
-		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = 0;
+		/* Should not happen. */
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = 0;
+		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = 0;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = 0;
 		tex_num_images[IMAGE_DATA_TYPE_BYTE] = 0;
-		tex_image_byte4_start = 0;
-		tex_image_float_start = 0;
-		tex_image_byte_start = 0;
+		tex_start_images[IMAGE_DATA_TYPE_FLOAT4] = 0;
+		tex_start_images[IMAGE_DATA_TYPE_BYTE4] = 0;
+		tex_start_images[IMAGE_DATA_TYPE_FLOAT] = 0;
+		tex_start_images[IMAGE_DATA_TYPE_BYTE] = 0;
 		assert(0);
 	}
 
@@ -204,34 +206,20 @@ ImageManager::ImageDataType ImageManager::get_image_metadata(const string& filen
  * to device ones and vice versa. */
 int ImageManager::type_index_to_flattened_slot(int slot, ImageDataType type)
 {
-	if(type == IMAGE_DATA_TYPE_BYTE4)
-		return slot + tex_image_byte4_start;
-	else if(type == IMAGE_DATA_TYPE_FLOAT)
-		return slot + tex_image_float_start;
-	else if(type == IMAGE_DATA_TYPE_BYTE)
-		return slot + tex_image_byte_start;
-	else
-		return slot;
+	return slot + tex_start_images[type];
 }
 
 int ImageManager::flattened_slot_to_type_index(int flat_slot, ImageDataType *type)
 {
-	if(flat_slot >= tex_image_byte_start) {
-		*type = IMAGE_DATA_TYPE_BYTE;
-		return flat_slot - tex_image_byte_start;
+	for(int i = IMAGE_DATA_NUM_TYPES - 1; i >= 0; i--) {
+		if(flat_slot >= tex_start_images[i]) {
+			*type = (ImageDataType)i;
+			return flat_slot - tex_start_images[i];
+		}
 	}
-	else if(flat_slot >= tex_image_float_start) {
-		*type = IMAGE_DATA_TYPE_FLOAT;
-		return flat_slot - tex_image_float_start;
-	}
-	else if(flat_slot >= tex_image_byte4_start) {
-		*type = IMAGE_DATA_TYPE_BYTE4;
-		return flat_slot - tex_image_byte4_start;
-	}
-	else {
-		*type = IMAGE_DATA_TYPE_FLOAT4;
-		return flat_slot;
-	}
+
+	/* Should not happen. */
+	return flat_slot;
 }
 
 string ImageManager::name_from_type(int type)
