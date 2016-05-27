@@ -299,6 +299,12 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 					m_buttonMask = 0x07C0F137;
 					m_hidMap = Modern3Dx_HID_map;
 					break;
+				case 0xC633:
+					puts("ndof: using SpaceMouse Enterprise");
+					m_deviceType = NDOF_SpaceMouseEnterprise;
+					m_buttonCount = 31;
+					m_hidMap = Modern3Dx_HID_map;
+					break;
 
 				default:
 					printf("ndof: unknown 3Dconnexion product %04hx\n", product_id);
