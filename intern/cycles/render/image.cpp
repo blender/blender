@@ -48,52 +48,33 @@ ImageManager::ImageManager(const DeviceInfo& info)
 	}
 
 	/* Set image limits */
-
-	/* CPU */
-	if(device_type == DEVICE_CPU) {
-		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_CPU;
-		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_CPU;
-		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_CPU;
-		tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_CPU;
-		tex_image_byte4_start = TEX_START_BYTE4_CPU;
-		tex_image_float_start = TEX_START_FLOAT_CPU;
-		tex_image_byte_start = TEX_START_BYTE_CPU;
+#define SET_TEX_IMAGES_LIMITS(ARCH) \
+	{ \
+		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_ ## ARCH; \
+		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_ ## ARCH; \
+		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_ ## ARCH; \
+		tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_ ## ARCH; \
+		tex_image_byte4_start = TEX_START_BYTE4_ ## ARCH; \
+		tex_image_float_start = TEX_START_FLOAT_ ## ARCH; \
+		tex_image_byte_start = TEX_START_BYTE_ ## ARCH; \
 	}
-	/* CUDA */
+
+	if(device_type == DEVICE_CPU) {
+		SET_TEX_IMAGES_LIMITS(CPU);
+	}
 	else if(device_type == DEVICE_CUDA) {
 		if(info.has_bindless_textures) {
-			/* Kepler and above */
-			tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_CUDA_KEPLER;
-			tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_CUDA_KEPLER;
-			tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_CUDA_KEPLER;
-			tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_CUDA_KEPLER;
-			tex_image_byte4_start = TEX_START_BYTE4_CUDA_KEPLER;
-			tex_image_float_start = TEX_START_FLOAT_CUDA_KEPLER;
-			tex_image_byte_start = TEX_START_BYTE_CUDA_KEPLER;
+			SET_TEX_IMAGES_LIMITS(CUDA_KEPLER);
 		}
 		else {
-			/* Fermi */
-			tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_CUDA;
-			tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_CUDA;
-			tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_CUDA;
-			tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_CUDA;
-			tex_image_byte4_start = TEX_START_BYTE4_CUDA;
-			tex_image_float_start = TEX_START_FLOAT_CUDA;
-			tex_image_byte_start = TEX_START_BYTE_CUDA;
+			SET_TEX_IMAGES_LIMITS(CUDA);
 		}
 	}
-	/* OpenCL */
 	else if(device_type == DEVICE_OPENCL) {
-		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_OPENCL;
-		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_OPENCL;
-		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_OPENCL;
-		tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_OPENCL;
-		tex_image_byte4_start = TEX_START_BYTE4_OPENCL;
-		tex_image_float_start = TEX_START_FLOAT_OPENCL;
-		tex_image_byte_start = TEX_START_BYTE_OPENCL;
+		SET_TEX_IMAGES_LIMITS(OPENCL);
 	}
-	/* Should never happen */
 	else {
+		/* Should never happen */
 		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = 0;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = 0;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = 0;
@@ -103,6 +84,8 @@ ImageManager::ImageManager(const DeviceInfo& info)
 		tex_image_byte_start = 0;
 		assert(0);
 	}
+
+#undef SET_TEX_IMAGES_LIMITS
 }
 
 ImageManager::~ImageManager()
