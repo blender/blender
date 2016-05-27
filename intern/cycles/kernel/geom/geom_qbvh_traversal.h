@@ -78,10 +78,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 	isect->prim = PRIM_NONE;
 	isect->object = OBJECT_NONE;
 
-#if defined(__KERNEL_DEBUG__)
-	isect->num_traversal_steps = 0;
-	isect->num_traversed_instances = 0;
-#endif
+	BVH_DEBUG_INIT();
 
 	ssef tnear(0.0f), tfar(ray->t);
 	sse3f idir4(ssef(idir.x), ssef(idir.y), ssef(idir.z));
@@ -120,9 +117,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 				int traverseChild;
 				ssef dist;
 
-#if defined(__KERNEL_DEBUG__)
-				isect->num_traversal_steps++;
-#endif
+				BVH_DEBUG_NEXT_STEP();
 
 #if BVH_FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 				if(difl != 0.0f) {
@@ -295,9 +290,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					switch(type & PRIMITIVE_ALL) {
 						case PRIMITIVE_TRIANGLE: {
 							for(; primAddr < primAddr2; primAddr++) {
-#if defined(__KERNEL_DEBUG__)
-								isect->num_traversal_steps++;
-#endif
+								BVH_DEBUG_NEXT_STEP();
 								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
 								if(triangle_intersect(kg, &isect_precalc, isect, P, visibility, object, primAddr)) {
 									tfar = ssef(isect->t);
@@ -311,9 +304,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 #if BVH_FEATURE(BVH_MOTION)
 						case PRIMITIVE_MOTION_TRIANGLE: {
 							for(; primAddr < primAddr2; primAddr++) {
-#  if defined(__KERNEL_DEBUG__)
-								isect->num_traversal_steps++;
-#  endif
+								BVH_DEBUG_NEXT_STEP();
 								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
 								if(motion_triangle_intersect(kg, isect, P, dir, ray->time, visibility, object, primAddr)) {
 									tfar = ssef(isect->t);
@@ -329,9 +320,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 						case PRIMITIVE_CURVE:
 						case PRIMITIVE_MOTION_CURVE: {
 							for(; primAddr < primAddr2; primAddr++) {
-#  if defined(__KERNEL_DEBUG__)
-								isect->num_traversal_steps++;
-#  endif
+								BVH_DEBUG_NEXT_STEP();
 								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
 								bool hit;
 								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE)
@@ -381,9 +370,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 
 					nodeAddr = kernel_tex_fetch(__object_node, object);
 
-#  if defined(__KERNEL_DEBUG__)
-					isect->num_traversed_instances++;
-#  endif
+					BVH_DEBUG_NEXT_INSTANCE();
 				}
 			}
 #endif  /* FEATURE(BVH_INSTANCING) */

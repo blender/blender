@@ -48,6 +48,28 @@ CCL_NAMESPACE_BEGIN
 
 #define BVH_FEATURE(f) (((BVH_FUNCTION_FEATURES) & (f)) != 0)
 
+/* Debugging heleprs */
+#ifdef __KERNEL_DEBUG__
+#  define BVH_DEBUG_INIT() \
+	do { \
+		isect->num_traversal_steps = 0; \
+		isect->num_traversed_instances = 0; \
+	} while(0)
+#  define BVH_DEBUG_NEXT_STEP() \
+	do { \
+		++isect->num_traversal_steps; \
+	} while(0)
+#  define BVH_DEBUG_NEXT_INSTANCE() \
+	do { \
+		++isect->num_traversed_instances; \
+	} while(0)
+#else  /* __KERNEL_DEBUG__ */
+#  define BVH_DEBUG_INIT()
+#  define BVH_DEBUG_NEXT_STEP()
+#  define BVH_DEBUG_NEXT_INSTANCE()
+#endif  /* __KERNEL_DEBUG__ */
+
+
 /* Common QBVH functions. */
 #ifdef __QBVH__
 #  include "geom_qbvh.h"
