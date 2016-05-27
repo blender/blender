@@ -405,6 +405,7 @@ static void deg_debug_graphviz_node(const DebugContext &ctx,
 		{
 			ComponentDepsNode *comp_node = (ComponentDepsNode *)node;
 			if (!comp_node->operations.empty()) {
+				deg_debug_graphviz_node_cluster_begin(ctx, node);
 				foreach (DepsNode *op_node, comp_node->operations) {
 					deg_debug_graphviz_node(ctx, op_node);
 				}
