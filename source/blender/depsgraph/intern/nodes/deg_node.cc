@@ -28,10 +28,13 @@
  *  \ingroup depsgraph
  */
 
+#include "intern/nodes/deg_node.h"
+
 #include <stdio.h>
 #include <string.h>
 
 #include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 
 extern "C" {
 #include "DNA_ID.h"
@@ -42,11 +45,13 @@ extern "C" {
 #include "DEG_depsgraph.h"
 }
 
-#include "depsnode.h" /* own include */
-#include "depsnode_component.h"
-#include "depsnode_operation.h"
-#include "depsgraph_intern.h"
-#include "depsgraph_util_foreach.h"
+#include "intern/nodes/deg_node_component.h"
+#include "intern/nodes/deg_node_operation.h"
+#include "intern/depsgraph_intern.h"
+#include "util/deg_util_foreach.h"
+#include "util/deg_util_hash.h"
+
+namespace DEG {
 
 /* *************** */
 /* Node Management */
@@ -67,7 +72,7 @@ DepsNode::TypeInfo::TypeInfo(eDepsNode_Type type, const char *tname)
 
 DepsNode::DepsNode()
 {
-	this->name[0] = '\0';
+	name[0] = '\0';
 }
 
 DepsNode::~DepsNode()
@@ -77,11 +82,9 @@ DepsNode::~DepsNode()
 	 * when we're trying to free same link from both it's sides. We don't have
 	 * dangling links so this is not a problem from memory leaks point of view.
 	 */
-	DEPSNODE_RELATIONS_ITER_BEGIN(this->inlinks, rel)
-	{
+	foreach (DepsRelation *rel, inlinks) {
 		OBJECT_GUARDED_DELETE(rel, DepsRelation);
 	}
-	DEPSNODE_RELATIONS_ITER_END;
 }
 
 
@@ -122,7 +125,7 @@ RootDepsNode::~RootDepsNode()
 TimeSourceDepsNode *RootDepsNode::add_time_source(const string &name)
 {
 	if (!time_source) {
-		DepsNodeFactory *factory = DEG_get_node_factory(DEPSNODE_TYPE_TIMESOURCE);
+		DepsNodeFactory *factory = deg_get_node_factory(DEPSNODE_TYPE_TIMESOURCE);
 		time_source = (TimeSourceDepsNode *)factory->create_node(NULL, "", name);
 		/*time_source->owner = this;*/ // XXX
 	}
@@ -139,6 +142,36 @@ static DepsNodeFactoryImpl<TimeSourceDepsNode> DNTI_TIMESOURCE;
 
 /* ID Node ================================================ */
 
+static unsigned int id_deps_node_hash_key(const void *key_v)
+{
+	const IDDepsNode::ComponentIDKey *key =
+	        reinterpret_cast<const IDDepsNode::ComponentIDKey *>(key_v);
+	return hash_combine(BLI_ghashutil_uinthash(key->type),
+	                    BLI_ghashutil_strhash_p(key->name.c_str()));
+}
+
+static bool id_deps_node_hash_key_cmp(const void *a, const void *b)
+{
+	const IDDepsNode::ComponentIDKey *key_a =
+	        reinterpret_cast<const IDDepsNode::ComponentIDKey *>(a);
+	const IDDepsNode::ComponentIDKey *key_b =
+	        reinterpret_cast<const IDDepsNode::ComponentIDKey *>(b);
+	return !(*key_a == *key_b);
+}
+
+static void id_deps_node_hash_key_free(void *key_v)
+{
+	typedef IDDepsNode::ComponentIDKey ComponentIDKey;
+	ComponentIDKey *key = reinterpret_cast<ComponentIDKey *>(key_v);
+	OBJECT_GUARDED_DELETE(key, ComponentIDKey);
+}
+
+static void id_deps_node_hash_value_free(void *value_v)
+{
+	ComponentDepsNode *comp_node = reinterpret_cast<ComponentDepsNode *>(value_v);
+	OBJECT_GUARDED_DELETE(comp_node, ComponentDepsNode);
+}
+
 /* Initialize 'id' node - from pointer data given. */
 void IDDepsNode::init(const ID *id, const string &UNUSED(subdata))
 {
@@ -147,6 +180,10 @@ void IDDepsNode::init(const ID *id, const string &UNUSED(subdata))
 	this->id = (ID *)id;
 	this->layers = (1 << 20) - 1;
 	this->eval_flags = 0;
+
+	components = BLI_ghash_new(id_deps_node_hash_key,
+	                           id_deps_node_hash_key_cmp,
+	                           "Depsgraph id components hash");
 
 	/* NOTE: components themselves are created if/when needed.
 	 * This prevents problems with components getting added
@@ -158,51 +195,27 @@ void IDDepsNode::init(const ID *id, const string &UNUSED(subdata))
 IDDepsNode::~IDDepsNode()
 {
 	clear_components();
-}
-
-/* Copy 'id' node. */
-void IDDepsNode::copy(DepsgraphCopyContext *dcc, const IDDepsNode *src)
-{
-	(void)src;  /* Ignored. */
-	/* Iterate over items in original hash, adding them to new hash. */
-	for (IDDepsNode::ComponentMap::const_iterator it = this->components.begin();
-	     it != this->components.end();
-	     ++it)
-	{
-		/* Get current <type : component> mapping. */
-		ComponentIDKey c_key    = it->first;
-		DepsNode *old_component = it->second;
-
-		/* Make a copy of component. */
-		ComponentDepsNode *component = (ComponentDepsNode *)DEG_copy_node(dcc, old_component);
-
-		/* Add new node to hash... */
-		this->components[c_key] = component;
-	}
-
-	// TODO: perform a second loop to fix up links?
-	BLI_assert(!"Not expected to be used");
+	BLI_ghash_free(components, id_deps_node_hash_key_free, NULL);
 }
 
 ComponentDepsNode *IDDepsNode::find_component(eDepsNode_Type type,
                                               const string &name) const
 {
 	ComponentIDKey key(type, name);
-	ComponentMap::const_iterator it = components.find(key);
-	return it != components.end() ? it->second : NULL;
+	return reinterpret_cast<ComponentDepsNode *>(BLI_ghash_lookup(components, &key));
 }
 
 ComponentDepsNode *IDDepsNode::add_component(eDepsNode_Type type,
                                              const string &name)
 {
-	ComponentIDKey key(type, name);
 	ComponentDepsNode *comp_node = find_component(type, name);
 	if (!comp_node) {
-		DepsNodeFactory *factory = DEG_get_node_factory(type);
+		DepsNodeFactory *factory = deg_get_node_factory(type);
 		comp_node = (ComponentDepsNode *)factory->create_node(this->id, "", name);
 
 		/* Register. */
-		this->components[key] = comp_node;
+		ComponentIDKey *key = OBJECT_GUARDED_NEW(ComponentIDKey, type, name);
+		BLI_ghash_insert(components, key, comp_node);
 		comp_node->owner = this;
 	}
 	return comp_node;
@@ -210,34 +223,28 @@ ComponentDepsNode *IDDepsNode::add_component(eDepsNode_Type type,
 
 void IDDepsNode::remove_component(eDepsNode_Type type, const string &name)
 {
-	ComponentIDKey key(type, name);
 	ComponentDepsNode *comp_node = find_component(type, name);
 	if (comp_node) {
 		/* Unregister. */
-		this->components.erase(key);
-		OBJECT_GUARDED_DELETE(comp_node, ComponentDepsNode);
+		ComponentIDKey key(type, name);
+		BLI_ghash_remove(components,
+		                 &key,
+		                 id_deps_node_hash_key_free,
+		                 id_deps_node_hash_value_free);
 	}
 }
 
 void IDDepsNode::clear_components()
 {
-	for (ComponentMap::const_iterator it = components.begin();
-	     it != components.end();
-	     ++it)
-	{
-		ComponentDepsNode *comp_node = it->second;
-		OBJECT_GUARDED_DELETE(comp_node, ComponentDepsNode);
-	}
-	components.clear();
+	BLI_ghash_clear(components,
+	                id_deps_node_hash_key_free,
+	                id_deps_node_hash_value_free);
 }
 
 void IDDepsNode::tag_update(Depsgraph *graph)
 {
-	for (ComponentMap::const_iterator it = components.begin();
-	     it != components.end();
-	     ++it)
+	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, components)
 	{
-		ComponentDepsNode *comp_node = it->second;
 		/* TODO(sergey): What about drievrs? */
 		bool do_component_tag = comp_node->type != DEPSNODE_TYPE_ANIMATION;
 		if (comp_node->type == DEPSNODE_TYPE_ANIMATION) {
@@ -251,6 +258,16 @@ void IDDepsNode::tag_update(Depsgraph *graph)
 			comp_node->tag_update(graph);
 		}
 	}
+	GHASH_FOREACH_END();
+}
+
+void IDDepsNode::finalize_build()
+{
+	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, components)
+	{
+		comp_node->finalize_build();
+	}
+	GHASH_FOREACH_END();
 }
 
 DEG_DEPSNODE_DEFINE(IDDepsNode, DEPSNODE_TYPE_ID_REF, "ID Node");
@@ -278,31 +295,21 @@ SubgraphDepsNode::~SubgraphDepsNode()
 	// XXX: prune these flags a bit...
 	if ((this->flag & SUBGRAPH_FLAG_FIRSTREF) || !(this->flag & SUBGRAPH_FLAG_SHARED)) {
 		/* Free the referenced graph. */
-		DEG_graph_free(this->graph);
-		this->graph = NULL;
+		DEG_graph_free(reinterpret_cast< ::Depsgraph* >(graph));
+		graph = NULL;
 	}
-}
-
-/* Copy 'subgraph' node - Assume that the subgraph doesn't get copied for now... */
-void SubgraphDepsNode::copy(DepsgraphCopyContext * /*dcc*/,
-                            const SubgraphDepsNode * /*src*/)
-{
-	//const SubgraphDepsNode *src_node = (const SubgraphDepsNode *)src;
-	//SubgraphDepsNode *dst_node       = (SubgraphDepsNode *)dst;
-
-	/* for now, subgraph itself isn't copied... */
-	BLI_assert(!"Not expected to be used");
 }
 
 DEG_DEPSNODE_DEFINE(SubgraphDepsNode, DEPSNODE_TYPE_SUBGRAPH, "Subgraph Node");
 static DepsNodeFactoryImpl<SubgraphDepsNode> DNTI_SUBGRAPH;
 
-
-void DEG_register_base_depsnodes()
+void deg_register_base_depsnodes()
 {
-	DEG_register_node_typeinfo(&DNTI_ROOT);
-	DEG_register_node_typeinfo(&DNTI_TIMESOURCE);
+	deg_register_node_typeinfo(&DNTI_ROOT);
+	deg_register_node_typeinfo(&DNTI_TIMESOURCE);
 
-	DEG_register_node_typeinfo(&DNTI_ID_REF);
-	DEG_register_node_typeinfo(&DNTI_SUBGRAPH);
+	deg_register_node_typeinfo(&DNTI_ID_REF);
+	deg_register_node_typeinfo(&DNTI_SUBGRAPH);
 }
+
+}  // namespace DEG

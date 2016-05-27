@@ -24,11 +24,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/intern/depsgraph_build_relations.cc
+/** \file blender/depsgraph/intern/builder/deg_builder_relations.cc
  *  \ingroup depsgraph
  *
  * Methods for constructing depsgraph
  */
+
+#include "intern/builder/deg_builder_relations.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -93,15 +95,19 @@ extern "C" {
 #include "RNA_types.h"
 } /* extern "C" */
 
-#include "depsnode.h"
-#include "depsnode_component.h"
-#include "depsnode_operation.h"
-#include "depsgraph_build.h"
-#include "depsgraph_debug.h"
-#include "depsgraph_intern.h"
-#include "depsgraph_types.h"
+#include "intern/builder/deg_builder.h"
+#include "intern/builder/deg_builder_pchanmap.h"
 
-#include "depsgraph_util_pchanmap.h"
+#include "intern/nodes/deg_node.h"
+#include "intern/nodes/deg_node_component.h"
+#include "intern/nodes/deg_node_operation.h"
+
+#include "intern/depsgraph_intern.h"
+#include "intern/depsgraph_types.h"
+
+#include "util/deg_util_foreach.h"
+
+namespace DEG {
 
 /* ***************** */
 /* Relations Builder */
@@ -786,8 +792,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 
 		if (arm_node && bone_name) {
 			/* find objects which use this, and make their eval callbacks depend on this */
-			DEPSNODE_RELATIONS_ITER_BEGIN(arm_node->outlinks, rel)
-			{
+			foreach (DepsRelation *rel, arm_node->outlinks) {
 				IDDepsNode *to_node = (IDDepsNode *)rel->to;
 
 				/* we only care about objects with pose data which use this... */
@@ -801,7 +806,6 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 					}
 				}
 			}
-			DEPSNODE_RELATIONS_ITER_END;
 
 			/* free temp data */
 			MEM_freeN(bone_name);
@@ -1636,13 +1640,18 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 
 			if (mti->updateDepsgraph) {
 				DepsNodeHandle handle = create_node_handle(mod_key);
-				mti->updateDepsgraph(md, bmain, scene, ob, &handle);
+				mti->updateDepsgraph(
+				        md,
+				        bmain,
+				        scene,
+				        ob,
+				        reinterpret_cast< ::DepsNodeHandle* >(&handle));
 			}
 
 			if (BKE_object_modifier_use_time(ob, md)) {
 				TimeSourceKey time_src_key;
 				add_relation(time_src_key, mod_key, DEPSREL_TYPE_TIME, "Time Source");
-				
+
 				/* Hacky fix for T45633 (Animated modifiers aren't updated)
 				 *
 				 * This check works because BKE_object_modifier_use_time() tests
@@ -1952,3 +1961,4 @@ bool DepsgraphRelationBuilder::needs_animdata_node(ID *id)
 	return false;
 }
 
+}  // namespace DEG

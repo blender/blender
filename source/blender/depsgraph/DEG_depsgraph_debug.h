@@ -39,13 +39,10 @@
 extern "C" {
 #endif
 
-struct DepsgraphSettings;
 struct GHash;
 struct ID;
 
 struct Depsgraph;
-struct DepsNode;
-struct DepsRelation;
 
 /* ************************************************ */
 /* Statistics */

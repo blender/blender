@@ -28,21 +28,18 @@
  *  \ingroup depsgraph
  */
 
-#ifndef __DEPSNODE_H__
-#define __DEPSNODE_H__
+#pragma once
 
-#include "depsgraph_types.h"
-
-#include "depsgraph_util_hash.h"
-#include "depsgraph_util_map.h"
-#include "depsgraph_util_set.h"
+#include "intern/depsgraph_types.h"
 
 struct ID;
+struct GHash;
 struct Scene;
+
+namespace DEG {
 
 struct Depsgraph;
 struct DepsRelation;
-struct DepsgraphCopyContext;
 struct OperationDepsNode;
 
 /* *********************************** */
@@ -94,8 +91,6 @@ struct DepsNode {
 
 	virtual void init(const ID * /*id*/,
 	                  const string &/*subdata*/) {}
-	virtual void copy(DepsgraphCopyContext * /*dcc*/,
-	                  const DepsNode * /*src*/) {}
 
 	virtual void tag_update(Depsgraph * /*graph*/) {}
 
@@ -160,24 +155,7 @@ struct IDDepsNode : public DepsNode {
 		string name;
 	};
 
-	/* XXX can't specialize std::hash for this purpose, because ComponentIDKey is
-	 * a nested type ...
-	 *
-	 *   http://stackoverflow.com/a/951245
-	 */
-	struct component_key_hash {
-		bool operator() (const ComponentIDKey &key) const
-		{
-			return hash_combine(hash<int>()(key.type), hash<string>()(key.name));
-		}
-	};
-
-	typedef unordered_map<ComponentIDKey,
-	                      ComponentDepsNode *,
-	                      component_key_hash> ComponentMap;
-
 	void init(const ID *id, const string &subdata);
-	void copy(DepsgraphCopyContext *dcc, const IDDepsNode *src);
 	~IDDepsNode();
 
 	ComponentDepsNode *find_component(eDepsNode_Type type,
@@ -189,11 +167,13 @@ struct IDDepsNode : public DepsNode {
 
 	void tag_update(Depsgraph *graph);
 
+	void finalize_build();
+
 	/* ID Block referenced. */
 	ID *id;
 
 	/* Hash to make it faster to look up components. */
-	ComponentMap components;
+	GHash *components;
 
 	/* Layers of this node with accumulated layers of it's output relations. */
 	int layers;
@@ -210,7 +190,6 @@ struct IDDepsNode : public DepsNode {
 /* Subgraph Reference. */
 struct SubgraphDepsNode : public DepsNode {
 	void init(const ID *id, const string &subdata);
-	void copy(DepsgraphCopyContext *dcc, const SubgraphDepsNode *src);
 	~SubgraphDepsNode();
 
 	/* Instanced graph. */
@@ -243,6 +222,6 @@ typedef enum eSubgraphRef_Flag {
 	SUBGRAPH_FLAG_FIRSTREF    = (1 << 1),
 } eSubgraphRef_Flag;
 
-void DEG_register_base_depsnodes();
+void deg_register_base_depsnodes();
 
-#endif  /* __DEPSNODE_H__ */
+}  // namespace DEG

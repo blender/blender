@@ -24,27 +24,26 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/intern/depsgraph_debug.h
+/** \file blender/depsgraph/intern/eval/deg_eval_debug.h
  *  \ingroup depsgraph
  */
 
-#ifndef __DEPSGRAPH_DEBUG_H__
-#define __DEPSGRAPH_DEBUG_H__
+#pragma once
 
-#include "depsgraph_types.h"
+#include "intern/depsgraph_types.h"
 
-extern "C" {
-#include "BKE_global.h"
-}
+struct ID;
+struct EvaluationContext;
 
 struct DepsgraphStats;
 struct DepsgraphStatsID;
 struct DepsgraphStatsComponent;
-struct DepsgraphSettings;
-struct EvaluationContext;
-struct OperationDepsNode;
+
+namespace DEG {
 
 struct Depsgraph;
+struct DepsgraphSettings;
+struct OperationDepsNode;
 
 struct DepsgraphDebug {
 	static DepsgraphStats *stats;
@@ -77,11 +76,4 @@ struct DepsgraphDebug {
 	}
 };
 
-#define DEG_DEBUG_PRINTF(...) \
-	{ \
-		if (G.debug & G_DEBUG_DEPSGRAPH) { \
-			fprintf(stderr, __VA_ARGS__); \
-		} \
-	} \
-
-#endif  /* __DEPSGRAPH_DEBUG_H__ */
+} // namespace DEG

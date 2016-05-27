@@ -24,26 +24,25 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/util/depsgraph_util_transitive.cc
+/** \file blender/depsgraph/intern/builder/deg_builder_transitive.cc
  *  \ingroup depsgraph
  */
 
+#include "intern/builder/deg_builder_transitive.h"
+
 extern "C" {
 #include "MEM_guardedalloc.h"
-
-#include "BLI_utildefines.h"
-
-#include "DNA_ID.h"
-
-#include "RNA_access.h"
-#include "RNA_types.h"
 }
 
-#include "depsgraph_util_transitive.h"
-#include "depsgraph.h"
-#include "depsnode.h"
-#include "depsnode_component.h"
-#include "depsnode_operation.h"
+#include "intern/nodes/deg_node.h"
+#include "intern/nodes/deg_node_component.h"
+#include "intern/nodes/deg_node_operation.h"
+
+#include "intern/depsgraph.h"
+
+#include "util/deg_util_foreach.h"
+
+namespace DEG {
 
 /* -------------------------------------------------- */
 
@@ -67,16 +66,11 @@ enum {
 
 static void deg_graph_tag_paths_recursive(DepsNode *node)
 {
-	if (node->done & OP_VISITED)
+	if (node->done & OP_VISITED) {
 		return;
+	}
 	node->done |= OP_VISITED;
-
-	for (OperationDepsNode::Relations::const_iterator it = node->inlinks.begin();
-	     it != node->inlinks.end();
-	     ++it)
-	{
-		DepsRelation *rel = *it;
-
+	foreach (DepsRelation *rel, node->inlinks) {
 		deg_graph_tag_paths_recursive(rel->from);
 		/* Do this only in inlinks loop, so the target node does not get
 		 * flagged.
@@ -87,18 +81,9 @@ static void deg_graph_tag_paths_recursive(DepsNode *node)
 
 void deg_graph_transitive_reduction(Depsgraph *graph)
 {
-	for (Depsgraph::OperationNodes::const_iterator it_target = graph->operations.begin();
-	     it_target != graph->operations.end();
-	     ++it_target)
-	{
-		OperationDepsNode *target = *it_target;
-
+	foreach (OperationDepsNode *target, graph->operations) {
 		/* Clear tags. */
-		for (Depsgraph::OperationNodes::const_iterator it = graph->operations.begin();
-		     it != graph->operations.end();
-		     ++it)
-		{
-			OperationDepsNode *node = *it;
+		foreach (OperationDepsNode *node, graph->operations) {
 			node->done = 0;
 		}
 
@@ -107,19 +92,14 @@ void deg_graph_transitive_reduction(Depsgraph *graph)
 		 * flagged.
 		 */
 		target->done |= OP_VISITED;
-		for (OperationDepsNode::Relations::const_iterator it = target->inlinks.begin();
-		     it != target->inlinks.end();
-		     ++it)
-		{
-			DepsRelation *rel = *it;
-
+		foreach (DepsRelation *rel, target->inlinks) {
 			deg_graph_tag_paths_recursive(rel->from);
 		}
 
-		/* Eemove redundant paths to the target. */
+		/* Remove redundant paths to the target. */
 		for (DepsNode::Relations::const_iterator it_rel = target->inlinks.begin();
 		     it_rel != target->inlinks.end();
-		     )
+		    )
 		{
 			DepsRelation *rel = *it_rel;
 			/* Increment in advance, so we can safely remove the relation. */
@@ -137,3 +117,5 @@ void deg_graph_transitive_reduction(Depsgraph *graph)
 		}
 	}
 }
+
+}  // namespace DEG

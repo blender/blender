@@ -24,12 +24,15 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/util/depsgraph_util_pchanmap.h
+/** \file blender/depsgraph/intern/builder/deg_builder_pchanmap.h
  *  \ingroup depsgraph
  */
 
-#ifndef __DEPSGRAPH_UTIL_PCHANMAP_H__
-#define __DEPSGRAPH_UTIL_PCHANMAP_H__
+#pragma once
+
+struct GHash;
+
+namespace DEG {
 
 struct RootPChanMap {
 	/* ctor and dtor - Create and free the internal map respectively. */
@@ -45,7 +48,7 @@ struct RootPChanMap {
 	/* Check if there's a common root bone between two bones. */
 	bool has_common_root(const char *bone1, const char *bone2);
 
-private:
+protected:
 	/* The actual map:
 	 * - Keys are "strings" (const char *) - not dynamically allocated.
 	 * - Values are "sets" (const char *) - not dynamically allocated.
@@ -53,7 +56,7 @@ private:
 	 * We don't use the C++ maps here, as it's more convenient to use
 	 * Blender's GHash and be able to compare by-value instead of by-ref.
 	 */
-	struct GHash *m_map;
+	struct GHash *map_;
 };
 
-#endif  /* __DEPSGRAPH_UTIL_PCHANMAP_H__ */
+}  // namespace DEG

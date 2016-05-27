@@ -24,12 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/util/depsgraph_util_function.h
+/** \file blender/depsgraph/util/deg_util_function.h
  *  \ingroup depsgraph
  */
 
-#ifndef __DEPSGRAPH_UTIL_FUNCTION_H__
-#define __DEPSGRAPH_UTIL_FUNCTION_H__
+#pragma once
 
 #if (__cplusplus > 199711L)
 
@@ -108,5 +107,3 @@ void *function_bind(T func,
 #define _4 Wrap()
 
 #endif
-
-#endif  /* __DEPSGRAPH_UTIL_FUNCTION_H__ */

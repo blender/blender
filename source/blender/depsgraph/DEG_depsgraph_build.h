@@ -43,9 +43,6 @@ struct Depsgraph;
 struct Main;
 struct Scene;
 
-struct PointerRNA;
-struct PropertyRNA;
-
 #ifdef __cplusplus
 extern "C" {
 #endif

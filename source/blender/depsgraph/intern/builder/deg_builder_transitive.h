@@ -15,40 +15,26 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2013 Blender Foundation.
+ * The Original Code is Copyright (C) 2015 Blender Foundation.
  * All rights reserved.
  *
- * Original Author: Joshua Leung
- * Contributor(s): Sergey Sharybin
+ * Contributor(s): Lukas Toenne
+ *                 Sergey Sharybin,
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/DEG_depsgraph_query.h
+/** \file blender/depsgraph/intern/builder/deg_builder_transitive.h
  *  \ingroup depsgraph
- *
- * Public API for Querying and Filtering Depsgraph.
  */
 
-#ifndef __DEG_DEPSGRAPH_QUERY_H__
-#define __DEG_DEPSGRAPH_QUERY_H__
+#pragma once
 
-struct ID;
+namespace DEG {
 
 struct Depsgraph;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/* Performs a transitive reduction to remove redundant relations. */
+void deg_graph_transitive_reduction(Depsgraph *graph);
 
-/* Check if given ID type was tagged for update. */
-bool DEG_id_type_tagged(struct Main *bmain, short idtype);
-
-/* Get additional evaluation flags for the given ID. */
-short DEG_get_eval_flags_for_id(struct Depsgraph *graph, struct ID *id);
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
-
-#endif  /* __DEG_DEPSGRAPH_QUERY_H__ */
+}  // namespace DEG

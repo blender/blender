@@ -28,21 +28,22 @@
  *  \ingroup depsgraph
  */
 
-#ifndef __DEPSNODE_COMPONENT_H__
-#define __DEPSNODE_COMPONENT_H__
+#pragma once
 
-#include "depsnode.h"
+#include "intern/nodes/deg_node.h"
 
-#include "depsgraph_util_hash.h"
-#include "depsgraph_util_map.h"
-#include "depsgraph_util_set.h"
+#include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 struct ID;
 struct bPoseChannel;
+struct GHash;
+
+struct EvaluationContext;
+
+namespace DEG {
 
 struct Depsgraph;
-struct DepsgraphCopyContext;
-struct EvaluationContext;
 struct OperationDepsNode;
 struct BoneComponentDepsNode;
 
@@ -75,7 +76,7 @@ struct ComponentDepsNode : public DepsNode {
 		string identifier() const
 		{
 			char codebuf[5];
-			sprintf(codebuf, "%d", opcode);
+			BLI_snprintf(codebuf, sizeof(codebuf), "%d", opcode);
 
 			return string("OperationIDKey(") + codebuf + ", " + name + ")";
 		}
@@ -86,47 +87,41 @@ struct ComponentDepsNode : public DepsNode {
 		}
 	};
 
-	/* XXX can't specialize std::hash for this purpose, because ComponentKey is a nested type ...
-	 * http://stackoverflow.com/a/951245
-	 */
-	struct operation_key_hash {
-		bool operator() (const OperationIDKey &key) const
-		{
-			return hash_combine(hash<int>()(key.opcode), hash<string>()(key.name));
-		}
-	};
-
 	/* Typedef for container of operations */
-	typedef unordered_map<OperationIDKey, OperationDepsNode *, operation_key_hash> OperationMap;
-
-
 	ComponentDepsNode();
 	~ComponentDepsNode();
 
 	void init(const ID *id, const string &subdata);
-	void copy(DepsgraphCopyContext *dcc, const ComponentDepsNode *src);
 
 	string identifier() const;
 
 	/* Find an existing operation, will throw an assert() if it does not exist. */
 	OperationDepsNode *find_operation(OperationIDKey key) const;
-	OperationDepsNode *find_operation(eDepsOperation_Code opcode, const string &name) const;
+	OperationDepsNode *find_operation(eDepsOperation_Code opcode,
+	                                  const string &name) const;
 
 	/* Check operation exists and return it. */
 	OperationDepsNode *has_operation(OperationIDKey key) const;
-	OperationDepsNode *has_operation(eDepsOperation_Code opcode, const string &name) const;
+	OperationDepsNode *has_operation(eDepsOperation_Code opcode,
+	                                 const string &name) const;
 
 	/**
 	 * Create a new node for representing an operation and add this to graph
-	 * \warning If an existing node is found, it will be modified. This helps when node may
-	 * have been partially created earlier (e.g. parent ref before parent item is added)
+	 * \warning If an existing node is found, it will be modified. This helps
+	 * when node may have been partially created earlier (e.g. parent ref before
+	 * parent item is added)
 	 *
-	 * \param type: Operation node type (corresponding to context/component that it operates in)
-	 * \param optype: Role that operation plays within component (i.e. where in eval process)
+	 * \param type: Operation node type (corresponding to context/component that
+	 *              it operates in)
+	 * \param optype: Role that operation plays within component
+	 *                (i.e. where in eval process)
 	 * \param op: The operation to perform
 	 * \param name: Identifier for operation - used to find/locate it again
 	 */
-	OperationDepsNode *add_operation(eDepsOperation_Type optype, DepsEvalOperationCb op, eDepsOperation_Code opcode, const string &name);
+	OperationDepsNode *add_operation(eDepsOperation_Type optype,
+	                                 DepsEvalOperationCb op,
+	                                 eDepsOperation_Code opcode,
+	                                 const string &name);
 
 	void remove_operation(eDepsOperation_Code opcode, const string &name);
 	void clear_operations();
@@ -135,9 +130,13 @@ struct ComponentDepsNode : public DepsNode {
 
 	/* Evaluation Context Management .................. */
 
-	/* Initialize component's evaluation context used for the specified purpose */
+	/* Initialize component's evaluation context used for the specified
+	 * purpose.
+	 */
 	virtual bool eval_context_init(EvaluationContext * /*eval_ctx*/) { return false; }
-	/* Free data in component's evaluation context which is used for the specified purpose
+	/* Free data in component's evaluation context which is used for
+	 * the specified purpose
+	 *
 	 * NOTE: this does not free the actual context in question
 	 */
 	virtual void eval_context_free(EvaluationContext * /*eval_ctx*/) {}
@@ -145,9 +144,22 @@ struct ComponentDepsNode : public DepsNode {
 	OperationDepsNode *get_entry_operation();
 	OperationDepsNode *get_exit_operation();
 
+	void finalize_build();
+
 	IDDepsNode *owner;
 
-	OperationMap operations;    /* inner nodes for this component */
+	/* ** Inner nodes for this component ** */
+
+	/* Operations stored as a hash map, for faster build.
+	 * This hash map will be freed when graph is fully built.
+	 */
+	GHash *operations_map;
+
+	/* This is a "normal" list of operations, used by evaluation
+	 * and other routines after construction.
+	 */
+	vector<OperationDepsNode *> operations;
+
 	OperationDepsNode *entry_operation;
 	OperationDepsNode *exit_operation;
 
@@ -204,6 +216,6 @@ struct ShadingComponentDepsNode : public ComponentDepsNode {
 };
 
 
-void DEG_register_component_depsnodes();
+void deg_register_component_depsnodes();
 
-#endif  /* __DEPSNODE_COMPONENT_H__ */
+}  // namespace DEG

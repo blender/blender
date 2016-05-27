@@ -15,24 +15,38 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2015 Blender Foundation.
+ * The Original Code is Copyright (C) 2013 Blender Foundation.
  * All rights reserved.
  *
- * Contributor(s): Lukas Toenne
- *                 Sergey Sharybin,
+ * Original Author: Joshua Leung
+ * Contributor(s): None Yet
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/util/depsgraph_util_transitive.h
+/** \file blender/depsgraph/intern/eval/deg_eval.cc
  *  \ingroup depsgraph
+ *
+ * Evaluation engine entrypoints for Depsgraph Engine.
  */
 
-#ifndef __DEPSGRAPH_UTIL_TRANSITIVE_H__
-#define __DEPSGRAPH_UTIL_TRANSITIVE_H__
+#pragma once
+
+struct EvaluationContext;
+
+namespace DEG {
 
 struct Depsgraph;
 
-void deg_graph_transitive_reduction(Depsgraph *graph);
+/**
+ * Evaluate all nodes tagged for updating,
+ * \warning This is usually done as part of main loop, but may also be
+ * called from frame-change update.
+ *
+ * \note Time sources should be all valid!
+ */
+void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
+                             Depsgraph *graph,
+                             const int layers);
 
-#endif  /* __DEPSGRAPH_UTIL_TRANSITIVE_H__ */
+}  // namespace DEG

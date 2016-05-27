@@ -24,12 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/util/depsgraph_util_foreach.h
+/** \file blender/depsgraph/util/deg_util_foreach.h
  *  \ingroup depsgraph
  */
 
-#ifndef __DEPSGRAPH_UTIL_FOREACH_H__
-#define __DEPSGRAPH_UTIL_FOREACH_H__
+#pragma once
 
 #if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
 #  define foreach(x, y) for(x : y)
@@ -48,4 +47,22 @@
 #  define foreach(x, y) for (x; false; (void)y)
 #endif
 
-#endif  /* __DEPSGRAPH_UTIL_FOREACH_H__ */
+#define GHASH_FOREACH_BEGIN(type, var, what) \
+	do { \
+		GHashIterator gh_iter##var; \
+		GHASH_ITER(gh_iter##var, what) { \
+			type var = reinterpret_cast<type>(BLI_ghashIterator_getValue(&gh_iter##var)); \
+
+#define GHASH_FOREACH_END() \
+		} \
+	} while(0)
+
+#define GSET_FOREACH_BEGIN(type, var, what) \
+	do { \
+		GSetIterator gh_iter##var; \
+		GSET_ITER(gh_iter##var, what) { \
+			type var = reinterpret_cast<type>(BLI_gsetIterator_getKey(&gh_iter##var)); \
+
+#define GSET_FOREACH_END() \
+		} \
+	} while(0)

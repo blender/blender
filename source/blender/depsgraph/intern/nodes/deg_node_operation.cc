@@ -28,28 +28,19 @@
  *  \ingroup depsgraph
  */
 
+#include "intern/nodes/deg_node_operation.h"
+
 #include "MEM_guardedalloc.h"
 
 extern "C" {
 #include "BLI_utildefines.h"
 } /* extern "C" */
 
-#include "depsnode_operation.h" /* own include */
-#include "depsnode_component.h"
-#include "depsgraph.h"
-#include "depsgraph_intern.h"
+#include "intern/depsgraph.h"
+#include "intern/depsgraph_intern.h"
+#include "util/deg_util_hash.h"
 
-/* ******************************************************************* */
-/* OpNode Identifiers Array - Exported to other depsgraph files too... */
-
-/* identifiers for operations */
-const char *DEG_OPNAMES[] = {
-#define DEF_DEG_OPCODE(label) #label,
-#include "depsnode_opcodes.h"
-#undef DEF_DEG_OPCODE
-
-	"<Invalid>"
-};
+namespace DEG {
 
 /* *********** */
 /* Inner Nodes */
@@ -67,7 +58,6 @@ OperationDepsNode::~OperationDepsNode()
 
 string OperationDepsNode::identifier() const
 {
-	BLI_assert((opcode > 0) && (opcode < ARRAY_SIZE(DEG_OPNAMES)));
 	return string(DEG_OPNAMES[opcode]) + "(" + name + ")";
 }
 
@@ -99,7 +89,9 @@ void OperationDepsNode::tag_update(Depsgraph *graph)
 DEG_DEPSNODE_DEFINE(OperationDepsNode, DEPSNODE_TYPE_OPERATION, "Operation");
 static DepsNodeFactoryImpl<OperationDepsNode> DNTI_OPERATION;
 
-void DEG_register_operation_depsnodes()
+void deg_register_operation_depsnodes()
 {
-	DEG_register_node_typeinfo(&DNTI_OPERATION);
+	deg_register_node_typeinfo(&DNTI_OPERATION);
 }
+
+}  // namespace DEG

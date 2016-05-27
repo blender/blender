@@ -28,15 +28,15 @@
  *  \ingroup depsgraph
  */
 
-#ifndef __DEPSNODE_OPERATION_H__
-#define __DEPSNODE_OPERATION_H__
+#pragma once
 
-#include "depsnode.h"
+#include "intern/nodes/deg_node.h"
 
 struct ID;
 
 struct Depsgraph;
-struct DepsgraphCopyContext;
+
+namespace DEG {
 
 /* Flags for Depsgraph Nodes */
 typedef enum eDepsOperation_Flag {
@@ -44,10 +44,14 @@ typedef enum eDepsOperation_Flag {
 	DEPSOP_FLAG_NEEDS_UPDATE       = (1 << 0),
 
 	/* node was directly modified, causing need for update */
-	/* XXX: intention is to make it easier to tell when we just need to take subgraphs */
+	/* XXX: intention is to make it easier to tell when we just need to
+	 * take subgraphs.
+	 */
 	DEPSOP_FLAG_DIRECTLY_MODIFIED  = (1 << 1),
 
-	/* Operation is evaluated using CPython; has GIL and security implications... */
+	/* Operation is evaluated using CPython; has GIL and security
+	 * implications...
+	 */
 	DEPSOP_FLAG_USES_PYTHON   = (1 << 2),
 } eDepsOperation_Flag;
 
@@ -68,19 +72,26 @@ struct OperationDepsNode : public DepsNode {
 	OperationDepsNode *get_entry_operation() { return this; }
 	OperationDepsNode *get_exit_operation() { return this; }
 
-	ComponentDepsNode *owner;     /* component that contains the operation */
+	/* Component that contains the operation. */
+	ComponentDepsNode *owner;
 
-	DepsEvalOperationCb evaluate; /* callback for operation */
+	/* Callback for operation. */
+	DepsEvalOperationCb evaluate;
 
 
-	uint32_t num_links_pending; /* how many inlinks are we still waiting on before we can be evaluated... */
+	/* How many inlinks are we still waiting on before we can be evaluated. */
+	uint32_t num_links_pending;
 	float eval_priority;
 	bool scheduled;
 
-	short optype;                 /* (eDepsOperation_Type) stage of evaluation */
-	int   opcode;                 /* (eDepsOperation_Code) identifier for the operation being performed */
+	/* Stage of evaluation */
+	eDepsOperation_Type optype;
 
-	int flag;                     /* (eDepsOperation_Flag) extra settings affecting evaluation */
+	/* Identifier for the operation being performed. */
+	eDepsOperation_Code opcode;
+
+	/* (eDepsOperation_Flag) extra settings affecting evaluation. */
+	int flag;
 
 	/* Extra customdata mask which needs to be evaluated for the object. */
 	uint64_t customdata_mask;
@@ -88,6 +99,6 @@ struct OperationDepsNode : public DepsNode {
 	DEG_DEPSNODE_DECLARE;
 };
 
-void DEG_register_operation_depsnodes();
+void deg_register_operation_depsnodes();
 
-#endif  /* __DEPSNODE_OPERATION_H__ */
+}  // namespace DEG

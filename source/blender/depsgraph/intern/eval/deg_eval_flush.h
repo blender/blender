@@ -24,46 +24,26 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/intern/depsgraph_query.cc
+/** \file blender/depsgraph/intern/eval/deg_eval_flush.cc
  *  \ingroup depsgraph
  *
- * Implementation of Querying and Filtering API's
+ * Core routines for how the Depsgraph works.
  */
 
-#include "MEM_guardedalloc.h"
+#pragma once
 
-extern "C" {
-#include "BKE_main.h"
+struct Main;
 
-#include "DEG_depsgraph_query.h"
-} /* extern "C" */
+namespace DEG {
 
-#include "intern/depsgraph_intern.h"
+struct Depsgraph;
 
-bool DEG_id_type_tagged(Main *bmain, short idtype)
-{
-	return bmain->id_tag_update[((unsigned char *)&idtype)[0]] != 0;
-}
+/* Flush updates from tagged nodes outwards until all affected nodes
+ * are tagged.
+ */
+void deg_graph_flush_updates(struct Main *bmain, struct Depsgraph *graph);
 
-short DEG_get_eval_flags_for_id(Depsgraph *graph, ID *id)
-{
-	if (graph == NULL) {
-		/* Happens when converting objects to mesh from a python script
-		 * after modifying scene graph.
-		 *
-		 * Currently harmless because it's only called for temporary
-		 * objects which are out of the DAG anyway.
-		 */
-		return 0;
-	}
+/* Clear tags from all operation nodes. */
+void deg_graph_clear_tags(struct Depsgraph *graph);
 
-	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
-
-	DEG::IDDepsNode *id_node = deg_graph->find_id_node(id);
-	if (id_node == NULL) {
-		/* TODO(sergey): Does it mean we need to check set scene? */
-		return 0;
-	}
-
-	return id_node->eval_flags;
-}
+}  // namespace DEG

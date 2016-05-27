@@ -15,40 +15,32 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2013 Blender Foundation.
+ * The Original Code is Copyright (C) 2016 Blender Foundation.
  * All rights reserved.
  *
- * Original Author: Joshua Leung
- * Contributor(s): Sergey Sharybin
+ * Original Author: Sergey Sharybin
+ * Contributor(s): None Yet
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/DEG_depsgraph_query.h
+/** \file blender/depsgraph/intern/build/deg_builder.h
  *  \ingroup depsgraph
- *
- * Public API for Querying and Filtering Depsgraph.
  */
 
-#ifndef __DEG_DEPSGRAPH_QUERY_H__
-#define __DEG_DEPSGRAPH_QUERY_H__
+#pragma once
 
-struct ID;
+#include "intern/depsgraph_types.h"
+
+struct FCurve;
+
+namespace DEG {
 
 struct Depsgraph;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/* Get unique identifier for FCurves and Drivers */
+string deg_fcurve_id_name(const FCurve *fcu);
 
-/* Check if given ID type was tagged for update. */
-bool DEG_id_type_tagged(struct Main *bmain, short idtype);
+void deg_graph_build_finalize(struct Depsgraph *graph);
 
-/* Get additional evaluation flags for the given ID. */
-short DEG_get_eval_flags_for_id(struct Depsgraph *graph, struct ID *id);
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
-
-#endif  /* __DEG_DEPSGRAPH_QUERY_H__ */
+}  // namespace DEG
