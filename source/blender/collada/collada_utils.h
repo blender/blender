@@ -34,6 +34,7 @@
 
 #include <vector>
 #include <map>
+#include <algorithm>
 
 extern "C" {
 #include "DNA_object_types.h"

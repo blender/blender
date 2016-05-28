@@ -517,7 +517,7 @@ void BoneExtended::set_bone_layers(std::string layerString, std::vector<std::str
 		if (isInteger(layer))
 		{
 			pos = atoi(layer.c_str());
-			if (pos >= 0 || pos < 32) {
+			if (pos >= 0 && pos < 32) {
 				this->bone_layers = bc_set_layer(this->bone_layers, pos);
 				continue;
 			}
