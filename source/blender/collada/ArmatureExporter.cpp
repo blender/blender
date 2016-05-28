@@ -186,7 +186,7 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene *sce,
 
 			bArmature *armature = (bArmature *)ob_arm->data;
 			EditBone *ebone = bc_get_edit_bone(armature, bone->name);
-			if (ebone && ebone->roll > 0)
+			if (ebone && ebone->roll != 0)
 			{
 				node.addExtraTechniqueParameter("blender", "roll", ebone->roll);
 			}
