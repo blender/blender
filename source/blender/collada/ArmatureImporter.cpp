@@ -50,19 +50,6 @@ static const char *bc_get_joint_name(T *node)
 	return id.size() ? id.c_str() : node->getOriginalId().c_str();
 }
 
-static EditBone *get_edit_bone(bArmature * armature, char *name) {
-	EditBone  *eBone;
-
-	for (eBone = (EditBone *)armature->edbo->first; eBone; eBone = eBone->next) {
-		if (STREQ(name, eBone->name))
-			return eBone;
-	}
-
-	return NULL;
-
-}
-
-
 
 ArmatureImporter::ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, Scene *sce, const ImportSettings *import_settings) :
 	import_settings(import_settings),
@@ -157,9 +144,11 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 	if (parent) bone->parent = parent;
 
 	float loc[3], size[3], rot[3][3]; 
-	float angle;
 
 	BoneExtended &be = add_bone_extended(bone, node);
+	int layer = be.get_bone_layers();
+	if (layer) bone->layer = layer;
+	arm->layer |= layer; // ensure that all populated bone layers are visible after import
 
 	float *tail = be.get_tail();
 	int use_connect = be.get_use_connect();
@@ -171,10 +160,16 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 	case -1: break; // not defined
 	}
 
-	mat4_to_loc_rot_size(loc, rot, size, mat);
-	mat3_to_vec_roll(rot, NULL, &angle);
+	if (be.has_roll()) {
+		bone->roll = be.get_roll();
+	} 
+	else {
+		float angle;
+		mat4_to_loc_rot_size(loc, rot, size, mat);
+		mat3_to_vec_roll(rot, NULL, &angle);
+	}
 
-	bone->roll = angle;
+
 	copy_v3_v3(bone->head, mat[3]);
 	add_v3_v3v3(bone->tail, bone->head, tail); //tail must be non zero
 
@@ -224,12 +219,12 @@ void ArmatureImporter::fix_leaf_bones(bArmature *armature, Bone *bone)
 	if (bc_is_leaf_bone(bone)) {
 
 		BoneExtended *be = extended_bones[bone->name];
-		if (be == NULL || !be->has_custom_tail()) {
+		if (be == NULL || !be->has_tail()) {
 
 			/* Collada only knows Joints, Here we guess a reasonable leaf bone length */
 			float leaf_length = (leaf_bone_length == FLT_MAX) ? 1.0 : leaf_bone_length;
 
-			EditBone *ebone = get_edit_bone(armature, bone->name);
+			EditBone *ebone = bc_get_edit_bone(armature, bone->name);
 			float vec[3];
 
 			if (ebone->parent != NULL) {
@@ -303,8 +298,8 @@ void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone
 	BoneExtended *pbe = extended_bones[parentbone->name];
 	if (dominant_child != NULL) {
 		/* Found a valid chain. Now connect current bone with that chain.*/
-		EditBone *pebone = get_edit_bone(armature, parentbone->name);
-		EditBone *cebone = get_edit_bone(armature, dominant_child->get_name());
+		EditBone *pebone = bc_get_edit_bone(armature, parentbone->name);
+		EditBone *cebone = bc_get_edit_bone(armature, dominant_child->get_name());
 		if (pebone && !(cebone->flag & BONE_CONNECTED)) {
 
 			float vec[3];
@@ -467,6 +462,7 @@ void ArmatureImporter::create_armature_bones( )
 		clear_extended_boneset();
 
 		ED_armature_to_edit(armature);
+		armature->layer = 0; // layer is set according to imported bone set in create_bone()
 
 		create_bone(NULL, *ri , NULL, (*ri)->getChildNodes().getCount(), NULL, armature);
 
@@ -925,84 +921,6 @@ bool ArmatureImporter::get_joint_bind_mat(float m[4][4], COLLADAFW::Node *joint)
 	return found;
 }
 
-
-/**
-  * BoneExtended is a helper class needed for the Bone chain finder
-  * See ArmatureImporter::fix_leaf_bones()
-  * and ArmatureImporter::connect_bone_chains()
-  **/
-
-BoneExtended::BoneExtended(EditBone *aBone) 
-{
-	this->set_name(aBone->name);
-	this->chain_length = 0;
-	this->is_leaf      = false;
-	this->tail[0]      = 0.0f;
-	this->tail[1]      = 0.5f;
-	this->tail[2]      = 0.0f;
-	this->use_connect  = -1;
-	this->has_tail     = false;
-}
-
-char *BoneExtended::get_name() 
-{
-	return name;
-}
-
-void BoneExtended::set_name(char *aName) 
-{
-	BLI_strncpy(name, aName, MAXBONENAME);
-}
-
-int BoneExtended::get_chain_length() 
-{
-	return chain_length;
-}
-
-void BoneExtended::set_chain_length(const int aLength) 
-{
-	chain_length = aLength;
-}
-
-void BoneExtended::set_leaf_bone(bool state)
-{
-	is_leaf = state;
-}
-
-bool BoneExtended::is_leaf_bone()
-{
-	return is_leaf;
-}
-
-void BoneExtended::set_tail(float vec[])
-{
-	this->tail[0] = vec[0];
-	this->tail[1] = vec[1];
-	this->tail[2] = vec[2];
-	this->has_tail = true;
-}
-
-bool BoneExtended::has_custom_tail()
-{
-	return this->has_tail;
-}
-
-float *BoneExtended::get_tail()
-{
-	return this->tail;
-}
-
-void BoneExtended::set_use_connect(int use_connect)
-{
-	this->use_connect = use_connect;
-}
-
-int BoneExtended::get_use_connect()
-{
-	return this->use_connect;
-}
-
-
 BoneExtended &ArmatureImporter::add_bone_extended(EditBone *bone, COLLADAFW::Node *node)
 {
 	BoneExtended *be = new BoneExtended(bone);
@@ -1014,23 +932,30 @@ BoneExtended &ArmatureImporter::add_bone_extended(EditBone *bone, COLLADAFW::Nod
 	if (etit != uid_tags_map.end()) {
 
 		float tail[3] = { FLT_MAX, FLT_MAX, FLT_MAX };
-		int use_connect   = -1;
+		float roll = 0;
+		int use_connect = -1;
+		std::string layers;
 
 		et = etit->second;
-		et->setData("tip_x",   &tail[0]);
-		et->setData("tip_y",   &tail[1]);
-		et->setData("tip_z",   &tail[2]);
-		et->setData("connect", &use_connect);
 
-		if (!(tail[0] == FLT_MAX || tail[1] == FLT_MAX || tail[2] == FLT_MAX))
+		bool has_tail = false;
+		has_tail |= et->setData("tip_x", &tail[0]);
+		has_tail |= et->setData("tip_y", &tail[1]);
+		has_tail |= et->setData("tip_z", &tail[2]);
+
+		bool has_connect = et->setData("connect", &use_connect);
+		bool has_roll    = et->setData("roll", &roll);
+		
+		layers = et->setData("layer", layers);
+
+		if (has_tail && !has_connect)
 		{
-			if (use_connect == -1)
-			{
-				use_connect = 0; // got a bone tail definition but no connect info -> bone is not connected
-			}
+			use_connect = 0; // got a bone tail definition but no connect info -> bone is not connected
 		}
 
-		be->set_tail(tail);
+		be->set_bone_layers(layers);
+		if (has_tail) be->set_tail(tail);
+		if (has_roll) be->set_roll(roll);
 		be->set_use_connect(use_connect);
 	}
 	be->set_leaf_bone(true);

@@ -59,37 +59,6 @@ extern "C" {
 #define UNLIMITED_CHAIN_MAX INT_MAX
 #define MINIMUM_BONE_LENGTH 0.000001f
 
-class BoneExtended {
-
-private:
-	char  name[MAXBONENAME];
-	int   chain_length;
-	bool  is_leaf;
-	float tail[3];
-	bool  use_connect;
-	bool  has_tail;
-
-public:
-
-	BoneExtended(EditBone *aBone);
-
-	void set_name(char *aName);
-	char *get_name();
-
-	void set_chain_length(const int aLength);
-	int  get_chain_length();
-
-	void set_leaf_bone(bool state);
-	bool is_leaf_bone();
-
-	void set_tail(float *vec);
-	float *get_tail();
-	bool has_custom_tail();
-
-	void set_use_connect(int use_connect);
-	int get_use_connect();
-};
-
 class ArmatureImporter : private TransformReader
 {
 private:

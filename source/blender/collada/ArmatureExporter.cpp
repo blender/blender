@@ -67,12 +67,19 @@ void ArmatureExporter::add_armature_bones(Object *ob_arm, Scene *sce,
                                           std::list<Object *>& child_objects)
 {
 	// write bone nodes
+
+	bArmature * armature = (bArmature *)ob_arm->data;
+	ED_armature_to_edit(armature);
+
 	bArmature *arm = (bArmature *)ob_arm->data;
 	for (Bone *bone = (Bone *)arm->bonebase.first; bone; bone = bone->next) {
 		// start from root bones
 		if (!bone->parent)
 			add_bone_node(bone, ob_arm, sce, se, child_objects);
 	}
+
+	ED_armature_from_edit(armature);
+	ED_armature_edit_free(armature);
 }
 
 void ArmatureExporter::write_bone_URLs(COLLADASW::InstanceController &ins, Object *ob_arm, Bone *bone)
@@ -174,7 +181,15 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene *sce,
 					node.addExtraTechniqueParameter("blender", "connect", true);
 				}
 			}
+			std::string layers = BoneExtended::get_bone_layers(bone->layer);
+			node.addExtraTechniqueParameter("blender", "layer", layers);
 
+			bArmature *armature = (bArmature *)ob_arm->data;
+			EditBone *ebone = bc_get_edit_bone(armature, bone->name);
+			if (ebone && ebone->roll > 0)
+			{
+				node.addExtraTechniqueParameter("blender", "roll", ebone->roll);
+			}
 			if (bc_is_leaf_bone(bone))
 			{
 				node.addExtraTechniqueParameter("blender", "tip_x", bone->arm_tail[0] - bone->arm_head[0]);

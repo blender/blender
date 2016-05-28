@@ -85,32 +85,45 @@ std::string ExtraTags::asString(std::string tag, bool *ok)
 }
 
 
-void ExtraTags::setData(std::string tag, short *data)
+bool ExtraTags::setData(std::string tag, short *data)
 {
 	bool ok = false;
 	int tmp = asInt(tag, &ok);
 	if (ok)
 		*data = (short)tmp;
+	return ok;
 }
-void ExtraTags::setData(std::string tag, int *data)
+
+bool ExtraTags::setData(std::string tag, int *data)
 {
 	bool ok = false;
 	int tmp = asInt(tag, &ok);
 	if (ok)
 		*data = tmp;
+	return ok;
 }
-void ExtraTags::setData(std::string tag, float *data)
+
+bool ExtraTags::setData(std::string tag, float *data)
 {
 	bool ok = false;
 	float tmp = asFloat(tag, &ok);
 	if (ok)
 		*data = tmp;
+	return ok;
 }
-void ExtraTags::setData(std::string tag, char *data)
+
+bool ExtraTags::setData(std::string tag, char *data)
 {
 	bool ok = false;
 	int tmp = asInt(tag, &ok);
 	if (ok)
 		*data = (char)tmp;
+	return ok;
 }
-	
+
+std::string ExtraTags::setData(std::string tag, std::string &data)
+{
+	bool ok = false;
+	std::string tmp = asString(tag, &ok);
+	return (ok) ? tmp : data;
+}

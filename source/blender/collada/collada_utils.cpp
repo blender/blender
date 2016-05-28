@@ -54,6 +54,8 @@ extern "C" {
 #include "BKE_scene.h"
 #include "BKE_DerivedMesh.h"
 
+#include "ED_armature.h"
+
 #include "WM_api.h" // XXX hrm, see if we can do without this
 #include "WM_types.h"
 
@@ -377,4 +379,193 @@ bool bc_is_leaf_bone(Bone *bone)
 			return false;
 	}
 	return true;
+}
+
+EditBone *bc_get_edit_bone(bArmature * armature, char *name) {
+	EditBone  *eBone;
+
+	for (eBone = (EditBone *)armature->edbo->first; eBone; eBone = eBone->next) {
+		if (STREQ(name, eBone->name))
+			return eBone;
+	}
+
+	return NULL;
+
+}
+int bc_set_layer(int bitfield, int layer)
+{
+	return bc_set_layer(bitfield, layer, true); /* enable */
+}
+
+int bc_set_layer(int bitfield, int layer, bool enable)
+{
+	int bit = 1u << layer;
+
+	if (enable)
+		bitfield |= bit;
+	else
+		bitfield &= ~bit;
+
+	return bitfield;
+}
+
+/**
+* BoneExtended is a helper class needed for the Bone chain finder
+* See ArmatureImporter::fix_leaf_bones()
+* and ArmatureImporter::connect_bone_chains()
+**/
+
+BoneExtended::BoneExtended(EditBone *aBone)
+{
+	this->set_name(aBone->name);
+	this->chain_length = 0;
+	this->is_leaf = false;
+	this->tail[0] = 0.0f;
+	this->tail[1] = 0.5f;
+	this->tail[2] = 0.0f;
+	this->use_connect = -1;
+	this->roll = 0;
+	this->bone_layers = 0;
+
+	this->has_custom_tail = false;
+	this->has_custom_roll = false;
+}
+
+char *BoneExtended::get_name()
+{
+	return name;
+}
+
+void BoneExtended::set_name(char *aName)
+{
+	BLI_strncpy(name, aName, MAXBONENAME);
+}
+
+int BoneExtended::get_chain_length()
+{
+	return chain_length;
+}
+
+void BoneExtended::set_chain_length(const int aLength)
+{
+	chain_length = aLength;
+}
+
+void BoneExtended::set_leaf_bone(bool state)
+{
+	is_leaf = state;
+}
+
+bool BoneExtended::is_leaf_bone()
+{
+	return is_leaf;
+}
+
+void BoneExtended::set_roll(float roll)
+{
+	this->roll = roll;
+	this->has_custom_roll = true;
+}
+
+bool BoneExtended::has_roll()
+{
+	return this->has_custom_roll;
+}
+
+float BoneExtended::get_roll()
+{
+	return this->roll;
+}
+
+void BoneExtended::set_tail(float vec[])
+{
+	this->tail[0] = vec[0];
+	this->tail[1] = vec[1];
+	this->tail[2] = vec[2];
+	this->has_custom_tail = true;
+}
+
+bool BoneExtended::has_tail()
+{
+	return this->has_custom_tail;
+}
+
+float *BoneExtended::get_tail()
+{
+	return this->tail;
+}
+
+inline bool isInteger(const std::string & s)
+{
+	if (s.empty() || ((!isdigit(s[0])) && (s[0] != '-') && (s[0] != '+'))) return false;
+
+	char * p;
+	strtol(s.c_str(), &p, 10);
+
+	return (*p == 0);
+}
+
+void BoneExtended::set_bone_layers(std::string layerString)
+{
+	std::stringstream ss(layerString);
+	std::istream_iterator<std::string> begin(ss);
+	std::istream_iterator<std::string> end;
+	std::vector<std::string> layers(begin, end);
+
+	for (std::vector<std::string>::iterator it = layers.begin(); it != layers.end(); ++it) {
+		std::string layer = *it;
+		int index = -1;
+
+		if (isInteger(layer))
+		{
+			index = std::stoi(layer);
+			if (index < 0 || index > 31)
+				index - 1;
+		}
+
+		if (index == -1)
+		{
+			//TODO
+			int x = index;
+		}
+
+		if (index != -1)
+		{
+			this->bone_layers = bc_set_layer(this->bone_layers, index);
+		}
+	}
+}
+
+std::string BoneExtended::get_bone_layers(int bitfield)
+{
+	std::string result = "";
+	std::string sep = "";
+	int bit = 1u;
+
+	for (int i = 0; i < 32; i++)
+	{
+		if (bit & bitfield)
+		{
+			result += sep + std::to_string(i);
+			sep = " ";
+		}
+		bit = bit << 1;
+	}
+	return result;
+}
+
+int BoneExtended::get_bone_layers()
+{
+	return (bone_layers == 0) ? 1 : bone_layers; // ensure that the bone is in at least one bone layer!
+}
+
+
+void BoneExtended::set_use_connect(int use_connect)
+{
+	this->use_connect = use_connect;
+}
+
+int BoneExtended::get_use_connect()
+{
+	return this->use_connect;
 }

@@ -43,17 +43,18 @@ public:
 	bool addTag(std::string tag, std::string data);
 	
 	/** Set given short pointer to value of tag, if it exists. */
-	void setData(std::string tag, short *data);
+	bool setData(std::string tag, short *data);
 	
 	/** Set given int pointer to value of tag, if it exists. */
-	void setData(std::string tag, int *data);
+	bool setData(std::string tag, int *data);
 	
 	/** Set given float pointer to value of tag, if it exists. */
-	void setData(std::string tag, float *data);
+	bool setData(std::string tag, float *data);
 	
 	/** Set given char pointer to value of tag, if it exists. */
-	void setData(std::string tag, char *data);
-	
+	bool setData(std::string tag, char *data);
+	std::string setData(std::string tag, std::string &data);
+
 	/** Return true if the extra tags is for specified profile. */
 	bool isProfile(std::string profile);
 	
