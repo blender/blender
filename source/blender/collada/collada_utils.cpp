@@ -505,34 +505,41 @@ inline bool isInteger(const std::string & s)
 	return (*p == 0);
 }
 
-void BoneExtended::set_bone_layers(std::string layerString)
+void BoneExtended::set_bone_layers(std::string layerString, std::vector<std::string> &layer_labels)
 {
 	std::stringstream ss(layerString);
-	std::istream_iterator<std::string> begin(ss);
-	std::istream_iterator<std::string> end;
-	std::vector<std::string> layers(begin, end);
+	std::string layer;
+	int pos;
 
-	for (std::vector<std::string>::iterator it = layers.begin(); it != layers.end(); ++it) {
-		std::string layer = *it;
-		int index = -1;
+	while (ss >> layer) {
 
+		/* Blender uses numbers to specify layers*/
 		if (isInteger(layer))
 		{
-			index = std::stoi(layer);
-			if (index < 0 || index > 31)
-				index - 1;
+			pos = std::stoi(layer);
+			if (pos >= 0 || pos < 32) {
+				this->bone_layers = bc_set_layer(this->bone_layers, pos);
+				continue;
+			}
 		}
 
-		if (index == -1)
-		{
-			//TODO
-			int x = index;
+		/* layer uses labels (not supported by blender). Map to layer numbers:*/
+		pos = find(layer_labels.begin(), layer_labels.end(), layer) - layer_labels.begin();
+		if (pos >= layer_labels.size()) {
+			layer_labels.push_back(layer); /* remember layer number for future usage*/
 		}
 
-		if (index != -1)
+		if (pos > 31)
 		{
-			this->bone_layers = bc_set_layer(this->bone_layers, index);
+			fprintf(stderr, "Too many layers in Import. Layer %s mapped to Blender layer 31\n", layer.c_str());
+			pos = 31;
 		}
+
+		/* If numeric layers and labeled layers are used in parallel (unlikely),
+		   we get a potential mixup. Just leave as is for now.
+		*/
+		this->bone_layers = bc_set_layer(this->bone_layers, pos);
+
 	}
 }
 

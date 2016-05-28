@@ -106,9 +106,9 @@ private:
 #endif
 
 	int create_bone(SkinInfo* skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
-	                 float parent_mat[4][4], bArmature *arm);
+		float parent_mat[4][4], bArmature *arm, std::vector<std::string> &layer_labels);
 
-	BoneExtended &add_bone_extended(EditBone *bone, COLLADAFW::Node * node);
+	BoneExtended &add_bone_extended(EditBone *bone, COLLADAFW::Node * node, std::vector<std::string> &layer_labels);
 	void clear_extended_boneset();
 
 	void fix_leaf_bones(bArmature *armature, Bone *bone);

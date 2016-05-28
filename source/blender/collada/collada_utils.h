@@ -136,7 +136,7 @@ public:
 	void set_leaf_bone(bool state);
 	bool is_leaf_bone();
 
-	void set_bone_layers(std::string layers);
+	void set_bone_layers(std::string layers, std::vector<std::string> &layer_labels);
 	int get_bone_layers();
 	static std::string get_bone_layers(int bitfield);
 

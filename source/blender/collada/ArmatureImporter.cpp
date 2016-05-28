@@ -97,7 +97,7 @@ JointData *ArmatureImporter::get_joint_data(COLLADAFW::Node *node);
 #endif
 
 int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
-                                   float parent_mat[4][4], bArmature *arm)
+	float parent_mat[4][4], bArmature *arm, std::vector<std::string> &layer_labels)
 {
 	float mat[4][4];
 	float joint_inv_bind_mat[4][4];
@@ -145,7 +145,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 
 	float loc[3], size[3], rot[3][3]; 
 
-	BoneExtended &be = add_bone_extended(bone, node);
+	BoneExtended &be = add_bone_extended(bone, node, layer_labels);
 	int layer = be.get_bone_layers();
 	if (layer) bone->layer = layer;
 	arm->layer |= layer; // ensure that all populated bone layers are visible after import
@@ -162,13 +162,12 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 
 	if (be.has_roll()) {
 		bone->roll = be.get_roll();
-	} 
+	}
 	else {
 		float angle;
 		mat4_to_loc_rot_size(loc, rot, size, mat);
 		mat3_to_vec_roll(rot, NULL, &angle);
 	}
-
 
 	copy_v3_v3(bone->head, mat[3]);
 	add_v3_v3v3(bone->tail, bone->head, tail); //tail must be non zero
@@ -190,7 +189,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 	COLLADAFW::NodePointerArray& children = node->getChildNodes();
 
 	for (unsigned int i = 0; i < children.getCount(); i++) {
-		int cl = create_bone(skin, children[i], bone, children.getCount(), mat, arm);
+		int cl = create_bone(skin, children[i], bone, children.getCount(), mat, arm, layer_labels);
 		if (cl > chain_length)
 			chain_length = cl;
 	}
@@ -438,6 +437,7 @@ ArmatureJoints& ArmatureImporter::get_armature_joints(Object *ob_arm)
 void ArmatureImporter::create_armature_bones( )
 {
 	std::vector<COLLADAFW::Node *>::iterator ri;
+	std::vector<std::string> layer_labels;
 
 	leaf_bone_length = FLT_MAX;
 	//if there is an armature created for root_joint next root_joint
@@ -464,7 +464,7 @@ void ArmatureImporter::create_armature_bones( )
 		ED_armature_to_edit(armature);
 		armature->layer = 0; // layer is set according to imported bone set in create_bone()
 
-		create_bone(NULL, *ri , NULL, (*ri)->getChildNodes().getCount(), NULL, armature);
+		create_bone(NULL, *ri , NULL, (*ri)->getChildNodes().getCount(), NULL, armature, layer_labels);
 
 		/* exit armature edit mode to populate the Armature object */
 		ED_armature_from_edit(armature);
@@ -540,6 +540,7 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 	SkinInfo *a = &skin;
 	Object *shared = NULL;
 	std::vector<COLLADAFW::Node *> skin_root_joints;
+	std::vector<std::string> layer_labels;
 
 	std::map<COLLADAFW::UniqueId, SkinInfo>::iterator it;
 	for (it = skin_by_data_uid.begin(); it != skin_by_data_uid.end(); it++) {
@@ -605,7 +606,7 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 
 		// since root_joints may contain joints for multiple controllers, we need to filter
 		if (skin.uses_joint_or_descendant(*ri)) {
-			create_bone(&skin, *ri, NULL, (*ri)->getChildNodes().getCount(), NULL, armature);
+			create_bone(&skin, *ri, NULL, (*ri)->getChildNodes().getCount(), NULL, armature, layer_labels);
 
 			if (joint_parent_map.find((*ri)->getUniqueId()) != joint_parent_map.end() && !skin.get_parent())
 				skin.set_parent(joint_parent_map[(*ri)->getUniqueId()]);
@@ -921,7 +922,7 @@ bool ArmatureImporter::get_joint_bind_mat(float m[4][4], COLLADAFW::Node *joint)
 	return found;
 }
 
-BoneExtended &ArmatureImporter::add_bone_extended(EditBone *bone, COLLADAFW::Node *node)
+BoneExtended &ArmatureImporter::add_bone_extended(EditBone *bone, COLLADAFW::Node *node, std::vector<std::string> &layer_labels)
 {
 	BoneExtended *be = new BoneExtended(bone);
 	extended_bones[bone->name] = be;
@@ -953,7 +954,7 @@ BoneExtended &ArmatureImporter::add_bone_extended(EditBone *bone, COLLADAFW::Nod
 			use_connect = 0; // got a bone tail definition but no connect info -> bone is not connected
 		}
 
-		be->set_bone_layers(layers);
+		be->set_bone_layers(layers, layer_labels);
 		if (has_tail) be->set_tail(tail);
 		if (has_roll) be->set_roll(roll);
 		be->set_use_connect(use_connect);
