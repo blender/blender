@@ -516,7 +516,7 @@ void BoneExtended::set_bone_layers(std::string layerString, std::vector<std::str
 		/* Blender uses numbers to specify layers*/
 		if (isInteger(layer))
 		{
-			pos = std::stoi(layer);
+			pos = atoi(layer.c_str());
 			if (pos >= 0 || pos < 32) {
 				this->bone_layers = bc_set_layer(this->bone_layers, pos);
 				continue;
@@ -549,16 +549,17 @@ std::string BoneExtended::get_bone_layers(int bitfield)
 	std::string sep = "";
 	int bit = 1u;
 
+	std::ostringstream ss;
 	for (int i = 0; i < 32; i++)
 	{
 		if (bit & bitfield)
 		{
-			result += sep + std::to_string(i);
+			ss << sep << i;
 			sep = " ";
 		}
 		bit = bit << 1;
 	}
-	return result;
+	return ss.str();
 }
 
 int BoneExtended::get_bone_layers()
