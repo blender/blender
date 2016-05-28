@@ -30,6 +30,8 @@
  * Implementation of tools for debugging the depsgraph
  */
 
+#include <cstring>
+
 #include "intern/eval/deg_eval_debug.h"
 
 extern "C" {
