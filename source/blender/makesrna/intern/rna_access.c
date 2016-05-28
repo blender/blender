@@ -4642,7 +4642,47 @@ char *RNA_path_from_ID_to_struct(PointerRNA *ptr)
 	return ptrpath;
 }
 
-char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
+static void rna_path_array_multi_from_flat_index(
+        const int dimsize[RNA_MAX_ARRAY_LENGTH], const int totdims,
+        const int index_dim, int index,
+        int r_index_multi[RNA_MAX_ARRAY_LENGTH])
+{
+	int dimsize_step[RNA_MAX_ARRAY_LENGTH + 1];
+	int i = totdims - 1;
+	dimsize_step[i + 1] = 1;
+	dimsize_step[i] = dimsize[i];
+	while (--i != -1) {
+		dimsize_step[i] = dimsize[i] * dimsize_step[i + 1];
+	}
+	while (++i != index_dim) {
+		int index_round = index / dimsize_step[i + 1];
+		r_index_multi[i] = index_round;
+		index -= (index_round * dimsize_step[i + 1]);
+	}
+	BLI_assert(index == 0);
+}
+
+static void rna_path_array_multi_string_from_flat_index(
+        PointerRNA *ptr, PropertyRNA *prop, int index_dim, int index,
+        char *index_str, int index_str_len)
+{
+	int dimsize[RNA_MAX_ARRAY_LENGTH];
+	int totdims = RNA_property_array_dimension(ptr, prop, dimsize);
+	int index_multi[RNA_MAX_ARRAY_LENGTH];
+
+	rna_path_array_multi_from_flat_index(dimsize, totdims, index_dim, index, index_multi);
+
+	for (int i = 0, offset = 0; (i < index_dim) && (offset < index_str_len); i++) {
+		offset += BLI_snprintf_rlen(&index_str[offset], index_str_len - offset, "[%d]", index_multi[i]);
+	}
+}
+
+/**
+ * \param index_dim: The dimensiuon to show, 0 disables. 1 for 1d array, 2 for 2d. etc.
+ * \param index: The *flattened* index to use when \a ``index_dim > 0``,
+ * this is expanded when used with multi-dimensional arrays.
+ */
+char *RNA_path_from_ID_to_property_index(PointerRNA *ptr, PropertyRNA *prop, int index_dim, int index)
 {
 	const bool is_rna = (prop->magic == RNA_MAGIC);
 	const char *propname;
@@ -4656,25 +4696,36 @@ char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
 
 	propname = RNA_property_identifier(prop);
 
+	/* support indexing w/ multi-dimensional arrays */
+	char index_str[RNA_MAX_ARRAY_LENGTH * 12 + 1];
+	if (index_dim == 0) {
+		index_str[0] = '\0';
+	}
+	else {
+		rna_path_array_multi_string_from_flat_index(
+		        ptr, prop, index_dim, index,
+		        index_str, sizeof(index_str));
+	}
+
 	if (ptrpath) {
 		if (is_rna) {
-			path = BLI_sprintfN("%s.%s", ptrpath, propname);
+			path = BLI_sprintfN("%s.%s%s", ptrpath, propname, index_str);
 		}
 		else {
 			char propname_esc[MAX_IDPROP_NAME * 2];
 			BLI_strescape(propname_esc, propname, sizeof(propname_esc));
-			path = BLI_sprintfN("%s[\"%s\"]", ptrpath, propname_esc);
+			path = BLI_sprintfN("%s[\"%s\"]%s", ptrpath, propname_esc, index_str);
 		}
 		MEM_freeN(ptrpath);
 	}
 	else if (RNA_struct_is_ID(ptr->type)) {
 		if (is_rna) {
-			path = BLI_strdup(propname);
+			path = BLI_sprintfN("%s%s", propname, index_str);
 		}
 		else {
 			char propname_esc[MAX_IDPROP_NAME * 2];
 			BLI_strescape(propname_esc, propname, sizeof(propname_esc));
-			path = BLI_sprintfN("[\"%s\"]", propname_esc);
+			path = BLI_sprintfN("[\"%s\"]%s", propname_esc, index_str);
 		}
 	}
 	else {
@@ -4682,6 +4733,11 @@ char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
 	}
 
 	return path;
+}
+
+char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
+{
+	return RNA_path_from_ID_to_property_index(ptr, prop, 0, -1);
 }
 
 /**
