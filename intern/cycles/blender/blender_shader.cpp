@@ -179,25 +179,25 @@ static void set_default_value(ShaderInput *input,
 	/* copy values for non linked inputs */
 	switch(input->type()) {
 		case SocketType::FLOAT: {
-			input->value_float() = get_float(b_sock.ptr, "default_value");
+			input->set(get_float(b_sock.ptr, "default_value"));
 			break;
 		}
 		case SocketType::INT: {
-			input->value_float() = (float)get_int(b_sock.ptr, "default_value");
+			input->set(get_int(b_sock.ptr, "default_value"));
 			break;
 		}
 		case SocketType::COLOR: {
-			input->value() = float4_to_float3(get_float4(b_sock.ptr, "default_value"));
+			input->set(float4_to_float3(get_float4(b_sock.ptr, "default_value")));
 			break;
 		}
 		case SocketType::NORMAL:
 		case SocketType::POINT:
 		case SocketType::VECTOR: {
-			input->value() = get_float3(b_sock.ptr, "default_value");
+			input->set(get_float3(b_sock.ptr, "default_value"));
 			break;
 		}
 		case SocketType::STRING: {
-			input->value_string() = (ustring)blender_absolute_path(b_data, b_id, get_string(b_sock.ptr, "default_value"));
+			input->set((ustring)blender_absolute_path(b_data, b_id, get_string(b_sock.ptr, "default_value")));
 			break;
 		}
 		default:
@@ -1225,7 +1225,7 @@ void BlenderSync::sync_materials(bool update_all)
 				ShaderNode *closure, *out;
 
 				closure = graph->add(new DiffuseBsdfNode());
-				closure->input("Color")->value() = get_float3(b_mat->diffuse_color());
+				closure->input("Color")->set(get_float3(b_mat->diffuse_color()));
 				out = graph->output();
 
 				graph->connect(closure->output("BSDF"), out->input("Surface"));
@@ -1274,7 +1274,7 @@ void BlenderSync::sync_world(bool update_all)
 			ShaderNode *closure, *out;
 
 			closure = graph->add(new BackgroundNode());
-			closure->input("Color")->value() = get_float3(b_world.horizon_color());
+			closure->input("Color")->set(get_float3(b_world.horizon_color()));
 			out = graph->output();
 
 			graph->connect(closure->output("Background"), out->input("Surface"));
@@ -1367,8 +1367,8 @@ void BlenderSync::sync_lamps(bool update_all)
 				}
 
 				closure = graph->add(new EmissionNode());
-				closure->input("Color")->value() = get_float3(b_lamp->color());
-				closure->input("Strength")->value_float() = strength;
+				closure->input("Color")->set(get_float3(b_lamp->color()));
+				closure->input("Strength")->set(strength);
 				out = graph->output();
 
 				graph->connect(closure->output("Emission"), out->input("Surface"));

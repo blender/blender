@@ -470,8 +470,8 @@ void ShaderGraph::remove_proxy_nodes()
 					disconnect(to);
 
 					/* transfer the default input value to the target socket */
-					to->value() = input->value();
-					to->value_string() = input->value_string();
+					to->set(input->value());
+					to->set(input->value_string());
 				}
 			}
 
@@ -537,14 +537,13 @@ void ShaderGraph::constant_fold()
 				}
 			}
 			/* Optimize current node. */
-			float3 optimized_value = make_float3(0.0f, 0.0f, 0.0f);
-			if(node->constant_fold(this, output, &optimized_value)) {
-				/* Apply optimized value to connected sockets. */
+			if(node->constant_fold(this, output, output->links[0])) {
+				/* Apply optimized value to other connected sockets and disconnect. */
 				vector<ShaderInput*> links(output->links);
-				foreach(ShaderInput *input, links) {
-					/* Assign value and disconnect the optimizedinput. */
-					input->value() = optimized_value;
-					disconnect(input);
+				for(size_t i = 0; i < links.size(); i++) {
+					if(i > 0)
+						links[i]->set(links[0]->value());
+					disconnect(links[i]);
 				}
 			}
 		}
@@ -935,7 +934,7 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
 			if(fin->link)
 				connect(fin->link, fac_in);
 			else
-				fac_in->value_float() = fin->value_float();
+				fac_in->set(fin->value_float());
 
 			if(weight_out)
 				connect(weight_out, weight_in);
@@ -970,12 +969,12 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
 			if(weight_in->link)
 				connect(weight_in->link, value1_in);
 			else
-				value1_in->value() = weight_in->value();
+				value1_in->set(weight_in->value_float());
 
 			if(weight_out)
 				connect(weight_out, value2_in);
 			else
-				value2_in->value_float() = 1.0f;
+				value2_in->set(1.0f);
 
 			weight_out = math_node->output("Value");
 			if(weight_in->link)
@@ -986,7 +985,7 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
 		if(weight_out)
 			connect(weight_out, weight_in);
 		else
-			weight_in->value_float() += 1.0f;
+			weight_in->set(weight_in->value_float() + 1.0f);
 	}
 }
 

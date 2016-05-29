@@ -85,6 +85,11 @@ public:
 	int flags() { return flags_; }
 	SocketType::Type type() { return type_; }
 
+	void set(float f) { value_.x = f; }
+	void set(float3 f) { value_ = f; }
+	void set(int i) { value_.x = (float)i; }
+	void set(ustring s) { value_string_ = s; }
+
 	float3& value() { return value_; }
 	float& value_float() { return value_.x; }
 	ustring& value_string() { return value_string_; }
@@ -148,7 +153,7 @@ public:
 
 	/* ** Node optimization ** */
 	/* Check whether the node can be replaced with single constant. */
-	virtual bool constant_fold(ShaderGraph * /*graph*/, ShaderOutput * /*socket*/, float3 * /*optimized_value*/) { return false; }
+	virtual bool constant_fold(ShaderGraph * /*graph*/, ShaderOutput * /*socket*/, ShaderInput * /*optimized*/) { return false; }
 
 	/* Simplify settings used by artists to the ones which are simpler to
 	 * evaluate in the kernel but keep the final result unchanged.

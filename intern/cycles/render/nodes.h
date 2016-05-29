@@ -366,7 +366,7 @@ class RGBToBWNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(RGBToBWNode)
 
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 };
 
 class ConvertNode : public ShaderNode {
@@ -374,7 +374,7 @@ public:
 	ConvertNode(SocketType::Type from, SocketType::Type to, bool autoconvert = false);
 	SHADER_NODE_BASE_CLASS(ConvertNode)
 
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 
 	SocketType::Type from, to;
 
@@ -491,7 +491,7 @@ public:
 class EmissionNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(EmissionNode)
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual ClosureType get_closure_type() { return CLOSURE_EMISSION_ID; }
 
 	bool has_surface_emission() { return true; }
@@ -500,7 +500,7 @@ public:
 class BackgroundNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(BackgroundNode)
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual ClosureType get_closure_type() { return CLOSURE_BACKGROUND_ID; }
 };
 
@@ -646,7 +646,7 @@ class ValueNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(ValueNode)
 
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 
 	float value;
 
@@ -661,7 +661,7 @@ class ColorNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(ColorNode)
 
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 
 	float3 value;
 
@@ -680,7 +680,7 @@ public:
 class MixClosureNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(MixClosureNode)
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 };
 
 class MixClosureWeightNode : public ShaderNode {
@@ -698,7 +698,7 @@ public:
 class MixNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(MixNode)
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
@@ -741,7 +741,7 @@ class GammaNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(GammaNode)
 
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 
 	virtual int get_group() { return NODE_GROUP_LEVEL_1; }
 };
@@ -832,7 +832,7 @@ public:
 class BlackbodyNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(BlackbodyNode)
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 };
@@ -841,7 +841,7 @@ class MathNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(MathNode)
 	virtual int get_group() { return NODE_GROUP_LEVEL_1; }
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 
 	bool use_clamp;
 
@@ -876,7 +876,7 @@ class VectorMathNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(VectorMathNode)
 	virtual int get_group() { return NODE_GROUP_LEVEL_1; }
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 
 	ustring type;
 	static NodeEnum type_enum;
@@ -914,7 +914,7 @@ public:
 class BumpNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(BumpNode)
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	bool has_spatial_varying() { return true; }
 	virtual int get_feature() {
 		return NODE_FEATURE_BUMP;
