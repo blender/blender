@@ -48,7 +48,7 @@ void EdgeDice::reserve(int num_verts, int num_tris)
 	vert_offset = mesh->verts.size();
 	tri_offset = mesh->triangles.size();
 
-	mesh->resize_mesh(vert_offset + num_verts, tri_offset + num_tris);
+	mesh->resize_mesh(vert_offset + num_verts, tri_offset);
 
 	Attribute *attr_vN = mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
 
@@ -80,7 +80,13 @@ int EdgeDice::add_vert(Patch *patch, float2 uv)
 
 void EdgeDice::add_triangle(Patch *patch, int v0, int v1, int v2)
 {
-	params.mesh->add_triangle(v0, v1, v2, params.shader, params.smooth, false);
+	Mesh *mesh = params.mesh;
+
+	/* todo: optimize so we can reserve in advance, this is like push_back_slow() */
+	if(mesh->triangles.size() == mesh->triangles.capacity())
+		mesh->reserve_mesh(mesh->verts.size(), size_t(max(mesh->triangles.size() + 1, 1) * 1.2));
+
+	mesh->add_triangle(v0, v1, v2, params.shader, params.smooth, false);
 
 	if(params.ptex) {
 		Attribute *attr_ptex_face_id = params.mesh->attributes.add(ATTR_STD_PTEX_FACE_ID);

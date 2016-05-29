@@ -876,6 +876,11 @@ static void xml_read_mesh(const XMLReadState& state, pugi::xml_node node)
 		/* create vertices */
 		mesh->verts = P;
 
+		size_t num_triangles = 0;
+		for(size_t i = 0; i < nverts.size(); i++)
+			num_triangles += nverts[i]-2;
+		mesh->reserve_mesh(mesh->verts.size(), num_triangles);
+
 		/* create triangles */
 		int index_offset = 0;
 
