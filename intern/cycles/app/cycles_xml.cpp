@@ -215,24 +215,6 @@ static bool xml_equal_string(pugi::xml_node node, const char *name, const char *
 	return false;
 }
 
-static bool xml_read_enum(ustring *str, NodeEnum& enm, pugi::xml_node node, const char *name)
-{
-	pugi::xml_attribute attr = node.attribute(name);
-
-	if(attr) {
-		ustring ustr(attr.value());
-
-		if(enm.exists(ustr)) {
-			*str = ustr;
-			return true;
-		}
-		else
-			fprintf(stderr, "Unknown value \"%s\" for attribute \"%s\".\n", ustr.c_str(), name);
-	}
-
-	return false;
-}
-
 static bool xml_read_enum_value(int *value, NodeEnum& enm, pugi::xml_node node, const char *name)
 {
 	pugi::xml_attribute attr = node.attribute(name);
@@ -305,8 +287,8 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 			xml_read_string(&img->filename, node, "src");
 			img->filename = path_join(state.base, img->filename);
 			
-			xml_read_enum(&img->color_space, ImageTextureNode::color_space_enum, node, "color_space");
-			xml_read_enum(&img->projection, ImageTextureNode::projection_enum, node, "projection");
+			xml_read_enum_value((int*)&img->color_space, ImageTextureNode::color_space_enum, node, "color_space");
+			xml_read_enum_value((int*)&img->projection, ImageTextureNode::projection_enum, node, "projection");
 			xml_read_float(&img->projection_blend, node, "projection_blend");
 
 			/* ToDo: Interpolation */
@@ -319,8 +301,8 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 			xml_read_string(&env->filename, node, "src");
 			env->filename = path_join(state.base, env->filename);
 			
-			xml_read_enum(&env->color_space, EnvironmentTextureNode::color_space_enum, node, "color_space");
-			xml_read_enum(&env->projection, EnvironmentTextureNode::projection_enum, node, "projection");
+			xml_read_enum_value((int*)&env->color_space, EnvironmentTextureNode::color_space_enum, node, "color_space");
+			xml_read_enum_value((int*)&env->projection, EnvironmentTextureNode::projection_enum, node, "projection");
 
 			snode = env;
 		}
@@ -350,7 +332,7 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 		else if(string_iequals(node.name(), "sky_texture")) {
 			SkyTextureNode *sky = new SkyTextureNode();
 			
-			xml_read_enum(&sky->type, SkyTextureNode::type_enum, node, "type");
+			xml_read_enum_value((int*)&sky->type, SkyTextureNode::type_enum, node, "type");
 			xml_read_float3(&sky->sun_direction, node, "sun_direction");
 			xml_read_float(&sky->turbidity, node, "turbidity");
 			xml_read_float(&sky->ground_albedo, node, "ground_albedo");
@@ -375,17 +357,17 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 		}
 		else if(string_iequals(node.name(), "gradient_texture")) {
 			GradientTextureNode *blend = new GradientTextureNode();
-			xml_read_enum(&blend->type, GradientTextureNode::type_enum, node, "type");
+			xml_read_enum_value((int*)&blend->type, GradientTextureNode::type_enum, node, "type");
 			snode = blend;
 		}
 		else if(string_iequals(node.name(), "voronoi_texture")) {
 			VoronoiTextureNode *voronoi = new VoronoiTextureNode();
-			xml_read_enum(&voronoi->coloring, VoronoiTextureNode::coloring_enum, node, "coloring");
+			xml_read_enum_value((int*)&voronoi->coloring, VoronoiTextureNode::coloring_enum, node, "coloring");
 			snode = voronoi;
 		}
 		else if(string_iequals(node.name(), "musgrave_texture")) {
 			MusgraveTextureNode *musgrave = new MusgraveTextureNode();
-			xml_read_enum(&musgrave->type, MusgraveTextureNode::type_enum, node, "type");
+			xml_read_enum_value((int*)&musgrave->type, MusgraveTextureNode::type_enum, node, "type");
 			snode = musgrave;
 		}
 		else if(string_iequals(node.name(), "magic_texture")) {
@@ -395,8 +377,8 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 		}
 		else if(string_iequals(node.name(), "wave_texture")) {
 			WaveTextureNode *wave = new WaveTextureNode();
-			xml_read_enum(&wave->type, WaveTextureNode::type_enum, node, "type");
-			xml_read_enum(&wave->profile, WaveTextureNode::profile_enum, node, "profile");
+			xml_read_enum_value((int*)&wave->type, WaveTextureNode::type_enum, node, "type");
+			xml_read_enum_value((int*)&wave->profile, WaveTextureNode::profile_enum, node, "profile");
 			snode = wave;
 		}
 		else if(string_iequals(node.name(), "normal")) {
@@ -431,7 +413,7 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 		}
 		else if(string_iequals(node.name(), "anisotropic_bsdf")) {
 			AnisotropicBsdfNode *aniso = new AnisotropicBsdfNode();
-			xml_read_enum(&aniso->distribution, AnisotropicBsdfNode::distribution_enum, node, "distribution");
+			xml_read_enum_value((int*)&aniso->distribution, AnisotropicBsdfNode::distribution_enum, node, "distribution");
 			snode = aniso;
 		}
 		else if(string_iequals(node.name(), "diffuse_bsdf")) {
@@ -448,27 +430,27 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 		}
 		else if(string_iequals(node.name(), "toon_bsdf")) {
 			ToonBsdfNode *toon = new ToonBsdfNode();
-			xml_read_enum(&toon->component, ToonBsdfNode::component_enum, node, "component");
+			xml_read_enum_value((int*)&toon->component, ToonBsdfNode::component_enum, node, "component");
 			snode = toon;
 		}
 		else if(string_iequals(node.name(), "glossy_bsdf")) {
 			GlossyBsdfNode *glossy = new GlossyBsdfNode();
-			xml_read_enum(&glossy->distribution, GlossyBsdfNode::distribution_enum, node, "distribution");
+			xml_read_enum_value((int*)&glossy->distribution, GlossyBsdfNode::distribution_enum, node, "distribution");
 			snode = glossy;
 		}
 		else if(string_iequals(node.name(), "glass_bsdf")) {
 			GlassBsdfNode *diel = new GlassBsdfNode();
-			xml_read_enum(&diel->distribution, GlassBsdfNode::distribution_enum, node, "distribution");
+			xml_read_enum_value((int*)&diel->distribution, GlassBsdfNode::distribution_enum, node, "distribution");
 			snode = diel;
 		}
 		else if(string_iequals(node.name(), "refraction_bsdf")) {
 			RefractionBsdfNode *diel = new RefractionBsdfNode();
-			xml_read_enum(&diel->distribution, RefractionBsdfNode::distribution_enum, node, "distribution");
+			xml_read_enum_value((int*)&diel->distribution, RefractionBsdfNode::distribution_enum, node, "distribution");
 			snode = diel;
 		}
 		else if(string_iequals(node.name(), "hair_bsdf")) {
 			HairBsdfNode *hair = new HairBsdfNode();
-			xml_read_enum(&hair->component, HairBsdfNode::component_enum, node, "component");
+			xml_read_enum_value((int*)&hair->component, HairBsdfNode::component_enum, node, "component");
 			snode = hair;
 		}
 		else if(string_iequals(node.name(), "emission")) {
@@ -546,7 +528,7 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 		else if(string_iequals(node.name(), "mix")) {
 			/* ToDo: Tag Mix case for optimization */
 			MixNode *mix = new MixNode();
-			xml_read_enum(&mix->type, MixNode::type_enum, node, "type");
+			xml_read_enum_value((int*)&mix->type, MixNode::type_enum, node, "type");
 			xml_read_bool(&mix->use_clamp, node, "use_clamp");
 			snode = mix;
 		}
@@ -610,32 +592,32 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 		else if(string_iequals(node.name(), "normal_map")) {
 			NormalMapNode *nmap = new NormalMapNode;
 			xml_read_ustring(&nmap->attribute, node, "attribute");
-			xml_read_enum(&nmap->space, NormalMapNode::space_enum, node, "space");
+			xml_read_enum_value((int*)&nmap->space, NormalMapNode::space_enum, node, "space");
 			snode = nmap;
 		}
 		else if(string_iequals(node.name(), "tangent")) {
 			TangentNode *tangent = new TangentNode;
 			xml_read_ustring(&tangent->attribute, node, "attribute");
-			xml_read_enum(&tangent->direction_type, TangentNode::direction_type_enum, node, "direction_type");
-			xml_read_enum(&tangent->axis, TangentNode::axis_enum, node, "axis");
+			xml_read_enum_value((int*)&tangent->direction_type, TangentNode::direction_type_enum, node, "direction_type");
+			xml_read_enum_value((int*)&tangent->axis, TangentNode::axis_enum, node, "axis");
 			snode = tangent;
 		}
 		else if(string_iequals(node.name(), "math")) {
 			MathNode *math = new MathNode();
-			xml_read_enum(&math->type, MathNode::type_enum, node, "type");
+			xml_read_enum_value((int*)&math->type, MathNode::type_enum, node, "type");
 			xml_read_bool(&math->use_clamp, node, "use_clamp");
 			snode = math;
 		}
 		else if(string_iequals(node.name(), "vector_math")) {
 			VectorMathNode *vmath = new VectorMathNode();
-			xml_read_enum(&vmath->type, VectorMathNode::type_enum, node, "type");
+			xml_read_enum_value((int*)&vmath->type, VectorMathNode::type_enum, node, "type");
 			snode = vmath;
 		}
 		else if(string_iequals(node.name(), "vector_transform")) {
 			VectorTransformNode *vtransform = new VectorTransformNode();
-			xml_read_enum(&vtransform->type, VectorTransformNode::type_enum, node, "type");
-			xml_read_enum(&vtransform->convert_from, VectorTransformNode::convert_space_enum, node, "convert_from");
-			xml_read_enum(&vtransform->convert_to, VectorTransformNode::convert_space_enum, node, "convert_to");
+			xml_read_enum_value((int*)&vtransform->type, VectorTransformNode::type_enum, node, "type");
+			xml_read_enum_value((int*)&vtransform->convert_from, VectorTransformNode::convert_space_enum, node, "convert_from");
+			xml_read_enum_value((int*)&vtransform->convert_to, VectorTransformNode::convert_space_enum, node, "convert_to");
 			snode = vtransform;
 		}
 		else if(string_iequals(node.name(), "connect")) {
