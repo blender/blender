@@ -2024,16 +2024,24 @@ bool autokeyframe_cfra_can_key(Scene *scene, ID *id)
 	/* only filter if auto-key mode requires this */
 	if (IS_AUTOKEY_ON(scene) == 0)
 		return false;
-		
-	if (IS_AUTOKEY_MODE(scene, NORMAL)) {
-		/* can insert anytime we like... */
-		return true;
-	}
-	else { /* REPLACE */
-		/* for whole block - only key if there's a keyframe on that frame already
-		 *	this is a valid assumption when we're blocking + tweaking
+	
+	if (IS_AUTOKEY_MODE(scene, EDITKEYS)) {
+		/* Replace Mode:
+		 * For whole block, only key if there's a keyframe on that frame already
+		 * This is a valid assumption when we're blocking + tweaking
 		 */
 		return id_frame_has_keyframe(id, cfra, ANIMFILTER_KEYS_LOCAL);
+	}
+	else {
+		/* Normal Mode (or treat as being normal mode):
+		 *
+		 * Just in case the flags are't set properly (i.e. only on/off is set, without a mode)
+		 * let's set the "normal" flag too, so that it will all be sane everywhere...
+		 */
+		scene->toolsettings->autokey_mode = AUTOKEY_MODE_NORMAL;
+		
+		/* Can insert anytime we like... */
+		return true;
 	}
 }
 
