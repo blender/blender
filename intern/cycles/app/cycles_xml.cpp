@@ -31,6 +31,7 @@
 #include "mesh.h"
 #include "nodes.h"
 #include "object.h"
+#include "osl.h"
 #include "shader.h"
 #include "scene.h"
 
@@ -250,35 +251,6 @@ static bool xml_read_enum_value(int *value, NodeEnum& enm, pugi::xml_node node, 
 	return false;
 }
 
-static SocketType::Type xml_read_socket_type(pugi::xml_node node, const char *name)
-{
-	pugi::xml_attribute attr = node.attribute(name);
-
-	if(attr) {
-		string value = attr.value();
-		if(string_iequals(value, "float"))
-			return SocketType::FLOAT;
-		else if(string_iequals(value, "int"))
-			return SocketType::INT;
-		else if(string_iequals(value, "color"))
-			return SocketType::COLOR;
-		else if(string_iequals(value, "vector"))
-			return SocketType::VECTOR;
-		else if(string_iequals(value, "point"))
-			return SocketType::POINT;
-		else if(string_iequals(value, "normal"))
-			return SocketType::NORMAL;
-		else if(string_iequals(value, "closure color"))
-			return SocketType::CLOSURE;
-		else if(string_iequals(value, "string"))
-			return SocketType::STRING;
-		else
-			fprintf(stderr, "Unknown shader socket type \"%s\" for attribute \"%s\".\n", value.c_str(), name);
-	}
-	
-	return SocketType::UNDEFINED;
-}
-
 /* Camera */
 
 static void xml_read_camera(XMLReadState& state, pugi::xml_node node)
@@ -313,6 +285,7 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 {
 	xml_read_node(state, shader, graph_node);
 
+	ShaderManager *manager = state.scene->shader_manager;
 	ShaderGraph *graph = new ShaderGraph();
 
 	map<string, ShaderNode*> nodemap;
@@ -352,45 +325,27 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 			snode = env;
 		}
 		else if(string_iequals(node.name(), "osl_shader")) {
-			OSLScriptNode *osl = new OSLScriptNode();
+			if(manager->use_osl()) {
+				std::string filepath;
 
-			/* Source */
-			xml_read_string(&osl->filepath, node, "src");
-			if(path_is_relative(osl->filepath)) {
-				osl->filepath = path_join(state.base, osl->filepath);
-			}
+				if(xml_read_string(&filepath, node, "src")) {
+					if(path_is_relative(filepath)) {
+						filepath = path_join(state.base, filepath);
+					}
 
-			/* Generate inputs/outputs from node sockets
-			 *
-			 * Note: ShaderInput/ShaderOutput store shallow string copies only!
-			 * So we register them as ustring to ensure the pointer stays valid. */
-			/* read input values */
-			for(pugi::xml_node param = node.first_child(); param; param = param.next_sibling()) {
-				if(string_iequals(param.name(), "input")) {
-					string name;
-					if(!xml_read_string(&name, param, "name"))
-						continue;
-					
-					SocketType::Type type = xml_read_socket_type(param, "type");
-					if(type == SocketType::UNDEFINED)
-						continue;
-					
-					osl->add_input(ustring(name).c_str(), type);
+					snode = ((OSLShaderManager*)manager)->osl_node(filepath);
+
+					if(!snode) {
+						fprintf(stderr, "Failed to create OSL node from \"%s\".\n", filepath.c_str());
+					}
 				}
-				else if(string_iequals(param.name(), "output")) {
-					string name;
-					if(!xml_read_string(&name, param, "name"))
-						continue;
-					
-					SocketType::Type type = xml_read_socket_type(param, "type");
-					if(type == SocketType::UNDEFINED)
-						continue;
-					
-					osl->add_output(ustring(name).c_str(), type);
+				else {
+					fprintf(stderr, "OSL node missing \"src\" attribute.\n");
 				}
 			}
-			
-			snode = osl;
+			else {
+				fprintf(stderr, "OSL node without using --shadingsys osl.\n");
+			}
 		}
 		else if(string_iequals(node.name(), "sky_texture")) {
 			SkyTextureNode *sky = new SkyTextureNode();

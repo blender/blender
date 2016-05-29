@@ -966,17 +966,22 @@ public:
 	SHADER_NODE_CLASS(SetNormalNode)
 };
 
-class OSLScriptNode : public ShaderNode {
+class OSLNode : public ShaderNode {
 public:
-	SHADER_NODE_CLASS(OSLScriptNode)
+	static OSLNode *create(size_t num_inputs);
+	~OSLNode();
+
+	SHADER_NODE_BASE_CLASS(OSLNode)
 
 	/* ideally we could beter detect this, but we can't query this now */
 	bool has_spatial_varying() { return true; }
+	virtual bool equals(const ShaderNode * /*other*/) { return false; }
 
 	string filepath;
 	string bytecode_hash;
 
-	virtual bool equals(const ShaderNode * /*other*/) { return false; }
+private:
+	OSLNode();
 };
 
 class NormalMapNode : public ShaderNode {

@@ -148,29 +148,6 @@ static SocketType::Type convert_socket_type(BL::NodeSocket& b_socket)
 	}
 }
 
-#ifdef WITH_OSL
-static SocketType::Type convert_osl_socket_type(OSL::OSLQuery& query,
-                                                BL::NodeSocket& b_socket)
-{
-	SocketType::Type socket_type = convert_socket_type(b_socket);
-	if(socket_type == SocketType::VECTOR) {
-		/* TODO(sergey): Do we need compatible_name() here? */
-		const OSL::OSLQuery::Parameter *param = query.getparam(b_socket.name());
-		assert(param != NULL);
-		if(param != NULL) {
-			if(param->type.vecsemantics == TypeDesc::POINT) {
-				socket_type = SocketType::POINT;
-			}
-			else if(param->type.vecsemantics == TypeDesc::NORMAL) {
-				socket_type = SocketType::NORMAL;
-			}
-		}
-	}
-
-	return socket_type;
-}
-#endif  /* WITH_OSL */
-
 static void set_default_value(ShaderInput *input,
                               BL::NodeSocket& b_sock,
                               BL::BlendData& b_data,
@@ -582,62 +559,17 @@ static ShaderNode *add_node(Scene *scene,
 		if(scene->shader_manager->use_osl()) {
 			/* create script node */
 			BL::ShaderNodeScript b_script_node(b_node);
-			OSLScriptNode *script_node = new OSLScriptNode();
 
 			OSLShaderManager *manager = (OSLShaderManager*)scene->shader_manager;
 			string bytecode_hash = b_script_node.bytecode_hash();
 
-			/* Gather additional information from the shader, such as
-			 * input/output type info needed for proper node construction.
-			 */
-			OSL::OSLQuery query;
-			string absolute_filepath;
-
 			if(!bytecode_hash.empty()) {
-				query.open_bytecode(b_script_node.bytecode());
+				node = manager->osl_node("", bytecode_hash, b_script_node.bytecode());
 			}
 			else {
-				absolute_filepath = blender_absolute_path(b_data, b_ntree, b_script_node.filepath());
-				OSLShaderManager::osl_query(query, absolute_filepath);
+				string absolute_filepath = blender_absolute_path(b_data, b_ntree, b_script_node.filepath());
+				node = manager->osl_node(absolute_filepath, "");
 			}
-			/* TODO(sergey): Add proper query info error parsing. */
-
-			/* Generate inputs/outputs from node sockets
-			 *
-			 * Note: the node sockets are generated from OSL parameters,
-			 * so the names match those of the corresponding parameters exactly.
-			 *
-			 * Note 2: ShaderInput/ShaderOutput store shallow string copies only!
-			 * So we register them as ustring to ensure the pointer stays valid. */
-			BL::Node::inputs_iterator b_input;
-
-			for(b_script_node.inputs.begin(b_input); b_input != b_script_node.inputs.end(); ++b_input) {
-				ShaderInput *input = script_node->add_input(ustring(b_input->name()).c_str(),
-				                                            convert_osl_socket_type(query, *b_input));
-				set_default_value(input, *b_input, b_data, b_ntree);
-			}
-
-			BL::Node::outputs_iterator b_output;
-
-			for(b_script_node.outputs.begin(b_output); b_output != b_script_node.outputs.end(); ++b_output) {
-				script_node->add_output(ustring(b_output->name()).c_str(),
-				                        convert_osl_socket_type(query, *b_output));
-			}
-
-			/* load bytecode or filepath */
-			if(!bytecode_hash.empty()) {
-				/* loaded bytecode if not already done */
-				if(!manager->shader_test_loaded(bytecode_hash))
-					manager->shader_load_bytecode(bytecode_hash, b_script_node.bytecode());
-
-				script_node->bytecode_hash = bytecode_hash;
-			}
-			else {
-				/* set filepath */
-				script_node->filepath = absolute_filepath;
-			}
-
-			node = script_node;
 		}
 #else
 		(void)b_data;

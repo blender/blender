@@ -394,14 +394,141 @@ const char *OSLShaderManager::shader_load_bytecode(const string& hash, const str
 {
 	ss->LoadMemoryCompiledShader(hash.c_str(), bytecode.c_str());
 
-	/* this is a bit weak, but works */
 	OSLShaderInfo info;
+
+	if(!info.query.open_bytecode(bytecode)) {
+		fprintf(stderr, "OSL query error: %s\n", info.query.geterror().c_str());
+	}
+
+	/* this is a bit weak, but works */
 	info.has_surface_emission = (bytecode.find("\"emission\"") != string::npos);
 	info.has_surface_transparent = (bytecode.find("\"transparent\"") != string::npos);
 	info.has_surface_bssrdf = (bytecode.find("\"bssrdf\"") != string::npos);
+
 	loaded_shaders[hash] = info;
 
 	return loaded_shaders.find(hash)->first.c_str();
+}
+
+OSLNode *OSLShaderManager::osl_node(const std::string& filepath,
+                                    const std::string& bytecode_hash,
+                                    const std::string& bytecode)
+{
+	/* create query */
+	const char *hash;
+
+	if(!filepath.empty()) {
+		hash = shader_load_filepath(filepath);
+	}
+	else {
+		hash = shader_test_loaded(bytecode_hash);
+		if(!hash)
+			hash = shader_load_bytecode(bytecode_hash, bytecode);
+	}
+
+	if(!hash) {
+		return NULL;
+	}
+
+	OSLShaderInfo *info = shader_loaded_info(hash);
+
+	/* count number of inputs */
+	size_t num_inputs = 0;
+
+	for(int i = 0; i < info->query.nparams(); i++) {
+		const OSL::OSLQuery::Parameter *param = info->query.getparam(i);
+
+		/* skip unsupported types */
+		if(param->varlenarray || param->isstruct || param->type.arraylen > 1)
+			continue;
+
+		if(!param->isoutput)
+			num_inputs++;
+	}
+
+	/* create node */
+	OSLNode *node = OSLNode::create(num_inputs);
+
+	/* add new sockets from parameters */
+	set<void*> used_sockets;
+
+	for(int i = 0; i < info->query.nparams(); i++) {
+		const OSL::OSLQuery::Parameter *param = info->query.getparam(i);
+
+		/* skip unsupported types */
+		if(param->varlenarray || param->isstruct || param->type.arraylen > 1)
+			continue;
+
+		SocketType::Type socket_type;
+
+		if(param->isclosure) {
+			socket_type = SocketType::CLOSURE;
+		}
+		else if(param->type.vecsemantics != TypeDesc::NOSEMANTICS) {
+			if(param->type.vecsemantics == TypeDesc::COLOR)
+				socket_type = SocketType::COLOR;
+			else if(param->type.vecsemantics == TypeDesc::POINT)
+				socket_type = SocketType::POINT;
+			else if(param->type.vecsemantics == TypeDesc::VECTOR)
+				socket_type = SocketType::VECTOR;
+			else if(param->type.vecsemantics == TypeDesc::NORMAL)
+				socket_type = SocketType::NORMAL;
+			else
+				continue;
+
+			if(!param->isoutput && param->validdefault) {
+				node->add_input(param->name.c_str(), socket_type, make_float3(param->fdefault[0], param->fdefault[1], param->fdefault[2]));
+				continue;
+			}
+		}
+		else if(param->type.aggregate == TypeDesc::SCALAR) {
+			if(param->type.basetype == TypeDesc::INT) {
+				socket_type = SocketType::INT;
+
+				if(!param->isoutput && param->validdefault) {
+					node->add_input(param->name.c_str(), socket_type, (float)param->idefault[0]);
+					continue;
+				}
+			}
+			else if(param->type.basetype == TypeDesc::FLOAT) {
+				socket_type = SocketType::FLOAT;
+
+				if(!param->isoutput && param->validdefault) {
+					node->add_input(param->name.c_str(), socket_type, param->fdefault[0]);
+					continue;
+				}
+			}
+			else if(param->type.basetype == TypeDesc::STRING) {
+				socket_type = SocketType::STRING;
+
+				if(!param->isoutput && param->validdefault) {
+					node->add_input(param->name.c_str(), socket_type);
+					continue;
+				}
+			}
+			else
+				continue;
+		}
+		else
+			continue;
+
+		if(param->isoutput) {
+			node->add_output(param->name.c_str(), socket_type);
+		}
+		else {
+			node->add_input(param->name.c_str(), socket_type);
+		}
+	}
+
+	/* set bytcode hash or filepath */
+	if(!bytecode_hash.empty()) {
+		node->bytecode_hash = bytecode_hash;
+	}
+	else {
+		node->filepath = filepath;
+	}
+
+	return node;
 }
 
 /* Graph Compiler */

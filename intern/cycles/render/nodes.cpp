@@ -4516,20 +4516,29 @@ void SetNormalNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_set_normal"); 
 }
 
-/* OSLScriptNode */
+/* OSLNode */
 
-OSLScriptNode::OSLScriptNode()
-: ShaderNode("osl_script")
+OSLNode::OSLNode()
+: ShaderNode("osl_shader")
 {
 	special_type = SHADER_SPECIAL_TYPE_SCRIPT;
 }
 
-void OSLScriptNode::compile(SVMCompiler& /*compiler*/)
+OSLNode::~OSLNode()
+{
+}
+
+OSLNode* OSLNode::create(size_t)
+{
+	return new OSLNode();
+}
+
+void OSLNode::compile(SVMCompiler&)
 {
 	/* doesn't work for SVM, obviously ... */
 }
 
-void OSLScriptNode::compile(OSLCompiler& compiler)
+void OSLNode::compile(OSLCompiler& compiler)
 {
 	if(!filepath.empty())
 		compiler.add(this, filepath.c_str(), true);
