@@ -48,8 +48,8 @@ float wave(point p, string type, string profile, float detail, float distortion,
 shader node_wave_texture(
 	int use_mapping = 0,
 	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-	string Type = "Bands",
-	string Profile = "Sine",
+	string type = "Bands",
+	string profile = "Sine",
 	float Scale = 5.0,
 	float Distortion = 0.0,
 	float Detail = 2.0,
@@ -63,7 +63,7 @@ shader node_wave_texture(
 	if (use_mapping)
 		p = transform(mapping, p);
 
-	Fac = wave(p * Scale, Type, Profile, Detail, Distortion, DetailScale);
+	Fac = wave(p * Scale, type, profile, Detail, Distortion, DetailScale);
 	Color = Fac;
 }
 

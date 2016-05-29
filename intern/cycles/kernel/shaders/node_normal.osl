@@ -17,12 +17,12 @@
 #include "stdosl.h"
 
 shader node_normal(
-	normal Direction = normal(0.0, 0.0, 0.0),
+	normal direction = normal(0.0, 0.0, 0.0),
 	normal NormalIn = normal(0.0, 0.0, 0.0),
 	output normal NormalOut = normal(0.0, 0.0, 0.0),
 	output float Dot = 1.0)
 {
-	NormalOut = normalize(Direction);
+	NormalOut = normalize(direction);
 	Dot = dot(NormalOut, normalize(NormalIn));
 }
 

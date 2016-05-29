@@ -433,14 +433,14 @@ void ImageTextureNode::compile(OSLCompiler& compiler)
 
 	switch(extension) {
 		case EXTENSION_EXTEND:
-			compiler.parameter("wrap", "clamp");
+			compiler.parameter("extension", "clamp");
 			break;
 		case EXTENSION_CLIP:
-			compiler.parameter("wrap", "black");
+			compiler.parameter("extension", "black");
 			break;
 		case EXTENSION_REPEAT:
 		default:
-			compiler.parameter("wrap", "periodic");
+			compiler.parameter("extension", "periodic");
 			break;
 	}
 
@@ -867,7 +867,7 @@ void GradientTextureNode::compile(OSLCompiler& compiler)
 {
 	tex_mapping.compile(compiler);
 
-	compiler.parameter("Type", type);
+	compiler.parameter("type", type);
 	compiler.add(this, "node_gradient_texture");
 }
 
@@ -971,7 +971,7 @@ void VoronoiTextureNode::compile(OSLCompiler& compiler)
 {
 	tex_mapping.compile(compiler);
 
-	compiler.parameter("Coloring", coloring);
+	compiler.parameter("coloring", coloring);
 	compiler.add(this, "node_voronoi_texture");
 }
 
@@ -1051,7 +1051,7 @@ void MusgraveTextureNode::compile(OSLCompiler& compiler)
 {
 	tex_mapping.compile(compiler);
 
-	compiler.parameter("Type", type);
+	compiler.parameter("type", type);
 
 	compiler.add(this, "node_musgrave_texture");
 }
@@ -1135,8 +1135,8 @@ void WaveTextureNode::compile(OSLCompiler& compiler)
 {
 	tex_mapping.compile(compiler);
 
-	compiler.parameter("Type", type);
-	compiler.parameter("Profile", profile);
+	compiler.parameter("type", type);
+	compiler.parameter("profile", profile);
 
 	compiler.add(this, "node_wave_texture");
 }
@@ -1186,7 +1186,7 @@ void MagicTextureNode::compile(OSLCompiler& compiler)
 {
 	tex_mapping.compile(compiler);
 
-	compiler.parameter("Depth", depth);
+	compiler.parameter("depth", depth);
 	compiler.add(this, "node_magic_texture");
 }
 
@@ -1311,10 +1311,10 @@ void BrickTextureNode::compile(OSLCompiler& compiler)
 {
 	tex_mapping.compile(compiler);
 
-	compiler.parameter("Offset", offset);
-	compiler.parameter("OffsetFrequency", offset_frequency);
-	compiler.parameter("Squash", squash);
-	compiler.parameter("SquashFrequency", squash_frequency);
+	compiler.parameter("offset", offset);
+	compiler.parameter("offset_frequency", offset_frequency);
+	compiler.parameter("squash", squash);
+	compiler.parameter("squash_frequency", squash_frequency);
 	compiler.add(this, "node_brick_texture");
 }
 
@@ -1504,7 +1504,7 @@ void NormalNode::compile(SVMCompiler& compiler)
 
 void NormalNode::compile(OSLCompiler& compiler)
 {
-	compiler.parameter_normal("Direction", direction);
+	compiler.parameter_normal("direction", direction);
 	compiler.add(this, "node_normal");
 }
 
@@ -1536,6 +1536,40 @@ void MappingNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_mapping");
 }
 
+/* RGBToBW */
+
+RGBToBWNode::RGBToBWNode()
+: ShaderNode("rgb_to_bw")
+{
+	add_input("Color", SocketType::COLOR);
+	add_output("Val", SocketType::FLOAT);
+}
+
+bool RGBToBWNode::constant_fold(ShaderGraph * /*graph*/,
+                                ShaderOutput * /*socket*/,
+                                float3 *optimized_value)
+{
+	if(inputs[0]->link == NULL) {
+		optimized_value->x = linear_rgb_to_gray(inputs[0]->value());
+		return true;
+	}
+
+	return false;
+}
+
+void RGBToBWNode::compile(SVMCompiler& compiler)
+{
+	compiler.add_node(NODE_CONVERT,
+	                 NODE_CONVERT_CF,
+	                 compiler.stack_assign(inputs[0]),
+	                 compiler.stack_assign(outputs[0]));
+}
+
+void RGBToBWNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_convert_from_color");
+}
+
 /* Convert */
 
 ConvertNode::ConvertNode(SocketType::Type from_, SocketType::Type to_, bool autoconvert)
@@ -1552,40 +1586,40 @@ ConvertNode::ConvertNode(SocketType::Type from_, SocketType::Type to_, bool auto
 	}
 
 	if(from == SocketType::FLOAT)
-		add_input("Val", SocketType::FLOAT);
+		add_input("value_float", SocketType::FLOAT);
 	else if(from == SocketType::INT)
-		add_input("ValInt", SocketType::INT);
+		add_input("value_int", SocketType::INT);
 	else if(from == SocketType::COLOR)
-		add_input("Color", SocketType::COLOR);
+		add_input("value_color", SocketType::COLOR);
 	else if(from == SocketType::VECTOR)
-		add_input("Vector", SocketType::VECTOR);
+		add_input("value_vector", SocketType::VECTOR);
 	else if(from == SocketType::POINT)
-		add_input("Point", SocketType::POINT);
+		add_input("value_point", SocketType::POINT);
 	else if(from == SocketType::NORMAL)
-		add_input("Normal", SocketType::NORMAL);
+		add_input("value_normal", SocketType::NORMAL);
 	else if(from == SocketType::STRING)
-		add_input("String", SocketType::STRING);
+		add_input("value_string", SocketType::STRING);
 	else if(from == SocketType::CLOSURE)
-		add_input("Closure", SocketType::CLOSURE);
+		add_input("value_closure", SocketType::CLOSURE);
 	else
 		assert(0);
 
 	if(to == SocketType::FLOAT)
-		add_output("Val", SocketType::FLOAT);
+		add_output("value_float", SocketType::FLOAT);
 	else if(to == SocketType::INT)
-		add_output("ValInt", SocketType::INT);
+		add_output("value_int", SocketType::INT);
 	else if(to == SocketType::COLOR)
-		add_output("Color", SocketType::COLOR);
+		add_output("value_color", SocketType::COLOR);
 	else if(to == SocketType::VECTOR)
-		add_output("Vector", SocketType::VECTOR);
+		add_output("value_vector", SocketType::VECTOR);
 	else if(to == SocketType::POINT)
-		add_output("Point", SocketType::POINT);
+		add_output("value_point", SocketType::POINT);
 	else if(to == SocketType::NORMAL)
-		add_output("Normal", SocketType::NORMAL);
+		add_output("value_normal", SocketType::NORMAL);
 	else if(to == SocketType::STRING)
-		add_output("String", SocketType::STRING);
+		add_output("value_string", SocketType::STRING);
 	else if(to == SocketType::CLOSURE)
-		add_output("Closure", SocketType::CLOSURE);
+		add_output("value_closure", SocketType::CLOSURE);
 	else
 		assert(0);
 }
@@ -2176,7 +2210,7 @@ void SubsurfaceScatteringNode::compile(SVMCompiler& compiler)
 
 void SubsurfaceScatteringNode::compile(OSLCompiler& compiler)
 {
-	compiler.parameter("Falloff", falloff_enum[closure]);
+	compiler.parameter("falloff", falloff_enum[closure]);
 	compiler.add(this, "node_subsurface_scattering");
 }
 
@@ -3366,7 +3400,7 @@ void MixNode::compile(SVMCompiler& compiler)
 void MixNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter("type", type);
-	compiler.parameter("Clamp", use_clamp);
+	compiler.parameter("use_clamp", use_clamp);
 	compiler.add(this, "node_mix");
 }
 
@@ -4128,7 +4162,7 @@ void MathNode::compile(SVMCompiler& compiler)
 void MathNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter("type", type);
-	compiler.parameter("Clamp", use_clamp);
+	compiler.parameter("use_clamp", use_clamp);
 	compiler.add(this, "node_math");
 }
 
@@ -4477,7 +4511,7 @@ void RGBRampNode::compile(OSLCompiler& compiler)
 
 	compiler.parameter_color_array("ramp_color", ramp);
 	compiler.parameter_array("ramp_alpha", ramp_alpha.data(), ramp_alpha.size());
-	compiler.parameter("ramp_interpolate", interpolate);
+	compiler.parameter("interpolate", interpolate);
 	
 	compiler.add(this, "node_rgb_ramp");
 }

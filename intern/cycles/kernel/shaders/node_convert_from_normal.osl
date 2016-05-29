@@ -17,18 +17,18 @@
 #include "stdosl.h"
 
 shader node_convert_from_normal(
-	normal Normal = normal(0.0, 0.0, 0.0),
-	output string String = "",
-	output float Val = 0.0,
-	output int ValInt = 0,
-	output vector Vector = vector(0.0, 0.0, 0.0),
-	output color Color = 0.0,
-	output point Point = point(0.0, 0.0, 0.0))
+	normal value_normal = normal(0.0, 0.0, 0.0),
+	output string value_string = "",
+	output float value_float = 0.0,
+	output int value_int = 0,
+	output vector value_vector = vector(0.0, 0.0, 0.0),
+	output color value_color = 0.0,
+	output point value_point = point(0.0, 0.0, 0.0))
 {
-	Val = (Normal[0] + Normal[1] + Normal[2]) * (1.0 / 3.0);
-	ValInt = (int)((Normal[0] + Normal[1] + Normal[2]) * (1.0 / 3.0));
-	Vector = vector(Normal[0], Normal[1], Normal[2]);
-	Color = color(Normal[0], Normal[1], Normal[2]);
-	Point = point(Normal[0], Normal[1], Normal[2]);
+	value_float = (value_normal[0] + value_normal[1] + value_normal[2]) * (1.0 / 3.0);
+	value_int = (int)((value_normal[0] + value_normal[1] + value_normal[2]) * (1.0 / 3.0));
+	value_vector = vector(value_normal[0], value_normal[1], value_normal[2]);
+	value_color = color(value_normal[0], value_normal[1], value_normal[2]);
+	value_point = point(value_normal[0], value_normal[1], value_normal[2]);
 }
 

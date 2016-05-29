@@ -17,13 +17,13 @@
 #include "stdosl.h"
 
 shader node_convert_from_string(
-	string String = "",
-	output color Color = color(0.0, 0.0, 0.0),
-	output float Val = 0.0,
-	output int ValInt = 0,
-	output vector Vector = vector(0.0, 0.0, 0.0),
-	output point Point = point(0.0, 0.0, 0.0),
-	output normal Normal = normal(0.0, 0.0, 0.0))
+	string value_string = "",
+	output color value_color = color(0.0, 0.0, 0.0),
+	output float value_float = 0.0,
+	output int value_int = 0,
+	output vector value_vector = vector(0.0, 0.0, 0.0),
+	output point value_point = point(0.0, 0.0, 0.0),
+	output normal value_normal = normal(0.0, 0.0, 0.0))
 {
 }
 

@@ -62,9 +62,9 @@ color image_texture_lookup(string filename,
                            int use_alpha,
                            int is_float,
                            string interpolation,
-                           string wrap)
+                           string extension)
 {
-	color rgb = (color)texture(filename, u, 1.0 - v, "wrap", wrap, "interp", interpolation, "alpha", Alpha);
+	color rgb = (color)texture(filename, u, 1.0 - v, "wrap", extension, "interp", interpolation, "alpha", Alpha);
 
 	if (use_alpha) {
 		rgb = color_unpremultiply(rgb, Alpha);

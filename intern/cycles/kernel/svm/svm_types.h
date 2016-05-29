@@ -343,12 +343,22 @@ typedef enum NodeNormalMapSpace {
 	NODE_NORMAL_MAP_BLENDER_WORLD,
 } NodeNormalMapSpace;
 
+typedef enum NodeImageColorSpace {
+	NODE_COLOR_SPACE_NONE  = 0,
+	NODE_COLOR_SPACE_COLOR = 1,
+} NodeImageColorSpace;
+
 typedef enum NodeImageProjection {
 	NODE_IMAGE_PROJ_FLAT   = 0,
 	NODE_IMAGE_PROJ_BOX    = 1,
 	NODE_IMAGE_PROJ_SPHERE = 2,
 	NODE_IMAGE_PROJ_TUBE   = 3,
 } NodeImageProjection;
+
+typedef enum NodeEnvironmentProjection {
+	NODE_ENVIRONMENT_EQUIRECTANGULAR = 0,
+	NODE_ENVIRONMENT_MIRROR_BALL = 1,
+} NodeEnvironmentProjection;
 
 typedef enum NodeBumpOffset {
 	NODE_BUMP_OFFSET_CENTER,

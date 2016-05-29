@@ -339,7 +339,7 @@ static ShaderNode *add_node(Scene *scene,
 		node = new HSVNode();
 	}
 	else if(b_node.is_a(&RNA_ShaderNodeRGBToBW)) {
-		node = new ConvertNode(SocketType::COLOR, SocketType::FLOAT);
+		node = new RGBToBWNode();
 	}
 	else if(b_node.is_a(&RNA_ShaderNodeMath)) {
 		BL::ShaderNodeMath b_math_node(b_node);

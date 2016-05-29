@@ -362,6 +362,13 @@ public:
 	}
 };
 
+class RGBToBWNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(RGBToBWNode)
+
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+};
+
 class ConvertNode : public ShaderNode {
 public:
 	ConvertNode(SocketType::Type from, SocketType::Type to, bool autoconvert = false);

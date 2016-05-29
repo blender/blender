@@ -17,19 +17,19 @@
 #include "stdosl.h"
 
 shader node_convert_from_int(
-	int ValInt = 0,
-	output string String = "",
-	output float Val = 0.0,
-	output color Color = 0.0,
-	output vector Vector = vector(0.0, 0.0, 0.0),
-	output point Point = point(0.0, 0.0, 0.0),
-	output normal Normal = normal(0.0, 0.0, 0.0))
+	int value_int = 0,
+	output string value_string = "",
+	output float value_float = 0.0,
+	output color value_color = 0.0,
+	output vector value_vector = vector(0.0, 0.0, 0.0),
+	output point value_point = point(0.0, 0.0, 0.0),
+	output normal value_normal = normal(0.0, 0.0, 0.0))
 {
-	float f = (float)ValInt;
-	Val = f;
-	Color = color(f, f, f);
-	Vector = vector(f, f, f);
-	Point = point(f, f, f);
-	Normal = normal(f, f, f);
+	float f = (float)value_int;
+	value_float = f;
+	value_color = color(f, f, f);
+	value_vector = vector(f, f, f);
+	value_point = point(f, f, f);
+	value_normal = normal(f, f, f);
 }
 
