@@ -36,12 +36,8 @@ Node::Node(const NodeType *type_, ustring name_)
 	}
 
 	/* initialize default values */
-	typedef unordered_map<ustring, SocketType, ustringHash> map_type;
-	foreach(const map_type::value_type& it, type->inputs) {
-		const SocketType& socket = it.second;
-		const void *src = socket.default_value;
-		void *dst = ((char*)this) + socket.struct_offset;
-		memcpy(dst, src, socket.size());
+	foreach(const SocketType& socket, type->inputs) {
+		set_default_value(socket);
 	}
 }
 
@@ -297,12 +293,55 @@ const array<Node*>& Node::get_node_array(const SocketType& input) const
 	return get_socket_value<array<Node*> >(this, input);
 }
 
-/* default values */
+/* generic value operations */
+
 bool Node::has_default_value(const SocketType& input) const
 {
 	const void *src = input.default_value;
 	void *dst = &get_socket_value<char>(this, input);
 	return memcmp(dst, src, input.size()) == 0;
+}
+
+void Node::set_default_value(const SocketType& socket)
+{
+	const void *src = socket.default_value;
+	void *dst = ((char*)this) + socket.struct_offset;
+	memcpy(dst, src, socket.size());
+}
+
+template<typename T>
+static void copy_array(const Node *node, const SocketType& socket, const Node *other, const SocketType& other_socket)
+{
+	const array<T>* src = (const array<T>*)(((char*)other) + other_socket.struct_offset);
+	array<T>* dst = (array<T>*)(((char*)node) + socket.struct_offset);
+	*dst = *src;
+}
+
+void Node::copy_value(const SocketType& socket, const Node& other, const SocketType& other_socket)
+{
+	assert(socket.type == other_socket.type);
+
+	if(socket.is_array()) {
+		switch(socket.type) {
+			case SocketType::BOOLEAN_ARRAY: copy_array<bool>(this, socket, &other, other_socket); break;
+			case SocketType::FLOAT_ARRAY: copy_array<float>(this, socket, &other, other_socket); break;
+			case SocketType::INT_ARRAY: copy_array<int>(this, socket, &other, other_socket); break;
+			case SocketType::COLOR_ARRAY: copy_array<float3>(this, socket, &other, other_socket); break;
+			case SocketType::VECTOR_ARRAY: copy_array<float3>(this, socket, &other, other_socket); break;
+			case SocketType::POINT_ARRAY: copy_array<float3>(this, socket, &other, other_socket); break;
+			case SocketType::NORMAL_ARRAY: copy_array<float3>(this, socket, &other, other_socket); break;
+			case SocketType::POINT2_ARRAY: copy_array<float2>(this, socket, &other, other_socket); break;
+			case SocketType::STRING_ARRAY: copy_array<ustring>(this, socket, &other, other_socket); break;
+			case SocketType::TRANSFORM_ARRAY: copy_array<Transform>(this, socket, &other, other_socket); break;
+			case SocketType::NODE_ARRAY: copy_array<void*>(this, socket, &other, other_socket); break;
+			default: assert(0); break;
+		}
+	}
+	else {
+		const void *src = ((char*)&other) + other_socket.struct_offset;
+		void *dst = ((char*)this) + socket.struct_offset;
+		memcpy(dst, src, socket.size());
+	}
 }
 
 template<typename T>
@@ -313,48 +352,43 @@ static bool is_array_equal(const Node *node, const Node *other, const SocketType
 	return *a == *b;
 }
 
-/* modified */
-bool Node::modified(const Node& other)
+bool Node::equals_value(const Node& other, const SocketType& socket) const
+{
+	if(socket.is_array()) {
+		switch(socket.type) {
+			case SocketType::BOOLEAN_ARRAY: return is_array_equal<bool>(this, &other, socket);
+			case SocketType::FLOAT_ARRAY: return is_array_equal<float>(this, &other, socket);
+			case SocketType::INT_ARRAY: return is_array_equal<int>(this, &other, socket);
+			case SocketType::COLOR_ARRAY: return is_array_equal<float3>(this, &other, socket);
+			case SocketType::VECTOR_ARRAY: return is_array_equal<float3>(this, &other, socket);
+			case SocketType::POINT_ARRAY: return is_array_equal<float3>(this, &other, socket);
+			case SocketType::NORMAL_ARRAY: return is_array_equal<float3>(this, &other, socket);
+			case SocketType::POINT2_ARRAY: return is_array_equal<float2>(this, &other, socket);
+			case SocketType::STRING_ARRAY: return is_array_equal<ustring>(this, &other, socket);
+			case SocketType::TRANSFORM_ARRAY: return is_array_equal<Transform>(this, &other, socket);
+			case SocketType::NODE_ARRAY: return is_array_equal<void*>(this, &other, socket);
+			default: assert(0); return true;
+		}
+	}
+	else {
+		const void *a = ((char*)this) + socket.struct_offset;
+		const void *b = ((char*)&other) + socket.struct_offset;
+		return (memcmp(a, b, socket.size()) == 0);
+	}
+}
+
+/* equals */
+
+bool Node::equals(const Node& other) const
 {
 	assert(type == other.type);
 
-	typedef unordered_map<ustring, SocketType, ustringHash> map_type;
-	foreach(const map_type::value_type& it, type->inputs) {
-		const SocketType& socket = it.second;
-
-		if(socket.is_array()) {
-			bool equal = true;
-
-			switch(socket.type)
-			{
-				case SocketType::BOOLEAN_ARRAY: equal = is_array_equal<bool>(this, &other, socket); break;
-				case SocketType::FLOAT_ARRAY: equal = is_array_equal<float>(this, &other, socket); break;
-				case SocketType::INT_ARRAY: equal = is_array_equal<int>(this, &other, socket); break;
-				case SocketType::COLOR_ARRAY: equal = is_array_equal<float3>(this, &other, socket); break;
-				case SocketType::VECTOR_ARRAY: equal = is_array_equal<float3>(this, &other, socket); break;
-				case SocketType::POINT_ARRAY: equal = is_array_equal<float3>(this, &other, socket); break;
-				case SocketType::NORMAL_ARRAY: equal = is_array_equal<float3>(this, &other, socket); break;
-				case SocketType::POINT2_ARRAY: equal = is_array_equal<float2>(this, &other, socket); break;
-				case SocketType::STRING_ARRAY: equal = is_array_equal<ustring>(this, &other, socket); break;
-				case SocketType::TRANSFORM_ARRAY: equal = is_array_equal<Transform>(this, &other, socket); break;
-				case SocketType::NODE_ARRAY: equal = is_array_equal<void*>(this, &other, socket); break;
-				default: assert(0); break;
-			}
-
-			if(!equal) {
-				return true;
-			}
-		}
-		else {
-			const void *a = ((char*)this) + socket.struct_offset;
-			const void *b = ((char*)&other) + socket.struct_offset;
-			if(memcmp(a, b, socket.size()) != 0) {
-				return true;
-			}
-		}
+	foreach(const SocketType& socket, type->inputs) {
+		if(!equals_value(other, socket))
+			return false;
 	}
 
-	return false;
+	return true;
 }
 
 CCL_NAMESPACE_END

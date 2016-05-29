@@ -482,6 +482,11 @@ void Camera::device_free(Device * /*device*/,
 	scene->lookup_tables->remove_table(&shutter_table_offset);
 }
 
+bool Camera::modified(const Camera& cam)
+{
+	return !Node::equals(cam);
+}
+
 bool Camera::motion_modified(const Camera& cam)
 {
 	return !((motion == cam.motion) &&

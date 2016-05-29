@@ -116,6 +116,11 @@ void Background::device_free(Device * /*device*/, DeviceScene * /*dscene*/)
 {
 }
 
+bool Background::modified(const Background& background)
+{
+	return !Node::equals(background);
+}
+
 void Background::tag_update(Scene *scene)
 {
 	scene->integrator->tag_update(scene);

@@ -77,11 +77,14 @@ struct Node
 	const array<Transform>& get_transform_array(const SocketType& input) const;
 	const array<Node*>& get_node_array(const SocketType& input) const;
 
-	/* default values */
+	/* generic values operations */
 	bool has_default_value(const SocketType& input) const;
+	void set_default_value(const SocketType& input);
+	bool equals_value(const Node& other, const SocketType& input) const;
+	void copy_value(const SocketType& input, const Node& other, const SocketType& other_input);
 
-	/* modified */
-	bool modified(const Node& other);
+	/* equals */
+	bool equals(const Node& other) const;
 
 	ustring name;
 	const NodeType *type;

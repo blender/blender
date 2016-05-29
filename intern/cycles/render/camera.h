@@ -181,6 +181,7 @@ public:
 	void device_update_volume(Device *device, DeviceScene *dscene, Scene *scene);
 	void device_free(Device *device, DeviceScene *dscene, Scene *scene);
 
+	bool modified(const Camera& cam);
 	bool motion_modified(const Camera& cam);
 	void tag_update();
 

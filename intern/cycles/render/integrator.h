@@ -86,6 +86,7 @@ public:
 	void device_update(Device *device, DeviceScene *dscene, Scene *scene);
 	void device_free(Device *device, DeviceScene *dscene);
 
+	bool modified(const Integrator& integrator);
 	void tag_update(Scene *scene);
 };
 

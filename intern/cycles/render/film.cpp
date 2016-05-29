@@ -465,7 +465,7 @@ void Film::device_free(Device * /*device*/,
 
 bool Film::modified(const Film& film)
 {
-	return Node::modified(film) || !Pass::equals(passes, film.passes);
+	return !Node::equals(film) || !Pass::equals(passes, film.passes);
 }
 
 void Film::tag_passes_update(Scene *scene, const array<Pass>& passes_)

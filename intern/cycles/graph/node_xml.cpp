@@ -58,9 +58,7 @@ void xml_read_node(XMLReader& reader, Node *node, pugi::xml_node xml_node)
 		node->name = ustring(name_attr.value());
 	}
 
-	foreach(const NodeType::SocketMap::value_type& it, node->type->inputs) {
-		const SocketType& socket = it.second;
-
+	foreach(const SocketType& socket, node->type->inputs) {
 		if(socket.type == SocketType::CLOSURE || socket.type == SocketType::UNDEFINED) {
 			continue;
 		}
@@ -257,9 +255,7 @@ pugi::xml_node xml_write_node(Node *node, pugi::xml_node xml_root)
 
 	xml_node.append_attribute("name") = node->name.c_str();
 
-	foreach(const NodeType::SocketMap::value_type& it, node->type->inputs) {
-		const SocketType& socket = it.second;
-
+	foreach(const SocketType& socket, node->type->inputs) {
 		if(socket.type == SocketType::CLOSURE || socket.type == SocketType::UNDEFINED) {
 			continue;
 		}
