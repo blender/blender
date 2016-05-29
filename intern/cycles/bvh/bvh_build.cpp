@@ -328,11 +328,11 @@ BVHNode* BVHBuild::run()
 			VLOG(1) << "BVH build statistics:\n"
 			        << "  Build time: " << time_dt() - build_start_time << "\n"
 			        << "  Total number of nodes: "
-			        << rootnode->getSubtreeSize(BVH_STAT_NODE_COUNT) << "\n"
+			        << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_NODE_COUNT)) << "\n"
 			        << "  Number of inner nodes: "
-			        << rootnode->getSubtreeSize(BVH_STAT_INNER_COUNT)  << "\n"
+			        << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_INNER_COUNT)) << "\n"
 			        << "  Number of leaf nodes: "
-			        << rootnode->getSubtreeSize(BVH_STAT_LEAF_COUNT)  << "\n"
+			        << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_LEAF_COUNT)) << "\n"
 			        << "  Allocation slop factor: "
 			               << ((prim_type.capacity() != 0)
 			                       ? (float)prim_type.size() / prim_type.capacity()

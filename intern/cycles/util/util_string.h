@@ -62,6 +62,11 @@ string string_from_wstring(const wstring& path);
 string string_to_ansi(const string& str);
 #endif
 
+/* Make a string from a size in bytes in human readable form */
+string string_human_readable_size(size_t size);
+/* Make a string from a unitless quantity in human readable form */
+string string_human_readable_number(size_t num);
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_STRING_H__ */

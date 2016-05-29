@@ -239,5 +239,45 @@ string string_to_ansi(const string& str)
 
 #endif  /* _WIN32 */
 
+string string_human_readable_size(size_t size)
+{
+	static const char suffixes[] = "BKMGTPEZY";
+
+	const char* suffix = suffixes;
+	size_t r = 0;
+
+	while(size >= 1024) {
+		r = size % 1024;
+		size /= 1024;
+		suffix++;
+	}
+
+	if(*suffix != 'B')
+		return string_printf("%.2f%c", double(size*1024+r)/1024.0, *suffix);
+	else
+		return string_printf("%zu", size);
+}
+
+string string_human_readable_number(size_t num)
+{
+	/* add thousands separators */
+	char buf[32];
+
+	char* p = buf+31;
+	*p = '\0';
+
+	int i = -1;
+	while(num) {
+		if(++i && i % 3 == 0)
+			*(--p) = ',';
+
+		*(--p) = '0' + (num % 10);
+
+		num /= 10;
+	}
+
+	return p;
+}
+
 CCL_NAMESPACE_END
 
