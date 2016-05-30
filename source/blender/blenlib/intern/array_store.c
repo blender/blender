@@ -175,9 +175,9 @@
 #  define HASH_TABLE_KEY_FALLBACK ((uint64_t)-2)
 #endif
 
-/* How much smaller the table is then the total number of steps.
+/* How much larger the table is then the total number of chunks.
  */
-#define BCHUNK_HASH_TABLE_DIV 16
+#define BCHUNK_HASH_TABLE_MUL 3
 
 /* Merge too small/large chunks:
  *
@@ -1140,13 +1140,13 @@ static BChunkList *bchunk_list_from_data_merge(
 		hash_key *table_hash_array = NULL;
 #endif
 
-		const size_t table_len = MAX2(1u, (((data_len - i_prev) / info->chunk_stride)) / BCHUNK_HASH_TABLE_DIV);
-		BTableRef **table = MEM_callocN(table_len * sizeof(*table), __func__);
-
 		const uint chunk_list_reference_remaining_len =
 		        (chunk_list_reference->chunk_refs_len - chunk_list_reference_skip_len) + 1;
 		BTableRef *table_ref_stack = MEM_mallocN(chunk_list_reference_remaining_len * sizeof(BTableRef), __func__);
 		uint       table_ref_stack_n = 0;
+
+		const size_t table_len = chunk_list_reference_remaining_len * BCHUNK_HASH_TABLE_MUL;
+		BTableRef **table = MEM_callocN(table_len * sizeof(*table), __func__);
 
 		/* table_make - inline
 		 * include one matching chunk, to allow for repeating values */
