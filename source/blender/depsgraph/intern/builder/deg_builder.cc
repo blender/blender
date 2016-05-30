@@ -61,9 +61,10 @@ void deg_graph_build_finalize(Depsgraph *graph)
 	std::stack<OperationDepsNode *> stack;
 
 	foreach (OperationDepsNode *node, graph->operations) {
+		IDDepsNode *id_node = node->owner->owner;
 		node->done = 0;
 		node->num_links_pending = 0;
-		foreach (DepsRelation *rel, node->inlinks) {
+		foreach (DepsRelation *rel, node->outlinks) {
 			if ((rel->from->type == DEPSNODE_TYPE_OPERATION) &&
 			    (rel->flag & DEPSREL_FLAG_CYCLIC) == 0)
 			{
@@ -72,36 +73,33 @@ void deg_graph_build_finalize(Depsgraph *graph)
 		}
 		if (node->num_links_pending == 0) {
 			stack.push(node);
+			node->done = 1;
 		}
-		IDDepsNode *id_node = node->owner->owner;
+		node->owner->layers = id_node->layers;
 		id_node->id->tag |= LIB_TAG_DOIT;
 	}
 
 	while (!stack.empty()) {
 		OperationDepsNode *node = stack.top();
-		if (node->done == 0 && node->outlinks.size() != 0) {
-			foreach (DepsRelation *rel, node->outlinks) {
-				if (rel->to->type == DEPSNODE_TYPE_OPERATION) {
-					OperationDepsNode *to = (OperationDepsNode *)rel->to;
-					if ((rel->flag & DEPSREL_FLAG_CYCLIC) == 0) {
-						BLI_assert(to->num_links_pending > 0);
-						--to->num_links_pending;
-					}
-					if (to->num_links_pending == 0) {
-						stack.push(to);
-					}
-				}
+		stack.pop();
+		/* Flush layers to parents. */
+		foreach (DepsRelation *rel, node->inlinks) {
+			if (rel->from->type == DEPSNODE_TYPE_OPERATION) {
+				OperationDepsNode *from = (OperationDepsNode *)rel->from;
+				from->owner->layers |= node->owner->layers;
 			}
-			node->done = 1;
 		}
-		else {
-			stack.pop();
-			IDDepsNode *id_node = node->owner->owner;
-			foreach (DepsRelation *rel, node->outlinks) {
-				if (rel->to->type == DEPSNODE_TYPE_OPERATION) {
-					OperationDepsNode *to = (OperationDepsNode *)rel->to;
-					IDDepsNode *id_to = to->owner->owner;
-					id_node->layers |= id_to->layers;
+		/* Schedule parent nodes. */
+		foreach (DepsRelation *rel, node->inlinks) {
+			if (rel->from->type == DEPSNODE_TYPE_OPERATION) {
+				OperationDepsNode *from = (OperationDepsNode *)rel->from;
+				if ((rel->flag & DEPSREL_FLAG_CYCLIC) == 0) {
+					BLI_assert(from->num_links_pending > 0);
+					--from->num_links_pending;
+				}
+				if (from->num_links_pending == 0 && from->done == 0) {
+					stack.push(from);
+					from->done = 1;
 				}
 			}
 		}
@@ -110,6 +108,12 @@ void deg_graph_build_finalize(Depsgraph *graph)
 	/* Re-tag IDs for update if it was tagged before the relations update tag. */
 	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, graph->id_hash)
 	{
+		GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp, id_node->components)
+		{
+			id_node->layers |= comp->layers;
+		}
+		GHASH_FOREACH_END();
+
 		ID *id = id_node->id;
 		if (id->tag & LIB_TAG_ID_RECALC_ALL &&
 		    id->tag & LIB_TAG_DOIT)

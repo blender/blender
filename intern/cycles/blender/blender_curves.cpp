@@ -657,6 +657,7 @@ static void ExportCurveSegmentsMotion(Mesh *mesh, ParticleCurveData *CData, int 
 						radius = 0.0f;
 
 					mP[i] = ickey_loc;
+					(void)radius;
 
 					/* unlike mesh coordinates, these tend to be slightly different
 					 * between frames due to particle transforms into/out of object
