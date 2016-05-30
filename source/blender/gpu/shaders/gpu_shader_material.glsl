@@ -2363,6 +2363,11 @@ void generated_from_orco(vec3 orco, out vec3 generated)
 	generated = orco * 0.5 + vec3(0.5);
 }
 
+int floor_to_int(float x)
+{
+	return int(floor(x));
+}
+#ifdef BIT_OPERATIONS
 float integer_noise(int n)
 {
 	int nn;
@@ -2372,12 +2377,6 @@ float integer_noise(int n)
 	return 0.5 * (float(nn) / 1073741824.0);
 }
 
-int floor_to_int(float x)
-{
-	return int(floor(x));
-}
-
-#ifdef BIT_OPERATIONS
 uint hash(uint kx, uint ky, uint kz)
 {
 #define rot(x, k) (((x) << (k)) | ((x) >> (32 - (k))))
@@ -2773,6 +2772,7 @@ void node_tex_checker(vec3 co, vec4 color1, vec4 color2, float scale, out vec4 c
 	fac = check ? 1.0 : 0.0;
 }
 
+#ifdef BIT_OPERATIONS
 vec2 calc_brick_texture(vec3 p, float mortar_size, float bias,
                         float brick_width, float row_height,
                         float offset_amount, int offset_frequency,
@@ -2799,6 +2799,7 @@ vec2 calc_brick_texture(vec3 p, float mortar_size, float bias,
 	             x > (brick_width - mortar_size) ||
 	             y > (row_height - mortar_size)) ? 1.0 : 0.0);
 }
+#endif
 
 void node_tex_brick(vec3 co,
                     vec4 color1, vec4 color2,
@@ -2809,6 +2810,7 @@ void node_tex_brick(vec3 co,
                     float squash_amount, float squash_frequency,
                     out vec4 color, out float fac)
 {
+#ifdef BIT_OPERATIONS
 	vec2 f2 = calc_brick_texture(co * scale,
 	                             mortar_size, bias,
 	                             brick_width, row_height,
@@ -2822,6 +2824,10 @@ void node_tex_brick(vec3 co,
 	}
 	color = (f == 1.0) ? mortar : color1;
 	fac = f;
+#else
+	color = vec4(1.0);
+	fac = 1.0;
+#endif
 }
 
 void node_tex_clouds(vec3 co, float size, out vec4 color, out float fac)
