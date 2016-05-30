@@ -121,12 +121,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 	 */
 	GSET_FOREACH_BEGIN(OperationDepsNode *, node, graph->entry_tags)
 	{
-		IDDepsNode *id_node = node->owner->owner;
 		queue.push(node);
-		if (id_node->done == 0) {
-			deg_editors_id_update(bmain, id_node->id);
-			id_node->done = 1;
-		}
 		node->scheduled = true;
 	}
 	GSET_FOREACH_END();
@@ -135,56 +130,74 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 		OperationDepsNode *node = queue.front();
 		queue.pop();
 
-		IDDepsNode *id_node = node->owner->owner;
-		lib_id_recalc_tag(bmain, id_node->id);
-		/* TODO(sergey): For until we've got proper data nodes in the graph. */
-		lib_id_recalc_data_tag(bmain, id_node->id);
+		for (;;) {
+			node->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
 
-		ID *id = id_node->id;
-		/* This code is used to preserve those areas which does direct
-		 * object update,
-		 *
-		 * Plus it ensures visibility changes and relations and layers
-		 * visibility update has proper flags to work with.
-		 */
-		if (GS(id->name) == ID_OB) {
-			Object *object = (Object *)id;
-			ComponentDepsNode *comp_node = node->owner;
-			if (comp_node->type == DEPSNODE_TYPE_ANIMATION) {
-				object->recalc |= OB_RECALC_TIME;
-			}
-			else if (comp_node->type == DEPSNODE_TYPE_TRANSFORM) {
-				object->recalc |= OB_RECALC_OB;
-			}
-			else {
-				object->recalc |= OB_RECALC_DATA;
-			}
-		}
+			IDDepsNode *id_node = node->owner->owner;
 
-		/* Flush to nodes along links... */
-		foreach (DepsRelation *rel, node->outlinks) {
-			OperationDepsNode *to_node = (OperationDepsNode *)rel->to;
-			if (to_node->scheduled == false) {
-				to_node->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
-				queue.push(to_node);
-				to_node->scheduled = true;
-				if (id_node->done == 0) {
-					deg_editors_id_update(bmain, id_node->id);
-					id_node->done = 1;
+			if (id_node->done == 0) {
+				deg_editors_id_update(bmain, id_node->id);
+				id_node->done = 1;
+			}
+
+			lib_id_recalc_tag(bmain, id_node->id);
+			/* TODO(sergey): For until we've got proper data nodes in the graph. */
+			lib_id_recalc_data_tag(bmain, id_node->id);
+
+			ID *id = id_node->id;
+			/* This code is used to preserve those areas which does direct
+			 * object update,
+			 *
+			 * Plus it ensures visibility changes and relations and layers
+			 * visibility update has proper flags to work with.
+			 */
+			if (GS(id->name) == ID_OB) {
+				Object *object = (Object *)id;
+				ComponentDepsNode *comp_node = node->owner;
+				if (comp_node->type == DEPSNODE_TYPE_ANIMATION) {
+					object->recalc |= OB_RECALC_TIME;
+				}
+				else if (comp_node->type == DEPSNODE_TYPE_TRANSFORM) {
+					object->recalc |= OB_RECALC_OB;
+				}
+				else {
+					object->recalc |= OB_RECALC_DATA;
 				}
 			}
-		}
 
-		/* TODO(sergey): For until incremental updates are possible
-		 * witin a component at least we tag the whole component
-		 * for update.
-		 */
-		ComponentDepsNode *component = node->owner;
-		if ((component->flags & DEPSCOMP_FULLY_SCHEDULED) == 0) {
-			foreach (OperationDepsNode *op, component->operations) {
-				op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
+			/* TODO(sergey): For until incremental updates are possible
+			 * witin a component at least we tag the whole component
+			 * for update.
+			 */
+			ComponentDepsNode *component = node->owner;
+			if ((component->flags & DEPSCOMP_FULLY_SCHEDULED) == 0) {
+				foreach (OperationDepsNode *op, component->operations) {
+					op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
+				}
+				component->flags |= DEPSCOMP_FULLY_SCHEDULED;
 			}
-			component->flags |= DEPSCOMP_FULLY_SCHEDULED;
+
+			/* Flush to nodes along links... */
+			if (node->outlinks.size() == 1) {
+				OperationDepsNode *to_node = (OperationDepsNode *)node->outlinks[0]->to;
+				if (to_node->scheduled == false) {
+					to_node->scheduled = true;
+					node = to_node;
+				}
+				else {
+					break;
+				}
+			}
+			else {
+				foreach (DepsRelation *rel, node->outlinks) {
+					OperationDepsNode *to_node = (OperationDepsNode *)rel->to;
+					if (to_node->scheduled == false) {
+						queue.push(to_node);
+						to_node->scheduled = true;
+					}
+				}
+				break;
+			}
 		}
 	}
 }
