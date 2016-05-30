@@ -604,7 +604,7 @@ void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CData)
 				num_curve_keys++;
 			}
 
-			mesh->add_curve(num_keys, num_curve_keys, CData->psys_shader[sys]);
+			mesh->add_curve(num_keys, CData->psys_shader[sys]);
 			num_keys += num_curve_keys;
 			num_curves++;
 		}
@@ -635,7 +635,7 @@ static void ExportCurveSegmentsMotion(Mesh *mesh, ParticleCurveData *CData, int 
 
 	/* export motion vectors for curve keys */
 	size_t numkeys = mesh->curve_keys.size();
-	float3 *mP = attr_mP->data_float3() + time_index*numkeys;
+	float4 *mP = attr_mP->data_float4() + time_index*numkeys;
 	bool have_motion = false;
 	int i = 0;
 
@@ -656,13 +656,16 @@ static void ExportCurveSegmentsMotion(Mesh *mesh, ParticleCurveData *CData, int 
 					if(CData->psys_closetip[sys] && (curvekey == CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1))
 						radius = 0.0f;
 
-					mP[i] = ickey_loc;
-					(void)radius;
+					/* curve motion keys store both position and radius in float4 */
+					mP[i] = float3_to_float4(ickey_loc);
+					mP[i].w = radius;
 
 					/* unlike mesh coordinates, these tend to be slightly different
 					 * between frames due to particle transforms into/out of object
 					 * space, so we use an epsilon to detect actual changes */
-					if(len_squared(mP[i] - mesh->curve_keys[i]) > 1e-5f*1e-5f)
+					float4 curve_key = float3_to_float4(mesh->curve_keys[i]);
+					curve_key.w = mesh->curve_radius[i];
+					if(len_squared(mP[i] - curve_key) > 1e-5f*1e-5f)
 						have_motion = true;
 				}
 
@@ -684,10 +687,12 @@ static void ExportCurveSegmentsMotion(Mesh *mesh, ParticleCurveData *CData, int 
 			/* motion, fill up previous steps that we might have skipped because
 			 * they had no motion, but we need them anyway now */
 			for(int step = 0; step < time_index; step++) {
-				float3 *mP = attr_mP->data_float3() + step*numkeys;
+				float4 *mP = attr_mP->data_float4() + step*numkeys;
 
-				for(int key = 0; key < numkeys; key++)
-					mP[key] = mesh->curve_keys[key];
+				for(int key = 0; key < numkeys; key++) {
+					mP[key] = float3_to_float4(mesh->curve_keys[key]);
+					mP[key].w = mesh->curve_radius[key];
+				}
 			}
 		}
 	}

@@ -240,7 +240,7 @@ void Mesh::add_curve_key(float3 co, float radius)
 	curve_radius.push_back_reserved(radius);
 }
 
-void Mesh::add_curve(int first_key, int num_keys, int shader)
+void Mesh::add_curve(int first_key, int shader)
 {
 	curve_first_key.push_back_reserved(first_key);
 	curve_shader.push_back_reserved(shader);

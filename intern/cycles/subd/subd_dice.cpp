@@ -41,7 +41,7 @@ EdgeDice::EdgeDice(const SubdParams& params_)
 	}
 }
 
-void EdgeDice::reserve(int num_verts, int num_tris)
+void EdgeDice::reserve(int num_verts)
 {
 	Mesh *mesh = params.mesh;
 
@@ -147,8 +147,7 @@ void QuadDice::reserve(EdgeFactors& ef, int Mu, int Mv)
 {
 	/* XXX need to make this also work for edge factor 0 and 1 */
 	int num_verts = (ef.tu0 + ef.tu1 + ef.tv0 + ef.tv1) + (Mu - 1)*(Mv - 1);
-	int num_tris = 0;
-	EdgeDice::reserve(num_verts, num_tris);
+	EdgeDice::reserve(num_verts);
 }
 
 float2 QuadDice::map_uv(SubPatch& sub, float u, float v)
@@ -358,7 +357,7 @@ void TriangleDice::reserve(EdgeFactors& ef, int M)
 	if(!(M & 1))
 		num_verts++;
 	
-	EdgeDice::reserve(num_verts, 0);
+	EdgeDice::reserve(num_verts);
 }
 
 float2 TriangleDice::map_uv(SubPatch& sub, float2 uv)

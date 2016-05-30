@@ -158,7 +158,7 @@ public:
 	void add_vertex(float3 P);
 	void add_triangle(int v0, int v1, int v2, int shader, bool smooth, bool forms_quad = false);
 	void add_curve_key(float3 loc, float radius);
-	void add_curve(int first_key, int num_keys, int shader);
+	void add_curve(int first_key, int shader);
 	int split_vertex(int vertex);
 
 	void compute_bounds();
