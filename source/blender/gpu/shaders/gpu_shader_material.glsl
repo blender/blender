@@ -2403,6 +2403,12 @@ int floor_to_int(float x)
 {
 	return int(floor(x));
 }
+
+int quick_floor(float x)
+{
+	return int(x) - ((x < 0) ? 1 : 0);
+}
+
 #ifdef BIT_OPERATIONS
 float integer_noise(int n)
 {
@@ -2453,9 +2459,9 @@ float bits_to_01(uint bits)
 
 float cellnoise(vec3 p)
 {
-	int ix = floor_to_int(p.x);
-	int iy = floor_to_int(p.y);
-	int iz = floor_to_int(p.z);
+	int ix = quick_floor(p.x);
+	int iy = quick_floor(p.y);
+	int iz = quick_floor(p.z);
 
 	return bits_to_01(hash(uint(ix), uint(iy), uint(iz)));
 }
