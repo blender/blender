@@ -1510,7 +1510,7 @@ BArrayState *BLI_array_store_state_add(
 	}
 #endif
 
-	static BChunkList *chunk_list;
+	BChunkList *chunk_list;
 	if (state_reference) {
 		chunk_list = bchunk_list_from_data_merge(
 		        &bs->info, &bs->memory,
