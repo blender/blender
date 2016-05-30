@@ -56,6 +56,7 @@ using boost::function;
 
 #define DISABLE_NEW_DEPSGRAPH
 
+#include "BLI_utildefines.h"
 #include <cstdlib>
 
 template<typename T>
