@@ -59,17 +59,49 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, bNodeExecDat
 	Image *ima = (Image *)node->id;
 	ImageUser *iuser = NULL;
 	NodeTexImage *tex = node->storage;
+
+	GPUNodeLink *norm;
+
 	int isdata = tex->color_space == SHD_COLORSPACE_NONE;
+	float blend = tex->projection_blend;
 
 	if (!ima)
 		return GPU_stack_link(mat, "node_tex_image_empty", in, out);
-	
+
 	if (!in[0].link)
 		in[0].link = GPU_attribute(CD_MTFACE, "");
 
 	node_shader_gpu_tex_mapping(mat, node, in, out);
 
-	GPU_stack_link(mat, "node_tex_image", in, out, GPU_image(ima, iuser, isdata));
+	switch (tex->projection) {
+		case SHD_PROJ_FLAT:
+			GPU_stack_link(mat, "node_tex_image", in, out, GPU_image(ima, iuser, isdata));
+			break;
+		case SHD_PROJ_BOX:
+			GPU_link(mat, "direction_transform_m4v3", GPU_builtin(GPU_VIEW_NORMAL),
+			                                          GPU_builtin(GPU_INVERSE_VIEW_MATRIX),
+			                                          &norm);
+			GPU_link(mat, "direction_transform_m4v3", norm,
+			                                          GPU_builtin(GPU_INVERSE_OBJECT_MATRIX),
+			                                          &norm);
+			GPU_link(mat, "node_tex_image_box", in[0].link,
+			                                    norm,
+			                                    GPU_image(ima, iuser, isdata),
+			                                    GPU_uniform(&blend),
+			                                    &out[0].link,
+			                                    &out[1].link);
+			break;
+		case SHD_PROJ_SPHERE:
+			GPU_link(mat, "point_texco_remap_square", in[0].link, &in[0].link);
+			GPU_link(mat, "point_map_to_sphere", in[0].link, &in[0].link);
+			GPU_stack_link(mat, "node_tex_image", in, out, GPU_image(ima, iuser, isdata));
+			break;
+		case SHD_PROJ_TUBE:
+			GPU_link(mat, "point_texco_remap_square", in[0].link, &in[0].link);
+			GPU_link(mat, "point_map_to_tube", in[0].link, &in[0].link);
+			GPU_stack_link(mat, "node_tex_image", in, out, GPU_image(ima, iuser, isdata));
+			break;
+	}
 
 	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
 	if ((tex->color_space == SHD_COLORSPACE_COLOR) &&
