@@ -2935,7 +2935,7 @@ void node_tex_magic(vec3 co, float scale, float distortion, float depth, out vec
 		z /= distortion;
 	}
 
-	color = vec4(0.5 - x, 0.5 - y, 0.f - z, 1.0);
+	color = vec4(0.5 - x, 0.5 - y, 0.5 - z, 1.0);
 	fac = (color.x + color.y + color.z) / 3.0;
 }
 
