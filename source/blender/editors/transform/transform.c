@@ -2863,7 +2863,7 @@ static void initBend(TransInfo *t)
 
 	//copy_v3_v3(t->center, ED_view3d_cursor3d_get(t->scene, t->view));
 	calculateCenterCursor(t, t->center);
-	calculateCenterGlobal(t);
+	calculateCenterGlobal(t, t->center, t->center_global);
 
 	t->val = 0.0f;
 

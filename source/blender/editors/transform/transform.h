@@ -369,6 +369,11 @@ typedef struct TransCustomData {
 	unsigned int use_free : 1;
 } TransCustomData;
 
+typedef struct TransCenterData {
+	float local[3], global[3];
+	unsigned int is_set : 1;
+} TransCenterData;
+
 typedef struct TransInfo {
 	int         mode;           /* current mode                         */
 	int	        flag;           /* generic flags for special behaviors  */
@@ -396,6 +401,9 @@ typedef struct TransInfo {
 	float       center[3];      /* center of transformation (in local-space) */
 	float       center_global[3];  /* center of transformation (in global-space) */
 	float       center2d[2];    /* center in screen coordinates         */
+	/* Lazy initialize center data for when we need other center values.
+	 * V3D_AROUND_ACTIVE + 1 (static assert checks this) */
+	TransCenterData center_cache[5];
 	short       idx_max;		/* maximum index on the input vector	*/
 	float		snap[3];		/* Snapping Gears						*/
 	float		snap_spatial[3]; /* Spatial snapping gears(even when rotating, scaling... etc) */
@@ -742,8 +750,11 @@ void restoreTransObjects(TransInfo *t);
 void recalcData(TransInfo *t);
 
 void calculateCenter2D(TransInfo *t);
-void calculateCenterGlobal(TransInfo *t);
+void calculateCenterGlobal(
+        TransInfo *t, const float center_local[3],
+        float r_center_global[3]);
 
+const TransCenterData *transformCenter_from_type(TransInfo *t, int around);
 void calculateCenter(TransInfo *t);
 
 /* API functions for getting center points */

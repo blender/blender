@@ -1520,11 +1520,21 @@ static void applyGridIncrement(TransInfo *t, float *val, int max_index, const fl
 
 	/* absolute snapping on grid based on global center */
 	if ((t->tsnap.snap_spatial_grid) && (t->mode == TFM_TRANSLATION)) {
+		const float *center_global = t->center_global;
+
+		/* use a fallback for cursor selection,
+		 * this isn't useful as a global center for absolute grid snapping
+		 * since its not based on the position of the selection. */
+		if (t->around == V3D_AROUND_CURSOR) {
+			const TransCenterData *cd = transformCenter_from_type(t, V3D_AROUND_CENTER_MEAN);
+			center_global = cd->global;
+		}
+
 		for (i = 0; i <= max_index; i++) {
 			/* do not let unconstrained axis jump to absolute grid increments */
 			if (!(t->con.mode & CON_APPLY) || t->con.mode & (CON_AXIS0 << i)) {
 				const float iter_fac = fac[action] * asp[i];
-				val[i] = iter_fac * roundf((val[i] + t->center_global[i]) / iter_fac) - t->center_global[i];
+				val[i] = iter_fac * roundf((val[i] + center_global[i]) / iter_fac) - center_global[i];
 			}
 		}
 	}
