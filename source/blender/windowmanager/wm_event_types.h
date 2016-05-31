@@ -343,37 +343,38 @@ enum {
 /* *********** wmEvent.type helpers. ********** */
 
 /* test whether the event is timer event */
-#define ISTIMER(event_type)	(event_type >= TIMER && event_type <= TIMERF)
+#define ISTIMER(event_type)	((event_type) >= TIMER && (event_type) <= TIMERF)
 
 /* for event checks */
 /* only used for KM_TEXTINPUT, so assume that we want all user-inputtable ascii codes included */
 /* UNUSED - see wm_eventmatch - BUG [#30479] */
-/* #define ISTEXTINPUT(event_type)  (event_type >= ' ' && event_type <= 255) */
+/* #define ISTEXTINPUT(event_type)  ((event_type) >= ' ' && (event_type) <= 255) */
 /* note, an alternative could be to check 'event->utf8_buf' */
 
 /* test whether the event is a key on the keyboard */
 #define ISKEYBOARD(event_type)                          \
-	((event_type >= 0x0020 && event_type <= 0x00ff) ||  \
-	 (event_type >= 0x012c && event_type <= 0x013f))
+	(((event_type) >= 0x0020 && (event_type) <= 0x00ff) ||  \
+	 ((event_type) >= 0x012c && (event_type) <= 0x013f))
 
 /* test whether the event is a modifier key */
-#define ISKEYMODIFIER(event_type)  ((event_type >= LEFTCTRLKEY && event_type <= LEFTSHIFTKEY) || event_type == OSKEY)
+#define ISKEYMODIFIER(event_type) \
+	(((event_type) >= LEFTCTRLKEY && (event_type) <= LEFTSHIFTKEY) || (event_type) == OSKEY)
 
 /* test whether the event is a mouse button */
-#define ISMOUSE(event_type)  (event_type >= LEFTMOUSE && event_type <= BUTTON7MOUSE)
+#define ISMOUSE(event_type)  ((event_type) >= LEFTMOUSE && (event_type) <= BUTTON7MOUSE)
 
 /* test whether the event is tweak event */
-#define ISTWEAK(event_type)  (event_type >= EVT_TWEAK_L && event_type <= EVT_GESTURE)
+#define ISTWEAK(event_type)  ((event_type) >= EVT_TWEAK_L && (event_type) <= EVT_GESTURE)
 
 /* test whether the event is a NDOF event */
-#define ISNDOF(event_type)  (event_type >= NDOF_MOTION && event_type < NDOF_LAST)
+#define ISNDOF(event_type)  ((event_type) >= NDOF_MOTION && (event_type) < NDOF_LAST)
 
 /* test whether event type is acceptable as hotkey, excluding modifiers */
 #define ISHOTKEY(event_type)                                                  \
 	((ISKEYBOARD(event_type) || ISMOUSE(event_type) || ISNDOF(event_type)) && \
-	 (event_type != ESCKEY) &&                                                \
-	 (event_type >= LEFTCTRLKEY && event_type <= LEFTSHIFTKEY) == false &&    \
-	 (event_type >= UNKNOWNKEY  && event_type <= GRLESSKEY) == false)
+	 ((event_type) != ESCKEY) &&                                                \
+	 ((event_type) >= LEFTCTRLKEY && (event_type) <= LEFTSHIFTKEY) == false &&    \
+	 ((event_type) >= UNKNOWNKEY  && (event_type) <= GRLESSKEY) == false)
 
 /* internal helpers*/
 #define _VA_IS_EVENT_MOD2(v, a) (CHECK_TYPE_INLINE(v, wmEvent *), \

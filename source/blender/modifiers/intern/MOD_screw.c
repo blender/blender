@@ -73,7 +73,7 @@ typedef struct ScrewVertIter {
 
 #define SV_UNUSED (UINT_MAX)
 #define SV_INVALID ((UINT_MAX) - 1)
-#define SV_IS_VALID(v) (v < SV_INVALID)
+#define SV_IS_VALID(v) ((v) < SV_INVALID)
 
 static void screwvert_iter_init(ScrewVertIter *iter, ScrewVertConnect *array, unsigned int v_init, unsigned int dir)
 {

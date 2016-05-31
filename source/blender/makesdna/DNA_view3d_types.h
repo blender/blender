@@ -298,7 +298,7 @@ typedef struct View3D {
 #define RV3D_VIEW_CAMERA		 8
 
 #define RV3D_VIEW_IS_AXIS(view) \
-	((view >= RV3D_VIEW_FRONT) && (view <= RV3D_VIEW_BOTTOM))
+	(((view) >= RV3D_VIEW_FRONT) && ((view) <= RV3D_VIEW_BOTTOM))
 
 /* View3d->flag2 (short) */
 #define V3D_RENDER_OVERRIDE		(1 << 2)
