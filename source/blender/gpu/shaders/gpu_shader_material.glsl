@@ -2804,11 +2804,11 @@ void node_tex_checker(vec3 co, vec4 color1, vec4 color2, float scale, out vec4 c
 	p.y = (p.y + 0.000001) * 0.999999;
 	p.z = (p.z + 0.000001) * 0.999999;
 
-	int xi = abs(int(floor(p.x)));
-	int yi = abs(int(floor(p.y)));
-	int zi = abs(int(floor(p.z)));
+	int xi = int(abs(floor(p.x)));
+	int yi = int(abs(floor(p.y)));
+	int zi = int(abs(floor(p.z)));
 
-	bool check = ((xi % 2 == yi % 2) == bool(zi % 2));
+	bool check = ((mod(xi, 2) == mod(yi, 2)) == bool(mod(zi, 2)));
 
 	color = check ? color1 : color2;
 	fac = check ? 1.0 : 0.0;
