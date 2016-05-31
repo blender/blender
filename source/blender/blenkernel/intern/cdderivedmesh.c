@@ -1032,6 +1032,7 @@ static void cdDM_drawMappedFacesGLSL(
 
 				if (matconv[a].attribs.totorco && matconv[a].attribs.orco.array) {
 					matconv[a].datatypes[numdata].index = matconv[a].attribs.orco.gl_index;
+					matconv[a].datatypes[numdata].info_index = matconv[a].attribs.orco.gl_info_index;
 					matconv[a].datatypes[numdata].size = 3;
 					matconv[a].datatypes[numdata].type = GL_FLOAT;
 					numdata++;
@@ -1039,6 +1040,7 @@ static void cdDM_drawMappedFacesGLSL(
 				for (b = 0; b < matconv[a].attribs.tottface; b++) {
 					if (matconv[a].attribs.tface[b].array) {
 						matconv[a].datatypes[numdata].index = matconv[a].attribs.tface[b].gl_index;
+						matconv[a].datatypes[numdata].info_index = matconv[a].attribs.tface[b].gl_info_index;
 						matconv[a].datatypes[numdata].size = 2;
 						matconv[a].datatypes[numdata].type = GL_FLOAT;
 						numdata++;
@@ -1047,6 +1049,7 @@ static void cdDM_drawMappedFacesGLSL(
 				for (b = 0; b < matconv[a].attribs.totmcol; b++) {
 					if (matconv[a].attribs.mcol[b].array) {
 						matconv[a].datatypes[numdata].index = matconv[a].attribs.mcol[b].gl_index;
+						matconv[a].datatypes[numdata].info_index = matconv[a].attribs.mcol[b].gl_info_index;
 						matconv[a].datatypes[numdata].size = 4;
 						matconv[a].datatypes[numdata].type = GL_UNSIGNED_BYTE;
 						numdata++;
@@ -1055,6 +1058,7 @@ static void cdDM_drawMappedFacesGLSL(
 				for (b = 0; b < matconv[a].attribs.tottang; b++) {
 					if (matconv[a].attribs.tang[b].array) {
 						matconv[a].datatypes[numdata].index = matconv[a].attribs.tang[b].gl_index;
+						matconv[a].datatypes[numdata].info_index = matconv[a].attribs.tang[b].gl_info_index;
 						matconv[a].datatypes[numdata].size = 4;
 						matconv[a].datatypes[numdata].type = GL_FLOAT;
 						numdata++;

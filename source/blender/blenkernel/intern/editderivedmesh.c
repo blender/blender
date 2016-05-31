@@ -57,6 +57,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "GPU_glew.h"
+#include "GPU_buffers.h"
 #include "GPU_shader.h"
 #include "GPU_basic_shader.h"
 
@@ -1431,6 +1432,7 @@ static void emdm_pass_attrib_vertex_glsl(const DMVertexAttribs *attribs, const B
 			glTexCoord3fv(orco);
 		else
 			glVertexAttrib3fv(attribs->orco.gl_index, orco);
+		glUniform1i(attribs->orco.gl_info_index, 0);
 	}
 	for (i = 0; i < attribs->tottface; i++) {
 		const float *uv;
@@ -1447,6 +1449,7 @@ static void emdm_pass_attrib_vertex_glsl(const DMVertexAttribs *attribs, const B
 			glTexCoord2fv(uv);
 		else
 			glVertexAttrib2fv(attribs->tface[i].gl_index, uv);
+		glUniform1i(attribs->tface[i].gl_info_index, 0);
 	}
 	for (i = 0; i < attribs->totmcol; i++) {
 		GLubyte col[4];
@@ -1458,6 +1461,7 @@ static void emdm_pass_attrib_vertex_glsl(const DMVertexAttribs *attribs, const B
 			col[0] = 0; col[1] = 0; col[2] = 0; col[3] = 0;
 		}
 		glVertexAttrib4ubv(attribs->mcol[i].gl_index, col);
+		glUniform1i(attribs->mcol[i].gl_info_index, GPU_ATTR_INFO_SRGB);
 	}
 
 	for (i = 0; i < attribs->tottang; i++) {
@@ -1469,6 +1473,7 @@ static void emdm_pass_attrib_vertex_glsl(const DMVertexAttribs *attribs, const B
 			tang = zero;
 		}
 		glVertexAttrib4fv(attribs->tang[i].gl_index, tang);
+		glUniform1i(attribs->tang[i].gl_info_index, 0);
 	}
 }
 

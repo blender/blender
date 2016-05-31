@@ -212,6 +212,9 @@ static void gpu_material_set_attrib_id(GPUMaterial *material)
 		BLI_snprintf(name, sizeof(name), "att%d", attribs->layer[a].attribid);
 		attribs->layer[a].glindex = GPU_shader_get_attribute(shader, name);
 
+		BLI_snprintf(name, sizeof(name), "att%d_info", attribs->layer[a].attribid);
+		attribs->layer[a].glinfoindoex = GPU_shader_get_uniform(shader, name);
+
 		if (attribs->layer[a].glindex >= 0) {
 			attribs->layer[b] = attribs->layer[a];
 			b++;

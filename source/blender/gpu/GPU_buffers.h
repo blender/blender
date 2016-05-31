@@ -147,6 +147,7 @@ typedef struct GPUVertPointLink {
 /* used for GLSL materials */
 typedef struct GPUAttrib {
 	int index;
+	int info_index;
 	int size;
 	int type;
 } GPUAttrib;
@@ -178,6 +179,10 @@ typedef enum {
 	GPU_BINDING_ARRAY = 0,
 	GPU_BINDING_INDEX = 1,
 } GPUBindingType;
+
+typedef enum {
+	GPU_ATTR_INFO_SRGB = (1 << 0),
+} GPUAttrInfo;
 
 /* called before drawing */
 void GPU_vertex_setup(struct DerivedMesh *dm);

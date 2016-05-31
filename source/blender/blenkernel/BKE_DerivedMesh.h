@@ -757,22 +757,22 @@ void DM_update_weight_mcol(
 typedef struct DMVertexAttribs {
 	struct {
 		struct MLoopUV *array;
-		int em_offset, gl_index, gl_texco;
+		int em_offset, gl_index, gl_texco, gl_info_index;
 	} tface[MAX_MTFACE];
 
 	struct {
 		struct MLoopCol *array;
-		int em_offset, gl_index;
+		int em_offset, gl_index, gl_info_index;
 	} mcol[MAX_MCOL];
 
 	struct {
 		float (*array)[4];
-		int em_offset, gl_index;
+		int em_offset, gl_index, gl_info_index;
 	} tang[MAX_MTFACE];
 
 	struct {
 		float (*array)[3];
-		int em_offset, gl_index, gl_texco;
+		int em_offset, gl_index, gl_texco, gl_info_index;
 	} orco;
 
 	int tottface, totmcol, tottang, totorco;

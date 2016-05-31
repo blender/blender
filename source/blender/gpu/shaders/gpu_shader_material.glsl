@@ -2668,9 +2668,6 @@ void node_gamma(vec4 col, float gamma, out vec4 outcol)
 
 void node_attribute(vec3 attr, out vec4 outcol, out vec3 outvec, out float outf)
 {
-	/* TODO(sergey): This needs linearization for vertex color.
-	 * But how to detect cases when input is linear and when it's srgb?
-	 */
 	outcol = vec4(attr, 1.0);
 	outvec = attr;
 	outf = (attr.x + attr.y + attr.z) / 3.0;
