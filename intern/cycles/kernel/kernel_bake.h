@@ -482,12 +482,10 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 	}
 
 	/* write output */
-	float output_fac = is_aa_pass(type)? 1.0f/num_samples: 1.0f;
+	const float output_fac = is_aa_pass(type)? 1.0f/num_samples: 1.0f;
+	const float4 scaled_result = make_float4(out.x, out.y, out.z, 1.0f) * output_fac;
 
-	if(sample == 0)
-		output[i] = make_float4(out.x, out.y, out.z, 1.0f) * output_fac;
-	else
-		output[i] += make_float4(out.x, out.y, out.z, 1.0f) * output_fac;
+	output[i] = (sample == 0)?  scaled_result: output[i] + scaled_result;
 }
 
 #endif  /* __BAKING__ */
