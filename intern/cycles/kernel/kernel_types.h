@@ -121,9 +121,7 @@ CCL_NAMESPACE_BEGIN
 #    define __OBJECT_MOTION__
 #    define __HAIR__
 #    define __BAKING__
-#    ifdef __KERNEL_EXPERIMENTAL__
-#      define __TRANSPARENT_SHADOWS__
-#    endif
+#    define __TRANSPARENT_SHADOWS__
 #  endif  /* __KERNEL_OPENCL_AMD__ */
 
 #  ifdef __KERNEL_OPENCL_INTEL_CPU__
