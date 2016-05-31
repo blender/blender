@@ -435,7 +435,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 				}
 			}
 			else {
-				if ((aux_tree = bvhtree_from_mesh_looptri(&dmauxdata_stack, calc->target, 0.0, 4, 6)) != NULL) {
+				if ((aux_tree = bvhtree_from_mesh_looptri(&dmauxdata_stack, auxMesh, 0.0, 4, 6)) != NULL) {
 					aux_callback = dmauxdata_stack.raycast_callback;
 					auxData = &dmauxdata_stack;
 				}
