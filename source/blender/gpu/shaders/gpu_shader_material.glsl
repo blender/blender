@@ -2976,7 +2976,7 @@ void node_tex_image_box(vec3 texco,
 		/* Desperate mode, no valid choice anyway, fallback to one side.*/
 		weight.x = 1.0;
 	}
-
+	color = vec4(0);
 	if (weight.x > 0.0) {
 		color += weight.x * texture2D(ima, texco.yz);
 	}
