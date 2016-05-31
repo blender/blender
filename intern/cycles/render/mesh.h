@@ -156,6 +156,7 @@ public:
 	void reserve_curves(int numcurves, int numkeys);
 	void clear();
 	void add_vertex(float3 P);
+	void add_vertex_slow(float3 P);
 	void add_triangle(int v0, int v1, int v2, int shader, bool smooth, bool forms_quad = false);
 	void add_curve_key(float3 loc, float radius);
 	void add_curve(int first_key, int shader);

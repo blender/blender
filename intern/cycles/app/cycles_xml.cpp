@@ -306,6 +306,7 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 
 			snode = env;
 		}
+#ifdef WITH_OSL
 		else if(string_iequals(node.name(), "osl_shader")) {
 			if(manager->use_osl()) {
 				std::string filepath;
@@ -329,6 +330,7 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 				fprintf(stderr, "OSL node without using --shadingsys osl.\n");
 			}
 		}
+#endif
 		else if(string_iequals(node.name(), "sky_texture")) {
 			SkyTextureNode *sky = new SkyTextureNode();
 			
