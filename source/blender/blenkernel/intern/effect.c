@@ -566,7 +566,9 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 	float cfra = eff->scene->r.cfra;
 	int ret = 0;
 
-	if (eff->pd && eff->pd->shape==PFIELD_SHAPE_SURFACE && eff->surmd) {
+	/* In case surface object is in Edit mode when loading the .blend, surface modifier is never executed
+	 * and bvhtree never built, see T48415. */
+	if (eff->pd && eff->pd->shape==PFIELD_SHAPE_SURFACE && eff->surmd && eff->surmd->bvhtree) {
 		/* closest point in the object surface is an effector */
 		float vec[3];
 
