@@ -2327,6 +2327,12 @@ static void ui_block_colorpicker(uiBlock *block, float rgba[4], PointerRNA *ptr,
 	RNA_property_float_range(ptr, prop, &hardmin, &hardmax);
 	RNA_property_float_get_array(ptr, prop, rgba);
 
+	/* when the softmax isn't defined in the RNA,
+	 * using very large numbers causes sRGB/linear round trip to fail. */
+	if (softmax == FLT_MAX) {
+		softmax = 1.0f;
+	}
+
 	switch (U.color_picker_type) {
 		case USER_CP_SQUARE_SV:
 			ui_colorpicker_square(block, ptr, prop, UI_GRAD_SV, cpicker);
