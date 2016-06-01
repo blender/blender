@@ -1287,7 +1287,7 @@ bool BLI_ghashutil_paircmp(const void *a, const void *b)
 	const GHashPair *A = a;
 	const GHashPair *B = b;
 
-	return (BLI_ghashutil_ptrcmp(A->first, B->first) &&
+	return (BLI_ghashutil_ptrcmp(A->first, B->first) ||
 	        BLI_ghashutil_ptrcmp(A->second, B->second));
 }
 
