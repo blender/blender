@@ -198,6 +198,12 @@ typedef struct BevelParams {
 
 // #include "bevdebug.c"
 
+/* some flags to re-enable old behavior for a while, in case fixes broke things not caught by regression tests */
+static int bev_debug_flags = 0;
+#define DEBUG_OLD_PLANE_SPECIAL (bev_debug_flags & 1)
+#define DEBUG_OLD_PROJ_TO_PERP_PLANE (bev_debug_flags & 2)
+#define DEBUG_OLD_FLAT_MID (bev_debug_flags & 4)
+
 /* Make a new BoundVert of the given kind, insert it at the end of the circular linked
  * list with entry point bv->boundstart, and return it. */
 static BoundVert *add_new_bound_vert(MemArena *mem_arena, VMesh *vm, const float co[3])
@@ -1045,15 +1051,21 @@ static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
 		sub_v3_v3v3(pro->proj_dir, e->e->v1->co, e->e->v2->co);
 		normalize_v3(pro->proj_dir);
 		project_to_edge(e->e, co1, co2, pro->midco);
-		/* put arc endpoints on plane with normal proj_dir, containing midco */
-		add_v3_v3v3(co3, co1, pro->proj_dir);
-		if (!isect_line_plane_v3(pro->coa, co1, co3, pro->midco, pro->proj_dir)) {
-			/* shouldn't happen */
-			copy_v3_v3(pro->coa, co1);
+		if (DEBUG_OLD_PROJ_TO_PERP_PLANE) {
+			/* put arc endpoints on plane with normal proj_dir, containing midco */
+			add_v3_v3v3(co3, co1, pro->proj_dir);
+			if (!isect_line_plane_v3(pro->coa, co1, co3, pro->midco, pro->proj_dir)) {
+				/* shouldn't happen */
+				copy_v3_v3(pro->coa, co1);
+			}
+			add_v3_v3v3(co3, co2, pro->proj_dir);
+			if (!isect_line_plane_v3(pro->cob, co2, co3, pro->midco, pro->proj_dir)) {
+				/* shouldn't happen */
+				copy_v3_v3(pro->cob, co2);
+			}
 		}
-		add_v3_v3v3(co3, co2, pro->proj_dir);
-		if (!isect_line_plane_v3(pro->cob, co2, co3, pro->midco, pro->proj_dir)) {
-			/* shouldn't happen */
+		else {
+			copy_v3_v3(pro->coa, co1);
 			copy_v3_v3(pro->cob, co2);
 		}
 		/* default plane to project onto is the one with triangle co1 - midco - co2 in it */
@@ -1066,19 +1078,48 @@ static void set_profile_params(BevelParams *bp, BevVert *bv, BoundVert *bndv)
 		if (l  <= BEVEL_EPSILON_BIG) {
 			/* co1 - midco -co2 are collinear.
 			 * Should be case that beveled edge is coplanar with two boundary verts.
+			 * We want to move the profile to that common plane, if possible.
+			 * That makes the multi-segment bevels curve nicely in that plane, as users expect.
+			 * The new midco should be either v (when neighbor edges are unbeveled)
+			 * or the intersection of the offset lines (if they are).
 			 * If the profile is going to lead into unbeveled edges on each side
 			 * (that is, both BoundVerts are "on-edge" points on non-beveled edges)
-			 * then in order to get curve in multi-segment case, change projection plane
-			 * to be that common plane, projection dir to be the plane normal,
-			 * and mid to be the original vertex.
-			 * Otherwise, we just want to linearly interpolate between co1 and co2.
 			 */
-			if (e->prev->is_bev || e->next->is_bev) {
+			if (DEBUG_OLD_PLANE_SPECIAL && (e->prev->is_bev || e->next->is_bev)) {
 				do_linear_interp = true;
 			}
 			else {
-				copy_v3_v3(pro->coa, co1);
-				copy_v3_v3(pro->midco, bv->v->co);
+				if (DEBUG_OLD_PROJ_TO_PERP_PLANE) {
+					copy_v3_v3(pro->coa, co1);
+					copy_v3_v3(pro->cob, co2);
+				}
+				if (DEBUG_OLD_FLAT_MID) {
+					copy_v3_v3(pro->midco, bv->v->co);
+				}
+				else {
+					copy_v3_v3(pro->midco, bv->v->co);
+					if (e->prev->is_bev && e->next->is_bev && bv->selcount >= 3) {
+						/* want mid at the meet point of next and prev offset edges */
+						float d3[3], d4[3], co4[3], meetco[3], isect2[3];
+						int isect_kind;
+
+						sub_v3_v3v3(d3, e->prev->e->v1->co, e->prev->e->v2->co);
+						sub_v3_v3v3(d4, e->next->e->v1->co, e->next->e->v2->co);
+						normalize_v3(d3);
+						normalize_v3(d4);
+						add_v3_v3v3(co3, co1, d3);
+						add_v3_v3v3(co4, co2, d4);
+						isect_kind = isect_line_line_v3(co1, co3, co2, co4, meetco, isect2);
+						if (isect_kind != 0) {
+							copy_v3_v3(pro->midco, meetco);
+						}
+						else {
+							/* offset lines are collinear - want linear interpolation */
+							mid_v3_v3v3(pro->midco, co1, co2);
+							do_linear_interp = true;
+						}
+					}
+				}
 				copy_v3_v3(pro->cob, co2);
 				sub_v3_v3v3(d1, pro->midco, co1);
 				normalize_v3(d1);
@@ -3436,7 +3477,7 @@ static bool fast_bevel_edge_order(BevVert *bv)
 			}
 		}
 		if (nsucs == 0 || (nsucs == 2 && j != 1) || nsucs > 2 ||
-			(j == bv->edgecount - 1 && !edges_face_connected_at_vert(bmenext, bv->edges[0].e)))
+		    (j == bv->edgecount - 1 && !edges_face_connected_at_vert(bmenext, bv->edges[0].e)))
 		{
 			for (k = 1; k < j; k++) {
 				BM_BEVEL_EDGE_TAG_DISABLE(bv->edges[k].e);
@@ -3868,7 +3909,7 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 					/* going cw */
 					if (vm->seg > 1) {
 						if (vm->mesh_kind == M_ADJ || bp->vertex_only ||
-							(vm->mesh_kind == M_NONE && v->ebev != e && v->ebev != eprev))
+						    (vm->mesh_kind == M_NONE && v->ebev != e && v->ebev != eprev))
 						{
 							i = v->prev->index;
 							for (k = vm->seg - 1; k > 0; k--) {
