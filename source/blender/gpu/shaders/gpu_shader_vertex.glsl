@@ -46,6 +46,16 @@ bool is_srgb(int info)
 #endif
 }
 
+void set_var_from_attr(float attr, int info, out float var)
+{
+	var = attr;
+}
+
+void set_var_from_attr(vec2 attr, int info, out vec2 var)
+{
+	var = attr;
+}
+
 void set_var_from_attr(vec3 attr, int info, out vec3 var)
 {
 	if (is_srgb(info)) {
