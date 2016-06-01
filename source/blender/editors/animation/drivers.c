@@ -753,7 +753,7 @@ EnumPropertyItem prop_driver_create_mapping_types[] = {
 	 "Create drivers for each pair of corresponding elements"},
 	 
 	{CREATEDRIVER_MAPPING_NONE_ALL, "NONE_ALL", ICON_HAND, "Manually Create Later",
-	 "Create drivers for all properites without assigning any targets yet"},
+	 "Create drivers for all properties without assigning any targets yet"},
 	{CREATEDRIVER_MAPPING_NONE,     "NONE_SINGLE", 0, "Manually Create Later (Single)",
 	 "Create driver for this property only and without assigning any targets yet"},
 	{0, NULL, 0, NULL, NULL}
