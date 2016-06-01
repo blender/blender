@@ -37,7 +37,7 @@ struct BlenderCamera {
 	float lens;
 	float shuttertime;
 	Camera::MotionPosition motion_position;
-	float shutter_curve[RAMP_TABLE_SIZE];
+	array<float> shutter_curve;
 
 	Camera::RollingShutterType rolling_shutter_type;
 	float rolling_shutter_duration;
@@ -108,10 +108,6 @@ static void blender_camera_init(BlenderCamera *bcam,
 	/* render resolution */
 	bcam->full_width = render_resolution_x(b_render);
 	bcam->full_height = render_resolution_y(b_render);
-
-	/* pixel aspect */
-	bcam->pixelaspect.x = b_render.pixel_aspect_x();
-	bcam->pixelaspect.y = b_render.pixel_aspect_y();
 }
 
 static float blender_camera_focal_distance(BL::RenderEngine& b_engine,
@@ -464,7 +460,7 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 	cam->rolling_shutter_type = bcam->rolling_shutter_type;
 	cam->rolling_shutter_duration = bcam->rolling_shutter_duration;
 
-	memcpy(cam->shutter_curve, bcam->shutter_curve, sizeof(cam->shutter_curve));
+	cam->shutter_curve = bcam->shutter_curve;
 
 	/* border */
 	cam->border = bcam->border;
@@ -562,6 +558,10 @@ void BlenderSync::sync_camera_motion(BL::RenderSettings& b_render,
 		BlenderCamera bcam;
 		float aspectratio, sensor_size;
 		blender_camera_init(&bcam, b_render);
+
+		/* TODO(sergey): Consider making it a part of blender_camera_init(). */
+		bcam.pixelaspect.x = b_render.pixel_aspect_x();
+		bcam.pixelaspect.y = b_render.pixel_aspect_y();
 
 		blender_camera_from_object(&bcam, b_engine, b_ob);
 		blender_camera_viewplane(&bcam,

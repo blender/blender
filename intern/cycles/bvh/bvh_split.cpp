@@ -292,13 +292,13 @@ void BVHSpatialSplit::split_triangle_primitive(const Mesh *mesh,
                                                BoundBox& left_bounds,
                                                BoundBox& right_bounds)
 {
-	const int *inds = mesh->triangles[prim_index].v;
+	Mesh::Triangle t = mesh->get_triangle(prim_index);
 	const float3 *verts = &mesh->verts[0];
-	float3 v1 = tfm ? transform_point(tfm, verts[inds[2]]) : verts[inds[2]];
+	float3 v1 = tfm ? transform_point(tfm, verts[t.v[2]]) : verts[t.v[2]];
 
 	for(int i = 0; i < 3; i++) {
 		float3 v0 = v1;
-		int vindex = inds[i];
+		int vindex = t.v[i];
 		v1 = tfm ? transform_point(tfm, verts[vindex]) : verts[vindex];
 		float v0p = v0[dim];
 		float v1p = v1[dim];
@@ -329,12 +329,11 @@ void BVHSpatialSplit::split_curve_primitive(const Mesh *mesh,
                                             BoundBox& right_bounds)
 {
 	/* curve split: NOTE - Currently ignores curve width and needs to be fixed.*/
-	const int k0 = mesh->curves[prim_index].first_key + segment_index;
+	Mesh::Curve curve = mesh->get_curve(prim_index);
+	const int k0 = curve.first_key + segment_index;
 	const int k1 = k0 + 1;
-	const float4& key0 = mesh->curve_keys[k0];
-	const float4& key1 = mesh->curve_keys[k1];
-	float3 v0 = float4_to_float3(key0);
-	float3 v1 = float4_to_float3(key1);
+	float3 v0 = mesh->curve_keys[k0];
+	float3 v1 = mesh->curve_keys[k1];
 
 	if(tfm != NULL) {
 		v0 = transform_point(tfm, v0);
@@ -414,8 +413,8 @@ void BVHSpatialSplit::split_object_reference(const Object *object,
 		                         left_bounds,
 		                         right_bounds);
 	}
-	for(int curve_idx = 0; curve_idx < mesh->curves.size(); ++curve_idx) {
-		Mesh::Curve &curve = mesh->curves[curve_idx];
+	for(int curve_idx = 0; curve_idx < mesh->num_curves(); ++curve_idx) {
+		Mesh::Curve curve = mesh->get_curve(curve_idx);
 		for(int segment_idx = 0;
 		    segment_idx < curve.num_keys - 1;
 		    ++segment_idx)

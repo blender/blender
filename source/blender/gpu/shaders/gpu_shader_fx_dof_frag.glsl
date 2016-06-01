@@ -115,9 +115,9 @@ void second_pass()
 	color += texture2D(colorbuffer, uvcoordsvar.xy + invrendertargetdim) * 0.234375;
 	color += texture2D(colorbuffer, uvcoordsvar.xy + 2.5 * invrendertargetdim) * 0.09375;
 	color += texture2D(colorbuffer, uvcoordsvar.xy + 4.5 * invrendertargetdim) * 0.015625;
-	color += texture2D(colorbuffer, uvcoordsvar.xy -invrendertargetdim) * 0.234375;
-	color += texture2D(colorbuffer, uvcoordsvar.xy -2.5 * invrendertargetdim) * 0.09375;
-	color += texture2D(colorbuffer, uvcoordsvar.xy -4.5 * invrendertargetdim) * 0.015625;
+	color += texture2D(colorbuffer, uvcoordsvar.xy - invrendertargetdim) * 0.234375;
+	color += texture2D(colorbuffer, uvcoordsvar.xy - 2.5 * invrendertargetdim) * 0.09375;
+	color += texture2D(colorbuffer, uvcoordsvar.xy - 4.5 * invrendertargetdim) * 0.015625;
 
 	gl_FragColor = color;
 }
@@ -128,7 +128,7 @@ void third_pass()
 {
 	vec4 color =  texture2D(colorbuffer, uvcoordsvar.xy);
 	vec4 color_blurred =  texture2D(blurredcolorbuffer, uvcoordsvar.xy);
-	float coc = 2.0 * max(color_blurred.a, color.a); - color.a;
+	float coc = 2.0 * max(color_blurred.a, color.a); -color.a;
 	gl_FragColor = vec4(color.rgb, coc);
 }
 
@@ -146,7 +146,7 @@ void fourth_pass()
 
 vec4 small_sample_blur(in sampler2D colorbuffer, in vec2 uv, in vec4 color)
 {
-	float weight = 1.0/ 17.0;
+	float weight = 1.0 / 17.0;
 	vec4 result = weight * color;
 	weight *= 4.0;
 

@@ -77,7 +77,7 @@ float calculate_ssao_factor(float depth)
 
 			/* use minor bias here to avoid self shadowing */
 			if (f > 0.05 * len + 0.0001)
-				factor += f * 1.0/(len * (1.0 + len * len * ssao_params.z));
+				factor += f * 1.0 / (len * (1.0 + len * len * ssao_params.z));
 		}
 	}
 

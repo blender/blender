@@ -1148,7 +1148,6 @@ static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int r_mode
 
 	/* parses the geom+tex nodes */
 	ntreeShaderGetTexcoMode(ntree, r_mode, &basemat->texco, &basemat->mode_l);
-	basemat->nmap_tangent_names_count = 0;
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->id) {
 			if (GS(node->id->name) == ID_MA) {
@@ -1199,7 +1198,7 @@ void init_render_material(Material *mat, int r_mode, float *amb)
 		 * mode_l will have it set when all node materials are shadeless. */
 		mat->mode_l = (mat->mode & MA_MODE_PIPELINE) | MA_SHLESS;
 		mat->mode2_l = mat->mode2 & MA_MODE2_PIPELINE;
-
+		mat->nmap_tangent_names_count = 0;
 		init_render_nodetree(mat->nodetree, mat, r_mode, amb);
 		
 		if (!mat->nodetree->execdata)

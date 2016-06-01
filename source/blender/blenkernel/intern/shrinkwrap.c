@@ -44,6 +44,7 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_task.h"
 
 #include "BKE_shrinkwrap.h"
 #include "BKE_DerivedMesh.h"
@@ -58,7 +59,7 @@
 
 /* for timing... */
 #if 0
-#  include "PIL_time.h"
+#  include "PIL_time_utildefines.h"
 #else
 #  define TIMEIT_BENCH(expr, id) (expr)
 #endif
@@ -66,16 +67,88 @@
 /* Util macros */
 #define OUT_OF_MEMORY() ((void)printf("Shrinkwrap: Out of memory\n"))
 
+typedef struct ShrinkwrapCalcCBData {
+	ShrinkwrapCalcData *calc;
+
+	void *treeData;
+	void *auxData;
+	BVHTree *targ_tree;
+	BVHTree *aux_tree;
+	void *targ_callback;
+	void *aux_callback;
+
+	float *proj_axis;
+	SpaceTransform *local2aux;
+} ShrinkwrapCalcCBData;
+
 /*
  * Shrinkwrap to the nearest vertex
  *
  * it builds a kdtree of vertexs we can attach to and then
  * for each vertex performs a nearest vertex search on the tree
  */
+static void shrinkwrap_calc_nearest_vertex_cb_ex(
+        void *userdata, void *userdata_chunk, const int i, const int UNUSED(threadid))
+{
+	ShrinkwrapCalcCBData *data = userdata;
+
+	ShrinkwrapCalcData *calc = data->calc;
+	BVHTreeFromMesh *treeData = data->treeData;
+	BVHTreeNearest *nearest = userdata_chunk;
+
+	float *co = calc->vertexCos[i];
+	float tmp_co[3];
+	float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
+
+	if (calc->invert_vgroup) {
+		weight = 1.0f - weight;
+	}
+
+	if (weight == 0.0f) {
+		return;
+	}
+
+	/* Convert the vertex to tree coordinates */
+	if (calc->vert) {
+		copy_v3_v3(tmp_co, calc->vert[i].co);
+	}
+	else {
+		copy_v3_v3(tmp_co, co);
+	}
+	BLI_space_transform_apply(&calc->local2target, tmp_co);
+
+	/* Use local proximity heuristics (to reduce the nearest search)
+	 *
+	 * If we already had an hit before.. we assume this vertex is going to have a close hit to that other vertex
+	 * so we can initiate the "nearest.dist" with the expected value to that last hit.
+	 * This will lead in pruning of the search tree. */
+	if (nearest->index != -1)
+		nearest->dist_sq = len_squared_v3v3(tmp_co, nearest->co);
+	else
+		nearest->dist_sq = FLT_MAX;
+
+	BLI_bvhtree_find_nearest(treeData->tree, tmp_co, nearest, treeData->nearest_callback, treeData);
+
+
+	/* Found the nearest vertex */
+	if (nearest->index != -1) {
+		/* Adjusting the vertex weight,
+		 * so that after interpolating it keeps a certain distance from the nearest position */
+		if (nearest->dist_sq > FLT_EPSILON) {
+			const float dist = sqrtf(nearest->dist_sq);
+			weight *= (dist - calc->keepDist) / dist;
+		}
+
+		/* Convert the coordinates back to mesh coordinates */
+		copy_v3_v3(tmp_co, nearest->co);
+		BLI_space_transform_invert(&calc->local2target, tmp_co);
+
+		interp_v3_v3v3(co, co, tmp_co, weight);  /* linear interpolation */
+	}
+}
+
 static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 {
-	int i;
-
 	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 	BVHTreeNearest nearest  = NULL_BVHTreeNearest;
 
@@ -89,61 +162,11 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	/* Setup nearest */
 	nearest.index = -1;
 	nearest.dist_sq = FLT_MAX;
-#ifndef __APPLE__
-#pragma omp parallel for default(none) private(i) firstprivate(nearest) shared(treeData, calc) schedule(static) if (calc->numVerts > BKE_MESH_OMP_LIMIT)
-#endif
-	for (i = 0; i < calc->numVerts; ++i) {
-		float *co = calc->vertexCos[i];
-		float tmp_co[3];
-		float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
 
-		if (calc->invert_vgroup) {
-			weight = 1.0f - weight;
-		}
-
-		if (weight == 0.0f) {
-			continue;
-		}
-
-
-		/* Convert the vertex to tree coordinates */
-		if (calc->vert) {
-			copy_v3_v3(tmp_co, calc->vert[i].co);
-		}
-		else {
-			copy_v3_v3(tmp_co, co);
-		}
-		BLI_space_transform_apply(&calc->local2target, tmp_co);
-
-		/* Use local proximity heuristics (to reduce the nearest search)
-		 *
-		 * If we already had an hit before.. we assume this vertex is going to have a close hit to that other vertex
-		 * so we can initiate the "nearest.dist" with the expected value to that last hit.
-		 * This will lead in pruning of the search tree. */
-		if (nearest.index != -1)
-			nearest.dist_sq = len_squared_v3v3(tmp_co, nearest.co);
-		else
-			nearest.dist_sq = FLT_MAX;
-
-		BLI_bvhtree_find_nearest(treeData.tree, tmp_co, &nearest, treeData.nearest_callback, &treeData);
-
-
-		/* Found the nearest vertex */
-		if (nearest.index != -1) {
-			/* Adjusting the vertex weight,
-			 * so that after interpolating it keeps a certain distance from the nearest position */
-			if (nearest.dist_sq > FLT_EPSILON) {
-				const float dist = sqrtf(nearest.dist_sq);
-				weight *= (dist - calc->keepDist) / dist;
-			}
-
-			/* Convert the coordinates back to mesh coordinates */
-			copy_v3_v3(tmp_co, nearest.co);
-			BLI_space_transform_invert(&calc->local2target, tmp_co);
-
-			interp_v3_v3v3(co, co, tmp_co, weight);  /* linear interpolation */
-		}
-	}
+	ShrinkwrapCalcCBData data = {.calc = calc, .treeData = &treeData};
+	BLI_task_parallel_range_ex(
+	            0, calc->numVerts, &data, &nearest, sizeof(nearest), shrinkwrap_calc_nearest_vertex_cb_ex,
+	            calc->numVerts > BKE_MESH_OMP_LIMIT, false);
 
 	free_bvhtree_from_mesh(&treeData);
 }
@@ -230,13 +253,109 @@ bool BKE_shrinkwrap_project_normal(
 	return false;
 }
 
+static void shrinkwrap_calc_normal_projection_cb_ex(
+        void *userdata, void *userdata_chunk, const int i, const int UNUSED(threadid))
+{
+	ShrinkwrapCalcCBData *data = userdata;
+
+	ShrinkwrapCalcData *calc = data->calc;
+	void *treeData = data->treeData;
+	void *auxData = data->auxData;
+	BVHTree *targ_tree = data->targ_tree;
+	BVHTree *aux_tree = data->aux_tree;
+	void *targ_callback = data->targ_callback;
+	void *aux_callback = data->aux_callback;
+
+	float *proj_axis = data->proj_axis;
+	SpaceTransform *local2aux = data->local2aux;
+
+	BVHTreeRayHit *hit = userdata_chunk;
+
+	const float proj_limit_squared = calc->smd->projLimit * calc->smd->projLimit;
+	float *co = calc->vertexCos[i];
+	float tmp_co[3], tmp_no[3];
+	float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
+
+	if (calc->invert_vgroup) {
+		weight = 1.0f - weight;
+	}
+
+	if (weight == 0.0f) {
+		return;
+	}
+
+	if (calc->vert) {
+		/* calc->vert contains verts from derivedMesh  */
+		/* this coordinated are deformed by vertexCos only for normal projection (to get correct normals) */
+		/* for other cases calc->varts contains undeformed coordinates and vertexCos should be used */
+		if (calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) {
+			copy_v3_v3(tmp_co, calc->vert[i].co);
+			normal_short_to_float_v3(tmp_no, calc->vert[i].no);
+		}
+		else {
+			copy_v3_v3(tmp_co, co);
+			copy_v3_v3(tmp_no, proj_axis);
+		}
+	}
+	else {
+		copy_v3_v3(tmp_co, co);
+		copy_v3_v3(tmp_no, proj_axis);
+	}
+
+
+	hit->index = -1;
+	hit->dist = BVH_RAYCAST_DIST_MAX; /* TODO: we should use FLT_MAX here, but sweepsphere code isn't prepared for that */
+
+	/* Project over positive direction of axis */
+	if (calc->smd->shrinkOpts & MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR) {
+		if (aux_tree) {
+			BKE_shrinkwrap_project_normal(
+			        0, tmp_co, tmp_no,
+			        local2aux, aux_tree, hit,
+			        aux_callback, auxData);
+		}
+
+		BKE_shrinkwrap_project_normal(
+		        calc->smd->shrinkOpts, tmp_co, tmp_no,
+		        &calc->local2target, targ_tree, hit,
+		        targ_callback, treeData);
+	}
+
+	/* Project over negative direction of axis */
+	if (calc->smd->shrinkOpts & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR) {
+		float inv_no[3];
+		negate_v3_v3(inv_no, tmp_no);
+
+		if (aux_tree) {
+			BKE_shrinkwrap_project_normal(
+			        0, tmp_co, inv_no,
+			        local2aux, aux_tree, hit,
+			        aux_callback, auxData);
+		}
+
+		BKE_shrinkwrap_project_normal(
+		        calc->smd->shrinkOpts, tmp_co, inv_no,
+		        &calc->local2target, targ_tree, hit,
+		        targ_callback, treeData);
+	}
+
+	/* don't set the initial dist (which is more efficient),
+	 * because its calculated in the targets space, we want the dist in our own space */
+	if (proj_limit_squared != 0.0f) {
+		if (len_squared_v3v3(hit->co, co) > proj_limit_squared) {
+			hit->index = -1;
+		}
+	}
+
+	if (hit->index != -1) {
+		madd_v3_v3v3fl(hit->co, hit->co, tmp_no, calc->keepDist);
+		interp_v3_v3v3(co, co, hit->co, weight);
+	}
+}
 
 static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for_render)
 {
-	int i;
-
 	/* Options about projection direction */
-	const float proj_limit_squared = calc->smd->projLimit * calc->smd->projLimit;
 	float proj_axis[3]      = {0.0f, 0.0f, 0.0f};
 
 	/* Raycast and tree stuff */
@@ -305,7 +424,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 	}
 	if (targ_tree) {
 		BVHTree *aux_tree = NULL;
-		void *aux_callback;
+		void *aux_callback = NULL;
 		if (auxMesh != NULL) {
 			/* use editmesh to avoid array allocation */
 			if (calc->smd->auxTarget && auxMesh->type == DM_TYPE_EDITBMESH) {
@@ -316,99 +435,22 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 				}
 			}
 			else {
-				if ((aux_tree = bvhtree_from_mesh_looptri(&dmauxdata_stack, calc->target, 0.0, 4, 6)) != NULL) {
+				if ((aux_tree = bvhtree_from_mesh_looptri(&dmauxdata_stack, auxMesh, 0.0, 4, 6)) != NULL) {
 					aux_callback = dmauxdata_stack.raycast_callback;
 					auxData = &dmauxdata_stack;
 				}
 			}
 		}
 		/* After sucessufuly build the trees, start projection vertexs */
-
-#ifndef __APPLE__
-#pragma omp parallel for private(i, hit) schedule(static) if (calc->numVerts > BKE_MESH_OMP_LIMIT)
-#endif
-		for (i = 0; i < calc->numVerts; ++i) {
-			float *co = calc->vertexCos[i];
-			float tmp_co[3], tmp_no[3];
-			float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
-
-			if (calc->invert_vgroup) {
-				weight = 1.0f - weight;
-			}
-
-			if (weight == 0.0f) {
-				continue;
-			}
-
-			if (calc->vert) {
-				/* calc->vert contains verts from derivedMesh  */
-				/* this coordinated are deformed by vertexCos only for normal projection (to get correct normals) */
-				/* for other cases calc->varts contains undeformed coordinates and vertexCos should be used */
-				if (calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) {
-					copy_v3_v3(tmp_co, calc->vert[i].co);
-					normal_short_to_float_v3(tmp_no, calc->vert[i].no);
-				}
-				else {
-					copy_v3_v3(tmp_co, co);
-					copy_v3_v3(tmp_no, proj_axis);
-				}
-			}
-			else {
-				copy_v3_v3(tmp_co, co);
-				copy_v3_v3(tmp_no, proj_axis);
-			}
-
-
-			hit.index = -1;
-			hit.dist = BVH_RAYCAST_DIST_MAX; /* TODO: we should use FLT_MAX here, but sweepsphere code isn't prepared for that */
-
-			/* Project over positive direction of axis */
-			if (calc->smd->shrinkOpts & MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR) {
-
-				if (aux_tree) {
-					BKE_shrinkwrap_project_normal(
-					        0, tmp_co, tmp_no,
-					        &local2aux, aux_tree, &hit,
-					        aux_callback, auxData);
-				}
-
-				BKE_shrinkwrap_project_normal(
-				        calc->smd->shrinkOpts, tmp_co, tmp_no,
-				        &calc->local2target, targ_tree, &hit,
-				        targ_callback, treeData);
-			}
-
-			/* Project over negative direction of axis */
-			if (calc->smd->shrinkOpts & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR) {
-				float inv_no[3];
-				negate_v3_v3(inv_no, tmp_no);
-
-				if (aux_tree) {
-					BKE_shrinkwrap_project_normal(
-					        0, tmp_co, inv_no,
-					        &local2aux, aux_tree, &hit,
-					        aux_callback, auxData);
-				}
-
-				BKE_shrinkwrap_project_normal(
-				        calc->smd->shrinkOpts, tmp_co, inv_no,
-				        &calc->local2target, targ_tree, &hit,
-				        targ_callback, treeData);
-			}
-
-			/* don't set the initial dist (which is more efficient),
-			 * because its calculated in the targets space, we want the dist in our own space */
-			if (proj_limit_squared != 0.0f) {
-				if (len_squared_v3v3(hit.co, co) > proj_limit_squared) {
-					hit.index = -1;
-				}
-			}
-
-			if (hit.index != -1) {
-				madd_v3_v3v3fl(hit.co, hit.co, tmp_no, calc->keepDist);
-				interp_v3_v3v3(co, co, hit.co, weight);
-			}
-		}
+		ShrinkwrapCalcCBData data = {
+			.calc = calc,
+			.treeData = treeData, .targ_tree = targ_tree, .targ_callback = targ_callback,
+			.auxData = auxData, .aux_tree = aux_tree, .aux_callback = aux_callback,
+			.proj_axis = proj_axis, .local2aux = &local2aux,
+		};
+		BLI_task_parallel_range_ex(
+		            0, calc->numVerts, &data, &hit, sizeof(hit), shrinkwrap_calc_normal_projection_cb_ex,
+		            calc->numVerts > BKE_MESH_OMP_LIMIT, false);
 	}
 
 	/* free data structures */
@@ -428,10 +470,75 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
  * it builds a BVHTree from the target mesh and then performs a
  * NN matches for each vertex
  */
+static void shrinkwrap_calc_nearest_surface_point_cb_ex(
+        void *userdata, void *userdata_chunk, const int i, const int UNUSED(threadid))
+{
+	ShrinkwrapCalcCBData *data = userdata;
+
+	ShrinkwrapCalcData *calc = data->calc;
+	BVHTreeFromMesh *treeData = data->treeData;
+	BVHTreeNearest *nearest = userdata_chunk;
+
+	float *co = calc->vertexCos[i];
+	float tmp_co[3];
+	float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
+
+	if (calc->invert_vgroup) {
+		weight = 1.0f - weight;
+	}
+
+	if (weight == 0.0f) {
+		return;
+	}
+
+	/* Convert the vertex to tree coordinates */
+	if (calc->vert) {
+		copy_v3_v3(tmp_co, calc->vert[i].co);
+	}
+	else {
+		copy_v3_v3(tmp_co, co);
+	}
+	BLI_space_transform_apply(&calc->local2target, tmp_co);
+
+	/* Use local proximity heuristics (to reduce the nearest search)
+	 *
+	 * If we already had an hit before.. we assume this vertex is going to have a close hit to that other vertex
+	 * so we can initiate the "nearest.dist" with the expected value to that last hit.
+	 * This will lead in pruning of the search tree. */
+	if (nearest->index != -1)
+		nearest->dist_sq = len_squared_v3v3(tmp_co, nearest->co);
+	else
+		nearest->dist_sq = FLT_MAX;
+
+	BLI_bvhtree_find_nearest(treeData->tree, tmp_co, nearest, treeData->nearest_callback, treeData);
+
+	/* Found the nearest vertex */
+	if (nearest->index != -1) {
+		if (calc->smd->shrinkOpts & MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE) {
+			/* Make the vertex stay on the front side of the face */
+			madd_v3_v3v3fl(tmp_co, nearest->co, nearest->no, calc->keepDist);
+		}
+		else {
+			/* Adjusting the vertex weight,
+			 * so that after interpolating it keeps a certain distance from the nearest position */
+			const float dist = sasqrt(nearest->dist_sq);
+			if (dist > FLT_EPSILON) {
+				/* linear interpolation */
+				interp_v3_v3v3(tmp_co, tmp_co, nearest->co, (dist - calc->keepDist) / dist);
+			}
+			else {
+				copy_v3_v3(tmp_co, nearest->co);
+			}
+		}
+
+		/* Convert the coordinates back to mesh coordinates */
+		BLI_space_transform_invert(&calc->local2target, tmp_co);
+		interp_v3_v3v3(co, co, tmp_co, weight);  /* linear interpolation */
+	}
+}
+
 static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 {
-	int i;
-
 	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 	BVHTreeNearest nearest  = NULL_BVHTreeNearest;
 
@@ -446,67 +553,11 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 	nearest.index = -1;
 	nearest.dist_sq = FLT_MAX;
 
-
 	/* Find the nearest vertex */
-#ifndef __APPLE__
-#pragma omp parallel for default(none) private(i) firstprivate(nearest) shared(calc, treeData) schedule(static) if (calc->numVerts > BKE_MESH_OMP_LIMIT)
-#endif
-	for (i = 0; i < calc->numVerts; ++i) {
-		float *co = calc->vertexCos[i];
-		float tmp_co[3];
-		float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
-
-		if (calc->invert_vgroup) {
-			weight = 1.0f - weight;
-		}
-
-		if (weight == 0.0f) continue;
-
-		/* Convert the vertex to tree coordinates */
-		if (calc->vert) {
-			copy_v3_v3(tmp_co, calc->vert[i].co);
-		}
-		else {
-			copy_v3_v3(tmp_co, co);
-		}
-		BLI_space_transform_apply(&calc->local2target, tmp_co);
-
-		/* Use local proximity heuristics (to reduce the nearest search)
-		 *
-		 * If we already had an hit before.. we assume this vertex is going to have a close hit to that other vertex
-		 * so we can initiate the "nearest.dist" with the expected value to that last hit.
-		 * This will lead in pruning of the search tree. */
-		if (nearest.index != -1)
-			nearest.dist_sq = len_squared_v3v3(tmp_co, nearest.co);
-		else
-			nearest.dist_sq = FLT_MAX;
-
-		BLI_bvhtree_find_nearest(treeData.tree, tmp_co, &nearest, treeData.nearest_callback, &treeData);
-
-		/* Found the nearest vertex */
-		if (nearest.index != -1) {
-			if (calc->smd->shrinkOpts & MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE) {
-				/* Make the vertex stay on the front side of the face */
-				madd_v3_v3v3fl(tmp_co, nearest.co, nearest.no, calc->keepDist);
-			}
-			else {
-				/* Adjusting the vertex weight,
-				 * so that after interpolating it keeps a certain distance from the nearest position */
-				const float dist = sasqrt(nearest.dist_sq);
-				if (dist > FLT_EPSILON) {
-					/* linear interpolation */
-					interp_v3_v3v3(tmp_co, tmp_co, nearest.co, (dist - calc->keepDist) / dist);
-				}
-				else {
-					copy_v3_v3(tmp_co, nearest.co);
-				}
-			}
-
-			/* Convert the coordinates back to mesh coordinates */
-			BLI_space_transform_invert(&calc->local2target, tmp_co);
-			interp_v3_v3v3(co, co, tmp_co, weight);  /* linear interpolation */
-		}
-	}
+	ShrinkwrapCalcCBData data = {.calc = calc, .treeData = &treeData};
+	BLI_task_parallel_range_ex(
+	            0, calc->numVerts, &data, &nearest, sizeof(nearest), shrinkwrap_calc_nearest_surface_point_cb_ex,
+	            calc->numVerts > BKE_MESH_OMP_LIMIT, false);
 
 	free_bvhtree_from_mesh(&treeData);
 }

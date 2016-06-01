@@ -22,7 +22,7 @@
 shader node_voronoi_texture(
 	int use_mapping = 0,
 	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-	string Coloring = "Intensity",
+	string coloring = "Intensity",
 	float Scale = 5.0,
 	point Vector = P,
 	output float Fac = 0.0,
@@ -40,7 +40,7 @@ shader node_voronoi_texture(
 	voronoi(p * Scale, 1.0, da, pa);
 
 	/* Colored output */
-	if (Coloring == "Intensity") {
+	if (coloring == "Intensity") {
 		Fac = fabs(da[0]);
 		Color = color(Fac);
 	}

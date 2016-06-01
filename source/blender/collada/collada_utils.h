@@ -34,6 +34,7 @@
 
 #include <vector>
 #include <map>
+#include <algorithm>
 
 extern "C" {
 #include "DNA_object_types.h"
@@ -46,6 +47,7 @@ extern "C" {
 
 #include "BLI_linklist.h"
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 #include "BKE_context.h"
 #include "BKE_object.h"
@@ -87,7 +89,10 @@ extern void bc_match_scale(Object *ob, UnitConverter &bc_unit, bool scale_to_sce
 extern void bc_match_scale(std::vector<Object *> *objects_done, UnitConverter &unit_converter, bool scale_to_scene);
 
 extern void bc_triangulate_mesh(Mesh *me);
-
+extern bool bc_is_leaf_bone(Bone *bone);
+extern EditBone *bc_get_edit_bone(bArmature * armature, char *name);
+extern int bc_set_layer(int bitfield, int layer, bool enable);
+extern int bc_set_layer(int bitfield, int layer);
 
 class BCPolygonNormalsIndices
 {
@@ -104,5 +109,49 @@ class BCPolygonNormalsIndices
 	}
 
 };
+
+class BoneExtended {
+
+private:
+	char  name[MAXBONENAME];
+	int   chain_length;
+	bool  is_leaf;
+	float tail[3];
+	float roll;
+
+	int   bone_layers;
+	bool  use_connect;
+	bool  has_custom_tail;
+	bool  has_custom_roll;
+
+public:
+
+	BoneExtended(EditBone *aBone);
+
+	void set_name(char *aName);
+	char *get_name();
+
+	void set_chain_length(const int aLength);
+	int  get_chain_length();
+
+	void set_leaf_bone(bool state);
+	bool is_leaf_bone();
+
+	void set_bone_layers(std::string layers, std::vector<std::string> &layer_labels);
+	int get_bone_layers();
+	static std::string get_bone_layers(int bitfield);
+
+	void set_roll(float roll);
+	bool has_roll();
+	float get_roll();
+
+	void set_tail(float *vec);
+	float *get_tail();
+	bool has_tail();
+
+	void set_use_connect(int use_connect);
+	int get_use_connect();
+};
+
 
 #endif

@@ -58,9 +58,7 @@ void xml_read_node(XMLReader& reader, Node *node, pugi::xml_node xml_node)
 		node->name = ustring(name_attr.value());
 	}
 
-	foreach(const NodeType::SocketMap::value_type& it, node->type->inputs) {
-		const SocketType& socket = it.second;
-
+	foreach(const SocketType& socket, node->type->inputs) {
 		if(socket.type == SocketType::CLOSURE || socket.type == SocketType::UNDEFINED) {
 			continue;
 		}
@@ -117,8 +115,9 @@ void xml_read_node(XMLReader& reader, Node *node, pugi::xml_node xml_node)
 
 				array<int> value;
 				value.resize(tokens.size());
-				for(size_t i = 0; i < value.size(); i++)
+				for(size_t i = 0; i < value.size(); i++) {
 					value[i] = (int)atoi(attr.value());
+				}
 				node->set(socket, value);
 				break;
 			}
@@ -127,7 +126,7 @@ void xml_read_node(XMLReader& reader, Node *node, pugi::xml_node xml_node)
 			case SocketType::POINT:
 			case SocketType::NORMAL:
 			{
-				array<float> value;
+				array<float3> value;
 				xml_read_float_array<3>(value, attr);
 				if(value.size() == 1) {
 					node->set(socket, value[0]);
@@ -161,9 +160,19 @@ void xml_read_node(XMLReader& reader, Node *node, pugi::xml_node xml_node)
 				break;
 			}
 			case SocketType::STRING:
-			case SocketType::ENUM:
 			{
 				node->set(socket, attr.value());
+				break;
+			}
+			case SocketType::ENUM:
+			{
+				ustring value(attr.value());
+				if(socket.enum_values->exists(value)) {
+					node->set(socket, value);
+				}
+				else {
+					fprintf(stderr, "Unknown value \"%s\" for attribute \"%s\".\n", value.c_str(), socket.name.c_str());
+				}
 				break;
 			}
 			case SocketType::STRING_ARRAY:
@@ -173,8 +182,9 @@ void xml_read_node(XMLReader& reader, Node *node, pugi::xml_node xml_node)
 
 				array<ustring> value;
 				value.resize(tokens.size());
-				for(size_t i = 0; i < value.size(); i++)
+				for(size_t i = 0; i < value.size(); i++) {
 					value[i] = ustring(tokens[i]);
+				}
 				node->set(socket, value);
 				break;
 			}
@@ -245,9 +255,7 @@ pugi::xml_node xml_write_node(Node *node, pugi::xml_node xml_root)
 
 	xml_node.append_attribute("name") = node->name.c_str();
 
-	foreach(const NodeType::SocketMap::value_type& it, node->type->inputs) {
-		const SocketType& socket = it.second;
-
+	foreach(const SocketType& socket, node->type->inputs) {
 		if(socket.type == SocketType::CLOSURE || socket.type == SocketType::UNDEFINED) {
 			continue;
 		}

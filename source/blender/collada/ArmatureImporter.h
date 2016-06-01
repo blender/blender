@@ -59,25 +59,6 @@ extern "C" {
 #define UNLIMITED_CHAIN_MAX INT_MAX
 #define MINIMUM_BONE_LENGTH 0.000001f
 
-class BoneExtended {
-
-private:
-	char  name[MAXBONENAME];
-	int   chain_length;
-	bool  is_leaf;
-
-public:
-
-	BoneExtended(EditBone *aBone);
-	char *get_name();
-	int  get_chain_length();
-
-	void set_name(char *aName);
-	void set_chain_length(const int aLength);
-	void set_leaf_bone(bool state);
-	bool is_leaf_bone();
-};
-
 class ArmatureImporter : private TransformReader
 {
 private:
@@ -125,12 +106,13 @@ private:
 #endif
 
 	int create_bone(SkinInfo* skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
-	                 float parent_mat[4][4], bArmature *arm);
+		float parent_mat[4][4], bArmature *arm, std::vector<std::string> &layer_labels);
 
-	BoneExtended &add_bone_extended(EditBone *bone, COLLADAFW::Node * node);
+	BoneExtended &add_bone_extended(EditBone *bone, COLLADAFW::Node * node, std::vector<std::string> &layer_labels);
 	void clear_extended_boneset();
 
 	void fix_leaf_bones(bArmature *armature, Bone *bone);
+	void fix_parent_connect(bArmature *armature, Bone *bone);
 	void connect_bone_chains(bArmature *armature, Bone *bone, const int max_chain_length);
 
 	void set_pose( Object *ob_arm,  COLLADAFW::Node *root_node, const char *parentname, float parent_mat[4][4]);

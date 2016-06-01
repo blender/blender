@@ -72,7 +72,7 @@ public:
 
 	explicit EdgeDice(const SubdParams& params);
 
-	void reserve(int num_verts, int num_tris);
+	void reserve(int num_verts);
 
 	int add_vert(Patch *patch, float2 uv);
 	void add_triangle(Patch *patch, int v0, int v1, int v2);

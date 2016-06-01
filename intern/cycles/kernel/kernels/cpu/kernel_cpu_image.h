@@ -23,24 +23,24 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device float4 kernel_tex_image_interp_impl(KernelGlobals *kg, int tex, float x, float y)
 {
-	if(tex >= TEX_IMAGE_BYTE_START_CPU)
-		return kg->texture_byte_images[tex - TEX_IMAGE_BYTE_START_CPU].interp(x, y);
-	else if(tex >= TEX_IMAGE_FLOAT_START_CPU)
-		return kg->texture_float_images[tex - TEX_IMAGE_FLOAT_START_CPU].interp(x, y);
-	else if(tex >= TEX_IMAGE_BYTE4_START_CPU)
-		return kg->texture_byte4_images[tex - TEX_IMAGE_BYTE4_START_CPU].interp(x, y);
+	if(tex >= TEX_START_BYTE_CPU)
+		return kg->texture_byte_images[tex - TEX_START_BYTE_CPU].interp(x, y);
+	else if(tex >= TEX_START_FLOAT_CPU)
+		return kg->texture_float_images[tex - TEX_START_FLOAT_CPU].interp(x, y);
+	else if(tex >= TEX_START_BYTE4_CPU)
+		return kg->texture_byte4_images[tex - TEX_START_BYTE4_CPU].interp(x, y);
 	else
 		return kg->texture_float4_images[tex].interp(x, y);
 }
 
 ccl_device float4 kernel_tex_image_interp_3d_impl(KernelGlobals *kg, int tex, float x, float y, float z)
 {
-	if(tex >= TEX_IMAGE_BYTE_START_CPU)
-		return kg->texture_byte_images[tex - TEX_IMAGE_BYTE_START_CPU].interp_3d(x, y, z);
-	else if(tex >= TEX_IMAGE_FLOAT_START_CPU)
-		return kg->texture_float_images[tex - TEX_IMAGE_FLOAT_START_CPU].interp_3d(x, y, z);
-	else if(tex >= TEX_IMAGE_BYTE4_START_CPU)
-		return kg->texture_byte4_images[tex - TEX_IMAGE_BYTE4_START_CPU].interp_3d(x, y, z);
+	if(tex >= TEX_START_BYTE_CPU)
+		return kg->texture_byte_images[tex - TEX_START_BYTE_CPU].interp_3d(x, y, z);
+	else if(tex >= TEX_START_FLOAT_CPU)
+		return kg->texture_float_images[tex - TEX_START_FLOAT_CPU].interp_3d(x, y, z);
+	else if(tex >= TEX_START_BYTE4_CPU)
+		return kg->texture_byte4_images[tex - TEX_START_BYTE4_CPU].interp_3d(x, y, z);
 	else
 		return kg->texture_float4_images[tex].interp_3d(x, y, z);
 
@@ -48,12 +48,12 @@ ccl_device float4 kernel_tex_image_interp_3d_impl(KernelGlobals *kg, int tex, fl
 
 ccl_device float4 kernel_tex_image_interp_3d_ex_impl(KernelGlobals *kg, int tex, float x, float y, float z, int interpolation)
 {
-	if(tex >= TEX_IMAGE_BYTE_START_CPU)
-		return kg->texture_byte_images[tex - TEX_IMAGE_BYTE_START_CPU].interp_3d_ex(x, y, z, interpolation);
-	else if(tex >= TEX_IMAGE_FLOAT_START_CPU)
-		return kg->texture_float_images[tex - TEX_IMAGE_FLOAT_START_CPU].interp_3d_ex(x, y, z, interpolation);
-	else if(tex >= TEX_IMAGE_BYTE4_START_CPU)
-		return kg->texture_byte4_images[tex - TEX_IMAGE_BYTE4_START_CPU].interp_3d_ex(x, y, z, interpolation);
+	if(tex >= TEX_START_BYTE_CPU)
+		return kg->texture_byte_images[tex - TEX_START_BYTE_CPU].interp_3d_ex(x, y, z, interpolation);
+	else if(tex >= TEX_START_FLOAT_CPU)
+		return kg->texture_float_images[tex - TEX_START_FLOAT_CPU].interp_3d_ex(x, y, z, interpolation);
+	else if(tex >= TEX_START_BYTE4_CPU)
+		return kg->texture_byte4_images[tex - TEX_START_BYTE4_CPU].interp_3d_ex(x, y, z, interpolation);
 	else
 		return kg->texture_float4_images[tex].interp_3d_ex(x, y, z, interpolation);
 }

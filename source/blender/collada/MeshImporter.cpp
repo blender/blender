@@ -259,7 +259,8 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)  // checks if mesh has su
 	COLLADAFW::MeshPrimitiveArray& prim_arr = mesh->getMeshPrimitives();
 
 	const std::string &name = bc_get_dae_name(mesh);
-	
+	int hole_count = 0;
+
 	for (unsigned i = 0; i < prim_arr.getCount(); i++) {
 		
 		COLLADAFW::MeshPrimitive *mp = prim_arr[i];
@@ -275,13 +276,21 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)  // checks if mesh has su
 			
 			for (unsigned int j = 0; j < vca.getCount(); j++) {
 				int count = vca[j];
-				if (count < 3) {
-					fprintf(stderr, "Primitive %s in %s has at least one face with vertex count < 3\n",
+				if (abs(count) < 3) {
+					fprintf(stderr, "ERROR: Primitive %s in %s has at least one face with vertex count < 3\n",
 					        type_str, name.c_str());
 					return false;
 				}
+				if (count < 0)
+				{
+					hole_count ++;
+				}
 			}
-				
+
+			if (hole_count > 0)
+			{
+				fprintf(stderr, "WARNING: Primitive %s in %s: %d holes not imported (unsupported)\n", type_str, name.c_str(), hole_count);
+			}
 		}
 
 		else if (type == COLLADAFW::MeshPrimitive::LINES) {
@@ -289,13 +298,13 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)  // checks if mesh has su
 		}
 
 		else if (type != COLLADAFW::MeshPrimitive::TRIANGLES && type != COLLADAFW::MeshPrimitive::TRIANGLE_FANS) {
-			fprintf(stderr, "Primitive type %s is not supported.\n", type_str);
+			fprintf(stderr, "ERROR: Primitive type %s is not supported.\n", type_str);
 			return false;
 		}
 	}
 	
 	if (mesh->getPositions().empty()) {
-		fprintf(stderr, "Mesh %s has no vertices.\n", name.c_str());
+		fprintf(stderr, "ERROR: Mesh %s has no vertices.\n", name.c_str());
 		return false;
 	}
 
@@ -409,11 +418,18 @@ void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me)
 				size_t prim_poly_count    = mpvc->getFaceCount();
 
 				size_t prim_loop_count    = 0;
-				for (int index=0; index < prim_poly_count; index++) {
-					prim_loop_count += get_vertex_count(mpvc, index);
+				for (int index=0; index < prim_poly_count; index++) 
+				{
+					int vcount = get_vertex_count(mpvc, index);
+					if (vcount > 0) {
+						prim_loop_count += vcount;
+						total_poly_count++;
+					}
+					else {
+						// TODO: this is a hole and not another polygon!
+					}
 				}
 
-				total_poly_count += prim_poly_count;
 				total_loop_count += prim_loop_count;
 
 				break;
@@ -683,9 +699,12 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
 			COLLADAFW::IndexListArray& index_list_array_vcolor  = mp->getColorIndicesArray();
 
 			for (unsigned int j = 0; j < prim_totpoly; j++) {
-				
+
 				// Vertices in polygon:
 				int vcount = get_vertex_count(mpvc, j);
+				if (vcount < 0) {
+					continue; // TODO: add support for holes
+				}
 				set_poly_indices(mpoly, mloop, loop_index, position_indices, vcount);
 
 

@@ -94,6 +94,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
 	int triangulate;
 	int use_object_instantiation;
+	int use_blender_profile;
 	int sort_by_name;
 	int export_transformation_type;
 	int open_sim;
@@ -142,6 +143,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
 	triangulate                = RNA_boolean_get(op->ptr, "triangulate");
 	use_object_instantiation   = RNA_boolean_get(op->ptr, "use_object_instantiation");
+	use_blender_profile        = RNA_boolean_get(op->ptr, "use_blender_profile");
 	sort_by_name               = RNA_boolean_get(op->ptr, "sort_by_name");
 	export_transformation_type = RNA_enum_get(op->ptr,    "export_transformation_type_selection");
 	open_sim                   = RNA_boolean_get(op->ptr, "open_sim");
@@ -167,6 +169,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
 		triangulate,
 		use_object_instantiation,
+		use_blender_profile,
 		sort_by_name,
 		export_transformation_type,
 		open_sim);
@@ -256,6 +259,8 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 	uiItemR(row, imfptr, "triangulate", 0, NULL, ICON_NONE);
 	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "use_object_instantiation", 0, NULL, ICON_NONE);
+	row = uiLayoutRow(box, false);
+	uiItemR(row, imfptr, "use_blender_profile", 0, NULL, ICON_NONE);
 
 	row = uiLayoutRow(box, false);
 	split = uiLayoutSplit(row, 0.6f, UI_LAYOUT_ALIGN_RIGHT);
@@ -349,7 +354,10 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	                "Export Polygons (Quads & NGons) as Triangles");
 
 	RNA_def_boolean(ot->srna, "use_object_instantiation", 1, "Use Object Instances",
-	                "Instantiate multiple Objects from same Data");
+		"Instantiate multiple Objects from same Data");
+
+	RNA_def_boolean(ot->srna, "use_blender_profile", 1, "Use Blender Profile",
+		"Export additional Blender specific information (for material, shaders, bones, etc.)");
 
 	RNA_def_boolean(ot->srna, "sort_by_name", 0, "Sort by Object name",
 	                "Sort exported data by Object name");

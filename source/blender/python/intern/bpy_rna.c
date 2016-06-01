@@ -973,7 +973,9 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
 	                            RNA_property_identifier(self->prop));
 }
 
-static PyObject *pyrna_prop_repr(BPy_PropertyRNA *self)
+static PyObject *pyrna_prop_repr_ex(
+        BPy_PropertyRNA *self,
+        const int index_dim, const int index)
 {
 	ID *id = self->ptr.id.data;
 	PyObject *tmp_str;
@@ -987,7 +989,8 @@ static PyObject *pyrna_prop_repr(BPy_PropertyRNA *self)
 
 	tmp_str = PyUnicode_FromString(id->name + 2);
 
-	path = RNA_path_from_ID_to_property(&self->ptr, self->prop);
+	path = RNA_path_from_ID_to_property_index(&self->ptr, self->prop, index_dim, index);
+
 	if (path) {
 		const char *data_delim = (path[0] == '[') ? "" : ".";
 		if (GS(id->name) == ID_NT) { /* nodetree paths are not accurate */
@@ -1015,6 +1018,15 @@ static PyObject *pyrna_prop_repr(BPy_PropertyRNA *self)
 	return ret;
 }
 
+static PyObject *pyrna_prop_repr(BPy_PropertyRNA *self)
+{
+	return pyrna_prop_repr_ex(self, 0, -1);
+}
+
+static PyObject *pyrna_prop_array_repr(BPy_PropertyArrayRNA *self)
+{
+	return pyrna_prop_repr_ex((BPy_PropertyRNA *)self, self->arraydim, self->arrayoffset);
+}
 
 static PyObject *pyrna_func_repr(BPy_FunctionRNA *self)
 {
@@ -5841,7 +5853,7 @@ PyTypeObject pyrna_prop_array_Type = {
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
 	NULL,                       /* tp_compare */ /* DEPRECATED in python 3.0! */
-	NULL, /* subclassed */       /* tp_repr */
+	(reprfunc)pyrna_prop_array_repr, /* tp_repr */
 
 	/* Method suites for standard classes */
 

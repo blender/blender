@@ -955,6 +955,7 @@ bool RNA_path_resolve_elements(PointerRNA *ptr, const char *path, struct ListBas
 
 char *RNA_path_from_ID_to_struct(PointerRNA *ptr);
 char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop);
+char *RNA_path_from_ID_to_property_index(PointerRNA *ptr, PropertyRNA *prop, int array_dim, int index);
 
 char *RNA_path_resolve_from_type_to_property(
         struct PointerRNA *ptr, struct PropertyRNA *prop,

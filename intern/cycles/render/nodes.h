@@ -49,15 +49,15 @@ public:
 
 	enum Type { POINT = 0, TEXTURE = 1, VECTOR = 2, NORMAL = 3 };
 	Type type;
-	static ShaderEnum type_enum;
+	static NodeEnum type_enum;
 
 	enum Mapping { NONE = 0, X = 1, Y = 2, Z = 3 };
 	Mapping x_mapping, y_mapping, z_mapping;
-	static ShaderEnum mapping_enum;
+	static NodeEnum mapping_enum;
 
 	enum Projection { FLAT, CUBE, TUBE, SPHERE };
 	Projection projection;
-	static ShaderEnum projection_enum;
+	static NodeEnum projection_enum;
 
 	bool equals(const TextureMapping& other) {
 		return translation == other.translation &&
@@ -109,15 +109,15 @@ public:
 	bool use_alpha;
 	string filename;
 	void *builtin_data;
-	ustring color_space;
-	ustring projection;
+	NodeImageColorSpace color_space;
+	NodeImageProjection projection;
 	InterpolationType interpolation;
 	ExtensionType extension;
 	float projection_blend;
 	bool animated;
 
-	static ShaderEnum color_space_enum;
-	static ShaderEnum projection_enum;
+	static NodeEnum color_space_enum;
+	static NodeEnum projection_enum;
 
 	virtual bool equals(const ShaderNode *other) {
 		const ImageTextureNode *image_node = (const ImageTextureNode*)other;
@@ -148,13 +148,13 @@ public:
 	bool use_alpha;
 	string filename;
 	void *builtin_data;
-	ustring color_space;
-	ustring projection;
+	NodeImageColorSpace color_space;
+	NodeEnvironmentProjection projection;
 	InterpolationType interpolation;
 	bool animated;
 
-	static ShaderEnum color_space_enum;
-	static ShaderEnum projection_enum;
+	static NodeEnum color_space_enum;
+	static NodeEnum projection_enum;
 
 	virtual bool equals(const ShaderNode *other) {
 		const EnvironmentTextureNode *env_node = (const EnvironmentTextureNode*)other;
@@ -175,12 +175,12 @@ public:
 
 	virtual int get_group() { return NODE_GROUP_LEVEL_2; }
 
+	NodeSkyType type;
 	float3 sun_direction;
 	float turbidity;
 	float ground_albedo;
 
-	ustring type;
-	static ShaderEnum type_enum;
+	static NodeEnum type_enum;
 
 	virtual bool equals(const ShaderNode *other) {
 		const SkyTextureNode *sky_node = (const SkyTextureNode*)other;
@@ -206,8 +206,8 @@ public:
 
 	virtual int get_group() { return NODE_GROUP_LEVEL_2; }
 
-	ustring type;
-	static ShaderEnum type_enum;
+	NodeGradientType type;
+	static NodeEnum type_enum;
 
 	virtual bool equals(const ShaderNode *other) {
 		const GradientTextureNode *gradient_node = (const GradientTextureNode*)other;
@@ -227,9 +227,8 @@ public:
 
 	virtual int get_group() { return NODE_GROUP_LEVEL_2; }
 
-	ustring coloring;
-
-	static ShaderEnum coloring_enum;
+	NodeVoronoiColoring coloring;
+	static NodeEnum coloring_enum;
 
 	virtual bool equals(const ShaderNode *other) {
 		const VoronoiTextureNode *voronoi_node = (const VoronoiTextureNode*)other;
@@ -244,9 +243,8 @@ public:
 
 	virtual int get_group() { return NODE_GROUP_LEVEL_2; }
 
-	ustring type;
-
-	static ShaderEnum type_enum;
+	NodeMusgraveType type;
+	static NodeEnum type_enum;
 
 	virtual bool equals(const ShaderNode *other) {
 		const MusgraveTextureNode *musgrave_node = (const MusgraveTextureNode*)other;
@@ -261,10 +259,10 @@ public:
 
 	virtual int get_group() { return NODE_GROUP_LEVEL_2; }
 
-	ustring type;
-	ustring profile;
-	static ShaderEnum type_enum;
-	static ShaderEnum profile_enum;
+	NodeWaveType type;
+	NodeWaveProfile profile;
+	static NodeEnum type_enum;
+	static NodeEnum profile_enum;
 
 	virtual bool equals(const ShaderNode *other) {
 		const WaveTextureNode *wave_node = (const WaveTextureNode*)other;
@@ -329,13 +327,13 @@ public:
 	ImageManager *image_manager;
 	int slot;
 	string filename;
-	ustring space;
+	NodeTexVoxelSpace space;
 	void *builtin_data;
 	InterpolationType interpolation;
 
 	Transform tfm;
 
-	static ShaderEnum space_enum;
+	static NodeEnum space_enum;
 
 	virtual bool equals(const ShaderNode *other) {
 		const PointDensityTextureNode *point_dendity_node = (const PointDensityTextureNode*)other;
@@ -362,14 +360,21 @@ public:
 	}
 };
 
+class RGBToBWNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(RGBToBWNode)
+
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
+};
+
 class ConvertNode : public ShaderNode {
 public:
-	ConvertNode(ShaderSocketType from, ShaderSocketType to, bool autoconvert = false);
+	ConvertNode(SocketType::Type from, SocketType::Type to, bool autoconvert = false);
 	SHADER_NODE_BASE_CLASS(ConvertNode)
 
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 
-	ShaderSocketType from, to;
+	SocketType::Type from, to;
 
 	virtual bool equals(const ShaderNode *other)
 	{
@@ -403,8 +408,8 @@ class AnisotropicBsdfNode : public BsdfNode {
 public:
 	SHADER_NODE_CLASS(AnisotropicBsdfNode)
 
-	ustring distribution;
-	static ShaderEnum distribution_enum;
+	ClosureType distribution;
+	static NodeEnum distribution_enum;
 
 	void attributes(Shader *shader, AttributeRequestSet *attributes);
 };
@@ -438,8 +443,8 @@ public:
 	void simplify_settings(Scene *scene);
 	bool has_integrator_dependency();
 
-	ustring distribution, distribution_orig;
-	static ShaderEnum distribution_enum;
+	ClosureType distribution, distribution_orig;
+	static NodeEnum distribution_enum;
 };
 
 class GlassBsdfNode : public BsdfNode {
@@ -449,8 +454,8 @@ public:
 	void simplify_settings(Scene *scene);
 	bool has_integrator_dependency();
 
-	ustring distribution, distribution_orig;
-	static ShaderEnum distribution_enum;
+	ClosureType distribution, distribution_orig;
+	static NodeEnum distribution_enum;
 };
 
 class RefractionBsdfNode : public BsdfNode {
@@ -460,16 +465,16 @@ public:
 	void simplify_settings(Scene *scene);
 	bool has_integrator_dependency();
 
-	ustring distribution, distribution_orig;
-	static ShaderEnum distribution_enum;
+	ClosureType distribution, distribution_orig;
+	static NodeEnum distribution_enum;
 };
 
 class ToonBsdfNode : public BsdfNode {
 public:
 	SHADER_NODE_CLASS(ToonBsdfNode)
 
-	ustring component;
-	static ShaderEnum component_enum;
+	ClosureType component;
+	static NodeEnum component_enum;
 };
 
 class SubsurfaceScatteringNode : public BsdfNode {
@@ -478,13 +483,14 @@ public:
 	bool has_surface_bssrdf() { return true; }
 	bool has_bssrdf_bump();
 
-	static ShaderEnum falloff_enum;
+	ClosureType falloff;
+	static NodeEnum falloff_enum;
 };
 
 class EmissionNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(EmissionNode)
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual ClosureType get_closure_type() { return CLOSURE_EMISSION_ID; }
 
 	bool has_surface_emission() { return true; }
@@ -493,7 +499,7 @@ public:
 class BackgroundNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(BackgroundNode)
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual ClosureType get_closure_type() { return CLOSURE_BACKGROUND_ID; }
 };
 
@@ -547,8 +553,8 @@ class HairBsdfNode : public BsdfNode {
 public:
 	SHADER_NODE_CLASS(HairBsdfNode)
 
-	ustring component;
-	static ShaderEnum component_enum;
+	ClosureType component;
+	static NodeEnum component_enum;
 
 };
 
@@ -639,7 +645,7 @@ class ValueNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(ValueNode)
 
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 
 	float value;
 
@@ -654,7 +660,7 @@ class ColorNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(ColorNode)
 
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 
 	float3 value;
 
@@ -673,7 +679,7 @@ public:
 class MixClosureNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(MixClosureNode)
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 };
 
 class MixClosureWeightNode : public ShaderNode {
@@ -691,14 +697,14 @@ public:
 class MixNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(MixNode)
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
 	bool use_clamp;
 
-	ustring type;
-	static ShaderEnum type_enum;
+	NodeMix type;
+	static NodeEnum type_enum;
 
 	virtual bool equals(const ShaderNode *other)
 	{
@@ -734,7 +740,7 @@ class GammaNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(GammaNode)
 
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 
 	virtual int get_group() { return NODE_GROUP_LEVEL_1; }
 };
@@ -825,7 +831,7 @@ public:
 class BlackbodyNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(BlackbodyNode)
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 };
@@ -834,12 +840,12 @@ class MathNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(MathNode)
 	virtual int get_group() { return NODE_GROUP_LEVEL_1; }
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 
 	bool use_clamp;
 
-	ustring type;
-	static ShaderEnum type_enum;
+	NodeMath type;
+	static NodeEnum type_enum;
 
 	virtual bool equals(const ShaderNode *other)
 	{
@@ -869,14 +875,14 @@ class VectorMathNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(VectorMathNode)
 	virtual int get_group() { return NODE_GROUP_LEVEL_1; }
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 
-	ustring type;
-	static ShaderEnum type_enum;
+	NodeVectorMath type;
+	static NodeEnum type_enum;
 
 	virtual bool equals(const ShaderNode *other)
 	{
-		const MathNode *math_node = (const MathNode*)other;
+		const VectorMathNode *math_node = (const VectorMathNode*)other;
 		return ShaderNode::equals(other) &&
 		       type == math_node->type;
 	}
@@ -888,12 +894,12 @@ public:
 
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
-	ustring type;
-	ustring convert_from;
-	ustring convert_to;
+	NodeVectorTransformType type;
+	NodeVectorTransformConvertSpace convert_from;
+	NodeVectorTransformConvertSpace convert_to;
 
-	static ShaderEnum type_enum;
-	static ShaderEnum convert_space_enum;
+	static NodeEnum type_enum;
+	static NodeEnum convert_space_enum;
 
 	virtual bool equals(const ShaderNode *other) {
 		const VectorTransformNode *vector_transform_node = (const VectorTransformNode*)other;
@@ -907,7 +913,7 @@ public:
 class BumpNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(BumpNode)
-	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, float3 *optimized_value);
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	bool has_spatial_varying() { return true; }
 	virtual int get_feature() {
 		return NODE_FEATURE_BUMP;
@@ -959,17 +965,22 @@ public:
 	SHADER_NODE_CLASS(SetNormalNode)
 };
 
-class OSLScriptNode : public ShaderNode {
+class OSLNode : public ShaderNode {
 public:
-	SHADER_NODE_CLASS(OSLScriptNode)
+	static OSLNode *create(size_t num_inputs);
+	~OSLNode();
+
+	SHADER_NODE_BASE_CLASS(OSLNode)
 
 	/* ideally we could beter detect this, but we can't query this now */
 	bool has_spatial_varying() { return true; }
+	virtual bool equals(const ShaderNode * /*other*/) { return false; }
 
 	string filepath;
 	string bytecode_hash;
 
-	virtual bool equals(const ShaderNode * /*other*/) { return false; }
+private:
+	OSLNode();
 };
 
 class NormalMapNode : public ShaderNode {
@@ -979,8 +990,8 @@ public:
 	bool has_spatial_varying() { return true; }
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
-	ustring space;
-	static ShaderEnum space_enum;
+	NodeNormalMapSpace space;
+	static NodeEnum space_enum;
 
 	ustring attribute;
 
@@ -1000,11 +1011,10 @@ public:
 	bool has_spatial_varying() { return true; }
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
-	ustring direction_type;
-	static ShaderEnum direction_type_enum;
-
-	ustring axis;
-	static ShaderEnum axis_enum;
+	NodeTangentDirectionType direction_type;
+	NodeTangentAxis axis;
+	static NodeEnum direction_type_enum;
+	static NodeEnum axis_enum;
 
 	ustring attribute;
 

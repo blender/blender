@@ -25,8 +25,6 @@
 
 set(INC
 	.
-	intern
-	util
 	../blenkernel
 	../blenlib
 	../bmesh
@@ -42,45 +40,50 @@ set(INC_SYS
 )
 
 set(SRC
+	intern/builder/deg_builder.cc
+	intern/builder/deg_builder_cycle.cc
+	intern/builder/deg_builder_nodes.cc
+	intern/builder/deg_builder_pchanmap.cc
+	intern/builder/deg_builder_relations.cc
+	intern/builder/deg_builder_transitive.cc
+	intern/debug/deg_debug_graphviz.cc
+	intern/eval/deg_eval.cc
+	intern/eval/deg_eval_debug.cc
+	intern/eval/deg_eval_flush.cc
+	intern/nodes/deg_node.cc
+	intern/nodes/deg_node_component.cc
+	intern/nodes/deg_node_operation.cc
 	intern/depsgraph.cc
-	intern/depsnode.cc
-	intern/depsnode_component.cc
-	intern/depsnode_operation.cc
 	intern/depsgraph_build.cc
-	intern/depsgraph_build_nodes.cc
-	intern/depsgraph_build_relations.cc
 	intern/depsgraph_debug.cc
 	intern/depsgraph_eval.cc
 	intern/depsgraph_query.cc
-	intern/depsgraph_queue.cc
 	intern/depsgraph_tag.cc
 	intern/depsgraph_type_defines.cc
-	util/depsgraph_util_cycle.cc
-	util/depsgraph_util_pchanmap.cc
-	util/depsgraph_util_transitive.cc
 
 	DEG_depsgraph.h
 	DEG_depsgraph_build.h
 	DEG_depsgraph_debug.h
 	DEG_depsgraph_query.h
+
+	intern/builder/deg_builder.h
+	intern/builder/deg_builder_cycle.h
+	intern/builder/deg_builder_nodes.h
+	intern/builder/deg_builder_pchanmap.h
+	intern/builder/deg_builder_relations.h
+	intern/builder/deg_builder_transitive.h
+	intern/eval/deg_eval.h
+	intern/eval/deg_eval_debug.h
+	intern/eval/deg_eval_flush.h
+	intern/nodes/deg_node.h
+	intern/nodes/deg_node_component.h
+	intern/nodes/deg_node_operation.h
 	intern/depsgraph.h
-	intern/depsnode.h
-	intern/depsnode_component.h
-	intern/depsnode_operation.h
-	intern/depsnode_opcodes.h
-	intern/depsgraph_build.h
-	intern/depsgraph_debug.h
 	intern/depsgraph_intern.h
-	intern/depsgraph_queue.h
 	intern/depsgraph_types.h
 
-	util/depsgraph_util_cycle.h
-	util/depsgraph_util_function.h
-	util/depsgraph_util_hash.h
-	util/depsgraph_util_map.h
-	util/depsgraph_util_pchanmap.h
-	util/depsgraph_util_set.h
-	util/depsgraph_util_transitive.h
+	util/deg_util_function.h
+	util/deg_util_hash.h
 )
 
 if(WITH_CXX11)

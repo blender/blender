@@ -2327,6 +2327,12 @@ static void ui_block_colorpicker(uiBlock *block, float rgba[4], PointerRNA *ptr,
 	RNA_property_float_range(ptr, prop, &hardmin, &hardmax);
 	RNA_property_float_get_array(ptr, prop, rgba);
 
+	/* when the softmax isn't defined in the RNA,
+	 * using very large numbers causes sRGB/linear round trip to fail. */
+	if (softmax == FLT_MAX) {
+		softmax = 1.0f;
+	}
+
 	switch (U.color_picker_type) {
 		case USER_CP_SQUARE_SV:
 			ui_colorpicker_square(block, ptr, prop, UI_GRAD_SV, cpicker);
@@ -2418,7 +2424,7 @@ static void ui_block_colorpicker(uiBlock *block, float rgba[4], PointerRNA *ptr,
 	BLI_snprintf(hexcol, sizeof(hexcol), "%02X%02X%02X", UNPACK3_EX((unsigned int), rgb_gamma_uchar, ));
 
 	yco = -3.0f * UI_UNIT_Y;
-	bt = uiDefBut(block, UI_BTYPE_TEXT, 0, IFACE_("Hex: "), 0, yco, butwidth, UI_UNIT_Y, hexcol, 0, 8, 0, 0, TIP_("Hex triplet for color (#RRGGBB)"));
+	bt = uiDefBut(block, UI_BTYPE_TEXT, 0, IFACE_("Hex: "), 0, yco, butwidth, UI_UNIT_Y, hexcol, 0, 7, 0, 0, TIP_("Hex triplet for color (#RRGGBB)"));
 	UI_but_func_set(bt, ui_colorpicker_hex_rna_cb, bt, hexcol);
 	bt->custom_data = cpicker;
 	uiDefBut(block, UI_BTYPE_LABEL, 0, IFACE_("(Gamma Corrected)"), 0, yco - UI_UNIT_Y, butwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");

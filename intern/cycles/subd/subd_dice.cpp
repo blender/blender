@@ -41,14 +41,14 @@ EdgeDice::EdgeDice(const SubdParams& params_)
 	}
 }
 
-void EdgeDice::reserve(int num_verts, int num_tris)
+void EdgeDice::reserve(int num_verts)
 {
 	Mesh *mesh = params.mesh;
 
 	vert_offset = mesh->verts.size();
 	tri_offset = mesh->triangles.size();
 
-	mesh->reserve(vert_offset + num_verts, tri_offset + num_tris, 0, 0);
+	mesh->resize_mesh(vert_offset + num_verts, tri_offset);
 
 	Attribute *attr_vN = mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
 
@@ -69,7 +69,7 @@ int EdgeDice::add_vert(Patch *patch, float2 uv)
 
 	if(params.ptex) {
 		Attribute *attr_ptex_uv = params.mesh->attributes.add(ATTR_STD_PTEX_UV);
-		params.mesh->attributes.reserve();
+		params.mesh->attributes.resize();
 
 		float3 *ptex_uv = attr_ptex_uv->data_float3();
 		ptex_uv[vert_offset] = make_float3(uv.x, uv.y, 0.0f);
@@ -80,11 +80,17 @@ int EdgeDice::add_vert(Patch *patch, float2 uv)
 
 void EdgeDice::add_triangle(Patch *patch, int v0, int v1, int v2)
 {
-	params.mesh->add_triangle(v0, v1, v2, params.shader, params.smooth, false);
+	Mesh *mesh = params.mesh;
+
+	/* todo: optimize so we can reserve in advance, this is like push_back_slow() */
+	if(mesh->triangles.size() == mesh->triangles.capacity())
+		mesh->reserve_mesh(mesh->verts.size(), size_t(max(mesh->triangles.size() + 1, 1) * 1.2));
+
+	mesh->add_triangle(v0, v1, v2, params.shader, params.smooth, false);
 
 	if(params.ptex) {
 		Attribute *attr_ptex_face_id = params.mesh->attributes.add(ATTR_STD_PTEX_FACE_ID);
-		params.mesh->attributes.reserve();
+		params.mesh->attributes.resize();
 
 		float *ptex_face_id = attr_ptex_face_id->data_float();
 		ptex_face_id[tri_offset] = (float)patch->ptex_face_id();
@@ -141,8 +147,7 @@ void QuadDice::reserve(EdgeFactors& ef, int Mu, int Mv)
 {
 	/* XXX need to make this also work for edge factor 0 and 1 */
 	int num_verts = (ef.tu0 + ef.tu1 + ef.tv0 + ef.tv1) + (Mu - 1)*(Mv - 1);
-	int num_tris = 0;
-	EdgeDice::reserve(num_verts, num_tris);
+	EdgeDice::reserve(num_verts);
 }
 
 float2 QuadDice::map_uv(SubPatch& sub, float u, float v)
@@ -352,7 +357,7 @@ void TriangleDice::reserve(EdgeFactors& ef, int M)
 	if(!(M & 1))
 		num_verts++;
 	
-	EdgeDice::reserve(num_verts, 0);
+	EdgeDice::reserve(num_verts);
 }
 
 float2 TriangleDice::map_uv(SubPatch& sub, float2 uv)

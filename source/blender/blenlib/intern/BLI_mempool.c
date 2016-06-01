@@ -57,12 +57,29 @@
 #ifdef __BIG_ENDIAN__
 /* Big Endian */
 #  define MAKE_ID(a, b, c, d) ( (int)(a) << 24 | (int)(b) << 16 | (c) << 8 | (d) )
+#  define MAKE_ID_8(a, b, c, d, e, f, g, h) \
+	((int64_t)(a) << 56 | (int64_t)(b) << 48 | (int64_t)(c) << 40 | (int64_t)(d) << 32 | \
+	 (int64_t)(e) << 24 | (int64_t)(f) << 16 | (int64_t)(g) <<  8 | (h) )
 #else
 /* Little Endian */
 #  define MAKE_ID(a, b, c, d) ( (int)(d) << 24 | (int)(c) << 16 | (b) << 8 | (a) )
+#  define MAKE_ID_8(a, b, c, d, e, f, g, h) \
+	((int64_t)(h) << 56 | (int64_t)(g) << 48 | (int64_t)(f) << 40 | (int64_t)(e) << 32 | \
+	 (int64_t)(d) << 24 | (int64_t)(c) << 16 | (int64_t)(b) <<  8 | (a) )
 #endif
 
-#define FREEWORD MAKE_ID('f', 'r', 'e', 'e')
+/**
+ * Important that this value is an is _not_  aligned with ``sizeof(void *)``.
+ * So having a pointer to 2/4/8... aligned memory is enough to ensure the freeword will never be used.
+ * To be safe, use a word thats the same in both directions.
+ */
+#define FREEWORD ((sizeof(void *) > sizeof(int32_t)) ? \
+	MAKE_ID_8('e', 'e', 'r', 'f', 'f', 'r', 'e', 'e') : \
+	  MAKE_ID('e',           'f', 'f',           'e'))
+
+/**
+ * The 'used' word just needs to be set to something besides FREEWORD.
+ */
 #define USEDWORD MAKE_ID('u', 's', 'e', 'd')
 
 /* currently totalloc isnt used */
@@ -87,7 +104,7 @@ static bool mempool_debug_memset = false;
  */
 typedef struct BLI_freenode {
 	struct BLI_freenode *next;
-	int freeword; /* used to identify this as a freed node */
+	intptr_t freeword; /* used to identify this as a freed node */
 } BLI_freenode;
 
 /**

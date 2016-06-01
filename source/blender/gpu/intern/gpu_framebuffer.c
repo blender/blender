@@ -575,7 +575,7 @@ void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels)
 		glFramebufferTexture2DEXT(
 		        GL_READ_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + ofs->color->fb_attachment,
 		        GL_TEXTURE_2D_MULTISAMPLE, ofs->color->bindcode, 0);
-		status = glCheckFramebufferStatus(GL_READ_FRAMEBUFFER_EXT);
+		status = glCheckFramebufferStatusEXT(GL_READ_FRAMEBUFFER_EXT);
 		if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
 			goto finally;
 		}
@@ -583,11 +583,11 @@ void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels)
 
 		/* write into new single-sample buffer */
 		glGenFramebuffersEXT(1, &fbo_blit);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER_EXT, fbo_blit);
+		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, fbo_blit);
 		glFramebufferTexture2DEXT(
-		        GL_DRAW_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0,
+		        GL_DRAW_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
 		        GL_TEXTURE_2D, tex_blit, 0);
-		status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER_EXT);
+		status = glCheckFramebufferStatusEXT(GL_DRAW_FRAMEBUFFER_EXT);
 		if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
 			goto finally;
 		}

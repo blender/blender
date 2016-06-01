@@ -548,13 +548,12 @@ static void create_mesh(Scene *scene,
 		numtris += (vi[3] == 0)? 1: 2;
 	}
 
-	/* reserve memory */
-	mesh->reserve(numverts, numtris, 0, 0);
+	/* allocate memory */
+	mesh->reserve_mesh(numverts, numtris);
 
 	/* create vertex coordinates and normals */
-	int i = 0;
-	for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v, ++i)
-		mesh->verts[i] = get_float3(v->co());
+	for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v)
+		mesh->add_vertex(get_float3(v->co()));
 
 	Attribute *attr_N = mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
 	float3 *N = attr_N->data_float3();
@@ -583,7 +582,7 @@ static void create_mesh(Scene *scene,
 	/* create faces */
 	vector<int> nverts(numfaces);
 	vector<int> face_flags(numfaces, FACE_FLAG_NONE);
-	int fi = 0, ti = 0;
+	int fi = 0;
 
 	for(b_mesh.tessfaces.begin(f); f != b_mesh.tessfaces.end(); ++f, ++fi) {
 		int4 vi = get_int4(f->vertices_raw());
@@ -618,18 +617,18 @@ static void create_mesh(Scene *scene,
 			   is_zero(cross(mesh->verts[vi[2]] - mesh->verts[vi[0]], mesh->verts[vi[3]] - mesh->verts[vi[0]])))
 			{
 				// TODO(mai): order here is probably wrong
-				mesh->set_triangle(ti++, vi[0], vi[1], vi[3], shader, smooth, true);
-				mesh->set_triangle(ti++, vi[2], vi[3], vi[1], shader, smooth, true);
+				mesh->add_triangle(vi[0], vi[1], vi[3], shader, smooth, true);
+				mesh->add_triangle(vi[2], vi[3], vi[1], shader, smooth, true);
 				face_flags[fi] |= FACE_FLAG_DIVIDE_24;
 			}
 			else {
-				mesh->set_triangle(ti++, vi[0], vi[1], vi[2], shader, smooth, true);
-				mesh->set_triangle(ti++, vi[0], vi[2], vi[3], shader, smooth, true);
+				mesh->add_triangle(vi[0], vi[1], vi[2], shader, smooth, true);
+				mesh->add_triangle(vi[0], vi[2], vi[3], shader, smooth, true);
 				face_flags[fi] |= FACE_FLAG_DIVIDE_13;
 			}
 		}
 		else
-			mesh->set_triangle(ti++, vi[0], vi[1], vi[2], shader, smooth, false);
+			mesh->add_triangle(vi[0], vi[1], vi[2], shader, smooth, false);
 
 		nverts[fi] = n;
 	}
@@ -759,11 +758,12 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 	/* create derived mesh */
 	PointerRNA cmesh = RNA_pointer_get(&b_ob_data.ptr, "cycles");
 
-	vector<Mesh::Triangle> oldtriangle = mesh->triangles;
+	array<int> oldtriangle = mesh->triangles;
 	
 	/* compares curve_keys rather than strands in order to handle quick hair
 	 * adjustments in dynamic BVH - other methods could probably do this better*/
-	vector<float4> oldcurve_keys = mesh->curve_keys;
+	array<float3> oldcurve_keys = mesh->curve_keys;
+	array<float> oldcurve_radius = mesh->curve_radius;
 
 	mesh->clear();
 	mesh->used_shaders = used_shaders;
@@ -827,14 +827,21 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 	if(oldtriangle.size() != mesh->triangles.size())
 		rebuild = true;
 	else if(oldtriangle.size()) {
-		if(memcmp(&oldtriangle[0], &mesh->triangles[0], sizeof(Mesh::Triangle)*oldtriangle.size()) != 0)
+		if(memcmp(&oldtriangle[0], &mesh->triangles[0], sizeof(int)*oldtriangle.size()) != 0)
 			rebuild = true;
 	}
 
 	if(oldcurve_keys.size() != mesh->curve_keys.size())
 		rebuild = true;
 	else if(oldcurve_keys.size()) {
-		if(memcmp(&oldcurve_keys[0], &mesh->curve_keys[0], sizeof(float4)*oldcurve_keys.size()) != 0)
+		if(memcmp(&oldcurve_keys[0], &mesh->curve_keys[0], sizeof(float3)*oldcurve_keys.size()) != 0)
+			rebuild = true;
+	}
+
+	if(oldcurve_radius.size() != mesh->curve_radius.size())
+		rebuild = true;
+	else if(oldcurve_radius.size()) {
+		if(memcmp(&oldcurve_radius[0], &mesh->curve_radius[0], sizeof(float)*oldcurve_radius.size()) != 0)
 			rebuild = true;
 	}
 	
@@ -931,8 +938,8 @@ void BlenderSync::sync_mesh_motion(BL::Object& b_ob,
 			Attribute *attr_mP = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
 			if(attr_mP) {
-				float4 *keys = &mesh->curve_keys[0];
-				memcpy(attr_mP->data_float4() + time_index*numkeys, keys, sizeof(float4)*numkeys);
+				float3 *keys = &mesh->curve_keys[0];
+				memcpy(attr_mP->data_float3() + time_index*numkeys, keys, sizeof(float3)*numkeys);
 			}
 		}
 

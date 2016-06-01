@@ -1068,7 +1068,7 @@ int WM_operator_smooth_viewtx_get(const wmOperator *op)
 }
 
 /* invoke callback, uses enum property named "type" */
-int WM_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+int WM_menu_invoke_ex(bContext *C, wmOperator *op, int opcontext)
 {
 	PropertyRNA *prop = op->type->prop;
 	uiPopupMenu *pup;
@@ -1090,13 +1090,18 @@ int WM_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 		pup = UI_popup_menu_begin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
 		layout = UI_popup_menu_layout(pup);
 		/* set this so the default execution context is the same as submenus */
-		uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
-		uiItemsFullEnumO(layout, op->type->idname, RNA_property_identifier(prop), op->ptr->data, WM_OP_EXEC_REGION_WIN, 0);
+		uiLayoutSetOperatorContext(layout, opcontext);
+		uiItemsFullEnumO(layout, op->type->idname, RNA_property_identifier(prop), op->ptr->data, opcontext, 0);
 		UI_popup_menu_end(C, pup);
 		return OPERATOR_INTERFACE;
 	}
 
 	return OPERATOR_CANCELLED;
+}
+
+int WM_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	return WM_menu_invoke_ex(C, op, WM_OP_INVOKE_REGION_WIN);
 }
 
 

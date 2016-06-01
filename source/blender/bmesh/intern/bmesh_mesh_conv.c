@@ -804,10 +804,10 @@ void BM_mesh_bm_to_me(
 		BMEditSelection *selected;
 		me->totselect = BLI_listbase_count(&(bm->selected));
 
-		if (me->mselect) MEM_freeN(me->mselect);
-
-		me->mselect = MEM_callocN(sizeof(MSelect) * me->totselect, "Mesh selection history");
-
+		MEM_SAFE_FREE(me->mselect);
+		if (me->totselect != 0) {
+			me->mselect = MEM_mallocN(sizeof(MSelect) * me->totselect, "Mesh selection history");
+		}
 
 		for (i = 0, selected = bm->selected.first; selected; i++, selected = selected->next) {
 			if (selected->htype == BM_VERT) {

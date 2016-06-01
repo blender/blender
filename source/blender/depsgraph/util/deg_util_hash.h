@@ -24,43 +24,18 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/util/depsgraph_util_set.h
+/** \file blender/depsgraph/util/deg_util_hash.h
  *  \ingroup depsgraph
  */
 
-#ifndef __DEPSGRAPH_UTIL_SET_H__
-#define __DEPSGRAPH_UTIL_SET_H__
+#pragma once
 
-#include <set>
+#include "BLI_utildefines.h"
 
-#include "depsgraph_util_hash.h"
+#include "BLI_ghash.h"
 
-using std::set;
-
-#if defined(DEG_NO_UNORDERED_MAP)
-#  include <set>
-typedef std::set unordered_set;
-#endif
-
-#if defined(DEG_TR1_UNORDERED_MAP)
-#  include <tr1/unordered_set>
-using std::tr1::unordered_set;
-#endif
-
-#if defined(DEG_STD_UNORDERED_MAP)
-#  include <unordered_set>
-using std::unordered_set;
-#endif
-
-#if defined(DEG_STD_UNORDERED_MAP_IN_TR1_NAMESPACE)
-#  include <unordered_set>
-using std::tr1::unordered_set;
-#endif
-
-#if !defined(DEG_NO_UNORDERED_MAP) && !defined(DEG_TR1_UNORDERED_MAP) && \
-    !defined(DEG_STD_UNORDERED_MAP) && !defined(DEG_STD_UNORDERED_MAP_IN_TR1_NAMESPACE)  // NOLINT
-#  error One of: DEG_NO_UNORDERED_MAP, DEG_TR1_UNORDERED_MAP,\
- DEG_STD_UNORDERED_MAP, DEG_STD_UNORDERED_MAP_IN_TR1_NAMESPACE must be defined!  // NOLINT
-#endif
-
-#endif  /* __DEPSGRAPH_UTIL_SET_H__ */
+/* XXX this might require 2 different variants for sizeof(size_t) (32 vs 64 bit) */
+BLI_INLINE size_t hash_combine(size_t hash_a, size_t hash_b)
+{
+	return hash_a ^ (hash_b + 0x9e3779b9 + (hash_a << 6) + (hash_a >> 2));
+}

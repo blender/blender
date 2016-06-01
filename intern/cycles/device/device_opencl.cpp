@@ -1187,7 +1187,9 @@ public:
 	               InterpolationType /*interpolation*/,
 	               ExtensionType /*extension*/)
 	{
-		VLOG(1) << "Texture allocate: " << name << ", " << mem.memory_size() << " bytes.";
+		VLOG(1) << "Texture allocate: " << name << ", "
+		        << string_human_readable_number(mem.memory_size()) << " bytes. ("
+		        << string_human_readable_size(mem.memory_size()) << ")";
 		mem_alloc(mem, MEM_READ_ONLY);
 		mem_copy_to(mem);
 		assert(mem_map.find(name) == mem_map.end());
@@ -1222,18 +1224,28 @@ public:
 			CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &workgroup_size, NULL);
 		clGetDeviceInfo(cdDevice,
 			CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof(size_t)*3, max_work_items, NULL);
-	
-		/* try to divide evenly over 2 dimensions */
+
+		/* Try to divide evenly over 2 dimensions. */
 		size_t sqrt_workgroup_size = max((size_t)sqrt((double)workgroup_size), 1);
 		size_t local_size[2] = {sqrt_workgroup_size, sqrt_workgroup_size};
 
-		/* some implementations have max size 1 on 2nd dimension */
+		/* Some implementations have max size 1 on 2nd dimension. */
 		if(local_size[1] > max_work_items[1]) {
 			local_size[0] = workgroup_size/max_work_items[1];
 			local_size[1] = max_work_items[1];
 		}
 
-		size_t global_size[2] = {global_size_round_up(local_size[0], w), global_size_round_up(local_size[1], h)};
+		size_t global_size[2] = {global_size_round_up(local_size[0], w),
+		                         global_size_round_up(local_size[1], h)};
+
+		/* Vertical size of 1 is coming from bake/shade kernels where we should
+		 * not round anything up because otherwise we'll either be doing too
+		 * much work per pixel (if we don't check global ID on Y axis) or will
+		 * be checking for global ID to always have Y of 0.
+		 */
+		if (h == 1) {
+			global_size[h] = 1;
+		}
 
 		/* run kernel */
 		opencl_assert(clEnqueueNDRangeKernel(cqCommandQueue, kernel, 2, NULL, global_size, NULL, 0, NULL, NULL));
@@ -1318,47 +1330,48 @@ public:
 		else
 			kernel = ckShaderKernel;
 
+		cl_uint start_arg_index =
+			kernel_set_args(kernel,
+			                0,
+			                d_data,
+			                d_input,
+			                d_output);
+
+		if(task.shader_eval_type < SHADER_EVAL_BAKE) {
+			start_arg_index += kernel_set_args(kernel,
+			                                   start_arg_index,
+			                                   d_output_luma);
+		}
+
+#define KERNEL_TEX(type, ttype, name) \
+		set_kernel_arg_mem(kernel, &start_arg_index, #name);
+#include "kernel_textures.h"
+#undef KERNEL_TEX
+
+		start_arg_index += kernel_set_args(kernel,
+		                                   start_arg_index,
+		                                   d_shader_eval_type);
+		if(task.shader_eval_type >= SHADER_EVAL_BAKE) {
+			start_arg_index += kernel_set_args(kernel,
+			                                   start_arg_index,
+			                                   d_shader_filter);
+		}
+		start_arg_index += kernel_set_args(kernel,
+		                                   start_arg_index,
+		                                   d_shader_x,
+		                                   d_shader_w,
+		                                   d_offset);
+
 		for(int sample = 0; sample < task.num_samples; sample++) {
 
 			if(task.get_cancel())
 				break;
 
-			cl_int d_sample = sample;
-
-			cl_uint start_arg_index =
-				kernel_set_args(kernel,
-				                0,
-				                d_data,
-				                d_input,
-				                d_output);
-
-			if(task.shader_eval_type < SHADER_EVAL_BAKE) {
-				start_arg_index += kernel_set_args(kernel,
-				                                   start_arg_index,
-				                                   d_output_luma);
-			}
-
-#define KERNEL_TEX(type, ttype, name) \
-			set_kernel_arg_mem(kernel, &start_arg_index, #name);
-#include "kernel_textures.h"
-#undef KERNEL_TEX
-
-			start_arg_index += kernel_set_args(kernel,
-			                                   start_arg_index,
-			                                   d_shader_eval_type);
-			if(task.shader_eval_type >= SHADER_EVAL_BAKE) {
-				start_arg_index += kernel_set_args(kernel,
-				                                   start_arg_index,
-				                                   d_shader_filter);
-			}
-			start_arg_index += kernel_set_args(kernel,
-			                                   start_arg_index,
-			                                   d_shader_x,
-			                                   d_shader_w,
-			                                   d_offset,
-			                                   d_sample);
+			kernel_set_args(kernel, start_arg_index, sample);
 
 			enqueue_kernel(kernel, task.shader_w, 1);
+
+			clFinish(cqCommandQueue);
 
 			task.update_progress(NULL);
 		}

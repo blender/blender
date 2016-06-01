@@ -60,8 +60,9 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 	uint4 *d_input_data = d_input.resize(num_verts);
 	size_t d_input_size = 0;
 
-	for(size_t i = 0; i < mesh->triangles.size(); i++) {
-		Mesh::Triangle t = mesh->triangles[i];
+	size_t num_triangles = mesh->num_triangles();
+	for(size_t i = 0; i < num_triangles; i++) {
+		Mesh::Triangle t = mesh->get_triangle(i);
 		int shader_index = mesh->shader[i];
 		Shader *shader = (shader_index < mesh->used_shaders.size()) ?
 			mesh->used_shaders[shader_index] : scene->default_surface;
@@ -146,8 +147,8 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 	float4 *offset = (float4*)d_output.data_pointer;
 
 	Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-	for(size_t i = 0; i < mesh->triangles.size(); i++) {
-		Mesh::Triangle t = mesh->triangles[i];
+	for(size_t i = 0; i < num_triangles; i++) {
+		Mesh::Triangle t = mesh->get_triangle(i);
 		int shader_index = mesh->shader[i];
 		Shader *shader = (shader_index < mesh->used_shaders.size()) ?
 			mesh->used_shaders[shader_index] : scene->default_surface;

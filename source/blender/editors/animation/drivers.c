@@ -866,7 +866,7 @@ static int add_driver_button_exec(bContext *C, wmOperator *op)
 }
 
 /* Show menu or create drivers */
-static int add_driver_button_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int add_driver_button_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	PropertyRNA *prop;
 	
@@ -877,7 +877,8 @@ static int add_driver_button_invoke(bContext *C, wmOperator *op, const wmEvent *
 	else {
 		/* Show menu */
 		// TODO: This should get filtered by the enum filter
-		return WM_menu_invoke(C, op, event);
+		/* important to execute in the region we're currently in */
+		return WM_menu_invoke_ex(C, op, WM_OP_INVOKE_DEFAULT);
 	}
 }
 

@@ -879,8 +879,16 @@ macro(TEST_SHARED_PTR_SUPPORT)
 	# otherwise it's assumed to be defined in std namespace.
 
 	include(CheckIncludeFileCXX)
+	include(CheckCXXSourceCompiles)
 	set(SHARED_PTR_FOUND FALSE)
-	CHECK_INCLUDE_FILE_CXX(memory HAVE_STD_MEMORY_HEADER)
+	# Workaround for newer GCC (6.x+) where C++11 was enabled by default, which lead us
+	# to a situation when there is <unordered_map> include but which can't be used uless
+	# C++11 is enabled.
+	if(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "6.0") AND (NOT WITH_CXX11))
+		set(HAVE_STD_MEMORY_HEADER False)
+	else()
+		CHECK_INCLUDE_FILE_CXX(memory HAVE_STD_MEMORY_HEADER)
+	endif()
 	if(HAVE_STD_MEMORY_HEADER)
 		# Finding the memory header doesn't mean that shared_ptr is in std
 		# namespace.
@@ -888,7 +896,6 @@ macro(TEST_SHARED_PTR_SUPPORT)
 		# In particular, MSVC 2008 has shared_ptr declared in std::tr1.  In
 		# order to support this, we do an extra check to see which namespace
 		# should be used.
-		include(CheckCXXSourceCompiles)
 		CHECK_CXX_SOURCE_COMPILES("#include <memory>
 		                           int main() {
 		                             std::shared_ptr<int> int_ptr;

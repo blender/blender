@@ -741,6 +741,7 @@ static char *code_generate_vertex(ListBase *nodes, const GPUMatType type)
 				BLI_dynstr_appendf(ds, "%s %s att%d;\n",
 					GLEW_VERSION_3_0 ? "in" : "attribute",
 					GPU_DATATYPE_STR[input->type], input->attribid);
+				BLI_dynstr_appendf(ds, "uniform int att%d_info;\n",  input->attribid);
 				BLI_dynstr_appendf(ds, "%s %s var%d;\n",
 					GLEW_VERSION_3_0 ? "out" : "varying",
 					GPU_DATATYPE_STR[input->type], input->attribid);
@@ -793,7 +794,8 @@ static char *code_generate_vertex(ListBase *nodes, const GPUMatType type)
 						BLI_dynstr_appendf(ds, "#ifndef USE_OPENSUBDIV\n");
 					}
 #endif
-					BLI_dynstr_appendf(ds, "\tvar%d = att%d;\n", input->attribid, input->attribid);
+					BLI_dynstr_appendf(ds, "\tset_var_from_attr(att%d, att%d_info, var%d);\n",
+					                   input->attribid, input->attribid, input->attribid);
 #ifdef WITH_OPENSUBDIV
 					if (is_mtface) {
 						BLI_dynstr_appendf(ds, "#endif\n");

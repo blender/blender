@@ -64,8 +64,8 @@ ccl_device void kernel_branched_path_ao(KernelGlobals *kg,
 
 /* bounce off surface and integrate indirect light */
 ccl_device_noinline void kernel_branched_path_surface_indirect_light(KernelGlobals *kg,
-	RNG *rng, ShaderData *sd, ShaderData *emission_sd, float3 throughput,
-	float num_samples_adjust, PathState *state, PathRadiance *L)
+	RNG *rng, ShaderData *sd, ShaderData *indirect_sd, ShaderData *emission_sd,
+	float3 throughput, float num_samples_adjust, PathState *state, PathRadiance *L)
 {
 	for(int i = 0; i < ccl_fetch(sd, num_closure); i++) {
 		const ShaderClosure *sc = &ccl_fetch(sd, closure)[i];
@@ -112,6 +112,7 @@ ccl_device_noinline void kernel_branched_path_surface_indirect_light(KernelGloba
 			}
 
 			kernel_path_indirect(kg,
+						         indirect_sd,
 			                     emission_sd,
 			                     rng,
 			                     &bsdf_ray,
@@ -131,6 +132,7 @@ ccl_device_noinline void kernel_branched_path_surface_indirect_light(KernelGloba
 #ifdef __SUBSURFACE__
 ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
                                                         ShaderData *sd,
+                                                        ShaderData *indirect_sd,
                                                         ShaderData *emission_sd,
                                                         PathRadiance *L,
                                                         PathState *state,
@@ -222,6 +224,7 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 				        kg,
 				        rng,
 				        &bssrdf_sd,
+						indirect_sd,
 				        emission_sd,
 				        throughput,
 				        num_samples_inv,
@@ -244,8 +247,8 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 
 	/* shader data memory used for both volumes and surfaces, saves stack space */
 	ShaderData sd;
-	/* shader data used by emission, shadows, volume stacks */
-	ShaderData emission_sd;
+	/* shader data used by emission, shadows, volume stacks, indirect path */
+	ShaderData emission_sd, indirect_sd;
 
 	PathState state;
 	path_state_init(kg, &emission_sd, &state, rng, sample, &ray);
@@ -356,6 +359,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 					                             &pray))
 					{
 						kernel_path_indirect(kg,
+						                     &indirect_sd,
 						                     &emission_sd,
 						                     rng,
 						                     &pray,
@@ -413,6 +417,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 					                             &pray))
 					{
 						kernel_path_indirect(kg,
+						                     &indirect_sd,
 						                     &emission_sd,
 						                     rng,
 						                     &pray,
@@ -522,8 +527,8 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 #ifdef __SUBSURFACE__
 		/* bssrdf scatter to a different location on the same object */
 		if(sd.flag & SD_BSSRDF) {
-			kernel_branched_path_subsurface_scatter(kg, &sd, &emission_sd, &L, &state,
-			                                        rng, &ray, throughput);
+			kernel_branched_path_subsurface_scatter(kg, &sd, &indirect_sd, &emission_sd,
+			                                        &L, &state, rng, &ray, throughput);
 		}
 #endif
 
@@ -541,7 +546,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 
 			/* indirect light */
 			kernel_branched_path_surface_indirect_light(kg, rng,
-				&sd, &emission_sd, throughput, 1.0f, &hit_state, &L);
+				&sd, &indirect_sd, &emission_sd, throughput, 1.0f, &hit_state, &L);
 
 			/* continue in case of transparency */
 			throughput *= shader_bsdf_transparency(kg, &sd);

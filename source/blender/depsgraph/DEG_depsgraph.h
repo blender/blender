@@ -131,9 +131,6 @@ void DEG_ids_clear_recalc(struct Main *bmain);
 
 /* Update Flushing ------------------------------- */
 
-/* Flush updates */
-void DEG_graph_flush_updates(struct Main *bmain, Depsgraph *graph);
-
 /* Flush updates for all IDs */
 void DEG_ids_flush_tagged(struct Main *bmain);
 
@@ -143,11 +140,6 @@ void DEG_ids_flush_tagged(struct Main *bmain);
 void DEG_ids_check_recalc(struct Main *bmain,
                           struct Scene *scene,
                           bool time);
-
-/* Clear all update tags
- * - For aborted updates, or after successful evaluation
- */
-void DEG_graph_clear_tags(Depsgraph *graph);
 
 /* ************************************************ */
 /* Evaluation Engine API */

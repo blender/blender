@@ -54,7 +54,15 @@ static void node_shader_exec_camera(void *data, int UNUSED(thread), bNode *UNUSE
 
 static int gpu_shader_camera(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	return GPU_stack_link(mat, "camera", in, out, GPU_builtin(GPU_VIEW_POSITION));
+	GPUNodeLink *viewvec;
+
+	viewvec = GPU_builtin(GPU_VIEW_POSITION);
+
+	/* Blender has negative Z, Cycles positive Z convention */
+	if (GPU_material_use_new_shading_nodes(mat))
+		GPU_link(mat, "invert_z", viewvec, &viewvec);
+
+	return GPU_stack_link(mat, "camera", in, out, viewvec);
 }
 
 void register_node_type_sh_camera(void)

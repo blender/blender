@@ -1601,16 +1601,18 @@ void calculateCenter2D(TransInfo *t)
 	}
 }
 
-void calculateCenterGlobal(TransInfo *t)
+void calculateCenterGlobal(
+        TransInfo *t, const float center_local[3],
+        float r_center_global[3])
 {
 	/* setting constraint center */
 	/* note, init functions may over-ride t->center */
 	if (t->flag & (T_EDIT | T_POSE)) {
 		Object *ob = t->obedit ? t->obedit : t->poseobj;
-		mul_v3_m4v3(t->center_global, ob->obmat, t->center);
+		mul_v3_m4v3(r_center_global, ob->obmat, center_local);
 	}
 	else {
-		copy_v3_v3(t->center_global, t->center);
+		copy_v3_v3(r_center_global, center_local);
 	}
 }
 
@@ -1785,43 +1787,55 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 	return ok;
 }
 
-
-void calculateCenter(TransInfo *t)
+static void calculateCenter_FromAround(TransInfo *t, int around, float r_center[3])
 {
-	switch (t->around) {
+	switch (around) {
 		case V3D_AROUND_CENTER_BOUNDS:
-			calculateCenterBound(t, t->center);
+			calculateCenterBound(t, r_center);
 			break;
 		case V3D_AROUND_CENTER_MEAN:
-			calculateCenterMedian(t, t->center);
+			calculateCenterMedian(t, r_center);
 			break;
 		case V3D_AROUND_CURSOR:
 			if (ELEM(t->spacetype, SPACE_IMAGE, SPACE_CLIP))
-				calculateCenterCursor2D(t, t->center);
+				calculateCenterCursor2D(t, r_center);
 			else if (t->spacetype == SPACE_IPO)
-				calculateCenterCursorGraph2D(t, t->center);
+				calculateCenterCursorGraph2D(t, r_center);
 			else
-				calculateCenterCursor(t, t->center);
+				calculateCenterCursor(t, r_center);
 			break;
 		case V3D_AROUND_LOCAL_ORIGINS:
 			/* Individual element center uses median center for helpline and such */
-			calculateCenterMedian(t, t->center);
+			calculateCenterMedian(t, r_center);
 			break;
 		case V3D_AROUND_ACTIVE:
 		{
-			if (calculateCenterActive(t, false, t->center)) {
+			if (calculateCenterActive(t, false, r_center)) {
 				/* pass */
 			}
 			else {
 				/* fallback */
-				calculateCenterMedian(t, t->center);
+				calculateCenterMedian(t, r_center);
 			}
 			break;
 		}
 	}
+}
+
+void calculateCenter(TransInfo *t)
+{
+	calculateCenter_FromAround(t, t->around, t->center);
+	calculateCenterGlobal(t, t->center, t->center_global);
+
+	/* avoid calculating again */
+	{
+		TransCenterData *cd = &t->center_cache[t->around];
+		copy_v3_v3(cd->local, t->center);
+		copy_v3_v3(cd->global, t->center_global);
+		cd->is_set = true;
+	}
 
 	calculateCenter2D(t);
-	calculateCenterGlobal(t);
 
 	/* for panning from cameraview */
 	if (t->flag & T_OBJECT) {
@@ -1873,6 +1887,23 @@ void calculateCenter(TransInfo *t)
 			t->zfac = 0.0f;
 		}
 	}
+}
+
+BLI_STATIC_ASSERT(ARRAY_SIZE(((TransInfo *)NULL)->center_cache) == (V3D_AROUND_ACTIVE + 1), "test size");
+
+/**
+ * Lazy initialize transform center data, when we need to access center values from other types.
+ */
+const TransCenterData *transformCenter_from_type(TransInfo *t, int around)
+{
+	BLI_assert(around <= V3D_AROUND_ACTIVE);
+	TransCenterData *cd = &t->center_cache[around];
+	if (cd->is_set == false) {
+		calculateCenter_FromAround(t, around, cd->local);
+		calculateCenterGlobal(t, cd->local, cd->global);
+		cd->is_set = true;
+	}
+	return cd;
 }
 
 void calculatePropRatio(TransInfo *t)

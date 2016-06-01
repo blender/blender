@@ -1048,8 +1048,8 @@ static float noise3_perlin(float vec[3])
 	b01 = p[i + by1];
 	b11 = p[j + by1];
 
-#define VALUE_AT(rx, ry, rz) (rx * q[0] + ry * q[1] + rz * q[2])
-#define SURVE(t) (t * t * (3.0f - 2.0f * t))
+#define VALUE_AT(rx, ry, rz) ((rx) * q[0] + (ry) * q[1] + (rz) * q[2])
+#define SURVE(t) ((t) * (t) * (3.0f - 2.0f * (t)))
 
 /* lerp moved to improved perlin above */
 

@@ -33,162 +33,12 @@
 #include "MEM_guardedalloc.h"
 
 extern "C" {
-#include "BLI_utildefines.h"
-#include "BLI_ghash.h"
-
 #include "BKE_main.h"
 
 #include "DEG_depsgraph_query.h"
 } /* extern "C" */
 
-#include "depsgraph_queue.h"
-#include "depsnode.h"
-#include "depsnode_operation.h"
-#include "depsgraph_intern.h"
-
-/* ************************* */
-/* Low-Level Graph Traversal */
-
-#if 0
-/* Prepare for graph traversal, by tagging nodes, etc. */
-static void DEG_graph_traverse_begin(Depsgraph * /*graph*/)
-{
-	/* go over all nodes, initialising the valence counts */
-	// XXX: this will end up being O(|V|), which is bad when we're just updating a few nodes...
-}
-
-/* Perform a traversal of graph from given starting node (in execution order) */
-// TODO: additional flags for controlling the process?
-void DEG_graph_traverse_from_node(Depsgraph *graph, OperationDepsNode *start_node,
-                                  DEG_FilterPredicate filter, void *filter_data,
-                                  DEG_NodeOperation op, void *operation_data)
-{
-	DepsgraphQueue *q;
-
-	/* sanity checks */
-	if (ELEM(NULL, graph, start_node, op))
-		return;
-
-	/* add node as starting node to be evaluated, with value of 0 */
-	q = DEG_queue_new();
-
-	start_node->num_links_pending = 0;
-	DEG_queue_push(q, start_node, 0.0f);
-
-	/* while we still have nodes in the queue, grab and work on next one */
-	do {
-		/* grab item at front of queue */
-		// XXX: in practice, we may need to wait until one becomes available...
-		OperationDepsNode *node = (OperationDepsNode *)DEG_queue_pop(q);
-
-		/* perform operation on node */
-		op(graph, node, operation_data);
-
-		/* schedule up operations which depend on this */
-		DEPSNODE_RELATIONS_ITER_BEGIN(node->outlinks, rel)
-		{
-			/* ensure that relationship is not tagged for ignoring (i.e. cyclic, etc.) */
-			// TODO: cyclic refs should probably all get clustered towards the end, so that we can just stop on the first one
-			if ((rel->flag & DEPSREL_FLAG_CYCLIC) == 0) {
-				OperationDepsNode *child_node = (OperationDepsNode *)rel->to;
-
-				/* only visit node if the filtering function agrees */
-				if ((filter == NULL) || filter(graph, child_node, filter_data)) {
-					/* schedule up node... */
-					child_node->num_links_pending--;
-					DEG_queue_push(q, child_node, (float)child_node->num_links_pending);
-				}
-			}
-		}
-		DEPSNODE_RELATIONS_ITER_END;
-	} while (DEG_queue_is_empty(q) == false);
-
-	/* cleanup */
-	DEG_queue_free(q);
-}
-#endif
-
-/* ************************************************************** */
-/* Filtering API - Basically, making a copy of the existing graph */
-
-/* Create filtering context */
-// TODO: allow passing in a number of criteria?
-DepsgraphCopyContext *DEG_filter_init()
-{
-	DepsgraphCopyContext *dcc = (DepsgraphCopyContext *)MEM_callocN(sizeof(DepsgraphCopyContext), "DepsgraphCopyContext");
-
-	/* init hashes for easy lookups */
-	dcc->nodes_hash = BLI_ghash_ptr_new("Depsgraph Filter NodeHash");
-	dcc->rels_hash = BLI_ghash_ptr_new("Depsgraph Filter Relationship Hash"); // XXX?
-
-	/* store filtering criteria? */
-	// xxx...
-
-	return dcc;
-}
-
-/* Cleanup filtering context */
-void DEG_filter_cleanup(DepsgraphCopyContext *dcc)
-{
-	/* sanity check */
-	if (dcc == NULL)
-		return;
-
-	/* free hashes - contents are weren't copied, so are ok... */
-	BLI_ghash_free(dcc->nodes_hash, NULL, NULL);
-	BLI_ghash_free(dcc->rels_hash, NULL, NULL);
-
-	/* clear filtering criteria */
-	// ...
-
-	/* free dcc itself */
-	MEM_freeN(dcc);
-}
-
-/* -------------------------------------------------- */
-
-/* Create a copy of provided node */
-// FIXME: the handling of sub-nodes and links will need to be subject to filtering options...
-// XXX: perhaps this really shouldn't be exposed, as it will just be a sub-step of the evaluation process?
-DepsNode *DEG_copy_node(DepsgraphCopyContext *dcc, const DepsNode *src)
-{
-	/* sanity check */
-	if (src == NULL)
-		return NULL;
-
-	DepsNodeFactory *factory = DEG_get_node_factory(src->type);
-	BLI_assert(factory != NULL);
-	DepsNode *dst = factory->copy_node(dcc, src);
-
-	/* add this node-pair to the hash... */
-	BLI_ghash_insert(dcc->nodes_hash, (DepsNode *)src, dst);
-
-#if 0 /* XXX TODO */
-	/* now, fix up any links in standard "node header" (i.e. DepsNode struct, that all
-	 * all others are derived from) that are now corrupt
-	 */
-	{
-		/* relationships to other nodes... */
-		// FIXME: how to handle links? We may only have partial set of all nodes still?
-		// XXX: the exact details of how to handle this are really part of the querying API...
-
-		// XXX: BUT, for copying subgraphs, we'll need to define an API for doing this stuff anyways
-		// (i.e. for resolving and patching over links that exist within subtree...)
-		dst->inlinks.clear();
-		dst->outlinks.clear();
-
-		/* clear traversal data */
-		dst->num_links_pending = 0;
-		dst->lasttime = 0;
-	}
-
-	/* fix links */
-	// XXX...
-#endif
-
-	/* return copied node */
-	return dst;
-}
+#include "intern/depsgraph_intern.h"
 
 bool DEG_id_type_tagged(Main *bmain, short idtype)
 {
@@ -207,7 +57,9 @@ short DEG_get_eval_flags_for_id(Depsgraph *graph, ID *id)
 		return 0;
 	}
 
-	IDDepsNode *id_node = graph->find_id_node(id);
+	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
+
+	DEG::IDDepsNode *id_node = deg_graph->find_id_node(id);
 	if (id_node == NULL) {
 		/* TODO(sergey): Does it mean we need to check set scene? */
 		return 0;

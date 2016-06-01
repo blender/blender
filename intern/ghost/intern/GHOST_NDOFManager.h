@@ -40,6 +40,7 @@ typedef enum {
 	NDOF_SpaceMousePro,
 	NDOF_SpaceMouseWireless,
 	NDOF_SpaceMouseProWireless,
+	NDOF_SpaceMouseEnterprise,
 
 	// older devices
 	NDOF_SpacePilot,

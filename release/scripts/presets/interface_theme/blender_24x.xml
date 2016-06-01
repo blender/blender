@@ -179,7 +179,7 @@
         </wcol_tooltip>
         <wcol_menu_item>
           <ThemeWidgetColors outline="#000000"
-                             inner="#00000000"
+                             inner="#d2d2d200"
                              inner_sel="#7f7f7fff"
                              item="#ffffffff"
                              text="#000000"

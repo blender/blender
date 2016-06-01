@@ -30,6 +30,8 @@
  * Defines and code for core node types.
  */
 
+#include <cstdlib>  // for BLI_assert()
+
 extern "C" {
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
@@ -37,10 +39,13 @@ extern "C" {
 #include "DEG_depsgraph.h"
 } /* extern "C" */
 
-#include "depsgraph_intern.h"
-#include "depsnode.h"
-#include "depsnode_component.h"
-#include "depsnode_operation.h"
+#include "intern/nodes/deg_node.h"
+#include "intern/nodes/deg_node_component.h"
+#include "intern/nodes/deg_node_operation.h"
+
+#include "intern/depsgraph_intern.h"
+
+namespace DEG {
 
 /* ************ */
 /* External API */
@@ -59,44 +64,108 @@ static GHash *_depsnode_typeinfo_registry = NULL;
 /* Registration ------------------------------------------- */
 
 /* Register node type */
-void DEG_register_node_typeinfo(DepsNodeFactory *factory)
+void deg_register_node_typeinfo(DepsNodeFactory *factory)
 {
 	BLI_assert(factory != NULL);
 	BLI_ghash_insert(_depsnode_typeinfo_registry, SET_INT_IN_POINTER(factory->type()), factory);
 }
 
-/* Register all node types */
-void DEG_register_node_types(void)
-{
-	/* initialise registry */
-	_depsnode_typeinfo_registry = BLI_ghash_int_new("Depsgraph Node Type Registry");
-
-	/* register node types */
-	DEG_register_base_depsnodes();
-	DEG_register_component_depsnodes();
-	DEG_register_operation_depsnodes();
-}
-
-/* Free registry on exit */
-void DEG_free_node_types(void)
-{
-	BLI_ghash_free(_depsnode_typeinfo_registry, NULL, NULL);
-}
-
 /* Getters ------------------------------------------------- */
 
 /* Get typeinfo for specified type */
-DepsNodeFactory *DEG_get_node_factory(const eDepsNode_Type type)
+DepsNodeFactory *deg_get_node_factory(const eDepsNode_Type type)
 {
 	/* look up type - at worst, it doesn't exist in table yet, and we fail */
 	return (DepsNodeFactory *)BLI_ghash_lookup(_depsnode_typeinfo_registry, SET_INT_IN_POINTER(type));
 }
 
 /* Get typeinfo for provided node */
-DepsNodeFactory *DEG_node_get_factory(const DepsNode *node)
+DepsNodeFactory *deg_node_get_factory(const DepsNode *node)
 {
-	if (!node)
+	if (node != NULL) {
 		return NULL;
+	}
+	return deg_get_node_factory(node->type);
+}
 
-	return DEG_get_node_factory(node->type);
+/* Stringified opcodes ------------------------------------- */
+
+DepsOperationStringifier DEG_OPNAMES;
+
+static const char *stringify_opcode(eDepsOperation_Code opcode)
+{
+	switch (opcode) {
+#define STRINGIFY_OPCODE(name) case DEG_OPCODE_##name: return #name
+		STRINGIFY_OPCODE(OPERATION);
+		STRINGIFY_OPCODE(PLACEHOLDER);
+		STRINGIFY_OPCODE(NOOP);
+		STRINGIFY_OPCODE(ANIMATION);
+		STRINGIFY_OPCODE(DRIVER);
+		//STRINGIFY_OPCODE(PROXY);
+		STRINGIFY_OPCODE(TRANSFORM_LOCAL);
+		STRINGIFY_OPCODE(TRANSFORM_PARENT);
+		STRINGIFY_OPCODE(TRANSFORM_CONSTRAINTS);
+		//STRINGIFY_OPCODE(TRANSFORM_CONSTRAINTS_INIT);
+		//STRINGIFY_OPCODE(TRANSFORM_CONSTRAINT);
+		//STRINGIFY_OPCODE(TRANSFORM_CONSTRAINTS_DONE);
+		STRINGIFY_OPCODE(RIGIDBODY_REBUILD);
+		STRINGIFY_OPCODE(RIGIDBODY_SIM);
+		STRINGIFY_OPCODE(TRANSFORM_RIGIDBODY);
+		STRINGIFY_OPCODE(TRANSFORM_FINAL);
+		STRINGIFY_OPCODE(OBJECT_UBEREVAL);
+		STRINGIFY_OPCODE(GEOMETRY_UBEREVAL);
+		STRINGIFY_OPCODE(GEOMETRY_MODIFIER);
+		STRINGIFY_OPCODE(GEOMETRY_PATH);
+		STRINGIFY_OPCODE(POSE_INIT);
+		STRINGIFY_OPCODE(POSE_DONE);
+		STRINGIFY_OPCODE(POSE_IK_SOLVER);
+		STRINGIFY_OPCODE(POSE_SPLINE_IK_SOLVER);
+		STRINGIFY_OPCODE(BONE_LOCAL);
+		STRINGIFY_OPCODE(BONE_POSE_PARENT);
+		STRINGIFY_OPCODE(BONE_CONSTRAINTS);
+		//STRINGIFY_OPCODE(BONE_CONSTRAINTS_INIT);
+		//STRINGIFY_OPCODE(BONE_CONSTRAINT);
+		//STRINGIFY_OPCODE(BONE_CONSTRAINTS_DONE);
+		STRINGIFY_OPCODE(BONE_READY);
+		STRINGIFY_OPCODE(BONE_DONE);
+		STRINGIFY_OPCODE(PSYS_EVAL);
+
+		case DEG_NUM_OPCODES: return "SpecialCase";
+#undef STRINGIFY_OPCODE
+	}
+	return "UNKNOWN";
+}
+
+DepsOperationStringifier::DepsOperationStringifier() {
+	for (int i = 0; i < DEG_NUM_OPCODES; ++i) {
+		names_[i] = stringify_opcode((eDepsOperation_Code)i);
+	}
+}
+
+const char *DepsOperationStringifier::operator[](eDepsOperation_Code opcode) {
+	BLI_assert((opcode > 0) && (opcode < DEG_NUM_OPCODES));
+	if (opcode >= 0 && opcode < DEG_NUM_OPCODES) {
+		return names_[opcode];
+	}
+	return "UnknownOpcode";
+}
+
+}  // namespace DEG
+
+/* Register all node types */
+void DEG_register_node_types(void)
+{
+	/* initialise registry */
+	DEG::_depsnode_typeinfo_registry = BLI_ghash_int_new("Depsgraph Node Type Registry");
+
+	/* register node types */
+	DEG::deg_register_base_depsnodes();
+	DEG::deg_register_component_depsnodes();
+	DEG::deg_register_operation_depsnodes();
+}
+
+/* Free registry on exit */
+void DEG_free_node_types(void)
+{
+	BLI_ghash_free(DEG::_depsnode_typeinfo_registry, NULL, NULL);
 }

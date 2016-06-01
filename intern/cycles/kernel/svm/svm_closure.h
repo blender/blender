@@ -365,8 +365,12 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			}
 			break;
 		}
-		case CLOSURE_BSDF_DIFFUSE_TOON_ID:
-		case CLOSURE_BSDF_GLOSSY_TOON_ID: {
+		case CLOSURE_BSDF_GLOSSY_TOON_ID:
+#ifdef __CAUSTICS_TRICKS__
+			if(!kernel_data.integrator.caustics_reflective && (path_flag & PATH_RAY_DIFFUSE))
+				break;
+#endif
+		case CLOSURE_BSDF_DIFFUSE_TOON_ID: {
 			ShaderClosure *sc = svm_node_closure_get_bsdf(sd, mix_weight);
 
 			if(sc) {

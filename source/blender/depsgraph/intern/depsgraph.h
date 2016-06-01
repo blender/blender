@@ -34,18 +34,19 @@
  * in the graph.
  */
 
-#ifndef __DEPSGRAPH_H__
-#define __DEPSGRAPH_H__
+#pragma once
 
 #include "BLI_threads.h"  /* for SpinLock */
 
-#include "depsgraph_types.h"
+#include "intern/depsgraph_types.h"
 
-#include "depsgraph_util_map.h"
-#include "depsgraph_util_set.h"
-
+struct ID;
+struct GHash;
+struct GSet;
 struct PointerRNA;
 struct PropertyRNA;
+
+namespace DEG {
 
 struct DepsNode;
 struct RootDepsNode;
@@ -94,9 +95,6 @@ struct DepsRelation {
 
 /* Dependency Graph object */
 struct Depsgraph {
-	typedef unordered_map<const ID *, IDDepsNode *> IDNodeMap;
-	typedef unordered_set<SubgraphDepsNode *> Subgraphs;
-	typedef unordered_set<OperationDepsNode *> EntryTags;
 	typedef vector<OperationDepsNode *> OperationNodes;
 
 	Depsgraph();
@@ -163,13 +161,13 @@ struct Depsgraph {
 
 	/* <ID : IDDepsNode> mapping from ID blocks to nodes representing these blocks
 	 * (for quick lookups). */
-	IDNodeMap id_hash;
+	GHash *id_hash;
 
 	/* "root" node - the one where all evaluation enters from. */
 	RootDepsNode *root_node;
 
 	/* Subgraphs referenced in tree. */
-	Subgraphs subgraphs;
+	GSet *subgraphs;
 
 	/* Indicates whether relations needs to be updated. */
 	bool need_update;
@@ -177,7 +175,7 @@ struct Depsgraph {
 	/* Quick-Access Temp Data ............. */
 
 	/* Nodes which have been tagged as "directly modified". */
-	EntryTags entry_tags;
+	GSet *entry_tags;
 
 	/* Convenience Data ................... */
 
@@ -198,27 +196,4 @@ struct Depsgraph {
 	// XXX: additional stuff like eval contexts, mempools for allocating nodes from, etc.
 };
 
-/**
- * Helper macros for iterating over set of relationship links
- * incident on each node.
- *
- * \note it is safe to perform removal operations here...
- *
- * relations_set[in]: (DepsNode::Relations) set of relationships (in/out links)
- * relation[out]:  (DepsRelation *) identifier where DepsRelation that we're
- *              currently accessing comes up
- */
-#define DEPSNODE_RELATIONS_ITER_BEGIN(relations_set_, relation_) \
-	{ \
-		OperationDepsNode::Relations::const_iterator __rel_iter = relations_set_.begin();  \
-		while (__rel_iter != relations_set_.end()) { \
-			DepsRelation *relation_ = *__rel_iter; \
-			++__rel_iter; \
-
-			/* ... code for iterator body can be written here ... */
-
-#define DEPSNODE_RELATIONS_ITER_END \
-		} \
-	} ((void)0)
-
-#endif  /* __DEPSGRAPH_H__ */
+}  // namespace DEG

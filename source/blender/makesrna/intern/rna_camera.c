@@ -131,8 +131,8 @@ static void rna_def_camera_stereo_data(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	prop = RNA_def_property(srna, "interocular_distance", PROP_FLOAT, PROP_DISTANCE);
-	RNA_def_property_range(prop, 0.0f, 100.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 1.f, 1, 3);
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0f, 1e4f, 1, 3);
 	RNA_def_property_ui_text(prop, "Interocular Distance",
 	                         "Set the distance between the eyes - the stereo plane distance / 30 should be fine");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);

@@ -30,70 +30,126 @@
 CCL_NAMESPACE_BEGIN
 
 static float shutter_curve_eval(float x,
-                                float shutter_curve[RAMP_TABLE_SIZE])
+                                array<float>& shutter_curve)
 {
-	x *= RAMP_TABLE_SIZE;
+	if (shutter_curve.size() == 0)
+		return 1.0f;
+
+	x *= shutter_curve.size();
 	int index = (int)x;
 	float frac = x - index;
-	if(index < RAMP_TABLE_SIZE - 1) {
+	if(index < shutter_curve.size() - 1) {
 		return lerp(shutter_curve[index], shutter_curve[index + 1], frac);
 	}
 	else {
-		return shutter_curve[RAMP_TABLE_SIZE - 1];
+		return shutter_curve[shutter_curve.size() - 1];
 	}
 }
 
-Camera::Camera()
+NODE_DEFINE(Camera)
 {
-	shuttertime = 1.0f;
-	motion_position = MOTION_POSITION_CENTER;
+	NodeType* type = NodeType::add("camera", create);
+
+	SOCKET_FLOAT(shuttertime, "Shutter Time", 1.0f);
+
+	static NodeEnum motion_position_enum;
+	motion_position_enum.insert("start", MOTION_POSITION_START);
+	motion_position_enum.insert("center", MOTION_POSITION_CENTER);
+	motion_position_enum.insert("end", MOTION_POSITION_END);
+	SOCKET_ENUM(motion_position, "Motion Position", motion_position_enum, MOTION_POSITION_CENTER);
+
+	static NodeEnum rolling_shutter_type_enum;
+	rolling_shutter_type_enum.insert("none", ROLLING_SHUTTER_NONE);
+	rolling_shutter_type_enum.insert("top", ROLLING_SHUTTER_TOP);
+	SOCKET_ENUM(rolling_shutter_type, "Rolling Shutter Type", rolling_shutter_type_enum,  ROLLING_SHUTTER_NONE);
+	SOCKET_FLOAT(rolling_shutter_duration, "Rolling Shutter Duration", 0.1f);
+
+	SOCKET_FLOAT_ARRAY(shutter_curve, "Shutter Curve", array<float>());
+
+	SOCKET_FLOAT(aperturesize, "Aperture Size", 0.0f);
+	SOCKET_FLOAT(focaldistance, "Focal Distance", 10.0f);
+	SOCKET_INT(blades, "Blades", 0);
+	SOCKET_FLOAT(bladesrotation, "Blades Rotation", 0.0f);
+
+	SOCKET_TRANSFORM(matrix, "Matrix", transform_identity());
+
+	SOCKET_FLOAT(aperture_ratio, "Aperture Ratio", 1.0f);
+
+	static NodeEnum type_enum;
+	type_enum.insert("perspective", CAMERA_PERSPECTIVE);
+	type_enum.insert("orthograph", CAMERA_ORTHOGRAPHIC);
+	type_enum.insert("panorama", CAMERA_PANORAMA);
+	SOCKET_ENUM(type, "Type", type_enum, CAMERA_PERSPECTIVE);
+
+	static NodeEnum panorama_type_enum;
+	panorama_type_enum.insert("equirectangular", PANORAMA_EQUIRECTANGULAR);
+	panorama_type_enum.insert("mirrorball", PANORAMA_MIRRORBALL);
+	panorama_type_enum.insert("fisheye_equidistant", PANORAMA_FISHEYE_EQUIDISTANT);
+	panorama_type_enum.insert("fisheye_equisolid", PANORAMA_FISHEYE_EQUISOLID);
+	SOCKET_ENUM(panorama_type, "Panorama Type", panorama_type_enum, PANORAMA_EQUIRECTANGULAR);
+
+	SOCKET_FLOAT(fisheye_fov, "Fisheye FOV", M_PI_F);
+	SOCKET_FLOAT(fisheye_lens, "Fisheye Lens", 10.5f);
+	SOCKET_FLOAT(latitude_min, "Latitude Min", -M_PI_2_F);
+	SOCKET_FLOAT(latitude_max, "Latitude Max", M_PI_2_F);
+	SOCKET_FLOAT(longitude_min, "Longitude Min", -M_PI_F);
+	SOCKET_FLOAT(longitude_max, "Longitude Max", M_PI_F);
+	SOCKET_FLOAT(fov, "FOV", M_PI_4_F);
+	SOCKET_FLOAT(fov_pre, "FOV Pre", M_PI_4_F);
+	SOCKET_FLOAT(fov_post, "FOV Post", M_PI_4_F);
+
+	static NodeEnum stereo_eye_enum;
+	stereo_eye_enum.insert("none", STEREO_NONE);
+	stereo_eye_enum.insert("left", STEREO_LEFT);
+	stereo_eye_enum.insert("right", STEREO_RIGHT);
+	SOCKET_ENUM(stereo_eye, "Stereo Eye", stereo_eye_enum, STEREO_NONE);
+
+	SOCKET_FLOAT(interocular_distance, "Interocular Distance", 0.065f);
+	SOCKET_FLOAT(convergence_distance, "Convergence Distance", 30.0f * 0.065f);
+
+	SOCKET_BOOLEAN(use_pole_merge, "Use Pole Merge", false);
+	SOCKET_FLOAT(pole_merge_angle_from, "Pole Merge Angle From",  60.0f * M_PI_F / 180.0f);
+	SOCKET_FLOAT(pole_merge_angle_to, "Pole Merge Angle To", 75.0f * M_PI_F / 180.0f);
+
+	SOCKET_FLOAT(sensorwidth, "Sensor Width", 0.036f);
+	SOCKET_FLOAT(sensorheight, "Sensor Height", 0.024f);
+
+	SOCKET_FLOAT(nearclip, "Near Clip", 1e-5f);
+	SOCKET_FLOAT(farclip, "Far Clip", 1e5f);
+
+	SOCKET_FLOAT(viewplane.left, "Viewplane Left", 0);
+	SOCKET_FLOAT(viewplane.right, "Viewplane Right", 0);
+	SOCKET_FLOAT(viewplane.bottom, "Viewplane Bottom", 0);
+	SOCKET_FLOAT(viewplane.top, "Viewplane Top", 0);
+
+	SOCKET_FLOAT(border.left, "Border Left", 0);
+	SOCKET_FLOAT(border.right, "Border Right", 0);
+	SOCKET_FLOAT(border.bottom, "Border Bottom", 0);
+	SOCKET_FLOAT(border.top, "Border Top", 0);
+
+	return type;
+}
+
+Camera::Camera()
+: Node(node_type)
+{
 	shutter_table_offset = TABLE_OFFSET_INVALID;
 
-	aperturesize = 0.0f;
-	focaldistance = 10.0f;
-	blades = 0;
-	bladesrotation = 0.0f;
-
-	matrix = transform_identity();
+	width = 1024;
+	height = 512;
+	resolution = 1;
 
 	motion.pre = transform_identity();
 	motion.post = transform_identity();
 	use_motion = false;
 	use_perspective_motion = false;
 
-	aperture_ratio = 1.0f;
+	shutter_curve.resize(RAMP_TABLE_SIZE);
+	for(int i = 0; i < shutter_curve.size(); ++i) {
+		shutter_curve[i] = 1.0f;
+	}
 
-	type = CAMERA_PERSPECTIVE;
-	panorama_type = PANORAMA_EQUIRECTANGULAR;
-	fisheye_fov = M_PI_F;
-	fisheye_lens = 10.5f;
-	latitude_min = -M_PI_2_F;
-	latitude_max = M_PI_2_F;
-	longitude_min = -M_PI_F;
-	longitude_max = M_PI_F;
-	fov = M_PI_4_F;
-	fov_pre = fov_post = fov;
-	stereo_eye = STEREO_NONE;
-	interocular_distance = 0.065f;
-	convergence_distance = 30.0f * 0.065f;
-	use_pole_merge = false;
-	pole_merge_angle_from = 60.0f * M_PI_F / 180.0f;
-	pole_merge_angle_to = 75.0f * M_PI_F / 180.0f;
-
-	sensorwidth = 0.036f;
-	sensorheight = 0.024f;
-
-	nearclip = 1e-5f;
-	farclip = 1e5f;
-
-	width = 1024;
-	height = 512;
-	resolution = 1;
-
-	viewplane.left = -((float)width/(float)height);
-	viewplane.right = (float)width/(float)height;
-	viewplane.bottom = -1.0f;
-	viewplane.top = 1.0f;
+	compute_auto_viewplane();
 
 	screentoworld = transform_identity();
 	rastertoworld = transform_identity();
@@ -109,16 +165,6 @@ Camera::Camera()
 	need_device_update = true;
 	need_flags_update = true;
 	previous_need_motion = -1;
-
-	/* Initialize shutter curve. */
-	const int num_shutter_points = sizeof(shutter_curve) / sizeof(*shutter_curve);
-	for(int i = 0; i < num_shutter_points; ++i) {
-		shutter_curve[i] = 1.0f;
-	}
-
-	/* Initialize rolling shutter effect. */
-	rolling_shutter_type = ROLLING_SHUTTER_NONE;
-	rolling_shutter_duration = 0.1f;
 }
 
 Camera::~Camera()
@@ -438,38 +484,14 @@ void Camera::device_free(Device * /*device*/,
 
 bool Camera::modified(const Camera& cam)
 {
-	return !((shuttertime == cam.shuttertime) &&
-		(aperturesize == cam.aperturesize) &&
-		(blades == cam.blades) &&
-		(bladesrotation == cam.bladesrotation) &&
-		(focaldistance == cam.focaldistance) &&
-		(type == cam.type) &&
-		(fov == cam.fov) &&
-		(nearclip == cam.nearclip) &&
-		(farclip == cam.farclip) &&
-		(sensorwidth == cam.sensorwidth) &&
-		(sensorheight == cam.sensorheight) &&
-		// modified for progressive render
-		// (width == cam.width) &&
-		// (height == cam.height) &&
-		(viewplane == cam.viewplane) &&
-		(border == cam.border) &&
-		(matrix == cam.matrix) &&
-		(aperture_ratio == cam.aperture_ratio) &&
-		(panorama_type == cam.panorama_type) &&
-		(fisheye_fov == cam.fisheye_fov) &&
-		(fisheye_lens == cam.fisheye_lens) &&
-		(latitude_min == cam.latitude_min) &&
-		(latitude_max == cam.latitude_max) &&
-		(longitude_min == cam.longitude_min) &&
-		(longitude_max == cam.longitude_max) &&
-		(stereo_eye == cam.stereo_eye));
+	return !Node::equals(cam);
 }
 
 bool Camera::motion_modified(const Camera& cam)
 {
 	return !((motion == cam.motion) &&
-		(use_motion == cam.use_motion));
+	         (use_motion == cam.use_motion) &&
+	         (use_perspective_motion == cam.use_perspective_motion));
 }
 
 void Camera::tag_update()

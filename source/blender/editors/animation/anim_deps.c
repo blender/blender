@@ -399,7 +399,13 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
 				ANIM_list_elem_update(ac->scene, ale);
 			}
 		}
-		
+		else if (ale->datatype == ALE_NLASTRIP) {
+			if (ale->update & ANIM_UPDATE_DEPS) {
+				ale->update &= ~ANIM_UPDATE_DEPS;
+				ANIM_list_elem_update(ac->scene, ale);
+			}
+		}
+
 		BLI_assert(ale->update == 0);
 	}
 }

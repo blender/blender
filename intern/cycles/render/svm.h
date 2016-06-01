@@ -99,8 +99,8 @@ public:
 	int stack_assign(ShaderInput *input);
 	int stack_assign_if_linked(ShaderInput *input);
 	int stack_assign_if_linked(ShaderOutput *output);
-	int stack_find_offset(ShaderSocketType type);
-	void stack_clear_offset(ShaderSocketType type, int offset);
+	int stack_find_offset(SocketType::Type type);
+	void stack_clear_offset(SocketType::Type type, int offset);
 	void stack_link(ShaderInput *input, ShaderOutput *output);
 
 	void add_node(ShaderNodeType type, int a = 0, int b = 0, int c = 0);
@@ -172,7 +172,7 @@ protected:
 	};
 
 	void stack_clear_temporary(ShaderNode *node);
-	int stack_size(ShaderSocketType type);
+	int stack_size(SocketType::Type type);
 	void stack_clear_users(ShaderNode *node, ShaderNodeSet& done);
 
 	bool node_skip_input(ShaderNode *node, ShaderInput *input);

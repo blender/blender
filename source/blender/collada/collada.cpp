@@ -81,8 +81,9 @@ int collada_export(Scene *sce,
 				   int use_texture_copies,
 
                    int triangulate,
-                   int use_object_instantiation,
-                   int sort_by_name,
+				   int use_object_instantiation,
+				   int use_blender_profile,
+				   int sort_by_name,
 				   BC_export_transformation_type export_transformation_type,
                    int open_sim)
 {
@@ -105,6 +106,7 @@ int collada_export(Scene *sce,
 
 	export_settings.triangulate                = triangulate != 0;
 	export_settings.use_object_instantiation   = use_object_instantiation != 0;
+	export_settings.use_blender_profile        = use_blender_profile != 0;
 	export_settings.sort_by_name               = sort_by_name != 0;
 	export_settings.export_transformation_type = export_transformation_type;
 	export_settings.open_sim                   = open_sim != 0;

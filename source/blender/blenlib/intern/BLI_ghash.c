@@ -441,7 +441,7 @@ static GHash *ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info,
 	gh->flag = flag;
 
 	ghash_buckets_reset(gh, nentries_reserve);
-	gh->entrypool = BLI_mempool_create(GHASH_ENTRY_SIZE(flag & GHASH_FLAG_IS_GSET), 64, 64, BLI_MEMPOOL_NOP);
+	gh->entrypool = BLI_mempool_create(GHASH_ENTRY_SIZE(flag & GHASH_FLAG_IS_GSET), 0, 64, BLI_MEMPOOL_NOP);
 
 	return gh;
 }
@@ -1287,7 +1287,7 @@ bool BLI_ghashutil_paircmp(const void *a, const void *b)
 	const GHashPair *A = a;
 	const GHashPair *B = b;
 
-	return (BLI_ghashutil_ptrcmp(A->first, B->first) ||
+	return (BLI_ghashutil_ptrcmp(A->first, B->first) &&
 	        BLI_ghashutil_ptrcmp(A->second, B->second));
 }
 

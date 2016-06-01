@@ -91,7 +91,7 @@ void main()
 			discard;
 	}
 	else if (stipple_id == STIPPLE_CHECKER_8PX) {
-		int result = int(mod(int(gl_FragCoord.x)/8 + int(gl_FragCoord.y) / 8, 2));
+		int result = int(mod(int(gl_FragCoord.x) / 8 + int(gl_FragCoord.y) / 8, 2));
 		if (result != 0)
 			discard;
 	}
@@ -165,7 +165,7 @@ void main()
 		/* diffuse light */
 		vec3 light_diffuse = gl_LightSource[i].diffuse.rgb;
 		float diffuse_bsdf = max(dot(N, light_direction), 0.0);
-		L_diffuse += light_diffuse*diffuse_bsdf;
+		L_diffuse += light_diffuse * diffuse_bsdf;
 
 #ifndef NO_SPECULAR
 		/* specular light */
@@ -173,7 +173,7 @@ void main()
 		vec3 H = gl_LightSource[i].halfVector.xyz;
 
 		float specular_bsdf = pow(max(dot(N, H), 0.0), gl_FrontMaterial.shininess);
-		L_specular += light_specular*specular_bsdf;
+		L_specular += light_specular * specular_bsdf;
 #endif
 	}
 #else
@@ -181,7 +181,7 @@ void main()
 
 #ifndef NO_SPECULAR
 	/* view vector computation, depends on orthographics or perspective */
-	vec3 V = (gl_ProjectionMatrix[3][3] == 0.0) ? normalize(varying_position): vec3(0.0, 0.0, -1.0);
+	vec3 V = (gl_ProjectionMatrix[3][3] == 0.0) ? normalize(varying_position) : vec3(0.0, 0.0, -1.0);
 #endif
 
 	for (int i = 0; i < NUM_SCENE_LIGHTS; i++) {
@@ -212,14 +212,14 @@ void main()
 			float distance = length(d);
 
 			intensity /= gl_LightSource[i].constantAttenuation +
-				gl_LightSource[i].linearAttenuation * distance +
-				gl_LightSource[i].quadraticAttenuation * distance * distance;
+			             gl_LightSource[i].linearAttenuation * distance +
+			             gl_LightSource[i].quadraticAttenuation * distance * distance;
 		}
 
 		/* diffuse light */
 		vec3 light_diffuse = gl_LightSource[i].diffuse.rgb;
 		float diffuse_bsdf = max(dot(N, light_direction), 0.0);
-		L_diffuse += light_diffuse*diffuse_bsdf*intensity;
+		L_diffuse += light_diffuse * diffuse_bsdf * intensity;
 
 #ifndef NO_SPECULAR
 		/* specular light */
@@ -227,7 +227,7 @@ void main()
 		vec3 H = normalize(light_direction - V);
 
 		float specular_bsdf = pow(max(dot(N, H), 0.0), gl_FrontMaterial.shininess);
-		L_specular += light_specular*specular_bsdf*intensity;
+		L_specular += light_specular * specular_bsdf * intensity;
 #endif
 	}
 #endif
@@ -257,7 +257,7 @@ void main()
 	vec3 L = gl_FrontLightModelProduct.sceneColor.rgb + L_diffuse;
 
 #ifndef NO_SPECULAR
-	L += L_specular*gl_FrontMaterial.specular.rgb;
+	L += L_specular * gl_FrontMaterial.specular.rgb;
 #endif
 
 	/* write out fragment color */

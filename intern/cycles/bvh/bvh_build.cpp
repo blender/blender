@@ -117,8 +117,9 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 	if(mesh->has_motion_blur())
 		attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
-	for(uint j = 0; j < mesh->triangles.size(); j++) {
-		Mesh::Triangle t = mesh->triangles[j];
+	size_t num_triangles = mesh->num_triangles();
+	for(uint j = 0; j < num_triangles; j++) {
+		Mesh::Triangle t = mesh->get_triangle(j);
 		BoundBox bounds = BoundBox::empty;
 		PrimitiveType type = PRIMITIVE_TRIANGLE;
 
@@ -148,22 +149,23 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 	if(mesh->has_motion_blur())
 		curve_attr_mP = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
-	for(uint j = 0; j < mesh->curves.size(); j++) {
-		Mesh::Curve curve = mesh->curves[j];
+	size_t num_curves = mesh->num_curves();
+	for(uint j = 0; j < num_curves; j++) {
+		Mesh::Curve curve = mesh->get_curve(j);
 		PrimitiveType type = PRIMITIVE_CURVE;
 
 		for(int k = 0; k < curve.num_keys - 1; k++) {
 			BoundBox bounds = BoundBox::empty;
-			curve.bounds_grow(k, &mesh->curve_keys[0], bounds);
+			curve.bounds_grow(k, &mesh->curve_keys[0], &mesh->curve_radius[0], bounds);
 
 			/* motion curve */
 			if(curve_attr_mP) {
 				size_t mesh_size = mesh->curve_keys.size();
 				size_t steps = mesh->motion_steps - 1;
-				float4 *key_steps = curve_attr_mP->data_float4();
+				float3 *key_steps = curve_attr_mP->data_float3();
 
 				for(size_t i = 0; i < steps; i++)
-					curve.bounds_grow(k, key_steps + i*mesh_size, bounds);
+					curve.bounds_grow(k, key_steps + i*mesh_size, &mesh->curve_radius[0], bounds);
 
 				type = PRIMITIVE_MOTION_CURVE;
 			}
@@ -188,10 +190,10 @@ void BVHBuild::add_reference_object(BoundBox& root, BoundBox& center, Object *ob
 
 static size_t count_curve_segments(Mesh *mesh)
 {
-	size_t num = 0, num_curves = mesh->curves.size();
+	size_t num = 0, num_curves = mesh->num_curves();
 
 	for(size_t i = 0; i < num_curves; i++)
-		num += mesh->curves[i].num_keys - 1;
+		num += mesh->get_curve(i).num_keys - 1;
 	
 	return num;
 }
@@ -204,14 +206,14 @@ void BVHBuild::add_references(BVHRange& root)
 	foreach(Object *ob, objects) {
 		if(params.top_level) {
 			if(!ob->mesh->is_instanced()) {
-				num_alloc_references += ob->mesh->triangles.size();
+				num_alloc_references += ob->mesh->num_triangles();
 				num_alloc_references += count_curve_segments(ob->mesh);
 			}
 			else
 				num_alloc_references++;
 		}
 		else {
-			num_alloc_references += ob->mesh->triangles.size();
+			num_alloc_references += ob->mesh->num_triangles();
 			num_alloc_references += count_curve_segments(ob->mesh);
 		}
 	}
@@ -326,11 +328,11 @@ BVHNode* BVHBuild::run()
 			VLOG(1) << "BVH build statistics:\n"
 			        << "  Build time: " << time_dt() - build_start_time << "\n"
 			        << "  Total number of nodes: "
-			        << rootnode->getSubtreeSize(BVH_STAT_NODE_COUNT) << "\n"
+			        << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_NODE_COUNT)) << "\n"
 			        << "  Number of inner nodes: "
-			        << rootnode->getSubtreeSize(BVH_STAT_INNER_COUNT)  << "\n"
+			        << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_INNER_COUNT)) << "\n"
 			        << "  Number of leaf nodes: "
-			        << rootnode->getSubtreeSize(BVH_STAT_LEAF_COUNT)  << "\n"
+			        << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_LEAF_COUNT)) << "\n"
 			        << "  Allocation slop factor: "
 			               << ((prim_type.capacity() != 0)
 			                       ? (float)prim_type.size() / prim_type.capacity()

@@ -24,11 +24,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/intern/depsgraph_build_nodes.cc
+/** \file blender/depsgraph/intern/builder/deg_build_nodes.cc
  *  \ingroup depsgraph
  *
  * Methods for constructing depsgraph's nodes
  */
+
+#include "intern/builder/deg_builder_nodes.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -95,12 +97,14 @@ extern "C" {
 #include "RNA_types.h"
 } /* extern "C" */
 
-#include "depsnode.h"
-#include "depsnode_component.h"
-#include "depsnode_operation.h"
-#include "depsgraph_types.h"
-#include "depsgraph_build.h"
-#include "depsgraph_intern.h"
+#include "intern/builder/deg_builder.h"
+#include "intern/nodes/deg_node.h"
+#include "intern/nodes/deg_node_component.h"
+#include "intern/nodes/deg_node_operation.h"
+#include "intern/depsgraph_types.h"
+#include "intern/depsgraph_intern.h"
+
+namespace DEG {
 
 /* ************ */
 /* Node Builder */
@@ -215,6 +219,17 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
 	return add_operation_node(comp_node, optype, op, opcode, description);
 }
 
+OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
+        ID *id,
+        eDepsNode_Type comp_type,
+        eDepsOperation_Type optype,
+        DepsEvalOperationCb op,
+        eDepsOperation_Code opcode,
+        const string& description)
+{
+	return add_operation_node(id, comp_type, "", optype, op, opcode, description);
+}
+
 bool DepsgraphNodeBuilder::has_operation_node(ID *id,
                                               eDepsNode_Type comp_type,
                                               const string &comp_name,
@@ -235,6 +250,14 @@ OperationDepsNode *DepsgraphNodeBuilder::find_operation_node(
 	return comp_node->has_operation(opcode, description);
 }
 
+OperationDepsNode *DepsgraphNodeBuilder::find_operation_node(
+        ID *id,
+        eDepsNode_Type comp_type,
+        eDepsOperation_Code opcode,
+        const string& description)
+{
+	return find_operation_node(id, comp_type, "", opcode, description);
+}
 
 /* **** Build functions for entity nodes **** */
 
@@ -341,7 +364,7 @@ SubgraphDepsNode *DepsgraphNodeBuilder::build_subgraph(Group *group)
 		return NULL;
 
 	/* create new subgraph's data */
-	Depsgraph *subgraph = DEG_graph_new();
+	Depsgraph *subgraph = reinterpret_cast<Depsgraph *>(DEG_graph_new());
 
 	DepsgraphNodeBuilder subgraph_builder(m_bmain, subgraph);
 
@@ -379,10 +402,10 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 
 	IDDepsNode *id_node = add_id_node(&ob->id);
 	id_node->layers = base->lay;
+	ob->customdata_mask = 0;
 
 	/* standard components */
 	build_object_transform(scene, ob);
-
 
 	/* object data */
 	if (ob->data) {
@@ -1187,3 +1210,5 @@ void DepsgraphNodeBuilder::build_gpencil(bGPdata *gpd)
 	 */
 	build_animdata(gpd_id);
 }
+
+}  // namespace DEG

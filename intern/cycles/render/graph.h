@@ -17,6 +17,8 @@
 #ifndef __GRAPH_H__
 #define __GRAPH_H__
 
+#include "node.h"
+
 #include "kernel_types.h"
 
 #include "util_list.h"
@@ -38,23 +40,6 @@ class ShaderGraph;
 class SVMCompiler;
 class OSLCompiler;
 class OutputNode;
-
-/* Socket Type
- *
- * Data type for inputs and outputs */
-
-enum ShaderSocketType {
-	SHADER_SOCKET_UNDEFINED,
-	
-	SHADER_SOCKET_FLOAT,
-	SHADER_SOCKET_INT,
-	SHADER_SOCKET_COLOR,
-	SHADER_SOCKET_VECTOR,
-	SHADER_SOCKET_POINT,
-	SHADER_SOCKET_NORMAL,
-	SHADER_SOCKET_CLOSURE,
-	SHADER_SOCKET_STRING
-};
 
 /* Bump
  *
@@ -86,30 +71,6 @@ enum ShaderNodeSpecialType {
 	SHADER_SPECIAL_TYPE_BUMP,
 };
 
-/* Enum
- *
- * Utility class for enum values. */
-
-class ShaderEnum {
-public:
-	bool empty() const { return left.empty(); }
-	void insert(const char *x, int y) {
-		left[ustring(x)] = y;
-		right[y] = ustring(x);
-	}
-
-	bool exists(ustring x) { return left.find(x) != left.end(); }
-	bool exists(int y) { return right.find(y) != right.end(); }
-
-	int operator[](const char *x) { return left[ustring(x)]; }
-	int operator[](ustring x) { return left[x]; }
-	ustring operator[](int y) { return right[y]; }
-
-protected:
-	map<ustring, int> left;
-	map<int, ustring> right;
-};
-
 /* Input
  *
  * Input socket for a shader node. May be linked to an output or not. If not
@@ -118,39 +79,32 @@ protected:
 
 class ShaderInput {
 public:
-	enum DefaultValue {
-		TEXTURE_GENERATED,
-		TEXTURE_UV,
-		INCOMING,
-		NORMAL,
-		POSITION,
-		TANGENT,
-		NONE
-	};
+	ShaderInput(ShaderNode *parent, const char *name, SocketType::Type type);
 
-	enum Usage {
-		USE_SVM = 1,
-		USE_OSL = 2,
-		USE_ALL = USE_SVM|USE_OSL
-	};
+	ustring name() { return name_; }
+	int flags() { return flags_; }
+	SocketType::Type type() { return type_; }
 
-	ShaderInput(ShaderNode *parent, const char *name, ShaderSocketType type);
-	void set(const float3& v) { value = v; }
-	void set(float f) { value = make_float3(f, 0, 0); }
-	void set(const ustring v) { value_string = v; }
+	void set(float f) { value_.x = f; }
+	void set(float3 f) { value_ = f; }
+	void set(int i) { value_.x = (float)i; }
+	void set(ustring s) { value_string_ = s; }
 
-	const char *name;
-	ShaderSocketType type;
+	float3& value() { return value_; }
+	float& value_float() { return value_.x; }
+	ustring& value_string() { return value_string_; }
+
+	ustring name_;
+	SocketType::Type type_;
 
 	ShaderNode *parent;
 	ShaderOutput *link;
 
-	DefaultValue default_value;
-	float3 value;
-	ustring value_string;
+	float3 value_;
+	ustring value_string_;
 
 	int stack_offset; /* for SVM compiler */
-	int usage;
+	int flags_;
 };
 
 /* Output
@@ -159,12 +113,15 @@ public:
 
 class ShaderOutput {
 public:
-	ShaderOutput(ShaderNode *parent, const char *name, ShaderSocketType type);
+	ShaderOutput(ShaderNode *parent, const char *name, SocketType::Type type);
 
-	const char *name;
+	ustring name() { return name_; }
+	SocketType::Type type() { return type_; }
+
+	ustring name_;
+	SocketType::Type type_;
+
 	ShaderNode *parent;
-	ShaderSocketType type;
-
 	vector<ShaderInput*> links;
 
 	int stack_offset; /* for SVM compiler */
@@ -182,11 +139,12 @@ public:
 
 	ShaderInput *input(const char *name);
 	ShaderOutput *output(const char *name);
+	ShaderInput *input(ustring name);
+	ShaderOutput *output(ustring name);
 
-	ShaderInput *add_input(const char *name, ShaderSocketType type, float value=0.0f, int usage=ShaderInput::USE_ALL);
-	ShaderInput *add_input(const char *name, ShaderSocketType type, float3 value, int usage=ShaderInput::USE_ALL);
-	ShaderInput *add_input(const char *name, ShaderSocketType type, ShaderInput::DefaultValue value, int usage=ShaderInput::USE_ALL);
-	ShaderOutput *add_output(const char *name, ShaderSocketType type);
+	ShaderInput *add_input(const char *name, SocketType::Type type, float value=0.0f, int flags=0);
+	ShaderInput *add_input(const char *name, SocketType::Type type, float3 value, int flags=0);
+	ShaderOutput *add_output(const char *name, SocketType::Type type);
 
 	virtual ShaderNode *clone() const = 0;
 	virtual void attributes(Shader *shader, AttributeRequestSet *attributes);
@@ -195,7 +153,7 @@ public:
 
 	/* ** Node optimization ** */
 	/* Check whether the node can be replaced with single constant. */
-	virtual bool constant_fold(ShaderGraph * /*graph*/, ShaderOutput * /*socket*/, float3 * /*optimized_value*/) { return false; }
+	virtual bool constant_fold(ShaderGraph * /*graph*/, ShaderOutput * /*socket*/, ShaderInput * /*optimized*/) { return false; }
 
 	/* Simplify settings used by artists to the ones which are simpler to
 	 * evaluate in the kernel but keep the final result unchanged.

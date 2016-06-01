@@ -17,6 +17,7 @@
 #ifndef __OBJECT_H__
 #define __OBJECT_H__
 
+#include "node.h"
 #include "scene.h"
 
 #include "util_boundbox.h"
@@ -37,12 +38,13 @@ struct Transform;
 
 /* Object */
 
-class Object {
+class Object : public Node {
 public:
+	NODE_DECLARE;
+
 	Mesh *mesh;
 	Transform tfm;
 	BoundBox bounds;
-	ustring name;
 	uint random_id;
 	int pass_id;
 	vector<ParamValue> attributes;

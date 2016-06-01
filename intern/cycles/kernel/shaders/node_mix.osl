@@ -278,7 +278,7 @@ color node_mix_clamp(color col)
 
 shader node_mix(
 	string type = "Mix",
-	int Clamp = 0,
+	int use_clamp = 0,
 	float Fac = 0.5,
 	color Color1 = 0.0,
 	color Color2 = 0.0,
@@ -323,7 +323,7 @@ shader node_mix(
 	if (type == "Linear Light")
 		Color = node_mix_linear(t, Color1, Color2);
 
-	if (Clamp)
+	if (use_clamp)
 		Color = node_mix_clamp(Color);
 }
 

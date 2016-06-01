@@ -204,6 +204,11 @@ void Integrator::device_free(Device *device, DeviceScene *dscene)
 	dscene->sobol_directions.clear();
 }
 
+bool Integrator::modified(const Integrator& integrator)
+{
+	return !Node::equals(integrator);
+}
+
 void Integrator::tag_update(Scene *scene)
 {
 	foreach(Shader *shader, scene->shaders) {

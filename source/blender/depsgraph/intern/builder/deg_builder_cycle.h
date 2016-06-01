@@ -23,15 +23,18 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/util/depsgraph_util_cycle.h
+/** \file blender/depsgraph/intern/builder/deg_builder_cycle.h
  *  \ingroup depsgraph
  */
 
-#ifndef __DEPSGRAPH_UTIL_CYCLE_H__
-#define __DEPSGRAPH_UTIL_CYCLE_H__
+
+#pragma once
+
+namespace DEG {
 
 struct Depsgraph;
 
+/* Detect and solve dependency cycles. */
 void deg_graph_detect_cycles(Depsgraph *graph);
 
-#endif  /* __DEPSGRAPH_UTIL_CYCLE_H__ */
+}  // namespace DEG

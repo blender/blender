@@ -59,10 +59,10 @@ float brick(point p, float mortar_size, float bias,
 shader node_brick_texture(
 	int use_mapping = 0,
 	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-	float Offset = 0.5,
-	int OffsetFrequency = 2,
-	float Squash = 1.0,
-	int SquashFrequency = 1,
+	float offset = 0.5,
+	int offset_frequency = 2,
+	float squash = 1.0,
+	int squash_frequency = 1,
 	point Vector = P,
 	color Color1 = 0.2,
 	color Color2 = 0.8,
@@ -84,7 +84,7 @@ shader node_brick_texture(
 	color Col = Color1;
 	
 	Fac = brick(p * Scale, MortarSize, Bias, BrickWidth, RowHeight,
-		Offset, OffsetFrequency, Squash, SquashFrequency, tint);
+		offset, offset_frequency, squash, squash_frequency, tint);
 		
 	if (Fac != 1.0) {
 		float facm = 1.0 - tint;
