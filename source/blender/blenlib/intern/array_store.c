@@ -529,6 +529,53 @@ static void bchunk_list_ensure_min_size_last(
 }
 #endif  /* USE_MERGE_CHUNKS */
 
+
+/**
+ * Split length into 2 values
+ * \param r_data_trim_len: Length which is aligned to the #BArrayInfo.chunk_byte_size
+ * \param r_data_last_chunk_len: The remaining bytes.
+ *
+ * \note This function ensures the size of \a r_data_last_chunk_len
+ * is larger than #BArrayInfo.chunk_byte_size_min.
+ */
+static void bchunk_list_calc_trim_len(
+        const BArrayInfo *info, const size_t data_len,
+        size_t *r_data_trim_len, size_t *r_data_last_chunk_len)
+{
+	size_t data_last_chunk_len = 0;
+	size_t data_trim_len = data_len;
+
+#ifdef USE_MERGE_CHUNKS
+	/* avoid creating too-small chunks
+	 * more efficient then merging after */
+	if (data_len > info->chunk_byte_size) {
+		data_last_chunk_len = (data_trim_len % info->chunk_byte_size);
+		data_trim_len = data_trim_len - data_last_chunk_len;
+		if (data_last_chunk_len) {
+			if (data_last_chunk_len < info->chunk_byte_size_min) {
+				/* may be zero and thats OK */
+				data_trim_len -= info->chunk_byte_size;
+				data_last_chunk_len += info->chunk_byte_size;
+			}
+		}
+	}
+	else {
+		data_trim_len = 0;
+		data_last_chunk_len = data_len;
+	}
+
+	BLI_assert((data_trim_len == 0) || (data_trim_len >= info->chunk_byte_size));
+#else
+	data_last_chunk_len = (data_trim_len % info->chunk_byte_size);
+	data_trim_len = data_trim_len - data_last_chunk_len;
+#endif
+
+	BLI_assert(data_trim_len + data_last_chunk_len == data_len);
+
+	*r_data_trim_len = data_trim_len;
+	*r_data_last_chunk_len = data_last_chunk_len;
+}
+
 /**
  * Append and don't manage merging small chunks.
  */
@@ -544,6 +591,10 @@ static bool bchunk_list_append_only(
 	return chunk;
 }
 
+/**
+ * \note This is for writing single chunks,
+ * use #bchunk_list_append_data_n when writing large blocks of memory into many chunks.
+ */
 static void bchunk_list_append_data(
         const BArrayInfo *info, BArrayMemory *bs_mem,
         BChunkList *chunk_list,
@@ -593,6 +644,58 @@ static void bchunk_list_append_data(
 #endif
 }
 
+/**
+ * Similar to #bchunk_list_append_data, but handle multiple chunks.
+ * Use for adding arrays of arbitrary sized memory at once.
+ *
+ * \note This function takes care not to perform redundant chunk-merging checks,
+ * so we can write succesive fixed size chunks quickly.
+ */
+static void bchunk_list_append_data_n(
+        const BArrayInfo *info, BArrayMemory *bs_mem,
+        BChunkList *chunk_list,
+        const ubyte *data, size_t data_len)
+{
+	size_t data_trim_len, data_last_chunk_len;
+	bchunk_list_calc_trim_len(info, data_len, &data_trim_len, &data_last_chunk_len);
+
+	if (data_trim_len != 0) {
+		const size_t i = info->chunk_byte_size;
+		bchunk_list_append_data(info, bs_mem, chunk_list, data, i);
+		size_t i_prev = i;
+
+		while (i_prev != data_trim_len) {
+			const size_t i = i_prev + info->chunk_byte_size;
+			BChunk *chunk = bchunk_new_copydata(bs_mem, &data[i_prev], i - i_prev);
+			bchunk_list_append_only(bs_mem, chunk_list, chunk);
+			i_prev = i;
+		}
+
+		if (data_last_chunk_len) {
+			BChunk *chunk = bchunk_new_copydata(bs_mem, &data[i_prev], data_last_chunk_len);
+			bchunk_list_append_only(bs_mem, chunk_list, chunk);
+			// i_prev = data_len;  /* UNUSED */
+		}
+	}
+	else {
+		/* if we didn't write any chunks previously,
+		 * we may need to merge with the last. */
+		if (data_last_chunk_len) {
+			bchunk_list_append_data(info, bs_mem, chunk_list, data, data_last_chunk_len);
+			// i_prev = data_len;  /* UNUSED */
+		}
+	}
+
+#ifdef USE_MERGE_CHUNKS
+	if (data_len > info->chunk_byte_size) {
+		BLI_assert(((BChunkRef *)chunk_list->chunk_refs.last)->link->data_len >= info->chunk_byte_size_min);
+	}
+#endif
+
+	ASSERT_CHUNKLIST_SIZE(chunk_list, data_len);
+	ASSERT_CHUNKLIST_DATA(chunk_list, data);
+}
+
 static void bchunk_list_append(
         const BArrayInfo *info, BArrayMemory *bs_mem,
         BChunkList *chunk_list,
@@ -615,37 +718,11 @@ static void bchunk_list_fill_from_array(
 {
 	BLI_assert(BLI_listbase_is_empty(&chunk_list->chunk_refs));
 
-	size_t data_last_chunk_len = 0;
-	size_t data_trim_len = data_len;
-
-#ifdef USE_MERGE_CHUNKS
-	/* avoid creating too-small chunks
-	 * more efficient then merging after */
-	if (data_len > info->chunk_byte_size) {
-		data_last_chunk_len = (data_trim_len % info->chunk_byte_size);
-		data_trim_len = data_trim_len - data_last_chunk_len;
-		if (data_last_chunk_len) {
-			if (data_last_chunk_len < info->chunk_byte_size_min) {
-				/* may be zero and thats OK */
-				data_trim_len -= info->chunk_byte_size;
-				data_last_chunk_len += info->chunk_byte_size;
-			}
-		}
-	}
-	else {
-		data_trim_len = 0;
-		data_last_chunk_len = data_len;
-	}
-#else
-	data_last_chunk_len = (data_trim_len % info->chunk_byte_size);
-	data_trim_len = data_trim_len - data_last_chunk_len;
-#endif
-
-
-	BLI_assert(data_trim_len + data_last_chunk_len == data_len);
+	size_t data_trim_len, data_last_chunk_len;
+	bchunk_list_calc_trim_len(info, data_len, &data_trim_len, &data_last_chunk_len);
 
 	size_t i_prev = 0;
-	while (i_prev < data_trim_len) {
+	while (i_prev != data_trim_len) {
 		const size_t i = i_prev + info->chunk_byte_size;
 		BChunk *chunk = bchunk_new_copydata(bs_mem, &data[i_prev], i - i_prev);
 		bchunk_list_append_only(bs_mem, chunk_list, chunk);
@@ -1224,21 +1301,8 @@ static BChunkList *bchunk_list_from_data_merge(
 			if (cref_found != NULL) {
 				BLI_assert(i < data_len);
 				if (i != i_prev) {
-					size_t i_step = MIN2(i_prev + info->chunk_byte_size, data_len);
-					BLI_assert(i_step <= data_len);
-
-					while (i_prev != i) {
-						i_step = MIN2(i_step, i);
-						const ubyte  *data_slice = &data[i_prev];
-						const size_t  data_slice_len = i_step - i_prev;
-						/* First add all previous chunks! */
-						i_prev += data_slice_len;
-						bchunk_list_append_data(info, bs_mem, chunk_list, data_slice, data_slice_len);
-						BLI_assert(i_prev <= data_len);
-						ASSERT_CHUNKLIST_SIZE(chunk_list, i_prev);
-						ASSERT_CHUNKLIST_DATA(chunk_list, data);
-						i_step += info->chunk_byte_size;
-					}
+					bchunk_list_append_data_n(info, bs_mem, chunk_list, &data[i_prev], i - i_prev);
+					i_prev = i;
 				}
 
 				/* now add the reference chunk */
@@ -1298,14 +1362,9 @@ static BChunkList *bchunk_list_from_data_merge(
 	 *
 	 * Trailing chunks, no matches found in table lookup above.
 	 * Write all new data. */
-	BLI_assert(i_prev <= data_len);
-	while (i_prev != data_len) {
-		size_t i = i_prev + info->chunk_byte_size;
-		i = MIN2(i, data_len);
-		BLI_assert(i != i_prev);
-		bchunk_list_append_data(info, bs_mem, chunk_list, &data[i_prev], i - i_prev);
-		ASSERT_CHUNKLIST_DATA(chunk_list, data);
-		i_prev = i;
+	if (i_prev != data_len) {
+		bchunk_list_append_data_n(info, bs_mem, chunk_list, &data[i_prev], data_len - i_prev);
+		i_prev = data_len;
 	}
 
 	BLI_assert(i_prev == data_len);
