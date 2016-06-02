@@ -229,7 +229,9 @@ typedef struct BArrayInfo {
 
 	/* pre-calculated */
 	size_t chunk_byte_size;
+	/* min/max limits (inclusive) */
 	size_t chunk_byte_size_min;
+	size_t chunk_byte_size_max;
 
 	size_t accum_read_ahead_bytes;
 #ifdef USE_HASH_TABLE_ACCUMULATE
@@ -455,7 +457,7 @@ static void bchunk_list_ensure_min_size_last(
 		if (MIN2(chunk_prev->data_len, chunk_curr->data_len) < info->chunk_byte_size_min) {
 			const size_t data_merge_len = chunk_prev->data_len + chunk_curr->data_len;
 			/* we could pass, but no need */
-			if (data_merge_len <= (info->chunk_byte_size * BCHUNK_SIZE_MAX_MUL)) {
+			if (data_merge_len <= info->chunk_byte_size_max) {
 				/* we have enough space to merge */
 
 				/* remove last from linklist */
@@ -548,6 +550,8 @@ static void bchunk_list_append_data(
         const ubyte *data, const size_t data_len)
 {
 	BLI_assert(data_len != 0);
+	BLI_assert(data_len <= info->chunk_byte_size_max);
+
 	// printf("data_len: %d\n", data_len);
 #ifdef USE_MERGE_CHUNKS
 	if (!BLI_listbase_is_empty(&chunk_list->chunk_refs)) {
@@ -1374,6 +1378,7 @@ BArrayStore *BLI_array_store_create(
 	bs->info.chunk_byte_size = chunk_count * stride;
 #ifdef USE_MERGE_CHUNKS
 	bs->info.chunk_byte_size_min = MAX2(1u, chunk_count / BCHUNK_SIZE_MIN_DIV) * stride;
+	bs->info.chunk_byte_size_max = (chunk_count * BCHUNK_SIZE_MAX_MUL) * stride;
 #endif
 
 #ifdef USE_HASH_TABLE_ACCUMULATE
