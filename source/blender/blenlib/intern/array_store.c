@@ -661,9 +661,13 @@ static void bchunk_list_append_data_n(
 	bchunk_list_calc_trim_len(info, data_len, &data_trim_len, &data_last_chunk_len);
 
 	if (data_trim_len != 0) {
-		const size_t i = info->chunk_byte_size;
-		bchunk_list_append_data(info, bs_mem, chunk_list, data, i);
-		size_t i_prev = i;
+		size_t i_prev;
+
+		{
+			const size_t i = info->chunk_byte_size;
+			bchunk_list_append_data(info, bs_mem, chunk_list, data, i);
+			i_prev = i;
+		}
 
 		while (i_prev != data_trim_len) {
 			const size_t i = i_prev + info->chunk_byte_size;
@@ -1703,7 +1707,7 @@ bool BLI_array_store_is_valid(
 			return false;
 		}
 
-		if (BLI_listbase_count(&chunk_list->chunk_refs) != chunk_list->chunk_refs_len) {
+		if (BLI_listbase_count(&chunk_list->chunk_refs) != (int)chunk_list->chunk_refs_len) {
 			return false;
 		}
 
