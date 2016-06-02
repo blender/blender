@@ -601,10 +601,11 @@ static void bchunk_list_append_data(
         const ubyte *data, const size_t data_len)
 {
 	BLI_assert(data_len != 0);
-	BLI_assert(data_len <= info->chunk_byte_size_max);
 
 	// printf("data_len: %d\n", data_len);
 #ifdef USE_MERGE_CHUNKS
+	BLI_assert(data_len <= info->chunk_byte_size_max);
+
 	if (!BLI_listbase_is_empty(&chunk_list->chunk_refs)) {
 		BChunkRef *cref = chunk_list->chunk_refs.last;
 		BChunk *chunk_prev = cref->link;
@@ -691,9 +692,6 @@ static void bchunk_list_append_data_n(
 		BLI_assert(((BChunkRef *)chunk_list->chunk_refs.last)->link->data_len >= info->chunk_byte_size_min);
 	}
 #endif
-
-	ASSERT_CHUNKLIST_SIZE(chunk_list, data_len);
-	ASSERT_CHUNKLIST_DATA(chunk_list, data);
 }
 
 static void bchunk_list_append(
