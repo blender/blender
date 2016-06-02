@@ -1179,10 +1179,10 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	if (scene->r.mode & R_BORDER) {
 		float x3, y3, x4, y4;
 
-		x3 = x1i + 1 + roundf(scene->r.border.xmin * (x2 - x1));
-		y3 = y1i + 1 + roundf(scene->r.border.ymin * (y2 - y1));
-		x4 = x1i + 1 + roundf(scene->r.border.xmax * (x2 - x1));
-		y4 = y1i + 1 + roundf(scene->r.border.ymax * (y2 - y1));
+		x3 = floorf(x1 + (scene->r.border.xmin * (x2 - x1))) - 1;
+		y3 = floorf(y1 + (scene->r.border.ymin * (y2 - y1))) - 1;
+		x4 = floorf(x1 + (scene->r.border.xmax * (x2 - x1))) + (U.pixelsize - 1);
+		y4 = floorf(y1 + (scene->r.border.ymax * (y2 - y1))) + (U.pixelsize - 1);
 
 		cpack(0x4040FF);
 		sdrawbox(x3,  y3,  x4,  y4);
