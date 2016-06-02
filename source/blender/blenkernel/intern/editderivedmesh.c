@@ -1406,6 +1406,24 @@ static void emDM_drawMappedFacesTex(
 	emDM_drawFacesTex_common(dm, NULL, setDrawOptions, compareDrawOptions, userData);
 }
 
+static void emdm_pass_attrib_update_uniforms(const DMVertexAttribs *attribs)
+{
+	int i;
+	if (attribs->totorco) {
+		glUniform1i(attribs->orco.gl_info_index, 0);
+	}
+	for (i = 0; i < attribs->tottface; i++) {
+		glUniform1i(attribs->tface[i].gl_info_index, 0);
+	}
+	for (i = 0; i < attribs->totmcol; i++) {
+		glUniform1i(attribs->mcol[i].gl_info_index, GPU_ATTR_INFO_SRGB);
+	}
+
+	for (i = 0; i < attribs->tottang; i++) {
+		glUniform1i(attribs->tang[i].gl_info_index, 0);
+	}
+}
+
 /**
  * \note
  *
@@ -1432,7 +1450,6 @@ static void emdm_pass_attrib_vertex_glsl(const DMVertexAttribs *attribs, const B
 			glTexCoord3fv(orco);
 		else
 			glVertexAttrib3fv(attribs->orco.gl_index, orco);
-		glUniform1i(attribs->orco.gl_info_index, 0);
 	}
 	for (i = 0; i < attribs->tottface; i++) {
 		const float *uv;
@@ -1449,7 +1466,6 @@ static void emdm_pass_attrib_vertex_glsl(const DMVertexAttribs *attribs, const B
 			glTexCoord2fv(uv);
 		else
 			glVertexAttrib2fv(attribs->tface[i].gl_index, uv);
-		glUniform1i(attribs->tface[i].gl_info_index, 0);
 	}
 	for (i = 0; i < attribs->totmcol; i++) {
 		float col[4];
@@ -1461,7 +1477,6 @@ static void emdm_pass_attrib_vertex_glsl(const DMVertexAttribs *attribs, const B
 			col[0] = 0.0f; col[1] = 0.0f; col[2] = 0.0f; col[3] = 0.0f;
 		}
 		glVertexAttrib4fv(attribs->mcol[i].gl_index, col);
-		glUniform1i(attribs->mcol[i].gl_info_index, GPU_ATTR_INFO_SRGB);
 	}
 
 	for (i = 0; i < attribs->tottang; i++) {
@@ -1473,7 +1488,6 @@ static void emdm_pass_attrib_vertex_glsl(const DMVertexAttribs *attribs, const B
 			tang = zero;
 		}
 		glVertexAttrib4fv(attribs->tang[i].gl_index, tang);
-		glUniform1i(attribs->tang[i].gl_info_index, 0);
 	}
 }
 
@@ -1532,6 +1546,7 @@ static void emDM_drawMappedFacesGLSL(
 			do_draw = setMaterial(matnr = new_matnr, &gattribs);
 			if (do_draw) {
 				DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
+				emdm_pass_attrib_update_uniforms(&attribs);
 				if (UNLIKELY(attribs.tottang && bm->elem_index_dirty & BM_LOOP)) {
 					BM_mesh_elem_index_ensure(bm, BM_LOOP);
 				}
