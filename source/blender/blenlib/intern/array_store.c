@@ -1640,6 +1640,21 @@ bool BLI_array_store_is_valid(
 		if (!(bchunk_list_size(chunk_list) == chunk_list->total_size)) {
 			return false;
 		}
+
+		if (BLI_listbase_count(&chunk_list->chunk_refs) != chunk_list->chunk_refs_len) {
+			return false;
+		}
+
+#ifdef USE_MERGE_CHUNKS
+		/* ensure we merge all chunks that could be merged */
+		if (chunk_list->total_size > bs->info.chunk_byte_size_min) {
+			for (BChunkRef *cref = chunk_list->chunk_refs.first; cref; cref = cref->next) {
+				if (cref->link->data_len < bs->info.chunk_byte_size_min) {
+					return false;
+				}
+			}
+		}
+#endif
 	}
 
 	{
