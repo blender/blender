@@ -1016,7 +1016,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	translation[1] = y;
 	outline_alpha = 0.5;
 	outline_col = brush->add_col;
-	final_radius = BKE_brush_size_get(scene, brush) * zoomx;
+	final_radius = (BKE_brush_size_get(scene, brush) * zoomx) / U.pixelsize;
 
 	/* don't calculate rake angles while a stroke is active because the rake variables are global and
 	 * we may get interference with the stroke itself. For line strokes, such interference is visible */
