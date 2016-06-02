@@ -73,7 +73,6 @@ void GPU_exit(void)
 	gpu_codegen_exit();
 
 	gpu_extensions_exit(); /* must come last */
-	GPU_buffer_multires_free(true);
 
 	initialized = false;
 }
