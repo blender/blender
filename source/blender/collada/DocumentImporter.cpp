@@ -239,7 +239,7 @@ void DocumentImporter::finish()
 	mesh_importer.optimize_material_assignements();
 
 	armature_importer.set_tags_map(this->uid_tags_map);
-	armature_importer.make_armatures(mContext);
+	armature_importer.make_armatures(mContext, *objects_to_scale);
 	armature_importer.make_shape_keys();
 	DAG_relations_tag_update(bmain);
 
@@ -517,7 +517,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 			name.c_str());
 
 	if (is_joint) {
-		if (parent_node == NULL) {
+		if (parent_node == NULL && !is_library_node) {
 			// A Joint on root level is a skeleton without root node.
 			// Here we add the armature "on the fly":
 			par = bc_add_object(sce, OB_ARMATURE, std::string("Armature").c_str());

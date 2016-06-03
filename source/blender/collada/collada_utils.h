@@ -120,7 +120,7 @@ private:
 	float roll;
 
 	int   bone_layers;
-	bool  use_connect;
+	int   use_connect;
 	bool  has_custom_tail;
 	bool  has_custom_roll;
 
