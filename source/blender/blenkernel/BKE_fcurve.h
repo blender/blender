@@ -279,7 +279,7 @@ void correct_bezpart(float v1[2], float v2[2], float v3[2], float v4[2]);
 /* evaluate fcurve */
 float evaluate_fcurve(struct FCurve *fcu, float evaltime);
 /* evaluate fcurve and store value */
-void calculate_fcurve(struct FCurve *fcu, float ctime);
+float calculate_fcurve(struct FCurve *fcu, float evaltime);
 
 /* ************* F-Curve Samples API ******************** */
 

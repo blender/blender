@@ -2671,7 +2671,7 @@ float evaluate_fcurve(FCurve *fcu, float evaltime)
 }
 
 /* Calculate the value of the given F-Curve at the given frame, and set its curval */
-void calculate_fcurve(FCurve *fcu, float ctime)
+float calculate_fcurve(FCurve *fcu, float evaltime)
 {
 	/* only calculate + set curval (overriding the existing value) if curve has 
 	 * any data which warrants this...
@@ -2680,7 +2680,12 @@ void calculate_fcurve(FCurve *fcu, float ctime)
 	    list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE))
 	{
 		/* calculate and set curval (evaluates driver too if necessary) */
-		fcu->curval = evaluate_fcurve(fcu, ctime);
+		float curval = evaluate_fcurve(fcu, evaltime);
+		fcu->curval = curval;  /* debug display only, not thread safe! */
+		return curval;
+	}
+	else {
+		return 0.0f;
 	}
 }
 
