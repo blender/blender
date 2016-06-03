@@ -992,7 +992,7 @@ static bool snapEditMesh(
 		float imat[4][4];
 		float timat[3][3]; /* transpose inverse matrix for normals */
 		float ray_start_local[3], ray_normal_local[3];
-		float local_scale, local_depth, len_diff;
+		float local_scale, local_depth;
 
 		invert_m4_m4(imat, obmat);
 		transpose_m3_m4(timat, imat);
@@ -1089,6 +1089,7 @@ static bool snapEditMesh(
 		 * been *inside* boundbox, leading to snap failures (see T38409).
 		 * Note also ar might be null (see T38435), in this case we assume ray_start is ok!
 		 */
+		float len_diff = 0.0f;
 		if (do_ray_start_correction) {
 			/* We *need* a reasonably valid len_diff in this case.
 			 * Use BHVTree to find the closest face from ray_start_local.
@@ -1098,27 +1099,24 @@ static bool snapEditMesh(
 				nearest.index = -1;
 				nearest.dist_sq = FLT_MAX;
 				/* Compute and store result. */
-				BLI_bvhtree_find_nearest(
-				        treedata->tree, ray_start_local, &nearest, treedata->nearest_callback, treedata);
-				if (nearest.index != -1) {
+				if (BLI_bvhtree_find_nearest(
+				        treedata->tree, ray_start_local, &nearest, treedata->nearest_callback, treedata) != -1)
+				{
 					len_diff = sqrtf(nearest.dist_sq);
+					float ray_org_local[3];
+
+					copy_v3_v3(ray_org_local, ray_origin);
+					mul_m4_v3(imat, ray_org_local);
+
+					/* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with very far
+					* away ray_start values (as returned in case of ortho view3d), see T38358.
+					*/
+					len_diff -= local_scale;  /* make temp start point a bit away from bbox hit point. */
+					madd_v3_v3v3fl(ray_start_local, ray_org_local, ray_normal_local,
+					               len_diff - len_v3v3(ray_start_local, ray_org_local));
+					local_depth -= len_diff;
 				}
 			}
-			float ray_org_local[3];
-
-			copy_v3_v3(ray_org_local, ray_origin);
-			mul_m4_v3(imat, ray_org_local);
-
-			/* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with very far
-			 * away ray_start values (as returned in case of ortho view3d), see T38358.
-			 */
-			len_diff -= local_scale;  /* make temp start point a bit away from bbox hit point. */
-			madd_v3_v3v3fl(ray_start_local, ray_org_local, ray_normal_local,
-			               len_diff - len_v3v3(ray_start_local, ray_org_local));
-			local_depth -= len_diff;
-		}
-		else {
-			len_diff = 0.0f;
 		}
 
 		switch (snap_to) {
