@@ -109,7 +109,7 @@ private:
 	std::map<COLLADAFW::UniqueId, MaterialIdPrimitiveArrayMap> geom_uid_mat_mapping_map; // crazy name!
 	std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId> materials_mapped_to_geom; //< materials that have already been mapped to a geometry. A pair of geom uid and mat uid, one geometry can have several materials
 	
-	void set_poly_indices(MPoly *mpoly,
+	bool set_poly_indices(MPoly *mpoly,
 						  MLoop *mloop,
 						  int loop_index,
 						  unsigned int *indices,
