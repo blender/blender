@@ -49,6 +49,7 @@
 
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_transform.h"
 #include "ED_transform_snap_object_context.h"
 
 #include "PIL_time.h" /* smoothview */
@@ -424,7 +425,9 @@ static bool walk_floor_distance_get(
 
 	ret = ED_transform_snap_object_project_ray(
 	        walk->snap_context,
-	        &(const struct SnapObjectParams){},
+	        &(const struct SnapObjectParams){
+	            .snap_select = SNAP_ALL,
+	        },
 	        ray_start, ray_normal, r_distance,
 	        r_location, r_normal_dummy);
 
@@ -456,7 +459,9 @@ static bool walk_ray_cast(
 
 	ret = ED_transform_snap_object_project_ray(
 	        walk->snap_context,
-	        &(const struct SnapObjectParams){},
+	        &(const struct SnapObjectParams){
+	            .snap_select = SNAP_ALL,
+	        },
 	        ray_start, ray_normal, NULL,
 	        r_location, r_normal);
 
