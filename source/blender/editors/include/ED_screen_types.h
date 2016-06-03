@@ -42,6 +42,7 @@ typedef struct ScreenAnimData {
 	int sfra;               /* frame that playback was started from */
 	int nextfra;            /* next frame to go to (when ANIMPLAY_FLAG_USE_NEXT_FRAME is set) */
 	double last_duration;   /* used for frame dropping */
+	bool from_anim_edit;    /* playback was invoked from animation editor */
 } ScreenAnimData;
 
 /* for animplayer */
