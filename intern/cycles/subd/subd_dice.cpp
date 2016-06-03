@@ -46,7 +46,7 @@ void EdgeDice::reserve(int num_verts)
 	Mesh *mesh = params.mesh;
 
 	vert_offset = mesh->verts.size();
-	tri_offset = mesh->triangles.size();
+	tri_offset = mesh->num_triangles();
 
 	mesh->resize_mesh(vert_offset + num_verts, tri_offset);
 
@@ -84,7 +84,7 @@ void EdgeDice::add_triangle(Patch *patch, int v0, int v1, int v2)
 
 	/* todo: optimize so we can reserve in advance, this is like push_back_slow() */
 	if(mesh->triangles.size() == mesh->triangles.capacity())
-		mesh->reserve_mesh(mesh->verts.size(), size_t(max(mesh->triangles.size() + 1, 1) * 1.2));
+		mesh->reserve_mesh(mesh->verts.size(), size_t(max(mesh->num_triangles() + 1, 1) * 1.2));
 
 	mesh->add_triangle(v0, v1, v2, params.shader, params.smooth, false);
 

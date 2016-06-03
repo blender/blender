@@ -1485,7 +1485,7 @@ bool Mesh::need_attribute(Scene * /*scene*/, ustring name)
 
 void Mesh::tessellate(DiagSplit *split)
 {
-	int num_faces = triangles.size();
+	int num_faces = num_triangles();
 
 	add_face_normals();
 	add_vertex_normals();
