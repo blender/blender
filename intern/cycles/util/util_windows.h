@@ -31,6 +31,25 @@
 
 #include <windows.h>
 
+CCL_NAMESPACE_BEGIN
+
+#if _WIN32_WINNT < 0x0601
+typedef WORD tGetActiveProcessorGroupCount();
+typedef DWORD tGetActiveProcessorCount(WORD GroupNumber);
+typedef BOOL tSetThreadGroupAffinity(HANDLE hThread,
+                                     const GROUP_AFFINITY  *GroupAffinity,
+                                     PGROUP_AFFINITY PreviousGroupAffinity);
+
+extern tGetActiveProcessorGroupCount *GetActiveProcessorGroupCount;
+extern tGetActiveProcessorCount *GetActiveProcessorCount;
+extern tSetThreadGroupAffinity *SetThreadGroupAffinity;
+#endif
+
+/* Make sure NUMA and processor groups API is initialized. */
+void util_windows_init_numa_groups();
+
+CCL_NAMESPACE_END
+
 #endif  /* WIN32 */
 
 #endif /* __UTIL_WINDOWS_H__ */
