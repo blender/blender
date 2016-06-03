@@ -980,7 +980,11 @@ static int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, S
 	if (ts->snap_mode == SCE_SNAP_MODE_VOLUME) {
 		float size;
 		if (peelObjectsSnapContext(
-		        snap_context, mvalf, SNAP_ALL,
+		        snap_context, mvalf,
+		        &(const struct SnapObjectParams){
+		            .snap_select = SNAP_NOT_SELECTED,
+		            .use_object_edit_cage = false,
+		        },
 		        (ts->snap_flag & SCE_SNAP_PEEL_OBJECT) != 0,
 		        loc, dummy_no, &size))
 		{
@@ -1017,9 +1021,10 @@ static int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, S
 		{
 			if (ED_transform_snap_object_project_view3d(
 			        snap_context,
+			        ts->snap_mode,
 			        &(const struct SnapObjectParams){
 			            .snap_select = SNAP_NOT_SELECTED,
-			            .snap_to = ts->snap_mode,
+			            .use_object_edit_cage = false,
 			        },
 			        mvalf, &dist_px, NULL,
 			        loc, dummy_no))

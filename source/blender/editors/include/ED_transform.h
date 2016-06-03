@@ -45,6 +45,7 @@ struct wmKeyMap;
 struct wmOperatorType;
 struct Main;
 struct SnapObjectContext;
+struct SnapObjectParams;
 
 void transform_keymap_for_space(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int spaceid);
 void transform_operatortypes(void);
@@ -161,25 +162,27 @@ void BIF_draw_manipulator(const struct bContext *C);
 typedef enum SnapSelect {
 	SNAP_ALL = 0,
 	SNAP_NOT_SELECTED = 1,
-	SNAP_NOT_OBEDIT = 2
+	SNAP_NOT_ACTIVE = 2,
 } SnapSelect;
 
 #define SNAP_MIN_DISTANCE 30
 
 bool peelObjectsTransform(
-        struct TransInfo *t, const float mval[2],
-        SnapSelect snap_select, bool use_peel_object,
+        struct TransInfo *t,
+        const float mval[2],
+        const bool use_peel_object,
         /* return args */
         float r_loc[3], float r_no[3], float *r_thickness);
 bool peelObjectsSnapContext(
         struct SnapObjectContext *sctx,
         const float mval[2],
-        SnapSelect snap_select, bool use_peel_object,
+        const struct SnapObjectParams *params,
+        const bool use_peel_object,
         /* return args */
         float r_loc[3], float r_no[3], float *r_thickness);
 
 bool snapObjectsTransform(
-        struct TransInfo *t, const float mval[2], SnapSelect snap_select,
+        struct TransInfo *t, const float mval[2],
         float *dist_px,
         /* return args */
         float r_loc[3], float r_no[3]);
