@@ -1368,6 +1368,7 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 
 		/* if device has a kernel timeout, assume it is used for display */
 		if(cuDeviceGetAttribute(&attr, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT, num) == CUDA_SUCCESS && attr == 1) {
+			info.description += " (Display)";
 			info.display_device = true;
 			display_devices.push_back(info);
 		}
