@@ -141,6 +141,11 @@ int count_particles_mod(ParticleSystem *psys, int totgr, int cur)
 
 #define PATH_CACHE_BUF_SIZE 1024
 
+static ParticleCacheKey *pcache_key_segment_endpoint_safe(ParticleCacheKey *key)
+{
+	return (key->segments > 0) ? (key + (key->segments - 1)) : key;
+}
+
 static ParticleCacheKey **psys_alloc_path_cache_buffers(ListBase *bufs, int tot, int totkeys)
 {
 	LinkData *buf;
@@ -2205,20 +2210,22 @@ static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cp
 
 		/* modify weights to create parting */
 		if (p_fac > 0.f) {
+			const ParticleCacheKey *key_0_last = pcache_key_segment_endpoint_safe(key[0]);
 			for (w = 0; w < 4; w++) {
-				if (w && weight[w] > 0.f) {
+				if (w && (weight[w] > 0.f)) {
+					const ParticleCacheKey *key_w_last = pcache_key_segment_endpoint_safe(key[w]);
 					float d;
 					if (part->flag & PART_CHILD_LONG_HAIR) {
 						/* For long hair use tip distance/root distance as parting factor instead of root to tip angle. */
 						float d1 = len_v3v3(key[0]->co, key[w]->co);
-						float d2 = len_v3v3((key[0] + key[0]->segments - 1)->co, (key[w] + key[w]->segments - 1)->co);
+						float d2 = len_v3v3(key_0_last->co, key_w_last->co);
 
 						d = d1 > 0.f ? d2 / d1 - 1.f : 10000.f;
 					}
 					else {
 						float v1[3], v2[3];
-						sub_v3_v3v3(v1, (key[0] + key[0]->segments - 1)->co, key[0]->co);
-						sub_v3_v3v3(v2, (key[w] + key[w]->segments - 1)->co, key[w]->co);
+						sub_v3_v3v3(v1, key_0_last->co, key[0]->co);
+						sub_v3_v3v3(v2, key_w_last->co, key[w]->co);
 						normalize_v3(v1);
 						normalize_v3(v2);
 
