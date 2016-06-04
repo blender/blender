@@ -3383,7 +3383,7 @@ void MixNode::compile(OSLCompiler& compiler)
 
 bool MixNode::constant_fold(ShaderGraph *graph, ShaderOutput *, ShaderInput *optimized)
 {
-	if(type != ustring("Mix")) {
+	if(type != NODE_MIX_BLEND) {
 		return false;
 	}
 
