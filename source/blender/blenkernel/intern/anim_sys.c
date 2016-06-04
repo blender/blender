@@ -730,14 +730,10 @@ static char *rna_path_rename_fix(ID *owner_id, const char *prefix, const char *o
 			DynStr *ds = BLI_dynstr_new();
 			const char *postfixPtr = oldNamePtr + oldNameLen;
 			char *newPath = NULL;
-			char oldChar;
-			
+
 			/* add the part of the string that goes up to the start of the prefix */
 			if (prefixPtr > oldpath) {
-				oldChar = prefixPtr[0];
-				prefixPtr[0] = 0;
-				BLI_dynstr_append(ds, oldpath);
-				prefixPtr[0] = oldChar;
+				BLI_dynstr_nappend(ds, oldpath, prefixPtr - oldpath);
 			}
 			
 			/* add the prefix */
