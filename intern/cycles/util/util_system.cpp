@@ -54,10 +54,9 @@ int system_cpu_group_thread_count(int group)
 	return GetActiveProcessorCount(group);
 #elif defined(__APPLE__)
 	(void)group;
+	int count;
 	size_t len = sizeof(count);
 	int mib[2] = { CTL_HW, HW_NCPU };
-
-	int count;
 	sysctl(mib, 2, &count, &len, NULL, 0);
 	return count;
 #else
