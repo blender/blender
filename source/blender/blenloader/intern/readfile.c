@@ -7880,7 +7880,7 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *a
 	return bhead;
 }
 
-static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID **r_id)
+static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const short tag, ID **r_id)
 {
 	/* this routine reads a libblock and its direct data. Use link functions to connect it all
 	 */
@@ -7966,7 +7966,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	if (!id)
 		return blo_nextbhead(fd, bhead);
 	
-	id->tag = flag | LIB_TAG_NEED_LINK;
+	id->tag = tag | LIB_TAG_NEED_LINK;
 	id->lib = main->curlib;
 	id->us = ID_FAKE_USERS(id);
 	id->icon_id = 0;
@@ -9644,7 +9644,7 @@ static void give_base_to_groups(
 	}
 }
 
-static ID *create_placeholder(Main *mainvar, const char *idname, const short flag)
+static ID *create_placeholder(Main *mainvar, const char *idname, const short tag)
 {
 	const short idcode = GS(idname);
 	ListBase *lb = which_libbase(mainvar, idcode);
@@ -9653,7 +9653,7 @@ static ID *create_placeholder(Main *mainvar, const char *idname, const short fla
 	memcpy(ph_id->name, idname, sizeof(ph_id->name));
 	BKE_libblock_init_empty(ph_id);
 	ph_id->lib = mainvar->curlib;
-	ph_id->tag = flag | LIB_TAG_MISSING;
+	ph_id->tag = tag | LIB_TAG_MISSING;
 	ph_id->us = ID_FAKE_USERS(ph_id);
 	ph_id->icon_id = 0;
 
