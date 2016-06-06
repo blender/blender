@@ -20,7 +20,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-#include <VersionHelpers.h>
+#ifdef _M_X64
+#  include <VersionHelpers.h>
+#endif
 
 #if _WIN32_WINNT < 0x0601
 tGetActiveProcessorGroupCount *GetActiveProcessorGroupCount;
@@ -50,7 +52,11 @@ static BOOL SetThreadGroupAffinity_stub(
 
 static bool supports_numa()
 {
+#ifndef _M_X64
+	return false;
+#else
 	return IsWindows7OrGreater();
+#endif
 }
 
 void util_windows_init_numa_groups()
