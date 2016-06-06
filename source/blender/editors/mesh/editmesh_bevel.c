@@ -58,6 +58,9 @@
 
 #define MVAL_PIXEL_MARGIN  5.0f
 
+/* until implement profile = 0 case, need to clamp somewhat above zero */
+#define PROFILE_HARD_MIN 0.15f
+
 typedef struct {
 	BMEditMesh *em;
 	float initial_length;
@@ -71,13 +74,14 @@ typedef struct {
 	BMBackup mesh_backup;
 	void *draw_handle_pixel;
 	short twtype;
+	bool mouse_controls_profile;
 	float segments;     /* Segments as float so smooth mouse pan works in small increments */
 } BevelData;
 
 static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 {
 	const char *str = IFACE_("Confirm: (Enter/LMB), Cancel: (Esc/RMB), Mode: %s (M), Clamp Overlap: %s (C), "
-	                         "Vertex Only: %s (V), Offset: %s, Segments: %d");
+	                         "Vertex Only: %s (V), Profile Control: %s (P), Offset: %s, Segments: %d");
 
 	char msg[UI_MAX_DRAW_STR];
 	ScrArea *sa = CTX_wm_area(C);
@@ -101,6 +105,7 @@ static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 		BLI_snprintf(msg, sizeof(msg), str, type_str,
 		             WM_bool_as_string(RNA_boolean_get(op->ptr, "clamp_overlap")),
 		             WM_bool_as_string(RNA_boolean_get(op->ptr, "vertex_only")),
+		             WM_bool_as_string(opdata->mouse_controls_profile),
 		             offset_str, RNA_int_get(op->ptr, "segments"));
 
 		ED_area_headerprint(sa, msg);
@@ -123,6 +128,7 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 	opdata->em = em;
 	opdata->is_modal = is_modal;
 	opdata->shift_factor = -1.0f;
+	opdata->mouse_controls_profile = false;
 
 	initNumInput(&opdata->num_input);
 	opdata->num_input.idx_max = 0;
@@ -291,7 +297,7 @@ static float edbm_bevel_mval_factor(wmOperator *op, const wmEvent *event)
 {
 	BevelData *opdata = op->customdata;
 	bool use_dist;
-	bool is_percent;
+	bool is_percent, is_profile;
 	float mdiff[2];
 	float factor;
 
@@ -299,15 +305,20 @@ static float edbm_bevel_mval_factor(wmOperator *op, const wmEvent *event)
 	mdiff[1] = opdata->mcenter[1] - event->mval[1];
 	is_percent = (RNA_enum_get(op->ptr, "offset_type") == BEVEL_AMT_PERCENT);
 	use_dist = !is_percent;
+	is_profile = opdata->mouse_controls_profile;
 
 	factor = ((len_v2(mdiff) - MVAL_PIXEL_MARGIN) - opdata->initial_length) * opdata->pixel_size;
 
 	/* Fake shift-transform... */
 	if (event->shift) {
 		if (opdata->shift_factor < 0.0f) {
-			opdata->shift_factor = RNA_float_get(op->ptr, "offset");
-			if (is_percent) {
-				opdata->shift_factor /= 100.0f;
+			if (is_profile)
+				opdata->shift_factor = RNA_float_get(op->ptr, "profile");
+			else {
+				opdata->shift_factor = RNA_float_get(op->ptr, "offset");
+				if (is_percent) {
+					opdata->shift_factor /= 100.0f;
+				}
 			}
 		}
 		factor = (factor - opdata->shift_factor) * 0.1f + opdata->shift_factor;
@@ -316,14 +327,19 @@ static float edbm_bevel_mval_factor(wmOperator *op, const wmEvent *event)
 		opdata->shift_factor = -1.0f;
 	}
 
-	/* clamp differently based on distance/factor */
-	if (use_dist) {
-		if (factor < 0.0f) factor = 0.0f;
+	/* clamp differently based on distance/factor/profile */
+	if (is_profile) {
+		CLAMP(factor, PROFILE_HARD_MIN, 1.0f);
 	}
 	else {
-		CLAMP(factor, 0.0f, 1.0f);
-		if (is_percent) {
-			factor *= 100.0f;
+		if (use_dist) {
+			if (factor < 0.0f) factor = 0.0f;
+		}
+		else {
+			CLAMP(factor, 0.0f, 1.0f);
+			if (is_percent) {
+				factor *= 100.0f;
+			}
 		}
 	}
 
@@ -355,7 +371,10 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			case MOUSEMOVE:
 				if (!has_numinput) {
 					const float factor = edbm_bevel_mval_factor(op, event);
-					RNA_float_set(op->ptr, "offset", factor);
+					if (opdata->mouse_controls_profile)
+						RNA_float_set(op->ptr, "profile", factor);
+					else
+						RNA_float_set(op->ptr, "offset", factor);
 
 					edbm_bevel_calc(op);
 					edbm_bevel_update_header(C, op);
@@ -448,6 +467,11 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				edbm_bevel_update_header(C, op);
 				handled = true;
 				break;
+			case PKEY:
+				if (event->val == KM_RELEASE)
+					break;
+				opdata->mouse_controls_profile = !opdata->mouse_controls_profile;
+				break;
 			case VKEY:
 				if (event->val == KM_RELEASE)
 					break;
@@ -519,7 +543,8 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	prop = RNA_def_float(ot->srna, "offset", 0.0f, -1e6f, 1e6f, "Amount", "", 0.0f, 1.0f);
 	RNA_def_property_float_array_funcs_runtime(prop, NULL, NULL, mesh_ot_bevel_offset_range_func);
 	RNA_def_int(ot->srna, "segments", 1, 1, 50, "Segments", "Segments for curved edge", 1, 8);
-	RNA_def_float(ot->srna, "profile", 0.5f, 0.15f, 1.0f, "Profile", "Controls profile shape (0.5 = round)", 0.15f, 1.0f);
+	RNA_def_float(ot->srna, "profile", 0.5f, PROFILE_HARD_MIN, 1.0f, "Profile",
+			"Controls profile shape (0.5 = round)", PROFILE_HARD_MIN, 1.0f);
 	RNA_def_boolean(ot->srna, "vertex_only", false, "Vertex Only", "Bevel only vertices");
 	RNA_def_boolean(ot->srna, "clamp_overlap", false, "Clamp Overlap",
 	                "Do not allow beveled edges/vertices to overlap each other");
