@@ -222,7 +222,7 @@ typedef struct OldNew {
 typedef struct OldNewMap {
 	OldNew *entries;
 	int nentries, entriessize;
-	int sorted;
+	bool sorted;
 	int lasthit;
 } OldNewMap;
 
@@ -288,6 +288,7 @@ static int verg_oldnewmap(const void *v1, const void *v2)
 
 static void oldnewmap_sort(FileData *fd) 
 {
+	BLI_assert(fd->libmap->sorted == false);
 	qsort(fd->libmap->entries, fd->libmap->nentries, sizeof(OldNew), verg_oldnewmap);
 	fd->libmap->sorted = 1;
 }
@@ -1509,6 +1510,9 @@ static void change_idid_adr_fd(FileData *fd, const void *old, void *new)
 {
 	int i;
 	
+	/* use a binary search if we have a sorted libmap, for now it's not needed. */
+	BLI_assert(fd->libmap->sorted == false);
+
 	for (i = 0; i < fd->libmap->nentries; i++) {
 		OldNew *entry = &fd->libmap->entries[i];
 		
