@@ -41,6 +41,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
+#include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_rigidbody.h"
 
@@ -70,7 +71,7 @@ static int ED_operator_rigidbody_con_active_poll(bContext *C)
 }
 
 
-bool ED_rigidbody_constraint_add(Scene *scene, Object *ob, int type, ReportList *reports)
+bool ED_rigidbody_constraint_add(Main *bmain, Scene *scene, Object *ob, int type, ReportList *reports)
 {
 	RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
 
@@ -81,7 +82,7 @@ bool ED_rigidbody_constraint_add(Scene *scene, Object *ob, int type, ReportList 
 	}
 	/* create constraint group if it doesn't already exits */
 	if (rbw->constraints == NULL) {
-		rbw->constraints = BKE_group_add(G.main, "RigidBodyConstraints");
+		rbw->constraints = BKE_group_add(bmain, "RigidBodyConstraints");
 	}
 	/* make rigidbody constraint settings */
 	ob->rigidbody_constraint = BKE_rigidbody_create_constraint(scene, ob, type);
@@ -90,11 +91,12 @@ bool ED_rigidbody_constraint_add(Scene *scene, Object *ob, int type, ReportList 
 	/* add constraint to rigid body constraint group */
 	BKE_group_object_add(rbw->constraints, ob, scene, NULL);
 
+	DAG_relations_tag_update(bmain);
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 	return true;
 }
 
-void ED_rigidbody_constraint_remove(Scene *scene, Object *ob)
+void ED_rigidbody_constraint_remove(Main *bmain, Scene *scene, Object *ob)
 {
 	RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
 
@@ -102,6 +104,7 @@ void ED_rigidbody_constraint_remove(Scene *scene, Object *ob)
 	if (rbw)
 		BKE_group_object_unlink(rbw->constraints, ob, scene, NULL);
 
+	DAG_relations_tag_update(bmain);
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 }
 
@@ -112,6 +115,7 @@ void ED_rigidbody_constraint_remove(Scene *scene, Object *ob)
 
 static int rigidbody_con_add_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
 	Object *ob = (scene) ? OBACT : NULL;
@@ -124,7 +128,7 @@ static int rigidbody_con_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	/* apply to active object */
-	changed = ED_rigidbody_constraint_add(scene, ob, type, op->reports);
+	changed = ED_rigidbody_constraint_add(bmain, scene, ob, type, op->reports);
 
 	if (changed) {
 		/* send updates */
@@ -160,6 +164,7 @@ void RIGIDBODY_OT_constraint_add(wmOperatorType *ot)
 
 static int rigidbody_con_remove_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = (scene) ? OBACT : NULL;
 
@@ -173,7 +178,7 @@ static int rigidbody_con_remove_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		ED_rigidbody_constraint_remove(scene, ob);
+		ED_rigidbody_constraint_remove(bmain, scene, ob);
 	}
 
 	/* send updates */

@@ -1601,7 +1601,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 
 			if (newob->type == OB_CURVE) {
 				BKE_object_free_modifiers(newob);   /* after derivedmesh calls! */
-				ED_rigidbody_object_remove(scene, newob);
+				ED_rigidbody_object_remove(bmain, scene, newob);
 			}
 		}
 		else if (ob->type == OB_MESH && ob->modifiers.first) { /* converting a mesh with no modifiers causes a segfault */
