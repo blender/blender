@@ -1189,15 +1189,27 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 		}
-	}
 
-	{
 		for (Camera *camera = main->camera.first; camera != NULL; camera = camera->id.next) {
 			if (camera->stereo.pole_merge_angle_from == 0.0f &&
 			    camera->stereo.pole_merge_angle_to == 0.0f)
 			{
 				camera->stereo.pole_merge_angle_from = DEG2RAD(60.0f);
 				camera->stereo.pole_merge_angle_to = DEG2RAD(75.0f);
+			}
+		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "NormalEditModifierData", "float", "mix_limit")) {
+			Object *ob;
+
+			for (ob = main->object.first; ob; ob = ob->id.next) {
+				ModifierData *md;
+				for (md = ob->modifiers.first; md; md = md->next) {
+					if (md->type == eModifierType_NormalEdit) {
+						NormalEditModifierData *nemd = (NormalEditModifierData *)md;
+						nemd->mix_limit = DEG2RADF(180.0f);
+					}
+				}
 			}
 		}
 	}
