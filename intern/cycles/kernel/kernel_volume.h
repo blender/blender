@@ -1216,6 +1216,7 @@ ccl_device void kernel_volume_stack_update_for_subsurface(KernelGlobals *kg,
 #  else
 	Intersection isect;
 	int step = 0;
+	float3 Pend = ray->P + ray->D*ray->t;
 	while(step < 2 * VOLUME_STACK_SIZE &&
 	      scene_intersect_volume(kg,
 	                             &volume_ray,
@@ -1227,7 +1228,9 @@ ccl_device void kernel_volume_stack_update_for_subsurface(KernelGlobals *kg,
 
 		/* Move ray forward. */
 		volume_ray.P = ray_offset(stack_sd->P, -stack_sd->Ng);
-		volume_ray.t -= stack_sd->ray_length;
+		if(volume_ray.t != FLT_MAX) {
+			volume_ray.D = normalize_len(Pend - volume_ray.P, &volume_ray.t);
+		}
 		++step;
 	}
 #  endif
