@@ -38,6 +38,8 @@
 extern "C" {
 #endif
 
+#include "BLI_math_geom.h"
+
 struct RayObject;
 
 /* Ray Hints */
@@ -101,6 +103,9 @@ typedef struct Isect {
 #ifdef RE_RAYCOUNTER
 	RayCounter *raycounter;
 #endif
+
+	/* Precalculated coefficients for watertight intersection check. */
+	struct IsectRayPrecalc isect_precalc;
 } Isect;
 
 /* ray types */
