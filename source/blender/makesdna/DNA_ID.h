@@ -142,7 +142,6 @@ typedef struct ID {
  */
 typedef struct Library {
 	ID id;
-	ID *idblock;
 	struct FileData *filedata;
 	char name[1024];  /* path name used for reading, can be relative and edited in the outliner */
 
