@@ -296,15 +296,14 @@ void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene)
 	for (Base *base = (Base *)scene->base.first; base; base = base->next) {
 		Object *ob = base->object;
 
-		/* object itself */
-		build_object(scene, base, ob);
-
 		/* object that this is a proxy for */
 		// XXX: the way that proxies work needs to be completely reviewed!
 		if (ob->proxy) {
 			ob->proxy->proxy_from = ob;
-			build_object(scene, base, ob->proxy);
 		}
+
+		/* object itself */
+		build_object(scene, base, ob);
 
 		/* Object dupligroup. */
 		if (ob->dup_group) {
@@ -485,6 +484,12 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 	/* grease pencil */
 	if (ob->gpd) {
 		build_gpencil(ob->gpd);
+	}
+
+	if (ob->proxy != NULL) {
+		add_operation_node(&ob->id, DEPSNODE_TYPE_PROXY, DEPSOP_TYPE_POST,
+		                   function_bind(BKE_object_eval_proxy_backlink, _1, ob),
+		                   DEG_OPCODE_PLACEHOLDER, "Parameters Eval");
 	}
 }
 
