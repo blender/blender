@@ -291,24 +291,13 @@ ccl_device float background_portal_pdf(KernelGlobals *kg,
 		}
 		num_possible++;
 
-		float t = -(dot(P, dir) - dot(lightpos, dir)) / dot(direction, dir);
-		if(t <= 1e-4f) {
-			/* Either behind the portal or too close. */
-			continue;
-		}
-
 		float4 data1 = kernel_tex_fetch(__light_data, (p + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 1);
 		float4 data2 = kernel_tex_fetch(__light_data, (p + kernel_data.integrator.portal_offset)*LIGHT_SIZE + 2);
 
 		float3 axisu = make_float3(data1.y, data1.z, data1.w);
 		float3 axisv = make_float3(data2.y, data2.z, data2.w);
 
-		float3 hit = P + t*direction;
-		float3 inplane = hit - lightpos;
-		/* Skip if the the ray doesn't pass through portal. */
-		if(fabsf(dot(inplane, axisu) / dot(axisu, axisu)) > 0.5f)
-			continue;
-		if(fabsf(dot(inplane, axisv) / dot(axisv, axisv)) > 0.5f)
+		if(!ray_quad_intersect(P, direction, 1e-4f, FLT_MAX, lightpos, axisu, axisv, dir, NULL, NULL))
 			continue;
 
 		portal_pdf += area_light_sample(P, &lightpos, axisu, axisv, 0.0f, 0.0f, false);
@@ -729,8 +718,8 @@ ccl_device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D,
 
 		float3 light_P = make_float3(data0.y, data0.z, data0.w);
 
-		if(!ray_quad_intersect(P, D, t,
-		                       light_P, axisu, axisv, &ls->P, &ls->t))
+		if(!ray_quad_intersect(P, D, 0.0f, t,
+		                       light_P, axisu, axisv, Ng, &ls->P, &ls->t))
 		{
 			return false;
 		}
