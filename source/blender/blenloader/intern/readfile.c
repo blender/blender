@@ -9990,21 +9990,22 @@ void *BLO_library_read_struct(FileData *fd, BHead *bh, const char *blockname)
 
 /* ************* READ LIBRARY ************** */
 
-static int mainvar_count_libread_blocks(Main *mainvar)
+static int mainvar_id_tag_any_check(Main *mainvar, const short tag)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
-	int a, tot = 0;
+	int a;
 	
 	a = set_listbasepointers(mainvar, lbarray);
 	while (a--) {
 		ID *id;
 		
 		for (id = lbarray[a]->first; id; id = id->next) {
-			if (id->tag & LIB_TAG_READ)
-				tot++;
+			if (id->tag & tag) {
+				return true;
+			}
 		}
 	}
-	return tot;
+	return false;
 }
 
 static void read_libraries(FileData *basefd, ListBase *mainlist)
@@ -10024,10 +10025,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 		/* test 1: read libdata */
 		mainptr= mainl->next;
 		while (mainptr) {
-			int tot = mainvar_count_libread_blocks(mainptr);
-			
-			// printf("found LIB_TAG_READ %s\n", mainptr->curlib->name);
-			if (tot) {
+			if (mainvar_id_tag_any_check(mainptr, LIB_TAG_READ)) {
+				// printf("found LIB_TAG_READ %s\n", mainptr->curlib->name);
+
 				FileData *fd = mainptr->curlib->filedata;
 				
 				if (fd == NULL) {
