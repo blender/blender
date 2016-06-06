@@ -68,6 +68,11 @@ public:
 	void apply_transform(bool apply_to_motion);
 
 	vector<float> motion_times();
+
+	/* Check whether object is traceable and it worth adding it to
+	 * kernel scene.
+	 */
+	bool is_traceable();
 };
 
 /* Object Manager */

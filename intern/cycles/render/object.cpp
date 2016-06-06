@@ -225,6 +225,16 @@ vector<float> Object::motion_times()
 	return times;
 }
 
+bool Object::is_traceable()
+{
+	/* Mesh itself can be empty,can skip all such objects. */
+	if (bounds.size() == make_float3(0.0f, 0.0f, 0.0f)) {
+		return false;
+	}
+	/* TODO(sergey): Check for mesh vertices/curves. visibility flags. */
+	return true;
+}
+
 /* Object Manager */
 
 ObjectManager::ObjectManager()
