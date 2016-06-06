@@ -485,53 +485,57 @@ void blo_join_main(ListBase *mainlist)
 	}
 }
 
-static void split_libdata(ListBase *lb, Main *first)
+static void split_libdata(ListBase *lb_src, Main **lib_main_array, const unsigned int lib_main_array_len)
 {
-	ListBase *lbn;
-	ID *id, *idnext;
-	Main *mainvar;
-	
-	id = lb->first;
-	while (id) {
+	for (ID *id = lb_src->first, *idnext; id; id = idnext) {
 		idnext = id->next;
+
 		if (id->lib) {
-			mainvar = first;
-			while (mainvar) {
-				if (mainvar->curlib == id->lib) {
-					lbn= which_libbase(mainvar, GS(id->name));
-					BLI_remlink(lb, id);
-					BLI_addtail(lbn, id);
-					break;
-				}
-				mainvar = mainvar->next;
+			if (((unsigned int)id->lib->temp_index < lib_main_array_len) &&
+			    /* this check should never fail, just incase 'id->lib' is a dangling pointer. */
+			    (lib_main_array[id->lib->temp_index]->curlib == id->lib))
+			{
+				Main *mainvar = lib_main_array[id->lib->temp_index];
+				ListBase *lb_dst = which_libbase(mainvar, GS(id->name));
+				BLI_remlink(lb_src, id);
+				BLI_addtail(lb_dst, id);
 			}
-			if (mainvar == NULL) printf("error split_libdata\n");
+			else {
+				printf("%s: invalid library for '%s'\n", __func__, id->name);
+				BLI_assert(0);
+			}
 		}
-		id = idnext;
 	}
 }
 
 void blo_split_main(ListBase *mainlist, Main *main)
 {
-	ListBase *lbarray[MAX_LIBARRAY];
-	Library *lib;
-	int i;
-	
 	mainlist->first = mainlist->last = main;
 	main->next = NULL;
 	
 	if (BLI_listbase_is_empty(&main->library))
 		return;
 	
-	for (lib = main->library.first; lib; lib = lib->id.next) {
+	/* (Library.temp_index -> Main), lookup table */
+	const unsigned int lib_main_array_len = BLI_listbase_count(&main->library);
+	Main             **lib_main_array     = MEM_mallocN(lib_main_array_len * sizeof(*lib_main_array), __func__);
+
+	int i = 0;
+	for (Library *lib = main->library.first; lib; lib = lib->id.next, i++) {
 		Main *libmain = BKE_main_new();
 		libmain->curlib = lib;
 		BLI_addtail(mainlist, libmain);
+		lib->temp_index = i;
+		lib_main_array[i] = libmain;
 	}
 	
+	ListBase *lbarray[MAX_LIBARRAY];
 	i = set_listbasepointers(main, lbarray);
-	while (i--)
-		split_libdata(lbarray[i], main->next);
+	while (i--) {
+		split_libdata(lbarray[i], lib_main_array, lib_main_array_len);
+	}
+
+	MEM_freeN(lib_main_array);
 }
 
 static void read_file_version(FileData *fd, Main *main)

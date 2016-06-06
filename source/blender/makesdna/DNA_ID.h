@@ -154,6 +154,9 @@ typedef struct Library {
 	struct Library *parent;	/* set for indirectly linked libs, used in the outliner and while reading */
 	
 	struct PackedFile *packedfile;
+
+	int temp_index;
+	int _pad;
 } Library;
 
 enum eIconSizes {
