@@ -114,6 +114,10 @@ static void node_shader_exec_material(void *data, int UNUSED(thread), bNode *nod
 		/* retrieve normal */
 		if (hasinput[MAT_IN_NORMAL]) {
 			nodestack_get_vec(shi->vn, SOCK_VECTOR, in[MAT_IN_NORMAL]);
+			if (shi->use_world_space_shading) {
+				negate_v3(shi->vn);
+				mul_mat3_m4_v3((float (*)[4])RE_render_current_get_matrix(RE_VIEW_MATRIX), shi->vn);
+			}
 			normalize_v3(shi->vn);
 		}
 		else
@@ -181,7 +185,11 @@ static void node_shader_exec_material(void *data, int UNUSED(thread), bNode *nod
 		}
 		
 		copy_v3_v3(out[MAT_OUT_NORMAL]->vec, shi->vn);
-		
+
+		if (shi->use_world_space_shading) {
+			negate_v3(out[MAT_OUT_NORMAL]->vec);
+			mul_mat3_m4_v3((float (*)[4])RE_render_current_get_matrix(RE_VIEWINV_MATRIX), out[MAT_OUT_NORMAL]->vec);
+		}
 		/* Extended material options */
 		if (node->type == SH_NODE_MATERIAL_EXT) {
 			/* Shadow, Reflect, Refract, Radiosity, Speed seem to cause problems inside
@@ -255,6 +263,10 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, bNodeExecData *UNU
 		if (hasinput[MAT_IN_NORMAL]) {
 			GPUNodeLink *tmp;
 			shi.vn = gpu_get_input_link(&in[MAT_IN_NORMAL]);
+			if (GPU_material_use_world_space_shading(mat)) {
+				GPU_link(mat, "vec_math_negate", shi.vn, &shi.vn);
+				GPU_link(mat, "direction_transform_m4v3", shi.vn, GPU_builtin(GPU_VIEW_MATRIX), &shi.vn);
+			}
 			GPU_link(mat, "vec_math_normalize", shi.vn, &shi.vn, &tmp);
 		}
 		
@@ -299,6 +311,10 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, bNodeExecData *UNU
 		if (node->custom1 & SH_NODE_MAT_NEG)
 			GPU_link(mat, "vec_math_negate", shi.vn, &shi.vn);
 		out[MAT_OUT_NORMAL].link = shi.vn;
+		if (GPU_material_use_world_space_shading(mat)) {
+			GPU_link(mat, "vec_math_negate", out[MAT_OUT_NORMAL].link, &out[MAT_OUT_NORMAL].link);
+			GPU_link(mat, "direction_transform_m4v3", out[MAT_OUT_NORMAL].link, GPU_builtin(GPU_INVERSE_VIEW_MATRIX), &out[MAT_OUT_NORMAL].link);
+		}
 
 		if (node->type == SH_NODE_MATERIAL_EXT) {
 			out[MAT_OUT_DIFFUSE].link = shr.diff;

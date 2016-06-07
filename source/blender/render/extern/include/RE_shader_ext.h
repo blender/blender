@@ -172,6 +172,7 @@ typedef struct ShadeInput {
 	/* from initialize, part or renderlayer */
 	bool do_preview;		/* for nodes, in previewrender */
 	bool do_manage;			/* color management flag */
+	bool use_world_space_shading;
 	short thread, sample;	/* sample: ShadeSample array index */
 	short nodes;			/* indicate node shading, temp hack to prevent recursion */
 	

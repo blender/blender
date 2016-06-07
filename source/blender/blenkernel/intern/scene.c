@@ -2193,6 +2193,12 @@ bool BKE_scene_use_shading_nodes_custom(Scene *scene)
 	return (type && type->flag & RE_USE_SHADING_NODES_CUSTOM);
 }
 
+bool BKE_scene_use_world_space_shading(Scene *scene)
+{
+	const RenderEngineType *type = RE_engines_find(scene->r.engine);
+	return (type && (type->flag & RE_USE_SHADING_NODES) || (scene->r.mode & R_USE_WS_SHADING));
+}
+
 bool BKE_scene_use_spherical_stereo(Scene *scene)
 {
 	RenderEngineType *type = RE_engines_find(scene->r.engine);

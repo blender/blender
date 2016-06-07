@@ -78,6 +78,10 @@ static void node_shader_exec_geom(void *data, int UNUSED(thread), bNode *node, b
 		copy_v3_v3(out[GEOM_OUT_UV]->vec, suv->uv);
 		copy_v3_v3(out[GEOM_OUT_NORMAL]->vec, shi->vno);
 
+		if (shi->use_world_space_shading) {
+			negate_v3(out[GEOM_OUT_NORMAL]->vec);
+			mul_mat3_m4_v3((float (*)[4])RE_render_current_get_matrix(RE_VIEWINV_MATRIX), out[GEOM_OUT_NORMAL]->vec);
+		}
 		if (shi->totcol) {
 			/* find vertex color layer by name */
 			ShadeInputCol *scol = &shi->col[0];
@@ -132,9 +136,14 @@ static int gpu_shader_geom(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(
 	GPUNodeLink *mtface = GPU_attribute(CD_MTFACE, ngeo->uvname);
 	GPUNodeLink *mcol = GPU_attribute(CD_MCOL, ngeo->colname);
 
-	return GPU_stack_link(mat, "geom", in, out,
+	bool ret = GPU_stack_link(mat, "geom", in, out,
 	                      GPU_builtin(GPU_VIEW_POSITION), GPU_builtin(GPU_VIEW_NORMAL),
 	                      GPU_builtin(GPU_INVERSE_VIEW_MATRIX), orco, mtface, mcol);
+	if (GPU_material_use_world_space_shading(mat)) {
+		GPU_link(mat, "vec_math_negate", out[5].link, &out[5].link);
+		ret &= GPU_link(mat, "direction_transform_m4v3", out[5].link, GPU_builtin(GPU_INVERSE_VIEW_MATRIX), &out[5].link);
+	}
+	return ret;
 }
 
 /* node type definition */
