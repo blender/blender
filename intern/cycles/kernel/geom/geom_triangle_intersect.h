@@ -159,7 +159,7 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 	if(kernel_tex_fetch(__prim_visibility, triAddr) & visibility)
 #endif
 	{
-#ifdef __KERNEL_GPU__
+#ifdef __KERNEL_CUDA__
 		if(A == B && B == C) {
 			return false;
 		}
