@@ -124,6 +124,7 @@
 #include "BKE_global.h" // for G
 #include "BKE_group.h"
 #include "BKE_library.h" // for which_libbase
+#include "BKE_library_idmap.h"
 #include "BKE_library_query.h"
 #include "BKE_idcode.h"
 #include "BKE_material.h"
@@ -208,6 +209,9 @@
 
 /* use GHash for BHead name-based lookups (speeds up linking) */
 #define USE_GHASH_BHEAD
+
+/* Use GHash for restoring pointers by name */
+#define USE_GHASH_RESTORE_POINTER
 
 /***/
 
@@ -6006,68 +6010,96 @@ typedef enum ePointerUserMode {
 	USER_REAL   = 1,  /* ensure at least one real user (fake user ignored) */
 } ePointerUserMode;
 
-static bool restore_pointer(ID *id, ID *newid, ePointerUserMode user)
+static void restore_pointer_user(ID *id, ID *newid, ePointerUserMode user)
 {
-	if (STREQ(newid->name + 2, id->name + 2)) {
-		if (newid->lib == id->lib) {
-			if (user == USER_REAL) {
-				id_us_ensure_real(newid);
-			}
-			return true;
-		}
+	BLI_assert(STREQ(newid->name + 2, id->name + 2));
+	BLI_assert(newid->lib == id->lib);
+	UNUSED_VARS_NDEBUG(id);
+
+	if (user == USER_REAL) {
+		id_us_ensure_real(newid);
 	}
-	return false;
 }
 
+#ifndef USE_GHASH_RESTORE_POINTER
 /**
- * Only for undo files, or to restore a screen after reading without UI...
- *
- * user
- * - USER_IGNORE: no usercount change
- * - USER_REAL: ensure a real user (even if a fake one is set)
+ * A version of #restore_pointer_by_name that performs a full search (slow!).
+ * Use only for limited lookups, when the overhead of
+ * creating a #IDNameLib_Map for a single lookup isn't worthwhile.
  */
-static void *restore_pointer_by_name(Main *mainp, ID *id, ePointerUserMode user)
+static void *restore_pointer_by_name_main(Main *mainp, ID *id, ePointerUserMode user)
 {
 	if (id) {
 		ListBase *lb = which_libbase(mainp, GS(id->name));
-		if (lb) {	// there's still risk of checking corrupt mem (freed Ids in oops)
+		if (lb) {  /* there's still risk of checking corrupt mem (freed Ids in oops) */
 			ID *idn = lb->first;
-			
 			for (; idn; idn = idn->next) {
-				if (restore_pointer(id, idn, user))
-					break;
+				if (STREQ(idn->name + 2, id->name + 2)) {
+					if (idn->lib == id->lib) {
+						restore_pointer_user(id, idn, user);
+						break;
+					}
+				}
 			}
-			
 			return idn;
 		}
 	}
 	return NULL;
 }
+#endif
 
-static void lib_link_seq_clipboard_pt_restore(ID *id, Main *newmain)
+/**
+ * Only for undo files, or to restore a screen after reading without UI...
+ *
+ * \param user:
+ * - USER_IGNORE: no usercount change
+ * - USER_REAL: ensure a real user (even if a fake one is set)
+ * \param id_map: lookup table, use when performing many lookups.
+ * this could be made an optional agument (falling back to a full lookup),
+ * however at the moment it's always available.
+ */
+static void *restore_pointer_by_name(struct IDNameLib_Map *id_map, ID *id, ePointerUserMode user)
+{
+#ifdef USE_GHASH_RESTORE_POINTER
+	if (id) {
+		/* use fast lookup when available */
+		ID *idn = BKE_main_idmap_lookup_id(id_map, id);
+		if (idn) {
+			restore_pointer_user(id, idn, user);
+		}
+		return idn;
+	}
+	return NULL;
+#else
+	Main *mainp = BKE_main_idmap_main_get(id_map);
+	return restore_pointer_by_name_main(mainp, id, user);
+#endif
+}
+
+static void lib_link_seq_clipboard_pt_restore(ID *id, struct IDNameLib_Map *id_map)
 {
 	if (id) {
 		/* clipboard must ensure this */
 		BLI_assert(id->newid != NULL);
-		id->newid = restore_pointer_by_name(newmain, (ID *)id->newid, USER_REAL);
+		id->newid = restore_pointer_by_name(id_map, id->newid, USER_REAL);
 	}
 }
 static int lib_link_seq_clipboard_cb(Sequence *seq, void *arg_pt)
 {
-	Main *newmain = (Main *)arg_pt;
+	struct IDNameLib_Map *id_map = arg_pt;
 
-	lib_link_seq_clipboard_pt_restore((ID *)seq->scene, newmain);
-	lib_link_seq_clipboard_pt_restore((ID *)seq->scene_camera, newmain);
-	lib_link_seq_clipboard_pt_restore((ID *)seq->clip, newmain);
-	lib_link_seq_clipboard_pt_restore((ID *)seq->mask, newmain);
-	lib_link_seq_clipboard_pt_restore((ID *)seq->sound, newmain);
+	lib_link_seq_clipboard_pt_restore((ID *)seq->scene, id_map);
+	lib_link_seq_clipboard_pt_restore((ID *)seq->scene_camera, id_map);
+	lib_link_seq_clipboard_pt_restore((ID *)seq->clip, id_map);
+	lib_link_seq_clipboard_pt_restore((ID *)seq->mask, id_map);
+	lib_link_seq_clipboard_pt_restore((ID *)seq->sound, id_map);
 	return 1;
 }
 
-static void lib_link_clipboard_restore(Main *newmain)
+static void lib_link_clipboard_restore(struct IDNameLib_Map *id_map)
 {
 	/* update IDs stored in sequencer clipboard */
-	BKE_sequencer_base_recursive_apply(&seqbase_clipboard, lib_link_seq_clipboard_cb, newmain);
+	BKE_sequencer_base_recursive_apply(&seqbase_clipboard, lib_link_seq_clipboard_cb, id_map);
 }
 
 /* called from kernel/blender.c */
@@ -6079,11 +6111,13 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 	wmWindowManager *wm;
 	bScreen *sc;
 	ScrArea *sa;
-	
+
+	struct IDNameLib_Map *id_map = BKE_main_idmap_create(newmain);
+
 	/* first windowmanager */
 	for (wm = newmain->wm.first; wm; wm = wm->id.next) {
 		for (win= wm->windows.first; win; win= win->next) {
-			win->screen = restore_pointer_by_name(newmain, (ID *)win->screen, USER_REAL);
+			win->screen = restore_pointer_by_name(id_map, (ID *)win->screen, USER_REAL);
 			
 			if (win->screen == NULL)
 				win->screen = curscreen;
@@ -6096,7 +6130,7 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 	for (sc = newmain->screen.first; sc; sc = sc->id.next) {
 		Scene *oldscene = sc->scene;
 		
-		sc->scene= restore_pointer_by_name(newmain, (ID *)sc->scene, USER_REAL);
+		sc->scene= restore_pointer_by_name(id_map, (ID *)sc->scene, USER_REAL);
 		if (sc->scene == NULL)
 			sc->scene = curscene;
 		
@@ -6115,16 +6149,16 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 					if (v3d->scenelock)
 						v3d->camera = NULL; /* always get from scene */
 					else
-						v3d->camera = restore_pointer_by_name(newmain, (ID *)v3d->camera, USER_REAL);
+						v3d->camera = restore_pointer_by_name(id_map, (ID *)v3d->camera, USER_REAL);
 					if (v3d->camera == NULL)
 						v3d->camera = sc->scene->camera;
-					v3d->ob_centre = restore_pointer_by_name(newmain, (ID *)v3d->ob_centre, USER_REAL);
+					v3d->ob_centre = restore_pointer_by_name(id_map, (ID *)v3d->ob_centre, USER_REAL);
 					
 					for (bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next) {
-						if ((bgpic->ima = restore_pointer_by_name(newmain, (ID *)bgpic->ima, USER_IGNORE))) {
+						if ((bgpic->ima = restore_pointer_by_name(id_map, (ID *)bgpic->ima, USER_IGNORE))) {
 							id_us_plus((ID *)bgpic->ima);
 						}
-						if ((bgpic->clip = restore_pointer_by_name(newmain, (ID *)bgpic->clip, USER_IGNORE))) {
+						if ((bgpic->clip = restore_pointer_by_name(id_map, (ID *)bgpic->clip, USER_IGNORE))) {
 							id_us_plus((ID *)bgpic->clip);
 						}
 					}
@@ -6168,10 +6202,10 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 					bDopeSheet *ads = sipo->ads;
 					
 					if (ads) {
-						ads->source = restore_pointer_by_name(newmain, (ID *)ads->source, USER_REAL);
+						ads->source = restore_pointer_by_name(id_map, (ID *)ads->source, USER_REAL);
 						
 						if (ads->filter_grp)
-							ads->filter_grp = restore_pointer_by_name(newmain, (ID *)ads->filter_grp, USER_IGNORE);
+							ads->filter_grp = restore_pointer_by_name(id_map, (ID *)ads->filter_grp, USER_IGNORE);
 					}
 					
 					/* force recalc of list of channels (i.e. includes calculating F-Curve colors)
@@ -6181,7 +6215,7 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 				}
 				else if (sl->spacetype == SPACE_BUTS) {
 					SpaceButs *sbuts = (SpaceButs *)sl;
-					sbuts->pinid = restore_pointer_by_name(newmain, sbuts->pinid, USER_IGNORE);
+					sbuts->pinid = restore_pointer_by_name(id_map, sbuts->pinid, USER_IGNORE);
 					if (sbuts->pinid == NULL) {
 						sbuts->flag &= ~SB_PIN_CONTEXT;
 					}
@@ -6198,11 +6232,11 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 				else if (sl->spacetype == SPACE_ACTION) {
 					SpaceAction *saction = (SpaceAction *)sl;
 					
-					saction->action = restore_pointer_by_name(newmain, (ID *)saction->action, USER_REAL);
-					saction->ads.source = restore_pointer_by_name(newmain, (ID *)saction->ads.source, USER_REAL);
+					saction->action = restore_pointer_by_name(id_map, (ID *)saction->action, USER_REAL);
+					saction->ads.source = restore_pointer_by_name(id_map, (ID *)saction->ads.source, USER_REAL);
 					
 					if (saction->ads.filter_grp)
-						saction->ads.filter_grp = restore_pointer_by_name(newmain, (ID *)saction->ads.filter_grp, USER_IGNORE);
+						saction->ads.filter_grp = restore_pointer_by_name(id_map, (ID *)saction->ads.filter_grp, USER_IGNORE);
 						
 					
 					/* force recalc of list of channels, potentially updating the active action 
@@ -6213,7 +6247,7 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 				else if (sl->spacetype == SPACE_IMAGE) {
 					SpaceImage *sima = (SpaceImage *)sl;
 					
-					sima->image = restore_pointer_by_name(newmain, (ID *)sima->image, USER_REAL);
+					sima->image = restore_pointer_by_name(id_map, (ID *)sima->image, USER_REAL);
 					
 					/* this will be freed, not worth attempting to find same scene,
 					 * since it gets initialized later */
@@ -6228,8 +6262,8 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 					/* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
 					 * so assume that here we're doing for undo only...
 					 */
-					sima->gpd = restore_pointer_by_name(newmain, (ID *)sima->gpd, USER_REAL);
-					sima->mask_info.mask = restore_pointer_by_name(newmain, (ID *)sima->mask_info.mask, USER_REAL);
+					sima->gpd = restore_pointer_by_name(id_map, (ID *)sima->gpd, USER_REAL);
+					sima->mask_info.mask = restore_pointer_by_name(id_map, (ID *)sima->mask_info.mask, USER_REAL);
 				}
 				else if (sl->spacetype == SPACE_SEQ) {
 					SpaceSeq *sseq = (SpaceSeq *)sl;
@@ -6237,29 +6271,29 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 					/* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
 					 * so assume that here we're doing for undo only...
 					 */
-					sseq->gpd = restore_pointer_by_name(newmain, (ID *)sseq->gpd, USER_REAL);
+					sseq->gpd = restore_pointer_by_name(id_map, (ID *)sseq->gpd, USER_REAL);
 				}
 				else if (sl->spacetype == SPACE_NLA) {
 					SpaceNla *snla = (SpaceNla *)sl;
 					bDopeSheet *ads = snla->ads;
 					
 					if (ads) {
-						ads->source = restore_pointer_by_name(newmain, (ID *)ads->source, USER_REAL);
+						ads->source = restore_pointer_by_name(id_map, (ID *)ads->source, USER_REAL);
 						
 						if (ads->filter_grp)
-							ads->filter_grp = restore_pointer_by_name(newmain, (ID *)ads->filter_grp, USER_IGNORE);
+							ads->filter_grp = restore_pointer_by_name(id_map, (ID *)ads->filter_grp, USER_IGNORE);
 					}
 				}
 				else if (sl->spacetype == SPACE_TEXT) {
 					SpaceText *st = (SpaceText *)sl;
 					
-					st->text = restore_pointer_by_name(newmain, (ID *)st->text, USER_REAL);
+					st->text = restore_pointer_by_name(id_map, (ID *)st->text, USER_REAL);
 					if (st->text == NULL) st->text = newmain->text.first;
 				}
 				else if (sl->spacetype == SPACE_SCRIPT) {
 					SpaceScript *scpt = (SpaceScript *)sl;
 					
-					scpt->script = restore_pointer_by_name(newmain, (ID *)scpt->script, USER_REAL);
+					scpt->script = restore_pointer_by_name(id_map, (ID *)scpt->script, USER_REAL);
 					
 					/*sc->script = NULL; - 2.45 set to null, better re-run the script */
 					if (scpt->script) {
@@ -6269,7 +6303,7 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 				else if (sl->spacetype == SPACE_OUTLINER) {
 					SpaceOops *so= (SpaceOops *)sl;
 					
-					so->search_tse.id = restore_pointer_by_name(newmain, so->search_tse.id, USER_IGNORE);
+					so->search_tse.id = restore_pointer_by_name(id_map, so->search_tse.id, USER_IGNORE);
 					
 					if (so->treestore) {
 						TreeStoreElem *tselem;
@@ -6279,7 +6313,7 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 						while ((tselem = BLI_mempool_iterstep(&iter))) {
 							/* Do not try to restore pointers to drivers/sequence/etc., can crash in undo case! */
 							if (TSE_IS_REAL_ID(tselem)) {
-								tselem->id = restore_pointer_by_name(newmain, tselem->id, USER_IGNORE);
+								tselem->id = restore_pointer_by_name(id_map, tselem->id, USER_IGNORE);
 							}
 							else {
 								tselem->id = NULL;
@@ -6297,14 +6331,14 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 					bNodeTree *ntree;
 					
 					/* node tree can be stored locally in id too, link this first */
-					snode->id = restore_pointer_by_name(newmain, snode->id, USER_REAL);
-					snode->from = restore_pointer_by_name(newmain, snode->from, USER_IGNORE);
+					snode->id = restore_pointer_by_name(id_map, snode->id, USER_REAL);
+					snode->from = restore_pointer_by_name(id_map, snode->from, USER_IGNORE);
 					
 					ntree = nodetree_from_id(snode->id);
 					if (ntree)
 						snode->nodetree = ntree;
 					else
-						snode->nodetree = restore_pointer_by_name(newmain, (ID*)snode->nodetree, USER_REAL);
+						snode->nodetree = restore_pointer_by_name(id_map, (ID*)snode->nodetree, USER_REAL);
 					
 					for (path = snode->treepath.first; path; path = path->next) {
 						if (path == snode->treepath.first) {
@@ -6312,7 +6346,7 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 							path->nodetree = snode->nodetree;
 						}
 						else
-							path->nodetree= restore_pointer_by_name(newmain, (ID*)path->nodetree, USER_REAL);
+							path->nodetree= restore_pointer_by_name(id_map, (ID*)path->nodetree, USER_REAL);
 						
 						if (!path->nodetree)
 							break;
@@ -6338,22 +6372,24 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 				else if (sl->spacetype == SPACE_CLIP) {
 					SpaceClip *sclip = (SpaceClip *)sl;
 					
-					sclip->clip = restore_pointer_by_name(newmain, (ID *)sclip->clip, USER_REAL);
-					sclip->mask_info.mask = restore_pointer_by_name(newmain, (ID *)sclip->mask_info.mask, USER_REAL);
+					sclip->clip = restore_pointer_by_name(id_map, (ID *)sclip->clip, USER_REAL);
+					sclip->mask_info.mask = restore_pointer_by_name(id_map, (ID *)sclip->mask_info.mask, USER_REAL);
 					
 					sclip->scopes.ok = 0;
 				}
 				else if (sl->spacetype == SPACE_LOGIC) {
 					SpaceLogic *slogic = (SpaceLogic *)sl;
 					
-					slogic->gpd = restore_pointer_by_name(newmain, (ID *)slogic->gpd, USER_REAL);
+					slogic->gpd = restore_pointer_by_name(id_map, (ID *)slogic->gpd, USER_REAL);
 				}
 			}
 		}
 	}
 
 	/* update IDs stored in all possible clipboards */
-	lib_link_clipboard_restore(newmain);
+	lib_link_clipboard_restore(id_map);
+
+	BKE_main_idmap_destroy(id_map);
 }
 
 static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)

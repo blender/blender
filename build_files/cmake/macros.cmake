@@ -552,11 +552,11 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		bf_modifiers
 		bf_bmesh
 		bf_gpu
+		bf_blenloader
 		bf_blenkernel
 		bf_physics
 		bf_nodes
 		bf_rna
-		bf_blenloader
 		bf_imbuf
 		bf_blenlib
 		bf_depsgraph
