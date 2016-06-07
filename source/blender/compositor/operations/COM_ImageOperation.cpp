@@ -160,10 +160,10 @@ static void sampleImageAtLocation(ImBuf *ibuf, float x, float y, PixelSampler sa
 void ImageOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
 	int ix = x, iy = y;
-	if (ix < 0 || iy < 0 || ix >= this->m_buffer->x || iy >= this->m_buffer->y) {
+	if (this->m_imageFloatBuffer == NULL && this->m_imageByteBuffer == NULL) {
 		zero_v4(output);
 	}
-	else if (this->m_imageFloatBuffer == NULL && this->m_imageByteBuffer == NULL) {
+	else if (ix < 0 || iy < 0 || ix >= this->m_buffer->x || iy >= this->m_buffer->y) {
 		zero_v4(output);
 	}
 	else {
