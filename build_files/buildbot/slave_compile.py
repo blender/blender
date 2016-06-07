@@ -77,7 +77,7 @@ if 'cmake' in builder:
     elif builder.startswith('win'):
       if builder.endswith('_vc2015'):
         if builder.startswith('win64'):
-            cmake_options.extend(['-G', 'Visual Studio 14 2015 Win64', '-DWITH_CYCLES_CUDA_BINARIES=0''])
+            cmake_options.extend(['-G', 'Visual Studio 14 2015 Win64', '-DWITH_CYCLES_CUDA_BINARIES=0'])
         elif builder.startswith('win32'):
             bits = 32
             cmake_options.extend(['-G', 'Visual Studio 14 2015', '-DWITH_CYCLES_CUDA_BINARIES=0'])
