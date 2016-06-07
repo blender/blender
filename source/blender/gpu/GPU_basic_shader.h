@@ -46,11 +46,12 @@ typedef enum GPUBasicShaderOption {
 	GPU_SHADER_LIGHTING =         (1 << 1),   /* use lighting */
 	GPU_SHADER_TWO_SIDED =        (1 << 2),   /* flip normals towards viewer */
 	GPU_SHADER_TEXTURE_2D =       (1 << 3),   /* use 2D texture to replace diffuse color */
+	GPU_SHADER_TEXTURE_RECT =     (1 << 4),   /* same as GPU_SHADER_TEXTURE_2D, for GL_TEXTURE_RECTANGLE */
 
-	GPU_SHADER_SOLID_LIGHTING =   (1 << 4),   /* use faster lighting (set automatically) */
-	GPU_SHADER_STIPPLE =          (1 << 5),   /* use stipple */
-	GPU_SHADER_LINE =             (1 << 6),   /* draw lines */
-	GPU_SHADER_OPTIONS_NUM = 7,
+	GPU_SHADER_SOLID_LIGHTING =   (1 << 5),   /* use faster lighting (set automatically) */
+	GPU_SHADER_STIPPLE =          (1 << 6),   /* use stipple */
+	GPU_SHADER_LINE =             (1 << 7),   /* draw lines */
+	GPU_SHADER_OPTIONS_NUM = 8,
 	GPU_SHADER_OPTION_COMBINATIONS = (1 << GPU_SHADER_OPTIONS_NUM)
 } GPUBasicShaderOption;
 

@@ -437,8 +437,6 @@ void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)
 
 	float halfx, halfy, ratiox, ratioy;
 
-	glEnable(triple->target);
-
 	/* wmOrtho for the screen has this same offset */
 	ratiox = sizex;
 	ratioy = sizey;
@@ -452,6 +450,8 @@ void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)
 		halfx /= triple->x;
 		halfy /= triple->y;
 	}
+
+	GPU_basic_shader_bind((triple->target == GL_TEXTURE_2D) ? GPU_SHADER_TEXTURE_2D : GPU_SHADER_TEXTURE_RECT);
 
 	glBindTexture(triple->target, triple->bind);
 
@@ -471,7 +471,8 @@ void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)
 	glEnd();
 
 	glBindTexture(triple->target, 0);
-	glDisable(triple->target);
+
+	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 }
 
 static void wm_triple_copy_textures(wmWindow *win, wmDrawTriple *triple)
