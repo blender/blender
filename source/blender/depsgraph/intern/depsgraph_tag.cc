@@ -72,7 +72,9 @@ extern "C" {
  * design of those areas is more clear we'll do the same legacy code here.
  *                                                                  - sergey -
  */
+#if 0
 #define DEPSGRAPH_USE_LEGACY_TAGGING
+#endif
 
 namespace {
 

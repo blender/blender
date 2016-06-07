@@ -358,7 +358,6 @@ static void init_frame_smoke(VoxelData *vd, int UNUSED(cfra))
 
 #else // WITH_SMOKE
 	(void)vd;
-	(void)cfra;
 
 	vd->dataset = NULL;
 #endif
