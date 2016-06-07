@@ -54,6 +54,8 @@ static void node_shader_exec_lamp(void *data, int UNUSED(thread), bNode *node, b
 			shi->nodes = 1; /* temp hack to prevent trashadow recursion */
 			out[4]->vec[0] = RE_lamp_get_data(shi, ob, out[0]->vec, out[1]->vec, out[2]->vec, out[3]->vec);
 			shi->nodes = 0;
+			if (shi->use_world_space_shading)
+				mul_mat3_m4_v3((float (*)[4])RE_render_current_get_matrix(RE_VIEWINV_MATRIX), out[1]->vec);
 		}
 	}
 }
@@ -66,7 +68,10 @@ static int gpu_shader_lamp(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(
 
 		visifac = GPU_lamp_get_data(mat, lamp, &col, &lv, &dist, &shadow, &energy);
 
-		return GPU_stack_link(mat, "lamp", in, out, col, energy, lv, dist, shadow, visifac);
+		bool ret = GPU_stack_link(mat, "lamp", in, out, col, energy, lv, dist, shadow, visifac);
+		if (GPU_material_use_world_space_shading(mat))
+			ret &= GPU_link(mat, "direction_transform_m4v3", out[1].link, GPU_builtin(GPU_INVERSE_VIEW_MATRIX), &out[1].link);
+		return ret;
 	}
 
 	return false;
