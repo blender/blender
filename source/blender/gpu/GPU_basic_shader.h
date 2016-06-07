@@ -76,6 +76,22 @@ void GPU_basic_shaders_exit(void);
 void GPU_basic_shader_bind(int options);
 int GPU_basic_shader_bound_options(void);
 
+/* Only use for small blocks of code that don't support glsl shader. */
+#define GPU_BASIC_SHADER_DISABLE_AND_STORE(bound_options) \
+if (GPU_basic_shader_use_glsl_get()) { \
+	if ((bound_options = GPU_basic_shader_bound_options())) { \
+		GPU_basic_shader_bind(0); \
+	} \
+} \
+else { bound_options = 0; } ((void)0)
+#define GPU_BASIC_SHADER_ENABLE_AND_RESTORE(bound_options) \
+if (GPU_basic_shader_use_glsl_get()) { \
+	if (bound_options) { \
+		GPU_basic_shader_bind(bound_options); \
+	} \
+} ((void)0)
+
+
 void GPU_basic_shader_colors(const float diffuse[3], const float specular[3],
 	int shininess, float alpha);
 
