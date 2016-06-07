@@ -1853,8 +1853,6 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data, int typ
 	           (alloctype == CD_DUPLICATE) ||
 	           (alloctype == CD_REFERENCE));
 
-	BLI_assert(size >= 0);
-
 	if (!typeInfo->defaultname && CustomData_has_layer(data, type))
 		return &data->layers[CustomData_get_layer_index(data, type)];
 
