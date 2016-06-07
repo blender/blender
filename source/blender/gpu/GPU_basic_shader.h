@@ -110,6 +110,9 @@ void GPU_basic_shader_stipple(GPUBasicShaderStipple stipple_id);
 void GPU_basic_shader_line_stipple(GLint stipple_factor, GLushort stipple_pattern);
 void GPU_basic_shader_line_width(float line_width);
 
+bool GPU_basic_shader_use_glsl_get(void);
+void GPU_basic_shader_use_glsl_set(bool enabled);
+
 #ifdef __cplusplus
 }
 #endif

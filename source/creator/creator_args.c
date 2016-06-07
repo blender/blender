@@ -72,6 +72,7 @@
 
 #include "WM_api.h"
 
+#include "GPU_basic_shader.h"
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 
@@ -591,6 +592,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	printf("\n");
 	printf("Experimental Features:\n");
 	BLI_argsPrintArgDoc(ba, "--enable-new-depsgraph");
+	BLI_argsPrintArgDoc(ba, "--enable-new-basic-shader-glsl");
 
 	printf("\n");
 	printf("Argument Parsing:\n");
@@ -1169,6 +1171,16 @@ static int arg_handle_depsgraph_use_new(int UNUSED(argc), const char **UNUSED(ar
 {
 	printf("Using new dependency graph.\n");
 	DEG_depsgraph_switch_to_new();
+	return 0;
+}
+
+static const char arg_handle_basic_shader_glsl_use_new_doc[] =
+"\n\tUse new GLSL basic shader"
+;
+static int arg_handle_basic_shader_glsl_use_new(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+{
+	printf("Using new GLSL basic shader.\n");
+	GPU_basic_shader_use_glsl_set(true);
 	return 0;
 }
 
@@ -1807,6 +1819,7 @@ void main_args_setup(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	            CB_EX(arg_handle_debug_mode_generic_set, gpumem), (void *)G_DEBUG_GPU_MEM);
 
 	BLI_argsAdd(ba, 1, NULL, "--enable-new-depsgraph", CB(arg_handle_depsgraph_use_new), NULL);
+	BLI_argsAdd(ba, 1, NULL, "--enable-new-basic-shader-glsl", CB(arg_handle_basic_shader_glsl_use_new), NULL);
 
 	BLI_argsAdd(ba, 1, NULL, "--verbose", CB(arg_handle_verbosity_set), NULL);
 

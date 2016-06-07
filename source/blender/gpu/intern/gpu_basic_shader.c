@@ -51,8 +51,6 @@
 
 /* State */
 
-static const bool USE_GLSL = false;
-
 static struct {
 	GPUShader *cached_shaders[GPU_SHADER_OPTION_COMBINATIONS];
 	bool failed_shaders[GPU_SHADER_OPTION_COMBINATIONS];
@@ -268,6 +266,24 @@ const GLubyte stipple_hexagon[128] = {
 	0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88,
 	0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22};
 /* ********************************************* */
+
+/* GLSL State */
+
+static bool USE_GLSL = false;
+
+/**
+ * \note this isn't part of the basic shader API,
+ * only set from the command line once on startup.
+ */
+void GPU_basic_shader_use_glsl_set(bool enabled)
+{
+	USE_GLSL = enabled;
+}
+
+bool GPU_basic_shader_use_glsl_get(void)
+{
+	return USE_GLSL;
+}
 
 /* Init / exit */
 
