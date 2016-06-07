@@ -2660,6 +2660,9 @@ void CDDM_calc_loop_normals(DerivedMesh *dm, const bool use_split_normals, const
 }
 
 /* #define DEBUG_CLNORS */
+#ifdef DEBUG_CLNORS
+#  include "BLI_linklist.h"
+#endif
 
 void CDDM_calc_loop_normals_spacearr(
         DerivedMesh *dm, const bool use_split_normals, const float split_angle, MLoopNorSpaceArray *r_lnors_spacearr)

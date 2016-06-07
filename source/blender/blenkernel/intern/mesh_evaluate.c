@@ -677,7 +677,7 @@ static void split_loop_nor_single_do(LoopSplitTaskDataCommon *common_data, LoopS
 	 */
 	copy_v3_v3(*lnor, polynors[mp_index]);
 
-	/* printf("BASIC: handling loop %d / edge %d / vert %d\n", ml_curr_index, ml_curr->e, ml_curr->v); */
+	/* printf("BASIC: handling loop %d / edge %d / vert %d / poly %d\n", ml_curr_index, ml_curr->e, ml_curr->v, mp_index); */
 
 	/* If needed, generate this (simple!) lnor space. */
 	if (lnors_spacearr) {
@@ -3262,14 +3262,14 @@ void BKE_mesh_mdisp_flip(MDisps *md, const bool use_loop_mdisp_flip)
  */
 void BKE_mesh_polygon_flip_ex(
         MPoly *mpoly, MLoop *mloop, CustomData *ldata,
-        MDisps *mdisp, const bool use_loop_mdisp_flip)
+        float (*lnors)[3], MDisps *mdisp, const bool use_loop_mdisp_flip)
 {
 	int loopstart = mpoly->loopstart;
 	int loopend = loopstart + mpoly->totloop - 1;
 	const bool loops_in_ldata = (CustomData_get_layer(ldata, CD_MLOOP) == mloop);
 
 	if (mdisp) {
-		for (int i = mpoly->loopstart; i <= loopend; i++) {
+		for (int i = loopstart; i <= loopend; i++) {
 			BKE_mesh_mdisp_flip(&mdisp[i], use_loop_mdisp_flip);
 		}
 	}
@@ -3288,6 +3288,9 @@ void BKE_mesh_polygon_flip_ex(
 		if (!loops_in_ldata) {
 			SWAP(MLoop, mloop[loopstart], mloop[loopend]);
 		}
+		if (lnors) {
+			swap_v3_v3(lnors[loopstart], lnors[loopend]);
+		}
 		CustomData_swap(ldata, loopstart, loopend);
 	}
 	/* Even if we did not swap the other 'pivot' loop, we need to set its swapped edge. */
@@ -3299,7 +3302,7 @@ void BKE_mesh_polygon_flip_ex(
 void BKE_mesh_polygon_flip(MPoly *mpoly, MLoop *mloop, CustomData *ldata)
 {
 	MDisps *mdisp = CustomData_get_layer(ldata, CD_MDISPS);
-	BKE_mesh_polygon_flip_ex(mpoly, mloop, ldata, mdisp, true);
+	BKE_mesh_polygon_flip_ex(mpoly, mloop, ldata, NULL, mdisp, true);
 }
 
 /**
@@ -3315,7 +3318,7 @@ void BKE_mesh_polygons_flip(
 	int i;
 
 	for (mp = mpoly, i = 0; i < totpoly; mp++, i++) {
-		BKE_mesh_polygon_flip_ex(mp, mloop, ldata, mdisp, true);
+		BKE_mesh_polygon_flip_ex(mp, mloop, ldata, NULL, mdisp, true);
 	}
 }
 
