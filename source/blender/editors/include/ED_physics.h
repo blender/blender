@@ -40,12 +40,12 @@ struct Scene;
 struct Object;
 
 /* rigidbody_object.c */
-bool ED_rigidbody_object_add(struct Scene *scene, struct Object *ob, int type, struct ReportList *reports);
-void ED_rigidbody_object_remove(struct Scene *scene, struct Object *ob);
+bool ED_rigidbody_object_add(struct Main *bmain, struct Scene *scene, struct Object *ob, int type, struct ReportList *reports);
+void ED_rigidbody_object_remove(struct Main *bmain, struct Scene *scene, struct Object *ob);
 
 /* rigidbody_constraint.c */
-bool ED_rigidbody_constraint_add(struct Scene *scene, struct Object *ob, int type, struct ReportList *reports);
-void ED_rigidbody_constraint_remove(struct Scene *scene, struct Object *ob);
+bool ED_rigidbody_constraint_add(struct Main *bmain, struct Scene *scene, struct Object *ob, int type, struct ReportList *reports);
+void ED_rigidbody_constraint_remove(struct Main *bmain, struct Scene *scene, struct Object *ob);
 
 /* operators */
 void ED_operatortypes_physics(void);

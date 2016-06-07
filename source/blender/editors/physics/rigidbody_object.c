@@ -46,6 +46,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
+#include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_rigidbody.h"
 
@@ -87,7 +88,7 @@ static int ED_operator_rigidbody_add_poll(bContext *C)
 
 /* ----------------- */
 
-bool ED_rigidbody_object_add(Scene *scene, Object *ob, int type, ReportList *reports)
+bool ED_rigidbody_object_add(Main *bmain, Scene *scene, Object *ob, int type, ReportList *reports)
 {
 	RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
 
@@ -107,7 +108,7 @@ bool ED_rigidbody_object_add(Scene *scene, Object *ob, int type, ReportList *rep
 		scene->rigidbody_world = rbw;
 	}
 	if (rbw->group == NULL) {
-		rbw->group = BKE_group_add(G.main, "RigidBodyWorld");
+		rbw->group = BKE_group_add(bmain, "RigidBodyWorld");
 	}
 
 	/* make rigidbody object settings */
@@ -120,12 +121,13 @@ bool ED_rigidbody_object_add(Scene *scene, Object *ob, int type, ReportList *rep
 	/* add object to rigid body group */
 	BKE_group_object_add(rbw->group, ob, scene, NULL);
 
+	DAG_relations_tag_update(bmain);
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 
 	return true;
 }
 
-void ED_rigidbody_object_remove(Scene *scene, Object *ob)
+void ED_rigidbody_object_remove(Main *bmain, Scene *scene, Object *ob)
 {
 	RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
 
@@ -133,6 +135,7 @@ void ED_rigidbody_object_remove(Scene *scene, Object *ob)
 	if (rbw)
 		BKE_group_object_unlink(rbw->group, ob, scene, NULL);
 
+	DAG_relations_tag_update(bmain);
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 }
 
@@ -143,13 +146,14 @@ void ED_rigidbody_object_remove(Scene *scene, Object *ob)
 
 static int rigidbody_object_add_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
 	int type = RNA_enum_get(op->ptr, "type");
 	bool changed;
 
 	/* apply to active object */
-	changed = ED_rigidbody_object_add(scene, ob, type, op->reports);
+	changed = ED_rigidbody_object_add(bmain, scene, ob, type, op->reports);
 
 	if (changed) {
 		/* send updates */
@@ -186,13 +190,14 @@ void RIGIDBODY_OT_object_add(wmOperatorType *ot)
 
 static int rigidbody_object_remove_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
 	bool changed = false;
 
 	/* apply to active object */
 	if (!ELEM(NULL, ob, ob->rigidbody_object)) {
-		ED_rigidbody_object_remove(scene, ob);
+		ED_rigidbody_object_remove(bmain, scene, ob);
 		changed = true;
 	}
 
@@ -232,13 +237,14 @@ void RIGIDBODY_OT_object_remove(wmOperatorType *ot)
 
 static int rigidbody_objects_add_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	int type = RNA_enum_get(op->ptr, "type");
 	bool changed = false;
 
 	/* create rigid body objects and add them to the world's group */
 	CTX_DATA_BEGIN(C, Object *, ob, selected_objects) {
-		changed |= ED_rigidbody_object_add(scene, ob, type, op->reports);
+		changed |= ED_rigidbody_object_add(bmain, scene, ob, type, op->reports);
 	}
 	CTX_DATA_END;
 
@@ -277,6 +283,7 @@ void RIGIDBODY_OT_objects_add(wmOperatorType *ot)
 
 static int rigidbody_objects_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	bool changed = false;
 
@@ -284,7 +291,7 @@ static int rigidbody_objects_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_BEGIN(C, Object *, ob, selected_objects)
 	{
 		if (ob->rigidbody_object) {
-			ED_rigidbody_object_remove(scene, ob);
+			ED_rigidbody_object_remove(bmain, scene, ob);
 			changed = true;
 		}
 	}

@@ -606,10 +606,13 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
 			 * - fcu->driver != NULL: If this is set, then it's a driver. If we don't check for this, we'd end
 			 *                        up adding the keyframes on a new F-Curve in the action data instead.
 			 */
-			if (ale->id && !ale->owner && !fcu->driver)
+			if (ale->id && !ale->owner && !fcu->driver) {
 				insert_keyframe(reports, ale->id, NULL, ((fcu->grp) ? (fcu->grp->name) : (NULL)), fcu->rna_path, fcu->array_index, cfra, ts->keyframe_type, flag);
-			else
-				insert_vert_fcurve(fcu, cfra, fcu->curval, ts->keyframe_type, 0);
+			}
+			else {
+				const float curval = evaluate_fcurve(fcu, cfra);
+				insert_vert_fcurve(fcu, cfra, curval, ts->keyframe_type, 0);
+			}
 			
 			ale->update |= ANIM_UPDATE_DEFAULT;
 		}

@@ -484,7 +484,7 @@ typedef struct FCurve {
 	unsigned int totvert;	/* total number of points which define the curve (i.e. size of arrays in FPoints) */
 	
 		/* value cache + settings */
-	float curval;			/* value stored from last time curve was evaluated */
+	float curval;			/* value stored from last time curve was evaluated (not threadsafe, debug display only!) */
 	short flag;				/* user-editable settings for this curve */
 	short extend;			/* value-extending mode for this curve (does not cover  */
 	

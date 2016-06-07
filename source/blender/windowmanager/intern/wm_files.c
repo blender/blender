@@ -435,8 +435,7 @@ void wm_file_read_report(bContext *C)
 			}
 
 			BKE_reportf(reports, RPT_ERROR,
-			            "Engine '%s' not available for scene '%s' "
-			            "(an addon may need to be installed or enabled)",
+			            "Engine '%s' not available for scene '%s' (an add-on may need to be installed or enabled)",
 			            sce->r.engine, sce->id.name + 2);
 		}
 	}

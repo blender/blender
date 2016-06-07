@@ -324,7 +324,7 @@ void applyProject(TransInfo *t)
 			
 			if (ED_view3d_project_float_global(t->ar, iloc, mval_fl, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 				if (snapObjectsTransform(
-				        t, mval_fl, t->tsnap.modeSelect, &dist_px,
+				        t, mval_fl, &dist_px,
 				        loc, no))
 				{
 //					if (t->flag & (T_EDIT|T_POSE)) {
@@ -551,10 +551,10 @@ static void initSnappingMode(TransInfo *t)
 		{
 			/* Exclude editmesh if using proportional edit */
 			if ((obedit->type == OB_MESH) && (t->flag & T_PROP_EDIT)) {
-				t->tsnap.modeSelect = SNAP_NOT_OBEDIT;
+				t->tsnap.modeSelect = SNAP_NOT_ACTIVE;
 			}
 			else {
-				t->tsnap.modeSelect = t->tsnap.snap_self ? SNAP_ALL : SNAP_NOT_OBEDIT;
+				t->tsnap.modeSelect = t->tsnap.snap_self ? SNAP_ALL : SNAP_NOT_ACTIVE;
 			}
 		}
 		/* Object mode */
@@ -956,14 +956,14 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 		
 		if (t->tsnap.mode == SCE_SNAP_MODE_VOLUME) {
 			found = peelObjectsTransform(
-			        t, mval, t->tsnap.modeSelect,
+			        t, mval,
 			        (t->settings->snap_flag & SCE_SNAP_PEEL_OBJECT) != 0,
 			        loc, no, NULL);
 		}
 		else {
 			zero_v3(no);  /* objects won't set this */
 			found = snapObjectsTransform(
-			        t, mval, t->tsnap.modeSelect, &dist_px,
+			        t, mval, &dist_px,
 			        loc, no);
 		}
 		
@@ -1199,17 +1199,16 @@ static void TargetSnapClosest(TransInfo *t)
 }
 
 bool snapObjectsTransform(
-        TransInfo *t, const float mval[2], SnapSelect snap_select,
+        TransInfo *t, const float mval[2],
         float *dist_px,
         float r_loc[3], float r_no[3])
 {
 	return ED_transform_snap_object_project_view3d_ex(
 	        t->tsnap.object_context,
+	        t->scene->toolsettings->snap_mode,
 	        &(const struct SnapObjectParams){
-	            .snap_select = snap_select,
-	            .snap_to = t->scene->toolsettings->snap_mode,
-	            .use_object_edit = (t->flag & T_EDIT) != 0,
-	            .use_object_active = (t->options & CTX_GPENCIL_STROKES) == 0,
+	            .snap_select = ((t->options & CTX_GPENCIL_STROKES) != 0) ? SNAP_NOT_ACTIVE : t->tsnap.modeSelect,
+	            .use_object_edit_cage = (t->flag & T_EDIT) != 0,
 	        },
 	        mval, dist_px, NULL,
 	        r_loc, r_no, NULL);
@@ -1220,18 +1219,16 @@ bool snapObjectsTransform(
 
 bool peelObjectsSnapContext(
         SnapObjectContext *sctx,
-        const float mval[2], SnapSelect snap_select, bool use_peel_object,
+        const float mval[2],
+        const struct SnapObjectParams *params,
+        const bool use_peel_object,
         /* return args */
         float r_loc[3], float r_no[3], float *r_thickness)
 {
 	ListBase depths_peel = {0};
 	ED_transform_snap_object_project_all_view3d_ex(
 	        sctx,
-	        &(const struct SnapObjectParams){
-	            .snap_to = SCE_SNAP_MODE_FACE,
-	            .snap_select = snap_select,
-	            .use_object_edit = true,
-	        },
+	        params,
 	        mval, -1.0f, false,
 	        &depths_peel);
 
@@ -1291,13 +1288,19 @@ bool peelObjectsSnapContext(
 
 bool peelObjectsTransform(
         TransInfo *t,
-        const float mval[2], SnapSelect snap_select, bool use_peel_object,
+        const float mval[2],
+        const bool use_peel_object,
         /* return args */
         float r_loc[3], float r_no[3], float *r_thickness)
 {
 	return peelObjectsSnapContext(
 	        t->tsnap.object_context,
-	        mval, snap_select, use_peel_object,
+	        mval,
+	        &(const struct SnapObjectParams){
+	            .snap_select = ((t->options & CTX_GPENCIL_STROKES) != 0) ? SNAP_NOT_ACTIVE : t->tsnap.modeSelect,
+	            .use_object_edit_cage = (t->flag & T_EDIT) != 0,
+	        },
+	        use_peel_object,
 	        r_loc, r_no, r_thickness);
 }
 

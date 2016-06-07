@@ -16,6 +16,7 @@
 
 #include "util_debug.h"
 #include "util_foreach.h"
+#include "util_logging.h"
 #include "util_system.h"
 #include "util_task.h"
 #include "util_time.h"
@@ -198,12 +199,30 @@ void TaskScheduler::init(int num_threads)
 			/* automatic number of threads */
 			num_threads = system_cpu_thread_count();
 		}
+		VLOG(1) << "Creating pool of " << num_threads << " threads.";
 
 		/* launch threads that will be waiting for work */
 		threads.resize(num_threads);
 
-		for(size_t i = 0; i < threads.size(); i++)
-			threads[i] = new thread(function_bind(&TaskScheduler::thread_run, i + 1));
+		int num_groups = system_cpu_group_count();
+		int thread_index = 0;
+		for(int group = 0; group < num_groups; ++group) {
+			/* NOTE: That's not really efficient from threading point of view,
+			 * but it is simple to read and it doesn't make sense to use more
+			 * user-specified threads than logical threads anyway.
+			 */
+			int num_group_threads = (group == num_groups - 1)
+			        ? (threads.size() - thread_index)
+			        : system_cpu_group_thread_count(group);
+			for(int group_thread = 0;
+				group_thread < num_group_threads && thread_index < threads.size();
+				++group_thread, ++thread_index)
+			{
+				threads[thread_index] = new thread(function_bind(&TaskScheduler::thread_run,
+				                                                 thread_index + 1),
+				                                   group);
+			}
+		}
 	}
 	
 	users++;

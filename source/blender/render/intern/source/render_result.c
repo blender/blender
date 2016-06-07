@@ -359,102 +359,109 @@ static const char *name_from_passtype(int passtype, int channel)
 	return "Unknown";
 }
 
-static int passtype_from_name(const char *str)
+static int passtype_from_name(const char *str, int passflag)
 {
+	/* We do not really support several pass of the same types, so in case we are opening an EXR file with several pass
+	 * names detected as same pass type, only return that pass type the first time, and return 'uknown' for the others.
+	 * See T48466. */
+#define RETURN_PASS(_passtype) return (passflag & (_passtype)) ? 0 : (_passtype)
+
 	if (STRPREFIX(str, "Combined"))
-		return SCE_PASS_COMBINED;
+		RETURN_PASS(SCE_PASS_COMBINED);
 
 	if (STRPREFIX(str, "Depth"))
-		return SCE_PASS_Z;
+		RETURN_PASS(SCE_PASS_Z);
 
 	if (STRPREFIX(str, "Vector"))
-		return SCE_PASS_VECTOR;
+		RETURN_PASS(SCE_PASS_VECTOR);
 
 	if (STRPREFIX(str, "Normal"))
-		return SCE_PASS_NORMAL;
+		RETURN_PASS(SCE_PASS_NORMAL);
 
 	if (STRPREFIX(str, "UV"))
-		return SCE_PASS_UV;
+		RETURN_PASS(SCE_PASS_UV);
 
 	if (STRPREFIX(str, "Color"))
-		return SCE_PASS_RGBA;
+		RETURN_PASS(SCE_PASS_RGBA);
 
 	if (STRPREFIX(str, "Emit"))
-		return SCE_PASS_EMIT;
+		RETURN_PASS(SCE_PASS_EMIT);
 
 	if (STRPREFIX(str, "Diffuse"))
-		return SCE_PASS_DIFFUSE;
+		RETURN_PASS(SCE_PASS_DIFFUSE);
 
 	if (STRPREFIX(str, "Spec"))
-		return SCE_PASS_SPEC;
+		RETURN_PASS(SCE_PASS_SPEC);
 
 	if (STRPREFIX(str, "Shadow"))
-		return SCE_PASS_SHADOW;
+		RETURN_PASS(SCE_PASS_SHADOW);
 	
 	if (STRPREFIX(str, "AO"))
-		return SCE_PASS_AO;
+		RETURN_PASS(SCE_PASS_AO);
 
 	if (STRPREFIX(str, "Env"))
-		return SCE_PASS_ENVIRONMENT;
+		RETURN_PASS(SCE_PASS_ENVIRONMENT);
 
 	if (STRPREFIX(str, "Indirect"))
-		return SCE_PASS_INDIRECT;
+		RETURN_PASS(SCE_PASS_INDIRECT);
 
 	if (STRPREFIX(str, "Reflect"))
-		return SCE_PASS_REFLECT;
+		RETURN_PASS(SCE_PASS_REFLECT);
 
 	if (STRPREFIX(str, "Refract"))
-		return SCE_PASS_REFRACT;
+		RETURN_PASS(SCE_PASS_REFRACT);
 
 	if (STRPREFIX(str, "IndexOB"))
-		return SCE_PASS_INDEXOB;
+		RETURN_PASS(SCE_PASS_INDEXOB);
 
 	if (STRPREFIX(str, "IndexMA"))
-		return SCE_PASS_INDEXMA;
+		RETURN_PASS(SCE_PASS_INDEXMA);
 
 	if (STRPREFIX(str, "Mist"))
-		return SCE_PASS_MIST;
+		RETURN_PASS(SCE_PASS_MIST);
 	
 	if (STRPREFIX(str, "RayHits"))
-		return SCE_PASS_RAYHITS;
+		RETURN_PASS(SCE_PASS_RAYHITS);
 
 	if (STRPREFIX(str, "DiffDir"))
-		return SCE_PASS_DIFFUSE_DIRECT;
+		RETURN_PASS(SCE_PASS_DIFFUSE_DIRECT);
 
 	if (STRPREFIX(str, "DiffInd"))
-		return SCE_PASS_DIFFUSE_INDIRECT;
+		RETURN_PASS(SCE_PASS_DIFFUSE_INDIRECT);
 
 	if (STRPREFIX(str, "DiffCol"))
-		return SCE_PASS_DIFFUSE_COLOR;
+		RETURN_PASS(SCE_PASS_DIFFUSE_COLOR);
 
 	if (STRPREFIX(str, "GlossDir"))
-		return SCE_PASS_GLOSSY_DIRECT;
+		RETURN_PASS(SCE_PASS_GLOSSY_DIRECT);
 
 	if (STRPREFIX(str, "GlossInd"))
-		return SCE_PASS_GLOSSY_INDIRECT;
+		RETURN_PASS(SCE_PASS_GLOSSY_INDIRECT);
 
 	if (STRPREFIX(str, "GlossCol"))
-		return SCE_PASS_GLOSSY_COLOR;
+		RETURN_PASS(SCE_PASS_GLOSSY_COLOR);
 
 	if (STRPREFIX(str, "TransDir"))
-		return SCE_PASS_TRANSM_DIRECT;
+		RETURN_PASS(SCE_PASS_TRANSM_DIRECT);
 
 	if (STRPREFIX(str, "TransInd"))
-		return SCE_PASS_TRANSM_INDIRECT;
+		RETURN_PASS(SCE_PASS_TRANSM_INDIRECT);
 
 	if (STRPREFIX(str, "TransCol"))
-		return SCE_PASS_TRANSM_COLOR;
+		RETURN_PASS(SCE_PASS_TRANSM_COLOR);
 		
 	if (STRPREFIX(str, "SubsurfaceDir"))
-		return SCE_PASS_SUBSURFACE_DIRECT;
+		RETURN_PASS(SCE_PASS_SUBSURFACE_DIRECT);
 
 	if (STRPREFIX(str, "SubsurfaceInd"))
-		return SCE_PASS_SUBSURFACE_INDIRECT;
+		RETURN_PASS(SCE_PASS_SUBSURFACE_INDIRECT);
 
 	if (STRPREFIX(str, "SubsurfaceCol"))
-		return SCE_PASS_SUBSURFACE_COLOR;
+		RETURN_PASS(SCE_PASS_SUBSURFACE_COLOR);
 
 	return 0;
+
+#undef RETURN_PASS
 }
 
 
@@ -838,8 +845,9 @@ static void ml_addpass_cb(void *base, void *lay, const char *str, float *rect, i
 	
 	BLI_addtail(&rl->passes, rpass);
 	rpass->channels = totchan;
-	rpass->passtype = passtype_from_name(str);
-	if (rpass->passtype == 0) printf("unknown pass %s\n", str);
+	rpass->passtype = passtype_from_name(str, rl->passflag);
+	if (rpass->passtype == 0)
+		printf("unknown pass %s\n", str);
 	rl->passflag |= rpass->passtype;
 	
 	/* channel id chars */

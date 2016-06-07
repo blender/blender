@@ -124,6 +124,7 @@ ModifierTypeInfo modifierType_ShapeKey = {
 	/* structSize */        sizeof(ShapeKeyModifierData),
 	/* type */              eModifierTypeType_OnlyDeform,
 	/* flags */             eModifierTypeFlag_AcceptsCVs |
+	                        eModifierTypeFlag_AcceptsLattice |
 	                        eModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          NULL,

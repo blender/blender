@@ -605,19 +605,26 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
  */
 void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
 {
-	BLI_freenode *ret;
+	if (UNLIKELY(iter->curchunk == NULL)) {
+		return NULL;
+	}
 
+	const unsigned int esize = iter->pool->esize;
+	BLI_freenode *curnode = POINTER_OFFSET(CHUNK_DATA(iter->curchunk), (esize * iter->curindex));
+	BLI_freenode *ret;
 	do {
-		if (LIKELY(iter->curchunk)) {
-			ret = (BLI_freenode *)(((char *)CHUNK_DATA(iter->curchunk)) + (iter->pool->esize * iter->curindex));
+		ret = curnode;
+
+		if (++iter->curindex != iter->pool->pchunk) {
+			curnode = POINTER_OFFSET(curnode, esize);
 		}
 		else {
-			return NULL;
-		}
-
-		if (UNLIKELY(++iter->curindex == iter->pool->pchunk)) {
 			iter->curindex = 0;
 			iter->curchunk = iter->curchunk->next;
+			if (iter->curchunk == NULL) {
+				return NULL;
+			}
+			curnode = CHUNK_DATA(iter->curchunk);
 		}
 	} while (ret->freeword == FREEWORD);
 

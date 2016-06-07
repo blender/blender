@@ -707,10 +707,13 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 		 *                       so it's easier for now to just read the F-Curve directly.
 		 *                       (TODO: add the full-blown PointerRNA relative parsing case here...)
 		 */
-		if (ale->id && !ale->owner)
+		if (ale->id && !ale->owner) {
 			insert_keyframe(reports, ale->id, NULL, ((fcu->grp) ? (fcu->grp->name) : (NULL)), fcu->rna_path, fcu->array_index, cfra, ts->keyframe_type, flag);
-		else
-			insert_vert_fcurve(fcu, cfra, fcu->curval, ts->keyframe_type, 0);
+		}
+		else {
+			const float curval = evaluate_fcurve(fcu, cfra);
+			insert_vert_fcurve(fcu, cfra, curval, ts->keyframe_type, 0);
+		}
 		
 		ale->update |= ANIM_UPDATE_DEFAULT;
 	}

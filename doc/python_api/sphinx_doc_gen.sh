@@ -61,7 +61,7 @@ if $DO_EXE_BLENDER ; then
 		--python-exit-code 1 \
 		--python $SPHINXBASE/sphinx_doc_gen.py
 
-	if (($? == 1)) ; then
+	if (($? != 0)) ; then
 		echo "Generating documentation failed, aborting"
 		exit 1
 	fi

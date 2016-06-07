@@ -4480,6 +4480,11 @@ static void rna_def_modifier_normaledit(BlenderRNA *brna)
 	                     "How much of generated normals to mix with exiting ones", 0.0f, 1.0f);
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	prop = RNA_def_float(srna, "mix_limit", 1.0f, 0.0f, DEG2RADF(180.0f), "Max Angle",
+	                     "Maximum angle between old and new normals", 0.0f, DEG2RADF(180.0f));
+	RNA_def_property_subtype(prop, PROP_ANGLE);
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
 	prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
 	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name for selecting/weighting the affected areas");

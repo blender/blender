@@ -1480,7 +1480,9 @@ typedef struct NormalEditModifierData {
 	short mix_mode;
 	char pad[2];
 	float mix_factor;
+	float mix_limit;
 	float offset[3];
+	float pad_f1;
 } NormalEditModifierData;
 
 /* NormalEditModifierData.mode */

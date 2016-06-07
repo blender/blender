@@ -1357,7 +1357,10 @@ class WM_OT_properties_add(Operator):
 
             return prop_new
 
-        prop = unique_name(item.keys())
+        prop = unique_name(
+                {*item.keys(),
+                 *type(item).bl_rna.properties.keys(),
+                 })
 
         item[prop] = 1.0
         rna_idprop_ui_prop_update(item, prop)

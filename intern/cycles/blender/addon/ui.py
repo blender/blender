@@ -76,9 +76,8 @@ def use_cuda(context):
 
 def use_branched_path(context):
     cscene = context.scene.cycles
-    device_type = context.user_preferences.system.compute_device_type
 
-    return (cscene.progressive == 'BRANCHED_PATH' and device_type != 'OPENCL')
+    return (cscene.progressive == 'BRANCHED_PATH' and not use_opencl(context))
 
 
 def use_sample_all_lights(context):
@@ -704,7 +703,7 @@ class Cycles_PT_mesh_displacement(CyclesButtonsPanel, Panel):
 
         col = split.column()
         sub = col.column(align=True)
-        sub.label(text="Displacment:")
+        sub.label(text="Displacement:")
         sub.prop(cdata, "displacement_method", text="")
 
         col = split.column()

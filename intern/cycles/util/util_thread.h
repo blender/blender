@@ -52,37 +52,17 @@ typedef boost::condition_variable thread_condition_variable;
 
 class thread {
 public:
-	thread(function<void(void)> run_cb_)
+	thread(function<void(void)> run_cb, int group = -1);
+	~thread();
 
-	{
-		joined = false;
-		run_cb = run_cb_;
-
-		pthread_create(&pthread_id, NULL, run, (void*)this);
-	}
-
-	~thread()
-	{
-		if(!joined)
-			join();
-	}
-
-	static void *run(void *arg)
-	{
-		((thread*)arg)->run_cb();
-		return NULL;
-	}
-
-	bool join()
-	{
-		joined = true;
-		return pthread_join(pthread_id, NULL) == 0;
-	}
+	static void *run(void *arg);
+	bool join();
 
 protected:
-	function<void(void)> run_cb;
-	pthread_t pthread_id;
-	bool joined;
+	function<void(void)> run_cb_;
+	pthread_t pthread_id_;
+	bool joined_;
+	int group_;
 };
 
 /* Own wrapper around pthread's spin lock to make it's use easier. */

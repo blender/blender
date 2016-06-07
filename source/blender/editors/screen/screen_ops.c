@@ -3355,24 +3355,24 @@ static int match_area_with_refresh(int spacetype, int refresh)
 	return 0;
 }
 
-static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
+static int match_region_with_redraws(int spacetype, int regiontype, int redraws, bool from_anim_edit)
 {
 	if (regiontype == RGN_TYPE_WINDOW) {
 		
 		switch (spacetype) {
 			case SPACE_VIEW3D:
-				if (redraws & TIME_ALL_3D_WIN)
+				if ((redraws & TIME_ALL_3D_WIN) || from_anim_edit)
 					return 1;
 				break;
 			case SPACE_IPO:
 			case SPACE_ACTION:
 			case SPACE_NLA:
-				if (redraws & TIME_ALL_ANIM_WIN)
+				if ((redraws & TIME_ALL_ANIM_WIN) || from_anim_edit)
 					return 1;
 				break;
 			case SPACE_TIME:
 				/* if only 1 window or 3d windows, we do timeline too */
-				if (redraws & (TIME_ALL_ANIM_WIN | TIME_REGION | TIME_ALL_3D_WIN))
+				if ((redraws & (TIME_ALL_ANIM_WIN | TIME_REGION | TIME_ALL_3D_WIN)) || from_anim_edit)
 					return 1;
 				break;
 			case SPACE_BUTS:
@@ -3380,7 +3380,7 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
 					return 1;
 				break;
 			case SPACE_SEQ:
-				if (redraws & (TIME_SEQ | TIME_ALL_ANIM_WIN))
+				if ((redraws & (TIME_SEQ | TIME_ALL_ANIM_WIN)) || from_anim_edit)
 					return 1;
 				break;
 			case SPACE_NODE:
@@ -3388,11 +3388,11 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
 					return 1;
 				break;
 			case SPACE_IMAGE:
-				if (redraws & TIME_ALL_IMAGE_WIN)
+				if ((redraws & TIME_ALL_IMAGE_WIN) || from_anim_edit)
 					return 1;
 				break;
 			case SPACE_CLIP:
-				if (redraws & TIME_CLIPS)
+				if ((redraws & TIME_CLIPS) || from_anim_edit)
 					return 1;
 				break;
 				
@@ -3572,7 +3572,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
 					if (ar == sad->ar) {
 						redraw = true;
 					}
-					else if (match_region_with_redraws(sa->spacetype, ar->regiontype, sad->redraws)) {
+					else if (match_region_with_redraws(sa->spacetype, ar->regiontype, sad->redraws, sad->from_anim_edit)) {
 						redraw = true;
 					}
 

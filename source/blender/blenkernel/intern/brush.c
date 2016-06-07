@@ -852,7 +852,7 @@ int BKE_brush_size_get(const Scene *scene, const Brush *brush)
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 	int size = (ups->flag & UNIFIED_PAINT_SIZE) ? ups->size : brush->size;
 	
-	return (int)((float)size * U.pixelsize);
+	return size;
 }
 
 int BKE_brush_use_locked_size(const Scene *scene, const Brush *brush)

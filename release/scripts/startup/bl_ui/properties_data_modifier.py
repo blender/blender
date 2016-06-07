@@ -1384,6 +1384,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         sub = row.row(align=True)
         sub.active = has_vgroup
         sub.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
+        subcol.prop(md, "mix_limit")
 
     def CORRECTIVE_SMOOTH(self, layout, ob, md):
         is_bind = md.is_bind

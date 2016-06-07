@@ -84,6 +84,9 @@ static void flush_init_func(void *data_v, int i)
 	id_node->done = 0;
 	node->scheduled = false;
 	node->owner->flags &= ~DEPSCOMP_FULLY_SCHEDULED;
+	if (node->owner->type == DEPSNODE_TYPE_PROXY) {
+		node->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
+	}
 }
 
 /* Flush updates from tagged nodes outwards until all affected nodes

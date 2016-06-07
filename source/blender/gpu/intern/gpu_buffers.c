@@ -107,10 +107,12 @@ static GPUAttrib attribData[MAX_GPU_ATTRIB_DATA] = { { -1, 0, 0 } };
 static ThreadMutex buffer_mutex = BLI_MUTEX_INITIALIZER;
 
 /* multires global buffer, can be used for many grids having the same grid size */
-static GPUBuffer *mres_glob_buffer = NULL;
-static int mres_prev_gridsize = -1;
-static GLenum mres_prev_index_type = 0;
-static unsigned mres_prev_totquad = 0;
+typedef struct GridCommonGPUBuffer {
+	GPUBuffer *mres_buffer;
+	int mres_prev_gridsize;
+	GLenum mres_prev_index_type;
+	unsigned mres_prev_totquad;
+} GridCommonGPUBuffer;
 
 void GPU_buffer_material_finalize(GPUDrawObject *gdo, GPUBufferMaterial *matinfo, int totmat)
 {
@@ -406,33 +408,6 @@ void GPU_buffer_free(GPUBuffer *buffer)
 	gpu_buffer_free_intern(buffer);
 	BLI_mutex_unlock(&buffer_mutex);
 }
-
-void GPU_buffer_multires_free(bool force)
-{
-	if (!mres_glob_buffer) {
-		/* Early output, no need to lock in this case, */
-		return;
-	}
-
-	if (force && BLI_thread_is_main()) {
-		if (mres_glob_buffer) {
-			if (mres_glob_buffer->id)
-				glDeleteBuffers(1, &mres_glob_buffer->id);
-			MEM_freeN(mres_glob_buffer);
-		}
-	}
-	else {
-		BLI_mutex_lock(&buffer_mutex);
-		gpu_buffer_free_intern(mres_glob_buffer);
-		BLI_mutex_unlock(&buffer_mutex);
-	}
-
-	mres_glob_buffer = NULL;
-	mres_prev_gridsize = -1;
-	mres_prev_index_type = 0;
-	mres_prev_totquad = 0;
-}
-
 
 void GPU_drawobject_free(DerivedMesh *dm)
 {
@@ -1009,6 +984,7 @@ struct GPU_PBVH_Buffers {
 	const int *grid_indices;
 	int totgrid;
 	bool has_hidden;
+	bool is_index_buf_global;  /* Means index_buf uses global bvh's grid_common_gpu_buffer, **DO NOT** free it! */
 
 	bool use_bmesh;
 
@@ -1226,8 +1202,10 @@ GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(
 	/* An element index buffer is used for smooth shading, but flat
 	 * shading requires separate vertex normals so an index buffer is
 	 * can't be used there. */
-	if (buffers->smooth)
+	if (buffers->smooth) {
 		buffers->index_buf = GPU_buffer_alloc(sizeof(unsigned short) * tottri * 3);
+		buffers->is_index_buf_global = false;
+	}
 
 	if (buffers->index_buf) {
 		/* Fill the triangle buffer */
@@ -1248,8 +1226,11 @@ GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(
 			GPU_buffer_unlock(buffers->index_buf, GPU_BINDING_INDEX);
 		}
 		else {
-			GPU_buffer_free(buffers->index_buf);
+			if (!buffers->is_index_buf_global) {
+				GPU_buffer_free(buffers->index_buf);
+			}
 			buffers->index_buf = NULL;
+			buffers->is_index_buf_global = false;
 		}
 	}
 
@@ -1416,22 +1397,33 @@ void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, CCGElem **grids,
     } (void)0
 /* end FILL_QUAD_BUFFER */
 
-static GPUBuffer *gpu_get_grid_buffer(int gridsize, GLenum *index_type, unsigned *totquad)
+static GPUBuffer *gpu_get_grid_buffer(
+        int gridsize, GLenum *index_type, unsigned *totquad, GridCommonGPUBuffer **grid_common_gpu_buffer)
 {
 	/* used in the FILL_QUAD_BUFFER macro */
 	BLI_bitmap * const *grid_hidden = NULL;
 	const int *grid_indices = NULL;
 	int totgrid = 1;
 
+	GridCommonGPUBuffer *gridbuff = *grid_common_gpu_buffer;
+
+	if (gridbuff == NULL) {
+		*grid_common_gpu_buffer = gridbuff = MEM_mallocN(sizeof(GridCommonGPUBuffer), __func__);
+		gridbuff->mres_buffer = NULL;
+		gridbuff->mres_prev_gridsize = -1;
+		gridbuff->mres_prev_index_type = 0;
+		gridbuff->mres_prev_totquad = 0;
+	}
+
 	/* VBO is already built */
-	if (mres_glob_buffer && mres_prev_gridsize == gridsize) {
-		*index_type = mres_prev_index_type;
-		*totquad = mres_prev_totquad;
-		return mres_glob_buffer;
+	if (gridbuff->mres_buffer && gridbuff->mres_prev_gridsize == gridsize) {
+		*index_type = gridbuff->mres_prev_index_type;
+		*totquad = gridbuff->mres_prev_totquad;
+		return gridbuff->mres_buffer;
 	}
 	/* we can't reuse old, delete the existing buffer */
-	else if (mres_glob_buffer) {
-		GPU_buffer_free(mres_glob_buffer);
+	else if (gridbuff->mres_buffer) {
+		GPU_buffer_free(gridbuff->mres_buffer);
 	}
 
 	/* Build new VBO */
@@ -1439,17 +1431,17 @@ static GPUBuffer *gpu_get_grid_buffer(int gridsize, GLenum *index_type, unsigned
 
 	if (gridsize * gridsize < USHRT_MAX) {
 		*index_type = GL_UNSIGNED_SHORT;
-		FILL_QUAD_BUFFER(unsigned short, *totquad, mres_glob_buffer);
+		FILL_QUAD_BUFFER(unsigned short, *totquad, gridbuff->mres_buffer);
 	}
 	else {
 		*index_type = GL_UNSIGNED_INT;
-		FILL_QUAD_BUFFER(unsigned int, *totquad, mres_glob_buffer);
+		FILL_QUAD_BUFFER(unsigned int, *totquad, gridbuff->mres_buffer);
 	}
 
-	mres_prev_gridsize = gridsize;
-	mres_prev_index_type = *index_type;
-	mres_prev_totquad = *totquad;
-	return mres_glob_buffer;
+	gridbuff->mres_prev_gridsize = gridsize;
+	gridbuff->mres_prev_index_type = *index_type;
+	gridbuff->mres_prev_totquad = *totquad;
+	return gridbuff->mres_buffer;
 }
 
 #define FILL_FAST_BUFFER(type_) \
@@ -1476,8 +1468,9 @@ static GPUBuffer *gpu_get_grid_buffer(int gridsize, GLenum *index_type, unsigned
 	} \
 } (void)0
 
-GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
-                                              BLI_bitmap **grid_hidden, int gridsize, const CCGKey *key)
+GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(
+        int *grid_indices, int totgrid, BLI_bitmap **grid_hidden, int gridsize, const CCGKey *key,
+        GridCommonGPUBuffer **grid_common_gpu_buffer)
 {
 	GPU_PBVH_Buffers *buffers;
 	int totquad;
@@ -1506,8 +1499,10 @@ GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
 	}
 
 	if (totquad == fully_visible_totquad) {
-		buffers->index_buf = gpu_get_grid_buffer(gridsize, &buffers->index_type, &buffers->tot_quad);
+		buffers->index_buf = gpu_get_grid_buffer(
+		                         gridsize, &buffers->index_type, &buffers->tot_quad, grid_common_gpu_buffer);
 		buffers->has_hidden = false;
+		buffers->is_index_buf_global = true;
 	}
 	else {
 		buffers->tot_quad = totquad;
@@ -1522,6 +1517,7 @@ GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
 		}
 
 		buffers->has_hidden = true;
+		buffers->is_index_buf_global = false;
 	}
 
 	/* Build coord/normal VBO */
@@ -1746,8 +1742,9 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
 		const int use_short = (maxvert < USHRT_MAX);
 
 		/* Initialize triangle index buffer */
-		if (buffers->index_buf)
+		if (buffers->index_buf && !buffers->is_index_buf_global)
 			GPU_buffer_free(buffers->index_buf);
+		buffers->is_index_buf_global = false;
 		buffers->index_buf = GPU_buffer_alloc((use_short ?
 		                                      sizeof(unsigned short) :
 		                                      sizeof(unsigned int)) * 3 * tottri);
@@ -1792,12 +1789,19 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
 		}
 		else {
 			/* Memory map failed */
-			GPU_buffer_free(buffers->index_buf);
+			if (!buffers->is_index_buf_global) {
+				GPU_buffer_free(buffers->index_buf);
+			}
 			buffers->index_buf = NULL;
+			buffers->is_index_buf_global = false;
 		}
 	}
 	else if (buffers->index_buf) {
-		GPU_buffer_free(buffers->index_buf);
+		if (!buffers->is_index_buf_global) {
+			GPU_buffer_free(buffers->index_buf);
+		}
+		buffers->index_buf = NULL;
+		buffers->is_index_buf_global = false;
 	}
 }
 
@@ -1993,7 +1997,7 @@ void GPU_free_pbvh_buffers(GPU_PBVH_Buffers *buffers)
 	if (buffers) {
 		if (buffers->vert_buf)
 			GPU_buffer_free(buffers->vert_buf);
-		if (buffers->index_buf && (buffers->tot_tri || buffers->has_hidden))
+		if (buffers->index_buf && !buffers->is_index_buf_global)
 			GPU_buffer_free(buffers->index_buf);
 		if (buffers->index_buf_fast)
 			GPU_buffer_free(buffers->index_buf_fast);
@@ -2006,6 +2010,20 @@ void GPU_free_pbvh_buffers(GPU_PBVH_Buffers *buffers)
 	}
 }
 
+void GPU_free_pbvh_buffer_multires(GridCommonGPUBuffer **grid_common_gpu_buffer)
+{
+	GridCommonGPUBuffer *gridbuff = *grid_common_gpu_buffer;
+
+	if (gridbuff) {
+		if (gridbuff->mres_buffer) {
+			BLI_mutex_lock(&buffer_mutex);
+			gpu_buffer_free_intern(gridbuff->mres_buffer);
+			BLI_mutex_unlock(&buffer_mutex);
+		}
+		MEM_freeN(gridbuff);
+		*grid_common_gpu_buffer = NULL;
+	}
+}
 
 /* debug function, draws the pbvh BB */
 void GPU_draw_pbvh_BB(float min[3], float max[3], bool leaf)

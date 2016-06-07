@@ -583,9 +583,16 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 
 	BLI_argsPrintArgDoc(ba, "--");
 
+	printf("\n");
 	printf("Other Options:\n");
 	BLI_argsPrintOtherDoc(ba);
 
+	/* keep last args */
+	printf("\n");
+	printf("Experimental Features:\n");
+	BLI_argsPrintArgDoc(ba, "--enable-new-depsgraph");
+
+	printf("\n");
 	printf("Argument Parsing:\n");
 	printf("\tArguments must be separated by white space, eg:\n");
 	printf("\t# blender -ba test.blend\n");
@@ -618,11 +625,6 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	printf("  $SDL_AUDIODRIVER          LibSDL audio driver - alsa, esd, dma.\n");
 #endif
 	printf("  $PYTHONHOME               Path to the python directory, eg. /usr/lib/python.\n\n");
-
-	/* keep last */
-	printf("\n");
-	printf("Experimental Features:\n");
-	BLI_argsPrintArgDoc(ba, "--enable-new-depsgraph");
 
 	exit(0);
 
@@ -862,7 +864,7 @@ static const char arg_handle_playback_mode_doc[] =
 "<options> <file(s)>\n"
 "\tPlayback <file(s)>, only operates this way when not running in background.\n"
 "\t\t-p <sx> <sy>\tOpen with lower left corner at <sx>, <sy>\n"
-"\t\t-m\t\tRead from disk (Don't buffer)\n"
+"\t\t-m\t\tRead from disk (Do not buffer)\n"
 "\t\t-f <fps> <fps-base>\t\tSpecify FPS to start with\n"
 "\t\t-j <frame>\tSet frame step to <frame>\n"
 "\t\t-s <frame>\tPlay from <frame>\n"
@@ -950,10 +952,10 @@ static int arg_handle_start_with_console(int UNUSED(argc), const char **UNUSED(a
 }
 
 static const char arg_handle_register_extension_doc[] =
-"\n\tRegister .blend extension, then exit (Windows only)"
+"\n\tRegister blend-file extension, then exit (Windows only)"
 ;
 static const char arg_handle_register_extension_doc_silent[] =
-"\n\tSilently register .blend extension, then exit (Windows only)"
+"\n\tSilently register blend-file extension, then exit (Windows only)"
 ;
 static int arg_handle_register_extension(int UNUSED(argc), const char **UNUSED(argv), void *data)
 {

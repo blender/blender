@@ -212,14 +212,15 @@
 /***/
 
 typedef struct OldNew {
-	void *old, *newp;
+	const void *old;
+	void *newp;
 	int nr;
 } OldNew;
 
 typedef struct OldNewMap {
 	OldNew *entries;
 	int nentries, entriessize;
-	int sorted;
+	bool sorted;
 	int lasthit;
 } OldNewMap;
 
@@ -285,12 +286,13 @@ static int verg_oldnewmap(const void *v1, const void *v2)
 
 static void oldnewmap_sort(FileData *fd) 
 {
+	BLI_assert(fd->libmap->sorted == false);
 	qsort(fd->libmap->entries, fd->libmap->nentries, sizeof(OldNew), verg_oldnewmap);
 	fd->libmap->sorted = 1;
 }
 
 /* nr is zero for data, and ID code for libdata */
-static void oldnewmap_insert(OldNewMap *onm, void *oldaddr, void *newaddr, int nr) 
+static void oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void *newaddr, int nr)
 {
 	OldNew *entry;
 	
@@ -307,7 +309,7 @@ static void oldnewmap_insert(OldNewMap *onm, void *oldaddr, void *newaddr, int n
 	entry->nr = nr;
 }
 
-void blo_do_versions_oldnewmap_insert(OldNewMap *onm, void *oldaddr, void *newaddr, int nr)
+void blo_do_versions_oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void *newaddr, int nr)
 {
 	oldnewmap_insert(onm, oldaddr, newaddr, nr);
 }
@@ -362,7 +364,7 @@ static int oldnewmap_lookup_entry_full(const OldNewMap *onm, const void *addr, i
 	return -1;
 }
 
-static void *oldnewmap_lookup_and_inc(OldNewMap *onm, void *addr, bool increase_users) 
+static void *oldnewmap_lookup_and_inc(OldNewMap *onm, const void *addr, bool increase_users)
 {
 	int i;
 	
@@ -392,7 +394,7 @@ static void *oldnewmap_lookup_and_inc(OldNewMap *onm, void *addr, bool increase_
 }
 
 /* for libdata, nr has ID code, no increment */
-static void *oldnewmap_liblookup(OldNewMap *onm, void *addr, void *lib)
+static void *oldnewmap_liblookup(OldNewMap *onm, const void *addr, const void *lib)
 {
 	if (addr == NULL) {
 		return NULL;
@@ -400,11 +402,8 @@ static void *oldnewmap_liblookup(OldNewMap *onm, void *addr, void *lib)
 
 	/* lasthit works fine for non-libdata, linking there is done in same sequence as writing */
 	if (onm->sorted) {
-		OldNew entry_s, *entry;
-
-		entry_s.old = addr;
-
-		entry = bsearch(&entry_s, onm->entries, onm->nentries, sizeof(OldNew), verg_oldnewmap);
+		const OldNew entry_s = {.old = addr};
+		OldNew *entry = bsearch(&entry_s, onm->entries, onm->nentries, sizeof(OldNew), verg_oldnewmap);
 		if (entry) {
 			ID *id = entry->newp;
 
@@ -484,53 +483,57 @@ void blo_join_main(ListBase *mainlist)
 	}
 }
 
-static void split_libdata(ListBase *lb, Main *first)
+static void split_libdata(ListBase *lb_src, Main **lib_main_array, const unsigned int lib_main_array_len)
 {
-	ListBase *lbn;
-	ID *id, *idnext;
-	Main *mainvar;
-	
-	id = lb->first;
-	while (id) {
+	for (ID *id = lb_src->first, *idnext; id; id = idnext) {
 		idnext = id->next;
+
 		if (id->lib) {
-			mainvar = first;
-			while (mainvar) {
-				if (mainvar->curlib == id->lib) {
-					lbn= which_libbase(mainvar, GS(id->name));
-					BLI_remlink(lb, id);
-					BLI_addtail(lbn, id);
-					break;
-				}
-				mainvar = mainvar->next;
+			if (((unsigned int)id->lib->temp_index < lib_main_array_len) &&
+			    /* this check should never fail, just incase 'id->lib' is a dangling pointer. */
+			    (lib_main_array[id->lib->temp_index]->curlib == id->lib))
+			{
+				Main *mainvar = lib_main_array[id->lib->temp_index];
+				ListBase *lb_dst = which_libbase(mainvar, GS(id->name));
+				BLI_remlink(lb_src, id);
+				BLI_addtail(lb_dst, id);
 			}
-			if (mainvar == NULL) printf("error split_libdata\n");
+			else {
+				printf("%s: invalid library for '%s'\n", __func__, id->name);
+				BLI_assert(0);
+			}
 		}
-		id = idnext;
 	}
 }
 
 void blo_split_main(ListBase *mainlist, Main *main)
 {
-	ListBase *lbarray[MAX_LIBARRAY];
-	Library *lib;
-	int i;
-	
 	mainlist->first = mainlist->last = main;
 	main->next = NULL;
 	
 	if (BLI_listbase_is_empty(&main->library))
 		return;
 	
-	for (lib = main->library.first; lib; lib = lib->id.next) {
+	/* (Library.temp_index -> Main), lookup table */
+	const unsigned int lib_main_array_len = BLI_listbase_count(&main->library);
+	Main             **lib_main_array     = MEM_mallocN(lib_main_array_len * sizeof(*lib_main_array), __func__);
+
+	int i = 0;
+	for (Library *lib = main->library.first; lib; lib = lib->id.next, i++) {
 		Main *libmain = BKE_main_new();
 		libmain->curlib = lib;
 		BLI_addtail(mainlist, libmain);
+		lib->temp_index = i;
+		lib_main_array[i] = libmain;
 	}
 	
+	ListBase *lbarray[MAX_LIBARRAY];
 	i = set_listbasepointers(main, lbarray);
-	while (i--)
-		split_libdata(lbarray[i], main->next);
+	while (i--) {
+		split_libdata(lbarray[i], lib_main_array, lib_main_array_len);
+	}
+
+	MEM_freeN(lib_main_array);
 }
 
 static void read_file_version(FileData *fd, Main *main)
@@ -1411,7 +1414,7 @@ BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
 
 /* ************** OLD POINTERS ******************* */
 
-static void *newdataadr(FileData *fd, void *adr)		/* only direct databocks */
+static void *newdataadr(FileData *fd, const void *adr)		/* only direct databocks */
 {
 	return oldnewmap_lookup_and_inc(fd->datamap, adr, true);
 }
@@ -1428,7 +1431,7 @@ static void *newdataadr(FileData *fd, void *adr)		/* only direct databocks */
  * fcurve group pointer and keeps lasthit optimal for linking all further
  * fcurves.
  */
-static void *newdataadr_ex(FileData *fd, void *adr, bool increase_lasthit)		/* only direct databocks */
+static void *newdataadr_ex(FileData *fd, const void *adr, bool increase_lasthit)		/* only direct databocks */
 {
 	if (increase_lasthit) {
 		return newdataadr(fd, adr);
@@ -1441,38 +1444,38 @@ static void *newdataadr_ex(FileData *fd, void *adr, bool increase_lasthit)		/* o
 	}
 }
 
-static void *newdataadr_no_us(FileData *fd, void *adr)		/* only direct databocks */
+static void *newdataadr_no_us(FileData *fd, const void *adr)		/* only direct databocks */
 {
 	return oldnewmap_lookup_and_inc(fd->datamap, adr, false);
 }
 
-static void *newglobadr(FileData *fd, void *adr)	    /* direct datablocks with global linking */
+static void *newglobadr(FileData *fd, const void *adr)	    /* direct datablocks with global linking */
 {
 	return oldnewmap_lookup_and_inc(fd->globmap, adr, true);
 }
 
-static void *newimaadr(FileData *fd, void *adr)		    /* used to restore image data after undo */
+static void *newimaadr(FileData *fd, const void *adr)		    /* used to restore image data after undo */
 {
 	if (fd->imamap && adr)
 		return oldnewmap_lookup_and_inc(fd->imamap, adr, true);
 	return NULL;
 }
 
-static void *newmclipadr(FileData *fd, void *adr)      /* used to restore movie clip data after undo */
+static void *newmclipadr(FileData *fd, const void *adr)      /* used to restore movie clip data after undo */
 {
 	if (fd->movieclipmap && adr)
 		return oldnewmap_lookup_and_inc(fd->movieclipmap, adr, true);
 	return NULL;
 }
 
-static void *newsoundadr(FileData *fd, void *adr)      /* used to restore sound data after undo */
+static void *newsoundadr(FileData *fd, const void *adr)      /* used to restore sound data after undo */
 {
 	if (fd->soundmap && adr)
 		return oldnewmap_lookup_and_inc(fd->soundmap, adr, true);
 	return NULL;
 }
 
-static void *newpackedadr(FileData *fd, void *adr)      /* used to restore packed data after undo */
+static void *newpackedadr(FileData *fd, const void *adr)      /* used to restore packed data after undo */
 {
 	if (fd->packedmap && adr)
 		return oldnewmap_lookup_and_inc(fd->packedmap, adr, true);
@@ -1481,17 +1484,17 @@ static void *newpackedadr(FileData *fd, void *adr)      /* used to restore packe
 }
 
 
-static void *newlibadr(FileData *fd, void *lib, void *adr)		/* only lib data */
+static void *newlibadr(FileData *fd, const void *lib, const void *adr)		/* only lib data */
 {
 	return oldnewmap_liblookup(fd->libmap, adr, lib);
 }
 
-void *blo_do_versions_newlibadr(FileData *fd, void *lib, void *adr)		/* only lib data */
+void *blo_do_versions_newlibadr(FileData *fd, const void *lib, const void *adr)		/* only lib data */
 {
 	return newlibadr(fd, lib, adr);
 }
 
-static void *newlibadr_us(FileData *fd, void *lib, void *adr)	/* increases user number */
+static void *newlibadr_us(FileData *fd, const void *lib, const void *adr)	/* increases user number */
 {
 	ID *id = newlibadr(fd, lib, adr);
 	
@@ -1500,15 +1503,18 @@ static void *newlibadr_us(FileData *fd, void *lib, void *adr)	/* increases user 
 	return id;
 }
 
-void *blo_do_versions_newlibadr_us(FileData *fd, void *lib, void *adr)	/* increases user number */
+void *blo_do_versions_newlibadr_us(FileData *fd, const void *lib, const void *adr)	/* increases user number */
 {
 	return newlibadr_us(fd, lib, adr);
 }
 
-static void change_idid_adr_fd(FileData *fd, void *old, void *new)
+static void change_idid_adr_fd(FileData *fd, const void *old, void *new)
 {
 	int i;
 	
+	/* use a binary search if we have a sorted libmap, for now it's not needed. */
+	BLI_assert(fd->libmap->sorted == false);
+
 	for (i = 0; i < fd->libmap->nentries; i++) {
 		OldNew *entry = &fd->libmap->entries[i];
 		
@@ -7496,7 +7502,7 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *a
 	return bhead;
 }
 
-static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID **r_id)
+static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const short tag, ID **r_id)
 {
 	/* this routine reads a libblock and its direct data. Use link functions to connect it all
 	 */
@@ -7508,8 +7514,8 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	/* In undo case, most libs and linked data should be kept as is from previous state (see BLO_read_from_memfile).
 	 * However, some needed by the snapshot being read may have been removed in previous one, and would go missing.
 	 * This leads e.g. to desappearing objects in some undo/redo case, see T34446.
-     * That means we have to carefully check whether current lib or libdata already exits in old main, if it does
-     * we merely copy it over into new main area, otherwise we have to do a full read of that bhead... */
+	 * That means we have to carefully check whether current lib or libdata already exits in old main, if it does
+	 * we merely copy it over into new main area, otherwise we have to do a full read of that bhead... */
 	if (fd->memfile && ELEM(bhead->code, ID_LI, ID_ID)) {
 		const char *idname = bhead_id_name(fd, bhead);
 
@@ -7582,7 +7588,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	if (!id)
 		return blo_nextbhead(fd, bhead);
 	
-	id->tag = flag | LIB_TAG_NEED_LINK;
+	id->tag = tag | LIB_TAG_NEED_LINK;
 	id->lib = main->curlib;
 	id->us = ID_FAKE_USERS(id);
 	id->icon_id = 0;
@@ -9229,7 +9235,7 @@ static void give_base_to_groups(
 	}
 }
 
-static ID *create_placeholder(Main *mainvar, const char *idname, const short flag)
+static ID *create_placeholder(Main *mainvar, const char *idname, const short tag)
 {
 	const short idcode = GS(idname);
 	ListBase *lb = which_libbase(mainvar, idcode);
@@ -9238,7 +9244,7 @@ static ID *create_placeholder(Main *mainvar, const char *idname, const short fla
 	memcpy(ph_id->name, idname, sizeof(ph_id->name));
 	BKE_libblock_init_empty(ph_id);
 	ph_id->lib = mainvar->curlib;
-	ph_id->tag = flag | LIB_TAG_MISSING;
+	ph_id->tag = tag | LIB_TAG_MISSING;
 	ph_id->us = ID_FAKE_USERS(ph_id);
 	ph_id->icon_id = 0;
 
@@ -9577,21 +9583,22 @@ void *BLO_library_read_struct(FileData *fd, BHead *bh, const char *blockname)
 
 /* ************* READ LIBRARY ************** */
 
-static int mainvar_count_libread_blocks(Main *mainvar)
+static int mainvar_id_tag_any_check(Main *mainvar, const short tag)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
-	int a, tot = 0;
+	int a;
 	
 	a = set_listbasepointers(mainvar, lbarray);
 	while (a--) {
 		ID *id;
 		
 		for (id = lbarray[a]->first; id; id = id->next) {
-			if (id->tag & LIB_TAG_READ)
-				tot++;
+			if (id->tag & tag) {
+				return true;
+			}
 		}
 	}
-	return tot;
+	return false;
 }
 
 static void read_libraries(FileData *basefd, ListBase *mainlist)
@@ -9611,10 +9618,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 		/* test 1: read libdata */
 		mainptr= mainl->next;
 		while (mainptr) {
-			int tot = mainvar_count_libread_blocks(mainptr);
-			
-			// printf("found LIB_TAG_READ %s\n", mainptr->curlib->name);
-			if (tot) {
+			if (mainvar_id_tag_any_check(mainptr, LIB_TAG_READ)) {
+				// printf("found LIB_TAG_READ %s\n", mainptr->curlib->name);
+
 				FileData *fd = mainptr->curlib->filedata;
 				
 				if (fd == NULL) {

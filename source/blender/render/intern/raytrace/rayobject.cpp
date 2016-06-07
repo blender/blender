@@ -138,80 +138,29 @@ MALWAYS_INLINE int vlr_check_bake(Isect *is, ObjectInstanceRen *obi, VlakRen *UN
 
 /* Ray Triangle/Quad Intersection */
 
-MALWAYS_INLINE int isec_tri_quad(float start[3], float dir[3], RayFace *face, float uv[2], float *lambda)
+MALWAYS_INLINE int isec_tri_quad(float start[3], const struct IsectRayPrecalc *isect_precalc, RayFace *face, float r_uv[2], float *lambda)
 {
-	float co1[3], co2[3], co3[3], co4[3];
-	float t0[3], t1[3], x[3], r[3], m[3], u, v, divdet, det1, l;
-	int quad;
+	float uv[2], l;
 
-	quad = RE_rayface_isQuad(face);
-
-	copy_v3_v3(co1, face->v1);
-	copy_v3_v3(co2, face->v2);
-	copy_v3_v3(co3, face->v3);
-
-	copy_v3_v3(r, dir);
-
-	/* intersect triangle */
-	sub_v3_v3v3(t0, co3, co2);
-	sub_v3_v3v3(t1, co3, co1);
-
-	cross_v3_v3v3(x, r, t1);
-	divdet = dot_v3v3(t0, x);
-
-	sub_v3_v3v3(m, start, co3);
-	det1 = dot_v3v3(m, x);
-	
-	if (divdet != 0.0f) {
-		divdet = 1.0f / divdet;
-		v = det1 * divdet;
-
-		if (v < RE_RAYTRACE_EPSILON && v > -(1.0f + RE_RAYTRACE_EPSILON)) {
-			float cros[3];
-
-			cross_v3_v3v3(cros, m, t0);
-			u = divdet * dot_v3v3(cros, r);
-
-			if (u < RE_RAYTRACE_EPSILON && (v + u) > -(1.0f + RE_RAYTRACE_EPSILON)) {
-				l = divdet * dot_v3v3(cros, t1);
-
-				/* check if intersection is within ray length */
-				if (l > -RE_RAYTRACE_EPSILON && l < *lambda) {
-					uv[0] = u;
-					uv[1] = v;
-					*lambda = l;
-					return 1;
-				}
-			}
+	if (isect_ray_tri_watertight_v3(start, isect_precalc, face->v1, face->v2, face->v3, &l, uv)) {
+		/* check if intersection is within ray length */
+		if (l > -RE_RAYTRACE_EPSILON && l < *lambda) {
+			r_uv[0] = uv[0];
+			r_uv[1] = uv[1];
+			*lambda = l;
+			return 1;
 		}
 	}
 
 	/* intersect second triangle in quad */
-	if (quad) {
-		copy_v3_v3(co4, face->v4);
-		sub_v3_v3v3(t0, co3, co4);
-		divdet = dot_v3v3(t0, x);
-
-		if (divdet != 0.0f) {
-			divdet = 1.0f / divdet;
-			v = det1 * divdet;
-			
-			if (v < RE_RAYTRACE_EPSILON && v > -(1.0f + RE_RAYTRACE_EPSILON)) {
-				float cros[3];
-
-				cross_v3_v3v3(cros, m, t0);
-				u = divdet * dot_v3v3(cros, r);
-	
-				if (u < RE_RAYTRACE_EPSILON && (v + u) > -(1.0f + RE_RAYTRACE_EPSILON)) {
-					l = divdet * dot_v3v3(cros, t1);
-					
-					if (l > -RE_RAYTRACE_EPSILON && l < *lambda) {
-						uv[0] = u;
-						uv[1] = -(1.0f + v + u);
-						*lambda = l;
-						return 2;
-					}
-				}
+	if (RE_rayface_isQuad(face)) {
+		if (isect_ray_tri_watertight_v3(start, isect_precalc, face->v1, face->v3, face->v4, &l, uv)) {
+			/* check if intersection is within ray length */
+			if (l > -RE_RAYTRACE_EPSILON && l < *lambda) {
+				r_uv[0] = uv[0];
+				r_uv[1] = uv[1];
+				*lambda = l;
+				return 2;
 			}
 		}
 	}
@@ -223,62 +172,23 @@ MALWAYS_INLINE int isec_tri_quad(float start[3], float dir[3], RayFace *face, fl
 
 MALWAYS_INLINE int isec_tri_quad_neighbour(float start[3], float dir[3], RayFace *face)
 {
-	float co1[3], co2[3], co3[3], co4[3];
-	float t0[3], t1[3], x[3], r[3], m[3], u, v, divdet, det1;
-	int quad;
+	float r[3];
+	struct IsectRayPrecalc isect_precalc;
+	float uv[2], l;
 
-	quad = RE_rayface_isQuad(face);
-
-	copy_v3_v3(co1, face->v1);
-	copy_v3_v3(co2, face->v2);
-	copy_v3_v3(co3, face->v3);
 
 	negate_v3_v3(r, dir); /* note, different than above function */
 
-	/* intersect triangle */
-	sub_v3_v3v3(t0, co3, co2);
-	sub_v3_v3v3(t1, co3, co1);
+	isect_ray_tri_watertight_v3_precalc(&isect_precalc, r);
 
-	cross_v3_v3v3(x, r, t1);
-	divdet = dot_v3v3(t0, x);
-
-	sub_v3_v3v3(m, start, co3);
-	det1 = dot_v3v3(m, x);
-	
-	if (divdet != 0.0f) {
-		divdet = 1.0f / divdet;
-		v = det1 * divdet;
-
-		if (v < RE_RAYTRACE_EPSILON && v > -(1.0f + RE_RAYTRACE_EPSILON)) {
-			float cros[3];
-
-			cross_v3_v3v3(cros, m, t0);
-			u = divdet * dot_v3v3(cros, r);
-
-			if (u < RE_RAYTRACE_EPSILON && (v + u) > -(1.0f + RE_RAYTRACE_EPSILON))
-				return 1;
-		}
+	if (isect_ray_tri_watertight_v3(start, &isect_precalc, face->v1, face->v2, face->v3, &l, uv)) {
+		return 1;
 	}
 
 	/* intersect second triangle in quad */
-	if (quad) {
-		copy_v3_v3(co4, face->v4);
-		sub_v3_v3v3(t0, co3, co4);
-		divdet = dot_v3v3(t0, x);
-
-		if (divdet != 0.0f) {
-			divdet = 1.0f / divdet;
-			v = det1 * divdet;
-			
-			if (v < RE_RAYTRACE_EPSILON && v > -(1.0f + RE_RAYTRACE_EPSILON)) {
-				float cros[3];
-
-				cross_v3_v3v3(cros, m, t0);
-				u = divdet * dot_v3v3(cros, r);
-	
-				if (u < RE_RAYTRACE_EPSILON && (v + u) > -(1.0f + RE_RAYTRACE_EPSILON))
-					return 2;
-			}
+	if (RE_rayface_isQuad(face)) {
+		if (isect_ray_tri_watertight_v3(start, &isect_precalc, face->v1, face->v3, face->v4, &l, uv)) {
+			return 2;
 		}
 	}
 
@@ -317,7 +227,7 @@ MALWAYS_INLINE int intersect_rayface(RayObject *hit_obj, RayFace *face, Isect *i
 	RE_RC_COUNT(is->raycounter->faces.test);
 
 	dist = is->dist;
-	ok = isec_tri_quad(is->start, is->dir, face, uv, &dist);
+	ok = isec_tri_quad(is->start, &is->isect_precalc, face, uv, &dist);
 
 	if (ok) {
 	
@@ -388,6 +298,9 @@ MALWAYS_INLINE int intersect_rayface(RayObject *hit_obj, RayFace *face, Isect *i
 int RE_rayobject_raycast(RayObject *r, Isect *isec)
 {
 	int i;
+
+	/* Pre-calculate orientation for watertight intersection checks. */
+	isect_ray_tri_watertight_v3_precalc(&isec->isect_precalc, isec->dir);
 
 	RE_RC_COUNT(isec->raycounter->raycast.test);
 

@@ -125,7 +125,7 @@ def register():
     WindowManager.addon_filter = EnumProperty(
             items=addon_filter_items,
             name="Category",
-            description="Filter addons by category",
+            description="Filter add-ons by category",
             )
 
     WindowManager.addon_support = EnumProperty(

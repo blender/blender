@@ -156,9 +156,9 @@ const char *bhead_id_name(const FileData *fd, const BHead *bhead);
 
 void blo_reportf_wrap(struct ReportList *reports, ReportType type, const char *format, ...) ATTR_PRINTF_FORMAT(3, 4);
 
-void blo_do_versions_oldnewmap_insert(struct OldNewMap *onm, void *oldaddr, void *newaddr, int nr);
-void *blo_do_versions_newlibadr(struct FileData *fd, void *lib, void *adr);
-void *blo_do_versions_newlibadr_us(struct FileData *fd, void *lib, void *adr);
+void blo_do_versions_oldnewmap_insert(struct OldNewMap *onm, const void *oldaddr, void *newaddr, int nr);
+void *blo_do_versions_newlibadr(struct FileData *fd, const void *lib, const void *adr);
+void *blo_do_versions_newlibadr_us(struct FileData *fd, const void *lib, const void *adr);
 
 struct PartEff *blo_do_version_give_parteff_245(struct Object *ob);
 void blo_do_version_old_trackto_to_constraints(struct Object *ob);
