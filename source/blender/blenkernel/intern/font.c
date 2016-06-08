@@ -541,7 +541,7 @@ int BKE_vfont_select_get(Object *ob, int *r_start, int *r_end)
 
 	BLI_assert(ef->len >= 0);
 	BLI_assert(ef->selstart >= 0 && ef->selstart <= ef->len + 1);
-	BLI_assert(ef->selend   >= 0 && ef->selend   <= ef->len);
+	BLI_assert(ef->selend   >= 0 && ef->selend   <= ef->len + 1);
 	BLI_assert(ef->pos      >= 0 && ef->pos      <= ef->len);
 
 	if (ef->selstart == 0) {
