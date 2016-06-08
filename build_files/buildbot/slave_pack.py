@@ -108,6 +108,8 @@ if builder.find('cmake') != -1:
                 platform += 'i386'
             elif builder.endswith('ppc_10_6_cmake'):
                 platform += 'ppc'
+        if builder.endswith('vc2015'):
+            platform += "-vc14"
         builderified_name = 'blender-{}-{}-{}'.format(blender_full_version, git_hash, platform)
         if branch != '':
             builderified_name = branch + "-" + builderified_name
