@@ -93,8 +93,9 @@ if (GPU_basic_shader_use_glsl_get()) { \
 } ((void)0)
 
 
-void GPU_basic_shader_colors(const float diffuse[3], const float specular[3],
-	int shininess, float alpha);
+void GPU_basic_shader_colors(
+        const float diffuse[3], const float specular[3],
+        int shininess, float alpha);
 
 /* Fixed Function Lighting */
 

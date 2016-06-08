@@ -562,7 +562,9 @@ static void gpu_verify_high_bit_srgb_buffer(float *srgb_frect,
 	}
 }
 
-int GPU_verify_image(Image *ima, ImageUser *iuser, int textarget, int tftile, bool compare, bool mipmap, bool is_data)
+int GPU_verify_image(
+        Image *ima, ImageUser *iuser,
+        int textarget, int tftile, bool compare, bool mipmap, bool is_data)
 {
 	unsigned int *bind = NULL;
 	int tpx = 0, tpy = 0;
@@ -844,8 +846,9 @@ static void gpu_del_cube_map(void **cube_map)
 }
 
 /* Image *ima can be NULL */
-void GPU_create_gl_tex(unsigned int *bind, unsigned int *rect, float *frect, int rectw, int recth,
-	int textarget, bool mipmap, bool use_high_bit_depth, Image *ima)
+void GPU_create_gl_tex(
+        unsigned int *bind, unsigned int *rect, float *frect, int rectw, int recth,
+        int textarget, bool mipmap, bool use_high_bit_depth, Image *ima)
 {
 	ImBuf *ibuf = NULL;
 
