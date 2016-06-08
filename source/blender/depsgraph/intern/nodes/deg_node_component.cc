@@ -86,7 +86,6 @@ static void comp_node_hash_value_free(void *value_v)
 ComponentDepsNode::ComponentDepsNode() :
     entry_operation(NULL),
     exit_operation(NULL),
-    flags(0),
     layers(0)
 {
 	operations_map = BLI_ghash_new(comp_node_hash_key,

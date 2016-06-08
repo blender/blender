@@ -85,8 +85,7 @@ static void flush_init_func(void *data_v, int i)
 	id_node->done = 0;
 	comp_node->done = 0;
 	node->scheduled = false;
-	node->owner->flags &= ~DEPSCOMP_FULLY_SCHEDULED;
-	if (node->owner->type == DEPSNODE_TYPE_PROXY) {
+	if (comp_node->type == DEPSNODE_TYPE_PROXY) {
 		node->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
 	}
 }

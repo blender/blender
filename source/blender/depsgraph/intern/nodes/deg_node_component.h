@@ -47,13 +47,6 @@ struct Depsgraph;
 struct OperationDepsNode;
 struct BoneComponentDepsNode;
 
-typedef enum eDepsComponent_Flag {
-	/* Temporary flags, meaning all the component's operations has been
-	 * scheduled for update.
-	 */
-	DEPSCOMP_FULLY_SCHEDULED = 1,
-} eDepsComponent_Flag;
-
 /* ID Component - Base type for all components */
 struct ComponentDepsNode : public DepsNode {
 	/* Key used to look up operations within a component */
@@ -164,8 +157,6 @@ struct ComponentDepsNode : public DepsNode {
 	OperationDepsNode *exit_operation;
 
 	// XXX: a poll() callback to check if component's first node can be started?
-
-	int flags;
 
 	/* Temporary bitmask, used during graph construction. */
 	int layers;
