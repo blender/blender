@@ -65,7 +65,7 @@ MALWAYS_INLINE __m128 linearrgb_to_srgb_v4_simd(const __m128 c)
 
 MINLINE void srgb_to_linearrgb_v3_v3(float linear[3], const float srgb[3])
 {
-	float r[4] = {srgb[0], srgb[1], srgb[2], 0.0f};
+	float r[4] = {srgb[0], srgb[1], srgb[2], 1.0f};
 	__m128 *rv = (__m128 *)&r;
 	*rv = srgb_to_linearrgb_v4_simd(*rv);
 	linear[0] = r[0];
@@ -75,7 +75,7 @@ MINLINE void srgb_to_linearrgb_v3_v3(float linear[3], const float srgb[3])
 
 MINLINE void linearrgb_to_srgb_v3_v3(float srgb[3], const float linear[3])
 {
-	float r[4] = {linear[0], linear[1], linear[2], 0.0f};
+	float r[4] = {linear[0], linear[1], linear[2], 1.0f};
 	__m128 *rv = (__m128 *)&r;
 	*rv = linearrgb_to_srgb_v4_simd(*rv);
 	srgb[0] = r[0];
