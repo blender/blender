@@ -276,7 +276,7 @@ ccl_device float kernel_volume_distance_sample(float max_t, float3 sigma_t, int 
 	float sample_t = min(max_t, -logf(1.0f - xi*(1.0f - sample_transmittance))/sample_sigma_t);
 
 	*transmittance = volume_color_transmittance(sigma_t, sample_t);
-	*pdf = (sigma_t * *transmittance)/(make_float3(1.0f, 1.0f, 1.0f) - full_transmittance);
+	*pdf = safe_divide_color(sigma_t * *transmittance, make_float3(1.0f, 1.0f, 1.0f) - full_transmittance);
 
 	/* todo: optimization: when taken together with hit/miss decision,
 	 * the full_transmittance cancels out drops out and xi does not
@@ -290,7 +290,7 @@ ccl_device float3 kernel_volume_distance_pdf(float max_t, float3 sigma_t, float 
 	float3 full_transmittance = volume_color_transmittance(sigma_t, max_t);
 	float3 transmittance = volume_color_transmittance(sigma_t, sample_t);
 
-	return (sigma_t * transmittance)/(make_float3(1.0f, 1.0f, 1.0f) - full_transmittance);
+	return safe_divide_color(sigma_t * transmittance, make_float3(1.0f, 1.0f, 1.0f) - full_transmittance);
 }
 
 /* Emission */
@@ -625,10 +625,12 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg, PathState *sta
 		const int global_max_steps = kernel_data.integrator.volume_max_steps;
 		step_size = kernel_data.integrator.volume_step_size;
 		/* compute exact steps in advance for malloc */
-		max_steps = max((int)ceilf(ray->t/step_size), 1);
-		if(max_steps > global_max_steps) {
+		if(ray->t > global_max_steps*step_size) {
 			max_steps = global_max_steps;
 			step_size = ray->t / (float)max_steps;
+		}
+		else {
+			max_steps = max((int)ceilf(ray->t/step_size), 1);
 		}
 #ifdef __KERNEL_CPU__
 		/* NOTE: For the branched path tracing it's possible to have direct
