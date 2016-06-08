@@ -75,18 +75,20 @@ if 'cmake' in builder:
         cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE=/usr/local/cuda-hack/bin/nvcc')
 
     elif builder.startswith('win'):
-      if builder.endswith('_vc2015'):
-        if builder.startswith('win64'):
-            cmake_options.extend(['-G', 'Visual Studio 14 2015 Win64', '-DWITH_CYCLES_CUDA_BINARIES=0'])
-        elif builder.startswith('win32'):
-            bits = 32
-            cmake_options.extend(['-G', 'Visual Studio 14 2015', '-DWITH_CYCLES_CUDA_BINARIES=0'])
-      else:
-        if builder.startswith('win64'):
-            cmake_options.extend(['-G', 'Visual Studio 12 2013 Win64'])
-        elif builder.startswith('win32'):
-            bits = 32
-            cmake_options.extend(['-G', 'Visual Studio 12 2013'])
+        if builder.endswith('_vc2015'):
+            if builder.startswith('win64'):
+                cmake_options.extend(['-G', 'Visual Studio 14 2015 Win64'])
+            elif builder.startswith('win32'):
+                bits = 32
+                cmake_options.extend(['-G', 'Visual Studio 14 2015'])
+            cmake_extra_options.append('-DCUDA_NVCC_FLAGS=--cl-version;2013;' +
+                '--compiler-bindir;C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\bin')
+        else:
+            if builder.startswith('win64'):
+                cmake_options.extend(['-G', 'Visual Studio 12 2013 Win64'])
+            elif builder.startswith('win32'):
+                bits = 32
+                cmake_options.extend(['-G', 'Visual Studio 12 2013'])
 
     elif builder.startswith('linux'):
         tokens = builder.split("_")
