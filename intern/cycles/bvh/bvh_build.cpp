@@ -230,6 +230,7 @@ void BVHBuild::add_references(BVHRange& root)
 	foreach(Object *ob, objects) {
 		if(params.top_level) {
 			if(!ob->is_traceable()) {
+				++i;
 				continue;
 			}
 			if(!ob->mesh->is_instanced())
