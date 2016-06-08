@@ -4911,7 +4911,7 @@ static float view_autodist_depth_margin(ARegion *ar, const int mval[2], int marg
  * Get the world-space 3d location from a screen-space 2d point.
  *
  * \param mval: Input screen-space pixel location.
- * \param mouse_worldloc: Output world-space loction.
+ * \param mouse_worldloc: Output world-space location.
  * \param fallback_depth_pt: Use this points depth when no depth can be found.
  */
 bool ED_view3d_autodist(

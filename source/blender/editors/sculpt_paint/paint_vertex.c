@@ -1323,7 +1323,7 @@ static bool do_weight_paint_normalize_all_locked(
 
 /**
  * \note same as function above except it does a second pass without active group
- * if nomalize fails with it.
+ * if normalize fails with it.
  */
 static void do_weight_paint_normalize_all_locked_try_active(
         MDeformVert *dvert, const int defbase_tot, const bool *vgroup_validmap,
@@ -1340,7 +1340,7 @@ static void do_weight_paint_normalize_all_locked_try_active(
 		 * - With 1.0 weight painted into active:
 		 *   nonzero locked weight; first pass zeroed out unlocked weight; scale 1 down to fit.
 		 * - With 0.0 weight painted into active:
-		 *   no unlocked groups; first pass did nothing; increaze 0 to fit.
+		 *   no unlocked groups; first pass did nothing; increase 0 to fit.
 		 */
 		do_weight_paint_normalize_all_locked(dvert, defbase_tot, vgroup_validmap, lock_flags);
 	}
