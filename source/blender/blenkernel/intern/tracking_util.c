@@ -529,7 +529,7 @@ typedef struct AccessCacheKey {
 static unsigned int accesscache_hashhash(const void *key_v)
 {
 	const AccessCacheKey *key = (const AccessCacheKey *) key_v;
-	/* TODP(sergey): Need better hasing here for faster frame access. */
+	/* TODP(sergey): Need better hashing here for faster frame access. */
 	return key->clip_index << 16 | key->frame;
 }
 

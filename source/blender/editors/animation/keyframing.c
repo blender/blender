@@ -2035,7 +2035,7 @@ bool autokeyframe_cfra_can_key(Scene *scene, ID *id)
 	else {
 		/* Normal Mode (or treat as being normal mode):
 		 *
-		 * Just in case the flags are't set properly (i.e. only on/off is set, without a mode)
+		 * Just in case the flags can't set properly (i.e. only on/off is set, without a mode)
 		 * let's set the "normal" flag too, so that it will all be sane everywhere...
 		 */
 		scene->toolsettings->autokey_mode = AUTOKEY_MODE_NORMAL;

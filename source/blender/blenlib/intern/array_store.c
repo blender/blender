@@ -36,7 +36,7 @@
  *
  * This diagram is an overview of the structure of a single array-store.
  *
- * \note The only 2 structues here which are referenced externally are the.
+ * \note The only 2 structures here which are referenced externally are the.
  *
  * - BArrayStore: The whole array store.
  * - BArrayState: Represents a single state (array) of data.
@@ -92,7 +92,7 @@
  * First matches at either end of the array are detected.
  * For identical arrays this is all thats needed.
  *
- * De-duplication is performed on any remaining chunks, by hasing the first few bytes of the chunk
+ * De-duplication is performed on any remaining chunks, by hashing the first few bytes of the chunk
  * (see: BCHUNK_HASH_TABLE_ACCUMULATE_STEPS).
  *
  * \note This is cached for reuse since the referenced data never changes.
@@ -650,7 +650,7 @@ static void bchunk_list_append_data(
  * Use for adding arrays of arbitrary sized memory at once.
  *
  * \note This function takes care not to perform redundant chunk-merging checks,
- * so we can write succesive fixed size chunks quickly.
+ * so we can write successive fixed size chunks quickly.
  */
 static void bchunk_list_append_data_n(
         const BArrayInfo *info, BArrayMemory *bs_mem,
@@ -1680,7 +1680,7 @@ void *BLI_array_store_state_data_get_alloc(
 /** \} */
 
 
-/** \name Debigging API (for testing).
+/** \name Debugging API (for testing).
  * \{ */
 
 /* only for test validation */

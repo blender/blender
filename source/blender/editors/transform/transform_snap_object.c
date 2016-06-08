@@ -198,7 +198,7 @@ static void raycast_all_cb(void *userdata, int index, const BVHTreeRay *ray, BVH
 		mul_m3_v3((float(*)[3])data->timat, normal);
 		normalize_v3(normal);
 
-		/* currently unused, and causes issues when looptri's havn't been calculated.
+		/* currently unused, and causes issues when looptri's haven't been calculated.
 		 * since theres some overhead in ensuring this data is valid, it may need to be optional. */
 #if 0
 		if (data->dm) {
@@ -735,7 +735,7 @@ static bool snapDerivedMesh(
 			if (bb) {
 				BoundBox bb_temp;
 
-				/* We cannot aford a bbox with some null dimension, which may happen in some cases...
+				/* We cannot afford a bounding box with some null dimension, which may happen in some cases...
 				 * Threshold is rather high, but seems to be needed to get good behavior, see T46099. */
 				bb = BKE_boundbox_ensure_minimum_dimensions(bb, &bb_temp, 1e-1f);
 
