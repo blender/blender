@@ -327,6 +327,13 @@ float glaGetOneFloat(int param)
 	return v;
 }
 
+int glaGetOneInt(int param)
+{
+	GLint v;
+	glGetIntegerv(param, &v);
+	return v;
+}
+
 void glaRasterPosSafe2f(float x, float y, float known_good_x, float known_good_y)
 {
 	GLubyte dummy = 0;
