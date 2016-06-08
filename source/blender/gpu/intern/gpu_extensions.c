@@ -32,9 +32,6 @@
  * with checks for drivers and GPU support.
  */
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
@@ -42,7 +39,6 @@
 #include "BKE_global.h"
 
 #include "GPU_basic_shader.h"
-#include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_glew.h"
 #include "GPU_texture.h"

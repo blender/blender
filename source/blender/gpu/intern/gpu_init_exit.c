@@ -29,11 +29,8 @@
  *  \ingroup gpu
  */
 
-#include "BKE_DerivedMesh.h"
-
 #include "BLI_sys_types.h"
 #include "GPU_init_exit.h"  /* interface */
-#include "GPU_buffers.h"
 
 #include "BKE_global.h"
 

@@ -39,7 +39,6 @@
 #include <string.h>
 
 #include "GPU_glew.h"
-#include "GPU_debug.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
@@ -70,9 +69,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
-#include "BKE_object.h"
 #include "BKE_scene.h"
-#include "BKE_subsurf.h"
 #include "BKE_DerivedMesh.h"
 
 #include "GPU_basic_shader.h"
@@ -85,9 +82,13 @@
 
 #include "PIL_time.h"
 
-#include "smoke_API.h"
+#ifdef WITH_SMOKE
+#  include "smoke_API.h"
+#endif
 
 #ifdef WITH_OPENSUBDIV
+#  include "BKE_subsurf.h"
+#  include "BKE_DerivedMesh.h"
 #  include "BKE_editmesh.h"
 
 #  include "gpu_codegen.h"

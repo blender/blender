@@ -29,8 +29,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
-#include "BLI_math_base.h"
-#include "BLI_math_vector.h"
 
 #include "BKE_global.h"
 
