@@ -40,47 +40,62 @@
 #include "ED_curve.h"
 #include "ED_util.h"
 
-/* TODO, remove */
-#define MAXTEXT 32766
+typedef struct UndoFont {
+	wchar_t *textbuf;
+	struct CharInfo *textbufinfo;
 
-static void undoFont_to_editFont(void *strv, void *ecu, void *UNUSED(obdata))
+	int len, pos;
+} UndoFont;
+
+static void undoFont_to_editFont(void *uf_v, void *ecu, void *UNUSED(obdata))
 {
 	Curve *cu = (Curve *)ecu;
 	EditFont *ef = cu->editfont;
-	const char *str = strv;
+	const UndoFont *uf = uf_v;
 
-	ef->pos = *((const short *)str);
-	ef->len = *((const short *)(str + 2));
+	size_t final_size;
 
-	memcpy(ef->textbuf, str + 4, (ef->len + 1) * sizeof(wchar_t));
-	memcpy(ef->textbufinfo, str + 4 + (ef->len + 1) * sizeof(wchar_t), ef->len * sizeof(CharInfo));
+	final_size = sizeof(wchar_t) * (uf->len + 1);
+	memcpy(ef->textbuf, uf->textbuf, final_size);
+
+	final_size = sizeof(CharInfo) * (uf->len + 1);
+	memcpy(ef->textbufinfo, uf->textbufinfo, final_size);
+
+	ef->pos = uf->pos;
+	ef->len = uf->len;
 
 	ef->selstart = ef->selend = 0;
-
 }
 
 static void *editFont_to_undoFont(void *ecu, void *UNUSED(obdata))
 {
 	Curve *cu = (Curve *)ecu;
 	EditFont *ef = cu->editfont;
-	char *str;
 
-	/* The undo buffer includes [MAXTEXT+6]=actual string and [MAXTEXT+4]*sizeof(CharInfo)=charinfo */
-	str = MEM_callocN((MAXTEXT + 6) * sizeof(wchar_t) + (MAXTEXT + 4) * sizeof(CharInfo), "string undo");
+	UndoFont *uf = MEM_callocN(sizeof(*uf), __func__);
 
-	/* Copy the string and string information */
-	memcpy(str + 4, ef->textbuf, (ef->len + 1) * sizeof(wchar_t));
-	memcpy(str + 4 + (ef->len + 1) * sizeof(wchar_t), ef->textbufinfo, ef->len * sizeof(CharInfo));
+	size_t final_size;
 
-	*((short *)(str + 0)) = ef->pos;
-	*((short *)(str + 2)) = ef->len;
+	final_size = sizeof(wchar_t) * (ef->len + 1);
+	uf->textbuf = MEM_mallocN(final_size, __func__);
+	memcpy(uf->textbuf, ef->textbuf, final_size);
 
-	return str;
+	final_size = sizeof(CharInfo) * (ef->len + 1);
+	uf->textbufinfo = MEM_mallocN(final_size, __func__);
+	memcpy(uf->textbufinfo, ef->textbufinfo, final_size);
+
+	uf->pos = ef->pos;
+	uf->len = ef->len;
+
+	return uf;
 }
 
-static void free_undoFont(void *strv)
+static void free_undoFont(void *uf_v)
 {
-	MEM_freeN(strv);
+	UndoFont *uf = uf_v;
+	MEM_freeN(uf->textbuf);
+	MEM_freeN(uf->textbufinfo);
+	MEM_freeN(uf);
 }
 
 static void *get_undoFont(bContext *C)
