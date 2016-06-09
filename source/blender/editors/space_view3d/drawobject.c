@@ -1924,13 +1924,15 @@ static void drawcamera_stereo3d(
 
 	if (is_stereo3d_cameras) {
 		/* draw connecting lines */
-		glLineStipple(2, 0xAAAA);
-		glEnable(GL_LINE_STIPPLE);
+		GPU_basic_shader_bind_enable(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
+		GPU_basic_shader_line_stipple(2, 0xAAAA);
 
 		glBegin(GL_LINES);
 		glVertex3fv(origin[0]);
 		glVertex3fv(origin[1]);
 		glEnd();
+
+		GPU_basic_shader_bind_disable(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
 	}
 
 	/* draw convergence plane */
