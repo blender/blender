@@ -71,6 +71,9 @@
 #include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_DerivedMesh.h"
+#ifdef WITH_GAMEENGINE
+#  include "BKE_object.h"
+#endif
 
 #include "GPU_basic_shader.h"
 #include "GPU_buffers.h"
