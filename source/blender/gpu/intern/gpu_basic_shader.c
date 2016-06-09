@@ -520,6 +520,16 @@ void GPU_basic_shader_bind(int options)
 	GPU_MATERIAL_STATE.bound_options = options;
 }
 
+void GPU_basic_shader_bind_enable(int options)
+{
+	GPU_basic_shader_bind(GPU_MATERIAL_STATE.bound_options | options);
+}
+
+void GPU_basic_shader_bind_disable(int options)
+{
+	GPU_basic_shader_bind(GPU_MATERIAL_STATE.bound_options & ~options);
+}
+
 int GPU_basic_shader_bound_options(void)
 {
 	/* ideally this should disappear, anything that uses this is making fragile

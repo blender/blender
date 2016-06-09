@@ -1205,8 +1205,7 @@ void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 		
 		qobj = gluNewQuadric();
 		gluQuadricDrawStyle(qobj, GLU_FILL);
-		int bound_options = GPU_basic_shader_bound_options();
-		GPU_basic_shader_bind(bound_options);
+		GPU_basic_shader_bind(GPU_basic_shader_bound_options());
 		gluSphere(qobj, 100.0, 32, 24);
 		gluDeleteQuadric(qobj);
 		

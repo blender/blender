@@ -76,6 +76,9 @@ void GPU_basic_shaders_init(void);
 void GPU_basic_shaders_exit(void);
 
 void GPU_basic_shader_bind(int options);
+void GPU_basic_shader_bind_enable(int options);
+void GPU_basic_shader_bind_disable(int options);
+
 int GPU_basic_shader_bound_options(void);
 
 /* Only use for small blocks of code that don't support glsl shader. */
