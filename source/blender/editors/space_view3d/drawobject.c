@@ -1924,8 +1924,6 @@ static void drawcamera_stereo3d(
 
 	if (is_stereo3d_cameras) {
 		/* draw connecting lines */
-		glPushAttrib(GL_ENABLE_BIT);
-
 		glLineStipple(2, 0xAAAA);
 		glEnable(GL_LINE_STIPPLE);
 
@@ -1933,7 +1931,6 @@ static void drawcamera_stereo3d(
 		glVertex3fv(origin[0]);
 		glVertex3fv(origin[1]);
 		glEnd();
-		glPopAttrib();
 	}
 
 	/* draw convergence plane */
