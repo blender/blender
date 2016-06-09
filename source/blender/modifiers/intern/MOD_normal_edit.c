@@ -158,6 +158,7 @@ static bool polygons_check_flip(
         MPoly *mpoly, float (*polynors)[3], const int num_polys)
 {
 	MPoly *mp;
+	MDisps *mdisp = CustomData_get_layer(ldata, CD_MDISPS);
 	int i;
 	bool flipped = false;
 
@@ -176,7 +177,7 @@ static bool polygons_check_flip(
 
 		/* If average of new loop normals is opposed to polygon normal, flip polygon. */
 		if (dot_v3v3(polynors[i], norsum) < 0.0f) {
-			BKE_mesh_polygon_flip(mp, mloop, ldata);
+			BKE_mesh_polygon_flip_ex(mp, mloop, ldata, nos, mdisp, true);
 			negate_v3(polynors[i]);
 			flipped = true;
 		}
@@ -272,6 +273,8 @@ static void normalEditModifier_do_radial(
 
 	if (polygons_check_flip(mloop, nos, dm->getLoopDataLayout(dm), mpoly, polynors, num_polys)) {
 		dm->dirty |= DM_DIRTY_TESS_CDLAYERS;
+		/* We need to recompute vertex normals! */
+		dm->calcNormals(dm);
 	}
 
 	BKE_mesh_normals_loop_custom_set(mvert, num_verts, medge, num_edges, mloop, nos, num_loops,

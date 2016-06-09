@@ -1214,8 +1214,13 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 		glaDrawPixelsSafe(draw_x, draw_y, draw_w, draw_h, draw_w, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 	}
 	else {
+		int bound_options;
+		GPU_BASIC_SHADER_DISABLE_AND_STORE(bound_options);
+
 		glRasterPos2f(draw_x, draw_y);
 		glDrawPixels(draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+
+		GPU_BASIC_SHADER_ENABLE_AND_RESTORE(bound_options);
 	}
 
 	if (ima)

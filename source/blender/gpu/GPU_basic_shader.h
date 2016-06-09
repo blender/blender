@@ -46,12 +46,13 @@ typedef enum GPUBasicShaderOption {
 	GPU_SHADER_LIGHTING =         (1 << 1),   /* use lighting */
 	GPU_SHADER_TWO_SIDED =        (1 << 2),   /* flip normals towards viewer */
 	GPU_SHADER_TEXTURE_2D =       (1 << 3),   /* use 2D texture to replace diffuse color */
+	GPU_SHADER_TEXTURE_RECT =     (1 << 4),   /* same as GPU_SHADER_TEXTURE_2D, for GL_TEXTURE_RECTANGLE */
 
-	GPU_SHADER_SOLID_LIGHTING =   (1 << 4),   /* use faster lighting (set automatically) */
-	GPU_SHADER_STIPPLE =          (1 << 5),   /* use stipple */
-	GPU_SHADER_LINE =             (1 << 6),   /* draw lines */
-	GPU_SHADER_FLAT_NORMAL =      (1 << 7),   /* use flat normals */
-	GPU_SHADER_OPTIONS_NUM = 8,
+	GPU_SHADER_SOLID_LIGHTING =   (1 << 5),   /* use faster lighting (set automatically) */
+	GPU_SHADER_STIPPLE =          (1 << 6),   /* use stipple */
+	GPU_SHADER_LINE =             (1 << 7),   /* draw lines */
+	GPU_SHADER_FLAT_NORMAL =      (1 << 8),   /* use flat normals */
+	GPU_SHADER_OPTIONS_NUM = 9,
 	GPU_SHADER_OPTION_COMBINATIONS = (1 << GPU_SHADER_OPTIONS_NUM)
 } GPUBasicShaderOption;
 
@@ -76,6 +77,22 @@ void GPU_basic_shaders_exit(void);
 
 void GPU_basic_shader_bind(int options);
 int GPU_basic_shader_bound_options(void);
+
+/* Only use for small blocks of code that don't support glsl shader. */
+#define GPU_BASIC_SHADER_DISABLE_AND_STORE(bound_options) \
+if (GPU_basic_shader_use_glsl_get()) { \
+	if ((bound_options = GPU_basic_shader_bound_options())) { \
+		GPU_basic_shader_bind(0); \
+	} \
+} \
+else { bound_options = 0; } ((void)0)
+#define GPU_BASIC_SHADER_ENABLE_AND_RESTORE(bound_options) \
+if (GPU_basic_shader_use_glsl_get()) { \
+	if (bound_options) { \
+		GPU_basic_shader_bind(bound_options); \
+	} \
+} ((void)0)
+
 
 void GPU_basic_shader_colors(const float diffuse[3], const float specular[3],
 	int shininess, float alpha);
@@ -110,6 +127,9 @@ void GPU_basic_shader_light_set_viewer(bool local);
 void GPU_basic_shader_stipple(GPUBasicShaderStipple stipple_id);
 void GPU_basic_shader_line_stipple(GLint stipple_factor, GLushort stipple_pattern);
 void GPU_basic_shader_line_width(float line_width);
+
+bool GPU_basic_shader_use_glsl_get(void);
+void GPU_basic_shader_use_glsl_set(bool enabled);
 
 #ifdef __cplusplus
 }

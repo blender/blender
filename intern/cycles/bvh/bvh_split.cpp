@@ -404,7 +404,7 @@ void BVHSpatialSplit::split_object_reference(const Object *object,
                                              BoundBox& right_bounds)
 {
 	Mesh *mesh = object->mesh;
-	for(int tri_idx = 0; tri_idx < mesh->triangles.size(); ++tri_idx) {
+	for(int tri_idx = 0; tri_idx < mesh->num_triangles(); ++tri_idx) {
 		split_triangle_primitive(mesh,
 		                         &object->tfm,
 		                         tri_idx,

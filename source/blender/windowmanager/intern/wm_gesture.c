@@ -281,12 +281,17 @@ static void draw_filled_lasso(wmWindow *win, wmGesture *gt)
 		       (const int (*)[2])moves, tot,
 		       draw_filled_lasso_px_cb, &lasso_fill_data);
 
+		int bound_options;
+		GPU_BASIC_SHADER_DISABLE_AND_STORE(bound_options);
+
 		glEnable(GL_BLEND);
 		// glColor4f(1.0, 1.0, 1.0, 0.05);
 
 		glRasterPos2f(rect.xmin, rect.ymin);
 
 		glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixel_buf);
+
+		GPU_BASIC_SHADER_ENABLE_AND_RESTORE(bound_options);
 
 		glDisable(GL_BLEND);
 		MEM_freeN(pixel_buf);

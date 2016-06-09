@@ -51,8 +51,6 @@
 
 /* State */
 
-static const bool USE_GLSL = false;
-
 static struct {
 	GPUShader *cached_shaders[GPU_SHADER_OPTION_COMBINATIONS];
 	bool failed_shaders[GPU_SHADER_OPTION_COMBINATIONS];
@@ -269,6 +267,24 @@ const GLubyte stipple_hexagon[128] = {
 	0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22};
 /* ********************************************* */
 
+/* GLSL State */
+
+static bool USE_GLSL = false;
+
+/**
+ * \note this isn't part of the basic shader API,
+ * only set from the command line once on startup.
+ */
+void GPU_basic_shader_use_glsl_set(bool enabled)
+{
+	USE_GLSL = enabled;
+}
+
+bool GPU_basic_shader_use_glsl_get(void)
+{
+	return USE_GLSL;
+}
+
 /* Init / exit */
 
 void GPU_basic_shaders_init(void)
@@ -308,6 +324,9 @@ static int detect_options()
 
 	if (glIsEnabled(GL_TEXTURE_2D))
 		options |= GPU_SHADER_TEXTURE_2D;
+	if (glIsEnabled(GL_TEXTURE_RECTANGLE))
+		options |= GPU_SHADER_TEXTURE_RECT;
+	GPU_SHADER_TEXTURE_RECT
 	if (glIsEnabled(GL_COLOR_MATERIAL))
 		options |= GPU_SHADER_USE_COLOR;
 
@@ -347,8 +366,10 @@ static GPUShader *gpu_basic_shader(int options)
 			strcat(defines, "#define USE_COLOR\n");
 		if (options & GPU_SHADER_TWO_SIDED)
 			strcat(defines, "#define USE_TWO_SIDED\n");
-		if (options & GPU_SHADER_TEXTURE_2D)
+		if (options & (GPU_SHADER_TEXTURE_2D | GPU_SHADER_TEXTURE_RECT))
 			strcat(defines, "#define USE_TEXTURE\n");
+		if (options & GPU_SHADER_TEXTURE_RECT)
+			strcat(defines, "#define USE_TEXTURE_RECTANGLE\n");
 		if (options & GPU_SHADER_STIPPLE)
 			strcat(defines, "#define USE_STIPPLE\n");
 		if (options & GPU_SHADER_LINE) {
@@ -371,7 +392,7 @@ static GPUShader *gpu_basic_shader(int options)
 		
 		if (shader) {
 			/* set texture map to first texture unit */
-			if (options & GPU_SHADER_TEXTURE_2D) {
+			if (options & (GPU_SHADER_TEXTURE_2D | GPU_SHADER_TEXTURE_RECT)) {
 				GPU_shader_bind(shader);
 				glUniform1i(GPU_shader_get_uniform(shader, "texture_map"), 0);
 				GPU_shader_unbind();
@@ -401,6 +422,23 @@ void GPU_basic_shader_bind(int options)
 {
 	if (USE_GLSL) {
 		if (options) {
+			const int bound_options = GPU_MATERIAL_STATE.bound_options;
+
+			/* texture options need to be set for basic shader too */
+			if (options & GPU_SHADER_TEXTURE_2D) {
+				glEnable(GL_TEXTURE_2D);
+			}
+			else if (bound_options & GPU_SHADER_TEXTURE_2D) {
+				glDisable(GL_TEXTURE_2D);
+			}
+
+			if (options & GPU_SHADER_TEXTURE_RECT) {
+				glEnable(GL_TEXTURE_RECTANGLE);
+			}
+			else if (bound_options & GPU_SHADER_TEXTURE_RECT) {
+				glDisable(GL_TEXTURE_RECTANGLE);
+			}
+
 			GPUShader *shader = gpu_basic_shader(options);
 
 			if (shader) {
@@ -413,7 +451,7 @@ void GPU_basic_shader_bind(int options)
 		}
 	}
 	else {
-		int bound_options = GPU_MATERIAL_STATE.bound_options;
+		const int bound_options = GPU_MATERIAL_STATE.bound_options;
 
 		if (options & GPU_SHADER_LIGHTING) {
 			glEnable(GL_LIGHTING);
@@ -440,8 +478,22 @@ void GPU_basic_shader_bind(int options)
 			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, env_mode);
 		}
 		else if (bound_options & GPU_SHADER_TEXTURE_2D) {
-			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			if ((options & GPU_SHADER_TEXTURE_RECT) == 0) {
+				glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			}
 			glDisable(GL_TEXTURE_2D);
+		}
+
+		if (options & GPU_SHADER_TEXTURE_RECT) {
+			GLint env_mode = (options & (GPU_SHADER_USE_COLOR | GPU_SHADER_LIGHTING)) ? GL_MODULATE : GL_REPLACE;
+			glEnable(GL_TEXTURE_RECTANGLE);
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, env_mode);
+		}
+		else if (bound_options & GPU_SHADER_TEXTURE_RECT) {
+			if ((options & GPU_SHADER_TEXTURE_2D) == 0) {
+				glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			}
+			glDisable(GL_TEXTURE_RECTANGLE);
 		}
 
 		if ((options & GPU_SHADER_LINE) && (options & GPU_SHADER_STIPPLE)) {

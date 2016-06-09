@@ -3,6 +3,7 @@
  *
  * USE_COLOR: use glColor for diffuse colors
  * USE_TEXTURE: use texture for diffuse colors
+ * USE_TEXTURE_RECTANGLE: use GL_TEXTURE_RECTANGLE instead of GL_TEXTURE_2D
  * USE_SCENE_LIGHTING: use lights (up to 8)
  * USE_SOLID_LIGHTING: assume 3 directional lights for solid draw mode
  * USE_TWO_SIDED: flip normal towards viewer
@@ -42,8 +43,16 @@ varying vec4 varying_vertex_color;
 #endif
 
 #ifdef USE_TEXTURE
+#ifdef USE_TEXTURE_RECTANGLE
+#define sampler2D_default sampler2DRect
+#define texture2D_default texture2DRect
+#else
+#define sampler2D_default sampler2D
+#define texture2D_default texture2D
+#endif
+
 varying vec2 varying_texture_coord;
-uniform sampler2D texture_map;
+uniform sampler2D_default texture_map;
 #endif
 
 #ifdef USE_STIPPLE
@@ -236,12 +245,12 @@ void main()
 	float alpha;
 
 #if defined(USE_TEXTURE) && defined(USE_COLOR)
-	vec4 texture_color = texture2D(texture_map, varying_texture_coord);
+	vec4 texture_color = texture2D_default(texture_map, varying_texture_coord);
 
 	L_diffuse *= texture_color.rgb * varying_vertex_color.rgb;
 	alpha = texture_color.a * varying_vertex_color.a;
 #elif defined(USE_TEXTURE)
-	vec4 texture_color = texture2D(texture_map, varying_texture_coord);
+	vec4 texture_color = texture2D_default(texture_map, varying_texture_coord);
 
 	L_diffuse *= texture_color.rgb;
 	alpha = texture_color.a;
@@ -266,9 +275,9 @@ void main()
 
 	/* no lighting */
 #if defined(USE_TEXTURE) && defined(USE_COLOR)
-	gl_FragColor = texture2D(texture_map, varying_texture_coord) * varying_vertex_color;
+	gl_FragColor = texture2D_default(texture_map, varying_texture_coord) * varying_vertex_color;
 #elif defined(USE_TEXTURE)
-	gl_FragColor = texture2D(texture_map, varying_texture_coord);
+	gl_FragColor = texture2D_default(texture_map, varying_texture_coord);
 #elif defined(USE_COLOR)
 	gl_FragColor = varying_vertex_color;
 #else

@@ -311,14 +311,17 @@ enum {
 	TIMERNOTIFIER         = 0x0118,  /* timer event, notifier sender */
 	TIMERF                = 0x011F,  /* last timer */
 
-	/* Tweak, gestures: 0x500x, 0x501x */
+	/* Actionzones, tweak, gestures: 0x500x, 0x501x */
 	EVT_ACTIONZONE_AREA   = 0x5000,
 	EVT_ACTIONZONE_REGION = 0x5001,
 	EVT_ACTIONZONE_FULLSCREEN = 0x5011,
 
 	/* NOTE: these values are saved in keymap files, do not change them but just add new ones */
 
-	/* tweak events, for L M R mousebuttons */
+	/* Tweak events:
+	 * Sent as additional event with the mouse coordinates from where the initial click was placed. */
+
+	/* tweak events for L M R mousebuttons */
 	EVT_TWEAK_L           = 0x5002,
 	EVT_TWEAK_M           = 0x5003,
 	EVT_TWEAK_R           = 0x5004,

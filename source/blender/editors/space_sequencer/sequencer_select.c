@@ -107,6 +107,7 @@ static void select_active_side(ListBase *seqbase, int sel_side, int channel, int
 					break;
 				case SEQ_SIDE_BOTH:
 					seq->flag &= ~(SEQ_RIGHTSEL | SEQ_LEFTSEL);
+					seq->flag |= SELECT;
 					break;
 			}
 		}
@@ -812,7 +813,7 @@ static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
 					seq->flag |= SEQ_RIGHTSEL;
 					break;
 				case SEQ_SIDE_BOTH:
-					seq->flag |= SEQ_LEFTSEL + SEQ_RIGHTSEL;
+					seq->flag |= SEQ_LEFTSEL | SEQ_RIGHTSEL;
 					break;
 			}
 		}
