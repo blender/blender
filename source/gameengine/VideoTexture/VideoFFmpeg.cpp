@@ -1203,7 +1203,7 @@ static PyMethodDef videoMethods[] =
 	{"play", (PyCFunction)Video_play, METH_NOARGS, "Play (restart) video"},
 	{"pause", (PyCFunction)Video_pause, METH_NOARGS, "pause video"},
 	{"stop", (PyCFunction)Video_stop, METH_NOARGS, "stop video (play will replay it from start)"},
-	{"refresh", (PyCFunction)Video_refresh, METH_NOARGS, "Refresh video - get its status"},
+	{"refresh", (PyCFunction)Video_refresh, METH_VARARGS, "Refresh video - get its status"},
 	{NULL}
 };
 // attributes structure
@@ -1326,7 +1326,7 @@ static PyObject *Image_reload(PyImage *self, PyObject *args)
 // methods structure
 static PyMethodDef imageMethods[] =
 { // methods from VideoBase class
-	{"refresh", (PyCFunction)Video_refresh, METH_NOARGS, "Refresh image, i.e. load it"},
+	{"refresh", (PyCFunction)Video_refresh, METH_VARARGS, "Refresh image, i.e. load it"},
 	{"reload", (PyCFunction)Image_reload, METH_VARARGS, "Reload image, i.e. reopen it"},
 	{NULL}
 };

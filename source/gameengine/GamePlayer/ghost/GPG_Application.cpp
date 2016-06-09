@@ -678,6 +678,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 
 		//set the global settings (carried over if restart/load new files)
 		m_ketsjiengine->SetGlobalSettings(m_globalSettings);
+		m_ketsjiengine->SetRender(true);
 
 		m_engineInitialized = true;
 	}

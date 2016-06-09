@@ -190,7 +190,7 @@ void      Video_open(VideoBase *self, char *file, short captureID);
 PyObject *Video_play(PyImage *self);
 PyObject *Video_pause(PyImage *self);
 PyObject *Video_stop(PyImage *self);
-PyObject *Video_refresh(PyImage *self);
+PyObject *Video_refresh(PyImage *self, PyObject *args);
 PyObject *Video_getStatus(PyImage *self, void *closure);
 PyObject *Video_getRange(PyImage *self, void *closure);
 int       Video_setRange(PyImage *self, PyObject *value, void *closure);

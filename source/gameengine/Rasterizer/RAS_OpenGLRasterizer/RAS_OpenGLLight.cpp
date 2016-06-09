@@ -242,7 +242,7 @@ void RAS_OpenGLLight::BindShadowBuffer(RAS_ICanvas *canvas, KX_Camera *cam, MT_T
 	RAS_IRasterizer::StereoMode stereomode = m_rasterizer->GetStereoMode();
 	m_rasterizer->SetStereoMode(RAS_IRasterizer::RAS_STEREO_NOSTEREO);
 	m_rasterizer->SetProjectionMatrix(projectionmat);
-	m_rasterizer->SetViewMatrix(modelviewmat, cam->NodeGetWorldOrientation(), cam->NodeGetWorldPosition(), cam->GetCameraData()->m_perspective);
+	m_rasterizer->SetViewMatrix(modelviewmat, cam->NodeGetWorldOrientation(), cam->NodeGetWorldPosition(), cam->NodeGetLocalScaling(), cam->GetCameraData()->m_perspective);
 	m_rasterizer->SetStereoMode(stereomode);
 }
 

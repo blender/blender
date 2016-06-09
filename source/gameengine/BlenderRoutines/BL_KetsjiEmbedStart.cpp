@@ -341,6 +341,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		ketsjiengine->SetUseFixedTime(usefixed);
 		ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
 		ketsjiengine->SetRestrictAnimationFPS(restrictAnimFPS);
+		ketsjiengine->SetRender(true);
 		KX_KetsjiEngine::SetExitKey(ConvertKeyCode(startscene->gm.exitkey));
 
 		//set the global settings (carried over if restart/load new files)

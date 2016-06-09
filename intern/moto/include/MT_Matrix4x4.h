@@ -144,6 +144,16 @@ public:
     }
 
 	/**
+	 * Scale the rows of this matrix with x, y, z, w respectively.
+	 */
+    void tscale(MT_Scalar x, MT_Scalar y, MT_Scalar z, MT_Scalar w) {
+        m_el[0][0] *= x; m_el[1][0] *= y; m_el[2][0] *= z; m_el[3][0] *= w;
+        m_el[0][1] *= x; m_el[1][1] *= y; m_el[2][1] *= z; m_el[3][1] *= w;
+        m_el[0][2] *= x; m_el[1][2] *= y; m_el[2][2] *= z; m_el[3][2] *= w;
+        m_el[0][3] *= x; m_el[1][3] *= y; m_el[2][3] *= z; m_el[3][3] *= w;
+    }
+
+	/**
 	 * Return a column-scaled version of this matrix.
 	 */
     MT_Matrix4x4 scaled(MT_Scalar x, MT_Scalar y, MT_Scalar z, MT_Scalar w) const {

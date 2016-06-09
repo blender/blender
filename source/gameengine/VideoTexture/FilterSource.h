@@ -81,6 +81,30 @@ protected:
 	}
 };
 
+/// class for BGRA32 conversion
+class FilterBGRA32 : public FilterBase
+{
+public:
+	/// constructor
+	FilterBGRA32 (void) {}
+	/// destructor
+	virtual ~FilterBGRA32 (void) {}
+
+	/// get source pixel size
+	virtual unsigned int getPixelSize (void) { return 4; }
+
+protected:
+	/// filter pixel, source byte buffer
+	virtual unsigned int filter(
+	        unsigned char *src, short x, short y,
+	        short * size, unsigned int pixSize, unsigned int val)
+	{
+		VT_RGBA(val,src[2],src[1],src[0],src[3]);
+		return val;
+	}
+};
+
+
 /// class for BGR24 conversion
 class FilterBGR24 : public FilterBase
 {

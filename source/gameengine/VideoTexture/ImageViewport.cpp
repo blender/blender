@@ -45,14 +45,22 @@
 
 
 // constructor
-ImageViewport::ImageViewport (void) : m_alpha(false), m_texInit(false)
+ImageViewport::ImageViewport (PyRASOffScreen *offscreen) : m_alpha(false), m_texInit(false)
 {
 	// get viewport rectangle
-	RAS_Rect rect = KX_GetActiveEngine()->GetCanvas()->GetWindowArea();
-	m_viewport[0] = rect.GetLeft();
-	m_viewport[1] = rect.GetBottom();
-	m_viewport[2] = rect.GetWidth();
-	m_viewport[3] = rect.GetHeight();
+	if (offscreen) {
+		m_viewport[0] = 0;
+		m_viewport[1] = 0;
+		m_viewport[2] = offscreen->ofs->GetWidth();
+		m_viewport[3] = offscreen->ofs->GetHeight();
+	}
+	else {
+		RAS_Rect rect = KX_GetActiveEngine()->GetCanvas()->GetWindowArea();
+		m_viewport[0] = rect.GetLeft();
+		m_viewport[1] = rect.GetBottom();
+		m_viewport[2] = rect.GetWidth();
+		m_viewport[3] = rect.GetHeight();
+	}
 	
 	//glGetIntegerv(GL_VIEWPORT, m_viewport);
 	// create buffer for viewport image
@@ -60,7 +68,7 @@ ImageViewport::ImageViewport (void) : m_alpha(false), m_texInit(false)
 	//          float (1 float = 4 bytes per pixel)
 	m_viewportImage = new BYTE [4 * getViewportSize()[0] * getViewportSize()[1]];
 	// set attributes
-	setWhole(false);
+	setWhole((offscreen) ? true : false);
 }
 
 // destructor
@@ -126,25 +134,26 @@ void ImageViewport::setPosition (GLint pos[2])
 
 
 // capture image from viewport
-void ImageViewport::calcImage (unsigned int texId, double ts)
+void ImageViewport::calcViewport (unsigned int texId, double ts, unsigned int format)
 {
 	// if scale was changed
 	if (m_scaleChange)
 		// reset image
 		init(m_capSize[0], m_capSize[1]);
 	// if texture wasn't initialized
-	if (!m_texInit) {
+	if (!m_texInit && texId != 0) {
 		// initialize it
 		loadTexture(texId, m_image, m_size);
 		m_texInit = true;
 	}
 	// if texture can be directly created
-	if (texId != 0 && m_pyfilter == NULL && m_capSize[0] == calcSize(m_capSize[0])
-	    && m_capSize[1] == calcSize(m_capSize[1]) && !m_flip && !m_zbuff && !m_depth)
+	if (texId != 0 && m_pyfilter == NULL && m_size[0] == m_capSize[0] &&
+	    m_size[1] == m_capSize[1] && !m_flip && !m_zbuff && !m_depth)
 	{
 		// just copy current viewport to texture
 		glBindTexture(GL_TEXTURE_2D, texId);
 		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1]);
+		glBindTexture(GL_TEXTURE_2D, 0);
 		// image is not available
 		m_avail = false;
 	}
@@ -176,11 +185,33 @@ void ImageViewport::calcImage (unsigned int texId, double ts)
 
 				// get frame buffer data
 				if (m_alpha) {
-					glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], GL_RGBA,
-					        GL_UNSIGNED_BYTE, m_viewportImage);
-					// filter loaded data
-					FilterRGBA32 filt;
-					filterImage(filt, m_viewportImage, m_capSize);
+					// as we are reading the pixel in the native format, we can read directly in the image buffer
+					// if we are sure that no processing is needed on the image
+					if (m_size[0] == m_capSize[0] &&
+					    m_size[1] == m_capSize[1] &&
+					    !m_flip &&
+					    !m_pyfilter)
+					{
+						glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], format,
+						             GL_UNSIGNED_BYTE, m_image);
+						m_avail = true;
+					}
+					else if (!m_pyfilter) {
+						glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], format,
+						             GL_UNSIGNED_BYTE, m_viewportImage);
+						FilterRGBA32 filt;
+						filterImage(filt, m_viewportImage, m_capSize);
+					}
+					else {
+						glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], GL_RGBA,
+						             GL_UNSIGNED_BYTE, m_viewportImage);
+						FilterRGBA32 filt;
+						filterImage(filt, m_viewportImage, m_capSize);
+						if (format == GL_BGRA) {
+							// in place byte swapping
+							swapImageBR();
+						}
+					}
 				}
 				else {
 					glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], GL_RGB,
@@ -188,12 +219,46 @@ void ImageViewport::calcImage (unsigned int texId, double ts)
 					// filter loaded data
 					FilterRGB24 filt;
 					filterImage(filt, m_viewportImage, m_capSize);
+					if (format == GL_BGRA) {
+						// in place byte swapping
+						swapImageBR();
+					}
 				}
 			}
 		}
 	}
 }
 
+bool ImageViewport::loadImage(unsigned int *buffer, unsigned int size, unsigned int format, double ts)
+{
+	unsigned int *tmp_image;
+	bool ret;
+
+	// if scale was changed
+	if (m_scaleChange) {
+		// reset image
+		init(m_capSize[0], m_capSize[1]);
+	}
+
+	// size must be identical
+	if (size < getBuffSize())
+		return false;
+
+	if (m_avail) {
+		// just copy
+		return ImageBase::loadImage(buffer, size, format, ts);
+	}
+	else {
+		tmp_image = m_image;
+		m_image = buffer;
+		calcViewport(0, ts, format);
+		ret = m_avail;
+		m_image = tmp_image;
+		// since the image was not loaded to our buffer, it's not valid
+		m_avail = false;
+	}
+	return ret;
+}
 
 
 // cast Image pointer to ImageViewport
@@ -336,7 +401,7 @@ int ImageViewport_setCaptureSize(PyImage *self, PyObject *value, void *closure)
 // methods structure
 static PyMethodDef imageViewportMethods[] =
 { // methods from ImageBase class
-	{"refresh", (PyCFunction)Image_refresh, METH_NOARGS, "Refresh image - invalidate its current content"},
+	{"refresh", (PyCFunction)Image_refresh, METH_VARARGS, "Refresh image - invalidate its current content"},
 	{NULL}
 };
 // attributes structure
