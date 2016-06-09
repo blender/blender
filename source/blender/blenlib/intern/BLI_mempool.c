@@ -622,7 +622,7 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
 			iter->curindex = 0;
 			iter->curchunk = iter->curchunk->next;
 			if (iter->curchunk == NULL) {
-				return NULL;
+				return (ret->freeword == FREEWORD) ? NULL : ret;
 			}
 			curnode = CHUNK_DATA(iter->curchunk);
 		}
