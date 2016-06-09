@@ -512,7 +512,7 @@ void GPU_basic_shader_bind(int options)
 		if (options & GPU_SHADER_FLAT_NORMAL) {
 			glShadeModel(GL_FLAT);
 		}
-		else {
+		else if (bound_options & GPU_SHADER_FLAT_NORMAL) {
 			glShadeModel(GL_SMOOTH);
 		}
 	}
