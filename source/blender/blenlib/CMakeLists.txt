@@ -53,6 +53,7 @@ set(SRC
 	intern/BLI_mempool.c
 	intern/DLRB_tree.c
 	intern/array_store.c
+	intern/array_store_utils.c
 	intern/array_utils.c
 	intern/astar.c
 	intern/boxpack2d.c
@@ -122,6 +123,7 @@ set(SRC
 	BLI_args.h
 	BLI_array.h
 	BLI_array_store.h
+	BLI_array_store_utils.h
 	BLI_array_utils.h
 	BLI_astar.h
 	BLI_bitmap.h

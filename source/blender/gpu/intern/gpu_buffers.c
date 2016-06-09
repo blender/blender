@@ -53,8 +53,6 @@
 #include "BKE_mesh.h"
 #include "BKE_pbvh.h"
 
-#include "DNA_userdef_types.h"
-
 #include "GPU_buffers.h"
 #include "GPU_draw.h"
 #include "GPU_basic_shader.h"

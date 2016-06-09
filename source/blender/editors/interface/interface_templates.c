@@ -2783,7 +2783,7 @@ static void uilist_prepare(
 	layoutdata->end_idx = min_ii(layoutdata->start_idx + rows * columns, len);
 }
 
-static void uilist_resize_update_cb(bContext *UNUSED(C), void *arg1, void *UNUSED(arg2))
+static void uilist_resize_update_cb(bContext *C, void *arg1, void *UNUSED(arg2))
 {
 	uiList *ui_list = arg1;
 	uiListDyn *dyn_data = ui_list->dyn_data;
@@ -2796,6 +2796,9 @@ static void uilist_resize_update_cb(bContext *UNUSED(C), void *arg1, void *UNUSE
 		dyn_data->resize_prev += diff * UI_UNIT_Y;
 		ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
 	}
+
+	/* In case uilist is in popup, we need special refreshing */
+	ED_region_tag_refresh_ui(CTX_wm_menu(C));
 }
 
 static void *uilist_item_use_dynamic_tooltip(PointerRNA *itemptr, const char *propname)

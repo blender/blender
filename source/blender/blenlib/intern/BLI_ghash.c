@@ -69,7 +69,7 @@ const unsigned int hashsizes[] = {
 
 /**
  * \note Max load #GHASH_LIMIT_GROW used to be 3. (pre 2.74).
- * Python uses 0.6666, tommyhaslib even goes down to 0.5.
+ * Python uses 0.6666, tommyhashlib even goes down to 0.5.
  * Reducing our from 3 to 0.75 gives huge speedup (about twice quicker pure GHash insertions/lookup,
  * about 25% - 30% quicker 'dynamic-topology' stroke drawing e.g.).
  * Min load #GHASH_LIMIT_SHRINK is a quarter of max load, to avoid resizing to quickly.

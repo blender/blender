@@ -369,15 +369,18 @@ static bool set_draw_settings_cached(int clearcache, MTexPoly *texface, Material
 	}
 
 	if (c_badtex) lit = 0;
-	if (lit != c_lit || ma != c_ma) {
+	if (lit != c_lit || ma != c_ma || textured != c_textured) {
+		int options = GPU_SHADER_USE_COLOR;
+
+		if (c_textured && !c_badtex) {
+			options |= GPU_SHADER_TEXTURE_2D;
+		}
+		if (gtexdraw.two_sided_lighting) {
+			options |= GPU_SHADER_TWO_SIDED;
+		}
+
 		if (lit) {
-			int options = GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR;
-
-			if (gtexdraw.two_sided_lighting)
-				options |= GPU_SHADER_TWO_SIDED;
-			if (c_textured && !c_badtex)
-				options |= GPU_SHADER_TEXTURE_2D;
-
+			options |= GPU_SHADER_LIGHTING;
 			if (!ma)
 				ma = give_current_material_or_def(NULL, 0);  /* default material */
 
@@ -385,11 +388,9 @@ static bool set_draw_settings_cached(int clearcache, MTexPoly *texface, Material
 			mul_v3_v3fl(specular, &ma->specr, ma->spec);
 
 			GPU_basic_shader_colors(NULL, specular, ma->har, 1.0f);
-			GPU_basic_shader_bind(options);
 		}
-		else {
-			GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
-		}
+
+		GPU_basic_shader_bind(options);
 
 		c_lit = lit;
 		c_ma = ma;

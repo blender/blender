@@ -94,6 +94,7 @@ void glutil_draw_filled_arc(float start, float angle, float radius, int nsegment
  * The param must cause only one value to be gotten from GL.
  */
 float glaGetOneFloat(int param);
+int glaGetOneInt(int param);
 
 /**
  * Functions like glRasterPos2i, except ensures that the resulting

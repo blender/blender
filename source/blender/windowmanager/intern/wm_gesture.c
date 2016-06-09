@@ -233,19 +233,15 @@ static void wm_gesture_draw_circle(wmGesture *gt)
 }
 
 struct LassoFillData {
-	unsigned int *px;
+	unsigned char *px;
 	int width;
 };
 
 static void draw_filled_lasso_px_cb(int x, int x_end, int y, void *user_data)
 {
 	struct LassoFillData *data = user_data;
-	unsigned char *col = (unsigned char *)&(data->px[(y * data->width) + x]);
-	do {
-		col[0] = col[1] = col[2] = 0xff;
-		col[3] = 0x10;
-		col += 4;
-	} while (++x != x_end);
+	unsigned char *col = &(data->px[(y * data->width) + x]);
+	memset(col, 0x10, x_end - x);
 }
 
 static void draw_filled_lasso(wmWindow *win, wmGesture *gt)
@@ -273,7 +269,7 @@ static void draw_filled_lasso(wmWindow *win, wmGesture *gt)
 	if (BLI_rcti_is_empty(&rect) == false) {
 		const int w = BLI_rcti_size_x(&rect);
 		const int h = BLI_rcti_size_y(&rect);
-		unsigned int *pixel_buf = MEM_callocN(sizeof(*pixel_buf) * w * h, __func__);
+		unsigned char *pixel_buf = MEM_callocN(sizeof(*pixel_buf) * w * h, __func__);
 		struct LassoFillData lasso_fill_data = {pixel_buf, w};
 
 		fill_poly_v2i_n(
@@ -281,19 +277,27 @@ static void draw_filled_lasso(wmWindow *win, wmGesture *gt)
 		       (const int (*)[2])moves, tot,
 		       draw_filled_lasso_px_cb, &lasso_fill_data);
 
-		int bound_options;
-		GPU_BASIC_SHADER_DISABLE_AND_STORE(bound_options);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+		glColor4f(1, 1, 1, 1);
+		glPixelTransferf(GL_RED_BIAS, 1);
+		glPixelTransferf(GL_GREEN_BIAS, 1);
+		glPixelTransferf(GL_BLUE_BIAS, 1);
+
+		GPU_basic_shader_bind(GPU_SHADER_TEXTURE_2D | GPU_SHADER_USE_COLOR);
 
 		glEnable(GL_BLEND);
-		// glColor4f(1.0, 1.0, 1.0, 0.05);
-
-		glRasterPos2f(rect.xmin, rect.ymin);
-
-		glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixel_buf);
-
-		GPU_BASIC_SHADER_ENABLE_AND_RESTORE(bound_options);
-
+		glaDrawPixelsTex(rect.xmin, rect.ymin, w, h, GL_ALPHA, GL_UNSIGNED_BYTE, GL_NEAREST, pixel_buf);
 		glDisable(GL_BLEND);
+
+		GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
+
+		glPixelTransferf(GL_RED_BIAS, 0);
+		glPixelTransferf(GL_GREEN_BIAS, 0);
+		glPixelTransferf(GL_BLUE_BIAS, 0);
+
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+
 		MEM_freeN(pixel_buf);
 	}
 

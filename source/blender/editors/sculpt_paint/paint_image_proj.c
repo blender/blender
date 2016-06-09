@@ -202,7 +202,7 @@ typedef struct ProjPaintImage {
  */
 typedef struct ProjStrokeHandle {
 	/* Support for painting from multiple views at once,
-	 * currently used to impliment summetry painting,
+	 * currently used to impliment symmetry painting,
 	 * we can assume at least the first is set while painting. */
 	struct ProjPaintState *ps_views[8];
 	int ps_views_tot;
@@ -717,7 +717,7 @@ static bool project_paint_PickColor(
 }
 
 /**
- * Check if 'pt' is infront of the 3 verts on the Z axis (used for screenspace occlusuion test)
+ * Check if 'pt' is infront of the 3 verts on the Z axis (used for screenspace occlusion test)
  * \return
  * -  `0`:   no occlusion
  * - `-1`: no occlusion but 2D intersection is true

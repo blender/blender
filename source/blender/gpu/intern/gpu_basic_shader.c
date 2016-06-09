@@ -528,8 +528,9 @@ int GPU_basic_shader_bound_options(void)
 
 /* Material Colors */
 
-void GPU_basic_shader_colors(const float diffuse[3], const float specular[3],
-	int shininess, float alpha)
+void GPU_basic_shader_colors(
+        const float diffuse[3], const float specular[3],
+        int shininess, float alpha)
 {
 	float gl_diffuse[4], gl_specular[4];
 

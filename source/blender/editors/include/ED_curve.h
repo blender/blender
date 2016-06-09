@@ -72,8 +72,7 @@ void ED_curve_deselect_all(struct EditNurb *editnurb);
 void ED_curve_select_all(struct EditNurb *editnurb);
 void ED_curve_select_swap(struct EditNurb *editnurb, bool hide_handles);
 
-/* editfont.h */
-void    undo_push_font(struct bContext *C, const char *name);
+/* editfont.c */
 void    ED_curve_editfont_load(struct Object *obedit);
 void    ED_curve_editfont_make(struct Object *obedit);
 void    ED_curve_editfont_free(struct Object *obedit);
@@ -88,6 +87,9 @@ int ED_curve_updateAnimPaths(struct Curve *cu);
 bool ED_curve_active_center(struct Curve *cu, float center[3]);
 
 bool ED_curve_editfont_select_pick(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
+
+/* editfont_undo.c */
+void    undo_push_font(struct bContext *C, const char *name);
 
 #if 0
 /* debug only */

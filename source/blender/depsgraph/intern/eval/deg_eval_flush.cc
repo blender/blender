@@ -80,11 +80,12 @@ static void flush_init_func(void *data_v, int i)
 	 */
 	Depsgraph *graph = (Depsgraph *)data_v;
 	OperationDepsNode *node = graph->operations[i];
-	IDDepsNode *id_node = node->owner->owner;
+	ComponentDepsNode *comp_node = node->owner;
+	IDDepsNode *id_node = comp_node->owner;
 	id_node->done = 0;
+	comp_node->done = 0;
 	node->scheduled = false;
-	node->owner->flags &= ~DEPSCOMP_FULLY_SCHEDULED;
-	if (node->owner->type == DEPSNODE_TYPE_PROXY) {
+	if (comp_node->type == DEPSNODE_TYPE_PROXY) {
 		node->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
 	}
 }
@@ -136,49 +137,10 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 		for (;;) {
 			node->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
 
-			IDDepsNode *id_node = node->owner->owner;
-
-			if (id_node->done == 0) {
-				deg_editors_id_update(bmain, id_node->id);
-				id_node->done = 1;
-			}
-
-			lib_id_recalc_tag(bmain, id_node->id);
-			/* TODO(sergey): For until we've got proper data nodes in the graph. */
-			lib_id_recalc_data_tag(bmain, id_node->id);
-
-			ID *id = id_node->id;
-			/* This code is used to preserve those areas which does direct
-			 * object update,
-			 *
-			 * Plus it ensures visibility changes and relations and layers
-			 * visibility update has proper flags to work with.
-			 */
-			if (GS(id->name) == ID_OB) {
-				Object *object = (Object *)id;
-				ComponentDepsNode *comp_node = node->owner;
-				if (comp_node->type == DEPSNODE_TYPE_ANIMATION) {
-					object->recalc |= OB_RECALC_TIME;
-				}
-				else if (comp_node->type == DEPSNODE_TYPE_TRANSFORM) {
-					object->recalc |= OB_RECALC_OB;
-				}
-				else {
-					object->recalc |= OB_RECALC_DATA;
-				}
-			}
-
-			/* TODO(sergey): For until incremental updates are possible
-			 * witin a component at least we tag the whole component
-			 * for update.
-			 */
-			ComponentDepsNode *component = node->owner;
-			if ((component->flags & DEPSCOMP_FULLY_SCHEDULED) == 0) {
-				foreach (OperationDepsNode *op, component->operations) {
-					op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
-				}
-				component->flags |= DEPSCOMP_FULLY_SCHEDULED;
-			}
+			ComponentDepsNode *comp_node = node->owner;
+			IDDepsNode *id_node = comp_node->owner;
+			id_node->done = 1;
+			comp_node->done = 1;
 
 			/* Flush to nodes along links... */
 			if (node->outlinks.size() == 1) {
@@ -203,6 +165,52 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 			}
 		}
 	}
+
+	GHASH_FOREACH_BEGIN(DEG::IDDepsNode *, id_node, graph->id_hash)
+	{
+		if (id_node->done == 1) {
+			ID *id = id_node->id;
+			Object *object = NULL;
+
+			if (GS(id->name) == ID_OB) {
+				object = (Object *)id;
+			}
+
+			deg_editors_id_update(bmain, id_node->id);
+
+			lib_id_recalc_tag(bmain, id_node->id);
+			/* TODO(sergey): For until we've got proper data nodes in the graph. */
+			lib_id_recalc_data_tag(bmain, id_node->id);
+
+			GHASH_FOREACH_BEGIN(const ComponentDepsNode *, comp_node, id_node->components)
+			{
+				if (comp_node->done) {
+					foreach (OperationDepsNode *op, comp_node->operations) {
+						op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
+					}
+					if (object != NULL) {
+						/* This code is used to preserve those areas which does
+						 * direct object update,
+						 *
+						 * Plus it ensures visibility changes and relations and
+						 * layers visibility update has proper flags to work with.
+						 */
+						if (comp_node->type == DEPSNODE_TYPE_ANIMATION) {
+							object->recalc |= OB_RECALC_TIME;
+						}
+						else if (comp_node->type == DEPSNODE_TYPE_TRANSFORM) {
+							object->recalc |= OB_RECALC_OB;
+						}
+						else {
+							object->recalc |= OB_RECALC_DATA;
+						}
+					}
+				}
+			}
+			GHASH_FOREACH_END();
+		}
+	}
+	GHASH_FOREACH_END();
 }
 
 static void graph_clear_func(void *data_v, int i)

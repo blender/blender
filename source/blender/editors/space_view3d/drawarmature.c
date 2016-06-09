@@ -983,9 +983,10 @@ static GLubyte bm_dot7[] = {0x0, 0x38, 0x7C, 0xFE, 0xFE, 0xFE, 0x7C, 0x38};
 static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned int id,
                            bPoseChannel *pchan, EditBone *ebone)
 {
+	/* call this once, avoid constant changing */
+	BLI_assert(glaGetOneInt(GL_UNPACK_ALIGNMENT) == 1);
+
 	float length;
-	
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	
 	if (pchan) 
 		length = pchan->bone->length;
@@ -2692,6 +2693,11 @@ bool draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 	if (v3d->flag2 & V3D_RENDER_OVERRIDE)
 		return true;
 
+	/* needed for 'draw_line_bone' which draws pixel. */
+	if (arm->drawtype == ARM_LINE) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	}
+
 	if (dt > OB_WIRE) {
 		/* we use color for solid lighting */
 		if (ELEM(arm->drawtype, ARM_LINE, ARM_WIRE)) {
@@ -2766,6 +2772,10 @@ bool draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 	}
 	/* restore */
 	glFrontFace(GL_CCW);
+
+	if (arm->drawtype == ARM_LINE) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	}
 
 	return retval;
 }

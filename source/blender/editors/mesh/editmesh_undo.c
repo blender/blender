@@ -49,7 +49,7 @@
 #  endif
 
 #  include "BLI_array_store.h"
-#  include "BLI_math_base.h"
+#  include "BLI_array_store_utils.h"
    /* check on best size later... */
 #  define ARRAY_CHUNK_SIZE 256
 
@@ -89,8 +89,7 @@ typedef struct UndoMesh {
 
 #ifdef USE_ARRAY_STORE
 	/* NULL arrays are considered empty */
-	struct {
-		/* most data is stored as 'custom' data */
+	struct { /* most data is stored as 'custom' data */
 		BArrayCustomData *vdata, *edata, *ldata, *pdata;
 		BArrayState **keyblocks;
 		BArrayState *mselect;
@@ -105,8 +104,7 @@ typedef struct UndoMesh {
  * \{ */
 
 static struct {
-	BArrayStore **bs_all;
-	int          bs_all_len;
+	struct BArrayStore_AtSize bs_stride;
 	int users;
 
 	/* We could have the undo API pass in the previous state, for now store a local list */
@@ -117,57 +115,6 @@ static struct {
 #endif
 
 } um_arraystore = {NULL};
-
-static BArrayStore *array_store_at_size_ensure(const int stride)
-{
-	if (um_arraystore.bs_all_len < stride) {
-		um_arraystore.bs_all_len = stride;
-		um_arraystore.bs_all = MEM_recallocN(um_arraystore.bs_all, sizeof(*um_arraystore.bs_all) * stride);
-	}
-	BArrayStore **bs_p = &um_arraystore.bs_all[stride - 1];
-
-	if ((*bs_p) == NULL) {
-#if 0
-		unsigned int chunk_count = ARRAY_CHUNK_SIZE;
-#else
-		/* calculate best chunk-count to fit a power of two */
-		unsigned int chunk_count = ARRAY_CHUNK_SIZE;
-		{
-			unsigned int size = chunk_count * stride;
-			size = power_of_2_max_u(size);
-			size = MEM_SIZE_OPTIMAL(size);
-			chunk_count = size / stride;
-		}
-#endif
-
-		(*bs_p) = BLI_array_store_create(stride, chunk_count);
-	}
-	return *bs_p;
-}
-
-static BArrayStore *array_store_at_size_get(const int stride)
-{
-	BLI_assert(stride > 0 && stride <= um_arraystore.bs_all_len);
-	return um_arraystore.bs_all[stride - 1];
-}
-
-#ifdef DEBUG_PRINT
-static void um_arraystore_memory_usage(size_t *r_size_expanded, size_t *r_size_compacted)
-{
-	size_t size_compacted = 0;
-	size_t size_expanded  = 0;
-	for (int i = 0; i < um_arraystore.bs_all_len; i++) {
-		BArrayStore *bs = um_arraystore.bs_all[i];
-		if (bs) {
-			size_compacted += BLI_array_store_calc_size_compacted_get(bs);
-			size_expanded  += BLI_array_store_calc_size_expanded_get(bs);
-		}
-	}
-
-	*r_size_expanded = size_expanded;
-	*r_size_compacted = size_compacted;
-}
-#endif
 
 static void um_arraystore_cd_compact(
         struct CustomData *cdata, const size_t data_len,
@@ -194,7 +141,7 @@ static void um_arraystore_cd_compact(
 		}
 
 		const int stride = CustomData_sizeof(type);
-		BArrayStore *bs = create ? array_store_at_size_ensure(stride) : NULL;
+		BArrayStore *bs = create ? BLI_array_store_at_size_ensure(&um_arraystore.bs_stride, stride, ARRAY_CHUNK_SIZE) : NULL;
 		const int layer_len = layer_end - layer_start;
 
 		if (create) {
@@ -299,7 +246,7 @@ static void um_arraystore_cd_free(BArrayCustomData *bcd)
 	while (bcd) {
 		BArrayCustomData *bcd_next = bcd->next;
 		const int stride = CustomData_sizeof(bcd->type);
-		BArrayStore *bs = array_store_at_size_get(stride);
+		BArrayStore *bs = BLI_array_store_at_size_get(&um_arraystore.bs_stride, stride);
 		for (int i = 0; i <		bcd->states_len; i++) {
 			if (bcd->states[i]) {
 				BLI_array_store_state_remove(bs, bcd->states[i]);
@@ -328,7 +275,7 @@ static void um_arraystore_compact_ex(
 
 	if (me->key && me->key->totkey) {
 		const size_t stride = me->key->elemsize;
-		BArrayStore *bs = create ? array_store_at_size_ensure(stride) : NULL;
+		BArrayStore *bs = create ? BLI_array_store_at_size_ensure(&um_arraystore.bs_stride, stride, ARRAY_CHUNK_SIZE) : NULL;
 		if (create) {
 			um->store.keyblocks = MEM_mallocN(me->key->totkey * sizeof(*um->store.keyblocks), __func__);
 		}
@@ -355,7 +302,7 @@ static void um_arraystore_compact_ex(
 		if (create) {
 			BArrayState *state_reference = um_ref ? um_ref->store.mselect : NULL;
 			const size_t stride = sizeof(*me->mselect);
-			BArrayStore *bs = array_store_at_size_ensure(stride);
+			BArrayStore *bs = BLI_array_store_at_size_ensure(&um_arraystore.bs_stride, stride, ARRAY_CHUNK_SIZE);
 			um->store.mselect = BLI_array_store_state_add(
 			        bs, me->mselect, (size_t)me->totselect * stride, state_reference);
 		}
@@ -384,7 +331,7 @@ static void um_arraystore_compact_with_info(UndoMesh *um, const UndoMesh *um_ref
 {
 #ifdef DEBUG_PRINT
 	size_t size_expanded_prev, size_compacted_prev;
-	um_arraystore_memory_usage(&size_expanded_prev, &size_compacted_prev);
+	BLI_array_store_at_size_calc_memory_usage(&um_arraystore.bs_stride, &size_expanded_prev, &size_compacted_prev);
 #endif
 
 #ifdef DEBUG_TIME
@@ -400,7 +347,7 @@ static void um_arraystore_compact_with_info(UndoMesh *um, const UndoMesh *um_ref
 #ifdef DEBUG_PRINT
 	{
 		size_t size_expanded, size_compacted;
-		um_arraystore_memory_usage(&size_expanded, &size_compacted);
+		BLI_array_store_at_size_calc_memory_usage(&um_arraystore.bs_stride, &size_expanded, &size_compacted);
 
 		const double percent_total = size_expanded ?
 		        (((double)size_compacted / (double)size_expanded) * 100.0) : -1.0;
@@ -483,7 +430,7 @@ static void um_arraystore_free(UndoMesh *um)
 
 	if (um->store.keyblocks) {
 		const size_t stride = me->key->elemsize;
-		BArrayStore *bs = array_store_at_size_get(stride);
+		BArrayStore *bs = BLI_array_store_at_size_get(&um_arraystore.bs_stride, stride);
 		for (int i = 0; i < me->key->totkey; i++) {
 			BArrayState *state = um->store.keyblocks[i];
 			BLI_array_store_state_remove(bs, state);
@@ -494,7 +441,7 @@ static void um_arraystore_free(UndoMesh *um)
 
 	if (um->store.mselect) {
 		const size_t stride = sizeof(*me->mselect);
-		BArrayStore *bs = array_store_at_size_get(stride);
+		BArrayStore *bs = BLI_array_store_at_size_get(&um_arraystore.bs_stride, stride);
 		BArrayState *state = um->store.mselect;
 		BLI_array_store_state_remove(bs, state);
 		um->store.mselect = NULL;
@@ -508,15 +455,7 @@ static void um_arraystore_free(UndoMesh *um)
 #ifdef DEBUG_PRINT
 		printf("mesh undo store: freeing all data!\n");
 #endif
-		for (int i = 0; i < um_arraystore.bs_all_len; i += 1) {
-			if (um_arraystore.bs_all[i]) {
-				BLI_array_store_destroy(um_arraystore.bs_all[i]);
-			}
-		}
-
-		MEM_freeN(um_arraystore.bs_all);
-		um_arraystore.bs_all = NULL;
-		um_arraystore.bs_all_len = 0;
+		BLI_array_store_at_size_clear(&um_arraystore.bs_stride);
 
 #ifdef USE_ARRAY_STORE_THREAD
 		BLI_task_pool_free(um_arraystore.task_pool);

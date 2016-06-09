@@ -608,7 +608,7 @@ static MovieClip *movieclip_alloc(Main *bmain, const char *name)
 	return clip;
 }
 
-static void movieclip_load_get_szie(MovieClip *clip)
+static void movieclip_load_get_size(MovieClip *clip)
 {
 	int width, height;
 	MovieClipUser user = {0};
@@ -670,7 +670,7 @@ MovieClip *BKE_movieclip_file_add(Main *bmain, const char *name)
 
 	detect_clip_source(clip);
 
-	movieclip_load_get_szie(clip);
+	movieclip_load_get_size(clip);
 	if (clip->lastsize[0]) {
 		int width = clip->lastsize[0];
 
@@ -1276,7 +1276,7 @@ void BKE_movieclip_reload(MovieClip *clip)
 	detect_clip_source(clip);
 
 	clip->lastsize[0] = clip->lastsize[1] = 0;
-	movieclip_load_get_szie(clip);
+	movieclip_load_get_size(clip);
 
 	movieclip_calc_length(clip);
 
