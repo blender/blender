@@ -63,7 +63,7 @@ static bool is_crappy_intel_card()
 
 GHOST_ContextWGL::GHOST_ContextWGL(
         bool stereoVisual,
-		bool alphaBackground,
+        bool alphaBackground,
         GHOST_TUns16 numOfAASamples,
         HWND hWnd,
         HDC hDC,
@@ -79,7 +79,7 @@ GHOST_ContextWGL::GHOST_ContextWGL(
       m_contextMajorVersion(contextMajorVersion),
       m_contextMinorVersion(contextMinorVersion),
       m_contextFlags(contextFlags),
-	  m_alphaBackground(alphaBackground),
+      m_alphaBackground(alphaBackground),
       m_contextResetNotificationStrategy(contextResetNotificationStrategy),
       m_hGLRC(NULL)
 #ifdef WITH_GLEW_MX

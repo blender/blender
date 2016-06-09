@@ -287,8 +287,7 @@ const bool GLXEW_ARB_create_context_robustness =
 		attribs[i++] = 0;
 
 		/* Create a GL 3.x context */
-		if (m_fbconfig)
-		{
+		if (m_fbconfig) {
 			m_context = glXCreateContextAttribsARB(m_display, m_fbconfig, s_sharedContext, true, attribs);
 		}
 		else {

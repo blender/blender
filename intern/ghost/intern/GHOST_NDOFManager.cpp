@@ -378,8 +378,7 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64
 
 	NDOF_ButtonT button = (button_number < m_buttonCount) ? m_hidMap[button_number] : NDOF_BUTTON_NONE;
 
-	switch (button)
-	{
+	switch (button) {
 		case NDOF_BUTTON_NONE:
 #ifdef DEBUG_NDOF_BUTTONS
 			printf("discarded\n");

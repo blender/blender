@@ -420,8 +420,7 @@ static Bool init_timestamp_scanner(Display *, XEvent *event, XPointer arg)
 {
 	init_timestamp_data *data =
 	    reinterpret_cast<init_timestamp_data *>(arg);
-	switch (event->type)
-	{
+	switch (event->type) {
 		case ButtonPress:
 		case ButtonRelease:
 			data->timestamp = event->xbutton.time;
@@ -1964,8 +1963,7 @@ int GHOST_X11_ApplicationIOErrorHandler(Display * /*display*/)
 static bool match_token(const char *haystack, const char *needle)
 {
 	const char *p, *q;
-	for (p = haystack; *p; )
-	{
+	for (p = haystack; *p; ) {
 		while (*p && isspace(*p))
 			p++;
 		if (!*p)

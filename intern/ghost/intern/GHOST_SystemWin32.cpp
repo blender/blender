@@ -1545,8 +1545,7 @@ static bool isStartedFromCommandPrompt()
 
 int GHOST_SystemWin32::toggleConsole(int action)
 {
-	switch (action)
-	{
+	switch (action) {
 		case 3: // startup: hide if not started from command prompt
 		{
 			if (isStartedFromCommandPrompt()) {
