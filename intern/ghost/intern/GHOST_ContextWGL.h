@@ -32,6 +32,8 @@
 #ifndef __GHOST_CONTEXTWGL_H__
 #define __GHOST_CONTEXTWGL_H__
 
+//#define WIN32_COMPOSITING
+
 #include "GHOST_Context.h"
 
 #ifdef WITH_GLEW_MX
@@ -65,6 +67,7 @@ public:
 	 */
 	GHOST_ContextWGL(
 	        bool stereoVisual,
+			bool alphaBackground,
 	        GHOST_TUns16 numOfAASamples,
 	        HWND hWnd,
 	        HDC hDC,
@@ -164,6 +167,7 @@ private:
 	const int m_contextMajorVersion;
 	const int m_contextMinorVersion;
 	const int m_contextFlags;
+	const bool m_alphaBackground;
 	const int m_contextResetNotificationStrategy;
 
 	HGLRC m_hGLRC;

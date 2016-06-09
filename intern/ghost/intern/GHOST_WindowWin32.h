@@ -89,6 +89,7 @@ public:
 	    GHOST_TWindowState state,
 	    GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
 	    bool wantStereoVisual = false,
+	    bool alphaBackground = false,
 	    GHOST_TUns16 wantNumOfAASamples = 0,
 	    GHOST_TEmbedderWindowID parentWindowHwnd = 0,
 	    bool is_debug = false);
@@ -328,6 +329,8 @@ private:
 	int m_nPressedButtons;
 	/** HCURSOR structure of the custom cursor */
 	HCURSOR m_customCursor;
+	/** request GL context aith alpha channel */
+	bool m_wantAlphaBackground;
 
 	/** ITaskbarList3 structure for progress bar*/
 	ITaskbarList3 *m_Bar;

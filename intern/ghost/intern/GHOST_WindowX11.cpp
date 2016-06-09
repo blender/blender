@@ -33,7 +33,9 @@
 #include <X11/cursorfont.h>
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
-
+#ifdef WITH_X11_ALPHA
+#include <X11/extensions/Xrender.h>
+#endif
 #include "GHOST_WindowX11.h"
 #include "GHOST_SystemX11.h"
 #include "STR_String.h"
@@ -164,15 +166,21 @@ static const unsigned long BLENDER_ICON_48x48x32[] = {
 
 static XVisualInfo *x11_visualinfo_from_glx(
         Display *display,
-        bool stereoVisual, GHOST_TUns16 *r_numOfAASamples)
+        bool stereoVisual,
+        GHOST_TUns16 *r_numOfAASamples,
+        bool needAlpha,
+        GLXFBConfig *fbconfig)
 {
-	XVisualInfo *visualInfo = NULL;
+	XVisualInfo *visual = NULL;
 	GHOST_TUns16 numOfAASamples = *r_numOfAASamples;
+	int glx_major, glx_minor, glx_version; /* GLX version: major.minor */
 	GHOST_TUns16 actualSamples;
+	int glx_attribs[64];
+
+	*fbconfig = NULL;
 
 	/* Set up the minimum attributes that we require and see if
 	 * X can find us a visual matching those requirements. */
-	int glx_major, glx_minor; /* GLX version: major.minor */
 
 	if (!glXQueryVersion(display, &glx_major, &glx_minor)) {
 		fprintf(stderr,
@@ -182,53 +190,118 @@ static XVisualInfo *x11_visualinfo_from_glx(
 
 		return NULL;
 	}
+	glx_version = glx_major*100 + glx_minor;
 
-	/* GLX >= 1.4 required for multi-sample */
-	if ((glx_major > 1) || (glx_major == 1 && glx_minor >= 4)) {
+	if (glx_version >= 104) {
 		actualSamples = numOfAASamples;
 	}
 	else {
 		numOfAASamples = 0;
 		actualSamples = 0;
 	}
+	
+#ifdef WITH_X11_ALPHA
+	if (   needAlpha
+	    && glx_version >= 103
+	    && (glXChooseFBConfig ||
+	        (glXChooseFBConfig = (PFNGLXCHOOSEFBCONFIGPROC)glXGetProcAddressARB((const GLubyte *)"glXChooseFBConfig")) != NULL)
+	    && (glXGetVisualFromFBConfig ||
+	        (glXGetVisualFromFBConfig = (PFNGLXGETVISUALFROMFBCONFIGPROC)glXGetProcAddressARB((const GLubyte *)"glXGetVisualFromFBConfig")) != NULL)
+	    ) {
+		GLXFBConfig *fbconfigs;
+		int nbfbconfig;
+		int i;
 
-	/* Find the display with highest samples, starting at level requested */
-	for (;;) {
-		int glx_attribs[64];
+		for (;;) {
 
-		GHOST_X11_GL_GetAttributes(glx_attribs, 64, actualSamples, stereoVisual, false);
+			GHOST_X11_GL_GetAttributes(glx_attribs, 64, actualSamples, stereoVisual, needAlpha, true);
 
-		visualInfo = glXChooseVisual(display, DefaultScreen(display), glx_attribs);
+			fbconfigs = glXChooseFBConfig(display, DefaultScreen(display), glx_attribs, &nbfbconfig);
 
-		/* Any sample level or even zero, which means oversampling disabled, is good
-		 * but we need a valid visual to continue */
-		if (visualInfo != NULL) {
-			if (actualSamples < numOfAASamples) {
-				fprintf(stderr,
-				        "Warning! Unable to find a multisample pixel format that supports exactly %d samples. "
-				        "Substituting one that uses %d samples.\n",
-				        numOfAASamples, actualSamples);
+			/* Any sample level or even zero, which means oversampling disabled, is good
+			 * but we need a valid visual to continue */
+			if (nbfbconfig > 0) {
+				/* take a frame buffer config that has alpha cap */
+				for (i=0 ;i<nbfbconfig; i++) {
+					visual = (XVisualInfo*)glXGetVisualFromFBConfig(display, fbconfigs[i]);
+					if (!visual)
+						continue;
+					/* if we don't need a alpha background, the first config will do, otherwise
+					 * test the alphaMask as it won't necessarily be present */
+					if (needAlpha) {
+						XRenderPictFormat *pict_format = XRenderFindVisualFormat(display, visual->visual);
+						if (!pict_format)
+							continue;
+						if (pict_format->direct.alphaMask <= 0)
+							continue;
+					}
+					*fbconfig = fbconfigs[i];
+					break;
+				}
+				XFree(fbconfigs);
+				if (i<nbfbconfig) {
+					if (actualSamples < numOfAASamples) {
+						fprintf(stderr,
+						        "Warning! Unable to find a multisample pixel format that supports exactly %d samples. "
+						        "Substituting one that uses %d samples.\n",
+						        numOfAASamples, actualSamples);
+					}
+					break;
+				}
+				visual = NULL;
 			}
-			break;
-		}
 
-		if (actualSamples == 0) {
-			/* All options exhausted, cannot continue */
-			fprintf(stderr,
-			        "%s:%d: X11 glXChooseVisual() failed, "
-			        "verify working openGL system!\n",
-			        __FILE__, __LINE__);
+			if (actualSamples == 0) {
+				/* All options exhausted, cannot continue */
+				fprintf(stderr,
+				        "%s:%d: X11 glXChooseVisual() failed, "
+				        "verify working openGL system!\n",
+				        __FILE__, __LINE__);
 
-			return NULL;
-		}
-		else {
-			--actualSamples;
+				return NULL;
+			}
+			else {
+				--actualSamples;
+			}
 		}
 	}
+	else
+#endif
+	{
+		/* legacy, don't use extension */
+		for (;;) {
+			GHOST_X11_GL_GetAttributes(glx_attribs, 64, actualSamples, stereoVisual, needAlpha, false);
+			
+			visual = glXChooseVisual(display, DefaultScreen(display), glx_attribs);
 
+			/* Any sample level or even zero, which means oversampling disabled, is good
+			 * but we need a valid visual to continue */
+			if (visual != NULL) {
+				if (actualSamples < numOfAASamples) {
+					fprintf(stderr,
+					        "Warning! Unable to find a multisample pixel format that supports exactly %d samples. "
+					        "Substituting one that uses %d samples.\n",
+					        numOfAASamples, actualSamples);
+				}
+				break;
+			}
+
+			if (actualSamples == 0) {
+				/* All options exhausted, cannot continue */
+				fprintf(stderr,
+				        "%s:%d: X11 glXChooseVisual() failed, "
+				        "verify working openGL system!\n",
+				        __FILE__, __LINE__);
+
+				return NULL;
+			}
+			else {
+				--actualSamples;
+			}
+		}
+	}
 	*r_numOfAASamples = actualSamples;
-
-	return visualInfo;
+	return visual;
 }
 
 GHOST_WindowX11::
@@ -244,10 +317,12 @@ GHOST_WindowX11(GHOST_SystemX11 *system,
         GHOST_TDrawingContextType type,
         const bool stereoVisual,
         const bool exclusive,
+        const bool alphaBackground,
         const GHOST_TUns16 numOfAASamples, const bool is_debug)
     : GHOST_Window(width, height, state, stereoVisual, exclusive, numOfAASamples),
       m_display(display),
       m_visualInfo(NULL),
+      m_fbconfig(NULL),
       m_normal_state(GHOST_kWindowStateNormal),
       m_system(system),
       m_invalid_window(false),
@@ -264,7 +339,7 @@ GHOST_WindowX11(GHOST_SystemX11 *system,
       m_is_debug_context(is_debug)
 {
 	if (type == GHOST_kDrawingContextTypeOpenGL) {
-		m_visualInfo = x11_visualinfo_from_glx(m_display, stereoVisual, &m_wantNumOfAASamples);
+		m_visualInfo = x11_visualinfo_from_glx(m_display, stereoVisual, &m_wantNumOfAASamples, alphaBackground, (GLXFBConfig*)&m_fbconfig);
 	}
 	else {
 		XVisualInfo tmp = {0};
@@ -1240,6 +1315,7 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
 		        m_window,
 		        m_display,
 		        m_visualInfo,
+		        (GLXFBConfig)m_fbconfig,
 		        GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
 		        3, 2,
 		        GHOST_OPENGL_GLX_CONTEXT_FLAGS | (m_is_debug_context ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
@@ -1251,6 +1327,7 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
 		        m_window,
 		        m_display,
 		        m_visualInfo,
+		        (GLXFBConfig)m_fbconfig,
 		        GLX_CONTEXT_ES2_PROFILE_BIT_EXT,
 		        2, 0,
 		        GHOST_OPENGL_GLX_CONTEXT_FLAGS | (m_is_debug_context ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
@@ -1262,6 +1339,7 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
 		        m_window,
 		        m_display,
 		        m_visualInfo,
+		        (GLXFBConfig)m_fbconfig,
 		        0, // profile bit
 		        0, 0,
 		        GHOST_OPENGL_GLX_CONTEXT_FLAGS | (m_is_debug_context ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),

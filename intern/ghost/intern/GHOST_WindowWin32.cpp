@@ -43,7 +43,9 @@
 #else
 #  include "GHOST_ContextWGL.h"
 #endif
-
+#ifdef WIN32_COMPOSITING
+#include <Dwmapi.h>
+#endif
 
 #include <math.h>
 #include <string.h>
@@ -70,7 +72,8 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
         GHOST_TUns32 height,
         GHOST_TWindowState state,
         GHOST_TDrawingContextType type,
-        bool wantStereoVisual,
+	bool wantStereoVisual,
+	bool alphaBackground,
         GHOST_TUns16 wantNumOfAASamples,
         GHOST_TEmbedderWindowID parentwindowhwnd,
         bool is_debug)
@@ -83,6 +86,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_hasGrabMouse(false),
       m_nPressedButtons(0),
       m_customCursor(0),
+      m_wantAlphaBackground(alphaBackground),
       m_wintab(NULL),
       m_tabletData(NULL),
       m_tablet(0),
@@ -181,17 +185,17 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 		
 		wchar_t *title_16 = alloc_utf16_from_8((char *)(const char *)title, 0);
 		m_hWnd = ::CreateWindowW(
-		    s_windowClassName,          // pointer to registered class name
-		    title_16,                   // pointer to window name
-		    wintype,                    // window style
-		    left,                       // horizontal position of window
-		    top,                        // vertical position of window
-		    width,                      // window width
-		    height,                     // window height
-		    (HWND) m_parentWindowHwnd,  // handle to parent or owner window
-		    0,                          // handle to menu or child-window identifier
-		    ::GetModuleHandle(0),       // handle to application instance
-		    0);                         // pointer to window-creation data
+			s_windowClassName,          // pointer to registered class name
+			title_16,                   // pointer to window name
+			wintype,                    // window style
+			left,                       // horizontal position of window
+			top,                        // vertical position of window
+			width,                      // window width
+			height,                     // window height
+			(HWND)m_parentWindowHwnd,  // handle to parent or owner window
+			0,                          // handle to menu or child-window identifier
+			::GetModuleHandle(0),       // handle to application instance
+			0);                         // pointer to window-creation data
 		free(title_16);
 	}
 	else {
@@ -243,6 +247,24 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 			}
 
 			::ShowWindow(m_hWnd, nCmdShow);
+#ifdef WIN32_COMPOSITING
+			if (alphaBackground && parentwindowhwnd == 0) {
+				
+				HRESULT hr = S_OK;
+
+				// Create and populate the Blur Behind structure
+				DWM_BLURBEHIND bb = { 0 };
+
+				// Enable Blur Behind and apply to the entire client area
+				bb.dwFlags = DWM_BB_ENABLE | DWM_BB_BLURREGION;
+				bb.fEnable = true;
+				bb.hRgnBlur = CreateRectRgn(0, 0, -1, -1);
+
+				// Apply Blur Behind
+				hr = DwmEnableBlurBehindWindow(m_hWnd, &bb);
+				DeleteObject(bb.hRgnBlur);
+			}
+#endif
 			// Force an initial paint of the window
 			::UpdateWindow(m_hWnd);
 		}
@@ -622,6 +644,7 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 #if defined(WITH_GL_PROFILE_CORE)
 		GHOST_Context *context = new GHOST_ContextWGL(
 		        m_wantStereoVisual,
+		        m_wantAlphaBackground,
 		        m_wantNumOfAASamples,
 		        m_hWnd,
 		        m_hDC,
@@ -632,6 +655,7 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 #elif defined(WITH_GL_PROFILE_ES20)
 		GHOST_Context *context = new GHOST_ContextWGL(
 		        m_wantStereoVisual,
+		        m_wantAlphaBackground,
 		        m_wantNumOfAASamples,
 		        m_hWnd,
 		        m_hDC,
@@ -642,6 +666,7 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 #elif defined(WITH_GL_PROFILE_COMPAT)
 		GHOST_Context *context = new GHOST_ContextWGL(
 		        m_wantStereoVisual,
+		        m_wantAlphaBackground,
 		        m_wantNumOfAASamples,
 		        m_hWnd,
 		        m_hDC,

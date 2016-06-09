@@ -223,6 +223,10 @@ elseif(WITH_X11)
 		)
 	endif()
 
+	if(WITH_X11_ALPHA)
+		add_definitions(-DWITH_X11_ALPHA)
+	endif()
+
 	if(WITH_INPUT_NDOF)
 		list(APPEND SRC
 			intern/GHOST_NDOFManagerUnix.cpp
