@@ -36,7 +36,7 @@ void main()
 	varying_normal = normalize(gl_NormalMatrix * gl_Normal);
 #endif
 #if defined(USE_FLAT_NORMAL)
-	// transform vertex into eyespace
+	/* transform vertex into eyespace */
 	eyespace_vert_pos = (gl_ModelViewMatrix * gl_Vertex).xyz;
 #endif
 

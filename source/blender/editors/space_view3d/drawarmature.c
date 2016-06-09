@@ -432,7 +432,7 @@ static void draw_bonevert_solid(void)
 		
 		qobj = gluNewQuadric();
 		gluQuadricDrawStyle(qobj, GLU_FILL);
-		// Draw tips of a bone
+		/* Draw tips of a bone */
 		gluSphere(qobj, 0.05, 8, 5);
 		gluDeleteQuadric(qobj);  
 		

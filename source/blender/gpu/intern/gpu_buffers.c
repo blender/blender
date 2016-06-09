@@ -1863,11 +1863,13 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 			GPU_buffer_bind(buffers->index_buf, GPU_BINDING_INDEX);
 		}
 
-		if (wireframe)
+		if (wireframe) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
 		else {
 			bound_options = GPU_basic_shader_bound_options();
-			GPU_basic_shader_bind(bound_options | ((buffers->smooth || buffers->face_indices_len) ? 0 : GPU_SHADER_FLAT_NORMAL));
+			GPU_basic_shader_bind(bound_options | ((buffers->smooth || buffers->face_indices_len) ?
+			                      0 : GPU_SHADER_FLAT_NORMAL));
 		}
 
 		if (buffers->tot_quad) {

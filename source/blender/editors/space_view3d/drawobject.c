@@ -4492,9 +4492,8 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 						GPU_object_material_bind(dl->col + 1, use_glsl ? &gattribs : NULL);
 						col = dl->col;
 					}
-					// FLAT/SMOOTH shading for surfaces
-					if (dl->rt & CU_SMOOTH) glShadeModel(GL_SMOOTH);
-					else glShadeModel(GL_FLAT);
+					/* FLAT/SMOOTH shading for surfaces */
+					glShadeModel((dl->rt & CU_SMOOTH) ? GL_SMOOTH : GL_FLAT);
 
 					glEnableClientState(GL_NORMAL_ARRAY);
 					glVertexPointer(3, GL_FLOAT, 0, dl->verts);

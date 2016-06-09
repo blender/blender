@@ -509,11 +509,12 @@ void GPU_basic_shader_bind(int options)
 				glDisable(GL_POLYGON_STIPPLE);
 		}
 
-		if (options & GPU_SHADER_FLAT_NORMAL)
+		if (options & GPU_SHADER_FLAT_NORMAL) {
 			glShadeModel(GL_FLAT);
-		else
+		}
+		else {
 			glShadeModel(GL_SMOOTH);
-
+		}
 	}
 
 	GPU_MATERIAL_STATE.bound_options = options;
