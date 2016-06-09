@@ -64,10 +64,11 @@ public:
 		UNI_FLOAT4,
 		UNI_MAT3,
 		UNI_MAT4,
+		UNI_FLOAT_EYE,
 		UNI_MAX
 	};
 
-	void Apply(class BL_Shader *shader);
+	bool Apply(class BL_Shader *shader);
 	void SetData(int location, int type, bool transpose = false);
 	int GetLocation() { return mLoc; }
 	void *getData() { return mData; }
@@ -226,6 +227,7 @@ public:
 	KX_PYMETHOD_DOC(BL_Shader, setUniform3i);
 	KX_PYMETHOD_DOC(BL_Shader, setUniform2i);
 	KX_PYMETHOD_DOC(BL_Shader, setUniform1i);
+	KX_PYMETHOD_DOC(BL_Shader, setUniformEyef);
 	KX_PYMETHOD_DOC(BL_Shader, setUniformfv);
 	KX_PYMETHOD_DOC(BL_Shader, setUniformiv);
 	KX_PYMETHOD_DOC(BL_Shader, setUniformMatrix4);
