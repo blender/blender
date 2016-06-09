@@ -1,10 +1,18 @@
 /*
- * Copyright (c) 2002-2007, Communications and Remote Sensing Laboratory, Universite catholique de Louvain (UCL), Belgium
- * Copyright (c) 2002-2007, Professor Benoit Macq
+ * The copyright in this software is being made available under the 2-clauses 
+ * BSD License, included below. This software may be subject to other third 
+ * party and contributor rights, including patent rights, and no such rights
+ * are granted under this license.
+ *
+ * Copyright (c) 2002-2014, Universite catholique de Louvain (UCL), Belgium
+ * Copyright (c) 2002-2014, Professor Benoit Macq
  * Copyright (c) 2001-2003, David Janssens
  * Copyright (c) 2002-2003, Yannick Verschueren
- * Copyright (c) 2003-2007, Francois-Olivier Devaux and Antonin Descampe
+ * Copyright (c) 2003-2007, Francois-Olivier Devaux 
+ * Copyright (c) 2003-2014, Antonin Descampe
  * Copyright (c) 2005, Herve Drolon, FreeImage Team
+ * Copyright (c) 2008, 2011-2012, Centre National d'Etudes Spatiales (CNES), FR 
+ * Copyright (c) 2012, CS Systemes d'Information, France
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +60,7 @@ Apply a reversible multi-component transform to an image
 @param c2 Samples blue component
 @param n Number of samples for each component
 */
-void mct_encode(int *c0, int *c1, int *c2, int n);
+void opj_mct_encode(OPJ_INT32 *c0, OPJ_INT32 *c1, OPJ_INT32 *c2, OPJ_UINT32 n);
 /**
 Apply a reversible multi-component inverse transform to an image
 @param c0 Samples for luminance component
@@ -60,13 +68,13 @@ Apply a reversible multi-component inverse transform to an image
 @param c2 Samples for blue chrominance component
 @param n Number of samples for each component
 */
-void mct_decode(int *c0, int *c1, int *c2, int n);
+void opj_mct_decode(OPJ_INT32 *c0, OPJ_INT32 *c1, OPJ_INT32 *c2, OPJ_UINT32 n);
 /**
 Get norm of the basis function used for the reversible multi-component transform
 @param compno Number of the component (0->Y, 1->U, 2->V)
 @return 
 */
-double mct_getnorm(int compno);
+OPJ_FLOAT64 opj_mct_getnorm(OPJ_UINT32 compno);
 
 /**
 Apply an irreversible multi-component transform to an image
@@ -75,7 +83,7 @@ Apply an irreversible multi-component transform to an image
 @param c2 Samples blue component
 @param n Number of samples for each component
 */
-void mct_encode_real(int *c0, int *c1, int *c2, int n);
+void opj_mct_encode_real(OPJ_INT32 *c0, OPJ_INT32 *c1, OPJ_INT32 *c2, OPJ_UINT32 n);
 /**
 Apply an irreversible multi-component inverse transform to an image
 @param c0 Samples for luminance component
@@ -83,13 +91,62 @@ Apply an irreversible multi-component inverse transform to an image
 @param c2 Samples for blue chrominance component
 @param n Number of samples for each component
 */
-void mct_decode_real(float* c0, float* c1, float* c2, int n);
+void opj_mct_decode_real(OPJ_FLOAT32* c0, OPJ_FLOAT32* c1, OPJ_FLOAT32* c2, OPJ_UINT32 n);
 /**
 Get norm of the basis function used for the irreversible multi-component transform
 @param compno Number of the component (0->Y, 1->U, 2->V)
 @return 
 */
-double mct_getnorm_real(int compno);
+OPJ_FLOAT64 opj_mct_getnorm_real(OPJ_UINT32 compno);
+
+/**
+FIXME DOC
+@param p_coding_data    MCT data
+@param n                size of components
+@param p_data           components
+@param p_nb_comp        nb of components (i.e. size of p_data)
+@param is_signed        tells if the data is signed
+@return OPJ_FALSE if function encounter a problem, OPJ_TRUE otherwise
+*/
+OPJ_BOOL opj_mct_encode_custom(
+					   OPJ_BYTE * p_coding_data,
+					   OPJ_UINT32 n,
+					   OPJ_BYTE ** p_data,
+					   OPJ_UINT32 p_nb_comp,
+					   OPJ_UINT32 is_signed);
+/**
+FIXME DOC
+@param pDecodingData    MCT data
+@param n                size of components
+@param pData            components
+@param pNbComp          nb of components (i.e. size of p_data)
+@param isSigned         tells if the data is signed
+@return OPJ_FALSE if function encounter a problem, OPJ_TRUE otherwise
+*/
+OPJ_BOOL opj_mct_decode_custom(
+					   OPJ_BYTE * pDecodingData,
+					   OPJ_UINT32 n,
+					   OPJ_BYTE ** pData,
+					   OPJ_UINT32 pNbComp,
+					   OPJ_UINT32 isSigned);
+/**
+FIXME DOC
+@param pNorms           MCT data
+@param p_nb_comps       size of components
+@param pMatrix          components
+@return 
+*/
+void opj_calculate_norms(   OPJ_FLOAT64 * pNorms,
+                            OPJ_UINT32 p_nb_comps,
+                            OPJ_FLOAT32 * pMatrix);
+/**
+FIXME DOC 
+*/
+const OPJ_FLOAT64 * opj_mct_get_mct_norms (void);
+/**
+FIXME DOC 
+*/
+const OPJ_FLOAT64 * opj_mct_get_mct_norms_real (void);
 /* ----------------------------------------------------------------------- */
 /*@}*/
 

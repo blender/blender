@@ -1,8 +1,8 @@
 /*
  * $Id: cidx_manager.h 897 2011-08-28 21:43:57Z Kaori.Hagihara@gmail.com $
  *
- * Copyright (c) 2002-2011, Communications and Remote Sensing Laboratory, Universite catholique de Louvain (UCL), Belgium
- * Copyright (c) 2002-2011, Professor Benoit Macq
+ * Copyright (c) 2002-2014, Universite catholique de Louvain (UCL), Belgium
+ * Copyright (c) 2002-2014, Professor Benoit Macq
  * Copyright (c) 2003-2004, Yannick Verschueren
  * Copyright (c) 2010-2011, Kaori Hagihara
  * All rights reserved.
@@ -50,7 +50,19 @@
  * @param[in] j2klen    length of j2k codestream
  * @return              length of cidx box
  */
-int write_cidx( int offset, opj_cio_t *cio, opj_image_t *image, opj_codestream_info_t cstr_info, int j2klen);
+int opj_write_cidx( int offset, opj_stream_private_t *cio, opj_codestream_info_t cstr_info, int j2klen,
+              opj_event_mgr_t * p_manager );
 
+/* 
+ * Check if EPH option is used
+ *
+ * @param[in] coff    offset of j2k codestream
+ * @param[in] markers marker information
+ * @param[in] marknum number of markers
+ * @param[in] cio     file output handle
+ * @return            true if EPH is used
+ */
+OPJ_BOOL opj_check_EPHuse( int coff, opj_marker_info_t *markers, int marknum, opj_stream_private_t *cio,
+              opj_event_mgr_t * p_manager );
 
 #endif      /* !CIDX_MANAGER_H_ */

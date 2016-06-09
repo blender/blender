@@ -38,7 +38,7 @@
 
 #include "openjpeg.h"
 
-// #define JP2_FILEHEADER_SIZE 14  /* UNUSED */
+#define JP2_FILEHEADER_SIZE 12
 
 static const char JP2_HEAD[] = {0x0, 0x0, 0x0, 0x0C, 0x6A, 0x50, 0x20, 0x20, 0x0D, 0x0A, 0x87, 0x0A};
 static const char J2K_HEAD[] = {0xFF, 0x4F, 0xFF, 0x51, 0x00};
@@ -73,6 +73,19 @@ static bool check_j2k(const unsigned char *mem) /* J2K_CFMT */
 	return memcmp(J2K_HEAD, mem, sizeof(J2K_HEAD)) ? 0 : 1;
 }
 
+static OPJ_CODEC_FORMAT format_from_header(const unsigned char mem[JP2_FILEHEADER_SIZE])
+{
+	if (check_jp2(mem)) {
+		return OPJ_CODEC_JP2;
+	}
+	else if (check_j2k(mem)) {
+		return OPJ_CODEC_J2K;
+	}
+	else {
+		return OPJ_CODEC_UNKNOWN;
+	}
+}
+
 int imb_is_a_jp2(const unsigned char *buf)
 {
 	return check_jp2(buf);
@@ -99,8 +112,8 @@ static void warning_callback(const char *msg, void *client_data)
  */
 static void info_callback(const char *msg, void *client_data)
 {
-	(void)client_data;
-	fprintf(stdout, "[INFO] %s", msg);
+	FILE *stream = (FILE *)client_data;
+	fprintf(stream, "[INFO] %s", msg);
 }
 
 #   define PIXEL_LOOPER_BEGIN(_rect)                                          \
@@ -121,8 +134,233 @@ static void info_callback(const char *msg, void *client_data)
 	} \
 	} (void)0 \
 
-struct ImBuf *imb_jp2_decode(const unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+
+/** \name Buffer Stream
+ * \{ */
+
+struct BufInfo {
+	const unsigned char *buf;
+	const unsigned char *cur;
+	off_t len;
+};
+
+static void opj_read_from_buffer_free(void *UNUSED(p_user_data))
 {
+	/* nop */
+}
+
+static OPJ_SIZE_T opj_read_from_buffer(void *p_buffer, OPJ_SIZE_T p_nb_bytes, void *p_user_data)
+{
+	struct BufInfo *p_file = p_user_data;
+	OPJ_UINT32 l_nb_read;
+
+	if (p_file->cur + p_nb_bytes < p_file->buf + p_file->len ) {
+		l_nb_read = p_nb_bytes;
+	}
+	else {
+		l_nb_read = (OPJ_UINT32)(p_file->buf + p_file->len - p_file->cur);
+	}
+	memcpy(p_buffer, p_file->cur, l_nb_read);
+	p_file->cur += l_nb_read;
+
+	return l_nb_read ? l_nb_read : ((OPJ_SIZE_T)-1);
+}
+
+#if 0
+static OPJ_SIZE_T opj_write_from_buffer(void *p_buffer, OPJ_SIZE_T p_nb_bytes, void *p_user_data)
+{
+	struct BufInfo *p_file = p_user_data;
+	memcpy(p_file->cur, p_buffer, p_nb_bytes);
+	p_file->cur += p_nb_bytes;
+	p_file->len += p_nb_bytes;
+	return p_nb_bytes;
+}
+#endif
+
+static OPJ_OFF_T opj_skip_from_buffer(OPJ_OFF_T p_nb_bytes, void *p_user_data)
+{
+	struct BufInfo *p_file = p_user_data;
+	if (p_file->cur + p_nb_bytes < p_file->buf + p_file->len) {
+		p_file->cur += p_nb_bytes;
+		return p_nb_bytes;
+	}
+	p_file->cur = p_file->buf + p_file->len;
+	return (OPJ_OFF_T)-1;
+}
+
+static OPJ_BOOL opj_seek_from_buffer(OPJ_OFF_T p_nb_bytes, void *p_user_data)
+{
+	struct BufInfo *p_file = p_user_data;
+	if (p_file->cur + p_nb_bytes < p_file->buf + p_file->len) {
+		p_file->cur += p_nb_bytes;
+		return OPJ_TRUE;
+	}
+	p_file->cur = p_file->buf + p_file->len;
+	return OPJ_FALSE;
+}
+
+/**
+ * Stream wrapper for memory buffer
+ * (would be nice if this was supported by the API).
+ */
+
+static opj_stream_t *opj_stream_create_from_buffer(
+        struct BufInfo *p_file, OPJ_UINT32 p_size,
+        OPJ_BOOL p_is_read_stream)
+{
+	opj_stream_t *l_stream = opj_stream_create(p_size, p_is_read_stream);
+	if (l_stream == NULL) {
+		return NULL;
+	}
+	opj_stream_set_user_data(l_stream, p_file , opj_read_from_buffer_free);
+	opj_stream_set_user_data_length(l_stream, p_file->len);
+	opj_stream_set_read_function(l_stream,  opj_read_from_buffer);
+#if 0  /* UNUSED */
+	opj_stream_set_write_function(l_stream, opj_write_from_buffer);
+#endif
+	opj_stream_set_skip_function(l_stream, opj_skip_from_buffer);
+	opj_stream_set_seek_function(l_stream, opj_seek_from_buffer);
+
+	return l_stream;
+}
+
+/** \} */
+
+
+/** \name File Stream
+ * \{ */
+
+static void opj_free_from_file(void *p_user_data)
+{
+	FILE *f = p_user_data;
+	fclose(f);
+}
+
+static OPJ_UINT64 opj_get_data_length_from_file (void *p_user_data)
+{
+	FILE *p_file = p_user_data;
+	OPJ_OFF_T file_length = 0;
+
+	fseek(p_file, 0, SEEK_END);
+	file_length = ftell(p_file);
+	fseek(p_file, 0, SEEK_SET);
+
+	return (OPJ_UINT64)file_length;
+}
+
+static OPJ_SIZE_T opj_read_from_file(void *p_buffer, OPJ_SIZE_T p_nb_bytes, void *p_user_data)
+{
+	FILE *p_file = p_user_data;
+	OPJ_SIZE_T l_nb_read = fread(p_buffer, 1, p_nb_bytes, p_file);
+	return l_nb_read ? l_nb_read : (OPJ_SIZE_T)-1;
+}
+
+static OPJ_SIZE_T opj_write_from_file(void *p_buffer, OPJ_SIZE_T p_nb_bytes, void *p_user_data)
+{
+	FILE *p_file = p_user_data;
+	return fwrite(p_buffer, 1, p_nb_bytes, p_file);
+}
+
+static OPJ_OFF_T opj_skip_from_file(OPJ_OFF_T p_nb_bytes, void *p_user_data)
+{
+	FILE *p_file = p_user_data;
+	if (fseek(p_file, p_nb_bytes, SEEK_CUR)) {
+		return -1;
+	}
+	return p_nb_bytes;
+}
+
+static OPJ_BOOL opj_seek_from_file(OPJ_OFF_T p_nb_bytes, void *p_user_data)
+{
+	FILE *p_file = p_user_data;
+	if (fseek(p_file, p_nb_bytes, SEEK_SET)) {
+		return OPJ_FALSE;
+	}
+	return OPJ_TRUE;
+}
+
+/**
+ * Stream wrapper for memory file
+ * (would be nice if this was supported by the API).
+ */
+
+static opj_stream_t *opj_stream_create_from_file(
+        const char *filepath, OPJ_UINT32 p_size, OPJ_BOOL p_is_read_stream,
+        FILE **r_file)
+{
+	FILE *p_file = BLI_fopen(filepath, p_is_read_stream ? "rb" : "wb");
+	if (p_file == NULL) {
+		return NULL;
+	}
+
+	opj_stream_t *l_stream = opj_stream_create(p_size, p_is_read_stream);
+	if (l_stream == NULL) {
+		fclose(p_file);
+		return NULL;
+	}
+
+	opj_stream_set_user_data(l_stream, p_file, opj_free_from_file);
+	opj_stream_set_user_data_length(l_stream, opj_get_data_length_from_file(p_file));
+	opj_stream_set_write_function(l_stream, opj_write_from_file);
+	opj_stream_set_read_function(l_stream,  opj_read_from_file);
+	opj_stream_set_skip_function(l_stream, opj_skip_from_file);
+	opj_stream_set_seek_function(l_stream, opj_seek_from_file);
+
+	if (r_file) {
+		*r_file = p_file;
+	}
+	return l_stream;
+}
+
+/** \} */
+
+static ImBuf *imb_load_jp2_stream(
+        opj_stream_t stream, OPJ_CODEC_FORMAT p_format,
+        int flags, char colorspace[IM_MAX_SPACE]);
+
+ImBuf *imb_load_jp2(const unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+{
+	const OPJ_CODEC_FORMAT format = (size > JP2_FILEHEADER_SIZE) ? format_from_header(mem) : OPJ_CODEC_UNKNOWN;
+	struct BufInfo buf_wrapper = { .buf = mem, .cur = mem, .len = size, };
+	opj_stream_t stream = opj_stream_create_from_buffer(&buf_wrapper, OPJ_J2K_STREAM_CHUNK_SIZE, true);
+	ImBuf *ibuf = imb_load_jp2_stream(stream, format, flags, colorspace);
+	opj_stream_destroy(stream);
+	return ibuf;
+}
+
+ImBuf *imb_load_jp2_filepath(const char *filepath, int flags, char colorspace[IM_MAX_SPACE])
+{
+	FILE *p_file = NULL;
+	unsigned char mem[JP2_FILEHEADER_SIZE];
+	opj_stream_t *stream = opj_stream_create_from_file(filepath, OPJ_J2K_STREAM_CHUNK_SIZE, false, &p_file);
+	if (stream) {
+		return NULL;
+	}
+	else {
+		if (fread(mem, sizeof(mem), 1, p_file) != sizeof(mem)) {
+			opj_stream_destroy(stream);
+			return NULL;
+		}
+		else {
+			fseek(p_file, 0, SEEK_SET);
+		}
+	}
+
+	const OPJ_CODEC_FORMAT format = format_from_header(mem);
+	ImBuf *ibuf = imb_load_jp2_stream(stream, format, flags, colorspace);
+	opj_stream_destroy(stream);
+	return ibuf;
+}
+
+
+static ImBuf *imb_load_jp2_stream(
+        opj_stream_t stream, const OPJ_CODEC_FORMAT format,
+        int flags, char colorspace[IM_MAX_SPACE])
+{
+	if (format == OPJ_CODEC_UNKNOWN) {
+		return NULL;
+	}
+
 	struct ImBuf *ibuf = NULL;
 	bool use_float = false; /* for precision higher then 8 use float */
 	bool use_alpha = false;
@@ -133,68 +371,49 @@ struct ImBuf *imb_jp2_decode(const unsigned char *mem, size_t size, int flags, c
 	unsigned int i, i_next, w, h, planes;
 	unsigned int y;
 	int *r, *g, *b, *a; /* matching 'opj_image_comp.data' type */
-	bool is_jp2, is_j2k;
 	
 	opj_dparameters_t parameters;   /* decompression parameters */
 	
-	opj_event_mgr_t event_mgr;      /* event manager */
 	opj_image_t *image = NULL;
-
-	opj_dinfo_t *dinfo = NULL;  /* handle to a decompressor */
-	opj_cio_t *cio = NULL;
-
-	is_jp2 = check_jp2(mem);
-	is_j2k = check_j2k(mem);
-
-	if (!is_jp2 && !is_j2k)
-		return(NULL);
+	opj_codec_t *codec = NULL;  /* handle to a decompressor */
 
 	/* both 8, 12 and 16 bit JP2Ks are default to standard byte colorspace */
 	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
-	/* configure the event callbacks (not required) */
-	memset(&event_mgr, 0, sizeof(opj_event_mgr_t));
-	event_mgr.error_handler = error_callback;
-	event_mgr.warning_handler = warning_callback;
-	event_mgr.info_handler = info_callback;
-
-
 	/* set decoding parameters to default values */
 	opj_set_default_decoder_parameters(&parameters);
-
 
 	/* JPEG 2000 compressed image data */
 
 	/* get a decoder handle */
-	dinfo = opj_create_decompress(is_jp2 ? CODEC_JP2 : CODEC_J2K);
+	codec = opj_create_decompress(format);
 
-	/* catch events using our callbacks and give a local context */
-	opj_set_event_mgr((opj_common_ptr)dinfo, &event_mgr, stderr);
+	/* configure the event callbacks (not required) */
+	opj_set_error_handler(codec, error_callback, stderr);
+	opj_set_warning_handler(codec, warning_callback, stderr);
+#ifdef DEBUG  /* too noisy */
+	opj_set_info_handler(codec, info_callback, stderr);
+#endif
 
 	/* setup the decoder decoding parameters using the current image and user parameters */
-	opj_setup_decoder(dinfo, &parameters);
-
-	/* open a byte stream */
-	/* note, we can't avoid removing 'const' cast here */
-	cio = opj_cio_open((opj_common_ptr)dinfo, (unsigned char *)mem, size);
-
-	/* decode the stream and fill the image structure */
-	image = opj_decode(dinfo, cio);
-	
-	if (!image) {
-		fprintf(stderr, "ERROR -> j2k_to_image: failed to decode image!\n");
-		opj_destroy_decompress(dinfo);
-		opj_cio_close(cio);
-		return NULL;
+	if (opj_setup_decoder(codec, &parameters) == false) {
+		goto finally;
 	}
 
-	/* close the byte stream */
-	opj_cio_close(cio);
+	if (opj_read_header(stream, codec, &image) == false) {
+		printf("OpenJPEG error: failed to read the header\n");
+		goto finally;
+	}
 
+	/* decode the stream and fill the image structure */
+	if (opj_decode(codec, stream, image) == false) {
+		fprintf(stderr, "ERROR -> j2k_to_image: failed to decode image!\n");
+		goto finally;
+	}
 
 	if ((image->numcomps * image->x1 * image->y1) == 0) {
 		fprintf(stderr, "\nError: invalid raw image parameters\n");
-		return NULL;
+		goto finally;
 	}
 	
 	w = image->comps[0].w;
@@ -232,16 +451,16 @@ struct ImBuf *imb_jp2_decode(const unsigned char *mem, size_t size, int flags, c
 	ibuf = IMB_allocImBuf(w, h, planes, use_float ? IB_rectfloat : IB_rect);
 	
 	if (ibuf == NULL) {
-		if (dinfo)
-			opj_destroy_decompress(dinfo);
-		return NULL;
+		goto finally;
 	}
 	
 	ibuf->ftype = IMB_FTYPE_JP2;
-	if (is_jp2)
+	if (1 /* is_jp2 */ ) {
 		ibuf->foptions.flag |= JP2_JP2;
-	else
+	}
+	else {
 		ibuf->foptions.flag |= JP2_J2K;
+	}
 	
 	if (use_float) {
 		float *rect_float = ibuf->rect_float;
@@ -347,19 +566,23 @@ struct ImBuf *imb_jp2_decode(const unsigned char *mem, size_t size, int flags, c
 		}
 	}
 	
-	/* free remaining structures */
-	if (dinfo) {
-		opj_destroy_decompress(dinfo);
-	}
-	
-	/* free image data structure */
-	opj_image_destroy(image);
-	
 	if (flags & IB_rect) {
 		IMB_rect_from_float(ibuf);
 	}
-	
-	return(ibuf);
+
+
+finally:
+
+	/* free remaining structures */
+	if (codec) {
+		opj_destroy_codec(codec);
+	}
+
+	if (image) {
+		opj_image_destroy(image);
+	}
+
+	return ibuf;
 }
 
 //static opj_image_t* rawtoimage(const char *filename, opj_cparameters_t *parameters, raw_cparameters_t *raw_cp)
@@ -422,14 +645,14 @@ static int initialise_4K_poc(opj_poc_t *POC, int numres)
 	POC[0].layno1  = 1;
 	POC[0].resno1  = numres - 1;
 	POC[0].compno1 = 3;
-	POC[0].prg1 = CPRL;
+	POC[0].prg1 = OPJ_CPRL;
 	POC[1].tile  = 1;
 	POC[1].resno0  = numres - 1;
 	POC[1].compno0 = 0;
 	POC[1].layno1  = 1;
 	POC[1].resno1  = numres;
 	POC[1].compno1 = 3;
-	POC[1].prg1 = CPRL;
+	POC[1].prg1 = OPJ_CPRL;
 	return 2;
 }
 
@@ -455,7 +678,7 @@ static void cinema_parameters(opj_cparameters_t *parameters)
 	parameters->csty |= 0x01;
 
 	/*The progression order shall be CPRL*/
-	parameters->prog_order = CPRL;
+	parameters->prog_order = OPJ_CPRL;
 
 	/* No ROI */
 	parameters->roi_compno = -1;
@@ -472,23 +695,23 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters, opj_image_t *ima
 	float temp_rate;
 
 	switch (parameters->cp_cinema) {
-		case CINEMA2K_24:
-		case CINEMA2K_48:
+		case OPJ_CINEMA2K_24:
+		case OPJ_CINEMA2K_48:
 			if (parameters->numresolution > 6) {
 				parameters->numresolution = 6;
 			}
 			if (!((image->comps[0].w == 2048) || (image->comps[0].h == 1080))) {
-				fprintf(stdout, "Image coordinates %d x %d is not 2K compliant.\nJPEG Digital Cinema Profile-3 "
+				fprintf(stdout, "Image coordinates %u x %u is not 2K compliant.\nJPEG Digital Cinema Profile-3 "
 				        "(2K profile) compliance requires that at least one of coordinates match 2048 x 1080\n",
 				        image->comps[0].w, image->comps[0].h);
-				parameters->cp_rsiz = STD_RSIZ;
+				parameters->cp_rsiz = OPJ_STD_RSIZ;
 			}
 			else {
 				parameters->cp_rsiz = DCP_CINEMA2K;
 			}
 			break;
 	
-		case CINEMA4K_24:
+		case OPJ_CINEMA4K_24:
 			if (parameters->numresolution < 1) {
 				parameters->numresolution = 1;
 			}
@@ -496,24 +719,24 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters, opj_image_t *ima
 				parameters->numresolution = 7;
 			}
 			if (!((image->comps[0].w == 4096) || (image->comps[0].h == 2160))) {
-				fprintf(stdout, "Image coordinates %d x %d is not 4K compliant.\nJPEG Digital Cinema Profile-4"
+				fprintf(stdout, "Image coordinates %u x %u is not 4K compliant.\nJPEG Digital Cinema Profile-4"
 				        "(4K profile) compliance requires that at least one of coordinates match 4096 x 2160\n",
 				        image->comps[0].w, image->comps[0].h);
-				parameters->cp_rsiz = STD_RSIZ;
+				parameters->cp_rsiz = OPJ_STD_RSIZ;
 			}
 			else {
 				parameters->cp_rsiz = DCP_CINEMA2K;
 			}
 			parameters->numpocs = initialise_4K_poc(parameters->POC, parameters->numresolution);
 			break;
-		case OFF:
+		case OPJ_OFF:
 			/* do nothing */
 			break;
 	}
 
 	switch (parameters->cp_cinema) {
-		case CINEMA2K_24:
-		case CINEMA4K_24:
+		case OPJ_CINEMA2K_24:
+		case OPJ_CINEMA4K_24:
 			for (i = 0; i < parameters->tcp_numlayers; i++) {
 				temp_rate = 0;
 				if (img_fol->rates[i] == 0) {
@@ -535,7 +758,7 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters, opj_image_t *ima
 			parameters->max_comp_size = COMP_24_CS;
 			break;
 		
-		case CINEMA2K_48:
+		case OPJ_CINEMA2K_48:
 			for (i = 0; i < parameters->tcp_numlayers; i++) {
 				temp_rate = 0;
 				if (img_fol->rates[i] == 0) {
@@ -556,7 +779,7 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters, opj_image_t *ima
 			}
 			parameters->max_comp_size = COMP_48_CS;
 			break;
-		case OFF:
+		case OPJ_OFF:
 			/* do nothing */
 			break;
 	}
@@ -600,13 +823,13 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 	if (ibuf->foptions.flag & JP2_CINE) {
 		
 		if (ibuf->x == 4096 || ibuf->y == 2160)
-			parameters->cp_cinema = CINEMA4K_24;
+			parameters->cp_cinema = OPJ_CINEMA4K_24;
 		else {
 			if (ibuf->foptions.flag & JP2_CINE_48FPS) {
-				parameters->cp_cinema = CINEMA2K_48;
+				parameters->cp_cinema = OPJ_CINEMA2K_48;
 			}
 			else {
-				parameters->cp_cinema = CINEMA2K_24;
+				parameters->cp_cinema = OPJ_CINEMA2K_24;
 			}
 		}
 		if (parameters->cp_cinema) {
@@ -617,13 +840,13 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 			cinema_parameters(parameters);
 		}
 		
-		color_space = (ibuf->foptions.flag & JP2_YCC) ? CLRSPC_SYCC : CLRSPC_SRGB;
+		color_space = (ibuf->foptions.flag & JP2_YCC) ? OPJ_CLRSPC_SYCC : OPJ_CLRSPC_SRGB;
 		prec = 12;
 		numcomps = 3;
 	}
 	else {
 		/* Get settings from the imbuf */
-		color_space = (ibuf->foptions.flag & JP2_YCC) ? CLRSPC_SYCC : CLRSPC_SRGB;
+		color_space = (ibuf->foptions.flag & JP2_YCC) ? OPJ_CLRSPC_SYCC : OPJ_CLRSPC_SRGB;
 		
 		if (ibuf->foptions.flag & JP2_16BIT) prec = 16;
 		else if (ibuf->foptions.flag & JP2_12BIT) prec = 12;
@@ -958,27 +1181,26 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 	return image;
 }
 
+int imb_save_jp2_stream(struct ImBuf *ibuf, opj_stream_t stream, int flags);
+
+int imb_save_jp2(struct ImBuf *ibuf, const char *filepath, int flags)
+{
+	opj_stream_t stream = opj_stream_create_from_file(filepath, OPJ_J2K_STREAM_CHUNK_SIZE, false, NULL);
+	if (stream == NULL) {
+		return 0;
+	}
+	int ret = imb_save_jp2_stream(ibuf, stream, flags);
+	opj_stream_destroy(stream);
+	return ret;
+}
 
 /* Found write info at http://users.ece.gatech.edu/~slabaugh/personal/c/bitmapUnix.c */
-int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags)
+int imb_save_jp2_stream(struct ImBuf *ibuf, opj_stream_t stream, int UNUSED(flags))
 {
 	int quality = ibuf->foptions.quality;
 	
-	int bSuccess;
 	opj_cparameters_t parameters;   /* compression parameters */
-	opj_event_mgr_t event_mgr;      /* event manager */
 	opj_image_t *image = NULL;
-	
-	(void)flags; /* unused */
-	
-	/*
-	 * configure the event callbacks (not required)
-	 * setting of each callback is optional
-	 */
-	memset(&event_mgr, 0, sizeof(opj_event_mgr_t));
-	event_mgr.error_handler = error_callback;
-	event_mgr.warning_handler = warning_callback;
-	event_mgr.info_handler = info_callback;
 	
 	/* set encoding parameters to default values */
 	opj_set_default_encoder_parameters(&parameters);
@@ -993,61 +1215,61 @@ int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags)
 	parameters.cp_disto_alloc = 1;
 
 	image = ibuftoimage(ibuf, &parameters);
-	
-	
-	{   /* JP2 format output */
-		int codestream_length;
-		opj_cio_t *cio = NULL;
-		FILE *f = NULL;
-		opj_cinfo_t *cinfo = NULL;
 
+	opj_codec_t *codec = NULL;
+	int ok = false;
+	/* JP2 format output */
+	{
 		/* get a JP2 compressor handle */
-		if (ibuf->foptions.flag & JP2_JP2)
-			cinfo = opj_create_compress(CODEC_JP2);
-		else if (ibuf->foptions.flag & JP2_J2K)
-			cinfo = opj_create_compress(CODEC_J2K);
-		else
-			BLI_assert(!"Unsupported codec was specified in save settings");
+		OPJ_CODEC_FORMAT format = OPJ_CODEC_JP2;
+		if (ibuf->foptions.flag & JP2_J2K) {
+			format = OPJ_CODEC_J2K;
+		}
+		else if (ibuf->foptions.flag & JP2_JP2) {
+			format = OPJ_CODEC_JP2;
+		}
 
-		/* catch events using our callbacks and give a local context */
-		opj_set_event_mgr((opj_common_ptr)cinfo, &event_mgr, stderr);
+		codec = opj_create_compress(format);
+
+		/* configure the event callbacks (not required) */
+		opj_set_error_handler(codec, error_callback, stderr);
+		opj_set_warning_handler(codec, warning_callback, stderr);
+#ifdef DEBUG  /* too noisy */
+		opj_set_info_handler(codec, info_callback, stderr);
+#endif
 
 		/* setup the encoder parameters using the current image and using user parameters */
-		opj_setup_encoder(cinfo, &parameters, image);
-
-		/* open a byte stream for writing */
-		/* allocate memory for all tiles */
-		cio = opj_cio_open((opj_common_ptr)cinfo, NULL, 0);
-
-		/* encode the image */
-		bSuccess = opj_encode(cinfo, cio, image, NULL); /* last arg used to be parameters.index but this deprecated */
-		
-		if (!bSuccess) {
-			opj_cio_close(cio);
-			fprintf(stderr, "failed to encode image\n");
-			return 0;
+		if (opj_setup_encoder(codec, &parameters, image) == false) {
+			goto finally;
 		}
-		codestream_length = cio_tell(cio);
 
-		/* write the buffer to disk */
-		f = BLI_fopen(name, "wb");
-		
-		if (!f) {
-			fprintf(stderr, "failed to open %s for writing\n", name);
-			return 1;
+		if (opj_start_compress(codec, image, stream) == false) {
+			goto finally;
 		}
-		fwrite(cio->buffer, 1, codestream_length, f);
-		fclose(f);
-		fprintf(stderr, "Generated outfile %s\n", name);
-		/* close and free the byte stream */
-		opj_cio_close(cio);
-		
-		/* free remaining compression structures */
-		opj_destroy_compress(cinfo);
+		if (opj_encode(codec, stream) == false) {
+			goto finally;
+		}
+		if (opj_end_compress(codec, stream) == false) {
+			goto finally;
+		}
+	}
+
+	ok = true;
+
+finally:
+	/* free remaining compression structures */
+	if (codec) {
+		opj_destroy_codec(codec);
 	}
 
 	/* free image data */
-	opj_image_destroy(image);
-	
-	return 1;
+	if (image) {
+		opj_image_destroy(image);
+	}
+
+	if (ok == false) {
+		fprintf(stderr, "failed to encode image\n");
+	}
+
+	return ok;
 }

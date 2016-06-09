@@ -1,5 +1,12 @@
 /*
+ * The copyright in this software is being made available under the 2-clauses 
+ * BSD License, included below. This software may be subject to other third 
+ * party and contributor rights, including patent rights, and no such rights
+ * are granted under this license.
+ *
  * Copyright (c) 2005, Herve Drolon, FreeImage Team
+ * Copyright (c) 2008, 2011-2012, Centre National d'Etudes Spatiales (CNES), FR 
+ * Copyright (c) 2012, CS Systemes d'Information, France
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +38,31 @@
 
 The functions in EVENT.C have for goal to send output messages (errors, warnings, debug) to the user.
 */
+/**
+Message handler object
+used for 
+<ul>
+<li>Error messages
+<li>Warning messages
+<li>Debugging messages
+</ul>
+*/
+typedef struct opj_event_mgr 
+{
+	/** Data to call the event manager upon */
+	void *			m_error_data;
+	/** Data to call the event manager upon */
+	void *			m_warning_data;
+	/** Data to call the event manager upon */
+	void *			m_info_data;
+	/** Error message callback if available, NULL otherwise */
+	opj_msg_callback error_handler;
+	/** Warning message callback if available, NULL otherwise */
+	opj_msg_callback warning_handler;
+	/** Debug message callback if available, NULL otherwise */
+	opj_msg_callback info_handler;
+} opj_event_mgr_t;
+
 
 #define EVT_ERROR	1	/**< Error event type */
 #define EVT_WARNING	2	/**< Warning event type */
@@ -42,15 +74,27 @@ The functions in EVENT.C have for goal to send output messages (errors, warnings
 /** @name Exported functions (see also openjpeg.h) */
 /*@{*/
 /* ----------------------------------------------------------------------- */
-/**
-Write formatted data to a string and send the string to a user callback. 
-@param cinfo Codec context info
-@param event_type Event type or callback to use to send the message
-@param fmt Format-control string (plus optionnal arguments)
-@return Returns true if successful, returns false otherwise
-*/
-opj_bool opj_event_msg(opj_common_ptr cinfo, int event_type, const char *fmt, ...);
+
+
 /* ----------------------------------------------------------------------- */
+
+/**
+ * Write formatted data to a string and send the string to a user callback.
+ *
+ * @param event_mgr			Event handler
+ * @param event_type 		Event type or callback to use to send the message
+ * @param fmt 				Format-control string (plus optional arguments)
+ *
+ * @return Returns true if successful, returns false otherwise
+ */
+OPJ_BOOL opj_event_msg(opj_event_mgr_t* event_mgr, OPJ_INT32 event_type, const char *fmt, ...);
+/* ----------------------------------------------------------------------- */
+
+/**
+ * Set the event manager with the default callback function for the 3 levels.
+ */
+void opj_set_default_event_handler(opj_event_mgr_t * p_manager);
+
 /*@}*/
 
 /*@}*/

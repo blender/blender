@@ -1,10 +1,18 @@
 /*
- * Copyright (c) 2002-2007, Communications and Remote Sensing Laboratory, Universite catholique de Louvain (UCL), Belgium
- * Copyright (c) 2002-2007, Professor Benoit Macq
+ * The copyright in this software is being made available under the 2-clauses 
+ * BSD License, included below. This software may be subject to other third 
+ * party and contributor rights, including patent rights, and no such rights
+ * are granted under this license.
+ *
+ * Copyright (c) 2002-2014, Universite catholique de Louvain (UCL), Belgium
+ * Copyright (c) 2002-2014, Professor Benoit Macq
  * Copyright (c) 2001-2003, David Janssens
  * Copyright (c) 2002-2003, Yannick Verschueren
- * Copyright (c) 2003-2007, Francois-Olivier Devaux and Antonin Descampe
+ * Copyright (c) 2003-2007, Francois-Olivier Devaux 
+ * Copyright (c) 2003-2014, Antonin Descampe
  * Copyright (c) 2005, Herve Drolon, FreeImage Team
+ * Copyright (c) 2008, 2011-2012, Centre National d'Etudes Spatiales (CNES), FR 
+ * Copyright (c) 2012, CS Systemes d'Information, France
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,8 +51,6 @@
 Tier-2 coding
 */
 typedef struct opj_t2 {
-	/** codec context */
-	opj_common_ptr cinfo;
 
 	/** Encoding: pointer to the src image. Decoding: pointer to the dst image. */
 	opj_image_t *image;
@@ -58,44 +64,66 @@ typedef struct opj_t2 {
 
 /**
 Encode the packets of a tile to a destination buffer
-@param t2 T2 handle
-@param tileno number of the tile encoded
-@param tile the tile for which to write the packets
-@param maxlayers maximum number of layers
-@param dest the destination buffer
-@param len the length of the destination buffer
-@param cstr_info Codestream information structure 
-@param tpnum Tile part number of the current tile
-@param tppos The position of the tile part flag in the progression order
-@param pino 
-@param t2_mode If == 0 In Threshold calculation ,If == 1 Final pass
-@param cur_totnum_tp The total number of tile parts in the current tile
+@param t2               T2 handle
+@param tileno           number of the tile encoded
+@param tile             the tile for which to write the packets
+@param maxlayers        maximum number of layers
+@param dest             the destination buffer
+@param p_data_written   FIXME DOC
+@param len              the length of the destination buffer
+@param cstr_info        Codestream information structure
+@param tpnum            Tile part number of the current tile
+@param tppos            The position of the tile part flag in the progression order
+@param pino             FIXME DOC
+@param t2_mode          If == 0 In Threshold calculation ,If == 1 Final pass
 */
-int t2_encode_packets(opj_t2_t* t2,int tileno, opj_tcd_tile_t *tile, int maxlayers, unsigned char *dest, int len, opj_codestream_info_t *cstr_info,int tpnum, int tppos,int pino,J2K_T2_MODE t2_mode,int cur_totnum_tp);
+OPJ_BOOL opj_t2_encode_packets(	opj_t2_t* t2,
+								OPJ_UINT32 tileno,
+								opj_tcd_tile_t *tile,
+								OPJ_UINT32 maxlayers,
+								OPJ_BYTE *dest,
+								OPJ_UINT32 * p_data_written,
+								OPJ_UINT32 len,
+								opj_codestream_info_t *cstr_info,
+								OPJ_UINT32 tpnum,
+								OPJ_INT32 tppos,
+								OPJ_UINT32 pino,
+								J2K_T2_MODE t2_mode);
+
 /**
 Decode the packets of a tile from a source buffer
 @param t2 T2 handle
-@param src the source buffer
-@param len length of the source buffer
 @param tileno number that identifies the tile for which to decode the packets
 @param tile tile for which to decode the packets
-@param cstr_info Codestream information structure
+@param src         FIXME DOC
+@param p_data_read the source buffer
+@param len length of the source buffer
+@param cstr_info   FIXME DOC
+
+@return FIXME DOC
  */
-int t2_decode_packets(opj_t2_t *t2, unsigned char *src, int len, int tileno, opj_tcd_tile_t *tile, opj_codestream_info_t *cstr_info);
+OPJ_BOOL opj_t2_decode_packets(	opj_t2_t *t2,
+                                OPJ_UINT32 tileno,
+                                opj_tcd_tile_t *tile,
+                                OPJ_BYTE *src,
+                                OPJ_UINT32 * p_data_read,
+                                OPJ_UINT32 len,
+                                opj_codestream_index_t *cstr_info);
 
 /**
-Create a T2 handle
-@param cinfo Codec context info
-@param image Source or destination image
-@param cp Image coding parameters
-@return Returns a new T2 handle if successful, returns NULL otherwise
+ * Creates a Tier 2 handle
+ *
+ * @param	p_image		Source or destination image
+ * @param	p_cp		Image coding parameters.
+ * @return		a new T2 handle if successful, NULL otherwise.
 */
-opj_t2_t* t2_create(opj_common_ptr cinfo, opj_image_t *image, opj_cp_t *cp);
+opj_t2_t* opj_t2_create(opj_image_t *p_image, opj_cp_t *p_cp);
+
 /**
 Destroy a T2 handle
 @param t2 T2 handle to destroy
 */
-void t2_destroy(opj_t2_t *t2);
+void opj_t2_destroy(opj_t2_t *t2);
 
 /* ----------------------------------------------------------------------- */
 /*@}*/

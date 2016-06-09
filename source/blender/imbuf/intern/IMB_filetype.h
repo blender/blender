@@ -82,8 +82,9 @@ int imb_saveiris(struct ImBuf *ibuf, const char *name, int flags);
 
 /* jp2 */
 int imb_is_a_jp2(const unsigned char *buf);
-struct ImBuf *imb_jp2_decode(const unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE]);
-int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags);
+struct ImBuf *imb_load_jp2(const unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE]);
+struct ImBuf *imb_load_jp2_filepath(const char *name, int flags, char colorspace[IM_MAX_SPACE]);
+int imb_save_jp2(struct ImBuf *ibuf, const char *name, int flags);
 
 /* jpeg */
 int imb_is_a_jpeg(const unsigned char *mem);

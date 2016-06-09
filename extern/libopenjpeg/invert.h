@@ -1,8 +1,10 @@
 /*
- * Copyright (c) 2002-2007, Communications and Remote Sensing Laboratory, Universite catholique de Louvain (UCL), Belgium
- * Copyright (c) 2002-2007, Professor Benoit Macq
- * Copyright (c) 2002-2003, Yannick Verschueren
- * Copyright (c) 2005, Herve Drolon, FreeImage Team
+ * The copyright in this software is being made available under the 2-clauses 
+ * BSD License, included below. This software may be subject to other third 
+ * party and contributor rights, including patent rights, and no such rights
+ * are granted under this license.
+ *
+ * Copyright (c) 2008, Jerome Fimes, Communications & Systemes <jerome.fimes@c-s.fr>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,49 +29,36 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __JPT_H
-#define __JPT_H
+#ifndef __INVERT_H
+#define __INVERT_H
 /**
-@file jpt.h
-@brief JPT-stream reader (JPEG 2000, JPIP)
+@file invert.h
+@brief Implementation of the matrix inversion
 
-JPT-stream functions are implemented in J2K.C. 
+The function in INVERT.H compute a matrix inversion with a LUP method
 */
 
-/**
-Message Header JPT stream structure
-*/
-typedef struct opj_jpt_msg_header {
-	/** In-class Identifier */
-	unsigned int Id;
-	/** Last byte information */
-	unsigned int last_byte;	
-	/** Class Identifier */
-	unsigned int Class_Id;	
-	/** CSn : index identifier */
-	unsigned int CSn_Id;
-	/** Message offset */
-	unsigned int Msg_offset;
-	/** Message length */
-	unsigned int Msg_length;
-	/** Auxiliary for JPP case */
-	unsigned int Layer_nb;
-} opj_jpt_msg_header_t;
-
+/** @defgroup INVERT INVERT - Implementation of a matrix inversion */
+/*@{*/
+/** @name Exported functions */
+/*@{*/
 /* ----------------------------------------------------------------------- */
 
 /**
-Initialize the value of the message header structure 
-@param header Message header structure
-*/
-void jpt_init_msg_header(opj_jpt_msg_header_t * header);
+ * Calculates a n x n double matrix inversion with a LUP method. Data is aligned, rows after rows (or columns after columns).
+ * The function does not take ownership of any memory block, data must be fred by the user.
+ *
+ * @param pSrcMatrix	the matrix to invert.
+ * @param pDestMatrix	data to store the inverted matrix. 
+ * @param n size of the matrix
+ * @return OPJ_TRUE if the inversion is successful, OPJ_FALSE if the matrix is singular.
+ */
+OPJ_BOOL opj_matrix_inversion_f(OPJ_FLOAT32 * pSrcMatrix,
+                                OPJ_FLOAT32 * pDestMatrix, 
+                                OPJ_UINT32 nb_compo);
+/* ----------------------------------------------------------------------- */
+/*@}*/
 
-/**
-Read the message header for a JPP/JPT - stream
-@param cinfo Codec context info
-@param cio CIO handle
-@param header Message header structure
-*/
-void jpt_read_msg_header(opj_common_ptr cinfo, opj_cio_t *cio, opj_jpt_msg_header_t *header);
+/*@}*/
 
-#endif
+#endif /* __INVERT_H */ 

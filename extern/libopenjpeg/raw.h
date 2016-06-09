@@ -1,7 +1,13 @@
 /*
- * Copyright (c) 2002-2007, Communications and Remote Sensing Laboratory, Universite catholique de Louvain (UCL), Belgium
- * Copyright (c) 2002-2007, Professor Benoit Macq
- * Copyright (c) 2003-2007, Francois-Olivier Devaux and Antonin Descampe
+ * The copyright in this software is being made available under the 2-clauses 
+ * BSD License, included below. This software may be subject to other third 
+ * party and contributor rights, including patent rights, and no such rights
+ * are granted under this license.
+ *
+ * Copyright (c) 2002-2014, Universite catholique de Louvain (UCL), Belgium
+ * Copyright (c) 2002-2014, Professor Benoit Macq
+ * Copyright (c) 2003-2007, Francois-Olivier Devaux 
+ * Copyright (c) 2003-2014, Antonin Descampe
  * Copyright (c) 2005, Herve Drolon, FreeImage Team
  * All rights reserved.
  *
@@ -45,19 +51,19 @@ RAW encoding operations
 */
 typedef struct opj_raw {
 	/** temporary buffer where bits are coded or decoded */
-	unsigned char c;
+	OPJ_BYTE c;
 	/** number of bits already read or free to write */
-	unsigned int ct;
+	OPJ_UINT32 ct;
 	/** maximum length to decode */
-	unsigned int lenmax;
+	OPJ_UINT32 lenmax;
 	/** length decoded */
-	unsigned int len;
+	OPJ_UINT32 len;
 	/** pointer to the current position in the buffer */
-	unsigned char *bp;
+	OPJ_BYTE *bp;
 	/** pointer to the start of the buffer */
-	unsigned char *start;
+	OPJ_BYTE *start;
 	/** pointer to the end of the buffer */
-	unsigned char *end;
+	OPJ_BYTE *end;
 } opj_raw_t;
 
 /** @name Exported functions */
@@ -67,31 +73,31 @@ typedef struct opj_raw {
 Create a new RAW handle 
 @return Returns a new RAW handle if successful, returns NULL otherwise
 */
-opj_raw_t* raw_create(void);
+opj_raw_t* opj_raw_create(void);
 /**
 Destroy a previously created RAW handle
 @param raw RAW handle to destroy
 */
-void raw_destroy(opj_raw_t *raw);
+void opj_raw_destroy(opj_raw_t *raw);
 /**
 Return the number of bytes written/read since initialisation
 @param raw RAW handle to destroy
 @return Returns the number of bytes already encoded
 */
-int raw_numbytes(opj_raw_t *raw);
+OPJ_UINT32 opj_raw_numbytes(opj_raw_t *raw);
 /**
 Initialize the decoder
 @param raw RAW handle
 @param bp Pointer to the start of the buffer from which the bytes will be read
 @param len Length of the input buffer
 */
-void raw_init_dec(opj_raw_t *raw, unsigned char *bp, int len);
+void opj_raw_init_dec(opj_raw_t *raw, OPJ_BYTE *bp, OPJ_UINT32 len);
 /**
 Decode a symbol using raw-decoder. Cfr p.506 TAUBMAN
 @param raw RAW handle
 @return Returns the decoded symbol (0 or 1)
 */
-int raw_decode(opj_raw_t *raw);
+OPJ_UINT32 opj_raw_decode(opj_raw_t *raw);
 /* ----------------------------------------------------------------------- */
 /*@}*/
 

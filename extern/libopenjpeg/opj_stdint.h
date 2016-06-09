@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2002-2007, Communications and Remote Sensing Laboratory, Universite catholique de Louvain (UCL), Belgium
- * Copyright (c) 2002-2007, Professor Benoit Macq
- * Copyright (c) 2001-2003, David Janssens
- * Copyright (c) 2002-2003, Yannick Verschueren
- * Copyright (c) 2003-2007, Francois-Olivier Devaux and Antonin Descampe
- * Copyright (c) 2005, Herve Drolon, FreeImage Team
+ * The copyright in this software is being made available under the 2-clauses 
+ * BSD License, included below. This software may be subject to other third 
+ * party and contributor rights, including patent rights, and no such rights
+ * are granted under this license.
+ *
+ * Copyright (c) 2012, Mathieu Malaterre <mathieu.malaterre@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,37 +28,25 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef __FIX_H
-#define __FIX_H
+#ifndef OPJ_STDINT_H
+#define OPJ_STDINT_H
 
-#if defined(_MSC_VER) || defined(__BORLANDC__)
-#define int64 __int64
+#include "opj_config.h"
+#ifdef OPJ_HAVE_STDINT_H
+#include <stdint.h>
 #else
-#define int64 long long
+#if defined(_WIN32)
+typedef   signed __int8   int8_t;
+typedef unsigned __int8   uint8_t;
+typedef   signed __int16  int16_t;
+typedef unsigned __int16  uint16_t;
+typedef   signed __int32  int32_t;
+typedef unsigned __int32  uint32_t;
+typedef   signed __int64  int64_t;
+typedef unsigned __int64  uint64_t;
+#else
+#error unsupported platform
+#endif
 #endif
 
-/**
-@file fix.h
-@brief Implementation of operations of specific multiplication (FIX)
-
-The functions in FIX.H have for goal to realize specific multiplication.
-*/
-
-/** @defgroup FIX FIX - Implementation of operations of specific multiplication */
-/*@{*/
-
-/**
-Multiply two fixed-precision rational numbers.
-@param a
-@param b
-@return Returns a * b
-*/
-static INLINE int fix_mul(int a, int b) {
-    int64 temp = (int64) a * (int64) b ;
-    temp += temp & 4096;
-    return (int) (temp >> 13) ;
-}
-
-/*@}*/
-
-#endif /* __FIX_H */
+#endif /* OPJ_STDINT_H */

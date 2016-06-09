@@ -41,13 +41,14 @@ FIND_PATH(OPENJPEG_INCLUDE_DIR
   HINTS
     ${_openjpeg_SEARCH_DIRS}
   PATH_SUFFIXES
+    openjpeg-2.1
+    include/openjpeg-2.1
     include
-    include/openjpeg-1.5
 )
 
 FIND_LIBRARY(OPENJPEG_LIBRARY
   NAMES
-    openjpeg
+    openjp2
   HINTS
     ${_openjpeg_SEARCH_DIRS}
   PATH_SUFFIXES
