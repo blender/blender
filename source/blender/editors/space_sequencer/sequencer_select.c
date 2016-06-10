@@ -943,16 +943,26 @@ void SEQUENCER_OT_select_border(wmOperatorType *ot)
 
 /* ****** Selected Grouped ****** */
 
+enum {
+	SEQ_SELECT_GROUP_TYPE,
+	SEQ_SELECT_GROUP_TYPE_BASIC,
+	SEQ_SELECT_GROUP_TYPE_EFFECT,
+	SEQ_SELECT_GROUP_DATA,
+	SEQ_SELECT_GROUP_EFFECT,
+	SEQ_SELECT_GROUP_EFFECT_LINK,
+	SEQ_SELECT_GROUP_OVERLAP,
+};
+
 static EnumPropertyItem sequencer_prop_select_grouped_types[] = {
-	{1, "TYPE", 0, "Type", "Shared strip type"},
-	{2, "TYPE_BASIC", 0, "Global Type", "All strips of same basic type (Graphical or Sound)"},
-	{3, "TYPE_EFFECT", 0, "Effect Type",
+	{SEQ_SELECT_GROUP_TYPE, "TYPE", 0, "Type", "Shared strip type"},
+	{SEQ_SELECT_GROUP_TYPE_BASIC, "TYPE_BASIC", 0, "Global Type", "All strips of same basic type (Graphical or Sound)"},
+	{SEQ_SELECT_GROUP_TYPE_EFFECT, "TYPE_EFFECT", 0, "Effect Type",
 	 "Shared strip effect type (if active strip is not an effect one, select all non-effect strips)"},
-	{4, "DATA", 0, "Data", "Shared data (scene, image, sound, etc.)"},
-	{5, "EFFECT", 0, "Effect", "Shared effects"},
-	{6, "EFFECT_LINK", 0, "Effect/Linked",
+	{SEQ_SELECT_GROUP_DATA, "DATA", 0, "Data", "Shared data (scene, image, sound, etc.)"},
+	{SEQ_SELECT_GROUP_EFFECT, "EFFECT", 0, "Effect", "Shared effects"},
+	{SEQ_SELECT_GROUP_EFFECT_LINK, "EFFECT_LINK", 0, "Effect/Linked",
 	 "Other strips affected by the active one (sharing some time, and below or effect-assigned)"},
-	{7, "OVERLAP", 0, "Overlap", "Overlapping time"},
+	{SEQ_SELECT_GROUP_OVERLAP, "OVERLAP", 0, "Overlap", "Overlapping time"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -962,14 +972,16 @@ static EnumPropertyItem sequencer_prop_select_grouped_types[] = {
 
 #define SEQ_USE_DATA(_seq) (ELEM(_seq->type, SEQ_TYPE_SCENE, SEQ_TYPE_MOVIECLIP, SEQ_TYPE_MASK) || SEQ_HAS_PATH(_seq))
 
-static bool select_grouped_type(Editing *ed, Sequence *actseq)
+#define SEQ_CHANNEL_CHECK(_seq, _chan) (ELEM((_chan), 0, (_seq)->machine))
+
+static bool select_grouped_type(Editing *ed, Sequence *actseq, const int channel)
 {
 	Sequence *seq;
 	bool changed = false;
 
 	SEQP_BEGIN (ed, seq)
 	{
-		if (seq->type == actseq->type) {
+		if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == actseq->type) {
 			seq->flag |= SELECT;
 			changed = true;
 		}
@@ -979,7 +991,7 @@ static bool select_grouped_type(Editing *ed, Sequence *actseq)
 	return changed;
 }
 
-static bool select_grouped_type_basic(Editing *ed, Sequence *actseq)
+static bool select_grouped_type_basic(Editing *ed, Sequence *actseq, const int channel)
 {
 	Sequence *seq;
 	bool changed = false;
@@ -987,7 +999,7 @@ static bool select_grouped_type_basic(Editing *ed, Sequence *actseq)
 
 	SEQP_BEGIN (ed, seq)
 	{
-		if (is_sound ? SEQ_IS_SOUND(seq) : !SEQ_IS_SOUND(seq)) {
+		if (SEQ_CHANNEL_CHECK(seq, channel) && (is_sound ? SEQ_IS_SOUND(seq) : !SEQ_IS_SOUND(seq))) {
 			seq->flag |= SELECT;
 			changed = true;
 		}
@@ -997,7 +1009,7 @@ static bool select_grouped_type_basic(Editing *ed, Sequence *actseq)
 	return changed;
 }
 
-static bool select_grouped_type_effect(Editing *ed, Sequence *actseq)
+static bool select_grouped_type_effect(Editing *ed, Sequence *actseq, const int channel)
 {
 	Sequence *seq;
 	bool changed = false;
@@ -1005,7 +1017,7 @@ static bool select_grouped_type_effect(Editing *ed, Sequence *actseq)
 
 	SEQP_BEGIN (ed, seq)
 	{
-		if (is_effect ? SEQ_IS_EFFECT(seq) : !SEQ_IS_EFFECT(seq)) {
+		if (SEQ_CHANNEL_CHECK(seq, channel) && (is_effect ? SEQ_IS_EFFECT(seq) : !SEQ_IS_EFFECT(seq))) {
 			seq->flag |= SELECT;
 			changed = true;
 		}
@@ -1015,7 +1027,7 @@ static bool select_grouped_type_effect(Editing *ed, Sequence *actseq)
 	return changed;
 }
 
-static bool select_grouped_data(Editing *ed, Sequence *actseq)
+static bool select_grouped_data(Editing *ed, Sequence *actseq, const int channel)
 {
 	Sequence *seq;
 	bool changed = false;
@@ -1027,7 +1039,7 @@ static bool select_grouped_data(Editing *ed, Sequence *actseq)
 	if (SEQ_HAS_PATH(actseq) && dir) {
 		SEQP_BEGIN (ed, seq)
 		{
-			if (SEQ_HAS_PATH(seq) && seq->strip && STREQ(seq->strip->dir, dir)) {
+			if (SEQ_CHANNEL_CHECK(seq, channel) && SEQ_HAS_PATH(seq) && seq->strip && STREQ(seq->strip->dir, dir)) {
 				seq->flag |= SELECT;
 				changed = true;
 			}
@@ -1038,7 +1050,7 @@ static bool select_grouped_data(Editing *ed, Sequence *actseq)
 		Scene *sce = actseq->scene;
 		SEQP_BEGIN (ed, seq)
 		{
-			if (seq->type == SEQ_TYPE_SCENE && seq->scene == sce) {
+			if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == SEQ_TYPE_SCENE && seq->scene == sce) {
 				seq->flag |= SELECT;
 				changed = true;
 			}
@@ -1049,7 +1061,7 @@ static bool select_grouped_data(Editing *ed, Sequence *actseq)
 		MovieClip *clip = actseq->clip;
 		SEQP_BEGIN (ed, seq)
 		{
-			if (seq->type == SEQ_TYPE_MOVIECLIP && seq->clip == clip) {
+			if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == SEQ_TYPE_MOVIECLIP && seq->clip == clip) {
 				seq->flag |= SELECT;
 				changed = true;
 			}
@@ -1060,7 +1072,7 @@ static bool select_grouped_data(Editing *ed, Sequence *actseq)
 		struct Mask *mask = actseq->mask;
 		SEQP_BEGIN (ed, seq)
 		{
-			if (seq->type == SEQ_TYPE_MASK && seq->mask == mask) {
+			if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == SEQ_TYPE_MASK && seq->mask == mask) {
 				seq->flag |= SELECT;
 				changed = true;
 			}
@@ -1071,7 +1083,7 @@ static bool select_grouped_data(Editing *ed, Sequence *actseq)
 	return changed;
 }
 
-static bool select_grouped_effect(Editing *ed, Sequence *actseq)
+static bool select_grouped_effect(Editing *ed, Sequence *actseq, const int channel)
 {
 	Sequence *seq;
 	bool changed = false;
@@ -1083,7 +1095,9 @@ static bool select_grouped_effect(Editing *ed, Sequence *actseq)
 
 	SEQP_BEGIN (ed, seq)
 	{
-		if ((seq->type & SEQ_TYPE_EFFECT) && ELEM(actseq, seq->seq1, seq->seq2, seq->seq3)) {
+		if (SEQ_CHANNEL_CHECK(seq, channel) && (seq->type & SEQ_TYPE_EFFECT) &&
+		    ELEM(actseq, seq->seq1, seq->seq2, seq->seq3))
+		{
 			effects[seq->type] = true;
 		}
 	}
@@ -1091,7 +1105,7 @@ static bool select_grouped_effect(Editing *ed, Sequence *actseq)
 
 	SEQP_BEGIN (ed, seq)
 	{
-		if (effects[seq->type]) {
+		if (SEQ_CHANNEL_CHECK(seq, channel) && effects[seq->type]) {
 			if (seq->seq1) seq->seq1->flag |= SELECT;
 			if (seq->seq2) seq->seq2->flag |= SELECT;
 			if (seq->seq3) seq->seq3->flag |= SELECT;
@@ -1120,7 +1134,7 @@ static bool select_grouped_time_overlap(Editing *ed, Sequence *actseq)
 	return changed;
 }
 
-static bool select_grouped_effect_link(Editing *ed, Sequence *actseq)
+static bool select_grouped_effect_link(Editing *ed, Sequence *actseq, const int channel)
 {
 	Sequence *seq = NULL;
 	bool changed = false;
@@ -1144,7 +1158,8 @@ static bool select_grouped_effect_link(Editing *ed, Sequence *actseq)
 		/* Ignore all seqs already selected! */
 		/* Ignore all seqs not sharing some time with active one. */
 		/* Ignore all seqs of incompatible types (audio vs video). */
-		if ((seq->flag & SELECT) || (seq->startdisp >= enddisp) || (seq->enddisp < startdisp) ||
+		if (!SEQ_CHANNEL_CHECK(seq, channel) ||
+		    (seq->flag & SELECT) || (seq->startdisp >= enddisp) || (seq->enddisp < startdisp) ||
 		    (!is_audio && SEQ_IS_SOUND(seq)) ||
 		    (is_audio && !((seq->type == SEQ_TYPE_META) || SEQ_IS_SOUND(seq))))
 		{
@@ -1190,17 +1205,19 @@ static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
 	Scene *scene  = CTX_data_scene(C);
 	Editing *ed   = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq, *actseq = BKE_sequencer_active_get(scene);
-	int type = RNA_enum_get(op->ptr, "type");
-	bool changed = false, extend;
 
-	extend = RNA_boolean_get(op->ptr, "extend");
+	const int type = RNA_enum_get(op->ptr, "type");
+	const int channel = RNA_boolean_get(op->ptr, "use_active_channel") ? actseq->machine : 0;
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
+
+	bool changed = false;
 
 	if (actseq == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No active sequence!");
 		return OPERATOR_CANCELLED;
 	}
 
-	if (extend == 0) {
+	if (!extend) {
 		SEQP_BEGIN (ed, seq)
 		{
 			seq->flag &= ~SELECT;
@@ -1209,13 +1226,32 @@ static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
 		SEQ_END;
 	}
 
-	if      (type == 1) changed |= select_grouped_type(ed, actseq);
-	else if (type == 2) changed |= select_grouped_type_basic(ed, actseq);
-	else if (type == 3) changed |= select_grouped_type_effect(ed, actseq);
-	else if (type == 4) changed |= select_grouped_data(ed, actseq);
-	else if (type == 5) changed |= select_grouped_effect(ed, actseq);
-	else if (type == 6) changed |= select_grouped_effect_link(ed, actseq);
-	else if (type == 7) changed |= select_grouped_time_overlap(ed, actseq);
+	switch (type) {
+		case SEQ_SELECT_GROUP_TYPE:
+			changed |= select_grouped_type(ed, actseq, channel);
+			break;
+		case SEQ_SELECT_GROUP_TYPE_BASIC:
+			changed |= select_grouped_type_basic(ed, actseq, channel);
+			break;
+		case SEQ_SELECT_GROUP_TYPE_EFFECT:
+			changed |= select_grouped_type_effect(ed, actseq, channel);
+			break;
+		case SEQ_SELECT_GROUP_DATA:
+			changed |= select_grouped_data(ed, actseq, channel);
+			break;
+		case SEQ_SELECT_GROUP_EFFECT:
+			changed |= select_grouped_effect(ed, actseq, channel);
+			break;
+		case SEQ_SELECT_GROUP_EFFECT_LINK:
+			changed |= select_grouped_effect_link(ed, actseq, channel);
+			break;
+		case SEQ_SELECT_GROUP_OVERLAP:
+			changed |= select_grouped_time_overlap(ed, actseq);
+			break;
+		default:
+			BLI_assert(0);
+			break;
+	}
 
 	if (changed) {
 		WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
@@ -1241,7 +1277,9 @@ void SEQUENCER_OT_select_grouped(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection instead of deselecting everything first");
 	ot->prop = RNA_def_enum(ot->srna, "type", sequencer_prop_select_grouped_types, 0, "Type", "");
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection instead of deselecting everything first");
+	RNA_def_boolean(ot->srna, "use_active_channel", false, "Same Channel",
+	                "Only consider strips on the same channel as the active one");
 }
 
