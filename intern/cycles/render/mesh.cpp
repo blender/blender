@@ -472,30 +472,19 @@ void Mesh::pack_normals(Scene *scene, uint *tri_shader, float4 *vnormal)
 	}
 }
 
-void Mesh::pack_verts(float4 *tri_verts, float4 *tri_vindex, size_t vert_offset)
+void Mesh::pack_verts(const vector<uint>& tri_prim_index,
+                      uint4 *tri_vindex,
+                      size_t vert_offset,
+                      size_t tri_offset)
 {
-	size_t verts_size = verts.size();
-
-	if(verts_size) {
-		float3 *verts_ptr = &verts[0];
-
-		for(size_t i = 0; i < verts_size; i++) {
-			float3 p = verts_ptr[i];
-			tri_verts[i] = make_float4(p.x, p.y, p.z, 0.0f);
-		}
-	}
-
-	size_t triangles_size = num_triangles();
-
+	const size_t triangles_size = num_triangles();
 	if(triangles_size) {
 		for(size_t i = 0; i < triangles_size; i++) {
 			Triangle t = get_triangle(i);
-
-			tri_vindex[i] = make_float4(
-				__int_as_float(t.v[0] + vert_offset),
-				__int_as_float(t.v[1] + vert_offset),
-				__int_as_float(t.v[2] + vert_offset),
-				0);
+			tri_vindex[i] = make_uint4(t.v[0] + vert_offset,
+			                           t.v[1] + vert_offset,
+			                           t.v[2] + vert_offset,
+			                           tri_prim_index[i + tri_offset]);
 		}
 	}
 }
@@ -1070,42 +1059,82 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 	}
 }
 
-void MeshManager::device_update_mesh(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
+void MeshManager::mesh_calc_offset(Scene *scene)
 {
-	/* count and update offsets */
 	size_t vert_size = 0;
 	size_t tri_size = 0;
-
 	size_t curve_key_size = 0;
 	size_t curve_size = 0;
 
 	foreach(Mesh *mesh, scene->meshes) {
 		mesh->vert_offset = vert_size;
 		mesh->tri_offset = tri_size;
-
 		mesh->curvekey_offset = curve_key_size;
 		mesh->curve_offset = curve_size;
 
 		vert_size += mesh->verts.size();
 		tri_size += mesh->num_triangles();
-
 		curve_key_size += mesh->curve_keys.size();
 		curve_size += mesh->num_curves();
 	}
+}
 
+void MeshManager::device_update_mesh(Device *device,
+                                     DeviceScene *dscene,
+                                     Scene *scene,
+                                     bool for_displacement,
+                                     Progress& progress)
+{
+	/* Count. */
+	size_t vert_size = 0;
+	size_t tri_size = 0;
+	size_t curve_key_size = 0;
+	size_t curve_size = 0;
+	foreach(Mesh *mesh, scene->meshes) {
+		vert_size += mesh->verts.size();
+		tri_size += mesh->num_triangles();
+		curve_key_size += mesh->curve_keys.size();
+		curve_size += mesh->num_curves();
+	}
+	/* Create mapping from triangle to primitive triangle array. */
+	vector<uint> tri_prim_index(tri_size);
+	if(for_displacement) {
+		/* For displacement kernels we do some trickery to make them believe
+		 * we've got all required data ready. However, that data is different
+		 * from final render kernels since we don't have BVH yet, so can't
+		 * really use same semantic of arrays.
+		 */
+		foreach(Mesh *mesh, scene->meshes) {
+			for(size_t i = 0; i < mesh->num_triangles(); ++i) {
+				tri_prim_index[i + mesh->tri_offset] = 3 * (i + mesh->tri_offset);
+			}
+		}
+	}
+	else {
+		PackedBVH& pack = bvh->pack;
+		for(size_t i = 0; i < pack.prim_index.size(); ++i) {
+			if ((pack.prim_type[i] & PRIMITIVE_ALL_TRIANGLE) != 0) {
+				tri_prim_index[pack.prim_index[i]] = pack.prim_tri_index[i];
+			}
+		}
+	}
+	/* Fill in all the arrays. */
 	if(tri_size != 0) {
 		/* normals */
 		progress.set_status("Updating Mesh", "Computing normals");
 
 		uint *tri_shader = dscene->tri_shader.resize(tri_size);
 		float4 *vnormal = dscene->tri_vnormal.resize(vert_size);
-		float4 *tri_verts = dscene->tri_verts.resize(vert_size);
-		float4 *tri_vindex = dscene->tri_vindex.resize(tri_size);
+		uint4 *tri_vindex = dscene->tri_vindex.resize(tri_size);
 
 		foreach(Mesh *mesh, scene->meshes) {
-			mesh->pack_normals(scene, &tri_shader[mesh->tri_offset], &vnormal[mesh->vert_offset]);
-			mesh->pack_verts(&tri_verts[mesh->vert_offset], &tri_vindex[mesh->tri_offset], mesh->vert_offset);
-
+			mesh->pack_normals(scene,
+			                   &tri_shader[mesh->tri_offset],
+			                   &vnormal[mesh->vert_offset]);
+			mesh->pack_verts(tri_prim_index,
+			                 &tri_vindex[mesh->tri_offset],
+			                 mesh->vert_offset,
+			                 mesh->tri_offset);
 			if(progress.get_cancel()) return;
 		}
 
@@ -1114,10 +1143,8 @@ void MeshManager::device_update_mesh(Device *device, DeviceScene *dscene, Scene 
 
 		device->tex_alloc("__tri_shader", dscene->tri_shader);
 		device->tex_alloc("__tri_vnormal", dscene->tri_vnormal);
-		device->tex_alloc("__tri_verts", dscene->tri_verts);
 		device->tex_alloc("__tri_vindex", dscene->tri_vindex);
 	}
-
 	if(curve_size != 0) {
 		progress.set_status("Updating Mesh", "Copying Strands to device");
 
@@ -1131,6 +1158,19 @@ void MeshManager::device_update_mesh(Device *device, DeviceScene *dscene, Scene 
 
 		device->tex_alloc("__curve_keys", dscene->curve_keys);
 		device->tex_alloc("__curves", dscene->curves);
+	}
+	if(for_displacement) {
+		float4 *prim_tri_verts = dscene->prim_tri_verts.resize(tri_size * 3);
+		foreach(Mesh *mesh, scene->meshes) {
+			for(size_t i = 0; i < mesh->num_triangles(); ++i) {
+				Mesh::Triangle t = mesh->get_triangle(i);
+				size_t offset = 3 * (i + mesh->tri_offset);
+				prim_tri_verts[offset + 0] = float3_to_float4(mesh->verts[t.v[0]]);
+				prim_tri_verts[offset + 1] = float3_to_float4(mesh->verts[t.v[1]]);
+				prim_tri_verts[offset + 2] = float3_to_float4(mesh->verts[t.v[2]]);
+			}
+		}
+		device->tex_alloc("__prim_tri_verts", dscene->prim_tri_verts);
 	}
 }
 
@@ -1170,9 +1210,13 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 		dscene->object_node.reference((uint*)&pack.object_node[0], pack.object_node.size());
 		device->tex_alloc("__object_node", dscene->object_node);
 	}
-	if(pack.tri_storage.size()) {
-		dscene->tri_storage.reference(&pack.tri_storage[0], pack.tri_storage.size());
-		device->tex_alloc("__tri_storage", dscene->tri_storage);
+	if(pack.prim_tri_index.size()) {
+		dscene->prim_tri_index.reference((uint*)&pack.prim_tri_index[0], pack.prim_tri_index.size());
+		device->tex_alloc("__prim_tri_index", dscene->prim_tri_index);
+	}
+	if(pack.prim_tri_verts.size()) {
+		dscene->prim_tri_verts.reference((float4*)&pack.prim_tri_verts[0], pack.prim_tri_verts.size());
+		device->tex_alloc("__prim_tri_verts", dscene->prim_tri_verts);
 	}
 	if(pack.prim_type.size()) {
 		dscene->prim_type.reference((uint*)&pack.prim_type[0], pack.prim_type.size());
@@ -1273,7 +1317,7 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 
 	VLOG(1) << "Total " << scene->meshes.size() << " meshes.";
 
-	/* update normals */
+	/* Update normals. */
 	foreach(Mesh *mesh, scene->meshes) {
 		foreach(Shader *shader, mesh->used_shaders) {
 			if(shader->need_update_attributes)
@@ -1289,17 +1333,17 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 	}
 
 	/* Update images needed for true displacement. */
-	bool need_displacement_images = false;
+	bool true_displacement_used = false;
 	bool old_need_object_flags_update = false;
 	foreach(Mesh *mesh, scene->meshes) {
 		if(mesh->need_update &&
 		   mesh->displacement_method != Mesh::DISPLACE_BUMP)
 		{
-			need_displacement_images = true;
+			true_displacement_used = true;
 			break;
 		}
 	}
-	if(need_displacement_images) {
+	if(true_displacement_used) {
 		VLOG(1) << "Updating images used for true displacement.";
 		device_update_displacement_images(device, dscene, scene, progress);
 		old_need_object_flags_update = scene->object_manager->need_flags_update;
@@ -1310,45 +1354,47 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 		                                           false);
 	}
 
-	/* device update */
+	/* Device update. */
 	device_free(device, dscene);
 
-	device_update_mesh(device, dscene, scene, progress);
+	mesh_calc_offset(scene);
+	if(true_displacement_used) {
+		device_update_mesh(device, dscene, scene, true, progress);
+	}
 	if(progress.get_cancel()) return;
 
 	device_update_attributes(device, dscene, scene, progress);
 	if(progress.get_cancel()) return;
 
-	/* update displacement */
+	/* Update displacement. */
 	bool displacement_done = false;
-
-	foreach(Mesh *mesh, scene->meshes)
-		if(mesh->need_update && displace(device, dscene, scene, mesh, progress))
+	foreach(Mesh *mesh, scene->meshes) {
+		if(mesh->need_update &&
+		   displace(device, dscene, scene, mesh, progress))
+		{
 			displacement_done = true;
+		}
+	}
 
-	/* todo: properly handle cancel halfway displacement */
+	/* TODO: properly handle cancel halfway displacement */
 	if(progress.get_cancel()) return;
 
-	/* device re-update after displacement */
+	/* Device re-update after displacement. */
 	if(displacement_done) {
 		device_free(device, dscene);
-
-		device_update_mesh(device, dscene, scene, progress);
-		if(progress.get_cancel()) return;
 
 		device_update_attributes(device, dscene, scene, progress);
 		if(progress.get_cancel()) return;
 	}
 
-	/* update bvh */
+	/* Update bvh. */
 	size_t i = 0, num_bvh = 0;
-
-	foreach(Mesh *mesh, scene->meshes)
-		if(mesh->need_update && mesh->need_build_bvh())
+	foreach(Mesh *mesh, scene->meshes) {
+		if(mesh->need_update && mesh->need_build_bvh()) {
 			num_bvh++;
-
+		}
+	}
 	TaskPool pool;
-
 	foreach(Mesh *mesh, scene->meshes) {
 		if(mesh->need_update) {
 			pool.push(function_bind(&Mesh::compute_bvh,
@@ -1362,14 +1408,14 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 			}
 		}
 	}
-
 	TaskPool::Summary summary;
 	pool.wait_work(&summary);
 	VLOG(2) << "Objects BVH build pool statistics:\n"
 	        << summary.full_report();
 
-	foreach(Shader *shader, scene->shaders)
+	foreach(Shader *shader, scene->shaders) {
 		shader->need_update_attributes = false;
+	}
 
 #ifdef __OBJECT_MOTION__
 	Scene::MotionType need_motion = scene->need_motion(device->info.advanced_shading);
@@ -1378,18 +1424,23 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 	bool motion_blur = false;
 #endif
 
-	/* update obejcts */
+	/* Update objects. */
 	vector<Object *> volume_objects;
-	foreach(Object *object, scene->objects)
+	foreach(Object *object, scene->objects) {
 		object->compute_bounds(motion_blur);
+	}
 
 	if(progress.get_cancel()) return;
 
 	device_update_bvh(device, dscene, scene, progress);
+	if(progress.get_cancel()) return;
+
+	device_update_mesh(device, dscene, scene, false, progress);
+	if(progress.get_cancel()) return;
 
 	need_update = false;
 
-	if(need_displacement_images) {
+	if(true_displacement_used) {
 		/* Re-tag flags for update, so they're re-evaluated
 		 * for meshes with correct bounding boxes.
 		 *
@@ -1405,7 +1456,8 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	device->tex_free(dscene->bvh_nodes);
 	device->tex_free(dscene->bvh_leaf_nodes);
 	device->tex_free(dscene->object_node);
-	device->tex_free(dscene->tri_storage);
+	device->tex_free(dscene->prim_tri_verts);
+	device->tex_free(dscene->prim_tri_index);
 	device->tex_free(dscene->prim_type);
 	device->tex_free(dscene->prim_visibility);
 	device->tex_free(dscene->prim_index);
@@ -1413,7 +1465,6 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	device->tex_free(dscene->tri_shader);
 	device->tex_free(dscene->tri_vnormal);
 	device->tex_free(dscene->tri_vindex);
-	device->tex_free(dscene->tri_verts);
 	device->tex_free(dscene->curves);
 	device->tex_free(dscene->curve_keys);
 	device->tex_free(dscene->attributes_map);
@@ -1423,7 +1474,8 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 
 	dscene->bvh_nodes.clear();
 	dscene->object_node.clear();
-	dscene->tri_storage.clear();
+	dscene->prim_tri_verts.clear();
+	dscene->prim_tri_index.clear();
 	dscene->prim_type.clear();
 	dscene->prim_visibility.clear();
 	dscene->prim_index.clear();
@@ -1431,7 +1483,6 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	dscene->tri_shader.clear();
 	dscene->tri_vnormal.clear();
 	dscene->tri_vindex.clear();
-	dscene->tri_verts.clear();
 	dscene->curves.clear();
 	dscene->curve_keys.clear();
 	dscene->attributes_map.clear();

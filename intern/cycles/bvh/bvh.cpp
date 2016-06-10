@@ -121,7 +121,7 @@ void BVH::refit(Progress& progress)
 
 /* Triangles */
 
-void BVH::pack_triangle(int idx, float4 storage[3])
+void BVH::pack_triangle(int idx, float4 tri_verts[3])
 {
 	int tob = pack.prim_object[idx];
 	assert(tob >= 0 && tob < objects.size());
@@ -129,49 +129,58 @@ void BVH::pack_triangle(int idx, float4 storage[3])
 
 	int tidx = pack.prim_index[idx];
 	Mesh::Triangle t = mesh->get_triangle(tidx);
-	const float3* vpos = &mesh->verts[0];
+	const float3 *vpos = &mesh->verts[0];
 	float3 v0 = vpos[t.v[0]];
 	float3 v1 = vpos[t.v[1]];
 	float3 v2 = vpos[t.v[2]];
 
-	storage[0] = float3_to_float4(v0);
-	storage[1] = float3_to_float4(v1);
-	storage[2] = float3_to_float4(v2);
+	tri_verts[0] = float3_to_float4(v0);
+	tri_verts[1] = float3_to_float4(v1);
+	tri_verts[2] = float3_to_float4(v2);
 }
 
 void BVH::pack_primitives()
 {
-	int nsize = TRI_NODE_SIZE;
-	size_t tidx_size = pack.prim_index.size();
-
-	pack.tri_storage.clear();
-	pack.tri_storage.resize(tidx_size * nsize);
+	const size_t tidx_size = pack.prim_index.size();
+	size_t num_prim_triangles = 0;
+	/* Count number of triangles primitives in BVH. */
+	for(unsigned int i = 0; i < tidx_size; i++) {
+		if((pack.prim_index[i] != -1)) {
+			if ((pack.prim_type[i] & PRIMITIVE_ALL_TRIANGLE) != 0) {
+				++num_prim_triangles;
+			}
+		}
+	}
+	/* Reserve size for arrays. */
+	pack.prim_tri_index.clear();
+	pack.prim_tri_index.resize(tidx_size);
+	pack.prim_tri_verts.clear();
+	pack.prim_tri_verts.resize(num_prim_triangles * 3);
 	pack.prim_visibility.clear();
 	pack.prim_visibility.resize(tidx_size);
-
+	/* Fill in all the arrays. */
+	size_t prim_triangle_index = 0;
 	for(unsigned int i = 0; i < tidx_size; i++) {
 		if(pack.prim_index[i] != -1) {
-			float4 storage[3];
-
-			if(pack.prim_type[i] & PRIMITIVE_TRIANGLE) {
-				pack_triangle(i, storage);
-			}
-			else {
-				/* Avoid use of uninitialized memory. */
-				memset(&storage, 0, sizeof(storage));
-			}
-
-			memcpy(&pack.tri_storage[i * nsize], storage, sizeof(float4)*3);
-
 			int tob = pack.prim_object[i];
 			Object *ob = objects[tob];
+
+			if((pack.prim_type[i] & PRIMITIVE_ALL_TRIANGLE) != 0) {
+				pack_triangle(i, (float4*)&pack.prim_tri_verts[3 * prim_triangle_index]);
+				pack.prim_tri_index[i] = 3 * prim_triangle_index;
+				++prim_triangle_index;
+			}
+			else {
+				pack.prim_tri_index[i] = -1;
+			}
+
 			pack.prim_visibility[i] = ob->visibility;
 
 			if(pack.prim_type[i] & PRIMITIVE_ALL_CURVE)
 				pack.prim_visibility[i] |= PATH_RAY_CURVE;
 		}
 		else {
-			memset(&pack.tri_storage[i * nsize], 0, sizeof(float4)*3);
+			pack.prim_tri_index[i] = -1;
 			pack.prim_visibility[i] = 0;
 		}
 	}
@@ -208,10 +217,10 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 
 	/* reserve */
 	size_t prim_index_size = pack.prim_index.size();
-	size_t tri_storage_size = pack.tri_storage.size();
+	size_t prim_tri_verts_size = pack.prim_tri_verts.size();
 
 	size_t pack_prim_index_offset = prim_index_size;
-	size_t pack_tri_storage_offset = tri_storage_size;
+	size_t pack_prim_tri_verts_offset = prim_tri_verts_size;
 	size_t pack_nodes_offset = nodes_size;
 	size_t pack_leaf_nodes_offset = leaf_nodes_size;
 	size_t object_offset = 0;
@@ -225,7 +234,7 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 		if(mesh->need_build_bvh()) {
 			if(mesh_map.find(mesh) == mesh_map.end()) {
 				prim_index_size += bvh->pack.prim_index.size();
-				tri_storage_size += bvh->pack.tri_storage.size();
+				prim_tri_verts_size += bvh->pack.prim_tri_verts.size();
 				nodes_size += bvh->pack.nodes.size();
 				leaf_nodes_size += bvh->pack.leaf_nodes.size();
 
@@ -240,7 +249,8 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 	pack.prim_type.resize(prim_index_size);
 	pack.prim_object.resize(prim_index_size);
 	pack.prim_visibility.resize(prim_index_size);
-	pack.tri_storage.resize(tri_storage_size);
+	pack.prim_tri_verts.resize(prim_tri_verts_size);
+	pack.prim_tri_index.resize(prim_index_size);
 	pack.nodes.resize(nodes_size);
 	pack.leaf_nodes.resize(leaf_nodes_size);
 	pack.object_node.resize(objects.size());
@@ -249,7 +259,8 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 	int *pack_prim_type = (pack.prim_type.size())? &pack.prim_type[0]: NULL;
 	int *pack_prim_object = (pack.prim_object.size())? &pack.prim_object[0]: NULL;
 	uint *pack_prim_visibility = (pack.prim_visibility.size())? &pack.prim_visibility[0]: NULL;
-	float4 *pack_tri_storage = (pack.tri_storage.size())? &pack.tri_storage[0]: NULL;
+	float4 *pack_prim_tri_verts = (pack.prim_tri_verts.size())? &pack.prim_tri_verts[0]: NULL;
+	uint *pack_prim_tri_index = (pack.prim_tri_index.size())? &pack.prim_tri_index[0]: NULL;
 	int4 *pack_nodes = (pack.nodes.size())? &pack.nodes[0]: NULL;
 	int4 *pack_leaf_nodes = (pack.leaf_nodes.size())? &pack.leaf_nodes[0]: NULL;
 
@@ -290,18 +301,24 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 
 		mesh_map[mesh] = pack.object_node[object_offset-1];
 
-		/* merge primitive and object indexes */
+		/* merge primitive, object and triangle indexes */
 		if(bvh->pack.prim_index.size()) {
 			size_t bvh_prim_index_size = bvh->pack.prim_index.size();
 			int *bvh_prim_index = &bvh->pack.prim_index[0];
 			int *bvh_prim_type = &bvh->pack.prim_type[0];
 			uint *bvh_prim_visibility = &bvh->pack.prim_visibility[0];
+			uint *bvh_prim_tri_index = &bvh->pack.prim_tri_index[0];
 
 			for(size_t i = 0; i < bvh_prim_index_size; i++) {
-				if(bvh->pack.prim_type[i] & PRIMITIVE_ALL_CURVE)
+				if(bvh->pack.prim_type[i] & PRIMITIVE_ALL_CURVE) {
 					pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + mesh_curve_offset;
-				else
+					pack_prim_tri_index[pack_prim_index_offset] = -1;
+				}
+				else {
 					pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + mesh_tri_offset;
+					pack_prim_tri_index[pack_prim_index_offset] =
+					        bvh_prim_tri_index[i] + pack_prim_tri_verts_offset;
+				}
 
 				pack_prim_type[pack_prim_index_offset] = bvh_prim_type[i];
 				pack_prim_visibility[pack_prim_index_offset] = bvh_prim_visibility[i];
@@ -310,12 +327,13 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 			}
 		}
 
-		/* merge triangle intersection data */
-		if(bvh->pack.tri_storage.size()) {
-			memcpy(pack_tri_storage + pack_tri_storage_offset,
-			       &bvh->pack.tri_storage[0],
-			       bvh->pack.tri_storage.size()*sizeof(float4));
-			pack_tri_storage_offset += bvh->pack.tri_storage.size();
+		/* Merge triangle vertices data. */
+		if(bvh->pack.prim_tri_verts.size()) {
+			const size_t prim_tri_size = bvh->pack.prim_tri_verts.size();
+			memcpy(pack_prim_tri_verts + pack_prim_tri_verts_offset,
+			       &bvh->pack.prim_tri_verts[0],
+			       prim_tri_size*sizeof(float4));
+			pack_prim_tri_verts_offset += prim_tri_size;
 		}
 
 		/* merge nodes */

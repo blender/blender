@@ -167,7 +167,10 @@ public:
 	void add_vertex_normals();
 
 	void pack_normals(Scene *scene, uint *shader, float4 *vnormal);
-	void pack_verts(float4 *tri_verts, float4 *tri_vindex, size_t vert_offset);
+	void pack_verts(const vector<uint>& tri_prim_index,
+	                uint4 *tri_vindex,
+	                size_t vert_offset,
+	                size_t tri_offset);
 	void pack_curves(Scene *scene, float4 *curve_key_co, float4 *curve_data, size_t curvekey_offset);
 	void compute_bvh(SceneParams *params, Progress *progress, int n, int total);
 
@@ -213,15 +216,41 @@ public:
 	void update_svm_attributes(Device *device, DeviceScene *dscene, Scene *scene, vector<AttributeRequestSet>& mesh_attributes);
 
 	void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
-	void device_update_object(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
-	void device_update_mesh(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
-	void device_update_attributes(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
-	void device_update_bvh(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
 	void device_update_flags(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
-	void device_update_displacement_images(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
+
 	void device_free(Device *device, DeviceScene *dscene);
 
 	void tag_update(Scene *scene);
+
+protected:
+	/* Calculate verts/triangles/curves offsets in global arrays. */
+	void mesh_calc_offset(Scene *scene);
+
+	void device_update_object(Device *device,
+	                          DeviceScene *dscene,
+	                          Scene *scene,
+	                          Progress& progress);
+
+	void device_update_mesh(Device *device,
+	                        DeviceScene *dscene,
+	                        Scene *scene,
+	                        bool for_displacement,
+	                        Progress& progress);
+
+	void device_update_attributes(Device *device,
+	                              DeviceScene *dscene,
+	                              Scene *scene,
+	                              Progress& progress);
+
+	void device_update_bvh(Device *device,
+	                       DeviceScene *dscene,
+	                       Scene *scene,
+	                       Progress& progress);
+
+	void device_update_displacement_images(Device *device,
+	                                       DeviceScene *dscene,
+	                                       Scene *scene,
+	                                       Progress& progress);
 };
 
 CCL_NAMESPACE_END
