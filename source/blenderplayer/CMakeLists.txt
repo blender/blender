@@ -215,6 +215,14 @@ endif()
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_locale)
 	endif()
 
+	if(WITH_GAMEENGINE_DECKLINK)
+		list(APPEND BLENDER_SORTED_LIBS bf_intern_decklink)
+	endif()
+
+	if(WIN32)
+		list(APPEND BLENDER_SORTED_LIBS bf_intern_gpudirect)
+	endif()
+
 	if(WITH_OPENSUBDIV)
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_opensubdiv)
 	endif()

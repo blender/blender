@@ -49,8 +49,15 @@ When the texture object is deleted, the new texture is deleted and the old textu
    
 .. literalinclude:: ../examples/bge.texture.1.py
    :lines: 8-
-   
-   
+
+
+.. include:: ../examples/bge.texture.2.py
+   :start-line: 1
+   :end-line: 6
+
+.. literalinclude:: ../examples/bge.texture.2.py
+   :lines: 8-
+
 *************
 Video classes
 *************
@@ -189,7 +196,6 @@ Video classes
       :return: see `FFmpeg Video and Image Status`_.
       :rtype: int
 
-
 *************
 Image classes
 *************
@@ -256,7 +262,7 @@ Image classes
    .. method:: refresh(buffer=None, format="RGBA")
 
       Refresh image, get its status and optionally copy the frame to an external buffer.
-      
+
       :arg buffer: An optional object that implements the buffer protocol.
          If specified, the image is copied to the buffer, which must be big enough or an exception is thrown.
       :type buffer: any buffer type
@@ -576,12 +582,12 @@ Image classes
 
       :type: bool
 
-.. class:: ImageRender(scene, camera, fbo=None)
+.. class:: ImageRender(scene, camera)
 
    Image source from render.
    The render is done on a custom framebuffer object if fbo is specified,
    otherwise on the default framebuffer.
-   
+
    :arg scene: Scene in which the image has to be taken.
    :type scene: :class:`~bge.types.KX_Scene`
    :arg camera: Camera from which the image has to be taken.
@@ -631,7 +637,7 @@ Image classes
    .. attribute:: image
 
       Image data. (readonly)
-      
+
       :type: :class:`~bgl.Buffer` or None
 
    .. attribute:: scale
@@ -807,7 +813,184 @@ Image classes
       
       :type: bool
 
-   
+.. class:: VideoDeckLink(format, capture=0)
+
+   Image source from an external video stream captured with a DeckLink video card from
+   Black Magic Design.
+   Before this source can be used, a DeckLink hardware device must be installed, it can be a PCIe card
+   or a USB device, and the 'Desktop Video' software package (version 10.4 or above must be installed)
+   on the host as described in the DeckLink documentation.
+   If in addition you have a recent nVideo Quadro card, you can benefit from the 'GPUDirect' technology
+   to push the captured video frame very efficiently to the GPU. For this you need to install the
+   'DeckLink SDK' version 10.4 or above and copy the 'dvp.dll' runtime library to Blender's
+   installation directory or to any other place where Blender can load a DLL from.
+
+   :arg format: string describing the video format to be captured.
+   :type format: str
+   :arg capture: Card number from which the input video must be captured.
+   :type capture: int
+
+   The format argument must be written as ``<displayMode>/<pixelFormat>[/3D][:<cacheSize>]`` where ``<displayMode>``
+   describes the frame size and rate and <pixelFormat> the encoding of the pixels.
+   The optional ``/3D`` suffix is to be used if the video stream is stereo with a left and right eye feed.
+   The optional ``:<cacheSize>`` suffix determines the number of the video frames kept in cache, by default 8.
+   Some DeckLink cards won't work below a certain cache size.
+   The default value 8 should be sufficient for all cards.
+   You may try to reduce the cache size to reduce the memory footprint. For example the The 4K Extreme is known
+   to work with 3 frames only, the Extreme 2 needs 4 frames and the Intensity Shuttle needs 6 frames, etc.
+   Reducing the cache size may be useful when Decklink is used in conjunction with GPUDirect:
+   all frames must be locked in memory in that case and that puts a lot of pressure on memory.
+   If you reduce the cache size too much,
+   you'll get no error but no video feed either.
+
+   The valid ``<displayMode>`` values are copied from the ``BMDDisplayMode`` enum in the DeckLink API
+   without the 'bmdMode' prefix. In case a mode that is not in this list is added in a later version
+   of the SDK, it is also possible to specify the 4 letters of the internal code for that mode.
+   You will find the internal code in the ``DeckLinkAPIModes.h`` file that is part of the SDK.
+   Here is for reference the full list of supported display modes with their equivalent internal code:
+
+   Internal Codes
+      - NTSC 'ntsc'
+      - NTSC2398 	'nt23'
+      - PAL		'pal '
+      - NTSCp		'ntsp'
+      - PALp		'palp'
+   HD 1080 Modes
+      - HD1080p2398	'23ps'
+      - HD1080p24	'24ps'
+      - HD1080p25	'Hp25'
+      - HD1080p2997	'Hp29'
+      - HD1080p30	'Hp30'
+      - HD1080i50	'Hi50'
+      - HD1080i5994	'Hi59'
+      - HD1080i6000	'Hi60'
+      - HD1080p50	'Hp50'
+      - HD1080p5994	'Hp59'
+      - HD1080p6000	'Hp60'
+   HD 720 Modes
+      - HD720p50	'hp50'
+      - HD720p5994	'hp59'
+      - HD720p60	'hp60'
+   2k Modes
+      - 2k2398	'2k23'
+      - 2k24		'2k24'
+      - 2k25		'2k25'
+   4k Modes
+      - 4K2160p2398	'4k23'
+      - 4K2160p24	'4k24'
+      - 4K2160p25	'4k25'
+      - 4K2160p2997	'4k29'
+      - 4K2160p30	'4k30'
+      - 4K2160p50	'4k50'
+      - 4K2160p5994	'4k59'
+      - 4K2160p60	'4k60'
+
+   Most of names are self explanatory. If necessary refer to the DeckLink API documentation for more information.
+
+   Similarly, <pixelFormat> is copied from the BMDPixelFormat enum.
+
+   Here is for reference the full list of supported pixel format and their equivalent internal code:
+
+   Pixel Formats
+      - 8BitYUV	'2vuy'
+      - 10BitYUV	'v210'
+      - 8BitARGB	* no equivalent code *
+      - 8BitBGRA	'BGRA'
+      - 10BitRGB	'r210'
+      - 12BitRGB	'R12B'
+      - 12BitRGBLE	'R12L'
+      - 10BitRGBXLE	'R10l'
+      - 10BitRGBX	'R10b'
+
+   Refer to the DeckLink SDK documentation for a full description of these pixel format.
+   It is important to understand them as the decoding of the pixels is NOT done in VideoTexture
+   for performance reason. Instead a specific shader must be used to decode the pixel in the GPU.
+   Only the '8BitARGB', '8BitBGRA' and '10BitRGBXLE' pixel formats are mapped directly to OpenGL RGB float textures.
+   The '8BitYUV' and '10BitYUV' pixel formats are mapped to openGL RGB float texture but require a shader to decode.
+   The other pixel formats are sent as a ``GL_RED_INTEGER`` texture (i.e. a texture with only the
+   red channel coded as an unsigned 32 bit integer) and are not recommended for use.
+
+   Example: ``HD1080p24/10BitYUV/3D:4`` is equivalent to ``24ps/v210/3D:4``
+   and represents a full HD stereo feed at 24 frame per second and 4 frames cache size.
+
+   Although video format auto detection is possible with certain DeckLink devices, the corresponding
+   API is NOT implemented in the BGE. Therefore it is important to specify the format string that
+   matches exactly the video feed. If the format is wrong, no frame will be captured.
+   It should be noted that the pixel format that you need to specify is not necessarily the actual
+   format in the video feed. For example, the 4K Extreme card delivers 8bit RGBs pixels in the
+   '10BitRGBXLE' format. Use the 'Media Express' application included in 'Desktop Video' to discover
+   which pixel format works for a particular video stream.
+
+   .. attribute:: status
+
+      Status of the capture: 1=ready to use, 2=capturing, 3=stopped
+
+      :type: int
+
+   .. attribute:: framerate
+
+      Capture frame rate as computed from the video format.
+
+      :type: float
+
+   .. attribute:: valid
+
+      Tells if the image attribute can be used to retrieve the image.
+      Always False in this implementation (the image is not available at python level)
+
+      :type: bool
+
+   .. attribute:: image
+
+      The image data. Always None in this implementation.
+
+      :type: :class:`~bgl.Buffer` or None
+
+   .. attribute:: size
+
+      The size of the frame in pixel.
+      Stereo frames have double the height of the video frame, i.e. 3D is delivered to the GPU
+      as a single image in top-bottom order, left eye on top.
+
+      :type: (int,int)
+
+   .. attribute:: scale
+
+      Not used in this object.
+
+      :type: bool
+
+   .. attribute:: flip
+
+      Not used in this object.
+
+      :type: bool
+
+   .. attribute:: filter
+
+      Not used in this object.
+
+   .. method:: play()
+
+      Kick-off the capture after creation of the object.
+
+      :return: True if the capture could be started, False otherwise.
+      :rtype: bool
+
+   .. method:: pause()
+
+      Temporary stops the capture. Use play() to restart it.
+
+      :return: True if the capture could be paused, False otherwise.
+      :rtype: bool
+
+   .. method:: stop()
+
+      Stops the capture.
+
+      :return: True if the capture could be stopped, False otherwise.
+      :rtype: bool
+
 ***************
 Texture classes
 ***************
@@ -859,6 +1042,7 @@ Texture classes
       :type: one of...
       
          * :class:`VideoFFmpeg`
+         * :class:`VideoDeckLink`
          * :class:`ImageFFmpeg`
          * :class:`ImageBuff`
          * :class:`ImageMirror`
@@ -866,7 +1050,129 @@ Texture classes
          * :class:`ImageRender`
          * :class:`ImageViewport`
 
-   
+.. class:: DeckLink(cardIdx=0, format="")
+
+   Certain DeckLink devices can be used to playback video: the host sends video frames regularly
+   for immediate or scheduled playback. The video feed is outputted on HDMI or SDI interfaces.
+   This class supports the immediate playback mode: it has a source attribute that is assigned
+   one of the source object in the bge.texture module. Refreshing the DeckLink object causes
+   the image source to be computed and sent to the DeckLink device for immediate transmission
+   on the output interfaces.  Keying is supported: it allows to composite the frame with an
+   input video feed that transits through the DeckLink card.
+
+   :arg cardIdx: Number of the card to be used for output (0=first card).
+      It should be noted that DeckLink devices are usually half duplex:
+      they can either be used for capture or playback but not both at the same time.
+   :type cardIdx: int
+   :arg format: String representing the display mode of the output feed.
+   :type format: str
+
+   The default value of the format argument is reserved for auto detection but it is currently
+   not supported (it will generate a runtime error) and thus the video format must be explicitly
+   specified. If keying is the goal (see keying attributes), the format must match exactly the
+   input video feed, otherwise it can be any format supported by the device (there will be a
+   runtime error if not).
+   The format of the string is ``<displayMode>[/3D]``.
+
+   Refer to :class:`VideoDeckLink` to get the list of acceptable ``<displayMode>``.
+   The optional ``/3D`` suffix is used to create a stereo 3D feed.
+   In that case the 'right' attribute must also be set to specify the image source for the right eye.
+
+   Note: The pixel format is not specified here because it is always BGRA. The alpha channel is
+   used in keying to mix the source with the input video feed, otherwise it is not used.
+   If a conversion is needed to match the native video format, it is done inside the DeckLink driver
+   or device.
+
+   .. attribute:: source
+
+      This attribute must be set to one of the image source. If the image size does not fit exactly
+      the frame size, the extend attribute determines what to do.
+
+      For best performance, the source image should match exactly the size of the output frame.
+      A further optimization is achieved if the image source object is ImageViewport or ImageRender
+      set for whole viewport, flip disabled and no filter: the GL frame buffer is copied directly
+      to the image buffer and directly from there to the DeckLink card (hence no buffer to buffer
+      copy inside VideoTexture).
+
+      :type: one of...
+         - :class:`VideoFFmpeg`
+         - :class:`VideoDeckLink`
+         - :class:`ImageFFmpeg`
+         - :class:`ImageBuff`
+         - :class:`ImageMirror`
+         - :class:`ImageMix`
+         - :class:`ImageRender`
+         - :class:`ImageViewport`
+
+   .. attribute:: right
+
+      If the video format is stereo 3D, this attribute should be set to an image source object
+      that will produce the right eye images.  If the goal is to render the BGE scene in 3D,
+      it can be achieved with 2 cameras, one for each eye, used by 2 ImageRender with an offscreen
+      render buffer that is just the size of the video frame.
+
+      :type: one of...
+         - :class:`VideoFFmpeg`
+         - :class:`VideoDeckLink`
+         - :class:`ImageFFmpeg`
+         - :class:`ImageBuff`
+         - :class:`ImageMirror`
+         - :class:`ImageMix`
+         - :class:`ImageRender`
+         - :class:`ImageViewport`
+
+   .. attribute:: keying
+
+      Specify if keying is enabled. False (default): the output frame is sent unmodified on
+      the output interface (in that case no input video is required). True: the output frame
+      is mixed with the input video, using the alpha channel to blend the two images and the
+      combination is sent on the output interface.
+
+      :type: bool
+
+   .. attribute:: level
+
+      If keying is enabled, sets the keying level from 0 to 255. This value is a global alpha value
+      that multiplies the alpha channel of the image source. Use 255 (the default) to keep the alpha
+      channel unmodified, 0 to make the output frame totally transparent.
+
+      :type: int
+
+   .. attribute:: extend
+
+      Determines how the image source should be mapped if the size does not fit the video frame size.
+      * False (the default): map the image pixel by pixel.
+      If the image size is smaller than the frame size, extra space around the image is filled with
+      0-alpha black. If it is larger, the image is cropped to fit the frame size.
+      * True: the image is scaled by the nearest neighbor algorithm to fit the frame size.
+      The scaling is fast but poor quality. For best results, always adjust the image source to
+      match the size of the output video.
+
+      :type: bool
+
+   .. method:: close()
+
+      Close the DeckLink device and release all resources. After calling this method,
+      the object cannot be reactivated, it must be destroyed and a new DeckLink object
+      created from fresh to restart the output.
+
+   .. method:: refresh(refresh_source,ts)
+
+      This method must be called frequently to update the output frame in the DeckLink device.
+
+      :arg refresh_source: True if the source objects image buffer should be invalidated after being
+         used to compute the output frame. This triggers the recomputing of the
+         source image on next refresh, which is normally the desired effect.
+         False if the image source buffer should stay valid and reused on next refresh.
+         Note that the DeckLink device stores the output frame and replays until a
+         new frame is sent from the host. Thus, it is not necessary to refresh the
+         DeckLink object if it is known that the image source has not changed.
+      :type refresh_source: bool
+      :arg ts: The timestamp value passed to the image source object to compute the image.
+         If unspecified, the BGE clock is used.
+      :type ts: float
+
+
 **************
 Filter classes
 **************

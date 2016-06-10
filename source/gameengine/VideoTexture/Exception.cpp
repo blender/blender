@@ -225,7 +225,7 @@ void registerAllExceptions(void)
 	SourceVideoEmptyDesc.registerDesc();
 	SourceVideoCreationDesc.registerDesc();
 	OffScreenInvalidDesc.registerDesc();
-#ifdef WITH_DECKLINK
+#ifdef WITH_GAMEENGINE_DECKLINK
 	AutoDetectionNotAvailDesc.registerDesc();
 	DeckLinkBadDisplayModeDesc.registerDesc();
 	DeckLinkBadPixelFormatDesc.registerDesc();
