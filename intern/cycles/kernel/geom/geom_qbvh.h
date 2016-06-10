@@ -69,7 +69,7 @@ ccl_device_inline int qbvh_node_intersect(KernelGlobals *__restrict kg,
                                           const int nodeAddr,
                                           ssef *__restrict dist)
 {
-	const int offset = nodeAddr*BVH_QNODE_SIZE;
+	const int offset = nodeAddr*BVH_QNODE_SIZE + 1;
 #ifdef __KERNEL_AVX2__
 	const ssef tnear_x = msub(kernel_tex_fetch_ssef(__bvh_nodes, offset+near_x), idir.x, org_idir.x);
 	const ssef tnear_y = msub(kernel_tex_fetch_ssef(__bvh_nodes, offset+near_y), idir.y, org_idir.y);
@@ -120,7 +120,7 @@ ccl_device_inline int qbvh_node_intersect_robust(KernelGlobals *__restrict kg,
                                                  const float difl,
                                                  ssef *__restrict dist)
 {
-	const int offset = nodeAddr*BVH_QNODE_SIZE;
+	const int offset = nodeAddr*BVH_QNODE_SIZE + 1;
 #ifdef __KERNEL_AVX2__
 	const ssef tnear_x = msub(kernel_tex_fetch_ssef(__bvh_nodes, offset+near_x), idir.x, P_idir.x);
 	const ssef tnear_y = msub(kernel_tex_fetch_ssef(__bvh_nodes, offset+near_y), idir.y, P_idir.y);

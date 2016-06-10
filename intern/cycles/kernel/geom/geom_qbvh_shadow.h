@@ -97,6 +97,17 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 		do {
 			/* Traverse internal nodes. */
 			while(nodeAddr >= 0 && nodeAddr != ENTRYPOINT_SENTINEL) {
+				float4 inodes = kernel_tex_fetch(__bvh_nodes, nodeAddr*BVH_QNODE_SIZE+0);
+
+#ifdef __VISIBILITY_FLAG__
+				if((__float_as_uint(inodes.x) & PATH_RAY_SHADOW) == 0) {
+					/* Pop. */
+					nodeAddr = traversalStack[stackPtr].addr;
+					--stackPtr;
+					continue;
+				}
+#endif
+
 				ssef dist;
 				int traverseChild = qbvh_node_intersect(kg,
 				                                        tnear,
@@ -113,7 +124,8 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 				                                        &dist);
 
 				if(traverseChild != 0) {
-					float4 cnodes = kernel_tex_fetch(__bvh_nodes, nodeAddr*BVH_QNODE_SIZE+6);
+					float4 cnodes = kernel_tex_fetch(__bvh_nodes,
+					                                 nodeAddr*BVH_QNODE_SIZE+7);
 
 					/* One child is hit, continue with that child. */
 					int r = __bscf(traverseChild);

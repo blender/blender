@@ -338,12 +338,14 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 			/* For QBVH we're packing a child bbox into 6 float4,
 			 * and for regular BVH they're packed into 3 float4.
 			 */
-			size_t nsize_bbox = (use_qbvh)? 6: 3;
+			const size_t nsize_bbox = (use_qbvh)? 7: 3;
 			int4 *bvh_nodes = &bvh->pack.nodes[0];
-			size_t bvh_nodes_size = bvh->pack.nodes.size(); 
+			size_t bvh_nodes_size = bvh->pack.nodes.size();
 
 			for(size_t i = 0, j = 0; i < bvh_nodes_size; i+=nsize, j++) {
-				memcpy(pack_nodes + pack_nodes_offset, bvh_nodes + i, nsize_bbox*sizeof(int4));
+				memcpy(pack_nodes + pack_nodes_offset,
+				       bvh_nodes + i,
+				       nsize_bbox*sizeof(int4));
 
 				/* modify offsets into arrays */
 				int4 data = bvh_nodes[i + nsize_bbox];
@@ -617,34 +619,35 @@ void QBVH::pack_inner(const BVHStackEntry& e, const BVHStackEntry *en, int num)
 {
 	float4 data[BVH_QNODE_SIZE];
 
+	data[0].x = __uint_as_float(e.node->m_visibility);
 	for(int i = 0; i < num; i++) {
 		float3 bb_min = en[i].node->m_bounds.min;
 		float3 bb_max = en[i].node->m_bounds.max;
 
-		data[0][i] = bb_min.x;
-		data[1][i] = bb_max.x;
-		data[2][i] = bb_min.y;
-		data[3][i] = bb_max.y;
-		data[4][i] = bb_min.z;
-		data[5][i] = bb_max.z;
+		data[1][i] = bb_min.x;
+		data[2][i] = bb_max.x;
+		data[3][i] = bb_min.y;
+		data[4][i] = bb_max.y;
+		data[5][i] = bb_min.z;
+		data[6][i] = bb_max.z;
 
-		data[6][i] = __int_as_float(en[i].encodeIdx());
+		data[7][i] = __int_as_float(en[i].encodeIdx());
 	}
 
 	for(int i = num; i < 4; i++) {
 		/* We store BB which would never be recorded as intersection
 		 * so kernel might safely assume there are always 4 child nodes.
 		 */
-		data[0][i] = FLT_MAX;
-		data[1][i] = -FLT_MAX;
+		data[1][i] = FLT_MAX;
+		data[2][i] = -FLT_MAX;
 
-		data[2][i] = FLT_MAX;
-		data[3][i] = -FLT_MAX;
+		data[3][i] = FLT_MAX;
+		data[4][i] = -FLT_MAX;
 
-		data[4][i] = FLT_MAX;
-		data[5][i] = -FLT_MAX;
+		data[5][i] = FLT_MAX;
+		data[6][i] = -FLT_MAX;
 
-		data[6][i] = __int_as_float(0);
+		data[7][i] = __int_as_float(0);
 	}
 
 	memcpy(&pack.nodes[e.idx * BVH_QNODE_SIZE], data, sizeof(float4)*BVH_QNODE_SIZE);
@@ -839,7 +842,7 @@ void QBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 	}
 	else {
 		int4 *data = &pack.nodes[idx*BVH_QNODE_SIZE];
-		int4 c = data[6];
+		int4 c = data[7];
 		/* Refit inner node, set bbox from children. */
 		BoundBox child_bbox[4] = {BoundBox::empty,
 		                          BoundBox::empty,
@@ -859,16 +862,20 @@ void QBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 		}
 
 		float4 inner_data[BVH_QNODE_SIZE];
+		inner_data[0] = make_float4(__int_as_float(data[0].x),
+		                            __int_as_float(data[1].y),
+		                            __int_as_float(data[2].z),
+		                            __int_as_float(data[3].w));
 		for(int i = 0; i < 4; ++i) {
 			float3 bb_min = child_bbox[i].min;
 			float3 bb_max = child_bbox[i].max;
-			inner_data[0][i] = bb_min.x;
-			inner_data[1][i] = bb_max.x;
-			inner_data[2][i] = bb_min.y;
-			inner_data[3][i] = bb_max.y;
-			inner_data[4][i] = bb_min.z;
-			inner_data[5][i] = bb_max.z;
-			inner_data[6][i] = __int_as_float(c[i]);
+			inner_data[1][i] = bb_min.x;
+			inner_data[2][i] = bb_max.x;
+			inner_data[3][i] = bb_min.y;
+			inner_data[4][i] = bb_max.y;
+			inner_data[5][i] = bb_min.z;
+			inner_data[6][i] = bb_max.z;
+			inner_data[7][i] = __int_as_float(c[i]);
 		}
 		memcpy(&pack.nodes[idx * BVH_QNODE_SIZE],
 		       inner_data,
