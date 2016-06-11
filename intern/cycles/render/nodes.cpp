@@ -3856,7 +3856,7 @@ GammaNode::GammaNode()
 {
 }
 
-bool GammaNode::constant_fold(ShaderGraph *, ShaderOutput *socket, ShaderInput *optimized)
+bool GammaNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
 {
 	ShaderInput *color_in = input("Color");
 	ShaderInput *gamma_in = input("Gamma");
@@ -4419,7 +4419,7 @@ BlackbodyNode::BlackbodyNode()
 {
 }
 
-bool BlackbodyNode::constant_fold(ShaderGraph *, ShaderOutput *socket, ShaderInput *optimized)
+bool BlackbodyNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
 {
 	ShaderInput *temperature_in = input("Temperature");
 
@@ -4530,7 +4530,7 @@ MathNode::MathNode()
 {
 }
 
-bool MathNode::constant_fold(ShaderGraph *, ShaderOutput *socket, ShaderInput *optimized)
+bool MathNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
 {
 	ShaderInput *value1_in = input("Value1");
 	ShaderInput *value2_in = input("Value2");
