@@ -804,8 +804,6 @@ NODE_DEFINE(GradientTextureNode)
 	type_enum.insert("Radial", NODE_BLEND_RADIAL);
 	type_enum.insert("Quadratic Sphere", NODE_BLEND_QUADRATIC_SPHERE);
 	type_enum.insert("Spherical", NODE_BLEND_SPHERICAL);
-	type_enum.insert("Bands", NODE_WAVE_BANDS);
-	type_enum.insert("Rings", NODE_WAVE_RINGS);
 	SOCKET_ENUM(type, "Type", type_enum, NODE_BLEND_LINEAR);
 
 	SOCKET_IN_POINT(vector, "Vector", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_TEXTURE_GENERATED);
