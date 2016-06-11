@@ -277,7 +277,7 @@ color node_mix_clamp(color col)
 }
 
 shader node_mix(
-	string type = "Mix",
+	string type = "mix",
 	int use_clamp = 0,
 	float Fac = 0.5,
 	color Color1 = 0.0,
@@ -286,41 +286,41 @@ shader node_mix(
 {
 	float t = clamp(Fac, 0.0, 1.0);
 
-	if (type == "Mix")
+	if (type == "mix")
 		Color = node_mix_blend(t, Color1, Color2);
-	if (type == "Add")
+	if (type == "add")
 		Color = node_mix_add(t, Color1, Color2);
-	if (type == "Multiply")
+	if (type == "multiply")
 		Color = node_mix_mul(t, Color1, Color2);
-	if (type == "Screen")
+	if (type == "screen")
 		Color = node_mix_screen(t, Color1, Color2);
-	if (type == "Overlay")
+	if (type == "overlay")
 		Color = node_mix_overlay(t, Color1, Color2);
-	if (type == "Subtract")
+	if (type == "subtract")
 		Color = node_mix_sub(t, Color1, Color2);
-	if (type == "Divide")
+	if (type == "divide")
 		Color = node_mix_div(t, Color1, Color2);
-	if (type == "Difference")
+	if (type == "difference")
 		Color = node_mix_diff(t, Color1, Color2);
-	if (type == "Darken")
+	if (type == "darken")
 		Color = node_mix_dark(t, Color1, Color2);
-	if (type == "Lighten")
+	if (type == "lighten")
 		Color = node_mix_light(t, Color1, Color2);
-	if (type == "Dodge")
+	if (type == "dodge")
 		Color = node_mix_dodge(t, Color1, Color2);
-	if (type == "Burn")
+	if (type == "burn")
 		Color = node_mix_burn(t, Color1, Color2);
-	if (type == "Hue")
+	if (type == "hue")
 		Color = node_mix_hue(t, Color1, Color2);
-	if (type == "Saturation")
+	if (type == "saturation")
 		Color = node_mix_sat(t, Color1, Color2);
-	if (type == "Value")
+	if (type == "value")
 		Color = node_mix_val (t, Color1, Color2);
-	if (type == "Color")
+	if (type == "color")
 		Color = node_mix_color(t, Color1, Color2);
-	if (type == "Soft Light")
+	if (type == "soft_light")
 		Color = node_mix_soft(t, Color1, Color2);
-	if (type == "Linear Light")
+	if (type == "linear_light")
 		Color = node_mix_linear(t, Color1, Color2);
 
 	if (use_clamp)

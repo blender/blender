@@ -17,18 +17,18 @@
 #include "stdosl.h"
 
 shader node_vector_transform(
-	string type = "Vector",
+	string type = "vector",
 	string convert_from = "world",
 	string convert_to = "object",
 	vector VectorIn = vector(0.0, 0.0, 0.0),
 	output vector VectorOut = vector(0.0, 0.0, 0.0))
 {
-	if (type == "Vector" || type == "Normal") {
+	if (type == "vector" || type == "normal") {
 		VectorOut = transform(convert_from, convert_to, VectorIn);
-		if (type == "Normal")
+		if (type == "normal")
 			VectorOut = normalize(VectorOut);
 	}
-	else if (type == "Point") {
+	else if (type == "point") {
 		point Point = (point)VectorIn;
 		VectorOut = transform(convert_from, convert_to, Point);
 	}

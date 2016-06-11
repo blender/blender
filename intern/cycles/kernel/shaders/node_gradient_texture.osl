@@ -29,31 +29,31 @@ float gradient(point p, string type)
 
 	float result = 0.0;
 
-	if (type == "Linear") {
+	if (type == "linear") {
 		result = x;
 	}
-	else if (type == "Quadratic") {
+	else if (type == "quadratic") {
 		float r = max(x, 0.0);
 		result = r * r;
 	}
-	else if (type == "Easing") {
+	else if (type == "easing") {
 		float r = min(max(x, 0.0), 1.0);
 		float t = r * r;
 		
 		result = (3.0 * t - 2.0 * t * r);
 	}
-	else if (type == "Diagonal") {
+	else if (type == "diagonal") {
 		result = (x + y) * 0.5;
 	}
-	else if (type == "Radial") {
+	else if (type == "radial") {
 		result = atan2(y, x) / M_2PI + 0.5;
 	}
 	else {
 		float r = max(1.0 - sqrt(x * x + y * y + z * z), 0.0);
 
-		if (type == "Quadratic Sphere")
+		if (type == "quadratic_sphere")
 			result = r * r;
-		else if (type == "Spherical")
+		else if (type == "spherical")
 			result = r;
 	}
 
@@ -63,7 +63,7 @@ float gradient(point p, string type)
 shader node_gradient_texture(
 	int use_mapping = 0,
 	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-	string type = "Linear",
+	string type = "linear",
 	point Vector = P,
 	output float Fac = 0.0,
 	output color Color = 0.0)

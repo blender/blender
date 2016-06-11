@@ -19,24 +19,24 @@
 shader node_tangent(
 	normal NormalIn = N,
 	string attr_name = "geom:tangent",
-	string direction_type = "Radial",
-	string axis = "Z",
+	string direction_type = "radial",
+	string axis = "z",
 	output normal Tangent = normalize(dPdu))
 {
 	vector T;
 
-	if (direction_type == "UV Map") {
+	if (direction_type == "uv_map") {
 		getattribute(attr_name, T);
 	}
-	else if (direction_type == "Radial") {
+	else if (direction_type == "radial") {
 		point generated;
 
 		if (!getattribute("geom:generated", generated))
 			generated = P;
 
-		if (axis == "X")
+		if (axis == "x")
 			T = vector(0.0, -(generated[2] - 0.5), (generated[1] - 0.5));
-		else if (axis == "Y")
+		else if (axis == "y")
 			T = vector(-(generated[2] - 0.5), 0.0, (generated[0] - 0.5));
 		else
 			T = vector(-(generated[1] - 0.5), (generated[0] - 0.5), 0.0);

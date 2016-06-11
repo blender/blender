@@ -41,12 +41,12 @@ CCL_NAMESPACE_BEGIN
 	\
 	static NodeEnum mapping_axis_enum;                      \
 	mapping_axis_enum.insert("none", TextureMapping::NONE); \
-	mapping_axis_enum.insert("X", TextureMapping::X);       \
-	mapping_axis_enum.insert("Y", TextureMapping::Y);       \
-	mapping_axis_enum.insert("Z", TextureMapping::Z);       \
-	SOCKET_ENUM(tex_mapping.x_mapping, "X Mapping", mapping_axis_enum, TextureMapping::X); \
-	SOCKET_ENUM(tex_mapping.y_mapping, "Y Mapping", mapping_axis_enum, TextureMapping::Y); \
-	SOCKET_ENUM(tex_mapping.z_mapping, "z mapping", mapping_axis_enum, TextureMapping::Z); \
+	mapping_axis_enum.insert("x", TextureMapping::X);       \
+	mapping_axis_enum.insert("y", TextureMapping::Y);       \
+	mapping_axis_enum.insert("z", TextureMapping::Z);       \
+	SOCKET_ENUM(tex_mapping.x_mapping, "x_mapping", mapping_axis_enum, TextureMapping::X); \
+	SOCKET_ENUM(tex_mapping.y_mapping, "y_mapping", mapping_axis_enum, TextureMapping::Y); \
+	SOCKET_ENUM(tex_mapping.z_mapping, "z_mapping", mapping_axis_enum, TextureMapping::Z); \
 	\
 	static NodeEnum mapping_type_enum;                            \
 	mapping_type_enum.insert("point", TextureMapping::POINT);     \
@@ -207,8 +207,8 @@ NODE_DEFINE(ImageTextureNode)
 	SOCKET_STRING(filename, "Filename", ustring(""));
 
 	static NodeEnum color_space_enum;
-	color_space_enum.insert("None", NODE_COLOR_SPACE_NONE);
-	color_space_enum.insert("Color", NODE_COLOR_SPACE_COLOR);
+	color_space_enum.insert("none", NODE_COLOR_SPACE_NONE);
+	color_space_enum.insert("color", NODE_COLOR_SPACE_COLOR);
 	SOCKET_ENUM(color_space, "Color Space", color_space_enum, NODE_COLOR_SPACE_COLOR);
 
 	SOCKET_BOOLEAN(use_alpha, "Use Alpha", true);
@@ -227,10 +227,10 @@ NODE_DEFINE(ImageTextureNode)
 	SOCKET_ENUM(extension, "Extension", extension_enum, EXTENSION_REPEAT);
 
 	static NodeEnum projection_enum;
-	projection_enum.insert("Flat", NODE_IMAGE_PROJ_FLAT);
-	projection_enum.insert("Box", NODE_IMAGE_PROJ_BOX);
-	projection_enum.insert("Sphere", NODE_IMAGE_PROJ_SPHERE);
-	projection_enum.insert("Tube", NODE_IMAGE_PROJ_TUBE);
+	projection_enum.insert("flat", NODE_IMAGE_PROJ_FLAT);
+	projection_enum.insert("box", NODE_IMAGE_PROJ_BOX);
+	projection_enum.insert("sphere", NODE_IMAGE_PROJ_SPHERE);
+	projection_enum.insert("tube", NODE_IMAGE_PROJ_TUBE);
 	SOCKET_ENUM(projection, "Projection", projection_enum, NODE_IMAGE_PROJ_FLAT);
 
 	SOCKET_FLOAT(projection_blend, "Projection Blend", 0.0f);
@@ -392,7 +392,7 @@ void ImageTextureNode::compile(OSLCompiler& compiler)
 		compiler.parameter("filename", string_printf("@%d", slot).c_str());
 	}
 	if(is_linear || color_space != NODE_COLOR_SPACE_COLOR)
-		compiler.parameter("color_space", "Linear");
+		compiler.parameter("color_space", "linear");
 	else
 		compiler.parameter("color_space", "sRGB");
 	compiler.parameter(this, "projection");
@@ -416,8 +416,8 @@ NODE_DEFINE(EnvironmentTextureNode)
 	SOCKET_STRING(filename, "Filename", ustring(""));
 
 	static NodeEnum color_space_enum;
-	color_space_enum.insert("None", NODE_COLOR_SPACE_NONE);
-	color_space_enum.insert("Color", NODE_COLOR_SPACE_COLOR);
+	color_space_enum.insert("none", NODE_COLOR_SPACE_NONE);
+	color_space_enum.insert("color", NODE_COLOR_SPACE_COLOR);
 	SOCKET_ENUM(color_space, "Color Space", color_space_enum, NODE_COLOR_SPACE_COLOR);
 
 	SOCKET_BOOLEAN(use_alpha, "Use Alpha", true);
@@ -430,8 +430,8 @@ NODE_DEFINE(EnvironmentTextureNode)
 	SOCKET_ENUM(interpolation, "Interpolation", interpolation_enum, INTERPOLATION_LINEAR);
 
 	static NodeEnum projection_enum;
-	projection_enum.insert("Equirectangular", NODE_ENVIRONMENT_EQUIRECTANGULAR);
-	projection_enum.insert("Mirror Ball", NODE_ENVIRONMENT_MIRROR_BALL);
+	projection_enum.insert("equirectangular", NODE_ENVIRONMENT_EQUIRECTANGULAR);
+	projection_enum.insert("mirror_ball", NODE_ENVIRONMENT_MIRROR_BALL);
 	SOCKET_ENUM(projection, "Projection", projection_enum, NODE_ENVIRONMENT_EQUIRECTANGULAR);
 
 	SOCKET_IN_POINT(vector, "Vector", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_POSITION);
@@ -575,7 +575,7 @@ void EnvironmentTextureNode::compile(OSLCompiler& compiler)
 	}
 	compiler.parameter(this, "projection");
 	if(is_linear || color_space != NODE_COLOR_SPACE_COLOR)
-		compiler.parameter("color_space", "Linear");
+		compiler.parameter("color_space", "linear");
 	else
 		compiler.parameter("color_space", "sRGB");
 
@@ -715,8 +715,8 @@ NODE_DEFINE(SkyTextureNode)
 	TEXTURE_MAPPING_DEFINE(SkyTextureNode);
 
 	static NodeEnum type_enum;
-	type_enum.insert("Preetham", NODE_SKY_OLD);
-	type_enum.insert("Hosek / Wilkie", NODE_SKY_NEW);
+	type_enum.insert("preetham", NODE_SKY_OLD);
+	type_enum.insert("hosek_wilkie", NODE_SKY_NEW);
 	SOCKET_ENUM(type, "Type", type_enum, NODE_SKY_NEW);
 
 	SOCKET_VECTOR(sun_direction, "Sun Direction", make_float3(0.0f, 0.0f, 1.0f));
@@ -778,7 +778,7 @@ void SkyTextureNode::compile(OSLCompiler& compiler)
 	else
 		assert(false);
 		
-	compiler.parameter("sky_model", type);
+	compiler.parameter(this, "type");
 	compiler.parameter("theta", sunsky.theta);
 	compiler.parameter("phi", sunsky.phi);
 	compiler.parameter_color("radiance", make_float3(sunsky.radiance_x, sunsky.radiance_y, sunsky.radiance_z));
@@ -797,13 +797,13 @@ NODE_DEFINE(GradientTextureNode)
 	TEXTURE_MAPPING_DEFINE(GradientTextureNode);
 
 	static NodeEnum type_enum;
-	type_enum.insert("Linear", NODE_BLEND_LINEAR);
-	type_enum.insert("Quadratic", NODE_BLEND_QUADRATIC);
-	type_enum.insert("Easing", NODE_BLEND_EASING);
-	type_enum.insert("Diagonal", NODE_BLEND_DIAGONAL);
-	type_enum.insert("Radial", NODE_BLEND_RADIAL);
-	type_enum.insert("Quadratic Sphere", NODE_BLEND_QUADRATIC_SPHERE);
-	type_enum.insert("Spherical", NODE_BLEND_SPHERICAL);
+	type_enum.insert("linear", NODE_BLEND_LINEAR);
+	type_enum.insert("quadratic", NODE_BLEND_QUADRATIC);
+	type_enum.insert("easing", NODE_BLEND_EASING);
+	type_enum.insert("diagonal", NODE_BLEND_DIAGONAL);
+	type_enum.insert("radial", NODE_BLEND_RADIAL);
+	type_enum.insert("quadratic_sphere", NODE_BLEND_QUADRATIC_SPHERE);
+	type_enum.insert("spherical", NODE_BLEND_SPHERICAL);
 	SOCKET_ENUM(type, "Type", type_enum, NODE_BLEND_LINEAR);
 
 	SOCKET_IN_POINT(vector, "Vector", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_TEXTURE_GENERATED);
@@ -913,8 +913,8 @@ NODE_DEFINE(VoronoiTextureNode)
 	TEXTURE_MAPPING_DEFINE(VoronoiTextureNode);
 
 	static NodeEnum coloring_enum;
-	coloring_enum.insert("Intensity", NODE_VORONOI_INTENSITY);
-	coloring_enum.insert("Cells", NODE_VORONOI_CELLS);
+	coloring_enum.insert("intensity", NODE_VORONOI_INTENSITY);
+	coloring_enum.insert("cells", NODE_VORONOI_CELLS);
 	SOCKET_ENUM(coloring, "Coloring", coloring_enum, NODE_VORONOI_INTENSITY);
 
 	SOCKET_IN_FLOAT(scale, "Scale", 1.0f);
@@ -969,11 +969,11 @@ NODE_DEFINE(MusgraveTextureNode)
 	TEXTURE_MAPPING_DEFINE(MusgraveTextureNode);
 
 	static NodeEnum type_enum;
-	type_enum.insert("Multifractal", NODE_MUSGRAVE_MULTIFRACTAL);
+	type_enum.insert("multifractal", NODE_MUSGRAVE_MULTIFRACTAL);
 	type_enum.insert("fBM", NODE_MUSGRAVE_FBM);
-	type_enum.insert("Hybrid Multifractal", NODE_MUSGRAVE_HYBRID_MULTIFRACTAL);
-	type_enum.insert("Ridged Multifractal", NODE_MUSGRAVE_RIDGED_MULTIFRACTAL);
-	type_enum.insert("Hetero Terrain", NODE_MUSGRAVE_HETERO_TERRAIN);
+	type_enum.insert("hybrid_multifractal", NODE_MUSGRAVE_HYBRID_MULTIFRACTAL);
+	type_enum.insert("ridged_multifractal", NODE_MUSGRAVE_RIDGED_MULTIFRACTAL);
+	type_enum.insert("hetero_terrain", NODE_MUSGRAVE_HETERO_TERRAIN);
 	SOCKET_ENUM(type, "Type", type_enum, NODE_MUSGRAVE_FBM);
 
 	SOCKET_IN_FLOAT(scale, "Scale", 1.0f);
@@ -1050,13 +1050,13 @@ NODE_DEFINE(WaveTextureNode)
 	TEXTURE_MAPPING_DEFINE(WaveTextureNode);
 
 	static NodeEnum type_enum;
-	type_enum.insert("Bands", NODE_WAVE_BANDS);
-	type_enum.insert("Rings", NODE_WAVE_RINGS);
+	type_enum.insert("bands", NODE_WAVE_BANDS);
+	type_enum.insert("rings", NODE_WAVE_RINGS);
 	SOCKET_ENUM(type, "Type", type_enum, NODE_WAVE_BANDS);
 
 	static NodeEnum profile_enum;
-	profile_enum.insert("Sine", NODE_WAVE_PROFILE_SIN);
-	profile_enum.insert("Saw", NODE_WAVE_PROFILE_SAW);
+	profile_enum.insert("sine", NODE_WAVE_PROFILE_SIN);
+	profile_enum.insert("saw", NODE_WAVE_PROFILE_SAW);
 	SOCKET_ENUM(profile, "Profile", profile_enum, NODE_WAVE_PROFILE_SIN);
 
 	SOCKET_IN_FLOAT(scale, "Scale", 1.0f);
@@ -1337,8 +1337,8 @@ NODE_DEFINE(PointDensityTextureNode)
 	SOCKET_STRING(filename, "Filename", ustring(""));
 
 	static NodeEnum space_enum;
-	space_enum.insert("Object", NODE_TEX_VOXEL_SPACE_OBJECT);
-	space_enum.insert("World", NODE_TEX_VOXEL_SPACE_WORLD);
+	space_enum.insert("object", NODE_TEX_VOXEL_SPACE_OBJECT);
+	space_enum.insert("world", NODE_TEX_VOXEL_SPACE_WORLD);
 	SOCKET_ENUM(space, "Space", space_enum, NODE_TEX_VOXEL_SPACE_OBJECT);
 
 	static NodeEnum interpolation_enum;
@@ -1829,9 +1829,9 @@ NODE_DEFINE(AnisotropicBsdfNode)
 	SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
 
 	static NodeEnum distribution_enum;
-	distribution_enum.insert("Beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID);
+	distribution_enum.insert("beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID);
 	distribution_enum.insert("GGX", CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID);
-	distribution_enum.insert("Ashikhmin-Shirley", CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID);
+	distribution_enum.insert("ashikhmin_shirley", CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID);
 	SOCKET_ENUM(distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID);
 
 	SOCKET_IN_VECTOR(tangent, "Tangent", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_TANGENT);
@@ -1887,10 +1887,10 @@ NODE_DEFINE(GlossyBsdfNode)
 	SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
 
 	static NodeEnum distribution_enum;
-	distribution_enum.insert("Sharp", CLOSURE_BSDF_REFLECTION_ID);
-	distribution_enum.insert("Beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_ID);
+	distribution_enum.insert("sharp", CLOSURE_BSDF_REFLECTION_ID);
+	distribution_enum.insert("beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_ID);
 	distribution_enum.insert("GGX", CLOSURE_BSDF_MICROFACET_GGX_ID);
-	distribution_enum.insert("Ashikhmin-Shirley", CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID);
+	distribution_enum.insert("ashikhmin_shirley", CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID);
 	SOCKET_ENUM(distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_GGX_ID);
 	SOCKET_IN_FLOAT(roughness, "Roughness", 0.2f);
 
@@ -1961,8 +1961,8 @@ NODE_DEFINE(GlassBsdfNode)
 	SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
 
 	static NodeEnum distribution_enum;
-	distribution_enum.insert("Sharp", CLOSURE_BSDF_SHARP_GLASS_ID);
-	distribution_enum.insert("Beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID);
+	distribution_enum.insert("sharp", CLOSURE_BSDF_SHARP_GLASS_ID);
+	distribution_enum.insert("beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID);
 	distribution_enum.insert("GGX", CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID);
 	SOCKET_ENUM(distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID);
 	SOCKET_IN_FLOAT(roughness, "Roughness", 0.0f);
@@ -2035,8 +2035,8 @@ NODE_DEFINE(RefractionBsdfNode)
 	SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
 
 	static NodeEnum distribution_enum;
-	distribution_enum.insert("Sharp", CLOSURE_BSDF_REFRACTION_ID);
-	distribution_enum.insert("Beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID);
+	distribution_enum.insert("sharp", CLOSURE_BSDF_REFRACTION_ID);
+	distribution_enum.insert("beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID);
 	distribution_enum.insert("GGX", CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID);
 	SOCKET_ENUM(distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID);
 
@@ -2110,8 +2110,8 @@ NODE_DEFINE(ToonBsdfNode)
 	SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
 
 	static NodeEnum component_enum;
-	component_enum.insert("Diffuse", CLOSURE_BSDF_DIFFUSE_TOON_ID);
-	component_enum.insert("Glossy", CLOSURE_BSDF_GLOSSY_TOON_ID);
+	component_enum.insert("diffuse", CLOSURE_BSDF_DIFFUSE_TOON_ID);
+	component_enum.insert("glossy", CLOSURE_BSDF_GLOSSY_TOON_ID);
 	SOCKET_ENUM(component, "Component", component_enum, CLOSURE_BSDF_DIFFUSE_TOON_ID);
 	SOCKET_IN_FLOAT(size, "Size", 0.5f);
 	SOCKET_IN_FLOAT(smooth, "Smooth", 0.0f);
@@ -2276,9 +2276,9 @@ NODE_DEFINE(SubsurfaceScatteringNode)
 	SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
 
 	static NodeEnum falloff_enum;
-	falloff_enum.insert("Cubic", CLOSURE_BSSRDF_CUBIC_ID);
-	falloff_enum.insert("Gaussian", CLOSURE_BSSRDF_GAUSSIAN_ID);
-	falloff_enum.insert("Burley", CLOSURE_BSSRDF_BURLEY_ID);
+	falloff_enum.insert("cubic", CLOSURE_BSSRDF_CUBIC_ID);
+	falloff_enum.insert("gaussian", CLOSURE_BSSRDF_GAUSSIAN_ID);
+	falloff_enum.insert("burley", CLOSURE_BSSRDF_BURLEY_ID);
 	SOCKET_ENUM(falloff, "Falloff", falloff_enum, CLOSURE_BSSRDF_BURLEY_ID);
 	SOCKET_IN_FLOAT(scale, "Scale", 0.01f);
 	SOCKET_IN_VECTOR(radius, "Radius", make_float3(0.1f, 0.1f, 0.1f));
@@ -2593,8 +2593,8 @@ NODE_DEFINE(HairBsdfNode)
 	SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
 
 	static NodeEnum component_enum;
-	component_enum.insert("Reflection", CLOSURE_BSDF_HAIR_REFLECTION_ID);
-	component_enum.insert("Transmission", CLOSURE_BSDF_HAIR_TRANSMISSION_ID);
+	component_enum.insert("reflection", CLOSURE_BSDF_HAIR_REFLECTION_ID);
+	component_enum.insert("transmission", CLOSURE_BSDF_HAIR_TRANSMISSION_ID);
 	SOCKET_ENUM(component, "Component", component_enum, CLOSURE_BSDF_HAIR_REFLECTION_ID);
 	SOCKET_IN_FLOAT(offset, "Offset", 0.0f);
 	SOCKET_IN_FLOAT(roughness_u, "RoughnessU", 0.2f);
@@ -2975,7 +2975,7 @@ void UVMapNode::compile(OSLCompiler& compiler)
 		compiler.parameter("bump_offset", "center");
 
 	compiler.parameter(this, "from_dupli");
-	compiler.parameter("name", attribute.c_str());
+	compiler.parameter(this, "attribute");
 	compiler.add(this, "node_uv_map");
 }
 
@@ -3606,24 +3606,24 @@ NODE_DEFINE(MixNode)
 	NodeType* type = NodeType::add("mix", create, NodeType::SHADER);
 
 	static NodeEnum type_enum;
-	type_enum.insert("Mix", NODE_MIX_BLEND);
-	type_enum.insert("Add", NODE_MIX_ADD);
-	type_enum.insert("Multiply", NODE_MIX_MUL);
-	type_enum.insert("Screen", NODE_MIX_SCREEN);
-	type_enum.insert("Overlay", NODE_MIX_OVERLAY);
-	type_enum.insert("Subtract", NODE_MIX_SUB);
-	type_enum.insert("Divide", NODE_MIX_DIV);
-	type_enum.insert("Difference", NODE_MIX_DIFF);
-	type_enum.insert("Darken", NODE_MIX_DARK);
-	type_enum.insert("Lighten", NODE_MIX_LIGHT);
-	type_enum.insert("Dodge", NODE_MIX_DODGE);
-	type_enum.insert("Burn", NODE_MIX_BURN);
-	type_enum.insert("Hue", NODE_MIX_HUE);
-	type_enum.insert("Saturation", NODE_MIX_SAT);
-	type_enum.insert("Value", NODE_MIX_VAL);
-	type_enum.insert("Color", NODE_MIX_COLOR);
-	type_enum.insert("Soft Light", NODE_MIX_SOFT);
-	type_enum.insert("Linear Light", NODE_MIX_LINEAR);
+	type_enum.insert("mix", NODE_MIX_BLEND);
+	type_enum.insert("add", NODE_MIX_ADD);
+	type_enum.insert("multiply", NODE_MIX_MUL);
+	type_enum.insert("screen", NODE_MIX_SCREEN);
+	type_enum.insert("overlay", NODE_MIX_OVERLAY);
+	type_enum.insert("subtract", NODE_MIX_SUB);
+	type_enum.insert("divide", NODE_MIX_DIV);
+	type_enum.insert("difference", NODE_MIX_DIFF);
+	type_enum.insert("darken", NODE_MIX_DARK);
+	type_enum.insert("lighten", NODE_MIX_LIGHT);
+	type_enum.insert("dodge", NODE_MIX_DODGE);
+	type_enum.insert("burn", NODE_MIX_BURN);
+	type_enum.insert("hue", NODE_MIX_HUE);
+	type_enum.insert("saturation", NODE_MIX_SAT);
+	type_enum.insert("value", NODE_MIX_VAL);
+	type_enum.insert("color", NODE_MIX_COLOR);
+	type_enum.insert("soft_light", NODE_MIX_SOFT);
+	type_enum.insert("linear_light", NODE_MIX_LINEAR);
 	SOCKET_ENUM(type, "Type", type_enum, NODE_MIX_BLEND);
 
 	SOCKET_BOOLEAN(use_clamp, "Use Clamp", false);
@@ -4494,25 +4494,25 @@ NODE_DEFINE(MathNode)
 	NodeType* type = NodeType::add("math", create, NodeType::SHADER);
 
 	static NodeEnum type_enum;
-	type_enum.insert("Add", NODE_MATH_ADD);
-	type_enum.insert("Subtract", NODE_MATH_SUBTRACT);
-	type_enum.insert("Multiply", NODE_MATH_MULTIPLY);
-	type_enum.insert("Divide", NODE_MATH_DIVIDE);
-	type_enum.insert("Sine", NODE_MATH_SINE);
-	type_enum.insert("Cosine", NODE_MATH_COSINE);
-	type_enum.insert("Tangent", NODE_MATH_TANGENT);
-	type_enum.insert("Arcsine", NODE_MATH_ARCSINE);
-	type_enum.insert("Arccosine", NODE_MATH_ARCCOSINE);
-	type_enum.insert("Arctangent", NODE_MATH_ARCTANGENT);
-	type_enum.insert("Power", NODE_MATH_POWER);
-	type_enum.insert("Logarithm", NODE_MATH_LOGARITHM);
-	type_enum.insert("Minimum", NODE_MATH_MINIMUM);
-	type_enum.insert("Maximum", NODE_MATH_MAXIMUM);
-	type_enum.insert("Round", NODE_MATH_ROUND);
-	type_enum.insert("Less Than", NODE_MATH_LESS_THAN);
-	type_enum.insert("Greater Than", NODE_MATH_GREATER_THAN);
-	type_enum.insert("Modulo", NODE_MATH_MODULO);
-	type_enum.insert("Absolute", NODE_MATH_ABSOLUTE);
+	type_enum.insert("add", NODE_MATH_ADD);
+	type_enum.insert("subtract", NODE_MATH_SUBTRACT);
+	type_enum.insert("multiply", NODE_MATH_MULTIPLY);
+	type_enum.insert("divide", NODE_MATH_DIVIDE);
+	type_enum.insert("sine", NODE_MATH_SINE);
+	type_enum.insert("cosine", NODE_MATH_COSINE);
+	type_enum.insert("tangent", NODE_MATH_TANGENT);
+	type_enum.insert("arcsine", NODE_MATH_ARCSINE);
+	type_enum.insert("arccosine", NODE_MATH_ARCCOSINE);
+	type_enum.insert("arctangent", NODE_MATH_ARCTANGENT);
+	type_enum.insert("power", NODE_MATH_POWER);
+	type_enum.insert("logarithm", NODE_MATH_LOGARITHM);
+	type_enum.insert("minimum", NODE_MATH_MINIMUM);
+	type_enum.insert("maximum", NODE_MATH_MAXIMUM);
+	type_enum.insert("round", NODE_MATH_ROUND);
+	type_enum.insert("less_than", NODE_MATH_LESS_THAN);
+	type_enum.insert("greater_than", NODE_MATH_GREATER_THAN);
+	type_enum.insert("modulo", NODE_MATH_MODULO);
+	type_enum.insert("absolute", NODE_MATH_ABSOLUTE);
 	SOCKET_ENUM(type, "Type", type_enum, NODE_MATH_ADD);
 
 	SOCKET_BOOLEAN(use_clamp, "Use Clamp", false);
@@ -4579,12 +4579,12 @@ NODE_DEFINE(VectorMathNode)
 	NodeType* type = NodeType::add("vector_math", create, NodeType::SHADER);
 
 	static NodeEnum type_enum;
-	type_enum.insert("Add", NODE_VECTOR_MATH_ADD);
-	type_enum.insert("Subtract", NODE_VECTOR_MATH_SUBTRACT);
-	type_enum.insert("Average", NODE_VECTOR_MATH_AVERAGE);
-	type_enum.insert("Dot Product", NODE_VECTOR_MATH_DOT_PRODUCT);
-	type_enum.insert("Cross Product", NODE_VECTOR_MATH_CROSS_PRODUCT);
-	type_enum.insert("Normalize", NODE_VECTOR_MATH_NORMALIZE);
+	type_enum.insert("add", NODE_VECTOR_MATH_ADD);
+	type_enum.insert("subtract", NODE_VECTOR_MATH_SUBTRACT);
+	type_enum.insert("average", NODE_VECTOR_MATH_AVERAGE);
+	type_enum.insert("dot_product", NODE_VECTOR_MATH_DOT_PRODUCT);
+	type_enum.insert("cross_product", NODE_VECTOR_MATH_CROSS_PRODUCT);
+	type_enum.insert("normalize", NODE_VECTOR_MATH_NORMALIZE);
 	SOCKET_ENUM(type, "Type", type_enum, NODE_VECTOR_MATH_ADD);
 
 	SOCKET_IN_VECTOR(vector1, "Vector1", make_float3(0.0f, 0.0f, 0.0f));
@@ -4658,9 +4658,9 @@ NODE_DEFINE(VectorTransformNode)
 	NodeType* type = NodeType::add("vector_transform", create, NodeType::SHADER);
 
 	static NodeEnum type_enum;
-	type_enum.insert("Vector", NODE_VECTOR_TRANSFORM_TYPE_VECTOR);
-	type_enum.insert("Point", NODE_VECTOR_TRANSFORM_TYPE_POINT);
-	type_enum.insert("Normal", NODE_VECTOR_TRANSFORM_TYPE_NORMAL);
+	type_enum.insert("vector", NODE_VECTOR_TRANSFORM_TYPE_VECTOR);
+	type_enum.insert("point", NODE_VECTOR_TRANSFORM_TYPE_POINT);
+	type_enum.insert("normal", NODE_VECTOR_TRANSFORM_TYPE_NORMAL);
 	SOCKET_ENUM(type, "Type", type_enum, NODE_VECTOR_TRANSFORM_TYPE_VECTOR);
 
 	static NodeEnum space_enum;
@@ -5046,11 +5046,11 @@ NODE_DEFINE(NormalMapNode)
 	NodeType* type = NodeType::add("normal_map", create, NodeType::SHADER);
 
 	static NodeEnum space_enum;
-	space_enum.insert("Tangent", NODE_NORMAL_MAP_TANGENT);
-	space_enum.insert("Object", NODE_NORMAL_MAP_OBJECT);
-	space_enum.insert("World", NODE_NORMAL_MAP_WORLD);
-	space_enum.insert("Blender Object", NODE_NORMAL_MAP_BLENDER_OBJECT);
-	space_enum.insert("Blender World", NODE_NORMAL_MAP_BLENDER_WORLD);
+	space_enum.insert("tangent", NODE_NORMAL_MAP_TANGENT);
+	space_enum.insert("object", NODE_NORMAL_MAP_OBJECT);
+	space_enum.insert("world", NODE_NORMAL_MAP_WORLD);
+	space_enum.insert("blender_object", NODE_NORMAL_MAP_BLENDER_OBJECT);
+	space_enum.insert("blender_world", NODE_NORMAL_MAP_BLENDER_WORLD);
 	SOCKET_ENUM(space, "Space", space_enum, NODE_TANGENT_RADIAL);
 
 	SOCKET_STRING(attribute, "Attribute", ustring(""));
@@ -5138,14 +5138,14 @@ NODE_DEFINE(TangentNode)
 	NodeType* type = NodeType::add("tangent", create, NodeType::SHADER);
 
 	static NodeEnum direction_type_enum;
-	direction_type_enum.insert("Radial", NODE_TANGENT_RADIAL);
-	direction_type_enum.insert("UV Map", NODE_TANGENT_UVMAP);
+	direction_type_enum.insert("radial", NODE_TANGENT_RADIAL);
+	direction_type_enum.insert("uv_map", NODE_TANGENT_UVMAP);
 	SOCKET_ENUM(direction_type, "Direction Type", direction_type_enum, NODE_TANGENT_RADIAL);
 
 	static NodeEnum axis_enum;
-	axis_enum.insert("X", NODE_TANGENT_AXIS_X);
-	axis_enum.insert("Y", NODE_TANGENT_AXIS_Y);
-	axis_enum.insert("Z", NODE_TANGENT_AXIS_Z);
+	axis_enum.insert("x", NODE_TANGENT_AXIS_X);
+	axis_enum.insert("y", NODE_TANGENT_AXIS_Y);
+	axis_enum.insert("z", NODE_TANGENT_AXIS_Z);
 	SOCKET_ENUM(axis, "Axis", axis_enum, NODE_TANGENT_AXIS_X);
 
 	SOCKET_STRING(attribute, "Attribute", ustring(""));

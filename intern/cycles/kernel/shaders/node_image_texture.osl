@@ -86,7 +86,7 @@ shader node_image_texture(
 	point Vector = P,
 	string filename = "",
 	string color_space = "sRGB",
-	string projection = "Flat",
+	string projection = "flat",
 	string interpolation = "smartcubic",
 	string wrap = "periodic",
 	float projection_blend = 0.0,
@@ -100,7 +100,7 @@ shader node_image_texture(
 	if (use_mapping)
 		p = transform(mapping, p);
 	
-	if (projection == "Flat") {
+	if (projection == "flat") {
 		Color = image_texture_lookup(filename,
 		                             color_space,
 		                             p[0], p[1],
@@ -110,7 +110,7 @@ shader node_image_texture(
 		                             interpolation,
 		                             wrap);
 	}
-	else if (projection == "Box") {
+	else if (projection == "box") {
 		/* object space normal */
 		vector Nob = transform("world", "object", N);
 
@@ -210,7 +210,7 @@ shader node_image_texture(
 			Alpha += weight[2] * tmp_alpha;
 		}
 	}
-	else if (projection == "Sphere") {
+	else if (projection == "sphere") {
 		point projected = map_to_sphere(texco_remap_square(p));
 		Color = image_texture_lookup(filename,
 		                             color_space,
@@ -221,7 +221,7 @@ shader node_image_texture(
 		                             interpolation,
 		                             wrap);
 	}
-	else if (projection == "Tube") {
+	else if (projection == "tube") {
 		point projected = map_to_tube(texco_remap_square(p));
 		Color = image_texture_lookup(filename,
 		                             color_space,

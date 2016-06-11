@@ -18,7 +18,7 @@
 
 shader node_uv_map(
 	int from_dupli = 0,
-	string name = "",
+	string attribute = "",
 	string bump_offset = "center",
 	output point UV = point(0.0, 0.0, 0.0))
 {
@@ -26,10 +26,10 @@ shader node_uv_map(
 		getattribute("geom:dupli_uv", UV);
 	}
 	else {
-		if (name == "")
+		if (attribute == "")
 			getattribute("geom:uv", UV);
 		else
-			getattribute(name, UV);
+			getattribute(attribute, UV);
 	}
 
 	if (bump_offset == "dx") {

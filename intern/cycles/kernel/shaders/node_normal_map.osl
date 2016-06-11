@@ -20,14 +20,14 @@ shader node_normal_map(
 	normal NormalIn = N,
 	float Strength = 1.0,
 	color Color = color(0.5, 0.5, 1.0),
-	string space = "Tangent",
+	string space = "tangent",
 	string attr_name = "geom:tangent",
 	string attr_sign_name = "geom:tangent_sign",
 	output normal Normal = NormalIn)
 {
 	color mcolor = 2.0 * color(Color[0] - 0.5, Color[1] - 0.5, Color[2] - 0.5);
 
-	if (space == "Tangent") {
+	if (space == "tangent") {
 		vector tangent;
 		vector ninterp;
 		float tangent_sign;
@@ -53,20 +53,20 @@ shader node_normal_map(
 			Normal = normal(0, 0, 0);
 		}
 	}
-	else if (space == "Object") {
+	else if (space == "object") {
 		Normal = normalize(transform("object", "world", vector(mcolor)));
 	}
-	else if (space == "World") {
+	else if (space == "world") {
 		Normal = normalize(vector(mcolor));
 	}
-	else if (space == "Blender Object") {
+	else if (space == "blender_object") {
 		/* strange blender convention */
 		mcolor[1] = -mcolor[1];
 		mcolor[2] = -mcolor[2];
 	
 		Normal = normalize(transform("object", "world", vector(mcolor)));
 	}
-	else if (space == "Blender World") {
+	else if (space == "blender_world") {
 		/* strange blender convention */
 		mcolor[1] = -mcolor[1];
 		mcolor[2] = -mcolor[2];
