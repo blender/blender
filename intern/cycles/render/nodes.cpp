@@ -749,10 +749,9 @@ void SkyTextureNode::compile(SVMCompiler& compiler)
 		assert(false);
 
 	int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
-	int sky_model = type;
 
 	compiler.stack_assign(color_out);
-	compiler.add_node(NODE_TEX_SKY, vector_offset, compiler.stack_assign(color_out), sky_model);
+	compiler.add_node(NODE_TEX_SKY, vector_offset, compiler.stack_assign(color_out), type);
 	compiler.add_node(__float_as_uint(sunsky.phi), __float_as_uint(sunsky.theta), __float_as_uint(sunsky.radiance_x), __float_as_uint(sunsky.radiance_y));
 	compiler.add_node(__float_as_uint(sunsky.radiance_z), __float_as_uint(sunsky.config_x[0]), __float_as_uint(sunsky.config_x[1]), __float_as_uint(sunsky.config_x[2]));
 	compiler.add_node(__float_as_uint(sunsky.config_x[3]), __float_as_uint(sunsky.config_x[4]), __float_as_uint(sunsky.config_x[5]), __float_as_uint(sunsky.config_x[6]));
@@ -770,7 +769,6 @@ void SkyTextureNode::compile(OSLCompiler& compiler)
 	tex_mapping.compile(compiler);
 
 	SunSky sunsky;
-
 	if(type == NODE_SKY_OLD)
 		sky_texture_precompute_old(&sunsky, sun_direction, turbidity);
 	else if(type == NODE_SKY_NEW)
