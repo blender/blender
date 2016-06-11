@@ -52,6 +52,8 @@ License: GPL-2.1+
 (8) tlwg Loma (Thaï)
 Copyright: 2003 National Electronics and Computer Technology Center
 
+Modified to fix and/or adapt kerning to Blender basic layout engine by Hồ Châu in 2016.
+
 License: GPL-2+ with Font exception
  See Appendices C.
 
