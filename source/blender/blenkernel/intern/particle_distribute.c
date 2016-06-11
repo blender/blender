@@ -392,22 +392,25 @@ static int distribute_binary_search(float *sum, int n, float value)
 {
 	int mid, low = 0, high = n - 1;
 
+	if (high == low)
+		return low;
+
 	if (sum[low] >= value)
 		return low;
 
-	if (sum[high] < value)
+	if (sum[high - 1] < value)
 		return high;
 
 	while (low < high) {
 		mid = (low + high) / 2;
 		
-		if ((sum[mid] < value) && (sum[mid + 1] >= value))
+		if ((sum[mid] >= value) && (sum[mid - 1] < value))
 			return mid;
 		
-		if (sum[mid] >= value) {
+		if (sum[mid] > value) {
 			high = mid - 1;
 		}
-		else if (sum[mid] < value) {
+		else {
 			low = mid + 1;
 		}
 	}
@@ -1024,7 +1027,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	/* Calculate cumulative weights.
 	 * We remove all null-weighted elements from element_sum, and create a new mapping
 	 * 'activ'_elem_index -> orig_elem_index.
-	 * This simplifies greatly the filtering of zero-weighted items - and can be much mor efficient
+	 * This simplifies greatly the filtering of zero-weighted items - and can be much more efficient
 	 * especially in random case (reducing a lot the size of binary-searched array)...
 	 */
 	float *element_sum = MEM_mallocN(sizeof(*element_sum) * totmapped, __func__);
@@ -1047,13 +1050,13 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	
 	/* Finally assign elements to particles */
 	if ((part->flag & PART_TRAND) || (part->simplify_flag & PART_SIMPLIFY_ENABLE)) {
-		float pos;
-
 		for (p = 0; p < totpart; p++) {
-			/* In theory element_sum[totelem - 1] should be 1.0,
+			/* In theory element_sum[totmapped - 1] should be 1.0,
 			 * but due to float errors this is not necessarily always true, so scale pos accordingly. */
-			pos = BLI_frand() * element_sum[totmapped - 1];
-			particle_element[p] = element_map[distribute_binary_search(element_sum, totmapped, pos)];
+			const float pos = BLI_frand() * element_sum[totmapped - 1];
+			const int eidx = distribute_binary_search(element_sum, totmapped, pos);
+			particle_element[p] = element_map[eidx];
+			BLI_assert(pos <= element_sum[eidx] && pos > (eidx ? element_sum[eidx - 1] : 0.0f));
 			jitter_offset[particle_element[p]] = pos;
 		}
 	}
