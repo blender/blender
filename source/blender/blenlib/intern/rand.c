@@ -46,6 +46,7 @@
 
 #define MULTIPLIER  0x5DEECE66Dll
 #define MASK        0x0000FFFFFFFFFFFFll
+#define MASK_BYTES   2
 
 #define ADDEND      0xB
 #define LOWSEED     0x330E
@@ -105,6 +106,45 @@ void BLI_rng_srandom(RNG *rng, unsigned int seed)
 BLI_INLINE void rng_step(RNG *rng)
 {
 	rng->X = (MULTIPLIER * rng->X + ADDEND) & MASK;
+}
+
+void BLI_rng_get_char_n(RNG *rng, char *bytes, size_t bytes_len)
+{
+	size_t last_len = 0;
+	size_t trim_len = bytes_len;
+
+#define RAND_STRIDE (sizeof(rng->X) - MASK_BYTES)
+
+	if (trim_len > RAND_STRIDE) {
+		last_len = trim_len % RAND_STRIDE;
+		trim_len = trim_len - last_len;
+	}
+	else {
+		trim_len = 0;
+		last_len = bytes_len;
+	}
+
+	const char *data_src = (void *)&(rng->X);
+	size_t i = 0;
+	while (i != trim_len) {
+		BLI_assert(i < trim_len);
+#ifdef __BIG_ENDIAN__
+		for (size_t j = (RAND_STRIDE + MASK_BYTES) - 1; j != MASK_BYTES - 1; j--)
+#else
+		for (size_t j = 0; j != RAND_STRIDE; j++)
+#endif
+		{
+			bytes[i++] = data_src[j];
+		}
+		rng_step(rng);
+	}
+	if (last_len) {
+		for (size_t j = 0; j != last_len; j++) {
+			bytes[i++] = data_src[j];
+		}
+	}
+
+#undef RAND_STRIDE
 }
 
 int BLI_rng_get_int(RNG *rng)
