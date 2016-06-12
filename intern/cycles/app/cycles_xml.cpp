@@ -343,11 +343,11 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 
 		if(node_name == "image_texture") {
 			ImageTextureNode *img = (ImageTextureNode*) snode;
-			img->filename = path_join(state.base, img->filename);
+			img->filename = path_join(state.base, img->filename.string());
 		}
 		else if(node_name == "environment_texture") {
 			EnvironmentTextureNode *env = (EnvironmentTextureNode*) snode;
-			env->filename = path_join(state.base, env->filename);
+			env->filename = path_join(state.base, env->filename.string());
 		}
 
 		if(snode) {

@@ -39,6 +39,7 @@ struct SocketType
 		BOOLEAN,
 		FLOAT,
 		INT,
+		UINT,
 		COLOR,
 		VECTOR,
 		POINT,
@@ -154,7 +155,7 @@ const NodeType *structname::register_type()
 #define SOCKET_DEFINE(name, ui_name, default_value, datatype, TYPE, flags, ...) \
 	{ \
 		static datatype defval = default_value; \
-		assert(SOCKET_SIZEOF(T, name) == sizeof(datatype)); \
+		CHECK_TYPE_PAIR(((T *)1)->name, datatype); \
 		type->register_input(ustring(#name), ustring(ui_name), TYPE, SOCKET_OFFSETOF(T, name), &defval, NULL, NULL, flags, ##__VA_ARGS__); \
 	}
 
@@ -162,6 +163,8 @@ const NodeType *structname::register_type()
 	SOCKET_DEFINE(name, ui_name, default_value, bool, SocketType::BOOLEAN, 0, ##__VA_ARGS__)
 #define SOCKET_INT(name, ui_name, default_value, ...) \
 	SOCKET_DEFINE(name, ui_name, default_value, int, SocketType::INT, 0, ##__VA_ARGS__)
+#define SOCKET_UINT(name, ui_name, default_value, ...) \
+	SOCKET_DEFINE(name, ui_name, default_value, uint, SocketType::UINT, 0, ##__VA_ARGS__)
 #define SOCKET_FLOAT(name, ui_name, default_value, ...) \
 	SOCKET_DEFINE(name, ui_name, default_value, float, SocketType::FLOAT, 0, ##__VA_ARGS__)
 #define SOCKET_COLOR(name, ui_name, default_value, ...) \

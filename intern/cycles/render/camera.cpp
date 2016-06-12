@@ -68,7 +68,7 @@ NODE_DEFINE(Camera)
 
 	SOCKET_FLOAT(aperturesize, "Aperture Size", 0.0f);
 	SOCKET_FLOAT(focaldistance, "Focal Distance", 10.0f);
-	SOCKET_INT(blades, "Blades", 0);
+	SOCKET_UINT(blades, "Blades", 0);
 	SOCKET_FLOAT(bladesrotation, "Blades Rotation", 0.0f);
 
 	SOCKET_TRANSFORM(matrix, "Matrix", transform_identity());

@@ -87,7 +87,7 @@ public:
 	int is_float;
 	bool is_linear;
 	bool use_alpha;
-	string filename;
+	ustring filename;
 	void *builtin_data;
 	NodeImageColorSpace color_space;
 	NodeImageProjection projection;
@@ -118,7 +118,7 @@ public:
 	int is_float;
 	bool is_linear;
 	bool use_alpha;
-	string filename;
+	ustring filename;
 	void *builtin_data;
 	NodeImageColorSpace color_space;
 	NodeEnvironmentProjection projection;

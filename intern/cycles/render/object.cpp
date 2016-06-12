@@ -39,8 +39,8 @@ NODE_DEFINE(Object)
 
 	SOCKET_NODE(mesh, "Mesh", &Mesh::node_type);
 	SOCKET_TRANSFORM(tfm, "Transform", transform_identity());
-	SOCKET_INT(visibility, "Visibility", ~0);
-	SOCKET_INT(random_id, "Random ID", 0);
+	SOCKET_UINT(visibility, "Visibility", ~0);
+	SOCKET_UINT(random_id, "Random ID", 0);
 	SOCKET_INT(pass_id, "Pass ID", 0);
 	SOCKET_BOOLEAN(use_holdout, "Use Holdout", false);
 	SOCKET_POINT(dupli_generated, "Dupli Generated", make_float3(0.0f, 0.0f, 0.0f));

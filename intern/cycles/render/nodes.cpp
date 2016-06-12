@@ -257,7 +257,7 @@ ImageTextureNode::ImageTextureNode()
 ImageTextureNode::~ImageTextureNode()
 {
 	if(image_manager) {
-		image_manager->remove_image(filename,
+		image_manager->remove_image(filename.string(),
 		                            builtin_data,
 		                            interpolation,
 		                            extension);
@@ -298,7 +298,7 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 	image_manager = compiler.image_manager;
 	if(is_float == -1) {
 		bool is_float_bool;
-		slot = image_manager->add_image(filename,
+		slot = image_manager->add_image(filename.string(),
 		                                builtin_data,
 		                                animated,
 		                                0,
@@ -360,13 +360,13 @@ void ImageTextureNode::compile(OSLCompiler& compiler)
 	if(is_float == -1) {
 		if(builtin_data == NULL) {
 			ImageManager::ImageDataType type;
-			type = image_manager->get_image_metadata(filename, NULL, is_linear);
+			type = image_manager->get_image_metadata(filename.string(), NULL, is_linear);
 			if(type == ImageManager::IMAGE_DATA_TYPE_FLOAT || type == ImageManager::IMAGE_DATA_TYPE_FLOAT4)
 				is_float = 1;
 		}
 		else {
 			bool is_float_bool;
-			slot = image_manager->add_image(filename,
+			slot = image_manager->add_image(filename.string(),
 			                                builtin_data,
 			                                animated,
 			                                0,
@@ -456,7 +456,7 @@ EnvironmentTextureNode::EnvironmentTextureNode()
 EnvironmentTextureNode::~EnvironmentTextureNode()
 {
 	if(image_manager) {
-		image_manager->remove_image(filename,
+		image_manager->remove_image(filename.string(),
 		                            builtin_data,
 		                            interpolation,
 		                            EXTENSION_REPEAT);
@@ -495,7 +495,7 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 	image_manager = compiler.image_manager;
 	if(slot == -1) {
 		bool is_float_bool;
-		slot = image_manager->add_image(filename,
+		slot = image_manager->add_image(filename.string(),
 		                                builtin_data,
 		                                animated,
 		                                0,
@@ -548,13 +548,13 @@ void EnvironmentTextureNode::compile(OSLCompiler& compiler)
 	if(is_float == -1) {
 		if(builtin_data == NULL) {
 			ImageManager::ImageDataType type;
-			type = image_manager->get_image_metadata(filename, NULL, is_linear);
+			type = image_manager->get_image_metadata(filename.string(), NULL, is_linear);
 			if(type == ImageManager::IMAGE_DATA_TYPE_FLOAT || type == ImageManager::IMAGE_DATA_TYPE_FLOAT4)
 				is_float = 1;
 		}
 		else {
 			bool is_float_bool;
-			slot = image_manager->add_image(filename,
+			slot = image_manager->add_image(filename.string(),
 			                                builtin_data,
 			                                animated,
 			                                0,
