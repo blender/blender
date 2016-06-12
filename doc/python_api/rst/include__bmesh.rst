@@ -1,7 +1,8 @@
 ..
    This document is appended to the auto generated bmesh api doc to avoid clogging up the C files with details.
    to test this run:
-   ./blender.bin -b -noaudio -P doc/python_api/sphinx_doc_gen.py -- --partial bmesh* ; cd doc/python_api ; sphinx-build sphinx-in sphinx-out ; cd ../../
+   ./blender.bin -b -noaudio -P doc/python_api/sphinx_doc_gen.py -- \
+                 --partial bmesh* ; cd doc/python_api ; sphinx-build sphinx-in sphinx-out ; cd ../../
 
 
 Submodules:
@@ -59,9 +60,9 @@ There are 2 ways to access BMesh data, you can create a new BMesh by converting 
 :class:`bpy.types.BlendData.meshes` or by accessing the current edit mode mesh.
 see: :class:`bmesh.types.BMesh.from_mesh` and :mod:`bmesh.from_edit_mesh` respectively.
 
-When explicitly converting from mesh data python **owns** the data, that is to say - that the mesh only exists while
-python holds a reference to it, and the script is responsible for putting it back into a mesh data-block when the edits
-are done.
+When explicitly converting from mesh data python **owns** the data, that is to say -
+that the mesh only exists while python holds a reference to it,
+and the script is responsible for putting it back into a mesh data-block when the edits are done.
 
 Note that unlike :mod:`bpy`, a BMesh does not necessarily correspond to data in the currently open blend file,
 a BMesh can be created, edited and freed without the user ever seeing or having access to it.

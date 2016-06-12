@@ -151,7 +151,7 @@ Data Creation/Removal
 ^^^^^^^^^^^^^^^^^^^^^
 
 Those of you familiar with other Python API's may be surprised that
-new datablocks in the bpy API can't be created by calling the class:
+new data-blocks in the bpy API can't be created by calling the class:
 
    >>> bpy.types.Mesh()
    Traceback (most recent call last):
@@ -393,11 +393,11 @@ so these are accessed as normal Python types.
 Internal Types
 --------------
 
-Used for Blender datablocks and collections: :class:`bpy.types.bpy_struct`
+Used for Blender data-blocks and collections: :class:`bpy.types.bpy_struct`
 
 For data that contains its own attributes groups/meshes/bones/scenes... etc.
 
-There are 2 main types that wrap Blenders data, one for datablocks
+There are 2 main types that wrap Blenders data, one for data-blocks
 (known internally as ``bpy_struct``), another for properties.
 
    >>> bpy.context.object
