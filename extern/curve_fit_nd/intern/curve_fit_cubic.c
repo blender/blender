@@ -46,6 +46,12 @@
 /* Take curvature into account when calculating the least square solution isn't usable. */
 #define USE_CIRCULAR_FALLBACK
 
+/* Use the maximum distance of any points from the direct line between 2 points
+ * to calculate how long the handles need to be.
+ * Can do a 'perfect' reversal of subdivision when for curve has symmetrical handles and doesn't change direction
+ * (as with an 'S' shape). */
+#define USE_OFFSET_FALLBACK
+
 /* avoid re-calculating lengths multiple times */
 #define USE_LENGTH_CACHE
 
@@ -339,6 +345,44 @@ static double cubic_calc_error(
 	return error_max_sq;
 }
 
+#ifdef USE_OFFSET_FALLBACK
+/**
+ * A version #cubic_calc_error where we don't need the split-index and can exit early when over the limit.
+ */
+static double cubic_calc_error_simple(
+        const Cubic *cubic,
+        const double *points_offset,
+        const uint points_offset_len,
+        const double *u,
+        const double error_threshold_sq,
+        const uint dims)
+
+{
+	double error_max_sq = 0.0;
+
+	const double *pt_real = points_offset + dims;
+#ifdef USE_VLA
+	double        pt_eval[dims];
+#else
+	double       *pt_eval = alloca(sizeof(double) * dims);
+#endif
+
+	for (uint i = 1; i < points_offset_len - 1; i++, pt_real += dims) {
+		cubic_evaluate(cubic, u[i], dims, pt_eval);
+
+		const double err_sq = len_squared_vnvn(pt_real, pt_eval, dims);
+		if (err_sq >= error_threshold_sq) {
+			return error_threshold_sq;
+		}
+		else if (err_sq >= error_max_sq) {
+			error_max_sq = err_sq;
+		}
+	}
+
+	return error_max_sq;
+}
+#endif
+
 /**
  * Bezier multipliers
  */
@@ -529,6 +573,85 @@ static void cubic_from_points_fallback(
 	madd_vn_vnvn_fl(p2, p3, tan_r, alpha, dims);
 }
 #endif  /* USE_CIRCULAR_FALLBACK */
+
+
+#ifdef USE_OFFSET_FALLBACK
+
+static void cubic_from_points_offset_fallback(
+        const double *points_offset,
+        const uint    points_offset_len,
+        const double  tan_l[],
+        const double  tan_r[],
+        const uint dims,
+
+        Cubic *r_cubic)
+{
+	const double *p0 = &points_offset[0];
+	const double *p3 = &points_offset[(points_offset_len - 1) * dims];
+
+#ifdef USE_VLA
+	double dir_unit[dims];
+	double a[2][dims];
+	double tmp[dims];
+#else
+	double *dir_unit = alloca(sizeof(double) * dims);
+	double *a[2] = {
+	    alloca(sizeof(double) * dims),
+	    alloca(sizeof(double) * dims),
+	};
+	double *tmp = alloca(sizeof(double) * dims);
+#endif
+
+	const double dir_dist = normalize_vn_vnvn(dir_unit, p3, p0, dims);
+	project_plane_vn_vnvn_normalized(a[0], tan_l, dir_unit, dims);
+	project_plane_vn_vnvn_normalized(a[1], tan_r, dir_unit, dims);
+
+	/* only for better accuracy, not essential */
+	normalize_vn(a[0], dims);
+	normalize_vn(a[1], dims);
+
+	mul_vnvn_fl(a[1], a[1], -1, dims);
+
+	double dists[2] = {0, 0};
+
+	const double *pt = points_offset;
+	for (uint i = 1; i < points_offset_len - 1; i++, pt += dims) {
+		for (uint k = 0; k < 2; k++) {
+			sub_vn_vnvn(tmp, p0, pt, dims);
+			project_vn_vnvn_normalized(tmp, tmp, a[k], dims);
+			dists[k] = max(dists[k], dot_vnvn(tmp, a[k], dims));
+		}
+	}
+
+	float alpha_l = (dists[0] / 0.75) /  dot_vnvn(tan_l, a[0], dims);
+	float alpha_r = (dists[1] / 0.75) / -dot_vnvn(tan_r, a[1], dims);
+
+	if (!(alpha_l > 0.0f)) {
+		alpha_l = dir_dist / 3.0;
+	}
+	if (!(alpha_r > 0.0f)) {
+		alpha_r = dir_dist / 3.0;
+	}
+
+	double *p1 = CUBIC_PT(r_cubic, 1, dims);
+	double *p2 = CUBIC_PT(r_cubic, 2, dims);
+
+	copy_vnvn(CUBIC_PT(r_cubic, 0, dims), p0, dims);
+	copy_vnvn(CUBIC_PT(r_cubic, 3, dims), p3, dims);
+
+#ifdef USE_ORIG_INDEX_DATA
+	r_cubic->orig_span = (points_offset_len - 1);
+#endif
+
+	/* p1 = p0 - (tan_l * alpha_l);
+	 * p2 = p3 + (tan_r * alpha_r);
+	 */
+	msub_vn_vnvn_fl(p1, p0, tan_l, alpha_l, dims);
+	madd_vn_vnvn_fl(p2, p3, tan_r, alpha_r, dims);
+}
+
+#endif  /* USE_OFFSET_FALLBACK */
+
 
 /**
  * Use least-squares method to find Bezier control points for region.
@@ -918,6 +1041,8 @@ static bool fit_cubic_to_points(
 
 	Cubic *cubic_test = alloca(cubic_alloc_size(dims));
 
+	/* Run this so we use the non-circular calculation when the circular-fallback
+	 * in 'cubic_from_points' failed to give a close enough result. */
 #ifdef USE_CIRCULAR_FALLBACK
 	if (!(error_max_sq < error_threshold_sq)) {
 		/* Don't use the cubic calculated above, instead calculate a new fallback cubic,
@@ -933,6 +1058,24 @@ static bool fit_cubic_to_points(
 
 		/* intentionally use the newly calculated 'split_index',
 		 * even if the 'error_max_sq_test' is worse. */
+		if (error_max_sq > error_max_sq_test) {
+			error_max_sq = error_max_sq_test;
+			cubic_copy(r_cubic, cubic_test, dims);
+		}
+	}
+#endif
+
+	/* Test the offset fallback */
+#ifdef USE_OFFSET_FALLBACK
+	if (!(error_max_sq < error_threshold_sq)) {
+		/* Using the offset from the curve to calculate cubic handle length may give better results
+		 * try this as a second fallback. */
+		cubic_from_points_offset_fallback(
+		        points_offset, points_offset_len,
+		        tan_l, tan_r, dims, cubic_test);
+		const double error_max_sq_test = cubic_calc_error_simple(
+		        cubic_test, points_offset, points_offset_len, u, error_max_sq, dims);
+
 		if (error_max_sq > error_max_sq_test) {
 			error_max_sq = error_max_sq_test;
 			cubic_copy(r_cubic, cubic_test, dims);
