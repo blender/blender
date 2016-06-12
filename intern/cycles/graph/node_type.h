@@ -155,7 +155,7 @@ const NodeType *structname::register_type()
 #define SOCKET_DEFINE(name, ui_name, default_value, datatype, TYPE, flags, ...) \
 	{ \
 		static datatype defval = default_value; \
-		CHECK_TYPE_PAIR(((T *)1)->name, datatype); \
+		CHECK_TYPE(((T *)1)->name, datatype); \
 		type->register_input(ustring(#name), ustring(ui_name), TYPE, SOCKET_OFFSETOF(T, name), &defval, NULL, NULL, flags, ##__VA_ARGS__); \
 	}
 
