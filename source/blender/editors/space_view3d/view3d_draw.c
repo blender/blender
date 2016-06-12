@@ -4061,6 +4061,10 @@ void view3d_main_region_draw(const bContext *C, ARegion *ar)
 	view3d_main_region_draw_info(C, scene, ar, v3d, grid_unit, render_border);
 
 	v3d->flag |= V3D_INVALID_BACKBUF;
+
+	BLI_assert(BLI_listbase_is_empty(&v3d->afterdraw_transp));
+	BLI_assert(BLI_listbase_is_empty(&v3d->afterdraw_xray));
+	BLI_assert(BLI_listbase_is_empty(&v3d->afterdraw_xraytransp));
 }
 
 #ifdef DEBUG_DRAW

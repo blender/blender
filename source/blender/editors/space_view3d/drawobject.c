@@ -1209,7 +1209,7 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 
 	if ((drawcone || drawshadowbox) && !v3d->transp) {
 		/* in this case we need to draw delayed */
-		ED_view3d_after_add(&v3d->afterdraw_transp, base, dflag);
+		ED_view3d_after_add(v3d->xray ? &v3d->afterdraw_xraytransp : &v3d->afterdraw_transp, base, dflag);
 		return;
 	}
 	
