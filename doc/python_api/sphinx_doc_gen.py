@@ -325,6 +325,24 @@ except ImportError:
                                                "freestyle.types",
                                                "freestyle.utils"]
 
+# Source files we use, and need to copy to the OUTPUT_DIR
+# to have working out-of-source builds.
+# Note that ".." is replaced by "__" in the RST files,
+# to avoid having to match Blender's source tree.
+EXTRA_SOURCE_FILES = (
+    "../../../release/scripts/templates_py/bmesh_simple.py",
+    "../../../release/scripts/templates_py/operator_simple.py",
+    "../../../release/scripts/templates_py/ui_panel_simple.py",
+    "../../../release/scripts/templates_py/ui_previews_custom_icon.py",
+    "../examples/bge.constraints.py",
+    "../examples/bge.texture.1.py",
+    "../examples/bge.texture.2.py",
+    "../examples/bge.texture.py",
+    "../examples/bmesh.ops.1.py",
+    "../examples/bpy.app.translations.py",
+    )
+
+
 # examples
 EXAMPLES_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "examples"))
 EXAMPLE_SET = set()
@@ -1890,6 +1908,21 @@ def copy_handwritten_rsts(basepath):
             shutil.copy2(os.path.join(RST_DIR, f), basepath)
 
 
+def copy_handwritten_extra(basepath):
+    for f_src in EXTRA_SOURCE_FILES:
+        if os.sep != "/":
+            f_src = os.sep.join(f_src.split("/"))
+
+        f_dst = f_src.replace("..", "__")
+
+        f_src = os.path.join(RST_DIR, f_src)
+        f_dst = os.path.join(basepath, f_dst)
+
+        os.makedirs(os.path.dirname(f_dst), exist_ok=True)
+
+        shutil.copy2(f_src, f_dst)
+
+
 def rna2sphinx(basepath):
 
     try:
@@ -1921,35 +1954,48 @@ def rna2sphinx(basepath):
     # copy the other rsts
     copy_handwritten_rsts(basepath)
 
+    # copy source files referenced
+    copy_handwritten_extra(basepath)
 
-def align_sphinx_in_to_sphinx_in_tmp():
+
+def align_sphinx_in_to_sphinx_in_tmp(dir_src, dir_dst):
     '''
     Move changed files from SPHINX_IN_TMP to SPHINX_IN
     '''
     import filecmp
 
-    sphinx_in_files = set(os.listdir(SPHINX_IN))
-    sphinx_in_tmp_files = set(os.listdir(SPHINX_IN_TMP))
+    # possible the dir doesn't exist when running recursively
+    os.makedirs(dir_dst, exist_ok=True)
+
+    sphinx_dst_files = set(os.listdir(dir_dst))
+    sphinx_src_files = set(os.listdir(dir_src))
 
     # remove deprecated files that have been removed
-    for f in sorted(sphinx_in_files):
-        if f not in sphinx_in_tmp_files:
+    for f in sorted(sphinx_dst_files):
+        if f not in sphinx_src_files:
             BPY_LOGGER.debug("\tdeprecated: %s" % f)
-            os.remove(os.path.join(SPHINX_IN, f))
+            f_dst = os.path.join(dir_dst, f)
+            if os.path.isdir(f_dst):
+                shutil.rmtree(f_dst, True)
+            else:
+                os.remove(f_dst)
 
     # freshen with new files.
-    for f in sorted(sphinx_in_tmp_files):
-        f_from = os.path.join(SPHINX_IN_TMP, f)
-        f_to = os.path.join(SPHINX_IN, f)
+    for f in sorted(sphinx_src_files):
+        f_src = os.path.join(dir_src, f)
+        f_dst = os.path.join(dir_dst, f)
 
-        do_copy = True
-        if f in sphinx_in_files:
-            if filecmp.cmp(f_from, f_to):
-                do_copy = False
+        if os.path.isdir(f_src):
+            align_sphinx_in_to_sphinx_in_tmp(f_src, f_dst)
+        else:
+            do_copy = True
+            if f in sphinx_dst_files:
+                if filecmp.cmp(f_src, f_dst):
+                    do_copy = False
 
-        if do_copy:
-            BPY_LOGGER.debug("\tupdating: %s" % f)
-            shutil.copy(f_from, f_to)
+            if do_copy:
+                BPY_LOGGER.debug("\tupdating: %s" % f)
+                shutil.copy(f_src, f_dst)
 
 
 def refactor_sphinx_log(sphinx_logfile):
@@ -2036,7 +2082,7 @@ def main():
             shutil.rmtree(SPHINX_OUT_PDF, True)
     else:
         # move changed files in SPHINX_IN
-        align_sphinx_in_to_sphinx_in_tmp()
+        align_sphinx_in_to_sphinx_in_tmp(SPHINX_IN_TMP, SPHINX_IN)
 
     # report which example files weren't used
     EXAMPLE_SET_UNUSED = EXAMPLE_SET - EXAMPLE_SET_USED

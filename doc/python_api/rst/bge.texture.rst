@@ -39,26 +39,26 @@ When the texture object is deleted, the new texture is deleted and the old textu
 
 .. module:: bge.texture
 
-.. include:: ../examples/bge.texture.py
+.. include:: __/examples/bge.texture.py
    :start-line: 1
    :end-line: 5
 
-.. literalinclude:: ../examples/bge.texture.py
+.. literalinclude:: __/examples/bge.texture.py
    :lines: 7-
 
-.. include:: ../examples/bge.texture.1.py
+.. include:: __/examples/bge.texture.1.py
    :start-line: 1
    :end-line: 6
 
-.. literalinclude:: ../examples/bge.texture.1.py
+.. literalinclude:: __/examples/bge.texture.1.py
    :lines: 8-
 
 
-.. include:: ../examples/bge.texture.2.py
+.. include:: __/examples/bge.texture.2.py
    :start-line: 1
    :end-line: 6
 
-.. literalinclude:: ../examples/bge.texture.2.py
+.. literalinclude:: __/examples/bge.texture.2.py
    :lines: 8-
 
 

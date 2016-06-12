@@ -8,11 +8,11 @@ Physics Constraints (bge.constraints)
 Examples
 --------
 
-.. include:: ../examples/bge.constraints.py
+.. include:: __/examples/bge.constraints.py
    :start-line: 1
    :end-line: 4
 
-.. literalinclude:: ../examples/bge.constraints.py
+.. literalinclude:: __/examples/bge.constraints.py
    :lines: 6-
 
 

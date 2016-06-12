@@ -30,7 +30,7 @@ This allows scripts to generate their own previews, and use them as icons in UI 
 Custom Icon Example
 -------------------
 
-.. literalinclude:: ../../../release/scripts/templates_py/ui_previews_custom_icon.py
+.. literalinclude:: __/__/__/release/scripts/templates_py/ui_previews_custom_icon.py
 """
 
 __all__ = (

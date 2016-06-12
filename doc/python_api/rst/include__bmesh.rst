@@ -41,7 +41,7 @@ For an overview of BMesh data types and how they reference each other see:
 Example Script
 --------------
 
-.. literalinclude:: ../../../release/scripts/templates_py/bmesh_simple.py
+.. literalinclude:: __/__/__/release/scripts/templates_py/bmesh_simple.py
 
 
 Stand-Alone Module
