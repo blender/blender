@@ -1803,6 +1803,82 @@ static PyObject *bpy_bmface_calc_perimeter(BPy_BMFace *self)
 }
 
 
+PyDoc_STRVAR(bpy_bmface_calc_tangent_edge_doc,
+".. method:: calc_tangent_edge()\n"
+"\n"
+"   Return face tangent based on longest edge.\n"
+"\n"
+"   :return: a normalized vector.\n"
+"   :rtype: :class:`mathutils.Vector`\n"
+);
+static PyObject *bpy_bmface_calc_tangent_edge(BPy_BMFace *self)
+{
+	float tangent[3];
+
+	BPY_BM_CHECK_OBJ(self);
+	BM_face_calc_tangent_edge(self->f, tangent);
+	return Vector_CreatePyObject(tangent, 3, NULL);
+}
+
+
+PyDoc_STRVAR(bpy_bmface_calc_tangent_edge_pair_doc,
+".. method:: calc_tangent_edge_pair()\n"
+"\n"
+"   Return face tangent based on the two longest disconected edges.\n"
+"\n"
+"   - Tris: Use the edge pair with the most similar lengths.\n"
+"   - Quads: Use the longest edge pair.\n"
+"   - NGons: Use the two longest disconnected edges.\n"
+"\n"
+"   :return: a normalized vector.\n"
+"   :rtype: :class:`mathutils.Vector`\n"
+);
+static PyObject *bpy_bmface_calc_tangent_edge_pair(BPy_BMFace *self)
+{
+	float tangent[3];
+
+	BPY_BM_CHECK_OBJ(self);
+	BM_face_calc_tangent_edge_pair(self->f, tangent);
+	return Vector_CreatePyObject(tangent, 3, NULL);
+}
+
+
+PyDoc_STRVAR(bpy_bmface_calc_tangent_edge_diagonal_doc,
+".. method:: calc_tangent_edge_diagonal()\n"
+"\n"
+"   Return face tangent based on the edge farthest from any vertex.\n"
+"\n"
+"   :return: a normalized vector.\n"
+"   :rtype: :class:`mathutils.Vector`\n"
+);
+static PyObject *bpy_bmface_calc_tangent_edge_diagonal(BPy_BMFace *self)
+{
+	float tangent[3];
+
+	BPY_BM_CHECK_OBJ(self);
+	BM_face_calc_tangent_edge_diagonal(self->f, tangent);
+	return Vector_CreatePyObject(tangent, 3, NULL);
+}
+
+
+PyDoc_STRVAR(bpy_bmface_calc_tangent_vert_diagonal_doc,
+".. method:: calc_tangent_vert_diagonal()\n"
+"\n"
+"   Return face tangent based on the two most distent vertices.\n"
+"\n"
+"   :return: a normalized vector.\n"
+"   :rtype: :class:`mathutils.Vector`\n"
+);
+static PyObject *bpy_bmface_calc_tangent_vert_diagonal(BPy_BMFace *self)
+{
+	float tangent[3];
+
+	BPY_BM_CHECK_OBJ(self);
+	BM_face_calc_tangent_vert_diagonal(self->f, tangent);
+	return Vector_CreatePyObject(tangent, 3, NULL);
+}
+
+
 PyDoc_STRVAR(bpy_bmface_calc_center_mean_doc,
 ".. method:: calc_center_median()\n"
 "\n"
@@ -2702,6 +2778,10 @@ static struct PyMethodDef bpy_bmface_methods[] = {
 
 	{"calc_area",          (PyCFunction)bpy_bmface_calc_area,          METH_NOARGS, bpy_bmface_calc_area_doc},
 	{"calc_perimeter",     (PyCFunction)bpy_bmface_calc_perimeter,     METH_NOARGS, bpy_bmface_calc_perimeter_doc},
+	{"calc_tangent_edge", (PyCFunction)bpy_bmface_calc_tangent_edge,   METH_NOARGS, bpy_bmface_calc_tangent_edge_doc},
+	{"calc_tangent_edge_pair", (PyCFunction)bpy_bmface_calc_tangent_edge_pair,   METH_NOARGS, bpy_bmface_calc_tangent_edge_pair_doc},
+	{"calc_tangent_edge_diagonal", (PyCFunction)bpy_bmface_calc_tangent_edge_diagonal,   METH_NOARGS, bpy_bmface_calc_tangent_edge_diagonal_doc},
+	{"calc_tangent_vert_diagonal", (PyCFunction)bpy_bmface_calc_tangent_vert_diagonal,   METH_NOARGS, bpy_bmface_calc_tangent_vert_diagonal_doc},
 	{"calc_center_median", (PyCFunction)bpy_bmface_calc_center_mean,   METH_NOARGS, bpy_bmface_calc_center_mean_doc},
 	{"calc_center_median_weighted", (PyCFunction)bpy_bmface_calc_center_mean_weighted, METH_NOARGS, bpy_bmface_calc_center_mean_weighted_doc},
 	{"calc_center_bounds", (PyCFunction)bpy_bmface_calc_center_bounds, METH_NOARGS, bpy_bmface_calc_center_bounds_doc},

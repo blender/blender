@@ -904,7 +904,7 @@ void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
 	}
 	else if (ese->htype == BM_FACE) {
 		BMFace *efa = (BMFace *)ese->ele;
-		BM_face_calc_plane(efa, r_plane);
+		BM_face_calc_tangent_auto(efa, r_plane);
 	}
 }
 

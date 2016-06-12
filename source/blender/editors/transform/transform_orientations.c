@@ -636,7 +636,7 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 
 					BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 						if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-							BM_face_calc_plane(efa, vec);
+							BM_face_calc_tangent_auto(efa, vec);
 							add_v3_v3(normal, efa->no);
 							add_v3_v3(plane, vec);
 						}
@@ -690,7 +690,7 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 							sub_v3_v3v3(plane, v_pair[0]->co, v_pair[1]->co);
 						}
 						else {
-							BM_vert_tri_calc_plane(v_tri, plane);
+							BM_vert_tri_calc_tangent_edge(v_tri, plane);
 						}
 					}
 					else {
