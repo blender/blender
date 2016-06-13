@@ -911,7 +911,7 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 		unsigned int  corners_index_len = 0;
 
 		const int result = curve_fit_cubic_to_points_fl(
-		        coords, stroke_len, dims, error_threshold,
+		        coords, stroke_len, dims, error_threshold, CURVE_FIT_CALC_HIGH_QUALIY,
 		        corners, corners_len,
 		        &cubic_spline, &cubic_spline_len,
 		        NULL,
