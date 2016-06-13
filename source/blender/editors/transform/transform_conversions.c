@@ -5874,6 +5874,7 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 		BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 		BMesh *bm = em->bm;
 		char hflag;
+		bool has_face_sel = (bm->totfacesel != 0);
 
 		if (t->flag & T_MIRROR) {
 			TransData *td;
@@ -5897,8 +5898,10 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 
 		EDBM_automerge(t->scene, t->obedit, true, hflag);
 
-		if ((em->selectmode & SCE_SELECT_VERTEX) == 0) {
-			EDBM_select_flush(em);
+		/* Special case, this is needed or faces won't re-select.
+		 * Flush selected edges to faces. */
+		if (has_face_sel && (em->selectmode == SCE_SELECT_FACE)) {
+			EDBM_selectmode_flush_ex(em, SCE_SELECT_EDGE);
 		}
 	}
 }
