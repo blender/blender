@@ -891,6 +891,7 @@ void OSLCompiler::parameter(ShaderNode* node, const char *name)
 		case SocketType::NODE:
 		case SocketType::NODE_ARRAY:
 		case SocketType::UNDEFINED:
+		case SocketType::UINT:
 		{
 			assert(0);
 			break;
