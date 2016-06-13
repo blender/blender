@@ -49,6 +49,7 @@ void        BLI_rng_free(struct RNG *rng) ATTR_NONNULL(1);
 
 void        BLI_rng_seed(struct RNG *rng, unsigned int seed) ATTR_NONNULL(1);
 void        BLI_rng_srandom(struct RNG *rng, unsigned int seed) ATTR_NONNULL(1);
+void        BLI_rng_get_char_n(RNG *rng, char *bytes, size_t bytes_len) ATTR_NONNULL(1, 2);
 int         BLI_rng_get_int(struct RNG *rng) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 unsigned int BLI_rng_get_uint(struct RNG *rng) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 double      BLI_rng_get_double(struct RNG *rng) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);

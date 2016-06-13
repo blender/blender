@@ -44,6 +44,13 @@
 #define VT_A(v)	((unsigned char*)&v)[3]
 #define VT_RGBA(v,r,g,b,a)	VT_R(v)=(unsigned char)r, VT_G(v)=(unsigned char)g, VT_B(v)=(unsigned char)b, VT_A(v)=(unsigned char)a
 
+#ifdef __BIG_ENDIAN__
+#  define VT_SWAPBR(i)	((((i) >> 16) & 0xFF00) + (((i) & 0xFF00) << 16) + ((i) & 0xFF00FF))
+#else
+#  define VT_SWAPBR(i)	((((i) & 0xFF) << 16) + (((i) >> 16) & 0xFF) + ((i) & 0xFF00FF00))
+#endif
+
+
 // forward declaration
 class FilterBase;
 

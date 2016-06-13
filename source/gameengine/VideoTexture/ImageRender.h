@@ -39,6 +39,8 @@
 #include "DNA_screen_types.h"
 #include "RAS_ICanvas.h"
 #include "RAS_IRasterizer.h"
+#include "RAS_IOffScreen.h"
+#include "RAS_ISync.h"
 
 #include "ImageViewport.h"
 
@@ -48,7 +50,7 @@ class ImageRender : public ImageViewport
 {
 public:
 	/// constructor
-	ImageRender(KX_Scene *scene, KX_Camera *camera);
+	ImageRender(KX_Scene *scene, KX_Camera *camera, PyRASOffScreen *offscreen);
 	ImageRender(KX_Scene *scene, KX_GameObject *observer, KX_GameObject *mirror, RAS_IPolyMaterial * mat);
 
 	/// destructor
@@ -63,16 +65,30 @@ public:
 	float getClip (void) { return m_clip; }
 	/// set whole buffer use
 	void setClip (float clip) { m_clip = clip; }
+	/// render status
+	bool isDone() { return m_done; }
+	/// render frame (public so that it is accessible from python)
+	bool Render();
+	/// in case fbo is used, method to unbind
+	void Unbind();
+	/// wait for render to complete
+	void WaitSync();
 
 protected:
 	/// true if ready to render
 	bool m_render;
+	/// is render done already?
+	bool m_done;
 	/// rendered scene
 	KX_Scene * m_scene;
 	/// camera for render
 	KX_Camera * m_camera;
 	/// do we own the camera?
 	bool m_owncamera;
+	/// if offscreen render
+	PyRASOffScreen *m_offscreen;
+	/// object to synchronize render even if no buffer transfer
+	RAS_ISync *m_sync;
 	/// for mirror operation
 	KX_GameObject * m_observer;
 	KX_GameObject * m_mirror;
@@ -91,15 +107,15 @@ protected:
 	KX_KetsjiEngine* m_engine;
 
 	/// background color
-	float  m_background[4];
+	float m_background[4];
 
 
 	/// render 3d scene to image
-	virtual void calcImage (unsigned int texId, double ts);
+	virtual void calcImage (unsigned int texId, double ts) { calcViewport(texId, ts, GL_RGBA); }
 
-	void Render();
-	void SetupRenderFrame(KX_Scene *scene, KX_Camera* cam);
-	void RenderFrame(KX_Scene* scene, KX_Camera* cam);
+	/// render 3d scene to image
+	virtual void calcViewport (unsigned int texId, double ts, unsigned int format);
+
 	void setBackgroundFromScene(KX_Scene *scene);
 	void SetWorldSettings(KX_WorldInfo* wi);
 };

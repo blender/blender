@@ -378,6 +378,28 @@ General functions
 
    Render next frame (if Python has control)
 
+.. function:: setRender(render)
+
+   Sets the global flag that controls the render of the scene. 
+   If True, the render is done after the logic frame.
+   If False, the render is skipped and another logic frame starts immediately.
+
+   .. note::
+
+      GPU VSync no longer limits the number of frame per second when render is off, 
+      but the *Use Frame Rate* option still regulates the fps. To run as many frames
+      as possible, untick this option (Render Properties, System panel).
+
+   :arg render: the render flag
+   :type render: bool
+
+.. function:: getRender()
+
+   Get the current value of the global render flag
+
+   :return: The flag value
+   :rtype: bool
+
 **********************
 Time related functions
 **********************

@@ -1205,8 +1205,7 @@ void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 		
 		qobj = gluNewQuadric();
 		gluQuadricDrawStyle(qobj, GLU_FILL);
-		int bound_options = GPU_basic_shader_bound_options();
-		GPU_basic_shader_bind(bound_options);
+		GPU_basic_shader_bind(GPU_basic_shader_bound_options());
 		gluSphere(qobj, 100.0, 32, 24);
 		gluDeleteQuadric(qobj);
 		
@@ -1538,10 +1537,12 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 			          BLI_rctf_size_x(&rect),
 			          BLI_rctf_size_y(&rect));
 
+			GPU_basic_shader_bind_enable(GPU_SHADER_LINE);
+
 			for (int a = 0; a < 2; a++) {
 				if (a == 1) {
-					glLineStipple(3, 0xaaaa);
-					glEnable(GL_LINE_STIPPLE);
+					GPU_basic_shader_bind_enable(GPU_SHADER_STIPPLE);
+					GPU_basic_shader_line_stipple(3, 0xAAAA);
 					UI_ThemeColor(TH_SEL_MARKER);
 				}
 				else {
@@ -1555,9 +1556,10 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 				glVertex2f(0.0f, 10.0f);
 				glEnd();
 			}
+
+			GPU_basic_shader_bind_disable(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
 		}
 
-		glDisable(GL_LINE_STIPPLE);
 		glPopMatrix();
 
 		ok = true;

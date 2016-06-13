@@ -1185,6 +1185,10 @@ static void emDM_drawMappedFaces(
 	if (draw_option_prev == DM_DRAW_OPTION_STIPPLE) {
 		GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 	}
+
+	if (shade_prev == GL_FLAT) {
+		glShadeModel(GL_SMOOTH);
+	}
 }
 
 static void bmdm_get_tri_uv(BMLoop *ltri[3], MLoopUV *luv[3], const int cd_loop_uv_offset)

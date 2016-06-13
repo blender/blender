@@ -153,28 +153,31 @@ static void set_default_value(ShaderInput *input,
                               BL::BlendData& b_data,
                               BL::ID& b_id)
 {
+	Node *node = input->parent;
+	const SocketType& socket = input->socket_type;
+
 	/* copy values for non linked inputs */
 	switch(input->type()) {
 		case SocketType::FLOAT: {
-			input->set(get_float(b_sock.ptr, "default_value"));
+			node->set(socket, get_float(b_sock.ptr, "default_value"));
 			break;
 		}
 		case SocketType::INT: {
-			input->set(get_int(b_sock.ptr, "default_value"));
+			node->set(socket, get_int(b_sock.ptr, "default_value"));
 			break;
 		}
 		case SocketType::COLOR: {
-			input->set(float4_to_float3(get_float4(b_sock.ptr, "default_value")));
+			node->set(socket, float4_to_float3(get_float4(b_sock.ptr, "default_value")));
 			break;
 		}
 		case SocketType::NORMAL:
 		case SocketType::POINT:
 		case SocketType::VECTOR: {
-			input->set(get_float3(b_sock.ptr, "default_value"));
+			node->set(socket, get_float3(b_sock.ptr, "default_value"));
 			break;
 		}
 		case SocketType::STRING: {
-			input->set((ustring)blender_absolute_path(b_data, b_id, get_string(b_sock.ptr, "default_value")));
+			node->set(socket, (ustring)blender_absolute_path(b_data, b_id, get_string(b_sock.ptr, "default_value")));
 			break;
 		}
 		default:
@@ -616,7 +619,7 @@ static ShaderNode *add_node(Scene *scene,
 			/* TODO(sergey): Does not work properly when we change builtin type. */
 			if(b_image.is_updated()) {
 				scene->image_manager->tag_reload_image(
-				        image->filename,
+				        image->filename.string(),
 				        image->builtin_data,
 				        get_image_interpolation(b_image_node),
 				        get_image_extension(b_image_node));
@@ -662,7 +665,7 @@ static ShaderNode *add_node(Scene *scene,
 			/* TODO(sergey): Does not work properly when we change builtin type. */
 			if(b_image.is_updated()) {
 				scene->image_manager->tag_reload_image(
-				        env->filename,
+				        env->filename.string(),
 				        env->builtin_data,
 				        get_image_interpolation(b_env_node),
 				        EXTENSION_REPEAT);
@@ -799,7 +802,7 @@ static ShaderNode *add_node(Scene *scene,
 		if(true) {
 			b_point_density_node.cache_point_density(b_scene, settings);
 			scene->image_manager->tag_reload_image(
-			        point_density->filename,
+			        point_density->filename.string(),
 			        point_density->builtin_data,
 			        point_density->interpolation,
 			        EXTENSION_CLIP);
@@ -1153,13 +1156,12 @@ void BlenderSync::sync_materials(bool update_all)
 				add_nodes(scene, b_engine, b_data, b_scene, !preview, graph, b_ntree);
 			}
 			else {
-				ShaderNode *closure, *out;
+				DiffuseBsdfNode *diffuse = new DiffuseBsdfNode();
+				diffuse->color = get_float3(b_mat->diffuse_color());
+				graph->add(diffuse);
 
-				closure = graph->add(new DiffuseBsdfNode());
-				closure->input("Color")->set(get_float3(b_mat->diffuse_color()));
-				out = graph->output();
-
-				graph->connect(closure->output("BSDF"), out->input("Surface"));
+				ShaderNode *out = graph->output();
+				graph->connect(diffuse->output("BSDF"), out->input("Surface"));
 			}
 
 			/* settings */
@@ -1202,13 +1204,12 @@ void BlenderSync::sync_world(bool update_all)
 			shader->volume_interpolation_method = get_volume_interpolation(cworld);
 		}
 		else if(b_world) {
-			ShaderNode *closure, *out;
+			BackgroundNode *background = new BackgroundNode();
+			background->color = get_float3(b_world.horizon_color());
+			graph->add(background);
 
-			closure = graph->add(new BackgroundNode());
-			closure->input("Color")->set(get_float3(b_world.horizon_color()));
-			out = graph->output();
-
-			graph->connect(closure->output("Background"), out->input("Surface"));
+			ShaderNode *out = graph->output();
+			graph->connect(background->output("Background"), out->input("Surface"));
 		}
 
 		if(b_world) {
@@ -1287,7 +1288,6 @@ void BlenderSync::sync_lamps(bool update_all)
 				add_nodes(scene, b_engine, b_data, b_scene, !preview, graph, b_ntree);
 			}
 			else {
-				ShaderNode *closure, *out;
 				float strength = 1.0f;
 
 				if(b_lamp->type() == BL::Lamp::type_POINT ||
@@ -1297,12 +1297,13 @@ void BlenderSync::sync_lamps(bool update_all)
 					strength = 100.0f;
 				}
 
-				closure = graph->add(new EmissionNode());
-				closure->input("Color")->set(get_float3(b_lamp->color()));
-				closure->input("Strength")->set(strength);
-				out = graph->output();
+				EmissionNode *emission = new EmissionNode();
+				emission->color = get_float3(b_lamp->color());
+				emission->strength = strength;
+				graph->add(emission);
 
-				graph->connect(closure->output("Emission"), out->input("Surface"));
+				ShaderNode *out = graph->output();
+				graph->connect(emission->output("Emission"), out->input("Surface"));
 			}
 
 			shader->set_graph(graph);

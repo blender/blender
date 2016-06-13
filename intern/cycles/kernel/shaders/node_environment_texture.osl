@@ -44,7 +44,7 @@ shader node_environment_texture(
 	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 	vector Vector = P,
 	string filename = "",
-	string projection = "Equirectangular",
+	string projection = "equirectangular",
 	string interpolation = "linear",
 	string color_space = "sRGB",
 	int is_float = 1,
@@ -59,7 +59,7 @@ shader node_environment_texture(
 	
 	p = normalize(p);
 
-	if (projection == "Equirectangular")
+	if (projection == "equirectangular")
 		p = environment_texture_direction_to_equirectangular(p);
 	else
 		p = environment_texture_direction_to_mirrorball(p);

@@ -19,7 +19,7 @@
 
 shader node_glass_bsdf(
 	color Color = 0.8,
-	string distribution = "Sharp",
+	string distribution = "sharp",
 	float Roughness = 0.2,
 	float IOR = 1.45,
 	normal Normal = N,
@@ -30,9 +30,9 @@ shader node_glass_bsdf(
 	float cosi = dot(I, Normal);
 	float Fr = fresnel_dielectric_cos(cosi, eta);
 
-	if (distribution == "Sharp")
+	if (distribution == "sharp")
 		BSDF = Color * (Fr * reflection(Normal) + (1.0 - Fr) * refraction(Normal, eta));
-	else if (distribution == "Beckmann")
+	else if (distribution == "beckmann")
 		BSDF = Color * (Fr * microfacet_beckmann(Normal, Roughness) +
 		                (1.0 - Fr) * microfacet_beckmann_refraction(Normal, Roughness, eta));
 	else if (distribution == "GGX")

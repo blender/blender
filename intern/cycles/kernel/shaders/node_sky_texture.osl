@@ -111,7 +111,7 @@ shader node_sky_texture(
 	int use_mapping = 0,
 	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 	vector Vector = P,
-	string sky_model = "Hosek / Wilkie",
+	string type = "hosek_wilkie",
 	float theta = 0.0,
 	float phi = 0.0,
 	color radiance = color(0.0, 0.0, 0.0),
@@ -125,7 +125,7 @@ shader node_sky_texture(
 	if (use_mapping)
 		p = transform(mapping, p);
 	
-	if (sky_model == "Hosek / Wilkie")
+	if (type == "hosek_wilkie")
 		Color = sky_radiance_new(p, phi, theta, radiance, config_x, config_y, config_z);
 	else
 		Color = sky_radiance_old(p, phi, theta, radiance, config_x, config_y, config_z);

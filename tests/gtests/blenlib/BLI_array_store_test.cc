@@ -528,15 +528,6 @@ static unsigned int rand_range_i(RNG *rng, unsigned int min_i, unsigned int max_
 	return min_i + value;
 }
 
-static void rand_bytes(RNG *rng, char *data, int data_len)
-{
-	BLI_assert(data_len != 0);
-	while (data_len--) {
-		*data = BLI_rng_get_uint(rng) % 256;
-		data++;
-	}
-}
-
 static void testbuffer_list_state_random_data(
         ListBase *lb,
         const size_t stride,
@@ -548,7 +539,7 @@ static void testbuffer_list_state_random_data(
 	char *data = (char *)MEM_mallocN(data_len, __func__);
 
 	if (lb->last == NULL) {
-		rand_bytes(rng, data, data_len);
+		BLI_rng_get_char_n(rng, data, data_len);
 	}
 	else {
 		TestBuffer *tb_last = (TestBuffer *)lb->last;
@@ -557,7 +548,7 @@ static void testbuffer_list_state_random_data(
 		}
 		else {
 			memcpy(data, tb_last->data, tb_last->data_len);
-			rand_bytes(rng, &data[tb_last->data_len], data_len - tb_last->data_len);
+			BLI_rng_get_char_n(rng, &data[tb_last->data_len], data_len - tb_last->data_len);
 		}
 
 		/* perform multiple small mutations to the array. */
@@ -583,7 +574,7 @@ static void testbuffer_list_state_random_data(
 						data_len += stride;
 						data = (char *)MEM_reallocN((void *)data, data_len);
 						memmove(&data[offset + stride], &data[offset], data_len - (offset + stride));
-						rand_bytes(rng, &data[offset], stride);
+						BLI_rng_get_char_n(rng, &data[offset], stride);
 					}
 					break;
 				}
@@ -608,7 +599,7 @@ static void testbuffer_list_state_random_data(
 				{
 					if (data_len > 0) {
 						const unsigned int offset = rand_range_i(rng, 0, data_len - stride, stride);
-						rand_bytes(rng, &data[offset], stride);
+						BLI_rng_get_char_n(rng, &data[offset], stride);
 					}
 					break;
 				}
@@ -667,7 +658,7 @@ static void random_chunk_generate(
 	const size_t chunk_size_bytes = stride * chunk_count;
 	for (int i = 0; i < chunks_per_buffer; i++) {
 		char *data_chunk = (char *)MEM_mallocN(chunk_size_bytes, __func__);
-		rand_bytes(rng, data_chunk, chunk_size_bytes);
+		BLI_rng_get_char_n(rng, data_chunk, chunk_size_bytes);
 		testchunk_list_add(lb, data_chunk, chunk_size_bytes);
 	}
 	BLI_rng_free(rng);

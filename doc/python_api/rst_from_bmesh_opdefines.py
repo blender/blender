@@ -57,7 +57,7 @@ Operator Example
 ++++++++++++++++
 This script shows how operators can be used to model a link of a chain.
 
-.. literalinclude:: ../examples/bmesh.ops.1.py
+.. literalinclude:: __/examples/bmesh.ops.1.py
 """
 
 

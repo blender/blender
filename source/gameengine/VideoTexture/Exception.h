@@ -46,7 +46,7 @@
 	throw Exception (err, macroHRslt, __FILE__, __LINE__); \
 }
 
-#define THRWEXCP(err,hRslt) throw Exception (err, hRslt, __FILE__, __LINE__);
+#define THRWEXCP(err,hRslt) throw Exception (err, hRslt, __FILE__, __LINE__)
 
 
 #if defined WIN32
@@ -209,9 +209,11 @@ extern ExpDesc MaterialNotAvailDesc;
 extern ExpDesc ImageSizesNotMatchDesc;
 extern ExpDesc ImageHasExportsDesc;
 extern ExpDesc InvalidColorChannelDesc;
+extern ExpDesc InvalidImageModeDesc;
 extern ExpDesc SceneInvalidDesc;
 extern ExpDesc CameraInvalidDesc;
 extern ExpDesc ObserverInvalidDesc;
+extern ExpDesc OffScreenInvalidDesc;
 extern ExpDesc MirrorInvalidDesc;
 extern ExpDesc MirrorSizeInvalidDesc;
 extern ExpDesc MirrorNormalInvalidDesc;
@@ -219,7 +221,19 @@ extern ExpDesc MirrorHorizontalDesc;
 extern ExpDesc MirrorTooSmallDesc;
 extern ExpDesc SourceVideoEmptyDesc;
 extern ExpDesc SourceVideoCreationDesc;
+extern ExpDesc DeckLinkBadDisplayModeDesc;
+extern ExpDesc DeckLinkBadPixelFormatDesc;
+extern ExpDesc AutoDetectionNotAvailDesc;
+extern ExpDesc DeckLinkOpenCardDesc;
+extern ExpDesc DeckLinkBadFormatDesc;
+extern ExpDesc DeckLinkInternalErrorDesc;
+extern ExpDesc SourceVideoOnlyCaptureDesc;
+extern ExpDesc VideoDeckLinkBadFormatDesc;
+extern ExpDesc VideoDeckLinkOpenCardDesc;
+extern ExpDesc VideoDeckLinkDvpInternalErrorDesc;
+extern ExpDesc VideoDeckLinkPinMemoryErrorDesc;
 
+extern ExceptionID InvalidImageMode;
 
 void registerAllExceptions(void);
 #endif

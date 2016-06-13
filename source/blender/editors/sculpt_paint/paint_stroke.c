@@ -58,6 +58,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "GPU_basic_shader.h"
+
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
@@ -160,11 +162,11 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
 
-	glEnable(GL_LINE_STIPPLE);
-	glLineStipple(3, 0xAAAA);
+	GPU_basic_shader_bind_enable(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
+	GPU_basic_shader_line_stipple(3, 0xAAAA);
+	GPU_basic_shader_line_width(3.0);
 
 	glColor4ub(0, 0, 0, paint->paint_cursor_col[3]);
-	glLineWidth(3.0);
 	if (stroke->constrain_line) {
 		sdrawline((int)stroke->last_mouse_position[0], (int)stroke->last_mouse_position[1],
 		        stroke->constrained_pos[0], stroke->constrained_pos[1]);
@@ -175,7 +177,7 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 	}
 
 	glColor4ub(255, 255, 255, paint->paint_cursor_col[3]);
-	glLineWidth(1.0);
+	GPU_basic_shader_line_width(1.0);
 	if (stroke->constrain_line) {
 		sdrawline((int)stroke->last_mouse_position[0], (int)stroke->last_mouse_position[1],
 		        stroke->constrained_pos[0], stroke->constrained_pos[1]);
@@ -185,7 +187,7 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 		        x, y);
 	}
 
-	glDisable(GL_LINE_STIPPLE);
+	GPU_basic_shader_bind_disable(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
 
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);

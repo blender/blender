@@ -156,7 +156,7 @@ static PyMethodDef imageMixMethods[] = {
 	{"getWeight", (PyCFunction)getWeight, METH_VARARGS, "get image source weight"},
 	{"setWeight", (PyCFunction)setWeight, METH_VARARGS, "set image source weight"},
 	// methods from ImageBase class
-	{"refresh", (PyCFunction)Image_refresh, METH_NOARGS, "Refresh image - invalidate its current content"},
+	{"refresh", (PyCFunction)Image_refresh, METH_VARARGS, "Refresh image - invalidate its current content"},
 	{NULL}
 };
 // attributes structure

@@ -128,6 +128,10 @@ static PyMethodDef moduleMethods[] =
 extern PyTypeObject VideoFFmpegType;
 extern PyTypeObject ImageFFmpegType;
 #endif
+#ifdef WITH_GAMEENGINE_DECKLINK
+extern PyTypeObject VideoDeckLinkType;
+extern PyTypeObject DeckLinkType;
+#endif
 extern PyTypeObject FilterBlueScreenType;
 extern PyTypeObject FilterGrayType;
 extern PyTypeObject FilterColorType;
@@ -144,6 +148,9 @@ static void registerAllTypes(void)
 #ifdef WITH_FFMPEG
 	pyImageTypes.add(&VideoFFmpegType, "VideoFFmpeg");
 	pyImageTypes.add(&ImageFFmpegType, "ImageFFmpeg");
+#endif
+#ifdef WITH_GAMEENGINE_DECKLINK
+	pyImageTypes.add(&VideoDeckLinkType, "VideoDeckLink");
 #endif
 	pyImageTypes.add(&ImageBuffType, "ImageBuff");
 	pyImageTypes.add(&ImageMixType, "ImageMix");
@@ -194,6 +201,10 @@ PyMODINIT_FUNC initVideoTexturePythonBinding(void)
 		return NULL;
 	if (PyType_Ready(&TextureType) < 0) 
 		return NULL;
+#ifdef WITH_GAMEENGINE_DECKLINK
+	if (PyType_Ready(&DeckLinkType) < 0)
+		return NULL;
+#endif
 
 	m = PyModule_Create(&VideoTexture_module_def);
 	PyDict_SetItemString(PySys_GetObject("modules"), VideoTexture_module_def.m_name, m);
@@ -207,6 +218,10 @@ PyMODINIT_FUNC initVideoTexturePythonBinding(void)
 
 	Py_INCREF(&TextureType);
 	PyModule_AddObject(m, "Texture", (PyObject *)&TextureType);
+#ifdef WITH_GAMEENGINE_DECKLINK
+	Py_INCREF(&DeckLinkType);
+	PyModule_AddObject(m, "DeckLink", (PyObject *)&DeckLinkType);
+#endif
 	PyModule_AddIntConstant(m, "SOURCE_ERROR", SourceError);
 	PyModule_AddIntConstant(m, "SOURCE_EMPTY", SourceEmpty);
 	PyModule_AddIntConstant(m, "SOURCE_READY", SourceReady);

@@ -96,6 +96,7 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	MT_Matrix4x4 m_viewinvmatrix;
 	MT_Point3 m_campos;
 	bool m_camortho;
+	bool m_camnegscale;
 
 	StereoMode m_stereomode;
 	StereoEye m_curreye;
@@ -180,7 +181,8 @@ public:
 	virtual float GetEyeSeparation();
 	virtual void SetFocalLength(const float focallength);
 	virtual float GetFocalLength();
-
+	virtual RAS_IOffScreen *CreateOffScreen(int width, int height, int samples, int target);
+	virtual RAS_ISync *CreateSync(int type);
 	virtual void SwapBuffers();
 
 	virtual void IndexPrimitives(class RAS_MeshSlot &ms);
@@ -189,7 +191,12 @@ public:
 
 	virtual void SetProjectionMatrix(MT_CmMatrix4x4 &mat);
 	virtual void SetProjectionMatrix(const MT_Matrix4x4 &mat);
-	virtual void SetViewMatrix(const MT_Matrix4x4 &mat, const MT_Matrix3x3 &ori, const MT_Point3 &pos, bool perspective);
+	virtual void SetViewMatrix(
+	        const MT_Matrix4x4 &mat,
+	        const MT_Matrix3x3 &ori,
+	        const MT_Point3 &pos,
+	        const MT_Vector3 &scale,
+	        bool perspective);
 
 	virtual const MT_Point3& GetCameraPosition();
 	virtual bool GetCameraOrtho();

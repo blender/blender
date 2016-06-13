@@ -17,33 +17,33 @@
 #include "stdosl.h"
 
 shader node_vector_math(
-	string type = "Add",
+	string type = "add",
 	vector Vector1 = vector(0.0, 0.0, 0.0),
 	vector Vector2 = vector(0.0, 0.0, 0.0),
 	output float Value = 0.0,
 	output vector Vector = vector(0.0, 0.0, 0.0))
 {
-	if (type == "Add") {
+	if (type == "add") {
 		Vector = Vector1 + Vector2;
 		Value = (abs(Vector[0]) + abs(Vector[1]) + abs(Vector[2])) / 3.0;
 	}
-	else if (type == "Subtract") {
+	else if (type == "subtract") {
 		Vector = Vector1 - Vector2;
 		Value = (abs(Vector[0]) + abs(Vector[1]) + abs(Vector[2])) / 3.0;
 	}
-	else if (type == "Average") {
+	else if (type == "average") {
 		Value = length(Vector1 + Vector2);
 		Vector = normalize(Vector1 + Vector2);
 	}
-	else if (type == "Dot Product") {
+	else if (type == "dot_product") {
 		Value = dot(Vector1, Vector2);
 	}
-	else if (type == "Cross Product") {
+	else if (type == "cross_product") {
 		vector c = cross(Vector1, Vector2);
 		Value = length(c);
 		Vector = normalize(c);
 	}
-	else if (type == "Normalize") {
+	else if (type == "normalize") {
 		Value = length(Vector1);
 		Vector = normalize(Vector1);
 	}

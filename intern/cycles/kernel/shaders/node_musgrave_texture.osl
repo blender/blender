@@ -210,15 +210,15 @@ shader node_musgrave_texture(
 
 	p = p * Scale;
 
-	if (type == "Multifractal")
+	if (type == "multifractal")
 		Fac = intensity * noise_musgrave_multi_fractal(p, dimension, lacunarity, octaves);
 	else if (type == "fBM")
 		Fac = intensity * noise_musgrave_fBm(p, dimension, lacunarity, octaves);
-	else if (type == "Hybrid Multifractal")
+	else if (type == "hybrid_multifractal")
 		Fac = intensity * noise_musgrave_hybrid_multi_fractal(p, dimension, lacunarity, octaves, Offset, Gain);
-	else if (type == "Ridged Multifractal")
+	else if (type == "ridged_multifractal")
 		Fac = intensity * noise_musgrave_ridged_multi_fractal(p, dimension, lacunarity, octaves, Offset, Gain);
-	else if (type == "Hetero Terrain")
+	else if (type == "hetero_terrain")
 		Fac = intensity * noise_musgrave_hetero_terrain(p, dimension, lacunarity, octaves, Offset);
 	
 	Color = color(Fac, Fac, Fac);

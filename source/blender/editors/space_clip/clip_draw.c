@@ -336,8 +336,10 @@ static void draw_stabilization_border(SpaceClip *sc, ARegion *ar, int width, int
 	/* draw boundary border for frame if stabilization is enabled */
 	if (sc->flag & SC_SHOW_STABLE && clip->tracking.stabilization.flag & TRACKING_2D_STABILIZATION) {
 		glColor3f(0.0f, 0.0f, 0.0f);
-		glLineStipple(3, 0xaaaa);
-		glEnable(GL_LINE_STIPPLE);
+
+		GPU_basic_shader_bind_enable(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
+		GPU_basic_shader_line_stipple(3, 0xAAAA);
+
 		glEnable(GL_COLOR_LOGIC_OP);
 		glLogicOp(GL_NOR);
 
@@ -357,7 +359,7 @@ static void draw_stabilization_border(SpaceClip *sc, ARegion *ar, int width, int
 		glPopMatrix();
 
 		glDisable(GL_COLOR_LOGIC_OP);
-		glDisable(GL_LINE_STIPPLE);
+		GPU_basic_shader_bind_disable(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
 	}
 }
 
@@ -627,8 +629,8 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 			glEnd();
 
 			glColor3f(0.0f, 0.0f, 0.0f);
-			glLineStipple(3, 0xaaaa);
-			glEnable(GL_LINE_STIPPLE);
+			GPU_basic_shader_bind_enable(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
+			GPU_basic_shader_line_stipple(3, 0xAAAA);
 			glEnable(GL_COLOR_LOGIC_OP);
 			glLogicOp(GL_NOR);
 
@@ -638,7 +640,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 			glEnd();
 
 			glDisable(GL_COLOR_LOGIC_OP);
-			glDisable(GL_LINE_STIPPLE);
+			GPU_basic_shader_bind_disable(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
 		}
 	}
 
@@ -647,8 +649,11 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	glTranslate2fv(marker_pos);
 
 	if (tiny) {
-		glLineStipple(3, 0xaaaa);
-		glEnable(GL_LINE_STIPPLE);
+		GPU_basic_shader_bind_enable(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
+		GPU_basic_shader_line_stipple(3, 0xAAAA);
+	}
+	else {
+		GPU_basic_shader_bind_enable(GPU_SHADER_LINE);
 	}
 
 	if ((track->pat_flag & SELECT) == sel && (sc->flag & SC_SHOW_MARKER_PATTERN)) {
@@ -713,8 +718,12 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 		glEnd();
 	}
 
-	if (tiny)
-		glDisable(GL_LINE_STIPPLE);
+	if (tiny) {
+		GPU_basic_shader_bind_disable(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
+	}
+	else {
+		GPU_basic_shader_bind_disable(GPU_SHADER_LINE);
+	}
 
 	glPopMatrix();
 }
@@ -852,16 +861,12 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 
 		glLineWidth(outline ? 3.0f : 1.0f);
 
-		glEnable(GL_LINE_STIPPLE);
-		glLineStipple(3, 0xaaaa);
-
 		glBegin(GL_LINES);
 		glVertex2f(0.0f, 0.0f);
 		glVertex2fv(tilt_ctrl);
 		glEnd();
 
-		glDisable(GL_LINE_STIPPLE);
-
+		GPU_basic_shader_bind_disable(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
 
 		/* slider to control pattern tilt */
 		draw_marker_slide_square(tilt_ctrl[0], tilt_ctrl[1], patdx, patdy, outline, px);
@@ -1133,11 +1138,14 @@ static void draw_plane_marker_ex(SpaceClip *sc, Scene *scene, MovieTrackingPlane
 		const bool thick = draw_outline && !tiny;
 
 		if (stipple) {
-			glLineStipple(3, 0xaaaa);
-			glEnable(GL_LINE_STIPPLE);
+			GPU_basic_shader_bind_enable(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
+			GPU_basic_shader_line_stipple(3, 0xAAAA);
+		}
+		else {
+			GPU_basic_shader_bind_enable(GPU_SHADER_LINE);
 		}
 
-		glLineWidth(thick ? 3.0f : 1.0f);
+		GPU_basic_shader_line_width(thick ? 3.0f : 1.0f);
 
 		/* Draw rectangle itself. */
 		glBegin(GL_LINE_LOOP);
@@ -1169,8 +1177,12 @@ static void draw_plane_marker_ex(SpaceClip *sc, Scene *scene, MovieTrackingPlane
 			glPopAttrib();
 		}
 
-		if (stipple)
-			glDisable(GL_LINE_STIPPLE);
+		if (stipple) {
+			GPU_basic_shader_bind_disable(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
+		}
+		else {
+			GPU_basic_shader_bind_disable(GPU_SHADER_LINE);
+		}
 	}
 
 	/* Draw sliders. */

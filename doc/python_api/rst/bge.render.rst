@@ -90,6 +90,48 @@ Constants
 
    Right eye being used during stereoscopic rendering.
 
+.. data:: RAS_OFS_RENDER_BUFFER
+
+   The pixel buffer for offscreen render is a RenderBuffer. Argument to :func:`offScreenCreate`
+
+.. data:: RAS_OFS_RENDER_TEXTURE
+
+   The pixel buffer for offscreen render is a Texture. Argument to :func:`offScreenCreate`
+
+
+*****
+Types
+*****
+
+.. class:: RASOffScreen
+
+   An off-screen render buffer object. 
+
+   Use :func:`offScreenCreate` to create it.
+   Currently it can only be used in the :class:`bge.texture.ImageRender`
+   constructor to render on a FBO rather than the default viewport.
+
+  .. attribute:: width
+
+     The width in pixel of the FBO
+
+     :type: integer
+
+  .. attribute:: height
+
+     The height in pixel of the FBO
+
+     :type: integer
+
+  .. attribute:: color
+
+     The underlying OpenGL bind code of the texture object that holds
+     the rendered image, 0 if the FBO is using RenderBuffer.
+     The choice between RenderBuffer and Texture is determined
+     by the target argument of :func:`offScreenCreate`.
+
+     :type: integer
+
 
 *********
 Functions
@@ -362,3 +404,22 @@ Functions
    Get the current vsync value
 
    :rtype: One of VSYNC_OFF, VSYNC_ON, VSYNC_ADAPTIVE
+
+.. function:: offScreenCreate(width,height[,samples=0][,target=bge.render.RAS_OFS_RENDER_BUFFER])
+
+   Create a Off-screen render buffer object.
+
+   :arg width: the width of the buffer in pixels
+   :type width: integer
+   :arg height: the height of the buffer in pixels
+   :type height: integer
+   :arg samples: the number of multisample for anti-aliasing (MSAA), 0 to disable MSAA
+   :type samples: integer
+   :arg target: the pixel storage: :data:`RAS_OFS_RENDER_BUFFER` to render on RenderBuffers (the default),
+      :data:`RAS_OFS_RENDER_TEXTURE` to render on texture. 
+      The later is interesting if you want to access the texture directly (see :attr:`RASOffScreen.color`).
+      Otherwise the default is preferable as it's more widely supported by GPUs and more efficient.
+      If the GPU does not support MSAA+Texture (e.g. Intel HD GPU), MSAA will be disabled.
+   :type target: integer
+   :rtype: :class:`RASOffScreen`
+

@@ -45,9 +45,9 @@ shader node_anisotropic_bsdf(
 		RoughnessV = Roughness / (1.0 - aniso);
 	}
 
-	if (distribution == "Sharp")
+	if (distribution == "sharp")
 		BSDF = Color * reflection(Normal);
-	else if (distribution == "Beckmann")
+	else if (distribution == "beckmann")
 		BSDF = Color * microfacet_beckmann_aniso(Normal, T, RoughnessU, RoughnessV);
 	else if (distribution == "GGX")
 		BSDF = Color * microfacet_ggx_aniso(Normal, T, RoughnessU, RoughnessV);

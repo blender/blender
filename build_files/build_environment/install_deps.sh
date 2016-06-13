@@ -25,7 +25,7 @@
 ARGS=$( \
 getopt \
 -o s:i:t:h \
---long source:,install:,tmp:,info:,threads:,help,show-deps,no-sudo,no-confirm,with-all,with-opencollada,\
+--long source:,install:,tmp:,info:,threads:,help,show-deps,no-sudo,no-build,no-confirm,with-all,with-opencollada,\
 ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,ver-osd:,ver-openvdb:,\
 force-all,force-python,force-numpy,force-boost,\
 force-ocio,force-openexr,force-oiio,force-llvm,force-osl,force-osd,force-openvdb,\
@@ -96,6 +96,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     --no-sudo
         Disable use of sudo (this script won't be able to do much though, will just print needed packages...).
+
+    --no-build
+        Do not build (compile) anything, dependencies not installable with the package manager will remain missing.
 
     --no-confirm
         Disable any interaction with user (suitable for automated run).
@@ -267,6 +270,7 @@ DO_SHOW_DEPS=false
 
 SUDO="sudo"
 
+NO_BUILD=false
 NO_CONFIRM=false
 
 PYTHON_VERSION="3.5.1"
@@ -462,6 +466,12 @@ while true; do
       WARNING "--no-sudo enabled, this script might not be able to do much..."
       PRINT ""
       SUDO=""; shift; continue
+    ;;
+    --no-build)
+      PRINT ""
+      WARNING "--no-build enabled, this script will not be able to install all dependencies..."
+      PRINT ""
+      NO_BUILD=true; shift; continue
     ;;
     --no-confirm)
       NO_CONFIRM=true; shift; continue
@@ -967,6 +977,11 @@ clean_Python() {
 }
 
 compile_Python() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, Python will not be compiled!"
+    return
+  fi
+
   # To be changed each time we make edits that would modify the compiled result!
   py_magic=1
   _init_python
@@ -1032,6 +1047,11 @@ clean_Numpy() {
 }
 
 compile_Numpy() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, Numpy will not be compiled!"
+    return
+  fi
+
   # To be changed each time we make edits that would modify the compiled result!
   numpy_magic=0
   _init_numpy
@@ -1092,6 +1112,11 @@ clean_Boost() {
 }
 
 compile_Boost() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, Boost will not be compiled!"
+    return
+  fi
+
   # To be changed each time we make edits that would modify the compiled result!
   boost_magic=10
 
@@ -1165,6 +1190,11 @@ clean_OCIO() {
 }
 
 compile_OCIO() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, OpenColorIO will not be compiled!"
+    return
+  fi
+
   # To be changed each time we make edits that would modify the compiled result!
   ocio_magic=1
   _init_ocio
@@ -1256,6 +1286,11 @@ clean_ILMBASE() {
 }
 
 compile_ILMBASE() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, ILMBase will not be compiled!"
+    return
+  fi
+
   # To be changed each time we make edits that would modify the compiled result!
   ilmbase_magic=10
   _init_ilmbase
@@ -1343,6 +1378,11 @@ clean_OPENEXR() {
 }
 
 compile_OPENEXR() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, OpenEXR will not be compiled!"
+    return
+  fi
+
   # To be changed each time we make edits that would modify the compiled result!
   openexr_magic=14
 
@@ -1458,6 +1498,11 @@ clean_OIIO() {
 }
 
 compile_OIIO() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, OpenImageIO will not be compiled!"
+    return
+  fi
+
   # To be changed each time we make edits that would modify the compiled result!
   oiio_magic=16
   _init_oiio
@@ -1589,6 +1634,11 @@ clean_LLVM() {
 }
 
 compile_LLVM() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, LLVM will not be compiled!"
+    return
+  fi
+
   # To be changed each time we make edits that would modify the compiled result!
   llvm_magic=3
   _init_llvm
@@ -1686,6 +1736,11 @@ clean_OSL() {
 }
 
 compile_OSL() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, OpenShadingLanguage will not be compiled!"
+    return
+  fi
+
   # To be changed each time we make edits that would modify the compiled result!
   osl_magic=20
   _init_osl
@@ -1812,6 +1867,11 @@ clean_OSD() {
 }
 
 compile_OSD() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, OpenSubdiv will not be compiled!"
+    return
+  fi
+
   # To be changed each time we make edits that would modify the compiled result!
   osd_magic=1
   _init_osd
@@ -1904,6 +1964,11 @@ clean_BLOSC() {
 }
 
 compile_BLOSC() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, Blosc will not be compiled!"
+    return
+  fi
+
   # To be changed each time we make edits that would modify the compiled result!
   blosc_magic=0
   _init_blosc
@@ -1986,6 +2051,11 @@ clean_OPENVDB() {
 }
 
 compile_OPENVDB() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, OpenVDB will not be compiled!"
+    return
+  fi
+
   compile_BLOSC
   PRINT ""
 
@@ -2082,6 +2152,11 @@ clean_OpenCOLLADA() {
 }
 
 compile_OpenCOLLADA() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, OpenCOLLADA will not be compiled!"
+    return
+  fi
+
   # To be changed each time we make edits that would modify the compiled results!
   opencollada_magic=9
   _init_opencollada
@@ -2161,6 +2236,11 @@ clean_FFmpeg() {
 }
 
 compile_FFmpeg() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, ffmpeg will not be compiled!"
+    return
+  fi
+
   # To be changed each time we make edits that would modify the compiled result!
   ffmpeg_magic=5
   _init_ffmpeg

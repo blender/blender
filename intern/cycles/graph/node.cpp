@@ -82,6 +82,12 @@ void Node::set(const SocketType& input, int value)
 	get_socket_value<int>(this, input) = value;
 }
 
+void Node::set(const SocketType& input, uint value)
+{
+	assert(input.type == SocketType::UINT);
+	get_socket_value<uint>(this, input) = value;
+}
+
 void Node::set(const SocketType& input, float value)
 {
 	assert(input.type == SocketType::FLOAT);
@@ -196,6 +202,12 @@ int Node::get_int(const SocketType& input) const
 {
 	assert(input.type == SocketType::INT || input.type == SocketType::ENUM);
 	return get_socket_value<int>(this, input);
+}
+
+uint Node::get_uint(const SocketType& input) const
+{
+	assert(input.type == SocketType::UINT);
+	return get_socket_value<uint>(this, input);
 }
 
 float Node::get_float(const SocketType& input) const

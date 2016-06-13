@@ -477,8 +477,10 @@ OSLNode *OSLShaderManager::osl_node(const std::string& filepath,
 				continue;
 
 			if(!param->isoutput && param->validdefault) {
-				node->add_input(param->name.c_str(), socket_type, make_float3(param->fdefault[0], param->fdefault[1], param->fdefault[2]));
-				continue;
+				float3 *default_value = (float3*)node->input_default_value();
+				default_value->x = param->fdefault[0];
+				default_value->y = param->fdefault[1];
+				default_value->z = param->fdefault[2];
 			}
 		}
 		else if(param->type.aggregate == TypeDesc::SCALAR) {
@@ -486,24 +488,21 @@ OSLNode *OSLShaderManager::osl_node(const std::string& filepath,
 				socket_type = SocketType::INT;
 
 				if(!param->isoutput && param->validdefault) {
-					node->add_input(param->name.c_str(), socket_type, (float)param->idefault[0]);
-					continue;
+					*(int*)node->input_default_value() = param->idefault[0];
 				}
 			}
 			else if(param->type.basetype == TypeDesc::FLOAT) {
 				socket_type = SocketType::FLOAT;
 
 				if(!param->isoutput && param->validdefault) {
-					node->add_input(param->name.c_str(), socket_type, param->fdefault[0]);
-					continue;
+					*(float*)node->input_default_value() = param->fdefault[0];
 				}
 			}
 			else if(param->type.basetype == TypeDesc::STRING) {
 				socket_type = SocketType::STRING;
 
 				if(!param->isoutput && param->validdefault) {
-					node->add_input(param->name.c_str(), socket_type);
-					continue;
+					*(ustring*)node->input_default_value() = param->sdefault[0];
 				}
 			}
 			else
@@ -513,10 +512,10 @@ OSLNode *OSLShaderManager::osl_node(const std::string& filepath,
 			continue;
 
 		if(param->isoutput) {
-			node->add_output(param->name.c_str(), socket_type);
+			node->add_output(param->name, socket_type);
 		}
 		else {
-			node->add_input(param->name.c_str(), socket_type);
+			node->add_input(param->name, socket_type);
 		}
 	}
 
@@ -527,6 +526,9 @@ OSLNode *OSLShaderManager::osl_node(const std::string& filepath,
 	else {
 		node->filepath = filepath;
 	}
+
+	/* Generate inputs and outputs */
+	node->create_inputs_outputs(node->type);
 
 	return node;
 }
@@ -643,27 +645,28 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 				continue;
 
 			string param_name = compatible_name(node, input);
+			const SocketType& socket = input->socket_type;
 			switch(input->type()) {
 				case SocketType::COLOR:
-					parameter_color(param_name.c_str(), input->value());
+					parameter_color(param_name.c_str(), node->get_float3(socket));
 					break;
 				case SocketType::POINT:
-					parameter_point(param_name.c_str(), input->value());
+					parameter_point(param_name.c_str(), node->get_float3(socket));
 					break;
 				case SocketType::VECTOR:
-					parameter_vector(param_name.c_str(), input->value());
+					parameter_vector(param_name.c_str(), node->get_float3(socket));
 					break;
 				case SocketType::NORMAL:
-					parameter_normal(param_name.c_str(), input->value());
+					parameter_normal(param_name.c_str(), node->get_float3(socket));
 					break;
 				case SocketType::FLOAT:
-					parameter(param_name.c_str(), input->value_float());
+					parameter(param_name.c_str(), node->get_float(socket));
 					break;
 				case SocketType::INT:
-					parameter(param_name.c_str(), (int)input->value_float());
+					parameter(param_name.c_str(), node->get_int(socket));
 					break;
 				case SocketType::STRING:
-					parameter(param_name.c_str(), input->value_string());
+					parameter(param_name.c_str(), node->get_string(socket));
 					break;
 				case SocketType::CLOSURE:
 				case SocketType::UNDEFINED:
@@ -730,6 +733,169 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 
 	if(node->has_integrator_dependency()) {
 		current_shader->has_integrator_dependency = true;
+	}
+}
+
+static TypeDesc array_typedesc(TypeDesc typedesc, int arraylength)
+{
+	return TypeDesc((TypeDesc::BASETYPE)typedesc.basetype,
+	                (TypeDesc::AGGREGATE)typedesc.aggregate,
+	                (TypeDesc::VECSEMANTICS)typedesc.vecsemantics,
+	                arraylength);
+}
+
+void OSLCompiler::parameter(ShaderNode* node, const char *name)
+{
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
+	ustring uname = ustring(name);
+	const SocketType& socket = *(node->type->find_input(uname));
+
+	switch(socket.type)
+	{
+		case SocketType::BOOLEAN:
+		{
+			int value = node->get_bool(socket);
+			ss->Parameter(name, TypeDesc::TypeInt, &value);
+			break;
+		}
+		case SocketType::FLOAT:
+		{
+			float value = node->get_float(socket);
+			ss->Parameter(uname, TypeDesc::TypeFloat, &value);
+			break;
+		}
+		case SocketType::INT:
+		{
+			int value = node->get_int(socket);
+			ss->Parameter(uname, TypeDesc::TypeInt, &value);
+			break;
+		}
+		case SocketType::COLOR:
+		{
+			float3 value = node->get_float3(socket);
+			ss->Parameter(uname, TypeDesc::TypeColor, &value);
+			break;
+		}
+		case SocketType::VECTOR:
+		{
+			float3 value = node->get_float3(socket);
+			ss->Parameter(uname, TypeDesc::TypeVector, &value);
+			break;
+		}
+		case SocketType::POINT:
+		{
+			float3 value = node->get_float3(socket);
+			ss->Parameter(uname, TypeDesc::TypePoint, &value);
+			break;
+		}
+		case SocketType::NORMAL:
+		{
+			float3 value = node->get_float3(socket);
+			ss->Parameter(uname, TypeDesc::TypeNormal, &value);
+			break;
+		}
+		case SocketType::POINT2:
+		{
+			float2 value = node->get_float2(socket);
+			ss->Parameter(uname, TypeDesc(TypeDesc::FLOAT, TypeDesc::VEC2, TypeDesc::POINT), &value);
+			break;
+		}
+		case SocketType::STRING:
+		{
+			ustring value = node->get_string(socket);
+			ss->Parameter(uname, TypeDesc::TypeString, &value);
+			break;
+		}
+		case SocketType::ENUM:
+		{
+			ustring value = node->get_string(socket);
+			ss->Parameter(uname, TypeDesc::TypeString, &value);
+			break;
+		}
+		case SocketType::TRANSFORM:
+		{
+			Transform value = node->get_transform(socket);
+			ss->Parameter(uname, TypeDesc::TypeMatrix, &value);
+			break;
+		}
+		case SocketType::BOOLEAN_ARRAY:
+		{
+			// OSL does not support booleans, so convert to int
+			const array<bool>& value = node->get_bool_array(socket);
+			array<int> intvalue(value.size());
+			for (size_t i = 0; i < value.size(); i++)
+				intvalue[i] = value[i];
+			ss->Parameter(uname, array_typedesc(TypeDesc::TypeInt, value.size()), intvalue.data());
+			break;
+		}
+		case SocketType::FLOAT_ARRAY:
+		{
+			const array<float>& value = node->get_float_array(socket);
+			ss->Parameter(uname, array_typedesc(TypeDesc::TypeFloat, value.size()), value.data());
+			break;
+		}
+		case SocketType::INT_ARRAY:
+		{
+			const array<int>& value = node->get_int_array(socket);
+			ss->Parameter(uname, array_typedesc(TypeDesc::TypeInt, value.size()), value.data());
+			break;
+		}
+		case SocketType::COLOR_ARRAY:
+		case SocketType::VECTOR_ARRAY:
+		case SocketType::POINT_ARRAY:
+		case SocketType::NORMAL_ARRAY:
+		{
+			TypeDesc typedesc;
+
+			switch(socket.type)
+			{
+				case SocketType::COLOR_ARRAY: typedesc = TypeDesc::TypeColor; break;
+				case SocketType::VECTOR_ARRAY: typedesc = TypeDesc::TypeVector; break;
+				case SocketType::POINT_ARRAY: typedesc = TypeDesc::TypePoint; break;
+				case SocketType::NORMAL_ARRAY: typedesc = TypeDesc::TypeNormal; break;
+				default: assert(0); break;
+			}
+
+			// convert to tightly packed array since float3 has padding
+			const array<float3>& value = node->get_float3_array(socket);
+			array<float> fvalue(value.size() * 3);
+			for (size_t i = 0, j = 0; i < value.size(); i++)
+			{
+				fvalue[j++] = value[i].x;
+				fvalue[j++] = value[i].y;
+				fvalue[j++] = value[i].z;
+			}
+
+			ss->Parameter(uname, array_typedesc(typedesc, value.size()), fvalue.data());
+			break;
+		}
+		case SocketType::POINT2_ARRAY:
+		{
+			const array<float2>& value = node->get_float2_array(socket);
+			ss->Parameter(uname, array_typedesc(TypeDesc(TypeDesc::FLOAT, TypeDesc::VEC2, TypeDesc::POINT), value.size()), value.data());
+			break;
+		}
+		case SocketType::STRING_ARRAY:
+		{
+			const array<ustring>& value = node->get_string_array(socket);
+			ss->Parameter(uname, array_typedesc(TypeDesc::TypeString, value.size()), value.data());
+			break;
+		}
+		case SocketType::TRANSFORM_ARRAY:
+		{
+			const array<Transform>& value = node->get_transform_array(socket);
+			ss->Parameter(uname, array_typedesc(TypeDesc::TypeMatrix, value.size()), value.data());
+			break;
+		}
+		case SocketType::CLOSURE:
+		case SocketType::NODE:
+		case SocketType::NODE_ARRAY:
+		case SocketType::UNDEFINED:
+		case SocketType::UINT:
+		{
+			assert(0);
+			break;
+		}
 	}
 }
 
@@ -993,6 +1159,10 @@ void OSLCompiler::compile(Scene *scene, OSLGlobals *og, Shader *shader)
 #else
 
 void OSLCompiler::add(ShaderNode * /*node*/, const char * /*name*/, bool /*isfilepath*/)
+{
+}
+
+void OSLCompiler::parameter(ShaderNode * /*node*/, const char * /*name*/)
 {
 }
 

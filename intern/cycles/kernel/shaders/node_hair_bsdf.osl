@@ -20,7 +20,7 @@
 
 shader node_hair_bsdf(
 	color Color = 0.8,
-	string component = "Reflection",
+	string component = "reflection",
 	float Offset = 0.0,
 	float RoughnessU = 0.1,
 	float RoughnessV = 1.0,
@@ -37,7 +37,7 @@ shader node_hair_bsdf(
 			BSDF = transparent();
 		}
 		else {
-			if (component == "Reflection")
+			if (component == "reflection")
 				BSDF = Color * hair_reflection(Normal, roughnessh, roughnessv, normalize(dPdv), 0.0);
 			else
 				BSDF = Color * hair_transmission(Normal, roughnessh, roughnessv, normalize(dPdv), 0.0);
@@ -48,7 +48,7 @@ shader node_hair_bsdf(
 			BSDF = transparent();
 		}
 		else {
-			if (component == "Reflection")
+			if (component == "reflection")
 				BSDF = Color * hair_reflection(Normal, roughnessh, roughnessv, dPdu, -Offset);
 			else
 				BSDF = Color * hair_transmission(Normal, roughnessh, roughnessv, dPdu, -Offset);

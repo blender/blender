@@ -23,10 +23,10 @@ float wave(point p, string type, string profile, float detail, float distortion,
 {
 	float n = 0.0;
 
-	if (type == "Bands") {
+	if (type == "bands") {
 		n = (p[0] + p[1] + p[2]) * 10.0;
 	}
-	else if (type == "Rings") {
+	else if (type == "rings") {
 		n = length(p) * 20.0;
 	}
 
@@ -34,7 +34,7 @@ float wave(point p, string type, string profile, float detail, float distortion,
 		n = n + (distortion * noise_turbulence(p * dscale, detail, 0));
 	}
 
-	if (profile == "Sine") {
+	if (profile == "sine") {
 		return 0.5 + 0.5 * sin(n);
 	}
 	else {
@@ -48,8 +48,8 @@ float wave(point p, string type, string profile, float detail, float distortion,
 shader node_wave_texture(
 	int use_mapping = 0,
 	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-	string type = "Bands",
-	string profile = "Sine",
+	string type = "bands",
+	string profile = "sine",
 	float Scale = 5.0,
 	float Distortion = 0.0,
 	float Detail = 2.0,

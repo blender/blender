@@ -1629,7 +1629,8 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 	// NOTE: the gridlines are currently spaced every 25 frames, which is only fine for 25 fps, but maybe not for 30...
 	UI_view2d_constant_grid_draw(v2d);
 
-	if (sseq->draw_flag & SEQ_DRAW_BACKDROP) {
+	/* Only draw backdrop in pure sequence view. */
+	if (sseq->view == SEQ_VIEW_SEQUENCE && sseq->draw_flag & SEQ_DRAW_BACKDROP) {
 		draw_image_seq(C, scene, ar, sseq, scene->r.cfra, 0, false, true);
 		UI_view2d_view_ortho(v2d);
 	}

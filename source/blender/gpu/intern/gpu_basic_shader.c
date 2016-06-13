@@ -502,22 +502,33 @@ void GPU_basic_shader_bind(int options)
 		else if ((bound_options & GPU_SHADER_LINE) && (bound_options & GPU_SHADER_STIPPLE)) {
 			glDisable(GL_LINE_STIPPLE);
 		}
-		else {
-			if (options & GPU_SHADER_STIPPLE)
-				glEnable(GL_POLYGON_STIPPLE);
-			else if (bound_options & GPU_SHADER_STIPPLE)
-				glDisable(GL_POLYGON_STIPPLE);
+
+		if (((options & GPU_SHADER_LINE) == 0) && (options & GPU_SHADER_STIPPLE)) {
+			glEnable(GL_POLYGON_STIPPLE);
+		}
+		else if (((bound_options & GPU_SHADER_LINE) == 0) && (bound_options & GPU_SHADER_STIPPLE)) {
+			glDisable(GL_POLYGON_STIPPLE);
 		}
 
 		if (options & GPU_SHADER_FLAT_NORMAL) {
 			glShadeModel(GL_FLAT);
 		}
-		else {
+		else if (bound_options & GPU_SHADER_FLAT_NORMAL) {
 			glShadeModel(GL_SMOOTH);
 		}
 	}
 
 	GPU_MATERIAL_STATE.bound_options = options;
+}
+
+void GPU_basic_shader_bind_enable(int options)
+{
+	GPU_basic_shader_bind(GPU_MATERIAL_STATE.bound_options | options);
+}
+
+void GPU_basic_shader_bind_disable(int options)
+{
+	GPU_basic_shader_bind(GPU_MATERIAL_STATE.bound_options & ~options);
 }
 
 int GPU_basic_shader_bound_options(void)

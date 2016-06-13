@@ -167,11 +167,9 @@ void GHOST_EventManager::removeWindowEvents(GHOST_IWindow *window)
 {
 	TEventStack::iterator iter;
 	iter = m_events.begin();
-	while (iter != m_events.end())
-	{
+	while (iter != m_events.end()) {
 		GHOST_IEvent *event = *iter;
-		if (event->getWindow() == window)
-		{
+		if (event->getWindow() == window) {
 			GHOST_PRINT("GHOST_EventManager::removeWindowEvents(): removing event\n");
 			/*
 			 * Found an event for this window, remove it.
@@ -191,11 +189,9 @@ void GHOST_EventManager::removeTypeEvents(GHOST_TEventType type, GHOST_IWindow *
 {
 	TEventStack::iterator iter;
 	iter = m_events.begin();
-	while (iter != m_events.end())
-	{
+	while (iter != m_events.end()) {
 		GHOST_IEvent *event = *iter;
-		if ((event->getType() == type) && (!window || (event->getWindow() == window)))
-		{
+		if ((event->getType() == type) && (!window || (event->getWindow() == window))) {
 			GHOST_PRINT("GHOST_EventManager::removeTypeEvents(): removing event\n");
 			/*
 			 * Found an event of this type for the window, remove it.

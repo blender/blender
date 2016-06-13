@@ -449,17 +449,15 @@ void ShaderManager::device_free_common(Device *device, DeviceScene *dscene, Scen
 
 void ShaderManager::add_default(Scene *scene)
 {
-	ShaderNode *closure, *out;
-
 	/* default surface */
 	{
 		ShaderGraph *graph = new ShaderGraph();
 
-		closure = graph->add(new DiffuseBsdfNode());
-		closure->input("Color")->set(make_float3(0.8f, 0.8f, 0.8f));
-		out = graph->output();
+		DiffuseBsdfNode *diffuse = new DiffuseBsdfNode();
+		diffuse->color = make_float3(0.8f, 0.8f, 0.8f);
+		graph->add(diffuse);
 
-		graph->connect(closure->output("BSDF"), out->input("Surface"));
+		graph->connect(diffuse->output("BSDF"), graph->output()->input("Surface"));
 
 		Shader *shader = new Shader();
 		shader->name = "default_surface";
@@ -472,12 +470,12 @@ void ShaderManager::add_default(Scene *scene)
 	{
 		ShaderGraph *graph = new ShaderGraph();
 
-		closure = graph->add(new EmissionNode());
-		closure->input("Color")->set(make_float3(0.8f, 0.8f, 0.8f));
-		closure->input("Strength")->set(0.0f);
-		out = graph->output();
+		EmissionNode *emission = new EmissionNode();
+		emission->color = make_float3(0.8f, 0.8f, 0.8f);
+		emission->strength = 0.0f;
+		graph->add(emission);
 
-		graph->connect(closure->output("Emission"), out->input("Surface"));
+		graph->connect(emission->output("Emission"), graph->output()->input("Surface"));
 
 		Shader *shader = new Shader();
 		shader->name = "default_light";

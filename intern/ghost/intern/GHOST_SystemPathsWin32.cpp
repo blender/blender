@@ -76,8 +76,7 @@ const GHOST_TUns8 *GHOST_SystemPathsWin32::getSystemDir(int, const char *version
 
 	HRESULT hResult = SHGetFolderPathW(NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, knownpath_16);
 
-	if (hResult == S_OK)
-	{
+	if (hResult == S_OK) {
 		conv_utf_16_to_8(knownpath_16, knownpath, MAX_PATH * 3);
 		strcat(knownpath, "\\Blender Foundation\\Blender\\");
 		strcat(knownpath, versionstr);
@@ -94,8 +93,7 @@ const GHOST_TUns8 *GHOST_SystemPathsWin32::getUserDir(int, const char *versionst
 
 	HRESULT hResult = SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, knownpath_16);
 
-	if (hResult == S_OK)
-	{
+	if (hResult == S_OK) {
 		conv_utf_16_to_8(knownpath_16, knownpath, MAX_PATH * 3);
 		strcat(knownpath, "\\Blender Foundation\\Blender\\");
 		strcat(knownpath, versionstr);

@@ -585,23 +585,27 @@ void angle_poly_v3(float *angles, const float *verts[3], int len)
 
 /********************************* Geometry **********************************/
 
-/* Project v1 on v2 */
-void project_v2_v2v2(float c[2], const float v1[2], const float v2[2])
+/**
+ * Project \a p onto \a v_proj
+ */
+void project_v2_v2v2(float out[2], const float p[2], const float v_proj[2])
 {
-	const float mul = dot_v2v2(v1, v2) / dot_v2v2(v2, v2);
+	const float mul = dot_v2v2(p, v_proj) / dot_v2v2(v_proj, v_proj);
 
-	c[0] = mul * v2[0];
-	c[1] = mul * v2[1];
+	out[0] = mul * v_proj[0];
+	out[1] = mul * v_proj[1];
 }
 
-/* Project v1 on v2 */
-void project_v3_v3v3(float c[3], const float v1[3], const float v2[3])
+/**
+ * Project \a p onto \a v_proj
+ */
+void project_v3_v3v3(float out[3], const float p[3], const float v_proj[3])
 {
-	const float mul = dot_v3v3(v1, v2) / dot_v3v3(v2, v2);
+	const float mul = dot_v3v3(p, v_proj) / dot_v3v3(v_proj, v_proj);
 
-	c[0] = mul * v2[0];
-	c[1] = mul * v2[1];
-	c[2] = mul * v2[2];
+	out[0] = mul * v_proj[0];
+	out[1] = mul * v_proj[1];
+	out[2] = mul * v_proj[2];
 }
 
 /**
@@ -617,35 +621,35 @@ void project_v3_v3v3(float c[3], const float v1[3], const float v2[3])
  * sub_v3_v3v3(c, v, c);
  * \endcode
  */
-void project_plane_v3_v3v3(float c[3], const float v[3], const float v_plane[3])
+void project_plane_v3_v3v3(float out[3], const float p[3], const float v_plane[3])
 {
-	const float mul = dot_v3v3(v, v_plane) / dot_v3v3(v_plane, v_plane);
+	const float mul = dot_v3v3(p, v_plane) / dot_v3v3(v_plane, v_plane);
 
-	c[0] = v[0] - (mul * v_plane[0]);
-	c[1] = v[1] - (mul * v_plane[1]);
-	c[2] = v[2] - (mul * v_plane[2]);
+	out[0] = p[0] - (mul * v_plane[0]);
+	out[1] = p[1] - (mul * v_plane[1]);
+	out[2] = p[2] - (mul * v_plane[2]);
 }
 
-void project_plane_v2_v2v2(float c[2], const float v[2], const float v_plane[2])
+void project_plane_v2_v2v2(float out[2], const float p[2], const float v_plane[2])
 {
-	const float mul = dot_v2v2(v, v_plane) / dot_v2v2(v_plane, v_plane);
+	const float mul = dot_v2v2(p, v_plane) / dot_v2v2(v_plane, v_plane);
 
-	c[0] = v[0] - (mul * v_plane[0]);
-	c[1] = v[1] - (mul * v_plane[1]);
+	out[0] = p[0] - (mul * v_plane[0]);
+	out[1] = p[1] - (mul * v_plane[1]);
 }
 
 /* project a vector on a plane defined by normal and a plane point p */
-void project_v3_plane(float v[3], const float n[3], const float p[3])
+void project_v3_plane(float out[3], const float plane_no[3], const float plane_co[3])
 {
 	float vector[3];
 	float mul;
 
-	sub_v3_v3v3(vector, v, p);
-	mul = dot_v3v3(vector, n) / len_squared_v3(n);
+	sub_v3_v3v3(vector, out, plane_co);
+	mul = dot_v3v3(vector, plane_no) / len_squared_v3(plane_no);
 
-	mul_v3_v3fl(vector, n, mul);
+	mul_v3_v3fl(vector, plane_no, mul);
 
-	sub_v3_v3(v, vector);
+	sub_v3_v3(out, vector);
 }
 
 /* Returns a vector bisecting the angle at v2 formed by v1, v2 and v3 */
@@ -664,15 +668,15 @@ void bisect_v3_v3v3v3(float out[3], const float v1[3], const float v2[3], const 
  * Returns a reflection vector from a vector and a normal vector
  * reflect = vec - ((2 * DotVecs(vec, mirror)) * mirror)
  */
-void reflect_v3_v3v3(float out[3], const float vec[3], const float normal[3])
+void reflect_v3_v3v3(float out[3], const float v[3], const float normal[3])
 {
-	const float dot2 = 2.0f * dot_v3v3(vec, normal);
+	const float dot2 = 2.0f * dot_v3v3(v, normal);
 
 	BLI_ASSERT_UNIT_V3(normal);
 
-	out[0] = vec[0] - (dot2 * normal[0]);
-	out[1] = vec[1] - (dot2 * normal[1]);
-	out[2] = vec[2] - (dot2 * normal[2]);
+	out[0] = v[0] - (dot2 * normal[0]);
+	out[1] = v[1] - (dot2 * normal[1]);
+	out[2] = v[2] - (dot2 * normal[2]);
 }
 
 /**
@@ -710,27 +714,27 @@ void ortho_basis_v3v3_v3(float r_n1[3], float r_n2[3], const float n[3])
  *
  * \note return vector won't maintain same length.
  */
-void ortho_v3_v3(float p[3], const float v[3])
+void ortho_v3_v3(float out[3], const float v[3])
 {
 	const int axis = axis_dominant_v3_single(v);
 
-	BLI_assert(p != v);
+	BLI_assert(out != v);
 
 	switch (axis) {
 		case 0:
-			p[0] = -v[1] - v[2];
-			p[1] =  v[0];
-			p[2] =  v[0];
+			out[0] = -v[1] - v[2];
+			out[1] =  v[0];
+			out[2] =  v[0];
 			break;
 		case 1:
-			p[0] =  v[1];
-			p[1] = -v[0] - v[2];
-			p[2] =  v[1];
+			out[0] =  v[1];
+			out[1] = -v[0] - v[2];
+			out[2] =  v[1];
 			break;
 		case 2:
-			p[0] =  v[2];
-			p[1] =  v[2];
-			p[2] = -v[0] - v[1];
+			out[0] =  v[2];
+			out[1] =  v[2];
+			out[2] = -v[0] - v[1];
 			break;
 	}
 }
@@ -738,18 +742,19 @@ void ortho_v3_v3(float p[3], const float v[3])
 /**
  * no brainer compared to v3, just have for consistency.
  */
-void ortho_v2_v2(float p[2], const float v[2])
+void ortho_v2_v2(float out[2], const float v[2])
 {
-	BLI_assert(p != v);
+	BLI_assert(out != v);
 
-	p[0] = -v[1];
-	p[1] =  v[0];
+	out[0] = -v[1];
+	out[1] =  v[0];
 }
 
-/* Rotate a point p by angle theta around an arbitrary axis r
+/**
+ * Rotate a point \a p by \a angle around an arbitrary unit length \a axis.
  * http://local.wasp.uwa.edu.au/~pbourke/geometry/
  */
-void rotate_normalized_v3_v3v3fl(float r[3], const float p[3], const float axis[3], const float angle)
+void rotate_normalized_v3_v3v3fl(float out[3], const float p[3], const float axis[3], const float angle)
 {
 	const float costheta = cosf(angle);
 	const float sintheta = sinf(angle);
@@ -757,17 +762,17 @@ void rotate_normalized_v3_v3v3fl(float r[3], const float p[3], const float axis[
 	/* double check they are normalized */
 	BLI_ASSERT_UNIT_V3(axis);
 
-	r[0] = ((costheta + (1 - costheta) * axis[0] * axis[0]) * p[0]) +
-	       (((1 - costheta) * axis[0] * axis[1] - axis[2] * sintheta) * p[1]) +
-	       (((1 - costheta) * axis[0] * axis[2] + axis[1] * sintheta) * p[2]);
+	out[0] = ((costheta + (1 - costheta) * axis[0] * axis[0]) * p[0]) +
+	         (((1 - costheta) * axis[0] * axis[1] - axis[2] * sintheta) * p[1]) +
+	         (((1 - costheta) * axis[0] * axis[2] + axis[1] * sintheta) * p[2]);
 
-	r[1] = (((1 - costheta) * axis[0] * axis[1] + axis[2] * sintheta) * p[0]) +
-	       ((costheta + (1 - costheta) * axis[1] * axis[1]) * p[1]) +
-	       (((1 - costheta) * axis[1] * axis[2] - axis[0] * sintheta) * p[2]);
+	out[1] = (((1 - costheta) * axis[0] * axis[1] + axis[2] * sintheta) * p[0]) +
+	         ((costheta + (1 - costheta) * axis[1] * axis[1]) * p[1]) +
+	         (((1 - costheta) * axis[1] * axis[2] - axis[0] * sintheta) * p[2]);
 
-	r[2] = (((1 - costheta) * axis[0] * axis[2] - axis[1] * sintheta) * p[0]) +
-	       (((1 - costheta) * axis[1] * axis[2] + axis[0] * sintheta) * p[1]) +
-	       ((costheta + (1 - costheta) * axis[2] * axis[2]) * p[2]);
+	out[2] = (((1 - costheta) * axis[0] * axis[2] - axis[1] * sintheta) * p[0]) +
+	         (((1 - costheta) * axis[1] * axis[2] + axis[0] * sintheta) * p[1]) +
+	         ((costheta + (1 - costheta) * axis[2] * axis[2]) * p[2]);
 }
 
 void rotate_v3_v3v3fl(float r[3], const float p[3], const float axis[3], const float angle)

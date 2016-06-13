@@ -286,64 +286,258 @@ float BM_face_calc_perimeter(const BMFace *f)
 	return perimeter;
 }
 
-void BM_vert_tri_calc_plane(BMVert *verts[3], float r_plane[3])
+/**
+ * Utility function to calculate the edge which is most different from the other two.
+ *
+ * \return The first edge index, where the second vertex is ``(index + 1) % 3``.
+ */
+static int bm_vert_tri_find_unique_edge(BMVert *verts[3])
 {
-	float lens[3];
+	/* find the most 'unique' loop, (greatest difference to others) */
+#if 1
+	/* optimized version that avoids sqrt */
 	float difs[3];
-	int  order[3] = {0, 1, 2};
+	for (int i_prev = 1, i_curr = 2, i_next = 0;
+	     i_next < 3;
+	     i_prev = i_curr, i_curr = i_next++)
+	{
+		const float *co = verts[i_curr]->co;
+		const float *co_other[2] = {verts[i_prev]->co, verts[i_next]->co};
+		float proj_dir[3];
+		mid_v3_v3v3(proj_dir, co_other[0], co_other[1]);
+		sub_v3_v3(proj_dir, co);
 
-	lens[0] = len_v3v3(verts[0]->co, verts[1]->co);
-	lens[1] = len_v3v3(verts[1]->co, verts[2]->co);
-	lens[2] = len_v3v3(verts[2]->co, verts[0]->co);
+		float proj_pair[2][3];
+		project_v3_v3v3(proj_pair[0], co_other[0], proj_dir);
+		project_v3_v3v3(proj_pair[1], co_other[1], proj_dir);
+		difs[i_next] = len_squared_v3v3(proj_pair[0], proj_pair[1]);
+	}
+#else
+	const float lens[3] = {
+		len_v3v3(verts[0]->co, verts[1]->co),
+		len_v3v3(verts[1]->co, verts[2]->co),
+		len_v3v3(verts[2]->co, verts[0]->co),
+	};
+	const float difs[3] = {
+		fabsf(lens[1] - lens[2]),
+		fabsf(lens[2] - lens[0]),
+		fabsf(lens[0] - lens[1]),
+	};
+#endif
 
-	/* find the shortest or the longest loop */
-	difs[0] = fabsf(lens[1] - lens[2]);
-	difs[1] = fabsf(lens[2] - lens[0]);
-	difs[2] = fabsf(lens[0] - lens[1]);
-
+	int order[3] = {0, 1, 2};
 	axis_sort_v3(difs, order);
-	sub_v3_v3v3(r_plane, verts[order[0]]->co, verts[(order[0] + 1) % 3]->co);
+
+	return order[0];
 }
 
 /**
- * Compute a meaningful direction along the face (use for manipulator axis).
- * \note result isnt normalized.
+ * Calculate a tangent from any 3 vertices.
+ *
+ * The tangent aligns to the most *unique* edge
+ * (the edge most unlike the other two).
+ *
+ * \param r_tangent: Calculated unit length tangent (return value).
  */
-void BM_face_calc_plane(const BMFace *f, float r_plane[3])
+void BM_vert_tri_calc_tangent_edge(BMVert *verts[3], float r_tangent[3])
+{
+	const int index = bm_vert_tri_find_unique_edge(verts);
+
+	sub_v3_v3v3(r_tangent, verts[index]->co, verts[(index + 1) % 3]->co);
+
+	normalize_v3(r_tangent);
+}
+
+/**
+ * Calculate a tangent from any 3 vertices,
+ *
+ * The tangent follows the center-line formed by the most unique edges center
+ * and the opposite vertex.
+ *
+ * \param r_tangent: Calculated unit length tangent (return value).
+ */
+void BM_vert_tri_calc_tangent_edge_pair(BMVert *verts[3], float r_tangent[3])
+{
+	const int index = bm_vert_tri_find_unique_edge(verts);
+
+	const float *v_a     = verts[index]->co;
+	const float *v_b     = verts[(index + 1) % 3]->co;
+	const float *v_other = verts[(index + 2) % 3]->co;
+
+	mid_v3_v3v3(r_tangent, v_a, v_b);
+	sub_v3_v3v3(r_tangent, v_other, r_tangent);
+
+	normalize_v3(r_tangent);
+}
+
+/**
+ * Compute the tanget of the face, using the longest edge.
+ */
+void  BM_face_calc_tangent_edge(const BMFace *f, float r_tangent[3])
+{
+	const BMLoop *l_long  = BM_face_find_longest_loop((BMFace *)f);
+
+	sub_v3_v3v3(r_tangent, l_long->v->co, l_long->next->v->co);
+
+	normalize_v3(r_tangent);
+
+}
+
+/**
+ * Compute the tanget of the face, using the two longest disconected edges.
+ *
+ * \param r_tangent: Calculated unit length tangent (return value).
+ */
+void  BM_face_calc_tangent_edge_pair(const BMFace *f, float r_tangent[3])
 {
 	if (f->len == 3) {
 		BMVert *verts[3];
 
 		BM_face_as_array_vert_tri((BMFace *)f, verts);
 
-		BM_vert_tri_calc_plane(verts, r_plane);
+		BM_vert_tri_calc_tangent_edge_pair(verts, r_tangent);
 	}
 	else if (f->len == 4) {
+		/* Use longest edge pair */
 		BMVert *verts[4];
 		float vec[3], vec_a[3], vec_b[3];
 
-		// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, efa, (void **)verts, 4);
 		BM_face_as_array_vert_quad((BMFace *)f, verts);
 
 		sub_v3_v3v3(vec_a, verts[3]->co, verts[2]->co);
 		sub_v3_v3v3(vec_b, verts[0]->co, verts[1]->co);
-		add_v3_v3v3(r_plane, vec_a, vec_b);
+		add_v3_v3v3(r_tangent, vec_a, vec_b);
 
 		sub_v3_v3v3(vec_a, verts[0]->co, verts[3]->co);
 		sub_v3_v3v3(vec_b, verts[1]->co, verts[2]->co);
 		add_v3_v3v3(vec, vec_a, vec_b);
-		/* use the biggest edge length */
-		if (len_squared_v3(r_plane) < len_squared_v3(vec)) {
-			copy_v3_v3(r_plane, vec);
+		/* use the longest edge length */
+		if (len_squared_v3(r_tangent) < len_squared_v3(vec)) {
+			copy_v3_v3(r_tangent, vec);
 		}
 	}
 	else {
-		const BMLoop *l_long  = BM_face_find_longest_loop((BMFace *)f);
+		/* For ngons use two longest disconnected edges */
+		BMLoop *l_long = BM_face_find_longest_loop((BMFace *)f);
+		BMLoop *l_long_other = NULL;
 
-		sub_v3_v3v3(r_plane, l_long->v->co, l_long->next->v->co);
+		float len_max_sq = 0.0f;
+		float vec_a[3], vec_b[3];
+
+		BMLoop *l_iter = l_long->prev->prev;
+		BMLoop *l_last = l_long->next;
+
+		do {
+			const float len_sq = len_squared_v3v3(l_iter->v->co, l_iter->next->v->co);
+			if (len_sq >= len_max_sq) {
+				l_long_other = l_iter;
+				len_max_sq = len_sq;
+			}
+		} while ((l_iter = l_iter->prev) != l_last);
+
+		sub_v3_v3v3(vec_a, l_long->next->v->co, l_long->v->co);
+		sub_v3_v3v3(vec_b, l_long_other->v->co, l_long_other->next->v->co);
+		add_v3_v3v3(r_tangent, vec_a, vec_b);
+
+		/* Edges may not be opposite side of the ngon,
+		 * this could cause problems for ngons with multiple-aligned edges of the same length.
+		 * Fallback to longest edge. */
+		if (UNLIKELY(normalize_v3(r_tangent) == 0.0f)) {
+			normalize_v3_v3(r_tangent, vec_a);
+		}
 	}
+}
 
-	normalize_v3(r_plane);
+/**
+ * Compute the tanget of the face, using the edge farthest away from any vertex in the face.
+ *
+ * \param r_tangent: Calculated unit length tangent (return value).
+ */
+void  BM_face_calc_tangent_edge_diagonal(const BMFace *f, float r_tangent[3])
+{
+	BMLoop *l_iter, *l_first;
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+
+	/* incase of degenerate faces */
+	zero_v3(r_tangent);
+
+	/* warning: O(n^2) loop here, take care! */
+	float dist_max_sq = 0.0f;
+	do {
+		BMLoop *l_iter_other = l_iter->next;
+		BMLoop *l_iter_last = l_iter->prev;
+		do {
+			BLI_assert(!ELEM(l_iter->v->co, l_iter_other->v->co, l_iter_other->next->v->co));
+			float co_other[3], vec[3];
+			closest_to_line_segment_v3(co_other, l_iter->v->co, l_iter_other->v->co, l_iter_other->next->v->co);
+			sub_v3_v3v3(vec, l_iter->v->co, co_other);
+
+			const float dist_sq = len_squared_v3(vec);
+			if (dist_sq > dist_max_sq) {
+				dist_max_sq = dist_sq;
+				copy_v3_v3(r_tangent, vec);
+			}
+		} while ((l_iter_other = l_iter_other->next) != l_iter_last);
+	} while ((l_iter = l_iter->next) != l_first);
+
+	normalize_v3(r_tangent);
+}
+
+/**
+ * Compute the tanget of the face, using longest distance between vertices on the face.
+ *
+ * \note The logic is almost identical to #BM_face_calc_tangent_edge_diagonal
+ */
+void  BM_face_calc_tangent_vert_diagonal(const BMFace *f, float r_tangent[3])
+{
+	BMLoop *l_iter, *l_first;
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+
+	/* incase of degenerate faces */
+	zero_v3(r_tangent);
+
+	/* warning: O(n^2) loop here, take care! */
+	float dist_max_sq = 0.0f;
+	do {
+		BMLoop *l_iter_other = l_iter->next;
+		do {
+			float vec[3];
+			sub_v3_v3v3(vec, l_iter->v->co, l_iter_other->v->co);
+
+			const float dist_sq = len_squared_v3(vec);
+			if (dist_sq > dist_max_sq) {
+				dist_max_sq = dist_sq;
+				copy_v3_v3(r_tangent, vec);
+			}
+		} while ((l_iter_other = l_iter_other->next) != l_iter);
+	} while ((l_iter = l_iter->next) != l_first);
+
+	normalize_v3(r_tangent);
+}
+
+/**
+ * Compute a meaningful direction along the face (use for manipulator axis).
+ *
+ * \note Callers shouldn't depend on the *exact* method used here.
+ */
+void BM_face_calc_tangent_auto(const BMFace *f, float r_tangent[3])
+{
+	if (f->len == 3) {
+		/* most 'unique' edge of a triangle */
+		BMVert *verts[3];
+		BM_face_as_array_vert_tri((BMFace *)f, verts);
+		BM_vert_tri_calc_tangent_edge(verts, r_tangent);
+	}
+	else if (f->len == 4) {
+		/* longest edge pair of a quad */
+		BM_face_calc_tangent_edge_pair((BMFace *)f, r_tangent);
+	}
+	else {
+		/* longest edge of an ngon */
+		BM_face_calc_tangent_edge((BMFace *)f, r_tangent);
+	}
 }
 
 /**

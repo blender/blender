@@ -85,7 +85,7 @@ NODE_DEFINE(Mesh)
 	displacement_method_enum.insert("both", DISPLACE_BOTH);
 	SOCKET_ENUM(displacement_method, "Displacement Method", displacement_method_enum, DISPLACE_BUMP);
 
-	SOCKET_INT(motion_steps, "Motion Steps", 3);
+	SOCKET_UINT(motion_steps, "Motion Steps", 3);
 	SOCKET_BOOLEAN(use_motion_blur, "Use Motion Blur", false);
 
 	SOCKET_INT_ARRAY(triangles, "Triangles", array<int>());

@@ -34,6 +34,10 @@ add_subdirectory(mikktspace)
 add_subdirectory(glew-mx)
 add_subdirectory(eigen)
 
+if (WITH_GAMEENGINE_DECKLINK)
+	add_subdirectory(decklink)
+endif()
+
 if(WITH_AUDASPACE)
 	add_subdirectory(audaspace)
 endif()
@@ -79,8 +83,10 @@ if(WITH_OPENSUBDIV)
 endif()
 
 # only windows needs utf16 converter
+# gpudirect is a runtime interface to the nVidia's DVP driver, only for windows
 if(WIN32)
 	add_subdirectory(utfconv)
+	add_subdirectory(gpudirect)
 endif()
 
 if(WITH_OPENVDB)

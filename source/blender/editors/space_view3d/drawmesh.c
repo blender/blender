@@ -1310,8 +1310,8 @@ void draw_mesh_paint_weight_edges(RegionView3D *rv3d, DerivedMesh *dm,
 	}
 
 	glColor4ub(255, 255, 255, 96);
-	glEnable(GL_LINE_STIPPLE);
-	glLineStipple(1, 0xAAAA);
+	GPU_basic_shader_bind_enable(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
+	GPU_basic_shader_line_stipple(1, 0xAAAA);
 
 	dm->drawMappedEdges(dm, (DMSetDrawOptions)edgemask_cb, user_data);
 
@@ -1323,7 +1323,7 @@ void draw_mesh_paint_weight_edges(RegionView3D *rv3d, DerivedMesh *dm,
 		glEnable(GL_DEPTH_TEST);
 	}
 
-	glDisable(GL_LINE_STIPPLE);
+	GPU_basic_shader_bind_disable(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
 
 	if (use_alpha) {
 		glDisable(GL_BLEND);

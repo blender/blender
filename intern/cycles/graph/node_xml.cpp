@@ -108,6 +108,11 @@ void xml_read_node(XMLReader& reader, Node *node, pugi::xml_node xml_node)
 				node->set(socket, (int)atoi(attr.value()));
 				break;
 			}
+			case SocketType::UINT:
+			{
+				node->set(socket, (uint)atoi(attr.value()));
+				break;
+			}
 			case SocketType::INT_ARRAY:
 			{
 				vector<string> tokens;
@@ -308,6 +313,11 @@ pugi::xml_node xml_write_node(Node *node, pugi::xml_node xml_root)
 			case SocketType::INT:
 			{
 				attr = node->get_int(socket);
+				break;
+			}
+			case SocketType::UINT:
+			{
+				attr = node->get_uint(socket);
 				break;
 			}
 			case SocketType::INT_ARRAY:

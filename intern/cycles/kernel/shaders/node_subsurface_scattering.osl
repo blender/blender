@@ -22,13 +22,13 @@ shader node_subsurface_scattering(
 	vector Radius = vector(0.1, 0.1, 0.1),
 	float TextureBlur = 0.0,
 	float Sharpness = 0.0,
-	string falloff = "Cubic",
+	string falloff = "cubic",
 	normal Normal = N,
 	output closure color BSSRDF = 0)
 {
-	if (falloff == "Gaussian")
+	if (falloff == "gaussian")
 		BSSRDF = Color * bssrdf_gaussian(Normal, Scale * Radius, TextureBlur);
-	else if (falloff == "Cubic")
+	else if (falloff == "cubic")
 		BSSRDF = Color * bssrdf_cubic(Normal, Scale * Radius, TextureBlur, Sharpness);
 	else
 		BSSRDF = Color * bssrdf_burley(Normal, Scale * Radius, TextureBlur, Color);

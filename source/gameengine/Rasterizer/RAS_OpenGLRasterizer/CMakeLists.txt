@@ -51,6 +51,8 @@ set(INC_SYS
 set(SRC
 	RAS_ListRasterizer.cpp
 	RAS_OpenGLLight.cpp
+	RAS_OpenGLOffScreen.cpp
+	RAS_OpenGLSync.cpp
 	RAS_OpenGLRasterizer.cpp
 	RAS_StorageVA.cpp
 	RAS_StorageVBO.cpp
@@ -58,6 +60,8 @@ set(SRC
 	RAS_IStorage.h
 	RAS_ListRasterizer.h
 	RAS_OpenGLLight.h
+	RAS_OpenGLOffScreen.h
+	RAS_OpenGLSync.h
 	RAS_OpenGLRasterizer.h
 	RAS_StorageVA.h
 	RAS_StorageVBO.h
