@@ -4936,7 +4936,7 @@ static void freeSeqData(TransInfo *t, TransCustomData *custom_data)
 					td = t->data;
 					for (a = 0, seq_prev = NULL; a < t->total; a++, td++, seq_prev = seq) {
 						seq = ((TransDataSeq *)td->extra)->seq;
-						if ((seq != seq_prev)) {
+						if ((seq != seq_prev) && (seq->depth == 0)) {
 							/* check effects strips, we cant change their time */
 							if ((seq->type & SEQ_TYPE_EFFECT) && seq->seq1) {
 								has_effect = true;
@@ -4955,7 +4955,7 @@ static void freeSeqData(TransInfo *t, TransCustomData *custom_data)
 						td = t->data;
 						for (a = 0, seq_prev = NULL; a < t->total; a++, td++, seq_prev = seq) {
 							seq = ((TransDataSeq *)td->extra)->seq;
-							if ((seq != seq_prev)) {
+							if ((seq != seq_prev) && (seq->depth == 0)) {
 								minframe = min_ii(minframe, seq->startdisp);
 							}
 						}
@@ -5003,7 +5003,7 @@ static void freeSeqData(TransInfo *t, TransCustomData *custom_data)
 						td = t->data;
 						for (a = 0, seq_prev = NULL; a < t->total; a++, td++, seq_prev = seq) {
 							seq = ((TransDataSeq *)td->extra)->seq;
-							if ((seq != seq_prev)) {
+							if ((seq != seq_prev) && (seq->depth == 0)) {
 								if ((seq->type & SEQ_TYPE_EFFECT) && seq->seq1) {
 									if (BKE_sequence_test_overlap(seqbasep, seq)) {
 										BKE_sequence_base_shuffle(seqbasep, seq, t->scene);
