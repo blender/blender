@@ -148,6 +148,7 @@ MINLINE void negate_v4(float r[4]);
 MINLINE void negate_v4_v4(float r[4], const float a[3]);
 
 MINLINE void negate_v3_short(short r[3]);
+MINLINE void negate_v3_db(double r[3]);
 
 MINLINE void invert_v2(float r[2]);
 
@@ -230,6 +231,7 @@ void mid_v3_angle_weighted(float r[3]);
 void flip_v4_v4v4(float v[4], const float v1[4], const float v2[4]);
 void flip_v3_v3v3(float v[3], const float v1[3], const float v2[3]);
 void flip_v2_v2v2(float v[2], const float v1[2], const float v2[2]);
+
 
 /********************************* Comparison ********************************/
 
