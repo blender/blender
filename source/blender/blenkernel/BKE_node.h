@@ -348,6 +348,7 @@ void              ntreeUserDecrefID(struct bNodeTree *ntree);
 struct bNodeTree *ntreeFromID(struct ID *id);
 
 void              ntreeMakeLocal(struct bNodeTree *ntree, bool id_in_mainlist);
+struct bNode     *ntreeFindType(const struct bNodeTree *ntree, int type);
 bool              ntreeHasType(const struct bNodeTree *ntree, int type);
 bool              ntreeHasTree(const struct bNodeTree *ntree, const struct bNodeTree *lookup);
 void              ntreeUpdateTree(struct Main *main, struct bNodeTree *ntree);
