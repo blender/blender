@@ -4943,22 +4943,27 @@ static void freeSeqData(TransInfo *t, TransCustomData *custom_data)
 				}
 
 				if (overlap) {
-					bool has_effect = false;
+					bool has_effect_root = false, has_effect_any = false;
 					for (seq = seqbasep->first; seq; seq = seq->next)
 						seq->tmp = NULL;
 
 					td = t->data;
 					for (a = 0, seq_prev = NULL; a < t->total; a++, td++, seq_prev = seq) {
 						seq = ((TransDataSeq *)td->extra)->seq;
-						if ((seq != seq_prev) && (seq->depth == 0)) {
+						if ((seq != seq_prev)) {
 							/* check effects strips, we cant change their time */
 							if ((seq->type & SEQ_TYPE_EFFECT) && seq->seq1) {
-								has_effect = true;
+								has_effect_any = true;
+								if (seq->depth == 0) {
+									has_effect_root = true;
+								}
 							}
 							else {
 								/* Tag seq with a non zero value,
 								 * used by BKE_sequence_base_shuffle_time to identify the ones to shuffle */
-								seq->tmp = (void *)1;
+								if (seq->depth == 0) {
+									seq->tmp = (void *)1;
+								}
 							}
 						}
 
@@ -5001,7 +5006,7 @@ static void freeSeqData(TransInfo *t, TransCustomData *custom_data)
 						BKE_sequence_base_shuffle_time(seqbasep, t->scene);
 					}
 
-					if (has_effect) {
+					if (has_effect_any) {
 						/* update effects strips based on strips just moved in time */
 						td = t->data;
 						for (a = 0, seq_prev = NULL; a < t->total; a++, td++, seq_prev = seq) {
@@ -5012,7 +5017,9 @@ static void freeSeqData(TransInfo *t, TransCustomData *custom_data)
 								}
 							}
 						}
+					}
 
+					if (has_effect_root) {
 						/* now if any effects _still_ overlap, we need to move them up */
 						td = t->data;
 						for (a = 0, seq_prev = NULL; a < t->total; a++, td++, seq_prev = seq) {
