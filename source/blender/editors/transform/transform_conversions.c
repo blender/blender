@@ -4920,14 +4920,12 @@ static void freeSeqData(TransInfo *t, TransCustomData *custom_data)
 			{
 				int overlap = 0;
 
-				seq_prev = NULL;
-				for (a = 0; a < t->total; a++, td++) {
+				for (a = 0, seq_prev = NULL; a < t->total; a++, td++, seq_prev = seq) {
 					seq = ((TransDataSeq *)td->extra)->seq;
 					if ((seq != seq_prev) && (seq->depth == 0) && (seq->flag & SEQ_OVERLAP)) {
 						overlap = 1;
 						break;
 					}
-					seq_prev = seq;
 				}
 
 				if (overlap) {
@@ -4936,8 +4934,7 @@ static void freeSeqData(TransInfo *t, TransCustomData *custom_data)
 						seq->tmp = NULL;
 
 					td = t->data;
-					seq_prev = NULL;
-					for (a = 0; a < t->total; a++, td++) {
+					for (a = 0, seq_prev = NULL; a < t->total; a++, td++, seq_prev = seq) {
 						seq = ((TransDataSeq *)td->extra)->seq;
 						if ((seq != seq_prev)) {
 							/* check effects strips, we cant change their time */
@@ -4945,17 +4942,18 @@ static void freeSeqData(TransInfo *t, TransCustomData *custom_data)
 								has_effect = true;
 							}
 							else {
-								/* Tag seq with a non zero value, used by BKE_sequence_base_shuffle_time to identify the ones to shuffle */
+								/* Tag seq with a non zero value,
+								 * used by BKE_sequence_base_shuffle_time to identify the ones to shuffle */
 								seq->tmp = (void *)1;
 							}
 						}
+
 					}
 
 					if (t->flag & T_ALT_TRANSFORM) {
 						int minframe = MAXFRAME;
 						td = t->data;
-						seq_prev = NULL;
-						for (a = 0; a < t->total; a++, td++) {
+						for (a = 0, seq_prev = NULL; a < t->total; a++, td++, seq_prev = seq) {
 							seq = ((TransDataSeq *)td->extra)->seq;
 							if ((seq != seq_prev)) {
 								minframe = min_ii(minframe, seq->startdisp);
@@ -4992,8 +4990,7 @@ static void freeSeqData(TransInfo *t, TransCustomData *custom_data)
 					if (has_effect) {
 						/* update effects strips based on strips just moved in time */
 						td = t->data;
-						seq_prev = NULL;
-						for (a = 0; a < t->total; a++, td++) {
+						for (a = 0, seq_prev = NULL; a < t->total; a++, td++, seq_prev = seq) {
 							seq = ((TransDataSeq *)td->extra)->seq;
 							if ((seq != seq_prev)) {
 								if ((seq->type & SEQ_TYPE_EFFECT) && seq->seq1) {
@@ -5004,8 +5001,7 @@ static void freeSeqData(TransInfo *t, TransCustomData *custom_data)
 
 						/* now if any effects _still_ overlap, we need to move them up */
 						td = t->data;
-						seq_prev = NULL;
-						for (a = 0; a < t->total; a++, td++) {
+						for (a = 0, seq_prev = NULL; a < t->total; a++, td++, seq_prev = seq) {
 							seq = ((TransDataSeq *)td->extra)->seq;
 							if ((seq != seq_prev)) {
 								if ((seq->type & SEQ_TYPE_EFFECT) && seq->seq1) {
