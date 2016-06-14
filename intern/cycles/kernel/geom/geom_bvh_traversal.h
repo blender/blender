@@ -109,10 +109,10 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 				float t = isect->t;
 
 				/* fetch node data */
-				float4 node0 = kernel_tex_fetch(__bvh_nodes, nodeAddr*BVH_NODE_SIZE+0);
-				float4 node1 = kernel_tex_fetch(__bvh_nodes, nodeAddr*BVH_NODE_SIZE+1);
-				float4 node2 = kernel_tex_fetch(__bvh_nodes, nodeAddr*BVH_NODE_SIZE+2);
-				float4 cnodes = kernel_tex_fetch(__bvh_nodes, nodeAddr*BVH_NODE_SIZE+3);
+				float4 node0 = kernel_tex_fetch(__bvh_nodes, nodeAddr+0);
+				float4 node1 = kernel_tex_fetch(__bvh_nodes, nodeAddr+1);
+				float4 node2 = kernel_tex_fetch(__bvh_nodes, nodeAddr+2);
+				float4 cnodes = kernel_tex_fetch(__bvh_nodes, nodeAddr+3);
 
 				/* intersect ray against child nodes */
 				float c0lox = (node0.x - P.x) * idir.x;
@@ -162,7 +162,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 				/* Intersect two child bounding boxes, SSE3 version adapted from Embree */
 
 				/* fetch node data */
-				const ssef *bvh_nodes = (ssef*)kg->__bvh_nodes.data + nodeAddr*BVH_NODE_SIZE;
+				const ssef *bvh_nodes = (ssef*)kg->__bvh_nodes.data + nodeAddr;
 				const float4 cnodes = ((float4*)bvh_nodes)[3];
 
 				/* intersect ray against child nodes */
@@ -243,7 +243,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 
 			/* if node is leaf, fetch triangle list */
 			if(nodeAddr < 0) {
-				float4 leaf = kernel_tex_fetch(__bvh_leaf_nodes, (-nodeAddr-1)*BVH_NODE_LEAF_SIZE);
+				float4 leaf = kernel_tex_fetch(__bvh_leaf_nodes, (-nodeAddr-1));
 				int primAddr = __float_as_int(leaf.x);
 
 #if BVH_FEATURE(BVH_INSTANCING)

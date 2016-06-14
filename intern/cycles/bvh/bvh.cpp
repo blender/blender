@@ -288,8 +288,8 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 
 		BVH *bvh = mesh->bvh;
 
-		int noffset = nodes_offset/nsize;
-		int noffset_leaf = nodes_leaf_offset/nsize_leaf;
+		int noffset = nodes_offset;
+		int noffset_leaf = nodes_leaf_offset;
 		int mesh_tri_offset = mesh->tri_offset;
 		int mesh_curve_offset = mesh->curve_offset;
 
@@ -421,7 +421,7 @@ void RegularBVH::pack_leaf(const BVHStackEntry& e, const LeafNode *leaf)
 		data[0].w = __uint_as_float(pack.prim_type[leaf->m_lo]);
 	}
 
-	memcpy(&pack.leaf_nodes[e.idx * BVH_NODE_LEAF_SIZE], data, sizeof(float4)*BVH_NODE_LEAF_SIZE);
+	memcpy(&pack.leaf_nodes[e.idx], data, sizeof(float4)*BVH_NODE_LEAF_SIZE);
 }
 
 void RegularBVH::pack_inner(const BVHStackEntry& e, const BVHStackEntry& e0, const BVHStackEntry& e1)
@@ -439,7 +439,7 @@ void RegularBVH::pack_node(int idx, const BoundBox& b0, const BoundBox& b1, int 
 		make_int4(c0, c1, visibility0, visibility1)
 	};
 
-	memcpy(&pack.nodes[idx * BVH_NODE_SIZE], data, sizeof(int4)*BVH_NODE_SIZE);
+	memcpy(&pack.nodes[idx], data, sizeof(int4)*BVH_NODE_SIZE);
 }
 
 void RegularBVH::pack_nodes(const BVHNode *root)
@@ -465,10 +465,13 @@ void RegularBVH::pack_nodes(const BVHNode *root)
 
 	vector<BVHStackEntry> stack;
 	stack.reserve(BVHParams::MAX_DEPTH*2);
-	if(root->is_leaf())
+	if(root->is_leaf()) {
 		stack.push_back(BVHStackEntry(root, nextLeafNodeIdx++));
-	else
-		stack.push_back(BVHStackEntry(root, nextNodeIdx++));
+	}
+	else {
+		stack.push_back(BVHStackEntry(root, nextNodeIdx));
+		nextNodeIdx += BVH_NODE_SIZE;
+	}
 
 	while(stack.size()) {
 		BVHStackEntry e = stack.back();
@@ -481,10 +484,19 @@ void RegularBVH::pack_nodes(const BVHNode *root)
 		}
 		else {
 			/* innner node */
-			int idx0 = (e.node->get_child(0)->is_leaf())? (nextLeafNodeIdx++) : (nextNodeIdx++);
-			int idx1 = (e.node->get_child(1)->is_leaf())? (nextLeafNodeIdx++) : (nextNodeIdx++);
-			stack.push_back(BVHStackEntry(e.node->get_child(0), idx0));
-			stack.push_back(BVHStackEntry(e.node->get_child(1), idx1));
+			int idx[2];
+			for (int i = 0; i < 2; ++i) {
+				if (e.node->get_child(i)->is_leaf()) {
+					idx[i] = nextLeafNodeIdx++;
+				}
+				else {
+					idx[i] = nextNodeIdx;
+					nextNodeIdx += BVH_NODE_SIZE;
+				}
+			}
+
+			stack.push_back(BVHStackEntry(e.node->get_child(0), idx[0]));
+			stack.push_back(BVHStackEntry(e.node->get_child(1), idx[1]));
 
 			pack_inner(e, stack[stack.size()-2], stack[stack.size()-1]);
 		}
@@ -506,7 +518,7 @@ void RegularBVH::refit_nodes()
 void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 {
 	if(leaf) {
-		int4 *data = &pack.leaf_nodes[idx*BVH_NODE_LEAF_SIZE];
+		int4 *data = &pack.leaf_nodes[idx];
 		int c0 = data[0].x;
 		int c1 = data[0].y;
 		/* refit leaf node */
@@ -580,12 +592,12 @@ void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility
 		leaf_data[0].y = __int_as_float(c1);
 		leaf_data[0].z = __uint_as_float(visibility);
 		leaf_data[0].w = __uint_as_float(data[0].w);
-		memcpy(&pack.leaf_nodes[idx * BVH_NODE_LEAF_SIZE],
+		memcpy(&pack.leaf_nodes[idx],
 		       leaf_data,
 		       sizeof(float4)*BVH_NODE_LEAF_SIZE);
 	}
 	else {
-		int4 *data = &pack.nodes[idx*BVH_NODE_SIZE];
+		int4 *data = &pack.nodes[idx];
 		int c0 = data[3].x;
 		int c1 = data[3].y;
 		/* refit inner node, set bbox from children */
@@ -630,7 +642,7 @@ void QBVH::pack_leaf(const BVHStackEntry& e, const LeafNode *leaf)
 		data[0].w = __uint_as_float(pack.prim_type[leaf->m_lo]);
 	}
 
-	memcpy(&pack.leaf_nodes[e.idx * BVH_QNODE_LEAF_SIZE], data, sizeof(float4)*BVH_QNODE_LEAF_SIZE);
+	memcpy(&pack.leaf_nodes[e.idx], data, sizeof(float4)*BVH_QNODE_LEAF_SIZE);
 }
 
 void QBVH::pack_inner(const BVHStackEntry& e, const BVHStackEntry *en, int num)
@@ -668,7 +680,7 @@ void QBVH::pack_inner(const BVHStackEntry& e, const BVHStackEntry *en, int num)
 		data[7][i] = __int_as_float(0);
 	}
 
-	memcpy(&pack.nodes[e.idx * BVH_QNODE_SIZE], data, sizeof(float4)*BVH_QNODE_SIZE);
+	memcpy(&pack.nodes[e.idx], data, sizeof(float4)*BVH_QNODE_SIZE);
 }
 
 /* Quad SIMD Nodes */
@@ -701,7 +713,8 @@ void QBVH::pack_nodes(const BVHNode *root)
 		stack.push_back(BVHStackEntry(root, nextLeafNodeIdx++));
 	}
 	else {
-		stack.push_back(BVHStackEntry(root, nextNodeIdx++));
+		stack.push_back(BVHStackEntry(root, nextNodeIdx));
+		nextNodeIdx += BVH_QNODE_SIZE;
 	}
 
 	while(stack.size()) {
@@ -746,7 +759,8 @@ void QBVH::pack_nodes(const BVHNode *root)
 					idx = nextLeafNodeIdx++;
 				}
 				else {
-					idx = nextNodeIdx++;
+					idx = nextNodeIdx;
+					nextNodeIdx += BVH_QNODE_SIZE;
 				}
 				stack.push_back(BVHStackEntry(nodes[i], idx));
 			}
@@ -772,7 +786,7 @@ void QBVH::refit_nodes()
 void QBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 {
 	if(leaf) {
-		int4 *data = &pack.leaf_nodes[idx*BVH_QNODE_LEAF_SIZE];
+		int4 *data = &pack.leaf_nodes[idx];
 		int4 c = data[0];
 		/* Refit leaf node. */
 		for(int prim = c.x; prim < c.y; prim++) {
@@ -854,12 +868,12 @@ void QBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 		leaf_data[0].y = __int_as_float(c.y);
 		leaf_data[0].z = __uint_as_float(visibility);
 		leaf_data[0].w = __uint_as_float(c.w);
-		memcpy(&pack.leaf_nodes[idx * BVH_QNODE_LEAF_SIZE],
+		memcpy(&pack.leaf_nodes[idx],
 		       leaf_data,
 		       sizeof(float4)*BVH_QNODE_LEAF_SIZE);
 	}
 	else {
-		int4 *data = &pack.nodes[idx*BVH_QNODE_SIZE];
+		int4 *data = &pack.nodes[idx];
 		int4 c = data[7];
 		/* Refit inner node, set bbox from children. */
 		BoundBox child_bbox[4] = {BoundBox::empty,
@@ -895,7 +909,7 @@ void QBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 			inner_data[6][i] = bb_max.z;
 			inner_data[7][i] = __int_as_float(c[i]);
 		}
-		memcpy(&pack.nodes[idx * BVH_QNODE_SIZE],
+		memcpy(&pack.nodes[idx],
 		       inner_data,
 		       sizeof(float4)*BVH_QNODE_SIZE);
 	}

@@ -106,8 +106,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 		do {
 			/* Traverse internal nodes. */
 			while(nodeAddr >= 0 && nodeAddr != ENTRYPOINT_SENTINEL) {
-				float4 inodes = kernel_tex_fetch(__bvh_nodes, 
-				                                 nodeAddr*BVH_QNODE_SIZE+0);
+				float4 inodes = kernel_tex_fetch(__bvh_nodes, nodeAddr+0);
 
 				if(UNLIKELY(nodeDist > isect->t)
 #ifdef __VISIBILITY_FLAG__
@@ -167,8 +166,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 				}
 
 				if(traverseChild != 0) {
-					float4 cnodes = kernel_tex_fetch(__bvh_nodes,
-					                                 nodeAddr*BVH_QNODE_SIZE+7);
+					float4 cnodes = kernel_tex_fetch(__bvh_nodes, nodeAddr+7);
 
 					/* One child is hit, continue with that child. */
 					int r = __bscf(traverseChild);
@@ -266,7 +264,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 
 			/* If node is leaf, fetch triangle list. */
 			if(nodeAddr < 0) {
-				float4 leaf = kernel_tex_fetch(__bvh_leaf_nodes, (-nodeAddr-1)*BVH_QNODE_LEAF_SIZE);
+				float4 leaf = kernel_tex_fetch(__bvh_leaf_nodes, (-nodeAddr-1));
 
 #ifdef __VISIBILITY_FLAG__
 				if(UNLIKELY((nodeDist > isect->t) ||
