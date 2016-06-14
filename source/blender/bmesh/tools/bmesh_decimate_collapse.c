@@ -68,7 +68,9 @@
 #endif
 
 #define BOUNDARY_PRESERVE_WEIGHT 100.0f
-#define OPTIMIZE_EPS 0.01f  /* FLT_EPSILON is too small, see [#33106] */
+/* Uses double precision, impacts behavior on near-flat surfaces,
+ * cane give issues with very small faces. 1e-2 is too big, see: T48154. */
+#define OPTIMIZE_EPS 1e-8
 #define COST_INVALID FLT_MAX
 
 typedef enum CD_UseFlag {
@@ -140,8 +142,8 @@ static void bm_decim_build_quadrics(BMesh *bm, Quadric *vquadrics)
 }
 
 
-static void bm_decim_calc_target_co(
-        BMEdge *e, float optimize_co[3],
+static void bm_decim_calc_target_co_db(
+        BMEdge *e, double optimize_co[3],
         const Quadric *vquadrics)
 {
 	/* compute an edge contraction target for edge 'e'
@@ -158,9 +160,21 @@ static void bm_decim_calc_target_co(
 		return;  /* all is good */
 	}
 	else {
-		mid_v3_v3v3(optimize_co, e->v1->co, e->v2->co);
+		optimize_co[0] = 0.5 * ((double)e->v1->co[0] + (double)e->v2->co[0]);
+		optimize_co[1] = 0.5 * ((double)e->v1->co[1] + (double)e->v2->co[1]);
+		optimize_co[2] = 0.5 * ((double)e->v1->co[2] + (double)e->v2->co[2]);
 	}
 }
+
+static void bm_decim_calc_target_co_fl(
+        BMEdge *e, float optimize_co[3],
+        const Quadric *vquadrics)
+{
+	double optimize_co_db[3];
+	bm_decim_calc_target_co_db(e, optimize_co_db, vquadrics);
+	copy_v3fl_v3db(optimize_co, optimize_co_db);
+}
+
 
 static bool bm_edge_collapse_is_degenerate_flip(BMEdge *e, const float optimize_co[3])
 {
@@ -240,8 +254,6 @@ static void bm_decim_build_edge_cost_single(
         const float *vweights, const float vweight_factor,
         Heap *eheap, HeapNode **eheap_table)
 {
-	const Quadric *q1, *q2;
-	float optimize_co[3];
 	float cost;
 
 	if (eheap_table[BM_elem_index_get(e)]) {
@@ -279,15 +291,17 @@ static void bm_decim_build_edge_cost_single(
 	}
 	/* end sanity check */
 
+	{
+		double optimize_co[3];
+		bm_decim_calc_target_co_db(e, optimize_co, vquadrics);
 
-	bm_decim_calc_target_co(e, optimize_co, vquadrics);
+		const Quadric *q1, *q2;
+		q1 = &vquadrics[BM_elem_index_get(e->v1)];
+		q2 = &vquadrics[BM_elem_index_get(e->v2)];
 
-	q1 = &vquadrics[BM_elem_index_get(e->v1)];
-	q2 = &vquadrics[BM_elem_index_get(e->v2)];
-
-	cost = (BLI_quadric_evaluate(q1, optimize_co) +
-	        BLI_quadric_evaluate(q2, optimize_co));
-
+		cost = (BLI_quadric_evaluate(q1, optimize_co) +
+		        BLI_quadric_evaluate(q2, optimize_co));
+	}
 
 	/* note, 'cost' shouldn't be negative but happens sometimes with small values.
 	 * this can cause faces that make up a flat surface to over-collapse, see [#37121] */
@@ -1155,7 +1169,7 @@ static bool bm_decim_edge_collapse(
 			return false;
 		}
 
-		bm_decim_calc_target_co(e, optimize_co, vquadrics);
+		bm_decim_calc_target_co_fl(e, optimize_co, vquadrics);
 
 		/* check if this would result in an overlapping face */
 		if (UNLIKELY(bm_edge_collapse_is_degenerate_flip(e, optimize_co))) {
@@ -1426,7 +1440,7 @@ void BM_mesh_decimate_collapse(
 					goto invalidate;
 				}
 
-				bm_decim_calc_target_co(e, optimize_co, vquadrics);
+				bm_decim_calc_target_co_fl(e, optimize_co, vquadrics);
 
 				if (e_index_mirr == e_index) {
 					optimize_co[symmetry_axis] = 0.0f;

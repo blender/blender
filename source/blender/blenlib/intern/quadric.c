@@ -63,26 +63,68 @@ void BLI_quadric_from_plane(Quadric *q, const double v[4])
 	q->d2 = v[3] * v[3];
 }
 
-void BLI_quadric_to_tensor_m3(const Quadric *q, float m[3][3])
+#if 0  /* UNUSED */
+
+static void quadric_to_tensor_m3(const Quadric *q, double m[3][3])
 {
-	m[0][0] = (float)q->a2;
-	m[0][1] = (float)q->ab;
-	m[0][2] = (float)q->ac;
+	m[0][0] = q->a2;
+	m[0][1] = q->ab;
+	m[0][2] = q->ac;
 
-	m[1][0] = (float)q->ab;
-	m[1][1] = (float)q->b2;
-	m[1][2] = (float)q->bc;
+	m[1][0] = q->ab;
+	m[1][1] = q->b2;
+	m[1][2] = q->bc;
 
-	m[2][0] = (float)q->ac;
-	m[2][1] = (float)q->bc;
-	m[2][2] = (float)q->c2;
+	m[2][0] = q->ac;
+	m[2][1] = q->bc;
+	m[2][2] = q->c2;
 }
 
-void BLI_quadric_to_vector_v3(const Quadric *q, float v[3])
+#endif
+
+/**
+ * Inline inverse matrix creation.
+ * Equivalent of:
+ *
+ * \code{.c}
+ * quadric_to_tensor_m3(q, m);
+ * invert_m3_db(m, eps);
+ * \endcode
+ */
+static bool quadric_to_tensor_m3_inverse(const Quadric *q, double m[3][3], double epsilon)
 {
-	v[0] = (float)q->ad;
-	v[1] = (float)q->bd;
-	v[2] = (float)q->cd;
+	const double det =
+	        (q->a2 * (q->b2 * q->c2 - q->bc * q->bc) -
+	         q->ab * (q->ab * q->c2 - q->ac * q->bc) +
+	         q->ac * (q->ab * q->bc - q->ac * q->b2));
+
+	if (fabs(det) > epsilon) {
+		const double invdet = 1.0 / det;
+
+		m[0][0] = (q->b2 * q->c2 - q->bc * q->bc) * invdet;
+		m[1][0] = (q->bc * q->ac - q->ab * q->c2) * invdet;
+		m[2][0] = (q->ab * q->bc - q->b2 * q->ac) * invdet;
+
+		m[0][1] = (q->ac * q->bc - q->ab * q->c2) * invdet;
+		m[1][1] = (q->a2 * q->c2 - q->ac * q->ac) * invdet;
+		m[2][1] = (q->ab * q->ac - q->a2 * q->bc) * invdet;
+
+		m[0][2] = (q->ab * q->bc - q->ac * q->b2) * invdet;
+		m[1][2] = (q->ac * q->ab - q->a2 * q->bc) * invdet;
+		m[2][2] = (q->a2 * q->b2 - q->ab * q->ab) * invdet;
+
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+void BLI_quadric_to_vector_v3(const Quadric *q, double v[3])
+{
+	v[0] = q->ad;
+	v[1] = q->bd;
+	v[2] = q->cd;
 }
 
 void BLI_quadric_clear(Quadric *q)
@@ -105,26 +147,22 @@ void BLI_quadric_mul(Quadric *a, const double scalar)
 	mul_vn_db((double *)a, QUADRIC_FLT_TOT, scalar);
 }
 
-double BLI_quadric_evaluate(const Quadric *q, const float v_fl[3])
+double BLI_quadric_evaluate(const Quadric *q, const double v[3])
 {
-	const double v[3] = {UNPACK3(v_fl)};
 	return ((q->a2 * v[0] * v[0]) + (q->ab * 2 * v[0] * v[1]) + (q->ac * 2 * v[0] * v[2]) + (q->ad * 2 * v[0]) +
 	        (q->b2 * v[1] * v[1]) + (q->bc * 2 * v[1] * v[2]) + (q->bd * 2 * v[1]) +
 	        (q->c2 * v[2] * v[2]) + (q->cd * 2 * v[2]) +
 	        (q->d2));
 }
 
-bool BLI_quadric_optimize(const Quadric *q, float v[3], const float epsilon)
+bool BLI_quadric_optimize(const Quadric *q, double v[3], const double epsilon)
 {
-	float m[3][3];
+	double m[3][3];
 
-	BLI_quadric_to_tensor_m3(q, m);
-
-	if (invert_m3_ex(m, epsilon)) {
+	if (quadric_to_tensor_m3_inverse(q, m, epsilon)) {
 		BLI_quadric_to_vector_v3(q, v);
-		mul_m3_v3(m, v);
-		negate_v3(v);
-
+		mul_m3_v3_db(m, v);
+		negate_v3_db(v);
 		return true;
 	}
 	else {
