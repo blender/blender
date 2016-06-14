@@ -271,37 +271,40 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)  // checks if mesh has su
 	COLLADAFW::MeshPrimitiveArray& prim_arr = mesh->getMeshPrimitives();
 
 	const std::string &name = bc_get_dae_name(mesh);
-	int hole_count = 0;
 
 	for (unsigned i = 0; i < prim_arr.getCount(); i++) {
-		
+
 		COLLADAFW::MeshPrimitive *mp = prim_arr[i];
 		COLLADAFW::MeshPrimitive::PrimitiveType type = mp->getPrimitiveType();
 
 		const char *type_str = bc_primTypeToStr(type);
-		
+
 		// OpenCollada passes POLYGONS type for <polylist>
 		if (type == COLLADAFW::MeshPrimitive::POLYLIST || type == COLLADAFW::MeshPrimitive::POLYGONS) {
 
 			COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons *)mp;
 			COLLADAFW::Polygons::VertexCountArray& vca = mpvc->getGroupedVerticesVertexCountArray();
-			
+
+			int hole_count = 0;
+			int nonface_count = 0;
+
 			for (unsigned int j = 0; j < vca.getCount(); j++) {
 				int count = vca[j];
 				if (abs(count) < 3) {
-					fprintf(stderr, "ERROR: Primitive %s in %s has at least one face with vertex count < 3\n",
-					        type_str, name.c_str());
-					return false;
+					nonface_count++;
 				}
-				if (count < 0)
-				{
+
+				if (count < 0) {
 					hole_count ++;
 				}
 			}
 
-			if (hole_count > 0)
-			{
+			if (hole_count > 0) {
 				fprintf(stderr, "WARNING: Primitive %s in %s: %d holes not imported (unsupported)\n", type_str, name.c_str(), hole_count);
+			}
+
+			if (nonface_count > 0) {
+				fprintf(stderr, "WARNING: Primitive %s in %s: %d faces with vertex count < 3 (rejected)\n", type_str, name.c_str(), nonface_count);
 			}
 		}
 
