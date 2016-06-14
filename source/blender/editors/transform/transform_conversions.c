@@ -2676,6 +2676,20 @@ void flushTransSeq(TransInfo *t)
 				BKE_sequence_calc(t->scene, seq);
 			}
 		}
+
+		/* update effects inside meta's */
+		for (a = 0, seq_prev = NULL, td = t->data, td2d = t->data2d;
+		     a < t->total;
+		     a++, td++, td2d++, seq_prev = seq)
+		{
+			tdsq = (TransDataSeq *)td->extra;
+			seq = tdsq->seq;
+			if ((seq != seq_prev) && (seq->depth != 0)) {
+				if (seq->seq1 || seq->seq2 || seq->seq3) {
+					BKE_sequence_calc(t->scene, seq);
+				}
+			}
+		}
 	}
 
 	/* need to do the overlap check in a new loop otherwise adjacent strips
