@@ -259,10 +259,8 @@ static void confirm_suggestion(Text *text)
 
 //	for (i = 0; i < skipleft; i++)
 //		txt_move_left(text, 0);
-	for (i = 0; i < over; i++)
-		txt_move_left(text, 1);
-
-	txt_insert_buf(text, sel->name);
+	BLI_assert(memcmp(sel->name, &line[i], over) == 0);
+	txt_insert_buf(text, sel->name + over);
 
 //	for (i = 0; i < skipleft; i++)
 //		txt_move_right(text, 0);
