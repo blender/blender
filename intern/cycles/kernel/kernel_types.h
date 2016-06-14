@@ -292,7 +292,6 @@ enum PathRayFlag {
 	PATH_RAY_CURVE = 512, /* visibility flag to define curve segments */
 	PATH_RAY_VOLUME_SCATTER = 1024, /* volume scattering */
 
-	/* note that these can use maximum 12 bits, the other are for layers */
 	PATH_RAY_ALL_VISIBILITY = (1|2|4|8|16|32|64|128|256|512|1024),
 
 	PATH_RAY_MIS_SKIP = 2048,
