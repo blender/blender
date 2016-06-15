@@ -1579,11 +1579,19 @@ static void outliner_draw_tree_element(
 		glDisable(GL_BLEND);
 		
 		/* name */
-		if (active == OL_DRAWSEL_NORMAL) UI_ThemeColor(TH_TEXT_HI);
-		else if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) UI_ThemeColorBlend(TH_BACK, TH_TEXT, 0.75f);
-		else UI_ThemeColor(TH_TEXT);
-		
-		UI_fontstyle_draw_simple(fstyle, startx + offsx, *starty + 5 * ufac, te->name);
+		if ((tselem->flag & TSE_TEXTBUT) == 0) {
+			if (active == OL_DRAWSEL_NORMAL) {
+				UI_ThemeColor(TH_TEXT_HI);
+			}
+			else if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
+				UI_ThemeColorBlend(TH_BACK, TH_TEXT, 0.75f);
+			}
+			else {
+				UI_ThemeColor(TH_TEXT);
+			}
+
+			UI_fontstyle_draw_simple(fstyle, startx + offsx, *starty + 5 * ufac, te->name);
+		}
 		
 		offsx += (int)(UI_UNIT_X + UI_fontstyle_string_width(fstyle, te->name));
 		
