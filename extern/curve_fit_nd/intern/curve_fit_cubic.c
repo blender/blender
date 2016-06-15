@@ -1086,11 +1086,7 @@ static bool fit_cubic_to_points(
 	*r_error_max_sq = error_max_sq;
 	*r_split_index  = split_index;
 
-	if (error_max_sq < error_threshold_sq) {
-		free(u);
-		return true;
-	}
-	else {
+	if (!(error_max_sq < error_threshold_sq)) {
 		cubic_copy(cubic_test, r_cubic, dims);
 
 		/* If error not too large, try some reparameterization and iteration */
@@ -1108,23 +1104,26 @@ static bool fit_cubic_to_points(
 			        points_offset_coords_length,
 #endif
 			        u_prime, tan_l, tan_r, dims, cubic_test);
-			error_max_sq = cubic_calc_error(
+
+			const double error_max_sq_test = cubic_calc_error(
 			        cubic_test, points_offset, points_offset_len, u_prime, dims,
 			        &split_index);
 
-			if (error_max_sq < error_threshold_sq) {
-				free(u_prime);
-				free(u);
-
-				cubic_copy(r_cubic, cubic_test, dims);
-				*r_error_max_sq = error_max_sq;
-				*r_split_index  = split_index;
-				return true;
-			}
-			else if (error_max_sq < *r_error_max_sq) {
+			if (error_max_sq > error_max_sq_test) {
+				error_max_sq = error_max_sq_test;
 				cubic_copy(r_cubic, cubic_test, dims);
 				*r_error_max_sq = error_max_sq;
 				*r_split_index = split_index;
+			}
+
+			if (!(error_max_sq < error_threshold_sq)) {
+				/* continue */
+			}
+			else {
+				assert((error_max_sq < error_threshold_sq));
+				free(u_prime);
+				free(u);
+				return true;
 			}
 
 			SWAP(double *, u, u_prime);
@@ -1133,6 +1132,10 @@ static bool fit_cubic_to_points(
 		free(u);
 
 		return false;
+	}
+	else {
+		free(u);
+		return true;
 	}
 }
 
@@ -1145,6 +1148,7 @@ static void fit_cubic_to_points_recursive(
         const double  tan_l[],
         const double  tan_r[],
         const double  error_threshold_sq,
+        const uint    calc_flag,
         const uint    dims,
         /* fill in the list */
         CubicList *clist)
@@ -1158,8 +1162,11 @@ static void fit_cubic_to_points_recursive(
 #ifdef USE_LENGTH_CACHE
 	        points_length_cache,
 #endif
-	        tan_l, tan_r, error_threshold_sq, dims,
-	        cubic, &error_max_sq, &split_index))
+	        tan_l, tan_r,
+	        (calc_flag & CURVE_FIT_CALC_HIGH_QUALIY) ? DBL_EPSILON : error_threshold_sq,
+	        dims,
+	        cubic, &error_max_sq, &split_index) ||
+	    (error_max_sq < error_threshold_sq))
 	{
 		cubic_list_prepend(clist, cubic);
 		return;
@@ -1211,13 +1218,13 @@ static void fit_cubic_to_points_recursive(
 #ifdef USE_LENGTH_CACHE
 	        points_length_cache,
 #endif
-	        tan_l, tan_center, error_threshold_sq, dims, clist);
+	        tan_l, tan_center, error_threshold_sq, calc_flag, dims, clist);
 	fit_cubic_to_points_recursive(
 	        &points_offset[split_index * dims], points_offset_len - split_index,
 #ifdef USE_LENGTH_CACHE
 	        points_length_cache + split_index,
 #endif
-	        tan_center, tan_r, error_threshold_sq, dims, clist);
+	        tan_center, tan_r, error_threshold_sq, calc_flag, dims, clist);
 
 }
 
@@ -1240,6 +1247,7 @@ int curve_fit_cubic_to_points_db(
         const uint    points_len,
         const uint    dims,
         const double  error_threshold,
+        const uint    calc_flag,
         const uint   *corners,
         uint          corners_len,
 
@@ -1315,7 +1323,7 @@ int curve_fit_cubic_to_points_db(
 #ifdef USE_LENGTH_CACHE
 			        points_length_cache,
 #endif
-			        tan_l, tan_r, error_threshold_sq, dims, &clist);
+			        tan_l, tan_r, error_threshold_sq, calc_flag, dims, &clist);
 		}
 		else if (points_len == 1) {
 			assert(points_offset_len == 1);
@@ -1382,6 +1390,7 @@ int curve_fit_cubic_to_points_fl(
         const uint    points_len,
         const uint    dims,
         const float   error_threshold,
+        const uint    calc_flag,
         const uint   *corners,
         const uint    corners_len,
 
@@ -1399,7 +1408,7 @@ int curve_fit_cubic_to_points_fl(
 	uint    cubic_array_len = 0;
 
 	int result = curve_fit_cubic_to_points_db(
-	        points_db, points_len, dims, error_threshold, corners, corners_len,
+	        points_db, points_len, dims, error_threshold, calc_flag, corners, corners_len,
 	        &cubic_array_db, &cubic_array_len,
 	        r_cubic_orig_index,
 	        r_corner_index_array, r_corner_index_len);

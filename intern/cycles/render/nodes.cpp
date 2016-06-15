@@ -2985,7 +2985,7 @@ NODE_DEFINE(LightPathNode)
 
 	SOCKET_OUT_FLOAT(is_camera_ray, "Is Camera Ray");
 	SOCKET_OUT_FLOAT(is_shadow_ray, "Is Shadow Ray");
-	SOCKET_OUT_FLOAT(is_diffus_ray, "Is Diffus Ray");
+	SOCKET_OUT_FLOAT(is_diffuse_ray, "Is Diffuse Ray");
 	SOCKET_OUT_FLOAT(is_glossy_ray, "Is Glossy Ray");
 	SOCKET_OUT_FLOAT(is_singular_ray, "Is Singular Ray");
 	SOCKET_OUT_FLOAT(is_reflection_ray, "Is Reflection Ray");

@@ -296,10 +296,11 @@ static int logImageSetData10(LogImageFile *logImage, LogImageElement logElement,
 			row[index] = swap_uint(pixel, logImage->isMSB);
 
 		if (logimage_fwrite(row, rowLength, 1, logImage) == 0) {
-			if (verbose) printf("DPX/Cineon: Error while writing file.\n"); {
-				MEM_freeN(row);
-				return 1;
+			if (verbose) {
+				printf("DPX/Cineon: Error while writing file.\n");
 			}
+			MEM_freeN(row);
+			return 1;
 		}
 	}
 	MEM_freeN(row);

@@ -2418,15 +2418,20 @@ void ntreeInterfaceTypeUpdate(bNodeTree *ntree)
 
 /* ************ find stuff *************** */
 
+bNode *ntreeFindType(const bNodeTree *ntree, int type) {
+	if (ntree) {
+		for (bNode * node = ntree->nodes.first; node; node = node->next) {
+			if (node->type == type) {
+				return node;
+			}
+		}
+	}
+	return NULL;
+}
+
 bool ntreeHasType(const bNodeTree *ntree, int type)
 {
-	bNode *node;
-	
-	if (ntree)
-		for (node = ntree->nodes.first; node; node = node->next)
-			if (node->type == type)
-				return true;
-	return false;
+	return ntreeFindType(ntree, type) != NULL;
 }
 
 bool ntreeHasTree(const bNodeTree *ntree, const bNodeTree *lookup)

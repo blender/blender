@@ -55,7 +55,8 @@
 /* if the cost from #BLI_quadric_evaluate is 'noise', fallback to topology */
 #define USE_TOPOLOGY_FALLBACK
 #ifdef  USE_TOPOLOGY_FALLBACK
-#  define   TOPOLOGY_FALLBACK_EPS  FLT_EPSILON
+/* cost is calculated with double precision, it's ok to use a very small epsilon, see T48154. */
+#  define   TOPOLOGY_FALLBACK_EPS  1e-12f
 #endif
 
 /* these checks are for rare cases that we can't avoid since they are valid meshes still */

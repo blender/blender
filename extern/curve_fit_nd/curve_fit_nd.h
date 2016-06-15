@@ -60,6 +60,7 @@ int curve_fit_cubic_to_points_db(
         const unsigned int  points_len,
         const unsigned int  dims,
         const double        error_threshold,
+        const unsigned int  calc_flag,
         const unsigned int *corners,
         unsigned int        corners_len,
 
@@ -72,6 +73,7 @@ int curve_fit_cubic_to_points_fl(
         const unsigned int  points_len,
         const unsigned int  dims,
         const float         error_threshold,
+        const unsigned int  calc_flag,
         const unsigned int *corners,
         const unsigned int  corners_len,
 
@@ -116,6 +118,10 @@ int curve_fit_cubic_to_points_single_fl(
         float   r_handle_l[],
         float   r_handle_r[],
         float  *r_error_sq);
+
+enum {
+	CURVE_FIT_CALC_HIGH_QUALIY          = (1 << 0),
+};
 
 /* curve_fit_corners_detect.c */
 

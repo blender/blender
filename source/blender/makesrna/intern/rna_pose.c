@@ -898,7 +898,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_bbone_relative_start_handle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bboneflag", PCHAN_BBONE_CUSTOM_START_REL);
 	RNA_def_property_ui_text(prop, "Relative B-Bone Start Handle", 
-	                         "Use treat custom start handle position as a relative value");
+	                         "Treat custom start handle position as a relative value");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 	
@@ -914,7 +914,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_bbone_relative_end_handle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bboneflag", PCHAN_BBONE_CUSTOM_END_REL);
 	RNA_def_property_ui_text(prop, "Relative B-Bone End Handle", 
-	                         "Use treat custom end handle position as a relative value");
+	                         "Treat custom end handle position as a relative value");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 	

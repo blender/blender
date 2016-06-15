@@ -4144,7 +4144,12 @@ static void initSnapSpatial(TransInfo *t, float r_snap[3])
 			r_snap[2] = r_snap[1] * 0.1f;
 		}
 	}
-	else if (ELEM(t->spacetype, SPACE_IMAGE, SPACE_CLIP)) {
+	else if (t->spacetype == SPACE_IMAGE) {
+		r_snap[0] = 0.0f;
+		r_snap[1] = 0.0625f;
+		r_snap[2] = 0.03125f;
+	}
+	else if (t->spacetype == SPACE_CLIP) {
 		r_snap[0] = 0.0f;
 		r_snap[1] = 0.125f;
 		r_snap[2] = 0.0625f;
