@@ -34,6 +34,14 @@
 #include "BLI_math.h"
 #include "BLI_quadric.h"
 #include "BLI_heap.h"
+#include "BLI_linklist.h"
+#include "BLI_alloca.h"
+#include "BLI_memarena.h"
+#include "BLI_edgehash.h"
+#include "BLI_polyfill2d.h"
+#include "BLI_polyfill2d_beautify.h"
+#include "BLI_stackdefines.h"
+
 
 #include "BKE_customdata.h"
 
@@ -58,9 +66,6 @@
 /* cost is calculated with double precision, it's ok to use a very small epsilon, see T48154. */
 #  define   TOPOLOGY_FALLBACK_EPS  1e-12f
 #endif
-
-/* these checks are for rare cases that we can't avoid since they are valid meshes still */
-#define USE_SAFETY_CHECKS
 
 #define BOUNDARY_PRESERVE_WEIGHT 100.0f
 #define OPTIMIZE_EPS 0.01f  /* FLT_EPSILON is too small, see [#33106] */
@@ -473,12 +478,58 @@ static int *bm_edge_symmetry_map(BMesh *bm, unsigned int symmetry_axis, float li
  *
  * \return true if any faces were triangulated.
  */
+static bool bm_face_triangulate(
+        BMesh *bm, BMFace *f_base, LinkNode **r_faces_double, int *r_edges_tri_tot,
 
-static bool bm_decim_triangulate_begin(BMesh *bm)
+        MemArena *pf_arena,
+        /* use for MOD_TRIANGULATE_NGON_BEAUTY only! */
+        struct Heap *pf_heap, struct EdgeHash *pf_ehash)
+{
+	const int f_base_len = f_base->len;
+	int faces_array_tot = f_base_len - 3;
+	int edges_array_tot = f_base_len - 3;
+	BMFace  **faces_array = BLI_array_alloca(faces_array, faces_array_tot);
+	BMEdge  **edges_array = BLI_array_alloca(edges_array, edges_array_tot);
+	const int quad_method = 0, ngon_method = 0;  /* beauty */
+
+	bool has_cut = false;
+
+	const int f_index = BM_elem_index_get(f_base);
+
+	BM_face_triangulate(
+	        bm, f_base,
+	        faces_array, &faces_array_tot,
+	        edges_array, &edges_array_tot,
+	        r_faces_double,
+	        quad_method, ngon_method, false,
+	        pf_arena,
+	        pf_heap, pf_ehash);
+
+	for (int i = 0; i < edges_array_tot; i++) {
+		BMLoop *l_iter, *l_first;
+		l_iter = l_first = edges_array[i]->l;
+		do {
+			BM_elem_index_set(l_iter, f_index);  /* set_dirty */
+			has_cut = true;
+		} while ((l_iter = l_iter->radial_next) != l_first);
+	}
+
+	for (int i = 0; i < faces_array_tot; i++) {
+		BM_face_normal_update(faces_array[i]);
+	}
+
+	*r_edges_tri_tot += edges_array_tot;
+
+	return has_cut;
+}
+
+
+static bool bm_decim_triangulate_begin(BMesh *bm, int *r_edges_tri_tot)
 {
 	BMIter iter;
 	BMFace *f;
-	// bool has_quad;  // could optimize this a little
+	bool has_quad;
+	bool has_ngon;
 	bool has_cut = false;
 
 	BLI_assert((bm->elem_index_dirty & BM_VERT) == 0);
@@ -493,98 +544,103 @@ static bool bm_decim_triangulate_begin(BMesh *bm)
 			BM_elem_index_set(l_iter, -1);  /* set_dirty */
 		} while ((l_iter = l_iter->next) != l_first);
 
-		// has_quad |= (f->len == 4)
+		has_quad |= (f->len > 3);
+		has_ngon |= (f->len > 4);
 	}
 
 	bm->elem_index_dirty |= BM_LOOP;
 
-	/* adding new faces as we loop over faces
-	 * is normally best avoided, however in this case its not so bad because any face touched twice
-	 * will already be triangulated*/
-	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-		if (f->len == 4) {
-			BMLoop *f_l[4];
-			BMLoop *l_a, *l_b;
+	{
+		MemArena *pf_arena;
+		Heap *pf_heap;
+		EdgeHash *pf_ehash;
 
-			{
-				BMLoop *l_iter = BM_FACE_FIRST_LOOP(f);
+		LinkNode *faces_double = NULL;
 
-				f_l[0] = l_iter; l_iter = l_iter->next;
-				f_l[1] = l_iter; l_iter = l_iter->next;
-				f_l[2] = l_iter; l_iter = l_iter->next;
-				f_l[3] = l_iter;
-			}
+		if (has_ngon) {
+			pf_arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
+			pf_heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
+			pf_ehash = BLI_edgehash_new_ex(__func__, BLI_POLYFILL_ALLOC_NGON_RESERVE);
+		}
+		else {
+			pf_arena = NULL;
+			pf_heap = NULL;
+			pf_ehash = NULL;
+		}
 
-			if (len_squared_v3v3(f_l[0]->v->co, f_l[2]->v->co) <
-			    len_squared_v3v3(f_l[1]->v->co, f_l[3]->v->co))
-			{
-				l_a = f_l[0];
-				l_b = f_l[2];
-			}
-			else {
-				l_a = f_l[1];
-				l_b = f_l[3];
-			}
+		/* adding new faces as we loop over faces
+		 * is normally best avoided, however in this case its not so bad because any face touched twice
+		 * will already be triangulated*/
+		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+			if (f->len > 3) {
+				has_cut |= bm_face_triangulate(
+				        bm, f, &faces_double,
+				        r_edges_tri_tot,
 
-#ifdef USE_SAFETY_CHECKS
-			if (BM_edge_exists(l_a->v, l_b->v) == NULL)
-#endif
-			{
-				BMFace *f_new;
-				BMLoop *l_new;
-
-				/* warning, NO_DOUBLE option here isn't handled as nice as it could be
-				 * - if there is a quad that has a free standing edge joining it along
-				 * where we want to split the face, there isnt a good way we can handle this.
-				 * currently that edge will get removed when joining the tris back into a quad. */
-				f_new = BM_face_split(bm, f, l_a, l_b, &l_new, NULL, false);
-
-				if (f_new) {
-					/* the value of this doesn't matter, only that the 2 loops match and have unique values */
-					const int f_index = BM_elem_index_get(f);
-
-					/* since we just split theres only ever 2 loops */
-					BLI_assert(BM_edge_is_manifold(l_new->e));
-
-					BM_elem_index_set(l_new, f_index);  /* set_dirty */
-					BM_elem_index_set(l_new->radial_next, f_index);  /* set_dirty */
-
-					BM_face_normal_update(f);
-					BM_face_normal_update(f_new);
-
-					has_cut = true;
-				}
+				        pf_arena,
+				        pf_heap, pf_ehash);
 			}
 		}
-	}
 
-	BLI_assert((bm->elem_index_dirty & BM_VERT) == 0);
+		while (faces_double) {
+			LinkNode *next = faces_double->next;
+			BM_face_kill(bm, faces_double->link);
+			MEM_freeN(faces_double);
+			faces_double = next;
+		}
 
-	if (has_cut) {
-		/* now triangulation is done we need to correct index values */
-		BM_mesh_elem_index_ensure(bm, BM_EDGE | BM_FACE);
+		BLI_memarena_free(pf_arena);
+
+		if (has_ngon) {
+			BLI_heap_free(pf_heap, NULL);
+			BLI_edgehash_free(pf_ehash, NULL);
+		}
+
+		BLI_assert((bm->elem_index_dirty & BM_VERT) == 0);
+
+		if (has_cut) {
+			/* now triangulation is done we need to correct index values */
+			BM_mesh_elem_index_ensure(bm, BM_EDGE | BM_FACE);
+		}
 	}
 
 	return has_cut;
 }
 
-static void bm_decim_triangulate_end(BMesh *bm)
+
+static void bm_decim_triangulate_end(BMesh *bm, const int edges_tri_tot)
 {
 	/* decimation finished, now re-join */
 	BMIter iter;
-	BMEdge *e, *e_next;
+	BMEdge *e;
+
+	/* we need to collect before merging for ngons since the loops indices will be lost */
+	BMEdge **edges_tri = MEM_mallocN(MIN2(edges_tri_tot, bm->totedge) * sizeof(*edges_tri), __func__);
+	STACK_DECLARE(edges_tri);
 
 	/* boundary edges */
-	BM_ITER_MESH_MUTABLE (e, e_next, &iter, bm, BM_EDGES_OF_MESH) {
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		BMLoop *l_a, *l_b;
 		if (BM_edge_loop_pair(e, &l_a, &l_b)) {
 			const int l_a_index = BM_elem_index_get(l_a);
 			if (l_a_index != -1) {
 				const int l_b_index = BM_elem_index_get(l_b);
 				if (l_a_index == l_b_index) {
-					if (LIKELY(l_a->f->len == 3 && l_b->f->len == 3)) {
-						if (l_a->v != l_b->v) {  /* if this is the case, faces have become flipped */
-							/* check we are not making a degenerate quad */
+					if (l_a->v != l_b->v) {  /* if this is the case, faces have become flipped */
+						/* check we are not making a degenerate quad */
+
+#define CAN_LOOP_MERGE(l) \
+	(BM_loop_is_manifold(l) && \
+	 ((l)->v != (l)->radial_next->v) && \
+	 (l_a_index == BM_elem_index_get(l)) && \
+	 (l_a_index == BM_elem_index_get((l)->radial_next)))
+
+						if ((l_a->f->len == 3 && l_b->f->len == 3) &&
+						    (!CAN_LOOP_MERGE(l_a->next)) &&
+						    (!CAN_LOOP_MERGE(l_a->prev)) &&
+						    (!CAN_LOOP_MERGE(l_b->next)) &&
+						    (!CAN_LOOP_MERGE(l_b->prev)))
+						{
 							BMVert *vquad[4] = {
 								e->v1,
 								BM_vert_in_edge(e, l_a->next->v) ? l_a->prev->v : l_a->next->v,
@@ -597,17 +653,32 @@ static void bm_decim_triangulate_end(BMesh *bm)
 							BLI_assert(ELEM(vquad[2], vquad[1], vquad[0], vquad[3]) == false);
 							BLI_assert(ELEM(vquad[3], vquad[1], vquad[2], vquad[0]) == false);
 
-							if (is_quad_convex_v3(vquad[0]->co, vquad[1]->co, vquad[2]->co, vquad[3]->co)) {
-								/* highly unlikely to fail, but prevents possible double-ups */
-								BMFace *f[2] = {l_a->f, l_b->f};
-								BM_faces_join(bm, f, 2, true);
+							if (!is_quad_convex_v3(vquad[0]->co, vquad[1]->co, vquad[2]->co, vquad[3]->co)) {
+								continue;
 							}
 						}
+#undef CAN_LOOP_MERGE
+
+						/* highly unlikely to fail, but prevents possible double-ups */
+						STACK_PUSH(edges_tri, e);
 					}
 				}
 			}
 		}
 	}
+
+	for (int i = 0; i < STACK_SIZE(edges_tri); i++) {
+		BMLoop *l_a, *l_b;
+		e = edges_tri[i];
+		if (BM_edge_loop_pair(e, &l_a, &l_b)) {
+			BMFace *f_array[2] = {l_a->f, l_b->f};
+			BM_faces_join(bm, f_array, 2, false);
+			if (e->l == NULL) {
+				BM_edge_kill(bm, e);
+			}
+		}
+	}
+	MEM_freeN(edges_tri);
 }
 
 #endif  /* USE_TRIANGULATE */
@@ -1220,7 +1291,6 @@ void BM_mesh_decimate_collapse(
 	Quadric *vquadrics;      /* vert index aligned quadrics */
 	int tot_edge_orig;
 	int face_tot_target;
-	bool use_triangulate;
 
 	CD_UseFlag customdata_flag = 0;
 
@@ -1230,8 +1300,11 @@ void BM_mesh_decimate_collapse(
 #endif
 
 #ifdef USE_TRIANGULATE
+	int edges_tri_tot = 0;
 	/* temp convert quads to triangles */
-	use_triangulate = bm_decim_triangulate_begin(bm);
+	bool use_triangulate = bm_decim_triangulate_begin(bm, &edges_tri_tot);
+#else
+	UNUSED_VARS(do_triangulate);
 #endif
 
 
@@ -1416,7 +1489,7 @@ invalidate:
 		/* its possible we only had triangles, skip this step in that case */
 		if (LIKELY(use_triangulate)) {
 			/* temp convert quads to triangles */
-			bm_decim_triangulate_end(bm);
+			bm_decim_triangulate_end(bm, edges_tri_tot);
 		}
 	}
 #endif
