@@ -586,6 +586,14 @@ void IDP_WriteProperty(IDProperty *prop, void *wd)
 	IDP_WriteProperty_OnlyData(prop, wd);
 }
 
+static void write_iddata(void *wd, ID *id)
+{
+	/* ID_WM's id->properties are considered runtime only, and never written in .blend file. */
+	if (id->properties && !ELEM(GS(id->name), ID_WM)) {
+		IDP_WriteProperty(id->properties, wd);
+	}
+}
+
 static void write_previews(WriteData *wd, PreviewImage *prv)
 {
 	/* Never write previews when doing memsave (i.e. undo/redo)! */
@@ -714,8 +722,8 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 	for (act=idbase->first; act; act= act->id.next) {
 		if (act->id.us>0 || wd->current) {
 			writestruct(wd, ID_AC, "bAction", 1, act);
-			if (act->id.properties) IDP_WriteProperty(act->id.properties, wd);
-			
+			write_iddata(wd, &act->id);
+
 			write_fcurves(wd, &act->curves);
 			
 			for (grp=act->groups.first; grp; grp=grp->next) {
@@ -1467,11 +1475,8 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 		if (ob->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_OB, "Object", 1, ob);
-			
-			/* Write ID Properties -- and copy this comment EXACTLY for easy finding
-			 * of library blocks that implement this.*/
-			if (ob->id.properties) IDP_WriteProperty(ob->id.properties, wd);
-			
+			write_iddata(wd, &ob->id);
+
 			if (ob->adt) write_animdata(wd, ob->adt);
 			
 			/* direct data */
@@ -1540,7 +1545,7 @@ static void write_vfonts(WriteData *wd, ListBase *idbase)
 		if (vf->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_VF, "VFont", 1, vf);
-			if (vf->id.properties) IDP_WriteProperty(vf->id.properties, wd);
+			write_iddata(wd, &vf->id);
 
 			/* direct data */
 
@@ -1566,8 +1571,8 @@ static void write_keys(WriteData *wd, ListBase *idbase)
 		if (key->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_KE, "Key", 1, key);
-			if (key->id.properties) IDP_WriteProperty(key->id.properties, wd);
-			
+			write_iddata(wd, &key->id);
+
 			if (key->adt) write_animdata(wd, key->adt);
 			
 			/* direct data */
@@ -1594,8 +1599,8 @@ static void write_cameras(WriteData *wd, ListBase *idbase)
 		if (cam->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_CA, "Camera", 1, cam);
-			if (cam->id.properties) IDP_WriteProperty(cam->id.properties, wd);
-			
+			write_iddata(wd, &cam->id);
+
 			if (cam->adt) write_animdata(wd, cam->adt);
 		}
 
@@ -1613,7 +1618,7 @@ static void write_mballs(WriteData *wd, ListBase *idbase)
 		if (mb->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_MB, "MetaBall", 1, mb);
-			if (mb->id.properties) IDP_WriteProperty(mb->id.properties, wd);
+			write_iddata(wd, &mb->id);
 
 			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*mb->totcol, mb->mat);
@@ -1639,10 +1644,10 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 		if (cu->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_CU, "Curve", 1, cu);
-			
+			write_iddata(wd, &cu->id);
+
 			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*cu->totcol, cu->mat);
-			if (cu->id.properties) IDP_WriteProperty(cu->id.properties, wd);
 			if (cu->adt) write_animdata(wd, cu->adt);
 			
 			if (cu->vfont) {
@@ -1834,9 +1839,9 @@ static void write_meshes(WriteData *wd, ListBase *idbase)
 				CustomData_file_write_prepare(&mesh->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
 
 				writestruct_at_address(wd, ID_ME, "Mesh", 1, old_mesh, mesh);
+				write_iddata(wd, &mesh->id);
 
 				/* direct data */
-				if (mesh->id.properties) IDP_WriteProperty(mesh->id.properties, wd);
 				if (mesh->adt) write_animdata(wd, mesh->adt);
 
 				writedata(wd, DATA, sizeof(void *)*mesh->totcol, mesh->mat);
@@ -1892,9 +1897,9 @@ static void write_meshes(WriteData *wd, ListBase *idbase)
 #endif
 
 				writestruct_at_address(wd, ID_ME, "Mesh", 1, old_mesh, mesh);
+				write_iddata(wd, &mesh->id);
 
 				/* direct data */
-				if (mesh->id.properties) IDP_WriteProperty(mesh->id.properties, wd);
 				if (mesh->adt) write_animdata(wd, mesh->adt);
 
 				writedata(wd, DATA, sizeof(void *)*mesh->totcol, mesh->mat);
@@ -1947,8 +1952,8 @@ static void write_lattices(WriteData *wd, ListBase *idbase)
 		if (lt->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_LT, "Lattice", 1, lt);
-			if (lt->id.properties) IDP_WriteProperty(lt->id.properties, wd);
-			
+			write_iddata(wd, &lt->id);
+
 			/* write animdata */
 			if (lt->adt) write_animdata(wd, lt->adt);
 			
@@ -1981,7 +1986,7 @@ static void write_images(WriteData *wd, ListBase *idbase)
 
 			/* write LibData */
 			writestruct(wd, ID_IM, "Image", 1, ima);
-			if (ima->id.properties) IDP_WriteProperty(ima->id.properties, wd);
+			write_iddata(wd, &ima->id);
 
 			for (imapf = ima->packedfiles.first; imapf; imapf = imapf->next) {
 				writestruct(wd, DATA, "ImagePackedFile", 1, imapf);
@@ -2015,7 +2020,7 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 		if (tex->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_TE, "Tex", 1, tex);
-			if (tex->id.properties) IDP_WriteProperty(tex->id.properties, wd);
+			write_iddata(wd, &tex->id);
 
 			if (tex->adt) write_animdata(wd, tex->adt);
 
@@ -2055,13 +2060,8 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 		if (ma->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_MA, "Material", 1, ma);
-			
-			/* Write ID Properties -- and copy this comment EXACTLY for easy finding
-			 * of library blocks that implement this.*/
-			/* manually set head group property to IDP_GROUP, just in case it hadn't been
-			 * set yet :) */
-			if (ma->id.properties) IDP_WriteProperty(ma->id.properties, wd);
-			
+			write_iddata(wd, &ma->id);
+
 			if (ma->adt) write_animdata(wd, ma->adt);
 
 			for (a=0; a<MAX_MTEX; a++) {
@@ -2093,8 +2093,8 @@ static void write_worlds(WriteData *wd, ListBase *idbase)
 		if (wrld->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_WO, "World", 1, wrld);
-			if (wrld->id.properties) IDP_WriteProperty(wrld->id.properties, wd);
-			
+			write_iddata(wd, &wrld->id);
+
 			if (wrld->adt) write_animdata(wd, wrld->adt);
 			
 			for (a=0; a<MAX_MTEX; a++) {
@@ -2123,8 +2123,8 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 		if (la->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_LA, "Lamp", 1, la);
-			if (la->id.properties) IDP_WriteProperty(la->id.properties, wd);
-			
+			write_iddata(wd, &la->id);
+
 			if (la->adt) write_animdata(wd, la->adt);
 			
 			/* direct data */
@@ -2208,8 +2208,8 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	while (sce) {
 		/* write LibData */
 		writestruct(wd, ID_SCE, "Scene", 1, sce);
-		if (sce->id.properties) IDP_WriteProperty(sce->id.properties, wd);
-		
+		write_iddata(wd, &sce->id);
+
 		if (sce->adt) write_animdata(wd, sce->adt);
 		write_keyingsets(wd, &sce->keyingsets);
 		
@@ -2389,7 +2389,8 @@ static void write_gpencils(WriteData *wd, ListBase *lb)
 		if (gpd->id.us>0 || wd->current) {
 			/* write gpd data block to file */
 			writestruct(wd, ID_GD, "bGPdata", 1, gpd);
-			
+			write_iddata(wd, &gpd->id);
+
 			if (gpd->adt) write_animdata(wd, gpd->adt);
 			
 			/* write grease-pencil layers to file */
@@ -2418,7 +2419,8 @@ static void write_windowmanagers(WriteData *wd, ListBase *lb)
 	
 	for (wm= lb->first; wm; wm= wm->id.next) {
 		writestruct(wd, ID_WM, "wmWindowManager", 1, wm);
-		
+		write_iddata(wd, &wm->id);
+
 		for (win= wm->windows.first; win; win= win->next) {
 			writestruct(wd, DATA, "wmWindow", 1, win);
 			writestruct(wd, DATA, "Stereo3dFormat", 1, win->stereo3d_format);
@@ -2518,9 +2520,8 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 		/* write LibData */
 		/* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
 		writestruct(wd, ID_SCRN, "Screen", 1, sc);
-		if (sc->id.properties) 
-			IDP_WriteProperty(sc->id.properties, wd);
-		
+		write_iddata(wd, &sc->id);
+
 		/* direct data */
 		for (sv= sc->vertbase.first; sv; sv= sv->next)
 			writestruct(wd, DATA, "ScrVert", 1, sv);
@@ -2675,63 +2676,6 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
-static void write_libraries(WriteData *wd, Main *main)
-{
-	ListBase *lbarray[MAX_LIBARRAY];
-	ID *id;
-	int a, tot;
-	bool found_one;
-
-	for (; main; main= main->next) {
-
-		a=tot= set_listbasepointers(main, lbarray);
-
-		/* test: is lib being used */
-		if (main->curlib && main->curlib->packedfile)
-			found_one = true;
-		else {
-			found_one = false;
-			while (tot--) {
-				for (id= lbarray[tot]->first; id; id= id->next) {
-					if (id->us > 0 && (id->tag & LIB_TAG_EXTERN)) {
-						found_one = true;
-						break;
-					}
-				}
-				if (found_one) break;
-			}
-		}
-		
-		/* to be able to restore quit.blend and temp saves, the packed blend has to be in undo buffers... */
-		/* XXX needs rethink, just like save UI in undo files now - would be nice to append things only for the]
-		 * quit.blend and temp saves */
-		if (found_one) {
-			writestruct(wd, ID_LI, "Library", 1, main->curlib);
-
-			if (main->curlib->packedfile) {
-				PackedFile *pf = main->curlib->packedfile;
-				writestruct(wd, DATA, "PackedFile", 1, pf);
-				writedata(wd, DATA, pf->size, pf->data);
-				if (wd->current == NULL)
-					printf("write packed .blend: %s\n", main->curlib->name);
-			}
-			
-			while (a--) {
-				for (id= lbarray[a]->first; id; id= id->next) {
-					if (id->us > 0 && (id->tag & LIB_TAG_EXTERN)) {
-						if (!BKE_idcode_is_linkable(GS(id->name))) {
-							printf("ERROR: write file: datablock '%s' from lib '%s' is not linkable "
-							       "but is flagged as directly linked", id->name, main->curlib->filepath);
-							BLI_assert(0);
-						}
-						writestruct(wd, ID_ID, "ID", 1, id);
-					}
-				}
-			}
-		}
-	}
-}
-
 static void write_bone(WriteData *wd, Bone *bone)
 {
 	Bone*	cbone;
@@ -2764,7 +2708,7 @@ static void write_armatures(WriteData *wd, ListBase *idbase)
 	while (arm) {
 		if (arm->id.us>0 || wd->current) {
 			writestruct(wd, ID_AR, "bArmature", 1, arm);
-			if (arm->id.properties) IDP_WriteProperty(arm->id.properties, wd);
+			write_iddata(wd, &arm->id);
 
 			if (arm->adt) write_animdata(wd, arm->adt);
 
@@ -2793,8 +2737,9 @@ static void write_texts(WriteData *wd, ListBase *idbase)
 
 		/* write LibData */
 		writestruct(wd, ID_TXT, "Text", 1, text);
+		write_iddata(wd, &text->id);
+
 		if (text->name) writedata(wd, DATA, strlen(text->name)+1, text->name);
-		if (text->id.properties) IDP_WriteProperty(text->id.properties, wd);
 
 		if (!(text->flags & TXT_ISEXT)) {
 			/* now write the text data, in two steps for optimization in the readfunction */
@@ -2828,7 +2773,7 @@ static void write_speakers(WriteData *wd, ListBase *idbase)
 		if (spk->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_SPK, "Speaker", 1, spk);
-			if (spk->id.properties) IDP_WriteProperty(spk->id.properties, wd);
+			write_iddata(wd, &spk->id);
 
 			if (spk->adt) write_animdata(wd, spk->adt);
 		}
@@ -2847,7 +2792,7 @@ static void write_sounds(WriteData *wd, ListBase *idbase)
 		if (sound->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_SO, "bSound", 1, sound);
-			if (sound->id.properties) IDP_WriteProperty(sound->id.properties, wd);
+			write_iddata(wd, &sound->id);
 
 			if (sound->packedfile) {
 				pf = sound->packedfile;
@@ -2871,7 +2816,7 @@ static void write_groups(WriteData *wd, ListBase *idbase)
 		if (group->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_GR, "Group", 1, group);
-			if (group->id.properties) IDP_WriteProperty(group->id.properties, wd);
+			write_iddata(wd, &group->id);
 
 			write_previews(wd, group->preview);
 
@@ -2891,11 +2836,11 @@ static void write_nodetrees(WriteData *wd, ListBase *idbase)
 	for (ntree=idbase->first; ntree; ntree= ntree->id.next) {
 		if (ntree->id.us>0 || wd->current) {
 			writestruct(wd, ID_NT, "bNodeTree", 1, ntree);
+			/* Note that trees directly used by other IDs (materials etc.) are not 'real' ID, they cannot
+			 * be linked, etc., so we write actual id data here only, for 'real' ID trees. */
+			write_iddata(wd, &ntree->id);
+
 			write_nodetree(wd, ntree);
-			
-			if (ntree->id.properties) IDP_WriteProperty(ntree->id.properties, wd);
-			
-			if (ntree->adt) write_animdata(wd, ntree->adt);
 		}
 	}
 }
@@ -2974,8 +2919,8 @@ static void write_brushes(WriteData *wd, ListBase *idbase)
 	for (brush=idbase->first; brush; brush= brush->id.next) {
 		if (brush->id.us>0 || wd->current) {
 			writestruct(wd, ID_BR, "Brush", 1, brush);
-			if (brush->id.properties) IDP_WriteProperty(brush->id.properties, wd);
-			
+			write_iddata(wd, &brush->id);
+
 			if (brush->curve)
 				write_curvemapping(wd, brush->curve);
 			if (brush->gradient)
@@ -2992,7 +2937,7 @@ static void write_palettes(WriteData *wd, ListBase *idbase)
 		if (palette->id.us > 0 || wd->current) {
 			PaletteColor *color;
 			writestruct(wd, ID_PAL, "Palette", 1, palette);
-			if (palette->id.properties) IDP_WriteProperty(palette->id.properties, wd);
+			write_iddata(wd, &palette->id);
 
 			for (color = palette->colors.first; color; color= color->next)
 				writestruct(wd, DATA, "PaletteColor", 1, color);
@@ -3007,9 +2952,9 @@ static void write_paintcurves(WriteData *wd, ListBase *idbase)
 	for (pc = idbase->first; pc; pc = pc->id.next) {
 		if (pc->id.us > 0 || wd->current) {
 			writestruct(wd, ID_PC, "PaintCurve", 1, pc);
+			write_iddata(wd, &pc->id);
 
 			writestruct(wd, DATA, "PaintCurvePoint", pc->tot_points, pc->points);
-			if (pc->id.properties) IDP_WriteProperty(pc->id.properties, wd);
 		}
 	}
 }
@@ -3059,10 +3004,9 @@ static void write_movieclips(WriteData *wd, ListBase *idbase)
 		if (clip->id.us>0 || wd->current) {
 			MovieTracking *tracking= &clip->tracking;
 			MovieTrackingObject *object;
-			writestruct(wd, ID_MC, "MovieClip", 1, clip);
 
-			if (clip->id.properties)
-				IDP_WriteProperty(clip->id.properties, wd);
+			writestruct(wd, ID_MC, "MovieClip", 1, clip);
+			write_iddata(wd, &clip->id);
 
 			if (clip->adt)
 				write_animdata(wd, clip->adt);
@@ -3100,6 +3044,7 @@ static void write_masks(WriteData *wd, ListBase *idbase)
 			MaskLayer *masklay;
 
 			writestruct(wd, ID_MSK, "Mask", 1, mask);
+			write_iddata(wd, &mask->id);
 
 			if (mask->adt)
 				write_animdata(wd, mask->adt);
@@ -3405,8 +3350,8 @@ static void write_linestyles(WriteData *wd, ListBase *idbase)
 	for (linestyle = idbase->first; linestyle; linestyle = linestyle->id.next) {
 		if (linestyle->id.us>0 || wd->current) {
 			writestruct(wd, ID_LS, "FreestyleLineStyle", 1, linestyle);
-			if (linestyle->id.properties)
-				IDP_WriteProperty(linestyle->id.properties, wd);
+			write_iddata(wd, &linestyle->id);
+
 			if (linestyle->adt)
 				write_animdata(wd, linestyle->adt);
 			write_linestyle_color_modifiers(wd, &linestyle->color_modifiers);
@@ -3419,6 +3364,65 @@ static void write_linestyles(WriteData *wd, ListBase *idbase)
 			if (linestyle->nodetree) {
 				writestruct(wd, DATA, "bNodeTree", 1, linestyle->nodetree);
 				write_nodetree(wd, linestyle->nodetree);
+			}
+		}
+	}
+}
+
+/* Keep it last of write_foodata functions. */
+static void write_libraries(WriteData *wd, Main *main)
+{
+	ListBase *lbarray[MAX_LIBARRAY];
+	ID *id;
+	int a, tot;
+	bool found_one;
+
+	for (; main; main= main->next) {
+
+		a=tot= set_listbasepointers(main, lbarray);
+
+		/* test: is lib being used */
+		if (main->curlib && main->curlib->packedfile)
+			found_one = true;
+		else {
+			found_one = false;
+			while (tot--) {
+				for (id= lbarray[tot]->first; id; id= id->next) {
+					if (id->us > 0 && (id->tag & LIB_TAG_EXTERN)) {
+						found_one = true;
+						break;
+					}
+				}
+				if (found_one) break;
+			}
+		}
+
+		/* to be able to restore quit.blend and temp saves, the packed blend has to be in undo buffers... */
+		/* XXX needs rethink, just like save UI in undo files now - would be nice to append things only for the]
+		 * quit.blend and temp saves */
+		if (found_one) {
+			writestruct(wd, ID_LI, "Library", 1, main->curlib);
+			write_iddata(wd, &main->curlib->id);
+
+			if (main->curlib->packedfile) {
+				PackedFile *pf = main->curlib->packedfile;
+				writestruct(wd, DATA, "PackedFile", 1, pf);
+				writedata(wd, DATA, pf->size, pf->data);
+				if (wd->current == NULL)
+					printf("write packed .blend: %s\n", main->curlib->name);
+			}
+
+			while (a--) {
+				for (id= lbarray[a]->first; id; id= id->next) {
+					if (id->us > 0 && (id->tag & LIB_TAG_EXTERN)) {
+						if (!BKE_idcode_is_linkable(GS(id->name))) {
+							printf("ERROR: write file: datablock '%s' from lib '%s' is not linkable "
+							       "but is flagged as directly linked", id->name, main->curlib->filepath);
+							BLI_assert(0);
+						}
+						writestruct(wd, ID_ID, "ID", 1, id);
+					}
+				}
 			}
 		}
 	}

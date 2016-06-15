@@ -104,7 +104,8 @@ void ED_fileselect_clear(struct wmWindowManager *wm, struct ScrArea *sa, struct 
 
 void ED_fileselect_exit(struct wmWindowManager *wm, struct ScrArea *sa, struct SpaceFile *sfile);
 
-int ED_file_extension_icon(const char *relname);
+int ED_path_extension_type(const char *path);
+int ED_file_extension_icon(const char *path);
 
 void ED_file_read_bookmarks(void);
 

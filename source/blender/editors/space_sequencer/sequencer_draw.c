@@ -839,23 +839,23 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 	else
 		UI_GetColorPtrShade3ubv(col, col, outline_tint);
 	
-	glColor3ubv((GLubyte *)col);
-	
+	if ((seq->type == SEQ_TYPE_META) ||
+	    ((seq->type == SEQ_TYPE_SCENE) && (seq->flag & SEQ_SCENE_STRIPS)))
+	{
+		drawmeta_contents(scene, seq, x1, y1, x2, y2);
+	}
+
 	if (seq->flag & SEQ_MUTE) {
 		glEnable(GL_LINE_STIPPLE);
 		glLineStipple(1, 0x8888);
 	}
 	
+	glColor3ubv((GLubyte *)col);
+	
 	UI_draw_roundbox_shade_x(GL_LINE_LOOP, x1, y1, x2, y2, 0.0, 0.1, 0.0);
 	
 	if (seq->flag & SEQ_MUTE) {
 		glDisable(GL_LINE_STIPPLE);
-	}
-	
-	if ((seq->type == SEQ_TYPE_META) ||
-	    ((seq->type == SEQ_TYPE_SCENE) && (seq->flag & SEQ_SCENE_STRIPS)))
-	{
-		drawmeta_contents(scene, seq, x1, y1, x2, y2);
 	}
 	
 	/* calculate if seq is long enough to print a name */

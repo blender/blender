@@ -101,7 +101,7 @@ def region_2d_to_origin_3d(region, rv3d, coord, clamp=None):
         persinv = persmat.inverted()
         origin_start = ((persinv.col[0].xyz * dx) +
                         (persinv.col[1].xyz * dy) +
-                        viewinv.translation)
+                        persinv.translation)
 
         if clamp != 0.0:
             if rv3d.view_perspective != 'CAMERA':
