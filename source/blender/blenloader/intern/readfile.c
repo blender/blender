@@ -5619,7 +5619,6 @@ static void lib_link_scene(FileData *fd, Main *main)
 			for (base = sce->base.first; base; base = next) {
 				next = base->next;
 				
-				/* base->object= newlibadr_us(fd, sce->id.lib, base->object); */
 				base->object = newlibadr_us(fd, sce->id.lib, base->object);
 				
 				if (base->object == NULL) {
