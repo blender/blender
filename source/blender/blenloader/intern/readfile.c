@@ -1514,6 +1514,15 @@ void *blo_do_versions_newlibadr_us(FileData *fd, const void *lib, const void *ad
 	return newlibadr_us(fd, lib, adr);
 }
 
+static void *newlibadr_real_us(FileData *fd, const void *lib, const void *adr)	/* ensures real user */
+{
+	ID *id = newlibadr(fd, lib, adr);
+
+	id_us_ensure_real(id);
+
+	return id;
+}
+
 static void change_idid_adr_fd(FileData *fd, const void *old, void *new)
 {
 	int i;
@@ -4294,8 +4303,7 @@ static void lib_link_mtface(FileData *fd, Mesh *me, MTFace *mtface, int totface)
 	 * little bogus; it would be better if each mesh consistently added one ref
 	 * to each image it used. - z0r */
 	for (i = 0; i < totface; i++, tf++) {
-		tf->tpage= newlibadr(fd, me->id.lib, tf->tpage);
-		id_us_ensure_real(&tf->tpage->id);
+		tf->tpage = newlibadr_real_us(fd, me->id.lib, tf->tpage);
 	}
 }
 
@@ -4323,8 +4331,7 @@ static void lib_link_customdata_mtpoly(FileData *fd, Mesh *me, CustomData *pdata
 			int j;
 			
 			for (j = 0; j < totface; j++, tf++) {
-				tf->tpage = newlibadr(fd, me->id.lib, tf->tpage);
-				id_us_ensure_real((ID *)tf->tpage);
+				tf->tpage = newlibadr_real_us(fd, me->id.lib, tf->tpage);
 			}
 		}
 	}
@@ -7345,12 +7352,11 @@ static void lib_link_group(FileData *fd, Main *main)
 			add_us = false;
 			
 			for (go = group->gobject.first; go; go = go->next) {
-				go->ob= newlibadr(fd, group->id.lib, go->ob);
+				go->ob = newlibadr_real_us(fd, group->id.lib, go->ob);
 				if (go->ob) {
 					go->ob->flag |= OB_FROMGROUP;
 					/* if group has an object, it increments user... */
 					add_us = true;
-					id_us_ensure_real(&go->ob->id);
 				}
 			}
 			if (add_us) {
