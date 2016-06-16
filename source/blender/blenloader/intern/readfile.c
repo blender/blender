@@ -2184,9 +2184,10 @@ static void lib_link_brush(FileData *fd, Main *main)
 		if (brush->id.tag & LIB_TAG_NEED_LINK) {
 			brush->id.tag &= ~LIB_TAG_NEED_LINK;
 			
+			/* brush->(mask_)mtex.obj is ignored on purpose? */
 			brush->mtex.tex = newlibadr_us(fd, brush->id.lib, brush->mtex.tex);
 			brush->mask_mtex.tex = newlibadr_us(fd, brush->id.lib, brush->mask_mtex.tex);
-			brush->clone.image = newlibadr_us(fd, brush->id.lib, brush->clone.image);
+			brush->clone.image = newlibadr(fd, brush->id.lib, brush->clone.image);
 			brush->toggle_brush = newlibadr(fd, brush->id.lib, brush->toggle_brush);
 			brush->paint_curve = newlibadr_us(fd, brush->id.lib, brush->paint_curve);
 		}
@@ -3816,7 +3817,7 @@ static void lib_link_texture(FileData *fd, Main *main)
 			lib_link_animdata(fd, &tex->id, tex->adt);
 			
 			tex->ima = newlibadr_us(fd, tex->id.lib, tex->ima);
-			tex->ipo = newlibadr_us(fd, tex->id.lib, tex->ipo);
+			tex->ipo = newlibadr_us(fd, tex->id.lib, tex->ipo);  // XXX deprecated - old animation system
 			if (tex->env)
 				tex->env->object = newlibadr(fd, tex->id.lib, tex->env->object);
 			if (tex->pd)
@@ -3900,7 +3901,7 @@ static void lib_link_material(FileData *fd, Main *main)
 			 * of library blocks that implement this.*/
 			IDP_LibLinkProperty(ma->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 			
-			ma->ipo = newlibadr_us(fd, ma->id.lib, ma->ipo);
+			ma->ipo = newlibadr_us(fd, ma->id.lib, ma->ipo);  // XXX deprecated - old animation system
 			ma->group = newlibadr_us(fd, ma->id.lib, ma->group);
 			
 			for (a = 0; a < MAX_MTEX; a++) {
@@ -4881,7 +4882,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 				
 				if (fluidmd && fluidmd->fss)
-					fluidmd->fss->ipo = newlibadr_us(fd, ob->id.lib, fluidmd->fss->ipo);
+					fluidmd->fss->ipo = newlibadr_us(fd, ob->id.lib, fluidmd->fss->ipo);  // XXX deprecated - old animation system
 			}
 			
 			{
@@ -5632,7 +5633,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 			
 			SEQ_BEGIN (sce->ed, seq)
 			{
-				if (seq->ipo) seq->ipo = newlibadr_us(fd, sce->id.lib, seq->ipo);
+				if (seq->ipo) seq->ipo = newlibadr_us(fd, sce->id.lib, seq->ipo);  // XXX deprecated - old animation system
 				seq->scene_sound = NULL;
 				if (seq->scene) {
 					seq->scene = newlibadr(fd, sce->id.lib, seq->scene);
@@ -6272,8 +6273,8 @@ static void lib_link_screen(FileData *fd, Main *main)
 					else if (sl->spacetype == SPACE_IMAGE) {
 						SpaceImage *sima = (SpaceImage *)sl;
 						
-						sima->image = newlibadr_us(fd, sc->id.lib, sima->image);
-						sima->mask_info.mask = newlibadr_us(fd, sc->id.lib, sima->mask_info.mask);
+						sima->image = newlibadr_real_us(fd, sc->id.lib, sima->image);
+						sima->mask_info.mask = newlibadr_real_us(fd, sc->id.lib, sima->mask_info.mask);
 
 						/* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
 						 * so fingers crossed this works fine!
@@ -6379,8 +6380,8 @@ static void lib_link_screen(FileData *fd, Main *main)
 					else if (sl->spacetype == SPACE_CLIP) {
 						SpaceClip *sclip = (SpaceClip *)sl;
 						
-						sclip->clip = newlibadr_us(fd, sc->id.lib, sclip->clip);
-						sclip->mask_info.mask = newlibadr_us(fd, sc->id.lib, sclip->mask_info.mask);
+						sclip->clip = newlibadr_real_us(fd, sc->id.lib, sclip->clip);
+						sclip->mask_info.mask = newlibadr_real_us(fd, sc->id.lib, sclip->mask_info.mask);
 					}
 					else if (sl->spacetype == SPACE_LOGIC) {
 						SpaceLogic *slogic = (SpaceLogic *)sl;
