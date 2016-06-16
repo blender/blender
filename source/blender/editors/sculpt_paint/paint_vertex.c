@@ -502,6 +502,51 @@ bool ED_vpaint_smooth(Object *ob)
 	return true;
 }
 
+/**
+ * Apply callback to each vertex of the active vertex color layer.
+ */
+bool ED_vpaint_color_transform(
+        struct Object *ob,
+        VPaintTransform_Callback vpaint_tx_fn,
+        const void *user_data)
+{
+	Mesh *me;
+	const MPoly *mp;
+
+	if (((me = BKE_mesh_from_object(ob)) == NULL) ||
+	    (me->mloopcol == NULL && (make_vertexcol(ob) == false)))
+	{
+		return false;
+	}
+
+	const bool do_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
+	mp = me->mpoly;
+
+	for (int i = 0; i < me->totpoly; i++, mp++) {
+		MLoopCol *lcol = &me->mloopcol[mp->loopstart];
+
+		if (do_face_sel && !(mp->flag & ME_FACE_SEL)) {
+			continue;
+		}
+
+		for (int j = 0; j < mp->totloop; j++, lcol++) {
+			float col[3];
+			rgb_uchar_to_float(col, &lcol->r);
+
+			vpaint_tx_fn(col, user_data, col);
+
+			rgb_float_to_uchar(&lcol->r, col);
+		}
+	}
+
+	/* remove stale me->mcol, will be added later */
+	BKE_mesh_tessface_clear(me);
+
+	DAG_id_tag_update(&me->id, 0);
+
+	return true;
+}
+
 /* XXX: should be re-implemented as a vertex/weight paint 'color correct' operator */
 #if 0
 void vpaint_dogamma(Scene *scene)
