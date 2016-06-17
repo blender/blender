@@ -1564,8 +1564,8 @@ NODE_DEFINE(RGBToBWNode)
 {
 	NodeType* type = NodeType::add("rgb_to_bw", create, NodeType::SHADER);
 
-	SOCKET_IN_POINT(color, "Color", make_float3(0.0f, 0.0f, 0.0f));
-	SOCKET_OUT_POINT(val, "Val");
+	SOCKET_IN_COLOR(color, "Color", make_float3(0.0f, 0.0f, 0.0f));
+	SOCKET_OUT_FLOAT(val, "Val");
 
 	return type;
 }
