@@ -57,6 +57,8 @@
 
 #include "RE_shader_ext.h"
 
+#include "NOD_common.h"
+
 #include "node_common.h"
 #include "node_exec.h"
 #include "node_util.h"
@@ -323,6 +325,9 @@ static void ntree_shader_link_builtin_group_normal(
 	                                "NodeSocketVector",
 	                                "Normal");
 	/* Need to update tree so all node instances nodes gets proper sockets. */
+	bNode *group_input_node = ntreeFindType(group_ntree, NODE_GROUP_INPUT);
+	node_group_verify(ntree, group_node, &group_ntree->id);
+	node_group_input_verify(group_ntree, group_input_node, &group_ntree->id);
 	ntreeUpdateTree(G.main, group_ntree);
 	/* Assumes sockets are always added at the end. */
 	bNodeSocket *group_node_normal_socket = (bNodeSocket*)group_node->inputs.last;
@@ -346,7 +351,6 @@ static void ntree_shader_link_builtin_group_normal(
 		/* This code is similar to ntree_shader_relink_displacement() */
 		bNode *group_displacement_node = group_displacement_link->fromnode;
 		bNodeSocket *group_displacement_socket = group_displacement_link->fromsock;
-		nodeRemLink(group_ntree, group_displacement_link);
 		/* Create and link bump node.
 		 * Can't re-use bump node from parent tree because it'll cause cycle.
 		 */
@@ -371,7 +375,6 @@ static void ntree_shader_link_builtin_group_normal(
 		nodeAddLink(ntree,
 		            node_from, socket_from,
 		            group_node, group_node_normal_socket);
-		bNode *group_input_node = ntreeFindType(group_ntree, NODE_GROUP_INPUT);
 		BLI_assert(group_input_node != NULL);
 		bNodeSocket *group_input_node_normal_socket =
 		        nodeFindSocket(group_input_node,
