@@ -3761,7 +3761,7 @@ NODE_DEFINE(CombineXYZNode)
 	SOCKET_IN_FLOAT(y, "Y", 0.0f);
 	SOCKET_IN_FLOAT(z, "Z", 0.0f);
 
-	SOCKET_OUT_COLOR(color, "Image");
+	SOCKET_OUT_VECTOR(vector, "Vector");
 
 	return type;
 }
