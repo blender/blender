@@ -4991,6 +4991,13 @@ OSLNode::~OSLNode()
 	delete type;
 }
 
+ShaderNode *OSLNode::clone() const
+{
+	OSLNode *node = new OSLNode(*this);
+	node->type = new NodeType(*type);
+	return node;
+}
+
 OSLNode* OSLNode::create(size_t num_inputs)
 {
 	/* allocate space for the node itself and parameters, aligned to 16 bytes

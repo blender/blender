@@ -912,11 +912,13 @@ public:
 	static OSLNode *create(size_t num_inputs);
 	~OSLNode();
 
+	ShaderNode *clone() const;
+
 	char* input_default_value();
 	void add_input(ustring name, SocketType::Type type);
 	void add_output(ustring name, SocketType::Type type);
 
-	SHADER_NODE_BASE_CLASS(OSLNode)
+	SHADER_NODE_NO_CLONE_CLASS(OSLNode)
 
 	/* ideally we could beter detect this, but we can't query this now */
 	bool has_spatial_varying() { return true; }
@@ -924,9 +926,6 @@ public:
 
 	string filepath;
 	string bytecode_hash;
-
-private:
-	OSLNode();
 };
 
 class NormalMapNode : public ShaderNode {
