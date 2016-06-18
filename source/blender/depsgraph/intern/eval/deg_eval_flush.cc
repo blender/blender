@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/intern/depsgraph_tag.cc
+/** \file blender/depsgraph/intern/eval/deg_eval_flush.cc
  *  \ingroup depsgraph
  *
  * Core routines for how the Depsgraph works.

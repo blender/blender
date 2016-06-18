@@ -2288,7 +2288,7 @@ static int remove_tagged_particles(Object *ob, ParticleSystem *psys, int mirror)
 			npoint= new_points= MEM_callocN(new_totpart * sizeof(PTCacheEditPoint), "PTCacheEditKey array");
 
 			if (ELEM(NULL, new_pars, new_points)) {
-				 /* allocation error! */
+				/* allocation error! */
 				if (new_pars)
 					MEM_freeN(new_pars);
 				if (new_points)

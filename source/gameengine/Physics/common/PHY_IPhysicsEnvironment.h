@@ -116,7 +116,7 @@ public:
 class PHY_IPhysicsEnvironment
 {
 	public:
-		virtual		~PHY_IPhysicsEnvironment(){}
+		virtual		~PHY_IPhysicsEnvironment() {}
 		virtual	void		BeginFrame() = 0;
 		virtual void		EndFrame() = 0;
 		/// Perform an integration step of duration 'timeStep'.

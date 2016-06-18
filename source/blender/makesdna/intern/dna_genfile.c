@@ -1148,7 +1148,7 @@ void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 
 		/* test: is type a struct? */
 		if (spc[0] >= firststructtypenr && !ispointer(name)) {
-		  /* struct field type */
+			/* struct field type */
 			/* where does the old data start (is there one?) */
 			cpo = find_elem(oldsdna, type, name, spo, data, NULL);
 			if (cpo) {

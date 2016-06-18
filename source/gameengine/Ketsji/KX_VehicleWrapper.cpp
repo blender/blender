@@ -89,17 +89,17 @@ PyObject *KX_VehicleWrapper::PyAddWheel(PyObject *args)
 		if (gameOb->GetSGNode())
 		{
 			MT_Vector3 attachPos,attachDir,attachAxle;
-			if(!PyVecTo(pylistPos,attachPos)) {
+			if (!PyVecTo(pylistPos,attachPos)) {
 				PyErr_SetString(PyExc_AttributeError,
 				                "addWheel(...) Unable to add wheel. attachPos must be a vector with 3 elements.");
 				return NULL;
 			}
-			if(!PyVecTo(pylistDir,attachDir))  {
+			if (!PyVecTo(pylistDir,attachDir))  {
 				PyErr_SetString(PyExc_AttributeError,
 				                "addWheel(...) Unable to add wheel. downDir must be a vector with 3 elements.");
 				return NULL;
 			}
-			if(!PyVecTo(pylistAxleDir,attachAxle)) {
+			if (!PyVecTo(pylistAxleDir,attachAxle)) {
 				PyErr_SetString(PyExc_AttributeError,
 				                "addWheel(...) Unable to add wheel. axleDir must be a vector with 3 elements.");
 				return NULL;
@@ -108,7 +108,7 @@ PyObject *KX_VehicleWrapper::PyAddWheel(PyObject *args)
 			//someone reverse some conventions inside Bullet (axle winding)
 			attachAxle = -attachAxle;
 			
-			if(wheelRadius<=0) {
+			if (wheelRadius <= 0) {
 				PyErr_SetString(PyExc_AttributeError,
 				                "addWheel(...) Unable to add wheel. wheelRadius must be positive.");
 				return NULL;

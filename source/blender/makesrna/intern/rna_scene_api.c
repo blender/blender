@@ -196,7 +196,7 @@ static void rna_Scene_collada_export(
 
         int use_ngons,
         int use_object_instantiation,
-		int use_blender_profile,
+        int use_blender_profile,
         int sort_by_name,
         int export_transformation_type,
         int open_sim)

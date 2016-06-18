@@ -400,7 +400,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 	        C, filename,
 	        import_units,
 	        find_chains,
-			auto_connect,
+	        auto_connect,
 	        fix_orientation,
 	        min_chain_length))
 	{

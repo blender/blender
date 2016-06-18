@@ -2283,7 +2283,7 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMFace *f, ListBase *kfe
 
 	BMEdge **edge_array = BLI_array_alloca(edge_array, edge_array_len);
 
-	 /* point to knife edges we've created edges in, edge_array aligned */
+	/* point to knife edges we've created edges in, edge_array aligned */
 	KnifeEdge **kfe_array = BLI_array_alloca(kfe_array, edge_array_len);
 
 	BLI_assert(BLI_gset_size(kcd->edgenet.edge_visit) == 0);

@@ -99,7 +99,7 @@ void deg_graph_transitive_reduction(Depsgraph *graph)
 		/* Remove redundant paths to the target. */
 		for (DepsNode::Relations::const_iterator it_rel = target->inlinks.begin();
 		     it_rel != target->inlinks.end();
-		    )
+		     )
 		{
 			DepsRelation *rel = *it_rel;
 			/* Increment in advance, so we can safely remove the relation. */

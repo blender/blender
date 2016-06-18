@@ -230,7 +230,7 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
 				newboids= MEM_callocN(totpart*sizeof(BoidParticle), "boid particles");
 
 				if (newboids == NULL) {
-					 /* allocation error! */
+					/* allocation error! */
 					if (newpars)
 						MEM_freeN(newpars);
 					return;

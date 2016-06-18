@@ -18,7 +18,7 @@ class PHY_IMotionState;
 class PHY_IVehicle
 {
 public:
-	virtual ~PHY_IVehicle(){};
+	virtual ~PHY_IVehicle() {};
 	
 	virtual void	AddWheel(
 			PHY_IMotionState* motionState,

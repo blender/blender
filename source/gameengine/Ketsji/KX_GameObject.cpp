@@ -142,7 +142,7 @@ KX_GameObject::~KX_GameObject()
 	}
 	// Unregister collision callbacks
 	// Do this before we start freeing physics information like m_pClient_info
-	if (m_collisionCallbacks){
+	if (m_collisionCallbacks) {
 		UnregisterCollisionCallbacks();
 		Py_CLEAR(m_collisionCallbacks);
 	}
@@ -1564,7 +1564,7 @@ void KX_GameObject::UnregisterCollisionCallbacks()
 	PHY_IPhysicsEnvironment* pe = scene->GetPhysicsEnvironment();
 	PHY_IPhysicsController* spc = GetPhysicsController();
 	// If we are the last to unregister on this physics controller
-	if (pe->RemoveCollisionCallback(spc)){
+	if (pe->RemoveCollisionCallback(spc)) {
 		// If we are a sensor object
 		if (m_pClient_info->isSensor())
 			// Remove sensor body from physics world
@@ -1584,7 +1584,7 @@ void KX_GameObject::RegisterCollisionCallbacks()
 	PHY_IPhysicsEnvironment* pe = scene->GetPhysicsEnvironment();
 	PHY_IPhysicsController* spc = GetPhysicsController();
 	// If we are the first to register on this physics controller
-	if (pe->RequestCollisionCallback(spc)){
+	if (pe->RequestCollisionCallback(spc)) {
 		// If we are a sensor object
 		if (m_pClient_info->isSensor())
 			// Add sensor body to physics world

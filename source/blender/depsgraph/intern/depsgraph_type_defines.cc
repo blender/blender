@@ -136,13 +136,15 @@ static const char *stringify_opcode(eDepsOperation_Code opcode)
 	return "UNKNOWN";
 }
 
-DepsOperationStringifier::DepsOperationStringifier() {
+DepsOperationStringifier::DepsOperationStringifier()
+{
 	for (int i = 0; i < DEG_NUM_OPCODES; ++i) {
 		names_[i] = stringify_opcode((eDepsOperation_Code)i);
 	}
 }
 
-const char *DepsOperationStringifier::operator[](eDepsOperation_Code opcode) {
+const char *DepsOperationStringifier::operator[](eDepsOperation_Code opcode)
+{
 	BLI_assert((opcode > 0) && (opcode < DEG_NUM_OPCODES));
 	if (opcode >= 0 && opcode < DEG_NUM_OPCODES) {
 		return names_[opcode];

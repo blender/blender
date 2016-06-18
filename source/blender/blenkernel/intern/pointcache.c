@@ -2501,7 +2501,7 @@ static int ptcache_read_openvdb_stream(PTCacheID *pid, int cfra)
 #ifdef WITH_OPENVDB
 	char filename[FILE_MAX * 2];
 
-	 /* save blend file before using disk pointcache */
+	/* save blend file before using disk pointcache */
 	if (!G.relbase_valid && (pid->cache->flag & PTCACHE_EXTERNAL) == 0)
 		return 0;
 

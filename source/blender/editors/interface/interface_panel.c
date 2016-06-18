@@ -1765,8 +1765,8 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 			/* tab highlight (3d look) */
 			glColor3ubv(is_active ? theme_col_tab_highlight : theme_col_tab_highlight_inactive);
 			ui_panel_category_draw_tab(GL_LINE_STRIP, rct->xmin, rct->ymin, rct->xmax, rct->ymax,
-									   tab_curve_radius, roundboxtype, true, false,
-									   is_active ? theme_col_back : theme_col_tab_inactive);
+			                           tab_curve_radius, roundboxtype, true, false,
+			                           is_active ? theme_col_back : theme_col_tab_inactive);
 		}
 
 		/* tab blackline */

@@ -928,7 +928,7 @@ static void task_parallel_range_ex(
 				func_finalize(userdata, userdata_chunk_local);
 			}
 		}
-        MALLOCA_FREE(userdata_chunk_array, userdata_chunk_size * num_tasks);
+		MALLOCA_FREE(userdata_chunk_array, userdata_chunk_size * num_tasks);
 	}
 }
 

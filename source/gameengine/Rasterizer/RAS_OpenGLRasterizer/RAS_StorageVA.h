@@ -45,7 +45,7 @@ public:
 
 	virtual void	IndexPrimitives(RAS_MeshSlot& ms);
 
-	virtual void	SetDrawingMode(int drawingmode){m_drawingmode=drawingmode;};
+	virtual void	SetDrawingMode(int drawingmode) {m_drawingmode = drawingmode;};
 
 protected:
 	int				m_drawingmode;

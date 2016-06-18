@@ -183,7 +183,7 @@ void _bli_array_binary_or(
  * \param user_data: User data for \a test_fn.
  * \param span_step: Indices to iterate over,
  * initialize both values to the array length to initialize iteration.
- * \param: r_span_len: The length of the span, useful when \a use_wrap is enabled,
+ * \param r_span_len: The length of the span, useful when \a use_wrap is enabled,
  * where calculating the length isnt a simple subtraction.
  */
 bool _bli_array_iter_span(
