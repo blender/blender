@@ -652,13 +652,71 @@ void GPENCIL_OT_active_frame_delete(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Delete Active Frame";
 	ot->idname = "GPENCIL_OT_active_frame_delete";
-	ot->description = "Delete the active frame for the active Grease Pencil datablock";
+	ot->description = "Delete the active frame for the active Grease Pencil Layer";
 	
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* callbacks */
 	ot->exec = gp_actframe_delete_exec;
 	ot->poll = gp_actframe_delete_poll;
+}
+
+/* **************** Delete All Active Frames ****************** */
+
+static int gp_actframe_delete_all_poll(bContext *C)
+{
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	
+	/* 1) There must be grease pencil data
+	 * 2) Hopefully some of the layers have stuff we can use
+	 */
+	return (gpd && gpd->layers.first);
+}
+
+static int gp_actframe_delete_all_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	bool success = false;
+	
+	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
+	{
+		/* try to get the "active" frame - but only if it actually occurs on this frame */
+		bGPDframe *gpf = gpencil_layer_getframe(gpl, CFRA, 0);
+		
+		if (gpf == NULL)
+			continue;
+		
+		/* delete it... */
+		gpencil_layer_delframe(gpl, gpf);
+		
+		/* we successfully modified something */
+		success = true;
+	}
+	CTX_DATA_END;
+	
+	/* updates */
+	if (success) {
+		WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);		
+		return OPERATOR_FINISHED;
+	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "No active frame(s) to delete");
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void GPENCIL_OT_active_frames_delete_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Delete All Active Frames";
+	ot->idname = "GPENCIL_OT_active_frames_delete_all";
+	ot->description = "Delete the active frame(s) of all editable Grease Pencil layers";
+	
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* callbacks */
+	ot->exec = gp_actframe_delete_all_exec;
+	ot->poll = gp_actframe_delete_all_poll;
 }
 
 /* ******************* Delete Operator ************************ */

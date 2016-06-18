@@ -218,6 +218,7 @@ void GPENCIL_OT_unlock_all(struct wmOperatorType *ot);
 void GPENCIL_OT_layer_isolate(struct wmOperatorType *ot);
 
 void GPENCIL_OT_active_frame_delete(struct wmOperatorType *ot);
+void GPENCIL_OT_active_frames_delete_all(struct wmOperatorType *ot);
 
 void GPENCIL_OT_convert(struct wmOperatorType *ot);
 
