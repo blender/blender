@@ -697,7 +697,7 @@ bool ImageManager::file_load_half_image(Image *img, ImageDataType type, device_v
 			int scanlinesize = width*components*sizeof(half);
 
 			in->read_image(TypeDesc::HALF,
-			               (uchar*)readpixels + (height-1)*scanlinesize, /*TODO(dingto): why uchar cast? */
+			               (uchar*)readpixels + (height-1)*scanlinesize,
 			               AutoStride,
 			               -scanlinesize,
 			               AutoStride);
