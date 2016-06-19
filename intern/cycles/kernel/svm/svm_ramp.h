@@ -92,11 +92,11 @@ ccl_device void svm_node_rgb_curves(KernelGlobals *kg, ShaderData *sd, float *st
 	const float min_x = __int_as_float(node.z),
 	            max_x = __int_as_float(node.w);
 	const float range_x = max_x - min_x;
-	color = (color - make_float3(min_x, min_x, min_x)) / range_x;
+	const float3 relpos = (color - make_float3(min_x, min_x, min_x)) / range_x;
 
-	float r = rgb_ramp_lookup(kg, *offset, color.x, true, true, table_size).x;
-	float g = rgb_ramp_lookup(kg, *offset, color.y, true, true, table_size).y;
-	float b = rgb_ramp_lookup(kg, *offset, color.z, true, true, table_size).z;
+	float r = rgb_ramp_lookup(kg, *offset, relpos.x, true, true, table_size).x;
+	float g = rgb_ramp_lookup(kg, *offset, relpos.y, true, true, table_size).y;
+	float b = rgb_ramp_lookup(kg, *offset, relpos.z, true, true, table_size).z;
 
 	color = (1.0f - fac)*color + fac*make_float3(r, g, b);
 	stack_store_float3(stack, out_offset, color);
@@ -121,11 +121,11 @@ ccl_device void svm_node_vector_curves(KernelGlobals *kg, ShaderData *sd, float 
 	const float min_x = __int_as_float(node.z),
 	            max_x = __int_as_float(node.w);
 	const float range_x = max_x - min_x;
-	color = (color - make_float3(min_x, min_x, min_x)) / range_x;
+	const float3 relpos = (color - make_float3(min_x, min_x, min_x)) / range_x;
 
-	float r = rgb_ramp_lookup(kg, *offset, color.x, true, true, table_size).x;
-	float g = rgb_ramp_lookup(kg, *offset, color.y, true, true, table_size).y;
-	float b = rgb_ramp_lookup(kg, *offset, color.z, true, true, table_size).z;
+	float r = rgb_ramp_lookup(kg, *offset, relpos.x, true, true, table_size).x;
+	float g = rgb_ramp_lookup(kg, *offset, relpos.y, true, true, table_size).y;
+	float b = rgb_ramp_lookup(kg, *offset, relpos.z, true, true, table_size).z;
 
 	color = (1.0f - fac)*color + fac*make_float3(r, g, b);
 	stack_store_float3(stack, out_offset, color);
