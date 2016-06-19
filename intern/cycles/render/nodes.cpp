@@ -397,7 +397,7 @@ void ImageTextureNode::compile(OSLCompiler& compiler)
 		compiler.parameter("color_space", "sRGB");
 	compiler.parameter(this, "projection");
 	compiler.parameter(this, "projection_blend");
-	compiler.parameter(this, "is_float");
+	compiler.parameter("is_float", is_float);
 	compiler.parameter("use_alpha", !alpha_out->links.empty());
 	compiler.parameter(this, "interpolation");
 	compiler.parameter(this, "extension");
