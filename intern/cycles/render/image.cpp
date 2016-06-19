@@ -205,7 +205,7 @@ ImageManager::ImageDataType ImageManager::get_image_metadata(const string& filen
 	}
 
 	if(is_half) {
-		return IMAGE_DATA_TYPE_HALF4;
+		return (channels > 1) ? IMAGE_DATA_TYPE_HALF4 : IMAGE_DATA_TYPE_HALF;
 	}
 	else if(is_float) {
 		return (channels > 1) ? IMAGE_DATA_TYPE_FLOAT4 : IMAGE_DATA_TYPE_FLOAT;
