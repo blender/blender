@@ -142,6 +142,8 @@ public:
 	/* Check whether the node can be replaced with single constant. */
 	virtual bool constant_fold(ShaderGraph * /*graph*/, ShaderOutput * /*socket*/, ShaderInput * /*optimized*/) { return false; }
 
+	bool all_inputs_constant() const;
+
 	/* Simplify settings used by artists to the ones which are simpler to
 	 * evaluate in the kernel but keep the final result unchanged.
 	 */

@@ -1577,7 +1577,7 @@ RGBToBWNode::RGBToBWNode()
 
 bool RGBToBWNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
 {
-	if(inputs[0]->link == NULL) {
+	if(all_inputs_constant()) {
 		optimized->set(linear_rgb_to_gray(color));
 		return true;
 	}
@@ -1665,11 +1665,9 @@ bool ConvertNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *opti
 	/* proxy nodes should have been removed at this point */
 	assert(special_type != SHADER_SPECIAL_TYPE_PROXY);
 
-	ShaderInput *in = inputs[0];
-
 	/* TODO(DingTo): conversion from/to int is not supported yet, don't fold in that case */
 
-	if(in->link == NULL) {
+	if(all_inputs_constant()) {
 		if(from == SocketType::FLOAT) {
 			if(SocketType::is_float3(to)) {
 				optimized->set(make_float3(value_float, value_float, value_float));
@@ -3856,10 +3854,7 @@ GammaNode::GammaNode()
 
 bool GammaNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
 {
-	ShaderInput *color_in = input("Color");
-	ShaderInput *gamma_in = input("Gamma");
-
-	if(color_in->link == NULL && gamma_in->link == NULL) {
+	if(all_inputs_constant()) {
 		optimized->set(svm_math_gamma_color(color, gamma));
 		return true;
 	}
@@ -4419,9 +4414,7 @@ BlackbodyNode::BlackbodyNode()
 
 bool BlackbodyNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
 {
-	ShaderInput *temperature_in = input("Temperature");
-
-	if(temperature_in->link == NULL) {
+	if(all_inputs_constant()) {
 		optimized->set(svm_math_blackbody_color(temperature));
 		return true;
 	}
@@ -4530,10 +4523,7 @@ MathNode::MathNode()
 
 bool MathNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
 {
-	ShaderInput *value1_in = input("Value1");
-	ShaderInput *value2_in = input("Value2");
-
-	if(value1_in->link == NULL && value2_in->link == NULL) {
+	if(all_inputs_constant()) {
 		float value = svm_math(type, value1, value2);
 
 		if(use_clamp) {
@@ -4601,13 +4591,10 @@ VectorMathNode::VectorMathNode()
 
 bool VectorMathNode::constant_fold(ShaderGraph *, ShaderOutput *socket, ShaderInput *optimized)
 {
-	ShaderInput *vector1_in = input("Vector1");
-	ShaderInput *vector2_in = input("Vector2");
-
 	float value;
 	float3 vector;
 
-	if(vector1_in->link == NULL && vector2_in->link == NULL) {
+	if(all_inputs_constant()) {
 		svm_vector_math(&value,
 		                &vector,
 		                type,

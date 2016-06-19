@@ -126,6 +126,17 @@ ShaderOutput *ShaderNode::output(ustring name)
 	return NULL;
 }
 
+bool ShaderNode::all_inputs_constant() const
+{
+	foreach(ShaderInput *input, inputs) {
+		if(input->link) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 void ShaderNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
 	foreach(ShaderInput *input, inputs) {
