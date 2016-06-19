@@ -19,6 +19,7 @@
 #include "nodes.h"
 #include "scene.h"
 #include "svm.h"
+#include "svm_color_util.h"
 #include "svm_math_util.h"
 #include "osl.h"
 
@@ -3578,6 +3579,28 @@ InvertNode::InvertNode()
 {
 }
 
+bool InvertNode::constant_fold(ShaderGraph *graph, ShaderOutput *, ShaderInput *optimized)
+{
+	ShaderInput *fac_in = input("Fac");
+	ShaderInput *color_in = input("Color");
+	ShaderOutput *color_out = output("Color");
+
+	if(!fac_in->link) {
+		/* evaluate fully constant node */
+		if(!color_in->link) {
+			optimized->set(interp(color, make_float3(1.0f, 1.0f, 1.0f) - color, fac));
+			return true;
+		}
+		/* remove no-op node */
+		else if(fac == 0.0f) {
+			graph->relink(this, color_out, color_in->link);
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void InvertNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput *fac_in = input("Fac");
@@ -3666,37 +3689,54 @@ void MixNode::compile(OSLCompiler& compiler)
 
 bool MixNode::constant_fold(ShaderGraph *graph, ShaderOutput *, ShaderInput *optimized)
 {
-	if(type != NODE_MIX_BLEND) {
-		return false;
-	}
-
 	ShaderInput *fac_in = input("Fac");
 	ShaderInput *color1_in = input("Color1");
 	ShaderInput *color2_in = input("Color2");
 	ShaderOutput *color_out = output("Color");
 
-	/* remove useless mix colors nodes */
-	if(color1_in->link && color1_in->link == color2_in->link) {
-		graph->relink(this, color_out, color1_in->link);
+	/* evaluate fully constant node */
+	if(all_inputs_constant()) {
+		float3 result = svm_mix(type, fac, color1, color2);
+		optimized->set(use_clamp ? svm_mix_clamp(result) : result);
 		return true;
 	}
 
-	/* remove unused mix color input when factor is 0.0 or 1.0 */
-	if(!fac_in->link) {
-		/* factor 0.0 */
-		if(fac == 0.0f) {
-			if(color1_in->link)
-				graph->relink(this, color_out, color1_in->link);
-			else
-				optimized->set(color1);
+	/* remove no-op node when factor is 0.0 */
+	if(!fac_in->link && fac <= 0.0f) {
+		/* note that some of the modes will clamp out of bounds values even without use_clamp */
+		if(!color1_in->link) {
+			float3 result = svm_mix(type, 0.0f, color1, color1);
+			optimized->set(use_clamp ? svm_mix_clamp(result) : result);
 			return true;
 		}
-		/* factor 1.0 */
-		else if(fac == 1.0f) {
-			if(color2_in->link)
-				graph->relink(this, color_out, color2_in->link);
-			else
-				optimized->set(color2);
+		else if(!use_clamp && type != NODE_MIX_LIGHT && type != NODE_MIX_DODGE && type != NODE_MIX_BURN) {
+			graph->relink(this, color_out, color1_in->link);
+			return true;
+		}
+	}
+
+	if(type != NODE_MIX_BLEND) {
+		return false;
+	}
+
+	/* remove useless mix colors nodes */
+	if(color1_in->link && color1_in->link == color2_in->link && !use_clamp) {
+		graph->relink(this, color_out, color1_in->link);
+		return true;
+	}
+	if(!color1_in->link && !color2_in->link && color1 == color2) {
+		optimized->set(use_clamp ? svm_mix_clamp(color1) : color1);
+		return true;
+	}
+
+	/* remove no-op mix color node when factor is 1.0 */
+	if(!fac_in->link && fac >= 1.0f) {
+		if(!color2_in->link) {
+			optimized->set(use_clamp ? svm_mix_clamp(color2) : color2);
+			return true;
+		}
+		else if(!use_clamp) {
+			graph->relink(this, color_out, color2_in->link);
 			return true;
 		}
 	}
@@ -3722,6 +3762,16 @@ NODE_DEFINE(CombineRGBNode)
 CombineRGBNode::CombineRGBNode()
 : ShaderNode(node_type)
 {
+}
+
+bool CombineRGBNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
+{
+	if(all_inputs_constant()) {
+		optimized->set(make_float3(r, g, b));
+		return true;
+	}
+
+	return false;
 }
 
 void CombineRGBNode::compile(SVMCompiler& compiler)
@@ -3769,6 +3819,16 @@ CombineXYZNode::CombineXYZNode()
 {
 }
 
+bool CombineXYZNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
+{
+	if(all_inputs_constant()) {
+		optimized->set(make_float3(x, y, z));
+		return true;
+	}
+
+	return false;
+}
+
 void CombineXYZNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput *x_in = input("X");
@@ -3812,6 +3872,16 @@ NODE_DEFINE(CombineHSVNode)
 CombineHSVNode::CombineHSVNode()
 : ShaderNode(node_type)
 {
+}
+
+bool CombineHSVNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
+{
+	if(all_inputs_constant()) {
+		optimized->set(hsv_to_rgb(make_float3(h, s, v)));
+		return true;
+	}
+
+	return false;
 }
 
 void CombineHSVNode::compile(SVMCompiler& compiler)
@@ -3899,6 +3969,16 @@ BrightContrastNode::BrightContrastNode()
 {
 }
 
+bool BrightContrastNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
+{
+	if(all_inputs_constant()) {
+		optimized->set(svm_brightness_contrast(color, bright, contrast));
+		return true;
+	}
+
+	return false;
+}
+
 void BrightContrastNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput *color_in = input("Color");
@@ -3937,6 +4017,20 @@ NODE_DEFINE(SeparateRGBNode)
 SeparateRGBNode::SeparateRGBNode()
 : ShaderNode(node_type)
 {
+}
+
+bool SeparateRGBNode::constant_fold(ShaderGraph *, ShaderOutput *socket, ShaderInput *optimized)
+{
+	if(all_inputs_constant()) {
+		for(int channel = 0; channel < 3; channel++) {
+			if(outputs[channel] == socket) {
+				optimized->set(color[channel]);
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 void SeparateRGBNode::compile(SVMCompiler& compiler)
@@ -3984,6 +4078,20 @@ SeparateXYZNode::SeparateXYZNode()
 {
 }
 
+bool SeparateXYZNode::constant_fold(ShaderGraph *, ShaderOutput *socket, ShaderInput *optimized)
+{
+	if(all_inputs_constant()) {
+		for(int channel = 0; channel < 3; channel++) {
+			if(outputs[channel] == socket) {
+				optimized->set(vector[channel]);
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 void SeparateXYZNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput *vector_in = input("Vector");
@@ -4027,6 +4135,22 @@ NODE_DEFINE(SeparateHSVNode)
 SeparateHSVNode::SeparateHSVNode()
 : ShaderNode(node_type)
 {
+}
+
+bool SeparateHSVNode::constant_fold(ShaderGraph *, ShaderOutput *socket, ShaderInput *optimized)
+{
+	if(all_inputs_constant()) {
+		float3 hsv = rgb_to_hsv(color);
+
+		for(int channel = 0; channel < 3; channel++) {
+			if(outputs[channel] == socket) {
+				optimized->set(hsv[channel]);
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 void SeparateHSVNode::compile(SVMCompiler& compiler)
@@ -4525,13 +4649,7 @@ bool MathNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimiz
 {
 	if(all_inputs_constant()) {
 		float value = svm_math(type, value1, value2);
-
-		if(use_clamp) {
-			value = saturate(value);
-		}
-
-		optimized->set(value);
-
+		optimized->set(use_clamp ? saturate(value) : value);
 		return true;
 	}
 

@@ -643,7 +643,7 @@ public:
 class InvertNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(InvertNode)
-
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
 	float fac;
@@ -667,6 +667,7 @@ public:
 class CombineRGBNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(CombineRGBNode)
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
 	float r, g, b;
@@ -675,6 +676,7 @@ public:
 class CombineHSVNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(CombineHSVNode)
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
 	float h, s, v;
@@ -683,6 +685,7 @@ public:
 class CombineXYZNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(CombineXYZNode)
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
 	float x, y, z;
@@ -701,6 +704,7 @@ public:
 class BrightContrastNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(BrightContrastNode)
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual int get_group() { return NODE_GROUP_LEVEL_1; }
 
 	float3 color;
@@ -711,6 +715,7 @@ public:
 class SeparateRGBNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(SeparateRGBNode)
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
 	float3 color;
@@ -719,6 +724,7 @@ public:
 class SeparateHSVNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(SeparateHSVNode)
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
 	float3 color;
@@ -727,6 +733,7 @@ public:
 class SeparateXYZNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(SeparateXYZNode)
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
 	float3 vector;

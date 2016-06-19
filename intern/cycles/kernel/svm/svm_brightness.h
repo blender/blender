@@ -25,12 +25,7 @@ ccl_device void svm_node_brightness(ShaderData *sd, float *stack, uint in_color,
 	float brightness = stack_load_float(stack, bright_offset);
 	float contrast  = stack_load_float(stack, contrast_offset);
 
-	float a = 1.0f + contrast;
-	float b = brightness - contrast*0.5f;
-
-	color.x = max(a*color.x + b, 0.0f);
-	color.y = max(a*color.y + b, 0.0f);
-	color.z = max(a*color.z + b, 0.0f);
+	color = svm_brightness_contrast(color, brightness, contrast);
 
 	if(stack_valid(out_color))
 		stack_store_float3(stack, out_color, color);
