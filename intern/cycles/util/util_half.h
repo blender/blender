@@ -85,6 +85,27 @@ ccl_device_inline void float4_store_half(half *h, float4 f, float scale)
 #endif
 }
 
+ccl_device_inline float half_to_float(half h)
+{
+	float f;
+
+	*((int*) &f) = ((h & 0x8000) << 16) | (((h & 0x7c00) + 0x1C000) << 13) | ((h & 0x03FF) << 13);
+
+	return f;
+}
+
+ccl_device_inline float4 half4_to_float4(half4 h)
+{
+	float4 f;
+
+	f.x = half_to_float(h.x);
+	f.y = half_to_float(h.y);
+	f.z = half_to_float(h.z);
+	f.w = half_to_float(h.w);
+
+	return f;
+}
+
 #endif
 
 #endif

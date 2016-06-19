@@ -122,6 +122,17 @@ template<typename T> struct texture_image  {
 		return make_float4(r, r, r, 1.0f);
 	}
 
+	ccl_always_inline float4 read(half4 r)
+	{
+		return half4_to_float4(r);
+	}
+
+	ccl_always_inline float4 read(half r)
+	{
+		float f = half_to_float(r);
+		return make_float4(f, f, f, 1.0f);
+	}
+
 	ccl_always_inline int wrap_periodic(int x, int width)
 	{
 		x %= width;
@@ -486,8 +497,10 @@ typedef texture<uint4> texture_uint4;
 typedef texture<uchar4> texture_uchar4;
 typedef texture_image<float> texture_image_float;
 typedef texture_image<uchar> texture_image_uchar;
+typedef texture_image<half> texture_image_half;
 typedef texture_image<float4> texture_image_float4;
 typedef texture_image<uchar4> texture_image_uchar4;
+typedef texture_image<half4> texture_image_half4;
 
 /* Macros to handle different memory storage on different devices */
 
