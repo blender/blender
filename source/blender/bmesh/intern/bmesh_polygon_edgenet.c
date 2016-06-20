@@ -97,6 +97,10 @@ static BMLoop *bm_edge_flagged_radial_first(BMEdge *e)
 	return NULL;
 }
 
+/**
+ * \note Be sure to update #bm_face_split_edgenet_find_loop_pair_exists
+ * when making changed to edge picking logic.
+ */
 static bool bm_face_split_edgenet_find_loop_pair(
         BMVert *v_init, const float face_normal[3],
         BMEdge *e_pair[2])
@@ -184,6 +188,58 @@ static bool bm_face_split_edgenet_find_loop_pair(
 	}
 	if (swap) {
 		SWAP(BMEdge *, e_pair[0], e_pair[1]);
+	}
+
+	return true;
+}
+
+/**
+ * A reduced version of #bm_face_split_edgenet_find_loop_pair
+ * that only checks if it would return true.
+ *
+ * \note There is no use in caching resulting edges here,
+ * since between this check and running #bm_face_split_edgenet_find_loop,
+ * the selected edges may have had faces attached.
+ */
+static bool bm_face_split_edgenet_find_loop_pair_exists(
+        BMVert *v_init)
+{
+	int edges_boundary_len = 0;
+	int edges_wire_len = 0;
+
+	{
+		BMEdge *e, *e_first;
+		e = e_first = v_init->e;
+		do {
+			if (BM_ELEM_API_FLAG_TEST(e, EDGE_NET)) {
+				const unsigned int count = bm_edge_flagged_radial_count(e);
+				if (count == 1) {
+					edges_boundary_len++;
+				}
+				else if (count == 0) {
+					edges_wire_len++;
+				}
+			}
+		} while ((e = BM_DISK_EDGE_NEXT(e, v_init)) != e_first);
+	}
+
+	/* first edge should always be boundary */
+	if (edges_boundary_len == 0) {
+		return false;
+	}
+
+	/* attempt one boundary and one wire, or 2 boundary */
+	if (edges_wire_len == 0) {
+		if (edges_boundary_len >= 2) {
+			/* pass */
+		}
+		else {
+			/* one boundary and no wire */
+			return false;
+		}
+	}
+	else {
+		/* pass */
 	}
 
 	return true;
@@ -450,7 +506,6 @@ bool BM_face_split_edgenet(
 			}
 
 			if (f_new) {
-				bool l_prev_is_boundary;
 				BLI_array_append(face_arr, f_new);
 				copy_v3_v3(f_new->no, f->no);
 
@@ -466,13 +521,10 @@ bool BM_face_split_edgenet(
 				/* add new verts to keep finding loops for
 				 * (verts between boundary and manifold edges) */
 				l_iter = l_first = BM_FACE_FIRST_LOOP(f_new);
-				l_prev_is_boundary = (bm_edge_flagged_radial_count(l_iter->prev->e) == 1);
 				do {
-					bool l_iter_is_boundary = (bm_edge_flagged_radial_count(l_iter->e) == 1);
-					if (l_prev_is_boundary != l_iter_is_boundary) {
+					if (bm_face_split_edgenet_find_loop_pair_exists(l_iter->v)) {
 						STACK_PUSH(vert_queue, l_iter->v);
 					}
-					l_prev_is_boundary = l_iter_is_boundary;
 				} while ((l_iter = l_iter->next) != l_first);
 			}
 		}
