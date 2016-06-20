@@ -93,8 +93,8 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 		r = svm_image_texture_read(kg, id, offset + ix + iy*width);
 	}
 	else { /* We default to linear interpolation if it is not closest */
-		float tx = svm_image_texture_frac(x*width, &ix);
-		float ty = svm_image_texture_frac(y*height, &iy);
+		float tx = svm_image_texture_frac(x*width - 0.5f, &ix);
+		float ty = svm_image_texture_frac(y*height - 0.5f, &iy);
 
 		if(periodic) {
 			ix = svm_image_texture_wrap_periodic(ix, width);
