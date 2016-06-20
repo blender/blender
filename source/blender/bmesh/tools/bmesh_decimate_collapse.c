@@ -542,8 +542,8 @@ static bool bm_decim_triangulate_begin(BMesh *bm, int *r_edges_tri_tot)
 {
 	BMIter iter;
 	BMFace *f;
-	bool has_quad;
-	bool has_ngon;
+	bool has_quad = false;
+	bool has_ngon = false;
 	bool has_cut = false;
 
 	BLI_assert((bm->elem_index_dirty & BM_VERT) == 0);
