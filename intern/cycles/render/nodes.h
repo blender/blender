@@ -875,26 +875,30 @@ public:
 	float distance;
 };
 
-class RGBCurvesNode : public ShaderNode {
+class CurvesNode : public ShaderNode {
 public:
-	SHADER_NODE_CLASS(RGBCurvesNode)
+	explicit CurvesNode(const NodeType *node_type);
+	SHADER_NODE_BASE_CLASS(CurvesNode);
 
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
+	bool has_spatial_varying() { return true; }
+	void compile(SVMCompiler& compiler, int type, ShaderInput *value_in, ShaderOutput *value_out);
+	void compile(OSLCompiler& compiler, const char *name);
+
 	array<float3> curves;
 	float min_x, max_x, fac;
-	float3 color;
+	float3 value;
 };
 
-class VectorCurvesNode : public ShaderNode {
+class RGBCurvesNode : public CurvesNode {
+public:
+	SHADER_NODE_CLASS(RGBCurvesNode)
+};
+
+class VectorCurvesNode : public CurvesNode {
 public:
 	SHADER_NODE_CLASS(VectorCurvesNode)
-
-	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
-
-	array<float3> curves;
-	float min_x, max_x, fac;
-	float3 vector;
 };
 
 class RGBRampNode : public ShaderNode {

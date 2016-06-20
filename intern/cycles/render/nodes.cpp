@@ -4885,6 +4885,54 @@ bool BumpNode::constant_fold(ShaderGraph *graph, ShaderOutput *, ShaderInput *)
 	return false;
 }
 
+
+/* Curve node */
+
+CurvesNode::CurvesNode(const NodeType *node_type)
+: ShaderNode(node_type)
+{
+}
+
+void CurvesNode::compile(SVMCompiler& compiler, int type, ShaderInput *value_in, ShaderOutput *value_out)
+{
+	if(curves.size() == 0)
+		return;
+
+	ShaderInput *fac_in = input("Fac");
+
+	compiler.add_node(type,
+	                  compiler.encode_uchar4(compiler.stack_assign(fac_in),
+	                                         compiler.stack_assign(value_in),
+	                                         compiler.stack_assign(value_out)),
+	                  __float_as_int(min_x),
+	                  __float_as_int(max_x));
+
+	compiler.add_node(curves.size());
+	for(int i = 0; i < curves.size(); i++)
+		compiler.add_node(float3_to_float4(curves[i]));
+}
+
+void CurvesNode::compile(OSLCompiler& compiler, const char* name)
+{
+	if(curves.size() == 0)
+		return;
+
+	compiler.parameter_color_array("ramp", curves);
+	compiler.parameter(this, "min_x");
+	compiler.parameter(this, "max_x");
+	compiler.add(this, name);
+}
+
+void CurvesNode::compile(SVMCompiler& /*compiler*/)
+{
+	assert(0);
+}
+
+void CurvesNode::compile(OSLCompiler& /*compiler*/)
+{
+	assert(0);
+}
+
 /* RGBCurvesNode */
 
 NODE_DEFINE(RGBCurvesNode)
@@ -4896,48 +4944,26 @@ NODE_DEFINE(RGBCurvesNode)
 	SOCKET_FLOAT(max_x, "Max X", 1.0f);
 
 	SOCKET_IN_FLOAT(fac, "Fac", 0.0f);
-	SOCKET_IN_COLOR(color, "Color", make_float3(0.0f, 0.0f, 0.0f));
+	SOCKET_IN_COLOR(value, "Color", make_float3(0.0f, 0.0f, 0.0f));
 
-	SOCKET_OUT_COLOR(color, "Color");
+	SOCKET_OUT_COLOR(value, "Color");
 
 	return type;
 }
 
 RGBCurvesNode::RGBCurvesNode()
-: ShaderNode(node_type)
+: CurvesNode(node_type)
 {
 }
 
 void RGBCurvesNode::compile(SVMCompiler& compiler)
 {
-	if(curves.size() == 0)
-		return;
-
-	ShaderInput *fac_in = input("Fac");
-	ShaderInput *color_in = input("Color");
-	ShaderOutput *color_out = output("Color");
-
-	compiler.add_node(NODE_RGB_CURVES,
-	                  compiler.encode_uchar4(compiler.stack_assign(fac_in),
-	                                         compiler.stack_assign(color_in),
-	                                         compiler.stack_assign(color_out)),
-	                  __float_as_int(min_x),
-	                  __float_as_int(max_x));
-
-	compiler.add_node(curves.size());
-	for(int i = 0; i < curves.size(); i++)
-		compiler.add_node(float3_to_float4(curves[i]));
+	CurvesNode::compile(compiler, NODE_RGB_CURVES, input("Color"), output("Color"));
 }
 
 void RGBCurvesNode::compile(OSLCompiler& compiler)
 {
-	if(curves.size() == 0)
-		return;
-
-	compiler.parameter_color_array("ramp", curves);
-	compiler.parameter(this, "min_x");
-	compiler.parameter(this, "max_x");
-	compiler.add(this, "node_rgb_curves");
+	CurvesNode::compile(compiler, "node_rgb_curves");
 }
 
 /* VectorCurvesNode */
@@ -4951,48 +4977,26 @@ NODE_DEFINE(VectorCurvesNode)
 	SOCKET_FLOAT(max_x, "Max X", 1.0f);
 
 	SOCKET_IN_FLOAT(fac, "Fac", 0.0f);
-	SOCKET_IN_VECTOR(vector, "Vector", make_float3(0.0f, 0.0f, 0.0f));
+	SOCKET_IN_VECTOR(value, "Vector", make_float3(0.0f, 0.0f, 0.0f));
 
-	SOCKET_OUT_VECTOR(vector, "Vector");
+	SOCKET_OUT_VECTOR(value, "Vector");
 
 	return type;
 }
 
 VectorCurvesNode::VectorCurvesNode()
-: ShaderNode(node_type)
+: CurvesNode(node_type)
 {
 }
 
 void VectorCurvesNode::compile(SVMCompiler& compiler)
 {
-	if(curves.size() == 0)
-		return;
-
-	ShaderInput *fac_in = input("Fac");
-	ShaderInput *vector_in = input("Vector");
-	ShaderOutput *vector_out = output("Vector");
-
-	compiler.add_node(NODE_VECTOR_CURVES,
-	                  compiler.encode_uchar4(compiler.stack_assign(fac_in),
-	                                         compiler.stack_assign(vector_in),
-	                                         compiler.stack_assign(vector_out)),
-	                  __float_as_int(min_x),
-	                  __float_as_int(max_x));
-
-	compiler.add_node(curves.size());
-	for(int i = 0; i < curves.size(); i++)
-		compiler.add_node(float3_to_float4(curves[i]));
+	CurvesNode::compile(compiler, NODE_VECTOR_CURVES, input("Vector"), output("Vector"));
 }
 
 void VectorCurvesNode::compile(OSLCompiler& compiler)
 {
-	if(curves.size() == 0)
-		return;
-
-	compiler.parameter_color_array("ramp", curves);
-	compiler.parameter(this, "min_x");
-	compiler.parameter(this, "max_x");
-	compiler.add(this, "node_vector_curves");
+	CurvesNode::compile(compiler, "node_vector_curves");
 }
 
 /* RGBRampNode */
