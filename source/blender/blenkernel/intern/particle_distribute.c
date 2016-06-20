@@ -408,10 +408,10 @@ static int distribute_binary_search(float *sum, int n, float value)
 			return mid;
 		
 		if (sum[mid] > value) {
-			high = mid;
+			high = mid - 1;
 		}
 		else {
-			low = mid;
+			low = mid + 1;
 		}
 	}
 
@@ -1007,22 +1007,24 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		MEM_freeN(vweight);
 	}
 
+#define MIN_WEIGHT 1e-7f  /* Weights too small cause issues e.g. with binary search... */
+
 	/* Calculate total weight of all elements */
 	int totmapped = 0;
 	totweight = 0.0f;
 	for (i = 0; i < totelem; i++) {
-		if (element_weight[i] != 0.0f) {
+		if (element_weight[i] > MIN_WEIGHT) {
 			totmapped++;
+			totweight += element_weight[i];
 		}
-		totweight += element_weight[i];
 	}
 
-	if (totweight == 0.0f) {
+	if (totmapped == 0) {
 		/* We are not allowed to distribute particles anywhere... */
 		return 0;
 	}
 
-	inv_totweight = (totweight > 0.f ? 1.f/totweight : 0.f);
+	inv_totweight = 1.0f / totweight;
 
 	/* Calculate cumulative weights.
 	 * We remove all null-weighted elements from element_sum, and create a new mapping
@@ -1034,20 +1036,23 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	int *element_map = MEM_mallocN(sizeof(*element_map) * totmapped, __func__);
 	int i_mapped = 0;
 
-	for (i = 0; i < totelem && element_weight[i] == 0.0f; i++);
+	for (i = 0; i < totelem && element_weight[i] <= MIN_WEIGHT; i++);
 	element_sum[i_mapped] = element_weight[i] * inv_totweight;
 	element_map[i_mapped] = i;
 	i_mapped++;
 	for (i++; i < totelem; i++) {
-		if (element_weight[i] != 0.0f) {
+		if (element_weight[i] > MIN_WEIGHT) {
 			element_sum[i_mapped] = element_sum[i_mapped - 1] + element_weight[i] * inv_totweight;
+			BLI_assert(element_sum[i_mapped] > element_sum[i_mapped - 1]);
 			element_map[i_mapped] = i;
 			i_mapped++;
 		}
 	}
 
 	BLI_assert(i_mapped == totmapped);
-	
+
+#undef MIN_WEIGHT
+
 	/* Finally assign elements to particles */
 	if ((part->flag & PART_TRAND) || (part->simplify_flag & PART_SIMPLIFY_ENABLE)) {
 		for (p = 0; p < totpart; p++) {
