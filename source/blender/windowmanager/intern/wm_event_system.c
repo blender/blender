@@ -793,7 +793,10 @@ static int wm_operator_exec(bContext *C, wmOperator *op, const bool repeat, cons
 		wm_operator_finished(C, op, repeat);
 	}
 	else if (repeat == 0) {
-		WM_operator_free(op);
+		/* warning: modal from exec is bad practice, but avoid crashing. */
+		if (retval & (OPERATOR_FINISHED | OPERATOR_CANCELLED)) {
+			WM_operator_free(op);
+		}
 	}
 	
 	return retval | OPERATOR_HANDLED;
