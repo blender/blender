@@ -1033,7 +1033,7 @@ Texture classes
 
       :type: bool
 
-   .. method:: refresh(refresh_source=True, timestamp=-1.0)
+   .. method:: refresh(refresh_source, timestamp=-1.0)
 
       Refresh texture from source.
 
