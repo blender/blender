@@ -875,8 +875,6 @@ typedef struct SpaceImage {
 	struct Image *image;
 	struct ImageUser iuser;
 
-	struct CurveMapping *cumap DNA_DEPRECATED;  /* was switched to scene's color management settings */
-
 	struct Scopes scopes;           /* histogram waveform and vectorscope */
 	struct Histogram sample_line_hist;  /* sample line histogram */
 

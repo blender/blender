@@ -2808,11 +2808,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					write_soops(wd, so, &tmp_mem_list);
 				}
 				else if (sl->spacetype==SPACE_IMAGE) {
-					SpaceImage *sima= (SpaceImage *)sl;
-					
 					writestruct(wd, DATA, "SpaceImage", 1, sl);
-					if (sima->cumap)
-						write_curvemapping(wd, sima->cumap);
 				}
 				else if (sl->spacetype==SPACE_TEXT) {
 					writestruct(wd, DATA, "SpaceText", 1, sl);

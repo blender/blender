@@ -7038,11 +7038,7 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 			}
 			else if (sl->spacetype == SPACE_IMAGE) {
 				SpaceImage *sima = (SpaceImage *)sl;
-				
-				sima->cumap = newdataadr(fd, sima->cumap);
-				if (sima->cumap)
-					direct_link_curvemapping(fd, sima->cumap);
-				
+
 				sima->iuser.scene = NULL;
 				sima->iuser.ok = 1;
 				sima->scopes.waveform_1 = NULL;
