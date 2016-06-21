@@ -81,7 +81,20 @@ class VIEW3D_HT_header(Header):
                     row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
 
         # Snap
-        if not obj or mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT'}:
+        show_snap = False
+        if obj is None:
+            show_snap = True
+        else:
+            if mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT'}:
+                show_snap = True
+            else:
+                paint_settings = UnifiedPaintPanel.paint_settings(context)
+                if paint_settings:
+                    brush = paint_settings.brush
+                    if brush and brush.stroke_method == 'CURVE':
+                        show_snap = True
+
+        if show_snap:
             snap_element = toolsettings.snap_element
             row = layout.row(align=True)
             row.prop(toolsettings, "use_snap", text="")
