@@ -628,6 +628,8 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, int mode, ListBase *r_nubase
 	bool use_textbox;
 	VChar *che;
 	struct CharTrans *chartransdata = NULL, *ct;
+	/* Text at the beginning of the last used text-box (use for y-axis alignment). */
+	int i_textbox = 0;
 	struct TempLineInfo *lineinfo;
 	float *f, xof, yof, xtrax, linedist;
 	float twidth, maxlen = 0;
@@ -830,6 +832,7 @@ makebreak:
 			    (cu->totbox > (curbox + 1)) &&
 			    ((-(yof - tb_scale.y)) > (tb_scale.h - linedist) - yof_scale))
 			{
+				i_textbox = i + 1;
 				maxlen = 0;
 				curbox++;
 
@@ -978,6 +981,60 @@ makebreak:
 					ct->xof += curofs;
 				}
 				if (mem[i] == '\n' || chartransdata[i].dobreak) curofs = 0;
+				ct++;
+			}
+		}
+	}
+
+	/* top-baseline is default, in this case, do nothing */
+	if (cu->align_y != CU_ALIGN_Y_TOP_BASELINE) {
+		if (tb_scale.h != 0.0f) {
+			/* top and top-baseline are the same when text-boxes are used */
+			if (cu->align_y != CU_ALIGN_Y_TOP && i_textbox < slen) {
+				/* all previous textboxes are 'full', only align the last used text-box */
+				float yoff;
+				int lines;
+				struct CharTrans *ct_last, *ct_textbox;
+
+				ct_last = chartransdata + slen - 1;
+				ct_textbox = chartransdata + i_textbox;
+
+				lines = ct_last->linenr - ct_textbox->linenr + 1;
+				if (mem[slen - 1] == '\n') {
+					lines++;
+				}
+
+				if (cu->align_y == CU_ALIGN_Y_BOTTOM) {
+					yoff = (lines * linedist) - tb_scale.h;
+				}
+				else if (cu->align_y == CU_ALIGN_Y_CENTER) {
+					yoff = 0.5f * ((lines * linedist) - tb_scale.h);
+				}
+
+				ct = ct_textbox;
+				for (i = i_textbox - 1; i < slen; i++) {
+					ct->yof += yoff;
+					ct++;
+				}
+			}
+		}
+		else {
+			/* non text-box case handled separately */
+			ct = chartransdata;
+			float yoff;
+
+			if (cu->align_y == CU_ALIGN_Y_TOP) {
+				yoff = -linedist;
+			}
+			else if (cu->align_y == CU_ALIGN_Y_BOTTOM) {
+				yoff = (lnr - 1.0f) * linedist;
+			}
+			else if (cu->align_y == CU_ALIGN_Y_CENTER) {
+				yoff = (lnr - 2.0f) * linedist * 0.5f;
+			}
+
+			for (i = 0; i <= slen; i++) {
+				ct->yof += yoff;
 				ct++;
 			}
 		}

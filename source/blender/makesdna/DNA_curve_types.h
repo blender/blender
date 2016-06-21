@@ -230,7 +230,7 @@ typedef struct Curve {
 
 	/* font part */
 	short lines;
-	char spacemode, pad1;
+	char spacemode, align_y;
 	float spacing, linedist, shear, fsize, wordspace, ulpos, ulheight;
 	float xof, yof;
 	float linewidth;
@@ -327,6 +327,14 @@ enum {
 	CU_RIGHT              = 2,
 	CU_JUSTIFY            = 3,
 	CU_FLUSH              = 4,
+};
+
+/* Curve.align_y */
+enum {
+	CU_ALIGN_Y_TOP_BASELINE       = 0,
+	CU_ALIGN_Y_TOP                = 1,
+	CU_ALIGN_Y_CENTER             = 2,
+	CU_ALIGN_Y_BOTTOM             = 3,
 };
 
 /* Nurb.flag */

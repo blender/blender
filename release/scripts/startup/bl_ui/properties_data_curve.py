@@ -370,8 +370,11 @@ class DATA_PT_paragraph(CurveButtonsPanelText, Panel):
 
         text = context.curve
 
-        layout.label(text="Align:")
-        layout.prop(text, "align", expand=True)
+        layout.label(text="Horizontal Alignment:")
+        layout.prop(text, "align_x", expand=True)
+
+        layout.label(text="Vertical Alignment:")
+        layout.prop(text, "align_y", expand=True)
 
         split = layout.split()
 
