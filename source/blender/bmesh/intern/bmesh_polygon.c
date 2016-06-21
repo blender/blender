@@ -1036,6 +1036,7 @@ void BM_face_triangulate(
         const int quad_method,
         const int ngon_method,
         const bool use_tag,
+        /* use for ngons only! */
         MemArena *pf_arena,
 
         /* use for MOD_TRIANGULATE_NGON_BEAUTY only! */

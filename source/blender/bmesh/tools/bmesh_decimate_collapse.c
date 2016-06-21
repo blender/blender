@@ -603,9 +603,8 @@ static bool bm_decim_triangulate_begin(BMesh *bm, int *r_edges_tri_tot)
 			faces_double = next;
 		}
 
-		BLI_memarena_free(pf_arena);
-
 		if (has_ngon) {
+			BLI_memarena_free(pf_arena);
 			BLI_heap_free(pf_heap, NULL);
 			BLI_edgehash_free(pf_ehash, NULL);
 		}
