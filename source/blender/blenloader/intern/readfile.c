@@ -7949,16 +7949,22 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const short 
 	if (fd->memfile && ELEM(bhead->code, ID_LI, ID_ID)) {
 		const char *idname = bhead_id_name(fd, bhead);
 
-		/* printf("Checking %s...\n", idname); */
+#ifdef PRINT_DEBUG
+		printf("Checking %s...\n", idname);
+#endif
 
 		if (bhead->code == ID_LI) {
 			Main *libmain = fd->old_mainlist->first;
 			/* Skip oldmain itself... */
 			for (libmain = libmain->next; libmain; libmain = libmain->next) {
-				/* printf("... against %s: ", libmain->curlib ? libmain->curlib->id.name : "<NULL>"); */
+#ifdef PRINT_DEBUG
+				printf("... against %s: ", libmain->curlib ? libmain->curlib->id.name : "<NULL>");
+#endif
 				if (libmain->curlib && STREQ(idname, libmain->curlib->id.name)) {
 					Main *oldmain = fd->old_mainlist->first;
-					/* printf("FOUND!\n"); */
+#ifdef PRINT_DEBUG
+					printf("FOUND!\n");
+#endif
 					/* In case of a library, we need to re-add its main to fd->mainlist, because if we have later
 					 * a missing ID_ID, we need to get the correct lib it is linked to!
 					 * Order is crucial, we cannot bulk-add it in BLO_read_from_memfile() like it used to be... */
@@ -7972,13 +7978,19 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const short 
 					}
 					return blo_nextbhead(fd, bhead);
 				}
-				/* printf("nothing...\n"); */
+#ifdef PRINT_DEBUG
+				printf("nothing...\n");
+#endif
 			}
 		}
 		else {
-			/* printf("... in %s (%s): ", main->curlib ? main->curlib->id.name : "<NULL>", main->curlib ? main->curlib->name : "<NULL>"); */
+#ifdef PRINT_DEBUG
+			printf("... in %s (%s): ", main->curlib ? main->curlib->id.name : "<NULL>", main->curlib ? main->curlib->name : "<NULL>");
+#endif
 			if ((id = BKE_libblock_find_name_ex(main, GS(idname), idname + 2))) {
-				/* printf("FOUND!\n"); */
+#ifdef PRINT_DEBUG
+				printf("FOUND!\n");
+#endif
 				/* Even though we found our linked ID, there is no guarantee its address is still the same... */
 				if (id != bhead->old) {
 					oldnewmap_insert(fd->libmap, bhead->old, id, GS(id->name));
@@ -7990,7 +8002,9 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const short 
 				}
 				return blo_nextbhead(fd, bhead);
 			}
-			/* printf("nothing...\n"); */
+#ifdef PRINT_DEBUG
+			printf("nothing...\n");
+#endif
 		}
 	}
 
