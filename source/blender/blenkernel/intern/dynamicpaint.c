@@ -1813,14 +1813,14 @@ static DerivedMesh *dynamicPaint_Modifier_apply(
 						DynamicPaintModifierApplyData data = {.surface = surface, .fcolor = fcolor};
 						BLI_task_parallel_range(0, sData->total_points, &data,
 						                        dynamic_paint_apply_surface_vpaint_blend_cb,
-												sData->total_points > 1000);
+						                        sData->total_points > 1000);
 
 						/* paint layer */
 						MLoopCol *mloopcol = CustomData_get_layer_named(&result->loopData, CD_MLOOPCOL, surface->output_name);
 						/* if output layer is lost from a constructive modifier, re-add it */
 						if (!mloopcol && dynamicPaint_outputLayerExists(surface, ob, 0)) {
 							mloopcol = CustomData_add_layer_named(
-									  &result->loopData, CD_MLOOPCOL, CD_CALLOC, NULL, totloop, surface->output_name);
+							        &result->loopData, CD_MLOOPCOL, CD_CALLOC, NULL, totloop, surface->output_name);
 						}
 
 						/* wet layer */
@@ -1828,7 +1828,7 @@ static DerivedMesh *dynamicPaint_Modifier_apply(
 						/* if output layer is lost from a constructive modifier, re-add it */
 						if (!mloopcol_wet && dynamicPaint_outputLayerExists(surface, ob, 1)) {
 							mloopcol_wet = CustomData_add_layer_named(
-										  &result->loopData, CD_MLOOPCOL, CD_CALLOC, NULL, totloop, surface->output_name2);
+							        &result->loopData, CD_MLOOPCOL, CD_CALLOC, NULL, totloop, surface->output_name2);
 						}
 
 						/* Save preview results to weight layer to be able to share same drawing methods */
@@ -1837,7 +1837,7 @@ static DerivedMesh *dynamicPaint_Modifier_apply(
 							mloopcol_preview = CustomData_get_layer(&result->loopData, CD_PREVIEW_MLOOPCOL);
 							if (!mloopcol_preview) {
 								mloopcol_preview = CustomData_add_layer(
-												  &result->loopData, CD_PREVIEW_MLOOPCOL, CD_CALLOC, NULL, totloop);
+								        &result->loopData, CD_PREVIEW_MLOOPCOL, CD_CALLOC, NULL, totloop);
 							}
 						}
 
@@ -2323,15 +2323,15 @@ static int dynamic_paint_find_neighbour_pixel(
 		edge1_index = 0;
 		edge2_index = 1;
 		dist_squared = dist_squared_to_line_segment_v2(
-						   pixel,
-						   mloopuv[mlooptri[cPoint->tri_index].tri[0]].uv,
-						   mloopuv[mlooptri[cPoint->tri_index].tri[1]].uv);
+		        pixel,
+		        mloopuv[mlooptri[cPoint->tri_index].tri[0]].uv,
+		        mloopuv[mlooptri[cPoint->tri_index].tri[1]].uv);
 
 		/* Dist to second edge */
 		t_dist_squared = dist_squared_to_line_segment_v2(
-							 pixel,
-							 mloopuv[mlooptri[cPoint->tri_index].tri[1]].uv,
-							 mloopuv[mlooptri[cPoint->tri_index].tri[2]].uv);
+		        pixel,
+		        mloopuv[mlooptri[cPoint->tri_index].tri[1]].uv,
+		        mloopuv[mlooptri[cPoint->tri_index].tri[2]].uv);
 		if (t_dist_squared < dist_squared) {
 			e1_index = cPoint->v2;
 			e2_index = cPoint->v3;
@@ -2342,9 +2342,9 @@ static int dynamic_paint_find_neighbour_pixel(
 
 		/* Dist to third edge */
 		t_dist_squared = dist_squared_to_line_segment_v2(
-							 pixel,
-							 mloopuv[mlooptri[cPoint->tri_index].tri[2]].uv,
-							 mloopuv[mlooptri[cPoint->tri_index].tri[0]].uv);
+		        pixel,
+		        mloopuv[mlooptri[cPoint->tri_index].tri[2]].uv,
+		        mloopuv[mlooptri[cPoint->tri_index].tri[0]].uv);
 		if (t_dist_squared < dist_squared) {
 			e1_index = cPoint->v3;
 			e2_index = cPoint->v1;
@@ -2395,9 +2395,9 @@ static int dynamic_paint_find_neighbour_pixel(
 		//printf("connected UV : %f,%f & %f,%f - %f,%f & %f,%f\n", s_uv1[0], s_uv1[1], s_uv2[0], s_uv2[1], t_uv1[0], t_uv1[1], t_uv2[0], t_uv2[1]);
 
 		if (((s_uv1[0] == t_uv1[0] && s_uv1[1] == t_uv1[1]) &&
-			 (s_uv2[0] == t_uv2[0] && s_uv2[1] == t_uv2[1])) ||
-			((s_uv2[0] == t_uv1[0] && s_uv2[1] == t_uv1[1]) &&
-			 (s_uv1[0] == t_uv2[0] && s_uv1[1] == t_uv2[1])))
+		     (s_uv2[0] == t_uv2[0] && s_uv2[1] == t_uv2[1])) ||
+		    ((s_uv2[0] == t_uv1[0] && s_uv2[1] == t_uv1[1]) &&
+		     (s_uv1[0] == t_uv2[0] && s_uv1[1] == t_uv2[1])))
 		{
 			return ((px + neighX[n_index]) + w * (py + neighY[n_index]));
 		}
@@ -2407,15 +2407,15 @@ static int dynamic_paint_find_neighbour_pixel(
 		 *	on this other face UV
 		 */
 		lambda = closest_to_line_v2(
-					 closest_point, pixel,
-					 mloopuv[mlooptri[cPoint->tri_index].tri[edge1_index]].uv,
-					 mloopuv[mlooptri[cPoint->tri_index].tri[edge2_index]].uv);
+		        closest_point, pixel,
+		        mloopuv[mlooptri[cPoint->tri_index].tri[edge1_index]].uv,
+		        mloopuv[mlooptri[cPoint->tri_index].tri[edge2_index]].uv);
 		CLAMP(lambda, 0.0f, 1.0f);
 
 		sub_v2_v2v2(
-				dir_vec,
-				mloopuv[mlooptri[target_tri].tri[target_uv2]].uv,
-				mloopuv[mlooptri[target_tri].tri[target_uv1]].uv);
+		        dir_vec,
+		        mloopuv[mlooptri[target_tri].tri[target_uv2]].uv,
+		        mloopuv[mlooptri[target_tri].tri[target_uv1]].uv);
 
 		mul_v2_fl(dir_vec, lambda);
 
@@ -2634,8 +2634,8 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface, flo
 		ImgSeqFormatData *f_data = MEM_callocN(sizeof(*f_data), "ImgSeqFormatData");
 		if (f_data) {
 			f_data->uv_p = MEM_callocN(active_points * sizeof(*f_data->uv_p), "PaintUVPoint");
-			f_data->barycentricWeights = MEM_callocN(active_points * aa_samples * sizeof(*f_data->barycentricWeights),
-													 "PaintUVPoint");
+			f_data->barycentricWeights =
+			        MEM_callocN(active_points * aa_samples * sizeof(*f_data->barycentricWeights), "PaintUVPoint");
 
 			if (!f_data->uv_p || !f_data->barycentricWeights)
 				error = 1;
@@ -2837,7 +2837,7 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface, char *filenam
 	}
 
 	DynamicPaintOutputSurfaceImageData data = {.surface = surface, .ibuf = ibuf};
-	switch(surface->type) {
+	switch (surface->type) {
 		case MOD_DPAINT_SURFACE_T_PAINT:
 			switch (output_layer) {
 				case 0:
@@ -3838,12 +3838,12 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 
 					/* loop through cell points and process brush */
 					DynamicPaintPaintData data = {
-						.surface = surface,
+					    .surface = surface,
 					    .brush = brush, .brushOb = brushOb, .bMats = bMats,
 					    .scene = scene, .timescale = timescale, .c_index = c_index,
-						.dm = dm, .mvert = mvert, .mloop = mloop, .mlooptri = mlooptri,
-						.brush_radius = brush_radius, .avg_brushNor = avg_brushNor, .brushVelocity = brushVelocity,
-						.treeData = &treeData
+					    .dm = dm, .mvert = mvert, .mloop = mloop, .mlooptri = mlooptri,
+					    .brush_radius = brush_radius, .avg_brushNor = avg_brushNor, .brushVelocity = brushVelocity,
+					    .treeData = &treeData
 					};
 					BLI_task_parallel_range_ex(0, grid->s_num[c_index], &data, NULL, 0,
 					                           dynamic_paint_paint_mesh_cell_point_cb_ex,
@@ -3991,16 +3991,16 @@ static int dynamicPaint_paintSinglePoint(
 	 *	Loop through every surface point
 	 */
 	DynamicPaintPaintData data = {
-		.surface = surface,
-		.brush = brush, .brushOb = brushOb, .bMats = bMats,
-		.scene = scene, .timescale = timescale,
-		.mvert = mvert,
-		.brush_radius = brush_radius, .brushVelocity = &brushVel,
+	    .surface = surface,
+	    .brush = brush, .brushOb = brushOb, .bMats = bMats,
+	    .scene = scene, .timescale = timescale,
+	    .mvert = mvert,
+	    .brush_radius = brush_radius, .brushVelocity = &brushVel,
 	    .pointCoord = pointCoord,
 	};
 	BLI_task_parallel_range_ex(0, sData->total_points, &data, NULL, 0,
-							   dynamic_paint_paint_single_point_cb_ex,
-							   sData->total_points > 1000, true);
+	                           dynamic_paint_paint_single_point_cb_ex,
+	                           sData->total_points > 1000, true);
 
 	return 1;
 }
@@ -4433,83 +4433,83 @@ static void dynamic_paint_effect_drip_cb(void *userdata, const int index)
 {
 	const DynamicPaintEffectData *data = userdata;
 
-    const DynamicPaintSurface *surface = data->surface;
-    const PaintSurfaceData *sData = surface->data;
-    BakeAdjPoint *bNeighs = sData->bData->bNeighs;
-    PaintPoint *pPoint = &((PaintPoint *)sData->type_data)[index];
-    const PaintPoint *prevPoint = data->prevPoint;
-    const PaintPoint *pPoint_prev = &prevPoint[index];
-    const float *force = data->force;
-    const float eff_scale = data->eff_scale;
+	const DynamicPaintSurface *surface = data->surface;
+	const PaintSurfaceData *sData = surface->data;
+	BakeAdjPoint *bNeighs = sData->bData->bNeighs;
+	PaintPoint *pPoint = &((PaintPoint *)sData->type_data)[index];
+	const PaintPoint *prevPoint = data->prevPoint;
+	const PaintPoint *pPoint_prev = &prevPoint[index];
+	const float *force = data->force;
+	const float eff_scale = data->eff_scale;
 
-    const int *n_target = sData->adj_data->n_target;
+	const int *n_target = sData->adj_data->n_target;
 
-    uint8_t *point_locks = data->point_locks;
+	uint8_t *point_locks = data->point_locks;
 
-    int closest_id[2];
-    float closest_d[2];
+	int closest_id[2];
+	float closest_d[2];
 
-    /* adjust drip speed depending on wetness */
-    float w_factor = pPoint_prev->wetness - 0.025f;
-    if (w_factor <= 0)
-	    return;
-    CLAMP(w_factor, 0.0f, 1.0f);
+	/* adjust drip speed depending on wetness */
+	float w_factor = pPoint_prev->wetness - 0.025f;
+	if (w_factor <= 0)
+		return;
+	CLAMP(w_factor, 0.0f, 1.0f);
 
-    /* get force affect points */
-    surface_determineForceTargetPoints(sData, index, &force[index * 4], closest_d, closest_id);
+	/* get force affect points */
+	surface_determineForceTargetPoints(sData, index, &force[index * 4], closest_d, closest_id);
 
-    /* Apply movement towards those two points */
-    for (int i = 0; i < 2; i++) {
-	    const int n_idx = closest_id[i];
-	    if (n_idx != -1 && closest_d[i] > 0.0f) {
-		    const float dir_dot = closest_d[i];
+	/* Apply movement towards those two points */
+	for (int i = 0; i < 2; i++) {
+		const int n_idx = closest_id[i];
+		if (n_idx != -1 && closest_d[i] > 0.0f) {
+			const float dir_dot = closest_d[i];
 
-		    /* just skip if angle is too extreme */
-		    if (dir_dot <= 0.0f)
-			    continue;
+			/* just skip if angle is too extreme */
+			if (dir_dot <= 0.0f)
+				continue;
 
-		    float dir_factor, a_factor;
-		    const float speed_scale = eff_scale * force[index * 4 + 3] / bNeighs[n_idx].dist;
+			float dir_factor, a_factor;
+			const float speed_scale = eff_scale * force[index * 4 + 3] / bNeighs[n_idx].dist;
 
-		    const unsigned int n_trgt = (unsigned int)n_target[n_idx];
+			const unsigned int n_trgt = (unsigned int)n_target[n_idx];
 
-		    /* Sort of spinlock, but only for given ePoint.
-		     * Since the odds a same ePoint is modified at the same time by several threads is very low, this is
-		     * much more eficient than a global spin lock. */
-		    const unsigned int pointlock_idx = n_trgt / 8;
-		    const uint8_t pointlock_bitmask = 1 << (n_trgt & 7);  /* 7 == 0b111 */
-		    while (atomic_fetch_and_or_uint8(&point_locks[pointlock_idx], pointlock_bitmask) & pointlock_bitmask);
+			/* Sort of spinlock, but only for given ePoint.
+			 * Since the odds a same ePoint is modified at the same time by several threads is very low, this is
+			 * much more eficient than a global spin lock. */
+			const unsigned int pointlock_idx = n_trgt / 8;
+			const uint8_t pointlock_bitmask = 1 << (n_trgt & 7);  /* 7 == 0b111 */
+			while (atomic_fetch_and_or_uint8(&point_locks[pointlock_idx], pointlock_bitmask) & pointlock_bitmask);
 
-		    PaintPoint *ePoint = &((PaintPoint *)sData->type_data)[n_trgt];
-		    const float e_wet = ePoint->wetness;
+			PaintPoint *ePoint = &((PaintPoint *)sData->type_data)[n_trgt];
+			const float e_wet = ePoint->wetness;
 
-		    dir_factor = min_ff(0.5f, dir_dot * min_ff(speed_scale, 1.0f) * w_factor);
+			dir_factor = min_ff(0.5f, dir_dot * min_ff(speed_scale, 1.0f) * w_factor);
 
-		    /* mix new wetness */
-		    ePoint->wetness += dir_factor;
-		    CLAMP(ePoint->wetness, 0.0f, MAX_WETNESS);
+			/* mix new wetness */
+			ePoint->wetness += dir_factor;
+			CLAMP(ePoint->wetness, 0.0f, MAX_WETNESS);
 
-		    /* mix new color */
-		    a_factor = dir_factor / pPoint_prev->wetness;
-		    CLAMP(a_factor, 0.0f, 1.0f);
-		    mixColors(ePoint->e_color, ePoint->e_color[3], pPoint_prev->e_color, pPoint_prev->e_color[3], a_factor);
-		    /* dripping is supposed to preserve alpha level */
-		    if (pPoint_prev->e_color[3] > ePoint->e_color[3]) {
-			    ePoint->e_color[3] += a_factor * pPoint_prev->e_color[3];
-			    CLAMP_MAX(ePoint->e_color[3], pPoint_prev->e_color[3]);
-		    }
+			/* mix new color */
+			a_factor = dir_factor / pPoint_prev->wetness;
+			CLAMP(a_factor, 0.0f, 1.0f);
+			mixColors(ePoint->e_color, ePoint->e_color[3], pPoint_prev->e_color, pPoint_prev->e_color[3], a_factor);
+			/* dripping is supposed to preserve alpha level */
+			if (pPoint_prev->e_color[3] > ePoint->e_color[3]) {
+				ePoint->e_color[3] += a_factor * pPoint_prev->e_color[3];
+				CLAMP_MAX(ePoint->e_color[3], pPoint_prev->e_color[3]);
+			}
 
-		    /* decrease paint wetness on current point */
-		    pPoint->wetness -= (ePoint->wetness - e_wet);
-		    CLAMP(pPoint->wetness, 0.0f, MAX_WETNESS);
+			/* decrease paint wetness on current point */
+			pPoint->wetness -= (ePoint->wetness - e_wet);
+			CLAMP(pPoint->wetness, 0.0f, MAX_WETNESS);
 
 #ifndef NDEBUG
 			uint8_t ret = atomic_fetch_and_and_uint8(&point_locks[pointlock_idx], ~pointlock_bitmask);
-	        BLI_assert(ret & pointlock_bitmask);
+			BLI_assert(ret & pointlock_bitmask);
 #else
 			atomic_fetch_and_and_uint8(&point_locks[pointlock_idx], ~pointlock_bitmask);
 #endif
-	    }
+		}
 	}
 }
 
@@ -4570,7 +4570,7 @@ static void dynamicPaint_doEffectStep(
 		memcpy(prevPoint, sData->type_data, sData->total_points * sizeof(struct PaintPoint));
 
 		DynamicPaintEffectData data = {
-			.surface = surface, .prevPoint = prevPoint,
+		    .surface = surface, .prevPoint = prevPoint,
 		    .eff_scale = eff_scale, .force = force,
 		    .point_locks = point_locks,
 		};
@@ -4786,7 +4786,7 @@ static void dynamic_paint_surface_pre_step_cb(void *userdata, const int index)
 					if (pPoint->color[3]) {
 						for (i = 0; i < 3; i++) {
 							pPoint->color[i] = (f_color[i] * f_color[3] - pPoint->e_color[i] * pPoint->e_color[3]) /
-											   (pPoint->color[3] * (1.0f - pPoint->e_color[3]));
+							                   (pPoint->color[3] * (1.0f - pPoint->e_color[3]));
 						}
 					}
 				}
@@ -4807,17 +4807,17 @@ static void dynamic_paint_surface_pre_step_cb(void *userdata, const int index)
 
 		if (surface->flags & MOD_DPAINT_DISSOLVE) {
 			value_dissolve(&pPoint->color[3], surface->diss_speed, timescale,
-						   (surface->flags & MOD_DPAINT_DISSOLVE_LOG) != 0);
+			               (surface->flags & MOD_DPAINT_DISSOLVE_LOG) != 0);
 			CLAMP_MIN(pPoint->color[3], 0.0f);
 
 			value_dissolve(&pPoint->e_color[3], surface->diss_speed, timescale,
-						   (surface->flags & MOD_DPAINT_DISSOLVE_LOG) != 0);
+			               (surface->flags & MOD_DPAINT_DISSOLVE_LOG) != 0);
 			CLAMP_MIN(pPoint->e_color[3], 0.0f);
 		}
 	}
 	/* dissolve for float types */
 	else if (surface->flags & MOD_DPAINT_DISSOLVE &&
-			 (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE || surface->type == MOD_DPAINT_SURFACE_T_WEIGHT))
+	         (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE || surface->type == MOD_DPAINT_SURFACE_T_WEIGHT))
 	{
 		float *point = &((float *)sData->type_data)[index];
 		/* log or linear */
@@ -5066,7 +5066,7 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, const Sce
 	 */
 	DynamicPaintGenerateBakeData data = {
 	    .surface = surface, .ob = ob,
-		.mvert = mvert, .canvas_verts = canvas_verts,
+	    .mvert = mvert, .canvas_verts = canvas_verts,
 	    .do_velocity_data = do_velocity_data, .new_bdata = new_bdata,
 	};
 	BLI_task_parallel_range(
@@ -5177,11 +5177,8 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 						dynamicPaint_updateBrushMaterials(brushObj, brush->mat, scene, &bMats);
 
 					/* Apply brush on the surface depending on it's collision type */
-					/* Particle brush: */
-					if (brush->collision == MOD_DPAINT_COL_PSYS) {
-					}
 					/* Object center distance: */
-					else if (brush->collision == MOD_DPAINT_COL_POINT && brushObj != ob) {
+					if (brush->collision == MOD_DPAINT_COL_POINT && brushObj != ob) {
 						dynamicPaint_paintSinglePoint(surface, brushObj->loc, brush, brushObj, &bMats, scene, timescale);
 					}
 					/* Mesh volume/proximity: */

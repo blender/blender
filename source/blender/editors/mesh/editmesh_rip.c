@@ -463,7 +463,7 @@ static void edbm_tagged_loop_pairs_do_fill_faces(BMesh *bm, UnorderedLoopPair *u
 		if ((ulp->l_pair[0]    && ulp->l_pair[1]) &&
 		    (ulp->l_pair[0]->e != ulp->l_pair[1]->e))
 		{
-			 /* time has come to make a face! */
+			/* time has come to make a face! */
 			BMVert *v_shared = BM_edge_share_vert(ulp->l_pair[0]->e, ulp->l_pair[1]->e);
 			BMFace *f, *f_example = ulp->l_pair[0]->f;
 			BMLoop *l_iter;

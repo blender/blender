@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/intern/depsnode_component.cc
+/** \file blender/depsgraph/intern/nodes/deg_node_component.cc
  *  \ingroup depsgraph
  */
 
@@ -256,7 +256,7 @@ OperationDepsNode *ComponentDepsNode::get_entry_operation()
 		entry_operation = op_node;
 		return op_node;
 	}
-	else if(operations.size() == 1) {
+	else if (operations.size() == 1) {
 		return operations[0];
 	}
 	return NULL;
@@ -279,7 +279,7 @@ OperationDepsNode *ComponentDepsNode::get_exit_operation()
 		exit_operation = op_node;
 		return op_node;
 	}
-	else if(operations.size() == 1) {
+	else if (operations.size() == 1) {
 		return operations[0];
 	}
 	return NULL;

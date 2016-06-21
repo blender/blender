@@ -172,7 +172,8 @@ static int gpu_shader_normal_map(GPUMaterial *mat, bNode *node, bNodeExecData *U
 				break;
 		}
 
-	} else {
+	}
+	else {
 
 		/* ************** BLENDER INTERNAL without world space shading flag ******* */
 

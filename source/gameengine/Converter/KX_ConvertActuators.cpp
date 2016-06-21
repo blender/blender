@@ -394,8 +394,9 @@ void BL_ConvertActuators(const char* maggiename,
 						soundActuatorType);
 
 					// if we made it mono, we have to free it
-					if(sound && snd_sound && snd_sound != sound->playback_handle)
+					if (sound && snd_sound && snd_sound != sound->playback_handle) {
 						AUD_Sound_free(snd_sound);
+					}
 
 					tmpsoundact->SetName(bact->name);
 					baseact = tmpsoundact;

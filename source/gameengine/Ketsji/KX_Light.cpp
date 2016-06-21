@@ -195,7 +195,7 @@ int KX_LightObject::pyattr_set_layer(void *self_v, const KX_PYATTRIBUTE_DEF *att
 		PyErr_Format(PyExc_TypeError, "expected an integer greater than 1 for attribute \"%s\"", attrdef->m_name);
 		return PY_SET_ATTR_FAIL;
 	}
-	else if(layer > MAX_LIGHT_LAYERS) {
+	else if (layer > MAX_LIGHT_LAYERS) {
 		PyErr_Format(PyExc_TypeError, "expected an integer less than %i for attribute \"%s\"", MAX_LIGHT_LAYERS, attrdef->m_name);
 		return PY_SET_ATTR_FAIL;
 	}

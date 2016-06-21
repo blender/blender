@@ -430,7 +430,7 @@ public:
 
 	// PHY_ICharacter interface
 	virtual void Jump()	{ jump(); }
-	virtual bool OnGround(){ return onGround(); }
+	virtual bool OnGround() { return onGround(); }
 	virtual float GetGravity() { return getGravity(); }
 	virtual void SetGravity(float gravity) { setGravity(gravity); }
 	virtual unsigned char GetMaxJumps() { return getMaxJumps(); }

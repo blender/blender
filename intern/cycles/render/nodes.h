@@ -643,7 +643,7 @@ public:
 class InvertNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(InvertNode)
-
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
 	float fac;
@@ -667,6 +667,7 @@ public:
 class CombineRGBNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(CombineRGBNode)
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
 	float r, g, b;
@@ -675,6 +676,7 @@ public:
 class CombineHSVNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(CombineHSVNode)
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
 	float h, s, v;
@@ -683,6 +685,7 @@ public:
 class CombineXYZNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(CombineXYZNode)
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
 	float x, y, z;
@@ -701,6 +704,7 @@ public:
 class BrightContrastNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(BrightContrastNode)
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual int get_group() { return NODE_GROUP_LEVEL_1; }
 
 	float3 color;
@@ -711,6 +715,7 @@ public:
 class SeparateRGBNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(SeparateRGBNode)
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
 	float3 color;
@@ -719,6 +724,7 @@ public:
 class SeparateHSVNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(SeparateHSVNode)
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
 	float3 color;
@@ -727,6 +733,7 @@ public:
 class SeparateXYZNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(SeparateXYZNode)
+	bool constant_fold(ShaderGraph *graph, ShaderOutput *socket, ShaderInput *optimized);
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
 	float3 vector;
@@ -868,26 +875,30 @@ public:
 	float distance;
 };
 
-class RGBCurvesNode : public ShaderNode {
+class CurvesNode : public ShaderNode {
 public:
-	SHADER_NODE_CLASS(RGBCurvesNode)
+	explicit CurvesNode(const NodeType *node_type);
+	SHADER_NODE_BASE_CLASS(CurvesNode);
 
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
+	bool has_spatial_varying() { return true; }
+	void compile(SVMCompiler& compiler, int type, ShaderInput *value_in, ShaderOutput *value_out);
+	void compile(OSLCompiler& compiler, const char *name);
+
 	array<float3> curves;
 	float min_x, max_x, fac;
-	float3 color;
+	float3 value;
 };
 
-class VectorCurvesNode : public ShaderNode {
+class RGBCurvesNode : public CurvesNode {
+public:
+	SHADER_NODE_CLASS(RGBCurvesNode)
+};
+
+class VectorCurvesNode : public CurvesNode {
 public:
 	SHADER_NODE_CLASS(VectorCurvesNode)
-
-	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
-
-	array<float3> curves;
-	float min_x, max_x, fac;
-	float3 vector;
 };
 
 class RGBRampNode : public ShaderNode {
@@ -912,11 +923,13 @@ public:
 	static OSLNode *create(size_t num_inputs);
 	~OSLNode();
 
+	ShaderNode *clone() const;
+
 	char* input_default_value();
 	void add_input(ustring name, SocketType::Type type);
 	void add_output(ustring name, SocketType::Type type);
 
-	SHADER_NODE_BASE_CLASS(OSLNode)
+	SHADER_NODE_NO_CLONE_CLASS(OSLNode)
 
 	/* ideally we could beter detect this, but we can't query this now */
 	bool has_spatial_varying() { return true; }
@@ -924,9 +937,6 @@ public:
 
 	string filepath;
 	string bytecode_hash;
-
-private:
-	OSLNode();
 };
 
 class NormalMapNode : public ShaderNode {

@@ -2418,7 +2418,8 @@ void ntreeInterfaceTypeUpdate(bNodeTree *ntree)
 
 /* ************ find stuff *************** */
 
-bNode *ntreeFindType(const bNodeTree *ntree, int type) {
+bNode *ntreeFindType(const bNodeTree *ntree, int type)
+{
 	if (ntree) {
 		for (bNode * node = ntree->nodes.first; node; node = node->next) {
 			if (node->type == type) {

@@ -150,6 +150,11 @@ template<> struct device_type_traits<float4> {
 	static const int num_elements = 4;
 };
 
+template<> struct device_type_traits<half> {
+	static const DataType data_type = TYPE_HALF;
+	static const int num_elements = 1;
+};
+
 template<> struct device_type_traits<half4> {
 	static const DataType data_type = TYPE_HALF;
 	static const int num_elements = 4;

@@ -54,10 +54,14 @@ ImageManager::ImageManager(const DeviceInfo& info)
 		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_ ## ARCH; \
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_ ## ARCH; \
 		tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_ ## ARCH; \
+		tex_num_images[IMAGE_DATA_TYPE_HALF4] = TEX_NUM_HALF4_ ## ARCH; \
+		tex_num_images[IMAGE_DATA_TYPE_HALF] = TEX_NUM_HALF_ ## ARCH; \
 		tex_start_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_START_FLOAT4_ ## ARCH; \
 		tex_start_images[IMAGE_DATA_TYPE_BYTE4] = TEX_START_BYTE4_ ## ARCH; \
 		tex_start_images[IMAGE_DATA_TYPE_FLOAT] = TEX_START_FLOAT_ ## ARCH; \
 		tex_start_images[IMAGE_DATA_TYPE_BYTE] = TEX_START_BYTE_ ## ARCH; \
+		tex_start_images[IMAGE_DATA_TYPE_HALF4] = TEX_START_HALF4_ ## ARCH; \
+		tex_start_images[IMAGE_DATA_TYPE_HALF] = TEX_START_HALF_ ## ARCH; \
 	}
 
 	if(device_type == DEVICE_CPU) {
@@ -80,10 +84,14 @@ ImageManager::ImageManager(const DeviceInfo& info)
 		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = 0;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = 0;
 		tex_num_images[IMAGE_DATA_TYPE_BYTE] = 0;
+		tex_num_images[IMAGE_DATA_TYPE_HALF4] = 0;
+		tex_num_images[IMAGE_DATA_TYPE_HALF] = 0;
 		tex_start_images[IMAGE_DATA_TYPE_FLOAT4] = 0;
 		tex_start_images[IMAGE_DATA_TYPE_BYTE4] = 0;
 		tex_start_images[IMAGE_DATA_TYPE_FLOAT] = 0;
 		tex_start_images[IMAGE_DATA_TYPE_BYTE] = 0;
+		tex_start_images[IMAGE_DATA_TYPE_HALF4] = 0;
+		tex_start_images[IMAGE_DATA_TYPE_HALF] = 0;
 		assert(0);
 	}
 
@@ -128,7 +136,7 @@ ImageManager::ImageDataType ImageManager::get_image_metadata(const string& filen
                                                              void *builtin_data,
                                                              bool& is_linear)
 {
-	bool is_float = false;
+	bool is_float = false, is_half = false;
 	is_linear = false;
 	int channels = 4;
 
@@ -167,6 +175,10 @@ ImageManager::ImageDataType ImageManager::get_image_metadata(const string& filen
 				}
 			}
 
+			/* check if it's half float */
+			if(spec.format == TypeDesc::HALF)
+				is_half = true;
+
 			channels = spec.nchannels;
 
 			/* basic color space detection, not great but better than nothing
@@ -192,7 +204,10 @@ ImageManager::ImageDataType ImageManager::get_image_metadata(const string& filen
 		delete in;
 	}
 
-	if(is_float) {
+	if(is_half) {
+		return (channels > 1) ? IMAGE_DATA_TYPE_HALF4 : IMAGE_DATA_TYPE_HALF;
+	}
+	else if(is_float) {
 		return (channels > 1) ? IMAGE_DATA_TYPE_FLOAT4 : IMAGE_DATA_TYPE_FLOAT;
 	}
 	else {
@@ -230,6 +245,10 @@ string ImageManager::name_from_type(int type)
 		return "float";
 	else if(type == IMAGE_DATA_TYPE_BYTE)
 		return "byte";
+	else if(type == IMAGE_DATA_TYPE_HALF4)
+		return "half4";
+	else if(type == IMAGE_DATA_TYPE_HALF)
+		return "half";
 	else
 		return "byte4";
 }
@@ -265,11 +284,16 @@ int ImageManager::add_image(const string& filename,
 	if(type == IMAGE_DATA_TYPE_FLOAT || type == IMAGE_DATA_TYPE_FLOAT4)
 		is_float = true;
 
-	/* No single channel textures on CUDA (Fermi) and OpenCL, use available slots */
-	if(type == IMAGE_DATA_TYPE_FLOAT && tex_num_images[type] == 0)
+	/* No single channel and half textures on CUDA (Fermi) and OpenCL, use available slots */
+	if((type == IMAGE_DATA_TYPE_FLOAT ||
+	    type == IMAGE_DATA_TYPE_HALF4 ||
+	    type == IMAGE_DATA_TYPE_HALF) &&
+	    tex_num_images[type] == 0) {
 		type = IMAGE_DATA_TYPE_FLOAT4;
-	if(type == IMAGE_DATA_TYPE_BYTE && tex_num_images[type] == 0)
+	}
+	if(type == IMAGE_DATA_TYPE_BYTE && tex_num_images[type] == 0) {
 		type = IMAGE_DATA_TYPE_BYTE4;
+	}
 
 	/* Fnd existing image. */
 	for(slot = 0; slot < images[type].size(); slot++) {
@@ -645,6 +669,107 @@ bool ImageManager::file_load_float_image(Image *img, ImageDataType type, device_
 	return true;
 }
 
+template<typename T>
+bool ImageManager::file_load_half_image(Image *img, ImageDataType type, device_vector<T>& tex_img)
+{
+	ImageInput *in = NULL;
+	int width, height, depth, components;
+
+	if(!file_load_image_generic(img, &in, width, height, depth, components))
+		return false;
+
+	/* read RGBA pixels */
+	half *pixels = (half*)tex_img.resize(width, height, depth);
+	if(pixels == NULL) {
+		return false;
+	}
+
+	if(in) {
+		half *readpixels = pixels;
+		vector<half> tmppixels;
+
+		if(components > 4) {
+			tmppixels.resize(((size_t)width)*height*components);
+			readpixels = &tmppixels[0];
+		}
+
+		if(depth <= 1) {
+			int scanlinesize = width*components*sizeof(half);
+
+			in->read_image(TypeDesc::HALF,
+			               (uchar*)readpixels + (height-1)*scanlinesize,
+			               AutoStride,
+			               -scanlinesize,
+			               AutoStride);
+		}
+		else {
+			in->read_image(TypeDesc::HALF, (uchar*)readpixels);
+		}
+
+		if(components > 4) {
+			size_t dimensions = ((size_t)width)*height;
+			for(size_t i = dimensions-1, pixel = 0; pixel < dimensions; pixel++, i--) {
+				pixels[i*4+3] = tmppixels[i*components+3];
+				pixels[i*4+2] = tmppixels[i*components+2];
+				pixels[i*4+1] = tmppixels[i*components+1];
+				pixels[i*4+0] = tmppixels[i*components+0];
+			}
+
+			tmppixels.clear();
+		}
+
+		in->close();
+		delete in;
+	}
+#if 0
+	/* TODO(dingto): Support half for ImBuf. */
+	else {
+		builtin_image_float_pixels_cb(img->filename, img->builtin_data, pixels);
+	}
+#endif
+
+	/* Check if we actually have a half4 slot, in case components == 1, but device
+	 * doesn't support single channel textures. */
+	if(type == IMAGE_DATA_TYPE_HALF4) {
+		size_t num_pixels = ((size_t)width) * height * depth;
+		if(components == 2) {
+			/* grayscale + alpha */
+			for(size_t i = num_pixels-1, pixel = 0; pixel < num_pixels; pixel++, i--) {
+				pixels[i*4+3] = pixels[i*2+1];
+				pixels[i*4+2] = pixels[i*2+0];
+				pixels[i*4+1] = pixels[i*2+0];
+				pixels[i*4+0] = pixels[i*2+0];
+			}
+		}
+		else if(components == 3) {
+			/* RGB */
+			for(size_t i = num_pixels-1, pixel = 0; pixel < num_pixels; pixel++, i--) {
+				pixels[i*4+3] = 1.0f;
+				pixels[i*4+2] = pixels[i*3+2];
+				pixels[i*4+1] = pixels[i*3+1];
+				pixels[i*4+0] = pixels[i*3+0];
+			}
+		}
+		else if(components == 1) {
+			/* grayscale */
+			for(size_t i = num_pixels-1, pixel = 0; pixel < num_pixels; pixel++, i--) {
+				pixels[i*4+3] = 1.0f;
+				pixels[i*4+2] = pixels[i];
+				pixels[i*4+1] = pixels[i];
+				pixels[i*4+0] = pixels[i];
+			}
+		}
+
+		if(img->use_alpha == false) {
+			for(size_t i = num_pixels-1, pixel = 0; pixel < num_pixels; pixel++, i--) {
+				pixels[i*4+3] = 1.0f;
+			}
+		}
+	}
+
+	return true;
+}
+
 void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageDataType type, int slot, Progress *progress)
 {
 	if(progress->get_cancel())
@@ -744,7 +869,7 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageD
 			                  img->extension);
 		}
 	}
-	else {
+	else if(type == IMAGE_DATA_TYPE_BYTE){
 		device_vector<uchar>& tex_img = dscene->tex_byte_image[slot];
 
 		if(tex_img.device_pointer) {
@@ -757,6 +882,55 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageD
 			uchar *pixels = (uchar*)tex_img.resize(1, 1);
 
 			pixels[0] = (TEX_IMAGE_MISSING_R * 255);
+		}
+
+		if(!pack_images) {
+			thread_scoped_lock device_lock(device_mutex);
+			device->tex_alloc(name.c_str(),
+			                  tex_img,
+			                  img->interpolation,
+			                  img->extension);
+		}
+	}
+	else if(type == IMAGE_DATA_TYPE_HALF4){
+		device_vector<half4>& tex_img = dscene->tex_half4_image[slot];
+
+		if(tex_img.device_pointer) {
+			thread_scoped_lock device_lock(device_mutex);
+			device->tex_free(tex_img);
+		}
+
+		if(!file_load_half_image(img, type, tex_img)) {
+			/* on failure to load, we set a 1x1 pixels pink image */
+			half *pixels = (half*)tex_img.resize(1, 1);
+
+			pixels[0] = TEX_IMAGE_MISSING_R;
+			pixels[1] = TEX_IMAGE_MISSING_G;
+			pixels[2] = TEX_IMAGE_MISSING_B;
+			pixels[3] = TEX_IMAGE_MISSING_A;
+		}
+
+		if(!pack_images) {
+			thread_scoped_lock device_lock(device_mutex);
+			device->tex_alloc(name.c_str(),
+			                  tex_img,
+			                  img->interpolation,
+			                  img->extension);
+		}
+	}
+	else if(type == IMAGE_DATA_TYPE_HALF){
+		device_vector<half>& tex_img = dscene->tex_half_image[slot];
+
+		if(tex_img.device_pointer) {
+			thread_scoped_lock device_lock(device_mutex);
+			device->tex_free(tex_img);
+		}
+
+		if(!file_load_half_image(img, type, tex_img)) {
+			/* on failure to load, we set a 1x1 pixels pink image */
+			half *pixels = (half*)tex_img.resize(1, 1);
+
+			pixels[0] = TEX_IMAGE_MISSING_R;
 		}
 
 		if(!pack_images) {
@@ -812,8 +986,28 @@ void ImageManager::device_free_image(Device *device, DeviceScene *dscene, ImageD
 
 			tex_img.clear();
 		}
-		else {
+		else if(type == IMAGE_DATA_TYPE_BYTE){
 			device_vector<uchar>& tex_img = dscene->tex_byte_image[slot];
+
+			if(tex_img.device_pointer) {
+				thread_scoped_lock device_lock(device_mutex);
+				device->tex_free(tex_img);
+			}
+
+			tex_img.clear();
+		}
+		else if(type == IMAGE_DATA_TYPE_HALF4){
+			device_vector<half4>& tex_img = dscene->tex_half4_image[slot];
+
+			if(tex_img.device_pointer) {
+				thread_scoped_lock device_lock(device_mutex);
+				device->tex_free(tex_img);
+			}
+
+			tex_img.clear();
+		}
+		else if(type == IMAGE_DATA_TYPE_HALF){
+			device_vector<half>& tex_img = dscene->tex_half_image[slot];
 
 			if(tex_img.device_pointer) {
 				thread_scoped_lock device_lock(device_mutex);

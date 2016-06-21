@@ -79,21 +79,18 @@ KX_SoundActuator::KX_SoundActuator(SCA_IObject* gameobj,
 
 KX_SoundActuator::~KX_SoundActuator()
 {
-	if(m_handle)
-	{
+	if (m_handle) {
 		AUD_Handle_stop(m_handle);
 	}
 
-	if(m_sound)
-	{
+	if (m_sound) {
 		AUD_Sound_free(m_sound);
 	}
 }
 
 void KX_SoundActuator::play()
 {
-	if(m_handle)
-	{
+	if (m_handle) {
 		AUD_Handle_stop(m_handle);
 		m_handle = NULL;
 	}
@@ -130,10 +127,8 @@ void KX_SoundActuator::play()
 	if(sound != m_sound)
 		AUD_Sound_free(sound);
 
-	if (m_handle != NULL)
-	{
-		if (m_is3d)
-		{
+	if (m_handle != NULL) {
+		if (m_is3d) {
 			AUD_Handle_setRelative(m_handle, true);
 			AUD_Handle_setVolumeMaximum(m_handle, m_3d.max_gain);
 			AUD_Handle_setVolumeMinimum(m_handle, m_3d.min_gain);

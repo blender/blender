@@ -207,7 +207,7 @@ static MT_Matrix3x3 vectomat(MT_Vector3 vec, short axis, short upflag, short thr
 	vec = vec.safe_normalized_vec(z);
 
 	/* if 2D doesn't move the up vector */
-	if (!threedimup){
+	if (!threedimup) {
 		vec.setValue(MT_Scalar(vec[0]), MT_Scalar(vec[1]), MT_Scalar(0.0f));
 		vec = (vec - z.dot(vec)*z).safe_normalized_vec(z);
 	}

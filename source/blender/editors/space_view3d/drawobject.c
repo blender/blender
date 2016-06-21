@@ -3743,7 +3743,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 	}
 
 	if ((dt > OB_WIRE) && (v3d->flag2 & V3D_RENDER_SHADOW)) {
-	    /* pass */
+		/* pass */
 	}
 	else {
 		/* annoying but active faces is stored differently */

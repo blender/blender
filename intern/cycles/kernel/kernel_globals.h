@@ -37,8 +37,10 @@ struct VolumeStep;
 typedef struct KernelGlobals {
 	texture_image_uchar4 texture_byte4_images[TEX_NUM_BYTE4_CPU];
 	texture_image_float4 texture_float4_images[TEX_NUM_FLOAT4_CPU];
+	texture_image_half4 texture_half4_images[TEX_NUM_HALF4_CPU];
 	texture_image_float texture_float_images[TEX_NUM_FLOAT_CPU];
 	texture_image_uchar texture_byte_images[TEX_NUM_BYTE_CPU];
+	texture_image_half texture_half_images[TEX_NUM_HALF_CPU];
 
 #  define KERNEL_TEX(type, ttype, name) ttype name;
 #  define KERNEL_IMAGE_TEX(type, ttype, name)

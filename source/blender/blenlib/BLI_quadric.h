@@ -39,8 +39,7 @@ typedef struct Quadric {
 
 /* conversion */
 void  BLI_quadric_from_plane(Quadric *q, const double v[4]);
-void  BLI_quadric_to_tensor_m3(const Quadric *q, float m[3][3]);
-void  BLI_quadric_to_vector_v3(const Quadric *q, float v[3]);
+void  BLI_quadric_to_vector_v3(const Quadric *q, double v[3]);
 
 void  BLI_quadric_clear(Quadric *q);
 
@@ -50,7 +49,7 @@ void  BLI_quadric_add_qu_ququ(Quadric *r, const Quadric *a, const Quadric *b);
 void  BLI_quadric_mul(Quadric *a, const double scalar);
 
 /* solve */
-double BLI_quadric_evaluate(const Quadric *q, const float v_fl[3]);
-bool  BLI_quadric_optimize(const Quadric *q, float v[3], const float epsilon);
+double BLI_quadric_evaluate(const Quadric *q, const double v[3]);
+bool   BLI_quadric_optimize(const Quadric *q, double v[3], const double epsilon);
 
 #endif /* __BLI_QUADRIC_H__ */

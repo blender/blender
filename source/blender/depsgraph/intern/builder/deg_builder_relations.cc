@@ -1181,7 +1181,8 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *ob,
 
 			OperationKey done_key(&ob->id, DEPSNODE_TYPE_BONE, parchan->name, DEG_OPCODE_BONE_DONE);
 			add_relation(solver_key, done_key, DEPSREL_TYPE_TRANSFORM, "IK Chain Result");
-		} else {
+		}
+		else {
 			OperationKey final_transforms_key(&ob->id, DEPSNODE_TYPE_BONE, parchan->name, DEG_OPCODE_BONE_DONE);
 			add_relation(solver_key, final_transforms_key, DEPSREL_TYPE_TRANSFORM, "IK Solver Result");
 		}

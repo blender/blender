@@ -199,7 +199,7 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 				const float max = m_checkpropmaxval.ToFloat();
 				float val;
 
-				if (orgprop->GetValueType() == VALUE_STRING_TYPE){
+				if (orgprop->GetValueType() == VALUE_STRING_TYPE) {
 					val = orgprop->GetText().ToFloat();
 				}
 				else {
@@ -240,7 +240,7 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 				const float ref = m_checkpropval.ToFloat();
 				float val;
 
-				if (orgprop->GetValueType() == VALUE_STRING_TYPE){
+				if (orgprop->GetValueType() == VALUE_STRING_TYPE) {
 					val = orgprop->GetText().ToFloat();
 				}
 				else {

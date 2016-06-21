@@ -172,8 +172,7 @@ void UVDataWrapper::getUV(int uv_index, float *uv)
 	}
 }
 
-VCOLDataWrapper::VCOLDataWrapper(COLLADAFW::MeshVertexData& vdata) : mVData(&vdata){
-}
+VCOLDataWrapper::VCOLDataWrapper(COLLADAFW::MeshVertexData& vdata) : mVData(&vdata) {}
 
 void VCOLDataWrapper::get_vcol(int v_index, MLoopCol *mloopcol)
 {

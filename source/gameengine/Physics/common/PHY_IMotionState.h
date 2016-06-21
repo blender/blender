@@ -44,7 +44,7 @@ class	PHY_IMotionState
 
 {
 	public:
-		virtual ~PHY_IMotionState(){};
+		virtual ~PHY_IMotionState() {};
 
 		virtual void	GetWorldPosition(float& posX,float& posY,float& posZ)=0;
 		virtual void	GetWorldScaling(float& scaleX,float& scaleY,float& scaleZ)=0;

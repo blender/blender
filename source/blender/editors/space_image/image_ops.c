@@ -2979,7 +2979,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
 		if (ibuf->zbuf) {
 			info->z = ibuf->zbuf[y * ibuf->x + x];
 			info->zp = &info->z;
-			if (ibuf->zbuf == (int*)ibuf->rect) {
+			if (ibuf->zbuf == (int *)ibuf->rect) {
 				info->colp = NULL;
 			}
 		}

@@ -77,8 +77,8 @@
 #  define CUDA_KERNEL_MAX_REGISTERS 63
 #  define CUDA_KERNEL_BRANCHED_MAX_REGISTERS 63
 
-/* 5.0, 5.2 and 5.3 */
-#elif __CUDA_ARCH__ == 500 || __CUDA_ARCH__ == 520 || __CUDA_ARCH__ == 530
+/* 5.0, 5.2, 5.3, 6.0, 6.1 */
+#elif __CUDA_ARCH__ >= 500
 #  define CUDA_MULTIPRESSOR_MAX_REGISTERS 65536
 #  define CUDA_MULTIPROCESSOR_MAX_BLOCKS 32
 #  define CUDA_BLOCK_MAX_THREADS 1024
@@ -86,7 +86,7 @@
 
 /* tunable parameters */
 #  define CUDA_THREADS_BLOCK_WIDTH 16
-#  define CUDA_KERNEL_MAX_REGISTERS 40
+#  define CUDA_KERNEL_MAX_REGISTERS 48
 #  define CUDA_KERNEL_BRANCHED_MAX_REGISTERS 63
 
 /* unknown architecture */

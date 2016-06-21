@@ -315,6 +315,241 @@ static void PAINT_OT_vertex_color_smooth(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+
+/** \name Vertex Color Transformations
+ * \{ */
+
+struct VPaintTx_BrightContrastData {
+	/* pre-calculated */
+	float gain;
+	float offset;
+};
+
+static void vpaint_tx_brightness_contrast(const float col[3], const void *user_data, float r_col[3])
+{
+	const struct VPaintTx_BrightContrastData *data = user_data;
+
+	for (int i = 0; i < 3; i++) {
+		r_col[i] = data->gain * col[i] + data->offset;
+	}
+}
+
+static int vertex_color_brightness_contrast_exec(bContext *C, wmOperator *op)
+{
+	Object *obact = CTX_data_active_object(C);
+
+	float gain, offset;
+	{
+		float brightness = RNA_float_get(op->ptr, "brightness");
+		float contrast = RNA_float_get(op->ptr, "contrast");
+		brightness /= 100.0f;
+		float delta = contrast / 200.0f;
+		gain = 1.0f - delta * 2.0f;
+		/*
+		 * The algorithm is by Werner D. Streidt
+		 * (http://visca.com/ffactory/archives/5-99/msg00021.html)
+		 * Extracted of OpenCV demhist.c
+		 */
+		if (contrast > 0) {
+			gain = 1.0f / ((gain != 0.0f) ? gain : FLT_EPSILON);
+			offset = gain * (brightness - delta);
+		}
+		else {
+			delta *= -1;
+			offset = gain * (brightness + delta);
+		}
+	}
+
+	const struct VPaintTx_BrightContrastData user_data = {
+		.gain = gain,
+		.offset = offset,
+	};
+
+	if (ED_vpaint_color_transform(obact, vpaint_tx_brightness_contrast, &user_data)) {
+		ED_region_tag_redraw(CTX_wm_region(C));
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+static void PAINT_OT_vertex_color_brightness_contrast(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name = "Vertex Paint Bright/Contrast";
+	ot->idname = "PAINT_OT_vertex_color_brightness_contrast";
+	ot->description = "Adjust vertex color brightness/contrast";
+
+	/* api callbacks */
+	ot->exec = vertex_color_brightness_contrast_exec;
+	ot->poll = vertex_paint_mode_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* params */
+	const float min = -100, max = +100;
+	prop = RNA_def_float(ot->srna, "brightness", 0.0f, min, max, "Brightness", "", min, max);
+	prop = RNA_def_float(ot->srna, "contrast", 0.0f, min, max, "Contrast", "", min, max);
+	RNA_def_property_ui_range(prop, min, max, 1, 1);
+}
+
+struct VPaintTx_HueSatData {
+	float hue;
+	float sat;
+	float val;
+};
+
+static void vpaint_tx_hsv(const float col[3], const void *user_data, float r_col[3])
+{
+	const struct VPaintTx_HueSatData *data = user_data;
+	float hsv[3];
+	rgb_to_hsv_v(col, hsv);
+
+	hsv[0] += (data->hue - 0.5f);
+	if (hsv[0] > 1.0f) {
+		hsv[0] -= 1.0f;
+	}
+	else if (hsv[0] < 0.0f) {
+		hsv[0] += 1.0f;
+	}
+	hsv[1] *= data->sat;
+	hsv[2] *= data->val;
+
+	hsv_to_rgb_v(hsv, r_col);
+}
+
+static int vertex_color_hsv_exec(bContext *C, wmOperator *op)
+{
+	Object *obact = CTX_data_active_object(C);
+
+	const struct VPaintTx_HueSatData user_data = {
+		.hue = RNA_float_get(op->ptr, "h"),
+		.sat = RNA_float_get(op->ptr, "s"),
+		.val = RNA_float_get(op->ptr, "v"),
+	};
+
+	if (ED_vpaint_color_transform(obact, vpaint_tx_hsv, &user_data)) {
+		ED_region_tag_redraw(CTX_wm_region(C));
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+static void PAINT_OT_vertex_color_hsv(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Vertex Paint Hue Saturation Value";
+	ot->idname = "PAINT_OT_vertex_color_hsv";
+	ot->description = "Adjust vertex color HSV values";
+
+	/* api callbacks */
+	ot->exec = vertex_color_hsv_exec;
+	ot->poll = vertex_paint_mode_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* params */
+	RNA_def_float(ot->srna, "h", 0.5f, 0.0f, 1.0f, "Hue", "", 0.0f, 1.0f);
+	RNA_def_float(ot->srna, "s", 1.0f, 0.0f, 2.0f, "Saturation", "", 0.0f, 2.0f);
+	RNA_def_float(ot->srna, "v", 1.0f, 0.0f, 2.0f, "Value", "", 0.0f, 2.0f);
+}
+
+static void vpaint_tx_invert(const float col[3], const void *UNUSED(user_data), float r_col[3])
+{
+	for (int i = 0; i < 3; i++) {
+		r_col[i] = 1.0f - col[i];
+	}
+}
+
+static int vertex_color_invert_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *obact = CTX_data_active_object(C);
+
+	if (ED_vpaint_color_transform(obact, vpaint_tx_invert, NULL)) {
+		ED_region_tag_redraw(CTX_wm_region(C));
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+static void PAINT_OT_vertex_color_invert(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Vertex Paint Invert";
+	ot->idname = "PAINT_OT_vertex_color_invert";
+	ot->description = "Invert RGB values";
+
+	/* api callbacks */
+	ot->exec = vertex_color_invert_exec;
+	ot->poll = vertex_paint_mode_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+
+struct VPaintTx_LevelsData {
+	float gain;
+	float offset;
+};
+
+static void vpaint_tx_levels(const float col[3], const void *user_data, float r_col[3])
+{
+	const struct VPaintTx_LevelsData *data = user_data;
+	for (int i = 0; i < 3; i++) {
+		r_col[i] = data->gain * (col[i] + data->offset);
+	}
+}
+
+static int vertex_color_levels_exec(bContext *C, wmOperator *op)
+{
+	Object *obact = CTX_data_active_object(C);
+
+	const struct VPaintTx_LevelsData user_data = {
+		.gain = RNA_float_get(op->ptr, "gain"),
+		.offset = RNA_float_get(op->ptr, "offset"),
+	};
+
+	if (ED_vpaint_color_transform(obact, vpaint_tx_levels, &user_data)) {
+		ED_region_tag_redraw(CTX_wm_region(C));
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+static void PAINT_OT_vertex_color_levels(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Vertex Paint Levels";
+	ot->idname = "PAINT_OT_vertex_color_levels";
+	ot->description = "Adjust levels of vertex colors";
+
+	/* api callbacks */
+	ot->exec = vertex_color_levels_exec;
+	ot->poll = vertex_paint_mode_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* params */
+	RNA_def_float(ot->srna, "offset", 0.0f, -1.0f, 1.0f, "Offset", "Value to add to colors", -1.0f, 1.0f);
+	RNA_def_float(ot->srna, "gain", 1.0f, 0.0f, FLT_MAX, "Gain", "Value to multiply colors by", 0.0f, 10.0f);
+}
+
+/** \} */
+
+
 static int brush_reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Paint *paint = BKE_paint_get_active_from_context(C);
@@ -1111,6 +1346,11 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(PAINT_OT_vertex_paint);
 	WM_operatortype_append(PAINT_OT_vertex_color_set);
 	WM_operatortype_append(PAINT_OT_vertex_color_smooth);
+
+	WM_operatortype_append(PAINT_OT_vertex_color_brightness_contrast);
+	WM_operatortype_append(PAINT_OT_vertex_color_hsv);
+	WM_operatortype_append(PAINT_OT_vertex_color_invert);
+	WM_operatortype_append(PAINT_OT_vertex_color_levels);
 
 	/* face-select */
 	WM_operatortype_append(PAINT_OT_face_select_linked);

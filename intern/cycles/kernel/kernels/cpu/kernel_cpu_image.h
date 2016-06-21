@@ -23,7 +23,11 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device float4 kernel_tex_image_interp_impl(KernelGlobals *kg, int tex, float x, float y)
 {
-	if(tex >= TEX_START_BYTE_CPU)
+	if(tex >= TEX_START_HALF_CPU)
+		return kg->texture_half_images[tex - TEX_START_HALF_CPU].interp(x, y);
+	else if(tex >= TEX_START_HALF4_CPU)
+		return kg->texture_half4_images[tex - TEX_START_HALF4_CPU].interp(x, y);
+	else if(tex >= TEX_START_BYTE_CPU)
 		return kg->texture_byte_images[tex - TEX_START_BYTE_CPU].interp(x, y);
 	else if(tex >= TEX_START_FLOAT_CPU)
 		return kg->texture_float_images[tex - TEX_START_FLOAT_CPU].interp(x, y);
@@ -35,7 +39,11 @@ ccl_device float4 kernel_tex_image_interp_impl(KernelGlobals *kg, int tex, float
 
 ccl_device float4 kernel_tex_image_interp_3d_impl(KernelGlobals *kg, int tex, float x, float y, float z)
 {
-	if(tex >= TEX_START_BYTE_CPU)
+	if(tex >= TEX_START_HALF_CPU)
+		return kg->texture_half_images[tex - TEX_START_HALF_CPU].interp_3d(x, y, z);
+	else if(tex >= TEX_START_HALF4_CPU)
+		return kg->texture_half4_images[tex - TEX_START_HALF4_CPU].interp_3d(x, y, z);
+	else if(tex >= TEX_START_BYTE_CPU)
 		return kg->texture_byte_images[tex - TEX_START_BYTE_CPU].interp_3d(x, y, z);
 	else if(tex >= TEX_START_FLOAT_CPU)
 		return kg->texture_float_images[tex - TEX_START_FLOAT_CPU].interp_3d(x, y, z);
@@ -48,7 +56,11 @@ ccl_device float4 kernel_tex_image_interp_3d_impl(KernelGlobals *kg, int tex, fl
 
 ccl_device float4 kernel_tex_image_interp_3d_ex_impl(KernelGlobals *kg, int tex, float x, float y, float z, int interpolation)
 {
-	if(tex >= TEX_START_BYTE_CPU)
+	if(tex >= TEX_START_HALF_CPU)
+		return kg->texture_half4_images[tex - TEX_START_HALF_CPU].interp_3d_ex(x, y, z, interpolation);
+	else if(tex >= TEX_START_HALF4_CPU)
+		return kg->texture_half_images[tex - TEX_START_HALF4_CPU].interp_3d_ex(x, y, z, interpolation);
+	else if(tex >= TEX_START_BYTE_CPU)
 		return kg->texture_byte_images[tex - TEX_START_BYTE_CPU].interp_3d_ex(x, y, z, interpolation);
 	else if(tex >= TEX_START_FLOAT_CPU)
 		return kg->texture_float_images[tex - TEX_START_FLOAT_CPU].interp_3d_ex(x, y, z, interpolation);

@@ -15,7 +15,7 @@
 class PHY_ICharacter
 {
 public:	
-	virtual ~PHY_ICharacter(){};
+	virtual ~PHY_ICharacter() {};
 
 	virtual void Jump()= 0;
 	virtual bool OnGround()= 0;

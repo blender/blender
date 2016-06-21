@@ -138,9 +138,13 @@ bool invert_m3_m3(float R[3][3], float A[3][3]);
 bool invert_m4(float R[4][4]);
 bool invert_m4_m4(float R[4][4], float A[4][4]);
 
-/* double ariphmetics */
+/* double arithmetic (mixed float/double) */
 void mul_m4_v4d(float M[4][4], double r[4]);
 void mul_v4d_m4v4d(double r[4], float M[4][4], double v[4]);
+
+/* double matrix functions (no mixing types) */
+void mul_v3_m3v3_db(double r[3], double M[3][3], const double a[3]);
+void mul_m3_v3_db(double M[3][3], double r[3]);
 
 
 /****************************** Linear Algebra *******************************/

@@ -111,7 +111,7 @@ static PyObject *FrsNoise_drand(BPy_FrsNoise * /*self*/, PyObject *args, PyObjec
 		PyErr_SetString(PyExc_TypeError, "optional argument 1 must be of type int");
 		return NULL;
 	}
-	if (seed){
+	if (seed) {
 		RandGen::srand48(seed);
 	}
 	return PyFloat_FromDouble(RandGen::drand48());

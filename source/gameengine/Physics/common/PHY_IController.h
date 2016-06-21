@@ -48,7 +48,7 @@ class PHY_IPhysicsEnvironment;
 class PHY_IController
 {
 	public:
-		virtual ~PHY_IController(){};
+		virtual ~PHY_IController() {};
 		// clientinfo for raycasts for example
 		virtual	void*	GetNewClientInfo()=0;
 		virtual	void	SetNewClientInfo(void* clientinfo)=0;

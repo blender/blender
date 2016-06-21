@@ -142,6 +142,7 @@ CCL_NAMESPACE_END
 #include "svm_noise.h"
 #include "svm_texture.h"
 
+#include "svm_color_util.h"
 #include "svm_math_util.h"
 
 #include "svm_attribute.h"

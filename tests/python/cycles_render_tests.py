@@ -3,6 +3,7 @@
 
 import argparse
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -53,19 +54,23 @@ def verify_output(filepath):
     dirpath = os.path.dirname(filepath)
     reference_dirpath = os.path.join(dirpath, "reference_renders")
     reference_image = os.path.join(reference_dirpath, testname + ".png")
+    failed_image = os.path.join(reference_dirpath, testname + ".fail.png")
     if not os.path.exists(reference_image):
         return False
     command = (
         IDIFF,
-        "-fail", "0.01",
+        "-fail", "0.015",
         "-failpercent", "1",
         reference_image,
         TEMP_FILE,
         )
     try:
         subprocess.check_output(command)
+        if os.path.exists(failed_image):
+            os.remove(failed_image)
         return True
     except subprocess.CalledProcessError as e:
+        shutil.copy(TEMP_FILE, failed_image)
         if VERBOSE:
             print(e.output.decode("utf-8"))
         return e.returncode == 1

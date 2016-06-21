@@ -276,7 +276,7 @@ ccl_device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderClosure *sc, cons
 	bool m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
 	float3 N = sc->N;
 
-	if(m_refractive || fmaxf(alpha_x, alpha_y) <= 1e-4f)
+	if(m_refractive || alpha_x*alpha_y <= 1e-7f)
 		return make_float3(0.0f, 0.0f, 0.0f);
 
 	float cosNO = dot(N, I);
@@ -367,7 +367,7 @@ ccl_device float3 bsdf_microfacet_ggx_eval_transmit(const ShaderClosure *sc, con
 	bool m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
 	float3 N = sc->N;
 
-	if(!m_refractive || fmaxf(alpha_x, alpha_y) <= 1e-4f)
+	if(!m_refractive || alpha_x*alpha_y <= 1e-7f)
 		return make_float3(0.0f, 0.0f, 0.0f);
 
 	float cosNO = dot(N, I);
@@ -450,7 +450,7 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals *kg, const ShaderClosure
 				*omega_in = 2 * cosMO * m - I;
 
 				if(dot(Ng, *omega_in) > 0) {
-					if(fmaxf(alpha_x, alpha_y) <= 1e-4f) {
+					if(alpha_x*alpha_y <= 1e-7f) {
 						/* some high number for MIS */
 						*pdf = 1e6f;
 						*eval = make_float3(1e6f, 1e6f, 1e6f);
@@ -539,7 +539,7 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals *kg, const ShaderClosure
 				*domega_in_dy = dTdy;
 #endif
 
-				if(fmaxf(alpha_x, alpha_y) <= 1e-4f || fabsf(m_eta - 1.0f) < 1e-4f) {
+				if(alpha_x*alpha_y <= 1e-7f || fabsf(m_eta - 1.0f) < 1e-4f) {
 					/* some high number for MIS */
 					*pdf = 1e6f;
 					*eval = make_float3(1e6f, 1e6f, 1e6f);
@@ -622,7 +622,7 @@ ccl_device float3 bsdf_microfacet_beckmann_eval_reflect(const ShaderClosure *sc,
 	bool m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
 	float3 N = sc->N;
 
-	if(m_refractive || fmaxf(alpha_x, alpha_y) <= 1e-4f)
+	if(m_refractive || alpha_x*alpha_y <= 1e-7f)
 		return make_float3(0.0f, 0.0f, 0.0f);
 
 	float cosNO = dot(N, I);
@@ -716,7 +716,7 @@ ccl_device float3 bsdf_microfacet_beckmann_eval_transmit(const ShaderClosure *sc
 	bool m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
 	float3 N = sc->N;
 
-	if(!m_refractive || fmaxf(alpha_x, alpha_y) <= 1e-4f)
+	if(!m_refractive || alpha_x*alpha_y <= 1e-7f)
 		return make_float3(0.0f, 0.0f, 0.0f);
 
 	float cosNO = dot(N, I);
@@ -798,7 +798,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals *kg, const ShaderCl
 				*omega_in = 2 * cosMO * m - I;
 
 				if(dot(Ng, *omega_in) > 0) {
-					if(fmaxf(alpha_x, alpha_y) <= 1e-4f) {
+					if(alpha_x*alpha_y <= 1e-7f) {
 						/* some high number for MIS */
 						*pdf = 1e6f;
 						*eval = make_float3(1e6f, 1e6f, 1e6f);
@@ -889,7 +889,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals *kg, const ShaderCl
 				*domega_in_dy = dTdy;
 #endif
 
-				if(fmaxf(alpha_x, alpha_y) <= 1e-4f || fabsf(m_eta - 1.0f) < 1e-4f) {
+				if(alpha_x*alpha_y <= 1e-7f || fabsf(m_eta - 1.0f) < 1e-4f) {
 					/* some high number for MIS */
 					*pdf = 1e6f;
 					*eval = make_float3(1e6f, 1e6f, 1e6f);

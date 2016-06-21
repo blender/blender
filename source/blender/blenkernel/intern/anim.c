@@ -340,11 +340,11 @@ static void motionpaths_calc_update_scene(Scene *scene)
 		}
 	}
 #else // original, 'always correct' version
-	  /* do all updates
-	   *  - if this is too slow, resort to using a more efficient way
-	   *    that doesn't force complete update, but for now, this is the
-	   *    most accurate way!
-	   */
+	/* do all updates
+	 *  - if this is too slow, resort to using a more efficient way
+	 *    that doesn't force complete update, but for now, this is the
+	 *    most accurate way!
+	 */
 	BKE_scene_update_for_newframe(G.main->eval_ctx, G.main, scene, scene->lay); /* XXX this is the best way we can get anything moving */
 #endif
 }

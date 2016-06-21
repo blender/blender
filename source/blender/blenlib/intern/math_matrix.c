@@ -587,6 +587,15 @@ void mul_v3_m3v3(float r[3], float M[3][3], const float a[3])
 	r[2] = M[0][2] * a[0] + M[1][2] * a[1] + M[2][2] * a[2];
 }
 
+void mul_v3_m3v3_db(double r[3], double M[3][3], const double a[3])
+{
+	BLI_assert(r != a);
+
+	r[0] = M[0][0] * a[0] + M[1][0] * a[1] + M[2][0] * a[2];
+	r[1] = M[0][1] * a[0] + M[1][1] * a[1] + M[2][1] * a[2];
+	r[2] = M[0][2] * a[0] + M[1][2] * a[1] + M[2][2] * a[2];
+}
+
 void mul_v2_m3v3(float r[2], float M[3][3], const float a[3])
 {
 	BLI_assert(r != a);
@@ -597,10 +606,12 @@ void mul_v2_m3v3(float r[2], float M[3][3], const float a[3])
 
 void mul_m3_v3(float M[3][3], float r[3])
 {
-	float tmp[3];
+	mul_v3_m3v3(r, M, (const float[3]){UNPACK3(r)});
+}
 
-	mul_v3_m3v3(tmp, M, r);
-	copy_v3_v3(r, tmp);
+void mul_m3_v3_db(double M[3][3], double r[3])
+{
+	mul_v3_m3v3_db(r, M, (const double[3]){UNPACK3(r)});
 }
 
 void mul_transposed_m3_v3(float mat[3][3], float vec[3])

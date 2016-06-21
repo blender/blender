@@ -85,8 +85,8 @@ typedef struct Camera {
 	char sensor_fit;
 	char pad[7];
 
-	 /* Stereo settings */
-	 struct CameraStereoSettings stereo;
+	/* Stereo settings */
+	struct CameraStereoSettings stereo;
 } Camera;
 
 /* **************** CAMERA ********************* */

@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/intern/eval/deg_eval.cc
+/** \file blender/depsgraph/intern/eval/deg_eval.h
  *  \ingroup depsgraph
  *
  * Evaluation engine entrypoints for Depsgraph Engine.
