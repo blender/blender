@@ -116,10 +116,10 @@ string ComponentDepsNode::identifier() const
 {
 	string &idname = this->owner->name;
 
-	char typebuf[7];
+	char typebuf[16];
 	sprintf(typebuf, "(%d)", type);
 
-	char layers[7];
+	char layers[16];
 	sprintf(layers, "%d", this->layers);
 
 	return string(typebuf) + name + " : " + idname + " (Layers: " + layers + ")";
