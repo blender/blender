@@ -322,11 +322,11 @@ enum {
 
 /* Curve.spacemode */
 enum {
-	CU_LEFT               = 0,
-	CU_MIDDLE             = 1,
-	CU_RIGHT              = 2,
-	CU_JUSTIFY            = 3,
-	CU_FLUSH              = 4,
+	CU_ALIGN_X_LEFT               = 0,
+	CU_ALIGN_X_MIDDLE             = 1,
+	CU_ALIGN_X_RIGHT              = 2,
+	CU_ALIGN_X_JUSTIFY            = 3,
+	CU_ALIGN_X_FLUSH              = 4,
 };
 
 /* Curve.align_y */

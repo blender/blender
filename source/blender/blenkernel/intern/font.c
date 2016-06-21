@@ -911,10 +911,10 @@ makebreak:
 
 	/* linedata is now: width of line */
 
-	if (cu->spacemode != CU_LEFT) {
+	if (cu->spacemode != CU_ALIGN_X_LEFT) {
 		ct = chartransdata;
 
-		if (cu->spacemode == CU_RIGHT) {
+		if (cu->spacemode == CU_ALIGN_X_RIGHT) {
 			struct TempLineInfo *li;
 
 			for (i = 0, li = lineinfo; i < lnr; i++, li++) {
@@ -926,7 +926,7 @@ makebreak:
 				ct++;
 			}
 		}
-		else if (cu->spacemode == CU_MIDDLE) {
+		else if (cu->spacemode == CU_ALIGN_X_MIDDLE) {
 			struct TempLineInfo *li;
 
 			for (i = 0, li = lineinfo; i < lnr; i++, li++) {
@@ -938,7 +938,7 @@ makebreak:
 				ct++;
 			}
 		}
-		else if ((cu->spacemode == CU_FLUSH) && use_textbox) {
+		else if ((cu->spacemode == CU_ALIGN_X_FLUSH) && use_textbox) {
 			struct TempLineInfo *li;
 
 			for (i = 0, li = lineinfo; i < lnr; i++, li++) {
@@ -959,7 +959,7 @@ makebreak:
 				ct++;
 			}
 		}
-		else if ((cu->spacemode == CU_JUSTIFY) && use_textbox) {
+		else if ((cu->spacemode == CU_ALIGN_X_JUSTIFY) && use_textbox) {
 			float curofs = 0.0f;
 			for (i = 0; i <= slen; i++) {
 				for (j = i;
@@ -1078,13 +1078,13 @@ makebreak:
 				/* path longer than text: spacemode involves */
 				distfac = 1.0f / distfac;
 				
-				if (cu->spacemode == CU_RIGHT) {
+				if (cu->spacemode == CU_ALIGN_X_RIGHT) {
 					timeofs = 1.0f - distfac;
 				}
-				else if (cu->spacemode == CU_MIDDLE) {
+				else if (cu->spacemode == CU_ALIGN_X_MIDDLE) {
 					timeofs = (1.0f - distfac) / 2.0f;
 				}
-				else if (cu->spacemode == CU_FLUSH) {
+				else if (cu->spacemode == CU_ALIGN_X_FLUSH) {
 					distfac = 1.0f;
 				}
 			}
