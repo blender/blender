@@ -67,7 +67,7 @@ typedef struct SDNA {
 #
 typedef struct BHead {
 	int code, len;
-	void *old;
+	const void *old;
 	int SDNAnr, nr;
 } BHead;
 #

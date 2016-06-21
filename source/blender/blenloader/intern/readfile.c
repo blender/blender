@@ -8519,7 +8519,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
 struct BHeadSort {
 	BHead *bhead;
-	void *old;
+	const void *old;
 };
 
 static int verg_bheadsort(const void *v1, const void *v2)
