@@ -160,53 +160,54 @@
 
 #include <errno.h>
 
-/*
- * Remark: still a weak point is the newaddress() function, that doesnt solve reading from
- * multiple files at the same time
- *
- * (added remark: oh, i thought that was solved? will look at that... (ton)
- *
+/**
  * READ
- * - Existing Library (Main) push or free
- * - allocate new Main
+ * ====
+ *
+ * - Existing Library (#Main) push or free
+ * - allocate new #Main
  * - load file
- * - read SDNA
+ * - read #SDNA
  * - for each LibBlock
- *     - read LibBlock
- *     - if a Library
- *         - make a new Main
- *         - attach ID's to it
- *     - else
- *         - read associated 'direct data'
- *         - link direct data (internal and to LibBlock)
- * - read FileGlobal
- * - read USER data, only when indicated (file is ~/X.XX/startup.blend)
+ *   - read LibBlock
+ *   - if a Library
+ *     - make a new #Main
+ *     - attach ID's to it
+ *   - else
+ *     - read associated 'direct data'
+ *     - link direct data (internal and to LibBlock)
+ * - read #FileGlobal
+ * - read #USER data, only when indicated (file is ``~/X.XX/startup.blend``)
  * - free file
- * - per Library (per Main)
- *     - read file
- *     - read SDNA
- *     - find LibBlocks and attach IDs to Main
- *         - if external LibBlock
- *             - search all Main's
- *                 - or it's already read,
- *                 - or not read yet
- *                 - or make new Main
- *     - per LibBlock
- *         - read recursive
- *         - read associated direct data
- *         - link direct data (internal and to LibBlock)
- *     - free file
+ * - per Library (per #Main)
+ *   - read file
+ *   - read #SDNA
+ *   - find LibBlocks and attach #ID's to #Main
+ *     - if external LibBlock
+ *       - search all #Main's
+ *         - or it's already read,
+ *         - or not read yet
+ *         - or make new #Main
+ *   - per LibBlock
+ *     - read recursive
+ *     - read associated direct data
+ *     - link direct data (internal and to LibBlock)
+ *   - free file
  * - per Library with unread LibBlocks
- *     - read file
- *     - read SDNA
- *     - per LibBlock
- *                - read recursive
- *                - read associated direct data
- *                - link direct data (internal and to LibBlock)
- *         - free file
- * - join all Mains
+ *   - read file
+ *   - read #SDNA
+ *   - per LibBlock
+ *     - read recursive
+ *     - read associated direct data
+ *     - link direct data (internal and to LibBlock)
+ *   - free file
+ * - join all #Main's
  * - link all LibBlocks and indirect pointers to libblocks
- * - initialize FileGlobal and copy pointers to Global
+ * - initialize #FileGlobal and copy pointers to #Global
+ *
+ * \note Still a weak point is the new-address function, that doesnt solve reading from
+ * multiple files at the same time.
+ * (added remark: oh, i thought that was solved? will look at that... (ton).
  */
 
 /* use GHash for BHead name-based lookups (speeds up linking) */
