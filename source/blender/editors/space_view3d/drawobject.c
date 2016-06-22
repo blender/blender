@@ -5018,7 +5018,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	unsigned char tcol[4] = {0, 0, 0, 255};
 
 /* 1. */
-	if (part == NULL || !psys_check_enabled(ob, psys))
+	if (part == NULL || !psys_check_enabled(ob, psys, G.is_rendering))
 		return;
 
 	if (pars == NULL) return;
@@ -5726,7 +5726,7 @@ static void draw_update_ptcache_edit(Scene *scene, Object *ob, PTCacheEdit *edit
 
 	/* create path and child path cache if it doesn't exist already */
 	if (edit->pathcache == NULL)
-		psys_cache_edit_paths(scene, ob, edit, CFRA);
+		psys_cache_edit_paths(scene, ob, edit, CFRA, G.is_rendering);
 }
 
 static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)

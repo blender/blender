@@ -1075,7 +1075,7 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 		OperationKey psys_key(&ob->id, DEPSNODE_TYPE_EVAL_PARTICLES, DEG_OPCODE_PSYS_EVAL, psys->name);
 
 		/* XXX: if particle system is later re-enabled, we must do full rebuild? */
-		if (!psys_check_enabled(ob, psys))
+		if (!psys_check_enabled(ob, psys, G.is_rendering))
 			continue;
 
 		/* TODO(sergey): Are all particle systems depends on time?

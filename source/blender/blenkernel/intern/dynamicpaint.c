@@ -5503,7 +5503,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 					if (brush->collision == MOD_DPAINT_COL_PSYS) {
 						if (brush->psys && brush->psys->part &&
 						    ELEM(brush->psys->part->type, PART_EMITTER, PART_FLUID) &&
-						    psys_check_enabled(brushObj, brush->psys))
+						    psys_check_enabled(brushObj, brush->psys, G.is_rendering))
 						{
 							/* Paint a particle system */
 							BKE_animsys_evaluate_animdata(scene, &brush->psys->part->id, brush->psys->part->adt,

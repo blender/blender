@@ -770,7 +770,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Main *bmain, Sc
 
 			dag_add_relation(dag, node, node, DAG_RL_OB_DATA, "Particle-Object Relation");
 
-			if (!psys_check_enabled(ob, psys))
+			if (!psys_check_enabled(ob, psys, G.is_rendering))
 				continue;
 
 			if (ELEM(part->phystype, PART_PHYS_KEYED, PART_PHYS_BOIDS)) {
@@ -2285,7 +2285,7 @@ static void dag_object_time_update_flags(Main *bmain, Scene *scene, Object *ob)
 			ParticleSystem *psys = ob->particlesystem.first;
 
 			for (; psys; psys = psys->next) {
-				if (psys_check_enabled(ob, psys)) {
+				if (psys_check_enabled(ob, psys, G.is_rendering)) {
 					ob->recalc |= OB_RECALC_DATA;
 					break;
 				}

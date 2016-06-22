@@ -1330,7 +1330,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	part=psys->part;
 	pars=psys->particles;
 
-	if (part==NULL || pars==NULL || !psys_check_enabled(ob, psys))
+	if (part==NULL || pars==NULL || !psys_check_enabled(ob, psys, G.is_rendering))
 		return 0;
 	
 	if (part->ren_as==PART_DRAW_OB || part->ren_as==PART_DRAW_GR || part->ren_as==PART_DRAW_NOT)
@@ -4697,7 +4697,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 	if (ob->particlesystem.first) {
 		psysindex= 1;
 		for (psys=ob->particlesystem.first; psys; psys=psys->next, psysindex++) {
-			if (!psys_check_enabled(ob, psys))
+			if (!psys_check_enabled(ob, psys, G.is_rendering))
 				continue;
 			
 			obr= RE_addRenderObject(re, ob, par, index, psysindex, ob->lay);

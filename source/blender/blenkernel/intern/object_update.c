@@ -269,7 +269,7 @@ void BKE_object_handle_data_update(EvaluationContext *eval_ctx,
 				psys_changed_type(ob, psys);
 			}
 
-			if (psys_check_enabled(ob, psys)) {
+			if (psys_check_enabled(ob, psys, eval_ctx->mode == DAG_EVAL_RENDER)) {
 				/* check use of dupli objects here */
 				if (psys->part && (psys->part->draw_as == PART_DRAW_REND || eval_ctx->mode == DAG_EVAL_RENDER) &&
 				    ((psys->part->ren_as == PART_DRAW_OB && psys->part->dup_ob) ||
@@ -278,7 +278,7 @@ void BKE_object_handle_data_update(EvaluationContext *eval_ctx,
 					ob->transflag |= OB_DUPLIPARTS;
 				}
 
-				particle_system_update(scene, ob, psys);
+				particle_system_update(scene, ob, psys, (eval_ctx->mode == DAG_EVAL_RENDER));
 				psys = psys->next;
 			}
 			else if (psys->flag & PSYS_DELETE) {

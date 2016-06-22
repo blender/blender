@@ -341,7 +341,7 @@ static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *o
 		totchild = (int)((float)particlesystem->totchild * (float)(part->disp) / 100.0f);
 	}
 
-	if (part == NULL || pars == NULL || !psys_check_enabled(object, particlesystem))
+	if (part == NULL || pars == NULL || !psys_check_enabled(object, particlesystem, particlesystem->renderdata != NULL))
 		return;
 	
 	if (part->ren_as == PART_DRAW_OB || part->ren_as == PART_DRAW_GR || part->ren_as == PART_DRAW_NOT)
@@ -586,7 +586,7 @@ static void rna_ParticleSystem_set_resolution(ParticleSystem *particlesystem, Sc
 
 		psys_render_set(object, particlesystem, mat, mat, 1, 1, 0.f);
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;
-		particle_system_update(scene, object, particlesystem);
+		particle_system_update(scene, object, particlesystem, true);
 	}
 	else {
 		ParticleSystemModifierData *psmd = psys_get_modifier(object, particlesystem);
@@ -596,7 +596,7 @@ static void rna_ParticleSystem_set_resolution(ParticleSystem *particlesystem, Sc
 		}
 		
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;
-		particle_system_update(scene, object, particlesystem);
+		particle_system_update(scene, object, particlesystem, false);
 	}
 }
 

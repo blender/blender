@@ -101,7 +101,7 @@ static void deformVerts(ModifierData *md, Object *ob,
                         DerivedMesh *derivedData,
                         float (*vertexCos)[3],
                         int UNUSED(numVerts),
-                        ModifierApplyFlag UNUSED(flag))
+                        ModifierApplyFlag flag)
 {
 	DerivedMesh *dm = derivedData;
 	ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
@@ -114,7 +114,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	else
 		return;
 	
-	if (!psys_check_enabled(ob, psys))
+	if (!psys_check_enabled(ob, psys, (flag & MOD_APPLY_RENDER) != 0))
 		return;
 
 	if (dm == NULL) {
@@ -186,7 +186,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 
 	if (!(ob->transflag & OB_NO_PSYS_UPDATE)) {
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;
-		particle_system_update(md->scene, ob, psys);
+		particle_system_update(md->scene, ob, psys, (flag & MOD_APPLY_RENDER) != 0);
 		psmd->flag |= eParticleSystemFlag_psys_updated;
 	}
 }

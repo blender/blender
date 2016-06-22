@@ -2885,7 +2885,7 @@ static void collision_check(ParticleSimulationData *sim, int p, float dfra, floa
 /*			Hair								*/
 /************************************************/
 /* check if path cache or children need updating and do it if needed */
-static void psys_update_path_cache(ParticleSimulationData *sim, float cfra)
+static void psys_update_path_cache(ParticleSimulationData *sim, float cfra, const bool use_render_params)
 {
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
@@ -2909,7 +2909,7 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra)
 				distribute_particles(sim, PART_FROM_CHILD);
 
 				if (part->childtype==PART_CHILD_FACES && part->parents != 0.0f)
-					psys_find_parents(sim);
+					psys_find_parents(sim, use_render_params);
 			}
 		}
 		else
@@ -2947,7 +2947,7 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra)
 	}
 
 	if (!skip) {
-		psys_cache_paths(sim, cfra);
+		psys_cache_paths(sim, cfra, use_render_params);
 
 		/* for render, child particle paths are computed on the fly */
 		if (part->childtype) {
@@ -2957,7 +2957,7 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra)
 				skip = 1;
 
 			if (!skip)
-				psys_cache_child_paths(sim, cfra, 0);
+				psys_cache_child_paths(sim, cfra, 0, use_render_params);
 		}
 	}
 	else if (psys->pathcache)
@@ -3193,7 +3193,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	/* restore cloth effector weights */
 	psys->clmd->sim_parms->effector_weights = clmd_effweights;
 }
-static void hair_step(ParticleSimulationData *sim, float cfra)
+static void hair_step(ParticleSimulationData *sim, float cfra, const bool use_render_params)
 {
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
@@ -3225,7 +3225,7 @@ static void hair_step(ParticleSimulationData *sim, float cfra)
 
 	/* following lines were removed r29079 but cause bug [#22811], see report for details */
 	psys_update_effectors(sim);
-	psys_update_path_cache(sim, cfra);
+	psys_update_path_cache(sim, cfra, use_render_params);
 
 	psys->flag |= PSYS_HAIR_UPDATED;
 }
@@ -3732,7 +3732,7 @@ static void cached_step(ParticleSimulationData *sim, float cfra)
 	}
 }
 
-static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
+static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra), const bool use_render_params)
 {	
 	ParticleSystem *psys = sim->psys;
 	if (psys->particles) {
@@ -3775,7 +3775,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 			}
 	
 			gzread(gzf, &totpart, sizeof(totpart));
-			totpart = (G.is_rendering)?totpart:(part->disp*totpart) / 100;
+			totpart = (use_render_params) ? totpart:(part->disp*totpart) / 100;
 			
 			part->totpart= totpart;
 			part->sta=part->end = 1.0f;
@@ -3836,6 +3836,8 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 			
 		} // fluid sim particles done
 	}
+#else
+	UNUSED_VARS(use_render_params);
 #endif // WITH_MOD_FLUID
 }
 
@@ -3857,7 +3859,7 @@ static int emit_particles(ParticleSimulationData *sim, PTCacheID *pid, float UNU
  * 2. Check cache (if used) and return if frame is cached
  * 3. Do dynamics
  * 4. Save to cache */
-static void system_step(ParticleSimulationData *sim, float cfra)
+static void system_step(ParticleSimulationData *sim, float cfra, const bool use_render_params)
 {
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
@@ -3919,7 +3921,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 		if (ELEM(cache_result, PTCACHE_READ_EXACT, PTCACHE_READ_INTERPOLATED)) {
 			cached_step(sim, cfra);
 			update_children(sim);
-			psys_update_path_cache(sim, cfra);
+			psys_update_path_cache(sim, cfra, use_render_params);
 
 			BKE_ptcache_validate(cache, (int)cache_cfra);
 
@@ -4137,7 +4139,7 @@ static int hair_needs_recalc(ParticleSystem *psys)
 
 /* main particle update call, checks that things are ok on the large scale and
  * then advances in to actual particle calculations depending on particle type */
-void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
+void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys, const bool use_render_params)
 {
 	ParticleSimulationData sim= {0};
 	ParticleSettings *part = psys->part;
@@ -4146,7 +4148,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	/* drawdata is outdated after ANY change */
 	if (psys->pdd) psys->pdd->flag &= ~PARTICLE_DRAW_DATA_UPDATED;
 
-	if (!psys_check_enabled(ob, psys))
+	if (!psys_check_enabled(ob, psys, use_render_params))
 		return;
 
 	cfra= BKE_scene_frame_get(scene);
@@ -4215,7 +4217,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 					hcfra=100.0f*(float)i/(float)psys->part->hair_step;
 					if ((part->flag & PART_HAIR_REGROW)==0)
 						BKE_animsys_evaluate_animdata(scene, &part->id, part->adt, hcfra, ADT_RECALC_ANIM);
-					system_step(&sim, hcfra);
+					system_step(&sim, hcfra, use_render_params);
 					psys->cfra = hcfra;
 					psys->recalc = 0;
 					save_hair(&sim, hcfra);
@@ -4228,12 +4230,12 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 				psys->flag |= PSYS_HAIR_DONE;
 
 			if (psys->flag & PSYS_HAIR_DONE)
-				hair_step(&sim, cfra);
+				hair_step(&sim, cfra, use_render_params);
 			break;
 		}
 		case PART_FLUID:
 		{
-			particles_fluid_step(&sim, (int)cfra);
+			particles_fluid_step(&sim, (int)cfra, use_render_params);
 			break;
 		}
 		default:
@@ -4280,14 +4282,14 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 					if (part->phystype == PART_PHYS_KEYED) {
 						psys_count_keyed_targets(&sim);
 						set_keyed_keys(&sim);
-						psys_update_path_cache(&sim,(int)cfra);
+						psys_update_path_cache(&sim, (int)cfra, use_render_params);
 					}
 					break;
 				}
 				default:
 				{
 					/* the main dynamic particle system step */
-					system_step(&sim, cfra);
+					system_step(&sim, cfra, use_render_params);
 					break;
 				}
 			}
