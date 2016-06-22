@@ -127,7 +127,7 @@ class Mem_IStream : public Imf::IStream
 {
 public:
 
-	Mem_IStream (unsigned char *exrbuf, size_t exrsize) :
+	Mem_IStream(unsigned char *exrbuf, size_t exrsize) :
 		IStream("dummy"), _exrpos(0), _exrsize(exrsize)
 	{
 		_exrbuf = exrbuf;

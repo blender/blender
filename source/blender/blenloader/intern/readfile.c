@@ -1259,7 +1259,7 @@ void blo_freefiledata(FileData *fd)
 		}
 		
 		if (fd->strm.next_in) {
-			if (inflateEnd (&fd->strm) != Z_OK) {
+			if (inflateEnd(&fd->strm) != Z_OK) {
 				printf("close gzip stream error\n");
 			}
 		}
@@ -3971,7 +3971,7 @@ static void direct_link_pointcache_cb(FileData *fd, void *data)
 
 		/* the cache saves non-struct data without DNA */
 		if (pm->data[i] && ptcache_data_struct[i][0]=='\0' && (fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
-			int tot = (BKE_ptcache_data_size (i) * pm->totpoint) / sizeof(int); /* data_size returns bytes */
+			int tot = (BKE_ptcache_data_size(i) * pm->totpoint) / sizeof(int);  /* data_size returns bytes */
 			int *poin = pm->data[i];
 
 			BLI_endian_switch_int32_array(poin, tot);

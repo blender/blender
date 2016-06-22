@@ -1158,7 +1158,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		if (event->val == KM_RELEASE) {
 			copy_v2_fl2(mouse, event->mval[0], event->mval[1]);
 			paint_stroke_line_constrain(stroke, mouse);
-			paint_stroke_line_end (C, op, stroke, mouse);
+			paint_stroke_line_end(C, op, stroke, mouse);
 			stroke_done(C, op);
 			return OPERATOR_FINISHED;
 		}
