@@ -62,7 +62,6 @@ void BKE_object_free_curve_cache(struct Object *ob);
 void BKE_object_update_base_layer(struct Scene *scene, struct Object *ob);
 
 void BKE_object_free(struct Object *ob);
-void BKE_object_free_ex(struct Object *ob, bool do_id_user);
 void BKE_object_free_derived_caches(struct Object *ob);
 void BKE_object_free_caches(struct Object *object);
 
@@ -76,7 +75,6 @@ void BKE_object_free_modifiers(struct Object *ob);
 void BKE_object_make_proxy(struct Object *ob, struct Object *target, struct Object *gob);
 void BKE_object_copy_proxy_drivers(struct Object *ob, struct Object *target);
 
-void BKE_object_unlink(struct Main *bmain, struct Object *ob);
 bool BKE_object_exists_check(struct Object *obtest);
 bool BKE_object_is_in_editmode(struct Object *ob);
 bool BKE_object_is_in_editmode_vgroup(struct Object *ob);

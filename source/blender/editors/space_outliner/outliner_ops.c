@@ -47,13 +47,15 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_select_border);
 	WM_operatortype_append(OUTLINER_OT_item_openclose);
 	WM_operatortype_append(OUTLINER_OT_item_rename);
-	WM_operatortype_append(OUTLINER_OT_lib_delete);
 	WM_operatortype_append(OUTLINER_OT_operation);
 	WM_operatortype_append(OUTLINER_OT_scene_operation);
 	WM_operatortype_append(OUTLINER_OT_object_operation);
 	WM_operatortype_append(OUTLINER_OT_group_operation);
 	WM_operatortype_append(OUTLINER_OT_lib_operation);
+	WM_operatortype_append(OUTLINER_OT_lib_relocate);
 	WM_operatortype_append(OUTLINER_OT_id_operation);
+	WM_operatortype_append(OUTLINER_OT_id_delete);
+	WM_operatortype_append(OUTLINER_OT_id_remap);
 	WM_operatortype_append(OUTLINER_OT_data_operation);
 	WM_operatortype_append(OUTLINER_OT_animdata_operation);
 	WM_operatortype_append(OUTLINER_OT_action_set);

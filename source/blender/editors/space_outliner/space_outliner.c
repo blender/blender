@@ -486,6 +486,39 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
 	return (SpaceLink *)soutlinern;
 }
 
+static void outliner_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)
+{
+	SpaceOops *so = (SpaceOops *)slink;
+
+	/* Some early out checks. */
+	if (!TREESTORE_ID_TYPE(old_id)) {
+		return;  /* ID type is not used by outilner... */
+	}
+
+	if (so->search_tse.id == old_id) {
+		so->search_tse.id = new_id;
+	}
+
+	if (so->treestore) {
+		TreeStoreElem *tselem;
+		BLI_mempool_iter iter;
+		bool changed = false;
+
+		BLI_mempool_iternew(so->treestore, &iter);
+		while ((tselem = BLI_mempool_iterstep(&iter))) {
+			if (tselem->id == old_id) {
+				tselem->id = new_id;
+				changed = true;
+			}
+		}
+		if (so->treehash && changed) {
+			/* rebuild hash table, because it depends on ids too */
+			/* postpone a full rebuild because this can be called many times on-free */
+			so->storeflag |= SO_TREESTORE_REBUILD;
+		}
+	}
+}
+
 /* only called once, from space_api/spacetypes.c */
 void ED_spacetype_outliner(void)
 {
@@ -502,7 +535,8 @@ void ED_spacetype_outliner(void)
 	st->operatortypes = outliner_operatortypes;
 	st->keymap = outliner_keymap;
 	st->dropboxes = outliner_dropboxes;
-	
+	st->id_remap = outliner_id_remap;
+
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype outliner region");
 	art->regionid = RGN_TYPE_WINDOW;

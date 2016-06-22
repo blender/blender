@@ -39,6 +39,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_linklist.h"
 #include "BLI_math.h"
 
 #include "BKE_crazyspace.h"
@@ -275,7 +276,13 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(Scene *scene, Object *ob,
 
 		if (mti->type == eModifierTypeType_OnlyDeform && mti->deformMatricesEM) {
 			if (!defmats) {
-				dm = getEditDerivedBMesh(em, ob, NULL);
+				const int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
+				CustomDataMask data_mask = CD_MASK_BAREMESH;
+				CDMaskLink *datamasks = modifiers_calcDataMasks(scene, ob, md, data_mask, required_mode, NULL, 0);
+				data_mask = datamasks->mask;
+				BLI_linklist_free((LinkNode *)datamasks, NULL);
+
+				dm = getEditDerivedBMesh(em, ob, data_mask, NULL);
 				deformedVerts = editbmesh_get_vertex_cos(em, &numVerts);
 				defmats = MEM_mallocN(sizeof(*defmats) * numVerts, "defmats");
 

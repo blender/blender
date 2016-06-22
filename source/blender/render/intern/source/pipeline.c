@@ -66,6 +66,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
+#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
@@ -2266,7 +2267,8 @@ static void free_all_freestyle_renders(void)
 			if (freestyle_render) {
 				freestyle_scene = freestyle_render->scene;
 				RE_FreeRender(freestyle_render);
-				BKE_scene_unlink(re1->freestyle_bmain, freestyle_scene, NULL);
+				BKE_libblock_unlink(re1->freestyle_bmain, freestyle_scene, false);
+				BKE_libblock_free(re1->freestyle_bmain, freestyle_scene);
 			}
 		}
 		BLI_freelistN(&re1->freestyle_renders);

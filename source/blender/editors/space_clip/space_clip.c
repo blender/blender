@@ -45,6 +45,7 @@
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_library.h"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
@@ -1512,6 +1513,25 @@ static void clip_properties_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED
 
 /********************* registration ********************/
 
+static void clip_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)
+{
+	SpaceClip *sclip = (SpaceClip *)slink;
+
+	if (!ELEM(GS(old_id->name), ID_MC, ID_MSK)) {
+		return;
+	}
+
+	if ((ID *)sclip->clip == old_id) {
+		sclip->clip = (MovieClip *)new_id;
+		id_us_ensure_real(new_id);
+	}
+
+	if ((ID *)sclip->mask_info.mask == old_id) {
+		sclip->mask_info.mask = (Mask *)new_id;
+		id_us_ensure_real(new_id);
+	}
+}
+
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_clip(void)
 {
@@ -1531,6 +1551,7 @@ void ED_spacetype_clip(void)
 	st->context = clip_context;
 	st->dropboxes = clip_dropboxes;
 	st->refresh = clip_refresh;
+	st->id_remap = clip_id_remap;
 
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype clip region");

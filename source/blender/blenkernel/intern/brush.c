@@ -202,22 +202,18 @@ Brush *BKE_brush_copy(Brush *brush)
 	return brushn;
 }
 
-/* not brush itself */
+/** Free (or release) any data used by this brush (does not free the brush itself). */
 void BKE_brush_free(Brush *brush)
 {
-	id_us_min((ID *)brush->mtex.tex);
-	id_us_min((ID *)brush->mask_mtex.tex);
-	id_us_min((ID *)brush->paint_curve);
-
-	if (brush->icon_imbuf)
+	if (brush->icon_imbuf) {
 		IMB_freeImBuf(brush->icon_imbuf);
-
-	BKE_previewimg_free(&(brush->preview));
+	}
 
 	curvemapping_free(brush->curve);
 
-	if (brush->gradient)
-		MEM_freeN(brush->gradient);
+	MEM_SAFE_FREE(brush->gradient);
+
+	BKE_previewimg_free(&(brush->preview));
 }
 
 /**

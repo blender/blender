@@ -79,8 +79,6 @@ void BKE_linestyle_geometry_modifier_move(FreestyleLineStyle *linestyle, LineSty
 void BKE_linestyle_modifier_list_color_ramps(FreestyleLineStyle *linestyle, ListBase *listbase);
 char *BKE_linestyle_path_to_color_ramp(FreestyleLineStyle *linestyle, struct ColorBand *color_ramp);
 
-void BKE_linestyle_target_object_unlink(FreestyleLineStyle *linestyle, struct Object *ob);
-
 bool BKE_linestyle_use_textures(FreestyleLineStyle *linestyle, const bool use_shading_nodes);
 
 void BKE_linestyle_default_shader(const struct bContext *C, FreestyleLineStyle *linestyle);

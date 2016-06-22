@@ -33,6 +33,7 @@
 #include <stdio.h>
 
 #include "DNA_action_types.h"
+#include "DNA_group_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -614,6 +615,19 @@ static void action_refresh(const bContext *C, ScrArea *sa)
 	// XXX re-sizing y-extents of tot should go here?
 }
 
+static void action_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)
+{
+	SpaceAction *sact = (SpaceAction *)slink;
+
+	if (!ELEM(GS(old_id->name), ID_GR)) {
+		return;
+	}
+
+	if ((ID *)sact->ads.filter_grp == old_id) {
+		sact->ads.filter_grp = (Group *)new_id;
+	}
+}
+
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_action(void)
 {
@@ -631,7 +645,8 @@ void ED_spacetype_action(void)
 	st->keymap = action_keymap;
 	st->listener = action_listener;
 	st->refresh = action_refresh;
-	
+	st->id_remap = action_id_remap;
+
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype action region");
 	art->regionid = RGN_TYPE_WINDOW;

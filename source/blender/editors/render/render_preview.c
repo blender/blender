@@ -70,6 +70,7 @@
 #include "BKE_icons.h"
 #include "BKE_lamp.h"
 #include "BKE_library.h"
+#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
@@ -830,7 +831,7 @@ static void shader_preview_free(void *customdata)
 		/* get rid of copied material */
 		BLI_remlink(&pr_main->mat, sp->matcopy);
 		
-		BKE_material_free_ex(sp->matcopy, false);
+		BKE_material_free(sp->matcopy);
 
 		properties = IDP_GetProperties((ID *)sp->matcopy, false);
 		if (properties) {
@@ -862,7 +863,9 @@ static void shader_preview_free(void *customdata)
 		
 		/* get rid of copied world */
 		BLI_remlink(&pr_main->world, sp->worldcopy);
-		BKE_world_free_ex(sp->worldcopy, true); /* [#32865] - we need to unlink the texture copies, unlike for materials */
+		/* T32865 - we need to unlink the texture copies, unlike for materials */
+		BKE_libblock_relink_ex(sp->worldcopy, NULL, NULL, true);
+		BKE_world_free(sp->worldcopy);
 		
 		properties = IDP_GetProperties((ID *)sp->worldcopy, false);
 		if (properties) {
@@ -878,6 +881,7 @@ static void shader_preview_free(void *customdata)
 		
 		/* get rid of copied lamp */
 		BLI_remlink(&pr_main->lamp, sp->lampcopy);
+		BKE_libblock_relink_ex(sp->lampcopy, NULL, NULL, true);
 		BKE_lamp_free(sp->lampcopy);
 		
 		properties = IDP_GetProperties((ID *)sp->lampcopy, false);

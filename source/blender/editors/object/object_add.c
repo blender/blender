@@ -1111,7 +1111,6 @@ void ED_base_object_free_and_unlink(Main *bmain, Scene *scene, Base *base)
 	BKE_scene_base_unlink(scene, base);
 	object_delete_check_glsl_update(base->object);
 	BKE_libblock_free_us(bmain, base->object);
-	if (scene->basact == base) scene->basact = NULL;
 	MEM_freeN(base);
 }
 
@@ -1287,7 +1286,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		basen->object = ob;
 
 		/* make sure apply works */
-		BKE_animdata_free(&ob->id);
+		BKE_animdata_free(&ob->id, true);
 		ob->adt = NULL;
 
 		/* Proxies are not to be copied. */
@@ -1379,7 +1378,6 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		}
 	}
 
-	/* The same how BKE_object_unlink detects which object proxies to clear. */
 	if (base->object->transflag & OB_DUPLIGROUP && base->object->dup_group) {
 		for (object = bmain->object.first; object; object = object->id.next) {
 			if (object->proxy_group == base->object) {

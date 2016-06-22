@@ -33,6 +33,7 @@
 #include <stdio.h>
 
 #include "DNA_anim_types.h"
+#include "DNA_group_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -627,6 +628,19 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 	}
 }
 
+static void graph_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)
+{
+	SpaceIpo *sgraph = (SpaceIpo *)slink;
+
+	if (!ELEM(GS(old_id->name), ID_GR)) {
+		return;
+	}
+
+	if ((ID *)sgraph->ads->filter_grp == old_id) {
+		sgraph->ads->filter_grp = (Group *)new_id;
+	}
+}
+
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_ipo(void)
 {
@@ -644,7 +658,8 @@ void ED_spacetype_ipo(void)
 	st->keymap = graphedit_keymap;
 	st->listener = graph_listener;
 	st->refresh = graph_refresh;
-	
+	st->id_remap = graph_id_remap;
+
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
 	art->regionid = RGN_TYPE_WINDOW;

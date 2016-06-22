@@ -285,6 +285,11 @@ typedef struct CollectionPointerLink {
 	PointerRNA ptr;
 } CollectionPointerLink;
 
+/* Copy of ListBase for RNA... */
+typedef struct CollectionListBase {
+	struct CollectionPointerLink *first, *last;
+} CollectionListBase;
+
 typedef enum RawPropertyType {
 	PROP_RAW_UNSET = -1,
 	PROP_RAW_INT, // XXX - abused for types that are not set, eg. MFace.verts, needs fixing.

@@ -137,9 +137,6 @@ void free_partdeflect(PartDeflect *pd)
 	if (!pd)
 		return;
 
-	if (pd->tex)
-		id_us_min(&pd->tex->id);
-
 	if (pd->rng)
 		BLI_rng_free(pd->rng);
 

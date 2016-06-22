@@ -57,6 +57,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_group.h"
 #include "BKE_library.h"
+#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -230,7 +231,8 @@ static void unlink_group_cb(
 	}
 	else {
 		Main *bmain = CTX_data_main(C);
-		BKE_group_unlink(bmain, group);
+		BKE_libblock_unlink(bmain, group, false);
+		BKE_libblock_free(bmain, group);
 	}
 }
 
@@ -246,7 +248,7 @@ static void unlink_world_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeEleme
 }
 
 static void outliner_do_libdata_operation(
-        bContext *C, Scene *scene, SpaceOops *soops, ListBase *lb, 
+        bContext *C, Scene *scene, SpaceOops *soops, ListBase *lb,
         void (*operation_cb)(bContext *C, Scene *scene, TreeElement *, TreeStoreElem *, TreeStoreElem *, void *),
         void *user_data)
 {
@@ -522,8 +524,7 @@ static void group_instance_cb(bContext *C, Scene *scene, TreeElement *UNUSED(te)
  */
 void outliner_do_object_operation_ex(
         bContext *C, Scene *scene_act, SpaceOops *soops, ListBase *lb,
-        void (*operation_cb)(bContext *C, Scene *scene, TreeElement *,
-                             TreeStoreElem *, TreeStoreElem *, void *),
+        void (*operation_cb)(bContext *, Scene *, TreeElement *, TreeStoreElem *, TreeStoreElem *, void *),
         bool select_recurse)
 {
 	TreeElement *te;
@@ -565,7 +566,7 @@ void outliner_do_object_operation(
 static void clear_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te),
                               TreeStoreElem *tselem, void *UNUSED(arg))
 {
-	BKE_animdata_free(tselem->id);
+	BKE_animdata_free(tselem->id, true);
 }
 
 
@@ -849,6 +850,7 @@ enum {
 	OL_OP_SELECT_HIERARCHY,
 	OL_OP_DELETE,
 	OL_OP_DELETE_HIERARCHY,
+	OL_OP_REMAP,
 	OL_OP_LOCALIZED,  /* disabled, see below */
 	OL_OP_TOGVIS,
 	OL_OP_TOGSEL,
@@ -862,6 +864,8 @@ static EnumPropertyItem prop_object_op_types[] = {
 	{OL_OP_SELECT_HIERARCHY, "SELECT_HIERARCHY", 0, "Select Hierarchy", ""},
 	{OL_OP_DELETE, "DELETE", 0, "Delete", ""},
 	{OL_OP_DELETE_HIERARCHY, "DELETE_HIERARCHY", 0, "Delete Hierarchy", ""},
+    {OL_OP_REMAP, "REMAP",   0, "Remap Users",
+     "Make all users of selected datablocks to use instead a new chosen one"},
 	{OL_OP_TOGVIS, "TOGVIS", 0, "Toggle Visible", ""},
 	{OL_OP_TOGSEL, "TOGSEL", 0, "Toggle Selectable", ""},
 	{OL_OP_TOGREN, "TOGREN", 0, "Toggle Renderable", ""},
@@ -931,6 +935,10 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		str = "Delete Object Hierarchy";
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 	}
+	else if (event == OL_OP_REMAP) {
+		outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_remap_cb, NULL);
+		str = "Remap ID";
+	}
 	else if (event == OL_OP_LOCALIZED) {    /* disabled, see above enum (ton) */
 		outliner_do_object_operation(C, scene, soops, &soops->tree, id_local_cb);
 		str = "Localized Objects";
@@ -988,6 +996,8 @@ typedef enum eOutliner_PropGroupOps {
 	OL_GROUPOP_UNLINK = 1,
 	OL_GROUPOP_LOCAL,
 	OL_GROUPOP_LINK,
+	OL_GROUPOP_DELETE,
+	OL_GROUPOP_REMAP,
 	OL_GROUPOP_INSTANCE,
 	OL_GROUPOP_TOGVIS,
 	OL_GROUPOP_TOGSEL,
@@ -999,6 +1009,9 @@ static EnumPropertyItem prop_group_op_types[] = {
 	{OL_GROUPOP_UNLINK, "UNLINK",     0, "Unlink Group", ""},
 	{OL_GROUPOP_LOCAL, "LOCAL",       0, "Make Local Group", ""},
 	{OL_GROUPOP_LINK, "LINK",         0, "Link Group Objects to Scene", ""},
+    {OL_GROUPOP_DELETE, "DELETE",     0, "Delete Group", "WARNING: no undo"},
+    {OL_GROUPOP_REMAP, "REMAP",       0, "Remap Users",
+     "Make all users of selected datablocks to use instead current (clicked) one"},
 	{OL_GROUPOP_INSTANCE, "INSTANCE", 0, "Instance Groups in Scene", ""},
 	{OL_GROUPOP_TOGVIS, "TOGVIS",     0, "Toggle Visible Group", ""},
 	{OL_GROUPOP_TOGSEL, "TOGSEL",     0, "Toggle Selectable", ""},
@@ -1031,6 +1044,14 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 			break;
 		case OL_GROUPOP_INSTANCE:
 			outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_instance_cb, NULL);
+			/* works without this except if you try render right after, see: 22027 */
+			DAG_relations_tag_update(CTX_data_main(C));
+			break;
+		case OL_GROUPOP_DELETE:
+			WM_operator_name_call(C, "OUTLINER_OT_id_delete", WM_OP_INVOKE_REGION_WIN, NULL);
+			break;
+		case OL_GROUPOP_REMAP:
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_remap_cb, NULL);
 			break;
 		case OL_GROUPOP_TOGVIS:
 			outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_visibility_cb, NULL);
@@ -1046,11 +1067,6 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 			break;
 		default:
 			BLI_assert(0);
-	}
-
-	if (event == 3) { /* instance */
-		/* works without this except if you try render right after, see: 22027 */
-		DAG_relations_tag_update(CTX_data_main(C));
 	}
 
 	ED_undo_push(C, prop_group_op_types[event - 1].name);
@@ -1085,6 +1101,8 @@ typedef enum eOutlinerIdOpTypes {
 	OUTLINER_IDOP_UNLINK,
 	OUTLINER_IDOP_LOCAL,
 	OUTLINER_IDOP_SINGLE,
+	OUTLINER_IDOP_DELETE,
+	OUTLINER_IDOP_REMAP,
 	
 	OUTLINER_IDOP_FAKE_ADD,
 	OUTLINER_IDOP_FAKE_CLEAR,
@@ -1098,6 +1116,9 @@ static EnumPropertyItem prop_id_op_types[] = {
 	{OUTLINER_IDOP_UNLINK, "UNLINK", 0, "Unlink", ""},
 	{OUTLINER_IDOP_LOCAL, "LOCAL", 0, "Make Local", ""},
 	{OUTLINER_IDOP_SINGLE, "SINGLE", 0, "Make Single User", ""},
+    {OUTLINER_IDOP_DELETE, "DELETE", 0, "Delete", "WARNING: no undo"},
+    {OUTLINER_IDOP_REMAP, "REMAP", 0, "Remap Users",
+     "Make all users of selected datablocks to use instead current (clicked) one"},
 	{OUTLINER_IDOP_FAKE_ADD, "ADD_FAKE", 0, "Add Fake User",
 	 "Ensure datablock gets saved even if it isn't in use (e.g. for motion and material libraries)"},
 	{OUTLINER_IDOP_FAKE_CLEAR, "CLEAR_FAKE", 0, "Clear Fake User", ""},
@@ -1187,6 +1208,20 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 			}
 			break;
 		}
+		case OUTLINER_IDOP_DELETE:
+		{
+			if (idlevel > 0) {
+				outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_delete_cb, NULL);
+			}
+			break;
+		}
+		case OUTLINER_IDOP_REMAP:
+		{
+			if (idlevel > 0) {
+				outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_remap_cb, NULL);
+			}
+			break;
+		}
 		case OUTLINER_IDOP_FAKE_ADD:
 		{
 			/* set fake user */
@@ -1258,13 +1293,16 @@ typedef enum eOutlinerLibOpTypes {
 
 	OL_LIB_RENAME,
 	OL_LIB_DELETE,
+	OL_LIB_RELOCATE,
+	OL_LIB_RELOAD,
 } eOutlinerLibOpTypes;
 
 static EnumPropertyItem outliner_lib_op_type_items[] = {
 	{OL_LIB_RENAME, "RENAME", 0, "Rename", ""},
-	{OL_LIB_DELETE, "DELETE", 0, "Delete", "Delete this library and all its item from Blender (needs a save/reload)"},
+    {OL_LIB_DELETE, "DELETE", 0, "Delete", "Delete this library and all its item from Blender - WARNING: no undo"},
+    {OL_LIB_RELOCATE, "RELOCATE", 0, "Relocate", "Select a new path for this library, and reload all its data"},
+    {OL_LIB_RELOAD, "RELOAD", 0, "Reload", "Reload all data from this library"},
 	{0, NULL, 0, NULL, NULL}
-
 };
 
 static int outliner_lib_operation_exec(bContext *C, wmOperator *op)
@@ -1294,13 +1332,19 @@ static int outliner_lib_operation_exec(bContext *C, wmOperator *op)
 		}
 		case OL_LIB_DELETE:
 		{
-			/* delete */
-			outliner_do_libdata_operation(C, scene, soops, &soops->tree, lib_delete_cb, NULL);
-
-			WM_event_add_notifier(C, NC_ID | NA_EDITED, NULL);
-			/* Note: no undo possible here really, not 100% sure why...
-			 * Probably because of library optimizations in undo/redo process? */
-			/* ED_undo_push(C, "Rename"); */
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_delete_cb, NULL);
+			break;
+		}
+		case OL_LIB_RELOCATE:
+		{
+			/* rename */
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, lib_relocate_cb, NULL);
+			break;
+		}
+		case OL_LIB_RELOAD:
+		{
+			/* rename */
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, lib_reload_cb, NULL);
 			break;
 		}
 		default:

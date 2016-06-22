@@ -581,7 +581,7 @@ void EnvironmentTextureNode::compile(OSLCompiler& compiler)
 		compiler.parameter("color_space", "sRGB");
 
 	compiler.parameter(this, "interpolation");
-	compiler.parameter(this, "is_float");
+	compiler.parameter("is_float", is_float);
 	compiler.parameter("use_alpha", !alpha_out->links.empty());
 	compiler.add(this, "node_environment_texture");
 }

@@ -1782,21 +1782,21 @@ static void free_localized_node_groups(bNodeTree *ntree)
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->type == NODE_GROUP && node->id) {
 			bNodeTree *ngroup = (bNodeTree *)node->id;
-			ntreeFreeTree_ex(ngroup, false);
+			ntreeFreeTree(ngroup);
 			MEM_freeN(ngroup);
 		}
 	}
 }
 
-/* do not free ntree itself here, BKE_libblock_free calls this function too */
-void ntreeFreeTree_ex(bNodeTree *ntree, const bool do_id_user)
+/** Free (or release) any data used by this nodetree (does not free the nodetree itself). */
+void ntreeFreeTree(bNodeTree *ntree)
 {
 	bNodeTree *tntree;
 	bNode *node, *next;
 	bNodeSocket *sock, *nextsock;
-	
-	if (ntree == NULL) return;
-	
+
+	BKE_animdata_free((ID *)ntree, false);
+
 	/* XXX hack! node trees should not store execution graphs at all.
 	 * This should be removed when old tree types no longer require it.
 	 * Currently the execution data for texture nodes remains in the tree
@@ -1820,29 +1820,10 @@ void ntreeFreeTree_ex(bNodeTree *ntree, const bool do_id_user)
 	/* unregister associated RNA types */
 	ntreeInterfaceTypeFree(ntree);
 	
-	BKE_animdata_free((ID *)ntree);
-	
-	id_us_min((ID *)ntree->gpd);
-
 	BLI_freelistN(&ntree->links);   /* do first, then unlink_node goes fast */
 	
 	for (node = ntree->nodes.first; node; node = next) {
 		next = node->next;
-
-		/* ntreeUserIncrefID inline */
-
-		/* XXX, this is correct, however when freeing the entire database
-		 * this ends up accessing freed data which isn't properly unlinking
-		 * its self from scene nodes, SO - for now prefer invalid usercounts
-		 * on free rather then bad memory access - Campbell */
-#if 0
-		if (do_id_user) {
-			id_us_min(node->id);
-		}
-#else
-		(void)do_id_user;
-#endif
-
 		node_free_node_ex(ntree, node, false, false);
 	}
 
@@ -1873,11 +1854,6 @@ void ntreeFreeTree_ex(bNodeTree *ntree, const bool do_id_user)
 	if (tntree == NULL) {
 		BKE_libblock_free_data(G.main, &ntree->id);
 	}
-}
-/* same as ntreeFreeTree_ex but always manage users */
-void ntreeFreeTree(bNodeTree *ntree)
-{
-	ntreeFreeTree_ex(ntree, true);
 }
 
 void ntreeFreeCache(bNodeTree *ntree)
@@ -2165,7 +2141,7 @@ void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
 		if (ntree->typeinfo->local_merge)
 			ntree->typeinfo->local_merge(localtree, ntree);
 		
-		ntreeFreeTree_ex(localtree, false);
+		ntreeFreeTree(localtree);
 		MEM_freeN(localtree);
 	}
 }

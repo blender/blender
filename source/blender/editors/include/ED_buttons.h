@@ -36,6 +36,4 @@ bool ED_texture_context_check_lamp(const struct bContext *C);
 bool ED_texture_context_check_linestyle(const struct bContext *C);
 bool ED_texture_context_check_others(const struct bContext *C);
 
-void ED_buttons_id_unref(struct SpaceButs *sbuts, const struct ID *id);
-
 #endif /*  __ED_BUTTONS_H__ */

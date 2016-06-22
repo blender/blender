@@ -153,9 +153,10 @@ void BKE_camera_make_local(Camera *cam)
 	}
 }
 
+/** Free (or release) any data used by this camera (does not free the camera itself). */
 void BKE_camera_free(Camera *ca)
 {
-	BKE_animdata_free((ID *)ca);
+	BKE_animdata_free((ID *)ca, false);
 }
 
 /******************************** Camera Usage *******************************/

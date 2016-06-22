@@ -45,6 +45,7 @@
 #include "BKE_image.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"
@@ -1755,7 +1756,9 @@ bool ED_screen_delete_scene(bContext *C, Scene *scene)
 
 	ED_screen_set_scene(C, CTX_wm_screen(C), newscene);
 
-	BKE_scene_unlink(bmain, scene, newscene);
+	BKE_libblock_remap(bmain, scene, newscene, ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_NEVER_NULL_USAGE);
+
+	BKE_libblock_free(bmain, scene);
 
 	return true;
 }

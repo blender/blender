@@ -273,17 +273,18 @@ void BKE_spacedata_draw_locks(int set)
 	}
 }
 
-static void (*spacedata_id_unref_cb)(struct SpaceLink *sl, const struct ID *id) = NULL;
+static void (*spacedata_id_remap_cb)(struct ScrArea *sa, struct SpaceLink *sl, ID *old_id, ID *new_id) = NULL;
 
-void BKE_spacedata_callback_id_unref_set(void (*func)(struct SpaceLink *sl, const struct ID *))
+void BKE_spacedata_callback_id_remap_set(void (*func)(ScrArea *sa, SpaceLink *sl, ID *, ID *))
 {
-	spacedata_id_unref_cb = func;
+	spacedata_id_remap_cb = func;
 }
 
-void BKE_spacedata_id_unref(struct SpaceLink *sl, const struct ID *id)
+/* UNUSED!!! */
+void BKE_spacedata_id_unref(struct ScrArea *sa, struct SpaceLink *sl, struct ID *id)
 {
-	if (spacedata_id_unref_cb) {
-		spacedata_id_unref_cb(sl, id);
+	if (spacedata_id_remap_cb) {
+		spacedata_id_remap_cb(sa, sl, id, NULL);
 	}
 }
 
@@ -358,11 +359,13 @@ void BKE_screen_area_free(ScrArea *sa)
 	BLI_freelistN(&sa->actionzones);
 }
 
-/* don't free screen itself */
+/** Free (or release) any data used by this screen (does not free the screen itself). */
 void BKE_screen_free(bScreen *sc)
 {
 	ScrArea *sa, *san;
 	ARegion *ar;
+
+	/* No animdata here. */
 	
 	for (ar = sc->regionbase.first; ar; ar = ar->next)
 		BKE_area_region_free(NULL, ar);

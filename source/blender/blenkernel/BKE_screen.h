@@ -99,6 +99,9 @@ typedef struct SpaceType {
 	/* return context data */
 	int (*context)(const struct bContext *, const char *, struct bContextDataResult *);
 
+	/* Used when we want to replace an ID by another (or NULL). */
+	void (*id_remap)(struct ScrArea *, struct SpaceLink *, struct ID *, struct ID *);
+
 	/* region type definitions */
 	ListBase regiontypes;
 	
@@ -274,8 +277,8 @@ void BKE_spacedata_freelist(ListBase *lb);
 void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2);
 void BKE_spacedata_draw_locks(int set);
 
-void BKE_spacedata_callback_id_unref_set(void (*func)(struct SpaceLink *sl, const struct ID *));
-void BKE_spacedata_id_unref(struct SpaceLink *sl, const struct ID *id);
+void BKE_spacedata_callback_id_remap_set(void (*func)(struct ScrArea *, struct SpaceLink *, struct ID *, struct ID *));
+void BKE_spacedata_id_unref(struct ScrArea *sa, struct SpaceLink *sl, struct ID *id);
 
 /* area/regions */
 struct ARegion *BKE_area_region_copy(struct SpaceType *st, struct ARegion *ar);

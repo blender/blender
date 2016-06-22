@@ -32,6 +32,7 @@
  */
 
 struct ID;
+struct Main;
 
 /* Tips for the callback for cases it's gonna to modify the pointer. */
 enum {

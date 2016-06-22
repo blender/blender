@@ -556,23 +556,38 @@ int colorband_element_remove(struct ColorBand *coba, int index)
 
 /* ******************* TEX ************************ */
 
+/** Free (or release) any data used by this texture (does not free the texure itself). */
 void BKE_texture_free(Tex *tex)
 {
-	if (tex->coba) MEM_freeN(tex->coba);
-	if (tex->env) BKE_texture_envmap_free(tex->env);
-	if (tex->pd) BKE_texture_pointdensity_free(tex->pd);
-	if (tex->vd) BKE_texture_voxeldata_free(tex->vd);
-	if (tex->ot) BKE_texture_ocean_free(tex->ot);
-	BKE_animdata_free((struct ID *)tex);
-	
-	BKE_previewimg_free(&tex->preview);
-	BKE_icon_id_delete((struct ID *)tex);
-	tex->id.icon_id = 0;
-	
+	BKE_animdata_free((ID *)tex, false);
+
+	/* is no lib link block, but texture extension */
 	if (tex->nodetree) {
 		ntreeFreeTree(tex->nodetree);
 		MEM_freeN(tex->nodetree);
+		tex->nodetree = NULL;
 	}
+
+	MEM_SAFE_FREE(tex->coba);
+	if (tex->env) {
+		BKE_texture_envmap_free(tex->env);
+		tex->env = NULL;
+	}
+	if (tex->pd) {
+		BKE_texture_pointdensity_free(tex->pd);
+		tex->pd = NULL;
+	}
+	if (tex->vd) {
+		BKE_texture_voxeldata_free(tex->vd);
+		tex->vd = NULL;
+	}
+	if (tex->ot) {
+		BKE_texture_ocean_free(tex->ot);
+		tex->ot = NULL;
+	}
+	
+	BKE_icon_id_delete((ID *)tex);
+	BKE_previewimg_free(&tex->preview);
 }
 
 /* ------------------------------------------------------------------------- */

@@ -38,7 +38,10 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_gpencil_types.h"
+
 #include "BKE_context.h"
+#include "BKE_library.h"
 #include "BKE_screen.h"
 
 #include "ED_space_api.h"
@@ -300,6 +303,21 @@ static void logic_header_region_draw(const bContext *C, ARegion *ar)
 
 /**************************** spacetype *****************************/
 
+static void logic_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)
+{
+	SpaceLogic *slog = (SpaceLogic *)slink;
+
+	if (!ELEM(GS(old_id->name), ID_GD)) {
+		return;
+	}
+
+	if ((ID *)slog->gpd == old_id) {
+		slog->gpd = (bGPdata *)new_id;
+		id_us_min(old_id);
+		id_us_plus(new_id);
+	}
+}
+
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_logic(void)
 {
@@ -317,7 +335,8 @@ void ED_spacetype_logic(void)
 	st->keymap = logic_keymap;
 	st->refresh = logic_refresh;
 	st->context = logic_context;
-	
+	st->id_remap = logic_id_remap;
+
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype logic region");
 	art->regionid = RGN_TYPE_WINDOW;

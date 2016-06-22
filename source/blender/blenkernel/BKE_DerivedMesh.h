@@ -694,7 +694,7 @@ DerivedMesh *mesh_create_derived_render(
         CustomDataMask dataMask);
 
 DerivedMesh *getEditDerivedBMesh(
-        struct BMEditMesh *em, struct Object *ob,
+        struct BMEditMesh *em, struct Object *ob, CustomDataMask data_mask,
         float (*vertexCos)[3]);
 
 DerivedMesh *mesh_create_derived_index_render(
@@ -723,7 +723,7 @@ DerivedMesh *mesh_create_derived_physics(
         CustomDataMask dataMask);
 
 DerivedMesh *editbmesh_get_derived_base(
-        struct Object *, struct BMEditMesh *em);
+        struct Object *ob, struct BMEditMesh *em, CustomDataMask data_mask);
 DerivedMesh *editbmesh_get_derived_cage(
         struct Scene *scene, struct Object *,
         struct BMEditMesh *em, CustomDataMask dataMask);

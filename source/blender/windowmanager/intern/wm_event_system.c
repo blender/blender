@@ -241,7 +241,7 @@ void WM_main_remove_notifier_reference(const void *reference)
 	}
 }
 
-void WM_main_remove_editor_id_reference(const ID *id)
+void WM_main_remap_editor_id_reference(ID *old_id, ID *new_id)
 {
 	Main *bmain = G.main;
 	bScreen *sc;
@@ -253,7 +253,7 @@ void WM_main_remove_editor_id_reference(const ID *id)
 			SpaceLink *sl;
 
 			for (sl = sa->spacedata.first; sl; sl = sl->next) {
-				ED_spacedata_id_unref(sl, id);
+				ED_spacedata_id_remap(sa, sl, old_id, new_id);
 			}
 		}
 	}

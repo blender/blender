@@ -113,6 +113,7 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_blender_version.h"
 #include "BKE_brush.h"
 #include "BKE_cloth.h"
 #include "BKE_constraint.h"
@@ -7896,6 +7897,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	blo_do_versions_260(fd, lib, main);
 	blo_do_versions_270(fd, lib, main);
 
+	main->versionfile = BLENDER_VERSION;
+	main->subversionfile = BLENDER_SUBVERSION;
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init see do_versions_userdef() above! */
 
@@ -9288,13 +9292,13 @@ static void give_base_to_groups(
 	}
 }
 
-static ID *create_placeholder(Main *mainvar, const char *idname, const short tag)
+static ID *create_placeholder(Main *mainvar, const short idcode, const char *idname, const short tag)
 {
-	const short idcode = GS(idname);
 	ListBase *lb = which_libbase(mainvar, idcode);
 	ID *ph_id = BKE_libblock_alloc_notest(idcode);
 
-	memcpy(ph_id->name, idname, sizeof(ph_id->name));
+	*((short *)ph_id->name) = idcode;
+	BLI_strncpy(ph_id->name + 2, idname, sizeof(ph_id->name) - 2);
 	BKE_libblock_init_empty(ph_id);
 	ph_id->lib = mainvar->curlib;
 	ph_id->tag = tag | LIB_TAG_MISSING;
@@ -9309,7 +9313,9 @@ static ID *create_placeholder(Main *mainvar, const char *idname, const short tag
 
 /* returns true if the item was found
  * but it may already have already been appended/linked */
-static ID *link_named_part(Main *mainl, FileData *fd, const short idcode, const char *name)
+static ID *link_named_part(
+        Main *mainl, FileData *fd, const short idcode, const char *name,
+        const bool use_placeholders, const bool force_indirect)
 {
 	BHead *bhead = find_bhead_from_code_name(fd, idcode, name);
 	ID *id;
@@ -9320,7 +9326,7 @@ static ID *link_named_part(Main *mainl, FileData *fd, const short idcode, const 
 		id = is_yet_read(fd, mainl, bhead);
 		if (id == NULL) {
 			/* not read yet */
-			read_libblock(fd, mainl, bhead, LIB_TAG_TESTEXT, &id);
+			read_libblock(fd, mainl, bhead, force_indirect ? LIB_TAG_TESTIND : LIB_TAG_TESTEXT, &id);
 
 			if (id) {
 				/* sort by name in list */
@@ -9333,18 +9339,22 @@ static ID *link_named_part(Main *mainl, FileData *fd, const short idcode, const 
 			if (G.debug)
 				printf("append: already linked\n");
 			oldnewmap_insert(fd->libmap, bhead->old, id, bhead->code);
-			if (id->tag & LIB_TAG_INDIRECT) {
+			if (!force_indirect && (id->tag & LIB_TAG_INDIRECT)) {
 				id->tag &= ~LIB_TAG_INDIRECT;
 				id->tag |= LIB_TAG_EXTERN;
 			}
 		}
+	}
+	else if (use_placeholders) {
+		/* XXX flag part is weak! */
+		id = create_placeholder(mainl, idcode, name, force_indirect ? LIB_TAG_INDIRECT : LIB_TAG_EXTERN);
 	}
 	else {
 		id = NULL;
 	}
 	
 	/* if we found the id but the id is NULL, this is really bad */
-	BLI_assert((bhead != NULL) == (id != NULL));
+	BLI_assert(!((bhead != NULL) && (id == NULL)));
 	
 	return id;
 }
@@ -9416,9 +9426,9 @@ void BLO_library_link_copypaste(Main *mainl, BlendHandle *bh)
 
 static ID *link_named_part_ex(
         Main *mainl, FileData *fd, const short idcode, const char *name, const short flag,
-		Scene *scene, View3D *v3d)
+		Scene *scene, View3D *v3d, const bool use_placeholders, const bool force_indirect)
 {
-	ID *id = link_named_part(mainl, fd, idcode, name);
+	ID *id = link_named_part(mainl, fd, idcode, name, use_placeholders, force_indirect);
 
 	if (id && (GS(id->name) == ID_OB)) {	/* loose object: give a base */
 		link_object_postprocess(id, scene, v3d, flag);
@@ -9444,7 +9454,7 @@ static ID *link_named_part_ex(
 ID *BLO_library_link_named_part(Main *mainl, BlendHandle **bh, const short idcode, const char *name)
 {
 	FileData *fd = (FileData*)(*bh);
-	return link_named_part(mainl, fd, idcode, name);
+	return link_named_part(mainl, fd, idcode, name, false, false);
 }
 
 /**
@@ -9458,15 +9468,18 @@ ID *BLO_library_link_named_part(Main *mainl, BlendHandle **bh, const short idcod
  * \param flag Options for linking, used for instantiating.
  * \param scene The scene in which to instantiate objects/groups (if NULL, no instantiation is done).
  * \param v3d The active View3D (only to define active layers for instantiated objects & groups, can be NULL).
+ * \param use_placeholders If true, generate a placeholder (empty ID) if not found in current lib file.
+ * \param force_indirect If true, force loaded ID to be tagged as LIB_TAG_INDIRECT (used in reload context only).
  * \return the linked ID when found.
  */
 ID *BLO_library_link_named_part_ex(
         Main *mainl, BlendHandle **bh,
         const short idcode, const char *name, const short flag,
-        Scene *scene, View3D *v3d)
+        Scene *scene, View3D *v3d,
+        const bool use_placeholders, const bool force_indirect)
 {
 	FileData *fd = (FileData*)(*bh);
-	return link_named_part_ex(mainl, fd, idcode, name, flag, scene, v3d);
+	return link_named_part_ex(mainl, fd, idcode, name, flag, scene, v3d, use_placeholders, force_indirect);
 }
 
 static void link_id_part(ReportList *reports, FileData *fd, Main *mainvar, ID *id, ID **r_id)
@@ -9506,7 +9519,7 @@ static void link_id_part(ReportList *reports, FileData *fd, Main *mainvar, ID *i
 
 		/* Generate a placeholder for this ID (simplified version of read_libblock actually...). */
 		if (r_id) {
-			*r_id = is_valid ? create_placeholder(mainvar, id->name, id->tag) : NULL;
+			*r_id = is_valid ? create_placeholder(mainvar, GS(id->name), id->name + 2, id->tag) : NULL;
 		}
 	}
 }

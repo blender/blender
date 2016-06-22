@@ -215,7 +215,7 @@ bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
 /* Freeing -------------------------------------------- */
 
 /* Free AnimData used by the nominated ID-block, and clear ID-block's AnimData pointer */
-void BKE_animdata_free(ID *id)
+void BKE_animdata_free(ID *id, const bool do_id_user)
 {
 	/* Only some ID-blocks have this info for now, so we cast the 
 	 * types that do to be of type IdAdtTemplate
@@ -226,12 +226,14 @@ void BKE_animdata_free(ID *id)
 		
 		/* check if there's any AnimData to start with */
 		if (adt) {
-			/* unlink action (don't free, as it's in its own list) */
-			if (adt->action)
-				id_us_min(&adt->action->id);
-			/* same goes for the temporarily displaced action */
-			if (adt->tmpact)
-				id_us_min(&adt->tmpact->id);
+			if (do_id_user) {
+				/* unlink action (don't free, as it's in its own list) */
+				if (adt->action)
+					id_us_min(&adt->action->id);
+				/* same goes for the temporarily displaced action */
+				if (adt->tmpact)
+					id_us_min(&adt->tmpact->id);
+			}
 				
 			/* free nla data */
 			free_nladata(&adt->nla_tracks);
@@ -291,7 +293,7 @@ bool BKE_animdata_copy_id(ID *id_to, ID *id_from, const bool do_action)
 	if ((id_to && id_from) && (GS(id_to->name) != GS(id_from->name)))
 		return false;
 
-	BKE_animdata_free(id_to);
+	BKE_animdata_free(id_to, true);
 
 	adt = BKE_animdata_from_id(id_from);
 	if (adt) {

@@ -2226,16 +2226,17 @@ static CustomData *bmDm_getPolyDataLayout(DerivedMesh *dm)
 	return &bmdm->em->bm->pdata;
 }
 
-
+/**
+ * \note This may be called per-draw,
+ * avoid allocating large arrays where possible and keep this a thin wrapper for #BMesh.
+ */
 DerivedMesh *getEditDerivedBMesh(
-        BMEditMesh *em,
-        Object *UNUSED(ob),
+        BMEditMesh *em, struct Object *UNUSED(ob),
+        CustomDataMask data_mask,
         float (*vertexCos)[3])
 {
 	EditDerivedBMesh *bmdm = MEM_callocN(sizeof(*bmdm), __func__);
 	BMesh *bm = em->bm;
-	const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
-	const int cd_skin_offset = CustomData_get_offset(&bm->vdata, CD_MVERT_SKIN);
 
 	bmdm->em = em;
 
@@ -2304,6 +2305,9 @@ DerivedMesh *getEditDerivedBMesh(
 	bmdm->vertexCos = (const float (*)[3])vertexCos;
 	bmdm->dm.deformedOnly = (vertexCos != NULL);
 
+	const int cd_dvert_offset = (data_mask & CD_MASK_MDEFORMVERT) ?
+	        CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT) : -1;
+
 	if (cd_dvert_offset != -1) {
 		BMIter iter;
 		BMVert *eve;
@@ -2316,6 +2320,9 @@ DerivedMesh *getEditDerivedBMesh(
 			                 BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset));
 		}
 	}
+
+	const int cd_skin_offset = (data_mask & CD_MASK_MVERT_SKIN) ?
+	        CustomData_get_offset(&bm->vdata, CD_MVERT_SKIN) : -1;
 
 	if (cd_skin_offset != -1) {
 		BMIter iter;

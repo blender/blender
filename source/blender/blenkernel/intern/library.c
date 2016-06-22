@@ -84,7 +84,6 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
-#include "BKE_fcurve.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
@@ -92,7 +91,6 @@
 #include "BKE_idcode.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
-#include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
@@ -103,15 +101,11 @@
 #include "BKE_material.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
-#include "BKE_movieclip.h"
 #include "BKE_mask.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
 #include "BKE_packedFile.h"
 #include "BKE_speaker.h"
-#include "BKE_sound.h"
-#include "BKE_screen.h"
 #include "BKE_scene.h"
 #include "BKE_text.h"
 #include "BKE_texture.h"
@@ -123,10 +117,6 @@
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-
-#ifdef WITH_PYTHON
-#include "BPY_extern.h"
-#endif
 
 /* GS reads the memory pointed at in a specific ordering. 
  * only use this definition, makes little and big endian systems
@@ -181,7 +171,6 @@ void id_us_ensure_real(ID *id)
 	}
 }
 
-/* Unused currently... */
 void id_us_clear_real(ID *id)
 {
 	if (id && (id->tag & LIB_TAG_EXTRAUSER)) {
@@ -231,9 +220,7 @@ void id_us_min(ID *id)
 		if (id->us <= limit) {
 			printf("ID user decrement error: %s (from '%s'): %d <= %d\n",
 			       id->name, id->lib ? id->lib->filepath : "[Main]", id->us, limit);
-			/* We cannot assert here, because of how we 'delete' datablocks currently (setting their usercount to zero),
-			 * this is weak but it's how it works for now. */
-			/* BLI_assert(0); */
+			BLI_assert(0);
 			id->us = limit;
 		}
 		else {
@@ -452,37 +439,6 @@ bool id_copy(ID *id, ID **newid, bool test)
 			return true;
 	}
 	
-	return false;
-}
-
-bool id_unlink(ID *id, int test)
-{
-	Main *mainlib = G.main;
-	short type = GS(id->name);
-
-	switch (type) {
-		case ID_TXT:
-			if (test) return true;
-			BKE_text_unlink(mainlib, (Text *)id);
-			break;
-		case ID_GR:
-			if (test) return true;
-			BKE_group_unlink(mainlib, (Group *)id);
-			break;
-		case ID_OB:
-			if (test) return true;
-			BKE_object_unlink(mainlib, (Object *)id);
-			break;
-	}
-
-	if (id->us == 0) {
-		if (test) return true;
-
-		BKE_libblock_free(mainlib, id);
-
-		return true;
-	}
-
 	return false;
 }
 
@@ -1095,229 +1051,10 @@ void BKE_libblock_relink(ID *id)
 	BKE_library_foreach_ID_link(id, id_relink_looper, NULL, 0);
 }
 
-static void BKE_library_free(Library *lib)
+void BKE_library_free(Library *lib)
 {
 	if (lib->packedfile)
 		freePackedFile(lib->packedfile);
-}
-
-static BKE_library_free_window_manager_cb free_windowmanager_cb = NULL;
-
-void BKE_library_callback_free_window_manager_set(BKE_library_free_window_manager_cb func)
-{
-	free_windowmanager_cb = func;
-}
-
-static BKE_library_free_notifier_reference_cb free_notifier_reference_cb = NULL;
-
-void BKE_library_callback_free_notifier_reference_set(BKE_library_free_notifier_reference_cb func)
-{
-	free_notifier_reference_cb = func;
-}
-
-static BKE_library_free_editor_id_reference_cb free_editor_id_reference_cb = NULL;
-
-void BKE_library_callback_free_editor_id_reference_set(BKE_library_free_editor_id_reference_cb func)
-{
-	free_editor_id_reference_cb = func;
-}
-
-static void animdata_dtar_clear_cb(ID *UNUSED(id), AnimData *adt, void *userdata)
-{
-	ChannelDriver *driver;
-	FCurve *fcu;
-
-	/* find the driver this belongs to and update it */
-	for (fcu = adt->drivers.first; fcu; fcu = fcu->next) {
-		driver = fcu->driver;
-		
-		if (driver) {
-			DriverVar *dvar;
-			for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
-				DRIVER_TARGETS_USED_LOOPER(dvar) 
-				{
-					if (dtar->id == userdata)
-						dtar->id = NULL;
-				}
-				DRIVER_TARGETS_LOOPER_END
-			}
-		}
-	}
-}
-
-void BKE_libblock_free_data(Main *bmain, ID *id)
-{
-	if (id->properties) {
-		IDP_FreeProperty(id->properties);
-		MEM_freeN(id->properties);
-	}
-	
-	/* this ID may be a driver target! */
-	BKE_animdata_main_cb(bmain, animdata_dtar_clear_cb, (void *)id);
-}
-
-/* used in headerbuttons.c image.c mesh.c screen.c sound.c and library.c */
-void BKE_libblock_free_ex(Main *bmain, void *idv, bool do_id_user)
-{
-	ID *id = idv;
-	short type = GS(id->name);
-	ListBase *lb = which_libbase(bmain, type);
-
-	DAG_id_type_tag(bmain, type);
-
-#ifdef WITH_PYTHON
-	BPY_id_release(id);
-#endif
-
-	switch (type) {    /* GetShort from util.h */
-		case ID_SCE:
-			BKE_scene_free((Scene *)id);
-			break;
-		case ID_LI:
-			BKE_library_free((Library *)id);
-			break;
-		case ID_OB:
-			BKE_object_free_ex((Object *)id, do_id_user);
-			break;
-		case ID_ME:
-			BKE_mesh_free((Mesh *)id, 1);
-			break;
-		case ID_CU:
-			BKE_curve_free((Curve *)id);
-			break;
-		case ID_MB:
-			BKE_mball_free((MetaBall *)id);
-			break;
-		case ID_MA:
-			BKE_material_free((Material *)id);
-			break;
-		case ID_TE:
-			BKE_texture_free((Tex *)id);
-			break;
-		case ID_IM:
-			BKE_image_free((Image *)id);
-			break;
-		case ID_LT:
-			BKE_lattice_free((Lattice *)id);
-			break;
-		case ID_LA:
-			BKE_lamp_free((Lamp *)id);
-			break;
-		case ID_CA:
-			BKE_camera_free((Camera *) id);
-			break;
-		case ID_IP:
-			BKE_ipo_free((Ipo *)id);
-			break;
-		case ID_KE:
-			BKE_key_free((Key *)id);
-			break;
-		case ID_WO:
-			BKE_world_free((World *)id);
-			break;
-		case ID_SCR:
-			BKE_screen_free((bScreen *)id);
-			break;
-		case ID_VF:
-			BKE_vfont_free((VFont *)id);
-			break;
-		case ID_TXT:
-			BKE_text_free((Text *)id);
-			break;
-		case ID_SPK:
-			BKE_speaker_free((Speaker *)id);
-			break;
-		case ID_SO:
-			BKE_sound_free((bSound *)id);
-			break;
-		case ID_GR:
-			BKE_group_free((Group *)id);
-			break;
-		case ID_AR:
-			BKE_armature_free((bArmature *)id);
-			break;
-		case ID_AC:
-			BKE_action_free((bAction *)id);
-			break;
-		case ID_NT:
-			ntreeFreeTree_ex((bNodeTree *)id, do_id_user);
-			break;
-		case ID_BR:
-			BKE_brush_free((Brush *)id);
-			break;
-		case ID_WM:
-			if (free_windowmanager_cb)
-				free_windowmanager_cb(NULL, (wmWindowManager *)id);
-			break;
-		case ID_GD:
-			BKE_gpencil_free((bGPdata *)id);
-			break;
-		case ID_MC:
-			BKE_movieclip_free((MovieClip *)id);
-			break;
-		case ID_MSK:
-			BKE_mask_free(bmain, (Mask *)id);
-			break;
-		case ID_LS:
-			BKE_linestyle_free((FreestyleLineStyle *)id);
-			break;
-		case ID_PAL:
-			BKE_palette_free((Palette *)id);
-			break;
-		case ID_PC:
-			BKE_paint_curve_free((PaintCurve *)id);
-			break;
-	}
-
-	/* avoid notifying on removed data */
-	BKE_main_lock(bmain);
-
-	if (free_notifier_reference_cb) {
-		free_notifier_reference_cb(id);
-	}
-
-	if (free_editor_id_reference_cb) {
-		free_editor_id_reference_cb(id);
-	}
-
-	BLI_remlink(lb, id);
-
-	BKE_libblock_free_data(bmain, id);
-	BKE_main_unlock(bmain);
-
-	MEM_freeN(id);
-}
-
-void BKE_libblock_free(Main *bmain, void *idv)
-{
-	BKE_libblock_free_ex(bmain, idv, true);
-}
-
-void BKE_libblock_free_us(Main *bmain, void *idv)      /* test users */
-{
-	ID *id = idv;
-	
-	id_us_min(id);
-
-	/* XXX This is a temp (2.77) hack so that we keep same behavior as in 2.76 regarding groups when deleting an object.
-	 *     Since only 'user_one' usage of objects is groups, and only 'real user' usage of objects is scenes,
-	 *     removing that 'user_one' tag when there is no more real (scene) users of an object ensures it gets
-	 *     fully unlinked.
-	 *     Otherwise, there is no real way to get rid of an object anymore - better handling of this is TODO.
-	 */
-	if ((GS(id->name) == ID_OB) && (id->us == 1)) {
-		id_us_clear_real(id);
-	}
-
-	if (id->us == 0) {
-		switch (GS(id->name)) {
-			case ID_OB:
-				BKE_object_unlink(bmain, (Object *)id);
-				break;
-		}
-		
-		BKE_libblock_free(bmain, id);
-	}
 }
 
 Main *BKE_main_new(void)

@@ -1248,7 +1248,7 @@ static void free_buffers(MovieClip *clip)
 		clip->anim = NULL;
 	}
 
-	BKE_animdata_free((ID *) clip);
+	BKE_animdata_free((ID *) clip, false);
 }
 
 void BKE_movieclip_clear_cache(MovieClip *clip)
@@ -1482,8 +1482,10 @@ void BKE_movieclip_build_proxy_frame_for_ibuf(MovieClip *clip, ImBuf *ibuf, stru
 	}
 }
 
+/** Free (or release) any data used by this movie clip (does not free the clip itself). */
 void BKE_movieclip_free(MovieClip *clip)
 {
+	/* Also frees animdata. */
 	free_buffers(clip);
 
 	BKE_tracking_free(&clip->tracking);

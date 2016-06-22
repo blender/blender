@@ -74,11 +74,13 @@
 #define IPO_BEZTRIPLE   100
 #define IPO_BPOINT      101
 
+
+/** Free (or release) any data used by this shapekey (does not free the key itself). */
 void BKE_key_free(Key *key)
 {
 	KeyBlock *kb;
-	
-	BKE_animdata_free((ID *)key);
+
+	BKE_animdata_free((ID *)key, false);
 
 	while ((kb = BLI_pophead(&key->block))) {
 		if (kb->data)

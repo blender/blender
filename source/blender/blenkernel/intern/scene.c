@@ -356,41 +356,34 @@ void BKE_scene_groups_relink(Scene *sce)
 		BKE_rigidbody_world_groups_relink(sce->rigidbody_world);
 }
 
-/* do not free scene itself */
+/** Free (or release) any data used by this scene (does not free the scene itself). */
 void BKE_scene_free(Scene *sce)
 {
-	Base *base;
 	SceneRenderLayer *srl;
+
+	BKE_animdata_free((ID *)sce, false);
 
 	/* check all sequences */
 	BKE_sequencer_clear_scene_in_allseqs(G.main, sce);
 
-	base = sce->base.first;
-	while (base) {
-		id_us_min(&base->object->id);
-		base = base->next;
-	}
-	/* do not free objects! */
-	
-	if (sce->gpd) {
-#if 0   /* removed since this can be invalid memory when freeing everything */
-		/* since the grease pencil data is freed before the scene.
-		 * since grease pencil data is not (yet?), shared between objects
-		 * its probably safe not to do this, some save and reload will free this. */
-		id_us_min(&sce->gpd->id);
-#endif
-		sce->gpd = NULL;
-	}
-
+	sce->basact = NULL;
 	BLI_freelistN(&sce->base);
 	BKE_sequencer_editing_free(sce);
 
-	BKE_animdata_free((ID *)sce);
 	BKE_keyingsets_free(&sce->keyingsets);
-	
-	if (sce->rigidbody_world)
+
+	/* is no lib link block, but scene extension */
+	if (sce->nodetree) {
+		ntreeFreeTree(sce->nodetree);
+		MEM_freeN(sce->nodetree);
+		sce->nodetree = NULL;
+	}
+
+	if (sce->rigidbody_world) {
 		BKE_rigidbody_free_world(sce->rigidbody_world);
-	
+		sce->rigidbody_world = NULL;
+	}
+
 	if (sce->r.avicodecdata) {
 		free_avicodecdata(sce->r.avicodecdata);
 		MEM_freeN(sce->r.avicodecdata);
@@ -443,15 +436,8 @@ void BKE_scene_free(Scene *sce)
 	if (sce->depsgraph)
 		DEG_graph_free(sce->depsgraph);
 	
-	if (sce->nodetree) {
-		ntreeFreeTree(sce->nodetree);
-		MEM_freeN(sce->nodetree);
-	}
-
-	if (sce->stats)
-		MEM_freeN(sce->stats);
-	if (sce->fps_info)
-		MEM_freeN(sce->fps_info);
+	MEM_SAFE_FREE(sce->stats);
+	MEM_SAFE_FREE(sce->fps_info);
 
 	BKE_sound_destroy_scene(sce);
 
@@ -884,40 +870,6 @@ Scene *BKE_scene_set_name(Main *bmain, const char *name)
 	return NULL;
 }
 
-void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
-{
-	Scene *sce1;
-	bScreen *screen;
-
-	/* check all sets */
-	for (sce1 = bmain->scene.first; sce1; sce1 = sce1->id.next)
-		if (sce1->set == sce)
-			sce1->set = NULL;
-	
-	for (sce1 = bmain->scene.first; sce1; sce1 = sce1->id.next) {
-		bNode *node;
-		
-		if (sce1 == sce || !sce1->nodetree)
-			continue;
-		
-		for (node = sce1->nodetree->nodes.first; node; node = node->next) {
-			if (node->id == &sce->id)
-				node->id = NULL;
-		}
-	}
-	
-	/* all screens */
-	for (screen = bmain->screen.first; screen; screen = screen->id.next) {
-		if (screen->scene == sce) {
-			screen->scene = newsce;
-		}
-
-		/* editors are handled by WM_main_remove_editor_id_reference */
-	}
-
-	BKE_libblock_free(bmain, sce);
-}
-
 /* Used by metaballs, return *all* objects (including duplis) existing in the scene (including scene's sets) */
 int BKE_scene_base_iter_next(EvaluationContext *eval_ctx, SceneBaseIter *iter,
                              Scene **scene, int val, Base **base, Object **ob)
@@ -1173,6 +1125,8 @@ void BKE_scene_base_unlink(Scene *sce, Base *base)
 		BKE_rigidbody_remove_object(sce, base->object);
 	
 	BLI_remlink(&sce->base, base);
+	if (sce->basact == base)
+		sce->basact = NULL;
 }
 
 void BKE_scene_base_deselect_all(Scene *sce)
