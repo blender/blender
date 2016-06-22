@@ -952,23 +952,37 @@ static void rna_def_nurbs(BlenderRNA *UNUSED(brna), StructRNA *srna)
 static void rna_def_font(BlenderRNA *UNUSED(brna), StructRNA *srna)
 {
 	PropertyRNA *prop;
-	
+
 	static EnumPropertyItem prop_align_items[] = {
-		{CU_LEFT, "LEFT", 0, "Left", "Align text to the left"},
-		{CU_MIDDLE, "CENTER", 0, "Center", "Center text"},
-		{CU_RIGHT, "RIGHT", 0, "Right", "Align text to the right"},
-		{CU_JUSTIFY, "JUSTIFY", 0, "Justify", "Align to the left and the right"},
-		{CU_FLUSH, "FLUSH", 0, "Flush", "Align to the left and the right, with equal character spacing"},
+		{CU_ALIGN_X_LEFT, "LEFT", 0, "Left", "Align text to the left"},
+		{CU_ALIGN_X_MIDDLE, "CENTER", 0, "Center", "Center text"},
+		{CU_ALIGN_X_RIGHT, "RIGHT", 0, "Right", "Align text to the right"},
+		{CU_ALIGN_X_JUSTIFY, "JUSTIFY", 0, "Justify", "Align to the left and the right"},
+		{CU_ALIGN_X_FLUSH, "FLUSH", 0, "Flush", "Align to the left and the right, with equal character spacing"},
 		{0, NULL, 0, NULL, NULL}
 	};
-		
+
+	static EnumPropertyItem prop_align_y_items[] = {
+		{CU_ALIGN_Y_TOP_BASELINE, "TOP_BASELINE", 0, "Top Base-Line", "Align to top but use the base-line of the text"},
+		{CU_ALIGN_Y_TOP, "TOP", 0, "Top", "Align text to the top"},
+		{CU_ALIGN_Y_CENTER, "CENTER", 0, "Center", "Align text to the middle"},
+		{CU_ALIGN_Y_BOTTOM, "BOTTOM", 0, "Bottom", "Align text to the bottom"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	/* Enums */
-	prop = RNA_def_property(srna, "align", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "align_x", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "spacemode");
 	RNA_def_property_enum_items(prop, prop_align_items);
-	RNA_def_property_ui_text(prop, "Text Align", "Text align from the object center");
+	RNA_def_property_ui_text(prop, "Text Horizontal Align", "Text horizontal align from the object center");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
-	
+
+	prop = RNA_def_property(srna, "align_y", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "align_y");
+	RNA_def_property_enum_items(prop, prop_align_y_items);
+	RNA_def_property_ui_text(prop, "Text Vertical Align", "Text vertical align from the object center");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
 	/* number values */
 	prop = RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fsize");

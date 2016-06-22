@@ -401,7 +401,7 @@ static void image_undo_end(void)
 			UndoImageTile *tmp_tile = tile->next;
 			deallocsize += allocsize * ((tile->use_float) ? sizeof(float) : sizeof(char));
 			MEM_freeN(tile->rect.pt);
-			BLI_freelinkN (lb, tile);
+			BLI_freelinkN(lb, tile);
 			tile = tmp_tile;
 		}
 		else {

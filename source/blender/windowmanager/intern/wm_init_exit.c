@@ -533,7 +533,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 
 #ifdef WITH_PYTHON
 	/* option not to close python so we can use 'atexit' */
-	if (do_python) {
+	if (do_python && ((C == NULL) || CTX_py_init_get(C))) {
 		/* XXX - old note */
 		/* before BKE_blender_free so py's gc happens while library still exists */
 		/* needed at least for a rare sigsegv that can happen in pydrivers */

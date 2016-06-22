@@ -112,7 +112,7 @@ static void md5_init_ctx(struct md5_ctx *ctx)
  *  the 'ctx' context for the next 'len' bytes starting at 'buffer'.
  *  It is necessary that 'len' is a multiple of 64!!!
  */
-static void md5_process_block (const void *buffer, size_t len, struct md5_ctx *ctx)
+static void md5_process_block(const void *buffer, size_t len, struct md5_ctx *ctx)
 {
 /* These are the four functions used in the four steps of the MD5 algorithm and defined in the RFC 1321.
  * The first function is a little bit optimized (as found in Colin Plumbs public domain implementation).

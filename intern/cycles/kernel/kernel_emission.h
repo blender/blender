@@ -124,8 +124,10 @@ ccl_device_noinline bool direct_emission(KernelGlobals *kg,
 #ifdef __PASSES__
 	/* use visibility flag to skip lights */
 	if(ls->shader & SHADER_EXCLUDE_ANY) {
-		if(ls->shader & SHADER_EXCLUDE_DIFFUSE)
+		if(ls->shader & SHADER_EXCLUDE_DIFFUSE) {
 			eval->diffuse = make_float3(0.0f, 0.0f, 0.0f);
+			eval->subsurface = make_float3(0.0f, 0.0f, 0.0f);
+		}
 		if(ls->shader & SHADER_EXCLUDE_GLOSSY)
 			eval->glossy = make_float3(0.0f, 0.0f, 0.0f);
 		if(ls->shader & SHADER_EXCLUDE_TRANSMIT)

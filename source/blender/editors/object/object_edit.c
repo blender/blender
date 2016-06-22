@@ -932,6 +932,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 						cu1 = base->object->data;
 
 						cu1->spacemode = cu->spacemode;
+						cu1->align_y = cu->align_y;
 						cu1->spacing = cu->spacing;
 						cu1->linedist = cu->linedist;
 						cu1->shear = cu->shear;

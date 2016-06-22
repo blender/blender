@@ -447,7 +447,9 @@ static int endwrite(WriteData *wd)
 
 /* ********** WRITE FILE ****************** */
 
-static void writestruct_at_address(WriteData *wd, int filecode, const char *structname, int nr, void *adr, void *data)
+static void writestruct_at_address(
+        WriteData *wd, int filecode, const char *structname, int nr,
+        const void *adr, const void *data)
 {
 	BHead bh;
 	const short *sp;
@@ -474,7 +476,9 @@ static void writestruct_at_address(WriteData *wd, int filecode, const char *stru
 	mywrite(wd, data, bh.len);
 }
 
-static void writestruct(WriteData *wd, int filecode, const char *structname, int nr, void *adr)
+static void writestruct(
+        WriteData *wd, int filecode, const char *structname, int nr,
+        const void *adr)
 {
 	writestruct_at_address(wd, filecode, structname, nr, adr, adr);
 }
@@ -491,7 +495,7 @@ static void writedata(WriteData *wd, int filecode, int len, const void *adr)  /*
 
 	/* init BHead */
 	bh.code   = filecode;
-	bh.old    = (void *)adr;  /* this is safe to cast from const */
+	bh.old    = adr;
 	bh.nr     = 1;
 	bh.SDNAnr = 0;
 	bh.len    = len;
@@ -501,9 +505,9 @@ static void writedata(WriteData *wd, int filecode, int len, const void *adr)  /*
 }
 
 /* use this to force writing of lists in same order as reading (using link_list) */
-static void writelist(WriteData *wd, int filecode, const char *structname, ListBase *lb)
+static void writelist(WriteData *wd, int filecode, const char *structname, const ListBase *lb)
 {
-	Link *link = lb->first;
+	const Link *link = lb->first;
 	
 	while (link) {
 		writestruct(wd, filecode, structname, 1, link);
@@ -513,10 +517,10 @@ static void writelist(WriteData *wd, int filecode, const char *structname, ListB
 
 /* *************** writing some direct data structs used in more code parts **************** */
 /*These functions are used by blender's .blend system for file saving/loading.*/
-void IDP_WriteProperty_OnlyData(IDProperty *prop, void *wd);
-void IDP_WriteProperty(IDProperty *prop, void *wd);
+void IDP_WriteProperty_OnlyData(const IDProperty *prop, void *wd);
+void IDP_WriteProperty(const IDProperty *prop, void *wd);
 
-static void IDP_WriteArray(IDProperty *prop, void *wd)
+static void IDP_WriteArray(const IDProperty *prop, void *wd)
 {
 	/*REMEMBER to set totalen to len in the linking code!!*/
 	if (prop->data.pointer) {
@@ -532,11 +536,11 @@ static void IDP_WriteArray(IDProperty *prop, void *wd)
 	}
 }
 
-static void IDP_WriteIDPArray(IDProperty *prop, void *wd)
+static void IDP_WriteIDPArray(const IDProperty *prop, void *wd)
 {
 	/*REMEMBER to set totalen to len in the linking code!!*/
 	if (prop->data.pointer) {
-		IDProperty *array = prop->data.pointer;
+		const IDProperty *array = prop->data.pointer;
 		int a;
 
 		writestruct(wd, DATA, "IDProperty", prop->len, array);
@@ -546,13 +550,13 @@ static void IDP_WriteIDPArray(IDProperty *prop, void *wd)
 	}
 }
 
-static void IDP_WriteString(IDProperty *prop, void *wd)
+static void IDP_WriteString(const IDProperty *prop, void *wd)
 {
 	/*REMEMBER to set totalen to len in the linking code!!*/
 	writedata(wd, DATA, prop->len, prop->data.pointer);
 }
 
-static void IDP_WriteGroup(IDProperty *prop, void *wd)
+static void IDP_WriteGroup(const IDProperty *prop, void *wd)
 {
 	IDProperty *loop;
 
@@ -562,7 +566,7 @@ static void IDP_WriteGroup(IDProperty *prop, void *wd)
 }
 
 /* Functions to read/write ID Properties */
-void IDP_WriteProperty_OnlyData(IDProperty *prop, void *wd)
+void IDP_WriteProperty_OnlyData(const IDProperty *prop, void *wd)
 {
 	switch (prop->type) {
 		case IDP_GROUP:
@@ -580,13 +584,13 @@ void IDP_WriteProperty_OnlyData(IDProperty *prop, void *wd)
 	}
 }
 
-void IDP_WriteProperty(IDProperty *prop, void *wd)
+void IDP_WriteProperty(const IDProperty *prop, void *wd)
 {
 	writestruct(wd, DATA, "IDProperty", 1, prop);
 	IDP_WriteProperty_OnlyData(prop, wd);
 }
 
-static void write_iddata(void *wd, ID *id)
+static void write_iddata(void *wd, const ID *id)
 {
 	/* ID_WM's id->properties are considered runtime only, and never written in .blend file. */
 	if (id->properties && !ELEM(GS(id->name), ID_WM)) {
@@ -594,29 +598,24 @@ static void write_iddata(void *wd, ID *id)
 	}
 }
 
-static void write_previews(WriteData *wd, PreviewImage *prv)
+static void write_previews(WriteData *wd, const PreviewImage *prv_orig)
 {
 	/* Never write previews when doing memsave (i.e. undo/redo)! */
-	if (prv && !wd->current) {
-		short w = prv->w[1];
-		short h = prv->h[1];
-		unsigned int *rect = prv->rect[1];
+	if (prv_orig && !wd->current) {
+		PreviewImage prv = *prv_orig;
 
 		/* don't write out large previews if not requested */
 		if (!(U.flag & USER_SAVE_PREVIEWS)) {
-			prv->w[1] = 0;
-			prv->h[1] = 0;
-			prv->rect[1] = NULL;
+			prv.w[1] = 0;
+			prv.h[1] = 0;
+			prv.rect[1] = NULL;
 		}
-		writestruct(wd, DATA, "PreviewImage", 1, prv);
-		if (prv->rect[0]) writedata(wd, DATA, prv->w[0] * prv->h[0] * sizeof(unsigned int), prv->rect[0]);
-		if (prv->rect[1]) writedata(wd, DATA, prv->w[1] * prv->h[1] * sizeof(unsigned int), prv->rect[1]);
-
-		/* restore preview, we still want to keep it in memory even if not saved to file */
-		if (!(U.flag & USER_SAVE_PREVIEWS) ) {
-			prv->w[1] = w;
-			prv->h[1] = h;
-			prv->rect[1] = rect;
+		writestruct_at_address(wd, DATA, "PreviewImage", 1, prv_orig, &prv);
+		if (prv.rect[0]) {
+			writedata(wd, DATA, prv.w[0] * prv.h[0] * sizeof(unsigned int), prv.rect[0]);
+		}
+		if (prv.rect[1]) {
+			writedata(wd, DATA, prv.w[1] * prv.h[1] * sizeof(unsigned int), prv.rect[1]);
 		}
 	}
 }
@@ -2224,19 +2223,19 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		writestruct(wd, DATA, "ToolSettings", 1, tos);
 		if (tos->vpaint) {
 			writestruct(wd, DATA, "VPaint", 1, tos->vpaint);
-			write_paint (wd, &tos->vpaint->paint);
+			write_paint(wd, &tos->vpaint->paint);
 		}
 		if (tos->wpaint) {
 			writestruct(wd, DATA, "VPaint", 1, tos->wpaint);
-			write_paint (wd, &tos->wpaint->paint);
+			write_paint(wd, &tos->wpaint->paint);
 		}
 		if (tos->sculpt) {
 			writestruct(wd, DATA, "Sculpt", 1, tos->sculpt);
-			write_paint (wd, &tos->sculpt->paint);
+			write_paint(wd, &tos->sculpt->paint);
 		}
 		if (tos->uvsculpt) {
 			writestruct(wd, DATA, "UvSculpt", 1, tos->uvsculpt);
-			write_paint (wd, &tos->uvsculpt->paint);
+			write_paint(wd, &tos->uvsculpt->paint);
 		}
 
 		write_paint(wd, &tos->imapaint.paint);
@@ -2604,11 +2603,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					write_soops(wd, so, &tmp_mem_list);
 				}
 				else if (sl->spacetype==SPACE_IMAGE) {
-					SpaceImage *sima= (SpaceImage *)sl;
-					
 					writestruct(wd, DATA, "SpaceImage", 1, sl);
-					if (sima->cumap)
-						write_curvemapping(wd, sima->cumap);
 				}
 				else if (sl->spacetype==SPACE_TEXT) {
 					writestruct(wd, DATA, "SpaceText", 1, sl);

@@ -230,7 +230,7 @@ GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(
         const int  face_indices_len);
 
 GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(
-        int *grid_indices, int totgrid,unsigned int **grid_hidden, int gridsize, const struct CCGKey *key,
+        int *grid_indices, int totgrid, unsigned int **grid_hidden, int gridsize, const struct CCGKey *key,
         struct GridCommonGPUBuffer **grid_common_gpu_buffer);
 
 GPU_PBVH_Buffers *GPU_build_bmesh_pbvh_buffers(bool smooth_shading);

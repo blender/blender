@@ -97,13 +97,9 @@ class WM_OT_previews_batch_generate(Operator):
         return {'RUNNING_MODAL'}
 
     def execute(self, context):
-        if "subprocess" in locals():
-            import imp
-            imp.reload(preview_render)
-        else:
-            import os
-            import subprocess
-            from bl_previews_utils import bl_previews_render as preview_render
+        import os
+        import subprocess
+        from bl_previews_utils import bl_previews_render as preview_render
 
         context.window_manager.progress_begin(0, len(self.files))
         context.window_manager.progress_update(0)
@@ -210,13 +206,9 @@ class WM_OT_previews_batch_clear(Operator):
         return {'RUNNING_MODAL'}
 
     def execute(self, context):
-        if "subprocess" in locals():
-            import imp
-            imp.reload(preview_render)
-        else:
-            import os
-            import subprocess
-            from bl_previews_utils import bl_previews_render as preview_render
+        import os
+        import subprocess
+        from bl_previews_utils import bl_previews_render as preview_render
 
         context.window_manager.progress_begin(0, len(self.files))
         context.window_manager.progress_update(0)
