@@ -4127,6 +4127,8 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_revert_mainfile);
 	WM_operatortype_append(WM_OT_link);
 	WM_operatortype_append(WM_OT_append);
+	WM_operatortype_append(WM_OT_lib_relocate);
+	WM_operatortype_append(WM_OT_lib_reload);
 	WM_operatortype_append(WM_OT_recover_last_session);
 	WM_operatortype_append(WM_OT_recover_auto_save);
 	WM_operatortype_append(WM_OT_save_as_mainfile);

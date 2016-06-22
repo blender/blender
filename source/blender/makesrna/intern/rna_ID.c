@@ -87,10 +87,13 @@ EnumPropertyItem rna_enum_id_type_items[] = {
 
 #include "DNA_anim_types.h"
 
+#include "BLI_listbase.h"
+
 #include "BKE_font.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
+#include "BKE_library_remap.h"
 #include "BKE_animsys.h"
 #include "BKE_material.h"
 #include "BKE_depsgraph.h"
@@ -331,6 +334,19 @@ static void rna_ID_user_clear(ID *id)
 {
 	id_fake_user_clear(id);
 	id->us = 0; /* don't save */
+}
+
+static void rna_ID_delete(ID *id, Main *bmain)
+{
+	BKE_libblock_delete(bmain, id);
+}
+
+static void rna_ID_user_remap(ID *id, Main *bmain, ID *new_id)
+{
+	if (GS(id->name) == GS(new_id->name)) {
+		/* For now, do not allow remapping data in linked data from here... */
+		BKE_libblock_remap(bmain, id, new_id, ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_NEVER_NULL_USAGE);
+	}
 }
 
 static AnimData * rna_ID_animation_data_create(ID *id, Main *bmain)
@@ -973,9 +989,19 @@ static void rna_def_ID(BlenderRNA *brna)
 	parm = RNA_def_pointer(func, "id", "ID", "", "New copy of the ID");
 	RNA_def_function_return(func, parm);
 
+	func = RNA_def_function(srna, "destroy", "rna_ID_delete");
+	RNA_def_function_flag(func, FUNC_USE_MAIN);
+	RNA_def_function_ui_description(func, "Delete this ID from Blender (WARNING: no undo, do not use it after calling this!)");
+
 	func = RNA_def_function(srna, "user_clear", "rna_ID_user_clear");
 	RNA_def_function_ui_description(func, "Clear the user count of a data-block so its not saved, "
 	                                "on reload the data will be removed");
+
+	func = RNA_def_function(srna, "user_remap", "rna_ID_user_remap");
+	RNA_def_function_ui_description(func, "Replace all usage in the .blend file of this ID by new given one");
+	RNA_def_function_flag(func, FUNC_USE_MAIN);
+	parm = RNA_def_pointer(func, "new_id", "ID", "", "New ID to use");
+	RNA_def_property_flag(parm, PROP_NEVER_NULL);
 
 	func = RNA_def_function(srna, "user_of_id", "BKE_library_ID_use_ID");
 	RNA_def_function_ui_description(func, "Count the number of times that ID uses/references given one");
