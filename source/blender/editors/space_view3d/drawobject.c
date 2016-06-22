@@ -4250,12 +4250,15 @@ static bool draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3
 	if (ob == obedit || drawlinked) {
 		DerivedMesh *finalDM, *cageDM;
 		
-		if (obedit != ob)
-			finalDM = cageDM = editbmesh_get_derived_base(ob, em);
-		else
+		if (obedit != ob) {
+			finalDM = cageDM = editbmesh_get_derived_base(
+			        ob, em, scene->customdata_mask);
+		}
+		else {
 			cageDM = editbmesh_get_derived_cage_and_final(
 			        scene, ob, em, scene->customdata_mask,
 			        &finalDM);
+		}
 
 		const bool use_material = ((me->drawflag & ME_DRAWEIGHT) == 0);
 
@@ -8480,7 +8483,7 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 	DerivedMesh *dm = NULL, *edm = NULL;
 	
 	if (ob->mode & OB_MODE_EDIT) {
-		edm = editbmesh_get_derived_base(ob, me->edit_btmesh);
+		edm = editbmesh_get_derived_base(ob, me->edit_btmesh, CD_MASK_BAREMESH);
 		DM_update_materials(edm, ob);
 	}
 	else {

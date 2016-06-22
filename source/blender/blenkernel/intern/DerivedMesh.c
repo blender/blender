@@ -1433,10 +1433,12 @@ static void calc_weightpaint_vert_array(
         Object *ob, DerivedMesh *dm, int const draw_flag, DMWeightColorInfo *dm_wcinfo,
         unsigned char (*r_wtcol_v)[4])
 {
-	MDeformVert *dv = DM_get_vert_data_layer(dm, CD_MDEFORMVERT);
-	int numVerts = dm->getNumVerts(dm);
+	BMEditMesh *em = (dm->type == DM_TYPE_EDITBMESH) ? BKE_editmesh_from_object(ob) : NULL;
+	const int numVerts = dm->getNumVerts(dm);
 
-	if (dv && (ob->actdef != 0)) {
+	if ((ob->actdef != 0) &&
+	    (CustomData_has_layer(em ? &em->bm->vdata : &dm->vertData, CD_MDEFORMVERT)))
+	{
 		unsigned char (*wc)[4] = r_wtcol_v;
 		unsigned int i;
 
@@ -1455,8 +1457,30 @@ static void calc_weightpaint_vert_array(
 			}
 		}
 
-		for (i = numVerts; i != 0; i--, wc++, dv++) {
-			calc_weightpaint_vert_color((unsigned char *)wc, dv, dm_wcinfo, defbase_tot, defbase_act, defbase_sel, defbase_sel_tot, draw_flag);
+		/* editmesh won't have deform verts unless modifiers require it,
+		 * avoid having to create an array of deform-verts only for drawing
+		 * by reading from the bmesh directly. */
+		if (em) {
+			BMIter iter;
+			BMVert *eve;
+			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
+			BLI_assert(cd_dvert_offset != -1);
+
+			BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+				const MDeformVert *dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
+				calc_weightpaint_vert_color(
+				        (unsigned char *)wc, dv, dm_wcinfo,
+				        defbase_tot, defbase_act, defbase_sel, defbase_sel_tot, draw_flag);
+				wc++;
+			}
+		}
+		else {
+			const MDeformVert *dv = DM_get_vert_data_layer(dm, CD_MDEFORMVERT);
+			for (i = numVerts; i != 0; i--, wc++, dv++) {
+				calc_weightpaint_vert_color(
+				        (unsigned char *)wc, dv, dm_wcinfo,
+				        defbase_tot, defbase_act, defbase_sel, defbase_sel_tot, draw_flag);
+			}
 		}
 
 		if (defbase_sel) {
@@ -2282,7 +2306,7 @@ static void editbmesh_calc_modifiers(
 	modifiers_clearErrors(ob);
 
 	if (r_cage && cageIndex == -1) {
-		*r_cage = getEditDerivedBMesh(em, ob, NULL);
+		*r_cage = getEditDerivedBMesh(em, ob, dataMask, NULL);
 	}
 
 	md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
@@ -2448,7 +2472,7 @@ static void editbmesh_calc_modifiers(
 			}
 			else {
 				*r_cage = getEditDerivedBMesh(
-				        em, ob,
+				        em, ob, mask,
 				        deformedVerts ? MEM_dupallocN(deformedVerts) : NULL);
 			}
 		}
@@ -2484,7 +2508,7 @@ static void editbmesh_calc_modifiers(
 	}
 	else {
 		/* this is just a copy of the editmesh, no need to calc normals */
-		*r_final = getEditDerivedBMesh(em, ob, deformedVerts);
+		*r_final = getEditDerivedBMesh(em, ob, dataMask, deformedVerts);
 		deformedVerts = NULL;
 
 		/* In this case, we should never have weight-modifying modifiers in stack... */
@@ -2847,9 +2871,9 @@ DerivedMesh *editbmesh_get_derived_cage(Scene *scene, Object *obedit, BMEditMesh
 	return em->derivedCage;
 }
 
-DerivedMesh *editbmesh_get_derived_base(Object *obedit, BMEditMesh *em)
+DerivedMesh *editbmesh_get_derived_base(Object *obedit, BMEditMesh *em, CustomDataMask data_mask)
 {
-	return getEditDerivedBMesh(em, obedit, NULL);
+	return getEditDerivedBMesh(em, obedit, data_mask, NULL);
 }
 
 /***/
