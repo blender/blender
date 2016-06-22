@@ -33,6 +33,7 @@
 #include <stdio.h>
 
 #include "DNA_anim_types.h"
+#include "DNA_group_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -501,6 +502,19 @@ static void nla_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 	}
 }
 
+static void nla_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)
+{
+	SpaceNla *snla = (SpaceNla *)slink;
+
+	if (!ELEM(GS(old_id->name), ID_GR)) {
+		return;
+	}
+
+	if ((ID *)snla->ads->filter_grp == old_id) {
+		snla->ads->filter_grp = (Group *)new_id;
+	}
+}
+
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_nla(void)
 {
@@ -517,7 +531,8 @@ void ED_spacetype_nla(void)
 	st->operatortypes = nla_operatortypes;
 	st->listener = nla_listener;
 	st->keymap = nla_keymap;
-	
+	st->id_remap = nla_id_remap;
+
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype nla region");
 	art->regionid = RGN_TYPE_WINDOW;

@@ -113,16 +113,13 @@ void free_gpencil_layers(ListBase *list)
 }
 
 /* Free all of GPencil datablock's related data, but not the block itself */
+/** Free (or release) any data used by this grease pencil (does not free the gpencil itself). */
 void BKE_gpencil_free(bGPdata *gpd)
 {
+	BKE_animdata_free(&gpd->id, false);
+
 	/* free layers */
 	free_gpencil_layers(&gpd->layers);
-	
-	/* free animation data */
-	if (gpd->adt) {
-		BKE_animdata_free(&gpd->id);
-		gpd->adt = NULL;
-	}
 }
 
 /* -------- Container Creation ---------- */

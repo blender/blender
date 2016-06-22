@@ -159,22 +159,19 @@ void BKE_action_make_local(bAction *act)
 
 /* .................................. */
 
+/** Free (or release) any data used by this action (does not free the action itself). */
 void BKE_action_free(bAction *act)
-{
-	/* sanity check */
-	if (act == NULL)
-		return;
-	
+{	
+	/* No animdata here. */
+
 	/* Free F-Curves */
 	free_fcurves(&act->curves);
 	
 	/* Free groups */
-	if (act->groups.first)
-		BLI_freelistN(&act->groups);
+	BLI_freelistN(&act->groups);
 		
 	/* Free pose-references (aka local markers) */
-	if (act->markers.first)
-		BLI_freelistN(&act->markers);
+	BLI_freelistN(&act->markers);
 }
 
 /* .................................. */

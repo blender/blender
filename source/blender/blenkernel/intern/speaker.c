@@ -141,8 +141,5 @@ void BKE_speaker_make_local(Speaker *spk)
 
 void BKE_speaker_free(Speaker *spk)
 {
-	if (spk->sound)
-		id_us_min(&spk->sound->id);
-
-	BKE_animdata_free((ID *)spk);
+	BKE_animdata_free((ID *)spk, false);
 }

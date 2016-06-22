@@ -62,7 +62,7 @@ struct AnimData *BKE_animdata_add_id(struct ID *id);
 bool BKE_animdata_set_action(struct ReportList *reports, struct ID *id, struct bAction *act);
 
 /* Free AnimData */
-void BKE_animdata_free(struct ID *id);
+void BKE_animdata_free(struct ID *id, const bool do_id_user);
 
 /* Copy AnimData */
 struct AnimData *BKE_animdata_copy(struct AnimData *adt, const bool do_action);

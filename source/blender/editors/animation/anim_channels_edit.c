@@ -2119,7 +2119,7 @@ static int animchannels_clean_empty_exec(bContext *C, wmOperator *UNUSED(op))
 		
 		/* remove AnimData? */
 		if (action_empty && nla_empty && drivers_empty) {
-			BKE_animdata_free(id);
+			BKE_animdata_free(id, true);
 		}
 	}
 	

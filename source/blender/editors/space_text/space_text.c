@@ -38,6 +38,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_context.h"
+#include "BKE_library.h"
 #include "BKE_screen.h"
 #include "BKE_text.h"
 
@@ -562,6 +563,20 @@ static void text_properties_region_draw(const bContext *C, ARegion *ar)
 	}
 }
 
+static void text_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)
+{
+	SpaceText *stext = (SpaceText *)slink;
+
+	if (!ELEM(GS(old_id->name), ID_GD)) {
+		return;
+	}
+
+	if ((ID *)stext->text == old_id) {
+		stext->text = (Text *)new_id;
+		id_us_ensure_real(new_id);
+	}
+}
+
 /********************* registration ********************/
 
 /* only called once, from space/spacetypes.c */
@@ -582,7 +597,8 @@ void ED_spacetype_text(void)
 	st->listener = text_listener;
 	st->context = text_context;
 	st->dropboxes = text_dropboxes;
-	
+	st->id_remap = text_id_remap;
+
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype text region");
 	art->regionid = RGN_TYPE_WINDOW;

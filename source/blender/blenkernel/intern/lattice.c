@@ -300,24 +300,27 @@ Lattice *BKE_lattice_copy(Lattice *lt)
 	return ltn;
 }
 
+/** Free (or release) any data used by this lattice (does not free the lattice itself). */
 void BKE_lattice_free(Lattice *lt)
 {
-	if (lt->def) MEM_freeN(lt->def);
-	if (lt->dvert) BKE_defvert_array_free(lt->dvert, lt->pntsu * lt->pntsv * lt->pntsw);
+	BKE_animdata_free(&lt->id, false);
+
+	MEM_SAFE_FREE(lt->def);
+	if (lt->dvert) {
+		BKE_defvert_array_free(lt->dvert, lt->pntsu * lt->pntsv * lt->pntsw);
+		lt->dvert = NULL;
+	}
 	if (lt->editlatt) {
 		Lattice *editlt = lt->editlatt->latt;
 
-		if (editlt->def) MEM_freeN(editlt->def);
-		if (editlt->dvert) BKE_defvert_array_free(editlt->dvert, lt->pntsu * lt->pntsv * lt->pntsw);
+		if (editlt->def)
+			MEM_freeN(editlt->def);
+		if (editlt->dvert)
+			BKE_defvert_array_free(editlt->dvert, lt->pntsu * lt->pntsv * lt->pntsw);
 
 		MEM_freeN(editlt);
 		MEM_freeN(lt->editlatt);
-	}
-	
-	/* free animation data */
-	if (lt->adt) {
-		BKE_animdata_free(&lt->id);
-		lt->adt = NULL;
+		lt->editlatt = NULL;
 	}
 }
 

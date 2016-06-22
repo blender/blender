@@ -324,19 +324,15 @@ void BKE_image_free_buffers(Image *ima)
 	ima->ok = IMA_OK;
 }
 
-/* called by library too, do not free ima itself */
+/** Free (or release) any data used by this image (does not free the image itself). */
 void BKE_image_free(Image *ima)
 {
 	int a;
 
+	/* Also frees animdata. */
 	BKE_image_free_buffers(ima);
 
 	image_free_packedfiles(ima);
-
-	BKE_icon_id_delete(&ima->id);
-	ima->id.icon_id = 0;
-
-	BKE_previewimg_free(&ima->preview);
 
 	for (a = 0; a < IMA_MAX_RENDER_SLOT; a++) {
 		if (ima->renders[a]) {
@@ -346,7 +342,10 @@ void BKE_image_free(Image *ima)
 	}
 
 	BKE_image_free_views(ima);
-	MEM_freeN(ima->stereo3d_format);
+	MEM_SAFE_FREE(ima->stereo3d_format);
+
+	BKE_icon_id_delete(&ima->id);
+	BKE_previewimg_free(&ima->preview);
 }
 
 /* only image block itself */

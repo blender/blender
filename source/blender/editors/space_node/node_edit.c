@@ -740,34 +740,6 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 	}
 }
 
-void ED_node_id_unref(SpaceNode *snode, const ID *id)
-{
-	if (GS(id->name) == ID_SCE) {
-		if (snode->id == id) {
-			/* nasty DNA logic for SpaceNode:
-			 * ideally should be handled by editor code, but would be bad level call
-			 */
-			bNodeTreePath *path, *path_next;
-			for (path = snode->treepath.first; path; path = path_next) {
-				path_next = path->next;
-				MEM_freeN(path);
-			}
-			BLI_listbase_clear(&snode->treepath);
-
-			snode->id = NULL;
-			snode->from = NULL;
-			snode->nodetree = NULL;
-			snode->edittree = NULL;
-		}
-	}
-	else if (GS(id->name) == ID_OB) {
-		if (snode->from == id) {
-			snode->flag &= ~SNODE_PIN;
-			snode->from = NULL;
-		}
-	}
-}
-
 void ED_node_post_apply_transform(bContext *UNUSED(C), bNodeTree *UNUSED(ntree))
 {
 	/* XXX This does not work due to layout functions relying on node->block,

@@ -317,14 +317,14 @@ void BKE_object_free_derived_caches(Object *ob)
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
 
-		if (me->bb) {
+		if (me && me->bb) {
 			me->bb->flag |= BOUNDBOX_DIRTY;
 		}
 	}
 	else if (ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT)) {
 		Curve *cu = ob->data;
 
-		if (cu->bb) {
+		if (cu && cu->bb) {
 			cu->bb->flag |= BOUNDBOX_DIRTY;
 		}
 	}
@@ -393,77 +393,52 @@ void BKE_object_free_caches(Object *object)
 	}
 }
 
-/* do not free object itself */
-void BKE_object_free_ex(Object *ob, bool do_id_user)
+/** Free (or release) any data used by this object (does not free the object itself). */
+void BKE_object_free(Object *ob)
 {
-	int a;
-	
-	BKE_object_free_modifiers(ob);
-	
-	/* disconnect specific data, but not for lib data (might be indirect data, can get relinked) */
-	if (ob->data) {
-		ID *id = ob->data;
-		id_us_min(id);
-		if (id->us == 0 && id->lib == NULL) {
-			switch (ob->type) {
-				case OB_MESH:
-					BKE_mesh_unlink((Mesh *)id);
-					break;
-				case OB_CURVE:
-					BKE_curve_unlink((Curve *)id);
-					break;
-				case OB_MBALL:
-					BKE_mball_unlink((MetaBall *)id);
-					break;
-			}
-		}
-		ob->data = NULL;
-	}
+	BKE_animdata_free((ID *)ob, false);
 
-	if (ob->mat) {
-		for (a = 0; a < ob->totcol; a++) {
-			if (ob->mat[a])
-				id_us_min(&ob->mat[a]->id);
-		}
-		MEM_freeN(ob->mat);
+	BKE_object_free_modifiers(ob);
+
+	MEM_SAFE_FREE(ob->mat);
+	MEM_SAFE_FREE(ob->matbits);
+	MEM_SAFE_FREE(ob->iuser);
+	MEM_SAFE_FREE(ob->bb);
+
+	BLI_freelistN(&ob->defbase);
+	if (ob->pose) {
+		BKE_pose_free_ex(ob->pose, false);
+		ob->pose = NULL;
 	}
-	if (ob->matbits) MEM_freeN(ob->matbits);
-	ob->mat = NULL;
-	ob->matbits = NULL;
-	if (ob->iuser) MEM_freeN(ob->iuser);
-	ob->iuser = NULL;
-	if (ob->bb) MEM_freeN(ob->bb); 
-	ob->bb = NULL;
-	if (ob->adt) BKE_animdata_free((ID *)ob);
-	if (ob->poselib)
-		id_us_min(&ob->poselib->id);
-	if (ob->gpd)
-		id_us_min(&ob->gpd->id);
-	if (ob->defbase.first)
-		BLI_freelistN(&ob->defbase);
-	if (ob->pose)
-		BKE_pose_free_ex(ob->pose, do_id_user);
-	if (ob->mpath)
+	if (ob->mpath) {
 		animviz_free_motionpath(ob->mpath);
+		ob->mpath = NULL;
+	}
 	BKE_bproperty_free_list(&ob->prop);
-	
+
 	free_sensors(&ob->sensors);
 	free_controllers(&ob->controllers);
 	free_actuators(&ob->actuators);
 	
-	BKE_constraints_free_ex(&ob->constraints, do_id_user);
+	BKE_constraints_free_ex(&ob->constraints, false);
 	
 	free_partdeflect(ob->pd);
 	BKE_rigidbody_free_object(ob);
 	BKE_rigidbody_free_constraint(ob);
 
-	if (ob->soft) sbFree(ob->soft);
-	if (ob->bsoft) bsbFree(ob->bsoft);
-	if (ob->gpulamp.first) GPU_lamp_free(ob);
+	if (ob->soft) {
+		sbFree(ob->soft);
+		ob->soft = NULL;
+	}
+	if (ob->bsoft) {
+		bsbFree(ob->bsoft);
+		ob->bsoft = NULL;
+	}
+	GPU_lamp_free(ob);
 
 	BKE_sculptsession_free(ob);
 
-	if (ob->pc_ids.first) BLI_freelistN(&ob->pc_ids);
+	BLI_freelistN(&ob->pc_ids);
 
 	BLI_freelistN(&ob->lodlevels);
 
@@ -473,396 +448,10 @@ void BKE_object_free_ex(Object *ob, bool do_id_user)
 		if (ob->curve_cache->path)
 			free_path(ob->curve_cache->path);
 		MEM_freeN(ob->curve_cache);
+		ob->curve_cache = NULL;
 	}
 
 	BKE_previewimg_free(&ob->preview);
-}
-
-void BKE_object_free(Object *ob)
-{
-	BKE_object_free_ex(ob, true);
-}
-
-static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Object **obpoin, int UNUSED(cd_flag))
-{
-	Object *unlinkOb = userData;
-
-	if (*obpoin == unlinkOb) {
-		*obpoin = NULL;
-		// XXX: should this just be OB_RECALC_DATA?
-		DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
-	}
-}
-
-void BKE_object_unlink(Main *bmain, Object *ob)
-{
-	Object *obt;
-	Material *mat;
-	World *wrld;
-	bScreen *sc;
-	Scene *sce;
-	SceneRenderLayer *srl;
-	FreestyleLineSet *lineset;
-	bNodeTree *ntree;
-	Curve *cu;
-	Tex *tex;
-	Group *group;
-	Camera *camera;
-	bConstraint *con;
-	//bActionStrip *strip; // XXX animsys 
-	ModifierData *md;
-	ARegion *ar;
-	RegionView3D *rv3d;
-	LodLevel *lod;
-	int a, found;
-	
-	unlink_controllers(&ob->controllers);
-	unlink_actuators(&ob->actuators);
-	
-	/* check all objects: parents en bevels and fields, also from libraries */
-	/* FIXME: need to check all animation blocks (drivers) */
-	obt = bmain->object.first;
-	while (obt) {
-		if (obt->proxy == ob)
-			obt->proxy = NULL;
-		if (obt->proxy_from == ob) {
-			obt->proxy_from = NULL;
-			DAG_id_tag_update(&obt->id, OB_RECALC_OB);
-		}
-		if (obt->proxy_group == ob)
-			obt->proxy_group = NULL;
-		
-		if (obt->parent == ob) {
-			obt->parent = NULL;
-			DAG_id_tag_update(&obt->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
-		}
-		
-		modifiers_foreachObjectLink(obt, unlink_object__unlinkModifierLinks, ob);
-		
-		if (ELEM(obt->type, OB_CURVE, OB_FONT)) {
-			cu = obt->data;
-
-			if (cu->bevobj == ob) {
-				cu->bevobj = NULL;
-				DAG_id_tag_update(&obt->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
-			}
-			if (cu->taperobj == ob) {
-				cu->taperobj = NULL;
-				DAG_id_tag_update(&obt->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
-			}
-			if (cu->textoncurve == ob) {
-				cu->textoncurve = NULL;
-				DAG_id_tag_update(&obt->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
-			}
-		}
-		else if (obt->type == OB_ARMATURE && obt->pose) {
-			bPoseChannel *pchan;
-			for (pchan = obt->pose->chanbase.first; pchan; pchan = pchan->next) {
-				for (con = pchan->constraints.first; con; con = con->next) {
-					const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
-					ListBase targets = {NULL, NULL};
-					bConstraintTarget *ct;
-					
-					if (cti && cti->get_constraint_targets) {
-						cti->get_constraint_targets(con, &targets);
-						
-						for (ct = targets.first; ct; ct = ct->next) {
-							if (ct->tar == ob) {
-								ct->tar = NULL;
-								ct->subtarget[0] = '\0';
-								DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
-							}
-						}
-						
-						if (cti->flush_constraint_targets)
-							cti->flush_constraint_targets(con, &targets, 0);
-					}
-				}
-				if (pchan->custom == ob)
-					pchan->custom = NULL;
-			}
-		}
-		else if (ELEM(OB_MBALL, ob->type, obt->type)) {
-			if (BKE_mball_is_basis_for(obt, ob))
-				DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
-		}
-		
-		sca_remove_ob_poin(obt, ob);
-		
-		for (con = obt->constraints.first; con; con = con->next) {
-			const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
-			ListBase targets = {NULL, NULL};
-			bConstraintTarget *ct;
-			
-			if (cti && cti->get_constraint_targets) {
-				cti->get_constraint_targets(con, &targets);
-				
-				for (ct = targets.first; ct; ct = ct->next) {
-					if (ct->tar == ob) {
-						ct->tar = NULL;
-						ct->subtarget[0] = '\0';
-						DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
-					}
-				}
-				
-				if (cti->flush_constraint_targets)
-					cti->flush_constraint_targets(con, &targets, 0);
-			}
-		}
-		
-		/* object is deflector or field */
-		if (ob->pd) {
-			if (obt->soft)
-				DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
-
-			/* cloth */
-			for (md = obt->modifiers.first; md; md = md->next)
-				if (md->type == eModifierType_Cloth)
-					DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
-		}
-		
-		/* strips */
-#if 0 // XXX old animation system
-		for (strip = obt->nlastrips.first; strip; strip = strip->next) {
-			if (strip->object == ob)
-				strip->object = NULL;
-			
-			if (strip->modifiers.first) {
-				bActionModifier *amod;
-				for (amod = strip->modifiers.first; amod; amod = amod->next)
-					if (amod->ob == ob)
-						amod->ob = NULL;
-			}
-		}
-#endif // XXX old animation system
-
-		/* particle systems */
-		if (obt->particlesystem.first) {
-			ParticleSystem *tpsys = obt->particlesystem.first;
-			for (; tpsys; tpsys = tpsys->next) {
-				BoidState *state = NULL;
-				BoidRule *rule = NULL;
-
-				ParticleTarget *pt = tpsys->targets.first;
-				for (; pt; pt = pt->next) {
-					if (pt->ob == ob) {
-						pt->ob = NULL;
-						DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
-						break;
-					}
-				}
-
-				if (tpsys->target_ob == ob) {
-					tpsys->target_ob = NULL;
-					DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
-				}
-
-				if (tpsys->part->dup_ob == ob)
-					tpsys->part->dup_ob = NULL;
-
-				if (tpsys->part->phystype == PART_PHYS_BOIDS) {
-					ParticleData *pa;
-					BoidParticle *bpa;
-					int p;
-
-					for (p = 0, pa = tpsys->particles; p < tpsys->totpart; p++, pa++) {
-						bpa = pa->boid;
-						if (bpa->ground == ob)
-							bpa->ground = NULL;
-					}
-				}
-				if (tpsys->part->boids) {
-					for (state = tpsys->part->boids->states.first; state; state = state->next) {
-						for (rule = state->rules.first; rule; rule = rule->next) {
-							if (rule->type == eBoidRuleType_Avoid) {
-								BoidRuleGoalAvoid *gabr = (BoidRuleGoalAvoid *)rule;
-								if (gabr->ob == ob)
-									gabr->ob = NULL;
-							}
-							else if (rule->type == eBoidRuleType_FollowLeader) {
-								BoidRuleFollowLeader *flbr = (BoidRuleFollowLeader *)rule;
-								if (flbr->ob == ob)
-									flbr->ob = NULL;
-							}
-						}
-					}
-				}
-				
-				if (tpsys->parent == ob)
-					tpsys->parent = NULL;
-			}
-			if (ob->pd)
-				DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
-		}
-
-		/* levels of detail */
-		for (lod = obt->lodlevels.first; lod; lod = lod->next) {
-			if (lod->source == ob)
-				lod->source = NULL;
-		}
-
-		obt = obt->id.next;
-	}
-	
-	/* materials */
-	for (mat = bmain->mat.first; mat; mat = mat->id.next) {
-		if (mat->nodetree) {
-			ntreeSwitchID(mat->nodetree, &ob->id, NULL);
-		}
-		for (a = 0; a < MAX_MTEX; a++) {
-			if (mat->mtex[a] && ob == mat->mtex[a]->object) {
-				/* actually, test for lib here... to do */
-				mat->mtex[a]->object = NULL;
-			}
-		}
-	}
-
-	/* node trees */
-	for (ntree = bmain->nodetree.first; ntree; ntree = ntree->id.next) {
-		if (ntree->type == NTREE_SHADER)
-			ntreeSwitchID(ntree, &ob->id, NULL);
-	}
-	
-	/* textures */
-	for (tex = bmain->tex.first; tex; tex = tex->id.next) {
-		if (tex->env && (ob == tex->env->object)) tex->env->object = NULL;
-		if (tex->pd  && (ob == tex->pd->object)) tex->pd->object = NULL;
-		if (tex->vd  && (ob == tex->vd->object)) tex->vd->object = NULL;
-	}
-
-	/* worlds */
-	wrld = bmain->world.first;
-	while (wrld) {
-		if (wrld->id.lib == NULL) {
-			for (a = 0; a < MAX_MTEX; a++) {
-				if (wrld->mtex[a] && ob == wrld->mtex[a]->object)
-					wrld->mtex[a]->object = NULL;
-			}
-		}
-		
-		wrld = wrld->id.next;
-	}
-		
-	/* scenes */
-	sce = bmain->scene.first;
-	while (sce) {
-		if (sce->id.lib == NULL) {
-			if (sce->camera == ob) sce->camera = NULL;
-			if (sce->toolsettings->skgen_template == ob) sce->toolsettings->skgen_template = NULL;
-			if (sce->toolsettings->particle.object == ob) sce->toolsettings->particle.object = NULL;
-			if (sce->toolsettings->particle.shape_object == ob) sce->toolsettings->particle.shape_object = NULL;
-
-#ifdef DURIAN_CAMERA_SWITCH
-			{
-				TimeMarker *m;
-
-				for (m = sce->markers.first; m; m = m->next) {
-					if (m->camera == ob)
-						m->camera = NULL;
-				}
-			}
-#endif
-			if (sce->ed) {
-				Sequence *seq;
-				SEQ_BEGIN(sce->ed, seq)
-				{
-					if (seq->scene_camera == ob) {
-						seq->scene_camera = NULL;
-					}
-				}
-				SEQ_END
-			}
-
-			for (srl = sce->r.layers.first; srl; srl = srl->next) {
-				for (lineset = (FreestyleLineSet *)srl->freestyleConfig.linesets.first;
-				     lineset; lineset = lineset->next)
-				{
-					if (lineset->linestyle) {
-						BKE_linestyle_target_object_unlink(lineset->linestyle, ob);
-					}
-				}
-			}
-		}
-
-		sce = sce->id.next;
-	}
-	
-	/* screens */
-	sc = bmain->screen.first;
-	while (sc) {
-		ScrArea *sa = sc->areabase.first;
-		while (sa) {
-			SpaceLink *sl;
-
-			for (sl = sa->spacedata.first; sl; sl = sl->next) {
-				if (sl->spacetype == SPACE_VIEW3D) {
-					View3D *v3d = (View3D *) sl;
-
-					/* found doesn't need to be set here */
-					if (v3d->ob_centre == ob) {
-						v3d->ob_centre = NULL;
-						v3d->ob_centre_bone[0] = '\0';
-					}
-					if (v3d->localvd && v3d->localvd->ob_centre == ob) {
-						v3d->localvd->ob_centre = NULL;
-						v3d->localvd->ob_centre_bone[0] = '\0';
-					}
-
-					found = 0;
-					if (v3d->camera == ob) {
-						v3d->camera = NULL;
-						found = 1;
-					}
-					if (v3d->localvd && v3d->localvd->camera == ob) {
-						v3d->localvd->camera = NULL;
-						found += 2;
-					}
-
-					if (found) {
-						if (sa->spacetype == SPACE_VIEW3D) {
-							for (ar = sa->regionbase.first; ar; ar = ar->next) {
-								if (ar->regiontype == RGN_TYPE_WINDOW) {
-									rv3d = (RegionView3D *)ar->regiondata;
-									if (found == 1 || found == 3) {
-										if (rv3d->persp == RV3D_CAMOB)
-											rv3d->persp = RV3D_PERSP;
-									}
-									if (found == 2 || found == 3) {
-										if (rv3d->localvd && rv3d->localvd->persp == RV3D_CAMOB)
-											rv3d->localvd->persp = RV3D_PERSP;
-									}
-								}
-							}
-						}
-					}
-				}
-#if 0
-				else if (ELEM(sl->spacetype, SPACE_OUTLINER, SPACE_BUTS, SPACE_NODE)) {
-					/* now handled by WM_main_remove_editor_id_reference */
-				}
-#endif
-			}
-
-			sa = sa->next;
-		}
-		sc = sc->id.next;
-	}
-
-	/* groups */
-	group = bmain->group.first;
-	while (group) {
-		BKE_group_object_unlink(group, ob, NULL, NULL);
-		group = group->id.next;
-	}
-	
-	/* cameras */
-	camera = bmain->camera.first;
-	while (camera) {
-		if (camera->dof_ob == ob) {
-			camera->dof_ob = NULL;
-		}
-		camera = camera->id.next;
-	}
 }
 
 /* actual check for internal data, not context or flags */

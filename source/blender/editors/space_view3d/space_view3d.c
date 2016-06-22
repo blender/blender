@@ -1400,6 +1400,66 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 	return -1; /* found but not available */
 }
 
+static void view3d_id_remap(ScrArea *sa, SpaceLink *slink, ID *old_id, ID *new_id)
+{
+	View3D *v3d;
+	ARegion *ar;
+	bool is_local = false;
+
+	if (!ELEM(GS(old_id->name), ID_OB, ID_MA, ID_IM, ID_MC)) {
+		return;
+	}
+
+	for (v3d = (View3D *)slink; v3d; v3d = v3d->localvd, is_local = true) {
+		if ((ID *)v3d->camera == old_id) {
+			v3d->camera = (Object *)new_id;
+			if (!new_id) {
+				for (ar = sa->regionbase.first; ar; ar = ar->next) {
+					if (ar->regiontype == RGN_TYPE_WINDOW) {
+						RegionView3D *rv3d = is_local ? ((RegionView3D *)ar->regiondata)->localvd : ar->regiondata;
+						if (rv3d && (rv3d->persp == RV3D_CAMOB)) {
+							rv3d->persp = RV3D_PERSP;
+						}
+					}
+				}
+			}
+		}
+		if ((ID *)v3d->ob_centre == old_id) {
+			v3d->ob_centre = (Object *)new_id;
+			if (new_id == NULL) {  /* Otherwise, bonename may remain valid... We could be smart and check this, too? */
+				v3d->ob_centre_bone[0] = '\0';
+			}
+		}
+
+		if ((ID *)v3d->defmaterial == old_id) {
+			v3d->defmaterial = (Material *)new_id;
+		}
+#if 0  /* XXX Deprecated? */
+		if ((ID *)v3d->gpd == old_id) {
+			v3d->gpd = (bGPData *)new_id;
+		}
+#endif
+
+		if (ELEM(GS(old_id->name), ID_IM, ID_MC)) {
+			for (BGpic *bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next) {
+				if ((ID *)bgpic->ima == old_id) {
+					bgpic->ima = (Image *)new_id;
+					id_us_min(old_id);
+					id_us_plus(new_id);
+				}
+				if ((ID *)bgpic->clip == old_id) {
+					bgpic->clip = (MovieClip *)new_id;
+					id_us_min(old_id);
+					id_us_plus(new_id);
+				}
+			}
+		}
+
+		if (is_local) {
+			break;
+		}
+	}
+}
 
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_view3d(void)
@@ -1419,7 +1479,8 @@ void ED_spacetype_view3d(void)
 	st->keymap = view3d_keymap;
 	st->dropboxes = view3d_dropboxes;
 	st->context = view3d_context;
-	
+	st->id_remap = view3d_id_remap;
+
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype view3d main region");
 	art->regionid = RGN_TYPE_WINDOW;

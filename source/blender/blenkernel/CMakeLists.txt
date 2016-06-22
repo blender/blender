@@ -123,6 +123,7 @@ set(SRC
 	intern/library.c
 	intern/library_idmap.c
 	intern/library_query.c
+	intern/library_remap.c
 	intern/linestyle.c
 	intern/mask.c
 	intern/mask_evaluate.c
@@ -247,6 +248,7 @@ set(SRC
 	BKE_library.h
 	BKE_library_idmap.h
 	BKE_library_query.h
+	BKE_library_remap.h
 	BKE_linestyle.h
 	BKE_main.h
 	BKE_mask.h

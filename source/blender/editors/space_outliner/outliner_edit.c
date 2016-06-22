@@ -2079,36 +2079,3 @@ void OUTLINER_OT_group_link(wmOperatorType *ot)
 	/* properties */
 	RNA_def_string(ot->srna, "object", "Object", MAX_ID_NAME, "Object", "Target Object");
 }
-
-/******** Utils to clear any ref to freed ID... **********/
-
-void ED_outliner_id_unref(SpaceOops *so, const ID *id)
-{
-	/* Some early out checks. */
-	if (!TREESTORE_ID_TYPE(id)) {
-		return;  /* ID type is not used by outilner... */
-	}
-
-	if (so->search_tse.id == id) {
-		so->search_tse.id = NULL;
-	}
-
-	if (so->treestore) {
-		TreeStoreElem *tselem;
-		BLI_mempool_iter iter;
-		bool changed = false;
-
-		BLI_mempool_iternew(so->treestore, &iter);
-		while ((tselem = BLI_mempool_iterstep(&iter))) {
-			if (tselem->id == id) {
-				tselem->id = NULL;
-				changed = true;
-			}
-		}
-		if (so->treehash && changed) {
-			/* rebuild hash table, because it depends on ids too */
-			/* postpone a full rebuild because this can be called many times on-free */
-			so->storeflag |= SO_TREESTORE_REBUILD;
-		}
-	}
-}

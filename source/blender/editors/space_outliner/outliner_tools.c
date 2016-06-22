@@ -57,6 +57,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_group.h"
 #include "BKE_library.h"
+#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -230,7 +231,8 @@ static void unlink_group_cb(
 	}
 	else {
 		Main *bmain = CTX_data_main(C);
-		BKE_group_unlink(bmain, group);
+		BKE_libblock_unlink(bmain, group, false);
+		BKE_libblock_free(bmain, group);
 	}
 }
 
@@ -246,7 +248,7 @@ static void unlink_world_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeEleme
 }
 
 static void outliner_do_libdata_operation(
-        bContext *C, Scene *scene, SpaceOops *soops, ListBase *lb, 
+        bContext *C, Scene *scene, SpaceOops *soops, ListBase *lb,
         void (*operation_cb)(bContext *C, Scene *scene, TreeElement *, TreeStoreElem *, TreeStoreElem *, void *),
         void *user_data)
 {
@@ -522,8 +524,7 @@ static void group_instance_cb(bContext *C, Scene *scene, TreeElement *UNUSED(te)
  */
 void outliner_do_object_operation_ex(
         bContext *C, Scene *scene_act, SpaceOops *soops, ListBase *lb,
-        void (*operation_cb)(bContext *C, Scene *scene, TreeElement *,
-                             TreeStoreElem *, TreeStoreElem *, void *),
+        void (*operation_cb)(bContext *, Scene *, TreeElement *, TreeStoreElem *, TreeStoreElem *, void *),
         bool select_recurse)
 {
 	TreeElement *te;
@@ -565,7 +566,7 @@ void outliner_do_object_operation(
 static void clear_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te),
                               TreeStoreElem *tselem, void *UNUSED(arg))
 {
-	BKE_animdata_free(tselem->id);
+	BKE_animdata_free(tselem->id, true);
 }
 
 

@@ -403,4 +403,6 @@ void ED_view3d_shade_update(struct Main *bmain, struct Scene *scene, struct View
 #define V3D_IS_ZBUF(v3d) \
 	(((v3d)->flag & V3D_ZBUF_SELECT) && ((v3d)->drawtype > OB_WIRE))
 
+void ED_view3d_id_remap(struct View3D *v3d, const struct ID *old_id, struct ID *new_id);
+
 #endif /* __ED_VIEW3D_H__ */

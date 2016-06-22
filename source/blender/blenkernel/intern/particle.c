@@ -376,12 +376,17 @@ static void fluid_free_settings(SPHFluidSettings *fluid)
 		MEM_freeN(fluid); 
 }
 
+/** Free (or release) any data used by this particle settings (does not free the partsett itself). */
 void BKE_particlesettings_free(ParticleSettings *part)
 {
-	MTex *mtex;
 	int a;
-	BKE_animdata_free(&part->id);
+
+	BKE_animdata_free((ID *)part, false);
 	
+	for (a = 0; a < MAX_MTEX; a++) {
+		MEM_SAFE_FREE(part->mtex[a]);
+	}
+
 	if (part->clumpcurve)
 		curvemapping_free(part->clumpcurve);
 	if (part->roughcurve)
@@ -390,21 +395,12 @@ void BKE_particlesettings_free(ParticleSettings *part)
 	free_partdeflect(part->pd);
 	free_partdeflect(part->pd2);
 
-	if (part->effector_weights)
-		MEM_freeN(part->effector_weights);
+	MEM_SAFE_FREE(part->effector_weights);
 
 	BLI_freelistN(&part->dupliweights);
 
 	boid_free_settings(part->boids);
 	fluid_free_settings(part->fluid);
-
-	for (a = 0; a < MAX_MTEX; a++) {
-		mtex = part->mtex[a];
-		if (mtex && mtex->tex)
-			id_us_min(&mtex->tex->id);
-		if (mtex)
-			MEM_freeN(mtex);
-	}
 }
 
 void free_hair(Object *UNUSED(ob), ParticleSystem *psys, int dynamics)
@@ -573,10 +569,7 @@ void psys_free(Object *ob, ParticleSystem *psys)
 		if (!nr)
 			ob->transflag &= ~OB_DUPLIPARTS;
 
-		if (psys->part) {
-			id_us_min(&psys->part->id);
-			psys->part = NULL;
-		}
+		psys->part = NULL;
 
 		BKE_ptcache_free_list(&psys->ptcaches);
 		psys->pointcache = NULL;

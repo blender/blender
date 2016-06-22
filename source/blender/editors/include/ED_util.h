@@ -43,7 +43,7 @@ void    ED_editors_exit(struct bContext *C);
 
 bool    ED_editors_flush_edits(const struct bContext *C, bool for_render);
 
-void ED_spacedata_id_unref(struct SpaceLink *sl, const struct ID *id);
+void    ED_spacedata_id_remap(struct ScrArea *sa, struct SpaceLink *sl, struct ID *old_id, struct ID *new_id);
 
 void    ED_OT_flush_edits(struct wmOperatorType *ot);
 

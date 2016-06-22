@@ -342,7 +342,7 @@ static AnimData * rna_ID_animation_data_create(ID *id, Main *bmain)
 
 static void rna_ID_animation_data_free(ID *id, Main *bmain)
 {
-	BKE_animdata_free(id);
+	BKE_animdata_free(id, true);
 	DAG_relations_tag_update(bmain);
 }
 

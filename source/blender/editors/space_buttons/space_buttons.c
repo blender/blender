@@ -45,6 +45,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RNA_access.h"
+
 #include "buttons_intern.h"  /* own include */
 
 /* ******************** default callbacks for buttons space ***************** */
@@ -389,6 +391,59 @@ static void buttons_area_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *
 		ED_area_tag_redraw(sa);
 }
 
+static void buttons_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)
+{
+	SpaceButs *sbuts = (SpaceButs *)slink;
+
+	if (sbuts->pinid == old_id) {
+		sbuts->pinid = new_id;
+		if (new_id == NULL) {
+			sbuts->flag &= ~SB_PIN_CONTEXT;
+		}
+	}
+
+	if (sbuts->path) {
+		ButsContextPath *path = sbuts->path;
+		int i;
+
+		for (i = 0; i < path->len; i++) {
+			if (path->ptr[i].id.data == old_id) {
+				break;
+			}
+		}
+
+		if (i == path->len) {
+			/* pass */
+		}
+		else if (new_id == NULL) {
+			if (i == 0) {
+				MEM_SAFE_FREE(sbuts->path);
+			}
+			else {
+				memset(&path->ptr[i], 0, sizeof(path->ptr[i]) * (path->len - i));
+				path->len = i;
+			}
+		}
+		else {
+			RNA_id_pointer_create(new_id, &path->ptr[i]);
+			/* There is no easy way to check/make path downwards valid, just nullify it.
+			 * Next redraw will rebuild this anyway. */
+			i++;
+			memset(&path->ptr[i], 0, sizeof(path->ptr[i]) * (path->len - i));
+			path->len = i;
+		}
+	}
+
+	if (sbuts->texuser) {
+		ButsContextTexture *ct = sbuts->texuser;
+		if ((ID *)ct->texture == old_id) {
+			ct->texture = (Tex *)new_id;
+		}
+		BLI_freelistN(&ct->users);
+		ct->user = NULL;
+	}
+}
+
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_buttons(void)
 {
@@ -406,7 +461,8 @@ void ED_spacetype_buttons(void)
 	st->keymap = buttons_keymap;
 	st->listener = buttons_area_listener;
 	st->context = buttons_context;
-	
+	st->id_remap = buttons_id_remap;
+
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype buttons region");
 	art->regionid = RGN_TYPE_WINDOW;

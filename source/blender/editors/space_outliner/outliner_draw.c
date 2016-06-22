@@ -502,6 +502,11 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 					BKE_reportf(CTX_wm_reports(C), RPT_ERROR,
 					            "Library path '%s' does not exist, correct this before saving", expanded);
 				}
+				else if (lib->id.tag & LIB_TAG_MISSING) {
+					BKE_reportf(CTX_wm_reports(C), RPT_INFO,
+					            "Library path '%s' is now valid, please reload the library", expanded);
+					lib->id.tag &= ~LIB_TAG_MISSING;
+				}
 			}
 		}
 		else {

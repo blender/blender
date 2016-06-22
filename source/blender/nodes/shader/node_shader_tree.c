@@ -488,7 +488,7 @@ void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat, short compatibili
 	ntreeExecGPUNodes(exec, mat, 1, compatibility);
 	ntreeShaderEndExecTree(exec);
 
-	ntreeFreeTree_ex(localtree, false);
+	ntreeFreeTree(localtree);
 	MEM_freeN(localtree);
 }
 

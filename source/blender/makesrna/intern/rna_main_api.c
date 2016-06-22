@@ -58,6 +58,7 @@
 #include "BKE_armature.h"
 #include "BKE_lamp.h"
 #include "BKE_library.h"
+#include "BKE_library_remap.h"
 #include "BKE_object.h"
 #include "BKE_material.h"
 #include "BKE_icons.h"
@@ -160,7 +161,8 @@ static void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports
 
 		}
 
-		BKE_scene_unlink(bmain, scene, scene_new);
+		BKE_libblock_remap(bmain, scene, scene_new, ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_NEVER_NULL_USAGE);
+		BKE_libblock_free(bmain, scene);
 		RNA_POINTER_INVALIDATE(scene_ptr);
 	}
 	else {
@@ -226,7 +228,7 @@ static void rna_Main_objects_remove(Main *bmain, ReportList *reports, PointerRNA
 {
 	Object *object = object_ptr->data;
 	if (ID_REAL_USERS(object) <= 0) {
-		BKE_object_unlink(bmain, object); /* needed or ID pointers to this are not cleared */
+		BKE_libblock_unlink(bmain, object, false);
 		BKE_libblock_free(bmain, object);
 		RNA_POINTER_INVALIDATE(object_ptr);
 	}
@@ -542,7 +544,7 @@ static Group *rna_Main_groups_new(Main *bmain, const char *name)
 static void rna_Main_groups_remove(Main *bmain, PointerRNA *group_ptr)
 {
 	Group *group = group_ptr->data;
-	BKE_group_unlink(bmain, group);
+	BKE_libblock_unlink(bmain, group, false);
 	BKE_libblock_free(bmain, group);
 	RNA_POINTER_INVALIDATE(group_ptr);
 }
@@ -736,7 +738,6 @@ static Mask *rna_Main_mask_new(Main *bmain, const char *name)
 static void rna_Main_masks_remove(Main *bmain, PointerRNA *mask_ptr)
 {
 	Mask *mask = mask_ptr->data;
-	BKE_mask_free(bmain, mask);
 	BKE_libblock_free(bmain, mask);
 	RNA_POINTER_INVALIDATE(mask_ptr);
 }

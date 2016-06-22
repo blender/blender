@@ -191,7 +191,7 @@ void		WM_ndof_deadzone_set(float deadzone);
 void		WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference);
 void		WM_main_add_notifier(unsigned int type, void *reference);
 void		WM_main_remove_notifier_reference(const void *reference);
-void		WM_main_remove_editor_id_reference(const struct ID *id);
+void		WM_main_remap_editor_id_reference(struct ID *old_id, struct ID *new_id);
 
 			/* reports */
 void        WM_report_banner_show(void);

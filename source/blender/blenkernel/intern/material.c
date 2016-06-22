@@ -81,47 +81,33 @@ void init_def_material(void)
 	BKE_material_init(&defmaterial);
 }
 
-/* not material itself */
+/** Free (or release) any data used by this material (does not free the material itself). */
 void BKE_material_free(Material *ma)
 {
-	BKE_material_free_ex(ma, true);
-}
-
-/* not material itself */
-void BKE_material_free_ex(Material *ma, bool do_id_user)
-{
-	MTex *mtex;
 	int a;
+
+	BKE_animdata_free((ID *)ma, false);
 	
 	for (a = 0; a < MAX_MTEX; a++) {
-		mtex = ma->mtex[a];
-		if (do_id_user && mtex && mtex->tex)
-			id_us_min(&mtex->tex->id);
-		if (mtex)
-			MEM_freeN(mtex);
+		MEM_SAFE_FREE(ma->mtex[a]);
 	}
 	
-	if (ma->ramp_col) MEM_freeN(ma->ramp_col);
-	if (ma->ramp_spec) MEM_freeN(ma->ramp_spec);
-	
-	BKE_animdata_free((ID *)ma);
-	
-	if (ma->preview)
-		BKE_previewimg_free(&ma->preview);
-	BKE_icon_id_delete((struct ID *)ma);
-	ma->id.icon_id = 0;
+	MEM_SAFE_FREE(ma->ramp_col);
+	MEM_SAFE_FREE(ma->ramp_spec);
 	
 	/* is no lib link block, but material extension */
 	if (ma->nodetree) {
-		ntreeFreeTree_ex(ma->nodetree, do_id_user);
+		ntreeFreeTree(ma->nodetree);
 		MEM_freeN(ma->nodetree);
+		ma->nodetree = NULL;
 	}
 
-	if (ma->texpaintslot)
-		MEM_freeN(ma->texpaintslot);
+	MEM_SAFE_FREE(ma->texpaintslot);
 
-	if (ma->gpumaterial.first)
-		GPU_material_free(&ma->gpumaterial);
+	GPU_material_free(&ma->gpumaterial);
+
+	BKE_icon_id_delete((ID *)ma);
+	BKE_previewimg_free(&ma->preview);
 }
 
 void BKE_material_init(Material *ma)
@@ -1840,7 +1826,7 @@ void free_matcopybuf(void)
 	matcopybuf.ramp_spec = NULL;
 
 	if (matcopybuf.nodetree) {
-		ntreeFreeTree_ex(matcopybuf.nodetree, false);
+		ntreeFreeTree(matcopybuf.nodetree);
 		MEM_freeN(matcopybuf.nodetree);
 		matcopybuf.nodetree = NULL;
 	}
