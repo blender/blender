@@ -5220,7 +5220,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 			}
 			case PROP_COLLECTION:
 			{
-				ListBase *lb = (ListBase *)data;
+				CollectionListBase *lb = (CollectionListBase *)data;
 				CollectionPointerLink *link;
 
 				ret = PyList_New(0);
