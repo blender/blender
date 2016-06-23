@@ -89,6 +89,7 @@ ustring SocketType::type_name(Type type)
 		ustring("boolean"),
 		ustring("float"),
 		ustring("int"),
+		ustring("uint"),
 		ustring("color"),
 		ustring("vector"),
 		ustring("point"),
