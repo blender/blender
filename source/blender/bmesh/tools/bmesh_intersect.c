@@ -87,6 +87,18 @@
 
 // #define USE_DUMP
 
+/* use only for small arrays */
+BLI_INLINE bool array_contains_pointer(const void **arr, unsigned int arr_len, const void *item)
+{
+	BLI_assert(arr_len < 3);
+	for (unsigned int i = 0; i < arr_len; i++) {
+		if (arr[i] == item) {
+			return true;
+		}
+	}
+	return false;
+}
+
 static void tri_v3_scale(
         float v1[3], float v2[3], float v3[3],
         const float t)
@@ -535,6 +547,7 @@ static void bm_isect_tri_tri(
 	const float *f_b_cos[3] = {UNPACK3_EX(, fv_b, ->co)};
 	float f_a_nor[3];
 	float f_b_nor[3];
+	/* track vertices which have been added to 'iv_ls_a' & 'iv_ls_b' */
 	int a_mask = 0;
 	int b_mask = 0;
 	unsigned int i;
@@ -556,6 +569,24 @@ static void bm_isect_tri_tri(
 	STACK_INIT(iv_ls_a, ARRAY_SIZE(iv_ls_a));
 	STACK_INIT(iv_ls_b, ARRAY_SIZE(iv_ls_b));
 
+	/* don't test, but we must be sure not to add doubles (assert instead). */
+#ifndef NDEBUG
+#  define STACK_PUSH_NOTEST(arr, ele) \
+	{ \
+		BLI_assert(BLI_array_findindex(arr, STACK_SIZE(arr), &(ele)) == -1); \
+		STACK_PUSH(arr, ele); \
+	} ((void)0)
+#else
+#  define STACK_PUSH_NOTEST STACK_PUSH
+#endif
+
+	/* warning, this seems like it might be inefficent,
+	 * however there will be <3 items in this case. */
+#  define STACK_PUSH_TEST(arr, ele, arr_offset) \
+	if (!array_contains_pointer((const void **)(&(arr)[arr_offset]), STACK_SIZE(arr) - (arr_offset), (void *)ele)) { \
+		STACK_PUSH(arr, ele); \
+	} ((void)0)
+
 	/* vert-vert
 	 * --------- */
 	{
@@ -568,7 +599,7 @@ static void bm_isect_tri_tri(
 			for (i_b = 0; i_b < 3; i_b++) {
 				if (len_squared_v3v3(fv_a[i_a]->co, fv_b[i_b]->co) <= s->epsilon.eps2x_sq) {
 					if (!((1 << i_a) & a_mask)) {
-						STACK_PUSH(iv_ls_a, fv_a[i_a]);
+						STACK_PUSH_NOTEST(iv_ls_a, fv_a[i_a]);
 						a_mask |= (1 << i_a);
 #ifdef USE_DUMP
 						printf("  ('VERT-VERT-A') %d, %d),\n",
@@ -576,7 +607,7 @@ static void bm_isect_tri_tri(
 #endif
 					}
 					if (!((1 << i_b) & b_mask)) {
-						STACK_PUSH(iv_ls_b, fv_b[i_b]);
+						STACK_PUSH_NOTEST(iv_ls_b, fv_b[i_b]);
 						b_mask |= (1 << i_b);
 #ifdef USE_DUMP
 						printf("  ('VERT-VERT-B') %d, %d),\n",
@@ -606,8 +637,8 @@ static void bm_isect_tri_tri(
 						interp_v3_v3v3(ix, fv_b[i_b_e0]->co, fv_b[i_b_e1]->co, fac);
 						if (len_squared_v3v3(ix, fv_a[i_a]->co) <= s->epsilon.eps2x_sq) {
 							BMEdge *e;
-							STACK_PUSH(iv_ls_b, fv_a[i_a]);
-							// STACK_PUSH(iv_ls_a, fv_a[i_a]);
+							STACK_PUSH_NOTEST(iv_ls_b, fv_a[i_a]);
+							// STACK_PUSH_NOTEST(iv_ls_a, fv_a[i_a]);
 							a_mask |= (1 << i_a);
 							e = BM_edge_exists(fv_b[i_b_e0], fv_b[i_b_e1]);
 #ifdef USE_DUMP
@@ -644,8 +675,8 @@ static void bm_isect_tri_tri(
 						interp_v3_v3v3(ix, fv_a[i_a_e0]->co, fv_a[i_a_e1]->co, fac);
 						if (len_squared_v3v3(ix, fv_b[i_b]->co) <= s->epsilon.eps2x_sq) {
 							BMEdge *e;
-							STACK_PUSH(iv_ls_a, fv_b[i_b]);
-							// STACK_PUSH(iv_ls_b, fv_b[i_b]);
+							STACK_PUSH_NOTEST(iv_ls_a, fv_b[i_b]);
+							// STACK_PUSH_NOTEST(iv_ls_b, fv_b[i_b]);
 							b_mask |= (1 << i_b);
 							e = BM_edge_exists(fv_a[i_a_e0], fv_a[i_a_e1]);
 #ifdef USE_DUMP
@@ -685,11 +716,8 @@ static void bm_isect_tri_tri(
 				continue;
 			if (isect_point_tri_v3(fv_a[i_a]->co, UNPACK3(t_scale), ix)) {
 				if (len_squared_v3v3(ix, fv_a[i_a]->co) <= s->epsilon.eps2x_sq) {
-					BLI_assert(BLI_array_findindex(iv_ls_a, STACK_SIZE(iv_ls_a), &fv_a[i_a]) == -1);
-					BLI_assert(BLI_array_findindex(iv_ls_b, STACK_SIZE(iv_ls_b), &fv_a[i_a]) == -1);
-
-					STACK_PUSH(iv_ls_a, fv_a[i_a]);
-					STACK_PUSH(iv_ls_b, fv_a[i_a]);
+					STACK_PUSH_NOTEST(iv_ls_a, fv_a[i_a]);
+					STACK_PUSH_NOTEST(iv_ls_b, fv_a[i_a]);
 					a_mask |= (1 << i_a);
 #ifdef USE_DUMP
 					printf("  'VERT TRI-A',\n");
@@ -715,11 +743,8 @@ static void bm_isect_tri_tri(
 
 			if (isect_point_tri_v3(fv_b[i_b]->co, UNPACK3(t_scale), ix)) {
 				if (len_squared_v3v3(ix, fv_b[i_b]->co) <= s->epsilon.eps2x_sq) {
-					BLI_assert(BLI_array_findindex(iv_ls_a, STACK_SIZE(iv_ls_a), &fv_b[i_b]) == -1);
-					BLI_assert(BLI_array_findindex(iv_ls_b, STACK_SIZE(iv_ls_b), &fv_b[i_b]) == -1);
-
-					STACK_PUSH(iv_ls_a, fv_b[i_b]);
-					STACK_PUSH(iv_ls_b, fv_b[i_b]);
+					STACK_PUSH_NOTEST(iv_ls_a, fv_b[i_b]);
+					STACK_PUSH_NOTEST(iv_ls_b, fv_b[i_b]);
 					b_mask |= (1 << i_b);
 #ifdef USE_DUMP
 					printf("  'VERT TRI-B',\n");
@@ -744,6 +769,17 @@ static void bm_isect_tri_tri(
 	/* edge-tri & edge-edge
 	 * -------------------- */
 	{
+		/**
+		 * Note that its possible to add the same vertex multiple times
+		 * with near degenerate faces (or a large epsilon).
+		 *
+		 * For this reason we have #STACK_PUSH_TEST macro which only adds vertices that aren't already added.
+		 * Since we know none of the vertices from #bm_isect_edge_tri, the check can be offset.
+		 */
+
+		const unsigned int iv_ls_a_offset = STACK_SIZE(iv_ls_a);
+		const unsigned int iv_ls_b_offset = STACK_SIZE(iv_ls_b);
+
 		unsigned int i_e0;
 		for (i_e0 = 0; i_e0 < 3; i_e0++) {
 			unsigned int i_e1 = (i_e0 + 1) % 3;
@@ -753,10 +789,8 @@ static void bm_isect_tri_tri(
 				continue;
 			iv = bm_isect_edge_tri(s, fv_a[i_e0], fv_a[i_e1], fv_b, b_index, f_b_cos, f_b_nor, &side);
 			if (iv) {
-				BLI_assert(BLI_array_findindex(iv_ls_a, STACK_SIZE(iv_ls_a), &iv) == -1);
-				BLI_assert(BLI_array_findindex(iv_ls_b, STACK_SIZE(iv_ls_b), &iv) == -1);
-				STACK_PUSH(iv_ls_a, iv);
-				STACK_PUSH(iv_ls_b, iv);
+				STACK_PUSH_TEST(iv_ls_a, iv, iv_ls_a_offset);
+				STACK_PUSH_TEST(iv_ls_b, iv, iv_ls_b_offset);
 #ifdef USE_DUMP
 				printf("  ('EDGE-TRI-A', %d),\n", side);
 #endif
@@ -771,10 +805,8 @@ static void bm_isect_tri_tri(
 				continue;
 			iv = bm_isect_edge_tri(s, fv_b[i_e0], fv_b[i_e1], fv_a, a_index, f_a_cos, f_a_nor, &side);
 			if (iv) {
-				BLI_assert(BLI_array_findindex(iv_ls_a, STACK_SIZE(iv_ls_a), &iv) == -1);
-				BLI_assert(BLI_array_findindex(iv_ls_b, STACK_SIZE(iv_ls_b), &iv) == -1);
-				STACK_PUSH(iv_ls_a, iv);
-				STACK_PUSH(iv_ls_b, iv);
+				STACK_PUSH_TEST(iv_ls_a, iv, iv_ls_a_offset);
+				STACK_PUSH_TEST(iv_ls_b, iv, iv_ls_b_offset);
 #ifdef USE_DUMP
 				printf("  ('EDGE-TRI-B', %d),\n", side);
 #endif
