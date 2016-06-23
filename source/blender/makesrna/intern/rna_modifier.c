@@ -1826,6 +1826,12 @@ static void rna_def_modifier_hook(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Hook Center", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	prop = RNA_def_property(srna, "matrix_inverse", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "parentinv");
+	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
+	RNA_def_property_ui_text(prop, "Matrix", "Reverse the transformation between this object and its target");
+	RNA_def_property_update(prop, NC_OBJECT | ND_TRANSFORM, "rna_Modifier_update");
+
 	prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Object", "Parent Object for hook, also recalculates and clears offset");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
