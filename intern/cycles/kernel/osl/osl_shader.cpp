@@ -177,6 +177,7 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 					case CClosurePrimitive::BSDF: {
 						CBSDFClosure *bsdf = (CBSDFClosure *)prim;
 						int scattering = bsdf->scattering();
+						int shaderdata_flag = bsdf->shaderdata_flag();
 
 						/* caustic options */
 						if((scattering & LABEL_GLOSSY) && (path_flag & PATH_RAY_DIFFUSE)) {
@@ -201,11 +202,16 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 						sc.data1 = bsdf->sc.data1;
 						sc.data2 = bsdf->sc.data2;
 						sc.prim = bsdf->sc.prim;
+						if(shaderdata_flag & SD_BSDF_HAS_CUSTOM) {
+							sc.custom1 = bsdf->sc.custom1;
+							sc.custom2 = bsdf->sc.custom2;
+							sc.custom3 = bsdf->sc.custom3;
+						}
 
 						/* add */
 						if(sc.sample_weight > CLOSURE_WEIGHT_CUTOFF && sd->num_closure < MAX_CLOSURE) {
 							sd->closure[sd->num_closure++] = sc;
-							sd->flag |= bsdf->shaderdata_flag();
+							sd->flag |= shaderdata_flag;
 						}
 						break;
 					}

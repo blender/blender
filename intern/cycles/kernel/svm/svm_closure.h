@@ -186,7 +186,8 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 		case CLOSURE_BSDF_REFLECTION_ID:
 		case CLOSURE_BSDF_MICROFACET_GGX_ID:
 		case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
-		case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID: {
+		case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
+		case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID: {
 #ifdef __CAUSTICS_TRICKS__
 			if(!kernel_data.integrator.caustics_reflective && (path_flag & PATH_RAY_DIFFUSE))
 				break;
@@ -206,6 +207,14 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					ccl_fetch(sd, flag) |= bsdf_microfacet_beckmann_setup(sc);
 				else if(type == CLOSURE_BSDF_MICROFACET_GGX_ID)
 					ccl_fetch(sd, flag) |= bsdf_microfacet_ggx_setup(sc);
+				else if(type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID) {
+					kernel_assert(stack_valid(data_node.z));
+					float3 color = stack_load_float3(stack, data_node.z);
+					sc->custom1 = color.x;
+					sc->custom2 = color.y;
+					sc->custom3 = color.z;
+					ccl_fetch(sd, flag) |= bsdf_microfacet_multi_ggx_setup(sc);
+				}
 				else
 					ccl_fetch(sd, flag) |= bsdf_ashikhmin_shirley_setup(sc);
 			}
@@ -307,8 +316,36 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 			break;
 		}
+		case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID: {
+#ifdef __CAUSTICS_TRICKS__
+			if(!kernel_data.integrator.caustics_reflective && !kernel_data.integrator.caustics_refractive && (path_flag & PATH_RAY_DIFFUSE))
+				break;
+#endif
+			ShaderClosure *sc = svm_node_closure_get_bsdf(sd, mix_weight);
+
+			if(sc) {
+				sc->N = N;
+
+				sc->data0 = param1;
+				sc->data1 = param1;
+				float eta = fmaxf(param2, 1e-5f);
+				sc->data2 = (ccl_fetch(sd, flag) & SD_BACKFACING)? 1.0f/eta: eta;
+
+				kernel_assert(stack_valid(data_node.z));
+				float3 color = stack_load_float3(stack, data_node.z);
+				sc->custom1 = color.x;
+				sc->custom2 = color.y;
+				sc->custom3 = color.z;
+
+				/* setup bsdf */
+				ccl_fetch(sd, flag) |= bsdf_microfacet_multi_ggx_glass_setup(sc);
+			}
+
+			break;
+		}
 		case CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID:
 		case CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID:
+		case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ANISO_ID:
 		case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID: {
 #ifdef __CAUSTICS_TRICKS__
 			if(!kernel_data.integrator.caustics_reflective && (path_flag & PATH_RAY_DIFFUSE))
@@ -346,6 +383,14 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					ccl_fetch(sd, flag) |= bsdf_microfacet_beckmann_aniso_setup(sc);
 				else if(type == CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID)
 					ccl_fetch(sd, flag) |= bsdf_microfacet_ggx_aniso_setup(sc);
+				else if(type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ANISO_ID) {
+					kernel_assert(stack_valid(data_node.w));
+					float3 color = stack_load_float3(stack, data_node.w);
+					sc->custom1 = color.x;
+					sc->custom2 = color.y;
+					sc->custom3 = color.z;
+					ccl_fetch(sd, flag) |= bsdf_microfacet_multi_ggx_aniso_setup(sc);
+				}
 				else
 					ccl_fetch(sd, flag) |= bsdf_ashikhmin_shirley_aniso_setup(sc);
 			}

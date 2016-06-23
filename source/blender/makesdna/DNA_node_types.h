@@ -912,7 +912,8 @@ typedef struct NodeSunBeams {
 #define SHD_GLOSSY_BECKMANN				0
 #define SHD_GLOSSY_SHARP				1
 #define SHD_GLOSSY_GGX					2
-#define SHD_GLOSSY_ASHIKHMIN_SHIRLEY	3
+#define SHD_GLOSSY_ASHIKHMIN_SHIRLEY			3
+#define SHD_GLOSSY_MULTI_GGX				4
 
 /* vector transform */
 #define SHD_VECT_TRANSFORM_TYPE_VECTOR	0
