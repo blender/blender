@@ -97,7 +97,8 @@ typedef enum eGP_StrokeAdd_Result {
 typedef enum eGPencil_PaintFlags {
 	GP_PAINTFLAG_FIRSTRUN       = (1 << 0),    /* operator just started */
 	GP_PAINTFLAG_STROKEADDED    = (1 << 1),
-	GP_PAINTFLAG_V3D_ERASER_DEPTH = (1 << 2)
+	GP_PAINTFLAG_V3D_ERASER_DEPTH = (1 << 2),
+	GP_PAINTFLAG_SELECTMASK     = (1 << 3),
 } eGPencil_PaintFlags;
 
 
@@ -813,18 +814,21 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 		BLI_freelinkN(&gpf->strokes, gps);
 	}
 	else if (gps->totpoints == 1) {
-		gp_point_to_xy(&p->gsc, gps, gps->points, &pc1[0], &pc1[1]);
-		
-		/* do boundbox check first */
-		if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
-			/* only check if point is inside */
-			if (len_v2v2_int(mval, pc1) <= radius) {
-				/* free stroke */
-				// XXX: pressure sensitive eraser should apply here too?
-				MEM_freeN(gps->points);
-				if (gps->triangles)
-					 MEM_freeN(gps->triangles);
-				BLI_freelinkN(&gpf->strokes, gps);
+		/* only process if it hasn't been masked out... */
+		if (!(p->flags & GP_PAINTFLAG_SELECTMASK) || (gps->points->flag & GP_SPOINT_SELECT)) {
+			gp_point_to_xy(&p->gsc, gps, gps->points, &pc1[0], &pc1[1]);
+			
+			/* do boundbox check first */
+			if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
+				/* only check if point is inside */
+				if (len_v2v2_int(mval, pc1) <= radius) {
+					/* free stroke */
+					// XXX: pressure sensitive eraser should apply here too?
+					MEM_freeN(gps->points);
+					if (gps->triangles)
+						 MEM_freeN(gps->triangles);
+					BLI_freelinkN(&gpf->strokes, gps);
+				}
 			}
 		}
 	}
@@ -862,6 +866,11 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 			pt1 = gps->points + i;
 			pt2 = gps->points + i + 1;
 			
+			/* only process if it hasn't been masked out... */
+			if ((p->flags & GP_PAINTFLAG_SELECTMASK) && !(gps->points->flag & GP_SPOINT_SELECT))
+				continue;
+			
+			/* get coordinates of point in screenspace */
 			gp_point_to_xy(&p->gsc, gps, pt1, &pc1[0], &pc1[1]);
 			gp_point_to_xy(&p->gsc, gps, pt2, &pc2[0], &pc2[1]);
 			
@@ -1199,6 +1208,7 @@ static void gp_session_cleanup(tGPsdata *p)
 static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode)
 {
 	Scene *scene = p->scene;
+	ToolSettings *ts = scene->toolsettings;
 	
 	/* get active layer (or add a new one if non-existent) */
 	p->gpl = gpencil_layer_getactive(p->gpd);
@@ -1242,6 +1252,15 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode)
 		/* Ensure this gets set... */
 		p->gpf = p->gpl->actframe;
 		
+		/* Restrict eraser to only affecting selected strokes, if the "selection mask" is on
+		 * (though this is only available in editmode)
+		 */
+		if (p->gpd->flag & GP_DATA_STROKE_EDITMODE) {
+			if (ts->gp_sculpt.flag & GP_BRUSHEDIT_FLAG_SELECT_MASK) {
+				p->flags |= GP_PAINTFLAG_SELECTMASK;
+			}
+		}
+		
 		if (p->gpf == NULL) {
 			p->status = GP_STATUS_ERROR;
 			//if (G.debug & G_DEBUG)
@@ -1251,7 +1270,6 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode)
 	}
 	else {
 		/* Drawing Modes - Add a new frame if needed on the active layer */
-		ToolSettings *ts = p->scene->toolsettings;
 		short add_frame_mode;
 		
 		if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST)
