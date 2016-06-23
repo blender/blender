@@ -528,7 +528,8 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 		prop = RNA_def_enum(ot->srna, "proportional_edit_falloff", rna_enum_proportional_falloff_items, 0,
 		                    "Proportional Editing Falloff", "Falloff type for proportional editing mode");
 		RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
-		RNA_def_float(ot->srna, "proportional_size", 1, 0.00001f, FLT_MAX, "Proportional Size", "", 0.001, 100);
+		RNA_def_float(ot->srna, "proportional_size", 1, T_PROP_SIZE_MIN, T_PROP_SIZE_MAX,
+		              "Proportional Size", "", 0.001f, 100.0f);
 	}
 
 	if (flags & P_SNAP) {
