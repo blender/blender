@@ -210,6 +210,8 @@ void GRAPH_OT_select_all_toggle(wmOperatorType *ot)
  *	-> ALT-BKEY - depending on which axis of the region was larger...
  *		-> 2) x-axis, so select all frames within frame range (validation with BEZT_OK_FRAMERANGE)
  *		-> 3) y-axis, so select all frames within channels that region included (validation with BEZT_OK_VALUERANGE)
+ *
+ * The selection backend is also reused for the Lasso and Circle select operators.
  */
 
 /* Borderselect only selects keyframes now, as overshooting handles often get caught too,
@@ -245,12 +247,12 @@ static void borderselect_graphkeys(
 	/* init editing data */
 	memset(&ked, 0, sizeof(KeyframeEditData));
 	if (mode == BEZT_OK_REGION_LASSO) {
-		struct KeyframeEdit_LassoData *data_lasso = data;
+		KeyframeEdit_LassoData *data_lasso = data;
 		data_lasso->rectf_scaled = &scaled_rectf;
 		ked.data = data_lasso;
 	}
 	else if (mode == BEZT_OK_REGION_CIRCLE) {
-		struct KeyframeEdit_CircleData *data_circle = data;
+		KeyframeEdit_CircleData *data_circle = data;
 		data_circle->rectf_scaled = &scaled_rectf;
 		ked.data = data;
 	}
@@ -265,27 +267,27 @@ static void borderselect_graphkeys(
 	}
 	else
 		mapping_flag = ANIM_UNITCONV_ONLYKEYS;
-
+	
 	mapping_flag |= ANIM_get_normalization_flags(ac);
-
+	
 	/* loop over data, doing border select */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 		FCurve *fcu = (FCurve *)ale->key_data;
 		float offset;
 		float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, mapping_flag, &offset);
-
+		
 		/* apply NLA mapping to all the keyframes, since it's easier than trying to
 		 * guess when a callback might use something different
 		 */
 		if (adt)
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, incl_handles == 0);
-
+		
 		scaled_rectf.xmin = rectf.xmin;
 		scaled_rectf.xmax = rectf.xmax;
 		scaled_rectf.ymin = rectf.ymin / unit_scale - offset;
 		scaled_rectf.ymax = rectf.ymax / unit_scale - offset;
-
+		
 		/* set horizontal range (if applicable) 
 		 * NOTE: these values are only used for x-range and y-range but not region 
 		 *      (which uses ked.data, i.e. rectf)
@@ -406,37 +408,42 @@ void GRAPH_OT_select_border(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "include_handles", 0, "Include Handles", "Are handles tested individually against the selection criteria");
 }
 
+
+/* ------------------- */
+
 static int graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
+	
+	KeyframeEdit_LassoData data_lasso;
 	rcti rect;
 	rctf rect_fl;
+	
 	short selectmode;
 	bool incl_handles;
 	bool extend;
-
-	struct KeyframeEdit_LassoData data_lasso;
-
+	
+	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-
+	
 	data_lasso.rectf_view = &rect_fl;
 	data_lasso.mcords = WM_gesture_lasso_path_to_array(C, op, &data_lasso.mcords_tot);
 	if (data_lasso.mcords == NULL)
 		return OPERATOR_CANCELLED;
-
+	
 	/* clear all selection if not extending selection */
 	extend = RNA_boolean_get(op->ptr, "extend");
 	if (!extend)
 		deselect_graph_keys(&ac, 1, SELECT_SUBTRACT, true);
-
+	
 	if (!RNA_boolean_get(op->ptr, "deselect"))
 		selectmode = SELECT_ADD;
 	else
 		selectmode = SELECT_SUBTRACT;
-
-	if (ac.spacetype == SPACE_IPO) {
+	
+	{
 		SpaceIpo *sipo = (SpaceIpo *)ac.sl;
 		if (selectmode == SELECT_ADD) {
 			incl_handles = ((sipo->flag & SIPO_SELVHANDLESONLY) ||
@@ -446,28 +453,21 @@ static int graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
 			incl_handles = (sipo->flag & SIPO_NOHANDLES) == 0;
 		}
 	}
-	else {
-		incl_handles = false;
-	}
-
-
+	
 	/* get settings from operator */
 	BLI_lasso_boundbox(&rect, data_lasso.mcords, data_lasso.mcords_tot);
-
 	BLI_rctf_rcti_copy(&rect_fl, &rect);
-
+	
 	/* apply borderselect action */
 	borderselect_graphkeys(&ac, &rect_fl, BEZT_OK_REGION_LASSO, selectmode, incl_handles, &data_lasso);
-
+	
 	MEM_freeN((void *)data_lasso.mcords);
-
-
+	
 	/* send notifier that keyframe selection has changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
-
+	
 	return OPERATOR_FINISHED;
 }
-
 
 void GRAPH_OT_select_lasso(wmOperatorType *ot)
 {
@@ -475,31 +475,35 @@ void GRAPH_OT_select_lasso(wmOperatorType *ot)
 	ot->name = "Lasso Select";
 	ot->description = "Select keyframe points using lasso selection";
 	ot->idname = "GRAPH_OT_select_lasso";
-
+	
 	/* api callbacks */
 	ot->invoke = WM_gesture_lasso_invoke;
 	ot->modal = WM_gesture_lasso_modal;
 	ot->exec = graphkeys_lassoselect_exec;
 	ot->poll = graphop_visible_keyframes_poll;
 	ot->cancel = WM_gesture_lasso_cancel;
-
+	
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
-
+	
 	/* properties */
 	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
 	RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Deselect rather than select items");
 	RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend selection instead of deselecting everything first");
 }
 
+/* ------------------- */
+
 static int graph_circle_select_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
 	const int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
-	short selectmode;
-	bool incl_handles;
+	const short selectmode = (gesture_mode == GESTURE_MODAL_SELECT) ? SELECT_ADD : SELECT_SUBTRACT;
+	bool incl_handles = false;
+	
+	KeyframeEdit_CircleData data;
 	rctf rect_fl;
-	struct KeyframeEdit_CircleData data;
+	
 	float x = RNA_int_get(op->ptr, "x");
 	float y = RNA_int_get(op->ptr, "y");
 	float radius = RNA_int_get(op->ptr, "radius");
@@ -507,23 +511,18 @@ static int graph_circle_select_exec(bContext *C, wmOperator *op)
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-
+	
 	data.mval[0] = x;
 	data.mval[1] = y;
 	data.radius_squared = radius * radius;
 	data.rectf_view = &rect_fl;
 	
-	if (gesture_mode == GESTURE_MODAL_SELECT)
-		selectmode = SELECT_ADD;
-	else
-		selectmode = SELECT_SUBTRACT;
-
 	rect_fl.xmin = x - radius;
 	rect_fl.xmax = x + radius;
 	rect_fl.ymin = y - radius;
 	rect_fl.ymax = y + radius;
 	
-	if (ac.spacetype == SPACE_IPO) {
+	{
 		SpaceIpo *sipo = (SpaceIpo *)ac.sl;
 		if (selectmode == SELECT_ADD) {
 			incl_handles = ((sipo->flag & SIPO_SELVHANDLESONLY) ||
@@ -533,10 +532,7 @@ static int graph_circle_select_exec(bContext *C, wmOperator *op)
 			incl_handles = (sipo->flag & SIPO_NOHANDLES) == 0;
 		}
 	}
-	else {
-		incl_handles = false;
-	}
-
+	
 	/* apply borderselect action */
 	borderselect_graphkeys(&ac, &rect_fl, BEZT_OK_REGION_CIRCLE, selectmode, incl_handles, &data);
 	

@@ -97,20 +97,20 @@ typedef enum eEditKeyframes_Mirror {
 } eEditKeyframes_Mirror;
 
 /* use with BEZT_OK_REGION_LASSO */
-struct KeyframeEdit_LassoData {
+typedef struct KeyframeEdit_LassoData {
 	const rctf *rectf_scaled;
 	const rctf *rectf_view;
 	const int (*mcords)[2];
 	int mcords_tot;
-};
+} KeyframeEdit_LassoData;
 
 /* use with BEZT_OK_REGION_CIRCLE */
-struct KeyframeEdit_CircleData {
+typedef struct KeyframeEdit_CircleData {
 	const rctf *rectf_scaled;
 	const rctf *rectf_view;
 	float mval[2];
 	float radius_squared;
-};
+} KeyframeEdit_CircleData;
 
 
 /* ************************************************ */

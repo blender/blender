@@ -542,7 +542,7 @@ static short ok_bezier_region(KeyframeEditData *ked, BezTriple *bezt)
  * only called from #ok_bezier_region_lasso
  */
 static bool bezier_region_lasso_test(
-        const struct KeyframeEdit_LassoData *data_lasso,
+        const KeyframeEdit_LassoData *data_lasso,
         const float xy[2])
 {
 	if (BLI_rctf_isect_pt_v(data_lasso->rectf_scaled, xy)) {
@@ -579,7 +579,7 @@ static short ok_bezier_region_lasso(KeyframeEditData *ked, BezTriple *bezt)
  * only called from #ok_bezier_region_circle
  */
 static bool bezier_region_circle_test(
-        const struct KeyframeEdit_CircleData *data_circle,
+        const KeyframeEdit_CircleData *data_circle,
         const float xy[2])
 {
 	if (BLI_rctf_isect_pt_v(data_circle->rectf_scaled, xy)) {
