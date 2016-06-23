@@ -685,8 +685,8 @@ static void bm_isect_tri_tri(
 				continue;
 			if (isect_point_tri_v3(fv_a[i_a]->co, UNPACK3(t_scale), ix)) {
 				if (len_squared_v3v3(ix, fv_a[i_a]->co) <= s->epsilon.eps2x_sq) {
-					BLI_assert(BLI_array_findindex(iv_ls_a, STACK_SIZE(iv_ls_a), fv_a[i_a]) == -1);
-					BLI_assert(BLI_array_findindex(iv_ls_b, STACK_SIZE(iv_ls_b), fv_a[i_a]) == -1);
+					BLI_assert(BLI_array_findindex(iv_ls_a, STACK_SIZE(iv_ls_a), &fv_a[i_a]) == -1);
+					BLI_assert(BLI_array_findindex(iv_ls_b, STACK_SIZE(iv_ls_b), &fv_a[i_a]) == -1);
 
 					STACK_PUSH(iv_ls_a, fv_a[i_a]);
 					STACK_PUSH(iv_ls_b, fv_a[i_a]);
@@ -715,8 +715,8 @@ static void bm_isect_tri_tri(
 
 			if (isect_point_tri_v3(fv_b[i_b]->co, UNPACK3(t_scale), ix)) {
 				if (len_squared_v3v3(ix, fv_b[i_b]->co) <= s->epsilon.eps2x_sq) {
-					BLI_assert(BLI_array_findindex((void **)iv_ls_a, STACK_SIZE(iv_ls_a), fv_b[i_b]) == -1);
-					BLI_assert(BLI_array_findindex((void **)iv_ls_b, STACK_SIZE(iv_ls_b), fv_b[i_b]) == -1);
+					BLI_assert(BLI_array_findindex(iv_ls_a, STACK_SIZE(iv_ls_a), &fv_b[i_b]) == -1);
+					BLI_assert(BLI_array_findindex(iv_ls_b, STACK_SIZE(iv_ls_b), &fv_b[i_b]) == -1);
 
 					STACK_PUSH(iv_ls_a, fv_b[i_b]);
 					STACK_PUSH(iv_ls_b, fv_b[i_b]);
@@ -753,8 +753,8 @@ static void bm_isect_tri_tri(
 				continue;
 			iv = bm_isect_edge_tri(s, fv_a[i_e0], fv_a[i_e1], fv_b, b_index, f_b_cos, f_b_nor, &side);
 			if (iv) {
-				BLI_assert(BLI_array_findindex((void **)iv_ls_a, STACK_SIZE(iv_ls_a), iv) == -1);
-				BLI_assert(BLI_array_findindex((void **)iv_ls_b, STACK_SIZE(iv_ls_b), iv) == -1);
+				BLI_assert(BLI_array_findindex(iv_ls_a, STACK_SIZE(iv_ls_a), &iv) == -1);
+				BLI_assert(BLI_array_findindex(iv_ls_b, STACK_SIZE(iv_ls_b), &iv) == -1);
 				STACK_PUSH(iv_ls_a, iv);
 				STACK_PUSH(iv_ls_b, iv);
 #ifdef USE_DUMP
@@ -771,8 +771,8 @@ static void bm_isect_tri_tri(
 				continue;
 			iv = bm_isect_edge_tri(s, fv_b[i_e0], fv_b[i_e1], fv_a, a_index, f_a_cos, f_a_nor, &side);
 			if (iv) {
-				BLI_assert(BLI_array_findindex((void **)iv_ls_a, STACK_SIZE(iv_ls_a), iv) == -1);
-				BLI_assert(BLI_array_findindex((void **)iv_ls_b, STACK_SIZE(iv_ls_b), iv) == -1);
+				BLI_assert(BLI_array_findindex(iv_ls_a, STACK_SIZE(iv_ls_a), &iv) == -1);
+				BLI_assert(BLI_array_findindex(iv_ls_b, STACK_SIZE(iv_ls_b), &iv) == -1);
 				STACK_PUSH(iv_ls_a, iv);
 				STACK_PUSH(iv_ls_b, iv);
 #ifdef USE_DUMP
