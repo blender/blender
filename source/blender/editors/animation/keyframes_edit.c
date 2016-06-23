@@ -541,7 +541,7 @@ static short ok_bezier_region(KeyframeEditData *ked, BezTriple *bezt)
 /**
  * Called from #ok_bezier_region_lasso and #ok_bezier_channel_lasso
  */
-static bool bezier_region_lasso_test(
+bool keyframe_region_lasso_test(
         const KeyframeEdit_LassoData *data_lasso,
         const float xy[2])
 {
@@ -564,7 +564,7 @@ static short ok_bezier_region_lasso(KeyframeEditData *ked, BezTriple *bezt)
 	if (ked->data) {
 		short ok = 0;
 		
-#define KEY_CHECK_OK(_index) bezier_region_lasso_test(ked->data, bezt->vec[_index])
+#define KEY_CHECK_OK(_index) keyframe_region_lasso_test(ked->data, bezt->vec[_index])
 		KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
 #undef KEY_CHECK_OK
 		
@@ -596,7 +596,7 @@ static short ok_bezier_channel_lasso(KeyframeEditData *ked, BezTriple *bezt)
 		pt[0] = bezt->vec[1][0];
 		pt[1] = ked->channel_y;
 		
-		if (bezier_region_lasso_test(data, pt))
+		if (keyframe_region_lasso_test(data, pt))
 			return KEYFRAME_OK_KEY;
 	}
 	return 0;
@@ -605,7 +605,7 @@ static short ok_bezier_channel_lasso(KeyframeEditData *ked, BezTriple *bezt)
 /**
  * Called from #ok_bezier_region_circle and #ok_bezier_channel_circle
  */
-static bool bezier_region_circle_test(
+bool keyframe_region_circle_test(
         const KeyframeEdit_CircleData *data_circle,
         const float xy[2])
 {
@@ -629,7 +629,7 @@ static short ok_bezier_region_circle(KeyframeEditData *ked, BezTriple *bezt)
 	if (ked->data) {
 		short ok = 0;
 		
-#define KEY_CHECK_OK(_index) bezier_region_circle_test(ked->data, bezt->vec[_index])
+#define KEY_CHECK_OK(_index) keyframe_region_circle_test(ked->data, bezt->vec[_index])
 		KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
 #undef KEY_CHECK_OK
 		
@@ -661,7 +661,7 @@ static short ok_bezier_channel_circle(KeyframeEditData *ked, BezTriple *bezt)
 		pt[0] = bezt->vec[1][0];
 		pt[1] = ked->channel_y;
 		
-		if (bezier_region_circle_test(data, pt))
+		if (keyframe_region_circle_test(data, pt))
 			return KEYFRAME_OK_KEY;
 	}
 	return 0;

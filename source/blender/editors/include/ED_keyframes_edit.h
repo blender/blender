@@ -266,6 +266,18 @@ short bezt_to_cfraelem(KeyframeEditData *ked, struct BezTriple *bezt);
  */
 void bezt_remap_times(KeyframeEditData *ked, struct BezTriple *bezt);
 
+/* ------ 1.5-D Region Testing Uitls (Lasso/Circle Select) ------- */
+/* XXX: These are temporary, until we can unify GP/Mask Keyframe handling and standard FCurve Keyframe handling */
+
+bool keyframe_region_lasso_test(
+        const KeyframeEdit_LassoData *data_lasso,
+        const float xy[2]);
+
+bool keyframe_region_circle_test(
+        const KeyframeEdit_CircleData *data_circle,
+        const float xy[2]);
+
+
 /* ************************************************ */
 /* Destructive Editing API (keyframes_general.c) */
 

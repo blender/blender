@@ -468,13 +468,13 @@ static void region_select_action_keys(bAnimContext *ac, const rctf *rectf_view, 
 					bGPdata *gpd = ale->data;
 					bGPDlayer *gpl;
 					for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-						//ED_gplayer_frames_select_border(gpl, rectf.xmin, rectf.xmax, selectmode);
+						ED_gplayer_frames_select_region(&ked, ale->data, mode, selectmode);
 					}
 					break;
 				}
 				case ANIMTYPE_GPLAYER:
 				{
-					//ED_gplayer_frames_select_border(ale->data, rectf.xmin, rectf.xmax, selectmode);
+					ED_gplayer_frames_select_region(&ked, ale->data, mode, selectmode);
 					break;
 				}
 				case ANIMTYPE_MASKDATABLOCK:
