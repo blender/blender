@@ -134,8 +134,22 @@ void _bli_array_permute(
 int _bli_array_findindex(const void *arr, unsigned int arr_len, size_t arr_stride, const void *p)
 {
 	const char *arr_step = (const char *)arr;
-	unsigned int i;
-	for (i = 0; i < arr_len; i++, arr_step += arr_stride) {
+	for (unsigned int i = 0; i < arr_len; i++, arr_step += arr_stride) {
+		if (memcmp(arr_step, p, arr_stride) == 0) {
+			return (int)i;
+		}
+	}
+	return -1;
+}
+
+/**
+ * A version of #BLI_array_findindex that searches from the end of the list.
+ */
+int _bli_array_rfindindex(const void *arr, unsigned int arr_len, size_t arr_stride, const void *p)
+{
+	const char *arr_step = (const char *)arr + (arr_stride * arr_len);
+	for (unsigned int i = arr_len; i-- != 0; ) {
+		arr_step -= arr_stride;
 		if (memcmp(arr_step, p, arr_stride) == 0) {
 			return (int)i;
 		}

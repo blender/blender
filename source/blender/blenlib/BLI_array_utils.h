@@ -48,6 +48,10 @@ int _bli_array_findindex(const void *arr, unsigned int arr_len, size_t arr_strid
 #define BLI_array_findindex(arr, arr_len, p) \
 	_bli_array_findindex(arr, arr_len, sizeof(*(arr)), p)
 
+int _bli_array_rfindindex(const void *arr, unsigned int arr_len, size_t arr_stride, const void *p);
+#define BLI_array_rfindindex(arr, arr_len, p) \
+	_bli_array_rfindindex(arr, arr_len, sizeof(*(arr)), p)
+
 void _bli_array_binary_and(
         void *arr, const void *arr_a, const void *arr_b,
         unsigned int arr_len, size_t arr_stride);
