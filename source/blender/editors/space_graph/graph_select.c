@@ -415,14 +415,13 @@ static int graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
 	
-	KeyframeEdit_LassoData data_lasso;
+	KeyframeEdit_LassoData data_lasso = {0};
 	rcti rect;
 	rctf rect_fl;
 	
 	short selectmode;
 	bool incl_handles;
 	bool extend;
-	
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -501,7 +500,7 @@ static int graph_circle_select_exec(bContext *C, wmOperator *op)
 	const short selectmode = (gesture_mode == GESTURE_MODAL_SELECT) ? SELECT_ADD : SELECT_SUBTRACT;
 	bool incl_handles = false;
 	
-	KeyframeEdit_CircleData data;
+	KeyframeEdit_CircleData data = {0};
 	rctf rect_fl;
 	
 	float x = RNA_int_get(op->ptr, "x");

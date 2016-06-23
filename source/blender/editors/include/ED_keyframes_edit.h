@@ -45,14 +45,21 @@ struct Scene;
 
 /* bezt validation */
 typedef enum eEditKeyframes_Validate {
+	/* Frame range */
 	BEZT_OK_FRAME = 1,
 	BEZT_OK_FRAMERANGE,
+	/* Selection status */
 	BEZT_OK_SELECTED,
+	/* Values (y-val) only */
 	BEZT_OK_VALUE,
 	BEZT_OK_VALUERANGE,
+	/* For graph editor keyframes (2D tests) */
 	BEZT_OK_REGION,
 	BEZT_OK_REGION_LASSO,
 	BEZT_OK_REGION_CIRCLE,
+	/* Only for keyframes a certain Dopesheet channel */
+	BEZT_OK_CHANNEL_LASSO,
+	BEZT_OK_CHANNEL_CIRCLE,
 } eEditKeyframes_Validate;
 
 /* ------------ */
@@ -98,7 +105,7 @@ typedef enum eEditKeyframes_Mirror {
 
 /* use with BEZT_OK_REGION_LASSO */
 typedef struct KeyframeEdit_LassoData {
-	const rctf *rectf_scaled;
+	rctf *rectf_scaled;
 	const rctf *rectf_view;
 	const int (*mcords)[2];
 	int mcords_tot;
@@ -106,7 +113,7 @@ typedef struct KeyframeEdit_LassoData {
 
 /* use with BEZT_OK_REGION_CIRCLE */
 typedef struct KeyframeEdit_CircleData {
-	const rctf *rectf_scaled;
+	rctf *rectf_scaled;
 	const rctf *rectf_view;
 	float mval[2];
 	float radius_squared;
@@ -157,7 +164,8 @@ typedef struct KeyframeEditData {
 	/* current iteration data */
 	struct FCurve *fcu;         /* F-Curve that is being iterated over */
 	int curIndex;               /* index of current keyframe being iterated over */
-
+	float channel_y;            /* y-position of midpoint of the channel (for the dopesheet) */
+	
 	/* flags */
 	eKeyframeVertOk curflags;        /* current flags for the keyframe we're reached in the iteration process */
 	eKeyframeIterFlags iterflags;    /* settings for iteration process */

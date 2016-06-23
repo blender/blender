@@ -539,7 +539,7 @@ static short ok_bezier_region(KeyframeEditData *ked, BezTriple *bezt)
 }
 
 /**
- * only called from #ok_bezier_region_lasso
+ * Called from #ok_bezier_region_lasso and #ok_bezier_channel_lasso
  */
 static bool bezier_region_lasso_test(
         const KeyframeEdit_LassoData *data_lasso,
@@ -575,8 +575,35 @@ static short ok_bezier_region_lasso(KeyframeEditData *ked, BezTriple *bezt)
 		return 0;
 }
 
+static short ok_bezier_channel_lasso(KeyframeEditData *ked, BezTriple *bezt)
+{
+	/* check for lasso customdata (KeyframeEdit_LassoData) */
+	if (ked->data) {
+		KeyframeEdit_LassoData *data = ked->data;
+		float pt[2];
+		
+		/* late-binding remap of the x values (for summary channels) */
+		/* XXX: Ideally we reset, but it should be fine just leaving it as-is
+		 * as the next channel will reset it properly, while the next summary-channel
+		 * curve will also reset by itself...
+		 */
+		if (ked->iterflags & (KED_F1_NLA_UNMAP | KED_F2_NLA_UNMAP)) {
+			data->rectf_scaled->xmin = ked->f1;
+			data->rectf_scaled->xmax = ked->f2;
+		}
+		
+		/* only use the x-coordinate of the point; the y is the channel range... */
+		pt[0] = bezt->vec[1][0];
+		pt[1] = ked->channel_y;
+		
+		if (bezier_region_lasso_test(data, pt))
+			return KEYFRAME_OK_KEY;
+	}
+	return 0;
+}
+
 /**
- * only called from #ok_bezier_region_circle
+ * Called from #ok_bezier_region_circle and #ok_bezier_channel_circle
  */
 static bool bezier_region_circle_test(
         const KeyframeEdit_CircleData *data_circle,
@@ -613,6 +640,33 @@ static short ok_bezier_region_circle(KeyframeEditData *ked, BezTriple *bezt)
 		return 0;
 }
 
+static short ok_bezier_channel_circle(KeyframeEditData *ked, BezTriple *bezt)
+{
+	/* check for circle select customdata (KeyframeEdit_CircleData) */
+	if (ked->data) {
+		KeyframeEdit_CircleData *data = ked->data;
+		float pt[2];
+		
+		/* late-binding remap of the x values (for summary channels) */
+		/* XXX: Ideally we reset, but it should be fine just leaving it as-is
+		 * as the next channel will reset it properly, while the next summary-channel
+		 * curve will also reset by itself...
+		 */
+		if (ked->iterflags & (KED_F1_NLA_UNMAP | KED_F2_NLA_UNMAP)) {
+			data->rectf_scaled->xmin = ked->f1;
+			data->rectf_scaled->xmax = ked->f2;
+		}
+		
+		/* only use the x-coordinate of the point; the y is the channel range... */
+		pt[0] = bezt->vec[1][0];
+		pt[1] = ked->channel_y;
+		
+		if (bezier_region_circle_test(data, pt))
+			return KEYFRAME_OK_KEY;
+	}
+	return 0;
+}
+
 
 KeyframeEditFunc ANIM_editkeyframes_ok(short mode)
 {
@@ -634,6 +688,10 @@ KeyframeEditFunc ANIM_editkeyframes_ok(short mode)
 			return ok_bezier_region_lasso;
 		case BEZT_OK_REGION_CIRCLE: /* only if the point falls within KeyframeEdit_CircleData defined data */
 			return ok_bezier_region_circle;
+		case BEZT_OK_CHANNEL_LASSO: /* same as BEZT_OK_REGION_LASSO, but we're only using the x-value of the points */
+			return ok_bezier_channel_lasso;
+		case BEZT_OK_CHANNEL_CIRCLE: /* same as BEZT_OK_REGION_CIRCLE, but we're only using the x-value of the points */
+			return ok_bezier_channel_circle;
 		default: /* nothing was ok */
 			return NULL;
 	}
