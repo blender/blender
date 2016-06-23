@@ -273,7 +273,7 @@ void BLI_space_transform_invert_normal(const struct SpaceTransform *data, float 
 /*********************************** Other ***********************************/
 
 void print_m3(const char *str, float M[3][3]);
-void print_m4(const char *str, float M[3][4]);
+void print_m4(const char *str, float M[4][4]);
 
 #define print_m3_id(M) print_m3(STRINGIFY(M), M)
 #define print_m4_id(M) print_m4(STRINGIFY(M), M)
