@@ -309,36 +309,40 @@ walk_nofork:
 		BMEdge *e_next, *e_first;
 		e_first = v->e;
 		e_next = BM_DISK_EDGE_NEXT(e_first, v);  /* always skip this verts edge */
-		do {
-			BLI_assert(v->e != e_next);
-			if ((BM_ELEM_API_FLAG_TEST(e_next, EDGE_NET)) &&
-			    (bm_edge_flagged_radial_count(e_next) < 2))
-			{
-				BMVert *v_next;
 
-				v_next = BM_edge_other_vert(e_next, v);
+		/* in rare cases there may be edges with a single connecting vertex */
+		if (e_next != e_first) {
+			do {
+				if ((BM_ELEM_API_FLAG_TEST(e_next, EDGE_NET)) &&
+				    (bm_edge_flagged_radial_count(e_next) < 2))
+				{
+					BMVert *v_next;
+
+					v_next = BM_edge_other_vert(e_next, v);
+					BLI_assert(v->e != e_next);
 
 #ifdef DEBUG_PRINT
-				/* indent and print */
-				{
-					BMVert *_v = v;
-					do {
-						printf("  ");
-					} while ((_v = BM_edge_other_vert(_v->e, _v)) != v_init);
-					printf("vert %d -> %d (add=%d)\n",
-					       BM_elem_index_get(v), BM_elem_index_get(v_next),
-					       BM_ELEM_API_FLAG_TEST(v_next, VERT_VISIT) == 0);
-				}
+					/* indent and print */
+					{
+						BMVert *_v = v;
+						do {
+							printf("  ");
+						} while ((_v = BM_edge_other_vert(_v->e, _v)) != v_init);
+						printf("vert %d -> %d (add=%d)\n",
+						       BM_elem_index_get(v), BM_elem_index_get(v_next),
+						       BM_ELEM_API_FLAG_TEST(v_next, VERT_VISIT) == 0);
+					}
 #endif
 
-				if (!BM_ELEM_API_FLAG_TEST(v_next, VERT_VISIT)) {
-					eo = STACK_PUSH_RET_PTR(edge_order);
-					eo->v = v_next;
+					if (!BM_ELEM_API_FLAG_TEST(v_next, VERT_VISIT)) {
+						eo = STACK_PUSH_RET_PTR(edge_order);
+						eo->v = v_next;
 
-					v_next->e = e_next;
+						v_next->e = e_next;
+					}
 				}
-			}
-		} while ((e_next = BM_DISK_EDGE_NEXT(e_next, v)) != e_first);
+			} while ((e_next = BM_DISK_EDGE_NEXT(e_next, v)) != e_first);
+		}
 
 #ifdef USE_FASTPATH_NOFORK
 		if (STACK_SIZE(edge_order) == 1) {
