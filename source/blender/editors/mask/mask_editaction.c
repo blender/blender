@@ -201,6 +201,36 @@ void ED_masklayer_frames_select_border(MaskLayer *masklay, float min, float max,
 	}
 }
 
+/* select the frames in this layer that occur within the lasso/circle region specified */
+void ED_masklayer_frames_select_region(KeyframeEditData *ked, MaskLayer *masklay, short tool, short select_mode)
+{
+	MaskLayerShape *masklay_shape;
+	
+	if (masklay == NULL)
+		return;
+	
+	/* only select frames which are within the region */
+	for (masklay_shape = masklay->splines_shapes.first; masklay_shape; masklay_shape = masklay_shape->next) {
+		/* construct a dummy point coordinate to do this testing with */
+		float pt[2] = {0};
+		
+		pt[0] = masklay_shape->frame;
+		pt[1] = ked->channel_y;
+		
+		/* check the necessary regions */
+		if (tool == BEZT_OK_CHANNEL_LASSO) {
+			/* Lasso */	
+			if (keyframe_region_lasso_test(ked->data, pt))
+				masklayshape_select(masklay_shape, select_mode);
+		}
+		else if (tool == BEZT_OK_CHANNEL_CIRCLE) {
+			/* Circle */
+			if (keyframe_region_circle_test(ked->data, pt))
+				masklayshape_select(masklay_shape, select_mode);
+		}
+	}
+}
+
 /* ***************************************** */
 /* Frame Editing Tools */
 

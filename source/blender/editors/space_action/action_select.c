@@ -482,13 +482,13 @@ static void region_select_action_keys(bAnimContext *ac, const rctf *rectf_view, 
 					Mask *mask = ale->data;
 					MaskLayer *masklay;
 					for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
-						//ED_masklayer_frames_select_border(masklay, rectf.xmin, rectf.xmax, selectmode);
+						ED_masklayer_frames_select_region(&ked, masklay, mode, selectmode);
 					}
 					break;
 				}
 				case ANIMTYPE_MASKLAYER:
 				{
-					//ED_masklayer_frames_select_border(ale->data, rectf.xmin, rectf.xmax, selectmode);
+					ED_masklayer_frames_select_region(&ked, ale->data, mode, selectmode);
 					break;
 				}
 				default:
