@@ -97,12 +97,22 @@ static BMLoop *bm_edge_flagged_radial_first(BMEdge *e)
 	return NULL;
 }
 
+static void normalize_v2_m3_v3v3(float out[2], float axis_mat[3][3], const float v1[3], const float v2[3])
+{
+	float dir[3];
+	sub_v3_v3v3(dir, v1, v2);
+	mul_v2_m3v3(out, axis_mat, dir);
+	normalize_v2(out);
+}
+
+
 /**
  * \note Be sure to update #bm_face_split_edgenet_find_loop_pair_exists
  * when making changed to edge picking logic.
  */
 static bool bm_face_split_edgenet_find_loop_pair(
-        BMVert *v_init, const float face_normal[3],
+        BMVert *v_init,
+        const float face_normal[3], float face_normal_matrix[3][3],
         BMEdge *e_pair[2])
 {
 	/* Always find one boundary edge (to determine winding)
@@ -171,13 +181,23 @@ static bool bm_face_split_edgenet_find_loop_pair(
 		/* find the best edge in 'edge_list' to use for 'e_pair[1]' */
 		const BMVert *v_prev = BM_edge_other_vert(e_pair[0], v_init);
 		const BMVert *v_next = BM_edge_other_vert(e_pair[1], v_init);
-		float angle_best = angle_on_axis_v3v3v3_v3(v_prev->co, v_init->co, v_next->co, face_normal);
+
+		float dir_prev[2], dir_next[2];
+
+		normalize_v2_m3_v3v3(dir_prev, face_normal_matrix, v_prev->co, v_init->co);
+		normalize_v2_m3_v3v3(dir_next, face_normal_matrix, v_next->co, v_init->co);
+		float angle_best_cos = dot_v2v2(dir_next, dir_prev);
+
 		BMEdge *e;
 		while ((e = BLI_SMALLSTACK_POP(edges_search))) {
 			v_next = BM_edge_other_vert(e, v_init);
-			const float angle_test = angle_on_axis_v3v3v3_v3(v_prev->co, v_init->co, v_next->co, face_normal);
-			if (angle_test < angle_best) {
-				angle_best = angle_test;
+			float dir_test[2];
+
+			normalize_v2_m3_v3v3(dir_test, face_normal_matrix, v_next->co, v_init->co);
+			const float angle_test_cos = dot_v2v2(dir_prev, dir_test);
+
+			if (angle_test_cos > angle_best_cos) {
+				angle_best_cos = angle_test_cos;
 				e_pair[1] = e;
 			}
 		}
@@ -398,7 +418,7 @@ finally:
 }
 
 static bool bm_face_split_edgenet_find_loop(
-        BMVert *v_init, const float face_normal[3],
+        BMVert *v_init, const float face_normal[3], float face_normal_matrix[3][3],
         /* cache to avoid realloc every time */
         struct VertOrder *edge_order, const unsigned int edge_order_len,
         BMVert **r_face_verts, int *r_face_verts_len)
@@ -406,7 +426,7 @@ static bool bm_face_split_edgenet_find_loop(
 	BMEdge *e_pair[2];
 	BMVert *v;
 
-	if (!bm_face_split_edgenet_find_loop_pair(v_init, face_normal, e_pair)) {
+	if (!bm_face_split_edgenet_find_loop_pair(v_init, face_normal, face_normal_matrix, e_pair)) {
 		return false;
 	}
 
@@ -501,12 +521,18 @@ bool BM_face_split_edgenet(
 		BM_ELEM_API_FLAG_ENABLE(l_iter->e, EDGE_NET);
 	} while ((l_iter = l_iter->next) != l_first);
 
+	float face_normal_matrix[3][3];
+	axis_dominant_v3_to_m3(face_normal_matrix, f->no);
+
 
 	/* any vert can be used to begin with */
 	STACK_PUSH(vert_queue, l_first->v);
 
 	while ((v = STACK_POP(vert_queue))) {
-		if (bm_face_split_edgenet_find_loop(v, f->no, edge_order, edge_order_len, face_verts, &face_verts_len)) {
+		if (bm_face_split_edgenet_find_loop(
+		        v, f->no, face_normal_matrix,
+		        edge_order, edge_order_len, face_verts, &face_verts_len))
+		{
 			BMFace *f_new;
 
 			f_new = BM_face_create_verts(bm, face_verts, face_verts_len, f, BM_CREATE_NOP, false);
