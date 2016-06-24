@@ -579,6 +579,8 @@ void WM_exit_ext(bContext *C, const bool do_python)
 
 	BLI_threadapi_exit();
 
+	BKE_blender_atexit();
+
 	if (MEM_get_memory_blocks_in_use() != 0) {
 		size_t mem_in_use = MEM_get_memory_in_use() + MEM_get_memory_in_use();
 		printf("Error: Not freed memory blocks: %u, total unfreed memory %f MB\n",

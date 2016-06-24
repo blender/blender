@@ -226,3 +226,56 @@ int BKE_blender_test_break(void)
 	return (G.is_break == true);
 }
 
+
+/** \name Blender's AtExit
+ *
+ * \note Don't use MEM_mallocN so functions can be registered at any time.
+ * \{ */
+
+struct AtExitData {
+	struct AtExitData *next;
+
+	void (*func)(void *user_data);
+	void *user_data;
+} *g_atexit = NULL;
+
+void BKE_blender_atexit_register(void (*func)(void *user_data), void *user_data)
+{
+	struct AtExitData *ae = malloc(sizeof(*ae));
+	ae->next = g_atexit;
+	ae->func = func;
+	ae->user_data = user_data;
+	g_atexit = ae;
+}
+
+void BKE_blender_atexit_unregister(void (*func)(void *user_data), const void *user_data)
+{
+	struct AtExitData *ae = g_atexit;
+	struct AtExitData **ae_p = &g_atexit;
+
+	while (ae) {
+		if ((ae->func == func) && (ae->user_data == user_data)) {
+			*ae_p = ae->next;
+			free(ae);
+			return;
+		}
+		ae_p = &ae;
+		ae = ae->next;
+	}
+}
+
+void BKE_blender_atexit(void)
+{
+	struct AtExitData *ae = g_atexit, *ae_next;
+	while (ae) {
+		ae_next = ae->next;
+
+		ae->func(ae->user_data);
+
+		free(ae);
+		ae = ae_next;
+	}
+	g_atexit = NULL;
+}
+
+/** \} */
