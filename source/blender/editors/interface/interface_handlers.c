@@ -8013,20 +8013,21 @@ uiBut *UI_context_active_but_get(const struct bContext *C)
 }
 
 /* helper function for insert keyframe, reset to default, etc operators */
-void UI_context_active_but_prop_get(const bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index)
+void UI_context_active_but_prop_get(
+        const bContext *C,
+        struct PointerRNA *r_ptr, struct PropertyRNA **r_prop, int *r_index)
 {
 	uiBut *activebut = ui_context_rna_button_active(C);
 
-	memset(ptr, 0, sizeof(*ptr));
-
 	if (activebut && activebut->rnapoin.data) {
-		*ptr = activebut->rnapoin;
-		*prop = activebut->rnaprop;
-		*index = activebut->rnaindex;
+		*r_ptr = activebut->rnapoin;
+		*r_prop = activebut->rnaprop;
+		*r_index = activebut->rnaindex;
 	}
 	else {
-		*prop = NULL;
-		*index = 0;
+		memset(r_ptr, 0, sizeof(*r_ptr));
+		*r_prop = NULL;
+		*r_index = 0;
 	}
 }
 
