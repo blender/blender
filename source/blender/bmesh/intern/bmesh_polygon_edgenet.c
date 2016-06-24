@@ -142,10 +142,17 @@ static bool bm_face_split_edgenet_find_loop_pair(
 	}
 	e_pair[0] = BLI_SMALLSTACK_POP(edges_boundary);
 
+	/* use to hold boundary OR wire edges */
+	BLI_SMALLSTACK_DECLARE(edges_search, BMEdge *);
+
 	/* attempt one boundary and one wire, or 2 boundary */
 	if (edges_wire_len == 0) {
-		if (edges_boundary_len >= 2) {
+		if (edges_boundary_len > 1) {
 			e_pair[1] = BLI_SMALLSTACK_POP(edges_boundary);
+
+			if (edges_boundary_len > 2) {
+				BLI_SMALLSTACK_SWAP(edges_search, edges_wire);
+			}
 		}
 		else {
 			/* one boundary and no wire */
@@ -154,28 +161,27 @@ static bool bm_face_split_edgenet_find_loop_pair(
 	}
 	else {
 		e_pair[1] = BLI_SMALLSTACK_POP(edges_wire);
-
 		if (edges_wire_len > 1) {
-			BMVert *v_prev = BM_edge_other_vert(e_pair[0], v_init);
-			BMVert *v_next;
-			float angle_best;
-
-			v_next = BM_edge_other_vert(e_pair[1], v_init);
-			angle_best = angle_on_axis_v3v3v3_v3(v_prev->co, v_init->co, v_next->co, face_normal);
-
-			BMEdge *e;
-			while ((e = BLI_SMALLSTACK_POP(edges_wire))) {
-				float angle_test;
-				v_next = BM_edge_other_vert(e, v_init);
-				angle_test = angle_on_axis_v3v3v3_v3(v_prev->co, v_init->co, v_next->co, face_normal);
-				if (angle_test < angle_best) {
-					angle_best = angle_test;
-					e_pair[1] = e;
-				}
-			}
+			BLI_SMALLSTACK_SWAP(edges_search, edges_wire);
 		}
 	}
 
+	/* if we swapped above, search this list for the best edge */
+	if (!BLI_SMALLSTACK_IS_EMPTY(edges_search)) {
+		/* find the best edge in 'edge_list' to use for 'e_pair[1]' */
+		const BMVert *v_prev = BM_edge_other_vert(e_pair[0], v_init);
+		const BMVert *v_next = BM_edge_other_vert(e_pair[1], v_init);
+		float angle_best = angle_on_axis_v3v3v3_v3(v_prev->co, v_init->co, v_next->co, face_normal);
+		BMEdge *e;
+		while ((e = BLI_SMALLSTACK_POP(edges_search))) {
+			v_next = BM_edge_other_vert(e, v_init);
+			const float angle_test = angle_on_axis_v3v3v3_v3(v_prev->co, v_init->co, v_next->co, face_normal);
+			if (angle_test < angle_best) {
+				angle_best = angle_test;
+				e_pair[1] = e;
+			}
+		}
+	}
 
 	/* flip based on winding */
 	l_walk = bm_edge_flagged_radial_first(e_pair[0]);
