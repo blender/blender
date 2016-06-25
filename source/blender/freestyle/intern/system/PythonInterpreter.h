@@ -84,8 +84,7 @@ public:
 		Text *text = BKE_text_load(&_freestyle_bmain, fn, G.main->name);
 		if (text) {
 			ok = BPY_execute_text(_context, text, reports, false);
-			BKE_text_unlink(&_freestyle_bmain, text);
-			BKE_libblock_free(&_freestyle_bmain, text);
+			BKE_libblock_delete(&_freestyle_bmain, text);
 		}
 		else {
 			BKE_reportf(reports, RPT_ERROR, "Cannot open file: %s", fn);
