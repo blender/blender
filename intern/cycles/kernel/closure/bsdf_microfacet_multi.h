@@ -348,7 +348,11 @@ ccl_device int bsdf_microfacet_multi_ggx_common_setup(ShaderClosure *sc)
 
 ccl_device int bsdf_microfacet_multi_ggx_aniso_setup(ShaderClosure *sc)
 {
+#ifdef __KERNEL_OPENCL__
+	if(all(sc->T == 0.0f))
+#else
 	if(sc->T == make_float3(0.0f, 0.0f, 0.0f))
+#endif
 		sc->T = make_float3(1.0f, 0.0f, 0.0f);
 
 	return bsdf_microfacet_multi_ggx_common_setup(sc);
