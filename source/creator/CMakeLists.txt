@@ -538,6 +538,7 @@ if(UNIX AND NOT APPLE)
 				DIRECTORY ${PYTHON_LIBPATH}/python${PYTHON_VERSION}
 				DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}
 				PATTERN "__pycache__" EXCLUDE               # * any cache *
+				PATTERN "config-${PYTHON_VERSION}m/*.a" EXCLUDE  # static lib
 				PATTERN "lib2to3" EXCLUDE                   # ./lib2to3
 				PATTERN "site-packages/*" EXCLUDE           # ./site-packages/*
 				PATTERN "tkinter" EXCLUDE                   # ./tkinter
@@ -914,6 +915,7 @@ elseif(APPLE)
 			PATTERN "__pycache__" EXCLUDE
 			PATTERN "__MACOSX" EXCLUDE
 			PATTERN ".DS_Store" EXCLUDE
+			PATTERN "config-${PYTHON_VERSION}m/*.a" EXCLUDE  # static lib
 		)
 	endmacro()
 
