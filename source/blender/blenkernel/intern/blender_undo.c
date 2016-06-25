@@ -66,9 +66,6 @@
 #include "BLO_readfile.h"
 #include "BLO_writefile.h"
 
-#include "WM_api.h" // XXXXX BAD, very BAD dependency (bad level call) - remove asap, elubie
-
-
 /* -------------------------------------------------------------------- */
 
 /** \name Global Undo
@@ -87,6 +84,15 @@ typedef struct UndoElem {
 static ListBase undobase = {NULL, NULL};
 static UndoElem *curundo = NULL;
 
+/**
+ * Avoid bad-level call to #WM_jobs_kill_all_except()
+ */
+static void (*undo_wm_job_kill_callback)(struct bContext *C) = NULL;
+
+void BKE_undo_callback_wm_kill_jobs_set(void (*callback)(struct bContext *C))
+{
+	undo_wm_job_kill_callback = callback;
+}
 
 static int read_undosave(bContext *C, UndoElem *uel)
 {
@@ -94,7 +100,7 @@ static int read_undosave(bContext *C, UndoElem *uel)
 	int success = 0, fileflags;
 
 	/* This is needed so undoing/redoing doesn't crash with threaded previews going */
-	WM_jobs_kill_all_except(CTX_wm_manager(C), CTX_wm_screen(C));
+	undo_wm_job_kill_callback(C);
 
 	BLI_strncpy(mainstr, G.main->name, sizeof(mainstr));    /* temporal store */
 

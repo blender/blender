@@ -55,8 +55,6 @@
 
 #include "PIL_time.h"
 
-#include "WM_api.h"
-
 #include "BKE_appdir.h"
 #include "BKE_anim.h"
 #include "BKE_cloth.h"
