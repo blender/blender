@@ -1488,7 +1488,7 @@ unsigned int ED_view3d_backbuf_sample(ViewContext *vc, int x, int y)
 		BLI_endian_switch_uint32(&col);
 	}
 	
-	return WM_framebuffer_to_index(col);
+	return GPU_select_to_index(col);
 }
 
 /* reads full rect, converts indices */
@@ -1521,7 +1521,7 @@ ImBuf *ED_view3d_backbuf_read(ViewContext *vc, int xmin, int ymin, int xmax, int
 		IMB_convert_rgba_to_abgr(ibuf_clip);
 	}
 
-	WM_framebuffer_to_index_array(ibuf_clip->rect, size_clip[0] * size_clip[1]);
+	GPU_select_to_index_array(ibuf_clip->rect, size_clip[0] * size_clip[1]);
 	
 	if ((clip.xmin == xmin) &&
 	    (clip.xmax == xmax) &&

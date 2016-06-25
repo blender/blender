@@ -8219,7 +8219,7 @@ static void bbs_obmode_mesh_verts__mapFunc(void *userData, int index, const floa
 	MVert *mv = &data->mvert[index];
 
 	if (!(mv->flag & ME_HIDE)) {
-		WM_framebuffer_index_set(data->offset + index);
+		GPU_select_index_set(data->offset + index);
 		glVertex3fv(co);
 	}
 }
@@ -8244,7 +8244,7 @@ static void bbs_mesh_verts__mapFunc(void *userData, int index, const float co[3]
 	BMVert *eve = BM_vert_at_index(data->bm, index);
 
 	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-		WM_framebuffer_index_set(data->offset + index);
+		GPU_select_index_set(data->offset + index);
 		glVertex3fv(co);
 	}
 }
@@ -8263,7 +8263,7 @@ static DMDrawOption bbs_mesh_wire__setDrawOptions(void *userData, int index)
 	BMEdge *eed = BM_edge_at_index(data->bm, index);
 
 	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-		WM_framebuffer_index_set(data->offset + index);
+		GPU_select_index_set(data->offset + index);
 		return DM_DRAW_OPTION_NORMAL;
 	}
 	else {
@@ -8277,7 +8277,7 @@ static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *dm, int offset)
 }
 
 /**
- * dont set #WM_framebuffer_index_set. just use to mask other
+ * dont set #GPU_framebuffer_index_set. just use to mask other
  */
 static DMDrawOption bbs_mesh_mask__setSolidDrawOptions(void *userData, int index)
 {
@@ -8296,7 +8296,7 @@ static DMDrawOption bbs_mesh_solid__setSolidDrawOptions(void *userData, int inde
 	BMFace *efa = BM_face_at_index(userData, index);
 
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-		WM_framebuffer_index_set(index + 1);
+		GPU_select_index_set(index + 1);
 		return DM_DRAW_OPTION_NORMAL;
 	}
 	else {
@@ -8309,7 +8309,7 @@ static void bbs_mesh_solid__drawCenter(void *userData, int index, const float ce
 	BMFace *efa = BM_face_at_index(userData, index);
 
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-		WM_framebuffer_index_set(index + 1);
+		GPU_select_index_set(index + 1);
 
 		glVertex3fv(cent);
 	}
@@ -8340,7 +8340,7 @@ static void bbs_mesh_solid_EM(BMEditMesh *em, Scene *scene, View3D *v3d,
 
 static DMDrawOption bbs_mesh_solid__setDrawOpts(void *UNUSED(userData), int index)
 {
-	WM_framebuffer_index_set(index + 1);
+	GPU_select_index_set(index + 1);
 	return DM_DRAW_OPTION_NORMAL;
 }
 
@@ -8349,7 +8349,7 @@ static DMDrawOption bbs_mesh_solid_hide__setDrawOpts(void *userData, int index)
 	Mesh *me = userData;
 
 	if (!(me->mpoly[index].flag & ME_HIDE)) {
-		WM_framebuffer_index_set(index + 1);
+		GPU_select_index_set(index + 1);
 		return DM_DRAW_OPTION_NORMAL;
 	}
 	else {
@@ -8357,7 +8357,7 @@ static DMDrawOption bbs_mesh_solid_hide__setDrawOpts(void *userData, int index)
 	}
 }
 
-/* must have called WM_framebuffer_index_set beforehand */
+/* must have called GPU_framebuffer_index_set beforehand */
 static DMDrawOption bbs_mesh_solid_hide2__setDrawOpts(void *userData, int index)
 {
 	Mesh *me = userData;

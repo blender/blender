@@ -61,8 +61,6 @@
 #include "GPU_shader.h"
 #include "GPU_basic_shader.h"
 
-#include "WM_api.h"
-
 #include <string.h>
 #include <limits.h>
 #include <math.h>
@@ -699,10 +697,10 @@ static void cdDM_drawMappedFaces(
 						}
 
 						if ((orig != ORIGINDEX_NONE) && !is_hidden)
-							WM_framebuffer_index_get(orig + 1, &selcol);
+							GPU_select_index_get(orig + 1, &selcol);
 					}
 					else if (orig != ORIGINDEX_NONE)
-						WM_framebuffer_index_get(orig + 1, &selcol);
+						GPU_select_index_get(orig + 1, &selcol);
 
 					for (j = 0; j < mpoly->totloop; j++)
 						fi_map[start_element++] = selcol;
