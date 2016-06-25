@@ -1630,7 +1630,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 							if (dlb->type == DL_POLY) {
 								dl->flag |= DL_CYCL_U;
 							}
-							if ((bl->poly >= 0) && (steps != 2)) {
+							if ((bl->poly >= 0) && (steps > 2)) {
 								dl->flag |= DL_CYCL_V;
 							}
 
