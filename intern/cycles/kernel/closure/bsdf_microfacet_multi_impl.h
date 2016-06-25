@@ -25,7 +25,7 @@
  * energy is used. In combination with MIS, that is enough to produce an unbiased result, although
  * the balance heuristic isn't necessarily optimal anymore.
  */
-ccl_device float3 MF_FUNCTION_FULL_NAME(mf_eval)(float3 wi, float3 wo, const bool wo_outside, const float3 color, const float alpha_x, const float alpha_y, uint* lcg_state
+ccl_device float3 MF_FUNCTION_FULL_NAME(mf_eval)(float3 wi, float3 wo, const bool wo_outside, const float3 color, const float alpha_x, const float alpha_y, ccl_addr_space uint* lcg_state
 #ifdef MF_MULTI_GLASS
 	, const float eta
 #elif defined(MF_MULTI_GLOSSY)
@@ -158,7 +158,7 @@ ccl_device float3 MF_FUNCTION_FULL_NAME(mf_eval)(float3 wi, float3 wo, const boo
  * escaped the surface in wo. The function returns the throughput between wi and wo.
  * Without reflection losses due to coloring or fresnel absorption in conductors, the sampling is optimal.
  */
-ccl_device float3 MF_FUNCTION_FULL_NAME(mf_sample)(float3 wi, float3 *wo, const float3 color, const float alpha_x, const float alpha_y, uint *lcg_state
+ccl_device float3 MF_FUNCTION_FULL_NAME(mf_sample)(float3 wi, float3 *wo, const float3 color, const float alpha_x, const float alpha_y, ccl_addr_space uint *lcg_state
 #ifdef MF_MULTI_GLASS
 	, const float eta
 #elif defined(MF_MULTI_GLOSSY)
