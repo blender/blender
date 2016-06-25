@@ -2816,7 +2816,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 						}
 					}
 
-					if (dl->bevelSplitFlag || timeoffset==0) {
+					if (dl->bevel_split || timeoffset == 0) {
 						const int startvlak= obr->totvlak;
 
 						for (a=0; a<dl->parts; a++) {
@@ -2856,10 +2856,15 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 							}
 						}
 
-						if (dl->bevelSplitFlag) {
-							for (a=0; a<dl->parts-1+!!(dl->flag&DL_CYCL_V); a++)
-								if (dl->bevelSplitFlag[a>>5]&(1<<(a&0x1F)))
-									split_v_renderfaces(obr, startvlak, startvert, dl->parts, dl->nr, a, dl->flag&DL_CYCL_V, dl->flag&DL_CYCL_U);
+						if (dl->bevel_split) {
+							for (a = 0; a < dl->parts - 1 + !!(dl->flag & DL_CYCL_V); a++) {
+								if (BLI_BITMAP_TEST(dl->bevel_split, a)) {
+									split_v_renderfaces(
+									        obr, startvlak, startvert, dl->parts, dl->nr, a,
+									        /* intentionally swap (v, u) --> (u, v) */
+									        dl->flag & DL_CYCL_V, dl->flag & DL_CYCL_U);
+								}
+							}
 						}
 
 						/* vertex normals */
