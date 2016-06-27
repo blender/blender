@@ -634,7 +634,12 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 	}
 
 	{
-		const float circle_factor = length * (cubic_tangent_factor_circle_v3(h1, h2) / 0.75f);
+#if 0 // <--- this is currently unstable, disabling until we find a good fix
+		const float circle_factor = length * (cubic_tangent_factor_circle_v3(h1, h2) / 0.75f);  
+#else // <--- temporary workaround, using the old hardcoded value
+		const float circle_factor = length * 0.390464f;  
+#endif
+
 		const float hlength1 = bone->ease1 * circle_factor;
 		const float hlength2 = bone->ease2 * circle_factor;
 
