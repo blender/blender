@@ -46,6 +46,8 @@
 
 #include "BLO_readfile.h"
 
+#include "DNA_space_types.h"  /* For FILE_MAX_LIBEXTRA */
+
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_thumbs.h"
@@ -533,7 +535,7 @@ ImBuf *IMB_thumb_manage(const char *org_path, ThumbSize size, ThumbSource source
 	char thumb_path[FILE_MAX];
 	char thumb_name[40];
 	char uri[URI_MAX];
-	char path_buff[FILE_MAX];
+	char path_buff[FILE_MAX_LIBEXTRA];
 	const char *file_path;
 	const char *path;
 	BLI_stat_t st;

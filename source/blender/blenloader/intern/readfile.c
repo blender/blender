@@ -1326,6 +1326,7 @@ bool BLO_has_bfile_extension(const char *str)
  *
  * \param path the full path to explode.
  * \param r_dir the string that'll contain path up to blend file itself ('library' path).
+ *              WARNING! Must be FILE_MAX_LIBEXTRA long (it also stores group and name strings)!
  * \param r_group the string that'll contain 'group' part of the path, if any. May be NULL.
  * \param r_name the string that'll contain data's name part of the path, if any. May be NULL.
  * \return true if path contains a blend file.
