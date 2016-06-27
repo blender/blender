@@ -29,15 +29,22 @@
  */
 
 
-/*
- * FILEFORMAT: IFF-style structure  (but not IFF compatible!)
+/**
+ *
+ * FILE FORMAT
+ * ===========
+ *
+ * IFF-style structure  (but not IFF compatible!)
  *
  * start file:
+ * <pre>
  *     BLENDER_V100    12 bytes  (versie 1.00)
  *                     V = big endian, v = little endian
  *                     _ = 4 byte pointer, - = 8 byte pointer
+ * </pre>
  *
- * datablocks:     also see struct BHead
+ * datablocks: (also see struct #BHead).
+ * <pre>
  *     <bh.code>           4 chars
  *     <bh.len>            int,  len data after BHead
  *     <bh.old>            void,  old pointer
@@ -46,29 +53,32 @@
  *     data
  *     ...
  *     ...
+ * </pre>
  *
  * Almost all data in Blender are structures. Each struct saved
  * gets a BHead header.  With BHead the struct can be linked again
  * and compared with StructDNA .
  *
+ *
  * WRITE
+ * =====
  *
  * Preferred writing order: (not really a must, but why would you do it random?)
  * Any case: direct data is ALWAYS after the lib block
  *
  * (Local file data)
  * - for each LibBlock
- *     - write LibBlock
- *     - write associated direct data
+ *   - write LibBlock
+ *   - write associated direct data
  * (External file data)
  * - per library
- *     - write library block
- *     - per LibBlock
- *         - write the ID of LibBlock
- * - write TEST (128x128, blend file preview, optional)
- * - write FileGlobal (some global vars)
- * - write SDNA
- * - write USER if filename is ~/X.XX/config/startup.blend
+ *   - write library block
+ *   - per LibBlock
+ *     - write the ID of LibBlock
+ * - write #TEST (#RenderInfo struct. 128x128 blend file preview is optional).
+ * - write #GLOB (#FileGlobal struct) (some global vars).
+ * - write #DNA1 (#SDNA struct)
+ * - write #USER (#UserDef struct) if filename is ``~/X.XX/config/startup.blend``.
  */
 
 
