@@ -264,6 +264,11 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 			if ((reports->flag & RPT_FREE) == 0) {
 				MEM_freeN(reports);
 			}
+			else {
+				/* The WM is now responsible for running the modal operator,
+				 * show reports in the info window. */
+				reports->flag &= ~RPT_OP_HOLD;
+			}
 		}
 
 		WM_operator_properties_free(&ptr);
