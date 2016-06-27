@@ -565,7 +565,7 @@ BVHTree *bvhtree_from_mesh_verts(
 /**
  * Builds a bvh tree where nodes are the given vertices (note: does not copy given mverts!).
  * \param vert_allocated if true, vert freeing will be done when freeing data.
- * \param mask if not null, true elements give which vert to add to BVH tree.
+ * \param verts_mask if not null, true elements give which vert to add to BVH tree.
  * \param verts_num_active if >= 0, number of active verts to add to BVH tree (else will be computed from mask).
  */
 BVHTree *bvhtree_from_mesh_verts_ex(
@@ -804,7 +804,7 @@ BVHTree *bvhtree_from_mesh_faces(
  * Builds a bvh tree where nodes are the given tessellated faces (note: does not copy given mfaces!).
  * \param vert_allocated if true, vert freeing will be done when freeing data.
  * \param face_allocated if true, face freeing will be done when freeing data.
- * \param mask if not null, true elements give which faces to add to BVH tree.
+ * \param faces_mask: if not null, true elements give which faces to add to BVH tree.
  * \param numFaces_active if >= 0, number of active faces to add to BVH tree (else will be computed from mask).
  */
 BVHTree *bvhtree_from_mesh_faces_ex(

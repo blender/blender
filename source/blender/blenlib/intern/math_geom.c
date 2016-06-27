@@ -2692,7 +2692,7 @@ bool isect_point_tri_prism_v3(const float p[3], const float v1[3], const float v
 }
 
 /**
- * \param r_vi The point \a p projected onto the triangle.
+ * \param r_isect_co: The point \a p projected onto the triangle.
  * \return True when \a p is inside the triangle.
  * \note Its up to the caller to check the distance between \a p and \a r_vi against an error margin.
  */

@@ -310,7 +310,7 @@ static int BLI_path_unc_prefix_len(const char *path); /* defined below in same f
 /**
  * Remove redundant characters from \a path and optionally make absolute.
  *
- * \param relbase: The path this is relative to, or ignored when NULL.
+ * \param relabase: The path this is relative to, or ignored when NULL.
  * \param path: Can be any input, and this function converts it to a regular full path.
  * Also removes garbage from directory paths, like `/../` or double slashes etc.
  *

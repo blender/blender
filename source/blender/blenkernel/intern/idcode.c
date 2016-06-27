@@ -124,7 +124,7 @@ static IDType *idtype_from_code(short idcode)
 /**
  * Return if the ID code is a valid ID code.
  *
- * \param code The code to check.
+ * \param idcode: The code to check.
  * \return Boolean, 0 when invalid.
  */
 bool BKE_idcode_is_valid(short idcode)
@@ -135,7 +135,7 @@ bool BKE_idcode_is_valid(short idcode)
 /**
  * Return non-zero when an ID type is linkable.
  *
- * \param code The code to check.
+ * \param idcode: The code to check.
  * \return Boolean, 0 when non linkable.
  */
 bool BKE_idcode_is_linkable(short idcode)
@@ -148,7 +148,7 @@ bool BKE_idcode_is_linkable(short idcode)
 /**
  * Convert an idcode into a name.
  *
- * \param code The code to convert.
+ * \param idcode: The code to convert.
  * \return A static string representing the name of
  * the code.
  */
@@ -261,7 +261,7 @@ short BKE_idcode_from_idfilter(const int idfilter)
 /**
  * Convert an idcode into a name (plural).
  *
- * \param code The code to convert.
+ * \param idcode: The code to convert.
  * \return A static string representing the name of
  * the code.
  */
@@ -275,7 +275,7 @@ const char *BKE_idcode_to_name_plural(short idcode)
 /**
  * Convert an idcode into its translations' context.
  *
- * \param code The code to convert.
+ * \param idcode: The code to convert.
  * \return A static string representing the i18n context of the code.
  */
 const char *BKE_idcode_to_translation_context(short idcode)

@@ -352,8 +352,6 @@ void BLI_filelist_entry_datetime_to_string(
 
 /**
  * Deep-duplicate of a single direntry.
- *
- * \param dup_poin If given, called for each non-NULL direntry->poin. Otherwise, pointer is always simply copied over.
  */
 void BLI_filelist_entry_duplicate(struct direntry *dst, const struct direntry *src)
 {
@@ -368,8 +366,6 @@ void BLI_filelist_entry_duplicate(struct direntry *dst, const struct direntry *s
 
 /**
  * Deep-duplicate of an array of direntries, including the array itself.
- *
- * \param dup_poin If given, called for each non-NULL direntry->poin. Otherwise, pointer is always simply copied over.
  */
 void BLI_filelist_duplicate(
         struct direntry **dest_filelist, struct direntry * const src_filelist, const unsigned int nrentries)
