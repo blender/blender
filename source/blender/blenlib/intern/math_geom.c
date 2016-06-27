@@ -5002,7 +5002,9 @@ float cubic_tangent_factor_circle_v3(const float tan_l[3], const float tan_r[3])
 	BLI_ASSERT_UNIT_V3(tan_l);
 	BLI_ASSERT_UNIT_V3(tan_r);
 
-	const float eps = 1e-7f;
+	/* -7f causes instability/glitches with Bendy Bones + Custom Refs  */
+	const float eps = 1e-5f;
+	
 	const float tan_dot = dot_v3v3(tan_l, tan_r);
 	if (tan_dot > 1.0f - eps) {
 		/* no angle difference (use fallback, length wont make any difference) */
