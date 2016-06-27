@@ -162,15 +162,14 @@ static int foreach_libblock_remap_callback(void *user_data, ID *UNUSED(id_self),
 	}
 
 	if (*id_p && (*id_p == old_id)) {
+		const bool is_indirect = (id->lib != NULL);
+		const bool skip_indirect = (id_remap_data->flag & ID_REMAP_SKIP_INDIRECT_USAGE) != 0;
 		/* Note: proxy usage implies LIB_TAG_EXTERN, so on this aspect it is direct,
 		 *       on the other hand since they get reset to lib data on file open/reload it is indirect too...
 		 *       Edit Mode is also a 'skip direct' case. */
 		const bool is_obj = (GS(id->name) == ID_OB);
 		const bool is_proxy = (is_obj && (((Object *)id)->proxy || ((Object *)id)->proxy_group));
 		const bool is_obj_editmode = (is_obj && BKE_object_is_in_editmode((Object *)id));
-		/* Note that indirect data from same file as processed ID is **not** considered indirect! */
-		const bool is_indirect = ((id->lib != NULL) && (id->lib != old_id->lib));
-		const bool skip_indirect = (id_remap_data->flag & ID_REMAP_SKIP_INDIRECT_USAGE) != 0;
 		const bool is_never_null = ((cb_flag & IDWALK_NEVER_NULL) && (new_id == NULL) &&
 		                            (id_remap_data->flag & ID_REMAP_FORCE_NEVER_NULL_USAGE) == 0);
 		const bool skip_never_null = (id_remap_data->flag & ID_REMAP_SKIP_NEVER_NULL_USAGE) != 0;
@@ -184,7 +183,7 @@ static int foreach_libblock_remap_callback(void *user_data, ID *UNUSED(id_self),
 		    (is_obj_editmode && (((Object *)id)->data == *id_p)) ||
 		    (skip_indirect && (is_proxy || is_indirect)))
 		{
-			if (is_never_null || is_proxy || is_obj_editmode) {
+			if (!is_indirect && (is_never_null || is_proxy || is_obj_editmode)) {
 				id_remap_data->skipped_direct++;
 			}
 			else {

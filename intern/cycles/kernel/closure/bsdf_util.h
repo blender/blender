@@ -111,10 +111,9 @@ ccl_device float fresnel_dielectric_cos(float cosi, float eta)
 	return 1.0f; // TIR(no refracted component)
 }
 
-#if 0
 ccl_device float3 fresnel_conductor(float cosi, const float3 eta, const float3 k)
 {
-	float3 cosi2 = make_float3(cosi*cosi);
+	float3 cosi2 = make_float3(cosi*cosi, cosi*cosi, cosi*cosi);
 	float3 one = make_float3(1.0f, 1.0f, 1.0f);
 	float3 tmp_f = eta * eta + k * k;
 	float3 tmp = tmp_f * cosi2;
@@ -124,7 +123,6 @@ ccl_device float3 fresnel_conductor(float cosi, const float3 eta, const float3 k
 					(tmp_f + (2.0f * eta * cosi) + cosi2);
 	return(Rparl2 + Rperp2) * 0.5f;
 }
-#endif
 
 ccl_device float smooth_step(float edge0, float edge1, float x)
 {

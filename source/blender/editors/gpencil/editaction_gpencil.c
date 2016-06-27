@@ -205,6 +205,36 @@ void ED_gplayer_frames_select_border(bGPDlayer *gpl, float min, float max, short
 	}
 }
 
+/* select the frames in this layer that occur within the lasso/circle region specified */
+void ED_gplayer_frames_select_region(KeyframeEditData *ked, bGPDlayer *gpl, short tool, short select_mode)
+{
+	bGPDframe *gpf;
+	
+	if (gpl == NULL)
+		return;
+	
+	/* only select frames which are within the region */
+	for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+		/* construct a dummy point coordinate to do this testing with */
+		float pt[2] = {0};
+		
+		pt[0] = gpf->framenum;
+		pt[1] = ked->channel_y;
+		
+		/* check the necessary regions */
+		if (tool == BEZT_OK_CHANNEL_LASSO) {
+			/* Lasso */	
+			if (keyframe_region_lasso_test(ked->data, pt))
+				gpframe_select(gpf, select_mode);
+		}
+		else if (tool == BEZT_OK_CHANNEL_CIRCLE) {
+			/* Circle */
+			if (keyframe_region_circle_test(ked->data, pt))
+				gpframe_select(gpf, select_mode);
+		}
+	}
+}
+
 /* ***************************************** */
 /* Frame Editing Tools */
 

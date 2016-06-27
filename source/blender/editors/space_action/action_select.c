@@ -36,6 +36,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dlrbTree.h"
+#include "BLI_lasso.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
@@ -373,6 +374,264 @@ void ACTION_OT_select_border(wmOperatorType *ot)
 	WM_operator_properties_gesture_border(ot, true);
 	
 	ot->prop = RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
+}
+
+/* ******************** Region Select Operators ***************************** */
+/* "Region Select" operators include the Lasso and Circle Select operators.
+ * These two ended up being lumped together, as it was easier in the 
+ * original Graph Editor implmentation of these to do it this way.
+ */
+
+static void region_select_action_keys(bAnimContext *ac, const rctf *rectf_view, short mode, short selectmode, void *data)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	KeyframeEditData ked;
+	KeyframeEditFunc ok_cb, select_cb;
+	View2D *v2d = &ac->ar->v2d;
+	rctf rectf, scaled_rectf;
+	float ymin = 0, ymax = (float)(-ACHANNEL_HEIGHT_HALF);
+	
+	/* convert mouse coordinates to frame ranges and channel coordinates corrected for view pan/zoom */
+	UI_view2d_region_to_view_rctf(v2d, rectf_view, &rectf);
+	
+	/* filter data */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* get beztriple editing/validation funcs  */
+	select_cb = ANIM_editkeyframes_select(selectmode);
+	ok_cb = ANIM_editkeyframes_ok(mode);
+	
+	/* init editing data */
+	memset(&ked, 0, sizeof(KeyframeEditData));
+	if (mode == BEZT_OK_CHANNEL_LASSO) {
+		KeyframeEdit_LassoData *data_lasso = data;
+		data_lasso->rectf_scaled = &scaled_rectf;
+		ked.data = data_lasso;
+	}
+	else if (mode == BEZT_OK_CHANNEL_CIRCLE) {
+		KeyframeEdit_CircleData *data_circle = data;
+		data_circle->rectf_scaled = &scaled_rectf;
+		ked.data = data;
+	}
+	else {
+		ked.data = &scaled_rectf;
+	}
+	
+	/* loop over data, doing region select */
+	for (ale = anim_data.first; ale; ale = ale->next) {
+		AnimData *adt = ANIM_nla_mapping_get(ac, ale);
+		
+		/* get new vertical minimum extent of channel */
+		ymin = ymax - ACHANNEL_STEP;
+		
+		/* compute midpoint of channel (used for testing if the key is in the region or not) */
+		ked.channel_y = ymin + ACHANNEL_HEIGHT_HALF;
+		
+		/* if channel is mapped in NLA, apply correction
+		 * - Apply to the bounds being checked, not all the keyframe points,
+		 *   to avoid having scaling everything
+		 * - Save result to the scaled_rect, which is all that these operators
+		 *   will read from
+		 */
+		if (adt) {
+			ked.iterflags &= ~(KED_F1_NLA_UNMAP | KED_F2_NLA_UNMAP);
+			ked.f1 = BKE_nla_tweakedit_remap(adt, rectf.xmin, NLATIME_CONVERT_UNMAP);
+			ked.f2 = BKE_nla_tweakedit_remap(adt, rectf.xmax, NLATIME_CONVERT_UNMAP);
+		}
+		else {
+			ked.iterflags |= (KED_F1_NLA_UNMAP | KED_F2_NLA_UNMAP); /* for summary tracks */
+			ked.f1 = rectf.xmin;
+			ked.f2 = rectf.xmax;
+		}
+		
+		/* Update values for scaled_rectf - which is used to compute the mapping in the callbacks
+		 * NOTE: Since summary tracks need late-binding remapping, the callbacks may overwrite these 
+		 *       with the properly remapped ked.f1/f2 values, when needed
+		 */
+		scaled_rectf.xmin = ked.f1;
+		scaled_rectf.xmax = ked.f2;
+		scaled_rectf.ymin = ymin;
+		scaled_rectf.ymax = ymax;
+		
+		/* perform vertical suitability check (if applicable) */
+		if ((mode == ACTKEYS_BORDERSEL_FRAMERANGE) ||
+		    !((ymax < rectf.ymin) || (ymin > rectf.ymax)))
+		{
+			/* loop over data selecting */
+			switch (ale->type) {
+				case ANIMTYPE_GPDATABLOCK:
+				{
+					bGPdata *gpd = ale->data;
+					bGPDlayer *gpl;
+					for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+						ED_gplayer_frames_select_region(&ked, ale->data, mode, selectmode);
+					}
+					break;
+				}
+				case ANIMTYPE_GPLAYER:
+				{
+					ED_gplayer_frames_select_region(&ked, ale->data, mode, selectmode);
+					break;
+				}
+				case ANIMTYPE_MASKDATABLOCK:
+				{
+					Mask *mask = ale->data;
+					MaskLayer *masklay;
+					for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+						ED_masklayer_frames_select_region(&ked, masklay, mode, selectmode);
+					}
+					break;
+				}
+				case ANIMTYPE_MASKLAYER:
+				{
+					ED_masklayer_frames_select_region(&ked, ale->data, mode, selectmode);
+					break;
+				}
+				default:
+					ANIM_animchannel_keyframes_loop(&ked, ac->ads, ale, ok_cb, select_cb, NULL);
+					break;
+			}
+		}
+		
+		/* set minimum extent to be the maximum of the next channel */
+		ymax = ymin;
+	}
+	
+	/* cleanup */
+	ANIM_animdata_freelist(&anim_data);
+}
+ 
+/* ----------------------------------- */
+ 
+static int actkeys_lassoselect_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	KeyframeEdit_LassoData data_lasso;
+	rcti rect;
+	rctf rect_fl;
+	
+	short selectmode;
+	bool extend;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	data_lasso.rectf_view = &rect_fl;
+	data_lasso.mcords = WM_gesture_lasso_path_to_array(C, op, &data_lasso.mcords_tot);
+	if (data_lasso.mcords == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* clear all selection if not extending selection */
+	extend = RNA_boolean_get(op->ptr, "extend");
+	if (!extend)
+		deselect_action_keys(&ac, 1, SELECT_SUBTRACT);
+	
+	if (!RNA_boolean_get(op->ptr, "deselect"))
+		selectmode = SELECT_ADD;
+	else
+		selectmode = SELECT_SUBTRACT;
+	
+	/* get settings from operator */
+	BLI_lasso_boundbox(&rect, data_lasso.mcords, data_lasso.mcords_tot);
+	BLI_rctf_rcti_copy(&rect_fl, &rect);
+	
+	/* apply borderselect action */
+	region_select_action_keys(&ac, &rect_fl, BEZT_OK_CHANNEL_LASSO, selectmode, &data_lasso);
+	
+	MEM_freeN((void *)data_lasso.mcords);
+	
+	/* send notifier that keyframe selection has changed */
+	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ACTION_OT_select_lasso(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Lasso Select";
+	ot->description = "Select keyframe points using lasso selection";
+	ot->idname = "ACTION_OT_select_lasso";
+	
+	/* api callbacks */
+	ot->invoke = WM_gesture_lasso_invoke;
+	ot->modal = WM_gesture_lasso_modal;
+	ot->exec = actkeys_lassoselect_exec;
+	ot->poll = ED_operator_action_active;
+	ot->cancel = WM_gesture_lasso_cancel;
+	
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
+	RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Deselect rather than select items");
+	RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend selection instead of deselecting everything first");
+}
+
+/* ------------------- */
+
+static int action_circle_select_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	const int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
+	const short selectmode = (gesture_mode == GESTURE_MODAL_SELECT) ? SELECT_ADD : SELECT_SUBTRACT;
+	
+	KeyframeEdit_CircleData data = {0};
+	rctf rect_fl;
+	
+	float x = RNA_int_get(op->ptr, "x");
+	float y = RNA_int_get(op->ptr, "y");
+	float radius = RNA_int_get(op->ptr, "radius");
+
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	data.mval[0] = x;
+	data.mval[1] = y;
+	data.radius_squared = radius * radius;
+	data.rectf_view = &rect_fl;
+	
+	rect_fl.xmin = x - radius;
+	rect_fl.xmax = x + radius;
+	rect_fl.ymin = y - radius;
+	rect_fl.ymax = y + radius;
+	
+	/* apply region select action */
+	region_select_action_keys(&ac, &rect_fl, BEZT_OK_CHANNEL_CIRCLE, selectmode, &data);
+	
+	/* send notifier that keyframe selection has changed */
+	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ACTION_OT_select_circle(wmOperatorType *ot)
+{
+	ot->name = "Circle Select";
+	ot->description = "Select keyframe points using circle selection";
+	ot->idname = "ACTION_OT_select_circle";
+	
+	ot->invoke = WM_gesture_circle_invoke;
+	ot->modal = WM_gesture_circle_modal;
+	ot->exec = action_circle_select_exec;
+	ot->poll = ED_operator_action_active;
+	ot->cancel = WM_gesture_circle_cancel;
+	
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+	
+	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "radius", 1, 1, INT_MAX, "Radius", "", 1, INT_MAX);
+	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
 }
 
 /* ******************** Column Select Operator **************************** */

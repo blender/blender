@@ -30,6 +30,8 @@ shader node_glossy_bsdf(
 		BSDF = Color * microfacet_beckmann(Normal, Roughness);
 	else if (distribution == "GGX")
 		BSDF = Color * microfacet_ggx(Normal, Roughness);
+	else if (distribution == "Multiscatter GGX")
+		BSDF = Color * microfacet_multi_ggx(Normal, Roughness, Color);
 	else
 		BSDF = Color * ashikhmin_shirley(Normal, vector(0, 0, 0), Roughness, Roughness);
 

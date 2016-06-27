@@ -427,12 +427,6 @@ bool BKE_mesh_has_custom_loop_normals(Mesh *me)
 	}
 }
 
-/* Note: unlinking is called when me->id.us is 0, question remains how
- * much unlinking of Library data in Mesh should be done... probably
- * we need a more generic method, like the expand() functions in
- * readfile.c */
-
-
 /** Free (or release) any data used by this mesh (does not free the mesh itself). */
 void BKE_mesh_free(Mesh *me)
 {

@@ -592,6 +592,10 @@ typedef struct TransInfo {
 #define POINT_INIT		4
 #define MULTI_POINTS	8
 
+/* Hard min/max for proportional size. */
+#define T_PROP_SIZE_MIN 1e-6f
+#define T_PROP_SIZE_MAX 1e12f
+
 bool initTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op, const struct wmEvent *event, int mode);
 void saveTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op);
 int  transformEvent(TransInfo *t, const struct wmEvent *event);

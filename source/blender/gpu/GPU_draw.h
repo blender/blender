@@ -160,6 +160,12 @@ struct DerivedMesh;
 void GPU_draw_update_fvar_offset(struct DerivedMesh *dm);
 #endif
 
+/* utilities */
+void	GPU_select_index_set(int index);
+void	GPU_select_index_get(int index, int *r_col);
+int		GPU_select_to_index(unsigned int col);
+void	GPU_select_to_index_array(unsigned int *col, const unsigned int size);
+
 #ifdef __cplusplus
 }
 #endif

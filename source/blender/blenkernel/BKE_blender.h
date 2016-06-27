@@ -50,6 +50,11 @@ void BKE_blender_userdef_refresh(void);
 void BKE_blender_callback_test_break_set(void (*func)(void));
 int  BKE_blender_test_break(void);
 
+/* Blenders' own atexit (avoids leaking) */
+void BKE_blender_atexit_register(void (*func)(void *user_data), void *user_data);
+void BKE_blender_atexit_unregister(void (*func)(void *user_data), const void *user_data);
+void BKE_blender_atexit(void);
+
 #ifdef __cplusplus
 }
 #endif

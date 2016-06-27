@@ -59,6 +59,8 @@ void draw_channel_strips(struct bAnimContext *ac, struct SpaceAction *saction, s
 
 void ACTION_OT_select_all_toggle(struct wmOperatorType *ot);
 void ACTION_OT_select_border(struct wmOperatorType *ot);
+void ACTION_OT_select_lasso(struct wmOperatorType *ot);
+void ACTION_OT_select_circle(struct wmOperatorType *ot);
 void ACTION_OT_select_column(struct wmOperatorType *ot);
 void ACTION_OT_select_linked(struct wmOperatorType *ot);
 void ACTION_OT_select_more(struct wmOperatorType *ot);

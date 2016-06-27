@@ -216,21 +216,6 @@ void BKE_brush_free(Brush *brush)
 	BKE_previewimg_free(&(brush->preview));
 }
 
-/**
- * \note Currently users don't remove brushes from the UI (as is done for scene, text... etc)
- * This is only used by RNA, which can remove brushes.
- */
-void BKE_brush_unlink(Main *bmain, Brush *brush)
-{
-	Brush *brush_iter;
-
-	for (brush_iter = bmain->brush.first; brush_iter; brush_iter = brush_iter->id.next) {
-		if (brush_iter->toggle_brush == brush) {
-			brush_iter->toggle_brush = NULL;
-		}
-	}
-}
-
 static void extern_local_brush(Brush *brush)
 {
 	id_lib_extern((ID *)brush->mtex.tex);

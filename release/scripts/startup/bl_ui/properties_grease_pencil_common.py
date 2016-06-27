@@ -63,6 +63,9 @@ class GreasePencilDrawingToolsPanel:
     def draw(self, context):
         layout = self.layout
 
+        is_3d_view     = context.space_data.type == 'VIEW_3D'
+        is_clip_editor = context.space_data.type == 'CLIP_EDITOR'
+
         col = layout.column(align=True)
 
         col.label(text="Draw:")
@@ -85,9 +88,9 @@ class GreasePencilDrawingToolsPanel:
             col.separator()
             col.label("Data Source:")
             row = col.row(align=True)
-            if context.space_data.type == 'VIEW_3D':
+            if is_3d_view:
                 row.prop(context.tool_settings, "grease_pencil_source", expand=True)
-            elif context.space_data.type == 'CLIP_EDITOR':
+            elif is_clip_editor:
                 row.prop(context.space_data, "grease_pencil_source", expand=True)
 
         col.separator()
@@ -97,19 +100,19 @@ class GreasePencilDrawingToolsPanel:
 
         gpd = context.gpencil_data
 
-        if gpd:
+        if gpd and not is_3d_view:
             layout.separator()
             layout.separator()
 
             col = layout.column(align=True)
             col.prop(gpd, "use_stroke_edit_mode", text="Enable Editing", icon='EDIT', toggle=True)
 
-        if context.space_data.type == 'VIEW_3D':
+        if is_3d_view:
             col.separator()
             col.separator()
 
             col.label(text="Tools:")
-            col.operator("gpencil.convert", text="Convert...")
+            col.operator_menu_enum("gpencil.convert", text="Convert to Geometry...", property="type")
             col.operator("view3d.ruler")
 
 
@@ -133,20 +136,23 @@ class GreasePencilStrokeEditPanel:
     def draw(self, context):
         layout = self.layout
 
-        layout.label(text="Select:")
-        col = layout.column(align=True)
-        col.operator("gpencil.select_all", text="Select All")
-        col.operator("gpencil.select_border")
-        col.operator("gpencil.select_circle")
+        is_3d_view     = context.space_data.type == 'VIEW_3D'
 
-        layout.separator()
+        if not is_3d_view:
+            layout.label(text="Select:")
+            col = layout.column(align=True)
+            col.operator("gpencil.select_all", text="Select All")
+            col.operator("gpencil.select_border")
+            col.operator("gpencil.select_circle")
 
-        col = layout.column(align=True)
-        col.operator("gpencil.select_linked")
-        col.operator("gpencil.select_more")
-        col.operator("gpencil.select_less")
+            layout.separator()
 
-        layout.separator()
+            col = layout.column(align=True)
+            col.operator("gpencil.select_linked")
+            col.operator("gpencil.select_more")
+            col.operator("gpencil.select_less")
+
+            layout.separator()
 
         layout.label(text="Edit:")
         row = layout.row(align=True)
@@ -160,12 +166,13 @@ class GreasePencilStrokeEditPanel:
 
         layout.separator()
 
-        col = layout.column(align=True)
-        col.operator("transform.translate")                # icon='MAN_TRANS'
-        col.operator("transform.rotate")                   # icon='MAN_ROT'
-        col.operator("transform.resize", text="Scale")     # icon='MAN_SCALE'
+        if not is_3d_view:
+            col = layout.column(align=True)
+            col.operator("transform.translate")                # icon='MAN_TRANS'
+            col.operator("transform.rotate")                   # icon='MAN_ROT'
+            col.operator("transform.resize", text="Scale")     # icon='MAN_SCALE'
 
-        layout.separator()
+            layout.separator()
 
         col = layout.column(align=True)
         col.operator("transform.bend", text="Bend")

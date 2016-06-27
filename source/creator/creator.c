@@ -147,6 +147,35 @@ static void main_callback_setup(void)
 	MEM_set_error_callback(callback_mem_error);
 }
 
+/* free data on early exit (if Python calls 'sys.exit()' while parsing args for eg). */
+struct CreatorAtExitData {
+	bArgs *ba;
+#ifdef WIN32
+	const char **argv;
+	int argv_num;
+#endif
+};
+
+static void callback_main_atexit(void *user_data)
+{
+	struct CreatorAtExitData *app_init_data = user_data;
+
+	if (app_init_data->ba) {
+		BLI_argsFree(app_init_data->ba);
+		app_init_data->ba = NULL;
+	}
+
+#ifdef WIN32
+	if (app_init_data->argv) {
+		while (app_init_data->argv_num) {
+			free(app_init_data->argv[--app_init_data->argv_num]);
+		}
+		free(app_init_data->argv);
+		app_init_data->argv = NULL;
+	}
+#endif
+}
+
 /** \} */
 
 
@@ -198,6 +227,9 @@ int main(
 
 	/* --- end declarations --- */
 
+	/* ensure we free data on early-exit */
+	struct CreatorAtExitData app_init_data = {NULL};
+	BKE_blender_atexit_register(callback_main_atexit, &app_init_data);
 
 #ifdef WIN32
 	/* We delay loading of openmp so we can set the policy here. */
@@ -221,6 +253,10 @@ int main(
 			argv[argv_num] = alloc_utf_8_from_16(argv_16[argv_num], 0);
 		}
 		LocalFree(argv_16);
+
+		/* free on early-exit */
+		app_init_data.argv = argv;
+		app_init_data.argv_num = argv_num;
 	}
 #endif  /* WIN32 */
 
@@ -335,6 +371,10 @@ int main(
 	/* first test for background */
 #ifndef WITH_PYTHON_MODULE
 	ba = BLI_argsInit(argc, (const char **)argv); /* skip binary path */
+
+	/* ensure we free on early exit */
+	app_init_data.ba = ba;
+
 	main_args_setup(C, ba, &syshandle);
 
 	BLI_argsParse(ba, 1, NULL, NULL);
@@ -430,16 +470,22 @@ int main(
 
 #endif
 
+	/* Explicitly free data allocated for argument parsing:
+	 * - 'ba'
+	 * - 'argv' on WIN32.
+	 */
+	callback_main_atexit(&app_init_data);
+	BKE_blender_atexit_unregister(callback_main_atexit, &app_init_data);
+
+	/* paranoid, avoid accidental re-use */
 #ifndef WITH_PYTHON_MODULE
-	BLI_argsFree(ba);
+	ba = NULL;
+	(void)ba;
 #endif
 
 #ifdef WIN32
-	while (argv_num) {
-		free(argv[--argv_num]);
-	}
-	free(argv);
 	argv = NULL;
+	(void)argv;
 #endif
 
 #ifdef WITH_PYTHON_MODULE

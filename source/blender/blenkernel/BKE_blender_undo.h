@@ -45,6 +45,8 @@ extern const char   *BKE_undo_get_name(int nr, bool *r_active);
 extern bool          BKE_undo_save_file(const char *filename);
 extern struct Main  *BKE_undo_get_main(struct Scene **r_scene);
 
+extern void          BKE_undo_callback_wm_kill_jobs_set(void (*callback)(struct bContext *C));
+
 #ifdef __cplusplus
 }
 #endif

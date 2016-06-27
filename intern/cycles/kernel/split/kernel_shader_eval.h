@@ -65,6 +65,6 @@ ccl_device void kernel_shader_eval(
 		                      isect,
 		                      &ray);
 		float rbsdf = path_state_rng_1D_for_decision(kg, rng, state, PRNG_BSDF);
-		shader_eval_surface(kg, sd, state, rbsdf, state->flag, SHADER_CONTEXT_MAIN);
+		shader_eval_surface(kg, sd, rng, state, rbsdf, state->flag, SHADER_CONTEXT_MAIN);
 	}
 }

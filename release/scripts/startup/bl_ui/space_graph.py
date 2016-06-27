@@ -154,6 +154,8 @@ class GRAPH_MT_select(Menu):
         props.axis_range = False
         props.include_handles = True
 
+        layout.operator("graph.select_circle")
+
         layout.separator()
         layout.operator("graph.select_column", text="Columns on Selected Keys").mode = 'KEYS'
         layout.operator("graph.select_column", text="Column on Current Frame").mode = 'CFRA'

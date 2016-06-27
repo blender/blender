@@ -141,6 +141,11 @@ static void wm_free_reports(bContext *C)
 	BKE_reports_clear(reports);
 }
 
+static void wm_undo_kill_callback(bContext *C)
+{
+	WM_jobs_kill_all_except(CTX_wm_manager(C), CTX_wm_screen(C));
+}
+
 bool wm_start_with_console = false; /* used in creator.c */
 
 /* only called once, for startup */
@@ -158,6 +163,8 @@ void WM_init(bContext *C, int argc, const char **argv)
 	wm_operatortype_init();
 	WM_menutype_init();
 	WM_uilisttype_init();
+
+	BKE_undo_callback_wm_kill_jobs_set(wm_undo_kill_callback);
 
 	BKE_library_callback_free_window_manager_set(wm_close_and_free);   /* library.c */
 	BKE_library_callback_free_notifier_reference_set(WM_main_remove_notifier_reference);   /* library.c */
@@ -578,6 +585,8 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	GHOST_DisposeSystemPaths();
 
 	BLI_threadapi_exit();
+
+	BKE_blender_atexit();
 
 	if (MEM_get_memory_blocks_in_use() != 0) {
 		size_t mem_in_use = MEM_get_memory_in_use() + MEM_get_memory_in_use();

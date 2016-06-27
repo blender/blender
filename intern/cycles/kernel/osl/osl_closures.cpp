@@ -44,11 +44,13 @@
 #include "kernel_compat_cpu.h"
 #include "kernel_globals.h"
 #include "kernel_montecarlo.h"
+#include "kernel_random.h"
 
 #include "closure/bsdf_util.h"
 #include "closure/bsdf_ashikhmin_velvet.h"
 #include "closure/bsdf_diffuse.h"
 #include "closure/bsdf_microfacet.h"
+#include "closure/bsdf_microfacet_multi.h"
 #include "closure/bsdf_oren_nayar.h"
 #include "closure/bsdf_reflection.h"
 #include "closure/bsdf_refraction.h"
@@ -205,6 +207,12 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
 		bsdf_microfacet_ggx_aniso_params(), bsdf_microfacet_ggx_aniso_prepare);
 	register_closure(ss, "microfacet_ggx_refraction", id++,
 		bsdf_microfacet_ggx_refraction_params(), bsdf_microfacet_ggx_refraction_prepare);
+	register_closure(ss, "microfacet_multi_ggx", id++,
+		closure_bsdf_microfacet_multi_ggx_params(), closure_bsdf_microfacet_multi_ggx_prepare);
+	register_closure(ss, "microfacet_multi_ggx_glass", id++,
+		closure_bsdf_microfacet_multi_ggx_glass_params(), closure_bsdf_microfacet_multi_ggx_glass_prepare);
+	register_closure(ss, "microfacet_multi_ggx_aniso", id++,
+		closure_bsdf_microfacet_multi_ggx_aniso_params(), closure_bsdf_microfacet_multi_ggx_aniso_prepare);
 	register_closure(ss, "microfacet_beckmann", id++,
 		bsdf_microfacet_beckmann_params(), bsdf_microfacet_beckmann_prepare);
 	register_closure(ss, "microfacet_beckmann_aniso", id++,
@@ -249,6 +257,128 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
 	register_closure(ss, "absorption", id++,
 		volume_absorption_params(), volume_absorption_prepare);
 }
+
+/* Multiscattering GGX closures */
+
+class MicrofacetMultiClosure : public CBSDFClosure {
+public:
+	float3 color;
+
+	/* Technically, the MultiGGX Glass closure may also transmit.
+	 * However, since this is set statically and only used for caustic flags, this is probably as good as it gets. */
+	MicrofacetMultiClosure() : CBSDFClosure(LABEL_GLOSSY|LABEL_REFLECT)
+	{
+	}
+
+	void setup()
+	{
+		sc.prim = NULL;
+		sc.custom1 = color.x;
+		sc.custom2 = color.y;
+		sc.custom3 = color.z;
+	}
+
+	void blur(float roughness)
+	{
+	}
+
+	float3 eval_reflect(const float3 &omega_out, const float3 &omega_in, float& pdf) const
+	{
+		pdf = 0.0f;
+		return make_float3(0.0f, 0.0f, 0.0f);
+	}
+
+	float3 eval_transmit(const float3 &omega_out, const float3 &omega_in, float& pdf) const
+	{
+		pdf = 0.0f;
+		return make_float3(0.0f, 0.0f, 0.0f);
+	}
+
+	int sample(const float3 &Ng,
+	           const float3 &omega_out, const float3 &domega_out_dx, const float3 &domega_out_dy,
+	           float randu, float randv,
+	           float3 &omega_in, float3 &domega_in_dx, float3 &domega_in_dy,
+	           float &pdf, float3 &eval) const
+	{
+		pdf = 0;
+		return LABEL_NONE;
+	}
+};
+
+class MicrofacetMultiGGXClosure : public MicrofacetMultiClosure {
+public:
+	MicrofacetMultiGGXClosure() : MicrofacetMultiClosure() {}
+
+	void setup()
+	{
+		MicrofacetMultiClosure::setup();
+		m_shaderdata_flag = bsdf_microfacet_multi_ggx_setup(&sc);
+	}
+};
+
+ClosureParam *closure_bsdf_microfacet_multi_ggx_params()
+{
+	static ClosureParam params[] = {
+		CLOSURE_FLOAT3_PARAM(MicrofacetMultiGGXClosure, sc.N),
+		CLOSURE_FLOAT_PARAM(MicrofacetMultiGGXClosure, sc.data0),
+		CLOSURE_FLOAT3_PARAM(MicrofacetMultiGGXClosure, color),
+		CLOSURE_STRING_KEYPARAM(MicrofacetMultiGGXClosure, label, "label"),
+		CLOSURE_FINISH_PARAM(MicrofacetMultiGGXClosure)
+	};
+	return params;
+}
+CCLOSURE_PREPARE(closure_bsdf_microfacet_multi_ggx_prepare, MicrofacetMultiGGXClosure);
+
+class MicrofacetMultiGGXAnisoClosure : public MicrofacetMultiClosure {
+public:
+	MicrofacetMultiGGXAnisoClosure() : MicrofacetMultiClosure() {}
+
+	void setup()
+	{
+		MicrofacetMultiClosure::setup();
+		m_shaderdata_flag = bsdf_microfacet_multi_ggx_aniso_setup(&sc);
+	}
+};
+
+ClosureParam *closure_bsdf_microfacet_multi_ggx_aniso_params()
+{
+	static ClosureParam params[] = {
+		CLOSURE_FLOAT3_PARAM(MicrofacetMultiGGXClosure, sc.N),
+		CLOSURE_FLOAT3_PARAM(MicrofacetMultiGGXClosure, sc.T),
+		CLOSURE_FLOAT_PARAM(MicrofacetMultiGGXClosure, sc.data0),
+		CLOSURE_FLOAT_PARAM(MicrofacetMultiGGXClosure, sc.data1),
+		CLOSURE_FLOAT3_PARAM(MicrofacetMultiGGXClosure, color),
+		CLOSURE_STRING_KEYPARAM(MicrofacetMultiGGXClosure, label, "label"),
+		CLOSURE_FINISH_PARAM(MicrofacetMultiGGXClosure)
+	};
+	return params;
+}
+CCLOSURE_PREPARE(closure_bsdf_microfacet_multi_ggx_aniso_prepare, MicrofacetMultiGGXAnisoClosure);
+
+class MicrofacetMultiGGXGlassClosure : public MicrofacetMultiClosure {
+public:
+	MicrofacetMultiGGXGlassClosure() : MicrofacetMultiClosure() {}
+
+	void setup()
+	{
+		MicrofacetMultiClosure::setup();
+		m_shaderdata_flag = bsdf_microfacet_multi_ggx_glass_setup(&sc);
+	}
+};
+
+ClosureParam *closure_bsdf_microfacet_multi_ggx_glass_params()
+{
+	static ClosureParam params[] = {
+		CLOSURE_FLOAT3_PARAM(MicrofacetMultiGGXClosure, sc.N),
+		CLOSURE_FLOAT_PARAM(MicrofacetMultiGGXClosure, sc.data0),
+		CLOSURE_FLOAT_PARAM(MicrofacetMultiGGXClosure, sc.data2),
+		CLOSURE_FLOAT3_PARAM(MicrofacetMultiGGXClosure, color),
+		CLOSURE_STRING_KEYPARAM(MicrofacetMultiGGXClosure, label, "label"),
+		CLOSURE_FINISH_PARAM(MicrofacetMultiGGXClosure)
+	};
+	return params;
+}
+CCLOSURE_PREPARE(closure_bsdf_microfacet_multi_ggx_glass_prepare, MicrofacetMultiGGXGlassClosure);
 
 CCL_NAMESPACE_END
 

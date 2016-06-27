@@ -1627,7 +1627,7 @@ static bool transform_snap_context_project_view3d_mixed_impl(
  * Given a 2D region value, snap to vert/edge/face.
  *
  * \param sctx: Snap context.
- * \param mval: Screenspace coordinate.
+ * \param mval_fl: Screenspace coordinate.
  * \param dist_px: Maximum distance to snap (in pixels).
  * \param use_depth: Snap to the closest element, use when using more than one snap type.
  * \param r_co: hit location.

@@ -45,14 +45,21 @@ struct Scene;
 
 /* bezt validation */
 typedef enum eEditKeyframes_Validate {
+	/* Frame range */
 	BEZT_OK_FRAME = 1,
 	BEZT_OK_FRAMERANGE,
+	/* Selection status */
 	BEZT_OK_SELECTED,
+	/* Values (y-val) only */
 	BEZT_OK_VALUE,
 	BEZT_OK_VALUERANGE,
+	/* For graph editor keyframes (2D tests) */
 	BEZT_OK_REGION,
 	BEZT_OK_REGION_LASSO,
 	BEZT_OK_REGION_CIRCLE,
+	/* Only for keyframes a certain Dopesheet channel */
+	BEZT_OK_CHANNEL_LASSO,
+	BEZT_OK_CHANNEL_CIRCLE,
 } eEditKeyframes_Validate;
 
 /* ------------ */
@@ -97,20 +104,20 @@ typedef enum eEditKeyframes_Mirror {
 } eEditKeyframes_Mirror;
 
 /* use with BEZT_OK_REGION_LASSO */
-struct KeyframeEdit_LassoData {
-	const rctf *rectf_scaled;
+typedef struct KeyframeEdit_LassoData {
+	rctf *rectf_scaled;
 	const rctf *rectf_view;
 	const int (*mcords)[2];
 	int mcords_tot;
-};
+} KeyframeEdit_LassoData;
 
 /* use with BEZT_OK_REGION_CIRCLE */
-struct KeyframeEdit_CircleData {
-	const rctf *rectf_scaled;
+typedef struct KeyframeEdit_CircleData {
+	rctf *rectf_scaled;
 	const rctf *rectf_view;
 	float mval[2];
 	float radius_squared;
-};
+} KeyframeEdit_CircleData;
 
 
 /* ************************************************ */
@@ -157,7 +164,8 @@ typedef struct KeyframeEditData {
 	/* current iteration data */
 	struct FCurve *fcu;         /* F-Curve that is being iterated over */
 	int curIndex;               /* index of current keyframe being iterated over */
-
+	float channel_y;            /* y-position of midpoint of the channel (for the dopesheet) */
+	
 	/* flags */
 	eKeyframeVertOk curflags;        /* current flags for the keyframe we're reached in the iteration process */
 	eKeyframeIterFlags iterflags;    /* settings for iteration process */
@@ -257,6 +265,18 @@ short bezt_to_cfraelem(KeyframeEditData *ked, struct BezTriple *bezt);
  * requires:  ked->custom = KeyframeEditCD_Remap	
  */
 void bezt_remap_times(KeyframeEditData *ked, struct BezTriple *bezt);
+
+/* ------ 1.5-D Region Testing Uitls (Lasso/Circle Select) ------- */
+/* XXX: These are temporary, until we can unify GP/Mask Keyframe handling and standard FCurve Keyframe handling */
+
+bool keyframe_region_lasso_test(
+        const KeyframeEdit_LassoData *data_lasso,
+        const float xy[2]);
+
+bool keyframe_region_circle_test(
+        const KeyframeEdit_CircleData *data_circle,
+        const float xy[2]);
+
 
 /* ************************************************ */
 /* Destructive Editing API (keyframes_general.c) */

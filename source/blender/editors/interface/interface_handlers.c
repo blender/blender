@@ -8013,20 +8013,21 @@ uiBut *UI_context_active_but_get(const struct bContext *C)
 }
 
 /* helper function for insert keyframe, reset to default, etc operators */
-void UI_context_active_but_prop_get(const bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index)
+void UI_context_active_but_prop_get(
+        const bContext *C,
+        struct PointerRNA *r_ptr, struct PropertyRNA **r_prop, int *r_index)
 {
 	uiBut *activebut = ui_context_rna_button_active(C);
 
-	memset(ptr, 0, sizeof(*ptr));
-
 	if (activebut && activebut->rnapoin.data) {
-		*ptr = activebut->rnapoin;
-		*prop = activebut->rnaprop;
-		*index = activebut->rnaindex;
+		*r_ptr = activebut->rnapoin;
+		*r_prop = activebut->rnaprop;
+		*r_index = activebut->rnaindex;
 	}
 	else {
-		*prop = NULL;
-		*index = 0;
+		memset(r_ptr, 0, sizeof(*r_ptr));
+		*r_prop = NULL;
+		*r_index = 0;
 	}
 }
 
@@ -9812,10 +9813,17 @@ static int ui_handle_menus_recursive(
 				retval = ui_pie_handler(C, event, menu);
 			}
 			else if (event->type == LEFTMOUSE || event->val != KM_DBL_CLICK) {
+				bool handled = false;
+
 				if (listbox) {
-					retval = ui_handle_list_event(C, event, menu->region, listbox);
+					int retval_test = ui_handle_list_event(C, event, menu->region, listbox);
+					if (retval_test != WM_UI_HANDLER_CONTINUE) {
+						retval = retval_test;
+						handled = true;
+					}
 				}
-				if (retval == WM_UI_HANDLER_CONTINUE) {
+
+				if (handled == false) {
 					retval = ui_handle_menu_event(
 					        C, event, menu, level,
 					        is_parent_inside, is_parent_menu, is_floating);

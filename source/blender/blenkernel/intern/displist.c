@@ -71,7 +71,7 @@ void BKE_displist_elem_free(DispList *dl)
 		if (dl->verts) MEM_freeN(dl->verts);
 		if (dl->nors) MEM_freeN(dl->nors);
 		if (dl->index) MEM_freeN(dl->index);
-		if (dl->bevelSplitFlag) MEM_freeN(dl->bevelSplitFlag);
+		if (dl->bevel_split) MEM_freeN(dl->bevel_split);
 		MEM_freeN(dl);
 	}
 }
@@ -144,8 +144,9 @@ void BKE_displist_copy(ListBase *lbn, ListBase *lb)
 		dln->nors = MEM_dupallocN(dl->nors);
 		dln->index = MEM_dupallocN(dl->index);
 
-		if (dl->bevelSplitFlag)
-			dln->bevelSplitFlag = MEM_dupallocN(dl->bevelSplitFlag);
+		if (dl->bevel_split) {
+			dln->bevel_split = MEM_dupallocN(dl->bevel_split);
+		}
 
 		dl = dl->next;
 	}
@@ -1629,7 +1630,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 							if (dlb->type == DL_POLY) {
 								dl->flag |= DL_CYCL_U;
 							}
-							if ((bl->poly >= 0) && (steps != 2)) {
+							if ((bl->poly >= 0) && (steps > 2)) {
 								dl->flag |= DL_CYCL_V;
 							}
 
@@ -1642,8 +1643,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 							/* CU_2D conflicts with R_NOPUNOFLIP */
 							dl->rt = nu->flag & ~CU_2D;
 
-							dl->bevelSplitFlag = MEM_callocN(sizeof(*dl->bevelSplitFlag) * ((steps + 0x1F) >> 5),
-							                                 "bevelSplitFlag");
+							dl->bevel_split = BLI_BITMAP_NEW(steps, "bevel_split");
 
 							/* for each point of poly make a bevel piece */
 							bevp_first =  bl->bevpoints;
@@ -1683,7 +1683,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 								}
 
 								if (bevp->split_tag) {
-									dl->bevelSplitFlag[a >> 5] |= 1 << (a & 0x1F);
+									BLI_BITMAP_ENABLE(dl->bevel_split, a);
 								}
 
 								/* rotate bevel piece and write in data */

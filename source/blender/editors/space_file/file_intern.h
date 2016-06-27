@@ -128,6 +128,7 @@ void file_panels_register(struct ARegionType *art);
 
 /* file_utils.c */
 void file_tile_boundbox(const ARegion *ar, FileLayout *layout, const int file, rcti *r_bounds);
+bool file_is_dir(struct SpaceFile *sfile, const char *path);
 
 #endif /* __FILE_INTERN_H__ */
 

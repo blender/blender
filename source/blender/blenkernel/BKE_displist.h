@@ -45,10 +45,14 @@
 #define DL_VERTS                7
 
 /* dl->flag */
-#define DL_CYCL_U       1
-#define DL_CYCL_V       2
-#define DL_FRONT_CURVE  4
-#define DL_BACK_CURVE   8
+enum {
+	/** U/V swapped here compared with #Nurb.flagu, #Nurb.flagv and #CU_NURB_CYCLIC */
+	DL_CYCL_U       = (1 << 0),
+	DL_CYCL_V       = (1 << 1),
+
+	DL_FRONT_CURVE  = (1 << 2),
+	DL_BACK_CURVE   = (1 << 3),
+};
 
 
 /* prototypes */
@@ -70,7 +74,7 @@ typedef struct DispList {
 	int charidx;
 	int totindex;               /* indexed array drawing surfaces */
 
-	unsigned int *bevelSplitFlag;
+	unsigned int *bevel_split;  /* BLI_bitmap */
 } DispList;
 
 void BKE_displist_copy(struct ListBase *lbn, struct ListBase *lb);

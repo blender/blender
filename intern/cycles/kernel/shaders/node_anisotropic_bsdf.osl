@@ -51,6 +51,8 @@ shader node_anisotropic_bsdf(
 		BSDF = Color * microfacet_beckmann_aniso(Normal, T, RoughnessU, RoughnessV);
 	else if (distribution == "GGX")
 		BSDF = Color * microfacet_ggx_aniso(Normal, T, RoughnessU, RoughnessV);
+	else if (distribution == "Multiscatter GGX")
+		BSDF = Color * microfacet_multi_ggx_aniso(Normal, T, RoughnessU, RoughnessV, Color);
 	else
 		BSDF = Color * ashikhmin_shirley(Normal, T, RoughnessU, RoughnessV);
 }

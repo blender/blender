@@ -260,7 +260,11 @@ string string_human_readable_size(size_t size)
 
 string string_human_readable_number(size_t num)
 {
-	/* add thousands separators */
+	if(num == 0) {
+		return "0";
+	}
+
+	/* Add thousands separators. */
 	char buf[32];
 
 	char* p = buf+31;

@@ -93,6 +93,8 @@
 
 #include "UI_interface.h"
 
+#include "GPU_draw.h"
+
 #include "view3d_intern.h"  /* own include */
 
 float ED_view3d_select_dist_px(void)
@@ -1687,7 +1689,7 @@ static int do_paintvert_box_select(ViewContext *vc, rcti *rect, bool select, boo
 		if (ENDIAN_ORDER == B_ENDIAN) {
 			IMB_convert_rgba_to_abgr(ibuf);
 		}
-		WM_framebuffer_to_index_array(ibuf->rect, size[0] * size[1]);
+		GPU_select_to_index_array(ibuf->rect, size[0] * size[1]);
 
 		a = size[0] * size[1];
 		while (a--) {

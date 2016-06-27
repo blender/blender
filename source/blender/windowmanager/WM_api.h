@@ -413,12 +413,6 @@ void		wmOrtho2			(float x1, float x2, float y1, float y2);
 void		wmOrtho2_region_pixelspace(const struct ARegion *ar);
 void		wmOrtho2_pixelspace(const float x, const float y);
 
-			/* utilities */
-void		WM_framebuffer_index_set(int index);
-void		WM_framebuffer_index_get(int index, int *r_col);
-int			WM_framebuffer_to_index(unsigned int col);
-void		WM_framebuffer_to_index_array(unsigned int *col, const unsigned int size);
-
 			/* threaded Jobs Manager */
 enum {
 	WM_JOB_PRIORITY     = (1 << 0),

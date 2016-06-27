@@ -248,6 +248,8 @@ class DOPESHEET_MT_select(Menu):
         layout.operator("action.select_border").axis_range = False
         layout.operator("action.select_border", text="Border Axis Range").axis_range = True
 
+        layout.operator("action.select_circle")
+
         layout.separator()
         layout.operator("action.select_column", text="Columns on Selected Keys").mode = 'KEYS'
         layout.operator("action.select_column", text="Column on Current Frame").mode = 'CFRA'

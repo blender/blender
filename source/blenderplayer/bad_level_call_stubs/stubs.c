@@ -325,8 +325,6 @@ bool                WM_uilisttype_add(struct uiListType *ult) RET_ZERO
 void                WM_uilisttype_freelink(struct uiListType *ult) RET_NONE
 void                WM_uilisttype_free(void) RET_NONE
 
-void WM_framebuffer_index_get(int index, int *r_col) RET_NONE
-
 struct wmKeyMapItem *WM_keymap_item_find_id(struct wmKeyMap *keymap, int id) RET_NULL
 int WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, const struct wmEvent *event) RET_ZERO
 void WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference) RET_NONE
@@ -379,7 +377,7 @@ void ED_area_tag_redraw_regiontype(struct ScrArea *sa, int regiontype) RET_NONE
 void ED_render_engine_changed(struct Main *bmain) RET_NONE
 
 void ED_file_read_bookmarks(void) RET_NONE
-void ED_file_change_dir(struct bContext *C, const bool checkdir) RET_NONE
+void ED_file_change_dir(struct bContext *C) RET_NONE
 void ED_preview_kill_jobs(struct wmWindowManager *wm, struct Main *bmain) RET_NONE
 struct FSMenu *ED_fsmenu_get(void) RET_NULL
 struct FSMenuEntry *ED_fsmenu_get_category(struct FSMenu *fsmenu, FSMenuCategory category) RET_NULL

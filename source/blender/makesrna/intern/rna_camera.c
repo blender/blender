@@ -257,13 +257,15 @@ void RNA_def_camera(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "clipsta");
-	RNA_def_property_range(prop, 0.001f, FLT_MAX);
+	RNA_def_property_range(prop, 1e-6f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 3);
 	RNA_def_property_ui_text(prop, "Clip Start", "Camera near clipping distance");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	prop = RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "clipend");
-	RNA_def_property_range(prop, 1.0f, FLT_MAX);
+	RNA_def_property_range(prop, 1e-6f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 3);
 	RNA_def_property_ui_text(prop, "Clip End", "Camera far clipping distance");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 

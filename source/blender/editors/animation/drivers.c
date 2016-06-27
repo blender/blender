@@ -158,7 +158,7 @@ static int add_driver_with_target(
         ReportList *UNUSED(reports),
         ID *dst_id, const char dst_path[], int dst_index,
         ID *src_id, const char src_path[], int src_index,
-        PointerRNA *UNUSED(dst_ptr), PropertyRNA *dst_prop,
+        PointerRNA *dst_ptr, PropertyRNA *dst_prop,
         PointerRNA *src_ptr, PropertyRNA *src_prop,
         short flag, int driver_type)
 {
@@ -207,11 +207,15 @@ static int add_driver_with_target(
 		/* Create a driver variable for the target
 		 *   - For transform properties, we want to automatically use "transform channel" instead
 		 *     (The only issue is with quat rotations vs euler channels...)
+		 *   - To avoid problems with transform properties depending on the final transform that they
+		 *     control (thus creating pseudo-cycles - see T48734), we don't use transform channels
+		 *     when both the source and destinaions are in same places.
 		 */
 		dvar = driver_add_new_variable(driver);
 		
 		if (ELEM(src_ptr->type, &RNA_Object, &RNA_PoseBone) &&  
-		    (STREQ(prop_name, "location") || STREQ(prop_name, "scale") || STRPREFIX(prop_name, "rotation_")))
+		    (STREQ(prop_name, "location") || STREQ(prop_name, "scale") || STRPREFIX(prop_name, "rotation_")) &&
+		    (src_ptr->data != dst_ptr->data))
 		{
 			/* Transform Channel */
 			DriverTarget *dtar;

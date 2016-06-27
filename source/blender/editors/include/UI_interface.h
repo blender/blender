@@ -1020,12 +1020,18 @@ bool UI_context_copy_to_selected_list(
 
 /* Helpers for Operators */
 uiBut *UI_context_active_but_get(const struct bContext *C);
-void UI_context_active_but_prop_get(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index);
+void UI_context_active_but_prop_get(
+        const struct bContext *C,
+        struct PointerRNA *r_ptr, struct PropertyRNA **r_prop, int *r_index);
 void UI_context_active_but_prop_handle(struct bContext *C);
 struct wmOperator *UI_context_active_operator_get(const struct bContext *C);
 void UI_context_update_anim_flag(const struct bContext *C);
-void UI_context_active_but_prop_get_filebrowser(const struct bContext *C, struct PointerRNA *r_ptr, struct PropertyRNA **r_prop, bool *r_is_undo);
-void UI_context_active_but_prop_get_templateID(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop);
+void UI_context_active_but_prop_get_filebrowser(
+        const struct bContext *C,
+        struct PointerRNA *r_ptr, struct PropertyRNA **r_prop, bool *r_is_undo);
+void UI_context_active_but_prop_get_templateID(
+        struct bContext *C,
+        struct PointerRNA *r_ptr, struct PropertyRNA **r_prop);
 
 /* Styled text draw */
 void UI_fontstyle_set(const struct uiFontStyle *fs);

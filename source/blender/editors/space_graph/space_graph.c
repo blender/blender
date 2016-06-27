@@ -611,6 +611,51 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 					}
 					break;
 				}
+				case FCURVE_COLOR_AUTO_YRGB:
+				{
+					/* Like FCURVE_COLOR_AUTO_RGB, except this is for quaternions... */
+					float *col = fcu->color;
+					
+					switch (fcu->array_index) {
+						case 1:
+							UI_GetThemeColor3fv(TH_AXIS_X, col);
+							break;
+						case 2:
+							UI_GetThemeColor3fv(TH_AXIS_Y, col);
+							break;
+						case 3:
+							UI_GetThemeColor3fv(TH_AXIS_Z, col);
+							break;
+						
+						case 0:
+						{
+							/* Special Case: "W" channel should be yellowish, so blend X and Y channel colors... */
+							float c1[3], c2[3];
+							float h1[3], h2[3];
+							float hresult[3];
+							
+							/* - get colors (rgb) */
+							UI_GetThemeColor3fv(TH_AXIS_X, c1);
+							UI_GetThemeColor3fv(TH_AXIS_Y, c2);
+							
+							/* - perform blending in HSV space (to keep brightness similar) */
+							rgb_to_hsv_v(c1, h1);
+							rgb_to_hsv_v(c2, h2);
+							
+							interp_v3_v3v3(hresult, h1, h2, 0.5f);
+							
+							/* - convert back to RGB for display */
+							hsv_to_rgb_v(hresult, col);
+							break;
+						}
+						
+						default:
+							/* 'unknown' color - bluish so as to not conflict with handles */
+							col[0] = 0.3f; col[1] = 0.8f; col[2] = 1.0f;
+							break;
+					}
+					break;
+				}
 				case FCURVE_COLOR_AUTO_RAINBOW:
 				default:
 				{

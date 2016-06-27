@@ -1560,12 +1560,12 @@ void OBJECT_OT_constraints_copy(wmOperatorType *ot)
 /************************ add constraint operators *********************/
 
 /* get the Object and/or PoseChannel to use as target */
-static short get_new_constraint_target(bContext *C, int con_type, Object **tar_ob, bPoseChannel **tar_pchan, short add)
+static bool get_new_constraint_target(bContext *C, int con_type, Object **tar_ob, bPoseChannel **tar_pchan, bool add)
 {
 	Object *obact = ED_object_active_context(C);
 	bPoseChannel *pchanact = BKE_pose_channel_active(obact);
-	short only_curve = 0, only_mesh = 0, only_ob = 0;
-	short found = 0;
+	bool only_curve = false, only_mesh = false, only_ob = false;
+	bool found = false;
 	
 	/* clear tar_ob and tar_pchan fields before use 
 	 *	- assume for now that both always exist...
@@ -1585,7 +1585,7 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 		case CONSTRAINT_TYPE_ROTLIMIT:
 		case CONSTRAINT_TYPE_SIZELIMIT:
 		case CONSTRAINT_TYPE_SAMEVOL:
-			return 0;
+			return false;
 			
 		/* restricted target-type constraints -------------- */
 		/* NOTE: for these, we cannot try to add a target object if no valid ones are found, since that doesn't work */
@@ -1593,26 +1593,26 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 		case CONSTRAINT_TYPE_CLAMPTO:
 		case CONSTRAINT_TYPE_FOLLOWPATH:
 		case CONSTRAINT_TYPE_SPLINEIK:
-			only_curve = 1;
-			only_ob = 1;
-			add = 0;
+			only_curve = true;
+			only_ob = true;
+			add = false;
 			break;
 			
 		/* mesh only? */
 		case CONSTRAINT_TYPE_SHRINKWRAP:
-			only_mesh = 1;
-			only_ob = 1;
-			add = 0;
+			only_mesh = true;
+			only_ob = true;
+			add = false;
 			break;
 			
 		/* object only - add here is ok? */
 		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
-			only_ob = 1;
+			only_ob = true;
 			break;
 	}
 	
 	/* if the active Object is Armature, and we can search for bones, do so... */
-	if ((obact->type == OB_ARMATURE) && (only_ob == 0)) {
+	if ((obact->type == OB_ARMATURE) && (only_ob == false)) {
 		/* search in list of selected Pose-Channels for target */
 		CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
 		{
@@ -1620,7 +1620,7 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 			if (pchan != pchanact) {
 				*tar_ob = obact;
 				*tar_pchan = pchan;
-				found = 1;
+				found = true;
 				
 				break;
 			}
@@ -1629,36 +1629,50 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 	}
 	
 	/* if not yet found, try selected Objects... */
-	if (found == 0) {
+	if (found == false) {
 		/* search in selected objects context */
 		CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 		{
 			/* just use the first object we encounter (that isn't the active object) 
 			 * and which fulfills the criteria for the object-target that we've got 
 			 */
-			if ((ob != obact) &&
-			    ((!only_curve) || (ob->type == OB_CURVE)) &&
-			    ((!only_mesh) || (ob->type == OB_MESH)))
-			{
-				/* set target */
-				*tar_ob = ob;
-				found = 1;
-				
-				/* perform some special operations on the target */
-				if (only_curve) {
-					/* Curve-Path option must be enabled for follow-path constraints to be able to work */
-					Curve *cu = (Curve *)ob->data;
-					cu->flag |= CU_PATH;
+			if (ob != obact) {
+				/* for armatures in pose mode, look inside the armature for the active bone
+				 * so that we set up cross-armature constraints with less effort
+				 */
+				if ((ob->type == OB_ARMATURE) && (ob->mode & OB_MODE_POSE) && 
+				    (!only_curve && !only_mesh))
+				{
+					/* just use the active bone, and assume that it is visible + usable */
+					*tar_ob = ob;
+					*tar_pchan = BKE_pose_channel_active(ob);
+					found = true;
+					
+					break;
 				}
-				
-				break;
+				else if (((!only_curve) || (ob->type == OB_CURVE)) &&
+			             ((!only_mesh) || (ob->type == OB_MESH)))
+				{
+					/* set target */
+					*tar_ob = ob;
+					found = true;
+					
+					/* perform some special operations on the target */
+					if (only_curve) {
+						/* Curve-Path option must be enabled for follow-path constraints to be able to work */
+						Curve *cu = (Curve *)ob->data;
+						cu->flag |= CU_PATH;
+					}
+					
+					break;
+				}
 			}
 		}
 		CTX_DATA_END;
 	}
 	
 	/* if still not found, add a new empty to act as a target (if allowed) */
-	if ((found == 0) && (add)) {
+	if ((found == false) && (add)) {
 		Main *bmain = CTX_data_main(C);
 		Scene *scene = CTX_data_scene(C);
 		Base *base = BASACT, *newbase = NULL;
@@ -1692,7 +1706,7 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 		
 		/* make our new target the new object */
 		*tar_ob = obt;
-		found = 1;
+		found = true;
 	}
 	
 	/* return whether there's any target */

@@ -95,8 +95,6 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "WM_api.h"
-
 static SpinLock image_spin;
 
 /* prototypes */

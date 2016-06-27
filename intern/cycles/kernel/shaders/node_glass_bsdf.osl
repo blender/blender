@@ -35,6 +35,8 @@ shader node_glass_bsdf(
 	else if (distribution == "beckmann")
 		BSDF = Color * (Fr * microfacet_beckmann(Normal, Roughness) +
 		                (1.0 - Fr) * microfacet_beckmann_refraction(Normal, Roughness, eta));
+	else if (distribution == "Multiscatter GGX")
+		BSDF = Color * microfacet_multi_ggx_glass(Normal, Roughness, eta, Color);
 	else if (distribution == "GGX")
 		BSDF = Color * (Fr * microfacet_ggx(Normal, Roughness) +
 		                (1.0 - Fr) * microfacet_ggx_refraction(Normal, Roughness, eta));

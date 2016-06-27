@@ -40,7 +40,6 @@ struct MovieClipUser;
 struct MovieDistortion;
 
 void BKE_movieclip_free(struct MovieClip *clip);
-void BKE_movieclip_unlink(struct Main *bmain, struct MovieClip *clip);
 
 struct MovieClip *BKE_movieclip_file_add(struct Main *bmain, const char *name);
 struct MovieClip *BKE_movieclip_file_add_exists_ex(struct Main *bmain, const char *name, bool *r_exists);

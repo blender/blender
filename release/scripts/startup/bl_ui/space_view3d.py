@@ -2526,7 +2526,7 @@ class VIEW3D_MT_edit_gpencil_delete(Menu):
 
         layout.separator()
 
-        layout.operator("gpencil.active_frame_delete")
+        layout.operator("gpencil.active_frames_delete_all")
 
 
 # Edit Curve

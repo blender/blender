@@ -537,8 +537,9 @@ typedef enum eFCurve_Extend {
 /* curve coloring modes */
 typedef enum eFCurve_Coloring {
 	FCURVE_COLOR_AUTO_RAINBOW = 0,		/* automatically determine color using rainbow (calculated at drawtime) */
-	FCURVE_COLOR_AUTO_RGB,				/* automatically determine color using XYZ (array index) <-> RGB */
-	FCURVE_COLOR_CUSTOM					/* custom color */
+	FCURVE_COLOR_AUTO_RGB     = 1,		/* automatically determine color using XYZ (array index) <-> RGB */
+	FCURVE_COLOR_AUTO_YRGB    = 3,		/* automatically determine color where XYZ <-> RGB, but index(X) != 0 */
+	FCURVE_COLOR_CUSTOM       = 2,		/* custom color */
 } eFCurve_Coloring;
 
 /* ************************************************ */

@@ -399,11 +399,20 @@ static int outliner_id_remap_exec(bContext *C, wmOperator *op)
 	ID *new_id = BLI_findlink(which_libbase(CTX_data_main(C), id_type), RNA_enum_get(op->ptr, "new_id"));
 
 	/* check for invalid states */
-	if (soops == NULL)
+	if (soops == NULL) {
 		return OPERATOR_CANCELLED;
+	}
 
 	if (!(old_id && (old_id != new_id) && (GS(old_id->name) == GS(new_id->name)))) {
+		BKE_reportf(op->reports, RPT_ERROR_INVALID_INPUT, "Invalid old/new ID pair ('%s' / '%s')",
+		            old_id->name, new_id->name);
 		return OPERATOR_CANCELLED;
+	}
+
+	if (old_id->lib) {
+		BKE_reportf(op->reports, RPT_WARNING,
+		            "Old ID '%s' is linked from a library, indirect usages of this datablock will not be remapped",
+		            old_id->name);
 	}
 
 	BKE_libblock_remap(bmain, old_id, new_id,

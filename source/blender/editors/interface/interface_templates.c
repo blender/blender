@@ -231,15 +231,17 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 /* This is for browsing and editing the ID-blocks used */
 
 /* for new/open operators */
-void UI_context_active_but_prop_get_templateID(bContext *C, PointerRNA *ptr, PropertyRNA **prop)
+void UI_context_active_but_prop_get_templateID(
+	bContext *C,
+	PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
 	TemplateID *template;
 	ARegion *ar = CTX_wm_region(C);
 	uiBlock *block;
 	uiBut *but;
 
-	memset(ptr, 0, sizeof(*ptr));
-	*prop = NULL;
+	memset(r_ptr, 0, sizeof(*r_ptr));
+	*r_prop = NULL;
 
 	if (!ar)
 		return;
@@ -250,8 +252,8 @@ void UI_context_active_but_prop_get_templateID(bContext *C, PointerRNA *ptr, Pro
 			if ((but->flag & (UI_BUT_LAST_ACTIVE | UI_ACTIVE))) {
 				if (but->func_argN) {
 					template = but->func_argN;
-					*ptr = template->ptr;
-					*prop = template->prop;
+					*r_ptr = template->ptr;
+					*r_prop = template->prop;
 					return;
 				}
 			}

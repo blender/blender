@@ -545,6 +545,11 @@ ccl_device_inline float3 normalize(const float3 a)
 
 #endif
 
+ccl_device_inline float3 saturate3(float3 a)
+{
+	return make_float3(saturate(a.x), saturate(a.y), saturate(a.z));
+}
+
 ccl_device_inline float3 normalize_len(const float3 a, float *t)
 {
 	*t = len(a);
@@ -1327,6 +1332,15 @@ ccl_device float safe_divide(float a, float b)
 ccl_device float safe_modulo(float a, float b)
 {
 	return (b != 0.0f)? fmodf(a, b): 0.0f;
+}
+
+ccl_device_inline float beta(float x, float y)
+{
+#ifndef __KERNEL_OPENCL__
+	return expf(lgammaf(x) + lgammaf(y) - lgammaf(x+y));
+#else
+	return expf(lgamma(x) + lgamma(y) - lgamma(x+y));
+#endif
 }
 
 /* Ray Intersection */
