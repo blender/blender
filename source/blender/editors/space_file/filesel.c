@@ -576,7 +576,7 @@ FileLayout *ED_fileselect_get_layout(struct SpaceFile *sfile, ARegion *ar)
 	return sfile->layout;
 }
 
-void ED_file_change_dir(bContext *C, const bool checkdir)
+void ED_file_change_dir(bContext *C)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
@@ -590,7 +590,7 @@ void ED_file_change_dir(bContext *C, const bool checkdir)
 		sfile->params->filter_search[0] = '\0';
 		sfile->params->active_file = -1;
 
-		if (checkdir && !BLI_is_dir(sfile->params->dir)) {
+		if (!file_is_dir(sfile, sfile->params->dir)) {
 			BLI_strncpy(sfile->params->dir, filelist_dir(sfile->files), sizeof(sfile->params->dir));
 			/* could return but just refresh the current dir */
 		}

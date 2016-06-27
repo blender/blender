@@ -378,7 +378,7 @@ void ED_area_tag_redraw_regiontype(struct ScrArea *sa, int regiontype) RET_NONE
 void ED_render_engine_changed(struct Main *bmain) RET_NONE
 
 void ED_file_read_bookmarks(void) RET_NONE
-void ED_file_change_dir(struct bContext *C, const bool checkdir) RET_NONE
+void ED_file_change_dir(struct bContext *C) RET_NONE
 void ED_preview_kill_jobs(struct wmWindowManager *wm, struct Main *bmain) RET_NONE
 struct FSMenu *ED_fsmenu_get(void) RET_NULL
 struct FSMenuEntry *ED_fsmenu_get_category(struct FSMenu *fsmenu, FSMenuCategory category) RET_NULL

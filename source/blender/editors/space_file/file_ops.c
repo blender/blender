@@ -208,7 +208,7 @@ static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
 					BLI_add_slash(params->dir);
 				}
 
-				ED_file_change_dir(C, false);
+				ED_file_change_dir(C);
 				retval = FILE_SELECT_DIR;
 			}
 		}
@@ -826,7 +826,7 @@ static int bookmark_select_exec(bContext *C, wmOperator *op)
 		RNA_property_string_get(op->ptr, prop, entry);
 		BLI_strncpy(params->dir, entry, sizeof(params->dir));
 		BLI_cleanup_dir(G.main->name, params->dir);
-		ED_file_change_dir(C, true);
+		ED_file_change_dir(C);
 
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 	}
@@ -1379,7 +1379,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 			BLI_add_slash(sfile->params->dir);
 		}
 
-		ED_file_change_dir(C, false);
+		ED_file_change_dir(C);
 	}
 	/* opening file - sends events now, so things get handled on windowqueue level */
 	else if (sfile->op) {
@@ -1447,19 +1447,7 @@ int file_parent_exec(bContext *C, wmOperator *UNUSED(unused))
 	if (sfile->params) {
 		if (BLI_parent_dir(sfile->params->dir)) {
 			BLI_cleanup_dir(G.main->name, sfile->params->dir);
-			/* if not browsing in .blend file, we still want to check whether the path is a directory */
-			if (sfile->params->type == FILE_LOADLIB) {
-				char tdir[FILE_MAX];
-				if (BLO_library_path_explode(sfile->params->dir, tdir, NULL, NULL)) {
-					ED_file_change_dir(C, false);
-				}
-				else {
-					ED_file_change_dir(C, true);
-				}
-			}
-			else {
-				ED_file_change_dir(C, true);
-			}
+			ED_file_change_dir(C);
 			if (sfile->params->recursion_level > 1) {
 				/* Disable 'dirtree' recursion when going up in tree. */
 				sfile->params->recursion_level = 0;
@@ -1529,7 +1517,7 @@ int file_previous_exec(bContext *C, wmOperator *UNUSED(unused))
 		folderlist_popdir(sfile->folders_prev, sfile->params->dir);
 		folderlist_pushdir(sfile->folders_next, sfile->params->dir);
 
-		ED_file_change_dir(C, true);
+		ED_file_change_dir(C);
 	}
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 
@@ -1561,7 +1549,7 @@ int file_next_exec(bContext *C, wmOperator *UNUSED(unused))
 		// update folders_prev so we can check for it in folderlist_clear_next()
 		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
-		ED_file_change_dir(C, true);
+		ED_file_change_dir(C);
 	}
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 
@@ -1809,7 +1797,7 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 
 	if (RNA_boolean_get(op->ptr, "open")) {
 		BLI_strncpy(sfile->params->dir, path, sizeof(sfile->params->dir));
-		ED_file_change_dir(C, true);
+		ED_file_change_dir(C);
 	}
 
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
@@ -1906,17 +1894,35 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
 		file_expand_directory(C);
 
 		/* special case, user may have pasted a filepath into the directory */
-		if (BLI_is_file(sfile->params->dir)) {
-			char path[sizeof(sfile->params->dir)];
-			BLI_strncpy(path, sfile->params->dir, sizeof(path));
-			BLI_split_dirfile(path, sfile->params->dir, sfile->params->file, sizeof(sfile->params->dir), sizeof(sfile->params->file));
+		if (!file_is_dir(sfile, sfile->params->dir)) {
+			char tdir[FILE_MAX_LIBEXTRA];
+			char *group, *name;
+
+			if (BLI_is_file(sfile->params->dir)) {
+				char path[sizeof(sfile->params->dir)];
+				BLI_strncpy(path, sfile->params->dir, sizeof(path));
+				BLI_split_dirfile(path, sfile->params->dir, sfile->params->file,
+				                  sizeof(sfile->params->dir), sizeof(sfile->params->file));
+			}
+			else if (BLO_library_path_explode(sfile->params->dir, tdir, &group, &name)) {
+				if (group) {
+					BLI_path_append(tdir, sizeof(tdir), group);
+				}
+				BLI_strncpy(sfile->params->dir, tdir, sizeof(sfile->params->dir));
+				if (name) {
+					BLI_strncpy(sfile->params->file, name, sizeof(sfile->params->file));
+				}
+				else {
+					sfile->params->file[0] = '\0';
+				}
+			}
 		}
 
 		BLI_cleanup_dir(G.main->name, sfile->params->dir);
 
-		if (BLI_exists(sfile->params->dir)) {
+		if (file_is_dir(sfile, sfile->params->dir)) {
 			/* if directory exists, enter it immediately */
-			ED_file_change_dir(C, true);
+			ED_file_change_dir(C);
 
 			/* don't do for now because it selects entire text instead of
 			 * placing cursor at the end */
@@ -1931,20 +1937,26 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
 #endif
 		else {
 			const char *lastdir = folderlist_peeklastdir(sfile->folders_prev);
+			char tdir[FILE_MAX_LIBEXTRA];
 
-			/* if not, ask to create it and enter if confirmed */
-			wmOperatorType *ot = WM_operatortype_find("FILE_OT_directory_new", false);
-			PointerRNA ptr;
-			WM_operator_properties_create_ptr(&ptr, ot);
-			RNA_string_set(&ptr, "directory", sfile->params->dir);
-			RNA_boolean_set(&ptr, "open", true);
-
-			if (lastdir)
+			/* If we are 'inside' a blend library, we cannot do anything... */
+			if (lastdir && BLO_library_path_explode(lastdir, tdir, NULL, NULL)) {
 				BLI_strncpy(sfile->params->dir, lastdir, sizeof(sfile->params->dir));
+			}
+			else {
+				/* if not, ask to create it and enter if confirmed */
+				wmOperatorType *ot = WM_operatortype_find("FILE_OT_directory_new", false);
+				PointerRNA ptr;
+				WM_operator_properties_create_ptr(&ptr, ot);
+				RNA_string_set(&ptr, "directory", sfile->params->dir);
+				RNA_boolean_set(&ptr, "open", true);
 
+				if (lastdir)
+					BLI_strncpy(sfile->params->dir, lastdir, sizeof(sfile->params->dir));
 
-			WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr);
-			WM_operator_properties_free(&ptr);
+				WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr);
+				WM_operator_properties_free(&ptr);
+			}
 		}
 
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
@@ -1971,8 +1983,6 @@ void file_filename_enter_handle(bContext *C, void *UNUSED(arg_unused), void *arg
 		BLI_filename_make_safe(sfile->params->file);
 
 		if (matches) {
-			/* int i, numfiles = filelist_numfiles(sfile->files); */ /* XXX UNUSED */
-			sfile->params->file[0] = '\0';
 			/* replace the pattern (or filename that the user typed in, with the first selected file of the match */
 			BLI_strncpy(sfile->params->file, matched_file, sizeof(sfile->params->file));
 			
@@ -1980,29 +1990,16 @@ void file_filename_enter_handle(bContext *C, void *UNUSED(arg_unused), void *arg
 		}
 
 		if (matches == 1) {
-
 			BLI_join_dirfile(filepath, sizeof(sfile->params->dir), sfile->params->dir, sfile->params->file);
 
 			/* if directory, open it and empty filename field */
-			if (BLI_is_dir(filepath)) {
+			if (file_is_dir(sfile, filepath)) {
 				BLI_cleanup_dir(G.main->name, filepath);
 				BLI_strncpy(sfile->params->dir, filepath, sizeof(sfile->params->dir));
 				sfile->params->file[0] = '\0';
-				ED_file_change_dir(C, true);
+				ED_file_change_dir(C);
 				UI_textbutton_activate_but(C, but);
 				WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
-			}
-			else if (sfile->params->type == FILE_LOADLIB) {
-				char tdir[FILE_MAX];
-				BLI_add_slash(filepath);
-				if (BLO_library_path_explode(filepath, tdir, NULL, NULL)) {
-					BLI_cleanup_dir(G.main->name, filepath);
-					BLI_strncpy(sfile->params->dir, filepath, sizeof(sfile->params->dir));
-					sfile->params->file[0] = '\0';
-					ED_file_change_dir(C, false);
-					UI_textbutton_activate_but(C, but);
-					WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
-				}
 			}
 		}
 		else if (matches > 1) {

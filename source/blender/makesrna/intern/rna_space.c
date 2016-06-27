@@ -1803,7 +1803,7 @@ static void rna_FileBrowser_FSMenu_active_range(
 
 static void rna_FileBrowser_FSMenu_active_update(struct bContext *C, PointerRNA *UNUSED(ptr))
 {
-	ED_file_change_dir(C, true);
+	ED_file_change_dir(C);
 }
 
 static int rna_FileBrowser_FSMenuSystem_active_get(PointerRNA *ptr)
