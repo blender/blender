@@ -321,12 +321,6 @@ static WriteData *writedata_new(WriteWrap *ww)
 {
 	WriteData *wd= MEM_callocN(sizeof(*wd), "writedata");
 
-		/* XXX, see note about this in readfile.c, remove
-		 * once we have an xp lock - zr
-		 */
-
-	if (wd == NULL) return NULL;
-
 	wd->sdna = DNA_sdna_from_data(DNAstr, DNAlen, false);
 
 	wd->ww = ww;
