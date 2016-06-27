@@ -1844,6 +1844,8 @@ static void rna_def_fcurve(BlenderRNA *brna)
 		                            "Cycle through the rainbow, trying to give each curve a unique color"},
 		{FCURVE_COLOR_AUTO_RGB, "AUTO_RGB", 0, "Auto XYZ to RGB",
 		                        "Use axis colors for transform and color properties, and auto-rainbow for the rest"},
+		{FCURVE_COLOR_AUTO_YRGB, "AUTO_YRGB", 0, "Auto WXYZ to YRGB",
+		                         "Use axis colors for XYZ parts of transform, and yellow for the 'W' channel"},
 		{FCURVE_COLOR_CUSTOM, "CUSTOM", 0, "User Defined",
 		                      "Use custom hand-picked color for F-Curve"},
 		{0, NULL, 0, NULL, NULL}
