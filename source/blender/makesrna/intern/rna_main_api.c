@@ -440,6 +440,7 @@ static bAction *rna_Main_actions_new(Main *bmain, const char *name)
 	bAction *act = add_empty_action(bmain, name);
 	id_fake_user_clear(&act->id);
 	return act;
+}
 
 static Palette *rna_Main_palettes_new(Main *bmain, const char *name)
 {
