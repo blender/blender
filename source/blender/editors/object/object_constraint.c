@@ -1636,22 +1636,36 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 			/* just use the first object we encounter (that isn't the active object) 
 			 * and which fulfills the criteria for the object-target that we've got 
 			 */
-			if ((ob != obact) &&
-			    ((!only_curve) || (ob->type == OB_CURVE)) &&
-			    ((!only_mesh) || (ob->type == OB_MESH)))
-			{
-				/* set target */
-				*tar_ob = ob;
-				found = 1;
-				
-				/* perform some special operations on the target */
-				if (only_curve) {
-					/* Curve-Path option must be enabled for follow-path constraints to be able to work */
-					Curve *cu = (Curve *)ob->data;
-					cu->flag |= CU_PATH;
+			if (ob != obact) {
+				/* for armatures in pose mode, look inside the armature for the active bone
+				 * so that we set up cross-armature constraints with less effort
+				 */
+				if ((ob->type == OB_ARMATURE) && (ob->mode & OB_MODE_POSE) && 
+				    (!only_curve && !only_mesh))
+				{
+					/* just use the active bone, and assume that it is visible + usable */
+					*tar_ob = ob;
+					*tar_pchan = BKE_pose_channel_active(ob);
+					found = 1;
+					
+					break;
 				}
-				
-				break;
+				else if (((!only_curve) || (ob->type == OB_CURVE)) &&
+			             ((!only_mesh) || (ob->type == OB_MESH)))
+				{
+					/* set target */
+					*tar_ob = ob;
+					found = 1;
+					
+					/* perform some special operations on the target */
+					if (only_curve) {
+						/* Curve-Path option must be enabled for follow-path constraints to be able to work */
+						Curve *cu = (Curve *)ob->data;
+						cu->flag |= CU_PATH;
+					}
+					
+					break;
+				}
 			}
 		}
 		CTX_DATA_END;
