@@ -155,15 +155,7 @@ void GHOST_ContextGLX::initContextGLXEW()
 
 GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
 {
-#ifdef WITH_X11_XINPUT
-	/* use our own event handlers to avoid exiting blender,
-	 * this would happen for eg:
-	 * if you open blender, unplug a tablet, then open a new window. */
-	XErrorHandler   old_handler    = XSetErrorHandler  (GHOST_X11_ApplicationErrorHandler  );
-	XIOErrorHandler old_handler_io = XSetIOErrorHandler(GHOST_X11_ApplicationIOErrorHandler);
-#endif
-
-
+	GHOST_X11_ERROR_HANDLERS_OVERRIDE(handler_store);
 
 	/* -------------------------------------------------------------------- */
 	/* Begin Inline Glew  */
@@ -350,11 +342,8 @@ const bool GLXEW_ARB_create_context_robustness =
 		success = GHOST_kFailure;
 	}
 
-#ifdef WITH_X11_XINPUT
-	/* Restore handler */
-	XSetErrorHandler  (old_handler);
-	XSetIOErrorHandler(old_handler_io);
-#endif
+
+	GHOST_X11_ERROR_HANDLERS_RESTORE(handler_store);
 
 	return success;
 }
