@@ -77,7 +77,7 @@ extern "C"
 {
 
 // The following prevents a linking error in debug mode for MSVC using the libs in CVS
-#if defined(WITH_OPENEXR) && defined(_WIN32) && defined(DEBUG) && !defined(__MINGW32__)
+#if defined(WITH_OPENEXR) && defined(_WIN32) && defined(DEBUG) && !defined(__MINGW32__) && _MSC_VER < 1900
 _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 {
 }
