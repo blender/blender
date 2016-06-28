@@ -412,6 +412,8 @@ typedef enum eSpaceNla_Flag {
 	SNLA_NOSTRIPCURVES     = (1 << 5),
 	/* don't perform realtime updates */
 	SNLA_NOREALTIMEUPDATES = (1 << 6),
+	/* don't show local strip marker indications */
+	SNLA_NOLOCALMARKERS    = (1 << 7),
 } eSpaceNla_Flag;
 
 

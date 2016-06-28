@@ -77,6 +77,7 @@ class NLA_MT_view(Menu):
         layout.prop(st, "show_locked_time")
 
         layout.prop(st, "show_strip_curves")
+        layout.prop(st, "show_local_markers")
 
         layout.separator()
         layout.operator("anim.previewrange_set")
