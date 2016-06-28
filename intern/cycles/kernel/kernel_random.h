@@ -232,14 +232,14 @@ ccl_device void path_rng_end(KernelGlobals *kg, ccl_global uint *rng_state, RNG 
 
 /* Linear Congruential Generator */
 
-ccl_device uint lcg_step_uint(ccl_addr_space uint *rng)
+ccl_device uint lcg_step_uint(uint *rng)
 {
 	/* implicit mod 2^32 */
 	*rng = (1103515245*(*rng) + 12345);
 	return *rng;
 }
 
-ccl_device float lcg_step_float(ccl_addr_space uint *rng)
+ccl_device float lcg_step_float(uint *rng)
 {
 	/* implicit mod 2^32 */
 	*rng = (1103515245*(*rng) + 12345);
@@ -312,6 +312,22 @@ ccl_device_inline void path_state_branch(PathState *state, int branch, int num_b
 ccl_device_inline uint lcg_state_init(RNG *rng, const ccl_addr_space PathState *state, uint scramble)
 {
 	return lcg_init(*rng + state->rng_offset + state->sample*scramble);
+}
+
+/* TODO(sergey): For until we can use generic address space from OpenCL 2.0. */
+
+ccl_device_inline uint lcg_state_init_addrspace(ccl_addr_space RNG *rng,
+                                                const ccl_addr_space PathState *state,
+                                                uint scramble)
+{
+	return lcg_init(*rng + state->rng_offset + state->sample*scramble);
+}
+
+ccl_device float lcg_step_float_addrspace(ccl_addr_space uint *rng)
+{
+	/* implicit mod 2^32 */
+	*rng = (1103515245*(*rng) + 12345);
+	return (float)*rng * (1.0f/(float)0xFFFFFFFF);
 }
 
 CCL_NAMESPACE_END

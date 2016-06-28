@@ -98,9 +98,10 @@ ccl_device float3 MF_FUNCTION_FULL_NAME(mf_eval)(float3 wi, float3 wo, const boo
 
 	for(int order = 0; order < 10; order++) {
 		/* Sample microfacet height and normal */
-		if(!mf_sample_height(wr, &hr, &C1_r, &G1_r, &lambda_r, lcg_step_float(lcg_state)))
+		if(!mf_sample_height(wr, &hr, &C1_r, &G1_r, &lambda_r, lcg_step_float_addrspace(lcg_state)))
 			break;
-		float3 wm = mf_sample_vndf(-wr, alpha, make_float2(lcg_step_float(lcg_state), lcg_step_float(lcg_state)));
+		float3 wm = mf_sample_vndf(-wr, alpha, make_float2(lcg_step_float_addrspace(lcg_state),
+		                                                   lcg_step_float_addrspace(lcg_state)));
 
 #ifdef MF_MULTI_DIFFUSE
 		if(order == 0) {
@@ -128,14 +129,16 @@ ccl_device float3 MF_FUNCTION_FULL_NAME(mf_eval)(float3 wi, float3 wo, const boo
 			/* Bounce from the microfacet. */
 #ifdef MF_MULTI_GLASS
 			bool next_outside;
-			wr = mf_sample_phase_glass(-wr, outside? eta: 1.0f/eta, wm, lcg_step_float(lcg_state), &next_outside);
+			wr = mf_sample_phase_glass(-wr, outside? eta: 1.0f/eta, wm, lcg_step_float_addrspace(lcg_state), &next_outside);
 			if(!next_outside) {
 				outside = !outside;
 				wr = -wr;
 				hr = -hr;
 			}
 #elif defined(MF_MULTI_DIFFUSE)
-			wr = mf_sample_phase_diffuse(wm, lcg_step_float(lcg_state), lcg_step_float(lcg_state));
+			wr = mf_sample_phase_diffuse(wm,
+			                             lcg_step_float_addrspace(lcg_state),
+			                             lcg_step_float_addrspace(lcg_state));
 #else /* MF_MULTI_GLOSSY */
 			wr = mf_sample_phase_glossy(-wr, n, k, &throughput, wm);
 #endif
@@ -179,13 +182,14 @@ ccl_device float3 MF_FUNCTION_FULL_NAME(mf_sample)(float3 wi, float3 *wo, const 
 	int order;
 	for(order = 0; order < 10; order++) {
 		/* Sample microfacet height. */
-		if(!mf_sample_height(wr, &hr, &C1_r, &G1_r, &lambda_r, lcg_step_float(lcg_state))) {
+		if(!mf_sample_height(wr, &hr, &C1_r, &G1_r, &lambda_r, lcg_step_float_addrspace(lcg_state))) {
 			/* The random walk has left the surface. */
 			*wo = outside? wr: -wr;
 			return throughput;
 		}
 		/* Sample microfacet normal. */
-		float3 wm = mf_sample_vndf(-wr, alpha, make_float2(lcg_step_float(lcg_state), lcg_step_float(lcg_state)));
+		float3 wm = mf_sample_vndf(-wr, alpha, make_float2(lcg_step_float_addrspace(lcg_state),
+		                                                   lcg_step_float_addrspace(lcg_state)));
 
 		/* First-bounce color is already accounted for in mix weight. */
 		if(order > 0)
@@ -194,14 +198,16 @@ ccl_device float3 MF_FUNCTION_FULL_NAME(mf_sample)(float3 wi, float3 *wo, const 
 		/* Bounce from the microfacet. */
 #ifdef MF_MULTI_GLASS
 		bool next_outside;
-		wr = mf_sample_phase_glass(-wr, outside? eta: 1.0f/eta, wm, lcg_step_float(lcg_state), &next_outside);
+		wr = mf_sample_phase_glass(-wr, outside? eta: 1.0f/eta, wm, lcg_step_float_addrspace(lcg_state), &next_outside);
 		if(!next_outside) {
 			hr = -hr;
 			wr = -wr;
 			outside = !outside;
 		}
 #elif defined(MF_MULTI_DIFFUSE)
-		wr = mf_sample_phase_diffuse(wm, lcg_step_float(lcg_state), lcg_step_float(lcg_state));
+		wr = mf_sample_phase_diffuse(wm,
+		                             lcg_step_float_addrspace(lcg_state),
+		                             lcg_step_float_addrspace(lcg_state));
 #else /* MF_MULTI_GLOSSY */
 		wr = mf_sample_phase_glossy(-wr, n, k, &throughput, wm);
 #endif
