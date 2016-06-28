@@ -56,8 +56,14 @@ add_executable(makesdna ${SRC} ${SRC_DNA_INC})
 
 # Output dna.c
 add_custom_command(
-	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dna.c
-	COMMAND "$<TARGET_FILE:makesdna>" ${CMAKE_CURRENT_BINARY_DIR}/dna.c ${CMAKE_SOURCE_DIR}/source/blender/makesdna/
+	OUTPUT
+		${CMAKE_CURRENT_BINARY_DIR}/dna.c
+		${CMAKE_CURRENT_BINARY_DIR}/dna_type_offsets.h
+	COMMAND
+		"$<TARGET_FILE:makesdna>"
+		${CMAKE_CURRENT_BINARY_DIR}/dna.c
+		${CMAKE_CURRENT_BINARY_DIR}/dna_type_offsets.h
+		${CMAKE_SOURCE_DIR}/source/blender/makesdna/
 	DEPENDS makesdna
 )
 
@@ -78,7 +84,11 @@ set(SRC
 	${SRC_DNA_INC}
 )
 
-set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/dna.c PROPERTIES GENERATED TRUE)
+set_source_files_properties(
+	${CMAKE_CURRENT_BINARY_DIR}/dna.c
+	${CMAKE_CURRENT_BINARY_DIR}/dna_type_offsets.h
+	PROPERTIES GENERATED TRUE
+)
 
 blender_add_lib(bf_dna "${SRC}" "${INC}" "${INC_SYS}")
 
