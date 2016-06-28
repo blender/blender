@@ -417,6 +417,11 @@ void uiStyleInit(void)
 		blf_mono_font = -1;
 	}
 
+	if (blf_mono_font_render != -1) {
+		BLF_unload_id(blf_mono_font_render);
+		blf_mono_font_render = -1;
+	}
+
 	font = U.uifonts.first;
 
 	/* default builtin */
@@ -516,7 +521,12 @@ void uiStyleInit(void)
 
 	BLF_size(blf_mono_font, 12 * U.pixelsize, 72);
 	
-	/* second for rendering else we get threading problems */
+	/**
+	 * Second for rendering else we get threading problems,
+	 *
+	 * \note This isn't good that the render font depends on the preferences,
+	 * keep for now though, since without this there is no way to display many unicode chars.
+	 */
 	if (blf_mono_font_render == -1)
 		blf_mono_font_render = BLF_load_mem_unique("monospace", monofont_ttf, monofont_size);
 
