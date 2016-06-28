@@ -94,6 +94,11 @@ EnumPropertyItem rna_enum_navigation_mode_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+static EnumPropertyItem rna_enum_language_default_items[] = {
+	{0, "DEFAULT", 0, "Default (Default)", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_object_types.h"
@@ -642,7 +647,11 @@ static EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C), Poi
 static EnumPropertyItem *rna_lang_enum_properties_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
                                                         PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
-	return BLT_lang_RNA_enum_properties();
+	EnumPropertyItem *items = BLT_lang_RNA_enum_properties();
+	if (items == NULL) {
+		items = rna_enum_language_default_items;
+	}
+	return items;
 }
 #endif
 
@@ -3971,11 +3980,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{USER_MULTISAMPLE_16, "16", 0, "MultiSample: 16", "Use 16x OpenGL MultiSample (requires restart)"},
 		{0, NULL, 0, NULL, NULL}
 	};
-	
-	static EnumPropertyItem language_items[] = {
-		{0, "DEFAULT", 0, "Default (Default)", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
 
 #ifdef WITH_CYCLES
 	static EnumPropertyItem compute_device_items[] = {
@@ -4058,7 +4062,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	/* Language Selection */
 
 	prop = RNA_def_property(srna, "language", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, language_items);
+	RNA_def_property_enum_items(prop, rna_enum_language_default_items);
 #ifdef WITH_INTERNATIONAL
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_lang_enum_properties_itemf");
 #endif
