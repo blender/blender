@@ -52,6 +52,20 @@
 int GHOST_X11_ApplicationErrorHandler(Display *display, XErrorEvent *theEvent);
 int GHOST_X11_ApplicationIOErrorHandler(Display *display);
 
+#define GHOST_X11_ERROR_HANDLERS_OVERRIDE(var) \
+	struct { \
+		XErrorHandler handler; \
+		XIOErrorHandler handler_io; \
+	} var = { \
+		XSetErrorHandler(GHOST_X11_ApplicationErrorHandler), \
+		XSetIOErrorHandler(GHOST_X11_ApplicationIOErrorHandler), \
+	}
+
+#define GHOST_X11_ERROR_HANDLERS_RESTORE(var) \
+	{ \
+		(void)XSetErrorHandler(var.handler); \
+		(void)XSetIOErrorHandler(var.handler_io); \
+	} ((void)0)
 
 class GHOST_WindowX11;
 
@@ -328,6 +342,10 @@ public:
 #endif
 	} m_atom;
 
+#ifdef WITH_X11_XINPUT
+	XExtensionVersion m_xinput_version;
+#endif
+
 private:
 
 	Display *m_display;
@@ -367,7 +385,7 @@ private:
 #endif
 
 #ifdef WITH_X11_XINPUT
-	void initXInputDevices();
+	void refreshXInputDevices();
 #endif
 
 	GHOST_WindowX11 *

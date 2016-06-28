@@ -469,13 +469,15 @@ EnumPropertyItem rna_enum_wm_report_items[] = {
 static wmOperator *rna_OperatorProperties_find_operator(PointerRNA *ptr)
 {
 	wmWindowManager *wm = ptr->id.data;
-	IDProperty *properties = (IDProperty *)ptr->data;
-	wmOperator *op;
 
-	if (wm)
-		for (op = wm->operators.first; op; op = op->next)
-			if (op->properties == properties)
+	if (wm) {
+		IDProperty *properties = (IDProperty *)ptr->data;
+		for (wmOperator *op = wm->operators.last; op; op = op->prev) {
+			if (op->properties == properties) {
 				return op;
+			}
+		}
+	}
 	
 	return NULL;
 }

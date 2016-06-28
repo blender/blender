@@ -52,15 +52,15 @@ __all__ = (
     )
 
 from _bpy import (
+        _utils_units as units,
+        blend_paths,
         escape_identifier,
         register_class,
-        unregister_class,
-        blend_paths,
         resource_path,
+        script_paths as _bpy_script_paths,
+        unregister_class,
+        user_resource as _user_resource,
         )
-from _bpy import script_paths as _bpy_script_paths
-from _bpy import user_resource as _user_resource
-from _bpy import _utils_units as units
 
 import bpy as _bpy
 import os as _os
@@ -641,11 +641,10 @@ def unregister_module(module, verbose=False):
 
 # we start with the built-in default mapping
 def _blender_default_map():
-    import sys
     import rna_manual_reference as ref_mod
     ret = (ref_mod.url_manual_prefix, ref_mod.url_manual_mapping)
     # avoid storing in memory
-    del sys.modules["rna_manual_reference"]
+    del _sys.modules["rna_manual_reference"]
     return ret
 
 # hooks for doc lookups

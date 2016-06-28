@@ -212,6 +212,10 @@ public:
 	bool createX11_XIC();
 #endif
 
+#ifdef WITH_X11_XINPUT
+	void refreshXInputDevices();
+#endif
+
 #ifdef WITH_XDND
 	GHOST_DropTargetX11 *getDropTarget()
 	{
@@ -315,10 +319,6 @@ private:
 	Cursor
 	getEmptyCursor(
 	    );
-
-#ifdef WITH_X11_XINPUT
-	void initXInputDevices();
-#endif
 	
 	Window m_window;
 	Display *m_display;
