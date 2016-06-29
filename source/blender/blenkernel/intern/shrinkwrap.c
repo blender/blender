@@ -405,21 +405,28 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 
 	/* use editmesh to avoid array allocation */
 	BMEditMesh *emtarget = NULL, *emaux = NULL;
-	BVHTreeFromEditMesh emtreedata_stack, emauxdata_stack;
-	BVHTreeFromMesh dmtreedata_stack, dmauxdata_stack;
+	union {
+		BVHTreeFromEditMesh emtreedata;
+		BVHTreeFromMesh dmtreedata;
+	} treedata_stack, auxdata_stack;
+
 	BVHTree *targ_tree;
 	void *targ_callback;
 	if (calc->smd->target && calc->target->type == DM_TYPE_EDITBMESH) {
 		emtarget = BKE_editmesh_from_object(calc->smd->target);
-		if ((targ_tree = bvhtree_from_editmesh_looptri(&emtreedata_stack, emtarget, 0.0, 4, 6))) {
-			targ_callback = emtreedata_stack.raycast_callback;
-			treeData = &emtreedata_stack;
+		if ((targ_tree = bvhtree_from_editmesh_looptri(
+		         &treedata_stack.emtreedata, emtarget, 0.0, 4, 6, &calc->target->bvhCache)))
+		{
+			targ_callback = treedata_stack.emtreedata.raycast_callback;
+			treeData = &treedata_stack.emtreedata;
 		}
 	}
 	else {
-		if ((targ_tree = bvhtree_from_mesh_looptri(&dmtreedata_stack, calc->target, 0.0, 4, 6))) {
-			targ_callback = dmtreedata_stack.raycast_callback;
-			treeData = &dmtreedata_stack;
+		if ((targ_tree = bvhtree_from_mesh_looptri(
+		        &treedata_stack.dmtreedata, calc->target, 0.0, 4, 6)))
+		{
+			targ_callback = treedata_stack.dmtreedata.raycast_callback;
+			treeData = &treedata_stack.dmtreedata;
 		}
 	}
 	if (targ_tree) {
@@ -429,15 +436,17 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 			/* use editmesh to avoid array allocation */
 			if (calc->smd->auxTarget && auxMesh->type == DM_TYPE_EDITBMESH) {
 				emaux = BKE_editmesh_from_object(calc->smd->auxTarget);
-				if ((aux_tree = bvhtree_from_editmesh_looptri(&emauxdata_stack, emaux, 0.0, 4, 6)) != NULL) {
-					aux_callback = emauxdata_stack.raycast_callback;
-					auxData = &emauxdata_stack;
+				if ((aux_tree = bvhtree_from_editmesh_looptri(
+				         &auxdata_stack.emtreedata, emaux, 0.0, 4, 6, &auxMesh->bvhCache)))
+				{
+					aux_callback = auxdata_stack.emtreedata.raycast_callback;
+					auxData = &auxdata_stack.emtreedata;
 				}
 			}
 			else {
-				if ((aux_tree = bvhtree_from_mesh_looptri(&dmauxdata_stack, auxMesh, 0.0, 4, 6)) != NULL) {
-					aux_callback = dmauxdata_stack.raycast_callback;
-					auxData = &dmauxdata_stack;
+				if ((aux_tree = bvhtree_from_mesh_looptri(&auxdata_stack.dmtreedata, auxMesh, 0.0, 4, 6)) != NULL) {
+					aux_callback = auxdata_stack.dmtreedata.raycast_callback;
+					auxData = &auxdata_stack.dmtreedata;
 				}
 			}
 		}
@@ -455,12 +464,21 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 
 	/* free data structures */
 	if (treeData) {
-		if (emtarget) free_bvhtree_from_editmesh(treeData);
-		else free_bvhtree_from_mesh(treeData);
+		if (emtarget) {
+			free_bvhtree_from_editmesh(treeData);
+		}
+		else {
+			free_bvhtree_from_mesh(treeData);
+		}
 	}
+
 	if (auxData) {
-		if (emaux) free_bvhtree_from_editmesh(auxData);
-		else free_bvhtree_from_mesh(auxData);
+		if (emaux) {
+			free_bvhtree_from_editmesh(auxData);
+		}
+		else {
+			free_bvhtree_from_mesh(auxData);
+		}
 	}
 }
 

@@ -1059,7 +1059,7 @@ static bool snapEditMesh(
 						        em->bm, looptri_mask,
 						        sctx->callbacks.edit_mesh.test_face_fn, sctx->callbacks.edit_mesh.user_data);
 					}
-					bvhtree_from_editmesh_looptri_ex(treedata, em, looptri_mask, looptri_num_active, 0.0f, 4, 6);
+					bvhtree_from_editmesh_looptri_ex(treedata, em, looptri_mask, looptri_num_active, 0.0f, 4, 6, NULL);
 					if (looptri_mask) {
 						MEM_freeN(looptri_mask);
 					}
