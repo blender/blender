@@ -75,7 +75,7 @@ SnapObjectContext *ED_transform_snap_object_context_create(
 SnapObjectContext *ED_transform_snap_object_context_create_view3d(
         struct Main *bmain, struct Scene *scene, int flag,
         /* extra args for view3d */
-        struct ARegion *ar, struct View3D *v3d);
+        const struct ARegion *ar, const struct View3D *v3d);
 void ED_transform_snap_object_context_destroy(SnapObjectContext *sctx);
 
 /* callbacks to filter how snap works */

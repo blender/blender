@@ -87,8 +87,8 @@ struct SnapObjectContext {
 	 * otherwise this doesn't take viewport into account. */
 	bool use_v3d;
 	struct {
-		struct View3D *v3d;
-		struct ARegion *ar;
+		const struct View3D *v3d;
+		const struct ARegion *ar;
 	} v3d_data;
 
 
@@ -222,7 +222,7 @@ static void raycast_all_cb(void *userdata, int index, const BVHTreeRay *ray, BVH
  * \{ */
 
 static bool snapEdge(
-        ARegion *ar, const float v1co[3], const short v1no[3], const float v2co[3], const short v2no[3],
+        const ARegion *ar, const float v1co[3], const short v1no[3], const float v2co[3], const short v2no[3],
         float obmat[4][4], float timat[3][3], const float mval_fl[2], float *dist_px,
         const float ray_start[3], const float ray_start_local[3], const float ray_normal_local[3], float *ray_depth,
         float r_loc[3], float r_no[3])
@@ -312,7 +312,7 @@ static bool snapEdge(
 }
 
 static bool snapVertex(
-        ARegion *ar, const float vco[3], const float vno[3],
+        const ARegion *ar, const float vco[3], const float vno[3],
         float obmat[4][4], float timat[3][3], const float mval_fl[2], float *dist_px,
         const float ray_start[3], const float ray_start_local[3], const float ray_normal_local[3], float *ray_depth,
         float r_loc[3], float r_no[3])
@@ -362,7 +362,7 @@ static bool snapVertex(
 }
 
 static bool snapArmature(
-        ARegion *ar, Object *ob, bArmature *arm, float obmat[4][4],
+        const ARegion *ar, Object *ob, bArmature *arm, float obmat[4][4],
         const float mval[2], float *dist_px, const short snap_to,
         const float ray_start[3], const float ray_normal[3], float *ray_depth,
         float r_loc[3], float *UNUSED(r_no))
@@ -444,7 +444,7 @@ static bool snapArmature(
 }
 
 static bool snapCurve(
-        ARegion *ar, Object *ob, Curve *cu, float obmat[4][4],
+        const ARegion *ar, Object *ob, Curve *cu, float obmat[4][4],
         const float mval[2], float *dist_px, const short snap_to,
         const float ray_start[3], const float ray_normal[3], float *ray_depth,
         float r_loc[3], float *UNUSED(r_no))
@@ -542,7 +542,7 @@ static bool snapCurve(
 
 /* may extend later (for now just snaps to empty center) */
 static bool snapEmpty(
-        ARegion *ar, Object *ob, float obmat[4][4],
+        const ARegion *ar, Object *ob, float obmat[4][4],
         const float mval[2], float *dist_px, const short snap_to,
         const float ray_start[3], const float ray_normal[3], float *ray_depth,
         float r_loc[3], float *UNUSED(r_no))
@@ -582,7 +582,7 @@ static bool snapEmpty(
 }
 
 static bool snapCamera(
-        ARegion *ar, Scene *scene, Object *object, float obmat[4][4],
+        const ARegion *ar, Scene *scene, Object *object, float obmat[4][4],
         const float mval[2], float *dist_px, const short snap_to,
         const float ray_start[3], const float ray_normal[3], float *ray_depth,
         float r_loc[3], float *UNUSED(r_no))
@@ -683,7 +683,7 @@ static bool snapDerivedMesh(
         float r_loc[3], float r_no[3], int *r_index,
         ListBase *r_hit_list)
 {
-	ARegion *ar = sctx->v3d_data.ar;
+	const ARegion *ar = sctx->v3d_data.ar;
 	bool retval = false;
 
 	if (snap_to == SCE_SNAP_MODE_FACE) {
@@ -965,7 +965,7 @@ static bool snapEditMesh(
         float r_loc[3], float r_no[3], int *r_index,
         ListBase *r_hit_list)
 {
-	ARegion *ar = sctx->v3d_data.ar;
+	const ARegion *ar = sctx->v3d_data.ar;
 	bool retval = false;
 
 	if (snap_to == SCE_SNAP_MODE_FACE) {
@@ -1242,7 +1242,7 @@ static bool snapObject(
         Object **r_ob, float r_obmat[4][4],
         ListBase *r_hit_list)
 {
-	ARegion *ar = sctx->v3d_data.ar;
+	const ARegion *ar = sctx->v3d_data.ar;
 	bool retval = false;
 
 	if (ob->type == OB_MESH) {
@@ -1419,7 +1419,7 @@ SnapObjectContext *ED_transform_snap_object_context_create(
 SnapObjectContext *ED_transform_snap_object_context_create_view3d(
         Main *bmain, Scene *scene, int flag,
         /* extra args for view3d */
-        ARegion *ar, View3D *v3d)
+        const ARegion *ar, const View3D *v3d)
 {
 	SnapObjectContext *sctx = ED_transform_snap_object_context_create(bmain, scene, flag);
 
