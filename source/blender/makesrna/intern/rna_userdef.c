@@ -94,10 +94,12 @@ EnumPropertyItem rna_enum_navigation_mode_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+#if defined(WITH_INTERNATIONAL) || !defined(RNA_RUNTIME)
 static EnumPropertyItem rna_enum_language_default_items[] = {
 	{0, "DEFAULT", 0, "Default (Default)", ""},
 	{0, NULL, 0, NULL, NULL}
 };
+#endif
 
 #ifdef RNA_RUNTIME
 
