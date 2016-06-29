@@ -740,6 +740,16 @@ static PVert *p_vert_add(PHandle *handle, PHashKey key, const float co[3], PEdge
 {
 	PVert *v = (PVert *)BLI_memarena_alloc(handle->arena, sizeof(*v));
 	copy_v3_v3(v->co, co);
+
+	/* Sanity check, a single nan/inf point causes the entire result to be invalid.
+	 * Note that values within the calculation may _become_ non-finite,
+	 * so the rest of the code still needs to take this possability into account. */
+	for (int i = 0; i < 3; i++) {
+		if (UNLIKELY(!finite(v->co[i]))) {
+			v->co[i] = 0.0f;
+		}
+	}
+
 	v->u.key = key;
 	v->edge = e;
 	v->flag = 0;
@@ -3040,8 +3050,10 @@ static void p_chart_lscm_begin(PChart *chart, PBool live, PBool abf)
 
 			p_chart_boundaries(chart, NULL, &outer);
 
-			if (!p_chart_symmetry_pins(chart, outer, &pin1, &pin2))
+			/* outer can be NULL with non-finite coords. */
+			if (outer && !p_chart_symmetry_pins(chart, outer, &pin1, &pin2)) {
 				p_chart_extrema_verts(chart, &pin1, &pin2);
+			}
 
 			chart->u.lscm.pin1 = pin1;
 			chart->u.lscm.pin2 = pin2;
