@@ -67,12 +67,13 @@ enum {
 	_FLAG_MV       = (1 << 1),  /* make face, vertex */
 	_FLAG_OVERLAP  = (1 << 2),  /* general overlap flag  */
 	_FLAG_WALK     = (1 << 3),  /* general walk flag (keep clean) */
+	_FLAG_WALK_ALT = (1 << 4),  /* same as _FLAG_WALK, for when a second tag is needed */
 
 	_FLAG_ELEM_CHECK = (1 << 7),  /* reserved for bmesh_elem_check */
 };
 
 #define BM_ELEM_API_FLAG_ENABLE(element, f)  { ((element)->head.api_flag |=  (f)); } (void)0
-#define BM_ELEM_API_FLAG_DISABLE(element, f) { ((element)->head.api_flag &= ~(f)); } (void)0
+#define BM_ELEM_API_FLAG_DISABLE(element, f) { ((element)->head.api_flag &= (unsigned char)~(f)); } (void)0
 #define BM_ELEM_API_FLAG_TEST(element, f)      ((element)->head.api_flag &   (f))
 #define BM_ELEM_API_FLAG_CLEAR(element)      { ((element)->head.api_flag = 0); } (void)0
 
