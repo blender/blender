@@ -306,7 +306,8 @@ typedef struct {
 	unsigned char *buf;
 	MemFile *compare, *current;
 
-	int tot, count, error;
+	int tot, count;
+	bool error;
 
 	/* Wrap writing, so we can use zlib or
 	 * other compression types later, see: G_FILE_COMPRESS
@@ -314,7 +315,7 @@ typedef struct {
 	WriteWrap *ww;
 
 #ifdef USE_BMESH_SAVE_AS_COMPAT
-	char use_mesh_compat; /* option to save with older mesh format */
+	bool use_mesh_compat; /* option to save with older mesh format */
 #endif
 } WriteData;
 
@@ -347,7 +348,7 @@ static void writedata_do_write(WriteData *wd, const void *mem, int memlen)
 	}
 	else {
 		if (wd->ww->write(wd->ww, mem, memlen) != memlen) {
-			wd->error = 1;
+			wd->error = true;
 		}
 	}
 }
@@ -446,16 +447,14 @@ static WriteData *bgnwrite(WriteWrap *ww, MemFile *compare, MemFile *current)
  * \return unknown global variable otherwise
  * \warning Talks to other functions with global parameters
  */
-static int endwrite(WriteData *wd)
+static bool endwrite(WriteData *wd)
 {
-	int err;
-
 	if (wd->count) {
 		writedata_do_write(wd, wd->buf, wd->count);
 		wd->count = 0;
 	}
 
-	err = wd->error;
+	const bool err = wd->error;
 	writedata_free(wd);
 
 	return err;
@@ -513,7 +512,7 @@ static void writestruct_at_address_id(
 
 static void writestruct_nr(
         WriteData *wd, int filecode, const int struct_nr, int nr,
-	const void *adr)
+        const void *adr)
 {
 	writestruct_at_address_nr(wd, filecode, struct_nr, nr, adr, adr);
 }
@@ -1951,7 +1950,7 @@ static void write_customdata(
 static void write_meshes(WriteData *wd, ListBase *idbase)
 {
 	Mesh *mesh;
-	int save_for_old_blender = 0;
+	bool save_for_old_blender = false;
 
 #ifdef USE_BMESH_SAVE_AS_COMPAT
 	save_for_old_blender = wd->use_mesh_compat; /* option to save with older mesh format */
@@ -3750,11 +3749,11 @@ static void write_thumb(WriteData *wd, const BlendThumbnail *thumb)
 }
 
 /* if MemFile * there's filesave to memory */
-static int write_file_handle(
+static bool write_file_handle(
         Main *mainvar,
         WriteWrap *ww,
         MemFile *compare, MemFile *current,
-        int write_user_block, int write_flags, const BlendThumbnail *thumb)
+        int write_flags, const BlendThumbnail *thumb)
 {
 	BHead bhead;
 	ListBase mainlist;
@@ -3820,7 +3819,7 @@ static int write_file_handle(
 	write_linestyles(wd, &mainvar->linestyle);
 	write_libraries(wd,  mainvar->next);
 
-	if (write_user_block) {
+	if (write_flags & G_FILE_USERPREFS) {
 		write_userdef(wd);
 	}
 
@@ -3898,7 +3897,6 @@ bool BLO_write_file(
         ReportList *reports, const BlendThumbnail *thumb)
 {
 	char tempname[FILE_MAX + 1];
-	int err, write_user_block;
 	eWriteWrapType ww_type;
 	WriteWrap ww;
 
@@ -3953,15 +3951,13 @@ bool BLO_write_file(
 		}
 	}
 
-	write_user_block = write_flags & G_FILE_USERPREFS;
-
 	if (write_flags & G_FILE_RELATIVE_REMAP) {
 		/* note, making relative to something OTHER then G.main->name */
 		BKE_bpath_relative_convert(mainvar, filepath, NULL);
 	}
 
 	/* actual file writing */
-	err = write_file_handle(mainvar, &ww, NULL, NULL, write_user_block, write_flags, thumb);
+	const bool err = write_file_handle(mainvar, &ww, NULL, NULL, write_flags, thumb);
 
 	ww.close(&ww);
 
@@ -4000,9 +3996,9 @@ bool BLO_write_file(
  */
 bool BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int write_flags)
 {
-	int err;
+	write_flags &= ~G_FILE_USERPREFS;
 
-	err = write_file_handle(mainvar, NULL, compare, current, 0, write_flags, NULL);
+	const bool err = write_file_handle(mainvar, NULL, compare, current, write_flags, NULL);
 
 	return (err == 0);
 }

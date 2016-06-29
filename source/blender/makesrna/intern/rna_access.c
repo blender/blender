@@ -4678,7 +4678,7 @@ static void rna_path_array_multi_string_from_flat_index(
 }
 
 /**
- * \param index_dim: The dimensiuon to show, 0 disables. 1 for 1d array, 2 for 2d. etc.
+ * \param index_dim: The dimension to show, 0 disables. 1 for 1d array, 2 for 2d. etc.
  * \param index: The *flattened* index to use when \a ``index_dim > 0``,
  * this is expanded when used with multi-dimensional arrays.
  */

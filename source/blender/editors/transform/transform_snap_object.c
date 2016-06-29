@@ -87,8 +87,8 @@ struct SnapObjectContext {
 	 * otherwise this doesn't take viewport into account. */
 	bool use_v3d;
 	struct {
-		struct View3D *v3d;
-		struct ARegion *ar;
+		const struct View3D *v3d;
+		const struct ARegion *ar;
 	} v3d_data;
 
 
@@ -222,7 +222,7 @@ static void raycast_all_cb(void *userdata, int index, const BVHTreeRay *ray, BVH
  * \{ */
 
 static bool snapEdge(
-        ARegion *ar, const float v1co[3], const short v1no[3], const float v2co[3], const short v2no[3],
+        const ARegion *ar, const float v1co[3], const short v1no[3], const float v2co[3], const short v2no[3],
         float obmat[4][4], float timat[3][3], const float mval_fl[2], float *dist_px,
         const float ray_start[3], const float ray_start_local[3], const float ray_normal_local[3], float *ray_depth,
         float r_loc[3], float r_no[3])
@@ -312,7 +312,7 @@ static bool snapEdge(
 }
 
 static bool snapVertex(
-        ARegion *ar, const float vco[3], const float vno[3],
+        const ARegion *ar, const float vco[3], const float vno[3],
         float obmat[4][4], float timat[3][3], const float mval_fl[2], float *dist_px,
         const float ray_start[3], const float ray_start_local[3], const float ray_normal_local[3], float *ray_depth,
         float r_loc[3], float r_no[3])
@@ -362,7 +362,7 @@ static bool snapVertex(
 }
 
 static bool snapArmature(
-        ARegion *ar, Object *ob, bArmature *arm, float obmat[4][4],
+        const ARegion *ar, Object *ob, bArmature *arm, float obmat[4][4],
         const float mval[2], float *dist_px, const short snap_to,
         const float ray_start[3], const float ray_normal[3], float *ray_depth,
         float r_loc[3], float *UNUSED(r_no))
@@ -444,7 +444,7 @@ static bool snapArmature(
 }
 
 static bool snapCurve(
-        ARegion *ar, Object *ob, Curve *cu, float obmat[4][4],
+        const ARegion *ar, Object *ob, Curve *cu, float obmat[4][4],
         const float mval[2], float *dist_px, const short snap_to,
         const float ray_start[3], const float ray_normal[3], float *ray_depth,
         float r_loc[3], float *UNUSED(r_no))
@@ -542,7 +542,7 @@ static bool snapCurve(
 
 /* may extend later (for now just snaps to empty center) */
 static bool snapEmpty(
-        ARegion *ar, Object *ob, float obmat[4][4],
+        const ARegion *ar, Object *ob, float obmat[4][4],
         const float mval[2], float *dist_px, const short snap_to,
         const float ray_start[3], const float ray_normal[3], float *ray_depth,
         float r_loc[3], float *UNUSED(r_no))
@@ -582,7 +582,7 @@ static bool snapEmpty(
 }
 
 static bool snapCamera(
-        ARegion *ar, Scene *scene, Object *object, float obmat[4][4],
+        const ARegion *ar, Scene *scene, Object *object, float obmat[4][4],
         const float mval[2], float *dist_px, const short snap_to,
         const float ray_start[3], const float ray_normal[3], float *ray_depth,
         float r_loc[3], float *UNUSED(r_no))
@@ -683,7 +683,7 @@ static bool snapDerivedMesh(
         float r_loc[3], float r_no[3], int *r_index,
         ListBase *r_hit_list)
 {
-	ARegion *ar = sctx->v3d_data.ar;
+	const ARegion *ar = sctx->v3d_data.ar;
 	bool retval = false;
 
 	if (snap_to == SCE_SNAP_MODE_FACE) {
@@ -965,7 +965,7 @@ static bool snapEditMesh(
         float r_loc[3], float r_no[3], int *r_index,
         ListBase *r_hit_list)
 {
-	ARegion *ar = sctx->v3d_data.ar;
+	const ARegion *ar = sctx->v3d_data.ar;
 	bool retval = false;
 
 	if (snap_to == SCE_SNAP_MODE_FACE) {
@@ -1059,7 +1059,7 @@ static bool snapEditMesh(
 						        em->bm, looptri_mask,
 						        sctx->callbacks.edit_mesh.test_face_fn, sctx->callbacks.edit_mesh.user_data);
 					}
-					bvhtree_from_editmesh_looptri_ex(treedata, em, looptri_mask, looptri_num_active, 0.0f, 4, 6);
+					bvhtree_from_editmesh_looptri_ex(treedata, em, looptri_mask, looptri_num_active, 0.0f, 4, 6, NULL);
 					if (looptri_mask) {
 						MEM_freeN(looptri_mask);
 					}
@@ -1242,7 +1242,7 @@ static bool snapObject(
         Object **r_ob, float r_obmat[4][4],
         ListBase *r_hit_list)
 {
-	ARegion *ar = sctx->v3d_data.ar;
+	const ARegion *ar = sctx->v3d_data.ar;
 	bool retval = false;
 
 	if (ob->type == OB_MESH) {
@@ -1404,7 +1404,7 @@ SnapObjectContext *ED_transform_snap_object_context_create(
 SnapObjectContext *ED_transform_snap_object_context_create_view3d(
         Main *bmain, Scene *scene, int flag,
         /* extra args for view3d */
-        ARegion *ar, View3D *v3d)
+        const ARegion *ar, const View3D *v3d)
 {
 	SnapObjectContext *sctx = ED_transform_snap_object_context_create(bmain, scene, flag);
 
@@ -1657,7 +1657,7 @@ bool ED_transform_snap_object_project_view3d_ex(
         float *ray_depth,
         float r_loc[3], float r_no[3], int *r_index)
 {
-	float ray_start[3], ray_normal[3], ray_orgigin[3];
+	float ray_start[3], ray_normal[3], ray_origin[3];
 
 	float ray_depth_fallback;
 	if (ray_depth == NULL) {
@@ -1667,7 +1667,7 @@ bool ED_transform_snap_object_project_view3d_ex(
 
 	if (!ED_view3d_win_to_ray_ex(
 	        sctx->v3d_data.ar, sctx->v3d_data.v3d,
-	        mval, ray_orgigin, ray_normal, ray_start, true))
+	        mval, ray_origin, ray_normal, ray_start, true))
 	{
 		return false;
 	}
@@ -1676,7 +1676,7 @@ bool ED_transform_snap_object_project_view3d_ex(
 	        sctx,
 	        snap_to, params->snap_select, params->use_object_edit_cage,
 	        mval, dist_px,
-	        ray_start, ray_normal, ray_orgigin, ray_depth,
+	        ray_start, ray_normal, ray_origin, ray_depth,
 	        r_loc, r_no, r_index, NULL, NULL, NULL);
 }
 

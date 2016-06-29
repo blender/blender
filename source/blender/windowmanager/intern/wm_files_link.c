@@ -264,7 +264,7 @@ static void wm_link_do(
 			             mainl, &bh, item->idcode, item->name, flag, scene, v3d, use_placeholders, force_indirect);
 
 			if (new_id) {
-				/* If the link is sucessful, clear item's libs 'todo' flags.
+				/* If the link is successful, clear item's libs 'todo' flags.
 				 * This avoids trying to link same item with other libraries to come. */
 				BLI_BITMAP_SET_ALL(item->libraries, false, lapp_data->num_libraries);
 				item->new_id = new_id;

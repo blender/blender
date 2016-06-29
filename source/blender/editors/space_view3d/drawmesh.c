@@ -979,10 +979,12 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 		if (ob == OBACT) {
 			if (ob->mode & OB_MODE_WEIGHT_PAINT) {
 				dm_draw_flag |= DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH | DM_DRAW_SKIP_HIDDEN;
-
 			}
 			else if (ob->mode & OB_MODE_SCULPT) {
-				dm_draw_flag |= DM_DRAW_SKIP_HIDDEN;
+				dm_draw_flag |= DM_DRAW_SKIP_HIDDEN | DM_DRAW_USE_COLORS;
+			}
+			else if ((ob->mode & OB_MODE_TEXTURE_PAINT) == 0) {
+				dm_draw_flag |= DM_DRAW_USE_COLORS;
 			}
 		}
 

@@ -827,7 +827,7 @@ ccl_device float3 shader_holdout_eval(KernelGlobals *kg, ShaderData *sd)
 
 /* Surface Evaluation */
 
-ccl_device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd, RNG *rng,
+ccl_device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd, ccl_addr_space RNG *rng,
 	ccl_addr_space PathState *state, float randb, int path_flag, ShaderContext ctx)
 {
 	ccl_fetch(sd, num_closure) = 0;
@@ -851,7 +851,7 @@ ccl_device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd, RNG *rng,
 	}
 
 	if(rng && (ccl_fetch(sd, flag) & SD_BSDF_NEEDS_LCG)) {
-		ccl_fetch(sd, lcg_state) = lcg_state_init(rng, state, 0xb4bc3953);
+		ccl_fetch(sd, lcg_state) = lcg_state_init_addrspace(rng, state, 0xb4bc3953);
 	}
 }
 

@@ -302,8 +302,9 @@ float ED_view3d_calc_zfac(const RegionView3D *rv3d, const float co[3], bool *r_f
 	return zfac;
 }
 
-static void view3d_win_to_ray_segment(const ARegion *ar, View3D *v3d, const float mval[2],
-                                      float r_ray_co[3], float r_ray_dir[3], float r_ray_start[3], float r_ray_end[3])
+static void view3d_win_to_ray_segment(
+        const ARegion *ar, const View3D *v3d, const float mval[2],
+        float r_ray_co[3], float r_ray_dir[3], float r_ray_start[3], float r_ray_end[3])
 {
 	RegionView3D *rv3d = ar->regiondata;
 	float _ray_co[3], _ray_dir[3], start_offset, end_offset;
@@ -346,7 +347,7 @@ static void view3d_win_to_ray_segment(const ARegion *ar, View3D *v3d, const floa
 	}
 }
 
-BLI_INLINE bool view3d_clip_segment(RegionView3D *rv3d, float ray_start[3], float ray_end[3])
+BLI_INLINE bool view3d_clip_segment(const RegionView3D *rv3d, float ray_start[3], float ray_end[3])
 {
 	if ((rv3d->rflag & RV3D_CLIPPING) &&
 	    (clip_segment_v3_plane_n(ray_start, ray_end, rv3d->clip, 6,
@@ -373,8 +374,9 @@ BLI_INLINE bool view3d_clip_segment(RegionView3D *rv3d, float ray_start[3], floa
  * \param do_clip Optionally clip the start of the ray by the view clipping planes.
  * \return success, false if the ray is totally clipped.
  */
-bool ED_view3d_win_to_ray_ex(const ARegion *ar, View3D *v3d, const float mval[2],
-                             float r_ray_co[3], float r_ray_normal[3], float r_ray_start[3], bool do_clip)
+bool ED_view3d_win_to_ray_ex(
+        const ARegion *ar, const View3D *v3d, const float mval[2],
+        float r_ray_co[3], float r_ray_normal[3], float r_ray_start[3], bool do_clip)
 {
 	float ray_end[3];
 
@@ -382,7 +384,7 @@ bool ED_view3d_win_to_ray_ex(const ARegion *ar, View3D *v3d, const float mval[2]
 
 	/* bounds clipping */
 	if (do_clip) {
-		return view3d_clip_segment((RegionView3D *)ar->regiondata, r_ray_start, ray_end);
+		return view3d_clip_segment(ar->regiondata, r_ray_start, ray_end);
 	}
 
 	return true;
@@ -401,8 +403,9 @@ bool ED_view3d_win_to_ray_ex(const ARegion *ar, View3D *v3d, const float mval[2]
  * \param do_clip Optionally clip the start of the ray by the view clipping planes.
  * \return success, false if the ray is totally clipped.
  */
-bool ED_view3d_win_to_ray(const ARegion *ar, View3D *v3d, const float mval[2],
-                          float r_ray_start[3], float r_ray_normal[3], const bool do_clip)
+bool ED_view3d_win_to_ray(
+        const ARegion *ar, const View3D *v3d, const float mval[2],
+        float r_ray_start[3], float r_ray_normal[3], const bool do_clip)
 {
 	return ED_view3d_win_to_ray_ex(ar, v3d, mval, NULL, r_ray_normal, r_ray_start, do_clip);
 }

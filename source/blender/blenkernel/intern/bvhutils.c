@@ -968,17 +968,37 @@ static void bvhtree_from_mesh_looptri_setup_data(
 BVHTree *bvhtree_from_editmesh_looptri_ex(
         BVHTreeFromEditMesh *data, BMEditMesh *em,
         const BLI_bitmap *looptri_mask, int looptri_num_active,
-        float epsilon, int tree_type, int axis)
+        float epsilon, int tree_type, int axis, BVHCache **bvhCache)
 {
 	/* BMESH specific check that we have tessfaces,
-	 * we _could_ tessellate here but rather not - campbell
-	 *
-	 * this assert checks we have tessfaces,
-	 * if not caller should use DM_ensure_tessface() */
+	 * we _could_ tessellate here but rather not - campbell */
 
-	BVHTree *tree = bvhtree_from_editmesh_looptri_create_tree(
-	        epsilon, tree_type, axis,
-	        em, em->tottri, looptri_mask, looptri_num_active);
+	BVHTree *tree;
+	if (bvhCache) {
+		BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_READ);
+		tree = bvhcache_find(*bvhCache, BVHTREE_FROM_EM_LOOPTRI);
+		BLI_rw_mutex_unlock(&cache_rwlock);
+		if (tree == NULL) {
+			BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_WRITE);
+			tree = bvhcache_find(*bvhCache, BVHTREE_FROM_EM_LOOPTRI);
+			if (tree == NULL) {
+				tree = bvhtree_from_editmesh_looptri_create_tree(
+				        epsilon, tree_type, axis,
+				        em, em->tottri, looptri_mask, looptri_num_active);
+				if (tree) {
+					/* Save on cache for later use */
+					/* printf("BVHTree built and saved on cache\n"); */
+					bvhcache_insert(bvhCache, tree, BVHTREE_FROM_EM_LOOPTRI);
+				}
+			}
+			BLI_rw_mutex_unlock(&cache_rwlock);
+		}
+	}
+	else {
+		tree = bvhtree_from_editmesh_looptri_create_tree(
+		        epsilon, tree_type, axis,
+		        em, em->tottri, looptri_mask, looptri_num_active);
+	}
 
 	if (tree) {
 		data->tree = tree;
@@ -987,17 +1007,18 @@ BVHTree *bvhtree_from_editmesh_looptri_ex(
 		data->nearest_to_ray_callback = NULL;
 		data->sphere_radius = 0.0f;
 		data->em = em;
+		data->cached = bvhCache != NULL;
 	}
 	return tree;
 }
 
 BVHTree *bvhtree_from_editmesh_looptri(
         BVHTreeFromEditMesh *data, BMEditMesh *em,
-        float epsilon, int tree_type, int axis)
+        float epsilon, int tree_type, int axis, BVHCache **bvhCache)
 {
 	return bvhtree_from_editmesh_looptri_ex(
 	        data, em, NULL, -1,
-	        epsilon, tree_type, axis);
+	        epsilon, tree_type, axis, bvhCache);
 }
 
 /**
@@ -1045,6 +1066,9 @@ BVHTree *bvhtree_from_mesh_looptri(
 		tree = bvhcache_find(dm->bvhCache, BVHTREE_FROM_LOOPTRI);
 		if (tree == NULL) {
 			int looptri_num = dm->getNumLoopTri(dm);
+
+			/* this assert checks we have looptris,
+			 * if not caller should use DM_ensure_looptri() */
 			BLI_assert(!(looptri_num == 0 && dm->getNumPolys(dm) != 0));
 
 			tree = bvhtree_from_mesh_looptri_create_tree(
@@ -1102,7 +1126,9 @@ BVHTree *bvhtree_from_mesh_looptri_ex(
 void free_bvhtree_from_editmesh(struct BVHTreeFromEditMesh *data)
 {
 	if (data->tree) {
-		BLI_bvhtree_free(data->tree);
+		if (!data->cached) {
+			BLI_bvhtree_free(data->tree);
+		}
 		memset(data, 0, sizeof(*data));
 	}
 }

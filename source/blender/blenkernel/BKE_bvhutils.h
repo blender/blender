@@ -43,6 +43,8 @@ struct BMEditMesh;
 struct MVert;
 struct MFace;
 
+typedef struct LinkNode BVHCache;
+
 /**
 * struct that kepts basic information about a BVHTree build from a editmesh
 */
@@ -54,11 +56,13 @@ typedef struct BVHTreeFromEditMesh {
 	BVHTree_RayCastCallback raycast_callback;
 	BVHTree_NearestToRayCallback nearest_to_ray_callback;
 
+	struct BMEditMesh *em;
+
 	/* radius for raycast */
 	float sphere_radius;
 
 	/* Private data */
-	struct BMEditMesh *em;
+	bool cached;
 
 } BVHTreeFromEditMesh;
 
@@ -133,12 +137,12 @@ BVHTree *bvhtree_from_mesh_faces_ex(
         float epsilon, int tree_type, int axis);
 
 BVHTree *bvhtree_from_editmesh_looptri(
-        BVHTreeFromEditMesh *data, struct BMEditMesh *em, float epsilon,
-        int tree_type, int axis);
+        BVHTreeFromEditMesh *data, struct BMEditMesh *em,
+        float epsilon, int tree_type, int axis, BVHCache **bvhCache);
 BVHTree *bvhtree_from_editmesh_looptri_ex(
         BVHTreeFromEditMesh *data, struct BMEditMesh *em,
         const BLI_bitmap *mask, int looptri_num_active,
-        float epsilon, int tree_type, int axis);
+        float epsilon, int tree_type, int axis, BVHCache **bvhCache);
 
 BVHTree *bvhtree_from_mesh_looptri(
         struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon, int tree_type, int axis);
@@ -165,9 +169,7 @@ float bvhtree_ray_tri_intersection(
 float bvhtree_sphereray_tri_intersection(
         const BVHTreeRay *ray, float radius, const float m_dist,
         const float v0[3], const float v1[3], const float v2[3]);
-float nearest_point_in_tri_surface_squared(
-        const float v0[3], const float v1[3], const float v2[3],
-        const float p[3], int *v, int *e, float nearest[3]);
+
 
 /**
  * BVHCache
@@ -179,14 +181,16 @@ enum {
 	BVHTREE_FROM_EDGES           = 1,
 	BVHTREE_FROM_FACES           = 2,
 	BVHTREE_FROM_LOOPTRI         = 3,
+
+	BVHTREE_FROM_EM_LOOPTRI      = 4,
 };
 
-typedef struct LinkNode BVHCache;
 
 BVHTree *bvhcache_find(BVHCache *cache, int type);
 bool     bvhcache_has_tree(const BVHCache *cache, const BVHTree *tree);
 void     bvhcache_insert(BVHCache **cache_p, BVHTree *tree, int type);
 void     bvhcache_init(BVHCache **cache_p);
 void     bvhcache_free(BVHCache **cache_p);
+
 
 #endif

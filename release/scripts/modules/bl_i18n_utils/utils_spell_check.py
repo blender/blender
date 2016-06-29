@@ -58,7 +58,6 @@ class SpellChecker:
         "vertices",
 
         # Merged words
-        #~ "addon", "addons",
         "antialiasing",
         "arcsine", "arccosine", "arctangent",
         "autoclip",
@@ -127,6 +126,7 @@ class SpellChecker:
         "multipaint",
         "multires", "multiresolution",
         "multisampling",
+        "multiscatter",
         "multitexture",
         "multithreaded", 
         "multiuser",
@@ -530,6 +530,7 @@ class SpellChecker:
         "futura",
         "fx",
         "gfx",
+        "ggx",
         "gl",
         "glsl",
         "gpl",
