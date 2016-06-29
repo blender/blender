@@ -2576,9 +2576,11 @@ static void ui_set_but_soft_range(uiBut *but)
 	}
 	else if (but->poin && (but->pointype & UI_BUT_POIN_TYPES)) {
 		float value = ui_but_value_get(but);
-		CLAMP(value, but->hardmin, but->hardmax);
-		but->softmin = min_ff(but->softmin, value);
-		but->softmax = max_ff(but->softmax, value);
+		if (isfinite(value)) {
+			CLAMP(value, but->hardmin, but->hardmax);
+			but->softmin = min_ff(but->softmin, value);
+			but->softmax = max_ff(but->softmax, value);
+		}
 	}
 	else {
 		BLI_assert(0);
