@@ -1672,7 +1672,7 @@ bool ED_transform_snap_object_project_view3d_ex(
         float *ray_depth,
         float r_loc[3], float r_no[3], int *r_index)
 {
-	float ray_start[3], ray_normal[3], ray_orgigin[3];
+	float ray_start[3], ray_normal[3], ray_origin[3];
 
 	float ray_depth_fallback;
 	if (ray_depth == NULL) {
@@ -1682,7 +1682,7 @@ bool ED_transform_snap_object_project_view3d_ex(
 
 	if (!ED_view3d_win_to_ray_ex(
 	        sctx->v3d_data.ar, sctx->v3d_data.v3d,
-	        mval, ray_orgigin, ray_normal, ray_start, true))
+	        mval, ray_origin, ray_normal, ray_start, true))
 	{
 		return false;
 	}
@@ -1691,7 +1691,7 @@ bool ED_transform_snap_object_project_view3d_ex(
 	        sctx,
 	        snap_to, params->snap_select, params->use_object_edit_cage,
 	        mval, dist_px,
-	        ray_start, ray_normal, ray_orgigin, ray_depth,
+	        ray_start, ray_normal, ray_origin, ray_depth,
 	        r_loc, r_no, r_index, NULL, NULL, NULL);
 }
 

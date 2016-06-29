@@ -416,7 +416,7 @@ static int outliner_id_remap_exec(bContext *C, wmOperator *op)
 	}
 
 	BKE_libblock_remap(bmain, old_id, new_id,
-					   ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_NEVER_NULL_USAGE);
+	                   ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_NEVER_NULL_USAGE);
 
 	BKE_main_lib_objects_recalc_all(bmain);
 
@@ -541,7 +541,7 @@ void id_remap_cb(
 /* Library relocate/reload --------------------------------------------------- */
 
 static int lib_relocate(
-		bContext *C, TreeElement *te, TreeStoreElem *tselem, wmOperatorType *ot, const bool reload)
+        bContext *C, TreeElement *te, TreeStoreElem *tselem, wmOperatorType *ot, const bool reload)
 {
 	PointerRNA op_props;
 	int ret = 0;
@@ -579,7 +579,7 @@ static int lib_relocate(
 }
 
 static int outliner_lib_relocate_invoke_do(
-		bContext *C, ReportList *reports, TreeElement *te, const float mval[2], const bool reload)
+        bContext *C, ReportList *reports, TreeElement *te, const float mval[2], const bool reload)
 {
 	if (mval[1] > te->ys && mval[1] < te->ys + UI_UNIT_Y) {
 		TreeStoreElem *tselem = TREESTORE(te);
@@ -642,7 +642,7 @@ void OUTLINER_OT_lib_relocate(wmOperatorType *ot)
 }
 
 /* XXX This does not work with several items
- *     (it is only called once in the end, due to the 'deffered' filebrowser invocation through event system...). */
+ *     (it is only called once in the end, due to the 'deferred' filebrowser invocation through event system...). */
 void lib_relocate_cb(
         bContext *C, Scene *UNUSED(scene), TreeElement *te,
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))

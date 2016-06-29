@@ -209,7 +209,7 @@ static int add_driver_with_target(
 		 *     (The only issue is with quat rotations vs euler channels...)
 		 *   - To avoid problems with transform properties depending on the final transform that they
 		 *     control (thus creating pseudo-cycles - see T48734), we don't use transform channels
-		 *     when both the source and destinaions are in same places.
+		 *     when both the source and destinations are in same places.
 		 */
 		dvar = driver_add_new_variable(driver);
 		

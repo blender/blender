@@ -393,7 +393,7 @@ void BKE_libblock_remap_locked(
 			if (old_ob->flag & OB_FROMGROUP) {
 				/* Note that for Scene's BaseObject->flag, either we:
 				 *     - unlinked old_ob (i.e. new_ob is NULL), in which case scenes' bases have been removed already.
-				 *     - remaped old_ob by new_ob, in which case scenes' bases are still valid as is.
+				 *     - remapped old_ob by new_ob, in which case scenes' bases are still valid as is.
 				 * So in any case, no need to update them here. */
 				if (BKE_group_object_find(NULL, old_ob) == NULL) {
 					old_ob->flag &= ~OB_FROMGROUP;

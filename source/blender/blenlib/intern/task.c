@@ -992,7 +992,8 @@ void BLI_task_parallel_range(
  *                       (similar to OpenMP's firstprivate).
  * \param userdata_chunk_size Memory size of \a userdata_chunk.
  * \param func_ex Callback function (advanced version).
- * \param func_finalize Callback function, called after all workers have finisehd, useful to finalize accumulative tasks.
+ * \param func_finalize Callback function, called after all workers have finished,
+ * useful to finalize accumulative tasks.
  * \param use_threading If \a true, actually split-execute loop in threads, else just do a sequential forloop
  *                      (allows caller to use any kind of test to switch on parallelization or not).
  * \param use_dynamic_scheduling If \a true, the whole range is divided in a lot of small chunks (of size 32 currently),

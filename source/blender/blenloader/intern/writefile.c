@@ -514,7 +514,7 @@ static void writestruct_at_address_id(
 
 static void writestruct_nr(
         WriteData *wd, int filecode, const int struct_nr, int nr,
-	const void *adr)
+        const void *adr)
 {
 	writestruct_at_address_nr(wd, filecode, struct_nr, nr, adr, adr);
 }
