@@ -172,18 +172,28 @@ if(WITH_BUILDINFO)
 	include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 
-	# XXX, "_buildinfo.h" is used twice here,
+	# XXX, ${buildinfo_h_fake} is used here,
 	# because we rely on that file being detected as missing
 	# every build so that the real header "buildinfo.h" is updated.
 	#
 	# Keep this until we find a better way to resolve!
 
+	set(buildinfo_h_real "${CMAKE_CURRENT_BINARY_DIR}/buildinfo.h")
+	set(buildinfo_h_fake "${CMAKE_CURRENT_BINARY_DIR}/buildinfo.h_fake")
+
+	if(EXISTS ${buildinfo_h_fake})
+		message(FATAL_ERROR "File \"${buildinfo_h_fake}\" found, this should never be created, remove!")
+	endif()
+
 	# a custom target that is always built
 	add_custom_target(buildinfo ALL
-		DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/_buildinfo.h)
+		DEPENDS ${buildinfo_h_fake})
 
 	# creates buildinfo.h using cmake script
-	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/_buildinfo.h
+	add_custom_command(
+		OUTPUT
+			${buildinfo_h_fake}  # ensure we always run
+			${buildinfo_h_real}
 		COMMAND ${CMAKE_COMMAND}
 		-DSOURCE_DIR=${CMAKE_SOURCE_DIR}
 		# overrides only used when non-empty strings
@@ -192,9 +202,13 @@ if(WITH_BUILDINFO)
 		-P ${CMAKE_SOURCE_DIR}/build_files/cmake/buildinfo.cmake)
 
 	# buildinfo.h is a generated file
-	set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/buildinfo.h
+	set_source_files_properties(
+		${buildinfo_h_real}
 		PROPERTIES GENERATED TRUE
 		HEADER_FILE_ONLY TRUE)
+
+	unset(buildinfo_h_real)
+	unset(buildinfo_h_fake)
 
 	# add deps below, after adding blender
 	# -------------- done with header values.
