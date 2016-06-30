@@ -986,6 +986,10 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 			else if ((ob->mode & OB_MODE_TEXTURE_PAINT) == 0) {
 				dm_draw_flag |= DM_DRAW_USE_COLORS;
 			}
+		} else {
+			if ((ob->mode & OB_MODE_TEXTURE_PAINT) == 0) {
+				dm_draw_flag |= DM_DRAW_USE_COLORS;
+			}
 		}
 
 
