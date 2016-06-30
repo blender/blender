@@ -572,6 +572,67 @@ float dist_signed_squared_to_corner_v3v3v3(
 	}
 }
 
+/**
+ * return the distance squared of a point to a ray.
+ */
+float dist_squared_to_ray_v3(
+        const float ray_origin[3], const float ray_direction[3],
+        const float co[3], float *r_depth)
+{
+	float dvec[3];
+	sub_v3_v3v3(dvec, co, ray_origin);
+	*r_depth = dot_v3v3(dvec, ray_direction);
+	return len_squared_v3(dvec) - SQUARE(*r_depth);
+}
+/**
+ * Find the closest point in a seg to a ray and return the distance squared.
+ * \param r_point : Is the point on segment closest to ray (or to ray_origin if the ray and the segment are parallel).
+ * \param depth: the distance of r_point projection on ray to the ray_origin.
+ */
+float dist_squared_ray_to_seg_v3(
+        const float ray_origin[3], const float ray_direction[3],
+        const float v0[3], const float v1[3],
+        float r_point[3], float *r_depth)
+{
+	float a[3], t[3], n[3], lambda;
+	sub_v3_v3v3(a, v1, v0);
+	sub_v3_v3v3(t, v0, ray_origin);
+	cross_v3_v3v3(n, a, ray_direction);
+	const float nlen = len_squared_v3(n);
+
+	/* if (nlen == 0.0f) the lines are parallel,
+	 * has no nearest point, only distance squared.*/
+	if (nlen == 0.0f) {
+		/* Calculate the distance to the point v0 then */
+		copy_v3_v3(r_point, v0);
+		*r_depth = dot_v3v3(t, ray_direction);
+	}
+	else {
+		float c[3], cray[3];
+		sub_v3_v3v3(c, n, t);
+		cross_v3_v3v3(cray, c, ray_direction);
+		lambda = dot_v3v3(cray, n) / nlen;
+		if (lambda <= 0) {
+			copy_v3_v3(r_point, v0);
+
+			*r_depth = dot_v3v3(t, ray_direction);
+		}
+		else if (lambda >= 1) {
+			copy_v3_v3(r_point, v1);
+
+			sub_v3_v3v3(t, v1, ray_origin);
+			*r_depth = dot_v3v3(t, ray_direction);
+		}
+		else {
+			madd_v3_v3v3fl(r_point, v0, a, lambda);
+
+			sub_v3_v3v3(t, r_point, ray_origin);
+			*r_depth = dot_v3v3(t, ray_direction);
+		}
+	}
+	return len_squared_v3(t) - SQUARE(*r_depth);
+}
+
 /* Adapted from "Real-Time Collision Detection" by Christer Ericson,
  * published by Morgan Kaufmann Publishers, copyright 2005 Elsevier Inc.
  * 

@@ -122,6 +122,14 @@ BVHTree *bvhtree_from_mesh_verts_ex(
         const bool vert_allocated, const BLI_bitmap *mask, int verts_num_active,
         float epsilon, int tree_type, int axis);
 
+BVHTree *bvhtree_from_editmesh_edges(
+        BVHTreeFromEditMesh *data, struct BMEditMesh *em,
+        float epsilon, int tree_type, int axis);
+BVHTree *bvhtree_from_editmesh_edges_ex(
+        BVHTreeFromEditMesh *data, struct BMEditMesh *em,
+        const BLI_bitmap *edges_mask, int edges_num_active,
+        float epsilon, int tree_type, int axis);
+
 BVHTree *bvhtree_from_mesh_edges(
         struct BVHTreeFromMesh *data, struct DerivedMesh *mesh,
         float epsilon, int tree_type, int axis);

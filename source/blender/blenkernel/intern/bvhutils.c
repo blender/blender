@@ -590,6 +590,77 @@ BVHTree *bvhtree_from_mesh_verts_ex(
 /** \name Edge Builder
  * \{ */
 
+static BVHTree *bvhtree_from_editmesh_edges_create_tree(
+        float epsilon, int tree_type, int axis,
+        BMEditMesh *em, const int edges_num,
+        const BLI_bitmap *edges_mask, int edges_num_active)
+{
+	BVHTree *tree = NULL;
+	int i;
+	BM_mesh_elem_table_ensure(em->bm, BM_EDGE);
+	if (edges_mask) {
+		BLI_assert(IN_RANGE_INCL(edges_num_active, 0, edges_num));
+	}
+	else {
+		edges_num_active = edges_num;
+	}
+
+	tree = BLI_bvhtree_new(edges_num_active, epsilon, tree_type, axis);
+
+	if (tree) {
+		BMIter iter;
+		BMEdge *eed;
+		BM_ITER_MESH_INDEX (eed, &iter, em->bm, BM_EDGES_OF_MESH, i) {
+			if (edges_mask && !BLI_BITMAP_TEST_BOOL(edges_mask, i)) {
+				continue;
+			}
+			float co[2][3];
+			copy_v3_v3(co[0], eed->v1->co);
+			copy_v3_v3(co[1], eed->v2->co);
+
+			BLI_bvhtree_insert(tree, i, co[0], 2);
+		}
+		BLI_assert(BLI_bvhtree_get_size(tree) == edges_num_active);
+		BLI_bvhtree_balance(tree);
+	}
+
+	return tree;
+}
+
+/* Builds a bvh tree where nodes are the edges of the given em */
+BVHTree *bvhtree_from_editmesh_edges_ex(
+        BVHTreeFromEditMesh *data, BMEditMesh *em,
+        const BLI_bitmap *edges_mask, int edges_num_active,
+        float epsilon, int tree_type, int axis)
+{
+	int edge_num = em->bm->totedge;
+
+	BVHTree *tree = bvhtree_from_editmesh_edges_create_tree(
+	        epsilon, tree_type, axis,
+	        em, edge_num, edges_mask, edges_num_active);
+
+	if (tree) {
+		memset(data, 0, sizeof(*data));
+		data->tree = tree;
+		data->em = em;
+		data->nearest_callback = NULL;  /* TODO */
+		data->raycast_callback = NULL;  /* TODO */
+		/* TODO: not urgent however since users currently define own callbacks */
+		data->nearest_to_ray_callback = NULL;
+	}
+
+	return tree;
+}
+BVHTree *bvhtree_from_editmesh_edges(
+        BVHTreeFromEditMesh *data, BMEditMesh *em,
+        float epsilon, int tree_type, int axis)
+{
+	return bvhtree_from_editmesh_edges_ex(
+	        data, em,
+	        NULL, -1,
+	        epsilon, tree_type, axis);
+}
+
 /* Builds a bvh tree where nodes are the edges of the given dm */
 BVHTree *bvhtree_from_mesh_edges(
         BVHTreeFromMesh *data, DerivedMesh *dm,
