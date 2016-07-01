@@ -6014,20 +6014,15 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 			CurveMapping *cumap = (CurveMapping *)but->poin;
 			CurveMap *cuma = cumap->cm + cumap->cur;
 			CurveMapPoint *cmp;
-			float fx, fy, zoomx, zoomy, offsx, offsy;
-			float dist, mindist = 200.0f; // 14 pixels radius
+			const float m_xy[2] = {mx, my};
+			float dist_min_sq = SQUARE(14.0f);  /* 14 pixels radius */
 			int sel = -1;
 
-			zoomx = BLI_rctf_size_x(&but->rect) / BLI_rctf_size_x(&cumap->curr);
-			zoomy = BLI_rctf_size_y(&but->rect) / BLI_rctf_size_y(&cumap->curr);
-			offsx = cumap->curr.xmin;
-			offsy = cumap->curr.ymin;
-
 			if (event->ctrl) {
-				fx = ((float)mx - but->rect.xmin) / zoomx + offsx;
-				fy = ((float)my - but->rect.ymin) / zoomy + offsy;
+				float f_xy[2];
+				BLI_rctf_transform_pt_v(&cumap->curr, &but->rect, f_xy, m_xy);
 				
-				curvemap_insert(cuma, fx, fy);
+				curvemap_insert(cuma, f_xy[0], f_xy[1]);
 				curvemapping_changed(cumap, false);
 				changed = true;
 			}
@@ -6035,33 +6030,37 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 			/* check for selecting of a point */
 			cmp = cuma->curve;   /* ctrl adds point, new malloc */
 			for (a = 0; a < cuma->totpoint; a++) {
-				fx = but->rect.xmin + zoomx * (cmp[a].x - offsx);
-				fy = but->rect.ymin + zoomy * (cmp[a].y - offsy);
-				dist = (fx - mx) * (fx - mx) + (fy - my) * (fy - my);
-				if (dist < mindist) {
+				float f_xy[2];
+				BLI_rctf_transform_pt_v(&but->rect, &cumap->curr, f_xy, &cmp[a].x);
+				const float dist_sq = len_squared_v2v2(m_xy, f_xy);
+				if (dist_sq < dist_min_sq) {
 					sel = a;
-					mindist = dist;
+					dist_min_sq = dist_sq;
 				}
 			}
 
 			if (sel == -1) {
 				int i;
+				float f_xy[2], f_xy_prev[2];
 
 				/* if the click didn't select anything, check if it's clicked on the 
 				 * curve itself, and if so, add a point */
-				fx = ((float)mx - but->rect.xmin) / zoomx + offsx;
-				fy = ((float)my - but->rect.ymin) / zoomy + offsy;
-				
 				cmp = cuma->table;
 
-				/* loop through the curve segment table and find what's near the mouse.
-				 * 0.05 is kinda arbitrary, but seems to be what works nicely. */
-				for (i = 0; i <= CM_TABLE; i++) {
-					if ((fabsf(fx - cmp[i].x) < 0.05f) &&
-					    (fabsf(fy - cmp[i].y) < 0.05f))
-					{
-					
-						curvemap_insert(cuma, fx, fy);
+				BLI_rctf_transform_pt_v(&but->rect, &cumap->curr, f_xy, &cmp[0].x);
+
+				/* with 160px height 8px should translate to the old 0.05 coefficient at no zoom */
+				dist_min_sq = SQUARE(8.0f);
+
+				/* loop through the curve segment table and find what's near the mouse. */
+				for (i = 1; i <= CM_TABLE; i++) {
+					copy_v2_v2(f_xy_prev, f_xy);
+					BLI_rctf_transform_pt_v(&but->rect, &cumap->curr, f_xy, &cmp[i].x);
+
+					if (dist_squared_to_line_segment_v2(m_xy, f_xy_prev, f_xy) < dist_min_sq) {
+						BLI_rctf_transform_pt_v(&cumap->curr, &but->rect, f_xy, m_xy);
+
+						curvemap_insert(cuma, f_xy[0], f_xy[1]);
 						curvemapping_changed(cumap, false);
 
 						changed = true;
@@ -6070,10 +6069,11 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 						cmp = cuma->curve;
 						
 						/* find newly added point and make it 'sel' */
-						for (a = 0; a < cuma->totpoint; a++)
-							if (cmp[a].x == fx)
+						for (a = 0; a < cuma->totpoint; a++) {
+							if (cmp[a].x == f_xy[0]) {
 								sel = a;
-							
+							}
+						}
 						break;
 					}
 				}
