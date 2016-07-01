@@ -517,16 +517,19 @@ AttributeRequest::AttributeRequest(ustring name_)
 	std = ATTR_STD_NONE;
 
 	triangle_type = TypeDesc::TypeFloat;
-	triangle_element = ATTR_ELEMENT_NONE;
-	triangle_offset = 0;
+	triangle_desc.element = ATTR_ELEMENT_NONE;
+	triangle_desc.offset = 0;
+	triangle_desc.type = NODE_ATTR_FLOAT;
 
 	curve_type = TypeDesc::TypeFloat;
-	curve_element = ATTR_ELEMENT_NONE;
-	curve_offset = 0;
+	curve_desc.element = ATTR_ELEMENT_NONE;
+	curve_desc.offset = 0;
+	curve_desc.type = NODE_ATTR_FLOAT;
 
 	subd_type = TypeDesc::TypeFloat;
-	subd_element = ATTR_ELEMENT_NONE;
-	subd_offset = 0;
+	subd_desc.element = ATTR_ELEMENT_NONE;
+	subd_desc.offset = 0;
+	subd_desc.type = NODE_ATTR_FLOAT;
 }
 
 AttributeRequest::AttributeRequest(AttributeStandard std_)
@@ -535,16 +538,19 @@ AttributeRequest::AttributeRequest(AttributeStandard std_)
 	std = std_;
 
 	triangle_type = TypeDesc::TypeFloat;
-	triangle_element = ATTR_ELEMENT_NONE;
-	triangle_offset = 0;
+	triangle_desc.element = ATTR_ELEMENT_NONE;
+	triangle_desc.offset = 0;
+	triangle_desc.type = NODE_ATTR_FLOAT;
 
 	curve_type = TypeDesc::TypeFloat;
-	curve_element = ATTR_ELEMENT_NONE;
-	curve_offset = 0;
+	curve_desc.element = ATTR_ELEMENT_NONE;
+	curve_desc.offset = 0;
+	curve_desc.type = NODE_ATTR_FLOAT;
 
 	subd_type = TypeDesc::TypeFloat;
-	subd_element = ATTR_ELEMENT_NONE;
-	subd_offset = 0;
+	subd_desc.element = ATTR_ELEMENT_NONE;
+	subd_desc.offset = 0;
+	subd_desc.type = NODE_ATTR_FLOAT;
 }
 
 /* AttributeRequestSet */

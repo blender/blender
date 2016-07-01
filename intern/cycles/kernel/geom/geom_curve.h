@@ -24,23 +24,23 @@ CCL_NAMESPACE_BEGIN
 
 /* Reading attributes on various curve elements */
 
-ccl_device float curve_attribute_float(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float *dx, float *dy)
+ccl_device float curve_attribute_float(KernelGlobals *kg, const ShaderData *sd, const AttributeDescriptor desc, float *dx, float *dy)
 {
-	if(elem == ATTR_ELEMENT_CURVE) {
+	if(desc.element == ATTR_ELEMENT_CURVE) {
 #ifdef __RAY_DIFFERENTIALS__
 		if(dx) *dx = 0.0f;
 		if(dy) *dy = 0.0f;
 #endif
 
-		return kernel_tex_fetch(__attributes_float, offset + ccl_fetch(sd, prim));
+		return kernel_tex_fetch(__attributes_float, desc.offset + ccl_fetch(sd, prim));
 	}
-	else if(elem == ATTR_ELEMENT_CURVE_KEY || elem == ATTR_ELEMENT_CURVE_KEY_MOTION) {
+	else if(desc.element == ATTR_ELEMENT_CURVE_KEY || desc.element == ATTR_ELEMENT_CURVE_KEY_MOTION) {
 		float4 curvedata = kernel_tex_fetch(__curves, ccl_fetch(sd, prim));
 		int k0 = __float_as_int(curvedata.x) + PRIMITIVE_UNPACK_SEGMENT(ccl_fetch(sd, type));
 		int k1 = k0 + 1;
 
-		float f0 = kernel_tex_fetch(__attributes_float, offset + k0);
-		float f1 = kernel_tex_fetch(__attributes_float, offset + k1);
+		float f0 = kernel_tex_fetch(__attributes_float, desc.offset + k0);
+		float f1 = kernel_tex_fetch(__attributes_float, desc.offset + k1);
 
 #ifdef __RAY_DIFFERENTIALS__
 		if(dx) *dx = ccl_fetch(sd, du).dx*(f1 - f0);
@@ -59,9 +59,9 @@ ccl_device float curve_attribute_float(KernelGlobals *kg, const ShaderData *sd, 
 	}
 }
 
-ccl_device float3 curve_attribute_float3(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float3 *dx, float3 *dy)
+ccl_device float3 curve_attribute_float3(KernelGlobals *kg, const ShaderData *sd, const AttributeDescriptor desc, float3 *dx, float3 *dy)
 {
-	if(elem == ATTR_ELEMENT_CURVE) {
+	if(desc.element == ATTR_ELEMENT_CURVE) {
 		/* idea: we can't derive any useful differentials here, but for tiled
 		 * mipmap image caching it would be useful to avoid reading the highest
 		 * detail level always. maybe a derivative based on the hair density
@@ -71,15 +71,15 @@ ccl_device float3 curve_attribute_float3(KernelGlobals *kg, const ShaderData *sd
 		if(dy) *dy = make_float3(0.0f, 0.0f, 0.0f);
 #endif
 
-		return float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + ccl_fetch(sd, prim)));
+		return float4_to_float3(kernel_tex_fetch(__attributes_float3, desc.offset + ccl_fetch(sd, prim)));
 	}
-	else if(elem == ATTR_ELEMENT_CURVE_KEY || elem == ATTR_ELEMENT_CURVE_KEY_MOTION) {
+	else if(desc.element == ATTR_ELEMENT_CURVE_KEY || desc.element == ATTR_ELEMENT_CURVE_KEY_MOTION) {
 		float4 curvedata = kernel_tex_fetch(__curves, ccl_fetch(sd, prim));
 		int k0 = __float_as_int(curvedata.x) + PRIMITIVE_UNPACK_SEGMENT(ccl_fetch(sd, type));
 		int k1 = k0 + 1;
 
-		float3 f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + k0));
-		float3 f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + k1));
+		float3 f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, desc.offset + k0));
+		float3 f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, desc.offset + k1));
 
 #ifdef __RAY_DIFFERENTIALS__
 		if(dx) *dx = ccl_fetch(sd, du).dx*(f1 - f0);

@@ -554,13 +554,13 @@ static bool get_mesh_element_attribute(KernelGlobals *kg, const ShaderData *sd, 
 	   attr.type == TypeDesc::TypeNormal || attr.type == TypeDesc::TypeColor)
 	{
 		float3 fval[3];
-		fval[0] = primitive_attribute_float3(kg, sd, attr.elem, attr.offset,
+		fval[0] = primitive_attribute_float3(kg, sd, attr.desc,
 		                                     (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
 		return set_attribute_float3(fval, type, derivatives, val);
 	}
 	else if(attr.type == TypeDesc::TypeFloat) {
 		float fval[3];
-		fval[0] = primitive_attribute_float(kg, sd, attr.elem, attr.offset,
+		fval[0] = primitive_attribute_float(kg, sd, attr.desc,
 		                                    (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
 		return set_attribute_float(fval, type, derivatives, val);
 	}
@@ -573,7 +573,7 @@ static bool get_mesh_attribute(KernelGlobals *kg, const ShaderData *sd, const OS
                                const TypeDesc& type, bool derivatives, void *val)
 {
 	if(attr.type == TypeDesc::TypeMatrix) {
-		Transform tfm = primitive_attribute_matrix(kg, sd, attr.offset);
+		Transform tfm = primitive_attribute_matrix(kg, sd, attr.desc);
 		return set_attribute_matrix(tfm, type, val);
 	}
 	else {
@@ -815,7 +815,7 @@ bool OSLRenderServices::get_attribute(ShaderData *sd, bool derivatives, ustring 
 	if(it != attribute_map.end()) {
 		const OSLGlobals::Attribute& attr = it->second;
 
-		if(attr.elem != ATTR_ELEMENT_OBJECT) {
+		if(attr.desc.element != ATTR_ELEMENT_OBJECT) {
 			/* triangle and vertex attributes */
 			if(get_mesh_element_attribute(kg, sd, attr, type, derivatives, val))
 				return true;

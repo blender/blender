@@ -18,70 +18,57 @@ CCL_NAMESPACE_BEGIN
 
 /* Attribute Node */
 
-ccl_device void svm_node_attr_init(KernelGlobals *kg, ShaderData *sd,
+ccl_device AttributeDescriptor svm_node_attr_init(KernelGlobals *kg, ShaderData *sd,
 	uint4 node, NodeAttributeType *type,
-	NodeAttributeType *mesh_type, AttributeElement *elem, int *offset, uint *out_offset)
+	uint *out_offset)
 {
 	*out_offset = node.z;
 	*type = (NodeAttributeType)node.w;
-	if(ccl_fetch(sd, object) != OBJECT_NONE) {
-		/* find attribute by unique id */
-		uint id = node.y;
-		uint attr_offset = ccl_fetch(sd, object)*kernel_data.bvh.attributes_map_stride;
-		attr_offset += attribute_primitive_type(kg, sd);
-		uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
-		
-		while(attr_map.x != id) {
-			if(UNLIKELY(attr_map.x == ATTR_STD_NONE)) {
-				*elem = ATTR_ELEMENT_NONE;
-				*offset = 0;
-				*mesh_type = (NodeAttributeType)node.w;
-				return;
-			}
-			attr_offset += ATTR_PRIM_TYPES;
-			attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
-		}
 
-		/* return result */
-		*elem = (AttributeElement)attr_map.y;
-		*offset = as_int(attr_map.z);
-		*mesh_type = (NodeAttributeType)attr_map.w;
+	AttributeDescriptor desc;
+
+	if(ccl_fetch(sd, object) != OBJECT_NONE) {
+		desc = find_attribute(kg, sd, node.y);
+		if(desc.offset == ATTR_STD_NOT_FOUND) {
+			desc.element = ATTR_ELEMENT_NONE;
+			desc.offset = 0;
+			desc.type = (NodeAttributeType)node.w;
+		}
 	}
 	else {
 		/* background */
-		*elem = ATTR_ELEMENT_NONE;
-		*offset = 0;
-		*mesh_type = (NodeAttributeType)node.w;
+		desc.element = ATTR_ELEMENT_NONE;
+		desc.offset = 0;
+		desc.type = (NodeAttributeType)node.w;
 	}
+
+	return desc;
 }
 
 ccl_device void svm_node_attr(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
-	NodeAttributeType type, mesh_type;
-	AttributeElement elem;
+	NodeAttributeType type;
 	uint out_offset;
-	int offset;
-
-	svm_node_attr_init(kg, sd, node, &type, &mesh_type, &elem, &offset, &out_offset);
+	AttributeDescriptor desc = svm_node_attr_init(kg, sd, node, &type, &out_offset);
 
 	/* fetch and store attribute */
 	if(type == NODE_ATTR_FLOAT) {
-		if(mesh_type == NODE_ATTR_FLOAT) {
-			float f = primitive_attribute_float(kg, sd, elem, offset, NULL, NULL);
+		if(desc.type == NODE_ATTR_FLOAT) {
+			float f = primitive_attribute_float(kg, sd, desc, NULL, NULL);
 			stack_store_float(stack, out_offset, f);
 		}
 		else {
-			float3 f = primitive_attribute_float3(kg, sd, elem, offset, NULL, NULL);
+			float3 f = primitive_attribute_float3(kg, sd, desc, NULL, NULL);
 			stack_store_float(stack, out_offset, average(f));
 		}
 	}
 	else {
-		if(mesh_type == NODE_ATTR_FLOAT3) {
-			float3 f = primitive_attribute_float3(kg, sd, elem, offset, NULL, NULL);
+		if(desc.type == NODE_ATTR_FLOAT3) {
+			float3 f = primitive_attribute_float3(kg, sd, desc, NULL, NULL);
 			stack_store_float3(stack, out_offset, f);
 		}
 		else {
-			float f = primitive_attribute_float(kg, sd, elem, offset, NULL, NULL);
+			float f = primitive_attribute_float(kg, sd, desc, NULL, NULL);
 			stack_store_float3(stack, out_offset, make_float3(f, f, f));
 		}
 	}
@@ -94,35 +81,32 @@ ccl_device_noinline
 #endif
 void svm_node_attr_bump_dx(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
-	NodeAttributeType type, mesh_type;
-	AttributeElement elem;
+	NodeAttributeType type;
 	uint out_offset;
-	int offset;
-
-	svm_node_attr_init(kg, sd, node, &type, &mesh_type, &elem, &offset, &out_offset);
+	AttributeDescriptor desc = svm_node_attr_init(kg, sd, node, &type, &out_offset);
 
 	/* fetch and store attribute */
 	if(type == NODE_ATTR_FLOAT) {
-		if(mesh_type == NODE_ATTR_FLOAT) {
+		if(desc.type == NODE_ATTR_FLOAT) {
 			float dx;
-			float f = primitive_attribute_float(kg, sd, elem, offset, &dx, NULL);
+			float f = primitive_attribute_float(kg, sd, desc, &dx, NULL);
 			stack_store_float(stack, out_offset, f+dx);
 		}
 		else {
 			float3 dx;
-			float3 f = primitive_attribute_float3(kg, sd, elem, offset, &dx, NULL);
+			float3 f = primitive_attribute_float3(kg, sd, desc, &dx, NULL);
 			stack_store_float(stack, out_offset, average(f+dx));
 		}
 	}
 	else {
-		if(mesh_type == NODE_ATTR_FLOAT3) {
+		if(desc.type == NODE_ATTR_FLOAT3) {
 			float3 dx;
-			float3 f = primitive_attribute_float3(kg, sd, elem, offset, &dx, NULL);
+			float3 f = primitive_attribute_float3(kg, sd, desc, &dx, NULL);
 			stack_store_float3(stack, out_offset, f+dx);
 		}
 		else {
 			float dx;
-			float f = primitive_attribute_float(kg, sd, elem, offset, &dx, NULL);
+			float f = primitive_attribute_float(kg, sd, desc, &dx, NULL);
 			stack_store_float3(stack, out_offset, make_float3(f+dx, f+dx, f+dx));
 		}
 	}
@@ -138,35 +122,32 @@ void svm_node_attr_bump_dy(KernelGlobals *kg,
                            float *stack,
                            uint4 node)
 {
-	NodeAttributeType type, mesh_type;
-	AttributeElement elem;
+	NodeAttributeType type;
 	uint out_offset;
-	int offset;
-
-	svm_node_attr_init(kg, sd, node, &type, &mesh_type, &elem, &offset, &out_offset);
+	AttributeDescriptor desc = svm_node_attr_init(kg, sd, node, &type, &out_offset);
 
 	/* fetch and store attribute */
 	if(type == NODE_ATTR_FLOAT) {
-		if(mesh_type == NODE_ATTR_FLOAT) {
+		if(desc.type == NODE_ATTR_FLOAT) {
 			float dy;
-			float f = primitive_attribute_float(kg, sd, elem, offset, NULL, &dy);
+			float f = primitive_attribute_float(kg, sd, desc, NULL, &dy);
 			stack_store_float(stack, out_offset, f+dy);
 		}
 		else {
 			float3 dy;
-			float3 f = primitive_attribute_float3(kg, sd, elem, offset, NULL, &dy);
+			float3 f = primitive_attribute_float3(kg, sd, desc, NULL, &dy);
 			stack_store_float(stack, out_offset, average(f+dy));
 		}
 	}
 	else {
-		if(mesh_type == NODE_ATTR_FLOAT3) {
+		if(desc.type == NODE_ATTR_FLOAT3) {
 			float3 dy;
-			float3 f = primitive_attribute_float3(kg, sd, elem, offset, NULL, &dy);
+			float3 f = primitive_attribute_float3(kg, sd, desc, NULL, &dy);
 			stack_store_float3(stack, out_offset, f+dy);
 		}
 		else {
 			float dy;
-			float f = primitive_attribute_float(kg, sd, elem, offset, NULL, &dy);
+			float f = primitive_attribute_float(kg, sd, desc, NULL, &dy);
 			stack_store_float3(stack, out_offset, make_float3(f+dy, f+dy, f+dy));
 		}
 	}

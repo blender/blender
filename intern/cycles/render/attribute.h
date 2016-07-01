@@ -135,8 +135,7 @@ public:
 
 	/* temporary variables used by MeshManager */
 	TypeDesc triangle_type, curve_type, subd_type;
-	AttributeElement triangle_element, curve_element, subd_element;
-	int triangle_offset, curve_offset, subd_offset;
+	AttributeDescriptor triangle_desc, curve_desc, subd_desc;
 
 	explicit AttributeRequest(ustring name_);
 	explicit AttributeRequest(AttributeStandard std);

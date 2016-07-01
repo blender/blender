@@ -59,7 +59,7 @@ public:
 	static void eval_displacement(KernelGlobals *kg, ShaderData *sd, ShaderContext ctx);
 
 	/* attributes */
-	static int find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id, AttributeElement *elem);
+	static int find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id, AttributeDescriptor *desc);
 };
 
 CCL_NAMESPACE_END

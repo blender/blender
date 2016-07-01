@@ -624,6 +624,12 @@ typedef enum AttributeStandard {
 	ATTR_STD_NOT_FOUND = ~0
 } AttributeStandard;
 
+typedef struct AttributeDescriptor {
+	AttributeElement element;
+	NodeAttributeType type;
+	int offset;
+} AttributeDescriptor;
+
 /* Closure data */
 
 #ifdef __MULTI_CLOSURE__
