@@ -5092,6 +5092,8 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator *UNUSED(o
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 
+	WM_cursor_wait(1);
+
 	if (ss->bm) {
 		sculpt_undo_push_begin("Dynamic topology disable");
 		sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_END);
@@ -5103,6 +5105,8 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator *UNUSED(o
 		sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
 	}
 	sculpt_undo_push_end(C);
+
+	WM_cursor_wait(0);
 
 	return OPERATOR_FINISHED;
 }
