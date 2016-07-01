@@ -401,10 +401,25 @@ void EDBM_mesh_load(Object *ob)
 	BKE_mesh_tessface_calc(me);
 #endif
 
-	/* free derived mesh. usually this would happen through depsgraph but there
+	/* Free derived mesh. usually this would happen through depsgraph but there
 	 * are exceptions like file save that will not cause this, and we want to
-	 * avoid ending up with an invalid derived mesh then */
-	BKE_object_free_derived_caches(ob);
+	 * avoid ending up with an invalid derived mesh then.
+	 *
+	 * Do it for all objects which shares the same mesh datablock, since their
+	 * derived meshes might also be referencing data which was just freed,
+	 *
+	 * Annoying enough, but currently seems most efficient way to avoid access
+	 * of freed data on scene update, especially in cases when there are dependency
+	 * cycles.
+	 */
+	for (Object *other_object = G.main->object.first;
+	     other_object != NULL;
+	     other_object = other_object->id.next)
+	{
+		if (other_object->data == ob->data) {
+			BKE_object_free_derived_caches(other_object);
+		}
+	}
 }
 
 /**
