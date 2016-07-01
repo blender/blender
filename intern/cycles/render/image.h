@@ -122,6 +122,8 @@ private:
 	int flattened_slot_to_type_index(int flat_slot, ImageDataType *type);
 	string name_from_type(int type);
 
+	uint8_t pack_image_options(ImageDataType type, size_t slot);
+
 	void device_load_image(Device *device, DeviceScene *dscene, ImageDataType type, int slot, Progress *progess);
 	void device_free_image(Device *device, DeviceScene *dscene, ImageDataType type, int slot);
 
