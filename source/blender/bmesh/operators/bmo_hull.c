@@ -81,7 +81,7 @@ static void hull_add_triangle(
 
 	/* Mark triangles vertices as not interior */
 	for (i = 0; i < 3; i++)
-		BMO_elem_flag_disable(bm, t->v[i], HULL_FLAG_INTERIOR_ELE);
+		BMO_vert_flag_disable(bm, t->v[i], HULL_FLAG_INTERIOR_ELE);
 
 	BLI_gset_insert(hull_triangles, t);
 	normal_tri_v3(t->no, v1->co, v2->co, v3->co);
@@ -93,8 +93,8 @@ static BMFace *hull_find_example_face(BMesh *bm, BMEdge *e)
 	BMFace *f;
 
 	BM_ITER_ELEM (f, &iter, e, BM_FACES_OF_EDGE) {
-		if (BMO_elem_flag_test(bm, f, HULL_FLAG_INPUT) ||
-		    !BMO_elem_flag_test(bm, f, HULL_FLAG_OUTPUT_GEOM))
+		if (BMO_face_flag_test(bm, f, HULL_FLAG_INPUT) ||
+		    BMO_face_flag_test(bm, f, HULL_FLAG_OUTPUT_GEOM) == false)
 		{
 			return f;
 		}
@@ -124,9 +124,9 @@ static void hull_output_triangles(BMesh *bm, GSet *hull_triangles)
 				 * disabled, but an output face in the hull is the
 				 * same as a face in the existing mesh, it should not
 				 * be marked as unused or interior. */
-				BMO_elem_flag_enable(bm, f, HULL_FLAG_OUTPUT_GEOM);
-				BMO_elem_flag_disable(bm, f, HULL_FLAG_HOLE);
-				BMO_elem_flag_disable(bm, f, HULL_FLAG_INTERIOR_ELE);
+				BMO_face_flag_enable(bm, f, HULL_FLAG_OUTPUT_GEOM);
+				BMO_face_flag_disable(bm, f, HULL_FLAG_HOLE);
+				BMO_face_flag_disable(bm, f, HULL_FLAG_INTERIOR_ELE);
 			}
 			else {
 				/* Look for an adjacent face that existed before the hull */
@@ -140,12 +140,12 @@ static void hull_output_triangles(BMesh *bm, GSet *hull_triangles)
 				BM_face_copy_shared(bm, f, NULL, NULL);
 			}
 			/* Mark face for 'geom.out' slot and select */
-			BMO_elem_flag_enable(bm, f, HULL_FLAG_OUTPUT_GEOM);
+			BMO_face_flag_enable(bm, f, HULL_FLAG_OUTPUT_GEOM);
 			BM_face_select_set(bm, f, true);
 
 			/* Mark edges for 'geom.out' slot */
 			for (i = 0; i < 3; i++) {
-				BMO_elem_flag_enable(bm, edges[i], HULL_FLAG_OUTPUT_GEOM);
+				BMO_edge_flag_enable(bm, edges[i], HULL_FLAG_OUTPUT_GEOM);
 			}
 		}
 		else {
@@ -154,17 +154,17 @@ static void hull_output_triangles(BMesh *bm, GSet *hull_triangles)
 				const int next = (i == 2 ? 0 : i + 1);
 				BMEdge *e = BM_edge_exists(t->v[i], t->v[next]);
 				if (e &&
-				    BMO_elem_flag_test(bm, e, HULL_FLAG_INPUT) &&
-				    !BMO_elem_flag_test(bm, e, HULL_FLAG_HOLE))
+				    BMO_edge_flag_test(bm, e, HULL_FLAG_INPUT) &&
+				    !BMO_edge_flag_test(bm, e, HULL_FLAG_HOLE))
 				{
-					BMO_elem_flag_enable(bm, e, HULL_FLAG_OUTPUT_GEOM);
+					BMO_edge_flag_enable(bm, e, HULL_FLAG_OUTPUT_GEOM);
 				}
 			}
 		}
 
 		/* Mark verts for 'geom.out' slot */
 		for (i = 0; i < 3; i++) {
-			BMO_elem_flag_enable(bm, t->v[i], HULL_FLAG_OUTPUT_GEOM);
+			BMO_vert_flag_enable(bm, t->v[i], HULL_FLAG_OUTPUT_GEOM);
 		}
 	}
 }
@@ -292,8 +292,8 @@ static void hull_remove_overlapping(
 			    BM_vert_in_face(t->v[2], f) && f_on_hull)
 			{
 				t->skip = true;
-				BMO_elem_flag_disable(bm, f, HULL_FLAG_INTERIOR_ELE);
-				BMO_elem_flag_enable(bm, f, HULL_FLAG_HOLE);
+				BMO_face_flag_disable(bm, f, HULL_FLAG_INTERIOR_ELE);
+				BMO_face_flag_enable(bm, f, HULL_FLAG_HOLE);
 			}
 		}
 	}
@@ -310,13 +310,13 @@ static void hull_mark_interior_elements(
 	/* Check for interior edges too */
 	BMO_ITER (e, &oiter, op->slots_in, "input", BM_EDGE) {
 		if (!hull_final_edges_lookup(final_edges, e->v1, e->v2))
-			BMO_elem_flag_enable(bm, e, HULL_FLAG_INTERIOR_ELE);
+			BMO_edge_flag_enable(bm, e, HULL_FLAG_INTERIOR_ELE);
 	}
 
 	/* Mark all input faces as interior, some may be unmarked in
 	 * hull_remove_overlapping() */
 	BMO_ITER (f, &oiter, op->slots_in, "input", BM_FACE) {
-		BMO_elem_flag_enable(bm, f, HULL_FLAG_INTERIOR_ELE);
+		BMO_face_flag_enable(bm, f, HULL_FLAG_INTERIOR_ELE);
 	}
 }
 
@@ -333,47 +333,50 @@ static void hull_tag_unused(BMesh *bm, BMOperator *op)
 	 * the hull), but that aren't also used by elements outside the
 	 * input set */
 	BMO_ITER (v, &oiter, op->slots_in, "input", BM_VERT) {
-		if (BMO_elem_flag_test(bm, v, HULL_FLAG_INTERIOR_ELE)) {
+		if (BMO_vert_flag_test(bm, v, HULL_FLAG_INTERIOR_ELE)) {
 			bool del = true;
 		
 			BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
-				if (!BMO_elem_flag_test(bm, e, HULL_FLAG_INPUT)) {
+				if (!BMO_edge_flag_test(bm, e, HULL_FLAG_INPUT)) {
 					del = false;
 					break;
 				}
 			}
 
 			BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
-				if (!BMO_elem_flag_test(bm, f, HULL_FLAG_INPUT)) {
+				if (!BMO_face_flag_test(bm, f, HULL_FLAG_INPUT)) {
 					del = false;
 					break;
 				}
 			}
 
-			if (del)
-				BMO_elem_flag_enable(bm, v, HULL_FLAG_DEL);
+			if (del) {
+				BMO_vert_flag_enable(bm, v, HULL_FLAG_DEL);
+			}
 		}
 	}
 
 	BMO_ITER (e, &oiter, op->slots_in, "input", BM_EDGE) {
-		if (BMO_elem_flag_test(bm, e, HULL_FLAG_INTERIOR_ELE)) {
+		if (BMO_edge_flag_test(bm, e, HULL_FLAG_INTERIOR_ELE)) {
 			bool del = true;
 
 			BM_ITER_ELEM (f, &iter, e, BM_FACES_OF_EDGE) {
-				if (!BMO_elem_flag_test(bm, f, HULL_FLAG_INPUT)) {
+				if (!BMO_face_flag_test(bm, f, HULL_FLAG_INPUT)) {
 					del = false;
 					break;
 				}
 			}
 
-			if (del)
-				BMO_elem_flag_enable(bm, e, HULL_FLAG_DEL);
+			if (del) {
+				BMO_edge_flag_enable(bm, e, HULL_FLAG_DEL);
+			}
 		}
 	}
 
 	BMO_ITER (f, &oiter, op->slots_in, "input", BM_FACE) {
-		if (BMO_elem_flag_test(bm, f, HULL_FLAG_INTERIOR_ELE))
-			BMO_elem_flag_enable(bm, f, HULL_FLAG_DEL);
+		if (BMO_face_flag_test(bm, f, HULL_FLAG_INTERIOR_ELE)) {
+			BMO_face_flag_enable(bm, f, HULL_FLAG_DEL);
+		}
 	}
 }
 
@@ -387,10 +390,10 @@ static void hull_tag_holes(BMesh *bm, BMOperator *op)
 	/* Unmark any hole faces if they are isolated or part of a
 	 * border */
 	BMO_ITER (f, &oiter, op->slots_in, "input", BM_FACE) {
-		if (BMO_elem_flag_test(bm, f, HULL_FLAG_HOLE)) {
+		if (BMO_face_flag_test(bm, f, HULL_FLAG_HOLE)) {
 			BM_ITER_ELEM (e, &iter, f, BM_EDGES_OF_FACE) {
 				if (BM_edge_is_boundary(e)) {
-					BMO_elem_flag_disable(bm, f, HULL_FLAG_HOLE);
+					BMO_face_flag_disable(bm, f, HULL_FLAG_HOLE);
 					break;
 				}
 			}
@@ -405,14 +408,14 @@ static void hull_tag_holes(BMesh *bm, BMOperator *op)
 		
 		BM_ITER_ELEM (f, &iter, e, BM_FACES_OF_EDGE) {
 			any_faces = true;
-			if (!BMO_elem_flag_test(bm, f, HULL_FLAG_HOLE)) {
+			if (!BMO_face_flag_test(bm, f, HULL_FLAG_HOLE)) {
 				hole = false;
 				break;
 			}
 		}
 
 		if (hole && any_faces)
-			BMO_elem_flag_enable(bm, e, HULL_FLAG_HOLE);
+			BMO_edge_flag_enable(bm, e, HULL_FLAG_HOLE);
 	}
 }
 
@@ -578,11 +581,17 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 
 	/* Tag input elements */
 	BMO_ITER (ele, &oiter, op->slots_in, "input", BM_ALL) {
-		BMO_elem_flag_enable(bm, ele, HULL_FLAG_INPUT);
-		
+
 		/* Mark all vertices as interior to begin with */
-		if (ele->head.htype == BM_VERT)
-			BMO_elem_flag_enable(bm, ele, HULL_FLAG_INTERIOR_ELE);
+		if (ele->head.htype == BM_VERT) {
+			BMO_vert_flag_enable(bm, (BMVert *)ele, HULL_FLAG_INPUT | HULL_FLAG_INTERIOR_ELE);
+		}
+		else if (ele->head.htype == BM_EDGE) {
+			BMO_edge_flag_enable(bm, (BMEdge *)ele, HULL_FLAG_INPUT);
+		}
+		else {
+			BMO_face_flag_enable(bm, (BMFace *)ele, HULL_FLAG_INPUT);
+		}
 	}
 
 	hull_pool = BLI_mempool_create(sizeof(HullTriangle), 0, 128, BLI_MEMPOOL_NOP);

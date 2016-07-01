@@ -424,11 +424,13 @@ void BM_mesh_beautify_fill(
 			                           flag, method);
 
 			/* update flags */
-			if (oflag_edge)
-				BMO_elem_flag_enable(bm, e, oflag_edge);
+			if (oflag_edge) {
+				BMO_edge_flag_enable(bm, e, oflag_edge);
+			}
+
 			if (oflag_face) {
-				BMO_elem_flag_enable(bm, e->l->f, oflag_face);
-				BMO_elem_flag_enable(bm, e->l->radial_next->f, oflag_face);
+				BMO_face_flag_enable(bm, e->l->f, oflag_face);
+				BMO_face_flag_enable(bm, e->l->radial_next->f, oflag_face);
 			}
 		}
 	}

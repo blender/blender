@@ -313,7 +313,7 @@ static void bmo_face_inset_individual(
 		                                      l_iter->next->v,
 		                                      l_iter->v,
 		                                      f, BM_CREATE_NOP);
-		BMO_elem_flag_enable(bm, f_new_outer, ELE_NEW);
+		BMO_face_flag_enable(bm, f_new_outer, ELE_NEW);
 
 		/* copy loop data */
 		l_other = l_iter->radial_next;
@@ -1037,7 +1037,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 		/* no need to check doubles, we KNOW there won't be any */
 		/* yes - reverse face is correct in this case */
 		f = BM_face_create_verts(bm, varr, j, es->l->f, BM_CREATE_NOP, true);
-		BMO_elem_flag_enable(bm, f, ELE_NEW);
+		BMO_face_flag_enable(bm, f, ELE_NEW);
 
 		/* copy for loop data, otherwise UV's and vcols are no good.
 		 * tiny speedup here we could be more clever and copy from known adjacent data

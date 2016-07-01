@@ -698,6 +698,12 @@ PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
 		BPY_BM_CHECK_OBJ(py_bm);
 		bm = py_bm->bm;
 
+		if (bm->use_toolflags == false) {
+			PyErr_SetString(PyExc_ValueError,
+			                "bmesh created with 'use_operators=False'");
+			return NULL;
+		}
+
 		/* could complain about entering with exceptions... */
 		BMO_error_clear(bm);
 	}

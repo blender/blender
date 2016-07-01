@@ -358,7 +358,9 @@ void bc_triangulate_mesh(Mesh *me)
 	bool tag_only    = false;
 	int  quad_method = MOD_TRIANGULATE_QUAD_SHORTEDGE; /* XXX: The triangulation method selection could be offered in the UI */
 	 
-	BMesh *bm = BM_mesh_create(&bm_mesh_allocsize_default);
+	BMesh *bm = BM_mesh_create(
+	        &bm_mesh_allocsize_default,
+	        &((struct BMeshCreateParams){.use_toolflags = false,}));
 	BMeshFromMeshParams bm_from_me_params = {0};
 	bm_from_me_params.calc_face_normal = true;
 	BM_mesh_bm_from_me(bm, me, &bm_from_me_params);

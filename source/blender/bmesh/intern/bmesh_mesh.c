@@ -48,16 +48,35 @@
 const BMAllocTemplate bm_mesh_allocsize_default = {512, 1024, 2048, 512};
 const BMAllocTemplate bm_mesh_chunksize_default = {512, 1024, 2048, 512};
 
-static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize)
+static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize, const bool use_toolflags)
 {
-	bm->vpool = BLI_mempool_create(sizeof(BMVert), allocsize->totvert,
-	                               bm_mesh_chunksize_default.totvert, BLI_MEMPOOL_ALLOW_ITER);
-	bm->epool = BLI_mempool_create(sizeof(BMEdge), allocsize->totedge,
-	                               bm_mesh_chunksize_default.totedge, BLI_MEMPOOL_ALLOW_ITER);
-	bm->lpool = BLI_mempool_create(sizeof(BMLoop), allocsize->totloop,
-	                               bm_mesh_chunksize_default.totloop, BLI_MEMPOOL_NOP);
-	bm->fpool = BLI_mempool_create(sizeof(BMFace), allocsize->totface,
-	                               bm_mesh_chunksize_default.totface, BLI_MEMPOOL_ALLOW_ITER);
+	size_t vert_size, edge_size, loop_size, face_size;
+
+	if (use_toolflags == true) {
+		vert_size = sizeof(BMVert_OFlag);
+		edge_size = sizeof(BMEdge_OFlag);
+		loop_size = sizeof(BMLoop);
+		face_size = sizeof(BMFace_OFlag);
+	}
+	else {
+		vert_size = sizeof(BMVert);
+		edge_size = sizeof(BMEdge);
+		loop_size = sizeof(BMLoop);
+		face_size = sizeof(BMFace);
+	}
+
+	bm->vpool = BLI_mempool_create(
+	        vert_size, allocsize->totvert,
+	        bm_mesh_chunksize_default.totvert, BLI_MEMPOOL_ALLOW_ITER);
+	bm->epool = BLI_mempool_create(
+	        edge_size, allocsize->totedge,
+	        bm_mesh_chunksize_default.totedge, BLI_MEMPOOL_ALLOW_ITER);
+	bm->lpool = BLI_mempool_create(
+	        loop_size, allocsize->totloop,
+	        bm_mesh_chunksize_default.totloop, BLI_MEMPOOL_NOP);
+	bm->fpool = BLI_mempool_create(
+	        face_size, allocsize->totface,
+	        bm_mesh_chunksize_default.totface, BLI_MEMPOOL_ALLOW_ITER);
 
 #ifdef USE_BMESH_HOLES
 	bm->looplistpool = BLI_mempool_create(sizeof(BMLoopList), 512, 512, BLI_MEMPOOL_NOP);
@@ -66,6 +85,8 @@ static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize)
 
 void BM_mesh_elem_toolflags_ensure(BMesh *bm)
 {
+	BLI_assert(bm->use_toolflags);
+
 	if (bm->vtoolflagpool && bm->etoolflagpool && bm->ftoolflagpool) {
 		return;
 	}
@@ -80,7 +101,7 @@ void BM_mesh_elem_toolflags_ensure(BMesh *bm)
 		{
 			BLI_mempool *toolflagpool = bm->vtoolflagpool;
 			BMIter iter;
-			BMElemF *ele;
+			BMVert_OFlag *ele;
 			BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
 				ele->oflags = BLI_mempool_calloc(toolflagpool);
 			}
@@ -89,7 +110,7 @@ void BM_mesh_elem_toolflags_ensure(BMesh *bm)
 		{
 			BLI_mempool *toolflagpool = bm->etoolflagpool;
 			BMIter iter;
-			BMElemF *ele;
+			BMEdge_OFlag *ele;
 			BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
 				ele->oflags = BLI_mempool_calloc(toolflagpool);
 			}
@@ -98,7 +119,7 @@ void BM_mesh_elem_toolflags_ensure(BMesh *bm)
 		{
 			BLI_mempool *toolflagpool = bm->ftoolflagpool;
 			BMIter iter;
-			BMElemF *ele;
+			BMFace_OFlag *ele;
 			BM_ITER_MESH (ele, &iter, bm, BM_FACES_OF_MESH) {
 				ele->oflags = BLI_mempool_calloc(toolflagpool);
 			}
@@ -134,15 +155,18 @@ void BM_mesh_elem_toolflags_clear(BMesh *bm)
  *
  * \note ob is needed by multires
  */
-BMesh *BM_mesh_create(const BMAllocTemplate *allocsize)
+BMesh *BM_mesh_create(
+        const BMAllocTemplate *allocsize,
+        const struct BMeshCreateParams *params)
 {
 	/* allocate the structure */
 	BMesh *bm = MEM_callocN(sizeof(BMesh), __func__);
 	
 	/* allocate the memory pools for the mesh elements */
-	bm_mempool_init(bm, allocsize);
+	bm_mempool_init(bm, allocsize, params->use_toolflags);
 
 	/* allocate one flag pool that we don't get rid of. */
+	bm->use_toolflags = params->use_toolflags;
 	bm->toolflag_index = 0;
 	bm->totflags = 0;
 
@@ -239,13 +263,16 @@ void BM_mesh_data_free(BMesh *bm)
  */
 void BM_mesh_clear(BMesh *bm)
 {
+	const bool use_toolflags = bm->use_toolflags;
+
 	/* free old mesh */
 	BM_mesh_data_free(bm);
 	memset(bm, 0, sizeof(BMesh));
 
 	/* allocate the memory pools for the mesh elements */
-	bm_mempool_init(bm, &bm_mesh_allocsize_default);
+	bm_mempool_init(bm, &bm_mesh_allocsize_default, use_toolflags);
 
+	bm->use_toolflags = use_toolflags;
 	bm->toolflag_index = 0;
 	bm->totflags = 0;
 

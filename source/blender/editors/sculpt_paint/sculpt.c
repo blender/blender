@@ -5001,7 +5001,9 @@ void sculpt_dynamic_topology_enable(bContext *C)
 	BKE_mesh_mselect_clear(me);
 
 	/* Create triangles-only BMesh */
-	ss->bm = BM_mesh_create(&allocsize);
+	ss->bm = BM_mesh_create(
+	        &allocsize,
+	        &((struct BMeshCreateParams){.use_toolflags = false,}));
 
 	BM_mesh_bm_from_me(
 	        ss->bm, me, (&(struct BMeshFromMeshParams){

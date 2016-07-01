@@ -71,13 +71,13 @@ void bmo_planar_faces_exec(BMesh *bm, BMOperator *op)
 
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
-			if (!BMO_elem_flag_test(bm, l_iter->v, ELE_VERT_ADJUST)) {
-				BMO_elem_flag_enable(bm, l_iter->v, ELE_VERT_ADJUST);
+			if (!BMO_vert_flag_test(bm, l_iter->v, ELE_VERT_ADJUST)) {
+				BMO_vert_flag_enable(bm, l_iter->v, ELE_VERT_ADJUST);
 				shared_vert_num += 1;
 			}
 		} while ((l_iter = l_iter->next) != l_first);
 
-		BMO_elem_flag_enable(bm, f, ELE_FACE_ADJUST);
+		BMO_face_flag_enable(bm, f, ELE_FACE_ADJUST);
 	}
 
 	vert_accum_pool = BLI_mempool_create(sizeof(struct VertAccum), 0, 512, BLI_MEMPOOL_NOP);
@@ -91,10 +91,10 @@ void bmo_planar_faces_exec(BMesh *bm, BMOperator *op)
 			BMLoop *l_iter, *l_first;
 			float plane[4];
 
-			if (!BMO_elem_flag_test(bm, f, ELE_FACE_ADJUST)) {
+			if (!BMO_face_flag_test(bm, f, ELE_FACE_ADJUST)) {
 				continue;
 			}
-			BMO_elem_flag_disable(bm, f, ELE_FACE_ADJUST);
+			BMO_face_flag_disable(bm, f, ELE_FACE_ADJUST);
 
 			BLI_assert(f->len != 3);
 
@@ -130,7 +130,7 @@ void bmo_planar_faces_exec(BMesh *bm, BMOperator *op)
 			BMIter iter;
 
 			if (len_squared_v3v3(v->co, va->co) > eps_sq) {
-				BMO_elem_flag_enable(bm, v, ELE_VERT_ADJUST);
+				BMO_vert_flag_enable(bm, v, ELE_VERT_ADJUST);
 				interp_v3_v3v3(v->co, v->co, va->co, fac);
 				changed = true;
 			}
@@ -138,7 +138,7 @@ void bmo_planar_faces_exec(BMesh *bm, BMOperator *op)
 			/* tag for re-calculation */
 			BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
 				if (f->len != 3) {
-					BMO_elem_flag_enable(bm, f, ELE_FACE_ADJUST);
+					BMO_face_flag_enable(bm, f, ELE_FACE_ADJUST);
 				}
 			}
 		}

@@ -131,13 +131,13 @@ static void bm_face_edges_tag_out(BMesh *bm, BMFace *f)
 	BMLoop *l_iter, *l_first;
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
-		BMO_elem_flag_enable(bm, l_iter->e, EDGE_OUT);
+		BMO_edge_flag_enable(bm, l_iter->e, EDGE_OUT);
 	} while ((l_iter = l_iter->next) != l_first);
 }
 
 static bool bm_edge_test_cb(BMEdge *e, void *bm_v)
 {
-	return BMO_elem_flag_test((BMesh *)bm_v, e, EDGE_MARK);
+	return BMO_edge_flag_test((BMesh *)bm_v, e, EDGE_MARK);
 }
 
 static void bridge_loop_pair(
@@ -425,7 +425,7 @@ static void bridge_loop_pair(
 			if (f_example && (f_example != f)) {
 				BM_elem_attrs_copy(bm, bm, f_example, f);
 			}
-			BMO_elem_flag_enable(bm, f, FACE_OUT);
+			BMO_face_flag_enable(bm, f, FACE_OUT);
 			BM_elem_flag_enable(f, BM_ELEM_TAG);
 
 			/* tag all edges of the face, untag the loop edges after */
@@ -486,7 +486,7 @@ static void bridge_loop_pair(
 			BMOIter siter;
 			BMFace *f;
 			BMO_ITER (f, &siter, op_sub.slots_in, "faces", BM_FACE) {
-				BMO_elem_flag_enable(bm, f, FACE_OUT);
+				BMO_face_flag_enable(bm, f, FACE_OUT);
 				bm_face_edges_tag_out(bm, f);
 			}
 		}
@@ -498,7 +498,7 @@ static void bridge_loop_pair(
 			BMOIter siter;
 			BMFace *f;
 			BMO_ITER (f, &siter, op_sub.slots_out, "geom.out", BM_FACE) {
-				BMO_elem_flag_enable(bm, f, FACE_OUT);
+				BMO_face_flag_enable(bm, f, FACE_OUT);
 				bm_face_edges_tag_out(bm, f);
 			}
 		}
@@ -520,7 +520,7 @@ static void bridge_loop_pair(
 				if (el_next) {
 					if (el->data != el_next->data) {
 						BMEdge *e = BM_edge_exists(el->data, el_next->data);
-						BMO_elem_flag_disable(bm, e, EDGE_OUT);
+						BMO_edge_flag_disable(bm, e, EDGE_OUT);
 					}
 				}
 			}

@@ -178,7 +178,7 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 
 #ifdef USE_CAP_OPTION
 		if (v_edges_num_untag == 1) {
-			BMO_elem_flag_enable(bm, v, ELE_VERT_ENDPOINT);
+			BMO_vert_flag_enable(bm, v, ELE_VERT_ENDPOINT);
 		}
 
 		CLAMP_MIN(v_edges_max, v_edges_num);
@@ -201,7 +201,7 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 				    (BM_elem_index_get(l->prev->v) == -1))
 				{
 #ifdef USE_CAP_OPTION
-					if (use_cap_endpoint || (BMO_elem_flag_test(bm, v, ELE_VERT_ENDPOINT) == 0))
+					if (use_cap_endpoint || (BMO_vert_flag_test(bm, v, ELE_VERT_ENDPOINT) == 0))
 #endif
 					{
 						BMLoop *l_new;
@@ -209,7 +209,7 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 						BLI_assert(f_cmp == l->f);
 						BLI_assert(f_cmp != l_new->f);
 						UNUSED_VARS_NDEBUG(f_cmp);
-						BMO_elem_flag_enable(bm, l_new->e, ELE_NEW);
+						BMO_edge_flag_enable(bm, l_new->e, ELE_NEW);
 					}
 				}
 				else if (l->f->len > 4) {
@@ -222,7 +222,7 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 								BM_face_split(bm, l->f, l->prev->prev, l->next, &l_new, NULL, true);
 								BLI_assert(f_cmp == l->f);
 								BLI_assert(f_cmp != l_new->f);
-								BMO_elem_flag_enable(bm, l_new->e, ELE_NEW);
+								BMO_edge_flag_enable(bm, l_new->e, ELE_NEW);
 								BM_elem_flag_disable(l->f, BM_ELEM_TAG);
 							}
 							else {
@@ -230,7 +230,7 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 								BMLoop *l_new;
 								bm_face_split_walk_back(bm, l, &l_new);
 								do {
-									BMO_elem_flag_enable(bm, l_new->e, ELE_NEW);
+									BMO_edge_flag_enable(bm, l_new->e, ELE_NEW);
 									l_new = l_new->next;
 								} while (BM_vert_is_edge_pair(l_new->v));
 								BM_elem_flag_disable(l->f, BM_ELEM_TAG);

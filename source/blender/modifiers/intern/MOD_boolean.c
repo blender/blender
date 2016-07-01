@@ -222,7 +222,7 @@ static DerivedMesh *applyModifier_bmesh(
 #ifdef DEBUG_TIME
 			TIMEIT_START(boolean_bmesh);
 #endif
-			bm = BM_mesh_create(&allocsize);
+			bm = BM_mesh_create_ex(&allocsize, );
 
 			DM_to_bmesh_ex(dm_other, bm, true);
 			DM_to_bmesh_ex(dm, bm, true);

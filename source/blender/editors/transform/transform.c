@@ -5375,7 +5375,9 @@ static void slide_origdata_init_data(
 		BMesh *bm = em->bm;
 
 		sod->origfaces = BLI_ghash_ptr_new(__func__);
-		sod->bm_origfaces = BM_mesh_create(&bm_mesh_allocsize_default);
+		sod->bm_origfaces = BM_mesh_create(
+		        &bm_mesh_allocsize_default,
+		        &((struct BMeshCreateParams){.use_toolflags = false,}));
 		/* we need to have matching customdata */
 		BM_mesh_copy_init_customdata(sod->bm_origfaces, bm, NULL);
 	}

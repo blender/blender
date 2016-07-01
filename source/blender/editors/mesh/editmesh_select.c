@@ -2453,7 +2453,7 @@ static void select_linked_delimit_begin(BMesh *bm, int delimit)
 			const bool is_walk_ok = (
 			        (select_linked_delimit_test(e, delimit, &delimit_data) == false));
 
-			BMO_elem_flag_set(bm, e, BMO_ELE_TAG, is_walk_ok);
+			BMO_edge_flag_set(bm, e, BMO_ELE_TAG, is_walk_ok);
 		}
 	}
 }
@@ -2496,7 +2496,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 		if (delimit) {
 			BMEdge *e;
 			BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-				if (!BMO_elem_flag_test(bm, e, BMO_ELE_TAG)) {
+				if (!BMO_edge_flag_test(bm, e, BMO_ELE_TAG)) {
 					BM_elem_flag_disable(e->v1, BM_ELEM_TAG);
 					BM_elem_flag_disable(e->v2, BM_ELEM_TAG);
 				}
@@ -2552,7 +2552,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 			BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
 				BM_elem_flag_set(
 				        e, BM_ELEM_TAG,
-				        (BM_elem_flag_test(e, BM_ELEM_SELECT) && BMO_elem_flag_test(bm, e, BMO_ELE_TAG)));
+				        (BM_elem_flag_test(e, BM_ELEM_SELECT) && BMO_edge_flag_test(bm, e, BMO_ELE_TAG)));
 			}
 		}
 		else {

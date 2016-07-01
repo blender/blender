@@ -53,17 +53,31 @@
 #include "bmesh_py_api.h" /* own include */
 
 PyDoc_STRVAR(bpy_bm_new_doc,
-".. method:: new()\n"
+".. method:: new(use_operators=True)\n"
 "\n"
+"   :arg use_operators: Support calling operators in :mod:`bmesh.ops` (uses some extra memory per vert/edge/face).\n"
+"   :type use_operators: bool\n"
 "   :return: Return a new, empty BMesh.\n"
 "   :rtype: :class:`bmesh.types.BMesh`\n"
 );
 
-static PyObject *bpy_bm_new(PyObject *UNUSED(self))
+static PyObject *bpy_bm_new(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
+	static const char *kwlist[] = {"use_operators", NULL};
 	BMesh *bm;
 
-	bm = BM_mesh_create(&bm_mesh_allocsize_default);
+	bool use_operators = true;
+
+	if (!PyArg_ParseTupleAndKeywords(
+	        args, kw, "|$O&:new", (char **)kwlist,
+	        PyC_ParseBool, &use_operators))
+	{
+		return NULL;
+	}
+
+	bm = BM_mesh_create(
+	        &bm_mesh_allocsize_default,
+	        &((struct BMeshCreateParams){.use_toolflags = use_operators,}));
 
 	return BPy_BMesh_CreatePyObject(bm, BPY_BMFLAG_NOP);
 }
@@ -155,7 +169,7 @@ static PyObject *bpy_bm_update_edit_mesh(PyObject *UNUSED(self), PyObject *args,
 }
 
 static struct PyMethodDef BPy_BM_methods[] = {
-	{"new",            (PyCFunction)bpy_bm_new,            METH_NOARGS,  bpy_bm_new_doc},
+	{"new",            (PyCFunction)bpy_bm_new,            METH_VARARGS | METH_KEYWORDS,  bpy_bm_new_doc},
 	{"from_edit_mesh", (PyCFunction)bpy_bm_from_edit_mesh, METH_O,       bpy_bm_from_edit_mesh_doc},
 	{"update_edit_mesh", (PyCFunction)bpy_bm_update_edit_mesh, METH_VARARGS | METH_KEYWORDS, bpy_bm_update_edit_mesh_doc},
 	{NULL, NULL, 0, NULL}

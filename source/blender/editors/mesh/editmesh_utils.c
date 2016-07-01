@@ -354,7 +354,9 @@ void EDBM_mesh_make(ToolSettings *ts, Object *ob, const bool add_key_index)
 		BKE_mesh_convert_mfaces_to_mpolys(me);
 	}
 
-	bm = BKE_mesh_to_bmesh(me, ob, add_key_index);
+	bm = BKE_mesh_to_bmesh(
+	        me, ob, add_key_index,
+	        &((struct BMeshCreateParams){.use_toolflags = true,}));
 
 	if (me->edit_btmesh) {
 		/* this happens when switching shape keys */

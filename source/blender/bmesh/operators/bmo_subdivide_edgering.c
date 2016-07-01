@@ -128,7 +128,7 @@ static void bmo_edgeloop_vert_tag(BMesh *bm, struct BMEdgeLoopStore *el_store, c
 {
 	LinkData *node = BM_edgeloop_verts_get(el_store)->first;
 	do {
-		BMO_elem_flag_set(bm, (BMVert *)node->data, oflag, tag);
+		BMO_vert_flag_set(bm, (BMVert *)node->data, oflag, tag);
 	} while ((node = node->next));
 }
 
@@ -137,7 +137,7 @@ static bool bmo_face_is_vert_tag_all(BMesh *bm, BMFace *f, short oflag)
 	BMLoop *l_iter, *l_first;
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
-		if (!BMO_elem_flag_test(bm, l_iter->v, oflag)) {
+		if (!BMO_vert_flag_test(bm, l_iter->v, oflag)) {
 			return false;
 		}
 	} while ((l_iter = l_iter->next) != l_first);
@@ -150,7 +150,7 @@ static bool bm_vert_is_tag_edge_connect(BMesh *bm, BMVert *v)
 	BMEdge *e;
 
 	BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-		if (BMO_elem_flag_test(bm, e, EDGE_RING)) {
+		if (BMO_edge_flag_test(bm, e, EDGE_RING)) {
 			BMVert *v_other = BM_edge_other_vert(e, v);
 			if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
 				return true;
@@ -243,7 +243,7 @@ static GSet *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
 		BMVert *v = ((LinkData *)BM_edgeloop_verts_get(el_store)->first)->data;
 
 		BM_ITER_ELEM (e, &eiter, (BMVert *)v, BM_EDGES_OF_VERT) {
-			if (BMO_elem_flag_test(bm, e, EDGE_RING)) {
+			if (BMO_edge_flag_test(bm, e, EDGE_RING)) {
 				struct BMEdgeLoopStore *el_store_other;
 				BMVert *v_other = BM_edge_other_vert(e, v);
 				GHashPair pair_test;
@@ -339,7 +339,7 @@ static void bm_vert_calc_surface_tangent(BMesh *bm, BMVert *v, float r_no[3])
 		if (UNLIKELY(BM_edge_is_wire(e))) {
 			/* pass - this may confuse things */
 		}
-		else if (BMO_elem_flag_test(bm, e, EDGE_RIM)) {
+		else if (BMO_edge_flag_test(bm, e, EDGE_RIM)) {
 			BMIter liter;
 			BMLoop *l;
 			BM_ITER_ELEM (l, &liter, e, BM_LOOPS_OF_EDGE) {
@@ -347,7 +347,7 @@ static void bm_vert_calc_surface_tangent(BMesh *bm, BMVert *v, float r_no[3])
 				float no[3];
 				// BM_face_normal_update(l->f);
 				BM_edge_calc_face_tangent(e, l, no);
-				if (BMO_elem_flag_test(bm, l->f, FACE_SHARED)) {
+				if (BMO_face_flag_test(bm, l->f, FACE_SHARED)) {
 					add_v3_v3(no_inner, no);
 					found_inner = true;
 				}
@@ -356,7 +356,7 @@ static void bm_vert_calc_surface_tangent(BMesh *bm, BMVert *v, float r_no[3])
 					found_outer = true;
 
 					/* other side is used too, blend midway */
-					if (BMO_elem_flag_test(bm, l->f, FACE_OUT)) {
+					if (BMO_face_flag_test(bm, l->f, FACE_OUT)) {
 						found_outer_tag = true;
 					}
 				}
@@ -400,9 +400,9 @@ static void bm_faces_share_tag_flush(BMesh *bm, BMEdge **e_arr, const unsigned i
 
 		l_iter = l_first = e->l;
 		do {
-			if (!BMO_elem_flag_test(bm, l_iter->f, FACE_SHARED)) {
+			if (!BMO_face_flag_test(bm, l_iter->f, FACE_SHARED)) {
 				if (bmo_face_is_vert_tag_all(bm, l_iter->f, VERT_SHARED)) {
-					BMO_elem_flag_enable(bm, l_iter->f, FACE_SHARED);
+					BMO_face_flag_enable(bm, l_iter->f, FACE_SHARED);
 				}
 			}
 		} while ((l_iter = l_iter->radial_next) != l_first);
@@ -422,7 +422,7 @@ static void bm_faces_share_tag_clear(BMesh *bm, BMEdge **e_arr_iter, const unsig
 
 		l_iter = l_first = e->l;
 		do {
-			BMO_elem_flag_disable(bm, l_iter->f, FACE_SHARED);
+			BMO_face_flag_disable(bm, l_iter->f, FACE_SHARED);
 		} while ((l_iter = l_iter->radial_next) != l_first);
 	}
 }
@@ -834,8 +834,8 @@ static void bm_face_slice(BMesh *bm, BMLoop *l, const int cuts)
 		if (l_new->f->len < l_new->radial_next->f->len) {
 			l_new = l_new->radial_next;
 		}
-		BMO_elem_flag_enable(bm, l_new->f, FACE_OUT);
-		BMO_elem_flag_enable(bm, l_new->radial_next->f, FACE_OUT);
+		BMO_face_flag_enable(bm, l_new->f, FACE_OUT);
+		BMO_face_flag_enable(bm, l_new->radial_next->f, FACE_OUT);
 	}
 }
 
@@ -903,7 +903,7 @@ static void bm_edgering_pair_order(
 		node = lb_a->first;
 
 		BM_ITER_ELEM (e, &eiter, (BMVert *)node->data, BM_EDGES_OF_VERT) {
-			if (BMO_elem_flag_test(bm, e, EDGE_RING)) {
+			if (BMO_edge_flag_test(bm, e, EDGE_RING)) {
 				v_other = BM_edge_other_vert(e, (BMVert *)node->data);
 				if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
 					break;
@@ -938,7 +938,7 @@ static void bm_edgering_pair_order(
 		/* if we dont share and edge - flip */
 		BMEdge *e = BM_edge_exists(((LinkData *)lb_a->first)->data,
 		                           ((LinkData *)lb_b->first)->data);
-		if (e == NULL || !BMO_elem_flag_test(bm, e, EDGE_RING)) {
+		if (e == NULL || !BMO_edge_flag_test(bm, e, EDGE_RING)) {
 			BM_edgeloop_flip(bm, el_store_b);
 		}
 	}
@@ -983,19 +983,19 @@ static void bm_edgering_pair_subdiv(
 		BMIter eiter;
 
 		BM_ITER_ELEM (e, &eiter, (BMVert *)node->data, BM_EDGES_OF_VERT) {
-			if (!BMO_elem_flag_test(bm, e, EDGE_IN_STACK)) {
+			if (!BMO_edge_flag_test(bm, e, EDGE_IN_STACK)) {
 				BMVert *v_other = BM_edge_other_vert(e, (BMVert *)node->data);
 				if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
 					BMIter fiter;
 
-					BMO_elem_flag_enable(bm, e, EDGE_IN_STACK);
+					BMO_edge_flag_enable(bm, e, EDGE_IN_STACK);
 					STACK_PUSH(edges_ring_arr, e);
 
 					/* add faces to the stack */
 					BM_ITER_ELEM (f, &fiter, e, BM_FACES_OF_EDGE) {
-						if (BMO_elem_flag_test(bm, f, FACE_OUT)) {
-							if (!BMO_elem_flag_test(bm, f, FACE_IN_STACK)) {
-								BMO_elem_flag_enable(bm, f, FACE_IN_STACK);
+						if (BMO_face_flag_test(bm, f, FACE_OUT)) {
+							if (!BMO_face_flag_test(bm, f, FACE_IN_STACK)) {
+								BMO_face_flag_enable(bm, f, FACE_IN_STACK);
 								STACK_PUSH(faces_ring_arr, f);
 							}
 						}
@@ -1009,10 +1009,10 @@ static void bm_edgering_pair_subdiv(
 		/* found opposite edge */
 		BMVert *v_other;
 
-		BMO_elem_flag_disable(bm, e, EDGE_IN_STACK);
+		BMO_edge_flag_disable(bm, e, EDGE_IN_STACK);
 
 		/* unrelated to subdiv, but if we _don't_ clear flag, multiple rings fail */
-		BMO_elem_flag_disable(bm, e, EDGE_RING);
+		BMO_edge_flag_disable(bm, e, EDGE_RING);
 
 		v_other = BM_elem_flag_test(e->v1, BM_ELEM_TAG) ? e->v1 : e->v2;
 		bm_edge_subdiv_as_loop(bm, eloops_ring, e, v_other, cuts);
@@ -1021,12 +1021,12 @@ static void bm_edgering_pair_subdiv(
 	while ((f = STACK_POP(faces_ring_arr))) {
 		BMLoop *l_iter, *l_first;
 
-		BMO_elem_flag_disable(bm, f, FACE_IN_STACK);
+		BMO_face_flag_disable(bm, f, FACE_IN_STACK);
 
 		/* Check each edge of the face */
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
-			if (BMO_elem_flag_test(bm, l_iter->e, EDGE_RIM)) {
+			if (BMO_edge_flag_test(bm, l_iter->e, EDGE_RIM)) {
 				bm_face_slice(bm, l_iter, cuts);
 				break;
 			}
@@ -1064,7 +1064,7 @@ static void bm_edgering_pair_ringsubd(
 static bool bm_edge_rim_test_cb(BMEdge *e, void *bm_v)
 {
 	BMesh *bm = bm_v;
-	return BMO_elem_flag_test_bool(bm, e, EDGE_RIM);
+	return BMO_edge_flag_test_bool(bm, e, EDGE_RIM);
 }
 
 
@@ -1099,25 +1099,25 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
 		BMFace *f;
 
 		BM_ITER_ELEM (f, &fiter, e, BM_FACES_OF_EDGE) {
-			if (!BMO_elem_flag_test(bm, f, FACE_OUT)) {
+			if (!BMO_face_flag_test(bm, f, FACE_OUT)) {
 				BMIter liter;
 				BMLoop *l;
 				bool ok = false;
 
 				/* check at least 2 edges in the face are rings */
 				BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-					if (BMO_elem_flag_test(bm, l->e, EDGE_RING) && e != l->e) {
+					if (BMO_edge_flag_test(bm, l->e, EDGE_RING) && e != l->e) {
 						ok = true;
 						break;
 					}
 				}
 
 				if (ok) {
-					BMO_elem_flag_enable(bm, f, FACE_OUT);
+					BMO_face_flag_enable(bm, f, FACE_OUT);
 
 					BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-						if (!BMO_elem_flag_test(bm, l->e, EDGE_RING)) {
-							BMO_elem_flag_enable(bm, l->e, EDGE_RIM);
+						if (!BMO_edge_flag_test(bm, l->e, EDGE_RING)) {
+							BMO_edge_flag_enable(bm, l->e, EDGE_RIM);
 						}
 					}
 				}

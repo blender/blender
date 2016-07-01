@@ -98,7 +98,7 @@ static BMFace *remdoubles_createface(BMesh *bm, BMFace *f, BMOpSlot *slot_target
 	{
 #define LOOP_MAP_VERT_INIT(l_init, v_map, is_del) \
 		v_map = l_init->v; \
-		is_del = BMO_elem_flag_test_bool(bm, v_map, ELE_DEL); \
+		is_del = BMO_vert_flag_test_bool(bm, v_map, ELE_DEL); \
 		if (is_del) { \
 			v_map = BMO_slot_map_elem_get(slot_targetmap, v_map); \
 		} ((void)0)
@@ -131,12 +131,12 @@ static BMFace *remdoubles_createface(BMesh *bm, BMFace *f, BMOpSlot *slot_target
 			}
 
 			if (e_new) {
-				if (UNLIKELY(BMO_elem_flag_test(bm, v_curr, VERT_IN_FACE))) {
+				if (UNLIKELY(BMO_vert_flag_test(bm, v_curr, VERT_IN_FACE))) {
 					/* we can't make the face, bail out */
 					STACK_CLEAR(edges);
 					goto finally;
 				}
-				BMO_elem_flag_enable(bm, v_curr, VERT_IN_FACE);
+				BMO_vert_flag_enable(bm, v_curr, VERT_IN_FACE);
 
 				STACK_PUSH(edges, e_new);
 				STACK_PUSH(loops, l_curr);
@@ -155,7 +155,7 @@ finally:
 	{
 		unsigned int i;
 		for (i = 0; i < STACK_SIZE(verts); i++) {
-			BMO_elem_flag_disable(bm, verts[i], VERT_IN_FACE);
+			BMO_vert_flag_disable(bm, verts[i], VERT_IN_FACE);
 		}
 	}
 
@@ -198,7 +198,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 	/* mark merge verts for deletion */
 	BM_ITER_MESH (v1, &iter, bm, BM_VERTS_OF_MESH) {
 		if ((v2 = BMO_slot_map_elem_get(slot_targetmap, v1))) {
-			BMO_elem_flag_enable(bm, v1, ELE_DEL);
+			BMO_vert_flag_enable(bm, v1, ELE_DEL);
 
 			/* merge the vertex flags, else we get randomly selected/unselected verts */
 			BM_elem_flag_merge(v1, v2);
@@ -212,8 +212,8 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 	}
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-		const bool is_del_v1 = BMO_elem_flag_test_bool(bm, (v1 = e->v1), ELE_DEL);
-		const bool is_del_v2 = BMO_elem_flag_test_bool(bm, (v2 = e->v2), ELE_DEL);
+		const bool is_del_v1 = BMO_vert_flag_test_bool(bm, (v1 = e->v1), ELE_DEL);
+		const bool is_del_v2 = BMO_vert_flag_test_bool(bm, (v2 = e->v2), ELE_DEL);
 
 		if (is_del_v1 || is_del_v2) {
 			if (is_del_v1)
@@ -222,7 +222,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 				v2 = BMO_slot_map_elem_get(slot_targetmap, v2);
 
 			if (v1 == v2) {
-				BMO_elem_flag_enable(bm, e, EDGE_COL);
+				BMO_edge_flag_enable(bm, e, EDGE_COL);
 			}
 			else {
 				/* always merge flags, even for edges we already created */
@@ -233,7 +233,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 				BM_elem_flag_merge(e_new, e);
 			}
 
-			BMO_elem_flag_enable(bm, e, ELE_DEL);
+			BMO_edge_flag_enable(bm, e, ELE_DEL);
 		}
 	}
 
@@ -244,16 +244,16 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 		int  edge_collapse = 0;
 
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-			if (BMO_elem_flag_test(bm, l->v, ELE_DEL)) {
+			if (BMO_vert_flag_test(bm, l->v, ELE_DEL)) {
 				vert_delete = true;
 			}
-			if (BMO_elem_flag_test(bm, l->e, EDGE_COL)) {
+			if (BMO_edge_flag_test(bm, l->e, EDGE_COL)) {
 				edge_collapse++;
 			}
 		}
 
 		if (vert_delete) {
-			BMO_elem_flag_enable(bm, f, ELE_DEL);
+			BMO_face_flag_enable(bm, f, ELE_DEL);
 
 			if (f->len - edge_collapse >= 3) {
 				BMFace *f_new = remdoubles_createface(bm, f, slot_targetmap);
@@ -261,8 +261,12 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 				/* do this so we don't need to return a list of created faces */
 				if (f_new) {
 					bmesh_face_swap_data(f_new, f);
-					SWAP(BMFlagLayer *, f->oflags, f_new->oflags);
-					BMO_elem_flag_disable(bm, f, ELE_DEL);
+
+					if (bm->use_toolflags) {
+						SWAP(BMFlagLayer *, ((BMFace_OFlag *)f)->oflags, ((BMFace_OFlag *)f_new)->oflags);
+					}
+
+					BMO_face_flag_disable(bm, f, ELE_DEL);
 
 					BM_face_kill(bm, f_new);
 				}
@@ -439,7 +443,7 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 		float min[3], max[3], center[3];
 		BMVert *v_tar;
 
-		if (!BMO_elem_flag_test(bm, e, EDGE_MARK))
+		if (!BMO_edge_flag_test(bm, e, EDGE_MARK))
 			continue;
 
 		BLI_assert(BLI_stack_is_empty(edge_stack));
@@ -510,7 +514,7 @@ static void bmo_collapsecon_do_layer(BMesh *bm, const int layer, const short ofl
 
 	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-			if (BMO_elem_flag_test(bm, l->e, oflag)) {
+			if (BMO_edge_flag_test(bm, l->e, oflag)) {
 				/* walk */
 				BLI_assert(BLI_stack_is_empty(block_stack));
 
@@ -606,7 +610,7 @@ static void bmesh_find_doubles_common(
 	for (i = 0; i < verts_len; i++) {
 		BMVert *v_check = verts[i];
 
-		if (BMO_elem_flag_test(bm, v_check, VERT_DOUBLE | VERT_TARGET)) {
+		if (BMO_vert_flag_test(bm, v_check, VERT_DOUBLE | VERT_TARGET)) {
 			continue;
 		}
 
@@ -614,7 +618,7 @@ static void bmesh_find_doubles_common(
 			BMVert *v_other = verts[j];
 
 			/* a match has already been found, (we could check which is best, for now don't) */
-			if (BMO_elem_flag_test(bm, v_other, VERT_DOUBLE | VERT_TARGET)) {
+			if (BMO_vert_flag_test(bm, v_other, VERT_DOUBLE | VERT_TARGET)) {
 				continue;
 			}
 
@@ -628,19 +632,19 @@ static void bmesh_find_doubles_common(
 			}
 
 			if (keepvert) {
-				if (BMO_elem_flag_test(bm, v_other, VERT_KEEP) == BMO_elem_flag_test(bm, v_check, VERT_KEEP))
+				if (BMO_vert_flag_test(bm, v_other, VERT_KEEP) == BMO_vert_flag_test(bm, v_check, VERT_KEEP))
 					continue;
 			}
 
 			if (compare_len_squared_v3v3(v_check->co, v_other->co, dist_sq)) {
 
 				/* If one vert is marked as keep, make sure it will be the target */
-				if (BMO_elem_flag_test(bm, v_other, VERT_KEEP)) {
+				if (BMO_vert_flag_test(bm, v_other, VERT_KEEP)) {
 					SWAP(BMVert *, v_check, v_other);
 				}
 
-				BMO_elem_flag_enable(bm, v_other, VERT_DOUBLE);
-				BMO_elem_flag_enable(bm, v_check, VERT_TARGET);
+				BMO_vert_flag_enable(bm, v_other, VERT_DOUBLE);
+				BMO_vert_flag_enable(bm, v_check, VERT_TARGET);
 
 				BMO_slot_map_elem_insert(optarget, optarget_slot, v_other, v_check);
 			}
@@ -683,8 +687,8 @@ void bmo_automerge_exec(BMesh *bm, BMOperator *op)
 	 * as VERT_KEEP. */
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "verts", BM_VERT, VERT_IN);
 	BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
-		if (!BMO_elem_flag_test(bm, v, VERT_IN)) {
-			BMO_elem_flag_enable(bm, v, VERT_KEEP);
+		if (!BMO_vert_flag_test(bm, v, VERT_IN)) {
+			BMO_vert_flag_enable(bm, v, VERT_KEEP);
 		}
 	}
 

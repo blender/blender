@@ -52,7 +52,7 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 	int edge_array_len = 0;
 	BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
 		if (f->len == 3) {
-			BMO_elem_flag_enable(bm, f, FACE_MARK);
+			BMO_face_flag_enable(bm, f, FACE_MARK);
 		}
 	}
 
@@ -68,8 +68,8 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 		/* edge is manifold and can be rotated */
 		if (BM_edge_rotate_check(e) &&
 		    /* faces are tagged */
-		    BMO_elem_flag_test(bm, e->l->f, FACE_MARK) &&
-		    BMO_elem_flag_test(bm, e->l->radial_next->f, FACE_MARK))
+		    BMO_face_flag_test(bm, e->l->f, FACE_MARK) &&
+		    BMO_face_flag_test(bm, e->l->radial_next->f, FACE_MARK))
 		{
 			edge_array[edge_array_len] = e;
 			edge_array_len++;

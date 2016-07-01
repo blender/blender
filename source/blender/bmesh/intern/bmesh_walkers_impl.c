@@ -49,7 +49,7 @@ static bool bmw_mask_check_vert(BMWalker *walker, BMVert *v)
 	if ((walker->flag & BMW_FLAG_TEST_HIDDEN) && BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
 		return false;
 	}
-	else if (walker->mask_vert && !BMO_elem_flag_test(walker->bm, v, walker->mask_vert)) {
+	else if (walker->mask_vert && !BMO_vert_flag_test(walker->bm, v, walker->mask_vert)) {
 		return false;
 	}
 	else {
@@ -62,7 +62,7 @@ static bool bmw_mask_check_edge(BMWalker *walker, BMEdge *e)
 	if ((walker->flag & BMW_FLAG_TEST_HIDDEN) && BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
 		return false;
 	}
-	else if (walker->mask_edge && !BMO_elem_flag_test(walker->bm, e, walker->mask_edge)) {
+	else if (walker->mask_edge && !BMO_edge_flag_test(walker->bm, e, walker->mask_edge)) {
 		return false;
 	}
 	else {
@@ -75,7 +75,7 @@ static bool bmw_mask_check_face(BMWalker *walker, BMFace *f)
 	if ((walker->flag & BMW_FLAG_TEST_HIDDEN) && BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
 		return false;
 	}
-	else if (walker->mask_face && !BMO_elem_flag_test(walker->bm, f, walker->mask_face)) {
+	else if (walker->mask_face && !BMO_face_flag_test(walker->bm, f, walker->mask_face)) {
 		return false;
 	}
 	else {
@@ -223,7 +223,7 @@ static void *bmw_VertShellWalker_step(BMWalker *walker)
 	do {
 		if (!BLI_gset_haskey(walker->visit_set, curedge)) {
 			if (!walker->restrictflag ||
-			    (walker->restrictflag && BMO_elem_flag_test(walker->bm, curedge, walker->restrictflag)))
+			    (walker->restrictflag && BMO_edge_flag_test(walker->bm, curedge, walker->restrictflag)))
 			{
 				BMwShellWalker *newstate;
 
@@ -748,7 +748,7 @@ static void *bmw_IslandboundWalker_step(BMWalker *walker)
 	iwalk = BMW_state_add(walker);
 	iwalk->base = owalk.base;
 
-	//if (!BMO_elem_flag_test(walker->bm, l->f, walker->restrictflag))
+	//if (!BMO_face_flag_test(walker->bm, l->f, walker->restrictflag))
 	//	iwalk->curloop = l->radial_next;
 	iwalk->curloop = l; //else iwalk->curloop = l;
 	iwalk->lastv = v;

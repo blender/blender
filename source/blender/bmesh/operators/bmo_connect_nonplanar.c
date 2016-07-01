@@ -136,9 +136,9 @@ static bool bm_face_split_by_angle(BMesh *bm, BMFace *f, BMFace *r_f_pair[2], co
 			r_f_pair[0] = f;
 			r_f_pair[1] = f_new;
 
-			BMO_elem_flag_enable(bm, f, FACE_OUT);
-			BMO_elem_flag_enable(bm, f_new, FACE_OUT);
-			BMO_elem_flag_enable(bm, l_new->e, EDGE_OUT);
+			BMO_face_flag_enable(bm, f, FACE_OUT);
+			BMO_face_flag_enable(bm, f_new, FACE_OUT);
+			BMO_edge_flag_enable(bm, l_new->e, EDGE_OUT);
 			return true;
 		}
 	}
