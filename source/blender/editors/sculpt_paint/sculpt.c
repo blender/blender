@@ -5013,7 +5013,9 @@ void sculpt_dynamic_topology_enable(bContext *C)
 	BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
 	sculpt_dyntopo_node_layers_add(ss);
 	/* make sure the data for existing faces are initialized */
-	BM_mesh_normals_update(ss->bm);
+	if (me->totpoly != ss->bm->totface) {
+		BM_mesh_normals_update(ss->bm);
+	}
 
 	/* Enable dynamic topology */
 	me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
