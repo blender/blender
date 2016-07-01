@@ -57,6 +57,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_group.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
 #include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -397,7 +398,7 @@ static void object_deselect_cb(
 }
 
 static void object_delete_cb(
-        bContext *C, ReportList *UNUSED(reports), Scene *scene, TreeElement *te,
+        bContext *C, ReportList *reports, Scene *scene, TreeElement *te,
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	Base *base = (Base *)te->directdata;
@@ -405,6 +406,18 @@ static void object_delete_cb(
 	if (base == NULL)
 		base = BKE_scene_base_find(scene, (Object *)tselem->id);
 	if (base) {
+		Main *bmain = CTX_data_main(C);
+		if (base->object->id.tag & LIB_TAG_INDIRECT) {
+			BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked object '%s'", base->object->id.name + 2);
+			return;
+		}
+		else if (BKE_library_ID_is_indirectly_used(bmain, base->object) && ID_REAL_USERS(base->object) <= 1) {
+			BKE_reportf(reports, RPT_WARNING,
+			            "Cannot delete object '%s' from scene '%s', indirectly used objects need at least one user",
+			            base->object->id.name + 2, scene->id.name + 2);
+			return;
+		}
+
 		// check also library later
 		if (scene->obedit == base->object)
 			ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
@@ -809,7 +822,7 @@ static void outliner_do_data_operation(SpaceOops *soops, int type, int event, Li
 	}
 }
 
-static Base *outline_delete_hierarchy(bContext *C, Scene *scene, Base *base)
+static Base *outline_delete_hierarchy(bContext *C, ReportList *reports, Scene *scene, Base *base)
 {
 	Base *child_base, *base_next;
 	Object *parent;
@@ -822,17 +835,29 @@ static Base *outline_delete_hierarchy(bContext *C, Scene *scene, Base *base)
 		base_next = child_base->next;
 		for (parent = child_base->object->parent; parent && (parent != base->object); parent = parent->parent);
 		if (parent) {
-			base_next = outline_delete_hierarchy(C, scene, child_base);
+			base_next = outline_delete_hierarchy(C, reports, scene, child_base);
 		}
 	}
 
 	base_next = base->next;
+
+	Main *bmain = CTX_data_main(C);
+	if (base->object->id.tag & LIB_TAG_INDIRECT) {
+		BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked object '%s'", base->object->id.name + 2);
+		return base_next;
+	}
+	else if (BKE_library_ID_is_indirectly_used(bmain, base->object) && ID_REAL_USERS(base->object) <= 1) {
+		BKE_reportf(reports, RPT_WARNING,
+		            "Cannot delete object '%s' from scene '%s', indirectly used objects need at least one user",
+		            base->object->id.name + 2, scene->id.name + 2);
+		return base_next;
+	}
 	ED_base_object_free_and_unlink(CTX_data_main(C), scene, base);
 	return base_next;
 }
 
 static void object_delete_hierarchy_cb(
-        bContext *C, ReportList *UNUSED(reports), Scene *scene,
+        bContext *C, ReportList *reports, Scene *scene,
         TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	Base *base = (Base *)te->directdata;
@@ -848,7 +873,7 @@ static void object_delete_hierarchy_cb(
 			ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
 		}
 
-		outline_delete_hierarchy(C, scene, base);
+		outline_delete_hierarchy(C, reports, scene, base);
 		/* leave for ED_outliner_id_unref to handle */
 #if 0
 		te->directdata = NULL;

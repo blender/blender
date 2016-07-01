@@ -55,6 +55,7 @@
 #include "BKE_global.h"
 #include "BKE_idcode.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
 #include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_outliner_treehash.h"
@@ -307,7 +308,7 @@ void OUTLINER_OT_item_rename(wmOperatorType *ot)
 
 /* ID delete --------------------------------------------------- */
 
-static void id_delete(bContext *C, TreeElement *te, TreeStoreElem *tselem)
+static void id_delete(bContext *C, ReportList *reports, TreeElement *te, TreeStoreElem *tselem)
 {
 	Main *bmain = CTX_data_main(C);
 	ID *id = tselem->id;
@@ -316,16 +317,28 @@ static void id_delete(bContext *C, TreeElement *te, TreeStoreElem *tselem)
 	BLI_assert(te->idcode != ID_LI || ((Library *)id)->parent == NULL);
 	UNUSED_VARS_NDEBUG(te);
 
+	if (id->tag & LIB_TAG_INDIRECT) {
+		BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked id '%s'", id->name);
+		return;
+	}
+	else if (BKE_library_ID_is_indirectly_used(bmain, id) && ID_REAL_USERS(id) <= 1) {
+		BKE_reportf(reports, RPT_WARNING,
+		            "Cannot delete id '%s', indirectly used datablocks need at least one user",
+		            id->name);
+		return;
+	}
+
+
 	BKE_libblock_delete(bmain, id);
 
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 }
 
 void id_delete_cb(
-        bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene),
+        bContext *C, ReportList *reports, Scene *UNUSED(scene),
         TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
-	id_delete(C, te, tselem);
+	id_delete(C, reports, te, tselem);
 }
 
 static int outliner_id_delete_invoke_do(bContext *C, ReportList *reports, TreeElement *te, const float mval[2])
@@ -339,7 +352,7 @@ static int outliner_id_delete_invoke_do(bContext *C, ReportList *reports, TreeEl
 				            "Cannot delete indirectly linked library '%s'", ((Library *)tselem->id)->filepath);
 				return OPERATOR_CANCELLED;
 			}
-			id_delete(C, te, tselem);
+			id_delete(C, reports, te, tselem);
 			return OPERATOR_FINISHED;
 		}
 	}

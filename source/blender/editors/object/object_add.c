@@ -73,6 +73,7 @@
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -1108,11 +1109,18 @@ static void object_delete_check_glsl_update(Object *ob)
 /* note: now unlinks constraints as well */
 void ED_base_object_free_and_unlink(Main *bmain, Scene *scene, Base *base)
 {
-	DAG_id_type_tag(bmain, ID_OB);
+	if (BKE_library_ID_is_indirectly_used(bmain, base->object) && ID_REAL_USERS(base->object) <= 1) {
+		/* We cannot delete indirectly used object... */
+		printf("WARNING, undeletable object '%s', should have been catched before reaching this function!",
+		       base->object->id.name + 2);
+		return;
+	}
+
 	BKE_scene_base_unlink(scene, base);
 	object_delete_check_glsl_update(base->object);
 	BKE_libblock_free_us(bmain, base->object);
 	MEM_freeN(base);
+	DAG_id_type_tag(bmain, ID_OB);
 }
 
 static int object_delete_exec(bContext *C, wmOperator *op)
@@ -1129,6 +1137,19 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN (C, Base *, base, selected_bases)
 	{
+		const bool is_indirectly_used = BKE_library_ID_is_indirectly_used(bmain, base->object);
+		if (base->object->id.tag & LIB_TAG_INDIRECT) {
+			/* Can this case ever happen? */
+			BKE_reportf(op->reports, RPT_WARNING, "Cannot delete indirectly linked object '%s'", base->object->id.name + 2);
+			continue;
+		}
+		else if (is_indirectly_used && ID_REAL_USERS(base->object) <= 1) {
+			BKE_reportf(op->reports, RPT_WARNING,
+			            "Cannot delete object '%s' from scene '%s', indirectly used objects need at least one user",
+			            base->object->id.name + 2, scene->id.name + 2);
+			continue;
+		}
+
 		/* deselect object -- it could be used in other scenes */
 		base->object->flag &= ~SELECT;
 
@@ -1144,6 +1165,12 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 				if (scene_iter != scene && !(scene_iter->id.lib)) {
 					base_other = BKE_scene_base_find(scene_iter, base->object);
 					if (base_other) {
+						if (is_indirectly_used && ID_REAL_USERS(base->object) <= 1) {
+							BKE_reportf(op->reports, RPT_WARNING,
+							            "Cannot delete object '%s' from scene '%s', indirectly used objects need at least one user",
+							            base->object->id.name + 2, scene_iter->id.name + 2);
+							break;
+						}
 						ED_base_object_free_and_unlink(bmain, scene_iter, base_other);
 					}
 				}

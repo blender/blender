@@ -175,6 +175,11 @@ static int foreach_libblock_remap_callback(void *user_data, ID *UNUSED(id_self),
 		                            (id_remap_data->flag & ID_REMAP_FORCE_NEVER_NULL_USAGE) == 0);
 		const bool skip_never_null = (id_remap_data->flag & ID_REMAP_SKIP_NEVER_NULL_USAGE) != 0;
 
+#ifdef DEBUG_PRINT
+		printf("In %s: Remapping %s (%p) to %s (%p) (skip_indirect: %d)\n",
+		       id->name, old_id->name, old_id, new_id ? new_id->name : "<NONE>", new_id, skip_indirect);
+#endif
+
 		if ((id_remap_data->flag & ID_REMAP_FLAG_NEVER_NULL_USAGE) && (cb_flag & IDWALK_NEVER_NULL)) {
 			id->tag |= LIB_TAG_DOIT;
 		}
@@ -184,11 +189,14 @@ static int foreach_libblock_remap_callback(void *user_data, ID *UNUSED(id_self),
 		    (is_obj_editmode && (((Object *)id)->data == *id_p)) ||
 		    (skip_indirect && (is_proxy || is_indirect)))
 		{
-			if (!is_indirect && (is_never_null || is_proxy || is_obj_editmode)) {
+			if (is_indirect) {
+				id_remap_data->skipped_indirect++;
+			}
+			else if (is_never_null || is_proxy || is_obj_editmode) {
 				id_remap_data->skipped_direct++;
 			}
 			else {
-				id_remap_data->skipped_indirect++;
+				BLI_assert(0);
 			}
 			if (cb_flag & IDWALK_USER) {
 				id_remap_data->skipped_refcounted++;
@@ -461,9 +469,10 @@ void BKE_libblock_remap(Main *bmain, void *old_idv, void *new_idv, const short r
  * \param do_flag_never_null: If true, all IDs using \a idv in a 'non-NULL' way are flagged by \a LIB_TAG_DOIT flag
  * (quite obviously, 'non-NULL' usages can never be unlinked by this function...).
  */
-void BKE_libblock_unlink(Main *bmain, void *idv, const bool do_flag_never_null)
+void BKE_libblock_unlink(Main *bmain, void *idv, const bool do_flag_never_null, const bool do_skip_indirect)
 {
-	const short remap_flags = ID_REMAP_SKIP_INDIRECT_USAGE | (do_flag_never_null ? ID_REMAP_FLAG_NEVER_NULL_USAGE : 0);
+	const short remap_flags = (do_skip_indirect ? ID_REMAP_SKIP_INDIRECT_USAGE : 0) |
+	                          (do_flag_never_null ? ID_REMAP_FLAG_NEVER_NULL_USAGE : 0);
 
 	BKE_main_lock(bmain);
 
@@ -709,7 +718,7 @@ void BKE_libblock_free_us(Main *bmain, void *idv)      /* test users */
 	}
 
 	if (id->us == 0) {
-		BKE_libblock_unlink(bmain, id, false);
+		BKE_libblock_unlink(bmain, id, false, false);
 		
 		BKE_libblock_free(bmain, id);
 	}

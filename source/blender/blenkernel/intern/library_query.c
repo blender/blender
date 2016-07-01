@@ -865,3 +865,53 @@ int BKE_library_ID_use_ID(ID *id_user, ID *id_used)
 
 	return iter.count;
 }
+
+
+static int foreach_libblock_check_indirect_usage_callback(
+        void *user_data, ID *UNUSED(id_self), ID **id_p, int UNUSED(cb_flag))
+{
+	IDUsersIter *iter = user_data;
+
+	if (*id_p && (*id_p == iter->id)) {
+		iter->count++;
+		return IDWALK_RET_STOP_ITER;
+	}
+
+	return IDWALK_RET_NOP;
+}
+
+/**
+ * Check wether given ID is used indirectly (i.e. by another linked ID).
+ */
+bool BKE_library_ID_is_indirectly_used(Main *bmain, void *idv)
+{
+	IDUsersIter iter;
+	ListBase *lb_array[MAX_LIBARRAY];
+	int i = set_listbasepointers(bmain, lb_array);
+
+	iter.id = idv;
+	iter.count = 0;
+	while (i--) {
+		ID *id_curr = lb_array[i]->first;
+
+		for (; id_curr; id_curr = id_curr->next) {
+			if (!id_curr->lib) {
+				continue;
+			}
+
+			iter.curr_id = id_curr;
+			BKE_library_foreach_ID_link(
+			            id_curr, foreach_libblock_check_indirect_usage_callback, &iter, IDWALK_NOP);
+
+			if (iter.count) {
+				break;
+			}
+		}
+		if (iter.count) {
+			break;
+		}
+	}
+
+	return (iter.count != 0);
+}
+
