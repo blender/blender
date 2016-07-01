@@ -141,8 +141,6 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas, RAS_STORAGE_TYPE
 	glGetIntegerv(GL_MAX_LIGHTS, (GLint *) &m_numgllights);
 	if (m_numgllights < 8)
 		m_numgllights = 8;
-
-	PrintHardwareInfo();
 }
 
 
