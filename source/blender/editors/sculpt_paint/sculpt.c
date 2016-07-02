@@ -5277,6 +5277,8 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *UNUSED(op))
 	sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_SYMMETRIZE);
 	BM_log_before_all_removed(ss->bm, ss->bm_log);
 
+	BM_mesh_toolflags_set(ss->bm, true);
+
 	/* Symmetrize and re-triangulate */
 	BMO_op_callf(ss->bm, BMO_FLAG_DEFAULTS,
 	             "symmetrize input=%avef direction=%i  dist=%f",
@@ -5285,6 +5287,8 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* bisect operator flags edges (keep tags clean for edge queue) */
 	BM_mesh_elem_hflag_disable_all(ss->bm, BM_EDGE, BM_ELEM_TAG, false);
+
+	BM_mesh_toolflags_set(ss->bm, false);
 
 	/* Finish undo */
 	BM_log_all_added(ss->bm, ss->bm_log);

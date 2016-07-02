@@ -48,7 +48,9 @@
 const BMAllocTemplate bm_mesh_allocsize_default = {512, 1024, 2048, 512};
 const BMAllocTemplate bm_mesh_chunksize_default = {512, 1024, 2048, 512};
 
-static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize, const bool use_toolflags)
+static void bm_mempool_init_ex(
+        const BMAllocTemplate *allocsize, const bool use_toolflags,
+        BLI_mempool **r_vpool, BLI_mempool **r_epool, BLI_mempool **r_lpool, BLI_mempool **r_fpool)
 {
 	size_t vert_size, edge_size, loop_size, face_size;
 
@@ -65,18 +67,33 @@ static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize, const b
 		face_size = sizeof(BMFace);
 	}
 
-	bm->vpool = BLI_mempool_create(
-	        vert_size, allocsize->totvert,
-	        bm_mesh_chunksize_default.totvert, BLI_MEMPOOL_ALLOW_ITER);
-	bm->epool = BLI_mempool_create(
-	        edge_size, allocsize->totedge,
-	        bm_mesh_chunksize_default.totedge, BLI_MEMPOOL_ALLOW_ITER);
-	bm->lpool = BLI_mempool_create(
-	        loop_size, allocsize->totloop,
-	        bm_mesh_chunksize_default.totloop, BLI_MEMPOOL_NOP);
-	bm->fpool = BLI_mempool_create(
-	        face_size, allocsize->totface,
-	        bm_mesh_chunksize_default.totface, BLI_MEMPOOL_ALLOW_ITER);
+	if (r_vpool) {
+		*r_vpool = BLI_mempool_create(
+		        vert_size, allocsize->totvert,
+		        bm_mesh_chunksize_default.totvert, BLI_MEMPOOL_ALLOW_ITER);
+	}
+	if (r_epool) {
+		*r_epool = BLI_mempool_create(
+		        edge_size, allocsize->totedge,
+		        bm_mesh_chunksize_default.totedge, BLI_MEMPOOL_ALLOW_ITER);
+	}
+	if (r_lpool) {
+		*r_lpool = BLI_mempool_create(
+		        loop_size, allocsize->totloop,
+		        bm_mesh_chunksize_default.totloop, BLI_MEMPOOL_NOP);
+	}
+	if (r_fpool) {
+		*r_fpool = BLI_mempool_create(
+		        face_size, allocsize->totface,
+		        bm_mesh_chunksize_default.totface, BLI_MEMPOOL_ALLOW_ITER);
+	}
+}
+
+static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize, const bool use_toolflags)
+{
+	bm_mempool_init_ex(
+	        allocsize, use_toolflags,
+	        &bm->vpool, &bm->epool, &bm->lpool, &bm->fpool);
 
 #ifdef USE_BMESH_HOLES
 	bm->looplistpool = BLI_mempool_create(sizeof(BMLoopList), 512, 512, BLI_MEMPOOL_NOP);
@@ -1732,4 +1749,263 @@ void BM_mesh_remap(
 		BLI_ghash_free(eptr_map, NULL, NULL);
 	if (fptr_map)
 		BLI_ghash_free(fptr_map, NULL, NULL);
+}
+
+/**
+ * Use new memory pools for this mesh.
+ *
+ * \note needed for re-sizing elements (adding/removing tool flags)
+ * but could also be used for packing fragmented bmeshes.
+ */
+void BM_mesh_rebuild(
+        BMesh *bm, const struct BMeshCreateParams *params,
+        BLI_mempool *vpool_dst, BLI_mempool *epool_dst, BLI_mempool *lpool_dst, BLI_mempool *fpool_dst)
+{
+	const char remap =
+	        (vpool_dst ? BM_VERT : 0) |
+	        (epool_dst ? BM_EDGE : 0) |
+	        (lpool_dst ? BM_LOOP : 0) |
+	        (fpool_dst ? BM_FACE : 0);
+
+	BMVert **vtable_dst = (remap & BM_VERT) ? MEM_mallocN(bm->totvert * sizeof(BMVert *), __func__) : NULL;
+	BMEdge **etable_dst = (remap & BM_EDGE) ? MEM_mallocN(bm->totedge * sizeof(BMEdge *), __func__) : NULL;
+	BMLoop **ltable_dst = (remap & BM_LOOP) ? MEM_mallocN(bm->totloop * sizeof(BMLoop *), __func__) : NULL;
+	BMFace **ftable_dst = (remap & BM_FACE) ? MEM_mallocN(bm->totface * sizeof(BMFace *), __func__) : NULL;
+
+	const bool use_toolflags = params->use_toolflags;
+
+	if (remap & BM_VERT) {
+		BMIter iter;
+		int index;
+		BMVert *v_src;
+		BM_ITER_MESH_INDEX (v_src, &iter, bm, BM_VERTS_OF_MESH, index) {
+			BMVert *v_dst = BLI_mempool_alloc(vpool_dst);
+			memcpy(v_dst, v_src, sizeof(BMVert));
+			if (use_toolflags) {
+				((BMVert_OFlag *)v_dst)->oflags = bm->vtoolflagpool ? BLI_mempool_calloc(bm->vtoolflagpool) : NULL;
+			}
+
+			vtable_dst[index] = v_dst;
+			BM_elem_index_set(v_src, index);  /* set_ok */
+		}
+	}
+
+	if (remap & BM_EDGE) {
+		BMIter iter;
+		int index;
+		BMEdge *e_src;
+		BM_ITER_MESH_INDEX (e_src, &iter, bm, BM_EDGES_OF_MESH, index) {
+			BMEdge *e_dst = BLI_mempool_alloc(epool_dst);
+			memcpy(e_dst, e_src, sizeof(BMEdge));
+			if (use_toolflags) {
+				((BMEdge_OFlag *)e_dst)->oflags = bm->etoolflagpool ? BLI_mempool_calloc(bm->etoolflagpool) : NULL;
+			}
+
+			etable_dst[index] = e_dst;
+			BM_elem_index_set(e_src, index);  /* set_ok */
+		}
+	}
+
+	if (remap & (BM_LOOP | BM_FACE)) {
+		BMIter iter;
+		int index, index_loop = 0;
+		BMFace *f_src;
+		BM_ITER_MESH_INDEX (f_src, &iter, bm, BM_FACES_OF_MESH, index) {
+
+			if (remap & BM_FACE) {
+				BMFace *f_dst = BLI_mempool_alloc(fpool_dst);
+				memcpy(f_dst, f_src, sizeof(BMFace));
+				if (use_toolflags) {
+					((BMFace_OFlag *)f_dst)->oflags = bm->ftoolflagpool ? BLI_mempool_calloc(bm->ftoolflagpool) : NULL;
+				}
+
+				ftable_dst[index] = f_dst;
+				BM_elem_index_set(f_src, index);  /* set_ok */
+			}
+
+			/* handle loops */
+			if (remap & BM_LOOP) {
+				BMLoop *l_iter_src, *l_first_src;
+				l_iter_src = l_first_src = BM_FACE_FIRST_LOOP((BMFace *)f_src);
+				do {
+					BMLoop *l_dst = BLI_mempool_alloc(lpool_dst);
+					memcpy(l_dst, l_iter_src, sizeof(BMLoop));
+					ltable_dst[index_loop] = l_dst;
+					BM_elem_index_set(l_iter_src, index_loop++); /* set_ok */
+				} while ((l_iter_src = l_iter_src->next) != l_first_src);
+			}
+		}
+	}
+
+#define MAP_VERT(ele) vtable_dst[BM_elem_index_get(ele)]
+#define MAP_EDGE(ele) etable_dst[BM_elem_index_get(ele)]
+#define MAP_LOOP(ele) ltable_dst[BM_elem_index_get(ele)]
+#define MAP_FACE(ele) ftable_dst[BM_elem_index_get(ele)]
+
+#define REMAP_VERT(ele) { if (remap & BM_VERT) { ele = MAP_VERT(ele); }} ((void)0)
+#define REMAP_EDGE(ele) { if (remap & BM_EDGE) { ele = MAP_EDGE(ele); }} ((void)0)
+#define REMAP_LOOP(ele) { if (remap & BM_LOOP) { ele = MAP_LOOP(ele); }} ((void)0)
+#define REMAP_FACE(ele) { if (remap & BM_FACE) { ele = MAP_FACE(ele); }} ((void)0)
+
+	/* verts */
+	{
+		for (int i = 0; i < bm->totvert; i++) {
+			BMVert *v = vtable_dst[i];
+			if (v->e) {
+				REMAP_EDGE(v->e);
+			}
+		}
+	}
+
+	/* edges */
+	{
+		for (int i = 0; i < bm->totedge; i++) {
+			BMEdge *e = etable_dst[i];
+			REMAP_VERT(e->v1);
+			REMAP_VERT(e->v2);
+			REMAP_EDGE(e->v1_disk_link.next);
+			REMAP_EDGE(e->v1_disk_link.prev);
+			REMAP_EDGE(e->v2_disk_link.next);
+			REMAP_EDGE(e->v2_disk_link.prev);
+			if (e->l) {
+				REMAP_LOOP(e->l);
+			}
+		}
+	}
+
+	/* faces */
+	{
+		for (int i = 0; i < bm->totface; i++) {
+			BMFace *f = ftable_dst[i];
+			REMAP_LOOP(f->l_first);
+
+			{
+				BMLoop *l_iter, *l_first;
+				l_iter = l_first = BM_FACE_FIRST_LOOP((BMFace *)f);
+				do {
+					REMAP_VERT(l_iter->v);
+					REMAP_EDGE(l_iter->e);
+					REMAP_FACE(l_iter->f);
+
+					REMAP_LOOP(l_iter->radial_next);
+					REMAP_LOOP(l_iter->radial_prev);
+					REMAP_LOOP(l_iter->next);
+					REMAP_LOOP(l_iter->prev);
+				} while ((l_iter = l_iter->next) != l_first);
+			}
+		}
+	}
+
+	for (BMEditSelection *ese = bm->selected.first; ese; ese = ese->next) {
+		switch (ese->htype) {
+			case BM_VERT:
+				if (remap & BM_VERT) {
+					ese->ele = (BMElem *)MAP_VERT(ese->ele);
+				}
+				break;
+			case BM_EDGE:
+				if (remap & BM_EDGE) {
+					ese->ele = (BMElem *)MAP_EDGE(ese->ele);
+				}
+				break;
+			case BM_FACE:
+				if (remap & BM_FACE) {
+					ese->ele = (BMElem *)MAP_FACE(ese->ele);
+				}
+				break;
+		}
+	}
+
+	if (bm->act_face) {
+		REMAP_FACE(bm->act_face);
+	}
+
+#undef MAP_VERT
+#undef MAP_EDGE
+#undef MAP_LOOP
+#undef MAP_EDGE
+
+#undef REMAP_VERT
+#undef REMAP_EDGE
+#undef REMAP_LOOP
+#undef REMAP_EDGE
+
+	/* Cleanup, re-use local tables if the current mesh had tables allocated.
+	 * could use irrespective but it may use more memory then the caller wants (and not be needed). */
+	if (remap & BM_VERT) {
+		if (bm->vtable) {
+			SWAP(BMVert **, vtable_dst, bm->vtable);
+			bm->vtable_tot = bm->totvert;
+			bm->elem_table_dirty &= ~BM_VERT;
+		}
+		MEM_freeN(vtable_dst);
+		BLI_mempool_destroy(bm->vpool);
+		bm->vpool = vpool_dst;
+	}
+
+	if (remap & BM_EDGE) {
+		if (bm->etable) {
+			SWAP(BMEdge **, etable_dst, bm->etable);
+			bm->etable_tot = bm->totedge;
+			bm->elem_table_dirty &= ~BM_EDGE;
+		}
+		MEM_freeN(etable_dst);
+		BLI_mempool_destroy(bm->epool);
+		bm->epool = epool_dst;
+	}
+
+	if (remap & BM_LOOP) {
+		/* no loop table */
+		MEM_freeN(ltable_dst);
+		BLI_mempool_destroy(bm->lpool);
+		bm->lpool = lpool_dst;
+	}
+
+	if (remap & BM_FACE) {
+		if (bm->ftable) {
+			SWAP(BMFace **, ftable_dst, bm->ftable);
+			bm->ftable_tot = bm->totface;
+			bm->elem_table_dirty &= ~BM_FACE;
+		}
+		MEM_freeN(ftable_dst);
+		BLI_mempool_destroy(bm->fpool);
+		bm->fpool = fpool_dst;
+	}
+}
+
+/**
+ * Re-allocatges mesh data with/without toolflags.
+ */
+void BM_mesh_toolflags_set(BMesh *bm, bool use_toolflags)
+{
+	if (bm->use_toolflags == use_toolflags) {
+		return;
+	}
+
+	const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_BM(bm);
+
+	BLI_mempool *vpool_dst = NULL;
+	BLI_mempool *epool_dst = NULL;
+	BLI_mempool *fpool_dst = NULL;
+
+	bm_mempool_init_ex(
+	        &allocsize, use_toolflags,
+	        &vpool_dst, &epool_dst, NULL, &fpool_dst);
+
+	if (use_toolflags == false) {
+		BLI_mempool_destroy(bm->vtoolflagpool);
+		BLI_mempool_destroy(bm->etoolflagpool);
+		BLI_mempool_destroy(bm->ftoolflagpool);
+
+		bm->vtoolflagpool = NULL;
+		bm->etoolflagpool = NULL;
+		bm->ftoolflagpool = NULL;
+	}
+
+	BM_mesh_rebuild(
+	        bm,
+	        &((struct BMeshCreateParams){.use_toolflags = use_toolflags,}),
+	        vpool_dst, epool_dst, NULL, fpool_dst);
+
+	bm->use_toolflags = use_toolflags;
 }

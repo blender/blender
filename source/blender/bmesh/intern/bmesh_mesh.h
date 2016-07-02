@@ -60,6 +60,8 @@ void BM_mesh_elem_index_validate(
         BMesh *bm, const char *location, const char *func,
         const char *msg_a, const char *msg_b);
 
+void BM_mesh_toolflags_set(BMesh *bm, bool use_toolflags);
+
 #ifndef NDEBUG
 bool BM_mesh_elem_table_check(BMesh *bm);
 #endif
@@ -89,6 +91,10 @@ void BM_mesh_remap(
         const unsigned int *vert_idx,
         const unsigned int *edge_idx,
         const unsigned int *face_idx);
+
+void BM_mesh_rebuild(
+        BMesh *bm, const struct BMeshCreateParams *params,
+        struct BLI_mempool *vpool, struct BLI_mempool *epool, struct BLI_mempool *lpool, struct BLI_mempool *fpool);
 
 typedef struct BMAllocTemplate {
 	int totvert, totedge, totloop, totface;
