@@ -46,8 +46,8 @@ struct MFace;
 typedef struct LinkNode BVHCache;
 
 /**
-* struct that kepts basic information about a BVHTree build from a editmesh
-*/
+ * struct that kepts basic information about a BVHTree build from a editmesh
+ */
 typedef struct BVHTreeFromEditMesh {
 	struct BVHTree *tree;
 

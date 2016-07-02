@@ -46,8 +46,8 @@ namespace Predicates1D {
 
 // DensityLowerThanUP1D
 /*! Returns true if the density evaluated for the
-*  Interface1D is less than a user-defined density value.
-*/
+ *  Interface1D is less than a user-defined density value.
+ */
 class DensityLowerThanUP1D : public UnaryPredicate1D
 {
 public:

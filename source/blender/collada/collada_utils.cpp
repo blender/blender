@@ -372,8 +372,8 @@ void bc_triangulate_mesh(Mesh *me)
 }
 
 /*
-* A bone is a leaf when it has no children or all children are not connected.
-*/
+ * A bone is a leaf when it has no children or all children are not connected.
+ */
 bool bc_is_leaf_bone(Bone *bone)
 {
 	for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
@@ -412,10 +412,10 @@ int bc_set_layer(int bitfield, int layer, bool enable)
 }
 
 /**
-* BoneExtended is a helper class needed for the Bone chain finder
-* See ArmatureImporter::fix_leaf_bones()
-* and ArmatureImporter::connect_bone_chains()
-**/
+ * BoneExtended is a helper class needed for the Bone chain finder
+ * See ArmatureImporter::fix_leaf_bones()
+ * and ArmatureImporter::connect_bone_chains()
+ */
 
 BoneExtended::BoneExtended(EditBone *aBone)
 {

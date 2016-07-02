@@ -2020,7 +2020,7 @@ MINLINE float dist_squared_ray_to_aabb_scaled_v3__impl(
 	/* `v1` and `v3` is be the coordinates of the nearest `AABB` edge to the ray*/
 	float v1[3], v2[3];
 	/* `rtmin` is the highest value of the smaller distances. == max_axis_v3(tmin)
-	* `rtmax` is the lowest value of longer distances. == min_axis_v3(tmax)*/
+	 * `rtmax` is the lowest value of longer distances. == min_axis_v3(tmax)*/
 	float rtmin, rtmax, mul;
 	/* `main_axis` is the axis equivalent to edge close to the ray */
 	int main_axis;

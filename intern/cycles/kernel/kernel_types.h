@@ -769,7 +769,7 @@ typedef ccl_addr_space struct ShaderData {
 	int type;
 
 	/* parametric coordinates
-	* - barycentric weights for triangles */
+	 * - barycentric weights for triangles */
 	float u;
 	float v;
 	/* object id if there is one, ~0 otherwise */
@@ -792,14 +792,14 @@ typedef ccl_addr_space struct ShaderData {
 #endif
 #ifdef __DPDU__
 	/* differential of P w.r.t. parametric coordinates. note that dPdu is
-	* not readily suitable as a tangent for shading on triangles. */
+	 * not readily suitable as a tangent for shading on triangles. */
 	float3 dPdu;
 	float3 dPdv;
 #endif
 
 #ifdef __OBJECT_MOTION__
 	/* object <-> world space transformations, cached to avoid
-	* re-interpolating them constantly for shading */
+	 * re-interpolating them constantly for shading */
 	Transform ob_tfm;
 	Transform ob_itfm;
 #endif
@@ -1171,11 +1171,11 @@ typedef ccl_addr_space struct DebugData {
 #define QUEUE_EMPTY_SLOT -1
 
 /*
-* Queue 1 - Active rays
-* Queue 2 - Background queue
-* Queue 3 - Shadow ray cast kernel - AO
-* Queeu 4 - Shadow ray cast kernel - direct lighting
-*/
+ * Queue 1 - Active rays
+ * Queue 2 - Background queue
+ * Queue 3 - Shadow ray cast kernel - AO
+ * Queeu 4 - Shadow ray cast kernel - direct lighting
+ */
 #define NUM_QUEUES 4
 
 /* Queue names */

@@ -372,21 +372,21 @@ void gts_vertex_principal_directions(WVertex *v, Vec3r Kh, real Kg, Vec3r &e1, V
 		f2 = e->GetbFace();
 
 		/* We are solving for the values of the curvature tensor
-		*     B = [ a b ; b c ].
-		*  The computations here are from section 5 of [Meyer et al 2002].
-		*
-		*  The first step is to calculate the linear equations governing the values of (a,b,c). These can be computed
-		*  by setting the derivatives of the error E to zero (section 5.3).
-		*
-		*  Since a + c = norm(Kh), we only compute the linear equations for dE/da and dE/db. (NB: [Meyer et al 2002]
-		*  has the equation a + b = norm(Kh), but I'm almost positive this is incorrect).
-		*
-		*  Note that the w_ij (defined in section 5.2) are all scaled by (1/8*A_mixed). We drop this uniform scale
-		*  factor because the solution of the linear equations doesn't rely on it.
-		*
-		*  The terms of the linear equations are xterm_dy with x in {a,b,c} and y in {a,b}. There are also const_dy
-		*  terms that are the constant factors in the equations.
-		*/
+		 *     B = [ a b ; b c ].
+		 *  The computations here are from section 5 of [Meyer et al 2002].
+		 *
+		 *  The first step is to calculate the linear equations governing the values of (a,b,c). These can be computed
+		 *  by setting the derivatives of the error E to zero (section 5.3).
+		 *
+		 *  Since a + c = norm(Kh), we only compute the linear equations for dE/da and dE/db. (NB: [Meyer et al 2002]
+		 *  has the equation a + b = norm(Kh), but I'm almost positive this is incorrect).
+		 *
+		 *  Note that the w_ij (defined in section 5.2) are all scaled by (1/8*A_mixed). We drop this uniform scale
+		 *  factor because the solution of the linear equations doesn't rely on it.
+		 *
+		 *  The terms of the linear equations are xterm_dy with x in {a,b,c} and y in {a,b}. There are also const_dy
+		 *  terms that are the constant factors in the equations.
+		 */
 
 		/* find the vector from v along edge e */
 		vec_edge = Vec3r(-1 * e->GetVec());
@@ -400,7 +400,7 @@ void gts_vertex_principal_directions(WVertex *v, Vec3r Kh, real Kg, Vec3r &e1, V
 		/* section 5.2 */
 
 		/* I don't like performing a minimization where some of the weights can be negative (as can be the case
-		*  if f1 or f2 are obtuse). To ensure all-positive weights, we check for obtuseness. */
+		 *  if f1 or f2 are obtuse). To ensure all-positive weights, we check for obtuseness. */
 		weight = 0.0;
 		if (!triangle_obtuse(v, f1)) {
 			weight += ve2 * cotan(f1->GetNextOEdge(e->twin())->GetbVertex(), e->GetaVertex(), e->GetbVertex()) / 8.0;

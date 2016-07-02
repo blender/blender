@@ -611,10 +611,10 @@ static float sky_perez_function(float lam[6], float theta, float gamma)
 static void sky_texture_precompute_old(SunSky *sunsky, float3 dir, float turbidity)
 {
 	/*
-	* We re-use the SunSky struct of the new model, to avoid extra variables
-	* zenith_Y/x/y is now radiance_x/y/z
-	* perez_Y/x/y is now config_x/y/z
-	*/
+	 * We re-use the SunSky struct of the new model, to avoid extra variables
+	 * zenith_Y/x/y is now radiance_x/y/z
+	 * perez_Y/x/y is now config_x/y/z
+	 */
 	
 	float2 spherical = sky_spherical_coordinates(dir);
 	float theta = spherical.x;

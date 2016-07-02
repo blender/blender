@@ -1390,9 +1390,10 @@ static bool snapEditMesh(
 							copy_v3_v3(ray_org_local, ray_origin);
 							mul_m4_v3(imat, ray_org_local);
 
-							/* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with very far
-							* away ray_start values (as returned in case of ortho view3d), see T38358.
-							*/
+							/* We pass a temp ray_start, set from object's boundbox,
+							 * to avoid precision issues with very far away ray_start values
+							 * (as returned in case of ortho view3d), see T38358.
+							 */
 							len_diff -= local_scale;  /* make temp start point a bit away from bbox hit point. */
 							madd_v3_v3v3fl(ray_start_local, ray_org_local, ray_normal_local,
 							               len_diff + ray_depth_range[0]);

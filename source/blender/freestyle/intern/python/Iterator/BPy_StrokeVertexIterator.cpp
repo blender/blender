@@ -121,7 +121,7 @@ static PyObject *StrokeVertexIterator_iternext(BPy_StrokeVertexIterator *self)
 			return NULL;
 		}
 		/* If at the start of the iterator, only return the object
-		* and don't increment, to keep for-loops in sync */
+		 * and don't increment, to keep for-loops in sync */
 		else if (self->at_start) {
 			self->at_start = false;
 		}

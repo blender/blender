@@ -2243,7 +2243,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 		.. keeping G.debug_value==17 0x11 option for old files 'needing' the bug*/
 
 		/* rule we never alter free variables :bp->vec bp->pos in here !
-		* this will ruin adaptive stepsize AKA heun! (BM)
+		 * this will ruin adaptive stepsize AKA heun! (BM)
 		*/
 		SoftBody *sb= ob->soft;	/* is supposed to be there */
 		BodyPoint  *bp;

@@ -1401,8 +1401,8 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 				float blend = z_abs * (1.0f - pow2f(la->spotblend));
 
 				/* hide line if it is zero size or overlaps with outer border,
-				* previously it adjusted to always to show it but that seems
-				* confusing because it doesn't show the actual blend size */
+				 * previously it adjusted to always to show it but that seems
+				 * confusing because it doesn't show the actual blend size */
 				if (blend != 0.0f && blend != z_abs) {
 					circ(0.0f, 0.0f, blend);
 				}
