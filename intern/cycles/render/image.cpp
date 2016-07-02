@@ -1078,7 +1078,8 @@ void ImageManager::device_update_slot(Device *device,
 
 uint8_t ImageManager::pack_image_options(ImageDataType type, size_t slot)
 {
-	uint8_t options;
+	uint8_t options = 0;
+
 	/* Image Options are packed into one uint:
 	 * bit 0 -> Interpolation
 	 * bit 1 + 2  + 3-> Extension */
