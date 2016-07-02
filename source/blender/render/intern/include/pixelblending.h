@@ -38,7 +38,7 @@
  */
 void add_filt_fmask(unsigned int mask, const float col[4], float *rowbuf, int row_w);
 void add_filt_fmask_pixsize(unsigned int mask, float *in, float *rowbuf, int row_w, int pixsize);
-void add_filt_fmask_coord(float filt[3][3], const float col[4], float *rowbuf, int row_w, int col_h, int x, int y);
+void add_filt_fmask_coord(float filt[3][3], const float col[4], float *rowbuf, int row_stride, int x, int y, rcti *mask);
 void mask_array(unsigned int mask, float filt[3][3]);
 
 /**

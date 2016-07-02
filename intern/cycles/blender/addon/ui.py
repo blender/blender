@@ -383,7 +383,6 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "use_progressive_refine")
 
         subsub = sub.column(align=True)
-        subsub.enabled = not rd.use_border
         subsub.prop(rd, "use_save_buffers")
 
         col = split.column(align=True)
