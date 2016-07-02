@@ -857,7 +857,7 @@ void object_toggle_selectability_cb(
 }
 
 void group_toggle_selectability_cb(
-        bContext *UNUSED(C), ReportList *reports, Scene *scene, TreeElement *UNUSED(te),
+        bContext *UNUSED(C), ReportList *UNUSED(reports), Scene *scene, TreeElement *UNUSED(te),
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	Group *group = (Group *)tselem->id;
