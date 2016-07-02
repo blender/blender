@@ -557,13 +557,13 @@ void draw_keyframe_shape(float x, float y, float xscale, float hsize, short sel,
 	glTranslatef(-x, -y, 0.0f);
 }
 
-static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, float ypos, short channelLocked)
+static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, float ypos, float yscale_fac, bool channelLocked)
 {
 	ActKeyColumn *ak;
 	ActKeyBlock *ab;
 	float alpha;
 	float xscale;
-	float iconsize = U.widget_unit / 4.0f;
+	float iconsize = (U.widget_unit / 4.0f) * yscale_fac;
 	glEnable(GL_BLEND);
 	
 	/* get View2D scaling factor */
@@ -619,7 +619,7 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 
 /* *************************** Channel Drawing Funcs *************************** */
 
-void draw_summary_channel(View2D *v2d, bAnimContext *ac, float ypos)
+void draw_summary_channel(View2D *v2d, bAnimContext *ac, float ypos, float yscale_fac)
 {
 	DLRBT_Tree keys, blocks;
 	
@@ -631,13 +631,13 @@ void draw_summary_channel(View2D *v2d, bAnimContext *ac, float ypos)
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	BLI_dlrbTree_linkedlist_sync(&blocks);
 	
-	draw_keylist(v2d, &keys, &blocks, ypos, 0);
+	draw_keylist(v2d, &keys, &blocks, ypos, yscale_fac, false);
 	
 	BLI_dlrbTree_free(&keys);
 	BLI_dlrbTree_free(&blocks);
 }
 
-void draw_scene_channel(View2D *v2d, bDopeSheet *ads, Scene *sce, float ypos)
+void draw_scene_channel(View2D *v2d, bDopeSheet *ads, Scene *sce, float ypos, float yscale_fac)
 {
 	DLRBT_Tree keys, blocks;
 	
@@ -649,13 +649,13 @@ void draw_scene_channel(View2D *v2d, bDopeSheet *ads, Scene *sce, float ypos)
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	BLI_dlrbTree_linkedlist_sync(&blocks);
 	
-	draw_keylist(v2d, &keys, &blocks, ypos, 0);
+	draw_keylist(v2d, &keys, &blocks, ypos, yscale_fac, false);
 	
 	BLI_dlrbTree_free(&keys);
 	BLI_dlrbTree_free(&blocks);
 }
 
-void draw_object_channel(View2D *v2d, bDopeSheet *ads, Object *ob, float ypos)
+void draw_object_channel(View2D *v2d, bDopeSheet *ads, Object *ob, float ypos, float yscale_fac)
 {
 	DLRBT_Tree keys, blocks;
 	
@@ -667,19 +667,19 @@ void draw_object_channel(View2D *v2d, bDopeSheet *ads, Object *ob, float ypos)
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	BLI_dlrbTree_linkedlist_sync(&blocks);
 	
-	draw_keylist(v2d, &keys, &blocks, ypos, 0);
+	draw_keylist(v2d, &keys, &blocks, ypos, yscale_fac, false);
 	
 	BLI_dlrbTree_free(&keys);
 	BLI_dlrbTree_free(&blocks);
 }
 
-void draw_fcurve_channel(View2D *v2d, AnimData *adt, FCurve *fcu, float ypos)
+void draw_fcurve_channel(View2D *v2d, AnimData *adt, FCurve *fcu, float ypos, float yscale_fac)
 {
 	DLRBT_Tree keys, blocks;
 	
-	short locked = (fcu->flag & FCURVE_PROTECTED) ||
-	               ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ||
-	               ((adt && adt->action) && ID_IS_LINKED_DATABLOCK(adt->action));
+	bool locked = (fcu->flag & FCURVE_PROTECTED) ||
+	              ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ||
+	              ((adt && adt->action) && ID_IS_LINKED_DATABLOCK(adt->action));
 	
 	BLI_dlrbTree_init(&keys);
 	BLI_dlrbTree_init(&blocks);
@@ -689,18 +689,18 @@ void draw_fcurve_channel(View2D *v2d, AnimData *adt, FCurve *fcu, float ypos)
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	BLI_dlrbTree_linkedlist_sync(&blocks);
 	
-	draw_keylist(v2d, &keys, &blocks, ypos, locked);
+	draw_keylist(v2d, &keys, &blocks, ypos, yscale_fac, locked);
 	
 	BLI_dlrbTree_free(&keys);
 	BLI_dlrbTree_free(&blocks);
 }
 
-void draw_agroup_channel(View2D *v2d, AnimData *adt, bActionGroup *agrp, float ypos)
+void draw_agroup_channel(View2D *v2d, AnimData *adt, bActionGroup *agrp, float ypos, float yscale_fac)
 {
 	DLRBT_Tree keys, blocks;
 	
-	short locked = (agrp->flag & AGRP_PROTECTED) ||
-	               ((adt && adt->action) && ID_IS_LINKED_DATABLOCK(adt->action));
+	bool locked = (agrp->flag & AGRP_PROTECTED) ||
+	              ((adt && adt->action) && ID_IS_LINKED_DATABLOCK(adt->action));
 	
 	BLI_dlrbTree_init(&keys);
 	BLI_dlrbTree_init(&blocks);
@@ -710,17 +710,17 @@ void draw_agroup_channel(View2D *v2d, AnimData *adt, bActionGroup *agrp, float y
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	BLI_dlrbTree_linkedlist_sync(&blocks);
 	
-	draw_keylist(v2d, &keys, &blocks, ypos, locked);
+	draw_keylist(v2d, &keys, &blocks, ypos, yscale_fac, locked);
 	
 	BLI_dlrbTree_free(&keys);
 	BLI_dlrbTree_free(&blocks);
 }
 
-void draw_action_channel(View2D *v2d, AnimData *adt, bAction *act, float ypos)
+void draw_action_channel(View2D *v2d, AnimData *adt, bAction *act, float ypos, float yscale_fac)
 {
 	DLRBT_Tree keys, blocks;
 	
-	short locked = (act && ID_IS_LINKED_DATABLOCK(act));
+	bool locked = (act && ID_IS_LINKED_DATABLOCK(act));
 	
 	BLI_dlrbTree_init(&keys);
 	BLI_dlrbTree_init(&blocks);
@@ -730,13 +730,13 @@ void draw_action_channel(View2D *v2d, AnimData *adt, bAction *act, float ypos)
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	BLI_dlrbTree_linkedlist_sync(&blocks);
 	
-	draw_keylist(v2d, &keys, &blocks, ypos, locked);
+	draw_keylist(v2d, &keys, &blocks, ypos, yscale_fac, locked);
 	
 	BLI_dlrbTree_free(&keys);
 	BLI_dlrbTree_free(&blocks);
 }
 
-void draw_gpencil_channel(View2D *v2d, bDopeSheet *ads, bGPdata *gpd, float ypos)
+void draw_gpencil_channel(View2D *v2d, bDopeSheet *ads, bGPdata *gpd, float ypos, float yscale_fac)
 {
 	DLRBT_Tree keys;
 	
@@ -746,14 +746,16 @@ void draw_gpencil_channel(View2D *v2d, bDopeSheet *ads, bGPdata *gpd, float ypos
 	
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	
-	draw_keylist(v2d, &keys, NULL, ypos, 0);
+	draw_keylist(v2d, &keys, NULL, ypos, yscale_fac, false);
 	
 	BLI_dlrbTree_free(&keys);
 }
 
-void draw_gpl_channel(View2D *v2d, bDopeSheet *ads, bGPDlayer *gpl, float ypos)
+void draw_gpl_channel(View2D *v2d, bDopeSheet *ads, bGPDlayer *gpl, float ypos, float yscale_fac)
 {
 	DLRBT_Tree keys;
+	
+	bool locked = (gpl->flag & GP_LAYER_LOCKED) != 0;
 	
 	BLI_dlrbTree_init(&keys);
 	
@@ -761,23 +763,25 @@ void draw_gpl_channel(View2D *v2d, bDopeSheet *ads, bGPDlayer *gpl, float ypos)
 	
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	
-	draw_keylist(v2d, &keys, NULL, ypos, (gpl->flag & GP_LAYER_LOCKED));
+	draw_keylist(v2d, &keys, NULL, ypos, yscale_fac, locked);
 	
 	BLI_dlrbTree_free(&keys);
 }
 
-void draw_masklay_channel(View2D *v2d, bDopeSheet *ads, MaskLayer *masklay, float ypos)
+void draw_masklay_channel(View2D *v2d, bDopeSheet *ads, MaskLayer *masklay, float ypos, float yscale_fac)
 {
 	DLRBT_Tree keys;
-
+	
+	bool locked = (masklay->flag & MASK_LAYERFLAG_LOCKED) != 0;
+	
 	BLI_dlrbTree_init(&keys);
-
+	
 	mask_to_keylist(ads, masklay, &keys);
-
+	
 	BLI_dlrbTree_linkedlist_sync(&keys);
-
-	draw_keylist(v2d, &keys, NULL, ypos, (masklay->flag & MASK_LAYERFLAG_LOCKED));
-
+	
+	draw_keylist(v2d, &keys, NULL, ypos, yscale_fac, locked);
+	
 	BLI_dlrbTree_free(&keys);
 }
 

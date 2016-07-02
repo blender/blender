@@ -284,7 +284,10 @@ typedef struct ThemeSpace {
 	char nodeclass_pattern[4], nodeclass_layout[4];
 	
 	char movie[4], movieclip[4], mask[4], image[4], scene[4], audio[4];		/* for sequence editor */
-	char effect[4], transition[4], meta[4], text_strip[4], pad[4];
+	char effect[4], transition[4], meta[4], text_strip[4];
+	
+	float keyframe_scale_fac; /* for dopesheet - scale factor for size of keyframes (i.e. height of channels) */
+	
 	char editmesh_active[4]; 
 
 	char handle_vertex[4];

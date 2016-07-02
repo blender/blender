@@ -71,6 +71,7 @@
 #include "DNA_world_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
+#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -97,8 +98,29 @@
 #include "ED_anim_api.h"
 #include "ED_markers.h"
 
+#include "UI_resources.h"  /* for TH_KEYFRAME_SCALE lookup */
+
 /* ************************************************************ */
 /* Blender Context <-> Animation Context mapping */
+
+/* ----------- Private Stuff - General -------------------- */
+
+/* Get vertical scaling factor (i.e. typically used for keyframe size) */
+static void animedit_get_yscale_factor(bAnimContext *ac)
+{
+	bTheme *btheme = UI_GetTheme();
+	
+	/* grab scale factor directly from action editor setting
+	 * NOTE: This theme setting doesn't have an ID, as it cannot be accessed normally
+	 *       since it is a float, and the theem settings methods can only handle chars.
+	 */
+	ac->yscale_fac = btheme->tact.keyframe_scale_fac;
+	
+	/* clamp to avoid problems with uninitialised values... */
+	if (ac->yscale_fac < 0.1f)
+		ac->yscale_fac = 1.0f;
+	//printf("yscale_fac = %f\n", ac->yscale_fac);
+}
 
 /* ----------- Private Stuff - Action Editor ------------- */
 
@@ -351,6 +373,9 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 	ac->sl = sl;
 	ac->spacetype = (sa) ? sa->spacetype : 0;
 	ac->regiontype = (ar) ? ar->regiontype : 0;
+	
+	/* initialise default y-scale factor */
+	animedit_get_yscale_factor(ac);
 	
 	/* get data context info */
 	// XXX: if the below fails, try to grab this info from context instead... (to allow for scripting)

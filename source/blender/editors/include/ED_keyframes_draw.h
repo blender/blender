@@ -108,23 +108,23 @@ void draw_keyframe_shape(float x, float y, float xscale, float hsize, short sel,
 
 /* Channel Drawing ------------------ */
 /* F-Curve */
-void draw_fcurve_channel(struct View2D *v2d, struct AnimData *adt, struct FCurve *fcu, float ypos);
+void draw_fcurve_channel(struct View2D *v2d, struct AnimData *adt, struct FCurve *fcu, float ypos, float yscale_fac);
 /* Action Group Summary */
-void draw_agroup_channel(struct View2D *v2d, struct AnimData *adt, struct bActionGroup *agrp, float ypos);
+void draw_agroup_channel(struct View2D *v2d, struct AnimData *adt, struct bActionGroup *agrp, float ypos, float yscale_fac);
 /* Action Summary */
-void draw_action_channel(struct View2D *v2d, struct AnimData *adt, struct bAction *act, float ypos);
+void draw_action_channel(struct View2D *v2d, struct AnimData *adt, struct bAction *act, float ypos, float yscale_fac);
 /* Object Summary */
-void draw_object_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Object *ob, float ypos);
+void draw_object_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Object *ob, float ypos, float yscale_fac);
 /* Scene Summary */
-void draw_scene_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Scene *sce, float ypos);
+void draw_scene_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Scene *sce, float ypos, float yscale_fac);
 /* DopeSheet Summary */
-void draw_summary_channel(struct View2D *v2d, struct bAnimContext *ac, float ypos);
+void draw_summary_channel(struct View2D *v2d, struct bAnimContext *ac, float ypos, float yscale_fac);
 /* Grease Pencil datablock summary */
-void draw_gpencil_channel(struct View2D *v2d, struct bDopeSheet *ads, struct bGPdata *gpd, float ypos);
+void draw_gpencil_channel(struct View2D *v2d, struct bDopeSheet *ads, struct bGPdata *gpd, float ypos, float yscale_fac);
 /* Grease Pencil Layer */
-void draw_gpl_channel(struct View2D *v2d, struct bDopeSheet *ads, struct bGPDlayer *gpl, float ypos);
+void draw_gpl_channel(struct View2D *v2d, struct bDopeSheet *ads, struct bGPDlayer *gpl, float ypos, float yscale_fac);
 /* Mask Layer */
-void draw_masklay_channel(struct View2D *v2d, struct bDopeSheet *ads, struct MaskLayer *masklay, float ypos);
+void draw_masklay_channel(struct View2D *v2d, struct bDopeSheet *ads, struct MaskLayer *masklay, float ypos, float yscale_fac);
 
 /* Keydata Generation --------------- */
 /* F-Curve */

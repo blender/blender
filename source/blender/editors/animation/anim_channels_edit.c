@@ -2356,7 +2356,7 @@ static void borderselect_anim_channels(bAnimContext *ac, rcti *rect, short selec
 	}
 	else {
 		ymin = 0.0f;
-		ymax = (float)(-ACHANNEL_HEIGHT);
+		ymax = (float)(-ACHANNEL_HEIGHT(ac));
 	}
 	
 	/* convert border-region to view coordinates */
@@ -2372,7 +2372,7 @@ static void borderselect_anim_channels(bAnimContext *ac, rcti *rect, short selec
 		if (ac->datatype == ANIMCONT_NLA)
 			ymin = ymax - NLACHANNEL_STEP(snla);
 		else
-			ymin = ymax - ACHANNEL_STEP;
+			ymin = ymax - ACHANNEL_STEP(ac);
 		
 		/* if channel is within border-select region, alter it */
 		if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
@@ -2573,7 +2573,7 @@ static int animchannels_channel_get(bAnimContext *ac, const int mval[2])
 		UI_view2d_listview_view_to_cell(v2d, NLACHANNEL_NAMEWIDTH, NLACHANNEL_STEP(snla), 0, (float)NLACHANNEL_HEIGHT_HALF(snla), x, y, NULL, &channel_index);
 	}
 	else {
-		UI_view2d_listview_view_to_cell(v2d, ACHANNEL_NAMEWIDTH, ACHANNEL_STEP, 0, (float)ACHANNEL_HEIGHT_HALF, x, y, NULL, &channel_index);
+		UI_view2d_listview_view_to_cell(v2d, ACHANNEL_NAMEWIDTH, ACHANNEL_STEP(ac), 0, (float)ACHANNEL_HEIGHT_HALF(ac), x, y, NULL, &channel_index);
 	}
 
 	return channel_index;
@@ -2988,7 +2988,7 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmE
 	 *		ACHANNEL_HEIGHT_HALF.
 	 */
 	UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, &y);
-	UI_view2d_listview_view_to_cell(v2d, ACHANNEL_NAMEWIDTH, ACHANNEL_STEP, 0, (float)ACHANNEL_HEIGHT_HALF, x, y, NULL, &channel_index);
+	UI_view2d_listview_view_to_cell(v2d, ACHANNEL_NAMEWIDTH, ACHANNEL_STEP(&ac), 0, (float)ACHANNEL_HEIGHT_HALF(&ac), x, y, NULL, &channel_index);
 	
 	/* handle mouse-click in the relevant channel then */
 	notifierFlags = mouse_anim_channels(C, &ac, channel_index, selectmode);
