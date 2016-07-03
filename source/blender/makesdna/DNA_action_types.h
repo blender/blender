@@ -627,8 +627,9 @@ typedef enum eDopeSheet_FilterFlag {
 typedef enum eDopeSheet_Flag {
 	ADS_FLAG_SUMMARY_COLLAPSED  = (1 << 0),   /* when summary is shown, it is collapsed, so all other channels get hidden */
 	ADS_FLAG_SHOW_DBFILTERS     = (1 << 1),   /* show filters for datablocks */
-
+	
 	ADS_FLAG_FUZZY_NAMES        = (1 << 2),   /* use fuzzy/partial string matches when ADS_FILTER_BY_FCU_NAME is enabled (WARNING: expensive operation) */
+	ADS_FLAG_NO_DB_SORT         = (1 << 3),   /* do not sort datablocks (mostly objects) by name (NOTE: potentially expensive operation) */
 	
 	/* NOTE: datablock filter flags continued (1 << 10) onwards... */
 } eDopeSheet_Flag;

@@ -2730,6 +2730,8 @@ static size_t animdata_filter_dopesheet_scene(bAnimContext *ac, ListBase *anim_d
 	return items;
 }
 
+
+/* Helper for animdata_filter_dopesheet() - For checking if an object should be included or not */
 static bool animdata_filter_base_is_ok(bDopeSheet *ads, Scene *scene, Base *base, int filter_mode)
 {
 	Object *ob = base->object;
@@ -2783,11 +2785,42 @@ static bool animdata_filter_base_is_ok(bDopeSheet *ads, Scene *scene, Base *base
 	return true;
 }
 
+/* Helper for animdata_filter_ds_sorted_bases() - Comparison callback for two Base pointers... */
+static int ds_base_sorting_cmp(const void *base1_ptr, const void *base2_ptr)
+{
+	const Base *b1 = *((Base **)base1_ptr);
+	const Base *b2 = *((Base **)base2_ptr);
+	
+	return strcmp(b1->object->id.name, b2->object->id.name);
+}
+
+/* Get a sorted list of all the bases - for inclusion in dopesheet (when drawing channels) */
+static Base **animdata_filter_ds_sorted_bases(bDopeSheet *ads, Scene *scene, int filter_mode, size_t *r_usable_bases)
+{
+	/* Create an array with space for all the bases, but only containing the usable ones */
+	size_t tot_bases = BLI_listbase_count(&scene->base);
+	size_t num_bases = 0;
+	
+	Base **sorted_bases = MEM_callocN(sizeof(Base *) * tot_bases, "Dopesheet Usable Sorted Bases");
+	for (Base *base = scene->base.first; base; base = base->next) {
+		if (animdata_filter_base_is_ok(ads, scene, base, filter_mode)) {
+			sorted_bases[num_bases++] = base;
+		}
+	}
+	
+	/* Sort this list of pointers (based on the names) */
+	qsort(sorted_bases, num_bases, sizeof(Base *), ds_base_sorting_cmp);
+	
+	/* Return list of sorted bases */
+	*r_usable_bases = num_bases;
+	return sorted_bases;
+}
+
+
 // TODO: implement pinning... (if and when pinning is done, what we need to do is to provide freeing mechanisms - to protect against data that was deleted)
 static size_t animdata_filter_dopesheet(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, int filter_mode)
 {
 	Scene *scene = (Scene *)ads->source;
-	Base *base;
 	size_t items = 0;
 	
 	/* check that we do indeed have a scene */
@@ -2809,11 +2842,43 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac, ListBase *anim_data, b
 	/* scene-linked animation - e.g. world, compositing nodes, scene anim (including sequencer currently) */
 	items += animdata_filter_dopesheet_scene(ac, anim_data, ads, scene, filter_mode);
 	
-	/* loop over all bases (i.e. objects) in the scene */
-	for (base = scene->base.first; base; base = base->next) {
-		if (animdata_filter_base_is_ok(ads, scene, base, filter_mode)) {
-			/* since we're still here, this object should be usable */
-			items += animdata_filter_dopesheet_ob(ac, anim_data, ads, base, filter_mode);
+	/* If filtering for channel drawing, we want the objects in alphabetical order,
+	 * to make it easier to predict where items are in the hierarchy
+	 *  - This order only really matters if we need to show all channels in the list (e.g. for drawing)
+	 *    (XXX: What about lingering "active" flags? The order may now become unpredictable)
+	 *  - Don't do this if this behaviour has been turned off (i.e. due to it being too slow)
+	 *  - Don't do this if there's just a single object
+	 */
+	if ((filter_mode & ANIMFILTER_LIST_CHANNELS) && !(ads->flag & ADS_FLAG_NO_DB_SORT) &&
+	    (scene->base.first != scene->base.last))
+	{
+		/* Filter list of bases (i.e. objects), sort them, then add their contents normally... */
+		// TODO: Cache the old sorted order - if the set of bases hasn't changed, don't re-sort...
+		Base **sorted_bases;
+		size_t num_bases;
+		
+		sorted_bases = animdata_filter_ds_sorted_bases(ads, scene, filter_mode, &num_bases);
+		if (sorted_bases) {
+			/* Add the necessary channels for these bases... */
+			for (size_t i = 0; i < num_bases; i++) {
+				items += animdata_filter_dopesheet_ob(ac, anim_data, ads, sorted_bases[i], filter_mode);
+			}
+			
+			// TODO: store something to validate whether any changes are needed?
+			
+			/* free temporary data */
+			MEM_freeN(sorted_bases);
+		}
+	}
+	else {
+		/* Filter and add contents of each base (i.e. object) without them sorting first
+		 * NOTE: This saves performance in cases where order doesn't matter
+		 */
+		for (Base *base = scene->base.first; base; base = base->next) {
+			if (animdata_filter_base_is_ok(ads, scene, base, filter_mode)) {
+				/* since we're still here, this object should be usable */
+				items += animdata_filter_dopesheet_ob(ac, anim_data, ads, base, filter_mode);
+			}
 		}
 	}
 	
