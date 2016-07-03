@@ -1596,7 +1596,7 @@ void RGBToBWNode::compile(SVMCompiler& compiler)
 
 void RGBToBWNode::compile(OSLCompiler& compiler)
 {
-	compiler.add(this, "node_convert_from_color");
+	compiler.add(this, "node_rgb_to_bw");
 }
 
 /* Convert */
