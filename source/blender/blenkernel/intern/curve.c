@@ -1384,6 +1384,71 @@ void BKE_nurb_makeCurve(Nurb *nu, float *coord_array, float *tilt_array, float *
 	MEM_freeN(basisu);
 }
 
+/**
+ * Calculate the length for arrays filled in by #BKE_curve_calc_coords_axis.
+ */
+unsigned int BKE_curve_calc_coords_axis_len(
+        const unsigned int bezt_array_len, const unsigned int resolu,
+        const bool is_cyclic, const bool use_cyclic_duplicate_endpoint)
+{
+	const unsigned int segments = bezt_array_len - (is_cyclic ?  0 : 1);
+	const unsigned int points_len = (segments * resolu) + (is_cyclic ? (use_cyclic_duplicate_endpoint) : 1);
+	return points_len;
+}
+
+/**
+ * Calcualte an array for the entire curve (cyclic or non-cyclic).
+ * \note Call for each axis.
+ *
+ * \param use_cyclic_duplicate_endpoint: Duplicate values at the beginning & end of the array.
+ */
+void BKE_curve_calc_coords_axis(
+        const BezTriple *bezt_array, const unsigned int bezt_array_len, const unsigned int resolu,
+        const bool is_cyclic, const bool use_cyclic_duplicate_endpoint,
+        /* array params */
+        const unsigned int axis, const unsigned int stride,
+        float *r_points)
+{
+	const unsigned int points_len = BKE_curve_calc_coords_axis_len(
+	        bezt_array_len, resolu, is_cyclic, use_cyclic_duplicate_endpoint);
+	float *r_points_offset = r_points;
+
+	const unsigned int resolu_stride = resolu * stride;
+	const unsigned int bezt_array_last = bezt_array_len - 1;
+
+	for (unsigned int i = 0; i < bezt_array_last; i++) {
+		const BezTriple *bezt_curr = &bezt_array[i];
+		const BezTriple *bezt_next = &bezt_array[i + 1];
+		BKE_curve_forward_diff_bezier(
+		        bezt_curr->vec[1][axis], bezt_curr->vec[2][axis],
+		        bezt_next->vec[0][axis], bezt_next->vec[1][axis],
+		        r_points_offset, (int)resolu, stride);
+		r_points_offset = POINTER_OFFSET(r_points_offset, resolu_stride);
+	}
+
+	if (is_cyclic) {
+		const BezTriple *bezt_curr = &bezt_array[bezt_array_last];
+		const BezTriple *bezt_next = &bezt_array[0];
+		BKE_curve_forward_diff_bezier(
+		        bezt_curr->vec[1][axis], bezt_curr->vec[2][axis],
+		        bezt_next->vec[0][axis], bezt_next->vec[1][axis],
+		        r_points_offset, (int)resolu, stride);
+		r_points_offset = POINTER_OFFSET(r_points_offset, resolu_stride);
+		if (use_cyclic_duplicate_endpoint) {
+			*r_points_offset = *r_points;
+			r_points_offset = POINTER_OFFSET(r_points_offset, stride);
+		}
+	}
+	else {
+		float *r_points_last = POINTER_OFFSET(r_points, bezt_array_last * resolu_stride);
+		*r_points_last = bezt_array[bezt_array_last].vec[1][axis];
+		r_points_offset = POINTER_OFFSET(r_points_offset, stride);
+	}
+
+	BLI_assert(POINTER_OFFSET(r_points, points_len * stride) == r_points_offset);
+	UNUSED_VARS_NDEBUG(points_len);
+}
+
 /* forward differencing method for bezier curve */
 void BKE_curve_forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int it, int stride)
 {
