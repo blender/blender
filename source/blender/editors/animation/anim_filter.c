@@ -2730,10 +2730,63 @@ static size_t animdata_filter_dopesheet_scene(bAnimContext *ac, ListBase *anim_d
 	return items;
 }
 
+static bool animdata_filter_base_is_ok(bDopeSheet *ads, Scene *scene, Base *base, int filter_mode)
+{
+	Object *ob = base->object;
+	
+	if (base->object == NULL)
+		return false;
+	
+	/* firstly, check if object can be included, by the following factors:
+	 *	- if only visible, must check for layer and also viewport visibility
+	 *		--> while tools may demand only visible, user setting takes priority
+	 *			as user option controls whether sets of channels get included while
+	 *			tool-flag takes into account collapsed/open channels too
+	 *	- if only selected, must check if object is selected 
+	 *	- there must be animation data to edit (this is done recursively as we 
+	 *	  try to add the channels)
+	 */
+	if ((filter_mode & ANIMFILTER_DATA_VISIBLE) && !(ads->filterflag & ADS_FILTER_INCL_HIDDEN)) {
+		/* layer visibility - we check both object and base, since these may not be in sync yet */
+		if ((scene->lay & (ob->lay | base->lay)) == 0)
+			return false;
+		
+		/* outliner restrict-flag */
+		if (ob->restrictflag & OB_RESTRICT_VIEW)
+			return false;
+	}
+	
+	/* if only F-Curves with visible flags set can be shown, check that 
+	 * datablock hasn't been set to invisible 
+	 */
+	if (filter_mode & ANIMFILTER_CURVE_VISIBLE) {
+		if ((ob->adt) && (ob->adt->flag & ADT_CURVES_NOT_VISIBLE))
+			return false;
+	}
+	
+	/* check selection and object type filters */
+	if ((ads->filterflag & ADS_FILTER_ONLYSEL) && !((base->flag & SELECT) /*|| (base == sce->basact)*/)) {
+		/* only selected should be shown */
+		return false;
+	}
+	
+	/* check if object belongs to the filtering group if option to filter 
+	 * objects by the grouped status is on
+	 *	- used to ease the process of doing multiple-character choreographies
+	 */
+	if (ads->filterflag & ADS_FILTER_ONLYOBGROUP) {
+		if (BKE_group_object_exists(ads->filter_grp, ob) == 0)
+			return false;
+	}
+	
+	/* no reason to exclude this object... */
+	return true;
+}
+
 // TODO: implement pinning... (if and when pinning is done, what we need to do is to provide freeing mechanisms - to protect against data that was deleted)
 static size_t animdata_filter_dopesheet(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, int filter_mode)
 {
-	Scene *sce = (Scene *)ads->source;
+	Scene *scene = (Scene *)ads->source;
 	Base *base;
 	size_t items = 0;
 	
@@ -2754,54 +2807,11 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac, ListBase *anim_data, b
 	}
 	
 	/* scene-linked animation - e.g. world, compositing nodes, scene anim (including sequencer currently) */
-	items += animdata_filter_dopesheet_scene(ac, anim_data, ads, sce, filter_mode);
+	items += animdata_filter_dopesheet_scene(ac, anim_data, ads, scene, filter_mode);
 	
-	/* loop over all bases (i.e.objects) in the scene */
-	for (base = sce->base.first; base; base = base->next) {
-		/* check if there's an object (all the relevant checks are done in the ob-function) */
-		if (base->object) {
-			Object *ob = base->object;
-			
-			/* firstly, check if object can be included, by the following factors:
-			 *	- if only visible, must check for layer and also viewport visibility
-			 *		--> while tools may demand only visible, user setting takes priority
-			 *			as user option controls whether sets of channels get included while
-			 *			tool-flag takes into account collapsed/open channels too
-			 *	- if only selected, must check if object is selected 
-			 *	- there must be animation data to edit (this is done recursively as we 
-			 *	  try to add the channels)
-			 */
-			if ((filter_mode & ANIMFILTER_DATA_VISIBLE) && !(ads->filterflag & ADS_FILTER_INCL_HIDDEN)) {
-				/* layer visibility - we check both object and base, since these may not be in sync yet */
-				if ((sce->lay & (ob->lay | base->lay)) == 0) continue;
-				
-				/* outliner restrict-flag */
-				if (ob->restrictflag & OB_RESTRICT_VIEW) continue;
-			}
-			
-			/* if only F-Curves with visible flags set can be shown, check that 
-			 * datablock hasn't been set to invisible 
-			 */
-			if (filter_mode & ANIMFILTER_CURVE_VISIBLE) {
-				if ((ob->adt) && (ob->adt->flag & ADT_CURVES_NOT_VISIBLE))
-					continue;
-			}
-			
-			/* check selection and object type filters */
-			if ( (ads->filterflag & ADS_FILTER_ONLYSEL) && !((base->flag & SELECT) /*|| (base == sce->basact)*/) ) {
-				/* only selected should be shown */
-				continue;
-			}
-			
-			/* check if object belongs to the filtering group if option to filter 
-			 * objects by the grouped status is on
-			 *	- used to ease the process of doing multiple-character choreographies
-			 */
-			if (ads->filterflag & ADS_FILTER_ONLYOBGROUP) {
-				if (BKE_group_object_exists(ads->filter_grp, ob) == 0)
-					continue;
-			}
-				
+	/* loop over all bases (i.e. objects) in the scene */
+	for (base = scene->base.first; base; base = base->next) {
+		if (animdata_filter_base_is_ok(ads, scene, base, filter_mode)) {
 			/* since we're still here, this object should be usable */
 			items += animdata_filter_dopesheet_ob(ac, anim_data, ads, base, filter_mode);
 		}
