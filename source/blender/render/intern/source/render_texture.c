@@ -1720,6 +1720,21 @@ static void texco_mapping(ShadeInput *shi, Tex *tex, MTex *mtex,
 			}
 			else dxt[2]= dyt[2] = 0.f;
 		}
+
+		if (mtex->tex->type == TEX_ENVMAP) {
+			EnvMap *env = tex->env;
+			if (!env->object) {
+				// env->object is a view point for envmap rendering
+				// if it's not set, return the result depending on the world_space_shading flag
+				if (BKE_scene_use_world_space_shading(R.scene)) {
+					mul_mat3_m4_v3(R.viewinv, texvec);
+					if (shi->osatex) {
+						mul_mat3_m4_v3(R.viewinv, dxt);
+						mul_mat3_m4_v3(R.viewinv, dyt);
+					}
+				}
+			}
+		}
 	}
 }
 
