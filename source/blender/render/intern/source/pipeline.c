@@ -722,6 +722,13 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 		re->r.size = source->r.size;
 	}
 
+	/* disable border if it's a full render anyway */
+	if (re->r.border.xmin == 0.0f && re->r.border.xmax == 1.0f &&
+	    re->r.border.ymin == 0.0f && re->r.border.ymax == 1.0f)
+	{
+		re->r.mode &= ~R_BORDER;
+	}
+
 	re_init_resolution(re, source, winx, winy, disprect);
 
 	if (re->rectx < 1 || re->recty < 1 || (BKE_imtype_is_movie(rd->im_format.imtype) &&
