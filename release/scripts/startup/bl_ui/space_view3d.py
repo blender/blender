@@ -296,10 +296,6 @@ class VIEW3D_MT_transform_object(VIEW3D_MT_transform_base):
         layout.operator("object.randomize_transform")
         layout.operator("object.align")
 
-        layout.separator()
-
-        layout.operator("object.anim_transforms_to_deltas")
-
 
 # Armature EditMode extensions to Transform menu
 class VIEW3D_MT_transform_armature(VIEW3D_MT_transform_base):
@@ -1507,6 +1503,15 @@ class VIEW3D_MT_object_apply(Menu):
         props = layout.operator("object.transform_apply", text="Rotation & Scale", text_ctxt=i18n_contexts.default)
         props.location, props.rotation, props.scale = False, True, True
 
+        layout.separator()
+        
+        layout.operator("object.transforms_to_deltas", text="Location to Deltas", text_ctxt=i18n_contexts.default).mode = 'LOC'
+        layout.operator("object.transforms_to_deltas", text="Rotation to Deltas", text_ctxt=i18n_contexts.default).mode = 'ROT'
+        layout.operator("object.transforms_to_deltas", text="Scale to Deltas", text_ctxt=i18n_contexts.default).mode = 'SCALE'
+        
+        layout.operator("object.transforms_to_deltas", text="All Transforms to Deltas", text_ctxt=i18n_contexts.default).mode = 'ALL'
+        layout.operator("object.anim_transforms_to_deltas")
+        
         layout.separator()
 
         layout.operator("object.visual_transform_apply", text="Visual Transform", text_ctxt=i18n_contexts.default)
