@@ -115,23 +115,23 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 				float4 cnodes = kernel_tex_fetch(__bvh_nodes, nodeAddr*BVH_NODE_SIZE+3);
 
 				/* intersect ray against child nodes */
-				NO_EXTENDED_PRECISION float c0lox = (node0.x - P.x) * idir.x;
-				NO_EXTENDED_PRECISION float c0hix = (node0.z - P.x) * idir.x;
-				NO_EXTENDED_PRECISION float c0loy = (node1.x - P.y) * idir.y;
-				NO_EXTENDED_PRECISION float c0hiy = (node1.z - P.y) * idir.y;
-				NO_EXTENDED_PRECISION float c0loz = (node2.x - P.z) * idir.z;
-				NO_EXTENDED_PRECISION float c0hiz = (node2.z - P.z) * idir.z;
-				NO_EXTENDED_PRECISION float c0min = max4(min(c0lox, c0hix), min(c0loy, c0hiy), min(c0loz, c0hiz), 0.0f);
-				NO_EXTENDED_PRECISION float c0max = min4(max(c0lox, c0hix), max(c0loy, c0hiy), max(c0loz, c0hiz), t);
+				float c0lox = (node0.x - P.x) * idir.x;
+				float c0hix = (node0.z - P.x) * idir.x;
+				float c0loy = (node1.x - P.y) * idir.y;
+				float c0hiy = (node1.z - P.y) * idir.y;
+				float c0loz = (node2.x - P.z) * idir.z;
+				float c0hiz = (node2.z - P.z) * idir.z;
+				float c0min = max4(min(c0lox, c0hix), min(c0loy, c0hiy), min(c0loz, c0hiz), 0.0f);
+				float c0max = min4(max(c0lox, c0hix), max(c0loy, c0hiy), max(c0loz, c0hiz), t);
 
-				NO_EXTENDED_PRECISION float c1lox = (node0.y - P.x) * idir.x;
-				NO_EXTENDED_PRECISION float c1hix = (node0.w - P.x) * idir.x;
-				NO_EXTENDED_PRECISION float c1loy = (node1.y - P.y) * idir.y;
-				NO_EXTENDED_PRECISION float c1hiy = (node1.w - P.y) * idir.y;
-				NO_EXTENDED_PRECISION float c1loz = (node2.y - P.z) * idir.z;
-				NO_EXTENDED_PRECISION float c1hiz = (node2.w - P.z) * idir.z;
-				NO_EXTENDED_PRECISION float c1min = max4(min(c1lox, c1hix), min(c1loy, c1hiy), min(c1loz, c1hiz), 0.0f);
-				NO_EXTENDED_PRECISION float c1max = min4(max(c1lox, c1hix), max(c1loy, c1hiy), max(c1loz, c1hiz), t);
+				float c1lox = (node0.y - P.x) * idir.x;
+				float c1hix = (node0.w - P.x) * idir.x;
+				float c1loy = (node1.y - P.y) * idir.y;
+				float c1hiy = (node1.w - P.y) * idir.y;
+				float c1loz = (node2.y - P.z) * idir.z;
+				float c1hiz = (node2.w - P.z) * idir.z;
+				float c1min = max4(min(c1lox, c1hix), min(c1loy, c1hiy), min(c1loz, c1hiz), 0.0f);
+				float c1max = min4(max(c1lox, c1hix), max(c1loy, c1hiy), max(c1loz, c1hiz), t);
 
 #  if BVH_FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 				if(difl != 0.0f) {
