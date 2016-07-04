@@ -1358,6 +1358,13 @@ void mtex_cube_map(vec3 co, samplerCube ima, out float value, out vec4 color)
 	value = 1.0;
 }
 
+void mtex_cube_map_refl_from_refldir(
+        samplerCube ima, vec3 reflecteddirection, out float value, out vec4 color)
+{
+        color = textureCube(ima, reflecteddirection);
+        value = 1.0;
+}
+
 void mtex_cube_map_refl(
         samplerCube ima, vec3 vp, vec3 vn, mat4 viewmatrixinverse, mat4 viewmatrix,
         out float value, out vec4 color)
