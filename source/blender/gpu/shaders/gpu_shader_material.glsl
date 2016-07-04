@@ -2182,6 +2182,13 @@ void shade_madd_clamped(vec4 col, vec4 col1, vec4 col2, out vec4 outcol)
 	outcol = col + max(col1 * col2, vec4(0.0, 0.0, 0.0, 0.0));
 }
 
+void env_apply(vec4 col, vec4 hor, vec4 zen, vec4 f, mat4 vm, vec3 vn, out vec4 outcol)
+{
+	vec3 vv = normalize(vm[2].xyz);
+	float skyfac = 0.5 * (1.0 + dot(vn, -vv));
+	outcol = col + f * mix(hor, zen, skyfac);
+}
+
 void shade_maddf(vec4 col, float f, vec4 col1, out vec4 outcol)
 {
 	outcol = col + f * col1;
