@@ -1909,17 +1909,22 @@ static void pbvh_bmesh_verify(PBVH *bvh)
 {
 	/* build list of faces & verts to lookup */
 	GSet *faces_all = BLI_gset_ptr_new_ex(__func__, bvh->bm->totface);
-	BMFace *f;
 	BMIter iter;
-	BM_ITER_MESH(f, &iter, bvh->bm, BM_FACES_OF_MESH) {
-		BLI_gset_insert(faces_all, f);
+
+	{
+		BMFace *f;
+		BM_ITER_MESH(f, &iter, bvh->bm, BM_FACES_OF_MESH) {
+			BLI_gset_insert(faces_all, f);
+		}
 	}
 
 	GSet *verts_all = BLI_gset_ptr_new_ex(__func__, bvh->bm->totvert);
-	BMVert *v;
-	BM_ITER_MESH(v, &iter, bvh->bm, BM_VERTS_OF_MESH) {
-		if (BM_ELEM_CD_GET_INT(v, bvh->cd_vert_node_offset) != DYNTOPO_NODE_NONE) {
-			BLI_gset_insert(verts_all, v);
+	{
+		BMVert *v;
+		BM_ITER_MESH(v, &iter, bvh->bm, BM_VERTS_OF_MESH) {
+			if (BM_ELEM_CD_GET_INT(v, bvh->cd_vert_node_offset) != DYNTOPO_NODE_NONE) {
+				BLI_gset_insert(verts_all, v);
+			}
 		}
 	}
 
@@ -1936,76 +1941,83 @@ static void pbvh_bmesh_verify(PBVH *bvh)
 		BLI_assert(totvert == BLI_gset_size(verts_all));
 	}
 
-	BM_ITER_MESH(f, &iter, bvh->bm, BM_FACES_OF_MESH) {
-		BMIter bm_iter;
-		BMVert *v;
-		PBVHNode *n = pbvh_bmesh_node_lookup(bvh, f);
+	{
+		BMFace *f;
+		BM_ITER_MESH(f, &iter, bvh->bm, BM_FACES_OF_MESH) {
+			BMIter bm_iter;
+			BMVert *v;
+			PBVHNode *n = pbvh_bmesh_node_lookup(bvh, f);
 
-		/* Check that the face's node is a leaf */
-		BLI_assert(n->flag & PBVH_Leaf);
+			/* Check that the face's node is a leaf */
+			BLI_assert(n->flag & PBVH_Leaf);
 
-		/* Check that the face's node knows it owns the face */
-		BLI_assert(BLI_gset_haskey(n->bm_faces, f));
+			/* Check that the face's node knows it owns the face */
+			BLI_assert(BLI_gset_haskey(n->bm_faces, f));
 
-		/* Check the face's vertices... */
-		BM_ITER_ELEM (v, &bm_iter, f, BM_VERTS_OF_FACE) {
-			PBVHNode *nv;
+			/* Check the face's vertices... */
+			BM_ITER_ELEM (v, &bm_iter, f, BM_VERTS_OF_FACE) {
+				PBVHNode *nv;
 
-			/* Check that the vertex is in the node */
-			BLI_assert(BLI_gset_haskey(n->bm_unique_verts, v) ^
-			           BLI_gset_haskey(n->bm_other_verts, v));
+				/* Check that the vertex is in the node */
+				BLI_assert(BLI_gset_haskey(n->bm_unique_verts, v) ^
+				           BLI_gset_haskey(n->bm_other_verts, v));
 
-			/* Check that the vertex has a node owner */
-			nv = pbvh_bmesh_node_lookup(bvh, v);
+				/* Check that the vertex has a node owner */
+				nv = pbvh_bmesh_node_lookup(bvh, v);
 
-			/* Check that the vertex's node knows it owns the vert */
-			BLI_assert(BLI_gset_haskey(nv->bm_unique_verts, v));
+				/* Check that the vertex's node knows it owns the vert */
+				BLI_assert(BLI_gset_haskey(nv->bm_unique_verts, v));
 
-			/* Check that the vertex isn't duplicated as an 'other' vert */
-			BLI_assert(!BLI_gset_haskey(nv->bm_other_verts, v));
+				/* Check that the vertex isn't duplicated as an 'other' vert */
+				BLI_assert(!BLI_gset_haskey(nv->bm_other_verts, v));
+			}
 		}
 	}
 
 	/* Check verts */
-	BM_ITER_MESH(v, &iter, bvh->bm, BM_VERTS_OF_MESH) {
-		/* vertex isn't tracked */
-		if (BM_ELEM_CD_GET_INT(v, bvh->cd_vert_node_offset) == DYNTOPO_NODE_NONE) {
-			continue;
-		}
-
-		PBVHNode *n = pbvh_bmesh_node_lookup(bvh, v);
-
-		/* Check that the vert's node is a leaf */
-		BLI_assert(n->flag & PBVH_Leaf);
-
-		/* Check that the vert's node knows it owns the vert */
-		BLI_assert(BLI_gset_haskey(n->bm_unique_verts, v));
-
-		/* Check that the vertex isn't duplicated as an 'other' vert */
-		BLI_assert(!BLI_gset_haskey(n->bm_other_verts, v));
-
-		/* Check that the vert's node also contains one of the vert's
-		 * adjacent faces */
-		bool found = false;
-		BMIter bm_iter;
-		BM_ITER_ELEM (f, &bm_iter, v, BM_FACES_OF_VERT) {
-			if (pbvh_bmesh_node_lookup(bvh, f) == n) {
-				found = true;
-				break;
+	{
+		BMVert *v;
+		BM_ITER_MESH(v, &iter, bvh->bm, BM_VERTS_OF_MESH) {
+			/* vertex isn't tracked */
+			if (BM_ELEM_CD_GET_INT(v, bvh->cd_vert_node_offset) == DYNTOPO_NODE_NONE) {
+				continue;
 			}
-		}
-		BLI_assert(found);
+
+			PBVHNode *n = pbvh_bmesh_node_lookup(bvh, v);
+
+			/* Check that the vert's node is a leaf */
+			BLI_assert(n->flag & PBVH_Leaf);
+
+			/* Check that the vert's node knows it owns the vert */
+			BLI_assert(BLI_gset_haskey(n->bm_unique_verts, v));
+
+			/* Check that the vertex isn't duplicated as an 'other' vert */
+			BLI_assert(!BLI_gset_haskey(n->bm_other_verts, v));
+
+			/* Check that the vert's node also contains one of the vert's
+			 * adjacent faces */
+			bool found = false;
+			BMIter bm_iter;
+			BMFace *f;
+			BM_ITER_ELEM (f, &bm_iter, v, BM_FACES_OF_VERT) {
+				if (pbvh_bmesh_node_lookup(bvh, f) == n) {
+					found = true;
+					break;
+				}
+			}
+			BLI_assert(found);
 
 #if 1
-		/* total freak stuff, check if node exists somewhere else */
-		/* Slow */
-		for (int i = 0; i < bvh->totnode; i++) {
-			PBVHNode *n_other = &bvh->nodes[i];
-			if ((n != n_other) && (n_other->bm_unique_verts)) {
-				BLI_assert(!BLI_gset_haskey(n_other->bm_unique_verts, v));
+			/* total freak stuff, check if node exists somewhere else */
+			/* Slow */
+			for (int i = 0; i < bvh->totnode; i++) {
+				PBVHNode *n_other = &bvh->nodes[i];
+				if ((n != n_other) && (n_other->bm_unique_verts)) {
+					BLI_assert(!BLI_gset_haskey(n_other->bm_unique_verts, v));
+				}
 			}
-		}
 #endif
+		}
 	}
 
 #if 0
