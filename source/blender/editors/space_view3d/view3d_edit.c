@@ -3434,11 +3434,8 @@ static int render_border_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 	}
 
-	/* drawing a border surrounding the entire camera view switches off border rendering
-	 * or the border covers no pixels */
-	if ((border.xmin <= 0.0f && border.xmax >= 1.0f &&
-	     border.ymin <= 0.0f && border.ymax >= 1.0f) ||
-	    (border.xmin == border.xmax || border.ymin == border.ymax))
+	/* drawing a border outside the camera view switches off border rendering */
+	if ((border.xmin == border.xmax || border.ymin == border.ymax))
 	{
 		if (rv3d->persp == RV3D_CAMOB)
 			scene->r.mode &= ~R_BORDER;
