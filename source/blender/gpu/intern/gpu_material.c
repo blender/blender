@@ -2585,7 +2585,7 @@ int GPU_lamp_shadow_bind_code(GPULamp *lamp)
 
 float *GPU_lamp_dynpersmat(GPULamp *lamp)
 {
-	return lamp->dynpersmat ? (float *)lamp->dynpersmat : NULL;
+	return (float*)lamp->dynpersmat;
 }
 
 int GPU_lamp_shadow_layer(GPULamp *lamp)

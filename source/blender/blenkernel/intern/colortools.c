@@ -1322,7 +1322,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 		.cm_processor = cm_processor, .display_buffer = display_buffer, .ycc_mode = ycc_mode,
 		.bin_lum = bin_lum, .bin_r = bin_r, .bin_g = bin_g, .bin_b = bin_b, .bin_a = bin_a,
 	};
-	ScopesUpdateDataChunk data_chunk = {0};
+	ScopesUpdateDataChunk data_chunk = {{0}};
 	INIT_MINMAX(data_chunk.min, data_chunk.max);
 
 	BLI_task_parallel_range_finalize(0, ibuf->y, &data, &data_chunk, sizeof(data_chunk),

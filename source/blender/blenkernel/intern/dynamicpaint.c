@@ -3830,7 +3830,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 		const float brush_radius = brush->paint_distance * surface->radius_scale;
 		int numOfVerts;
 		int ii;
-		Bounds3D mesh_bb = {0};
+		Bounds3D mesh_bb = {{0}};
 		VolumeGrid *grid = bData->grid;
 
 		dm = CDDM_copy(brush->dm);
@@ -4100,7 +4100,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 
 	const float range = solidradius + smooth;
 
-	Bounds3D part_bb = {0};
+	Bounds3D part_bb = {{0}};
 
 	if (psys->totpart < 1)
 		return 1;

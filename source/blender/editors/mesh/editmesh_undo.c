@@ -114,7 +114,7 @@ static struct {
 		TaskPool *task_pool;
 #endif
 
-} um_arraystore = {NULL};
+} um_arraystore = {{NULL}};
 
 static void um_arraystore_cd_compact(
         struct CustomData *cdata, const size_t data_len,
