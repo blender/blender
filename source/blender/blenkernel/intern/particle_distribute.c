@@ -1007,13 +1007,11 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		MEM_freeN(vweight);
 	}
 
-#define MIN_WEIGHT 1e-7f  /* Weights too small cause issues e.g. with binary search... */
-
 	/* Calculate total weight of all elements */
 	int totmapped = 0;
 	totweight = 0.0f;
 	for (i = 0; i < totelem; i++) {
-		if (element_weight[i] > MIN_WEIGHT) {
+		if (element_weight[i] > 0.0f) {
 			totmapped++;
 			totweight += element_weight[i];
 		}
@@ -1036,22 +1034,21 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	int *element_map = MEM_mallocN(sizeof(*element_map) * totmapped, __func__);
 	int i_mapped = 0;
 
-	for (i = 0; i < totelem && element_weight[i] <= MIN_WEIGHT; i++);
+	for (i = 0; i < totelem && element_weight[i] == 0.0f; i++);
 	element_sum[i_mapped] = element_weight[i] * inv_totweight;
 	element_map[i_mapped] = i;
 	i_mapped++;
 	for (i++; i < totelem; i++) {
-		if (element_weight[i] > MIN_WEIGHT) {
+		if (element_weight[i] > 0.0f) {
 			element_sum[i_mapped] = element_sum[i_mapped - 1] + element_weight[i] * inv_totweight;
-			BLI_assert(element_sum[i_mapped] > element_sum[i_mapped - 1]);
-			element_map[i_mapped] = i;
-			i_mapped++;
+			/* Skip elements which weight is so small that it does not affect the sum. */
+			if (element_sum[i_mapped] > element_sum[i_mapped - 1]) {
+				element_map[i_mapped] = i;
+				i_mapped++;
+			}
 		}
 	}
-
-	BLI_assert(i_mapped == totmapped);
-
-#undef MIN_WEIGHT
+	totmapped = i_mapped;
 
 	/* Finally assign elements to particles */
 	if ((part->flag & PART_TRAND) || (part->simplify_flag & PART_SIMPLIFY_ENABLE)) {
