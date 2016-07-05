@@ -1496,12 +1496,18 @@ typedef struct {
 static bool ray_aabb_intersect(PBVHNode *node, void *data_v)
 {
 	RaycastData *rcd = data_v;
-	float bb_min[3], bb_max[3];
+	const float *bb_min, *bb_max;
 
-	if (rcd->original)
-		BKE_pbvh_node_get_original_BB(node, bb_min, bb_max);
-	else
-		BKE_pbvh_node_get_BB(node, bb_min, bb_max);
+	if (rcd->original) {
+		/* BKE_pbvh_node_get_original_BB */
+		bb_min = node->orig_vb.bmin;
+		bb_max = node->orig_vb.bmax;
+	}
+	else {
+		/* BKE_pbvh_node_get_BB */
+		bb_min = node->vb.bmin;
+		bb_max = node->vb.bmax;
+	}
 
 	return isect_ray_aabb_v3(&rcd->ray, bb_min, bb_max, &node->tmin);
 }
@@ -1801,17 +1807,21 @@ static PlaneAABBIsect test_planes_aabb(const float bb_min[3],
 
 bool BKE_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data)
 {
-	float bb_min[3], bb_max[3];
+	const float *bb_min, *bb_max;
+	/* BKE_pbvh_node_get_BB */
+	bb_min = node->vb.bmin;
+	bb_max = node->vb.bmax;
 	
-	BKE_pbvh_node_get_BB(node, bb_min, bb_max);
 	return test_planes_aabb(bb_min, bb_max, data) != ISECT_OUTSIDE;
 }
 
 bool BKE_pbvh_node_planes_exclude_AABB(PBVHNode *node, void *data)
 {
-	float bb_min[3], bb_max[3];
+	const float *bb_min, *bb_max;
+	/* BKE_pbvh_node_get_BB */
+	bb_min = node->vb.bmin;
+	bb_max = node->vb.bmax;
 	
-	BKE_pbvh_node_get_BB(node, bb_min, bb_max);
 	return test_planes_aabb(bb_min, bb_max, data) != ISECT_INSIDE;
 }
 
