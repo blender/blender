@@ -1299,6 +1299,14 @@ static void pbvh_bmesh_collapse_edge(
 		mid_v3_v3v3(v_conn->co, v_conn->co, v_del->co);
 		add_v3_v3(v_conn->no, v_del->no);
 		normalize_v3(v_conn->no);
+
+		/* update boundboxes attached to the connected vertex
+		 * note that we can often get-away without this but causes T48779 */
+		BM_LOOPS_OF_VERT_ITER_BEGIN(l, v_conn) {
+			PBVHNode *f_node = pbvh_bmesh_node_from_face(bvh, l->f);
+			f_node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals | PBVH_UpdateBB;
+		}
+		BM_LOOPS_OF_VERT_ITER_END;
 	}
 
 	/* Delete v_del */
