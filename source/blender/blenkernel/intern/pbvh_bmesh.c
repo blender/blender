@@ -70,6 +70,45 @@ static void pbvh_bmesh_verify(PBVH *bvh);
 #endif
 
 
+/**
+ * Typically using BM_LOOPS_OF_VERT and BM_FACES_OF_VERT iterators are fine,
+ * however this is an area where performance matters so do it in-line.
+ *
+ * Take care since 'break' won't works as expected within these macros!
+ */
+
+#define BM_LOOPS_OF_VERT_ITER_BEGIN(l_iter_radial_, v_) \
+{ \
+	struct { BMVert *v; BMEdge *e_iter, *e_first; BMLoop *l_iter_radial; } _iter; \
+	_iter.v = v_; \
+	if (_iter.v->e) { \
+		_iter.e_iter = _iter.e_first = _iter.v->e; \
+		do { \
+			if (_iter.e_iter->l) { \
+				_iter.l_iter_radial = _iter.e_iter->l; \
+				do { \
+					if (_iter.l_iter_radial->v == _iter.v) { \
+						l_iter_radial_ = _iter.l_iter_radial;
+
+#define BM_LOOPS_OF_VERT_ITER_END \
+					} \
+				} while ((_iter.l_iter_radial = _iter.l_iter_radial->radial_next) != _iter.e_iter->l); \
+			} \
+		} while ((_iter.e_iter = BM_DISK_EDGE_NEXT(_iter.e_iter, _iter.v)) != _iter.e_first); \
+	} \
+} ((void)0)
+
+#define BM_FACES_OF_VERT_ITER_BEGIN(f_iter_, v_) \
+{ \
+	BMLoop *l_iter_radial_; \
+	BM_LOOPS_OF_VERT_ITER_BEGIN(l_iter_radial_, v_) { \
+		f_iter_ = l_iter_radial_->f; \
+
+#define BM_FACES_OF_VERT_ITER_END \
+	} \
+	BM_LOOPS_OF_VERT_ITER_END; \
+}
+
 /****************************** Building ******************************/
 
 /* Update node data after splitting */
@@ -387,16 +426,16 @@ static BMFace *pbvh_bmesh_face_create(
 #if 0
 static int pbvh_bmesh_node_vert_use_count(PBVH *bvh, PBVHNode *node, BMVert *v)
 {
-	BMIter bm_iter;
 	BMFace *f;
 	int count = 0;
 
-	BM_ITER_ELEM (f, &bm_iter, v, BM_FACES_OF_VERT) {
+	BM_FACES_OF_VERT_ITER_BEGIN(f, v) {
 		PBVHNode *f_node = pbvh_bmesh_node_lookup(bvh, f);
 		if (f_node == node) {
 			count++;
 		}
 	}
+	BM_FACES_OF_VERT_ITER_END;
 
 	return count;
 }
@@ -407,19 +446,19 @@ static int pbvh_bmesh_node_vert_use_count(PBVH *bvh, PBVHNode *node, BMVert *v)
 
 static int pbvh_bmesh_node_vert_use_count_ex(PBVH *bvh, PBVHNode *node, BMVert *v, const int count_max)
 {
-	BMIter bm_iter;
-	BMFace *f;
 	int count = 0;
+	BMFace *f;
 
-	BM_ITER_ELEM (f, &bm_iter, v, BM_FACES_OF_VERT) {
+	BM_FACES_OF_VERT_ITER_BEGIN(f, v) {
 		PBVHNode *f_node = pbvh_bmesh_node_lookup(bvh, f);
 		if (f_node == node) {
 			count++;
 			if (count == count_max) {
-				break;
+				return count;
 			}
 		}
 	}
+	BM_FACES_OF_VERT_ITER_END;
 
 	return count;
 }
@@ -427,16 +466,17 @@ static int pbvh_bmesh_node_vert_use_count_ex(PBVH *bvh, PBVHNode *node, BMVert *
 /* Return a node that uses vertex 'v' other than its current owner */
 static PBVHNode *pbvh_bmesh_vert_other_node_find(PBVH *bvh, BMVert *v)
 {
-	BMIter bm_iter;
-	BMFace *f;
 	PBVHNode *current_node = pbvh_bmesh_node_lookup(bvh, v);
+	BMFace *f;
 
-	BM_ITER_ELEM (f, &bm_iter, v, BM_FACES_OF_VERT) {
+	BM_FACES_OF_VERT_ITER_BEGIN(f, v) {
 		PBVHNode *f_node = pbvh_bmesh_node_lookup(bvh, f);
 
-		if (f_node != current_node)
+		if (f_node != current_node) {
 			return f_node;
+		}
 	}
+	BM_FACES_OF_VERT_ITER_END;
 
 	return NULL;
 }
@@ -474,26 +514,26 @@ static void pbvh_bmesh_vert_remove(PBVH *bvh, BMVert *v)
 	BM_ELEM_CD_SET_INT(v, bvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
 
 	/* Have to check each neighboring face's node */
-	BMIter bm_iter;
 	BMFace *f;
-	BM_ITER_ELEM (f, &bm_iter, v, BM_FACES_OF_VERT) {
+	BM_FACES_OF_VERT_ITER_BEGIN(f, v) {
 		const int f_node_index = pbvh_bmesh_node_lookup_index(bvh, f);
 
 		/* faces often share the same node,
 		 * quick check to avoid redundant #BLI_gset_remove calls */
-		if (f_node_index_prev == f_node_index)
-			continue;
-		f_node_index_prev = f_node_index;
+		if (f_node_index_prev != f_node_index) {
+			f_node_index_prev = f_node_index;
 
-		PBVHNode *f_node = &bvh->nodes[f_node_index];
-		f_node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB;
+			PBVHNode *f_node = &bvh->nodes[f_node_index];
+			f_node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB;
 
-		/* Remove current ownership */
-		BLI_gset_remove(f_node->bm_other_verts, v, NULL);
+			/* Remove current ownership */
+			BLI_gset_remove(f_node->bm_other_verts, v, NULL);
 
-		BLI_assert(!BLI_gset_haskey(f_node->bm_unique_verts, v));
-		BLI_assert(!BLI_gset_haskey(f_node->bm_other_verts, v));
+			BLI_assert(!BLI_gset_haskey(f_node->bm_unique_verts, v));
+			BLI_assert(!BLI_gset_haskey(f_node->bm_other_verts, v));
+		}
 	}
+	BM_FACES_OF_VERT_ITER_END;
 }
 
 static void pbvh_bmesh_face_remove(PBVH *bvh, BMFace *f)
@@ -1142,21 +1182,25 @@ static void pbvh_bmesh_collapse_edge(
 	 * really buy anything. */
 	BLI_buffer_empty(deleted_faces);
 
-	BMIter bm_iter;
-	BMFace *f;
+	BMLoop *l;
 
-	BM_ITER_ELEM (f, &bm_iter, v_del, BM_FACES_OF_VERT) {
-		BMVert *v_tri[3];
+	BM_LOOPS_OF_VERT_ITER_BEGIN(l, v_del) {
 		BMFace *existing_face;
 
 		/* Get vertices, replace use of v_del with v_conn */
 		// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v_tri, 3);
+		BMFace *f = l->f;
+#if 0
+		BMVert *v_tri[3];
 		BM_face_as_array_vert_tri(f, v_tri);
 		for (int i = 0; i < 3; i++) {
 			if (v_tri[i] == v_del) {
 				v_tri[i] = v_conn;
 			}
 		}
+#else
+		BMVert *v_tri[3] = {v_conn, l->next->v, l->prev->v};
+#endif
 
 		/* Check if a face using these vertices already exists. If so,
 		 * skip adding this face and mark the existing one for
@@ -1181,6 +1225,7 @@ static void pbvh_bmesh_collapse_edge(
 
 		BLI_buffer_append(deleted_faces, BMFace *, f);
 	}
+	BM_LOOPS_OF_VERT_ITER_END;
 
 	/* Delete the tagged faces */
 	for (int i = 0; i < deleted_faces->count; i++) {
