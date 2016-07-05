@@ -41,7 +41,7 @@ class WORLD_PT_context_world(WorldButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
-        return (not rd.use_game_engine) and (rd.engine in cls.COMPAT_ENGINES)
+        return rd.engine in cls.COMPAT_ENGINES
 
     def draw(self, context):
         layout = self.layout
@@ -69,7 +69,7 @@ class WORLD_PT_preview(WorldButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
-        return (context.world) and (not rd.use_game_engine) and (rd.engine in cls.COMPAT_ENGINES)
+        return (context.world) and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         self.layout.template_preview(context.world)

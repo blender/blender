@@ -29,12 +29,13 @@ class PHYSICS_PT_rigidbody_panel:
 
 class PHYSICS_PT_rigid_body(PHYSICS_PT_rigidbody_panel, Panel):
     bl_label = "Rigid Body"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
         obj = context.object
         return (obj and obj.rigid_body and
-                (not context.scene.render.use_game_engine))
+                (context.scene.render.engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -55,12 +56,13 @@ class PHYSICS_PT_rigid_body(PHYSICS_PT_rigidbody_panel, Panel):
 
 class PHYSICS_PT_rigid_body_collisions(PHYSICS_PT_rigidbody_panel, Panel):
     bl_label = "Rigid Body Collisions"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
         obj = context.object
         return (obj and obj.rigid_body and
-                (not context.scene.render.use_game_engine))
+                (context.scene.render.engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -99,13 +101,14 @@ class PHYSICS_PT_rigid_body_collisions(PHYSICS_PT_rigidbody_panel, Panel):
 class PHYSICS_PT_rigid_body_dynamics(PHYSICS_PT_rigidbody_panel, Panel):
     bl_label = "Rigid Body Dynamics"
     bl_default_closed = True
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
         obj = context.object
         return (obj and obj.rigid_body and
                 obj.rigid_body.type == 'ACTIVE' and
-                (not context.scene.render.use_game_engine))
+                (context.scene.render.engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout

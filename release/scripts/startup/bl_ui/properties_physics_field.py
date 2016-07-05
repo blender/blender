@@ -34,17 +34,18 @@ class PhysicButtonsPanel:
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
-        return (context.object) and (not rd.use_game_engine)
+        return (context.object) and (rd.engine in cls.COMPAT_ENGINES)
 
 
 class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
     bl_label = "Force Fields"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
         ob = context.object
         rd = context.scene.render
-        return (not rd.use_game_engine) and (ob.field) and (ob.field.type != 'NONE')
+        return (rd.engine in cls.COMPAT_ENGINES) and (ob.field) and (ob.field.type != 'NONE')
 
     def draw(self, context):
         layout = self.layout
@@ -176,12 +177,13 @@ class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):
     bl_label = "Collision"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
         ob = context.object
         rd = context.scene.render
-        return (ob and ob.type == 'MESH') and (not rd.use_game_engine) and (context.collision)
+        return (ob and ob.type == 'MESH') and (rd.engine in cls.COMPAT_ENGINES) and (context.collision)
 
     def draw(self, context):
         layout = self.layout

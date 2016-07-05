@@ -56,11 +56,12 @@ class PhysicButtonsPanel:
     def poll(cls, context):
         ob = context.object
         rd = context.scene.render
-        return (ob and ob.type == 'MESH') and (not rd.use_game_engine) and context.dynamic_paint
+        return (ob and ob.type == 'MESH') and rd.engine in cls.COMPAT_ENGINES and context.dynamic_paint
 
 
 class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, Panel):
     bl_label = "Dynamic Paint"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -137,12 +138,13 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, Panel):
     bl_label = "Dynamic Paint Advanced"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
         md = context.dynamic_paint
         rd = context.scene.render
-        return md and md.ui_type == 'CANVAS' and md.canvas_settings and md.canvas_settings.canvas_surfaces.active and (not rd.use_game_engine)
+        return md and md.ui_type == 'CANVAS' and md.canvas_settings and md.canvas_settings.canvas_surfaces.active and rd.engine in cls.COMPAT_ENGINES
 
     def draw(self, context):
         layout = self.layout
@@ -213,6 +215,7 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
     bl_label = "Dynamic Paint Output"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -223,7 +226,7 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
         surface = context.dynamic_paint.canvas_settings.canvas_surfaces.active
         return (surface and
                 (not (surface.surface_format == 'VERTEX' and (surface.surface_type in {'DISPLACE', 'WAVE'}))) and
-                (not rd.use_game_engine))
+                (rd.engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -306,6 +309,7 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_dp_canvas_initial_color(PhysicButtonsPanel, Panel):
     bl_label = "Dynamic Paint Initial Color"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -314,7 +318,7 @@ class PHYSICS_PT_dp_canvas_initial_color(PhysicButtonsPanel, Panel):
         if not (md and md.ui_type == 'CANVAS' and md.canvas_settings):
             return 0
         surface = context.dynamic_paint.canvas_settings.canvas_surfaces.active
-        return (surface and surface.surface_type == 'PAINT') and (not rd.use_game_engine)
+        return (surface and surface.surface_type == 'PAINT') and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -342,6 +346,7 @@ class PHYSICS_PT_dp_canvas_initial_color(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_dp_effects(PhysicButtonsPanel, Panel):
     bl_label = "Dynamic Paint Effects"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -350,7 +355,7 @@ class PHYSICS_PT_dp_effects(PhysicButtonsPanel, Panel):
         if not (md and md.ui_type == 'CANVAS' and md.canvas_settings):
             return False
         surface = context.dynamic_paint.canvas_settings.canvas_surfaces.active
-        return (surface and surface.surface_type == 'PAINT') and (not rd.use_game_engine)
+        return (surface and surface.surface_type == 'PAINT') and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -391,6 +396,7 @@ class PHYSICS_PT_dp_effects(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_dp_cache(PhysicButtonsPanel, Panel):
     bl_label = "Dynamic Paint Cache"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -401,7 +407,7 @@ class PHYSICS_PT_dp_cache(PhysicButtonsPanel, Panel):
                 md.canvas_settings and
                 md.canvas_settings.canvas_surfaces.active and
                 md.canvas_settings.canvas_surfaces.active.is_cache_user and
-                (not rd.use_game_engine))
+                (rd.engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
         surface = context.dynamic_paint.canvas_settings.canvas_surfaces.active
@@ -412,12 +418,13 @@ class PHYSICS_PT_dp_cache(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_dp_brush_source(PhysicButtonsPanel, Panel):
     bl_label = "Dynamic Paint Source"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
         md = context.dynamic_paint
         rd = context.scene.render
-        return md and md.ui_type == 'BRUSH' and md.brush_settings and (not rd.use_game_engine)
+        return md and md.ui_type == 'BRUSH' and md.brush_settings and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -465,12 +472,13 @@ class PHYSICS_PT_dp_brush_source(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_dp_brush_velocity(PhysicButtonsPanel, Panel):
     bl_label = "Dynamic Paint Velocity"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
         md = context.dynamic_paint
         rd = context.scene.render
-        return md and md.ui_type == 'BRUSH' and md.brush_settings and (not rd.use_game_engine)
+        return md and md.ui_type == 'BRUSH' and md.brush_settings and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -501,12 +509,13 @@ class PHYSICS_PT_dp_brush_velocity(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_dp_brush_wave(PhysicButtonsPanel, Panel):
     bl_label = "Dynamic Paint Waves"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
         md = context.dynamic_paint
         rd = context.scene.render
-        return md and md.ui_type == 'BRUSH' and md.brush_settings and (not rd.use_game_engine)
+        return md and md.ui_type == 'BRUSH' and md.brush_settings and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout

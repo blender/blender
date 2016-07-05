@@ -46,11 +46,12 @@ class PhysicButtonsPanel:
     def poll(cls, context):
         ob = context.object
         rd = context.scene.render
-        return (ob and ob.type == 'MESH') and (not rd.use_game_engine) and (context.cloth)
+        return (ob and ob.type == 'MESH') and (rd.engine in cls.COMPAT_ENGINES) and (context.cloth)
 
 
 class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
     bl_label = "Cloth"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -113,6 +114,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):
     bl_label = "Cloth Cache"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         md = context.cloth
@@ -122,6 +124,7 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
     bl_label = "Cloth Collision"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
         cloth = context.cloth.collision_settings
@@ -161,6 +164,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
     bl_label = "Cloth Stiffness Scaling"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
         cloth = context.cloth.settings
@@ -193,6 +197,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_cloth_sewing(PhysicButtonsPanel, Panel):
     bl_label = "Cloth Sewing Springs"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
         cloth = context.cloth.settings
@@ -226,6 +231,7 @@ class PHYSICS_PT_cloth_sewing(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, Panel):
     bl_label = "Cloth Field Weights"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         cloth = context.cloth.settings

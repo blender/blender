@@ -35,11 +35,12 @@ class PhysicButtonsPanel:
     def poll(cls, context):
         ob = context.object
         rd = context.scene.render
-        return (ob and ob.type == 'MESH') and (not rd.use_game_engine) and (context.smoke)
+        return (ob and ob.type == 'MESH') and (rd.engine in cls.COMPAT_ENGINES) and (context.smoke)
 
 
 class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
     bl_label = "Smoke"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -131,6 +132,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_smoke_flow_advanced(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Flow Advanced"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -165,6 +167,7 @@ class PHYSICS_PT_smoke_flow_advanced(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_smoke_fire(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Flames"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -194,6 +197,7 @@ class PHYSICS_PT_smoke_fire(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_smoke_adaptive_domain(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Adaptive Domain"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -227,12 +231,13 @@ class PHYSICS_PT_smoke_adaptive_domain(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, Panel):
     bl_label = "Smoke High Resolution"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
         md = context.smoke
         rd = context.scene.render
-        return md and (md.smoke_type == 'DOMAIN') and (not rd.use_game_engine)
+        return md and (md.smoke_type == 'DOMAIN') and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         md = context.smoke.domain_settings
@@ -266,12 +271,13 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Groups"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
         md = context.smoke
         rd = context.scene.render
-        return md and (md.smoke_type == 'DOMAIN') and (not rd.use_game_engine)
+        return md and (md.smoke_type == 'DOMAIN') and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -294,12 +300,13 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Cache"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
         md = context.smoke
         rd = context.scene.render
-        return md and (md.smoke_type == 'DOMAIN') and (not rd.use_game_engine)
+        return md and (md.smoke_type == 'DOMAIN') and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -330,12 +337,13 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Field Weights"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
         md = context.smoke
         rd = context.scene.render
-        return md and (md.smoke_type == 'DOMAIN') and (not rd.use_game_engine)
+        return md and (md.smoke_type == 'DOMAIN') and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         domain = context.smoke.domain_settings
