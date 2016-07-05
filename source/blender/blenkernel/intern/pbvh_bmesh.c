@@ -1106,10 +1106,11 @@ static void pbvh_bmesh_collapse_edge(
         EdgeQueueContext *eq_ctx)
 {
 	BMVert *v_del, *v_conn;
-	float mask_v1 = BM_ELEM_CD_GET_FLOAT(v1, eq_ctx->cd_vert_mask_offset);
 
 	/* one of the two vertices may be masked, select the correct one for deletion */
-	if (mask_v1 < 1.0f) {
+	if (BM_ELEM_CD_GET_FLOAT(v1, eq_ctx->cd_vert_mask_offset) <
+	    BM_ELEM_CD_GET_FLOAT(v2, eq_ctx->cd_vert_mask_offset))
+	{
 		v_del = v1;
 		v_conn = v2;
 	}
