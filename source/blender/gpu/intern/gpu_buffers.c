@@ -1033,7 +1033,7 @@ static void gpu_color_from_mask_quad_copy(const CCGKey *key,
 void GPU_update_mesh_pbvh_buffers(
         GPU_PBVH_Buffers *buffers, const MVert *mvert,
         const int *vert_indices, int totvert, const float *vmask,
-        const int (*face_vert_indices)[4], bool show_diffuse_color)
+        const int (*face_vert_indices)[3], bool show_diffuse_color)
 {
 	VertexBufferFormat *vert_data;
 	int i, j;
@@ -1161,7 +1161,7 @@ void GPU_update_mesh_pbvh_buffers(
 }
 
 GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(
-        const int (*face_vert_indices)[4],
+        const int (*face_vert_indices)[3],
         const MPoly *mpoly, const MLoop *mloop, const MLoopTri *looptri,
         const MVert *mvert,
         const int *face_indices,

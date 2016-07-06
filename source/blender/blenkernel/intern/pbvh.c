@@ -276,16 +276,14 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 	/* reserve size is rough guess */
 	GHash *map = BLI_ghash_int_new_ex("build_mesh_leaf_node gh", 2 * totface);
 
-	int (*face_vert_indices)[4] = MEM_callocN(sizeof(int[4]) * totface,
+	int (*face_vert_indices)[3] = MEM_mallocN(sizeof(int[3]) * totface,
 	                                          "bvh node face vert indices");
 
-	node->face_vert_indices = (const int (*)[4])face_vert_indices;
+	node->face_vert_indices = (const int (*)[3])face_vert_indices;
 
 	for (int i = 0; i < totface; ++i) {
 		const MLoopTri *lt = &bvh->looptri[node->prim_indices[i]];
-		const int sides = 3;
-
-		for (int j = 0; j < sides; ++j) {
+		for (int j = 0; j < 3; ++j) {
 			face_vert_indices[i][j] =
 			        map_insert_vert(bvh, map, &node->face_verts,
 			                        &node->uniq_verts, bvh->mloop[lt->tri[j]].v);
