@@ -74,7 +74,9 @@ enum eSDNA_StructCompare {
 	SDNA_CMP_NOT_EQUAL  = 2,
 };
 
-struct SDNA *DNA_sdna_from_data(const void *data, const int datalen, bool do_endian_swap);
+struct SDNA *DNA_sdna_from_data(
+        const void *data, const int datalen,
+        bool do_endian_swap, bool data_alloc);
 void DNA_sdna_free(struct SDNA *sdna);
 
 int DNA_struct_find_nr(struct SDNA *sdna, const char *str);

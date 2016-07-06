@@ -532,7 +532,7 @@ BlenderRNA *RNA_create(void)
 
 	brna = MEM_callocN(sizeof(BlenderRNA), "BlenderRNA");
 
-	DefRNA.sdna = DNA_sdna_from_data(DNAstr,  DNAlen, false);
+	DefRNA.sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false);
 	BLI_listbase_clear(&DefRNA.structs);
 	DefRNA.error = 0;
 	DefRNA.preprocess = 1;

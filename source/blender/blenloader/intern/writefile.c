@@ -325,7 +325,7 @@ static WriteData *writedata_new(WriteWrap *ww)
 {
 	WriteData *wd = MEM_callocN(sizeof(*wd), "writedata");
 
-	wd->sdna = DNA_sdna_from_data(DNAstr, DNAlen, false);
+	wd->sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false);
 
 	wd->ww = ww;
 
@@ -4013,6 +4013,10 @@ static bool write_file_handle(
 	write_thumb(wd, thumb);
 	write_global(wd, write_flags, mainvar);
 
+	/* The windowmanager and screen often change,
+	 * avoid thumbnail detecting changes because of this. */
+	mywrite(wd, MYWRITE_FLUSH, 0);
+
 	write_windowmanagers(wd, &mainvar->wm);
 	write_screens(wd, &mainvar->screen);
 	write_movieclips(wd, &mainvar->movieclip);
@@ -4046,11 +4050,17 @@ static bool write_file_handle(
 	write_linestyles(wd, &mainvar->linestyle);
 	write_libraries(wd,  mainvar->next);
 
+	/* So changes above don't cause a 'DNA1' to be detected as changed on undo. */
+	mywrite(wd, MYWRITE_FLUSH, 0);
+
 	if (write_flags & G_FILE_USERPREFS) {
 		write_userdef(wd);
 	}
 
-	/* dna as last, because (to be implemented) test for which structs are written */
+	/* Write DNA last, because (to be implemented) test for which structs are written.
+	 *
+	 * Note that we *borrow* the pointer to 'DNAstr',
+	 * so writing each time uses the same address and doesn't cause unnecessary undo overhead. */
 	writedata(wd, DNA1, wd->sdna->datalen, wd->sdna->data);
 
 #ifdef USE_NODE_COMPAT_CUSTOMNODES

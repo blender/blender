@@ -918,7 +918,7 @@ static int read_file_dna(FileData *fd)
 		if (bhead->code == DNA1) {
 			const bool do_endian_swap = (fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0;
 			
-			fd->filesdna = DNA_sdna_from_data(&bhead[1], bhead->len, do_endian_swap);
+			fd->filesdna = DNA_sdna_from_data(&bhead[1], bhead->len, do_endian_swap, true);
 			if (fd->filesdna) {
 				fd->compflags = DNA_struct_get_compareflags(fd->filesdna, fd->memsdna);
 				/* used to retrieve ID names from (bhead+1) */
@@ -1078,7 +1078,7 @@ static FileData *filedata_new(void)
 	 * but it keeps us re-entrant,  remove once we have
 	 * a lib that provides a nice lock. - zr
 	 */
-	fd->memsdna = DNA_sdna_from_data(DNAstr, DNAlen, false);
+	fd->memsdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false);
 	
 	fd->datamap = oldnewmap_new();
 	fd->globmap = oldnewmap_new();
