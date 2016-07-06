@@ -1273,27 +1273,18 @@ void BKE_object_make_local(Object *ob)
 	}
 }
 
-/*
- * Returns true if the Object is a from an external blend file (libdata)
- */
+/* Returns true if the Object is from an external blend file (libdata) */
 bool BKE_object_is_libdata(Object *ob)
 {
-	if (!ob) return false;
-	if (ob->proxy) return false;
-	if (ID_IS_LINKED_DATABLOCK(ob)) return true;
-	return false;
+	return (ob && ID_IS_LINKED_DATABLOCK(ob));
 }
 
-/* Returns true if the Object data is a from an external blend file (libdata) */
+/* Returns true if the Object data is from an external blend file (libdata) */
 bool BKE_object_obdata_is_libdata(Object *ob)
 {
-	if (!ob) return false;
-	if (ob->proxy && (ob->data == NULL || !ID_IS_LINKED_DATABLOCK(ob->data))) return false;
-	if (ID_IS_LINKED_DATABLOCK(ob)) return true;
-	if (ob->data == NULL) return false;
-	if (ID_IS_LINKED_DATABLOCK(ob->data)) return true;
-
-	return false;
+	/* Linked objects with local obdata are forbidden! */
+	BLI_assert(!ob || !ob->data || (ID_IS_LINKED_DATABLOCK(ob) ? ID_IS_LINKED_DATABLOCK(ob->data) : true));
+	return (ob && ob->data && ID_IS_LINKED_DATABLOCK(ob->data));
 }
 
 /* *************** PROXY **************** */
