@@ -2941,6 +2941,8 @@ static void write_soops(WriteData *wd, SpaceOops *so)
 
 			writestruct_at_address(wd, DATA, TreeStore, 1, ts, &ts_flat);
 			writestruct_at_address(wd, DATA, TreeStoreElem, elems, data_addr, data);
+
+			MEM_freeN(data);
 		}
 		else {
 			so_flat.treestore = NULL;
