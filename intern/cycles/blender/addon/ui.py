@@ -1712,10 +1712,10 @@ def get_panels():
         }
 
     panels = []
-    for t in bpy.types.Panel.__subclasses__():
-        if hasattr(t, 'COMPAT_ENGINES') and 'BLENDER_RENDER' in t.COMPAT_ENGINES:
-            if t.__name__ not in exclude_panels:
-                panels.append(t)
+    for panel in bpy.types.Panel.__subclasses__():
+        if hasattr(panel, 'COMPAT_ENGINES') and 'BLENDER_RENDER' in panel.COMPAT_ENGINES:
+            if panel.__name__ not in exclude_panels:
+                panels.append(panel)
 
     return panels
 
@@ -1726,10 +1726,10 @@ def register():
     for panel in get_panels():
         panel.COMPAT_ENGINES.add('CYCLES')
 
-
 def unregister():
     bpy.types.RENDER_PT_render.remove(draw_device)
     bpy.types.VIEW3D_HT_header.remove(draw_pause)
 
     for panel in get_panels():
-        panel.COMPAT_ENGINES.remove('CYCLES')
+        if 'CYCLES' in panel.COMPAT_ENGINES:
+            panel.COMPAT_ENGINES.remove('CYCLES')
