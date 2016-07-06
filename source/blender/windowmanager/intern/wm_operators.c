@@ -3884,7 +3884,7 @@ static void previews_id_ensure(bContext *C, Scene *scene, ID *id)
 
 	/* Only preview non-library datablocks, lib ones do not pertain to this .blend file!
 	 * Same goes for ID with no user. */
-	if (!id->lib && (id->us != 0)) {
+	if (!ID_IS_LINKED_DATABLOCK(id) && (id->us != 0)) {
 		UI_id_icon_render(C, scene, id, false, false);
 		UI_id_icon_render(C, scene, id, true, false);
 	}
@@ -4469,7 +4469,7 @@ static EnumPropertyItem *rna_id_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(pt
 	int i = 0;
 
 	for (; id; id = id->next) {
-		if (local == false || id->lib == NULL) {
+		if (local == false || !ID_IS_LINKED_DATABLOCK(id)) {
 			item_tmp.identifier = item_tmp.name = id->name + 2;
 			item_tmp.value = i++;
 			RNA_enum_item_add(&item, &totitem, &item_tmp);

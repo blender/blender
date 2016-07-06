@@ -3332,7 +3332,7 @@ ParticleSettings *BKE_particlesettings_copy(ParticleSettings *part)
 
 	BLI_duplicatelist(&partn->dupliweights, &part->dupliweights);
 	
-	if (part->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(part)) {
 		BKE_id_lib_local_paths(G.main, part->id.lib, &partn->id);
 	}
 
@@ -3360,7 +3360,7 @@ void BKE_particlesettings_make_local(ParticleSettings *part)
 	 * - mixed: make copy
 	 */
 	
-	if (part->id.lib == 0) return;
+	if (!ID_IS_LINKED_DATABLOCK(part)) return;
 	if (part->id.us == 1) {
 		id_clear_lib_data(bmain, &part->id);
 		expand_local_particlesettings(part);
@@ -3372,7 +3372,7 @@ void BKE_particlesettings_make_local(ParticleSettings *part)
 		ParticleSystem *psys = ob->particlesystem.first;
 		for (; psys; psys = psys->next) {
 			if (psys->part == part) {
-				if (ob->id.lib) is_lib = true;
+				if (ID_IS_LINKED_DATABLOCK(ob)) is_lib = true;
 				else is_local = true;
 			}
 		}
@@ -3393,7 +3393,7 @@ void BKE_particlesettings_make_local(ParticleSettings *part)
 		for (ob = bmain->object.first; ob; ob = ob->id.next) {
 			ParticleSystem *psys;
 			for (psys = ob->particlesystem.first; psys; psys = psys->next) {
-				if (psys->part == part && ob->id.lib == 0) {
+				if (psys->part == part && !ID_IS_LINKED_DATABLOCK(ob)) {
 					psys->part = part_new;
 					id_us_plus(&part_new->id);
 					id_us_min(&part->id);

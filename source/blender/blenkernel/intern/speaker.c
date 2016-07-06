@@ -74,7 +74,7 @@ Speaker *BKE_speaker_copy(Speaker *spk)
 	if (spkn->sound)
 		id_us_plus(&spkn->sound->id);
 
-	if (spk->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(spk)) {
 		BKE_id_lib_local_paths(G.main, spk->id.lib, &spkn->id);
 	}
 
@@ -97,7 +97,7 @@ void BKE_speaker_make_local(Speaker *spk)
 	 * - mixed: make copy
 	 */
 
-	if (spk->id.lib == NULL) return;
+	if (!ID_IS_LINKED_DATABLOCK(spk)) return;
 	if (spk->id.us == 1) {
 		id_clear_lib_data(bmain, &spk->id);
 		extern_local_speaker(spk);
@@ -107,7 +107,7 @@ void BKE_speaker_make_local(Speaker *spk)
 	ob = bmain->object.first;
 	while (ob) {
 		if (ob->data == spk) {
-			if (ob->id.lib) is_lib = true;
+			if (ID_IS_LINKED_DATABLOCK(ob)) is_lib = true;
 			else is_local = true;
 		}
 		ob = ob->id.next;
@@ -128,7 +128,7 @@ void BKE_speaker_make_local(Speaker *spk)
 		while (ob) {
 			if (ob->data == spk) {
 
-				if (ob->id.lib == NULL) {
+				if (!ID_IS_LINKED_DATABLOCK(ob)) {
 					ob->data = spk_new;
 					id_us_plus(&spk_new->id);
 					id_us_min(&spk->id);

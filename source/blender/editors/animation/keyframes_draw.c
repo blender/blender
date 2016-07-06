@@ -679,7 +679,7 @@ void draw_fcurve_channel(View2D *v2d, AnimData *adt, FCurve *fcu, float ypos)
 	
 	short locked = (fcu->flag & FCURVE_PROTECTED) ||
 	               ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ||
-	               ((adt && adt->action) && (adt->action->id.lib));
+	               ((adt && adt->action) && ID_IS_LINKED_DATABLOCK(adt->action));
 	
 	BLI_dlrbTree_init(&keys);
 	BLI_dlrbTree_init(&blocks);
@@ -700,7 +700,7 @@ void draw_agroup_channel(View2D *v2d, AnimData *adt, bActionGroup *agrp, float y
 	DLRBT_Tree keys, blocks;
 	
 	short locked = (agrp->flag & AGRP_PROTECTED) ||
-	               ((adt && adt->action) && (adt->action->id.lib));
+	               ((adt && adt->action) && ID_IS_LINKED_DATABLOCK(adt->action));
 	
 	BLI_dlrbTree_init(&keys);
 	BLI_dlrbTree_init(&blocks);
@@ -720,7 +720,7 @@ void draw_action_channel(View2D *v2d, AnimData *adt, bAction *act, float ypos)
 {
 	DLRBT_Tree keys, blocks;
 	
-	short locked = (act && act->id.lib != NULL);
+	short locked = (act && ID_IS_LINKED_DATABLOCK(act));
 	
 	BLI_dlrbTree_init(&keys);
 	BLI_dlrbTree_init(&blocks);

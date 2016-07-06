@@ -630,7 +630,7 @@ void BKE_main_lib_objects_recalc_all(Main *bmain)
 
 	/* flag for full recalc */
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
-		if (ob->id.lib) {
+		if (ID_IS_LINKED_DATABLOCK(ob)) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 		}
 	}
@@ -1061,7 +1061,7 @@ static int id_relink_looper(void *UNUSED(user_data), ID *UNUSED(self_id), ID **i
 
 void BKE_libblock_relink(ID *id)
 {
-	if (id->lib)
+	if (ID_IS_LINKED_DATABLOCK(id))
 		return;
 
 	BKE_library_foreach_ID_link(id, id_relink_looper, NULL, 0);
@@ -1275,7 +1275,7 @@ static ID *is_dupid(ListBase *lb, ID *id, const char *name)
 	
 	for (idtest = lb->first; idtest; idtest = idtest->next) {
 		/* if idtest is not a lib */ 
-		if (id != idtest && idtest->lib == NULL) {
+		if (id != idtest && !ID_IS_LINKED_DATABLOCK(idtest)) {
 			/* do not test alphabetic! */
 			/* optimized */
 			if (idtest->name[2] == name[0]) {
@@ -1335,7 +1335,7 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
 		for (idtest = lb->first; idtest; idtest = idtest->next) {
 			int nrtest;
 			if ( (id != idtest) &&
-			     (idtest->lib == NULL) &&
+			     !ID_IS_LINKED_DATABLOCK(idtest) &&
 			     (*name == *(idtest->name + 2)) &&
 			     STREQLEN(name, idtest->name + 2, left_len) &&
 			     (BLI_split_name_num(leftest, &nrtest, idtest->name + 2, '.') == left_len)
@@ -1417,7 +1417,7 @@ bool new_id(ListBase *lb, ID *id, const char *tname)
 	char name[MAX_ID_NAME - 2];
 
 	/* if library, don't rename */
-	if (id->lib)
+	if (ID_IS_LINKED_DATABLOCK(id))
 		return false;
 
 	/* if no libdata given, look up based on ID */
@@ -1522,7 +1522,7 @@ static void lib_indirect_test_id(ID *id, const Library *lib)
 #define LIBTAG(a) \
 	if (a && a->id.lib) { a->id.tag &= ~LIB_TAG_INDIRECT; a->id.tag |= LIB_TAG_EXTERN; } (void)0
 	
-	if (id->lib) {
+	if (ID_IS_LINKED_DATABLOCK(id)) {
 		/* datablocks that were indirectly related are now direct links
 		 * without this, appending data that has a link to other data will fail to write */
 		if (lib && id->lib->parent == lib) {

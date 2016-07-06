@@ -346,7 +346,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
 		fly->rv3d->persp = RV3D_PERSP;
 	}
 
-	if (fly->rv3d->persp == RV3D_CAMOB && fly->v3d->camera->id.lib) {
+	if (fly->rv3d->persp == RV3D_CAMOB && ID_IS_LINKED_DATABLOCK(fly->v3d->camera)) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot fly a camera from an external library");
 		return false;
 	}

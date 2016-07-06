@@ -4693,7 +4693,7 @@ static int particle_edit_toggle_poll(bContext *C)
 
 	if (ob == NULL || ob->type != OB_MESH)
 		return 0;
-	if (!ob->data || ((ID *)ob->data)->lib)
+	if (!ob->data || ID_IS_LINKED_DATABLOCK(ob->data))
 		return 0;
 	if (CTX_data_edit_object(C))
 		return 0;

@@ -291,17 +291,17 @@ static int make_proxy_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	Object *ob = ED_object_active_context(C);
 
 	/* sanity checks */
-	if (!scene || scene->id.lib || !ob)
+	if (!scene || ID_IS_LINKED_DATABLOCK(scene) || !ob)
 		return OPERATOR_CANCELLED;
 
 	/* Get object to work on - use a menu if we need to... */
-	if (ob->dup_group && ob->dup_group->id.lib) {
+	if (ob->dup_group && ID_IS_LINKED_DATABLOCK(ob->dup_group)) {
 		/* gives menu with list of objects in group */
 		/* proxy_group_objects_menu(C, op, ob, ob->dup_group); */
 		WM_enum_search_invoke(C, op, event);
 		return OPERATOR_CANCELLED;
 	}
-	else if (ob->id.lib) {
+	else if (ID_IS_LINKED_DATABLOCK(ob)) {
 		uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("OK?"), ICON_QUESTION);
 		uiLayout *layout = UI_popup_menu_layout(pup);
 
@@ -1466,7 +1466,7 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (scene_to->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(scene_to)) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot link objects into a linked scene");
 		return OPERATOR_CANCELLED;
 	}
@@ -1579,7 +1579,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 					case MAKE_LINKS_ANIMDATA:
 						BKE_animdata_copy_id((ID *)ob_dst, (ID *)ob_src, false);
 						if (ob_dst->data && ob_src->data) {
-							if (obdata_id->lib) {
+							if (ID_IS_LINKED_DATABLOCK(obdata_id)) {
 								is_lib = true;
 								break;
 							}
@@ -1621,7 +1621,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						Curve *cu_src = ob_src->data;
 						Curve *cu_dst = ob_dst->data;
 
-						if (obdata_id->lib) {
+						if (ID_IS_LINKED_DATABLOCK(obdata_id)) {
 							is_lib = true;
 							break;
 						}
@@ -1749,7 +1749,7 @@ static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, const in
 		ob = base->object;
 
 		if ((base->flag & flag) == flag) {
-			if (ob->id.lib == NULL && ob->id.us > 1) {
+			if (!ID_IS_LINKED_DATABLOCK(ob) && ob->id.us > 1) {
 				/* base gets copy of object */
 				obn = BKE_object_copy(ob);
 				base->object = obn;
@@ -1828,7 +1828,7 @@ static void new_id_matar(Material **matar, const int totcol)
 
 	for (a = 0; a < totcol; a++) {
 		id = (ID *)matar[a];
-		if (id && id->lib == NULL) {
+		if (id && !ID_IS_LINKED_DATABLOCK(id)) {
 			if (id->newid) {
 				matar[a] = (Material *)id->newid;
 				id_us_plus(id->newid);
@@ -1857,10 +1857,10 @@ static void single_obdata_users(Main *bmain, Scene *scene, const int flag)
 
 	for (base = FIRSTBASE; base; base = base->next) {
 		ob = base->object;
-		if (ob->id.lib == NULL && (base->flag & flag) == flag) {
+		if (!ID_IS_LINKED_DATABLOCK(ob) && (base->flag & flag) == flag) {
 			id = ob->data;
 
-			if (id && id->us > 1 && id->lib == NULL) {
+			if (id && id->us > 1 && !ID_IS_LINKED_DATABLOCK(id)) {
 				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 				switch (ob->type) {
@@ -1938,7 +1938,7 @@ static void single_object_action_users(Scene *scene, const int flag)
 
 	for (base = FIRSTBASE; base; base = base->next) {
 		ob = base->object;
-		if (ob->id.lib == NULL && (flag == 0 || (base->flag & SELECT)) ) {
+		if (!ID_IS_LINKED_DATABLOCK(ob) && (flag == 0 || (base->flag & SELECT)) ) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			BKE_animdata_copy_id_action(&ob->id);
 		}
@@ -1955,7 +1955,7 @@ static void single_mat_users(Scene *scene, const int flag, const bool do_texture
 
 	for (base = FIRSTBASE; base; base = base->next) {
 		ob = base->object;
-		if (ob->id.lib == NULL && (flag == 0 || (base->flag & SELECT)) ) {
+		if (!ID_IS_LINKED_DATABLOCK(ob) && (flag == 0 || (base->flag & SELECT)) ) {
 			for (a = 1; a <= ob->totcol; a++) {
 				ma = give_current_material(ob, a);
 				if (ma) {
@@ -2184,7 +2184,7 @@ static bool make_local_all__instance_indirect_unused(Main *bmain, Scene *scene)
 	bool changed = false;
 
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
-		if (ob->id.lib && (ob->id.us == 0)) {
+		if (ID_IS_LINKED_DATABLOCK(ob) && (ob->id.us == 0)) {
 			Base *base;
 
 			id_us_plus(&ob->id);

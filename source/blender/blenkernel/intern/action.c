@@ -107,7 +107,7 @@ static void make_localact_init_cb(ID *id, AnimData *adt, void *mlac_ptr)
 	tMakeLocalActionContext *mlac = (tMakeLocalActionContext *)mlac_ptr;
 	
 	if (adt->action == mlac->act) {
-		if (id->lib) mlac->is_lib = true;
+		if (ID_IS_LINKED_DATABLOCK(id)) mlac->is_lib = true;
 		else mlac->is_local = true;
 	}
 }
@@ -118,7 +118,7 @@ static void make_localact_apply_cb(ID *id, AnimData *adt, void *mlac_ptr)
 	tMakeLocalActionContext *mlac = (tMakeLocalActionContext *)mlac_ptr;
 	
 	if (adt->action == mlac->act) {
-		if (id->lib == NULL) {
+		if (!ID_IS_LINKED_DATABLOCK(id)) {
 			adt->action = mlac->act_new;
 			
 			id_us_plus(&mlac->act_new->id);
@@ -133,7 +133,7 @@ void BKE_action_make_local(bAction *act)
 	tMakeLocalActionContext mlac = {act, NULL, false, false};
 	Main *bmain = G.main;
 	
-	if (act->id.lib == NULL)
+	if (!ID_IS_LINKED_DATABLOCK(act))
 		return;
 	
 	/* XXX: double-check this; it used to be just single-user check, but that was when fake-users were still default */
@@ -213,7 +213,7 @@ bAction *BKE_action_copy(bAction *src)
 		}
 	}
 	
-	if (src->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(src)) {
 		BKE_id_lib_local_paths(G.main, src->id.lib, &dst->id);
 	}
 

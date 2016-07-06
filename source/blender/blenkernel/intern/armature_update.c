@@ -696,7 +696,7 @@ void BKE_pose_eval_flush(EvaluationContext *UNUSED(eval_ctx),
 
 void BKE_pose_eval_proxy_copy(EvaluationContext *UNUSED(eval_ctx), Object *ob)
 {
-	BLI_assert(ob->id.lib != NULL && ob->proxy_from != NULL);
+	BLI_assert(ID_IS_LINKED_DATABLOCK(ob) && ob->proxy_from != NULL);
 	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
 	if (BKE_pose_copy_result(ob->pose, ob->proxy_from->pose) == false) {
 		printf("Proxy copy error, lib Object: %s proxy Object: %s\n",

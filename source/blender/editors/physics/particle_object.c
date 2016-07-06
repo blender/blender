@@ -974,7 +974,7 @@ static void remove_particle_systems_from_object(Object *ob_to)
 	
 	if (ob_to->type != OB_MESH)
 		return;
-	if (!ob_to->data || ((ID *)ob_to->data)->lib)
+	if (!ob_to->data || ID_IS_LINKED_DATABLOCK(ob_to->data))
 		return;
 	
 	for (md = ob_to->modifiers.first; md; md = md_next) {
@@ -1004,7 +1004,7 @@ static bool copy_particle_systems_to_object(Scene *scene, Object *ob_from, Parti
 	
 	if (ob_to->type != OB_MESH)
 		return false;
-	if (!ob_to->data || ((ID *)ob_to->data)->lib)
+	if (!ob_to->data || ID_IS_LINKED_DATABLOCK(ob_to->data))
 		return false;
 	
 	/* For remapping we need a valid DM.

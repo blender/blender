@@ -207,7 +207,7 @@ Curve *BKE_curve_copy(Curve *cu)
 	id_us_plus((ID *)cun->vfonti);
 	id_us_plus((ID *)cun->vfontbi);
 
-	if (cu->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(cu)) {
 		BKE_id_lib_local_paths(G.main, cu->id.lib, &cun->id);
 	}
 
@@ -237,7 +237,7 @@ void BKE_curve_make_local(Curve *cu)
 	 * - mixed: do a copy
 	 */
 
-	if (cu->id.lib == NULL)
+	if (!ID_IS_LINKED_DATABLOCK(cu))
 		return;
 
 	if (cu->id.us == 1) {
@@ -248,7 +248,7 @@ void BKE_curve_make_local(Curve *cu)
 
 	for (ob = bmain->object.first; ob && ELEM(0, is_lib, is_local); ob = ob->id.next) {
 		if (ob->data == cu) {
-			if (ob->id.lib) is_lib = true;
+			if (ID_IS_LINKED_DATABLOCK(ob)) is_lib = true;
 			else is_local = true;
 		}
 	}
@@ -265,7 +265,7 @@ void BKE_curve_make_local(Curve *cu)
 
 		for (ob = bmain->object.first; ob; ob = ob->id.next) {
 			if (ob->data == cu) {
-				if (ob->id.lib == NULL) {
+				if (!ID_IS_LINKED_DATABLOCK(ob)) {
 					ob->data = cu_new;
 					id_us_plus(&cu_new->id);
 					id_us_min(&cu->id);

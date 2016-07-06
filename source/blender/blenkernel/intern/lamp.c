@@ -137,7 +137,7 @@ Lamp *BKE_lamp_copy(Lamp *la)
 	if (la->preview)
 		lan->preview = BKE_previewimg_copy(la->preview);
 	
-	if (la->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(la)) {
 		BKE_id_lib_local_paths(G.main, la->id.lib, &lan->id);
 	}
 
@@ -181,7 +181,7 @@ void BKE_lamp_make_local(Lamp *la)
 	 * - mixed: make copy
 	 */
 	
-	if (la->id.lib == NULL) return;
+	if (!ID_IS_LINKED_DATABLOCK(la)) return;
 	if (la->id.us == 1) {
 		id_clear_lib_data(bmain, &la->id);
 		return;
@@ -190,7 +190,7 @@ void BKE_lamp_make_local(Lamp *la)
 	ob = bmain->object.first;
 	while (ob) {
 		if (ob->data == la) {
-			if (ob->id.lib) is_lib = true;
+			if (ID_IS_LINKED_DATABLOCK(ob)) is_lib = true;
 			else is_local = true;
 		}
 		ob = ob->id.next;
@@ -210,7 +210,7 @@ void BKE_lamp_make_local(Lamp *la)
 		while (ob) {
 			if (ob->data == la) {
 				
-				if (ob->id.lib == NULL) {
+				if (!ID_IS_LINKED_DATABLOCK(ob)) {
 					ob->data = la_new;
 					id_us_plus(&la_new->id);
 					id_us_min(&la->id);

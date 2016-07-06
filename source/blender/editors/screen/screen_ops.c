@@ -168,7 +168,7 @@ int ED_operator_screen_mainwinactive(bContext *C)
 int ED_operator_scene_editable(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
-	if (scene && scene->id.lib == NULL)
+	if (scene && !ID_IS_LINKED_DATABLOCK(scene))
 		return 1;
 	return 0;
 }
@@ -178,7 +178,7 @@ int ED_operator_objectmode(bContext *C)
 	Scene *scene = CTX_data_scene(C);
 	Object *obact = CTX_data_active_object(C);
 
-	if (scene == NULL || scene->id.lib)
+	if (scene == NULL || ID_IS_LINKED_DATABLOCK(scene))
 		return 0;
 	if (CTX_data_edit_object(C))
 		return 0;
@@ -279,7 +279,7 @@ int ED_operator_node_editable(bContext *C)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	
-	if (snode && snode->edittree && snode->edittree->id.lib == NULL)
+	if (snode && snode->edittree && !ID_IS_LINKED_DATABLOCK(snode->edittree))
 		return 1;
 	
 	return 0;
@@ -341,20 +341,20 @@ int ED_operator_object_active(bContext *C)
 int ED_operator_object_active_editable(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
-	return ((ob != NULL) && !(ob->id.lib) && !ed_object_hidden(ob));
+	return ((ob != NULL) && !ID_IS_LINKED_DATABLOCK(ob) && !ed_object_hidden(ob));
 }
 
 int ED_operator_object_active_editable_mesh(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
-	return ((ob != NULL) && !(ob->id.lib) && !ed_object_hidden(ob) &&
-	        (ob->type == OB_MESH) && !(((ID *)ob->data)->lib));
+	return ((ob != NULL) && !ID_IS_LINKED_DATABLOCK(ob) && !ed_object_hidden(ob) &&
+	        (ob->type == OB_MESH) && !ID_IS_LINKED_DATABLOCK(ob->data));
 }
 
 int ED_operator_object_active_editable_font(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
-	return ((ob != NULL) && !(ob->id.lib) && !ed_object_hidden(ob) &&
+	return ((ob != NULL) && !ID_IS_LINKED_DATABLOCK(ob) && !ed_object_hidden(ob) &&
 	        (ob->type == OB_FONT));
 }
 

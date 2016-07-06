@@ -454,7 +454,7 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 
 		if (but->rnapoin.id.data) {
 			ID *id = but->rnapoin.id.data;
-			if (id->lib) {
+			if (ID_IS_LINKED_DATABLOCK(id)) {
 				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Library: %s"), id->lib->name);
 				data->format[data->totline].color_id = UI_TIP_LC_NORMAL;
 				data->totline++;

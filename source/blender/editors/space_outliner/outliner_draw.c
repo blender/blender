@@ -402,7 +402,7 @@ void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag)
 
 	if (group_restrict_flag(gr, flag)) {
 		for (gob = gr->gobject.first; gob; gob = gob->next) {
-			if (gob->ob->id.lib)
+			if (ID_IS_LINKED_DATABLOCK(gob->ob))
 				continue;
 
 			gob->ob->restrictflag &= ~flag;
@@ -414,7 +414,7 @@ void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag)
 	}
 	else {
 		for (gob = gr->gobject.first; gob; gob = gob->next) {
-			if (gob->ob->id.lib)
+			if (ID_IS_LINKED_DATABLOCK(gob->ob))
 				continue;
 
 			/* not in editmode */
@@ -655,7 +655,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				int but_flag = UI_BUT_DRAG_LOCK;
 				gr = (Group *)tselem->id;
 
-				if (gr->id.lib)
+				if (ID_IS_LINKED_DATABLOCK(gr))
 					but_flag |= UI_BUT_DISABLED;
 				
 				UI_block_emboss_set(block, UI_EMBOSS_NONE);
@@ -828,7 +828,7 @@ static void outliner_draw_userbuts(uiBlock *block, ARegion *ar, SpaceOops *soops
 				char buf[16] = "";
 				int but_flag = UI_BUT_DRAG_LOCK;
 
-				if (id->lib)
+				if (ID_IS_LINKED_DATABLOCK(id))
 					but_flag |= UI_BUT_DISABLED;
 
 				UI_block_emboss_set(block, UI_EMBOSS_NONE);
@@ -993,7 +993,8 @@ static void tselem_draw_icon_uibut(struct DrawIconArg *arg, int icon)
 	}
 	else {
 		uiBut *but = uiDefIconBut(arg->block, UI_BTYPE_LABEL, 0, icon, arg->xb, arg->yb, UI_UNIT_X, UI_UNIT_Y, NULL,
-		                          0.0, 0.0, 1.0, arg->alpha, (arg->id && arg->id->lib) ? arg->id->lib->name : "");
+		                          0.0, 0.0, 1.0, arg->alpha,
+		                          (arg->id && ID_IS_LINKED_DATABLOCK(arg->id)) ? arg->id->lib->name : "");
 		
 		if (arg->id)
 			UI_but_drag_set_id(but, arg->id);
@@ -1567,7 +1568,7 @@ static void outliner_draw_tree_element(
 		else
 			offsx += 2 * ufac;
 		
-		if (tselem->type == 0 && tselem->id->lib) {
+		if (tselem->type == 0 && ID_IS_LINKED_DATABLOCK(tselem->id)) {
 			glPixelTransferf(GL_ALPHA_SCALE, 0.5f);
 			if (tselem->id->tag & LIB_TAG_MISSING) {
 				UI_icon_draw((float)startx + offsx, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_BROKEN);

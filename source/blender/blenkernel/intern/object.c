@@ -1168,7 +1168,7 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, bool copy_caches)
 	/* Copy runtime surve data. */
 	obn->curve_cache = NULL;
 
-	if (ob->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(ob)) {
 		BKE_id_lib_local_paths(bmain, ob->id.lib, &obn->id);
 	}
 
@@ -1226,7 +1226,7 @@ void BKE_object_make_local(Object *ob)
 	 * - mixed: make copy
 	 */
 
-	if (ob->id.lib == NULL) return;
+	if (!ID_IS_LINKED_DATABLOCK(ob)) return;
 	
 	ob->proxy = ob->proxy_from  = ob->proxy_group = NULL;
 	
@@ -1237,7 +1237,7 @@ void BKE_object_make_local(Object *ob)
 	else {
 		for (sce = bmain->scene.first; sce && ELEM(0, is_lib, is_local); sce = sce->id.next) {
 			if (BKE_scene_base_find(sce, ob)) {
-				if (sce->id.lib) is_lib = true;
+				if (ID_IS_LINKED_DATABLOCK(sce)) is_lib = true;
 				else is_local = true;
 			}
 		}
@@ -1256,7 +1256,7 @@ void BKE_object_make_local(Object *ob)
 
 			sce = bmain->scene.first;
 			while (sce) {
-				if (sce->id.lib == NULL) {
+				if (!ID_IS_LINKED_DATABLOCK(sce)) {
 					base = sce->base.first;
 					while (base) {
 						if (base->object == ob) {
@@ -1280,7 +1280,7 @@ bool BKE_object_is_libdata(Object *ob)
 {
 	if (!ob) return false;
 	if (ob->proxy) return false;
-	if (ob->id.lib) return true;
+	if (ID_IS_LINKED_DATABLOCK(ob)) return true;
 	return false;
 }
 
@@ -1288,10 +1288,10 @@ bool BKE_object_is_libdata(Object *ob)
 bool BKE_object_obdata_is_libdata(Object *ob)
 {
 	if (!ob) return false;
-	if (ob->proxy && (ob->data == NULL || ((ID *)ob->data)->lib == NULL)) return false;
-	if (ob->id.lib) return true;
+	if (ob->proxy && (ob->data == NULL || !ID_IS_LINKED_DATABLOCK(ob->data))) return false;
+	if (ID_IS_LINKED_DATABLOCK(ob)) return true;
 	if (ob->data == NULL) return false;
-	if (((ID *)ob->data)->lib) return true;
+	if (ID_IS_LINKED_DATABLOCK(ob->data)) return true;
 
 	return false;
 }
@@ -1340,7 +1340,7 @@ void BKE_object_copy_proxy_drivers(Object *ob, Object *target)
 							/* only on local objects because this causes indirect links
 							 * 'a -> b -> c', blend to point directly to a.blend
 							 * when a.blend has a proxy thats linked into c.blend  */
-							if (ob->id.lib == NULL)
+							if (!ID_IS_LINKED_DATABLOCK(ob))
 								id_lib_extern((ID *)dtar->id);
 						}
 					}
@@ -1358,7 +1358,7 @@ void BKE_object_copy_proxy_drivers(Object *ob, Object *target)
 void BKE_object_make_proxy(Object *ob, Object *target, Object *gob)
 {
 	/* paranoia checks */
-	if (ob->id.lib || target->id.lib == NULL) {
+	if (ID_IS_LINKED_DATABLOCK(ob) || !ID_IS_LINKED_DATABLOCK(target)) {
 		printf("cannot make proxy\n");
 		return;
 	}
@@ -2735,7 +2735,7 @@ void BKE_object_handle_update_ex(EvaluationContext *eval_ctx,
 				printf("recalcob %s\n", ob->id.name + 2);
 			
 			/* handle proxy copy for target */
-			if (ob->id.lib && ob->proxy_from) {
+			if (ID_IS_LINKED_DATABLOCK(ob) && ob->proxy_from) {
 				// printf("ob proxy copy, lib ob %s proxy %s\n", ob->id.name, ob->proxy_from->id.name);
 				if (ob->proxy_from->proxy_group) { /* transform proxy into group space */
 					Object *obg = ob->proxy_from->proxy_group;

@@ -424,7 +424,7 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 {
 	const char *absbase = (flag & BKE_BPATH_TRAVERSE_ABS) ? ID_BLEND_PATH(bmain, id) : NULL;
 
-	if ((flag & BKE_BPATH_TRAVERSE_SKIP_LIBRARY) && id->lib) {
+	if ((flag & BKE_BPATH_TRAVERSE_SKIP_LIBRARY) && ID_IS_LINKED_DATABLOCK(id)) {
 		return;
 	}
 

@@ -1624,7 +1624,7 @@ bool RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
 	flag = prop->editable ? prop->editable(ptr) : prop->flag;
 	return ((flag & PROP_EDITABLE) &&
 	        (flag & PROP_REGISTER) == 0 &&
-	        (!id || !id->lib || (prop->flag & PROP_LIB_EXCEPTION)));
+	        (!id || !ID_IS_LINKED_DATABLOCK(id) || (prop->flag & PROP_LIB_EXCEPTION)));
 }
 
 bool RNA_property_editable_flag(PointerRNA *ptr, PropertyRNA *prop)
@@ -1656,7 +1656,7 @@ bool RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 
 	id = ptr->id.data;
 
-	return (flag & PROP_EDITABLE) && (!id || !id->lib || (prop->flag & PROP_LIB_EXCEPTION));
+	return (flag & PROP_EDITABLE) && (!id || !ID_IS_LINKED_DATABLOCK(id) || (prop->flag & PROP_LIB_EXCEPTION));
 }
 
 bool RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)

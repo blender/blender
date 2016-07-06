@@ -416,7 +416,7 @@ bool UI_context_copy_to_selected_list(
 
 					if ((id_data == NULL) ||
 					    (id_data->tag & LIB_TAG_DOIT) == 0 ||
-					    (id_data->lib) ||
+					    ID_IS_LINKED_DATABLOCK(id_data->lib) ||
 					    (GS(id_data->name) != id_code))
 					{
 						BLI_remlink(&lb, link);

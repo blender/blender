@@ -870,7 +870,7 @@ Tex *BKE_texture_copy(Tex *tex)
 		texn->nodetree = ntreeCopyTree(tex->nodetree);
 	}
 	
-	if (tex->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(tex)) {
 		BKE_id_lib_local_paths(G.main, tex->id.lib, &texn->id);
 	}
 
@@ -935,7 +935,7 @@ void BKE_texture_make_local(Tex *tex)
 	 * - mixed: make copy
 	 */
 	
-	if (tex->id.lib == NULL) return;
+	if (!ID_IS_LINKED_DATABLOCK(tex)) return;
 
 	if (tex->id.us == 1) {
 		id_clear_lib_data(bmain, &tex->id);
@@ -947,7 +947,7 @@ void BKE_texture_make_local(Tex *tex)
 	while (ma) {
 		for (a = 0; a < MAX_MTEX; a++) {
 			if (ma->mtex[a] && ma->mtex[a]->tex == tex) {
-				if (ma->id.lib) is_lib = true;
+				if (ID_IS_LINKED_DATABLOCK(ma)) is_lib = true;
 				else is_local = true;
 			}
 		}
@@ -957,7 +957,7 @@ void BKE_texture_make_local(Tex *tex)
 	while (la) {
 		for (a = 0; a < MAX_MTEX; a++) {
 			if (la->mtex[a] && la->mtex[a]->tex == tex) {
-				if (la->id.lib) is_lib = true;
+				if (ID_IS_LINKED_DATABLOCK(la)) is_lib = true;
 				else is_local = true;
 			}
 		}
@@ -967,7 +967,7 @@ void BKE_texture_make_local(Tex *tex)
 	while (wrld) {
 		for (a = 0; a < MAX_MTEX; a++) {
 			if (wrld->mtex[a] && wrld->mtex[a]->tex == tex) {
-				if (wrld->id.lib) is_lib = true;
+				if (ID_IS_LINKED_DATABLOCK(wrld)) is_lib = true;
 				else is_local = true;
 			}
 		}
@@ -976,11 +976,11 @@ void BKE_texture_make_local(Tex *tex)
 	br = bmain->brush.first;
 	while (br) {
 		if (br->mtex.tex == tex) {
-			if (br->id.lib) is_lib = true;
+			if (ID_IS_LINKED_DATABLOCK(br)) is_lib = true;
 			else is_local = true;
 		}
 		if (br->mask_mtex.tex == tex) {
-			if (br->id.lib) is_lib = true;
+			if (ID_IS_LINKED_DATABLOCK(br)) is_lib = true;
 			else is_local = true;
 		}
 		br = br->id.next;
@@ -989,7 +989,7 @@ void BKE_texture_make_local(Tex *tex)
 	while (pa) {
 		for (a = 0; a < MAX_MTEX; a++) {
 			if (pa->mtex[a] && pa->mtex[a]->tex == tex) {
-				if (pa->id.lib) is_lib = true;
+				if (ID_IS_LINKED_DATABLOCK(pa)) is_lib = true;
 				else is_local = true;
 			}
 		}
@@ -999,7 +999,7 @@ void BKE_texture_make_local(Tex *tex)
 	while (ls) {
 		for (a = 0; a < MAX_MTEX; a++) {
 			if (ls->mtex[a] && ls->mtex[a]->tex == tex) {
-				if (ls->id.lib) is_lib = true;
+				if (ID_IS_LINKED_DATABLOCK(ls)) is_lib = true;
 				else is_local = true;
 			}
 		}
@@ -1022,7 +1022,7 @@ void BKE_texture_make_local(Tex *tex)
 		while (ma) {
 			for (a = 0; a < MAX_MTEX; a++) {
 				if (ma->mtex[a] && ma->mtex[a]->tex == tex) {
-					if (ma->id.lib == NULL) {
+					if (!ID_IS_LINKED_DATABLOCK(ma)) {
 						ma->mtex[a]->tex = tex_new;
 						id_us_plus(&tex_new->id);
 						id_us_min(&tex->id);
@@ -1035,7 +1035,7 @@ void BKE_texture_make_local(Tex *tex)
 		while (la) {
 			for (a = 0; a < MAX_MTEX; a++) {
 				if (la->mtex[a] && la->mtex[a]->tex == tex) {
-					if (la->id.lib == NULL) {
+					if (!ID_IS_LINKED_DATABLOCK(la)) {
 						la->mtex[a]->tex = tex_new;
 						id_us_plus(&tex_new->id);
 						id_us_min(&tex->id);
@@ -1048,7 +1048,7 @@ void BKE_texture_make_local(Tex *tex)
 		while (wrld) {
 			for (a = 0; a < MAX_MTEX; a++) {
 				if (wrld->mtex[a] && wrld->mtex[a]->tex == tex) {
-					if (wrld->id.lib == NULL) {
+					if (!ID_IS_LINKED_DATABLOCK(wrld)) {
 						wrld->mtex[a]->tex = tex_new;
 						id_us_plus(&tex_new->id);
 						id_us_min(&tex->id);
@@ -1060,14 +1060,14 @@ void BKE_texture_make_local(Tex *tex)
 		br = bmain->brush.first;
 		while (br) {
 			if (br->mtex.tex == tex) {
-				if (br->id.lib == NULL) {
+				if (!ID_IS_LINKED_DATABLOCK(br)) {
 					br->mtex.tex = tex_new;
 					id_us_plus(&tex_new->id);
 					id_us_min(&tex->id);
 				}
 			}
 			if (br->mask_mtex.tex == tex) {
-				if (br->id.lib == NULL) {
+				if (!ID_IS_LINKED_DATABLOCK(br)) {
 					br->mask_mtex.tex = tex_new;
 					id_us_plus(&tex_new->id);
 					id_us_min(&tex->id);
@@ -1079,7 +1079,7 @@ void BKE_texture_make_local(Tex *tex)
 		while (pa) {
 			for (a = 0; a < MAX_MTEX; a++) {
 				if (pa->mtex[a] && pa->mtex[a]->tex == tex) {
-					if (pa->id.lib == NULL) {
+					if (!ID_IS_LINKED_DATABLOCK(pa)) {
 						pa->mtex[a]->tex = tex_new;
 						id_us_plus(&tex_new->id);
 						id_us_min(&tex->id);
@@ -1092,7 +1092,7 @@ void BKE_texture_make_local(Tex *tex)
 		while (ls) {
 			for (a = 0; a < MAX_MTEX; a++) {
 				if (ls->mtex[a] && ls->mtex[a]->tex == tex) {
-					if (ls->id.lib == NULL) {
+					if (!ID_IS_LINKED_DATABLOCK(ls)) {
 						ls->mtex[a]->tex = tex_new;
 						id_us_plus(&tex_new->id);
 						id_us_min(&tex->id);

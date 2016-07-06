@@ -99,7 +99,7 @@ Camera *BKE_camera_copy(Camera *cam)
 
 	id_lib_extern((ID *)camn->dof_ob);
 
-	if (cam->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(cam)) {
 		BKE_id_lib_local_paths(G.main, cam->id.lib, &camn->id);
 	}
 
@@ -117,7 +117,7 @@ void BKE_camera_make_local(Camera *cam)
 	 * - mixed: make copy
 	 */
 	
-	if (cam->id.lib == NULL) return;
+	if (!ID_IS_LINKED_DATABLOCK(cam)) return;
 	if (cam->id.us == 1) {
 		id_clear_lib_data(bmain, &cam->id);
 		return;
@@ -125,7 +125,7 @@ void BKE_camera_make_local(Camera *cam)
 	
 	for (ob = bmain->object.first; ob && ELEM(0, is_lib, is_local); ob = ob->id.next) {
 		if (ob->data == cam) {
-			if (ob->id.lib) is_lib = true;
+			if (ID_IS_LINKED_DATABLOCK(ob)) is_lib = true;
 			else is_local = true;
 		}
 	}
@@ -143,7 +143,7 @@ void BKE_camera_make_local(Camera *cam)
 
 		for (ob = bmain->object.first; ob; ob = ob->id.next) {
 			if (ob->data == cam) {
-				if (ob->id.lib == NULL) {
+				if (!ID_IS_LINKED_DATABLOCK(ob)) {
 					ob->data = cam_new;
 					id_us_plus(&cam_new->id);
 					id_us_min(&cam->id);

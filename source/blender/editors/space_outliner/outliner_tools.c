@@ -435,7 +435,7 @@ static void id_local_cb(
         bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *UNUSED(te),
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
-	if (tselem->id->lib && (tselem->id->tag & LIB_TAG_EXTERN)) {
+	if (ID_IS_LINKED_DATABLOCK(tselem->id) && (tselem->id->tag & LIB_TAG_EXTERN)) {
 		/* if the ID type has no special local function,
 		 * just clear the lib */
 		if (id_make_local(tselem->id, false) == false) {

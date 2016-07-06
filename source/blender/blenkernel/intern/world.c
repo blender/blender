@@ -141,7 +141,7 @@ World *BKE_world_copy(World *wrld)
 
 	BLI_listbase_clear(&wrldn->gpumaterial);
 
-	if (wrld->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(wrld)) {
 		BKE_id_lib_local_paths(G.main, wrld->id.lib, &wrldn->id);
 	}
 
@@ -185,7 +185,7 @@ void BKE_world_make_local(World *wrld)
 	 * - mixed: make copy
 	 */
 	
-	if (wrld->id.lib == NULL) return;
+	if (!ID_IS_LINKED_DATABLOCK(wrld)) return;
 	if (wrld->id.us == 1) {
 		id_clear_lib_data(bmain, &wrld->id);
 		return;
@@ -193,7 +193,7 @@ void BKE_world_make_local(World *wrld)
 	
 	for (sce = bmain->scene.first; sce && ELEM(false, is_lib, is_local); sce = sce->id.next) {
 		if (sce->world == wrld) {
-			if (sce->id.lib) is_lib = true;
+			if (ID_IS_LINKED_DATABLOCK(sce)) is_lib = true;
 			else is_local = true;
 		}
 	}
@@ -210,7 +210,7 @@ void BKE_world_make_local(World *wrld)
 
 		for (sce = bmain->scene.first; sce; sce = sce->id.next) {
 			if (sce->world == wrld) {
-				if (sce->id.lib == NULL) {
+				if (!ID_IS_LINKED_DATABLOCK(sce)) {
 					sce->world = wrld_new;
 					id_us_plus(&wrld_new->id);
 					id_us_min(&wrld->id);

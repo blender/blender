@@ -97,7 +97,7 @@ Group *BKE_group_copy(Group *group)
 	/* Do not copy group's preview (same behavior as for objects). */
 	groupn->preview = NULL;
 
-	if (group->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(group)) {
 		BKE_id_lib_local_paths(G.main, group->id.lib, &groupn->id);
 	}
 

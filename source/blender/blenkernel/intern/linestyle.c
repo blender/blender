@@ -218,7 +218,7 @@ FreestyleLineStyle *BKE_linestyle_copy(struct Main *bmain, FreestyleLineStyle *l
 	for (m = (LineStyleModifier *)linestyle->geometry_modifiers.first; m; m = m->next)
 		BKE_linestyle_geometry_modifier_copy(new_linestyle, m);
 
-	if (linestyle->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(linestyle)) {
 		BKE_id_lib_local_paths(G.main, linestyle->id.lib, &new_linestyle->id);
 	}
 

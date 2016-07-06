@@ -110,7 +110,7 @@ static bool view3d_operator_offset_lock_check(bContext *C, wmOperator *op)
 bool ED_view3d_camera_lock_check(const View3D *v3d, const RegionView3D *rv3d)
 {
 	return ((v3d->camera) &&
-	        (v3d->camera->id.lib == NULL) &&
+	        (!ID_IS_LINKED_DATABLOCK(v3d->camera)) &&
 	        (v3d->flag2 & V3D_LOCK_CAMERA) &&
 	        (rv3d->persp == RV3D_CAMOB));
 }

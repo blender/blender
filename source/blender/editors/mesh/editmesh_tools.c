@@ -3292,7 +3292,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 			Object *ob = base_iter->object;
 			if (ob->type == OB_MESH) {
 				Mesh *me = ob->data;
-				if (me->id.lib == NULL) {
+				if (!ID_IS_LINKED_DATABLOCK(me)) {
 					BMesh *bm_old = NULL;
 					int retval_iter = 0;
 

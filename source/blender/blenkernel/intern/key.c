@@ -171,7 +171,7 @@ Key *BKE_key_copy(Key *key)
 		kb = kb->next;
 	}
 
-	if (key->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(key)) {
 		BKE_id_lib_local_paths(G.main, key->id.lib, &keyn->id);
 	}
 

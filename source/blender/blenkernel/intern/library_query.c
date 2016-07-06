@@ -895,7 +895,7 @@ bool BKE_library_ID_is_indirectly_used(Main *bmain, void *idv)
 		ID *id_curr = lb_array[i]->first;
 
 		for (; id_curr; id_curr = id_curr->next) {
-			if (!id_curr->lib) {
+			if (!ID_IS_LINKED_DATABLOCK(id_curr)) {
 				continue;
 			}
 

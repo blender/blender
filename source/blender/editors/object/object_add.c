@@ -1162,7 +1162,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 			Base *base_other;
 
 			for (scene_iter = bmain->scene.first; scene_iter; scene_iter = scene_iter->id.next) {
-				if (scene_iter != scene && !(scene_iter->id.lib)) {
+				if (scene_iter != scene && !ID_IS_LINKED_DATABLOCK(scene_iter)) {
 					base_other = BKE_scene_base_find(scene_iter, base->object);
 					if (base_other) {
 						if (is_indirectly_used && ID_REAL_USERS(base->object) <= 1) {
@@ -1515,7 +1515,8 @@ static int convert_poll(bContext *C)
 	Object *obact = CTX_data_active_object(C);
 	Scene *scene = CTX_data_scene(C);
 
-	return (!scene->id.lib && obact && scene->obedit != obact && (obact->flag & SELECT) && !(obact->id.lib));
+	return (!ID_IS_LINKED_DATABLOCK(scene) && obact && scene->obedit != obact &&
+	        (obact->flag & SELECT) && !ID_IS_LINKED_DATABLOCK(obact));
 }
 
 /* Helper for convert_exec */
@@ -2305,7 +2306,7 @@ static int join_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
-	if (!ob || ob->id.lib) return 0;
+	if (!ob || ID_IS_LINKED_DATABLOCK(ob)) return 0;
 
 	if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_ARMATURE))
 		return ED_operator_screenactive(C);
@@ -2358,7 +2359,7 @@ static int join_shapes_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
-	if (!ob || ob->id.lib) return 0;
+	if (!ob || ID_IS_LINKED_DATABLOCK(ob)) return 0;
 
 	/* only meshes supported at the moment */
 	if (ob->type == OB_MESH)

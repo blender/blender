@@ -507,7 +507,7 @@ static int view3d_camera_to_view_poll(bContext *C)
 
 	if (ED_view3d_context_user_region(C, &v3d, &ar)) {
 		RegionView3D *rv3d = ar->regiondata;
-		if (v3d && v3d->camera && v3d->camera->id.lib == NULL) {
+		if (v3d && v3d->camera && !ID_IS_LINKED_DATABLOCK(v3d->camera)) {
 			if (rv3d && (rv3d->viewlock & RV3D_LOCKED) == 0) {
 				if (rv3d->persp != RV3D_CAMOB) {
 					return 1;

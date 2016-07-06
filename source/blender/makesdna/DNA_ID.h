@@ -269,6 +269,8 @@ typedef struct PreviewImage {
 
 #define ID_MISSING(_id) (((_id)->tag & LIB_TAG_MISSING) != 0)
 
+#define ID_IS_LINKED_DATABLOCK(_id) (((ID *)(_id))->lib != NULL)
+
 #ifdef GS
 #  undef GS
 #endif

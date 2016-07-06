@@ -505,7 +505,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
 		walk->rv3d->persp = RV3D_PERSP;
 	}
 
-	if (walk->rv3d->persp == RV3D_CAMOB && walk->v3d->camera->id.lib) {
+	if (walk->rv3d->persp == RV3D_CAMOB && ID_IS_LINKED_DATABLOCK(walk->v3d->camera)) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot navigate a camera from an external library");
 		return false;
 	}

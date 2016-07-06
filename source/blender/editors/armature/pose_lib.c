@@ -183,7 +183,7 @@ static int has_poselib_pose_data_poll(bContext *C)
 static int has_poselib_pose_data_for_editing_poll(bContext *C)
 {
 	Object *ob = get_poselib_object(C);
-	return (ob && ob->poselib && !ob->poselib->id.lib);
+	return (ob && ob->poselib && !ID_IS_LINKED_DATABLOCK(ob->poselib));
 }
 
 /* ----------------------------------- */
@@ -385,7 +385,7 @@ static int poselib_add_poll(bContext *C)
 	if (ED_operator_posemode(C)) {
 		Object *ob = get_poselib_object(C);
 		if (ob) {
-			if ((ob->poselib == NULL) || (ob->poselib->id.lib == 0)) {
+			if ((ob->poselib == NULL) || !ID_IS_LINKED_DATABLOCK(ob->poselib)) {
 				return true;
 			}
 		}

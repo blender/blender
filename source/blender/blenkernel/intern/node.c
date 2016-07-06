@@ -1289,7 +1289,7 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, Main *bmain, bool ski
 	/* node tree will generate its own interface type */
 	newtree->interface_type = NULL;
 	
-	if (ntree->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(ntree)) {
 		BKE_id_lib_local_paths(bmain, ntree->id.lib, &newtree->id);
 	}
 
@@ -1967,7 +1967,7 @@ void ntreeMakeLocal(bNodeTree *ntree, bool id_in_mainlist)
 	 * - mixed: make copy
 	 */
 	
-	if (ntree->id.lib == NULL) return;
+	if (!ID_IS_LINKED_DATABLOCK(ntree)) return;
 	if (ntree->id.us == 1) {
 		id_clear_lib_data_ex(bmain, (ID *)ntree, id_in_mainlist);
 		extern_local_ntree(ntree);
@@ -2715,7 +2715,7 @@ void BKE_node_clipboard_add_node(bNode *node)
 	node_info->id = node->id;
 	if (node->id) {
 		BLI_strncpy(node_info->id_name, node->id->name, sizeof(node_info->id_name));
-		if (node->id->lib) {
+		if (ID_IS_LINKED_DATABLOCK(node->id)) {
 			BLI_strncpy(node_info->library_name, node->id->lib->filepath, sizeof(node_info->library_name));
 		}
 		else {

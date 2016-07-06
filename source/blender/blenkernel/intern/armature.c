@@ -148,7 +148,7 @@ void BKE_armature_make_local(bArmature *arm)
 	bool is_local = false, is_lib = false;
 	Object *ob;
 
-	if (arm->id.lib == NULL)
+	if (!ID_IS_LINKED_DATABLOCK(arm))
 		return;
 	if (arm->id.us == 1) {
 		id_clear_lib_data(bmain, &arm->id);
@@ -157,7 +157,7 @@ void BKE_armature_make_local(bArmature *arm)
 
 	for (ob = bmain->object.first; ob && ELEM(0, is_lib, is_local); ob = ob->id.next) {
 		if (ob->data == arm) {
-			if (ob->id.lib)
+			if (ID_IS_LINKED_DATABLOCK(ob))
 				is_lib = true;
 			else
 				is_local = true;
@@ -176,7 +176,7 @@ void BKE_armature_make_local(bArmature *arm)
 
 		for (ob = bmain->object.first; ob; ob = ob->id.next) {
 			if (ob->data == arm) {
-				if (ob->id.lib == NULL) {
+				if (!ID_IS_LINKED_DATABLOCK(ob)) {
 					ob->data = arm_new;
 					id_us_plus(&arm_new->id);
 					id_us_min(&arm->id);
@@ -231,7 +231,7 @@ bArmature *BKE_armature_copy(bArmature *arm)
 	newArm->act_edbone = NULL;
 	newArm->sketch = NULL;
 
-	if (arm->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(arm)) {
 		BKE_id_lib_local_paths(G.main, arm->id.lib, &newArm->id);
 	}
 

@@ -861,7 +861,7 @@ Mask *BKE_mask_copy(Mask *mask)
 	/* enable fake user by default */
 	id_fake_user_set(&mask->id);
 
-	if (mask->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(mask)) {
 		BKE_id_lib_local_paths(G.main, mask->id.lib, &mask_new->id);
 	}
 

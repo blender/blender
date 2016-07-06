@@ -117,7 +117,7 @@ MetaBall *BKE_mball_copy(MetaBall *mb)
 	mbn->editelems = NULL;
 	mbn->lastelem = NULL;
 	
-	if (mb->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(mb)) {
 		BKE_id_lib_local_paths(G.main, mb->id.lib, &mbn->id);
 	}
 
@@ -142,7 +142,7 @@ void BKE_mball_make_local(MetaBall *mb)
 	 * - mixed: make copy
 	 */
 	
-	if (mb->id.lib == NULL) return;
+	if (!ID_IS_LINKED_DATABLOCK(mb)) return;
 	if (mb->id.us == 1) {
 		id_clear_lib_data(bmain, &mb->id);
 		extern_local_mball(mb);
@@ -152,7 +152,7 @@ void BKE_mball_make_local(MetaBall *mb)
 
 	for (ob = G.main->object.first; ob && ELEM(0, is_lib, is_local); ob = ob->id.next) {
 		if (ob->data == mb) {
-			if (ob->id.lib) is_lib = true;
+			if (ID_IS_LINKED_DATABLOCK(ob)) is_lib = true;
 			else is_local = true;
 		}
 	}
@@ -170,7 +170,7 @@ void BKE_mball_make_local(MetaBall *mb)
 
 		for (ob = G.main->object.first; ob; ob = ob->id.next) {
 			if (ob->data == mb) {
-				if (ob->id.lib == NULL) {
+				if (!ID_IS_LINKED_DATABLOCK(ob)) {
 					ob->data = mb_new;
 					id_us_plus(&mb_new->id);
 					id_us_min(&mb->id);
