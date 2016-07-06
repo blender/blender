@@ -1922,6 +1922,9 @@ static void write_vfonts(WriteData *wd, ListBase *idbase)
 
 		vf = vf->id.next;
 	}
+
+	/* flush helps the compression for undo-save */
+	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
 
@@ -2358,6 +2361,9 @@ static void write_lattices(WriteData *wd, ListBase *idbase)
 		}
 		lt = lt->id.next;
 	}
+
+	/* flush helps the compression for undo-save */
+	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
 static void write_images(WriteData *wd, ListBase *idbase)
@@ -2571,6 +2577,9 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 		}
 		la = la->id.next;
 	}
+
+	/* flush helps the compression for undo-save */
+	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
 static void write_sequence_modifiers(WriteData *wd, ListBase *modbase)
@@ -2856,6 +2865,9 @@ static void write_gpencils(WriteData *wd, ListBase *lb)
 			}
 		}
 	}
+
+	/* flush helps the compression for undo-save */
+	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
 static void write_windowmanagers(WriteData *wd, ListBase *lb)
@@ -3291,6 +3303,9 @@ static void write_groups(WriteData *wd, ListBase *idbase)
 			}
 		}
 	}
+
+	/* flush helps the compression for undo-save */
+	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
 static void write_nodetrees(WriteData *wd, ListBase *idbase)
@@ -3914,6 +3929,9 @@ static void write_libraries(WriteData *wd, Main *main)
 			}
 		}
 	}
+
+	/* flush helps the compression for undo-save */
+	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
 /* context is usually defined by WM, two cases where no WM is available:
