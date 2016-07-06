@@ -113,7 +113,6 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
-#include "BKE_blender_version.h"
 #include "BKE_brush.h"
 #include "BKE_cloth.h"
 #include "BKE_constraint.h"
@@ -8286,9 +8285,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	blo_do_versions_250(fd, lib, main);
 	blo_do_versions_260(fd, lib, main);
 	blo_do_versions_270(fd, lib, main);
-
-	main->versionfile = BLENDER_VERSION;
-	main->subversionfile = BLENDER_SUBVERSION;
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init see do_versions_userdef() above! */
