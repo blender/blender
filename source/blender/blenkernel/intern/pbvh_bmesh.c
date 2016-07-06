@@ -69,6 +69,10 @@
 static void pbvh_bmesh_verify(PBVH *bvh);
 #endif
 
+/** \name BMesh Utility API
+ *
+ * Use some local functions which assume triangles.
+ * \{ */
 
 /**
  * Typically using BM_LOOPS_OF_VERT and BM_FACES_OF_VERT iterators are fine,
@@ -108,6 +112,27 @@ static void pbvh_bmesh_verify(PBVH *bvh);
 	} \
 	BM_LOOPS_OF_VERT_ITER_END; \
 }
+
+static void bm_edges_from_tri(BMesh *bm, BMVert *v_tri[3], BMEdge *e_tri[3])
+{
+	e_tri[0] = BM_edge_create(bm, v_tri[0], v_tri[1], NULL, BM_CREATE_NO_DOUBLE);
+	e_tri[1] = BM_edge_create(bm, v_tri[1], v_tri[2], NULL, BM_CREATE_NO_DOUBLE);
+	e_tri[2] = BM_edge_create(bm, v_tri[2], v_tri[0], NULL, BM_CREATE_NO_DOUBLE);
+}
+
+BLI_INLINE void bm_face_as_array_index_tri(BMFace *f, int r_index[3])
+{
+	BMLoop *l = BM_FACE_FIRST_LOOP(f);
+
+	BLI_assert(f->len == 3);
+
+	r_index[0] = BM_elem_index_get(l->v); l = l->next;
+	r_index[1] = BM_elem_index_get(l->v); l = l->next;
+	r_index[2] = BM_elem_index_get(l->v);
+}
+
+/** \} */
+
 
 /****************************** Building ******************************/
 
@@ -991,13 +1016,6 @@ static void short_edge_queue_create(
 
 /*************************** Topology update **************************/
 
-static void bm_edges_from_tri(BMesh *bm, BMVert *v_tri[3], BMEdge *e_tri[3])
-{
-	e_tri[0] = BM_edge_create(bm, v_tri[0], v_tri[1], NULL, BM_CREATE_NO_DOUBLE);
-	e_tri[1] = BM_edge_create(bm, v_tri[1], v_tri[2], NULL, BM_CREATE_NO_DOUBLE);
-	e_tri[2] = BM_edge_create(bm, v_tri[2], v_tri[0], NULL, BM_CREATE_NO_DOUBLE);
-}
-
 static void pbvh_bmesh_split_edge(
         EdgeQueueContext *eq_ctx, PBVH *bvh,
         BMEdge *e, BLI_Buffer *edge_loops)
@@ -1817,16 +1835,6 @@ bool BKE_pbvh_bmesh_update_topology(
 	return modified;
 }
 
-BLI_INLINE void bm_face_as_array_index_tri(BMFace *f, int r_index[3])
-{
-	BMLoop *l = BM_FACE_FIRST_LOOP(f);
-
-	BLI_assert(f->len == 3);
-
-	r_index[0] = BM_elem_index_get(l->v); l = l->next;
-	r_index[1] = BM_elem_index_get(l->v); l = l->next;
-	r_index[2] = BM_elem_index_get(l->v);
-}
 
 /* In order to perform operations on the original node coordinates
  * (currently just raycast), store the node's triangles and vertices.
