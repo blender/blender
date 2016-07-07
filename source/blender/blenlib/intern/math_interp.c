@@ -284,16 +284,19 @@ BLI_INLINE void bilinear_interpolation(const unsigned char *byte_buffer, const f
 			if (x1 < 0) x1 = width  - 1;
 			if (x2 >= width) x2 = 0;
 		}
+		else if (x2 < 0 || x1 >= width) {
+			copy_vn_fl(float_output, components, 0.0f);
+			return;
+		}
+
 		if (wrap_y) {
 			if (y1 < 0) y1 = height - 1;
 			if (y2 >= height) y2 = 0;
 		}
-
-		CLAMP(x1, 0, width - 1);
-		CLAMP(x2, 0, width - 1);
-
-		CLAMP(y1, 0, height - 1);
-		CLAMP(y2, 0, height - 1);
+		else if (y2 < 0 || y1 >= height) {
+			copy_vn_fl(float_output, components, 0.0f);
+			return;
+		}
 
 		/* sample including outside of edges of image */
 		if (x1 < 0 || y1 < 0) row1 = empty;
@@ -331,8 +334,21 @@ BLI_INLINE void bilinear_interpolation(const unsigned char *byte_buffer, const f
 		const unsigned char *row1, *row2, *row3, *row4;
 		unsigned char empty[4] = {0, 0, 0, 0};
 
-		/* sample area entirely outside image? */
-		if (x2 < 0 || x1 > width - 1 || y2 < 0 || y1 > height - 1) {
+		/* pixel value must be already wrapped, however values at boundaries may flip */
+		if (wrap_x) {
+			if (x1 < 0) x1 = width  - 1;
+			if (x2 >= width) x2 = 0;
+		}
+		else if (x2 < 0 || x1 >= width) {
+			copy_vn_uchar(byte_output, components, 0);
+			return;
+		}
+
+		if (wrap_y) {
+			if (y1 < 0) y1 = height - 1;
+			if (y2 >= height) y2 = 0;
+		}
+		else if (y2 < 0 || y1 >= height) {
 			copy_vn_uchar(byte_output, components, 0);
 			return;
 		}
