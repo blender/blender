@@ -5462,7 +5462,10 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 			}
 
 			if (message_unsupported == NULL) {
+				/* undo push is needed to prevent memory leak */
+				sculpt_undo_push_begin("Dynamic topology enable");
 				sculpt_dynamic_topology_enable(C);
+				sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
 			}
 			else {
 				BKE_reportf(op->reports, RPT_WARNING,
