@@ -1351,6 +1351,7 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 	bool found = false;
 	float frame = 0.0f; /* frame of keyframe under mouse - NLA corrections not applied/included */
 	float selx = 0.0f;  /* frame of keyframe under mouse */
+	float key_hsize;
 	float x, y;
 	rctf rectf;
 	
@@ -1362,9 +1363,14 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
 	UI_view2d_listview_view_to_cell(v2d, 0, ACHANNEL_STEP(ac), 0, (float)ACHANNEL_HEIGHT_HALF(ac), x, y, NULL, &channel_index);
 	
-	/* x-range to check is +/- 7 (in screen/region-space) on either side of mouse click (size of keyframe icon) */
-	UI_view2d_region_to_view(v2d, mval[0] - 7, mval[1], &rectf.xmin, &rectf.ymin);
-	UI_view2d_region_to_view(v2d, mval[0] + 7, mval[1], &rectf.xmax, &rectf.ymax);
+	/* x-range to check is +/- 7px for standard keyframe under standard dpi/y-scale (in screen/region-space),
+	 * on either side of mouse click (size of keyframe icon)
+	 */
+	key_hsize = ACHANNEL_HEIGHT(ac) * 0.8f;    /* standard channel height (to allow for some slop) */
+	key_hsize = roundf(key_hsize / 2.0f);      /* half-size (for either side), but rounded up to nearest int (for easier targetting) */
+	
+	UI_view2d_region_to_view(v2d, mval[0] - (int)key_hsize, mval[1], &rectf.xmin, &rectf.ymin);
+	UI_view2d_region_to_view(v2d, mval[0] + (int)key_hsize, mval[1], &rectf.xmax, &rectf.ymax);
 	
 	/* filter data */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
