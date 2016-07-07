@@ -859,13 +859,13 @@ MINLINE float len_v3v3(const float a[3], const float b[3])
 	return len_v3(d);
 }
 
-MINLINE float normalize_v2_v2(float r[2], const float a[2])
+MINLINE float normalize_v2_v2_length(float r[2], const float a[2], const float unit_length)
 {
 	float d = dot_v2v2(a, a);
 
 	if (d > 1.0e-35f) {
 		d = sqrtf(d);
-		mul_v2_v2fl(r, a, 1.0f / d);
+		mul_v2_v2fl(r, a, unit_length / d);
 	}
 	else {
 		zero_v2(r);
@@ -874,13 +874,22 @@ MINLINE float normalize_v2_v2(float r[2], const float a[2])
 
 	return d;
 }
+MINLINE float normalize_v2_v2(float r[2], const float a[2])
+{
+	return normalize_v2_v2_length(r, a, 1.0f);
+}
 
 MINLINE float normalize_v2(float n[2])
 {
 	return normalize_v2_v2(n, n);
 }
 
-MINLINE float normalize_v3_v3(float r[3], const float a[3])
+MINLINE float normalize_v2_length(float n[2], const float unit_length)
+{
+	return normalize_v2_v2_length(n, n, unit_length);
+}
+
+MINLINE float normalize_v3_v3_length(float r[3], const float a[3], const float unit_length)
 {
 	float d = dot_v3v3(a, a);
 
@@ -888,7 +897,7 @@ MINLINE float normalize_v3_v3(float r[3], const float a[3])
 	 * scaled down models with camera extreme close */
 	if (d > 1.0e-35f) {
 		d = sqrtf(d);
-		mul_v3_v3fl(r, a, 1.0f / d);
+		mul_v3_v3fl(r, a, unit_length / d);
 	}
 	else {
 		zero_v3(r);
@@ -897,8 +906,12 @@ MINLINE float normalize_v3_v3(float r[3], const float a[3])
 
 	return d;
 }
+MINLINE float normalize_v3_v3(float r[3], const float a[3])
+{
+	return normalize_v3_v3_length(r, a, 1.0f);
+}
 
-MINLINE double normalize_v3_d(double n[3])
+MINLINE double normalize_v3_length_d(double n[3], const double unit_length)
 {
 	double d = n[0] * n[0] + n[1] * n[1] + n[2] * n[2];
 
@@ -908,7 +921,7 @@ MINLINE double normalize_v3_d(double n[3])
 		double mul;
 
 		d = sqrt(d);
-		mul = 1.0 / d;
+		mul = unit_length / d;
 
 		n[0] *= mul;
 		n[1] *= mul;
@@ -920,6 +933,15 @@ MINLINE double normalize_v3_d(double n[3])
 	}
 
 	return d;
+}
+MINLINE double normalize_v3_d(double n[3])
+{
+	return normalize_v3_length_d(n, 1.0);
+}
+
+MINLINE float normalize_v3_length(float n[3], const float unit_length)
+{
+	return normalize_v3_v3_length(n, n, unit_length);
 }
 
 MINLINE float normalize_v3(float n[3])

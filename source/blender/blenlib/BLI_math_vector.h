@@ -191,6 +191,12 @@ MINLINE float len_manhattan_v3v3(const float a[3], const float b[3]) ATTR_WARN_U
 MINLINE float len_v3(const float a[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_v3v3(const float a[3], const float b[3]) ATTR_WARN_UNUSED_RESULT;
 
+MINLINE float normalize_v2_length(float r[2], const float unit_scale);
+MINLINE float normalize_v2_v2_length(float r[2], const float a[2], const float unit_scale);
+MINLINE float normalize_v3_length(float r[3], const float unit_scale);
+MINLINE float normalize_v3_v3_length(float r[3], const float a[3], const float unit_scale);
+MINLINE double normalize_v3_length_d(double n[3], const double unit_scale);
+
 MINLINE float normalize_v2(float r[2]);
 MINLINE float normalize_v2_v2(float r[2], const float a[2]);
 MINLINE float normalize_v3(float r[3]);
