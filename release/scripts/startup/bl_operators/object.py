@@ -691,7 +691,7 @@ class TransformsToDeltas(Operator):
     bl_idname = "object.transforms_to_deltas"
     bl_label = "Transforms to Deltas"
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     mode = EnumProperty(
             items=(('ALL',
                     "All Transforms",
@@ -719,48 +719,48 @@ class TransformsToDeltas(Operator):
             description=("Clear transform values after transferring to deltas"),
             default=True,
             )
-    
+
     @classmethod
     def poll(cls, context):
         obs = context.selected_editable_objects
         return (obs is not None)
-    
+
     def execute(self, context):
         for obj in context.selected_editable_objects:
-            if self.mode in ('ALL', 'LOC'):
+            if self.mode in {'ALL', 'LOC'}:
                 self.transfer_location(obj)
-                    
-            if self.mode in ('ALL', 'ROT'):
+
+            if self.mode in {'ALL', 'ROT'}:
                 self.transfer_rotation(obj)
-            
-            if self.mode in ('ALL', 'SCALE'):
+
+            if self.mode in {'ALL', 'SCALE'}:
                 self.transfer_scale(obj)
-        
+
         return {'FINISHED'}
-    
+
     def transfer_location(self, obj):
         obj.delta_location += obj.location
-        
+
         if self.reset_values:
             obj.location.zero()
-        
+
     def transfer_rotation(self, obj):
         # TODO: add transforms together...
         if obj.rotation_mode == 'QUATERNION':
             obj.delta_rotation_quaternion += obj.rotation_quaternion
-            
+
             if self.reset_values:
-                obj.rotation_quaternion.identity() 
+                obj.rotation_quaternion.identity()
         elif obj.rotation_mode == 'AXIS_ANGLE':
             pass  # Unsupported
         else:
             delta = obj.delta_rotation_euler.copy()
-            obj.delta_rotation_euler = obj.rotation_euler.copy()
+            obj.delta_rotation_euler = obj.rotation_euler
             obj.delta_rotation_euler.rotate(delta)
-            
+
             if self.reset_values:
                 obj.rotation_euler.zero()
-    
+
     def transfer_scale(self, obj):
         obj.delta_scale += obj.scale
         if self.reset_values:
