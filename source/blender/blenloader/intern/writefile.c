@@ -2883,6 +2883,10 @@ static void write_windowmanagers(WriteData *wd, ListBase *lb)
 			writestruct(wd, DATA, Stereo3dFormat, 1, win->stereo3d_format);
 		}
 	}
+
+	/* typically flushing wouldn't be needed however this data _always_ changes,
+	 * so flush here for more efficient undo. */
+	mywrite_flush(wd);
 }
 
 static void write_region(WriteData *wd, ARegion *ar, int spacetype)
