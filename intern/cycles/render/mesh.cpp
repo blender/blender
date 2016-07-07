@@ -73,6 +73,37 @@ void Mesh::Curve::bounds_grow(const int k, const float3 *curve_keys, const float
 	bounds.grow(upper, mr);
 }
 
+void Mesh::Curve::bounds_grow(const int k,
+                              const float3 *curve_keys,
+                              const float *curve_radius,
+                              const Transform& aligned_space,
+                              BoundBox& bounds) const
+{
+	float3 P[4];
+
+	P[0] = curve_keys[max(first_key + k - 1,first_key)];
+	P[1] = curve_keys[first_key + k];
+	P[2] = curve_keys[first_key + k + 1];
+	P[3] = curve_keys[min(first_key + k + 2, first_key + num_keys - 1)];
+
+	P[0] = transform_point(&aligned_space, P[0]);
+	P[1] = transform_point(&aligned_space, P[1]);
+	P[2] = transform_point(&aligned_space, P[2]);
+	P[3] = transform_point(&aligned_space, P[3]);
+
+	float3 lower;
+	float3 upper;
+
+	curvebounds(&lower.x, &upper.x, P, 0);
+	curvebounds(&lower.y, &upper.y, P, 1);
+	curvebounds(&lower.z, &upper.z, P, 2);
+
+	float mr = max(curve_radius[first_key + k], curve_radius[first_key + k + 1]);
+
+	bounds.grow(lower, mr);
+	bounds.grow(upper, mr);
+}
+
 /* Mesh */
 
 NODE_DEFINE(Mesh)
@@ -522,7 +553,11 @@ void Mesh::pack_curves(Scene *scene, float4 *curve_key_co, float4 *curve_data, s
 	}
 }
 
-void Mesh::compute_bvh(SceneParams *params, Progress *progress, int n, int total)
+void Mesh::compute_bvh(DeviceScene * /*dscene*/,
+                       SceneParams *params,
+                       Progress *progress,
+                       int n,
+                       int total)
 {
 	if(progress->get_cancel())
 		return;
@@ -553,6 +588,7 @@ void Mesh::compute_bvh(SceneParams *params, Progress *progress, int n, int total
 			BVHParams bparams;
 			bparams.use_spatial_split = params->use_bvh_spatial_split;
 			bparams.use_qbvh = params->use_qbvh;
+			bparams.use_unaligned_nodes = false;
 
 			delete bvh;
 			bvh = BVH::create(bparams, objects);
@@ -1186,6 +1222,7 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 	bparams.top_level = true;
 	bparams.use_qbvh = scene->params.use_qbvh;
 	bparams.use_spatial_split = scene->params.use_bvh_spatial_split;
+	bparams.use_unaligned_nodes = false;
 
 	delete bvh;
 	bvh = BVH::create(bparams, scene->objects);
@@ -1399,6 +1436,7 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 		if(mesh->need_update) {
 			pool.push(function_bind(&Mesh::compute_bvh,
 			                        mesh,
+			                        dscene,
 			                        &scene->params,
 			                        &progress,
 			                        i,

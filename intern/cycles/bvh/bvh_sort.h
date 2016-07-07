@@ -20,7 +20,15 @@
 
 CCL_NAMESPACE_BEGIN
 
-void bvh_reference_sort(int start, int end, BVHReference *data, int dim);
+class BVHUnaligned;
+struct Transform;
+
+void bvh_reference_sort(int start,
+                        int end,
+                        BVHReference *data,
+                        int dim,
+                        const BVHUnaligned *unaligned_heuristic = NULL,
+                        const Transform *aligned_space = NULL);
 
 CCL_NAMESPACE_END
 

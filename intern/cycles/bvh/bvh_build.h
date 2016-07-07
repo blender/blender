@@ -22,6 +22,7 @@
 
 #include "bvh.h"
 #include "bvh_binning.h"
+#include "bvh_unaligned.h"
 
 #include "util_boundbox.h"
 #include "util_task.h"
@@ -59,13 +60,14 @@ protected:
 	friend class BVHSpatialSplit;
 	friend class BVHBuildTask;
 	friend class BVHSpatialSplitBuildTask;
+	friend class BVHObjectBinning;
 
-	/* adding references */
+	/* Adding references. */
 	void add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, int i);
 	void add_reference_object(BoundBox& root, BoundBox& center, Object *ob, int i);
 	void add_references(BVHRange& root);
 
-	/* building */
+	/* Building. */
 	BVHNode *build_node(const BVHRange& range,
 	                    vector<BVHReference> *references,
 	                    int level,
@@ -78,7 +80,7 @@ protected:
 	bool range_within_max_leaf_size(const BVHRange& range,
 	                                const vector<BVHReference>& references) const;
 
-	/* threads */
+	/* Threads. */
 	enum { THREAD_TASK_SIZE = 4096 };
 	void thread_build_node(InnerNode *node,
 	                       int child,
@@ -92,41 +94,44 @@ protected:
 	                                     int thread_id);
 	thread_mutex build_mutex;
 
-	/* progress */
+	/* Progress. */
 	void progress_update();
 
-	/* tree rotations */
+	/* Tree rotations. */
 	void rotate(BVHNode *node, int max_depth);
 	void rotate(BVHNode *node, int max_depth, int iterations);
 
-	/* objects and primitive references */
+	/* Objects and primitive references. */
 	vector<Object*> objects;
 	vector<BVHReference> references;
 	int num_original_references;
 
-	/* output primitive indexes and objects */
+	/* Output primitive indexes and objects. */
 	array<int>& prim_type;
 	array<int>& prim_index;
 	array<int>& prim_object;
 
-	/* build parameters */
+	/* Build parameters. */
 	BVHParams params;
 
-	/* progress reporting */
+	/* Progress reporting. */
 	Progress& progress;
 	double progress_start_time;
 	size_t progress_count;
 	size_t progress_total;
 	size_t progress_original_total;
 
-	/* spatial splitting */
+	/* Spatial splitting. */
 	float spatial_min_overlap;
 	vector<BVHSpatialStorage> spatial_storage;
 	size_t spatial_free_index;
 	thread_spin_lock spatial_spin_lock;
 
-	/* threads */
+	/* Threads. */
 	TaskPool task_pool;
+
+	/* Unaligned building. */
+	BVHUnaligned unaligned_heuristic;
 };
 
 CCL_NAMESPACE_END

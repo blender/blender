@@ -40,6 +40,9 @@ class Progress;
 #define BVH_ALIGN		4096
 #define TRI_NODE_SIZE	3
 
+#define BVH_UNALIGNED_NODE_SIZE 7
+#define BVH_UNALIGNED_QNODE_SIZE 14
+
 /* Packed BVH
  *
  * BVH stored as it will be used for traversal on the rendering device. */
@@ -117,9 +120,32 @@ protected:
 
 	/* pack */
 	void pack_nodes(const BVHNode *root);
-	void pack_leaf(const BVHStackEntry& e, const LeafNode *leaf);
-	void pack_inner(const BVHStackEntry& e, const BVHStackEntry& e0, const BVHStackEntry& e1);
-	void pack_node(int idx, const BoundBox& b0, const BoundBox& b1, int c0, int c1, uint visibility0, uint visibility1);
+
+	void pack_leaf(const BVHStackEntry& e,
+	               const LeafNode *leaf);
+	void pack_inner(const BVHStackEntry& e,
+	                const BVHStackEntry& e0,
+	                const BVHStackEntry& e1);
+
+	void pack_aligned_inner(const BVHStackEntry& e,
+	                        const BVHStackEntry& e0,
+	                        const BVHStackEntry& e1);
+	void pack_aligned_node(int idx,
+	                       const BoundBox& b0,
+	                       const BoundBox& b1,
+	                       int c0, int c1,
+	                       uint visibility0, uint visibility1);
+
+	void pack_unaligned_inner(const BVHStackEntry& e,
+	                          const BVHStackEntry& e0,
+	                          const BVHStackEntry& e1);
+	void pack_unaligned_node(int idx,
+	                         const Transform& aligned_space0,
+	                         const Transform& aligned_space1,
+	                         const BoundBox& b0,
+	                         const BoundBox& b1,
+	                         int c0, int c1,
+	                         uint visibility0, uint visibility1);
 
 	/* refit */
 	void refit_nodes();
@@ -138,8 +164,16 @@ protected:
 
 	/* pack */
 	void pack_nodes(const BVHNode *root);
+
 	void pack_leaf(const BVHStackEntry& e, const LeafNode *leaf);
 	void pack_inner(const BVHStackEntry& e, const BVHStackEntry *en, int num);
+
+	void pack_aligned_inner(const BVHStackEntry& e,
+	                        const BVHStackEntry *en,
+	                        int num);
+	void pack_unaligned_inner(const BVHStackEntry& e,
+	                          const BVHStackEntry *en,
+	                          int num);
 
 	/* refit */
 	void refit_nodes();

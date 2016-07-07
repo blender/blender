@@ -19,10 +19,13 @@
 #define __BVH_BINNING_H__
 
 #include "bvh_params.h"
+#include "bvh_unaligned.h"
 
 #include "util_types.h"
 
 CCL_NAMESPACE_BEGIN
+
+class BVHBuild;
 
 /* Single threaded object binner. Finds the split with the best SAH heuristic
  * by testing for each dimension multiple partitionings for regular spaced
@@ -34,10 +37,18 @@ CCL_NAMESPACE_BEGIN
 class BVHObjectBinning : public BVHRange
 {
 public:
-	__forceinline BVHObjectBinning() {}
-	BVHObjectBinning(const BVHRange& job, BVHReference *prims);
+	__forceinline BVHObjectBinning() : leafSAH(FLT_MAX) {}
 
-	void split(BVHReference *prims, BVHObjectBinning& left_o, BVHObjectBinning& right_o) const;
+	BVHObjectBinning(const BVHRange& job,
+	                 BVHReference *prims,
+	                 const BVHUnaligned *unaligned_heuristic = NULL,
+	                 const Transform *aligned_space = NULL);
+
+	void split(BVHReference *prims,
+	           BVHObjectBinning& left_o,
+	           BVHObjectBinning& right_o) const;
+
+	__forceinline const BoundBox& unaligned_bounds() { return bounds_; }
 
 	float splitSAH;	/* SAH cost of the best split */
 	float leafSAH;	/* SAH cost of creating a leaf */
@@ -48,13 +59,20 @@ protected:
 	size_t num_bins;	/* actual number of bins to use */
 	float3 scale;		/* scaling factor to compute bin */
 
+	/* Effective bounds and centroid bounds. */
+	BoundBox bounds_;
+	BoundBox cent_bounds_;
+
+	const BVHUnaligned *unaligned_heuristic_;
+	const Transform *aligned_space_;
+
 	enum { MAX_BINS = 32 };
 	enum { LOG_BLOCK_SIZE = 2 };
 
 	/* computes the bin numbers for each dimension for a box. */
 	__forceinline int4 get_bin(const BoundBox& box) const
 	{
-		int4 a = make_int4((box.center2() - cent_bounds().min)*scale - make_float3(0.5f));
+		int4 a = make_int4((box.center2() - cent_bounds_.min)*scale - make_float3(0.5f));
 		int4 mn = make_int4(0);
 		int4 mx = make_int4((int)num_bins-1);
 
@@ -64,7 +82,7 @@ protected:
 	/* computes the bin numbers for each dimension for a point. */
 	__forceinline int4 get_bin(const float3& c) const
 	{
-		return make_int4((c - cent_bounds().min)*scale - make_float3(0.5f));
+		return make_int4((c - cent_bounds_.min)*scale - make_float3(0.5f));
 	}
 
 	/* compute the number of blocks occupied for each dimension. */
@@ -77,6 +95,17 @@ protected:
 	__forceinline int blocks(size_t a) const
 	{
 		return (int)((a+((1LL << LOG_BLOCK_SIZE)-1)) >> LOG_BLOCK_SIZE);
+	}
+
+	__forceinline BoundBox get_prim_bounds(const BVHReference& prim) const
+	{
+		if(aligned_space_ == NULL) {
+			return prim.bounds();
+		}
+		else {
+			return unaligned_heuristic_->compute_aligned_prim_boundbox(
+			        prim, *aligned_space_);
+		}
 	}
 };
 

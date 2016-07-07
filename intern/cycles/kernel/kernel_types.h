@@ -292,11 +292,14 @@ enum PathRayFlag {
 	PATH_RAY_CURVE = 512, /* visibility flag to define curve segments */
 	PATH_RAY_VOLUME_SCATTER = 1024, /* volume scattering */
 
-	PATH_RAY_ALL_VISIBILITY = (1|2|4|8|16|32|64|128|256|512|1024),
+	/* Special flag to tag unaligned BVH nodes. */
+	PATH_RAY_NODE_UNALIGNED = 2048,
 
-	PATH_RAY_MIS_SKIP = 2048,
-	PATH_RAY_DIFFUSE_ANCESTOR = 4096,
-	PATH_RAY_SINGLE_PASS_DONE = 8192,
+	PATH_RAY_ALL_VISIBILITY = (1|2|4|8|16|32|64|128|256|512|1024|2048),
+
+	PATH_RAY_MIS_SKIP = 4096,
+	PATH_RAY_DIFFUSE_ANCESTOR = 8192,
+	PATH_RAY_SINGLE_PASS_DONE = 16384,
 };
 
 /* Closure Label */

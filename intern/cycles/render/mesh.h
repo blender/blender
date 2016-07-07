@@ -72,7 +72,15 @@ public:
 
 		int num_segments() { return num_keys - 1; }
 
-		void bounds_grow(const int k, const float3 *curve_keys, const float *curve_radius, BoundBox& bounds) const;
+		void bounds_grow(const int k,
+		                 const float3 *curve_keys,
+		                 const float *curve_radius,
+		                 BoundBox& bounds) const;
+		void bounds_grow(const int k,
+		                 const float3 *curve_keys,
+		                 const float *curve_radius,
+		                 const Transform& aligned_space,
+		                 BoundBox& bounds) const;
 	};
 
 	Curve get_curve(size_t i) const
@@ -172,7 +180,11 @@ public:
 	                size_t vert_offset,
 	                size_t tri_offset);
 	void pack_curves(Scene *scene, float4 *curve_key_co, float4 *curve_data, size_t curvekey_offset);
-	void compute_bvh(SceneParams *params, Progress *progress, int n, int total);
+	void compute_bvh(DeviceScene *dscene,
+	                 SceneParams *params,
+	                 Progress *progress,
+	                 int n,
+	                 int total);
 
 	bool need_attribute(Scene *scene, AttributeStandard std);
 	bool need_attribute(Scene *scene, ustring name);

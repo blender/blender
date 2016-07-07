@@ -20,6 +20,8 @@
 
 #include "util_boundbox.h"
 
+#include "kernel_types.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* BVH Parameters */
@@ -30,6 +32,9 @@ public:
 	/* spatial split area threshold */
 	bool use_spatial_split;
 	float spatial_split_alpha;
+
+	/* Unaligned nodes creation threshold */
+	float unaligned_split_threshold;
 
 	/* SAH costs */
 	float sah_node_cost;
@@ -46,6 +51,14 @@ public:
 	/* QBVH */
 	bool use_qbvh;
 
+	/* Mask of primitives to be included into the BVH. */
+	int primitive_mask;
+
+	/* Use unaligned bounding boxes.
+	 * Only used for curves BVH.
+	 */
+	bool use_unaligned_nodes;
+
 	/* fixed parameters */
 	enum {
 		MAX_DEPTH = 64,
@@ -58,6 +71,8 @@ public:
 		use_spatial_split = true;
 		spatial_split_alpha = 1e-5f;
 
+		unaligned_split_threshold = 0.7f;
+
 		/* todo: see if splitting up primitive cost to be separate for triangles
 		 * and curves can help. so far in tests it doesn't help, but why? */
 		sah_node_cost = 1.0f;
@@ -69,6 +84,9 @@ public:
 
 		top_level = false;
 		use_qbvh = false;
+		use_unaligned_nodes = false;
+
+		primitive_mask = PRIMITIVE_ALL;
 	}
 
 	/* SAH costs */

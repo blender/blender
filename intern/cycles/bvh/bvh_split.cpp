@@ -32,14 +32,18 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
                                BVHSpatialStorage *storage,
                                const BVHRange& range,
                                vector<BVHReference> *references,
-                               float nodeSAH)
+                               float nodeSAH,
+                               const BVHUnaligned *unaligned_heuristic,
+                               const Transform *aligned_space)
 : sah(FLT_MAX),
   dim(0),
   num_left(0),
   left_bounds(BoundBox::empty),
   right_bounds(BoundBox::empty),
   storage_(storage),
-  references_(references)
+  references_(references),
+  unaligned_heuristic_(unaligned_heuristic),
+  aligned_space_(aligned_space)
 {
 	const BVHReference *ref_ptr = &references_->at(range.start());
 	float min_sah = FLT_MAX;
@@ -51,12 +55,15 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
 		bvh_reference_sort(range.start(),
 		                   range.end(),
 		                   &references_->at(0),
-		                   dim);
+		                   dim,
+		                   unaligned_heuristic_,
+		                   aligned_space_);
 
 		/* sweep right to left and determine bounds. */
 		BoundBox right_bounds = BoundBox::empty;
 		for(int i = range.size() - 1; i > 0; i--) {
-			right_bounds.grow(ref_ptr[i].bounds());
+			BoundBox prim_bounds = get_prim_bounds(ref_ptr[i]);
+			right_bounds.grow(prim_bounds);
 			storage_->right_bounds[i - 1] = right_bounds;
 		}
 
@@ -64,7 +71,8 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
 		BoundBox left_bounds = BoundBox::empty;
 
 		for(int i = 1; i < range.size(); i++) {
-			left_bounds.grow(ref_ptr[i - 1].bounds());
+			BoundBox prim_bounds = get_prim_bounds(ref_ptr[i - 1]);
+			left_bounds.grow(prim_bounds);
 			right_bounds = storage_->right_bounds[i - 1];
 
 			float sah = nodeSAH +
@@ -88,16 +96,37 @@ void BVHObjectSplit::split(BVHRange& left,
                            BVHRange& right,
                            const BVHRange& range)
 {
+	assert(references_->size() > 0);
 	/* sort references according to split */
 	bvh_reference_sort(range.start(),
 	                   range.end(),
 	                   &references_->at(0),
-	                   this->dim);
+	                   this->dim,
+	                   unaligned_heuristic_,
+	                   aligned_space_);
+
+	BoundBox effective_left_bounds, effective_right_bounds;
+	const int num_right = range.size() - this->num_left;
+	if(aligned_space_ == NULL) {
+		effective_left_bounds = left_bounds;
+		effective_right_bounds = right_bounds;
+	}
+	else {
+		effective_left_bounds = BoundBox::empty;
+		effective_right_bounds = BoundBox::empty;
+		for(int i = 0; i < this->num_left; ++i) {
+			BoundBox prim_boundbox = references_->at(range.start() + i).bounds();
+			effective_left_bounds.grow(prim_boundbox);
+		}
+		for(int i = 0; i < num_right; ++i) {
+			BoundBox prim_boundbox = references_->at(range.start() + this->num_left + i).bounds();
+			effective_right_bounds.grow(prim_boundbox);
+		}
+	}
 
 	/* split node ranges */
-	left = BVHRange(this->left_bounds, range.start(), this->num_left);
-	right = BVHRange(this->right_bounds, left.end(), range.size() - this->num_left);
-
+	left = BVHRange(effective_left_bounds, range.start(), this->num_left);
+	right = BVHRange(effective_right_bounds, left.end(), num_right);
 }
 
 /* Spatial Split */
@@ -106,16 +135,31 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild& builder,
                                  BVHSpatialStorage *storage,
                                  const BVHRange& range,
                                  vector<BVHReference> *references,
-                                 float nodeSAH)
+                                 float nodeSAH,
+                                 const BVHUnaligned *unaligned_heuristic,
+                                 const Transform *aligned_space)
 : sah(FLT_MAX),
   dim(0),
   pos(0.0f),
   storage_(storage),
-  references_(references)
+  references_(references),
+  unaligned_heuristic_(unaligned_heuristic),
+  aligned_space_(aligned_space)
 {
 	/* initialize bins. */
-	float3 origin = range.bounds().min;
-	float3 binSize = (range.bounds().max - origin) * (1.0f / (float)BVHParams::NUM_SPATIAL_BINS);
+	BoundBox range_bounds;
+	if(aligned_space == NULL) {
+		range_bounds = range.bounds();
+	}
+	else {
+		range_bounds = unaligned_heuristic->compute_aligned_boundbox(
+		        range,
+		        &references->at(0),
+		        *aligned_space);
+	}
+
+	float3 origin = range_bounds.min;
+	float3 binSize = (range_bounds.max - origin) * (1.0f / (float)BVHParams::NUM_SPATIAL_BINS);
 	float3 invBinSize = 1.0f / binSize;
 
 	for(int dim = 0; dim < 3; dim++) {
@@ -131,8 +175,9 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild& builder,
 	/* chop references into bins. */
 	for(unsigned int refIdx = range.start(); refIdx < range.end(); refIdx++) {
 		const BVHReference& ref = references_->at(refIdx);
-		float3 firstBinf = (ref.bounds().min - origin) * invBinSize;
-		float3 lastBinf = (ref.bounds().max - origin) * invBinSize;
+		BoundBox prim_bounds = get_prim_bounds(ref);
+		float3 firstBinf = (prim_bounds.min - origin) * invBinSize;
+		float3 lastBinf = (prim_bounds.max - origin) * invBinSize;
 		int3 firstBin = make_int3((int)firstBinf.x, (int)firstBinf.y, (int)firstBinf.z);
 		int3 lastBin = make_int3((int)lastBinf.x, (int)lastBinf.y, (int)lastBinf.z);
 
@@ -140,7 +185,10 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild& builder,
 		lastBin = clamp(lastBin, firstBin, BVHParams::NUM_SPATIAL_BINS - 1);
 
 		for(int dim = 0; dim < 3; dim++) {
-			BVHReference currRef = ref;
+			BVHReference currRef(get_prim_bounds(ref),
+			                     ref.prim_index(),
+			                     ref.prim_object(),
+			                     ref.prim_type());
 
 			for(int i = firstBin[dim]; i < lastBin[dim]; i++) {
 				BVHReference leftRef, rightRef;
@@ -209,14 +257,15 @@ void BVHSpatialSplit::split(BVHBuild *builder,
 	BoundBox right_bounds = BoundBox::empty;
 
 	for(int i = left_end; i < right_start; i++) {
-		if(refs[i].bounds().max[this->dim] <= this->pos) {
+		BoundBox prim_bounds = get_prim_bounds(refs[i]);
+		if(prim_bounds.max[this->dim] <= this->pos) {
 			/* entirely on the left-hand side */
-			left_bounds.grow(refs[i].bounds());
+			left_bounds.grow(prim_bounds);
 			swap(refs[i], refs[left_end++]);
 		}
-		else if(refs[i].bounds().min[this->dim] >= this->pos) {
+		else if(prim_bounds.min[this->dim] >= this->pos) {
 			/* entirely on the right-hand side */
-			right_bounds.grow(refs[i].bounds());
+			right_bounds.grow(prim_bounds);
 			swap(refs[i--], refs[--right_start]);
 		}
 	}
@@ -231,8 +280,12 @@ void BVHSpatialSplit::split(BVHBuild *builder,
 	new_refs.reserve(right_start - left_end);
 	while(left_end < right_start) {
 		/* split reference. */
+		BVHReference curr_ref(get_prim_bounds(refs[left_end]),
+		                      refs[left_end].prim_index(),
+		                      refs[left_end].prim_object(),
+		                      refs[left_end].prim_type());
 		BVHReference lref, rref;
-		split_reference(*builder, lref, rref, refs[left_end], this->dim, this->pos);
+		split_reference(*builder, lref, rref, curr_ref, this->dim, this->pos);
 
 		/* compute SAH for duplicate/unsplit candidates. */
 		BoundBox lub = left_bounds;		// Unsplit to left:		new left-hand bounds.
@@ -240,8 +293,8 @@ void BVHSpatialSplit::split(BVHBuild *builder,
 		BoundBox ldb = left_bounds;		// Duplicate:			new left-hand bounds.
 		BoundBox rdb = right_bounds;	// Duplicate:			new right-hand bounds.
 
-		lub.grow(refs[left_end].bounds());
-		rub.grow(refs[left_end].bounds());
+		lub.grow(curr_ref.bounds());
+		rub.grow(curr_ref.bounds());
 		ldb.grow(lref.bounds());
 		rdb.grow(rref.bounds());
 
@@ -280,6 +333,17 @@ void BVHSpatialSplit::split(BVHBuild *builder,
 		            new_refs.begin(),
 		            new_refs.end());
 	}
+	if(aligned_space_ != NULL) {
+		left_bounds = right_bounds = BoundBox::empty;
+		for(int i = left_start; i < left_end - left_start; ++i) {
+			BoundBox prim_boundbox = references_->at(i).bounds();
+			left_bounds.grow(prim_boundbox);
+		}
+		for(int i = right_start; i < right_end - right_start; ++i) {
+			BoundBox prim_boundbox = references_->at(i).bounds();
+			right_bounds.grow(prim_boundbox);
+		}
+	}
 	left = BVHRange(left_bounds, left_start, left_end - left_start);
 	right = BVHRange(right_bounds, right_start, right_end - right_start);
 }
@@ -295,11 +359,13 @@ void BVHSpatialSplit::split_triangle_primitive(const Mesh *mesh,
 	Mesh::Triangle t = mesh->get_triangle(prim_index);
 	const float3 *verts = &mesh->verts[0];
 	float3 v1 = tfm ? transform_point(tfm, verts[t.v[2]]) : verts[t.v[2]];
+	v1 = get_unaligned_point(v1);
 
 	for(int i = 0; i < 3; i++) {
 		float3 v0 = v1;
 		int vindex = t.v[i];
 		v1 = tfm ? transform_point(tfm, verts[vindex]) : verts[vindex];
+		v1 = get_unaligned_point(v1);
 		float v0p = v0[dim];
 		float v1p = v1[dim];
 
@@ -339,6 +405,8 @@ void BVHSpatialSplit::split_curve_primitive(const Mesh *mesh,
 		v0 = transform_point(tfm, v0);
 		v1 = transform_point(tfm, v1);
 	}
+	v0 = get_unaligned_point(v0);
+	v1 = get_unaligned_point(v1);
 
 	float v0p = v0[dim];
 	float v1p = v1[dim];
@@ -473,6 +541,7 @@ void BVHSpatialSplit::split_reference(const BVHBuild& builder,
 	/* intersect with original bounds. */
 	left_bounds.max[dim] = pos;
 	right_bounds.min[dim] = pos;
+
 	left_bounds.intersect(ref.bounds());
 	right_bounds.intersect(ref.bounds());
 

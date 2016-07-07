@@ -29,10 +29,24 @@ static const int BVH_SORT_THRESHOLD = 4096;
 struct BVHReferenceCompare {
 public:
 	int dim;
+	const BVHUnaligned *unaligned_heuristic;
+	const Transform *aligned_space;
 
-	explicit BVHReferenceCompare(int dim_)
+	BVHReferenceCompare(int dim,
+	                    const BVHUnaligned *unaligned_heuristic,
+	                    const Transform *aligned_space)
+	        : dim(dim),
+	          unaligned_heuristic(unaligned_heuristic),
+	          aligned_space(aligned_space)
 	{
-		dim = dim_;
+	}
+
+	__forceinline BoundBox get_prim_bounds(const BVHReference& prim) const
+	{
+		return (aligned_space != NULL)
+		        ? unaligned_heuristic->compute_aligned_prim_boundbox(
+		                  prim, *aligned_space)
+		        : prim.bounds();
 	}
 
 	/* Compare two references.
@@ -42,8 +56,10 @@ public:
 	__forceinline int compare(const BVHReference& ra,
 	                          const BVHReference& rb) const
 	{
-		float ca = ra.bounds().min[dim] + ra.bounds().max[dim];
-		float cb = rb.bounds().min[dim] + rb.bounds().max[dim];
+		BoundBox ra_bounds = get_prim_bounds(ra),
+		         rb_bounds = get_prim_bounds(rb);
+		float ca = ra_bounds.min[dim] + ra_bounds.max[dim];
+		float cb = rb_bounds.min[dim] + rb_bounds.max[dim];
 
 		if(ca < cb) return -1;
 		else if(ca > cb) return 1;
@@ -161,10 +177,15 @@ static void bvh_reference_sort_threaded(TaskPool *task_pool,
 	}
 }
 
-void bvh_reference_sort(int start, int end, BVHReference *data, int dim)
+void bvh_reference_sort(int start,
+                        int end,
+                        BVHReference *data,
+                        int dim,
+                        const BVHUnaligned *unaligned_heuristic,
+                        const Transform *aligned_space)
 {
 	const int count = end - start;
-	BVHReferenceCompare compare(dim);
+	BVHReferenceCompare compare(dim, unaligned_heuristic, aligned_space);
 	if(count < BVH_SORT_THRESHOLD) {
 		/* It is important to not use any mutex if array is small enough,
 		 * otherwise we end up in situation when we're going to sleep far
