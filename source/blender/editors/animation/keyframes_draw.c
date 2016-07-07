@@ -40,6 +40,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_dlrbTree.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
@@ -282,6 +283,9 @@ static ActKeyBlock *bezts_to_new_actkeyblock(BezTriple *prev, BezTriple *beztn)
 	ab->sel = (BEZT_ISSEL_ANY(prev) || BEZT_ISSEL_ANY(beztn)) ? SELECT : 0;
 	ab->modified = 1;
 	
+	if (BEZKEYTYPE(beztn) == BEZT_KEYTYPE_MOVEHOLD)
+		ab->flag |= ACTKEYBLOCK_FLAG_MOVING_HOLD;
+	
 	return ab;
 }
 
@@ -305,16 +309,28 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *blocks, BezTriple *first_bezt
 	}
 	
 	
-	/* check if block needed - same value(s)?
-	 *	-> firstly, handles must have same central value as each other
-	 *	-> secondly, handles which control that section of the curve must be constant
-	 */
+	/* check if block needed */
 	if (prev == NULL) return;
-	if (IS_EQF(beztn->vec[1][1], prev->vec[1][1]) == 0) return;
 	
-	if (IS_EQF(beztn->vec[1][1], beztn->vec[0][1]) == 0) return;
-	if (IS_EQF(prev->vec[1][1], prev->vec[2][1]) == 0) return;
-	
+	if (BEZKEYTYPE(beztn) == BEZT_KEYTYPE_MOVEHOLD) {
+		/* Animator tagged a "moving hold"
+		 *   - Previous key must also be tagged as a moving hold, otherwise
+		 *     we're just dealing with the first of a pair, and we don't
+		 *     want to be creating any phantom holds...
+		 */
+		if (BEZKEYTYPE(prev) != BEZT_KEYTYPE_MOVEHOLD)
+			return;
+	}
+	else {
+		/* Check for same values...
+		 *  - Handles must have same central value as each other
+		 *  - Handles which control that section of the curve must be constant
+		 */
+		if (IS_EQF(beztn->vec[1][1], prev->vec[1][1]) == 0) return;
+		
+		if (IS_EQF(beztn->vec[1][1], beztn->vec[0][1]) == 0) return;
+		if (IS_EQF(prev->vec[1][1], prev->vec[2][1]) == 0) return;
+	}
 	
 	/* if there are no blocks already, just add as root */
 	if (blocks->root == NULL) {
@@ -340,7 +356,13 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *blocks, BezTriple *first_bezt
 			 */
 			if (IS_EQT(ab->start, prev->vec[1][0], BEZT_BINARYSEARCH_THRESH)) {
 				/* set selection status and 'touched' status */
-				if (BEZT_ISSEL_ANY(beztn)) ab->sel = SELECT;
+				if (BEZT_ISSEL_ANY(beztn))
+					ab->sel = SELECT;
+					
+				/* XXX: only when the first one was a moving hold? */
+				if (BEZKEYTYPE(beztn) == BEZT_KEYTYPE_MOVEHOLD)
+					ab->flag |= ACTKEYBLOCK_FLAG_MOVING_HOLD;
+				
 				ab->modified++;
 				
 				/* done... no need to insert */
@@ -485,7 +507,27 @@ void draw_keyframe_shape(float x, float y, float xscale, float hsize, short sel,
 	/* tweak size of keyframe shape according to type of keyframe 
 	 * - 'proper' keyframes have key_type = 0, so get drawn at full size
 	 */
-	hsize -= 0.5f * key_type;
+	switch (key_type) {
+		case BEZT_KEYTYPE_KEYFRAME:  /* must be full size */
+			break;
+		
+		case BEZT_KEYTYPE_BREAKDOWN: /* slightly smaller than normal keyframe */
+			hsize *= 0.85f;
+			break;
+		
+		case BEZT_KEYTYPE_MOVEHOLD:  /* slightly smaller than normal keyframes (but by less than for breakdowns) */
+			//hsize *= 0.72f;
+			hsize *= 0.95f;
+			break;
+			
+		case BEZT_KEYTYPE_EXTREME:   /* slightly larger */
+			hsize *= 1.2f;
+			break;
+		
+		default:
+			hsize -= 0.5f * key_type;
+			break;
+	}
 	
 	/* adjust view transform before starting */
 	glTranslatef(x, y, 0.0f);
@@ -516,6 +558,15 @@ void draw_keyframe_shape(float x, float y, float xscale, float hsize, short sel,
 			{
 				if (sel) UI_GetThemeColor4fv(TH_KEYTYPE_JITTER_SELECT, inner_col);
 				else UI_GetThemeColor4fv(TH_KEYTYPE_JITTER, inner_col);
+				break;
+			}
+			case BEZT_KEYTYPE_MOVEHOLD: /* similar to traditional keyframes, but different... */
+			{
+				/* XXX: Should these get their own theme options instead? */
+				if (sel) UI_GetThemeColorShade4fv(TH_STRIP_SELECT, 35, inner_col);
+				else UI_GetThemeColorShade4fv(TH_STRIP, 50, inner_col);
+				
+				inner_col[3] = 1.0f; /* full opacity, to avoid problems with visual glitches */
 				break;
 			}
 			case BEZT_KEYTYPE_KEYFRAME: /* traditional yellowish frames (default theme) */
@@ -563,7 +614,10 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 	ActKeyBlock *ab;
 	float alpha;
 	float xscale;
-	float iconsize = (U.widget_unit / 4.0f) * yscale_fac;
+	
+	const float iconsize = (U.widget_unit / 4.0f) * yscale_fac;
+	const float mhsize   = iconsize * 0.7f;
+	
 	glEnable(GL_BLEND);
 	
 	/* get View2D scaling factor */
@@ -576,6 +630,7 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 	/* draw keyblocks */
 	if (blocks) {
 		float sel_color[4], unsel_color[4];
+		float sel_mhcol[4], unsel_mhcol[4];
 		
 		/* cache colours first */
 		UI_GetThemeColor4fv(TH_STRIP_SELECT, sel_color);
@@ -584,16 +639,32 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 		sel_color[3]   *= alpha;
 		unsel_color[3] *= alpha;
 		
+		copy_v4_v4(sel_mhcol, sel_color);
+		sel_mhcol[3]   *= 0.8f;
+		copy_v4_v4(unsel_mhcol, unsel_color);
+		unsel_mhcol[3] *= 0.8f;
+		
 		/* NOTE: the tradeoff for changing colors between each draw is dwarfed by the cost of checking validity */
 		for (ab = blocks->first; ab; ab = ab->next) {
 			if (actkeyblock_is_valid(ab, keys)) {
-				/* draw block */
-				if (ab->sel)
-					glColor4fv(sel_color);
-				else
-					glColor4fv(unsel_color);
-				
-				glRectf(ab->start, ypos - iconsize, ab->end, ypos + iconsize);
+				if (ab->flag & ACTKEYBLOCK_FLAG_MOVING_HOLD) {
+					/* draw "moving hold" long-keyframe block - slightly smaller */
+					if (ab->sel)
+						glColor4fv(sel_mhcol);
+					else
+						glColor4fv(unsel_mhcol);
+					
+					glRectf(ab->start, ypos - mhsize, ab->end, ypos + mhsize);
+				}
+				else {
+					/* draw standard long-keyframe block */
+					if (ab->sel)
+						glColor4fv(sel_color);
+					else
+						glColor4fv(unsel_color);
+					
+					glRectf(ab->start, ypos - iconsize, ab->end, ypos + iconsize);
+				}
 			}
 		}
 	}

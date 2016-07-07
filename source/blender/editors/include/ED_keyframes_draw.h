@@ -80,7 +80,7 @@ typedef struct ActKeyBlock {
 	
 	/* key-block info */
 	char sel;
-	short handle_type;
+	short flag;
 	float val;
 	float start, end;
 	
@@ -88,6 +88,12 @@ typedef struct ActKeyBlock {
 	short modified;
 	short totcurve; 
 } ActKeyBlock;
+
+/* ActKeyBlock - Flag */
+typedef enum eActKeyBlock_Flag {
+	/* Key block represents a moving hold */
+	ACTKEYBLOCK_FLAG_MOVING_HOLD     = (1 << 0),
+} eActKeyBlock_Flag;
 
 /* *********************** Keyframe Drawing ****************************** */
 
