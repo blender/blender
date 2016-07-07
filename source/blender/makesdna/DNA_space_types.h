@@ -252,7 +252,7 @@ typedef struct SpaceOops {
 	struct BLI_mempool *treestore;
 	
 	/* search stuff */
-	char search_string[32];
+	char search_string[64];
 	struct TreeStoreElem search_tse;
 
 	short flag, outlinevis, storeflag, search_flags;
