@@ -960,13 +960,18 @@ static bool library_ID_is_used(Main *bmain, void *idv, const bool check_linked)
 {
 	IDUsersIter iter;
 	ListBase *lb_array[MAX_LIBARRAY];
+	ID *id = idv;
 	int i = set_listbasepointers(bmain, lb_array);
 	bool is_defined = false;
 
-	iter.id = idv;
+	iter.id = id;
 	iter.count = 0;
 	while (i-- && !is_defined) {
 		ID *id_curr = lb_array[i]->first;
+
+		if (!id_curr || !BKE_library_idtype_can_use_idtype(GS(id->name), GS(id_curr->name))) {
+			continue;
+		}
 
 		for (; id_curr && !is_defined; id_curr = id_curr->next) {
 			if (check_linked != ID_IS_LINKED_DATABLOCK(id_curr)) {
@@ -1007,13 +1012,18 @@ void BKE_library_ID_test_usages(Main *bmain, void *idv, bool *is_used_local, boo
 {
 	IDUsersIter iter_local, iter_linked;
 	ListBase *lb_array[MAX_LIBARRAY];
+	ID *id = idv;
 	int i = set_listbasepointers(bmain, lb_array);
 	bool is_defined = false;
 
-	iter_local.id = iter_linked.id = idv;
+	iter_local.id = iter_linked.id = id;
 	iter_local.count = iter_linked.count = 0;
 	while (i-- && !is_defined) {
 		ID *id_curr = lb_array[i]->first;
+
+		if (!id_curr || !BKE_library_idtype_can_use_idtype(GS(id->name), GS(id_curr->name))) {
+			continue;
+		}
 
 		for (; id_curr && !is_defined; id_curr = id_curr->next) {
 			IDUsersIter *iter = (ID_IS_LINKED_DATABLOCK(id_curr)) ? &iter_linked : &iter_local;

@@ -283,6 +283,10 @@ static void libblock_remap_data(
 		while (i--) {
 			ID *id_curr = lb_array[i]->first;
 
+			if (!id_curr || !BKE_library_idtype_can_use_idtype(GS(id_curr->name), GS(old_id->name))) {
+				continue;
+			}
+
 			for (; id_curr; id_curr = id_curr->next) {
 				/* Note that we cannot skip indirect usages of old_id here (if requested), we still need to check it for
 				 * the user count handling...
