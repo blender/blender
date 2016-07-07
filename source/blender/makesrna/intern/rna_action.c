@@ -713,7 +713,8 @@ static void rna_def_action(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "pose_markers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "markers", NULL);
 	RNA_def_property_struct_type(prop, "TimelineMarker");
-	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION); /* T45689 - so that the list isn't greyed out; adding/removing is still banned though */
+	/* Use lib exception so the list isn't grayed out; adding/removing is still banned though, see T45689 */
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	RNA_def_property_ui_text(prop, "Pose Markers", "Markers specific to this action, for labeling poses");
 	rna_def_action_pose_markers(brna, prop);
 	

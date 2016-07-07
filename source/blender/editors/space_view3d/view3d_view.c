@@ -221,7 +221,7 @@ void ED_view3d_smooth_view_ex(
 		copy_v3_v3(sms.dyn_ofs, sview->dyn_ofs);
 		sms.use_dyn_ofs = true;
 
-		/* calcualte the final destination offset */
+		/* calculate the final destination offset */
 		view3d_orbit_apply_dyn_ofs(sms.dst.ofs, sms.src.ofs, sms.src.quat, sms.dst.quat, sms.dyn_ofs);
 	}
 

@@ -3435,8 +3435,7 @@ static int render_border_exec(bContext *C, wmOperator *op)
 	}
 
 	/* drawing a border outside the camera view switches off border rendering */
-	if ((border.xmin == border.xmax || border.ymin == border.ymax))
-	{
+	if ((border.xmin == border.xmax || border.ymin == border.ymax)) {
 		if (rv3d->persp == RV3D_CAMOB)
 			scene->r.mode &= ~R_BORDER;
 		else

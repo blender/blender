@@ -384,7 +384,7 @@ void  BM_face_calc_tangent_edge(const BMFace *f, float r_tangent[3])
 }
 
 /**
- * Compute the tanget of the face, using the two longest disconected edges.
+ * Compute the tanget of the face, using the two longest disconnected edges.
  *
  * \param r_tangent: Calculated unit length tangent (return value).
  */

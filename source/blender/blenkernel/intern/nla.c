@@ -1291,7 +1291,7 @@ void BKE_nlastrip_recalculate_bounds(NlaStrip *strip)
 	if (IS_EQF(mapping, 0.0f) == 0)
 		strip->end = (actlen * mapping) + strip->start;
 	
-	/* make sure we don't overlap our neighbours */
+	/* make sure we don't overlap our neighbors */
 	nlastrip_fix_resize_overlaps(strip);
 }
 

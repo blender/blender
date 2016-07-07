@@ -2249,7 +2249,7 @@ static void dynamic_paint_create_uv_surface_neighbor_cb(void *userdata, const in
 							/* tri index */
 							/* There is a low possibility of actually having a neighbor point which tri is
 							 * already set from another neighbor in a separate thread here.
-							 * Cheking for both tri_index and neighbour_pixel above reduces that probability
+							 * Checking for both tri_index and neighbour_pixel above reduces that probability
 							 * but it remains possible.
 							 * That atomic op (and its memory fence) ensures tPoint->neighbour_pixel is set
 							 * to non--1 *before* its tri_index is set (i.e. that it cannot be used a neighbour).
@@ -4797,7 +4797,7 @@ static void dynamic_paint_effect_drip_cb(void *userdata, const int index)
 
 			/* Sort of spinlock, but only for given ePoint.
 			 * Since the odds a same ePoint is modified at the same time by several threads is very low, this is
-			 * much more eficient than a global spin lock. */
+			 * much more efficient than a global spin lock. */
 			const unsigned int pointlock_idx = n_trgt / 8;
 			const uint8_t pointlock_bitmask = 1 << (n_trgt & 7);  /* 7 == 0b111 */
 			while (atomic_fetch_and_or_uint8(&point_locks[pointlock_idx], pointlock_bitmask) & pointlock_bitmask);

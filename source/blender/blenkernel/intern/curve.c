@@ -1397,7 +1397,7 @@ unsigned int BKE_curve_calc_coords_axis_len(
 }
 
 /**
- * Calcualte an array for the entire curve (cyclic or non-cyclic).
+ * Calculate an array for the entire curve (cyclic or non-cyclic).
  * \note Call for each axis.
  *
  * \param use_cyclic_duplicate_endpoint: Duplicate values at the beginning & end of the array.

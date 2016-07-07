@@ -640,7 +640,7 @@ void FEdgeXDetector::postProcessSuggestiveContourFace(WXFace *iFace)
 			normal_vec = wxf->GetVertexNormal(v); // FIXME: what about e1 ^ e2 ?
 			radial_normal_vec = er_vec ^ normal_vec;
 
-			// Test wether the radial plan intersects with the edge at the opposite of v.
+			// Test weather the radial plan intersects with the edge at the opposite of v.
 			res = GeomUtils::intersectRayPlane(opposite_vertex_a->GetVertex(), opposite_edge->GetVec(),
 			                                   radial_normal_vec, -(v_vec * radial_normal_vec),
 			                                   t, 1.0e-06);

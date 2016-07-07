@@ -3042,7 +3042,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	
 	if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
 		/* Now we reduce alpha of the inner color (i.e. the color shown)
-		 * so that this setting can look greyed out, while retaining
+		 * so that this setting can look grayed out, while retaining
 		 * the checkboard (for transparent values). This is needed
 		 * here as the effects of ui_widget_color_disabled() are overwritten.
 		 */

@@ -743,7 +743,7 @@ static PVert *p_vert_add(PHandle *handle, PHashKey key, const float co[3], PEdge
 
 	/* Sanity check, a single nan/inf point causes the entire result to be invalid.
 	 * Note that values within the calculation may _become_ non-finite,
-	 * so the rest of the code still needs to take this possability into account. */
+	 * so the rest of the code still needs to take this possibility into account. */
 	for (int i = 0; i < 3; i++) {
 		if (UNLIKELY(!isfinite(v->co[i]))) {
 			v->co[i] = 0.0f;

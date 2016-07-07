@@ -1974,7 +1974,7 @@ void BM_mesh_rebuild(
 }
 
 /**
- * Re-allocatges mesh data with/without toolflags.
+ * Re-allocates mesh data with/without toolflags.
  */
 void BM_mesh_toolflags_set(BMesh *bm, bool use_toolflags)
 {

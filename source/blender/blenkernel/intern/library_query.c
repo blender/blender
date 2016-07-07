@@ -881,7 +881,7 @@ static int foreach_libblock_check_indirect_usage_callback(
 }
 
 /**
- * Check wether given ID is used indirectly (i.e. by another linked ID).
+ * Check weather given ID is used indirectly (i.e. by another linked ID).
  */
 bool BKE_library_ID_is_indirectly_used(Main *bmain, void *idv)
 {

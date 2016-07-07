@@ -891,9 +891,9 @@ static bool snapDerivedMesh(
 				hit.dist = local_depth;
 
 				if (treedata->tree &&
-					BLI_bvhtree_ray_cast(
-					    treedata->tree, ray_start_local, ray_normal_local, 0.0f,
-					    &hit, treedata->raycast_callback, treedata) != -1)
+				    BLI_bvhtree_ray_cast(
+				        treedata->tree, ray_start_local, ray_normal_local, 0.0f,
+				        &hit, treedata->raycast_callback, treedata) != -1)
 				{
 					hit.dist += len_diff;
 					hit.dist /= local_scale;
