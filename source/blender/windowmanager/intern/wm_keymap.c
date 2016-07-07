@@ -1791,7 +1791,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 		 * Mesh keymap is probably not ideal, but best place I could find to put those. */
 		if (sl->spacetype == SPACE_VIEW3D) {
 			km = WM_keymap_find_all(C, "Mesh", 0, 0);
-			if (km && km->poll && !km->poll(C)) {
+			if (km && km->poll && !km->poll((bContext *)C)) {
 				km = NULL;
 			}
 		}
