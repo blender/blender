@@ -21,6 +21,12 @@
 #  include "geom_qbvh_subsurface.h"
 #endif
 
+#if BVH_FEATURE(BVH_HAIR)
+#  define NODE_INTERSECT bvh_node_intersect
+#else
+#  define NODE_INTERSECT bvh_aligned_node_intersect
+#endif
+
 /* This is a template BVH traversal function for subsurface scattering, where
  * various features can be enabled/disabled. This way we can compile optimized
  * versions for each case without new features slowing things down.
@@ -84,6 +90,9 @@ ccl_device void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 
 	const ssef pn = cast(ssei(0, 0, 0x80000000, 0x80000000));
 	ssef Psplat[3], idirsplat[3];
+#  if BVH_FEATURE(BVH_HAIR)
+	ssef tnear(0.0f), tfar(isect_t);
+#  endif
 	shuffle_swap_t shufflexyz[3];
 
 	Psplat[0] = ssef(P.x);
@@ -100,79 +109,47 @@ ccl_device void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 
 	/* traversal loop */
 	do {
-		do
-		{
+		do {
 			/* traverse internal nodes */
-			while(nodeAddr >= 0 && nodeAddr != ENTRYPOINT_SENTINEL)
-			{
-				bool traverseChild0, traverseChild1;
-				int nodeAddrChild1;
+			while(nodeAddr >= 0 && nodeAddr != ENTRYPOINT_SENTINEL) {
+				int nodeAddrChild1, traverse_mask;
+				float dist[2];
+				float4 cnodes = kernel_tex_fetch(__bvh_nodes, nodeAddr+0);
 
 #if !defined(__KERNEL_SSE2__)
-				/* Intersect two child bounding boxes, non-SSE version */
-				float t = isect_t;
-
-				/* fetch node data */
-				float4 node0 = kernel_tex_fetch(__bvh_nodes, nodeAddr+0);
-				float4 node1 = kernel_tex_fetch(__bvh_nodes, nodeAddr+1);
-				float4 node2 = kernel_tex_fetch(__bvh_nodes, nodeAddr+2);
-				float4 cnodes = kernel_tex_fetch(__bvh_nodes, nodeAddr+3);
-
-				/* intersect ray against child nodes */
-				float c0lox = (node0.x - P.x) * idir.x;
-				float c0hix = (node0.z - P.x) * idir.x;
-				float c0loy = (node1.x - P.y) * idir.y;
-				float c0hiy = (node1.z - P.y) * idir.y;
-				float c0loz = (node2.x - P.z) * idir.z;
-				float c0hiz = (node2.z - P.z) * idir.z;
-				float c0min = max4(min(c0lox, c0hix), min(c0loy, c0hiy), min(c0loz, c0hiz), 0.0f);
-				float c0max = min4(max(c0lox, c0hix), max(c0loy, c0hiy), max(c0loz, c0hiz), t);
-
-				float c1lox = (node0.y - P.x) * idir.x;
-				float c1hix = (node0.w - P.x) * idir.x;
-				float c1loy = (node1.y - P.y) * idir.y;
-				float c1hiy = (node1.w - P.y) * idir.y;
-				float c1loz = (node2.y - P.z) * idir.z;
-				float c1hiz = (node2.w - P.z) * idir.z;
-				float c1min = max4(min(c1lox, c1hix), min(c1loy, c1hiy), min(c1loz, c1hiz), 0.0f);
-				float c1max = min4(max(c1lox, c1hix), max(c1loy, c1hiy), max(c1loz, c1hiz), t);
-
-				/* decide which nodes to traverse next */
-				traverseChild0 = (c0max >= c0min);
-				traverseChild1 = (c1max >= c1min);
-
+				traverse_mask = NODE_INTERSECT(kg,
+				                               P,
+#  if BVH_FEATURE(BVH_HAIR)
+				                               dir,
+#  endif
+				                               idir,
+				                               isect_t,
+				                               nodeAddr,
+				                               PATH_RAY_ALL_VISIBILITY,
+				                               dist);
 #else // __KERNEL_SSE2__
-				/* Intersect two child bounding boxes, SSE3 version adapted from Embree */
-
-				/* fetch node data */
-				const ssef *bvh_nodes = (ssef*)kg->__bvh_nodes.data + nodeAddr;
-				const float4 cnodes = ((float4*)bvh_nodes)[3];
-
-				/* intersect ray against child nodes */
-				const ssef tminmaxx = (shuffle_swap(bvh_nodes[0], shufflexyz[0]) - Psplat[0]) * idirsplat[0];
-				const ssef tminmaxy = (shuffle_swap(bvh_nodes[1], shufflexyz[1]) - Psplat[1]) * idirsplat[1];
-				const ssef tminmaxz = (shuffle_swap(bvh_nodes[2], shufflexyz[2]) - Psplat[2]) * idirsplat[2];
-
-				/* calculate { c0min, c1min, -c0max, -c1max} */
-				const ssef minmax = max(max(tminmaxx, tminmaxy), max(tminmaxz, tsplat));
-				const ssef tminmax = minmax ^ pn;
-				const sseb lrhit = tminmax <= shuffle<2, 3, 0, 1>(tminmax);
-
-				/* decide which nodes to traverse next */
-				traverseChild0 = (movemask(lrhit) & 1);
-				traverseChild1 = (movemask(lrhit) & 2);
+				traverse_mask = NODE_INTERSECT(kg,
+				                               P,
+				                               dir,
+#  if BVH_FEATURE(BVH_HAIR)
+				                               tnear,
+				                               tfar,
+#  endif
+				                               tsplat,
+				                               Psplat,
+				                               idirsplat,
+				                               shufflexyz,
+				                               nodeAddr,
+				                               PATH_RAY_ALL_VISIBILITY,
+				                               dist);
 #endif // __KERNEL_SSE2__
 
-				nodeAddr = __float_as_int(cnodes.x);
-				nodeAddrChild1 = __float_as_int(cnodes.y);
+				nodeAddr = __float_as_int(cnodes.z);
+				nodeAddrChild1 = __float_as_int(cnodes.w);
 
-				if(traverseChild0 && traverseChild1) {
-					/* both children were intersected, push the farther one */
-#if !defined(__KERNEL_SSE2__)
-					bool closestChild1 = (c1min < c0min);
-#else
-					bool closestChild1 = tminmax[1] < tminmax[0];
-#endif
+				if(traverse_mask == 3) {
+					/* Both children were intersected, push the farther one. */
+					bool closestChild1 = (dist[1] < dist[0]);
 
 					if(closestChild1) {
 						int tmp = nodeAddr;
@@ -185,12 +162,12 @@ ccl_device void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 					traversalStack[stackPtr] = nodeAddrChild1;
 				}
 				else {
-					/* one child was intersected */
-					if(traverseChild1) {
+					/* One child was intersected. */
+					if(traverse_mask == 2) {
 						nodeAddr = nodeAddrChild1;
 					}
-					else if(!traverseChild0) {
-						/* neither child was intersected */
+					else if(traverse_mask == 0) {
+						/* Neither child was intersected. */
 						nodeAddr = traversalStack[stackPtr];
 						--stackPtr;
 					}
@@ -286,3 +263,4 @@ ccl_device_inline void BVH_FUNCTION_NAME(KernelGlobals *kg,
 
 #undef BVH_FUNCTION_NAME
 #undef BVH_FUNCTION_FEATURES
+#undef NODE_INTERSECT

@@ -77,6 +77,8 @@ CCL_NAMESPACE_BEGIN
 
 /* Regular BVH traversal */
 
+#include "geom_bvh_nodes.h"
+
 #define BVH_FUNCTION_NAME bvh_intersect
 #define BVH_FUNCTION_FEATURES 0
 #include "geom_bvh_traversal.h"
@@ -109,13 +111,13 @@ CCL_NAMESPACE_BEGIN
 
 #if defined(__SUBSURFACE__)
 #  define BVH_FUNCTION_NAME bvh_intersect_subsurface
-#  define BVH_FUNCTION_FEATURES 0
+#  define BVH_FUNCTION_FEATURES BVH_HAIR
 #  include "geom_bvh_subsurface.h"
 #endif
 
 #if defined(__SUBSURFACE__) && defined(__OBJECT_MOTION__)
 #  define BVH_FUNCTION_NAME bvh_intersect_subsurface_motion
-#  define BVH_FUNCTION_FEATURES BVH_MOTION
+#  define BVH_FUNCTION_FEATURES BVH_MOTION|BVH_HAIR
 #  include "geom_bvh_subsurface.h"
 #endif
 
@@ -123,19 +125,19 @@ CCL_NAMESPACE_BEGIN
 
 #if defined(__VOLUME__)
 #  define BVH_FUNCTION_NAME bvh_intersect_volume
-#  define BVH_FUNCTION_FEATURES 0
+#  define BVH_FUNCTION_FEATURES BVH_HAIR
 #  include "geom_bvh_volume.h"
 #endif
 
 #if defined(__VOLUME__) && defined(__INSTANCING__)
 #  define BVH_FUNCTION_NAME bvh_intersect_volume_instancing
-#  define BVH_FUNCTION_FEATURES BVH_INSTANCING
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR
 #  include "geom_bvh_volume.h"
 #endif
 
 #if defined(__VOLUME__) && defined(__OBJECT_MOTION__)
 #  define BVH_FUNCTION_NAME bvh_intersect_volume_motion
-#  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_MOTION
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_MOTION|BVH_HAIR
 #  include "geom_bvh_volume.h"
 #endif
 
@@ -175,19 +177,19 @@ CCL_NAMESPACE_BEGIN
 
 #if defined(__VOLUME_RECORD_ALL__)
 #  define BVH_FUNCTION_NAME bvh_intersect_volume_all
-#  define BVH_FUNCTION_FEATURES 0
+#  define BVH_FUNCTION_FEATURES BVH_HAIR
 #  include "geom_bvh_volume_all.h"
 #endif
 
 #if defined(__VOLUME_RECORD_ALL__) && defined(__INSTANCING__)
 #  define BVH_FUNCTION_NAME bvh_intersect_volume_all_instancing
-#  define BVH_FUNCTION_FEATURES BVH_INSTANCING
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR
 #  include "geom_bvh_volume_all.h"
 #endif
 
 #if defined(__VOLUME_RECORD_ALL__) && defined(__OBJECT_MOTION__)
 #  define BVH_FUNCTION_NAME bvh_intersect_volume_all_motion
-#  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_MOTION
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_MOTION|BVH_HAIR
 #  include "geom_bvh_volume_all.h"
 #endif
 

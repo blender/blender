@@ -141,6 +141,7 @@ set(SRC_GEOM_HEADERS
 	geom/geom.h
 	geom/geom_attribute.h
 	geom/geom_bvh.h
+	geom/geom_bvh_nodes.h
 	geom/geom_bvh_shadow.h
 	geom/geom_bvh_subsurface.h
 	geom/geom_bvh_traversal.h
