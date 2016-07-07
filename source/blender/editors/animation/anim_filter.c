@@ -2788,10 +2788,10 @@ static bool animdata_filter_base_is_ok(bDopeSheet *ads, Scene *scene, Base *base
 /* Helper for animdata_filter_ds_sorted_bases() - Comparison callback for two Base pointers... */
 static int ds_base_sorting_cmp(const void *base1_ptr, const void *base2_ptr)
 {
-	const Base *b1 = *((Base **)base1_ptr);
-	const Base *b2 = *((Base **)base2_ptr);
+	const Base *b1 = *((const Base **)base1_ptr);
+	const Base *b2 = *((const Base **)base2_ptr);
 	
-	return strcmp(b1->object->id.name, b2->object->id.name);
+	return strcmp(b1->object->id.name + 2, b2->object->id.name + 2);
 }
 
 /* Get a sorted list of all the bases - for inclusion in dopesheet (when drawing channels) */
@@ -2801,7 +2801,7 @@ static Base **animdata_filter_ds_sorted_bases(bDopeSheet *ads, Scene *scene, int
 	size_t tot_bases = BLI_listbase_count(&scene->base);
 	size_t num_bases = 0;
 	
-	Base **sorted_bases = MEM_callocN(sizeof(Base *) * tot_bases, "Dopesheet Usable Sorted Bases");
+	Base **sorted_bases = MEM_mallocN(sizeof(Base *) * tot_bases, "Dopesheet Usable Sorted Bases");
 	for (Base *base = scene->base.first; base; base = base->next) {
 		if (animdata_filter_base_is_ok(ads, scene, base, filter_mode)) {
 			sorted_bases[num_bases++] = base;
