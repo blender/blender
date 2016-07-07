@@ -822,187 +822,146 @@ static bool snapDerivedMesh(
 					break;
 			}
 		}
-		switch (snap_to) {
-			case SCE_SNAP_MODE_FACE:
-			{
-				/* Only use closer ray_start in case of ortho view! In perspective one, ray_start may already
-				 * been *inside* boundbox, leading to snap failures (see T38409).
-				 * Note also ar might be null (see T38435), in this case we assume ray_start is ok!
-				 */
-				if (sctx->use_v3d && !is_persp) { /* do_ray_start_correction */
-					if (need_ray_start_correction_init) {
-						/* We *need* a reasonably valid len_diff in this case.
-						 * Use BHVTree to find the closest face from ray_start_local.
-						 */
-						if (treedata && treedata->tree != NULL) {
-							BVHTreeNearest nearest;
-							nearest.index = -1;
-							nearest.dist_sq = FLT_MAX;
-							/* Compute and store result. */
-							BLI_bvhtree_find_nearest(
-								treedata->tree, ray_start_local, &nearest, treedata->nearest_callback, treedata);
-							if (nearest.index != -1) {
-								float dvec[3];
-								sub_v3_v3v3(dvec, nearest.co, ray_start_local);
-								len_diff = dot_v3v3(dvec, ray_normal_local);
-							}
-						}
-					}
-					float ray_org_local[3];
 
-					copy_v3_v3(ray_org_local, ray_origin);
-					mul_m4_v3(imat, ray_org_local);
-
-					/* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with very far
-					 * away ray_start values (as returned in case of ortho view3d), see T38358.
+		if (snap_to == SCE_SNAP_MODE_FACE) {
+			/* Only use closer ray_start in case of ortho view! In perspective one, ray_start may already
+			 * been *inside* boundbox, leading to snap failures (see T38409).
+			 * Note also ar might be null (see T38435), in this case we assume ray_start is ok!
+			 */
+			if (sctx->use_v3d && !is_persp) { /* do_ray_start_correction */
+				if (need_ray_start_correction_init) {
+					/* We *need* a reasonably valid len_diff in this case.
+					 * Use BHVTree to find the closest face from ray_start_local.
 					 */
-					len_diff -= local_scale;  /* make temp start point a bit away from bbox hit point. */
-					madd_v3_v3v3fl(ray_start_local, ray_org_local, ray_normal_local,
-					               len_diff + ray_depth_range[0]);
-					local_depth -= len_diff;
-				}
-				else {
-					len_diff = 0.0f;
-				}
-				if (r_hit_list) {
-					struct RayCastAll_Data data;
-
-					data.bvhdata = treedata;
-					data.raycast_callback = treedata->raycast_callback;
-					data.obmat = obmat;
-					data.timat = timat;
-					data.len_diff = len_diff;
-					data.local_scale = local_scale;
-					data.ob = ob;
-					data.ob_uuid = ob_index;
-					data.dm = dm;
-					data.hit_list = r_hit_list;
-					data.retval = retval;
-
-					BLI_bvhtree_ray_cast_all(
-					        treedata->tree, ray_start_local, ray_normal_local, 0.0f,
-					        *ray_depth, raycast_all_cb, &data);
-
-					retval = data.retval;
-				}
-				else {
-					BVHTreeRayHit hit;
-
-					hit.index = -1;
-					hit.dist = local_depth;
-
-					if (treedata->tree &&
-					    BLI_bvhtree_ray_cast(
-					        treedata->tree, ray_start_local, ray_normal_local, 0.0f,
-					        &hit, treedata->raycast_callback, treedata) != -1)
-					{
-						hit.dist += len_diff;
-						hit.dist /= local_scale;
-						if (hit.dist <= *ray_depth) {
-							*ray_depth = hit.dist;
-							copy_v3_v3(r_loc, hit.co);
-							copy_v3_v3(r_no, hit.no);
-
-							/* back to worldspace */
-							mul_m4_v3(obmat, r_loc);
-							mul_m3_v3(timat, r_no);
-							normalize_v3(r_no);
-
-							retval = true;
-
-							if (r_index) {
-								*r_index = dm_looptri_to_poly_index(dm, &treedata->looptri[hit.index]);
-							}
+					if (treedata && treedata->tree != NULL) {
+						BVHTreeNearest nearest;
+						nearest.index = -1;
+						nearest.dist_sq = FLT_MAX;
+						/* Compute and store result. */
+						BLI_bvhtree_find_nearest(
+						        treedata->tree, ray_start_local, &nearest, treedata->nearest_callback, treedata);
+						if (nearest.index != -1) {
+							float dvec[3];
+							sub_v3_v3v3(dvec, nearest.co, ray_start_local);
+							len_diff = dot_v3v3(dvec, ray_normal_local);
 						}
 					}
 				}
-				break;
-			}
-			case SCE_SNAP_MODE_VERTEX:
-			{
 				float ray_org_local[3];
 
 				copy_v3_v3(ray_org_local, ray_origin);
 				mul_m4_v3(imat, ray_org_local);
 
-				BVHTreeNearest nearest;
-
-				nearest.index = -1;
-				nearest.dist_sq = *dist_to_ray_sq;
-
-				struct NearestDM_Data userdata;
-				userdata.bvhdata = treedata;
-				userdata.is_persp = is_persp;
-				userdata.ray_depth_range = ray_depth_range;
-				userdata.ray_depth = ray_depth;
-
-				float ob_scale[3];
-				mat4_to_size(ob_scale, obmat);
-
-				if (treedata->tree && (
-				    is_persp ?
-				    BLI_bvhtree_find_nearest_to_ray_angle(
-				            treedata->tree, ray_org_local, ray_normal_local,
-				            true, ob_scale, &nearest, test_vert_depth_cb, &userdata) :
-				    BLI_bvhtree_find_nearest_to_ray(
-				            treedata->tree, ray_org_local, ray_normal_local,
-				            true, ob_scale, &nearest, test_vert_depth_cb, &userdata)) != -1)
-				{
-					copy_v3_v3(r_loc, nearest.co);
-					mul_m4_v3(obmat, r_loc);
-					if (r_no) {
-						copy_v3_v3(r_no, nearest.no);
-						mul_m3_v3(timat, r_no);
-						normalize_v3(r_no);
-					}
-					*dist_to_ray_sq = nearest.dist_sq;
-
-					retval = true;
-				}
-				break;
+				/* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with very far
+				 * away ray_start values (as returned in case of ortho view3d), see T38358.
+				 */
+				len_diff -= local_scale;  /* make temp start point a bit away from bbox hit point. */
+				madd_v3_v3v3fl(ray_start_local, ray_org_local, ray_normal_local,
+				            len_diff + ray_depth_range[0]);
+				local_depth -= len_diff;
 			}
-			case SCE_SNAP_MODE_EDGE:
-			{
-				float ray_org_local[3];
+			else {
+				len_diff = 0.0f;
+			}
+			if (r_hit_list) {
+				struct RayCastAll_Data data;
 
-				copy_v3_v3(ray_org_local, ray_origin);
-				mul_m4_v3(imat, ray_org_local);
+				data.bvhdata = treedata;
+				data.raycast_callback = treedata->raycast_callback;
+				data.obmat = obmat;
+				data.timat = timat;
+				data.len_diff = len_diff;
+				data.local_scale = local_scale;
+				data.ob = ob;
+				data.ob_uuid = ob_index;
+				data.dm = dm;
+				data.hit_list = r_hit_list;
+				data.retval = retval;
 
-				BVHTreeNearest nearest;
+				BLI_bvhtree_ray_cast_all(
+					    treedata->tree, ray_start_local, ray_normal_local, 0.0f,
+					    *ray_depth, raycast_all_cb, &data);
 
-				nearest.index = -1;
-				nearest.dist_sq = *dist_to_ray_sq;
+				retval = data.retval;
+			}
+			else {
+				BVHTreeRayHit hit;
 
-				struct NearestDM_Data userdata;
-				userdata.bvhdata = treedata;
-				userdata.is_persp = is_persp;
-				userdata.ray_depth_range = ray_depth_range;
-				userdata.ray_depth = ray_depth;
+				hit.index = -1;
+				hit.dist = local_depth;
 
-				float ob_scale[3];
-				mat4_to_size(ob_scale, obmat);
-
-				if (treedata->tree && (
-				    is_persp ?
-				    BLI_bvhtree_find_nearest_to_ray_angle(
-				            treedata->tree, ray_org_local, ray_normal_local,
-				            true, ob_scale, &nearest, test_edge_depth_cb, &userdata) :
-				    BLI_bvhtree_find_nearest_to_ray(
-				            treedata->tree, ray_org_local, ray_normal_local,
-				            true, ob_scale, &nearest, test_edge_depth_cb, &userdata)) != -1)
+				if (treedata->tree &&
+					BLI_bvhtree_ray_cast(
+					    treedata->tree, ray_start_local, ray_normal_local, 0.0f,
+					    &hit, treedata->raycast_callback, treedata) != -1)
 				{
-					copy_v3_v3(r_loc, nearest.co);
-					mul_m4_v3(obmat, r_loc);
-					if (r_no) {
-						copy_v3_v3(r_no, nearest.no);
+					hit.dist += len_diff;
+					hit.dist /= local_scale;
+					if (hit.dist <= *ray_depth) {
+						*ray_depth = hit.dist;
+						copy_v3_v3(r_loc, hit.co);
+						copy_v3_v3(r_no, hit.no);
+
+						/* back to worldspace */
+						mul_m4_v3(obmat, r_loc);
 						mul_m3_v3(timat, r_no);
 						normalize_v3(r_no);
-					}
-					*dist_to_ray_sq = nearest.dist_sq;
 
-					retval = true;
+						retval = true;
+
+						if (r_index) {
+							*r_index = dm_looptri_to_poly_index(dm, &treedata->looptri[hit.index]);
+						}
+					}
 				}
-				break;
+			}
+		}
+		else {
+			/* Vert & edge use nearly identical logic. */
+			BLI_assert(ELEM(snap_to, SCE_SNAP_MODE_VERTEX, SCE_SNAP_MODE_EDGE));
+
+			float ray_org_local[3];
+
+			copy_v3_v3(ray_org_local, ray_origin);
+			mul_m4_v3(imat, ray_org_local);
+
+			BVHTreeNearest nearest;
+
+			nearest.index = -1;
+			nearest.dist_sq = *dist_to_ray_sq;
+
+			struct NearestDM_Data userdata;
+			userdata.bvhdata = treedata;
+			userdata.is_persp = is_persp;
+			userdata.ray_depth_range = ray_depth_range;
+			userdata.ray_depth = ray_depth;
+
+			float ob_scale[3];
+			mat4_to_size(ob_scale, obmat);
+
+			BVHTree_NearestToRayCallback callback =
+			        (snap_to == SCE_SNAP_MODE_VERTEX) ?
+			        test_vert_depth_cb : test_edge_depth_cb;
+
+			if (treedata->tree &&
+			    (is_persp ?
+			     BLI_bvhtree_find_nearest_to_ray_angle(
+			         treedata->tree, ray_org_local, ray_normal_local,
+			         true, ob_scale, &nearest, callback, &userdata) :
+			     BLI_bvhtree_find_nearest_to_ray(
+			         treedata->tree, ray_org_local, ray_normal_local,
+			         true, ob_scale, &nearest, callback, &userdata)) != -1)
+			{
+				copy_v3_v3(r_loc, nearest.co);
+				mul_m4_v3(obmat, r_loc);
+				if (r_no) {
+					copy_v3_v3(r_no, nearest.no);
+					mul_m3_v3(timat, r_no);
+					normalize_v3(r_no);
+				}
+				*dist_to_ray_sq = nearest.dist_sq;
+
+				retval = true;
 			}
 		}
 
@@ -1184,195 +1143,153 @@ static bool snapEditMesh(
 			}
 		}
 
-		switch (snap_to) {
-			case SCE_SNAP_MODE_FACE:
-			{
-				float ray_start_local[3];
-				copy_v3_v3(ray_start_local, ray_start);
-				mul_m4_v3(imat, ray_start_local);
+		if (snap_to == SCE_SNAP_MODE_FACE) {
+			float ray_start_local[3];
+			copy_v3_v3(ray_start_local, ray_start);
+			mul_m4_v3(imat, ray_start_local);
 
-				/* local scale in normal direction */
-				float local_scale = normalize_v3(ray_normal_local);
-				float local_depth = *ray_depth;
-				if (local_depth != BVH_RAYCAST_DIST_MAX) {
-					local_depth *= local_scale;
-				}
+			/* local scale in normal direction */
+			float local_scale = normalize_v3(ray_normal_local);
+			float local_depth = *ray_depth;
+			if (local_depth != BVH_RAYCAST_DIST_MAX) {
+				local_depth *= local_scale;
+			}
 
-				/* Only use closer ray_start in case of ortho view! In perspective one, ray_start may already
-				 * been *inside* boundbox, leading to snap failures (see T38409).
-				 * Note also ar might be null (see T38435), in this case we assume ray_start is ok!
+			/* Only use closer ray_start in case of ortho view! In perspective one, ray_start may already
+			 * been *inside* boundbox, leading to snap failures (see T38409).
+			 * Note also ar might be null (see T38435), in this case we assume ray_start is ok!
+			 */
+			float len_diff = 0.0f;
+			if (sctx->use_v3d && !is_persp) { /* do_ray_start_correction */
+				/* We *need* a reasonably valid len_diff in this case.
+				 * Use BHVTree to find the closest face from ray_start_local.
 				 */
-				float len_diff = 0.0f;
-				if (sctx->use_v3d && !is_persp) { /* do_ray_start_correction */
-					/* We *need* a reasonably valid len_diff in this case.
-					 * Use BHVTree to find the closest face from ray_start_local.
-					 */
-					if (treedata && treedata->tree != NULL) {
-						BVHTreeNearest nearest;
-						nearest.index = -1;
-						nearest.dist_sq = FLT_MAX;
-						/* Compute and store result. */
-						if (BLI_bvhtree_find_nearest(
-						        treedata->tree, ray_start_local, &nearest, NULL, NULL) != -1)
-						{
-							float dvec[3];
-							sub_v3_v3v3(dvec, nearest.co, ray_start_local);
-							len_diff = dot_v3v3(dvec, ray_normal_local);
-							float ray_org_local[3];
-
-							copy_v3_v3(ray_org_local, ray_origin);
-							mul_m4_v3(imat, ray_org_local);
-
-							/* We pass a temp ray_start, set from object's boundbox,
-							 * to avoid precision issues with very far away ray_start values
-							 * (as returned in case of ortho view3d), see T38358.
-							 */
-							len_diff -= local_scale;  /* make temp start point a bit away from bbox hit point. */
-							madd_v3_v3v3fl(ray_start_local, ray_org_local, ray_normal_local,
-							               len_diff + ray_depth_range[0]);
-							local_depth -= len_diff;
-						}
-					}
-				}
-				if (r_hit_list) {
-					struct RayCastAll_Data data;
-
-					data.bvhdata = treedata;
-					data.raycast_callback = treedata->raycast_callback;
-					data.obmat = obmat;
-					data.timat = timat;
-					data.len_diff = len_diff;
-					data.local_scale = local_scale;
-					data.ob = ob;
-					data.ob_uuid = ob_index;
-					data.dm = NULL;
-					data.hit_list = r_hit_list;
-					data.retval = retval;
-
-					BLI_bvhtree_ray_cast_all(
-					        treedata->tree, ray_start_local, ray_normal_local, 0.0f,
-					        *ray_depth, raycast_all_cb, &data);
-
-					retval = data.retval;
-				}
-				else {
-					BVHTreeRayHit hit;
-
-					hit.index = -1;
-					hit.dist = local_depth;
-
-					if (treedata->tree &&
-					    BLI_bvhtree_ray_cast(
-					        treedata->tree, ray_start_local, ray_normal_local, 0.0f,
-					        &hit, treedata->raycast_callback, treedata) != -1)
+				if (treedata && treedata->tree != NULL) {
+					BVHTreeNearest nearest;
+					nearest.index = -1;
+					nearest.dist_sq = FLT_MAX;
+					/* Compute and store result. */
+					if (BLI_bvhtree_find_nearest(
+					        treedata->tree, ray_start_local, &nearest, NULL, NULL) != -1)
 					{
-						hit.dist += len_diff;
-						hit.dist /= local_scale;
-						if (hit.dist <= *ray_depth) {
-							*ray_depth = hit.dist;
-							copy_v3_v3(r_loc, hit.co);
-							copy_v3_v3(r_no, hit.no);
+						float dvec[3];
+						sub_v3_v3v3(dvec, nearest.co, ray_start_local);
+						len_diff = dot_v3v3(dvec, ray_normal_local);
+						float ray_org_local[3];
 
-							/* back to worldspace */
-							mul_m4_v3(obmat, r_loc);
-							mul_m3_v3(timat, r_no);
-							normalize_v3(r_no);
+						copy_v3_v3(ray_org_local, ray_origin);
+						mul_m4_v3(imat, ray_org_local);
 
-							retval = true;
+						/* We pass a temp ray_start, set from object's boundbox,
+						 * to avoid precision issues with very far away ray_start values
+						 * (as returned in case of ortho view3d), see T38358.
+						 */
+						len_diff -= local_scale;  /* make temp start point a bit away from bbox hit point. */
+						madd_v3_v3v3fl(ray_start_local, ray_org_local, ray_normal_local,
+						               len_diff + ray_depth_range[0]);
+						local_depth -= len_diff;
+					}
+				}
+			}
+			if (r_hit_list) {
+				struct RayCastAll_Data data;
 
-							if (r_index) {
-								*r_index = hit.index;
-							}
+				data.bvhdata = treedata;
+				data.raycast_callback = treedata->raycast_callback;
+				data.obmat = obmat;
+				data.timat = timat;
+				data.len_diff = len_diff;
+				data.local_scale = local_scale;
+				data.ob = ob;
+				data.ob_uuid = ob_index;
+				data.dm = NULL;
+				data.hit_list = r_hit_list;
+				data.retval = retval;
+
+				BLI_bvhtree_ray_cast_all(
+				        treedata->tree, ray_start_local, ray_normal_local, 0.0f,
+				        *ray_depth, raycast_all_cb, &data);
+
+				retval = data.retval;
+			}
+			else {
+				BVHTreeRayHit hit;
+
+				hit.index = -1;
+				hit.dist = local_depth;
+
+				if (treedata->tree &&
+				    BLI_bvhtree_ray_cast(
+				        treedata->tree, ray_start_local, ray_normal_local, 0.0f,
+				        &hit, treedata->raycast_callback, treedata) != -1)
+				{
+					hit.dist += len_diff;
+					hit.dist /= local_scale;
+					if (hit.dist <= *ray_depth) {
+						*ray_depth = hit.dist;
+						copy_v3_v3(r_loc, hit.co);
+						copy_v3_v3(r_no, hit.no);
+
+						/* back to worldspace */
+						mul_m4_v3(obmat, r_loc);
+						mul_m3_v3(timat, r_no);
+						normalize_v3(r_no);
+
+						retval = true;
+
+						if (r_index) {
+							*r_index = hit.index;
 						}
 					}
 				}
-				break;
 			}
-			case SCE_SNAP_MODE_EDGE:
+		}
+		else {
+			/* Vert & edge use nearly identical logic. */
+			BLI_assert(ELEM(snap_to, SCE_SNAP_MODE_VERTEX, SCE_SNAP_MODE_EDGE));
+
+			float ray_org_local[3];
+
+			copy_v3_v3(ray_org_local, ray_origin);
+			mul_m4_v3(imat, ray_org_local);
+
+			BVHTreeNearest nearest;
+
+			nearest.index = -1;
+			nearest.dist_sq = *dist_to_ray_sq;
+
+			struct NearestDM_Data userdata;
+			userdata.bvhdata = em;
+			userdata.is_persp = is_persp;
+			userdata.ray_depth_range = ray_depth_range;
+			userdata.ray_depth = ray_depth;
+
+			float ob_scale[3];
+			mat4_to_size(ob_scale, obmat);
+
+			BVHTree_NearestToRayCallback callback =
+			        (snap_to == SCE_SNAP_MODE_VERTEX) ?
+			        test_bmvert_depth_cb : test_bmedge_depth_cb;
+
+			if (treedata->tree &&
+			    (is_persp ?
+			     BLI_bvhtree_find_nearest_to_ray_angle(
+			         treedata->tree, ray_org_local, ray_normal_local,
+			         false, ob_scale, &nearest, callback, &userdata) :
+			     BLI_bvhtree_find_nearest_to_ray(
+			         treedata->tree, ray_org_local, ray_normal_local,
+			         false, ob_scale, &nearest, callback, &userdata)) != -1)
 			{
-				float ray_org_local[3];
-
-				copy_v3_v3(ray_org_local, ray_origin);
-				mul_m4_v3(imat, ray_org_local);
-
-				BVHTreeNearest nearest;
-
-				nearest.index = -1;
-				nearest.dist_sq = *dist_to_ray_sq;
-
-				struct NearestDM_Data userdata;
-				userdata.bvhdata = em;
-				userdata.is_persp = is_persp;
-				userdata.ray_depth_range = ray_depth_range;
-				userdata.ray_depth = ray_depth;
-
-				float ob_scale[3];
-				mat4_to_size(ob_scale, obmat);
-
-				if (treedata->tree && (
-				    is_persp ?
-				    BLI_bvhtree_find_nearest_to_ray_angle(
-				            treedata->tree, ray_org_local, ray_normal_local,
-				            false, ob_scale, &nearest, test_bmedge_depth_cb, &userdata) :
-				    BLI_bvhtree_find_nearest_to_ray(
-				            treedata->tree, ray_org_local, ray_normal_local,
-				            false, ob_scale, &nearest, test_bmedge_depth_cb, &userdata)) != -1)
-				{
-					copy_v3_v3(r_loc, nearest.co);
-					mul_m4_v3(obmat, r_loc);
-					if (r_no) {
-						copy_v3_v3(r_no, nearest.no);
-						mul_m3_v3(timat, r_no);
-						normalize_v3(r_no);
-					}
-					*dist_to_ray_sq = nearest.dist_sq;
-
-					retval = true;
+				copy_v3_v3(r_loc, nearest.co);
+				mul_m4_v3(obmat, r_loc);
+				if (r_no) {
+					copy_v3_v3(r_no, nearest.no);
+					mul_m3_v3(timat, r_no);
+					normalize_v3(r_no);
 				}
-				break;
-			}
-			case SCE_SNAP_MODE_VERTEX:
-			{
-				float ray_org_local[3];
+				*dist_to_ray_sq = nearest.dist_sq;
 
-				copy_v3_v3(ray_org_local, ray_origin);
-				mul_m4_v3(imat, ray_org_local);
-
-				BVHTreeNearest nearest;
-
-				nearest.index = -1;
-				nearest.dist_sq = *dist_to_ray_sq;
-
-				struct NearestDM_Data userdata;
-				userdata.bvhdata = em;
-				userdata.is_persp = is_persp;
-				userdata.ray_depth_range = ray_depth_range;
-				userdata.ray_depth = ray_depth;
-
-				float ob_scale[3];
-				mat4_to_size(ob_scale, obmat);
-
-				if (treedata->tree && (
-				    is_persp ?
-				    BLI_bvhtree_find_nearest_to_ray_angle(
-				            treedata->tree, ray_org_local, ray_normal_local,
-				            false, ob_scale, &nearest, test_bmvert_depth_cb, &userdata) :
-				    BLI_bvhtree_find_nearest_to_ray(
-				            treedata->tree, ray_org_local, ray_normal_local,
-				            false, ob_scale, &nearest, test_bmedge_depth_cb, &userdata)) != -1)
-				{
-					copy_v3_v3(r_loc, nearest.co);
-					mul_m4_v3(obmat, r_loc);
-					if (r_no) {
-						copy_v3_v3(r_no, nearest.no);
-						mul_m3_v3(timat, r_no);
-						normalize_v3(r_no);
-					}
-					*dist_to_ray_sq = nearest.dist_sq;
-
-					retval = true;
-				}
-				break;
+				retval = true;
 			}
 		}
 
