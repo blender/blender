@@ -354,6 +354,15 @@ void BKE_libblock_remap_locked(
 			}
 		}
 	}
+	else if (GS(old_id->name) == ID_AR) {
+		/* Object's pose holds reference to armature bones... sic */
+		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+			if (ob->data == old_id && ob->pose) {
+				BLI_assert(ob->type == OB_ARMATURE);
+				ob->pose->flag |= POSE_RECALC;
+			}
+		}
+	}
 
 	libblock_remap_data(bmain, NULL, old_id, new_id, remap_flags, &id_remap_data);
 
@@ -514,6 +523,15 @@ void BKE_libblock_relink_ex(
 	}
 	else {
 		BLI_assert(new_id == NULL);
+	}
+
+	if (GS(id->name) == ID_OB) {
+		Object *ob = (Object *)id;
+		/* Object's pose holds reference to armature bones... sic */
+		if (ob->data && ob->pose && (old_id == NULL || GS(old_id->name) == ID_AR)) {
+			BLI_assert(ob->type == OB_ARMATURE);
+			ob->pose->flag |= POSE_RECALC;
+		}
 	}
 
 	libblock_remap_data(NULL, id, old_id, new_id, remap_flags, NULL);
