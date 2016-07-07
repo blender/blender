@@ -867,7 +867,7 @@ int BKE_library_ID_use_ID(ID *id_user, ID *id_used)
 }
 
 
-static int foreach_libblock_check_indirect_usage_callback(
+static int foreach_libblock_check_usage_callback(
         void *user_data, ID *UNUSED(id_self), ID **id_p, int UNUSED(cb_flag))
 {
 	IDUsersIter *iter = user_data;
@@ -880,38 +880,75 @@ static int foreach_libblock_check_indirect_usage_callback(
 	return IDWALK_RET_NOP;
 }
 
-/**
- * Check weather given ID is used indirectly (i.e. by another linked ID).
- */
-bool BKE_library_ID_is_indirectly_used(Main *bmain, void *idv)
+static bool library_ID_is_used(Main *bmain, void *idv, const bool check_linked)
 {
 	IDUsersIter iter;
 	ListBase *lb_array[MAX_LIBARRAY];
 	int i = set_listbasepointers(bmain, lb_array);
+	bool is_defined = false;
 
 	iter.id = idv;
 	iter.count = 0;
-	while (i--) {
+	while (i-- && !is_defined) {
 		ID *id_curr = lb_array[i]->first;
 
-		for (; id_curr; id_curr = id_curr->next) {
-			if (!ID_IS_LINKED_DATABLOCK(id_curr)) {
+		for (; id_curr && !is_defined; id_curr = id_curr->next) {
+			if (check_linked != ID_IS_LINKED_DATABLOCK(id_curr)) {
 				continue;
 			}
 
 			iter.curr_id = id_curr;
 			BKE_library_foreach_ID_link(
-			            id_curr, foreach_libblock_check_indirect_usage_callback, &iter, IDWALK_NOP);
+			            id_curr, foreach_libblock_check_usage_callback, &iter, IDWALK_NOP);
 
-			if (iter.count) {
-				break;
-			}
-		}
-		if (iter.count) {
-			break;
+			is_defined = (iter.count != 0);
 		}
 	}
 
-	return (iter.count != 0);
+	return is_defined;
 }
 
+/**
+ * Check wether given ID is used locally (i.e. by another non-linked ID).
+ */
+bool BKE_library_ID_is_locally_used(Main *bmain, void *idv)
+{
+	return library_ID_is_used(bmain, idv, false);
+}
+
+/**
+ * Check wether given ID is used indirectly (i.e. by another linked ID).
+ */
+bool BKE_library_ID_is_indirectly_used(Main *bmain, void *idv)
+{
+	return library_ID_is_used(bmain, idv, true);
+}
+
+/**
+ * Combine \a BKE_library_ID_is_locally_used() and \a BKE_library_ID_is_indirectly_used() in a single call.
+ */
+void BKE_library_ID_test_usages(Main *bmain, void *idv, bool *is_used_local, bool *is_used_linked)
+{
+	IDUsersIter iter_local, iter_linked;
+	ListBase *lb_array[MAX_LIBARRAY];
+	int i = set_listbasepointers(bmain, lb_array);
+	bool is_defined = false;
+
+	iter_local.id = iter_linked.id = idv;
+	iter_local.count = iter_linked.count = 0;
+	while (i-- && !is_defined) {
+		ID *id_curr = lb_array[i]->first;
+
+		for (; id_curr && !is_defined; id_curr = id_curr->next) {
+			IDUsersIter *iter = (ID_IS_LINKED_DATABLOCK(id_curr)) ? &iter_linked : &iter_local;
+
+			iter->curr_id = id_curr;
+			BKE_library_foreach_ID_link(id_curr, foreach_libblock_check_usage_callback, iter, IDWALK_NOP);
+
+			is_defined = (iter_local.count != 0 && iter_linked.count != 0);
+		}
+	}
+
+	*is_used_local = (iter_local.count != 0);
+	*is_used_linked = (iter_linked.count != 0);
+}
