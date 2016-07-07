@@ -503,6 +503,11 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Use BVH spatial splits: longer builder time, faster render",
                 default=False,
                 )
+        cls.debug_use_hair_bvh = BoolProperty(
+                name="Use Hair BVH",
+                description="Use special type BVH optimized for hair. Uses more ram but renders faster",
+                default=True,
+                )
         cls.tile_order = EnumProperty(
                 name="Tile Order",
                 description="Tile order for rendering",
