@@ -308,10 +308,11 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_GHOST_ENABLED, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
-	prop = RNA_def_property(srna, "use_datablock_sorting", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_datablock_sort", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ADS_FLAG_NO_DB_SORT);
 	RNA_def_property_ui_text(prop, "Sort Datablocks",
-	                         "Alphabetically sorts datablocks - mainly objects in the scene (disable to increase viewport speed)");
+	                         "Alphabetically sorts datablocks - mainly objects in the scene "
+	                         "(disable to increase viewport speed)");
 	RNA_def_property_ui_icon(prop, ICON_SORTALPHA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
