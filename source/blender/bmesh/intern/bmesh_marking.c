@@ -842,7 +842,7 @@ void BM_editselection_normal(BMEditSelection *ese, float r_normal[3])
 		
 		/* the 2 vertex normals will be close but not at rightangles to the edge
 		 * for rotate about edge we want them to be at right angles, so we need to
-		 * do some extra colculation to correct the vert normals,
+		 * do some extra calculation to correct the vert normals,
 		 * we need the plane for this */
 		cross_v3_v3v3(vec, r_normal, plane);
 		cross_v3_v3v3(r_normal, plane, vec);
