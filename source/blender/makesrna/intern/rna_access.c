@@ -1662,7 +1662,7 @@ bool RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 bool RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)
 {
 	/* check that base ID-block can support animation data */
-	if (!id_type_can_have_animdata(ptr->id.data))
+	if (!id_can_have_animdata(ptr->id.data))
 		return false;
 	
 	prop = rna_ensure_property(prop);
