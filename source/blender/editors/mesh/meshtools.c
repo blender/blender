@@ -564,21 +564,10 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 		BKE_key_sort(key);
 	}
 
-
 	DAG_relations_tag_update(bmain);   // removed objects, need to rebuild dag
 
-#if 0
-	ED_object_editmode_enter(C, EM_WAITCURSOR);
-	ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR | EM_DO_UNDO);
-#else
-	/* toggle editmode using lower level functions so this can be called from python */
-	EDBM_mesh_make(scene->toolsettings, ob, false);
-	EDBM_mesh_load(ob);
-	EDBM_mesh_free(me->edit_btmesh);
-	MEM_freeN(me->edit_btmesh);
-	me->edit_btmesh = NULL;
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
-#endif
+
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 
 	return OPERATOR_FINISHED;
