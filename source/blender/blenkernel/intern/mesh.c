@@ -1010,7 +1010,7 @@ void BKE_mesh_assign_object(Object *ob, Mesh *me)
 		id_us_plus((ID *)me);
 	}
 	
-	test_object_materials(G.main, (ID *)me);
+	test_object_materials(ob, (ID *)me);
 
 	test_object_modifiers(ob);
 }
@@ -2518,8 +2518,8 @@ Mesh *BKE_mesh_new_from_object(
 		BKE_mesh_tessface_ensure(tmpmesh);
 	}
 
-	/* make sure materials get updated in objects */
-	test_object_materials(bmain, &tmpmesh->id);
+	/* make sure materials get updated in object */
+	test_object_materials(tmpobj ? tmpobj : ob, &tmpmesh->id);
 
 	return tmpmesh;
 }

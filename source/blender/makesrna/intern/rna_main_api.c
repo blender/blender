@@ -227,7 +227,7 @@ static Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char
 	id_us_min(&ob->id);
 
 	ob->data = data;
-	test_object_materials(bmain, ob->data);
+	test_object_materials(ob, ob->data);
 
 	return ob;
 }

@@ -611,7 +611,7 @@ void BKE_material_append_id(ID *id, Material *ma)
 		(*matar)[(*totcol)++] = ma;
 
 		id_us_plus((ID *)ma);
-		test_object_materials(G.main, id);
+		test_all_objects_materials(G.main, id);
 	}
 }
 
@@ -637,7 +637,7 @@ Material *BKE_material_pop_id(ID *id, int index_i, bool update_data)
 
 				(*totcol)--;
 				*matar = MEM_reallocN(*matar, sizeof(void *) * (*totcol));
-				test_object_materials(G.main, id);
+				test_all_objects_materials(G.main, id);
 			}
 
 			if (update_data) {
@@ -776,7 +776,19 @@ void BKE_material_resize_object(Object *ob, const short totcol, bool do_id_user)
 	if (ob->actcol > ob->totcol) ob->actcol = ob->totcol;
 }
 
-void test_object_materials(Main *bmain, ID *id)
+void test_object_materials(Object *ob, ID *id)
+{
+	/* make the ob mat-array same size as 'ob->data' mat-array */
+	const short *totcol;
+
+	if (id == NULL || (totcol = give_totcolp_id(id)) == NULL) {
+		return;
+	}
+
+	BKE_material_resize_object(ob, *totcol, false);
+}
+
+void test_all_objects_materials(Main *bmain, ID *id)
 {
 	/* make the ob mat-array same size as 'ob->data' mat-array */
 	Object *ob;
@@ -787,7 +799,7 @@ void test_object_materials(Main *bmain, ID *id)
 	}
 
 	BKE_main_lock(bmain);
-	for (ob = bmain->object.first; ob; ob = ob->id.next) {
+	for (bmain = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob->data == id) {
 			BKE_material_resize_object(ob, *totcol, false);
 		}
@@ -839,7 +851,7 @@ void assign_material_id(ID *id, Material *ma, short act)
 	if (ma)
 		id_us_plus(&ma->id);
 
-	test_object_materials(G.main, id);
+	test_all_objects_materials(G.main, id);
 }
 
 void assign_material(Object *ob, Material *ma, short act, int assign_type)
@@ -924,7 +936,7 @@ void assign_material(Object *ob, Material *ma, short act, int assign_type)
 
 	if (ma)
 		id_us_plus(&ma->id);
-	test_object_materials(G.main, ob->data);
+	test_object_materials(ob, ob->data);
 }
 
 

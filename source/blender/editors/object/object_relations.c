@@ -1564,7 +1564,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						ob_dst->data = obdata_id;
 
 						/* if amount of material indices changed: */
-						test_object_materials(bmain, ob_dst->data);
+						test_object_materials(ob_dst, ob_dst->data);
 
 						DAG_id_tag_update(&ob_dst->id, OB_RECALC_DATA);
 						break;

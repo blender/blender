@@ -540,7 +540,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	if (matmap) MEM_freeN(matmap);
 	
 	/* other mesh users */
-	test_object_materials(bmain, (ID *)me);
+	test_all_objects_materials(bmain, (ID *)me);
 	
 	/* free temp copy of destination shapekeys (if applicable) */
 	if (nkey) {
