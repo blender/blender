@@ -45,6 +45,7 @@
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_mask_types.h"
@@ -491,6 +492,31 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				CALLBACK_INVOKE(mesh->key, IDWALK_USER);
 				for (i = 0; i < mesh->totcol; i++) {
 					CALLBACK_INVOKE(mesh->mat[i], IDWALK_USER);
+				}
+
+				/* XXX Really not happy with this - probably texface should rather use some kind of
+				 * 'texture slots' and just set indices in each poly/face item - would also save some memory.
+				 * Maybe a nice TODO for blender2.8? */
+				if (mesh->mtface || mesh->mtpoly) {
+					for (i = 0; i < mesh->pdata.totlayer; i++) {
+						if (mesh->pdata.layers[i].type == CD_MTEXPOLY) {
+							MTexPoly *txface = (MTexPoly *)mesh->pdata.layers[i].data;
+
+							for (int j = 0; j < mesh->totpoly; j++, txface++) {
+								CALLBACK_INVOKE(txface->tpage, IDWALK_USER_ONE);
+							}
+						}
+					}
+
+					for (i = 0; i < mesh->fdata.totlayer; i++) {
+						if (mesh->fdata.layers[i].type == CD_MTFACE) {
+							MTFace *tface = (MTFace *)mesh->fdata.layers[i].data;
+
+							for (int j = 0; j < mesh->totface; j++, tface++) {
+								CALLBACK_INVOKE(tface->tpage, IDWALK_USER_ONE);
+							}
+						}
+					}
 				}
 				break;
 			}
