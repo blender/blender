@@ -762,7 +762,10 @@ class TransformsToDeltas(Operator):
                 obj.rotation_euler.zero()
 
     def transfer_scale(self, obj):
-        obj.delta_scale += obj.scale
+        obj.delta_scale[0] *= obj.scale[0]
+        obj.delta_scale[1] *= obj.scale[1]
+        obj.delta_scale[2] *= obj.scale[2]
+
         if self.reset_values:
             obj.scale[:] = (1, 1, 1)
 
