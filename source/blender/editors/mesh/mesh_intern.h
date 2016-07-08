@@ -216,6 +216,7 @@ void MESH_OT_fill_holes(struct wmOperatorType *ot);
 void MESH_OT_beautify_fill(struct wmOperatorType *ot);
 void MESH_OT_quads_convert_to_tris(struct wmOperatorType *ot);
 void MESH_OT_tris_convert_to_quads(struct wmOperatorType *ot);
+void MESH_OT_decimate(struct wmOperatorType *ot);
 void MESH_OT_dissolve_verts(struct wmOperatorType *ot);
 void MESH_OT_dissolve_edges(struct wmOperatorType *ot);
 void MESH_OT_dissolve_faces(struct wmOperatorType *ot);

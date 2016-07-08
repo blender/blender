@@ -49,6 +49,7 @@
 
 #include "BKE_material.h"
 #include "BKE_context.h"
+#include "BKE_deform.h"
 #include "BKE_depsgraph.h"
 #include "BKE_report.h"
 #include "BKE_texture.h"
@@ -78,6 +79,8 @@
 #include "UI_resources.h"
 
 #include "mesh_intern.h"  /* own include */
+
+#include "bmesh_tools.h"
 
 #define USE_FACE_CREATE_SEL_EXTEND
 
@@ -3978,6 +3981,196 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 
 	join_triangle_props(ot);
 }
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Decimate
+ *
+ * \note The function to decimate is intended for use as a modifier,
+ * while its handy allow access as a tool - this does cause access to be a little awkward
+ * (passing selection as weights for eg).
+ *
+ * \{ */
+
+static int edbm_decimate_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	BMesh *bm = em->bm;
+
+	const float ratio = RNA_float_get(op->ptr, "ratio");
+	bool use_vertex_group = RNA_boolean_get(op->ptr, "use_vertex_group");
+	const float vertex_group_factor = RNA_float_get(op->ptr, "vertex_group_factor");
+	const bool invert_vertex_group = RNA_boolean_get(op->ptr, "invert_vertex_group");
+	const bool use_symmetry = RNA_boolean_get(op->ptr, "use_symmetry");
+	const float symmetry_eps = 0.00002f;
+	const int symmetry_axis = use_symmetry ? RNA_enum_get(op->ptr, "symmetry_axis") : -1;
+
+	/* nop */
+	if (ratio == 1.0f) {
+		return OPERATOR_FINISHED;
+	}
+
+	float *vweights = MEM_mallocN(sizeof(*vweights) * bm->totvert, __func__);
+	{
+		const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
+		const int defbase_act = obedit->actdef - 1;
+
+		if (use_vertex_group && (cd_dvert_offset == -1)) {
+			BKE_report(op->reports, RPT_WARNING, "No active vertex group");
+			use_vertex_group = false;
+		}
+
+		BMIter iter;
+		BMVert *v;
+		int i;
+		BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+			float weight = 0.0f;
+			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+				if (use_vertex_group) {
+					const MDeformVert *dv = BM_ELEM_CD_GET_VOID_P(v, cd_dvert_offset);
+					weight = defvert_find_weight(dv, defbase_act);
+					if (invert_vertex_group) {
+						weight = 1.0 - weight;
+					}
+				}
+				else {
+					weight = 1.0f;
+				}
+			}
+
+			vweights[i] = weight;
+			BM_elem_index_set(v, i); /* set_inline */
+		}
+		bm->elem_index_dirty &= ~BM_VERT;
+	}
+
+	float ratio_adjust;
+
+	if ((bm->totface == bm->totfacesel) || (ratio == 0.0f)) {
+		ratio_adjust = ratio;
+	}
+	else {
+		/**
+		 * Calculate a new ratio based on faces that could be remoevd during decimation.
+		 * needed so 0..1 has a meaningful range when operating on the selection.
+		 *
+		 * This doesn't have to be totally accurate,
+		 * but needs to be greater than the number of selected faces
+		 */
+
+		int totface_basis = 0;
+		int totface_adjacent = 0;
+		BMIter iter;
+		BMFace *f;
+		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+			/* count faces during decimation, ngons are triangulated */
+			const int f_len = f->len > 4 ? (f->len - 2) : 1;
+			totface_basis += f_len;
+
+			BMLoop *l_iter, *l_first;
+			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+			do {
+				if (vweights[BM_elem_index_get(l_iter->v)] != 0.0f) {
+					totface_adjacent += f_len;
+					break;
+				}
+			} while ((l_iter = l_iter->next) != l_first);
+		}
+
+		ratio_adjust = ratio;
+		ratio_adjust = 1.0f - ratio_adjust;
+		ratio_adjust *= (float)totface_adjacent / (float)totface_basis;
+		ratio_adjust = 1.0f - ratio_adjust;
+	}
+
+	BM_mesh_decimate_collapse(
+	        em->bm, ratio_adjust, vweights, vertex_group_factor, false,
+	        symmetry_axis, symmetry_eps);
+
+	MEM_freeN(vweights);
+
+	{
+		short selectmode = em->selectmode;
+		if ((selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) == 0) {
+			/* ensure we flush edges -> faces */
+			selectmode |= SCE_SELECT_EDGE;
+		}
+		EDBM_selectmode_flush_ex(em, selectmode);
+	}
+
+	EDBM_update_generic(em, true, true);
+
+	return OPERATOR_FINISHED;
+}
+
+
+static bool edbm_decimate_check(bContext *UNUSED(C), wmOperator *UNUSED(op))
+{
+	return true;
+}
+
+
+static void edbm_decimate_ui(bContext *UNUSED(C), wmOperator *op)
+{
+	uiLayout *layout = op->layout, *box, *row, *col;
+	PointerRNA ptr;
+
+	RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+
+	uiItemR(layout, &ptr, "ratio", 0, NULL, ICON_NONE);
+
+	box = uiLayoutBox(layout);
+	uiItemR(box, &ptr, "use_vertex_group", 0, NULL, ICON_NONE);
+	col = uiLayoutColumn(box, false);
+	uiLayoutSetActive(col, RNA_boolean_get(&ptr, "use_vertex_group"));
+	uiItemR(col, &ptr, "vertex_group_factor", 0, NULL, ICON_NONE);
+	uiItemR(col, &ptr, "invert_vertex_group", 0, NULL, ICON_NONE);
+
+	box = uiLayoutBox(layout);
+	uiItemR(box, &ptr, "use_symmetry", 0, NULL, ICON_NONE);
+	row = uiLayoutRow(box, true);
+	uiLayoutSetActive(row, RNA_boolean_get(&ptr, "use_symmetry"));
+	uiItemR(row, &ptr, "symmetry_axis", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+}
+
+
+void MESH_OT_decimate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Decimate Geometry";
+	ot->idname = "MESH_OT_decimate";
+	ot->description = "Simplify geometry by collapsing edges";
+
+	/* api callbacks */
+	ot->exec = edbm_decimate_exec;
+	ot->check = edbm_decimate_check;
+	ot->ui = edbm_decimate_ui;
+	ot->poll = ED_operator_editmesh;
+
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* Note, keep in sync with 'rna_def_modifier_decimate' */
+	RNA_def_float(ot->srna, "ratio", 1.0f, 0.0f, 1.0f, "Ratio", "", 0.0f, 1.0f);
+
+	RNA_def_boolean(ot->srna, "use_vertex_group", false, "Vertex Group",
+	                "Use active vertex group as an influence");
+	RNA_def_float(ot->srna, "vertex_group_factor", 1.0f, 0.0f, 1000.0f, "Weight",
+	              "Vertex group strength", 0.0f, 10.0f);
+	RNA_def_boolean(ot->srna, "invert_vertex_group", false, "Invert",
+	                "Invert vertex group influence");
+
+	RNA_def_boolean(ot->srna, "use_symmetry", false, "Symmetry",
+	                "Maintain symmetry on an axis");
+
+	RNA_def_enum(ot->srna, "symmetry_axis", rna_enum_axis_xyz_items, 1, "Axis", "Axis of symmetry");
+}
+
+/** \} */
+
 
 /* -------------------------------------------------------------------- */
 /* Dissolve */
