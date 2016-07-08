@@ -816,9 +816,7 @@ void BKE_brush_color_set(struct Scene *scene, struct Brush *brush, const float c
 void BKE_brush_size_set(Scene *scene, Brush *brush, int size)
 {
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-	
-	size = (int)((float)size / U.pixelsize);
-	
+
 	/* make sure range is sane */
 	CLAMP(size, 1, MAX_BRUSH_PIXEL_RADIUS);
 
