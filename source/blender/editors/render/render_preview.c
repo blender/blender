@@ -864,7 +864,7 @@ static void shader_preview_free(void *customdata)
 		/* get rid of copied world */
 		BLI_remlink(&pr_main->world, sp->worldcopy);
 		/* T32865 - we need to unlink the texture copies, unlike for materials */
-		BKE_libblock_relink_ex(sp->worldcopy, NULL, NULL, true);
+		BKE_libblock_relink_ex(pr_main, sp->worldcopy, NULL, NULL, true);
 		BKE_world_free(sp->worldcopy);
 		
 		properties = IDP_GetProperties((ID *)sp->worldcopy, false);
@@ -881,7 +881,7 @@ static void shader_preview_free(void *customdata)
 		
 		/* get rid of copied lamp */
 		BLI_remlink(&pr_main->lamp, sp->lampcopy);
-		BKE_libblock_relink_ex(sp->lampcopy, NULL, NULL, true);
+		BKE_libblock_relink_ex(pr_main, sp->lampcopy, NULL, NULL, true);
 		BKE_lamp_free(sp->lampcopy);
 		
 		properties = IDP_GetProperties((ID *)sp->lampcopy, false);

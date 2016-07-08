@@ -230,6 +230,127 @@ static int foreach_libblock_remap_callback(void *user_data, ID *UNUSED(id_self),
 	return IDWALK_RET_NOP;
 }
 
+/* Some reamapping unfortunately require extra and/or specific handling, tackle those here. */
+static void libblock_remap_data_preprocess_scene_base_unlink(
+        IDRemap *r_id_remap_data, Scene *sce, Base *base, const bool skip_indirect, const bool is_indirect)
+{
+	if (skip_indirect && is_indirect) {
+		r_id_remap_data->skipped_indirect++;
+		r_id_remap_data->skipped_refcounted++;
+	}
+	else {
+		id_us_min((ID *)base->object);
+		BKE_scene_base_unlink(sce, base);
+		MEM_freeN(base);
+		if (!is_indirect) {
+			r_id_remap_data->status |= ID_REMAP_IS_LINKED_DIRECT;
+		}
+	}
+}
+
+static void libblock_remap_data_preprocess(IDRemap *r_id_remap_data)
+{
+	switch (GS(r_id_remap_data->id->name)) {
+		case ID_SCE:
+		{
+			Scene *sce = (Scene *)r_id_remap_data->id;
+
+			if (!r_id_remap_data->new_id) {
+				const bool is_indirect = (sce->id.lib != NULL);
+				const bool skip_indirect = (r_id_remap_data->flag & ID_REMAP_SKIP_INDIRECT_USAGE) != 0;
+
+				/* In case we are unlinking... */
+				if (!r_id_remap_data->old_id) {
+					/* ... everything from scene. */
+					Base *base, *base_next;
+					for (base = sce->base.first; base; base = base_next) {
+						base_next = base->next;
+						libblock_remap_data_preprocess_scene_base_unlink(
+						            r_id_remap_data, sce, base, skip_indirect, is_indirect);
+					}
+				}
+				else if (GS(r_id_remap_data->old_id->name) == ID_OB) {
+					/* ... a specific object from scene. */
+					Object *old_ob = (Object *)r_id_remap_data->old_id;
+					Base *base = BKE_scene_base_find(sce, old_ob);
+
+					if (base) {
+						libblock_remap_data_preprocess_scene_base_unlink(
+						            r_id_remap_data, sce, base, skip_indirect, is_indirect);
+					}
+				}
+			}
+			break;
+		}
+		case ID_OB:
+		{
+			ID *old_id = r_id_remap_data->old_id;
+			if (!old_id || GS(old_id->name) == ID_AR) {
+				Object *ob = (Object *)r_id_remap_data->id;
+				/* Object's pose holds reference to armature bones... sic */
+				/* Note that in theory, we should have to bother about linked/non-linked/never-null/etc. flags/states.
+				 * Fortunately, this is just a tag, so we can accept to 'over-tag' a bit for pose recalc, and avoid
+				 * another complex and risky condition nightmare like the one we have in
+				 * foreach_libblock_remap_callback()... */
+				if (ob->pose && (!old_id || ob->data == old_id)) {
+					BLI_assert(ob->type == OB_ARMATURE);
+					ob->pose->flag |= POSE_RECALC;
+				}
+			}
+			break;
+		}
+		default:
+			break;
+	}
+}
+
+static void libblock_remap_data_postprocess_object_fromgroup_update(Main *bmain, Object *old_ob, Object *new_ob)
+{
+	if (old_ob->flag & OB_FROMGROUP) {
+		/* Note that for Scene's BaseObject->flag, either we:
+		 *     - unlinked old_ob (i.e. new_ob is NULL), in which case scenes' bases have been removed already.
+		 *     - remapped old_ob by new_ob, in which case scenes' bases are still valid as is.
+		 * So in any case, no need to update them here. */
+		if (BKE_group_object_find(NULL, old_ob) == NULL) {
+			old_ob->flag &= ~OB_FROMGROUP;
+		}
+		if (new_ob == NULL) {  /* We need to remove NULL-ified groupobjects... */
+			for (Group *group = bmain->group.first; group; group = group->id.next) {
+				BKE_group_object_unlink(group, NULL, NULL, NULL);
+			}
+		}
+		else {
+			new_ob->flag |= OB_FROMGROUP;
+		}
+	}
+}
+
+static void libblock_remap_data_postprocess_group_scene_unlink(Main *UNUSED(bmain), Scene *sce, ID *old_id)
+{
+	/* Note that here we assume no object has no base (i.e. all objects are assumed instanced
+	 * in one scene...). */
+	for (Base *base = sce->base.first; base; base = base->next) {
+		if (base->flag & OB_FROMGROUP) {
+			Object *ob = base->object;
+
+			if (ob->flag & OB_FROMGROUP) {
+				Group *grp = BKE_group_object_find(NULL, ob);
+
+				/* Unlinked group (old_id) is still in bmain... */
+				if (grp && (&grp->id == old_id || grp->id.us == 0)) {
+					grp = BKE_group_object_find(grp, ob);
+				}
+				if (!grp) {
+					ob->flag &= ~OB_FROMGROUP;
+				}
+			}
+			if (!(ob->flag & OB_FROMGROUP)) {
+				base->flag &= ~OB_FROMGROUP;
+			}
+		}
+	}
+}
+
 /**
  * Execute the 'data' part of the remapping (that is, all ID pointers from other ID datablocks).
  *
@@ -272,6 +393,7 @@ static void libblock_remap_data(
 		printf("\tchecking id %s (%p, %p)\n", id->name, id, id->lib);
 #endif
 		r_id_remap_data->id = id;
+		libblock_remap_data_preprocess(r_id_remap_data);
 		BKE_library_foreach_ID_link(id, foreach_libblock_remap_callback, (void *)r_id_remap_data, IDWALK_NOP);
 	}
 	else {
@@ -292,6 +414,7 @@ static void libblock_remap_data(
 				 * the user count handling...
 				 * XXX No more true (except for debug usage of those skipping counters). */
 				r_id_remap_data->id = id_curr;
+				libblock_remap_data_preprocess(r_id_remap_data);
 				BKE_library_foreach_ID_link(
 				            id_curr, foreach_libblock_remap_callback, (void *)r_id_remap_data, IDWALK_NOP);
 			}
@@ -336,38 +459,6 @@ void BKE_libblock_remap_locked(
 	BLI_assert((new_id == NULL) || GS(old_id->name) == GS(new_id->name));
 	BLI_assert(old_id != new_id);
 
-	/* Some pre-process updates.
-	 * This is a bit ugly, but cannot see a way to avoid it. Maybe we should do a per-ID callback for this instead?
-	 */
-	if (GS(old_id->name) == ID_OB) {
-		Object *old_ob = (Object *)old_id;
-		Object *new_ob = (Object *)new_id;
-
-		if (new_ob == NULL) {
-			Scene *sce;
-			Base *base;
-
-			for (sce = bmain->scene.first; sce; sce = sce->id.next) {
-				base = BKE_scene_base_find(sce, old_ob);
-
-				if (base) {
-					id_us_min((ID *)base->object);
-					BKE_scene_base_unlink(sce, base);
-					MEM_freeN(base);
-				}
-			}
-		}
-	}
-	else if (GS(old_id->name) == ID_AR) {
-		/* Object's pose holds reference to armature bones... sic */
-		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
-			if (ob->data == old_id && ob->pose) {
-				BLI_assert(ob->type == OB_ARMATURE);
-				ob->pose->flag |= POSE_RECALC;
-			}
-		}
-	}
-
 	libblock_remap_data(bmain, NULL, old_id, new_id, remap_flags, &id_remap_data);
 
 	if (free_notifier_reference_cb) {
@@ -407,55 +498,12 @@ void BKE_libblock_remap_locked(
 	 */
 	switch (GS(old_id->name)) {
 		case ID_OB:
-		{
-			Object *old_ob = (Object *)old_id;
-			Object *new_ob = (Object *)new_id;
-
-			if (old_ob->flag & OB_FROMGROUP) {
-				/* Note that for Scene's BaseObject->flag, either we:
-				 *     - unlinked old_ob (i.e. new_ob is NULL), in which case scenes' bases have been removed already.
-				 *     - remapped old_ob by new_ob, in which case scenes' bases are still valid as is.
-				 * So in any case, no need to update them here. */
-				if (BKE_group_object_find(NULL, old_ob) == NULL) {
-					old_ob->flag &= ~OB_FROMGROUP;
-				}
-				if (new_ob == NULL) {  /* We need to remove NULL-ified groupobjects... */
-					Group *group;
-					for (group = bmain->group.first; group; group = group->id.next) {
-						BKE_group_object_unlink(group, NULL, NULL, NULL);
-					}
-				}
-				else {
-					new_ob->flag |= OB_FROMGROUP;
-				}
-			}
+			libblock_remap_data_postprocess_object_fromgroup_update(bmain, (Object *)old_id, (Object *)new_id);
 			break;
-		}
 		case ID_GR:
 			if (new_id == NULL) {  /* Only affects us in case group was unlinked. */
 				for (Scene *sce = bmain->scene.first; sce; sce = sce->id.next) {
-					/* Note that here we assume no object has no base (i.e. all objects are assumed instanced
-					 * in one scene...). */
-					for (Base *base = sce->base.first; base; base = base->next) {
-						if (base->flag & OB_FROMGROUP) {
-							Object *ob = base->object;
-
-							if (ob->flag & OB_FROMGROUP) {
-								Group *grp = BKE_group_object_find(NULL, ob);
-
-								/* Unlinked group (old_id) is still in bmain... */
-								if (grp && (&grp->id == old_id)) {
-									grp = BKE_group_object_find(grp, ob);
-								}
-								if (!grp) {
-									ob->flag &= ~OB_FROMGROUP;
-								}
-							}
-							if (!(ob->flag & OB_FROMGROUP)) {
-								base->flag &= ~OB_FROMGROUP;
-							}
-						}
-					}
+					libblock_remap_data_postprocess_group_scene_unlink(bmain, sce, old_id);
 				}
 			}
 			break;
@@ -511,14 +559,14 @@ void BKE_libblock_unlink(Main *bmain, void *idv, const bool do_flag_never_null, 
  *     ... sigh
  */
 void BKE_libblock_relink_ex(
-        void *idv, void *old_idv, void *new_idv, const bool us_min_never_null)
+        Main *bmain, void *idv, void *old_idv, void *new_idv, const bool us_min_never_null)
 {
 	ID *id = idv;
 	ID *old_id = old_idv;
 	ID *new_id = new_idv;
 	int remap_flags = us_min_never_null ? 0 : ID_REMAP_SKIP_NEVER_NULL_USAGE;
 
-	/* No need to lock here, we are only affecting given ID. */
+	/* No need to lock here, we are only affecting given ID, not bmain database. */
 
 	BLI_assert(id);
 	if (old_id) {
@@ -529,16 +577,46 @@ void BKE_libblock_relink_ex(
 		BLI_assert(new_id == NULL);
 	}
 
-	if (GS(id->name) == ID_OB) {
-		Object *ob = (Object *)id;
-		/* Object's pose holds reference to armature bones... sic */
-		if (ob->data && ob->pose && (old_id == NULL || GS(old_id->name) == ID_AR)) {
-			BLI_assert(ob->type == OB_ARMATURE);
-			ob->pose->flag |= POSE_RECALC;
-		}
-	}
-
 	libblock_remap_data(NULL, id, old_id, new_id, remap_flags, NULL);
+
+	/* Some after-process updates.
+	 * This is a bit ugly, but cannot see a way to avoid it. Maybe we should do a per-ID callback for this instead?
+	 */
+	switch (GS(id->name)) {
+		case ID_SCE:
+		{
+			Scene *sce = (Scene *)id;
+
+			if (old_id) {
+				switch (GS(old_id->name)) {
+					case ID_OB:
+					{
+						libblock_remap_data_postprocess_object_fromgroup_update(
+						            bmain, (Object *)old_id, (Object *)new_id);
+						break;
+					}
+					case ID_GR:
+						if (new_id == NULL) {  /* Only affects us in case group was unlinked. */
+							libblock_remap_data_postprocess_group_scene_unlink(bmain, sce, old_id);
+						}
+						break;
+					default:
+						break;
+				}
+			}
+			else {
+				/* No choice but to check whole objects/groups. */
+				for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+					libblock_remap_data_postprocess_object_fromgroup_update(bmain, ob, NULL);
+				}
+				for (Group *grp = bmain->group.first; grp; grp = grp->id.next) {
+					libblock_remap_data_postprocess_group_scene_unlink(bmain, sce, NULL);
+				}
+			}
+		}
+		default:
+			break;
+	}
 }
 
 static void animdata_dtar_clear_cb(ID *UNUSED(id), AnimData *adt, void *userdata)
@@ -593,7 +671,7 @@ void BKE_libblock_free_ex(Main *bmain, void *idv, const bool do_id_user)
 #endif
 
 	if (do_id_user) {
-		BKE_libblock_relink_ex(id, NULL, NULL, true);
+		BKE_libblock_relink_ex(bmain, id, NULL, NULL, true);
 	}
 
 	switch (type) {
