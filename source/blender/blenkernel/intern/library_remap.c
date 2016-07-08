@@ -88,9 +88,11 @@
 #include "BKE_mesh.h"
 #include "BKE_material.h"
 #include "BKE_main.h"
-#include "BKE_mball.h"
-#include "BKE_movieclip.h"
 #include "BKE_mask.h"
+#include "BKE_mball.h"
+#include "BKE_modifier.h"
+#include "BKE_movieclip.h"
+#include "BKE_multires.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -351,6 +353,24 @@ static void libblock_remap_data_postprocess_group_scene_unlink(Main *UNUSED(bmai
 	}
 }
 
+static void libblock_remap_data_postprocess_obdata_relink(Main *UNUSED(bmain), Object *ob, ID *new_id)
+{
+	if (ob->data == new_id) {
+		switch (GS(new_id->name)) {
+			case ID_ME:
+				multires_force_update(ob);
+				break;
+			case ID_CU:
+				BKE_curve_type_test(ob);
+				break;
+			default:
+				break;
+		}
+		test_object_modifiers(ob);
+		test_object_materials(ob, new_id);
+	}
+}
+
 /**
  * Execute the 'data' part of the remapping (that is, all ID pointers from other ID datablocks).
  *
@@ -501,9 +521,18 @@ void BKE_libblock_remap_locked(
 			libblock_remap_data_postprocess_object_fromgroup_update(bmain, (Object *)old_id, (Object *)new_id);
 			break;
 		case ID_GR:
-			if (new_id == NULL) {  /* Only affects us in case group was unlinked. */
+			if (!new_id) {  /* Only affects us in case group was unlinked. */
 				for (Scene *sce = bmain->scene.first; sce; sce = sce->id.next) {
 					libblock_remap_data_postprocess_group_scene_unlink(bmain, sce, old_id);
+				}
+			}
+			break;
+		case ID_ME:
+		case ID_CU:
+		case ID_MB:
+			if (new_id) {  /* Only affects us in case obdata was relinked (changed). */
+				for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+					libblock_remap_data_postprocess_obdata_relink(bmain, ob, new_id);
 				}
 			}
 			break;
@@ -596,7 +625,7 @@ void BKE_libblock_relink_ex(
 						break;
 					}
 					case ID_GR:
-						if (new_id == NULL) {  /* Only affects us in case group was unlinked. */
+						if (!new_id) {  /* Only affects us in case group was unlinked. */
 							libblock_remap_data_postprocess_group_scene_unlink(bmain, sce, old_id);
 						}
 						break;
@@ -614,6 +643,11 @@ void BKE_libblock_relink_ex(
 				}
 			}
 		}
+		case ID_OB:
+			if (new_id) {  /* Only affects us in case obdata was relinked (changed). */
+				libblock_remap_data_postprocess_obdata_relink(bmain, (Object *)id, new_id);
+			}
+			break;
 		default:
 			break;
 	}
