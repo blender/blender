@@ -41,7 +41,7 @@ extern "C" {
 #endif
 
 void itasc_initialize_tree(struct Scene *scene, struct Object *ob, float ctime);
-void itasc_execute_tree(struct Scene *scene, struct Object *ob,  struct bPoseChannel *pchan, float ctime);
+void itasc_execute_tree(struct Scene *scene, struct Object *ob,  struct bPoseChannel *pchan_root, float ctime);
 void itasc_release_tree(struct Scene *scene, struct Object *ob,  float ctime);
 void itasc_clear_data(struct bPose *pose);
 void itasc_clear_cache(struct bPose *pose);

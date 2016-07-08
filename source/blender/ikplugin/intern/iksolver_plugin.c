@@ -527,10 +527,10 @@ void iksolver_initialize_tree(struct Scene *UNUSED(scene), struct Object *ob, fl
 	ob->pose->flag &= ~POSE_WAS_REBUILT;
 }
 
-void iksolver_execute_tree(struct Scene *scene, struct Object *ob,  struct bPoseChannel *pchan, float ctime)
+void iksolver_execute_tree(struct Scene *scene, Object *ob,  bPoseChannel *pchan_root, float ctime)
 {
-	while (pchan->iktree.first) {
-		PoseTree *tree = pchan->iktree.first;
+	while (pchan_root->iktree.first) {
+		PoseTree *tree = pchan_root->iktree.first;
 		int a;
 
 		/* stop on the first tree that isn't a standard IK chain */
@@ -573,14 +573,14 @@ void iksolver_execute_tree(struct Scene *scene, struct Object *ob,  struct bPose
 
 #ifdef USE_NONUNIFORM_SCALE
 		for (a = 0; a < tree->totchannel; a++) {
-			normalize_v3_length(pchan->pose_mat[0], pchan_scale_data[a][0]);
-			normalize_v3_length(pchan->pose_mat[2], pchan_scale_data[a][2]);
+			normalize_v3_length(tree->pchan[a]->pose_mat[0], pchan_scale_data[a][0]);
+			normalize_v3_length(tree->pchan[a]->pose_mat[2], pchan_scale_data[a][2]);
 		}
 		MEM_freeN(pchan_scale_data);
 #endif
 
 		/* 7. and free */
-		BLI_remlink(&pchan->iktree, tree);
+		BLI_remlink(&pchan_root->iktree, tree);
 		free_posetree(tree);
 	}
 }
