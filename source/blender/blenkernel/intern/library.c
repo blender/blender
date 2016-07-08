@@ -268,7 +268,7 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 			return true;
 		case ID_ME:
 			if (!test) {
-				BKE_mesh_make_local((Mesh *)id);
+				BKE_mesh_make_local(bmain, (Mesh *)id);
 				BKE_key_make_local(((Mesh *)id)->key);
 			}
 			return true;

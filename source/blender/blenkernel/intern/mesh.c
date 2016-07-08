@@ -49,6 +49,8 @@
 #include "BKE_mesh.h"
 #include "BKE_displist.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
+#include "BKE_library_remap.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
@@ -578,10 +580,24 @@ BMesh *BKE_mesh_to_bmesh(
 	return bm;
 }
 
+static int extern_local_mesh_callback(
+        void *UNUSED(user_data), struct ID *UNUSED(id_self), struct ID **id_pointer, int cd_flag)
+{
+	/* We only tag usercounted ID usages as extern... Why? */
+	if ((cd_flag & IDWALK_USER) && *id_pointer) {
+		/* Exception: skip shapekeys, those are supposed to be made local immediately after anyway. */
+		if (GS((*id_pointer)->name) != ID_KE) {
+			id_lib_extern(*id_pointer);
+		}
+	}
+	return IDWALK_NOP;
+}
+
 static void expand_local_mesh(Mesh *me)
 {
-	id_lib_extern((ID *)me->texcomesh);
+	BKE_library_foreach_ID_link(&me->id, extern_local_mesh_callback, NULL, 0);
 
+	/* special case: images assigned to UVLayers always made local immediately - why? */
 	if (me->mtface || me->mtpoly) {
 		int a, i;
 
@@ -590,7 +606,6 @@ static void expand_local_mesh(Mesh *me)
 				MTexPoly *txface = (MTexPoly *)me->pdata.layers[i].data;
 
 				for (a = 0; a < me->totpoly; a++, txface++) {
-					/* special case: ima always local immediately */
 					if (txface->tpage) {
 						id_lib_extern((ID *)txface->tpage);
 					}
@@ -603,7 +618,6 @@ static void expand_local_mesh(Mesh *me)
 				MTFace *tface = (MTFace *)me->fdata.layers[i].data;
 
 				for (a = 0; a < me->totface; a++, tface++) {
-					/* special case: ima always local immediately */
 					if (tface->tpage) {
 						id_lib_extern((ID *)tface->tpage);
 					}
@@ -611,16 +625,10 @@ static void expand_local_mesh(Mesh *me)
 			}
 		}
 	}
-
-	if (me->mat) {
-		extern_local_matarar(me->mat, me->totcol);
-	}
 }
 
-void BKE_mesh_make_local(Mesh *me)
+void BKE_mesh_make_local(Main *bmain, Mesh *me)
 {
-	Main *bmain = G.main;
-	Object *ob;
 	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
@@ -628,38 +636,26 @@ void BKE_mesh_make_local(Mesh *me)
 	 * - mixed: make copy
 	 */
 
-	if (!ID_IS_LINKED_DATABLOCK(me)) return;
-	if (me->id.us == 1) {
-		id_clear_lib_data(bmain, &me->id);
-		expand_local_mesh(me);
+	if (!ID_IS_LINKED_DATABLOCK(me)) {
 		return;
 	}
 
-	for (ob = bmain->object.first; ob && ELEM(0, is_lib, is_local); ob = ob->id.next) {
-		if (me == ob->data) {
-			if (ID_IS_LINKED_DATABLOCK(ob)) is_lib = true;
-			else is_local = true;
+	BKE_library_ID_test_usages(bmain, me, &is_local, &is_lib);
+
+	if (is_local) {
+		if (!is_lib) {
+			id_clear_lib_data(bmain, &me->id);
+			expand_local_mesh(me);
 		}
-	}
+		else {
+			Mesh *me_new = BKE_mesh_copy_ex(bmain, me);
 
-	if (is_local && is_lib == false) {
-		id_clear_lib_data(bmain, &me->id);
-		expand_local_mesh(me);
-	}
-	else if (is_local && is_lib) {
-		Mesh *me_new = BKE_mesh_copy(me);
-		me_new->id.us = 0;
+			me_new->id.us = 0;
 
+			/* Remap paths of new ID using old library as base. */
+			BKE_id_lib_local_paths(bmain, me->id.lib, &me_new->id);
 
-		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, me->id.lib, &me_new->id);
-
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
-			if (me == ob->data) {
-				if (!ID_IS_LINKED_DATABLOCK(ob)) {
-					BKE_mesh_assign_object(ob, me_new);
-				}
-			}
+			BKE_libblock_remap(bmain, me, me_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}
 }
