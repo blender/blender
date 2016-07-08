@@ -88,7 +88,7 @@
 	if (!((_data)->status & IDWALK_STOP)) { \
 		const int _flag = (_data)->flag; \
 		ID *old_id = *(id_pp); \
-		const int callback_return = (_data)->callback((_data)->user_data, (_data)->self_id, id_pp, cb_flag); \
+		const int callback_return = (_data)->callback((_data)->user_data, (_data)->self_id, id_pp, cb_flag | (_data)->cd_flag); \
 		if (_flag & IDWALK_READONLY) { \
 			BLI_assert(*(id_pp) == old_id); \
 		} \
@@ -129,6 +129,7 @@ enum {
 typedef struct LibraryForeachIDData {
 	ID *self_id;
 	int flag;
+	int cd_flag;
 	LibraryIDLinkCallback callback;
 	void *user_data;
 	int status;
@@ -297,6 +298,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 
 	do {
 		data.self_id = id;
+		data.cd_flag = ID_IS_LINKED_DATABLOCK(id) ? IDWALK_INDIRECT_USAGE : 0;
 
 		AnimData *adt = BKE_animdata_from_id(id);
 		if (adt) {
@@ -417,7 +419,12 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				Object *object = (Object *) id;
 				ParticleSystem *psys;
 
+				/* Object is special, proxies make things hard... */
+				const int data_cd_flag = data.cd_flag;
+				const int proxy_cd_flag = (object->proxy || object->proxy_group) ? IDWALK_INDIRECT_USAGE : 0;
+
 				/* object data special case */
+				data.cd_flag |= proxy_cd_flag;
 				if (object->type == OB_EMPTY) {
 					/* empty can have NULL or Image */
 					CALLBACK_INVOKE_ID(object->data, IDWALK_USER);
@@ -428,6 +435,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 						CALLBACK_INVOKE_ID(object->data, IDWALK_USER | IDWALK_NEVER_NULL);
 					}
 				}
+				data.cd_flag = data_cd_flag;
 
 				CALLBACK_INVOKE(object->parent, IDWALK_NOP);
 				CALLBACK_INVOKE(object->track, IDWALK_NOP);
@@ -436,9 +444,13 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				CALLBACK_INVOKE(object->proxy_group, IDWALK_NOP);
 				CALLBACK_INVOKE(object->proxy_from, IDWALK_NOP);
 				CALLBACK_INVOKE(object->poselib, IDWALK_USER);
+
+				data.cd_flag |= proxy_cd_flag;
 				for (i = 0; i < object->totcol; i++) {
 					CALLBACK_INVOKE(object->mat[i], IDWALK_USER);
 				}
+				data.cd_flag = data_cd_flag;
+
 				CALLBACK_INVOKE(object->gpd, IDWALK_USER);
 				CALLBACK_INVOKE(object->dup_group, IDWALK_USER);
 
@@ -450,10 +462,13 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 
 				if (object->pose) {
 					bPoseChannel *pchan;
+
+					data.cd_flag |= proxy_cd_flag;
 					for (pchan = object->pose->chanbase.first; pchan; pchan = pchan->next) {
 						CALLBACK_INVOKE(pchan->custom, IDWALK_USER);
 						BKE_constraints_id_loop(&pchan->constraints, library_foreach_constraintObjectLooper, &data);
 					}
+					data.cd_flag = data_cd_flag;
 				}
 
 				if (object->rigidbody_constraint) {
@@ -923,7 +938,7 @@ typedef struct IDUsersIter {
 	int lb_idx;
 
 	ID *curr_id;
-	int count;  /* Set by callback. */
+	int count_direct, count_indirect;  /* Set by callback. */
 } IDUsersIter;
 
 static int foreach_libblock_id_users_callback(void *user_data, ID *UNUSED(self_id), ID **id_p, int cb_flag)
@@ -932,13 +947,17 @@ static int foreach_libblock_id_users_callback(void *user_data, ID *UNUSED(self_i
 
 	if (*id_p && (*id_p == iter->id)) {
 #if 0
-		printf("%s uses %s (refcounted: %d, userone: %d, used_one: %d, used_one_active: %d)\n",
+		printf("%s uses %s (refcounted: %d, userone: %d, used_one: %d, used_one_active: %d, indirect_usage: %d)\n",
 		       iter->curr_id->name, iter->id->name, (cb_flag & IDWALK_USER) ? 1 : 0, (cb_flag & IDWALK_USER_ONE) ? 1 : 0,
-		       (iter->id->tag & LIB_TAG_EXTRAUSER) ? 1 : 0, (iter->id->tag & LIB_TAG_EXTRAUSER_SET) ? 1 : 0);
-#else
-		UNUSED_VARS(cb_flag);
+		       (iter->id->tag & LIB_TAG_EXTRAUSER) ? 1 : 0, (iter->id->tag & LIB_TAG_EXTRAUSER_SET) ? 1 : 0,
+		       (cb_flag & IDWALK_INDIRECT_USAGE) ? 1 : 0);
 #endif
-		iter->count++;
+		if (cb_flag & IDWALK_INDIRECT_USAGE) {
+			iter->count_indirect++;
+		}
+		else {
+			iter->count_direct++;
+		}
 	}
 
 	return IDWALK_RET_NOP;
@@ -961,25 +980,11 @@ int BKE_library_ID_use_ID(ID *id_user, ID *id_used)
 	/* We do not care about iter.lb_array/lb_idx here... */
 	iter.id = id_used;
 	iter.curr_id = id_user;
-	iter.count = 0;
+	iter.count_direct = iter.count_indirect = 0;
 
 	BKE_library_foreach_ID_link(iter.curr_id, foreach_libblock_id_users_callback, (void *)&iter, IDWALK_NOP);
 
-	return iter.count;
-}
-
-
-static int foreach_libblock_check_usage_callback(
-        void *user_data, ID *UNUSED(id_self), ID **id_p, int UNUSED(cb_flag))
-{
-	IDUsersIter *iter = user_data;
-
-	if (*id_p && (*id_p == iter->id)) {
-		iter->count++;
-		return IDWALK_RET_STOP_ITER;
-	}
-
-	return IDWALK_RET_NOP;
+	return iter.count_direct + iter.count_indirect;
 }
 
 static bool library_ID_is_used(Main *bmain, void *idv, const bool check_linked)
@@ -991,7 +996,7 @@ static bool library_ID_is_used(Main *bmain, void *idv, const bool check_linked)
 	bool is_defined = false;
 
 	iter.id = id;
-	iter.count = 0;
+	iter.count_direct = iter.count_indirect = 0;
 	while (i-- && !is_defined) {
 		ID *id_curr = lb_array[i]->first;
 
@@ -1000,15 +1005,11 @@ static bool library_ID_is_used(Main *bmain, void *idv, const bool check_linked)
 		}
 
 		for (; id_curr && !is_defined; id_curr = id_curr->next) {
-			if (check_linked != ID_IS_LINKED_DATABLOCK(id_curr)) {
-				continue;
-			}
-
 			iter.curr_id = id_curr;
 			BKE_library_foreach_ID_link(
-			            id_curr, foreach_libblock_check_usage_callback, &iter, IDWALK_NOP);
+			            id_curr, foreach_libblock_id_users_callback, &iter, IDWALK_NOP);
 
-			is_defined = (iter.count != 0);
+			is_defined = ((check_linked ? iter.count_indirect : iter.count_direct) != 0);
 		}
 	}
 
@@ -1036,14 +1037,14 @@ bool BKE_library_ID_is_indirectly_used(Main *bmain, void *idv)
  */
 void BKE_library_ID_test_usages(Main *bmain, void *idv, bool *is_used_local, bool *is_used_linked)
 {
-	IDUsersIter iter_local, iter_linked;
+	IDUsersIter iter;
 	ListBase *lb_array[MAX_LIBARRAY];
 	ID *id = idv;
 	int i = set_listbasepointers(bmain, lb_array);
 	bool is_defined = false;
 
-	iter_local.id = iter_linked.id = id;
-	iter_local.count = iter_linked.count = 0;
+	iter.id = id;
+	iter.count_direct = iter.count_indirect = 0;
 	while (i-- && !is_defined) {
 		ID *id_curr = lb_array[i]->first;
 
@@ -1052,15 +1053,13 @@ void BKE_library_ID_test_usages(Main *bmain, void *idv, bool *is_used_local, boo
 		}
 
 		for (; id_curr && !is_defined; id_curr = id_curr->next) {
-			IDUsersIter *iter = (ID_IS_LINKED_DATABLOCK(id_curr)) ? &iter_linked : &iter_local;
+			iter.curr_id = id_curr;
+			BKE_library_foreach_ID_link(id_curr, foreach_libblock_id_users_callback, &iter, IDWALK_NOP);
 
-			iter->curr_id = id_curr;
-			BKE_library_foreach_ID_link(id_curr, foreach_libblock_check_usage_callback, iter, IDWALK_NOP);
-
-			is_defined = (iter_local.count != 0 && iter_linked.count != 0);
+			is_defined = (iter.count_direct != 0 && iter.count_indirect != 0);
 		}
 	}
 
-	*is_used_local = (iter_local.count != 0);
-	*is_used_linked = (iter_linked.count != 0);
+	*is_used_local = (iter.count_direct != 0);
+	*is_used_linked = (iter.count_indirect != 0);
 }

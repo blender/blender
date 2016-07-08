@@ -41,6 +41,12 @@ enum {
 	IDWALK_NEVER_SELF = (1 << 1),
 
 	/**
+	 * Indicates whether this is direct (i.e. by local data) or indirect (i.e. by linked data) usage.
+	 * \note Object proxies are half-local, half-linked...
+	 */
+	IDWALK_INDIRECT_USAGE = (1 << 2),
+
+	/**
 	 * Adjusts #ID.us reference-count.
 	 * \note keep in sync with 'newlibadr_us' use in readfile.c
 	 */
