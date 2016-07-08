@@ -339,6 +339,7 @@ void BKE_lattice_make_local(Lattice *lt)
 	if (!ID_IS_LINKED_DATABLOCK(lt)) return;
 	if (lt->id.us == 1) {
 		id_clear_lib_data(bmain, &lt->id);
+		BKE_key_make_local(lt->key);
 		return;
 	}
 	
@@ -351,6 +352,7 @@ void BKE_lattice_make_local(Lattice *lt)
 	
 	if (is_local && is_lib == false) {
 		id_clear_lib_data(bmain, &lt->id);
+		BKE_key_make_local(lt->key);
 	}
 	else if (is_local && is_lib) {
 		Lattice *lt_new = BKE_lattice_copy(lt);

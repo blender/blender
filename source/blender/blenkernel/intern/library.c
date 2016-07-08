@@ -142,7 +142,7 @@ void BKE_id_lib_local_paths(Main *bmain, Library *lib, ID *id)
 
 void id_lib_extern(ID *id)
 {
-	if (id) {
+	if (id && ID_IS_LINKED_DATABLOCK(id)) {
 		BLI_assert(BKE_idcode_is_linkable(GS(id->name)));
 		if (id->tag & LIB_TAG_INDIRECT) {
 			id->tag -= LIB_TAG_INDIRECT;
@@ -267,16 +267,10 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 			if (!test) BKE_object_make_local(bmain, (Object *)id);
 			return true;
 		case ID_ME:
-			if (!test) {
-				BKE_mesh_make_local(bmain, (Mesh *)id);
-				BKE_key_make_local(((Mesh *)id)->key);
-			}
+			if (!test) BKE_mesh_make_local(bmain, (Mesh *)id);
 			return true;
 		case ID_CU:
-			if (!test) {
-				BKE_curve_make_local((Curve *)id);
-				BKE_key_make_local(((Curve *)id)->key);
-			}
+			if (!test) BKE_curve_make_local((Curve *)id);
 			return true;
 		case ID_MB:
 			if (!test) BKE_mball_make_local((MetaBall *)id);
@@ -291,10 +285,7 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 			if (!test) BKE_image_make_local((Image *)id);
 			return true;
 		case ID_LT:
-			if (!test) {
-				BKE_lattice_make_local((Lattice *)id);
-				BKE_key_make_local(((Lattice *)id)->key);
-			}
+			if (!test) BKE_lattice_make_local((Lattice *)id);
 			return true;
 		case ID_LA:
 			if (!test) BKE_lamp_make_local((Lamp *)id);

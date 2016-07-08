@@ -585,10 +585,7 @@ static int extern_local_mesh_callback(
 {
 	/* We only tag usercounted ID usages as extern... Why? */
 	if ((cd_flag & IDWALK_USER) && *id_pointer) {
-		/* Exception: skip shapekeys, those are supposed to be made local immediately after anyway. */
-		if (GS((*id_pointer)->name) != ID_KE) {
-			id_lib_extern(*id_pointer);
-		}
+		id_lib_extern(*id_pointer);
 	}
 	return IDWALK_NOP;
 }
@@ -645,6 +642,7 @@ void BKE_mesh_make_local(Main *bmain, Mesh *me)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &me->id);
+			BKE_key_make_local(me->key);
 			expand_local_mesh(me);
 		}
 		else {

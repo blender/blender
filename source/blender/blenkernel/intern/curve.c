@@ -242,6 +242,7 @@ void BKE_curve_make_local(Curve *cu)
 
 	if (cu->id.us == 1) {
 		id_clear_lib_data(bmain, &cu->id);
+		BKE_key_make_local(cu->key);
 		extern_local_curve(cu);
 		return;
 	}
@@ -255,6 +256,7 @@ void BKE_curve_make_local(Curve *cu)
 
 	if (is_local && is_lib == false) {
 		id_clear_lib_data(bmain, &cu->id);
+		BKE_key_make_local(cu->key);
 		extern_local_curve(cu);
 	}
 	else if (is_local && is_lib) {
