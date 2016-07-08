@@ -436,10 +436,10 @@ static void id_local_cb(
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	if (ID_IS_LINKED_DATABLOCK(tselem->id) && (tselem->id->tag & LIB_TAG_EXTERN)) {
+		Main *bmain = CTX_data_main(C);
 		/* if the ID type has no special local function,
 		 * just clear the lib */
-		if (id_make_local(tselem->id, false) == false) {
-			Main *bmain = CTX_data_main(C);
+		if (id_make_local(bmain, tselem->id, false) == false) {
 			id_clear_lib_data(bmain, tselem->id);
 		}
 	}

@@ -253,7 +253,7 @@ void id_fake_user_clear(ID *id)
 
 /* calls the appropriate make_local method for the block, unless test. Returns true
  * if the block can be made local. */
-bool id_make_local(ID *id, bool test)
+bool id_make_local(Main *UNUSED(bmain), ID *id, bool test)
 {
 	if (id->tag & LIB_TAG_INDIRECT)
 		return false;

@@ -81,7 +81,7 @@ void id_us_min(struct ID *id);
 void id_fake_user_set(struct ID *id);
 void id_fake_user_clear(struct ID *id);
 
-bool id_make_local(struct ID *id, bool test);
+bool id_make_local(struct Main *bmain, struct ID *id, bool test);
 bool id_single_user(struct bContext *C, struct ID *id, struct PointerRNA *ptr, struct PropertyRNA *prop);
 bool id_copy(struct ID *id, struct ID **newid, bool test);
 void id_sort_by_name(struct ListBase *lb, struct ID *id);
