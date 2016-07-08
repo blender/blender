@@ -191,9 +191,9 @@
 
 /* ********* my write, buffered writing with minimum size chunks ************ */
 
-#define MYWRITE_BUFFER_SIZE	100000
-#define MYWRITE_MAX_CHUNK	32768
-
+/* Use optimal allocation since blocks of this size are kept in memory for undo. */
+#define MYWRITE_BUFFER_SIZE (MEM_SIZE_OPTIMAL(1 << 17))  /* 128kb */
+#define MYWRITE_MAX_CHUNK   (MEM_SIZE_OPTIMAL(1 << 15))  /* ~32kb */
 
 
 /** \name Small API to handle compression.
