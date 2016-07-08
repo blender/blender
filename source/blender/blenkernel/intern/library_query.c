@@ -995,7 +995,7 @@ static bool library_ID_is_used(Main *bmain, void *idv, const bool check_linked)
 	while (i-- && !is_defined) {
 		ID *id_curr = lb_array[i]->first;
 
-		if (!id_curr || !BKE_library_idtype_can_use_idtype(GS(id->name), GS(id_curr->name))) {
+		if (!id_curr || !BKE_library_idtype_can_use_idtype(GS(id_curr->name), GS(id->name))) {
 			continue;
 		}
 
@@ -1047,7 +1047,7 @@ void BKE_library_ID_test_usages(Main *bmain, void *idv, bool *is_used_local, boo
 	while (i-- && !is_defined) {
 		ID *id_curr = lb_array[i]->first;
 
-		if (!id_curr || !BKE_library_idtype_can_use_idtype(GS(id->name), GS(id_curr->name))) {
+		if (!id_curr || !BKE_library_idtype_can_use_idtype(GS(id_curr->name), GS(id->name))) {
 			continue;
 		}
 
