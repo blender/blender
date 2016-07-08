@@ -36,7 +36,7 @@ ccl_device_inline int bvh_aligned_node_intersect(KernelGlobals *kg,
                                                  const float t,
                                                  const int nodeAddr,
                                                  const uint visibility,
-                                                 float *dist)
+                                                 float dist[2])
 {
 
 	/* fetch node data */
@@ -85,7 +85,7 @@ ccl_device_inline int bvh_aligned_node_intersect_robust(KernelGlobals *kg,
                                                         const float extmax,
                                                         const int nodeAddr,
                                                         const uint visibility,
-                                                        float *dist)
+                                                        float dist[2])
 {
 
 	/* fetch node data */
@@ -146,7 +146,7 @@ ccl_device_inline bool bvh_unaligned_node_intersect_child(
         const float t,
         int nodeAddr,
         int child,
-        float *dist)
+        float dist[2])
 {
 	Transform space  = bvh_unaligned_node_fetch_space(kg, nodeAddr, child);
 	float3 aligned_dir = transform_direction(&space, dir);
@@ -172,10 +172,9 @@ ccl_device_inline bool bvh_unaligned_node_intersect_child_robust(
         const float3 dir,
         const float t,
         const float difl,
-        const float /*extmax*/,
         int nodeAddr,
         int child,
-        float *dist)
+        float dist[2])
 {
 	Transform space  = bvh_unaligned_node_fetch_space(kg, nodeAddr, child);
 	float3 aligned_dir = transform_direction(&space, dir);
@@ -210,7 +209,7 @@ ccl_device_inline int bvh_unaligned_node_intersect(KernelGlobals *kg,
                                                    const float t,
                                                    const int nodeAddr,
                                                    const uint visibility,
-                                                   float *dist)
+                                                   float dist[2])
 {
 	int mask = 0;
 	float4 cnodes = kernel_tex_fetch(__bvh_nodes, nodeAddr+0);
@@ -242,11 +241,11 @@ ccl_device_inline int bvh_unaligned_node_intersect_robust(KernelGlobals *kg,
                                                           const float extmax,
                                                           const int nodeAddr,
                                                           const uint visibility,
-                                                          float *dist)
+                                                          float dist[2])
 {
 	int mask = 0;
 	float4 cnodes = kernel_tex_fetch(__bvh_nodes, nodeAddr+0);
-	if(bvh_unaligned_node_intersect_child_robust(kg, P, dir, t, difl, extmax, nodeAddr, 0, &dist[0])) {
+	if(bvh_unaligned_node_intersect_child_robust(kg, P, dir, t, difl, nodeAddr, 0, &dist[0])) {
 #ifdef __VISIBILITY_FLAG__
 		if((__float_as_uint(cnodes.x) & visibility))
 #endif
@@ -254,7 +253,7 @@ ccl_device_inline int bvh_unaligned_node_intersect_robust(KernelGlobals *kg,
 			mask |= 1;
 		}
 	}
-	if(bvh_unaligned_node_intersect_child_robust(kg, P, dir, t, difl, extmax, nodeAddr, 1, &dist[1])) {
+	if(bvh_unaligned_node_intersect_child_robust(kg, P, dir, t, difl, nodeAddr, 1, &dist[1])) {
 #ifdef __VISIBILITY_FLAG__
 		if((__float_as_uint(cnodes.y) & visibility))
 #endif
@@ -509,7 +508,6 @@ int ccl_device_inline bvh_unaligned_node_intersect_robust(KernelGlobals *kg,
                                                           const ssef& tnear,
                                                           const ssef& tfar,
                                                           const float difl,
-                                                          const float /*extmax*/,
                                                           const int nodeAddr,
                                                           const uint visibility,
                                                           float dist[2])
@@ -636,7 +634,6 @@ ccl_device_inline int bvh_node_intersect_robust(KernelGlobals *kg,
 		                                           tnear,
 		                                           tfar,
 		                                           difl,
-		                                           extmax,
 		                                           nodeAddr,
 		                                           visibility,
 		                                           dist);

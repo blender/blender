@@ -309,7 +309,7 @@ ccl_device_inline void path_state_branch(PathState *state, int branch, int num_b
 	state->num_samples = state->num_samples*num_branches;
 }
 
-ccl_device_inline uint lcg_state_init(RNG *rng, const ccl_addr_space PathState *state, uint scramble)
+ccl_device_inline uint lcg_state_init(RNG *rng, const PathState *state, uint scramble)
 {
 	return lcg_init(*rng + state->rng_offset + state->sample*scramble);
 }

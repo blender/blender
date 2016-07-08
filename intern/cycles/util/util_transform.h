@@ -128,7 +128,7 @@ ccl_device_inline Transform make_transform(float a, float b, float c, float d,
 }
 
 /* Constructs a coordinate frame from a normalized normal. */
-ccl_device_inline Transform make_transform_frame(const float3& N)
+ccl_device_inline Transform make_transform_frame(float3 N)
 {
 	const float3 dx0 = cross(make_float3(1.0f, 0.0f, 0.0f), N);
 	const float3 dx1 = cross(make_float3(0.0f, 1.0f, 0.0f), N);
