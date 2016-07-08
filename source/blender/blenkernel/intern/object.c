@@ -93,6 +93,8 @@
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
+#include "BKE_library_remap.h"
 #include "BKE_linestyle.h"
 #include "BKE_mesh.h"
 #include "BKE_editmesh.h"
@@ -1184,41 +1186,25 @@ Object *BKE_object_copy(Object *ob)
 	return BKE_object_copy_ex(G.main, ob, false);
 }
 
-static void extern_local_object__modifiersForeachIDLink(
-        void *UNUSED(userData), Object *UNUSED(ob), ID **idpoin, int UNUSED(cd_flag))
+static int extern_local_object_callback(
+        void *UNUSED(user_data), struct ID *UNUSED(id_self), struct ID **id_pointer, int cd_flag)
 {
-	if (*idpoin) {
-		/* intentionally omit ID_OB */
-		if (ELEM(GS((*idpoin)->name), ID_IM, ID_TE)) {
-			id_lib_extern(*idpoin);
-		}
+	/* We only tag usercounted ID usages as extern... Why? */
+	if ((cd_flag & IDWALK_USER) && *id_pointer) {
+		id_lib_extern(*id_pointer);
 	}
+	return IDWALK_NOP;
 }
 
 static void extern_local_object(Object *ob)
 {
-	ParticleSystem *psys;
-
-	id_lib_extern((ID *)ob->data);
-	id_lib_extern((ID *)ob->dup_group);
-	id_lib_extern((ID *)ob->poselib);
-	id_lib_extern((ID *)ob->gpd);
-
-	extern_local_matarar(ob->mat, ob->totcol);
-
-	for (psys = ob->particlesystem.first; psys; psys = psys->next)
-		id_lib_extern((ID *)psys->part);
-
-	modifiers_foreachIDLink(ob, extern_local_object__modifiersForeachIDLink, NULL);
+	BKE_library_foreach_ID_link(&ob->id, extern_local_object_callback, NULL, 0);
 
 	ob->preview = NULL;
 }
 
-void BKE_object_make_local(Object *ob)
+void BKE_object_make_local(Main *bmain, Object *ob)
 {
-	Main *bmain = G.main;
-	Scene *sce;
-	Base *base;
 	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
@@ -1226,49 +1212,28 @@ void BKE_object_make_local(Object *ob)
 	 * - mixed: make copy
 	 */
 
-	if (!ID_IS_LINKED_DATABLOCK(ob)) return;
-	
-	ob->proxy = ob->proxy_from  = ob->proxy_group = NULL;
-	
-	if (ob->id.us == 1) {
-		id_clear_lib_data(bmain, &ob->id);
-		extern_local_object(ob);
+	if (!ID_IS_LINKED_DATABLOCK(ob)) {
+		return;
 	}
-	else {
-		for (sce = bmain->scene.first; sce && ELEM(0, is_lib, is_local); sce = sce->id.next) {
-			if (BKE_scene_base_find(sce, ob)) {
-				if (ID_IS_LINKED_DATABLOCK(sce)) is_lib = true;
-				else is_local = true;
-			}
-		}
 
-		if (is_local && is_lib == false) {
+	BKE_library_ID_test_usages(bmain, ob, &is_local, &is_lib);
+
+	if (is_local) {
+		if (!is_lib) {
+			ob->proxy = ob->proxy_from = ob->proxy_group = NULL;
 			id_clear_lib_data(bmain, &ob->id);
 			extern_local_object(ob);
 		}
-		else if (is_local && is_lib) {
-			Object *ob_new = BKE_object_copy(ob);
+		else {
+			Object *ob_new = BKE_object_copy_ex(bmain, ob, false);
 
 			ob_new->id.us = 0;
-			
+			ob_new->proxy = ob_new->proxy_from = ob_new->proxy_group = NULL;
+
 			/* Remap paths of new ID using old library as base. */
 			BKE_id_lib_local_paths(bmain, ob->id.lib, &ob_new->id);
 
-			sce = bmain->scene.first;
-			while (sce) {
-				if (!ID_IS_LINKED_DATABLOCK(sce)) {
-					base = sce->base.first;
-					while (base) {
-						if (base->object == ob) {
-							base->object = ob_new;
-							id_us_plus(&ob_new->id);
-							id_us_min(&ob->id);
-						}
-						base = base->next;
-					}
-				}
-				sce = sce->id.next;
-			}
+			BKE_libblock_remap(bmain, ob, ob_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}
 }

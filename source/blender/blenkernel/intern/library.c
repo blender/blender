@@ -253,7 +253,7 @@ void id_fake_user_clear(ID *id)
 
 /* calls the appropriate make_local method for the block, unless test. Returns true
  * if the block can be made local. */
-bool id_make_local(Main *UNUSED(bmain), ID *id, bool test)
+bool id_make_local(Main *bmain, ID *id, bool test)
 {
 	if (id->tag & LIB_TAG_INDIRECT)
 		return false;
@@ -264,7 +264,7 @@ bool id_make_local(Main *UNUSED(bmain), ID *id, bool test)
 		case ID_LI:
 			return false; /* can't be linked */
 		case ID_OB:
-			if (!test) BKE_object_make_local((Object *)id);
+			if (!test) BKE_object_make_local(bmain, (Object *)id);
 			return true;
 		case ID_ME:
 			if (!test) {
