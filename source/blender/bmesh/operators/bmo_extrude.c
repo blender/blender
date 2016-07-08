@@ -667,8 +667,7 @@ static void calc_solidify_normals(BMesh *bm)
 				/* two faces using this edge, calculate the edge normal
 				 * using the angle between the faces as a weighting */
 				add_v3_v3v3(edge_normal, f1->no, f2->no);
-				normalize_v3(edge_normal);
-				mul_v3_fl(edge_normal, angle);
+				normalize_v3_length(edge_normal, angle);
 			}
 			else {
 				/* can't do anything useful here!

@@ -5607,8 +5607,7 @@ static bool ui_numedit_but_HSVCIRCLE(
 	ui_color_picker_to_rgb_v(hsv, rgb);
 
 	if ((but->flag & UI_BUT_VEC_SIZE_LOCK) && (rgb[0] || rgb[1] || rgb[2])) {
-		normalize_v3(rgb);
-		mul_v3_fl(rgb, but->a2);
+		normalize_v3_length(rgb, but->a2);
 	}
 
 	if (use_display_colorspace)
@@ -5684,8 +5683,7 @@ static void ui_ndofedit_but_HSVCIRCLE(
 	ui_color_picker_to_rgb_v(hsv, data->vec);
 	
 	if ((but->flag & UI_BUT_VEC_SIZE_LOCK) && (data->vec[0] || data->vec[1] || data->vec[2])) {
-		normalize_v3(data->vec);
-		mul_v3_fl(data->vec, but->a2);
+		normalize_v3_length(data->vec, but->a2);
 	}
 
 	if (use_display_colorspace)
@@ -8722,8 +8720,7 @@ static bool ui_mouse_motion_towards_check(
 		float delta[2];
 
 		sub_v2_v2v2(delta, oldp, cent);
-		normalize_v2(delta);
-		mul_v2_fl(delta, MENU_TOWARDS_WIGGLE_ROOM);
+		normalize_v2_length(delta, MENU_TOWARDS_WIGGLE_ROOM);
 		add_v2_v2(oldp, delta);
 	}
 

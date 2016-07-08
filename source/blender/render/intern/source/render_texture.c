@@ -2495,8 +2495,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 							/* can be optimized... (ton) */
 							mul_mat3_m4_v3(shi->obr->ob->obmat, texres.nor);
 							mul_mat3_m4_v3(re->viewmat, texres.nor);
-							normalize_v3(texres.nor);
-							mul_v3_fl(texres.nor, len);
+							normalize_v3_length(texres.nor, len);
 						}
 					}
 				}

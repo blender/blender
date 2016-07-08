@@ -1440,13 +1440,9 @@ bool BMBVH_EdgeVisible(struct BMBVHTree *tree, BMEdge *e, ARegion *ar, View3D *v
 	sub_v3_v3v3(dir2, origin, co2);
 	sub_v3_v3v3(dir3, origin, co3);
 
-	normalize_v3(dir1);
-	normalize_v3(dir2);
-	normalize_v3(dir3);
-
-	mul_v3_fl(dir1, epsilon);
-	mul_v3_fl(dir2, epsilon);
-	mul_v3_fl(dir3, epsilon);
+	normalize_v3_length(dir1, epsilon);
+	normalize_v3_length(dir2, epsilon);
+	normalize_v3_length(dir3, epsilon);
 
 	/* offset coordinates slightly along view vectors, to avoid
 	 * hitting the faces that own the edge.*/

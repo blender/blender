@@ -254,8 +254,7 @@ static void alter_co(
 	copy_v3_v3(co, v->co);
 
 	if (UNLIKELY(params->use_sphere)) { /* subdivide sphere */
-		normalize_v3(co);
-		mul_v3_fl(co, params->smooth);
+		normalize_v3_length(co, params->smooth);
 	}
 	else if (params->use_smooth) {
 		/* calculating twice and blending gives smoother results,
