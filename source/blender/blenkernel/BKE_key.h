@@ -39,6 +39,7 @@ struct ListBase;
 struct Curve;
 struct Object;
 struct Lattice;
+struct Main;
 struct Mesh;
 struct WeightsArrayCache;
 
@@ -52,7 +53,7 @@ void        BKE_key_free_nolib(struct Key *key);
 struct Key *BKE_key_add(struct ID *id);
 struct Key *BKE_key_copy(struct Key *key);
 struct Key *BKE_key_copy_nolib(struct Key *key);
-void        BKE_key_make_local(struct Key *key);
+void        BKE_key_make_local(struct Main *bmain, struct Key *key);
 void        BKE_key_sort(struct Key *key);
 
 void key_curve_position_weights(float t, float data[4], int type);

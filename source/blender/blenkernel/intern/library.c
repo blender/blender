@@ -299,7 +299,7 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 		case ID_IP:
 			return false; /* deprecated */
 		case ID_KE:
-			if (!test) BKE_key_make_local((Key *)id);
+			if (!test) BKE_key_make_local(bmain, (Key *)id);
 			return true;
 		case ID_WO:
 			if (!test) BKE_world_make_local((World *)id);

@@ -191,8 +191,10 @@ Curve *BKE_curve_copy(Curve *cu)
 	cun->tb = MEM_dupallocN(cu->tb);
 	cun->bb = MEM_dupallocN(cu->bb);
 
-	cun->key = BKE_key_copy(cu->key);
-	if (cun->key) cun->key->from = (ID *)cun;
+	if (cu->key) {
+		cun->key = BKE_key_copy(cu->key);
+		cun->key->from = (ID *)cun;
+	}
 
 	cun->editnurb = NULL;
 	cun->editfont = NULL;
@@ -242,7 +244,9 @@ void BKE_curve_make_local(Curve *cu)
 
 	if (cu->id.us == 1) {
 		id_clear_lib_data(bmain, &cu->id);
-		BKE_key_make_local(cu->key);
+		if (cu->key) {
+			BKE_key_make_local(bmain, cu->key);
+		}
 		extern_local_curve(cu);
 		return;
 	}
@@ -256,7 +260,9 @@ void BKE_curve_make_local(Curve *cu)
 
 	if (is_local && is_lib == false) {
 		id_clear_lib_data(bmain, &cu->id);
-		BKE_key_make_local(cu->key);
+		if (cu->key) {
+			BKE_key_make_local(bamin, cu->key);
+		}
 		extern_local_curve(cu);
 	}
 	else if (is_local && is_lib) {

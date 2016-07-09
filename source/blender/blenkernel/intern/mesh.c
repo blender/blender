@@ -548,8 +548,10 @@ Mesh *BKE_mesh_copy_ex(Main *bmain, Mesh *me)
 	men->mselect = MEM_dupallocN(men->mselect);
 	men->bb = MEM_dupallocN(men->bb);
 	
-	men->key = BKE_key_copy(me->key);
-	if (men->key) men->key->from = (ID *)men;
+	if (me->key) {
+		men->key = BKE_key_copy(me->key);
+		men->key->from = (ID *)men;
+	}
 
 	if (ID_IS_LINKED_DATABLOCK(me)) {
 		BKE_id_lib_local_paths(bmain, me->id.lib, &men->id);
@@ -642,7 +644,9 @@ void BKE_mesh_make_local(Main *bmain, Mesh *me)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &me->id);
-			BKE_key_make_local(me->key);
+			if (me->key) {
+				BKE_key_make_local(bmain, me->key);
+			}
 			expand_local_mesh(me);
 		}
 		else {
