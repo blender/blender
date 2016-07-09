@@ -273,7 +273,7 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 			if (!test) BKE_curve_make_local(bmain, (Curve *)id);
 			return true;
 		case ID_MB:
-			if (!test) BKE_mball_make_local((MetaBall *)id);
+			if (!test) BKE_mball_make_local(bmain, (MetaBall *)id);
 			return true;
 		case ID_MA:
 			if (!test) BKE_material_make_local((Material *)id);

@@ -42,8 +42,9 @@ void BKE_mball_free(struct MetaBall *mb);
 void BKE_mball_init(struct MetaBall *mb);
 struct MetaBall *BKE_mball_add(struct Main *bmain, const char *name);
 struct MetaBall *BKE_mball_copy(struct MetaBall *mb);
+struct MetaBall *BKE_mball_copy_ex(struct Main *bmain, struct MetaBall *mb);
 
-void BKE_mball_make_local(struct MetaBall *mb);
+void BKE_mball_make_local(struct Main *bmain, struct MetaBall *mb);
 
 bool BKE_mball_is_basis_for(struct Object *ob1, struct Object *ob2);
 bool BKE_mball_is_basis(struct Object *ob);

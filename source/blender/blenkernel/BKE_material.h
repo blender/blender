@@ -58,7 +58,6 @@ struct Material *BKE_material_copy(struct Material *ma);
 struct Material *localize_material(struct Material *ma);
 struct Material *give_node_material(struct Material *ma); /* returns node material or self */
 void BKE_material_make_local(struct Material *ma);
-void extern_local_matarar(struct Material **matar, short totcol);
 
 /* UNUSED */
 // void automatname(struct Material *);

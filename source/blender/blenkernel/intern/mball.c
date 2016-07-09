@@ -59,6 +59,8 @@
 #include "BKE_depsgraph.h"
 #include "BKE_scene.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
+#include "BKE_library_remap.h"
 #include "BKE_displist.h"
 #include "BKE_mball.h"
 #include "BKE_object.h"
@@ -100,12 +102,12 @@ MetaBall *BKE_mball_add(Main *bmain, const char *name)
 	return mb;
 }
 
-MetaBall *BKE_mball_copy(MetaBall *mb)
+MetaBall *BKE_mball_copy_ex(Main *bmain, MetaBall *mb)
 {
 	MetaBall *mbn;
 	int a;
 	
-	mbn = BKE_libblock_copy(&mb->id);
+	mbn = BKE_libblock_copy_ex(bmain, &mb->id);
 
 	BLI_duplicatelist(&mbn->elems, &mb->elems);
 	
@@ -118,64 +120,61 @@ MetaBall *BKE_mball_copy(MetaBall *mb)
 	mbn->lastelem = NULL;
 	
 	if (ID_IS_LINKED_DATABLOCK(mb)) {
-		BKE_id_lib_local_paths(G.main, mb->id.lib, &mbn->id);
+		BKE_id_lib_local_paths(bmain, mb->id.lib, &mbn->id);
 	}
 
 	return mbn;
 }
 
-static void extern_local_mball(MetaBall *mb)
+MetaBall *BKE_mball_copy(MetaBall *mb)
 {
-	if (mb->mat) {
-		extern_local_matarar(mb->mat, mb->totcol);
-	}
+	return BKE_mball_copy_ex(G.main, mb);
 }
 
-void BKE_mball_make_local(MetaBall *mb)
+static int extern_local_mball_callback(
+        void *UNUSED(user_data), struct ID *UNUSED(id_self), struct ID **id_pointer, int cd_flag)
 {
-	Main *bmain = G.main;
-	Object *ob;
+	/* We only tag usercounted ID usages as extern... Why? */
+	if ((cd_flag & IDWALK_USER) && *id_pointer) {
+		id_lib_extern(*id_pointer);
+	}
+	return IDWALK_RET_NOP;
+}
+
+static void extern_local_mball(MetaBall *mb)
+{
+	BKE_library_foreach_ID_link(&mb->id, extern_local_mball_callback, NULL, 0);
+}
+
+void BKE_mball_make_local(Main *bmain, MetaBall *mb)
+{
 	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
-	
-	if (!ID_IS_LINKED_DATABLOCK(mb)) return;
-	if (mb->id.us == 1) {
-		id_clear_lib_data(bmain, &mb->id);
-		extern_local_mball(mb);
-		
+
+	if (!ID_IS_LINKED_DATABLOCK(mb)) {
 		return;
 	}
 
-	for (ob = G.main->object.first; ob && ELEM(0, is_lib, is_local); ob = ob->id.next) {
-		if (ob->data == mb) {
-			if (ID_IS_LINKED_DATABLOCK(ob)) is_lib = true;
-			else is_local = true;
+	BKE_library_ID_test_usages(bmain, mb, &is_local, &is_lib);
+
+	if (is_local) {
+		if (!is_lib) {
+			id_clear_lib_data(bmain, &mb->id);
+			extern_local_mball(mb);
 		}
-	}
-	
-	if (is_local && is_lib == false) {
-		id_clear_lib_data(bmain, &mb->id);
-		extern_local_mball(mb);
-	}
-	else if (is_local && is_lib) {
-		MetaBall *mb_new = BKE_mball_copy(mb);
-		mb_new->id.us = 0;
+		else {
+			MetaBall *mb_new = BKE_mball_copy_ex(bmain, mb);
 
-		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, mb->id.lib, &mb_new->id);
+			mb_new->id.us = 0;
 
-		for (ob = G.main->object.first; ob; ob = ob->id.next) {
-			if (ob->data == mb) {
-				if (!ID_IS_LINKED_DATABLOCK(ob)) {
-					ob->data = mb_new;
-					id_us_plus(&mb_new->id);
-					id_us_min(&mb->id);
-				}
-			}
+			/* Remap paths of new ID using old library as base. */
+			BKE_id_lib_local_paths(bmain, mb->id.lib, &mb_new->id);
+
+			BKE_libblock_remap(bmain, mb, mb_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}
 }

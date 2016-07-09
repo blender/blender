@@ -450,15 +450,6 @@ void BKE_material_make_local(Material *ma)
 	}
 }
 
-/* for curve, mball, mesh types */
-void extern_local_matarar(struct Material **matar, short totcol)
-{
-	short i;
-	for (i = 0; i < totcol; i++) {
-		id_lib_extern((ID *)matar[i]);
-	}
-}
-
 Material ***give_matarar(Object *ob)
 {
 	Mesh *me;

@@ -1881,7 +1881,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, const int flag)
 							BKE_animdata_copy_id_action((ID *)me->key);
 						break;
 					case OB_MBALL:
-						ob->data = BKE_mball_copy(ob->data);
+						ob->data = BKE_mball_copy_ex(bmain, ob->data);
 						break;
 					case OB_CURVE:
 					case OB_SURF:
