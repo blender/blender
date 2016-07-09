@@ -589,7 +589,7 @@ static int extern_local_mesh_callback(
 	if ((cd_flag & IDWALK_USER) && *id_pointer) {
 		id_lib_extern(*id_pointer);
 	}
-	return IDWALK_NOP;
+	return IDWALK_RET_NOP;
 }
 
 static void expand_local_mesh(Mesh *me)
@@ -2338,7 +2338,7 @@ Mesh *BKE_mesh_new_from_object(
 				BKE_object_free_modifiers(tmpobj);
 
 			/* copies the data */
-			copycu = tmpobj->data = BKE_curve_copy((Curve *) ob->data);
+			copycu = tmpobj->data = BKE_curve_copy_ex(bmain, (Curve *) ob->data);
 
 			/* temporarily set edit so we get updates from edit mode, but
 			 * also because for text datablocks copying it while in edit

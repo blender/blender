@@ -1886,7 +1886,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, const int flag)
 					case OB_CURVE:
 					case OB_SURF:
 					case OB_FONT:
-						ob->data = cu = BKE_curve_copy(ob->data);
+						ob->data = cu = BKE_curve_copy_ex(bmain, ob->data);
 						ID_NEW(cu->bevobj);
 						ID_NEW(cu->taperobj);
 						if (cu->key)

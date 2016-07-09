@@ -270,7 +270,7 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 			if (!test) BKE_mesh_make_local(bmain, (Mesh *)id);
 			return true;
 		case ID_CU:
-			if (!test) BKE_curve_make_local((Curve *)id);
+			if (!test) BKE_curve_make_local(bmain, (Curve *)id);
 			return true;
 		case ID_MB:
 			if (!test) BKE_mball_make_local((MetaBall *)id);

@@ -1193,7 +1193,7 @@ static int extern_local_object_callback(
 	if ((cd_flag & IDWALK_USER) && *id_pointer) {
 		id_lib_extern(*id_pointer);
 	}
-	return IDWALK_NOP;
+	return IDWALK_RET_NOP;
 }
 
 static void extern_local_object(Object *ob)

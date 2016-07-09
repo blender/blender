@@ -1673,7 +1673,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				id_us_min(&((Curve *)newob->data)->id);
 
 				/* make a new copy of the curve */
-				newob->data = BKE_curve_copy(ob->data);
+				newob->data = BKE_curve_copy_ex(bmain, ob->data);
 			}
 			else {
 				newob = ob;
@@ -1744,7 +1744,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 					id_us_min(&((Curve *)newob->data)->id);
 
 					/* make a new copy of the curve */
-					newob->data = BKE_curve_copy(ob->data);
+					newob->data = BKE_curve_copy_ex(bmain, ob->data);
 				}
 				else {
 					newob = ob;
@@ -1986,7 +1986,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				if (dupflag & USER_DUP_CURVE) {
 					ID_NEW_US2(obn->data)
 					else {
-						obn->data = BKE_curve_copy(obn->data);
+						obn->data = BKE_curve_copy_ex(bmain, obn->data);
 						didit = 1;
 					}
 					id_us_min(id);
@@ -1996,7 +1996,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				if (dupflag & USER_DUP_SURF) {
 					ID_NEW_US2(obn->data)
 					else {
-						obn->data = BKE_curve_copy(obn->data);
+						obn->data = BKE_curve_copy_ex(bmain, obn->data);
 						didit = 1;
 					}
 					id_us_min(id);
@@ -2006,7 +2006,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				if (dupflag & USER_DUP_FONT) {
 					ID_NEW_US2(obn->data)
 					else {
-						obn->data = BKE_curve_copy(obn->data);
+						obn->data = BKE_curve_copy_ex(bmain, obn->data);
 						didit = 1;
 					}
 					id_us_min(id);
