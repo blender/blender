@@ -1199,8 +1199,6 @@ static int extern_local_object_callback(
 static void extern_local_object(Object *ob)
 {
 	BKE_library_foreach_ID_link(&ob->id, extern_local_object_callback, NULL, 0);
-
-	ob->preview = NULL;
 }
 
 void BKE_object_make_local(Main *bmain, Object *ob)
@@ -1220,8 +1218,8 @@ void BKE_object_make_local(Main *bmain, Object *ob)
 
 	if (is_local) {
 		if (!is_lib) {
-			ob->proxy = ob->proxy_from = ob->proxy_group = NULL;
 			id_clear_lib_data(bmain, &ob->id);
+			ob->preview = NULL;
 			extern_local_object(ob);
 		}
 		else {
