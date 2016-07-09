@@ -549,7 +549,7 @@ Mesh *BKE_mesh_copy_ex(Main *bmain, Mesh *me)
 	men->bb = MEM_dupallocN(men->bb);
 	
 	if (me->key) {
-		men->key = BKE_key_copy(me->key);
+		men->key = BKE_key_copy_ex(bmain, me->key);
 		men->key->from = (ID *)men;
 	}
 

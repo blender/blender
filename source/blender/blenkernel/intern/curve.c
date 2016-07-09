@@ -195,7 +195,7 @@ Curve *BKE_curve_copy_ex(Main *bmain, Curve *cu)
 	cun->bb = MEM_dupallocN(cu->bb);
 
 	if (cu->key) {
-		cun->key = BKE_key_copy(cu->key);
+		cun->key = BKE_key_copy_ex(bmain, cu->key);
 		cun->key->from = (ID *)cun;
 	}
 

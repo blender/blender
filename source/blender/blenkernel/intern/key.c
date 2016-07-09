@@ -150,12 +150,12 @@ Key *BKE_key_add(ID *id)    /* common function */
 	return key;
 }
 
-Key *BKE_key_copy(Key *key)
+Key *BKE_key_copy_ex(Main *bmain, Key *key)
 {
 	Key *keyn;
 	KeyBlock *kbn, *kb;
 	
-	keyn = BKE_libblock_copy(&key->id);
+	keyn = BKE_libblock_copy_ex(bmain, &key->id);
 	
 	BLI_duplicatelist(&keyn->block, &key->block);
 	
@@ -171,12 +171,16 @@ Key *BKE_key_copy(Key *key)
 	}
 
 	if (ID_IS_LINKED_DATABLOCK(key)) {
-		BKE_id_lib_local_paths(G.main, key->id.lib, &keyn->id);
+		BKE_id_lib_local_paths(bmain, key->id.lib, &keyn->id);
 	}
 
 	return keyn;
 }
 
+Key *BKE_key_copy(Key *key)
+{
+	return BKE_key_copy_ex(G.main, key);
+}
 
 Key *BKE_key_copy_nolib(Key *key)
 {
