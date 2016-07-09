@@ -285,7 +285,7 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 			if (!test) BKE_image_make_local((Image *)id);
 			return true;
 		case ID_LT:
-			if (!test) BKE_lattice_make_local((Lattice *)id);
+			if (!test) BKE_lattice_make_local(bmain, (Lattice *)id);
 			return true;
 		case ID_LA:
 			if (!test) BKE_lamp_make_local((Lamp *)id);

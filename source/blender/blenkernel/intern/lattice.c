@@ -59,6 +59,8 @@
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
+#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -275,11 +277,11 @@ Lattice *BKE_lattice_add(Main *bmain, const char *name)
 	return lt;
 }
 
-Lattice *BKE_lattice_copy(Lattice *lt)
+Lattice *BKE_lattice_copy_ex(Main *bmain, Lattice *lt)
 {
 	Lattice *ltn;
 
-	ltn = BKE_libblock_copy(&lt->id);
+	ltn = BKE_libblock_copy_ex(bmain, &lt->id);
 	ltn->def = MEM_dupallocN(lt->def);
 
 	if (lt->key) {
@@ -296,10 +298,15 @@ Lattice *BKE_lattice_copy(Lattice *lt)
 	ltn->editlatt = NULL;
 
 	if (ID_IS_LINKED_DATABLOCK(lt)) {
-		BKE_id_lib_local_paths(G.main, lt->id.lib, &ltn->id);
+		BKE_id_lib_local_paths(bmain, lt->id.lib, &ltn->id);
 	}
 
 	return ltn;
+}
+
+Lattice *BKE_lattice_copy(Lattice *lt)
+{
+	return BKE_lattice_copy_ex(G.main, lt);
 }
 
 /** Free (or release) any data used by this lattice (does not free the lattice itself). */
@@ -327,54 +334,38 @@ void BKE_lattice_free(Lattice *lt)
 }
 
 
-void BKE_lattice_make_local(Lattice *lt)
+void BKE_lattice_make_local(Main *bmain, Lattice *lt)
 {
-	Main *bmain = G.main;
-	Object *ob;
 	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
-	
-	if (!ID_IS_LINKED_DATABLOCK(lt)) return;
-	if (lt->id.us == 1) {
-		id_clear_lib_data(bmain, &lt->id);
-		if (lt->key) {
-			BKE_key_make_local(bmain, lt->key);
-		}
+
+	if (!ID_IS_LINKED_DATABLOCK(lt)) {
 		return;
 	}
-	
-	for (ob = bmain->object.first; ob && ELEM(false, is_lib, is_local); ob = ob->id.next) {
-		if (ob->data == lt) {
-			if (ID_IS_LINKED_DATABLOCK(ob)) is_lib = true;
-			else is_local = true;
-		}
-	}
-	
-	if (is_local && is_lib == false) {
-		id_clear_lib_data(bmain, &lt->id);
-		if (lt->key) {
-			BKE_key_make_local(bmain, lt->key);
-		}
-	}
-	else if (is_local && is_lib) {
-		Lattice *lt_new = BKE_lattice_copy(lt);
-		lt_new->id.us = 0;
 
-		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, lt->id.lib, &lt_new->id);
+	BKE_library_ID_test_usages(bmain, lt, &is_local, &is_lib);
 
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
-			if (ob->data == lt) {
-				if (!ID_IS_LINKED_DATABLOCK(ob)) {
-					ob->data = lt_new;
-					id_us_plus(&lt_new->id);
-					id_us_min(&lt->id);
-				}
+	if (is_local) {
+		if (!is_lib) {
+			id_clear_lib_data(bmain, &lt->id);
+			if (lt->key) {
+				BKE_key_make_local(bmain, lt->key);
 			}
+			/* No extern_local_lattice... */
+		}
+		else {
+			Lattice *lt_new = BKE_lattice_copy_ex(bmain, lt);
+
+			lt_new->id.us = 0;
+
+			/* Remap paths of new ID using old library as base. */
+			BKE_id_lib_local_paths(bmain, lt->id.lib, &lt_new->id);
+
+			BKE_libblock_remap(bmain, lt, lt_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}
 }

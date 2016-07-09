@@ -1893,7 +1893,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, const int flag)
 							BKE_animdata_copy_id_action((ID *)cu->key);
 						break;
 					case OB_LATTICE:
-						ob->data = lat = BKE_lattice_copy(ob->data);
+						ob->data = lat = BKE_lattice_copy_ex(bmain, ob->data);
 						if (lat->key)
 							BKE_animdata_copy_id_action((ID *)lat->key);
 						break;

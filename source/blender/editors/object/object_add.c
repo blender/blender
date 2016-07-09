@@ -2050,7 +2050,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				if (dupflag != 0) {
 					ID_NEW_US2(obn->data)
 					else {
-						obn->data = BKE_lattice_copy(obn->data);
+						obn->data = BKE_lattice_copy_ex(bmain, obn->data);
 						didit = 1;
 					}
 					id_us_min(id);
