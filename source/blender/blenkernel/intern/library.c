@@ -327,7 +327,7 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 			if (!test) BKE_brush_make_local((Brush *)id);
 			return true;
 		case ID_PA:
-			if (!test) BKE_particlesettings_make_local((ParticleSettings *)id);
+			if (!test) BKE_particlesettings_make_local(bmain, (ParticleSettings *)id);
 			return true;
 		case ID_WM:
 			return false; /* can't be linked */
