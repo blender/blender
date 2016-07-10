@@ -268,8 +268,8 @@ AnimData *BKE_animdata_copy(AnimData *adt, const bool do_action)
 	
 	/* make a copy of action - at worst, user has to delete copies... */
 	if (do_action) {
-		dadt->action = BKE_action_copy(adt->action);
-		dadt->tmpact = BKE_action_copy(adt->tmpact);
+		dadt->action = BKE_action_copy(G.main, adt->action);
+		dadt->tmpact = BKE_action_copy(G.main, adt->tmpact);
 	}
 	else {
 		id_us_plus((ID *)dadt->action);
@@ -313,11 +313,11 @@ void BKE_animdata_copy_id_action(ID *id)
 	if (adt) {
 		if (adt->action) {
 			id_us_min((ID *)adt->action);
-			adt->action = BKE_action_copy(adt->action);
+			adt->action = BKE_action_copy(G.main, adt->action);
 		}
 		if (adt->tmpact) {
 			id_us_min((ID *)adt->tmpact);
-			adt->tmpact = BKE_action_copy(adt->tmpact);
+			adt->tmpact = BKE_action_copy(G.main, adt->tmpact);
 		}
 	}
 }
@@ -341,8 +341,8 @@ void BKE_animdata_merge_copy(ID *dst_id, ID *src_id, eAnimData_MergeCopy_Modes a
 	/* handle actions... */
 	if (action_mode == ADT_MERGECOPY_SRC_COPY) {
 		/* make a copy of the actions */
-		dst->action = BKE_action_copy(src->action);
-		dst->tmpact = BKE_action_copy(src->tmpact);
+		dst->action = BKE_action_copy(G.main, src->action);
+		dst->tmpact = BKE_action_copy(G.main, src->tmpact);
 	}
 	else if (action_mode == ADT_MERGECOPY_SRC_REF) {
 		/* make a reference to it */

@@ -148,7 +148,7 @@ void BKE_action_make_local(bAction *act)
 		id_clear_lib_data(bmain, &act->id);
 	}
 	else if (mlac.is_local && mlac.is_lib) {
-		mlac.act_new = BKE_action_copy(act);
+		mlac.act_new = BKE_action_copy(bmain, act);
 		mlac.act_new->id.us = 0;
 
 		BKE_id_lib_local_paths(bmain, act->id.lib, &mlac.act_new->id);
@@ -176,7 +176,7 @@ void BKE_action_free(bAction *act)
 
 /* .................................. */
 
-bAction *BKE_action_copy(bAction *src)
+bAction *BKE_action_copy(Main *bmain, bAction *src)
 {
 	bAction *dst = NULL;
 	bActionGroup *dgrp, *sgrp;
@@ -184,7 +184,7 @@ bAction *BKE_action_copy(bAction *src)
 	
 	if (src == NULL) 
 		return NULL;
-	dst = BKE_libblock_copy(&src->id);
+	dst = BKE_libblock_copy(bmain, &src->id);
 	
 	/* duplicate the lists of groups and markers */
 	BLI_duplicatelist(&dst->groups, &src->groups);
@@ -214,7 +214,7 @@ bAction *BKE_action_copy(bAction *src)
 	}
 	
 	if (ID_IS_LINKED_DATABLOCK(src)) {
-		BKE_id_lib_local_paths(G.main, src->id.lib, &dst->id);
+		BKE_id_lib_local_paths(bmain, src->id.lib, &dst->id);
 	}
 
 	return dst;

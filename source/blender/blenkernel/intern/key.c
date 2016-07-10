@@ -150,12 +150,12 @@ Key *BKE_key_add(ID *id)    /* common function */
 	return key;
 }
 
-Key *BKE_key_copy_ex(Main *bmain, Key *key)
+Key *BKE_key_copy(Main *bmain, Key *key)
 {
 	Key *keyn;
 	KeyBlock *kbn, *kb;
 	
-	keyn = BKE_libblock_copy_ex(bmain, &key->id);
+	keyn = BKE_libblock_copy(bmain, &key->id);
 	
 	BLI_duplicatelist(&keyn->block, &key->block);
 	
@@ -175,11 +175,6 @@ Key *BKE_key_copy_ex(Main *bmain, Key *key)
 	}
 
 	return keyn;
-}
-
-Key *BKE_key_copy(Key *key)
-{
-	return BKE_key_copy_ex(G.main, key);
 }
 
 Key *BKE_key_copy_nolib(Key *key)

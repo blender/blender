@@ -452,7 +452,7 @@ Text *BKE_text_copy(Main *bmain, Text *ta)
 	Text *tan;
 	TextLine *line, *tmp;
 	
-	tan = BKE_libblock_copy(&ta->id);
+	tan = BKE_libblock_copy(bmain, &ta->id);
 	
 	/* file name can be NULL */
 	if (ta->name) {

@@ -3304,12 +3304,12 @@ void BKE_particlesettings_rough_curve_init(ParticleSettings *part)
 	part->roughcurve = cumap;
 }
 
-ParticleSettings *BKE_particlesettings_copy(ParticleSettings *part)
+ParticleSettings *BKE_particlesettings_copy(Main *bmain, ParticleSettings *part)
 {
 	ParticleSettings *partn;
 	int a;
 
-	partn = BKE_libblock_copy(&part->id);
+	partn = BKE_libblock_copy(bmain, &part->id);
 	partn->pd = MEM_dupallocN(part->pd);
 	partn->pd2 = MEM_dupallocN(part->pd2);
 	partn->effector_weights = MEM_dupallocN(part->effector_weights);
@@ -3333,7 +3333,7 @@ ParticleSettings *BKE_particlesettings_copy(ParticleSettings *part)
 	BLI_duplicatelist(&partn->dupliweights, &part->dupliweights);
 	
 	if (ID_IS_LINKED_DATABLOCK(part)) {
-		BKE_id_lib_local_paths(G.main, part->id.lib, &partn->id);
+		BKE_id_lib_local_paths(bmain, part->id.lib, &partn->id);
 	}
 
 	return partn;
@@ -3383,7 +3383,7 @@ void BKE_particlesettings_make_local(ParticleSettings *part)
 		expand_local_particlesettings(part);
 	}
 	else if (is_local && is_lib) {
-		ParticleSettings *part_new = BKE_particlesettings_copy(part);
+		ParticleSettings *part_new = BKE_particlesettings_copy(bmain, part);
 		part_new->id.us = 0;
 
 		/* Remap paths of new ID using old library as base. */

@@ -102,12 +102,12 @@ MetaBall *BKE_mball_add(Main *bmain, const char *name)
 	return mb;
 }
 
-MetaBall *BKE_mball_copy_ex(Main *bmain, MetaBall *mb)
+MetaBall *BKE_mball_copy(Main *bmain, MetaBall *mb)
 {
 	MetaBall *mbn;
 	int a;
 	
-	mbn = BKE_libblock_copy_ex(bmain, &mb->id);
+	mbn = BKE_libblock_copy(bmain, &mb->id);
 
 	BLI_duplicatelist(&mbn->elems, &mb->elems);
 	
@@ -124,11 +124,6 @@ MetaBall *BKE_mball_copy_ex(Main *bmain, MetaBall *mb)
 	}
 
 	return mbn;
-}
-
-MetaBall *BKE_mball_copy(MetaBall *mb)
-{
-	return BKE_mball_copy_ex(G.main, mb);
 }
 
 static int extern_local_mball_callback(
@@ -167,7 +162,7 @@ void BKE_mball_make_local(Main *bmain, MetaBall *mb)
 			extern_local_mball(mb);
 		}
 		else {
-			MetaBall *mb_new = BKE_mball_copy_ex(bmain, mb);
+			MetaBall *mb_new = BKE_mball_copy(bmain, mb);
 
 			mb_new->id.us = 0;
 

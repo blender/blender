@@ -170,11 +170,11 @@ struct Brush *BKE_brush_first_search(struct Main *bmain, short ob_mode)
 	return NULL;
 }
 
-Brush *BKE_brush_copy(Brush *brush)
+Brush *BKE_brush_copy(Main *bmain, Brush *brush)
 {
 	Brush *brushn;
 	
-	brushn = BKE_libblock_copy(&brush->id);
+	brushn = BKE_libblock_copy(bmain, &brush->id);
 
 	if (brush->mtex.tex)
 		id_us_plus((ID *)brush->mtex.tex);
@@ -196,7 +196,7 @@ Brush *BKE_brush_copy(Brush *brush)
 	id_fake_user_set(&brush->id);
 
 	if (ID_IS_LINKED_DATABLOCK(brush)) {
-		BKE_id_lib_local_paths(G.main, brush->id.lib, &brushn->id);
+		BKE_id_lib_local_paths(bmain, brush->id.lib, &brushn->id);
 	}
 
 	return brushn;
@@ -261,7 +261,7 @@ void BKE_brush_make_local(Brush *brush)
 		id_fake_user_set(&brush->id);
 	}
 	else if (is_local && is_lib) {
-		Brush *brush_new = BKE_brush_copy(brush);  /* Ensures FAKE_USER is set */
+		Brush *brush_new = BKE_brush_copy(bmain, brush);  /* Ensures FAKE_USER is set */
 		id_us_min(&brush_new->id);  /* Remove user added by standard BKE_libblock_copy(). */
 
 		/* Remap paths of new ID using old library as base. */
@@ -469,6 +469,7 @@ void BKE_brush_curve_preset(Brush *b, int preset)
 	curvemapping_changed(b->curve, false);
 }
 
+/* XXX Unused function. */
 int BKE_brush_texture_set_nr(Brush *brush, int nr)
 {
 	ID *idtest, *id = NULL;
@@ -477,7 +478,7 @@ int BKE_brush_texture_set_nr(Brush *brush, int nr)
 
 	idtest = (ID *)BLI_findlink(&G.main->tex, nr - 1);
 	if (idtest == NULL) { /* new tex */
-		if (id) idtest = (ID *)BKE_texture_copy((Tex *)id);
+		if (id) idtest = (ID *)BKE_texture_copy(G.main, (Tex *)id);
 		else idtest = (ID *)BKE_texture_add(G.main, "Tex");
 		id_us_min(idtest);
 	}

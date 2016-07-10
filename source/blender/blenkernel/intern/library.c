@@ -344,9 +344,11 @@ bool id_make_local(Main *bmain, ID *id, bool test)
  * Invokes the appropriate copy method for the block and returns the result in
  * newid, unless test. Returns true if the block can be copied.
  */
-bool id_copy(ID *id, ID **newid, bool test)
+bool id_copy(Main *bmain, ID *id, ID **newid, bool test)
 {
-	if (!test) *newid = NULL;
+	if (!test) {
+		*newid = NULL;
+	}
 
 	/* conventions:
 	 * - make shallow copy, only this ID block
@@ -357,83 +359,83 @@ bool id_copy(ID *id, ID **newid, bool test)
 		case ID_LI:
 			return false;  /* can't be copied from here */
 		case ID_OB:
-			if (!test) *newid = (ID *)BKE_object_copy((Object *)id);
+			if (!test) *newid = (ID *)BKE_object_copy(bmain, (Object *)id);
 			return true;
 		case ID_ME:
-			if (!test) *newid = (ID *)BKE_mesh_copy((Mesh *)id);
+			if (!test) *newid = (ID *)BKE_mesh_copy(bmain, (Mesh *)id);
 			return true;
 		case ID_CU:
-			if (!test) *newid = (ID *)BKE_curve_copy((Curve *)id);
+			if (!test) *newid = (ID *)BKE_curve_copy(bmain, (Curve *)id);
 			return true;
 		case ID_MB:
-			if (!test) *newid = (ID *)BKE_mball_copy((MetaBall *)id);
+			if (!test) *newid = (ID *)BKE_mball_copy(bmain, (MetaBall *)id);
 			return true;
 		case ID_MA:
-			if (!test) *newid = (ID *)BKE_material_copy((Material *)id);
+			if (!test) *newid = (ID *)BKE_material_copy(bmain, (Material *)id);
 			return true;
 		case ID_TE:
-			if (!test) *newid = (ID *)BKE_texture_copy((Tex *)id);
+			if (!test) *newid = (ID *)BKE_texture_copy(bmain, (Tex *)id);
 			return true;
 		case ID_IM:
-			if (!test) *newid = (ID *)BKE_image_copy(G.main, (Image *)id);
+			if (!test) *newid = (ID *)BKE_image_copy(bmain, (Image *)id);
 			return true;
 		case ID_LT:
-			if (!test) *newid = (ID *)BKE_lattice_copy((Lattice *)id);
+			if (!test) *newid = (ID *)BKE_lattice_copy(bmain, (Lattice *)id);
 			return true;
 		case ID_LA:
-			if (!test) *newid = (ID *)BKE_lamp_copy((Lamp *)id);
+			if (!test) *newid = (ID *)BKE_lamp_copy(bmain, (Lamp *)id);
 			return true;
 		case ID_SPK:
-			if (!test) *newid = (ID *)BKE_speaker_copy((Speaker *)id);
+			if (!test) *newid = (ID *)BKE_speaker_copy(bmain, (Speaker *)id);
 			return true;
 		case ID_CA:
-			if (!test) *newid = (ID *)BKE_camera_copy((Camera *)id);
+			if (!test) *newid = (ID *)BKE_camera_copy(bmain, (Camera *)id);
 			return true;
 		case ID_IP:
 			return false;  /* deprecated */
 		case ID_KE:
-			if (!test) *newid = (ID *)BKE_key_copy((Key *)id);
+			if (!test) *newid = (ID *)BKE_key_copy(bmain, (Key *)id);
 			return true;
 		case ID_WO:
-			if (!test) *newid = (ID *)BKE_world_copy((World *)id);
+			if (!test) *newid = (ID *)BKE_world_copy(bmain, (World *)id);
 			return true;
 		case ID_SCR:
 			return false;  /* can't be copied from here */
 		case ID_VF:
 			return false;  /* not implemented */
 		case ID_TXT:
-			if (!test) *newid = (ID *)BKE_text_copy(G.main, (Text *)id);
+			if (!test) *newid = (ID *)BKE_text_copy(bmain, (Text *)id);
 			return true;
 		case ID_SO:
 			return false;  /* not implemented */
 		case ID_GR:
-			if (!test) *newid = (ID *)BKE_group_copy((Group *)id);
+			if (!test) *newid = (ID *)BKE_group_copy(bmain, (Group *)id);
 			return true;
 		case ID_AR:
-			if (!test) *newid = (ID *)BKE_armature_copy((bArmature *)id);
+			if (!test) *newid = (ID *)BKE_armature_copy(bmain, (bArmature *)id);
 			return true;
 		case ID_AC:
-			if (!test) *newid = (ID *)BKE_action_copy((bAction *)id);
+			if (!test) *newid = (ID *)BKE_action_copy(bmain, (bAction *)id);
 			return true;
 		case ID_NT:
-			if (!test) *newid = (ID *)ntreeCopyTree((bNodeTree *)id);
+			if (!test) *newid = (ID *)ntreeCopyTree(bmain, (bNodeTree *)id);
 			return true;
 		case ID_BR:
-			if (!test) *newid = (ID *)BKE_brush_copy((Brush *)id);
+			if (!test) *newid = (ID *)BKE_brush_copy(bmain, (Brush *)id);
 			return true;
 		case ID_PA:
-			if (!test) *newid = (ID *)BKE_particlesettings_copy((ParticleSettings *)id);
+			if (!test) *newid = (ID *)BKE_particlesettings_copy(bmain, (ParticleSettings *)id);
 			return true;
 		case ID_WM:
 			return false;  /* can't be copied from here */
 		case ID_GD:
-			if (!test) *newid = (ID *)gpencil_data_duplicate((bGPdata *)id, false);
+			if (!test) *newid = (ID *)gpencil_data_duplicate(bmain, (bGPdata *)id, false);
 			return true;
 		case ID_MSK:
-			if (!test) *newid = (ID *)BKE_mask_copy((Mask *)id);
+			if (!test) *newid = (ID *)BKE_mask_copy(bmain, (Mask *)id);
 			return true;
 		case ID_LS:
-			if (!test) *newid = (ID *)BKE_linestyle_copy(G.main, (FreestyleLineStyle *)id);
+			if (!test) *newid = (ID *)BKE_linestyle_copy(bmain, (FreestyleLineStyle *)id);
 			return true;
 	}
 	
@@ -448,7 +450,7 @@ bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
 	if (id) {
 		/* if property isn't editable, we're going to have an extra block hanging around until we save */
 		if (RNA_property_editable(ptr, prop)) {
-			if (id_copy(id, &newid, false) && newid) {
+			if (id_copy(CTX_data_main(C), id, &newid, false) && newid) {
 				/* copy animation actions too */
 				BKE_animdata_copy_id_action(id);
 				/* us is 1 by convention, but RNA_property_pointer_set
@@ -976,7 +978,7 @@ void BKE_libblock_copy_data(ID *id, const ID *id_from, const bool do_action)
 }
 
 /* used everywhere in blenkernel */
-void *BKE_libblock_copy_ex(Main *bmain, ID *id)
+void *BKE_libblock_copy(Main *bmain, ID *id)
 {
 	ID *idn;
 	size_t idn_len;
@@ -1026,11 +1028,6 @@ void *BKE_libblock_copy_nolib(ID *id, const bool do_action)
 	BKE_libblock_copy_data(idn, id, do_action);
 
 	return idn;
-}
-
-void *BKE_libblock_copy(ID *id)
-{
-	return BKE_libblock_copy_ex(G.main, id);
 }
 
 static int id_relink_looper(void *UNUSED(user_data), ID *UNUSED(self_id), ID **id_pointer, const int cd_flag)

@@ -168,7 +168,7 @@ void BKE_armature_make_local(bArmature *arm)
 		id_clear_lib_data(bmain, &arm->id);
 	}
 	else if (is_local && is_lib) {
-		bArmature *arm_new = BKE_armature_copy(arm);
+		bArmature *arm_new = BKE_armature_copy(bmain, arm);
 		arm_new->id.us = 0;
 
 		/* Remap paths of new ID using old library as base. */
@@ -208,13 +208,13 @@ static void copy_bonechildren(Bone *newBone, Bone *oldBone, Bone *actBone, Bone 
 	}
 }
 
-bArmature *BKE_armature_copy(bArmature *arm)
+bArmature *BKE_armature_copy(Main *bmain, bArmature *arm)
 {
 	bArmature *newArm;
 	Bone *oldBone, *newBone;
 	Bone *newActBone = NULL;
 
-	newArm = BKE_libblock_copy(&arm->id);
+	newArm = BKE_libblock_copy(bmain, &arm->id);
 	BLI_duplicatelist(&newArm->bonebase, &arm->bonebase);
 
 	/* Duplicate the childrens' lists */
@@ -232,7 +232,7 @@ bArmature *BKE_armature_copy(bArmature *arm)
 	newArm->sketch = NULL;
 
 	if (ID_IS_LINKED_DATABLOCK(arm)) {
-		BKE_id_lib_local_paths(G.main, arm->id.lib, &newArm->id);
+		BKE_id_lib_local_paths(bmain, arm->id.lib, &newArm->id);
 	}
 
 	return newArm;

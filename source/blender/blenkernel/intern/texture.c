@@ -844,11 +844,11 @@ MTex *BKE_texture_mtex_add_id(ID *id, int slot)
 
 /* ------------------------------------------------------------------------- */
 
-Tex *BKE_texture_copy(Tex *tex)
+Tex *BKE_texture_copy(Main *bmain, Tex *tex)
 {
 	Tex *texn;
 	
-	texn = BKE_libblock_copy(&tex->id);
+	texn = BKE_libblock_copy(bmain, &tex->id);
 	if (BKE_texture_is_image_user(tex)) {
 		id_us_plus((ID *)texn->ima);
 	}
@@ -867,11 +867,11 @@ Tex *BKE_texture_copy(Tex *tex)
 		if (tex->nodetree->execdata) {
 			ntreeTexEndExecTree(tex->nodetree->execdata);
 		}
-		texn->nodetree = ntreeCopyTree(tex->nodetree);
+		texn->nodetree = ntreeCopyTree(bmain, tex->nodetree);
 	}
 	
 	if (ID_IS_LINKED_DATABLOCK(tex)) {
-		BKE_id_lib_local_paths(G.main, tex->id.lib, &texn->id);
+		BKE_id_lib_local_paths(bmain, tex->id.lib, &texn->id);
 	}
 
 	return texn;
@@ -1011,7 +1011,7 @@ void BKE_texture_make_local(Tex *tex)
 		extern_local_texture(tex);
 	}
 	else if (is_local && is_lib) {
-		Tex *tex_new = BKE_texture_copy(tex);
+		Tex *tex_new = BKE_texture_copy(bmain, tex);
 
 		tex_new->id.us = 0;
 

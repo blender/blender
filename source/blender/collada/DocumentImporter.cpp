@@ -416,7 +416,7 @@ Object *DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 {
 	fprintf(stderr, "create <instance_node> under node id=%s from node id=%s\n", instance_node ? instance_node->getOriginalId().c_str() : NULL, source_node ? source_node->getOriginalId().c_str() : NULL);
 
-	Object *obn = BKE_object_copy(source_ob);
+	Object *obn = BKE_object_copy(G.main, source_ob);
 	DAG_id_tag_update(&obn->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 	BKE_scene_base_add(sce, obn);
 

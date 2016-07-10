@@ -52,9 +52,8 @@ struct PropertyRNA;
 void *BKE_libblock_alloc_notest(short type);
 void *BKE_libblock_alloc(struct Main *bmain, short type, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void  BKE_libblock_init_empty(struct ID *id);
-void *BKE_libblock_copy_ex(struct Main *bmain, struct ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+void *BKE_libblock_copy(struct Main *bmain, struct ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void *BKE_libblock_copy_nolib(struct ID *id, const bool do_action) ATTR_NONNULL();
-void *BKE_libblock_copy(struct ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void  BKE_libblock_copy_data(struct ID *id, const struct ID *id_from, const bool do_action);
 void  BKE_libblock_relink(struct ID *id);
 void  BKE_libblock_rename(struct Main *bmain, struct ID *id, const char *name) ATTR_NONNULL();
@@ -83,7 +82,7 @@ void id_fake_user_clear(struct ID *id);
 
 bool id_make_local(struct Main *bmain, struct ID *id, bool test);
 bool id_single_user(struct bContext *C, struct ID *id, struct PointerRNA *ptr, struct PropertyRNA *prop);
-bool id_copy(struct ID *id, struct ID **newid, bool test);
+bool id_copy(struct Main *bmain, struct ID *id, struct ID **newid, bool test);
 void id_sort_by_name(struct ListBase *lb, struct ID *id);
 
 bool new_id(struct ListBase *lb, struct ID *id, const char *name);

@@ -123,7 +123,7 @@ void BKE_mask_point_select_set_handle(struct MaskSplinePoint *point, const eMask
 /* general */
 struct Mask *BKE_mask_new(struct Main *bmain, const char *name);
 struct Mask *BKE_mask_copy_nolib(struct Mask *mask);
-struct Mask *BKE_mask_copy(struct Mask *mask);
+struct Mask *BKE_mask_copy(struct Main *bmain, struct Mask *mask);
 
 void BKE_mask_free(struct Mask *mask);
 

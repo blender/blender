@@ -217,12 +217,12 @@ Material *BKE_material_add(Main *bmain, const char *name)
 }
 
 /* XXX keep synced with next function */
-Material *BKE_material_copy(Material *ma)
+Material *BKE_material_copy(Main *bmain, Material *ma)
 {
 	Material *man;
 	int a;
 	
-	man = BKE_libblock_copy(&ma->id);
+	man = BKE_libblock_copy(bmain, &ma->id);
 	
 	id_lib_extern((ID *)man->group);
 	
@@ -240,13 +240,13 @@ Material *BKE_material_copy(Material *ma)
 	if (ma->preview) man->preview = BKE_previewimg_copy(ma->preview);
 
 	if (ma->nodetree) {
-		man->nodetree = ntreeCopyTree(ma->nodetree);
+		man->nodetree = ntreeCopyTree(bmain, ma->nodetree);
 	}
 
 	BLI_listbase_clear(&man->gpumaterial);
 	
 	if (ID_IS_LINKED_DATABLOCK(ma)) {
-		BKE_id_lib_local_paths(G.main, ma->id.lib, &man->id);
+		BKE_id_lib_local_paths(bmain, ma->id.lib, &man->id);
 	}
 
 	return man;
@@ -376,7 +376,7 @@ void BKE_material_make_local(Material *ma)
 	}
 	/* Both user and local, so copy. */
 	else if (is_local && is_lib) {
-		Material *ma_new = BKE_material_copy(ma);
+		Material *ma_new = BKE_material_copy(bmain, ma);
 
 		ma_new->id.us = 0;
 
@@ -2161,7 +2161,7 @@ static void convert_tfacematerial(Main *main, Material *ma)
 			}
 			/* create a new material */
 			else {
-				mat_new = BKE_material_copy(ma);
+				mat_new = BKE_material_copy(main, ma);
 				if (mat_new) {
 					/* rename the material*/
 					BLI_strncpy(mat_new->id.name, idname, sizeof(mat_new->id.name));

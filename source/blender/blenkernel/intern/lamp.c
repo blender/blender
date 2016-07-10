@@ -114,12 +114,12 @@ Lamp *BKE_lamp_add(Main *bmain, const char *name)
 	return la;
 }
 
-Lamp *BKE_lamp_copy(Lamp *la)
+Lamp *BKE_lamp_copy(Main *bmain, Lamp *la)
 {
 	Lamp *lan;
 	int a;
 	
-	lan = BKE_libblock_copy(&la->id);
+	lan = BKE_libblock_copy(bmain, &la->id);
 
 	for (a = 0; a < MAX_MTEX; a++) {
 		if (lan->mtex[a]) {
@@ -132,13 +132,13 @@ Lamp *BKE_lamp_copy(Lamp *la)
 	lan->curfalloff = curvemapping_copy(la->curfalloff);
 
 	if (la->nodetree)
-		lan->nodetree = ntreeCopyTree(la->nodetree);
+		lan->nodetree = ntreeCopyTree(bmain, la->nodetree);
 	
 	if (la->preview)
 		lan->preview = BKE_previewimg_copy(la->preview);
 	
 	if (ID_IS_LINKED_DATABLOCK(la)) {
-		BKE_id_lib_local_paths(G.main, la->id.lib, &lan->id);
+		BKE_id_lib_local_paths(bmain, la->id.lib, &lan->id);
 	}
 
 	return lan;
@@ -200,7 +200,7 @@ void BKE_lamp_make_local(Lamp *la)
 		id_clear_lib_data(bmain, &la->id);
 	}
 	else if (is_local && is_lib) {
-		Lamp *la_new = BKE_lamp_copy(la);
+		Lamp *la_new = BKE_lamp_copy(bmain, la);
 		la_new->id.us = 0;
 
 		/* Remap paths of new ID using old library as base. */

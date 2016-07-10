@@ -183,7 +183,7 @@ NlaStrip *copy_nlastrip(NlaStrip *strip, const bool use_same_action)
 		}
 		else {
 			/* use a copy of the action instead (user count shouldn't have changed yet) */
-			strip_d->act = BKE_action_copy(strip_d->act);
+			strip_d->act = BKE_action_copy(G.main, strip_d->act);
 		}
 	}
 		

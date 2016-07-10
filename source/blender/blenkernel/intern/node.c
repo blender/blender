@@ -1205,7 +1205,7 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, Main *bmain, bool ski
 	
 	/* is ntree part of library? */
 	if (bmain && !skip_database && BLI_findindex(&bmain->nodetree, ntree) >= 0) {
-		newtree = BKE_libblock_copy(&ntree->id);
+		newtree = BKE_libblock_copy(bmain, &ntree->id);
 	}
 	else {
 		newtree = BKE_libblock_copy_nolib(&ntree->id, true);
@@ -1300,9 +1300,9 @@ bNodeTree *ntreeCopyTree_ex(bNodeTree *ntree, Main *bmain, const bool do_id_user
 {
 	return ntreeCopyTree_internal(ntree, bmain, false, do_id_user, true, true);
 }
-bNodeTree *ntreeCopyTree(bNodeTree *ntree)
+bNodeTree *ntreeCopyTree(Main *bmain, bNodeTree *ntree)
 {
-	return ntreeCopyTree_ex(ntree, G.main, true);
+	return ntreeCopyTree_ex(ntree, bmain, true);
 }
 
 /* use when duplicating scenes */
@@ -1995,11 +1995,11 @@ void ntreeMakeLocal(bNodeTree *ntree, bool id_in_mainlist)
 	}
 	else if (local && lib) {
 		/* this is the mixed case, we copy the tree and assign it to local users */
-		bNodeTree *newtree = ntreeCopyTree(ntree);
+		bNodeTree *newtree = ntreeCopyTree(bmain, ntree);
 		
 		newtree->id.us = 0;
 		
-		FOREACH_NODETREE(G.main, tntree, owner_id) {
+		FOREACH_NODETREE(bmain, tntree, owner_id) {
 			bNode *node;
 			/* find if group is in tree */
 			for (node = tntree->nodes.first; node; node = node->next) {

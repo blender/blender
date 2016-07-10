@@ -172,7 +172,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	 */
 	if (key) {
 		/* make a duplicate copy that will only be used here... (must remember to free it!) */
-		nkey = BKE_key_copy_ex(bmain, key);
+		nkey = BKE_key_copy(bmain, key);
 		
 		/* for all keys in old block, clear data-arrays */
 		for (kb = key->block.first; kb; kb = kb->next) {

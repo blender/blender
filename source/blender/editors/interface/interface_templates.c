@@ -475,7 +475,7 @@ static void template_ID(
 
 			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ALONE));
 			if (/* test only */
-			    (id_copy(id, NULL, true) == false) ||
+			    (id_copy(CTX_data_main(C), id, NULL, true) == false) ||
 			    (idfrom && idfrom->lib) ||
 			    (!editable) ||
 			    /* object in editmode - don't change data */

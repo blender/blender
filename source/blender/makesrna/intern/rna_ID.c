@@ -277,11 +277,11 @@ StructRNA *rna_PropertyGroup_refine(PointerRNA *ptr)
 	return ptr->type;
 }
 
-static ID *rna_ID_copy(ID *id)
+static ID *rna_ID_copy(ID *id, Main *bmain)
 {
 	ID *newid;
 
-	if (id_copy(id, &newid, false)) {
+	if (id_copy(bmain, id, &newid, false)) {
 		if (newid) id_us_min(newid);
 		return newid;
 	}
@@ -981,6 +981,7 @@ static void rna_def_ID(BlenderRNA *brna)
 	/* functions */
 	func = RNA_def_function(srna, "copy", "rna_ID_copy");
 	RNA_def_function_ui_description(func, "Create a copy of this data-block (not supported for all data-blocks)");
+	RNA_def_function_flag(func, FUNC_USE_MAIN);
 	parm = RNA_def_pointer(func, "id", "ID", "", "New copy of the ID");
 	RNA_def_function_return(func, parm);
 

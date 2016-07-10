@@ -493,7 +493,7 @@ Mesh *BKE_mesh_add(Main *bmain, const char *name)
 	return me;
 }
 
-Mesh *BKE_mesh_copy_ex(Main *bmain, Mesh *me)
+Mesh *BKE_mesh_copy(Main *bmain, Mesh *me)
 {
 	Mesh *men;
 	MTFace *tface;
@@ -501,7 +501,7 @@ Mesh *BKE_mesh_copy_ex(Main *bmain, Mesh *me)
 	int a, i;
 	const int do_tessface = ((me->totface != 0) && (me->totpoly == 0)); /* only do tessface if we have no polys */
 	
-	men = BKE_libblock_copy_ex(bmain, &me->id);
+	men = BKE_libblock_copy(bmain, &me->id);
 	
 	men->mat = MEM_dupallocN(me->mat);
 	for (a = 0; a < men->totcol; a++) {
@@ -549,7 +549,7 @@ Mesh *BKE_mesh_copy_ex(Main *bmain, Mesh *me)
 	men->bb = MEM_dupallocN(men->bb);
 	
 	if (me->key) {
-		men->key = BKE_key_copy_ex(bmain, me->key);
+		men->key = BKE_key_copy(bmain, me->key);
 		men->key->from = (ID *)men;
 	}
 
@@ -558,11 +558,6 @@ Mesh *BKE_mesh_copy_ex(Main *bmain, Mesh *me)
 	}
 
 	return men;
-}
-
-Mesh *BKE_mesh_copy(Mesh *me)
-{
-	return BKE_mesh_copy_ex(G.main, me);
 }
 
 BMesh *BKE_mesh_to_bmesh(
@@ -650,7 +645,7 @@ void BKE_mesh_make_local(Main *bmain, Mesh *me)
 			expand_local_mesh(me);
 		}
 		else {
-			Mesh *me_new = BKE_mesh_copy_ex(bmain, me);
+			Mesh *me_new = BKE_mesh_copy(bmain, me);
 
 			me_new->id.us = 0;
 
@@ -2338,7 +2333,7 @@ Mesh *BKE_mesh_new_from_object(
 				BKE_object_free_modifiers(tmpobj);
 
 			/* copies the data */
-			copycu = tmpobj->data = BKE_curve_copy_ex(bmain, (Curve *) ob->data);
+			copycu = tmpobj->data = BKE_curve_copy(bmain, (Curve *) ob->data);
 
 			/* temporarily set edit so we get updates from edit mode, but
 			 * also because for text datablocks copying it while in edit
@@ -2419,7 +2414,7 @@ Mesh *BKE_mesh_new_from_object(
 			/* copies object and modifiers (but not the data) */
 			if (cage) {
 				/* copies the data */
-				tmpmesh = BKE_mesh_copy_ex(bmain, ob->data);
+				tmpmesh = BKE_mesh_copy(bmain, ob->data);
 				/* if not getting the original caged mesh, get final derived mesh */
 			}
 			else {

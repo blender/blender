@@ -1425,7 +1425,7 @@ RAS_MeshObject *KX_BlenderSceneConverter::ConvertMeshSpecial(KX_Scene *kx_scene,
 #ifdef DEBUG
 		printf("Mesh has a user \"%s\"\n", name);
 #endif
-		me = (ID*)BKE_mesh_copy_ex(from_maggie, (Mesh*)me);
+		me = (ID*)BKE_mesh_copy(from_maggie, (Mesh*)me);
 		id_us_min(me);
 	}
 	BLI_remlink(&from_maggie->mesh, me); /* even if we made the copy it needs to be removed */
@@ -1447,12 +1447,12 @@ RAS_MeshObject *KX_BlenderSceneConverter::ConvertMeshSpecial(KX_Scene *kx_scene,
 			/* if its tagged its a replaced material */
 			if (mat_old && (mat_old->id.tag & LIB_TAG_DOIT) == 0) {
 				Material *mat_old = mesh->mat[i];
-				Material *mat_new = BKE_material_copy(mat_old);
+				Material *mat_new = BKE_material_copy(from_maggie, mat_old);
 
 				mat_new->id.tag |= LIB_TAG_DOIT;
 				id_us_min(&mat_old->id);
 
-				BLI_remlink(&G.main->mat, mat_new); // BKE_material_copy uses G.main, and there is no BKE_material_copy_ex
+				BLI_remlink(&from_maggie->mat, mat_new); // BKE_material_copy uses G.main, and there is no BKE_material_copy_ex
 				BLI_addtail(&maggie->mat, mat_new);
 
 				mesh->mat[i] = mat_new;

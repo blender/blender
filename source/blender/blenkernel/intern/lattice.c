@@ -277,15 +277,15 @@ Lattice *BKE_lattice_add(Main *bmain, const char *name)
 	return lt;
 }
 
-Lattice *BKE_lattice_copy_ex(Main *bmain, Lattice *lt)
+Lattice *BKE_lattice_copy(Main *bmain, Lattice *lt)
 {
 	Lattice *ltn;
 
-	ltn = BKE_libblock_copy_ex(bmain, &lt->id);
+	ltn = BKE_libblock_copy(bmain, &lt->id);
 	ltn->def = MEM_dupallocN(lt->def);
 
 	if (lt->key) {
-		ltn->key = BKE_key_copy_ex(bmain, ltn->key);
+		ltn->key = BKE_key_copy(bmain, ltn->key);
 		ltn->key->from = (ID *)ltn;
 	}
 	
@@ -302,11 +302,6 @@ Lattice *BKE_lattice_copy_ex(Main *bmain, Lattice *lt)
 	}
 
 	return ltn;
-}
-
-Lattice *BKE_lattice_copy(Lattice *lt)
-{
-	return BKE_lattice_copy_ex(G.main, lt);
 }
 
 /** Free (or release) any data used by this lattice (does not free the lattice itself). */
@@ -358,7 +353,7 @@ void BKE_lattice_make_local(Main *bmain, Lattice *lt)
 			/* No extern_local_lattice... */
 		}
 		else {
-			Lattice *lt_new = BKE_lattice_copy_ex(bmain, lt);
+			Lattice *lt_new = BKE_lattice_copy(bmain, lt);
 
 			lt_new->id.us = 0;
 

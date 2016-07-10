@@ -255,7 +255,7 @@ static int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 		bAction *waction;
 
 		/* firstly, wgroup needs to temporary dummy action that can be destroyed, as it shares copies */
-		waction = wgroup->adt->action = BKE_action_copy(wgroup->adt->action);
+		waction = wgroup->adt->action = BKE_action_copy(G.main, wgroup->adt->action);
 		
 		/* now perform the moving */
 		BKE_animdata_separate_by_basepath(&wgroup->id, &ntree->id, &anim_basepaths);

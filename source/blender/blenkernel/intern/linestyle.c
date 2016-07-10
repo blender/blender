@@ -171,7 +171,7 @@ FreestyleLineStyle *BKE_linestyle_copy(struct Main *bmain, FreestyleLineStyle *l
 		}
 	}
 	if (linestyle->nodetree) {
-		new_linestyle->nodetree = ntreeCopyTree(linestyle->nodetree);
+		new_linestyle->nodetree = ntreeCopyTree(bmain, linestyle->nodetree);
 	}
 
 	new_linestyle->r = linestyle->r;

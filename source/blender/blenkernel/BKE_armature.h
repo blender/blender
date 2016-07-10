@@ -77,7 +77,7 @@ int  BKE_armature_bonelist_count(struct ListBase *lb);
 void BKE_armature_bonelist_free(struct ListBase *lb);
 void BKE_armature_free(struct bArmature *arm);
 void BKE_armature_make_local(struct bArmature *arm);
-struct bArmature *BKE_armature_copy(struct bArmature *arm);
+struct bArmature *BKE_armature_copy(struct Main *bmain, struct bArmature *arm);
 
 /* Bounding box. */
 struct BoundBox *BKE_armature_boundbox_get(struct Object *ob);

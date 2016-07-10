@@ -87,18 +87,18 @@ Group *BKE_group_add(Main *bmain, const char *name)
 	return group;
 }
 
-Group *BKE_group_copy(Group *group)
+Group *BKE_group_copy(Main *bmain, Group *group)
 {
 	Group *groupn;
 
-	groupn = BKE_libblock_copy(&group->id);
+	groupn = BKE_libblock_copy(bmain, &group->id);
 	BLI_duplicatelist(&groupn->gobject, &group->gobject);
 
 	/* Do not copy group's preview (same behavior as for objects). */
 	groupn->preview = NULL;
 
 	if (ID_IS_LINKED_DATABLOCK(group)) {
-		BKE_id_lib_local_paths(G.main, group->id.lib, &groupn->id);
+		BKE_id_lib_local_paths(bmain, group->id.lib, &groupn->id);
 	}
 
 	return groupn;

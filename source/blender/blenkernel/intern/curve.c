@@ -174,12 +174,12 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
 	return cu;
 }
 
-Curve *BKE_curve_copy_ex(Main *bmain, Curve *cu)
+Curve *BKE_curve_copy(Main *bmain, Curve *cu)
 {
 	Curve *cun;
 	int a;
 
-	cun = BKE_libblock_copy_ex(bmain, &cu->id);
+	cun = BKE_libblock_copy(bmain, &cu->id);
 
 	BLI_listbase_clear(&cun->nurb);
 	BKE_nurbList_duplicate(&(cun->nurb), &(cu->nurb));
@@ -195,7 +195,7 @@ Curve *BKE_curve_copy_ex(Main *bmain, Curve *cu)
 	cun->bb = MEM_dupallocN(cu->bb);
 
 	if (cu->key) {
-		cun->key = BKE_key_copy_ex(bmain, cu->key);
+		cun->key = BKE_key_copy(bmain, cu->key);
 		cun->key->from = (ID *)cun;
 	}
 
@@ -217,11 +217,6 @@ Curve *BKE_curve_copy_ex(Main *bmain, Curve *cu)
 	}
 
 	return cun;
-}
-
-Curve *BKE_curve_copy(Curve *cu)
-{
-	return BKE_curve_copy_ex(G.main, cu);
 }
 
 static int extern_local_curve_callback(
@@ -263,7 +258,7 @@ void BKE_curve_make_local(Main *bmain, Curve *cu)
 			extern_local_curve(cu);
 		}
 		else {
-			Curve *cu_new = BKE_curve_copy_ex(bmain, cu);
+			Curve *cu_new = BKE_curve_copy(bmain, cu);
 
 			cu_new->id.us = 0;
 

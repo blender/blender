@@ -117,12 +117,12 @@ World *add_world(Main *bmain, const char *name)
 	return wrld;
 }
 
-World *BKE_world_copy(World *wrld)
+World *BKE_world_copy(Main *bmain, World *wrld)
 {
 	World *wrldn;
 	int a;
 	
-	wrldn = BKE_libblock_copy(&wrld->id);
+	wrldn = BKE_libblock_copy(bmain, &wrld->id);
 	
 	for (a = 0; a < MAX_MTEX; a++) {
 		if (wrld->mtex[a]) {
@@ -133,7 +133,7 @@ World *BKE_world_copy(World *wrld)
 	}
 
 	if (wrld->nodetree) {
-		wrldn->nodetree = ntreeCopyTree(wrld->nodetree);
+		wrldn->nodetree = ntreeCopyTree(bmain, wrld->nodetree);
 	}
 	
 	if (wrld->preview)
@@ -142,7 +142,7 @@ World *BKE_world_copy(World *wrld)
 	BLI_listbase_clear(&wrldn->gpumaterial);
 
 	if (ID_IS_LINKED_DATABLOCK(wrld)) {
-		BKE_id_lib_local_paths(G.main, wrld->id.lib, &wrldn->id);
+		BKE_id_lib_local_paths(bmain, wrld->id.lib, &wrldn->id);
 	}
 
 	return wrldn;
@@ -202,7 +202,7 @@ void BKE_world_make_local(World *wrld)
 		id_clear_lib_data(bmain, &wrld->id);
 	}
 	else if (is_local && is_lib) {
-		World *wrld_new = BKE_world_copy(wrld);
+		World *wrld_new = BKE_world_copy(bmain, wrld);
 		wrld_new->id.us = 0;
 
 		/* Remap paths of new ID using old library as base. */

@@ -161,7 +161,7 @@ bool BL_Action::Play(const char* name,
 		BKE_libblock_free(G.main, m_tmpaction);
 		m_tmpaction = NULL;
 	}
-	m_tmpaction = BKE_action_copy(m_action);
+	m_tmpaction = BKE_action_copy(G.main, m_action);
 
 	// First get rid of any old controllers
 	ClearControllerList();

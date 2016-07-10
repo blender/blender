@@ -1094,7 +1094,7 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, bool copy_caches)
 	ModifierData *md;
 	int a;
 
-	obn = BKE_libblock_copy_ex(bmain, &ob->id);
+	obn = BKE_libblock_copy(bmain, &ob->id);
 	
 	if (ob->totcol) {
 		obn->mat = MEM_dupallocN(ob->mat);
@@ -1181,9 +1181,9 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, bool copy_caches)
 }
 
 /* copy objects, will re-initialize cached simulation data */
-Object *BKE_object_copy(Object *ob)
+Object *BKE_object_copy(Main *bmain, Object *ob)
 {
-	return BKE_object_copy_ex(G.main, ob, false);
+	return BKE_object_copy_ex(bmain, ob, false);
 }
 
 static int extern_local_object_callback(
@@ -1223,7 +1223,7 @@ void BKE_object_make_local(Main *bmain, Object *ob)
 			extern_local_object(ob);
 		}
 		else {
-			Object *ob_new = BKE_object_copy_ex(bmain, ob, false);
+			Object *ob_new = BKE_object_copy(bmain, ob);
 
 			ob_new->id.us = 0;
 			ob_new->proxy = ob_new->proxy_from = ob_new->proxy_group = NULL;

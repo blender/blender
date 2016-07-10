@@ -66,11 +66,11 @@ void *BKE_speaker_add(Main *bmain, const char *name)
 	return spk;
 }
 
-Speaker *BKE_speaker_copy(Speaker *spk)
+Speaker *BKE_speaker_copy(Main *bmain, Speaker *spk)
 {
 	Speaker *spkn;
 
-	spkn = BKE_libblock_copy(&spk->id);
+	spkn = BKE_libblock_copy(bmain, &spk->id);
 	if (spkn->sound)
 		id_us_plus(&spkn->sound->id);
 
@@ -118,7 +118,7 @@ void BKE_speaker_make_local(Speaker *spk)
 		extern_local_speaker(spk);
 	}
 	else if (is_local && is_lib) {
-		Speaker *spk_new = BKE_speaker_copy(spk);
+		Speaker *spk_new = BKE_speaker_copy(bmain, spk);
 		spk_new->id.us = 0;
 
 		/* Remap paths of new ID using old library as base. */

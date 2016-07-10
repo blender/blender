@@ -91,16 +91,16 @@ void *BKE_camera_add(Main *bmain, const char *name)
 	return cam;
 }
 
-Camera *BKE_camera_copy(Camera *cam)
+Camera *BKE_camera_copy(Main *bmain, Camera *cam)
 {
 	Camera *camn;
 	
-	camn = BKE_libblock_copy(&cam->id);
+	camn = BKE_libblock_copy(bmain, &cam->id);
 
 	id_lib_extern((ID *)camn->dof_ob);
 
 	if (ID_IS_LINKED_DATABLOCK(cam)) {
-		BKE_id_lib_local_paths(G.main, cam->id.lib, &camn->id);
+		BKE_id_lib_local_paths(bmain, cam->id.lib, &camn->id);
 	}
 
 	return camn;
@@ -134,7 +134,7 @@ void BKE_camera_make_local(Camera *cam)
 		id_clear_lib_data(bmain, &cam->id);
 	}
 	else if (is_local && is_lib) {
-		Camera *cam_new = BKE_camera_copy(cam);
+		Camera *cam_new = BKE_camera_copy(bmain, cam);
 
 		cam_new->id.us = 0;
 
