@@ -288,10 +288,10 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 			if (!test) BKE_lattice_make_local(bmain, (Lattice *)id);
 			return true;
 		case ID_LA:
-			if (!test) BKE_lamp_make_local((Lamp *)id);
+			if (!test) BKE_lamp_make_local(bmain, (Lamp *)id);
 			return true;
 		case ID_CA:
-			if (!test) BKE_camera_make_local((Camera *)id);
+			if (!test) BKE_camera_make_local(bmain, (Camera *)id);
 			return true;
 		case ID_SPK:
 			if (!test) BKE_speaker_make_local(bmain, (Speaker *)id);

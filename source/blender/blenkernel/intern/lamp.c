@@ -50,6 +50,8 @@
 #include "BKE_global.h"
 #include "BKE_lamp.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
+#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 
@@ -170,10 +172,23 @@ Lamp *localize_lamp(Lamp *la)
 	return lan;
 }
 
-void BKE_lamp_make_local(Lamp *la)
+static int extern_local_lamp_callback(
+        void *UNUSED(user_data), struct ID *UNUSED(id_self), struct ID **id_pointer, int cd_flag)
 {
-	Main *bmain = G.main;
-	Object *ob;
+	/* We only tag usercounted ID usages as extern... Why? */
+	if ((cd_flag & IDWALK_USER) && *id_pointer) {
+		id_lib_extern(*id_pointer);
+	}
+	return IDWALK_RET_NOP;
+}
+
+static void extern_local_lamp(Lamp *la)
+{
+	BKE_library_foreach_ID_link(&la->id, extern_local_lamp_callback, NULL, 0);
+}
+
+void BKE_lamp_make_local(Main *bmain, Lamp *la)
+{
 	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
@@ -181,42 +196,26 @@ void BKE_lamp_make_local(Lamp *la)
 	 * - mixed: make copy
 	 */
 	
-	if (!ID_IS_LINKED_DATABLOCK(la)) return;
-	if (la->id.us == 1) {
-		id_clear_lib_data(bmain, &la->id);
+	if (!ID_IS_LINKED_DATABLOCK(la)) {
 		return;
 	}
-	
-	ob = bmain->object.first;
-	while (ob) {
-		if (ob->data == la) {
-			if (ID_IS_LINKED_DATABLOCK(ob)) is_lib = true;
-			else is_local = true;
+
+	BKE_library_ID_test_usages(bmain, la, &is_local, &is_lib);
+
+	if (is_local) {
+		if (!is_lib) {
+			id_clear_lib_data(bmain, &la->id);
+			extern_local_lamp(la);
 		}
-		ob = ob->id.next;
-	}
-	
-	if (is_local && is_lib == false) {
-		id_clear_lib_data(bmain, &la->id);
-	}
-	else if (is_local && is_lib) {
-		Lamp *la_new = BKE_lamp_copy(bmain, la);
-		la_new->id.us = 0;
+		else {
+			Lamp *la_new = BKE_lamp_copy(bmain, la);
 
-		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, la->id.lib, &la_new->id);
+			la_new->id.us = 0;
 
-		ob = bmain->object.first;
-		while (ob) {
-			if (ob->data == la) {
-				
-				if (!ID_IS_LINKED_DATABLOCK(ob)) {
-					ob->data = la_new;
-					id_us_plus(&la_new->id);
-					id_us_min(&la->id);
-				}
-			}
-			ob = ob->id.next;
+			/* Remap paths of new ID using old library as base. */
+			BKE_id_lib_local_paths(bmain, la->id.lib, &la_new->id);
+
+			BKE_libblock_remap(bmain, la, la_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}
 }
