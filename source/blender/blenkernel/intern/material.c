@@ -672,7 +672,7 @@ void test_all_objects_materials(Main *bmain, ID *id)
 	}
 
 	BKE_main_lock(bmain);
-	for (bmain = bmain->object.first; ob; ob = ob->id.next) {
+	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob->data == id) {
 			BKE_material_resize_object(ob, *totcol, false);
 		}
