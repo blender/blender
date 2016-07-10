@@ -59,6 +59,8 @@
 #include "BKE_main.h"
 
 #include "BKE_library.h"
+#include "BKE_library_query.h"
+#include "BKE_library_remap.h"
 #include "BKE_image.h"
 #include "BKE_material.h"
 #include "BKE_texture.h"
@@ -913,193 +915,50 @@ Tex *BKE_texture_localize(Tex *tex)
 
 /* ------------------------------------------------------------------------- */
 
-static void extern_local_texture(Tex *tex)
+static int extern_local_texture_callback(
+        void *UNUSED(user_data), struct ID *UNUSED(id_self), struct ID **id_pointer, int cd_flag)
 {
-	id_lib_extern((ID *)tex->ima);
+	/* We only tag usercounted ID usages as extern... Why? */
+	if ((cd_flag & IDWALK_USER) && *id_pointer) {
+		id_lib_extern(*id_pointer);
+	}
+	return IDWALK_RET_NOP;
 }
 
-void BKE_texture_make_local(Tex *tex)
+static void extern_local_texture(Tex *tex)
 {
-	Main *bmain = G.main;
-	Material *ma;
-	World *wrld;
-	Lamp *la;
-	Brush *br;
-	ParticleSettings *pa;
-	FreestyleLineStyle *ls;
-	int a;
+	BKE_library_foreach_ID_link(&tex->id, extern_local_texture_callback, NULL, 0);
+}
+
+void BKE_texture_make_local(Main *bmain, Tex *tex)
+{
 	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
-	
-	if (!ID_IS_LINKED_DATABLOCK(tex)) return;
 
-	if (tex->id.us == 1) {
-		id_clear_lib_data(bmain, &tex->id);
-		extern_local_texture(tex);
+	if (!ID_IS_LINKED_DATABLOCK(tex)) {
 		return;
 	}
-	
-	ma = bmain->mat.first;
-	while (ma) {
-		for (a = 0; a < MAX_MTEX; a++) {
-			if (ma->mtex[a] && ma->mtex[a]->tex == tex) {
-				if (ID_IS_LINKED_DATABLOCK(ma)) is_lib = true;
-				else is_local = true;
-			}
-		}
-		ma = ma->id.next;
-	}
-	la = bmain->lamp.first;
-	while (la) {
-		for (a = 0; a < MAX_MTEX; a++) {
-			if (la->mtex[a] && la->mtex[a]->tex == tex) {
-				if (ID_IS_LINKED_DATABLOCK(la)) is_lib = true;
-				else is_local = true;
-			}
-		}
-		la = la->id.next;
-	}
-	wrld = bmain->world.first;
-	while (wrld) {
-		for (a = 0; a < MAX_MTEX; a++) {
-			if (wrld->mtex[a] && wrld->mtex[a]->tex == tex) {
-				if (ID_IS_LINKED_DATABLOCK(wrld)) is_lib = true;
-				else is_local = true;
-			}
-		}
-		wrld = wrld->id.next;
-	}
-	br = bmain->brush.first;
-	while (br) {
-		if (br->mtex.tex == tex) {
-			if (ID_IS_LINKED_DATABLOCK(br)) is_lib = true;
-			else is_local = true;
-		}
-		if (br->mask_mtex.tex == tex) {
-			if (ID_IS_LINKED_DATABLOCK(br)) is_lib = true;
-			else is_local = true;
-		}
-		br = br->id.next;
-	}
-	pa = bmain->particle.first;
-	while (pa) {
-		for (a = 0; a < MAX_MTEX; a++) {
-			if (pa->mtex[a] && pa->mtex[a]->tex == tex) {
-				if (ID_IS_LINKED_DATABLOCK(pa)) is_lib = true;
-				else is_local = true;
-			}
-		}
-		pa = pa->id.next;
-	}
-	ls = bmain->linestyle.first;
-	while (ls) {
-		for (a = 0; a < MAX_MTEX; a++) {
-			if (ls->mtex[a] && ls->mtex[a]->tex == tex) {
-				if (ID_IS_LINKED_DATABLOCK(ls)) is_lib = true;
-				else is_local = true;
-			}
-		}
-		ls = ls->id.next;
-	}
-	
-	if (is_local && is_lib == false) {
-		id_clear_lib_data(bmain, &tex->id);
-		extern_local_texture(tex);
-	}
-	else if (is_local && is_lib) {
-		Tex *tex_new = BKE_texture_copy(bmain, tex);
 
-		tex_new->id.us = 0;
+	BKE_library_ID_test_usages(bmain, tex, &is_local, &is_lib);
 
-		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, tex->id.lib, &tex_new->id);
-		
-		ma = bmain->mat.first;
-		while (ma) {
-			for (a = 0; a < MAX_MTEX; a++) {
-				if (ma->mtex[a] && ma->mtex[a]->tex == tex) {
-					if (!ID_IS_LINKED_DATABLOCK(ma)) {
-						ma->mtex[a]->tex = tex_new;
-						id_us_plus(&tex_new->id);
-						id_us_min(&tex->id);
-					}
-				}
-			}
-			ma = ma->id.next;
+	if (is_local) {
+		if (!is_lib) {
+			id_clear_lib_data(bmain, &tex->id);
+			extern_local_texture(tex);
 		}
-		la = bmain->lamp.first;
-		while (la) {
-			for (a = 0; a < MAX_MTEX; a++) {
-				if (la->mtex[a] && la->mtex[a]->tex == tex) {
-					if (!ID_IS_LINKED_DATABLOCK(la)) {
-						la->mtex[a]->tex = tex_new;
-						id_us_plus(&tex_new->id);
-						id_us_min(&tex->id);
-					}
-				}
-			}
-			la = la->id.next;
-		}
-		wrld = bmain->world.first;
-		while (wrld) {
-			for (a = 0; a < MAX_MTEX; a++) {
-				if (wrld->mtex[a] && wrld->mtex[a]->tex == tex) {
-					if (!ID_IS_LINKED_DATABLOCK(wrld)) {
-						wrld->mtex[a]->tex = tex_new;
-						id_us_plus(&tex_new->id);
-						id_us_min(&tex->id);
-					}
-				}
-			}
-			wrld = wrld->id.next;
-		}
-		br = bmain->brush.first;
-		while (br) {
-			if (br->mtex.tex == tex) {
-				if (!ID_IS_LINKED_DATABLOCK(br)) {
-					br->mtex.tex = tex_new;
-					id_us_plus(&tex_new->id);
-					id_us_min(&tex->id);
-				}
-			}
-			if (br->mask_mtex.tex == tex) {
-				if (!ID_IS_LINKED_DATABLOCK(br)) {
-					br->mask_mtex.tex = tex_new;
-					id_us_plus(&tex_new->id);
-					id_us_min(&tex->id);
-				}
-			}
-			br = br->id.next;
-		}
-		pa = bmain->particle.first;
-		while (pa) {
-			for (a = 0; a < MAX_MTEX; a++) {
-				if (pa->mtex[a] && pa->mtex[a]->tex == tex) {
-					if (!ID_IS_LINKED_DATABLOCK(pa)) {
-						pa->mtex[a]->tex = tex_new;
-						id_us_plus(&tex_new->id);
-						id_us_min(&tex->id);
-					}
-				}
-			}
-			pa = pa->id.next;
-		}
-		ls = bmain->linestyle.first;
-		while (ls) {
-			for (a = 0; a < MAX_MTEX; a++) {
-				if (ls->mtex[a] && ls->mtex[a]->tex == tex) {
-					if (!ID_IS_LINKED_DATABLOCK(ls)) {
-						ls->mtex[a]->tex = tex_new;
-						id_us_plus(&tex_new->id);
-						id_us_min(&tex->id);
-					}
-				}
-			}
-			ls = ls->id.next;
+		else {
+			Tex *tex_new = BKE_texture_copy(bmain, tex);
+
+			tex_new->id.us = 0;
+
+			/* Remap paths of new ID using old library as base. */
+			BKE_id_lib_local_paths(bmain, tex->id.lib, &tex_new->id);
+
+			BKE_libblock_remap(bmain, tex, tex_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}
 }

@@ -61,6 +61,8 @@
 #include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
+#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
@@ -282,170 +284,50 @@ Material *localize_material(Material *ma)
 	return man;
 }
 
-static void extern_local_material(Material *ma)
+static int extern_local_material_callback(
+        void *UNUSED(user_data), struct ID *UNUSED(id_self), struct ID **id_pointer, int cd_flag)
 {
-	int i;
-	for (i = 0; i < MAX_MTEX; i++) {
-		if (ma->mtex[i]) id_lib_extern((ID *)ma->mtex[i]->tex);
+	/* We only tag usercounted ID usages as extern... Why? */
+	if ((cd_flag & IDWALK_USER) && *id_pointer) {
+		id_lib_extern(*id_pointer);
 	}
+	return IDWALK_RET_NOP;
 }
 
-void BKE_material_make_local(Material *ma)
+static void extern_local_material(Material *ma)
 {
-	Main *bmain = G.main;
-	Object *ob;
-	Mesh *me;
-	Curve *cu;
-	MetaBall *mb;
-	int a;
+	BKE_library_foreach_ID_link(&ma->id, extern_local_material_callback, NULL, 0);
+}
+
+void BKE_material_make_local(Main *bmain, Material *ma)
+{
 	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
-	
-	if (!ID_IS_LINKED_DATABLOCK(ma)) return;
 
-	/* One local user; set flag and return. */
-	if (ma->id.us == 1) {
-		id_clear_lib_data(bmain, &ma->id);
-		extern_local_material(ma);
+	if (!ID_IS_LINKED_DATABLOCK(ma)) {
 		return;
 	}
 
-	/* Check which other IDs reference this one to determine if it's used by
-	 * lib or local */
-	/* test objects */
-	ob = bmain->object.first;
-	while (ob) {
-		if (ob->mat) {
-			for (a = 0; a < ob->totcol; a++) {
-				if (ob->mat[a] == ma) {
-					if (ID_IS_LINKED_DATABLOCK(ob)) is_lib = true;
-					else is_local = true;
-				}
-			}
-		}
-		ob = ob->id.next;
-	}
-	/* test meshes */
-	me = bmain->mesh.first;
-	while (me) {
-		if (me->mat) {
-			for (a = 0; a < me->totcol; a++) {
-				if (me->mat[a] == ma) {
-					if (ID_IS_LINKED_DATABLOCK(me)) is_lib = true;
-					else is_local = true;
-				}
-			}
-		}
-		me = me->id.next;
-	}
-	/* test curves */
-	cu = bmain->curve.first;
-	while (cu) {
-		if (cu->mat) {
-			for (a = 0; a < cu->totcol; a++) {
-				if (cu->mat[a] == ma) {
-					if (ID_IS_LINKED_DATABLOCK(cu)) is_lib = true;
-					else is_local = true;
-				}
-			}
-		}
-		cu = cu->id.next;
-	}
-	/* test mballs */
-	mb = bmain->mball.first;
-	while (mb) {
-		if (mb->mat) {
-			for (a = 0; a < mb->totcol; a++) {
-				if (mb->mat[a] == ma) {
-					if (ID_IS_LINKED_DATABLOCK(mb)) is_lib = true;
-					else is_local = true;
-				}
-			}
-		}
-		mb = mb->id.next;
-	}
+	BKE_library_ID_test_usages(bmain, ma, &is_local, &is_lib);
 
-	/* Only local users. */
-	if (is_local && is_lib == false) {
-		id_clear_lib_data(bmain, &ma->id);
-		extern_local_material(ma);
-	}
-	/* Both user and local, so copy. */
-	else if (is_local && is_lib) {
-		Material *ma_new = BKE_material_copy(bmain, ma);
-
-		ma_new->id.us = 0;
-
-		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, ma->id.lib, &ma_new->id);
-
-		/* do objects */
-		ob = bmain->object.first;
-		while (ob) {
-			if (ob->mat) {
-				for (a = 0; a < ob->totcol; a++) {
-					if (ob->mat[a] == ma) {
-						if (!ID_IS_LINKED_DATABLOCK(ob)) {
-							ob->mat[a] = ma_new;
-							id_us_plus(&ma_new->id);
-							id_us_min(&ma->id);
-						}
-					}
-				}
-			}
-			ob = ob->id.next;
+	if (is_local) {
+		if (!is_lib) {
+			id_clear_lib_data(bmain, &ma->id);
+			extern_local_material(ma);
 		}
-		/* do meshes */
-		me = bmain->mesh.first;
-		while (me) {
-			if (me->mat) {
-				for (a = 0; a < me->totcol; a++) {
-					if (me->mat[a] == ma) {
-						if (!ID_IS_LINKED_DATABLOCK(me)) {
-							me->mat[a] = ma_new;
-							id_us_plus(&ma_new->id);
-							id_us_min(&ma->id);
-						}
-					}
-				}
-			}
-			me = me->id.next;
-		}
-		/* do curves */
-		cu = bmain->curve.first;
-		while (cu) {
-			if (cu->mat) {
-				for (a = 0; a < cu->totcol; a++) {
-					if (cu->mat[a] == ma) {
-						if (!ID_IS_LINKED_DATABLOCK(cu)) {
-							cu->mat[a] = ma_new;
-							id_us_plus(&ma_new->id);
-							id_us_min(&ma->id);
-						}
-					}
-				}
-			}
-			cu = cu->id.next;
-		}
-		/* do mballs */
-		mb = bmain->mball.first;
-		while (mb) {
-			if (mb->mat) {
-				for (a = 0; a < mb->totcol; a++) {
-					if (mb->mat[a] == ma) {
-						if (!ID_IS_LINKED_DATABLOCK(mb)) {
-							mb->mat[a] = ma_new;
-							id_us_plus(&ma_new->id);
-							id_us_min(&ma->id);
-						}
-					}
-				}
-			}
-			mb = mb->id.next;
+		else {
+			Material *ma_new = BKE_material_copy(bmain, ma);
+
+			ma_new->id.us = 0;
+
+			/* Remap paths of new ID using old library as base. */
+			BKE_id_lib_local_paths(bmain, ma->id.lib, &ma_new->id);
+
+			BKE_libblock_remap(bmain, ma, ma_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}
 }

@@ -67,6 +67,8 @@
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
+#include "BKE_library_remap.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
@@ -142,46 +144,34 @@ void BKE_armature_free(bArmature *arm)
 	}
 }
 
-void BKE_armature_make_local(bArmature *arm)
+void BKE_armature_make_local(Main *bmain, bArmature *arm)
 {
-	Main *bmain = G.main;
 	bool is_local = false, is_lib = false;
-	Object *ob;
 
-	if (!ID_IS_LINKED_DATABLOCK(arm))
-		return;
-	if (arm->id.us == 1) {
-		id_clear_lib_data(bmain, &arm->id);
+	/* - only lib users: do nothing
+	 * - only local users: set flag
+	 * - mixed: make copy
+	 */
+
+	if (!ID_IS_LINKED_DATABLOCK(arm)) {
 		return;
 	}
 
-	for (ob = bmain->object.first; ob && ELEM(0, is_lib, is_local); ob = ob->id.next) {
-		if (ob->data == arm) {
-			if (ID_IS_LINKED_DATABLOCK(ob))
-				is_lib = true;
-			else
-				is_local = true;
+	BKE_library_ID_test_usages(bmain, arm, &is_local, &is_lib);
+
+	if (is_local) {
+		if (!is_lib) {
+			id_clear_lib_data(bmain, &arm->id);
 		}
-	}
+		else {
+			bArmature *arm_new = BKE_armature_copy(bmain, arm);
 
-	if (is_local && is_lib == false) {
-		id_clear_lib_data(bmain, &arm->id);
-	}
-	else if (is_local && is_lib) {
-		bArmature *arm_new = BKE_armature_copy(bmain, arm);
-		arm_new->id.us = 0;
+			arm_new->id.us = 0;
 
-		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, arm->id.lib, &arm_new->id);
+			/* Remap paths of new ID using old library as base. */
+			BKE_id_lib_local_paths(bmain, arm->id.lib, &arm_new->id);
 
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
-			if (ob->data == arm) {
-				if (!ID_IS_LINKED_DATABLOCK(ob)) {
-					ob->data = arm_new;
-					id_us_plus(&arm_new->id);
-					id_us_min(&arm->id);
-				}
-			}
+			BKE_libblock_remap(bmain, arm, arm_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}
 }

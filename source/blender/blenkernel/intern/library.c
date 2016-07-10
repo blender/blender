@@ -276,10 +276,10 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 			if (!test) BKE_mball_make_local(bmain, (MetaBall *)id);
 			return true;
 		case ID_MA:
-			if (!test) BKE_material_make_local((Material *)id);
+			if (!test) BKE_material_make_local(bmain, (Material *)id);
 			return true;
 		case ID_TE:
-			if (!test) BKE_texture_make_local((Tex *)id);
+			if (!test) BKE_texture_make_local(bmain, (Tex *)id);
 			return true;
 		case ID_IM:
 			if (!test) BKE_image_make_local((Image *)id);
@@ -302,7 +302,7 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 			if (!test) BKE_key_make_local(bmain, (Key *)id);
 			return true;
 		case ID_WO:
-			if (!test) BKE_world_make_local((World *)id);
+			if (!test) BKE_world_make_local(bmain, (World *)id);
 			return true;
 		case ID_SCR:
 			return false; /* can't be linked */
@@ -315,7 +315,7 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 		case ID_GR:
 			return false; /* not implemented */
 		case ID_AR:
-			if (!test) BKE_armature_make_local((bArmature *)id);
+			if (!test) BKE_armature_make_local(bmain, (bArmature *)id);
 			return true;
 		case ID_AC:
 			if (!test) BKE_action_make_local((bAction *)id);

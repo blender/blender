@@ -41,7 +41,7 @@ void BKE_world_init(struct World *wrld);
 struct World *add_world(struct Main *bmian, const char *name);
 struct World *BKE_world_copy(struct Main *bmain, struct World *wrld);
 struct World *localize_world(struct World *wrld);
-void BKE_world_make_local(struct World *wrld);
+void BKE_world_make_local(struct Main *bmain, struct World *wrld);
 
 #endif
 
