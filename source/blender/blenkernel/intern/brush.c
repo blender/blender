@@ -38,6 +38,8 @@
 #include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
+#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_paint.h"
 #include "BKE_texture.h"
@@ -216,63 +218,58 @@ void BKE_brush_free(Brush *brush)
 	BKE_previewimg_free(&(brush->preview));
 }
 
-static void extern_local_brush(Brush *brush)
+static int extern_local_brush_callback(
+        void *UNUSED(user_data), struct ID *UNUSED(id_self), struct ID **id_pointer, int cd_flag)
 {
-	id_lib_extern((ID *)brush->mtex.tex);
-	id_lib_extern((ID *)brush->mask_mtex.tex);
-	id_lib_extern((ID *)brush->clone.image);
-	id_lib_extern((ID *)brush->toggle_brush);
-	id_lib_extern((ID *)brush->paint_curve);
+	/* We only tag usercounted ID usages as extern... Why? */
+	if ((cd_flag & IDWALK_USER) && *id_pointer) {
+		id_lib_extern(*id_pointer);
+	}
+	return IDWALK_RET_NOP;
 }
 
-void BKE_brush_make_local(Brush *brush)
+static void extern_local_brush(Brush *brush)
 {
+	BKE_library_foreach_ID_link(&brush->id, extern_local_brush_callback, NULL, 0);
+}
+
+void BKE_brush_make_local(Main *bmain, Brush *brush)
+{
+	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
 
-	Main *bmain = G.main;
-	Scene *scene;
-	bool is_local = false, is_lib = false;
-
-	if (!ID_IS_LINKED_DATABLOCK(brush)) return;
+	if (!ID_IS_LINKED_DATABLOCK(brush)) {
+		return;
+	}
 
 	if (brush->clone.image) {
-		/* special case: ima always local immediately. Clone image should only
-		 * have one user anyway. */
-		id_clear_lib_data(bmain, &brush->clone.image->id);
-		extern_local_brush(brush);
+		/* Special case: ima always local immediately. Clone image should only have one user anyway. */
+		id_make_local(bmain, &brush->clone.image->id, false);
 	}
 
-	for (scene = bmain->scene.first; scene && ELEM(0, is_lib, is_local); scene = scene->id.next) {
-		if (BKE_paint_brush(&scene->toolsettings->imapaint.paint) == brush) {
-			if (ID_IS_LINKED_DATABLOCK(scene)) is_lib = true;
-			else is_local = true;
+	BKE_library_ID_test_usages(bmain, brush, &is_local, &is_lib);
+
+	if (is_local) {
+		if (!is_lib) {
+			id_clear_lib_data(bmain, &brush->id);
+			extern_local_brush(brush);
+
+			/* enable fake user by default */
+			id_fake_user_set(&brush->id);
 		}
-	}
+		else {
+			Brush *brush_new = BKE_brush_copy(bmain, brush);  /* Ensures FAKE_USER is set */
 
-	if (is_local && is_lib == false) {
-		id_clear_lib_data(bmain, &brush->id);
-		extern_local_brush(brush);
+			brush_new->id.us = 0;
 
-		/* enable fake user by default */
-		id_fake_user_set(&brush->id);
-	}
-	else if (is_local && is_lib) {
-		Brush *brush_new = BKE_brush_copy(bmain, brush);  /* Ensures FAKE_USER is set */
-		id_us_min(&brush_new->id);  /* Remove user added by standard BKE_libblock_copy(). */
+			/* Remap paths of new ID using old library as base. */
+			BKE_id_lib_local_paths(bmain, brush->id.lib, &brush_new->id);
 
-		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, brush->id.lib, &brush_new->id);
-		
-		for (scene = bmain->scene.first; scene; scene = scene->id.next) {
-			if (BKE_paint_brush(&scene->toolsettings->imapaint.paint) == brush) {
-				if (!ID_IS_LINKED_DATABLOCK(scene)) {
-					BKE_paint_brush_set(&scene->toolsettings->imapaint.paint, brush_new);
-				}
-			}
+			BKE_libblock_remap(bmain, brush, brush_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}
 }

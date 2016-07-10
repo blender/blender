@@ -34,6 +34,8 @@
 #include "BKE_animsys.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
+#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_speaker.h"
 
@@ -81,15 +83,23 @@ Speaker *BKE_speaker_copy(Main *bmain, Speaker *spk)
 	return spkn;
 }
 
-static void extern_local_speaker(Speaker *spk)
+static int extern_local_speaker_callback(
+        void *UNUSED(user_data), struct ID *UNUSED(id_self), struct ID **id_pointer, int cd_flag)
 {
-	id_lib_extern((ID *)spk->sound);
+	/* We only tag usercounted ID usages as extern... Why? */
+	if ((cd_flag & IDWALK_USER) && *id_pointer) {
+		id_lib_extern(*id_pointer);
+	}
+	return IDWALK_RET_NOP;
 }
 
-void BKE_speaker_make_local(Speaker *spk)
+static void extern_local_speaker(Speaker *spk)
 {
-	Main *bmain = G.main;
-	Object *ob;
+	BKE_library_foreach_ID_link(&spk->id, extern_local_speaker_callback, NULL, 0);
+}
+
+void BKE_speaker_make_local(Main *bmain, Speaker *spk)
+{
 	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
@@ -97,44 +107,26 @@ void BKE_speaker_make_local(Speaker *spk)
 	 * - mixed: make copy
 	 */
 
-	if (!ID_IS_LINKED_DATABLOCK(spk)) return;
-	if (spk->id.us == 1) {
-		id_clear_lib_data(bmain, &spk->id);
-		extern_local_speaker(spk);
+	if (!ID_IS_LINKED_DATABLOCK(spk)) {
 		return;
 	}
 
-	ob = bmain->object.first;
-	while (ob) {
-		if (ob->data == spk) {
-			if (ID_IS_LINKED_DATABLOCK(ob)) is_lib = true;
-			else is_local = true;
+	BKE_library_ID_test_usages(bmain, spk, &is_local, &is_lib);
+
+	if (is_local) {
+		if (!is_lib) {
+			id_clear_lib_data(bmain, &spk->id);
+			extern_local_speaker(spk);
 		}
-		ob = ob->id.next;
-	}
+		else {
+			Speaker *spk_new = BKE_speaker_copy(bmain, spk);
 
-	if (is_local && is_lib == false) {
-		id_clear_lib_data(bmain, &spk->id);
-		extern_local_speaker(spk);
-	}
-	else if (is_local && is_lib) {
-		Speaker *spk_new = BKE_speaker_copy(bmain, spk);
-		spk_new->id.us = 0;
+			spk_new->id.us = 0;
 
-		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, spk->id.lib, &spk_new->id);
+			/* Remap paths of new ID using old library as base. */
+			BKE_id_lib_local_paths(bmain, spk->id.lib, &spk_new->id);
 
-		ob = bmain->object.first;
-		while (ob) {
-			if (ob->data == spk) {
-
-				if (!ID_IS_LINKED_DATABLOCK(ob)) {
-					ob->data = spk_new;
-					id_us_plus(&spk_new->id);
-					id_us_min(&spk->id);
-				}
-			}
-			ob = ob->id.next;
+			BKE_libblock_remap(bmain, spk, spk_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}
 }

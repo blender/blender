@@ -294,7 +294,7 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 			if (!test) BKE_camera_make_local((Camera *)id);
 			return true;
 		case ID_SPK:
-			if (!test) BKE_speaker_make_local((Speaker *)id);
+			if (!test) BKE_speaker_make_local(bmain, (Speaker *)id);
 			return true;
 		case ID_IP:
 			return false; /* deprecated */
@@ -324,7 +324,7 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 			if (!test) ntreeMakeLocal((bNodeTree *)id, true);
 			return true;
 		case ID_BR:
-			if (!test) BKE_brush_make_local((Brush *)id);
+			if (!test) BKE_brush_make_local(bmain, (Brush *)id);
 			return true;
 		case ID_PA:
 			if (!test) BKE_particlesettings_make_local(bmain, (ParticleSettings *)id);
