@@ -72,6 +72,8 @@
 #include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
+#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
@@ -470,12 +472,8 @@ static void extern_local_image(Image *UNUSED(ima))
 	 * match id_make_local pattern. */
 }
 
-void BKE_image_make_local(struct Image *ima)
+void BKE_image_make_local(Main *bmain, Image *ima)
 {
-	Main *bmain = G.main;
-	Tex *tex;
-	Brush *brush;
-	Mesh *me;
 	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
@@ -483,147 +481,26 @@ void BKE_image_make_local(struct Image *ima)
 	 * - mixed: make copy
 	 */
 
-	if (!ID_IS_LINKED_DATABLOCK(ima)) return;
-
-	/* Can't take short cut here: must check meshes at least because of bogus
-	 * texface ID refs. - z0r */
-#if 0
-	if (ima->id.us == 1) {
-		id_clear_lib_data(bmain, &ima->id);
-		extern_local_image(ima);
+	if (!ID_IS_LINKED_DATABLOCK(ima)) {
 		return;
 	}
-#endif
 
-	for (tex = bmain->tex.first; tex; tex = tex->id.next) {
-		if (tex->ima == ima) {
-			if (ID_IS_LINKED_DATABLOCK(tex)) is_lib = true;
-			else is_local = true;
+	BKE_library_ID_test_usages(bmain, ima, &is_local, &is_lib);
+
+	if (is_local) {
+		if (!is_lib) {
+			id_clear_lib_data(bmain, &ima->id);
+			extern_local_image(ima);
 		}
-	}
-	for (brush = bmain->brush.first; brush; brush = brush->id.next) {
-		if (brush->clone.image == ima) {
-			if (ID_IS_LINKED_DATABLOCK(brush)) is_lib = true;
-			else is_local = true;
-		}
-	}
-	for (me = bmain->mesh.first; me; me = me->id.next) {
-		if (me->mtface) {
-			MTFace *tface;
-			int a, i;
+		else {
+			Image *ima_new = BKE_image_copy(bmain, ima);
 
-			for (i = 0; i < me->fdata.totlayer; i++) {
-				if (me->fdata.layers[i].type == CD_MTFACE) {
-					tface = (MTFace *)me->fdata.layers[i].data;
+			ima_new->id.us = 0;
 
-					for (a = 0; a < me->totface; a++, tface++) {
-						if (tface->tpage == ima) {
-							if (ID_IS_LINKED_DATABLOCK(me)) is_lib = true;
-							else is_local = true;
-						}
-					}
-				}
-			}
-		}
+			/* Remap paths of new ID using old library as base. */
+			BKE_id_lib_local_paths(bmain, ima->id.lib, &ima_new->id);
 
-		if (me->mtpoly) {
-			MTexPoly *mtpoly;
-			int a, i;
-
-			for (i = 0; i < me->pdata.totlayer; i++) {
-				if (me->pdata.layers[i].type == CD_MTEXPOLY) {
-					mtpoly = (MTexPoly *)me->pdata.layers[i].data;
-
-					for (a = 0; a < me->totpoly; a++, mtpoly++) {
-						if (mtpoly->tpage == ima) {
-							if (ID_IS_LINKED_DATABLOCK(me)) is_lib = true;
-							else is_local = true;
-						}
-					}
-				}
-			}
-		}
-
-	}
-
-	if (is_local && is_lib == false) {
-		id_clear_lib_data(bmain, &ima->id);
-		extern_local_image(ima);
-	}
-	else if (is_local && is_lib) {
-		Image *ima_new = BKE_image_copy(bmain, ima);
-
-		ima_new->id.us = 0;
-
-		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, ima->id.lib, &ima_new->id);
-
-		tex = bmain->tex.first;
-		while (tex) {
-			if (!ID_IS_LINKED_DATABLOCK(tex)) {
-				if (tex->ima == ima) {
-					tex->ima = ima_new;
-					id_us_plus(&ima_new->id);
-					id_us_min(&ima->id);
-				}
-			}
-			tex = tex->id.next;
-		}
-		brush = bmain->brush.first;
-		while (brush) {
-			if (!ID_IS_LINKED_DATABLOCK(brush)) {
-				if (brush->clone.image == ima) {
-					brush->clone.image = ima_new;
-					id_us_plus(&ima_new->id);
-					id_us_min(&ima->id);
-				}
-			}
-			brush = brush->id.next;
-		}
-		/* Transfer references in texfaces. Texfaces don't add to image ID
-		 * user count *unless* there are no other users. See
-		 * readfile.c:lib_link_mtface. */
-		me = bmain->mesh.first;
-		while (me) {
-			if (me->mtface) {
-				MTFace *tface;
-				int a, i;
-
-				for (i = 0; i < me->fdata.totlayer; i++) {
-					if (me->fdata.layers[i].type == CD_MTFACE) {
-						tface = (MTFace *)me->fdata.layers[i].data;
-
-						for (a = 0; a < me->totface; a++, tface++) {
-							if (tface->tpage == ima) {
-								tface->tpage = ima_new;
-								id_us_ensure_real((ID *)ima_new);
-								id_lib_extern((ID *)ima_new);
-							}
-						}
-					}
-				}
-			}
-
-			if (me->mtpoly) {
-				MTexPoly *mtpoly;
-				int a, i;
-
-				for (i = 0; i < me->pdata.totlayer; i++) {
-					if (me->pdata.layers[i].type == CD_MTEXPOLY) {
-						mtpoly = (MTexPoly *)me->pdata.layers[i].data;
-
-						for (a = 0; a < me->totpoly; a++, mtpoly++) {
-							if (mtpoly->tpage == ima) {
-								mtpoly->tpage = ima_new;
-								id_us_ensure_real((ID *)ima_new);
-								id_lib_extern((ID *)ima_new);
-							}
-						}
-					}
-				}
-			}
-
-			me = me->id.next;
+			BKE_libblock_remap(bmain, ima, ima_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}
 }

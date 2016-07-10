@@ -282,7 +282,7 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 			if (!test) BKE_texture_make_local(bmain, (Tex *)id);
 			return true;
 		case ID_IM:
-			if (!test) BKE_image_make_local((Image *)id);
+			if (!test) BKE_image_make_local(bmain, (Image *)id);
 			return true;
 		case ID_LT:
 			if (!test) BKE_lattice_make_local(bmain, (Lattice *)id);
