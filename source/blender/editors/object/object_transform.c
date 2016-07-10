@@ -129,16 +129,18 @@ static void object_clear_rot(Object *ob, const bool clear_delta)
 					ob->quat[0] = 1.0f;
 					if (clear_delta) ob->dquat[0] = 1.0f;
 				}
-				if ((ob->protectflag & OB_LOCK_ROTX) == 0)
+				if ((ob->protectflag & OB_LOCK_ROTX) == 0) {
 					ob->quat[1] = 0.0f;
 					if (clear_delta) ob->dquat[1] = 0.0f;
-				if ((ob->protectflag & OB_LOCK_ROTY) == 0)
+				}
+				if ((ob->protectflag & OB_LOCK_ROTY) == 0) {
 					ob->quat[2] = 0.0f;
 					if (clear_delta) ob->dquat[2] = 0.0f;
-				if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
+				}
+				if ((ob->protectflag & OB_LOCK_ROTZ) == 0) {
 					ob->quat[3] = 0.0f;
 					if (clear_delta) ob->dquat[3] = 0.0f;
-					
+				}
 				/* TODO: does this quat need normalizing now? */
 			}
 			else {
