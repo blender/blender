@@ -321,7 +321,7 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 			if (!test) BKE_action_make_local((bAction *)id);
 			return true;
 		case ID_NT:
-			if (!test) ntreeMakeLocal((bNodeTree *)id, true);
+			if (!test) ntreeMakeLocal(bmain, (bNodeTree *)id, true);
 			return true;
 		case ID_BR:
 			if (!test) BKE_brush_make_local(bmain, (Brush *)id);
@@ -1469,7 +1469,7 @@ void id_clear_lib_data_ex(Main *bmain, ID *id, bool id_in_mainlist)
 	ntree = ntreeFromID(id);
 
 	if (ntree) {
-		ntreeMakeLocal(ntree, false);
+		ntreeMakeLocal(bmain, ntree, false);
 	}
 
 	if (GS(id->name) == ID_OB) {
