@@ -59,6 +59,8 @@
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
+#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 
@@ -92,68 +94,36 @@ bAction *add_empty_action(Main *bmain, const char name[])
 
 /* .................................. */
 
-/* temp data for BKE_action_make_local */
-typedef struct tMakeLocalActionContext {
-	bAction *act;       /* original action */
-	bAction *act_new;   /* new action */
-	
-	bool is_lib;        /* some action users were libraries */
-	bool is_local;      /* some action users were not libraries */
-} tMakeLocalActionContext;
-
-/* helper function for BKE_action_make_local() - local/lib init step */
-static void make_localact_init_cb(ID *id, AnimData *adt, void *mlac_ptr)
-{
-	tMakeLocalActionContext *mlac = (tMakeLocalActionContext *)mlac_ptr;
-	
-	if (adt->action == mlac->act) {
-		if (ID_IS_LINKED_DATABLOCK(id)) mlac->is_lib = true;
-		else mlac->is_local = true;
-	}
-}
-
-/* helper function for BKE_action_make_local() - change references */
-static void make_localact_apply_cb(ID *id, AnimData *adt, void *mlac_ptr)
-{
-	tMakeLocalActionContext *mlac = (tMakeLocalActionContext *)mlac_ptr;
-	
-	if (adt->action == mlac->act) {
-		if (!ID_IS_LINKED_DATABLOCK(id)) {
-			adt->action = mlac->act_new;
-			
-			id_us_plus(&mlac->act_new->id);
-			id_us_min(&mlac->act->id);
-		}
-	}
-}
-
 // does copy_fcurve...
-void BKE_action_make_local(bAction *act)
+void BKE_action_make_local(Main *bmain, bAction *act)
 {
-	tMakeLocalActionContext mlac = {act, NULL, false, false};
-	Main *bmain = G.main;
-	
-	if (!ID_IS_LINKED_DATABLOCK(act))
-		return;
-	
-	/* XXX: double-check this; it used to be just single-user check, but that was when fake-users were still default */
-	if ((act->id.flag & LIB_FAKEUSER) && (act->id.us <= 1)) {
-		id_clear_lib_data(bmain, &act->id);
+	bool is_local = false, is_lib = false;
+
+	/* - only lib users: do nothing
+	 * - only local users: set flag
+	 * - mixed: make copy
+	 */
+
+	if (!ID_IS_LINKED_DATABLOCK(act)) {
 		return;
 	}
-	
-	BKE_animdata_main_cb(bmain, make_localact_init_cb, &mlac);
-	
-	if (mlac.is_local && mlac.is_lib == false) {
-		id_clear_lib_data(bmain, &act->id);
-	}
-	else if (mlac.is_local && mlac.is_lib) {
-		mlac.act_new = BKE_action_copy(bmain, act);
-		mlac.act_new->id.us = 0;
 
-		BKE_id_lib_local_paths(bmain, act->id.lib, &mlac.act_new->id);
+	BKE_library_ID_test_usages(bmain, act, &is_local, &is_lib);
 
-		BKE_animdata_main_cb(bmain, make_localact_apply_cb, &mlac);
+	if (is_local) {
+		if (!is_lib) {
+			id_clear_lib_data(bmain, &act->id);
+		}
+		else {
+			bAction *act_new = BKE_action_copy(bmain, act);
+
+			act_new->id.us = 0;
+
+			/* Remap paths of new ID using old library as base. */
+			BKE_id_lib_local_paths(bmain, act->id.lib, &act_new->id);
+
+			BKE_libblock_remap(bmain, act, act_new, ID_REMAP_SKIP_INDIRECT_USAGE);
+		}
 	}
 }
 

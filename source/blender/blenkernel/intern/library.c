@@ -318,7 +318,7 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 			if (!test) BKE_armature_make_local(bmain, (bArmature *)id);
 			return true;
 		case ID_AC:
-			if (!test) BKE_action_make_local((bAction *)id);
+			if (!test) BKE_action_make_local(bmain, (bAction *)id);
 			return true;
 		case ID_NT:
 			if (!test) ntreeMakeLocal(bmain, (bNodeTree *)id, true);

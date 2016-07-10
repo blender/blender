@@ -400,8 +400,8 @@ static void make_local_strips(ListBase *strips)
 	NlaStrip *strip;
 
 	for (strip = strips->first; strip; strip = strip->next) {
-		if (strip->act) BKE_action_make_local(strip->act);
-		if (strip->remap && strip->remap->target) BKE_action_make_local(strip->remap->target);
+		if (strip->act) BKE_action_make_local(G.main, strip->act);
+		if (strip->remap && strip->remap->target) BKE_action_make_local(G.main, strip->remap->target);
 		
 		make_local_strips(&strip->strips);
 	}
@@ -413,10 +413,10 @@ void BKE_animdata_make_local(AnimData *adt)
 	NlaTrack *nlt;
 	
 	/* Actions - Active and Temp */
-	if (adt->action) BKE_action_make_local(adt->action);
-	if (adt->tmpact) BKE_action_make_local(adt->tmpact);
+	if (adt->action) BKE_action_make_local(G.main, adt->action);
+	if (adt->tmpact) BKE_action_make_local(G.main, adt->tmpact);
 	/* Remaps */
-	if (adt->remap && adt->remap->target) BKE_action_make_local(adt->remap->target);
+	if (adt->remap && adt->remap->target) BKE_action_make_local(G.main, adt->remap->target);
 	
 	/* Drivers */
 	/* TODO: need to remap the ID-targets too? */

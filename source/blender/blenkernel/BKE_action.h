@@ -63,8 +63,7 @@ struct bAction *BKE_action_copy(struct Main *bmain, struct bAction *src);
 /* Deallocate all of the Action's data, but not the Action itself */
 void BKE_action_free(struct bAction *act);
 
-// XXX is this needed?
-void BKE_action_make_local(struct bAction *act);
+void BKE_action_make_local(struct Main *bmain, struct bAction *act);
 
 
 /* Action API ----------------- */
