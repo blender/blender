@@ -221,6 +221,10 @@ bool interp_v2_v2v2_slerp(float target[2], const float a[2], const float b[2], c
 void interp_v3_v3v3_slerp_safe(float target[3], const float a[3], const float b[3], const float t);
 void interp_v2_v2v2_slerp_safe(float target[2], const float a[2], const float b[2], const float t);
 
+void interp_v2_v2v2v2v2_cubic(
+        float p[2], const float v1[2], const float v2[2], const float v3[2], const float v4[2],
+        const float u);
+
 void interp_v3_v3v3_char(char target[3], const char a[3], const char b[3], const float t);
 void interp_v3_v3v3_uchar(unsigned char target[3], const unsigned char a[3], const unsigned char b[3], const float t);
 void interp_v4_v4v4_char(char target[4], const char a[4], const char b[4], const float t);

@@ -533,7 +533,6 @@ void BKE_mask_point_segment_co(MaskSpline *spline, MaskSplinePoint *point, float
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array_from_point(spline, point);
 
 	BezTriple *bezt = &point->bezt, *bezt_next;
-	float q0[2], q1[2], q2[2], r0[2], r1[2];
 
 	bezt_next = BKE_mask_spline_point_next_bezt(spline, points_array, point);
 
@@ -542,14 +541,7 @@ void BKE_mask_point_segment_co(MaskSpline *spline, MaskSplinePoint *point, float
 		return;
 	}
 
-	interp_v2_v2v2(q0, bezt->vec[1], bezt->vec[2], u);
-	interp_v2_v2v2(q1, bezt->vec[2], bezt_next->vec[0], u);
-	interp_v2_v2v2(q2, bezt_next->vec[0], bezt_next->vec[1], u);
-
-	interp_v2_v2v2(r0, q0, q1, u);
-	interp_v2_v2v2(r1, q1, q2, u);
-
-	interp_v2_v2v2(co, r0, r1, u);
+	interp_v2_v2v2v2v2_cubic(co, bezt->vec[1], bezt->vec[2], bezt_next->vec[0], bezt_next->vec[1], u);
 }
 
 BLI_INLINE void orthogonal_direction_get(float vec[2], float result[2])
