@@ -194,7 +194,9 @@ static BMVert *bm_vert_hash_lookup_chain(GHash *deleted_verts, BMVert *v)
 /****************************** Building ******************************/
 
 /* Update node data after splitting */
-static void pbvh_bmesh_node_finalize(PBVH *bvh, int node_index, const int cd_vert_node_offset, const int cd_face_node_offset)
+static void pbvh_bmesh_node_finalize(
+        PBVH *bvh, const int node_index,
+        const int cd_vert_node_offset, const int cd_face_node_offset)
 {
 	GSetIterator gs_iter;
 	PBVHNode *n = &bvh->nodes[node_index];
@@ -321,7 +323,7 @@ static void pbvh_bmesh_node_split(PBVH *bvh, const BBC *bbc_array, int node_inde
 			break;
 		}
 	}
-	
+
 	/* Clear this node */
 
 	/* Mark this node's unique verts as unclaimed */
@@ -345,18 +347,18 @@ static void pbvh_bmesh_node_split(PBVH *bvh, const BBC *bbc_array, int node_inde
 
 	if (n->layer_disp)
 		MEM_freeN(n->layer_disp);
-	
+
 	n->bm_faces = NULL;
 	n->bm_unique_verts = NULL;
 	n->bm_other_verts = NULL;
 	n->layer_disp = NULL;
-	
+
 	if (n->draw_buffers) {
 		GPU_free_pbvh_buffers(n->draw_buffers);
 		n->draw_buffers = NULL;
 	}
 	n->flag &= ~PBVH_Leaf;
-	
+
 	/* Recurse */
 	pbvh_bmesh_node_split(bvh, bbc_array, children);
 	pbvh_bmesh_node_split(bvh, bbc_array, children + 1);
@@ -1418,7 +1420,6 @@ static bool pbvh_bmesh_collapse_short_edges(
 	while (!BLI_heap_is_empty(eq_ctx->q->heap)) {
 		BMVert **pair = BLI_heap_popmin(eq_ctx->q->heap);
 		BMVert *v1  = pair[0], *v2  = pair[1];
-//		BMVert *v1_ = pair[0], *v2_ = pair[1];
 		BLI_mempool_free(eq_ctx->pool, pair);
 		pair = NULL;
 
@@ -1580,18 +1581,23 @@ void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode)
 	}
 }
 
-typedef struct FastNodeBuildInfo {
+struct FastNodeBuildInfo {
 	int totface; /* number of faces */
 	int start; /* start of faces in array */
 	struct FastNodeBuildInfo *child1;
 	struct FastNodeBuildInfo *child2;
-} FastNodeBuildInfo;
+};
 
-/* Recursively split the node if it exceeds the leaf_limit. This function is multithreadabe since each invocation applies
- * to a sub part of the arrays */
-static void pbvh_bmesh_node_limit_ensure_fast(PBVH *bvh, BMFace **nodeinfo, BBC *bbc_array, FastNodeBuildInfo *node, MemArena *arena)
+/**
+ * Recursively split the node if it exceeds the leaf_limit.
+ * This function is multithreadabe since each invocation applies
+ * to a sub part of the arrays
+ */
+static void pbvh_bmesh_node_limit_ensure_fast(
+        PBVH *bvh, BMFace **nodeinfo, BBC *bbc_array, struct FastNodeBuildInfo *node,
+        MemArena *arena)
 {
-	FastNodeBuildInfo *child1, *child2;
+	struct FastNodeBuildInfo *child1, *child2;
 
 	if (node->totface <= bvh->leaf_limit) {
 		return;
@@ -1671,8 +1677,8 @@ static void pbvh_bmesh_node_limit_ensure_fast(PBVH *bvh, BMFace **nodeinfo, BBC 
 	 * each sequential part belonging to one node only */
 	BLI_assert((num_child1 + num_child2) == node->totface);
 
-	node->child1 = child1 = BLI_memarena_alloc(arena, sizeof(FastNodeBuildInfo));
-	node->child2 = child2 = BLI_memarena_alloc(arena, sizeof(FastNodeBuildInfo));
+	node->child1 = child1 = BLI_memarena_alloc(arena, sizeof(struct FastNodeBuildInfo));
+	node->child2 = child2 = BLI_memarena_alloc(arena, sizeof(struct FastNodeBuildInfo));
 
 	child1->totface = num_child1;
 	child1->start = node->start;
@@ -1684,7 +1690,9 @@ static void pbvh_bmesh_node_limit_ensure_fast(PBVH *bvh, BMFace **nodeinfo, BBC 
 	pbvh_bmesh_node_limit_ensure_fast(bvh, nodeinfo, bbc_array, child2, arena);
 }
 
-static void pbvh_bmesh_create_nodes_fast_recursive(PBVH *bvh, BMFace **nodeinfo, BBC *bbc_array, FastNodeBuildInfo *node, int node_index)
+static void pbvh_bmesh_create_nodes_fast_recursive(
+        PBVH *bvh, BMFace **nodeinfo, BBC *bbc_array,
+        struct FastNodeBuildInfo *node, int node_index)
 {
 	PBVHNode *n = bvh->nodes + node_index;
 	/* two cases, node does not have children or does have children */
@@ -1825,7 +1833,7 @@ void BKE_pbvh_build_bmesh(
 	bm->elem_index_dirty |= BM_FACE;
 
 	/* setup root node */
-	FastNodeBuildInfo rootnode = {0};
+	struct FastNodeBuildInfo rootnode = {0};
 	rootnode.totface = bm->totface;
 
 	/* start recursion, assign faces to nodes accordingly */
@@ -1867,7 +1875,10 @@ bool BKE_pbvh_bmesh_update_topology(
 	if (mode & PBVH_Collapse) {
 		EdgeQueue q;
 		BLI_mempool *queue_pool = BLI_mempool_create(sizeof(BMVert *[2]), 0, 128, BLI_MEMPOOL_NOP);
-		EdgeQueueContext eq_ctx = {&q, queue_pool, bvh->bm, cd_vert_mask_offset, cd_vert_node_offset, cd_face_node_offset};
+		EdgeQueueContext eq_ctx = {
+		    &q, queue_pool, bvh->bm,
+		    cd_vert_mask_offset, cd_vert_node_offset, cd_face_node_offset,
+		};
 
 		short_edge_queue_create(&eq_ctx, bvh, center, view_normal, radius);
 		modified |= pbvh_bmesh_collapse_short_edges(
@@ -1879,7 +1890,10 @@ bool BKE_pbvh_bmesh_update_topology(
 	if (mode & PBVH_Subdivide) {
 		EdgeQueue q;
 		BLI_mempool *queue_pool = BLI_mempool_create(sizeof(BMVert *[2]), 0, 128, BLI_MEMPOOL_NOP);
-		EdgeQueueContext eq_ctx = {&q, queue_pool, bvh->bm, cd_vert_mask_offset, cd_vert_node_offset, cd_face_node_offset};
+		EdgeQueueContext eq_ctx = {
+		    &q, queue_pool, bvh->bm,
+		    cd_vert_mask_offset, cd_vert_node_offset, cd_face_node_offset,
+		};
 
 		long_edge_queue_create(&eq_ctx, bvh, center, view_normal, radius);
 		modified |= pbvh_bmesh_subdivide_long_edges(
@@ -1887,7 +1901,7 @@ bool BKE_pbvh_bmesh_update_topology(
 		BLI_heap_free(q.heap, NULL);
 		BLI_mempool_destroy(queue_pool);
 	}
-	
+
 	/* Unmark nodes */
 	for (int n = 0; n < bvh->totnode; n++) {
 		PBVHNode *node = &bvh->nodes[n];
