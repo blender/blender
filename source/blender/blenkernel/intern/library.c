@@ -257,7 +257,11 @@ static int id_expand_local_callback(void *user_data, struct ID *UNUSED(id_self),
 
 	/* We tag all ID usages as extern, and increase usercount in case it was requested. */
 	if (*id_pointer) {
-		if (do_user_count && (cd_flag & IDWALK_USER)) {
+		if (do_user_count && (cd_flag & IDWALK_USER) &&
+		    /* XXX This is a hack - animdata copying needs a good check and cleanup, it's done with way too much
+		     * various functions currently, so for now we assume actions' usercount is already handled here... */
+		    (GS((*id_pointer)->name) != ID_AC))
+		{
 			id_us_plus(*id_pointer);
 		}
 		else {
