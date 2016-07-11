@@ -2,7 +2,7 @@
  * Adapted from code Copyright 2009-2010 NVIDIA Corporation,
  * and code copyright 2009-2012 Intel Corporation
  *
- * Modifications Copyright 2011-2014, Blender Foundation.
+ * Modifications Copyright 2011-2013, Blender Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
  */
 
 #ifdef __QBVH__
-#  include "geom_qbvh_volume.h"
+#  include "qbvh_shadow.h"
 #endif
 
 #if BVH_FEATURE(BVH_HAIR)
@@ -27,23 +27,23 @@
 #  define NODE_INTERSECT bvh_aligned_node_intersect
 #endif
 
-/* This is a template BVH traversal function for volumes, where
- * various features can be enabled/disabled. This way we can compile optimized
- * versions for each case without new features slowing things down.
+/* This is a template BVH traversal function, where various features can be
+ * enabled/disabled. This way we can compile optimized versions for each case
+ * without new features slowing things down.
  *
  * BVH_INSTANCING: object instancing
+ * BVH_HAIR: hair curve rendering
  * BVH_MOTION: motion blur rendering
  *
  */
 
 ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
                                             const Ray *ray,
-                                            Intersection *isect,
-                                            const uint visibility)
+                                            Intersection *isect_array,
+                                            const uint max_hits,
+                                            uint *num_hits)
 {
 	/* todo:
-	 * - test if pushing distance on the stack helps (for non shadow rays)
-	 * - separate version for shadow rays
 	 * - likely and unlikely for if() statements
 	 * - test restrict attribute for pointers
 	 */
@@ -57,20 +57,23 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	int nodeAddr = kernel_data.bvh.root;
 
 	/* ray parameters in registers */
+	const float tmax = ray->t;
 	float3 P = ray->P;
 	float3 dir = bvh_clamp_direction(ray->D);
 	float3 idir = bvh_inverse_direction(dir);
 	int object = OBJECT_NONE;
+	float isect_t = tmax;
 
 #if BVH_FEATURE(BVH_MOTION)
 	Transform ob_itfm;
 #endif
 
-	isect->t = ray->t;
-	isect->u = 0.0f;
-	isect->v = 0.0f;
-	isect->prim = PRIM_NONE;
-	isect->object = OBJECT_NONE;
+#if BVH_FEATURE(BVH_INSTANCING)
+	int num_hits_in_instance = 0;
+#endif
+
+	*num_hits = 0;
+	isect_array->t = tmax;
 
 #if defined(__KERNEL_SSE2__)
 	const shuffle_swap_t shuf_identity = shuffle_swap_identity();
@@ -79,7 +82,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	const ssef pn = cast(ssei(0, 0, 0x80000000, 0x80000000));
 	ssef Psplat[3], idirsplat[3];
 #  if BVH_FEATURE(BVH_HAIR)
-	ssef tnear(0.0f), tfar(isect->t);
+	ssef tnear(0.0f), tfar(isect_t);
 #  endif
 	shuffle_swap_t shufflexyz[3];
 
@@ -87,10 +90,10 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	Psplat[1] = ssef(P.y);
 	Psplat[2] = ssef(P.z);
 
-	ssef tsplat(0.0f, 0.0f, -isect->t, -isect->t);
+	ssef tsplat(0.0f, 0.0f, -isect_t, -isect_t);
 
 	gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
-#endif
+#endif  /* __KERNEL_SSE2__ */
 
 	IsectPrecalc isect_precalc;
 	triangle_intersect_precalc(dir, &isect_precalc);
@@ -111,9 +114,9 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 				                               dir,
 #  endif
 				                               idir,
-				                               isect->t,
+				                               isect_t,
 				                               nodeAddr,
-				                               visibility,
+				                               PATH_RAY_SHADOW,
 				                               dist);
 #else // __KERNEL_SSE2__
 				traverse_mask = NODE_INTERSECT(kg,
@@ -128,7 +131,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 				                               idirsplat,
 				                               shufflexyz,
 				                               nodeAddr,
-				                               visibility,
+				                               PATH_RAY_SHADOW,
 				                               dist);
 #endif // __KERNEL_SSE2__
 
@@ -172,89 +175,126 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #endif
 					const int primAddr2 = __float_as_int(leaf.y);
 					const uint type = __float_as_int(leaf.w);
+					const uint p_type = type & PRIMITIVE_ALL;
 
 					/* pop */
 					nodeAddr = traversalStack[stackPtr];
 					--stackPtr;
 
 					/* primitive intersection */
-					switch(type & PRIMITIVE_ALL) {
-						case PRIMITIVE_TRIANGLE: {
-							/* intersect ray against primitive */
-							for(; primAddr < primAddr2; primAddr++) {
-								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
-								/* only primitives from volume object */
-								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
-								int object_flag = kernel_tex_fetch(__object_flag, tri_object);
-								if((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
-									continue;
-								}
-								triangle_intersect(kg, &isect_precalc, isect, P, visibility, object, primAddr);
+					while(primAddr < primAddr2) {
+						kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
+
+						bool hit;
+
+						/* todo: specialized intersect functions which don't fill in
+						 * isect unless needed and check SD_HAS_TRANSPARENT_SHADOW?
+						 * might give a few % performance improvement */
+
+						switch(p_type) {
+							case PRIMITIVE_TRIANGLE: {
+								hit = triangle_intersect(kg, &isect_precalc, isect_array, P, PATH_RAY_SHADOW, object, primAddr);
+								break;
 							}
-							break;
-						}
 #if BVH_FEATURE(BVH_MOTION)
-						case PRIMITIVE_MOTION_TRIANGLE: {
-							/* intersect ray against primitive */
-							for(; primAddr < primAddr2; primAddr++) {
-								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
-								/* only primitives from volume object */
-								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
-								int object_flag = kernel_tex_fetch(__object_flag, tri_object);
-								if((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
-									continue;
-								}
-								motion_triangle_intersect(kg, isect, P, dir, ray->time, visibility, object, primAddr);
+							case PRIMITIVE_MOTION_TRIANGLE: {
+								hit = motion_triangle_intersect(kg, isect_array, P, dir, ray->time, PATH_RAY_SHADOW, object, primAddr);
+								break;
 							}
-							break;
-						}
 #endif
-						default: {
-							break;
+#if BVH_FEATURE(BVH_HAIR)
+							case PRIMITIVE_CURVE:
+							case PRIMITIVE_MOTION_CURVE: {
+								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE)
+									hit = bvh_cardinal_curve_intersect(kg, isect_array, P, dir, PATH_RAY_SHADOW, object, primAddr, ray->time, type, NULL, 0, 0);
+								else
+									hit = bvh_curve_intersect(kg, isect_array, P, dir, PATH_RAY_SHADOW, object, primAddr, ray->time, type, NULL, 0, 0);
+								break;
+							}
+#endif
+							default: {
+								hit = false;
+								break;
+							}
 						}
+
+						/* shadow ray early termination */
+						if(hit) {
+							/* detect if this surface has a shader with transparent shadows */
+
+							/* todo: optimize so primitive visibility flag indicates if
+							 * the primitive has a transparent shadow shader? */
+							int prim = kernel_tex_fetch(__prim_index, isect_array->prim);
+							int shader = 0;
+
+#ifdef __HAIR__
+							if(kernel_tex_fetch(__prim_type, isect_array->prim) & PRIMITIVE_ALL_TRIANGLE)
+#endif
+							{
+								shader = kernel_tex_fetch(__tri_shader, prim);
+							}
+#ifdef __HAIR__
+							else {
+								float4 str = kernel_tex_fetch(__curves, prim);
+								shader = __float_as_int(str.z);
+							}
+#endif
+							int flag = kernel_tex_fetch(__shader_flag, (shader & SHADER_MASK)*2);
+
+							/* if no transparent shadows, all light is blocked */
+							if(!(flag & SD_HAS_TRANSPARENT_SHADOW)) {
+								return true;
+							}
+							/* if maximum number of hits reached, block all light */
+							else if(*num_hits == max_hits) {
+								return true;
+							}
+
+							/* move on to next entry in intersections array */
+							isect_array++;
+							(*num_hits)++;
+#if BVH_FEATURE(BVH_INSTANCING)
+							num_hits_in_instance++;
+#endif
+
+							isect_array->t = isect_t;
+						}
+
+						primAddr++;
 					}
 				}
 #if BVH_FEATURE(BVH_INSTANCING)
 				else {
 					/* instance push */
 					object = kernel_tex_fetch(__prim_object, -primAddr-1);
-					int object_flag = kernel_tex_fetch(__object_flag, object);
-
-					if(object_flag & SD_OBJECT_HAS_VOLUME) {
 
 #  if BVH_FEATURE(BVH_MOTION)
-						bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect->t, &ob_itfm);
+					bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_itfm);
 #  else
-						bvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect->t);
+					bvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect_t);
 #  endif
 
-						triangle_intersect_precalc(dir, &isect_precalc);
+					triangle_intersect_precalc(dir, &isect_precalc);
+					num_hits_in_instance = 0;
+					isect_array->t = isect_t;
 
 #  if defined(__KERNEL_SSE2__)
-						Psplat[0] = ssef(P.x);
-						Psplat[1] = ssef(P.y);
-						Psplat[2] = ssef(P.z);
+					Psplat[0] = ssef(P.x);
+					Psplat[1] = ssef(P.y);
+					Psplat[2] = ssef(P.z);
 
-						tsplat = ssef(0.0f, 0.0f, -isect->t, -isect->t);
+					tsplat = ssef(0.0f, 0.0f, -isect_t, -isect_t);
 #    if BVH_FEATURE(BVH_HAIR)
-						tfar = ssef(isect->t);
+					tfar = ssef(isect_t);
 #    endif
-
-						gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
+					gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
 #  endif
 
-						++stackPtr;
-						kernel_assert(stackPtr < BVH_STACK_SIZE);
-						traversalStack[stackPtr] = ENTRYPOINT_SENTINEL;
+					++stackPtr;
+					kernel_assert(stackPtr < BVH_STACK_SIZE);
+					traversalStack[stackPtr] = ENTRYPOINT_SENTINEL;
 
-						nodeAddr = kernel_tex_fetch(__object_node, object);
-					}
-					else {
-						/* pop */
-						object = OBJECT_NONE;
-						nodeAddr = traversalStack[stackPtr];
-						--stackPtr;
-					}
+					nodeAddr = kernel_tex_fetch(__object_node, object);
 				}
 			}
 #endif  /* FEATURE(BVH_INSTANCING) */
@@ -264,25 +304,44 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 		if(stackPtr >= 0) {
 			kernel_assert(object != OBJECT_NONE);
 
-			/* instance pop */
+			if(num_hits_in_instance) {
+				float t_fac;
+
 #  if BVH_FEATURE(BVH_MOTION)
-			bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &isect->t, &ob_itfm);
+				bvh_instance_motion_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac, &ob_itfm);
 #  else
-			bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &isect->t);
+				bvh_instance_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac);
 #  endif
 
-			triangle_intersect_precalc(dir, &isect_precalc);
+				triangle_intersect_precalc(dir, &isect_precalc);
+
+				/* scale isect->t to adjust for instancing */
+				for(int i = 0; i < num_hits_in_instance; i++)
+					(isect_array-i-1)->t *= t_fac;
+			}
+			else {
+				float ignore_t = FLT_MAX;
+
+#  if BVH_FEATURE(BVH_MOTION)
+				bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &ignore_t, &ob_itfm);
+#  else
+				bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &ignore_t);
+#  endif
+				triangle_intersect_precalc(dir, &isect_precalc);
+			}
+
+			isect_t = tmax;
+			isect_array->t = isect_t;
 
 #  if defined(__KERNEL_SSE2__)
 			Psplat[0] = ssef(P.x);
 			Psplat[1] = ssef(P.y);
 			Psplat[2] = ssef(P.z);
 
-			tsplat = ssef(0.0f, 0.0f, -isect->t, -isect->t);
+			tsplat = ssef(0.0f, 0.0f, -isect_t, -isect_t);
 #    if BVH_FEATURE(BVH_HAIR)
-			tfar = ssef(isect->t);
+			tfar = ssef(isect_t);
 #    endif
-
 			gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
 #  endif
 
@@ -290,23 +349,25 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 			nodeAddr = traversalStack[stackPtr];
 			--stackPtr;
 		}
-#endif  /* FEATURE(BVH_MOTION) */
+#endif  /* FEATURE(BVH_INSTANCING) */
 	} while(nodeAddr != ENTRYPOINT_SENTINEL);
 
-	return (isect->prim != PRIM_NONE);
+	return false;
 }
 
 ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
                                          const Ray *ray,
-                                         Intersection *isect,
-                                         const uint visibility)
+                                         Intersection *isect_array,
+                                         const uint max_hits,
+                                         uint *num_hits)
 {
 #ifdef __QBVH__
 	if(kernel_data.bvh.use_qbvh) {
 		return BVH_FUNCTION_FULL_NAME(QBVH)(kg,
 		                                    ray,
-		                                    isect,
-		                                    visibility);
+		                                    isect_array,
+		                                    max_hits,
+		                                    num_hits);
 	}
 	else
 #endif
@@ -314,8 +375,9 @@ ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
 		kernel_assert(kernel_data.bvh.use_qbvh == false);
 		return BVH_FUNCTION_FULL_NAME(BVH)(kg,
 		                                   ray,
-		                                   isect,
-		                                   visibility);
+		                                   isect_array,
+		                                   max_hits,
+		                                   num_hits);
 	}
 }
 

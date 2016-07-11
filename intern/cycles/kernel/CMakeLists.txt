@@ -28,6 +28,22 @@ set(SRC
 	kernels/cuda/kernel.cu
 )
 
+set(SRC_BVH_HEADERS
+	bvh/bvh.h
+	bvh/bvh_nodes.h
+	bvh/bvh_shadow.h
+	bvh/bvh_subsurface.h
+	bvh/bvh_traversal.h
+	bvh/bvh_volume.h
+	bvh/bvh_volume_all.h
+	bvh/qbvh_nodes.h
+	bvh/qbvh_shadow.h
+	bvh/qbvh_subsurface.h
+	bvh/qbvh_traversal.h
+	bvh/qbvh_volume.h
+	bvh/qbvh_volume_all.h
+)
+
 set(SRC_HEADERS
 	kernel_accumulate.h
 	kernel_bake.h
@@ -140,24 +156,11 @@ set(SRC_SVM_HEADERS
 set(SRC_GEOM_HEADERS
 	geom/geom.h
 	geom/geom_attribute.h
-	geom/geom_bvh.h
-	geom/geom_bvh_nodes.h
-	geom/geom_bvh_shadow.h
-	geom/geom_bvh_subsurface.h
-	geom/geom_bvh_traversal.h
-	geom/geom_bvh_volume.h
-	geom/geom_bvh_volume_all.h
 	geom/geom_curve.h
 	geom/geom_motion_curve.h
 	geom/geom_motion_triangle.h
 	geom/geom_object.h
 	geom/geom_primitive.h
-	geom/geom_qbvh.h
-	geom/geom_qbvh_shadow.h
-	geom/geom_qbvh_subsurface.h
-	geom/geom_qbvh_traversal.h
-	geom/geom_qbvh_volume.h
-	geom/geom_qbvh_volume_all.h
 	geom/geom_triangle.h
 	geom/geom_triangle_intersect.h
 	geom/geom_volume.h
@@ -213,7 +216,14 @@ if(WITH_CYCLES_CUDA_BINARIES)
 	endif()
 
 	# build for each arch
-	set(cuda_sources kernels/cuda/kernel.cu ${SRC_HEADERS} ${SRC_SVM_HEADERS} ${SRC_GEOM_HEADERS} ${SRC_CLOSURE_HEADERS} ${SRC_UTIL_HEADERS})
+	set(cuda_sources kernels/cuda/kernel.cu
+		${SRC_HEADERS}
+		${SRC_BVH_HEADERS}
+		${SRC_SVM_HEADERS}
+		${SRC_GEOM_HEADERS}
+		${SRC_CLOSURE_HEADERS}
+		${SRC_UTIL_HEADERS}
+	)
 	set(cuda_cubins)
 
 	macro(CYCLES_CUDA_KERNEL_ADD arch experimental)
@@ -313,6 +323,7 @@ add_library(cycles_kernel
 	${SRC}
 	${SRC_HEADERS}
 	${SRC_KERNELS_CPU_HEADERS}
+	${SRC_BVH_HEADERS}
 	${SRC_CLOSURE_HEADERS}
 	${SRC_SVM_HEADERS}
 	${SRC_GEOM_HEADERS}
@@ -347,6 +358,7 @@ delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_next_iteratio
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_sum_all_radiance.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/cuda/kernel.cu" ${CYCLES_INSTALL_PATH}/kernel/kernels/cuda)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_BVH_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/bvh)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_CLOSURE_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/closure)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_SVM_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/svm)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_GEOM_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/geom)

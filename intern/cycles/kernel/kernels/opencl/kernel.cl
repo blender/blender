@@ -35,6 +35,7 @@
 #  include "../../kernel_montecarlo.h"
 #  include "../../kernel_projection.h"
 #  include "../../geom/geom.h"
+#  include "../../bvh/bvh.h"
 
 #  include "../../kernel_accumulate.h"
 #  include "../../kernel_camera.h"

@@ -18,7 +18,7 @@
  */
 
 #ifdef __QBVH__
-#  include "geom_qbvh_subsurface.h"
+#  include "qbvh_subsurface.h"
 #endif
 
 #if BVH_FEATURE(BVH_HAIR)

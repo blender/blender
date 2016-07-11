@@ -47,6 +47,7 @@
 #include "kernel_camera.h"
 #include "kernels/cpu/kernel_cpu_image.h"
 #include "geom/geom.h"
+#include "bvh/bvh.h"
 
 #include "kernel_projection.h"
 #include "kernel_accumulate.h"

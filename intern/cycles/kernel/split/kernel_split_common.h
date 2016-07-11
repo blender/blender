@@ -31,6 +31,7 @@
 #include "kernel_camera.h"
 
 #include "geom/geom.h"
+#include "bvh/bvh.h"
 
 #include "kernel_accumulate.h"
 #include "kernel_shader.h"

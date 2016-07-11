@@ -15,14 +15,6 @@
  * limitations under the License.
  */
 
-/* bottom-most stack entry, indicating the end of traversal */
-#define ENTRYPOINT_SENTINEL 0x76543210
-
-/* 64 object BVH + 64 mesh BVH + 64 object node splitting */
-#define BVH_STACK_SIZE 192
-#define BVH_QSTACK_SIZE 384
-#define TRI_NODE_SIZE 3
-
 #include "geom_attribute.h"
 #include "geom_object.h"
 #include "geom_triangle.h"
@@ -32,5 +24,4 @@
 #include "geom_curve.h"
 #include "geom_volume.h"
 #include "geom_primitive.h"
-#include "geom_bvh.h"
 
