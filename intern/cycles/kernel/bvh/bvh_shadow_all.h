@@ -49,12 +49,12 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	 */
 
 	/* traversal stack in CUDA thread-local memory */
-	int traversalStack[BVH_STACK_SIZE];
-	traversalStack[0] = ENTRYPOINT_SENTINEL;
+	int traversal_stack[BVH_STACK_SIZE];
+	traversal_stack[0] = ENTRYPOINT_SENTINEL;
 
 	/* traversal variables in registers */
-	int stackPtr = 0;
-	int nodeAddr = kernel_data.bvh.root;
+	int stack_ptr = 0;
+	int node_addr = kernel_data.bvh.root;
 
 	/* ray parameters in registers */
 	const float tmax = ray->t;
@@ -102,10 +102,10 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	do {
 		do {
 			/* traverse internal nodes */
-			while(nodeAddr >= 0 && nodeAddr != ENTRYPOINT_SENTINEL) {
-				int nodeAddrChild1, traverse_mask;
+			while(node_addr >= 0 && node_addr != ENTRYPOINT_SENTINEL) {
+				int node_addr_ahild1, traverse_mask;
 				float dist[2];
-				float4 cnodes = kernel_tex_fetch(__bvh_nodes, nodeAddr+0);
+				float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr+0);
 
 #if !defined(__KERNEL_SSE2__)
 				traverse_mask = NODE_INTERSECT(kg,
@@ -115,7 +115,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #  endif
 				                               idir,
 				                               isect_t,
-				                               nodeAddr,
+				                               node_addr,
 				                               PATH_RAY_SHADOW,
 				                               dist);
 #else // __KERNEL_SSE2__
@@ -130,60 +130,59 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 				                               Psplat,
 				                               idirsplat,
 				                               shufflexyz,
-				                               nodeAddr,
+				                               node_addr,
 				                               PATH_RAY_SHADOW,
 				                               dist);
 #endif // __KERNEL_SSE2__
 
-				nodeAddr = __float_as_int(cnodes.z);
-				nodeAddrChild1 = __float_as_int(cnodes.w);
+				node_addr = __float_as_int(cnodes.z);
+				node_addr_ahild1 = __float_as_int(cnodes.w);
 
 				if(traverse_mask == 3) {
 					/* Both children were intersected, push the farther one. */
-					bool closestChild1 = (dist[1] < dist[0]);
-
-					if(closestChild1) {
-						int tmp = nodeAddr;
-						nodeAddr = nodeAddrChild1;
-						nodeAddrChild1 = tmp;
+					bool is_closest_child1 = (dist[1] < dist[0]);
+					if(is_closest_child1) {
+						int tmp = node_addr;
+						node_addr = node_addr_ahild1;
+						node_addr_ahild1 = tmp;
 					}
 
-					++stackPtr;
-					kernel_assert(stackPtr < BVH_STACK_SIZE);
-					traversalStack[stackPtr] = nodeAddrChild1;
+					++stack_ptr;
+					kernel_assert(stack_ptr < BVH_STACK_SIZE);
+					traversal_stack[stack_ptr] = node_addr_ahild1;
 				}
 				else {
 					/* One child was intersected. */
 					if(traverse_mask == 2) {
-						nodeAddr = nodeAddrChild1;
+						node_addr = node_addr_ahild1;
 					}
 					else if(traverse_mask == 0) {
 						/* Neither child was intersected. */
-						nodeAddr = traversalStack[stackPtr];
-						--stackPtr;
+						node_addr = traversal_stack[stack_ptr];
+						--stack_ptr;
 					}
 				}
 			}
 
 			/* if node is leaf, fetch triangle list */
-			if(nodeAddr < 0) {
-				float4 leaf = kernel_tex_fetch(__bvh_leaf_nodes, (-nodeAddr-1));
-				int primAddr = __float_as_int(leaf.x);
+			if(node_addr < 0) {
+				float4 leaf = kernel_tex_fetch(__bvh_leaf_nodes, (-node_addr-1));
+				int prim_addr = __float_as_int(leaf.x);
 
 #if BVH_FEATURE(BVH_INSTANCING)
-				if(primAddr >= 0) {
+				if(prim_addr >= 0) {
 #endif
-					const int primAddr2 = __float_as_int(leaf.y);
+					const int prim_addr2 = __float_as_int(leaf.y);
 					const uint type = __float_as_int(leaf.w);
 					const uint p_type = type & PRIMITIVE_ALL;
 
 					/* pop */
-					nodeAddr = traversalStack[stackPtr];
-					--stackPtr;
+					node_addr = traversal_stack[stack_ptr];
+					--stack_ptr;
 
 					/* primitive intersection */
-					while(primAddr < primAddr2) {
-						kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
+					while(prim_addr < prim_addr2) {
+						kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
 
 						bool hit;
 
@@ -193,22 +192,57 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 
 						switch(p_type) {
 							case PRIMITIVE_TRIANGLE: {
-								hit = triangle_intersect(kg, &isect_precalc, isect_array, P, PATH_RAY_SHADOW, object, primAddr);
+								hit = triangle_intersect(kg,
+								                         &isect_precalc,
+								                         isect_array,
+								                         P,
+								                         PATH_RAY_SHADOW,
+								                         object,
+								                         prim_addr);
 								break;
 							}
 #if BVH_FEATURE(BVH_MOTION)
 							case PRIMITIVE_MOTION_TRIANGLE: {
-								hit = motion_triangle_intersect(kg, isect_array, P, dir, ray->time, PATH_RAY_SHADOW, object, primAddr);
+								hit = motion_triangle_intersect(kg,
+								                                isect_array,
+								                                P,
+								                                dir,
+								                                ray->time,
+								                                PATH_RAY_SHADOW,
+								                                object,
+								                                prim_addr);
 								break;
 							}
 #endif
 #if BVH_FEATURE(BVH_HAIR)
 							case PRIMITIVE_CURVE:
 							case PRIMITIVE_MOTION_CURVE: {
-								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE)
-									hit = bvh_cardinal_curve_intersect(kg, isect_array, P, dir, PATH_RAY_SHADOW, object, primAddr, ray->time, type, NULL, 0, 0);
-								else
-									hit = bvh_curve_intersect(kg, isect_array, P, dir, PATH_RAY_SHADOW, object, primAddr, ray->time, type, NULL, 0, 0);
+								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) {
+									hit = bvh_cardinal_curve_intersect(kg,
+									                                   isect_array,
+									                                   P,
+									                                   dir,
+									                                   PATH_RAY_SHADOW,
+									                                   object,
+									                                   prim_addr,
+									                                   ray->time,
+									                                   type,
+									                                   NULL,
+									                                   0, 0);
+								}
+								else {
+									hit = bvh_curve_intersect(kg,
+									                          isect_array,
+									                          P,
+									                          dir,
+									                          PATH_RAY_SHADOW,
+									                          object,
+									                          prim_addr,
+									                          ray->time,
+									                          type,
+									                          NULL,
+									                          0, 0);
+								}
 								break;
 							}
 #endif
@@ -260,13 +294,13 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 							isect_array->t = isect_t;
 						}
 
-						primAddr++;
+						prim_addr++;
 					}
 				}
 #if BVH_FEATURE(BVH_INSTANCING)
 				else {
 					/* instance push */
-					object = kernel_tex_fetch(__prim_object, -primAddr-1);
+					object = kernel_tex_fetch(__prim_object, -prim_addr-1);
 
 #  if BVH_FEATURE(BVH_MOTION)
 					bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_itfm);
@@ -290,18 +324,18 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 					gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
 #  endif
 
-					++stackPtr;
-					kernel_assert(stackPtr < BVH_STACK_SIZE);
-					traversalStack[stackPtr] = ENTRYPOINT_SENTINEL;
+					++stack_ptr;
+					kernel_assert(stack_ptr < BVH_STACK_SIZE);
+					traversal_stack[stack_ptr] = ENTRYPOINT_SENTINEL;
 
-					nodeAddr = kernel_tex_fetch(__object_node, object);
+					node_addr = kernel_tex_fetch(__object_node, object);
 				}
 			}
 #endif  /* FEATURE(BVH_INSTANCING) */
-		} while(nodeAddr != ENTRYPOINT_SENTINEL);
+		} while(node_addr != ENTRYPOINT_SENTINEL);
 
 #if BVH_FEATURE(BVH_INSTANCING)
-		if(stackPtr >= 0) {
+		if(stack_ptr >= 0) {
 			kernel_assert(object != OBJECT_NONE);
 
 			if(num_hits_in_instance) {
@@ -346,11 +380,11 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #  endif
 
 			object = OBJECT_NONE;
-			nodeAddr = traversalStack[stackPtr];
-			--stackPtr;
+			node_addr = traversal_stack[stack_ptr];
+			--stack_ptr;
 		}
 #endif  /* FEATURE(BVH_INSTANCING) */
-	} while(nodeAddr != ENTRYPOINT_SENTINEL);
+	} while(node_addr != ENTRYPOINT_SENTINEL);
 
 	return false;
 }

@@ -50,12 +50,12 @@ ccl_device void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	 */
 
 	/* traversal stack in CUDA thread-local memory */
-	int traversalStack[BVH_STACK_SIZE];
-	traversalStack[0] = ENTRYPOINT_SENTINEL;
+	int traversal_stack[BVH_STACK_SIZE];
+	traversal_stack[0] = ENTRYPOINT_SENTINEL;
 
 	/* traversal variables in registers */
-	int stackPtr = 0;
-	int nodeAddr = kernel_tex_fetch(__object_node, subsurface_object);
+	int stack_ptr = 0;
+	int node_addr = kernel_tex_fetch(__object_node, subsurface_object);
 
 	/* ray parameters in registers */
 	float3 P = ray->P;
@@ -111,10 +111,10 @@ ccl_device void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	do {
 		do {
 			/* traverse internal nodes */
-			while(nodeAddr >= 0 && nodeAddr != ENTRYPOINT_SENTINEL) {
-				int nodeAddrChild1, traverse_mask;
+			while(node_addr >= 0 && node_addr != ENTRYPOINT_SENTINEL) {
+				int node_addr_child1, traverse_mask;
 				float dist[2];
-				float4 cnodes = kernel_tex_fetch(__bvh_nodes, nodeAddr+0);
+				float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr+0);
 
 #if !defined(__KERNEL_SSE2__)
 				traverse_mask = NODE_INTERSECT(kg,
@@ -124,7 +124,7 @@ ccl_device void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #  endif
 				                               idir,
 				                               isect_t,
-				                               nodeAddr,
+				                               node_addr,
 				                               PATH_RAY_ALL_VISIBILITY,
 				                               dist);
 #else // __KERNEL_SSE2__
@@ -139,65 +139,64 @@ ccl_device void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 				                               Psplat,
 				                               idirsplat,
 				                               shufflexyz,
-				                               nodeAddr,
+				                               node_addr,
 				                               PATH_RAY_ALL_VISIBILITY,
 				                               dist);
 #endif // __KERNEL_SSE2__
 
-				nodeAddr = __float_as_int(cnodes.z);
-				nodeAddrChild1 = __float_as_int(cnodes.w);
+				node_addr = __float_as_int(cnodes.z);
+				node_addr_child1 = __float_as_int(cnodes.w);
 
 				if(traverse_mask == 3) {
 					/* Both children were intersected, push the farther one. */
-					bool closestChild1 = (dist[1] < dist[0]);
-
-					if(closestChild1) {
-						int tmp = nodeAddr;
-						nodeAddr = nodeAddrChild1;
-						nodeAddrChild1 = tmp;
+					bool is_closest_child1 = (dist[1] < dist[0]);
+					if(is_closest_child1) {
+						int tmp = node_addr;
+						node_addr = node_addr_child1;
+						node_addr_child1 = tmp;
 					}
 
-					++stackPtr;
-					kernel_assert(stackPtr < BVH_STACK_SIZE);
-					traversalStack[stackPtr] = nodeAddrChild1;
+					++stack_ptr;
+					kernel_assert(stack_ptr < BVH_STACK_SIZE);
+					traversal_stack[stack_ptr] = node_addr_child1;
 				}
 				else {
 					/* One child was intersected. */
 					if(traverse_mask == 2) {
-						nodeAddr = nodeAddrChild1;
+						node_addr = node_addr_child1;
 					}
 					else if(traverse_mask == 0) {
 						/* Neither child was intersected. */
-						nodeAddr = traversalStack[stackPtr];
-						--stackPtr;
+						node_addr = traversal_stack[stack_ptr];
+						--stack_ptr;
 					}
 				}
 			}
 
 			/* if node is leaf, fetch triangle list */
-			if(nodeAddr < 0) {
-				float4 leaf = kernel_tex_fetch(__bvh_leaf_nodes, (-nodeAddr-1));
-				int primAddr = __float_as_int(leaf.x);
+			if(node_addr < 0) {
+				float4 leaf = kernel_tex_fetch(__bvh_leaf_nodes, (-node_addr-1));
+				int prim_addr = __float_as_int(leaf.x);
 
-				const int primAddr2 = __float_as_int(leaf.y);
+				const int prim_addr2 = __float_as_int(leaf.y);
 				const uint type = __float_as_int(leaf.w);
 
 				/* pop */
-				nodeAddr = traversalStack[stackPtr];
-				--stackPtr;
+				node_addr = traversal_stack[stack_ptr];
+				--stack_ptr;
 
 				/* primitive intersection */
 				switch(type & PRIMITIVE_ALL) {
 					case PRIMITIVE_TRIANGLE: {
 						/* intersect ray against primitive */
-						for(; primAddr < primAddr2; primAddr++) {
-							kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
+						for(; prim_addr < prim_addr2; prim_addr++) {
+							kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
 							triangle_intersect_subsurface(kg,
 							                              &isect_precalc,
 							                              ss_isect,
 							                              P,
 							                              object,
-							                              primAddr,
+							                              prim_addr,
 							                              isect_t,
 							                              lcg_state,
 							                              max_hits);
@@ -207,15 +206,15 @@ ccl_device void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #if BVH_FEATURE(BVH_MOTION)
 					case PRIMITIVE_MOTION_TRIANGLE: {
 						/* intersect ray against primitive */
-						for(; primAddr < primAddr2; primAddr++) {
-							kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
+						for(; prim_addr < prim_addr2; prim_addr++) {
+							kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
 							motion_triangle_intersect_subsurface(kg,
 							                                     ss_isect,
 							                                     P,
 							                                     dir,
 							                                     ray->time,
 							                                     object,
-							                                     primAddr,
+							                                     prim_addr,
 							                                     isect_t,
 							                                     lcg_state,
 							                                     max_hits);
@@ -228,8 +227,8 @@ ccl_device void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 					}
 				}
 			}
-		} while(nodeAddr != ENTRYPOINT_SENTINEL);
-	} while(nodeAddr != ENTRYPOINT_SENTINEL);
+		} while(node_addr != ENTRYPOINT_SENTINEL);
+	} while(node_addr != ENTRYPOINT_SENTINEL);
 }
 
 ccl_device_inline void BVH_FUNCTION_NAME(KernelGlobals *kg,

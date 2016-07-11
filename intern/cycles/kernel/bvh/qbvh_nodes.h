@@ -68,10 +68,10 @@ ccl_device_inline int qbvh_aligned_node_intersect(KernelGlobals *__restrict kg,
                                                   const int far_x,
                                                   const int far_y,
                                                   const int far_z,
-                                                  const int nodeAddr,
+                                                  const int node_addr,
                                                   ssef *__restrict dist)
 {
-	const int offset = nodeAddr + 1;
+	const int offset = node_addr + 1;
 #ifdef __KERNEL_AVX2__
 	const ssef tnear_x = msub(kernel_tex_fetch_ssef(__bvh_nodes, offset+near_x), idir.x, org_idir.x);
 	const ssef tnear_y = msub(kernel_tex_fetch_ssef(__bvh_nodes, offset+near_y), idir.y, org_idir.y);
@@ -89,17 +89,17 @@ ccl_device_inline int qbvh_aligned_node_intersect(KernelGlobals *__restrict kg,
 #endif
 
 #ifdef __KERNEL_SSE41__
-	const ssef tNear = maxi(maxi(tnear_x, tnear_y), maxi(tnear_z, tnear));
-	const ssef tFar = mini(mini(tfar_x, tfar_y), mini(tfar_z, tfar));
-	const sseb vmask = cast(tNear) > cast(tFar);
+	const ssef near = maxi(maxi(tnear_x, tnear_y), maxi(tnear_z, tnear));
+	const ssef far = mini(mini(tfar_x, tfar_y), mini(tfar_z, tfar));
+	const sseb vmask = cast(near) > cast(far);
 	int mask = (int)movemask(vmask)^0xf;
 #else
-	const ssef tNear = max4(tnear_x, tnear_y, tnear_z, tnear);
-	const ssef tFar = min4(tfar_x, tfar_y, tfar_z, tfar);
-	const sseb vmask = tNear <= tFar;
+	const ssef near = max4(tnear_x, tnear_y, tnear_z, tnear);
+	const ssef far = min4(tfar_x, tfar_y, tfar_z, tfar);
+	const sseb vmask = near <= far;
 	int mask = (int)movemask(vmask);
 #endif
-	*dist = tNear;
+	*dist = near;
 	return mask;
 }
 
@@ -119,11 +119,11 @@ ccl_device_inline int qbvh_aligned_node_intersect_robust(
         const int far_x,
         const int far_y,
         const int far_z,
-        const int nodeAddr,
+        const int node_addr,
         const float difl,
         ssef *__restrict dist)
 {
-	const int offset = nodeAddr + 1;
+	const int offset = node_addr + 1;
 #ifdef __KERNEL_AVX2__
 	const ssef tnear_x = msub(kernel_tex_fetch_ssef(__bvh_nodes, offset+near_x), idir.x, P_idir.x);
 	const ssef tnear_y = msub(kernel_tex_fetch_ssef(__bvh_nodes, offset+near_y), idir.y, P_idir.y);
@@ -142,10 +142,10 @@ ccl_device_inline int qbvh_aligned_node_intersect_robust(
 
 	const float round_down = 1.0f - difl;
 	const float round_up = 1.0f + difl;
-	const ssef tNear = max4(tnear_x, tnear_y, tnear_z, tnear);
-	const ssef tFar = min4(tfar_x, tfar_y, tfar_z, tfar);
-	const sseb vmask = round_down*tNear <= round_up*tFar;
-	*dist = tNear;
+	const ssef near = max4(tnear_x, tnear_y, tnear_z, tnear);
+	const ssef far = min4(tfar_x, tfar_y, tfar_z, tfar);
+	const sseb vmask = round_down*near <= round_up*far;
+	*dist = near;
 	return (int)movemask(vmask);
 }
 
@@ -167,10 +167,10 @@ ccl_device_inline int qbvh_unaligned_node_intersect(
         const int far_x,
         const int far_y,
         const int far_z,
-        const int nodeAddr,
+        const int node_addr,
         ssef *__restrict dist)
 {
-	const int offset = nodeAddr;
+	const int offset = node_addr;
 	const ssef tfm_x_x = kernel_tex_fetch_ssef(__bvh_nodes, offset+1);
 	const ssef tfm_x_y = kernel_tex_fetch_ssef(__bvh_nodes, offset+2);
 	const ssef tfm_x_z = kernel_tex_fetch_ssef(__bvh_nodes, offset+3);
@@ -215,10 +215,10 @@ ccl_device_inline int qbvh_unaligned_node_intersect(
 	const ssef tfar_x = maxi(tlower_x, tupper_x);
 	const ssef tfar_y = maxi(tlower_y, tupper_y);
 	const ssef tfar_z = maxi(tlower_z, tupper_z);
-	const ssef tNear = max4(tnear, tnear_x, tnear_y, tnear_z);
-	const ssef tFar = min4(tfar, tfar_x, tfar_y, tfar_z);
-	const sseb vmask = tNear <= tFar;
-	*dist = tNear;
+	const ssef near = max4(tnear, tnear_x, tnear_y, tnear_z);
+	const ssef far = min4(tfar, tfar_x, tfar_y, tfar_z);
+	const sseb vmask = near <= far;
+	*dist = near;
 	return movemask(vmask);
 #else
 	const ssef tnear_x = min(tlower_x, tupper_x);
@@ -227,10 +227,10 @@ ccl_device_inline int qbvh_unaligned_node_intersect(
 	const ssef tfar_x = max(tlower_x, tupper_x);
 	const ssef tfar_y = max(tlower_y, tupper_y);
 	const ssef tfar_z = max(tlower_z, tupper_z);
-	const ssef tNear = max4(tnear, tnear_x, tnear_y, tnear_z);
-	const ssef tFar = min4(tfar, tfar_x, tfar_y, tfar_z);
-	const sseb vmask = tNear <= tFar;
-	*dist = tNear;
+	const ssef near = max4(tnear, tnear_x, tnear_y, tnear_z);
+	const ssef far = min4(tfar, tfar_x, tfar_y, tfar_z);
+	const sseb vmask = near <= far;
+	*dist = near;
 	return movemask(vmask);
 #endif
 }
@@ -251,11 +251,11 @@ ccl_device_inline int qbvh_unaligned_node_intersect_robust(
         const int far_x,
         const int far_y,
         const int far_z,
-        const int nodeAddr,
+        const int node_addr,
         const float difl,
         ssef *__restrict dist)
 {
-	const int offset = nodeAddr;
+	const int offset = node_addr;
 	const ssef tfm_x_x = kernel_tex_fetch_ssef(__bvh_nodes, offset+1);
 	const ssef tfm_x_y = kernel_tex_fetch_ssef(__bvh_nodes, offset+2);
 	const ssef tfm_x_z = kernel_tex_fetch_ssef(__bvh_nodes, offset+3);
@@ -311,10 +311,10 @@ ccl_device_inline int qbvh_unaligned_node_intersect_robust(
 	const ssef tfar_y = max(tlower_y, tupper_y);
 	const ssef tfar_z = max(tlower_z, tupper_z);
 #endif
-	const ssef tNear = max4(tnear, tnear_x, tnear_y, tnear_z);
-	const ssef tFar = min4(tfar, tfar_x, tfar_y, tfar_z);
-	const sseb vmask = round_down*tNear <= round_up*tFar;
-	*dist = tNear;
+	const ssef near = max4(tnear, tnear_x, tnear_y, tnear_z);
+	const ssef far = min4(tfar, tfar_x, tfar_y, tfar_z);
+	const sseb vmask = round_down*near <= round_up*far;
+	*dist = near;
 	return movemask(vmask);
 }
 
@@ -339,10 +339,10 @@ ccl_device_inline int qbvh_node_intersect(
         const int far_x,
         const int far_y,
         const int far_z,
-        const int nodeAddr,
+        const int node_addr,
         ssef *__restrict dist)
 {
-	const int offset = nodeAddr;
+	const int offset = node_addr;
 	const float4 node = kernel_tex_fetch(__bvh_nodes, offset);
 	if(__float_as_uint(node.x) & PATH_RAY_NODE_UNALIGNED) {
 		return qbvh_unaligned_node_intersect(kg,
@@ -356,7 +356,7 @@ ccl_device_inline int qbvh_node_intersect(
 		                                     idir,
 		                                     near_x, near_y, near_z,
 		                                     far_x, far_y, far_z,
-		                                     nodeAddr,
+		                                     node_addr,
 		                                     dist);
 	}
 	else {
@@ -371,7 +371,7 @@ ccl_device_inline int qbvh_node_intersect(
 		                                   idir,
 		                                   near_x, near_y, near_z,
 		                                   far_x, far_y, far_z,
-		                                   nodeAddr,
+		                                   node_addr,
 		                                   dist);
 	}
 }
@@ -392,11 +392,11 @@ ccl_device_inline int qbvh_node_intersect_robust(
         const int far_x,
         const int far_y,
         const int far_z,
-        const int nodeAddr,
+        const int node_addr,
         const float difl,
         ssef *__restrict dist)
 {
-	const int offset = nodeAddr;
+	const int offset = node_addr;
 	const float4 node = kernel_tex_fetch(__bvh_nodes, offset);
 	if(__float_as_uint(node.x) & PATH_RAY_NODE_UNALIGNED) {
 		return qbvh_unaligned_node_intersect_robust(kg,
@@ -410,7 +410,7 @@ ccl_device_inline int qbvh_node_intersect_robust(
 		                                            idir,
 		                                            near_x, near_y, near_z,
 		                                            far_x, far_y, far_z,
-		                                            nodeAddr,
+		                                            node_addr,
 		                                            difl,
 		                                            dist);
 	}
@@ -426,7 +426,7 @@ ccl_device_inline int qbvh_node_intersect_robust(
 		                                          idir,
 		                                          near_x, near_y, near_z,
 		                                          far_x, far_y, far_z,
-		                                          nodeAddr,
+		                                          node_addr,
 		                                          difl,
 		                                          dist);
 	}

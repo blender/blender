@@ -17,11 +17,11 @@
 // TODO(sergey): Look into avoid use of full Transform and use 3x3 matrix and
 // 3-vector which might be faster.
 ccl_device_inline Transform bvh_unaligned_node_fetch_space(KernelGlobals *kg,
-                                                           int nodeAddr,
+                                                           int node_addr,
                                                            int child)
 {
 	Transform space;
-	const int child_addr = nodeAddr + child * 3;
+	const int child_addr = node_addr + child * 3;
 	space.x = kernel_tex_fetch(__bvh_nodes, child_addr+1);
 	space.y = kernel_tex_fetch(__bvh_nodes, child_addr+2);
 	space.z = kernel_tex_fetch(__bvh_nodes, child_addr+3);
@@ -34,16 +34,16 @@ ccl_device_inline int bvh_aligned_node_intersect(KernelGlobals *kg,
                                                  const float3 P,
                                                  const float3 idir,
                                                  const float t,
-                                                 const int nodeAddr,
+                                                 const int node_addr,
                                                  const uint visibility,
                                                  float dist[2])
 {
 
 	/* fetch node data */
-	float4 cnodes = kernel_tex_fetch(__bvh_nodes, nodeAddr+0);
-	float4 node0 = kernel_tex_fetch(__bvh_nodes, nodeAddr+1);
-	float4 node1 = kernel_tex_fetch(__bvh_nodes, nodeAddr+2);
-	float4 node2 = kernel_tex_fetch(__bvh_nodes, nodeAddr+3);
+	float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr+0);
+	float4 node0 = kernel_tex_fetch(__bvh_nodes, node_addr+1);
+	float4 node1 = kernel_tex_fetch(__bvh_nodes, node_addr+2);
+	float4 node2 = kernel_tex_fetch(__bvh_nodes, node_addr+3);
 
 	/* intersect ray against child nodes */
 	float c0lox = (node0.x - P.x) * idir.x;
@@ -83,16 +83,16 @@ ccl_device_inline int bvh_aligned_node_intersect_robust(KernelGlobals *kg,
                                                         const float t,
                                                         const float difl,
                                                         const float extmax,
-                                                        const int nodeAddr,
+                                                        const int node_addr,
                                                         const uint visibility,
                                                         float dist[2])
 {
 
 	/* fetch node data */
-	float4 cnodes = kernel_tex_fetch(__bvh_nodes, nodeAddr+0);
-	float4 node0 = kernel_tex_fetch(__bvh_nodes, nodeAddr+1);
-	float4 node1 = kernel_tex_fetch(__bvh_nodes, nodeAddr+2);
-	float4 node2 = kernel_tex_fetch(__bvh_nodes, nodeAddr+3);
+	float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr+0);
+	float4 node0 = kernel_tex_fetch(__bvh_nodes, node_addr+1);
+	float4 node1 = kernel_tex_fetch(__bvh_nodes, node_addr+2);
+	float4 node2 = kernel_tex_fetch(__bvh_nodes, node_addr+3);
 
 	/* intersect ray against child nodes */
 	float c0lox = (node0.x - P.x) * idir.x;
@@ -144,26 +144,26 @@ ccl_device_inline bool bvh_unaligned_node_intersect_child(
         const float3 P,
         const float3 dir,
         const float t,
-        int nodeAddr,
+        int node_addr,
         int child,
         float dist[2])
 {
-	Transform space  = bvh_unaligned_node_fetch_space(kg, nodeAddr, child);
+	Transform space  = bvh_unaligned_node_fetch_space(kg, node_addr, child);
 	float3 aligned_dir = transform_direction(&space, dir);
 	float3 aligned_P = transform_point(&space, P);
 	float3 nrdir = -bvh_inverse_direction(aligned_dir);
-	float3 tLowerXYZ = aligned_P * nrdir;
-	float3 tUpperXYZ = tLowerXYZ - nrdir;
-	const float tNearX = min(tLowerXYZ.x, tUpperXYZ.x);
-	const float tNearY = min(tLowerXYZ.y, tUpperXYZ.y);
-	const float tNearZ = min(tLowerXYZ.z, tUpperXYZ.z);
-	const float tFarX  = max(tLowerXYZ.x, tUpperXYZ.x);
-	const float tFarY  = max(tLowerXYZ.y, tUpperXYZ.y);
-	const float tFarZ  = max(tLowerXYZ.z, tUpperXYZ.z);
-	const float tNear  = max4(0.0f, tNearX, tNearY, tNearZ);
-	const float tFar   = min4(t, tFarX, tFarY, tFarZ);
-	*dist = tNear;
-	return tNear <= tFar;
+	float3 lower_xyz = aligned_P * nrdir;
+	float3 upper_xyz = lower_xyz - nrdir;
+	const float near_x = min(lower_xyz.x, upper_xyz.x);
+	const float near_y = min(lower_xyz.y, upper_xyz.y);
+	const float near_z = min(lower_xyz.z, upper_xyz.z);
+	const float far_x  = max(lower_xyz.x, upper_xyz.x);
+	const float far_y  = max(lower_xyz.y, upper_xyz.y);
+	const float far_z  = max(lower_xyz.z, upper_xyz.z);
+	const float near   = max4(0.0f, near_x, near_y, near_z);
+	const float far    = min4(t, far_x, far_y, far_z);
+	*dist = near;
+	return near <= far;
 }
 
 ccl_device_inline bool bvh_unaligned_node_intersect_child_robust(
@@ -172,33 +172,33 @@ ccl_device_inline bool bvh_unaligned_node_intersect_child_robust(
         const float3 dir,
         const float t,
         const float difl,
-        int nodeAddr,
+        int node_addr,
         int child,
         float dist[2])
 {
-	Transform space  = bvh_unaligned_node_fetch_space(kg, nodeAddr, child);
+	Transform space  = bvh_unaligned_node_fetch_space(kg, node_addr, child);
 	float3 aligned_dir = transform_direction(&space, dir);
 	float3 aligned_P = transform_point(&space, P);
 	float3 nrdir = -bvh_inverse_direction(aligned_dir);
 	float3 tLowerXYZ = aligned_P * nrdir;
 	float3 tUpperXYZ = tLowerXYZ - nrdir;
-	const float tNearX = min(tLowerXYZ.x, tUpperXYZ.x);
-	const float tNearY = min(tLowerXYZ.y, tUpperXYZ.y);
-	const float tNearZ = min(tLowerXYZ.z, tUpperXYZ.z);
-	const float tFarX  = max(tLowerXYZ.x, tUpperXYZ.x);
-	const float tFarY  = max(tLowerXYZ.y, tUpperXYZ.y);
-	const float tFarZ  = max(tLowerXYZ.z, tUpperXYZ.z);
-	const float tNear  = max4(0.0f, tNearX, tNearY, tNearZ);
-	const float tFar   = min4(t, tFarX, tFarY, tFarZ);
-	*dist = tNear;
+	const float near_x = min(tLowerXYZ.x, tUpperXYZ.x);
+	const float near_y = min(tLowerXYZ.y, tUpperXYZ.y);
+	const float near_z = min(tLowerXYZ.z, tUpperXYZ.z);
+	const float far_x  = max(tLowerXYZ.x, tUpperXYZ.x);
+	const float far_y  = max(tLowerXYZ.y, tUpperXYZ.y);
+	const float far_z  = max(tLowerXYZ.z, tUpperXYZ.z);
+	const float near   = max4(0.0f, near_x, near_y, near_z);
+	const float gar    = min4(t, far_x, far_y, far_z);
+	*dist = near;
 	if(difl != 0.0f) {
 		/* TODO(sergey): Same as for QBVH, needs a proper use. */
 		const float round_down = 1.0f - difl;
 		const float round_up = 1.0f + difl;
-		return round_down*tNear <= round_up*tFar;
+		return round_down*near <= round_up*gar;
 	}
 	else {
-		return tNear <= tFar;
+		return near <= gar;
 	}
 }
 
@@ -207,13 +207,13 @@ ccl_device_inline int bvh_unaligned_node_intersect(KernelGlobals *kg,
                                                    const float3 dir,
                                                    const float3 idir,
                                                    const float t,
-                                                   const int nodeAddr,
+                                                   const int node_addr,
                                                    const uint visibility,
                                                    float dist[2])
 {
 	int mask = 0;
-	float4 cnodes = kernel_tex_fetch(__bvh_nodes, nodeAddr+0);
-	if(bvh_unaligned_node_intersect_child(kg, P, dir, t, nodeAddr, 0, &dist[0])) {
+	float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr+0);
+	if(bvh_unaligned_node_intersect_child(kg, P, dir, t, node_addr, 0, &dist[0])) {
 #ifdef __VISIBILITY_FLAG__
 		if((__float_as_uint(cnodes.x) & visibility))
 #endif
@@ -221,7 +221,7 @@ ccl_device_inline int bvh_unaligned_node_intersect(KernelGlobals *kg,
 			mask |= 1;
 		}
 	}
-	if(bvh_unaligned_node_intersect_child(kg, P, dir, t, nodeAddr, 1, &dist[1])) {
+	if(bvh_unaligned_node_intersect_child(kg, P, dir, t, node_addr, 1, &dist[1])) {
 #ifdef __VISIBILITY_FLAG__
 		if((__float_as_uint(cnodes.y) & visibility))
 #endif
@@ -239,13 +239,13 @@ ccl_device_inline int bvh_unaligned_node_intersect_robust(KernelGlobals *kg,
                                                           const float t,
                                                           const float difl,
                                                           const float extmax,
-                                                          const int nodeAddr,
+                                                          const int node_addr,
                                                           const uint visibility,
                                                           float dist[2])
 {
 	int mask = 0;
-	float4 cnodes = kernel_tex_fetch(__bvh_nodes, nodeAddr+0);
-	if(bvh_unaligned_node_intersect_child_robust(kg, P, dir, t, difl, nodeAddr, 0, &dist[0])) {
+	float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr+0);
+	if(bvh_unaligned_node_intersect_child_robust(kg, P, dir, t, difl, node_addr, 0, &dist[0])) {
 #ifdef __VISIBILITY_FLAG__
 		if((__float_as_uint(cnodes.x) & visibility))
 #endif
@@ -253,7 +253,7 @@ ccl_device_inline int bvh_unaligned_node_intersect_robust(KernelGlobals *kg,
 			mask |= 1;
 		}
 	}
-	if(bvh_unaligned_node_intersect_child_robust(kg, P, dir, t, difl, nodeAddr, 1, &dist[1])) {
+	if(bvh_unaligned_node_intersect_child_robust(kg, P, dir, t, difl, node_addr, 1, &dist[1])) {
 #ifdef __VISIBILITY_FLAG__
 		if((__float_as_uint(cnodes.y) & visibility))
 #endif
@@ -269,18 +269,18 @@ ccl_device_inline int bvh_node_intersect(KernelGlobals *kg,
                                          const float3 dir,
                                          const float3 idir,
                                          const float t,
-                                         const int nodeAddr,
+                                         const int node_addr,
                                          const uint visibility,
                                          float dist[2])
 {
-	float4 node = kernel_tex_fetch(__bvh_nodes, nodeAddr);
+	float4 node = kernel_tex_fetch(__bvh_nodes, node_addr);
 	if(__float_as_uint(node.x) & PATH_RAY_NODE_UNALIGNED) {
 		return bvh_unaligned_node_intersect(kg,
 		                                    P,
 		                                    dir,
 		                                    idir,
 		                                    t,
-		                                    nodeAddr,
+		                                    node_addr,
 		                                    visibility,
 		                                    dist);
 	}
@@ -289,7 +289,7 @@ ccl_device_inline int bvh_node_intersect(KernelGlobals *kg,
 		                                  P,
 		                                  idir,
 		                                  t,
-		                                  nodeAddr,
+		                                  node_addr,
 		                                  visibility,
 		                                  dist);
 	}
@@ -302,11 +302,11 @@ ccl_device_inline int bvh_node_intersect_robust(KernelGlobals *kg,
                                                 const float t,
                                                 const float difl,
                                                 const float extmax,
-                                                const int nodeAddr,
+                                                const int node_addr,
                                                 const uint visibility,
                                                 float dist[2])
 {
-	float4 node = kernel_tex_fetch(__bvh_nodes, nodeAddr);
+	float4 node = kernel_tex_fetch(__bvh_nodes, node_addr);
 	if(__float_as_uint(node.x) & PATH_RAY_NODE_UNALIGNED) {
 		return bvh_unaligned_node_intersect_robust(kg,
 		                                           P,
@@ -315,7 +315,7 @@ ccl_device_inline int bvh_node_intersect_robust(KernelGlobals *kg,
 		                                           t,
 		                                           difl,
 		                                           extmax,
-		                                           nodeAddr,
+		                                           node_addr,
 		                                           visibility,
 		                                           dist);
 	}
@@ -326,7 +326,7 @@ ccl_device_inline int bvh_node_intersect_robust(KernelGlobals *kg,
 		                                         t,
 		                                         difl,
 		                                         extmax,
-		                                         nodeAddr,
+		                                         node_addr,
 		                                         visibility,
 		                                         dist);
 	}
@@ -341,7 +341,7 @@ int ccl_device_inline bvh_aligned_node_intersect(
         const ssef Psplat[3],
         const ssef idirsplat[3],
         const shuffle_swap_t shufflexyz[3],
-        const int nodeAddr,
+        const int node_addr,
         const uint visibility,
         float dist[2])
 {
@@ -349,7 +349,7 @@ int ccl_device_inline bvh_aligned_node_intersect(
 	const ssef pn = cast(ssei(0, 0, 0x80000000, 0x80000000));
 
 	/* fetch node data */
-	const ssef *bvh_nodes = (ssef*)kg->__bvh_nodes.data + nodeAddr;
+	const ssef *bvh_nodes = (ssef*)kg->__bvh_nodes.data + node_addr;
 
 	/* intersect ray against child nodes */
 	const ssef tminmaxx = (shuffle_swap(bvh_nodes[1], shufflexyz[0]) - Psplat[0]) * idirsplat[0];
@@ -368,7 +368,7 @@ int ccl_device_inline bvh_aligned_node_intersect(
 
 #  ifdef __VISIBILITY_FLAG__
 	/* this visibility test gives a 5% performance hit, how to solve? */
-	float4 cnodes = kernel_tex_fetch(__bvh_nodes, nodeAddr+0);
+	float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr+0);
 	int cmask = (((mask & 1) && (__float_as_uint(cnodes.x) & visibility))? 1: 0) |
 	            (((mask & 2) && (__float_as_uint(cnodes.y) & visibility))? 2: 0);
 	return cmask;
@@ -446,12 +446,12 @@ int ccl_device_inline bvh_unaligned_node_intersect(KernelGlobals *kg,
                                                    const float3 dir,
                                                    const ssef& tnear,
                                                    const ssef& tfar,
-                                                   const int nodeAddr,
+                                                   const int node_addr,
                                                    const uint visibility,
                                                    float dist[2])
 {
-	Transform space0 = bvh_unaligned_node_fetch_space(kg, nodeAddr, 0);
-	Transform space1 = bvh_unaligned_node_fetch_space(kg, nodeAddr, 1);
+	Transform space0 = bvh_unaligned_node_fetch_space(kg, node_addr, 0);
+	Transform space1 = bvh_unaligned_node_fetch_space(kg, node_addr, 1);
 
 	float3 aligned_dir0 = transform_direction(&space0, dir),
 	       aligned_dir1 = transform_direction(&space1, dir);;
@@ -460,40 +460,40 @@ int ccl_device_inline bvh_unaligned_node_intersect(KernelGlobals *kg,
 	float3 nrdir0 = -bvh_inverse_direction(aligned_dir0),
 	       nrdir1 = -bvh_inverse_direction(aligned_dir1);
 
-	ssef tLowerX = ssef(aligned_P0.x * nrdir0.x,
+	ssef lower_x = ssef(aligned_P0.x * nrdir0.x,
 	                    aligned_P1.x * nrdir1.x,
 	                    0.0f, 0.0f),
-	     tLowerY = ssef(aligned_P0.y * nrdir0.y,
+	     lower_y = ssef(aligned_P0.y * nrdir0.y,
 	                    aligned_P1.y * nrdir1.y,
 	                    0.0f,
 	                    0.0f),
-	     tLowerZ = ssef(aligned_P0.z * nrdir0.z,
+	     lower_z = ssef(aligned_P0.z * nrdir0.z,
 	                    aligned_P1.z * nrdir1.z,
 	                    0.0f,
 	                    0.0f);
 
-	ssef tUpperX = tLowerX - ssef(nrdir0.x, nrdir1.x, 0.0f, 0.0f),
-	     tUpperY = tLowerY - ssef(nrdir0.y, nrdir1.y, 0.0f, 0.0f),
-	     tUpperZ = tLowerZ - ssef(nrdir0.z, nrdir1.z, 0.0f, 0.0f);
+	ssef upper_x = lower_x - ssef(nrdir0.x, nrdir1.x, 0.0f, 0.0f),
+	     upper_y = lower_y - ssef(nrdir0.y, nrdir1.y, 0.0f, 0.0f),
+	     upper_z = lower_z - ssef(nrdir0.z, nrdir1.z, 0.0f, 0.0f);
 
-	ssef tnear_x = min(tLowerX, tUpperX);
-	ssef tnear_y = min(tLowerY, tUpperY);
-	ssef tnear_z = min(tLowerZ, tUpperZ);
-	ssef tfar_x = max(tLowerX, tUpperX);
-	ssef tfar_y = max(tLowerY, tUpperY);
-	ssef tfar_z = max(tLowerZ, tUpperZ);
+	ssef tnear_x = min(lower_x, upper_x);
+	ssef tnear_y = min(lower_y, upper_y);
+	ssef tnear_z = min(lower_z, upper_z);
+	ssef tfar_x = max(lower_x, upper_x);
+	ssef tfar_y = max(lower_y, upper_y);
+	ssef tfar_z = max(lower_z, upper_z);
 
-	const ssef tNear = max4(tnear_x, tnear_y, tnear_z, tnear);
-	const ssef tFar = min4(tfar_x, tfar_y, tfar_z, tfar);
-	sseb vmask = tNear <= tFar;
-	dist[0] = tNear.f[0];
-	dist[1] = tNear.f[1];
+	const ssef near = max4(tnear_x, tnear_y, tnear_z, tnear);
+	const ssef far = min4(tfar_x, tfar_y, tfar_z, tfar);
+	sseb vmask = near <= far;
+	dist[0] = near.f[0];
+	dist[1] = near.f[1];
 
 	int mask = (int)movemask(vmask);
 
 #  ifdef __VISIBILITY_FLAG__
 	/* this visibility test gives a 5% performance hit, how to solve? */
-	float4 cnodes = kernel_tex_fetch(__bvh_nodes, nodeAddr+0);
+	float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr+0);
 	int cmask = (((mask & 1) && (__float_as_uint(cnodes.x) & visibility))? 1: 0) |
 	            (((mask & 2) && (__float_as_uint(cnodes.y) & visibility))? 2: 0);
 	return cmask;
@@ -508,12 +508,12 @@ int ccl_device_inline bvh_unaligned_node_intersect_robust(KernelGlobals *kg,
                                                           const ssef& tnear,
                                                           const ssef& tfar,
                                                           const float difl,
-                                                          const int nodeAddr,
+                                                          const int node_addr,
                                                           const uint visibility,
                                                           float dist[2])
 {
-	Transform space0 = bvh_unaligned_node_fetch_space(kg, nodeAddr, 0);
-	Transform space1 = bvh_unaligned_node_fetch_space(kg, nodeAddr, 1);
+	Transform space0 = bvh_unaligned_node_fetch_space(kg, node_addr, 0);
+	Transform space1 = bvh_unaligned_node_fetch_space(kg, node_addr, 1);
 
 	float3 aligned_dir0 = transform_direction(&space0, dir),
 	       aligned_dir1 = transform_direction(&space1, dir);;
@@ -522,49 +522,49 @@ int ccl_device_inline bvh_unaligned_node_intersect_robust(KernelGlobals *kg,
 	float3 nrdir0 = -bvh_inverse_direction(aligned_dir0),
 	       nrdir1 = -bvh_inverse_direction(aligned_dir1);
 
-	ssef tLowerX = ssef(aligned_P0.x * nrdir0.x,
+	ssef lower_x = ssef(aligned_P0.x * nrdir0.x,
 	                    aligned_P1.x * nrdir1.x,
 	                    0.0f, 0.0f),
-	     tLowerY = ssef(aligned_P0.y * nrdir0.y,
+	     lower_y = ssef(aligned_P0.y * nrdir0.y,
 	                    aligned_P1.y * nrdir1.y,
 	                    0.0f,
 	                    0.0f),
-	     tLowerZ = ssef(aligned_P0.z * nrdir0.z,
+	     lower_z = ssef(aligned_P0.z * nrdir0.z,
 	                    aligned_P1.z * nrdir1.z,
 	                    0.0f,
 	                    0.0f);
 
-	ssef tUpperX = tLowerX - ssef(nrdir0.x, nrdir1.x, 0.0f, 0.0f),
-	     tUpperY = tLowerY - ssef(nrdir0.y, nrdir1.y, 0.0f, 0.0f),
-	     tUpperZ = tLowerZ - ssef(nrdir0.z, nrdir1.z, 0.0f, 0.0f);
+	ssef upper_x = lower_x - ssef(nrdir0.x, nrdir1.x, 0.0f, 0.0f),
+	     upper_y = lower_y - ssef(nrdir0.y, nrdir1.y, 0.0f, 0.0f),
+	     upper_z = lower_z - ssef(nrdir0.z, nrdir1.z, 0.0f, 0.0f);
 
-	ssef tnear_x = min(tLowerX, tUpperX);
-	ssef tnear_y = min(tLowerY, tUpperY);
-	ssef tnear_z = min(tLowerZ, tUpperZ);
-	ssef tfar_x = max(tLowerX, tUpperX);
-	ssef tfar_y = max(tLowerY, tUpperY);
-	ssef tfar_z = max(tLowerZ, tUpperZ);
+	ssef tnear_x = min(lower_x, upper_x);
+	ssef tnear_y = min(lower_y, upper_y);
+	ssef tnear_z = min(lower_z, upper_z);
+	ssef tfar_x = max(lower_x, upper_x);
+	ssef tfar_y = max(lower_y, upper_y);
+	ssef tfar_z = max(lower_z, upper_z);
 
-	const ssef tNear = max4(tnear_x, tnear_y, tnear_z, tnear);
-	const ssef tFar = min4(tfar_x, tfar_y, tfar_z, tfar);
+	const ssef near = max4(tnear_x, tnear_y, tnear_z, tnear);
+	const ssef far = min4(tfar_x, tfar_y, tfar_z, tfar);
 	sseb vmask;
 	if(difl != 0.0f) {
 		const float round_down = 1.0f - difl;
 		const float round_up = 1.0f + difl;
-		vmask = round_down*tNear <= round_up*tFar;
+		vmask = round_down*near <= round_up*far;
 	}
 	else {
-		vmask = tNear <= tFar;
+		vmask = near <= far;
 	}
 
-	dist[0] = tNear.f[0];
-	dist[1] = tNear.f[1];
+	dist[0] = near.f[0];
+	dist[1] = near.f[1];
 
 	int mask = (int)movemask(vmask);
 
 #  ifdef __VISIBILITY_FLAG__
 	/* this visibility test gives a 5% performance hit, how to solve? */
-	float4 cnodes = kernel_tex_fetch(__bvh_nodes, nodeAddr+0);
+	float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr+0);
 	int cmask = (((mask & 1) && (__float_as_uint(cnodes.x) & visibility))? 1: 0) |
 	            (((mask & 2) && (__float_as_uint(cnodes.y) & visibility))? 2: 0);
 	return cmask;
@@ -582,18 +582,18 @@ ccl_device_inline int bvh_node_intersect(KernelGlobals *kg,
                                          const ssef Psplat[3],
                                          const ssef idirsplat[3],
                                          const shuffle_swap_t shufflexyz[3],
-                                         const int nodeAddr,
+                                         const int node_addr,
                                          const uint visibility,
                                          float dist[2])
 {
-	float4 node = kernel_tex_fetch(__bvh_nodes, nodeAddr);
+	float4 node = kernel_tex_fetch(__bvh_nodes, node_addr);
 	if(__float_as_uint(node.x) & PATH_RAY_NODE_UNALIGNED) {
 		return bvh_unaligned_node_intersect(kg,
 		                                    P,
 		                                    dir,
 		                                    tnear,
 		                                    tfar,
-		                                    nodeAddr,
+		                                    node_addr,
 		                                    visibility,
 		                                    dist);
 	}
@@ -605,7 +605,7 @@ ccl_device_inline int bvh_node_intersect(KernelGlobals *kg,
 		                                  Psplat,
 		                                  idirsplat,
 		                                  shufflexyz,
-		                                  nodeAddr,
+		                                  node_addr,
 		                                  visibility,
 		                                  dist);
 	}
@@ -622,11 +622,11 @@ ccl_device_inline int bvh_node_intersect_robust(KernelGlobals *kg,
                                                 const shuffle_swap_t shufflexyz[3],
                                                 const float difl,
                                                 const float extmax,
-                                                const int nodeAddr,
+                                                const int node_addr,
                                                 const uint visibility,
                                                 float dist[2])
 {
-	float4 node = kernel_tex_fetch(__bvh_nodes, nodeAddr);
+	float4 node = kernel_tex_fetch(__bvh_nodes, node_addr);
 	if(__float_as_uint(node.x) & PATH_RAY_NODE_UNALIGNED) {
 		return bvh_unaligned_node_intersect_robust(kg,
 		                                           P,
@@ -634,7 +634,7 @@ ccl_device_inline int bvh_node_intersect_robust(KernelGlobals *kg,
 		                                           tnear,
 		                                           tfar,
 		                                           difl,
-		                                           nodeAddr,
+		                                           node_addr,
 		                                           visibility,
 		                                           dist);
 	}
@@ -648,7 +648,7 @@ ccl_device_inline int bvh_node_intersect_robust(KernelGlobals *kg,
 		                                         shufflexyz,
 		                                         difl,
 		                                         extmax,
-		                                         nodeAddr,
+		                                         node_addr,
 		                                         visibility,
 		                                         dist);
 	}
