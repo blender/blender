@@ -120,9 +120,6 @@ void BKE_action_make_local(Main *bmain, bAction *act)
 
 			act_new->id.us = 0;
 
-			/* Remap paths of new ID using old library as base. */
-			BKE_id_lib_local_paths(bmain, act->id.lib, &act_new->id);
-
 			BKE_libblock_remap(bmain, act, act_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}

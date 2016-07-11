@@ -169,9 +169,6 @@ void BKE_armature_make_local(Main *bmain, bArmature *arm)
 
 			arm_new->id.us = 0;
 
-			/* Remap paths of new ID using old library as base. */
-			BKE_id_lib_local_paths(bmain, arm->id.lib, &arm_new->id);
-
 			BKE_libblock_remap(bmain, arm, arm_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}

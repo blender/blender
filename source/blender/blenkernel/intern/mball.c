@@ -149,9 +149,6 @@ void BKE_mball_make_local(Main *bmain, MetaBall *mb)
 
 			mb_new->id.us = 0;
 
-			/* Remap paths of new ID using old library as base. */
-			BKE_id_lib_local_paths(bmain, mb->id.lib, &mb_new->id);
-
 			BKE_libblock_remap(bmain, mb, mb_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}

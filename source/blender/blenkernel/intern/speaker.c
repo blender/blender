@@ -108,9 +108,6 @@ void BKE_speaker_make_local(Main *bmain, Speaker *spk)
 
 			spk_new->id.us = 0;
 
-			/* Remap paths of new ID using old library as base. */
-			BKE_id_lib_local_paths(bmain, spk->id.lib, &spk_new->id);
-
 			BKE_libblock_remap(bmain, spk, spk_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}

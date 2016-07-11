@@ -1212,9 +1212,6 @@ void BKE_object_make_local(Main *bmain, Object *ob)
 			ob_new->id.us = 0;
 			ob_new->proxy = ob_new->proxy_from = ob_new->proxy_group = NULL;
 
-			/* Remap paths of new ID using old library as base. */
-			BKE_id_lib_local_paths(bmain, ob->id.lib, &ob_new->id);
-
 			BKE_libblock_remap(bmain, ob, ob_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}

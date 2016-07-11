@@ -196,9 +196,6 @@ void BKE_lamp_make_local(Main *bmain, Lamp *la)
 
 			la_new->id.us = 0;
 
-			/* Remap paths of new ID using old library as base. */
-			BKE_id_lib_local_paths(bmain, la->id.lib, &la_new->id);
-
 			BKE_libblock_remap(bmain, la, la_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}

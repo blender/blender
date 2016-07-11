@@ -309,9 +309,6 @@ void BKE_material_make_local(Main *bmain, Material *ma)
 
 			ma_new->id.us = 0;
 
-			/* Remap paths of new ID using old library as base. */
-			BKE_id_lib_local_paths(bmain, ma->id.lib, &ma_new->id);
-
 			BKE_libblock_remap(bmain, ma, ma_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}

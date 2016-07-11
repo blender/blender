@@ -3368,9 +3368,6 @@ void BKE_particlesettings_make_local(Main *bmain, ParticleSettings *part)
 
 			part_new->id.us = 0;
 
-			/* Remap paths of new ID using old library as base. */
-			BKE_id_lib_local_paths(bmain, part->id.lib, &part_new->id);
-
 			BKE_libblock_remap(bmain, part, part_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}
