@@ -75,7 +75,7 @@ BL_ShapeDeformer::BL_ShapeDeformer(BL_DeformableGameObject *gameobj,
       m_useShapeDrivers(false),
       m_lastShapeUpdate(-1)
 {
-	m_key = BKE_key_copy(m_bmesh->key);
+	m_key = m_bmesh->key ? BKE_key_copy(G.main, m_bmesh->key) : NULL;
 };
 
 /* this second constructor is needed for making a mesh deformable on the fly. */
@@ -91,7 +91,7 @@ BL_ShapeDeformer::BL_ShapeDeformer(BL_DeformableGameObject *gameobj,
 					m_useShapeDrivers(false),
 					m_lastShapeUpdate(-1)
 {
-	m_key = BKE_key_copy(m_bmesh->key);
+	m_key = m_bmesh->key ? BKE_key_copy(G.main, m_bmesh->key) : NULL;
 };
 
 BL_ShapeDeformer::~BL_ShapeDeformer()
@@ -117,7 +117,7 @@ void BL_ShapeDeformer::ProcessReplica()
 	BL_SkinDeformer::ProcessReplica();
 	m_lastShapeUpdate = -1;
 
-	m_key = BKE_key_copy(m_key);
+	m_key = m_key ? BKE_key_copy(G.main, m_key) : NULL;
 }
 
 bool BL_ShapeDeformer::LoadShapeDrivers(KX_GameObject* parent)

@@ -366,7 +366,9 @@ static void sculpt_undo_bmesh_enable(Object *ob,
 	sculpt_pbvh_clear(ob);
 
 	/* Create empty BMesh and enable logging */
-	ss->bm = BM_mesh_create(&bm_mesh_allocsize_default);
+	ss->bm = BM_mesh_create(
+	        &bm_mesh_allocsize_default,
+	        &((struct BMeshCreateParams){.use_toolflags = false,}));
 	BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
 	sculpt_dyntopo_node_layers_add(ss);
 	me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;

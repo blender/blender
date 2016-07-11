@@ -74,6 +74,7 @@ typedef struct bAnimContext {
 	short mode;             /* editor->mode */
 	short spacetype;        /* sa->spacetype */
 	short regiontype;       /* active region -> type (channels or main) */
+	
 	struct ScrArea *sa;     /* editor host */
 	struct SpaceLink *sl;   /* editor data */
 	struct ARegion *ar;     /* region within editor */
@@ -85,6 +86,8 @@ typedef struct bAnimContext {
 	ListBase *markers;      /* active set of markers */
 	
 	struct ReportList *reports; /* pointer to current reports list */
+	
+	float yscale_fac;       /* scale factor for height of channels (i.e. based on the size of keyframes) */
 } bAnimContext;
 
 /* Main Data container types */
@@ -329,11 +332,11 @@ typedef enum eAnimFilter_Flags {
 /* -------------- Channel Defines -------------- */
 
 /* channel heights */
-#define ACHANNEL_FIRST          (-0.8f * U.widget_unit)
-#define ACHANNEL_HEIGHT         (0.8f * U.widget_unit)
-#define ACHANNEL_HEIGHT_HALF    (0.4f * U.widget_unit)
-#define ACHANNEL_SKIP           (0.1f * U.widget_unit)
-#define ACHANNEL_STEP           (ACHANNEL_HEIGHT + ACHANNEL_SKIP)
+#define ACHANNEL_FIRST(ac)          (-0.8f * (ac)->yscale_fac * U.widget_unit)
+#define ACHANNEL_HEIGHT(ac)         (0.8f * (ac)->yscale_fac * U.widget_unit)
+#define ACHANNEL_HEIGHT_HALF(ac)    (0.4f * (ac)->yscale_fac * U.widget_unit)
+#define ACHANNEL_SKIP               (0.1f * U.widget_unit)
+#define ACHANNEL_STEP(ac)           (ACHANNEL_HEIGHT(ac) + ACHANNEL_SKIP)
 
 /* channel widths */
 #define ACHANNEL_NAMEWIDTH      (10 * U.widget_unit)
@@ -345,7 +348,6 @@ typedef enum eAnimFilter_Flags {
 /* -------------- NLA Channel Defines -------------- */
 
 /* NLA channel heights */
-// XXX: NLACHANNEL_FIRST isn't used?
 #define NLACHANNEL_FIRST                (-0.8f * U.widget_unit)
 #define NLACHANNEL_HEIGHT(snla)         ((snla && (snla->flag & SNLA_NOSTRIPCURVES)) ? (0.8f * U.widget_unit) : (1.2f * U.widget_unit))
 #define NLACHANNEL_HEIGHT_HALF(snla)    ((snla && (snla->flag & SNLA_NOSTRIPCURVES)) ? (0.4f * U.widget_unit) : (0.6f * U.widget_unit))

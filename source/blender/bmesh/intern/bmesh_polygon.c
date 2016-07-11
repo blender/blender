@@ -371,7 +371,7 @@ void BM_vert_tri_calc_tangent_edge_pair(BMVert *verts[3], float r_tangent[3])
 }
 
 /**
- * Compute the tanget of the face, using the longest edge.
+ * Compute the tangent of the face, using the longest edge.
  */
 void  BM_face_calc_tangent_edge(const BMFace *f, float r_tangent[3])
 {
@@ -384,7 +384,7 @@ void  BM_face_calc_tangent_edge(const BMFace *f, float r_tangent[3])
 }
 
 /**
- * Compute the tanget of the face, using the two longest disconected edges.
+ * Compute the tangent of the face, using the two longest disconnected edges.
  *
  * \param r_tangent: Calculated unit length tangent (return value).
  */
@@ -449,7 +449,7 @@ void  BM_face_calc_tangent_edge_pair(const BMFace *f, float r_tangent[3])
 }
 
 /**
- * Compute the tanget of the face, using the edge farthest away from any vertex in the face.
+ * Compute the tangent of the face, using the edge farthest away from any vertex in the face.
  *
  * \param r_tangent: Calculated unit length tangent (return value).
  */
@@ -485,7 +485,7 @@ void  BM_face_calc_tangent_edge_diagonal(const BMFace *f, float r_tangent[3])
 }
 
 /**
- * Compute the tanget of the face, using longest distance between vertices on the face.
+ * Compute the tangent of the face, using longest distance between vertices on the face.
  *
  * \note The logic is almost identical to #BM_face_calc_tangent_edge_diagonal
  */

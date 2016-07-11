@@ -99,6 +99,7 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
             if bpy.data.grease_pencil:
                 row.prop(dopesheet, "show_gpencil", text="")
 
+            layout.prop(dopesheet, "use_datablock_sort", text="")
 
 #######################################
 # DopeSheet Editor - General/Standard UI

@@ -141,9 +141,9 @@ static void dm_calc_normal(DerivedMesh *dm, float (*face_nors)[3], float (*r_ver
 					 * using the angle between the 2 faces as a weighting */
 #if 0
 					add_v3_v3v3(edge_normal, face_nors[edge_ref->f1], face_nors[edge_ref->f2]);
-					normalize_v3(edge_normal);
-
-					mul_v3_fl(edge_normal, angle_normalized_v3v3(face_nors[edge_ref->f1], face_nors[edge_ref->f2]));
+					normalize_v3_length(
+					        edge_normal,
+					        angle_normalized_v3v3(face_nors[edge_ref->f1], face_nors[edge_ref->f2]));
 #else
 					mid_v3_v3v3_angle_weighted(edge_normal, face_nors[edge_ref->f1], face_nors[edge_ref->f2]);
 #endif

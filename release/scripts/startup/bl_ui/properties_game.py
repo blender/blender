@@ -404,6 +404,7 @@ class RENDER_PT_game_shading(RenderButtonsPanel, Panel):
             col.prop(gs, "use_glsl_lights", text="Lights")
             col.prop(gs, "use_glsl_shaders", text="Shaders")
             col.prop(gs, "use_glsl_shadows", text="Shadows")
+            col.prop(gs, "use_glsl_environment_lighting", text="Environment Lighting")
 
             col = split.column()
             col.prop(gs, "use_glsl_ramps", text="Ramps")
@@ -599,7 +600,33 @@ class WORLD_PT_game_world(WorldButtonsPanel, Panel):
 
         row = layout.row()
         row.column().prop(world, "horizon_color")
+        row.column().prop(world, "zenith_color")
         row.column().prop(world, "ambient_color")
+
+
+class WORLD_PT_game_environment_lighting(WorldButtonsPanel, Panel):
+    bl_label = "Environment Lighting"
+    COMPAT_ENGINES = {'BLENDER_GAME'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return (scene.world and scene.render.engine in cls.COMPAT_ENGINES)
+
+    def draw_header(self, context):
+        light = context.world.light_settings
+        self.layout.prop(light, "use_environment_light", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        light = context.world.light_settings
+
+        layout.active = light.use_environment_light
+
+        split = layout.split()
+        split.prop(light, "environment_energy", text="Energy")
+        split.prop(light, "environment_color", text="")
 
 
 class WORLD_PT_game_mist(WorldButtonsPanel, Panel):

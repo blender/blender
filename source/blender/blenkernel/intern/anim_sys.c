@@ -79,15 +79,11 @@
 /* Getter/Setter -------------------------------------------- */
 
 /* Check if ID can have AnimData */
-bool id_type_can_have_animdata(ID *id)
+bool id_type_can_have_animdata(const short id_type)
 {
-	/* sanity check */
-	if (id == NULL)
-		return false;
-
 	/* Only some ID-blocks have this info for now */
 	/* TODO: finish adding this for the other blocktypes */
-	switch (GS(id->name)) {
+	switch (id_type) {
 		/* has AnimData */
 		case ID_OB:
 		case ID_ME: case ID_MB: case ID_CU: case ID_AR: case ID_LT:
@@ -100,9 +96,7 @@ bool id_type_can_have_animdata(ID *id)
 		case ID_MC:
 		case ID_MSK:
 		case ID_GD:
-		{
 			return true;
-		}
 		
 		/* no AnimData */
 		default:
@@ -110,6 +104,14 @@ bool id_type_can_have_animdata(ID *id)
 	}
 }
 
+bool id_can_have_animdata(const ID *id)
+{
+	/* sanity check */
+	if (id == NULL)
+		return false;
+
+	return id_type_can_have_animdata(GS(id->name));
+}
 
 /* Get AnimData from the given ID-block. In order for this to work, we assume that 
  * the AnimData pointer is stored immediately after the given ID-block in the struct,
@@ -121,7 +123,7 @@ AnimData *BKE_animdata_from_id(ID *id)
 	 * types that do to be of type IdAdtTemplate, and extract the
 	 * AnimData that way
 	 */
-	if (id_type_can_have_animdata(id)) {
+	if (id_can_have_animdata(id)) {
 		IdAdtTemplate *iat = (IdAdtTemplate *)id;
 		return iat->adt;
 	}
@@ -139,7 +141,7 @@ AnimData *BKE_animdata_add_id(ID *id)
 	 * types that do to be of type IdAdtTemplate, and add the AnimData
 	 * to it using the template
 	 */
-	if (id_type_can_have_animdata(id)) {
+	if (id_can_have_animdata(id)) {
 		IdAdtTemplate *iat = (IdAdtTemplate *)id;
 		
 		/* check if there's already AnimData, in which case, don't add */
@@ -220,7 +222,7 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
 	/* Only some ID-blocks have this info for now, so we cast the 
 	 * types that do to be of type IdAdtTemplate
 	 */
-	if (id_type_can_have_animdata(id)) {
+	if (id_can_have_animdata(id)) {
 		IdAdtTemplate *iat = (IdAdtTemplate *)id;
 		AnimData *adt = iat->adt;
 		
@@ -265,8 +267,8 @@ AnimData *BKE_animdata_copy(AnimData *adt, const bool do_action)
 	
 	/* make a copy of action - at worst, user has to delete copies... */
 	if (do_action) {
-		dadt->action = BKE_action_copy(adt->action);
-		dadt->tmpact = BKE_action_copy(adt->tmpact);
+		dadt->action = BKE_action_copy(G.main, adt->action);
+		dadt->tmpact = BKE_action_copy(G.main, adt->tmpact);
 	}
 	else {
 		id_us_plus((ID *)dadt->action);
@@ -310,11 +312,11 @@ void BKE_animdata_copy_id_action(ID *id)
 	if (adt) {
 		if (adt->action) {
 			id_us_min((ID *)adt->action);
-			adt->action = BKE_action_copy(adt->action);
+			adt->action = BKE_action_copy(G.main, adt->action);
 		}
 		if (adt->tmpact) {
 			id_us_min((ID *)adt->tmpact);
-			adt->tmpact = BKE_action_copy(adt->tmpact);
+			adt->tmpact = BKE_action_copy(G.main, adt->tmpact);
 		}
 	}
 }
@@ -338,8 +340,8 @@ void BKE_animdata_merge_copy(ID *dst_id, ID *src_id, eAnimData_MergeCopy_Modes a
 	/* handle actions... */
 	if (action_mode == ADT_MERGECOPY_SRC_COPY) {
 		/* make a copy of the actions */
-		dst->action = BKE_action_copy(src->action);
-		dst->tmpact = BKE_action_copy(src->tmpact);
+		dst->action = BKE_action_copy(G.main, src->action);
+		dst->tmpact = BKE_action_copy(G.main, src->tmpact);
 	}
 	else if (action_mode == ADT_MERGECOPY_SRC_REF) {
 		/* make a reference to it */
@@ -397,8 +399,8 @@ static void make_local_strips(ListBase *strips)
 	NlaStrip *strip;
 
 	for (strip = strips->first; strip; strip = strip->next) {
-		if (strip->act) BKE_action_make_local(strip->act);
-		if (strip->remap && strip->remap->target) BKE_action_make_local(strip->remap->target);
+		if (strip->act) BKE_action_make_local(G.main, strip->act);
+		if (strip->remap && strip->remap->target) BKE_action_make_local(G.main, strip->remap->target);
 		
 		make_local_strips(&strip->strips);
 	}
@@ -410,10 +412,10 @@ void BKE_animdata_make_local(AnimData *adt)
 	NlaTrack *nlt;
 	
 	/* Actions - Active and Temp */
-	if (adt->action) BKE_action_make_local(adt->action);
-	if (adt->tmpact) BKE_action_make_local(adt->tmpact);
+	if (adt->action) BKE_action_make_local(G.main, adt->action);
+	if (adt->tmpact) BKE_action_make_local(G.main, adt->tmpact);
 	/* Remaps */
-	if (adt->remap && adt->remap->target) BKE_action_make_local(adt->remap->target);
+	if (adt->remap && adt->remap->target) BKE_action_make_local(G.main, adt->remap->target);
 	
 	/* Drivers */
 	/* TODO: need to remap the ID-targets too? */
@@ -1048,7 +1050,7 @@ void BKE_animdata_fix_paths_remove(ID *id, const char *prefix)
 	 */
 	NlaTrack *nlt;
 
-	if (id_type_can_have_animdata(id)) {
+	if (id_can_have_animdata(id)) {
 		IdAdtTemplate *iat = (IdAdtTemplate *)id;
 		AnimData *adt = iat->adt;
 

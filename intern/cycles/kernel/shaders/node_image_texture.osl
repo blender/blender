@@ -88,7 +88,7 @@ shader node_image_texture(
 	string color_space = "sRGB",
 	string projection = "flat",
 	string interpolation = "smartcubic",
-	string wrap = "periodic",
+	string extension = "periodic",
 	float projection_blend = 0.0,
 	int is_float = 1,
 	int use_alpha = 1,
@@ -108,7 +108,7 @@ shader node_image_texture(
 		                             use_alpha,
 		                             is_float,
 		                             interpolation,
-		                             wrap);
+		                             extension);
 	}
 	else if (projection == "box") {
 		/* object space normal */
@@ -184,7 +184,7 @@ shader node_image_texture(
 			                                          use_alpha,
 			                                          is_float,
 			                                          interpolation,
-			                                          wrap);
+			                                          extension);
 			Alpha += weight[0] * tmp_alpha;
 		}
 		if (weight[1] > 0.0) {
@@ -195,7 +195,7 @@ shader node_image_texture(
 			                                          use_alpha,
 			                                          is_float,
 			                                          interpolation,
-			                                          wrap);
+			                                          extension);
 			Alpha += weight[1] * tmp_alpha;
 		}
 		if (weight[2] > 0.0) {
@@ -206,7 +206,7 @@ shader node_image_texture(
 			                                          use_alpha,
 			                                          is_float,
 			                                          interpolation,
-			                                          wrap);
+			                                          extension);
 			Alpha += weight[2] * tmp_alpha;
 		}
 	}
@@ -219,7 +219,7 @@ shader node_image_texture(
 		                             use_alpha,
 		                             is_float,
 		                             interpolation,
-		                             wrap);
+		                             extension);
 	}
 	else if (projection == "tube") {
 		point projected = map_to_tube(texco_remap_square(p));
@@ -230,6 +230,6 @@ shader node_image_texture(
 		                             use_alpha,
 		                             is_float,
 		                             interpolation,
-		                             wrap);
+		                             extension);
 	}
 }

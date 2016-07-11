@@ -287,8 +287,7 @@ static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
 	short a;
 
 	/* dvec */
-	normalize_v3_v3(dvec, rv3d->persinv[2]);
-	mul_v3_fl(dvec, offs);
+	normalize_v3_v3_length(dvec, rv3d->persinv[2], offs);
 
 	/* base correction */
 	copy_m3_m4(bmat, obedit->obmat);

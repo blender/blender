@@ -605,15 +605,15 @@ public:
 	 */
 	int Resample(float iSampling);
 
-    /*! Removes all vertices from the Stroke.
-     */
-    void RemoveAllVertices();
+	/*! Removes all vertices from the Stroke.
+	 */
+	void RemoveAllVertices();
 
 	/*! Removes the stroke vertex iVertex 
-	*  from the stroke.
-	*  The length and curvilinear abscissa are updated
-	*  consequently.
-	*/
+	 *  from the stroke.
+	 *  The length and curvilinear abscissa are updated
+	 *  consequently.
+	 */
 	void RemoveVertex(StrokeVertex *iVertex);
 
 	/*! Inserts the stroke vertex iVertex in the stroke before next.

@@ -52,16 +52,6 @@ public:
 		return _SceneRenderLayer;
 	}
 
-	inline void setSceneRenderLayer(Scene& scene)
-	{
-		_Scene = scene;
-	}
-
-	inline void setSceneRenderLayer(SceneRenderLayer& srl)
-	{
-		_SceneRenderLayer = srl;
-	}
-
 	/*! Accept the corresponding visitor */
 	virtual void accept(SceneVisitor& v);
 

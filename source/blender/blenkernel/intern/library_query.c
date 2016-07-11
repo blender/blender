@@ -45,6 +45,7 @@
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_mask_types.h"
@@ -71,6 +72,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
+#include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_rigidbody.h"
 #include "BKE_sca.h"
@@ -85,7 +87,7 @@
 	if (!((_data)->status & IDWALK_STOP)) { \
 		const int _flag = (_data)->flag; \
 		ID *old_id = *(id_pp); \
-		const int callback_return = (_data)->callback((_data)->user_data, (_data)->self_id, id_pp, cb_flag); \
+		const int callback_return = (_data)->callback((_data)->user_data, (_data)->self_id, id_pp, cb_flag | (_data)->cd_flag); \
 		if (_flag & IDWALK_READONLY) { \
 			BLI_assert(*(id_pp) == old_id); \
 		} \
@@ -126,6 +128,7 @@ enum {
 typedef struct LibraryForeachIDData {
 	ID *self_id;
 	int flag;
+	int cd_flag;
 	LibraryIDLinkCallback callback;
 	void *user_data;
 	int status;
@@ -285,6 +288,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 
 	do {
 		data.self_id = id;
+		data.cd_flag = ID_IS_LINKED_DATABLOCK(id) ? IDWALK_INDIRECT_USAGE : 0;
 
 		AnimData *adt = BKE_animdata_from_id(id);
 		if (adt) {
@@ -400,7 +404,12 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 			{
 				Object *object = (Object *) id;
 
+				/* Object is special, proxies make things hard... */
+				const int data_cd_flag = data.cd_flag;
+				const int proxy_cd_flag = (object->proxy || object->proxy_group) ? IDWALK_INDIRECT_USAGE : 0;
+
 				/* object data special case */
+				data.cd_flag |= proxy_cd_flag;
 				if (object->type == OB_EMPTY) {
 					/* empty can have NULL or Image */
 					CALLBACK_INVOKE_ID(object->data, IDWALK_USER);
@@ -411,6 +420,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 						CALLBACK_INVOKE_ID(object->data, IDWALK_USER | IDWALK_NEVER_NULL);
 					}
 				}
+				data.cd_flag = data_cd_flag;
 
 				CALLBACK_INVOKE(object->parent, IDWALK_NOP);
 				CALLBACK_INVOKE(object->track, IDWALK_NOP);
@@ -419,9 +429,13 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				CALLBACK_INVOKE(object->proxy_group, IDWALK_NOP);
 				CALLBACK_INVOKE(object->proxy_from, IDWALK_NOP);
 				CALLBACK_INVOKE(object->poselib, IDWALK_USER);
+
+				data.cd_flag |= proxy_cd_flag;
 				for (i = 0; i < object->totcol; i++) {
 					CALLBACK_INVOKE(object->mat[i], IDWALK_USER);
 				}
+				data.cd_flag = data_cd_flag;
+
 				CALLBACK_INVOKE(object->gpd, IDWALK_USER);
 				CALLBACK_INVOKE(object->dup_group, IDWALK_USER);
 
@@ -433,10 +447,13 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 
 				if (object->pose) {
 					bPoseChannel *pchan;
+
+					data.cd_flag |= proxy_cd_flag;
 					for (pchan = object->pose->chanbase.first; pchan; pchan = pchan->next) {
 						CALLBACK_INVOKE(pchan->custom, IDWALK_USER);
 						BKE_constraints_id_loop(&pchan->constraints, library_foreach_constraintObjectLooper, &data);
 					}
+					data.cd_flag = data_cd_flag;
 				}
 
 				if (object->rigidbody_constraint) {
@@ -467,6 +484,31 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				CALLBACK_INVOKE(mesh->key, IDWALK_USER);
 				for (i = 0; i < mesh->totcol; i++) {
 					CALLBACK_INVOKE(mesh->mat[i], IDWALK_USER);
+				}
+
+				/* XXX Really not happy with this - probably texface should rather use some kind of
+				 * 'texture slots' and just set indices in each poly/face item - would also save some memory.
+				 * Maybe a nice TODO for blender2.8? */
+				if (mesh->mtface || mesh->mtpoly) {
+					for (i = 0; i < mesh->pdata.totlayer; i++) {
+						if (mesh->pdata.layers[i].type == CD_MTEXPOLY) {
+							MTexPoly *txface = (MTexPoly *)mesh->pdata.layers[i].data;
+
+							for (int j = 0; j < mesh->totpoly; j++, txface++) {
+								CALLBACK_INVOKE(txface->tpage, IDWALK_USER_ONE);
+							}
+						}
+					}
+
+					for (i = 0; i < mesh->fdata.totlayer; i++) {
+						if (mesh->fdata.layers[i].type == CD_MTFACE) {
+							MTFace *tface = (MTFace *)mesh->fdata.layers[i].data;
+
+							for (int j = 0; j < mesh->totface; j++, tface++) {
+								CALLBACK_INVOKE(tface->tpage, IDWALK_USER_ONE);
+							}
+						}
+					}
 				}
 				break;
 			}
@@ -743,6 +785,80 @@ void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, const int cd_flag)
 	}
 }
 
+/**
+ * Say whether given \a id_type_owner can use (in any way) a datablock of \a id_type_used.
+ */
+/* This is a 'simplified' abstract version of BKE_library_foreach_ID_link() above, quite useful to reduce
+ * useless ietrations in some cases. */
+bool BKE_library_idtype_can_use_idtype(const short id_type_owner, const short id_type_used)
+{
+	if (id_type_used == ID_AC) {
+		return id_type_can_have_animdata(id_type_owner);
+	}
+
+	switch (id_type_owner) {
+		case ID_LI:
+			return ELEM(id_type_used, ID_LI);
+		case ID_SCE:
+			return (ELEM(id_type_used, ID_OB, ID_WO, ID_SCE, ID_MC, ID_MA, ID_GR, ID_TXT,
+			                           ID_LS, ID_MSK, ID_SO, ID_GD, ID_BR, ID_PAL, ID_IM, ID_NT) ||
+			        BKE_library_idtype_can_use_idtype(ID_NT, id_type_used));
+		case ID_OB:
+			/* Could be the following, but simpler to just always say 'yes' here. */
+#if 0
+			return ELEM(id_type_used, ID_ME, ID_CU, ID_MB, ID_LT, ID_SPK, ID_AR, ID_LA, ID_CA,  /* obdata */
+			                          ID_OB, ID_MA, ID_GD, ID_GR, ID_TE, ID_TXT, ID_SO, ID_MC, ID_IM, ID_AC
+			                          /* + constraints, modifiers and game logic ID types... */);
+#else
+			return true;
+#endif
+		case ID_ME:
+			return ELEM(id_type_used, ID_ME, ID_KE, ID_MA);
+		case ID_CU:
+			return ELEM(id_type_used, ID_OB, ID_KE, ID_MA, ID_VF);
+		case ID_MB:
+			return ELEM(id_type_used, ID_MA);
+		case ID_MA:
+			return (ELEM(id_type_used, ID_TE, ID_GR) || BKE_library_idtype_can_use_idtype(ID_NT, id_type_used));
+		case ID_TE:
+			return (ELEM(id_type_used, ID_IM, ID_OB) || BKE_library_idtype_can_use_idtype(ID_NT, id_type_used));
+		case ID_LT:
+			return ELEM(id_type_used, ID_KE);
+		case ID_LA:
+			return (ELEM(id_type_used, ID_TE) || BKE_library_idtype_can_use_idtype(ID_NT, id_type_used));
+		case ID_CA:
+			return ELEM(id_type_used, ID_OB);
+		case ID_KE:
+			return ELEM(id_type_used, ID_ME, ID_CU, ID_LT);  /* Warning! key->from, could be more types in future? */
+		case ID_SCR:
+			return ELEM(id_type_used, ID_SCE);
+		case ID_WO:
+			return (ELEM(id_type_used, ID_TE) || BKE_library_idtype_can_use_idtype(ID_NT, id_type_used));
+		case ID_SPK:
+			return ELEM(id_type_used, ID_SO);
+		case ID_GR:
+			return ELEM(id_type_used, ID_OB);
+		case ID_NT:
+			/* Could be the following, but node.id has no type restriction... */
+#if 0
+			return ELEM(id_type_used, ID_GD /* + node.id types... */);
+#else
+			return true;
+#endif
+		case ID_BR:
+			return ELEM(id_type_used, ID_BR, ID_IM, ID_PC, ID_TE);
+		case ID_MC:
+			return ELEM(id_type_used, ID_GD, ID_IM);
+		case ID_MSK:
+			return ELEM(id_type_used, ID_MC);  /* WARNING! mask->parent.id, not typed. */
+		case ID_LS:
+			return (ELEM(id_type_used, ID_TE, ID_OB) || BKE_library_idtype_can_use_idtype(ID_NT, id_type_used));
+		default:
+			return false;
+	}
+}
+
+
 /* ***** ID users iterator. ***** */
 typedef struct IDUsersIter {
 	ID *id;
@@ -751,7 +867,7 @@ typedef struct IDUsersIter {
 	int lb_idx;
 
 	ID *curr_id;
-	int count;  /* Set by callback. */
+	int count_direct, count_indirect;  /* Set by callback. */
 } IDUsersIter;
 
 static int foreach_libblock_id_users_callback(void *user_data, ID *UNUSED(self_id), ID **id_p, int cb_flag)
@@ -760,13 +876,17 @@ static int foreach_libblock_id_users_callback(void *user_data, ID *UNUSED(self_i
 
 	if (*id_p && (*id_p == iter->id)) {
 #if 0
-		printf("%s uses %s (refcounted: %d, userone: %d, used_one: %d, used_one_active: %d)\n",
+		printf("%s uses %s (refcounted: %d, userone: %d, used_one: %d, used_one_active: %d, indirect_usage: %d)\n",
 		       iter->curr_id->name, iter->id->name, (cb_flag & IDWALK_USER) ? 1 : 0, (cb_flag & IDWALK_USER_ONE) ? 1 : 0,
-		       (iter->id->tag & LIB_TAG_EXTRAUSER) ? 1 : 0, (iter->id->tag & LIB_TAG_EXTRAUSER_SET) ? 1 : 0);
-#else
-		UNUSED_VARS(cb_flag);
+		       (iter->id->tag & LIB_TAG_EXTRAUSER) ? 1 : 0, (iter->id->tag & LIB_TAG_EXTRAUSER_SET) ? 1 : 0,
+		       (cb_flag & IDWALK_INDIRECT_USAGE) ? 1 : 0);
 #endif
-		iter->count++;
+		if (cb_flag & IDWALK_INDIRECT_USAGE) {
+			iter->count_indirect++;
+		}
+		else {
+			iter->count_direct++;
+		}
 	}
 
 	return IDWALK_RET_NOP;
@@ -789,9 +909,86 @@ int BKE_library_ID_use_ID(ID *id_user, ID *id_used)
 	/* We do not care about iter.lb_array/lb_idx here... */
 	iter.id = id_used;
 	iter.curr_id = id_user;
-	iter.count = 0;
+	iter.count_direct = iter.count_indirect = 0;
 
 	BKE_library_foreach_ID_link(iter.curr_id, foreach_libblock_id_users_callback, (void *)&iter, IDWALK_NOP);
 
-	return iter.count;
+	return iter.count_direct + iter.count_indirect;
+}
+
+static bool library_ID_is_used(Main *bmain, void *idv, const bool check_linked)
+{
+	IDUsersIter iter;
+	ListBase *lb_array[MAX_LIBARRAY];
+	ID *id = idv;
+	int i = set_listbasepointers(bmain, lb_array);
+	bool is_defined = false;
+
+	iter.id = id;
+	iter.count_direct = iter.count_indirect = 0;
+	while (i-- && !is_defined) {
+		ID *id_curr = lb_array[i]->first;
+
+		if (!id_curr || !BKE_library_idtype_can_use_idtype(GS(id_curr->name), GS(id->name))) {
+			continue;
+		}
+
+		for (; id_curr && !is_defined; id_curr = id_curr->next) {
+			iter.curr_id = id_curr;
+			BKE_library_foreach_ID_link(
+			            id_curr, foreach_libblock_id_users_callback, &iter, IDWALK_NOP);
+
+			is_defined = ((check_linked ? iter.count_indirect : iter.count_direct) != 0);
+		}
+	}
+
+	return is_defined;
+}
+
+/**
+ * Check whether given ID is used locally (i.e. by another non-linked ID).
+ */
+bool BKE_library_ID_is_locally_used(Main *bmain, void *idv)
+{
+	return library_ID_is_used(bmain, idv, false);
+}
+
+/**
+ * Check whether given ID is used indirectly (i.e. by another linked ID).
+ */
+bool BKE_library_ID_is_indirectly_used(Main *bmain, void *idv)
+{
+	return library_ID_is_used(bmain, idv, true);
+}
+
+/**
+ * Combine \a BKE_library_ID_is_locally_used() and \a BKE_library_ID_is_indirectly_used() in a single call.
+ */
+void BKE_library_ID_test_usages(Main *bmain, void *idv, bool *is_used_local, bool *is_used_linked)
+{
+	IDUsersIter iter;
+	ListBase *lb_array[MAX_LIBARRAY];
+	ID *id = idv;
+	int i = set_listbasepointers(bmain, lb_array);
+	bool is_defined = false;
+
+	iter.id = id;
+	iter.count_direct = iter.count_indirect = 0;
+	while (i-- && !is_defined) {
+		ID *id_curr = lb_array[i]->first;
+
+		if (!id_curr || !BKE_library_idtype_can_use_idtype(GS(id_curr->name), GS(id->name))) {
+			continue;
+		}
+
+		for (; id_curr && !is_defined; id_curr = id_curr->next) {
+			iter.curr_id = id_curr;
+			BKE_library_foreach_ID_link(id_curr, foreach_libblock_id_users_callback, &iter, IDWALK_NOP);
+
+			is_defined = (iter.count_direct != 0 && iter.count_indirect != 0);
+		}
+	}
+
+	*is_used_local = (iter.count_direct != 0);
+	*is_used_linked = (iter.count_indirect != 0);
 }

@@ -1011,6 +1011,8 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tact.keyborder,               0,   0,   0, 255);
 	rgba_char_args_set(btheme->tact.keyborder_select,        0,   0,   0, 255);
 	
+	btheme->tact.keyframe_scale_fac = 1.0f;
+	
 	/* space nla */
 	btheme->tnla = btheme->tact;
 	
@@ -1469,6 +1471,30 @@ void UI_GetThemeColor3ubv(int colorid, unsigned char col[3])
 	col[0] = cp[0];
 	col[1] = cp[1];
 	col[2] = cp[2];
+}
+
+/* get the color, range 0.0-1.0, complete with shading offset */
+void UI_GetThemeColorShade4fv(int colorid, int offset, float col[4])
+{
+	int r, g, b, a;
+	const unsigned char *cp;
+	
+	cp = UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+	
+	r = offset + (int) cp[0];
+	CLAMP(r, 0, 255);
+	g = offset + (int) cp[1];
+	CLAMP(g, 0, 255);
+	b = offset + (int) cp[2];
+	CLAMP(b, 0, 255);
+	
+	a = (int) cp[3]; /* no shading offset... */
+	CLAMP(a, 0, 255);
+	
+	col[0] = ((float)r) / 255.0f;
+	col[1] = ((float)g) / 255.0f;
+	col[2] = ((float)b) / 255.0f;
+	col[3] = ((float)a) / 255.0f;
 }
 
 /* get the color, in char pointer */
@@ -2697,6 +2723,14 @@ void init_userdef_do_versions(void)
 				copy_v4_v4_char(btheme->tui.wcol_list_item.item, btheme->tui.wcol_text.item);
 				copy_v4_v4_char(btheme->tui.wcol_list_item.text_sel, btheme->tui.wcol_text.text_sel);
 			}
+		}
+	}
+	
+	if (!USER_VERSION_ATLEAST(277, 2)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			if (btheme->tact.keyframe_scale_fac < 0.1f)
+				btheme->tact.keyframe_scale_fac = 1.0f;
 		}
 	}
 

@@ -47,6 +47,7 @@
 #include "kernel_camera.h"
 #include "kernels/cpu/kernel_cpu_image.h"
 #include "geom/geom.h"
+#include "bvh/bvh.h"
 
 #include "kernel_projection.h"
 #include "kernel_accumulate.h"
@@ -912,7 +913,7 @@ bool OSLRenderServices::texture(ustring filename,
 #endif
 	bool status;
 
-	if(filename[0] == '@') {
+	if(filename.length() && filename[0] == '@') {
 		int slot = atoi(filename.c_str() + 1);
 		float4 rgba = kernel_tex_image_interp(slot, s, 1.0f - t);
 
@@ -993,7 +994,7 @@ bool OSLRenderServices::texture3d(ustring filename,
 	}
 
 	bool status;
-	if(filename[0] == '@') {
+	if(filename.length() && filename[0] == '@') {
 		int slot = atoi(filename.c_str() + 1);
 		float4 rgba = kernel_tex_image_interp_3d(slot, P.x, P.y, P.z);
 

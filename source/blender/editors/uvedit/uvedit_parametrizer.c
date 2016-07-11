@@ -743,9 +743,9 @@ static PVert *p_vert_add(PHandle *handle, PHashKey key, const float co[3], PEdge
 
 	/* Sanity check, a single nan/inf point causes the entire result to be invalid.
 	 * Note that values within the calculation may _become_ non-finite,
-	 * so the rest of the code still needs to take this possability into account. */
+	 * so the rest of the code still needs to take this possibility into account. */
 	for (int i = 0; i < 3; i++) {
-		if (UNLIKELY(!finite(v->co[i]))) {
+		if (UNLIKELY(!isfinite(v->co[i]))) {
 			v->co[i] = 0.0f;
 		}
 	}
@@ -2804,7 +2804,7 @@ static PBool p_chart_abf_solve(PChart *chart)
 
 static void p_chart_pin_positions(PChart *chart, PVert **pin1, PVert **pin2)
 {
-	if (pin1 == pin2) {
+	if (!*pin1 || !*pin2 || *pin1 == *pin2) {
 		/* degenerate case */
 		PFace *f = chart->faces;
 		*pin1 = f->edge->vert;
@@ -3051,7 +3051,7 @@ static void p_chart_lscm_begin(PChart *chart, PBool live, PBool abf)
 			p_chart_boundaries(chart, NULL, &outer);
 
 			/* outer can be NULL with non-finite coords. */
-			if (outer && !p_chart_symmetry_pins(chart, outer, &pin1, &pin2)) {
+			if (!(outer && p_chart_symmetry_pins(chart, outer, &pin1, &pin2))) {
 				p_chart_extrema_verts(chart, &pin1, &pin2);
 			}
 

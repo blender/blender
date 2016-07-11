@@ -38,6 +38,8 @@
 #include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
+#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_paint.h"
 #include "BKE_texture.h"
@@ -170,11 +172,11 @@ struct Brush *BKE_brush_first_search(struct Main *bmain, short ob_mode)
 	return NULL;
 }
 
-Brush *BKE_brush_copy(Brush *brush)
+Brush *BKE_brush_copy(Main *bmain, Brush *brush)
 {
 	Brush *brushn;
 	
-	brushn = BKE_libblock_copy(&brush->id);
+	brushn = BKE_libblock_copy(bmain, &brush->id);
 
 	if (brush->mtex.tex)
 		id_us_plus((ID *)brush->mtex.tex);
@@ -195,8 +197,9 @@ Brush *BKE_brush_copy(Brush *brush)
 	/* enable fake user by default */
 	id_fake_user_set(&brush->id);
 
-	if (brush->id.lib) {
-		BKE_id_lib_local_paths(G.main, brush->id.lib, &brushn->id);
+	if (ID_IS_LINKED_DATABLOCK(brush)) {
+		BKE_id_expand_local(&brushn->id);
+		BKE_id_lib_local_paths(bmain, brush->id.lib, &brushn->id);
 	}
 
 	return brushn;
@@ -216,63 +219,40 @@ void BKE_brush_free(Brush *brush)
 	BKE_previewimg_free(&(brush->preview));
 }
 
-static void extern_local_brush(Brush *brush)
+void BKE_brush_make_local(Main *bmain, Brush *brush)
 {
-	id_lib_extern((ID *)brush->mtex.tex);
-	id_lib_extern((ID *)brush->mask_mtex.tex);
-	id_lib_extern((ID *)brush->clone.image);
-	id_lib_extern((ID *)brush->toggle_brush);
-	id_lib_extern((ID *)brush->paint_curve);
-}
-
-void BKE_brush_make_local(Brush *brush)
-{
+	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
 
-	Main *bmain = G.main;
-	Scene *scene;
-	bool is_local = false, is_lib = false;
-
-	if (brush->id.lib == NULL) return;
+	if (!ID_IS_LINKED_DATABLOCK(brush)) {
+		return;
+	}
 
 	if (brush->clone.image) {
-		/* special case: ima always local immediately. Clone image should only
-		 * have one user anyway. */
-		id_clear_lib_data(bmain, &brush->clone.image->id);
-		extern_local_brush(brush);
+		/* Special case: ima always local immediately. Clone image should only have one user anyway. */
+		id_make_local(bmain, &brush->clone.image->id, false);
 	}
 
-	for (scene = bmain->scene.first; scene && ELEM(0, is_lib, is_local); scene = scene->id.next) {
-		if (BKE_paint_brush(&scene->toolsettings->imapaint.paint) == brush) {
-			if (scene->id.lib) is_lib = true;
-			else is_local = true;
+	BKE_library_ID_test_usages(bmain, brush, &is_local, &is_lib);
+
+	if (is_local) {
+		if (!is_lib) {
+			id_clear_lib_data(bmain, &brush->id);
+			BKE_id_expand_local(&brush->id);
+
+			/* enable fake user by default */
+			id_fake_user_set(&brush->id);
 		}
-	}
+		else {
+			Brush *brush_new = BKE_brush_copy(bmain, brush);  /* Ensures FAKE_USER is set */
 
-	if (is_local && is_lib == false) {
-		id_clear_lib_data(bmain, &brush->id);
-		extern_local_brush(brush);
+			brush_new->id.us = 0;
 
-		/* enable fake user by default */
-		id_fake_user_set(&brush->id);
-	}
-	else if (is_local && is_lib) {
-		Brush *brush_new = BKE_brush_copy(brush);  /* Ensures FAKE_USER is set */
-		id_us_min(&brush_new->id);  /* Remove user added by standard BKE_libblock_copy(). */
-
-		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, brush->id.lib, &brush_new->id);
-		
-		for (scene = bmain->scene.first; scene; scene = scene->id.next) {
-			if (BKE_paint_brush(&scene->toolsettings->imapaint.paint) == brush) {
-				if (scene->id.lib == NULL) {
-					BKE_paint_brush_set(&scene->toolsettings->imapaint.paint, brush_new);
-				}
-			}
+			BKE_libblock_remap(bmain, brush, brush_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}
 }
@@ -469,6 +449,7 @@ void BKE_brush_curve_preset(Brush *b, int preset)
 	curvemapping_changed(b->curve, false);
 }
 
+/* XXX Unused function. */
 int BKE_brush_texture_set_nr(Brush *brush, int nr)
 {
 	ID *idtest, *id = NULL;
@@ -477,7 +458,7 @@ int BKE_brush_texture_set_nr(Brush *brush, int nr)
 
 	idtest = (ID *)BLI_findlink(&G.main->tex, nr - 1);
 	if (idtest == NULL) { /* new tex */
-		if (id) idtest = (ID *)BKE_texture_copy((Tex *)id);
+		if (id) idtest = (ID *)BKE_texture_copy(G.main, (Tex *)id);
 		else idtest = (ID *)BKE_texture_add(G.main, "Tex");
 		id_us_min(idtest);
 	}
@@ -816,9 +797,7 @@ void BKE_brush_color_set(struct Scene *scene, struct Brush *brush, const float c
 void BKE_brush_size_set(Scene *scene, Brush *brush, int size)
 {
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-	
-	size = (int)((float)size / U.pixelsize);
-	
+
 	/* make sure range is sane */
 	CLAMP(size, 1, MAX_BRUSH_PIXEL_RADIUS);
 

@@ -92,7 +92,7 @@ static int text_edit_poll(bContext *C)
 	if (!text)
 		return 0;
 
-	if (text->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(text)) {
 		// BKE_report(op->reports, RPT_ERROR, "Cannot edit external libdata");
 		return 0;
 	}
@@ -108,7 +108,7 @@ int text_space_edit_poll(bContext *C)
 	if (!st || !text)
 		return 0;
 
-	if (text->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(text)) {
 		// BKE_report(op->reports, RPT_ERROR, "Cannot edit external libdata");
 		return 0;
 	}
@@ -128,7 +128,7 @@ static int text_region_edit_poll(bContext *C)
 	if (!ar || ar->regiontype != RGN_TYPE_WINDOW)
 		return 0;
 
-	if (text->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(text)) {
 		// BKE_report(op->reports, RPT_ERROR, "Cannot edit external libdata");
 		return 0;
 	}

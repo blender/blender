@@ -127,7 +127,7 @@ static void rna_Main_ID_remove(Main *bmain, ReportList *reports, PointerRNA *id_
 	}
 	else {
 		BKE_reportf(reports, RPT_ERROR,
-		            "%s '%s' must have zero users to be removed, found %d (try with unlink=True parameter)",
+		            "%s '%s' must have zero users to be removed, found %d (try with do_unlink=True parameter)",
 		            BKE_idcode_to_name(GS(id->name)), id->name + 2, ID_REAL_USERS(id));
 	}
 }
@@ -225,7 +225,7 @@ static Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char
 	id_us_min(&ob->id);
 
 	ob->data = data;
-	test_object_materials(bmain, ob->data);
+	test_object_materials(ob, ob->data);
 
 	return ob;
 }

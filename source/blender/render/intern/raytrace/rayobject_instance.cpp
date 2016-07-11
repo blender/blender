@@ -125,6 +125,9 @@ static int  RE_rayobject_instance_intersect(RayObject *o, Isect *isec)
 		isec->bv_index[2 * i + 1] = i + 3 * isec->bv_index[2 * i + 1];
 	}
 
+	// Pre-calculate orientation for watertight intersection checks.
+	isect_ray_tri_watertight_v3_precalc(&isec->isect_precalc, isec->dir);
+
 	// raycast
 	res = RE_rayobject_intersect(obj->target, isec);
 
@@ -167,6 +170,9 @@ static int  RE_rayobject_instance_intersect(RayObject *o, Isect *isec)
 		isec->bv_index[2 * i]     = i + 3 * isec->bv_index[2 * i];
 		isec->bv_index[2 * i + 1] = i + 3 * isec->bv_index[2 * i + 1];
 	}
+
+	// Pre-calculate orientation for watertight intersection checks.
+	isect_ray_tri_watertight_v3_precalc(&isec->isect_precalc, isec->dir);
 
 	return res;
 }

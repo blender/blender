@@ -196,7 +196,10 @@ int DNA_elem_array_size(const char *str)
 
 void DNA_sdna_free(SDNA *sdna)
 {
-	MEM_freeN(sdna->data);
+	if (sdna->data_alloc) {
+		MEM_freeN((void *)sdna->data);
+	}
+
 	MEM_freeN((void *)sdna->names);
 	MEM_freeN(sdna->types);
 	MEM_freeN(sdna->structs);
@@ -549,15 +552,24 @@ static void init_structDNA(SDNA *sdna, bool do_endian_swap)
 /**
  * Constructs and returns a decoded SDNA structure from the given encoded SDNA data block.
  */
-SDNA *DNA_sdna_from_data(const void *data, const int datalen, bool do_endian_swap)
+SDNA *DNA_sdna_from_data(
+        const void *data, const int datalen,
+        bool do_endian_swap, bool data_alloc)
 {
 	SDNA *sdna = MEM_mallocN(sizeof(*sdna), "sdna");
 	
 	sdna->lastfind = 0;
 
 	sdna->datalen = datalen;
-	sdna->data = MEM_mallocN(datalen, "sdna_data");
-	memcpy(sdna->data, data, datalen);
+	if (data_alloc) {
+		char *data_copy = MEM_mallocN(datalen, "sdna_data");
+		memcpy(data_copy, data, datalen);
+		sdna->data = data_copy;
+	}
+	else {
+		sdna->data = data;
+	}
+	sdna->data_alloc = data_alloc;
 	
 	init_structDNA(sdna, do_endian_swap);
 	

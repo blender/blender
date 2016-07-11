@@ -223,7 +223,7 @@ typedef struct GPU_PBVH_Buffers GPU_PBVH_Buffers;
 
 /* build */
 GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(
-        const int (*face_vert_indices)[4],
+        const int (*face_vert_indices)[3],
         const struct MPoly *mpoly, const struct MLoop *mloop, const struct MLoopTri *looptri,
         const struct MVert *verts,
         const int *face_indices,
@@ -240,7 +240,7 @@ GPU_PBVH_Buffers *GPU_build_bmesh_pbvh_buffers(bool smooth_shading);
 void GPU_update_mesh_pbvh_buffers(
         GPU_PBVH_Buffers *buffers, const struct MVert *mvert,
         const int *vert_indices, int totvert, const float *vmask,
-        const int (*face_vert_indices)[4], bool show_diffuse_color);
+        const int (*face_vert_indices)[3], bool show_diffuse_color);
 
 void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
                               struct BMesh *bm,

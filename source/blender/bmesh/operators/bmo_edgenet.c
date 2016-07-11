@@ -94,8 +94,8 @@ static BMEdge *edge_next(BMesh *bm, BMEdge *e)
 
 	for (i = 0; i < 2; i++) {
 		BM_ITER_ELEM (e2, &iter, i ? e->v2 : e->v1, BM_EDGES_OF_VERT) {
-			if ((BMO_elem_flag_test(bm, e2, EDGE_MARK)) &&
-			    (!BMO_elem_flag_test(bm, e2, EDGE_VIS)) &&
+			if ((BMO_edge_flag_test(bm, e2, EDGE_MARK)) &&
+			    (BMO_edge_flag_test(bm, e2, EDGE_VIS) == false) &&
 			    (e2 != e))
 			{
 				return e2;
@@ -144,7 +144,7 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
 	count = 0;
 	while (1) {
 		BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
-			if (!BMO_elem_flag_test(bm, e, EDGE_VIS)) {
+			if (!BMO_edge_flag_test(bm, e, EDGE_VIS)) {
 				if (BMO_iter_elem_count_flag(bm, BM_EDGES_OF_VERT, e->v1, EDGE_MARK, true) == 1 ||
 				    BMO_iter_elem_count_flag(bm, BM_EDGES_OF_VERT, e->v2, EDGE_MARK, true) == 1)
 				{
@@ -169,7 +169,7 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
 
 		i = 0;
 		while (e) {
-			BMO_elem_flag_enable(bm, e, EDGE_VIS);
+			BMO_edge_flag_enable(bm, e, EDGE_VIS);
 			BLI_array_grow_one(edges);
 			edges[i] = e;
 
@@ -258,9 +258,9 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
 		}
 
 		e = BM_edge_create(bm, v1, v3, NULL, BM_CREATE_NO_DOUBLE);
-		BMO_elem_flag_enable(bm, e, ELE_NEW);
+		BMO_edge_flag_enable(bm, e, ELE_NEW);
 		e = BM_edge_create(bm, v2, v4, NULL, BM_CREATE_NO_DOUBLE);
-		BMO_elem_flag_enable(bm, e, ELE_NEW);
+		BMO_edge_flag_enable(bm, e, ELE_NEW);
 	}
 	else if (edges1) {
 		BMVert *v1, *v2;
@@ -270,7 +270,7 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
 			i  = BLI_array_count(edges1) - 1;
 			v2 = BM_vert_in_edge(edges1[i - 1], edges1[i]->v1) ? edges1[i]->v2 : edges1[i]->v1;
 			e  = BM_edge_create(bm, v1, v2, NULL, BM_CREATE_NO_DOUBLE);
-			BMO_elem_flag_enable(bm, e, ELE_NEW);
+			BMO_edge_flag_enable(bm, e, ELE_NEW);
 		}
 	}
 

@@ -839,19 +839,10 @@ static int rna_RenderSettings_save_buffers_get(PointerRNA *ptr)
 	RenderData *rd = (RenderData *)ptr->data;
 	Scene *scene = (Scene *)ptr->id.data;
 	
-	if (rd->mode & R_BORDER)
-		return 0;
-	else if (!BKE_scene_use_new_shading_nodes(scene))
+	if (!BKE_scene_use_new_shading_nodes(scene))
 		return (rd->scemode & (R_EXR_TILE_FILE | R_FULL_SAMPLE)) != 0;
 	else 
 		return (rd->scemode & R_EXR_TILE_FILE) != 0;
-}
-
-static int rna_RenderSettings_full_sample_get(PointerRNA *ptr)
-{
-	RenderData *rd = (RenderData *)ptr->data;
-
-	return (rd->scemode & R_FULL_SAMPLE) && !(rd->mode & R_BORDER);
 }
 
 static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
@@ -4362,6 +4353,11 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	                         "Use extra textures like normal or specular maps for GLSL rendering");
 	RNA_def_property_update(prop, NC_SCENE | NA_EDITED, "rna_Scene_glsl_update");
 
+	prop = RNA_def_property(srna, "use_glsl_environment_lighting", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_GLSL_NO_ENV_LIGHTING);
+	RNA_def_property_ui_text(prop, "GLSL Environment Lighting", "Use environment lighting for GLSL rendering");
+	RNA_def_property_update(prop, NC_SCENE | NA_EDITED, "rna_Scene_glsl_update");
+
 	prop = RNA_def_property(srna, "use_material_caching", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_NO_MATERIAL_CACHING);
 	RNA_def_property_ui_text(prop, "Use Material Caching",
@@ -5744,7 +5740,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "use_full_sample", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_FULL_SAMPLE);
-	RNA_def_property_boolean_funcs(prop, "rna_RenderSettings_full_sample_get", NULL);
 	RNA_def_property_ui_text(prop, "Full Sample",
 	                         "Save for every anti-aliasing sample the entire RenderLayer results "
 	                         "(this solves anti-aliasing issues with compositing)");

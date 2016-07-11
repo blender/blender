@@ -1301,7 +1301,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 	DAG_relations_tag_update(bmain);
 
 	newob = newbase->object;
-	newcu = newob->data = BKE_curve_copy(oldcu);
+	newcu = newob->data = BKE_curve_copy(bmain, oldcu);
 	newcu->editnurb = NULL;
 	id_us_min(&oldcu->id); /* because new curve is a copy: reduce user count */
 
@@ -6034,9 +6034,8 @@ int join_curve_exec(bContext *C, wmOperator *op)
 	BLI_movelisttolist(&cu->nurb, &tempbase);
 	
 	DAG_relations_tag_update(bmain);   // because we removed object(s), call before editmode!
-	
-	ED_object_editmode_enter(C, EM_WAITCURSOR);
-	ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR | EM_DO_UNDO);
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 

@@ -62,10 +62,10 @@ static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenera
 
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
-		if (BMO_elem_flag_test(bm, l_iter->v, VERT_INPUT) &&
+		if (BMO_vert_flag_test(bm, l_iter->v, VERT_INPUT) &&
 		    /* ensure this vertex isnt part of a contiguous group */
-		    ((BMO_elem_flag_test(bm, l_iter->prev->v, VERT_INPUT) == 0) ||
-		     (BMO_elem_flag_test(bm, l_iter->next->v, VERT_INPUT) == 0)))
+		    ((BMO_vert_flag_test(bm, l_iter->prev->v, VERT_INPUT) == 0) ||
+		     (BMO_vert_flag_test(bm, l_iter->next->v, VERT_INPUT) == 0)))
 		{
 			if (!l_tag_prev) {
 				l_tag_prev = l_tag_first = l_iter;
@@ -75,7 +75,7 @@ static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenera
 			if (!BM_loop_is_adjacent(l_tag_prev, l_iter)) {
 				BMEdge *e;
 				e = BM_edge_exists(l_tag_prev->v, l_iter->v);
-				if (e == NULL || !BMO_elem_flag_test(bm, e, EDGE_OUT)) {
+				if (e == NULL || !BMO_edge_flag_test(bm, e, EDGE_OUT)) {
 					BMLoop **l_pair = STACK_PUSH_RET(loops_split);
 					l_pair[0] = l_tag_prev;
 					l_pair[1] = l_iter;
@@ -138,8 +138,8 @@ static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenera
 		if (!l_new || !f_new) {
 			return -1;
 		}
-		// BMO_elem_flag_enable(bm, f_new, FACE_NEW);
-		BMO_elem_flag_enable(bm, l_new->e, EDGE_OUT);
+		// BMO_face_flag_enable(bm, f_new, FACE_NEW);
+		BMO_edge_flag_enable(bm, l_new->e, EDGE_OUT);
 	}
 
 	return 1;
@@ -164,12 +164,12 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 		BMIter iter;
 		BMLoop *l_iter;
 
-		BMO_elem_flag_enable(bm, v, VERT_INPUT);
+		BMO_vert_flag_enable(bm, v, VERT_INPUT);
 		BM_ITER_ELEM (l_iter, &iter, v, BM_LOOPS_OF_VERT) {
 			f = l_iter->f;
-			if (!BMO_elem_flag_test(bm, f, FACE_EXCLUDE)) {
-				if (!BMO_elem_flag_test(bm, f, FACE_TAG)) {
-					BMO_elem_flag_enable(bm, f, FACE_TAG);
+			if (!BMO_face_flag_test(bm, f, FACE_EXCLUDE)) {
+				if (!BMO_face_flag_test(bm, f, FACE_TAG)) {
+					BMO_face_flag_enable(bm, f, FACE_TAG);
 					if (f->len > 3) {
 						BLI_LINKSTACK_PUSH(faces, f);
 					}
@@ -179,11 +179,11 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 			/* flag edges even if these are not newly created
 			 * this way cut-pairs that include co-linear edges will get
 			 * predictable output. */
-			if (BMO_elem_flag_test(bm, l_iter->prev->v, VERT_INPUT)) {
-				BMO_elem_flag_enable(bm, l_iter->prev->e, EDGE_OUT_ADJ);
+			if (BMO_vert_flag_test(bm, l_iter->prev->v, VERT_INPUT)) {
+				BMO_edge_flag_enable(bm, l_iter->prev->e, EDGE_OUT_ADJ);
 			}
-			if (BMO_elem_flag_test(bm, l_iter->next->v, VERT_INPUT)) {
-				BMO_elem_flag_enable(bm, l_iter->e, EDGE_OUT_ADJ);
+			if (BMO_vert_flag_test(bm, l_iter->next->v, VERT_INPUT)) {
+				BMO_edge_flag_enable(bm, l_iter->e, EDGE_OUT_ADJ);
 			}
 		}
 	}

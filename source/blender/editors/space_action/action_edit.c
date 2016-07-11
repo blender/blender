@@ -333,7 +333,7 @@ static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *min, 
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through all channels, finding the first one that's selected */
-	y = (float)ACHANNEL_FIRST;
+	y = (float)ACHANNEL_FIRST(ac);
 	
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
@@ -343,8 +343,8 @@ static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *min, 
 		    ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_SELECT))
 		{
 			/* update best estimate */
-			*min = (float)(y - ACHANNEL_HEIGHT_HALF);
-			*max = (float)(y + ACHANNEL_HEIGHT_HALF);
+			*min = (float)(y - ACHANNEL_HEIGHT_HALF(ac));
+			*max = (float)(y + ACHANNEL_HEIGHT_HALF(ac));
 			
 			/* is this high enough priority yet? */
 			found = acf->channel_role;
@@ -358,7 +358,7 @@ static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *min, 
 		}
 		
 		/* adjust y-position for next one */
-		y -= ACHANNEL_STEP;
+		y -= ACHANNEL_STEP(ac);
 	}
 	
 	/* free all temp data */

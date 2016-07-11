@@ -25,7 +25,8 @@
 /* bvh */
 KERNEL_TEX(float4, texture_float4, __bvh_nodes)
 KERNEL_TEX(float4, texture_float4, __bvh_leaf_nodes)
-KERNEL_TEX(float4, texture_float4, __tri_storage)
+KERNEL_TEX(float4, texture_float4, __prim_tri_verts)
+KERNEL_TEX(uint, texture_uint, __prim_tri_index)
 KERNEL_TEX(uint, texture_uint, __prim_type)
 KERNEL_TEX(uint, texture_uint, __prim_visibility)
 KERNEL_TEX(uint, texture_uint, __prim_index)
@@ -39,8 +40,7 @@ KERNEL_TEX(float4, texture_float4, __objects_vector)
 /* triangles */
 KERNEL_TEX(uint, texture_uint, __tri_shader)
 KERNEL_TEX(float4, texture_float4, __tri_vnormal)
-KERNEL_TEX(float4, texture_float4, __tri_vindex)
-KERNEL_TEX(float4, texture_float4, __tri_verts)
+KERNEL_TEX(uint4, texture_uint4, __tri_vindex)
 
 /* curves */
 KERNEL_TEX(float4, texture_float4, __curves)

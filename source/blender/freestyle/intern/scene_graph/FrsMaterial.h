@@ -298,9 +298,9 @@ public:
 	inline void setShininess(const float s);
 
 	/*! Sets the line color priority.
-	*    \param priority
-	*      Priority
-	*/
+	 *    \param priority
+	 *      Priority
+	 */
 	inline void setPriority(const int priority);
 
 	/* operators */

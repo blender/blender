@@ -429,12 +429,12 @@ public:
 
 // QiF0D
 /*! Returns the quantitative invisibility of this Interface0D.
-*  This evaluation can be ambiguous (in the case of a TVertex for example).
-*  This functor tries to remove this ambiguity using the context offered by the 1D element to which the
-*  Interface0DIterator& belongs to.
-*  However, there still can be problematic cases, and the user willing to deal with this cases in a specific way
-*  should implement its own getQIF0D functor.
-*/
+ *  This evaluation can be ambiguous (in the case of a TVertex for example).
+ *  This functor tries to remove this ambiguity using the context offered by the 1D element to which the
+ *  Interface0DIterator& belongs to.
+ *  However, there still can be problematic cases, and the user willing to deal with this cases in a specific way
+ *  should implement its own getQIF0D functor.
+ */
 class QuantitativeInvisibilityF0D : public UnaryFunction0D<unsigned int>
 {
 public:

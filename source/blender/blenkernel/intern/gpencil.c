@@ -49,6 +49,7 @@
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 
 
 /* ************************************************** */
@@ -358,7 +359,7 @@ bGPDlayer *gpencil_layer_duplicate(bGPDlayer *src)
 }
 
 /* make a copy of a given gpencil datablock */
-bGPdata *gpencil_data_duplicate(bGPdata *src, bool internal_copy)
+bGPdata *gpencil_data_duplicate(Main *bmain, bGPdata *src, bool internal_copy)
 {
 	bGPDlayer *gpl, *gpld;
 	bGPdata *dst;
@@ -374,7 +375,7 @@ bGPdata *gpencil_data_duplicate(bGPdata *src, bool internal_copy)
 	}
 	else {
 		/* make a copy when others use this */
-		dst = BKE_libblock_copy(&src->id);
+		dst = BKE_libblock_copy(bmain, &src->id);
 	}
 	
 	/* copy layers */

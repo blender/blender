@@ -36,6 +36,7 @@ struct bGPdata;
 struct bGPDlayer;
 struct bGPDframe;
 struct bGPDstroke;
+struct Main;
 
 /* ------------ Grease-Pencil API ------------------ */
 
@@ -53,7 +54,7 @@ struct bGPdata *gpencil_data_addnew(const char name[]);
 
 struct bGPDframe *gpencil_frame_duplicate(struct bGPDframe *src);
 struct bGPDlayer *gpencil_layer_duplicate(struct bGPDlayer *src);
-struct bGPdata *gpencil_data_duplicate(struct bGPdata *gpd, bool internal_copy);
+struct bGPdata *gpencil_data_duplicate(struct Main *bmain, struct bGPdata *gpd, bool internal_copy);
 
 void gpencil_frame_delete_laststroke(struct bGPDlayer *gpl, struct bGPDframe *gpf);
 

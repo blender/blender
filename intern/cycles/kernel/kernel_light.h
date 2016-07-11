@@ -51,8 +51,8 @@ ccl_device float area_light_sample(float3 P,
                                    bool sample_coord)
 {
 	/* In our name system we're using P for the center,
-	* which is o in the paper.
-	*/
+	 * which is o in the paper.
+	 */
 
 	float3 corner = *light_p - axisu * 0.5f - axisv * 0.5f;
 	float axisu_len, axisv_len;

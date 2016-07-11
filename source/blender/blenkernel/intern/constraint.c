@@ -2195,7 +2195,7 @@ static void actcon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintT
 		}
 		else if (cob->type == CONSTRAINT_OBTYPE_BONE) {
 			Object workob;
-			bPose pose = {0};
+			bPose pose = {{0}};
 			bPoseChannel *pchan, *tchan;
 
 			/* make a copy of the bone of interest in the temp pose before evaluating action, so that it can get set 
@@ -4649,7 +4649,7 @@ void BKE_constraints_id_loop(ListBase *conlist, ConstraintIDFunc func, void *use
 /* helper for BKE_constraints_copy(), to be used for making sure that ID's are valid */
 static void con_extern_cb(bConstraint *UNUSED(con), ID **idpoin, bool UNUSED(is_reference), void *UNUSED(userData))
 {
-	if (*idpoin && (*idpoin)->lib)
+	if (*idpoin && ID_IS_LINKED_DATABLOCK(*idpoin))
 		id_lib_extern(*idpoin);
 }
 

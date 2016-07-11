@@ -254,8 +254,7 @@ static void alter_co(
 	copy_v3_v3(co, v->co);
 
 	if (UNLIKELY(params->use_sphere)) { /* subdivide sphere */
-		normalize_v3(co);
-		mul_v3_fl(co, params->smooth);
+		normalize_v3_length(co, params->smooth);
 	}
 	else if (params->use_smooth) {
 		/* calculating twice and blending gives smoother results,
@@ -384,7 +383,7 @@ static BMVert *bm_subdivide_edge_addvert(
 	
 	v_new = BM_edge_split(bm, edge, edge->v1, r_edge, factor_edge_split);
 
-	BMO_elem_flag_enable(bm, v_new, ELE_INNER);
+	BMO_vert_flag_enable(bm, v_new, ELE_INNER);
 
 	/* offset for smooth or sphere or fractal */
 	alter_co(v_new, e_orig, params, factor_subd, v_a, v_b);
@@ -419,7 +418,7 @@ static BMVert *subdivide_edge_num(
 	BMVert *v_new;
 	float factor_edge_split, factor_subd;
 
-	if (BMO_elem_flag_test(bm, edge, EDGE_PERCENT) && totpoint == 1) {
+	if (BMO_edge_flag_test(bm, edge, EDGE_PERCENT) && totpoint == 1) {
 		factor_edge_split = BMO_slot_map_float_get(params->slot_edge_percents, edge);
 		factor_subd = 0.0f;
 	}
@@ -449,9 +448,9 @@ static void bm_subdivide_multicut(
 	for (i = 0; i < numcuts; i++) {
 		v = subdivide_edge_num(bm, eed, &e_tmp, i, params->numcuts, params, v_a, v_b, &e_new);
 
-		BMO_elem_flag_enable(bm, v, SUBD_SPLIT | ELE_SPLIT);
-		BMO_elem_flag_enable(bm, eed, SUBD_SPLIT | ELE_SPLIT);
-		BMO_elem_flag_enable(bm, e_new, SUBD_SPLIT | ELE_SPLIT);
+		BMO_vert_flag_enable(bm, v, SUBD_SPLIT | ELE_SPLIT);
+		BMO_edge_flag_enable(bm, eed, SUBD_SPLIT | ELE_SPLIT);
+		BMO_edge_flag_enable(bm, e_new, SUBD_SPLIT | ELE_SPLIT);
 
 		BM_CHECK_ELEMENT(v);
 		if (v->e) BM_CHECK_ELEMENT(v->e);
@@ -698,8 +697,8 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 		if (!e)
 			continue;
 
-		BMO_elem_flag_enable(bm, e, ELE_INNER);
-		BMO_elem_flag_enable(bm, f_new, ELE_INNER);
+		BMO_edge_flag_enable(bm, e, ELE_INNER);
+		BMO_face_flag_enable(bm, f_new, ELE_INNER);
 
 		
 		v1 = lines[(i + 1) * s] = verts[a];
@@ -711,7 +710,7 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 
 			BMESH_ASSERT(v != NULL);
 
-			BMO_elem_flag_enable(bm, e_new, ELE_INNER);
+			BMO_edge_flag_enable(bm, e_new, ELE_INNER);
 			lines[(i + 1) * s + a + 1] = v;
 		}
 	}
@@ -724,8 +723,8 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 			if (!e)
 				continue;
 
-			BMO_elem_flag_enable(bm, e, ELE_INNER);
-			BMO_elem_flag_enable(bm, f_new, ELE_INNER);
+			BMO_edge_flag_enable(bm, e, ELE_INNER);
+			BMO_face_flag_enable(bm, f_new, ELE_INNER);
 		}
 	}
 
@@ -802,8 +801,8 @@ static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 		e = connect_smallest_face(bm, verts[a], verts[b], &f_new);
 		if (!e) goto cleanup;
 
-		BMO_elem_flag_enable(bm, e, ELE_INNER);
-		BMO_elem_flag_enable(bm, f_new, ELE_INNER);
+		BMO_edge_flag_enable(bm, e, ELE_INNER);
+		BMO_face_flag_enable(bm, f_new, ELE_INNER);
 
 		lines[i + 1][0] = verts[a];
 		lines[i + 1][i + 1] = verts[b];
@@ -817,7 +816,7 @@ static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 			v = subdivide_edge_num(bm, e, &e_tmp, j, i, params, verts[a], verts[b], &e_new);
 			lines[i + 1][j + 1] = v;
 
-			BMO_elem_flag_enable(bm, e_new, ELE_INNER);
+			BMO_edge_flag_enable(bm, e_new, ELE_INNER);
 		}
 	}
 	
@@ -837,13 +836,13 @@ static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 		for (j = 0; j < i; j++) {
 			e = connect_smallest_face(bm, lines[i][j], lines[i + 1][j + 1], &f_new);
 
-			BMO_elem_flag_enable(bm, e, ELE_INNER);
-			BMO_elem_flag_enable(bm, f_new, ELE_INNER);
+			BMO_edge_flag_enable(bm, e, ELE_INNER);
+			BMO_face_flag_enable(bm, f_new, ELE_INNER);
 
 			e = connect_smallest_face(bm, lines[i][j + 1], lines[i + 1][j + 1], &f_new);
 
-			BMO_elem_flag_enable(bm, e, ELE_INNER);
-			BMO_elem_flag_enable(bm, f_new, ELE_INNER);
+			BMO_edge_flag_enable(bm, e, ELE_INNER);
+			BMO_face_flag_enable(bm, f_new, ELE_INNER);
 		}
 	}
 
@@ -1023,7 +1022,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			edges[i] = l_new->e;
 			verts[i] = l_new->v;
 
-			if (BMO_elem_flag_test(bm, edges[i], SUBD_SPLIT)) {
+			if (BMO_edge_flag_test(bm, edges[i], SUBD_SPLIT)) {
 				if (!e1) e1 = edges[i];
 				else     e2 = edges[i];
 
@@ -1043,13 +1042,13 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 
-		if (BMO_elem_flag_test(bm, face, FACE_CUSTOMFILL)) {
+		if (BMO_face_flag_test(bm, face, FACE_CUSTOMFILL)) {
 			pat = *BMO_slot_map_data_get(params.slot_custom_patterns, face);
 			for (i = 0; i < pat->len; i++) {
 				matched = 1;
 				for (j = 0; j < pat->len; j++) {
 					a = (j + i) % pat->len;
-					if ((!!BMO_elem_flag_test(bm, edges[a], SUBD_SPLIT)) != (!!pat->seledges[j])) {
+					if ((!!BMO_edge_flag_test(bm, edges[a], SUBD_SPLIT)) != (!!pat->seledges[j])) {
 						matched = 0;
 						break;
 					}
@@ -1062,7 +1061,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 					fd->start = verts[i];
 					fd->face = face;
 					fd->totedgesel = totesel;
-					BMO_elem_flag_enable(bm, face, SUBD_SPLIT);
+					BMO_face_flag_enable(bm, face, SUBD_SPLIT);
 					break;
 				}
 			}
@@ -1082,7 +1081,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 					matched = 1;
 					for (b = 0; b < pat->len; b++) {
 						j = (b + a) % pat->len;
-						if ((!!BMO_elem_flag_test(bm, edges[j], SUBD_SPLIT)) != (!!pat->seledges[b])) {
+						if ((!!BMO_edge_flag_test(bm, edges[j], SUBD_SPLIT)) != (!!pat->seledges[b])) {
 							matched = 0;
 							break;
 						}
@@ -1094,7 +1093,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 				if (matched) {
 					SubDFaceData *fd;
 
-					BMO_elem_flag_enable(bm, face, SUBD_SPLIT);
+					BMO_face_flag_enable(bm, face, SUBD_SPLIT);
 
 					fd = BLI_stack_push_r(facedata);
 					fd->pat = pat;
@@ -1110,7 +1109,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 		if (!matched && totesel) {
 			SubDFaceData *fd;
 			
-			BMO_elem_flag_enable(bm, face, SUBD_SPLIT);
+			BMO_face_flag_enable(bm, face, SUBD_SPLIT);
 
 			/* must initialize all members here */
 			fd = BLI_stack_push_r(facedata);
@@ -1162,22 +1161,22 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 			/* find the boundary of one of the split edges */
 			for (a = 1; a < vlen; a++) {
-				if (!BMO_elem_flag_test(bm, loops[a - 1]->v, ELE_INNER) &&
-				    BMO_elem_flag_test(bm, loops[a]->v, ELE_INNER))
+				if (!BMO_vert_flag_test(bm, loops[a - 1]->v, ELE_INNER) &&
+				    BMO_vert_flag_test(bm, loops[a]->v, ELE_INNER))
 				{
 					break;
 				}
 			}
 			
-			if (BMO_elem_flag_test(bm, loops[(a + numcuts + 1) % vlen]->v, ELE_INNER)) {
+			if (BMO_vert_flag_test(bm, loops[(a + numcuts + 1) % vlen]->v, ELE_INNER)) {
 				b = (a + numcuts + 1) % vlen;
 			}
 			else {
 				/* find the boundary of the other edge. */
 				for (j = 0; j < vlen; j++) {
 					b = (j + a + numcuts + 1) % vlen;
-					if (!BMO_elem_flag_test(bm, loops[b == 0 ? vlen - 1 : b - 1]->v, ELE_INNER) &&
-					    BMO_elem_flag_test(bm, loops[b]->v, ELE_INNER))
+					if (!BMO_vert_flag_test(bm, loops[b == 0 ? vlen - 1 : b - 1]->v, ELE_INNER) &&
+					    BMO_vert_flag_test(bm, loops[b]->v, ELE_INNER))
 					{
 						break;
 					}
@@ -1245,7 +1244,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 					BLI_assert(BM_edge_exists(loops_split[j][0]->v, loops_split[j][1]->v) == NULL);
 					f_new = BM_face_split(bm, face, loops_split[j][0], loops_split[j][1], &l_new, NULL, false);
 					if (f_new) {
-						BMO_elem_flag_enable(bm, l_new->e, ELE_INNER);
+						BMO_edge_flag_enable(bm, l_new->e, ELE_INNER);
 					}
 				}
 			}

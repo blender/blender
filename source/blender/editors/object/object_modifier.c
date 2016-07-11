@@ -673,9 +673,9 @@ int edit_modifier_poll_generic(bContext *C, StructRNA *rna_type, int obtype_flag
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", rna_type);
 	Object *ob = (ptr.id.data) ? ptr.id.data : ED_object_active_context(C);
 	
-	if (!ob || ob->id.lib) return 0;
+	if (!ob || ID_IS_LINKED_DATABLOCK(ob)) return 0;
 	if (obtype_flag && ((1 << ob->type) & obtype_flag) == 0) return 0;
-	if (ptr.id.data && ((ID *)ptr.id.data)->lib) return 0;
+	if (ptr.id.data && ID_IS_LINKED_DATABLOCK(ptr.id.data)) return 0;
 	
 	return 1;
 }

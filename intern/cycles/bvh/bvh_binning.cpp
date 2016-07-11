@@ -52,12 +52,35 @@ __forceinline int get_best_dimension(const float4& bestSAH)
 
 /* BVH Object Binning */
 
-BVHObjectBinning::BVHObjectBinning(const BVHRange& job, BVHReference *prims)
-: BVHRange(job), splitSAH(FLT_MAX), dim(0), pos(0)
+BVHObjectBinning::BVHObjectBinning(const BVHRange& job,
+                                   BVHReference *prims,
+                                   const BVHUnaligned *unaligned_heuristic,
+                                   const Transform *aligned_space)
+: BVHRange(job),
+  splitSAH(FLT_MAX),
+  dim(0),
+  pos(0),
+  unaligned_heuristic_(unaligned_heuristic),
+  aligned_space_(aligned_space)
 {
+	if(aligned_space_ == NULL) {
+		bounds_ = bounds();
+		cent_bounds_ = cent_bounds();
+	}
+	else {
+		/* TODO(sergey): With some additional storage we can avoid
+		 * need in re-calculating this.
+		 */
+		bounds_ = unaligned_heuristic->compute_aligned_boundbox(
+		        *this,
+		        prims,
+		        *aligned_space,
+		        &cent_bounds_);
+	}
+
 	/* compute number of bins to use and precompute scaling factor for binning */
 	num_bins = min(size_t(MAX_BINS), size_t(4.0f + 0.05f*size()));
-	scale = rcp(cent_bounds().size()) * make_float3((float)num_bins);
+	scale = rcp(cent_bounds_.size()) * make_float3((float)num_bins);
 
 	/* initialize binning counter and bounds */
 	BoundBox bin_bounds[MAX_BINS][4];	/* bounds for every bin in every dimension */
@@ -79,30 +102,34 @@ BVHObjectBinning::BVHObjectBinning(const BVHRange& job, BVHReference *prims)
 			const BVHReference& prim0 = prims[start() + i + 0];
 			const BVHReference& prim1 = prims[start() + i + 1];
 
-			int4 bin0 = get_bin(prim0.bounds());
-			int4 bin1 = get_bin(prim1.bounds());
+			BoundBox bounds0 = get_prim_bounds(prim0);
+			BoundBox bounds1 = get_prim_bounds(prim1);
+
+			int4 bin0 = get_bin(bounds0);
+			int4 bin1 = get_bin(bounds1);
 
 			/* increase bounds for bins for even primitive */
-			int b00 = (int)extract<0>(bin0); bin_count[b00][0]++; bin_bounds[b00][0].grow(prim0.bounds());
-			int b01 = (int)extract<1>(bin0); bin_count[b01][1]++; bin_bounds[b01][1].grow(prim0.bounds());
-			int b02 = (int)extract<2>(bin0); bin_count[b02][2]++; bin_bounds[b02][2].grow(prim0.bounds());
+			int b00 = (int)extract<0>(bin0); bin_count[b00][0]++; bin_bounds[b00][0].grow(bounds0);
+			int b01 = (int)extract<1>(bin0); bin_count[b01][1]++; bin_bounds[b01][1].grow(bounds0);
+			int b02 = (int)extract<2>(bin0); bin_count[b02][2]++; bin_bounds[b02][2].grow(bounds0);
 
 			/* increase bounds of bins for odd primitive */
-			int b10 = (int)extract<0>(bin1); bin_count[b10][0]++; bin_bounds[b10][0].grow(prim1.bounds());
-			int b11 = (int)extract<1>(bin1); bin_count[b11][1]++; bin_bounds[b11][1].grow(prim1.bounds());
-			int b12 = (int)extract<2>(bin1); bin_count[b12][2]++; bin_bounds[b12][2].grow(prim1.bounds());
+			int b10 = (int)extract<0>(bin1); bin_count[b10][0]++; bin_bounds[b10][0].grow(bounds1);
+			int b11 = (int)extract<1>(bin1); bin_count[b11][1]++; bin_bounds[b11][1].grow(bounds1);
+			int b12 = (int)extract<2>(bin1); bin_count[b12][2]++; bin_bounds[b12][2].grow(bounds1);
 		}
 
 		/* for uneven number of primitives */
 		if(i < ssize_t(size())) {
 			/* map primitive to bin */
 			const BVHReference& prim0 = prims[start() + i];
-			int4 bin0 = get_bin(prim0.bounds());
+			BoundBox bounds0 = get_prim_bounds(prim0);
+			int4 bin0 = get_bin(bounds0);
 
 			/* increase bounds of bins */
-			int b00 = (int)extract<0>(bin0); bin_count[b00][0]++; bin_bounds[b00][0].grow(prim0.bounds());
-			int b01 = (int)extract<1>(bin0); bin_count[b01][1]++; bin_bounds[b01][1].grow(prim0.bounds());
-			int b02 = (int)extract<2>(bin0); bin_count[b02][2]++; bin_bounds[b02][2].grow(prim0.bounds());
+			int b00 = (int)extract<0>(bin0); bin_count[b00][0]++; bin_bounds[b00][0].grow(bounds0);
+			int b01 = (int)extract<1>(bin0); bin_count[b01][1]++; bin_bounds[b01][1].grow(bounds0);
+			int b02 = (int)extract<2>(bin0); bin_count[b02][2]++; bin_bounds[b02][2].grow(bounds0);
 		}
 	}
 
@@ -151,17 +178,19 @@ BVHObjectBinning::BVHObjectBinning(const BVHRange& job, BVHReference *prims)
 		bestSAH = min(sah,bestSAH);
 	}
 
-	int4 mask = float3_to_float4(cent_bounds().size()) <= make_float4(0.0f);
+	int4 mask = float3_to_float4(cent_bounds_.size()) <= make_float4(0.0f);
 	bestSAH = insert<3>(select(mask, make_float4(FLT_MAX), bestSAH), FLT_MAX);
 
 	/* find best dimension */
 	dim = get_best_dimension(bestSAH);
 	splitSAH = bestSAH[dim];
 	pos = bestSplit[dim];
-	leafSAH	= bounds().half_area() * blocks(size());
+	leafSAH = bounds_.half_area() * blocks(size());
 }
 
-void BVHObjectBinning::split(BVHReference* prims, BVHObjectBinning& left_o, BVHObjectBinning& right_o) const
+void BVHObjectBinning::split(BVHReference* prims,
+                             BVHObjectBinning& left_o,
+                             BVHObjectBinning& right_o) const
 {
 	size_t N = size();
 
@@ -176,10 +205,12 @@ void BVHObjectBinning::split(BVHReference* prims, BVHObjectBinning& left_o, BVHO
 		prefetch_L2(&prims[start() + l + 8]);
 		prefetch_L2(&prims[start() + r - 8]);
 
-		const BVHReference& prim = prims[start() + l];
+		BVHReference prim = prims[start() + l];
+		BoundBox unaligned_bounds = get_prim_bounds(prim);
+		float3 unaligned_center = unaligned_bounds.center2();
 		float3 center = prim.bounds().center2();
 
-		if(get_bin(center)[dim] < pos) {
+		if(get_bin(unaligned_center)[dim] < pos) {
 			lgeom_bounds.grow(prim.bounds());
 			lcent_bounds.grow(center);
 			l++;
@@ -191,7 +222,6 @@ void BVHObjectBinning::split(BVHReference* prims, BVHObjectBinning& left_o, BVHO
 			r--;
 		}
 	}
-
 	/* finish */
 	if(l != 0 && N-1-r != 0) {
 		right_o = BVHObjectBinning(BVHRange(rgeom_bounds, rcent_bounds, start() + l, N-1-r), prims);

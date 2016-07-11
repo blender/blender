@@ -127,6 +127,19 @@ ccl_device_inline Transform make_transform(float a, float b, float c, float d,
 	return t;
 }
 
+/* Constructs a coordinate frame from a normalized normal. */
+ccl_device_inline Transform make_transform_frame(float3 N)
+{
+	const float3 dx0 = cross(make_float3(1.0f, 0.0f, 0.0f), N);
+	const float3 dx1 = cross(make_float3(0.0f, 1.0f, 0.0f), N);
+	const float3 dx = normalize((dot(dx0,dx0) > dot(dx1,dx1))?  dx0: dx1);
+	const float3 dy = normalize(cross(N, dx));
+	return make_transform(dx.x, dx.y, dx.z, 0.0f,
+	                      dy.x, dy.y, dy.z, 0.0f,
+	                      N.x , N.y,  N.z,  0.0f,
+	                      0.0f, 0.0f, 0.0f, 1.0f);
+}
+
 #ifndef __KERNEL_GPU__
 
 ccl_device_inline Transform operator*(const Transform a, const Transform b)

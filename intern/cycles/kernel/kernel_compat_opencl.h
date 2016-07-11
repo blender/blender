@@ -39,6 +39,7 @@
 #define ccl_global __global
 #define ccl_local __local
 #define ccl_private __private
+#define ccl_restrict restrict
 
 #ifdef __SPLIT_KERNEL__
 #  define ccl_addr_space __global

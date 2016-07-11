@@ -938,11 +938,6 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 
 	// TODO: "Done" operation
 
-	/* ShapeKeys */
-	Key *key = BKE_key_from_object(ob);
-	if (key)
-		build_shapekeys(key);
-
 	/* Modifiers */
 	if (ob->modifiers.first) {
 		ModifierData *md;
@@ -976,6 +971,12 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 
 	if (obdata->tag & LIB_TAG_DOIT) {
 		return;
+	}
+
+	/* ShapeKeys */
+	Key *key = BKE_key_from_object(ob);
+	if (key) {
+		build_shapekeys(key);
 	}
 
 	build_animdata(obdata);

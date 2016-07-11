@@ -1208,6 +1208,13 @@ static short set_keytype_jitter(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 	return 0;
 }
 
+static short set_keytype_moving_hold(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 
+{
+	if (bezt->f2 & SELECT) 
+		BEZKEYTYPE(bezt) = BEZT_KEYTYPE_MOVEHOLD;
+	return 0;
+}
+
 /* Set the interpolation type of the selected BezTriples in each F-Curve to the specified one */
 KeyframeEditFunc ANIM_editkeyframes_keytype(short code)
 {
@@ -1220,6 +1227,9 @@ KeyframeEditFunc ANIM_editkeyframes_keytype(short code)
 			
 		case BEZT_KEYTYPE_JITTER: /* jitter keyframe */
 			return set_keytype_jitter;
+			
+		case BEZT_KEYTYPE_MOVEHOLD: /* moving hold */
+			return set_keytype_moving_hold;
 			
 		case BEZT_KEYTYPE_KEYFRAME: /* proper keyframe */
 		default:

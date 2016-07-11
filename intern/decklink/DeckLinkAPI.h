@@ -15,19 +15,19 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
-* The Original Code is Copyright (C) 2015, Blender Foundation
-* All rights reserved.
-*
-* The Original Code is: all of this file.
-*
-* Contributor(s): Blender Foundation.
+ * The Original Code is Copyright (C) 2015, Blender Foundation
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): Blender Foundation.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file decklink/DeckLinkAPI.h
-*  \ingroup decklink
-*/
+ *  \ingroup decklink
+ */
 
 #ifndef __DECKLINKAPI_H__
 #define __DECKLINKAPI_H__

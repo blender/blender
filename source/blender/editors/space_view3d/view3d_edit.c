@@ -109,7 +109,7 @@ static bool view3d_operator_offset_lock_check(bContext *C, wmOperator *op)
 bool ED_view3d_camera_lock_check(const View3D *v3d, const RegionView3D *rv3d)
 {
 	return ((v3d->camera) &&
-	        (v3d->camera->id.lib == NULL) &&
+	        (!ID_IS_LINKED_DATABLOCK(v3d->camera)) &&
 	        (v3d->flag2 & V3D_LOCK_CAMERA) &&
 	        (rv3d->persp == RV3D_CAMOB));
 }
@@ -3430,12 +3430,8 @@ static int render_border_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 	}
 
-	/* drawing a border surrounding the entire camera view switches off border rendering
-	 * or the border covers no pixels */
-	if ((border.xmin <= 0.0f && border.xmax >= 1.0f &&
-	     border.ymin <= 0.0f && border.ymax >= 1.0f) ||
-	    (border.xmin == border.xmax || border.ymin == border.ymax))
-	{
+	/* drawing a border outside the camera view switches off border rendering */
+	if ((border.xmin == border.xmax || border.ymin == border.ymax)) {
 		if (rv3d->persp == RV3D_CAMOB)
 			scene->r.mode &= ~R_BORDER;
 		else

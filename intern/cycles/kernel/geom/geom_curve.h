@@ -450,8 +450,8 @@ ccl_device_inline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersect
 		else if(level == 1) {
 
 			/* the maximum recursion depth is reached.
-			* check if dP0.(Q-P0)>=0 and dPn.(Pn-Q)>=0.
-			* dP* is reversed if necessary.*/
+			 * check if dP0.(Q-P0)>=0 and dPn.(Pn-Q)>=0.
+			 * dP* is reversed if necessary.*/
 			float t = isect->t;
 			float u = 0.0f;
 			float gd = 0.0f;

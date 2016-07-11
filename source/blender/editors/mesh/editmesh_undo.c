@@ -114,7 +114,7 @@ static struct {
 		TaskPool *task_pool;
 #endif
 
-} um_arraystore = {NULL};
+} um_arraystore = {{NULL}};
 
 static void um_arraystore_cd_compact(
         struct CustomData *cdata, const size_t data_len,
@@ -563,7 +563,9 @@ static void undoMesh_to_editbtMesh(void *um_v, void *em_v, void *obdata)
 
 	EDBM_mesh_free(em);
 
-	bm = BM_mesh_create(&allocsize);
+	bm = BM_mesh_create(
+	        &allocsize,
+	        &((struct BMeshCreateParams){.use_toolflags = true,}));
 
 	BM_mesh_bm_from_me(
 	        bm, &um->me, (&(struct BMeshFromMeshParams){

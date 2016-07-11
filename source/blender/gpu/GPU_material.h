@@ -332,6 +332,7 @@ void GPU_mist_update_enable(short enable);
 void GPU_mist_update_values(int type, float start, float dist, float inten, float color[3]);
 void GPU_horizon_update_color(float color[3]);
 void GPU_ambient_update_color(float color[3]);
+void GPU_zenith_update_color(float color[3]);
 
 #ifdef WITH_OPENSUBDIV
 struct DerivedMesh;

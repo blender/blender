@@ -164,6 +164,27 @@ void interp_v2_v2v2_slerp_safe(float target[2], const float a[2], const float b[
 	}
 }
 
+/** \name Cubic curve interpolation (bezier spline).
+ * \{ */
+
+void interp_v2_v2v2v2v2_cubic(
+        float p[2], const float v1[2], const float v2[2], const float v3[2], const float v4[2],
+        const float u)
+{
+	float q0[2], q1[2], q2[2], r0[2], r1[2];
+
+	interp_v2_v2v2(q0, v1, v2, u);
+	interp_v2_v2v2(q1, v2, v3, u);
+	interp_v2_v2v2(q2, v3, v4, u);
+
+	interp_v2_v2v2(r0, q0, q1, u);
+	interp_v2_v2v2(r1, q1, q2, u);
+
+	interp_v2_v2v2(p, r0, r1, u);
+}
+
+/** \} */
+
 /* weight 3 vectors,
  * 'w' must be unit length but is not a vector, just 3 weights */
 void interp_v3_v3v3v3(float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3])

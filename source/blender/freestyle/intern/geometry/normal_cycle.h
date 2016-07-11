@@ -63,13 +63,13 @@ template <class T> inline void ogf_swap(T& x, T& y)
 //_________________________________________________________
 
 /**
-* NormalCycle evaluates the curvature tensor in function
-* of a set of dihedral angles and associated vectors.
-* Reference:
-*    Restricted Delaunay Triangulation and Normal Cycle,
-*    D. Cohen-Steiner and J.M. Morvan,
-*    SOCG 2003
-*/
+ * NormalCycle evaluates the curvature tensor in function
+ * of a set of dihedral angles and associated vectors.
+ * Reference:
+ *    Restricted Delaunay Triangulation and Normal Cycle,
+ *    D. Cohen-Steiner and J.M. Morvan,
+ *    SOCG 2003
+ */
 class NormalCycle {
 public:
 	NormalCycle();

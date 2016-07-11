@@ -315,7 +315,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	/* flag all edges of all input face */
 	BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
 		if (f->len == 3) {
-			BMO_elem_flag_enable(bm, f, FACE_INPUT);
+			BMO_face_flag_enable(bm, f, FACE_INPUT);
 		}
 	}
 
@@ -323,11 +323,11 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		BMFace *f_a, *f_b;
 		if (BM_edge_face_pair(e, &f_a, &f_b) &&
-		    (BMO_elem_flag_test(bm, f_a, FACE_INPUT) &&
-		     BMO_elem_flag_test(bm, f_b, FACE_INPUT)))
+		    (BMO_face_flag_test(bm, f_a, FACE_INPUT) &&
+		     BMO_face_flag_test(bm, f_b, FACE_INPUT)))
 		{
 			if (!bm_edge_is_delimit(e, &delimit_data)) {
-				BMO_elem_flag_enable(bm, e, EDGE_MARK);
+				BMO_edge_flag_enable(bm, e, EDGE_MARK);
 				totedge_tag++;
 			}
 		}
@@ -345,7 +345,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 		const BMVert *verts[4];
 		float error;
 
-		if (!BMO_elem_flag_test(bm, e, EDGE_MARK))
+		if (!BMO_edge_flag_test(bm, e, EDGE_MARK))
 			continue;
 
 		bm_edge_to_quad_verts(e, verts);
@@ -372,7 +372,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 			BMFace *f_new;
 			f_new = BM_faces_join_pair(bm, f_a, f_b, e, true);
 			if (f_new) {
-				BMO_elem_flag_enable(bm, f_new, FACE_OUT);
+				BMO_face_flag_enable(bm, f_new, FACE_OUT);
 			}
 		}
 	}

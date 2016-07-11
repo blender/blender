@@ -440,7 +440,7 @@ static ShaderNode *add_node(Scene *scene,
 				glossy->distribution = CLOSURE_BSDF_MICROFACET_GGX_ID;
 				break;
 			case BL::ShaderNodeBsdfGlossy::distribution_ASHIKHMIN_SHIRLEY:
-				glossy->distribution = CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID;
+				glossy->distribution = CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID;
 				break;
 			case BL::ShaderNodeBsdfGlossy::distribution_MULTI_GGX:
 				glossy->distribution = CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID;

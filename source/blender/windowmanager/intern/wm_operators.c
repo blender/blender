@@ -2851,8 +2851,8 @@ void WM_OT_straightline_gesture(wmOperatorType *ot)
 
 /* *********************** radial control ****************** */
 
-#define WM_RADIAL_CONTROL_DISPLAY_SIZE (200 * U.pixelsize)
-#define WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE (35 * U.pixelsize)
+#define WM_RADIAL_CONTROL_DISPLAY_SIZE (200)
+#define WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE (35)
 #define WM_RADIAL_CONTROL_DISPLAY_WIDTH (WM_RADIAL_CONTROL_DISPLAY_SIZE - WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE)
 #define WM_RADIAL_MAX_STR 10
 
@@ -2929,7 +2929,7 @@ static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *e
 		case PROP_NONE:
 		case PROP_DISTANCE:
 		case PROP_PIXEL:
-			d[0] = rc->initial_value * U.pixelsize;
+			d[0] = rc->initial_value;
 			break;
 		case PROP_PERCENTAGE:
 			d[0] = (rc->initial_value) / 100.0f * WM_RADIAL_CONTROL_DISPLAY_WIDTH + WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
@@ -3055,8 +3055,8 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 		case PROP_NONE:
 		case PROP_DISTANCE:
 		case PROP_PIXEL:
-			r1 = rc->current_value * U.pixelsize;
-			r2 = rc->initial_value * U.pixelsize;
+			r1 = rc->current_value;
+			r2 = rc->initial_value;
 			tex_radius = r1;
 			alpha = 0.75;
 			break;
@@ -3538,7 +3538,6 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 						case PROP_PIXEL:
 							new_value = dist;
 							if (snap) new_value = ((int)new_value + 5) / 10 * 10;
-							new_value /= U.pixelsize;
 							break;
 						case PROP_PERCENTAGE:
 							new_value = ((dist - WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE) / WM_RADIAL_CONTROL_DISPLAY_WIDTH) * 100.0f;
@@ -3884,7 +3883,7 @@ static void previews_id_ensure(bContext *C, Scene *scene, ID *id)
 
 	/* Only preview non-library datablocks, lib ones do not pertain to this .blend file!
 	 * Same goes for ID with no user. */
-	if (!id->lib && (id->us != 0)) {
+	if (!ID_IS_LINKED_DATABLOCK(id) && (id->us != 0)) {
 		UI_id_icon_render(C, scene, id, false, false);
 		UI_id_icon_render(C, scene, id, true, false);
 	}
@@ -4469,7 +4468,7 @@ static EnumPropertyItem *rna_id_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(pt
 	int i = 0;
 
 	for (; id; id = id->next) {
-		if (local == false || id->lib == NULL) {
+		if (local == false || !ID_IS_LINKED_DATABLOCK(id)) {
 			item_tmp.identifier = item_tmp.name = id->name + 2;
 			item_tmp.value = i++;
 			RNA_enum_item_add(&item, &totitem, &item_tmp);

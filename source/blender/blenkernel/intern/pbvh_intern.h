@@ -83,12 +83,11 @@ struct PBVHNode {
 	 * array. The array is sized to match 'totprim', and each of
 	 * the face's corners gets an index into the vert_indices
 	 * array, in the same order as the corners in the original
-	 * MFace. The fourth value should not be used if the original
-	 * face is a triangle.
+	 * MLoopTri.
 	 *
 	 * Used for leaf nodes in a mesh-based PBVH (not multires.)
 	 */
-	const int (*face_vert_indices)[4];
+	const int (*face_vert_indices)[3];
 
 	/* Indicates whether this node is a leaf or not; also used for
 	 * marking various updates that need to be applied. */

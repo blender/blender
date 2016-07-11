@@ -452,7 +452,7 @@ Text *BKE_text_copy(Main *bmain, Text *ta)
 	Text *tan;
 	TextLine *line, *tmp;
 	
-	tan = BKE_libblock_copy(&ta->id);
+	tan = BKE_libblock_copy(bmain, &ta->id);
 	
 	/* file name can be NULL */
 	if (ta->name) {
@@ -491,7 +491,8 @@ Text *BKE_text_copy(Main *bmain, Text *ta)
 
 	init_undo_text(tan);
 
-	if (ta->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(ta)) {
+		BKE_id_expand_local(&tan->id);
 		BKE_id_lib_local_paths(bmain, ta->id.lib, &tan->id);
 	}
 

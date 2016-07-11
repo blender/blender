@@ -633,12 +633,6 @@ static int check_mode_full_sample(RenderData *rd)
 #ifdef WITH_OPENEXR
 	if (scemode & R_FULL_SAMPLE)
 		scemode |= R_EXR_TILE_FILE;   /* enable automatic */
-
-	/* Until use_border is made compatible with save_buffers/full_sample, render without the later instead of not rendering at all.*/
-	if (rd->mode & R_BORDER) {
-		scemode &= ~(R_EXR_TILE_FILE | R_FULL_SAMPLE);
-	}
-
 #else
 	/* can't do this without openexr support */
 	scemode &= ~(R_EXR_TILE_FILE | R_FULL_SAMPLE);
@@ -725,6 +719,13 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 		re->r.xsch = source->r.xsch;
 		re->r.ysch = source->r.ysch;
 		re->r.size = source->r.size;
+	}
+
+	/* disable border if it's a full render anyway */
+	if (re->r.border.xmin == 0.0f && re->r.border.xmax == 1.0f &&
+	    re->r.border.ymin == 0.0f && re->r.border.ymax == 1.0f)
+	{
+		re->r.mode &= ~R_BORDER;
 	}
 
 	re_init_resolution(re, source, winx, winy, disprect);
@@ -1828,6 +1829,53 @@ static void render_result_disprect_to_full_resolution(Render *re)
 	re->recty = re->winy;
 }
 
+static void render_result_uncrop(Render *re)
+{
+	/* when using border render with crop disabled, insert render result into
+	 * full size with black pixels outside */
+	if (re->result && (re->r.mode & R_BORDER)) {
+		if ((re->r.mode & R_CROP) == 0) {
+			RenderResult *rres;
+
+			/* backup */
+			const rcti orig_disprect = re->disprect;
+			const int  orig_rectx = re->rectx, orig_recty = re->recty;
+
+			BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+
+			/* sub-rect for merge call later on */
+			re->result->tilerect = re->disprect;
+
+			/* weak is: it chances disprect from border */
+			render_result_disprect_to_full_resolution(re);
+
+			rres = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
+
+			render_result_merge(rres, re->result);
+			render_result_free(re->result);
+			re->result = rres;
+
+			/* weak... the display callback wants an active renderlayer pointer... */
+			re->result->renlay = render_get_active_layer(re, re->result);
+
+			BLI_rw_mutex_unlock(&re->resultmutex);
+
+			re->display_init(re->dih, re->result);
+			re->display_update(re->duh, re->result, NULL);
+
+			/* restore the disprect from border */
+			re->disprect = orig_disprect;
+			re->rectx = orig_rectx;
+			re->recty = orig_recty;
+		}
+		else {
+			/* set offset (again) for use in compositor, disprect was manipulated. */
+			re->result->xof = 0;
+			re->result->yof = 0;
+		}
+	}
+}
+
 /* main render routine, no compositing */
 static void do_render_fields_blur_3d(Render *re)
 {
@@ -1850,49 +1898,7 @@ static void do_render_fields_blur_3d(Render *re)
 		do_render_3d(re);
 	
 	/* when border render, check if we have to insert it in black */
-	if (re->result) {
-		if (re->r.mode & R_BORDER) {
-			if ((re->r.mode & R_CROP) == 0) {
-				RenderResult *rres;
-
-				/* backup */
-				const rcti orig_disprect = re->disprect;
-				const int  orig_rectx = re->rectx, orig_recty = re->recty;
-				
-				BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-
-				/* sub-rect for merge call later on */
-				re->result->tilerect = re->disprect;
-				
-				/* weak is: it chances disprect from border */
-				render_result_disprect_to_full_resolution(re);
-				
-				rres = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS, RR_ALL_VIEWS);
-				
-				render_result_merge(rres, re->result);
-				render_result_free(re->result);
-				re->result = rres;
-				
-				/* weak... the display callback wants an active renderlayer pointer... */
-				re->result->renlay = render_get_active_layer(re, re->result);
-				
-				BLI_rw_mutex_unlock(&re->resultmutex);
-		
-				re->display_init(re->dih, re->result);
-				re->display_update(re->duh, re->result, NULL);
-
-				/* restore the disprect from border */
-				re->disprect = orig_disprect;
-				re->rectx = orig_rectx;
-				re->recty = orig_recty;
-			}
-			else {
-				/* set offset (again) for use in compositor, disprect was manipulated. */
-				re->result->xof = 0;
-				re->result->yof = 0;
-			}
-		}
-	}
+	render_result_uncrop(re);
 }
 
 
@@ -2177,12 +2183,12 @@ static void init_freestyle(Render *re)
 	re->freestyle_bmain = BKE_main_new();
 
 	/* We use the same window manager for freestyle bmain as
-	* real bmain uses. This is needed because freestyle's
-	* bmain could be used to tag scenes for update, which
-	* implies call of ED_render_scene_update in some cases
-	* and that function requires proper window manager
-	* to present (sergey)
-	*/
+	 * real bmain uses. This is needed because freestyle's
+	 * bmain could be used to tag scenes for update, which
+	 * implies call of ED_render_scene_update in some cases
+	 * and that function requires proper window manager
+	 * to present (sergey)
+	 */
 	re->freestyle_bmain->wm = re->main->wm;
 
 	FRS_init_stroke_renderer(re);
@@ -2267,7 +2273,7 @@ static void free_all_freestyle_renders(void)
 			if (freestyle_render) {
 				freestyle_scene = freestyle_render->scene;
 				RE_FreeRender(freestyle_render);
-				BKE_libblock_unlink(re1->freestyle_bmain, freestyle_scene, false);
+				BKE_libblock_unlink(re1->freestyle_bmain, freestyle_scene, false, false);
 				BKE_libblock_free(re1->freestyle_bmain, freestyle_scene);
 			}
 		}
@@ -2291,6 +2297,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 {
 	ListBase *rectfs;
 	RenderView *rv;
+	rcti filter_mask = re->disprect;
 	float *rectf, filt[3][3];
 	int x, y, sample;
 	int nr, numviews;
@@ -2316,7 +2323,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 		rv = MEM_callocN(sizeof(RenderView), "fullsample renderview");
 
 		/* we accumulate in here */
-		rv->rectf = MEM_mapallocN(re->rectx * re->recty * sizeof(float) * 4, "fullsample rgba");
+		rv->rectf = MEM_mapallocN(re->result->rectx * re->result->recty * sizeof(float) * 4, "fullsample rgba");
 		BLI_addtail(rectfs, rv);
 	}
 
@@ -2346,6 +2353,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 							composite_freestyle_renders(re1, sample);
 #endif
 						BLI_rw_mutex_unlock(&re->resultmutex);
+						render_result_uncrop(re1);
 					}
 					ntreeCompositTagRender(re1->scene); /* ensure node gets exec to put buffers on stack */
 				}
@@ -2372,17 +2380,17 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 			mask = (1 << sample);
 			mask_array(mask, filt);
 
-			for (y = 0; y < re->recty; y++) {
-				float *rf = rectf + 4 * y * re->rectx;
-				float *col = rres.rectf + 4 * y * re->rectx;
+			for (y = 0; y < re->result->recty; y++) {
+				float *rf = rectf + 4 * y * re->result->rectx;
+				float *col = rres.rectf + 4 * y * re->result->rectx;
 				
-				for (x = 0; x < re->rectx; x++, rf += 4, col += 4) {
+				for (x = 0; x < re->result->rectx; x++, rf += 4, col += 4) {
 					/* clamping to 1.0 is needed for correct AA */
 					CLAMP(col[0], 0.0f, 1.0f);
 					CLAMP(col[1], 0.0f, 1.0f);
 					CLAMP(col[2], 0.0f, 1.0f);
 					
-					add_filt_fmask_coord(filt, col, rf, re->rectx, re->recty, x, y);
+					add_filt_fmask_coord(filt, col, rf, re->result->rectx, x, y, &filter_mask);
 				}
 			}
 		
@@ -2402,10 +2410,10 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 		rectf = ((RenderView *)BLI_findlink(rectfs, nr))->rectf;
 
 		/* clamp alpha and RGB to 0..1 and 0..inf, can go outside due to filter */
-		for (y = 0; y < re->recty; y++) {
-			float *rf = rectf + 4 * y * re->rectx;
+		for (y = 0; y < re->result->recty; y++) {
+			float *rf = rectf + 4 * y * re->result->rectx;
 			
-			for (x = 0; x < re->rectx; x++, rf += 4) {
+			for (x = 0; x < re->result->rectx; x++, rf += 4) {
 				rf[0] = MAX2(rf[0], 0.0f);
 				rf[1] = MAX2(rf[1], 0.0f);
 				rf[2] = MAX2(rf[2], 0.0f);
@@ -3820,6 +3828,8 @@ bool RE_ReadRenderResult(Scene *scene, Scene *scenode)
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	success = render_result_exr_file_cache_read(re);
 	BLI_rw_mutex_unlock(&re->resultmutex);
+
+	render_result_uncrop(re);
 
 	return success;
 }

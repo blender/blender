@@ -233,8 +233,8 @@ BL_ArmatureObject::BL_ArmatureObject(
 	m_lastapplyframe(0.0)
 {
 	m_origObjArma = armature; // Keep a copy of the original armature so we can fix drivers later
-	m_objArma = BKE_object_copy(armature);
-	m_objArma->data = BKE_armature_copy((bArmature *)armature->data);
+	m_objArma = BKE_object_copy(G.main, armature);
+	m_objArma->data = BKE_armature_copy(G.main, (bArmature *)armature->data);
 	// During object replication ob->data is increase, we decrease it now because we get a copy.
 	id_us_min(&((bArmature *)m_origObjArma->data)->id);
 	m_pose = m_objArma->pose;
@@ -433,8 +433,8 @@ void BL_ArmatureObject::ProcessReplica()
 	KX_GameObject::ProcessReplica();
 
 	bArmature* tmp = (bArmature*)m_objArma->data;
-	m_objArma = BKE_object_copy(m_objArma);
-	m_objArma->data = BKE_armature_copy(tmp);
+	m_objArma = BKE_object_copy(G.main, m_objArma);
+	m_objArma->data = BKE_armature_copy(G.main, tmp);
 	m_pose = m_objArma->pose;
 }
 

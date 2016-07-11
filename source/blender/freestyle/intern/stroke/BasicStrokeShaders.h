@@ -619,9 +619,9 @@ public:
 	}
 
 	/*! Builds the shader.
-	*  \param nodetree
-	*    A node tree (of new shading nodes) to define textures.
-	*/
+	 *  \param nodetree
+	 *    A node tree (of new shading nodes) to define textures.
+	 */
 	BlenderTextureShader(bNodeTree *nodetree) : StrokeShader()
 	{
 		_nodeTree = nodetree;

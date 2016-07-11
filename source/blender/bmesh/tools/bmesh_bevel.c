@@ -1849,11 +1849,11 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 	do {
 		BLI_assert(e->is_bev);
 		/* Make the BoundVert for the right side of e; other side will be made
-		* when the beveled edge to the left of e is handled.
-		* Analyze edges until next beveled edge.
-		* They are either "in plane" (preceding and subsequent faces are coplanar)
-		* or not. The "non-in-plane" edges effect silhouette and we prefer to slide
-		* along one of those if possible. */
+		 * when the beveled edge to the left of e is handled.
+		 * Analyze edges until next beveled edge.
+		 * They are either "in plane" (preceding and subsequent faces are coplanar)
+		 * or not. The "non-in-plane" edges effect silhouette and we prefer to slide
+		 * along one of those if possible. */
 		nip = nnip = 0;        /* counts of in-plane / not-in-plane */
 		enip = eip = NULL;     /* representatives of each */
 		for (e2 = e->next; !e2->is_bev; e2 = e2->next) {

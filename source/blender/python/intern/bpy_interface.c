@@ -901,8 +901,8 @@ static void bpy_module_free(void *UNUSED(mod))
 bool BPY_string_is_keyword(const char *str)
 {
 	/* list is from...
-	* ", ".join(['"%s"' % kw for kw in  __import__("keyword").kwlist])
-	*/
+	 * ", ".join(['"%s"' % kw for kw in  __import__("keyword").kwlist])
+	 */
 	const char *kwlist[] = {
 	    "False", "None", "True",
 	    "and", "as", "assert", "break",

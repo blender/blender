@@ -107,10 +107,10 @@ static bool bm_face_split_by_concave(
 		int i;
 		for (i = 0; i < faces_array_tot; i++) {
 			BMFace *f = faces_array[i];
-			BMO_elem_flag_enable(bm, f, FACE_OUT);
+			BMO_face_flag_enable(bm, f, FACE_OUT);
 		}
 	}
-	BMO_elem_flag_enable(bm, f_base, FACE_OUT);
+	BMO_face_flag_enable(bm, f_base, FACE_OUT);
 
 	if (edges_array_tot) {
 		int i;
@@ -120,7 +120,7 @@ static bool bm_face_split_by_concave(
 		for (i = 0; i < edges_array_tot; i++) {
 			BMLoop *l_pair[2];
 			BMEdge *e = edges_array[i];
-			BMO_elem_flag_enable(bm, e, EDGE_OUT);
+			BMO_edge_flag_enable(bm, e, EDGE_OUT);
 
 			if (BM_edge_is_contiguous(e) &&
 			    BM_edge_loop_pair(e, &l_pair[0], &l_pair[1]))
@@ -153,7 +153,7 @@ static bool bm_face_split_by_concave(
 					BMFace *f_new, *f_pair[2] = {l_pair[0]->f, l_pair[1]->f};
 					f_new = BM_faces_join(bm, f_pair, 2, true);
 					if (f_new) {
-						BMO_elem_flag_enable(bm, f_new, FACE_OUT);
+						BMO_face_flag_enable(bm, f_new, FACE_OUT);
 					}
 				}
 			}

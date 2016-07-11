@@ -1087,6 +1087,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 				sce->gm.flag |= GAME_GLSL_NO_NODES;
 			if (fd->fileflags & G_FILE_GLSL_NO_EXTRA_TEX)
 				sce->gm.flag |= GAME_GLSL_NO_EXTRA_TEX;
+			if (fd->fileflags & G_FILE_GLSL_NO_ENV_LIGHTING)
+				sce->gm.flag |= GAME_GLSL_NO_ENV_LIGHTING;
 			if (fd->fileflags & G_FILE_IGNORE_DEPRECATION_WARNINGS)
 				sce->gm.flag |= GAME_IGNORE_DEPRECATION_WARNINGS;
 

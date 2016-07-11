@@ -172,7 +172,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	 */
 	if (key) {
 		/* make a duplicate copy that will only be used here... (must remember to free it!) */
-		nkey = BKE_key_copy(key);
+		nkey = BKE_key_copy(bmain, key);
 		
 		/* for all keys in old block, clear data-arrays */
 		for (kb = key->block.first; kb; kb = kb->next) {
@@ -540,7 +540,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	if (matmap) MEM_freeN(matmap);
 	
 	/* other mesh users */
-	test_object_materials(bmain, (ID *)me);
+	test_all_objects_materials(bmain, (ID *)me);
 	
 	/* free temp copy of destination shapekeys (if applicable) */
 	if (nkey) {
@@ -564,21 +564,10 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 		BKE_key_sort(key);
 	}
 
-
 	DAG_relations_tag_update(bmain);   // removed objects, need to rebuild dag
 
-#if 0
-	ED_object_editmode_enter(C, EM_WAITCURSOR);
-	ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR | EM_DO_UNDO);
-#else
-	/* toggle editmode using lower level functions so this can be called from python */
-	EDBM_mesh_make(scene->toolsettings, ob, false);
-	EDBM_mesh_load(ob);
-	EDBM_mesh_free(me->edit_btmesh);
-	MEM_freeN(me->edit_btmesh);
-	me->edit_btmesh = NULL;
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
-#endif
+
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 
 	return OPERATOR_FINISHED;

@@ -95,9 +95,9 @@ public:
 	void execute(WorkPackage *work);
 
 	/**
-	* @brief determine an image format
-	* @param memorybuffer
-	*/
+	 * @brief determine an image format
+	 * @param memorybuffer
+	 */
 	static const cl_image_format *determineImageFormat(MemoryBuffer *memoryBuffer);
 
 	cl_context getContext() { return this->m_context; }

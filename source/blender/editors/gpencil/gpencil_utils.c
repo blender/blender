@@ -552,8 +552,8 @@ bool gp_smooth_stroke(bGPDstroke *gps, int i, float inf, bool affect_pressure)
 	}
 	
 	/* Only affect endpoints by a fraction of the normal strength,
-	* to prevent the stroke from shrinking too much
-	*/
+	 * to prevent the stroke from shrinking too much
+	 */
 	if ((i == 0) || (i == gps->totpoints - 1)) {
 		inf *= 0.1f;
 	}

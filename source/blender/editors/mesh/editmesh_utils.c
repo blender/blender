@@ -354,7 +354,9 @@ void EDBM_mesh_make(ToolSettings *ts, Object *ob, const bool add_key_index)
 		BKE_mesh_convert_mfaces_to_mpolys(me);
 	}
 
-	bm = BKE_mesh_to_bmesh(me, ob, add_key_index);
+	bm = BKE_mesh_to_bmesh(
+	        me, ob, add_key_index,
+	        &((struct BMeshCreateParams){.use_toolflags = true,}));
 
 	if (me->edit_btmesh) {
 		/* this happens when switching shape keys */
@@ -399,10 +401,25 @@ void EDBM_mesh_load(Object *ob)
 	BKE_mesh_tessface_calc(me);
 #endif
 
-	/* free derived mesh. usually this would happen through depsgraph but there
+	/* Free derived mesh. usually this would happen through depsgraph but there
 	 * are exceptions like file save that will not cause this, and we want to
-	 * avoid ending up with an invalid derived mesh then */
-	BKE_object_free_derived_caches(ob);
+	 * avoid ending up with an invalid derived mesh then.
+	 *
+	 * Do it for all objects which shares the same mesh datablock, since their
+	 * derived meshes might also be referencing data which was just freed,
+	 *
+	 * Annoying enough, but currently seems most efficient way to avoid access
+	 * of freed data on scene update, especially in cases when there are dependency
+	 * cycles.
+	 */
+	for (Object *other_object = G.main->object.first;
+	     other_object != NULL;
+	     other_object = other_object->id.next)
+	{
+		if (other_object->data == ob->data) {
+			BKE_object_free_derived_caches(other_object);
+		}
+	}
 }
 
 /**
@@ -1423,13 +1440,9 @@ bool BMBVH_EdgeVisible(struct BMBVHTree *tree, BMEdge *e, ARegion *ar, View3D *v
 	sub_v3_v3v3(dir2, origin, co2);
 	sub_v3_v3v3(dir3, origin, co3);
 
-	normalize_v3(dir1);
-	normalize_v3(dir2);
-	normalize_v3(dir3);
-
-	mul_v3_fl(dir1, epsilon);
-	mul_v3_fl(dir2, epsilon);
-	mul_v3_fl(dir3, epsilon);
+	normalize_v3_length(dir1, epsilon);
+	normalize_v3_length(dir2, epsilon);
+	normalize_v3_length(dir3, epsilon);
 
 	/* offset coordinates slightly along view vectors, to avoid
 	 * hitting the faces that own the edge.*/

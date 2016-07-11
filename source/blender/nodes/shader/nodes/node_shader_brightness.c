@@ -23,8 +23,7 @@
  * Contributor(s): none yet.
  * 
  * ***** END GPL LICENSE BLOCK *****
-
-*/
+ */
 
 #include "node_shader_util.h"
 

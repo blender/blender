@@ -39,32 +39,37 @@
 
 /* flags 15 and 16 (1 << 14 and 1 << 15) are reserved for bmesh api use */
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2)
-BLI_INLINE short _bmo_elem_flag_test(BMesh *bm, BMFlagLayer *oflags, const short oflag)
+BLI_INLINE short _bmo_elem_flag_test(BMesh *bm, const BMFlagLayer *oflags, const short oflag)
 {
+	BLI_assert(bm->use_toolflags);
 	return oflags[bm->toolflag_index].f & oflag;
 }
 
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2)
-BLI_INLINE bool _bmo_elem_flag_test_bool(BMesh *bm, BMFlagLayer *oflags, const short oflag)
+BLI_INLINE bool _bmo_elem_flag_test_bool(BMesh *bm, const BMFlagLayer *oflags, const short oflag)
 {
+	BLI_assert(bm->use_toolflags);
 	return (oflags[bm->toolflag_index].f & oflag) != 0;
 }
 
 ATTR_NONNULL(1, 2)
 BLI_INLINE void _bmo_elem_flag_enable(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
+	BLI_assert(bm->use_toolflags);
 	oflags[bm->toolflag_index].f |= oflag;
 }
 
 ATTR_NONNULL(1, 2)
 BLI_INLINE void _bmo_elem_flag_disable(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
+	BLI_assert(bm->use_toolflags);
 	oflags[bm->toolflag_index].f &= (short)~oflag;
 }
 
 ATTR_NONNULL(1, 2)
 BLI_INLINE void _bmo_elem_flag_set(BMesh *bm, BMFlagLayer *oflags, const short oflag, int val)
 {
+	BLI_assert(bm->use_toolflags);
 	if (val) oflags[bm->toolflag_index].f |= oflag;
 	else     oflags[bm->toolflag_index].f &= (short)~oflag;
 }
@@ -72,6 +77,7 @@ BLI_INLINE void _bmo_elem_flag_set(BMesh *bm, BMFlagLayer *oflags, const short o
 ATTR_NONNULL(1, 2)
 BLI_INLINE void _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
+	BLI_assert(bm->use_toolflags);
 	oflags[bm->toolflag_index].f ^= oflag;
 }
 

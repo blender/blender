@@ -1204,9 +1204,9 @@ public:
 	}
 
 	/*! Returns the index of the material of the face lying on the
-	*  right of the FEdge. If this FEdge is a border,
-	*  it has no Face on its right and therefore, no material.
-	*/
+	 *  right of the FEdge. If this FEdge is a border,
+	 *  it has no Face on its right and therefore, no material.
+	 */
 	inline unsigned aFrsMaterialIndex() const
 	{
 		return _aFrsMaterialIndex;

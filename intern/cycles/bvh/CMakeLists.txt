@@ -19,6 +19,7 @@ set(SRC
 	bvh_node.cpp
 	bvh_sort.cpp
 	bvh_split.cpp
+	bvh_unaligned.cpp
 )
 
 set(SRC_HEADERS
@@ -29,6 +30,7 @@ set(SRC_HEADERS
 	bvh_params.h
 	bvh_sort.h
 	bvh_split.h
+	bvh_unaligned.h
 )
 
 include_directories(${INC})

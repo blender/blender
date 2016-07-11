@@ -121,8 +121,8 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 	 * and n is the total number of faces
 	 */
 	BMO_ITER (fs, &fs_iter, op->slots_in, "faces", BM_FACE) {
-		if (!BMO_elem_flag_test(bm, fs, FACE_MARK)) {	/* is this really needed ? */
-			BMO_elem_flag_enable(bm, fs, FACE_MARK);
+		if (!BMO_face_flag_test(bm, fs, FACE_MARK)) {	/* is this really needed ? */
+			BMO_face_flag_enable(bm, fs, FACE_MARK);
 			num_sels++;
 		}
 	}
@@ -134,7 +134,7 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 	/* loop through all the faces and fill the faces/indices structure */
 	BM_ITER_MESH (fm, &fm_iter, bm, BM_FACES_OF_MESH) {
 		f_ext[i].f = fm;
-		if (BMO_elem_flag_test(bm, fm, FACE_MARK)) {
+		if (BMO_face_flag_test(bm, fm, FACE_MARK)) {
 			indices[idx] = i;
 			idx++;
 		}
@@ -179,21 +179,21 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 	/* now select the rest (if any) */
 	for (i = 0; i < num_total; i++) {
 		fm = f_ext[i].f;
-		if (!BMO_elem_flag_test(bm, fm, FACE_MARK) && !BM_elem_flag_test(fm, BM_ELEM_HIDDEN)) {
+		if (!BMO_face_flag_test(bm, fm, FACE_MARK) && !BM_elem_flag_test(fm, BM_ELEM_HIDDEN)) {
 			bool cont = true;
 			for (idx = 0; idx < num_sels && cont == true; idx++) {
 				fs = f_ext[indices[idx]].f;
 				switch (type) {
 					case SIMFACE_MATERIAL:
 						if (fm->mat_nr == fs->mat_nr) {
-							BMO_elem_flag_enable(bm, fm, FACE_MARK);
+							BMO_face_flag_enable(bm, fm, FACE_MARK);
 							cont = false;
 						}
 						break;
 
 					case SIMFACE_IMAGE:
 						if (f_ext[i].t == f_ext[indices[idx]].t) {
-							BMO_elem_flag_enable(bm, fm, FACE_MARK);
+							BMO_face_flag_enable(bm, fm, FACE_MARK);
 							cont = false;
 						}
 						break;
@@ -201,7 +201,7 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 					case SIMFACE_NORMAL:
 						angle = angle_normalized_v3v3(fs->no, fm->no);	/* if the angle between the normals -> 0 */
 						if (angle <= thresh_radians) {
-							BMO_elem_flag_enable(bm, fm, FACE_MARK);
+							BMO_face_flag_enable(bm, fm, FACE_MARK);
 							cont = false;
 						}
 						break;
@@ -218,7 +218,7 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 						if (angle <= thresh_radians) { /* and dot product difference -> 0 */
 							delta_fl = f_ext[i].d - (f_ext[indices[idx]].d * sign);
 							if (bm_sel_similar_cmp_fl(delta_fl, thresh, compare)) {
-								BMO_elem_flag_enable(bm, fm, FACE_MARK);
+								BMO_face_flag_enable(bm, fm, FACE_MARK);
 								cont = false;
 							}
 						}
@@ -227,7 +227,7 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 					case SIMFACE_AREA:
 						delta_fl = f_ext[i].area - f_ext[indices[idx]].area;
 						if (bm_sel_similar_cmp_fl(delta_fl, thresh, compare)) {
-							BMO_elem_flag_enable(bm, fm, FACE_MARK);
+							BMO_face_flag_enable(bm, fm, FACE_MARK);
 							cont = false;
 						}
 						break;
@@ -235,7 +235,7 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 					case SIMFACE_SIDES:
 						delta_i = fm->len - fs->len;
 						if (bm_sel_similar_cmp_i(delta_i, compare)) {
-							BMO_elem_flag_enable(bm, fm, FACE_MARK);
+							BMO_face_flag_enable(bm, fm, FACE_MARK);
 							cont = false;
 						}
 						break;
@@ -243,14 +243,14 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 					case SIMFACE_PERIMETER:
 						delta_fl = f_ext[i].perim - f_ext[indices[idx]].perim;
 						if (bm_sel_similar_cmp_fl(delta_fl, thresh, compare)) {
-							BMO_elem_flag_enable(bm, fm, FACE_MARK);
+							BMO_face_flag_enable(bm, fm, FACE_MARK);
 							cont = false;
 						}
 						break;
 
 					case SIMFACE_SMOOTH:
 						if (BM_elem_flag_test(fm, BM_ELEM_SMOOTH) == BM_elem_flag_test(fs, BM_ELEM_SMOOTH)) {
-							BMO_elem_flag_enable(bm, fm, FACE_MARK);
+							BMO_face_flag_enable(bm, fm, FACE_MARK);
 							cont = false;
 						}
 						break;
@@ -263,7 +263,7 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 							ffa2 = CustomData_bmesh_get(&bm->pdata, fm->head.data, CD_FREESTYLE_FACE);
 
 							if (ffa1 && ffa2 && (ffa1->flag & FREESTYLE_FACE_MARK) == (ffa2->flag & FREESTYLE_FACE_MARK)) {
-								BMO_elem_flag_enable(bm, fm, FACE_MARK);
+								BMO_face_flag_enable(bm, fm, FACE_MARK);
 								cont = false;
 							}
 						}
@@ -350,7 +350,7 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 
 	/* iterate through all selected edges and mark them */
 	BMO_ITER (es, &es_iter, op->slots_in, "edges", BM_EDGE) {
-		BMO_elem_flag_enable(bm, es, EDGE_MARK);
+		BMO_edge_flag_enable(bm, es, EDGE_MARK);
 		num_sels++;
 	}
 
@@ -361,7 +361,7 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 	/* loop through all the edges and fill the edges/indices structure */
 	BM_ITER_MESH (e, &e_iter, bm, BM_EDGES_OF_MESH) {
 		e_ext[i].e = e;
-		if (BMO_elem_flag_test(bm, e, EDGE_MARK)) {
+		if (BMO_edge_flag_test(bm, e, EDGE_MARK)) {
 			indices[idx] = i;
 			idx++;
 		}
@@ -397,7 +397,9 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 	/* select the edges if any */
 	for (i = 0; i < num_total; i++) {
 		e = e_ext[i].e;
-		if (!BMO_elem_flag_test(bm, e, EDGE_MARK) && !BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+		if (!BMO_edge_flag_test(bm, e, EDGE_MARK) &&
+		    !BM_elem_flag_test(e, BM_ELEM_HIDDEN))
+		{
 			bool cont = true;
 			for (idx = 0; idx < num_sels && cont == true; idx++) {
 				es = e_ext[indices[idx]].e;
@@ -405,7 +407,7 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 					case SIMEDGE_LENGTH:
 						delta_fl = e_ext[i].length - e_ext[indices[idx]].length;
 						if (bm_sel_similar_cmp_fl(delta_fl, thresh, compare)) {
-							BMO_elem_flag_enable(bm, e, EDGE_MARK);
+							BMO_edge_flag_enable(bm, e, EDGE_MARK);
 							cont = false;
 						}
 						break;
@@ -418,7 +420,7 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 							angle = fabsf(angle - (float)M_PI);
 
 						if (angle / (float)M_PI_2 <= thresh) {
-							BMO_elem_flag_enable(bm, e, EDGE_MARK);
+							BMO_edge_flag_enable(bm, e, EDGE_MARK);
 							cont = false;
 						}
 						break;
@@ -426,7 +428,7 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 					case SIMEDGE_FACE:
 						delta_i = e_ext[i].faces - e_ext[indices[idx]].faces;
 						if (bm_sel_similar_cmp_i(delta_i, compare)) {
-							BMO_elem_flag_enable(bm, e, EDGE_MARK);
+							BMO_edge_flag_enable(bm, e, EDGE_MARK);
 							cont = false;
 						}
 						break;
@@ -435,7 +437,7 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 						if (e_ext[i].faces == 2) {
 							if (e_ext[indices[idx]].faces == 2) {
 								if (fabsf(e_ext[i].angle - e_ext[indices[idx]].angle) <= thresh) {
-									BMO_elem_flag_enable(bm, e, EDGE_MARK);
+									BMO_edge_flag_enable(bm, e, EDGE_MARK);
 									cont = false;
 								}
 							}
@@ -454,7 +456,7 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 							delta_fl = *c1 - *c2;
 
 							if (bm_sel_similar_cmp_fl(delta_fl, thresh, compare)) {
-								BMO_elem_flag_enable(bm, e, EDGE_MARK);
+								BMO_edge_flag_enable(bm, e, EDGE_MARK);
 								cont = false;
 							}
 						}
@@ -469,7 +471,7 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 							delta_fl = *c1 - *c2;
 
 							if (bm_sel_similar_cmp_fl(delta_fl, thresh, compare)) {
-								BMO_elem_flag_enable(bm, e, EDGE_MARK);
+								BMO_edge_flag_enable(bm, e, EDGE_MARK);
 								cont = false;
 							}
 						}
@@ -477,14 +479,14 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 
 					case SIMEDGE_SEAM:
 						if (BM_elem_flag_test(e, BM_ELEM_SEAM) == BM_elem_flag_test(es, BM_ELEM_SEAM)) {
-							BMO_elem_flag_enable(bm, e, EDGE_MARK);
+							BMO_edge_flag_enable(bm, e, EDGE_MARK);
 							cont = false;
 						}
 						break;
 
 					case SIMEDGE_SHARP:
 						if (BM_elem_flag_test(e, BM_ELEM_SMOOTH) == BM_elem_flag_test(es, BM_ELEM_SMOOTH)) {
-							BMO_elem_flag_enable(bm, e, EDGE_MARK);
+							BMO_edge_flag_enable(bm, e, EDGE_MARK);
 							cont = false;
 						}
 						break;
@@ -497,7 +499,7 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 							fed2 = CustomData_bmesh_get(&bm->edata, es->head.data, CD_FREESTYLE_EDGE);
 
 							if (fed1 && fed2 && (fed1->flag & FREESTYLE_EDGE_MARK) == (fed2->flag & FREESTYLE_EDGE_MARK)) {
-								BMO_elem_flag_enable(bm, e, EDGE_MARK);
+								BMO_edge_flag_enable(bm, e, EDGE_MARK);
 								cont = false;
 							}
 						}
@@ -562,7 +564,7 @@ void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 
 	/* iterate through all selected edges and mark them */
 	BMO_ITER (vs, &vs_iter, op->slots_in, "verts", BM_VERT) {
-		BMO_elem_flag_enable(bm, vs, VERT_MARK);
+		BMO_vert_flag_enable(bm, vs, VERT_MARK);
 		num_sels++;
 	}
 
@@ -573,7 +575,7 @@ void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 	/* loop through all the vertices and fill the vertices/indices structure */
 	BM_ITER_MESH (v, &v_iter, bm, BM_VERTS_OF_MESH) {
 		v_ext[i].v = v;
-		if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
+		if (BMO_vert_flag_test(bm, v, VERT_MARK)) {
 			indices[idx] = i;
 			idx++;
 		}
@@ -599,7 +601,9 @@ void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 	/* select the vertices if any */
 	for (i = 0; i < num_total; i++) {
 		v = v_ext[i].v;
-		if (!BMO_elem_flag_test(bm, v, VERT_MARK) && !BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
+		if (!BMO_vert_flag_test(bm, v, VERT_MARK) &&
+		    !BM_elem_flag_test(v, BM_ELEM_HIDDEN))
+		{
 			bool cont = true;
 			for (idx = 0; idx < num_sels && cont == true; idx++) {
 				vs = v_ext[indices[idx]].v;
@@ -607,7 +611,7 @@ void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 					case SIMVERT_NORMAL:
 						/* compare the angle between the normals */
 						if (angle_normalized_v3v3(v->no, vs->no) <= thresh_radians) {
-							BMO_elem_flag_enable(bm, v, VERT_MARK);
+							BMO_vert_flag_enable(bm, v, VERT_MARK);
 							cont = false;
 						}
 						break;
@@ -615,7 +619,7 @@ void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 						/* number of adjacent faces */
 						delta_i = v_ext[i].num_faces - v_ext[indices[idx]].num_faces;
 						if (bm_sel_similar_cmp_i(delta_i, compare)) {
-							BMO_elem_flag_enable(bm, v, VERT_MARK);
+							BMO_vert_flag_enable(bm, v, VERT_MARK);
 							cont = false;
 						}
 						break;
@@ -623,7 +627,7 @@ void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 					case SIMVERT_VGROUP:
 						if (v_ext[i].dvert != NULL && v_ext[indices[idx]].dvert != NULL) {
 							if (defvert_find_shared(v_ext[i].dvert, v_ext[indices[idx]].dvert) != -1) {
-								BMO_elem_flag_enable(bm, v, VERT_MARK);
+								BMO_vert_flag_enable(bm, v, VERT_MARK);
 								cont = false;
 							}
 						}
@@ -632,7 +636,7 @@ void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 						/* number of adjacent edges */
 						delta_i = v_ext[i].num_edges - v_ext[indices[idx]].num_edges;
 						if (bm_sel_similar_cmp_i(delta_i, compare)) {
-							BMO_elem_flag_enable(bm, v, VERT_MARK);
+							BMO_vert_flag_enable(bm, v, VERT_MARK);
 							cont = false;
 						}
 						break;

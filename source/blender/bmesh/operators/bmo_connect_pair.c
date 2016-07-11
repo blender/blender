@@ -67,17 +67,28 @@
 #define ELE_TOUCHED 4
 
 #define FACE_WALK_TEST(f)  (CHECK_TYPE_INLINE(f, BMFace *), \
-	BMO_elem_flag_test(pc->bm_bmoflag, f, FACE_EXCLUDE) == 0)
+	BMO_face_flag_test(pc->bm_bmoflag, f, FACE_EXCLUDE) == 0)
 #define VERT_WALK_TEST(v)  (CHECK_TYPE_INLINE(v, BMVert *), \
-	BMO_elem_flag_test(pc->bm_bmoflag, v, VERT_EXCLUDE) == 0)
+	BMO_vert_flag_test(pc->bm_bmoflag, v, VERT_EXCLUDE) == 0)
 
+#if 0
 #define ELE_TOUCH_TEST(e) \
 	(CHECK_TYPE_ANY(e, BMVert *, BMEdge *, BMElem *, BMElemF *), \
 	 BMO_elem_flag_test(pc->bm_bmoflag, (BMElemF *)e, ELE_TOUCHED))
+#endif
 #define ELE_TOUCH_MARK(e) \
 	{ CHECK_TYPE_ANY(e, BMVert *, BMEdge *, BMElem *, BMElemF *); \
 	  BMO_elem_flag_enable(pc->bm_bmoflag, (BMElemF *)e, ELE_TOUCHED); } ((void)0)
 
+
+#define ELE_TOUCH_TEST_VERT(v) BMO_vert_flag_test(pc->bm_bmoflag, v, ELE_TOUCHED)
+// #define ELE_TOUCH_MARK_VERT(v) BMO_vert_flag_enable(pc->bm_bmoflag, (BMElemF *)e, ELE_TOUCHED)
+
+// #define ELE_TOUCH_TEST_EDGE(v) BMO_edge_flag_test(pc->bm_bmoflag, v, ELE_TOUCHED)
+// #define ELE_TOUCH_MARK_EDGE(v) BMO_edge_flag_enable(pc->bm_bmoflag, (BMElemF *)e, ELE_TOUCHED)
+
+// #define ELE_TOUCH_TEST_FACE(v) BMO_face_flag_test(pc->bm_bmoflag, v, ELE_TOUCHED)
+// #define ELE_TOUCH_MARK_FACE(v) BMO_face_flag_enable(pc->bm_bmoflag, (BMElemF *)e, ELE_TOUCHED)
 
 // #define DEBUG_PRINT
 
@@ -352,7 +363,7 @@ static PathLinkState *state_step__face_edges(
 				BMElem *ele_next_from = (BMElem *)l_iter->f;
 
 				if (FACE_WALK_TEST((BMFace *)ele_next_from) &&
-				    (ELE_TOUCH_TEST(ele_next) == false))
+				    (ELE_TOUCH_TEST_VERT((BMVert *)ele_next) == false))
 				{
 					min_dist_dir_update(mddir, dist_dir);
 					mddir->dist_min[index] = dist_test;
@@ -397,7 +408,7 @@ static PathLinkState *state_step__face_verts(
 				BMElem *ele_next_from = (BMElem *)l_iter->f;
 
 				if (FACE_WALK_TEST((BMFace *)ele_next_from) &&
-				    (ELE_TOUCH_TEST(ele_next) == false))
+				    (ELE_TOUCH_TEST_VERT((BMVert *)ele_next) == false))
 				{
 					min_dist_dir_update(mddir, dist_dir);
 					mddir->dist_min[index] = dist_test;
@@ -480,7 +491,7 @@ static bool state_step(PathContext *pc, PathLinkState *state)
 					if (state_isect_co_exact(pc, v_other->co)) {
 						BMElem *ele_next      = (BMElem *)v_other;
 						BMElem *ele_next_from = (BMElem *)e;
-						if (ELE_TOUCH_TEST(ele_next) == false) {
+						if (ELE_TOUCH_TEST_VERT((BMVert *)ele_next) == false) {
 							state = state_link_add_test(pc, state, &state_orig, ele_next, ele_next_from);
 						}
 					}
@@ -703,11 +714,11 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 				BMVert *v_new;
 				float e_fac = state_calc_co_pair_fac(&pc, e->v1->co, e->v2->co);
 				v_new = BM_edge_split(bm, e, e->v1, NULL, e_fac);
-				BMO_elem_flag_enable(bm, v_new, VERT_OUT);
+				BMO_vert_flag_enable(bm, v_new, VERT_OUT);
 			}
 			else if (link->ele->head.htype == BM_VERT) {
 				BMVert *v = (BMVert *)link->ele;
-				BMO_elem_flag_enable(bm, v, VERT_OUT);
+				BMO_vert_flag_enable(bm, v, VERT_OUT);
 			}
 			else {
 				BLI_assert(0);
@@ -715,8 +726,8 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 		} while ((link = link->next));
 	}
 
-	BMO_elem_flag_enable(bm, pc.v_a, VERT_OUT);
-	BMO_elem_flag_enable(bm, pc.v_b, VERT_OUT);
+	BMO_vert_flag_enable(bm, pc.v_a, VERT_OUT);
+	BMO_vert_flag_enable(bm, pc.v_b, VERT_OUT);
 
 	BLI_mempool_destroy(pc.link_pool);
 

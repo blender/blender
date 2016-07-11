@@ -489,7 +489,7 @@ static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, Tree
 	
 	outliner_add_element(soops, &te->subtree, ob->poselib, te, 0, 0); // XXX FIXME.. add a special type for this
 	
-	if (ob->proxy && ob->id.lib == NULL)
+	if (ob->proxy && !ID_IS_LINKED_DATABLOCK(ob))
 		outliner_add_element(soops, &te->subtree, ob->proxy, te, TSE_PROXY, 0);
 		
 	outliner_add_element(soops, &te->subtree, ob->gpd, te, 0, 0);

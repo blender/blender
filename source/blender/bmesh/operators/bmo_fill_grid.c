@@ -466,7 +466,7 @@ static void bm_grid_fill_array(
 			/* end interp */
 
 
-			BMO_elem_flag_enable(bm, f, FACE_OUT);
+			BMO_face_flag_enable(bm, f, FACE_OUT);
 			f->mat_nr = mat_nr;
 			if (use_smooth) {
 				BM_elem_flag_enable(f, BM_ELEM_SMOOTH);
@@ -585,7 +585,7 @@ static void bm_edgeloop_flag_set(struct BMEdgeLoopStore *estore, char hflag, boo
 
 static bool bm_edge_test_cb(BMEdge *e, void *bm_v)
 {
-	return BMO_elem_flag_test_bool((BMesh *)bm_v, e, EDGE_MARK);
+	return BMO_edge_flag_test_bool((BMesh *)bm_v, e, EDGE_MARK);
 }
 
 static bool bm_edge_test_rail_cb(BMEdge *e, void *UNUSED(bm_v))

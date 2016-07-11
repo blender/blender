@@ -33,6 +33,8 @@
 
 #include "node_shader_util.h"
 
+#include "GPU_material.h"
+
 /* **************** TEXTURE ******************** */
 static bNodeSocketTemplate sh_node_texture_in[] = {
 	{	SOCK_VECTOR, 1, "Vector",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},	/* no limit */
@@ -121,9 +123,20 @@ static int gpu_shader_texture(GPUMaterial *mat, bNode *node, bNodeExecData *UNUS
 {
 	Tex *tex = (Tex *)node->id;
 
-	if (tex && tex->type == TEX_IMAGE && tex->ima) {
-		GPUNodeLink *texlink = GPU_image(tex->ima, &tex->iuser, false);
-		GPU_stack_link(mat, "texture_image", in, out, texlink);
+	if (tex && tex->ima && (tex->type == TEX_IMAGE || tex->type == TEX_ENVMAP)) {
+		if (tex->type == TEX_IMAGE) {
+			GPUNodeLink *texlink = GPU_image(tex->ima, &tex->iuser, false);
+			GPU_stack_link(mat, "texture_image", in, out, texlink);
+		}
+		else { /* TEX_ENVMAP */
+			if (!in[0].link)
+				in[0].link = GPU_uniform(in[0].vec);
+			if (!GPU_material_use_world_space_shading(mat))
+				GPU_link(mat, "direction_transform_m4v3", in[0].link, GPU_builtin(GPU_INVERSE_VIEW_MATRIX), &in[0].link);
+			GPU_link(mat, "mtex_cube_map_refl_from_refldir",
+				GPU_cube_map(tex->ima, &tex->iuser, false), in[0].link, &out[0].link, &out[1].link);
+			GPU_link(mat, "color_to_normal", out[1].link, &out[2].link);
+		}
 
 		ImBuf *ibuf = BKE_image_acquire_ibuf(tex->ima, &tex->iuser, NULL);
 		if (ibuf && (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) == 0 &&

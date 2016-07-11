@@ -213,7 +213,7 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG) && bm_vert_dissolve_fan_test(v)) {
 #ifdef USE_WALKER
-				BMO_elem_flag_enable(bm, v, ELE_VERT_TAG);
+				BMO_vert_flag_enable(bm, v, ELE_VERT_TAG);
 #endif
 				BM_elem_index_set(v, VERT_INDEX_INIT);  /* set_dirty! */
 			}
@@ -238,7 +238,7 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
 			BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 				if (v->e && (BM_elem_index_get(v) == VERT_INDEX_INIT)) {
 #ifdef USE_WALKER
-					if (BMO_elem_flag_test(bm, v, ELE_VERT_TAG))
+					if (BMO_vert_flag_test(bm, v, ELE_VERT_TAG))
 #endif
 					{
 						/* check again incase the topology changed */

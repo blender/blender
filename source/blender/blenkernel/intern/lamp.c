@@ -50,6 +50,8 @@
 #include "BKE_global.h"
 #include "BKE_lamp.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
+#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 
@@ -114,12 +116,12 @@ Lamp *BKE_lamp_add(Main *bmain, const char *name)
 	return la;
 }
 
-Lamp *BKE_lamp_copy(Lamp *la)
+Lamp *BKE_lamp_copy(Main *bmain, Lamp *la)
 {
 	Lamp *lan;
 	int a;
 	
-	lan = BKE_libblock_copy(&la->id);
+	lan = BKE_libblock_copy(bmain, &la->id);
 
 	for (a = 0; a < MAX_MTEX; a++) {
 		if (lan->mtex[a]) {
@@ -132,13 +134,13 @@ Lamp *BKE_lamp_copy(Lamp *la)
 	lan->curfalloff = curvemapping_copy(la->curfalloff);
 
 	if (la->nodetree)
-		lan->nodetree = ntreeCopyTree(la->nodetree);
+		lan->nodetree = ntreeCopyTree(bmain, la->nodetree);
 	
-	if (la->preview)
-		lan->preview = BKE_previewimg_copy(la->preview);
-	
-	if (la->id.lib) {
-		BKE_id_lib_local_paths(G.main, la->id.lib, &lan->id);
+	lan->preview = BKE_previewimg_copy(la->preview);
+
+	if (ID_IS_LINKED_DATABLOCK(la)) {
+		BKE_id_expand_local(&lan->id);
+		BKE_id_lib_local_paths(bmain, la->id.lib, &lan->id);
 	}
 
 	return lan;
@@ -166,14 +168,12 @@ Lamp *localize_lamp(Lamp *la)
 		lan->nodetree = ntreeLocalize(la->nodetree);
 	
 	lan->preview = NULL;
-	
+
 	return lan;
 }
 
-void BKE_lamp_make_local(Lamp *la)
+void BKE_lamp_make_local(Main *bmain, Lamp *la)
 {
-	Main *bmain = G.main;
-	Object *ob;
 	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
@@ -181,42 +181,23 @@ void BKE_lamp_make_local(Lamp *la)
 	 * - mixed: make copy
 	 */
 	
-	if (la->id.lib == NULL) return;
-	if (la->id.us == 1) {
-		id_clear_lib_data(bmain, &la->id);
+	if (!ID_IS_LINKED_DATABLOCK(la)) {
 		return;
 	}
-	
-	ob = bmain->object.first;
-	while (ob) {
-		if (ob->data == la) {
-			if (ob->id.lib) is_lib = true;
-			else is_local = true;
+
+	BKE_library_ID_test_usages(bmain, la, &is_local, &is_lib);
+
+	if (is_local) {
+		if (!is_lib) {
+			id_clear_lib_data(bmain, &la->id);
+			BKE_id_expand_local(&la->id);
 		}
-		ob = ob->id.next;
-	}
-	
-	if (is_local && is_lib == false) {
-		id_clear_lib_data(bmain, &la->id);
-	}
-	else if (is_local && is_lib) {
-		Lamp *la_new = BKE_lamp_copy(la);
-		la_new->id.us = 0;
+		else {
+			Lamp *la_new = BKE_lamp_copy(bmain, la);
 
-		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, la->id.lib, &la_new->id);
+			la_new->id.us = 0;
 
-		ob = bmain->object.first;
-		while (ob) {
-			if (ob->data == la) {
-				
-				if (ob->id.lib == NULL) {
-					ob->data = la_new;
-					id_us_plus(&la_new->id);
-					id_us_min(&la->id);
-				}
-			}
-			ob = ob->id.next;
+			BKE_libblock_remap(bmain, la, la_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}
 }

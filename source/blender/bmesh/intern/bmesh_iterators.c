@@ -339,16 +339,43 @@ int BMO_iter_elem_count_flag(
         const short oflag, const bool value)
 {
 	BMIter iter;
-	BMElemF *ele;
 	int count = 0;
 
 	/* loops have no header flags */
 	BLI_assert(bm_iter_itype_htype_map[itype] != BM_LOOP);
 
-	BM_ITER_ELEM (ele, &iter, data, itype) {
-		if (BMO_elem_flag_test_bool(bm, ele, oflag) == value) {
-			count++;
+	switch (bm_iter_itype_htype_map[itype]) {
+		case BM_VERT:
+		{
+			BMVert *ele;
+			BM_ITER_ELEM (ele, &iter, data, itype) {
+				if (BMO_vert_flag_test_bool(bm, ele, oflag) == value) {
+					count++;
+				}
+			}
+			break;
 		}
+		case BM_EDGE:
+		{
+			BMEdge *ele;
+			BM_ITER_ELEM (ele, &iter, data, itype) {
+				if (BMO_edge_flag_test_bool(bm, ele, oflag) == value) {
+					count++;
+				}
+			}
+			break;
+		}
+		case BM_FACE:
+		{
+			BMFace *ele;
+			BM_ITER_ELEM (ele, &iter, data, itype) {
+				if (BMO_face_flag_test_bool(bm, ele, oflag) == value) {
+					count++;
+				}
+			}
+			break;
+		}
+
 	}
 	return count;
 }

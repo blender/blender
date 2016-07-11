@@ -505,6 +505,11 @@ static void vicon_keytype_jitter_draw(int x, int y, int w, int h, float alpha)
 	vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_JITTER);
 }
 
+static void vicon_keytype_moving_hold_draw(int x, int y, int w, int h, float alpha)
+{
+	vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_MOVEHOLD);
+}
+
 static void vicon_colorset_draw(int index, int x, int y, int w, int h, float UNUSED(alpha))
 {
 	bTheme *btheme = UI_GetTheme();
@@ -792,6 +797,7 @@ static void init_internal_icons(void)
 	def_internal_vicon(VICO_KEYTYPE_BREAKDOWN_VEC, vicon_keytype_breakdown_draw);
 	def_internal_vicon(VICO_KEYTYPE_EXTREME_VEC, vicon_keytype_extreme_draw);
 	def_internal_vicon(VICO_KEYTYPE_JITTER_VEC, vicon_keytype_jitter_draw);
+	def_internal_vicon(VICO_KEYTYPE_MOVING_HOLD_VEC, vicon_keytype_moving_hold_draw);
 	
 	def_internal_vicon(VICO_COLORSET_01_VEC, vicon_colorset_draw_01);
 	def_internal_vicon(VICO_COLORSET_02_VEC, vicon_colorset_draw_02);

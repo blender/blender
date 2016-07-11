@@ -24,6 +24,7 @@
 CCL_NAMESPACE_BEGIN
 
 class BVHBuild;
+struct Transform;
 
 /* Object Split */
 
@@ -41,7 +42,9 @@ public:
 	               BVHSpatialStorage *storage,
 	               const BVHRange& range,
 	               vector<BVHReference> *references,
-	               float nodeSAH);
+	               float nodeSAH,
+	               const BVHUnaligned *unaligned_heuristic = NULL,
+	               const Transform *aligned_space = NULL);
 
 	void split(BVHRange& left,
 	           BVHRange& right,
@@ -50,6 +53,19 @@ public:
 protected:
 	BVHSpatialStorage *storage_;
 	vector<BVHReference> *references_;
+	const BVHUnaligned *unaligned_heuristic_;
+	const Transform *aligned_space_;
+
+	__forceinline BoundBox get_prim_bounds(const BVHReference& prim) const
+	{
+		if(aligned_space_ == NULL) {
+			return prim.bounds();
+		}
+		else {
+			return unaligned_heuristic_->compute_aligned_prim_boundbox(
+			        prim, *aligned_space_);
+		}
+	}
 };
 
 /* Spatial Split */
@@ -70,7 +86,9 @@ public:
 	                BVHSpatialStorage *storage,
 	                const BVHRange& range,
 	                vector<BVHReference> *references,
-	                float nodeSAH);
+	                float nodeSAH,
+	                const BVHUnaligned *unaligned_heuristic = NULL,
+	                const Transform *aligned_space = NULL);
 
 	void split(BVHBuild *builder,
 	           BVHRange& left,
@@ -87,6 +105,8 @@ public:
 protected:
 	BVHSpatialStorage *storage_;
 	vector<BVHReference> *references_;
+	const BVHUnaligned *unaligned_heuristic_;
+	const Transform *aligned_space_;
 
 	/* Lower-level functions which calculates boundaries of left and right nodes
 	 * needed for spatial split.
@@ -132,6 +152,27 @@ protected:
 	                            float pos,
 	                            BoundBox& left_bounds,
 	                            BoundBox& right_bounds);
+
+	__forceinline BoundBox get_prim_bounds(const BVHReference& prim) const
+	{
+		if(aligned_space_ == NULL) {
+			return prim.bounds();
+		}
+		else {
+			return unaligned_heuristic_->compute_aligned_prim_boundbox(
+			        prim, *aligned_space_);
+		}
+	}
+
+	__forceinline float3 get_unaligned_point(const float3& point) const
+	{
+		if(aligned_space_ == NULL) {
+			return point;
+		}
+		else {
+			return transform_point(aligned_space_, point);
+		}
+	}
 };
 
 /* Mixed Object-Spatial Split */
@@ -148,19 +189,40 @@ public:
 
 	bool no_split;
 
+	BoundBox bounds;
+
+	BVHMixedSplit() {}
+
 	__forceinline BVHMixedSplit(BVHBuild *builder,
 	                            BVHSpatialStorage *storage,
 	                            const BVHRange& range,
 	                            vector<BVHReference> *references,
-	                            int level)
+	                            int level,
+	                            const BVHUnaligned *unaligned_heuristic = NULL,
+	                            const Transform *aligned_space = NULL)
 	{
+		if(aligned_space == NULL) {
+			bounds = range.bounds();
+		}
+		else {
+			bounds = unaligned_heuristic->compute_aligned_boundbox(
+			        range,
+			        &references->at(0),
+			        *aligned_space);
+		}
 		/* find split candidates. */
-		float area = range.bounds().safe_area();
+		float area = bounds.safe_area();
 
 		leafSAH = area * builder->params.primitive_cost(range.size());
 		nodeSAH = area * builder->params.node_cost(2);
 
-		object = BVHObjectSplit(builder, storage, range, references, nodeSAH);
+		object = BVHObjectSplit(builder,
+		                        storage,
+		                        range,
+		                        references,
+		                        nodeSAH,
+		                        unaligned_heuristic,
+		                        aligned_space);
 
 		if(builder->params.use_spatial_split && level < BVHParams::MAX_SPATIAL_DEPTH) {
 			BoundBox overlap = object.left_bounds;
@@ -171,7 +233,9 @@ public:
 				                          storage,
 				                          range,
 				                          references,
-				                          nodeSAH);
+				                          nodeSAH,
+				                          unaligned_heuristic,
+				                          aligned_space);
 			}
 		}
 
@@ -181,7 +245,10 @@ public:
 		            builder->range_within_max_leaf_size(range, *references));
 	}
 
-	__forceinline void split(BVHBuild *builder, BVHRange& left, BVHRange& right, const BVHRange& range)
+	__forceinline void split(BVHBuild *builder,
+	                         BVHRange& left,
+	                         BVHRange& right,
+	                         const BVHRange& range)
 	{
 		if(builder->params.use_spatial_split && minSAH == spatial.sah)
 			spatial.split(builder, left, right, range);
@@ -193,4 +260,3 @@ public:
 CCL_NAMESPACE_END
 
 #endif /* __BVH_SPLIT_H__ */
-

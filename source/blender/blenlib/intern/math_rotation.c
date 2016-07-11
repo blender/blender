@@ -200,8 +200,7 @@ void mul_fac_qt_fl(float q[4], const float fac)
 	const float co = cosf(angle);
 	const float si = sinf(angle);
 	q[0] = co;
-	normalize_v3(q + 1);
-	mul_v3_fl(q + 1, si);
+	normalize_v3_length(q + 1, si);
 }
 
 /* skip error check, currently only needed by mat3_to_quat_is_ok */

@@ -55,6 +55,7 @@
 #include "BKE_global.h"
 #include "BKE_idcode.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
 #include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_outliner_treehash.h"
@@ -231,7 +232,7 @@ static void do_item_rename(ARegion *ar, TreeElement *te, TreeStoreElem *tselem, 
 	else if (ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
 		BKE_report(reports, RPT_WARNING, "Cannot edit sequence name");
 	}
-	else if (tselem->id->lib) {
+	else if (ID_IS_LINKED_DATABLOCK(tselem->id)) {
 		BKE_report(reports, RPT_WARNING, "Cannot edit external libdata");
 	}
 	else if (te->idcode == ID_LI && ((Library *)tselem->id)->parent) {
@@ -243,8 +244,9 @@ static void do_item_rename(ARegion *ar, TreeElement *te, TreeStoreElem *tselem, 
 	}
 }
 
-void item_rename_cb(bContext *C, Scene *UNUSED(scene), TreeElement *te,
-                    TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
+void item_rename_cb(
+        bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *te,
+        TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	ARegion *ar = CTX_wm_region(C);
 	ReportList *reports = CTX_wm_reports(C); // XXX
@@ -306,7 +308,7 @@ void OUTLINER_OT_item_rename(wmOperatorType *ot)
 
 /* ID delete --------------------------------------------------- */
 
-static void id_delete(bContext *C, TreeElement *te, TreeStoreElem *tselem)
+static void id_delete(bContext *C, ReportList *reports, TreeElement *te, TreeStoreElem *tselem)
 {
 	Main *bmain = CTX_data_main(C);
 	ID *id = tselem->id;
@@ -315,16 +317,28 @@ static void id_delete(bContext *C, TreeElement *te, TreeStoreElem *tselem)
 	BLI_assert(te->idcode != ID_LI || ((Library *)id)->parent == NULL);
 	UNUSED_VARS_NDEBUG(te);
 
+	if (id->tag & LIB_TAG_INDIRECT) {
+		BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked id '%s'", id->name);
+		return;
+	}
+	else if (BKE_library_ID_is_indirectly_used(bmain, id) && ID_REAL_USERS(id) <= 1) {
+		BKE_reportf(reports, RPT_WARNING,
+		            "Cannot delete id '%s', indirectly used datablocks need at least one user",
+		            id->name);
+		return;
+	}
+
+
 	BKE_libblock_delete(bmain, id);
 
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 }
 
 void id_delete_cb(
-        bContext *C, Scene *UNUSED(scene), TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem,
-        void *UNUSED(user_data))
+        bContext *C, ReportList *reports, Scene *UNUSED(scene),
+        TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
-	id_delete(C, te, tselem);
+	id_delete(C, reports, te, tselem);
 }
 
 static int outliner_id_delete_invoke_do(bContext *C, ReportList *reports, TreeElement *te, const float mval[2])
@@ -338,7 +352,7 @@ static int outliner_id_delete_invoke_do(bContext *C, ReportList *reports, TreeEl
 				            "Cannot delete indirectly linked library '%s'", ((Library *)tselem->id)->filepath);
 				return OPERATOR_CANCELLED;
 			}
-			id_delete(C, te, tselem);
+			id_delete(C, reports, te, tselem);
 			return OPERATOR_FINISHED;
 		}
 	}
@@ -409,7 +423,7 @@ static int outliner_id_remap_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (old_id->lib) {
+	if (ID_IS_LINKED_DATABLOCK(old_id)) {
 		BKE_reportf(op->reports, RPT_WARNING,
 		            "Old ID '%s' is linked from a library, indirect usages of this datablock will not be remapped",
 		            old_id->name);
@@ -520,7 +534,7 @@ void OUTLINER_OT_id_remap(wmOperatorType *ot)
 }
 
 void id_remap_cb(
-        bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te),
+        bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *UNUSED(te),
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	wmOperatorType *ot = WM_operatortype_find("OUTLINER_OT_id_remap", false);
@@ -644,7 +658,7 @@ void OUTLINER_OT_lib_relocate(wmOperatorType *ot)
 /* XXX This does not work with several items
  *     (it is only called once in the end, due to the 'deferred' filebrowser invocation through event system...). */
 void lib_relocate_cb(
-        bContext *C, Scene *UNUSED(scene), TreeElement *te,
+        bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *te,
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	wmOperatorType *ot = WM_operatortype_find("WM_OT_lib_relocate", false);
@@ -686,7 +700,7 @@ void OUTLINER_OT_lib_reload(wmOperatorType *ot)
 }
 
 void lib_reload_cb(
-        bContext *C, Scene *UNUSED(scene), TreeElement *te,
+        bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *te,
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	wmOperatorType *ot = WM_operatortype_find("WM_OT_lib_reload", false);
@@ -773,8 +787,9 @@ int common_restrict_check(bContext *C, Object *ob)
 
 /* Toggle Visibility ---------------------------------------- */
 
-void object_toggle_visibility_cb(bContext *C, Scene *scene, TreeElement *te,
-                                 TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
+void object_toggle_visibility_cb(
+        bContext *C, ReportList *UNUSED(reports), Scene *scene, TreeElement *te,
+        TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	Base *base = (Base *)te->directdata;
 	Object *ob = (Object *)tselem->id;
@@ -789,21 +804,22 @@ void object_toggle_visibility_cb(bContext *C, Scene *scene, TreeElement *te,
 	}
 }
 
-void group_toggle_visibility_cb(bContext *UNUSED(C), Scene *scene, TreeElement *UNUSED(te),
-                                TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
+void group_toggle_visibility_cb(
+        bContext *UNUSED(C), ReportList *UNUSED(reports), Scene *scene, TreeElement *UNUSED(te),
+        TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	Group *group = (Group *)tselem->id;
 	restrictbutton_gr_restrict_flag(scene, group, OB_RESTRICT_VIEW);
 }
 
-static int outliner_toggle_visibility_exec(bContext *C, wmOperator *UNUSED(op))
+static int outliner_toggle_visibility_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	
-	outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_visibility_cb);
+	outliner_do_object_operation(C, op->reports, scene, soops, &soops->tree, object_toggle_visibility_cb);
 	
 	DAG_id_type_tag(bmain, ID_OB);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_VISIBLE, scene);
@@ -828,8 +844,9 @@ void OUTLINER_OT_visibility_toggle(wmOperatorType *ot)
 
 /* Toggle Selectability ---------------------------------------- */
 
-void object_toggle_selectability_cb(bContext *UNUSED(C), Scene *scene, TreeElement *te,
-                                    TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
+void object_toggle_selectability_cb(
+        bContext *UNUSED(C), ReportList *UNUSED(reports), Scene *scene, TreeElement *te,
+        TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	Base *base = (Base *)te->directdata;
 	
@@ -839,20 +856,21 @@ void object_toggle_selectability_cb(bContext *UNUSED(C), Scene *scene, TreeEleme
 	}
 }
 
-void group_toggle_selectability_cb(bContext *UNUSED(C), Scene *scene, TreeElement *UNUSED(te),
-                                   TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
+void group_toggle_selectability_cb(
+        bContext *UNUSED(C), ReportList *UNUSED(reports), Scene *scene, TreeElement *UNUSED(te),
+        TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	Group *group = (Group *)tselem->id;
 	restrictbutton_gr_restrict_flag(scene, group, OB_RESTRICT_SELECT);
 }
 
-static int outliner_toggle_selectability_exec(bContext *C, wmOperator *UNUSED(op))
+static int outliner_toggle_selectability_exec(bContext *C, wmOperator *op)
 {
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	
-	outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_selectability_cb);
+	outliner_do_object_operation(C, op->reports, scene, soops, &soops->tree, object_toggle_selectability_cb);
 	
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 	ED_region_tag_redraw(ar);
@@ -876,8 +894,9 @@ void OUTLINER_OT_selectability_toggle(wmOperatorType *ot)
 
 /* Toggle Renderability ---------------------------------------- */
 
-void object_toggle_renderability_cb(bContext *UNUSED(C), Scene *scene, TreeElement *te,
-                                    TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
+void object_toggle_renderability_cb(
+        bContext *UNUSED(C), ReportList *UNUSED(reports), Scene *scene, TreeElement *te,
+        TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	Base *base = (Base *)te->directdata;
 	
@@ -887,20 +906,21 @@ void object_toggle_renderability_cb(bContext *UNUSED(C), Scene *scene, TreeEleme
 	}
 }
 
-void group_toggle_renderability_cb(bContext *UNUSED(C), Scene *scene, TreeElement *UNUSED(te),
-                                   TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
+void group_toggle_renderability_cb(
+        bContext *UNUSED(C), ReportList *UNUSED(reports), Scene *scene, TreeElement *UNUSED(te),
+        TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	Group *group = (Group *)tselem->id;
 	restrictbutton_gr_restrict_flag(scene, group, OB_RESTRICT_RENDER);
 }
 
-static int outliner_toggle_renderability_exec(bContext *C, wmOperator *UNUSED(op))
+static int outliner_toggle_renderability_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	Scene *scene = CTX_data_scene(C);
 	
-	outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_renderability_cb);
+	outliner_do_object_operation(C, op->reports, scene, soops, &soops->tree, object_toggle_renderability_cb);
 	
 	DAG_id_type_tag(bmain, ID_OB);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_RENDER, scene);
@@ -1962,7 +1982,7 @@ static int parent_drop_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "child", childname);
 	ob = (Object *)BKE_libblock_find_name(ID_OB, childname);
 
-	if (ob->id.lib) {
+	if (ID_IS_LINKED_DATABLOCK(ob)) {
 		BKE_report(op->reports, RPT_INFO, "Can't edit library linked object");
 		return OPERATOR_CANCELLED;
 	}
@@ -2010,7 +2030,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		if (ob == par) {
 			return OPERATOR_CANCELLED;
 		}
-		if (ob->id.lib) {
+		if (ID_IS_LINKED_DATABLOCK(ob)) {
 			BKE_report(op->reports, RPT_INFO, "Can't edit library linked object");
 			return OPERATOR_CANCELLED;
 		}
@@ -2219,7 +2239,7 @@ static int scene_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		RNA_string_get(op->ptr, "object", obname);
 		ob = (Object *)BKE_libblock_find_name(ID_OB, obname);
 
-		if (ELEM(NULL, ob, scene) || scene->id.lib != NULL) {
+		if (ELEM(NULL, ob, scene) || ID_IS_LINKED_DATABLOCK(scene)) {
 			return OPERATOR_CANCELLED;
 		}
 

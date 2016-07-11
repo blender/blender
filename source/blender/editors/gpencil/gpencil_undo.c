@@ -43,7 +43,9 @@
 
 #include "BKE_blender_undo.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_gpencil.h"
+#include "BKE_main.h"
 
 #include "ED_gpencil.h"
 
@@ -151,7 +153,7 @@ void gpencil_undo_push(bGPdata *gpd)
 	
 	/* create new undo node */
 	undo_node = MEM_callocN(sizeof(bGPundonode), "gpencil undo node");
-	undo_node->gpd = gpencil_data_duplicate(gpd, true);
+	undo_node->gpd = gpencil_data_duplicate(G.main, gpd, true);
 	
 	cur_node = undo_node;
 	

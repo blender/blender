@@ -171,7 +171,7 @@ FreestyleLineStyle *BKE_linestyle_copy(struct Main *bmain, FreestyleLineStyle *l
 		}
 	}
 	if (linestyle->nodetree) {
-		new_linestyle->nodetree = ntreeCopyTree(linestyle->nodetree);
+		new_linestyle->nodetree = ntreeCopyTree(bmain, linestyle->nodetree);
 	}
 
 	new_linestyle->r = linestyle->r;
@@ -218,8 +218,9 @@ FreestyleLineStyle *BKE_linestyle_copy(struct Main *bmain, FreestyleLineStyle *l
 	for (m = (LineStyleModifier *)linestyle->geometry_modifiers.first; m; m = m->next)
 		BKE_linestyle_geometry_modifier_copy(new_linestyle, m);
 
-	if (linestyle->id.lib) {
-		BKE_id_lib_local_paths(G.main, linestyle->id.lib, &new_linestyle->id);
+	if (ID_IS_LINKED_DATABLOCK(linestyle)) {
+		BKE_id_expand_local(&new_linestyle->id);
+		BKE_id_lib_local_paths(bmain, linestyle->id.lib, &new_linestyle->id);
 	}
 
 	return new_linestyle;

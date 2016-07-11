@@ -111,7 +111,7 @@ static int recalc_face_normals_find_index(BMesh *bm, BMFace **faces, const int f
 		madd_v3_v3fl(cent, f_cent, cent_fac * f_area);
 		cent_area_accum += f_area;
 
-		BLI_assert(BMO_elem_flag_test(bm, faces[i], FACE_TEMP) == 0);
+		BLI_assert(BMO_face_flag_test(bm, faces[i], FACE_TEMP) == 0);
 		BLI_assert(BM_face_is_normal_valid(faces[i]));
 	}
 
@@ -209,7 +209,7 @@ static void bmo_recalc_face_normals_array(BMesh *bm, BMFace **faces, const int f
 	f_start_index = recalc_face_normals_find_index(bm, faces, faces_len, &is_flip);
 
 	if (is_flip) {
-		BMO_elem_flag_enable(bm, faces[f_start_index], FACE_FLIP);
+		BMO_face_flag_enable(bm, faces[f_start_index], FACE_FLIP);
 	}
 
 	/* now that we've found our starting face, make all connected faces
@@ -219,10 +219,10 @@ static void bmo_recalc_face_normals_array(BMesh *bm, BMFace **faces, const int f
 	BLI_LINKSTACK_INIT(fstack);
 
 	BLI_LINKSTACK_PUSH(fstack, faces[f_start_index]);
-	BMO_elem_flag_enable(bm, faces[f_start_index], FACE_TEMP);
+	BMO_face_flag_enable(bm, faces[f_start_index], FACE_TEMP);
 
 	while ((f = BLI_LINKSTACK_POP(fstack))) {
-		const bool flip_state = BMO_elem_flag_test_bool(bm, f, FACE_FLIP);
+		const bool flip_state = BMO_face_flag_test_bool(bm, f, FACE_FLIP);
 		BMLoop *l_iter, *l_first;
 
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
@@ -230,9 +230,9 @@ static void bmo_recalc_face_normals_array(BMesh *bm, BMFace **faces, const int f
 			BMLoop *l_other = l_iter->radial_next;
 
 			if ((l_other != l_iter) && bmo_recalc_normal_loop_filter_cb(l_iter, NULL)) {
-				if (!BMO_elem_flag_test(bm, l_other->f, FACE_TEMP)) {
-					BMO_elem_flag_enable(bm, l_other->f, FACE_TEMP);
-					BMO_elem_flag_set(bm, l_other->f, FACE_FLIP, (l_other->v == l_iter->v) != flip_state);
+				if (!BMO_face_flag_test(bm, l_other->f, FACE_TEMP)) {
+					BMO_face_flag_enable(bm, l_other->f, FACE_TEMP);
+					BMO_face_flag_set(bm, l_other->f, FACE_FLIP, (l_other->v == l_iter->v) != flip_state);
 					BLI_LINKSTACK_PUSH(fstack, l_other->f);
 				}
 			}
@@ -243,10 +243,10 @@ static void bmo_recalc_face_normals_array(BMesh *bm, BMFace **faces, const int f
 
 	/* apply flipping to oflag'd faces */
 	for (i = 0; i < faces_len; i++) {
-		if (BMO_elem_flag_test(bm, faces[i], oflag_flip) == oflag_flip) {
+		if (BMO_face_flag_test(bm, faces[i], oflag_flip) == oflag_flip) {
 			BM_face_normal_flip(bm, faces[i]);
 		}
-		BMO_elem_flag_disable(bm, faces[i], FACE_TEMP);
+		BMO_face_flag_disable(bm, faces[i], FACE_TEMP);
 	}
 }
 
@@ -284,7 +284,7 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 			faces_grp[j] = BM_face_at_index(bm, groups_array[fg_sta + j]);
 
 			if (is_calc == false) {
-				is_calc = BMO_elem_flag_test_bool(bm, faces_grp[j], FACE_FLAG);
+				is_calc = BMO_face_flag_test_bool(bm, faces_grp[j], FACE_FLAG);
 			}
 		}
 

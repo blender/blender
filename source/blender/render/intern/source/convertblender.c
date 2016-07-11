@@ -2028,9 +2028,8 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 		/* exception for tangent space baking */
 		if (me->mtpoly==NULL) {
 			need_orco= 1;
-			need_tangent= 1;
 		}
-		need_nmap_tangent_concrete = true;
+		need_tangent= 1;
 	}
 
 	/* check autosmooth and displacement, we then have to skip only-verts optimize

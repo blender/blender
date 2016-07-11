@@ -37,6 +37,7 @@
 #define ccl_device_noinline static
 #define ccl_global
 #define ccl_constant
+#define ccl_restrict __restrict
 #define __KERNEL_WITH_SSE_ALIGN__
 
 #if defined(_WIN32) && !defined(FREE_WINDOWS)

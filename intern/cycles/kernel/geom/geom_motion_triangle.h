@@ -47,13 +47,13 @@ ccl_device_inline int find_attribute_motion(KernelGlobals *kg, int object, uint 
 	return (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.z;
 }
 
-ccl_device_inline void motion_triangle_verts_for_step(KernelGlobals *kg, float3 tri_vindex, int offset, int numverts, int numsteps, int step, float3 verts[3])
+ccl_device_inline void motion_triangle_verts_for_step(KernelGlobals *kg, uint4 tri_vindex, int offset, int numverts, int numsteps, int step, float3 verts[3])
 {
 	if(step == numsteps) {
 		/* center step: regular vertex location */
-		verts[0] = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.x)));
-		verts[1] = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.y)));
-		verts[2] = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.z)));
+		verts[0] = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w+0));
+		verts[1] = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w+1));
+		verts[2] = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w+2));
 	}
 	else {
 		/* center step not store in this array */
@@ -62,19 +62,19 @@ ccl_device_inline void motion_triangle_verts_for_step(KernelGlobals *kg, float3 
 
 		offset += step*numverts;
 
-		verts[0] = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.x)));
-		verts[1] = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.y)));
-		verts[2] = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.z)));
+		verts[0] = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + tri_vindex.x));
+		verts[1] = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + tri_vindex.y));
+		verts[2] = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + tri_vindex.z));
 	}
 }
 
-ccl_device_inline void motion_triangle_normals_for_step(KernelGlobals *kg, float3 tri_vindex, int offset, int numverts, int numsteps, int step, float3 normals[3])
+ccl_device_inline void motion_triangle_normals_for_step(KernelGlobals *kg, uint4 tri_vindex, int offset, int numverts, int numsteps, int step, float3 normals[3])
 {
 	if(step == numsteps) {
 		/* center step: regular vertex location */
-		normals[0] = float4_to_float3(kernel_tex_fetch(__tri_vnormal, __float_as_int(tri_vindex.x)));
-		normals[1] = float4_to_float3(kernel_tex_fetch(__tri_vnormal, __float_as_int(tri_vindex.y)));
-		normals[2] = float4_to_float3(kernel_tex_fetch(__tri_vnormal, __float_as_int(tri_vindex.z)));
+		normals[0] = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.x));
+		normals[1] = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.y));
+		normals[2] = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.z));
 	}
 	else {
 		/* center step not stored in this array */
@@ -83,9 +83,9 @@ ccl_device_inline void motion_triangle_normals_for_step(KernelGlobals *kg, float
 
 		offset += step*numverts;
 
-		normals[0] = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.x)));
-		normals[1] = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.y)));
-		normals[2] = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.z)));
+		normals[0] = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + tri_vindex.x));
+		normals[1] = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + tri_vindex.y));
+		normals[2] = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + tri_vindex.z));
 	}
 }
 
@@ -107,7 +107,7 @@ ccl_device_inline void motion_triangle_vertices(KernelGlobals *kg, int object, i
 
 	/* fetch vertex coordinates */
 	float3 next_verts[3];
-	float3 tri_vindex = float4_to_float3(kernel_tex_fetch(__tri_vindex, prim));
+	uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
 
 	motion_triangle_verts_for_step(kg, tri_vindex, offset, numverts, numsteps, step, verts);
 	motion_triangle_verts_for_step(kg, tri_vindex, offset, numverts, numsteps, step+1, next_verts);
@@ -259,7 +259,7 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals *kg, ShaderD
 
 	/* fetch vertex coordinates */
 	float3 verts[3], next_verts[3];
-	float3 tri_vindex = float4_to_float3(kernel_tex_fetch(__tri_vindex, ccl_fetch(sd, prim)));
+	uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, ccl_fetch(sd, prim));
 
 	motion_triangle_verts_for_step(kg, tri_vindex, offset, numverts, numsteps, step, verts);
 	motion_triangle_verts_for_step(kg, tri_vindex, offset, numverts, numsteps, step+1, next_verts);

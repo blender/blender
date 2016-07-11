@@ -232,7 +232,7 @@ void packAll(Main *bmain, ReportList *reports, bool verbose)
 	int tot = 0;
 	
 	for (ima = bmain->image.first; ima; ima = ima->id.next) {
-		if (BKE_image_has_packedfile(ima) == false && ima->id.lib == NULL) {
+		if (BKE_image_has_packedfile(ima) == false && !ID_IS_LINKED_DATABLOCK(ima)) {
 			if (ima->source == IMA_SRC_FILE) {
 				BKE_image_packfiles(reports, ima, ID_BLEND_PATH(bmain, &ima->id));
 				tot ++;
@@ -245,14 +245,14 @@ void packAll(Main *bmain, ReportList *reports, bool verbose)
 	}
 
 	for (vfont = bmain->vfont.first; vfont; vfont = vfont->id.next) {
-		if (vfont->packedfile == NULL && vfont->id.lib == NULL && BKE_vfont_is_builtin(vfont) == false) {
+		if (vfont->packedfile == NULL && !ID_IS_LINKED_DATABLOCK(vfont) && BKE_vfont_is_builtin(vfont) == false) {
 			vfont->packedfile = newPackedFile(reports, vfont->name, bmain->name);
 			tot ++;
 		}
 	}
 
 	for (sound = bmain->sound.first; sound; sound = sound->id.next) {
-		if (sound->packedfile == NULL && sound->id.lib == NULL) {
+		if (sound->packedfile == NULL && !ID_IS_LINKED_DATABLOCK(sound)) {
 			sound->packedfile = newPackedFile(reports, sound->name, bmain->name);
 			tot++;
 		}

@@ -1076,6 +1076,26 @@ void ImageManager::device_update_slot(Device *device,
 	}
 }
 
+uint8_t ImageManager::pack_image_options(ImageDataType type, size_t slot)
+{
+	uint8_t options = 0;
+
+	/* Image Options are packed into one uint:
+	 * bit 0 -> Interpolation
+	 * bit 1 + 2  + 3-> Extension */
+	if(images[type][slot]->interpolation == INTERPOLATION_CLOSEST)
+		options |= (1 << 0);
+
+	if(images[type][slot]->extension == EXTENSION_REPEAT)
+		options |= (1 << 1);
+	else if(images[type][slot]->extension == EXTENSION_EXTEND)
+		options |= (1 << 2);
+	else /* EXTENSION_CLIP */
+		options |= (1 << 3);
+
+	return options;
+}
+
 void ImageManager::device_pack_images(Device *device,
                                       DeviceScene *dscene,
                                       Progress& /*progess*/)
@@ -1107,11 +1127,9 @@ void ImageManager::device_pack_images(Device *device,
 
 		device_vector<uchar4>& tex_img = dscene->tex_byte4_image[slot];
 
-		/* The image options are packed
-		   bit 0 -> periodic
-		   bit 1 + 2 -> interpolation type */
-		uint8_t interpolation = (images[type][slot]->interpolation << 1) + 1;
-		info[type_index_to_flattened_slot(slot, type)] = make_uint4(tex_img.data_width, tex_img.data_height, offset, interpolation);
+		uint8_t options = pack_image_options(type, slot);
+
+		info[type_index_to_flattened_slot(slot, type)] = make_uint4(tex_img.data_width, tex_img.data_height, offset, options);
 
 		memcpy(pixels_byte+offset, (void*)tex_img.data_pointer, tex_img.memory_size());
 		offset += tex_img.size();
@@ -1139,11 +1157,8 @@ void ImageManager::device_pack_images(Device *device,
 
 		/* todo: support 3D textures, only CPU for now */
 
-		/* The image options are packed
-		   bit 0 -> periodic
-		   bit 1 + 2 -> interpolation type */
-		uint8_t interpolation = (images[type][slot]->interpolation << 1) + 1;
-		info[type_index_to_flattened_slot(slot, type)] = make_uint4(tex_img.data_width, tex_img.data_height, offset, interpolation);
+		uint8_t options = pack_image_options(type, slot);
+		info[type_index_to_flattened_slot(slot, type)] = make_uint4(tex_img.data_width, tex_img.data_height, offset, options);
 
 		memcpy(pixels_float+offset, (void*)tex_img.data_pointer, tex_img.memory_size());
 		offset += tex_img.size();

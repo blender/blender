@@ -187,7 +187,7 @@ void WorkScheduler::schedule(ExecutionGroup *group, int chunkNumber)
 {
 	WorkPackage *package = new WorkPackage(group, chunkNumber);
 #if COM_CURRENT_THREADING_MODEL == COM_TM_NOTHREAD
-	CPUDevice device;
+	CPUDevice device(0);
 	device.execute(package);
 	delete package;
 #elif COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
@@ -277,6 +277,7 @@ bool WorkScheduler::hasGPUDevices()
 #endif
 }
 
+#if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 static void CL_CALLBACK clContextError(const char *errinfo,
                                        const void * /*private_info*/,
                                        size_t /*cb*/,
@@ -284,6 +285,7 @@ static void CL_CALLBACK clContextError(const char *errinfo,
 {
 	printf("OPENCL error: %s\n", errinfo);
 }
+#endif
 
 void WorkScheduler::initialize(bool use_opencl, int num_cpu_threads)
 {

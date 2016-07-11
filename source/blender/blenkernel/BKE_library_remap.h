@@ -56,9 +56,13 @@ void BKE_libblock_remap(
         struct Main *bmain, void *old_idv, void *new_idv,
         const short remap_flags) ATTR_NONNULL(1, 2);
 
-void BKE_libblock_unlink(struct Main *bmain, void *idv, const bool do_flag_never_null) ATTR_NONNULL();
+void BKE_libblock_unlink(
+        struct Main *bmain, void *idv,
+        const bool do_flag_never_null, const bool do_skip_indirect) ATTR_NONNULL();
 
-void BKE_libblock_relink_ex(void *idv, void *old_idv, void *new_idv, const bool us_min_never_null) ATTR_NONNULL(1);
+void BKE_libblock_relink_ex(
+        struct Main *bmain, void *idv, void *old_idv, void *new_idv,
+        const bool us_min_never_null) ATTR_NONNULL(1, 2);
 
 
 typedef void (*BKE_library_free_window_manager_cb)(struct bContext *, struct wmWindowManager *);

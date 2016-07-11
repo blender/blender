@@ -35,10 +35,13 @@ class Progress;
 
 #define BVH_NODE_SIZE	4
 #define BVH_NODE_LEAF_SIZE	1
-#define BVH_QNODE_SIZE	7
+#define BVH_QNODE_SIZE	8
 #define BVH_QNODE_LEAF_SIZE	1
 #define BVH_ALIGN		4096
 #define TRI_NODE_SIZE	3
+
+#define BVH_UNALIGNED_NODE_SIZE 7
+#define BVH_UNALIGNED_QNODE_SIZE 14
 
 /* Packed BVH
  *
@@ -52,8 +55,10 @@ struct PackedBVH {
 	array<int4> leaf_nodes;
 	/* object index to BVH node index mapping for instances */
 	array<int> object_node; 
-	/* Aligned triangle storage for fatser lookup in the kernel. */
-	array<float4> tri_storage;
+	/* Mapping from primitive index to index in triangle array. */
+	array<uint> prim_tri_index;
+	/* Continuous storage of triangle vertices. */
+	array<float4> prim_tri_verts;
 	/* primitive type - triangle or strand */
 	array<int> prim_type;
 	/* visibility visibilitys for primitives */
@@ -91,7 +96,7 @@ public:
 protected:
 	BVH(const BVHParams& params, const vector<Object*>& objects);
 
-	/* triangles and strands*/
+	/* triangles and strands */
 	void pack_primitives();
 	void pack_triangle(int idx, float4 storage[3]);
 
@@ -115,9 +120,32 @@ protected:
 
 	/* pack */
 	void pack_nodes(const BVHNode *root);
-	void pack_leaf(const BVHStackEntry& e, const LeafNode *leaf);
-	void pack_inner(const BVHStackEntry& e, const BVHStackEntry& e0, const BVHStackEntry& e1);
-	void pack_node(int idx, const BoundBox& b0, const BoundBox& b1, int c0, int c1, uint visibility0, uint visibility1);
+
+	void pack_leaf(const BVHStackEntry& e,
+	               const LeafNode *leaf);
+	void pack_inner(const BVHStackEntry& e,
+	                const BVHStackEntry& e0,
+	                const BVHStackEntry& e1);
+
+	void pack_aligned_inner(const BVHStackEntry& e,
+	                        const BVHStackEntry& e0,
+	                        const BVHStackEntry& e1);
+	void pack_aligned_node(int idx,
+	                       const BoundBox& b0,
+	                       const BoundBox& b1,
+	                       int c0, int c1,
+	                       uint visibility0, uint visibility1);
+
+	void pack_unaligned_inner(const BVHStackEntry& e,
+	                          const BVHStackEntry& e0,
+	                          const BVHStackEntry& e1);
+	void pack_unaligned_node(int idx,
+	                         const Transform& aligned_space0,
+	                         const Transform& aligned_space1,
+	                         const BoundBox& b0,
+	                         const BoundBox& b1,
+	                         int c0, int c1,
+	                         uint visibility0, uint visibility1);
 
 	/* refit */
 	void refit_nodes();
@@ -136,8 +164,16 @@ protected:
 
 	/* pack */
 	void pack_nodes(const BVHNode *root);
+
 	void pack_leaf(const BVHStackEntry& e, const LeafNode *leaf);
 	void pack_inner(const BVHStackEntry& e, const BVHStackEntry *en, int num);
+
+	void pack_aligned_inner(const BVHStackEntry& e,
+	                        const BVHStackEntry *en,
+	                        int num);
+	void pack_unaligned_inner(const BVHStackEntry& e,
+	                          const BVHStackEntry *en,
+	                          int num);
 
 	/* refit */
 	void refit_nodes();

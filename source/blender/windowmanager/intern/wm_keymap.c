@@ -1787,7 +1787,17 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	}
 	/* UV Editor */
 	else if (STRPREFIX(opname, "UV_OT")) {
-		km = WM_keymap_find_all(C, "UV Editor", 0, 0);
+		/* Hack to allow using UV unwrapping ops from 3DView/editmode.
+		 * Mesh keymap is probably not ideal, but best place I could find to put those. */
+		if (sl->spacetype == SPACE_VIEW3D) {
+			km = WM_keymap_find_all(C, "Mesh", 0, 0);
+			if (km && km->poll && !km->poll((bContext *)C)) {
+				km = NULL;
+			}
+		}
+		if (!km) {
+			km = WM_keymap_find_all(C, "UV Editor", 0, 0);
+		}
 	}
 	/* Node Editor */
 	else if (STRPREFIX(opname, "NODE_OT")) {

@@ -6238,7 +6238,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 		}
 		
 		/* select linked objects, but skip them later */
-		if (ob->id.lib != NULL) {
+		if (ID_IS_LINKED_DATABLOCK(ob)) {
 			td->flag |= TD_SKIP;
 		}
 		

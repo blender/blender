@@ -240,7 +240,7 @@ void mask_array(unsigned int mask, float filt[3][3])
  * </pre>
  */
 
-void add_filt_fmask_coord(float filt[3][3], const float col[4], float *rowbuf, int row_w, int col_h, int x, int y)
+void add_filt_fmask_coord(float filt[3][3], const float col[4], float *rowbuf, int row_stride, int x, int y, rcti *mask)
 {
 	float *fpoin[3][3];
 	float val, r, g, b, al, lfilt[3][3];
@@ -252,9 +252,9 @@ void add_filt_fmask_coord(float filt[3][3], const float col[4], float *rowbuf, i
 	
 	memcpy(lfilt, filt, sizeof(lfilt));
 	
-	fpoin[0][1] = rowbuf - 4 * row_w;
+	fpoin[0][1] = rowbuf - 4 * row_stride;
 	fpoin[1][1] = rowbuf;
-	fpoin[2][1] = rowbuf + 4 * row_w;
+	fpoin[2][1] = rowbuf + 4 * row_stride;
 
 	fpoin[0][0] = fpoin[0][1] - 4;
 	fpoin[1][0] = fpoin[1][1] - 4;
@@ -264,7 +264,9 @@ void add_filt_fmask_coord(float filt[3][3], const float col[4], float *rowbuf, i
 	fpoin[1][2] = fpoin[1][1] + 4;
 	fpoin[2][2] = fpoin[2][1] + 4;
 
-	if (y == 0) {
+	/* limit filtering to withing a mask for border rendering, so pixels don't
+	 * leak outside of the border */
+	if (y <= mask->ymin) {
 		fpoin[0][0] = fpoin[1][0];
 		fpoin[0][1] = fpoin[1][1];
 		fpoin[0][2] = fpoin[1][2];
@@ -273,7 +275,7 @@ void add_filt_fmask_coord(float filt[3][3], const float col[4], float *rowbuf, i
 		lfilt[0][1] = filt[2][1];
 		lfilt[0][2] = filt[2][2];
 	}
-	else if (y == col_h - 1) {
+	else if (y >= mask->ymax - 1) {
 		fpoin[2][0] = fpoin[1][0];
 		fpoin[2][1] = fpoin[1][1];
 		fpoin[2][2] = fpoin[1][2];
@@ -283,7 +285,7 @@ void add_filt_fmask_coord(float filt[3][3], const float col[4], float *rowbuf, i
 		lfilt[2][2] = filt[0][2];
 	}
 	
-	if (x == 0) {
+	if (x <= mask->xmin) {
 		fpoin[2][0] = fpoin[2][1];
 		fpoin[1][0] = fpoin[1][1];
 		fpoin[0][0] = fpoin[0][1];
@@ -292,7 +294,7 @@ void add_filt_fmask_coord(float filt[3][3], const float col[4], float *rowbuf, i
 		lfilt[1][0] = filt[1][2];
 		lfilt[0][0] = filt[0][2];
 	}
-	else if (x == row_w - 1) {
+	else if (x >= mask->xmax - 1) {
 		fpoin[2][2] = fpoin[2][1];
 		fpoin[1][2] = fpoin[1][1];
 		fpoin[0][2] = fpoin[0][1];

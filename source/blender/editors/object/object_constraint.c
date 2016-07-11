@@ -584,7 +584,7 @@ static int edit_constraint_poll_generic(bContext *C, StructRNA *rna_type)
 		return 0;
 	}
 
-	if (ob->id.lib || (ptr.id.data && ((ID *)ptr.id.data)->lib)) {
+	if (ID_IS_LINKED_DATABLOCK(ob) || (ptr.id.data && ID_IS_LINKED_DATABLOCK(ptr.id.data))) {
 		CTX_wm_operator_poll_msg_set(C, "Cannot edit library data");
 		return 0;
 	}
@@ -1651,7 +1651,7 @@ static bool get_new_constraint_target(bContext *C, int con_type, Object **tar_ob
 					break;
 				}
 				else if (((!only_curve) || (ob->type == OB_CURVE)) &&
-			             ((!only_mesh) || (ob->type == OB_MESH)))
+				         ((!only_mesh) || (ob->type == OB_MESH)))
 				{
 					/* set target */
 					*tar_ob = ob;

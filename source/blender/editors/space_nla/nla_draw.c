@@ -62,7 +62,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-
+#include "nla_private.h"
 #include "nla_intern.h" /* own include */
 
 
@@ -143,6 +143,62 @@ static void nla_action_draw_keyframes(AnimData *adt, bAction *act, View2D *v2d, 
 	
 	/* free icons */
 	BLI_dlrbTree_free(&keys);
+}
+
+/* Strip Markers ------------------------ */
+
+/* Markers inside an action strip */
+static void nla_actionclip_draw_markers(NlaStrip *strip, float yminc, float ymaxc)
+{
+	bAction *act = strip->act;
+	TimeMarker *marker;
+	
+	if (ELEM(NULL, strip->act, strip->act->markers.first))
+		return;
+	
+	for (marker = act->markers.first; marker; marker = marker->next) {
+		if ((marker->frame > strip->actstart) && (marker->frame < strip->actend)) {
+			float frame = nlastrip_get_frame(strip, marker->frame, NLATIME_CONVERT_MAP);
+			
+			/* just a simple line for now */
+			// XXX: draw a triangle instead...
+			fdrawline(frame, yminc + 1, frame, ymaxc - 1);
+		}
+	}
+}
+
+/* Markers inside a NLA-Strip */
+static void nla_strip_draw_markers(NlaStrip *strip, float yminc, float ymaxc)
+{
+	glLineWidth(2.0);
+	
+	if (strip->type == NLASTRIP_TYPE_CLIP) {
+		/* try not to be too conspicuous, while being visible enough when transforming */
+		if (strip->flag & NLASTRIP_FLAG_SELECT)
+			UI_ThemeColorShade(TH_STRIP_SELECT, -60);
+		else
+			UI_ThemeColorShade(TH_STRIP_SELECT, -40);
+		
+		setlinestyle(3);
+		
+		/* just draw the markers in this clip */
+		nla_actionclip_draw_markers(strip, yminc, ymaxc);
+		
+		setlinestyle(0);
+	}
+	else if (strip->flag & NLASTRIP_FLAG_TEMP_META) {
+		/* just a solid color, so that it is very easy to spot */
+		UI_ThemeColorShade(TH_STRIP_SELECT, 20);
+		
+		/* draw the markers in the first level of strips only (if they are actions) */
+		for (NlaStrip *nls = strip->strips.first; nls; nls = nls->next) {
+			if (nls->type == NLASTRIP_TYPE_CLIP) {
+				nla_actionclip_draw_markers(nls, yminc, ymaxc);
+			}
+		}
+	}
+	
+	glLineWidth(1.0);
 }
 
 /* Strips (Proper) ---------------------- */
@@ -360,6 +416,10 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 	if ((snla->flag & SNLA_NOSTRIPCURVES) == 0)
 		nla_draw_strip_curves(strip, yminc, ymaxc);
 	
+	
+	/* draw markings indicating locations of local markers (useful for lining up different actions) */
+	if ((snla->flag & SNLA_NOLOCALMARKERS) == 0)
+		nla_strip_draw_markers(strip, yminc, ymaxc);
 	
 	/* draw strip outline 
 	 *	- color used here is to indicate active vs non-active

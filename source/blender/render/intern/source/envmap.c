@@ -52,6 +52,7 @@
 #include "BKE_main.h"
 #include "BKE_image.h"   /* BKE_imbuf_write */
 #include "BKE_texture.h"
+#include "BKE_scene.h"
 
 /* this module */
 #include "render_types.h"
@@ -737,21 +738,28 @@ int envmaptex(Tex *tex, const float texvec[3], float dxt[3], float dyt[3], int o
 	
 	/* rotate to envmap space, if object is set */
 	copy_v3_v3(vec, texvec);
-	if (env->object) mul_m3_v3(env->obimat, vec);
-	else mul_mat3_m4_v3(R.viewinv, vec);
+	if (env->object) {
+		mul_m3_v3(env->obimat, vec);
+		if (osatex) {
+			mul_m3_v3(env->obimat, dxt);
+			mul_m3_v3(env->obimat, dyt);
+		}
+	}
+	else {
+		if (!BKE_scene_use_world_space_shading(R.scene)) {
+			// texvec is in view space
+			mul_mat3_m4_v3(R.viewinv, vec);
+			if (osatex) {
+				mul_mat3_m4_v3(R.viewinv, dxt);
+				mul_mat3_m4_v3(R.viewinv, dyt);
+			}
+		}
+	}
 	
 	face = envcube_isect(env, vec, sco);
 	ibuf = env->cube[face];
 	
 	if (osatex) {
-		if (env->object) {
-			mul_m3_v3(env->obimat, dxt);
-			mul_m3_v3(env->obimat, dyt);
-		}
-		else {
-			mul_mat3_m4_v3(R.viewinv, dxt);
-			mul_mat3_m4_v3(R.viewinv, dyt);
-		}
 		set_dxtdyt(dxts, dyts, dxt, dyt, face);
 		imagewraposa(tex, NULL, ibuf, sco, dxts, dyts, texres, pool, skip_load_image);
 		

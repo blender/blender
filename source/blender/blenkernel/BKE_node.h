@@ -336,7 +336,7 @@ struct bNodeTree *ntreeAddTree(struct Main *bmain, const char *name, const char 
 /* copy/free funcs, need to manage ID users */
 void              ntreeFreeTree(struct bNodeTree *ntree);
 struct bNodeTree *ntreeCopyTree_ex(struct bNodeTree *ntree, struct Main *bmain, const bool do_id_user);
-struct bNodeTree *ntreeCopyTree(struct bNodeTree *ntree);
+struct bNodeTree *ntreeCopyTree(struct Main *bmain, struct bNodeTree *ntree);
 void              ntreeSwitchID_ex(struct bNodeTree *ntree, struct ID *sce_from, struct ID *sce_to, const bool do_id_user);
 void              ntreeSwitchID(struct bNodeTree *ntree, struct ID *sce_from, struct ID *sce_to);
 /* node->id user count */
@@ -346,7 +346,7 @@ void              ntreeUserDecrefID(struct bNodeTree *ntree);
 
 struct bNodeTree *ntreeFromID(struct ID *id);
 
-void              ntreeMakeLocal(struct bNodeTree *ntree, bool id_in_mainlist);
+void              ntreeMakeLocal(struct Main *bmain, struct bNodeTree *ntree, bool id_in_mainlist);
 struct bNode     *ntreeFindType(const struct bNodeTree *ntree, int type);
 bool              ntreeHasType(const struct bNodeTree *ntree, int type);
 bool              ntreeHasTree(const struct bNodeTree *ntree, const struct bNodeTree *lookup);

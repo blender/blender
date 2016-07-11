@@ -1824,7 +1824,7 @@ static PyObject *bpy_bmface_calc_tangent_edge(BPy_BMFace *self)
 PyDoc_STRVAR(bpy_bmface_calc_tangent_edge_pair_doc,
 ".. method:: calc_tangent_edge_pair()\n"
 "\n"
-"   Return face tangent based on the two longest disconected edges.\n"
+"   Return face tangent based on the two longest disconnected edges.\n"
 "\n"
 "   - Tris: Use the edge pair with the most similar lengths.\n"
 "   - Quads: Use the longest edge pair.\n"

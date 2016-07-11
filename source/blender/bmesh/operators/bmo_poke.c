@@ -87,7 +87,7 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
 
 		bm_face_calc_center_fn(f, f_center);
 		v_center = BM_vert_create(bm, f_center, NULL, BM_CREATE_NOP);
-		BMO_elem_flag_enable(bm, v_center, ELE_NEW);
+		BMO_vert_flag_enable(bm, v_center, ELE_NEW);
 
 		if (cd_loop_mdisp_offset != -1) {
 			if (center_mode == BMOP_POKE_MEAN) {
@@ -128,7 +128,7 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
 			BM_elem_attrs_copy(bm, bm, l_iter, l_new);
 			BM_elem_attrs_copy(bm, bm, l_iter->next, l_new->next);
 
-			BMO_elem_flag_enable(bm, f_new, ELE_NEW);
+			BMO_face_flag_enable(bm, f_new, ELE_NEW);
 
 			if (cd_loop_mdisp_offset != -1) {
 				float f_new_center[3];

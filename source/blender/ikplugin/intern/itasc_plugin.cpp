@@ -1770,7 +1770,7 @@ void itasc_initialize_tree(struct Scene *scene, Object *ob, float ctime)
 	ob->pose->flag &= ~POSE_WAS_REBUILT;
 }
 
-void itasc_execute_tree(struct Scene *scene, struct Object *ob,  struct bPoseChannel *pchan, float ctime)
+void itasc_execute_tree(struct Scene *scene, Object *ob,  bPoseChannel *pchan_root, float ctime)
 {
 	if (!ob->pose->ikdata) {
 		// IK tree not yet created, no it now
@@ -1784,7 +1784,7 @@ void itasc_execute_tree(struct Scene *scene, struct Object *ob,  struct bPoseCha
 		if (!ikparam) ikparam = &DefIKParam;
 
 		for (IK_Scene *ikscene = ikdata->first; ikscene; ikscene = ikscene->next) {
-			if (ikscene->channels[0].pchan == pchan) {
+			if (ikscene->channels[0].pchan == pchan_root) {
 				float timestep = scene->r.frs_sec_base / scene->r.frs_sec;
 				if (ob->pose->flag & POSE_GAME_ENGINE) {
 					timestep = ob->pose->ctime;

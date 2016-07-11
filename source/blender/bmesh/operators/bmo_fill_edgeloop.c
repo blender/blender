@@ -59,14 +59,14 @@ void bmo_edgeloop_fill_exec(BMesh *bm, BMOperator *op)
 	i = 0;
 	BMO_ITER (e, &oiter, op->slots_in, "edges", BM_EDGE) {
 		BMIter viter;
-		BMO_elem_flag_enable(bm, e, EDGE_MARK);
+		BMO_edge_flag_enable(bm, e, EDGE_MARK);
 		BM_ITER_ELEM (v, &viter, e, BM_VERTS_OF_EDGE) {
-			if (BMO_elem_flag_test(bm, v, VERT_USED) == false) {
+			if (BMO_vert_flag_test(bm, v, VERT_USED) == false) {
 				if (i == tote) {
 					goto cleanup;
 				}
 
-				BMO_elem_flag_enable(bm, v, VERT_USED);
+				BMO_vert_flag_enable(bm, v, VERT_USED);
 				verts[i++] = v;
 			}
 		}
@@ -103,21 +103,21 @@ void bmo_edgeloop_fill_exec(BMesh *bm, BMOperator *op)
 		while (totv_used < totv) {
 			for (i = 0; i < totv; i++) {
 				v = verts[i];
-				if (BMO_elem_flag_test(bm, v, VERT_USED)) {
+				if (BMO_vert_flag_test(bm, v, VERT_USED)) {
 					break;
 				}
 			}
 
 			/* this should never fail, as long as (totv_used < totv)
 			 * we should have marked verts available */
-			BLI_assert(BMO_elem_flag_test(bm, v, VERT_USED));
+			BLI_assert(BMO_vert_flag_test(bm, v, VERT_USED));
 
 			/* watch it, 'i' is used for final face length */
 			i = 0;
 			do {
 				/* we know that there are 2 edges per vertex so no need to check */
 				BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-					if (BMO_elem_flag_test(bm, e, EDGE_MARK)) {
+					if (BMO_edge_flag_test(bm, e, EDGE_MARK)) {
 						if (e != e_prev) {
 							e_next = e;
 							break;
@@ -127,7 +127,7 @@ void bmo_edgeloop_fill_exec(BMesh *bm, BMOperator *op)
 
 				/* fill in the array */
 				f_verts[i] = v;
-				BMO_elem_flag_disable(bm, v, VERT_USED);
+				BMO_vert_flag_disable(bm, v, VERT_USED);
 				totv_used++;
 
 				/* step over the edges */
@@ -141,7 +141,7 @@ void bmo_edgeloop_fill_exec(BMesh *bm, BMOperator *op)
 
 				/* don't use calc_edges option because we already have the edges */
 				f = BM_face_create_ngon_verts(bm, f_verts, i, NULL, BM_CREATE_NOP, true, false);
-				BMO_elem_flag_enable(bm, f, ELE_OUT);
+				BMO_face_flag_enable(bm, f, ELE_OUT);
 				f->mat_nr = mat_nr;
 				if (use_smooth) {
 					BM_elem_flag_enable(f, BM_ELEM_SMOOTH);

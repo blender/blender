@@ -864,8 +864,7 @@ static void apply_tangmat_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 	               lvl, lt, uv[0], uv[1], NULL, n);
 
 	mul_v3_m3v3(vec, tangmat, n);
-	normalize_v3(vec);
-	mul_v3_fl(vec, 0.5);
+	normalize_v3_length(vec, 0.5);
 	add_v3_v3(vec, tmp);
 
 	if (ibuf->rect_float) {

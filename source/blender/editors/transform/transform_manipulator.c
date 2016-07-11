@@ -969,8 +969,7 @@ static void draw_manipulator_rotate(
 			vec[0] = 0; // XXX (float)(t->mouse.imval[0] - t->center2d[0]);
 			vec[1] = 0; // XXX (float)(t->mouse.imval[1] - t->center2d[1]);
 			vec[2] = 0.0f;
-			normalize_v3(vec);
-			mul_v3_fl(vec, 1.2f * size);
+			normalize_v3_length(vec, 1.2f * size);
 			glBegin(GL_LINES);
 			glVertex3f(0.0f, 0.0f, 0.0f);
 			glVertex3fv(vec);
@@ -1490,8 +1489,7 @@ static void draw_manipulator_rotate_cyl(
 			vec[0] = 0; // XXX (float)(t->mouse.imval[0] - t->center2d[0]);
 			vec[1] = 0; // XXX (float)(t->mouse.imval[1] - t->center2d[1]);
 			vec[2] = 0.0f;
-			normalize_v3(vec);
-			mul_v3_fl(vec, 1.2f * size);
+			normalize_v3_length(vec, 1.2f * size);
 			glBegin(GL_LINES);
 			glVertex3f(0.0, 0.0, 0.0);
 			glVertex3fv(vec);

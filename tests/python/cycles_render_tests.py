@@ -70,7 +70,8 @@ def verify_output(filepath):
             os.remove(failed_image)
         return True
     except subprocess.CalledProcessError as e:
-        shutil.copy(TEMP_FILE, failed_image)
+        if e.returncode != 1:
+            shutil.copy(TEMP_FILE, failed_image)
         if VERBOSE:
             print(e.output.decode("utf-8"))
         return e.returncode == 1

@@ -335,7 +335,7 @@ void BM_mesh_decimate_dissolve_ex(
 					/* update normal */
 					BM_face_normal_update(f_new);
 					if (oflag_out) {
-						BMO_elem_flag_enable(bm, f_new, oflag_out);
+						BMO_face_flag_enable(bm, f_new, oflag_out);
 					}
 
 					/* re-calculate costs */

@@ -321,7 +321,7 @@ LLVM_FORCE_REBUILD=false
 LLVM_SKIP=false
 
 # OSL needs to be compiled for now!
-OSL_VERSION="1.7.1"
+OSL_VERSION="1.7.3"
 OSL_VERSION_MIN=$OSL_VERSION
 OSL_FORCE_BUILD=false
 OSL_FORCE_REBUILD=false
@@ -1742,7 +1742,7 @@ compile_OSL() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  osl_magic=20
+  osl_magic=21
   _init_osl
 
   # Clean install if needed!

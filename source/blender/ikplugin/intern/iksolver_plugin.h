@@ -41,7 +41,7 @@ extern "C" {
 #endif
 
 void iksolver_initialize_tree(struct Scene *scene, struct Object *ob, float ctime);
-void iksolver_execute_tree(struct Scene *scene, struct Object *ob,  struct bPoseChannel *pchan, float ctime);
+void iksolver_execute_tree(struct Scene *scene, struct Object *ob,  struct bPoseChannel *pchan_root, float ctime);
 
 #ifdef __cplusplus
 }

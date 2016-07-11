@@ -58,6 +58,7 @@
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_editmesh.h"
 #include "BKE_scene.h"
@@ -149,14 +150,12 @@ Key *BKE_key_add(ID *id)    /* common function */
 	return key;
 }
 
-Key *BKE_key_copy(Key *key)
+Key *BKE_key_copy(Main *bmain, Key *key)
 {
 	Key *keyn;
 	KeyBlock *kbn, *kb;
 	
-	if (key == NULL) return NULL;
-	
-	keyn = BKE_libblock_copy(&key->id);
+	keyn = BKE_libblock_copy(bmain, &key->id);
 	
 	BLI_duplicatelist(&keyn->block, &key->block);
 	
@@ -171,21 +170,18 @@ Key *BKE_key_copy(Key *key)
 		kb = kb->next;
 	}
 
-	if (key->id.lib) {
-		BKE_id_lib_local_paths(G.main, key->id.lib, &keyn->id);
+	if (ID_IS_LINKED_DATABLOCK(key)) {
+		BKE_id_expand_local(&keyn->id);
+		BKE_id_lib_local_paths(bmain, key->id.lib, &keyn->id);
 	}
 
 	return keyn;
 }
 
-
 Key *BKE_key_copy_nolib(Key *key)
 {
 	Key *keyn;
 	KeyBlock *kbn, *kb;
-	
-	if (key == NULL)
-		return NULL;
 	
 	keyn = MEM_dupallocN(key);
 
@@ -207,17 +203,16 @@ Key *BKE_key_copy_nolib(Key *key)
 	return keyn;
 }
 
-void BKE_key_make_local(Key *key)
+void BKE_key_make_local(Main *bmain, Key *key)
 {
+	/* Note that here for now we simply just make it local...
+	 * Sounds fishy behavior, but since skeys are not *real* IDs... */
 
-	/* - only lib users: do nothing
-	 * - only local users: set flag
-	 * - mixed: make copy
-	 */
-	if (key == NULL) return;
-	
-	key->id.lib = NULL;
-	new_id(NULL, &key->id, NULL);
+	if (!ID_IS_LINKED_DATABLOCK(key)) {
+		return;
+	}
+
+	id_clear_lib_data(bmain, &key->id);
 }
 
 /* Sort shape keys and Ipo curves after a change.  This assumes that at most

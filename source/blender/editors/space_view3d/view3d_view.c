@@ -221,7 +221,7 @@ void ED_view3d_smooth_view_ex(
 		copy_v3_v3(sms.dyn_ofs, sview->dyn_ofs);
 		sms.use_dyn_ofs = true;
 
-		/* calcualte the final destination offset */
+		/* calculate the final destination offset */
 		view3d_orbit_apply_dyn_ofs(sms.dst.ofs, sms.src.ofs, sms.src.quat, sms.dst.quat, sms.dyn_ofs);
 	}
 
@@ -507,7 +507,7 @@ static int view3d_camera_to_view_poll(bContext *C)
 
 	if (ED_view3d_context_user_region(C, &v3d, &ar)) {
 		RegionView3D *rv3d = ar->regiondata;
-		if (v3d && v3d->camera && v3d->camera->id.lib == NULL) {
+		if (v3d && v3d->camera && !ID_IS_LINKED_DATABLOCK(v3d->camera)) {
 			if (rv3d && (rv3d->viewlock & RV3D_LOCKED) == 0) {
 				if (rv3d->persp != RV3D_CAMOB) {
 					return 1;

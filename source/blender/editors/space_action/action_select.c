@@ -213,7 +213,7 @@ static void borderselect_action(bAnimContext *ac, const rcti rect, short mode, s
 	KeyframeEditFunc ok_cb, select_cb;
 	View2D *v2d = &ac->ar->v2d;
 	rctf rectf;
-	float ymin = 0, ymax = (float)(-ACHANNEL_HEIGHT_HALF);
+	float ymin = 0, ymax = (float)(-ACHANNEL_HEIGHT_HALF(ac));
 	
 	/* convert mouse coordinates to frame ranges and channel coordinates corrected for view pan/zoom */
 	UI_view2d_region_to_view(v2d, rect.xmin, rect.ymin + 2, &rectf.xmin, &rectf.ymin);
@@ -239,7 +239,7 @@ static void borderselect_action(bAnimContext *ac, const rcti rect, short mode, s
 		AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 		
 		/* get new vertical minimum extent of channel */
-		ymin = ymax - ACHANNEL_STEP;
+		ymin = ymax - ACHANNEL_STEP(ac);
 		
 		/* set horizontal range (if applicable) */
 		if (ELEM(mode, ACTKEYS_BORDERSEL_FRAMERANGE, ACTKEYS_BORDERSEL_ALLKEYS)) {
@@ -392,7 +392,7 @@ static void region_select_action_keys(bAnimContext *ac, const rctf *rectf_view, 
 	KeyframeEditFunc ok_cb, select_cb;
 	View2D *v2d = &ac->ar->v2d;
 	rctf rectf, scaled_rectf;
-	float ymin = 0, ymax = (float)(-ACHANNEL_HEIGHT_HALF);
+	float ymin = 0, ymax = (float)(-ACHANNEL_HEIGHT_HALF(ac));
 	
 	/* convert mouse coordinates to frame ranges and channel coordinates corrected for view pan/zoom */
 	UI_view2d_region_to_view_rctf(v2d, rectf_view, &rectf);
@@ -426,10 +426,10 @@ static void region_select_action_keys(bAnimContext *ac, const rctf *rectf_view, 
 		AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 		
 		/* get new vertical minimum extent of channel */
-		ymin = ymax - ACHANNEL_STEP;
+		ymin = ymax - ACHANNEL_STEP(ac);
 		
 		/* compute midpoint of channel (used for testing if the key is in the region or not) */
-		ked.channel_y = ymin + ACHANNEL_HEIGHT_HALF;
+		ked.channel_y = ymin + ACHANNEL_HEIGHT_HALF(ac);
 		
 		/* if channel is mapped in NLA, apply correction
 		 * - Apply to the bounds being checked, not all the keyframe points,
@@ -1351,6 +1351,7 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 	bool found = false;
 	float frame = 0.0f; /* frame of keyframe under mouse - NLA corrections not applied/included */
 	float selx = 0.0f;  /* frame of keyframe under mouse */
+	float key_hsize;
 	float x, y;
 	rctf rectf;
 	
@@ -1360,11 +1361,16 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 	
 	/* use View2D to determine the index of the channel (i.e a row in the list) where keyframe was */
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
-	UI_view2d_listview_view_to_cell(v2d, 0, ACHANNEL_STEP, 0, (float)ACHANNEL_HEIGHT_HALF, x, y, NULL, &channel_index);
+	UI_view2d_listview_view_to_cell(v2d, 0, ACHANNEL_STEP(ac), 0, (float)ACHANNEL_HEIGHT_HALF(ac), x, y, NULL, &channel_index);
 	
-	/* x-range to check is +/- 7 (in screen/region-space) on either side of mouse click (size of keyframe icon) */
-	UI_view2d_region_to_view(v2d, mval[0] - 7, mval[1], &rectf.xmin, &rectf.ymin);
-	UI_view2d_region_to_view(v2d, mval[0] + 7, mval[1], &rectf.xmax, &rectf.ymax);
+	/* x-range to check is +/- 7px for standard keyframe under standard dpi/y-scale (in screen/region-space),
+	 * on either side of mouse click (size of keyframe icon)
+	 */
+	key_hsize = ACHANNEL_HEIGHT(ac) * 0.8f;    /* standard channel height (to allow for some slop) */
+	key_hsize = roundf(key_hsize / 2.0f);      /* half-size (for either side), but rounded up to nearest int (for easier targetting) */
+	
+	UI_view2d_region_to_view(v2d, mval[0] - (int)key_hsize, mval[1], &rectf.xmin, &rectf.ymin);
+	UI_view2d_region_to_view(v2d, mval[0] + (int)key_hsize, mval[1], &rectf.xmax, &rectf.ymax);
 	
 	/* filter data */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);

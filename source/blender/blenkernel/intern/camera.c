@@ -49,6 +49,8 @@
 #include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
+#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -91,64 +93,46 @@ void *BKE_camera_add(Main *bmain, const char *name)
 	return cam;
 }
 
-Camera *BKE_camera_copy(Camera *cam)
+Camera *BKE_camera_copy(Main *bmain, Camera *cam)
 {
 	Camera *camn;
 	
-	camn = BKE_libblock_copy(&cam->id);
+	camn = BKE_libblock_copy(bmain, &cam->id);
 
-	id_lib_extern((ID *)camn->dof_ob);
-
-	if (cam->id.lib) {
-		BKE_id_lib_local_paths(G.main, cam->id.lib, &camn->id);
+	if (ID_IS_LINKED_DATABLOCK(cam)) {
+		BKE_id_expand_local(&camn->id);
+		BKE_id_lib_local_paths(bmain, cam->id.lib, &camn->id);
 	}
 
 	return camn;
 }
 
-void BKE_camera_make_local(Camera *cam)
+void BKE_camera_make_local(Main *bmain, Camera *cam)
 {
-	Main *bmain = G.main;
-	Object *ob;
 	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
-	
-	if (cam->id.lib == NULL) return;
-	if (cam->id.us == 1) {
-		id_clear_lib_data(bmain, &cam->id);
+
+	if (!ID_IS_LINKED_DATABLOCK(cam)) {
 		return;
 	}
-	
-	for (ob = bmain->object.first; ob && ELEM(0, is_lib, is_local); ob = ob->id.next) {
-		if (ob->data == cam) {
-			if (ob->id.lib) is_lib = true;
-			else is_local = true;
+
+	BKE_library_ID_test_usages(bmain, cam, &is_local, &is_lib);
+
+	if (is_local) {
+		if (!is_lib) {
+			id_clear_lib_data(bmain, &cam->id);
+			BKE_id_expand_local(&cam->id);
 		}
-	}
-	
-	if (is_local && is_lib == false) {
-		id_clear_lib_data(bmain, &cam->id);
-	}
-	else if (is_local && is_lib) {
-		Camera *cam_new = BKE_camera_copy(cam);
+		else {
+			Camera *cam_new = BKE_camera_copy(bmain, cam);
 
-		cam_new->id.us = 0;
+			cam_new->id.us = 0;
 
-		/* Remap paths of new ID using old library as base. */
-		BKE_id_lib_local_paths(bmain, cam->id.lib, &cam_new->id);
-
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
-			if (ob->data == cam) {
-				if (ob->id.lib == NULL) {
-					ob->data = cam_new;
-					id_us_plus(&cam_new->id);
-					id_us_min(&cam->id);
-				}
-			}
+			BKE_libblock_remap(bmain, cam, cam_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 		}
 	}
 }

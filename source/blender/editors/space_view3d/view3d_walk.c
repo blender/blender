@@ -505,7 +505,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
 		walk->rv3d->persp = RV3D_PERSP;
 	}
 
-	if (walk->rv3d->persp == RV3D_CAMOB && walk->v3d->camera->id.lib) {
+	if (walk->rv3d->persp == RV3D_CAMOB && ID_IS_LINKED_DATABLOCK(walk->v3d->camera)) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot navigate a camera from an external library");
 		return false;
 	}
@@ -924,8 +924,7 @@ static void walkEvent(bContext *C, wmOperator *op, WalkInfo *walk, const wmEvent
 					copy_v3_v3(teleport->origin, walk->rv3d->viewinv[3]);
 
 					/* stop the camera from a distance (camera height) */
-					normalize_v3(nor);
-					mul_v3_fl(nor, walk->view_height);
+					normalize_v3_length(nor, walk->view_height);
 					add_v3_v3(loc, nor);
 
 					sub_v3_v3v3(teleport->direction, loc, teleport->origin);

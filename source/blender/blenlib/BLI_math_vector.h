@@ -191,6 +191,12 @@ MINLINE float len_manhattan_v3v3(const float a[3], const float b[3]) ATTR_WARN_U
 MINLINE float len_v3(const float a[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_v3v3(const float a[3], const float b[3]) ATTR_WARN_UNUSED_RESULT;
 
+MINLINE float normalize_v2_length(float r[2], const float unit_scale);
+MINLINE float normalize_v2_v2_length(float r[2], const float a[2], const float unit_scale);
+MINLINE float normalize_v3_length(float r[3], const float unit_scale);
+MINLINE float normalize_v3_v3_length(float r[3], const float a[3], const float unit_scale);
+MINLINE double normalize_v3_length_d(double n[3], const double unit_scale);
+
 MINLINE float normalize_v2(float r[2]);
 MINLINE float normalize_v2_v2(float r[2], const float a[2]);
 MINLINE float normalize_v3(float r[3]);
@@ -214,6 +220,10 @@ bool interp_v2_v2v2_slerp(float target[2], const float a[2], const float b[2], c
 
 void interp_v3_v3v3_slerp_safe(float target[3], const float a[3], const float b[3], const float t);
 void interp_v2_v2v2_slerp_safe(float target[2], const float a[2], const float b[2], const float t);
+
+void interp_v2_v2v2v2v2_cubic(
+        float p[2], const float v1[2], const float v2[2], const float v3[2], const float v4[2],
+        const float u);
 
 void interp_v3_v3v3_char(char target[3], const char a[3], const char b[3], const float t);
 void interp_v3_v3v3_uchar(unsigned char target[3], const unsigned char a[3], const unsigned char b[3], const float t);

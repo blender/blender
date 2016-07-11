@@ -42,7 +42,7 @@ struct Scene;
 
 void          BKE_group_free(struct Group *group);
 struct Group *BKE_group_add(struct Main *bmain, const char *name);
-struct Group *BKE_group_copy(struct Group *group);
+struct Group *BKE_group_copy(struct Main *bmain, struct Group *group);
 bool          BKE_group_object_add(struct Group *group, struct Object *ob, struct Scene *scene, struct Base *base);
 bool          BKE_group_object_unlink(struct Group *group, struct Object *ob, struct Scene *scene, struct Base *base);
 struct Group *BKE_group_object_find(struct Group *group, struct Object *ob);

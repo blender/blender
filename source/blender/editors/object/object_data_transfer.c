@@ -300,7 +300,7 @@ static void data_transfer_exec_preprocess_objects(
 		}
 
 		me = ob->data;
-		if (me->id.lib) {
+		if (ID_IS_LINKED_DATABLOCK(me)) {
 			/* Do not transfer to linked data, not supported. */
 			BKE_reportf(op->reports, RPT_WARNING, "Skipping object '%s', linked data '%s' cannot be modified",
 			            ob->id.name + 2, me->id.name + 2);
@@ -330,7 +330,7 @@ static bool data_transfer_exec_is_object_valid(
 		me->id.tag &= ~LIB_TAG_DOIT;
 		return true;
 	}
-	else if (me->id.lib == NULL) {
+	else if (!ID_IS_LINKED_DATABLOCK(me)) {
 		/* Do not transfer apply operation more than once. */
 		/* XXX This is not nice regarding vgroups, which are half-Object data... :/ */
 		BKE_reportf(op->reports, RPT_WARNING,
@@ -387,7 +387,7 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 
-	if (reverse_transfer && ((ID *)(ob_src->data))->lib) {
+	if (reverse_transfer && ID_IS_LINKED_DATABLOCK(ob_src->data)) {
 		/* Do not transfer to linked data, not supported. */
 		return OPERATOR_CANCELLED;
 	}

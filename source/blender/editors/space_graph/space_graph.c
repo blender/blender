@@ -525,12 +525,130 @@ static void graph_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 	}
 }
 
-
+/* Update F-Curve colors */
+static void graph_refresh_fcurve_colors(const bContext *C)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	size_t items;
+	int filter;
+	int i;
+	
+	if (ANIM_animdata_get_context(C, &ac) == false)
+		return;
+	
+	UI_SetTheme(SPACE_IPO, RGN_TYPE_WINDOW);
+	
+	/* build list of F-Curves which will be visible as channels in channel-region
+	 *  - we don't include ANIMFILTER_CURVEVISIBLE filter, as that will result in a
+	 *    mismatch between channel-colors and the drawn curves
+	 */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS);
+	items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* loop over F-Curves, assigning colors */
+	for (ale = anim_data.first, i = 0; ale; ale = ale->next, i++) {
+		FCurve *fcu = (FCurve *)ale->data;
+		
+		/* set color of curve here */
+		switch (fcu->color_mode) {
+			case FCURVE_COLOR_CUSTOM:
+			{
+				/* User has defined a custom color for this curve already (we assume it's not going to cause clashes with text colors),
+				 * which should be left alone... Nothing needs to be done here.
+				 */
+				break;
+			}
+			case FCURVE_COLOR_AUTO_RGB:
+			{
+				/* F-Curve's array index is automatically mapped to RGB values. This works best of 3-value vectors. 
+				 * TODO: find a way to module the hue so that not all curves have same color...
+				 */
+				float *col = fcu->color;
+				
+				switch (fcu->array_index) {
+					case 0:
+						UI_GetThemeColor3fv(TH_AXIS_X, col);
+						break;
+					case 1:
+						UI_GetThemeColor3fv(TH_AXIS_Y, col);
+						break;
+					case 2:
+						UI_GetThemeColor3fv(TH_AXIS_Z, col);
+						break;
+					default:
+						/* 'unknown' color - bluish so as to not conflict with handles */
+						col[0] = 0.3f; col[1] = 0.8f; col[2] = 1.0f;
+						break;
+				}
+				break;
+			}
+			case FCURVE_COLOR_AUTO_YRGB:
+			{
+				/* Like FCURVE_COLOR_AUTO_RGB, except this is for quaternions... */
+				float *col = fcu->color;
+				
+				switch (fcu->array_index) {
+					case 1:
+						UI_GetThemeColor3fv(TH_AXIS_X, col);
+						break;
+					case 2:
+						UI_GetThemeColor3fv(TH_AXIS_Y, col);
+						break;
+					case 3:
+						UI_GetThemeColor3fv(TH_AXIS_Z, col);
+						break;
+					
+					case 0:
+					{
+						/* Special Case: "W" channel should be yellowish, so blend X and Y channel colors... */
+						float c1[3], c2[3];
+						float h1[3], h2[3];
+						float hresult[3];
+						
+						/* - get colors (rgb) */
+						UI_GetThemeColor3fv(TH_AXIS_X, c1);
+						UI_GetThemeColor3fv(TH_AXIS_Y, c2);
+						
+						/* - perform blending in HSV space (to keep brightness similar) */
+						rgb_to_hsv_v(c1, h1);
+						rgb_to_hsv_v(c2, h2);
+						
+						interp_v3_v3v3(hresult, h1, h2, 0.5f);
+						
+						/* - convert back to RGB for display */
+						hsv_to_rgb_v(hresult, col);
+						break;
+					}
+					
+					default:
+						/* 'unknown' color - bluish so as to not conflict with handles */
+						col[0] = 0.3f; col[1] = 0.8f; col[2] = 1.0f;
+						break;
+				}
+				break;
+			}
+			case FCURVE_COLOR_AUTO_RAINBOW:
+			default:
+			{
+				/* determine color 'automatically' using 'magic function' which uses the given args
+				 * of current item index + total items to determine some RGB color
+				 */
+				getcolor_fcurve_rainbow(i, items, fcu->color);
+				break;
+			}
+		}
+	}
+	
+	/* free temp list */
+	ANIM_animdata_freelist(&anim_data);
+}
 
 static void graph_refresh(const bContext *C, ScrArea *sa)
 {
 	SpaceIpo *sipo = (SpaceIpo *)sa->spacedata.first;
-	bAnimContext ac;
 	
 	/* updates to data needed depends on Graph Editor mode... */
 	switch (sipo->mode) {
@@ -558,119 +676,7 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 	}
 	
 	/* init/adjust F-Curve colors */
-	if (ANIM_animdata_get_context(C, &ac)) {
-		ListBase anim_data = {NULL, NULL};
-		bAnimListElem *ale;
-		size_t items;
-		int filter;
-		int i;
-		
-		UI_SetTheme(SPACE_IPO, RGN_TYPE_WINDOW);
-
-		/* build list of F-Curves which will be visible as channels in channel-region
-		 *  - we don't include ANIMFILTER_CURVEVISIBLE filter, as that will result in a
-		 *    mismatch between channel-colors and the drawn curves
-		 */
-		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS);
-		items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-		
-		/* loop over F-Curves, assigning colors */
-		for (ale = anim_data.first, i = 0; ale; ale = ale->next, i++) {
-			FCurve *fcu = (FCurve *)ale->data;
-			
-			/* set color of curve here */
-			switch (fcu->color_mode) {
-				case FCURVE_COLOR_CUSTOM:
-				{
-					/* User has defined a custom color for this curve already (we assume it's not going to cause clashes with text colors),
-					 * which should be left alone... Nothing needs to be done here.
-					 */
-					break;
-				}
-				case FCURVE_COLOR_AUTO_RGB:
-				{
-					/* F-Curve's array index is automatically mapped to RGB values. This works best of 3-value vectors. 
-					 * TODO: find a way to module the hue so that not all curves have same color...
-					 */
-					float *col = fcu->color;
-					
-					switch (fcu->array_index) {
-						case 0:
-							UI_GetThemeColor3fv(TH_AXIS_X, col);
-							break;
-						case 1:
-							UI_GetThemeColor3fv(TH_AXIS_Y, col);
-							break;
-						case 2:
-							UI_GetThemeColor3fv(TH_AXIS_Z, col);
-							break;
-						default:
-							/* 'unknown' color - bluish so as to not conflict with handles */
-							col[0] = 0.3f; col[1] = 0.8f; col[2] = 1.0f;
-							break;
-					}
-					break;
-				}
-				case FCURVE_COLOR_AUTO_YRGB:
-				{
-					/* Like FCURVE_COLOR_AUTO_RGB, except this is for quaternions... */
-					float *col = fcu->color;
-					
-					switch (fcu->array_index) {
-						case 1:
-							UI_GetThemeColor3fv(TH_AXIS_X, col);
-							break;
-						case 2:
-							UI_GetThemeColor3fv(TH_AXIS_Y, col);
-							break;
-						case 3:
-							UI_GetThemeColor3fv(TH_AXIS_Z, col);
-							break;
-						
-						case 0:
-						{
-							/* Special Case: "W" channel should be yellowish, so blend X and Y channel colors... */
-							float c1[3], c2[3];
-							float h1[3], h2[3];
-							float hresult[3];
-							
-							/* - get colors (rgb) */
-							UI_GetThemeColor3fv(TH_AXIS_X, c1);
-							UI_GetThemeColor3fv(TH_AXIS_Y, c2);
-							
-							/* - perform blending in HSV space (to keep brightness similar) */
-							rgb_to_hsv_v(c1, h1);
-							rgb_to_hsv_v(c2, h2);
-							
-							interp_v3_v3v3(hresult, h1, h2, 0.5f);
-							
-							/* - convert back to RGB for display */
-							hsv_to_rgb_v(hresult, col);
-							break;
-						}
-						
-						default:
-							/* 'unknown' color - bluish so as to not conflict with handles */
-							col[0] = 0.3f; col[1] = 0.8f; col[2] = 1.0f;
-							break;
-					}
-					break;
-				}
-				case FCURVE_COLOR_AUTO_RAINBOW:
-				default:
-				{
-					/* determine color 'automatically' using 'magic function' which uses the given args
-					 * of current item index + total items to determine some RGB color
-					 */
-					getcolor_fcurve_rainbow(i, items, fcu->color);
-					break;
-				}
-			}
-		}
-		
-		/* free temp list */
-		ANIM_animdata_freelist(&anim_data);
-	}
+	graph_refresh_fcurve_colors(C);
 }
 
 static void graph_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)

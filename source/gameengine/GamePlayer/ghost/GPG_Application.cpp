@@ -633,7 +633,9 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		
 		if (!m_rasterizer)
 			goto initFailed;
-						
+
+		m_rasterizer->PrintHardwareInfo();
+
 		// create the inputdevices
 		m_keyboard = new GPG_KeyboardDevice();
 		if (!m_keyboard)

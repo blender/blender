@@ -27,12 +27,11 @@ CCL_NAMESPACE_BEGIN
 ccl_device_inline float3 triangle_normal(KernelGlobals *kg, ShaderData *sd)
 {
 	/* load triangle vertices */
-	float4 tri_vindex = kernel_tex_fetch(__tri_vindex, ccl_fetch(sd, prim));
+	const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, ccl_fetch(sd, prim));
+	const float3 v0 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w+0));
+	const float3 v1 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w+1));
+	const float3 v2 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w+2));
 
-	float3 v0 = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.x)));
-	float3 v1 = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.y)));
-	float3 v2 = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.z)));
-	
 	/* return normal */
 	if(ccl_fetch(sd, flag) & SD_NEGATIVE_SCALE_APPLIED)
 		return normalize(cross(v2 - v0, v1 - v0));
@@ -44,11 +43,10 @@ ccl_device_inline float3 triangle_normal(KernelGlobals *kg, ShaderData *sd)
 ccl_device_inline void triangle_point_normal(KernelGlobals *kg, int object, int prim, float u, float v, float3 *P, float3 *Ng, int *shader)
 {
 	/* load triangle vertices */
-	float4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
-
-	float3 v0 = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.x)));
-	float3 v1 = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.y)));
-	float3 v2 = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.z)));
+	const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
+	float3 v0 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w+0));
+	float3 v1 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w+1));
+	float3 v2 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w+2));
 
 	/* compute point */
 	float t = 1.0f - u - v;
@@ -71,11 +69,10 @@ ccl_device_inline void triangle_point_normal(KernelGlobals *kg, int object, int 
 
 ccl_device_inline void triangle_vertices(KernelGlobals *kg, int prim, float3 P[3])
 {
-	float4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
-
-	P[0] = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.x)));
-	P[1] = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.y)));
-	P[2] = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.z)));
+	const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
+	P[0] = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w+0));
+	P[1] = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w+1));
+	P[2] = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w+2));
 }
 
 /* Interpolate smooth vertex normal from vertices */
@@ -83,11 +80,10 @@ ccl_device_inline void triangle_vertices(KernelGlobals *kg, int prim, float3 P[3
 ccl_device_inline float3 triangle_smooth_normal(KernelGlobals *kg, int prim, float u, float v)
 {
 	/* load triangle vertices */
-	float4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
-
-	float3 n0 = float4_to_float3(kernel_tex_fetch(__tri_vnormal, __float_as_int(tri_vindex.x)));
-	float3 n1 = float4_to_float3(kernel_tex_fetch(__tri_vnormal, __float_as_int(tri_vindex.y)));
-	float3 n2 = float4_to_float3(kernel_tex_fetch(__tri_vnormal, __float_as_int(tri_vindex.z)));
+	const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
+	float3 n0 = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.x));
+	float3 n1 = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.y));
+	float3 n2 = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.z));
 
 	return normalize((1.0f - u - v)*n2 + u*n0 + v*n1);
 }
@@ -97,11 +93,10 @@ ccl_device_inline float3 triangle_smooth_normal(KernelGlobals *kg, int prim, flo
 ccl_device_inline void triangle_dPdudv(KernelGlobals *kg, int prim, ccl_addr_space float3 *dPdu, ccl_addr_space float3 *dPdv)
 {
 	/* fetch triangle vertex coordinates */
-	float4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
-
-	float3 p0 = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.x)));
-	float3 p1 = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.y)));
-	float3 p2 = float4_to_float3(kernel_tex_fetch(__tri_verts, __float_as_int(tri_vindex.z)));
+	const uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, prim);
+	const float3 p0 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w+0));
+	const float3 p1 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w+1));
+	const float3 p2 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w+2));
 
 	/* compute derivatives of P w.r.t. uv */
 	*dPdu = (p0 - p2);
@@ -119,11 +114,11 @@ ccl_device float triangle_attribute_float(KernelGlobals *kg, const ShaderData *s
 		return kernel_tex_fetch(__attributes_float, offset + ccl_fetch(sd, prim));
 	}
 	else if(elem == ATTR_ELEMENT_VERTEX || elem == ATTR_ELEMENT_VERTEX_MOTION) {
-		float4 tri_vindex = kernel_tex_fetch(__tri_vindex, ccl_fetch(sd, prim));
+		uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, ccl_fetch(sd, prim));
 
-		float f0 = kernel_tex_fetch(__attributes_float, offset + __float_as_int(tri_vindex.x));
-		float f1 = kernel_tex_fetch(__attributes_float, offset + __float_as_int(tri_vindex.y));
-		float f2 = kernel_tex_fetch(__attributes_float, offset + __float_as_int(tri_vindex.z));
+		float f0 = kernel_tex_fetch(__attributes_float, offset + tri_vindex.x);
+		float f1 = kernel_tex_fetch(__attributes_float, offset + tri_vindex.y);
+		float f2 = kernel_tex_fetch(__attributes_float, offset + tri_vindex.z);
 
 #ifdef __RAY_DIFFERENTIALS__
 		if(dx) *dx = ccl_fetch(sd, du).dx*f0 + ccl_fetch(sd, dv).dx*f1 - (ccl_fetch(sd, du).dx + ccl_fetch(sd, dv).dx)*f2;
@@ -162,11 +157,11 @@ ccl_device float3 triangle_attribute_float3(KernelGlobals *kg, const ShaderData 
 		return float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + ccl_fetch(sd, prim)));
 	}
 	else if(elem == ATTR_ELEMENT_VERTEX || elem == ATTR_ELEMENT_VERTEX_MOTION) {
-		float4 tri_vindex = kernel_tex_fetch(__tri_vindex, ccl_fetch(sd, prim));
+		uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, ccl_fetch(sd, prim));
 
-		float3 f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.x)));
-		float3 f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.y)));
-		float3 f2 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.z)));
+		float3 f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + tri_vindex.x));
+		float3 f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + tri_vindex.y));
+		float3 f2 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + tri_vindex.z));
 
 #ifdef __RAY_DIFFERENTIALS__
 		if(dx) *dx = ccl_fetch(sd, du).dx*f0 + ccl_fetch(sd, dv).dx*f1 - (ccl_fetch(sd, du).dx + ccl_fetch(sd, dv).dx)*f2;

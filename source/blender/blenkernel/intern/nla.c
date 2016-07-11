@@ -183,7 +183,7 @@ NlaStrip *copy_nlastrip(NlaStrip *strip, const bool use_same_action)
 		}
 		else {
 			/* use a copy of the action instead (user count shouldn't have changed yet) */
-			strip_d->act = BKE_action_copy(strip_d->act);
+			strip_d->act = BKE_action_copy(G.main, strip_d->act);
 		}
 	}
 		
@@ -1291,7 +1291,7 @@ void BKE_nlastrip_recalculate_bounds(NlaStrip *strip)
 	if (IS_EQF(mapping, 0.0f) == 0)
 		strip->end = (actlen * mapping) + strip->start;
 	
-	/* make sure we don't overlap our neighbours */
+	/* make sure we don't overlap our neighbors */
 	nlastrip_fix_resize_overlaps(strip);
 }
 

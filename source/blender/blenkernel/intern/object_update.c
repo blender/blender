@@ -203,7 +203,7 @@ void BKE_object_handle_data_update(EvaluationContext *eval_ctx,
 			break;
 		}
 		case OB_ARMATURE:
-			if (ob->id.lib && ob->proxy_from) {
+			if (ID_IS_LINKED_DATABLOCK(ob) && ob->proxy_from) {
 				if (BKE_pose_copy_result(ob->pose, ob->proxy_from->pose) == false) {
 					printf("Proxy copy error, lib Object: %s proxy Object: %s\n",
 					       ob->id.name + 2, ob->proxy_from->id.name + 2);
@@ -268,7 +268,7 @@ void BKE_object_eval_uber_transform(EvaluationContext *UNUSED(eval_ctx),
 	// XXX: it's almost redundant now...
 
 	/* Handle proxy copy for target, */
-	if (ob->id.lib && ob->proxy_from) {
+	if (ID_IS_LINKED_DATABLOCK(ob) && ob->proxy_from) {
 		if (ob->proxy_from->proxy_group) {
 			/* Transform proxy into group space. */
 			Object *obg = ob->proxy_from->proxy_group;
