@@ -1839,9 +1839,8 @@ bool BKE_pbvh_bmesh_update_topology(
 		EdgeQueueContext eq_ctx = {&q, queue_pool, bvh->bm, cd_vert_mask_offset, cd_vert_node_offset, cd_face_node_offset};
 
 		short_edge_queue_create(&eq_ctx, bvh, center, view_normal, radius);
-		modified |= !BLI_heap_is_empty(q.heap);
-		pbvh_bmesh_collapse_short_edges(&eq_ctx, bvh,
-		                                &deleted_faces);
+		modified |= pbvh_bmesh_collapse_short_edges(
+		        &eq_ctx, bvh, &deleted_faces);
 		BLI_heap_free(q.heap, NULL);
 		BLI_mempool_destroy(queue_pool);
 	}
@@ -1852,8 +1851,8 @@ bool BKE_pbvh_bmesh_update_topology(
 		EdgeQueueContext eq_ctx = {&q, queue_pool, bvh->bm, cd_vert_mask_offset, cd_vert_node_offset, cd_face_node_offset};
 
 		long_edge_queue_create(&eq_ctx, bvh, center, view_normal, radius);
-		modified |= !BLI_heap_is_empty(q.heap);
-		pbvh_bmesh_subdivide_long_edges(&eq_ctx, bvh, &edge_loops);
+		modified |= pbvh_bmesh_subdivide_long_edges(
+		        &eq_ctx, bvh, &edge_loops);
 		BLI_heap_free(q.heap, NULL);
 		BLI_mempool_destroy(queue_pool);
 	}
