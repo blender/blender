@@ -18,7 +18,7 @@
  */
 
 #ifdef __QBVH__
-#  include "qbvh_shadow.h"
+#  include "qbvh_shadow_all.h"
 #endif
 
 #if BVH_FEATURE(BVH_HAIR)

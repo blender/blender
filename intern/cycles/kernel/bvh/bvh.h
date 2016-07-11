@@ -153,31 +153,31 @@ CCL_NAMESPACE_BEGIN
 #if defined(__SHADOW_RECORD_ALL__)
 #  define BVH_FUNCTION_NAME bvh_intersect_shadow_all
 #  define BVH_FUNCTION_FEATURES 0
-#  include "bvh_shadow.h"
+#  include "bvh_shadow_all.h"
 #endif
 
 #if defined(__SHADOW_RECORD_ALL__) && defined(__INSTANCING__)
 #  define BVH_FUNCTION_NAME bvh_intersect_shadow_all_instancing
 #  define BVH_FUNCTION_FEATURES BVH_INSTANCING
-#  include "bvh_shadow.h"
+#  include "bvh_shadow_all.h"
 #endif
 
 #if defined(__SHADOW_RECORD_ALL__) && defined(__HAIR__)
 #  define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair
 #  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR
-#  include "bvh_shadow.h"
+#  include "bvh_shadow_all.h"
 #endif
 
 #if defined(__SHADOW_RECORD_ALL__) && defined(__OBJECT_MOTION__)
 #  define BVH_FUNCTION_NAME bvh_intersect_shadow_all_motion
 #  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_MOTION
-#  include "bvh_shadow.h"
+#  include "bvh_shadow_all.h"
 #endif
 
 #if defined(__SHADOW_RECORD_ALL__) && defined(__HAIR__) && defined(__OBJECT_MOTION__)
 #  define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair_motion
 #  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_MOTION
-#  include "bvh_shadow.h"
+#  include "bvh_shadow_all.h"
 #endif
 
 /* Record all intersections - Volume BVH traversal  */
