@@ -29,6 +29,14 @@ add_subdirectory(curve_fit_nd)
 # Otherwise we get warnings here that we cant fix in external projects
 remove_strict_flags()
 
+# Not a strict flag, but noisy for code we don't maintain
+if(CMAKE_COMPILER_IS_GNUCC)
+	remove_cc_flag(
+		"-Wmisleading-indentation"
+	)
+endif()
+
+
 add_subdirectory(rangetree)
 add_subdirectory(wcwidth)
 
