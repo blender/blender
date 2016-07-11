@@ -189,16 +189,16 @@ ccl_device_inline bool bvh_unaligned_node_intersect_child_robust(
 	const float far_y  = max(tLowerXYZ.y, tUpperXYZ.y);
 	const float far_z  = max(tLowerXYZ.z, tUpperXYZ.z);
 	const float near   = max4(0.0f, near_x, near_y, near_z);
-	const float gar    = min4(t, far_x, far_y, far_z);
+	const float far    = min4(t, far_x, far_y, far_z);
 	*dist = near;
 	if(difl != 0.0f) {
 		/* TODO(sergey): Same as for QBVH, needs a proper use. */
 		const float round_down = 1.0f - difl;
 		const float round_up = 1.0f + difl;
-		return round_down*near <= round_up*gar;
+		return round_down*near <= round_up*far;
 	}
 	else {
-		return near <= gar;
+		return near <= far;
 	}
 }
 
