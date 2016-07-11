@@ -175,21 +175,6 @@ World *localize_world(World *wrld)
 	return wrldn;
 }
 
-static int extern_local_world_callback(
-        void *UNUSED(user_data), struct ID *UNUSED(id_self), struct ID **id_pointer, int cd_flag)
-{
-	/* We only tag usercounted ID usages as extern... Why? */
-	if ((cd_flag & IDWALK_USER) && *id_pointer) {
-		id_lib_extern(*id_pointer);
-	}
-	return IDWALK_RET_NOP;
-}
-
-static void expand_local_world(World *wrld)
-{
-	BKE_library_foreach_ID_link(&wrld->id, extern_local_world_callback, NULL, 0);
-}
-
 void BKE_world_make_local(Main *bmain, World *wrld)
 {
 	bool is_local = false, is_lib = false;
@@ -208,7 +193,7 @@ void BKE_world_make_local(Main *bmain, World *wrld)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &wrld->id);
-			expand_local_world(wrld);
+			BKE_id_expand_local(&wrld->id, false);
 		}
 		else {
 			World *wrld_new = BKE_world_copy(bmain, wrld);

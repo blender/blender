@@ -468,12 +468,6 @@ Image *BKE_image_copy(Main *bmain, Image *ima)
 	return nima;
 }
 
-static void extern_local_image(Image *UNUSED(ima))
-{
-	/* Nothing to do: images don't link to other IDs. This function exists to
-	 * match id_make_local pattern. */
-}
-
 void BKE_image_make_local(Main *bmain, Image *ima)
 {
 	bool is_local = false, is_lib = false;
@@ -492,7 +486,7 @@ void BKE_image_make_local(Main *bmain, Image *ima)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &ima->id);
-			extern_local_image(ima);
+			BKE_id_expand_local(&ima->id, false);
 		}
 		else {
 			Image *ima_new = BKE_image_copy(bmain, ima);

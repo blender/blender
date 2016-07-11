@@ -284,21 +284,6 @@ Material *localize_material(Material *ma)
 	return man;
 }
 
-static int extern_local_material_callback(
-        void *UNUSED(user_data), struct ID *UNUSED(id_self), struct ID **id_pointer, int cd_flag)
-{
-	/* We only tag usercounted ID usages as extern... Why? */
-	if ((cd_flag & IDWALK_USER) && *id_pointer) {
-		id_lib_extern(*id_pointer);
-	}
-	return IDWALK_RET_NOP;
-}
-
-static void extern_local_material(Material *ma)
-{
-	BKE_library_foreach_ID_link(&ma->id, extern_local_material_callback, NULL, 0);
-}
-
 void BKE_material_make_local(Main *bmain, Material *ma)
 {
 	bool is_local = false, is_lib = false;
@@ -317,7 +302,7 @@ void BKE_material_make_local(Main *bmain, Material *ma)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &ma->id);
-			extern_local_material(ma);
+			BKE_id_expand_local(&ma->id, false);
 		}
 		else {
 			Material *ma_new = BKE_material_copy(bmain, ma);

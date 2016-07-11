@@ -917,21 +917,6 @@ Tex *BKE_texture_localize(Tex *tex)
 
 /* ------------------------------------------------------------------------- */
 
-static int extern_local_texture_callback(
-        void *UNUSED(user_data), struct ID *UNUSED(id_self), struct ID **id_pointer, int cd_flag)
-{
-	/* We only tag usercounted ID usages as extern... Why? */
-	if ((cd_flag & IDWALK_USER) && *id_pointer) {
-		id_lib_extern(*id_pointer);
-	}
-	return IDWALK_RET_NOP;
-}
-
-static void extern_local_texture(Tex *tex)
-{
-	BKE_library_foreach_ID_link(&tex->id, extern_local_texture_callback, NULL, 0);
-}
-
 void BKE_texture_make_local(Main *bmain, Tex *tex)
 {
 	bool is_local = false, is_lib = false;
@@ -950,7 +935,7 @@ void BKE_texture_make_local(Main *bmain, Tex *tex)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &tex->id);
-			extern_local_texture(tex);
+			BKE_id_expand_local(&tex->id, false);
 		}
 		else {
 			Tex *tex_new = BKE_texture_copy(bmain, tex);
