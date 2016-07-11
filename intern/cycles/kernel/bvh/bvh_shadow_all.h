@@ -254,6 +254,9 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 
 						/* shadow ray early termination */
 						if(hit) {
+							/* Update number of hits now, so we do proper check on max bounces. */
+							(*num_hits)++;
+
 							/* detect if this surface has a shader with transparent shadows */
 
 							/* todo: optimize so primitive visibility flag indicates if
@@ -284,14 +287,11 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 								return true;
 							}
 
-							/* move on to next entry in intersections array */
-							isect_array++;
-							(*num_hits)++;
 #if BVH_FEATURE(BVH_INSTANCING)
 							num_hits_in_instance++;
 #endif
-
-							isect_array->t = isect_t;
+							/* Move on to next entry in intersections array */
+							isect_array++;
 						}
 
 						prim_addr++;

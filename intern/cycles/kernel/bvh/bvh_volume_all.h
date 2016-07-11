@@ -201,13 +201,11 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 								                         object,
 								                         prim_addr);
 								if(hit) {
-									/* Move on to next entry in intersections array. */
-									isect_array++;
+									/* Update number of hits now, so we do proper check on max bounces. */
 									num_hits++;
 #if BVH_FEATURE(BVH_INSTANCING)
 									num_hits_in_instance++;
 #endif
-									isect_array->t = isect_t;
 									if(num_hits == max_hits) {
 #if BVH_FEATURE(BVH_INSTANCING)
 #  if BVH_FEATURE(BVH_MOTION)
@@ -222,6 +220,9 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #endif  /* BVH_FEATURE(BVH_INSTANCING) */
 										return num_hits;
 									}
+									/* Move on to next entry in intersections array */
+									isect_array++;
+									isect_array->t = isect_t;
 								}
 							}
 							break;
@@ -246,13 +247,11 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 								                                object,
 								                                prim_addr);
 								if(hit) {
-									/* Move on to next entry in intersections array. */
-									isect_array++;
+									/* Update number of hits now, so we do proper check on max bounces. */
 									num_hits++;
 #  if BVH_FEATURE(BVH_INSTANCING)
 									num_hits_in_instance++;
 #  endif
-									isect_array->t = isect_t;
 									if(num_hits == max_hits) {
 #  if BVH_FEATURE(BVH_INSTANCING)
 #    if BVH_FEATURE(BVH_MOTION)
@@ -267,6 +266,9 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #  endif  /* BVH_FEATURE(BVH_INSTANCING) */
 										return num_hits;
 									}
+									/* Move on to next entry in intersections array */
+									isect_array++;
+									isect_array->t = isect_t;
 								}
 							}
 							break;
