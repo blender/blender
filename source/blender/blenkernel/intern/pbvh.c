@@ -688,8 +688,7 @@ static void pbvh_stack_push(PBVHIter *iter, PBVHNode *node, bool revisiting)
 {
 	if (UNLIKELY(iter->stacksize == iter->stackspace)) {
 		iter->stackspace *= 2;
-
-		if (iter->stackspace != STACK_FIXED_DEPTH) {
+		if (iter->stackspace != (STACK_FIXED_DEPTH * 2)) {
 			iter->stack = MEM_reallocN(iter->stack, sizeof(PBVHStack) * iter->stackspace);
 		}
 		else {
