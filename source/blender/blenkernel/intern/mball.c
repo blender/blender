@@ -105,19 +105,22 @@ MetaBall *BKE_mball_add(Main *bmain, const char *name)
 MetaBall *BKE_mball_copy(Main *bmain, MetaBall *mb)
 {
 	MetaBall *mbn;
+	int a;
 	
 	mbn = BKE_libblock_copy(bmain, &mb->id);
 
 	BLI_duplicatelist(&mbn->elems, &mb->elems);
 	
 	mbn->mat = MEM_dupallocN(mb->mat);
+	for (a = 0; a < mbn->totcol; a++) {
+		id_us_plus((ID *)mbn->mat[a]);
+	}
 
 	mbn->editelems = NULL;
 	mbn->lastelem = NULL;
 	
-	BKE_id_expand_local(&mbn->id, true);
-
 	if (ID_IS_LINKED_DATABLOCK(mb)) {
+		BKE_id_expand_local(&mbn->id);
 		BKE_id_lib_local_paths(bmain, mb->id.lib, &mbn->id);
 	}
 
@@ -142,7 +145,7 @@ void BKE_mball_make_local(Main *bmain, MetaBall *mb)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &mb->id);
-			BKE_id_expand_local(&mb->id, false);
+			BKE_id_expand_local(&mb->id);
 		}
 		else {
 			MetaBall *mb_new = BKE_mball_copy(bmain, mb);

@@ -251,22 +251,11 @@ void id_fake_user_clear(ID *id)
 	}
 }
 
-static int id_expand_local_callback(void *user_data, struct ID *UNUSED(id_self), struct ID **id_pointer, int cd_flag)
+static int id_expand_local_callback(
+        void *UNUSED(user_data), struct ID *UNUSED(id_self), struct ID **id_pointer, int UNUSED(cd_flag))
 {
-	const bool do_user_count = (user_data != NULL);
-
-	/* We tag all ID usages as extern, and increase usercount in case it was requested. */
 	if (*id_pointer) {
-		if (do_user_count && (cd_flag & IDWALK_USER) &&
-		    /* XXX This is a hack - animdata copying needs a good check and cleanup, it's done with way too much
-		     * various functions currently, so for now we assume actions' usercount is already handled here... */
-		    (GS((*id_pointer)->name) != ID_AC))
-		{
-			id_us_plus(*id_pointer);
-		}
-		else {
-			id_lib_extern(*id_pointer);
-		}
+		id_lib_extern(*id_pointer);
 	}
 
 	return IDWALK_RET_NOP;
@@ -274,12 +263,10 @@ static int id_expand_local_callback(void *user_data, struct ID *UNUSED(id_self),
 
 /**
  * Expand ID usages of given id as 'extern' (and no more indirect) linked data. Used by ID copy/make_local functions.
- *
- * \param do_user_count If true, increase usercount of refcounted datablocks used by given id (use it with copied id).
  */
-void BKE_id_expand_local(struct ID *id, const bool do_user_count)
+void BKE_id_expand_local(ID *id)
 {
-	BKE_library_foreach_ID_link(id, id_expand_local_callback, SET_INT_IN_POINTER((int)do_user_count), 0);
+	BKE_library_foreach_ID_link(id, id_expand_local_callback, NULL, 0);
 }
 
 /* calls the appropriate make_local method for the block, unless test. Returns true

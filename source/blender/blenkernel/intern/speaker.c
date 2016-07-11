@@ -74,9 +74,11 @@ Speaker *BKE_speaker_copy(Main *bmain, Speaker *spk)
 
 	spkn = BKE_libblock_copy(bmain, &spk->id);
 
-	BKE_id_expand_local(&spkn->id, true);
+	if (spkn->sound)
+		id_us_plus(&spkn->sound->id);
 
 	if (ID_IS_LINKED_DATABLOCK(spk)) {
+		BKE_id_expand_local(&spkn->id);
 		BKE_id_lib_local_paths(G.main, spk->id.lib, &spkn->id);
 	}
 
@@ -101,7 +103,7 @@ void BKE_speaker_make_local(Main *bmain, Speaker *spk)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &spk->id);
-			BKE_id_expand_local(&spk->id, false);
+			BKE_id_expand_local(&spk->id);
 		}
 		else {
 			Speaker *spk_new = BKE_speaker_copy(bmain, spk);

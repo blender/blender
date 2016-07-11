@@ -462,6 +462,7 @@ Image *BKE_image_copy(Main *bmain, Image *ima)
 	nima->preview = BKE_previewimg_copy(ima->preview);
 
 	if (ID_IS_LINKED_DATABLOCK(ima)) {
+		BKE_id_expand_local(&nima->id);
 		BKE_id_lib_local_paths(bmain, ima->id.lib, &nima->id);
 	}
 
@@ -486,7 +487,7 @@ void BKE_image_make_local(Main *bmain, Image *ima)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &ima->id);
-			BKE_id_expand_local(&ima->id, false);
+			BKE_id_expand_local(&ima->id);
 		}
 		else {
 			Image *ima_new = BKE_image_copy(bmain, ima);

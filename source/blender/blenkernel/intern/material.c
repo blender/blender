@@ -246,8 +246,9 @@ Material *BKE_material_copy(Main *bmain, Material *ma)
 	man->preview = BKE_previewimg_copy(ma->preview);
 
 	BLI_listbase_clear(&man->gpumaterial);
-	
+
 	if (ID_IS_LINKED_DATABLOCK(ma)) {
+		BKE_id_expand_local(&man->id);
 		BKE_id_lib_local_paths(bmain, ma->id.lib, &man->id);
 	}
 
@@ -302,7 +303,7 @@ void BKE_material_make_local(Main *bmain, Material *ma)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &ma->id);
-			BKE_id_expand_local(&ma->id, false);
+			BKE_id_expand_local(&ma->id);
 		}
 		else {
 			Material *ma_new = BKE_material_copy(bmain, ma);

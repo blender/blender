@@ -286,7 +286,6 @@ Lattice *BKE_lattice_copy(Main *bmain, Lattice *lt)
 
 	if (lt->key) {
 		ltn->key = BKE_key_copy(bmain, ltn->key);
-		ltn->key->id.us = 0;  /* Will be increased again by BKE_id_expand_local. */
 		ltn->key->from = (ID *)ltn;
 	}
 	
@@ -298,9 +297,8 @@ Lattice *BKE_lattice_copy(Main *bmain, Lattice *lt)
 
 	ltn->editlatt = NULL;
 
-	BKE_id_expand_local(&ltn->id, true);
-
 	if (ID_IS_LINKED_DATABLOCK(lt)) {
+		BKE_id_expand_local(&ltn->id);
 		BKE_id_lib_local_paths(bmain, lt->id.lib, &ltn->id);
 	}
 
@@ -353,7 +351,7 @@ void BKE_lattice_make_local(Main *bmain, Lattice *lt)
 			if (lt->key) {
 				BKE_key_make_local(bmain, lt->key);
 			}
-			BKE_id_expand_local(&lt->id, false);
+			BKE_id_expand_local(&lt->id);
 		}
 		else {
 			Lattice *lt_new = BKE_lattice_copy(bmain, lt);

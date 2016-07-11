@@ -1166,11 +1166,11 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, bool copy_caches)
 
 	copy_object_lod(obn, ob);
 	
-
 	/* Copy runtime surve data. */
 	obn->curve_cache = NULL;
 
 	if (ID_IS_LINKED_DATABLOCK(ob)) {
+		BKE_id_expand_local(&obn->id);
 		BKE_id_lib_local_paths(bmain, ob->id.lib, &obn->id);
 	}
 
@@ -1204,7 +1204,7 @@ void BKE_object_make_local(Main *bmain, Object *ob)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &ob->id);
-			BKE_id_expand_local(&ob->id, false);
+			BKE_id_expand_local(&ob->id);
 		}
 		else {
 			Object *ob_new = BKE_object_copy(bmain, ob);

@@ -1292,6 +1292,7 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, Main *bmain, bool ski
 	newtree->interface_type = NULL;
 	
 	if (ID_IS_LINKED_DATABLOCK(ntree)) {
+		BKE_id_expand_local(&newtree->id);
 		BKE_id_lib_local_paths(bmain, ntree->id.lib, &newtree->id);
 	}
 
@@ -1968,7 +1969,7 @@ void ntreeMakeLocal(Main *bmain, bNodeTree *ntree, bool id_in_mainlist)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data_ex(bmain, (ID *)ntree, id_in_mainlist);
-			BKE_id_expand_local(&ntree->id, false);
+			BKE_id_expand_local(&ntree->id);
 		}
 		else {
 			bNodeTree *ntree_new = ntreeCopyTree(bmain, ntree);

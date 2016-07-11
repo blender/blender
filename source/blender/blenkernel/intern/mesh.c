@@ -496,11 +496,16 @@ Mesh *BKE_mesh_add(Main *bmain, const char *name)
 Mesh *BKE_mesh_copy(Main *bmain, Mesh *me)
 {
 	Mesh *men;
+	int a;
 	const int do_tessface = ((me->totface != 0) && (me->totpoly == 0)); /* only do tessface if we have no polys */
 	
 	men = BKE_libblock_copy(bmain, &me->id);
 	
 	men->mat = MEM_dupallocN(me->mat);
+	for (a = 0; a < men->totcol; a++) {
+		id_us_plus((ID *)men->mat[a]);
+	}
+	id_us_plus((ID *)men->texcomesh);
 
 	CustomData_copy(&me->vdata, &men->vdata, CD_MASK_MESH, CD_DUPLICATE, men->totvert);
 	CustomData_copy(&me->edata, &men->edata, CD_MASK_MESH, CD_DUPLICATE, men->totedge);
@@ -522,13 +527,11 @@ Mesh *BKE_mesh_copy(Main *bmain, Mesh *me)
 
 	if (me->key) {
 		men->key = BKE_key_copy(bmain, me->key);
-		men->id.us = 0;  /* Will be increased again by BKE_id_expand_local. */
 		men->key->from = (ID *)men;
 	}
 
-	BKE_id_expand_local(&men->id, true);
-
 	if (ID_IS_LINKED_DATABLOCK(me)) {
+		BKE_id_expand_local(&men->id);
 		BKE_id_lib_local_paths(bmain, me->id.lib, &men->id);
 	}
 
@@ -573,7 +576,7 @@ void BKE_mesh_make_local(Main *bmain, Mesh *me)
 			if (me->key) {
 				BKE_key_make_local(bmain, me->key);
 			}
-			BKE_id_expand_local(&me->id, false);
+			BKE_id_expand_local(&me->id);
 		}
 		else {
 			Mesh *me_new = BKE_mesh_copy(bmain, me);

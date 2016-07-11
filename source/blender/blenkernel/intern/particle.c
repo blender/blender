@@ -3329,14 +3329,14 @@ ParticleSettings *BKE_particlesettings_copy(Main *bmain, ParticleSettings *part)
 		if (part->mtex[a]) {
 			partn->mtex[a] = MEM_mallocN(sizeof(MTex), "psys_copy_tex");
 			memcpy(partn->mtex[a], part->mtex[a], sizeof(MTex));
+			id_us_plus((ID *)partn->mtex[a]->tex);
 		}
 	}
 
 	BLI_duplicatelist(&partn->dupliweights, &part->dupliweights);
 	
-	BKE_id_expand_local(&partn->id, true);
-
 	if (ID_IS_LINKED_DATABLOCK(part)) {
+		BKE_id_expand_local(&partn->id);
 		BKE_id_lib_local_paths(bmain, part->id.lib, &partn->id);
 	}
 
@@ -3361,7 +3361,7 @@ void BKE_particlesettings_make_local(Main *bmain, ParticleSettings *part)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &part->id);
-			BKE_id_expand_local(&part->id, false);
+			BKE_id_expand_local(&part->id);
 		}
 		else {
 			ParticleSettings *part_new = BKE_particlesettings_copy(bmain, part);

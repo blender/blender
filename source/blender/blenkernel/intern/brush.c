@@ -178,6 +178,15 @@ Brush *BKE_brush_copy(Main *bmain, Brush *brush)
 	
 	brushn = BKE_libblock_copy(bmain, &brush->id);
 
+	if (brush->mtex.tex)
+		id_us_plus((ID *)brush->mtex.tex);
+
+	if (brush->mask_mtex.tex)
+		id_us_plus((ID *)brush->mask_mtex.tex);
+
+	if (brush->paint_curve)
+		id_us_plus((ID *)brush->paint_curve);
+
 	if (brush->icon_imbuf)
 		brushn->icon_imbuf = IMB_dupImBuf(brush->icon_imbuf);
 
@@ -188,9 +197,8 @@ Brush *BKE_brush_copy(Main *bmain, Brush *brush)
 	/* enable fake user by default */
 	id_fake_user_set(&brush->id);
 
-	BKE_id_expand_local(&brushn->id, true);
-
 	if (ID_IS_LINKED_DATABLOCK(brush)) {
+		BKE_id_expand_local(&brushn->id);
 		BKE_id_lib_local_paths(bmain, brush->id.lib, &brushn->id);
 	}
 
@@ -234,7 +242,7 @@ void BKE_brush_make_local(Main *bmain, Brush *brush)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &brush->id);
-			BKE_id_expand_local(&brush->id, false);
+			BKE_id_expand_local(&brush->id);
 
 			/* enable fake user by default */
 			id_fake_user_set(&brush->id);

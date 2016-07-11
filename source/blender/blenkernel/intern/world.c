@@ -143,6 +143,7 @@ World *BKE_world_copy(Main *bmain, World *wrld)
 	BLI_listbase_clear(&wrldn->gpumaterial);
 
 	if (ID_IS_LINKED_DATABLOCK(wrld)) {
+		BKE_id_expand_local(&wrldn->id);
 		BKE_id_lib_local_paths(bmain, wrld->id.lib, &wrldn->id);
 	}
 
@@ -193,7 +194,7 @@ void BKE_world_make_local(Main *bmain, World *wrld)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &wrld->id);
-			BKE_id_expand_local(&wrld->id, false);
+			BKE_id_expand_local(&wrld->id);
 		}
 		else {
 			World *wrld_new = BKE_world_copy(bmain, wrld);

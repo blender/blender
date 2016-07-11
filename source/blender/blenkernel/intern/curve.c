@@ -177,6 +177,7 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
 Curve *BKE_curve_copy(Main *bmain, Curve *cu)
 {
 	Curve *cun;
+	int a;
 
 	cun = BKE_libblock_copy(bmain, &cu->id);
 
@@ -184,6 +185,9 @@ Curve *BKE_curve_copy(Main *bmain, Curve *cu)
 	BKE_nurbList_duplicate(&(cun->nurb), &(cu->nurb));
 
 	cun->mat = MEM_dupallocN(cu->mat);
+	for (a = 0; a < cun->totcol; a++) {
+		id_us_plus((ID *)cun->mat[a]);
+	}
 
 	cun->str = MEM_dupallocN(cu->str);
 	cun->strinfo = MEM_dupallocN(cu->strinfo);
@@ -192,16 +196,19 @@ Curve *BKE_curve_copy(Main *bmain, Curve *cu)
 
 	if (cu->key) {
 		cun->key = BKE_key_copy(bmain, cu->key);
-		cun->key->id.us = 0;  /* Will be increased again by BKE_id_expand_local. */
 		cun->key->from = (ID *)cun;
 	}
 
 	cun->editnurb = NULL;
 	cun->editfont = NULL;
 
-	BKE_id_expand_local(&cun->id, true);
+	id_us_plus((ID *)cun->vfont);
+	id_us_plus((ID *)cun->vfontb);
+	id_us_plus((ID *)cun->vfonti);
+	id_us_plus((ID *)cun->vfontbi);
 
 	if (ID_IS_LINKED_DATABLOCK(cu)) {
+		BKE_id_expand_local(&cun->id);
 		BKE_id_lib_local_paths(bmain, cu->id.lib, &cun->id);
 	}
 
@@ -229,6 +236,7 @@ void BKE_curve_make_local(Main *bmain, Curve *cu)
 			if (cu->key) {
 				BKE_key_make_local(bmain, cu->key);
 			}
+			BKE_id_expand_local(&cu->id);
 		}
 		else {
 			Curve *cu_new = BKE_curve_copy(bmain, cu);

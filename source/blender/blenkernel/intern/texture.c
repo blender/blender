@@ -872,11 +872,12 @@ Tex *BKE_texture_copy(Main *bmain, Tex *tex)
 		texn->nodetree = ntreeCopyTree(bmain, tex->nodetree);
 	}
 	
+	texn->preview = BKE_previewimg_copy(tex->preview);
+
 	if (ID_IS_LINKED_DATABLOCK(tex)) {
+		BKE_id_expand_local(&texn->id);
 		BKE_id_lib_local_paths(bmain, tex->id.lib, &texn->id);
 	}
-
-	texn->preview = BKE_previewimg_copy(tex->preview);
 
 	return texn;
 }
@@ -935,7 +936,7 @@ void BKE_texture_make_local(Main *bmain, Tex *tex)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &tex->id);
-			BKE_id_expand_local(&tex->id, false);
+			BKE_id_expand_local(&tex->id);
 		}
 		else {
 			Tex *tex_new = BKE_texture_copy(bmain, tex);

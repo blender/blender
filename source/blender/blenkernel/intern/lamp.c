@@ -139,6 +139,7 @@ Lamp *BKE_lamp_copy(Main *bmain, Lamp *la)
 	lan->preview = BKE_previewimg_copy(la->preview);
 
 	if (ID_IS_LINKED_DATABLOCK(la)) {
+		BKE_id_expand_local(&lan->id);
 		BKE_id_lib_local_paths(bmain, la->id.lib, &lan->id);
 	}
 
@@ -189,7 +190,7 @@ void BKE_lamp_make_local(Main *bmain, Lamp *la)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &la->id);
-			BKE_id_expand_local(&la->id, false);
+			BKE_id_expand_local(&la->id);
 		}
 		else {
 			Lamp *la_new = BKE_lamp_copy(bmain, la);

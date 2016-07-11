@@ -98,6 +98,7 @@ Group *BKE_group_copy(Main *bmain, Group *group)
 	groupn->preview = NULL;
 
 	if (ID_IS_LINKED_DATABLOCK(group)) {
+		BKE_id_expand_local(&groupn->id);
 		BKE_id_lib_local_paths(bmain, group->id.lib, &groupn->id);
 	}
 
