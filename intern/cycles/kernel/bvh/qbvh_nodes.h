@@ -22,27 +22,27 @@ struct QBVHStackItem {
 /* TOOD(sergey): Investigate if using intrinsics helps for both
  * stack item swap and float comparison.
  */
-ccl_device_inline void qbvh_item_swap(QBVHStackItem *__restrict a,
-                                      QBVHStackItem *__restrict b)
+ccl_device_inline void qbvh_item_swap(QBVHStackItem *ccl_restrict a,
+                                      QBVHStackItem *ccl_restrict b)
 {
 	QBVHStackItem tmp = *a;
 	*a = *b;
 	*b = tmp;
 }
 
-ccl_device_inline void qbvh_stack_sort(QBVHStackItem *__restrict s1,
-                                       QBVHStackItem *__restrict s2,
-                                       QBVHStackItem *__restrict s3)
+ccl_device_inline void qbvh_stack_sort(QBVHStackItem *ccl_restrict s1,
+                                       QBVHStackItem *ccl_restrict s2,
+                                       QBVHStackItem *ccl_restrict s3)
 {
 	if(s2->dist < s1->dist) { qbvh_item_swap(s2, s1); }
 	if(s3->dist < s2->dist) { qbvh_item_swap(s3, s2); }
 	if(s2->dist < s1->dist) { qbvh_item_swap(s2, s1); }
 }
 
-ccl_device_inline void qbvh_stack_sort(QBVHStackItem *__restrict s1,
-                                       QBVHStackItem *__restrict s2,
-                                       QBVHStackItem *__restrict s3,
-                                       QBVHStackItem *__restrict s4)
+ccl_device_inline void qbvh_stack_sort(QBVHStackItem *ccl_restrict s1,
+                                       QBVHStackItem *ccl_restrict s2,
+                                       QBVHStackItem *ccl_restrict s3,
+                                       QBVHStackItem *ccl_restrict s4)
 {
 	if(s2->dist < s1->dist) { qbvh_item_swap(s2, s1); }
 	if(s4->dist < s3->dist) { qbvh_item_swap(s4, s3); }
@@ -53,7 +53,7 @@ ccl_device_inline void qbvh_stack_sort(QBVHStackItem *__restrict s1,
 
 /* Axis-aligned nodes intersection */
 
-ccl_device_inline int qbvh_aligned_node_intersect(KernelGlobals *__restrict kg,
+ccl_device_inline int qbvh_aligned_node_intersect(KernelGlobals *ccl_restrict kg,
                                                   const ssef& tnear,
                                                   const ssef& tfar,
 #ifdef __KERNEL_AVX2__
@@ -69,7 +69,7 @@ ccl_device_inline int qbvh_aligned_node_intersect(KernelGlobals *__restrict kg,
                                                   const int far_y,
                                                   const int far_z,
                                                   const int node_addr,
-                                                  ssef *__restrict dist)
+                                                  ssef *ccl_restrict dist)
 {
 	const int offset = node_addr + 1;
 #ifdef __KERNEL_AVX2__
@@ -104,7 +104,7 @@ ccl_device_inline int qbvh_aligned_node_intersect(KernelGlobals *__restrict kg,
 }
 
 ccl_device_inline int qbvh_aligned_node_intersect_robust(
-        KernelGlobals *__restrict kg,
+        KernelGlobals *ccl_restrict kg,
         const ssef& tnear,
         const ssef& tfar,
 #ifdef __KERNEL_AVX2__
@@ -121,7 +121,7 @@ ccl_device_inline int qbvh_aligned_node_intersect_robust(
         const int far_z,
         const int node_addr,
         const float difl,
-        ssef *__restrict dist)
+        ssef *ccl_restrict dist)
 {
 	const int offset = node_addr + 1;
 #ifdef __KERNEL_AVX2__
@@ -152,7 +152,7 @@ ccl_device_inline int qbvh_aligned_node_intersect_robust(
 /* Unaligned nodes intersection */
 
 ccl_device_inline int qbvh_unaligned_node_intersect(
-        KernelGlobals *__restrict kg,
+        KernelGlobals *ccl_restrict kg,
         const ssef& tnear,
         const ssef& tfar,
 #ifdef __KERNEL_AVX2__
@@ -168,7 +168,7 @@ ccl_device_inline int qbvh_unaligned_node_intersect(
         const int far_y,
         const int far_z,
         const int node_addr,
-        ssef *__restrict dist)
+        ssef *ccl_restrict dist)
 {
 	const int offset = node_addr;
 	const ssef tfm_x_x = kernel_tex_fetch_ssef(__bvh_nodes, offset+1);
@@ -236,7 +236,7 @@ ccl_device_inline int qbvh_unaligned_node_intersect(
 }
 
 ccl_device_inline int qbvh_unaligned_node_intersect_robust(
-        KernelGlobals *__restrict kg,
+        KernelGlobals *ccl_restrict kg,
         const ssef& tnear,
         const ssef& tfar,
 #ifdef __KERNEL_AVX2__
@@ -253,7 +253,7 @@ ccl_device_inline int qbvh_unaligned_node_intersect_robust(
         const int far_z,
         const int node_addr,
         const float difl,
-        ssef *__restrict dist)
+        ssef *ccl_restrict dist)
 {
 	const int offset = node_addr;
 	const ssef tfm_x_x = kernel_tex_fetch_ssef(__bvh_nodes, offset+1);
@@ -324,7 +324,7 @@ ccl_device_inline int qbvh_unaligned_node_intersect_robust(
  */
 
 ccl_device_inline int qbvh_node_intersect(
-        KernelGlobals *__restrict kg,
+        KernelGlobals *ccl_restrict kg,
         const ssef& tnear,
         const ssef& tfar,
 #ifdef __KERNEL_AVX2__
@@ -340,7 +340,7 @@ ccl_device_inline int qbvh_node_intersect(
         const int far_y,
         const int far_z,
         const int node_addr,
-        ssef *__restrict dist)
+        ssef *ccl_restrict dist)
 {
 	const int offset = node_addr;
 	const float4 node = kernel_tex_fetch(__bvh_nodes, offset);
@@ -377,7 +377,7 @@ ccl_device_inline int qbvh_node_intersect(
 }
 
 ccl_device_inline int qbvh_node_intersect_robust(
-        KernelGlobals *__restrict kg,
+        KernelGlobals *ccl_restrict kg,
         const ssef& tnear,
         const ssef& tfar,
 #ifdef __KERNEL_AVX2__
@@ -394,7 +394,7 @@ ccl_device_inline int qbvh_node_intersect_robust(
         const int far_z,
         const int node_addr,
         const float difl,
-        ssef *__restrict dist)
+        ssef *ccl_restrict dist)
 {
 	const int offset = node_addr;
 	const float4 node = kernel_tex_fetch(__bvh_nodes, offset);

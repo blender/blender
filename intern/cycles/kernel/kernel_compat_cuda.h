@@ -42,6 +42,7 @@
 #define ccl_constant
 #define ccl_may_alias
 #define ccl_addr_space
+#define ccl_restrict __restrict__
 
 /* No assert supported for CUDA */
 
