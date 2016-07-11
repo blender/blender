@@ -483,6 +483,9 @@ static BMVert *pbvh_bmesh_vert_create(
 	return v;
 }
 
+/**
+ * \note Callers are responsible for checking if the face exists before adding.
+ */
 static BMFace *pbvh_bmesh_face_create(
         PBVH *bvh, int node_index,
         BMVert *v_tri[3], BMEdge *e_tri[3],
@@ -493,7 +496,7 @@ static BMFace *pbvh_bmesh_face_create(
 	/* ensure we never add existing face */
 	BLI_assert(BM_face_exists(v_tri, 3, NULL) == false);
 
-	BMFace *f = BM_face_create(bvh->bm, v_tri, e_tri, 3, f_example, BM_CREATE_NO_DOUBLE);
+	BMFace *f = BM_face_create(bvh->bm, v_tri, e_tri, 3, f_example, BM_CREATE_NOP);
 	f->head.hflag = f_example->head.hflag;
 
 	BLI_gset_insert(node->bm_faces, f);
