@@ -165,6 +165,29 @@ static bool bm_face_exists_tri_from_loop_vert(
 	return false;
 }
 
+/**
+ * Uses a map of vertices to lookup the final target.
+ * References can't point to previous items (would cause infinite loop).
+ */
+static BMVert *bm_vert_hash_lookup_chain(GHash *deleted_verts, BMVert *v)
+{
+	while (true) {
+		BMVert **v_next_p = (BMVert **)BLI_ghash_lookup_p(deleted_verts, v);
+		if (v_next_p == NULL) {
+			/* not remapped*/
+			return v;
+		}
+		else if (*v_next_p == NULL) {
+			/* removed and not remapped */
+			return NULL;
+		}
+		else {
+			/* remapped */
+			v = *v_next_p;
+		}
+	}
+}
+
 /** \} */
 
 
@@ -1224,7 +1247,7 @@ static bool pbvh_bmesh_subdivide_long_edges(
 static void pbvh_bmesh_collapse_edge(
         PBVH *bvh, BMEdge *e,
         BMVert *v1, BMVert *v2,
-        GSet *deleted_verts,
+        GHash *deleted_verts,
         BLI_Buffer *deleted_faces,
         EdgeQueueContext *eq_ctx)
 {
@@ -1344,10 +1367,14 @@ static void pbvh_bmesh_collapse_edge(
 		 * remove them from the PBVH */
 		for (int j = 0; j < 3; j++) {
 			if ((v_tri[j] != v_del) && (v_tri[j]->e == NULL)) {
-				BLI_gset_insert(deleted_verts, v_tri[j]);
 				pbvh_bmesh_vert_remove(bvh, v_tri[j]);
 
 				BM_log_vert_removed(bvh->bm_log, v_tri[j], eq_ctx->cd_vert_mask_offset);
+
+				if (v_tri[j] == v_conn) {
+					v_conn = NULL;
+				}
+				BLI_ghash_insert(deleted_verts, v_tri[j], NULL);
 				BM_vert_kill(bvh->bm, v_tri[j]);
 			}
 		}
@@ -1355,7 +1382,7 @@ static void pbvh_bmesh_collapse_edge(
 
 	/* Move v_conn to the midpoint of v_conn and v_del (if v_conn still exists, it
 	 * may have been deleted above) */
-	if (!BLI_gset_haskey(deleted_verts, v_conn)) {
+	if (v_conn != NULL) {
 		BM_log_vert_before_modified(bvh->bm_log, v_conn, eq_ctx->cd_vert_mask_offset);
 		mid_v3_v3v3(v_conn->co, v_conn->co, v_del->co);
 		add_v3_v3(v_conn->no, v_del->no);
@@ -1372,8 +1399,9 @@ static void pbvh_bmesh_collapse_edge(
 
 	/* Delete v_del */
 	BLI_assert(!BM_vert_face_check(v_del));
-	BLI_gset_insert(deleted_verts, v_del);
 	BM_log_vert_removed(bvh->bm_log, v_del, eq_ctx->cd_vert_mask_offset);
+	/* v_conn == NULL is OK */
+	BLI_ghash_insert(deleted_verts, v_del, v_conn);
 	BM_vert_kill(bvh->bm, v_del);
 }
 
@@ -1384,17 +1412,20 @@ static bool pbvh_bmesh_collapse_short_edges(
 {
 	const float min_len_squared = bvh->bm_min_edge_len * bvh->bm_min_edge_len;
 	bool any_collapsed = false;
-	GSet *deleted_verts = BLI_gset_ptr_new("deleted_verts");
+	/* deleted verts point to vertices they were merged into, or NULL when removed. */
+	GHash *deleted_verts = BLI_ghash_ptr_new("deleted_verts");
 
 	while (!BLI_heap_is_empty(eq_ctx->q->heap)) {
 		BMVert **pair = BLI_heap_popmin(eq_ctx->q->heap);
-		BMVert *v1 = pair[0], *v2 = pair[1];
+		BMVert *v1  = pair[0], *v2  = pair[1];
+//		BMVert *v1_ = pair[0], *v2_ = pair[1];
 		BLI_mempool_free(eq_ctx->pool, pair);
 		pair = NULL;
 
 		/* Check the verts still exist */
-		if (BLI_gset_haskey(deleted_verts, v1) ||
-		    BLI_gset_haskey(deleted_verts, v2))
+		if (!(v1 = bm_vert_hash_lookup_chain(deleted_verts, v1)) ||
+		    !(v2 = bm_vert_hash_lookup_chain(deleted_verts, v2)) ||
+		    (v1 == v2))
 		{
 			continue;
 		}
@@ -1428,7 +1459,7 @@ static bool pbvh_bmesh_collapse_short_edges(
 		                         deleted_faces, eq_ctx);
 	}
 
-	BLI_gset_free(deleted_verts, NULL);
+	BLI_ghash_free(deleted_verts, NULL, NULL);
 
 	return any_collapsed;
 }
