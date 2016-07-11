@@ -99,7 +99,7 @@ Camera *BKE_camera_copy(Main *bmain, Camera *cam)
 	
 	camn = BKE_libblock_copy(bmain, &cam->id);
 
-	id_lib_extern((ID *)camn->dof_ob);
+	BKE_id_expand_local(&camn->id, true);
 
 	if (ID_IS_LINKED_DATABLOCK(cam)) {
 		BKE_id_lib_local_paths(bmain, cam->id.lib, &camn->id);
@@ -126,6 +126,7 @@ void BKE_camera_make_local(Main *bmain, Camera *cam)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &cam->id);
+			BKE_id_expand_local(&cam->id, false);
 		}
 		else {
 			Camera *cam_new = BKE_camera_copy(bmain, cam);

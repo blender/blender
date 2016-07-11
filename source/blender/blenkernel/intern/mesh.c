@@ -496,18 +496,11 @@ Mesh *BKE_mesh_add(Main *bmain, const char *name)
 Mesh *BKE_mesh_copy(Main *bmain, Mesh *me)
 {
 	Mesh *men;
-	MTFace *tface;
-	MTexPoly *txface;
-	int a, i;
 	const int do_tessface = ((me->totface != 0) && (me->totpoly == 0)); /* only do tessface if we have no polys */
 	
 	men = BKE_libblock_copy(bmain, &me->id);
 	
 	men->mat = MEM_dupallocN(me->mat);
-	for (a = 0; a < men->totcol; a++) {
-		id_us_plus((ID *)men->mat[a]);
-	}
-	id_us_plus((ID *)men->texcomesh);
 
 	CustomData_copy(&me->vdata, &men->vdata, CD_MASK_MESH, CD_DUPLICATE, men->totvert);
 	CustomData_copy(&me->edata, &men->edata, CD_MASK_MESH, CD_DUPLICATE, men->totedge);
@@ -522,36 +515,18 @@ Mesh *BKE_mesh_copy(Main *bmain, Mesh *me)
 
 	BKE_mesh_update_customdata_pointers(men, do_tessface);
 
-	/* ensure indirect linked data becomes lib-extern */
-	for (i = 0; i < me->fdata.totlayer; i++) {
-		if (me->fdata.layers[i].type == CD_MTFACE) {
-			tface = (MTFace *)me->fdata.layers[i].data;
-
-			for (a = 0; a < me->totface; a++, tface++)
-				if (tface->tpage)
-					id_lib_extern((ID *)tface->tpage);
-		}
-	}
-	
-	for (i = 0; i < me->pdata.totlayer; i++) {
-		if (me->pdata.layers[i].type == CD_MTEXPOLY) {
-			txface = (MTexPoly *)me->pdata.layers[i].data;
-
-			for (a = 0; a < me->totpoly; a++, txface++)
-				if (txface->tpage)
-					id_lib_extern((ID *)txface->tpage);
-		}
-	}
-
 	men->edit_btmesh = NULL;
 
 	men->mselect = MEM_dupallocN(men->mselect);
 	men->bb = MEM_dupallocN(men->bb);
-	
+
 	if (me->key) {
 		men->key = BKE_key_copy(bmain, me->key);
+		men->id.us = 0;  /* Will be increased again by BKE_id_expand_local. */
 		men->key->from = (ID *)men;
 	}
+
+	BKE_id_expand_local(&men->id, true);
 
 	if (ID_IS_LINKED_DATABLOCK(me)) {
 		BKE_id_lib_local_paths(bmain, me->id.lib, &men->id);
@@ -577,50 +552,6 @@ BMesh *BKE_mesh_to_bmesh(
 	return bm;
 }
 
-static int extern_local_mesh_callback(
-        void *UNUSED(user_data), struct ID *UNUSED(id_self), struct ID **id_pointer, int cd_flag)
-{
-	/* We only tag usercounted ID usages as extern... Why? */
-	if ((cd_flag & IDWALK_USER) && *id_pointer) {
-		id_lib_extern(*id_pointer);
-	}
-	return IDWALK_RET_NOP;
-}
-
-static void expand_local_mesh(Mesh *me)
-{
-	BKE_library_foreach_ID_link(&me->id, extern_local_mesh_callback, NULL, 0);
-
-	/* special case: images assigned to UVLayers always made local immediately - why? */
-	if (me->mtface || me->mtpoly) {
-		int a, i;
-
-		for (i = 0; i < me->pdata.totlayer; i++) {
-			if (me->pdata.layers[i].type == CD_MTEXPOLY) {
-				MTexPoly *txface = (MTexPoly *)me->pdata.layers[i].data;
-
-				for (a = 0; a < me->totpoly; a++, txface++) {
-					if (txface->tpage) {
-						id_lib_extern((ID *)txface->tpage);
-					}
-				}
-			}
-		}
-
-		for (i = 0; i < me->fdata.totlayer; i++) {
-			if (me->fdata.layers[i].type == CD_MTFACE) {
-				MTFace *tface = (MTFace *)me->fdata.layers[i].data;
-
-				for (a = 0; a < me->totface; a++, tface++) {
-					if (tface->tpage) {
-						id_lib_extern((ID *)tface->tpage);
-					}
-				}
-			}
-		}
-	}
-}
-
 void BKE_mesh_make_local(Main *bmain, Mesh *me)
 {
 	bool is_local = false, is_lib = false;
@@ -642,7 +573,7 @@ void BKE_mesh_make_local(Main *bmain, Mesh *me)
 			if (me->key) {
 				BKE_key_make_local(bmain, me->key);
 			}
-			expand_local_mesh(me);
+			BKE_id_expand_local(&me->id, false);
 		}
 		else {
 			Mesh *me_new = BKE_mesh_copy(bmain, me);

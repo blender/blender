@@ -73,29 +73,14 @@ Speaker *BKE_speaker_copy(Main *bmain, Speaker *spk)
 	Speaker *spkn;
 
 	spkn = BKE_libblock_copy(bmain, &spk->id);
-	if (spkn->sound)
-		id_us_plus(&spkn->sound->id);
+
+	BKE_id_expand_local(&spkn->id, true);
 
 	if (ID_IS_LINKED_DATABLOCK(spk)) {
 		BKE_id_lib_local_paths(G.main, spk->id.lib, &spkn->id);
 	}
 
 	return spkn;
-}
-
-static int extern_local_speaker_callback(
-        void *UNUSED(user_data), struct ID *UNUSED(id_self), struct ID **id_pointer, int cd_flag)
-{
-	/* We only tag usercounted ID usages as extern... Why? */
-	if ((cd_flag & IDWALK_USER) && *id_pointer) {
-		id_lib_extern(*id_pointer);
-	}
-	return IDWALK_RET_NOP;
-}
-
-static void extern_local_speaker(Speaker *spk)
-{
-	BKE_library_foreach_ID_link(&spk->id, extern_local_speaker_callback, NULL, 0);
 }
 
 void BKE_speaker_make_local(Main *bmain, Speaker *spk)
@@ -116,7 +101,7 @@ void BKE_speaker_make_local(Main *bmain, Speaker *spk)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &spk->id);
-			extern_local_speaker(spk);
+			BKE_id_expand_local(&spk->id, false);
 		}
 		else {
 			Speaker *spk_new = BKE_speaker_copy(bmain, spk);

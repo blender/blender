@@ -177,7 +177,6 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
 Curve *BKE_curve_copy(Main *bmain, Curve *cu)
 {
 	Curve *cun;
-	int a;
 
 	cun = BKE_libblock_copy(bmain, &cu->id);
 
@@ -185,9 +184,6 @@ Curve *BKE_curve_copy(Main *bmain, Curve *cu)
 	BKE_nurbList_duplicate(&(cun->nurb), &(cu->nurb));
 
 	cun->mat = MEM_dupallocN(cu->mat);
-	for (a = 0; a < cun->totcol; a++) {
-		id_us_plus((ID *)cun->mat[a]);
-	}
 
 	cun->str = MEM_dupallocN(cu->str);
 	cun->strinfo = MEM_dupallocN(cu->strinfo);
@@ -196,42 +192,20 @@ Curve *BKE_curve_copy(Main *bmain, Curve *cu)
 
 	if (cu->key) {
 		cun->key = BKE_key_copy(bmain, cu->key);
+		cun->key->id.us = 0;  /* Will be increased again by BKE_id_expand_local. */
 		cun->key->from = (ID *)cun;
 	}
 
 	cun->editnurb = NULL;
 	cun->editfont = NULL;
 
-#if 0   // XXX old animation system
-	/* single user ipo too */
-	if (cun->ipo) cun->ipo = copy_ipo(cun->ipo);
-#endif // XXX old animation system
-
-	id_us_plus((ID *)cun->vfont);
-	id_us_plus((ID *)cun->vfontb);
-	id_us_plus((ID *)cun->vfonti);
-	id_us_plus((ID *)cun->vfontbi);
+	BKE_id_expand_local(&cun->id, true);
 
 	if (ID_IS_LINKED_DATABLOCK(cu)) {
 		BKE_id_lib_local_paths(bmain, cu->id.lib, &cun->id);
 	}
 
 	return cun;
-}
-
-static int extern_local_curve_callback(
-        void *UNUSED(user_data), struct ID *UNUSED(id_self), struct ID **id_pointer, int cd_flag)
-{
-	/* We only tag usercounted ID usages as extern... Why? */
-	if ((cd_flag & IDWALK_USER) && *id_pointer) {
-		id_lib_extern(*id_pointer);
-	}
-	return IDWALK_RET_NOP;
-}
-
-static void extern_local_curve(Curve *cu)
-{
-	BKE_library_foreach_ID_link(&cu->id, extern_local_curve_callback, NULL, 0);
 }
 
 void BKE_curve_make_local(Main *bmain, Curve *cu)
@@ -255,7 +229,6 @@ void BKE_curve_make_local(Main *bmain, Curve *cu)
 			if (cu->key) {
 				BKE_key_make_local(bmain, cu->key);
 			}
-			extern_local_curve(cu);
 		}
 		else {
 			Curve *cu_new = BKE_curve_copy(bmain, cu);

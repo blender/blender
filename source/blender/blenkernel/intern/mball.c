@@ -105,40 +105,23 @@ MetaBall *BKE_mball_add(Main *bmain, const char *name)
 MetaBall *BKE_mball_copy(Main *bmain, MetaBall *mb)
 {
 	MetaBall *mbn;
-	int a;
 	
 	mbn = BKE_libblock_copy(bmain, &mb->id);
 
 	BLI_duplicatelist(&mbn->elems, &mb->elems);
 	
 	mbn->mat = MEM_dupallocN(mb->mat);
-	for (a = 0; a < mbn->totcol; a++) {
-		id_us_plus((ID *)mbn->mat[a]);
-	}
 
 	mbn->editelems = NULL;
 	mbn->lastelem = NULL;
 	
+	BKE_id_expand_local(&mbn->id, true);
+
 	if (ID_IS_LINKED_DATABLOCK(mb)) {
 		BKE_id_lib_local_paths(bmain, mb->id.lib, &mbn->id);
 	}
 
 	return mbn;
-}
-
-static int extern_local_mball_callback(
-        void *UNUSED(user_data), struct ID *UNUSED(id_self), struct ID **id_pointer, int cd_flag)
-{
-	/* We only tag usercounted ID usages as extern... Why? */
-	if ((cd_flag & IDWALK_USER) && *id_pointer) {
-		id_lib_extern(*id_pointer);
-	}
-	return IDWALK_RET_NOP;
-}
-
-static void extern_local_mball(MetaBall *mb)
-{
-	BKE_library_foreach_ID_link(&mb->id, extern_local_mball_callback, NULL, 0);
 }
 
 void BKE_mball_make_local(Main *bmain, MetaBall *mb)
@@ -159,7 +142,7 @@ void BKE_mball_make_local(Main *bmain, MetaBall *mb)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &mb->id);
-			extern_local_mball(mb);
+			BKE_id_expand_local(&mb->id, false);
 		}
 		else {
 			MetaBall *mb_new = BKE_mball_copy(bmain, mb);
