@@ -160,10 +160,10 @@ ccl_device_inline bool bvh_unaligned_node_intersect_child(
 	const float far_x  = max(lower_xyz.x, upper_xyz.x);
 	const float far_y  = max(lower_xyz.y, upper_xyz.y);
 	const float far_z  = max(lower_xyz.z, upper_xyz.z);
-	const float near   = max4(0.0f, near_x, near_y, near_z);
-	const float far    = min4(t, far_x, far_y, far_z);
-	*dist = near;
-	return near <= far;
+	const float tnear   = max4(0.0f, near_x, near_y, near_z);
+	const float tfar    = min4(t, far_x, far_y, far_z);
+	*dist = tnear;
+	return tnear <= tfar;
 }
 
 ccl_device_inline bool bvh_unaligned_node_intersect_child_robust(
@@ -188,17 +188,17 @@ ccl_device_inline bool bvh_unaligned_node_intersect_child_robust(
 	const float far_x  = max(tLowerXYZ.x, tUpperXYZ.x);
 	const float far_y  = max(tLowerXYZ.y, tUpperXYZ.y);
 	const float far_z  = max(tLowerXYZ.z, tUpperXYZ.z);
-	const float near   = max4(0.0f, near_x, near_y, near_z);
-	const float far    = min4(t, far_x, far_y, far_z);
-	*dist = near;
+	const float tnear   = max4(0.0f, near_x, near_y, near_z);
+	const float tfar    = min4(t, far_x, far_y, far_z);
+	*dist = tnear;
 	if(difl != 0.0f) {
 		/* TODO(sergey): Same as for QBVH, needs a proper use. */
 		const float round_down = 1.0f - difl;
 		const float round_up = 1.0f + difl;
-		return round_down*near <= round_up*far;
+		return round_down*tnear <= round_up*tfar;
 	}
 	else {
-		return near <= far;
+		return tnear <= tfar;
 	}
 }
 
@@ -444,8 +444,8 @@ int ccl_device_inline bvh_aligned_node_intersect_robust(
 int ccl_device_inline bvh_unaligned_node_intersect(KernelGlobals *kg,
                                                    const float3 P,
                                                    const float3 dir,
-                                                   const ssef& tnear,
-                                                   const ssef& tfar,
+                                                   const ssef& isect_near,
+                                                   const ssef& isect_far,
                                                    const int node_addr,
                                                    const uint visibility,
                                                    float dist[2])
@@ -483,11 +483,11 @@ int ccl_device_inline bvh_unaligned_node_intersect(KernelGlobals *kg,
 	ssef tfar_y = max(lower_y, upper_y);
 	ssef tfar_z = max(lower_z, upper_z);
 
-	const ssef near = max4(tnear_x, tnear_y, tnear_z, tnear);
-	const ssef far = min4(tfar_x, tfar_y, tfar_z, tfar);
-	sseb vmask = near <= far;
-	dist[0] = near.f[0];
-	dist[1] = near.f[1];
+	const ssef tnear = max4(tnear_x, tnear_y, tnear_z, isect_near);
+	const ssef tfar = min4(tfar_x, tfar_y, tfar_z, isect_far);
+	sseb vmask = tnear <= tfar;
+	dist[0] = tnear.f[0];
+	dist[1] = tnear.f[1];
 
 	int mask = (int)movemask(vmask);
 
@@ -505,8 +505,8 @@ int ccl_device_inline bvh_unaligned_node_intersect(KernelGlobals *kg,
 int ccl_device_inline bvh_unaligned_node_intersect_robust(KernelGlobals *kg,
                                                           const float3 P,
                                                           const float3 dir,
-                                                          const ssef& tnear,
-                                                          const ssef& tfar,
+                                                          const ssef& isect_near,
+                                                          const ssef& isect_far,
                                                           const float difl,
                                                           const int node_addr,
                                                           const uint visibility,
@@ -545,20 +545,20 @@ int ccl_device_inline bvh_unaligned_node_intersect_robust(KernelGlobals *kg,
 	ssef tfar_y = max(lower_y, upper_y);
 	ssef tfar_z = max(lower_z, upper_z);
 
-	const ssef near = max4(tnear_x, tnear_y, tnear_z, tnear);
-	const ssef far = min4(tfar_x, tfar_y, tfar_z, tfar);
+	const ssef tnear = max4(tnear_x, tnear_y, tnear_z, isect_near);
+	const ssef tfar = min4(tfar_x, tfar_y, tfar_z, isect_far);
 	sseb vmask;
 	if(difl != 0.0f) {
 		const float round_down = 1.0f - difl;
 		const float round_up = 1.0f + difl;
-		vmask = round_down*near <= round_up*far;
+		vmask = round_down*tnear <= round_up*tfar;
 	}
 	else {
-		vmask = near <= far;
+		vmask = tnear <= tfar;
 	}
 
-	dist[0] = near.f[0];
-	dist[1] = near.f[1];
+	dist[0] = tnear.f[0];
+	dist[1] = tnear.f[1];
 
 	int mask = (int)movemask(vmask);
 
@@ -576,8 +576,8 @@ int ccl_device_inline bvh_unaligned_node_intersect_robust(KernelGlobals *kg,
 ccl_device_inline int bvh_node_intersect(KernelGlobals *kg,
                                          const float3& P,
                                          const float3& dir,
-                                         const ssef& tnear,
-                                         const ssef& tfar,
+                                         const ssef& isect_near,
+                                         const ssef& isect_far,
                                          const ssef& tsplat,
                                          const ssef Psplat[3],
                                          const ssef idirsplat[3],
@@ -591,8 +591,8 @@ ccl_device_inline int bvh_node_intersect(KernelGlobals *kg,
 		return bvh_unaligned_node_intersect(kg,
 		                                    P,
 		                                    dir,
-		                                    tnear,
-		                                    tfar,
+		                                    isect_near,
+		                                    isect_far,
 		                                    node_addr,
 		                                    visibility,
 		                                    dist);
@@ -614,8 +614,8 @@ ccl_device_inline int bvh_node_intersect(KernelGlobals *kg,
 ccl_device_inline int bvh_node_intersect_robust(KernelGlobals *kg,
                                                 const float3& P,
                                                 const float3& dir,
-                                                const ssef& tnear,
-                                                const ssef& tfar,
+                                                const ssef& isect_near,
+                                                const ssef& isect_far,
                                                 const ssef& tsplat,
                                                 const ssef Psplat[3],
                                                 const ssef idirsplat[3],
@@ -631,8 +631,8 @@ ccl_device_inline int bvh_node_intersect_robust(KernelGlobals *kg,
 		return bvh_unaligned_node_intersect_robust(kg,
 		                                           P,
 		                                           dir,
-		                                           tnear,
-		                                           tfar,
+		                                           isect_near,
+		                                           isect_far,
 		                                           difl,
 		                                           node_addr,
 		                                           visibility,
