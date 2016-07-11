@@ -1219,7 +1219,6 @@ void BKE_object_make_local(Main *bmain, Object *ob)
 	if (is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &ob->id);
-			ob->preview = NULL;
 			extern_local_object(ob);
 		}
 		else {

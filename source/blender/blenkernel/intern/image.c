@@ -459,6 +459,8 @@ Image *BKE_image_copy(Main *bmain, Image *ima)
 	nima->stereo3d_format = MEM_dupallocN(ima->stereo3d_format);
 	BLI_duplicatelist(&nima->views, &ima->views);
 
+	nima->preview = BKE_previewimg_copy(ima->preview);
+
 	if (ID_IS_LINKED_DATABLOCK(ima)) {
 		BKE_id_lib_local_paths(bmain, ima->id.lib, &nima->id);
 	}

@@ -138,8 +138,7 @@ World *BKE_world_copy(Main *bmain, World *wrld)
 		wrldn->nodetree = ntreeCopyTree(bmain, wrld->nodetree);
 	}
 	
-	if (wrld->preview)
-		wrldn->preview = BKE_previewimg_copy(wrld->preview);
+	wrldn->preview = BKE_previewimg_copy(wrld->preview);
 
 	BLI_listbase_clear(&wrldn->gpumaterial);
 

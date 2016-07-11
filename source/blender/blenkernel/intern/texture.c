@@ -876,6 +876,8 @@ Tex *BKE_texture_copy(Main *bmain, Tex *tex)
 		BKE_id_lib_local_paths(bmain, tex->id.lib, &texn->id);
 	}
 
+	texn->preview = BKE_previewimg_copy(tex->preview);
+
 	return texn;
 }
 

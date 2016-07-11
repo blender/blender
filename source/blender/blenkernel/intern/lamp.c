@@ -167,8 +167,8 @@ Lamp *localize_lamp(Lamp *la)
 	if (la->nodetree)
 		lan->nodetree = ntreeLocalize(la->nodetree);
 	
-	lan->preview = NULL;
-	
+	lan->preview = BKE_previewimg_copy(la->preview);
+
 	return lan;
 }
 
