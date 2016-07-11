@@ -127,6 +127,7 @@ Lamp *BKE_lamp_copy(Main *bmain, Lamp *la)
 		if (lan->mtex[a]) {
 			lan->mtex[a] = MEM_mallocN(sizeof(MTex), "copylamptex");
 			memcpy(lan->mtex[a], la->mtex[a], sizeof(MTex));
+			id_us_plus((ID *)lan->mtex[a]->tex);
 		}
 	}
 	
@@ -136,8 +137,6 @@ Lamp *BKE_lamp_copy(Main *bmain, Lamp *la)
 		lan->nodetree = ntreeCopyTree(bmain, la->nodetree);
 	
 	lan->preview = BKE_previewimg_copy(la->preview);
-
-	BKE_id_expand_local(&lan->id, true);
 
 	if (ID_IS_LINKED_DATABLOCK(la)) {
 		BKE_id_lib_local_paths(bmain, la->id.lib, &lan->id);
