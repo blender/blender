@@ -145,8 +145,8 @@ MALWAYS_INLINE int isec_tri_quad(float start[3], const struct IsectRayPrecalc *i
 	if (isect_ray_tri_watertight_v3(start, isect_precalc, face->v1, face->v2, face->v3, &l, uv)) {
 		/* check if intersection is within ray length */
 		if (l > -RE_RAYTRACE_EPSILON && l < *lambda) {
-			r_uv[0] = uv[0];
-			r_uv[1] = uv[1];
+			r_uv[0] = -uv[0];
+			r_uv[1] = -uv[1];
 			*lambda = l;
 			return 1;
 		}
@@ -157,8 +157,8 @@ MALWAYS_INLINE int isec_tri_quad(float start[3], const struct IsectRayPrecalc *i
 		if (isect_ray_tri_watertight_v3(start, isect_precalc, face->v1, face->v3, face->v4, &l, uv)) {
 			/* check if intersection is within ray length */
 			if (l > -RE_RAYTRACE_EPSILON && l < *lambda) {
-				r_uv[0] = uv[0];
-				r_uv[1] = uv[1];
+				r_uv[0] = -uv[0];
+				r_uv[1] = -uv[1];
 				*lambda = l;
 				return 2;
 			}
