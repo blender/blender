@@ -1080,13 +1080,9 @@ static FileData *filedata_new(void)
 	
 	fd->filedes = -1;
 	fd->gzfiledes = NULL;
-	
-	/* XXX, this doesn't need to be done all the time,
-	 * but it keeps us re-entrant,  remove once we have
-	 * a lib that provides a nice lock. - zr
-	 */
-	fd->memsdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false, NULL);
-	
+
+	fd->memsdna = DNA_sdna_current_get();
+
 	fd->datamap = oldnewmap_new();
 	fd->globmap = oldnewmap_new();
 	fd->libmap = oldnewmap_new();
@@ -1280,9 +1276,7 @@ void blo_freefiledata(FileData *fd)
 		
 		// Free all BHeadN data blocks
 		BLI_freelistN(&fd->listbase);
-		
-		if (fd->memsdna)
-			DNA_sdna_free(fd->memsdna);
+
 		if (fd->filesdna)
 			DNA_sdna_free(fd->filesdna);
 		if (fd->compflags)

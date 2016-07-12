@@ -605,6 +605,30 @@ SDNA *DNA_sdna_from_data(
 	}
 }
 
+/**
+ * Using globals is acceptable here, the data is read-only and only changes between Blender versions.
+ *
+ * So it is safe to create once and reuse.
+ */
+static SDNA *g_sdna = NULL;
+
+void DNA_sdna_current_init(void)
+{
+	g_sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false, NULL);
+}
+
+const struct SDNA *DNA_sdna_current_get(void)
+{
+	BLI_assert(g_sdna != NULL);
+	return g_sdna;
+}
+
+void DNA_sdna_current_free(void)
+{
+	DNA_sdna_free(g_sdna);
+	g_sdna = NULL;
+}
+
 /* ******************** END READ DNA ********************** */
 
 /* ******************* HANDLE DNA ***************** */

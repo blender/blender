@@ -40,6 +40,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_genfile.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
@@ -583,6 +584,8 @@ void WM_exit_ext(bContext *C, const bool do_python)
 #endif
 	
 	GHOST_DisposeSystemPaths();
+
+	DNA_sdna_current_free();
 
 	BLI_threadapi_exit();
 

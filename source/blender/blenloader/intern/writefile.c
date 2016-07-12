@@ -303,7 +303,7 @@ static void ww_handle_init(eWriteWrapType ww_type, WriteWrap *r_ww)
 
 
 typedef struct {
-	struct SDNA *sdna;
+	const struct SDNA *sdna;
 
 	unsigned char *buf;
 	MemFile *compare, *current;
@@ -325,7 +325,7 @@ static WriteData *writedata_new(WriteWrap *ww)
 {
 	WriteData *wd = MEM_callocN(sizeof(*wd), "writedata");
 
-	wd->sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false, NULL);
+	wd->sdna = DNA_sdna_current_get();
 
 	wd->ww = ww;
 
@@ -357,8 +357,6 @@ static void writedata_do_write(WriteData *wd, const void *mem, int memlen)
 
 static void writedata_free(WriteData *wd)
 {
-	DNA_sdna_free(wd->sdna);
-
 	MEM_freeN(wd->buf);
 	MEM_freeN(wd);
 }

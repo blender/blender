@@ -80,6 +80,12 @@ struct SDNA *DNA_sdna_from_data(
         const char **r_error_message);
 void DNA_sdna_free(struct SDNA *sdna);
 
+/* Access for current Blender versions SDNA*/
+void               DNA_sdna_current_init(void);
+/* borrowed reference */
+const struct SDNA *DNA_sdna_current_get(void);
+void               DNA_sdna_current_free(void);
+
 int DNA_struct_find_nr_ex(const struct SDNA *sdna, const char *str, unsigned int *index_last);
 int DNA_struct_find_nr(const struct SDNA *sdna, const char *str);
 void DNA_struct_switch_endian(const struct SDNA *oldsdna, int oldSDNAnr, char *data);
