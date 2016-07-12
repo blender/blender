@@ -1118,8 +1118,11 @@ int BKE_image_imtype_to_ftype(const char imtype, ImbFormatOptions *r_options)
 		return IMB_FTYPE_DPX;
 #endif
 #ifdef WITH_OPENJPEG
-	else if (imtype == R_IMF_IMTYPE_JP2)
+	else if (imtype == R_IMF_IMTYPE_JP2) {
+		r_options->flag |= JP2_JP2;
+		r_options->quality = 90;
 		return IMB_FTYPE_JP2;
+	}
 #endif
 	else {
 		r_options->quality = 90;
