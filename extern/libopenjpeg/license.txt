@@ -1,10 +1,10 @@
 /*
- * The copyright in this software is being made available under the 2-clauses 
- * BSD License, included below. This software may be subject to other third 
- * party and contributor rights, including patent rights, and no such rights
- * are granted under this license.
- *
- * Copyright (c) 2012, Mathieu Malaterre <mathieu.malaterre@gmail.com>
+ * Copyright (c) 2002-2007, Communications and Remote Sensing Laboratory, Universite catholique de Louvain (UCL), Belgium
+ * Copyright (c) 2002-2007, Professor Benoit Macq
+ * Copyright (c) 2001-2003, David Janssens
+ * Copyright (c) 2002-2003, Yannick Verschueren
+ * Copyright (c) 2003-2007, Francois-Olivier Devaux and Antonin Descampe
+ * Copyright (c) 2005, Herve Drolon, FreeImage Team
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,21 +28,3 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef OPJ_INTTYPES_H
-#define OPJ_INTTYPES_H
-
-#include "opj_config_private.h"
-#ifdef OPJ_HAVE_INTTYPES_H
-#include <inttypes.h>
-#else
-#if defined(_WIN32)
-#define PRId64 "I64d"
-#define PRIi64 "I64i"
-#define PRIu64 "I64u"
-#define PRIx64 "I64x"
-#else
-#error unsupported platform
-#endif
-#endif
-
-#endif /* OPJ_INTTYPES_H */

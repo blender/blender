@@ -1,9 +1,4 @@
 /*
- * The copyright in this software is being made available under the 2-clauses 
- * BSD License, included below. This software may be subject to other third 
- * party and contributor rights, including patent rights, and no such rights
- * are granted under this license.
- *
  * Copyright (c) 2005, Herve Drolon, FreeImage Team
  * All rights reserved.
  *
@@ -28,37 +23,32 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef __J2K_LIB_H
+#define __J2K_LIB_H
+/**
+@file j2k_lib.h
+@brief Internal functions
 
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <sys/times.h>
-#endif /* _WIN32 */
-#include "opj_includes.h"
+The functions in J2K_LIB.C are internal utilities mainly used for timing.
+*/
 
-OPJ_FLOAT64 opj_clock(void) {
-#ifdef _WIN32
-	/* _WIN32: use QueryPerformance (very accurate) */
-    LARGE_INTEGER freq , t ;
-    /* freq is the clock speed of the CPU */
-    QueryPerformanceFrequency(&freq) ;
-	/* cout << "freq = " << ((double) freq.QuadPart) << endl; */
-    /* t is the high resolution performance counter (see MSDN) */
-    QueryPerformanceCounter ( & t ) ;
-    return ( t.QuadPart /(OPJ_FLOAT64) freq.QuadPart ) ;
-#else
-	/* Unix or Linux: use resource usage */
-    struct rusage t;
-    OPJ_FLOAT64 procTime;
-    /* (1) Get the rusage data structure at this moment (man getrusage) */
-    getrusage(0,&t);
-    /* (2) What is the elapsed time ? - CPU time = User time + System time */
-	/* (2a) Get the seconds */
-    procTime = (OPJ_FLOAT64)(t.ru_utime.tv_sec + t.ru_stime.tv_sec);
-    /* (2b) More precisely! Get the microseconds part ! */
-    return ( procTime + (OPJ_FLOAT64)(t.ru_utime.tv_usec + t.ru_stime.tv_usec) * 1e-6 ) ;
-#endif
-}
+/** @defgroup MISC MISC - Miscellaneous internal functions */
+/*@{*/
+
+/** @name Exported functions */
+/*@{*/
+/* ----------------------------------------------------------------------- */
+
+/**
+Difference in successive opj_clock() calls tells you the elapsed time
+@return Returns time in seconds
+*/
+double opj_clock(void);
+
+/* ----------------------------------------------------------------------- */
+/*@}*/
+
+/*@}*/
+
+#endif /* __J2K_LIB_H */
 

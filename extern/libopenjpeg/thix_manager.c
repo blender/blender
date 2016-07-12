@@ -1,8 +1,8 @@
 /*
  * $Id: thix_manager.c 897 2011-08-28 21:43:57Z Kaori.Hagihara@gmail.com $
  *
- * Copyright (c) 2002-2014, Universite catholique de Louvain (UCL), Belgium
- * Copyright (c) 2002-2014, Professor Benoit Macq
+ * Copyright (c) 2002-2011, Communications and Remote Sensing Laboratory, Universite catholique de Louvain (UCL), Belgium
+ * Copyright (c) 2002-2011, Professor Benoit Macq
  * Copyright (c) 2003-2004, Yannick Verschueren
  * Copyright (c) 2010-2011, Kaori Hagihara
  * All rights reserved.
@@ -33,51 +33,10 @@
  *  \brief Modification of jpip.c from 2KAN indexer
  */
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include "opj_includes.h"
-
-
-
-int opj_write_thix( int coff, opj_codestream_info_t cstr_info, opj_stream_private_t *cio,
-              opj_event_mgr_t * p_manager )
-{
-  OPJ_BYTE l_data_header [4];
-  int i;
-  int tileno;
-  opj_jp2_box_t *box;
-  OPJ_UINT32 len;
-  OPJ_OFF_T lenp;
-
-  lenp = 0;
-  box = (opj_jp2_box_t *)opj_calloc( (size_t)(cstr_info.tw*cstr_info.th), sizeof(opj_jp2_box_t));
-
-  for ( i = 0; i < 2 ; i++ ){
-    if (i)
-      opj_stream_seek( cio, lenp, p_manager);
-
-    lenp = opj_stream_tell(cio);
-    opj_stream_skip(cio, 4, p_manager);             /* L [at the end] */
-    opj_write_bytes(l_data_header,JPIP_THIX,4); /* THIX */
-    opj_stream_write_data(cio,l_data_header,4,p_manager);
-
-    opj_write_manf( i, cstr_info.tw*cstr_info.th, box, cio, p_manager);
-    
-    for (tileno = 0; tileno < cstr_info.tw*cstr_info.th; tileno++){
-      box[tileno].length = (OPJ_UINT32)opj_write_tilemhix( coff, cstr_info, tileno, cio,p_manager);
-      box[tileno].type = JPIP_MHIX;
-    }
- 
-    len = (OPJ_UINT32)(opj_stream_tell(cio)-lenp);
-    opj_stream_seek(cio, lenp, p_manager);
-    opj_write_bytes(l_data_header,len,4); /* L              */
-    opj_stream_write_data(cio,l_data_header,4,p_manager);
-    opj_stream_seek( cio, lenp+len,p_manager);
-
-  }
-
-  opj_free(box);
-
-  return (int)len;
-}
 
 /* 
  * Write tile-part headers mhix box
@@ -88,47 +47,74 @@ int opj_write_thix( int coff, opj_codestream_info_t cstr_info, opj_stream_privat
  * @param[in] cio       file output handle
  * @return              length of mhix box
  */
-int opj_write_tilemhix( int coff, opj_codestream_info_t cstr_info, int tileno, opj_stream_private_t *cio,
-              opj_event_mgr_t * p_manager )
+int write_tilemhix( int coff, opj_codestream_info_t cstr_info, int tileno, opj_cio_t *cio);
+
+int write_thix( int coff, opj_codestream_info_t cstr_info, opj_cio_t *cio)
 {
-  OPJ_BYTE l_data_header [8];
+  int len, lenp, i;
+  int tileno;
+  opj_jp2_box_t *box;
+
+  lenp = 0;
+  box = (opj_jp2_box_t *)opj_calloc( cstr_info.tw*cstr_info.th, sizeof(opj_jp2_box_t));
+
+  for ( i = 0; i < 2 ; i++ ){
+    if (i)
+      cio_seek( cio, lenp);
+
+    lenp = cio_tell( cio);
+    cio_skip( cio, 4);              /* L [at the end] */
+    cio_write( cio, JPIP_THIX, 4);  /* THIX           */
+    write_manf( i, cstr_info.tw*cstr_info.th, box, cio);
+    
+    for (tileno = 0; tileno < cstr_info.tw*cstr_info.th; tileno++){
+      box[tileno].length = write_tilemhix( coff, cstr_info, tileno, cio);
+      box[tileno].type = JPIP_MHIX;
+    }
+ 
+    len = cio_tell( cio)-lenp;
+    cio_seek( cio, lenp);
+    cio_write( cio, len, 4);        /* L              */
+    cio_seek( cio, lenp+len);
+  }
+
+  opj_free(box);
+
+  return len;
+}
+
+int write_tilemhix( int coff, opj_codestream_info_t cstr_info, int tileno, opj_cio_t *cio)
+{
   int i;
   opj_tile_info_t tile;
   opj_tp_info_t tp;
+  int len, lenp;
   opj_marker_info_t *marker;
-  OPJ_UINT32 len;
-  OPJ_OFF_T lenp;
 
-  lenp = opj_stream_tell (cio);
-  opj_stream_skip(cio, 4, p_manager);               /* L [at the end]                    */
-  opj_write_bytes(l_data_header,JPIP_MHIX,4);       /* MHIX                              */
-  opj_stream_write_data(cio,l_data_header,4,p_manager);
+  lenp = cio_tell( cio);
+  cio_skip( cio, 4);                               /* L [at the end]                    */
+  cio_write( cio, JPIP_MHIX, 4);                   /* MHIX                              */
 
   tile = cstr_info.tile[tileno];
   tp = tile.tp[0];
 
-  opj_write_bytes(l_data_header,(OPJ_UINT32)(tp.tp_end_header-tp.tp_start_pos+1), 8);        /* TLEN                              */
-  opj_stream_write_data(cio,l_data_header,8,p_manager);
+  cio_write( cio, tp.tp_end_header-tp.tp_start_pos+1, 8);  /* TLEN                              */ 
 
   marker = cstr_info.tile[tileno].marker;
 
   for( i=0; i<cstr_info.tile[tileno].marknum; i++){             /* Marker restricted to 1 apparition */
-    opj_write_bytes( l_data_header, marker[i].type, 2);
-    opj_write_bytes( l_data_header+2, 0, 2);
-    opj_stream_write_data(cio,l_data_header,4,p_manager);
-    opj_write_bytes( l_data_header, (OPJ_UINT32)(marker[i].pos-coff), 8);
-    opj_stream_write_data(cio,l_data_header,8,p_manager);
-    opj_write_bytes( l_data_header, (OPJ_UINT32)marker[i].len, 2);
-    opj_stream_write_data(cio,l_data_header,2,p_manager);
+    cio_write( cio, marker[i].type, 2);
+    cio_write( cio, 0, 2);
+    cio_write( cio, marker[i].pos-coff, 8);
+    cio_write( cio, marker[i].len, 2);
   }
      
   /*  free( marker);*/
 
-  len = (OPJ_UINT32)(opj_stream_tell(cio)-lenp);
-  opj_stream_seek(cio, lenp,p_manager);
-  opj_write_bytes(l_data_header,len,4);/* L  */
-  opj_stream_write_data(cio,l_data_header,4,p_manager);
-  opj_stream_seek(cio, lenp+len,p_manager);
+  len = cio_tell( cio) - lenp;
+  cio_seek( cio, lenp);
+  cio_write( cio, len, 4);        /* L           */
+  cio_seek( cio, lenp+len);
 
-  return (int)len;
+  return len;
 }

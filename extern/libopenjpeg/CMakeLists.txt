@@ -31,56 +31,49 @@ set(INC_SYS
 
 )
 
-add_definitions(${OPENJPEG_DEFINES} -DUSE_JPIP)
+add_definitions(${OPENJPEG_DEFINES})
 
 set(SRC
 	bio.c
-	cidx_manager.c
 	cio.c
 	dwt.c
 	event.c
-	function_list.c
 	image.c
-	invert.c
 	j2k.c
+	j2k_lib.c
 	jp2.c
+	jpt.c
 	mct.c
 	mqc.c
 	openjpeg.c
-	opj_clock.c
-	phix_manager.c
 	pi.c
-	ppix_manager.c
 	raw.c
 	t1.c
-	t1_generate_luts.c
 	t2.c
 	tcd.c
 	tgt.c
+	cidx_manager.c
+	phix_manager.c
+	ppix_manager.c
 	thix_manager.c
 	tpix_manager.c
 
 	bio.h
-	cidx_manager.h
 	cio.h
 	dwt.h
 	event.h
-	function_list.h
+	fix.h
 	image.h
-	indexbox_manager.h
-	invert.h
+	int.h
 	j2k.h
+	j2k_lib.h
 	jp2.h
+	jpt.h
 	mct.h
 	mqc.h
 	openjpeg.h
-	opj_clock.h
-	opj_codec.h
 	opj_includes.h
-	opj_intmath.h
-	opj_inttypes.h
 	opj_malloc.h
-	opj_stdint.h
 	pi.h
 	raw.h
 	t1.h
@@ -88,6 +81,9 @@ set(SRC
 	t2.h
 	tcd.h
 	tgt.h
+	cidx_manager.h
+	indexbox_manager.h
+	opj_config.h
 )
 
 blender_add_lib(extern_openjpeg "${SRC}" "${INC}" "${INC_SYS}")

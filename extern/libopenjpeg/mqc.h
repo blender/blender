@@ -1,17 +1,10 @@
 /*
- * The copyright in this software is being made available under the 2-clauses 
- * BSD License, included below. This software may be subject to other third 
- * party and contributor rights, including patent rights, and no such rights
- * are granted under this license.
- *
- * Copyright (c) 2002-2014, Universite catholique de Louvain (UCL), Belgium
- * Copyright (c) 2002-2014, Professor Benoit Macq
+ * Copyright (c) 2002-2007, Communications and Remote Sensing Laboratory, Universite catholique de Louvain (UCL), Belgium
+ * Copyright (c) 2002-2007, Professor Benoit Macq
  * Copyright (c) 2001-2003, David Janssens
  * Copyright (c) 2002-2003, Yannick Verschueren
- * Copyright (c) 2003-2007, Francois-Olivier Devaux 
- * Copyright (c) 2003-2014, Antonin Descampe
+ * Copyright (c) 2003-2007, Francois-Olivier Devaux and Antonin Descampe
  * Copyright (c) 2005, Herve Drolon, FreeImage Team
- * Copyright (c) 2008, Jerome Fimes, Communications & Systemes <jerome.fimes@c-s.fr>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,9 +47,9 @@ This struct defines the state of a context.
 */
 typedef struct opj_mqc_state {
 	/** the probability of the Least Probable Symbol (0.75->0x8000, 1.5->0xffff) */
-	OPJ_UINT32 qeval;
+	unsigned int qeval;
 	/** the Most Probable Symbol (0 or 1) */
-	OPJ_UINT32 mps;
+	int mps;
 	/** next state if the next encoded symbol is the MPS */
 	struct opj_mqc_state *nmps;
 	/** next state if the next encoded symbol is the LPS */
@@ -69,12 +62,12 @@ typedef struct opj_mqc_state {
 MQ coder
 */
 typedef struct opj_mqc {
-	OPJ_UINT32 c;
-	OPJ_UINT32 a;
-	OPJ_UINT32 ct;
-	OPJ_BYTE *bp;
-	OPJ_BYTE *start;
-	OPJ_BYTE *end;
+	unsigned int c;
+	unsigned int a;
+	unsigned int ct;
+	unsigned char *bp;
+	unsigned char *start;
+	unsigned char *end;
 	opj_mqc_state_t *ctxs[MQC_NUMCTXS];
 	opj_mqc_state_t **curctx;
 #ifdef MQC_PERF_OPT
@@ -89,24 +82,24 @@ typedef struct opj_mqc {
 Create a new MQC handle 
 @return Returns a new MQC handle if successful, returns NULL otherwise
 */
-opj_mqc_t* opj_mqc_create(void);
+opj_mqc_t* mqc_create(void);
 /**
 Destroy a previously created MQC handle
 @param mqc MQC handle to destroy
 */
-void opj_mqc_destroy(opj_mqc_t *mqc);
+void mqc_destroy(opj_mqc_t *mqc);
 /**
 Return the number of bytes written/read since initialisation
 @param mqc MQC handle
 @return Returns the number of bytes already encoded
 */
-OPJ_UINT32 opj_mqc_numbytes(opj_mqc_t *mqc);
+int mqc_numbytes(opj_mqc_t *mqc);
 /**
 Reset the states of all the context of the coder/decoder 
 (each context is set to a state where 0 and 1 are more or less equiprobable)
 @param mqc MQC handle
 */
-void opj_mqc_resetstates(opj_mqc_t *mqc);
+void mqc_resetstates(opj_mqc_t *mqc);
 /**
 Set the state of a particular context
 @param mqc MQC handle
@@ -114,37 +107,37 @@ Set the state of a particular context
 @param msb The MSB of the new state of the context
 @param prob Number that identifies the probability of the symbols for the new state of the context
 */
-void opj_mqc_setstate(opj_mqc_t *mqc, OPJ_UINT32 ctxno, OPJ_UINT32 msb, OPJ_INT32 prob);
+void mqc_setstate(opj_mqc_t *mqc, int ctxno, int msb, int prob);
 /**
 Initialize the encoder
 @param mqc MQC handle
 @param bp Pointer to the start of the buffer where the bytes will be written
 */
-void opj_mqc_init_enc(opj_mqc_t *mqc, OPJ_BYTE *bp);
+void mqc_init_enc(opj_mqc_t *mqc, unsigned char *bp);
 /**
 Set the current context used for coding/decoding
 @param mqc MQC handle
 @param ctxno Number that identifies the context
 */
-#define opj_mqc_setcurctx(mqc, ctxno)	(mqc)->curctx = &(mqc)->ctxs[(OPJ_UINT32)(ctxno)]
+#define mqc_setcurctx(mqc, ctxno)	(mqc)->curctx = &(mqc)->ctxs[(int)(ctxno)]
 /**
 Encode a symbol using the MQ-coder
 @param mqc MQC handle
 @param d The symbol to be encoded (0 or 1)
 */
-void opj_mqc_encode(opj_mqc_t *mqc, OPJ_UINT32 d);
+void mqc_encode(opj_mqc_t *mqc, int d);
 /**
 Flush the encoder, so that all remaining data is written
 @param mqc MQC handle
 */
-void opj_mqc_flush(opj_mqc_t *mqc);
+void mqc_flush(opj_mqc_t *mqc);
 /**
 BYPASS mode switch, initialization operation. 
 JPEG 2000 p 505. 
 <h2>Not fully implemented and tested !!</h2>
 @param mqc MQC handle
 */
-void opj_mqc_bypass_init_enc(opj_mqc_t *mqc);
+void mqc_bypass_init_enc(opj_mqc_t *mqc);
 /**
 BYPASS mode switch, coding operation. 
 JPEG 2000 p 505. 
@@ -152,53 +145,53 @@ JPEG 2000 p 505.
 @param mqc MQC handle
 @param d The symbol to be encoded (0 or 1)
 */
-void opj_mqc_bypass_enc(opj_mqc_t *mqc, OPJ_UINT32 d);
+void mqc_bypass_enc(opj_mqc_t *mqc, int d);
 /**
 BYPASS mode switch, flush operation
 <h2>Not fully implemented and tested !!</h2>
 @param mqc MQC handle
 @return Returns 1 (always)
 */
-OPJ_UINT32 opj_mqc_bypass_flush_enc(opj_mqc_t *mqc);
+int mqc_bypass_flush_enc(opj_mqc_t *mqc);
 /**
 RESET mode switch
 @param mqc MQC handle
 */
-void opj_mqc_reset_enc(opj_mqc_t *mqc);
+void mqc_reset_enc(opj_mqc_t *mqc);
 /**
 RESTART mode switch (TERMALL)
 @param mqc MQC handle
 @return Returns 1 (always)
 */
-OPJ_UINT32 opj_mqc_restart_enc(opj_mqc_t *mqc);
+int mqc_restart_enc(opj_mqc_t *mqc);
 /**
 RESTART mode switch (TERMALL) reinitialisation
 @param mqc MQC handle
 */
-void opj_mqc_restart_init_enc(opj_mqc_t *mqc);
+void mqc_restart_init_enc(opj_mqc_t *mqc);
 /**
 ERTERM mode switch (PTERM)
 @param mqc MQC handle
 */
-void opj_mqc_erterm_enc(opj_mqc_t *mqc);
+void mqc_erterm_enc(opj_mqc_t *mqc);
 /**
 SEGMARK mode switch (SEGSYM)
 @param mqc MQC handle
 */
-void opj_mqc_segmark_enc(opj_mqc_t *mqc);
+void mqc_segmark_enc(opj_mqc_t *mqc);
 /**
 Initialize the decoder
 @param mqc MQC handle
 @param bp Pointer to the start of the buffer from which the bytes will be read
 @param len Length of the input buffer
 */
-OPJ_BOOL opj_mqc_init_dec(opj_mqc_t *mqc, OPJ_BYTE *bp, OPJ_UINT32 len);
+void mqc_init_dec(opj_mqc_t *mqc, unsigned char *bp, int len);
 /**
 Decode a symbol
 @param mqc MQC handle
 @return Returns the decoded symbol (0 or 1)
 */
-OPJ_INT32 opj_mqc_decode(opj_mqc_t * const mqc);
+int mqc_decode(opj_mqc_t *const mqc);
 /* ----------------------------------------------------------------------- */
 /*@}*/
 
