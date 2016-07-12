@@ -1844,7 +1844,7 @@ void blo_add_library_pointer_map(ListBase *old_mainlist, FileData *fd)
 /* ********** END OLD POINTERS ****************** */
 /* ********** READ FILE ****************** */
 
-static void switch_endian_structs(struct SDNA *filesdna, BHead *bhead)
+static void switch_endian_structs(const struct SDNA *filesdna, BHead *bhead)
 {
 	int blocksize, nblocks;
 	char *data;

@@ -79,10 +79,13 @@ struct SDNA *DNA_sdna_from_data(
         bool do_endian_swap, bool data_alloc);
 void DNA_sdna_free(struct SDNA *sdna);
 
-int DNA_struct_find_nr(struct SDNA *sdna, const char *str);
-void DNA_struct_switch_endian(struct SDNA *oldsdna, int oldSDNAnr, char *data);
-char *DNA_struct_get_compareflags(struct SDNA *sdna, struct SDNA *newsdna);
-void *DNA_struct_reconstruct(struct SDNA *newsdna, struct SDNA *oldsdna, char *compflags, int oldSDNAnr, int blocks, void *data);
+int DNA_struct_find_nr_ex(const struct SDNA *sdna, const char *str, unsigned int *index_last);
+int DNA_struct_find_nr(const struct SDNA *sdna, const char *str);
+void DNA_struct_switch_endian(const struct SDNA *oldsdna, int oldSDNAnr, char *data);
+char *DNA_struct_get_compareflags(const struct SDNA *sdna, const struct SDNA*newsdna);
+void *DNA_struct_reconstruct(
+        const struct SDNA *newsdna, const struct SDNA *oldsdna,
+        char *compflags, int oldSDNAnr, int blocks, void *data);
 
 int DNA_elem_array_size(const char *str);
 int DNA_elem_offset(struct SDNA *sdna, const char *stype, const char *vartype, const char *name);
