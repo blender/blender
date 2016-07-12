@@ -341,7 +341,9 @@ int DNA_struct_find_nr(const SDNA *sdna, const char *str)
 /**
  * In sdna->data the data, now we convert that to something understandable
  */
-static void init_structDNA(SDNA *sdna, bool do_endian_swap)
+static bool init_structDNA(
+        SDNA *sdna, bool do_endian_swap,
+        const char **r_error_message)
 {
 	int *data, *verg, gravity_fix = -1;
 	short *sp;
@@ -350,10 +352,18 @@ static void init_structDNA(SDNA *sdna, bool do_endian_swap)
 	verg = (int *)str;
 	data = (int *)sdna->data;
 
+	/* clear pointers incase of error */
+	sdna->names = NULL;
+	sdna->types = NULL;
+	sdna->structs = NULL;
+#ifdef WITH_DNA_GHASH
+	sdna->structs_map = NULL;
+#endif
+
 	strcpy(str, "SDNA");
 	if (*data != *verg) {
-		printf("SDNA error in SDNA file\n");
-		return;
+		*r_error_message = "SDNA error in SDNA file";
+		return false;
 	}
 	else {
 		intptr_t nr;
@@ -373,8 +383,8 @@ static void init_structDNA(SDNA *sdna, bool do_endian_swap)
 			sdna->names = MEM_callocN(sizeof(void *) * sdna->nr_names, "sdnanames");
 		}
 		else {
-			printf("NAME error in SDNA file\n");
-			return;
+			*r_error_message = "NAME error in SDNA file";
+			return false;
 		}
 		
 		nr = 0;
@@ -413,8 +423,8 @@ static void init_structDNA(SDNA *sdna, bool do_endian_swap)
 			sdna->types = MEM_callocN(sizeof(void *) * sdna->nr_types, "sdnatypes");
 		}
 		else {
-			printf("TYPE error in SDNA file\n");
-			return;
+			*r_error_message = "TYPE error in SDNA file";
+			return false;
 		}
 		
 		nr = 0;
@@ -459,8 +469,8 @@ static void init_structDNA(SDNA *sdna, bool do_endian_swap)
 			sp += sdna->nr_types;
 		}
 		else {
-			printf("TLEN error in SDNA file\n");
-			return;
+			*r_error_message = "TLEN error in SDNA file";
+			return false;
 		}
 		if (sdna->nr_types & 1) sp++;   /* prevent BUS error */
 
@@ -477,8 +487,8 @@ static void init_structDNA(SDNA *sdna, bool do_endian_swap)
 			sdna->structs = MEM_callocN(sizeof(void *) * sdna->nr_structs, "sdnastrcs");
 		}
 		else {
-			printf("STRC error in SDNA file\n");
-			return;
+			*r_error_message = "STRC error in SDNA file";
+			return false;
 		}
 		
 		nr = 0;
@@ -537,8 +547,8 @@ static void init_structDNA(SDNA *sdna, bool do_endian_swap)
 
 		/* should never happen, only with corrupt file for example */
 		if (UNLIKELY(nr == -1)) {
-			printf("ListBase struct error! Not found.\n");
-			exit(1);
+			*r_error_message = "ListBase struct error! Not found.";
+			return false;
 		}
 
 		/* finally pointerlen: use struct ListBase to test it, never change the size of it! */
@@ -548,11 +558,13 @@ static void init_structDNA(SDNA *sdna, bool do_endian_swap)
 		sdna->pointerlen = sdna->typelens[sp[0]] / 2;
 
 		if (sp[1] != 2 || (sdna->pointerlen != 4 && sdna->pointerlen != 8)) {
-			printf("ListBase struct error! Needs it to calculate pointerize.\n");
-			exit(1);
+			*r_error_message = "ListBase struct error! Needs it to calculate pointerize.";
 			/* well, at least sizeof(ListBase) is error proof! (ton) */
+			return false;
 		}
 	}
+
+	return true;
 }
 
 /**
@@ -560,9 +572,11 @@ static void init_structDNA(SDNA *sdna, bool do_endian_swap)
  */
 SDNA *DNA_sdna_from_data(
         const void *data, const int datalen,
-        bool do_endian_swap, bool data_alloc)
+        bool do_endian_swap, bool data_alloc,
+        const char **r_error_message)
 {
 	SDNA *sdna = MEM_mallocN(sizeof(*sdna), "sdna");
+	const char *error_message = NULL;
 
 	sdna->datalen = datalen;
 	if (data_alloc) {
@@ -575,9 +589,20 @@ SDNA *DNA_sdna_from_data(
 	}
 	sdna->data_alloc = data_alloc;
 	
-	init_structDNA(sdna, do_endian_swap);
-	
-	return sdna;
+
+	if (init_structDNA(sdna, do_endian_swap, &error_message)) {
+		return sdna;
+	}
+	else {
+		if (r_error_message == NULL) {
+			fprintf(stderr, "Error decoding blend file SDNA: %s\n", error_message);
+		}
+		else {
+			*r_error_message = error_message;
+		}
+		DNA_sdna_free(sdna);
+		return NULL;
+	}
 }
 
 /* ******************** END READ DNA ********************** */

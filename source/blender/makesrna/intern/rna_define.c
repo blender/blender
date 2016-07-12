@@ -531,11 +531,17 @@ BlenderRNA *RNA_create(void)
 	BlenderRNA *brna;
 
 	brna = MEM_callocN(sizeof(BlenderRNA), "BlenderRNA");
+	const char *error_message = NULL;
 
-	DefRNA.sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false);
 	BLI_listbase_clear(&DefRNA.structs);
 	DefRNA.error = 0;
 	DefRNA.preprocess = 1;
+
+	DefRNA.sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false, &error_message);
+	if (DefRNA.sdna == NULL) {
+		fprintf(stderr, "Error decoding SDNA: %s\n", error_message);
+		DefRNA.error = 1;
+	}
 
 	return brna;
 }

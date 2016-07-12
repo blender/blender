@@ -325,7 +325,7 @@ static WriteData *writedata_new(WriteWrap *ww)
 {
 	WriteData *wd = MEM_callocN(sizeof(*wd), "writedata");
 
-	wd->sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false);
+	wd->sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false, NULL);
 
 	wd->ww = ww;
 

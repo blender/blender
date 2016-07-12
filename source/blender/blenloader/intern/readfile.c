@@ -909,7 +909,10 @@ static void decode_blender_header(FileData *fd)
 	}
 }
 
-static int read_file_dna(FileData *fd)
+/**
+ * \return Success if the file is read correctly, else set \a r_error_message.
+ */
+static bool read_file_dna(FileData *fd, const char **r_error_message)
 {
 	BHead *bhead;
 	
@@ -917,20 +920,25 @@ static int read_file_dna(FileData *fd)
 		if (bhead->code == DNA1) {
 			const bool do_endian_swap = (fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0;
 			
-			fd->filesdna = DNA_sdna_from_data(&bhead[1], bhead->len, do_endian_swap, true);
+			fd->filesdna = DNA_sdna_from_data(&bhead[1], bhead->len, do_endian_swap, true, r_error_message);
 			if (fd->filesdna) {
 				fd->compflags = DNA_struct_get_compareflags(fd->filesdna, fd->memsdna);
 				/* used to retrieve ID names from (bhead+1) */
 				fd->id_name_offs = DNA_elem_offset(fd->filesdna, "ID", "char", "name[]");
+
+				return true;
+			}
+			else {
+				return false;
 			}
 			
-			return 1;
 		}
 		else if (bhead->code == ENDB)
 			break;
 	}
 	
-	return 0;
+	*r_error_message = "Missing DNA block";
+	return false;
 }
 
 static int *read_file_thumbnail(FileData *fd)
@@ -1077,7 +1085,7 @@ static FileData *filedata_new(void)
 	 * but it keeps us re-entrant,  remove once we have
 	 * a lib that provides a nice lock. - zr
 	 */
-	fd->memsdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false);
+	fd->memsdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false, NULL);
 	
 	fd->datamap = oldnewmap_new();
 	fd->globmap = oldnewmap_new();
@@ -1091,8 +1099,11 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 	decode_blender_header(fd);
 	
 	if (fd->flags & FD_FLAGS_FILE_OK) {
-		if (!read_file_dna(fd)) {
-			BKE_reportf(reports, RPT_ERROR, "Failed to read blend file '%s', incomplete", fd->relabase);
+		const char *error_message = NULL;
+		if (read_file_dna(fd, &error_message) == false) {
+			BKE_reportf(reports, RPT_ERROR,
+			            "Failed to read blend file '%s': %s",
+			            fd->relabase, error_message);
 			blo_freefiledata(fd);
 			fd = NULL;
 		}
