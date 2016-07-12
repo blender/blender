@@ -698,7 +698,7 @@ static void rna_ImagePreview_icon_pixels_float_set(PointerRNA *ptr, const float 
 static int rna_ImagePreview_icon_id_get(PointerRNA *ptr)
 {
 	/* Using a callback here allows us to only generate icon matching that preview when icon_id is requested. */
-	return BKE_icon_preview_ensure((PreviewImage *)(ptr->data));
+	return BKE_icon_preview_ensure(ptr->id.data, (PreviewImage *)(ptr->data));
 }
 static void rna_ImagePreview_icon_reload(PreviewImage *prv)
 {
