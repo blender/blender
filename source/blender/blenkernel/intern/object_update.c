@@ -347,10 +347,3 @@ void BKE_object_eval_uber_data(EvaluationContext *eval_ctx,
 
 	ob->recalc &= ~(OB_RECALC_DATA | OB_RECALC_TIME);
 }
-
-void BKE_object_eval_proxy_backlink(EvaluationContext *UNUSED(eval_ctx), Object *ob)
-{
-	if (ob->proxy) {
-		ob->proxy->proxy_from = ob;
-	}
-}

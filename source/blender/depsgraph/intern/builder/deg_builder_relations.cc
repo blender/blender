@@ -266,13 +266,6 @@ void DepsgraphRelationBuilder::build_scene(Main *bmain, Scene *scene)
 	for (Base *base = (Base *)scene->base.first; base; base = base->next) {
 		Object *ob = base->object;
 
-		/* Object that this is a proxy for.
-		 * Just makes sure backlink is correct.
-		 */
-		if (ob->proxy) {
-			ob->proxy->proxy_from = ob;
-		}
-
 		/* object itself */
 		build_object(bmain, scene, ob);
 
@@ -439,6 +432,7 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 				build_obdata_geom(bmain, scene, ob);
 				break;
 			}
+
 
 			case OB_ARMATURE: /* Pose */
 				if (ob->id.lib != NULL && ob->proxy_from != NULL) {
