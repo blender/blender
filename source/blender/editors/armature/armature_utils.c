@@ -424,7 +424,9 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 	for (curBone = bones->first; curBone; curBone = curBone->next) {
 		eBone = MEM_callocN(sizeof(EditBone), "make_editbone");
 		
-		/*	Copy relevant data from bone to eBone */
+		/* Copy relevant data from bone to eBone
+		 * Keep selection logic in sync with ED_armature_sync_selection.
+		 */
 		eBone->parent = parent;
 		BLI_strncpy(eBone->name, curBone->name, sizeof(eBone->name));
 		eBone->flag = curBone->flag;
@@ -435,11 +437,11 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 			eBone->flag |= BONE_TIPSEL;
 			if (eBone->parent && (eBone->flag & BONE_CONNECTED)) {
 				eBone->parent->flag |= BONE_TIPSEL;
-				eBone->flag &= ~BONE_ROOTSEL; /* this is ignored when there is a connected parent, so unset it */
 			}
-			else {
-				eBone->flag |= BONE_ROOTSEL;
-			}
+
+			/* For connected bones, take care when changing the selection when we have a connected parent,
+			 * this flag is a copy of '(eBone->parent->flag & BONE_TIPSEL)'. */
+			eBone->flag |= BONE_ROOTSEL;
 		}
 		else {
 			/* if the bone is not selected, but connected to its parent
