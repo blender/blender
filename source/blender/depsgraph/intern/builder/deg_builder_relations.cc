@@ -920,6 +920,12 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 				}
 			}
 			else {
+				if (dtar->id == id) {
+					/* Ignore input dependency if we're driving properties of the same ID,
+					 * otherwise we'll be ending up in a cyclic dependency here.
+					 */
+					continue;
+				}
 				/* resolve path to get node */
 				RNAPathKey target_key(dtar->id, dtar->rna_path ? dtar->rna_path : "");
 				add_relation(target_key, driver_key, DEPSREL_TYPE_DRIVER_TARGET, "[RNA Target -> Driver]");
