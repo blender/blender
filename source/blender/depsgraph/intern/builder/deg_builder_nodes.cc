@@ -397,12 +397,12 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 {
 	if (ob->id.tag & LIB_TAG_DOIT) {
 		IDDepsNode *id_node = m_graph->find_id_node(&ob->id);
-		id_node->layers = base->lay;
+		id_node->layers |= base->lay;
 		return;
 	}
 
 	IDDepsNode *id_node = add_id_node(&ob->id);
-	id_node->layers = base->lay;
+	id_node->layers |= base->lay;
 	ob->customdata_mask = 0;
 
 	/* standard components */
