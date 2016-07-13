@@ -271,6 +271,7 @@ void DepsgraphRelationBuilder::build_scene(Main *bmain, Scene *scene)
 
 		/* object that this is a proxy for */
 		if (ob->proxy) {
+			ob->proxy->proxy_from = ob;
 			build_object(bmain, scene, ob->proxy);
 			/* TODO(sergey): This is an inverted relation, matches old depsgraph
 			 * behavior and need to be investigated if it still need to be inverted.
@@ -433,9 +434,8 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 				break;
 			}
 
-
 			case OB_ARMATURE: /* Pose */
-				if (ob->id.lib != NULL && ob->proxy_from != NULL) {
+				if (ID_IS_LINKED_DATABLOCK(ob) && ob->proxy_from != NULL) {
 					build_proxy_rig(ob);
 				}
 				else {
