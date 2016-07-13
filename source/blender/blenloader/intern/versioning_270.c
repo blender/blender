@@ -1212,5 +1212,18 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "BooleanModifierData", "float", "double_threshold")) {
+			Object *ob;
+			for (ob = main->object.first; ob; ob = ob->id.next) {
+				ModifierData *md;
+				for (md = ob->modifiers.first; md; md = md->next) {
+					if (md->type == eModifierType_Boolean) {
+						BooleanModifierData *bmd = (BooleanModifierData *)md;
+						bmd->double_threshold = 1e-6f;
+					}
+				}
+			}
+		}
 	}
 }

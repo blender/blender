@@ -1895,6 +1895,12 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem prop_solver_items[] = {
+		{eBooleanModifierSolver_Carve, "CARVE", 0, "Carve", "Use the Carve boolean solver"},
+		{eBooleanModifierSolver_BMesh, "BMESH", 0, "BMesh", "Use the BMesh boolean solver"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "BooleanModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Boolean Modifier", "Boolean operations modifier");
 	RNA_def_struct_sdna(srna, "BooleanModifierData");
@@ -1911,35 +1917,17 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Operation", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-#if 0  /* WITH_MOD_BOOLEAN */
-	/* BMesh intersection options */
-	prop = RNA_def_property(srna, "use_bmesh", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "bm_flag", eBooleanModifierBMeshFlag_Enabled);
-	RNA_def_property_ui_text(prop, "Use BMesh", "Use BMesh boolean calculation");
+	prop = RNA_def_property(srna, "solver", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_solver_items);
+	RNA_def_property_ui_text(prop, "Solver", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "use_bmesh_separate", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "bm_flag", eBooleanModifierBMeshFlag_BMesh_Separate);
-	RNA_def_property_ui_text(prop, "Separate", "Keep edges separate");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop = RNA_def_property(srna, "use_bmesh_dissolve", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "bm_flag", eBooleanModifierBMeshFlag_BMesh_NoDissolve);
-	RNA_def_property_ui_text(prop, "Dissolve", "Dissolve verts created from tessellated intersection");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop = RNA_def_property(srna, "use_bmesh_connect_regions", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "bm_flag", eBooleanModifierBMeshFlag_BMesh_NoConnectRegions);
-	RNA_def_property_ui_text(prop, "Calculate Holes", "Connect regions (needed for hole filling)");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_DISTANCE);
-	RNA_def_property_float_sdna(prop, NULL, "threshold");
+	prop = RNA_def_property(srna, "double_threshold", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_float_sdna(prop, NULL, "double_threshold");
 	RNA_def_property_range(prop, 0, 1.0f);
-	RNA_def_property_ui_range(prop, 0, 1, 1, 7);
-	RNA_def_property_ui_text(prop, "Threshold",  "");
+	RNA_def_property_ui_range(prop, 0, 1, 0.0001, 7);
+	RNA_def_property_ui_text(prop, "Overlap Threshold",  "Threshold for checking overlapping geometry");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-#endif
 }
 
 static void rna_def_modifier_array(BlenderRNA *brna)
