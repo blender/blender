@@ -739,8 +739,6 @@ static const char arg_handle_debug_mode_generic_set_doc_handlers[] =
 "\n\tEnable debug messages for event handling";
 static const char arg_handle_debug_mode_generic_set_doc_wm[] =
 "\n\tEnable debug messages for the window manager, also prints every operator call";
-static const char arg_handle_debug_mode_generic_set_doc_all[] =
-"\n\tEnable all debug messages (excludes libmv)";
 static const char arg_handle_debug_mode_generic_set_doc_jobs[] =
 "\n\tEnable time profiling for background jobs.";
 static const char arg_handle_debug_mode_generic_set_doc_gpu[] =
@@ -755,6 +753,20 @@ static const char arg_handle_debug_mode_generic_set_doc_gpumem[] =
 static int arg_handle_debug_mode_generic_set(int UNUSED(argc), const char **UNUSED(argv), void *data)
 {
 	G.debug |= GET_INT_FROM_POINTER(data);
+	return 0;
+}
+
+static const char arg_handle_debug_mode_all_doc[] =
+"\n\tEnable all debug messages";
+static int arg_handle_debug_mode_all(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+{
+	G.debug |= G_DEBUG_ALL;
+#ifdef WITH_LIBMV
+	libmv_startDebugLogging();
+#endif
+#ifdef WITH_CYCLES_LOGGING
+	CCL_start_debug_logging();
+#endif
 	return 0;
 }
 
@@ -1791,8 +1803,7 @@ void main_args_setup(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	            CB_EX(arg_handle_debug_mode_generic_set, handlers), (void *)G_DEBUG_HANDLERS);
 	BLI_argsAdd(ba, 1, NULL, "--debug-wm",
 	            CB_EX(arg_handle_debug_mode_generic_set, wm), (void *)G_DEBUG_WM);
-	BLI_argsAdd(ba, 1, NULL, "--debug-all",
-	            CB_EX(arg_handle_debug_mode_generic_set, all), (void *)G_DEBUG_ALL);
+	BLI_argsAdd(ba, 1, NULL, "--debug-all", CB(arg_handle_debug_mode_all), NULL);
 
 	BLI_argsAdd(ba, 1, NULL, "--debug-fpe",
 	            CB(arg_handle_debug_fpe_set), NULL);
