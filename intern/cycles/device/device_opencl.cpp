@@ -881,7 +881,8 @@ public:
 		return true;
 	}
 
-	bool compile_kernel(const string& kernel_path,
+	bool compile_kernel(const string& kernel_name,
+	                    const string& kernel_path,
 	                    const string& source,
 	                    const string& custom_kernel_build_options,
 	                    cl_program *kernel_program,
@@ -912,7 +913,7 @@ public:
 		}
 
 		double starttime = time_dt();
-		printf("Compiling OpenCL kernel ...\n");
+		printf("Compiling %s OpenCL kernel ...\n", kernel_name.c_str());
 		/* TODO(sergey): Report which kernel is being compiled
 		 * as well (megakernel or which of split kernels etc..).
 		 */
@@ -1012,7 +1013,8 @@ public:
 				string init_kernel_source = "#include \"kernels/opencl/kernel.cl\" // " + kernel_md5 + "\n";
 
 				/* If does not exist or loading binary failed, compile kernel. */
-				if(!compile_kernel(kernel_path,
+				if(!compile_kernel("base_kernel",
+				                   kernel_path,
 				                   init_kernel_source,
 				                   build_flags,
 				                   &cpProgram,
@@ -1702,7 +1704,8 @@ public:
 				string init_kernel_source = "#include \"kernels/opencl/kernel.cl\" // " +
 				                            kernel_md5 + "\n";
 				/* If does not exist or loading binary failed, compile kernel. */
-				if(!compile_kernel(kernel_path,
+				if(!compile_kernel("mega_kernel",
+				                   kernel_path,
 				                   init_kernel_source,
 				                   custom_kernel_build_options,
 				                   &path_trace_program,
@@ -2086,7 +2089,8 @@ public:
 	/* TODO(sergey): Seems really close to load_kernel(),
 	 * could it be de-duplicated?
 	 */
-	bool load_split_kernel(const string& kernel_path,
+	bool load_split_kernel(const string& kernel_name,
+	                       const string& kernel_path,
 	                       const string& kernel_init_source,
 	                       const string& clbin,
 	                       const string& custom_kernel_build_options,
@@ -2110,7 +2114,8 @@ public:
 		}
 		else {
 			/* If does not exist or loading binary failed, compile kernel. */
-			if(!compile_kernel(kernel_path,
+			if(!compile_kernel(kernel_name,
+			                   kernel_path,
 			                   kernel_init_source,
 			                   custom_kernel_build_options,
 			                   program,
@@ -2217,7 +2222,10 @@ public:
 			clsrc = path_user_get(path_join("cache", clsrc)); \
 			debug_src = &clsrc; \
 		} \
-		if(!load_split_kernel(kernel_path, kernel_init_source, clbin, \
+		if(!load_split_kernel(#name, \
+		                      kernel_path, \
+		                      kernel_init_source, \
+		                      clbin, \
 		                      build_options, \
 		                      &GLUE(name, _program), \
 		                      debug_src)) \
