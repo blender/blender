@@ -75,6 +75,7 @@ static void initData(ModifierData *md)
 {
 	BooleanModifierData *bmd = (BooleanModifierData *)md;
 
+	bmd->solver = eBooleanModifierSolver_BMesh;
 	bmd->double_threshold = 1e-6f;
 }
 

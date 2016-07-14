@@ -1896,8 +1896,8 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
 	};
 
 	static EnumPropertyItem prop_solver_items[] = {
-		{eBooleanModifierSolver_Carve, "CARVE", 0, "Carve", "Use the Carve boolean solver"},
 		{eBooleanModifierSolver_BMesh, "BMESH", 0, "BMesh", "Use the BMesh boolean solver"},
+		{eBooleanModifierSolver_Carve, "CARVE", 0, "Carve", "Use the Carve boolean solver"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
