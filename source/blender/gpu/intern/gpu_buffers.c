@@ -916,7 +916,7 @@ void GPU_buffer_unlock(GPUBuffer *UNUSED(buffer), GPUBindingType binding)
 {
 	int bindtypegl = gpu_binding_type_gl[binding];
 	/* note: this operation can fail, could return
-		 * an error code from this function? */
+	 * an error code from this function? */
 	glUnmapBuffer(bindtypegl);
 	glBindBuffer(bindtypegl, 0);
 }

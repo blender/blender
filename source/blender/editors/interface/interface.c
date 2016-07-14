@@ -1138,7 +1138,7 @@ static bool ui_but_event_property_operator_string(const bContext *C, uiBut *but,
  * as new items are added to the menu later on. It also optimises efficiency -
  * a radial menu is best kept symmetrical, with as large an angle between
  * items as possible, so that the gestural mouse movements can be fast and inexact.
-
+ *
  * It starts off with two opposite sides for the first two items
  * then joined by the one below for the third (this way, even with three items,
  * the menu seems to still be 'in order' reading left to right). Then the fourth is

@@ -355,7 +355,7 @@ Scene *RE_GetScene(Render *re)
  * Same as #RE_AcquireResultImage but creating the necessary views to store the result
  * fill provided result struct with a copy of thew views of what is done so far the
  * #RenderResult.views #ListBase needs to be freed after with #RE_ReleaseResultImageViews
-*/
+ */
 void RE_AcquireResultImageViews(Render *re, RenderResult *rr)
 {
 	memset(rr, 0, sizeof(RenderResult));

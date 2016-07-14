@@ -537,7 +537,7 @@ void ED_view3d_win_to_delta(const ARegion *ar, const float mval[2], float out[3]
  * \note Orthographic views have a less obvious origin,
  * Since far clip can be a very large value resulting in numeric precision issues,
  * the origin in this case is close to zero coordinate.
-
+ *
  * \param ar The region (used for the window width and height).
  * \param mval The area relative 2d location (such as event->mval converted to floats).
  * \param out The resulting normalized world-space direction vector.

@@ -803,7 +803,7 @@ static void **gpu_gen_cube_map(unsigned int *rect, float *frect, int rectw, int 
 	 * |      |      |      |
 	 * | NegZ | PosZ | PosY |
 	 * |______|______|______|
-	*/
+	 */
 	if (use_high_bit_depth) {
 		float (*frectb)[4] = (float(*)[4])frect;
 		float (**fsides)[4] = (float(**)[4])sides;

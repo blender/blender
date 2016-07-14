@@ -219,12 +219,12 @@ static void raycast_all_cb(void *userdata, int index, const BVHTreeRay *ray, BVH
 /* -------------------------------------------------------------------- */
 
 /** \Common utilities
-* \{ */
+ * \{ */
 
 
 /**
-* struct that kepts basic information about a BVHTree build from a editmesh
-*/
+ * Struct that kepts basic information about a BVHTree build from a editmesh.
+ */
 typedef struct BVHTreeFromMeshType {
 	void *userdata;
 	char type;
@@ -253,11 +253,11 @@ static void precalc_project(
 }
 
 /**
-* From a threshold (maximum distance to snap in pixels) returns:
-*
-* - The *real* distance (3D) if you are in orthographic-view.
-* - The *tangent* (view cone radius at distance 1.0) if you are in perspective-view.
-*/
+ * From a threshold (maximum distance to snap in pixels) returns:
+ *
+ * - The *real* distance (3D) if you are in orthographic-view.
+ * - The *tangent* (view cone radius at distance 1.0) if you are in perspective-view.
+ */
 static float dist_px_to_dist3d_or_tangent(const ARegion *ar, const float dist_px)
 {
 	const RegionView3D *rv3d = ar->regiondata;
@@ -470,7 +470,7 @@ static bool test_projected_edge_dist(
 /* -------------------------------------------------------------------- */
 
 /** \Walk DFS
-* \{ */
+ * \{ */
 typedef struct Object_Nearest2dPrecalc {
 	float ray_origin_local[3];
 	float ray_direction_local[3];
@@ -1562,9 +1562,9 @@ static bool snapEditMesh(
 					mul_m4_v3(imat, ray_org_local);
 
 					/* We pass a temp ray_start, set from object's boundbox,
-					* to avoid precision issues with very far away ray_start values
-					* (as returned in case of ortho view3d), see T38358.
-					*/
+					 * to avoid precision issues with very far away ray_start values
+					 * (as returned in case of ortho view3d), see T38358.
+					 */
 					len_diff -= local_scale;  /* make temp start point a bit away from bbox hit point. */
 					madd_v3_v3v3fl(ray_start_local, ray_org_local, ray_normal_local, len_diff + depth_range[0]);
 					local_depth -= len_diff;

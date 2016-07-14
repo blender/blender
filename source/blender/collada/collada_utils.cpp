@@ -539,8 +539,8 @@ void BoneExtended::set_bone_layers(std::string layerString, std::vector<std::str
 		}
 
 		/* If numeric layers and labeled layers are used in parallel (unlikely),
-		   we get a potential mixup. Just leave as is for now.
-		*/
+		 * we get a potential mixup. Just leave as is for now.
+		 */
 		this->bone_layers = bc_set_layer(this->bone_layers, pos);
 
 	}

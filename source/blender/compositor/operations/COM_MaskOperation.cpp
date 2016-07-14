@@ -1,5 +1,4 @@
 /*
-
  * Copyright 2012, Blender Foundation.
  *
  * This program is free software; you can redistribute it and/or

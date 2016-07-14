@@ -3538,8 +3538,10 @@ static int vgroup_sort_name(const void *def_a_ptr, const void *def_b_ptr)
 	return BLI_natstrcmp(def_a->name, def_b->name);
 }
 
-/* Sorts the weight groups according to the bone hierarchy of the
-   associated armature (similar to how bones are ordered in the Outliner) */
+/**
+ * Sorts the weight groups according to the bone hierarchy of the
+ * associated armature (similar to how bones are ordered in the Outliner)
+ */
 static void vgroup_sort_bone_hierarchy(Object *ob, ListBase *bonebase)
 {
 	if (bonebase == NULL) {
