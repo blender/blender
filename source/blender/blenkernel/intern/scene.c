@@ -1123,7 +1123,7 @@ char *BKE_scene_find_last_marker_name(Scene *scene, int frame)
 
 Base *BKE_scene_base_add(Scene *sce, Object *ob)
 {
-	Base *b = MEM_callocN(sizeof(*b), "BKE_scene_base_add");
+	Base *b = MEM_callocN(sizeof(*b), __func__);
 	BLI_addhead(&sce->base, b);
 
 	b->object = ob;

@@ -516,23 +516,16 @@ static void group_linkobs2scene_cb(
 	Group *group = (Group *)tselem->id;
 	GroupObject *gob;
 	Base *base;
-	
+
 	for (gob = group->gobject.first; gob; gob = gob->next) {
 		base = BKE_scene_base_find(scene, gob->ob);
-		if (base) {
-			base->object->flag |= SELECT;
-			base->flag |= SELECT;
-		}
-		else {
+		if (!base) {
 			/* link to scene */
-			base = MEM_callocN(sizeof(Base), "add_base");
-			BLI_addhead(&scene->base, base);
-			base->lay = gob->ob->lay;
-			gob->ob->flag |= SELECT;
-			base->flag = gob->ob->flag;
-			base->object = gob->ob;
+			base = BKE_scene_base_add(scene, gob->ob);
 			id_lib_extern((ID *)gob->ob); /* in case these are from a linked group */
 		}
+		base->object->flag |= SELECT;
+		base->flag |= SELECT;
 	}
 }
 
