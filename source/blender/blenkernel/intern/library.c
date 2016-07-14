@@ -1483,10 +1483,8 @@ void id_clear_lib_data_ex(Main *bmain, ID *id, bool id_in_mainlist)
 	/* internal bNodeTree blocks inside ID types below
 	 * also stores id->lib, make sure this stays in sync.
 	 */
-	ntree = ntreeFromID(id);
-
-	if (ntree) {
-		ntreeMakeLocal(bmain, ntree, false, false);
+	if ((ntree = ntreeFromID(id))) {
+		id_clear_lib_data_ex(bmain, &ntree->id, id_in_mainlist);
 	}
 
 	if (GS(id->name) == ID_OB) {
