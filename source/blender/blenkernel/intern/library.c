@@ -1483,12 +1483,12 @@ void id_clear_lib_data_ex(Main *bmain, ID *id, bool id_in_mainlist)
 
 	/* Internal bNodeTree blocks inside datablocks also stores id->lib, make sure this stays in sync. */
 	if ((ntree = ntreeFromID(id))) {
-		id_clear_lib_data_ex(bmain, &ntree->id, id_in_mainlist);
+		id_clear_lib_data_ex(bmain, &ntree->id, false);  /* Datablocks' nodetree is never in Main. */
 	}
 
 	/* Same goes for shapekeys. */
 	if ((key = BKE_key_from_id(id))) {
-		id_clear_lib_data_ex(bmain, &key->id, id_in_mainlist);
+		id_clear_lib_data_ex(bmain, &key->id, id_in_mainlist);  /* sigh, why are keys in Main? */
 	}
 
 	if (GS(id->name) == ID_OB) {
