@@ -148,7 +148,7 @@ using Eigen::Matrix;
 //   A = U * diag(s) * VT
 //
 template <typename TMat, typename TVec>
-inline void SVD(TMat *A, Vec *s, Mat *U, Mat *VT) {
+inline void SVD(TMat * /*A*/, Vec * /*s*/, Mat * /*U*/, Mat * /*VT*/) {
   assert(0);
 }
 
