@@ -638,30 +638,30 @@ PyMODINIT_FUNC PyInit_mathutils(void)
 	/* XXX, python doesnt do imports with this usefully yet
 	 * 'from mathutils.geometry import PolyFill'
 	 * ...fails without this. */
-	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 	Py_INCREF(submodule);
 
 	PyModule_AddObject(mod, "interpolate",    (submodule = PyInit_mathutils_interpolate()));
 	/* XXX, python doesnt do imports with this usefully yet
 	 * 'from mathutils.geometry import PolyFill'
 	 * ...fails without this. */
-	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 	Py_INCREF(submodule);
 
 #ifndef MATH_STANDALONE
 	/* Noise submodule */
 	PyModule_AddObject(mod, "noise", (submodule = PyInit_mathutils_noise()));
-	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 	Py_INCREF(submodule);
 
 	/* BVHTree submodule */
 	PyModule_AddObject(mod, "bvhtree", (submodule = PyInit_mathutils_bvhtree()));
-	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 	Py_INCREF(submodule);
 
 	/* KDTree submodule */
 	PyModule_AddObject(mod, "kdtree", (submodule = PyInit_mathutils_kdtree()));
-	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 	Py_INCREF(submodule);
 #endif
 
