@@ -63,6 +63,8 @@ if(WIN32 AND NOT UNIX)
 			COMPONENT Blenderplayer
 			DESTINATION ".")
 
+add_cc_flags_custom_test(blenderplayer)
+
 elseif(APPLE)
 	add_executable(blenderplayer ${EXETYPE} bad_level_call_stubs/stubs.c)
 	# setup Info.plist
