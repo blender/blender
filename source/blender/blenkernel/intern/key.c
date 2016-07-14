@@ -203,18 +203,6 @@ Key *BKE_key_copy_nolib(Key *key)
 	return keyn;
 }
 
-void BKE_key_make_local(Main *bmain, Key *key, const bool UNUSED(force_local))
-{
-	/* Note that here for now we simply just make it local...
-	 * Sounds fishy behavior, but since skeys are not *real* IDs... */
-
-	if (!ID_IS_LINKED_DATABLOCK(key)) {
-		return;
-	}
-
-	id_clear_lib_data(bmain, &key->id);
-}
-
 /* Sort shape keys and Ipo curves after a change.  This assumes that at most
  * one key was moved, which is a valid assumption for the places it's
  * currently being called.

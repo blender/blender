@@ -574,7 +574,7 @@ void BKE_mesh_make_local(Main *bmain, Mesh *me, const bool force_local)
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &me->id);
 			if (me->key) {
-				BKE_key_make_local(bmain, me->key, force_local);
+				id_clear_lib_data(bmain, &me->key->id);
 			}
 			BKE_id_expand_local(&me->id);
 		}

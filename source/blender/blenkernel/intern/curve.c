@@ -234,7 +234,7 @@ void BKE_curve_make_local(Main *bmain, Curve *cu, const bool force_local)
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &cu->id);
 			if (cu->key) {
-				BKE_key_make_local(bmain, cu->key, force_local);
+				id_clear_lib_data(bmain, &cu->key->id);
 			}
 			BKE_id_expand_local(&cu->id);
 		}

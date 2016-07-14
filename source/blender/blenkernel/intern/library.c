@@ -317,8 +317,7 @@ bool id_make_local(Main *bmain, ID *id, const bool test, const bool force_local)
 		case ID_IP:
 			return false; /* deprecated */
 		case ID_KE:
-			if (!test) BKE_key_make_local(bmain, (Key *)id, force_local);
-			return true;
+			return false; /* can't be linked */
 		case ID_WO:
 			if (!test) BKE_world_make_local(bmain, (World *)id, force_local);
 			return true;
