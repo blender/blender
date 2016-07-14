@@ -555,11 +555,11 @@ BMesh *BKE_mesh_to_bmesh(
 	return bm;
 }
 
-void BKE_mesh_make_local(Main *bmain, Mesh *me)
+void BKE_mesh_make_local(Main *bmain, Mesh *me, const bool force_local)
 {
 	bool is_local = false, is_lib = false;
 
-	/* - only lib users: do nothing
+	/* - only lib users: do nothing (unless force_local is set)
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
@@ -570,11 +570,11 @@ void BKE_mesh_make_local(Main *bmain, Mesh *me)
 
 	BKE_library_ID_test_usages(bmain, me, &is_local, &is_lib);
 
-	if (is_local) {
+	if (force_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &me->id);
 			if (me->key) {
-				BKE_key_make_local(bmain, me->key);
+				BKE_key_make_local(bmain, me->key, force_local);
 			}
 			BKE_id_expand_local(&me->id);
 		}

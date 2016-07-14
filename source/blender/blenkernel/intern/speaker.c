@@ -85,11 +85,11 @@ Speaker *BKE_speaker_copy(Main *bmain, Speaker *spk)
 	return spkn;
 }
 
-void BKE_speaker_make_local(Main *bmain, Speaker *spk)
+void BKE_speaker_make_local(Main *bmain, Speaker *spk, const bool force_local)
 {
 	bool is_local = false, is_lib = false;
 
-	/* - only lib users: do nothing
+	/* - only lib users: do nothing (unless force_local is set)
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
@@ -100,7 +100,7 @@ void BKE_speaker_make_local(Main *bmain, Speaker *spk)
 
 	BKE_library_ID_test_usages(bmain, spk, &is_local, &is_lib);
 
-	if (is_local) {
+	if (force_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &spk->id);
 			BKE_id_expand_local(&spk->id);

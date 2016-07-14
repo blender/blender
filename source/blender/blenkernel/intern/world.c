@@ -176,11 +176,11 @@ World *localize_world(World *wrld)
 	return wrldn;
 }
 
-void BKE_world_make_local(Main *bmain, World *wrld)
+void BKE_world_make_local(Main *bmain, World *wrld, const bool force_local)
 {
 	bool is_local = false, is_lib = false;
 
-	/* - only lib users: do nothing
+	/* - only lib users: do nothing (unless force_local is set)
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
@@ -191,7 +191,7 @@ void BKE_world_make_local(Main *bmain, World *wrld)
 
 	BKE_library_ID_test_usages(bmain, wrld, &is_local, &is_lib);
 
-	if (is_local) {
+	if (force_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &wrld->id);
 			BKE_id_expand_local(&wrld->id);

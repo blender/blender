@@ -3343,11 +3343,11 @@ ParticleSettings *BKE_particlesettings_copy(Main *bmain, ParticleSettings *part)
 	return partn;
 }
 
-void BKE_particlesettings_make_local(Main *bmain, ParticleSettings *part)
+void BKE_particlesettings_make_local(Main *bmain, ParticleSettings *part, const bool force_local)
 {
 	bool is_local = false, is_lib = false;
 
-	/* - only lib users: do nothing
+	/* - only lib users: do nothing (unless force_local is set)
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
@@ -3358,7 +3358,7 @@ void BKE_particlesettings_make_local(Main *bmain, ParticleSettings *part)
 
 	BKE_library_ID_test_usages(bmain, part, &is_local, &is_lib);
 
-	if (is_local) {
+	if (force_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &part->id);
 			BKE_id_expand_local(&part->id);

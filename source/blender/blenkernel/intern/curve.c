@@ -215,11 +215,11 @@ Curve *BKE_curve_copy(Main *bmain, Curve *cu)
 	return cun;
 }
 
-void BKE_curve_make_local(Main *bmain, Curve *cu)
+void BKE_curve_make_local(Main *bmain, Curve *cu, const bool force_local)
 {
 	bool is_local = false, is_lib = false;
 
-	/* - when there are only lib users: don't do
+	/* - only lib users: do nothing (unless force_local is set)
 	 * - when there are only local users: set flag
 	 * - mixed: do a copy
 	 */
@@ -230,11 +230,11 @@ void BKE_curve_make_local(Main *bmain, Curve *cu)
 
 	BKE_library_ID_test_usages(bmain, cu, &is_local, &is_lib);
 
-	if (is_local) {
+	if (force_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &cu->id);
 			if (cu->key) {
-				BKE_key_make_local(bmain, cu->key);
+				BKE_key_make_local(bmain, cu->key, force_local);
 			}
 			BKE_id_expand_local(&cu->id);
 		}

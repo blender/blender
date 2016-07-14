@@ -203,7 +203,7 @@ Key *BKE_key_copy_nolib(Key *key)
 	return keyn;
 }
 
-void BKE_key_make_local(Main *bmain, Key *key)
+void BKE_key_make_local(Main *bmain, Key *key, const bool UNUSED(force_local))
 {
 	/* Note that here for now we simply just make it local...
 	 * Sounds fishy behavior, but since skeys are not *real* IDs... */

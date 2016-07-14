@@ -918,11 +918,11 @@ Tex *BKE_texture_localize(Tex *tex)
 
 /* ------------------------------------------------------------------------- */
 
-void BKE_texture_make_local(Main *bmain, Tex *tex)
+void BKE_texture_make_local(Main *bmain, Tex *tex, const bool force_local)
 {
 	bool is_local = false, is_lib = false;
 
-	/* - only lib users: do nothing
+	/* - only lib users: do nothing (unless force_local is set)
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
@@ -933,7 +933,7 @@ void BKE_texture_make_local(Main *bmain, Tex *tex)
 
 	BKE_library_ID_test_usages(bmain, tex, &is_local, &is_lib);
 
-	if (is_local) {
+	if (force_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &tex->id);
 			BKE_id_expand_local(&tex->id);

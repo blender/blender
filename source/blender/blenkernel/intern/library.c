@@ -271,7 +271,7 @@ void BKE_id_expand_local(ID *id)
 
 /* calls the appropriate make_local method for the block, unless test. Returns true
  * if the block can be made local. */
-bool id_make_local(Main *bmain, ID *id, bool test)
+bool id_make_local(Main *bmain, ID *id, const bool test, const bool force_local)
 {
 	if (id->tag & LIB_TAG_INDIRECT)
 		return false;
@@ -282,45 +282,45 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 		case ID_LI:
 			return false; /* can't be linked */
 		case ID_OB:
-			if (!test) BKE_object_make_local(bmain, (Object *)id);
+			if (!test) BKE_object_make_local(bmain, (Object *)id, force_local);
 			return true;
 		case ID_ME:
-			if (!test) BKE_mesh_make_local(bmain, (Mesh *)id);
+			if (!test) BKE_mesh_make_local(bmain, (Mesh *)id, force_local);
 			return true;
 		case ID_CU:
-			if (!test) BKE_curve_make_local(bmain, (Curve *)id);
+			if (!test) BKE_curve_make_local(bmain, (Curve *)id, force_local);
 			return true;
 		case ID_MB:
-			if (!test) BKE_mball_make_local(bmain, (MetaBall *)id);
+			if (!test) BKE_mball_make_local(bmain, (MetaBall *)id, force_local);
 			return true;
 		case ID_MA:
-			if (!test) BKE_material_make_local(bmain, (Material *)id);
+			if (!test) BKE_material_make_local(bmain, (Material *)id, force_local);
 			return true;
 		case ID_TE:
-			if (!test) BKE_texture_make_local(bmain, (Tex *)id);
+			if (!test) BKE_texture_make_local(bmain, (Tex *)id, force_local);
 			return true;
 		case ID_IM:
-			if (!test) BKE_image_make_local(bmain, (Image *)id);
+			if (!test) BKE_image_make_local(bmain, (Image *)id, force_local);
 			return true;
 		case ID_LT:
-			if (!test) BKE_lattice_make_local(bmain, (Lattice *)id);
+			if (!test) BKE_lattice_make_local(bmain, (Lattice *)id, force_local);
 			return true;
 		case ID_LA:
-			if (!test) BKE_lamp_make_local(bmain, (Lamp *)id);
+			if (!test) BKE_lamp_make_local(bmain, (Lamp *)id, force_local);
 			return true;
 		case ID_CA:
-			if (!test) BKE_camera_make_local(bmain, (Camera *)id);
+			if (!test) BKE_camera_make_local(bmain, (Camera *)id, force_local);
 			return true;
 		case ID_SPK:
-			if (!test) BKE_speaker_make_local(bmain, (Speaker *)id);
+			if (!test) BKE_speaker_make_local(bmain, (Speaker *)id, force_local);
 			return true;
 		case ID_IP:
 			return false; /* deprecated */
 		case ID_KE:
-			if (!test) BKE_key_make_local(bmain, (Key *)id);
+			if (!test) BKE_key_make_local(bmain, (Key *)id, force_local);
 			return true;
 		case ID_WO:
-			if (!test) BKE_world_make_local(bmain, (World *)id);
+			if (!test) BKE_world_make_local(bmain, (World *)id, force_local);
 			return true;
 		case ID_SCR:
 			return false; /* can't be linked */
@@ -333,19 +333,19 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 		case ID_GR:
 			return false; /* not implemented */
 		case ID_AR:
-			if (!test) BKE_armature_make_local(bmain, (bArmature *)id);
+			if (!test) BKE_armature_make_local(bmain, (bArmature *)id, force_local);
 			return true;
 		case ID_AC:
-			if (!test) BKE_action_make_local(bmain, (bAction *)id);
+			if (!test) BKE_action_make_local(bmain, (bAction *)id, force_local);
 			return true;
 		case ID_NT:
-			if (!test) ntreeMakeLocal(bmain, (bNodeTree *)id, true);
+			if (!test) ntreeMakeLocal(bmain, (bNodeTree *)id, true, force_local);
 			return true;
 		case ID_BR:
-			if (!test) BKE_brush_make_local(bmain, (Brush *)id);
+			if (!test) BKE_brush_make_local(bmain, (Brush *)id, force_local);
 			return true;
 		case ID_PA:
-			if (!test) BKE_particlesettings_make_local(bmain, (ParticleSettings *)id);
+			if (!test) BKE_particlesettings_make_local(bmain, (ParticleSettings *)id, force_local);
 			return true;
 		case ID_WM:
 			return false; /* can't be linked */
@@ -1487,7 +1487,7 @@ void id_clear_lib_data_ex(Main *bmain, ID *id, bool id_in_mainlist)
 	ntree = ntreeFromID(id);
 
 	if (ntree) {
-		ntreeMakeLocal(bmain, ntree, false);
+		ntreeMakeLocal(bmain, ntree, false, false);
 	}
 
 	if (GS(id->name) == ID_OB) {
