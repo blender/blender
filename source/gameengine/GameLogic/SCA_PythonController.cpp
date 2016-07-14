@@ -163,7 +163,9 @@ void SCA_PythonController::SetNamespace(PyObject*	pythondictionary)
 	
 	/* Without __file__ set the sys.argv[0] is used for the filename
 	 * which ends up with lines from the blender binary being printed in the console */
-	PyDict_SetItemString(m_pythondictionary, "__file__", PyUnicode_From_STR_String(m_scriptName));
+	PyObject *value = PyUnicode_From_STR_String(m_scriptName);
+	PyDict_SetItemString(m_pythondictionary, "__file__", value);
+	Py_DECREF(value);
 	
 }
 #endif

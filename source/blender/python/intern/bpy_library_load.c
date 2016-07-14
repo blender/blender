@@ -264,8 +264,13 @@ static PyObject *bpy_lib_enter(BPy_Library *self, PyObject *UNUSED(args))
 			if (BKE_idcode_is_linkable(code)) {
 				const char *name_plural = BKE_idcode_to_name_plural(code);
 				PyObject *str = PyUnicode_FromString(name_plural);
-				PyDict_SetItem(self->dict, str, PyList_New(0));
-				PyDict_SetItem(from_dict, str, _bpy_names(self, code));
+				PyObject *item;
+
+				PyDict_SetItem(self->dict, str, item = PyList_New(0));
+				Py_DECREF(item);
+				PyDict_SetItem(from_dict, str, item = _bpy_names(self, code));
+				Py_DECREF(item);
+
 				Py_DECREF(str);
 			}
 		}

@@ -356,10 +356,10 @@ static PyGetSetDef bpy_app_getsets[] = {
 static void py_struct_seq_getset_init(void)
 {
 	/* tricky dynamic members, not to py-spec! */
-	PyGetSetDef *getset;
-
-	for (getset = bpy_app_getsets; getset->name; getset++) {
-		PyDict_SetItemString(BlenderAppType.tp_dict, getset->name, PyDescr_NewGetSet(&BlenderAppType, getset));
+	for (PyGetSetDef *getset = bpy_app_getsets; getset->name; getset++) {
+		PyObject *item = PyDescr_NewGetSet(&BlenderAppType, getset);
+		PyDict_SetItemString(BlenderAppType.tp_dict, getset->name, item);
+		Py_DECREF(item);
 	}
 }
 /* end dynamic bpy.app */

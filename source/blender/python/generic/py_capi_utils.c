@@ -748,6 +748,7 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 		
 		/* set the value so we can access it */
 		PyDict_SetItemString(py_dict, "values", values);
+		Py_DECREF(values);
 
 		py_result = PyRun_File(fp, filepath, Py_file_input, py_dict, py_dict);
 
