@@ -2107,10 +2107,11 @@ bool ED_transform_snap_object_project_ray_ex(
         float r_loc[3], float r_no[3], int *r_index,
         Object **r_ob, float r_obmat[4][4])
 {
+	const float depth_range[2] = {0.0f, FLT_MAX};
 	return snapObjectsRay(
 	        sctx,
 	        snap_to, params->snap_select, params->use_object_edit_cage, NULL,
-	        ray_start, ray_start, ray_normal, NULL,
+	        ray_start, ray_start, ray_normal, depth_range,
 	        ray_depth, NULL,
 	        r_loc, r_no, r_index, r_ob, r_obmat, NULL);
 }
@@ -2130,6 +2131,7 @@ bool ED_transform_snap_object_project_ray_all(
         float ray_depth, bool sort,
         ListBase *r_hit_list)
 {
+	const float depth_range[2] = {0.0f, FLT_MAX};
 	if (ray_depth == -1.0f) {
 		ray_depth = BVH_RAYCAST_DIST_MAX;
 	}
@@ -2141,7 +2143,7 @@ bool ED_transform_snap_object_project_ray_all(
 	bool retval = snapObjectsRay(
 	        sctx,
 	        snap_to, params->snap_select, params->use_object_edit_cage, NULL,
-	        ray_start, ray_start, ray_normal, NULL,
+	        ray_start, ray_start, ray_normal, depth_range,
 	        &ray_depth, NULL,
 	        NULL, NULL, NULL, NULL, NULL,
 	        r_hit_list);
