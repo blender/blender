@@ -1602,14 +1602,8 @@ void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged
 			{
 				if (lib == NULL || id->lib == lib) {
 					if (id->lib) {
-						/* for Make Local > All we should be calling id_make_local,
-						 * but doing that breaks append (see #36003 and #36006), we
-						 * we should make it work with all datablocks and id.us==0 */
-						id_clear_lib_data(bmain, id); /* sets 'id->tag' */
-
-						/* why sort alphabetically here but not in
-						 * id_clear_lib_data() ? - campbell */
-						id_sort_by_name(lbarray[a], id);
+						/* In this specific case, we do want to make ID local even if it has no local usage yet... */
+						id_make_local(bmain, id, false, true);
 					}
 					else {
 						id->tag &= ~(LIB_TAG_EXTERN | LIB_TAG_INDIRECT | LIB_TAG_NEW);
