@@ -10,3 +10,7 @@
 	path = release/datafiles/locale
 	url = ../blender-translations.git
 	ignore = all
+[submodule "source/tools"]
+	path = source/tools
+	url = ../blender-dev-tools.git
+	ignore = all
