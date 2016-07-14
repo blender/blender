@@ -236,7 +236,8 @@ typedef struct PreDefProject {
 	float dist_px_sq;
 } PreDefProject;
 
-static void precalc_project(PreDefProject *projectdefs, const ARegion *ar,
+static void precalc_project(
+        PreDefProject *projectdefs, const ARegion *ar,
         const float dist_px, float obmat[4][4])
 {
 	float (*pmat)[4] = ((RegionView3D *)ar->regiondata)->persmat;
@@ -266,7 +267,8 @@ static float dist_px_to_dist3d_or_tangent(const ARegion *ar, const float dist_px
 		return 2 * (dist_px / ar->winy) / rv3d->winmat[1][1];
 }
 
-static const float *get_vert_co(const BVHTreeFromMeshType *meshdata, const int index) {
+static const float *get_vert_co(const BVHTreeFromMeshType *meshdata, const int index)
+{
 	switch (meshdata->type) {
 		case SNAP_MESH:
 		{
@@ -284,7 +286,8 @@ static const float *get_vert_co(const BVHTreeFromMeshType *meshdata, const int i
 	return NULL;
 }
 
-static void copy_vert_no(const BVHTreeFromMeshType *meshdata, const int index, float r_no[3]) {
+static void copy_vert_no(const BVHTreeFromMeshType *meshdata, const int index, float r_no[3])
+{
 	switch (meshdata->type) {
 		case SNAP_MESH:
 		{
@@ -1363,7 +1366,7 @@ static bool snapDerivedMesh(
 			copy_v3_v3(ray_org_local, ray_origin);
 			mul_m4_v3(imat, ray_org_local);
 
-			BVHTreeFromMeshType treedata_type = {.userdata = treedata,.type = SNAP_MESH};
+			BVHTreeFromMeshType treedata_type = {.userdata = treedata, .type = SNAP_MESH};
 
 			if (is_persp) {
 				Object_Nearest2dPrecalc neasrest_precalc;
@@ -1654,8 +1657,8 @@ static bool snapEditMesh(
 				hit.dist = local_depth;
 
 				if (BLI_bvhtree_ray_cast(
-					    treedata->tree, ray_start_local, ray_normal_local, 0.0f,
-					    &hit, treedata->raycast_callback, treedata) != -1)
+				        treedata->tree, ray_start_local, ray_normal_local, 0.0f,
+				        &hit, treedata->raycast_callback, treedata) != -1)
 				{
 					hit.dist += len_diff;
 					hit.dist /= local_scale;
@@ -1795,7 +1798,7 @@ static bool snapObject(
 			retval = snapEditMesh(
 			        sctx, ob, em, obmat, ob_index,
 			        snap_to, mval, is_persp,
-			        ray_origin, ray_start, ray_normal,depth_range,
+			        ray_origin, ray_start, ray_normal, depth_range,
 			        ray_depth, dist_px,
 			        r_loc, r_no, r_index,
 			        r_hit_list);
