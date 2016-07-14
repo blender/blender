@@ -45,7 +45,7 @@ typedef struct SDNA {
 	int pointerlen;		/* size of a pointer in bytes */
 
 	int nr_types;		/* number of basic types + struct types */
-	char **types;		/* type names */
+	const char **types;	/* type names */
 	short *typelens;	/* type lengths */
 
 	int nr_structs;		/* number of struct types */

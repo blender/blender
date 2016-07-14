@@ -134,39 +134,6 @@
  *
  */
 
-/* ************************* ENDIAN STUFF ********************** */
-
-/**
- * converts a short between big/little endian.
- */
-static short le_short(short temp)
-{
-	short new;
-	char *rt = (char *)&temp, *rtn = (char *)&new;
-
-	rtn[0] = rt[1];
-	rtn[1] = rt[0];
-
-	return new;
-}
-
-/**
- * converts an int between big/little endian.
- */
-static int le_int(int temp)
-{
-	int new;
-	char *rt = (char *)&temp, *rtn = (char *)&new;
-
-	rtn[0] = rt[3];
-	rtn[1] = rt[2];
-	rtn[2] = rt[1];
-	rtn[3] = rt[0];
-
-	return new;
-}
-
-
 /* ************************* MAKE DNA ********************** */
 
 /* allowed duplicate code from makesdna.c */
@@ -338,6 +305,11 @@ int DNA_struct_find_nr(const SDNA *sdna, const char *str)
 
 /* ************************* READ DNA ********************** */
 
+BLI_INLINE const char *pad_up_4(const char *ptr)
+{
+	return (const char *)((((uintptr_t)ptr) + 3) & ~3);
+}
+
 /**
  * In sdna->data the data, now we convert that to something understandable
  */
@@ -366,8 +338,7 @@ static bool init_structDNA(
 		return false;
 	}
 	else {
-		intptr_t nr;
-		char *cp;
+		const char *cp;
 
 		data++;
 		
@@ -376,8 +347,10 @@ static bool init_structDNA(
 		if (*data == *verg) {
 			data++;
 			
-			if (do_endian_swap) sdna->nr_names = le_int(*data);
-			else sdna->nr_names = *data;
+			sdna->nr_names = *data;
+			if (do_endian_swap) {
+				BLI_endian_switch_int32(&sdna->nr_names);
+			}
 			
 			data++;
 			sdna->names = MEM_callocN(sizeof(void *) * sdna->nr_names, "sdnanames");
@@ -387,9 +360,8 @@ static bool init_structDNA(
 			return false;
 		}
 		
-		nr = 0;
 		cp = (char *)data;
-		while (nr < sdna->nr_names) {
+		for (int nr = 0; nr < sdna->nr_names; nr++) {
 			sdna->names[nr] = cp;
 
 			/* "float gravity [3]" was parsed wrong giving both "gravity" and
@@ -404,20 +376,20 @@ static bool init_structDNA(
 
 			while (*cp) cp++;
 			cp++;
-			nr++;
 		}
-		nr = (intptr_t)cp;       /* prevent BUS error */
-		nr = (nr + 3) & ~3;
-		cp = (char *)nr;
+
+		cp = pad_up_4(cp);
 		
 		/* load type names array */
 		data = (int *)cp;
 		strcpy(str, "TYPE");
 		if (*data == *verg) {
 			data++;
-			
-			if (do_endian_swap) sdna->nr_types = le_int(*data);
-			else sdna->nr_types = *data;
+
+			sdna->nr_types = *data;
+			if (do_endian_swap) {
+				BLI_endian_switch_int32(&sdna->nr_types);
+			}
 			
 			data++;
 			sdna->types = MEM_callocN(sizeof(void *) * sdna->nr_types, "sdnatypes");
@@ -427,9 +399,8 @@ static bool init_structDNA(
 			return false;
 		}
 		
-		nr = 0;
 		cp = (char *)data;
-		while (nr < sdna->nr_types) {
+		for (int nr = 0; nr < sdna->nr_types; nr++) {
 			sdna->types[nr] = cp;
 			
 			/* this is a patch, to change struct names without a conflict with SDNA */
@@ -442,11 +413,9 @@ static bool init_structDNA(
 			
 			while (*cp) cp++;
 			cp++;
-			nr++;
 		}
-		nr = (intptr_t)cp;       /* prevent BUS error */
-		nr = (nr + 3) & ~3;
-		cp = (char *)nr;
+
+		cp = pad_up_4(cp);
 		
 		/* load typelen array */
 		data = (int *)cp;
@@ -457,13 +426,7 @@ static bool init_structDNA(
 			sdna->typelens = sp;
 			
 			if (do_endian_swap) {
-				short a, *spo = sp;
-				
-				a = sdna->nr_types;
-				while (a--) {
-					spo[0] = le_short(spo[0]);
-					spo++;
-				}
+				BLI_endian_switch_int16_array(sp, sdna->nr_types);
 			}
 			
 			sp += sdna->nr_types;
@@ -480,8 +443,10 @@ static bool init_structDNA(
 		if (*data == *verg) {
 			data++;
 			
-			if (do_endian_swap) sdna->nr_structs = le_int(*data);
-			else sdna->nr_structs = *data;
+			sdna->nr_structs = *data;
+			if (do_endian_swap) {
+				BLI_endian_switch_int32(&sdna->nr_structs);
+			}
 			
 			data++;
 			sdna->structs = MEM_callocN(sizeof(void *) * sdna->nr_structs, "sdnastrcs");
@@ -491,37 +456,34 @@ static bool init_structDNA(
 			return false;
 		}
 		
-		nr = 0;
 		sp = (short *)data;
-		while (nr < sdna->nr_structs) {
+		for (int nr = 0; nr < sdna->nr_structs; nr++) {
 			sdna->structs[nr] = sp;
 			
 			if (do_endian_swap) {
 				short a;
 				
-				sp[0] = le_short(sp[0]);
-				sp[1] = le_short(sp[1]);
+				BLI_endian_switch_int16(&sp[0]);
+				BLI_endian_switch_int16(&sp[1]);
 				
 				a = sp[1];
 				sp += 2;
 				while (a--) {
-					sp[0] = le_short(sp[0]);
-					sp[1] = le_short(sp[1]);
+					BLI_endian_switch_int16(&sp[0]);
+					BLI_endian_switch_int16(&sp[1]);
 					sp += 2;
 				}
 			}
 			else {
 				sp += 2 * sp[1] + 2;
 			}
-			
-			nr++;
 		}
 	}
 
 	{
 		/* second part of gravity problem, setting "gravity" type to void */
 		if (gravity_fix > -1) {
-			for (intptr_t nr = 0; nr < sdna->nr_structs; nr++) {
+			for (int nr = 0; nr < sdna->nr_structs; nr++) {
 				sp = sdna->structs[nr];
 				if (strcmp(sdna->types[sp[0]], "ClothSimSettings") == 0)
 					sp[10] = SDNA_TYPE_VOID;
@@ -536,7 +498,7 @@ static bool init_structDNA(
 
 		for (intptr_t nr = 0; nr < sdna->nr_structs; nr++) {
 			sp = sdna->structs[nr];
-			BLI_ghash_insert(sdna->structs_map, sdna->types[sp[0]], SET_INT_IN_POINTER(nr));
+			BLI_ghash_insert(sdna->structs_map, (void *)sdna->types[sp[0]], SET_INT_IN_POINTER(nr));
 		}
 	}
 #endif
