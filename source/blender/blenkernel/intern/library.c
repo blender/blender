@@ -1470,6 +1470,7 @@ bool new_id(ListBase *lb, ID *id, const char *tname)
 void id_clear_lib_data_ex(Main *bmain, ID *id, bool id_in_mainlist)
 {
 	bNodeTree *ntree = NULL;
+	Key *key = NULL;
 
 	BKE_id_lib_local_paths(bmain, id->lib, id);
 
@@ -1480,11 +1481,14 @@ void id_clear_lib_data_ex(Main *bmain, ID *id, bool id_in_mainlist)
 	if (id_in_mainlist)
 		new_id(which_libbase(bmain, GS(id->name)), id, NULL);
 
-	/* internal bNodeTree blocks inside ID types below
-	 * also stores id->lib, make sure this stays in sync.
-	 */
+	/* Internal bNodeTree blocks inside datablocks also stores id->lib, make sure this stays in sync. */
 	if ((ntree = ntreeFromID(id))) {
 		id_clear_lib_data_ex(bmain, &ntree->id, id_in_mainlist);
+	}
+
+	/* Same goes for shapekeys. */
+	if ((key = BKE_key_from_id(id))) {
+		id_clear_lib_data_ex(bmain, &key->id, id_in_mainlist);
 	}
 
 	if (GS(id->name) == ID_OB) {

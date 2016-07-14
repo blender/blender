@@ -348,9 +348,6 @@ void BKE_lattice_make_local(Main *bmain, Lattice *lt, const bool force_local)
 	if (force_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &lt->id);
-			if (lt->key) {
-				id_clear_lib_data(bmain, &lt->key->id);
-			}
 			BKE_id_expand_local(&lt->id);
 		}
 		else {
