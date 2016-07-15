@@ -972,7 +972,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
 
 
 class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
-    bl_label = "Proxy / Timecode"
+    bl_label = "Proxy/Timecode"
 
     @classmethod
     def poll(cls, context):
