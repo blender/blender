@@ -204,7 +204,7 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 
 /* *************************************************** */
 
-static int snap_sel_to_curs_exec(bContext *C, wmOperator *op)
+static int snap_selected_to_location(bContext *C, const float cursor_global[3], const bool use_offset)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
@@ -213,14 +213,9 @@ static int snap_sel_to_curs_exec(bContext *C, wmOperator *op)
 	TransVertStore tvs = {NULL};
 	TransVert *tv;
 	float imat[3][3], bmat[3][3];
-	const float *cursor_global;
 	float center_global[3];
 	float offset_global[3];
 	int a;
-
-	const bool use_offset = RNA_boolean_get(op->ptr, "use_offset");
-
-	cursor_global = ED_view3d_cursor3d_get(scene, v3d);
 
 	if (use_offset) {
 		if ((v3d && v3d->around == V3D_AROUND_ACTIVE) &&
@@ -401,6 +396,18 @@ static int snap_sel_to_curs_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int snap_selected_to_cursor_exec(bContext *C, wmOperator *op)
+{
+	const bool use_offset = RNA_boolean_get(op->ptr, "use_offset");
+
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+
+	const float *snap_target_global = ED_view3d_cursor3d_get(scene, v3d);
+
+	return snap_selected_to_location(C, snap_target_global, use_offset);
+}
+
 void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -409,7 +416,7 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 	ot->idname = "VIEW3D_OT_snap_selected_to_cursor";
 	
 	/* api callbacks */
-	ot->exec = snap_sel_to_curs_exec;
+	ot->exec = snap_selected_to_cursor_exec;
 	ot->poll = ED_operator_view3d_active;
 	
 	/* flags */
@@ -418,6 +425,34 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 	/* rna */
 	RNA_def_boolean(ot->srna, "use_offset", 1, "Offset", "");
 }
+
+static int snap_selected_to_active_exec(bContext *C, wmOperator *op)
+{
+	const float snap_target_global[3];
+
+	if (snap_calc_active_center(C, false, snap_target_global) == false) {
+		BKE_report(op->reports, RPT_ERROR, "No active element found!");
+		return OPERATOR_CANCELLED;
+	}
+
+	return snap_selected_to_location(C, snap_target_global, false);
+}
+
+void VIEW3D_OT_snap_selected_to_active(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Snap Selection to Active";
+	ot->description = "Snap selected item(s) to the active item";
+	ot->idname = "VIEW3D_OT_snap_selected_to_active";
+
+	/* api callbacks */
+	ot->exec = snap_selected_to_active_exec;
+	ot->poll = ED_operator_view3d_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 
 /* *************************************************** */
 
