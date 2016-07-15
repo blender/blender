@@ -2132,11 +2132,6 @@ bool ED_transform_snap_object_project_ray(
 		ray_depth = &ray_depth_fallback;
 	}
 
-	float no_fallback[3];
-	if (r_no == NULL) {
-		r_no = no_fallback;
-	}
-
 	return transform_snap_context_project_ray_impl(
 	        sctx,
 	        params,
