@@ -44,6 +44,7 @@
 #include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_object.h"
+#include "BKE_report.h"
 #include "BKE_tracking.h"
 
 #include "WM_api.h"
@@ -428,7 +429,7 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 
 static int snap_selected_to_active_exec(bContext *C, wmOperator *op)
 {
-	const float snap_target_global[3];
+	float snap_target_global[3];
 
 	if (snap_calc_active_center(C, false, snap_target_global) == false) {
 		BKE_report(op->reports, RPT_ERROR, "No active element found!");
