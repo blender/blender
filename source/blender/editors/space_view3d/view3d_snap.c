@@ -204,7 +204,7 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 
 /* *************************************************** */
 
-static int snap_selected_to_location(bContext *C, const float cursor_global[3], const bool use_offset)
+static int snap_selected_to_location(bContext *C, const float snap_target_global[3], const bool use_offset)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
@@ -226,11 +226,11 @@ static int snap_selected_to_location(bContext *C, const float cursor_global[3], 
 		else {
 			snap_curs_to_sel_ex(C, center_global);
 		}
-		sub_v3_v3v3(offset_global, cursor_global, center_global);
+		sub_v3_v3v3(offset_global, snap_target_global, center_global);
 	}
 
 	if (obedit) {
-		float cursor_local[3];
+		float snap_target_local[3];
 		
 		if (ED_transverts_check_obedit(obedit))
 			ED_transverts_create_from_obedit(&tvs, obedit, 0);
@@ -241,8 +241,8 @@ static int snap_selected_to_location(bContext *C, const float cursor_global[3], 
 		invert_m3_m3(imat, bmat);
 		
 		/* get the cursor in object space */
-		sub_v3_v3v3(cursor_local, cursor_global, obedit->obmat[3]);
-		mul_m3_v3(imat, cursor_local);
+		sub_v3_v3v3(snap_target_local, snap_target_global, obedit->obmat[3]);
+		mul_m3_v3(imat, snap_target_local);
 
 		if (use_offset) {
 			float offset_local[3];
@@ -257,7 +257,7 @@ static int snap_selected_to_location(bContext *C, const float cursor_global[3], 
 		else {
 			tv = tvs.transverts;
 			for (a = 0; a < tvs.transverts_tot; a++, tv++) {
-				copy_v3_v3(tv->loc, cursor_local);
+				copy_v3_v3(tv->loc, snap_target_local);
 			}
 		}
 		
@@ -269,10 +269,10 @@ static int snap_selected_to_location(bContext *C, const float cursor_global[3], 
 
 		bPoseChannel *pchan;
 		bArmature *arm = obact->data;
-		float cursor_local[3];
+		float snap_target_local[3];
 
 		invert_m4_m4(obact->imat, obact->obmat);
-		mul_v3_m4v3(cursor_local, obact->imat, cursor_global);
+		mul_v3_m4v3(snap_target_local, obact->imat, snap_target_global);
 
 		for (pchan = obact->pose->chanbase.first; pchan; pchan = pchan->next) {
 			if ((pchan->bone->flag & BONE_SELECTED) &&
@@ -306,7 +306,7 @@ static int snap_selected_to_location(bContext *C, const float cursor_global[3], 
 					BKE_armature_loc_pose_to_bone(pchan, cursor_pose, cursor_pose);
 				}
 				else {
-					BKE_armature_loc_pose_to_bone(pchan, cursor_local, cursor_pose);
+					BKE_armature_loc_pose_to_bone(pchan, snap_target_local, cursor_pose);
 				}
 
 				/* copy new position */
@@ -362,7 +362,7 @@ static int snap_selected_to_location(bContext *C, const float cursor_global[3], 
 					add_v3_v3v3(cursor_parent, ob->obmat[3], offset_global);
 				}
 				else {
-					copy_v3_v3(cursor_parent, cursor_global);
+					copy_v3_v3(cursor_parent, snap_target_global);
 				}
 
 				sub_v3_v3(cursor_parent, ob->obmat[3]);
