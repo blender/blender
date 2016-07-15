@@ -1733,7 +1733,7 @@ static bool snapObject(
         ListBase *r_hit_list)
 {
 	const enum eViewProj view_proj =
-	        (sctx->use_v3d == false) ? VIEW_PROJ_NONE :
+	        ((sctx->use_v3d == false) || (mval == NULL)) ? VIEW_PROJ_NONE :
 	        (((RegionView3D *)sctx->v3d_data.ar->regiondata)->is_persp ? VIEW_PROJ_PERSP : VIEW_PROJ_ORTHO);
 
 	const ARegion *ar = sctx->v3d_data.ar;
@@ -1829,6 +1829,7 @@ static bool snapObject(
  *
  * \param use_object_edit_cage: Uses the coordinates of BMesh (if any) to do the snapping.
  * \param mval: Mouse coords.
+ * When NULL, ray-casting is handled without any projection matrix correction.
  * \param ray_origin: ray_start before being moved toward the ray_normal at the distance from vew3d clip_min.
  * \param ray_start: ray_origin moved for the start clipping plane (clip_min).
  * \param ray_normal: Unit length direction of the ray.
