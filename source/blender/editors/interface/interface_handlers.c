@@ -4092,7 +4092,7 @@ static float ui_numedit_apply_snap(
 
 static bool ui_numedit_but_NUM(
         uiBut *but, uiHandleButtonData *data,
-        int mx,
+        int mx, const bool is_motion,
         const enum eSnapType snap, float fac)
 {
 	float deler, tempf, softmin, softmax, softrange;
@@ -4100,8 +4100,10 @@ static bool ui_numedit_but_NUM(
 	bool changed = false;
 	const bool is_float = ui_but_is_float(but);
 
-	/* prevent unwanted drag adjustments */
-	if (ui_but_dragedit_update_mval(data, mx) == false) {
+	/* prevent unwanted drag adjustments, test motion so modifier keys refresh. */
+	if ((is_motion || data->draglock) &&
+	    (ui_but_dragedit_update_mval(data, mx) == false))
+	{
 		return changed;
 	}
 
@@ -4324,6 +4326,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			}
 		}
 		else if ((event->type == MOUSEMOVE) || ui_event_is_snap(event)) {
+			const bool is_motion = (event->type == MOUSEMOVE);
 			const enum eSnapType snap = ui_event_to_snap(event);
 			float fac;
 
@@ -4335,8 +4338,9 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			fac = 1.0f;
 			if (event->shift) fac /= 10.0f;
 
-			if (ui_numedit_but_NUM(but, data, (ui_but_is_cursor_warp(but) ? screen_mx : mx), snap, fac))
+			if (ui_numedit_but_NUM(but, data, (ui_but_is_cursor_warp(but) ? screen_mx : mx), is_motion, snap, fac)) {
 				ui_numedit_apply(C, block, but, data);
+			}
 #ifdef USE_DRAG_MULTINUM
 			else if (data->multi_data.has_mbuts) {
 				if (data->multi_data.init == BUTTON_MULTI_INIT_ENABLE) {
@@ -4430,7 +4434,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 
 static bool ui_numedit_but_SLI(
         uiBut *but, uiHandleButtonData *data,
-        int mx, const bool is_horizontal,
+        int mx, const bool is_horizontal, const bool is_motion,
         const bool snap, const bool shift)
 {
 	float deler, f, tempf, softmin, softmax, softrange;
@@ -4440,8 +4444,9 @@ static bool ui_numedit_but_SLI(
 	/* note, 'offs' is really from the widget drawing rounded corners see 'widget_numslider' */
 	float offs;
 
-	/* prevent unwanted drag adjustments */
+	/* prevent unwanted drag adjustments, test motion so modifier keys refresh. */
 	if ((but->type != UI_BTYPE_SCROLL) &&
+	    (is_motion || data->draglock) &&
 	    (ui_but_dragedit_update_mval(data, mx) == false))
 	{
 		return changed;
@@ -4634,12 +4639,14 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			}
 		}
 		else if ((event->type == MOUSEMOVE) || ui_event_is_snap(event)) {
+			const bool is_motion = (event->type == MOUSEMOVE);
 #ifdef USE_DRAG_MULTINUM
 			data->multi_data.drag_dir[0] += abs(data->draglastx - mx);
 			data->multi_data.drag_dir[1] += abs(data->draglasty - my);
 #endif
-			if (ui_numedit_but_SLI(but, data, mx, true, event->ctrl != 0, event->shift != 0))
+			if (ui_numedit_but_SLI(but, data, mx, true, is_motion, event->ctrl != 0, event->shift != 0)) {
 				ui_numedit_apply(C, block, but, data);
+			}
 
 #ifdef USE_DRAG_MULTINUM
 			else if (data->multi_data.has_mbuts) {
@@ -4765,8 +4772,10 @@ static int ui_do_but_SCROLL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
 		else if (event->type == MOUSEMOVE) {
-			if (ui_numedit_but_SLI(but, data, (horizontal) ? mx : my, horizontal, false, false))
+			const bool is_motion = (event->type == MOUSEMOVE);
+			if (ui_numedit_but_SLI(but, data, (horizontal) ? mx : my, horizontal, is_motion, false, false)) {
 				ui_numedit_apply(C, block, but, data);
+			}
 		}
 
 		retval = WM_UI_HANDLER_BREAK;
