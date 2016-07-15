@@ -924,8 +924,12 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
 	// TRANSPARENT
 	// color
 	if (ef->getOpacity().isColor()) {
-		float alpha = ef->getOpacity().getColor().getAlpha();
-		if (alpha < 1) {
+		col = ef->getTransparent().getColor();
+		float alpha = ef->getTransparency().getFloatValue();
+		if (col.isValid()) {
+			alpha *= col.getAlpha(); // Assuming A_ONE opaque mode
+		}
+		if (col.isValid() || alpha < 1.0) {
 			ma->alpha = alpha;
 			ma->mode |= MA_ZTRANSP | MA_TRANSP;
 		}
