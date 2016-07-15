@@ -346,12 +346,12 @@ static void get_edge_verts(
 	(a)[2] * (b)[2]
 
 static bool test_vert_dist(
-        const float vco[3], const float vno[3], const float ray_co[3], const float ray_dir[3],
+        const float vco[3], const float ray_co[3], const float ray_dir[3],
         const float ray_depth_range[2], const float scale[3],
         /* read/write args */
         float *ray_depth, float *dist_to_ray_sq,
         /* return args */
-        float r_co[3], float r_no[3])
+        float r_co[3])
 {
 	const float vco_sc[3]   = {V3_MUL_ELEM(vco, scale)};
 	const float origin_sc[3]    = {V3_MUL_ELEM(ray_co, scale)};
@@ -369,10 +369,6 @@ static bool test_vert_dist(
 
 		copy_v3_v3(r_co, vco);
 
-		if (vno) {
-			copy_v3_v3(r_no, vno);
-		}
-
 		*ray_depth = depth;
 		return true;
 	}
@@ -385,7 +381,7 @@ static bool test_edge_dist(
         /* read/write args */
         float *ray_depth, float *dist_to_ray_sq,
         /* return args */
-        float r_co[3], float r_no[3])
+        float r_co[3])
 {
 	const float v1_sc[3]    = {V3_MUL_ELEM(v1, scale)};
 	const float v2_sc[3]    = {V3_MUL_ELEM(v2, scale)};
@@ -407,10 +403,6 @@ static bool test_edge_dist(
 		tmp_co[2] /= scale[2];
 
 		copy_v3_v3(r_co, tmp_co);
-
-		if (r_no) {
-			sub_v3_v3v3(r_no, v1, v2);
-		}
 
 		*ray_depth = depth;
 		return true;
@@ -1046,9 +1038,9 @@ static void test_vert_depth_cb(
 	const float *co = get_vert_co(data, index);
 
 	if (test_vert_dist(
-	        co, NULL, origin, dir, ndata->depth_range,
+	        co, origin, dir, ndata->depth_range,
 	        scale, ndata->ray_depth, &nearest->dist_sq,
-	        nearest->co, NULL))
+	        nearest->co))
 	{
 		copy_vert_no(data, index, nearest->no);
 		nearest->index = index;
@@ -1068,8 +1060,9 @@ static void test_edge_depth_cb(
 	if (test_edge_dist(
 	        v_pair[0], v_pair[1], origin, dir, ndata->depth_range,
 	        scale, ndata->ray_depth, &nearest->dist_sq,
-	        nearest->co, nearest->no))
+	        nearest->co))
 	{
+		sub_v3_v3v3(nearest->no, v_pair[0], v_pair[1]);
 		nearest->index = index;
 	}
 }
@@ -1290,12 +1283,15 @@ static bool snapDerivedMesh(
 					if (hit.dist <= *ray_depth) {
 						*ray_depth = hit.dist;
 						copy_v3_v3(r_loc, hit.co);
-						copy_v3_v3(r_no, hit.no);
 
 						/* back to worldspace */
 						mul_m4_v3(obmat, r_loc);
-						mul_m3_v3(timat, r_no);
-						normalize_v3(r_no);
+
+						if (r_no) {
+							copy_v3_v3(r_no, hit.no);
+							mul_m3_v3(timat, r_no);
+							normalize_v3(r_no);
+						}
 
 						retval = true;
 
@@ -1612,12 +1608,15 @@ static bool snapEditMesh(
 					if (hit.dist <= *ray_depth) {
 						*ray_depth = hit.dist;
 						copy_v3_v3(r_loc, hit.co);
-						copy_v3_v3(r_no, hit.no);
 
 						/* back to worldspace */
 						mul_m4_v3(obmat, r_loc);
-						mul_m3_v3(timat, r_no);
-						normalize_v3(r_no);
+
+						if (r_no) {
+							copy_v3_v3(r_no, hit.no);
+							mul_m3_v3(timat, r_no);
+							normalize_v3(r_no);
+						}
 
 						retval = true;
 
@@ -2155,11 +2154,6 @@ static bool transform_snap_context_project_view3d_mixed_impl(
 {
 	float ray_depth = BVH_RAYCAST_DIST_MAX;
 	bool is_hit = false;
-
-	float r_no_dummy[3];
-	if (r_no == NULL) {
-		r_no = r_no_dummy;
-	}
 
 	const int  elem_type[3] = {SCE_SNAP_MODE_VERTEX, SCE_SNAP_MODE_EDGE, SCE_SNAP_MODE_FACE};
 
