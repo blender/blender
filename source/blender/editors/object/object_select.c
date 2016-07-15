@@ -577,7 +577,6 @@ static bool select_grouped_parent(bContext *C) /* Makes parent active and de-sel
 
 	/* can be NULL if parent in other scene */
 	if (baspar && BASE_SELECTABLE(v3d, baspar)) {
-		ED_base_object_select(basact, BA_DESELECT);
 		ED_base_object_select(baspar, BA_SELECT);
 		ED_base_object_activate(C, baspar);
 		changed = true;
