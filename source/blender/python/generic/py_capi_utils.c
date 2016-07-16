@@ -177,7 +177,7 @@ PyObject *PyC_FromArray(const void *array, int length, const PyTypeObject *type,
 
 /**
  * Caller needs to ensure tuple is uninitialized.
- * Handy for filling a typle with None for eg.
+ * Handy for filling a tuple with None for eg.
  */
 void PyC_Tuple_Fill(PyObject *tuple, PyObject *value)
 {
@@ -367,11 +367,12 @@ PyObject *PyC_FrozenSetFromStrings(const char **strings)
 }
 
 
-/* similar to PyErr_Format(),
+/**
+ * Similar to #PyErr_Format(),
  *
- * implementation - we cant actually preprend the existing exception,
+ * Implementation - we cant actually prepend the existing exception,
  * because it could have _any_ arguments given to it, so instead we get its
- * __str__ output and raise our own exception including it.
+ * ``__str__`` output and raise our own exception including it.
  */
 PyObject *PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *format, ...)
 {

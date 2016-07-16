@@ -634,7 +634,7 @@ typedef struct PrefetchQueue {
 	short render_size, render_flag;
 
 	/* If true prefecthing goes forward in time,
-	 * othwewise it goes backwards in time (starting from current frame).
+	 * otherwise it goes backwards in time (starting from current frame).
 	 */
 	bool forward;
 

@@ -79,7 +79,7 @@ bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)
 		COLLADASaxFWL::SaxFWLError *saxFWLError = (COLLADASaxFWL::SaxFWLError *) error;
 		/*
 		 * Accept non critical errors as warnings (i.e. texture not found)
-		 * This makes the importer more gracefull, so it now imports what makes sense.
+		 * This makes the importer more graceful, so it now imports what makes sense.
 		 */
 		if (saxFWLError->getSeverity() == COLLADASaxFWL::IError::SEVERITY_ERROR_NONCRITICAL) {
 			isError = false;

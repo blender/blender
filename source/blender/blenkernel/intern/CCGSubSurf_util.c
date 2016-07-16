@@ -184,7 +184,7 @@ int ccg_ehashIterator_isStopped(EHashIterator *ehi)
 }
 
 /**
- * Standard allocator implementarion.
+ * Standard allocator implementation.
  */
 
 static void *_stdAllocator_alloc(CCGAllocatorHDL UNUSED(a), int numBytes)

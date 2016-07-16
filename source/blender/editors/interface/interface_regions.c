@@ -110,7 +110,7 @@ bool ui_but_menu_step_poll(const uiBut *but)
 {
 	BLI_assert(but->type == UI_BTYPE_MENU);
 
-	/* currenly only RNA buttons */
+	/* currently only RNA buttons */
 	return ((but->menu_step_func != NULL) ||
 	        (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM));
 }
