@@ -175,6 +175,8 @@ Mesh::Mesh()
 	has_surface_bssrdf = false;
 
 	num_ngons = 0;
+
+	subdivision_type = SUBDIVISION_NONE;
 }
 
 Mesh::~Mesh()

@@ -774,7 +774,10 @@ static void create_subd_mesh(Scene *scene,
 	create_mesh(scene, mesh, b_mesh, used_shaders, true);
 
 	SubdParams sdparams(mesh);
-	sdparams.dicing_rate = max(0.1f, RNA_float_get(cmesh, "dicing_rate") * dicing_rate);
+
+	PointerRNA cobj = RNA_pointer_get(&b_ob.ptr, "cycles");
+
+	sdparams.dicing_rate = max(0.1f, RNA_float_get(&cobj, "dicing_rate") * dicing_rate);
 	sdparams.max_level = max_subdivisions;
 
 	scene->camera->update();
@@ -925,12 +928,32 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 			b_ob.update_from_editmode();
 
 		bool need_undeformed = mesh->need_attribute(scene, ATTR_STD_GENERATED);
-		bool subdivision = experimental && cmesh.data && RNA_enum_get(&cmesh, "subdivision_type");
-		BL::Mesh b_mesh = object_to_mesh(b_data, b_ob, b_scene, true, !preview, need_undeformed, subdivision);
+
+		mesh->subdivision_type = Mesh::SUBDIVISION_NONE;
+
+		PointerRNA cobj = RNA_pointer_get(&b_ob.ptr, "cycles");
+
+		if(cobj.data && b_ob.modifiers.length() > 0 && experimental) {
+			BL::Modifier mod = b_ob.modifiers[b_ob.modifiers.length()-1];
+			bool enabled = preview ? mod.show_viewport() : mod.show_render();
+
+			if(enabled && mod.type() == BL::Modifier::type_SUBSURF && RNA_int_get(&cobj, "use_adaptive_subdivision")) {
+				BL::SubsurfModifier subsurf(mod);
+
+				if(subsurf.subdivision_type() == BL::SubsurfModifier::subdivision_type_CATMULL_CLARK) {
+					mesh->subdivision_type = Mesh::SUBDIVISION_CATMULL_CLARK;
+				}
+				else {
+					mesh->subdivision_type = Mesh::SUBDIVISION_LINEAR;
+				}
+			}
+		}
+
+		BL::Mesh b_mesh = object_to_mesh(b_data, b_ob, b_scene, true, !preview, need_undeformed, mesh->subdivision_type);
 
 		if(b_mesh) {
 			if(render_layer.use_surfaces && !hide_tris) {
-				if(subdivision)
+				if(mesh->subdivision_type != Mesh::SUBDIVISION_NONE)
 					create_subd_mesh(scene, mesh, b_ob, b_mesh, &cmesh, used_shaders,
 					                 dicing_rate, max_subdivisions);
 				else
@@ -939,7 +962,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 				create_mesh_volume_attributes(scene, b_ob, mesh, b_scene.frame_current());
 			}
 
-			if(render_layer.use_hair && !subdivision)
+			if(render_layer.use_hair && mesh->subdivision_type == Mesh::SUBDIVISION_NONE)
 				sync_curves(mesh, b_mesh, b_ob, false);
 
 			if(can_free_caches) {

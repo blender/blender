@@ -119,6 +119,14 @@ public:
 		DISPLACE_NUM_METHODS,
 	};
 
+	enum SubdivisionType {
+		SUBDIVISION_NONE,
+		SUBDIVISION_LINEAR,
+		SUBDIVISION_CATMULL_CLARK,
+	};
+
+	SubdivisionType subdivision_type;
+
 	/* Mesh Data */
 	enum GeometryFlags {
 		GEOMETRY_NONE      = 0,
