@@ -547,6 +547,9 @@ ccl_device_inline float fast_erff(float x)
 	const float a5 = 0.0002765672f;
 	const float a6 = 0.0000430638f;
 	const float a = fabsf(x);
+	if(a >= 12.3f) {
+		return copysignf(1.0f, x);
+	}
 	const float b = 1.0f - (1.0f - a);  /* Crush denormals. */
 	const float r = madd(madd(madd(madd(madd(madd(a6, b, a5), b, a4), b, a3), b, a2), b, a1), b, 1.0f);
 	const float s = r * r;  /* ^2 */
