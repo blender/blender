@@ -2224,7 +2224,6 @@ Mesh *BKE_mesh_new_from_object(
 {
 	Mesh *tmpmesh;
 	Curve *tmpcu = NULL, *copycu;
-	Object *tmpobj = NULL;
 	int render = settings == eModifierMode_Render, i;
 	int cage = !apply_modifiers;
 
@@ -2239,7 +2238,7 @@ Mesh *BKE_mesh_new_from_object(
 			int uv_from_orco;
 
 			/* copies object and modifiers (but not the data) */
-			tmpobj = BKE_object_copy_ex(bmain, ob, true);
+			Object *tmpobj = BKE_object_copy_ex(bmain, ob, true);
 			tmpcu = (Curve *)tmpobj->data;
 			id_us_min(&tmpcu->id);
 
@@ -2440,7 +2439,7 @@ Mesh *BKE_mesh_new_from_object(
 	}
 
 	/* make sure materials get updated in object */
-	test_object_materials(tmpobj ? tmpobj : ob, &tmpmesh->id);
+	test_object_materials(ob, &tmpmesh->id);
 
 	return tmpmesh;
 }
