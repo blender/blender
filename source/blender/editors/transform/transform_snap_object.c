@@ -143,10 +143,6 @@ struct RayCastAll_Data {
 	Object *ob;
 	unsigned int ob_uuid;
 
-	/* DerivedMesh only */
-	DerivedMesh *dm;
-	const struct MLoopTri *dm_looptri;
-
 	/* output data */
 	ListBase *hit_list;
 	bool retval;
@@ -508,7 +504,7 @@ static void nearest2d_precalc(
 	}
 }
 
-static bool walk_parent_snap_project_cb(const BVHTreeAxisRange *bounds, void *user_data)
+static bool cb_walk_parent_snap_project(const BVHTreeAxisRange *bounds, void *user_data)
 {
 	Object_Nearest2dPrecalc *data = user_data;
 	float local_bvmin[3], local_bvmax[3];
@@ -676,7 +672,7 @@ static bool walk_parent_snap_project_cb(const BVHTreeAxisRange *bounds, void *us
 	return rdist < data->projectdefs.dist_px_sq;
 }
 
-static bool cb_leaf_snap_vert(const BVHTreeAxisRange *bounds, int index, void *userdata)
+static bool cb_walk_leaf_snap_vert(const BVHTreeAxisRange *bounds, int index, void *userdata)
 {
 	struct Object_Nearest2dPrecalc *neasrest_precalc = userdata;
 	const float co[3] = {
@@ -684,8 +680,12 @@ static bool cb_leaf_snap_vert(const BVHTreeAxisRange *bounds, int index, void *u
 		(bounds[1].min + bounds[1].max) / 2,
 		(bounds[2].min + bounds[2].max) / 2,
 	};
+
+	/* Currently the `BLI_bvhtree_walk_dfs` is being used only in the perspective view mode (VIEW_PROJ_PERSP)
+	 * It could be used in orthographic view mode too (VIEW_PROJ_ORTHO),
+	 * but in this case the `BLI_bvhtree_find_nearest_to_ray` is more efficient.*/
 	if (test_projected_vert_dist(
-	        &neasrest_precalc->projectdefs, co, true,
+	        &neasrest_precalc->projectdefs, co, VIEW_PROJ_PERSP,
 	        neasrest_precalc->mval, neasrest_precalc->depth_range,
 	        neasrest_precalc->co))
 	{
@@ -695,17 +695,20 @@ static bool cb_leaf_snap_vert(const BVHTreeAxisRange *bounds, int index, void *u
 	return true;
 }
 
-static bool cb_leaf_snap_edge(const BVHTreeAxisRange *UNUSED(bounds), int index, void *userdata)
+static bool cb_walk_leaf_snap_edge(const BVHTreeAxisRange *UNUSED(bounds), int index, void *userdata)
 {
 	struct Object_Nearest2dPrecalc *neasrest_precalc = userdata;
 
 	const float *v_pair[2];
 	get_edge_verts(neasrest_precalc->userdata, index, v_pair);
 
+	/* Currently the `BLI_bvhtree_walk_dfs` is being used only in the perspective view mode (VIEW_PROJ_PERSP)
+	 * It could be used in orthographic view mode too (VIEW_PROJ_ORTHO),
+	 * but in this case the `BLI_bvhtree_find_nearest_to_ray` is more efficient.*/
 	if (test_projected_edge_dist(
 	        &neasrest_precalc->projectdefs, v_pair[0], v_pair[1],
 	        neasrest_precalc->ray_origin_local, neasrest_precalc->ray_direction_local,
-	        true, neasrest_precalc->mval, neasrest_precalc->depth_range,
+	        VIEW_PROJ_PERSP, neasrest_precalc->mval, neasrest_precalc->depth_range,
 	        neasrest_precalc->co))
 	{
 		sub_v3_v3v3(neasrest_precalc->no, v_pair[0], v_pair[1]);
@@ -1028,7 +1031,7 @@ struct NearestDM_Data {
 	float *ray_depth;
 };
 
-static void test_vert_depth_cb(
+static void test_vert_ray_dist_cb(
         void *userdata, const float origin[3], const float dir[3],
         const float scale[3], int index, BVHTreeNearest *nearest)
 {
@@ -1047,7 +1050,7 @@ static void test_vert_depth_cb(
 	}
 }
 
-static void test_edge_depth_cb(
+static void test_edge_ray_dist_cb(
         void *userdata, const float origin[3], const float dir[3],
         const float scale[3], int index, BVHTreeNearest *nearest)
 {
@@ -1258,7 +1261,6 @@ static bool snapDerivedMesh(
 				data.local_scale = local_scale;
 				data.ob = ob;
 				data.ob_uuid = ob_index;
-				data.dm = dm;
 				data.hit_list = r_hit_list;
 				data.retval = retval;
 
@@ -1269,10 +1271,7 @@ static bool snapDerivedMesh(
 				retval = data.retval;
 			}
 			else {
-				BVHTreeRayHit hit;
-
-				hit.index = -1;
-				hit.dist = local_depth;
+				BVHTreeRayHit hit = {.index = -1, .dist = local_depth};
 
 				if (BLI_bvhtree_ray_cast(
 				        treedata->tree, ray_start_local, ray_normal_local, 0.0f,
@@ -1319,13 +1318,13 @@ static bool snapDerivedMesh(
 				nearest2d_precalc(&neasrest_precalc, ar, *dist_px, obmat,
 				        ray_org_local, ray_normal_local, mval, depth_range);
 
-				BVHTree_WalkLeafCallback callback = (snap_to == SCE_SNAP_MODE_VERTEX) ?
-				                                     cb_leaf_snap_vert : cb_leaf_snap_edge;
+				BVHTree_WalkLeafCallback cb_walk_leaf =
+				        (snap_to == SCE_SNAP_MODE_VERTEX) ?
+				        cb_walk_leaf_snap_vert : cb_walk_leaf_snap_edge;
 
 				BLI_bvhtree_walk_dfs(
 				        treedata->tree,
-				        walk_parent_snap_project_cb,
-				        callback, cb_nearest_walk_order, &neasrest_precalc);
+				        cb_walk_parent_snap_project, cb_walk_leaf, cb_nearest_walk_order, &neasrest_precalc);
 
 				if (neasrest_precalc.index != -1) {
 					copy_v3_v3(r_loc, neasrest_precalc.co);
@@ -1356,13 +1355,13 @@ static bool snapDerivedMesh(
 				userdata.depth_range = depth_range;
 				userdata.ray_depth = ray_depth;
 
-				BVHTree_NearestToRayCallback callback =
+				BVHTree_NearestToRayCallback cb_test_ray_dist =
 				        (snap_to == SCE_SNAP_MODE_VERTEX) ?
-				        test_vert_depth_cb : test_edge_depth_cb;
+				        test_vert_ray_dist_cb : test_edge_ray_dist_cb;
 
 				if (BLI_bvhtree_find_nearest_to_ray(
 				        treedata->tree, ray_org_local, ray_normal_local,
-				        false, ob_scale, &nearest, callback, &userdata) != -1)
+				        false, ob_scale, &nearest, cb_test_ray_dist, &userdata) != -1)
 				{
 					copy_v3_v3(r_loc, nearest.co);
 					mul_m4_v3(obmat, r_loc);
@@ -1583,7 +1582,6 @@ static bool snapEditMesh(
 				data.local_scale = local_scale;
 				data.ob = ob;
 				data.ob_uuid = ob_index;
-				data.dm = NULL;
 				data.hit_list = r_hit_list;
 				data.retval = retval;
 
@@ -1594,10 +1592,7 @@ static bool snapEditMesh(
 				retval = data.retval;
 			}
 			else {
-				BVHTreeRayHit hit;
-
-				hit.index = -1;
-				hit.dist = local_depth;
+				BVHTreeRayHit hit = {.index = -1, .dist = local_depth};
 
 				if (BLI_bvhtree_ray_cast(
 				        treedata->tree, ray_start_local, ray_normal_local, 0.0f,
@@ -1644,13 +1639,13 @@ static bool snapEditMesh(
 				nearest2d_precalc(&neasrest_precalc, ar, *dist_px, obmat,
 				        ray_org_local, ray_normal_local, mval, depth_range);
 
-				BVHTree_WalkLeafCallback callback = (snap_to == SCE_SNAP_MODE_VERTEX) ?
-				                                    cb_leaf_snap_vert : cb_leaf_snap_edge;
+				BVHTree_WalkLeafCallback cb_walk_leaf =
+				        (snap_to == SCE_SNAP_MODE_VERTEX) ?
+				        cb_walk_leaf_snap_vert : cb_walk_leaf_snap_edge;
 
 				BLI_bvhtree_walk_dfs(
 				        treedata->tree,
-				        walk_parent_snap_project_cb,
-				        callback, cb_nearest_walk_order, &neasrest_precalc);
+				        cb_walk_parent_snap_project, cb_walk_leaf, cb_nearest_walk_order, &neasrest_precalc);
 
 				if (neasrest_precalc.index != -1) {
 					copy_v3_v3(r_loc, neasrest_precalc.co);
@@ -1681,13 +1676,13 @@ static bool snapEditMesh(
 				userdata.depth_range = depth_range;
 				userdata.ray_depth = ray_depth;
 
-				BVHTree_NearestToRayCallback callback =
+				BVHTree_NearestToRayCallback cb_test_ray_dist =
 				        (snap_to == SCE_SNAP_MODE_VERTEX) ?
-				        test_vert_depth_cb : test_edge_depth_cb;
+				        test_vert_ray_dist_cb : test_edge_ray_dist_cb;
 
 				if (BLI_bvhtree_find_nearest_to_ray(
 				        treedata->tree, ray_org_local, ray_normal_local,
-				        false, ob_scale, &nearest, callback, &userdata) != -1)
+				        false, ob_scale, &nearest, cb_test_ray_dist, &userdata) != -1)
 				{
 					copy_v3_v3(r_loc, nearest.co);
 					mul_m4_v3(obmat, r_loc);
