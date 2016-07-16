@@ -174,6 +174,11 @@ ccl_device_inline float clamp(float a, float mn, float mx)
 	return min(max(a, mn), mx);
 }
 
+ccl_device_inline float mix(float a, float b, float t)
+{
+    return a + t*(b - a);
+}
+
 #endif
 
 #ifndef __KERNEL_CUDA__
@@ -217,6 +222,11 @@ ccl_device_inline float smoothstepf(float f)
 {
 	float ff = f*f;
 	return (3.0f*ff - 2.0f*ff*f);
+}
+
+ccl_device_inline int mod(int x, int m)
+{
+	return (x % m + m) % m;
 }
 
 /* Float2 Vector */
@@ -651,6 +661,15 @@ ccl_device_inline float3 interp(float3 a, float3 b, float t)
 {
 	return a + t*(b - a);
 }
+
+#ifndef __KERNEL_OPENCL__
+
+ccl_device_inline float3 mix(float3 a, float3 b, float t)
+{
+	return a + t*(b - a);
+}
+
+#endif
 
 ccl_device_inline bool is_zero(const float3 a)
 {

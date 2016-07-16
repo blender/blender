@@ -45,14 +45,17 @@ static inline BL::Mesh object_to_mesh(BL::BlendData& data,
                                       BL::Scene& scene,
                                       bool apply_modifiers,
                                       bool render,
-                                      bool calc_undeformed)
+                                      bool calc_undeformed,
+                                      bool subdivision)
 {
 	BL::Mesh me = data.meshes.new_from_object(scene, object, apply_modifiers, (render)? 2: 1, false, calc_undeformed);
 	if((bool)me) {
 		if(me.use_auto_smooth()) {
 			me.calc_normals_split();
 		}
-		me.calc_tessface(true);
+		if(!subdivision) {
+			me.calc_tessface(true);
+		}
 	}
 	return me;
 }

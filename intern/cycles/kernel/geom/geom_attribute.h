@@ -25,6 +25,24 @@ CCL_NAMESPACE_BEGIN
  * Lookup of attributes is different between OSL and SVM, as OSL is ustring
  * based while for SVM we use integer ids. */
 
+ccl_device_inline uint subd_triangle_patch(KernelGlobals *kg, const ShaderData *sd);
+
+ccl_device_inline uint attribute_primitive_type(KernelGlobals *kg, const ShaderData *sd)
+{
+#ifdef __HAIR__
+	if(ccl_fetch(sd, type) & PRIMITIVE_ALL_CURVE) {
+		return ATTR_PRIM_CURVE;
+	}
+	else
+#endif
+	if(subd_triangle_patch(kg, sd) != ~0) {
+		return ATTR_PRIM_SUBD;
+	}
+	else {
+		return ATTR_PRIM_TRIANGLE;
+	}
+}
+
 /* Find attribute based on ID */
 
 ccl_device_inline int find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id, AttributeElement *elem)
@@ -34,9 +52,7 @@ ccl_device_inline int find_attribute(KernelGlobals *kg, const ShaderData *sd, ui
 
 	/* for SVM, find attribute by unique id */
 	uint attr_offset = ccl_fetch(sd, object)*kernel_data.bvh.attributes_map_stride;
-#ifdef __HAIR__
-	attr_offset = (ccl_fetch(sd, type) & PRIMITIVE_ALL_CURVE)? attr_offset + ATTR_PRIM_CURVE: attr_offset;
-#endif
+	attr_offset += attribute_primitive_type(kg, sd);
 	uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 	
 	while(attr_map.x != id) {

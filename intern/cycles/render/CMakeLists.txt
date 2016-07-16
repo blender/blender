@@ -30,6 +30,7 @@ set(SRC
 	light.cpp
 	mesh.cpp
 	mesh_displace.cpp
+	mesh_subdivision.cpp
 	nodes.cpp
 	object.cpp
 	osl.cpp

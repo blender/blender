@@ -35,7 +35,6 @@
 #include "shader.h"
 #include "scene.h"
 
-#include "subd_mesh.h"
 #include "subd_patch.h"
 #include "subd_split.h"
 
@@ -417,6 +416,7 @@ static void xml_read_mesh(const XMLReadState& state, pugi::xml_node node)
 	xml_read_int_array(verts, node, "verts");
 	xml_read_int_array(nverts, node, "nverts");
 
+#if 0
 	if(xml_equal_string(node, "subdivision", "catmull-clark")) {
 		/* create subd mesh */
 		SubdMesh sdmesh;
@@ -460,7 +460,9 @@ static void xml_read_mesh(const XMLReadState& state, pugi::xml_node node)
 		DiagSplit dsplit(sdparams);
 		sdmesh.tessellate(&dsplit);
 	}
-	else {
+	else
+#endif
+	{
 		/* create vertices */
 		mesh->verts = P;
 
@@ -568,7 +570,7 @@ static void xml_read_patch(const XMLReadState& state, pugi::xml_node node)
 		mesh->used_shaders.push_back(state.shader);
 
 		/* split */
-		SubdParams sdparams(mesh, 0, state.smooth);
+		SubdParams sdparams(mesh);
 		xml_read_float(&sdparams.dicing_rate, node, "dicing_rate");
 
 		DiagSplit dsplit(sdparams);

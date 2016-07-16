@@ -33,8 +33,6 @@ class Patch;
 
 struct SubdParams {
 	Mesh *mesh;
-	int shader;
-	bool smooth;
 	bool ptex;
 
 	int test_steps;
@@ -44,11 +42,9 @@ struct SubdParams {
 	Camera *camera;
 	Transform objecttoworld;
 
-	SubdParams(Mesh *mesh_, int shader_, bool smooth_ = true, bool ptex_ = false)
+	SubdParams(Mesh *mesh_, bool ptex_ = false)
 	{
 		mesh = mesh_;
-		shader = shader_;
-		smooth = smooth_;
 		ptex = ptex_;
 
 		test_steps = 3;
@@ -133,46 +129,6 @@ public:
 	float quad_area(const float3& a, const float3& b, const float3& c, const float3& d);
 	float scale_factor(SubPatch& sub, EdgeFactors& ef, int Mu, int Mv);
 
-	void dice(SubPatch& sub, EdgeFactors& ef);
-};
-
-/* Triangle EdgeDice
- *
- * Edge tessellation factors and subpatch coordinates are as follows:
- *
- *        Pw
- *        /\
- *    tv /  \ tu
- *      /    \
- *     /      \
- *  Pu -------- Pv
- *        tw     
- */
-
-class TriangleDice : public EdgeDice {
-public:
-	struct SubPatch {
-		Patch *patch;
-
-		float2 Pu;
-		float2 Pv;
-		float2 Pw;
-	};
-
-	struct EdgeFactors {
-		int tu;
-		int tv;
-		int tw;
-	};
-
-	explicit TriangleDice(const SubdParams& params);
-
-	void reserve(EdgeFactors& ef, int M);
-
-	float2 map_uv(SubPatch& sub, float2 uv);
-	int add_vert(SubPatch& sub, float2 uv);
-
-	void add_grid(SubPatch& sub, EdgeFactors& ef, int M);
 	void dice(SubPatch& sub, EdgeFactors& ef);
 };
 

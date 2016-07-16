@@ -573,8 +573,13 @@ typedef enum PrimitiveType {
 
 /* Attributes */
 
-#define ATTR_PRIM_TYPES		2
-#define ATTR_PRIM_CURVE		1
+typedef enum AttributePrimitive {
+	ATTR_PRIM_TRIANGLE = 0,
+	ATTR_PRIM_CURVE,
+	ATTR_PRIM_SUBD,
+
+	ATTR_PRIM_TYPES
+} AttributePrimitive;
 
 typedef enum AttributeElement {
 	ATTR_ELEMENT_NONE,

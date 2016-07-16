@@ -35,9 +35,6 @@
 #include "util_progress.h"
 #include "util_set.h"
 
-#include "subd_split.h"
-#include "subd_patch.h"
-
 CCL_NAMESPACE_BEGIN
 
 /* Triangle */
@@ -104,6 +101,18 @@ void Mesh::Curve::bounds_grow(const int k,
 	bounds.grow(upper, mr);
 }
 
+/* SubdFace */
+
+float3 Mesh::SubdFace::normal(const Mesh *mesh) const
+{
+	float3 v0 = mesh->verts[mesh->subd_face_corners[start_corner+0]];
+	float3 v1 = mesh->verts[mesh->subd_face_corners[start_corner+1]];
+	float3 v2 = mesh->verts[mesh->subd_face_corners[start_corner+2]];
+
+	return safe_normalize(cross(v1 - v0, v2 - v0));
+}
+
+
 /* Mesh */
 
 NODE_DEFINE(Mesh)
@@ -150,13 +159,22 @@ Mesh::Mesh()
 	curve_offset = 0;
 	curvekey_offset = 0;
 
+	patch_offset = 0;
+	face_offset = 0;
+	corner_offset = 0;
+
+	num_subd_verts = 0;
+
 	attributes.triangle_mesh = this;
 	curve_attributes.curve_mesh = this;
+	subd_attributes.subd_mesh = this;
 
 	geometry_flags = GEOMETRY_NONE;
 
 	has_volume = false;
 	has_surface_bssrdf = false;
+
+	num_ngons = 0;
 }
 
 Mesh::~Mesh()
@@ -171,7 +189,10 @@ void Mesh::resize_mesh(int numverts, int numtris)
 	shader.resize(numtris);
 	smooth.resize(numtris);
 
-	forms_quad.resize(numtris);
+	if(subd_faces.size()) {
+		triangle_patch.resize(numtris);
+		vert_patch_uv.resize(numverts);
+	}
 
 	attributes.resize();
 }
@@ -184,7 +205,10 @@ void Mesh::reserve_mesh(int numverts, int numtris)
 	shader.reserve(numtris);
 	smooth.reserve(numtris);
 
-	forms_quad.reserve(numtris);
+	if(subd_faces.size()) {
+		triangle_patch.reserve(numtris);
+		vert_patch_uv.reserve(numverts);
+	}
 
 	attributes.resize(true);
 }
@@ -209,6 +233,24 @@ void Mesh::reserve_curves(int numcurves, int numkeys)
 	curve_attributes.resize(true);
 }
 
+void Mesh::resize_subd_faces(int numfaces, int num_ngons_, int numcorners)
+{
+	subd_faces.resize(numfaces);
+	subd_face_corners.resize(numcorners);
+	num_ngons = num_ngons_;
+
+	subd_attributes.resize();
+}
+
+void Mesh::reserve_subd_faces(int numfaces, int num_ngons_, int numcorners)
+{
+	subd_faces.reserve(numfaces);
+	subd_face_corners.reserve(numcorners);
+	num_ngons = num_ngons_;
+
+	subd_attributes.resize(true);
+}
+
 void Mesh::clear()
 {
 	/* clear all verts and triangles */
@@ -217,15 +259,22 @@ void Mesh::clear()
 	shader.clear();
 	smooth.clear();
 
-	forms_quad.clear();
+	triangle_patch.clear();
+	vert_patch_uv.clear();
 
 	curve_keys.clear();
 	curve_radius.clear();
 	curve_first_key.clear();
 	curve_shader.clear();
 
+	subd_faces.clear();
+	subd_face_corners.clear();
+
+	num_subd_verts = 0;
+
 	attributes.clear();
 	curve_attributes.clear();
+	subd_attributes.clear();
 	used_shaders.clear();
 
 	transform_applied = false;
@@ -247,27 +296,46 @@ int Mesh::split_vertex(int vertex)
 		}
 	}
 
+	foreach(Attribute& attr, subd_attributes.attributes) {
+		if(attr.element == ATTR_ELEMENT_VERTEX) {
+			vector<char> tmp(attr.data_sizeof());
+			memcpy(&tmp[0], attr.data() + tmp.size()*vertex, tmp.size());
+			attr.add(&tmp[0]);
+		}
+	}
+
 	return verts.size() - 1;
 }
 
 void Mesh::add_vertex(float3 P)
 {
 	verts.push_back_reserved(P);
+
+	if(subd_faces.size()) {
+		vert_patch_uv.push_back_reserved(make_float2(0.0f, 0.0f));
+	}
 }
 
 void Mesh::add_vertex_slow(float3 P)
 {
 	verts.push_back_slow(P);
+
+	if(subd_faces.size()) {
+		vert_patch_uv.push_back_slow(make_float2(0.0f, 0.0f));
+	}
 }
 
-void Mesh::add_triangle(int v0, int v1, int v2, int shader_, bool smooth_, bool forms_quad_)
+void Mesh::add_triangle(int v0, int v1, int v2, int shader_, bool smooth_)
 {
 	triangles.push_back_reserved(v0);
 	triangles.push_back_reserved(v1);
 	triangles.push_back_reserved(v2);
 	shader.push_back_reserved(shader_);
 	smooth.push_back_reserved(smooth_);
-	forms_quad.push_back_reserved(forms_quad_);
+
+	if(subd_faces.size()) {
+		triangle_patch.push_back_reserved(-1);
+	}
 }
 
 void Mesh::add_curve_key(float3 co, float radius)
@@ -280,6 +348,25 @@ void Mesh::add_curve(int first_key, int shader)
 {
 	curve_first_key.push_back_reserved(first_key);
 	curve_shader.push_back_reserved(shader);
+}
+
+void Mesh::add_subd_face(int* corners, int num_corners, int shader_, bool smooth_)
+{
+	size_t start_corner = subd_face_corners.size();
+
+	for(int i = 0; i < num_corners; i++) {
+		subd_face_corners.push_back_reserved(corners[i]);
+	}
+
+	int ptex_offset = 0;
+
+	if(subd_faces.size()) {
+		SubdFace& s = subd_faces[subd_faces.size()-1];
+		ptex_offset = s.ptex_offset + s.num_ptex_faces();
+	}
+
+	SubdFace face = {start_corner, num_corners, shader_, smooth_, ptex_offset};
+	subd_faces.push_back_reserved(face);
 }
 
 void Mesh::compute_bounds()
@@ -505,10 +592,23 @@ void Mesh::pack_normals(Scene *scene, uint *tri_shader, float4 *vnormal)
 
 void Mesh::pack_verts(const vector<uint>& tri_prim_index,
                       uint4 *tri_vindex,
+                      uint *tri_patch,
+                      float2 *tri_patch_uv,
                       size_t vert_offset,
                       size_t tri_offset)
 {
-	const size_t triangles_size = num_triangles();
+	size_t verts_size = verts.size();
+
+	if(verts_size && subd_faces.size()) {
+		float2 *vert_patch_uv_ptr = &vert_patch_uv[0];
+
+		for(size_t i = 0; i < verts_size; i++) {
+			tri_patch_uv[i] = vert_patch_uv_ptr[i];
+		}
+	}
+
+	size_t triangles_size = num_triangles();
+
 	if(triangles_size) {
 		for(size_t i = 0; i < triangles_size; i++) {
 			Triangle t = get_triangle(i);
@@ -516,6 +616,8 @@ void Mesh::pack_verts(const vector<uint>& tri_prim_index,
 			                           t.v[1] + vert_offset,
 			                           t.v[2] + vert_offset,
 			                           tri_prim_index[i + tri_offset]);
+
+			tri_patch[i] = (!subd_faces.size()) ? -1 : (triangle_patch[i]*8 + patch_offset);
 		}
 	}
 }
@@ -552,6 +654,55 @@ void Mesh::pack_curves(Scene *scene, float4 *curve_key_co, float4 *curve_data, s
 		}
 	}
 }
+
+void Mesh::pack_patches(uint *patch_data, uint vert_offset, uint face_offset, uint corner_offset)
+{
+	size_t num_faces = subd_faces.size();
+	int ngons = 0;
+
+	if(num_faces) {
+		for(size_t f = 0; f < num_faces; f++) {
+			SubdFace face = subd_faces[f];
+
+			if(face.is_quad()) {
+				int c[4];
+				memcpy(c, &subd_face_corners[face.start_corner], sizeof(int)*4);
+
+				*(patch_data++) = c[0] + vert_offset;
+				*(patch_data++) = c[1] + vert_offset;
+				*(patch_data++) = c[2] + vert_offset;
+				*(patch_data++) = c[3] + vert_offset;
+
+				*(patch_data++) = f+face_offset;
+				*(patch_data++) = face.num_corners;
+				*(patch_data++) = face.start_corner + corner_offset;
+				*(patch_data++) = 0;
+			}
+			else {
+				for(int i = 0; i < face.num_corners; i++) {
+					int c[4];
+					c[0] = subd_face_corners[face.start_corner + mod(i + 0, face.num_corners)];
+					c[1] = subd_face_corners[face.start_corner + mod(i + 1, face.num_corners)];
+					c[2] = verts.size() - num_subd_verts + ngons;
+					c[3] = subd_face_corners[face.start_corner + mod(i - 1, face.num_corners)];
+
+					*(patch_data++) = c[0] + vert_offset;
+					*(patch_data++) = c[1] + vert_offset;
+					*(patch_data++) = c[2] + vert_offset;
+					*(patch_data++) = c[3] + vert_offset;
+
+					*(patch_data++) = f+face_offset;
+					*(patch_data++) = face.num_corners | (i << 16);
+					*(patch_data++) = face.start_corner + corner_offset;
+					*(patch_data++) = subd_face_corners.size() + ngons + corner_offset;
+				}
+
+				ngons++;
+			}
+		}
+	}
+}
+
 
 void Mesh::compute_bvh(DeviceScene *dscene,
                        SceneParams *params,
@@ -682,8 +833,9 @@ void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<Att
 			osl_attr.value = attr;
 			osl_attr.offset = 0;
 
-			og->attribute_map[i*ATTR_PRIM_TYPES][attr.name()] = osl_attr;
+			og->attribute_map[i*ATTR_PRIM_TYPES + ATTR_PRIM_TRIANGLE][attr.name()] = osl_attr;
 			og->attribute_map[i*ATTR_PRIM_TYPES + ATTR_PRIM_CURVE][attr.name()] = osl_attr;
+			og->attribute_map[i*ATTR_PRIM_TYPES + ATTR_PRIM_SUBD][attr.name()] = osl_attr;
 		}
 
 		/* find mesh attributes */
@@ -713,11 +865,11 @@ void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<Att
 				if(req.std != ATTR_STD_NONE) {
 					/* if standard attribute, add lookup by geom: name convention */
 					ustring stdname(string("geom:") + string(Attribute::standard_name(req.std)));
-					og->attribute_map[i*ATTR_PRIM_TYPES][stdname] = osl_attr;
+					og->attribute_map[i*ATTR_PRIM_TYPES + ATTR_PRIM_TRIANGLE][stdname] = osl_attr;
 				}
 				else if(req.name != ustring()) {
 					/* add lookup by mesh attribute name */
-					og->attribute_map[i*ATTR_PRIM_TYPES][req.name] = osl_attr;
+					og->attribute_map[i*ATTR_PRIM_TYPES + ATTR_PRIM_TRIANGLE][req.name] = osl_attr;
 				}
 			}
 
@@ -740,6 +892,28 @@ void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<Att
 				else if(req.name != ustring()) {
 					/* add lookup by mesh attribute name */
 					og->attribute_map[i*ATTR_PRIM_TYPES + ATTR_PRIM_CURVE][req.name] = osl_attr;
+				}
+			}
+
+			if(req.subd_element != ATTR_ELEMENT_NONE) {
+				osl_attr.elem = req.subd_element;
+				osl_attr.offset = req.subd_offset;
+
+				if(req.subd_type == TypeDesc::TypeFloat)
+					osl_attr.type = TypeDesc::TypeFloat;
+				else if(req.subd_type == TypeDesc::TypeMatrix)
+					osl_attr.type = TypeDesc::TypeMatrix;
+				else
+					osl_attr.type = TypeDesc::TypeColor;
+
+				if(req.std != ATTR_STD_NONE) {
+					/* if standard attribute, add lookup by geom: name convention */
+					ustring stdname(string("geom:") + string(Attribute::standard_name(req.std)));
+					og->attribute_map[i*ATTR_PRIM_TYPES + ATTR_PRIM_SUBD][stdname] = osl_attr;
+				}
+				else if(req.name != ustring()) {
+					/* add lookup by mesh attribute name */
+					og->attribute_map[i*ATTR_PRIM_TYPES + ATTR_PRIM_SUBD][req.name] = osl_attr;
 				}
 			}
 		}
@@ -822,22 +996,32 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 			}
 
 			index++;
+
+			if(mesh->subd_faces.size()) {
+				attr_map[index].x = id;
+				attr_map[index].y = req.subd_element;
+				attr_map[index].z = as_uint(req.subd_offset);
+
+				if(req.subd_type == TypeDesc::TypeFloat)
+					attr_map[index].w = NODE_ATTR_FLOAT;
+				else if(req.subd_type == TypeDesc::TypeMatrix)
+					attr_map[index].w = NODE_ATTR_MATRIX;
+				else
+					attr_map[index].w = NODE_ATTR_FLOAT3;
+			}
+
+			index++;
 		}
 
 		/* terminator */
-		attr_map[index].x = ATTR_STD_NONE;
-		attr_map[index].y = 0;
-		attr_map[index].z = 0;
-		attr_map[index].w = 0;
+		for(int i = 0; i < ATTR_PRIM_TYPES; i++) {
+			attr_map[index].x = ATTR_STD_NONE;
+			attr_map[index].y = 0;
+			attr_map[index].z = 0;
+			attr_map[index].w = 0;
 
-		index++;
-
-		attr_map[index].x = ATTR_STD_NONE;
-		attr_map[index].y = 0;
-		attr_map[index].z = 0;
-		attr_map[index].w = 0;
-
-		index++;
+			index++;
+		}
 	}
 
 	/* copy to device */
@@ -847,17 +1031,13 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 
 static void update_attribute_element_size(Mesh *mesh,
                                           Attribute *mattr,
+                                          AttributePrimitive prim,
                                           size_t *attr_float_size,
                                           size_t *attr_float3_size,
                                           size_t *attr_uchar4_size)
 {
 	if(mattr) {
-		size_t size = mattr->element_size(
-			mesh->verts.size(),
-			mesh->num_triangles(),
-			mesh->motion_steps,
-			mesh->num_curves(),
-			mesh->curve_keys.size());
+		size_t size = mattr->element_size(mesh, prim);
 
 		if(mattr->element == ATTR_ELEMENT_VOXEL) {
 			/* pass */
@@ -885,6 +1065,7 @@ static void update_attribute_element_offset(Mesh *mesh,
                                             vector<uchar4>& attr_uchar4,
                                             size_t& attr_uchar4_offset,
                                             Attribute *mattr,
+                                            AttributePrimitive prim,
                                             TypeDesc& type,
                                             int& offset,
                                             AttributeElement& element)
@@ -895,12 +1076,7 @@ static void update_attribute_element_offset(Mesh *mesh,
 		type = mattr->type;
 
 		/* store attribute data in arrays */
-		size_t size = mattr->element_size(
-			mesh->verts.size(),
-			mesh->num_triangles(),
-			mesh->motion_steps,
-			mesh->num_curves(),
-			mesh->curve_keys.size());
+		size_t size = mattr->element_size(mesh, prim);
 
 		if(mattr->element == ATTR_ELEMENT_VOXEL) {
 			/* store slot in offset value */
@@ -954,10 +1130,18 @@ static void update_attribute_element_offset(Mesh *mesh,
 			offset -= mesh->vert_offset;
 		else if(element == ATTR_ELEMENT_VERTEX_MOTION)
 			offset -= mesh->vert_offset;
-		else if(element == ATTR_ELEMENT_FACE)
-			offset -= mesh->tri_offset;
-		else if(element == ATTR_ELEMENT_CORNER || element == ATTR_ELEMENT_CORNER_BYTE)
-			offset -= 3*mesh->tri_offset;
+		else if(element == ATTR_ELEMENT_FACE) {
+			if(prim == ATTR_PRIM_TRIANGLE)
+				offset -= mesh->tri_offset;
+			else
+				offset -= mesh->face_offset;
+		}
+		else if(element == ATTR_ELEMENT_CORNER || element == ATTR_ELEMENT_CORNER_BYTE) {
+			if(prim == ATTR_PRIM_TRIANGLE)
+				offset -= 3*mesh->tri_offset;
+			else
+				offset -= mesh->corner_offset;
+		}
 		else if(element == ATTR_ELEMENT_CURVE)
 			offset -= mesh->curve_offset;
 		else if(element == ATTR_ELEMENT_CURVE_KEY)
@@ -1007,23 +1191,23 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 		foreach(AttributeRequest& req, attributes.requests) {
 			Attribute *triangle_mattr = mesh->attributes.find(req);
 			Attribute *curve_mattr = mesh->curve_attributes.find(req);
-
-			/* todo: get rid of this exception, it's only here for giving some
-			 * working texture coordinate for subdivision as we can't preserve
-			 * any attributes yet */
-			if(!triangle_mattr && req.std == ATTR_STD_GENERATED) {
-				triangle_mattr = mesh->attributes.add(ATTR_STD_GENERATED);
-				if(mesh->verts.size())
-					memcpy(triangle_mattr->data_float3(), &mesh->verts[0], sizeof(float3)*mesh->verts.size());
-			}
+			Attribute *subd_mattr = mesh->subd_attributes.find(req);
 
 			update_attribute_element_size(mesh,
 			                              triangle_mattr,
+			                              ATTR_PRIM_TRIANGLE,
 			                              &attr_float_size,
 			                              &attr_float3_size,
 			                              &attr_uchar4_size);
 			update_attribute_element_size(mesh,
 			                              curve_mattr,
+			                              ATTR_PRIM_CURVE,
+			                              &attr_float_size,
+			                              &attr_float3_size,
+			                              &attr_uchar4_size);
+			update_attribute_element_size(mesh,
+			                              subd_mattr,
+			                              ATTR_PRIM_SUBD,
 			                              &attr_float_size,
 			                              &attr_float3_size,
 			                              &attr_uchar4_size);
@@ -1048,12 +1232,14 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 		foreach(AttributeRequest& req, attributes.requests) {
 			Attribute *triangle_mattr = mesh->attributes.find(req);
 			Attribute *curve_mattr = mesh->curve_attributes.find(req);
+			Attribute *subd_mattr = mesh->subd_attributes.find(req);
 
 			update_attribute_element_offset(mesh,
 			                                attr_float, attr_float_offset,
 			                                attr_float3, attr_float3_offset,
 			                                attr_uchar4, attr_uchar4_offset,
 			                                triangle_mattr,
+			                                ATTR_PRIM_TRIANGLE,
 			                                req.triangle_type,
 			                                req.triangle_offset,
 			                                req.triangle_element);
@@ -1063,9 +1249,20 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 			                                attr_float3, attr_float3_offset,
 			                                attr_uchar4, attr_uchar4_offset,
 			                                curve_mattr,
+			                                ATTR_PRIM_CURVE,
 			                                req.curve_type,
 			                                req.curve_offset,
 			                                req.curve_element);
+
+			update_attribute_element_offset(mesh,
+			                                attr_float, attr_float_offset,
+			                                attr_float3, attr_float3_offset,
+			                                attr_uchar4, attr_uchar4_offset,
+			                                subd_mattr,
+			                                ATTR_PRIM_SUBD,
+			                                req.subd_type,
+			                                req.subd_offset,
+			                                req.subd_element);
 
 			if(progress.get_cancel()) return;
 		}
@@ -1100,19 +1297,37 @@ void MeshManager::mesh_calc_offset(Scene *scene)
 {
 	size_t vert_size = 0;
 	size_t tri_size = 0;
+
 	size_t curve_key_size = 0;
 	size_t curve_size = 0;
+
+	size_t patch_size = 0;
+	size_t face_size = 0;
+	size_t corner_size = 0;
 
 	foreach(Mesh *mesh, scene->meshes) {
 		mesh->vert_offset = vert_size;
 		mesh->tri_offset = tri_size;
+
 		mesh->curvekey_offset = curve_key_size;
 		mesh->curve_offset = curve_size;
 
+		mesh->patch_offset = patch_size;
+		mesh->face_offset = face_size;
+		mesh->corner_offset = corner_size;
+
 		vert_size += mesh->verts.size();
 		tri_size += mesh->num_triangles();
+
 		curve_key_size += mesh->curve_keys.size();
 		curve_size += mesh->num_curves();
+
+		if(mesh->subd_faces.size()) {
+			Mesh::SubdFace& last = mesh->subd_faces[mesh->subd_faces.size()-1];
+			patch_size += (last.ptex_offset + last.num_ptex_faces()) * 8;
+		}
+		face_size += mesh->subd_faces.size();
+		corner_size += mesh->subd_face_corners.size();
 	}
 }
 
@@ -1125,14 +1340,25 @@ void MeshManager::device_update_mesh(Device *device,
 	/* Count. */
 	size_t vert_size = 0;
 	size_t tri_size = 0;
+
 	size_t curve_key_size = 0;
 	size_t curve_size = 0;
+
+	size_t patch_size = 0;
+
 	foreach(Mesh *mesh, scene->meshes) {
 		vert_size += mesh->verts.size();
 		tri_size += mesh->num_triangles();
+
 		curve_key_size += mesh->curve_keys.size();
 		curve_size += mesh->num_curves();
+
+		if(mesh->subd_faces.size()) {
+			Mesh::SubdFace& last = mesh->subd_faces[mesh->subd_faces.size()-1];
+			patch_size += (last.ptex_offset + last.num_ptex_faces()) * 8;
+		}
 	}
+
 	/* Create mapping from triangle to primitive triangle array. */
 	vector<uint> tri_prim_index(tri_size);
 	if(for_displacement) {
@@ -1155,6 +1381,7 @@ void MeshManager::device_update_mesh(Device *device,
 			}
 		}
 	}
+
 	/* Fill in all the arrays. */
 	if(tri_size != 0) {
 		/* normals */
@@ -1163,6 +1390,8 @@ void MeshManager::device_update_mesh(Device *device,
 		uint *tri_shader = dscene->tri_shader.resize(tri_size);
 		float4 *vnormal = dscene->tri_vnormal.resize(vert_size);
 		uint4 *tri_vindex = dscene->tri_vindex.resize(tri_size);
+		uint *tri_patch = dscene->tri_patch.resize(tri_size);
+		float2 *tri_patch_uv = dscene->tri_patch_uv.resize(vert_size);
 
 		foreach(Mesh *mesh, scene->meshes) {
 			mesh->pack_normals(scene,
@@ -1170,6 +1399,8 @@ void MeshManager::device_update_mesh(Device *device,
 			                   &vnormal[mesh->vert_offset]);
 			mesh->pack_verts(tri_prim_index,
 			                 &tri_vindex[mesh->tri_offset],
+			                 &tri_patch[mesh->tri_offset],
+			                 &tri_patch_uv[mesh->vert_offset],
 			                 mesh->vert_offset,
 			                 mesh->tri_offset);
 			if(progress.get_cancel()) return;
@@ -1181,7 +1412,10 @@ void MeshManager::device_update_mesh(Device *device,
 		device->tex_alloc("__tri_shader", dscene->tri_shader);
 		device->tex_alloc("__tri_vnormal", dscene->tri_vnormal);
 		device->tex_alloc("__tri_vindex", dscene->tri_vindex);
+		device->tex_alloc("__tri_patch", dscene->tri_patch);
+		device->tex_alloc("__tri_patch_uv", dscene->tri_patch_uv);
 	}
+
 	if(curve_size != 0) {
 		progress.set_status("Updating Mesh", "Copying Strands to device");
 
@@ -1196,6 +1430,20 @@ void MeshManager::device_update_mesh(Device *device,
 		device->tex_alloc("__curve_keys", dscene->curve_keys);
 		device->tex_alloc("__curves", dscene->curves);
 	}
+
+	if(patch_size != 0) {
+		progress.set_status("Updating Mesh", "Copying Patches to device");
+
+		uint *patch_data = dscene->patches.resize(patch_size);
+
+		foreach(Mesh *mesh, scene->meshes) {
+			mesh->pack_patches(&patch_data[mesh->patch_offset], mesh->vert_offset, mesh->face_offset, mesh->corner_offset);
+			if(progress.get_cancel()) return;
+		}
+
+		device->tex_alloc("__patches", dscene->patches);
+	}
+
 	if(for_displacement) {
 		float4 *prim_tri_verts = dscene->prim_tri_verts.resize(tri_size * 3);
 		foreach(Mesh *mesh, scene->meshes) {
@@ -1433,7 +1681,9 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 			num_bvh++;
 		}
 	}
+
 	TaskPool pool;
+
 	foreach(Mesh *mesh, scene->meshes) {
 		if(mesh->need_update) {
 			pool.push(function_bind(&Mesh::compute_bvh,
@@ -1448,6 +1698,7 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 			}
 		}
 	}
+
 	TaskPool::Summary summary;
 	pool.wait_work(&summary);
 	VLOG(2) << "Objects BVH build pool statistics:\n"
@@ -1505,8 +1756,11 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	device->tex_free(dscene->tri_shader);
 	device->tex_free(dscene->tri_vnormal);
 	device->tex_free(dscene->tri_vindex);
+	device->tex_free(dscene->tri_patch);
+	device->tex_free(dscene->tri_patch_uv);
 	device->tex_free(dscene->curves);
 	device->tex_free(dscene->curve_keys);
+	device->tex_free(dscene->patches);
 	device->tex_free(dscene->attributes_map);
 	device->tex_free(dscene->attributes_float);
 	device->tex_free(dscene->attributes_float3);
@@ -1523,8 +1777,11 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	dscene->tri_shader.clear();
 	dscene->tri_vnormal.clear();
 	dscene->tri_vindex.clear();
+	dscene->tri_patch.clear();
+	dscene->tri_patch_uv.clear();
 	dscene->curves.clear();
 	dscene->curve_keys.clear();
+	dscene->patches.clear();
 	dscene->attributes_map.clear();
 	dscene->attributes_float.clear();
 	dscene->attributes_float3.clear();
@@ -1572,78 +1829,6 @@ bool Mesh::need_attribute(Scene * /*scene*/, ustring name)
 			return true;
 	
 	return false;
-}
-
-void Mesh::tessellate(DiagSplit *split)
-{
-	int num_faces = num_triangles();
-
-	add_face_normals();
-	add_vertex_normals();
-
-	Attribute *attr_fN = attributes.find(ATTR_STD_FACE_NORMAL);
-	float3 *fN = attr_fN->data_float3();
-
-	Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
-	float3 *vN = attr_vN->data_float3();
-
-	for(int f = 0; f < num_faces; f++) {
-		if(!forms_quad[f]) {
-			/* triangle */
-			LinearTrianglePatch patch;
-			Triangle triangle = get_triangle(f);
-			float3 *hull = patch.hull;
-			float3 *normals = patch.normals;
-
-			for(int i = 0; i < 3; i++) {
-				hull[i] = verts[triangle.v[i]];
-			}
-
-			if(smooth[f]) {
-				for(int i = 0; i < 3; i++) {
-					normals[i] = vN[triangle.v[i]];
-				}
-			}
-			else {
-				for(int i = 0; i < 3; i++) {
-					normals[i] = fN[f];
-				}
-			}
-
-			split->split_triangle(&patch);
-		}
-		else {
-			/* quad */
-			LinearQuadPatch patch;
-			Triangle triangle0 = get_triangle(f);
-			Triangle triangle1 = get_triangle(f+1);
-			float3 *hull = patch.hull;
-			float3 *normals = patch.normals;
-
-			hull[0] = verts[triangle0.v[0]];
-			hull[1] = verts[triangle0.v[1]];
-			hull[3] = verts[triangle0.v[2]];
-			hull[2] = verts[triangle1.v[2]];
-
-			if(smooth[f]) {
-				normals[0] = vN[triangle0.v[0]];
-				normals[1] = vN[triangle0.v[1]];
-				normals[3] = vN[triangle0.v[2]];
-				normals[2] = vN[triangle1.v[2]];
-			}
-			else {
-				for(int i = 0; i < 4; i++) {
-					normals[i] = fN[f];
-				}
-			}
-
-			split->split_quad(&patch);
-
-			// consume second triangle in quad
-			f++;
-		}
-
-	}
 }
 
 CCL_NAMESPACE_END

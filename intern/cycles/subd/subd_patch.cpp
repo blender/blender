@@ -84,32 +84,6 @@ BoundBox LinearQuadPatch::bound()
 	return bbox;
 }
 
-/* Linear Triangle Patch */
-
-void LinearTrianglePatch::eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, float u, float v)
-{
-	*P = u*hull[0] + v*hull[1] + (1.0f - u - v)*hull[2];
-
-	if(dPdu && dPdv) {
-		*dPdu = hull[0] - hull[2];
-		*dPdv = hull[1] - hull[2];
-	}
-
-	if(N) {
-		*N = normalize(u*normals[0] + v*normals[1] + (1.0f - u - v)*normals[2]);
-	}
-}
-
-BoundBox LinearTrianglePatch::bound()
-{
-	BoundBox bbox = BoundBox::empty;
-
-	for(int i = 0; i < 3; i++)
-		bbox.grow(hull[i]);
-	
-	return bbox;
-}
-
 /* Bicubic Patch */
 
 void BicubicPatch::eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, float u, float v)

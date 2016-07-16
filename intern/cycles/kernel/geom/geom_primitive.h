@@ -26,7 +26,10 @@ CCL_NAMESPACE_BEGIN
 ccl_device float primitive_attribute_float(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float *dx, float *dy)
 {
 	if(ccl_fetch(sd, type) & PRIMITIVE_ALL_TRIANGLE) {
-		return triangle_attribute_float(kg, sd, elem, offset, dx, dy);
+		if(subd_triangle_patch(kg, sd) == ~0)
+			return triangle_attribute_float(kg, sd, elem, offset, dx, dy);
+		else
+			return subd_triangle_attribute_float(kg, sd, elem, offset, dx, dy);
 	}
 #ifdef __HAIR__
 	else if(ccl_fetch(sd, type) & PRIMITIVE_ALL_CURVE) {
@@ -48,7 +51,10 @@ ccl_device float primitive_attribute_float(KernelGlobals *kg, const ShaderData *
 ccl_device float3 primitive_attribute_float3(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float3 *dx, float3 *dy)
 {
 	if(ccl_fetch(sd, type) & PRIMITIVE_ALL_TRIANGLE) {
-		return triangle_attribute_float3(kg, sd, elem, offset, dx, dy);
+		if(subd_triangle_patch(kg, sd) == ~0)
+			return triangle_attribute_float3(kg, sd, elem, offset, dx, dy);
+		else
+			return subd_triangle_attribute_float3(kg, sd, elem, offset, dx, dy);
 	}
 #ifdef __HAIR__
 	else if(ccl_fetch(sd, type) & PRIMITIVE_ALL_CURVE) {
