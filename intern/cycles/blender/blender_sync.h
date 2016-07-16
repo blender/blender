@@ -131,7 +131,9 @@ private:
 	                Transform& tfm,
 	                bool *use_portal);
 	void sync_background_light(bool use_portal);
-	void sync_mesh_motion(BL::Object& b_ob, Object *object, float motion_time);
+	void sync_mesh_motion(BL::Object& b_ob,
+	                      Object *object,
+	                      float motion_time);
 	void sync_camera_motion(BL::RenderSettings& b_render,
 	                        BL::Object& b_ob,
 	                        int width, int height,

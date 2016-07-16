@@ -719,12 +719,7 @@ void BlenderSync::sync_motion(BL::RenderSettings& b_render,
 		        << relative_time << ".";
 
 		/* fixed shutter time to get previous and next frame for motion pass */
-		float shuttertime;
-
-		if(scene->need_motion() == Scene::MOTION_PASS)
-			shuttertime = 2.0f;
-		else
-			shuttertime = scene->camera->shuttertime;
+		float shuttertime = scene->motion_shutter_time();
 
 		/* compute frame and subframe time */
 		float time = frame_center + frame_center_delta + relative_time * shuttertime * 0.5f;
