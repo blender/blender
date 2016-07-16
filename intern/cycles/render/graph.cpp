@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 Blender Foundation
+ * Copyright 2011-2016 Blender Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 #include "graph.h"
 #include "nodes.h"
 #include "shader.h"
+#include "constant_fold.h"
 
 #include "util_algorithm.h"
 #include "util_debug.h"
@@ -124,17 +125,6 @@ ShaderOutput *ShaderNode::output(ustring name)
 			return socket;
 
 	return NULL;
-}
-
-bool ShaderNode::all_inputs_constant() const
-{
-	foreach(ShaderInput *input, inputs) {
-		if(input->link) {
-			return false;
-		}
-	}
-
-	return true;
 }
 
 void ShaderNode::attributes(Shader *shader, AttributeRequestSet *attributes)
@@ -276,6 +266,17 @@ void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
 		to->link = from;
 		from->links.push_back(to);
 	}
+}
+
+void ShaderGraph::disconnect(ShaderOutput *from)
+{
+	assert(!finalized);
+
+	foreach(ShaderInput *sock, from->links) {
+		sock->link = NULL;
+	}
+
+	from->links.clear();
 }
 
 void ShaderGraph::disconnect(ShaderInput *to)
@@ -525,15 +526,8 @@ void ShaderGraph::constant_fold()
 				}
 			}
 			/* Optimize current node. */
-			if(node->constant_fold(this, output, output->links[0])) {
-				/* Apply optimized value to other connected sockets and disconnect. */
-				vector<ShaderInput*> links(output->links);
-				for(size_t i = 0; i < links.size(); i++) {
-					if(i > 0)
-						links[i]->parent->copy_value(links[i]->socket_type, *links[0]->parent, links[0]->socket_type);
-					disconnect(links[i]);
-				}
-			}
+			ConstantFolder folder(this, node, output);
+			node->constant_fold(folder);
 		}
 	}
 }
