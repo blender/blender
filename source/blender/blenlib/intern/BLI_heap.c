@@ -32,7 +32,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_memarena.h"
 #include "BLI_heap.h"
 #include "BLI_strict_flags.h"
 
@@ -44,12 +43,33 @@ struct HeapNode {
 	unsigned int index;
 };
 
+struct HeapNode_Chunk {
+	struct HeapNode_Chunk *prev;
+	unsigned int    size;
+	unsigned int    bufsize;
+	struct HeapNode buf[0];
+};
+
+/**
+ * Number of nodes to include per #HeapNode_Chunk when no reserved size is passed,
+ * or we allocate past the reserved number.
+ *
+ * \note Optimize number for 64kb allocs.
+ */
+#define HEAP_CHUNK_DEFAULT_NUM \
+	((MEM_SIZE_OPTIMAL((1 << 16) - sizeof(struct HeapNode_Chunk))) / sizeof(HeapNode))
+
 struct Heap {
 	unsigned int size;
 	unsigned int bufsize;
-	MemArena *arena;
-	HeapNode *freenodes;
 	HeapNode **tree;
+
+	struct {
+		/* Always keep at least one chunk (never NULL) */
+		struct HeapNode_Chunk *chunk;
+		/* when NULL, allocate a new chunk */
+		HeapNode *free;
+	} nodes;
 };
 
 /** \name Internal Functions
@@ -122,6 +142,49 @@ static void heap_up(Heap *heap, unsigned int i)
 /** \} */
 
 
+/** \name Internal Memory Management
+ * \{ */
+
+static struct HeapNode_Chunk *heap_node_alloc_chunk(
+        unsigned int tot_nodes, struct HeapNode_Chunk *chunk_prev)
+{
+	struct HeapNode_Chunk *chunk = MEM_mallocN(
+	        sizeof(struct HeapNode_Chunk) + (sizeof(HeapNode) * tot_nodes), __func__);
+	chunk->prev = chunk_prev;
+	chunk->bufsize = tot_nodes;
+	chunk->size = 0;
+	return chunk;
+}
+
+static struct HeapNode *heap_node_alloc(Heap *heap)
+{
+	HeapNode *node;
+
+	if (heap->nodes.free) {
+		node = heap->nodes.free;
+		heap->nodes.free = heap->nodes.free->ptr;
+	}
+	else {
+		struct HeapNode_Chunk *chunk = heap->nodes.chunk;
+		if (UNLIKELY(chunk->size == chunk->bufsize)) {
+			struct HeapNode_Chunk *chunk_next = heap_node_alloc_chunk(HEAP_CHUNK_DEFAULT_NUM, chunk);
+			chunk = chunk_next;
+		}
+		node = &chunk->buf[chunk->size++];
+	}
+
+	return node;
+}
+
+static void heap_node_free(Heap *heap, HeapNode *node)
+{
+	node->ptr = heap->nodes.free;
+	heap->nodes.free = node;
+}
+
+/** \} */
+
+
 /** \name Public Heap API
  * \{ */
 
@@ -132,9 +195,10 @@ Heap *BLI_heap_new_ex(unsigned int tot_reserve)
 	/* ensure we have at least one so we can keep doubling it */
 	heap->size = 0;
 	heap->bufsize = MAX2(1u, tot_reserve);
-	heap->arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "heap arena");
-	heap->freenodes = NULL;
 	heap->tree = MEM_mallocN(heap->bufsize * sizeof(HeapNode *), "BLIHeapTree");
+
+	heap->nodes.chunk = heap_node_alloc_chunk((tot_reserve > 1) ? tot_reserve : HEAP_CHUNK_DEFAULT_NUM, NULL);
+	heap->nodes.free = NULL;
 
 	return heap;
 }
@@ -154,8 +218,15 @@ void BLI_heap_free(Heap *heap, HeapFreeFP ptrfreefp)
 		}
 	}
 
+	struct HeapNode_Chunk *chunk = heap->nodes.chunk;
+	do {
+		struct HeapNode_Chunk *chunk_prev;
+		chunk_prev = chunk->prev;
+		MEM_freeN(chunk);
+		chunk = chunk_prev;
+	} while (chunk);
+
 	MEM_freeN(heap->tree);
-	BLI_memarena_free(heap->arena);
 	MEM_freeN(heap);
 }
 
@@ -168,10 +239,16 @@ void BLI_heap_clear(Heap *heap, HeapFreeFP ptrfreefp)
 			ptrfreefp(heap->tree[i]->ptr);
 		}
 	}
-
 	heap->size = 0;
-	BLI_memarena_clear(heap->arena);
-	heap->freenodes = NULL;
+
+	/* Remove all except the last chunk */
+	while (heap->nodes.chunk->prev) {
+		struct HeapNode_Chunk *chunk_prev = heap->nodes.chunk->prev;
+		MEM_freeN(heap->nodes.chunk);
+		heap->nodes.chunk = chunk_prev;
+	}
+	heap->nodes.chunk->size = 0;
+	heap->nodes.free = NULL;
 }
 
 HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
@@ -183,13 +260,7 @@ HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
 		heap->tree = MEM_reallocN(heap->tree, heap->bufsize * sizeof(*heap->tree));
 	}
 
-	if (heap->freenodes) {
-		node = heap->freenodes;
-		heap->freenodes = heap->freenodes->ptr;
-	}
-	else {
-		node = BLI_memarena_alloc(heap->arena, sizeof(*node));
-	}
+	node = heap_node_alloc(heap);
 
 	node->ptr = ptr;
 	node->value = value;
@@ -225,8 +296,7 @@ void *BLI_heap_popmin(Heap *heap)
 
 	BLI_assert(heap->size != 0);
 
-	heap->tree[0]->ptr = heap->freenodes;
-	heap->freenodes = heap->tree[0];
+	heap_node_free(heap, heap->tree[0]);
 
 	if (--heap->size) {
 		heap_swap(heap, 0, heap->size);
