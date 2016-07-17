@@ -340,7 +340,7 @@ ccl_device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *st
 		N = safe_normalize(ccl_fetch(sd, N) + (N - ccl_fetch(sd, N))*strength);
 	}
 
-	if(N == make_float3(0.0f, 0.0f, 0.0f)) {
+	if(is_zero(N)) {
 		N = ccl_fetch(sd, N);
 	}
 
