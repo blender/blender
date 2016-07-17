@@ -707,6 +707,7 @@ typedef struct ObstaclesFromDMData {
 	bool has_velocity;
 	float *vert_vel;
 	float *velocityX, *velocityY, *velocityZ;
+	int *num_obstacles;
 } ObstaclesFromDMData;
 
 static void obstacles_from_derivedmesh_task_cb(void *userdata, const int z)
@@ -755,8 +756,10 @@ static void obstacles_from_derivedmesh_task_cb(void *userdata, const int z)
 				/* tag obstacle cells */
 				data->obstacle_map[index] = 1;
 
-				if (data->has_velocity)
+				if (data->has_velocity) {
 					data->obstacle_map[index] |= 8;
+					data->num_obstacles[index]++;
+				}
 			}
 		}
 	}
@@ -764,7 +767,7 @@ static void obstacles_from_derivedmesh_task_cb(void *userdata, const int z)
 
 static void obstacles_from_derivedmesh(
         Object *coll_ob, SmokeDomainSettings *sds, SmokeCollSettings *scs,
-        unsigned char *obstacle_map, float *velocityX, float *velocityY, float *velocityZ, float dt)
+        unsigned char *obstacle_map, float *velocityX, float *velocityY, float *velocityZ, int *num_obstacles, float dt)
 {
 	if (!scs->dm) return;
 	{
@@ -835,7 +838,8 @@ static void obstacles_from_derivedmesh(
 			    .sds = sds, .mvert = mvert, .mloop = mloop, .looptri = looptri,
 			    .tree = &treeData, .obstacle_map = obstacle_map,
 			    .has_velocity = has_velocity, .vert_vel = vert_vel,
-			    .velocityX = velocityX, .velocityY = velocityY, .velocityZ = velocityZ
+			    .velocityX = velocityX, .velocityY = velocityY, .velocityZ = velocityZ,
+			    .num_obstacles = num_obstacles
 			};
 			BLI_task_parallel_range(
 			            sds->res_min[2], sds->res_max[2], &data, obstacles_from_derivedmesh_task_cb, true);
@@ -871,6 +875,8 @@ static void update_obstacles(Scene *scene, Object *ob, SmokeDomainSettings *sds,
 	float *b = smoke_get_color_b(sds->fluid);
 	unsigned int z;
 
+	int *num_obstacles = MEM_callocN(sizeof(int) * sds->res[0] * sds->res[1] * sds->res[2], "smoke_num_obstacles");
+
 	smoke_get_ob_velocity(sds->fluid, &velx, &vely, &velz);
 
 	// TODO: delete old obstacle flags
@@ -900,7 +906,7 @@ static void update_obstacles(Scene *scene, Object *ob, SmokeDomainSettings *sds,
 		if ((smd2->type & MOD_SMOKE_TYPE_COLL) && smd2->coll)
 		{
 			SmokeCollSettings *scs = smd2->coll;
-			obstacles_from_derivedmesh(collob, sds, scs, obstacles, velx, vely, velz, dt);
+			obstacles_from_derivedmesh(collob, sds, scs, obstacles, velx, vely, velz, num_obstacles, dt);
 		}
 	}
 
@@ -926,7 +932,15 @@ static void update_obstacles(Scene *scene, Object *ob, SmokeDomainSettings *sds,
 				b[z] = 0;
 			}
 		}
+		/* average velocities from multiple obstacles in one cell */
+		if (num_obstacles[z]) {
+			velx[z] /= num_obstacles[z];
+			vely[z] /= num_obstacles[z];
+			velz[z] /= num_obstacles[z];
+		}
 	}
+
+	MEM_freeN(num_obstacles);
 }
 
 /**********************************************************
