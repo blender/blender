@@ -50,7 +50,7 @@ ccl_device_inline void bsdf_eval_init(BsdfEval *eval, ClosureType type, float3 v
 	else
 		eval->diffuse = value;
 #else
-	*eval = value;
+	eval->diffuse = value;
 #endif
 }
 
@@ -80,7 +80,7 @@ void bsdf_eval_accum(BsdfEval *eval, ClosureType type, float3 value)
 	else
 		eval->diffuse += value;
 #else
-	*eval += value;
+	eval->diffuse += value;
 #endif
 }
 
@@ -98,7 +98,7 @@ ccl_device_inline bool bsdf_eval_is_zero(BsdfEval *eval)
 	else
 		return is_zero(eval->diffuse);
 #else
-	return is_zero(*eval);
+	return is_zero(eval->diffuse);
 #endif
 }
 
@@ -117,7 +117,7 @@ ccl_device_inline void bsdf_eval_mul(BsdfEval *eval, float3 value)
 	else
 		eval->diffuse *= value;
 #else
-	*eval *= value;
+	eval->diffuse *= value;
 #endif
 }
 
@@ -172,7 +172,7 @@ ccl_device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
 	else
 		L->emission = make_float3(0.0f, 0.0f, 0.0f);
 #else
-	*L = make_float3(0.0f, 0.0f, 0.0f);
+	L->emission = make_float3(0.0f, 0.0f, 0.0f);
 #endif
 }
 
@@ -207,7 +207,7 @@ ccl_device_inline void path_radiance_bsdf_bounce(PathRadiance *L, ccl_addr_space
 	else
 		*throughput *= bsdf_eval->diffuse*inverse_pdf;
 #else
-	*throughput *= *bsdf_eval*inverse_pdf;
+	*throughput *= bsdf_eval->diffuse*inverse_pdf;
 #endif
 }
 
@@ -225,7 +225,7 @@ ccl_device_inline void path_radiance_accum_emission(PathRadiance *L, float3 thro
 	else
 		L->emission += throughput*value;
 #else
-	*L += throughput*value;
+	L->emission += throughput*value;
 #endif
 }
 
@@ -246,7 +246,7 @@ ccl_device_inline void path_radiance_accum_ao(PathRadiance *L, float3 throughput
 	else
 		L->emission += throughput*bsdf*ao;
 #else
-	*L += throughput*bsdf*ao;
+	L->emission += throughput*bsdf*ao;
 #endif
 }
 
@@ -277,7 +277,7 @@ ccl_device_inline void path_radiance_accum_light(PathRadiance *L, float3 through
 	else
 		L->emission += throughput*bsdf_eval->diffuse*shadow;
 #else
-	*L += throughput*(*bsdf_eval)*shadow;
+	L->emission += throughput*bsdf_eval->diffuse*shadow;
 #endif
 }
 
@@ -295,7 +295,7 @@ ccl_device_inline void path_radiance_accum_background(PathRadiance *L, float3 th
 	else
 		L->emission += throughput*value;
 #else
-	*L += throughput*value;
+	L->emission += throughput*value;
 #endif
 }
 
@@ -441,7 +441,7 @@ ccl_device_inline float3 path_radiance_clamp_and_sum(KernelGlobals *kg, PathRadi
 	else
 		L_sum = L->emission;
 #else
-	L_sum = *L;
+	L_sum = L->emission;
 #endif
 
 	/* Reject invalid value */
@@ -477,7 +477,7 @@ ccl_device_inline void path_radiance_accum_sample(PathRadiance *L, PathRadiance 
 	L->shadow += L_sample->shadow*fac;
 	L->mist += L_sample->mist*fac;
 #else
-	*L += *L_sample * fac;
+	L->emission += L_sample->emission * fac;
 #endif
 }
 
