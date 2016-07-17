@@ -222,6 +222,11 @@ public:
 		return datasize_;
 	}
 
+	T* data()
+	{
+		return data_;
+	}
+
 	const T* data() const
 	{
 		return data_;

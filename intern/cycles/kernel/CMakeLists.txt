@@ -162,6 +162,7 @@ set(SRC_GEOM_HEADERS
 	geom/geom_motion_curve.h
 	geom/geom_motion_triangle.h
 	geom/geom_object.h
+	geom/geom_patch.h
 	geom/geom_primitive.h
 	geom/geom_subd_triangle.h
 	geom/geom_triangle.h

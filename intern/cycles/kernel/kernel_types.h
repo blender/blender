@@ -34,7 +34,7 @@
 CCL_NAMESPACE_BEGIN
 
 /* constants */
-#define OBJECT_SIZE 		11
+#define OBJECT_SIZE 		12
 #define OBJECT_VECTOR_SIZE	6
 #define LIGHT_SIZE			5
 #define FILTER_TABLE_SIZE	1024
@@ -624,9 +624,15 @@ typedef enum AttributeStandard {
 	ATTR_STD_NOT_FOUND = ~0
 } AttributeStandard;
 
+typedef enum AttributeFlag {
+	ATTR_FINAL_SIZE = (1 << 0),
+	ATTR_SUBDIVIDED = (1 << 1),
+} AttributeFlag;
+
 typedef struct AttributeDescriptor {
 	AttributeElement element;
 	NodeAttributeType type;
+	uint flags; /* see enum AttributeFlag */
 	int offset;
 } AttributeDescriptor;
 
@@ -1244,6 +1250,16 @@ enum RayState {
 #define ADD_RAY_FLAG(ray_state, ray_index, flag) (ray_state[ray_index] = (ray_state[ray_index] | flag))
 #define REMOVE_RAY_FLAG(ray_state, ray_index, flag) (ray_state[ray_index] = (ray_state[ray_index] & (~flag)))
 #define IS_FLAG(ray_state, ray_index, flag) (ray_state[ray_index] & flag)
+
+/* Patches */
+
+#define PATCH_MAX_CONTROL_VERTS 16
+
+/* Patch map node flags */
+
+#define PATCH_MAP_NODE_IS_SET (1 << 30)
+#define PATCH_MAP_NODE_IS_LEAF (1 << 31)
+#define PATCH_MAP_NODE_INDEX_MASK (~(PATCH_MAP_NODE_IS_SET | PATCH_MAP_NODE_IS_LEAF))
 
 CCL_NAMESPACE_END
 

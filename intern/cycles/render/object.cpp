@@ -29,6 +29,8 @@
 #include "util_progress.h"
 #include "util_vector.h"
 
+#include "subd_patch_table.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Object */
@@ -605,6 +607,37 @@ void ObjectManager::device_update_flags(Device *device,
 
 	/* allocate object flag */
 	device->tex_alloc("__object_flag", dscene->object_flag);
+}
+
+void ObjectManager::device_update_patch_map_offsets(Device *device, DeviceScene *dscene, Scene *scene)
+{
+	uint4* objects = (uint4*)dscene->objects.get_data();
+
+	bool update = false;
+
+	int object_index = 0;
+	foreach(Object *object, scene->objects) {
+		int offset = object_index*OBJECT_SIZE + 11;
+
+		Mesh* mesh = object->mesh;
+
+		if(mesh->patch_table) {
+			uint patch_map_offset = 2*(mesh->patch_table_offset + mesh->patch_table->total_size() -
+			                           mesh->patch_table->num_nodes * PATCH_NODE_SIZE) - mesh->patch_offset;
+
+			if(objects[offset].x != patch_map_offset) {
+				objects[offset].x = patch_map_offset;
+				update = true;
+			}
+		}
+
+		object_index++;
+	}
+
+	if(update) {
+		device->tex_free(dscene->objects);
+		device->tex_alloc("__objects", dscene->objects);
+	}
 }
 
 void ObjectManager::device_free(Device *device, DeviceScene *dscene)

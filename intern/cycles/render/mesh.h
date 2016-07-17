@@ -40,6 +40,7 @@ class Scene;
 class SceneParams;
 class AttributeRequest;
 class DiagSplit;
+struct PackedPatchTable;
 
 /* Mesh */
 
@@ -110,6 +111,11 @@ public:
 		int num_ptex_faces() const { return num_corners == 4 ? 1 : num_corners; }
 	};
 
+	struct SubdEdgeCrease {
+		int v[2];
+		float crease;
+	};
+
 	/* Displacement */
 	enum DisplacementMethod {
 		DISPLACE_BUMP = 0,
@@ -157,6 +163,8 @@ public:
 	array<int> subd_face_corners;
 	int num_ngons;
 
+	array<SubdEdgeCrease> subd_creases;
+
 	vector<Shader*> used_shaders;
 	AttributeSet attributes;
 	AttributeSet curve_attributes;
@@ -167,6 +175,8 @@ public:
 	bool transform_negative_scaled;
 	Transform transform_normal;
 	DisplacementMethod displacement_method;
+
+	PackedPatchTable *patch_table;
 
 	uint motion_steps;
 	bool use_motion_blur;
@@ -184,6 +194,7 @@ public:
 	size_t curvekey_offset;
 
 	size_t patch_offset;
+	size_t patch_table_offset;
 	size_t face_offset;
 	size_t corner_offset;
 

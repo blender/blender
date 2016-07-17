@@ -409,7 +409,8 @@ static void attr_create_uv_map(Scene *scene,
                                BL::Mesh& b_mesh,
                                const vector<int>& nverts,
                                const vector<int>& face_flags,
-                               bool subdivision)
+                               bool subdivision,
+                               bool subdivide_uvs)
 {
 	if(subdivision) {
 		BL::Mesh::uv_layers_iterator l;
@@ -428,6 +429,10 @@ static void attr_create_uv_map(Scene *scene,
 					attr = mesh->subd_attributes.add(std, name);
 				else
 					attr = mesh->subd_attributes.add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CORNER);
+
+				if(subdivide_uvs) {
+					attr->flags |= ATTR_SUBDIVIDED;
+				}
 
 				BL::Mesh::polygons_iterator p;
 				float3 *fdata = attr->data_float3();
@@ -592,7 +597,8 @@ static void create_mesh(Scene *scene,
                         Mesh *mesh,
                         BL::Mesh& b_mesh,
                         const vector<Shader*>& used_shaders,
-                        bool subdivision=false)
+                        bool subdivision=false,
+                        bool subdivide_uvs=true)
 {
 	/* count vertices and faces */
 	int numverts = b_mesh.vertices.length();
@@ -638,6 +644,7 @@ static void create_mesh(Scene *scene,
 	/* create generated coordinates from undeformed coordinates */
 	if(mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
 		Attribute *attr = attributes.add(ATTR_STD_GENERATED);
+		attr->flags |= ATTR_SUBDIVIDED;
 
 		float3 loc, size;
 		mesh_texture_space(b_mesh, loc, size);
@@ -746,7 +753,7 @@ static void create_mesh(Scene *scene,
 	 * The calculate functions will check whether they're needed or not.
 	 */
 	attr_create_vertex_color(scene, mesh, b_mesh, nverts, face_flags, subdivision);
-	attr_create_uv_map(scene, mesh, b_mesh, nverts, face_flags, subdivision);
+	attr_create_uv_map(scene, mesh, b_mesh, nverts, face_flags, subdivision, subdivide_uvs);
 
 	/* for volume objects, create a matrix to transform from object space to
 	 * mesh texture space. this does not work with deformations but that can
@@ -770,8 +777,35 @@ static void create_subd_mesh(Scene *scene,
                              float dicing_rate,
                              int max_subdivisions)
 {
-	create_mesh(scene, mesh, b_mesh, used_shaders, true);
+	BL::SubsurfModifier subsurf_mod(b_ob.modifiers[b_ob.modifiers.length()-1]);
+	bool subdivide_uvs = subsurf_mod.use_subsurf_uv();
 
+	create_mesh(scene, mesh, b_mesh, used_shaders, true, subdivide_uvs);
+
+	/* export creases */
+	size_t num_creases = 0;
+	BL::Mesh::edges_iterator e;
+
+	for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e) {
+		if(e->crease() != 0.0f) {
+			num_creases++;
+		}
+	}
+
+	mesh->subd_creases.resize(num_creases);
+
+	Mesh::SubdEdgeCrease* crease = mesh->subd_creases.data();
+	for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e) {
+		if(e->crease() != 0.0f) {
+			crease->v[0] = e->vertices()[0];
+			crease->v[1] = e->vertices()[1];
+			crease->crease = e->crease();
+
+			crease++;
+		}
+	}
+
+	/* set subd params */
 	SubdParams sdparams(mesh);
 
 	PointerRNA cobj = RNA_pointer_get(&b_ob.ptr, "cycles");
