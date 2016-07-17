@@ -52,7 +52,8 @@ struct Heap {
 	HeapNode **tree;
 };
 
-/* internal functions */
+/** \name Internal Functions
+ * \{ */
 
 #define HEAP_PARENT(i) (((i) - 1) >> 1)
 #define HEAP_LEFT(i)   (((i) << 1) + 1)
@@ -92,11 +93,13 @@ static void heap_down(Heap *heap, unsigned int i)
 
 		smallest = ((l < size) && HEAP_COMPARE(heap->tree[l], heap->tree[i])) ? l : i;
 
-		if ((r < size) && HEAP_COMPARE(heap->tree[r], heap->tree[smallest]))
+		if ((r < size) && HEAP_COMPARE(heap->tree[r], heap->tree[smallest])) {
 			smallest = r;
+		}
 
-		if (smallest == i)
+		if (smallest == i) {
 			break;
+		}
 
 		heap_swap(heap, i, smallest);
 		i = smallest;
@@ -108,25 +111,30 @@ static void heap_up(Heap *heap, unsigned int i)
 	while (i > 0) {
 		const unsigned int p = HEAP_PARENT(i);
 
-		if (HEAP_COMPARE(heap->tree[p], heap->tree[i]))
+		if (HEAP_COMPARE(heap->tree[p], heap->tree[i])) {
 			break;
-
+		}
 		heap_swap(heap, p, i);
 		i = p;
 	}
 }
 
+/** \} */
 
-/***/
+
+/** \name Public Heap API
+ * \{ */
 
 /* use when the size of the heap is known in advance */
 Heap *BLI_heap_new_ex(unsigned int tot_reserve)
 {
-	Heap *heap = (Heap *)MEM_callocN(sizeof(Heap), __func__);
+	Heap *heap = MEM_mallocN(sizeof(Heap), __func__);
 	/* ensure we have at least one so we can keep doubling it */
+	heap->size = 0;
 	heap->bufsize = MAX2(1u, tot_reserve);
-	heap->tree = (HeapNode **)MEM_mallocN(heap->bufsize * sizeof(HeapNode *), "BLIHeapTree");
 	heap->arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "heap arena");
+	heap->freenodes = NULL;
+	heap->tree = MEM_mallocN(heap->bufsize * sizeof(HeapNode *), "BLIHeapTree");
 
 	return heap;
 }
@@ -180,7 +188,7 @@ HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
 		heap->freenodes = heap->freenodes->ptr;
 	}
 	else {
-		node = (HeapNode *)BLI_memarena_alloc(heap->arena, sizeof(*node));
+		node = BLI_memarena_alloc(heap->arena, sizeof(*node));
 	}
 
 	node->ptr = ptr;
@@ -254,3 +262,4 @@ void *BLI_heap_node_ptr(HeapNode *node)
 	return node->ptr;
 }
 
+/** \} */
