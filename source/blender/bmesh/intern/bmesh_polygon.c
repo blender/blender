@@ -57,10 +57,9 @@
 static bool testedgesidef(const float v1[2], const float v2[2], const float v3[2])
 {
 	/* is v3 to the right of v1 - v2 ? With exception: v3 == v1 || v3 == v2 */
-	double inp;
-
-	//inp = (v2[cox] - v1[cox]) * (v1[coy] - v3[coy]) + (v1[coy] - v2[coy]) * (v1[cox] - v3[cox]);
-	inp = (v2[0] - v1[0]) * (v1[1] - v3[1]) + (v1[1] - v2[1]) * (v1[0] - v3[0]);
+	const float inp =
+	        ((v2[0] - v1[0]) * (v1[1] - v3[1])) +
+	        ((v1[1] - v2[1]) * (v1[0] - v3[0]));
 
 	if (inp < 0.0) {
 		return false;

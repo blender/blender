@@ -86,7 +86,7 @@ void ccg_ehashIterator_next(EHashIterator *ehi);
 int ccg_ehashIterator_isStopped(EHashIterator *ehi);
 
 /**
- * Standard allocator implementarion.
+ * Standard allocator implementation.
  */
 
 CCGAllocatorIFC *ccg_getStandardAllocatorIFC(void);

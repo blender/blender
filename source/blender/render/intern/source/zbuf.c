@@ -2883,14 +2883,17 @@ static void set_quad_bezier_ipo(float fac, float *data)
 	data[2]= fac*fac;
 }
 
-void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect)
+void RE_zbuf_accumulate_vecblur(
+        NodeBlurData *nbd, int xsize, int ysize, float *newrect,
+        const float *imgrect, float *vecbufrect, const float *zbufrect)
 {
 	ZSpan zspan;
 	DrawBufPixel *rectdraw, *dr;
 	static float jit[256][2];
 	float v1[3], v2[3], v3[3], v4[3], fx, fy;
-	float *rectvz, *dvz, *dimg, *dvec1, *dvec2, *dz, *dz1, *dz2, *rectz;
-	float *minvecbufrect= NULL, *rectweight, *rw, *rectmax, *rm, *ro;
+	const float *dimg, *dz, *ro;
+	float *rectvz, *dvz, *dvec1, *dvec2, *dz1, *dz2, *rectz;
+	float *minvecbufrect= NULL, *rectweight, *rw, *rectmax, *rm;
 	float maxspeedsq= (float)nbd->maxspeed*nbd->maxspeed;
 	int y, x, step, maxspeed=nbd->maxspeed, samples= nbd->samples;
 	int tsktsk= 0;

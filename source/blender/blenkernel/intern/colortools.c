@@ -1266,7 +1266,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 
 	switch (scopes->wavefrm_mode) {
 		case SCOPES_WAVEFRM_RGB:
-			//break;
+			/* fall-through */
 		case SCOPES_WAVEFRM_RGB_PARADE:
 			ycc_mode = -1;
 			break;

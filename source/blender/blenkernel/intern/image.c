@@ -1083,39 +1083,48 @@ int BKE_image_imtype_to_ftype(const char imtype, ImbFormatOptions *r_options)
 {
 	memset(r_options, 0, sizeof(*r_options));
 
-	if (imtype == R_IMF_IMTYPE_TARGA)
+	if (imtype == R_IMF_IMTYPE_TARGA) {
 		return IMB_FTYPE_TGA;
+	}
 	else if (imtype == R_IMF_IMTYPE_RAWTGA) {
 		r_options->flag = RAWTGA;
 		return IMB_FTYPE_TGA;
 	}
-	else if (imtype == R_IMF_IMTYPE_IRIS)
+	else if (imtype == R_IMF_IMTYPE_IRIS) {
 		return IMB_FTYPE_IMAGIC;
+	}
 #ifdef WITH_HDR
-	else if (imtype == R_IMF_IMTYPE_RADHDR)
+	else if (imtype == R_IMF_IMTYPE_RADHDR) {
 		return IMB_FTYPE_RADHDR;
+	}
 #endif
 	else if (imtype == R_IMF_IMTYPE_PNG) {
 		r_options->quality = 15;
 		return IMB_FTYPE_PNG;
 	}
 #ifdef WITH_DDS
-	else if (imtype == R_IMF_IMTYPE_DDS)
+	else if (imtype == R_IMF_IMTYPE_DDS) {
 		return IMB_FTYPE_DDS;
+	}
 #endif
-	else if (imtype == R_IMF_IMTYPE_BMP)
+	else if (imtype == R_IMF_IMTYPE_BMP) {
 		return IMB_FTYPE_BMP;
+	}
 #ifdef WITH_TIFF
-	else if (imtype == R_IMF_IMTYPE_TIFF)
+	else if (imtype == R_IMF_IMTYPE_TIFF) {
 		return IMB_FTYPE_TIF;
+	}
 #endif
-	else if (imtype == R_IMF_IMTYPE_OPENEXR || imtype == R_IMF_IMTYPE_MULTILAYER)
+	else if (imtype == R_IMF_IMTYPE_OPENEXR || imtype == R_IMF_IMTYPE_MULTILAYER) {
 		return IMB_FTYPE_OPENEXR;
+	}
 #ifdef WITH_CINEON
-	else if (imtype == R_IMF_IMTYPE_CINEON)
+	else if (imtype == R_IMF_IMTYPE_CINEON) {
 		return IMB_FTYPE_CINEON;
-	else if (imtype == R_IMF_IMTYPE_DPX)
+	}
+	else if (imtype == R_IMF_IMTYPE_DPX) {
 		return IMB_FTYPE_DPX;
+	}
 #endif
 #ifdef WITH_OPENJPEG
 	else if (imtype == R_IMF_IMTYPE_JP2) {
@@ -1132,46 +1141,60 @@ int BKE_image_imtype_to_ftype(const char imtype, ImbFormatOptions *r_options)
 
 char BKE_image_ftype_to_imtype(const int ftype, const ImbFormatOptions *options)
 {
-	if (ftype == 0)
+	if (ftype == 0) {
 		return R_IMF_IMTYPE_TARGA;
-	else if (ftype == IMB_FTYPE_IMAGIC)
+	}
+	else if (ftype == IMB_FTYPE_IMAGIC) {
 		return R_IMF_IMTYPE_IRIS;
+	}
 #ifdef WITH_HDR
-	else if (ftype == IMB_FTYPE_RADHDR)
+	else if (ftype == IMB_FTYPE_RADHDR) {
 		return R_IMF_IMTYPE_RADHDR;
+	}
 #endif
-	else if (ftype == IMB_FTYPE_PNG)
+	else if (ftype == IMB_FTYPE_PNG) {
 		return R_IMF_IMTYPE_PNG;
+	}
 #ifdef WITH_DDS
-	else if (ftype == IMB_FTYPE_DDS)
+	else if (ftype == IMB_FTYPE_DDS) {
 		return R_IMF_IMTYPE_DDS;
+	}
 #endif
-	else if (ftype == IMB_FTYPE_BMP)
+	else if (ftype == IMB_FTYPE_BMP) {
 		return R_IMF_IMTYPE_BMP;
+	}
 #ifdef WITH_TIFF
-	else if (ftype == IMB_FTYPE_TIF)
+	else if (ftype == IMB_FTYPE_TIF) {
 		return R_IMF_IMTYPE_TIFF;
+	}
 #endif
-	else if (ftype == IMB_FTYPE_OPENEXR)
+	else if (ftype == IMB_FTYPE_OPENEXR) {
 		return R_IMF_IMTYPE_OPENEXR;
+	}
 #ifdef WITH_CINEON
-	else if (ftype == IMB_FTYPE_CINEON)
+	else if (ftype == IMB_FTYPE_CINEON) {
 		return R_IMF_IMTYPE_CINEON;
-	else if (ftype == IMB_FTYPE_DPX)
+	}
+	else if (ftype == IMB_FTYPE_DPX) {
 		return R_IMF_IMTYPE_DPX;
+	}
 #endif
 	else if (ftype == IMB_FTYPE_TGA) {
-		if (options && (options->flag & RAWTGA))
+		if (options && (options->flag & RAWTGA)) {
 			return R_IMF_IMTYPE_RAWTGA;
-		else
+		}
+		else {
 			return R_IMF_IMTYPE_TARGA;
+		}
 	}
 #ifdef WITH_OPENJPEG
-	else if (ftype == IMB_FTYPE_JP2)
+	else if (ftype == IMB_FTYPE_JP2) {
 		return R_IMF_IMTYPE_JP2;
+	}
 #endif
-	else
+	else {
 		return R_IMF_IMTYPE_JPEG90;
+	}
 }
 
 
