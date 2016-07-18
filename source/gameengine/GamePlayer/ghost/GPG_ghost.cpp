@@ -709,7 +709,7 @@ int main(
 			{
 				i++;
 				if ( (i + 1) <= validArguments )
-					parentWindow = atoi(argv[i++]);
+					parentWindow = (GHOST_TEmbedderWindowID)atoll(argv[i++]);
 				else {
 					error = true;
 					printf("error: too few options for parent window argument.\n");
