@@ -195,12 +195,17 @@ struct FLUID_3D
 		void setObstacleBoundaries(float *_pressure, int zBegin, int zEnd);
 		void setObstaclePressure(float *_pressure, int zBegin, int zEnd);
 
+		void fixObstacleCompression(float *divergence);
+
 	public:
 		// advection, accessed e.g. by WTURBULENCE class
 		//void advectMacCormack();
 		void advectMacCormackBegin(int zBegin, int zEnd);
 		void advectMacCormackEnd1(int zBegin, int zEnd);
 		void advectMacCormackEnd2(int zBegin, int zEnd);
+
+		void floodFillComponent(int *components, size_t *queue, size_t limit, size_t start, int from, int to);
+		void mergeComponents(int *components, size_t *queue, size_t cur, size_t other);
 
 		/* burning */
 		float *_burning_rate; // RNA pointer
