@@ -42,6 +42,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_genfile.h"
+
 #include "BLI_args.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -348,6 +350,8 @@ int main(
 	BKE_appdir_program_path_init(argv[0]);
 
 	BLI_threadapi_init();
+
+	DNA_sdna_current_init();
 
 	BKE_blender_globals_init();  /* blender.c */
 

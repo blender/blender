@@ -181,6 +181,11 @@ void IDDepsNode::init(const ID *id, const string &UNUSED(subdata))
 	this->layers = (1 << 20) - 1;
 	this->eval_flags = 0;
 
+	/* For object we initialize layers to layer from base. */
+	if (GS(id) == ID_OB) {
+		this->layers = 0;
+	}
+
 	components = BLI_ghash_new(id_deps_node_hash_key,
 	                           id_deps_node_hash_key_cmp,
 	                           "Depsgraph id components hash");

@@ -484,6 +484,7 @@ SceneParams BlenderSync::get_scene_params(BL::Scene& b_scene,
 		        SceneParams::BVH_STATIC);
 
 	params.use_bvh_spatial_split = RNA_boolean_get(&cscene, "debug_use_spatial_splits");
+	params.use_bvh_unaligned_nodes = RNA_boolean_get(&cscene, "debug_use_hair_bvh");
 
 	if(background && params.shadingsystem != SHADINGSYSTEM_OSL)
 		params.persistent_data = r.use_persistent_data();

@@ -176,7 +176,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 		max_samples = max(max_samples, volume_samples);
 	}
 
-	max_samples *= (max_bounce + transparent_max_bounce + 3);
+	max_samples *= (max_bounce + transparent_max_bounce + 3 + BSSRDF_MAX_HITS);
 
 	int dimensions = PRNG_BASE_NUM + max_samples*PRNG_BOUNCE_NUM;
 	dimensions = min(dimensions, SOBOL_MAX_DIMENSIONS);

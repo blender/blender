@@ -144,11 +144,11 @@ void BKE_armature_free(bArmature *arm)
 	}
 }
 
-void BKE_armature_make_local(Main *bmain, bArmature *arm)
+void BKE_armature_make_local(Main *bmain, bArmature *arm, const bool force_local)
 {
 	bool is_local = false, is_lib = false;
 
-	/* - only lib users: do nothing
+	/* - only lib users: do nothing (unless force_local is set)
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
@@ -159,7 +159,7 @@ void BKE_armature_make_local(Main *bmain, bArmature *arm)
 
 	BKE_library_ID_test_usages(bmain, arm, &is_local, &is_lib);
 
-	if (is_local) {
+	if (force_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &arm->id);
 			BKE_id_expand_local(&arm->id);

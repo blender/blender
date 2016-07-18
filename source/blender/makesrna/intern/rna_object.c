@@ -1002,7 +1002,7 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 			ob->gameflag &= ~(OB_SENSOR | OB_OCCLUDER | OB_DYNAMIC | OB_RIGID_BODY | OB_SOFT_BODY | OB_ACTOR |
 			                  OB_ANISOTROPIC_FRICTION | OB_DO_FH | OB_ROT_FH | OB_COLLISION_RESPONSE | OB_NAVMESH);
 			/* When we switch to character physics and the collision bounds is set to triangle mesh
-			we have to change collision bounds because triangle mesh is not supported by Characters*/
+			 * we have to change collision bounds because triangle mesh is not supported by Characters */
 			if ((ob->gameflag & OB_BOUNDS) && ob->collision_boundtype == OB_BOUND_TRIANGLE_MESH) {
 				ob->boundtype = ob->collision_boundtype = OB_BOUND_BOX;
 			}

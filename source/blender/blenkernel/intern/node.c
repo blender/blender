@@ -1211,7 +1211,6 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, Main *bmain, bool ski
 	}
 	else {
 		newtree = BKE_libblock_copy_nolib(&ntree->id, true);
-		newtree->id.lib = NULL;	/* same as owning datablock id.lib */
 	}
 
 	id_us_plus((ID *)newtree->gpd);
@@ -1951,11 +1950,11 @@ bNodeTree *ntreeFromID(ID *id)
 	}
 }
 
-void ntreeMakeLocal(Main *bmain, bNodeTree *ntree, bool id_in_mainlist)
+void ntreeMakeLocal(Main *bmain, bNodeTree *ntree, bool id_in_mainlist, const bool force_local)
 {
 	bool is_lib = false, is_local = false;
 	
-	/* - only lib users: do nothing
+	/* - only lib users: do nothing (unless force_local is set)
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
@@ -1966,7 +1965,7 @@ void ntreeMakeLocal(Main *bmain, bNodeTree *ntree, bool id_in_mainlist)
 
 	BKE_library_ID_test_usages(bmain, ntree, &is_local, &is_lib);
 
-	if (is_local) {
+	if (force_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data_ex(bmain, (ID *)ntree, id_in_mainlist);
 			BKE_id_expand_local(&ntree->id);

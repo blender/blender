@@ -348,7 +348,10 @@ blender_include_dirs_sys(
 	"${GLEW_INCLUDE_PATH}"
 )
 
+add_cc_flags_custom_test(makesrna)
+
 add_executable(makesrna ${SRC} ${SRC_RNA_INC} ${SRC_DNA_INC})
+
 target_link_libraries(makesrna bf_dna)
 target_link_libraries(makesrna bf_dna_blenlib)
 

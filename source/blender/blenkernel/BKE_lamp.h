@@ -46,7 +46,7 @@ void BKE_lamp_init(struct Lamp *la);
 struct Lamp *BKE_lamp_add(struct Main *bmain, const char *name) ATTR_WARN_UNUSED_RESULT;
 struct Lamp *BKE_lamp_copy(struct Main *bmain, struct Lamp *la) ATTR_WARN_UNUSED_RESULT;
 struct Lamp *localize_lamp(struct Lamp *la) ATTR_WARN_UNUSED_RESULT;
-void BKE_lamp_make_local(struct Main *bmain, struct Lamp *la);
+void BKE_lamp_make_local(struct Main *bmain, struct Lamp *la, const bool force_local);
 void BKE_lamp_free(struct Lamp *la);
 
 void lamp_drivers_update(struct Scene *scene, struct Lamp *la, float ctime);

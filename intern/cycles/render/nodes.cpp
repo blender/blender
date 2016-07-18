@@ -1576,7 +1576,9 @@ RGBToBWNode::RGBToBWNode()
 {
 }
 
-bool RGBToBWNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
+bool RGBToBWNode::constant_fold(ShaderGraph * /*graph*/,
+                                ShaderOutput * /*socket*/,
+                                ShaderInput *optimized)
 {
 	if(all_inputs_constant()) {
 		optimized->set(linear_rgb_to_gray(color));
@@ -1661,7 +1663,9 @@ ConvertNode::ConvertNode(SocketType::Type from_, SocketType::Type to_, bool auto
 		special_type = SHADER_SPECIAL_TYPE_AUTOCONVERT;
 }
 
-bool ConvertNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
+bool ConvertNode::constant_fold(ShaderGraph * /*graph*/,
+                                ShaderOutput * /*socket*/,
+                                ShaderInput *optimized)
 {
 	/* proxy nodes should have been removed at this point */
 	assert(special_type != SHADER_SPECIAL_TYPE_PROXY);
@@ -2362,7 +2366,9 @@ void EmissionNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_emission");
 }
 
-bool EmissionNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *)
+bool EmissionNode::constant_fold(ShaderGraph * /*graph*/,
+                                ShaderOutput * /*socket*/,
+                                ShaderInput * /*optimized*/)
 {
 	ShaderInput *color_in = input("Color");
 	ShaderInput *strength_in = input("Strength");
@@ -2412,7 +2418,9 @@ void BackgroundNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_background");
 }
 
-bool BackgroundNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *)
+bool BackgroundNode::constant_fold(ShaderGraph * /*graph*/,
+                                   ShaderOutput * /*socket*/,
+                                   ShaderInput * /*optimized*/)
 {
 	ShaderInput *color_in = input("Color");
 	ShaderInput *strength_in = input("Strength");
@@ -3380,7 +3388,9 @@ ValueNode::ValueNode()
 {
 }
 
-bool ValueNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
+bool ValueNode::constant_fold(ShaderGraph * /*graph*/,
+                              ShaderOutput * /*socket*/,
+                              ShaderInput *optimized)
 {
 	optimized->set(value);
 	return true;
@@ -3416,7 +3426,9 @@ ColorNode::ColorNode()
 {
 }
 
-bool ColorNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
+bool ColorNode::constant_fold(ShaderGraph * /*graph*/,
+                              ShaderOutput * /*socket*/,
+                              ShaderInput *optimized)
 {
 	optimized->set(value);
 	return true;
@@ -3499,7 +3511,9 @@ void MixClosureNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_mix_closure");
 }
 
-bool MixClosureNode::constant_fold(ShaderGraph *graph, ShaderOutput *, ShaderInput *)
+bool MixClosureNode::constant_fold(ShaderGraph *graph,
+                                   ShaderOutput * /*socket*/,
+                                   ShaderInput * /*optimized*/)
 {
 	ShaderInput *fac_in = input("Fac");
 	ShaderInput *closure1_in = input("Closure1");
@@ -3589,7 +3603,9 @@ InvertNode::InvertNode()
 {
 }
 
-bool InvertNode::constant_fold(ShaderGraph *graph, ShaderOutput *, ShaderInput *optimized)
+bool InvertNode::constant_fold(ShaderGraph *graph,
+                               ShaderOutput * /*socket*/,
+                               ShaderInput *optimized)
 {
 	ShaderInput *fac_in = input("Fac");
 	ShaderInput *color_in = input("Color");
@@ -3697,7 +3713,9 @@ void MixNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_mix");
 }
 
-bool MixNode::constant_fold(ShaderGraph *graph, ShaderOutput *, ShaderInput *optimized)
+bool MixNode::constant_fold(ShaderGraph *graph,
+                            ShaderOutput * /*socket*/,
+                            ShaderInput *optimized)
 {
 	ShaderInput *fac_in = input("Fac");
 	ShaderInput *color1_in = input("Color1");
@@ -3774,7 +3792,9 @@ CombineRGBNode::CombineRGBNode()
 {
 }
 
-bool CombineRGBNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
+bool CombineRGBNode::constant_fold(ShaderGraph * /*graph*/,
+                                   ShaderOutput * /*socket*/,
+                                   ShaderInput *optimized)
 {
 	if(all_inputs_constant()) {
 		optimized->set(make_float3(r, g, b));
@@ -3829,7 +3849,9 @@ CombineXYZNode::CombineXYZNode()
 {
 }
 
-bool CombineXYZNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
+bool CombineXYZNode::constant_fold(ShaderGraph * /*graph*/,
+                                   ShaderOutput * /*socket*/,
+                                   ShaderInput *optimized)
 {
 	if(all_inputs_constant()) {
 		optimized->set(make_float3(x, y, z));
@@ -3884,7 +3906,9 @@ CombineHSVNode::CombineHSVNode()
 {
 }
 
-bool CombineHSVNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
+bool CombineHSVNode::constant_fold(ShaderGraph * /*graph*/,
+                                   ShaderOutput * /*socket*/,
+                                   ShaderInput *optimized)
 {
 	if(all_inputs_constant()) {
 		optimized->set(hsv_to_rgb(make_float3(h, s, v)));
@@ -3932,7 +3956,9 @@ GammaNode::GammaNode()
 {
 }
 
-bool GammaNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
+bool GammaNode::constant_fold(ShaderGraph * /*graph*/,
+                              ShaderOutput * /*socket*/,
+                              ShaderInput *optimized)
 {
 	if(all_inputs_constant()) {
 		optimized->set(svm_math_gamma_color(color, gamma));
@@ -3979,7 +4005,9 @@ BrightContrastNode::BrightContrastNode()
 {
 }
 
-bool BrightContrastNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
+bool BrightContrastNode::constant_fold(ShaderGraph * /*graph*/,
+                                       ShaderOutput * /*socket*/,
+                                       ShaderInput *optimized)
 {
 	if(all_inputs_constant()) {
 		optimized->set(svm_brightness_contrast(color, bright, contrast));
@@ -4029,7 +4057,9 @@ SeparateRGBNode::SeparateRGBNode()
 {
 }
 
-bool SeparateRGBNode::constant_fold(ShaderGraph *, ShaderOutput *socket, ShaderInput *optimized)
+bool SeparateRGBNode::constant_fold(ShaderGraph * /*graph*/,
+                                    ShaderOutput *socket,
+                                    ShaderInput *optimized)
 {
 	if(all_inputs_constant()) {
 		for(int channel = 0; channel < 3; channel++) {
@@ -4088,7 +4118,9 @@ SeparateXYZNode::SeparateXYZNode()
 {
 }
 
-bool SeparateXYZNode::constant_fold(ShaderGraph *, ShaderOutput *socket, ShaderInput *optimized)
+bool SeparateXYZNode::constant_fold(ShaderGraph * /*graph*/,
+                                    ShaderOutput *socket,
+                                    ShaderInput *optimized)
 {
 	if(all_inputs_constant()) {
 		for(int channel = 0; channel < 3; channel++) {
@@ -4147,7 +4179,9 @@ SeparateHSVNode::SeparateHSVNode()
 {
 }
 
-bool SeparateHSVNode::constant_fold(ShaderGraph *, ShaderOutput *socket, ShaderInput *optimized)
+bool SeparateHSVNode::constant_fold(ShaderGraph * /*graph*/,
+                                    ShaderOutput *socket,
+                                    ShaderInput *optimized)
 {
 	if(all_inputs_constant()) {
 		float3 hsv = rgb_to_hsv(color);
@@ -4546,7 +4580,9 @@ BlackbodyNode::BlackbodyNode()
 {
 }
 
-bool BlackbodyNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
+bool BlackbodyNode::constant_fold(ShaderGraph * /*graph*/,
+                                  ShaderOutput * /*socket*/,
+                                  ShaderInput *optimized)
 {
 	if(all_inputs_constant()) {
 		optimized->set(svm_math_blackbody_color(temperature));
@@ -4655,7 +4691,9 @@ MathNode::MathNode()
 {
 }
 
-bool MathNode::constant_fold(ShaderGraph *, ShaderOutput *, ShaderInput *optimized)
+bool MathNode::constant_fold(ShaderGraph * /*graph*/,
+                             ShaderOutput * /*socket*/,
+                             ShaderInput *optimized)
 {
 	if(all_inputs_constant()) {
 		float value = svm_math(type, value1, value2);
@@ -4717,7 +4755,9 @@ VectorMathNode::VectorMathNode()
 {
 }
 
-bool VectorMathNode::constant_fold(ShaderGraph *, ShaderOutput *socket, ShaderInput *optimized)
+bool VectorMathNode::constant_fold(ShaderGraph * /*graph*/,
+                                   ShaderOutput *socket,
+                                   ShaderInput *optimized)
 {
 	float value;
 	float3 vector;
@@ -4873,7 +4913,9 @@ void BumpNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_bump");
 }
 
-bool BumpNode::constant_fold(ShaderGraph *graph, ShaderOutput *, ShaderInput *)
+bool BumpNode::constant_fold(ShaderGraph *graph,
+                             ShaderOutput * /*socket*/,
+                             ShaderInput * /*optimized*/)
 {
 	ShaderInput *height_in = input("Height");
 	ShaderInput *normal_in = input("Normal");

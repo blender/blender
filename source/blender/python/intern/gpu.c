@@ -330,10 +330,10 @@ PyObject *GPU_initPython(void)
 
 	/* gpu.offscreen */
 	PyModule_AddObject(module, "offscreen", (submodule = BPyInit_gpu_offscreen()));
-	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 	Py_INCREF(submodule);
 
-	PyDict_SetItemString(PyImport_GetModuleDict(), "gpu", module);
+	PyDict_SetItem(PyImport_GetModuleDict(), PyModule_GetNameObject(module), module);
 	return module;
 }
 

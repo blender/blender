@@ -440,7 +440,7 @@ static int group_link_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* Early return check, if the object is already in group
-	 * we could sckip all the dependency check and just consider
+	 * we could skip all the dependency check and just consider
 	 * operator is finished.
 	 */
 	if (BKE_group_object_exists(group, ob)) {

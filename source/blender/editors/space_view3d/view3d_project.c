@@ -312,24 +312,8 @@ static void view3d_win_to_ray_segment(
 	if (!r_ray_co) r_ray_co = _ray_co;
 	if (!r_ray_dir) r_ray_dir = _ray_dir;
 
+	ED_view3d_win_to_origin(ar, mval, r_ray_co);
 	ED_view3d_win_to_vector(ar, mval, r_ray_dir);
-
-	if (rv3d->is_persp) {
-		copy_v3_v3(r_ray_co, rv3d->viewinv[3]);
-	}
-	else {
-		r_ray_co[0] = 2.0f * mval[0] / ar->winx - 1.0f;
-		r_ray_co[1] = 2.0f * mval[1] / ar->winy - 1.0f;
-
-		if (rv3d->persp == RV3D_CAMOB) {
-			r_ray_co[2] = -1.0f;
-		}
-		else {
-			r_ray_co[2] = 0.0f;
-		}
-
-		mul_project_m4_v3(rv3d->persinv, r_ray_co);
-	}
 
 	if ((rv3d->is_persp == false) && (rv3d->persp != RV3D_CAMOB)) {
 		end_offset = v3d->far / 2.0f;
@@ -347,7 +331,7 @@ static void view3d_win_to_ray_segment(
 	}
 }
 
-BLI_INLINE bool view3d_clip_segment(const RegionView3D *rv3d, float ray_start[3], float ray_end[3])
+bool ED_view3d_clip_segment(const RegionView3D *rv3d, float ray_start[3], float ray_end[3])
 {
 	if ((rv3d->rflag & RV3D_CLIPPING) &&
 	    (clip_segment_v3_plane_n(ray_start, ray_end, rv3d->clip, 6,
@@ -384,7 +368,7 @@ bool ED_view3d_win_to_ray_ex(
 
 	/* bounds clipping */
 	if (do_clip) {
-		return view3d_clip_segment(ar->regiondata, r_ray_start, ray_end);
+		return ED_view3d_clip_segment(ar->regiondata, r_ray_start, ray_end);
 	}
 
 	return true;
@@ -549,6 +533,37 @@ void ED_view3d_win_to_delta(const ARegion *ar, const float mval[2], float out[3]
 }
 
 /**
+ * Calculate a 3d origin from 2d window coordinates.
+ * \note Orthographic views have a less obvious origin,
+ * Since far clip can be a very large value resulting in numeric precision issues,
+ * the origin in this case is close to zero coordinate.
+ *
+ * \param ar The region (used for the window width and height).
+ * \param mval The area relative 2d location (such as event->mval converted to floats).
+ * \param out The resulting normalized world-space direction vector.
+ */
+void ED_view3d_win_to_origin(const ARegion *ar, const float mval[2], float out[3])
+{
+	RegionView3D *rv3d = ar->regiondata;
+	if (rv3d->is_persp) {
+		copy_v3_v3(out, rv3d->viewinv[3]);
+	}
+	else {
+		out[0] = 2.0f * mval[0] / ar->winx - 1.0f;
+		out[1] = 2.0f * mval[1] / ar->winy - 1.0f;
+
+		if (rv3d->persp == RV3D_CAMOB) {
+			out[2] = -1.0f;
+		}
+		else {
+			out[2] = 0.0f;
+		}
+
+		mul_project_m4_v3(rv3d->persinv, out);
+	}
+}
+
+/**
  * Calculate a 3d direction vector from 2d window coordinates.
  * This direction vector starts and the view in the direction of the 2d window coordinates.
  * In orthographic view all window coordinates yield the same vector.
@@ -599,7 +614,7 @@ bool ED_view3d_win_to_segment(const ARegion *ar, View3D *v3d, const float mval[2
 
 	/* bounds clipping */
 	if (do_clip) {
-		return view3d_clip_segment((RegionView3D *)ar->regiondata, r_ray_start, r_ray_end);
+		return ED_view3d_clip_segment((RegionView3D *)ar->regiondata, r_ray_start, r_ray_end);
 	}
 
 	return true;

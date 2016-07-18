@@ -3961,7 +3961,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 
 		if (re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT))
 			if (re->wrld.ao_samp_method == WO_AOSAMP_CONSTANT)
-				init_ao_sphere(&re->wrld);
+				init_ao_sphere(re, &re->wrld);
 	}
 	
 	/* still bad... doing all */
@@ -4687,7 +4687,7 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 		
 		if (re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT))
 			if (re->wrld.ao_samp_method == WO_AOSAMP_CONSTANT)
-				init_ao_sphere(&re->wrld);
+				init_ao_sphere(re, &re->wrld);
 	}
 	
 	/* still bad... doing all */

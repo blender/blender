@@ -104,7 +104,7 @@ struct Object *BKE_object_lod_matob_get(struct Object *ob, struct Scene *scene);
 
 struct Object *BKE_object_copy_ex(struct Main *bmain, struct Object *ob, bool copy_caches);
 struct Object *BKE_object_copy(struct Main *bmain, struct Object *ob);
-void BKE_object_make_local(struct Main *bmain, struct Object *ob);
+void BKE_object_make_local(struct Main *bmain, struct Object *ob, const bool force_local);
 bool BKE_object_is_libdata(struct Object *ob);
 bool BKE_object_obdata_is_libdata(struct Object *ob);
 
@@ -202,8 +202,6 @@ void BKE_object_eval_uber_transform(struct EvaluationContext *eval_ctx,
 void BKE_object_eval_uber_data(struct EvaluationContext *eval_ctx,
                                struct Scene *scene,
                                struct Object *ob);
-
-void BKE_object_eval_proxy_backlink(struct EvaluationContext *eval_ctx, struct Object *ob);
 
 void BKE_object_handle_data_update(struct EvaluationContext *eval_ctx,
                                    struct Scene *scene,

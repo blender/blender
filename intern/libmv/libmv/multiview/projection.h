@@ -122,7 +122,7 @@ inline void Project(const Mat34 &P, const Vec3 &X, Vec3 *x) {
 
 inline void Project(const Mat34 &P, const Vec3 &X, Vec2 *x) {
   Vec3 hx;
-  Project(P, X, x);
+  Project(P, X, &hx);
   *x = hx.head<2>() / hx(2);
 }
 

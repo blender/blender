@@ -123,28 +123,34 @@ static ImBuf *prepare_effect_imbufs(const SeqRenderData *context, ImBuf *ibuf1, 
 		out = IMB_allocImBuf(x, y, 32, IB_rect);
 	}
 	
-	if (ibuf1 && !ibuf1->rect_float && out->rect_float) {
-		BKE_sequencer_imbuf_to_sequencer_space(scene, ibuf1, true);
-	}
-	if (ibuf2 && !ibuf2->rect_float && out->rect_float) {
-		BKE_sequencer_imbuf_to_sequencer_space(scene, ibuf2, true);
-	}
-	if (ibuf3 && !ibuf3->rect_float && out->rect_float) {
-		BKE_sequencer_imbuf_to_sequencer_space(scene, ibuf3, true);
-	}
-	
-	if (ibuf1 && !ibuf1->rect && !out->rect_float) {
-		IMB_rect_from_float(ibuf1);
-	}
-	if (ibuf2 && !ibuf2->rect && !out->rect_float) {
-		IMB_rect_from_float(ibuf2);
-	}
-	if (ibuf3 && !ibuf3->rect && !out->rect_float) {
-		IMB_rect_from_float(ibuf3);
-	}
+	if (out->rect_float) {
+		if (ibuf1 && !ibuf1->rect_float) {
+			BKE_sequencer_imbuf_to_sequencer_space(scene, ibuf1, true);
+		}
 
-	if (out->rect_float)
+		if (ibuf2 && !ibuf2->rect_float) {
+			BKE_sequencer_imbuf_to_sequencer_space(scene, ibuf2, true);
+		}
+
+		if (ibuf3 && !ibuf3->rect_float) {
+			BKE_sequencer_imbuf_to_sequencer_space(scene, ibuf3, true);
+		}
+	
 		IMB_colormanagement_assign_float_colorspace(out, scene->sequencer_colorspace_settings.name);
+	}
+	else {
+		if (ibuf1 && !ibuf1->rect) {
+			IMB_rect_from_float(ibuf1);
+		}
+
+		if (ibuf2 && !ibuf2->rect) {
+			IMB_rect_from_float(ibuf2);
+		}
+
+		if (ibuf3 && !ibuf3->rect) {
+			IMB_rect_from_float(ibuf3);
+		}
+	}
 
 	/* If effect only affecting a single channel, forward input's metadata to the output. */
 	if (ibuf1 != NULL && ibuf1 == ibuf2 && ibuf2 == ibuf3) {

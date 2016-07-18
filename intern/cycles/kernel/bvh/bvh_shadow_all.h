@@ -283,7 +283,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 								return true;
 							}
 							/* if maximum number of hits reached, block all light */
-							else if(*num_hits == max_hits) {
+							else if(*num_hits >= max_hits) {
 								return true;
 							}
 

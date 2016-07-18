@@ -273,7 +273,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 #if BVH_FEATURE(BVH_INSTANCING)
 									num_hits_in_instance++;
 #endif
-									if(num_hits == max_hits) {
+									if(num_hits >= max_hits) {
 #if BVH_FEATURE(BVH_INSTANCING)
 #  if BVH_FEATURE(BVH_MOTION)
 										float t_fac = 1.0f / len(transform_direction(&ob_itfm, dir));
@@ -312,7 +312,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 #  if BVH_FEATURE(BVH_INSTANCING)
 									num_hits_in_instance++;
 #  endif
-									if(num_hits == max_hits) {
+									if(num_hits >= max_hits) {
 #  if BVH_FEATURE(BVH_INSTANCING)
 #    if BVH_FEATURE(BVH_MOTION)
 										float t_fac = 1.0f / len(transform_direction(&ob_itfm, dir));

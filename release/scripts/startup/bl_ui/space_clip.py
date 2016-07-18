@@ -950,7 +950,7 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
 class CLIP_PT_proxy(CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Proxy / Timecode"
+    bl_label = "Proxy/Timecode"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):

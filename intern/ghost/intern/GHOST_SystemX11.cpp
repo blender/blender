@@ -1985,9 +1985,8 @@ GHOST_TSuccess GHOST_SystemX11::pushDragDropEvent(GHOST_TEventType eventType,
 	                         );
 }
 #endif
-/*
+/**
  * These callbacks can be used for debugging, so we can breakpoint on an X11 error.
-
  *
  * Dummy function to get around IO Handler exiting if device invalid
  * Basically it will not crash blender now if you have a X device that

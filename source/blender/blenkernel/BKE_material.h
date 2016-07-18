@@ -57,7 +57,7 @@ struct Material *BKE_material_add(struct Main *bmain, const char *name);
 struct Material *BKE_material_copy(struct Main *bmain, struct Material *ma);
 struct Material *localize_material(struct Material *ma);
 struct Material *give_node_material(struct Material *ma); /* returns node material or self */
-void BKE_material_make_local(struct Main *bmain, struct Material *ma);
+void BKE_material_make_local(struct Main *bmain, struct Material *ma, const bool force_local);
 
 /* UNUSED */
 // void automatname(struct Material *);

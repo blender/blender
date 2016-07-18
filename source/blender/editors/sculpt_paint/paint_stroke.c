@@ -491,31 +491,30 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, const float
 }
 
 /* Returns zero if no sculpt changes should be made, non-zero otherwise */
-static int paint_smooth_stroke(PaintStroke *stroke, float output[2], float *outpressure,
-                               const PaintSample *sample, PaintMode mode)
+static bool paint_smooth_stroke(
+        PaintStroke *stroke, const PaintSample *sample, PaintMode mode,
+        float r_mouse[2], float *r_pressure)
 {
 	if (paint_supports_smooth_stroke(stroke->brush, mode)) {
 		float radius = stroke->brush->smooth_stroke_radius * stroke->zoom_2d;
-		float u = stroke->brush->smooth_stroke_factor, v = 1.0f - u;
-		float dx = stroke->last_mouse_position[0] - sample->mouse[0];
-		float dy = stroke->last_mouse_position[1] - sample->mouse[1];
+		float u = stroke->brush->smooth_stroke_factor;
 
 		/* If the mouse is moving within the radius of the last move,
 		 * don't update the mouse position. This allows sharp turns. */
-		if (dx * dx + dy * dy <  radius * radius)
-			return 0;
+		if (len_squared_v2v2(stroke->last_mouse_position, sample->mouse) < SQUARE(radius)) {
+			return false;
+		}
 
-		output[0] = sample->mouse[0] * v + stroke->last_mouse_position[0] * u;
-		output[1] = sample->mouse[1] * v + stroke->last_mouse_position[1] * u;
-		*outpressure = sample->pressure * v + stroke->last_pressure * u;
+		interp_v2_v2v2(r_mouse, sample->mouse, stroke->last_mouse_position, u);
+		*r_pressure = interpf(sample->pressure, stroke->last_pressure, u);
 	}
 	else {
-		output[0] = sample->mouse[0];
-		output[1] = sample->mouse[1];
-		*outpressure = sample->pressure;
+		r_mouse[0] = sample->mouse[0];
+		r_mouse[1] = sample->mouse[1];
+		*r_pressure = sample->pressure;
 	}
 
-	return 1;
+	return true;
 }
 
 static float paint_space_stroke_spacing(const Scene *scene, PaintStroke *stroke, float size_pressure, float spacing_pressure)
@@ -1190,7 +1189,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	         /* airbrush */
 	         ((br->flag & BRUSH_AIRBRUSH) && event->type == TIMER && event->customdata == stroke->timer))
 	{
-		if (paint_smooth_stroke(stroke, mouse, &pressure, &sample_average, mode)) {
+		if (paint_smooth_stroke(stroke, &sample_average, mode, mouse, &pressure)) {
 			if (stroke->stroke_started) {
 				if (paint_space_stroke_enabled(br, mode)) {
 					if (paint_space_stroke(C, op, mouse, pressure))

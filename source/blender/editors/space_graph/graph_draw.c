@@ -826,7 +826,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 	//if ((driver->flag & DRIVER_FLAG_SHOWDEBUG) == 0)
 	//	return;
 	
-	/* No curve to modify/visualise the result? 
+	/* No curve to modify/visualize the result?
 	 * => We still want to show the 1-1 default... 
 	 */
 	if ((fcu->totvert == 0) && BLI_listbase_is_empty(&fcu->modifiers)) {

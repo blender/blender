@@ -1482,7 +1482,7 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C)
 void render_view3d_update(RenderEngine *engine, const bContext *C)
 {	
 	/* this shouldn't be needed and causes too many database rebuilds, but we
-	 * aren't actually tracking updates for all relevent datablocks so this is
+	 * aren't actually tracking updates for all relevant datablocks so this is
 	 * a catch-all for updates */
 	engine->update_flag |= RE_ENGINE_UPDATE_DATABASE;
 

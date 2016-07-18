@@ -482,8 +482,6 @@ static void wm_file_read_post(bContext *C, bool is_startup_file)
 		BPY_python_reset(C);
 		addons_loaded = true;
 	}
-#else
-	UNUSED_VARS(is_startup_file);
 #endif  /* WITH_PYTHON */
 
 	WM_operatortype_last_properties_clear_all();
@@ -492,8 +490,12 @@ static void wm_file_read_post(bContext *C, bool is_startup_file)
 	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_VERSION_UPDATE);
 	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
 
-	/* would otherwise be handled by event loop */
-	if (G.background) {
+	/* Would otherwise be handled by event loop.
+	 *
+	 * Disabled for startup file, since it causes problems when PyDrivers are used in the startup file.
+	 * While its possible state of startup file may be wrong,
+	 * in this case users nearly always load a file to replace the startup file. */
+	if (G.background && (is_startup_file == false)) {
 		Main *bmain = CTX_data_main(C);
 		BKE_scene_update_tagged(bmain->eval_ctx, bmain, CTX_data_scene(C));
 	}

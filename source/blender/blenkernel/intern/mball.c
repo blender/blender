@@ -127,11 +127,11 @@ MetaBall *BKE_mball_copy(Main *bmain, MetaBall *mb)
 	return mbn;
 }
 
-void BKE_mball_make_local(Main *bmain, MetaBall *mb)
+void BKE_mball_make_local(Main *bmain, MetaBall *mb, const bool force_local)
 {
 	bool is_local = false, is_lib = false;
 
-	/* - only lib users: do nothing
+	/* - only lib users: do nothing (unless force_local is set)
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
@@ -142,7 +142,7 @@ void BKE_mball_make_local(Main *bmain, MetaBall *mb)
 
 	BKE_library_ID_test_usages(bmain, mb, &is_local, &is_lib);
 
-	if (is_local) {
+	if (force_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &mb->id);
 			BKE_id_expand_local(&mb->id);

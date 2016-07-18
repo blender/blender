@@ -332,7 +332,6 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTopolog
 			else {
 				/* Special handle of non-manifold vertex. */
 				for (int i = 0; i < num_vert_edges; ++i) {
-					bool start_found = false;
 					edge_start = vert_edges[i];
 					IndexArray edge_faces = getBaseEdgeFaces(refiner, edge_start);
 					if (edge_faces.size() == 1) {
@@ -343,13 +342,9 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTopolog
 							    face_edges = getBaseFaceEdges(refiner, face_start);
 							face_vert_start = findInArray(face_verts, vert);
 							if (edge_start == face_edges[face_vert_start]) {
-								start_found = true;
 								break;
 							}
 						}
-					}
-					if (start_found) {
-						break;
 					}
 					/* Reset indices for sanity check below. */
 					face_start = edge_start = face_vert_start =  -1;

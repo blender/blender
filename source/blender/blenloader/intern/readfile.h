@@ -74,7 +74,7 @@ typedef struct FileData {
 	
 	// general reading variables
 	struct SDNA *filesdna;
-	struct SDNA *memsdna;
+	const struct SDNA *memsdna;
 	char *compflags;        /* array of eSDNA_StructCompare */
 	
 	int fileversion;

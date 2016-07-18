@@ -1234,106 +1234,106 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 				UI_icon_draw(x, y, ICON_DOT); break;
 		}
 	}
-	else if (GS(tselem->id->name) == ID_OB) {
-		Object *ob = (Object *)tselem->id;
-		switch (ob->type) {
-			case OB_LAMP:
-				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_LAMP); break;
-			case OB_MESH: 
-				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_MESH); break;
-			case OB_CAMERA: 
-				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_CAMERA); break;
-			case OB_CURVE: 
-				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_CURVE); break;
-			case OB_MBALL: 
-				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_META); break;
-			case OB_LATTICE: 
-				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_LATTICE); break;
-			case OB_ARMATURE: 
-				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_ARMATURE); break;
-			case OB_FONT: 
-				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_FONT); break;
-			case OB_SURF: 
-				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_SURFACE); break;
-			case OB_SPEAKER:
-				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_SPEAKER); break;
-			case OB_EMPTY: 
-				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_EMPTY); break;
-		
-		}
-	}
-	else {
-		switch (GS(tselem->id->name)) {
-			case ID_SCE:
-				tselem_draw_icon_uibut(&arg, ICON_SCENE_DATA); break;
-			case ID_ME:
-				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_MESH); break;
-			case ID_CU:
-				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_CURVE); break;
-			case ID_MB:
-				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_META); break;
-			case ID_LT:
-				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_LATTICE); break;
-			case ID_LA:
-			{
-				Lamp *la = (Lamp *)tselem->id;
-				
-				switch (la->type) {
-					case LA_LOCAL:
-						tselem_draw_icon_uibut(&arg, ICON_LAMP_POINT); break;
-					case LA_SUN:
-						tselem_draw_icon_uibut(&arg, ICON_LAMP_SUN); break;
-					case LA_SPOT:
-						tselem_draw_icon_uibut(&arg, ICON_LAMP_SPOT); break;
-					case LA_HEMI:
-						tselem_draw_icon_uibut(&arg, ICON_LAMP_HEMI); break;
-					case LA_AREA:
-						tselem_draw_icon_uibut(&arg, ICON_LAMP_AREA); break;
-					default:
-						tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_LAMP); break;
-				}
-				break;
+	else if (tselem->id) {
+		if (GS(tselem->id->name) == ID_OB) {
+			Object *ob = (Object *)tselem->id;
+			switch (ob->type) {
+				case OB_LAMP:
+					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_LAMP); break;
+				case OB_MESH:
+					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_MESH); break;
+				case OB_CAMERA:
+					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_CAMERA); break;
+				case OB_CURVE:
+					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_CURVE); break;
+				case OB_MBALL:
+					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_META); break;
+				case OB_LATTICE:
+					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_LATTICE); break;
+				case OB_ARMATURE:
+					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_ARMATURE); break;
+				case OB_FONT:
+					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_FONT); break;
+				case OB_SURF:
+					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_SURFACE); break;
+				case OB_SPEAKER:
+					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_SPEAKER); break;
+				case OB_EMPTY:
+					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_EMPTY); break;
 			}
-			case ID_MA:
-				tselem_draw_icon_uibut(&arg, ICON_MATERIAL_DATA); break;
-			case ID_TE:
-				tselem_draw_icon_uibut(&arg, ICON_TEXTURE_DATA); break;
-			case ID_IM:
-				tselem_draw_icon_uibut(&arg, ICON_IMAGE_DATA); break;
-			case ID_SPK:
-			case ID_SO:
-				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_SPEAKER); break;
-			case ID_AR:
-				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_ARMATURE); break;
-			case ID_CA:
-				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_CAMERA); break;
-			case ID_KE:
-				tselem_draw_icon_uibut(&arg, ICON_SHAPEKEY_DATA); break;
-			case ID_WO:
-				tselem_draw_icon_uibut(&arg, ICON_WORLD_DATA); break;
-			case ID_AC:
-				tselem_draw_icon_uibut(&arg, ICON_ACTION); break;
-			case ID_NLA:
-				tselem_draw_icon_uibut(&arg, ICON_NLA); break;
-			case ID_TXT:
-				tselem_draw_icon_uibut(&arg, ICON_SCRIPT); break;
-			case ID_GR:
-				tselem_draw_icon_uibut(&arg, ICON_GROUP); break;
-			case ID_LI:
-				if (tselem->id->tag & LIB_TAG_MISSING) {
-					tselem_draw_icon_uibut(&arg, ICON_LIBRARY_DATA_BROKEN);
+		}
+		else {
+			switch (GS(tselem->id->name)) {
+				case ID_SCE:
+					tselem_draw_icon_uibut(&arg, ICON_SCENE_DATA); break;
+				case ID_ME:
+					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_MESH); break;
+				case ID_CU:
+					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_CURVE); break;
+				case ID_MB:
+					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_META); break;
+				case ID_LT:
+					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_LATTICE); break;
+				case ID_LA:
+				{
+					Lamp *la = (Lamp *)tselem->id;
+					switch (la->type) {
+						case LA_LOCAL:
+							tselem_draw_icon_uibut(&arg, ICON_LAMP_POINT); break;
+						case LA_SUN:
+							tselem_draw_icon_uibut(&arg, ICON_LAMP_SUN); break;
+						case LA_SPOT:
+							tselem_draw_icon_uibut(&arg, ICON_LAMP_SPOT); break;
+						case LA_HEMI:
+							tselem_draw_icon_uibut(&arg, ICON_LAMP_HEMI); break;
+						case LA_AREA:
+							tselem_draw_icon_uibut(&arg, ICON_LAMP_AREA); break;
+						default:
+							tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_LAMP); break;
+					}
+					break;
 				}
-				else if (((Library *)tselem->id)->parent) {
-					tselem_draw_icon_uibut(&arg, ICON_LIBRARY_DATA_INDIRECT);
-				}
-				else {
-					tselem_draw_icon_uibut(&arg, ICON_LIBRARY_DATA_DIRECT);
-				}
-				break;
-			case ID_LS:
-				tselem_draw_icon_uibut(&arg, ICON_LINE_DATA); break;
-			case ID_GD:
-				tselem_draw_icon_uibut(&arg, ICON_GREASEPENCIL); break;
+				case ID_MA:
+					tselem_draw_icon_uibut(&arg, ICON_MATERIAL_DATA); break;
+				case ID_TE:
+					tselem_draw_icon_uibut(&arg, ICON_TEXTURE_DATA); break;
+				case ID_IM:
+					tselem_draw_icon_uibut(&arg, ICON_IMAGE_DATA); break;
+				case ID_SPK:
+				case ID_SO:
+					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_SPEAKER); break;
+				case ID_AR:
+					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_ARMATURE); break;
+				case ID_CA:
+					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_CAMERA); break;
+				case ID_KE:
+					tselem_draw_icon_uibut(&arg, ICON_SHAPEKEY_DATA); break;
+				case ID_WO:
+					tselem_draw_icon_uibut(&arg, ICON_WORLD_DATA); break;
+				case ID_AC:
+					tselem_draw_icon_uibut(&arg, ICON_ACTION); break;
+				case ID_NLA:
+					tselem_draw_icon_uibut(&arg, ICON_NLA); break;
+				case ID_TXT:
+					tselem_draw_icon_uibut(&arg, ICON_SCRIPT); break;
+				case ID_GR:
+					tselem_draw_icon_uibut(&arg, ICON_GROUP); break;
+				case ID_LI:
+					if (tselem->id->tag & LIB_TAG_MISSING) {
+						tselem_draw_icon_uibut(&arg, ICON_LIBRARY_DATA_BROKEN);
+					}
+					else if (((Library *)tselem->id)->parent) {
+						tselem_draw_icon_uibut(&arg, ICON_LIBRARY_DATA_INDIRECT);
+					}
+					else {
+						tselem_draw_icon_uibut(&arg, ICON_LIBRARY_DATA_DIRECT);
+					}
+					break;
+				case ID_LS:
+					tselem_draw_icon_uibut(&arg, ICON_LINE_DATA); break;
+				case ID_GD:
+					tselem_draw_icon_uibut(&arg, ICON_GREASEPENCIL); break;
+			}
 		}
 	}
 }

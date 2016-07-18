@@ -183,8 +183,8 @@ BLI_INLINE unsigned char f_to_char(const float val)
 /* to avoid locking in tile initialization */
 #define TILE_PENDING SET_INT_IN_POINTER(-1)
 
-/* This is mainly a convenience struct used so we can keep an array of images we use
- * Thir imbufs, etc, in 1 array, When using threads this array is copied for each thread
+/* This is mainly a convenience struct used so we can keep an array of images we use -
+ * their imbufs, etc, in 1 array, When using threads this array is copied for each thread
  * because 'partRedrawRect' and 'touch' values would not be thread safe */
 typedef struct ProjPaintImage {
 	Image *ima;
@@ -202,7 +202,7 @@ typedef struct ProjPaintImage {
  */
 typedef struct ProjStrokeHandle {
 	/* Support for painting from multiple views at once,
-	 * currently used to impliment symmetry painting,
+	 * currently used to implement symmetry painting,
 	 * we can assume at least the first is set while painting. */
 	struct ProjPaintState *ps_views[8];
 	int ps_views_tot;
@@ -2174,7 +2174,7 @@ static void project_bucket_clip_face(
 		
 		if ((*tot) < 3) {
 			/* no intersections to speak of, but more probable is that all face is just outside the
-			 * rectangle and culled due to float precision issues. Since above teste have failed,
+			 * rectangle and culled due to float precision issues. Since above tests have failed,
 			 * just dump triangle as is for painting */
 			*tot = 0;
 			copy_v2_v2(bucket_bounds_uv[*tot], uv1co); (*tot)++;

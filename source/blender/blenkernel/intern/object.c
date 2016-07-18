@@ -1023,11 +1023,11 @@ Object *BKE_object_copy(Main *bmain, Object *ob)
 	return BKE_object_copy_ex(bmain, ob, false);
 }
 
-void BKE_object_make_local(Main *bmain, Object *ob)
+void BKE_object_make_local(Main *bmain, Object *ob, const bool force_local)
 {
 	bool is_local = false, is_lib = false;
 
-	/* - only lib users: do nothing
+	/* - only lib users: do nothing (unless force_local is set)
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
@@ -1038,7 +1038,7 @@ void BKE_object_make_local(Main *bmain, Object *ob)
 
 	BKE_library_ID_test_usages(bmain, ob, &is_local, &is_lib);
 
-	if (is_local) {
+	if (force_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &ob->id);
 			BKE_id_expand_local(&ob->id);

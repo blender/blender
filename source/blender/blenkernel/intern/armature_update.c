@@ -224,7 +224,7 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 	}
 
 	/* make a new Spline-IK chain, and store it in the IK chains */
-	/* TODO: we should check if there is already an IK chain on this, since that would take presidence... */
+	/* TODO: we should check if there is already an IK chain on this, since that would take precedence... */
 	{
 		/* make new tree */
 		tSplineIK_Tree *tree = MEM_callocN(sizeof(tSplineIK_Tree), "SplineIK Tree");

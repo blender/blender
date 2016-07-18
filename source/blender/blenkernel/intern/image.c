@@ -469,11 +469,11 @@ Image *BKE_image_copy(Main *bmain, Image *ima)
 	return nima;
 }
 
-void BKE_image_make_local(Main *bmain, Image *ima)
+void BKE_image_make_local(Main *bmain, Image *ima, const bool force_local)
 {
 	bool is_local = false, is_lib = false;
 
-	/* - only lib users: do nothing
+	/* - only lib users: do nothing (unless force_local is set)
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
@@ -484,7 +484,7 @@ void BKE_image_make_local(Main *bmain, Image *ima)
 
 	BKE_library_ID_test_usages(bmain, ima, &is_local, &is_lib);
 
-	if (is_local) {
+	if (force_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &ima->id);
 			BKE_id_expand_local(&ima->id);
@@ -1118,8 +1118,11 @@ int BKE_image_imtype_to_ftype(const char imtype, ImbFormatOptions *r_options)
 		return IMB_FTYPE_DPX;
 #endif
 #ifdef WITH_OPENJPEG
-	else if (imtype == R_IMF_IMTYPE_JP2)
+	else if (imtype == R_IMF_IMTYPE_JP2) {
+		r_options->flag |= JP2_JP2;
+		r_options->quality = 90;
 		return IMB_FTYPE_JP2;
+	}
 #endif
 	else {
 		r_options->quality = 90;

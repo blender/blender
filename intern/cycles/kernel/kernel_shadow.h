@@ -75,7 +75,12 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ShaderData *shadow_sd, 
 		}
 
 		uint num_hits;
-		blocked = scene_intersect_shadow_all(kg, ray, hits, max_hits, &num_hits);
+		if(max_hits == 0) {
+			blocked = true;
+			num_hits = 0;
+		} else {
+			blocked = scene_intersect_shadow_all(kg, ray, hits, max_hits, &num_hits);
+		}
 
 		/* if no opaque surface found but we did find transparent hits, shade them */
 		if(!blocked && num_hits > 0) {

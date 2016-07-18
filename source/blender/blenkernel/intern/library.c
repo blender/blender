@@ -270,7 +270,7 @@ void BKE_id_expand_local(ID *id)
 
 /* calls the appropriate make_local method for the block, unless test. Returns true
  * if the block can be made local. */
-bool id_make_local(Main *bmain, ID *id, bool test)
+bool id_make_local(Main *bmain, ID *id, const bool test, const bool force_local)
 {
 	if (id->tag & LIB_TAG_INDIRECT)
 		return false;
@@ -281,45 +281,44 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 		case ID_LI:
 			return false; /* can't be linked */
 		case ID_OB:
-			if (!test) BKE_object_make_local(bmain, (Object *)id);
+			if (!test) BKE_object_make_local(bmain, (Object *)id, force_local);
 			return true;
 		case ID_ME:
-			if (!test) BKE_mesh_make_local(bmain, (Mesh *)id);
+			if (!test) BKE_mesh_make_local(bmain, (Mesh *)id, force_local);
 			return true;
 		case ID_CU:
-			if (!test) BKE_curve_make_local(bmain, (Curve *)id);
+			if (!test) BKE_curve_make_local(bmain, (Curve *)id, force_local);
 			return true;
 		case ID_MB:
-			if (!test) BKE_mball_make_local(bmain, (MetaBall *)id);
+			if (!test) BKE_mball_make_local(bmain, (MetaBall *)id, force_local);
 			return true;
 		case ID_MA:
-			if (!test) BKE_material_make_local(bmain, (Material *)id);
+			if (!test) BKE_material_make_local(bmain, (Material *)id, force_local);
 			return true;
 		case ID_TE:
-			if (!test) BKE_texture_make_local(bmain, (Tex *)id);
+			if (!test) BKE_texture_make_local(bmain, (Tex *)id, force_local);
 			return true;
 		case ID_IM:
-			if (!test) BKE_image_make_local(bmain, (Image *)id);
+			if (!test) BKE_image_make_local(bmain, (Image *)id, force_local);
 			return true;
 		case ID_LT:
-			if (!test) BKE_lattice_make_local(bmain, (Lattice *)id);
+			if (!test) BKE_lattice_make_local(bmain, (Lattice *)id, force_local);
 			return true;
 		case ID_LA:
-			if (!test) BKE_lamp_make_local(bmain, (Lamp *)id);
+			if (!test) BKE_lamp_make_local(bmain, (Lamp *)id, force_local);
 			return true;
 		case ID_CA:
-			if (!test) BKE_camera_make_local(bmain, (Camera *)id);
+			if (!test) BKE_camera_make_local(bmain, (Camera *)id, force_local);
 			return true;
 		case ID_SPK:
-			if (!test) BKE_speaker_make_local(bmain, (Speaker *)id);
+			if (!test) BKE_speaker_make_local(bmain, (Speaker *)id, force_local);
 			return true;
 		case ID_IP:
 			return false; /* deprecated */
 		case ID_KE:
-			if (!test) BKE_key_make_local(bmain, (Key *)id);
-			return true;
+			return false; /* can't be linked */
 		case ID_WO:
-			if (!test) BKE_world_make_local(bmain, (World *)id);
+			if (!test) BKE_world_make_local(bmain, (World *)id, force_local);
 			return true;
 		case ID_SCR:
 			return false; /* can't be linked */
@@ -332,16 +331,16 @@ bool id_make_local(Main *bmain, ID *id, bool test)
 		case ID_GR:
 			return false; /* not implemented */
 		case ID_AR:
-			if (!test) BKE_armature_make_local(bmain, (bArmature *)id);
+			if (!test) BKE_armature_make_local(bmain, (bArmature *)id, force_local);
 			return true;
 		case ID_AC:
-			if (!test) BKE_action_make_local(bmain, (bAction *)id);
+			if (!test) BKE_action_make_local(bmain, (bAction *)id, force_local);
 			return true;
 		case ID_NT:
-			if (!test) ntreeMakeLocal(bmain, (bNodeTree *)id, true);
+			if (!test) ntreeMakeLocal(bmain, (bNodeTree *)id, true, force_local);
 			return true;
 		case ID_BR:
-			if (!test) BKE_brush_make_local(bmain, (Brush *)id);
+			if (!test) BKE_brush_make_local(bmain, (Brush *)id, force_local);
 			return true;
 		case ID_WM:
 			return false; /* can't be linked */
@@ -1455,6 +1454,7 @@ bool new_id(ListBase *lb, ID *id, const char *tname)
 void id_clear_lib_data_ex(Main *bmain, ID *id, bool id_in_mainlist)
 {
 	bNodeTree *ntree = NULL;
+	Key *key = NULL;
 
 	BKE_id_lib_local_paths(bmain, id->lib, id);
 
@@ -1465,13 +1465,14 @@ void id_clear_lib_data_ex(Main *bmain, ID *id, bool id_in_mainlist)
 	if (id_in_mainlist)
 		new_id(which_libbase(bmain, GS(id->name)), id, NULL);
 
-	/* internal bNodeTree blocks inside ID types below
-	 * also stores id->lib, make sure this stays in sync.
-	 */
-	ntree = ntreeFromID(id);
+	/* Internal bNodeTree blocks inside datablocks also stores id->lib, make sure this stays in sync. */
+	if ((ntree = ntreeFromID(id))) {
+		id_clear_lib_data_ex(bmain, &ntree->id, false);  /* Datablocks' nodetree is never in Main. */
+	}
 
-	if (ntree) {
-		ntreeMakeLocal(bmain, ntree, false);
+	/* Same goes for shapekeys. */
+	if ((key = BKE_key_from_id(id))) {
+		id_clear_lib_data_ex(bmain, &key->id, id_in_mainlist);  /* sigh, why are keys in Main? */
 	}
 
 	if (GS(id->name) == ID_OB) {
@@ -1585,14 +1586,8 @@ void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged
 			{
 				if (lib == NULL || id->lib == lib) {
 					if (id->lib) {
-						/* for Make Local > All we should be calling id_make_local,
-						 * but doing that breaks append (see #36003 and #36006), we
-						 * we should make it work with all datablocks and id.us==0 */
-						id_clear_lib_data(bmain, id); /* sets 'id->tag' */
-
-						/* why sort alphabetically here but not in
-						 * id_clear_lib_data() ? - campbell */
-						id_sort_by_name(lbarray[a], id);
+						/* In this specific case, we do want to make ID local even if it has no local usage yet... */
+						id_make_local(bmain, id, false, true);
 					}
 					else {
 						id->tag &= ~(LIB_TAG_EXTERN | LIB_TAG_INDIRECT | LIB_TAG_NEW);

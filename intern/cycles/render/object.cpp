@@ -184,7 +184,7 @@ void Object::apply_transform(bool apply_to_motion)
 	}
 
 	/* tfm is not reset to identity, all code that uses it needs to check the
-	   transform_applied boolean */
+	 * transform_applied boolean */
 }
 
 void Object::tag_update(Scene *scene)

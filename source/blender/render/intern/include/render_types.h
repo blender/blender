@@ -180,6 +180,7 @@ struct Render {
 	float jit[32][2];
 	float mblur_jit[32][2];
 	ListBase *qmcsamplers;
+	int num_qmc_samplers;
 	
 	/* shadow counter, detect shadow-reuse for shaders */
 	int shadowsamplenr[BLENDER_MAX_THREADS];

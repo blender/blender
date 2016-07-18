@@ -80,7 +80,7 @@ ccl_device float fresnel_dielectric(
 		return 1; // total internal reflection
 	}
 	else {
-		float dnp = sqrtf(arg);
+		float dnp = max(sqrtf(arg), 1e-7f);
 		float nK = (neta * cos)- dnp;
 		*T = -(neta * I)+(nK * Nn);
 #ifdef __RAY_DIFFERENTIALS__

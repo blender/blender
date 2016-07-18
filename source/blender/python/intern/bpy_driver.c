@@ -110,9 +110,11 @@ static void bpy_pydriver_update_dict(const float evaltime)
 			bpy_pydriver_InternStr__frame = PyUnicode_FromString("frame");
 		}
 
+		PyObject *item = PyFloat_FromDouble(evaltime);
 		PyDict_SetItem(bpy_pydriver_Dict,
 		               bpy_pydriver_InternStr__frame,
-		               PyFloat_FromDouble(evaltime));
+		               item);
+		Py_DECREF(item);
 
 		bpy_pydriver_evaltime_prev = evaltime;
 	}
@@ -301,7 +303,10 @@ float BPY_driver_exec(ChannelDriver *driver, const float evaltime)
 
 		/* try to add to dictionary */
 		/* if (PyDict_SetItemString(driver_vars, dvar->name, driver_arg)) { */
-		if (PyDict_SetItem(driver_vars, PyTuple_GET_ITEM(expr_vars, i++), driver_arg) < 0) {
+		if (PyDict_SetItem(driver_vars, PyTuple_GET_ITEM(expr_vars, i++), driver_arg) != -1) {
+			Py_DECREF(driver_arg);
+		}
+		else {
 			/* this target failed - bad name */
 			if (targets_ok) {
 				/* first one - print some extra info for easier identification */

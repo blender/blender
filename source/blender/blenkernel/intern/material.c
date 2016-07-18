@@ -285,11 +285,11 @@ Material *localize_material(Material *ma)
 	return man;
 }
 
-void BKE_material_make_local(Main *bmain, Material *ma)
+void BKE_material_make_local(Main *bmain, Material *ma, const bool force_local)
 {
 	bool is_local = false, is_lib = false;
 
-	/* - only lib users: do nothing
+	/* - only lib users: do nothing (unless force_local is set)
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
@@ -300,7 +300,7 @@ void BKE_material_make_local(Main *bmain, Material *ma)
 
 	BKE_library_ID_test_usages(bmain, ma, &is_local, &is_lib);
 
-	if (is_local) {
+	if (force_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &ma->id);
 			BKE_id_expand_local(&ma->id);

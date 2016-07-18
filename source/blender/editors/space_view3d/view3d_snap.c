@@ -44,6 +44,7 @@
 #include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_object.h"
+#include "BKE_report.h"
 #include "BKE_tracking.h"
 
 #include "WM_api.h"
@@ -204,7 +205,7 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 
 /* *************************************************** */
 
-static int snap_sel_to_curs_exec(bContext *C, wmOperator *op)
+static int snap_selected_to_location(bContext *C, const float snap_target_global[3], const bool use_offset)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
@@ -213,14 +214,9 @@ static int snap_sel_to_curs_exec(bContext *C, wmOperator *op)
 	TransVertStore tvs = {NULL};
 	TransVert *tv;
 	float imat[3][3], bmat[3][3];
-	const float *cursor_global;
 	float center_global[3];
 	float offset_global[3];
 	int a;
-
-	const bool use_offset = RNA_boolean_get(op->ptr, "use_offset");
-
-	cursor_global = ED_view3d_cursor3d_get(scene, v3d);
 
 	if (use_offset) {
 		if ((v3d && v3d->around == V3D_AROUND_ACTIVE) &&
@@ -231,11 +227,11 @@ static int snap_sel_to_curs_exec(bContext *C, wmOperator *op)
 		else {
 			snap_curs_to_sel_ex(C, center_global);
 		}
-		sub_v3_v3v3(offset_global, cursor_global, center_global);
+		sub_v3_v3v3(offset_global, snap_target_global, center_global);
 	}
 
 	if (obedit) {
-		float cursor_local[3];
+		float snap_target_local[3];
 		
 		if (ED_transverts_check_obedit(obedit))
 			ED_transverts_create_from_obedit(&tvs, obedit, 0);
@@ -246,8 +242,8 @@ static int snap_sel_to_curs_exec(bContext *C, wmOperator *op)
 		invert_m3_m3(imat, bmat);
 		
 		/* get the cursor in object space */
-		sub_v3_v3v3(cursor_local, cursor_global, obedit->obmat[3]);
-		mul_m3_v3(imat, cursor_local);
+		sub_v3_v3v3(snap_target_local, snap_target_global, obedit->obmat[3]);
+		mul_m3_v3(imat, snap_target_local);
 
 		if (use_offset) {
 			float offset_local[3];
@@ -262,7 +258,7 @@ static int snap_sel_to_curs_exec(bContext *C, wmOperator *op)
 		else {
 			tv = tvs.transverts;
 			for (a = 0; a < tvs.transverts_tot; a++, tv++) {
-				copy_v3_v3(tv->loc, cursor_local);
+				copy_v3_v3(tv->loc, snap_target_local);
 			}
 		}
 		
@@ -274,10 +270,10 @@ static int snap_sel_to_curs_exec(bContext *C, wmOperator *op)
 
 		bPoseChannel *pchan;
 		bArmature *arm = obact->data;
-		float cursor_local[3];
+		float snap_target_local[3];
 
 		invert_m4_m4(obact->imat, obact->obmat);
-		mul_v3_m4v3(cursor_local, obact->imat, cursor_global);
+		mul_v3_m4v3(snap_target_local, obact->imat, snap_target_global);
 
 		for (pchan = obact->pose->chanbase.first; pchan; pchan = pchan->next) {
 			if ((pchan->bone->flag & BONE_SELECTED) &&
@@ -311,7 +307,7 @@ static int snap_sel_to_curs_exec(bContext *C, wmOperator *op)
 					BKE_armature_loc_pose_to_bone(pchan, cursor_pose, cursor_pose);
 				}
 				else {
-					BKE_armature_loc_pose_to_bone(pchan, cursor_local, cursor_pose);
+					BKE_armature_loc_pose_to_bone(pchan, snap_target_local, cursor_pose);
 				}
 
 				/* copy new position */
@@ -367,7 +363,7 @@ static int snap_sel_to_curs_exec(bContext *C, wmOperator *op)
 					add_v3_v3v3(cursor_parent, ob->obmat[3], offset_global);
 				}
 				else {
-					copy_v3_v3(cursor_parent, cursor_global);
+					copy_v3_v3(cursor_parent, snap_target_global);
 				}
 
 				sub_v3_v3(cursor_parent, ob->obmat[3]);
@@ -401,6 +397,18 @@ static int snap_sel_to_curs_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int snap_selected_to_cursor_exec(bContext *C, wmOperator *op)
+{
+	const bool use_offset = RNA_boolean_get(op->ptr, "use_offset");
+
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+
+	const float *snap_target_global = ED_view3d_cursor3d_get(scene, v3d);
+
+	return snap_selected_to_location(C, snap_target_global, use_offset);
+}
+
 void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -409,7 +417,7 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 	ot->idname = "VIEW3D_OT_snap_selected_to_cursor";
 	
 	/* api callbacks */
-	ot->exec = snap_sel_to_curs_exec;
+	ot->exec = snap_selected_to_cursor_exec;
 	ot->poll = ED_operator_view3d_active;
 	
 	/* flags */
@@ -418,6 +426,34 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 	/* rna */
 	RNA_def_boolean(ot->srna, "use_offset", 1, "Offset", "");
 }
+
+static int snap_selected_to_active_exec(bContext *C, wmOperator *op)
+{
+	float snap_target_global[3];
+
+	if (snap_calc_active_center(C, false, snap_target_global) == false) {
+		BKE_report(op->reports, RPT_ERROR, "No active element found!");
+		return OPERATOR_CANCELLED;
+	}
+
+	return snap_selected_to_location(C, snap_target_global, false);
+}
+
+void VIEW3D_OT_snap_selected_to_active(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Snap Selection to Active";
+	ot->description = "Snap selected item(s) to the active item";
+	ot->idname = "VIEW3D_OT_snap_selected_to_active";
+
+	/* api callbacks */
+	ot->exec = snap_selected_to_active_exec;
+	ot->poll = ED_operator_view3d_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 
 /* *************************************************** */
 

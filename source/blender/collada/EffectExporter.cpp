@@ -30,6 +30,7 @@
 #include <set>
 
 #include "COLLADASWEffectProfile.h"
+#include "COLLADAFWColorOrTexture.h"
 
 #include "EffectExporter.h"
 #include "DocumentExporter.h"
@@ -217,9 +218,9 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	// transparency
 	if (ma->mode & MA_TRANSP) {
 		// Tod: because we are in A_ONE mode transparency is calculated like this:
-		ep.setTransparency(ma->alpha, false, "transparency");
-		// cot = getcol(1.0f, 1.0f, 1.0f, 1.0f);
-		// ep.setTransparent(cot);
+		cot = getcol(1.0f, 1.0f, 1.0f, ma->alpha);
+		ep.setTransparent(cot);
+		ep.setOpaque(COLLADASW::EffectProfile::A_ONE);
 	}
 
 	// emission

@@ -312,7 +312,7 @@ ccl_device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *st
 
 		/* apply normal map */
 		float3 B = sign * cross(normal, tangent);
-		N = normalize(color.x * tangent + color.y * B + color.z * normal);
+		N = safe_normalize(color.x * tangent + color.y * B + color.z * normal);
 
 		/* transform to world space */
 		object_normal_transform(kg, sd, &N);
@@ -330,14 +330,18 @@ ccl_device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *st
 		if(space == NODE_NORMAL_MAP_OBJECT || space == NODE_NORMAL_MAP_BLENDER_OBJECT)
 			object_normal_transform(kg, sd, &N);
 		else
-			N = normalize(N);
+			N = safe_normalize(N);
 	}
 
 	float strength = stack_load_float(stack, strength_offset);
 
 	if(strength != 1.0f) {
 		strength = max(strength, 0.0f);
-		N = normalize(ccl_fetch(sd, N) + (N - ccl_fetch(sd, N))*strength);
+		N = safe_normalize(ccl_fetch(sd, N) + (N - ccl_fetch(sd, N))*strength);
+	}
+
+	if(is_zero(N)) {
+		N = ccl_fetch(sd, N);
 	}
 
 	stack_store_float3(stack, normal_offset, N);

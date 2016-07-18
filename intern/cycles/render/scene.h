@@ -136,6 +136,7 @@ public:
 		BVH_NUM_TYPES,
 	} bvh_type;
 	bool use_bvh_spatial_split;
+	bool use_bvh_unaligned_nodes;
 	bool use_qbvh;
 	bool persistent_data;
 
@@ -144,6 +145,7 @@ public:
 		shadingsystem = SHADINGSYSTEM_SVM;
 		bvh_type = BVH_DYNAMIC;
 		use_bvh_spatial_split = false;
+		use_bvh_unaligned_nodes = true;
 		use_qbvh = false;
 		persistent_data = false;
 	}
@@ -152,6 +154,7 @@ public:
 	{ return !(shadingsystem == params.shadingsystem
 		&& bvh_type == params.bvh_type
 		&& use_bvh_spatial_split == params.use_bvh_spatial_split
+		&& use_bvh_unaligned_nodes == params.use_bvh_unaligned_nodes
 		&& use_qbvh == params.use_qbvh
 		&& persistent_data == params.persistent_data); }
 };

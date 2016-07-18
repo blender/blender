@@ -172,11 +172,11 @@ Lamp *localize_lamp(Lamp *la)
 	return lan;
 }
 
-void BKE_lamp_make_local(Main *bmain, Lamp *la)
+void BKE_lamp_make_local(Main *bmain, Lamp *la, const bool force_local)
 {
 	bool is_local = false, is_lib = false;
 
-	/* - only lib users: do nothing
+	/* - only lib users: do nothing (unless force_local is set)
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
@@ -187,7 +187,7 @@ void BKE_lamp_make_local(Main *bmain, Lamp *la)
 
 	BKE_library_ID_test_usages(bmain, la, &is_local, &is_lib);
 
-	if (is_local) {
+	if (force_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &la->id);
 			BKE_id_expand_local(&la->id);

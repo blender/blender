@@ -196,8 +196,33 @@ function(blender_source_group
 endfunction()
 
 
+# Support per-target CMake flags
+# Read from: CMAKE_C_FLAGS_**** (made upper case) when set.
+#
+# 'name' should alway match the target name,
+# use this macro before add_library or add_executable.
+#
+# Optionally takes an arg passed to set(), eg PARENT_SCOPE.
+macro(add_cc_flags_custom_test
+	name
+	)
+
+	string(TOUPPER ${name} _name_upper)
+	if(DEFINED CMAKE_C_FLAGS_${_name_upper})
+		message(STATUS "Using custom CFLAGS: CMAKE_C_FLAGS_${_name_upper} in \"${CMAKE_CURRENT_SOURCE_DIR}\"")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${_name_upper}}" ${ARGV1})
+	endif()
+	if(DEFINED CMAKE_CXX_FLAGS_${_name_upper})
+		message(STATUS "Using custom CXXFLAGS: CMAKE_CXX_FLAGS_${_name_upper} in \"${CMAKE_CURRENT_SOURCE_DIR}\"")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${_name_upper}}" ${ARGV1})
+	endif()
+	unset(_name_upper)
+
+endmacro()
+
+
 # only MSVC uses SOURCE_GROUP
-function(blender_add_lib_nolist
+function(blender_add_lib__impl
 	name
 	sources
 	includes
@@ -225,6 +250,18 @@ function(blender_add_lib_nolist
 endfunction()
 
 
+function(blender_add_lib_nolist
+	name
+	sources
+	includes
+	includes_sys
+	)
+
+	add_cc_flags_custom_test(${name} PARENT_SCOPE)
+
+	blender_add_lib__impl(${name} "${sources}" "${includes}" "${includes_sys}")
+endfunction()
+
 function(blender_add_lib
 	name
 	sources
@@ -232,7 +269,9 @@ function(blender_add_lib
 	includes_sys
 	)
 
-	blender_add_lib_nolist(${name} "${sources}" "${includes}" "${includes_sys}")
+	add_cc_flags_custom_test(${name} PARENT_SCOPE)
+
+	blender_add_lib__impl(${name} "${sources}" "${includes}" "${includes_sys}")
 
 	set_property(GLOBAL APPEND PROPERTY BLENDER_LINK_LIBS ${name})
 endfunction()

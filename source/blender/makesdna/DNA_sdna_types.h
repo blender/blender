@@ -35,17 +35,17 @@
 #
 #
 typedef struct SDNA {
-	const char *data;			/* full copy of 'encoded' data */
+	const char *data;	/* full copy of 'encoded' data (when data_alloc is set, otherwise borrowed). */
 	int datalen;		/* length of data */
 	bool data_alloc;
 
 	int nr_names;		/* total number of struct members */
-	const char **names;		/* struct member names */
+	const char **names;	/* struct member names */
 
 	int pointerlen;		/* size of a pointer in bytes */
 
 	int nr_types;		/* number of basic types + struct types */
-	char **types;		/* type names */
+	const char **types;	/* type names */
 	short *typelens;	/* type lengths */
 
 	int nr_structs;		/* number of struct types */
@@ -57,11 +57,6 @@ typedef struct SDNA {
 
 	struct GHash *structs_map; /* ghash for faster lookups,
 	                            * requires WITH_DNA_GHASH to be used for now */
-
-		/* wrong place for this really, its a simple
-		 * cache for findstruct_nr.
-		 */
-	int lastfind;
 } SDNA;
 
 #

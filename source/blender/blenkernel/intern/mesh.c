@@ -555,11 +555,11 @@ BMesh *BKE_mesh_to_bmesh(
 	return bm;
 }
 
-void BKE_mesh_make_local(Main *bmain, Mesh *me)
+void BKE_mesh_make_local(Main *bmain, Mesh *me, const bool force_local)
 {
 	bool is_local = false, is_lib = false;
 
-	/* - only lib users: do nothing
+	/* - only lib users: do nothing (unless force_local is set)
 	 * - only local users: set flag
 	 * - mixed: make copy
 	 */
@@ -570,12 +570,9 @@ void BKE_mesh_make_local(Main *bmain, Mesh *me)
 
 	BKE_library_ID_test_usages(bmain, me, &is_local, &is_lib);
 
-	if (is_local) {
+	if (force_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &me->id);
-			if (me->key) {
-				BKE_key_make_local(bmain, me->key);
-			}
 			BKE_id_expand_local(&me->id);
 		}
 		else {
@@ -2227,7 +2224,6 @@ Mesh *BKE_mesh_new_from_object(
 {
 	Mesh *tmpmesh;
 	Curve *tmpcu = NULL, *copycu;
-	Object *tmpobj = NULL;
 	int render = settings == eModifierMode_Render, i;
 	int cage = !apply_modifiers;
 
@@ -2242,7 +2238,7 @@ Mesh *BKE_mesh_new_from_object(
 			int uv_from_orco;
 
 			/* copies object and modifiers (but not the data) */
-			tmpobj = BKE_object_copy_ex(bmain, ob, true);
+			Object *tmpobj = BKE_object_copy_ex(bmain, ob, true);
 			tmpcu = (Curve *)tmpobj->data;
 			id_us_min(&tmpcu->id);
 
@@ -2443,7 +2439,7 @@ Mesh *BKE_mesh_new_from_object(
 	}
 
 	/* make sure materials get updated in object */
-	test_object_materials(tmpobj ? tmpobj : ob, &tmpmesh->id);
+	test_object_materials(ob, &tmpmesh->id);
 
 	return tmpmesh;
 }

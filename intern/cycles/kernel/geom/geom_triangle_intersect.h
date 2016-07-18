@@ -255,6 +255,13 @@ ccl_device_inline void triangle_intersect_subsurface(
 	/* Normalize U, V, W, and T. */
 	const float inv_det = 1.0f / det;
 
+	const float t = T * inv_det;
+	for(int i = min(max_hits, ss_isect->num_hits); i >= 0; --i) {
+		if(ss_isect->hits[i].t == t) {
+			return;
+		}
+	}
+
 	ss_isect->num_hits++;
 	int hit;
 
@@ -277,7 +284,7 @@ ccl_device_inline void triangle_intersect_subsurface(
 	isect->type = PRIMITIVE_TRIANGLE;
 	isect->u = U * inv_det;
 	isect->v = V * inv_det;
-	isect->t = T * inv_det;
+	isect->t = t;
 
 	/* Record geometric normal. */
 	/* TODO(sergey): Use float4_to_float3() on just an edges. */

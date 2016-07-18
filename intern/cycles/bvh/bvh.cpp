@@ -463,8 +463,7 @@ void RegularBVH::pack_aligned_inner(const BVHStackEntry& e,
 	pack_aligned_node(e.idx,
 	                  e0.node->m_bounds, e1.node->m_bounds,
 	                  e0.encodeIdx(), e1.encodeIdx(),
-	                  e0.node->m_visibility & ~PATH_RAY_NODE_UNALIGNED,
-	                  e1.node->m_visibility & ~PATH_RAY_NODE_UNALIGNED);
+	                  e0.node->m_visibility, e1.node->m_visibility);
 }
 
 void RegularBVH::pack_aligned_node(int idx,
@@ -475,7 +474,8 @@ void RegularBVH::pack_aligned_node(int idx,
 {
 	int4 data[BVH_NODE_SIZE] =
 	{
-		make_int4(visibility0, visibility1, c0, c1),
+		make_int4(visibility0 & ~PATH_RAY_NODE_UNALIGNED,
+		          visibility1 & ~PATH_RAY_NODE_UNALIGNED, c0, c1),
 		make_int4(__float_as_int(b0.min.x), __float_as_int(b1.min.x), __float_as_int(b0.max.x), __float_as_int(b1.max.x)),
 		make_int4(__float_as_int(b0.min.y), __float_as_int(b1.min.y), __float_as_int(b0.max.y), __float_as_int(b1.max.y)),
 		make_int4(__float_as_int(b0.min.z), __float_as_int(b1.min.z), __float_as_int(b0.max.z), __float_as_int(b1.max.z)),
@@ -688,9 +688,7 @@ void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility
 		leaf_data[0].y = __int_as_float(c1);
 		leaf_data[0].z = __uint_as_float(visibility);
 		leaf_data[0].w = __uint_as_float(data[0].w);
-		memcpy(&pack.leaf_nodes[idx * BVH_NODE_LEAF_SIZE],
-		       leaf_data,
-		       sizeof(float4)*BVH_NODE_LEAF_SIZE);
+		memcpy(&pack.leaf_nodes[idx], leaf_data, sizeof(float4)*BVH_NODE_LEAF_SIZE);
 	}
 	else {
 		int4 *data = &pack.nodes[idx];

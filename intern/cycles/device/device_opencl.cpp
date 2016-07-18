@@ -795,7 +795,7 @@ public:
 
 	bool load_binary(const string& /*kernel_path*/,
 	                 const string& clbin,
-	                 string custom_kernel_build_options,
+	                 const string& custom_kernel_build_options,
 	                 cl_program *program,
 	                 const string *debug_src = NULL)
 	{
@@ -848,7 +848,7 @@ public:
 	}
 
 	bool build_kernel(cl_program *kernel_program,
-	                  string custom_kernel_build_options,
+	                  const string& custom_kernel_build_options,
 	                  const string *debug_src = NULL)
 	{
 		string build_options;
@@ -881,30 +881,39 @@ public:
 		return true;
 	}
 
-	bool compile_kernel(const string& kernel_path,
-	                    string source,
-	                    string custom_kernel_build_options,
+	bool compile_kernel(const string& kernel_name,
+	                    const string& kernel_path,
+	                    const string& source,
+	                    const string& custom_kernel_build_options,
 	                    cl_program *kernel_program,
 	                    const string *debug_src = NULL)
 	{
-		/* we compile kernels consisting of many files. unfortunately opencl
+		/* We compile kernels consisting of many files. unfortunately OpenCL
 		 * kernel caches do not seem to recognize changes in included files.
-		 * so we force recompile on changes by adding the md5 hash of all files */
-		source = path_source_replace_includes(source, kernel_path);
+		 * so we force recompile on changes by adding the md5 hash of all files.
+		 */
+		string inlined_source = path_source_replace_includes(source,
+		                                                     kernel_path);
 
-		if(debug_src)
-			path_write_text(*debug_src, source);
+		if(debug_src) {
+			path_write_text(*debug_src, inlined_source);
+		}
 
-		size_t source_len = source.size();
-		const char *source_str = source.c_str();
+		size_t source_len = inlined_source.size();
+		const char *source_str = inlined_source.c_str();
 
-		*kernel_program = clCreateProgramWithSource(cxContext, 1, &source_str, &source_len, &ciErr);
+		*kernel_program = clCreateProgramWithSource(cxContext,
+		                                            1,
+		                                            &source_str,
+		                                            &source_len,
+		                                            &ciErr);
 
-		if(opencl_error(ciErr))
+		if(opencl_error(ciErr)) {
 			return false;
+		}
 
 		double starttime = time_dt();
-		printf("Compiling OpenCL kernel ...\n");
+		printf("Compiling %s OpenCL kernel ...\n", kernel_name.c_str());
 		/* TODO(sergey): Report which kernel is being compiled
 		 * as well (megakernel or which of split kernels etc..).
 		 */
@@ -1004,7 +1013,8 @@ public:
 				string init_kernel_source = "#include \"kernels/opencl/kernel.cl\" // " + kernel_md5 + "\n";
 
 				/* If does not exist or loading binary failed, compile kernel. */
-				if(!compile_kernel(kernel_path,
+				if(!compile_kernel("base_kernel",
+				                   kernel_path,
 				                   init_kernel_source,
 				                   build_flags,
 				                   &cpProgram,
@@ -1694,7 +1704,8 @@ public:
 				string init_kernel_source = "#include \"kernels/opencl/kernel.cl\" // " +
 				                            kernel_md5 + "\n";
 				/* If does not exist or loading binary failed, compile kernel. */
-				if(!compile_kernel(kernel_path,
+				if(!compile_kernel("mega_kernel",
+				                   kernel_path,
 				                   init_kernel_source,
 				                   custom_kernel_build_options,
 				                   &path_trace_program,
@@ -2078,30 +2089,33 @@ public:
 	/* TODO(sergey): Seems really close to load_kernel(),
 	 * could it be de-duplicated?
 	 */
-	bool load_split_kernel(string kernel_path,
-	                       string kernel_init_source,
-	                       string clbin,
-	                       string custom_kernel_build_options,
+	bool load_split_kernel(const string& kernel_name,
+	                       const string& kernel_path,
+	                       const string& kernel_init_source,
+	                       const string& clbin,
+	                       const string& custom_kernel_build_options,
 	                       cl_program *program,
 	                       const string *debug_src = NULL)
 	{
-		if(!opencl_version_check())
+		if(!opencl_version_check()) {
 			return false;
+		}
 
-		clbin = path_user_get(path_join("cache", clbin));
+		string cache_clbin = path_user_get(path_join("cache", clbin));
 
 		/* If exists already, try use it. */
-		if(path_exists(clbin) && load_binary(kernel_path,
-		                                     clbin,
-		                                     custom_kernel_build_options,
-		                                     program,
-		                                     debug_src))
+		if(path_exists(cache_clbin) && load_binary(kernel_path,
+		                                           cache_clbin,
+		                                           custom_kernel_build_options,
+		                                           program,
+		                                           debug_src))
 		{
 			/* Kernel loaded from binary. */
 		}
 		else {
 			/* If does not exist or loading binary failed, compile kernel. */
-			if(!compile_kernel(kernel_path,
+			if(!compile_kernel(kernel_name,
+			                   kernel_path,
 			                   kernel_init_source,
 			                   custom_kernel_build_options,
 			                   program,
@@ -2110,7 +2124,7 @@ public:
 				return false;
 			}
 			/* Save binary for reuse. */
-			if(!save_binary(program, clbin)) {
+			if(!save_binary(program, cache_clbin)) {
 				return false;
 			}
 		}
@@ -2208,7 +2222,10 @@ public:
 			clsrc = path_user_get(path_join("cache", clsrc)); \
 			debug_src = &clsrc; \
 		} \
-		if(!load_split_kernel(kernel_path, kernel_init_source, clbin, \
+		if(!load_split_kernel(#name, \
+		                      kernel_path, \
+		                      kernel_init_source, \
+		                      clbin, \
 		                      build_options, \
 		                      &GLUE(name, _program), \
 		                      debug_src)) \

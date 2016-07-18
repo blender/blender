@@ -1145,7 +1145,9 @@ static void calc_area_normal_and_center(
 /* Return modified brush strength. Includes the direction of the brush, positive
  * values pull vertices, negative values push. Uses tablet pressure and a
  * special multiplier found experimentally to scale the strength factor. */
-static float brush_strength(const Sculpt *sd, const StrokeCache *cache, const float feather, const UnifiedPaintSettings *ups)
+static float brush_strength(
+        const Sculpt *sd, const StrokeCache *cache,
+        const float feather, const UnifiedPaintSettings *ups)
 {
 	const Scene *scene = cache->vc->scene;
 	const Brush *brush = BKE_paint_brush((Paint *)&sd->paint);
@@ -3985,7 +3987,9 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
 }
 
 /* Initialize the stroke cache invariants from operator properties */
-static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSession *ss, wmOperator *op, const float mouse[2])
+static void sculpt_update_cache_invariants(
+        bContext *C, Sculpt *sd, SculptSession *ss,
+        wmOperator *op, const float mouse[2])
 {
 	StrokeCache *cache = MEM_callocN(sizeof(StrokeCache), "stroke cache");
 	Scene *scene = CTX_data_scene(C);
@@ -4448,7 +4452,9 @@ static void sculpt_raycast_detail_cb(PBVHNode *node, void *data_v, float *tmin)
 	}
 }
 
-static float sculpt_raycast_init(ViewContext *vc, const float mouse[2], float ray_start[3], float ray_end[3], float ray_normal[3], bool original)
+static float sculpt_raycast_init(
+        ViewContext *vc, const float mouse[2],
+        float ray_start[3], float ray_end[3], float ray_normal[3], bool original)
 {
 	float obimat[4][4];
 	float dist;
@@ -4956,8 +4962,9 @@ void sculpt_dyntopo_node_layers_add(SculptSession *ss)
 		cd_node_layer_index = CustomData_get_named_layer_index(&ss->bm->vdata, CD_PROP_INT, layer_id);
 	}
 
-	ss->cd_vert_node_offset = CustomData_get_n_offset(&ss->bm->vdata, CD_PROP_INT,
-	                                                  cd_node_layer_index - CustomData_get_layer_index(&ss->bm->vdata, CD_PROP_INT));
+	ss->cd_vert_node_offset = CustomData_get_n_offset(
+	        &ss->bm->vdata, CD_PROP_INT,
+	        cd_node_layer_index - CustomData_get_layer_index(&ss->bm->vdata, CD_PROP_INT));
 
 	ss->bm->vdata.layers[cd_node_layer_index].flag |= CD_FLAG_TEMPORARY;
 
@@ -4967,8 +4974,9 @@ void sculpt_dyntopo_node_layers_add(SculptSession *ss)
 		cd_node_layer_index = CustomData_get_named_layer_index(&ss->bm->pdata, CD_PROP_INT, layer_id);
 	}
 
-	ss->cd_face_node_offset = CustomData_get_n_offset(&ss->bm->pdata, CD_PROP_INT,
-	                                                  cd_node_layer_index - CustomData_get_layer_index(&ss->bm->pdata, CD_PROP_INT));
+	ss->cd_face_node_offset = CustomData_get_n_offset(
+	        &ss->bm->pdata, CD_PROP_INT,
+	        cd_node_layer_index - CustomData_get_layer_index(&ss->bm->pdata, CD_PROP_INT));
 
 	ss->bm->pdata.layers[cd_node_layer_index].flag |= CD_FLAG_TEMPORARY;
 }
@@ -5667,7 +5675,8 @@ static void SCULPT_OT_sample_detail_size(wmOperatorType *ot)
 
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_int_array(ot->srna, "location", 2, NULL, 0, SHRT_MAX, "Location", "Screen Coordinates of sampling", 0, SHRT_MAX);
+	RNA_def_int_array(ot->srna, "location", 2, NULL, 0, SHRT_MAX,
+	                  "Location", "Screen Coordinates of sampling", 0, SHRT_MAX);
 }
 
 

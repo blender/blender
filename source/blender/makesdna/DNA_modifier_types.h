@@ -639,8 +639,9 @@ typedef struct BooleanModifierData {
 
 	struct Object *object;
 	char operation;
-	char bm_flag, pad[2];
-	float threshold;
+	char solver;
+	char pad[2];
+	float double_threshold;
 } BooleanModifierData;
 
 typedef enum {
@@ -649,13 +650,10 @@ typedef enum {
 	eBooleanModifierOp_Difference = 2,
 } BooleanModifierOp;
 
-/* temp bm_flag (debugging only) */
-enum {
-	eBooleanModifierBMeshFlag_Enabled                   = (1 << 0),
-	eBooleanModifierBMeshFlag_BMesh_Separate            = (1 << 1),
-	eBooleanModifierBMeshFlag_BMesh_NoDissolve          = (1 << 2),
-	eBooleanModifierBMeshFlag_BMesh_NoConnectRegions    = (1 << 3),
-};
+typedef enum {
+	eBooleanModifierSolver_Carve    = 0,
+	eBooleanModifierSolver_BMesh = 1,
+} BooleanSolver;
 
 typedef struct MDefInfluence {
 	int vertex;

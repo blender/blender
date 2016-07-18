@@ -301,7 +301,7 @@ static void ww_handle_init(eWriteWrapType ww_type, WriteWrap *r_ww)
 
 
 typedef struct {
-	struct SDNA *sdna;
+	const struct SDNA *sdna;
 
 	unsigned char *buf;
 	MemFile *compare, *current;
@@ -323,7 +323,7 @@ static WriteData *writedata_new(WriteWrap *ww)
 {
 	WriteData *wd = MEM_callocN(sizeof(*wd), "writedata");
 
-	wd->sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false);
+	wd->sdna = DNA_sdna_current_get();
 
 	wd->ww = ww;
 
@@ -355,8 +355,6 @@ static void writedata_do_write(WriteData *wd, const void *mem, int memlen)
 
 static void writedata_free(WriteData *wd)
 {
-	DNA_sdna_free(wd->sdna);
-
 	MEM_freeN(wd->buf);
 	MEM_freeN(wd);
 }
@@ -2042,7 +2040,7 @@ static void write_meshes(WriteData *wd, ListBase *idbase)
 				mesh->edit_btmesh = NULL;
 
 				/* now fill in polys to mfaces */
-				/* XXX This breaks writing desing, by using temp allocated memory, which will likely generate
+				/* XXX This breaks writing design, by using temp allocated memory, which will likely generate
 				 *     duplicates in stored 'old' addresses.
 				 *     This is very bad, but do not see easy way to avoid this, aside from generating those data
 				 *     outside of save process itself.

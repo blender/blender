@@ -3472,7 +3472,7 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 
 			if (!flush && compareDrawOptions) {
 				/* also compare draw options and flush buffer if they're different
-					 * need for face selection highlight in edit mode */
+				 * need for face selection highlight in edit mode */
 				flush |= compareDrawOptions(userData, actualFace, next_actualFace) == 0;
 			}
 

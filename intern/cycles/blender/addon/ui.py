@@ -401,6 +401,7 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
 
         col.label(text="Acceleration structure:")
         col.prop(cscene, "debug_use_spatial_splits")
+        col.prop(cscene, "debug_use_hair_bvh")
 
 
 class CyclesRender_PT_layer_options(CyclesButtonsPanel, Panel):

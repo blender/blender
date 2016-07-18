@@ -86,7 +86,7 @@ static int recalc_face_normals_find_index(BMesh *bm, BMFace **faces, const int f
 	int f_start_index;
 	int i;
 
-	/* Search for the best loop. Members are comapred in-order defined here. */
+	/* Search for the best loop. Members are compared in-order defined here. */
 	struct {
 		/* Squared distance from the center to the loops vertex 'l->v'.
 		 * The normalized direction between the center and this vertex is also used for the dot-products below. */

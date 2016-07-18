@@ -182,14 +182,20 @@ help: .FORCE
 	@echo "  * package_archive - build an archive package"
 	@echo ""
 	@echo "Testing Targets (not associated with building blender)"
-	@echo "  * test               - run ctest, currently tests import/export, operator execution and that python modules load"
-	@echo "  * test_cmake         - runs our own cmake file checker which detects errors in the cmake file list definitions"
-	@echo "  * test_pep8          - checks all python script are pep8 which are tagged to use the stricter formatting"
+	@echo "  * test               - run ctest, currently tests import/export,"
+	@echo "                         operator execution and that python modules load"
+	@echo "  * test_cmake         - runs our own cmake file checker"
+	@echo "                         which detects errors in the cmake file list definitions"
+	@echo "  * test_pep8          - checks all python script are pep8"
+	@echo "                         which are tagged to use the stricter formatting"
 	@echo "  * test_deprecated    - checks for deprecation tags in our code which may need to be removed"
-	@echo "  * test_style_c       - checks C/C++ conforms with blenders style guide: http://wiki.blender.org/index.php/Dev:Doc/CodeStyle"
+	@echo "  * test_style_c       - checks C/C++ conforms with blenders style guide:"
+	@echo "                         http://wiki.blender.org/index.php/Dev:Doc/CodeStyle"
 	@echo "  * test_style_c_qtc   - same as test_style but outputs QtCreator tasks format"
-	@echo "  * test_style_osl     - checks OpenShadingLanguage conforms with blenders style guide: http://wiki.blender.org/index.php/Dev:Doc/CodeStyle"
-	@echo "  * test_style_osl_qtc - checks OpenShadingLanguage conforms with blenders style guide: http://wiki.blender.org/index.php/Dev:Doc/CodeStyle"
+	@echo "  * test_style_osl     - checks OpenShadingLanguage conforms with blenders style guide:"
+	@echo "                         http://wiki.blender.org/index.php/Dev:Doc/CodeStyle"
+	@echo "  * test_style_osl_qtc - checks OpenShadingLanguage conforms with blenders style guide:"
+	@echo "                         http://wiki.blender.org/index.php/Dev:Doc/CodeStyle"
 	@echo ""
 	@echo "Static Source Code Checking (not associated with building blender)"
 	@echo "  * check_cppcheck       - run blender source through cppcheck (C & C++)"
@@ -405,7 +411,8 @@ update: .FORCE
 
 # Simple version of ./doc/python_api/sphinx_doc_gen.sh with no PDF generation.
 doc_py: .FORCE
-	"$(BUILD_DIR)/bin/blender" --background -noaudio --factory-startup --python doc/python_api/sphinx_doc_gen.py
+	"$(BUILD_DIR)/bin/blender" --background -noaudio --factory-startup \
+		--python doc/python_api/sphinx_doc_gen.py
 	cd doc/python_api ; sphinx-build -b html sphinx-in sphinx-out
 	@echo "docs written into: '$(BLENDER_DIR)/doc/python_api/sphinx-out/contents.html'"
 
@@ -414,7 +421,8 @@ doc_doxy: .FORCE
 	@echo "docs written into: '$(BLENDER_DIR)/doc/doxygen/html/index.html'"
 
 doc_dna: .FORCE
-	"$(BUILD_DIR)/bin/blender" --background -noaudio --factory-startup --python doc/blender_file_format/BlendFileDnaExporter_25.py
+	"$(BUILD_DIR)/bin/blender" --background -noaudio --factory-startup \
+		--python doc/blender_file_format/BlendFileDnaExporter_25.py
 	@echo "docs written into: '$(BLENDER_DIR)/doc/blender_file_format/dna.html'"
 
 doc_man: .FORCE

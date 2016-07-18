@@ -1308,41 +1308,40 @@ StripElem *BKE_sequencer_give_stripelem(Sequence *seq, int cfra)
 
 static int evaluate_seq_frame_gen(Sequence **seq_arr, ListBase *seqbase, int cfra, int chanshown)
 {
-	Sequence *seq;
-	Sequence *effect_inputs[MAXSEQ + 1];
-	int i, totseq = 0, num_effect_inputs = 0;
+	/* Use arbitrary sized linked list, the size could be over MAXSEQ. */
+	LinkNodePair effect_inputs = {NULL, NULL};
+	int totseq = 0;
 
 	memset(seq_arr, 0, sizeof(Sequence *) * (MAXSEQ + 1));
 
-	seq = seqbase->first;
-	while (seq) {
-		if (seq->startdisp <= cfra && seq->enddisp > cfra) {
+	for (Sequence *seq = seqbase->first; seq; seq = seq->next) {
+		if ((seq->startdisp <= cfra) && (seq->enddisp > cfra)) {
 			if ((seq->type & SEQ_TYPE_EFFECT) && !(seq->flag & SEQ_MUTE)) {
+
 				if (seq->seq1) {
-					effect_inputs[num_effect_inputs++] = seq->seq1;
+					BLI_linklist_append_alloca(&effect_inputs, seq->seq1);
 				}
 
 				if (seq->seq2) {
-					effect_inputs[num_effect_inputs++] = seq->seq2;
+					BLI_linklist_append_alloca(&effect_inputs, seq->seq2);
 				}
 
 				if (seq->seq3) {
-					effect_inputs[num_effect_inputs++] = seq->seq3;
+					BLI_linklist_append_alloca(&effect_inputs, seq->seq3);
 				}
 			}
 
 			seq_arr[seq->machine] = seq;
 			totseq++;
 		}
-		seq = seq->next;
 	}
 
 	/* Drop strips which are used for effect inputs, we don't want
 	 * them to blend into render stack in any other way than effect
 	 * string rendering.
 	 */
-	for (i = 0; i < num_effect_inputs; i++) {
-		seq = effect_inputs[i];
+	for (LinkNode *seq_item = effect_inputs.list; seq_item; seq_item = seq_item->next) {
+		Sequence *seq = seq_item->link;
 		/* It's possible that effetc strip would be placed to the same
 		 * 'machine' as it's inputs. We don't want to clear such strips
 		 * from the stack.
@@ -1826,8 +1825,10 @@ static void seq_proxy_build_frame(
 	IMB_freeImBuf(ibuf);
 }
 
-/* returns whether the file this context would read from even exist, if not, don't create the context
-*/
+/**
+ * Returns whether the file this context would read from even exist,
+ * if not, don't create the context
+ */
 static bool seq_proxy_multiview_context_invalid(Sequence *seq, Scene *scene, const int view_id)
 {
 	if ((scene->r.scemode & R_MULTIVIEW) == 0)
@@ -1862,8 +1863,9 @@ static bool seq_proxy_multiview_context_invalid(Sequence *seq, Scene *scene, con
 	return false;
 }
 
-/** This returns the maximum possible number of required contexts
-*/
+/**
+ * This returns the maximum possible number of required contexts
+ */
 static int seq_proxy_context_count(Sequence *seq, Scene *scene)
 {
 	int num_views = 1;
