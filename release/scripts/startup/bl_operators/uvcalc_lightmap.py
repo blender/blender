@@ -285,8 +285,7 @@ def lightmap_uvpack(meshes,
     for face_sel in face_groups:
         print("\nStarting unwrap")
 
-        if len(face_sel) < 4:
-            print("\tWarning, less then 4 faces, skipping")
+        if not face_sel:
             continue
 
         pretty_faces = [prettyface(f) for f in face_sel if f.loop_total >= 4]
