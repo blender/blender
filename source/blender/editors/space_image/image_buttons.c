@@ -575,6 +575,8 @@ static bool ui_imageuser_layer_menu_step(bContext *C, int direction, void *rnd_p
 		BLI_assert(0);
 	}
 
+	BKE_image_release_renderresult(scene, image);
+
 	if (changed) {
 		BKE_image_multilayer_index(rr, iuser);
 		WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
