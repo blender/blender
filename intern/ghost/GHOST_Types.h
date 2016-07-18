@@ -530,7 +530,7 @@ typedef struct {
 
 
 #ifdef _WIN32
-typedef long GHOST_TEmbedderWindowID;
+typedef void* GHOST_TEmbedderWindowID;
 #endif // _WIN32
 
 #ifndef _WIN32

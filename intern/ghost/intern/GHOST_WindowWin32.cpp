@@ -95,31 +95,6 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_parentWindowHwnd(parentwindowhwnd),
       m_debug_context(is_debug)
 {
-	OSVERSIONINFOEX versionInfo;
-	bool hasMinVersionForTaskbar = false;
-	
-	ZeroMemory(&versionInfo, sizeof(OSVERSIONINFOEX));
-	
-	versionInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-	
-	if (!GetVersionEx((OSVERSIONINFO *)&versionInfo)) {
-		versionInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-		if (GetVersionEx((OSVERSIONINFO *)&versionInfo)) {
-			if ((versionInfo.dwMajorVersion == 6 && versionInfo.dwMinorVersion >= 1) ||
-			    (versionInfo.dwMajorVersion >= 7))
-			{
-				hasMinVersionForTaskbar = true;
-			}
-		}
-	}
-	else {
-		if ((versionInfo.dwMajorVersion == 6 && versionInfo.dwMinorVersion >= 1) ||
-		    (versionInfo.dwMajorVersion >= 7))
-		{
-			hasMinVersionForTaskbar = true;
-		}
-	}
-
 	if (state != GHOST_kWindowStateFullScreen) {
 		RECT rect;
 		MONITORINFO monitor;
@@ -341,11 +316,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 			}
 		}
 	}
-
-	if (hasMinVersionForTaskbar)
-		CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, IID_ITaskbarList, (LPVOID *)&m_Bar);
-	else
-		m_Bar = NULL;
+	CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, IID_ITaskbarList3, (LPVOID *)&m_Bar);
 }
 
 
