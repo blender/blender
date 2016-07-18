@@ -580,14 +580,19 @@ void ED_region_tag_refresh_ui(ARegion *ar)
 void ED_region_tag_redraw_partial(ARegion *ar, const rcti *rct)
 {
 	if (ar && !(ar->do_draw & RGN_DRAWING)) {
-		if (!(ar->do_draw & RGN_DRAW)) {
+		if (!(ar->do_draw & (RGN_DRAW | RGN_DRAW_PARTIAL))) {
 			/* no redraw set yet, set partial region */
 			ar->do_draw |= RGN_DRAW_PARTIAL;
 			ar->drawrct = *rct;
 		}
 		else if (ar->drawrct.xmin != ar->drawrct.xmax) {
+			BLI_assert((ar->do_draw & RGN_DRAW_PARTIAL) != 0);
 			/* partial redraw already set, expand region */
 			BLI_rcti_union(&ar->drawrct, rct);
+		}
+		else {
+			BLI_assert((ar->do_draw & RGN_DRAW) != 0);
+			/* Else, full redraw is already requested, nothing to do here. */
 		}
 	}
 }
