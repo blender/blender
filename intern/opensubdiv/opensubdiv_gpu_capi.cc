@@ -42,6 +42,10 @@
 #include <opensubdiv/osd/cpuGLVertexBuffer.h>
 #include <opensubdiv/osd/cpuEvaluator.h>
 
+#include "MEM_guardedalloc.h"
+
+#include "opensubdiv_capi.h"
+
 using OpenSubdiv::Osd::GLMeshInterface;
 
 extern "C" char datatoc_gpu_shader_opensubd_display_glsl[];
@@ -78,7 +82,6 @@ typedef struct Transform {
 } Transform;
 
 static bool g_use_osd_glsl = false;
-static int g_active_uv_index = -1;
 
 static GLuint g_flat_fill_solid_program = 0;
 static GLuint g_flat_fill_texture2d_program = 0;
@@ -89,6 +92,59 @@ static GLuint g_wireframe_program = 0;
 static GLuint g_lighting_ub = 0;
 static Lighting g_lighting_data;
 static Transform g_transform;
+
+struct OpenSubdiv_GLMeshFVarData
+{
+	OpenSubdiv_GLMeshFVarData() :
+		texture_buffer(0) {
+	}
+
+	~OpenSubdiv_GLMeshFVarData()
+	{
+		Release();
+	}
+
+	void Release()
+	{
+		if (texture_buffer) {
+			glDeleteTextures(1, &texture_buffer);
+		}
+		texture_buffer = 0;
+	}
+
+	void Create(const OpenSubdiv::Far::PatchTable *patch_table,
+	            int fvarWidth,
+	            const float *fvar_src_data)
+	{
+		Release();
+		OpenSubdiv::Far::ConstIndexArray indices = patch_table->GetFVarValues();
+
+		// expand fvardata to per-patch array
+		std::vector<float> data;
+		data.reserve(indices.size() * fvarWidth);
+
+		for (int fvert = 0; fvert < (int)indices.size(); ++fvert) {
+			int index = indices[fvert] * fvarWidth;
+			for (int i = 0; i < fvarWidth; ++i) {
+				data.push_back(fvar_src_data[index++]);
+			}
+		}
+		GLuint buffer;
+		glGenBuffers(1, &buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, buffer);
+		glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(float),
+		             &data[0], GL_STATIC_DRAW);
+
+		glGenTextures(1, &texture_buffer);
+		glBindTexture(GL_TEXTURE_BUFFER, texture_buffer);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32F, buffer);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		glDeleteBuffers(1, &buffer);
+	}
+	GLuint texture_buffer;
+};
 
 /* TODO(sergey): This is actually duplicated code from BLI. */
 namespace {
@@ -307,8 +363,7 @@ GLuint linkProgram(const char *version, const char *define)
 	return program;
 }
 
-void bindProgram(GLMeshInterface * /*mesh*/,
-                 int program)
+void bindProgram(OpenSubdiv_GLMesh *gl_mesh, int program)
 {
 	glUseProgram(program);
 
@@ -352,23 +407,16 @@ void bindProgram(GLMeshInterface * /*mesh*/,
 		glUniform4fv(glGetUniformLocation(program, "diffuse"), 1, color);
 	}
 
-	/* TODO(sergey): Bring face varying back. */
-#if 0
 	/* Face-vertex data */
-	if (mesh->GetDrawContext()->GetFvarDataTextureBuffer()) {
+	if (gl_mesh->fvar_data != NULL && gl_mesh->fvar_data->texture_buffer) {
 		glActiveTexture(GL_TEXTURE31);
-		glBindTexture(GL_TEXTURE_BUFFER,
-		              mesh->GetDrawContext()->GetFvarDataTextureBuffer());
+		glBindTexture(GL_TEXTURE_BUFFER, gl_mesh->fvar_data->texture_buffer);
 		glActiveTexture(GL_TEXTURE0);
 	}
-#endif
 
-	/* TODO(sergey): Bring face varying back. */
-	glUniform1i(glGetUniformLocation(program, "osd_fvar_count"),
-	            0/* * mesh->GetFVarCount()*/);
-
-	glUniform1i(glGetUniformLocation(program, "osd_active_uv_offset"),
-	            g_active_uv_index * 2);
+	/* See notes below about why we use such values. */
+	glUniform1i(glGetUniformLocation(program, "osd_fvar_count"), 2);
+	glUniform1i(glGetUniformLocation(program, "osd_active_uv_offset"), 0);
 }
 
 }  /* namespace */
@@ -455,11 +503,9 @@ void openSubdiv_osdGLDisplayDeinit(void)
 	}
 }
 
-void openSubdiv_osdGLMeshDisplayPrepare(int use_osd_glsl,
-                                        int active_uv_index)
+void openSubdiv_osdGLMeshDisplayPrepare(int use_osd_glsl)
 {
 	g_use_osd_glsl = use_osd_glsl != 0;
-	g_active_uv_index = active_uv_index;
 
 	/* Update transformation matrices. */
 	glGetFloatv(GL_PROJECTION_MATRIX, g_transform.projection_matrix);
@@ -516,7 +562,7 @@ void openSubdiv_osdGLMeshDisplayPrepare(int use_osd_glsl,
 	}
 }
 
-static GLuint prepare_patchDraw(GLMeshInterface *mesh,
+static GLuint prepare_patchDraw(OpenSubdiv_GLMesh *gl_mesh,
                                 bool fill_quads)
 {
 	GLint program = 0;
@@ -531,28 +577,31 @@ static GLuint prepare_patchDraw(GLMeshInterface *mesh,
 				glUniform1i(location, model == GL_FLAT);
 			}
 
-			/* TODO(sergey): Bring this back. */
-#if 0
 			/* Face-vertex data */
-			if (mesh->GetDrawContext()->GetFvarDataTextureBuffer()) {
+			if (gl_mesh->fvar_data != NULL &&
+			    gl_mesh->fvar_data->texture_buffer)
+			{
 				glActiveTexture(GL_TEXTURE31);
 				glBindTexture(GL_TEXTURE_BUFFER,
-				              mesh->GetDrawContext()->GetFvarDataTextureBuffer());
+				              gl_mesh->fvar_data->texture_buffer);
 				glActiveTexture(GL_TEXTURE0);
 
 				GLint location = glGetUniformLocation(program, "osd_fvar_count");
 				if (location != -1) {
-					glUniform1i(location, mesh->GetFVarCount());
+					/* TODO(sergey): This is width of FVar data, which happened to be 2. */
+					glUniform1i(location, 2);
 				}
 
 				location = glGetUniformLocation(program, "osd_active_uv_offset");
 				if (location != -1) {
-					glUniform1i(location,
-					            g_active_uv_index * 2);
+					/* TODO(sergey): Since we only store single UV channel
+					 * we can always suuppose offset is 0.
+					 *
+					 * Ideally it should be active UV index times 2.
+					 */
+					glUniform1i(location, 0);
 				}
 			}
-#endif
-
 		}
 		return program;
 	}
@@ -584,7 +633,7 @@ static GLuint prepare_patchDraw(GLMeshInterface *mesh,
 		program = g_wireframe_program;
 	}
 
-	bindProgram(mesh, program);
+	bindProgram(gl_mesh, program);
 
 	return program;
 }
@@ -645,7 +694,7 @@ static void draw_partition_patches_range(GLMeshInterface *mesh,
 				const int num_draw_patches = std::min(num_remained_patches,
 				                                      num_block_patches - start_draw_patch);
 				perform_drawElements(program,
-				                     i,
+				                     i + start_draw_patch,
 				                     num_draw_patches * num_control_verts,
 				                     patch.GetIndexBase() + start_draw_patch * num_control_verts);
 				num_remained_patches -= num_draw_patches;
@@ -691,7 +740,7 @@ void openSubdiv_osdGLMeshDisplay(OpenSubdiv_GLMesh *gl_mesh,
 	}
 
 	/* Setup GLSL/OpenGL to draw patches in current context. */
-	GLuint program = prepare_patchDraw(mesh, fill_quads != 0);
+	GLuint program = prepare_patchDraw(gl_mesh, fill_quads != 0);
 
 	if (start_patch != -1) {
 		draw_partition_patches_range(mesh,
@@ -705,4 +754,22 @@ void openSubdiv_osdGLMeshDisplay(OpenSubdiv_GLMesh *gl_mesh,
 
 	/* Finish patch drawing by restoring all changes to the OpenGL context. */
 	finish_patchDraw(fill_quads != 0);
+}
+
+void openSubdiv_osdGLAllocFVar(OpenSubdiv_GLMesh *gl_mesh,
+                               const float *fvar_data)
+{
+	GLMeshInterface *mesh =
+		(GLMeshInterface *)(gl_mesh->descriptor);
+	gl_mesh->fvar_data = OBJECT_GUARDED_NEW(OpenSubdiv_GLMeshFVarData);
+	gl_mesh->fvar_data->Create(mesh->GetFarPatchTable(),
+	                           2,
+	                           fvar_data);
+}
+
+void openSubdiv_osdGLDestroyFVar(OpenSubdiv_GLMesh *gl_mesh)
+{
+	if (gl_mesh->fvar_data != NULL) {
+		OBJECT_GUARDED_DELETE(gl_mesh->fvar_data, OpenSubdiv_GLMeshFVarData);
+	}
 }

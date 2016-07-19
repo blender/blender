@@ -32,16 +32,19 @@ extern "C" {
 
 // Types declaration.
 struct OpenSubdiv_GLMesh;
+struct OpenSubdiv_GLMeshFVarData;
 struct OpenSubdiv_TopologyRefinerDescr;
 
 typedef struct OpenSubdiv_GLMesh OpenSubdiv_GLMesh;
 
 #ifdef __cplusplus
 struct OpenSubdiv_GLMeshDescr;
+
 typedef struct OpenSubdiv_GLMesh {
 	int evaluator_type;
 	OpenSubdiv_GLMeshDescr *descriptor;
 	OpenSubdiv_TopologyRefinerDescr *topology_refiner;
+	OpenSubdiv_GLMeshFVarData *fvar_data;
 } OpenSubdiv_GLMesh;
 #endif
 
@@ -66,8 +69,7 @@ enum {
 OpenSubdiv_GLMesh *openSubdiv_createOsdGLMeshFromTopologyRefiner(
         struct OpenSubdiv_TopologyRefinerDescr *topology_refiner,
         int evaluator_type,
-        int level,
-        int subdivide_uvs);
+        int level);
 
 void openSubdiv_deleteOsdGLMesh(OpenSubdiv_GLMesh *gl_mesh);
 unsigned int openSubdiv_getOsdGLMeshPatchIndexBuffer(
@@ -129,14 +131,17 @@ void openSubdiv_evaluateVarying(OpenSubdiv_EvaluatorDescr *evaluator_descr,
  *
  * TODO(sergey): Some of the stuff could be initialized once for all meshes.
  */
-void openSubdiv_osdGLMeshDisplayPrepare(int use_osd_glsl,
-                                        int active_uv_index);
+void openSubdiv_osdGLMeshDisplayPrepare(int use_osd_glsl);
 
 /* Draw specified patches. */
 void openSubdiv_osdGLMeshDisplay(OpenSubdiv_GLMesh *gl_mesh,
                                  int fill_quads,
                                  int start_patch,
                                  int num_patches);
+
+void openSubdiv_osdGLAllocFVar(OpenSubdiv_GLMesh *gl_mesh,
+                               const float *fvar_data);
+void openSubdiv_osdGLDestroyFVar(OpenSubdiv_GLMesh *gl_mesh);
 
 /* ** Utility functions ** */
 int openSubdiv_supportGPUDisplay(void);

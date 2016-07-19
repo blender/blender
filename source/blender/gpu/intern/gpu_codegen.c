@@ -868,14 +868,12 @@ static char *code_generate_geometry(ListBase *nodes, bool use_opensubdiv)
 		BLI_dynstr_append(ds, datatoc_gpu_shader_geometry_glsl);
 
 		/* Generate varying assignments. */
-		/* TODO(sergey): Disabled for now, needs revisit. */
-#if 0
 		for (node = nodes->first; node; node = node->next) {
 			for (input = node->inputs.first; input; input = input->next) {
 				if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
 					if (input->attribtype == CD_MTFACE) {
 						BLI_dynstr_appendf(ds,
-						                   "\tINTERP_FACE_VARYING_2(var%d, "
+						                   "\t// INTERP_FACE_VARYING_2(var%d, "
 						                       "fvar%d_offset, st);\n",
 						                   input->attribid,
 						                   input->attribid);
@@ -883,7 +881,6 @@ static char *code_generate_geometry(ListBase *nodes, bool use_opensubdiv)
 				}
 			}
 		}
-#endif
 
 		BLI_dynstr_append(ds, "}\n");
 		code = BLI_dynstr_get_cstring(ds);

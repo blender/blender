@@ -62,6 +62,11 @@ typedef struct ConvDMStorage {
 	    *vert_poly_mem,
 	    *edge_poly_mem;
 #endif
+
+	MEdge *medge;
+	MLoop *mloop;
+	MPoly *mpoly;
+	MLoopUV *mloopuv;
 } ConvDMStorage;
 
 static OpenSubdiv_SchemeType conv_dm_get_type(
@@ -99,9 +104,7 @@ static int conv_dm_get_num_face_verts(const OpenSubdiv_Converter *converter,
                                       int face)
 {
 	ConvDMStorage *storage = converter->user_data;
-	DerivedMesh *dm = storage->dm;
-	const MPoly *mp = dm->getPolyArray(dm);
-	const MPoly *mpoly = &mp[face];
+	const MPoly *mpoly = &storage->mpoly[face];
 	return mpoly->totloop;
 }
 
@@ -110,13 +113,10 @@ static void conv_dm_get_face_verts(const OpenSubdiv_Converter *converter,
                                    int *face_verts)
 {
 	ConvDMStorage *storage = converter->user_data;
-	DerivedMesh *dm = storage->dm;
-	const MLoop *ml = dm->getLoopArray(dm);
-	const MPoly *mp = dm->getPolyArray(dm);
-	const MPoly *mpoly = &mp[face];
+	const MPoly *mpoly = &storage->mpoly[face];
 	int loop;
 	for (loop = 0; loop < mpoly->totloop; loop++) {
-		face_verts[loop] = ml[mpoly->loopstart + loop].v;
+		face_verts[loop] = storage->mloop[mpoly->loopstart + loop].v;
 	}
 }
 
@@ -125,13 +125,10 @@ static void conv_dm_get_face_edges(const OpenSubdiv_Converter *converter,
                                    int *face_edges)
 {
 	ConvDMStorage *storage = converter->user_data;
-	DerivedMesh *dm = storage->dm;
-	const MLoop *ml = dm->getLoopArray(dm);
-	const MPoly *mp = dm->getPolyArray(dm);
-	const MPoly *mpoly = &mp[face];
+	const MPoly *mpoly = &storage->mpoly[face];
 	int loop;
 	for (loop = 0; loop < mpoly->totloop; loop++) {
-		face_edges[loop] = ml[mpoly->loopstart + loop].e;
+		face_edges[loop] = storage->mloop[mpoly->loopstart + loop].e;
 	}
 }
 
@@ -140,9 +137,7 @@ static void conv_dm_get_edge_verts(const OpenSubdiv_Converter *converter,
                                    int *edge_verts)
 {
 	ConvDMStorage *storage = converter->user_data;
-	DerivedMesh *dm = storage->dm;
-	const MEdge *me = dm->getEdgeArray(dm);
-	const MEdge *medge = &me[edge];
+	const MEdge *medge = &storage->medge[edge];
 	edge_verts[0] = medge->v1;
 	edge_verts[1] = medge->v2;
 }
@@ -153,14 +148,12 @@ static int conv_dm_get_num_edge_faces(const OpenSubdiv_Converter *converter,
 	ConvDMStorage *storage = converter->user_data;
 #ifndef USE_MESH_ELEMENT_MAPPING
 	DerivedMesh *dm = storage->dm;
-	const MLoop *ml = dm->getLoopArray(dm);
-	const MPoly *mp = dm->getPolyArray(dm);
 	int num = 0, poly;
 	for (poly = 0; poly < dm->getNumPolys(dm); poly++) {
-		const MPoly *mpoly = &mp[poly];
+		const MPoly *mpoly = &user_data->mpoly[poly];
 		int loop;
 		for (loop = 0; loop < mpoly->totloop; loop++) {
-			const MLoop *mloop = &ml[mpoly->loopstart + loop];
+			const MLoop *mloop = &storage->mloop[mpoly->loopstart + loop];
 			if (mloop->e == edge) {
 				++num;
 				break;
@@ -180,14 +173,12 @@ static void conv_dm_get_edge_faces(const OpenSubdiv_Converter *converter,
 	ConvDMStorage *storage = converter->user_data;
 #ifndef USE_MESH_ELEMENT_MAPPING
 	DerivedMesh *dm = storage->dm;
-	const MLoop *ml = dm->getLoopArray(dm);
-	const MPoly *mp = dm->getPolyArray(dm);
 	int num = 0, poly;
 	for (poly = 0; poly < dm->getNumPolys(dm); poly++) {
-		const MPoly *mpoly = &mp[poly];
+		const MPoly *mpoly = &user_data->mpoly[poly];
 		int loop;
 		for (loop = 0; loop < mpoly->totloop; loop++) {
-			const MLoop *mloop = &ml[mpoly->loopstart + loop];
+			const MLoop *mloop = &storage->mloop[mpoly->loopstart + loop];
 			if (mloop->e == edge) {
 				edge_faces[num++] = poly;
 				break;
@@ -205,9 +196,8 @@ static float conv_dm_get_edge_sharpness(const OpenSubdiv_Converter *converter,
                                         int edge)
 {
 	ConvDMStorage *storage = converter->user_data;
-	DerivedMesh *dm = storage->dm;
 	CCGSubSurf *ss = storage->ss;
-	const MEdge *medge = dm->getEdgeArray(dm);
+	const MEdge *medge = storage->medge;
 	return (float)medge[edge].crease / 255.0f * ss->subdivLevels;
 }
 
@@ -217,10 +207,9 @@ static int conv_dm_get_num_vert_edges(const OpenSubdiv_Converter *converter,
 	ConvDMStorage *storage = converter->user_data;
 #ifndef USE_MESH_ELEMENT_MAPPING
 	DerivedMesh *dm = storage->dm;
-	const MEdge *me = dm->getEdgeArray(dm);
 	int num = 0, edge;
 	for (edge = 0; edge < dm->getNumEdges(dm); edge++) {
-		const MEdge *medge = &me[edge];
+		const MEdge *medge = &user_data->medge[edge];
 		if (medge->v1 == vert || medge->v2 == vert) {
 			++num;
 		}
@@ -238,10 +227,9 @@ static void conv_dm_get_vert_edges(const OpenSubdiv_Converter *converter,
 	ConvDMStorage *storage = converter->user_data;
 #ifndef USE_MESH_ELEMENT_MAPPING
 	DerivedMesh *dm = storage->dm;
-	const MEdge *me = dm->getEdgeArray(dm);
 	int num = 0, edge;
 	for (edge = 0; edge < dm->getNumEdges(dm); edge++) {
-		const MEdge *medge = &me[edge];
+		const MEdge *medge = &user_data->medge[edge];
 		if (medge->v1 == vert || medge->v2 == vert) {
 			vert_edges[num++] = edge;
 		}
@@ -259,14 +247,12 @@ static int conv_dm_get_num_vert_faces(const OpenSubdiv_Converter *converter,
 	ConvDMStorage *storage = converter->user_data;
 #ifndef USE_MESH_ELEMENT_MAPPING
 	DerivedMesh *dm = storage->dm;
-	const MLoop *ml = dm->getLoopArray(dm);
-	const MPoly *mp = dm->getPolyArray(dm);
 	int num = 0, poly;
 	for (poly = 0; poly < dm->getNumPolys(dm); poly++) {
-		const MPoly *mpoly = &mp[poly];
+		const MPoly *mpoly = &user_data->mpoly[poly];
 		int loop;
 		for (loop = 0; loop < mpoly->totloop; loop++) {
-			const MLoop *mloop = &ml[mpoly->loopstart + loop];
+			const MLoop *mloop = &storage->mloop[mpoly->loopstart + loop];
 			if (mloop->v == vert) {
 				++num;
 				break;
@@ -286,14 +272,12 @@ static void conv_dm_get_vert_faces(const OpenSubdiv_Converter *converter,
 	ConvDMStorage *storage = converter->user_data;
 #ifndef USE_MESH_ELEMENT_MAPPING
 	DerivedMesh *dm = storage->dm;
-	const MLoop *ml = dm->getLoopArray(dm);
-	const MPoly *mp = dm->getPolyArray(dm);
 	int num = 0, poly;
 	for (poly = 0; poly < dm->getNumPolys(dm); poly++) {
-		const MPoly *mpoly = &mp[poly];
+		const MPoly *mpoly = &storage->mpoly[poly];
 		int loop;
 		for (loop = 0; loop < mpoly->totloop; loop++) {
-			const MLoop *mloop = &ml[mpoly->loopstart + loop];
+			const MLoop *mloop = &storage->mloop[mpoly->loopstart + loop];
 			if (mloop->v == vert) {
 				vert_faces[num++] = poly;
 				break;
@@ -305,6 +289,24 @@ static void conv_dm_get_vert_faces(const OpenSubdiv_Converter *converter,
 	       storage->vert_poly_map[vert].indices,
 	       sizeof(int) * storage->vert_poly_map[vert].count);
 #endif
+}
+
+static int conv_dm_get_num_uv_layers(const OpenSubdiv_Converter *converter)
+{
+	ConvDMStorage *storage = converter->user_data;
+	DerivedMesh *dm = storage->dm;
+	return CustomData_number_of_layers(&dm->loopData, CD_MLOOPUV);
+}
+
+static void conv_dm_get_face_corner_uv(const OpenSubdiv_Converter *converter,
+                                       int face,
+                                       int corner,
+                                       float r_uv[2])
+{
+	ConvDMStorage *storage = converter->user_data;
+	MPoly *mpoly = &storage->mpoly[face];
+	MLoopUV *mloopuv = &storage->mloopuv[mpoly->loopstart + corner];
+	copy_v2_v2(r_uv, mloopuv->uv);
 }
 
 static void conv_dm_free_user_data(const OpenSubdiv_Converter *converter)
@@ -348,9 +350,18 @@ void ccgSubSurf_converter_setup_from_derivedmesh(
 	converter->get_num_vert_faces = conv_dm_get_num_vert_faces;
 	converter->get_vert_faces = conv_dm_get_vert_faces;
 
+	converter->get_num_uv_layers = conv_dm_get_num_uv_layers;
+	converter->get_face_corner_uv = conv_dm_get_face_corner_uv;
+
 	user_data = MEM_mallocN(sizeof(ConvDMStorage), __func__);
 	user_data->ss = ss;
 	user_data->dm = dm;
+
+	user_data->medge = dm->getEdgeArray(dm);
+	user_data->mloop = dm->getLoopArray(dm);
+	user_data->mpoly = dm->getPolyArray(dm);
+	user_data->mloopuv = DM_get_loop_data_layer(dm, CD_MLOOPUV);
+
 	converter->free_user_data = conv_dm_free_user_data;
 	converter->user_data = user_data;
 
@@ -548,6 +559,19 @@ static void conv_ccg_get_vert_faces(const OpenSubdiv_Converter *converter,
 	}
 }
 
+static int conv_ccg_get_num_uv_layers(const OpenSubdiv_Converter *UNUSED(converter))
+{
+	return 0;
+}
+
+static void conv_ccg_get_face_corner_uv(const OpenSubdiv_Converter * UNUSED(converter),
+                                        int UNUSED(face),
+                                        int UNUSED(corner),
+                                        float r_uv[2])
+{
+	zero_v2(r_uv);
+}
+
 void ccgSubSurf_converter_setup_from_ccg(CCGSubSurf *ss,
                                          OpenSubdiv_Converter *converter)
 {
@@ -570,6 +594,9 @@ void ccgSubSurf_converter_setup_from_ccg(CCGSubSurf *ss,
 	converter->get_vert_edges = conv_ccg_get_vert_edges;
 	converter->get_num_vert_faces = conv_ccg_get_num_vert_faces;
 	converter->get_vert_faces = conv_ccg_get_vert_faces;
+
+	converter->get_num_uv_layers = conv_ccg_get_num_uv_layers;
+	converter->get_face_corner_uv = conv_ccg_get_face_corner_uv;
 
 	converter->free_user_data = NULL;
 	converter->user_data = ss;

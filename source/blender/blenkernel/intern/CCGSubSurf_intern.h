@@ -254,11 +254,6 @@ struct CCGSubSurf {
 	 * to fill in PTex index of CCGFace.
 	 */
 	int osd_next_face_ptex_index;
-
-	/* ** Needs review.  ** */
-	bool osd_subsurf_uv;
-	int osd_uv_index;
-	bool osd_uvs_invalid;
 #endif
 };
 

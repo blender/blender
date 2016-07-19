@@ -67,6 +67,7 @@
 
 #include <opensubdiv/osd/glPatchTable.h>
 #include <opensubdiv/far/stencilTable.h>
+#include <opensubdiv/far/primvarRefiner.h>
 
 #include "opensubdiv_intern.h"
 #include "opensubdiv_topology_refiner.h"
@@ -143,11 +144,69 @@ typedef Mesh<GLVertexBuffer,
              GLPatchTable> OsdGLSLComputeMesh;
 #endif
 
+namespace {
+
+struct FVarVertex {
+	float u, v;
+	void Clear() {
+		u = v = 0.0f;
+	}
+	void AddWithWeight(FVarVertex const & src, float weight) {
+		u += weight * src.u;
+		v += weight * src.v;
+	}
+};
+
+static void interpolate_fvar_data(OpenSubdiv::Far::TopologyRefiner& refiner,
+                                  const std::vector<float> uvs,
+                                  std::vector<float> &fvar_data) {
+	/* TODO(sergey): Support all FVar channels. */
+	const int channel = 0;
+	/* TODO(sergey): Make it somehow more generic way. */
+	const int fvar_width = 2;
+
+	int max_level = refiner.GetMaxLevel(),
+	    num_values_max = refiner.GetLevel(max_level).GetNumFVarValues(channel),
+	    num_values_total = refiner.GetNumFVarValuesTotal(channel);
+	if (num_values_total <= 0) {
+		return;
+	}
+	OpenSubdiv::Far::PrimvarRefiner primvarRefiner(refiner);
+	if (refiner.IsUniform()) {
+		/* For uniform we only keep the highest level of refinement. */
+		fvar_data.resize(num_values_max * fvar_width);
+		std::vector<FVarVertex> buffer(num_values_total - num_values_max);
+		FVarVertex *src = &buffer[0];
+		memcpy(src, &uvs[0], uvs.size() * sizeof(float));
+		/* Defer the last level to treat separately with its alternate
+		 * destination.
+		 */
+		for (int level = 1; level < max_level; ++level) {
+			FVarVertex *dst = src + refiner.GetLevel(level-1).GetNumFVarValues(channel);
+			primvarRefiner.InterpolateFaceVarying(level, src, dst, channel);
+			src = dst;
+		}
+		FVarVertex *dst = reinterpret_cast<FVarVertex *>(&fvar_data[0]);
+		primvarRefiner.InterpolateFaceVarying(max_level, src, dst, channel);
+	} else {
+		/* For adaptive we keep all levels. */
+		fvar_data.resize(num_values_total * fvar_width);
+		FVarVertex *src = reinterpret_cast<FVarVertex *>(&fvar_data[0]);
+		memcpy(src, &uvs[0], uvs.size() * sizeof(float));
+		for (int level = 1; level <= max_level; ++level) {
+			FVarVertex *dst = src + refiner.GetLevel(level-1).GetNumFVarValues(channel);
+			primvarRefiner.InterpolateFaceVarying(level, src, dst, channel);
+			src = dst;
+        }
+    }
+}
+
+}  // namespace
+
 struct OpenSubdiv_GLMesh *openSubdiv_createOsdGLMeshFromTopologyRefiner(
         OpenSubdiv_TopologyRefinerDescr *topology_refiner,
         int evaluator_type,
-        int level,
-        int /*subdivide_uvs*/)
+        int level)
 {
 	using OpenSubdiv::Far::TopologyRefiner;
 
@@ -213,11 +272,21 @@ struct OpenSubdiv_GLMesh *openSubdiv_createOsdGLMeshFromTopologyRefiner(
 	gl_mesh->descriptor = (OpenSubdiv_GLMeshDescr *) mesh;
 	gl_mesh->topology_refiner = topology_refiner;
 
+	if (refiner->GetNumFVarChannels() > 0) {
+		std::vector<float> fvar_data;
+		interpolate_fvar_data(*refiner, topology_refiner->uvs, fvar_data);
+		openSubdiv_osdGLAllocFVar(gl_mesh, &fvar_data[0]);
+	}
+	else {
+		gl_mesh->fvar_data = NULL;
+	}
+
 	return gl_mesh;
 }
 
 void openSubdiv_deleteOsdGLMesh(struct OpenSubdiv_GLMesh *gl_mesh)
 {
+	openSubdiv_osdGLDestroyFVar(gl_mesh);
 	switch (gl_mesh->evaluator_type) {
 #define CHECK_EVALUATOR_TYPE(type, class) \
 		case OPENSUBDIV_EVALUATOR_ ## type: \

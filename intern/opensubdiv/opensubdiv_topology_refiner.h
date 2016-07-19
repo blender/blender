@@ -30,6 +30,12 @@
 
 typedef struct OpenSubdiv_TopologyRefinerDescr {
 	OpenSubdiv::Far::TopologyRefiner *osd_refiner;
+
+	/* TODO(sergey): For now only, need to find better place
+	 * after revisiting whole OSD drawing pipeline and Blender
+	 * integration.
+	 */
+	std::vector<float> uvs;
 } OpenSubdiv_TopologyRefinerDescr;
 
 #endif  /* __OPENSUBDIV_TOPOLOGY_REFINER_H__ */

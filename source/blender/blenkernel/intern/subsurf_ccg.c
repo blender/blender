@@ -3386,19 +3386,6 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 	int mat_index;
 	int tot_element, start_element, tot_drawn;
 
-#ifdef WITH_OPENSUBDIV
-	if (ccgdm->useGpuBackend) {
-		if (ccgSubSurf_prepareGLMesh(ss, true) == false) {
-			return;
-		}
-		ccgSubSurf_drawGLMesh(ss, true, -1, -1);
-		return;
-	}
-#endif
-
-	CCG_key_top_level(&key, ss);
-	ccgdm_pbvh_update(ccgdm);
-
 	if (use_colors) {
 		colType = CD_TEXTURE_MLOOPCOL;
 		mloopcol = dm->getLoopDataArray(dm, colType);
@@ -3411,6 +3398,77 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 			mloopcol = dm->getLoopDataArray(dm, colType);
 		}
 	}
+
+#ifdef WITH_OPENSUBDIV
+	if (ccgdm->useGpuBackend) {
+		if (UNLIKELY(ccgSubSurf_prepareGLMesh(ss, true) == false)) {
+			return;
+		}
+		if (drawParams == NULL) {
+			ccgSubSurf_drawGLMesh(ss, true, -1, -1);
+			return;
+		}
+		const int level = ccgSubSurf_getSubdivisionLevels(ss);
+		const int face_side = 1 << level;
+		const int grid_side = 1 << (level - 1);
+		const int face_patches = face_side * face_side;
+		const int grid_patches = grid_side * grid_side;
+		const int num_base_faces = ccgSubSurf_getNumGLMeshBaseFaces(ss);
+		int current_patch = 0;
+		int mat_nr = -1;
+		int start_draw_patch = 0, num_draw_patches = 0;
+		for (i = 0; i < num_base_faces; ++i) {
+			const int num_face_verts = ccgSubSurf_getNumGLMeshBaseFaceVerts(ss, i);
+			const int num_patches = (num_face_verts == 4) ? face_patches
+			                                              : num_face_verts * grid_patches;
+			if (faceFlags) {
+				mat_nr = faceFlags[i].mat_nr + 1;
+			}
+			else {
+				mat_nr = 0;
+			}
+
+			if (drawParams != NULL) {
+				MTexPoly *tp = (use_tface && mtexpoly) ? &mtexpoly[i] : NULL;
+				draw_option = drawParams(tp, (mloopcol != NULL), mat_nr);
+			}
+			else {
+				draw_option = (drawParamsMapped)
+				                  ? drawParamsMapped(userData, i, mat_nr)
+				                  : DM_DRAW_OPTION_NORMAL;
+			}
+
+			flush = (draw_option == DM_DRAW_OPTION_SKIP) || (i == num_base_faces - 1);
+
+			if (!flush && compareDrawOptions) {
+				flush |= compareDrawOptions(userData, i, min_ii(i + 1, num_base_faces - 1)) == 0;
+			}
+
+			current_patch += num_patches;
+
+			if (flush) {
+				if (draw_option != DM_DRAW_OPTION_SKIP) {
+					num_draw_patches += num_patches;
+				}
+				if (num_draw_patches != 0) {
+					ccgSubSurf_drawGLMesh(ss,
+					                      true,
+					                      start_draw_patch,
+					                      num_draw_patches);
+				}
+				start_draw_patch = current_patch;
+				num_draw_patches = 0;
+			}
+			else {
+				num_draw_patches += num_patches;
+			}
+		}
+		return;
+	}
+#endif
+
+	CCG_key_top_level(&key, ss);
+	ccgdm_pbvh_update(ccgdm);
 
 	GPU_vertex_setup(dm);
 	GPU_normal_setup(dm);

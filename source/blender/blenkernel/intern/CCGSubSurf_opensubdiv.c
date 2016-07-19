@@ -190,7 +190,6 @@ void ccgSubSurf_checkTopologyChanged(CCGSubSurf *ss, DerivedMesh *dm)
 		/* ** Make sure both GPU and CPU backends are properly reset. ** */
 
 		ss->osd_coarse_coords_invalid = true;
-		ss->osd_uvs_invalid = true;
 
 		/* Reset GPU part. */
 		ss->osd_mesh_invalid = true;
@@ -256,8 +255,7 @@ bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss, bool use_osd_glsl)
 		ss->osd_mesh = openSubdiv_createOsdGLMeshFromTopologyRefiner(
 		        ss->osd_topology_refiner,
 		        compute_type,
-		        ss->subdivLevels,
-		        ss->osd_subsurf_uv);
+		        ss->subdivLevels);
 		ss->osd_topology_refiner = NULL;
 
 		if (UNLIKELY(ss->osd_mesh == NULL)) {
@@ -290,7 +288,7 @@ bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss, bool use_osd_glsl)
 		ss->osd_coarse_coords_invalid = false;
 	}
 
-	openSubdiv_osdGLMeshDisplayPrepare(use_osd_glsl, ss->osd_uv_index);
+	openSubdiv_osdGLMeshDisplayPrepare(use_osd_glsl);
 
 	return true;
 }
