@@ -1648,9 +1648,11 @@ static void build_boundary_vertex_only(BevelParams *bp, BevVert *bv, bool constr
 	}
 }
 
-/* Special case of build_boundary when a single edge is beveled.
-  * The 'width adjust' part of build_boundary has been done already, and
- * efirst is the first beveled edge at vertex bv. */
+/**
+ * Special case of build_boundary when a single edge is beveled.
+ * The 'width adjust' part of build_boundary has been done already,
+ * and \a efirst is the first beveled edge at vertex \a bv.
+*/
 static void build_boundary_terminal_edge(BevelParams *bp, BevVert *bv, EdgeHalf *efirst, bool construct)
 {
 	MemArena *mem_arena = bp->mem_arena;

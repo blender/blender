@@ -856,9 +856,10 @@ void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, const int cd_flag)
 
 /**
  * Say whether given \a id_type_owner can use (in any way) a datablock of \a id_type_used.
+ *
+ * This is a 'simplified' abstract version of #BKE_library_foreach_ID_link() above, quite useful to reduce
+ * useless iterations in some cases.
  */
-/* This is a 'simplified' abstract version of BKE_library_foreach_ID_link() above, quite useful to reduce
- * useless ietrations in some cases. */
 bool BKE_library_idtype_can_use_idtype(const short id_type_owner, const short id_type_used)
 {
 	if (id_type_used == ID_AC) {
