@@ -1024,6 +1024,7 @@ static void rna_def_ID(BlenderRNA *brna)
 static void rna_def_library(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	FunctionRNA *func;
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "Library", "ID");
@@ -1042,6 +1043,10 @@ static void rna_def_library(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "packed_file", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "packedfile");
 	RNA_def_property_ui_text(prop, "Packed File", "");
+
+	func = RNA_def_function(srna, "reload", "WM_lib_reload");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Reload this library and all its linked datablocks");
 }
 void RNA_def_ID(BlenderRNA *brna)
 {
