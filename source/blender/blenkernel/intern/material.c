@@ -243,7 +243,7 @@ Material *BKE_material_copy(Main *bmain, Material *ma)
 		man->nodetree = ntreeCopyTree(bmain, ma->nodetree);
 	}
 
-	man->preview = BKE_previewimg_copy(ma->preview);
+	BKE_previewimg_id_copy(&man->id, &ma->id);
 
 	BLI_listbase_clear(&man->gpumaterial);
 

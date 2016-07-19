@@ -863,7 +863,6 @@ Tex *BKE_texture_copy(Main *bmain, Tex *tex)
 	if (texn->pd) texn->pd = BKE_texture_pointdensity_copy(texn->pd);
 	if (texn->vd) texn->vd = MEM_dupallocN(texn->vd);
 	if (texn->ot) texn->ot = BKE_texture_ocean_copy(texn->ot);
-	if (tex->preview) texn->preview = BKE_previewimg_copy(tex->preview);
 
 	if (tex->nodetree) {
 		if (tex->nodetree->execdata) {
@@ -871,8 +870,8 @@ Tex *BKE_texture_copy(Main *bmain, Tex *tex)
 		}
 		texn->nodetree = ntreeCopyTree(bmain, tex->nodetree);
 	}
-	
-	texn->preview = BKE_previewimg_copy(tex->preview);
+
+	BKE_previewimg_id_copy(&texn->id, &tex->id);
 
 	if (ID_IS_LINKED_DATABLOCK(tex)) {
 		BKE_id_expand_local(&texn->id);

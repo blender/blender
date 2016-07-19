@@ -221,6 +221,24 @@ PreviewImage *BKE_previewimg_copy(PreviewImage *prv)
 	return prv_img;
 }
 
+/** Duplicate preview image from \a id and clear icon_id, to be used by datablock copy functions. */
+void BKE_previewimg_id_copy(ID *new_id, ID *old_id)
+{
+	PreviewImage **old_prv_p = BKE_previewimg_id_get_p(old_id);
+	PreviewImage **new_prv_p = BKE_previewimg_id_get_p(new_id);
+
+	if (old_prv_p && *old_prv_p) {
+		BLI_assert(new_prv_p != NULL && ELEM(*new_prv_p, NULL, *old_prv_p));
+//		const int new_icon_id = get_next_free_id();
+
+//		if (new_icon_id == 0) {
+//			return;  /* Failure. */
+//		}
+		*new_prv_p = BKE_previewimg_copy(*old_prv_p);
+		new_id->icon_id = (*new_prv_p)->icon_id = 0;
+	}
+}
+
 PreviewImage **BKE_previewimg_id_get_p(ID *id)
 {
 	switch (GS(id->name)) {

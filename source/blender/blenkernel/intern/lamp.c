@@ -135,8 +135,8 @@ Lamp *BKE_lamp_copy(Main *bmain, Lamp *la)
 
 	if (la->nodetree)
 		lan->nodetree = ntreeCopyTree(bmain, la->nodetree);
-	
-	lan->preview = BKE_previewimg_copy(la->preview);
+
+	BKE_previewimg_id_copy(&lan->id, &la->id);
 
 	if (ID_IS_LINKED_DATABLOCK(la)) {
 		BKE_id_expand_local(&lan->id);
