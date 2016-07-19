@@ -47,6 +47,7 @@ using OpenSubdiv::Osd::GLMeshInterface;
 extern "C" char datatoc_gpu_shader_opensubd_display_glsl[];
 
 #define MAX_LIGHTS 8
+
 typedef struct Light {
 	float position[4];
 	float ambient[4];
@@ -60,6 +61,7 @@ typedef struct Light {
 	float spot_cutoff;
 	float spot_exponent;
 	float spot_cos_cutoff;
+	float pad, pad2;
 #endif
 } Light;
 

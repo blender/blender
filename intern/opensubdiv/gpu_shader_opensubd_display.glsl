@@ -208,6 +208,7 @@ struct LightSource {
 	float spotCutoff;
 	float spotExponent;
 	float spotCosCutoff;
+	float pad, pad2;
 #endif
 };
 
