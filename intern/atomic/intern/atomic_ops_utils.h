@@ -81,7 +81,9 @@
 #  endif
 #endif
 
-#ifdef UINTPTR_MAX
+#if defined(__SIZEOF_POINTER__)
+#  define LG_SIZEOF_PTR __SIZEOF_POINTER__
+#elif defined(UINTPTR_MAX)
 #  if (UINTPTR_MAX == 0xFFFFFFFF)
 #    define LG_SIZEOF_PTR 4
 #  elif (UINTPTR_MAX == 0xFFFFFFFFFFFFFFFF)
