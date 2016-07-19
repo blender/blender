@@ -641,6 +641,7 @@ void BKE_libblock_relink_ex(
 					libblock_remap_data_postprocess_group_scene_unlink(bmain, sce, NULL);
 				}
 			}
+			break;
 		}
 		case ID_OB:
 			if (new_id) {  /* Only affects us in case obdata was relinked (changed). */
