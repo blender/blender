@@ -47,6 +47,7 @@ using OpenSubdiv::Osd::GLMeshInterface;
 extern "C" char datatoc_gpu_shader_opensubd_display_glsl[];
 
 #define MAX_LIGHTS 8
+#define SUPPORT_COLOR_MATERIAL
 
 typedef struct Light {
 	float position[4];
@@ -198,11 +199,14 @@ GLuint compileShader(GLenum shaderType,
 		version,
 		define,
 		sdefine,
+#ifdef SUPPORT_COLOR_MATERIAL
+		"#define SUPPORT_COLOR_MATERIAL\n",
+#endif
 		datatoc_gpu_shader_opensubd_display_glsl
 	};
 
 	GLuint shader = glCreateShader(shaderType);
-	glShaderSource(shader, 4, sources, NULL);
+	glShaderSource(shader, 5, sources, NULL);
 	glCompileShader(shader);
 
 	GLint status;
@@ -392,11 +396,27 @@ bool openSubdiv_osdGLDisplayInit(void)
 			/* minimum supported for OpenSubdiv */
 		}
 
-		g_flat_fill_solid_program = linkProgram(version, "#define FLAT_SHADING\n");
-		g_flat_fill_texture2d_program = linkProgram(version, "#define USE_TEXTURE_2D\n#define FLAT_SHADING\n");
-		g_smooth_fill_solid_program = linkProgram(version, "#define SMOOTH_SHADING\n");
-		g_smooth_fill_texture2d_program = linkProgram(version, "#define USE_TEXTURE_2D\n#define SMOOTH_SHADING\n");
-		g_wireframe_program = linkProgram(version, "#define WIREFRAME\n");
+		g_flat_fill_solid_program = linkProgram(
+		        version,
+		        "#define USE_COLOR_MATERIAL\n"
+		        "#define FLAT_SHADING\n");
+		g_flat_fill_texture2d_program = linkProgram(
+		        version,
+		        "#define USE_COLOR_MATERIAL\n"
+		        "#define USE_TEXTURE_2D\n"
+		        "#define FLAT_SHADING\n");
+		g_smooth_fill_solid_program = linkProgram(
+		        version,
+		        "#define USE_COLOR_MATERIAL\n"
+		        "#define SMOOTH_SHADING\n");
+		g_smooth_fill_texture2d_program = linkProgram(
+		        version,
+		        "#define USE_COLOR_MATERIAL\n"
+		        "#define USE_TEXTURE_2D\n"
+		        "#define SMOOTH_SHADING\n");
+		g_wireframe_program = linkProgram(
+		        version,
+		        "#define WIREFRAME\n");
 
 		glGenBuffers(1, &g_lighting_ub);
 		glBindBuffer(GL_UNIFORM_BUFFER, g_lighting_ub);
