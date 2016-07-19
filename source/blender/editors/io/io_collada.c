@@ -175,7 +175,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 		open_sim);
 
 	if (export_count == 0) {
-		BKE_report(op->reports, RPT_WARNING, "Export file is empty");
+		BKE_report(op->reports, RPT_WARNING, "No objects selected -- Created empty export file");
 		return OPERATOR_CANCELLED;
 	}
 	else if (export_count < 0) {
