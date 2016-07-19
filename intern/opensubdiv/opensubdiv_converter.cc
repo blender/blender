@@ -32,8 +32,12 @@
 
 #include <opensubdiv/far/topologyRefinerFactory.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "opensubdiv_converter_capi.h"
 #include "opensubdiv_intern.h"
+#include "opensubdiv_topology_refiner.h"
+
 
 #include <stack>
 
@@ -524,26 +528,29 @@ struct OpenSubdiv_TopologyRefinerDescr *openSubdiv_createTopologyRefinerDescr(
 #ifdef OPENSUBDIV_VALIDATE_TOPOLOGY
 	topology_options.validateFullTopology = true;
 #endif
+	OpenSubdiv_TopologyRefinerDescr *result = OBJECT_GUARDED_NEW(OpenSubdiv_TopologyRefinerDescr);
 	/* We don't use guarded allocation here so we can re-use the refiner
 	 * for GL mesh creation directly.
 	 */
-	return (struct OpenSubdiv_TopologyRefinerDescr*)
+	result->osd_refiner =
 	        TopologyRefinerFactory<OpenSubdiv_Converter>::Create(
 	                *converter,
 	                topology_options);
+	return result;
 }
 
 void openSubdiv_deleteTopologyRefinerDescr(
         OpenSubdiv_TopologyRefinerDescr *topology_refiner)
 {
-	delete (OpenSubdiv::Far::TopologyRefiner *)topology_refiner;
+	delete topology_refiner->osd_refiner;
+	OBJECT_GUARDED_DELETE(topology_refiner, OpenSubdiv_TopologyRefinerDescr);
 }
 
 int openSubdiv_topologyRefinerGetSubdivLevel(
         const OpenSubdiv_TopologyRefinerDescr *topology_refiner)
 {
 	using OpenSubdiv::Far::TopologyRefiner;
-	const TopologyRefiner *refiner = (const TopologyRefiner *)topology_refiner;
+	const TopologyRefiner *refiner = topology_refiner->osd_refiner;
 	return refiner->GetMaxLevel();
 }
 
@@ -552,7 +559,7 @@ int openSubdiv_topologyRefinerGetNumVerts(
 {
 	using OpenSubdiv::Far::TopologyLevel;
 	using OpenSubdiv::Far::TopologyRefiner;
-	const TopologyRefiner *refiner = (const TopologyRefiner *)topology_refiner;
+	const TopologyRefiner *refiner = topology_refiner->osd_refiner;
 	const TopologyLevel &base_level = refiner->GetLevel(0);
 	return base_level.GetNumVertices();
 }
@@ -562,7 +569,7 @@ int openSubdiv_topologyRefinerGetNumEdges(
 {
 	using OpenSubdiv::Far::TopologyLevel;
 	using OpenSubdiv::Far::TopologyRefiner;
-	const TopologyRefiner *refiner = (const TopologyRefiner *)topology_refiner;
+	const TopologyRefiner *refiner = topology_refiner->osd_refiner;
 	const TopologyLevel &base_level = refiner->GetLevel(0);
 	return base_level.GetNumEdges();
 }
@@ -572,7 +579,7 @@ int openSubdiv_topologyRefinerGetNumFaces(
 {
 	using OpenSubdiv::Far::TopologyLevel;
 	using OpenSubdiv::Far::TopologyRefiner;
-	const TopologyRefiner *refiner = (const TopologyRefiner *)topology_refiner;
+	const TopologyRefiner *refiner = topology_refiner->osd_refiner;
 	const TopologyLevel &base_level = refiner->GetLevel(0);
 	return base_level.GetNumFaces();
 }
@@ -583,7 +590,7 @@ int openSubdiv_topologyRefinerGetNumFaceVerts(
 {
 	using OpenSubdiv::Far::TopologyLevel;
 	using OpenSubdiv::Far::TopologyRefiner;
-	const TopologyRefiner *refiner = (const TopologyRefiner *)topology_refiner;
+	const TopologyRefiner *refiner = topology_refiner->osd_refiner;
 	const TopologyLevel &base_level = refiner->GetLevel(0);
 	return base_level.GetFaceVertices(face).size();
 }
@@ -595,7 +602,7 @@ int openSubdiv_topologyRefnerCompareConverter(
 	using OpenSubdiv::Far::ConstIndexArray;
 	using OpenSubdiv::Far::TopologyRefiner;
 	using OpenSubdiv::Far::TopologyLevel;
-	const TopologyRefiner *refiner = (const TopologyRefiner *)topology_refiner;
+	const TopologyRefiner *refiner = topology_refiner->osd_refiner;
 	const TopologyLevel &base_level = refiner->GetLevel(0);
 	const int num_verts = base_level.GetNumVertices();
 	const int num_edges = base_level.GetNumEdges();

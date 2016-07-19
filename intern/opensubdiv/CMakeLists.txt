@@ -47,6 +47,7 @@ set(SRC
 	opensubdiv_device_context_cuda.h
 	opensubdiv_device_context_opencl.h
 	opensubdiv_intern.h
+	opensubdiv_topology_refiner.h
 )
 
 macro(OPENSUBDIV_DEFINE_COMPONENT component)

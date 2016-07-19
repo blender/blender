@@ -69,6 +69,7 @@
 #include <opensubdiv/far/stencilTable.h>
 
 #include "opensubdiv_intern.h"
+#include "opensubdiv_topology_refiner.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -164,7 +165,7 @@ struct OpenSubdiv_GLMesh *openSubdiv_createOsdGLMeshFromTopologyRefiner(
 	const int num_varying_elements = 3;
 
 	GLMeshInterface *mesh = NULL;
-	TopologyRefiner *refiner = (TopologyRefiner*)topology_refiner;
+	TopologyRefiner *refiner = topology_refiner->osd_refiner;
 
 	switch(evaluator_type) {
 #define CHECK_EVALUATOR_TYPE(type, class) \
@@ -210,7 +211,7 @@ struct OpenSubdiv_GLMesh *openSubdiv_createOsdGLMeshFromTopologyRefiner(
 		(OpenSubdiv_GLMesh *) OBJECT_GUARDED_NEW(OpenSubdiv_GLMesh);
 	gl_mesh->evaluator_type = evaluator_type;
 	gl_mesh->descriptor = (OpenSubdiv_GLMeshDescr *) mesh;
-	gl_mesh->topology_refiner = (OpenSubdiv_TopologyRefinerDescr*)refiner;
+	gl_mesh->topology_refiner = topology_refiner;
 
 	return gl_mesh;
 }
@@ -249,6 +250,8 @@ void openSubdiv_deleteOsdGLMesh(struct OpenSubdiv_GLMesh *gl_mesh)
 #undef CHECK_EVALUATOR_TYPE
 	}
 
+	/* NOTE: OSD refiner was owned by gl_mesh, no need to free it here. */
+	OBJECT_GUARDED_DELETE(gl_mesh->topology_refiner, OpenSubdiv_TopologyRefinerDescr);
 	OBJECT_GUARDED_DELETE(gl_mesh, OpenSubdiv_GLMesh);
 }
 
