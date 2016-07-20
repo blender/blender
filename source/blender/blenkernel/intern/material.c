@@ -569,18 +569,6 @@ Material *give_current_material(Object *ob, short act)
 	return ma;
 }
 
-ID *material_from(Object *ob, short act)
-{
-
-	if (ob == NULL) return NULL;
-
-	if (ob->totcol == 0) return ob->data;
-	if (act == 0) act = 1;
-
-	if (ob->matbits[act - 1]) return (ID *)ob;
-	else return ob->data;
-}
-
 Material *give_node_material(Material *ma)
 {
 	if (ma && ma->use_nodes && ma->nodetree) {
@@ -886,7 +874,7 @@ void assign_matarar(struct Object *ob, struct Material ***matar, short totcol)
 	int actcol_orig = ob->actcol;
 	short i;
 
-	while (object_remove_material_slot(ob)) {}
+	while (BKE_object_material_slot_remove(ob)) {}
 
 	/* now we have the right number of slots */
 	for (i = 0; i < totcol; i++)
@@ -899,7 +887,7 @@ void assign_matarar(struct Object *ob, struct Material ***matar, short totcol)
 }
 
 
-short find_material_index(Object *ob, Material *ma)
+short BKE_object_material_slot_find_index(Object *ob, Material *ma)
 {
 	Material ***matarar;
 	short a, *totcolp;
@@ -919,7 +907,7 @@ short find_material_index(Object *ob, Material *ma)
 	return 0;
 }
 
-bool object_add_material_slot(Object *ob)
+bool BKE_object_material_slot_add(Object *ob)
 {
 	if (ob == NULL) return false;
 	if (ob->totcol >= MAXMAT) return false;
@@ -1201,7 +1189,7 @@ void material_drivers_update(Scene *scene, Material *ma, float ctime)
 	ma->id.tag &= ~LIB_TAG_DOIT;
 }
 
-bool object_remove_material_slot(Object *ob)
+bool BKE_object_material_slot_remove(Object *ob)
 {
 	Material *mao, ***matarar;
 	Object *obt;

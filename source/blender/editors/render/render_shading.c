@@ -102,7 +102,7 @@ static int material_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
 	if (!ob)
 		return OPERATOR_CANCELLED;
 	
-	object_add_material_slot(ob);
+	BKE_object_material_slot_add(ob);
 
 	if (ob->mode & OB_MODE_TEXTURE_PAINT) {
 		Scene *scene = CTX_data_scene(C);
@@ -145,7 +145,7 @@ static int material_slot_remove_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	object_remove_material_slot(ob);
+	BKE_object_material_slot_remove(ob);
 
 	if (ob->mode & OB_MODE_TEXTURE_PAINT) {
 		Scene *scene = CTX_data_scene(C);
