@@ -1284,8 +1284,9 @@ static int image_open_exec(bContext *C, wmOperator *op)
 
 	if (iod->pprop.prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
-		 * pointer also increases user, so this compensates it */
+		 * pointer use also increases user, so this compensates it */
 		id_us_min(&ima->id);
+
 		RNA_id_pointer_create(&ima->id, &idptr);
 		RNA_property_pointer_set(&iod->pprop.ptr, iod->pprop.prop, idptr);
 		RNA_property_update(C, &iod->pprop.ptr, iod->pprop.prop);
@@ -2395,7 +2396,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 
 	if (prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
-		 * pointer se also increases user, so this compensates it */
+		 * pointer use also increases user, so this compensates it */
 		id_us_min(&ima->id);
 
 		RNA_id_pointer_create(&ima->id, &idptr);

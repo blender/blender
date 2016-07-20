@@ -1695,7 +1695,7 @@ static int font_open_exec(bContext *C, wmOperator *op)
 
 	if (pprop->prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
-		 * pointer se also increases user, so this compensates it */
+		 * pointer use also increases user, so this compensates it */
 		id_us_min(&font->id);
 	
 		RNA_id_pointer_create(&font->id, &idptr);
