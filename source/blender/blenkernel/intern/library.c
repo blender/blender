@@ -1570,53 +1570,6 @@ void BKE_main_id_clear_newpoins(Main *bmain)
 	}
 }
 
-static void lib_indirect_test_id(ID *id, const Library *lib)
-{
-#define LIBTAG(a) \
-	if (a && a->id.lib) { a->id.tag &= ~LIB_TAG_INDIRECT; a->id.tag |= LIB_TAG_EXTERN; } (void)0
-	
-	if (ID_IS_LINKED_DATABLOCK(id)) {
-		/* datablocks that were indirectly related are now direct links
-		 * without this, appending data that has a link to other data will fail to write */
-		if (lib && id->lib->parent == lib) {
-			id_lib_extern(id);
-		}
-		return;
-	}
-	
-	if (GS(id->name) == ID_OB) {
-		Object *ob = (Object *)id;
-		Mesh *me;
-
-		int a;
-
-#if 0   /* XXX OLD ANIMSYS, NLASTRIPS ARE NO LONGER USED */
-		/* XXX old animation system! -------------------------------------- */
-		{
-			bActionStrip *strip;
-			for (strip = ob->nlastrips.first; strip; strip = strip->next) {
-				LIBTAG(strip->object);
-				LIBTAG(strip->act);
-				LIBTAG(strip->ipo);
-			}
-		}
-		/* XXX: new animation system needs something like this? */
-#endif
-
-		for (a = 0; a < ob->totcol; a++) {
-			LIBTAG(ob->mat[a]);
-		}
-	
-		LIBTAG(ob->dup_group);
-		LIBTAG(ob->proxy);
-		
-		me = ob->data;
-		LIBTAG(me);
-	}
-
-#undef LIBTAG
-}
-
 /** Make linked datablocks local.
  *
  * \param bmain Almost certainly G.main.
@@ -1671,7 +1624,6 @@ void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged
 			if (id->newid) {
 				BKE_libblock_remap(bmain, id, id->newid, ID_REMAP_SKIP_INDIRECT_USAGE);
 			}
-			lib_indirect_test_id(id, lib);
 		}
 	}
 }
