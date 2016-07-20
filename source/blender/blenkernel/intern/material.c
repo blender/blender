@@ -874,7 +874,11 @@ void assign_matarar(struct Object *ob, struct Material ***matar, short totcol)
 	int actcol_orig = ob->actcol;
 	short i;
 
-	while (BKE_object_material_slot_remove(ob)) {}
+	while ((ob->totcol > totcol) &&
+	       BKE_object_material_slot_remove(ob))
+	{
+		/* pass */
+	}
 
 	/* now we have the right number of slots */
 	for (i = 0; i < totcol; i++)
