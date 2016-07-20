@@ -31,6 +31,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_material_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
@@ -2394,23 +2395,25 @@ Mesh *BKE_mesh_new_from_object(
 			}
 			break;
 
-#if 0
-		/* Crashes when assigning the new material, not sure why */
 		case OB_MBALL:
-			tmpmb = (MetaBall *)ob->data;
+		{
+			MetaBall *tmpmb = (MetaBall *)ob->data;
+			tmpmesh->mat = MEM_dupallocN(tmpmb->mat);
 			tmpmesh->totcol = tmpmb->totcol;
 
 			/* free old material list (if it exists) and adjust user counts */
 			if (tmpmb->mat) {
 				for (i = tmpmb->totcol; i-- > 0; ) {
-					tmpmesh->mat[i] = tmpmb->mat[i]; /* CRASH HERE ??? */
+					/* are we an object material or data based? */
+					tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : tmpmb->mat[i];
+
 					if (tmpmesh->mat[i]) {
-						id_us_plus(&tmpmb->mat[i]->id);
+						id_us_plus(&tmpmesh->mat[i]->id);
 					}
 				}
 			}
 			break;
-#endif
+		}
 
 		case OB_MESH:
 			if (!cage) {
@@ -2439,7 +2442,9 @@ Mesh *BKE_mesh_new_from_object(
 	}
 
 	/* make sure materials get updated in object */
-	test_object_materials(ob, &tmpmesh->id);
+	if (ob->data == tmpmesh) {  /* XXX To be removed, there is no reason that ob->data would be new tmpmesh... */
+		test_object_materials(ob, &tmpmesh->id);
+	}
 
 	return tmpmesh;
 }
