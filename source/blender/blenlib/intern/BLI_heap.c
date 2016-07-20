@@ -167,8 +167,7 @@ static struct HeapNode *heap_node_alloc(Heap *heap)
 	else {
 		struct HeapNode_Chunk *chunk = heap->nodes.chunk;
 		if (UNLIKELY(chunk->size == chunk->bufsize)) {
-			struct HeapNode_Chunk *chunk_next = heap_node_alloc_chunk(HEAP_CHUNK_DEFAULT_NUM, chunk);
-			chunk = chunk_next;
+			chunk = heap->nodes.chunk = heap_node_alloc_chunk(HEAP_CHUNK_DEFAULT_NUM, chunk);
 		}
 		node = &chunk->buf[chunk->size++];
 	}
