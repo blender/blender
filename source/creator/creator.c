@@ -171,9 +171,9 @@ static void callback_main_atexit(void *user_data)
 #ifdef WIN32
 	if (app_init_data->argv) {
 		while (app_init_data->argv_num) {
-			free(app_init_data->argv[--app_init_data->argv_num]);
+			free((void *)app_init_data->argv[--app_init_data->argv_num]);
 		}
-		free(app_init_data->argv);
+		free((void *)app_init_data->argv);
 		app_init_data->argv = NULL;
 	}
 #endif
