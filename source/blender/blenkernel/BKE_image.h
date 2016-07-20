@@ -108,7 +108,7 @@ struct anim *openanim_noload(const char *name, int flags, int streamindex, char 
 
 void    BKE_image_de_interlace(struct Image *ima, int odd);
 
-void    BKE_image_make_local(struct Main *bmain, struct Image *ima, const bool force_local);
+void    BKE_image_make_local(struct Main *bmain, struct Image *ima, const bool lib_local);
 
 void    BKE_image_tag_time(struct Image *ima);
 

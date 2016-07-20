@@ -556,34 +556,9 @@ BMesh *BKE_mesh_to_bmesh(
 	return bm;
 }
 
-void BKE_mesh_make_local(Main *bmain, Mesh *me, const bool force_local)
+void BKE_mesh_make_local(Main *bmain, Mesh *me, const bool lib_local)
 {
-	bool is_local = false, is_lib = false;
-
-	/* - only lib users: do nothing (unless force_local is set)
-	 * - only local users: set flag
-	 * - mixed: make copy
-	 */
-
-	if (!ID_IS_LINKED_DATABLOCK(me)) {
-		return;
-	}
-
-	BKE_library_ID_test_usages(bmain, me, &is_local, &is_lib);
-
-	if (force_local || is_local) {
-		if (!is_lib) {
-			id_clear_lib_data(bmain, &me->id);
-			BKE_id_expand_local(&me->id);
-		}
-		else {
-			Mesh *me_new = BKE_mesh_copy(bmain, me);
-
-			me_new->id.us = 0;
-
-			BKE_libblock_remap(bmain, me, me_new, ID_REMAP_SKIP_INDIRECT_USAGE);
-		}
-	}
+	BKE_id_make_local_generic(bmain, &me->id, true, lib_local);
 }
 
 bool BKE_mesh_uv_cdlayer_rename_index(Mesh *me, const int poly_index, const int loop_index, const int face_index,

@@ -45,7 +45,7 @@ void BKE_brush_init(struct Brush *brush);
 struct Brush *BKE_brush_add(struct Main *bmain, const char *name, short ob_mode);
 struct Brush *BKE_brush_first_search(struct Main *bmain, short ob_mode);
 struct Brush *BKE_brush_copy(struct Main *bmain, struct Brush *brush);
-void BKE_brush_make_local(struct Main *bmain, struct Brush *brush, const bool force_local);
+void BKE_brush_make_local(struct Main *bmain, struct Brush *brush, const bool lib_local);
 void BKE_brush_unlink(struct Main *bmain, struct Brush *brush);
 void BKE_brush_free(struct Brush *brush);
 

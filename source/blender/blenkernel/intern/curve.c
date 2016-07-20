@@ -215,34 +215,9 @@ Curve *BKE_curve_copy(Main *bmain, Curve *cu)
 	return cun;
 }
 
-void BKE_curve_make_local(Main *bmain, Curve *cu, const bool force_local)
+void BKE_curve_make_local(Main *bmain, Curve *cu, const bool lib_local)
 {
-	bool is_local = false, is_lib = false;
-
-	/* - only lib users: do nothing (unless force_local is set)
-	 * - when there are only local users: set flag
-	 * - mixed: do a copy
-	 */
-
-	if (!ID_IS_LINKED_DATABLOCK(cu)) {
-		return;
-	}
-
-	BKE_library_ID_test_usages(bmain, cu, &is_local, &is_lib);
-
-	if (force_local || is_local) {
-		if (!is_lib) {
-			id_clear_lib_data(bmain, &cu->id);
-			BKE_id_expand_local(&cu->id);
-		}
-		else {
-			Curve *cu_new = BKE_curve_copy(bmain, cu);
-
-			cu_new->id.us = 0;
-
-			BKE_libblock_remap(bmain, cu, cu_new, ID_REMAP_SKIP_INDIRECT_USAGE);
-		}
-	}
+	BKE_id_make_local_generic(bmain, &cu->id, true, lib_local);
 }
 
 /* Get list of nurbs from editnurbs structure */

@@ -469,34 +469,9 @@ Image *BKE_image_copy(Main *bmain, Image *ima)
 	return nima;
 }
 
-void BKE_image_make_local(Main *bmain, Image *ima, const bool force_local)
+void BKE_image_make_local(Main *bmain, Image *ima, const bool lib_local)
 {
-	bool is_local = false, is_lib = false;
-
-	/* - only lib users: do nothing (unless force_local is set)
-	 * - only local users: set flag
-	 * - mixed: make copy
-	 */
-
-	if (!ID_IS_LINKED_DATABLOCK(ima)) {
-		return;
-	}
-
-	BKE_library_ID_test_usages(bmain, ima, &is_local, &is_lib);
-
-	if (force_local || is_local) {
-		if (!is_lib) {
-			id_clear_lib_data(bmain, &ima->id);
-			BKE_id_expand_local(&ima->id);
-		}
-		else {
-			Image *ima_new = BKE_image_copy(bmain, ima);
-
-			ima_new->id.us = 0;
-
-			BKE_libblock_remap(bmain, ima, ima_new, ID_REMAP_SKIP_INDIRECT_USAGE);
-		}
-	}
+	BKE_id_make_local_generic(bmain, &ima->id, true, lib_local);
 }
 
 void BKE_image_merge(Image *dest, Image *source)

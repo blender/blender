@@ -219,7 +219,7 @@ void BKE_brush_free(Brush *brush)
 	BKE_previewimg_free(&(brush->preview));
 }
 
-void BKE_brush_make_local(Main *bmain, Brush *brush, const bool force_local)
+void BKE_brush_make_local(Main *bmain, Brush *brush, const bool lib_local)
 {
 	bool is_local = false, is_lib = false;
 
@@ -239,7 +239,7 @@ void BKE_brush_make_local(Main *bmain, Brush *brush, const bool force_local)
 
 	BKE_library_ID_test_usages(bmain, brush, &is_local, &is_lib);
 
-	if (force_local || is_local) {
+	if (lib_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &brush->id);
 			BKE_id_expand_local(&brush->id);
@@ -252,7 +252,9 @@ void BKE_brush_make_local(Main *bmain, Brush *brush, const bool force_local)
 
 			brush_new->id.us = 0;
 
-			BKE_libblock_remap(bmain, brush, brush_new, ID_REMAP_SKIP_INDIRECT_USAGE);
+			if (!lib_local) {
+				BKE_libblock_remap(bmain, brush, brush_new, ID_REMAP_SKIP_INDIRECT_USAGE);
+			}
 		}
 	}
 }

@@ -1950,34 +1950,9 @@ bNodeTree *ntreeFromID(ID *id)
 	}
 }
 
-void ntreeMakeLocal(Main *bmain, bNodeTree *ntree, bool id_in_mainlist, const bool force_local)
+void ntreeMakeLocal(Main *bmain, bNodeTree *ntree, bool id_in_mainlist, const bool lib_local)
 {
-	bool is_lib = false, is_local = false;
-	
-	/* - only lib users: do nothing (unless force_local is set)
-	 * - only local users: set flag
-	 * - mixed: make copy
-	 */
-
-	if (!ID_IS_LINKED_DATABLOCK(ntree)) {
-		return;
-	}
-
-	BKE_library_ID_test_usages(bmain, ntree, &is_local, &is_lib);
-
-	if (force_local || is_local) {
-		if (!is_lib) {
-			id_clear_lib_data_ex(bmain, (ID *)ntree, id_in_mainlist);
-			BKE_id_expand_local(&ntree->id);
-		}
-		else {
-			bNodeTree *ntree_new = ntreeCopyTree(bmain, ntree);
-
-			ntree_new->id.us = 0;
-
-			BKE_libblock_remap(bmain, ntree, ntree_new, ID_REMAP_SKIP_INDIRECT_USAGE);
-		}
-	}
+	BKE_id_make_local_generic(bmain, &ntree->id, id_in_mainlist, lib_local);
 }
 
 int ntreeNodeExists(bNodeTree *ntree, bNode *testnode)

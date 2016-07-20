@@ -144,34 +144,9 @@ void BKE_armature_free(bArmature *arm)
 	}
 }
 
-void BKE_armature_make_local(Main *bmain, bArmature *arm, const bool force_local)
+void BKE_armature_make_local(Main *bmain, bArmature *arm, const bool lib_local)
 {
-	bool is_local = false, is_lib = false;
-
-	/* - only lib users: do nothing (unless force_local is set)
-	 * - only local users: set flag
-	 * - mixed: make copy
-	 */
-
-	if (!ID_IS_LINKED_DATABLOCK(arm)) {
-		return;
-	}
-
-	BKE_library_ID_test_usages(bmain, arm, &is_local, &is_lib);
-
-	if (force_local || is_local) {
-		if (!is_lib) {
-			id_clear_lib_data(bmain, &arm->id);
-			BKE_id_expand_local(&arm->id);
-		}
-		else {
-			bArmature *arm_new = BKE_armature_copy(bmain, arm);
-
-			arm_new->id.us = 0;
-
-			BKE_libblock_remap(bmain, arm, arm_new, ID_REMAP_SKIP_INDIRECT_USAGE);
-		}
-	}
+	BKE_id_make_local_generic(bmain, &arm->id, true, lib_local);
 }
 
 static void copy_bonechildren(Bone *newBone, Bone *oldBone, Bone *actBone, Bone **newActBone)

@@ -285,34 +285,9 @@ Material *localize_material(Material *ma)
 	return man;
 }
 
-void BKE_material_make_local(Main *bmain, Material *ma, const bool force_local)
+void BKE_material_make_local(Main *bmain, Material *ma, const bool lib_local)
 {
-	bool is_local = false, is_lib = false;
-
-	/* - only lib users: do nothing (unless force_local is set)
-	 * - only local users: set flag
-	 * - mixed: make copy
-	 */
-
-	if (!ID_IS_LINKED_DATABLOCK(ma)) {
-		return;
-	}
-
-	BKE_library_ID_test_usages(bmain, ma, &is_local, &is_lib);
-
-	if (force_local || is_local) {
-		if (!is_lib) {
-			id_clear_lib_data(bmain, &ma->id);
-			BKE_id_expand_local(&ma->id);
-		}
-		else {
-			Material *ma_new = BKE_material_copy(bmain, ma);
-
-			ma_new->id.us = 0;
-
-			BKE_libblock_remap(bmain, ma, ma_new, ID_REMAP_SKIP_INDIRECT_USAGE);
-		}
-	}
+	BKE_id_make_local_generic(bmain, &ma->id, true, lib_local);
 }
 
 Material ***give_matarar(Object *ob)

@@ -3343,34 +3343,9 @@ ParticleSettings *BKE_particlesettings_copy(Main *bmain, ParticleSettings *part)
 	return partn;
 }
 
-void BKE_particlesettings_make_local(Main *bmain, ParticleSettings *part, const bool force_local)
+void BKE_particlesettings_make_local(Main *bmain, ParticleSettings *part, const bool lib_local)
 {
-	bool is_local = false, is_lib = false;
-
-	/* - only lib users: do nothing (unless force_local is set)
-	 * - only local users: set flag
-	 * - mixed: make copy
-	 */
-
-	if (!ID_IS_LINKED_DATABLOCK(part)) {
-		return;
-	}
-
-	BKE_library_ID_test_usages(bmain, part, &is_local, &is_lib);
-
-	if (force_local || is_local) {
-		if (!is_lib) {
-			id_clear_lib_data(bmain, &part->id);
-			BKE_id_expand_local(&part->id);
-		}
-		else {
-			ParticleSettings *part_new = BKE_particlesettings_copy(bmain, part);
-
-			part_new->id.us = 0;
-
-			BKE_libblock_remap(bmain, part, part_new, ID_REMAP_SKIP_INDIRECT_USAGE);
-		}
-	}
+	BKE_id_make_local_generic(bmain, &part->id, true, lib_local);
 }
 
 /************************************************/
