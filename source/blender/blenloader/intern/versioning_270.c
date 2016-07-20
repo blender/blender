@@ -1225,5 +1225,11 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 		}
+
+		for (Brush *br = main->brush.first; br; br = br->id.next) {
+			if (br->sculpt_tool == SCULPT_TOOL_FLATTEN) {
+				br->flag |= BRUSH_ACCUMULATE;
+			}
+		}
 	}
 }
