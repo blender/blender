@@ -2441,11 +2441,6 @@ Mesh *BKE_mesh_new_from_object(
 		BKE_mesh_tessface_ensure(tmpmesh);
 	}
 
-	/* make sure materials get updated in object */
-	if (ob->data == tmpmesh) {  /* XXX To be removed, there is no reason that ob->data would be new tmpmesh... */
-		test_object_materials(ob, &tmpmesh->id);
-	}
-
 	return tmpmesh;
 }
 
