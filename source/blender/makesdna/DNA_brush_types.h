@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -70,7 +70,6 @@ typedef struct Brush {
 
 	float normal_weight;
 	float rake_factor;  /* rake actual data (not texture), used for sculpt */
-	int pad;
 
 	short blend;        /* blend mode */
 	short ob_mode;      /* & with ob->mode to see if the brush is compatible, use for display only. */
@@ -95,7 +94,6 @@ typedef struct Brush {
 
 	float plane_offset;     /* offset for plane brushes (clay, flatten, fill, scrape) */
 
-	int flag2;
 	int gradient_spacing;
 	int gradient_stroke_mode; /* source for stroke color gradient application */
 	int gradient_fill_mode;   /* source for fill tool color gradient application */
@@ -104,7 +102,7 @@ typedef struct Brush {
 	char vertexpaint_tool;  /* active vertex/weight paint blend mode (poorly named) */
 	char imagepaint_tool;   /* active image paint tool */
 	char mask_tool;         /* enum BrushMaskTool, only used if sculpt_tool is SCULPT_TOOL_MASK */
-	
+
 	float autosmooth_factor;
 
 	float crease_pinch_factor;
@@ -333,5 +331,4 @@ typedef enum BlurKernelType {
 
 #define MAX_BRUSH_PIXEL_RADIUS 500
 
-#endif
-
+#endif  /* __DNA_BRUSH_TYPES_H__ */
