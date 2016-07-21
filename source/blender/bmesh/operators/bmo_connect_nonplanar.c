@@ -63,7 +63,7 @@ static float bm_face_subset_calc_planar(BMLoop *l_first, BMLoop *l_last, const f
 	return delta_z;
 }
 
-static bool bm_face_split_find(BMesh *bm, BMFace *f, BMLoop *l_pair[2], float *r_angle)
+static bool bm_face_split_find(BMesh *bm, BMFace *f, BMLoop *l_pair[2], float *r_angle_cos)
 {
 	BMLoop *l_iter, *l_first;
 	BMLoop **l_arr = BLI_array_alloca(l_arr, f->len);
@@ -73,7 +73,7 @@ static bool bm_face_split_find(BMesh *bm, BMFace *f, BMLoop *l_pair[2], float *r
 
 	/* angle finding */
 	float err_best = FLT_MAX;
-	float angle_best = FLT_MAX;
+	float angle_best_cos = -FLT_MAX;
 
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	i_a = 0;
@@ -108,7 +108,7 @@ static bool bm_face_split_find(BMesh *bm, BMFace *f, BMLoop *l_pair[2], float *r
 							l_pair[0] = l_a;
 							l_pair[1] = l_b;
 
-							angle_best = angle_normalized_v3v3(no_a, no_b);
+							angle_best_cos = dot_v3v3(no_a, no_b);
 							found = true;
 						}
 					}
@@ -117,17 +117,17 @@ static bool bm_face_split_find(BMesh *bm, BMFace *f, BMLoop *l_pair[2], float *r
 		}
 	}
 
-	*r_angle = angle_best;
+	*r_angle_cos = angle_best_cos;
 
 	return found;
 }
 
-static bool bm_face_split_by_angle(BMesh *bm, BMFace *f, BMFace *r_f_pair[2], const float angle_limit)
+static bool bm_face_split_by_angle(BMesh *bm, BMFace *f, BMFace *r_f_pair[2], const float angle_limit_cos)
 {
 	BMLoop *l_pair[2];
-	float angle;
+	float angle_cos;
 
-	if (bm_face_split_find(bm, f, l_pair, &angle) && (angle > angle_limit)) {
+	if (bm_face_split_find(bm, f, l_pair, &angle_cos) && (angle_cos < angle_limit_cos)) {
 		BMFace *f_new;
 		BMLoop *l_new;
 
@@ -154,7 +154,7 @@ void bmo_connect_verts_nonplanar_exec(BMesh *bm, BMOperator *op)
 	bool changed = false;
 	BLI_LINKSTACK_DECLARE(fstack, BMFace *);
 
-	const float angle_limit = BMO_slot_float_get(op->slots_in, "angle_limit");
+	const float angle_limit_cos = cosf(BMO_slot_float_get(op->slots_in, "angle_limit"));
 
 	BLI_LINKSTACK_INIT(fstack);
 
@@ -166,7 +166,7 @@ void bmo_connect_verts_nonplanar_exec(BMesh *bm, BMOperator *op)
 
 	while ((f = BLI_LINKSTACK_POP(fstack))) {
 		BMFace *f_pair[2];
-		if (bm_face_split_by_angle(bm, f, f_pair, angle_limit)) {
+		if (bm_face_split_by_angle(bm, f, f_pair, angle_limit_cos)) {
 			int j;
 			for (j = 0; j < 2; j++) {
 				BM_face_normal_update(f_pair[j]);
