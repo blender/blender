@@ -237,7 +237,9 @@ static struct TextureDrawState {
 	bool texpaint_material; /* use material slots for texture painting */
 } Gtexdraw = {NULL, NULL, NULL, false, 0, 0, 0, false, false, {0, 0, 0, 0}, false, false};
 
-static bool set_draw_settings_cached(int clearcache, MTexPoly *texface, Material *ma, struct TextureDrawState gtexdraw)
+static bool set_draw_settings_cached(
+        int clearcache, MTexPoly *texface, Material *ma,
+        const struct TextureDrawState *gtexdraw)
 {
 	static Material *c_ma;
 	static int c_textured;
@@ -253,7 +255,7 @@ static bool set_draw_settings_cached(int clearcache, MTexPoly *texface, Material
 	int lit = 0;
 	int has_texface = texface != NULL;
 	bool need_set_tpage = false;
-	bool texpaint = ((gtexdraw.ob->mode & OB_MODE_TEXTURE_PAINT) != 0);
+	bool texpaint = ((gtexdraw->ob->mode & OB_MODE_TEXTURE_PAINT) != 0);
 
 	Image *ima = NULL;
 
@@ -271,16 +273,18 @@ static bool set_draw_settings_cached(int clearcache, MTexPoly *texface, Material
 		c_ma = NULL;
 	}
 	else {
-		textured = gtexdraw.is_tex;
+		textured = gtexdraw->is_tex;
 	}
 
 	/* convert number of lights into boolean */
-	if (gtexdraw.is_lit) lit = 1;
+	if (gtexdraw->is_lit) {
+		lit = 1;
+	}
 
-	backculled = gtexdraw.use_backface_culling;
+	backculled = gtexdraw->use_backface_culling;
 	if (ma) {
 		if (ma->mode & MA_SHLESS) lit = 0;
-		if (gtexdraw.use_game_mat) {
+		if (gtexdraw->use_game_mat) {
 			backculled = backculled || (ma->game.flag & GEMAT_BACKCULL);
 			alphablend = ma->game.alpha_blend;
 		}
@@ -294,10 +298,10 @@ static bool set_draw_settings_cached(int clearcache, MTexPoly *texface, Material
 			alphablend = GPU_BLEND_ALPHA;
 	}
 	else if (texpaint) {
-		if (gtexdraw.texpaint_material)
+		if (gtexdraw->texpaint_material)
 			ima = ma && ma->texpaintslot ? ma->texpaintslot[ma->paint_active_slot].ima : NULL;
 		else
-			ima = gtexdraw.canvas;
+			ima = gtexdraw->canvas;
 	}
 	else
 		textured = 0;
@@ -375,7 +379,7 @@ static bool set_draw_settings_cached(int clearcache, MTexPoly *texface, Material
 		if (c_textured && !c_badtex) {
 			options |= GPU_SHADER_TEXTURE_2D;
 		}
-		if (gtexdraw.two_sided_lighting) {
+		if (gtexdraw->two_sided_lighting) {
 			options |= GPU_SHADER_TWO_SIDED;
 		}
 
@@ -495,7 +499,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 	Gtexdraw.two_sided_lighting = (me->flag & ME_TWOSIDED);
 
 	memcpy(Gtexdraw.obcol, obcol, sizeof(obcol));
-	set_draw_settings_cached(1, NULL, NULL, Gtexdraw);
+	set_draw_settings_cached(1, NULL, NULL, &Gtexdraw);
 	glCullFace(GL_BACK);
 }
 
@@ -553,7 +557,7 @@ static DMDrawOption draw_tface__set_draw_legacy(MTexPoly *mtexpoly, const bool h
 	if (ma && (ma->game.flag & GEMAT_INVISIBLE))
 		return DM_DRAW_OPTION_SKIP;
 
-	invalidtexture = set_draw_settings_cached(0, mtexpoly, ma, Gtexdraw);
+	invalidtexture = set_draw_settings_cached(0, mtexpoly, ma, &Gtexdraw);
 
 	if (mtexpoly && invalidtexture) {
 		glColor3ub(0xFF, 0x00, 0xFF);
@@ -594,7 +598,7 @@ static DMDrawOption draw_tface__set_draw(MTexPoly *mtexpoly, const bool UNUSED(h
 	if (ma && (ma->game.flag & GEMAT_INVISIBLE)) return DM_DRAW_OPTION_SKIP;
 
 	if (mtexpoly || Gtexdraw.is_texpaint)
-		set_draw_settings_cached(0, mtexpoly, ma, Gtexdraw);
+		set_draw_settings_cached(0, mtexpoly, ma, &Gtexdraw);
 
 	/* always use color from mcol, as set in update_tface_color_layer */
 	return DM_DRAW_OPTION_NORMAL;
@@ -664,7 +668,7 @@ static void update_tface_color_layer(DerivedMesh *dm, bool use_mcol)
 				copy_mode = COPY_PREV;
 			}
 		}
-		else if (mtexpoly && set_draw_settings_cached(0, mtexpoly, ma, Gtexdraw)) {
+		else if (mtexpoly && set_draw_settings_cached(0, mtexpoly, ma, &Gtexdraw)) {
 			int loop_index = mp->loopstart;
 			for (j = 0; j < mp->totloop; j++, loop_index++) {
 				finalCol[loop_index].r = 255;
@@ -830,7 +834,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 				}
 			}
 			else {
-				badtex = set_draw_settings_cached(0, mtpoly, mat, Gtexdraw);
+				badtex = set_draw_settings_cached(0, mtpoly, mat, &Gtexdraw);
 				if (badtex) {
 					continue;
 				}
