@@ -107,7 +107,7 @@ Group *BKE_group_copy(Main *bmain, Group *group)
 
 void BKE_group_make_local(Main *bmain, Group *group, const bool lib_local)
 {
-	BKE_id_make_local_generic(bmain, group, true, lib_local);
+	BKE_id_make_local_generic(bmain, &group->id, true, lib_local);
 }
 
 /* external */
