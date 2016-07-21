@@ -374,24 +374,12 @@ void ShaderGraph::copy_nodes(ShaderNodeSet& nodes, ShaderNodeMap& nnodemap)
 		ShaderNode *nnode = node->clone();
 		nnodemap[node] = nnode;
 
+		/* create new inputs and outputs to recreate links and ensure
+		 * that we still point to valid SocketType if the NodeType
+		 * changed in cloning, as it does for OSL nodes */
 		nnode->inputs.clear();
 		nnode->outputs.clear();
-
-		foreach(ShaderInput *input, node->inputs) {
-			ShaderInput *ninput = new ShaderInput(*input);
-			nnode->inputs.push_back(ninput);
-
-			ninput->parent = nnode;
-			ninput->link = NULL;
-		}
-
-		foreach(ShaderOutput *output, node->outputs) {
-			ShaderOutput *noutput = new ShaderOutput(*output);
-			nnode->outputs.push_back(noutput);
-
-			noutput->parent = nnode;
-			noutput->links.clear();
-		}
+		nnode->create_inputs_outputs(nnode->type);
 	}
 
 	/* recreate links */
