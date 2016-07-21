@@ -191,11 +191,19 @@ typedef bool (*MeshRemapIslandsCalc)(
 /* Above vert/UV mapping stuff does not do what we need here, but does things we do not need here.
  * So better keep them separated for now, I think.
  */
-bool BKE_mesh_calc_islands_loop_poly_uv(
+bool BKE_mesh_calc_islands_loop_poly_edgeseam(
         struct MVert *verts, const int totvert,
         struct MEdge *edges, const int totedge,
         struct MPoly *polys, const int totpoly,
         struct MLoop *loops, const int totloop,
+        MeshIslandStore *r_island_store);
+
+bool BKE_mesh_calc_islands_loop_poly_uvmap(
+        struct MVert *verts, const int totvert,
+        struct MEdge *edges, const int totedge,
+        struct MPoly *polys, const int totpoly,
+        struct MLoop *loops, const int totloop,
+        const struct MLoopUV *luvs,
         MeshIslandStore *r_island_store);
 
 int *BKE_mesh_calc_smoothgroups(

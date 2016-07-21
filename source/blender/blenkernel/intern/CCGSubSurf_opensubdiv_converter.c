@@ -322,11 +322,12 @@ static void conv_dm_precalc_uv_layer(const OpenSubdiv_Converter *converter,
 	}
 
 	/* Calculate islands connectivity of the UVs. */
-	BKE_mesh_calc_islands_loop_poly_uv(
+	BKE_mesh_calc_islands_loop_poly_uvmap(
 	        storage->mvert, dm->getNumVerts(dm),
 	        storage->medge, dm->getNumEdges(dm),
 	        storage->mpoly, dm->getNumPolys(dm),
 	        storage->mloop, dm->getNumLoops(dm),
+	        mloopuv,
 	        &storage->island_store);
 
 	/* Here we "weld" duplicated vertices from island to the same UV value.
