@@ -125,6 +125,11 @@ void BKE_mesh_vert_edge_map_create(
 void BKE_mesh_vert_edge_vert_map_create(
         MeshElemMap **r_map, int **r_mem,
         const struct MEdge *medge, int totvert, int totedge);
+void BKE_mesh_edge_loop_map_create(
+        MeshElemMap **r_map, int **r_mem,
+        const struct MEdge *medge, const int totedge,
+        const struct MPoly *mpoly, const int totpoly,
+        const struct MLoop *mloop, const int totloop);
 void BKE_mesh_edge_poly_map_create(
         MeshElemMap **r_map, int **r_mem,
         const struct MEdge *medge, const int totedge,

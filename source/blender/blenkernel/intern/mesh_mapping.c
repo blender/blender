@@ -393,6 +393,60 @@ void BKE_mesh_vert_edge_vert_map_create(
 }
 
 /**
+ * Generates a map where the key is the edge and the value is a list of loops that use that edge.
+ * Loops indices of a same poly are contiguous and in winding order.
+ * The lists are allocated from one memory pool.
+ */
+void BKE_mesh_edge_loop_map_create(MeshElemMap **r_map, int **r_mem,
+                                   const MEdge *UNUSED(medge), const int totedge,
+                                   const MPoly *mpoly, const int totpoly,
+                                   const MLoop *mloop, const int totloop)
+{
+	MeshElemMap *map = MEM_callocN(sizeof(MeshElemMap) * (size_t)totedge, "edge-poly map");
+	int *indices = MEM_mallocN(sizeof(int) * (size_t)totloop * 2, "edge-poly map mem");
+	int *index_step;
+	const MPoly *mp;
+	int i;
+
+	/* count face users */
+	for (i = 0, mp = mpoly; i < totpoly; mp++, i++) {
+		const MLoop *ml;
+		int j = mp->totloop;
+		for (ml = &mloop[mp->loopstart]; j--; ml++) {
+			map[ml->e].count += 2;
+		}
+	}
+
+	/* create offsets */
+	index_step = indices;
+	for (i = 0; i < totedge; i++) {
+		map[i].indices = index_step;
+		index_step += map[i].count;
+
+		/* re-count, using this as an index below */
+		map[i].count = 0;
+	}
+
+	/* assign loop-edge users */
+	for (i = 0, mp = mpoly; i < totpoly; mp++, i++) {
+		const MLoop *ml;
+		MeshElemMap *map_ele;
+		const int max_loop = mp->loopstart + mp->totloop;
+		int j = mp->loopstart;
+		for (ml = &mloop[j]; j < max_loop; j++, ml++) {
+			map_ele = &map[ml->e];
+			map_ele->indices[map_ele->count++] = j;
+			map_ele->indices[map_ele->count++] = j + 1;
+		}
+		/* last edge/loop of poly, must point back to first loop! */
+		map_ele->indices[map_ele->count - 1] = mp->loopstart;
+	}
+
+	*r_map = map;
+	*r_mem = indices;
+}
+
+/**
  * Generates a map where the key is the edge and the value is a list of polygons that use that edge.
  * The lists are allocated from one memory pool.
  */
