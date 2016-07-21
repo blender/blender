@@ -1362,7 +1362,7 @@ static bool snapDerivedMesh(
 
 				if (BLI_bvhtree_find_nearest_to_ray(
 				        treedata->tree, ray_org_local, ray_normal_local,
-				        false, ob_scale, &nearest, cb_test_ray_dist, &userdata) != -1)
+				        true, ob_scale, &nearest, cb_test_ray_dist, &userdata) != -1)
 				{
 					copy_v3_v3(r_loc, nearest.co);
 					mul_m4_v3(obmat, r_loc);
