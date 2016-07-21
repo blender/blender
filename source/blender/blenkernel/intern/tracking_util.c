@@ -762,8 +762,8 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 			final_ibuf = IMB_dupImBuf(orig_ibuf);
 		}
 		IMB_scaleImBuf(final_ibuf,
-		               ibuf->x / (1 << downscale),
-		               ibuf->y / (1 << downscale));
+		               orig_ibuf->x / (1 << downscale),
+		               orig_ibuf->y / (1 << downscale));
 	}
 
 	if (transform != NULL) {
@@ -780,7 +780,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 	}
 
 	if (input_mode == LIBMV_IMAGE_MODE_RGBA) {
-		BLI_assert(ibuf->channels == 3 || ibuf->channels == 4);
+		BLI_assert(orig_ibuf->channels == 3 || orig_ibuf->channels == 4);
 		/* pass */
 	}
 	else /* if (input_mode == LIBMV_IMAGE_MODE_MONO) */ {
