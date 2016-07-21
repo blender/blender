@@ -442,7 +442,16 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				/* object->proxy is refcounted, but not object->proxy_group... *sigh* */
 				CALLBACK_INVOKE(object->proxy, IDWALK_USER);
 				CALLBACK_INVOKE(object->proxy_group, IDWALK_NOP);
+
+				/* Special case!
+				 * Since this field is set/owned by 'user' of this ID (and not ID itself), it is only indirect usage
+				 * if proxy object is linked... Twisted. */
+				if (object->proxy_from) {
+					data.cd_flag = ID_IS_LINKED_DATABLOCK(object->proxy_from) ? IDWALK_INDIRECT_USAGE : 0;
+				}
 				CALLBACK_INVOKE(object->proxy_from, IDWALK_NOP);
+				data.cd_flag = data_cd_flag;
+
 				CALLBACK_INVOKE(object->poselib, IDWALK_USER);
 
 				data.cd_flag |= proxy_cd_flag;
