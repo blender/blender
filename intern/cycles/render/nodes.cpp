@@ -5062,12 +5062,10 @@ OSLNode::~OSLNode()
 
 ShaderNode *OSLNode::clone() const
 {
-	OSLNode *node = new OSLNode(*this);
-	node->type = new NodeType(*type);
-	return node;
+	return OSLNode::create(this->inputs.size(), this);
 }
 
-OSLNode* OSLNode::create(size_t num_inputs)
+OSLNode* OSLNode::create(size_t num_inputs, const OSLNode *from)
 {
 	/* allocate space for the node itself and parameters, aligned to 16 bytes
 	 * assuming that's the most parameter types need */
@@ -5077,7 +5075,17 @@ OSLNode* OSLNode::create(size_t num_inputs)
 	char *node_memory = (char*) operator new(node_size + inputs_size);
 	memset(node_memory, 0, node_size + inputs_size);
 
-	return new(node_memory) OSLNode();
+	if (!from) {
+		return new(node_memory) OSLNode();
+	}
+	else {
+		/* copy input default values and node type for cloning */
+		memcpy(node_memory + node_size, (char*)from + node_size, inputs_size);
+
+		OSLNode *node = new(node_memory) OSLNode(*from);
+		node->type = new NodeType(*(from->type));
+		return node;
+	}
 }
 
 char* OSLNode::input_default_value()

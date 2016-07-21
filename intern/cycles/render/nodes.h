@@ -921,7 +921,7 @@ public:
 
 class OSLNode : public ShaderNode {
 public:
-	static OSLNode *create(size_t num_inputs);
+	static OSLNode *create(size_t num_inputs, const OSLNode *from = NULL);
 	~OSLNode();
 
 	ShaderNode *clone() const;
