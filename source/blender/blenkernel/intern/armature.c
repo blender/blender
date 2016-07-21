@@ -1906,6 +1906,17 @@ static int rebuild_pose_bone(bPose *pose, Bone *bone, bPoseChannel *parchan, int
 	return counter;
 }
 
+/**
+ * Clear pointers of object's pose (needed in remap case, since we cannot always wait for a complete pose rebuild).
+ */
+void BKE_pose_clear_pointers(bPose *pose)
+{
+	for (bPoseChannel *pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
+		pchan->bone = NULL;
+		pchan->child = NULL;
+	}
+}
+
 /* only after leave editmode, duplicating, validating older files, library syncing */
 /* NOTE: pose->flag is set for it */
 void BKE_pose_rebuild(Object *ob, bArmature *arm)
@@ -1926,10 +1937,7 @@ void BKE_pose_rebuild(Object *ob, bArmature *arm)
 	pose = ob->pose;
 
 	/* clear */
-	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
-		pchan->bone = NULL;
-		pchan->child = NULL;
-	}
+	BKE_pose_clear_pointers(pose);
 
 	/* first step, check if all channels are there */
 	for (bone = arm->bonebase.first; bone; bone = bone->next) {

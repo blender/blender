@@ -296,6 +296,9 @@ static void libblock_remap_data_preprocess(IDRemap *r_id_remap_data)
 				if (ob->pose && (!old_id || ob->data == old_id)) {
 					BLI_assert(ob->type == OB_ARMATURE);
 					ob->pose->flag |= POSE_RECALC;
+					/* We need to clear pose bone pointers immediately, things like undo writefile may be called
+					 * before pose is actually recomputed, can lead to segfault... */
+					BKE_pose_clear_pointers(ob->pose);
 				}
 			}
 			break;
