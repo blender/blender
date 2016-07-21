@@ -1726,7 +1726,7 @@ static int node_insert_offset_modal(bContext *C, wmOperator *UNUSED(op), const w
 	float duration;
 	bool redraw = false;
 
-	if (!snode || event->type != TIMER || iofsd->anim_timer != event->customdata)
+	if (!snode || event->type != TIMER || iofsd == NULL || iofsd->anim_timer != event->customdata)
 		return OPERATOR_PASS_THROUGH;
 
 	duration = (float)iofsd->anim_timer->duration;
