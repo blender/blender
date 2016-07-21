@@ -86,10 +86,16 @@ typedef struct OpenSubdiv_Converter {
 	/* Face-varying data. */
 
 	int (*get_num_uv_layers)(const OpenSubdiv_Converter *converter);
-	void (*get_face_corner_uv)(const OpenSubdiv_Converter *converter,
-	                           int face,
-	                           int corner,
-	                           float r_uv[2]);
+
+	void (*precalc_uv_layer)(const OpenSubdiv_Converter *converter, int layer);
+	void (*finish_uv_layer)(const OpenSubdiv_Converter *converter);
+
+	int (*get_num_uvs)(const OpenSubdiv_Converter *converter);
+	void (*get_uvs)(const OpenSubdiv_Converter *converter, float *uvs);
+
+	int (*get_face_corner_uv_index)(const OpenSubdiv_Converter *converter,
+	                                int face,
+	                                int corner);
 
 	void (*free_user_data)(const OpenSubdiv_Converter *converter);
 	void *user_data;

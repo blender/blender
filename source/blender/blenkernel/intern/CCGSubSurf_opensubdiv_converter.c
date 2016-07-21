@@ -63,10 +63,15 @@ typedef struct ConvDMStorage {
 	    *edge_poly_mem;
 #endif
 
+	MVert *mvert;
 	MEdge *medge;
 	MLoop *mloop;
 	MPoly *mpoly;
-	MLoopUV *mloopuv;
+
+	MeshIslandStore island_store;
+	int num_uvs;
+	float *uvs;
+	int *face_uvs;
 } ConvDMStorage;
 
 static OpenSubdiv_SchemeType conv_dm_get_type(
@@ -295,23 +300,109 @@ static int conv_dm_get_num_uv_layers(const OpenSubdiv_Converter *converter)
 {
 	ConvDMStorage *storage = converter->user_data;
 	DerivedMesh *dm = storage->dm;
-	return CustomData_number_of_layers(&dm->loopData, CD_MLOOPUV);
+	int num_uv_layers = CustomData_number_of_layers(&dm->loopData, CD_MLOOPUV);
+	return num_uv_layers;
 }
 
-static void conv_dm_get_face_corner_uv(const OpenSubdiv_Converter *converter,
-                                       int face,
-                                       int corner,
-                                       float r_uv[2])
+static void conv_dm_precalc_uv_layer(const OpenSubdiv_Converter *converter,
+                                     int layer)
 {
 	ConvDMStorage *storage = converter->user_data;
-	MPoly *mpoly = &storage->mpoly[face];
-	MLoopUV *mloopuv = &storage->mloopuv[mpoly->loopstart + corner];
-	copy_v2_v2(r_uv, mloopuv->uv);
+	DerivedMesh *dm = storage->dm;
+
+	const MLoopUV *mloopuv = CustomData_get_layer_n(&dm->loopData, CD_MLOOPUV, layer);
+	const int num_loops = dm->getNumLoops(dm);
+
+	/* Initialize memory required for the operations. */
+	if (storage->uvs == NULL) {
+		storage->uvs = MEM_mallocN(sizeof(float) * 2 * num_loops, "osd uvs");
+	}
+	if (storage->face_uvs == NULL) {
+		storage->face_uvs = MEM_mallocN(sizeof(int) * num_loops, "osd face uvs");
+	}
+
+	/* Calculate islands connectivity of the UVs. */
+	BKE_mesh_calc_islands_loop_poly_uv(
+	        storage->mvert, dm->getNumVerts(dm),
+	        storage->medge, dm->getNumEdges(dm),
+	        storage->mpoly, dm->getNumPolys(dm),
+	        storage->mloop, dm->getNumLoops(dm),
+	        &storage->island_store);
+
+	/* Here we "weld" duplicated vertices from island to the same UV value.
+	 * The idea here is that we need to pass individual islands to OpenSubdiv.
+	 */
+	storage->num_uvs = 0;
+	for (int island = 0; island < storage->island_store.islands_num; ++island) {
+		MeshElemMap *island_poly_map = storage->island_store.islands[island];
+		for (int poly = 0; poly < island_poly_map->count; ++poly) {
+			int poly_index = island_poly_map->indices[poly];
+			/* Within the same UV island we should share UV points across
+			 * loops. Otherwise each poly will be subdivided individually
+			 * which we don't really want.
+			 */
+			const MPoly *mpoly = &storage->mpoly[poly_index];
+			for (int loop = 0; loop < mpoly->totloop; ++loop) {
+				const MLoopUV *luv = &mloopuv[mpoly->loopstart + loop];
+				bool found = false;
+				/* TODO(sergey): Quite bad loop, which gives us O(N^2)
+				 * complexity here. But how can we do it smarter, hopefully
+				 * without requiring lots of additional memory.
+				 */
+				for (int i = 0; i < storage->num_uvs; ++i) {
+					if (equals_v2v2(luv->uv, &storage->uvs[2 * i])) {
+						storage->face_uvs[mpoly->loopstart + loop] = i;
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					copy_v2_v2(&storage->uvs[2 * storage->num_uvs], luv->uv);
+					storage->face_uvs[mpoly->loopstart + loop] = storage->num_uvs;
+					++storage->num_uvs;
+				}
+			}
+		}
+	}
+}
+
+static void conv_dm_finish_uv_layer(const OpenSubdiv_Converter *converter)
+{
+	ConvDMStorage *storage = converter->user_data;
+	BKE_mesh_loop_islands_free(&storage->island_store);
+}
+
+static int conv_dm_get_num_uvs(const OpenSubdiv_Converter *converter)
+{
+	ConvDMStorage *storage = converter->user_data;
+	return storage->num_uvs;
+}
+
+static void conv_dm_get_uvs(const OpenSubdiv_Converter *converter, float *uvs)
+{
+	ConvDMStorage *storage = converter->user_data;
+	memcpy(uvs, storage->uvs, sizeof(float) * 2 * storage->num_uvs);
+}
+
+static int conv_dm_get_face_corner_uv_index(const OpenSubdiv_Converter *converter,
+                                            int face,
+                                            int corner)
+{
+	ConvDMStorage *storage = converter->user_data;
+	const MPoly *mpoly = &storage->mpoly[face];
+	return storage->face_uvs[mpoly->loopstart + corner];
 }
 
 static void conv_dm_free_user_data(const OpenSubdiv_Converter *converter)
 {
 	ConvDMStorage *user_data = converter->user_data;
+	if (user_data->uvs != NULL) {
+		MEM_freeN(user_data->uvs);
+	}
+	if (user_data->face_uvs != NULL) {
+		MEM_freeN(user_data->face_uvs);
+	}
+
 #ifdef USE_MESH_ELEMENT_MAPPING
 	MEM_freeN(user_data->vert_edge_map);
 	MEM_freeN(user_data->vert_edge_mem);
@@ -351,16 +442,25 @@ void ccgSubSurf_converter_setup_from_derivedmesh(
 	converter->get_vert_faces = conv_dm_get_vert_faces;
 
 	converter->get_num_uv_layers = conv_dm_get_num_uv_layers;
-	converter->get_face_corner_uv = conv_dm_get_face_corner_uv;
+	converter->precalc_uv_layer = conv_dm_precalc_uv_layer;
+	converter->finish_uv_layer = conv_dm_finish_uv_layer;
+	converter->get_num_uvs = conv_dm_get_num_uvs;
+	converter->get_uvs = conv_dm_get_uvs;
+	converter->get_face_corner_uv_index = conv_dm_get_face_corner_uv_index;
 
 	user_data = MEM_mallocN(sizeof(ConvDMStorage), __func__);
 	user_data->ss = ss;
 	user_data->dm = dm;
 
+	user_data->mvert = dm->getVertArray(dm);
 	user_data->medge = dm->getEdgeArray(dm);
 	user_data->mloop = dm->getLoopArray(dm);
 	user_data->mpoly = dm->getPolyArray(dm);
-	user_data->mloopuv = DM_get_loop_data_layer(dm, CD_MLOOPUV);
+
+	memset(&user_data->island_store, 0, sizeof(user_data->island_store));
+
+	user_data->uvs = NULL;
+	user_data->face_uvs = NULL;
 
 	converter->free_user_data = conv_dm_free_user_data;
 	converter->user_data = user_data;
@@ -564,12 +664,30 @@ static int conv_ccg_get_num_uv_layers(const OpenSubdiv_Converter *UNUSED(convert
 	return 0;
 }
 
-static void conv_ccg_get_face_corner_uv(const OpenSubdiv_Converter * UNUSED(converter),
-                                        int UNUSED(face),
-                                        int UNUSED(corner),
-                                        float r_uv[2])
+static void conv_ccg_precalc_uv_layer(const OpenSubdiv_Converter * UNUSED(converter),
+                                      int UNUSED(layer))
 {
-	zero_v2(r_uv);
+}
+
+static void conv_ccg_finish_uv_layer(const OpenSubdiv_Converter *UNUSED(converter))
+{
+}
+
+static int conv_ccg_get_num_uvs(const OpenSubdiv_Converter *UNUSED(converter))
+{
+	return 0;
+}
+
+static void conv_ccg_get_uvs(const OpenSubdiv_Converter * UNUSED(converter),
+                      float *UNUSED(uvs))
+{
+}
+
+static int conv_ccg_get_face_corner_uv_index(const OpenSubdiv_Converter *UNUSED(converter),
+                                             int UNUSED(face),
+                                             int UNUSED(corner_))
+{
+	return 0;
 }
 
 void ccgSubSurf_converter_setup_from_ccg(CCGSubSurf *ss,
@@ -596,7 +714,11 @@ void ccgSubSurf_converter_setup_from_ccg(CCGSubSurf *ss,
 	converter->get_vert_faces = conv_ccg_get_vert_faces;
 
 	converter->get_num_uv_layers = conv_ccg_get_num_uv_layers;
-	converter->get_face_corner_uv = conv_ccg_get_face_corner_uv;
+	converter->precalc_uv_layer = conv_ccg_precalc_uv_layer;
+	converter->finish_uv_layer = conv_ccg_finish_uv_layer;
+	converter->get_num_uvs = conv_ccg_get_num_uvs;
+	converter->get_uvs = conv_ccg_get_uvs;
+	converter->get_face_corner_uv_index = conv_ccg_get_face_corner_uv_index;
 
 	converter->free_user_data = NULL;
 	converter->user_data = ss;

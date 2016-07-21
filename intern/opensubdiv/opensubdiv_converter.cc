@@ -53,6 +53,11 @@ inline void reverse_face_verts(int *face_verts, int num_verts)
 	face_verts[0] = last_vert;
 }
 
+struct TopologyRefinerData {
+	const OpenSubdiv_Converter& conv;
+	std::vector<float> *uvs;
+};
+
 }  /* namespace */
 #endif /* OPENSUBDIV_ORIENT_TOPOLOGY */
 
@@ -141,10 +146,11 @@ inline void check_oriented_vert_connectivity(const int num_vert_edges,
 }  /* namespace */
 
 template <>
-inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::resizeComponentTopology(
+inline bool TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology(
         TopologyRefiner& refiner,
-        const OpenSubdiv_Converter& conv)
+        const TopologyRefinerData& cb_data)
 {
+	const OpenSubdiv_Converter& conv = cb_data.conv;
 	/* Faces and face-verts */
 	const int num_faces = conv.get_num_faces(&conv);
 	setNumBaseFaces(refiner, num_faces);
@@ -172,10 +178,11 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::resizeComponentTopolog
 }
 
 template <>
-inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTopology(
+inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology(
 	  TopologyRefiner& refiner,
-        const OpenSubdiv_Converter& conv)
+	  const TopologyRefinerData &cb_data)
 {
+	const OpenSubdiv_Converter& conv = cb_data.conv;
 	using Far::IndexArray;
 	/* Face relations. */
 	const int num_faces = conv.get_num_faces(&conv);
@@ -430,10 +437,11 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTopolog
 };
 
 template <>
-inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTags(
+inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
         TopologyRefiner& refiner,
-        const OpenSubdiv_Converter& conv)
+        const TopologyRefinerData& cb_data)
 {
+	const OpenSubdiv_Converter& conv = cb_data.conv;
 	typedef OpenSubdiv::Sdc::Crease Crease;
 
 	int num_edges = conv.get_num_edges(&conv);
@@ -480,43 +488,48 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTags(
 }
 
 template <>
-inline void TopologyRefinerFactory<OpenSubdiv_Converter>::reportInvalidTopology(
+inline void TopologyRefinerFactory<TopologyRefinerData>::reportInvalidTopology(
         TopologyError /*errCode*/,
         const char *msg,
-        const OpenSubdiv_Converter& /*mesh*/)
+        const TopologyRefinerData& /*mesh*/)
 {
 	printf("OpenSubdiv Error: %s\n", msg);
 }
 
 template <>
-inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignFaceVaryingTopology(
+inline bool TopologyRefinerFactory<TopologyRefinerData>::assignFaceVaryingTopology(
         TopologyRefiner& refiner,
-        const OpenSubdiv_Converter& conv)
+        const TopologyRefinerData& cb_data)
 {
-	if (conv.get_num_uv_layers(&conv) <= 0) {
+	const OpenSubdiv_Converter& conv = cb_data.conv;
+	const int num_layers = conv.get_num_uv_layers(&conv);
+	if (num_layers <= 0) {
 		/* No UV maps, we can skip any face-varying data. */
 		return true;
 	}
-	/* Count overall number of UV data.
-	 * NOTE: We only do single UV layer here, and we don't "merge" loops
-	 * together as it is done in OpenSubdiv examples.x
-	 */
 	const int num_faces = getNumBaseFaces(refiner);
-	int num_uvs = 0;
-	for (int face = 0; face < num_faces; ++face) {
-		IndexArray face_verts = getBaseFaceVertices(refiner, face);
-		num_uvs += face_verts.size();
-	}
-	/* Fill in actual UV offsets. */
-	const int channel = createBaseFVarChannel(refiner, num_uvs);
-	for (int face = 0, offset = 0; face < num_faces; ++face) {
-		Far::IndexArray dst_face_uvs = getBaseFaceFVarValues(refiner,
-		                                                     face,
-		                                                     channel);
-		for (int corner = 0; corner < dst_face_uvs.size(); ++corner) {
-			dst_face_uvs[corner] = offset;
-			++offset;
+	for (int layer = 0; layer < num_layers; ++layer) {
+		conv.precalc_uv_layer(&conv, layer);
+		const int num_uvs = conv.get_num_uvs(&conv);
+		/* Fill in UV coordinates. */
+		cb_data.uvs->resize(num_uvs * 2);
+		conv.get_uvs(&conv, &cb_data.uvs->at(0));
+		/* Fill in per-corner index of the UV. */
+		const int channel = createBaseFVarChannel(refiner, num_uvs);
+		for (int face = 0; face < num_faces; ++face) {
+			Far::IndexArray dst_face_uvs = getBaseFaceFVarValues(refiner,
+			                                                     face,
+			                                                     channel);
+			for (int corner = 0; corner < dst_face_uvs.size(); ++corner) {
+				const int uv_index = conv.get_face_corner_uv_index(&conv,
+				                                                   face,
+				                                                   corner);
+				dst_face_uvs[corner] = uv_index;
+			}
 		}
+		conv.finish_uv_layer(&conv);
+		/* TODO(sergey): Single layer only for now. */
+		break;
 	}
 	return true;
 }
@@ -541,33 +554,6 @@ OpenSubdiv::Sdc::SchemeType get_capi_scheme_type(OpenSubdiv_SchemeType type)
 	return OpenSubdiv::Sdc::SCHEME_CATMARK;
 }
 
-static void import_fvar_data(OpenSubdiv_TopologyRefinerDescr *result,
-                             const OpenSubdiv_Converter& conv)
-{
-	const int num_layers = conv.get_num_uv_layers(&conv),
-	          num_faces = conv.get_num_faces(&conv);
-	/* Pre-allocate values in one go. */
-	int num_fvar_values = 0;
-	for (int layer = 0; layer < num_layers; ++layer) {
-		num_fvar_values = result->osd_refiner->GetNumFVarValuesTotal();
-	}
-	result->uvs.resize(num_fvar_values * 2);
-	/* Fill in all channels. */
-	for (int layer = 0, offset = 0; layer < num_layers; ++layer) {
-		for (int face = 0; face < num_faces; ++face) {
-			const int num_verts = conv.get_num_face_verts(&conv, face);
-			for (int vert = 0; vert < num_verts; ++vert) {
-				float uv[2];
-				conv.get_face_corner_uv(&conv, face, vert, uv);
-				result->uvs[offset++] = uv[0];
-				result->uvs[offset++] = uv[1];
-			}
-		}
-		/* TODO(sergey): Currently we only support first layer only. */
-		break;
-	}
-}
-
 }  /* namespace */
 
 struct OpenSubdiv_TopologyRefinerDescr *openSubdiv_createTopologyRefinerDescr(
@@ -581,32 +567,24 @@ struct OpenSubdiv_TopologyRefinerDescr *openSubdiv_createTopologyRefinerDescr(
 	Options options;
 	options.SetVtxBoundaryInterpolation(Options::VTX_BOUNDARY_EDGE_ONLY);
 	options.SetCreasingMethod(Options::CREASE_UNIFORM);
-	options.SetFVarLinearInterpolation(Options::FVAR_LINEAR_ALL);
+	/* TODO(sergey): Get proper UV subdivide flag. */
+	// options.SetFVarLinearInterpolation(Options::FVAR_LINEAR_ALL);
+	options.SetFVarLinearInterpolation(Options::FVAR_LINEAR_CORNERS_ONLY);
 
-	TopologyRefinerFactory<OpenSubdiv_Converter>::Options
+	TopologyRefinerFactory<TopologyRefinerData>::Options
 	        topology_options(scheme_type, options);
 #ifdef OPENSUBDIV_VALIDATE_TOPOLOGY
 	topology_options.validateFullTopology = true;
 #endif
 	OpenSubdiv_TopologyRefinerDescr *result = OBJECT_GUARDED_NEW(OpenSubdiv_TopologyRefinerDescr);
+	TopologyRefinerData cb_data = {*converter, &result->uvs};
 	/* We don't use guarded allocation here so we can re-use the refiner
 	 * for GL mesh creation directly.
 	 */
 	result->osd_refiner =
-	        TopologyRefinerFactory<OpenSubdiv_Converter>::Create(
-	                *converter,
+	        TopologyRefinerFactory<TopologyRefinerData>::Create(
+	                cb_data,
 	                topology_options);
-
-	if (result->osd_refiner->GetNumFVarChannels() > 0) {
-		/* Import face varrying data now since later we wouldn't have
-		 * access to the converter.
-		 *
-		 * TODO(sergey): This is so-called "for now", for until we'll
-		 * find better way to plug OSD to Blender or for until something
-		 * happens inside of OSD API.
-		 */
-		import_fvar_data(result, *converter);
-	}
 
 	return result;
 }
