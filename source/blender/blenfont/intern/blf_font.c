@@ -370,12 +370,10 @@ static void blf_font_draw_buffer_ex(
 								fbuf[3] = 1.0f;
 							}
 							else {
-								float alphatest;
 								fbuf[0] = (b_col_float[0] * a) + (fbuf[0] * (1.0f - a));
 								fbuf[1] = (b_col_float[1] * a) + (fbuf[1] * (1.0f - a));
 								fbuf[2] = (b_col_float[2] * a) + (fbuf[2] * (1.0f - a));
-								fbuf[3] = (alphatest = (fbuf[3] + a)) < 1.0f ?
-								          alphatest : 1.0f;
+								fbuf[3] = MIN2(fbuf[3] + a, 1.0f); /* clamp to 1.0 */
 							}
 						}
 					}
@@ -407,12 +405,10 @@ static void blf_font_draw_buffer_ex(
 								cbuf[3] = 255;
 							}
 							else {
-								int alphatest;
 								cbuf[0] = (unsigned char)((b_col_char[0] * a) + (cbuf[0] * (1.0f - a)));
 								cbuf[1] = (unsigned char)((b_col_char[1] * a) + (cbuf[1] * (1.0f - a)));
 								cbuf[2] = (unsigned char)((b_col_char[2] * a) + (cbuf[2] * (1.0f - a)));
-								cbuf[3] = (unsigned char)(((alphatest = ((int)cbuf[3] + (int)(a * 255))) < 255) ?
-								          alphatest : 255);
+								cbuf[3] = (unsigned char)MIN2((int)cbuf[3] + (int)(a * 255), 255); /* clamp to 255 */
 							}
 						}
 					}
