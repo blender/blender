@@ -1591,6 +1591,20 @@ void BKE_main_id_clear_newpoins(Main *bmain)
  * \param untagged_only If true, only make local datablocks not tagged with LIB_TAG_PRE_EXISTING.
  * \param set_fake If true, set fake user on all localized datablocks (except group and objects ones).
  */
+/* XXX TODO This function should probably be reworked.
+ *
+ * Old (2.77) version was simply making (tagging) datablocks as local, without actually making any check whether
+ * they were also indirectly used or not...
+ *
+ * Current version uses regular id_make_local callback, but this is not super-efficient since this ends up
+ * duplicating some IDs and then removing original ones (due to missing knowledge of which ID uses some other ID).
+ *
+ * We could first check all IDs and detect those to be made local that are only used by other local or future-local
+ * datablocks, and directly tag those as local (instead of going through id_make_local) maybe...
+ *
+ * We'll probably need at some point a true dependency graph between datablocks, but for now this should work
+ * good enough (performances is not a critical point here anyway).
+ */
 void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged_only, const bool set_fake)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
@@ -1637,6 +1651,27 @@ void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged
 		for (id = lbarray[a]->first; id; id = id->next) {
 			if (id->newid) {
 				BKE_libblock_remap(bmain, id, id->newid, ID_REMAP_SKIP_INDIRECT_USAGE);
+			}
+		}
+	}
+
+	/* Third step: remove datablocks that have been copied to be localized and are no more used in the end...
+	 * Note that we may have to loop more than once here, to tackle dependencies between linked objects... */
+	bool do_loop = true;
+	while (do_loop) {
+		do_loop = false;
+		for (a = set_listbasepointers(bmain, lbarray); a--; ) {
+			for (id = lbarray[a]->first; id; id = id_next) {
+				id_next = id->next;
+				if (id->newid) {
+					bool is_local = false, is_lib = false;
+
+					BKE_library_ID_test_usages(bmain, id, &is_local, &is_lib);
+					if (!is_local && !is_lib) {
+						BKE_libblock_free(bmain, id);
+						do_loop = true;
+					}
+				}
 			}
 		}
 	}
