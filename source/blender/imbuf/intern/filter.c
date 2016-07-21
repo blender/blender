@@ -206,7 +206,7 @@ void imb_filterx(struct ImBuf *ibuf)
 static void imb_filterN(ImBuf *out, ImBuf *in)
 {
 	BLI_assert(out->channels == in->channels);
-	BLI_assert(out->x == in->x && out->y == out->y);
+	BLI_assert(out->x == in->x && out->y == in->y);
 
 	const int channels = in->channels;
 	const int rowlen = in->x;

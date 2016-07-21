@@ -117,7 +117,7 @@ static void imb_stereo3d_write_anaglyph(Stereo3DData *s3d, enum eStereo3dAnaglyp
 					to[0] = from[r][0];
 					to[1] = from[g][1];
 					to[2] = from[b][2];
-					to[3] = MAX2(from[0][3], from[0][3]);
+					to[3] = MAX2(from[0][3], from[1][3]);
 				}
 			}
 		}
@@ -154,7 +154,7 @@ static void imb_stereo3d_write_anaglyph(Stereo3DData *s3d, enum eStereo3dAnaglyp
 					to[0] = from[r][0];
 					to[1] = from[g][1];
 					to[2] = from[b][2];
-					to[3] = MAX2(from[0][3], from[0][3]);
+					to[3] = MAX2(from[0][3], from[1][3]);
 				}
 			}
 		}

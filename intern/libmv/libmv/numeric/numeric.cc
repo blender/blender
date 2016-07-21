@@ -109,7 +109,7 @@ void MeanAndVarianceAlongRows(const Mat &A,
 }
 
 void HorizontalStack(const Mat &left, const Mat &right, Mat *stacked) {
-  assert(left.rows() == left.rows());
+  assert(left.rows() == right.rows());
   int n = left.rows();
   int m1 = left.cols();
   int m2 = right.cols();
