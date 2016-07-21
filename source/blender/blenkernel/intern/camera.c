@@ -78,8 +78,8 @@ void BKE_camera_init(Camera *cam)
 	/* stereoscopy 3d */
 	cam->stereo.interocular_distance = 0.065f;
 	cam->stereo.convergence_distance = 30.f * 0.065f;
-	cam->stereo.pole_merge_angle_from = DEG2RAD(60.0f);
-	cam->stereo.pole_merge_angle_to = DEG2RAD(75.0f);
+	cam->stereo.pole_merge_angle_from = DEG2RADF(60.0f);
+	cam->stereo.pole_merge_angle_to = DEG2RADF(75.0f);
 }
 
 void *BKE_camera_add(Main *bmain, const char *name)

@@ -1107,7 +1107,7 @@ static void reconstruct_struct(
 		if (spc[0] >= firststructtypenr && !ispointer(name)) {
 			/* struct field type */
 			/* where does the old struct data start (and is there an old one?) */
-			cpo = find_elem(oldsdna, type, name, spo, data, &sppo);
+			cpo = (char *)find_elem(oldsdna, type, name, spo, data, &sppo);
 			
 			if (cpo) {
 				oldSDNAnr = DNA_struct_find_nr_ex(oldsdna, type, &oldsdna_index_last);
@@ -1184,7 +1184,7 @@ void DNA_struct_switch_endian(const SDNA *oldsdna, int oldSDNAnr, char *data)
 		if (spc[0] >= firststructtypenr && !ispointer(name)) {
 			/* struct field type */
 			/* where does the old data start (is there one?) */
-			char *cpo = find_elem(oldsdna, type, name, spo, data, NULL);
+			char *cpo = (char *)find_elem(oldsdna, type, name, spo, data, NULL);
 			if (cpo) {
 				oldSDNAnr = DNA_struct_find_nr_ex(oldsdna, type, &oldsdna_index_last);
 				
@@ -1250,7 +1250,8 @@ void *DNA_struct_reconstruct(
 {
 	int a, curSDNAnr, curlen = 0, oldlen;
 	const short *spo, *spc;
-	char *cur, *cpc, *cpo;
+	char *cur, *cpc;
+	const char *cpo;
 	const char *type;
 	
 	/* oldSDNAnr == structnr, we're looking for the corresponding 'cur' number */
