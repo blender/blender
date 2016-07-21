@@ -1672,9 +1672,6 @@ bool BKE_ffmpeg_alpha_channel_is_supported(RenderData *rd)
 	if (codec == AV_CODEC_ID_PNG)
 		return true;
 
-	if (codec == AV_CODEC_ID_PNG)
-		return true;
-
 	if (codec == AV_CODEC_ID_HUFFYUV)
 		return true;
 
