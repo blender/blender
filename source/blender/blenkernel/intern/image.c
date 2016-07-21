@@ -456,7 +456,8 @@ Image *BKE_image_copy(Main *bmain, Image *ima)
 
 	copy_image_packedfiles(&nima->packedfiles, &ima->packedfiles);
 
-	nima->stereo3d_format = MEM_dupallocN(ima->stereo3d_format);
+	/* nima->stere3d_format is already allocated by image_alloc... */
+	*nima->stereo3d_format = *ima->stereo3d_format;
 	BLI_duplicatelist(&nima->views, &ima->views);
 
 	BKE_previewimg_id_copy(&nima->id, &ima->id);
