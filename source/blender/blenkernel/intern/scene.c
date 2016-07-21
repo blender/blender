@@ -355,6 +355,13 @@ void BKE_scene_groups_relink(Scene *sce)
 		BKE_rigidbody_world_groups_relink(sce->rigidbody_world);
 }
 
+void BKE_scene_make_local(Main *bmain, Scene *sce, const bool lib_local)
+{
+	/* For now should work, may need more work though to support all possible corner cases
+	 * (also scene_copy probably needs some love). */
+	BKE_id_make_local_generic(bmain, &sce->id, true, lib_local);
+}
+
 /** Free (or release) any data used by this scene (does not free the scene itself). */
 void BKE_scene_free(Scene *sce)
 {

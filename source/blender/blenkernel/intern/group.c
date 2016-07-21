@@ -105,6 +105,11 @@ Group *BKE_group_copy(Main *bmain, Group *group)
 	return groupn;
 }
 
+void BKE_group_make_local(Main *bmain, Group *group, const bool lib_local)
+{
+	BKE_id_make_local_generic(bmain, group, true, lib_local);
+}
+
 /* external */
 static bool group_object_add_internal(Group *group, Object *ob)
 {

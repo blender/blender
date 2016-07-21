@@ -107,6 +107,7 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_packedFile.h"
+#include "BKE_sound.h"
 #include "BKE_speaker.h"
 #include "BKE_scene.h"
 #include "BKE_text.h"
@@ -324,7 +325,9 @@ bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 
 	switch (GS(id->name)) {
 		case ID_SCE:
-			return false; /* not implemented */
+			/* Partially implemented (has no copy...). */
+			if (!test) BKE_scene_make_local(bmain, (Scene *)id, lib_local);
+			return true;
 		case ID_LI:
 			return false; /* can't be linked */
 		case ID_OB:
@@ -370,13 +373,19 @@ bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 		case ID_SCR:
 			return false; /* can't be linked */
 		case ID_VF:
-			return false; /* not implemented */
+			/* Partially implemented (has no copy...). */
+			if (!test) BKE_vfont_make_local(bmain, (VFont *)id, lib_local);
+			return true;
 		case ID_TXT:
-			return false; /* not implemented */
+			if (!test) BKE_text_make_local(bmain, (Text *)id, lib_local);
+			return true;
 		case ID_SO:
-			return false; /* not implemented */
+			/* Partially implemented (has no copy...). */
+			if (!test) BKE_sound_make_local(bmain, (bSound *)id, lib_local);
+			return true;
 		case ID_GR:
-			return false; /* not implemented */
+			if (!test) BKE_group_make_local(bmain, (Group *)id, lib_local);
+			return true;
 		case ID_AR:
 			if (!test) BKE_armature_make_local(bmain, (bArmature *)id, lib_local);
 			return true;
@@ -395,9 +404,14 @@ bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 		case ID_WM:
 			return false; /* can't be linked */
 		case ID_GD:
-			return false; /* not implemented */
+			if (!test) BKE_gpencil_make_local(bmain, (bGPdata *)id, lib_local);
+			return true;
+		case ID_MSK:
+			if (!test) BKE_mask_make_local(bmain, (Mask *)id, lib_local);
+			return true;
 		case ID_LS:
-			return false; /* not implemented */
+			if (!test) BKE_linestyle_make_local(bmain, (FreestyleLineStyle *)id, lib_local);
+			return true;
 	}
 
 	return false;

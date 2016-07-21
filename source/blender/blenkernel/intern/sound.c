@@ -155,6 +155,11 @@ void BKE_sound_free(bSound *sound)
 #endif  /* WITH_AUDASPACE */
 }
 
+void BKE_sound_make_local(Main *bmain, bSound *sound, const bool lib_local)
+{
+	BKE_id_make_local_generic(bmain, &sound->id, true, lib_local);
+}
+
 #ifdef WITH_AUDASPACE
 
 static const char *force_device = NULL;
