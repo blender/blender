@@ -70,6 +70,7 @@ add_definitions(-DGLEW_STATIC)
 
 if(WIN32)
 	add_definitions(-DNOMINMAX)
+	add_definitions(-D_USE_MATH_DEFINITIONS)
 endif()
 
 # TODO(sergey): Put CUEW back when CUDA is officially supported by OSD.
