@@ -1345,7 +1345,7 @@ static int outliner_lib_operation_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
-	eOutlinerIdOpTypes event;
+	eOutlinerLibOpTypes event;
 
 	/* check for invalid states */
 	if (soops == NULL)
