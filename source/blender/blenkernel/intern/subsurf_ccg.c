@@ -797,6 +797,10 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss,
                                      int use_flat_subdiv,
                                      bool use_subdiv_uvs)
 {
+#ifndef WITH_OPENSUBDIV
+	UNUSED_VARS(use_subdiv_uvs);
+#endif
+
 #ifdef WITH_OPENSUBDIV
 	/* Reset all related descriptors if actual mesh topology changed or if
 	 * other evaluation-related settings changed.
