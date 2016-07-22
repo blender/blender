@@ -181,7 +181,7 @@ PyObject *pyrna_id_CreatePyObject(struct ID *id);
 bool      pyrna_id_FromPyObject(PyObject *obj, struct ID **id);
 
 /* operators also need this to set args */
-int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, int all_args, const char *error_prefix);
+int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, const bool all_args, const char *error_prefix);
 PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
 
 unsigned int *pyrna_set_to_enum_bitmap(
