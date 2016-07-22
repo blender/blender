@@ -171,7 +171,7 @@ static void interpolate_fvar_data(OpenSubdiv::Far::TopologyRefiner& refiner,
 	if (num_values_total <= 0) {
 		return;
 	}
-	OpenSubdiv::Far::PrimvarRefiner primvarRefiner(refiner);
+	OpenSubdiv::Far::PrimvarRefiner primvar_refiner(refiner);
 	if (refiner.IsUniform()) {
 		/* For uniform we only keep the highest level of refinement. */
 		fvar_data.resize(num_values_max * fvar_width);
@@ -183,11 +183,11 @@ static void interpolate_fvar_data(OpenSubdiv::Far::TopologyRefiner& refiner,
 		 */
 		for (int level = 1; level < max_level; ++level) {
 			FVarVertex *dst = src + refiner.GetLevel(level-1).GetNumFVarValues(channel);
-			primvarRefiner.InterpolateFaceVarying(level, src, dst, channel);
+			primvar_refiner.InterpolateFaceVarying(level, src, dst, channel);
 			src = dst;
 		}
 		FVarVertex *dst = reinterpret_cast<FVarVertex *>(&fvar_data[0]);
-		primvarRefiner.InterpolateFaceVarying(max_level, src, dst, channel);
+		primvar_refiner.InterpolateFaceVarying(max_level, src, dst, channel);
 	} else {
 		/* For adaptive we keep all levels. */
 		fvar_data.resize(num_values_total * fvar_width);
@@ -195,7 +195,7 @@ static void interpolate_fvar_data(OpenSubdiv::Far::TopologyRefiner& refiner,
 		memcpy(src, &uvs[0], uvs.size() * sizeof(float));
 		for (int level = 1; level <= max_level; ++level) {
 			FVarVertex *dst = src + refiner.GetLevel(level-1).GetNumFVarValues(channel);
-			primvarRefiner.InterpolateFaceVarying(level, src, dst, channel);
+			primvar_refiner.InterpolateFaceVarying(level, src, dst, channel);
 			src = dst;
         }
     }

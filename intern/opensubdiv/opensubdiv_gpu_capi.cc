@@ -113,7 +113,7 @@ struct OpenSubdiv_GLMeshFVarData
 	}
 
 	void Create(const OpenSubdiv::Far::PatchTable *patch_table,
-	            int fvarWidth,
+	            int fvar_width,
 	            const float *fvar_src_data)
 	{
 		Release();
@@ -121,11 +121,11 @@ struct OpenSubdiv_GLMeshFVarData
 
 		// expand fvardata to per-patch array
 		std::vector<float> data;
-		data.reserve(indices.size() * fvarWidth);
+		data.reserve(indices.size() * fvar_width);
 
 		for (int fvert = 0; fvert < (int)indices.size(); ++fvert) {
-			int index = indices[fvert] * fvarWidth;
-			for (int i = 0; i < fvarWidth; ++i) {
+			int index = indices[fvert] * fvar_width;
+			for (int i = 0; i < fvar_width; ++i) {
 				data.push_back(fvar_src_data[index++]);
 			}
 		}
