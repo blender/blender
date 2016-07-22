@@ -244,6 +244,8 @@ void ccgSubSurf_free_osd_mesh(CCGSubSurf *ss);
 
 void ccgSubSurf_getMinMax(CCGSubSurf *ss, float r_min[3], float r_max[3]);
 
+void ccgSubSurf__sync_subdivUvs(CCGSubSurf *ss, bool subsurf_uvs);
+
 #endif
 
 #endif  /* __CCGSUBSURF_H__ */

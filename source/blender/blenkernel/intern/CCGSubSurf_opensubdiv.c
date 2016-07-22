@@ -984,6 +984,11 @@ void ccgSubSurf__delete_pending(void)
 	BLI_spin_unlock(&delete_spin);
 }
 
+void ccgSubSurf__sync_subdivUvs(CCGSubSurf *ss, bool subdiv_uvs)
+{
+    ss->osd_subdiv_uvs = subdiv_uvs;
+}
+
 /* ** Public API ** */
 
 void BKE_subsurf_osd_init(void)

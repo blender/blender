@@ -567,9 +567,12 @@ struct OpenSubdiv_TopologyRefinerDescr *openSubdiv_createTopologyRefinerDescr(
 	Options options;
 	options.SetVtxBoundaryInterpolation(Options::VTX_BOUNDARY_EDGE_ONLY);
 	options.SetCreasingMethod(Options::CREASE_UNIFORM);
-	/* TODO(sergey): Get proper UV subdivide flag. */
-	// options.SetFVarLinearInterpolation(Options::FVAR_LINEAR_ALL);
-	options.SetFVarLinearInterpolation(Options::FVAR_LINEAR_CORNERS_ONLY);
+	if (converter->get_subdiv_uvs(converter)) {
+		options.SetFVarLinearInterpolation(Options::FVAR_LINEAR_CORNERS_ONLY);
+	}
+	else {
+		options.SetFVarLinearInterpolation(Options::FVAR_LINEAR_ALL);
+	}
 
 	TopologyRefinerFactory<TopologyRefinerData>::Options
 	        topology_options(scheme_type, options);
@@ -649,6 +652,7 @@ int openSubdiv_topologyRefnerCompareConverter(
         const OpenSubdiv_TopologyRefinerDescr *topology_refiner,
         OpenSubdiv_Converter *converter)
 {
+	typedef OpenSubdiv::Sdc::Options Options;
 	using OpenSubdiv::Far::ConstIndexArray;
 	using OpenSubdiv::Far::TopologyRefiner;
 	using OpenSubdiv::Far::TopologyLevel;
@@ -661,6 +665,12 @@ int openSubdiv_topologyRefnerCompareConverter(
 	OpenSubdiv::Sdc::SchemeType scheme_type =
 	        get_capi_scheme_type(converter->get_type(converter));
 	if (scheme_type != refiner->GetSchemeType()) {
+		return false;
+	}
+	const Options options = refiner->GetSchemeOptions();
+	Options::FVarLinearInterpolation interp = options.GetFVarLinearInterpolation();
+	const bool subdiv_uvs = (interp != Options::FVAR_LINEAR_ALL);
+	if (converter->get_subdiv_uvs(converter) != subdiv_uvs) {
 		return false;
 	}
 	if (converter->get_num_verts(converter) != num_verts ||

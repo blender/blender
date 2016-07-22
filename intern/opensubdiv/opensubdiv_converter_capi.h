@@ -47,6 +47,8 @@ typedef struct OpenSubdiv_Converter {
 
 	OpenSubdiv_SchemeType (*get_type)(const OpenSubdiv_Converter *converter);
 
+	bool (*get_subdiv_uvs)(const OpenSubdiv_Converter *converter);
+
 	int (*get_num_faces)(const OpenSubdiv_Converter *converter);
 	int (*get_num_edges)(const OpenSubdiv_Converter *converter);
 	int (*get_num_verts)(const OpenSubdiv_Converter *converter);

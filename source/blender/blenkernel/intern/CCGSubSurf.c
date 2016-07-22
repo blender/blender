@@ -316,6 +316,7 @@ CCGSubSurf *ccgSubSurf_new(CCGMeshIFC *ifc, int subdivLevels, CCGAllocatorIFC *a
 		ss->osd_next_face_ptex_index = 0;
 		ss->osd_coarse_coords = NULL;
 		ss->osd_num_coarse_coords = 0;
+		ss->osd_subdiv_uvs = false;
 #endif
 
 		return ss;
