@@ -32,6 +32,7 @@ uniform int osd_fvar_count;
 	}
 
 uniform samplerBuffer FVarDataBuffer;
+uniform isamplerBuffer FVarDataOffsetBuffer;
 
 out block {
 	VertexData v;

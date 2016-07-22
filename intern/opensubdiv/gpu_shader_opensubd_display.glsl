@@ -99,6 +99,7 @@ in block {
 	}
 
 uniform samplerBuffer FVarDataBuffer;
+uniform isamplerBuffer FVarDataOffsetBuffer;
 
 out block {
 	VertexData v;

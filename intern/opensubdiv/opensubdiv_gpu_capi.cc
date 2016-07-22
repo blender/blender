@@ -122,7 +122,11 @@ struct OpenSubdiv_GLMeshFVarData
 		if (texture_buffer) {
 			glDeleteTextures(1, &texture_buffer);
 		}
+		if (offset_buffer) {
+			glDeleteTextures(1, &offset_buffer);
+		}
 		texture_buffer = 0;
+		offset_buffer = 0;
 		fvar_width = 0;
 		channel_offsets.clear();
 	}
@@ -140,7 +144,7 @@ struct OpenSubdiv_GLMeshFVarData
 		const int max_level = refiner->GetMaxLevel();
 		const int num_channels = patch_table->GetNumFVarChannels();
 		std::vector<float> data;
-		size_t fvar_data_offset = 0;
+		int fvar_data_offset = 0;
 		channel_offsets.resize(num_channels);
 		for (int channel = 0; channel < num_channels; ++channel) {
 			OpenSubdiv::Far::ConstIndexArray indices =
@@ -173,13 +177,23 @@ struct OpenSubdiv_GLMeshFVarData
 		glGenTextures(1, &texture_buffer);
 		glBindTexture(GL_TEXTURE_BUFFER, texture_buffer);
 		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32F, buffer);
-		glBindTexture(GL_TEXTURE_BUFFER, 0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		glDeleteBuffers(1, &buffer);
+
+		glGenBuffers(1, &buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, buffer);
+		glBufferData(GL_ARRAY_BUFFER, channel_offsets.size()*sizeof(int),
+		             &channel_offsets[0], GL_STATIC_DRAW);
+
+		glGenTextures(1, &offset_buffer);
+		glBindTexture(GL_TEXTURE_BUFFER, offset_buffer);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, buffer);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	GLuint texture_buffer;
-	std::vector<size_t> channel_offsets;
+	GLuint offset_buffer;
+	std::vector<int> channel_offsets;
 	int fvar_width;
 };
 
@@ -299,6 +313,10 @@ GLuint linkProgram(const char *version, const char *define)
 	                   0);  /* GL_TEXTURE0 */
 
 	glProgramUniform1i(program,
+	                   glGetUniformLocation(program, "FVarDataOffsetBuffer"),
+	                   30);  /* GL_TEXTURE30 */
+
+	glProgramUniform1i(program,
 	                   glGetUniformLocation(program, "FVarDataBuffer"),
 	                   31);  /* GL_TEXTURE31 */
 
@@ -354,6 +372,12 @@ void bindProgram(OpenSubdiv_GLMesh *gl_mesh, int program)
 		if (gl_mesh->fvar_data->texture_buffer) {
 			glActiveTexture(GL_TEXTURE31);
 			glBindTexture(GL_TEXTURE_BUFFER, gl_mesh->fvar_data->texture_buffer);
+			glActiveTexture(GL_TEXTURE0);
+		}
+
+		if (gl_mesh->fvar_data->offset_buffer) {
+			glActiveTexture(GL_TEXTURE30);
+			glBindTexture(GL_TEXTURE_BUFFER, gl_mesh->fvar_data->offset_buffer);
 			glActiveTexture(GL_TEXTURE0);
 		}
 
@@ -539,6 +563,13 @@ static GLuint prepare_patchDraw(OpenSubdiv_GLMesh *gl_mesh,
 					glActiveTexture(GL_TEXTURE31);
 					glBindTexture(GL_TEXTURE_BUFFER,
 					              gl_mesh->fvar_data->texture_buffer);
+					glActiveTexture(GL_TEXTURE0);
+				}
+
+				if (gl_mesh->fvar_data->offset_buffer) {
+					glActiveTexture(GL_TEXTURE30);
+					glBindTexture(GL_TEXTURE_BUFFER,
+					              gl_mesh->fvar_data->offset_buffer);
 					glActiveTexture(GL_TEXTURE0);
 				}
 
