@@ -294,11 +294,11 @@ static void select_adjacent_cp(
 			if (next < 0) bezt = &nu->bezt[a - 1];
 			while (a--) {
 				if (a - abs(next) < 0) break;
-				if ((lastsel == 0) && (bezt->hide == 0) && ((bezt->f2 & SELECT) || (selstatus == DESELECT))) {
+				if ((lastsel == false) && (bezt->hide == 0) && ((bezt->f2 & SELECT) || (selstatus == DESELECT))) {
 					bezt += next;
 					if (!(bezt->f2 & SELECT) || (selstatus == DESELECT)) {
-						short sel = select_beztriple(bezt, selstatus, SELECT, VISIBLE);
-						if ((sel == 1) && (cont == 0)) lastsel = true;
+						bool sel = select_beztriple(bezt, selstatus, SELECT, VISIBLE);
+						if (sel && !cont) lastsel = true;
 					}
 				}
 				else {
@@ -315,11 +315,11 @@ static void select_adjacent_cp(
 			if (next < 0) bp = &nu->bp[a - 1];
 			while (a--) {
 				if (a - abs(next) < 0) break;
-				if ((lastsel == 0) && (bp->hide == 0) && ((bp->f1 & SELECT) || (selstatus == DESELECT))) {
+				if ((lastsel == false) && (bp->hide == 0) && ((bp->f1 & SELECT) || (selstatus == DESELECT))) {
 					bp += next;
 					if (!(bp->f1 & SELECT) || (selstatus == DESELECT)) {
-						short sel = select_bpoint(bp, selstatus, SELECT, VISIBLE);
-						if ((sel == 1) && (cont == 0)) lastsel = true;
+						bool sel = select_bpoint(bp, selstatus, SELECT, VISIBLE);
+						if (sel && !cont) lastsel = true;
 					}
 				}
 				else {
@@ -820,7 +820,7 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 	BezTriple *bezt;
 	int a;
 	int sel = 0;
-	short lastsel = false;
+	bool lastsel = false;
 
 	if (obedit->type == OB_SURF) {
 		for (nu = editnurb->first; nu; nu = nu->next) {
@@ -935,9 +935,8 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 				a = nu->pntsu * nu->pntsv;
 				bp = nu->bp;
 				while (a--) {
-					if ((lastsel == 0) && (bp->hide == 0) && (bp->f1 & SELECT)) {
-						if (lastsel != 0) sel = 1;
-						else sel = 0;
+					if ((lastsel == false) && (bp->hide == 0) && (bp->f1 & SELECT)) {
+						sel = 0;
 
 						/* first and last are exceptions */
 						if (a == nu->pntsu * nu->pntsv - 1) {
