@@ -45,6 +45,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "opensubdiv_capi.h"
+#include "opensubdiv_topology_refiner.h"
 
 using OpenSubdiv::Osd::GLMeshInterface;
 
@@ -82,6 +83,7 @@ typedef struct Transform {
 } Transform;
 
 static bool g_use_osd_glsl = false;
+static int g_active_uv_index = 0;
 
 static GLuint g_flat_fill_solid_program = 0;
 static GLuint g_flat_fill_texture2d_program = 0;
@@ -110,25 +112,44 @@ struct OpenSubdiv_GLMeshFVarData
 			glDeleteTextures(1, &texture_buffer);
 		}
 		texture_buffer = 0;
+		channel_offsets.clear();
 	}
 
-	void Create(const OpenSubdiv::Far::PatchTable *patch_table,
+	void Create(const OpenSubdiv::Far::TopologyRefiner *refiner,
+	            const OpenSubdiv::Far::PatchTable *patch_table,
 	            int fvar_width,
 	            const float *fvar_src_data)
 	{
 		Release();
-		OpenSubdiv::Far::ConstIndexArray indices = patch_table->GetFVarValues();
 
-		// expand fvardata to per-patch array
+		/* Expand fvar data to per-patch array */
+		const int max_level = refiner->GetMaxLevel();
+		const int num_channels = patch_table->GetNumFVarChannels();
 		std::vector<float> data;
-		data.reserve(indices.size() * fvar_width);
+		size_t fvar_data_offset = 0;
+		channel_offsets.resize(num_channels);
+		for (int channel = 0; channel < num_channels; ++channel) {
+			OpenSubdiv::Far::ConstIndexArray indices =
+			        patch_table->GetFVarValues(channel);
 
-		for (int fvert = 0; fvert < (int)indices.size(); ++fvert) {
-			int index = indices[fvert] * fvar_width;
-			for (int i = 0; i < fvar_width; ++i) {
-				data.push_back(fvar_src_data[index++]);
+			channel_offsets[channel] = data.size();
+			data.reserve(data.size() + indices.size() * fvar_width);
+
+			for (int fvert = 0; fvert < (int)indices.size(); ++fvert) {
+				int index = indices[fvert] * fvar_width;
+				for (int i = 0; i < fvar_width; ++i) {
+					data.push_back(fvar_src_data[fvar_data_offset + index++]);
+				}
+			}
+			if (refiner->IsUniform()) {
+				const int num_values_max = refiner->GetLevel(max_level).GetNumFVarValues(channel);
+				fvar_data_offset += num_values_max * fvar_width;
+			} else {
+				const int num_values_total = refiner->GetNumFVarValuesTotal(channel);
+				fvar_data_offset += num_values_total * fvar_width;
 			}
 		}
+
 		GLuint buffer;
 		glGenBuffers(1, &buffer);
 		glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -144,6 +165,7 @@ struct OpenSubdiv_GLMeshFVarData
 		glDeleteBuffers(1, &buffer);
 	}
 	GLuint texture_buffer;
+	std::vector<size_t> channel_offsets;
 };
 
 /* TODO(sergey): This is actually duplicated code from BLI. */
@@ -415,8 +437,14 @@ void bindProgram(OpenSubdiv_GLMesh *gl_mesh, int program)
 	}
 
 	/* See notes below about why we use such values. */
+	/* TOO(sergey): Get proper value for FVar width. */
 	glUniform1i(glGetUniformLocation(program, "osd_fvar_count"), 2);
-	glUniform1i(glGetUniformLocation(program, "osd_active_uv_offset"), 0);
+	if (gl_mesh->fvar_data->channel_offsets.size() > 0 && g_active_uv_index >= 0) {
+		glUniform1i(glGetUniformLocation(program, "osd_active_uv_offset"),
+		            gl_mesh->fvar_data->channel_offsets[g_active_uv_index]);
+	} else {
+		glUniform1i(glGetUniformLocation(program, "osd_active_uv_offset"), 0);
+	}
 }
 
 }  /* namespace */
@@ -503,9 +531,11 @@ void openSubdiv_osdGLDisplayDeinit(void)
 	}
 }
 
-void openSubdiv_osdGLMeshDisplayPrepare(int use_osd_glsl)
+void openSubdiv_osdGLMeshDisplayPrepare(int use_osd_glsl,
+                                        int active_uv_index)
 {
-	g_use_osd_glsl = use_osd_glsl != 0;
+	g_active_uv_index = active_uv_index;
+	g_use_osd_glsl = (use_osd_glsl != 0);
 
 	/* Update transformation matrices. */
 	glGetFloatv(GL_PROJECTION_MATRIX, g_transform.projection_matrix);
@@ -594,12 +624,12 @@ static GLuint prepare_patchDraw(OpenSubdiv_GLMesh *gl_mesh,
 
 				location = glGetUniformLocation(program, "osd_active_uv_offset");
 				if (location != -1) {
-					/* TODO(sergey): Since we only store single UV channel
-					 * we can always suuppose offset is 0.
-					 *
-					 * Ideally it should be active UV index times 2.
-					 */
-					glUniform1i(location, 0);
+					if (gl_mesh->fvar_data->channel_offsets.size() > 0 && g_active_uv_index >= 0) {
+						glUniform1i(location,
+						            gl_mesh->fvar_data->channel_offsets[g_active_uv_index]);
+					} else {
+						glUniform1i(location, 0);
+					}
 				}
 			}
 		}
@@ -756,13 +786,15 @@ void openSubdiv_osdGLMeshDisplay(OpenSubdiv_GLMesh *gl_mesh,
 	finish_patchDraw(fill_quads != 0);
 }
 
-void openSubdiv_osdGLAllocFVar(OpenSubdiv_GLMesh *gl_mesh,
+void openSubdiv_osdGLAllocFVar(OpenSubdiv_TopologyRefinerDescr *topology_refiner,
+                               OpenSubdiv_GLMesh *gl_mesh,
                                const float *fvar_data)
 {
 	GLMeshInterface *mesh =
 		(GLMeshInterface *)(gl_mesh->descriptor);
 	gl_mesh->fvar_data = OBJECT_GUARDED_NEW(OpenSubdiv_GLMeshFVarData);
-	gl_mesh->fvar_data->Create(mesh->GetFarPatchTable(),
+	gl_mesh->fvar_data->Create(topology_refiner->osd_refiner,
+	                           mesh->GetFarPatchTable(),
 	                           2,
 	                           fvar_data);
 }

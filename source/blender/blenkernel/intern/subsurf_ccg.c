@@ -1801,7 +1801,7 @@ static void ccgDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEd
 #ifdef WITH_OPENSUBDIV
 	if (ccgdm->useGpuBackend) {
 		/* TODO(sergey): We currently only support all edges drawing. */
-		if (ccgSubSurf_prepareGLMesh(ccgdm->ss, true)) {
+		if (ccgSubSurf_prepareGLMesh(ccgdm->ss, true, -1)) {
 			ccgSubSurf_drawGLMesh(ccgdm->ss, false, -1, -1);
 		}
 		return;
@@ -2638,7 +2638,7 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 		int mat_nr = -1;
 		bool draw_smooth = false;
 		int start_draw_patch = -1, num_draw_patches = 0;
-		if (UNLIKELY(ccgSubSurf_prepareGLMesh(ss, setMaterial != NULL) == false)) {
+		if (UNLIKELY(ccgSubSurf_prepareGLMesh(ss, setMaterial != NULL, -1) == false)) {
 			return;
 		}
 		if (setMaterial == NULL) {
@@ -2750,7 +2750,7 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 		bool draw_smooth = false;
 		int start_draw_patch = -1, num_draw_patches = 0;
 		GPU_draw_update_fvar_offset(dm);
-		if (UNLIKELY(ccgSubSurf_prepareGLMesh(ss, false) == false)) {
+		if (UNLIKELY(ccgSubSurf_prepareGLMesh(ss, false, -1) == false)) {
 			return;
 		}
 		for (i = 0; i < num_base_faces; ++i) {
@@ -3193,7 +3193,7 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm,
 		int new_matnr;
 		bool draw_smooth;
 		GPU_draw_update_fvar_offset(dm);
-		if (UNLIKELY(ccgSubSurf_prepareGLMesh(ss, true) == false)) {
+		if (UNLIKELY(ccgSubSurf_prepareGLMesh(ss, true, -1) == false)) {
 			return;
 		}
 		/* TODO(sergey): Single matierial currently. */
@@ -3401,7 +3401,7 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 
 #ifdef WITH_OPENSUBDIV
 	if (ccgdm->useGpuBackend) {
-		if (UNLIKELY(ccgSubSurf_prepareGLMesh(ss, true) == false)) {
+		if (UNLIKELY(ccgSubSurf_prepareGLMesh(ss, true, -1) == false)) {
 			return;
 		}
 		if (drawParams == NULL) {
@@ -3639,7 +3639,7 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 			 */
 			glColor3f(0.8f, 0.8f, 0.8f);
 		}
-		if (UNLIKELY(ccgSubSurf_prepareGLMesh(ss, true) == false)) {
+		if (UNLIKELY(ccgSubSurf_prepareGLMesh(ss, true, -1) == false)) {
 			return;
 		}
 		if (faceFlags) {
@@ -3838,7 +3838,7 @@ static void ccgDM_drawMappedEdges(DerivedMesh *dm,
 #ifdef WITH_OPENSUBDIV
 	if (ccgdm->useGpuBackend) {
 		/* TODO(sergey): Only draw edges from base mesh. */
-		if (ccgSubSurf_prepareGLMesh(ccgdm->ss, true)) {
+		if (ccgSubSurf_prepareGLMesh(ccgdm->ss, true, -1)) {
 			if (!setDrawOptions || (setDrawOptions(userData, 0) != DM_DRAW_OPTION_SKIP)) {
 				ccgSubSurf_drawGLMesh(ccgdm->ss, false, -1, -1);
 			}

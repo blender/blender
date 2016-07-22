@@ -131,7 +131,8 @@ void openSubdiv_evaluateVarying(OpenSubdiv_EvaluatorDescr *evaluator_descr,
  *
  * TODO(sergey): Some of the stuff could be initialized once for all meshes.
  */
-void openSubdiv_osdGLMeshDisplayPrepare(int use_osd_glsl);
+void openSubdiv_osdGLMeshDisplayPrepare(int use_osd_glsl,
+                                        int active_uv_index);
 
 /* Draw specified patches. */
 void openSubdiv_osdGLMeshDisplay(OpenSubdiv_GLMesh *gl_mesh,
@@ -139,7 +140,8 @@ void openSubdiv_osdGLMeshDisplay(OpenSubdiv_GLMesh *gl_mesh,
                                  int start_patch,
                                  int num_patches);
 
-void openSubdiv_osdGLAllocFVar(OpenSubdiv_GLMesh *gl_mesh,
+void openSubdiv_osdGLAllocFVar(struct OpenSubdiv_TopologyRefinerDescr *topology_refiner,
+                               OpenSubdiv_GLMesh *gl_mesh,
                                const float *fvar_data);
 void openSubdiv_osdGLDestroyFVar(OpenSubdiv_GLMesh *gl_mesh);
 

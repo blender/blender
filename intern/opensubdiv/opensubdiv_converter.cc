@@ -508,12 +508,14 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignFaceVaryingTopolo
 		return true;
 	}
 	const int num_faces = getNumBaseFaces(refiner);
+	size_t uvs_offset = 0;
 	for (int layer = 0; layer < num_layers; ++layer) {
 		conv.precalc_uv_layer(&conv, layer);
 		const int num_uvs = conv.get_num_uvs(&conv);
 		/* Fill in UV coordinates. */
-		cb_data.uvs->resize(num_uvs * 2);
-		conv.get_uvs(&conv, &cb_data.uvs->at(0));
+		cb_data.uvs->resize(cb_data.uvs->size() + num_uvs * 2);
+		conv.get_uvs(&conv, &cb_data.uvs->at(uvs_offset));
+		uvs_offset += num_uvs * 2;
 		/* Fill in per-corner index of the UV. */
 		const int channel = createBaseFVarChannel(refiner, num_uvs);
 		for (int face = 0; face < num_faces; ++face) {
@@ -528,8 +530,6 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignFaceVaryingTopolo
 			}
 		}
 		conv.finish_uv_layer(&conv);
-		/* TODO(sergey): Single layer only for now. */
-		break;
 	}
 	return true;
 }

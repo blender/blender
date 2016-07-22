@@ -215,7 +215,9 @@ static void ccgSubSurf__updateGLMeshCoords(CCGSubSurf *ss)
 	                                       ss->osd_num_coarse_coords);
 }
 
-bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss, bool use_osd_glsl)
+bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss,
+                              bool use_osd_glsl,
+                              int active_uv_index)
 {
 	int compute_type;
 
@@ -288,7 +290,7 @@ bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss, bool use_osd_glsl)
 		ss->osd_coarse_coords_invalid = false;
 	}
 
-	openSubdiv_osdGLMeshDisplayPrepare(use_osd_glsl);
+	openSubdiv_osdGLMeshDisplayPrepare(use_osd_glsl, active_uv_index);
 
 	return true;
 }
