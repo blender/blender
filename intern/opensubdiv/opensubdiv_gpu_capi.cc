@@ -112,6 +112,7 @@ struct OpenSubdiv_GLMeshFVarData
 			glDeleteTextures(1, &texture_buffer);
 		}
 		texture_buffer = 0;
+		fvar_width = 0;
 		channel_offsets.clear();
 	}
 
@@ -121,6 +122,8 @@ struct OpenSubdiv_GLMeshFVarData
 	            const float *fvar_src_data)
 	{
 		Release();
+
+		this->fvar_width = fvar_width;
 
 		/* Expand fvar data to per-patch array */
 		const int max_level = refiner->GetMaxLevel();
@@ -166,6 +169,7 @@ struct OpenSubdiv_GLMeshFVarData
 	}
 	GLuint texture_buffer;
 	std::vector<size_t> channel_offsets;
+	int fvar_width;
 };
 
 /* TODO(sergey): This is actually duplicated code from BLI. */
@@ -430,22 +434,25 @@ void bindProgram(OpenSubdiv_GLMesh *gl_mesh, int program)
 	}
 
 	/* Face-vertex data */
-	if (gl_mesh->fvar_data != NULL && gl_mesh->fvar_data->texture_buffer) {
-		glActiveTexture(GL_TEXTURE31);
-		glBindTexture(GL_TEXTURE_BUFFER, gl_mesh->fvar_data->texture_buffer);
-		glActiveTexture(GL_TEXTURE0);
-	}
+	if (gl_mesh->fvar_data != NULL) {
+		if (gl_mesh->fvar_data->texture_buffer) {
+			glActiveTexture(GL_TEXTURE31);
+			glBindTexture(GL_TEXTURE_BUFFER, gl_mesh->fvar_data->texture_buffer);
+			glActiveTexture(GL_TEXTURE0);
+		}
 
-	/* See notes below about why we use such values. */
-	/* TOO(sergey): Get proper value for FVar width. */
-	glUniform1i(glGetUniformLocation(program, "osd_fvar_count"), 2);
-	if (gl_mesh->fvar_data != NULL &&
-	    gl_mesh->fvar_data->channel_offsets.size() > 0 &&
-	    g_active_uv_index >= 0)
-	{
-		glUniform1i(glGetUniformLocation(program, "osd_active_uv_offset"),
-		            gl_mesh->fvar_data->channel_offsets[g_active_uv_index]);
+		glUniform1i(glGetUniformLocation(program, "osd_fvar_count"),
+		            gl_mesh->fvar_data->fvar_width);
+		if (gl_mesh->fvar_data->channel_offsets.size() > 0 &&
+		    g_active_uv_index >= 0)
+		{
+			glUniform1i(glGetUniformLocation(program, "osd_active_uv_offset"),
+			            gl_mesh->fvar_data->channel_offsets[g_active_uv_index]);
+		} else {
+			glUniform1i(glGetUniformLocation(program, "osd_active_uv_offset"), 0);
+		}
 	} else {
+		glUniform1i(glGetUniformLocation(program, "osd_fvar_count"), 0);
 		glUniform1i(glGetUniformLocation(program, "osd_active_uv_offset"), 0);
 	}
 }
@@ -611,24 +618,22 @@ static GLuint prepare_patchDraw(OpenSubdiv_GLMesh *gl_mesh,
 			}
 
 			/* Face-vertex data */
-			if (gl_mesh->fvar_data != NULL &&
-			    gl_mesh->fvar_data->texture_buffer)
-			{
-				glActiveTexture(GL_TEXTURE31);
-				glBindTexture(GL_TEXTURE_BUFFER,
-				              gl_mesh->fvar_data->texture_buffer);
-				glActiveTexture(GL_TEXTURE0);
+			if (gl_mesh->fvar_data != NULL) {
+				if (gl_mesh->fvar_data->texture_buffer) {
+					glActiveTexture(GL_TEXTURE31);
+					glBindTexture(GL_TEXTURE_BUFFER,
+					              gl_mesh->fvar_data->texture_buffer);
+					glActiveTexture(GL_TEXTURE0);
+				}
 
 				GLint location = glGetUniformLocation(program, "osd_fvar_count");
 				if (location != -1) {
-					/* TODO(sergey): This is width of FVar data, which happened to be 2. */
-					glUniform1i(location, 2);
+					glUniform1i(location, gl_mesh->fvar_data->fvar_width);
 				}
 
 				location = glGetUniformLocation(program, "osd_active_uv_offset");
 				if (location != -1) {
-					if (gl_mesh->fvar_data != NULL &&
-					    gl_mesh->fvar_data->channel_offsets.size() > 0 &&
+					if (gl_mesh->fvar_data->channel_offsets.size() > 0 &&
 					    g_active_uv_index >= 0)
 					{
 						glUniform1i(location,
@@ -637,6 +642,9 @@ static GLuint prepare_patchDraw(OpenSubdiv_GLMesh *gl_mesh,
 						glUniform1i(location, 0);
 					}
 				}
+			} else {
+				glUniform1i(glGetUniformLocation(program, "osd_fvar_count"), 0);
+				glUniform1i(glGetUniformLocation(program, "osd_active_uv_offset"), 0);
 			}
 		}
 		return program;
