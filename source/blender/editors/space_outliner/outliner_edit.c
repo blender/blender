@@ -417,9 +417,9 @@ static int outliner_id_remap_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (!(old_id && (old_id != new_id) && (GS(old_id->name) == GS(new_id->name)))) {
+	if (!(old_id && new_id && (old_id != new_id) && (GS(old_id->name) == GS(new_id->name)))) {
 		BKE_reportf(op->reports, RPT_ERROR_INVALID_INPUT, "Invalid old/new ID pair ('%s' / '%s')",
-		            old_id->name, new_id->name);
+		            old_id ? old_id->name : "Invalid ID", new_id ? new_id->name : "Invalid ID");
 		return OPERATOR_CANCELLED;
 	}
 
