@@ -63,6 +63,8 @@ struct BVHTreeRay;
 struct BVHTreeRayHit; 
 struct EdgeHash;
 
+#define PARTICLE_COLLISION_MAX_COLLISIONS 10
+
 #define PARTICLE_P              ParticleData * pa; int p
 #define LOOP_PARTICLES  for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++)
 #define LOOP_EXISTING_PARTICLES for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++) if (!(pa->flag & PARS_UNEXIST))
@@ -205,8 +207,7 @@ typedef struct ParticleCollisionElement {
 typedef struct ParticleCollision {
 	struct Object *current;
 	struct Object *hit;
-	struct Object *prev;
-	struct Object *skip;
+	struct Object *skip[PARTICLE_COLLISION_MAX_COLLISIONS+1];
 	struct Object *emitter;
 
 	struct CollisionModifierData *md; // collision modifier for current object;
@@ -218,7 +219,7 @@ typedef struct ParticleCollision {
 
 	float original_ray_length; //original length of co2-co1, needed for collision time evaluation
 
-	int prev_index;
+	int skip_count;
 
 	ParticleCollisionElement pce;
 
