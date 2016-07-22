@@ -748,10 +748,8 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 			}
 
 			if (do_fill) {
-				if (do_fill) {
-					/* match extrude vert-order */
-					BM_edge_create(bm, vout[1], vout[0], NULL, BM_CREATE_NOP);
-				}
+				/* match extrude vert-order */
+				BM_edge_create(bm, vout[1], vout[0], NULL, BM_CREATE_NOP);
 			}
 
 			MEM_freeN(vout);

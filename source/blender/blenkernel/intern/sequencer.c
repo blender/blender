@@ -3558,7 +3558,7 @@ static ImBuf *seq_render_strip(
 
 			if (ibuf == NULL) {
 				/* MOVIECLIPs have their own proxy management */
-				if (ibuf == NULL && seq->type != SEQ_TYPE_MOVIECLIP) {
+				if (seq->type != SEQ_TYPE_MOVIECLIP) {
 					ibuf = seq_proxy_fetch(context, seq, cfra);
 					is_proxy_image = (ibuf != NULL);
 				}

@@ -4192,7 +4192,7 @@ static void split_quads(ObjectRen *obr, int dir)
 		vlr= RE_findOrAddVlak(obr, a);
 		
 		/* test if rendering as a quad or triangle, skip wire */
-		if (vlr->v4 && (vlr->flag & R_STRAND)==0 && (vlr->mat->material_type != MA_TYPE_WIRE)) {
+		if ((vlr->flag & R_STRAND)==0 && (vlr->mat->material_type != MA_TYPE_WIRE)) {
 			
 			if (vlr->v4) {
 
