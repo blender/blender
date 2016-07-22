@@ -3401,7 +3401,8 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 
 #ifdef WITH_OPENSUBDIV
 	if (ccgdm->useGpuBackend) {
-		if (UNLIKELY(ccgSubSurf_prepareGLMesh(ss, true, -1) == false)) {
+		const int active_uv_layer = CustomData_get_active_layer_index(&dm->loopData, CD_MLOOPUV);
+		if (UNLIKELY(ccgSubSurf_prepareGLMesh(ss, true, active_uv_layer) == false)) {
 			return;
 		}
 		if (drawParams == NULL) {

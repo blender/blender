@@ -439,7 +439,10 @@ void bindProgram(OpenSubdiv_GLMesh *gl_mesh, int program)
 	/* See notes below about why we use such values. */
 	/* TOO(sergey): Get proper value for FVar width. */
 	glUniform1i(glGetUniformLocation(program, "osd_fvar_count"), 2);
-	if (gl_mesh->fvar_data->channel_offsets.size() > 0 && g_active_uv_index >= 0) {
+	if (gl_mesh->fvar_data != NULL &&
+	    gl_mesh->fvar_data->channel_offsets.size() > 0 &&
+	    g_active_uv_index >= 0)
+	{
 		glUniform1i(glGetUniformLocation(program, "osd_active_uv_offset"),
 		            gl_mesh->fvar_data->channel_offsets[g_active_uv_index]);
 	} else {
@@ -624,7 +627,10 @@ static GLuint prepare_patchDraw(OpenSubdiv_GLMesh *gl_mesh,
 
 				location = glGetUniformLocation(program, "osd_active_uv_offset");
 				if (location != -1) {
-					if (gl_mesh->fvar_data->channel_offsets.size() > 0 && g_active_uv_index >= 0) {
+					if (gl_mesh->fvar_data != NULL &&
+					    gl_mesh->fvar_data->channel_offsets.size() > 0 &&
+					    g_active_uv_index >= 0)
+					{
 						glUniform1i(location,
 						            gl_mesh->fvar_data->channel_offsets[g_active_uv_index]);
 					} else {
