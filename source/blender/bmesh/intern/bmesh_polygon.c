@@ -1223,7 +1223,7 @@ void BM_face_splits_check_legal(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int l
 
 #define EDGE_SHARE_VERT(e1, e2) \
 	((ELEM((e1)[0], (e2)[0], (e2)[1])) || \
-	 (ELEM((e2)[0], (e1)[0], (e1)[1])))
+	 (ELEM((e1)[1], (e2)[0], (e2)[1])))
 
 	/* do line crossing tests */
 	for (i = 0, i_prev = f->len - 1; i < f->len; i_prev = i++) {
