@@ -51,6 +51,17 @@ using OpenSubdiv::Osd::GLMeshInterface;
 
 extern "C" char datatoc_gpu_shader_opensubd_display_glsl[];
 
+/* TODO(sergey): This is bit of bad level calls :S */
+extern "C" {
+void copy_m3_m3(float m1[3][3], float m2[3][3]);
+void copy_m3_m4(float m1[3][3], float m2[4][4]);
+void adjoint_m3_m3(float m1[3][3], float m[3][3]);
+float determinant_m3_array(float m[3][3]);
+bool invert_m3_m3(float m1[3][3], float m2[3][3]);
+bool invert_m3(float m[3][3]);
+void transpose_m3(float mat[3][3]);
+}
+
 #define MAX_LIGHTS 8
 #define SUPPORT_COLOR_MATERIAL
 
@@ -172,102 +183,7 @@ struct OpenSubdiv_GLMeshFVarData
 	int fvar_width;
 };
 
-/* TODO(sergey): This is actually duplicated code from BLI. */
 namespace {
-void copy_m3_m3(float m1[3][3], float m2[3][3])
-{
-	/* destination comes first: */
-	memcpy(&m1[0], &m2[0], 9 * sizeof(float));
-}
-
-void copy_m3_m4(float m1[3][3], float m2[4][4])
-{
-	m1[0][0] = m2[0][0];
-	m1[0][1] = m2[0][1];
-	m1[0][2] = m2[0][2];
-
-	m1[1][0] = m2[1][0];
-	m1[1][1] = m2[1][1];
-	m1[1][2] = m2[1][2];
-
-	m1[2][0] = m2[2][0];
-	m1[2][1] = m2[2][1];
-	m1[2][2] = m2[2][2];
-}
-
-void adjoint_m3_m3(float m1[3][3], float m[3][3])
-{
-	m1[0][0] = m[1][1] * m[2][2] - m[1][2] * m[2][1];
-	m1[0][1] = -m[0][1] * m[2][2] + m[0][2] * m[2][1];
-	m1[0][2] = m[0][1] * m[1][2] - m[0][2] * m[1][1];
-
-	m1[1][0] = -m[1][0] * m[2][2] + m[1][2] * m[2][0];
-	m1[1][1] = m[0][0] * m[2][2] - m[0][2] * m[2][0];
-	m1[1][2] = -m[0][0] * m[1][2] + m[0][2] * m[1][0];
-
-	m1[2][0] = m[1][0] * m[2][1] - m[1][1] * m[2][0];
-	m1[2][1] = -m[0][0] * m[2][1] + m[0][1] * m[2][0];
-	m1[2][2] = m[0][0] * m[1][1] - m[0][1] * m[1][0];
-}
-
-float determinant_m3_array(float m[3][3])
-{
-	return (m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
-	        m[1][0] * (m[0][1] * m[2][2] - m[0][2] * m[2][1]) +
-	        m[2][0] * (m[0][1] * m[1][2] - m[0][2] * m[1][1]));
-}
-
-bool invert_m3_m3(float m1[3][3], float m2[3][3])
-{
-	float det;
-	int a, b;
-	bool success;
-
-	/* calc adjoint */
-	adjoint_m3_m3(m1, m2);
-
-	/* then determinant old matrix! */
-	det = determinant_m3_array(m2);
-
-	success = (det != 0.0f);
-
-	if (det != 0.0f) {
-		det = 1.0f / det;
-		for (a = 0; a < 3; a++) {
-			for (b = 0; b < 3; b++) {
-				m1[a][b] *= det;
-			}
-		}
-	}
-
-	return success;
-}
-
-bool invert_m3(float m[3][3])
-{
-	float tmp[3][3];
-	bool success;
-
-	success = invert_m3_m3(tmp, m);
-	copy_m3_m3(m, tmp);
-
-	return success;
-}
-
-void transpose_m3(float mat[3][3])
-{
-	float t;
-
-	t = mat[0][1];
-	mat[0][1] = mat[1][0];
-	mat[1][0] = t;
-	t = mat[0][2];
-	mat[0][2] = mat[2][0];
-	mat[2][0] = t;
-	t = mat[1][2];
-	mat[1][2] = mat[2][1];
-	mat[2][1] = t;
-}
 
 GLuint compileShader(GLenum shaderType,
                      const char *section,
