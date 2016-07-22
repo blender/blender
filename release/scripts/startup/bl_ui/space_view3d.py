@@ -2472,6 +2472,7 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
         layout.operator("mesh.edge_face_add")
         layout.operator("mesh.subdivide")
+        layout.operator("mesh.subdivide_edgering")
         layout.operator("mesh.unsubdivide")
 
         layout.separator()
