@@ -371,6 +371,9 @@ int openSubdiv_supportGPUDisplay(void)
 	return openSubdiv_gpu_legacy_support() &&
 	       (GLEW_VERSION_3_2 ||
 	       (GLEW_VERSION_3_1 && GLEW_EXT_geometry_shader4) ||
-	       (GLEW_VERSION_3_0 && GLEW_EXT_geometry_shader4 && GLEW_ARB_uniform_buffer_object && (GLEW_ARB_texture_buffer_object || GLEW_EXT_texture_buffer_object)));
+	       (GLEW_VERSION_3_0 &&
+	        GLEW_EXT_geometry_shader4 &&
+	        GLEW_ARB_uniform_buffer_object &&
+	        (GLEW_ARB_texture_buffer_object || GLEW_EXT_texture_buffer_object)));
 	/* also ARB_explicit_attrib_location? */
 }
