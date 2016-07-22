@@ -164,7 +164,7 @@ static void interpolate_fvar_data(OpenSubdiv::Far::TopologyRefiner& refiner,
 	const int channel = 0;
 	/* TODO(sergey): Make it somehow more generic way. */
 	const int fvar_width = 2;
-
+	const int num_uvs = refiner.GetLevel(0).GetNumFVarValues(0) * 2;
 	int max_level = refiner.GetMaxLevel(),
 	    num_values_max = refiner.GetLevel(max_level).GetNumFVarValues(channel),
 	    num_values_total = refiner.GetNumFVarValuesTotal(channel);
@@ -177,7 +177,7 @@ static void interpolate_fvar_data(OpenSubdiv::Far::TopologyRefiner& refiner,
 		fvar_data.resize(num_values_max * fvar_width);
 		std::vector<FVarVertex> buffer(num_values_total - num_values_max);
 		FVarVertex *src = &buffer[0];
-		memcpy(src, &uvs[0], uvs.size() * sizeof(float));
+		memcpy(src, &uvs[0], num_uvs * sizeof(float));
 		/* Defer the last level to treat separately with its alternate
 		 * destination.
 		 */
@@ -192,7 +192,7 @@ static void interpolate_fvar_data(OpenSubdiv::Far::TopologyRefiner& refiner,
 		/* For adaptive we keep all levels. */
 		fvar_data.resize(num_values_total * fvar_width);
 		FVarVertex *src = reinterpret_cast<FVarVertex *>(&fvar_data[0]);
-		memcpy(src, &uvs[0], uvs.size() * sizeof(float));
+		memcpy(src, &uvs[0], num_uvs * sizeof(float));
 		for (int level = 1; level <= max_level; ++level) {
 			FVarVertex *dst = src + refiner.GetLevel(level-1).GetNumFVarValues(channel);
 			primvar_refiner.InterpolateFaceVarying(level, src, dst, channel);
