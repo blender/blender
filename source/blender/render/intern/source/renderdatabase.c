@@ -1006,7 +1006,7 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,
 
 		xn=  har->xs - 0.5f*re->winx*(hoco1[0]/hoco1[3]);
 		yn=  har->ys - 0.5f*re->winy*(hoco1[1]/hoco1[3]);
-		if (xn==0.0f || (xn==0.0f && yn==0.0f)) zn= 0.0f;
+		if (yn == 0.0f && xn >= 0.0f) zn = 0.0f;
 		else zn = atan2f(yn, xn);
 
 		har->sin = sinf(zn);
@@ -1136,7 +1136,7 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 
 		xn=  har->xs - 0.5f*re->winx*(hoco1[0]/hoco1[3]);
 		yn=  har->ys - 0.5f*re->winy*(hoco1[1]/hoco1[3]);
-		if (xn==0.0f || (xn==0.0f && yn==0.0f)) zn= 0.0;
+		if (yn == 0.0f && xn >= 0.0f) zn = 0.0f;
 		else zn = atan2f(yn, xn);
 
 		har->sin = sinf(zn);
