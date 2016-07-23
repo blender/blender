@@ -861,7 +861,7 @@ Factory_filter(Factory* self, PyObject *args)
 	py_a_len= py_a ? PySequence_Size(py_a) : 0;
 	py_b_len= PySequence_Size(py_b);
 
-	if(!py_b_len || ((py_a != NULL) && !py_b_len))
+	if(!py_b_len || ((py_a != NULL) && !py_a_len))
 	{
 		PyErr_SetString(PyExc_ValueError, "The sequence has to contain at least one value!");
 		return NULL;
