@@ -256,7 +256,7 @@ ccl_device_inline void triangle_intersect_subsurface(
 	const float inv_det = 1.0f / det;
 
 	const float t = T * inv_det;
-	for(int i = min(max_hits, ss_isect->num_hits); i >= 0; --i) {
+	for(int i = min(max_hits, ss_isect->num_hits) - 1; i >= 0; --i) {
 		if(ss_isect->hits[i].t == t) {
 			return;
 		}
