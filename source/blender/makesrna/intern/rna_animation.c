@@ -116,6 +116,23 @@ static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
+static void rna_AnimData_tweakmode_set(PointerRNA *ptr, const int value)
+{
+	AnimData *adt = (AnimData *)ptr->data;
+
+	/* NOTE: technically we should also set/unset SCE_NLA_EDIT_ON flag on the
+	 * scene which is used to make polling tests faster, but this flag is weak
+	 * and can easily break e.g. by changing layer visibility. This needs to be
+	 * dealt with at some point. */
+
+	if (value) {
+		BKE_nla_tweakmode_enter(adt);
+	}
+	else {
+		BKE_nla_tweakmode_exit(adt);
+	}
+}
+
 /* ****************************** */
 
 /* wrapper for poll callback */
@@ -1041,6 +1058,12 @@ static void rna_def_animdata(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ADT_NLA_EVAL_OFF);
 	RNA_def_property_ui_text(prop, "NLA Evaluation Enabled", "NLA stack is evaluated when evaluating this block");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, NULL); /* this will do? */
+
+	prop = RNA_def_property(srna, "use_tweak_mode", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ADT_NLA_EDIT_ON);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_AnimData_tweakmode_set");
+	RNA_def_property_ui_text(prop, "Use NLA Tweak Mode", "Whether to enable or disable tweak mode in NLA");
+	RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, NULL);
 }
 
 /* --- */
