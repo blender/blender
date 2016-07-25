@@ -406,6 +406,10 @@ ccl_device int bsdf_microfacet_multi_ggx_sample(KernelGlobals *kg, const ShaderC
 	*eval *= *pdf;
 
 	*omega_in = X*localO.x + Y*localO.y + Z*localO.z;
+#ifdef __RAY_DIFFERENTIALS__
+	*domega_in_dx = (2 * dot(Z, dIdx)) * Z - dIdx;
+	*domega_in_dy = (2 * dot(Z, dIdy)) * Z - dIdy;
+#endif
 	return LABEL_REFLECT|LABEL_GLOSSY;
 }
 
@@ -463,10 +467,23 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_sample(KernelGlobals *kg, const S
 	*eval *= *pdf;
 
 	*omega_in = X*localO.x + Y*localO.y + Z*localO.z;
-	if(localO.z*localI.z > 0.0f)
+	if(localO.z*localI.z > 0.0f) {
+#ifdef __RAY_DIFFERENTIALS__
+		*domega_in_dx = (2 * dot(Z, dIdx)) * Z - dIdx;
+		*domega_in_dy = (2 * dot(Z, dIdy)) * Z - dIdy;
+#endif
 		return LABEL_REFLECT|LABEL_GLOSSY;
-	else
+	}
+	else {
+#ifdef __RAY_DIFFERENTIALS__
+		float cosI = dot(Z, I);
+		float dnp = max(sqrtf(1.0f - (sc->data2 * sc->data2 * (1.0f - cosI*cosI))), 1e-7f);
+		*domega_in_dx = -(sc->data2 * dIdx) + ((sc->data2 - sc->data2 * sc->data2 * cosI / dnp) * dot(dIdx, Z)) * Z;
+		*domega_in_dy = -(sc->data2 * dIdy) + ((sc->data2 - sc->data2 * sc->data2 * cosI / dnp) * dot(dIdy, Z)) * Z;
+#endif
+
 		return LABEL_TRANSMIT|LABEL_GLOSSY;
+	}
 }
 
 CCL_NAMESPACE_END
