@@ -67,6 +67,9 @@
 #define STROKE_SAMPLE_DIST_MIN_PX 3
 #define STROKE_SAMPLE_DIST_MAX_PX 6
 
+/* Distance between start/end points to consider cyclic */
+#define STROKE_CYCLIC_DIST_PX     8
+
 
 /* -------------------------------------------------------------------- */
 
@@ -766,6 +769,32 @@ static void curve_draw_exec_precalc(wmOperator *op)
 		RNA_property_float_set(op->ptr, prop, error_threshold);
 	}
 
+	prop = RNA_struct_find_property(op->ptr, "use_cyclic");
+	if (!RNA_property_is_set(op->ptr, prop)) {
+		bool use_cyclic = false;
+
+		if (BLI_mempool_count(cdd->stroke_elem_pool) > 2) {
+			BLI_mempool_iter iter;
+			const struct StrokeElem *selem, *selem_first, *selem_last;
+
+			BLI_mempool_iternew(cdd->stroke_elem_pool, &iter);
+			selem_first = BLI_mempool_iterstep(&iter);
+			for (selem = BLI_mempool_iterstep(&iter); selem; selem = BLI_mempool_iterstep(&iter)) {
+				selem_last = selem;
+			}
+
+			if (len_squared_v2v2(
+			        selem_first->mval,
+			        selem_last->mval) <= SQUARE(STROKE_CYCLIC_DIST_PX * U.pixelsize))
+			{
+				use_cyclic = true;
+			}
+		}
+
+		RNA_property_boolean_set(op->ptr, prop, use_cyclic);
+	}
+
+
 	if ((cps->radius_taper_start != 0.0f) ||
 	    (cps->radius_taper_end   != 0.0f))
 	{
@@ -878,6 +907,7 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 		const int fit_method = RNA_enum_get(op->ptr, "fit_method");
 		const float error_threshold = RNA_float_get(op->ptr, "error_threshold");
 		const float corner_angle = RNA_float_get(op->ptr, "corner_angle");
+		const bool use_cyclic = RNA_boolean_get(op->ptr, "use_cyclic");
 
 		{
 			BLI_mempool_iter iter;
@@ -909,7 +939,7 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 			const unsigned int samples_max = 16;
 
 			curve_fit_corners_detect_fl(
-			        (const float *)coords, stroke_len, dims,
+			        coords, stroke_len, dims,
 			        corner_radius_min, corner_radius_max,
 			        samples_max, corner_angle,
 			        &corners, &corners_len);
@@ -917,11 +947,16 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 
 		unsigned int *corners_index = NULL;
 		unsigned int  corners_index_len = 0;
+		unsigned int  calc_flag = CURVE_FIT_CALC_HIGH_QUALIY;
+
+		if ((stroke_len > 2) && use_cyclic) {
+			calc_flag |= CURVE_FIT_CALC_CYCLIC;
+		}
 
 		int result;
 		if (fit_method == CURVE_PAINT_FIT_METHOD_REFIT) {
 			result = curve_fit_cubic_to_points_refit_fl(
-			        coords, stroke_len, dims, error_threshold, CURVE_FIT_CALC_HIGH_QUALIY,
+			        coords, stroke_len, dims, error_threshold, calc_flag,
 			        NULL, 0, corner_angle,
 			        &cubic_spline, &cubic_spline_len,
 			        NULL,
@@ -929,7 +964,7 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 		}
 		else {
 			result = curve_fit_cubic_to_points_fl(
-			        coords, stroke_len, dims, error_threshold, CURVE_FIT_CALC_HIGH_QUALIY,
+			        coords, stroke_len, dims, error_threshold, calc_flag,
 			        corners, corners_len,
 			        &cubic_spline, &cubic_spline_len,
 			        NULL,
@@ -969,10 +1004,23 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 
 			if (corners_index) {
 				/* ignore the first and last */
-				for (unsigned int i = 1; i < corners_index_len - 1; i++) {
+				unsigned int i_start = 0, i_end = corners_index_len;
+
+				if ((corners_index_len >= 2) &&
+				    (calc_flag & CURVE_FIT_CALC_CYCLIC) == 0)
+				{
+					i_start += 1;
+					i_end   -= 1;
+				}
+
+				for (unsigned int i = i_start; i < i_end; i++) {
 					bezt = &nu->bezt[corners_index[i]];
 					bezt->h1 = bezt->h2 = HD_FREE;
 				}
+			}
+
+			if (calc_flag & CURVE_FIT_CALC_CYCLIC) {
+				nu->flagu |= CU_NURB_CYCLIC;
 			}
 		}
 
@@ -1246,8 +1294,11 @@ void CURVE_OT_draw(wmOperatorType *ot)
 	        ot->srna, "corner_angle", DEG2RADF(70.0f), 0.0f, M_PI, "Corner Angle", "", 0.0f, M_PI);
 	RNA_def_property_subtype(prop, PROP_ANGLE);
 
-	prop = RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
+	prop = RNA_def_boolean(ot->srna, "use_cyclic", true, "Cyclic", "");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+	prop = RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
 	prop = RNA_def_boolean(ot->srna, "wait_for_input", true, "Wait for Input", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
