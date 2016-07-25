@@ -3424,15 +3424,18 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 		int current_patch = 0;
 		int mat_nr = -1;
 		int start_draw_patch = 0, num_draw_patches = 0;
+		bool draw_smooth = false;
 		for (i = 0; i < num_base_faces; ++i) {
 			const int num_face_verts = ccgSubSurf_getNumGLMeshBaseFaceVerts(ss, i);
 			const int num_patches = (num_face_verts == 4) ? face_patches
 			                                              : num_face_verts * grid_patches;
 			if (faceFlags) {
 				mat_nr = faceFlags[i].mat_nr;
+				draw_smooth = (faceFlags[i].flag & ME_SMOOTH);
 			}
 			else {
 				mat_nr = 0;
+				draw_smooth = false;
 			}
 
 			if (drawParams != NULL) {
@@ -3447,8 +3450,13 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 
 			flush = (draw_option == DM_DRAW_OPTION_SKIP) || (i == num_base_faces - 1);
 
+			const int next_face = min_ii(i + 1, num_base_faces - 1);
 			if (!flush && compareDrawOptions) {
-				flush |= compareDrawOptions(userData, i, min_ii(i + 1, num_base_faces - 1)) == 0;
+				flush |= compareDrawOptions(userData, i, next_face) == 0;
+			}
+			if (!flush && faceFlags) {
+				bool new_draw_smooth = (faceFlags[next_face].flag & ME_SMOOTH);
+				flush |= (new_draw_smooth != draw_smooth);
 			}
 
 			current_patch += num_patches;
@@ -3458,6 +3466,7 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 					num_draw_patches += num_patches;
 				}
 				if (num_draw_patches != 0) {
+					glShadeModel(draw_smooth ? GL_SMOOTH : GL_FLAT);
 					ccgSubSurf_drawGLMesh(ss,
 					                      true,
 					                      start_draw_patch,
