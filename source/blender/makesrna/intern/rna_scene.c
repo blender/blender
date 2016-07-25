@@ -178,6 +178,11 @@ EnumPropertyItem snap_uv_element_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+EnumPropertyItem rna_enum_curve_fit_method_items[] = {
+	{CURVE_PAINT_FIT_METHOD_REFIT, "REFIT", 0, "Refit", "Incrementally re-fit the curve (high quality)"},
+	{CURVE_PAINT_FIT_METHOD_SPLIT, "SPLIT", 0, "Split", "Split the curve until the tolerance is met (fast)"},
+	{0, NULL, 0, NULL, NULL}};
+
 /* workaround for duplicate enums,
  * have each enum line as a define then conditionally set it or not
  */
@@ -2637,6 +2642,11 @@ static void rna_def_curve_paint_settings(BlenderRNA  *brna)
 	prop = RNA_def_property(srna, "error_threshold", PROP_INT, PROP_PIXEL);
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Tolerance", "Allow deviation for a smoother, less precise line");
+
+	prop = RNA_def_property(srna, "fit_method", PROP_ENUM, PROP_PIXEL);
+	RNA_def_property_enum_sdna(prop, NULL, "fit_method");
+	RNA_def_property_enum_items(prop, rna_enum_curve_fit_method_items);
+	RNA_def_property_ui_text(prop, "Method", "Curve fitting method");
 
 	prop = RNA_def_property(srna, "corner_angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_range(prop, 0, M_PI);

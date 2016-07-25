@@ -55,6 +55,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "RNA_enum_types.h"
+
 #define USE_SPLINE_FIT
 
 #ifdef USE_SPLINE_FIT
@@ -730,6 +732,11 @@ static void curve_draw_exec_precalc(wmOperator *op)
 	const CurvePaintSettings *cps = &cdd->vc.scene->toolsettings->curve_paint_settings;
 	PropertyRNA *prop;
 
+	prop = RNA_struct_find_property(op->ptr, "fit_method");
+	if (!RNA_property_is_set(op->ptr, prop)) {
+		RNA_property_enum_set(op->ptr, prop, cps->fit_method);
+	}
+
 	prop = RNA_struct_find_property(op->ptr, "corner_angle");
 	if (!RNA_property_is_set(op->ptr, prop)) {
 		const float corner_angle = (cps->flag & CURVE_PAINT_FLAG_CORNERS_DETECT) ? cps->corner_angle : (float)M_PI;
@@ -868,6 +875,7 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 		unsigned int cubic_spline_len = 0;
 
 		/* error in object local space */
+		const int fit_method = RNA_enum_get(op->ptr, "fit_method");
 		const float error_threshold = RNA_float_get(op->ptr, "error_threshold");
 		const float corner_angle = RNA_float_get(op->ptr, "corner_angle");
 
@@ -894,7 +902,7 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 		unsigned int *corners = NULL;
 		unsigned int  corners_len = 0;
 
-		if (corner_angle < (float)M_PI) {
+		if ((fit_method == CURVE_PAINT_FIT_METHOD_SPLIT) && (corner_angle < (float)M_PI)) {
 			/* this could be configurable... */
 			const float corner_radius_min = error_threshold / 8;
 			const float corner_radius_max = error_threshold * 2;
@@ -910,12 +918,23 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 		unsigned int *corners_index = NULL;
 		unsigned int  corners_index_len = 0;
 
-		const int result = curve_fit_cubic_to_points_fl(
-		        coords, stroke_len, dims, error_threshold, CURVE_FIT_CALC_HIGH_QUALIY,
-		        corners, NULL, corners_len,
-		        &cubic_spline, &cubic_spline_len,
-		        NULL,
-		        &corners_index, &corners_index_len);
+		int result;
+		if (fit_method == CURVE_PAINT_FIT_METHOD_REFIT) {
+			result = curve_fit_cubic_to_points_refit_fl(
+			        coords, stroke_len, dims, error_threshold, CURVE_FIT_CALC_HIGH_QUALIY,
+			        NULL, 0, corner_angle,
+			        &cubic_spline, &cubic_spline_len,
+			        NULL,
+			        &corners_index, &corners_index_len);
+		}
+		else {
+			result = curve_fit_cubic_to_points_fl(
+			        coords, stroke_len, dims, error_threshold, CURVE_FIT_CALC_HIGH_QUALIY,
+			        corners, corners_len,
+			        &cubic_spline, &cubic_spline_len,
+			        NULL,
+			        &corners_index, &corners_index_len);
+		}
 
 		MEM_freeN(coords);
 		if (corners) {
@@ -1219,6 +1238,9 @@ void CURVE_OT_draw(wmOperatorType *ot)
 	        "Error distance threshold (in object units)",
 	        0.0001f, 10.0f);
 	RNA_def_property_ui_range(prop, 0.0, 10, 1, 4);
+
+	RNA_def_enum(ot->srna, "fit_method", rna_enum_curve_fit_method_items, CURVE_PAINT_FIT_METHOD_REFIT,
+	             "Fit Method", "");
 
 	prop = RNA_def_float_distance(
 	        ot->srna, "corner_angle", DEG2RADF(70.0f), 0.0f, M_PI, "Corner Angle", "", 0.0f, M_PI);
