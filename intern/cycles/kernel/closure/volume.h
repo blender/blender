@@ -19,6 +19,12 @@
 
 CCL_NAMESPACE_BEGIN
 
+typedef ccl_addr_space struct HenyeyGreensteinVolume {
+	SHADER_CLOSURE_BASE;
+
+	float g;
+} HenyeyGreensteinVolume;
+
 /* HENYEY-GREENSTEIN CLOSURE */
 
 /* Given cosine between rays, return probability density that a photon bounces
@@ -29,19 +35,28 @@ ccl_device float single_peaked_henyey_greenstein(float cos_theta, float g)
 	return ((1.0f - g * g) / safe_powf(1.0f + g * g - 2.0f * g * cos_theta, 1.5f)) * (M_1_PI_F * 0.25f);
 };
 
-ccl_device int volume_henyey_greenstein_setup(ShaderClosure *sc)
+ccl_device int volume_henyey_greenstein_setup(HenyeyGreensteinVolume *volume)
 {
-	sc->type = CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID;
+	volume->type = CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID;
 	
 	/* clamp anisotropy to avoid delta function */
-	sc->data0 = signf(sc->data0) * min(fabsf(sc->data0), 1.0f - 1e-3f);
+	volume->g = signf(volume->g) * min(fabsf(volume->g), 1.0f - 1e-3f);
 
 	return SD_SCATTER;
 }
 
+ccl_device bool volume_henyey_greenstein_merge(const ShaderClosure *a, const ShaderClosure *b)
+{
+	const HenyeyGreensteinVolume *volume_a = (const HenyeyGreensteinVolume*)a;
+	const HenyeyGreensteinVolume *volume_b = (const HenyeyGreensteinVolume*)b;
+
+	return (volume_a->g == volume_b->g);
+}
+
 ccl_device float3 volume_henyey_greenstein_eval_phase(const ShaderClosure *sc, const float3 I, float3 omega_in, float *pdf)
 {
-	float g = sc->data0;
+	const HenyeyGreensteinVolume *volume = (const HenyeyGreensteinVolume*)sc;
+	float g = volume->g;
 
 	/* note that I points towards the viewer */
 	if(fabsf(g) < 1e-3f) {
@@ -58,7 +73,8 @@ ccl_device float3 volume_henyey_greenstein_eval_phase(const ShaderClosure *sc, c
 ccl_device int volume_henyey_greenstein_sample(const ShaderClosure *sc, float3 I, float3 dIdx, float3 dIdy, float randu, float randv,
 	float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	float g = sc->data0;
+	const HenyeyGreensteinVolume *volume = (const HenyeyGreensteinVolume*)sc;
+	float g = volume->g;
 	float cos_phi, sin_phi, cos_theta;
 
 	/* match pdf for small g */

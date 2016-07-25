@@ -87,6 +87,7 @@ set(SRC_KERNELS_CPU_HEADERS
 )
 
 set(SRC_CLOSURE_HEADERS
+	closure/alloc.h
 	closure/bsdf.h
 	closure/bsdf_ashikhmin_velvet.h
 	closure/bsdf_diffuse.h

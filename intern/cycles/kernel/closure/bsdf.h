@@ -40,11 +40,6 @@ ccl_device int bsdf_sample(KernelGlobals *kg, ShaderData *sd, const ShaderClosur
 {
 	int label;
 
-#ifdef __OSL__
-	if(kg->osl && sc->prim)
-		return OSLShader::bsdf_sample(sd, sc, randu, randv, *eval, *omega_in, *domega_in, *pdf);
-#endif
-
 	switch(sc->type) {
 		case CLOSURE_BSDF_DIFFUSE_ID:
 		case CLOSURE_BSDF_BSSRDF_ID:
@@ -56,14 +51,16 @@ ccl_device int bsdf_sample(KernelGlobals *kg, ShaderData *sd, const ShaderClosur
 			label = bsdf_oren_nayar_sample(sc, ccl_fetch(sd, Ng), ccl_fetch(sd, I), ccl_fetch(sd, dI).dx, ccl_fetch(sd, dI).dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
-		/*case CLOSURE_BSDF_PHONG_RAMP_ID:
+#ifdef __OSL__
+		case CLOSURE_BSDF_PHONG_RAMP_ID:
 			label = bsdf_phong_ramp_sample(sc, ccl_fetch(sd, Ng), ccl_fetch(sd, I), ccl_fetch(sd, dI).dx, ccl_fetch(sd, dI).dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 		case CLOSURE_BSDF_DIFFUSE_RAMP_ID:
 			label = bsdf_diffuse_ramp_sample(sc, ccl_fetch(sd, Ng), ccl_fetch(sd, I), ccl_fetch(sd, dI).dx, ccl_fetch(sd, dI).dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
-			break;*/
+			break;
+#endif
 		case CLOSURE_BSDF_TRANSLUCENT_ID:
 			label = bsdf_translucent_sample(sc, ccl_fetch(sd, Ng), ccl_fetch(sd, I), ccl_fetch(sd, dI).dx, ccl_fetch(sd, dI).dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
@@ -143,11 +140,6 @@ ccl_device float3 bsdf_eval(KernelGlobals *kg, ShaderData *sd, const ShaderClosu
 {
 	float3 eval;
 
-#ifdef __OSL__
-	if(kg->osl && sc->prim)
-		return OSLShader::bsdf_eval(sd, sc, omega_in, *pdf);
-#endif
-
 	if(dot(ccl_fetch(sd, Ng), omega_in) >= 0.0f) {
 		switch(sc->type) {
 			case CLOSURE_BSDF_DIFFUSE_ID:
@@ -158,12 +150,14 @@ ccl_device float3 bsdf_eval(KernelGlobals *kg, ShaderData *sd, const ShaderClosu
 			case CLOSURE_BSDF_OREN_NAYAR_ID:
 				eval = bsdf_oren_nayar_eval_reflect(sc, ccl_fetch(sd, I), omega_in, pdf);
 				break;
-			/*case CLOSURE_BSDF_PHONG_RAMP_ID:
+#ifdef __OSL__
+			case CLOSURE_BSDF_PHONG_RAMP_ID:
 				eval = bsdf_phong_ramp_eval_reflect(sc, ccl_fetch(sd, I), omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_DIFFUSE_RAMP_ID:
 				eval = bsdf_diffuse_ramp_eval_reflect(sc, ccl_fetch(sd, I), omega_in, pdf);
-				break;*/
+				break;
+#endif
 			case CLOSURE_BSDF_TRANSLUCENT_ID:
 				eval = bsdf_translucent_eval_reflect(sc, ccl_fetch(sd, I), omega_in, pdf);
 				break;
@@ -296,15 +290,7 @@ ccl_device float3 bsdf_eval(KernelGlobals *kg, ShaderData *sd, const ShaderClosu
 
 ccl_device void bsdf_blur(KernelGlobals *kg, ShaderClosure *sc, float roughness)
 {
-/* ToDo: do we want to blur volume closures? */
-
-#ifdef __OSL__
-	if(kg->osl && sc->prim) {
-		OSLShader::bsdf_blur(sc, roughness);
-		return;
-	}
-#endif
-
+	/* ToDo: do we want to blur volume closures? */
 #ifdef __SVM__
 	switch(sc->type) {
 		case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID:
@@ -327,6 +313,49 @@ ccl_device void bsdf_blur(KernelGlobals *kg, ShaderClosure *sc, float roughness)
 			break;
 		default:
 			break;
+	}
+#endif
+}
+
+ccl_device bool bsdf_merge(ShaderClosure *a, ShaderClosure *b)
+{
+#ifdef __SVM__
+	switch(a->type) {
+		case CLOSURE_BSDF_TRANSPARENT_ID:
+			return true;
+		case CLOSURE_BSDF_DIFFUSE_ID:
+		case CLOSURE_BSDF_BSSRDF_ID:
+		case CLOSURE_BSDF_TRANSLUCENT_ID:
+			return bsdf_diffuse_merge(a, b);
+		case CLOSURE_BSDF_OREN_NAYAR_ID:
+			return bsdf_oren_nayar_merge(a, b);
+		case CLOSURE_BSDF_REFLECTION_ID:
+		case CLOSURE_BSDF_REFRACTION_ID:
+		case CLOSURE_BSDF_MICROFACET_GGX_ID:
+		case CLOSURE_BSDF_MICROFACET_GGX_ANISO_ID:
+		case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
+		case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID:
+		case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID:
+		case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
+		case CLOSURE_BSDF_MICROFACET_BECKMANN_ANISO_ID:
+		case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
+		case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
+		case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID:
+			return bsdf_microfacet_merge(a, b);
+		case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID:
+			return bsdf_ashikhmin_velvet_merge(a, b);
+		case CLOSURE_BSDF_DIFFUSE_TOON_ID:
+		case CLOSURE_BSDF_GLOSSY_TOON_ID:
+			return bsdf_toon_merge(a, b);
+		case CLOSURE_BSDF_HAIR_REFLECTION_ID:
+		case CLOSURE_BSDF_HAIR_TRANSMISSION_ID:
+			return bsdf_hair_merge(a, b);
+#ifdef __VOLUME__
+		case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID:
+			return volume_henyey_greenstein_merge(a, b);
+#endif
+		default:
+			return false;
 	}
 #endif
 }

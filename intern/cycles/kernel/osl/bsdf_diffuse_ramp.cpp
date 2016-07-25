@@ -39,6 +39,7 @@
 
 #include "kernel_types.h"
 #include "kernel_montecarlo.h"
+#include "closure/alloc.h"
 #include "closure/bsdf_diffuse_ramp.h"
 
 CCL_NAMESPACE_BEGIN
@@ -47,51 +48,30 @@ using namespace OSL;
 
 class DiffuseRampClosure : public CBSDFClosure {
 public:
+	DiffuseRampBsdf params;
 	Color3 colors[8];
-	float3 fcolors[8];
 
-	DiffuseRampClosure() : CBSDFClosure(LABEL_DIFFUSE)
-	{}
-
-	void setup()
+	void setup(ShaderData *sd, int /* path_flag */, float3 weight)
 	{
-		sc.prim = this;
-		m_shaderdata_flag = bsdf_diffuse_ramp_setup(&sc);
+	    DiffuseRampBsdf *bsdf = (DiffuseRampBsdf*)bsdf_alloc_osl(sd, sizeof(DiffuseRampBsdf), weight, &params);
 
-		for(int i = 0; i < 8; i++)
-			fcolors[i] = TO_FLOAT3(colors[i]);
-	}
+		if(bsdf) {
+			bsdf->colors = (float3*)closure_alloc_extra(sd, sizeof(float3)*8);
 
-	void blur(float roughness)
-	{
-		bsdf_diffuse_ramp_blur(&sc, roughness);
-	}
+			if(bsdf->colors) {
+				for(int i = 0; i < 8; i++)
+					bsdf->colors[i] = TO_FLOAT3(colors[i]);
 
-	float3 eval_reflect(const float3 &omega_out, const float3 &omega_in, float& pdf) const
-	{
-		return bsdf_diffuse_ramp_eval_reflect(&sc, fcolors, omega_out, omega_in, &pdf);
-	}
-
-	float3 eval_transmit(const float3 &omega_out, const float3 &omega_in, float& pdf) const
-	{
-		return bsdf_diffuse_ramp_eval_transmit(&sc, fcolors, omega_out, omega_in, &pdf);
-	}
-
-	int sample(const float3 &Ng,
-	           const float3 &omega_out, const float3 &domega_out_dx, const float3 &domega_out_dy,
-	           float randu, float randv,
-	           float3 &omega_in, float3 &domega_in_dx, float3 &domega_in_dy,
-	           float &pdf, float3 &eval) const
-	{
-		return bsdf_diffuse_ramp_sample(&sc, fcolors, Ng, omega_out, domega_out_dx, domega_out_dy,
-			randu, randv, &eval, &omega_in, &domega_in_dx, &domega_in_dy, &pdf);
+				sd->flag |= bsdf_diffuse_ramp_setup(bsdf);
+			}
+		}
 	}
 };
 
 ClosureParam *closure_bsdf_diffuse_ramp_params()
 {
 	static ClosureParam params[] = {
-		CLOSURE_FLOAT3_PARAM(DiffuseRampClosure, sc.N),
+		CLOSURE_FLOAT3_PARAM(DiffuseRampClosure, params.N),
 		CLOSURE_COLOR_ARRAY_PARAM(DiffuseRampClosure, colors, 8),
 		CLOSURE_STRING_KEYPARAM(DiffuseRampClosure, label, "label"),
 		CLOSURE_FINISH_PARAM(DiffuseRampClosure)

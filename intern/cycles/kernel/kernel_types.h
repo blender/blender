@@ -636,32 +636,30 @@ typedef enum AttributeStandard {
 #  define MAX_CLOSURE 1
 #endif
 
-/* This struct is to be 16 bytes aligned, we also keep some extra precautions:
- * - All the float3 members are in the beginning of the struct, so compiler
- *   does not put own padding trying to align this members.
- * - We make sure OSL pointer is also 16 bytes aligned.
- */
+/* This struct is the base class for all closures. The common members are
+ * duplicated in all derived classes since we don't have C++ in the kernel
+ * yet, and because it lets us lay out the members to minimize padding. The
+ * weight member is located at the beginning of the struct for this reason.
+ *
+ * ShaderClosure has a fixed size, and any extra space must be allocated
+ * with closure_alloc_extra().
+ *
+ * float3 is 12 bytes on CUDA and 16 bytes on CPU/OpenCL, we set the data
+ * size to ensure ShaderClosure is 80 bytes total everywhere. */
+
+#define SHADER_CLOSURE_BASE \
+	float3 weight; \
+	ClosureType type; \
+	float sample_weight \
+
 typedef ccl_addr_space struct ShaderClosure {
-	float3 weight;
-	float3 N;
-	float3 T;
+	SHADER_CLOSURE_BASE;
 
-	ClosureType type;
-	float sample_weight;
-	float data0;
-	float data1;
-	float data2;
-
-	/* Following fields could be used to store pre-calculated
-	 * values by various BSDF closures for more effective sampling
-	 * and evaluation.
-	 */
-	float custom1;
-	float custom2;
-	float custom3;
-
-#ifdef __OSL__
-	void *prim, *pad4;
+	/* pad to 80 bytes, data types are aligned to own size */
+#ifdef __KERNEL_CUDA__
+	float data[15];
+#else
+	float data[14];
 #endif
 } ShaderClosure;
 
@@ -697,11 +695,10 @@ enum ShaderDataFlag {
 	SD_AO              = (1 << 8),   /* have ao closure? */
 	SD_TRANSPARENT     = (1 << 9),  /* have transparent closure? */
 	SD_BSDF_NEEDS_LCG  = (1 << 10),
-	SD_BSDF_HAS_CUSTOM = (1 << 11), /* are the custom variables relevant? */
 
 	SD_CLOSURE_FLAGS = (SD_EMISSION|SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSSRDF|
 	                    SD_HOLDOUT|SD_ABSORPTION|SD_SCATTER|SD_AO|
-	                    SD_BSDF_NEEDS_LCG|SD_BSDF_HAS_CUSTOM),
+	                    SD_BSDF_NEEDS_LCG),
 
 	/* shader flags */
 	SD_USE_MIS                = (1 << 12),  /* direct light sample */
@@ -815,7 +812,9 @@ typedef ccl_addr_space struct ShaderData {
 	/* Closure data, we store a fixed array of closures */
 	ccl_soa_member(struct ShaderClosure, closure[MAX_CLOSURE]);
 	ccl_soa_member(int, num_closure);
+	ccl_soa_member(int, num_closure_extra);
 	ccl_soa_member(float, randb_closure);
+	ccl_soa_member(float3, svm_closure_weight);
 
 	/* LCG state for closures that require additional random numbers. */
 	ccl_soa_member(uint, lcg_state);

@@ -19,39 +19,59 @@
 
 CCL_NAMESPACE_BEGIN
 
+typedef ccl_addr_space struct OrenNayarBsdf {
+	SHADER_CLOSURE_BASE;
+
+	float3 N;
+	float roughness;
+	float a;
+	float b;
+} OrenNayarBsdf;
+
 ccl_device float3 bsdf_oren_nayar_get_intensity(const ShaderClosure *sc, float3 n, float3 v, float3 l)
 {
+	const OrenNayarBsdf *bsdf = (const OrenNayarBsdf*)sc;
 	float nl = max(dot(n, l), 0.0f);
 	float nv = max(dot(n, v), 0.0f);
 	float t = dot(l, v) - nl * nv;
 
 	if(t > 0.0f)
 		t /= max(nl, nv) + FLT_MIN;
-	float is = nl * (sc->data0 + sc->data1 * t);
+	float is = nl * (bsdf->a + bsdf->b * t);
 	return make_float3(is, is, is);
 }
 
-ccl_device int bsdf_oren_nayar_setup(ShaderClosure *sc)
+ccl_device int bsdf_oren_nayar_setup(OrenNayarBsdf *bsdf)
 {
-	float sigma = sc->data0;
+	float sigma = bsdf->roughness;
 
-	sc->type = CLOSURE_BSDF_OREN_NAYAR_ID;
+	bsdf->type = CLOSURE_BSDF_OREN_NAYAR_ID;
 
 	sigma = saturate(sigma);
 
 	float div = 1.0f / (M_PI_F + ((3.0f * M_PI_F - 4.0f) / 6.0f) * sigma);
 
-	sc->data0 = 1.0f * div;
-	sc->data1 = sigma * div;
+	bsdf->a = 1.0f * div;
+	bsdf->b = sigma * div;
 
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
+ccl_device bool bsdf_oren_nayar_merge(const ShaderClosure *a, const ShaderClosure *b)
+{
+	const OrenNayarBsdf *bsdf_a = (const OrenNayarBsdf*)a;
+	const OrenNayarBsdf *bsdf_b = (const OrenNayarBsdf*)b;
+
+	return (isequal_float3(bsdf_a->N, bsdf_b->N)) &&
+	       (bsdf_a->roughness == bsdf_b->roughness);
+}
+
 ccl_device float3 bsdf_oren_nayar_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-	if(dot(sc->N, omega_in) > 0.0f) {
+	const OrenNayarBsdf *bsdf = (const OrenNayarBsdf*)sc;
+	if(dot(bsdf->N, omega_in) > 0.0f) {
 		*pdf = 0.5f * M_1_PI_F;
-		return bsdf_oren_nayar_get_intensity(sc, sc->N, I, omega_in);
+		return bsdf_oren_nayar_get_intensity(sc, bsdf->N, I, omega_in);
 	}
 	else {
 		*pdf = 0.0f;
@@ -66,15 +86,16 @@ ccl_device float3 bsdf_oren_nayar_eval_transmit(const ShaderClosure *sc, const f
 
 ccl_device int bsdf_oren_nayar_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	sample_uniform_hemisphere(sc->N, randu, randv, omega_in, pdf);
+	const OrenNayarBsdf *bsdf = (const OrenNayarBsdf*)sc;
+	sample_uniform_hemisphere(bsdf->N, randu, randv, omega_in, pdf);
 
 	if(dot(Ng, *omega_in) > 0.0f) {
-		*eval = bsdf_oren_nayar_get_intensity(sc, sc->N, I, *omega_in);
+		*eval = bsdf_oren_nayar_get_intensity(sc, bsdf->N, I, *omega_in);
 
 #ifdef __RAY_DIFFERENTIALS__
 		// TODO: find a better approximation for the bounce
-		*domega_in_dx = (2.0f * dot(sc->N, dIdx)) * sc->N - dIdx;
-		*domega_in_dy = (2.0f * dot(sc->N, dIdy)) * sc->N - dIdy;
+		*domega_in_dx = (2.0f * dot(bsdf->N, dIdx)) * bsdf->N - dIdx;
+		*domega_in_dy = (2.0f * dot(bsdf->N, dIdy)) * bsdf->N - dIdy;
 #endif
 	}
 	else {

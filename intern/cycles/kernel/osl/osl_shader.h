@@ -54,17 +54,9 @@ public:
 
 	/* eval */
 	static void eval_surface(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag, ShaderContext ctx);
-	static float3 eval_background(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag, ShaderContext ctx);
+	static void eval_background(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag, ShaderContext ctx);
 	static void eval_volume(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag, ShaderContext ctx);
 	static void eval_displacement(KernelGlobals *kg, ShaderData *sd, ShaderContext ctx);
-
-	/* sample & eval */
-	static int bsdf_sample(const ShaderData *sd, const ShaderClosure *sc,
-	                       float randu, float randv,
-	                       float3& eval, float3& omega_in, differential3& domega_in, float& pdf);
-	static float3 bsdf_eval(const ShaderData *sd, const ShaderClosure *sc,
-	                        const float3& omega_in, float& pdf);
-	static void bsdf_blur(ShaderClosure *sc, float roughness);
 
 	/* attributes */
 	static int find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id, AttributeElement *elem);

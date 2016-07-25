@@ -90,21 +90,7 @@ void name(RendererServices *, int id, void *data) \
 
 class CClosurePrimitive {
 public:
-	enum Category {
-		BSDF,             ///< Reflective and/or transmissive surface
-		BSSRDF,           ///< Sub-surface light transfer
-		Emissive,         ///< Light emission
-		Background,       ///< Background emission
-		Volume,           ///< Volume scattering
-		Holdout,          ///< Holdout from alpha
-		AmbientOcclusion, ///< Ambient occlusion
-	};
-
-	CClosurePrimitive (Category category_) : category (category_) {}
-	virtual ~CClosurePrimitive() {}
-	virtual void setup() {}
-
-	Category category;
+	virtual void setup(ShaderData *sd, int path_flag, float3 weight) = 0;
 
 	OSL::ustring label;
 };
@@ -113,68 +99,22 @@ public:
 
 class CBSDFClosure : public CClosurePrimitive {
 public:
-	ShaderClosure sc;
-
-	CBSDFClosure(int scattering) : CClosurePrimitive(BSDF),
-	  m_scattering_label(scattering), m_shaderdata_flag(0)
-	{}
-
-	int scattering() const { return m_scattering_label; }
-	int shaderdata_flag() const { return m_shaderdata_flag; }
-
-	virtual void blur(float roughness) = 0;
-	virtual float3 eval_reflect(const float3 &omega_out, const float3 &omega_in, float &pdf) const = 0;
-	virtual float3 eval_transmit(const float3 &omega_out, const float3 &omega_in, float &pdf) const = 0;
-
-	virtual int sample(const float3 &Ng,
-	                   const float3 &omega_out, const float3 &domega_out_dx, const float3 &domega_out_dy,
-	                   float randu, float randv,
-	                   float3 &omega_in, float3 &domega_in_dx, float3 &domega_in_dy,
-	                   float &pdf, float3 &eval) const = 0;
-
-protected:
-	int m_scattering_label;
-	int m_shaderdata_flag;
+	bool skip(const ShaderData *sd, int path_flag, int scattering);
 };
 
-#define BSDF_CLOSURE_CLASS_BEGIN(Upper, lower, svmlower, TYPE) \
+#define BSDF_CLOSURE_CLASS_BEGIN(Upper, lower, structname, TYPE) \
 \
 class Upper##Closure : public CBSDFClosure { \
 public: \
-	Upper##Closure() : CBSDFClosure(TYPE) \
-	{ \
-	} \
+	structname params; \
+	float3 unused; \
 \
-	void setup() \
+	void setup(ShaderData *sd, int path_flag, float3 weight) \
 	{ \
-		sc.prim = NULL; \
-		m_shaderdata_flag = bsdf_##lower##_setup(&sc); \
-	} \
-\
-	void blur(float roughness) \
-	{ \
-	} \
-\
-	float3 eval_reflect(const float3 &omega_out, const float3 &omega_in, float& pdf) const \
-	{ \
-		pdf = 0.0f; \
-		return make_float3(0.0f, 0.0f, 0.0f); \
-	} \
-\
-	float3 eval_transmit(const float3 &omega_out, const float3 &omega_in, float& pdf) const \
-	{ \
-		pdf = 0.0f; \
-		return make_float3(0.0f, 0.0f, 0.0f); \
-	} \
-\
-	int sample(const float3 &Ng, \
-	           const float3 &omega_out, const float3 &domega_out_dx, const float3 &domega_out_dy, \
-	           float randu, float randv, \
-	           float3 &omega_in, float3 &domega_in_dx, float3 &domega_in_dy, \
-	           float &pdf, float3 &eval) const \
-	{ \
-		pdf = 0; \
-		return LABEL_NONE; \
+	    if(!skip(sd, path_flag, TYPE)) { \
+			structname *bsdf = (structname*)bsdf_alloc_osl(sd, sizeof(structname), weight, &params); \
+			sd->flag |= (bsdf) ? bsdf_##lower##_setup(bsdf) : 0; \
+		} \
 	} \
 }; \
 \
@@ -193,36 +133,18 @@ static ClosureParam *bsdf_##lower##_params() \
 \
 CCLOSURE_PREPARE_STATIC(bsdf_##lower##_prepare, Upper##Closure)
 
-
 /* Volume */
 
-class CVolumeClosure : public CClosurePrimitive {
-public:
-	ShaderClosure sc;
-
-	CVolumeClosure(int scattering) : CClosurePrimitive(Volume),
-	  m_scattering_label(scattering), m_shaderdata_flag(0)
-	{}
-	~CVolumeClosure() { }
-
-	int scattering() const { return m_scattering_label; }
-	int shaderdata_flag() const { return m_shaderdata_flag; }
-
-protected:
-	int m_scattering_label;
-	int m_shaderdata_flag;
-};
-
-#define VOLUME_CLOSURE_CLASS_BEGIN(Upper, lower, TYPE) \
+#define VOLUME_CLOSURE_CLASS_BEGIN(Upper, lower, structname, TYPE) \
 \
-class Upper##Closure : public CVolumeClosure { \
+class Upper##Closure : public CBSDFClosure { \
 public: \
-	Upper##Closure() : CVolumeClosure(TYPE) {} \
+	structname params; \
 \
-	void setup() \
+	void setup(ShaderData *sd, int path_flag, float3 weight) \
 	{ \
-		sc.prim = NULL; \
-		m_shaderdata_flag = volume_##lower##_setup(&sc); \
+	    structname *volume = (structname*)bsdf_alloc_osl(sd, sizeof(structname), weight, &params); \
+		sd->flag |= (volume) ? volume_##lower##_setup(volume) : 0; \
 	} \
 }; \
 \

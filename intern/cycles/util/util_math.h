@@ -690,6 +690,15 @@ ccl_device_inline float average(const float3 a)
 	return reduce_add(a)*(1.0f/3.0f);
 }
 
+ccl_device_inline bool isequal_float3(const float3 a, const float3 b)
+{
+#ifdef __KERNEL_OPENCL__
+	return all(a == b);
+#else
+	return a == b;
+#endif
+}
+
 /* Float4 Vector */
 
 #ifdef __KERNEL_SSE__
