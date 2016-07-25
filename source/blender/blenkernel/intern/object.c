@@ -1169,10 +1169,7 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, bool copy_caches)
 	/* Copy runtime surve data. */
 	obn->curve_cache = NULL;
 
-	if (ID_IS_LINKED_DATABLOCK(ob)) {
-		BKE_id_expand_local(&obn->id);
-		BKE_id_lib_local_paths(bmain, ob->id.lib, &obn->id);
-	}
+	BKE_id_copy_ensure_local(bmain, &ob->id, &obn->id);
 
 	/* Do not copy object's preview (mostly due to the fact renderers create temp copy of objects). */
 	obn->preview = NULL;

@@ -297,10 +297,7 @@ Lattice *BKE_lattice_copy(Main *bmain, Lattice *lt)
 
 	ltn->editlatt = NULL;
 
-	if (ID_IS_LINKED_DATABLOCK(lt)) {
-		BKE_id_expand_local(&ltn->id);
-		BKE_id_lib_local_paths(bmain, lt->id.lib, &ltn->id);
-	}
+	BKE_id_copy_ensure_local(bmain, &lt->id, &ltn->id);
 
 	return ltn;
 }

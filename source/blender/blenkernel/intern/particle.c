@@ -3335,10 +3335,7 @@ ParticleSettings *BKE_particlesettings_copy(Main *bmain, ParticleSettings *part)
 
 	BLI_duplicatelist(&partn->dupliweights, &part->dupliweights);
 	
-	if (ID_IS_LINKED_DATABLOCK(part)) {
-		BKE_id_expand_local(&partn->id);
-		BKE_id_lib_local_paths(bmain, part->id.lib, &partn->id);
-	}
+	BKE_id_copy_ensure_local(bmain, &part->id, &partn->id);
 
 	return partn;
 }

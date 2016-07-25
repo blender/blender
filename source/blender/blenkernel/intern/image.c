@@ -462,10 +462,7 @@ Image *BKE_image_copy(Main *bmain, Image *ima)
 
 	BKE_previewimg_id_copy(&nima->id, &ima->id);
 
-	if (ID_IS_LINKED_DATABLOCK(ima)) {
-		BKE_id_expand_local(&nima->id);
-		BKE_id_lib_local_paths(bmain, ima->id.lib, &nima->id);
-	}
+	BKE_id_copy_ensure_local(bmain, &ima->id, &nima->id);
 
 	return nima;
 }

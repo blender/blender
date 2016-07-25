@@ -491,10 +491,7 @@ Text *BKE_text_copy(Main *bmain, Text *ta)
 
 	init_undo_text(tan);
 
-	if (ID_IS_LINKED_DATABLOCK(ta)) {
-		BKE_id_expand_local(&tan->id);
-		BKE_id_lib_local_paths(bmain, ta->id.lib, &tan->id);
-	}
+	BKE_id_copy_ensure_local(bmain, &ta->id, &tan->id);
 
 	return tan;
 }

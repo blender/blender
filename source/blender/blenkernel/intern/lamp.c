@@ -138,10 +138,7 @@ Lamp *BKE_lamp_copy(Main *bmain, Lamp *la)
 
 	BKE_previewimg_id_copy(&lan->id, &la->id);
 
-	if (ID_IS_LINKED_DATABLOCK(la)) {
-		BKE_id_expand_local(&lan->id);
-		BKE_id_lib_local_paths(bmain, la->id.lib, &lan->id);
-	}
+	BKE_id_copy_ensure_local(bmain, &la->id, &lan->id);
 
 	return lan;
 }

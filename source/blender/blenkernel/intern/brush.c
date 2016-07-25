@@ -197,10 +197,7 @@ Brush *BKE_brush_copy(Main *bmain, Brush *brush)
 	/* enable fake user by default */
 	id_fake_user_set(&brush->id);
 
-	if (ID_IS_LINKED_DATABLOCK(brush)) {
-		BKE_id_expand_local(&brushn->id);
-		BKE_id_lib_local_paths(bmain, brush->id.lib, &brushn->id);
-	}
+	BKE_id_copy_ensure_local(bmain, &brush->id, &brushn->id);
 
 	return brushn;
 }

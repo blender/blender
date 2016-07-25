@@ -531,10 +531,7 @@ Mesh *BKE_mesh_copy(Main *bmain, Mesh *me)
 		men->key->from = (ID *)men;
 	}
 
-	if (ID_IS_LINKED_DATABLOCK(me)) {
-		BKE_id_expand_local(&men->id);
-		BKE_id_lib_local_paths(bmain, me->id.lib, &men->id);
-	}
+	BKE_id_copy_ensure_local(bmain, &me->id, &men->id);
 
 	return men;
 }
