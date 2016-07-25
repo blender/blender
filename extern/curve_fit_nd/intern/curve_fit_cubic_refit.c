@@ -1184,7 +1184,7 @@ int curve_fit_cubic_to_points_refit_db(
 			copy_vnvn(knots[0].tan[0], tan_prev, dims);
 			copy_vnvn(knots[0].tan[1], tan_prev, dims);
 			knots[0].handles[0] = len_prev / 3;
-			knots[0].handles[1] = len_next / 3;
+			knots[0].handles[1] = len_prev / 3;
 
 			for (uint i_curr = 1, i_next = 2; i_next < knots_len; i_curr = i_next++) {
 				struct Knot *k = &knots[i_curr];
