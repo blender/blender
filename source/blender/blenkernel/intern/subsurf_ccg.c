@@ -2699,6 +2699,7 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 				                      num_draw_patches);
 			}
 		}
+		glShadeModel(GL_SMOOTH);
 		return;
 	}
 #endif
@@ -2805,6 +2806,7 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 				                      num_draw_patches);
 			}
 		}
+		glShadeModel(GL_SMOOTH);
 		return;
 	}
 #endif
@@ -3214,6 +3216,7 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm,
 		glShadeModel(draw_smooth ? GL_SMOOTH : GL_FLAT);
 		setMaterial(userData, new_matnr, &gattribs);
 		ccgSubSurf_drawGLMesh(ss, true, -1, -1);
+		glShadeModel(GL_SMOOTH);
 		return;
 	}
 #endif
@@ -3479,6 +3482,7 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 				num_draw_patches += num_patches;
 			}
 		}
+		glShadeModel(GL_SMOOTH);
 		return;
 	}
 #endif
@@ -3678,6 +3682,7 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 			glShadeModel(draw_smooth ? GL_SMOOTH : GL_FLAT);
 			ccgSubSurf_drawGLMesh(ss, true, -1, -1);
 		}
+		glShadeModel(GL_SMOOTH);
 		return;
 	}
 #endif
