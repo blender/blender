@@ -3429,7 +3429,7 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 			const int num_patches = (num_face_verts == 4) ? face_patches
 			                                              : num_face_verts * grid_patches;
 			if (faceFlags) {
-				mat_nr = faceFlags[i].mat_nr + 1;
+				mat_nr = faceFlags[i].mat_nr;
 			}
 			else {
 				mat_nr = 0;
