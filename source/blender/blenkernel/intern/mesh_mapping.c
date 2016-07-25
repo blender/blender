@@ -934,6 +934,7 @@ static bool mesh_check_island_boundary_uv(
 			}
 			else {
 				BLI_assert(loops[edge_to_loops->indices[i]].v == v2);
+				UNUSED_VARS_NDEBUG(v2);
 				if (!equals_v2v2(uvco_v2, luvs[edge_to_loops->indices[i]].uv) ||
 				    !equals_v2v2(uvco_v1, luvs[edge_to_loops->indices[i + 1]].uv))
 				{
