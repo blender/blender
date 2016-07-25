@@ -24,8 +24,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __GENERIC_HEAP_IMPL_H__
-#define __GENERIC_HEAP_IMPL_H__
+#ifndef __GENERIC_HEAP_H__
+#define __GENERIC_HEAP_H__
 
 /** \file generic_heap.h
  *  \ingroup curve_fit

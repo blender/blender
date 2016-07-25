@@ -51,8 +51,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-
-#include <stdio.h>
+typedef unsigned int uint;
 
 #include "curve_fit_inline.h"
 #include "../curve_fit_nd.h"
@@ -100,9 +99,6 @@
 #else
 #  define UNLIKELY(x)     (x)
 #endif
-
-
-typedef unsigned int uint;
 
 struct PointData {
 	const double *points;
