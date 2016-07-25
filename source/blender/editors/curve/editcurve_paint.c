@@ -64,8 +64,8 @@
 #endif
 
 /* Distance between input samples */
-#define STROKE_SAMPLE_DIST_MIN_PX 3
-#define STROKE_SAMPLE_DIST_MAX_PX 6
+#define STROKE_SAMPLE_DIST_MIN_PX 1
+#define STROKE_SAMPLE_DIST_MAX_PX 3
 
 /* Distance between start/end points to consider cyclic */
 #define STROKE_CYCLIC_DIST_PX     8
