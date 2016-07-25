@@ -42,7 +42,7 @@ ccl_device_inline float D_ggx_aniso(const float3 wm, const float2 alpha)
 /* Sample slope distribution (based on page 14 of the supplemental implementation). */
 ccl_device_inline float2 mf_sampleP22_11(const float cosI, const float2 randU)
 {
-	if(cosI > 0.9999f) {
+	if(cosI > 0.9999f || cosI < 1e-6f) {
 		const float r = sqrtf(randU.x / (1.0f - randU.x));
 		const float phi = M_2PI_F * randU.y;
 		return make_float2(r*cosf(phi), r*sinf(phi));
@@ -117,7 +117,7 @@ ccl_device_inline float3 mf_eval_phase_glossy(const float3 w, const float lambda
 	if(dotW_WH < 0.0f)
 		return make_float3(0.0f, 0.0f, 0.0f);
 
-	float phase = max(0.0f, dotW_WH) * 0.25f / (pArea * dotW_WH);
+	float phase = max(0.0f, dotW_WH) * 0.25f / max(pArea * dotW_WH, 1e-7f);
 	if(alpha.x == alpha.y)
 		phase *= D_ggx(wh, alpha.x);
 	else
@@ -200,9 +200,9 @@ ccl_device_inline float mf_lambda(const float3 w, const float2 alpha)
 	if(w.z > 0.9999f)
 		return 0.0f;
 	else if(w.z < -0.9999f)
-		return -1.0f;
+		return -0.9999f;
 
-	const float inv_wz2 = 1.0f / (w.z*w.z);
+	const float inv_wz2 = 1.0f / max(w.z*w.z, 1e-7f);
 	const float2 wa = make_float2(w.x, w.y)*alpha;
 	float v = sqrtf(1.0f + dot(wa, wa) * inv_wz2);
 	if(w.z <= 0.0f)
@@ -271,7 +271,10 @@ ccl_device_inline float mf_ggx_albedo(float r)
 
 ccl_device_inline float mf_ggx_pdf(const float3 wi, const float3 wo, const float alpha)
 {
-	return 0.25f * D_ggx(normalize(wi+wo), alpha) / ((1.0f + mf_lambda(wi, make_float2(alpha, alpha))) * wi.z) + (1.0f - mf_ggx_albedo(alpha)) * wo.z;
+	float D = D_ggx(normalize(wi+wo), alpha);
+	float lambda = mf_lambda(wi, make_float2(alpha, alpha));
+	float albedo = mf_ggx_albedo(alpha);
+	return 0.25f * D / max((1.0f + lambda) * wi.z, 1e-7f) + (1.0f - albedo) * wo.z;
 }
 
 ccl_device_inline float mf_ggx_aniso_pdf(const float3 wi, const float3 wo, const float2 alpha)
