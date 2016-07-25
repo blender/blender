@@ -387,6 +387,12 @@ ccl_device_inline void motion_triangle_intersect_subsurface(
 	float t, u, v;
 
 	if(ray_triangle_intersect_uv(P, dir, tmax, verts[2], verts[0], verts[1], &u, &v, &t)) {
+		for(int i = min(max_hits, ss_isect->num_hits) - 1; i >= 0; --i) {
+			if(ss_isect->hits[i].t == t) {
+				return;
+			}
+		}
+
 		ss_isect->num_hits++;
 
 		int hit;
