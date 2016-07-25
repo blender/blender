@@ -86,6 +86,7 @@ int curve_fit_cubic_to_points_fl(
  *
  * \param points, points_len: The array of points to calculate a cubics from.
  * \param dims: The number of dimensions for for each element in \a points.
+ * \param points_length_cache: Optional pre-calculated lengths between points.
  * \param error_threshold: the error threshold to allow for,
  * \param tan_l, tan_r: Normalized tangents the handles will be aligned to.
  * Note that tangents must both point along the direction of the \a points,
@@ -98,6 +99,7 @@ int curve_fit_cubic_to_points_fl(
 int curve_fit_cubic_to_points_single_db(
         const double      *points,
         const unsigned int points_len,
+        const double      *points_length_cache,
         const unsigned int dims,
         const double       error_threshold,
         const double       tan_l[],
@@ -110,6 +112,7 @@ int curve_fit_cubic_to_points_single_db(
 int curve_fit_cubic_to_points_single_fl(
         const float       *points,
         const unsigned int points_len,
+        const float       *points_length_cache,
         const unsigned int dims,
         const float        error_threshold,
         const float        tan_l[],
@@ -121,7 +124,39 @@ int curve_fit_cubic_to_points_single_fl(
 
 enum {
 	CURVE_FIT_CALC_HIGH_QUALIY          = (1 << 0),
+	CURVE_FIT_CALC_CYCLIC               = (1 << 1),
 };
+
+
+/* curve_fit_cubic_refit.c */
+
+int curve_fit_cubic_to_points_refit_db(
+        const double         *points,
+        const unsigned int    points_len,
+        const unsigned int    dims,
+        const double          error_threshold,
+        const unsigned int    calc_flag,
+        const unsigned int   *corners,
+        unsigned int          corners_len,
+        const double          corner_angle,
+
+        double **r_cubic_array, unsigned int *r_cubic_array_len,
+        unsigned int   **r_cubic_orig_index,
+        unsigned int   **r_corner_index_array, unsigned int *r_corner_index_len);
+
+int curve_fit_cubic_to_points_refit_fl(
+        const float          *points,
+        const unsigned int    points_len,
+        const unsigned int    dims,
+        const float           error_threshold,
+        const unsigned int    calc_flag,
+        const unsigned int   *corners,
+        unsigned int          corners_len,
+        const float           corner_angle,
+
+        float **r_cubic_array, unsigned int *r_cubic_array_len,
+        unsigned int   **r_cubic_orig_index,
+        unsigned int   **r_corner_index_array, unsigned int *r_corner_index_len);
 
 /* curve_fit_corners_detect.c */
 

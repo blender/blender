@@ -290,14 +290,12 @@ MINLINE bool equals_vnvn(
 	return true;
 }
 
-#if 0
 MINLINE void project_vn_vnvn(
         double v_out[], const double p[], const double v_proj[], const uint dims)
 {
 	const double mul = dot_vnvn(p, v_proj, dims) / dot_vnvn(v_proj, v_proj, dims);
 	mul_vnvn_fl(v_out, v_proj, mul, dims);
 }
-#endif
 
 MINLINE void project_vn_vnvn_normalized(
         double v_out[], const double p[], const double v_proj[], const uint dims)

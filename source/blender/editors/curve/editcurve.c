@@ -5843,7 +5843,7 @@ static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
 					normalize_v3(tan_r);
 
 					curve_fit_cubic_to_points_single_fl(
-					        points, points_len, dims, FLT_EPSILON,
+					        points, points_len, NULL, dims, FLT_EPSILON,
 					        tan_l, tan_r,
 					        bezt_prev->vec[2], bezt_next->vec[0],
 					        &error_sq_dummy);
