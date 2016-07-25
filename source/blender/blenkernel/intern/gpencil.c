@@ -390,6 +390,11 @@ bGPdata *gpencil_data_duplicate(Main *bmain, bGPdata *src, bool internal_copy)
 	return dst;
 }
 
+void BKE_gpencil_make_local(Main *bmain, bGPdata *gpd, const bool lib_local)
+{
+	BKE_id_make_local_generic(bmain, &gpd->id, true, lib_local);
+}
+
 /* -------- GP-Stroke API --------- */
 
 /* ensure selection status of stroke is in sync with its points */

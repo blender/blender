@@ -133,7 +133,7 @@ iA_B_eq_iB_A:
 			//_t2d = t3;
 			_t2d = t2 * t3;
 		}
-		else if ((iA->getPoint2D() - iA->getPoint2D()).norm() < 1.0e-6) {
+		else if ((iA->getPoint2D() - iB->getPoint2D()).norm() < 1.0e-6) {
 			__A = iB->A();
 			__B = iB->B();
 			//_t2d = t3;

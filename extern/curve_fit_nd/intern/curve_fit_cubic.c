@@ -474,7 +474,7 @@ static double points_calc_circumference_factor(
 		 * We could try support this but will likely cause extreme >1 scales which could cause other issues. */
 		// assert(angle >= len_tangent);
 		double factor = (angle / len_tangent);
-		assert(factor < (M_PI / 2) + DBL_EPSILON);
+		assert(factor < (M_PI / 2) + (DBL_EPSILON * 10));
 		return factor;
 	}
 	else {
@@ -876,7 +876,6 @@ static double points_calc_coord_length(
 
 #ifdef USE_LENGTH_CACHE
 		length = points_length_cache[i];
-
 		assert(len_vnvn(pt, pt_prev, dims) == points_length_cache[i]);
 #else
 		length = len_vnvn(pt, pt_prev, dims);
@@ -1435,6 +1434,7 @@ int curve_fit_cubic_to_points_fl(
 int curve_fit_cubic_to_points_single_db(
         const double *points,
         const uint    points_len,
+        const double *points_length_cache,
         const uint    dims,
         const double  error_threshold,
         const double tan_l[],
@@ -1451,10 +1451,14 @@ int curve_fit_cubic_to_points_single_db(
 	/* in this instance theres no advantage in using length cache,
 	 * since we're not recursively calculating values. */
 #ifdef USE_LENGTH_CACHE
-	double *points_length_cache = malloc(sizeof(double) * points_len);
-	points_calc_coord_length_cache(
-	        points, points_len, dims,
-	        points_length_cache);
+	double *points_length_cache_alloc = NULL;
+	if (points_length_cache == NULL) {
+		points_length_cache_alloc = malloc(sizeof(double) * points_len);
+		points_calc_coord_length_cache(
+		        points, points_len, dims,
+		        points_length_cache_alloc);
+		points_length_cache = points_length_cache_alloc;
+	}
 #endif
 
 	fit_cubic_to_points(
@@ -1467,7 +1471,9 @@ int curve_fit_cubic_to_points_single_db(
 	        cubic, r_error_max_sq, &split_index);
 
 #ifdef USE_LENGTH_CACHE
-	free(points_length_cache);
+	if (points_length_cache_alloc) {
+		free(points_length_cache_alloc);
+	}
 #endif
 
 	copy_vnvn(r_handle_l, CUBIC_PT(cubic, 1, dims), dims);
@@ -1479,6 +1485,7 @@ int curve_fit_cubic_to_points_single_db(
 int curve_fit_cubic_to_points_single_fl(
         const float  *points,
         const uint    points_len,
+        const float  *points_length_cache,
         const uint    dims,
         const float   error_threshold,
         const float   tan_l[],
@@ -1490,8 +1497,14 @@ int curve_fit_cubic_to_points_single_fl(
 {
 	const uint points_flat_len = points_len * dims;
 	double *points_db = malloc(sizeof(double) * points_flat_len);
+	double *points_length_cache_db = NULL;
 
 	copy_vndb_vnfl(points_db, points, points_flat_len);
+
+	if (points_length_cache) {
+		points_length_cache_db = malloc(sizeof(double) * points_len);
+		copy_vndb_vnfl(points_length_cache_db, points_length_cache, points_len);
+	}
 
 #ifdef USE_VLA
 	double tan_l_db[dims];
@@ -1510,13 +1523,17 @@ int curve_fit_cubic_to_points_single_fl(
 	copy_vndb_vnfl(tan_r_db, tan_r, dims);
 
 	int result = curve_fit_cubic_to_points_single_db(
-	        points_db, points_len, dims,
+	        points_db, points_len, points_length_cache_db, dims,
 	        (double)error_threshold,
 	        tan_l_db, tan_r_db,
 	        r_handle_l_db, r_handle_r_db,
 	        &r_error_sq_db);
 
 	free(points_db);
+
+	if (points_length_cache_db) {
+		free(points_length_cache_db);
+	}
 
 	copy_vnfl_vndb(r_handle_l, r_handle_l_db, dims);
 	copy_vnfl_vndb(r_handle_r, r_handle_r_db, dims);

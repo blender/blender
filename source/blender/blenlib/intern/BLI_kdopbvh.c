@@ -1917,7 +1917,7 @@ static void dist_squared_ray_to_aabb_scaled_v3_precalc(
 	}
 	/* un-normalize ray */
 	if (ray_is_normalized && scale &&
-	   (data->scale[0] != 1.0f || data->scale[1] != 1.0f || data->scale[2] != 1.0f))
+	    (data->scale[0] != 1.0f || data->scale[1] != 1.0f || data->scale[2] != 1.0f))
 	{
 		data->ray.direction[0] = ray_direction[0] * data->scale[0];
 		data->ray.direction[1] = ray_direction[1] * data->scale[1];

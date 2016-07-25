@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 Blender Foundation
+ * Copyright 2011-2016 Blender Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ class ShaderGraph;
 class SVMCompiler;
 class OSLCompiler;
 class OutputNode;
+class ConstantFolder;
 
 /* Bump
  *
@@ -140,9 +141,7 @@ public:
 
 	/* ** Node optimization ** */
 	/* Check whether the node can be replaced with single constant. */
-	virtual bool constant_fold(ShaderGraph * /*graph*/, ShaderOutput * /*socket*/, ShaderInput * /*optimized*/) { return false; }
-
-	bool all_inputs_constant() const;
+	virtual void constant_fold(const ConstantFolder& /*folder*/) {}
 
 	/* Simplify settings used by artists to the ones which are simpler to
 	 * evaluate in the kernel but keep the final result unchanged.
@@ -251,6 +250,7 @@ public:
 	OutputNode *output();
 
 	void connect(ShaderOutput *from, ShaderInput *to);
+	void disconnect(ShaderOutput *from);
 	void disconnect(ShaderInput *to);
 	void relink(ShaderNode *node, ShaderOutput *from, ShaderOutput *to);
 

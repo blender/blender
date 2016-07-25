@@ -32,8 +32,12 @@
 
 #include <opensubdiv/far/topologyRefinerFactory.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "opensubdiv_converter_capi.h"
 #include "opensubdiv_intern.h"
+#include "opensubdiv_topology_refiner.h"
+
 
 #include <stack>
 
@@ -48,6 +52,11 @@ inline void reverse_face_verts(int *face_verts, int num_verts)
 	}
 	face_verts[0] = last_vert;
 }
+
+struct TopologyRefinerData {
+	const OpenSubdiv_Converter& conv;
+	std::vector<float> *uvs;
+};
 
 }  /* namespace */
 #endif /* OPENSUBDIV_ORIENT_TOPOLOGY */
@@ -137,10 +146,11 @@ inline void check_oriented_vert_connectivity(const int num_vert_edges,
 }  /* namespace */
 
 template <>
-inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::resizeComponentTopology(
+inline bool TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology(
         TopologyRefiner& refiner,
-        const OpenSubdiv_Converter& conv)
+        const TopologyRefinerData& cb_data)
 {
+	const OpenSubdiv_Converter& conv = cb_data.conv;
 	/* Faces and face-verts */
 	const int num_faces = conv.get_num_faces(&conv);
 	setNumBaseFaces(refiner, num_faces);
@@ -168,10 +178,11 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::resizeComponentTopolog
 }
 
 template <>
-inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTopology(
+inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology(
 	  TopologyRefiner& refiner,
-        const OpenSubdiv_Converter& conv)
+	  const TopologyRefinerData &cb_data)
 {
+	const OpenSubdiv_Converter& conv = cb_data.conv;
 	using Far::IndexArray;
 	/* Face relations. */
 	const int num_faces = conv.get_num_faces(&conv);
@@ -426,10 +437,11 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTopolog
 };
 
 template <>
-inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTags(
+inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
         TopologyRefiner& refiner,
-        const OpenSubdiv_Converter& conv)
+        const TopologyRefinerData& cb_data)
 {
+	const OpenSubdiv_Converter& conv = cb_data.conv;
 	typedef OpenSubdiv::Sdc::Crease Crease;
 
 	int num_edges = conv.get_num_edges(&conv);
@@ -476,12 +488,50 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTags(
 }
 
 template <>
-inline void TopologyRefinerFactory<OpenSubdiv_Converter>::reportInvalidTopology(
+inline void TopologyRefinerFactory<TopologyRefinerData>::reportInvalidTopology(
         TopologyError /*errCode*/,
         const char *msg,
-        const OpenSubdiv_Converter& /*mesh*/)
+        const TopologyRefinerData& /*mesh*/)
 {
 	printf("OpenSubdiv Error: %s\n", msg);
+}
+
+template <>
+inline bool TopologyRefinerFactory<TopologyRefinerData>::assignFaceVaryingTopology(
+        TopologyRefiner& refiner,
+        const TopologyRefinerData& cb_data)
+{
+	const OpenSubdiv_Converter& conv = cb_data.conv;
+	const int num_layers = conv.get_num_uv_layers(&conv);
+	if (num_layers <= 0) {
+		/* No UV maps, we can skip any face-varying data. */
+		return true;
+	}
+	const int num_faces = getNumBaseFaces(refiner);
+	size_t uvs_offset = 0;
+	for (int layer = 0; layer < num_layers; ++layer) {
+		conv.precalc_uv_layer(&conv, layer);
+		const int num_uvs = conv.get_num_uvs(&conv);
+		/* Fill in UV coordinates. */
+		cb_data.uvs->resize(cb_data.uvs->size() + num_uvs * 2);
+		conv.get_uvs(&conv, &cb_data.uvs->at(uvs_offset));
+		uvs_offset += num_uvs * 2;
+		/* Fill in per-corner index of the UV. */
+		const int channel = createBaseFVarChannel(refiner, num_uvs);
+		for (int face = 0; face < num_faces; ++face) {
+			Far::IndexArray dst_face_uvs = getBaseFaceFVarValues(refiner,
+			                                                     face,
+			                                                     channel);
+			for (int corner = 0; corner < dst_face_uvs.size(); ++corner) {
+				const int uv_index = conv.get_face_corner_uv_index(&conv,
+				                                                   face,
+				                                                   corner);
+				dst_face_uvs[corner] = uv_index;
+			}
+		}
+		conv.finish_uv_layer(&conv);
+	}
+	return true;
 }
 
 }  /* namespace Far */
@@ -517,33 +567,43 @@ struct OpenSubdiv_TopologyRefinerDescr *openSubdiv_createTopologyRefinerDescr(
 	Options options;
 	options.SetVtxBoundaryInterpolation(Options::VTX_BOUNDARY_EDGE_ONLY);
 	options.SetCreasingMethod(Options::CREASE_UNIFORM);
-	options.SetFVarLinearInterpolation(Options::FVAR_LINEAR_ALL);
+	if (converter->get_subdiv_uvs(converter)) {
+		options.SetFVarLinearInterpolation(Options::FVAR_LINEAR_CORNERS_ONLY);
+	}
+	else {
+		options.SetFVarLinearInterpolation(Options::FVAR_LINEAR_ALL);
+	}
 
-	TopologyRefinerFactory<OpenSubdiv_Converter>::Options
+	TopologyRefinerFactory<TopologyRefinerData>::Options
 	        topology_options(scheme_type, options);
 #ifdef OPENSUBDIV_VALIDATE_TOPOLOGY
 	topology_options.validateFullTopology = true;
 #endif
+	OpenSubdiv_TopologyRefinerDescr *result = OBJECT_GUARDED_NEW(OpenSubdiv_TopologyRefinerDescr);
+	TopologyRefinerData cb_data = {*converter, &result->uvs};
 	/* We don't use guarded allocation here so we can re-use the refiner
 	 * for GL mesh creation directly.
 	 */
-	return (struct OpenSubdiv_TopologyRefinerDescr*)
-	        TopologyRefinerFactory<OpenSubdiv_Converter>::Create(
-	                *converter,
+	result->osd_refiner =
+	        TopologyRefinerFactory<TopologyRefinerData>::Create(
+	                cb_data,
 	                topology_options);
+
+	return result;
 }
 
 void openSubdiv_deleteTopologyRefinerDescr(
         OpenSubdiv_TopologyRefinerDescr *topology_refiner)
 {
-	delete (OpenSubdiv::Far::TopologyRefiner *)topology_refiner;
+	delete topology_refiner->osd_refiner;
+	OBJECT_GUARDED_DELETE(topology_refiner, OpenSubdiv_TopologyRefinerDescr);
 }
 
 int openSubdiv_topologyRefinerGetSubdivLevel(
         const OpenSubdiv_TopologyRefinerDescr *topology_refiner)
 {
 	using OpenSubdiv::Far::TopologyRefiner;
-	const TopologyRefiner *refiner = (const TopologyRefiner *)topology_refiner;
+	const TopologyRefiner *refiner = topology_refiner->osd_refiner;
 	return refiner->GetMaxLevel();
 }
 
@@ -552,7 +612,7 @@ int openSubdiv_topologyRefinerGetNumVerts(
 {
 	using OpenSubdiv::Far::TopologyLevel;
 	using OpenSubdiv::Far::TopologyRefiner;
-	const TopologyRefiner *refiner = (const TopologyRefiner *)topology_refiner;
+	const TopologyRefiner *refiner = topology_refiner->osd_refiner;
 	const TopologyLevel &base_level = refiner->GetLevel(0);
 	return base_level.GetNumVertices();
 }
@@ -562,7 +622,7 @@ int openSubdiv_topologyRefinerGetNumEdges(
 {
 	using OpenSubdiv::Far::TopologyLevel;
 	using OpenSubdiv::Far::TopologyRefiner;
-	const TopologyRefiner *refiner = (const TopologyRefiner *)topology_refiner;
+	const TopologyRefiner *refiner = topology_refiner->osd_refiner;
 	const TopologyLevel &base_level = refiner->GetLevel(0);
 	return base_level.GetNumEdges();
 }
@@ -572,7 +632,7 @@ int openSubdiv_topologyRefinerGetNumFaces(
 {
 	using OpenSubdiv::Far::TopologyLevel;
 	using OpenSubdiv::Far::TopologyRefiner;
-	const TopologyRefiner *refiner = (const TopologyRefiner *)topology_refiner;
+	const TopologyRefiner *refiner = topology_refiner->osd_refiner;
 	const TopologyLevel &base_level = refiner->GetLevel(0);
 	return base_level.GetNumFaces();
 }
@@ -583,7 +643,7 @@ int openSubdiv_topologyRefinerGetNumFaceVerts(
 {
 	using OpenSubdiv::Far::TopologyLevel;
 	using OpenSubdiv::Far::TopologyRefiner;
-	const TopologyRefiner *refiner = (const TopologyRefiner *)topology_refiner;
+	const TopologyRefiner *refiner = topology_refiner->osd_refiner;
 	const TopologyLevel &base_level = refiner->GetLevel(0);
 	return base_level.GetFaceVertices(face).size();
 }
@@ -592,10 +652,11 @@ int openSubdiv_topologyRefnerCompareConverter(
         const OpenSubdiv_TopologyRefinerDescr *topology_refiner,
         OpenSubdiv_Converter *converter)
 {
+	typedef OpenSubdiv::Sdc::Options Options;
 	using OpenSubdiv::Far::ConstIndexArray;
 	using OpenSubdiv::Far::TopologyRefiner;
 	using OpenSubdiv::Far::TopologyLevel;
-	const TopologyRefiner *refiner = (const TopologyRefiner *)topology_refiner;
+	const TopologyRefiner *refiner = topology_refiner->osd_refiner;
 	const TopologyLevel &base_level = refiner->GetLevel(0);
 	const int num_verts = base_level.GetNumVertices();
 	const int num_edges = base_level.GetNumEdges();
@@ -604,6 +665,12 @@ int openSubdiv_topologyRefnerCompareConverter(
 	OpenSubdiv::Sdc::SchemeType scheme_type =
 	        get_capi_scheme_type(converter->get_type(converter));
 	if (scheme_type != refiner->GetSchemeType()) {
+		return false;
+	}
+	const Options options = refiner->GetSchemeOptions();
+	Options::FVarLinearInterpolation interp = options.GetFVarLinearInterpolation();
+	const bool subdiv_uvs = (interp != Options::FVAR_LINEAR_ALL);
+	if (converter->get_subdiv_uvs(converter) != subdiv_uvs) {
 		return false;
 	}
 	if (converter->get_num_verts(converter) != num_verts ||

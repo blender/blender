@@ -47,6 +47,7 @@ set(SRC
 	opensubdiv_device_context_cuda.h
 	opensubdiv_device_context_opencl.h
 	opensubdiv_intern.h
+	opensubdiv_topology_refiner.h
 )
 
 macro(OPENSUBDIV_DEFINE_COMPONENT component)
@@ -69,6 +70,7 @@ add_definitions(-DGLEW_STATIC)
 
 if(WIN32)
 	add_definitions(-DNOMINMAX)
+	add_definitions(-D_USE_MATH_DEFINES)
 endif()
 
 # TODO(sergey): Put CUEW back when CUDA is officially supported by OSD.

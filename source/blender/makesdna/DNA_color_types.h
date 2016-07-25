@@ -157,10 +157,11 @@ typedef struct Scopes {
 
 /* scopes->wavefrm_mode */
 #define SCOPES_WAVEFRM_LUMA		0
-#define SCOPES_WAVEFRM_RGB		1
+#define SCOPES_WAVEFRM_RGB_PARADE	1
 #define SCOPES_WAVEFRM_YCC_601	2
 #define SCOPES_WAVEFRM_YCC_709	3
 #define SCOPES_WAVEFRM_YCC_JPEG	4
+#define SCOPES_WAVEFRM_RGB		5
 
 typedef struct ColorManagedViewSettings {
 	int flag, pad;

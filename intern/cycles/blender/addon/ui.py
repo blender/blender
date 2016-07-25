@@ -459,7 +459,9 @@ class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
         col.prop(rl, "use_pass_z")
         col.prop(rl, "use_pass_mist")
         col.prop(rl, "use_pass_normal")
-        col.prop(rl, "use_pass_vector")
+        row = col.row()
+        row.prop(rl, "use_pass_vector")
+        row.active = not rd.use_motion_blur
         col.prop(rl, "use_pass_uv")
         col.prop(rl, "use_pass_object_index")
         col.prop(rl, "use_pass_material_index")

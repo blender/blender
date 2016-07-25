@@ -263,6 +263,14 @@ Scene::MotionType Scene::need_motion(bool advanced_shading)
 		return MOTION_NONE;
 }
 
+float Scene::motion_shutter_time()
+{
+	if(need_motion() == Scene::MOTION_PASS)
+		return 2.0f;
+	else
+		return camera->shuttertime;
+}
+
 bool Scene::need_global_attribute(AttributeStandard std)
 {
 	if(std == ATTR_STD_UV)

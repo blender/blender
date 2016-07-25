@@ -570,6 +570,7 @@ class VIEW3D_PT_tools_curveedit_options_stroke(View3DPanel, Panel):
         if cps.curve_type == 'BEZIER':
             col.label("Bezier Options:")
             col.prop(cps, "error_threshold")
+            col.prop(cps, "fit_method")
             col.prop(cps, "use_corners_detect")
 
             col = layout.column()

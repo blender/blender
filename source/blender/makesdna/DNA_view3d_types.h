@@ -239,7 +239,7 @@ typedef struct View3D {
 	float stereo3d_convergence_alpha;
 
 	/* Previous viewport draw type.
-	 * Runtime-only, set in the rendered viewport otggle operator.
+	 * Runtime-only, set in the rendered viewport toggle operator.
 	 */
 	short prev_drawtype;
 	short pad1;

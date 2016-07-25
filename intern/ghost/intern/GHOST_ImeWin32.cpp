@@ -64,7 +64,7 @@ bool GHOST_ImeWin32::SetInputLanguage()
 	 * while composing a text.
 	 */
 	HKL keyboard_layout = ::GetKeyboardLayout(0);
-	input_language_id_ = reinterpret_cast<LANGID>(keyboard_layout);
+	input_language_id_ = LOWORD(keyboard_layout);
 	ime_status_ = ::ImmIsIME(keyboard_layout);
 	return ime_status_;
 }

@@ -505,7 +505,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 )
         cls.debug_use_hair_bvh = BoolProperty(
                 name="Use Hair BVH",
-                description="Use special type BVH optimized for hair. Uses more ram but renders faster",
+                description="Use special type BVH optimized for hair (uses more ram but renders faster)",
                 default=True,
                 )
         cls.tile_order = EnumProperty(

@@ -136,7 +136,9 @@ static void id_release_gc(struct ID *id)
 		PyGC_Head *g = gen->gc.gc_next;
 		while ((g = g->gc.gc_next) != gen) {
 			PyObject *ob = FROM_GC(g);
-			if (PyType_IsSubtype(Py_TYPE(ob), &pyrna_struct_Type) || PyType_IsSubtype(Py_TYPE(ob), &pyrna_prop_Type)) {
+			if (PyType_IsSubtype(Py_TYPE(ob), &pyrna_struct_Type) ||
+			    PyType_IsSubtype(Py_TYPE(ob), &pyrna_prop_Type))
+			{
 				BPy_DummyPointerRNA *ob_ptr = (BPy_DummyPointerRNA *)ob;
 				if (ob_ptr->ptr.id.data == id) {
 					pyrna_invalidate(ob_ptr);
@@ -358,9 +360,12 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
 #ifdef USE_MATHUTILS
 #include "../mathutils/mathutils.h" /* so we can have mathutils callbacks */
 
-static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self, PointerRNA *ptr, PropertyRNA *prop,
-                                                  Py_ssize_t start, Py_ssize_t stop, Py_ssize_t length);
-static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_eul_order, const short order_fallback);
+static PyObject *pyrna_prop_array_subscript_slice(
+        BPy_PropertyArrayRNA *self, PointerRNA *ptr, PropertyRNA *prop,
+        Py_ssize_t start, Py_ssize_t stop, Py_ssize_t length);
+static short pyrna_rotation_euler_order_get(
+        PointerRNA *ptr, const short order_fallback,
+        PropertyRNA **r_prop_eul_order);
 
 /* bpyrna vector/euler/quat callbacks */
 static unsigned char mathutils_rna_array_cb_index = -1; /* index for our callbacks */
@@ -395,7 +400,7 @@ static int mathutils_rna_vector_get(BaseMathObject *bmo, int subtype)
 	if (subtype == MATHUTILS_CB_SUBTYPE_EUL) {
 		EulerObject *eul = (EulerObject *)bmo;
 		PropertyRNA *prop_eul_order = NULL;
-		eul->order = pyrna_rotation_euler_order_get(&self->ptr, &prop_eul_order, eul->order);
+		eul->order = pyrna_rotation_euler_order_get(&self->ptr, eul->order, &prop_eul_order);
 	}
 
 	return 0;
@@ -442,7 +447,7 @@ static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype)
 	if (subtype == MATHUTILS_CB_SUBTYPE_EUL) {
 		EulerObject *eul = (EulerObject *)bmo;
 		PropertyRNA *prop_eul_order = NULL;
-		short order = pyrna_rotation_euler_order_get(&self->ptr, &prop_eul_order, eul->order);
+		short order = pyrna_rotation_euler_order_get(&self->ptr, eul->order, &prop_eul_order);
 		if (order != eul->order) {
 			RNA_property_enum_set(&self->ptr, prop_eul_order, eul->order);
 			if (RNA_property_update_check(prop_eul_order)) {
@@ -562,16 +567,21 @@ static Mathutils_Callback mathutils_rna_matrix_cb = {
 	NULL
 };
 
-static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_eul_order, const short order_fallback)
+static short pyrna_rotation_euler_order_get(
+        PointerRNA *ptr, const short order_fallback,
+        PropertyRNA **r_prop_eul_order)
 {
 	/* attempt to get order */
-	if (*prop_eul_order == NULL)
-		*prop_eul_order = RNA_struct_find_property(ptr, "rotation_mode");
+	if (*r_prop_eul_order == NULL) {
+		*r_prop_eul_order = RNA_struct_find_property(ptr, "rotation_mode");
+	}
 
-	if (*prop_eul_order) {
-		short order = RNA_property_enum_get(ptr, *prop_eul_order);
-		if (order >= EULER_ORDER_XYZ && order <= EULER_ORDER_ZYX) /* could be quat or axisangle */
+	if (*r_prop_eul_order) {
+		short order = RNA_property_enum_get(ptr, *r_prop_eul_order);
+		/* could be quat or axisangle */
+		if (order >= EULER_ORDER_XYZ && order <= EULER_ORDER_ZYX) {
 			return order;
+		}
 	}
 
 	return order_fallback;
@@ -639,7 +649,8 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 						RNA_property_float_get_array(ptr, prop, ((VectorObject *)ret)->vec);
 					}
 					else {
-						PyObject *vec_cb = Vector_CreatePyObject_cb(ret, len, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_VEC);
+						PyObject *vec_cb = Vector_CreatePyObject_cb(
+						        ret, len, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_VEC);
 						Py_DECREF(ret); /* the vector owns now */
 						ret = vec_cb; /* return the vector instead */
 					}
@@ -652,7 +663,8 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 						RNA_property_float_get_array(ptr, prop, ((MatrixObject *)ret)->matrix);
 					}
 					else {
-						PyObject *mat_cb = Matrix_CreatePyObject_cb(ret, 4, 4, mathutils_rna_matrix_cb_index, 0);
+						PyObject *mat_cb = Matrix_CreatePyObject_cb(
+						        ret, 4, 4, mathutils_rna_matrix_cb_index, 0);
 						Py_DECREF(ret); /* the matrix owns now */
 						ret = mat_cb; /* return the matrix instead */
 					}
@@ -663,7 +675,8 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 						RNA_property_float_get_array(ptr, prop, ((MatrixObject *)ret)->matrix);
 					}
 					else {
-						PyObject *mat_cb = Matrix_CreatePyObject_cb(ret, 3, 3, mathutils_rna_matrix_cb_index, 0);
+						PyObject *mat_cb = Matrix_CreatePyObject_cb(
+						        ret, 3, 3, mathutils_rna_matrix_cb_index, 0);
 						Py_DECREF(ret); /* the matrix owns now */
 						ret = mat_cb; /* return the matrix instead */
 					}
@@ -675,14 +688,16 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 					if (is_thick) {
 						/* attempt to get order, only needed for thick types since wrapped with update via callbacks */
 						PropertyRNA *prop_eul_order = NULL;
-						short order = pyrna_rotation_euler_order_get(ptr, &prop_eul_order, EULER_ORDER_XYZ);
+						short order = pyrna_rotation_euler_order_get(ptr, EULER_ORDER_XYZ, &prop_eul_order);
 
 						ret = Euler_CreatePyObject(NULL, order, NULL);  /* TODO, get order from RNA */
 						RNA_property_float_get_array(ptr, prop, ((EulerObject *)ret)->eul);
 					}
 					else {
 						/* order will be updated from callback on use */
-						PyObject *eul_cb = Euler_CreatePyObject_cb(ret, EULER_ORDER_XYZ, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_EUL); // TODO, get order from RNA
+						// TODO, get order from RNA
+						PyObject *eul_cb = Euler_CreatePyObject_cb(
+						        ret, EULER_ORDER_XYZ, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_EUL);
 						Py_DECREF(ret); /* the euler owns now */
 						ret = eul_cb; /* return the euler instead */
 					}
@@ -693,7 +708,8 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 						RNA_property_float_get_array(ptr, prop, ((QuaternionObject *)ret)->quat);
 					}
 					else {
-						PyObject *quat_cb = Quaternion_CreatePyObject_cb(ret, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_QUAT);
+						PyObject *quat_cb = Quaternion_CreatePyObject_cb(
+						        ret, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_QUAT);
 						Py_DECREF(ret); /* the quat owns now */
 						ret = quat_cb; /* return the quat instead */
 					}
@@ -707,7 +723,8 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 						RNA_property_float_get_array(ptr, prop, ((ColorObject *)ret)->col);
 					}
 					else {
-						PyObject *col_cb = Color_CreatePyObject_cb(ret, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_COLOR);
+						PyObject *col_cb = Color_CreatePyObject_cb(
+						        ret, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_COLOR);
 						Py_DECREF(ret); /* the color owns now */
 						ret = col_cb; /* return the color instead */
 					}
@@ -738,9 +755,11 @@ thick_wrap_slice:
 }
 
 /* same as RNA_enum_value_from_id but raises an exception */
-int pyrna_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *value, const char *error_prefix)
+int pyrna_enum_value_from_id(
+        EnumPropertyItem *item, const char *identifier, int *r_value,
+        const char *error_prefix)
 {
-	if (RNA_enum_value_from_id(item, identifier, value) == 0) {
+	if (RNA_enum_value_from_id(item, identifier, r_value) == 0) {
 		const char *enum_str = BPy_enum_as_string(item);
 		PyErr_Format(PyExc_ValueError,
 		             "%s: '%.200s' not found in (%s)",
@@ -1165,7 +1184,9 @@ static const char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 }
 
 
-static int pyrna_string_to_enum(PyObject *item, PointerRNA *ptr, PropertyRNA *prop, int *val, const char *error_prefix)
+static int pyrna_string_to_enum(
+        PyObject *item, PointerRNA *ptr, PropertyRNA *prop, int *r_value,
+        const char *error_prefix)
 {
 	const char *param = _PyUnicode_AsString(item);
 
@@ -1176,7 +1197,7 @@ static int pyrna_string_to_enum(PyObject *item, PointerRNA *ptr, PropertyRNA *pr
 		return -1;
 	}
 	else {
-		if (!RNA_property_enum_value(BPy_GetContext(), ptr, prop, param, val)) {
+		if (!RNA_property_enum_value(BPy_GetContext(), ptr, prop, param, r_value)) {
 			const char *enum_str = pyrna_enum_as_string(ptr, prop);
 			PyErr_Format(PyExc_TypeError,
 			             "%.200s enum \"%.200s\" not found in (%.200s)",
@@ -1253,7 +1274,9 @@ error:
 }
 
 /* 'value' _must_ be a set type, error check before calling */
-int pyrna_set_to_enum_bitfield(EnumPropertyItem *items, PyObject *value, int *r_value, const char *error_prefix)
+int pyrna_set_to_enum_bitfield(
+        EnumPropertyItem *items, PyObject *value, int *r_value,
+        const char *error_prefix)
 {
 	/* set of enum items, concatenate all values with OR */
 	int ret, flag = 0;
@@ -1286,7 +1309,9 @@ int pyrna_set_to_enum_bitfield(EnumPropertyItem *items, PyObject *value, int *r_
 	return 0;
 }
 
-static int pyrna_prop_to_enum_bitfield(PointerRNA *ptr, PropertyRNA *prop, PyObject *value, int *r_value, const char *error_prefix)
+static int pyrna_prop_to_enum_bitfield(
+        PointerRNA *ptr, PropertyRNA *prop, PyObject *value, int *r_value,
+        const char *error_prefix)
 {
 	EnumPropertyItem *item;
 	int ret;
@@ -1505,9 +1530,13 @@ PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 	return ret;
 }
 
-/* This function is used by operators and converting dicts into collections.
- * Its takes keyword args and fills them with property values */
-int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, int all_args, const char *error_prefix)
+/**
+ * This function is used by operators and converting dicts into collections.
+ * Its takes keyword args and fills them with property values
+ */
+int pyrna_pydict_to_props(
+        PointerRNA *ptr, PyObject *kw, const bool all_args,
+        const char *error_prefix)
 {
 	int error_val = 0;
 	int totkw;
@@ -1582,7 +1611,9 @@ static PyObject *pyrna_func_to_py(const PointerRNA *ptr, FunctionRNA *func)
 }
 
 
-static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *value, const char *error_prefix)
+static int pyrna_py_to_prop(
+        PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *value,
+        const char *error_prefix)
 {
 	/* XXX hard limits should be checked here */
 	const int type = RNA_property_type(prop);
@@ -1713,7 +1744,8 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 					}
 					else {
 						/* same as unicode */
-						if (data) *((char **)data) = (char *)param;  /*XXX, this is suspect but needed for function calls, need to see if theres a better way */
+						/* XXX, this is suspect but needed for function calls, need to see if theres a better way */
+						if (data) *((char **)data) = (char *)param;
 						else RNA_property_string_set(ptr, prop, param);
 					}
 				}
@@ -1753,7 +1785,8 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 					}
 					else {
 						/* same as bytes */
-						if (data) *((char **)data) = (char *)param;  /*XXX, this is suspect but needed for function calls, need to see if theres a better way */
+						/* XXX, this is suspect but needed for function calls, need to see if theres a better way */
+						if (data) *((char **)data) = (char *)param;
 						else RNA_property_string_set(ptr, prop, param);
 					}
 #ifdef USE_STRING_COERCE
@@ -1801,8 +1834,8 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 				 * if the prop is not an operator type and the pyobject is an operator,
 				 * use its properties in place of its self.
 				 *
-				 * this is so bad that its almost a good reason to do away with fake 'self.properties -> self' class mixing
-				 * if this causes problems in the future it should be removed.
+				 * this is so bad that its almost a good reason to do away with fake 'self.properties -> self'
+				 * class mixing if this causes problems in the future it should be removed.
 				 */
 				if ((ptr_type == &RNA_AnyType) &&
 				    (BPy_StructRNA_Check(value)) &&
@@ -1817,7 +1850,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 				 * forward back to pyrna_pydict_to_props */
 				if (RNA_struct_is_a(ptr_type, &RNA_OperatorProperties) && PyDict_Check(value)) {
 					PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
-					return pyrna_pydict_to_props(&opptr, value, 0, error_prefix);
+					return pyrna_pydict_to_props(&opptr, value, false, error_prefix);
 				}
 
 				/* another exception, allow to pass a collection as an RNA property */
@@ -1983,7 +2016,10 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 					else
 						RNA_property_collection_add(ptr, prop, &itemptr);
 
-					if (pyrna_pydict_to_props(&itemptr, item, 1, "Converting a python list to an RNA collection") == -1) {
+					if (pyrna_pydict_to_props(
+					        &itemptr, item, true,
+					        "Converting a python list to an RNA collection") == -1)
+					{
 						PyObject *msg = PyC_ExceptionBuffer();
 						const char *msg_char = _PyUnicode_AsString(msg);
 
@@ -2245,19 +2281,21 @@ static PyObject *pyrna_prop_collection_subscript_str(BPy_PropertyRNA *self, cons
 }
 /* static PyObject *pyrna_prop_array_subscript_str(BPy_PropertyRNA *self, char *keyname) */
 
-/* special case: bpy.data.objects["some_id_name", "//some_lib_name.blend"]
- * also for:     bpy.data.objects.get(("some_id_name", "//some_lib_name.blend"), fallback)
+/**
+ * Special case: `bpy.data.objects["some_id_name", "//some_lib_name.blend"]`
+ * also for:     `bpy.data.objects.get(("some_id_name", "//some_lib_name.blend"), fallback)`
  *
- * note:
+ * \note
  * error codes since this is not to be called directly from python,
- * this matches pythons __contains__ values capi.
- * -1: exception set
- *  0: not found
- *  1: found */
-static int pyrna_prop_collection_subscript_str_lib_pair_ptr(BPy_PropertyRNA *self, PyObject *key,
-                                                            const char *err_prefix, const short err_not_found,
-                                                            PointerRNA *r_ptr
-                                                            )
+ * this matches pythons `__contains__` values capi.
+ * - -1: exception set
+ * -  0: not found
+ * -  1: found
+ */
+static int pyrna_prop_collection_subscript_str_lib_pair_ptr(
+        BPy_PropertyRNA *self, PyObject *key,
+        const char *err_prefix, const short err_not_found,
+        PointerRNA *r_ptr)
 {
 	const char *keyname;
 
@@ -2342,8 +2380,9 @@ static int pyrna_prop_collection_subscript_str_lib_pair_ptr(BPy_PropertyRNA *sel
 	}
 }
 
-static PyObject *pyrna_prop_collection_subscript_str_lib_pair(BPy_PropertyRNA *self, PyObject *key,
-                                                              const char *err_prefix, const bool err_not_found)
+static PyObject *pyrna_prop_collection_subscript_str_lib_pair(
+        BPy_PropertyRNA *self, PyObject *key,
+        const char *err_prefix, const bool err_not_found)
 {
 	PointerRNA ptr;
 	const int contains = pyrna_prop_collection_subscript_str_lib_pair_ptr(self, key, err_prefix, err_not_found, &ptr);
@@ -2395,8 +2434,9 @@ static PyObject *pyrna_prop_collection_subscript_slice(BPy_PropertyRNA *self, Py
  * note: could also use pyrna_prop_array_to_py_index(self, count) in a loop but its a lot slower
  * since at the moment it reads (and even allocates) the entire array for each index.
  */
-static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self, PointerRNA *ptr, PropertyRNA *prop,
-                                                  Py_ssize_t start, Py_ssize_t stop, Py_ssize_t length)
+static PyObject *pyrna_prop_array_subscript_slice(
+        BPy_PropertyArrayRNA *self, PointerRNA *ptr, PropertyRNA *prop,
+        Py_ssize_t start, Py_ssize_t stop, Py_ssize_t length)
 {
 	int count, totdim;
 	PyObject *tuple;
@@ -4588,9 +4628,10 @@ static PyObject *pyrna_prop_collection_find(BPy_PropertyRNA *self, PyObject *key
 	return PyLong_FromLong(index);
 }
 
-static bool foreach_attr_type(BPy_PropertyRNA *self, const char *attr,
-                              /* values to assign */
-                              RawPropertyType *raw_type, int *attr_tot, bool *attr_signed)
+static bool foreach_attr_type(
+        BPy_PropertyRNA *self, const char *attr,
+        /* values to assign */
+        RawPropertyType *raw_type, int *attr_tot, bool *attr_signed)
 {
 	PropertyRNA *prop;
 	bool attr_ok = true;
@@ -4618,12 +4659,12 @@ static bool foreach_attr_type(BPy_PropertyRNA *self, const char *attr,
 }
 
 /* pyrna_prop_collection_foreach_get/set both use this */
-static int foreach_parse_args(BPy_PropertyRNA *self, PyObject *args,
+static int foreach_parse_args(
+        BPy_PropertyRNA *self, PyObject *args,
 
-                              /* values to assign */
-                              const char **attr, PyObject **seq, int *tot, int *size,
-                              RawPropertyType *raw_type, int *attr_tot, bool *attr_signed
-                              )
+        /* values to assign */
+        const char **attr, PyObject **seq, int *tot, int *size,
+        RawPropertyType *raw_type, int *attr_tot, bool *attr_signed)
 {
 #if 0
 	int array_tot;
@@ -7500,7 +7541,8 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 		}
 	}
 
-	if (err != -1 && (is_staticmethod || is_classmethod || py_class_instance)) { /* Initializing the class worked, now run its invoke function */
+	/* Initializing the class worked, now run its invoke function */
+	if (err != -1 && (is_staticmethod || is_classmethod || py_class_instance)) {
 		PyObject *item = PyObject_GetAttrString((PyObject *)py_class, RNA_function_identifier(func));
 
 		if (item) {
@@ -7913,7 +7955,9 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
 }
 
 
-static int pyrna_srna_contains_pointer_prop_srna(StructRNA *srna_props, StructRNA *srna, const char **prop_identifier)
+static int pyrna_srna_contains_pointer_prop_srna(
+        StructRNA *srna_props, StructRNA *srna,
+        const char **r_prop_identifier)
 {
 	PropertyRNA *prop;
 	LinkData *link;
@@ -7928,7 +7972,7 @@ static int pyrna_srna_contains_pointer_prop_srna(StructRNA *srna_props, StructRN
 			RNA_pointer_create(NULL, &RNA_Struct, srna_props, &tptr);
 
 			if (RNA_property_pointer_type(&tptr, prop) == srna) {
-				*prop_identifier = RNA_property_identifier(prop);
+				*r_prop_identifier = RNA_property_identifier(prop);
 				return 1;
 			}
 		}

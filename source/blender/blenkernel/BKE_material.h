@@ -57,7 +57,7 @@ struct Material *BKE_material_add(struct Main *bmain, const char *name);
 struct Material *BKE_material_copy(struct Main *bmain, struct Material *ma);
 struct Material *localize_material(struct Material *ma);
 struct Material *give_node_material(struct Material *ma); /* returns node material or self */
-void BKE_material_make_local(struct Main *bmain, struct Material *ma, const bool force_local);
+void BKE_material_make_local(struct Main *bmain, struct Material *ma, const bool lib_local);
 
 /* UNUSED */
 // void automatname(struct Material *);
@@ -78,15 +78,13 @@ enum {
 };
 
 struct Material *give_current_material(struct Object *ob, short act);
-struct ID *material_from(struct Object *ob, short act);
 void assign_material_id(struct ID *id, struct Material *ma, short act);
 void assign_material(struct Object *ob, struct Material *ma, short act, int assign_type);
 void assign_matarar(struct Object *ob, struct Material ***matar, short totcol);
 
-short find_material_index(struct Object *ob, struct Material *ma);
-
-bool object_add_material_slot(struct Object *ob);
-bool object_remove_material_slot(struct Object *ob);
+short BKE_object_material_slot_find_index(struct Object *ob, struct Material *ma);
+bool  BKE_object_material_slot_add(struct Object *ob);
+bool  BKE_object_material_slot_remove(struct Object *ob);
 
 void BKE_texpaint_slot_refresh_cache(struct Scene *scene, struct Material *ma);
 void BKE_texpaint_slots_refresh_object(struct Scene *scene, struct Object *ob);

@@ -1023,13 +1023,14 @@ Object *BKE_object_copy(Main *bmain, Object *ob)
 	return BKE_object_copy_ex(bmain, ob, false);
 }
 
-void BKE_object_make_local(Main *bmain, Object *ob, const bool force_local)
+void BKE_object_make_local(Main *bmain, Object *ob, const bool lib_local)
 {
 	bool is_local = false, is_lib = false;
 
 	/* - only lib users: do nothing (unless force_local is set)
 	 * - only local users: set flag
 	 * - mixed: make copy
+	 * In case we make a whole lib's content local, we always want to localize, and we skip remapping (done later).
 	 */
 
 	if (!ID_IS_LINKED_DATABLOCK(ob)) {
@@ -1038,7 +1039,7 @@ void BKE_object_make_local(Main *bmain, Object *ob, const bool force_local)
 
 	BKE_library_ID_test_usages(bmain, ob, &is_local, &is_lib);
 
-	if (force_local || is_local) {
+	if (lib_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &ob->id);
 			BKE_id_expand_local(&ob->id);
@@ -1049,7 +1050,9 @@ void BKE_object_make_local(Main *bmain, Object *ob, const bool force_local)
 			ob_new->id.us = 0;
 			ob_new->proxy = ob_new->proxy_from = ob_new->proxy_group = NULL;
 
-			BKE_libblock_remap(bmain, ob, ob_new, ID_REMAP_SKIP_INDIRECT_USAGE);
+			if (!lib_local) {
+				BKE_libblock_remap(bmain, ob, ob_new, ID_REMAP_SKIP_INDIRECT_USAGE);
+			}
 		}
 	}
 }

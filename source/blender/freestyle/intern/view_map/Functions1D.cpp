@@ -104,7 +104,7 @@ int QuantitativeInvisibilityF1D::operator()(Interface1D& inter)
 	}
 	FEdge *fe = dynamic_cast<FEdge*>(&inter);
 	if (fe) {
-		result = ve->qi();
+		result = fe->qi();
 		return 0;
 	}
 	result = integrate(_func, inter.verticesBegin(), inter.verticesEnd(), _integration);

@@ -734,24 +734,50 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 			CLAMP(max, rect.ymin, rect.ymax);
 			fdrawline(rect.xmax - 3, min, rect.xmax - 3, max);
 		}
+		/* RGB (3 channel) */
+		else if (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB) {
+			glBlendFunc(GL_ONE, GL_ONE);
 
-		/* RGB / YCC (3 channels) */
+			glEnableClientState(GL_VERTEX_ARRAY);
+
+			glPushMatrix();
+
+			glTranslatef(rect.xmin, yofs, 0.f);
+			glScalef(w, h, 0.f);
+
+			glColor3fv( colors_alpha[0] );
+			glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_1);
+			glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
+
+			glColor3fv( colors_alpha[1] );
+			glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_2);
+			glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
+
+			glColor3fv( colors_alpha[2] );
+			glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_3);
+			glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
+
+			glDisableClientState(GL_VERTEX_ARRAY);
+			glPopMatrix();
+		}
+		/* PARADE / YCC (3 channels) */
 		else if (ELEM(scopes->wavefrm_mode,
-		              SCOPES_WAVEFRM_RGB,
+		              SCOPES_WAVEFRM_RGB_PARADE,
 		              SCOPES_WAVEFRM_YCC_601,
 		              SCOPES_WAVEFRM_YCC_709,
-		              SCOPES_WAVEFRM_YCC_JPEG))
+		              SCOPES_WAVEFRM_YCC_JPEG
+		              ))
 		{
-			int rgb = (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB);
-			
+			int rgb = (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB_PARADE);
+
 			glBlendFunc(GL_ONE, GL_ONE);
-			
+
 			glPushMatrix();
 			glEnableClientState(GL_VERTEX_ARRAY);
-			
+
 			glTranslatef(rect.xmin, yofs, 0.f);
 			glScalef(w3, h, 0.f);
-			
+
 			glColor3fv((rgb) ? colors_alpha[0] : colorsycc_alpha[0]);
 			glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_1);
 			glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
@@ -760,19 +786,19 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 			glColor3fv((rgb) ? colors_alpha[1] : colorsycc_alpha[1]);
 			glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_2);
 			glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
-			
+
 			glTranslatef(1.f, 0.f, 0.f);
 			glColor3fv((rgb) ? colors_alpha[2] : colorsycc_alpha[2]);
 			glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_3);
 			glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
-			
+
 			glDisableClientState(GL_VERTEX_ARRAY);
 			glPopMatrix();
-
-			
-			/* min max */
+		}
+		/* min max */
+		if (scopes->wavefrm_mode != SCOPES_WAVEFRM_LUMA ) {
 			for (int c = 0; c < 3; c++) {
-				if (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB)
+				if (ELEM(scopes->wavefrm_mode, SCOPES_WAVEFRM_RGB_PARADE, SCOPES_WAVEFRM_RGB))
 					glColor3f(colors[c][0] * 0.75f, colors[c][1] * 0.75f, colors[c][2] * 0.75f);
 				else
 					glColor3f(colorsycc[c][0] * 0.75f, colorsycc[c][1] * 0.75f, colorsycc[c][2] * 0.75f);

@@ -245,7 +245,7 @@ bool RE_HasFakeLayer(RenderResult *res) RET_ZERO
 
 /* zbuf.c stub */
 void antialias_tagbuf(int xsize, int ysize, char *rectmove) RET_NONE
-void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nbd, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect) RET_NONE
+void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nbd, int xsize, int ysize, float *newrect, const float *imgrect, float *vecbufrect, const float *zbufrect) RET_NONE
 
 /* imagetexture.c stub */
 void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float *result) RET_NONE
@@ -306,6 +306,8 @@ void WM_operator_handlers_clear(wmWindowManager *wm, struct wmOperatorType *ot) 
 
 void WM_autosave_init(wmWindowManager *wm) RET_NONE
 void WM_jobs_kill_all_except(struct wmWindowManager *wm, void *owner) RET_NONE
+
+void WM_lib_reload(struct Library *lib, struct bContext *C, struct ReportList *reports) RET_NONE
 
 char *WM_clipboard_text_get(bool selection, int *r_len) RET_NULL
 char *WM_clipboard_text_get_firstline(bool selection, int *r_len) RET_NULL

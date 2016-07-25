@@ -190,7 +190,6 @@ void ccgSubSurf_checkTopologyChanged(CCGSubSurf *ss, DerivedMesh *dm)
 		/* ** Make sure both GPU and CPU backends are properly reset. ** */
 
 		ss->osd_coarse_coords_invalid = true;
-		ss->osd_uvs_invalid = true;
 
 		/* Reset GPU part. */
 		ss->osd_mesh_invalid = true;
@@ -216,7 +215,9 @@ static void ccgSubSurf__updateGLMeshCoords(CCGSubSurf *ss)
 	                                       ss->osd_num_coarse_coords);
 }
 
-bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss, bool use_osd_glsl)
+bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss,
+                              bool use_osd_glsl,
+                              int active_uv_index)
 {
 	int compute_type;
 
@@ -256,8 +257,7 @@ bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss, bool use_osd_glsl)
 		ss->osd_mesh = openSubdiv_createOsdGLMeshFromTopologyRefiner(
 		        ss->osd_topology_refiner,
 		        compute_type,
-		        ss->subdivLevels,
-		        ss->osd_subsurf_uv);
+		        ss->subdivLevels);
 		ss->osd_topology_refiner = NULL;
 
 		if (UNLIKELY(ss->osd_mesh == NULL)) {
@@ -290,7 +290,7 @@ bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss, bool use_osd_glsl)
 		ss->osd_coarse_coords_invalid = false;
 	}
 
-	openSubdiv_osdGLMeshDisplayPrepare(use_osd_glsl, ss->osd_uv_index);
+	openSubdiv_osdGLMeshDisplayPrepare(use_osd_glsl, active_uv_index);
 
 	return true;
 }
@@ -982,6 +982,11 @@ void ccgSubSurf__delete_pending(void)
 	}
 	BLI_freelistN(&delete_pool);
 	BLI_spin_unlock(&delete_spin);
+}
+
+void ccgSubSurf__sync_subdivUvs(CCGSubSurf *ss, bool subdiv_uvs)
+{
+    ss->osd_subdiv_uvs = subdiv_uvs;
 }
 
 /* ** Public API ** */

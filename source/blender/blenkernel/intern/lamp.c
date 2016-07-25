@@ -135,8 +135,8 @@ Lamp *BKE_lamp_copy(Main *bmain, Lamp *la)
 
 	if (la->nodetree)
 		lan->nodetree = ntreeCopyTree(bmain, la->nodetree);
-	
-	lan->preview = BKE_previewimg_copy(la->preview);
+
+	BKE_previewimg_id_copy(&lan->id, &la->id);
 
 	if (ID_IS_LINKED_DATABLOCK(la)) {
 		BKE_id_expand_local(&lan->id);
@@ -172,34 +172,9 @@ Lamp *localize_lamp(Lamp *la)
 	return lan;
 }
 
-void BKE_lamp_make_local(Main *bmain, Lamp *la, const bool force_local)
+void BKE_lamp_make_local(Main *bmain, Lamp *la, const bool lib_local)
 {
-	bool is_local = false, is_lib = false;
-
-	/* - only lib users: do nothing (unless force_local is set)
-	 * - only local users: set flag
-	 * - mixed: make copy
-	 */
-	
-	if (!ID_IS_LINKED_DATABLOCK(la)) {
-		return;
-	}
-
-	BKE_library_ID_test_usages(bmain, la, &is_local, &is_lib);
-
-	if (force_local || is_local) {
-		if (!is_lib) {
-			id_clear_lib_data(bmain, &la->id);
-			BKE_id_expand_local(&la->id);
-		}
-		else {
-			Lamp *la_new = BKE_lamp_copy(bmain, la);
-
-			la_new->id.us = 0;
-
-			BKE_libblock_remap(bmain, la, la_new, ID_REMAP_SKIP_INDIRECT_USAGE);
-		}
-	}
+	BKE_id_make_local_generic(bmain, &la->id, true, lib_local);
 }
 
 void BKE_lamp_free(Lamp *la)

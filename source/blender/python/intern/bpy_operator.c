@@ -223,9 +223,9 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 		WM_operator_properties_create_ptr(&ptr, ot);
 		WM_operator_properties_sanitize(&ptr, 0);
 
-		if (kw && PyDict_Size(kw))
-			error_val = pyrna_pydict_to_props(&ptr, kw, 0, "Converting py args to operator properties: ");
-
+		if (kw && PyDict_Size(kw)) {
+			error_val = pyrna_pydict_to_props(&ptr, kw, false, "Converting py args to operator properties: ");
+		}
 
 		if (error_val == 0) {
 			ReportList *reports;
@@ -353,8 +353,9 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
 	/* Save another lookup */
 	RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
 
-	if (kw && PyDict_Size(kw))
-		error_val = pyrna_pydict_to_props(&ptr, kw, 0, "Converting py args to operator properties: ");
+	if (kw && PyDict_Size(kw)) {
+		error_val = pyrna_pydict_to_props(&ptr, kw, false, "Converting py args to operator properties: ");
+	}
 
 	if (error_val == 0)
 		buf = WM_operator_pystring_ex(C, NULL, all_args, macro_args, ot, &ptr);

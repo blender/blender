@@ -930,7 +930,7 @@ void render_update_anim_renderdata(Render *re, RenderData *rd)
 	BLI_duplicatelist(&re->r.views, &rd->views);
 }
 
-void RE_SetWindow(Render *re, rctf *viewplane, float clipsta, float clipend)
+void RE_SetWindow(Render *re, const rctf *viewplane, float clipsta, float clipend)
 {
 	/* re->ok flag? */
 	
@@ -945,7 +945,7 @@ void RE_SetWindow(Render *re, rctf *viewplane, float clipsta, float clipend)
 	
 }
 
-void RE_SetOrtho(Render *re, rctf *viewplane, float clipsta, float clipend)
+void RE_SetOrtho(Render *re, const rctf *viewplane, float clipsta, float clipend)
 {
 	/* re->ok flag? */
 	
@@ -966,15 +966,17 @@ void RE_SetView(Render *re, float mat[4][4])
 	invert_m4_m4(re->viewinv, re->viewmat);
 }
 
-void RE_GetViewPlane(Render *re, rctf *viewplane, rcti *disprect)
+void RE_GetViewPlane(Render *re, rctf *r_viewplane, rcti *r_disprect)
 {
-	*viewplane = re->viewplane;
+	*r_viewplane = re->viewplane;
 	
 	/* make disprect zero when no border render, is needed to detect changes in 3d view render */
-	if (re->r.mode & R_BORDER)
-		*disprect = re->disprect;
-	else
-		BLI_rcti_init(disprect, 0, 0, 0, 0);
+	if (re->r.mode & R_BORDER) {
+		*r_disprect = re->disprect;
+	}
+	else {
+		BLI_rcti_init(r_disprect, 0, 0, 0, 0);
+	}
 }
 
 void RE_GetView(Render *re, float mat[4][4])

@@ -376,6 +376,9 @@ bool BKE_autotrack_context_step(AutoTrackContext *context)
 #pragma omp parallel for if (context->num_tracks > 1)
 	for (track = 0; track < context->num_tracks; ++track) {
 		AutoTrackOptions *options = &context->options[track];
+		if (options->is_failed) {
+			continue;
+		}
 		libmv_Marker libmv_current_marker,
 		             libmv_reference_marker,
 		             libmv_tracked_marker;
@@ -463,16 +466,25 @@ void BKE_autotrack_context_sync(AutoTrackContext *context)
 			AutoTrackOptions *options = &context->options[track];
 			int track_frame = BKE_movieclip_remap_scene_to_clip_frame(
 				context->clips[options->clip_index], frame);
-			if (options->is_failed && options->failed_frame == track_frame) {
-				MovieTrackingMarker *prev_marker =
-					BKE_tracking_marker_get_exact(options->track, frame);
-				if (prev_marker) {
-					marker = *prev_marker;
-					marker.framenr = context->backwards ?
-					                 track_frame - 1 :
-					                 track_frame + 1;
-					marker.flag |= MARKER_DISABLED;
-					BKE_tracking_marker_insert(options->track, &marker);
+			if (options->is_failed) {
+				if (options->failed_frame == track_frame) {
+					MovieTrackingMarker *prev_marker =
+					        BKE_tracking_marker_get_exact(
+					                options->track,
+					                context->backwards
+					                        ? frame + 1
+					                        : frame - 1);
+					if (prev_marker) {
+						marker = *prev_marker;
+						marker.framenr = track_frame;
+						marker.flag |= MARKER_DISABLED;
+						BKE_tracking_marker_insert(options->track, &marker);
+						continue;
+					}
+				}
+				if ((context->backwards && options->failed_frame > track_frame) ||
+				    (!context->backwards && options->failed_frame < track_frame))
+				{
 					continue;
 				}
 			}

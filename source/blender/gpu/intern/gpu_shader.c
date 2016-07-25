@@ -437,6 +437,10 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
 	/* TODO(sergey): Find a better place for this. */
 	if (use_opensubdiv && GLEW_VERSION_4_1) {
 		glProgramUniform1i(shader->program,
+		                   glGetUniformLocation(shader->program, "FVarDataOffsetBuffer"),
+		                   30);  /* GL_TEXTURE30 */
+
+		glProgramUniform1i(shader->program,
 		                   glGetUniformLocation(shader->program, "FVarDataBuffer"),
 		                   31);  /* GL_TEXTURE31 */
 	}

@@ -565,7 +565,9 @@ class SpellChecker:
         "ui",
         "unix",
         "vbo", "vbos",
+        "wxyz",
         "ycc", "ycca",
+        "yrgb",
         "yuv", "yuva",
 
         # Blender acronyms

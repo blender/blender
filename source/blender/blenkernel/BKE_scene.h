@@ -101,6 +101,8 @@ struct Scene *BKE_scene_set_name(struct Main *bmain, const char *name);
 struct Scene *BKE_scene_copy(struct Main *bmain, struct Scene *sce, int type);
 void BKE_scene_groups_relink(struct Scene *sce);
 
+void BKE_scene_make_local(struct Main *bmain, struct Scene *sce, const bool lib_local);
+
 struct Object *BKE_scene_camera_find(struct Scene *sc);
 #ifdef DURIAN_CAMERA_SWITCH
 struct Object *BKE_scene_camera_switch_find(struct Scene *scene); // DURIAN_CAMERA_SWITCH

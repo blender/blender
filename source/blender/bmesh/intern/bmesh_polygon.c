@@ -48,31 +48,6 @@
 #include "intern/bmesh_private.h"
 
 /**
- * \brief TEST EDGE SIDE and POINT IN TRIANGLE
- *
- * Point in triangle tests stolen from scanfill.c.
- * Used for tessellator
- */
-
-static bool testedgesidef(const float v1[2], const float v2[2], const float v3[2])
-{
-	/* is v3 to the right of v1 - v2 ? With exception: v3 == v1 || v3 == v2 */
-	double inp;
-
-	//inp = (v2[cox] - v1[cox]) * (v1[coy] - v3[coy]) + (v1[coy] - v2[coy]) * (v1[cox] - v3[cox]);
-	inp = (v2[0] - v1[0]) * (v1[1] - v3[1]) + (v1[1] - v2[1]) * (v1[0] - v3[0]);
-
-	if (inp < 0.0) {
-		return false;
-	}
-	else if (inp == 0) {
-		if (v1[0] == v3[0] && v1[1] == v3[1]) return false;
-		if (v2[0] == v3[0] && v2[1] == v3[1]) return false;
-	}
-	return true;
-}
-
-/**
  * \brief COMPUTE POLY NORMAL (BMFace)
  *
  * Same as #normal_poly_v3 but operates directly on a bmesh face.
@@ -603,29 +578,6 @@ void BM_face_calc_center_mean_weighted(const BMFace *f, float r_cent[3])
 }
 
 /**
- * \brief BM LEGAL EDGES
- *
- * takes in a face and a list of edges, and sets to NULL any edge in
- * the list that bridges a concave region of the face or intersects
- * any of the faces's edges.
- */
-static void scale_edge_v2f(float v1[2], float v2[2], const float fac)
-{
-	float mid[2];
-
-	mid_v2_v2v2(mid, v1, v2);
-
-	sub_v2_v2v2(v1, v1, mid);
-	sub_v2_v2v2(v2, v2, mid);
-
-	mul_v2_fl(v1, fac);
-	mul_v2_fl(v2, fac);
-
-	add_v2_v2v2(v1, v1, mid);
-	add_v2_v2v2(v2, v2, mid);
-}
-
-/**
  * \brief POLY ROTATE PLANE
  *
  * Rotates a polygon so that it's
@@ -908,67 +860,6 @@ void BM_face_normal_flip(BMesh *bm, BMFace *f)
 {
 	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
 	BM_face_normal_flip_ex(bm, f, cd_loop_mdisp_offset, true);
-}
-
-/* detects if two line segments cross each other (intersects).
- * note, there could be more winding cases then there needs to be. */
-static bool line_crosses_v2f(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
-{
-
-#define GETMIN2_AXIS(a, b, ma, mb, axis)   \
-	{                                      \
-		ma[axis] = min_ff(a[axis], b[axis]); \
-		mb[axis] = max_ff(a[axis], b[axis]); \
-	} (void)0
-
-#define GETMIN2(a, b, ma, mb)          \
-	{                                  \
-		GETMIN2_AXIS(a, b, ma, mb, 0); \
-		GETMIN2_AXIS(a, b, ma, mb, 1); \
-	} (void)0
-
-#define EPS (FLT_EPSILON * 15)
-
-	int w1, w2, w3, w4, w5 /*, re */;
-	float mv1[2], mv2[2], mv3[2], mv4[2];
-	
-	/* now test winding */
-	w1 = testedgesidef(v1, v3, v2);
-	w2 = testedgesidef(v2, v4, v1);
-	w3 = !testedgesidef(v1, v2, v3);
-	w4 = testedgesidef(v3, v2, v4);
-	w5 = !testedgesidef(v3, v1, v4);
-	
-	if (w1 == w2 && w2 == w3 && w3 == w4 && w4 == w5) {
-		return true;
-	}
-	
-	GETMIN2(v1, v2, mv1, mv2);
-	GETMIN2(v3, v4, mv3, mv4);
-	
-	/* do an interval test on the x and y axes */
-	/* first do x axis */
-	if (fabsf(v1[1] - v2[1]) < EPS &&
-	    fabsf(v3[1] - v4[1]) < EPS &&
-	    fabsf(v1[1] - v3[1]) < EPS)
-	{
-		return (mv4[0] >= mv1[0] && mv3[0] <= mv2[0]);
-	}
-
-	/* now do y axis */
-	if (fabsf(v1[0] - v2[0]) < EPS &&
-	    fabsf(v3[0] - v4[0]) < EPS &&
-	    fabsf(v1[0] - v3[0]) < EPS)
-	{
-		return (mv4[1] >= mv1[1] && mv3[1] <= mv2[1]);
-	}
-
-	return false;
-
-#undef GETMIN2_AXIS
-#undef GETMIN2
-#undef EPS
-
 }
 
 /**
@@ -1268,121 +1159,103 @@ void BM_face_triangulate(
  */
 void BM_face_splits_check_legal(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 {
-	const int len2 = len * 2;
-	BMLoop *l;
-	float v1[2], v2[2], v3[2], mid[2], *p1, *p2, *p3, *p4;
 	float out[2] = {-FLT_MAX, -FLT_MAX};
+	float center[2] = {0.0f, 0.0f};
 	float axis_mat[3][3];
 	float (*projverts)[2] = BLI_array_alloca(projverts, f->len);
-	float (*edgeverts)[2] = BLI_array_alloca(edgeverts, len2);
-	float fac1 = 1.0000001f, fac2 = 0.9f; //9999f; //0.999f;
-	int i, j, a = 0, clen;
+	const float *(*edgeverts)[2] = BLI_array_alloca(edgeverts, len);
+	BMLoop *l;
+	int i, i_prev, j;
 
 	BLI_assert(BM_face_is_normal_valid(f));
 
 	axis_dominant_v3_to_m3(axis_mat, f->no);
 
 	for (i = 0, l = BM_FACE_FIRST_LOOP(f); i < f->len; i++, l = l->next) {
-		BM_elem_index_set(l, i);  /* set_dirty */
 		mul_v2_m3v3(projverts[i], axis_mat, l->v->co);
+		add_v2_v2(center, projverts[i]);
 	}
-	bm->elem_index_dirty |= BM_LOOP;
 
 	/* first test for completely convex face */
 	if (is_poly_convex_v2((const float (*)[2])projverts, f->len)) {
 		return;
 	}
 
+	mul_v2_fl(center, 1.0f / f->len);
+
 	for (i = 0, l = BM_FACE_FIRST_LOOP(f); i < f->len; i++, l = l->next) {
+		BM_elem_index_set(l, i);  /* set_dirty */
+
+		/* center the projection for maximum accuracy */
+		sub_v2_v2(projverts[i], center);
+
 		out[0] = max_ff(out[0], projverts[i][0]);
 		out[1] = max_ff(out[1], projverts[i][1]);
 	}
+	bm->elem_index_dirty |= BM_LOOP;
 	
 	/* ensure we are well outside the face bounds (value is arbitrary) */
 	add_v2_fl(out, 1.0f);
 
 	for (i = 0; i < len; i++) {
-		copy_v2_v2(edgeverts[a + 0], projverts[BM_elem_index_get(loops[i][0])]);
-		copy_v2_v2(edgeverts[a + 1], projverts[BM_elem_index_get(loops[i][1])]);
-		scale_edge_v2f(edgeverts[a + 0], edgeverts[a + 1], fac2);
-		a += 2;
+		edgeverts[i][0] = projverts[BM_elem_index_get(loops[i][0])];
+		edgeverts[i][1] = projverts[BM_elem_index_get(loops[i][1])];
 	}
 
 	/* do convexity test */
 	for (i = 0; i < len; i++) {
-		copy_v2_v2(v2, edgeverts[i * 2 + 0]);
-		copy_v2_v2(v3, edgeverts[i * 2 + 1]);
-
-		mid_v2_v2v2(mid, v2, v3);
+		float mid[2];
+		mid_v2_v2v2(mid, edgeverts[i][0], edgeverts[i][1]);
 		
-		clen = 0;
-		for (j = 0; j < f->len; j++) {
-			p1 = projverts[j];
-			p2 = projverts[(j + 1) % f->len];
-			
-#if 0
-			copy_v2_v2(v1, p1);
-			copy_v2_v2(v2, p2);
-
-			scale_edge_v2f(v1, v2, fac1);
-			if (line_crosses_v2f(v1, v2, mid, out)) {
-				clen++;
+		int isect = 0;
+		int j_prev;
+		for (j = 0, j_prev = f->len - 1; j < f->len; j_prev = j++) {
+			const float *f_edge[2] = {projverts[j_prev], projverts[j]};
+			if (isect_seg_seg_v2(UNPACK2(f_edge), mid, out) == ISECT_LINE_LINE_CROSS) {
+				isect++;
 			}
-#else
-			if (line_crosses_v2f(p1, p2, mid, out)) {
-				clen++;
-			}
-#endif
 		}
 
-		if (clen % 2 == 0) {
+		if (isect % 2 == 0) {
 			loops[i][0] = NULL;
 		}
 	}
 
+#define EDGE_SHARE_VERT(e1, e2) \
+	((ELEM((e1)[0], (e2)[0], (e2)[1])) || \
+	 (ELEM((e1)[1], (e2)[0], (e2)[1])))
+
 	/* do line crossing tests */
-	for (i = 0; i < f->len; i++) {
-		p1 = projverts[i];
-		p2 = projverts[(i + 1) % f->len];
-		
-		copy_v2_v2(v1, p1);
-		copy_v2_v2(v2, p2);
-
-		scale_edge_v2f(v1, v2, fac1);
-
+	for (i = 0, i_prev = f->len - 1; i < f->len; i_prev = i++) {
+		const float *f_edge[2] = {projverts[i_prev], projverts[i]};
 		for (j = 0; j < len; j++) {
-			if (!loops[j][0]) {
-				continue;
-			}
-
-			p3 = edgeverts[j * 2];
-			p4 = edgeverts[j * 2 + 1];
-
-			if (line_crosses_v2f(v1, v2, p3, p4)) {
-				loops[j][0] = NULL;
-			}
-		}
-	}
-
-	for (i = 0; i < len; i++) {
-		for (j = 0; j < len; j++) {
-			if (j != i && loops[i][0] && loops[j][0]) {
-				p1 = edgeverts[i * 2];
-				p2 = edgeverts[i * 2 + 1];
-				p3 = edgeverts[j * 2];
-				p4 = edgeverts[j * 2 + 1];
-
-				copy_v2_v2(v1, p1);
-				copy_v2_v2(v2, p2);
-
-				scale_edge_v2f(v1, v2, fac1);
-
-				if (line_crosses_v2f(v1, v2, p3, p4)) {
-					loops[i][0] = NULL;
+			if ((loops[j][0] != NULL) &&
+			    !EDGE_SHARE_VERT(f_edge, edgeverts[j]))
+			{
+				if (isect_seg_seg_v2(UNPACK2(f_edge), UNPACK2(edgeverts[j])) == ISECT_LINE_LINE_CROSS) {
+					loops[j][0] = NULL;
 				}
 			}
 		}
 	}
+
+	/* self intersect tests */
+	for (i = 0; i < len; i++) {
+		if (loops[i][0]) {
+			for (j = i + 1; j < len; j++) {
+				if ((loops[j][0] != NULL) &&
+				    !EDGE_SHARE_VERT(edgeverts[i], edgeverts[j]))
+				{
+					if (isect_seg_seg_v2(UNPACK2(edgeverts[i]), UNPACK2(edgeverts[j])) == ISECT_LINE_LINE_CROSS) {
+						loops[i][0] = NULL;
+						break;
+					}
+				}
+			}
+		}
+	}
+
+#undef EDGE_SHARE_VERT
 }
 
 /**

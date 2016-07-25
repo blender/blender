@@ -499,6 +499,11 @@ Text *BKE_text_copy(Main *bmain, Text *ta)
 	return tan;
 }
 
+void BKE_text_make_local(Main *bmain, Text *text, const bool lib_local)
+{
+	BKE_id_make_local_generic(bmain, &text->id, true, lib_local);
+}
+
 void BKE_text_clear(Text *text) /* called directly from rna */
 {
 	int oldstate;

@@ -205,7 +205,7 @@ void ccgSubSurf_checkTopologyChanged(CCGSubSurf *ss, struct DerivedMesh *dm);
 void ccgSubSurf_prepareTopologyRefiner(CCGSubSurf *ss, struct DerivedMesh *dm);
 
 /* Make sure GL mesh exists, up to date and ready to draw. */
-bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss, bool use_osd_glsl);
+bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss, bool use_osd_glsl, int active_uv_index);
 
 /* Draw given partitions of the GL mesh.
  *
@@ -243,6 +243,8 @@ void ccgSubSurf_evaluatorFVarUV(CCGSubSurf *ss,
 void ccgSubSurf_free_osd_mesh(CCGSubSurf *ss);
 
 void ccgSubSurf_getMinMax(CCGSubSurf *ss, float r_min[3], float r_max[3]);
+
+void ccgSubSurf__sync_subdivUvs(CCGSubSurf *ss, bool subsurf_uvs);
 
 #endif
 

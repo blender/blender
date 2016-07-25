@@ -256,9 +256,7 @@ static bool make_vertexcol(Object *ob)  /* single ob */
 
 	/* copies from shadedisplist to mcol */
 	if (!me->mloopcol && me->totloop) {
-		if (!me->mloopcol) {
-			CustomData_add_layer(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop);
-		}
+		CustomData_add_layer(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop);
 		BKE_mesh_update_customdata_pointers(me, true);
 	}
 

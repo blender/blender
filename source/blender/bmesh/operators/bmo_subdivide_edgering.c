@@ -1099,7 +1099,8 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
 		BMFace *f;
 
 		BM_ITER_ELEM (f, &fiter, e, BM_FACES_OF_EDGE) {
-			if (!BMO_face_flag_test(bm, f, FACE_OUT)) {
+			/* could support ngons, other areas would need updating too, see T48926. */
+			if ((f->len <= 4) && !BMO_face_flag_test(bm, f, FACE_OUT)) {
 				BMIter liter;
 				BMLoop *l;
 				bool ok = false;

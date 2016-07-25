@@ -2627,17 +2627,29 @@ PyDoc_STRVAR(BPy_EnumProperty_doc,
 "   Returns a new enumerator property definition.\n"
 "\n"
 "   :arg items: sequence of enum items formatted:\n"
-"      [(identifier, name, description, icon, number), ...] where the identifier is used\n"
-"      for python access and other values are used for the interface.\n"
-"      The three first elements of the tuples are mandatory.\n"
-"      The fourth one is either the (unique!) number id of the item or, if followed by a fith element\n"
-"      (which must be the numid), an icon string identifier or integer icon value (e.g. returned by icon()...).\n"
-"      Note the item is optional.\n"
+"      ``[(identifier, name, description, icon, number), ...]``.\n"
+"\n"
+"      The first three elements of the tuples are mandatory.\n"
+"\n"
+"      :identifier: The identifier is used for Python access.\n"
+"      :name: Name for the interace.\n"
+"      :description: Used for documentation and tooltips.\n"
+"      :icon: An icon string identifier or integer icon value\n"
+"         (e.g. returned by :class:`bpy.types.UILayout.icon`)\n"
+"      :number: Unique value used as the identifier for this item (stored in file data).\n"
+"         Use when the identifier may need to change.\n"
+"\n"
+"      When an item only contains 4 items they define ``(identifier, name, description, number)``.\n"
+"\n"
 "      For dynamic values a callback can be passed which returns a list in\n"
 "      the same format as the static list.\n"
-"      This function must take 2 arguments (self, context), **context may be None**.\n"
-"      WARNING: There is a known bug with using a callback,\n"
-"      Python must keep a reference to the strings returned or Blender will crash.\n"
+"      This function must take 2 arguments ``(self, context)``, **context may be None**.\n"
+"\n"
+"      .. warning::\n"
+"\n"
+"         There is a known bug with using a callback,\n"
+"         Python must keep a reference to the strings returned or Blender will crash.\n"
+"\n"
 "   :type items: sequence of string tuples or a function\n"
 BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
@@ -2986,7 +2998,7 @@ static struct PyModuleDef props_module = {
 	"This module defines properties to extend Blender's internal data. The result of these functions"
 	" is used to assign properties to classes registered with Blender and can't be used directly.\n"
 	"\n"
-	".. warning:: All parameters to these functions must be passed as keywords.\n",
+	".. note:: All parameters to these functions must be passed as keywords.\n",
 	-1, /* multiple "initialization" just copies the module dict. */
 	props_methods,
 	NULL, NULL, NULL, NULL

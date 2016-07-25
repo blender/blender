@@ -707,6 +707,7 @@ int GHOST_ContextWGL::choose_pixel_format(
 	PIXELFORMATDESCRIPTOR preferredPFD = {
 		sizeof(PIXELFORMATDESCRIPTOR),   /* size */
 		1,                               /* version */
+		(DWORD) (
 		PFD_SUPPORT_OPENGL |
 		PFD_DRAW_TO_WINDOW |
 		PFD_SWAP_COPY      |             /* support swap copy */
@@ -717,16 +718,16 @@ int GHOST_ContextWGL::choose_pixel_format(
 		needAlpha ? PFD_SUPPORT_COMPOSITION :	 /* support composition for transparent background */
 #endif
 		0
-		),
+		)),
 		PFD_TYPE_RGBA,                   /* color type */
-		(needAlpha ? 32 : 24),           /* preferred color depth */
+		(BYTE) (needAlpha ? 32 : 24),           /* preferred color depth */
 		0, 0, 0, 0, 0, 0,                /* color bits (ignored) */
-		needAlpha ? 8 : 0,               /* alpha buffer */
+		(BYTE) (needAlpha ? 8 : 0),               /* alpha buffer */
 		0,                               /* alpha shift (ignored) */
 		0,                               /* no accumulation buffer */
 		0, 0, 0, 0,                      /* accum bits (ignored) */
 		24,                              /* depth buffer */
-		needStencil ? 8 : 0,             /* stencil buffer */
+		(BYTE) (needStencil ? 8 : 0),             /* stencil buffer */
 		0,                               /* no auxiliary buffers */
 		PFD_MAIN_PLANE,                  /* main layer */
 		0,                               /* reserved */

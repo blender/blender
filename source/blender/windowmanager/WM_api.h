@@ -114,6 +114,8 @@ void		WM_autosave_init(struct wmWindowManager *wm);
 void		WM_recover_last_session(struct bContext *C, struct ReportList *reports);
 void		WM_file_tag_modified(const struct bContext *C);
 
+void        WM_lib_reload(struct Library *lib, struct bContext *C, struct ReportList *reports);
+
 			/* mouse cursors */
 void		WM_cursor_set(struct wmWindow *win, int curs);
 void		WM_cursor_modal_set(struct wmWindow *win, int curs);

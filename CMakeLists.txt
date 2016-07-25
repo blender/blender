@@ -1283,11 +1283,21 @@ elseif(WIN32)
 
 	if(MSVC)
 		# Minimum MSVC Version
-		set(_min_ver "18.0.31101")
-		if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${_min_ver})
-			message(FATAL_ERROR
-			        "Visual Studio 2013 (Update 4, ${_min_ver}) required, "
-			        "found (${CMAKE_CXX_COMPILER_VERSION})")
+		if(MSVC_VERSION EQUAL 1800)
+			set(_min_ver "18.0.31101")
+			if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${_min_ver})
+				message(FATAL_ERROR
+					"Visual Studio 2013 (Update 4, ${_min_ver}) required, "
+					"found (${CMAKE_CXX_COMPILER_VERSION})")
+			endif()
+		endif()
+		if(MSVC_VERSION EQUAL 1900)
+			set(_min_ver "19.0.24210")
+			if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${_min_ver})
+				message(FATAL_ERROR
+					"Visual Studio 2015 (Update 3, ${_min_ver}) required, "
+					"found (${CMAKE_CXX_COMPILER_VERSION})")
+			endif()
 		endif()
 		unset(_min_ver)
 
@@ -1352,17 +1362,6 @@ elseif(WIN32)
 		endif()
 
 		set(PLATFORM_LINKFLAGS_DEBUG "/IGNORE:4099 /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libc.lib")
-
-		# Use dynamic loading for OpenMP
-		if(WITH_OPENMP)
-			if(MSVC_VERSION EQUAL 1800)
-				set(OPENMP_DLL_NAME "vcomp120")
-			else()
-				set(OPENMP_DLL_NAME "vcomp140")
-			endif()
-			set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
-			set(PLATFORM_LINKFLAGS_DEBUG "${PLATFORM_LINKFLAGS_DEBUG} /DELAYLOAD:${OPENMP_DLL_NAME}d.dll delayimp.lib")
-		endif()
 
 		if(NOT DEFINED LIBDIR)
 
@@ -3162,6 +3161,14 @@ add_subdirectory(tests)
 # CPack for generating packages
 include(build_files/cmake/packaging.cmake)
 
+#-----------------------------------------------------------------------------
+# Use dynamic loading for OpenMP
+if(WITH_BLENDER)
+	openmp_delayload(blender)
+endif(WITH_BLENDER)
+if(WITH_PLAYER)
+	openmp_delayload(blenderplayer)
+endif(WITH_PLAYER)
 
 #-----------------------------------------------------------------------------
 # Print Final Configuration

@@ -226,6 +226,11 @@ FreestyleLineStyle *BKE_linestyle_copy(struct Main *bmain, FreestyleLineStyle *l
 	return new_linestyle;
 }
 
+void BKE_linestyle_make_local(struct Main *bmain, FreestyleLineStyle *linestyle, const bool lib_local)
+{
+	BKE_id_make_local_generic(bmain, &linestyle->id, true, lib_local);
+}
+
 FreestyleLineStyle *BKE_linestyle_active_from_scene(Scene *scene)
 {
 	SceneRenderLayer *actsrl = BLI_findlink(&scene->r.layers, scene->r.actlay);

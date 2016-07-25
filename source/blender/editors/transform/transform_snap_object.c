@@ -1244,7 +1244,8 @@ static bool snapDerivedMesh(
 				 * away ray_start values (as returned in case of ortho view3d), see T38358.
 				 */
 				len_diff -= local_scale;  /* make temp start point a bit away from bbox hit point. */
-				madd_v3_v3v3fl(ray_start_local, ray_org_local, ray_normal_local, len_diff + depth_range[0]);
+				madd_v3_v3v3fl(
+				        ray_start_local, ray_org_local, ray_normal_local, len_diff + depth_range[0] * local_scale);
 				local_depth -= len_diff;
 			}
 			else {
@@ -1361,7 +1362,7 @@ static bool snapDerivedMesh(
 
 				if (BLI_bvhtree_find_nearest_to_ray(
 				        treedata->tree, ray_org_local, ray_normal_local,
-				        false, ob_scale, &nearest, cb_test_ray_dist, &userdata) != -1)
+				        true, ob_scale, &nearest, cb_test_ray_dist, &userdata) != -1)
 				{
 					copy_v3_v3(r_loc, nearest.co);
 					mul_m4_v3(obmat, r_loc);
@@ -1567,7 +1568,8 @@ static bool snapEditMesh(
 					 * (as returned in case of ortho view3d), see T38358.
 					 */
 					len_diff -= local_scale;  /* make temp start point a bit away from bbox hit point. */
-					madd_v3_v3v3fl(ray_start_local, ray_org_local, ray_normal_local, len_diff + depth_range[0]);
+					madd_v3_v3v3fl(
+					        ray_start_local, ray_org_local, ray_normal_local, len_diff + depth_range[0] * local_scale);
 					local_depth -= len_diff;
 				}
 			}

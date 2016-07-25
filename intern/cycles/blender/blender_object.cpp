@@ -253,11 +253,10 @@ static bool object_boundbox_clip(Scene *scene,
 		                       boundbox[3 * i + 1],
 		                       boundbox[3 * i + 2]);
 		p = transform_point(&tfm, p);
-		p = transform_point(&worldtondc, p);
+		p = transform_perspective(&worldtondc, p);
 		if(p.z >= -margin) {
 			all_behind = false;
 		}
-		p /= p.z;
 		bb_min = min(bb_min, p);
 		bb_max = max(bb_max, p);
 	}
@@ -682,12 +681,7 @@ void BlenderSync::sync_motion(BL::RenderSettings& b_render,
 		        << relative_time << ".";
 
 		/* fixed shutter time to get previous and next frame for motion pass */
-		float shuttertime;
-
-		if(scene->need_motion() == Scene::MOTION_PASS)
-			shuttertime = 2.0f;
-		else
-			shuttertime = scene->camera->shuttertime;
+		float shuttertime = scene->motion_shutter_time();
 
 		/* compute frame and subframe time */
 		float time = frame_center + frame_center_delta + relative_time * shuttertime * 0.5f;

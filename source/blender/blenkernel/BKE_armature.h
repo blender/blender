@@ -76,7 +76,7 @@ struct bArmature *BKE_armature_from_object(struct Object *ob);
 int  BKE_armature_bonelist_count(struct ListBase *lb);
 void BKE_armature_bonelist_free(struct ListBase *lb);
 void BKE_armature_free(struct bArmature *arm);
-void BKE_armature_make_local(struct Main *bmain, struct bArmature *arm, const bool force_local);
+void BKE_armature_make_local(struct Main *bmain, struct bArmature *arm, const bool lib_local);
 struct bArmature *BKE_armature_copy(struct Main *bmain, struct bArmature *arm);
 
 /* Bounding box. */
@@ -95,6 +95,7 @@ float distfactor_to_bone(const float vec[3], const float b1[3], const float b2[3
 
 void BKE_armature_where_is(struct bArmature *arm);
 void BKE_armature_where_is_bone(struct Bone *bone, struct Bone *prevbone, const bool use_recursion);
+void BKE_pose_clear_pointers(struct bPose *pose);
 void BKE_pose_rebuild(struct Object *ob, struct bArmature *arm);
 void BKE_pose_where_is(struct Scene *scene, struct Object *ob);
 void BKE_pose_where_is_bone(struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan, float ctime, bool do_extra);

@@ -47,6 +47,8 @@ typedef struct OpenSubdiv_Converter {
 
 	OpenSubdiv_SchemeType (*get_type)(const OpenSubdiv_Converter *converter);
 
+	bool (*get_subdiv_uvs)(const OpenSubdiv_Converter *converter);
+
 	int (*get_num_faces)(const OpenSubdiv_Converter *converter);
 	int (*get_num_edges)(const OpenSubdiv_Converter *converter);
 	int (*get_num_verts)(const OpenSubdiv_Converter *converter);
@@ -82,6 +84,20 @@ typedef struct OpenSubdiv_Converter {
 	void (*get_vert_faces)(const OpenSubdiv_Converter *converter,
 	                       int vert,
 	                       int *vert_faces);
+
+	/* Face-varying data. */
+
+	int (*get_num_uv_layers)(const OpenSubdiv_Converter *converter);
+
+	void (*precalc_uv_layer)(const OpenSubdiv_Converter *converter, int layer);
+	void (*finish_uv_layer)(const OpenSubdiv_Converter *converter);
+
+	int (*get_num_uvs)(const OpenSubdiv_Converter *converter);
+	void (*get_uvs)(const OpenSubdiv_Converter *converter, float *uvs);
+
+	int (*get_face_corner_uv_index)(const OpenSubdiv_Converter *converter,
+	                                int face,
+	                                int corner);
 
 	void (*free_user_data)(const OpenSubdiv_Converter *converter);
 	void *user_data;

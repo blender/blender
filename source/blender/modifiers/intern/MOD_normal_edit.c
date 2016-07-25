@@ -144,8 +144,9 @@ static void mix_normals(
 				break;
 		}
 
-		interp_v3_v3v3_slerp_safe(*no_new, *no_old, *no_new,
-		                          (mix_limit < M_PI) ? min_ff(fac, mix_limit / angle_v3v3(*no_new, *no_old)) : fac);
+		interp_v3_v3v3_slerp_safe(
+		        *no_new, *no_old, *no_new,
+		        (mix_limit < (float)M_PI) ? min_ff(fac, mix_limit / angle_v3v3(*no_new, *no_old)) : fac);
 	}
 
 	MEM_SAFE_FREE(facs);
@@ -390,7 +391,7 @@ static DerivedMesh *normalEditModifier_do(NormalEditModifierData *smd, Object *o
 	const bool use_current_clnors = !((smd->mix_mode == MOD_NORMALEDIT_MIX_COPY) &&
 	                                  (smd->mix_factor == 1.0f) &&
 	                                  (smd->defgrp_name[0] == '\0') &&
-	                                  (smd->mix_limit == M_PI));
+	                                  (smd->mix_limit == (float)M_PI));
 
 	int defgrp_index;
 	MDeformVert *dvert;

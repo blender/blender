@@ -330,34 +330,9 @@ void BKE_lattice_free(Lattice *lt)
 }
 
 
-void BKE_lattice_make_local(Main *bmain, Lattice *lt, const bool force_local)
+void BKE_lattice_make_local(Main *bmain, Lattice *lt, const bool lib_local)
 {
-	bool is_local = false, is_lib = false;
-
-	/* - only lib users: do nothing (unless force_local is set)
-	 * - only local users: set flag
-	 * - mixed: make copy
-	 */
-
-	if (!ID_IS_LINKED_DATABLOCK(lt)) {
-		return;
-	}
-
-	BKE_library_ID_test_usages(bmain, lt, &is_local, &is_lib);
-
-	if (force_local || is_local) {
-		if (!is_lib) {
-			id_clear_lib_data(bmain, &lt->id);
-			BKE_id_expand_local(&lt->id);
-		}
-		else {
-			Lattice *lt_new = BKE_lattice_copy(bmain, lt);
-
-			lt_new->id.us = 0;
-
-			BKE_libblock_remap(bmain, lt, lt_new, ID_REMAP_SKIP_INDIRECT_USAGE);
-		}
-	}
+	BKE_id_make_local_generic(bmain, &lt->id, true, lib_local);
 }
 
 typedef struct LatticeDeformData {

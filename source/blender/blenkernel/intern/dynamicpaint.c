@@ -4161,7 +4161,7 @@ static void dynamicPaint_doSmudge(DynamicPaintSurface *surface, DynamicPaintBrus
 		CLAMP_MIN(max_velocity, vel);
 	}
 
-	steps = (int)ceil(max_velocity / bData->average_dist * timescale);
+	steps = (int)ceil((double)max_velocity / bData->average_dist * (double)timescale);
 	CLAMP(steps, 0, 12);
 	eff_scale = brush->smudge_strength / (float)steps * timescale;
 
@@ -4312,7 +4312,7 @@ static int dynamicPaint_prepareEffectStep(
 
 			/* calculate average values (single thread) */
 			for (int index = 0; index < sData->total_points; index++) {
-				average_force += (*force)[index * 4 + 3];
+				average_force += (double)(*force)[index * 4 + 3];
 			}
 			average_force /= sData->total_points;
 		}
@@ -4329,7 +4329,7 @@ static int dynamicPaint_prepareEffectStep(
 		shrink_speed = surface->shrink_speed;
 
 	fastest_effect = max_fff(spread_speed, shrink_speed, average_force);
-	avg_dist = bData->average_dist * CANVAS_REL_SIZE / getSurfaceDimension(sData);
+	avg_dist = bData->average_dist * (double)CANVAS_REL_SIZE / (double)getSurfaceDimension(sData);
 
 	steps = (int)ceilf(1.5f * EFF_MOVEMENT_PER_FRAME * fastest_effect / avg_dist * timescale);
 	CLAMP(steps, 1, 20);
@@ -4687,7 +4687,8 @@ static void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescal
 	const float wave_scale = CANVAS_REL_SIZE / canvas_size;
 
 	/* allocate memory */
-	PaintWavePoint *prevPoint = MEM_mallocN(sData->total_points * sizeof(PaintWavePoint), "Temp previous points for wave simulation");
+	PaintWavePoint *prevPoint = MEM_mallocN(
+	        sData->total_points * sizeof(PaintWavePoint), __func__);
 	if (!prevPoint)
 		return;
 
@@ -4697,13 +4698,14 @@ static void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescal
 		int numOfNeighs = sData->adj_data->n_num[index];
 
 		for (i = 0; i < numOfNeighs; i++) {
-			average_dist += bNeighs[sData->adj_data->n_index[index] + i].dist;
+			average_dist += (double)bNeighs[sData->adj_data->n_index[index] + i].dist;
 		}
 	}
-	average_dist  *= wave_scale / sData->adj_data->total_targets;
+	average_dist  *= (double)wave_scale / sData->adj_data->total_targets;
 
 	/* determine number of required steps */
-	steps = (int)ceil((WAVE_TIME_FAC * timescale * surface->wave_timescale) / (average_dist / wave_speed / 3));
+	steps = (int)ceil((double)(WAVE_TIME_FAC * timescale * surface->wave_timescale) /
+	                  (average_dist / (double)wave_speed / 3));
 	CLAMP(steps, 1, 20);
 	timescale /= steps;
 

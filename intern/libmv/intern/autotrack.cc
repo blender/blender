@@ -67,12 +67,12 @@ int libmv_autoTrackMarker(libmv_AutoTrack* libmv_autotrack,
   libmv_apiMarkerToMarker(*libmv_tracked_marker, &tracked_marker);
   libmv_configureTrackRegionOptions(*libmv_options,
                                     &options);
-  (((AutoTrack*) libmv_autotrack)->TrackMarker(&tracked_marker,
-                                               &result,
-                                               &options));
+  bool ok = (((AutoTrack*) libmv_autotrack)->TrackMarker(&tracked_marker,
+                                                         &result,
+                                                         &options));
   libmv_markerToApiMarker(tracked_marker, libmv_tracked_marker);
   libmv_regionTrackergetResult(result, libmv_result);
-  return result.is_usable();
+  return ok && result.is_usable();
 }
 
 void libmv_autoTrackAddMarker(libmv_AutoTrack* libmv_autotrack,

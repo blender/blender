@@ -86,7 +86,7 @@ void ccg_ehashIterator_next(EHashIterator *ehi);
 int ccg_ehashIterator_isStopped(EHashIterator *ehi);
 
 /**
- * Standard allocator implementarion.
+ * Standard allocator implementation.
  */
 
 CCGAllocatorIFC *ccg_getStandardAllocatorIFC(void);
@@ -255,10 +255,7 @@ struct CCGSubSurf {
 	 */
 	int osd_next_face_ptex_index;
 
-	/* ** Needs review.  ** */
-	bool osd_subsurf_uv;
-	int osd_uv_index;
-	bool osd_uvs_invalid;
+	bool osd_subdiv_uvs;
 #endif
 };
 

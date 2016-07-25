@@ -96,6 +96,7 @@
 #include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
+#include "BKE_library_remap.h"
 #include "BKE_linestyle.h"
 #include "BKE_mesh.h"
 #include "BKE_material.h"
@@ -105,6 +106,7 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_packedFile.h"
+#include "BKE_sound.h"
 #include "BKE_speaker.h"
 #include "BKE_scene.h"
 #include "BKE_text.h"
@@ -268,86 +270,144 @@ void BKE_id_expand_local(ID *id)
 	BKE_library_foreach_ID_link(id, id_expand_local_callback, NULL, 0);
 }
 
-/* calls the appropriate make_local method for the block, unless test. Returns true
- * if the block can be made local. */
-bool id_make_local(Main *bmain, ID *id, const bool test, const bool force_local)
+/**
+ * Generic 'make local' function, works for most of datablock types...
+ */
+void BKE_id_make_local_generic(Main *bmain, ID *id, const bool id_in_mainlist, const bool lib_local)
+{
+	bool is_local = false, is_lib = false;
+
+	/* - only lib users: do nothing (unless force_local is set)
+	 * - only local users: set flag
+	 * - mixed: make copy
+	 * In case we make a whole lib's content local, we always want to localize, and we skip remapping (done later).
+	 */
+
+	if (!ID_IS_LINKED_DATABLOCK(id)) {
+		return;
+	}
+
+	BKE_library_ID_test_usages(bmain, id, &is_local, &is_lib);
+
+	if (lib_local || is_local) {
+		if (!is_lib) {
+			id_clear_lib_data_ex(bmain, id, id_in_mainlist);
+			BKE_id_expand_local(id);
+		}
+		else {
+			ID *id_new;
+
+			/* Should not fail in expected usecases, but id_copy does not copy Scene e.g. */
+			if (id_copy(bmain, id, &id_new, false)) {
+				id_new->us = 0;
+
+				if (!lib_local) {
+					BKE_libblock_remap(bmain, id, id_new, ID_REMAP_SKIP_INDIRECT_USAGE);
+				}
+			}
+		}
+	}
+
+}
+
+/**
+ * Calls the appropriate make_local method for the block, unless test is set.
+ *
+ * \param lib_local Special flag used when making a whole library's content local, it needs specific handling.
+ *
+ * \return true if the block can be made local.
+ */
+bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 {
 	if (id->tag & LIB_TAG_INDIRECT)
 		return false;
 
 	switch (GS(id->name)) {
 		case ID_SCE:
-			return false; /* not implemented */
+			/* Partially implemented (has no copy...). */
+			if (!test) BKE_scene_make_local(bmain, (Scene *)id, lib_local);
+			return true;
 		case ID_LI:
 			return false; /* can't be linked */
 		case ID_OB:
-			if (!test) BKE_object_make_local(bmain, (Object *)id, force_local);
+			if (!test) BKE_object_make_local(bmain, (Object *)id, lib_local);
 			return true;
 		case ID_ME:
-			if (!test) BKE_mesh_make_local(bmain, (Mesh *)id, force_local);
+			if (!test) BKE_mesh_make_local(bmain, (Mesh *)id, lib_local);
 			return true;
 		case ID_CU:
-			if (!test) BKE_curve_make_local(bmain, (Curve *)id, force_local);
+			if (!test) BKE_curve_make_local(bmain, (Curve *)id, lib_local);
 			return true;
 		case ID_MB:
-			if (!test) BKE_mball_make_local(bmain, (MetaBall *)id, force_local);
+			if (!test) BKE_mball_make_local(bmain, (MetaBall *)id, lib_local);
 			return true;
 		case ID_MA:
-			if (!test) BKE_material_make_local(bmain, (Material *)id, force_local);
+			if (!test) BKE_material_make_local(bmain, (Material *)id, lib_local);
 			return true;
 		case ID_TE:
-			if (!test) BKE_texture_make_local(bmain, (Tex *)id, force_local);
+			if (!test) BKE_texture_make_local(bmain, (Tex *)id, lib_local);
 			return true;
 		case ID_IM:
-			if (!test) BKE_image_make_local(bmain, (Image *)id, force_local);
+			if (!test) BKE_image_make_local(bmain, (Image *)id, lib_local);
 			return true;
 		case ID_LT:
-			if (!test) BKE_lattice_make_local(bmain, (Lattice *)id, force_local);
+			if (!test) BKE_lattice_make_local(bmain, (Lattice *)id, lib_local);
 			return true;
 		case ID_LA:
-			if (!test) BKE_lamp_make_local(bmain, (Lamp *)id, force_local);
+			if (!test) BKE_lamp_make_local(bmain, (Lamp *)id, lib_local);
 			return true;
 		case ID_CA:
-			if (!test) BKE_camera_make_local(bmain, (Camera *)id, force_local);
+			if (!test) BKE_camera_make_local(bmain, (Camera *)id, lib_local);
 			return true;
 		case ID_SPK:
-			if (!test) BKE_speaker_make_local(bmain, (Speaker *)id, force_local);
+			if (!test) BKE_speaker_make_local(bmain, (Speaker *)id, lib_local);
 			return true;
 		case ID_IP:
 			return false; /* deprecated */
 		case ID_KE:
 			return false; /* can't be linked */
 		case ID_WO:
-			if (!test) BKE_world_make_local(bmain, (World *)id, force_local);
+			if (!test) BKE_world_make_local(bmain, (World *)id, lib_local);
 			return true;
 		case ID_SCR:
 			return false; /* can't be linked */
 		case ID_VF:
-			return false; /* not implemented */
+			/* Partially implemented (has no copy...). */
+			if (!test) BKE_vfont_make_local(bmain, (VFont *)id, lib_local);
+			return true;
 		case ID_TXT:
-			return false; /* not implemented */
+			if (!test) BKE_text_make_local(bmain, (Text *)id, lib_local);
+			return true;
 		case ID_SO:
-			return false; /* not implemented */
+			/* Partially implemented (has no copy...). */
+			if (!test) BKE_sound_make_local(bmain, (bSound *)id, lib_local);
+			return true;
 		case ID_GR:
-			return false; /* not implemented */
+			if (!test) BKE_group_make_local(bmain, (Group *)id, lib_local);
+			return true;
 		case ID_AR:
-			if (!test) BKE_armature_make_local(bmain, (bArmature *)id, force_local);
+			if (!test) BKE_armature_make_local(bmain, (bArmature *)id, lib_local);
 			return true;
 		case ID_AC:
-			if (!test) BKE_action_make_local(bmain, (bAction *)id, force_local);
+			if (!test) BKE_action_make_local(bmain, (bAction *)id, lib_local);
 			return true;
 		case ID_NT:
-			if (!test) ntreeMakeLocal(bmain, (bNodeTree *)id, true, force_local);
+			if (!test) ntreeMakeLocal(bmain, (bNodeTree *)id, true, lib_local);
 			return true;
 		case ID_BR:
-			if (!test) BKE_brush_make_local(bmain, (Brush *)id, force_local);
+			if (!test) BKE_brush_make_local(bmain, (Brush *)id, lib_local);
 			return true;
 		case ID_WM:
 			return false; /* can't be linked */
 		case ID_GD:
-			return false; /* not implemented */
+			if (!test) BKE_gpencil_make_local(bmain, (bGPdata *)id, lib_local);
+			return true;
+		case ID_MSK:
+			if (!test) BKE_mask_make_local(bmain, (Mask *)id, lib_local);
+			return true;
 		case ID_LS:
-			return false; /* not implemented */
+			if (!test) BKE_linestyle_make_local(bmain, (FreestyleLineStyle *)id, lib_local);
+			return true;
 	}
 
 	return false;
@@ -1451,7 +1511,7 @@ bool new_id(ListBase *lb, ID *id, const char *tname)
  * Pull an ID out of a library (make it local). Only call this for IDs that
  * don't have other library users.
  */
-void id_clear_lib_data_ex(Main *bmain, ID *id, bool id_in_mainlist)
+void id_clear_lib_data_ex(Main *bmain, ID *id, const bool id_in_mainlist)
 {
 	bNodeTree *ntree = NULL;
 	Key *key = NULL;
@@ -1508,53 +1568,6 @@ void BKE_main_id_clear_newpoins(Main *bmain)
 	}
 }
 
-static void lib_indirect_test_id(ID *id, const Library *lib)
-{
-#define LIBTAG(a) \
-	if (a && a->id.lib) { a->id.tag &= ~LIB_TAG_INDIRECT; a->id.tag |= LIB_TAG_EXTERN; } (void)0
-	
-	if (ID_IS_LINKED_DATABLOCK(id)) {
-		/* datablocks that were indirectly related are now direct links
-		 * without this, appending data that has a link to other data will fail to write */
-		if (lib && id->lib->parent == lib) {
-			id_lib_extern(id);
-		}
-		return;
-	}
-	
-	if (GS(id->name) == ID_OB) {
-		Object *ob = (Object *)id;
-		Mesh *me;
-
-		int a;
-
-#if 0   /* XXX OLD ANIMSYS, NLASTRIPS ARE NO LONGER USED */
-		/* XXX old animation system! -------------------------------------- */
-		{
-			bActionStrip *strip;
-			for (strip = ob->nlastrips.first; strip; strip = strip->next) {
-				LIBTAG(strip->object);
-				LIBTAG(strip->act);
-				LIBTAG(strip->ipo);
-			}
-		}
-		/* XXX: new animation system needs something like this? */
-#endif
-
-		for (a = 0; a < ob->totcol; a++) {
-			LIBTAG(ob->mat[a]);
-		}
-	
-		LIBTAG(ob->dup_group);
-		LIBTAG(ob->proxy);
-		
-		me = ob->data;
-		LIBTAG(me);
-	}
-
-#undef LIBTAG
-}
-
 /** Make linked datablocks local.
  *
  * \param bmain Almost certainly G.main.
@@ -1562,19 +1575,30 @@ static void lib_indirect_test_id(ID *id, const Library *lib)
  * \param untagged_only If true, only make local datablocks not tagged with LIB_TAG_PRE_EXISTING.
  * \param set_fake If true, set fake user on all localized datablocks (except group and objects ones).
  */
+/* XXX TODO This function should probably be reworked.
+ *
+ * Old (2.77) version was simply making (tagging) datablocks as local, without actually making any check whether
+ * they were also indirectly used or not...
+ *
+ * Current version uses regular id_make_local callback, but this is not super-efficient since this ends up
+ * duplicating some IDs and then removing original ones (due to missing knowledge of which ID uses some other ID).
+ *
+ * We could first check all IDs and detect those to be made local that are only used by other local or future-local
+ * datablocks, and directly tag those as local (instead of going through id_make_local) maybe...
+ *
+ * We'll probably need at some point a true dependency graph between datablocks, but for now this should work
+ * good enough (performances is not a critical point here anyway).
+ */
 void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged_only, const bool set_fake)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
-	ID *id, *idn;
+	ID *id, *id_next;
 	int a;
 
-	a = set_listbasepointers(bmain, lbarray);
-	while (a--) {
-		id = lbarray[a]->first;
-		
-		while (id) {
+	for (a = set_listbasepointers(bmain, lbarray); a--; ) {
+		for (id = lbarray[a]->first; id; id = id_next) {
 			id->newid = NULL;
-			idn = id->next;      /* id is possibly being inserted again */
+			id_next = id->next;  /* id is possibly being inserted again */
 			
 			/* The check on the second line (LIB_TAG_PRE_EXISTING) is done so its
 			 * possible to tag data you don't want to be made local, used for
@@ -1601,15 +1625,39 @@ void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged
 					}
 				}
 			}
-
-			id = idn;
 		}
 	}
 
-	a = set_listbasepointers(bmain, lbarray);
-	while (a--) {
-		for (id = lbarray[a]->first; id; id = id->next)
-			lib_indirect_test_id(id, lib);
+	/* We have to remap local usages of old (linked) ID to new (local) id in a second loop, as lbarray ordering is not
+	 * enough to ensure us we did catch all dependencies (e.g. if making local a parent object before its child...).
+	 * See T48907. */
+	for (a = set_listbasepointers(bmain, lbarray); a--; ) {
+		for (id = lbarray[a]->first; id; id = id->next) {
+			if (id->newid) {
+				BKE_libblock_remap(bmain, id, id->newid, ID_REMAP_SKIP_INDIRECT_USAGE);
+			}
+		}
+	}
+
+	/* Third step: remove datablocks that have been copied to be localized and are no more used in the end...
+	 * Note that we may have to loop more than once here, to tackle dependencies between linked objects... */
+	bool do_loop = true;
+	while (do_loop) {
+		do_loop = false;
+		for (a = set_listbasepointers(bmain, lbarray); a--; ) {
+			for (id = lbarray[a]->first; id; id = id_next) {
+				id_next = id->next;
+				if (id->newid) {
+					bool is_local = false, is_lib = false;
+
+					BKE_library_ID_test_usages(bmain, id, &is_local, &is_lib);
+					if (!is_local && !is_lib) {
+						BKE_libblock_free(bmain, id);
+						do_loop = true;
+					}
+				}
+			}
+		}
 	}
 }
 

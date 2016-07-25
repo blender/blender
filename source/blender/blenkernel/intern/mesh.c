@@ -31,6 +31,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_material_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
@@ -555,34 +556,9 @@ BMesh *BKE_mesh_to_bmesh(
 	return bm;
 }
 
-void BKE_mesh_make_local(Main *bmain, Mesh *me, const bool force_local)
+void BKE_mesh_make_local(Main *bmain, Mesh *me, const bool lib_local)
 {
-	bool is_local = false, is_lib = false;
-
-	/* - only lib users: do nothing (unless force_local is set)
-	 * - only local users: set flag
-	 * - mixed: make copy
-	 */
-
-	if (!ID_IS_LINKED_DATABLOCK(me)) {
-		return;
-	}
-
-	BKE_library_ID_test_usages(bmain, me, &is_local, &is_lib);
-
-	if (force_local || is_local) {
-		if (!is_lib) {
-			id_clear_lib_data(bmain, &me->id);
-			BKE_id_expand_local(&me->id);
-		}
-		else {
-			Mesh *me_new = BKE_mesh_copy(bmain, me);
-
-			me_new->id.us = 0;
-
-			BKE_libblock_remap(bmain, me, me_new, ID_REMAP_SKIP_INDIRECT_USAGE);
-		}
-	}
+	BKE_id_make_local_generic(bmain, &me->id, true, lib_local);
 }
 
 bool BKE_mesh_uv_cdlayer_rename_index(Mesh *me, const int poly_index, const int loop_index, const int face_index,
@@ -2394,23 +2370,25 @@ Mesh *BKE_mesh_new_from_object(
 			}
 			break;
 
-#if 0
-		/* Crashes when assigning the new material, not sure why */
 		case OB_MBALL:
-			tmpmb = (MetaBall *)ob->data;
+		{
+			MetaBall *tmpmb = (MetaBall *)ob->data;
+			tmpmesh->mat = MEM_dupallocN(tmpmb->mat);
 			tmpmesh->totcol = tmpmb->totcol;
 
 			/* free old material list (if it exists) and adjust user counts */
 			if (tmpmb->mat) {
 				for (i = tmpmb->totcol; i-- > 0; ) {
-					tmpmesh->mat[i] = tmpmb->mat[i]; /* CRASH HERE ??? */
+					/* are we an object material or data based? */
+					tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : tmpmb->mat[i];
+
 					if (tmpmesh->mat[i]) {
-						id_us_plus(&tmpmb->mat[i]->id);
+						id_us_plus(&tmpmesh->mat[i]->id);
 					}
 				}
 			}
 			break;
-#endif
+		}
 
 		case OB_MESH:
 			if (!cage) {
@@ -2437,9 +2415,6 @@ Mesh *BKE_mesh_new_from_object(
 		/* cycles and exporters rely on this still */
 		BKE_mesh_tessface_ensure(tmpmesh);
 	}
-
-	/* make sure materials get updated in object */
-	test_object_materials(ob, &tmpmesh->id);
 
 	return tmpmesh;
 }

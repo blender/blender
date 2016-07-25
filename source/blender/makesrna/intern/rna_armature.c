@@ -498,13 +498,13 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone)
 	/* Roll In/Out */
 	prop = RNA_def_property(srna, "bbone_rollin", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "roll1");
-	RNA_def_property_range(prop, -M_PI * 2.0f, M_PI * 2.0f);
+	RNA_def_property_range(prop, -M_PI * 2.0, M_PI * 2.0);
 	RNA_def_property_ui_text(prop, "Roll In", "Roll offset for the start of the B-Bone, adjusts twist");
 	RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
 	
 	prop = RNA_def_property(srna, "bbone_rollout", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "roll2");
-	RNA_def_property_range(prop, -M_PI * 2.0f, M_PI * 2.0f);
+	RNA_def_property_range(prop, -M_PI * 2.0, M_PI * 2.0);
 	RNA_def_property_ui_text(prop, "Roll Out", "Roll offset for the end of the B-Bone, adjusts twist");
 	RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
 	

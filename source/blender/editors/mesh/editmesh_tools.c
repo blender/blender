@@ -4032,7 +4032,7 @@ static int edbm_decimate_exec(bContext *C, wmOperator *op)
 					const MDeformVert *dv = BM_ELEM_CD_GET_VOID_P(v, cd_dvert_offset);
 					weight = defvert_find_weight(dv, defbase_act);
 					if (invert_vertex_group) {
-						weight = 1.0 - weight;
+						weight = 1.0f - weight;
 					}
 				}
 				else {

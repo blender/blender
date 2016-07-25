@@ -551,14 +551,43 @@ static int wm_lib_relocate_invoke(bContext *C, wmOperator *op, const wmEvent *UN
 	return OPERATOR_CANCELLED;
 }
 
-/* Note that IDs listed in lapp_data items *must* have been removed from bmain by caller. */
-static void lib_relocate_do(Main *bmain, WMLinkAppendData *lapp_data, ReportList *reports, const bool do_reload)
+static void lib_relocate_do(
+        Main *bmain, Scene *scene,
+        Library *library, WMLinkAppendData *lapp_data, ReportList *reports, const bool do_reload)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
 	int lba_idx;
 
 	LinkNode *itemlink;
 	int item_idx;
+
+	/* Remove all IDs to be reloaded from Main. */
+	lba_idx = set_listbasepointers(bmain, lbarray);
+	while (lba_idx--) {
+		ID *id = lbarray[lba_idx]->first;
+		const short idcode = id ? GS(id->name) : 0;
+
+		if (!id || !BKE_idcode_is_linkable(idcode)) {
+			/* No need to reload non-linkable datatypes, those will get relinked with their 'users ID'. */
+			continue;
+		}
+
+		for (; id; id = id->next) {
+			if (id->lib == library) {
+				WMLinkAppendDataItem *item;
+
+				/* We remove it from current Main, and add it to items to link... */
+				/* Note that non-linkable IDs (like e.g. shapekeys) are also explicitely linked here... */
+				BLI_remlink(lbarray[lba_idx], id);
+				item = wm_link_append_data_item_add(lapp_data, id->name + 2, idcode, id);
+				BLI_BITMAP_SET_ALL(item->libraries, true, lapp_data->num_libraries);
+
+#ifdef PRINT_DEBUG
+				printf("\tdatablock to seek for: %s\n", id->name);
+#endif
+			}
+		}
+	}
 
 	BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
 
@@ -698,6 +727,43 @@ static void lib_relocate_do(Main *bmain, WMLinkAppendData *lapp_data, ReportList
 			}
 		}
 	}
+
+	BKE_main_lib_objects_recalc_all(bmain);
+	IMB_colormanagement_check_file_config(bmain);
+
+	/* important we unset, otherwise these object wont
+	 * link into other scenes from this blend file */
+	BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
+
+	/* recreate dependency graph to include new objects */
+	DAG_scene_relations_rebuild(bmain, scene);
+
+	/* free gpu materials, some materials depend on existing objects, such as lamps so freeing correctly refreshes */
+	GPU_materials_free();
+}
+
+void WM_lib_reload(Library *lib, bContext *C, ReportList *reports)
+{
+	if (!BLO_has_bfile_extension(lib->filepath)) {
+		BKE_reportf(reports, RPT_ERROR, "'%s' is not a valid library filepath", lib->filepath);
+		return;
+	}
+
+	if (!BLI_exists(lib->filepath)) {
+		BKE_reportf(reports, RPT_ERROR,
+		            "Trying to reload library '%s' from invalid path '%s'", lib->id.name, lib->filepath);
+		return;
+	}
+
+	WMLinkAppendData *lapp_data = wm_link_append_data_new(0);
+
+	wm_link_append_data_library_add(lapp_data, lib->filepath);
+
+	lib_relocate_do(CTX_data_main(C), CTX_data_scene(C), lib, lapp_data, reports, true);
+
+	wm_link_append_data_free(lapp_data);
+
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
 }
 
 static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
@@ -713,9 +779,6 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
 		Scene *scene = CTX_data_scene(C);
 		PropertyRNA *prop;
 		WMLinkAppendData *lapp_data;
-
-		ListBase *lbarray[MAX_LIBARRAY];
-		int lba_idx;
 
 		char path[FILE_MAX], root[FILE_MAXDIR], libname[FILE_MAX], relname[FILE_MAX];
 		short flag = 0;
@@ -803,49 +866,9 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
 			}
 		}
 
-		lba_idx = set_listbasepointers(bmain, lbarray);
-		while (lba_idx--) {
-			ID *id = lbarray[lba_idx]->first;
-			const short idcode = id ? GS(id->name) : 0;
-
-			if (!id || !BKE_idcode_is_linkable(idcode)) {
-				/* No need to reload non-linkable datatypes, those will get relinked with their 'users ID'. */
-				continue;
-			}
-
-			for (; id; id = id->next) {
-				if (id->lib == lib) {
-					WMLinkAppendDataItem *item;
-
-					/* We remove it from current Main, and add it to items to link... */
-					/* Note that non-linkable IDs (like e.g. shapekeys) are also explicitely linked here... */
-					BLI_remlink(lbarray[lba_idx], id);
-					item = wm_link_append_data_item_add(lapp_data, id->name + 2, idcode, id);
-					BLI_BITMAP_SET_ALL(item->libraries, true, lapp_data->num_libraries);
-
-#ifdef PRINT_DEBUG
-					printf("\tdatablock to seek for: %s\n", id->name);
-#endif
-				}
-			}
-		}
-
-		lib_relocate_do(bmain, lapp_data, op->reports, do_reload);
+		lib_relocate_do(bmain, scene, lib, lapp_data, op->reports, do_reload);
 
 		wm_link_append_data_free(lapp_data);
-
-		BKE_main_lib_objects_recalc_all(bmain);
-		IMB_colormanagement_check_file_config(bmain);
-
-		/* important we unset, otherwise these object wont
-		 * link into other scenes from this blend file */
-		BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
-
-		/* recreate dependency graph to include new objects */
-		DAG_scene_relations_rebuild(bmain, scene);
-
-		/* free gpu materials, some materials depend on existing objects, such as lamps so freeing correctly refreshes */
-		GPU_materials_free();
 
 		/* XXX TODO: align G.lib with other directory storage (like last opened image etc...) */
 		BLI_strncpy(G.lib, root, FILE_MAX);

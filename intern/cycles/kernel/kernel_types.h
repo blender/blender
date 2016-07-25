@@ -387,12 +387,13 @@ typedef enum BakePassFilterCombos {
 	BAKE_FILTER_SUBSURFACE_INDIRECT = (BAKE_FILTER_INDIRECT | BAKE_FILTER_SUBSURFACE),
 } BakePassFilterCombos;
 
-#ifdef __PASSES__
-
 typedef ccl_addr_space struct PathRadiance {
+#ifdef __PASSES__
 	int use_light_pass;
+#endif
 
 	float3 emission;
+#ifdef __PASSES__
 	float3 background;
 	float3 ao;
 
@@ -426,25 +427,23 @@ typedef ccl_addr_space struct PathRadiance {
 
 	float4 shadow;
 	float mist;
+#endif
 } PathRadiance;
 
 typedef struct BsdfEval {
+#ifdef __PASSES__
 	int use_light_pass;
+#endif
 
 	float3 diffuse;
+#ifdef __PASSES__
 	float3 glossy;
 	float3 transmission;
 	float3 transparent;
 	float3 subsurface;
 	float3 scatter;
-} BsdfEval;
-
-#else
-
-typedef ccl_addr_space float3 PathRadiance;
-typedef float3 BsdfEval;
-
 #endif
+} BsdfEval;
 
 /* Shader Flag */
 

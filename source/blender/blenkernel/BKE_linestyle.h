@@ -54,6 +54,8 @@ FreestyleLineStyle *BKE_linestyle_new(struct Main *bmain, const char *name);
 void                BKE_linestyle_free(FreestyleLineStyle *linestyle);
 FreestyleLineStyle *BKE_linestyle_copy(struct Main *bmain, FreestyleLineStyle *linestyle);
 
+void BKE_linestyle_make_local(struct Main *bmain, struct FreestyleLineStyle *linestyle, const bool lib_local);
+
 FreestyleLineStyle *BKE_linestyle_active_from_scene(struct Scene *scene);
 
 LineStyleModifier *BKE_linestyle_color_modifier_add(FreestyleLineStyle *linestyle, const char *name, int type);

@@ -1142,14 +1142,10 @@ void mtex_rgb_color(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 i
 
 void mtex_rgb_soft(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 incol)
 {
-	float facm;
+	vec4 col;
 
-	fact *= facg;
-	facm = 1.0 - fact;
-
-	vec3 one = vec3(1.0);
-	vec3 scr = one - (one - texcol) * (one - outcol);
-	incol = facm * outcol + fact * ((one - texcol) * outcol * texcol + outcol * scr);
+	mix_soft(fact * facg, vec4(outcol, 1.0), vec4(texcol, 1.0), col);
+	incol.rgb = col.rgb;
 }
 
 void mtex_rgb_linear(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 incol)

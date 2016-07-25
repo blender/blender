@@ -155,6 +155,11 @@ def bake_action(frame_start,
     atd = obj.animation_data_create()
     if action is None:
         action = bpy.data.actions.new("Action")
+
+    # Leave tweak mode before trying to modify the action (T48397)
+    if atd.use_tweak_mode:
+        atd.use_tweak_mode = False
+
     atd.action = action
 
     # -------------------------------------------------------------------------
