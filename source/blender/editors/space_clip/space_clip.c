@@ -818,7 +818,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	keymap = WM_keymap_find(keyconf, "Clip Dopesheet Editor", SPACE_CLIP, 0);
 
-	kmi = WM_keymap_add_item(keymap, "CLIP_OT_dopesheet_select_channel", ACTIONMOUSE, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_dopesheet_select_channel", LEFTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "extend", true);  /* toggle */
 
 	WM_keymap_add_item(keymap, "CLIP_OT_dopesheet_view_all", HOMEKEY, KM_PRESS, 0, 0);
