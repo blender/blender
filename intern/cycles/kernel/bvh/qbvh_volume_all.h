@@ -268,12 +268,14 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 								/* Intersect ray against primitive. */
 								hit = triangle_intersect(kg, &isect_precalc, isect_array, P, visibility, object, prim_addr);
 								if(hit) {
-									/* Update number of hits now, so we do proper check on max bounces. */
+									/* Move on to next entry in intersections array. */
+									isect_array++;
 									num_hits++;
 #if BVH_FEATURE(BVH_INSTANCING)
 									num_hits_in_instance++;
 #endif
-									if(num_hits >= max_hits) {
+									isect_array->t = isect_t;
+									if(num_hits == max_hits) {
 #if BVH_FEATURE(BVH_INSTANCING)
 #  if BVH_FEATURE(BVH_MOTION)
 										float t_fac = 1.0f / len(transform_direction(&ob_itfm, dir));
@@ -287,9 +289,6 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 #endif  /* BVH_FEATURE(BVH_INSTANCING) */
 										return num_hits;
 									}
-									/* Move on to next entry in intersections array */
-									isect_array++;
-									isect_array->t = isect_t;
 								}
 							}
 							break;
@@ -307,12 +306,14 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 								/* Intersect ray against primitive. */
 								hit = motion_triangle_intersect(kg, isect_array, P, dir, ray->time, visibility, object, prim_addr);
 								if(hit) {
-									/* Update number of hits now, so we do proper check on max bounces. */
+									/* Move on to next entry in intersections array. */
+									isect_array++;
 									num_hits++;
 #  if BVH_FEATURE(BVH_INSTANCING)
 									num_hits_in_instance++;
 #  endif
-									if(num_hits >= max_hits) {
+									isect_array->t = isect_t;
+									if(num_hits == max_hits) {
 #  if BVH_FEATURE(BVH_INSTANCING)
 #    if BVH_FEATURE(BVH_MOTION)
 										float t_fac = 1.0f / len(transform_direction(&ob_itfm, dir));
@@ -326,9 +327,6 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 #  endif  /* BVH_FEATURE(BVH_INSTANCING) */
 										return num_hits;
 									}
-									/* Move on to next entry in intersections array */
-									isect_array++;
-									isect_array->t = isect_t;
 								}
 							}
 							break;
