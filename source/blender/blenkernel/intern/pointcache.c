@@ -386,9 +386,9 @@ static void ptcache_particle_interpolate(int index, void *psys_v, void **data, f
 		}
 	}
 
-	/* determine rotation from velocity */
+	/* default to no rotation */
 	if (data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_ROTATION]) {
-		vec_to_quat(keys[2].rot, keys[2].vel, OB_NEGX, OB_POSZ);
+		unit_qt(keys[2].rot);
 	}
 
 	if (cfra > pa->time)
