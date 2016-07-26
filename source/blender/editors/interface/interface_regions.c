@@ -2807,14 +2807,17 @@ uiPopupBlockHandle *ui_popup_menu_create(
 
 /******************** Popup Menu API with begin and end ***********************/
 
-/* only return handler, and set optional title */
-uiPopupMenu *UI_popup_menu_begin(bContext *C, const char *title, int icon)
+/**
+ * Only return handler, and set optional title.
+ * \param block_name: Assigned to uiBlock.name (useful info for debugging).
+ */
+uiPopupMenu *UI_popup_menu_begin_ex(bContext *C, const char *title, const char *block_name, int icon)
 {
 	uiStyle *style = UI_style_get_dpi();
 	uiPopupMenu *pup = MEM_callocN(sizeof(uiPopupMenu), "popup menu");
 	uiBut *but;
 
-	pup->block = UI_block_begin(C, NULL, __func__, UI_EMBOSS_PULLDOWN);
+	pup->block = UI_block_begin(C, NULL, block_name, UI_EMBOSS_PULLDOWN);
 	pup->block->flag |= UI_BLOCK_POPUP_MEMORY | UI_BLOCK_IS_FLIP;
 	pup->block->puphash = ui_popup_menu_hash(title);
 	pup->layout = UI_block_layout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, MENU_PADDING, style);
@@ -2843,6 +2846,11 @@ uiPopupMenu *UI_popup_menu_begin(bContext *C, const char *title, int icon)
 	}
 
 	return pup;
+}
+
+uiPopupMenu *UI_popup_menu_begin(bContext *C, const char *title, int icon)
+{
+	return UI_popup_menu_begin_ex(C, title, __func__, icon);
 }
 
 /* set the whole structure to work */
@@ -3203,7 +3211,8 @@ void UI_popup_menu_reports(bContext *C, ReportList *reports)
 		if (pup == NULL) {
 			char title[UI_MAX_DRAW_STR];
 			BLI_snprintf(title, sizeof(title), "%s: %s", IFACE_("Report"), report->typestr);
-			pup = UI_popup_menu_begin(C, title, ICON_NONE);
+			/* popup_menu stuff does just what we need (but pass meaningful block name) */
+			pup = UI_popup_menu_begin_ex(C, title, __func__, ICON_NONE);
 			layout = UI_popup_menu_layout(pup);
 		}
 		else {

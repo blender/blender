@@ -382,7 +382,11 @@ typedef bool (*uiMenuStepFunc)(struct bContext *C, int direction, void *arg1);
 
 typedef struct uiPopupMenu uiPopupMenu;
 
-struct uiPopupMenu *UI_popup_menu_begin(struct bContext *C, const char *title, int icon) ATTR_NONNULL();
+uiPopupMenu *UI_popup_menu_begin(
+        struct bContext *C, const char *title, int icon) ATTR_NONNULL();
+uiPopupMenu *UI_popup_menu_begin_ex(
+        struct bContext *C, const char *title, const char *block_name,
+        int icon) ATTR_NONNULL();
 void UI_popup_menu_end(struct bContext *C, struct uiPopupMenu *head);
 struct uiLayout *UI_popup_menu_layout(uiPopupMenu *head);
 
