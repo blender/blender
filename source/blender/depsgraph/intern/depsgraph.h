@@ -191,7 +191,7 @@ struct Depsgraph {
 	/* Layers Visibility .................. */
 
 	/* Visible layers bitfield, used for skipping invisible objects updates. */
-	int layers;
+	unsigned int layers;
 
 	// XXX: additional stuff like eval contexts, mempools for allocating nodes from, etc.
 };

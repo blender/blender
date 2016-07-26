@@ -288,7 +288,7 @@ static void deg_debug_graphviz_node_single(const DebugContext &ctx,
 	if (node->type == DEPSNODE_TYPE_ID_REF) {
 		IDDepsNode *id_node = (IDDepsNode *)node;
 		char buf[256];
-		BLI_snprintf(buf, sizeof(buf), " (Layers: %d)", id_node->layers);
+		BLI_snprintf(buf, sizeof(buf), " (Layers: %u)", id_node->layers);
 		name += buf;
 	}
 	if (ctx.show_eval_priority && node->tclass == DEPSNODE_CLASS_OPERATION) {
@@ -324,7 +324,7 @@ static void deg_debug_graphviz_node_cluster_begin(const DebugContext &ctx,
 	if (node->type == DEPSNODE_TYPE_ID_REF) {
 		IDDepsNode *id_node = (IDDepsNode *)node;
 		char buf[256];
-		BLI_snprintf(buf, sizeof(buf), " (Layers: %d)", id_node->layers);
+		BLI_snprintf(buf, sizeof(buf), " (Layers: %u)", id_node->layers);
 		name += buf;
 	}
 	deg_debug_fprintf(ctx, "// %s\n", name.c_str());

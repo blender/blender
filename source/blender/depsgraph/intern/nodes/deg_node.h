@@ -176,7 +176,7 @@ struct IDDepsNode : public DepsNode {
 	GHash *components;
 
 	/* Layers of this node with accumulated layers of it's output relations. */
-	int layers;
+	unsigned int layers;
 
 	/* Additional flags needed for scene evaluation.
 	 * TODO(sergey): Only needed for until really granular updates
