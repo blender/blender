@@ -10156,6 +10156,10 @@ static void ui_popup_handler_remove(bContext *C, void *userdata)
 {
 	uiPopupBlockHandle *menu = userdata;
 
+	if (menu->cancel_func) {
+		menu->cancel_func(C, menu->popup_arg);
+	}
+
 	/* free menu block if window is closed for some reason */
 	ui_popup_block_free(C, menu);
 
