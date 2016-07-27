@@ -152,8 +152,8 @@ class OutputNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(OutputNode)
 
-	void* surface;
-	void* volume;
+	void *surface;
+	void *volume;
 	float displacement;
 	float3 normal;
 
