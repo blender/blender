@@ -862,11 +862,8 @@ static int wm_automatic_draw_method(wmWindow *win)
 	 * copy to texture is slow though and so we use overlap instead there. */
 
 	if (win->drawmethod == USER_DRAW_AUTOMATIC) {
-		/* ATI opensource driver is known to be very slow at this */
-		if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE))
-			return USER_DRAW_OVERLAP;
 		/* Windows software driver darkens color on each redraw */
-		else if (GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_WIN, GPU_DRIVER_SOFTWARE))
+		if (GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_WIN, GPU_DRIVER_SOFTWARE))
 			return USER_DRAW_OVERLAP_FLIP;
 		else if (GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_UNIX, GPU_DRIVER_SOFTWARE))
 			return USER_DRAW_OVERLAP;
