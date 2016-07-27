@@ -1732,3 +1732,9 @@ void GPU_pass_free(GPUPass *pass)
 		MEM_freeN(pass->vertexcode);
 	MEM_freeN(pass);
 }
+
+void GPU_pass_free_nodes(ListBase *nodes)
+{
+	gpu_nodes_free(nodes);
+}
+

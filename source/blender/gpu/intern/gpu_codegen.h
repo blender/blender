@@ -183,6 +183,7 @@ void GPU_pass_update_uniforms(GPUPass *pass);
 void GPU_pass_unbind(GPUPass *pass);
 
 void GPU_pass_free(GPUPass *pass);
+void GPU_pass_free_nodes(ListBase *nodes);
 
 void gpu_codegen_init(void);
 void gpu_codegen_exit(void);

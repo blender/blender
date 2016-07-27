@@ -270,6 +270,9 @@ static int GPU_material_construct_end(GPUMaterial *material, const char *passnam
 			material->partangvel = GPU_shader_get_uniform(shader, GPU_builtin_name(GPU_PARTICLE_ANG_VELOCITY));
 		return 1;
 	}
+	else {
+		GPU_pass_free_nodes(&material->nodes);
+	}
 
 	return 0;
 }
