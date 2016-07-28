@@ -1701,7 +1701,9 @@ static void ui_block_region_draw(const bContext *C, ARegion *ar)
 		ar->do_draw &= ~RGN_DRAW_REFRESH_UI;
 		for (block = ar->uiblocks.first; block; block = block_next) {
 			block_next = block->next;
-			ui_popup_block_refresh((bContext *)C, block->handle, NULL, NULL);
+			if (block->handle->can_refresh) {
+				ui_popup_block_refresh((bContext *)C, block->handle, NULL, NULL);
+			}
 		}
 	}
 
@@ -1811,6 +1813,8 @@ uiBlock *ui_popup_block_refresh(
         bContext *C, uiPopupBlockHandle *handle,
         ARegion *butregion, uiBut *but)
 {
+	BLI_assert(handle->can_refresh == true);
+
 	const int margin = UI_POPUP_MARGIN;
 	wmWindow *window = CTX_wm_window(C);
 	ARegion *ar = handle->region;
@@ -2001,6 +2005,8 @@ uiPopupBlockHandle *ui_popup_block_create(
 	handle->popup_create_vars.arg = arg;
 	handle->popup_create_vars.butregion = but ? butregion : NULL;
 	copy_v2_v2_int(handle->popup_create_vars.event_xy, &window->eventstate->x);
+	/* caller may free vars used to create this popup, in that case this variable should be disabled. */
+	handle->can_refresh = true;
 
 	/* create area region */
 	ar = ui_region_temp_add(CTX_wm_screen(C));
@@ -2800,6 +2806,7 @@ uiPopupBlockHandle *ui_popup_menu_create(
 		WM_event_add_mousemove(C);
 	}
 	
+	handle->can_refresh = false;
 	MEM_freeN(pup);
 
 	return handle;
@@ -2868,7 +2875,8 @@ void UI_popup_menu_end(bContext *C, uiPopupMenu *pup)
 	
 	UI_popup_handlers_add(C, &window->modalhandlers, menu, 0);
 	WM_event_add_mousemove(C);
-	
+
+	menu->can_refresh = false;
 	MEM_freeN(pup);
 }
 
@@ -2999,6 +3007,7 @@ void UI_pie_menu_end(bContext *C, uiPieMenu *pie)
 	        menu, WM_HANDLER_ACCEPT_DBL_CLICK);
 	WM_event_add_mousemove(C);
 
+	menu->can_refresh = false;
 	MEM_freeN(pie);
 }
 
