@@ -220,10 +220,16 @@ bool LightManager::object_usable_as_light(Object *object) {
 		return false;
 	}
 	/* Skip if we have no emission shaders. */
-	if(!mesh->has_mis_emission) {
-		return false;
+	/* TODO(sergey): Ideally we want to avoid such duplicated loop, since it'll
+	 * iterate all mesh shaders twice (when counting and when calculating
+	 * triangle area.
+	 */
+	foreach(const Shader *shader, mesh->used_shaders) {
+		if(shader->use_mis && shader->has_surface_emission) {
+			return true;
+		}
 	}
-	return true;
+	return false;
 }
 
 void LightManager::device_update_distribution(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)

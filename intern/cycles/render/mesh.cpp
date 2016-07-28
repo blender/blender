@@ -156,7 +156,6 @@ Mesh::Mesh()
 	geometry_flags = GEOMETRY_NONE;
 
 	has_volume = false;
-	has_mis_emission = false;
 	has_surface_bssrdf = false;
 }
 
@@ -1290,13 +1289,9 @@ void MeshManager::device_update_flags(Device * /*device*/,
 	/* update flags */
 	foreach(Mesh *mesh, scene->meshes) {
 		mesh->has_volume = false;
-		mesh->has_mis_emission = false;
 		foreach(const Shader *shader, mesh->used_shaders) {
 			if(shader->has_volume) {
 				mesh->has_volume = true;
-			}
-			if(shader->use_mis && shader->has_surface_emission) {
-				mesh->has_mis_emission = true;
 			}
 			if(shader->has_surface_bssrdf) {
 				mesh->has_surface_bssrdf = true;

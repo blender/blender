@@ -122,7 +122,6 @@ public:
 	array<bool> forms_quad; /* used to tell if triangle is part of a quad patch */
 
 	bool has_volume;  /* Set in the device_update_flags(). */
-	bool has_mis_emission;  /* Set in the device_update_flags(). */
 	bool has_surface_bssrdf;  /* Set in the device_update_flags(). */
 
 	array<float3> curve_keys;
