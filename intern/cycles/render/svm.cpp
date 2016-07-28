@@ -65,19 +65,20 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 		svm_nodes.push_back(make_int4(NODE_SHADER_JUMP, 0, 0, 0));
 		svm_nodes.push_back(make_int4(NODE_SHADER_JUMP, 0, 0, 0));
 	}
-	
+
 	foreach(Shader *shader, scene->shaders) {
 		if(progress.get_cancel()) return;
 
 		assert(shader->graph);
 
-		if(shader->use_mis && shader->has_surface_emission)
-			scene->light_manager->need_update = true;
-
 		SVMCompiler::Summary summary;
 		SVMCompiler compiler(scene->shader_manager, scene->image_manager);
 		compiler.background = (shader == scene->default_background);
 		compiler.compile(scene, shader, svm_nodes, shader->id, &summary);
+
+		if(shader->use_mis && shader->has_surface_emission) {
+			scene->light_manager->need_update = true;
+		}
 
 		VLOG(2) << "Compilation summary:\n"
 		        << "Shader name: " << shader->name << "\n"
