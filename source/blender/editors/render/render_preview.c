@@ -1210,7 +1210,7 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 
 	/* setup job */
 	WM_jobs_customdata_set(wm_job, ip, icon_preview_free);
-	WM_jobs_timer(wm_job, 0.1, NC_MATERIAL, NC_MATERIAL);
+	WM_jobs_timer(wm_job, 0.1, NC_WINDOW , NC_WINDOW);
 	WM_jobs_callbacks(wm_job, icon_preview_startjob_all_sizes, NULL, NULL, icon_preview_endjob);
 
 	WM_jobs_start(CTX_wm_manager(C), wm_job);

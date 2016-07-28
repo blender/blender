@@ -77,10 +77,7 @@ Speaker *BKE_speaker_copy(Main *bmain, Speaker *spk)
 	if (spkn->sound)
 		id_us_plus(&spkn->sound->id);
 
-	if (ID_IS_LINKED_DATABLOCK(spk)) {
-		BKE_id_expand_local(&spkn->id);
-		BKE_id_lib_local_paths(G.main, spk->id.lib, &spkn->id);
-	}
+	BKE_id_copy_ensure_local(bmain, &spk->id, &spkn->id);
 
 	return spkn;
 }

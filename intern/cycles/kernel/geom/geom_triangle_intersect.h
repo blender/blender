@@ -342,9 +342,16 @@ ccl_device_inline float3 triangle_refine(KernelGlobals *kg,
 	float3 tvec = make_float3(P.x - tri_c.x, P.y - tri_c.y, P.z - tri_c.z);
 	float3 qvec = cross(tvec, edge1);
 	float3 pvec = cross(D, edge2);
-	float rt = dot(edge2, qvec) / dot(edge1, pvec);
-
-	P = P + D*rt;
+	float det = dot(edge1, pvec);
+	if(det != 0.0f) {
+		/* If determinant is zero it means ray lies in the plane of
+		 * the triangle. It is possible in theory due to watertight
+		 * nature of triangle intersection. For suc hcases we simply
+		 * don't refine intersection hoping it'll go all fine.
+		 */
+		float rt = dot(edge2, qvec) / det;
+		P = P + D*rt;
+	}
 
 	if(isect->object != OBJECT_NONE) {
 #  ifdef __OBJECT_MOTION__
@@ -400,9 +407,16 @@ ccl_device_inline float3 triangle_refine_subsurface(KernelGlobals *kg,
 	float3 tvec = make_float3(P.x - tri_c.x, P.y - tri_c.y, P.z - tri_c.z);
 	float3 qvec = cross(tvec, edge1);
 	float3 pvec = cross(D, edge2);
-	float rt = dot(edge2, qvec) / dot(edge1, pvec);
-
-	P = P + D*rt;
+	float det = dot(edge1, pvec);
+	if(det != 0.0f) {
+		/* If determinant is zero it means ray lies in the plane of
+		 * the triangle. It is possible in theory due to watertight
+		 * nature of triangle intersection. For such cases we simply
+		 * don't refine intersection hoping it'll go all fine.
+		 */
+		float rt = dot(edge2, qvec) / det;
+		P = P + D*rt;
+	}
 #endif  /* __INTERSECTION_REFINE__ */
 
 	if(isect->object != OBJECT_NONE) {

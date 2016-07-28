@@ -1029,7 +1029,7 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 	int stack_index = 0, enclosed_index = 0;
 
 #ifdef __VOLUME_RECORD_ALL__
-	Intersection hits[2*VOLUME_STACK_SIZE];
+	Intersection hits[2*VOLUME_STACK_SIZE + 1];
 	uint num_hits = scene_intersect_volume_all(kg,
 	                                           &volume_ray,
 	                                           hits,
@@ -1199,7 +1199,7 @@ ccl_device void kernel_volume_stack_update_for_subsurface(KernelGlobals *kg,
 	Ray volume_ray = *ray;
 
 #  ifdef __VOLUME_RECORD_ALL__
-	Intersection hits[2*VOLUME_STACK_SIZE];
+	Intersection hits[2*VOLUME_STACK_SIZE + 1];
 	uint num_hits = scene_intersect_volume_all(kg,
 	                                           &volume_ray,
 	                                           hits,

@@ -86,6 +86,7 @@ bool id_single_user(struct bContext *C, struct ID *id, struct PointerRNA *ptr, s
 bool id_copy(struct Main *bmain, struct ID *id, struct ID **newid, bool test);
 void id_sort_by_name(struct ListBase *lb, struct ID *id);
 void BKE_id_expand_local(struct ID *id);
+void BKE_id_copy_ensure_local(struct Main *bmain, struct ID *old_id, struct ID *new_id);
 
 bool new_id(struct ListBase *lb, struct ID *id, const char *name);
 void id_clear_lib_data(struct Main *bmain, struct ID *id);

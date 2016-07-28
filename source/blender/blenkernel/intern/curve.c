@@ -207,10 +207,7 @@ Curve *BKE_curve_copy(Main *bmain, Curve *cu)
 	id_us_plus((ID *)cun->vfonti);
 	id_us_plus((ID *)cun->vfontbi);
 
-	if (ID_IS_LINKED_DATABLOCK(cu)) {
-		BKE_id_expand_local(&cun->id);
-		BKE_id_lib_local_paths(bmain, cu->id.lib, &cun->id);
-	}
+	BKE_id_copy_ensure_local(bmain, &cu->id, &cun->id);
 
 	return cun;
 }

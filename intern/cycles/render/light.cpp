@@ -443,9 +443,9 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 		device->tex_alloc("__light_distribution", dscene->light_distribution);
 
 		/* Portals */
-		if(num_background_lights > 0 && light_index != scene->lights.size()) {
+		if(num_background_lights > 0 && light_index != num_lights) {
 			kintegrator->portal_offset = light_index;
-			kintegrator->num_portals = scene->lights.size() - light_index;
+			kintegrator->num_portals = num_lights - light_index;
 			kintegrator->portal_pdf = background_mis? 0.5f: 1.0f;
 		}
 		else {
@@ -609,10 +609,20 @@ void LightManager::device_update_points(Device *device,
                                         Scene *scene)
 {
 	int num_scene_lights = scene->lights.size();
-	if(num_scene_lights == 0)
+	int num_lights = 0;
+
+	foreach(Light *light, scene->lights) {
+		if(light->is_enabled) {
+			num_lights++;
+		}
+	}
+
+
+	float4 *light_data = dscene->light_data.resize(num_lights*LIGHT_SIZE);
+
+	if(num_lights == 0)
 		return;
 
-	float4 *light_data = dscene->light_data.resize(num_scene_lights*LIGHT_SIZE);
 	int light_index = 0;
 
 	foreach(Light *light, scene->lights) {

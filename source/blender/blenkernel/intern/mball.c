@@ -119,10 +119,7 @@ MetaBall *BKE_mball_copy(Main *bmain, MetaBall *mb)
 	mbn->editelems = NULL;
 	mbn->lastelem = NULL;
 	
-	if (ID_IS_LINKED_DATABLOCK(mb)) {
-		BKE_id_expand_local(&mbn->id);
-		BKE_id_lib_local_paths(bmain, mb->id.lib, &mbn->id);
-	}
+	BKE_id_copy_ensure_local(bmain, &mb->id, &mbn->id);
 
 	return mbn;
 }

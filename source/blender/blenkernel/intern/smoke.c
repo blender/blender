@@ -2480,8 +2480,7 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 		// create shadows before writing cache so they get stored
 		smoke_calc_transparency(sds, scene);
 
-		if (sds->wt)
-		{
+		if (sds->wt && sds->total_cells > 1) {
 			smoke_turbulence_step(sds->wt, sds->fluid);
 		}
 

@@ -133,7 +133,7 @@ void DEG_evaluate_on_framechange(EvaluationContext *eval_ctx,
                                  Main *bmain,
                                  Depsgraph *graph,
                                  float ctime,
-                                 const int layers)
+                                 const unsigned int layers)
 {
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
 	/* Update time on primary timesource. */

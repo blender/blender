@@ -1413,7 +1413,9 @@ static void view3d_id_remap(ScrArea *sa, SpaceLink *slink, ID *old_id, ID *new_i
 		if ((ID *)v3d->camera == old_id) {
 			v3d->camera = (Object *)new_id;
 			if (!new_id) {
-				for (ar = sa->regionbase.first; ar; ar = ar->next) {
+				/* 3D view might be inactive, in that case needs to use slink->regionbase */
+				ListBase *regionbase = (slink == sa->spacedata.first) ? &sa->regionbase : &slink->regionbase;
+				for (ar = regionbase->first; ar; ar = ar->next) {
 					if (ar->regiontype == RGN_TYPE_WINDOW) {
 						RegionView3D *rv3d = is_local ? ((RegionView3D *)ar->regiondata)->localvd : ar->regiondata;
 						if (rv3d && (rv3d->persp == RV3D_CAMOB)) {

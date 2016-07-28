@@ -182,7 +182,7 @@ void IDDepsNode::init(const ID *id, const string &UNUSED(subdata))
 	this->eval_flags = 0;
 
 	/* For object we initialize layers to layer from base. */
-	if (GS(id) == ID_OB) {
+	if (GS(id->name) == ID_OB) {
 		this->layers = 0;
 	}
 

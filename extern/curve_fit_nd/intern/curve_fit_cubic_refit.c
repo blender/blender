@@ -43,6 +43,10 @@
  *   While re-fitting, remove knots that fall below the error threshold.
  */
 
+#ifdef _MSC_VER
+#  define _USE_MATH_DEFINES
+#endif
+
 #include <math.h>
 #include <float.h>
 #include <stdbool.h>

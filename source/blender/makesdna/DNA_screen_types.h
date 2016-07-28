@@ -218,11 +218,18 @@ typedef struct ScrArea {
 	char temp, pad;
 	
 	struct SpaceType *type;		/* callbacks for this space type */
-	
-	ListBase spacedata;		/* SpaceLink */
-	ListBase regionbase;	/* ARegion */
-	ListBase handlers;		/* wmEventHandler */
-	
+
+	/* A list of space links (editors) that were open in this area before. When
+	 * changing the editor type, we try to reuse old editor data from this list.
+	 * The first item is the active/visible one.
+	 */
+	ListBase spacedata;  /* SpaceLink */
+	/* NOTE: This region list is the one from the active/visible editor (first item in
+	 * spacedata list). Use SpaceLink.regionbase if it's inactive (but only then)!
+	 */
+	ListBase regionbase; /* ARegion */
+	ListBase handlers;   /* wmEventHandler */
+
 	ListBase actionzones;	/* AZone */
 } ScrArea;
 

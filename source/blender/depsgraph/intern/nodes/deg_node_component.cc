@@ -120,7 +120,7 @@ string ComponentDepsNode::identifier() const
 	sprintf(typebuf, "(%d)", type);
 
 	char layers[16];
-	sprintf(layers, "%d", this->layers);
+	sprintf(layers, "%u", this->layers);
 
 	return string(typebuf) + name + " : " + idname + " (Layers: " + layers + ")";
 }

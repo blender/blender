@@ -872,10 +872,7 @@ Tex *BKE_texture_copy(Main *bmain, Tex *tex)
 
 	BKE_previewimg_id_copy(&texn->id, &tex->id);
 
-	if (ID_IS_LINKED_DATABLOCK(tex)) {
-		BKE_id_expand_local(&texn->id);
-		BKE_id_lib_local_paths(bmain, tex->id.lib, &texn->id);
-	}
+	BKE_id_copy_ensure_local(bmain, &tex->id, &texn->id);
 
 	return texn;
 }

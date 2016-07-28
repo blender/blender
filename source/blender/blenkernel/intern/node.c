@@ -1290,10 +1290,7 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, Main *bmain, bool ski
 	/* node tree will generate its own interface type */
 	newtree->interface_type = NULL;
 	
-	if (ID_IS_LINKED_DATABLOCK(ntree)) {
-		BKE_id_expand_local(&newtree->id);
-		BKE_id_lib_local_paths(bmain, ntree->id.lib, &newtree->id);
-	}
+	BKE_id_copy_ensure_local(bmain, &ntree->id, &newtree->id);
 
 	return newtree;
 }

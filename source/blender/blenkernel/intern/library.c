@@ -271,6 +271,17 @@ void BKE_id_expand_local(ID *id)
 }
 
 /**
+ * Ensure new (copied) ID is fully made local.
+ */
+void BKE_id_copy_ensure_local(Main *bmain, ID *old_id, ID *new_id)
+{
+	if (ID_IS_LINKED_DATABLOCK(old_id)) {
+		BKE_id_expand_local(new_id);
+		BKE_id_lib_local_paths(bmain, old_id->lib, new_id);
+	}
+}
+
+/**
  * Generic 'make local' function, works for most of datablock types...
  */
 void BKE_id_make_local_generic(Main *bmain, ID *id, const bool id_in_mainlist, const bool lib_local)

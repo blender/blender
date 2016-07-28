@@ -194,10 +194,7 @@ bArmature *BKE_armature_copy(Main *bmain, bArmature *arm)
 	newArm->act_edbone = NULL;
 	newArm->sketch = NULL;
 
-	if (ID_IS_LINKED_DATABLOCK(arm)) {
-		BKE_id_expand_local(&newArm->id);
-		BKE_id_lib_local_paths(bmain, arm->id.lib, &newArm->id);
-	}
+	BKE_id_copy_ensure_local(bmain, &arm->id, &newArm->id);
 
 	return newArm;
 }

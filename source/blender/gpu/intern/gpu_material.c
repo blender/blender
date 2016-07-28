@@ -257,6 +257,9 @@ static int GPU_material_construct_end(GPUMaterial *material, const char *passnam
 			material->cameratexcofacloc = GPU_shader_get_uniform(shader, GPU_builtin_name(GPU_CAMERA_TEXCO_FACTORS));
 		return 1;
 	}
+	else {
+		GPU_pass_free_nodes(&material->nodes);
+	}
 
 	return 0;
 }

@@ -99,10 +99,7 @@ Camera *BKE_camera_copy(Main *bmain, Camera *cam)
 	
 	camn = BKE_libblock_copy(bmain, &cam->id);
 
-	if (ID_IS_LINKED_DATABLOCK(cam)) {
-		BKE_id_expand_local(&camn->id);
-		BKE_id_lib_local_paths(bmain, cam->id.lib, &camn->id);
-	}
+	BKE_id_copy_ensure_local(bmain, &cam->id, &camn->id);
 
 	return camn;
 }

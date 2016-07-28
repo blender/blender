@@ -72,13 +72,13 @@ namespace DEG {
 static void schedule_children(TaskPool *pool,
                               Depsgraph *graph,
                               OperationDepsNode *node,
-                              const int layers,
+                              const unsigned int layers,
                               const int thread_id);
 
 struct DepsgraphEvalState {
 	EvaluationContext *eval_ctx;
 	Depsgraph *graph;
-	int layers;
+	unsigned int layers;
 };
 
 static void deg_task_run_func(TaskPool *pool,
@@ -140,7 +140,7 @@ static void deg_task_run_func(TaskPool *pool,
 			OperationDepsNode *child = (OperationDepsNode *)rel->to;
 			BLI_assert(child->type == DEPSNODE_TYPE_OPERATION);
 			if (!child->scheduled) {
-				int id_layers = child->owner->owner->layers;
+				unsigned int id_layers = child->owner->owner->layers;
 				if (!((child->flag & DEPSOP_FLAG_NEEDS_UPDATE) != 0 &&
 				      (id_layers & state->layers) != 0))
 				{
@@ -197,14 +197,14 @@ static void deg_task_run_func(TaskPool *pool,
 
 typedef struct CalculatePengindData {
 	Depsgraph *graph;
-	int layers;
+	unsigned int layers;
 } CalculatePengindData;
 
 static void calculate_pending_func(void *data_v, int i)
 {
 	CalculatePengindData *data = (CalculatePengindData *)data_v;
 	Depsgraph *graph = data->graph;
-	int layers = data->layers;
+	unsigned int layers = data->layers;
 	OperationDepsNode *node = graph->operations[i];
 	IDDepsNode *id_node = node->owner->owner;
 
@@ -231,7 +231,7 @@ static void calculate_pending_func(void *data_v, int i)
 	}
 }
 
-static void calculate_pending_parents(Depsgraph *graph, int layers)
+static void calculate_pending_parents(Depsgraph *graph, unsigned int layers)
 {
 	const int num_operations = graph->operations.size();
 	const bool do_threads = num_operations > 256;
@@ -276,11 +276,11 @@ static void calculate_eval_priority(OperationDepsNode *node)
  *   dec_parents: Decrement pending parents count, true when child nodes are
  *                scheduled after a task has been completed.
  */
-static void schedule_node(TaskPool *pool, Depsgraph *graph, int layers,
+static void schedule_node(TaskPool *pool, Depsgraph *graph, unsigned int layers,
                           OperationDepsNode *node, bool dec_parents,
                           const int thread_id)
 {
-	int id_layers = node->owner->owner->layers;
+	unsigned int id_layers = node->owner->owner->layers;
 
 	if ((node->flag & DEPSOP_FLAG_NEEDS_UPDATE) != 0 &&
 	    (id_layers & layers) != 0)
@@ -314,7 +314,7 @@ static void schedule_node(TaskPool *pool, Depsgraph *graph, int layers,
 
 static void schedule_graph(TaskPool *pool,
                            Depsgraph *graph,
-                           const int layers)
+                           const unsigned int layers)
 {
 	foreach (OperationDepsNode *node, graph->operations) {
 		schedule_node(pool, graph, layers, node, false, 0);
@@ -324,7 +324,7 @@ static void schedule_graph(TaskPool *pool,
 static void schedule_children(TaskPool *pool,
                               Depsgraph *graph,
                               OperationDepsNode *node,
-                              const int layers,
+                              const unsigned int layers,
                               const int thread_id)
 {
 	foreach (DepsRelation *rel, node->outlinks) {
@@ -352,7 +352,7 @@ static void schedule_children(TaskPool *pool,
  */
 void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
                              Depsgraph *graph,
-                             const int layers)
+                             const unsigned int layers)
 {
 	/* Generate base evaluation context, upon which all the others are derived. */
 	// TODO: this needs both main and scene access...

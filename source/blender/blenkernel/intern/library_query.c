@@ -944,6 +944,10 @@ static bool library_ID_is_used(Main *bmain, void *idv, const bool check_linked)
 		}
 
 		for (; id_curr && !is_defined; id_curr = id_curr->next) {
+			if (id_curr == id) {
+				/* We are not interested in self-usages (mostly from drivers or bone constraints...). */
+				continue;
+			}
 			iter.curr_id = id_curr;
 			BKE_library_foreach_ID_link(
 			            id_curr, foreach_libblock_id_users_callback, &iter, IDWALK_NOP);
@@ -992,6 +996,10 @@ void BKE_library_ID_test_usages(Main *bmain, void *idv, bool *is_used_local, boo
 		}
 
 		for (; id_curr && !is_defined; id_curr = id_curr->next) {
+			if (id_curr == id) {
+				/* We are not interested in self-usages (mostly from drivers or bone constraints...). */
+				continue;
+			}
 			iter.curr_id = id_curr;
 			BKE_library_foreach_ID_link(id_curr, foreach_libblock_id_users_callback, &iter, IDWALK_NOP);
 

@@ -156,10 +156,7 @@ bAction *BKE_action_copy(Main *bmain, bAction *src)
 		}
 	}
 	
-	if (ID_IS_LINKED_DATABLOCK(src)) {
-		BKE_id_expand_local(&dst->id);
-		BKE_id_lib_local_paths(bmain, src->id.lib, &dst->id);
-	}
+	BKE_id_copy_ensure_local(bmain, &src->id, &dst->id);
 
 	return dst;
 }
