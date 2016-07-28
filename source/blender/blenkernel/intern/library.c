@@ -105,6 +105,7 @@
 #include "BKE_mask.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_packedFile.h"
 #include "BKE_sound.h"
@@ -423,6 +424,12 @@ bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 		case ID_LS:
 			if (!test) BKE_linestyle_make_local(bmain, (FreestyleLineStyle *)id, lib_local);
 			return true;
+		case ID_PAL:
+			if (!test) BKE_palette_make_local(bmain, (Palette *)id, lib_local);
+			return true;
+		case ID_PC:
+			if (!test) BKE_paint_curve_make_local(bmain, (PaintCurve *)id, lib_local);
+			return true;
 	}
 
 	return false;
@@ -524,6 +531,12 @@ bool id_copy(Main *bmain, ID *id, ID **newid, bool test)
 			return true;
 		case ID_LS:
 			if (!test) *newid = (ID *)BKE_linestyle_copy(bmain, (FreestyleLineStyle *)id);
+			return true;
+		case ID_PAL:
+			if (!test) *newid = (ID *)BKE_palette_copy(bmain, (Palette *)id);
+			return true;
+		case ID_PC:
+			if (!test) *newid = (ID *)BKE_paint_curve_copy(bmain, (PaintCurve *)id);
 			return true;
 	}
 	

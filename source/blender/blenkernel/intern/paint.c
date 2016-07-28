@@ -314,6 +314,26 @@ PaintCurve *BKE_paint_curve_add(Main *bmain, const char *name)
 	return pc;
 }
 
+PaintCurve *BKE_paint_curve_copy(Main *bmain, PaintCurve *pc)
+{
+	PaintCurve *pc_new;
+
+	pc_new = BKE_libblock_copy(bmain, &pc->id);
+
+	if (pc->tot_points != 0) {
+		pc_new->points = MEM_dupallocN(pc->points);
+	}
+
+	BKE_id_copy_ensure_local(bmain, &pc->id, &pc_new->id);
+
+	return pc_new;
+}
+
+void BKE_paint_curve_make_local(Main *bmain, PaintCurve *pc, const bool lib_local)
+{
+	BKE_id_make_local_generic(bmain, &pc->id, true, lib_local);
+}
+
 Palette *BKE_paint_palette(Paint *p)
 {
 	return p ? p->palette : NULL;
@@ -374,6 +394,24 @@ Palette *BKE_palette_add(Main *bmain, const char *name)
 	id_fake_user_set(&palette->id);
 
 	return palette;
+}
+
+Palette *BKE_palette_copy(Main *bmain, Palette *palette)
+{
+	Palette *palette_new;
+
+	palette_new = BKE_libblock_copy(bmain, &palette->id);
+
+	BLI_duplicatelist(&palette_new->colors, &palette->colors);
+
+	BKE_id_copy_ensure_local(bmain, &palette->id, &palette_new->id);
+
+	return palette_new;
+}
+
+void BKE_palette_make_local(Main *bmain, Palette *palette, bool lib_local)
+{
+	BKE_id_make_local_generic(bmain, &palette->id, true, lib_local);
 }
 
 /** Free (or release) any data used by this palette (does not free the palette itself). */
