@@ -80,7 +80,6 @@ typedef struct DupliContext {
 
 	int persistent_id[MAX_DUPLI_RECUR];
 	int level;
-	int index;
 
 	const struct DupliGenerator *gen;
 
