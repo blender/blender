@@ -3719,19 +3719,10 @@ static void initRotation(TransInfo *t)
 	copy_v3_v3(t->axis_orig, t->axis);
 }
 
-static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short around)
+static void ElementRotation_ex(TransInfo *t, TransData *td, float mat[3][3], const float *center)
 {
 	float vec[3], totmat[3][3], smat[3][3];
 	float eul[3], fmat[3][3], quat[4];
-	const float *center;
-
-	/* local constraint shouldn't alter center */
-	if (transdata_check_local_center(t, around)) {
-		center = td->center;
-	}
-	else {
-		center = t->center;
-	}
 
 	if (t->flag & T_POINTS) {
 		mul_m3_m3m3(totmat, mat, td->mtx);
@@ -3939,6 +3930,21 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			constraintRotLim(t, td);
 		}
 	}
+}
+
+static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], const short around)
+{
+	const float *center;
+
+	/* local constraint shouldn't alter center */
+	if (transdata_check_local_center(t, around)) {
+		center = td->center;
+	}
+	else {
+		center = t->center;
+	}
+
+	ElementRotation_ex(t, td, mat, center);
 }
 
 static void applyRotationValue(TransInfo *t, float angle, float axis[3])
@@ -4341,12 +4347,16 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
 		if (td->flag & TD_SKIP)
 			continue;
 
+		float rotate_offset[3] = {0};
+		bool use_rotate_offset = false;
+
 		/* handle snapping rotation before doing the translation */
 		if (usingSnappingNormal(t)) {
+			float mat[3][3];
+
 			if (validSnappingNormal(t)) {
 				const float *original_normal;
-				float mat[3][3];
-				
+
 				/* In pose mode, we want to align normals with Y axis of bones... */
 				if (t->flag & T_POSE)
 					original_normal = td->axismtx[1];
@@ -4354,24 +4364,29 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
 					original_normal = td->axismtx[2];
 
 				rotation_between_vecs_to_mat3(mat, original_normal, t->tsnap.snapNormal);
-
-				ElementRotation(t, td, mat, V3D_AROUND_LOCAL_ORIGINS);
 			}
 			else {
-				float mat[3][3];
-				
 				unit_m3(mat);
-				
-				ElementRotation(t, td, mat, V3D_AROUND_LOCAL_ORIGINS);
+			}
+
+			ElementRotation_ex(t, td, mat, t->tsnap.snapTarget);
+
+			if (td->loc) {
+				use_rotate_offset = true;
+				sub_v3_v3v3(rotate_offset, td->loc, td->iloc);
 			}
 		}
-		
+
 		if (t->con.applyVec) {
 			float pvec[3];
 			t->con.applyVec(t, td, vec, tvec, pvec);
 		}
 		else {
 			copy_v3_v3(tvec, vec);
+		}
+
+		if (use_rotate_offset) {
+			add_v3_v3(tvec, rotate_offset);
 		}
 		
 		mul_m3_v3(td->smtx, tvec);
@@ -4381,7 +4396,7 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
 		
 		if (td->loc)
 			add_v3_v3v3(td->loc, td->iloc, tvec);
-		
+
 		constraintTransLim(t, td);
 	}
 }
