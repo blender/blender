@@ -1156,8 +1156,22 @@ int curve_fit_cubic_to_points_refit_db(
 			k->handles[1] = len_next / 3;
 		}
 #else
-		if (is_cyclic) {
-			len_prev = normalize_vn_vnvn(tan_prev, &points[(knots_len - 2) * dims], &points[(knots_len - 1) * dims], dims);
+		if (knots_len < 2) {
+			/* NOP, set dummy values */
+			for (uint i = 0; i < knots_len; i++) {
+				struct Knot *k = &knots[i];
+				zero_vn(k->tan[0], dims);
+				zero_vn(k->tan[1], dims);
+				k->handles[0] = 0.0;
+				k->handles[1] = 0.0;
+#ifdef USE_LENGTH_CACHE
+				points_length_cache[i] = 0.0;
+#endif
+			}
+		}
+		else if (is_cyclic) {
+			len_prev = normalize_vn_vnvn(
+			        tan_prev, &points[(knots_len - 2) * dims], &points[(knots_len - 1) * dims], dims);
 			for (uint i_curr = knots_len - 1, i_next = 0; i_next < knots_len; i_curr = i_next++) {
 				struct Knot *k = &knots[i_curr];
 #ifdef USE_LENGTH_CACHE
@@ -1177,10 +1191,11 @@ int curve_fit_cubic_to_points_refit_db(
 		}
 		else {
 #ifdef USE_LENGTH_CACHE
-				points_length_cache[0] = 0.0;
-				points_length_cache[1] =
+			points_length_cache[0] = 0.0;
+			points_length_cache[1] =
 #endif
-			len_prev = normalize_vn_vnvn(tan_prev, &points[0 * dims], &points[1 * dims], dims);
+			len_prev = normalize_vn_vnvn(
+			        tan_prev, &points[0 * dims], &points[1 * dims], dims);
 			copy_vnvn(knots[0].tan[0], tan_prev, dims);
 			copy_vnvn(knots[0].tan[1], tan_prev, dims);
 			knots[0].handles[0] = len_prev / 3;
