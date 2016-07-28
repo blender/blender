@@ -984,15 +984,6 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 		}
 		
 		if (found == true) {
-			float tangent[3];
-			
-			sub_v2_v2v2(tangent, loc, t->tsnap.snapPoint);
-			tangent[2] = 0.0f;
-			
-			if (!is_zero_v3(tangent)) {
-				copy_v3_v3(t->tsnap.snapTangent, tangent);
-			}
-			
 			copy_v3_v3(t->tsnap.snapPoint, loc);
 			copy_v3_v3(t->tsnap.snapNormal, no);
 
