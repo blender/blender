@@ -209,6 +209,23 @@ void LightManager::disable_ineffective_light(Device *device, Scene *scene)
 	}
 }
 
+bool LightManager::object_usable_as_light(Object *object) {
+	Mesh *mesh = object->mesh;
+	/* Skip if we are not visible for BSDFs. */
+	if(!(object->visibility & (PATH_RAY_DIFFUSE|PATH_RAY_GLOSSY|PATH_RAY_TRANSMIT))) {
+		return false;
+	}
+	/* Skip motion blurred deforming meshes, not supported yet. */
+	if(mesh->has_motion_blur()) {
+		return false;
+	}
+	/* Skip if we have no emission shaders. */
+	if(!mesh->has_mis_emission) {
+		return false;
+	}
+	return true;
+}
+
 void LightManager::device_update_distribution(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
 	progress.set_status("Updating Lights", "Computing distribution");
@@ -226,23 +243,13 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 	}
 
 	foreach(Object *object, scene->objects) {
-		Mesh *mesh = object->mesh;
+		if(progress.get_cancel()) return;
 
-		/* Skip if we are not visible for BSDFs. */
-		if(!(object->visibility & (PATH_RAY_DIFFUSE|PATH_RAY_GLOSSY|PATH_RAY_TRANSMIT)))
-			continue;
-
-		/* Skip motion blurred deforming meshes, not supported yet. */
-		if(mesh->has_motion_blur()) {
+		if(!object_usable_as_light(object)) {
 			continue;
 		}
-
-		/* Skip if we have no emission shaders. */
-		if(!mesh->has_mis_emission) {
-			continue;
-		}
-
 		/* Count triangles. */
+		Mesh *mesh = object->mesh;
 		size_t mesh_num_triangles = mesh->num_triangles();
 		for(size_t i = 0; i < mesh_num_triangles; i++) {
 			int shader_index = mesh->shader[i];
@@ -270,27 +277,12 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 	foreach(Object *object, scene->objects) {
 		if(progress.get_cancel()) return;
 
+		if(!object_usable_as_light(object)) {
+			j++;
+			continue;
+		}
+		/* Sum area. */
 		Mesh *mesh = object->mesh;
-
-		/* Skip if we are not visible for BSDFs. */
-		if(!(object->visibility & (PATH_RAY_DIFFUSE|PATH_RAY_GLOSSY|PATH_RAY_TRANSMIT))) {
-			j++;
-			continue;
-		}
-
-		/* Skip motion blurred deforming meshes, not supported yet. */
-		if(mesh->has_motion_blur()) {
-			j++;
-			continue;
-		}
-
-		/* Skip if we have no emission shaders. */
-		if(!mesh->has_mis_emission) {
-			j++;
-			continue;
-		}
-
-		/* sum area */
 		bool transform_applied = mesh->transform_applied;
 		Transform tfm = object->tfm;
 		int object_id = j;

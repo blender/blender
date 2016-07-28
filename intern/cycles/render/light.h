@@ -28,6 +28,7 @@ CCL_NAMESPACE_BEGIN
 
 class Device;
 class DeviceScene;
+class Object;
 class Progress;
 class Scene;
 class Shader;
@@ -108,6 +109,9 @@ protected:
 	                              DeviceScene *dscene,
 	                              Scene *scene,
 	                              Progress& progress);
+
+	/* Check whether light manager can use the object as a light-emissive. */
+	bool object_usable_as_light(Object *object);
 };
 
 CCL_NAMESPACE_END
