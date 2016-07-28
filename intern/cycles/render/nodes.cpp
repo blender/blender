@@ -2295,6 +2295,7 @@ NODE_DEFINE(SubsurfaceScatteringNode)
 SubsurfaceScatteringNode::SubsurfaceScatteringNode()
 : BsdfNode(node_type)
 {
+	closure = falloff;
 }
 
 void SubsurfaceScatteringNode::compile(SVMCompiler& compiler)
@@ -2305,6 +2306,7 @@ void SubsurfaceScatteringNode::compile(SVMCompiler& compiler)
 
 void SubsurfaceScatteringNode::compile(OSLCompiler& compiler)
 {
+	closure = falloff;
 	compiler.parameter(this, "falloff");
 	compiler.add(this, "node_subsurface_scattering");
 }
