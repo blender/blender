@@ -260,6 +260,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 	}
 
 	size_t num_distribution = num_triangles + num_lights;
+	VLOG(1) << "Total " << num_distribution << " of light distribution primitives.";
 
 	/* emission area */
 	float4 *distribution = dscene->light_distribution.resize(num_distribution + 1);
@@ -617,11 +618,12 @@ void LightManager::device_update_points(Device *device,
 		}
 	}
 
-
 	float4 *light_data = dscene->light_data.resize(num_lights*LIGHT_SIZE);
 
-	if(num_lights == 0)
+	if(num_lights == 0) {
+		VLOG(1) << "No effective light, ignoring points update.";
 		return;
+	}
 
 	int light_index = 0;
 
