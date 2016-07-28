@@ -947,14 +947,17 @@ static uint curve_incremental_simplify_corners(
 				        dims);
 
 				if (split_index != SPLIT_POINT_INVALID) {
+					const double *co_prev  = &params.pd->points[k_prev->index * dims];
+					const double *co_next  = &params.pd->points[k_next->index * dims];
+					const double *co_split = &params.pd->points[split_index * dims];
 
-					project_vn_vnvn(k_proj_ref,   &pd->points[k_prev->index * dims], k_prev->tan[1], dims);
-					project_vn_vnvn(k_proj_split, &pd->points[split_index   * dims], k_prev->tan[1], dims);
+					project_vn_vnvn_normalized(k_proj_ref,   co_prev, k_prev->tan[1], dims);
+					project_vn_vnvn_normalized(k_proj_split, co_split, k_prev->tan[1], dims);
 
 					if (len_squared_vnvn(k_proj_ref, k_proj_split, dims) < error_sq_2x_max) {
 
-						project_vn_vnvn(k_proj_ref,   &pd->points[k_next->index * dims], k_next->tan[0], dims);
-						project_vn_vnvn(k_proj_split, &pd->points[split_index   * dims], k_next->tan[0], dims);
+						project_vn_vnvn_normalized(k_proj_ref,   co_next, k_next->tan[0], dims);
+						project_vn_vnvn_normalized(k_proj_split, co_split, k_next->tan[0], dims);
 
 						if (len_squared_vnvn(k_proj_ref, k_proj_split, dims) < error_sq_2x_max) {
 
