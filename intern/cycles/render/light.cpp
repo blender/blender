@@ -227,34 +227,31 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 
 	foreach(Object *object, scene->objects) {
 		Mesh *mesh = object->mesh;
-		bool have_emission = false;
 
-		/* skip if we are not visible for BSDFs */
+		/* Skip if we are not visible for BSDFs. */
 		if(!(object->visibility & (PATH_RAY_DIFFUSE|PATH_RAY_GLOSSY|PATH_RAY_TRANSMIT)))
 			continue;
 
-		/* skip motion blurred deforming meshes, not supported yet */
-		if(mesh->has_motion_blur())
+		/* Skip motion blurred deforming meshes, not supported yet. */
+		if(mesh->has_motion_blur()) {
 			continue;
-
-		/* skip if we have no emission shaders */
-		foreach(Shader *shader, mesh->used_shaders) {
-			if(shader->use_mis && shader->has_surface_emission) {
-				have_emission = true;
-				break;
-			}
 		}
 
-		/* count triangles */
-		if(have_emission) {
-			size_t mesh_num_triangles = mesh->num_triangles();
-			for(size_t i = 0; i < mesh_num_triangles; i++) {
-				int shader_index = mesh->shader[i];
-				Shader *shader = (shader_index < mesh->used_shaders.size()) ?
-					mesh->used_shaders[shader_index] : scene->default_surface;
+		/* Skip if we have no emission shaders. */
+		if(!mesh->has_mis_emission) {
+			continue;
+		}
 
-				if(shader->use_mis && shader->has_surface_emission)
-					num_triangles++;
+		/* Count triangles. */
+		size_t mesh_num_triangles = mesh->num_triangles();
+		for(size_t i = 0; i < mesh_num_triangles; i++) {
+			int shader_index = mesh->shader[i];
+			Shader *shader = (shader_index < mesh->used_shaders.size())
+			                         ? mesh->used_shaders[shader_index]
+			                         : scene->default_surface;
+
+			if(shader->use_mis && shader->has_surface_emission) {
+				num_triangles++;
 			}
 		}
 	}
@@ -271,86 +268,82 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 	int j = 0;
 
 	foreach(Object *object, scene->objects) {
-		Mesh *mesh = object->mesh;
-		bool have_emission = false;
+		if(progress.get_cancel()) return;
 
-		/* skip if we are not visible for BSDFs */
+		Mesh *mesh = object->mesh;
+
+		/* Skip if we are not visible for BSDFs. */
 		if(!(object->visibility & (PATH_RAY_DIFFUSE|PATH_RAY_GLOSSY|PATH_RAY_TRANSMIT))) {
 			j++;
 			continue;
 		}
 
-		/* skip motion blurred deforming meshes, not supported yet */
+		/* Skip motion blurred deforming meshes, not supported yet. */
 		if(mesh->has_motion_blur()) {
 			j++;
 			continue;
 		}
 
-		/* skip if we have no emission shaders */
-		foreach(Shader *shader, mesh->used_shaders) {
-			if(shader->use_mis && shader->has_surface_emission) {
-				have_emission = true;
-				break;
-			}
+		/* Skip if we have no emission shaders. */
+		if(!mesh->has_mis_emission) {
+			j++;
+			continue;
 		}
 
 		/* sum area */
-		if(have_emission) {
-			bool transform_applied = mesh->transform_applied;
-			Transform tfm = object->tfm;
-			int object_id = j;
-			int shader_flag = 0;
+		bool transform_applied = mesh->transform_applied;
+		Transform tfm = object->tfm;
+		int object_id = j;
+		int shader_flag = 0;
 
-			if(transform_applied)
-				object_id = ~object_id;
+		if(transform_applied)
+			object_id = ~object_id;
 
-			if(!(object->visibility & PATH_RAY_DIFFUSE)) {
-				shader_flag |= SHADER_EXCLUDE_DIFFUSE;
-				use_light_visibility = true;
-			}
-			if(!(object->visibility & PATH_RAY_GLOSSY)) {
-				shader_flag |= SHADER_EXCLUDE_GLOSSY;
-				use_light_visibility = true;
-			}
-			if(!(object->visibility & PATH_RAY_TRANSMIT)) {
-				shader_flag |= SHADER_EXCLUDE_TRANSMIT;
-				use_light_visibility = true;
-			}
-			if(!(object->visibility & PATH_RAY_VOLUME_SCATTER)) {
-				shader_flag |= SHADER_EXCLUDE_SCATTER;
-				use_light_visibility = true;
-			}
-
-			size_t mesh_num_triangles = mesh->num_triangles();
-			for(size_t i = 0; i < mesh_num_triangles; i++) {
-				int shader_index = mesh->shader[i];
-				Shader *shader = (shader_index < mesh->used_shaders.size()) ?
-					mesh->used_shaders[shader_index] : scene->default_surface;
-
-				if(shader->use_mis && shader->has_surface_emission) {
-					distribution[offset].x = totarea;
-					distribution[offset].y = __int_as_float(i + mesh->tri_offset);
-					distribution[offset].z = __int_as_float(shader_flag);
-					distribution[offset].w = __int_as_float(object_id);
-					offset++;
-
-					Mesh::Triangle t = mesh->get_triangle(i);
-					float3 p1 = mesh->verts[t.v[0]];
-					float3 p2 = mesh->verts[t.v[1]];
-					float3 p3 = mesh->verts[t.v[2]];
-
-					if(!transform_applied) {
-						p1 = transform_point(&tfm, p1);
-						p2 = transform_point(&tfm, p2);
-						p3 = transform_point(&tfm, p3);
-					}
-
-					totarea += triangle_area(p1, p2, p3);
-				}
-			}
+		if(!(object->visibility & PATH_RAY_DIFFUSE)) {
+			shader_flag |= SHADER_EXCLUDE_DIFFUSE;
+			use_light_visibility = true;
+		}
+		if(!(object->visibility & PATH_RAY_GLOSSY)) {
+			shader_flag |= SHADER_EXCLUDE_GLOSSY;
+			use_light_visibility = true;
+		}
+		if(!(object->visibility & PATH_RAY_TRANSMIT)) {
+			shader_flag |= SHADER_EXCLUDE_TRANSMIT;
+			use_light_visibility = true;
+		}
+		if(!(object->visibility & PATH_RAY_VOLUME_SCATTER)) {
+			shader_flag |= SHADER_EXCLUDE_SCATTER;
+			use_light_visibility = true;
 		}
 
-		if(progress.get_cancel()) return;
+		size_t mesh_num_triangles = mesh->num_triangles();
+		for(size_t i = 0; i < mesh_num_triangles; i++) {
+			int shader_index = mesh->shader[i];
+			Shader *shader = (shader_index < mesh->used_shaders.size())
+			                         ? mesh->used_shaders[shader_index]
+			                         : scene->default_surface;
+
+			if(shader->use_mis && shader->has_surface_emission) {
+				distribution[offset].x = totarea;
+				distribution[offset].y = __int_as_float(i + mesh->tri_offset);
+				distribution[offset].z = __int_as_float(shader_flag);
+				distribution[offset].w = __int_as_float(object_id);
+				offset++;
+
+				Mesh::Triangle t = mesh->get_triangle(i);
+				float3 p1 = mesh->verts[t.v[0]];
+				float3 p2 = mesh->verts[t.v[1]];
+				float3 p3 = mesh->verts[t.v[2]];
+
+				if(!transform_applied) {
+					p1 = transform_point(&tfm, p1);
+					p2 = transform_point(&tfm, p2);
+					p3 = transform_point(&tfm, p3);
+				}
+
+				totarea += triangle_area(p1, p2, p3);
+			}
+		}
 
 		j++;
 	}
