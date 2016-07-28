@@ -51,6 +51,7 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_ghash.h"
+#include "BLI_stackdefines.h"
 #include "BLI_memarena.h"
 
 #include "BKE_nla.h"
@@ -6124,7 +6125,7 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t, bool use_even, bool f
 	int *sv_table;  /* BMVert -> sv_array index */
 	EdgeSlideData *sld = MEM_callocN(sizeof(*sld), "sld");
 	float mval[2] = {(float)t->mval[0], (float)t->mval[1]};
-	int numsel, i, j, loop_nr;
+	int numsel, i, loop_nr;
 	bool use_btree_disp = false;
 	View3D *v3d = NULL;
 	RegionView3D *rv3d = NULL;
@@ -6172,30 +6173,38 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t, bool use_even, bool f
 
 	sv_table = MEM_mallocN(sizeof(*sv_table) * bm->totvert, __func__);
 
-	j = 0;
-	BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-			BM_elem_flag_enable(v, BM_ELEM_TAG);
-			sv_table[i] = j;
-			j += 1;
-		}
-		else {
-			BM_elem_flag_disable(v, BM_ELEM_TAG);
-			sv_table[i] = -1;
-		}
-		BM_elem_index_set(v, i); /* set_inline */
-	}
-	bm->elem_index_dirty &= ~BM_VERT;
+#define INDEX_UNSET   -1
+#define INDEX_INVALID -2
 
-	if (!j) {
-		MEM_freeN(sld);
-		MEM_freeN(sv_table);
-		return false;
+	{
+		int j = 0;
+		BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+				BM_elem_flag_enable(v, BM_ELEM_TAG);
+				sv_table[i] = INDEX_UNSET;
+				j += 1;
+			}
+			else {
+				BM_elem_flag_disable(v, BM_ELEM_TAG);
+				sv_table[i] = INDEX_INVALID;
+			}
+			BM_elem_index_set(v, i); /* set_inline */
+		}
+		bm->elem_index_dirty &= ~BM_VERT;
+
+		if (!j) {
+			MEM_freeN(sld);
+			MEM_freeN(sv_table);
+			return false;
+		}
+		sv_tot = j;
 	}
 
-	sv_tot = j;
 	sv_array = MEM_callocN(sizeof(TransDataEdgeSlideVert) * sv_tot, "sv_array");
 	loop_nr = 0;
+
+	STACK_DECLARE(sv_array);
+	STACK_INIT(sv_array, sv_tot);
 
 	while (1) {
 		float vec_a[3], vec_b[3];
@@ -6289,6 +6298,11 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t, bool use_even, bool f
 		l_a_prev = NULL;
 		l_b_prev = NULL;
 
+#define SV_FROM_VERT(v) ( \
+		(sv_table[BM_elem_index_get(v)] == INDEX_UNSET) ? \
+			((void)(sv_table[BM_elem_index_get(v)] = STACK_SIZE(sv_array)), STACK_PUSH_RET_PTR(sv_array)) : \
+			(&sv_array[sv_table[BM_elem_index_get(v)]]))
+
 		/*iterate over the loop*/
 		v_first = v;
 		do {
@@ -6300,8 +6314,8 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t, bool use_even, bool f
 
 			/* XXX, 'sv' will initialize multiple times, this is suspicious. see [#34024] */
 			BLI_assert(v != NULL);
-			BLI_assert(sv_table[BM_elem_index_get(v)] != -1);
-			sv = &sv_array[sv_table[BM_elem_index_get(v)]];
+			BLI_assert(sv_table[BM_elem_index_get(v)] != INDEX_INVALID);
+			sv = SV_FROM_VERT(v);
 			sv->v = v;
 			copy_v3_v3(sv->v_co_orig, v->co);
 			sv->loop_nr = loop_nr;
@@ -6326,8 +6340,10 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t, bool use_even, bool f
 
 			if (!e) {
 				BLI_assert(v != NULL);
-				BLI_assert(sv_table[BM_elem_index_get(v)] != -1);
-				sv = &sv_array[sv_table[BM_elem_index_get(v)]];
+
+				BLI_assert(sv_table[BM_elem_index_get(v)] != INDEX_INVALID);
+				sv = SV_FROM_VERT(v);
+
 				sv->v = v;
 				copy_v3_v3(sv->v_co_orig, v->co);
 				sv->loop_nr = loop_nr;
@@ -6416,12 +6432,18 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t, bool use_even, bool f
 			BM_elem_flag_disable(v_prev, BM_ELEM_TAG);
 		} while ((e != v_first->e) && (l_a || l_b));
 
+#undef SV_FROM_VERT
+#undef INDEX_UNSET
+#undef INDEX_INVALID
+
 		loop_nr++;
 
 #undef EDGESLIDE_VERT_IS_INNER
 	}
 
 	/* EDBM_flag_disable_all(em, BM_ELEM_SELECT); */
+
+	BLI_assert(STACK_SIZE(sv_array) == sv_tot);
 
 	sld->sv = sv_array;
 	sld->totsv = sv_tot;
