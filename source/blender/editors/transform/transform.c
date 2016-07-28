@@ -6540,6 +6540,7 @@ static bool createEdgeSlideVerts_single_side(TransInfo *t, bool use_even, bool f
 		bm->elem_index_dirty &= ~BM_VERT;
 
 		if (!j) {
+			MEM_freeN(sld);
 			return false;
 		}
 
