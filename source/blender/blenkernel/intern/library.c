@@ -335,13 +335,11 @@ bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 	if (id->tag & LIB_TAG_INDIRECT)
 		return false;
 
-	switch (GS(id->name)) {
+	switch ((ID_Type)GS(id->name)) {
 		case ID_SCE:
 			/* Partially implemented (has no copy...). */
 			if (!test) BKE_scene_make_local(bmain, (Scene *)id, lib_local);
 			return true;
-		case ID_LI:
-			return false; /* can't be linked */
 		case ID_OB:
 			if (!test) BKE_object_make_local(bmain, (Object *)id, lib_local);
 			return true;
@@ -375,15 +373,9 @@ bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 		case ID_SPK:
 			if (!test) BKE_speaker_make_local(bmain, (Speaker *)id, lib_local);
 			return true;
-		case ID_IP:
-			return false; /* deprecated */
-		case ID_KE:
-			return false; /* can't be linked */
 		case ID_WO:
 			if (!test) BKE_world_make_local(bmain, (World *)id, lib_local);
 			return true;
-		case ID_SCR:
-			return false; /* can't be linked */
 		case ID_VF:
 			/* Partially implemented (has no copy...). */
 			if (!test) BKE_vfont_make_local(bmain, (VFont *)id, lib_local);
@@ -413,8 +405,6 @@ bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 		case ID_PA:
 			if (!test) BKE_particlesettings_make_local(bmain, (ParticleSettings *)id, lib_local);
 			return true;
-		case ID_WM:
-			return false; /* can't be linked */
 		case ID_GD:
 			if (!test) BKE_gpencil_make_local(bmain, (bGPdata *)id, lib_local);
 			return true;
@@ -430,6 +420,15 @@ bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 		case ID_PC:
 			if (!test) BKE_paint_curve_make_local(bmain, (PaintCurve *)id, lib_local);
 			return true;
+		case ID_MC:
+			return false;  /* TODO missing implementation */
+		case ID_SCR:
+		case ID_LI:
+		case ID_KE:
+		case ID_WM:
+			return false; /* can't be linked */
+		case ID_IP:
+			return false; /* deprecated */
 	}
 
 	return false;
@@ -448,11 +447,7 @@ bool id_copy(Main *bmain, ID *id, ID **newid, bool test)
 	/* conventions:
 	 * - make shallow copy, only this ID block
 	 * - id.us of the new ID is set to 1 */
-	switch (GS(id->name)) {
-		case ID_SCE:
-			return false;  /* can't be copied from here */
-		case ID_LI:
-			return false;  /* can't be copied from here */
+	switch ((ID_Type)GS(id->name)) {
 		case ID_OB:
 			if (!test) *newid = (ID *)BKE_object_copy(bmain, (Object *)id);
 			return true;
@@ -486,23 +481,15 @@ bool id_copy(Main *bmain, ID *id, ID **newid, bool test)
 		case ID_CA:
 			if (!test) *newid = (ID *)BKE_camera_copy(bmain, (Camera *)id);
 			return true;
-		case ID_IP:
-			return false;  /* deprecated */
 		case ID_KE:
 			if (!test) *newid = (ID *)BKE_key_copy(bmain, (Key *)id);
 			return true;
 		case ID_WO:
 			if (!test) *newid = (ID *)BKE_world_copy(bmain, (World *)id);
 			return true;
-		case ID_SCR:
-			return false;  /* can't be copied from here */
-		case ID_VF:
-			return false;  /* not implemented */
 		case ID_TXT:
 			if (!test) *newid = (ID *)BKE_text_copy(bmain, (Text *)id);
 			return true;
-		case ID_SO:
-			return false;  /* not implemented */
 		case ID_GR:
 			if (!test) *newid = (ID *)BKE_group_copy(bmain, (Group *)id);
 			return true;
@@ -521,8 +508,6 @@ bool id_copy(Main *bmain, ID *id, ID **newid, bool test)
 		case ID_PA:
 			if (!test) *newid = (ID *)BKE_particlesettings_copy(bmain, (ParticleSettings *)id);
 			return true;
-		case ID_WM:
-			return false;  /* can't be copied from here */
 		case ID_GD:
 			if (!test) *newid = (ID *)gpencil_data_duplicate(bmain, (bGPdata *)id, false);
 			return true;
@@ -538,6 +523,17 @@ bool id_copy(Main *bmain, ID *id, ID **newid, bool test)
 		case ID_PC:
 			if (!test) *newid = (ID *)BKE_paint_curve_copy(bmain, (PaintCurve *)id);
 			return true;
+		case ID_SCE:
+		case ID_LI:
+		case ID_SCR:
+		case ID_WM:
+			return false;  /* can't be copied from here */
+		case ID_VF:
+		case ID_SO:
+		case ID_MC:
+			return false;  /* not implemented */
+		case ID_IP:
+			return false;  /* deprecated */
 	}
 	
 	return false;
@@ -573,7 +569,7 @@ bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
 
 ListBase *which_libbase(Main *mainlib, short type)
 {
-	switch (type) {
+	switch ((ID_Type)type) {
 		case ID_SCE:
 			return &(mainlib->scene);
 		case ID_LI:
@@ -814,7 +810,7 @@ void *BKE_libblock_alloc_notest(short type)
 {
 	ID *id = NULL;
 	
-	switch (type) {
+	switch ((ID_Type)type) {
 		case ID_SCE:
 			id = MEM_callocN(sizeof(Scene), "scene");
 			break;
@@ -951,7 +947,7 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name)
 void BKE_libblock_init_empty(ID *id)
 {
 	/* Note that only ID types that are not valid when filled of zero should have a callback here. */
-	switch (GS(id->name)) {
+	switch ((ID_Type)GS(id->name)) {
 		case ID_SCE:
 			BKE_scene_init((Scene *)id);
 			break;
@@ -995,15 +991,6 @@ void BKE_libblock_init_empty(ID *id)
 		case ID_CA:
 			BKE_camera_init((Camera *)id);
 			break;
-		case ID_IP:
-			/* Should not be needed - animation from lib pre-2.5 is broken anyway. */
-			BLI_assert(0);
-			break;
-		case ID_KE:
-			/* Shapekeys are a complex topic too - they depend on their 'user' data type...
-			 * They are not linkable, though, so it should never reach here anyway. */
-			BLI_assert(0);
-			break;
 		case ID_WO:
 			BKE_world_init((World *)id);
 			break;
@@ -1040,10 +1027,6 @@ void BKE_libblock_init_empty(ID *id)
 		case ID_PC:
 			/* Nothing to do. */
 			break;
-		case ID_WM:
-			/* We should never reach this. */
-			BLI_assert(0);
-			break;
 		case ID_GD:
 			/* Nothing to do. */
 			break;
@@ -1053,6 +1036,21 @@ void BKE_libblock_init_empty(ID *id)
 		case ID_LS:
 			BKE_linestyle_init((FreestyleLineStyle *)id);
 			break;
+		case ID_KE:
+			/* Shapekeys are a complex topic too - they depend on their 'user' data type...
+			 * They are not linkable, though, so it should never reach here anyway. */
+			BLI_assert(0);
+			break;
+		case ID_WM:
+			/* We should never reach this. */
+			BLI_assert(0);
+			break;
+		case ID_IP:
+			/* Should not be needed - animation from lib pre-2.5 is broken anyway. */
+			BLI_assert(0);
+			break;
+		default:
+			BLI_assert(0);  /* Should never reach this point... */
 	}
 }
 
