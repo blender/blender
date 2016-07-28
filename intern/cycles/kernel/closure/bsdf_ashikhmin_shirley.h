@@ -101,8 +101,14 @@ ccl_device float3 bsdf_ashikhmin_shirley_eval_reflect(const ShaderClosure *sc, c
 
 			float HdotX = dot(H, X);
 			float HdotY = dot(H, Y);
-			float e = (n_x * HdotX*HdotX + n_y * HdotY*HdotY) / (1.0f - HdotN*HdotN);
-			float lobe = powf(HdotN, e);
+			float lobe;
+			if(HdotN < 1.0f) {
+				float e = (n_x * HdotX*HdotX + n_y * HdotY*HdotY) / (1.0f - HdotN*HdotN);
+				lobe = powf(HdotN, e);
+			}
+			else {
+				lobe = 1.0f;
+			}
 			float norm = sqrtf((n_x + 1.0f)*(n_y + 1.0f)) / (8.0f * M_PI_F);
 			
 			out = NdotO * norm * lobe * pump;
