@@ -66,15 +66,16 @@ def verify_output(filepath):
         )
     try:
         subprocess.check_output(command)
-        if os.path.exists(failed_image):
-            os.remove(failed_image)
-        return True
+        failed = False
     except subprocess.CalledProcessError as e:
-        if e.returncode != 1:
-            shutil.copy(TEMP_FILE, failed_image)
         if VERBOSE:
             print(e.output.decode("utf-8"))
-        return e.returncode == 1
+        failed = e.returncode != 1
+    if failed:
+        shutil.copy(TEMP_FILE, failed_image)
+    elif os.path.exists(failed_image):
+        os.remove(failed_image)
+    return not failed
 
 
 def run_test(filepath):
