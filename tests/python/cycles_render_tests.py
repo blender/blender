@@ -17,6 +17,8 @@ def render_file(filepath):
         "--factory-startup",
         filepath,
         "-E", "CYCLES",
+        # Run with OSL enabled
+        # "--python-expr", "import bpy; bpy.context.scene.cycles.shading_system = True",
         "-o", TEMP_FILE_MASK,
         "-F", "PNG",
         "-f", "1",
