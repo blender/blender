@@ -701,7 +701,6 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 	bPoseChannel *pchan;
 	Bone *bone;
 	int mode = *out_mode;
-	int hastranslation = 0;
 	int total = 0;
 
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
@@ -729,7 +728,7 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 		}
 	}
 	/* now count, and check if we have autoIK or have to switch from translate to rotate */
-	hastranslation = 0;
+	bool has_translation = false, has_rotation = false;
 
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		bone = pchan->bone;
@@ -740,20 +739,29 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 				if (has_targetless_ik(pchan) == NULL) {
 					if (pchan->parent && (pchan->bone->flag & BONE_CONNECTED)) {
 						if (pchan->bone->flag & BONE_HINGE_CHILD_TRANSFORM)
-							hastranslation = 1;
+							has_translation = true;
 					}
-					else if ((pchan->protectflag & OB_LOCK_LOC) != OB_LOCK_LOC)
-						hastranslation = 1;
+					else {
+						if ((pchan->protectflag & OB_LOCK_LOC) != OB_LOCK_LOC)
+							has_translation = true;
+					}
+					if ((pchan->protectflag & OB_LOCK_ROT) != OB_LOCK_ROT)
+						has_rotation = true;
 				}
 				else
-					hastranslation = 1;
+					has_translation = true;
 			}
 		}
 	}
 
 	/* if there are no translatable bones, do rotation */
-	if (mode == TFM_TRANSLATION && !hastranslation) {
-		*out_mode = TFM_ROTATION;
+	if (mode == TFM_TRANSLATION && !has_translation) {
+		if (has_rotation) {
+			*out_mode = TFM_ROTATION;
+		}
+		else {
+			*out_mode = TFM_RESIZE;
+		}
 	}
 
 	return total;
