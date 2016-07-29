@@ -253,10 +253,17 @@ static bool object_boundbox_clip(Scene *scene,
 		                       boundbox[3 * i + 1],
 		                       boundbox[3 * i + 2]);
 		p = transform_point(&tfm, p);
-		p = transform_perspective(&worldtondc, p);
-		if(p.z >= -margin) {
+
+		float4 b = make_float4(p.x, p.y, p.z, 1.0f);
+		float4 c = make_float4(dot(worldtondc.x, b),
+		                       dot(worldtondc.y, b),
+		                       dot(worldtondc.z, b),
+		                       dot(worldtondc.w, b));
+		if(c.z >= -margin) {
 			all_behind = false;
 		}
+		c /= c.w;
+		p = float4_to_float3(c);
 		bb_min = min(bb_min, p);
 		bb_max = max(bb_max, p);
 	}
