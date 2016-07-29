@@ -766,7 +766,6 @@ static void create_subd_mesh(Scene *scene,
                              Mesh *mesh,
                              BL::Object& b_ob,
                              BL::Mesh& b_mesh,
-                             PointerRNA *cmesh,
                              const vector<Shader*>& used_shaders,
                              float dicing_rate,
                              int max_subdivisions)
@@ -954,7 +953,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 		if(b_mesh) {
 			if(render_layer.use_surfaces && !hide_tris) {
 				if(mesh->subdivision_type != Mesh::SUBDIVISION_NONE)
-					create_subd_mesh(scene, mesh, b_ob, b_mesh, &cmesh, used_shaders,
+					create_subd_mesh(scene, mesh, b_ob, b_mesh, used_shaders,
 					                 dicing_rate, max_subdivisions);
 				else
 					create_mesh(scene, mesh, b_mesh, used_shaders, false);
