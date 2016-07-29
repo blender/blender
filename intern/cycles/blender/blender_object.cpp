@@ -259,11 +259,14 @@ static bool object_boundbox_clip(Scene *scene,
 		                       dot(worldtondc.y, b),
 		                       dot(worldtondc.z, b),
 		                       dot(worldtondc.w, b));
+		p = float4_to_float3(c / c.w);
+		if(c.z < 0.0f) {
+			p.x = 1.0f - p.x;
+			p.y = 1.0f - p.y;
+		}
 		if(c.z >= -margin) {
 			all_behind = false;
 		}
-		c /= c.w;
-		p = float4_to_float3(c);
 		bb_min = min(bb_min, p);
 		bb_max = max(bb_max, p);
 	}
