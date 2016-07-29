@@ -44,6 +44,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_math_base.h"
 #include "BLI_listbase.h"
@@ -55,6 +56,7 @@
 
 #include "BKE_fcurve.h"
 #include "BKE_tracking.h"
+#include "BKE_library.h"
 #include "BKE_movieclip.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
@@ -184,6 +186,133 @@ void BKE_tracking_free(MovieTracking *tracking)
 		BKE_tracking_distortion_free(tracking->camera.intrinsics);
 
 	tracking_dopesheet_free(&tracking->dopesheet);
+}
+
+/* Copy the whole list of tracks. */
+static void tracking_tracks_copy(ListBase *tracks_dst, ListBase *tracks_src, GHash *tracks_mapping)
+{
+	MovieTrackingTrack *track_dst, *track_src;
+
+	BLI_listbase_clear(tracks_dst);
+	BLI_ghash_clear(tracks_mapping, NULL, NULL);
+
+	for (track_src = tracks_src->first; track_src != NULL; track_src = track_src->next) {
+		track_dst = MEM_dupallocN(track_src);
+		if (track_src->markers) {
+			track_dst->markers = MEM_dupallocN(track_src->markers);
+		}
+		id_us_plus(&track_dst->gpd->id);
+		BLI_addtail(tracks_dst, track_dst);
+		BLI_ghash_insert(tracks_mapping, track_src, track_dst);
+	}
+}
+
+/* copy the whole list of plane tracks (need whole MovieTracking structures due to embeded pointers to tracks).
+ * WARNING: implies tracking_[dst/src] and their tracks have already been copied. */
+static void tracking_plane_tracks_copy(ListBase *plane_tracks_dst, ListBase *plane_tracks_src, GHash *tracks_mapping)
+{
+	MovieTrackingPlaneTrack *plane_track_dst, *plane_track_src;
+
+	BLI_listbase_clear(plane_tracks_dst);
+
+	for (plane_track_src = plane_tracks_src->first; plane_track_src != NULL; plane_track_src = plane_track_src->next) {
+		plane_track_dst = MEM_dupallocN(plane_tracks_src);
+		if (plane_track_src->markers) {
+			plane_track_dst->markers = MEM_dupallocN(plane_track_src->markers);
+		}
+		plane_track_dst->point_tracks = MEM_mallocN(sizeof(*plane_track_dst->point_tracks) * plane_track_dst->point_tracksnr, __func__);
+		for (int i = 0; i < plane_track_dst->point_tracksnr; i++) {
+			plane_track_dst->point_tracks[i] = BLI_ghash_lookup(tracks_mapping, plane_track_src->point_tracks[i]);
+		}
+		id_us_plus(&plane_track_dst->image->id);
+		BLI_addtail(plane_tracks_dst, plane_track_dst);
+	}
+}
+
+/* Copy reconstruction structure. */
+static void tracking_reconstruction_copy(
+        MovieTrackingReconstruction *reconstruction_dst, MovieTrackingReconstruction *reconstruction_src)
+{
+	*reconstruction_dst = *reconstruction_src;
+	if (reconstruction_src->cameras) {
+		reconstruction_dst->cameras = MEM_dupallocN(reconstruction_src->cameras);
+	}
+}
+
+/* Copy stabilization structure. */
+static void tracking_stabilization_copy(
+        MovieTrackingStabilization *stabilization_dst, MovieTrackingStabilization *stabilization_src,
+        GHash *tracks_mapping)
+{
+	*stabilization_dst = *stabilization_src;
+	if (stabilization_src->rot_track) {
+		stabilization_dst->rot_track = BLI_ghash_lookup(tracks_mapping, stabilization_src->rot_track);
+	}
+}
+
+/* Copy tracking object. */
+static void tracking_object_copy(
+        MovieTrackingObject *object_dst, MovieTrackingObject *object_src, GHash *tracks_mapping)
+{
+	*object_dst = *object_src;
+	tracking_tracks_copy(&object_dst->tracks, &object_src->tracks, tracks_mapping);
+	tracking_plane_tracks_copy(&object_dst->plane_tracks, &object_src->plane_tracks, tracks_mapping);
+	tracking_reconstruction_copy(&object_dst->reconstruction, &object_src->reconstruction);
+}
+
+/* Copy list of tracking objects. */
+static void tracking_objects_copy(ListBase *objects_dst, ListBase *objects_src, GHash *tracks_mapping)
+{
+	MovieTrackingObject *object_dst, *object_src;
+
+	BLI_listbase_clear(objects_dst);
+
+	for (object_src = objects_src->first; object_src != NULL; object_src = object_src->next) {
+		object_dst = MEM_mallocN(sizeof(*object_dst), __func__);
+		tracking_object_copy(object_dst, object_src, tracks_mapping);
+		BLI_addtail(objects_dst, object_dst);
+	}
+}
+
+/* Copy tracking structure content. */
+void BKE_tracking_copy(MovieTracking *tracking_dst, MovieTracking *tracking_src)
+{
+	GHash *tracks_mapping = BLI_ghash_ptr_new(__func__);
+
+	*tracking_dst = *tracking_src;
+
+	tracking_tracks_copy(&tracking_dst->tracks, &tracking_src->tracks, tracks_mapping);
+	tracking_plane_tracks_copy(&tracking_dst->plane_tracks, &tracking_src->plane_tracks, tracks_mapping);
+	tracking_reconstruction_copy(&tracking_dst->reconstruction, &tracking_src->reconstruction);
+	tracking_stabilization_copy(&tracking_dst->stabilization, &tracking_src->stabilization, tracks_mapping);
+	if (tracking_src->act_track) {
+		tracking_dst->act_track = BLI_ghash_lookup(tracks_mapping, tracking_src->act_track);
+	}
+	if (tracking_src->act_plane_track) {
+		MovieTrackingPlaneTrack *plane_track_src, *plane_track_dst;
+		for (plane_track_src = tracking_src->plane_tracks.first, plane_track_dst = tracking_dst->plane_tracks.first;
+		     !ELEM(NULL, plane_track_src, plane_track_dst);
+		     plane_track_src = plane_track_src->next, plane_track_dst = plane_track_dst->next)
+		{
+			if (plane_track_src == tracking_src->act_plane_track) {
+				tracking_dst->act_plane_track = plane_track_dst;
+				break;
+			}
+		}
+	}
+
+	/* Warning! Will override tracks_mapping. */
+	tracking_objects_copy(&tracking_dst->objects, &tracking_src->objects, tracks_mapping);
+
+	/* Those remaining are runtime data, they will be reconstructed as needed, do not bother copying them. */
+	tracking_dst->dopesheet.ok = false;
+	BLI_listbase_clear(&tracking_dst->dopesheet.channels);
+	BLI_listbase_clear(&tracking_dst->dopesheet.coverage_segments);
+
+	tracking_dst->camera.intrinsics = NULL;
+	tracking_dst->stats = NULL;
+
+	BLI_ghash_free(tracks_mapping, NULL, NULL);
 }
 
 /* Initialize motion tracking settings to default values,

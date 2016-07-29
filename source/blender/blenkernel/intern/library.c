@@ -103,6 +103,7 @@
 #include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_mask.h"
+#include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -407,6 +408,9 @@ bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 		case ID_GD:
 			if (!test) BKE_gpencil_make_local(bmain, (bGPdata *)id, lib_local);
 			return true;
+		case ID_MC:
+			if (!test) BKE_movieclip_make_local(bmain, (MovieClip *)id, lib_local);
+			return true;
 		case ID_MSK:
 			if (!test) BKE_mask_make_local(bmain, (Mask *)id, lib_local);
 			return true;
@@ -419,8 +423,6 @@ bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 		case ID_PC:
 			if (!test) BKE_paint_curve_make_local(bmain, (PaintCurve *)id, lib_local);
 			return true;
-		case ID_MC:
-			return false;  /* TODO missing implementation */
 		case ID_SCR:
 		case ID_LI:
 		case ID_KE:
@@ -510,6 +512,9 @@ bool id_copy(Main *bmain, ID *id, ID **newid, bool test)
 		case ID_GD:
 			if (!test) *newid = (ID *)gpencil_data_duplicate(bmain, (bGPdata *)id, false);
 			return true;
+		case ID_MC:
+			if (!test) *newid = (ID *)BKE_movieclip_copy(bmain, (MovieClip *)id);
+			return true;
 		case ID_MSK:
 			if (!test) *newid = (ID *)BKE_mask_copy(bmain, (Mask *)id);
 			return true;
@@ -529,7 +534,6 @@ bool id_copy(Main *bmain, ID *id, ID **newid, bool test)
 			return false;  /* can't be copied from here */
 		case ID_VF:
 		case ID_SO:
-		case ID_MC:
 			return false;  /* not implemented */
 		case ID_IP:
 			return false;  /* deprecated */
