@@ -9329,9 +9329,9 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	}
 
 	if (ob->soft) {
-        if (ob->soft->effector_weights) {
-                expand_doit(fd, mainvar, ob->soft->effector_weights->group);
-        }
+		if (ob->soft->effector_weights) {
+			expand_doit(fd, mainvar, ob->soft->effector_weights->group);
+		}
 	}
 
 	if (ob->rigidbody_constraint) {
