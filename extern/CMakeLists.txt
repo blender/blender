@@ -105,6 +105,7 @@ endif()
 
 if(WITH_GTESTS)
 	add_subdirectory(gtest)
+	add_subdirectory(gmock)
 endif()
 
 if(WITH_SDL AND WITH_SDL_DYNLOAD)
