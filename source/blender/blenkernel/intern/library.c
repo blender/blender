@@ -320,7 +320,6 @@ void BKE_id_make_local_generic(Main *bmain, ID *id, const bool id_in_mainlist, c
 			}
 		}
 	}
-
 }
 
 /**
@@ -1634,7 +1633,15 @@ void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged
 	int a;
 
 	for (a = set_listbasepointers(bmain, lbarray); a--; ) {
-		for (id = lbarray[a]->first; id; id = id_next) {
+		id = lbarray[a]->first;
+
+		if (!id || !BKE_idcode_is_linkable(GS(id->name))) {
+			/* Do not explicitely make local non-linkable IDs (shapekeys, in fact), they are assumed to be handled
+			 * by real datablocks responsible of them. */
+			continue;
+		}
+
+		for (; id; id = id_next) {
 			id->newid = NULL;
 			id_next = id->next;  /* id is possibly being inserted again */
 			

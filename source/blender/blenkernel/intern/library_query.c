@@ -639,6 +639,10 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 
 			case ID_KE:
 			{
+				/* XXX Only ID pointer from shapekeys is the 'from' one, which is not actually ID usage.
+				 * Maybe we should even nuke it from here, not 100% sure yet...
+				 * (see also foreach_libblock_id_users_callback).
+				 */
 				Key *key = (Key *) id;
 				CALLBACK_INVOKE_ID(key->from, IDWALK_NOP);
 				break;
@@ -951,9 +955,17 @@ typedef struct IDUsersIter {
 	int count_direct, count_indirect;  /* Set by callback. */
 } IDUsersIter;
 
-static int foreach_libblock_id_users_callback(void *user_data, ID *UNUSED(self_id), ID **id_p, int cb_flag)
+static int foreach_libblock_id_users_callback(void *user_data, ID *self_id, ID **id_p, int cb_flag)
 {
 	IDUsersIter *iter = user_data;
+
+	/* XXX This is actually some kind of hack...
+	 * Issue is, only ID pointer from shapekeys is the 'from' one, which is not actually ID usage.
+	 * Maybe we should even nuke it from BKE_library_foreach_ID_link, not 100% sure yet...
+	 */
+	if (GS(self_id->name) == ID_KE) {
+		return IDWALK_RET_NOP;
+	}
 
 	if (*id_p && (*id_p == iter->id)) {
 #if 0
