@@ -585,6 +585,10 @@ static void time_main_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), 
 					break;
 			}
 			break;
+		case NC_GPENCIL:
+			if (wmn->data == ND_DATA)
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 
