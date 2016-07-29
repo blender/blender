@@ -90,7 +90,7 @@ def rna2xml(fw=print_ln,
         bpy.types.PoseBone,
         bpy.types.Node,
         bpy.types.Sequence,
-        )
+    )
 
     def number_to_str(val, val_type):
         if val_type == int:
@@ -276,7 +276,8 @@ def xml2rna(root_xml,
                     if value_xml.startswith("#"):
                         # read hexidecimal value as float array
                         value_xml_split = value_xml[1:]
-                        value_xml_coerce = [int(value_xml_split[i:i + 2], 16) / 255 for i in range(0, len(value_xml_split), 2)]
+                        value_xml_coerce = [int(value_xml_split[i:i + 2], 16) /
+                                            255 for i in range(0, len(value_xml_split), 2)]
                         del value_xml_split
                     else:
                         value_xml_split = value_xml.split()

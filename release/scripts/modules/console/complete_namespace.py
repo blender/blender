@@ -85,7 +85,7 @@ def complete_indices(word, namespace, obj=None, base=None):
     >>> complete_indices("foo['b", {'foo': {'bar':0, 1:2}}, base='foo')
     ["foo['bar']"]
     """
-    #FIXME: 'foo["b'
+    # FIXME: 'foo["b'
     if base is None:
         base = word
     if obj is None:
@@ -148,7 +148,7 @@ def complete(word, namespace, private=True):
     if re_incomplete_index:
         # ignore incomplete index at the end, e.g 'a[1' -> 'a'
         matches = complete_indices(word, namespace,
-                    base=re_incomplete_index.group(1))
+                                   base=re_incomplete_index.group(1))
 
     elif not('[' in word):
         matches = complete_names(word, namespace)

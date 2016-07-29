@@ -112,10 +112,10 @@ def module_list(path):
         folder_list = []
     #folder_list = glob.glob(os.path.join(path,'*'))
     folder_list = [
-            p for p in folder_list
-            if (os.path.exists(os.path.join(path, p, '__init__.py')) or
-                p[-3:] in {'.py', '.so'} or
-                p[-4:] in {'.pyc', '.pyo', '.pyd'})]
+        p for p in folder_list
+        if (os.path.exists(os.path.join(path, p, '__init__.py')) or
+            p[-3:] in {'.py', '.so'} or
+            p[-4:] in {'.pyc', '.pyo', '.pyd'})]
 
     folder_list = [os.path.basename(p).split('.')[0] for p in folder_list]
     return folder_list
@@ -161,7 +161,7 @@ def complete(line):
         if (not hasattr(m, '__file__')) or (not only_modules) or\
            (hasattr(m, '__file__') and '__init__' in m.__file__):
             completion_list = [attr for attr in dir(m)
-                if is_importable(m, attr)]
+                               if is_importable(m, attr)]
         else:
             completion_list = []
         completion_list.extend(getattr(m, '__all__', []))

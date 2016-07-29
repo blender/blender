@@ -142,9 +142,9 @@ def execute(context, is_interactive):
 
     # redirect output
     from contextlib import (
-            redirect_stdout,
-            redirect_stderr,
-            )
+        redirect_stdout,
+        redirect_stderr,
+    )
 
     # not included with Python
     class redirect_stdin(redirect_stdout.__base__):
@@ -152,8 +152,8 @@ def execute(context, is_interactive):
 
     # don't allow the stdin to be used, can lock blender.
     with redirect_stdout(stdout), \
-         redirect_stderr(stderr), \
-         redirect_stdin(None):
+            redirect_stderr(stderr), \
+            redirect_stdin(None):
 
         # in case exception happens
         line = ""  # in case of encoding error
@@ -258,10 +258,10 @@ def autocomplete(context):
         # This function isn't aware of the text editor or being an operator
         # just does the autocomplete then copy its results back
         result = intellisense.expand(
-                line=line,
-                cursor=current_line.current_character,
-                namespace=console.locals,
-                private=bpy.app.debug_python)
+            line=line,
+            cursor=current_line.current_character,
+            namespace=console.locals,
+            private=bpy.app.debug_python)
 
         line_new = result[0]
         current_line.body, current_line.current_character, scrollback = result

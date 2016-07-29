@@ -26,7 +26,7 @@ __all__ = (
     "disable",
     "reset_all",
     "module_bl_info",
-    )
+)
 
 import bpy as _bpy
 _user_preferences = _bpy.context.user_preferences
@@ -458,7 +458,7 @@ def module_bl_info(mod, info_basis=None):
             "category": "",
             "warning": "",
             "show_expanded": False,
-            }
+        }
 
     addon_info = getattr(mod, "bl_info", {})
 
