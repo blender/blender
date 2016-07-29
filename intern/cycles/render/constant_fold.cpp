@@ -18,6 +18,7 @@
 #include "graph.h"
 
 #include "util_foreach.h"
+#include "util_logging.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -39,6 +40,7 @@ bool ConstantFolder::all_inputs_constant() const
 
 void ConstantFolder::make_constant(float value) const
 {
+	VLOG(1) << "Replacing " << node->name << " with constant " << value << ".";
 	foreach(ShaderInput *sock, output->links) {
 		sock->set(value);
 	}
