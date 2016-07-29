@@ -354,7 +354,7 @@ void Mesh::add_curve(int first_key, int shader)
 
 void Mesh::add_subd_face(int* corners, int num_corners, int shader_, bool smooth_)
 {
-	size_t start_corner = subd_face_corners.size();
+	int start_corner = subd_face_corners.size();
 
 	for(int i = 0; i < num_corners; i++) {
 		subd_face_corners.push_back_reserved(corners[i]);
