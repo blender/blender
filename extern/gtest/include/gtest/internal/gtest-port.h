@@ -306,7 +306,7 @@
 //   GTEST_DISABLE_MSC_WARNINGS_PUSH_(4800 4385)
 //   /* code that triggers warnings C4800 and C4385 */
 //   GTEST_DISABLE_MSC_WARNINGS_POP_()
-#if _MSC_VER >= 1500
+#if defined(_MSC_VER) && _MSC_VER >= 1500
 # define GTEST_DISABLE_MSC_WARNINGS_PUSH_(warnings) \
     __pragma(warning(push))                        \
     __pragma(warning(disable: warnings))
@@ -323,7 +323,7 @@
 // -std={c,gnu}++{0x,11} is passed.  The C++11 standard specifies a
 // value for __cplusplus, and recent versions of clang, gcc, and
 // probably other compilers set that too in C++11 mode.
-# if __GXX_EXPERIMENTAL_CXX0X__ || __cplusplus >= 201103L
+# if defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L
 // Compiling in at least C++11 mode.
 #  define GTEST_LANG_CXX11 1
 # else
@@ -352,7 +352,7 @@
 #endif
 
 // Only use C++11 library features if the library provides them.
-#if GTEST_STDLIB_CXX11
+#if defined(GTEST_STDLIB_CXX11) && GTEST_STDLIB_CXX11
 # define GTEST_HAS_STD_BEGIN_AND_END_ 1
 # define GTEST_HAS_STD_FORWARD_LIST_ 1
 # define GTEST_HAS_STD_FUNCTION_ 1
@@ -385,6 +385,37 @@
 #   undef GTEST_HAS_STD_TUPLE_
 #  endif
 # endif
+#endif
+
+#ifndef GTEST_OS_WINDOWS
+#  define GTEST_OS_WINDOWS 0
+#endif
+#ifndef GTEST_OS_WINDOWS_MINGW
+#  define GTEST_OS_WINDOWS_MINGW 0
+#endif
+#ifndef GTEST_OS_WINDOWS_PHONE
+#  define GTEST_OS_WINDOWS_PHONE 0
+#endif
+#ifndef GTEST_OS_WINDOWS_MOBILE
+#  define GTEST_OS_WINDOWS_MOBILE 0
+#endif
+#ifndef GTEST_OS_WINDOWS_RT
+#  define GTEST_OS_WINDOWS_RT 0
+#endif
+#ifndef GTEST_OS_LINUX_ANDROID
+#  define GTEST_OS_LINUX_ANDROID 0
+#endif
+#ifndef GTEST_OS_QNX
+#  define GTEST_OS_QNX 0
+#endif
+#ifndef GTEST_OS_SYMBIAN
+#  define GTEST_OS_SYMBIAN 0
+#endif
+#ifndef GTEST_OS_CYGWIN
+#  define GTEST_OS_CYGWIN 0
+#endif
+#ifndef GTEST_OS_SOLARIS
+#  define GTEST_OS_SOLARIS 0
 #endif
 
 // Brings in definitions for functions used in the testing::internal::posix
@@ -423,7 +454,7 @@ struct _RTL_CRITICAL_SECTION;
 # endif
 #endif
 
-#if GTEST_USES_PCRE
+#if defined(GTEST_USES_PCRE) && GTEST_USES_PCRE
 // The appropriate headers have already been included.
 
 #elif GTEST_HAS_POSIX_RE
@@ -616,7 +647,7 @@ struct _RTL_CRITICAL_SECTION;
 // Determines if hash_map/hash_set are available.
 // Only used for testing against those containers.
 #if !defined(GTEST_HAS_HASH_MAP_)
-# if _MSC_VER
+# if defined(_MSC_VER)
 #  define GTEST_HAS_HASH_MAP_ 1  // Indicates that hash_map is available.
 #  define GTEST_HAS_HASH_SET_ 1  // Indicates that hash_set is available.
 # endif  // _MSC_VER
@@ -660,6 +691,8 @@ struct _RTL_CRITICAL_SECTION;
 // can build with clang but need to use gcc4.2's libstdc++).
 # if GTEST_LANG_CXX11 && (!defined(__GLIBCXX__) || __GLIBCXX__ > 20110325)
 #  define GTEST_ENV_HAS_STD_TUPLE_ 1
+# else
+#  define GTEST_ENV_HAS_STD_TUPLE_ 0
 # endif
 
 # if GTEST_ENV_HAS_TR1_TUPLE_ || GTEST_ENV_HAS_STD_TUPLE_
@@ -673,7 +706,7 @@ struct _RTL_CRITICAL_SECTION;
 // To avoid conditional compilation everywhere, we make it
 // gtest-port.h's responsibility to #include the header implementing
 // tuple.
-#if GTEST_HAS_STD_TUPLE_
+#if defined(GTEST_HAS_STD_TUPLE_) && GTEST_HAS_STD_TUPLE_
 # include <tuple>  // IWYU pragma: export
 # define GTEST_TUPLE_NAMESPACE_ ::std
 #endif  // GTEST_HAS_STD_TUPLE_
@@ -914,7 +947,7 @@ using ::std::tuple_size;
 # endif
 
 #define GTEST_IS_THREADSAFE \
-    (GTEST_HAS_MUTEX_AND_THREAD_LOCAL_ \
+    ((defined(GTEST_HAS_MUTEX_AND_THREAD_LOCAL_) && GTEST_HAS_MUTEX_AND_THREAD_LOCAL_) \
      || (GTEST_OS_WINDOWS && !GTEST_OS_WINDOWS_PHONE && !GTEST_OS_WINDOWS_RT) \
      || GTEST_HAS_PTHREAD)
 
@@ -1310,7 +1343,7 @@ inline void FlushInfoLog() { fflush(NULL); }
     GTEST_LOG_(FATAL) << #posix_call << "failed with error " \
                       << gtest_error
 
-#if GTEST_HAS_STD_MOVE_
+#if defined(GTEST_HAS_STD_MOVE_) && GTEST_HAS_STD_MOVE_
 using std::move;
 #else  // GTEST_HAS_STD_MOVE_
 template <typename T>
@@ -1394,7 +1427,7 @@ Derived* CheckedDowncastToActualType(Base* base) {
   GTEST_CHECK_(typeid(*base) == typeid(Derived));
 #endif
 
-#if GTEST_HAS_DOWNCAST_
+#if defined(GTEST_HAS_DOWNCAST_) && GTEST_HAS_DOWNCAST_
   return ::down_cast<Derived*>(base);
 #elif GTEST_HAS_RTTI
   return dynamic_cast<Derived*>(base);  // NOLINT
@@ -1454,7 +1487,7 @@ inline void SleepMilliseconds(int n) {
 }
 # endif  // GTEST_HAS_PTHREAD
 
-# if GTEST_HAS_NOTIFICATION_
+# if defined(GTEST_HAS_NOTIFICATION_) && GTEST_HAS_NOTIFICATION_
 // Notification has already been imported into the namespace.
 // Nothing to do here.
 
@@ -1637,7 +1670,7 @@ class ThreadWithParam : public ThreadWithParamBase {
 # endif  // !GTEST_OS_WINDOWS && GTEST_HAS_PTHREAD ||
          // GTEST_HAS_MUTEX_AND_THREAD_LOCAL_
 
-# if GTEST_HAS_MUTEX_AND_THREAD_LOCAL_
+# if defined(GTEST_HAS_MUTEX_AND_THREAD_LOCAL_) && GTEST_HAS_MUTEX_AND_THREAD_LOCAL_
 // Mutex and ThreadLocal have already been imported into the namespace.
 // Nothing to do here.
 
@@ -2417,7 +2450,7 @@ inline void Abort() { abort(); }
 // MSVC-based platforms.  We map the GTEST_SNPRINTF_ macro to the appropriate
 // function in order to achieve that.  We use macro definition here because
 // snprintf is a variadic function.
-#if _MSC_VER >= 1400 && !GTEST_OS_WINDOWS_MOBILE
+#if defined(_MSC_VER) && _MSC_VER >= 1400 && !GTEST_OS_WINDOWS_MOBILE
 // MSVC 2005 and above support variadic macros.
 # define GTEST_SNPRINTF_(buffer, size, format, ...) \
      _snprintf_s(buffer, size, size, format, __VA_ARGS__)

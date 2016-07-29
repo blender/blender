@@ -103,7 +103,7 @@
 #include "gtest/internal/gtest-port.h"
 #include "gtest/internal/gtest-internal.h"
 
-#if GTEST_HAS_STD_TUPLE_
+#if defined(GTEST_HAS_STD_TUPLE_) && GTEST_HAS_STD_TUPLE_
 # include <tuple>
 #endif
 
@@ -581,7 +581,7 @@ inline void PrintTo(const ::std::wstring& s, ::std::ostream* os) {
 }
 #endif  // GTEST_HAS_STD_WSTRING
 
-#if GTEST_HAS_TR1_TUPLE || GTEST_HAS_STD_TUPLE_
+#if GTEST_HAS_TR1_TUPLE || (defined(GTEST_HAS_STD_TUPLE_) && GTEST_HAS_STD_TUPLE_)
 // Helper function for printing a tuple.  T must be instantiated with
 // a tuple type.
 template <typename T>
@@ -664,7 +664,7 @@ void PrintTo(
 }
 #endif  // GTEST_HAS_TR1_TUPLE
 
-#if GTEST_HAS_STD_TUPLE_
+#if defined(GTEST_HAS_STD_TUPLE_) && GTEST_HAS_STD_TUPLE_
 template <typename... Types>
 void PrintTo(const ::std::tuple<Types...>& t, ::std::ostream* os) {
   PrintTupleTo(t, os);
@@ -888,7 +888,7 @@ template <typename TupleT>
 const size_t TuplePolicy<TupleT>::tuple_size;
 #endif  // GTEST_HAS_TR1_TUPLE
 
-#if GTEST_HAS_STD_TUPLE_
+#if defined(GTEST_HAS_STD_TUPLE_) && GTEST_HAS_STD_TUPLE_
 template <typename... Types>
 struct TuplePolicy< ::std::tuple<Types...> > {
   typedef ::std::tuple<Types...> Tuple;
