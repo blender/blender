@@ -43,17 +43,17 @@ def quote_define(define):
 
 def create_qtc_project_main(name):
     from project_info import (
-            SIMPLE_PROJECTFILE,
-            SOURCE_DIR,
-            # CMAKE_DIR,
-            PROJECT_DIR,
-            source_list,
-            is_project_file,
-            is_c_header,
-            cmake_advanced_info,
-            cmake_compiler_defines,
-            project_name_get,
-            )
+        SIMPLE_PROJECTFILE,
+        SOURCE_DIR,
+        # CMAKE_DIR,
+        PROJECT_DIR,
+        source_list,
+        is_project_file,
+        is_c_header,
+        cmake_advanced_info,
+        cmake_compiler_defines,
+        project_name_get,
+    )
 
     files = list(source_list(SOURCE_DIR, filename_check=is_project_file))
     files_rel = [os.path.relpath(f, start=PROJECT_DIR) for f in files]
@@ -69,7 +69,7 @@ def create_qtc_project_main(name):
 
         with open(os.path.join(PROJECT_DIR, "%s.includes" % FILE_NAME), 'w') as f:
             f.write("\n".join(sorted(list(set(os.path.dirname(f)
-                              for f in files_rel if is_c_header(f))))))
+                                              for f in files_rel if is_c_header(f))))))
 
         qtc_prj = os.path.join(PROJECT_DIR, "%s.creator" % FILE_NAME)
         with open(qtc_prj, 'w') as f:
@@ -87,7 +87,7 @@ def create_qtc_project_main(name):
 
         # for some reason it doesnt give all internal includes
         includes = list(set(includes) | set(os.path.dirname(f)
-                        for f in files_rel if is_c_header(f)))
+                                            for f in files_rel if is_c_header(f)))
         includes.sort()
 
         # be tricky, get the project name from CMake if we can!
@@ -125,13 +125,13 @@ def create_qtc_project_main(name):
 
 def create_qtc_project_python(name):
     from project_info import (
-            SOURCE_DIR,
-            # CMAKE_DIR,
-            PROJECT_DIR,
-            source_list,
-            is_py,
-            project_name_get,
-            )
+        SOURCE_DIR,
+        # CMAKE_DIR,
+        PROJECT_DIR,
+        source_list,
+        is_py,
+        project_name_get,
+    )
 
     files = list(source_list(SOURCE_DIR, filename_check=is_py))
     files_rel = [os.path.relpath(f, start=PROJECT_DIR) for f in files]
@@ -161,24 +161,24 @@ def argparse_create():
     import argparse
 
     parser = argparse.ArgumentParser(
-            description="This script generates Qt Creator project files for Blender",
-            )
+        description="This script generates Qt Creator project files for Blender",
+    )
 
     parser.add_argument(
-            "-n", "--name",
-            dest="name",
-            metavar='NAME', type=str,
-            help="Override default project name (\"Blender\")",
-            required=False,
-            )
+        "-n", "--name",
+        dest="name",
+        metavar='NAME', type=str,
+        help="Override default project name (\"Blender\")",
+        required=False,
+    )
 
     parser.add_argument(
-            "-b", "--build-dir",
-            dest="build_dir",
-            metavar='BUILD_DIR', type=str,
-            help="Specify the build path (or fallback to the $PWD)",
-            required=False,
-            )
+        "-b", "--build-dir",
+        dest="build_dir",
+        metavar='BUILD_DIR', type=str,
+        help="Specify the build path (or fallback to the $PWD)",
+        required=False,
+    )
 
     return parser
 

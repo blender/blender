@@ -23,7 +23,7 @@
 __all__ = (
     "build_info",
     "SOURCE_DIR",
-    )
+)
 
 
 import sys

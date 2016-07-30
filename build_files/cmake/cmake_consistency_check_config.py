@@ -31,7 +31,7 @@ IGNORE = (
     "extern/carve/patches/files/random.h",
     "intern/audaspace/SRC/AUD_SRCResampleFactory.h",
     "intern/audaspace/SRC/AUD_SRCResampleReader.h",
-    )
+)
 
 UTF8_CHECK = True
 
