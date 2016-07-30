@@ -18,7 +18,7 @@
 #define __CONSTANT_FOLD_H__
 
 #include "util_types.h"
-#include "util_vector.h"
+#include "svm_types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -37,11 +37,12 @@ public:
 
 	bool all_inputs_constant() const;
 
-	/* Constant folding helpers, always return true for convenience. */
+	/* Constant folding helpers */
 	void make_constant(float value) const;
 	void make_constant(float3 value) const;
 	void make_constant_clamp(float value, bool clamp) const;
 	void make_constant_clamp(float3 value, bool clamp) const;
+	void make_zero() const;
 
 	/* Bypass node, relinking to another output socket. */
 	void bypass(ShaderOutput *output) const;
@@ -51,7 +52,16 @@ public:
 	void bypass_or_discard(ShaderInput *input) const;
 
 	/* Bypass or make constant, unless we can't due to clamp being true. */
-	bool try_bypass_or_make_constant(ShaderInput *input, float3 input_value, bool clamp) const;
+	bool try_bypass_or_make_constant(ShaderInput *input, bool clamp = false) const;
+
+	/* Test if shader inputs of the current nodes have fixed values. */
+	bool is_zero(ShaderInput *input) const;
+	bool is_one(ShaderInput *input) const;
+
+	/* Specific nodes. */
+	void fold_mix(NodeMix type, bool clamp) const;
+	void fold_math(NodeMath type, bool clamp) const;
+	void fold_vector_math(NodeVectorMath type) const;
 };
 
 CCL_NAMESPACE_END

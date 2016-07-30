@@ -3701,44 +3701,11 @@ void MixNode::compile(OSLCompiler& compiler)
 
 void MixNode::constant_fold(const ConstantFolder& folder)
 {
-	ShaderInput *fac_in = input("Fac");
-	ShaderInput *color1_in = input("Color1");
-	ShaderInput *color2_in = input("Color2");
-
-	/* evaluate fully constant node */
 	if(folder.all_inputs_constant()) {
 		folder.make_constant_clamp(svm_mix(type, fac, color1, color2), use_clamp);
-		return;
 	}
-
-	/* remove no-op node when factor is 0.0 */
-	if(!fac_in->link && fac <= 0.0f) {
-		/* note that some of the modes will clamp out of bounds values even without use_clamp */
-		if(type == NODE_MIX_LIGHT || type == NODE_MIX_DODGE || type == NODE_MIX_BURN) {
-			if(!color1_in->link) {
-				folder.make_constant_clamp(svm_mix(type, 0.0f, color1, color1), use_clamp);
-				return;
-			}
-		}
-		else if(folder.try_bypass_or_make_constant(color1_in, color1, use_clamp)) {
-			return;
-		}
-	}
-
-	if(type == NODE_MIX_BLEND) {
-		/* remove useless mix colors nodes */
-		if(color1_in->link ? (color1_in->link == color2_in->link) : (!color2_in->link && color1 == color2)) {
-			if(folder.try_bypass_or_make_constant(color1_in, color1, use_clamp)) {
-				return;
-			}
-		}
-
-		/* remove no-op mix color node when factor is 1.0 */
-		if(!fac_in->link && fac >= 1.0f) {
-			if(folder.try_bypass_or_make_constant(color2_in, color2, use_clamp)) {
-				return;
-			}
-		}
+	else {
+		folder.fold_mix(type, use_clamp);
 	}
 }
 
@@ -4624,6 +4591,9 @@ void MathNode::constant_fold(const ConstantFolder& folder)
 	if(folder.all_inputs_constant()) {
 		folder.make_constant_clamp(svm_math(type, value1, value2), use_clamp);
 	}
+	else {
+		folder.fold_math(type, use_clamp);
+	}
 }
 
 void MathNode::compile(SVMCompiler& compiler)
@@ -4695,6 +4665,9 @@ void VectorMathNode::constant_fold(const ConstantFolder& folder)
 		else if(folder.output == output("Vector")) {
 			folder.make_constant(vector);
 		}
+	}
+	else {
+		folder.fold_vector_math(type);
 	}
 }
 
