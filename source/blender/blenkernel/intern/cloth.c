@@ -58,6 +58,7 @@ static void cloth_to_object (Object *ob,  ClothModifierData *clmd, float (*verte
 static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm );
 static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float framenr, int first);
 static void cloth_update_springs( ClothModifierData *clmd );
+static void cloth_update_verts( Object *ob, ClothModifierData *clmd, DerivedMesh *dm );
 static void cloth_update_spring_lengths( ClothModifierData *clmd, DerivedMesh *dm );
 static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm );
 static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm );
@@ -368,10 +369,13 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 
 	effectors = pdInitEffectors(clmd->scene, ob, NULL, clmd->sim_parms->effector_weights, true);
 
+	if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH )
+		cloth_update_verts ( ob, clmd, result );
+
 	/* Support for dynamic vertex groups, changing from frame to frame */
 	cloth_apply_vgroup ( clmd, result );
 
-	if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SEW )
+	if ( clmd->sim_parms->flags & (CLOTH_SIMSETTINGS_FLAG_SEW | CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH) )
 		cloth_update_spring_lengths ( clmd, result );
 
 	cloth_update_springs( clmd );
@@ -804,7 +808,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	clmd->clothObject->springs = NULL;
 	clmd->clothObject->numsprings = -1;
 
-	if ( clmd->sim_parms->shapekey_rest )
+	if ( clmd->sim_parms->shapekey_rest && !(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH ) )
 		shapekey_rest = dm->getVertDataArray ( dm, CD_CLOTH_ORCO );
 
 	mvert = dm->getVertArray (dm);
@@ -1178,6 +1182,20 @@ static void cloth_update_springs( ClothModifierData *clmd )
 	}
 	
 	cloth_hair_update_bending_targets(clmd);
+}
+
+/* Update rest verts, for dynamically deformable cloth */
+static void cloth_update_verts( Object *ob, ClothModifierData *clmd, DerivedMesh *dm )
+{
+	unsigned int i = 0;
+	MVert *mvert = dm->getVertArray (dm);
+	ClothVertex *verts = clmd->clothObject->verts;
+
+	/* vertex count is already ensured to match */
+	for ( i = 0; i < dm->getNumVerts(dm); i++, verts++ ) {
+		copy_v3_v3(verts->xrest, mvert[i].co);
+		mul_m4_v3(ob->obmat, verts->xrest);
+	}
 }
 
 /* Update spring rest lenght, for dynamically deformable cloth */
