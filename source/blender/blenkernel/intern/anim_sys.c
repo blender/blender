@@ -1541,117 +1541,122 @@ static bool animsys_store_rna_setting(
 #define ANIMSYS_FLOAT_AS_BOOL(value) ((value) > ((1.0f - FLT_EPSILON)))
 
 /* Write the given value to a setting using RNA, and return success */
-static bool animsys_write_rna_setting(PathResolvedRNA *anim_rna, float value)
+static bool animsys_write_rna_setting(PathResolvedRNA *anim_rna, const float value)
 {
 	PropertyRNA *prop = anim_rna->prop;
-	PointerRNA new_ptr = anim_rna->ptr;
+	PointerRNA *ptr = &anim_rna->ptr;
 	int array_index = anim_rna->prop_index;
 	
-	//printf("%p %s %i %f\n", ptr, path, array_index, value);
-	
-	/* get property to write to */
-	// if (RNA_path_resolve_property(ptr, path, &new_ptr, &prop))
-	{
-		/* set value for animatable numerical values only
-		 * HACK: some local F-Curves (e.g. those on NLA Strips) are evaluated
-		 *       without an ID provided, which causes the animateable test to fail!
-		 */
-		// if (RNA_property_animateable(&new_ptr, prop) || (ptr->id.data == NULL))
-		{
-			bool written = false;
+	/* caller must ensure this is animatable */
+	BLI_assert(RNA_property_animateable(ptr, prop) || ptr->id.data == NULL);
 
-			switch (RNA_property_type(prop)) {
-				case PROP_BOOLEAN:
-					if (array_index != -1) {
-						if (RNA_property_boolean_get_index(&new_ptr, prop, array_index) != ANIMSYS_FLOAT_AS_BOOL(value)) {
-							RNA_property_boolean_set_index(&new_ptr, prop, array_index, ANIMSYS_FLOAT_AS_BOOL(value));
-							written = true;
-						}
-					}
-					else {
-						if (RNA_property_boolean_get(&new_ptr, prop) != ANIMSYS_FLOAT_AS_BOOL(value)) {
-							RNA_property_boolean_set(&new_ptr, prop, ANIMSYS_FLOAT_AS_BOOL(value));
-							written = true;
-						}
-					}
-					break;
-				case PROP_INT:
-					if (array_index != -1) {
-						if (RNA_property_int_get_index(&new_ptr, prop, array_index) != (int)value) {
-							RNA_property_int_set_index(&new_ptr, prop, array_index, (int)value);
-							written = true;
-						}
-					}
-					else {
-						if (RNA_property_int_get(&new_ptr, prop) != (int)value) {
-							RNA_property_int_set(&new_ptr, prop, (int)value);
-							written = true;
-						}
-					}
-					break;
-				case PROP_FLOAT:
-					if (array_index != -1) {
-						if (RNA_property_float_get_index(&new_ptr, prop, array_index) != value) {
-							RNA_property_float_set_index(&new_ptr, prop, array_index, value);
-							written = true;
-						}
-					}
-					else {
-						if (RNA_property_float_get(&new_ptr, prop) != value) {
-							RNA_property_float_set(&new_ptr, prop, value);
-							written = true;
-						}
-					}
-					break;
-				case PROP_ENUM:
-					if (RNA_property_enum_get(&new_ptr, prop) != (int)value) {
-						RNA_property_enum_set(&new_ptr, prop, (int)value);
-						written = true;
-					}
-					break;
-				default:
-					/* nothing can be done here... so it is unsuccessful? */
-					return false;
-			}
-			
-			/* RNA property update disabled for now - [#28525] [#28690] [#28774] [#28777] */
-#if 0
-			/* buffer property update for later flushing */
-			if (written && RNA_property_update_check(prop)) {
-				short skip_updates_hack = 0;
-				
-				/* optimization hacks: skip property updates for those properties
-				 * for we know that which the updates in RNA were really just for
-				 * flushing property editing via UI/Py
-				 */
-				if (new_ptr.type == &RNA_PoseBone) {
-					/* bone transforms - update pose (i.e. tag depsgraph) */
-					skip_updates_hack = 1;
+	/* set value for animatable numerical values only
+	 * HACK: some local F-Curves (e.g. those on NLA Strips) are evaluated
+	 *       without an ID provided, which causes the animateable test to fail!
+	 */
+	bool written = false;
+
+	switch (RNA_property_type(prop)) {
+		case PROP_BOOLEAN:
+		{
+			const int value_coerce = ANIMSYS_FLOAT_AS_BOOL(value);
+			if (array_index != -1) {
+				if (RNA_property_boolean_get_index(ptr, prop, array_index) != value_coerce) {
+					RNA_property_boolean_set_index(ptr, prop, array_index, value_coerce);
+					written = true;
 				}
-				
-				if (skip_updates_hack == 0)
-					RNA_property_update_cache_add(&new_ptr, prop);
 			}
+			else {
+				if (RNA_property_boolean_get(ptr, prop) != value_coerce) {
+					RNA_property_boolean_set(ptr, prop, value_coerce);
+					written = true;
+				}
+			}
+			break;
+		}
+		case PROP_INT:
+		{
+			const int value_coerce = (int)value;
+			if (array_index != -1) {
+				if (RNA_property_int_get_index(ptr, prop, array_index) != value_coerce) {
+					RNA_property_int_set_index(ptr, prop, array_index, value_coerce);
+					written = true;
+				}
+			}
+			else {
+				if (RNA_property_int_get(ptr, prop) != value_coerce) {
+					RNA_property_int_set(ptr, prop, value_coerce);
+					written = true;
+				}
+			}
+			break;
+		}
+		case PROP_FLOAT:
+		{
+			if (array_index != -1) {
+				if (RNA_property_float_get_index(ptr, prop, array_index) != value) {
+					RNA_property_float_set_index(ptr, prop, array_index, value);
+					written = true;
+				}
+			}
+			else {
+				if (RNA_property_float_get(ptr, prop) != value) {
+					RNA_property_float_set(ptr, prop, value);
+					written = true;
+				}
+			}
+			break;
+		}
+		case PROP_ENUM:
+		{
+			const int value_coerce = (int)value;
+			if (RNA_property_enum_get(ptr, prop) != value_coerce) {
+				RNA_property_enum_set(ptr, prop, value_coerce);
+				written = true;
+			}
+			break;
+		}
+		default:
+			/* nothing can be done here... so it is unsuccessful? */
+			return false;
+	}
+
+	/* RNA property update disabled for now - [#28525] [#28690] [#28774] [#28777] */
+#if 0
+	/* buffer property update for later flushing */
+	if (written && RNA_property_update_check(prop)) {
+		short skip_updates_hack = 0;
+
+		/* optimization hacks: skip property updates for those properties
+		 * for we know that which the updates in RNA were really just for
+		 * flushing property editing via UI/Py
+		 */
+		if (new_ptr.type == &RNA_PoseBone) {
+			/* bone transforms - update pose (i.e. tag depsgraph) */
+			skip_updates_hack = 1;
+		}
+
+		if (skip_updates_hack == 0)
+			RNA_property_update_cache_add(ptr, prop);
+	}
 #endif
 
-			/* as long as we don't do property update, we still tag datablock
-			 * as having been updated. this flag does not cause any updates to
-			 * be run, it's for e.g. render engines to synchronize data */
-			if (written && new_ptr.id.data) {
-				ID *id = new_ptr.id.data;
+	/* as long as we don't do property update, we still tag datablock
+	 * as having been updated. this flag does not cause any updates to
+	 * be run, it's for e.g. render engines to synchronize data */
+	if (written && ptr->id.data) {
+		ID *id = ptr->id.data;
 
-				/* for cases like duplifarmes it's only a temporary so don't
-				 * notify anyone of updates */
-				if (!(id->tag & LIB_TAG_ANIM_NO_RECALC)) {
-					id->tag |= LIB_TAG_ID_RECALC;
-					DAG_id_type_tag(G.main, GS(id->name));
-				}
-			}
+		/* for cases like duplifarmes it's only a temporary so don't
+		 * notify anyone of updates */
+		if (!(id->tag & LIB_TAG_ANIM_NO_RECALC)) {
+			id->tag |= LIB_TAG_ID_RECALC;
+			DAG_id_type_tag(G.main, GS(id->name));
 		}
-		
-		/* successful */
-		return true;
 	}
+
+	/* successful */
+	return true;
 }
 
 /* Simple replacement based data-setting of the FCurve using RNA */
