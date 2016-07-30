@@ -75,6 +75,11 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
         split.label(text="Quality:")
         split.prop(cloth, "quality", text="Steps")
 
+        split = layout.split(percentage=0.25)
+
+        split.label(text="Speed:")
+        split.prop(cloth, "time_scale", text="Multiplier")
+
         split = layout.split()
 
         col = split.column()

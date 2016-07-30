@@ -63,6 +63,7 @@ typedef struct ClothSimSettings {
 	float	max_sewing; 	/* max sewing force */
 	float 	avg_spring_len; /* used for normalized springs */
 	float 	timescale; /* parameter how fast cloth runs */
+	float	time_scale; /* multiplies cloth speed */
 	float	maxgoal; 	/* see SB */
 	float	eff_force_scale;/* Scaling of effector forces (see softbody_calc_forces).*/
 	float	eff_wind_scale;	/* Scaling of effector wind (see softbody_calc_forces).	*/
@@ -98,6 +99,7 @@ typedef struct ClothSimSettings {
 	short	presets; /* used for presets on GUI */
 	short 	reset;
 
+	char pad0[4];
 	struct EffectorWeights *effector_weights;
 } ClothSimSettings;
 

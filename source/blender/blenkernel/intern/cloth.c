@@ -97,6 +97,7 @@ void cloth_init(ClothModifierData *clmd )
 	clmd->sim_parms->avg_spring_len = 0.0;
 	clmd->sim_parms->presets = 2; /* cotton as start setting */
 	clmd->sim_parms->timescale = 1.0f; /* speed factor, describes how fast cloth moves */
+	clmd->sim_parms->time_scale = 1.0f; /* multiplies cloth speed */
 	clmd->sim_parms->reset = 0;
 	clmd->sim_parms->vel_damping = 1.0f; /* 1.0 = no damping, 0.0 = fully dampened */
 	
@@ -411,7 +412,7 @@ void clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, Derived
 
 	BKE_ptcache_id_from_cloth(&pid, ob, clmd);
 	BKE_ptcache_id_time(&pid, scene, framenr, &startframe, &endframe, &timescale);
-	clmd->sim_parms->timescale= timescale;
+	clmd->sim_parms->timescale= timescale * clmd->sim_parms->time_scale;
 
 	if (clmd->sim_parms->reset || (clmd->clothObject && dm->getNumVerts(dm) != clmd->clothObject->mvert_num)) {
 		clmd->sim_parms->reset = 0;

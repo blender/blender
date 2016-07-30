@@ -442,6 +442,13 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	                         "Quality of the simulation in steps per frame (higher is better quality but slower)");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
+	prop = RNA_def_property(srna, "time_scale", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "time_scale");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 10, 3);
+	RNA_def_property_ui_text(prop, "Speed", "Cloth speed is multiplied by this value");
+	RNA_def_property_update(prop, 0, "rna_cloth_update");
+
 	prop = RNA_def_property(srna, "vertex_group_shrink", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_ClothSettings_shrink_vgroup_get", "rna_ClothSettings_shrink_vgroup_length",
 	                              "rna_ClothSettings_shrink_vgroup_set");
