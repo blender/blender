@@ -60,20 +60,24 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
         ob = context.object
         cloth = md.settings
 
-        split = layout.split()
+        layout.active = cloth_panel_enabled(md)
 
-        split.active = cloth_panel_enabled(md)
+        split = layout.split(percentage=0.25)
 
-        col = split.column()
-
-        col.label(text="Presets:")
-        sub = col.row(align=True)
+        split.label(text="Presets:")
+        sub = split.row(align=True)
         sub.menu("CLOTH_MT_presets", text=bpy.types.CLOTH_MT_presets.bl_label)
         sub.operator("cloth.preset_add", text="", icon='ZOOMIN')
         sub.operator("cloth.preset_add", text="", icon='ZOOMOUT').remove_active = True
 
-        col.label(text="Quality:")
-        col.prop(cloth, "quality", text="Steps", slider=True)
+        split = layout.split(percentage=0.25)
+
+        split.label(text="Quality:")
+        split.prop(cloth, "quality", text="Steps")
+
+        split = layout.split()
+
+        col = split.column()
 
         col.label(text="Material:")
         col.prop(cloth, "mass")
@@ -87,7 +91,11 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
         col.prop(cloth, "air_damping", text="Air")
         col.prop(cloth, "vel_damping", text="Velocity")
 
-        col.prop(cloth, "use_pin_cloth", text="Pinning")
+        split = layout.split()
+
+        col = split.column()
+
+        col.prop(cloth, "use_pin_cloth", text="Pinning:")
         sub = col.column()
         sub.active = cloth.use_pin_cloth
         sub.prop_search(cloth, "vertex_group_mass", ob, "vertex_groups", text="")
@@ -104,11 +112,14 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
             col.prop(cloth, "goal_friction", text="Friction")
         """
 
+        col = split.column()
+
         key = ob.data.shape_keys
 
         if key:
-            col.label(text="Rest Shape Key:")
-            col.prop_search(cloth, "rest_shape_key", key, "key_blocks", text="")
+            sub = col.column()
+            sub.label(text="Rest Shape Key:")
+            sub.prop_search(cloth, "rest_shape_key", key, "key_blocks", text="")
 
 
 class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):
@@ -144,7 +155,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(cloth, "collision_quality", slider=True, text="Quality")
+        col.prop(cloth, "collision_quality", text="Quality")
         col.prop(cloth, "distance_min", slider=True, text="Distance")
         col.prop(cloth, "repel_force", slider=True, text="Repel")
         col.prop(cloth, "distance_repel", slider=True, text="Repel Distance")
@@ -154,7 +165,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
         col.prop(cloth, "use_self_collision", text="Self Collision")
         sub = col.column()
         sub.active = cloth.use_self_collision
-        sub.prop(cloth, "self_collision_quality", slider=True, text="Quality")
+        sub.prop(cloth, "self_collision_quality", text="Quality")
         sub.prop(cloth, "self_distance_min", slider=True, text="Distance")
         sub.prop_search(cloth, "vertex_group_self_collisions", ob, "vertex_groups", text="")
 

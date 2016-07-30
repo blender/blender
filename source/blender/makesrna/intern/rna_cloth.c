@@ -436,7 +436,8 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "quality", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "stepsPerFrame");
-	RNA_def_property_range(prop, 1, 80);
+	RNA_def_property_range(prop, 1, INT_MAX);
+	RNA_def_property_ui_range(prop, 1, 80, 1, -1);
 	RNA_def_property_ui_text(prop, "Quality",
 	                         "Quality of the simulation in steps per frame (higher is better quality but slower)");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
@@ -656,7 +657,8 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "collision_quality", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "loop_count");
-	RNA_def_property_range(prop, 1, 20);
+	RNA_def_property_range(prop, 1, SHRT_MAX);
+	RNA_def_property_ui_range(prop, 1, 20, 1, -1);
 	RNA_def_property_ui_text(prop, "Collision Quality",
 	                         "How many collision iterations should be done. (higher is better quality but slower)");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
@@ -681,7 +683,8 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "self_collision_quality", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "self_loop_count");
-	RNA_def_property_range(prop, 1, 10);
+	RNA_def_property_range(prop, 1, SHRT_MAX);
+	RNA_def_property_ui_range(prop, 1, 10, 1, -1);
 	RNA_def_property_ui_text(prop, "Self Collision Quality",
 	                         "How many self collision iterations should be done "
 	                         "(higher is better quality but slower)");
