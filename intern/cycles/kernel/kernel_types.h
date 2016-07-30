@@ -734,8 +734,6 @@ enum ShaderDataFlag {
 	                   SD_OBJECT_INTERSECTS_VOLUME)
 };
 
-struct KernelGlobals;
-
 #ifdef __SPLIT_KERNEL__
 #  define SD_THREAD (get_global_id(1) * get_global_size(0) + get_global_id(0))
 #  if defined(__SPLIT_KERNEL_AOS__)
