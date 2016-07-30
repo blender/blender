@@ -120,6 +120,22 @@ static void bpy_pydriver_update_dict(const float evaltime)
 	}
 }
 
+static PyObject *bpy_pydriver_InternStr__self = NULL;
+
+static void bpy_pydriver_update_dict_self(struct PathResolvedRNA *anim_rna)
+{
+	if (bpy_pydriver_InternStr__self == NULL) {
+		bpy_pydriver_InternStr__self = PyUnicode_FromString("self");
+	}
+
+	PyObject *item = pyrna_driver_self_from_anim_rna(anim_rna);
+	PyDict_SetItem(bpy_pydriver_Dict,
+	               bpy_pydriver_InternStr__self,
+	               item);
+	Py_DECREF(item);
+
+}
+
 /* Update function, it gets rid of pydrivers global dictionary, forcing
  * BPY_driver_exec to recreate it. This function is used to force
  * reloading the Blender text module "pydrivers.py", if available, so
@@ -174,7 +190,7 @@ static void pydriver_error(ChannelDriver *driver)
  * now release the GIL on python operator execution instead, using
  * PyEval_SaveThread() / PyEval_RestoreThread() so we don't lock up blender.
  */
-float BPY_driver_exec(ChannelDriver *driver, const float evaltime)
+float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, const float evaltime)
 {
 	PyObject *driver_vars = NULL;
 	PyObject *retval = NULL;
@@ -226,6 +242,9 @@ float BPY_driver_exec(ChannelDriver *driver, const float evaltime)
 	/* update global namespace */
 	bpy_pydriver_update_dict(evaltime);
 
+	if (driver->flag & DRIVER_FLAG_USE_SELF) {
+		bpy_pydriver_update_dict_self(anim_rna);
+	}
 
 	if (driver->expr_comp == NULL)
 		driver->flag |= DRIVER_FLAG_RECOMPILE;

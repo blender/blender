@@ -930,11 +930,18 @@ bool insert_keyframe_direct(ReportList *reports, PointerRNA ptr, PropertyRNA *pr
 	
 	/* update F-Curve flags to ensure proper behaviour for property type */
 	update_autoflags_fcurve_direct(fcu, prop);
-	
+
 	/* adjust frame on which to add keyframe */
 	if ((flag & INSERTKEY_DRIVER) && (fcu->driver)) {
-		/* for making it easier to add corrective drivers... */
-		cfra = evaluate_driver(fcu->driver, cfra);
+		PathResolvedRNA anim_rna;
+
+		if (RNA_path_resolved_create(&ptr, prop, fcu->array_index, &anim_rna)) {
+			/* for making it easier to add corrective drivers... */
+			cfra = evaluate_driver(&anim_rna, fcu->driver, cfra);
+		}
+		else {
+			cfra = 0.0f;
+		}
 	}
 	
 	/* obtain value to give keyframe */

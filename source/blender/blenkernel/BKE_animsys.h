@@ -37,6 +37,7 @@ struct Main;
 struct AnimData;
 struct KeyingSet;
 struct KS_Path;
+struct PathResolvedRNA;
 struct bContext;
 
 struct PointerRNA;

@@ -812,6 +812,11 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	}
 		
 	col = uiLayoutColumn(pa->layout, true);
+
+	if (driver->type == DRIVER_TYPE_PYTHON) {
+		uiItemR(col, &driver_ptr, "use_self", 0, NULL, ICON_NONE);
+	}
+
 	/* debug setting */
 	uiItemR(col, &driver_ptr, "show_debug_info", 0, NULL, ICON_NONE);
 		

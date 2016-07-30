@@ -450,7 +450,9 @@ typedef enum eDriver_Flags {
 		/* the names are cached so they don't need have python unicode versions created each time */
 	DRIVER_FLAG_RENAMEVAR	= (1<<4),
 		/* intermediate values of driver should be shown in the UI for debugging purposes */
-	DRIVER_FLAG_SHOWDEBUG	= (1<<5)
+	DRIVER_FLAG_SHOWDEBUG	= (1<<5),
+		/* include 'self' in the drivers namespace. */
+	DRIVER_FLAG_USE_SELF	= (1<<6),
 } eDriver_Flags;
 
 /* F-Curves -------------------------------------- */

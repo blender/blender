@@ -64,6 +64,16 @@ typedef struct PropertyPointerRNA {
 	struct PropertyRNA *prop;
 } PropertyPointerRNA;
 
+/**
+ * Stored result of a RNA path lookup (as used by anim-system)
+ */
+typedef struct PathResolvedRNA {
+	struct PointerRNA ptr;
+	struct PropertyRNA *prop;
+	/* -1 for non-array access */
+	int prop_index;
+} PathResolvedRNA;
+
 /* Property */
 
 typedef enum PropertyType {

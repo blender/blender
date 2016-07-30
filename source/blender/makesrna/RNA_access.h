@@ -715,6 +715,11 @@ void RNA_main_pointer_create(struct Main *main, PointerRNA *r_ptr);
 void RNA_id_pointer_create(struct ID *id, PointerRNA *r_ptr);
 void RNA_pointer_create(struct ID *id, StructRNA *type, void *data, PointerRNA *r_ptr);
 
+bool RNA_path_resolved_create(
+        PointerRNA *ptr, struct PropertyRNA *prop,
+        const int prop_index,
+        PathResolvedRNA *r_anim_rna);
+
 void RNA_blender_rna_pointer_create(PointerRNA *r_ptr);
 void RNA_pointer_recast(PointerRNA *ptr, PointerRNA *r_ptr);
 

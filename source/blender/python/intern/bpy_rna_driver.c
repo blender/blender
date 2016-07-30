@@ -77,3 +77,8 @@ PyObject *pyrna_driver_get_variable_value(
 
 	return driver_arg;
 }
+
+PyObject *pyrna_driver_self_from_anim_rna(struct PathResolvedRNA *anim_rna)
+{
+	return pyrna_struct_CreatePyObject(&anim_rna->ptr);
+}
