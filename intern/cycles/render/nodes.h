@@ -350,6 +350,7 @@ public:
 	float roughness, anisotropy, rotation;
 	ClosureType distribution;
 
+	ClosureType get_closure_type() { return distribution; }
 	void attributes(Shader *shader, AttributeRequestSet *attributes);
 };
 
@@ -385,6 +386,7 @@ public:
 
 	void simplify_settings(Scene *scene);
 	bool has_integrator_dependency();
+	ClosureType get_closure_type() { return distribution; }
 
 	float roughness;
 	ClosureType distribution, distribution_orig;
@@ -396,6 +398,7 @@ public:
 
 	void simplify_settings(Scene *scene);
 	bool has_integrator_dependency();
+	ClosureType get_closure_type() { return distribution; }
 
 	float roughness, IOR;
 	ClosureType distribution, distribution_orig;
@@ -407,6 +410,7 @@ public:
 
 	void simplify_settings(Scene *scene);
 	bool has_integrator_dependency();
+	ClosureType get_closure_type() { return distribution; }
 
 	float roughness, IOR;
 	ClosureType distribution, distribution_orig;
@@ -425,6 +429,7 @@ public:
 	SHADER_NODE_CLASS(SubsurfaceScatteringNode)
 	bool has_surface_bssrdf() { return true; }
 	bool has_bssrdf_bump();
+	ClosureType get_closure_type() { return falloff; }
 
 	float scale;
 	float3 radius;
@@ -519,6 +524,7 @@ public:
 class HairBsdfNode : public BsdfNode {
 public:
 	SHADER_NODE_CLASS(HairBsdfNode)
+	ClosureType get_closure_type() { return component; }
 
 	ClosureType component;
 	float offset;
