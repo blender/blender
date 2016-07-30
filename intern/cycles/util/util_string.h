@@ -39,7 +39,10 @@ using std::istringstream;
 string string_printf(const char *format, ...) PRINTF_ATTRIBUTE;
 
 bool string_iequals(const string& a, const string& b);
-void string_split(vector<string>& tokens, const string& str, const string& separators = "\t ");
+void string_split(vector<string>& tokens,
+                  const string& str,
+                  const string& separators = "\t ",
+                  bool skip_empty_tokens = true);
 void string_replace(string& haystack, const string& needle, const string& other);
 bool string_startswith(const string& s, const char *start);
 bool string_endswith(const string& s, const char *end);

@@ -737,7 +737,7 @@ string path_source_replace_includes(const string& source, const string& path)
 
 	string result = "";
 	vector<string> lines;
-	string_split(lines, source, "\n");
+	string_split(lines, source, "\n", false);
 
 	for(size_t i = 0; i < lines.size(); ++i) {
 		string line = lines[i];
@@ -760,6 +760,13 @@ string path_source_replace_includes(const string& source, const string& path)
 						        text, path_dirname(filepath));
 						text = path_source_replace_includes(text, path);
 						line = token.replace(0, n_end + 1, "\n" + text + "\n");
+
+						/* Line directives for better error messages. */
+						line =   string_printf("#line %d \"%s\"\n",
+						                       (int)0, filepath.c_str())
+						       + line
+						       + string_printf("\n#line %d \"%s\"",
+						                       (int)i, path.c_str());
 					}
 				}
 			}
