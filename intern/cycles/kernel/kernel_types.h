@@ -751,7 +751,7 @@ enum ShaderDataFlag {
 #    define ccl_fetch_array(s, t, index) (&ccl_fetch(s, t)[index])
 #  endif
 #else
-#  define ccl_soa_member(type, name) type name;
+#  define ccl_soa_member(type, name) type name
 #  define ccl_fetch(s, t) (s->t)
 #  define ccl_fetch_array(s, t, index) (&s->t[index])
 #endif
