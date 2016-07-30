@@ -18,6 +18,7 @@
 #define __CONSTANT_FOLD_H__
 
 #include "util_types.h"
+#include "util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -889,28 +889,32 @@ public:
 
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
-	bool has_spatial_varying() { return true; }
-	void compile(SVMCompiler& compiler, int type, ShaderInput *value_in, ShaderOutput *value_out);
-	void compile(OSLCompiler& compiler, const char *name);
-
 	array<float3> curves;
 	float min_x, max_x, fac;
 	float3 value;
+
+protected:
+	void constant_fold(const ConstantFolder& folder, ShaderInput *value_in);
+	void compile(SVMCompiler& compiler, int type, ShaderInput *value_in, ShaderOutput *value_out);
+	void compile(OSLCompiler& compiler, const char *name);
 };
 
 class RGBCurvesNode : public CurvesNode {
 public:
 	SHADER_NODE_CLASS(RGBCurvesNode)
+	void constant_fold(const ConstantFolder& folder);
 };
 
 class VectorCurvesNode : public CurvesNode {
 public:
 	SHADER_NODE_CLASS(VectorCurvesNode)
+	void constant_fold(const ConstantFolder& folder);
 };
 
 class RGBRampNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(RGBRampNode)
+	void constant_fold(const ConstantFolder& folder);
 	virtual int get_group() { return NODE_GROUP_LEVEL_1; }
 
 	array<float3> ramp;

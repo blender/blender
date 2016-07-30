@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-#include "stdosl.h"
-#include "oslutil.h"
+#include "node_ramp_util.h"
 
 shader node_rgb_ramp(
 	color ramp_color[] = {0.0},
@@ -26,21 +25,7 @@ shader node_rgb_ramp(
 	output color Color = 0.0,
 	output float Alpha = 1.0)
 {
-	int table_size = arraylength(ramp_color);
-	float f = clamp(Fac, 0.0, 1.0) * (table_size - 1);
-
-	/* clamp int as well in case of NaN */
-	int i = (int)f;
-	if (i < 0) i = 0;
-	if (i >= table_size) i = table_size - 1;
-	float t = f - (float)i;
-
-	Color = ramp_color[i];
-	Alpha = ramp_alpha[i];
-
-	if (interpolate && t > 0.0) {
-		Color = (1.0 - t) * Color + t * ramp_color[i + 1];
-		Alpha = (1.0 - t) * Alpha + t * ramp_alpha[i + 1];
-	}
+	Color = rgb_ramp_lookup(ramp_color, Fac, interpolate, 0);
+	Alpha = rgb_ramp_lookup(ramp_alpha, Fac, interpolate, 0);
 }
 

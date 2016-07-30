@@ -20,6 +20,7 @@
 #include "scene.h"
 #include "svm.h"
 #include "svm_color_util.h"
+#include "svm_ramp_util.h"
 #include "svm_math_util.h"
 #include "osl.h"
 #include "constant_fold.h"
@@ -4855,6 +4856,30 @@ CurvesNode::CurvesNode(const NodeType *node_type)
 {
 }
 
+void CurvesNode::constant_fold(const ConstantFolder& folder, ShaderInput *value_in)
+{
+	ShaderInput *fac_in = input("Fac");
+
+	/* remove no-op node */
+	if(!fac_in->link && fac == 0.0f) {
+		folder.bypass(value_in->link);
+	}
+	/* evaluate fully constant node */
+	else if(folder.all_inputs_constant()) {
+		if (curves.size() == 0)
+			return;
+
+		float3 pos = (value - make_float3(min_x, min_x, min_x)) / (max_x - min_x);
+		float3 result;
+
+		result[0] = rgb_ramp_lookup(curves.data(), pos[0], true, true, curves.size()).x;
+		result[1] = rgb_ramp_lookup(curves.data(), pos[1], true, true, curves.size()).y;
+		result[2] = rgb_ramp_lookup(curves.data(), pos[2], true, true, curves.size()).z;
+
+		folder.make_constant(interp(value, result, fac));
+	}
+}
+
 void CurvesNode::compile(SVMCompiler& compiler, int type, ShaderInput *value_in, ShaderOutput *value_out)
 {
 	if(curves.size() == 0)
@@ -4918,6 +4943,11 @@ RGBCurvesNode::RGBCurvesNode()
 {
 }
 
+void RGBCurvesNode::constant_fold(const ConstantFolder& folder)
+{
+	CurvesNode::constant_fold(folder, input("Color"));
+}
+
 void RGBCurvesNode::compile(SVMCompiler& compiler)
 {
 	CurvesNode::compile(compiler, NODE_RGB_CURVES, input("Color"), output("Color"));
@@ -4951,6 +4981,11 @@ VectorCurvesNode::VectorCurvesNode()
 {
 }
 
+void VectorCurvesNode::constant_fold(const ConstantFolder& folder)
+{
+	CurvesNode::constant_fold(folder, input("Vector"));
+}
+
 void VectorCurvesNode::compile(SVMCompiler& compiler)
 {
 	CurvesNode::compile(compiler, NODE_VECTOR_CURVES, input("Vector"), output("Vector"));
@@ -4982,6 +5017,31 @@ NODE_DEFINE(RGBRampNode)
 RGBRampNode::RGBRampNode()
 : ShaderNode(node_type)
 {
+}
+
+void RGBRampNode::constant_fold(const ConstantFolder& folder)
+{
+	if(ramp.size() == 0 || ramp.size() != ramp_alpha.size())
+		return;
+
+	if(folder.all_inputs_constant()) {
+		float f = clamp(fac, 0.0f, 1.0f) * (ramp.size() - 1);
+
+		/* clamp int as well in case of NaN */
+		int i = clamp((int)f, 0, ramp.size()-1);
+		float t = f - (float)i;
+
+		bool use_lerp = interpolate && t > 0.0f;
+
+		if(folder.output == output("Color")) {
+			float3 color = rgb_ramp_lookup(ramp.data(), fac, use_lerp, false, ramp.size());
+			folder.make_constant(color);
+		}
+		else if(folder.output == output("Alpha")) {
+			float alpha = float_ramp_lookup(ramp_alpha.data(), fac, use_lerp, false, ramp_alpha.size());
+			folder.make_constant(alpha);
+		}
+	}
 }
 
 void RGBRampNode::compile(SVMCompiler& compiler)

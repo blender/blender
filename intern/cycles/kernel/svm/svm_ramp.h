@@ -19,6 +19,8 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* NOTE: svm_ramp.h, svm_ramp_util.h and node_ramp_util.h must stay consistent */
+
 ccl_device float4 rgb_ramp_lookup(KernelGlobals *kg,
                                   int offset,
                                   float f,
@@ -75,36 +77,7 @@ ccl_device void svm_node_rgb_ramp(KernelGlobals *kg, ShaderData *sd, float *stac
 	*offset += table_size;
 }
 
-ccl_device void svm_node_rgb_curves(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
-{
-	uint fac_offset, color_offset, out_offset;
-	decode_node_uchar4(node.y,
-	                   &fac_offset,
-	                   &color_offset,
-	                   &out_offset,
-	                   NULL);
-
-	uint table_size = read_node(kg, offset).x;
-
-	float fac = stack_load_float(stack, fac_offset);
-	float3 color = stack_load_float3(stack, color_offset);
-
-	const float min_x = __int_as_float(node.z),
-	            max_x = __int_as_float(node.w);
-	const float range_x = max_x - min_x;
-	const float3 relpos = (color - make_float3(min_x, min_x, min_x)) / range_x;
-
-	float r = rgb_ramp_lookup(kg, *offset, relpos.x, true, true, table_size).x;
-	float g = rgb_ramp_lookup(kg, *offset, relpos.y, true, true, table_size).y;
-	float b = rgb_ramp_lookup(kg, *offset, relpos.z, true, true, table_size).z;
-
-	color = (1.0f - fac)*color + fac*make_float3(r, g, b);
-	stack_store_float3(stack, out_offset, color);
-
-	*offset += table_size;
-}
-
-ccl_device void svm_node_vector_curves(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
+ccl_device void svm_node_curves(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
 {
 	uint fac_offset, color_offset, out_offset;
 	decode_node_uchar4(node.y,
