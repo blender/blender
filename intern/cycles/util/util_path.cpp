@@ -728,6 +728,17 @@ bool path_remove(const string& path)
 	return remove(path.c_str()) == 0;
 }
 
+static string line_directive(const string& path, int line)
+{
+	string escaped_path = path;
+	string_replace(escaped_path, "\"", "\\\"");
+	string_replace(escaped_path, "\'", "\\\'");
+	string_replace(escaped_path, "\?", "\\\?");
+	string_replace(escaped_path, "\\", "\\\\");
+	return string_printf("#line %d \"%s\"", line, escaped_path.c_str());
+}
+
+
 string path_source_replace_includes(const string& source, const string& path)
 {
 	/* Our own little c preprocessor that replaces #includes with the file
@@ -759,14 +770,10 @@ string path_source_replace_includes(const string& source, const string& path)
 						text = path_source_replace_includes(
 						        text, path_dirname(filepath));
 						text = path_source_replace_includes(text, path);
-						line = token.replace(0, n_end + 1, "\n" + text + "\n");
-
-						/* Line directives for better error messages. */
-						line =   string_printf("#line %d \"%s\"\n",
-						                       (int)0, filepath.c_str())
-						       + line
-						       + string_printf("\n#line %d \"%s\"",
-						                       (int)i, path.c_str());
+						/* Use line directives for better error messages. */
+						line = line_directive(filepath, 1)
+						     + token.replace(0, n_end + 1, "\n" + text + "\n")
+						     + line_directive(path, i);
 					}
 				}
 			}
