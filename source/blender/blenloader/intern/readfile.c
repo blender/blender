@@ -6338,10 +6338,8 @@ static void lib_link_screen(FileData *fd, Main *main)
 						snode->id = newlibadr(fd, sc->id.lib, snode->id);
 						snode->from = newlibadr(fd, sc->id.lib, snode->from);
 						
-						if (snode->id) {
-							ntree = ntreeFromID(snode->id);
-							snode->nodetree = ntree ? ntree : newlibadr_us(fd, sc->id.lib, snode->nodetree);
-						}
+						ntree = snode->id ? ntreeFromID(snode->id) : NULL;
+						snode->nodetree = ntree ? ntree : newlibadr_us(fd, sc->id.lib, snode->nodetree);
 						
 						for (path = snode->treepath.first; path; path = path->next) {
 							if (path == snode->treepath.first) {
@@ -6720,11 +6718,8 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 					snode->id = restore_pointer_by_name(id_map, snode->id, USER_REAL);
 					snode->from = restore_pointer_by_name(id_map, snode->from, USER_IGNORE);
 					
-					if (snode->id) {
-						ntree = ntreeFromID(snode->id);
-						snode->nodetree = ntree ? ntree :
-						                          restore_pointer_by_name(id_map, (ID *)snode->nodetree, USER_REAL);
-					}
+					ntree = snode->id ? ntreeFromID(snode->id) : NULL;
+					snode->nodetree = ntree ? ntree : restore_pointer_by_name(id_map, (ID *)snode->nodetree, USER_REAL);
 					
 					for (path = snode->treepath.first; path; path = path->next) {
 						if (path == snode->treepath.first) {
