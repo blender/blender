@@ -24,7 +24,7 @@ SCRIPT_HELP_MSG = """
 
 API dump in RST files
 ---------------------
-  Run this script from blenders root path once you have compiled blender
+  Run this script from Blender's root path once you have compiled Blender
 
     ./blender.bin --background -noaudio --python doc/python_api/sphinx_doc_gen.py
 
@@ -61,14 +61,14 @@ Sphinx: PDF generation
 """
 
 try:
-    import bpy  # blender module
+    import bpy  # Blender module
 except ImportError:
     print("\nERROR: this script must run from inside Blender")
     print(SCRIPT_HELP_MSG)
     import sys
     sys.exit()
 
-import rna_info     # blender module
+import rna_info     # Blender module
 
 
 def rna_info_BuildRNAInfo_cache():
@@ -358,9 +358,9 @@ RST_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "rst"))
 # stored in ./rst/info_*
 INFO_DOCS = (
     ("info_quickstart.rst",
-     "Blender/Python Quickstart: new to blender/scripting and want to get your feet wet?"),
+     "Blender/Python Quickstart: new to Blender/scripting and want to get your feet wet?"),
     ("info_overview.rst",
-     "Blender/Python API Overview: a more complete explanation of python integration"),
+     "Blender/Python API Overview: a more complete explanation of Python integration"),
     ("info_tutorial_addon.rst",
      "Blender/Python Addon Tutorial: a step by step guide on how to write an addon from scratch"),
     ("info_api_reference.rst",
@@ -368,7 +368,7 @@ INFO_DOCS = (
     ("info_best_practice.rst",
      "Best Practice: Conventions to follow for writing good scripts"),
     ("info_tips_and_tricks.rst",
-     "Tips and Tricks: Hints to help you while writing scripts for blender"),
+     "Tips and Tricks: Hints to help you while writing scripts for Blender"),
     ("info_gotcha.rst",
      "Gotcha's: some of the problems you may come up against when writing scripts"),
 )
@@ -753,7 +753,7 @@ def py_c_func2sphinx(ident, fw, module_name, type_name, identifier, py_func, is_
 
 def pyprop2sphinx(ident, fw, identifier, py_prop):
     '''
-    python property to sphinx
+    Python property to sphinx
     '''
     # readonly properties use "data" directive, variables use "attribute" directive
     if py_prop.fset is None:
@@ -982,7 +982,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
             if type(descr) == ClassMethodDescriptorType:
                 py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
 
-        # needed for pure python classes
+        # needed for pure Python classes
         for key, descr in descr_items:
             if type(descr) == FunctionType:
                 pyfunc2sphinx("   ", fw, module_name, type_name, key, descr, is_class=True)
@@ -1005,7 +1005,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
 
     file.close()
 
-# Changes in blender will force errors here
+# Changes in Blender will force errors here
 context_type_map = {
     "active_base": ("ObjectBase", False),
     "active_bone": ("EditBone", False),
@@ -1093,7 +1093,7 @@ def pycontext2sphinx(basepath):
     fw(title_string("Context Access (bpy.context)", "="))
     fw(".. module:: bpy.context\n")
     fw("\n")
-    fw("The context members available depend on the area of blender which is currently being accessed.\n")
+    fw("The context members available depend on the area of Blender which is currently being accessed.\n")
     fw("\n")
     fw("Note that all context values are readonly,\n")
     fw("but may be modified through the data api or by running operators\n\n")
@@ -1140,7 +1140,7 @@ def pycontext2sphinx(basepath):
     del write_contex_cls
     # end
 
-    # nasty, get strings directly from blender because there is no other way to get it
+    # nasty, get strings directly from Blender because there is no other way to get it
     import ctypes
 
     context_strings = (
@@ -1357,7 +1357,7 @@ def pyrna2sphinx(basepath):
 
             fw("      :type: %s\n\n" % type_descr)
 
-        # python attributes
+        # Python attributes
         py_properties = struct.get_py_properties()
         py_prop = None
         for identifier, py_prop in py_properties:
@@ -1395,7 +1395,7 @@ def pyrna2sphinx(basepath):
 
             fw("\n")
 
-        # python methods
+        # Python methods
         py_funcs = struct.get_py_functions()
         py_func = None
 
@@ -1769,7 +1769,7 @@ def write_rst_contents(basepath):
     fw("      * mesh creation and editing functions\n")
     fw("   \n")
     fw("   These parts of the API are relatively stable and are unlikely to change significantly\n")
-    fw("      * data API, access to attributes of blender data such as mesh verts, material color,\n")
+    fw("      * data API, access to attributes of Blender data such as mesh verts, material color,\n")
     fw("        timeline frames and scene objects\n")
     fw("      * user interface functions for defining buttons, creation of menus, headers, panels\n")
     fw("      * render engine integration\n")
@@ -1842,11 +1842,11 @@ def write_rst_data(basepath):
         fw(title_string("Data Access (bpy.data)", "="))
         fw(".. module:: bpy\n")
         fw("\n")
-        fw("This module is used for all blender/python access.\n")
+        fw("This module is used for all Blender/Python access.\n")
         fw("\n")
         fw(".. data:: data\n")
         fw("\n")
-        fw("   Access to blenders internal data\n")
+        fw("   Access to Blender's internal data\n")
         fw("\n")
         fw("   :type: :class:`bpy.types.BlendData`\n")
         fw("\n")
@@ -1861,7 +1861,7 @@ def write_rst_importable_modules(basepath):
     Write the rst files of importable modules
     '''
     importable_modules = {
-        # python_modules
+        # Python_modules
         "bpy.path": "Path Utilities",
         "bpy.utils": "Utilities",
         "bpy_extras": "Extra Utilities",
@@ -1906,7 +1906,7 @@ def copy_handwritten_rsts(basepath):
         for info, info_desc in INFO_DOCS:
             shutil.copy2(os.path.join(RST_DIR, info), basepath)
 
-    # TODO put this docs in blender's code and use import as per modules above
+    # TODO put this docs in Blender's code and use import as per modules above
     handwritten_modules = [
         "bge.logic",
         "bge.render",
