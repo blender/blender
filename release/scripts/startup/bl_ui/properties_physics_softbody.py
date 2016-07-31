@@ -68,6 +68,8 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, Panel):
         col.label(text="Simulation:")
         col.prop(softbody, "speed")
 
+        layout.prop(softbody, "collision_group")
+
 
 class PHYSICS_PT_softbody_cache(PhysicButtonsPanel, Panel):
     bl_label = "Soft Body Cache"

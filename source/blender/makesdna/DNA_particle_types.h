@@ -160,6 +160,7 @@ typedef struct ParticleSettings {
 	struct SPHFluidSettings *fluid;
 
 	struct EffectorWeights *effector_weights;
+	struct Group *collision_group;
 
 	int flag, rt;
 	short type, from, distr, texact;

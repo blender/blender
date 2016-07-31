@@ -499,8 +499,12 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 					BKE_particlesystem_id_loop(psys, library_foreach_particlesystemsObjectLooper, &data);
 				}
 
-				if (object->soft && object->soft->effector_weights) {
-					CALLBACK_INVOKE(object->soft->effector_weights->group, IDWALK_NOP);
+				if (object->soft) {
+					CALLBACK_INVOKE(object->soft->collision_group, IDWALK_NOP);
+
+					if (object->soft->effector_weights) {
+						CALLBACK_INVOKE(object->soft->effector_weights->group, IDWALK_NOP);
+					}
 				}
 
 				BKE_sca_sensors_id_loop(&object->sensors, library_foreach_sensorsObjectLooper, &data);
@@ -715,6 +719,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				CALLBACK_INVOKE(psett->dup_group, IDWALK_NOP);
 				CALLBACK_INVOKE(psett->dup_ob, IDWALK_NOP);
 				CALLBACK_INVOKE(psett->bb_ob, IDWALK_NOP);
+				CALLBACK_INVOKE(psett->collision_group, IDWALK_NOP);
 
 				for (i = 0; i < MAX_MTEX; i++) {
 					if (psett->mtex[i]) {

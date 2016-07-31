@@ -605,6 +605,8 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
             row.prop(part, "use_size_deflect")
             row.prop(part, "use_die_on_collision")
 
+            layout.prop(part, "collision_group")
+
             if part.physics_type == 'FLUID':
                 fluid = part.fluid
 
