@@ -4663,7 +4663,7 @@ static bool drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3
 				index3_nors_incr = true;
 			}
 			else {
-				if (!render_only || (render_only && BKE_displist_has_faces(lb))) {
+				if (!render_only || BKE_displist_has_faces(lb)) {
 					return drawDispListwire(lb, ob->type);
 				}
 			}
