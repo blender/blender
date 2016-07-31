@@ -222,7 +222,7 @@ if not ARGS.partial:
     FILTER_BPY_OPS = None
     FILTER_BPY_TYPES = None
     EXCLUDE_INFO_DOCS = False
-    EXCLUDE_MODULES = ()
+    EXCLUDE_MODULES = []
 
 else:
     # can manually edit this too:
@@ -311,19 +311,21 @@ try:
     __import__("aud")
 except ImportError:
     BPY_LOGGER.debug("Warning: Built without 'aud' module, docs incomplete...")
-    EXCLUDE_MODULES = list(EXCLUDE_MODULES) + ["aud"]
+    EXCLUDE_MODULES.append("aud")
 
 try:
     __import__("freestyle")
 except ImportError:
     BPY_LOGGER.debug("Warning: Built without 'freestyle' module, docs incomplete...")
-    EXCLUDE_MODULES = list(EXCLUDE_MODULES) + ["freestyle",
-                                               "freestyle.chainingiterators",
-                                               "freestyle.functions",
-                                               "freestyle.predicates",
-                                               "freestyle.shaders",
-                                               "freestyle.types",
-                                               "freestyle.utils"]
+    EXCLUDE_MODULES.extend([
+        "freestyle",
+        "freestyle.chainingiterators",
+        "freestyle.functions",
+        "freestyle.predicates",
+        "freestyle.shaders",
+        "freestyle.types",
+        "freestyle.utils",
+    ])
 
 # Source files we use, and need to copy to the OUTPUT_DIR
 # to have working out-of-source builds.
