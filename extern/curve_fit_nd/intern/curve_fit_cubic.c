@@ -742,7 +742,11 @@ static void cubic_from_points(
 	    !(alpha_r >= 0.0))
 	{
 #ifdef USE_CIRCULAR_FALLBACK
-		alpha_l = alpha_r = points_calc_cubic_scale(p0, p3, tan_l, tan_r, points_offset_coords_length, dims);
+		double alpha_test = points_calc_cubic_scale(p0, p3, tan_l, tan_r, points_offset_coords_length, dims);
+		if (!isfinite(alpha_test)) {
+			alpha_test = len_vnvn(p0, p3, dims) / 3.0;
+		}
+		alpha_l = alpha_r = alpha_test;
 #else
 		alpha_l = alpha_r = len_vnvn(p0, p3, dims) / 3.0;
 #endif
@@ -804,7 +808,11 @@ static void cubic_from_points(
 		    p2_dist_sq > dist_sq_max)
 		{
 #ifdef USE_CIRCULAR_FALLBACK
-			alpha_l = alpha_r = points_calc_cubic_scale(p0, p3, tan_l, tan_r, points_offset_coords_length, dims);
+			double alpha_test = points_calc_cubic_scale(p0, p3, tan_l, tan_r, points_offset_coords_length, dims);
+			if (!isfinite(alpha_test)) {
+				alpha_test = len_vnvn(p0, p3, dims) / 3.0;
+			}
+			alpha_l = alpha_r = alpha_test;
 #else
 			alpha_l = alpha_r = len_vnvn(p0, p3, dims) / 3.0;
 #endif
