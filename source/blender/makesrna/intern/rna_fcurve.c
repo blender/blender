@@ -1604,8 +1604,8 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_self", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", DRIVER_FLAG_USE_SELF);
 	RNA_def_property_ui_text(prop, "Use Self",
-	                         "Pass 'self' argument to Py-Driver, "
-	                         "so it can access the data referenced by the driver (object, bone, etc...)");
+	                         "Include a 'self' variable in the name-space, "
+	                         "so drivers can easily reference the data being modified (object, bone, etc...)");
 
 	/* State Info (for Debugging) */
 	prop = RNA_def_property(srna, "is_valid", PROP_BOOLEAN, PROP_NONE);
