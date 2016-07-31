@@ -536,7 +536,6 @@ static void ccd_build_deflector_hash(Scene *scene, Group *group, Object *vertexo
 				ob= base->object;
 				if ((vertexowner) && (ob == vertexowner)) {
 					/* if vertexowner is given  we don't want to check collision with owner object */
-					base = base->next;
 					continue;
 				}
 
@@ -583,7 +582,6 @@ static void ccd_update_deflector_hash(Scene *scene, Group *group, Object *vertex
 				ob= base->object;
 				if (ob == vertexowner) {
 					/* if vertexowner is given  we don't want to check collision with owner object */
-					base = base->next;
 					continue;
 				}
 
