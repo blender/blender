@@ -702,7 +702,17 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 	return NULL;
 }
 
-static PyObject *BPy_IDGroup_Pop(BPy_IDProperty *self, PyObject *value)
+PyDoc_STRVAR(BPy_IDGroup_pop_doc,
+".. method:: pop(key)\n"
+"\n"
+"   Remove an item from the group, returning a Python representation.\n"
+"\n"
+"   :raises KeyError: When the item doesn't exist.\n"
+"\n"
+"   :arg key: Name of item to remove.\n"
+"   :type key: string\n"
+);
+static PyObject *BPy_IDGroup_pop(BPy_IDProperty *self, PyObject *value)
 {
 	IDProperty *idprop;
 	PyObject *pyform;
@@ -735,7 +745,12 @@ static PyObject *BPy_IDGroup_Pop(BPy_IDProperty *self, PyObject *value)
 	return NULL;
 }
 
-static PyObject *BPy_IDGroup_IterItems(BPy_IDProperty *self)
+PyDoc_STRVAR(BPy_IDGroup_iter_items_doc,
+".. method:: iteritems()\n"
+"\n"
+"   Iterate through the items in the dict; behaves like dictionary method iteritems.\n"
+);
+static PyObject *BPy_IDGroup_iter_items(BPy_IDProperty *self)
 {
 	BPy_IDGroup_Iter *iter = PyObject_New(BPy_IDGroup_Iter, &BPy_IDGroup_Iter_Type);
 	iter->group = self;
@@ -829,18 +844,32 @@ PyObject *BPy_Wrap_GetItems(ID *id, IDProperty *prop)
 	return seq;
 }
 
-
-static PyObject *BPy_IDGroup_GetKeys(BPy_IDProperty *self)
+PyDoc_STRVAR(BPy_IDGroup_keys_doc,
+".. method:: keys()\n"
+"\n"
+"   Return the keys associated with this group as a list of strings.\n"
+);
+static PyObject *BPy_IDGroup_keys(BPy_IDProperty *self)
 {
 	return BPy_Wrap_GetKeys(self->prop);
 }
 
-static PyObject *BPy_IDGroup_GetValues(BPy_IDProperty *self)
+PyDoc_STRVAR(BPy_IDGroup_values_doc,
+".. method:: values()\n"
+"\n"
+"   Return the values associated with this group.\n"
+);
+static PyObject *BPy_IDGroup_values(BPy_IDProperty *self)
 {
 	return BPy_Wrap_GetValues(self->id, self->prop);
 }
 
-static PyObject *BPy_IDGroup_GetItems(BPy_IDProperty *self)
+PyDoc_STRVAR(BPy_IDGroup_items_doc,
+".. method:: items()\n"
+"\n"
+"   Return the items associated with this group.\n"
+);
+static PyObject *BPy_IDGroup_items(BPy_IDProperty *self)
 {
 	return BPy_Wrap_GetItems(self->id, self->prop);
 }
@@ -859,7 +888,15 @@ static int BPy_IDGroup_Contains(BPy_IDProperty *self, PyObject *value)
 	return IDP_GetPropertyFromGroup(self->prop, name) ? 1 : 0;
 }
 
-static PyObject *BPy_IDGroup_Update(BPy_IDProperty *self, PyObject *value)
+PyDoc_STRVAR(BPy_IDGroup_update_doc,
+".. method:: update(other)\n"
+"\n"
+"   Update key, values.\n"
+"\n"
+"   :arg other: Updates the values in the group with this.\n"
+"   :type other: :class:`IDPropertyGroup` or dict\n"
+);
+static PyObject *BPy_IDGroup_update(BPy_IDProperty *self, PyObject *value)
 {
 	PyObject *pkey, *pval;
 	Py_ssize_t i = 0;
@@ -890,19 +927,33 @@ static PyObject *BPy_IDGroup_Update(BPy_IDProperty *self, PyObject *value)
 	Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(BPy_IDGroup_to_dict_doc,
+".. method:: to_dict()\n"
+"\n"
+"   Return a purely python version of the group.\n"
+);
 static PyObject *BPy_IDGroup_to_dict(BPy_IDProperty *self)
 {
 	return BPy_IDGroup_MapDataToPy(self->prop);
 }
 
+PyDoc_STRVAR(BPy_IDGroup_clear_doc,
+".. method:: clear()\n"
+"\n"
+"   Clear all members from this group.\n"
+);
 static PyObject *BPy_IDGroup_clear(BPy_IDProperty *self)
 {
 	IDP_ClearProperty(self->prop);
 	Py_RETURN_NONE;
 }
 
-/* Matches python dict.get(key, [default]) */
-static PyObject *BPy_IDGroup_Get(BPy_IDProperty *self, PyObject *args)
+PyDoc_STRVAR(BPy_IDGroup_get_doc,
+".. method:: get(key, default=None)\n"
+"\n"
+"   Return the value for key, if it exists, else default.\n"
+);
+static PyObject *BPy_IDGroup_get(BPy_IDProperty *self, PyObject *args)
 {
 	IDProperty *idprop;
 	const char *key;
@@ -923,24 +974,15 @@ static PyObject *BPy_IDGroup_Get(BPy_IDProperty *self, PyObject *args)
 }
 
 static struct PyMethodDef BPy_IDGroup_methods[] = {
-	{"pop", (PyCFunction)BPy_IDGroup_Pop, METH_O,
-	 "pop an item from the group; raises KeyError if the item doesn't exist"},
-	{"iteritems", (PyCFunction)BPy_IDGroup_IterItems, METH_NOARGS,
-	 "iterate through the items in the dict; behaves like dictionary method iteritems"},
-	{"keys", (PyCFunction)BPy_IDGroup_GetKeys, METH_NOARGS,
-	 "get the keys associated with this group as a list of strings"},
-	{"values", (PyCFunction)BPy_IDGroup_GetValues, METH_NOARGS,
-	 "get the values associated with this group"},
-	{"items", (PyCFunction)BPy_IDGroup_GetItems, METH_NOARGS,
-	 "get the items associated with this group"},
-	{"update", (PyCFunction)BPy_IDGroup_Update, METH_O,
-	 "updates the values in the group with the values of another or a dict"},
-	{"get", (PyCFunction)BPy_IDGroup_Get, METH_VARARGS,
-	 "idprop.get(k[,d]) -> idprop[k] if k in idprop, else d.  d defaults to None"},
-	{"to_dict", (PyCFunction)BPy_IDGroup_to_dict, METH_NOARGS,
-	 "return a purely python version of the group"},
-	{"clear", (PyCFunction)BPy_IDGroup_clear, METH_NOARGS,
-	 "clear all members from this group"},
+	{"pop", (PyCFunction)BPy_IDGroup_pop, METH_O, BPy_IDGroup_pop_doc},
+	{"iteritems", (PyCFunction)BPy_IDGroup_iter_items, METH_NOARGS, BPy_IDGroup_iter_items_doc},
+	{"keys", (PyCFunction)BPy_IDGroup_keys, METH_NOARGS, BPy_IDGroup_keys_doc},
+	{"values", (PyCFunction)BPy_IDGroup_values, METH_NOARGS, BPy_IDGroup_values_doc},
+	{"items", (PyCFunction)BPy_IDGroup_items, METH_NOARGS, BPy_IDGroup_items_doc},
+	{"update", (PyCFunction)BPy_IDGroup_update, METH_O, BPy_IDGroup_update_doc},
+	{"get", (PyCFunction)BPy_IDGroup_get, METH_VARARGS, BPy_IDGroup_get_doc},
+	{"to_dict", (PyCFunction)BPy_IDGroup_to_dict, METH_NOARGS, BPy_IDGroup_to_dict_doc},
+	{"clear", (PyCFunction)BPy_IDGroup_clear, METH_NOARGS, BPy_IDGroup_clear_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1049,7 +1091,10 @@ static PyObject *BPy_IDArray_repr(BPy_IDArray *self)
 	return PyUnicode_FromFormat("<bpy id property array [%d]>", self->prop->len);
 }
 
-static PyObject *BPy_IDArray_GetType(BPy_IDArray *self)
+PyDoc_STRVAR(BPy_IDArray_get_typecode_doc,
+"The type of the data in the array {'f': float, 'd': double, 'i': int}."
+);
+static PyObject *BPy_IDArray_get_typecode(BPy_IDArray *self)
 {
 	switch (self->prop->subtype) {
 		case IDP_FLOAT:  return PyUnicode_FromString("f");
@@ -1066,18 +1111,22 @@ static PyObject *BPy_IDArray_GetType(BPy_IDArray *self)
 
 static PyGetSetDef BPy_IDArray_getseters[] = {
 	/* matches pythons array.typecode */
-	{(char *)"typecode", (getter)BPy_IDArray_GetType, (setter)NULL, (char *)"The type of the data in the array, is an int.", NULL},
+	{(char *)"typecode", (getter)BPy_IDArray_get_typecode, (setter)NULL, BPy_IDArray_get_typecode_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL},
 };
 
+PyDoc_STRVAR(BPy_IDArray_to_list_doc,
+".. method:: to_list()\n"
+"\n"
+"   Return the array as a list.\n"
+);
 static PyObject *BPy_IDArray_to_list(BPy_IDArray *self)
 {
 	return BPy_IDGroup_MapDataToPy(self->prop);
 }
 
 static PyMethodDef BPy_IDArray_methods[] = {
-	{"to_list", (PyCFunction)BPy_IDArray_to_list, METH_NOARGS,
-	 "return the array as a list"},
+	{"to_list", (PyCFunction)BPy_IDArray_to_list, METH_NOARGS, BPy_IDArray_to_list_doc},
 	{NULL, NULL, 0, NULL}
 };
 

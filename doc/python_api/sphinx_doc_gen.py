@@ -260,6 +260,7 @@ else:
         "bpy_extras",
         "gpu",
         "gpu.offscreen",
+        "idprop.types",
         "mathutils",
         "mathutils.bvhtree",
         "mathutils.geometry",
@@ -1731,6 +1732,7 @@ def write_rst_contents(basepath):
         "freestyle", "bgl", "blf",
         "gpu", "gpu.offscreen",
         "aud", "bpy_extras",
+        "idprop.types",
         # bmesh, submodules are in own page
         "bmesh",
     )
@@ -1880,6 +1882,7 @@ def write_rst_importable_modules(basepath):
         "bpy.app.handlers": "Application Handlers",
         "bpy.app.translations": "Application Translations",
         "bpy.props": "Property Definitions",
+        "idprop.types": "ID Property Access",
         "mathutils": "Math Types & Utilities",
         "mathutils.geometry": "Geometry Utilities",
         "mathutils.bvhtree": "BVHTree Utilities",
