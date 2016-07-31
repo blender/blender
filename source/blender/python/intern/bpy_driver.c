@@ -44,6 +44,8 @@
 
 #include "bpy_rna_driver.h"  /* for pyrna_driver_get_variable_value */
 
+#include "bpy_intern_string.h"
+
 #include "bpy_driver.h"
 
 extern void BPY_update_rna_module(void);
@@ -97,43 +99,25 @@ int bpy_pydriver_create_dict(void)
 }
 
 /* note, this function should do nothing most runs, only when changing frame */
-static PyObject *bpy_pydriver_InternStr__frame = NULL;
 /* not thread safe but neither is python */
 static float bpy_pydriver_evaltime_prev = FLT_MAX;
 
-static void bpy_pydriver_update_dict(const float evaltime)
+static void bpy_pydriver_namespace_update_frame(const float evaltime)
 {
 	if (bpy_pydriver_evaltime_prev != evaltime) {
-
-		/* currently only update the frame */
-		if (bpy_pydriver_InternStr__frame == NULL) {
-			bpy_pydriver_InternStr__frame = PyUnicode_FromString("frame");
-		}
-
 		PyObject *item = PyFloat_FromDouble(evaltime);
-		PyDict_SetItem(bpy_pydriver_Dict,
-		               bpy_pydriver_InternStr__frame,
-		               item);
+		PyDict_SetItem(bpy_pydriver_Dict, bpy_intern_str_frame, item);
 		Py_DECREF(item);
 
 		bpy_pydriver_evaltime_prev = evaltime;
 	}
 }
 
-static PyObject *bpy_pydriver_InternStr__self = NULL;
-
-static void bpy_pydriver_update_dict_self(struct PathResolvedRNA *anim_rna)
+static void bpy_pydriver_namespace_update_self(struct PathResolvedRNA *anim_rna)
 {
-	if (bpy_pydriver_InternStr__self == NULL) {
-		bpy_pydriver_InternStr__self = PyUnicode_FromString("self");
-	}
-
 	PyObject *item = pyrna_driver_self_from_anim_rna(anim_rna);
-	PyDict_SetItem(bpy_pydriver_Dict,
-	               bpy_pydriver_InternStr__self,
-	               item);
+	PyDict_SetItem(bpy_pydriver_Dict, bpy_intern_str_self, item);
 	Py_DECREF(item);
-
 }
 
 /* Update function, it gets rid of pydrivers global dictionary, forcing
@@ -155,11 +139,7 @@ void BPY_driver_reset(void)
 		bpy_pydriver_Dict = NULL;
 	}
 
-	if (bpy_pydriver_InternStr__frame) {
-		Py_DECREF(bpy_pydriver_InternStr__frame);
-		bpy_pydriver_InternStr__frame = NULL;
-		bpy_pydriver_evaltime_prev = FLT_MAX;
-	}
+	bpy_pydriver_evaltime_prev = FLT_MAX;
 
 	if (use_gil)
 		PyGILState_Release(gilstate);
@@ -240,10 +220,10 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, c
 	}
 
 	/* update global namespace */
-	bpy_pydriver_update_dict(evaltime);
+	bpy_pydriver_namespace_update_frame(evaltime);
 
 	if (driver->flag & DRIVER_FLAG_USE_SELF) {
-		bpy_pydriver_update_dict_self(anim_rna);
+		bpy_pydriver_namespace_update_self(anim_rna);
 	}
 
 	if (driver->expr_comp == NULL)

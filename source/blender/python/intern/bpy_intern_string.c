@@ -34,7 +34,7 @@
 
 #include "BLI_utildefines.h"
 
-static PyObject *bpy_intern_str_arr[11];
+static PyObject *bpy_intern_str_arr[13];
 
 PyObject *bpy_intern_str_register;
 PyObject *bpy_intern_str_unregister;
@@ -43,6 +43,8 @@ PyObject *bpy_intern_str_bl_property;
 PyObject *bpy_intern_str_bpy_types;
 PyObject *bpy_intern_str_order;
 PyObject *bpy_intern_str_attr;
+PyObject *bpy_intern_str_self;
+PyObject *bpy_intern_str_frame;
 PyObject *bpy_intern_str___slots__;
 PyObject *bpy_intern_str___name__;
 PyObject *bpy_intern_str___doc__;
@@ -62,6 +64,8 @@ void bpy_intern_string_init(void)
 	BPY_INTERN_STR(bpy_intern_str_bpy_types, "bpy.types");
 	BPY_INTERN_STR(bpy_intern_str_order, "order");
 	BPY_INTERN_STR(bpy_intern_str_attr, "attr");
+	BPY_INTERN_STR(bpy_intern_str_self, "self");
+	BPY_INTERN_STR(bpy_intern_str_frame, "frame");
 	BPY_INTERN_STR(bpy_intern_str___slots__, "__slots__");
 	BPY_INTERN_STR(bpy_intern_str___name__, "__name__");
 	BPY_INTERN_STR(bpy_intern_str___doc__, "__doc__");
