@@ -4517,7 +4517,7 @@ void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 	/* identifiers */
 	/* note: having key shortcut here is bad practice,
 	 * but for now keep because this displays when dragging an image over the 3D viewport */
-	ot->name   = "Add Background Image";
+	ot->name   = "Add Background Image (Ctrl for Empty Object)";
 	ot->description = "Add a new background image (Ctrl for Empty Object)";
 	ot->idname = "VIEW3D_OT_background_image_add";
 
