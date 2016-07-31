@@ -98,7 +98,7 @@ static PyObject *idprop_py_from_idp_array(ID *id, IDProperty *prop)
 
 static PyObject *idprop_py_from_idp_idparray(ID *id, IDProperty *prop)
 {
-	PyObject *seq = PyList_New(prop->len), *wrap;
+	PyObject *seq = PyList_New(prop->len);
 	IDProperty *array = IDP_IDPArray(prop);
 	int i;
 
@@ -110,10 +110,13 @@ static PyObject *idprop_py_from_idp_idparray(ID *id, IDProperty *prop)
 	}
 
 	for (i = 0; i < prop->len; i++) {
-		wrap = BPy_IDGroup_WrapData(id, array++, prop);
+		PyObject *wrap = BPy_IDGroup_WrapData(id, array++, prop);
 
-		if (!wrap) /* BPy_IDGroup_MapDataToPy sets the error */
+		/* BPy_IDGroup_MapDataToPy sets the error */
+		if (UNLIKELY(wrap == NULL)) {
+			Py_DECREF(seq);
 			return NULL;
+		}
 
 		PyList_SET_ITEM(seq, i, wrap);
 	}
@@ -659,7 +662,7 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 		}
 		case IDP_IDPARRAY:
 		{
-			PyObject *seq = PyList_New(prop->len), *wrap;
+			PyObject *seq = PyList_New(prop->len);
 			IDProperty *array = IDP_IDPArray(prop);
 			int i;
 
@@ -671,10 +674,13 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 			}
 
 			for (i = 0; i < prop->len; i++) {
-				wrap = BPy_IDGroup_MapDataToPy(array++);
+				PyObject *wrap = BPy_IDGroup_MapDataToPy(array++);
 
-				if (!wrap) /* BPy_IDGroup_MapDataToPy sets the error */
+				/* BPy_IDGroup_MapDataToPy sets the error */
+				if (UNLIKELY(wrap == NULL)) {
+					Py_DECREF(seq);
 					return NULL;
+				}
 
 				PyList_SET_ITEM(seq, i, wrap);
 			}
@@ -682,14 +688,17 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 		}
 		case IDP_GROUP:
 		{
-			PyObject *dict = PyDict_New(), *wrap;
+			PyObject *dict = PyDict_New();
 			IDProperty *loop;
 
 			for (loop = prop->data.group.first; loop; loop = loop->next) {
-				wrap = BPy_IDGroup_MapDataToPy(loop);
+				PyObject *wrap = BPy_IDGroup_MapDataToPy(loop);
 
-				if (!wrap) /* BPy_IDGroup_MapDataToPy sets the error */
+				/* BPy_IDGroup_MapDataToPy sets the error */
+				if (UNLIKELY(wrap == NULL)) {
+					Py_DECREF(dict);
 					return NULL;
+				}
 
 				PyDict_SetItemString(dict, loop->name, wrap);
 				Py_DECREF(wrap);
