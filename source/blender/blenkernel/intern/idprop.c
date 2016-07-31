@@ -940,17 +940,18 @@ IDProperty *IDP_New(const char type, const IDPropertyTemplate *val, const char *
 				prop->subtype = IDP_STRING_SUB_BYTE;
 			}
 			else {
-				if (st == NULL) {
+				if (st == NULL || val->string.len <= 1) {
 					prop->data.pointer = MEM_mallocN(DEFAULT_ALLOC_FOR_NULL_STRINGS, "id property string 1");
 					*IDP_String(prop) = '\0';
 					prop->totallen = DEFAULT_ALLOC_FOR_NULL_STRINGS;
 					prop->len = 1; /*NULL string, has len of 1 to account for null byte.*/
 				}
 				else {
-					int stlen = (int)strlen(st) + 1;
-					prop->data.pointer = MEM_mallocN((size_t)stlen, "id property string 3");
-					prop->len = prop->totallen = stlen;
-					memcpy(prop->data.pointer, st, (size_t)stlen);
+					BLI_assert((int)val->string.len <= (int)strlen(st) + 1);
+					prop->data.pointer = MEM_mallocN((size_t)val->string.len, "id property string 3");
+					memcpy(prop->data.pointer, st, (size_t)val->string.len - 1);
+					IDP_String(prop)[val->string.len - 1] = '\0';
+					prop->len = prop->totallen = val->string.len;
 				}
 				prop->subtype = IDP_STRING_SUB_UTF8;
 			}

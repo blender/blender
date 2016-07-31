@@ -540,6 +540,35 @@ PyObject *PyC_ExceptionBuffer_Simple(void)
 }
 
 /* string conversion, escape non-unicode chars, coerce must be set to NULL */
+const char *PyC_UnicodeAsByteAndSize(PyObject *py_str, Py_ssize_t *size, PyObject **coerce)
+{
+	const char *result;
+
+	result = _PyUnicode_AsStringAndSize(py_str, size);
+
+	if (result) {
+		/* 99% of the time this is enough but we better support non unicode
+		 * chars since blender doesnt limit this */
+		return result;
+	}
+	else {
+		PyErr_Clear();
+
+		if (PyBytes_Check(py_str)) {
+			*size = PyBytes_GET_SIZE(py_str);
+			return PyBytes_AS_STRING(py_str);
+		}
+		else if ((*coerce = PyUnicode_EncodeFSDefault(py_str))) {
+			*size = PyBytes_GET_SIZE(*coerce);
+			return PyBytes_AS_STRING(*coerce);
+		}
+		else {
+			/* leave error raised from EncodeFS */
+			return NULL;
+		}
+	}
+}
+
 const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 {
 	const char *result;

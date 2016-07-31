@@ -378,8 +378,10 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group,
 	}
 	else if (PyUnicode_Check(ob)) {
 #ifdef USE_STRING_COERCE
+		Py_ssize_t value_size;
 		PyObject *value_coerce = NULL;
-		val.string.str = PyC_UnicodeAsByte(ob, &value_coerce);
+		val.string.str = PyC_UnicodeAsByteAndSize(ob, &value_size, &value_coerce);
+		val.string.len = (int)value_size + 1;
 		val.string.subtype = IDP_STRING_SUB_UTF8;
 		prop = IDP_New(IDP_STRING, &val, name);
 		Py_XDECREF(value_coerce);
