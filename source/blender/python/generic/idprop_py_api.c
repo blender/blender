@@ -688,7 +688,7 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 		}
 		case IDP_GROUP:
 		{
-			PyObject *dict = PyDict_New();
+			PyObject *dict = _PyDict_NewPresized(prop->len);
 			IDProperty *loop;
 
 			for (loop = prop->data.group.first; loop; loop = loop->next) {

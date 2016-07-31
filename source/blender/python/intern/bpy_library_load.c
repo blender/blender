@@ -210,7 +210,7 @@ static PyObject *bpy_lib_load(PyObject *UNUSED(self), PyObject *args, PyObject *
 	ret->flag = ((is_link ? FILE_LINK : 0) |
 	             (is_rel ? FILE_RELPATH : 0));
 
-	ret->dict = PyDict_New();
+	ret->dict = _PyDict_NewPresized(MAX_LIBARRAY);
 
 	return (PyObject *)ret;
 }
@@ -240,7 +240,7 @@ static PyObject *bpy_lib_enter(BPy_Library *self, PyObject *UNUSED(args))
 {
 	PyObject *ret;
 	BPy_Library *self_from;
-	PyObject *from_dict = PyDict_New();
+	PyObject *from_dict = _PyDict_NewPresized(MAX_LIBARRAY);
 	ReportList reports;
 
 	BKE_reports_init(&reports, RPT_STORE);

@@ -293,7 +293,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, c
 	}
 
 	/* add target values to a dict that will be used as '__locals__' dict */
-	driver_vars = PyDict_New();
+	driver_vars = _PyDict_NewPresized(PyTuple_GET_SIZE(expr_vars));
 	for (dvar = driver->variables.first, i = 0; dvar; dvar = dvar->next) {
 		PyObject *driver_arg = NULL;
 

@@ -675,7 +675,7 @@ static PyObject *app_translations_new(PyTypeObject *type, PyObject *UNUSED(args)
 
 			_translations->contexts = app_translations_contexts_make();
 
-			py_ctxts = PyDict_New();
+			py_ctxts = _PyDict_NewPresized(ARRAY_SIZE(_contexts));
 			for (ctxt = _contexts; ctxt->c_id; ctxt++) {
 				PyObject *val = PyUnicode_FromString(ctxt->py_id);
 				PyDict_SetItemString(py_ctxts, ctxt->c_id, val);
