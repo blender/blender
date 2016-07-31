@@ -247,10 +247,10 @@ void ConstantFolder::fold_mix(NodeMix type, bool clamp) const
 				try_bypass_or_make_constant(color1_in, clamp);
 			}
 			/* 0 * ? (fac ?) == 0, ? * 0 (fac 1) == 0 */
-			else if(is_zero(color1_in) && fac_is_one) {
+			else if(is_zero(color1_in)) {
 				make_zero();
 			}
-			else if(is_zero(color2_in)) {
+			else if(is_zero(color2_in) && fac_is_one) {
 				make_zero();
 			}
 			break;
