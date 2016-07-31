@@ -5909,7 +5909,7 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
  */
 static void calcEdgeSlide_mval_range(
         TransInfo *t, EdgeSlideData *sld, const int *sv_table, const int loop_nr,
-        const float mval[2], const bool use_btree_disp, const bool use_calc_direction)
+        const float mval[2], const bool use_occlude_geometry, const bool use_calc_direction)
 {
 	TransDataEdgeSlideVert *sv_array = sld->sv;
 	BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
@@ -5918,7 +5918,7 @@ static void calcEdgeSlide_mval_range(
 	View3D *v3d = NULL;
 	RegionView3D *rv3d = NULL;
 	float projectMat[4][4];
-	BMBVHTree *btree;
+	BMBVHTree *bmbvh;
 
 	/* only for use_calc_direction */
 	float (*loop_dir)[3] = NULL, *loop_maxdist = NULL;
@@ -5942,11 +5942,11 @@ static void calcEdgeSlide_mval_range(
 		ED_view3d_ob_project_mat_get(rv3d, t->obedit, projectMat);
 	}
 
-	if (use_btree_disp) {
-		btree = BKE_bmbvh_new_from_editmesh(em, BMBVH_RESPECT_HIDDEN, NULL, false);
+	if (use_occlude_geometry) {
+		bmbvh = BKE_bmbvh_new_from_editmesh(em, BMBVH_RESPECT_HIDDEN, NULL, false);
 	}
 	else {
-		btree = NULL;
+		bmbvh = NULL;
 	}
 
 	/* find mouse vectors, the global one, and one per loop in case we have
@@ -5981,7 +5981,7 @@ static void calcEdgeSlide_mval_range(
 						continue;
 
 					/* This test is only relevant if object is not wire-drawn! See [#32068]. */
-					if (use_btree_disp && !BMBVH_EdgeVisible(btree, e_other, ar, v3d, t->obedit)) {
+					if (use_occlude_geometry && !BMBVH_EdgeVisible(bmbvh, e_other, ar, v3d, t->obedit)) {
 						continue;
 					}
 
@@ -6062,8 +6062,8 @@ static void calcEdgeSlide_mval_range(
 	sld->mval_end[0] = t->mval[0] + mval_end[0];
 	sld->mval_end[1] = t->mval[1] + mval_end[1];
 
-	if (btree) {
-		BKE_bmbvh_free(btree);
+	if (bmbvh) {
+		BKE_bmbvh_free(bmbvh);
 	}
 }
 
@@ -6126,7 +6126,7 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t, bool use_even, bool f
 	EdgeSlideData *sld = MEM_callocN(sizeof(*sld), "sld");
 	float mval[2] = {(float)t->mval[0], (float)t->mval[1]};
 	int numsel, i, loop_nr;
-	bool use_btree_disp = false;
+	bool use_occlude_geometry = false;
 	View3D *v3d = NULL;
 	RegionView3D *rv3d = NULL;
 
@@ -6452,10 +6452,10 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t, bool use_even, bool f
 	if (t->spacetype == SPACE_VIEW3D) {
 		v3d = t->sa ? t->sa->spacedata.first : NULL;
 		rv3d = t->ar ? t->ar->regiondata : NULL;
-		use_btree_disp = (v3d && t->obedit->dt > OB_WIRE && v3d->drawtype > OB_WIRE);
+		use_occlude_geometry = (v3d && t->obedit->dt > OB_WIRE && v3d->drawtype > OB_WIRE);
 	}
 
-	calcEdgeSlide_mval_range(t, sld, sv_table, loop_nr, mval, use_btree_disp, true);
+	calcEdgeSlide_mval_range(t, sld, sv_table, loop_nr, mval, use_occlude_geometry, true);
 
 	/* create copies of faces for customdata projection */
 	bmesh_edit_begin(bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
@@ -6493,7 +6493,7 @@ static bool createEdgeSlideVerts_single_side(TransInfo *t, bool use_even, bool f
 	EdgeSlideData *sld = MEM_callocN(sizeof(*sld), "sld");
 	float mval[2] = {(float)t->mval[0], (float)t->mval[1]};
 	int loop_nr;
-	bool use_btree_disp = false;
+	bool use_occlude_geometry = false;
 	View3D *v3d = NULL;
 	RegionView3D *rv3d = NULL;
 
@@ -6655,10 +6655,10 @@ static bool createEdgeSlideVerts_single_side(TransInfo *t, bool use_even, bool f
 	if (t->spacetype == SPACE_VIEW3D) {
 		v3d = t->sa ? t->sa->spacedata.first : NULL;
 		rv3d = t->ar ? t->ar->regiondata : NULL;
-		use_btree_disp = (v3d && t->obedit->dt > OB_WIRE && v3d->drawtype > OB_WIRE);
+		use_occlude_geometry = (v3d && t->obedit->dt > OB_WIRE && v3d->drawtype > OB_WIRE);
 	}
 
-	calcEdgeSlide_mval_range(t, sld, sv_table, loop_nr, mval, use_btree_disp, false);
+	calcEdgeSlide_mval_range(t, sld, sv_table, loop_nr, mval, use_occlude_geometry, false);
 
 	/* create copies of faces for customdata projection */
 	bmesh_edit_begin(bm, BMO_OPTYPE_FLAG_UNTAN_MULTIRES);
