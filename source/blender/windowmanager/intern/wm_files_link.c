@@ -577,7 +577,7 @@ static void lib_relocate_do(
 				WMLinkAppendDataItem *item;
 
 				/* We remove it from current Main, and add it to items to link... */
-				/* Note that non-linkable IDs (like e.g. shapekeys) are also explicitely linked here... */
+				/* Note that non-linkable IDs (like e.g. shapekeys) are also explicitly linked here... */
 				BLI_remlink(lbarray[lba_idx], id);
 				item = wm_link_append_data_item_add(lapp_data, id->name + 2, idcode, id);
 				BLI_BITMAP_SET_ALL(item->libraries, true, lapp_data->num_libraries);

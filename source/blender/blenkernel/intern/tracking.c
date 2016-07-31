@@ -207,7 +207,7 @@ static void tracking_tracks_copy(ListBase *tracks_dst, ListBase *tracks_src, GHa
 	}
 }
 
-/* copy the whole list of plane tracks (need whole MovieTracking structures due to embeded pointers to tracks).
+/* copy the whole list of plane tracks (need whole MovieTracking structures due to embedded pointers to tracks).
  * WARNING: implies tracking_[dst/src] and their tracks have already been copied. */
 static void tracking_plane_tracks_copy(ListBase *plane_tracks_dst, ListBase *plane_tracks_src, GHash *tracks_mapping)
 {

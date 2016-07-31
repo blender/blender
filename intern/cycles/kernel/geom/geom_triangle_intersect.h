@@ -346,7 +346,7 @@ ccl_device_inline float3 triangle_refine(KernelGlobals *kg,
 	if(det != 0.0f) {
 		/* If determinant is zero it means ray lies in the plane of
 		 * the triangle. It is possible in theory due to watertight
-		 * nature of triangle intersection. For suc hcases we simply
+		 * nature of triangle intersection. For such cases we simply
 		 * don't refine intersection hoping it'll go all fine.
 		 */
 		float rt = dot(edge2, qvec) / det;
