@@ -1940,6 +1940,7 @@ enum {
 	UICURVE_FUNC_RESET_VIEW,
 	UICURVE_FUNC_HANDLE_VECTOR,
 	UICURVE_FUNC_HANDLE_AUTO,
+	UICURVE_FUNC_HANDLE_AUTO_ANIM,
 	UICURVE_FUNC_EXTEND_HOZ,
 	UICURVE_FUNC_EXTEND_EXP,
 };
@@ -1960,13 +1961,16 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
 			cumap->curr = cumap->clipr;
 			break;
 		case UICURVE_FUNC_HANDLE_VECTOR: /* set vector */
-			curvemap_sethandle(cuma, 1);
+			curvemap_handle_set(cuma, HD_VECT);
 			curvemapping_changed(cumap, false);
 			break;
 		case UICURVE_FUNC_HANDLE_AUTO: /* set auto */
-			curvemap_sethandle(cuma, 0);
+			curvemap_handle_set(cuma, HD_AUTO);
 			curvemapping_changed(cumap, false);
 			break;
+		case UICURVE_FUNC_HANDLE_AUTO_ANIM: /* set auto-clamped */
+			curvemap_handle_set(cuma, HD_AUTO_ANIM);
+			curvemapping_changed(cumap, false);
 		case UICURVE_FUNC_EXTEND_HOZ: /* extend horiz */
 			cuma->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
 			curvemapping_changed(cumap, false);
@@ -2000,6 +2004,9 @@ static uiBlock *curvemap_tools_func(
 		uiDefIconTextBut(
 		        block, UI_BTYPE_BUT_MENU, 1, ICON_BLANK1, IFACE_("Auto Handle"),
 		        0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, UICURVE_FUNC_HANDLE_AUTO, "");
+		uiDefIconTextBut(
+		        block, UI_BTYPE_BUT_MENU, 1, ICON_BLANK1, IFACE_("Auto Clamped Handle"),
+		        0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, UICURVE_FUNC_HANDLE_AUTO_ANIM, "");
 	}
 
 	if (show_extend) {
