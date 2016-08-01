@@ -26,12 +26,12 @@ set(ALL_CYCLES_LIBRARIES
 	cycles_device
 	cycles_bvh
 	cycles_graph
-	cycles_kernel_osl
 	cycles_util
 	${OPENIMAGEIO_LIBRARIES}
 )
 if(WITH_CYCLES_OSL)
 	list(APPEND ALL_CYCLES_LIBRARIES
+		cycles_kernel_osl
 		${OSL_LIBRARIES}
 		${LLVM_LIBRARIES}
 	)
