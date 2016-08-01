@@ -729,7 +729,6 @@ class IMAGE_PT_paint(Panel, ImagePaintPanel):
     @classmethod
     def poll(cls, context):
         sima = context.space_data
-        toolsettings = context.tool_settings.image_paint
         return sima.show_paint
 
 
@@ -987,7 +986,7 @@ class IMAGE_PT_tools_paint_options(BrushButtonsPanel, Panel):
         layout = self.layout
 
         toolsettings = context.tool_settings
-        brush = toolsettings.image_paint.brush
+        # brush = toolsettings.image_paint.brush
 
         ups = toolsettings.unified_paint_settings
 

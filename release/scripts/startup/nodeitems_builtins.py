@@ -32,6 +32,7 @@ class SortedNodeCategory(NodeCategory):
 
         super().__init__(identifier, name, description, items)
 
+
 class CompositorNodeCategory(SortedNodeCategory):
     @classmethod
     def poll(cls, context):

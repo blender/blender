@@ -24,7 +24,6 @@
 def write_sysinfo(filepath):
     import sys
 
-    import textwrap
     import subprocess
 
     import bpy

@@ -63,7 +63,7 @@ class GreasePencilDrawingToolsPanel:
     def draw(self, context):
         layout = self.layout
 
-        is_3d_view     = context.space_data.type == 'VIEW_3D'
+        is_3d_view = context.space_data.type == 'VIEW_3D'
         is_clip_editor = context.space_data.type == 'CLIP_EDITOR'
 
         col = layout.column(align=True)
@@ -136,7 +136,7 @@ class GreasePencilStrokeEditPanel:
     def draw(self, context):
         layout = self.layout
 
-        is_3d_view     = context.space_data.type == 'VIEW_3D'
+        is_3d_view = context.space_data.type == 'VIEW_3D'
 
         if not is_3d_view:
             layout.label(text="Select:")
@@ -214,13 +214,13 @@ class GreasePencilStrokeSculptPanel:
 
         layout.separator()
 
-        if settings.tool == 'THICKNESS':
+        if tool == 'THICKNESS':
             layout.row().prop(brush, "direction", expand=True)
-        elif settings.tool == 'PINCH':
+        elif tool == 'PINCH':
             row = layout.row(align=True)
             row.prop_enum(brush, "direction", 'ADD', text="Pinch")
             row.prop_enum(brush, "direction", 'SUBTRACT', text="Inflate")
-        elif settings.tool == 'TWIST':
+        elif tool == 'TWIST':
             row = layout.row(align=True)
             row.prop_enum(brush, "direction", 'SUBTRACT', text="CW")
             row.prop_enum(brush, "direction", 'ADD', text="CCW")
@@ -228,7 +228,7 @@ class GreasePencilStrokeSculptPanel:
         layout.separator()
         layout.prop(settings, "use_select_mask")
 
-        if settings.tool == 'SMOOTH':
+        if tool == 'SMOOTH':
             layout.prop(brush, "affect_pressure")
 
 
@@ -581,14 +581,13 @@ class GreasePencilDataPanel:
         col.active = not gpl.lock
         col.prop(gpl, "line_width", slider=True)
 
-
         split = layout.split(percentage=0.5)
         split.active = not gpl.lock
 
         col = split.column(align=True)
         col.prop(gpl, "use_volumetric_strokes")
         col.prop(gpl, "show_points", text="Points")
-        
+
         col = split.column(align=True)
         col.prop(gpl, "use_hq_fill")
         col.prop(gpl, "show_x_ray")

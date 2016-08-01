@@ -21,9 +21,7 @@
 # Populate a template file (POT format currently) from Blender RNA/py/C data.
 # Note: This script is meant to be used from inside Blender!
 
-import collections
 import os
-import sys
 
 import bpy
 from mathutils import Vector, Euler, Matrix
@@ -67,6 +65,8 @@ def rna_backup_restore(data, backup):
 
 
 def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
+    import collections
+
     # Helpers.
     RenderContext = collections.namedtuple("RenderContext", (
         "scene", "world", "camera", "lamp", "camera_data", "lamp_data", "image",  # All those are names!
@@ -362,7 +362,6 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
             #         File "<string>", line 327, in do_previews
             #         OverflowError: Python int too large to convert to C long
             #    ... :(
-            import sys
             scene = bpy.data.scenes[render_context.scene, None]
             for obname in objects:
                 ob = bpy.data.objects[obname, None]

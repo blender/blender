@@ -1013,7 +1013,6 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
                 default=1.0,
                 )
 
-
     @classmethod
     def unregister(cls):
         del bpy.types.Object.cycles

@@ -104,7 +104,6 @@ def vector_curve_node_remap(node):
     """
     Remap values of vector curve node from normalized to absolute values
     """
-    from mathutils import Vector
     if node.bl_idname == 'ShaderNodeVectorCurve':
         node.mapping.use_clip = False
         for curve in node.mapping.curves:

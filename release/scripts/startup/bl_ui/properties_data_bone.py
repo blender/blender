@@ -153,7 +153,7 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
     def draw(self, context):
         ob = context.object
         bone = context.bone
-        arm = context.armature
+        # arm = context.armature
         pchan = None
 
         if ob and bone:
@@ -266,7 +266,6 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
         sub = col.column()
         sub.active = (not bone.parent or not bone.use_connect)
         sub.prop(bone, "use_local_location")
-
 
 
 class BONE_PT_display(BoneButtonsPanel, Panel):

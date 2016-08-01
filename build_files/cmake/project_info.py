@@ -39,7 +39,7 @@ __all__ = (
     "is_py",
     "cmake_advanced_info",
     "cmake_compiler_defines",
-    "project_name_get"
+    "project_name_get",
     "init",
 )
 
