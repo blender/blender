@@ -61,6 +61,11 @@
 #include <X11/XF86keysym.h>
 #endif
 
+/* for XIWarpPointer */
+#ifdef WITH_X11_XINPUT
+#  include <X11/extensions/XInput2.h>
+#endif
+
 /* For timing */
 #include <sys/time.h>
 #include <unistd.h>
@@ -1469,7 +1474,22 @@ setCursorPosition(
 	int relx = x - cx;
 	int rely = y - cy;
 
-	XWarpPointer(m_display, None, None, 0, 0, 0, 0, relx, rely);
+#ifdef WITH_X11_XINPUT
+	if ((m_xinput_version.present) &&
+	    (m_xinput_version.major_version >= 2))
+	{
+		/* Needed to account for XInput "Coordinate Transformation Matrix", see T48901 */
+		int device_id;
+		if (XIGetClientPointer(m_display, None, &device_id) != False) {
+			XIWarpPointer(m_display, device_id, None, None, 0, 0, 0, 0, relx, rely);
+		}
+	}
+	else
+#endif
+	{
+		XWarpPointer(m_display, None, None, 0, 0, 0, 0, relx, rely);
+	}
+
 	XSync(m_display, 0); /* Sync to process all requests */
 	
 	return GHOST_kSuccess;
