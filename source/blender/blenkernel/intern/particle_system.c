@@ -3311,7 +3311,7 @@ static float get_base_time_step(ParticleSettings *part)
 	return 1.0f / (float) (part->subframes + 1);
 }
 /* Update time step size to suit current conditions. */
-static float update_timestep(ParticleSystem *psys, ParticleSimulationData *sim, float t_frac)
+static void update_timestep(ParticleSystem *psys, ParticleSimulationData *sim)
 {
 	float dt_target;
 	if (sim->courant_num == 0.0f)
@@ -3331,7 +3331,10 @@ static float update_timestep(ParticleSystem *psys, ParticleSimulationData *sim, 
 		psys->dt_frac = interpf(dt_target, psys->dt_frac, TIMESTEP_EXPANSION_FACTOR);
 	else
 		psys->dt_frac = dt_target;
+}
 
+static float sync_timestep(ParticleSystem *psys, float t_frac)
+{
 	/* Sync with frame end if it's close. */
 	if (t_frac == 1.0f)
 		return psys->dt_frac;
@@ -3991,7 +3994,9 @@ static void system_step(ParticleSimulationData *sim, float cfra, const bool use_
 				printf("%f,%f,%f,%f\n", cfra+dframe+t_frac - 1.f, t_frac, dt_frac, sim->courant_num);
 #endif
 				if (part->time_flag & PART_TIME_AUTOSF)
-					dt_frac = update_timestep(psys, sim, t_frac);
+					update_timestep(psys, sim);
+				/* Even without AUTOSF dt_frac may not add up to 1.0 due to float precision. */
+				dt_frac = sync_timestep(psys, t_frac);
 			}
 		}
 	}
