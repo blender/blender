@@ -44,7 +44,9 @@ ccl_device float4 volume_image_texture_3d(int id, float x, float y, float z)
 }
 #endif  /* __KERNEL_GPU__ */
 
-ccl_device float3 volume_normalized_position(KernelGlobals *kg, const ShaderData *sd, float3 P)
+ccl_device_inline float3 volume_normalized_position(KernelGlobals *kg,
+                                                    const ShaderData *sd,
+                                                    float3 P)
 {
 	/* todo: optimize this so it's just a single matrix multiplication when
 	 * possible (not motion blur), or perhaps even just translation + scale */

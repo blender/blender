@@ -85,7 +85,11 @@ ccl_device ShaderClosure *subsurface_scatter_pick_closure(KernelGlobals *kg, Sha
 	return NULL;
 }
 
-ccl_device float3 subsurface_scatter_eval(ShaderData *sd, ShaderClosure *sc, float disk_r, float r, bool all)
+ccl_device_inline float3 subsurface_scatter_eval(ShaderData *sd,
+                                                 ShaderClosure *sc,
+                                                 float disk_r,
+                                                 float r,
+                                                 bool all)
 {
 #ifdef BSSRDF_MULTI_EVAL
 	/* this is the veach one-sample model with balance heuristic, some pdf
@@ -214,7 +218,7 @@ ccl_device void subsurface_color_bump_blur(KernelGlobals *kg,
 /* Subsurface scattering step, from a point on the surface to other
  * nearby points on the same object.
  */
-ccl_device int subsurface_scatter_multi_intersect(
+ccl_device_inline int subsurface_scatter_multi_intersect(
         KernelGlobals *kg,
         SubsurfaceIntersection* ss_isect,
         ShaderData *sd,

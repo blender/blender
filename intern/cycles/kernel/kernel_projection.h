@@ -130,7 +130,10 @@ ccl_device float2 direction_to_fisheye_equisolid(float3 dir, float lens, float w
 	return make_float2(u, v);
 }
 
-ccl_device float3 fisheye_equisolid_to_direction(float u, float v, float lens, float fov, float width, float height)
+ccl_device_inline float3 fisheye_equisolid_to_direction(float u, float v,
+                                                        float lens,
+                                                        float fov,
+                                                        float width, float height)
 {
 	u = (u - 0.5f) * width;
 	v = (v - 0.5f) * height;
@@ -189,7 +192,7 @@ ccl_device float2 direction_to_mirrorball(float3 dir)
 	return make_float2(u, v);
 }
 
-ccl_device float3 panorama_to_direction(KernelGlobals *kg, float u, float v)
+ccl_device_inline float3 panorama_to_direction(KernelGlobals *kg, float u, float v)
 {
 	switch(kernel_data.cam.panorama_type) {
 		case PANORAMA_EQUIRECTANGULAR:
@@ -205,7 +208,7 @@ ccl_device float3 panorama_to_direction(KernelGlobals *kg, float u, float v)
 	}
 }
 
-ccl_device float2 direction_to_panorama(KernelGlobals *kg, float3 dir)
+ccl_device_inline float2 direction_to_panorama(KernelGlobals *kg, float3 dir)
 {
 	switch(kernel_data.cam.panorama_type) {
 		case PANORAMA_EQUIRECTANGULAR:
@@ -221,9 +224,9 @@ ccl_device float2 direction_to_panorama(KernelGlobals *kg, float3 dir)
 	}
 }
 
-ccl_device float3 spherical_stereo_position(KernelGlobals *kg,
-                                            float3 dir,
-                                            float3 pos)
+ccl_device_inline float3 spherical_stereo_position(KernelGlobals *kg,
+                                                   float3 dir,
+                                                   float3 pos)
 {
 	float interocular_offset = kernel_data.cam.interocular_offset;
 

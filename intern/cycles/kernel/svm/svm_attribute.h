@@ -123,7 +123,10 @@ ccl_device void svm_node_attr_bump_dx(KernelGlobals *kg, ShaderData *sd, float *
 	}
 }
 
-ccl_device void svm_node_attr_bump_dy(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+ccl_device void svm_node_attr_bump_dy(KernelGlobals *kg,
+                                      ShaderData *sd,
+                                      float *stack,
+                                      uint4 node)
 {
 	NodeAttributeType type, mesh_type;
 	AttributeElement elem;

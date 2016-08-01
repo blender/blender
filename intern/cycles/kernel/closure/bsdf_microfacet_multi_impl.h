@@ -25,11 +25,18 @@
  * energy is used. In combination with MIS, that is enough to produce an unbiased result, although
  * the balance heuristic isn't necessarily optimal anymore.
  */
-ccl_device float3 MF_FUNCTION_FULL_NAME(mf_eval)(float3 wi, float3 wo, const bool wo_outside, const float3 color, const float alpha_x, const float alpha_y, ccl_addr_space uint* lcg_state
+ccl_device_inline float3 MF_FUNCTION_FULL_NAME(mf_eval)(
+        float3 wi,
+        float3 wo,
+        const bool wo_outside,
+        const float3 color,
+        const float alpha_x,
+        const float alpha_y,
+         ccl_addr_space uint *lcg_state
 #ifdef MF_MULTI_GLASS
-	, const float eta
+        , const float eta
 #elif defined(MF_MULTI_GLOSSY)
-	, float3 *n, float3 *k
+        , float3 *n, float3 *k
 #endif
 )
 {

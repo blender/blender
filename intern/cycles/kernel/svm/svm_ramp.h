@@ -21,12 +21,12 @@ CCL_NAMESPACE_BEGIN
 
 /* NOTE: svm_ramp.h, svm_ramp_util.h and node_ramp_util.h must stay consistent */
 
-ccl_device float4 rgb_ramp_lookup(KernelGlobals *kg,
-                                  int offset,
-                                  float f,
-                                  bool interpolate,
-                                  bool extrapolate,
-                                  int table_size)
+ccl_device_inline float4 rgb_ramp_lookup(KernelGlobals *kg,
+                                         int offset,
+                                         float f,
+                                         bool interpolate,
+                                         bool extrapolate,
+                                         int table_size)
 {
 	if((f < 0.0f || f > 1.0f) && extrapolate) {
 		float4 t0, dy;

@@ -149,8 +149,11 @@ ccl_device_noinline void shader_setup_from_ray(KernelGlobals *kg,
 /* ShaderData setup from BSSRDF scatter */
 
 #ifdef __SUBSURFACE__
-ccl_device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderData *sd,
-	const Intersection *isect, const Ray *ray)
+ccl_device void shader_setup_from_subsurface(
+        KernelGlobals *kg,
+        ShaderData *sd,
+        const Intersection *isect,
+        const Ray *ray)
 {
 	bool backfacing = sd->flag & SD_BACKFACING;
 
@@ -226,14 +229,14 @@ ccl_device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderDat
 
 /* ShaderData setup from position sampled on mesh */
 
-ccl_device void shader_setup_from_sample(KernelGlobals *kg,
-                                         ShaderData *sd,
-                                         const float3 P,
-                                         const float3 Ng,
-                                         const float3 I,
-                                         int shader, int object, int prim,
-                                         float u, float v, float t,
-                                         float time)
+ccl_device_inline void shader_setup_from_sample(KernelGlobals *kg,
+                                                ShaderData *sd,
+                                                const float3 P,
+                                                const float3 Ng,
+                                                const float3 I,
+                                                int shader, int object, int prim,
+                                                float u, float v, float t,
+                                                float time)
 {
 	/* vectors */
 	ccl_fetch(sd, P) = P;
@@ -445,7 +448,7 @@ ccl_device_inline void shader_setup_from_volume(KernelGlobals *kg, ShaderData *s
 /* Merging */
 
 #if defined(__BRANCHED_PATH__) || defined(__VOLUME__)
-ccl_device void shader_merge_closures(ShaderData *sd)
+ccl_device_inline void shader_merge_closures(ShaderData *sd)
 {
 	/* merge identical closures, better when we sample a single closure at a time */
 	for(int i = 0; i < sd->num_closure; i++) {
@@ -554,9 +557,13 @@ ccl_device void shader_bsdf_eval(KernelGlobals *kg,
 	}
 }
 
-ccl_device int shader_bsdf_sample(KernelGlobals *kg, ShaderData *sd,
-	float randu, float randv, BsdfEval *bsdf_eval,
-	float3 *omega_in, differential3 *domega_in, float *pdf)
+ccl_device_inline int shader_bsdf_sample(KernelGlobals *kg,
+                                         ShaderData *sd,
+                                         float randu, float randv,
+                                         BsdfEval *bsdf_eval,
+                                         float3 *omega_in,
+                                         differential3 *domega_in,
+                                         float *pdf)
 {
 	int sampled = 0;
 
@@ -991,8 +998,12 @@ ccl_device int shader_phase_sample_closure(KernelGlobals *kg, const ShaderData *
 
 /* Volume Evaluation */
 
-ccl_device void shader_eval_volume(KernelGlobals *kg, ShaderData *sd,
-	PathState *state, VolumeStack *stack, int path_flag, ShaderContext ctx)
+ccl_device_inline void shader_eval_volume(KernelGlobals *kg,
+                                          ShaderData *sd,
+                                          PathState *state,
+                                          VolumeStack *stack,
+                                          int path_flag,
+                                          ShaderContext ctx)
 {
 	/* reset closures once at the start, we will be accumulating the closures
 	 * for all volumes in the stack into a single array of closures */

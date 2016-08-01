@@ -36,7 +36,7 @@
 /* Qualifier wrappers for different names on different devices */
 
 #define ccl_device  __device__ __inline__
-#define ccl_device_inline  __device__ __inline__
+#define ccl_device_inline  __device__ __forceinline__
 #define ccl_device_noinline  __device__ __noinline__
 #define ccl_global
 #define ccl_constant

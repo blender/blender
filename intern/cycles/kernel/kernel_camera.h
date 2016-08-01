@@ -211,7 +211,10 @@ ccl_device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, fl
 
 /* Panorama Camera */
 
-ccl_device void camera_sample_panorama(KernelGlobals *kg, float raster_x, float raster_y, float lens_u, float lens_v, ccl_addr_space Ray *ray)
+ccl_device_inline void camera_sample_panorama(KernelGlobals *kg,
+                                              float raster_x, float raster_y,
+                                              float lens_u, float lens_v,
+                                              ccl_addr_space Ray *ray)
 {
 	Transform rastertocamera = kernel_data.cam.rastertocamera;
 	float3 Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
@@ -303,8 +306,12 @@ ccl_device void camera_sample_panorama(KernelGlobals *kg, float raster_x, float 
 
 /* Common */
 
-ccl_device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, float filter_v,
-	float lens_u, float lens_v, float time, ccl_addr_space Ray *ray)
+ccl_device_inline void camera_sample(KernelGlobals *kg,
+                                     int x, int y,
+                                     float filter_u, float filter_v,
+                                     float lens_u, float lens_v,
+                                     float time,
+                                     ccl_addr_space Ray *ray)
 {
 	/* pixel filter */
 	int filter_table_offset = kernel_data.film.filter_table_offset;

@@ -36,7 +36,11 @@ typedef struct VolumeShaderCoefficients {
 } VolumeShaderCoefficients;
 
 /* evaluate shader to get extinction coefficient at P */
-ccl_device bool volume_shader_extinction_sample(KernelGlobals *kg, ShaderData *sd, PathState *state, float3 P, float3 *extinction)
+ccl_device_inline bool volume_shader_extinction_sample(KernelGlobals *kg,
+                                                       ShaderData *sd,
+                                                       PathState *state,
+                                                       float3 P,
+                                                       float3 *extinction)
 {
 	sd->P = P;
 	shader_eval_volume(kg, sd, state, state->volume_stack, PATH_RAY_SHADOW, SHADER_CONTEXT_SHADOW);
@@ -58,7 +62,11 @@ ccl_device bool volume_shader_extinction_sample(KernelGlobals *kg, ShaderData *s
 }
 
 /* evaluate shader to get absorption, scattering and emission at P */
-ccl_device bool volume_shader_sample(KernelGlobals *kg, ShaderData *sd, PathState *state, float3 P, VolumeShaderCoefficients *coeff)
+ccl_device_inline bool volume_shader_sample(KernelGlobals *kg,
+                                            ShaderData *sd,
+                                            PathState *state,
+                                            float3 P,
+                                            VolumeShaderCoefficients *coeff)
 {
 	sd->P = P;
 	shader_eval_volume(kg, sd, state, state->volume_stack, state->flag, SHADER_CONTEXT_VOLUME);

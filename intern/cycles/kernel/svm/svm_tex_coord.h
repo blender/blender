@@ -99,12 +99,12 @@ ccl_device void svm_node_tex_coord(KernelGlobals *kg,
 	stack_store_float3(stack, out_offset, data);
 }
 
-ccl_device_inline void svm_node_tex_coord_bump_dx(KernelGlobals *kg,
-                                                  ShaderData *sd,
-                                                  int path_flag,
-                                                  float *stack,
-                                                  uint4 node,
-                                                  int *offset)
+ccl_device void svm_node_tex_coord_bump_dx(KernelGlobals *kg,
+                                           ShaderData *sd,
+                                           int path_flag,
+                                           float *stack,
+                                           uint4 node,
+                                           int *offset)
 {
 #ifdef __RAY_DIFFERENTIALS__
 	float3 data;
@@ -184,12 +184,12 @@ ccl_device_inline void svm_node_tex_coord_bump_dx(KernelGlobals *kg,
 #endif
 }
 
-ccl_device_inline void svm_node_tex_coord_bump_dy(KernelGlobals *kg,
-                                                  ShaderData *sd,
-                                                  int path_flag,
-                                                  float *stack,
-                                                  uint4 node,
-                                                  int *offset)
+ccl_device void svm_node_tex_coord_bump_dy(KernelGlobals *kg,
+                                           ShaderData *sd,
+                                           int path_flag,
+                                           float *stack,
+                                           uint4 node,
+                                           int *offset)
 {
 #ifdef __RAY_DIFFERENTIALS__
 	float3 data;

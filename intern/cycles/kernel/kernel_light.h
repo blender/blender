@@ -44,11 +44,11 @@ typedef struct LightSample {
  *
  * Note: light_p is modified when sample_coord is true.
  */
-ccl_device float area_light_sample(float3 P,
-                                   float3 *light_p,
-                                   float3 axisu, float3 axisv,
-                                   float randu, float randv,
-                                   bool sample_coord)
+ccl_device_inline float area_light_sample(float3 P,
+                                          float3 *light_p,
+                                          float3 axisu, float3 axisv,
+                                          float randu, float randv,
+                                          bool sample_coord)
 {
 	/* In our name system we're using P for the center,
 	 * which is o in the paper.
@@ -268,11 +268,11 @@ ccl_device_inline bool background_portal_data_fetch_and_check_side(KernelGlobals
 	return false;
 }
 
-ccl_device float background_portal_pdf(KernelGlobals *kg,
-                                       float3 P,
-                                       float3 direction,
-                                       int ignore_portal,
-                                       bool *is_possible)
+ccl_device_inline float background_portal_pdf(KernelGlobals *kg,
+                                              float3 P,
+                                              float3 direction,
+                                              int ignore_portal,
+                                              bool *is_possible)
 {
 	float portal_pdf = 0.0f;
 
@@ -367,7 +367,10 @@ ccl_device float3 background_portal_sample(KernelGlobals *kg,
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-ccl_device float3 background_light_sample(KernelGlobals *kg, float3 P, float randu, float randv, float *pdf)
+ccl_device_inline float3 background_light_sample(KernelGlobals *kg,
+                                                 float3 P,
+                                                 float randu, float randv,
+                                                 float *pdf)
 {
 	/* Probability of sampling portals instead of the map. */
 	float portal_sampling_pdf = kernel_data.integrator.portal_pdf;
@@ -507,8 +510,11 @@ ccl_device float lamp_light_pdf(KernelGlobals *kg, const float3 Ng, const float3
 	return t*t/cos_pi;
 }
 
-ccl_device void lamp_light_sample(KernelGlobals *kg, int lamp,
-	float randu, float randv, float3 P, LightSample *ls)
+ccl_device_inline void lamp_light_sample(KernelGlobals *kg,
+                                         int lamp,
+                                         float randu, float randv,
+                                         float3 P,
+                                         LightSample *ls)
 {
 	float4 data0 = kernel_tex_fetch(__light_data, lamp*LIGHT_SIZE + 0);
 	float4 data1 = kernel_tex_fetch(__light_data, lamp*LIGHT_SIZE + 1);

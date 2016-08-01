@@ -18,8 +18,14 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __VOLUME_SCATTER__
 
-ccl_device void kernel_path_volume_connect_light(KernelGlobals *kg, RNG *rng,
-	ShaderData *sd, ShaderData *emission_sd, float3 throughput, PathState *state, PathRadiance *L)
+ccl_device_inline void kernel_path_volume_connect_light(
+        KernelGlobals *kg,
+        RNG *rng,
+        ShaderData *sd,
+        ShaderData *emission_sd,
+        float3 throughput,
+        PathState *state,
+        PathRadiance *L)
 {
 #ifdef __EMISSION__
 	if(!kernel_data.integrator.use_direct_light)

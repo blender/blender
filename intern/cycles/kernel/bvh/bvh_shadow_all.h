@@ -37,11 +37,16 @@
  *
  */
 
-ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
-                                            const Ray *ray,
-                                            Intersection *isect_array,
-                                            const uint max_hits,
-                                            uint *num_hits)
+#ifndef __KERNEL_GPU__
+ccl_device
+#else
+ccl_device_inline
+#endif
+bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
+                                 const Ray *ray,
+                                 Intersection *isect_array,
+                                 const uint max_hits,
+                                 uint *num_hits)
 {
 	/* todo:
 	 * - likely and unlikely for if() statements

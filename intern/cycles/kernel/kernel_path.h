@@ -436,7 +436,7 @@ ccl_device_noinline void kernel_path_ao(KernelGlobals *kg,
 
 #ifdef __SUBSURFACE__
 
-ccl_device bool kernel_path_subsurface_scatter(
+ccl_device_inline bool kernel_path_subsurface_scatter(
         KernelGlobals *kg,
         ShaderData *sd,
         ShaderData *emission_sd,

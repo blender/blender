@@ -62,7 +62,11 @@ ccl_device_inline float bsdf_ashikhmin_shirley_roughness_to_exponent(float rough
 	return 2.0f / (roughness*roughness) - 2.0f;
 }
 
-ccl_device float3 bsdf_ashikhmin_shirley_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device_inline float3 bsdf_ashikhmin_shirley_eval_reflect(
+        const ShaderClosure *sc,
+        const float3 I,
+        const float3 omega_in,
+        float *pdf)
 {
 	const MicrofacetBsdf *bsdf = (const MicrofacetBsdf*)sc;
 	float3 N = bsdf->N;

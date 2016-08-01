@@ -321,11 +321,11 @@ public:
 			return "";
 		}
 		if(cuda_version < 60) {
-			printf("Unsupported CUDA version %d.%d detected, you need CUDA 7.5.\n", cuda_version/10, cuda_version%10);
+			printf("Unsupported CUDA version %d.%d detected, you need CUDA 7.5 or newer.\n", cuda_version/10, cuda_version%10);
 			return "";
 		}
-		else if(cuda_version != 75)
-			printf("CUDA version %d.%d detected, build may succeed but only CUDA 7.5 is officially supported.\n", cuda_version/10, cuda_version%10);
+		else if(cuda_version != 75 && cuda_version != 80)
+			printf("CUDA version %d.%d detected, build may succeed but only CUDA 7.5 and 8.0 are officially supported.\n", cuda_version/10, cuda_version%10);
 
 		/* Compile. */
 		string kernel = path_join(kernel_path, path_join("kernels", path_join("cuda", "kernel.cu")));
