@@ -120,12 +120,6 @@ NODE_DEFINE(Mesh)
 {
 	NodeType* type = NodeType::add("mesh", create);
 
-	static NodeEnum displacement_method_enum;
-	displacement_method_enum.insert("bump", DISPLACE_BUMP);
-	displacement_method_enum.insert("true", DISPLACE_TRUE);
-	displacement_method_enum.insert("both", DISPLACE_BOTH);
-	SOCKET_ENUM(displacement_method, "Displacement Method", displacement_method_enum, DISPLACE_BUMP);
-
 	SOCKET_UINT(motion_steps, "Motion Steps", 3);
 	SOCKET_BOOLEAN(use_motion_blur, "Use Motion Blur", false);
 
@@ -785,6 +779,17 @@ bool Mesh::has_motion_blur() const
 	return (use_motion_blur &&
 	        (attributes.find(ATTR_STD_MOTION_VERTEX_POSITION) ||
 	         curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)));
+}
+
+bool Mesh::has_true_displacement() const
+{
+	foreach(Shader *shader, used_shaders) {
+		if(shader->has_displacement && shader->displacement_method != DISPLACE_BUMP) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool Mesh::need_build_bvh() const
@@ -1659,7 +1664,7 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 	bool old_need_object_flags_update = false;
 	foreach(Mesh *mesh, scene->meshes) {
 		if(mesh->need_update &&
-		   mesh->displacement_method != Mesh::DISPLACE_BUMP)
+		   mesh->has_true_displacement())
 		{
 			true_displacement_used = true;
 			break;

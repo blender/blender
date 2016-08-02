@@ -1008,21 +1008,6 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 	}
 	mesh->geometry_flags = requested_geometry_flags;
 
-	/* displacement method */
-	if(cmesh.data) {
-		const int method = get_enum(cmesh,
-		                            "displacement_method",
-		                            Mesh::DISPLACE_NUM_METHODS,
-		                            Mesh::DISPLACE_BUMP);
-
-		if(method == 0 || !experimental)
-			mesh->displacement_method = Mesh::DISPLACE_BUMP;
-		else if(method == 1)
-			mesh->displacement_method = Mesh::DISPLACE_TRUE;
-		else
-			mesh->displacement_method = Mesh::DISPLACE_BOTH;
-	}
-
 	/* fluid motion */
 	sync_mesh_fluid_motion(b_ob, scene, mesh);
 

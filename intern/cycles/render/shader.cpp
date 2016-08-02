@@ -150,6 +150,12 @@ NODE_DEFINE(Shader)
 	volume_interpolation_method_enum.insert("cubic", VOLUME_INTERPOLATION_CUBIC);
 	SOCKET_ENUM(volume_interpolation_method, "Volume Interpolation Method", volume_interpolation_method_enum, VOLUME_INTERPOLATION_LINEAR);
 
+	static NodeEnum displacement_method_enum;
+	displacement_method_enum.insert("bump", DISPLACE_BUMP);
+	displacement_method_enum.insert("true", DISPLACE_TRUE);
+	displacement_method_enum.insert("both", DISPLACE_BOTH);
+	SOCKET_ENUM(displacement_method, "Displacement Method", displacement_method_enum, DISPLACE_BUMP);
+
 	return type;
 }
 
@@ -172,6 +178,8 @@ Shader::Shader()
 	has_volume_spatial_varying = false;
 	has_object_dependency = false;
 	has_integrator_dependency = false;
+
+	displacement_method = DISPLACE_BUMP;
 
 	id = -1;
 	used = false;
@@ -310,7 +318,7 @@ int ShaderManager::get_shader_id(Shader *shader, Mesh *mesh, bool smooth)
 	int id = shader->id*2;
 	
 	/* index depends bump since this setting is not in the shader */
-	if(mesh && mesh->displacement_method != Mesh::DISPLACE_TRUE)
+	if(mesh && shader->displacement_method != DISPLACE_TRUE)
 		id += 1;
 	/* smooth flag */
 	if(smooth)

@@ -689,7 +689,7 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, u
 		 * Could be solved by moving reference counter to Mesh.
 		 */
 		if((mesh_users[object->mesh] == 1 && !object->mesh->has_surface_bssrdf) &&
-		   object->mesh->displacement_method == Mesh::DISPLACE_BUMP)
+		   !object->mesh->has_true_displacement())
 		{
 			if(!(motion_blur && object->use_motion)) {
 				if(!object->mesh->transform_applied) {

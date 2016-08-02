@@ -116,15 +116,6 @@ public:
 		float crease;
 	};
 
-	/* Displacement */
-	enum DisplacementMethod {
-		DISPLACE_BUMP = 0,
-		DISPLACE_TRUE = 1,
-		DISPLACE_BOTH = 2,
-
-		DISPLACE_NUM_METHODS,
-	};
-
 	enum SubdivisionType {
 		SUBDIVISION_NONE,
 		SUBDIVISION_LINEAR,
@@ -174,7 +165,6 @@ public:
 	bool transform_applied;
 	bool transform_negative_scaled;
 	Transform transform_normal;
-	DisplacementMethod displacement_method;
 
 	PackedPatchTable *patch_table;
 
@@ -245,6 +235,7 @@ public:
 	void tag_update(Scene *scene, bool rebuild);
 
 	bool has_motion_blur() const;
+	bool has_true_displacement() const;
 
 	/* Check whether the mesh should have own BVH built separately. Briefly,
 	 * own BVH is needed for mesh, if:

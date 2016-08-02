@@ -674,40 +674,6 @@ class Cycles_PT_context_material(CyclesButtonsPanel, Panel):
             split.separator()
 
 
-class Cycles_PT_mesh_displacement(CyclesButtonsPanel, Panel):
-    bl_label = "Displacement"
-    bl_context = "data"
-
-    @classmethod
-    def poll(cls, context):
-        if CyclesButtonsPanel.poll(context):
-            if context.mesh or context.curve or context.meta_ball:
-                if context.scene.cycles.feature_set == 'EXPERIMENTAL':
-                    return True
-
-        return False
-
-    def draw(self, context):
-        layout = self.layout
-
-        mesh = context.mesh
-        curve = context.curve
-        mball = context.meta_ball
-
-        if mesh:
-            cdata = mesh.cycles
-        elif curve:
-            cdata = curve.cycles
-        elif mball:
-            cdata = mball.cycles
-
-        split = layout.split()
-
-        col = split.column()
-        sub = col.column(align=True)
-        sub.label(text="Displacement:")
-        sub.prop(cdata, "displacement_method", text="")
-
 class CyclesObject_PT_motion_blur(CyclesButtonsPanel, Panel):
     bl_label = "Motion Blur"
     bl_context = "object"
@@ -1218,6 +1184,11 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
         col.label(text="Surface:")
         col.prop(cmat, "sample_as_light", text="Multiple Importance")
         col.prop(cmat, "use_transparent_shadow")
+
+        if context.scene.cycles.feature_set == 'EXPERIMENTAL':
+            col.separator()
+            col.label(text="Displacement:")
+            col.prop(cmat, "displacement_method", text="")
 
         col = split.column()
         col.label(text="Volume:")
