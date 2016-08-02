@@ -76,6 +76,21 @@ static void rna_Smoke_resetCache(Main *UNUSED(bmain), Scene *UNUSED(scene), Poin
 	DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 }
 
+static void rna_Smoke_cachetype_set(struct PointerRNA *ptr, int value)
+{
+	SmokeDomainSettings *settings = (SmokeDomainSettings *)ptr->data;
+	Object *ob = (Object *)ptr->id.data;
+
+	if (value != settings->cache_file_format) {
+		/* Clear old caches. */
+		PTCacheID id;
+		BKE_ptcache_id_from_smoke(&id, ob, settings->smd);
+		BKE_ptcache_id_clear(&id, PTCACHE_CLEAR_ALL, 0);
+
+		settings->cache_file_format = value;
+	}
+}
+
 static void rna_Smoke_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	SmokeDomainSettings *settings = (SmokeDomainSettings *)ptr->data;
@@ -701,6 +716,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "cache_file_format", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "cache_file_format");
 	RNA_def_property_enum_items(prop, cache_file_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_Smoke_cachetype_set", NULL);
 	RNA_def_property_ui_text(prop, "File Format", "Select the file format to be used for caching");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 }
