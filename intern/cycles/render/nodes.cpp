@@ -1689,6 +1689,19 @@ void ConvertNode::constant_fold(const ConstantFolder& folder)
 			}
 		}
 	}
+	else {
+		ShaderInput *in = inputs[0];
+		ShaderNode *prev = in->link->parent;
+
+		/* no-op conversion of A to B to A */
+		if(prev->type == node_types[to][from]) {
+			ShaderInput *prev_in = prev->inputs[0];
+
+			if(SocketType::is_float3(from) && (to == SocketType::FLOAT || SocketType::is_float3(to)) && prev_in->link) {
+				folder.bypass(prev_in->link);
+			}
+		}
+	}
 }
 
 void ConvertNode::compile(SVMCompiler& compiler)
