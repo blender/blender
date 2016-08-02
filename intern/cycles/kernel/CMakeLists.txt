@@ -244,12 +244,20 @@ if(WITH_CYCLES_CUDA_BINARIES)
 			set(cuda_debug_flags "")
 		endif()
 
-		set(cuda_version_flags "-D__KERNEL_CUDA_VERSION__=${CUDA_VERSION}")
+		set(cuda_nvcc_command ${CUDA_NVCC_EXECUTABLE})
+		set(cuda_nvcc_version ${CUDA_VERSION})
+
+		if(DEFINED CUDA_NVCC8_EXECUTABLE  AND ((${arch} STREQUAL "sm_60") OR (${arch} STREQUAL "sm_61")))
+			set(cuda_nvcc_command ${CUDA_NVCC8_EXECUTABLE})
+			set(cuda_nvcc_version "80")
+		endif()
+
+		set(cuda_version_flags "-D__KERNEL_CUDA_VERSION__=${cuda_nvcc_version}")
 		set(cuda_math_flags "--use_fast_math")
 
 		add_custom_command(
 			OUTPUT ${cuda_cubin}
-			COMMAND ${CUDA_NVCC_EXECUTABLE}
+			COMMAND ${cuda_nvcc_command}
 					-arch=${arch}
 					${CUDA_NVCC_FLAGS}
 					-m${CUDA_BITS}
@@ -266,7 +274,6 @@ if(WITH_CYCLES_CUDA_BINARIES)
 					-DCCL_NAMESPACE_BEGIN=
 					-DCCL_NAMESPACE_END=
 					-DNVCC
-
 			DEPENDS ${cuda_sources})
 
 		delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${cuda_cubin}" ${CYCLES_INSTALL_PATH}/lib)
@@ -274,6 +281,9 @@ if(WITH_CYCLES_CUDA_BINARIES)
 
 		unset(cuda_extra_flags)
 		unset(cuda_debug_flags)
+
+		unset(cuda_nvcc_command)
+		unset(cuda_nvcc_version)
 	endmacro()
 
 	foreach(arch ${CYCLES_CUDA_BINARIES_ARCH})
