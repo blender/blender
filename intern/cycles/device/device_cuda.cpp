@@ -288,10 +288,11 @@ public:
 			                   "Install CUDA toolkit in default location.");
 			return false;
 		}
-		int cuda_version = cuewCompilerVersion();
+		const int cuda_version = cuewCompilerVersion();
 		VLOG(1) << "Found nvcc " << nvcc
 		        << ", CUDA version " << cuda_version
 		        << ".";
+		const int major = cuda_version / 10, minor = cuda_version & 10;
 		if(cuda_version == 0) {
 			cuda_error_message("CUDA nvcc compiler version could not be parsed.");
 			return false;
@@ -299,13 +300,13 @@ public:
 		if(cuda_version < 60) {
 			printf("Unsupported CUDA version %d.%d detected, "
 			       "you need CUDA 7.5 or newer.\n",
-			       cuda_version / 10, cuda_version % 10);
+			       major, minor);
 			return false;
 		}
 		else if(cuda_version != 75 && cuda_version != 80) {
 			printf("CUDA version %d.%d detected, build may succeed but only "
 			       "CUDA 7.5 and 8.0 are officially supported.\n",
-			       cuda_version / 10, cuda_version % 10);
+			       major, minor);
 		}
 		return true;
 	}
@@ -372,7 +373,7 @@ public:
 			return "";
 		}
 		const char *nvcc = cuewCompilerPath();
-		string kernel = path_join(kernel_path,
+		const string kernel = path_join(kernel_path,
 		                          path_join("kernels",
 		                                    path_join("cuda", "kernel.cu")));
 		double starttime = time_dt();
