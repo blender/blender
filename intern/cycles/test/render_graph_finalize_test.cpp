@@ -184,6 +184,7 @@ TEST(render_graph, deduplicate_deep)
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Value1::Value to constant (0.8).");
 	CORRECT_INFO_MESSAGE(log, "Folding Value2::Value to constant (0.8).");
+	CORRECT_INFO_MESSAGE(log, "Deduplicated 2 nodes.");
 
 	builder
 		.add_node(ShaderNodeBuilder<GeometryNode>("Geometry1"))
