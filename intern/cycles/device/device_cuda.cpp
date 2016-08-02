@@ -1004,11 +1004,11 @@ public:
 		if(!background) {
 			PixelMem pmem = pixel_mem_map[mem];
 			CUdeviceptr buffer;
-			
+
 			size_t bytes;
 			cuda_assert(cuGraphicsMapResources(1, &pmem.cuPBOresource, 0));
 			cuda_assert(cuGraphicsResourceGetMappedPointer(&buffer, &bytes, pmem.cuPBOresource));
-			
+
 			return buffer;
 		}
 
@@ -1040,9 +1040,9 @@ public:
 				glBufferData(GL_PIXEL_UNPACK_BUFFER, pmem.w*pmem.h*sizeof(GLhalf)*4, NULL, GL_DYNAMIC_DRAW);
 			else
 				glBufferData(GL_PIXEL_UNPACK_BUFFER, pmem.w*pmem.h*sizeof(uint8_t)*4, NULL, GL_DYNAMIC_DRAW);
-			
+
 			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-			
+
 			glGenTextures(1, &pmem.cuTexId);
 			glBindTexture(GL_TEXTURE_2D, pmem.cuTexId);
 			if(mem.data_type == TYPE_HALF)
@@ -1052,7 +1052,7 @@ public:
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glBindTexture(GL_TEXTURE_2D, 0);
-			
+
 			CUresult result = cuGraphicsGLRegisterBuffer(&pmem.cuPBOresource, pmem.cuPBO, CU_GRAPHICS_MAP_RESOURCE_FLAGS_NONE);
 
 			if(result == CUDA_SUCCESS) {
@@ -1154,9 +1154,9 @@ public:
 			else
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)offset);
 			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-			
+
 			glEnable(GL_TEXTURE_2D);
-			
+
 			if(transparent) {
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -1221,7 +1221,7 @@ public:
 
 			if(transparent)
 				glDisable(GL_BLEND);
-			
+
 			glBindTexture(GL_TEXTURE_2D, 0);
 			glDisable(GL_TEXTURE_2D);
 
@@ -1237,12 +1237,12 @@ public:
 	{
 		if(task->type == DeviceTask::PATH_TRACE) {
 			RenderTile tile;
-			
+
 			bool branched = task->integrator_branched;
 
 			/* Upload Bindless Mapping */
 			load_bindless_mapping();
-			
+
 			/* keep rendering tiles until done */
 			while(task->acquire_tile(this, tile)) {
 				int start_sample = tile.start_sample;
@@ -1379,7 +1379,7 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 		fprintf(stderr, "CUDA cuDeviceGetCount: %s\n", cuewErrorString(result));
 		return;
 	}
-	
+
 	vector<DeviceInfo> display_devices;
 
 	for(int num = 0; num < count; num++) {
