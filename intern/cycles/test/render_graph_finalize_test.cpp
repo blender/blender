@@ -140,6 +140,14 @@ public:
 			.output_closure("EmissionNode::Emission");
 	}
 
+	ShaderGraphBuilder& output_value(const string& from)
+	{
+		return (*this)
+			.add_node(ShaderNodeBuilder<EmissionNode>("EmissionNode"))
+			.add_connection(from, "EmissionNode::Strength")
+			.output_closure("EmissionNode::Emission");
+	}
+
 protected:
 	ShaderGraph *graph_;
 	map<string, ShaderNode *> node_map_;
@@ -955,7 +963,7 @@ TEST(render_graph, constant_fold_math)
 		          .set(&MathNode::use_clamp, false)
 		          .set("Value1", 0.7f)
 		          .set("Value2", 0.9f))
-		.output_color("Math::Value");
+		.output_value("Math::Value");
 
 	graph.finalize(&scene);
 }
@@ -976,7 +984,7 @@ TEST(render_graph, constant_fold_math_clamp)
 		          .set(&MathNode::use_clamp, true)
 		          .set("Value1", 0.7f)
 		          .set("Value2", 0.9f))
-		.output_color("Math::Value");
+		.output_value("Math::Value");
 
 	graph.finalize(&scene);
 }
@@ -1007,7 +1015,7 @@ static void build_math_partial_test_graph(ShaderGraphBuilder &builder, NodeMath 
 		          .set(&MathNode::use_clamp, true))
 		.add_connection("Math_Cx::Value", "Out::Value1")
 		.add_connection("Math_xC::Value", "Out::Value2")
-		.output_color("Out::Value");
+		.output_value("Out::Value");
 }
 
 /*
