@@ -22,7 +22,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline uint subd_triangle_patch(KernelGlobals *kg, const ShaderData *sd)
 {
-	return kernel_tex_fetch(__tri_patch, ccl_fetch(sd, prim));
+	return (ccl_fetch(sd, prim) != PRIM_NONE) ? kernel_tex_fetch(__tri_patch, ccl_fetch(sd, prim)) : ~0;
 }
 
 /* UV coords of triangle within patch */
