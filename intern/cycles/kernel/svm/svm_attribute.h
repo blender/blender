@@ -87,7 +87,12 @@ ccl_device void svm_node_attr(KernelGlobals *kg, ShaderData *sd, float *stack, u
 	}
 }
 
-ccl_device void svm_node_attr_bump_dx(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+#ifndef __KERNEL_CUDS__
+ccl_device
+#else
+ccl_device_noinline
+#endif
+void svm_node_attr_bump_dx(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
 	NodeAttributeType type, mesh_type;
 	AttributeElement elem;
@@ -123,10 +128,15 @@ ccl_device void svm_node_attr_bump_dx(KernelGlobals *kg, ShaderData *sd, float *
 	}
 }
 
-ccl_device void svm_node_attr_bump_dy(KernelGlobals *kg,
-                                      ShaderData *sd,
-                                      float *stack,
-                                      uint4 node)
+#ifndef __KERNEL_CUDS__
+ccl_device
+#else
+ccl_device_noinline
+#endif
+void svm_node_attr_bump_dy(KernelGlobals *kg,
+                           ShaderData *sd,
+                           float *stack,
+                           uint4 node)
 {
 	NodeAttributeType type, mesh_type;
 	AttributeElement elem;

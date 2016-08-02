@@ -144,7 +144,16 @@ ccl_device_inline int bsdf_sample(KernelGlobals *kg,
 	return label;
 }
 
-ccl_device float3 bsdf_eval(KernelGlobals *kg, ShaderData *sd, const ShaderClosure *sc, const float3 omega_in, float *pdf)
+#ifndef __KERNEL_CUDS__
+ccl_device
+#else
+ccl_device_inline
+#endif
+float3 bsdf_eval(KernelGlobals *kg,
+                 ShaderData *sd,
+                 const ShaderClosure *sc,
+                 const float3 omega_in,
+                 float *pdf)
 {
 	float3 eval;
 

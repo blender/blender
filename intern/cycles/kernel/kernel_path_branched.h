@@ -18,13 +18,13 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __BRANCHED_PATH__
 
-ccl_device void kernel_branched_path_ao(KernelGlobals *kg,
-                                        ShaderData *sd,
-                                        ShaderData *emission_sd,
-                                        PathRadiance *L,
-                                        PathState *state,
-                                        RNG *rng,
-                                        float3 throughput)
+ccl_device_inline void kernel_branched_path_ao(KernelGlobals *kg,
+                                               ShaderData *sd,
+                                               ShaderData *emission_sd,
+                                               PathRadiance *L,
+                                               PathState *state,
+                                               RNG *rng,
+                                               float3 throughput)
 {
 	int num_samples = kernel_data.integrator.ao_samples;
 	float num_samples_inv = 1.0f/num_samples;
