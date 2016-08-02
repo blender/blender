@@ -3997,10 +3997,8 @@ static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
 
 	applySnapping(t, &final);
 
-	if (applyNumInput(&t->num, &final)) {
-		/* Clamp between -PI and PI */
-		final = angle_wrap_rad(final);
-	}
+	/* Used to clamp final result in [-PI, PI[ range, no idea why, inheritance from 2.4x area, see T48998. */
+	applyNumInput(&t->num, &final);
 
 	t->values[0] = final;
 
