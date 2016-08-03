@@ -136,7 +136,7 @@ class GreasePencilStrokeEditPanel:
     def draw(self, context):
         layout = self.layout
 
-        is_3d_view     = context.space_data.type == 'VIEW_3D'
+        is_3d_view = context.space_data.type == 'VIEW_3D'
 
         if not is_3d_view:
             layout.label(text="Select:")
