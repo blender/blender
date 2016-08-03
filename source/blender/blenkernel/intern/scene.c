@@ -49,6 +49,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -286,6 +287,13 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 		ts->imapaint.paintcursor = NULL;
 		id_us_plus((ID *)ts->imapaint.stencil);
 		ts->particle.paintcursor = NULL;
+		/* duplicate Grease Pencil Drawing Brushes */
+		BLI_listbase_clear(&ts->gp_brushes);
+		for (bGPDbrush *brush = sce->toolsettings->gp_brushes.first; brush; brush = brush->next) {
+			bGPDbrush *newbrush = gpencil_brush_duplicate(brush);
+			BLI_addtail(&ts->gp_brushes, newbrush);
+		}
+
 	}
 	
 	/* make a private copy of the avicodecdata */
@@ -432,6 +440,10 @@ void BKE_scene_free(Scene *sce)
 			BKE_paint_free(&sce->toolsettings->uvsculpt->paint);
 			MEM_freeN(sce->toolsettings->uvsculpt);
 		}
+		/* free Grease Pencil Drawing Brushes */
+		free_gpencil_brushes(&sce->toolsettings->gp_brushes);
+		BLI_freelistN(&sce->toolsettings->gp_brushes);
+
 		BKE_paint_free(&sce->toolsettings->imapaint.paint);
 
 		MEM_freeN(sce->toolsettings);
@@ -764,6 +776,11 @@ void BKE_scene_init(Scene *sce)
 		gp_brush->strength = 0.5f;
 		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
 		
+		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_STRENGTH];
+		gp_brush->size = 25;
+		gp_brush->strength = 0.5f;
+		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+
 		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_GRAB];
 		gp_brush->size = 50;
 		gp_brush->strength = 0.3f;

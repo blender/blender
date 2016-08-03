@@ -101,6 +101,23 @@ void gp_point_to_xy(GP_SpaceConversion *settings, struct bGPDstroke *gps, struct
                     int *r_x, int *r_y);
 
 /**
+ * Convert point to parent space
+ *
+ * \param pt         Original point
+ * \param diff_mat   Matrix with the difference between original parent matrix
+ * \param[out] r_pt  Pointer to new point after apply matrix
+ */
+void gp_point_to_parent_space(bGPDspoint *pt, float diff_mat[4][4], bGPDspoint *r_pt);
+/**
+ * Change points position relative to parent object
+ */
+void gp_apply_parent(bGPDlayer *gpl, bGPDstroke *gps);
+/**
+ * Change point position relative to parent object
+ */
+void gp_apply_parent_point(bGPDlayer *gpl, bGPDspoint *pt);
+
+/**
  * Convert a screenspace point to a 3D Grease Pencil coordinate.
  *
  * For use with editing tools where it is easier to perform the operations in 2D,
@@ -116,6 +133,10 @@ bool gp_point_xy_to_3d(GP_SpaceConversion *gsc, struct Scene *scene, const float
 
 int gp_add_poll(struct bContext *C);
 int gp_active_layer_poll(struct bContext *C);
+int gp_active_brush_poll(struct bContext *C);
+int gp_active_palette_poll(struct bContext *C);
+int gp_active_palettecolor_poll(struct bContext *C);
+int gp_brush_crt_presets_poll(bContext *C);
 
 /* Copy/Paste Buffer --------------------------------- */
 /* gpencil_edit.c */
@@ -137,17 +158,47 @@ void gp_stroke_delete_tagged_points(bGPDframe *gpf, bGPDstroke *gps, bGPDstroke 
 bool gp_smooth_stroke(bGPDstroke *gps, int i, float inf, bool affect_pressure);
 
 /**
+* Apply smooth for strength to stroke point
+* \param gps              Stroke to smooth
+* \param i                Point index
+* \param inf              Amount of smoothing to apply
+*/
+bool gp_smooth_stroke_strength(bGPDstroke *gps, int i, float inf);
+
+/**
+* Apply smooth for thickness to stroke point (use pressure)
+* \param gps              Stroke to smooth
+* \param i                Point index
+* \param inf              Amount of smoothing to apply
+*/
+bool gp_smooth_stroke_thickness(bGPDstroke *gps, int i, float inf);
+
+/**
  * Subdivide a stroke once, by adding points at the midpoint between each pair of points
  * \param gps           Stroke data
  * \param new_totpoints Total number of points (after subdividing)
  */
 void gp_subdivide_stroke(bGPDstroke *gps, const int new_totpoints);
 
+/**
+* Add randomness to stroke
+* \param gps           Stroke data
+* \param brsuh         Brush data
+*/
+void gp_randomize_stroke(bGPDstroke *gps, bGPDbrush *brush);
+
 /* Layers Enums -------------------------------------- */
 
 struct EnumPropertyItem *ED_gpencil_layers_enum_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
 struct EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
 
+/* Enums of GP Brushes */
+EnumPropertyItem *ED_gpencil_brushes_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop),
+                                                bool *r_free);
+
+/* Enums of GP palettes */
+EnumPropertyItem *ED_gpencil_palettes_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop),
+                                                 bool *r_free);
 /* ***************************************************** */
 /* Operator Defines */
 
@@ -166,6 +217,7 @@ typedef enum eGPencil_PaintModes {
 /* stroke editing ----- */
 
 void GPENCIL_OT_editmode_toggle(struct wmOperatorType *ot);
+void GPENCIL_OT_selection_opacity_toggle(struct wmOperatorType *ot);
 
 void GPENCIL_OT_select(struct wmOperatorType *ot);
 void GPENCIL_OT_select_all(struct wmOperatorType *ot);
@@ -216,11 +268,44 @@ void GPENCIL_OT_lock_all(struct wmOperatorType *ot);
 void GPENCIL_OT_unlock_all(struct wmOperatorType *ot);
 
 void GPENCIL_OT_layer_isolate(struct wmOperatorType *ot);
+void GPENCIL_OT_layer_merge(struct wmOperatorType *ot);
 
 void GPENCIL_OT_active_frame_delete(struct wmOperatorType *ot);
 void GPENCIL_OT_active_frames_delete_all(struct wmOperatorType *ot);
 
 void GPENCIL_OT_convert(struct wmOperatorType *ot);
+
+void GPENCIL_OT_stroke_arrange(struct wmOperatorType *ot);
+void GPENCIL_OT_stroke_change_color(struct wmOperatorType *ot);
+void GPENCIL_OT_stroke_lock_color(struct wmOperatorType *ot);
+void GPENCIL_OT_stroke_apply_thickness(struct wmOperatorType *ot);
+void GPENCIL_OT_stroke_cyclical_set(struct wmOperatorType *ot);
+void GPENCIL_OT_stroke_join(struct wmOperatorType *ot);
+void GPENCIL_OT_stroke_flip(struct wmOperatorType *ot);
+
+void GPENCIL_OT_brush_add(struct wmOperatorType *ot);
+void GPENCIL_OT_brush_remove(struct wmOperatorType *ot);
+void GPENCIL_OT_brush_change(struct wmOperatorType *ot);
+void GPENCIL_OT_brush_move(struct wmOperatorType *ot);
+void GPENCIL_OT_brush_presets_create(struct wmOperatorType *ot);
+void GPENCIL_OT_brush_copy(struct wmOperatorType *ot);
+void GPENCIL_OT_brush_select(struct wmOperatorType *ot);
+
+void GPENCIL_OT_palette_add(struct wmOperatorType *ot);
+void GPENCIL_OT_palette_remove(struct wmOperatorType *ot);
+void GPENCIL_OT_palette_change(struct wmOperatorType *ot);
+void GPENCIL_OT_palette_lock_layer(struct wmOperatorType *ot);
+void GPENCIL_OT_palettecolor_add(struct wmOperatorType *ot);
+void GPENCIL_OT_palettecolor_remove(struct wmOperatorType *ot);
+void GPENCIL_OT_palettecolor_isolate(struct wmOperatorType *ot);
+
+void GPENCIL_OT_palettecolor_hide(struct wmOperatorType *ot);
+void GPENCIL_OT_palettecolor_reveal(struct wmOperatorType *ot);
+void GPENCIL_OT_palettecolor_lock_all(struct wmOperatorType *ot);
+void GPENCIL_OT_palettecolor_unlock_all(struct wmOperatorType *ot);
+void GPENCIL_OT_palettecolor_move(struct wmOperatorType *ot);
+void GPENCIL_OT_palettecolor_select(struct wmOperatorType *ot);
+void GPENCIL_OT_palettecolor_copy(struct wmOperatorType *ot);
 
 /* undo stack ---------- */
 
@@ -272,5 +357,40 @@ typedef enum ACTCONT_TYPES {
 	ACTCONT_SHAPEKEY,
 	ACTCONT_GPENCIL
 } ACTCONT_TYPES;
+
+/**
+* Iterate over all editable strokes in the current context,
+* stopping on each usable layer + stroke pair (i.e. gpl and gps)
+* to perform some operations on the stroke.
+*
+* \param gpl  The identifier to use for the layer of the stroke being processed.
+*                    Choose a suitable value to avoid name clashes.
+* \param gps The identifier to use for current stroke being processed.
+*                    Choose a suitable value to avoid name clashes.
+*/
+#define GP_EDITABLE_STROKES_BEGIN(C, gpl, gps)                                          \
+{                                                                                       \
+	CTX_DATA_BEGIN(C, bGPDlayer*, gpl, editable_gpencil_layers)                         \
+	{                                                                                   \
+		if (gpl->actframe == NULL)                                                      \
+			continue;                                                                   \
+		/* calculate difference matrix if parent object */                              \
+		float diff_mat[4][4];                                                           \
+		ED_gpencil_parent_location(gpl, diff_mat);                                      \
+		/* loop over strokes */                                                         \
+		for (bGPDstroke *gps = gpl->actframe->strokes.first; gps; gps = gps->next) {    \
+			/* skip strokes that are invalid for current view */                        \
+			if (ED_gpencil_stroke_can_use(C, gps) == false)                             \
+				continue;                                                               \
+			/* check if the color is editable */                                        \
+			if (ED_gpencil_stroke_color_use(gpl, gps) == false)                         \
+				continue;                                                               \
+			/* ... Do Stuff With Strokes ...  */
+
+#define GP_EDITABLE_STROKES_END    \
+		}                          \
+	}                              \
+	CTX_DATA_END;                  \
+} (void)0
 
 #endif /* __GPENCIL_INTERN_H__ */

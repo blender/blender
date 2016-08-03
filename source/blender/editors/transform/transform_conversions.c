@@ -7687,7 +7687,11 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 				if (ED_gpencil_stroke_can_use(C, gps) == false) {
 					continue;
 				}
-				
+				/* check if the color is editable */
+				if (ED_gpencil_stroke_color_use(gpl, gps) == false) {
+					continue;
+				}
+
 				if (is_prop_edit) {
 					/* Proportional Editing... */
 					if (is_prop_edit_connected) {
@@ -7735,14 +7739,27 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 		if (gpencil_layer_is_editable(gpl) && (gpl->actframe != NULL)) {
 			bGPDframe *gpf = gpl->actframe;
 			bGPDstroke *gps;
+			float diff_mat[4][4];
+			float inverse_diff_mat[4][4];
+
+			/* calculate difference matrix if parent object */
+			if (gpl->parent != NULL) {
+				ED_gpencil_parent_location(gpl, diff_mat);
+				/* undo matrix */
+				invert_m4_m4(inverse_diff_mat, diff_mat);
+			}
 			
-			/* Make a new frame to work on if the layer's frame and the current scene frame don't match up 
+			/* Make a new frame to work on if the layer's frame and the current scene frame don't match up
 			 * - This is useful when animating as it saves that "uh-oh" moment when you realize you've
 			 *   spent too much time editing the wrong frame...
 			 */
 			// XXX: should this be allowed when framelock is enabled?
 			if (gpf->framenum != cfra) {
 				gpf = gpencil_frame_addcopy(gpl, cfra);
+				/* in some weird situations (framelock enabled) return NULL */
+				if (gpf == NULL) {
+					continue;
+				}
 			}
 			
 			/* Loop over strokes, adding TransData for points as needed... */
@@ -7755,7 +7772,10 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 				if (ED_gpencil_stroke_can_use(C, gps) == false) {
 					continue;
 				}
-				
+				/* check if the color is editable */
+				if (ED_gpencil_stroke_color_use(gpl, gps) == false) {
+					continue;
+				}
 				/* What we need to include depends on proportional editing settings... */
 				if (is_prop_edit) {
 					if (is_prop_edit_connected) {
@@ -7824,9 +7844,18 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 								/* screenspace */
 								td->protectflag = OB_LOCK_LOCZ | OB_LOCK_ROTZ | OB_LOCK_SCALEZ;
 								
-								copy_m3_m4(td->smtx, t->persmat);
-								copy_m3_m4(td->mtx, t->persinv);
-								unit_m3(td->axismtx);
+								/* apply parent transformations */
+								if (gpl->parent == NULL) {
+									copy_m3_m4(td->smtx, t->persmat);
+									copy_m3_m4(td->mtx, t->persinv);
+									unit_m3(td->axismtx);
+								}
+								else {
+									/* apply matrix transformation relative to parent */
+									copy_m3_m4(td->smtx, inverse_diff_mat); /* final position */
+									copy_m3_m4(td->mtx, diff_mat); /* display position */
+									copy_m3_m4(td->axismtx, diff_mat); /* axis orientation */
+								}
 							}
 							else {
 								/* configure 2D dataspace points so that they don't play up... */
@@ -7835,9 +7864,18 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 									// XXX: matrices may need to be different?
 								}
 								
-								copy_m3_m3(td->smtx, smtx);
-								copy_m3_m3(td->mtx, mtx);
-								unit_m3(td->axismtx); // XXX?
+								/* apply parent transformations */
+								if (gpl->parent == NULL) {
+									copy_m3_m3(td->smtx, smtx);
+									copy_m3_m3(td->mtx, mtx);
+									unit_m3(td->axismtx); // XXX?
+								}
+								else {
+									/* apply matrix transformation relative to parent */
+									copy_m3_m4(td->smtx, inverse_diff_mat); /* final position */
+									copy_m3_m4(td->mtx, diff_mat);  /* display position */
+									copy_m3_m4(td->axismtx, diff_mat); /* axis orientation */
+								}
 							}
 							/* Triangulation must be calculated again, so save the stroke for recalc function */
 							td->extra = gps;

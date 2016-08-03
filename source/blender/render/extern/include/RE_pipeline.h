@@ -238,6 +238,9 @@ void RE_render_result_rect_from_ibuf(
 struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name);
 float *RE_RenderLayerGetPass(volatile struct RenderLayer *rl, int passtype, const char *viewname);
 
+/* add passes for grease pencil */
+struct RenderPass *RE_create_gp_pass(struct RenderResult *rr, const char *layername, const char *viewname);
+
 /* obligatory initialize call, disprect is optional */
 void RE_InitState(struct Render *re, struct Render *source, struct RenderData *rd,
                   struct SceneRenderLayer *srl,

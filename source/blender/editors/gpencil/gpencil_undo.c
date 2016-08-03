@@ -142,7 +142,7 @@ void gpencil_undo_push(bGPdata *gpd)
 			 */
 			undo_node->gpd->adt = NULL;
 			
-			BKE_gpencil_free(undo_node->gpd);
+			BKE_gpencil_free(undo_node->gpd, false);
 			MEM_freeN(undo_node->gpd);
 			
 			BLI_freelinkN(&undo_nodes, undo_node);
@@ -170,7 +170,7 @@ void gpencil_undo_finish(void)
 		 */
 		undo_node->gpd->adt = NULL;
 		
-		BKE_gpencil_free(undo_node->gpd);
+		BKE_gpencil_free(undo_node->gpd, false);
 		MEM_freeN(undo_node->gpd);
 		
 		undo_node = undo_node->next;

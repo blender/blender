@@ -2673,6 +2673,20 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			writestruct(wd, DATA, UvSculpt, 1, tos->uvsculpt);
 			write_paint(wd, &tos->uvsculpt->paint);
 		}
+		/* write grease-pencil drawing brushes to file */
+		writelist(wd, DATA, bGPDbrush, &tos->gp_brushes);
+		for (bGPDbrush *brush = tos->gp_brushes.first; brush; brush = brush->next) {
+			if (brush->cur_sensitivity) {
+				write_curvemapping(wd, brush->cur_sensitivity);
+			}
+			if (brush->cur_strength) {
+				write_curvemapping(wd, brush->cur_strength);
+			}
+			if (brush->cur_jitter) {
+				write_curvemapping(wd, brush->cur_jitter);
+			}
+		}
+		
 
 		write_paint(wd, &tos->imapaint.paint);
 
@@ -2835,6 +2849,7 @@ static void write_gpencils(WriteData *wd, ListBase *lb)
 	bGPDlayer *gpl;
 	bGPDframe *gpf;
 	bGPDstroke *gps;
+	bGPDpalette *palette;
 
 	for (gpd = lb->first; gpd; gpd = gpd->id.next) {
 		if (gpd->id.us > 0 || wd->current) {
@@ -2860,6 +2875,11 @@ static void write_gpencils(WriteData *wd, ListBase *lb)
 						writestruct(wd, DATA, bGPDspoint, gps->totpoints, gps->points);
 					}
 				}
+			}
+			/* write grease-pencil palettes */
+			writelist(wd, DATA, bGPDpalette, &gpd->palettes);
+			for (palette = gpd->palettes.first; palette; palette = palette->next) {
+				writelist(wd, DATA, bGPDpalettecolor, &palette->colors);
 			}
 		}
 	}

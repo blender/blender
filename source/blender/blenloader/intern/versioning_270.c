@@ -63,6 +63,7 @@
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 #include "BKE_screen.h"
+#include "BKE_gpencil.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
@@ -1075,15 +1076,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 
-		/* init grease pencil smooth level iterations */
-		for (bGPdata *gpd = main->gpencil.first; gpd; gpd = gpd->id.next) {
-			for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-				if (gpl->draw_smoothlvl == 0) {
-					gpl->draw_smoothlvl = 1;
-				}
-			}
-		}
-
 		for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
@@ -1192,7 +1184,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 
 		for (Camera *camera = main->camera.first; camera != NULL; camera = camera->id.next) {
 			if (camera->stereo.pole_merge_angle_from == 0.0f &&
-			    camera->stereo.pole_merge_angle_to == 0.0f)
+				camera->stereo.pole_merge_angle_to == 0.0f)
 			{
 				camera->stereo.pole_merge_angle_from = DEG2RADF(60.0f);
 				camera->stereo.pole_merge_angle_to = DEG2RADF(75.0f);
@@ -1251,4 +1243,82 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 277, 3)) {
+		/* ------- init of grease pencil initialization --------------- */
+		if (!DNA_struct_elem_find(fd->filesdna, "bGPDstroke", "bGPDpalettecolor", "palcolor")) {
+			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+				ToolSettings *ts = scene->toolsettings;
+				/* initialize use position for sculpt brushes */
+				ts->gp_sculpt.flag |= GP_BRUSHEDIT_FLAG_APPLY_POSITION;
+				/* initialize  selected vertices alpha factor */
+				ts->gp_sculpt.alpha = 1.0f;
+
+				/* new strength sculpt brush */
+				if (ts->gp_sculpt.brush[0].size >= 11) {
+					GP_BrushEdit_Settings *gset = &ts->gp_sculpt;
+					GP_EditBrush_Data *brush;
+
+					brush = &gset->brush[GP_EDITBRUSH_TYPE_STRENGTH];
+					brush->size = 25;
+					brush->strength = 0.5f;
+					brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+				}
+			}
+			/* create a default grease pencil drawing brushes set */
+			if (!BLI_listbase_is_empty(&main->gpencil)) {
+				for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+					ToolSettings *ts = scene->toolsettings;
+					if (BLI_listbase_is_empty(&ts->gp_brushes)) {
+						gpencil_brush_init_presets(ts);
+					}
+				}
+			}
+			/* Convert Grease Pencil to new palettes/brushes
+			 * Loop all strokes and create the palette and all colors
+			 */
+			for (bGPdata *gpd = main->gpencil.first; gpd; gpd = gpd->id.next) {
+				if (BLI_listbase_is_empty(&gpd->palettes)) {
+					/* create palette */
+					bGPDpalette *palette = gpencil_palette_addnew(gpd, "GP_Palette", true);
+					for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+						/* create color using layer name */
+						bGPDpalettecolor *palcolor = gpencil_palettecolor_addnew(palette, gpl->info, true);
+						if (palcolor != NULL) {
+							/* set color attributes */
+							copy_v4_v4(palcolor->color, gpl->color);
+							copy_v4_v4(palcolor->fill, gpl->fill);
+							palcolor->flag = gpl->flag;
+							/* set layer opacity to 1 */
+							gpl->opacity = 1.0f;
+							/* set tint color */
+							ARRAY_SET_ITEMS(gpl->tintcolor, 0.0f, 0.0f, 0.0f, 0.0f);
+
+							for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+								for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+									/* set stroke to palette and force recalculation */
+									strcpy(gps->colorname, gpl->info);
+									gps->palcolor = NULL;
+									gps->flag |= GP_STROKE_RECALC_COLOR;
+									gps->thickness = gpl->thickness;
+									/* set alpha strength to 1 */
+									for (int i = 0; i < gps->totpoints; i++) {
+										gps->points[i].strength = 1.0f;
+									}
+
+								}
+							}
+						}
+						/* set thickness to 0 (now it is a factor to override stroke thickness) */
+						gpl->thickness = 0.0f;
+					}
+					/* set first color as active */
+					if (palette->colors.first)
+						gpencil_palettecolor_setactive(palette, palette->colors.first);
+				}
+			}
+		}
+		/* ------- end of grease pencil initialization --------------- */
+	}
+
 }

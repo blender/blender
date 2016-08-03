@@ -85,7 +85,8 @@ const char *screen_context_dir[] = {
 	"sequences", "selected_sequences", "selected_editable_sequences", /* sequencer */
 	"gpencil_data", "gpencil_data_owner", /* grease pencil data */
 	"visible_gpencil_layers", "editable_gpencil_layers", "editable_gpencil_strokes",
-	"active_gpencil_layer", "active_gpencil_frame",
+	"active_gpencil_layer", "active_gpencil_frame", "active_gpencil_palette", 
+	"active_gpencil_palettecolor", "active_gpencil_brush",
 	"active_operator",
 	NULL};
 
@@ -474,6 +475,44 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			}
 		}
 	}
+	else if (CTX_data_equals(member, "active_gpencil_palette")) {
+		/* XXX: see comment for gpencil_data case... */
+		bGPdata *gpd = ED_gpencil_data_get_active_direct((ID *)sc, scene, sa, obact);
+
+		if (gpd) {
+			bGPDpalette *palette = gpencil_palette_getactive(gpd);
+
+			if (palette) {
+				CTX_data_pointer_set(result, &gpd->id, &RNA_GPencilPalette, palette);
+				return 1;
+			}
+		}
+	}
+	else if (CTX_data_equals(member, "active_gpencil_palettecolor")) {
+		/* XXX: see comment for gpencil_data case... */
+		bGPdata *gpd = ED_gpencil_data_get_active_direct((ID *)sc, scene, sa, obact);
+
+		if (gpd) {
+			bGPDpalette *palette = gpencil_palette_getactive(gpd);
+
+			if (palette) {
+				bGPDpalettecolor *palcolor = gpencil_palettecolor_getactive(palette);
+				if (palcolor) {
+					CTX_data_pointer_set(result, &gpd->id, &RNA_GPencilPaletteColor, palcolor);
+					return 1;
+				}
+			}
+		}
+	}
+	else if (CTX_data_equals(member, "active_gpencil_brush")) {
+		/* XXX: see comment for gpencil_data case... */
+		bGPDbrush *brush = gpencil_brush_getactive(scene->toolsettings);
+
+		if (brush) {
+			CTX_data_pointer_set(result, NULL, &RNA_GPencilBrush, brush);
+			return 1;
+		}
+	}
 	else if (CTX_data_equals(member, "active_gpencil_frame")) {
 		/* XXX: see comment for gpencil_data case... */
 		bGPdata *gpd = ED_gpencil_data_get_active_direct((ID *)sc, scene, sa, obact);
@@ -533,6 +572,11 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					
 					for (gps = gpf->strokes.first; gps; gps = gps->next) {
 						if (ED_gpencil_stroke_can_use_direct(sa, gps)) {
+							/* check if the color is editable */
+							if (ED_gpencil_stroke_color_use(gpl, gps) == false) {
+								continue;
+							}
+
 							CTX_data_list_add(result, &gpd->id, &RNA_GPencilStroke, gps);
 						}
 					}

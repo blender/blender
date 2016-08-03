@@ -1112,6 +1112,21 @@ bGPDlayer *CTX_data_active_gpencil_layer(const bContext *C)
 	return ctx_data_pointer_get(C, "active_gpencil_layer");
 }
 
+bGPDpalette *CTX_data_active_gpencil_palette(const bContext *C)
+{
+	return ctx_data_pointer_get(C, "active_gpencil_palette");
+}
+
+bGPDpalettecolor *CTX_data_active_gpencil_palettecolor(const bContext *C)
+{
+	return ctx_data_pointer_get(C, "active_gpencil_palettecolor");
+}
+
+bGPDbrush *CTX_data_active_gpencil_brush(const bContext *C)
+{
+	return ctx_data_pointer_get(C, "active_gpencil_brush");
+}
+
 bGPDframe *CTX_data_active_gpencil_frame(const bContext *C)
 {
 	return ctx_data_pointer_get(C, "active_gpencil_frame");

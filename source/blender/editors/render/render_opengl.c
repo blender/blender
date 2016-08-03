@@ -43,6 +43,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "BKE_camera.h"
 #include "BKE_context.h"
@@ -414,6 +415,99 @@ static void screen_opengl_render_write(OGLRender *oglrender)
 	else printf("OpenGL Render failed to write '%s'\n", name);
 }
 
+static void addAlphaOverFloat(float dest[4], const float source[4])
+{
+	/* d = s + (1-alpha_s)d*/
+	float mul;
+
+	mul = 1.0f - source[3];
+
+	dest[0] = (mul * dest[0]) + source[0];
+	dest[1] = (mul * dest[1]) + source[1];
+	dest[2] = (mul * dest[2]) + source[2];
+	dest[3] = (mul * dest[3]) + source[3];
+
+}
+
+/* add renderlayer and renderpass for each grease pencil layer for using in composition */
+static void add_gpencil_renderpass(OGLRender *oglrender, RenderResult *rr, RenderView *rv)
+{
+	bGPdata *gpd = oglrender->scene->gpd;
+	Scene *scene = oglrender->scene;
+
+	/* sanity checks */
+	if (gpd == NULL) {
+		return;
+	}
+	if (scene == NULL) {
+		return;
+	}
+	if (BLI_listbase_is_empty(&gpd->layers)) {
+		return;
+	}
+
+	/* save old alpha mode */
+	short oldalphamode = scene->r.alphamode;
+	/* set alpha transparent for gp */
+	scene->r.alphamode = R_ALPHAPREMUL;
+	
+	/* saves layer status */
+	short *oldsts = MEM_mallocN(BLI_listbase_count(&gpd->layers) * sizeof(short), "temp_gplayers_flag");
+	int i = 0;
+	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+		oldsts[i] = gpl->flag;
+		++i;
+	}
+	/* loop all layers to create separate render */
+	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+		/* dont draw layer if hidden */
+		if (gpl->flag & GP_LAYER_HIDE)
+			continue;
+		/* hide all layer except current */
+		for (bGPDlayer *gph = gpd->layers.first; gph; gph = gph->next) {
+			if (gpl != gph) {
+				gph->flag |= GP_LAYER_HIDE;
+			}
+		}
+
+		/* render this gp layer */
+		screen_opengl_render_doit(oglrender, rr);
+		
+		/* add RendePass composite */
+		RenderPass *rp = RE_create_gp_pass(rr, gpl->info, rv->name);
+
+		/* copy image data from rectf */
+		float *src = RE_RenderViewGetById(rr, oglrender->view_id)->rectf;
+		float *dest = rp->rect;
+
+		float *pixSrc, *pixDest;
+		int x, y, rectx, recty;
+		rectx = rr->rectx;
+		recty = rr->recty;
+		for (y = 0; y < recty; y++) {
+			for (x = 0; x < rectx; x++) {
+				pixSrc = src + 4 * (rectx * y + x);
+				if (pixSrc[3] > 0.0) {
+					pixDest = dest + 4 * (rectx * y + x);
+					addAlphaOverFloat(pixDest, pixSrc);
+				}
+			}
+		}
+
+		/* back layer status */
+		i = 0;
+		for (bGPDlayer *gph = gpd->layers.first; gph; gph = gph->next) {
+			gph->flag = oldsts[i];
+			++i;
+		}
+	}
+	/* free memory */
+	MEM_freeN(oldsts);
+
+	/* back default alpha mode */
+	scene->r.alphamode = oldalphamode;
+}
+
 static void screen_opengl_render_apply(OGLRender *oglrender)
 {
 	RenderResult *rr;
@@ -449,6 +543,9 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		BLI_assert(view_id < oglrender->views_len);
 		RE_SetActiveRenderView(oglrender->re, rv->name);
 		oglrender->view_id = view_id;
+		/* add grease pencil passes */
+		add_gpencil_renderpass(oglrender, rr, rv);
+		/* render composite */
 		screen_opengl_render_doit(oglrender, rr);
 	}
 

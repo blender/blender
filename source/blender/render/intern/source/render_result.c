@@ -540,6 +540,11 @@ static RenderPass *render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int 
 
 	return rpass;
 }
+/* wrapper called from render_opengl */
+RenderPass *gp_add_pass(RenderResult *rr, RenderLayer *rl, int channels, int passtype, const char *viewname)
+{
+	return render_layer_add_pass(rr, rl, channels, passtype, viewname);
+}
 
 #ifdef WITH_CYCLES_DEBUG
 const char *RE_debug_pass_name_get(int debug_type)

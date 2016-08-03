@@ -58,6 +58,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"
+#include "BKE_gpencil.h"
 
 #include "BIF_gl.h"
 
@@ -68,6 +69,7 @@
 #include "ED_curve.h"
 #include "ED_particle.h"
 #include "ED_view3d.h"
+#include "ED_gpencil.h"
 
 #include "UI_resources.h"
 
@@ -288,24 +290,49 @@ static int calc_manipulator_stats(const bContext *C)
 	zero_v3(scene->twcent);
 	
 	if (is_gp_edit) {
-		CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
-		{
-			/* we're only interested in selected points here... */
-			if (gps->flag & GP_STROKE_SELECT) {
-				bGPDspoint *pt;
-				int i;
-				
-				/* Change selection status of all points, then make the stroke match */
-				for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-					if (pt->flag & GP_SPOINT_SELECT) {
-						calc_tw_center(scene, &pt->x);
-						totsel++;
+		float diff_mat[4][4];
+		float fpt[3];
+
+		for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+			/* only editable and visible layers are considered */
+			if (gpencil_layer_is_editable(gpl) && (gpl->actframe != NULL)) {
+
+				/* calculate difference matrix if parent object */
+				if (gpl->parent != NULL) {
+					ED_gpencil_parent_location(gpl, diff_mat);
+				}
+
+				for (bGPDstroke *gps = gpl->actframe->strokes.first; gps; gps = gps->next) {
+					/* skip strokes that are invalid for current view */
+					if (ED_gpencil_stroke_can_use(C, gps) == false) {
+						continue;
+					}
+
+					/* we're only interested in selected points here... */
+					if (gps->flag & GP_STROKE_SELECT) {
+						bGPDspoint *pt;
+						int i;
+
+						/* Change selection status of all points, then make the stroke match */
+						for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+							if (pt->flag & GP_SPOINT_SELECT) {
+								if (gpl->parent == NULL) {
+									calc_tw_center(scene, &pt->x);
+									totsel++;
+								}
+								else {
+									mul_v3_m4v3(fpt, diff_mat, &pt->x);
+									calc_tw_center(scene, fpt);
+									totsel++;
+								}
+							}
+						}
 					}
 				}
 			}
 		}
-		CTX_DATA_END;
-		
+
+
 		/* selection center */
 		if (totsel) {
 			mul_v3_fl(scene->twcent, 1.0f / (float)totsel);   /* centroid! */

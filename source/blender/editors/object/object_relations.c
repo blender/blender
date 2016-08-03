@@ -48,6 +48,7 @@
 #include "DNA_world_types.h"
 #include "DNA_object_types.h"
 #include "DNA_vfont_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
@@ -1762,6 +1763,14 @@ static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, const in
 				else {
 					/* copy already clears */
 				}
+				/* remap gpencil parenting */
+				bGPdata *gpd = scene->gpd;
+				for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+					if (gpl->parent == ob) {
+						gpl->parent = obn;
+					}
+				}
+
 				base->flag = obn->flag;
 
 				id_us_min(&ob->id);

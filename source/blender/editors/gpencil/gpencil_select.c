@@ -43,6 +43,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
@@ -616,9 +617,10 @@ void GPENCIL_OT_select_less(wmOperatorType *ot)
 /* NOTE: Code here is adapted (i.e. copied directly) from gpencil_paint.c::gp_stroke_eraser_dostroke()
  *       It would be great to de-duplicate the logic here sometime, but that can wait...
  */
-static bool gp_stroke_do_circle_sel(bGPDstroke *gps, GP_SpaceConversion *gsc,
-                                    const int mx, const int my, const int radius, 
-                                    const bool select, rcti *rect)
+static bool gp_stroke_do_circle_sel(
+        bGPDstroke *gps, GP_SpaceConversion *gsc,
+        const int mx, const int my, const int radius,
+        const bool select, rcti *rect, const bool parented, float diff_mat[4][4])
 {
 	bGPDspoint *pt1, *pt2;
 	int x0 = 0, y0 = 0, x1 = 0, y1 = 0;
@@ -626,7 +628,14 @@ static bool gp_stroke_do_circle_sel(bGPDstroke *gps, GP_SpaceConversion *gsc,
 	bool changed = false;
 	
 	if (gps->totpoints == 1) {
-		gp_point_to_xy(gsc, gps, gps->points, &x0, &y0);
+		if (!parented) {
+			gp_point_to_xy(gsc, gps, gps->points, &x0, &y0);
+		}
+		else {
+			bGPDspoint pt_temp;
+			gp_point_to_parent_space(gps->points, diff_mat, &pt_temp);
+			gp_point_to_xy(gsc, gps, &pt_temp, &x0, &y0);
+		}
 		
 		/* do boundbox check first */
 		if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) {
@@ -654,9 +663,18 @@ static bool gp_stroke_do_circle_sel(bGPDstroke *gps, GP_SpaceConversion *gsc,
 			/* get points to work with */
 			pt1 = gps->points + i;
 			pt2 = gps->points + i + 1;
-			
-			gp_point_to_xy(gsc, gps, pt1, &x0, &y0);
-			gp_point_to_xy(gsc, gps, pt2, &x1, &y1);
+			if (!parented) {
+				gp_point_to_xy(gsc, gps, pt1, &x0, &y0);
+				gp_point_to_xy(gsc, gps, pt2, &x1, &y1);
+			}
+			else {
+				bGPDspoint npt;
+				gp_point_to_parent_space(pt1, diff_mat, &npt);
+				gp_point_to_xy(gsc, gps, &npt, &x0, &y0);
+
+				gp_point_to_parent_space(pt2, diff_mat, &npt);
+				gp_point_to_xy(gsc, gps, &npt, &x1, &y1);
+			}
 			
 			/* check that point segment of the boundbox of the selection stroke */
 			if (((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) ||
@@ -733,12 +751,14 @@ static int gpencil_circle_select_exec(bContext *C, wmOperator *op)
 	
 	
 	/* find visible strokes, and select if hit */
-	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+	GP_EDITABLE_STROKES_BEGIN(C, gpl, gps)
 	{
-		changed |= gp_stroke_do_circle_sel(gps, &gsc, mx, my, radius, select, &rect);
+		changed |= gp_stroke_do_circle_sel(
+			gps, &gsc, mx, my, radius, select, &rect,
+			(gpl->parent != NULL), diff_mat);
 	}
-	CTX_DATA_END;
-	
+	GP_EDITABLE_STROKES_END;
+
 	/* updates */
 	if (changed) {
 		WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
@@ -818,17 +838,25 @@ static int gpencil_border_select_exec(bContext *C, wmOperator *op)
 	WM_operator_properties_border_to_rcti(op, &rect);
 	
 	/* select/deselect points */
-	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+	GP_EDITABLE_STROKES_BEGIN(C, gpl, gps)
 	{
+
 		bGPDspoint *pt;
 		int i;
-		
+
 		for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
 			int x0, y0;
-			
+
 			/* convert point coords to screenspace */
-			gp_point_to_xy(&gsc, gps, pt, &x0, &y0);
-			
+			if (gpl->parent == NULL) {
+				gp_point_to_xy(&gsc, gps, pt, &x0, &y0);
+			}
+			else {
+				bGPDspoint pt2;
+				gp_point_to_parent_space(pt, diff_mat, &pt2);
+				gp_point_to_xy(&gsc, gps, &pt2, &x0, &y0);
+			}
+
 			/* test if in selection rect */
 			if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(&rect, x0, y0)) {
 				if (select) {
@@ -837,16 +865,16 @@ static int gpencil_border_select_exec(bContext *C, wmOperator *op)
 				else {
 					pt->flag &= ~GP_SPOINT_SELECT;
 				}
-				
+
 				changed = true;
 			}
 		}
-		
+
 		/* Ensure that stroke selection is in sync with its points */
 		gpencil_stroke_sync_selection(gps);
 	}
-	CTX_DATA_END;
-	
+	GP_EDITABLE_STROKES_END;
+
 	/* updates */
 	if (changed) {
 		WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
@@ -920,20 +948,26 @@ static int gpencil_lasso_select_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* select/deselect points */
-	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+	GP_EDITABLE_STROKES_BEGIN(C, gpl, gps)
 	{
 		bGPDspoint *pt;
 		int i;
-		
+
 		for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
 			int x0, y0;
-			
+
 			/* convert point coords to screenspace */
-			gp_point_to_xy(&gsc, gps, pt, &x0, &y0);
-			
+			if (gpl->parent == NULL) {
+				gp_point_to_xy(&gsc, gps, pt, &x0, &y0);
+			}
+			else {
+				bGPDspoint pt2;
+				gp_point_to_parent_space(pt, diff_mat, &pt2);
+				gp_point_to_xy(&gsc, gps, &pt2, &x0, &y0);
+			}
 			/* test if in lasso boundbox + within the lasso noose */
 			if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(&rect, x0, y0) &&
-			    BLI_lasso_is_point_inside(mcords, mcords_tot, x0, y0, INT_MAX))
+				BLI_lasso_is_point_inside(mcords, mcords_tot, x0, y0, INT_MAX))
 			{
 				if (select) {
 					pt->flag |= GP_SPOINT_SELECT;
@@ -941,16 +975,16 @@ static int gpencil_lasso_select_exec(bContext *C, wmOperator *op)
 				else {
 					pt->flag &= ~GP_SPOINT_SELECT;
 				}
-				
+
 				changed = true;
 			}
 		}
-		
+
 		/* Ensure that stroke selection is in sync with its points */
 		gpencil_stroke_sync_selection(gps);
 	}
-	CTX_DATA_END;
-	
+	GP_EDITABLE_STROKES_END;
+
 	/* cleanup */
 	MEM_freeN((void *)mcords);
 	
@@ -1020,35 +1054,42 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 	
 	/* First Pass: Find stroke point which gets hit */
 	/* XXX: maybe we should go from the top of the stack down instead... */
-	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+	GP_EDITABLE_STROKES_BEGIN(C, gpl, gps)
 	{
 		bGPDspoint *pt;
 		int i;
-		
+
 		/* firstly, check for hit-point */
 		for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
 			int xy[2];
-			
-			gp_point_to_xy(&gsc, gps, pt, &xy[0], &xy[1]);
-		
+
+			if (gpl->parent == NULL) {
+				gp_point_to_xy(&gsc, gps, pt, &xy[0], &xy[1]);
+			}
+			else {
+				bGPDspoint pt2;
+				gp_point_to_parent_space(pt, diff_mat, &pt2);
+				gp_point_to_xy(&gsc, gps, &pt2, &xy[0], &xy[1]);
+			}
+
 			/* do boundbox check first */
 			if (!ELEM(V2D_IS_CLIPPED, xy[0], xy[1])) {
 				const int pt_distance = len_manhattan_v2v2_int(mval, xy);
-				
+
 				/* check if point is inside */
 				if (pt_distance <= radius_squared) {
 					/* only use this point if it is a better match than the current hit - T44685 */
 					if (pt_distance < hit_distance) {
 						hit_stroke = gps;
-						hit_point  = pt;
+						hit_point = pt;
 						hit_distance = pt_distance;
 					}
 				}
 			}
 		}
 	}
-	CTX_DATA_END;
-	
+	GP_EDITABLE_STROKES_END;
+
 	/* Abort if nothing hit... */
 	if (ELEM(NULL, hit_stroke, hit_point)) {
 		return OPERATOR_CANCELLED;

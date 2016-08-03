@@ -136,7 +136,7 @@ class GreasePencilStrokeEditPanel:
     def draw(self, context):
         layout = self.layout
 
-        is_3d_view = context.space_data.type == 'VIEW_3D'
+        is_3d_view     = context.space_data.type == 'VIEW_3D'
 
         if not is_3d_view:
             layout.label(text="Select:")
@@ -151,18 +151,19 @@ class GreasePencilStrokeEditPanel:
             col.operator("gpencil.select_linked")
             col.operator("gpencil.select_more")
             col.operator("gpencil.select_less")
-
-            layout.separator()
+            col.operator("gpencil.palettecolor_select")
 
         layout.label(text="Edit:")
         row = layout.row(align=True)
         row.operator("gpencil.copy", text="Copy")
-        row.operator("gpencil.paste", text="Paste")
+        row.operator("gpencil.paste", text="Paste").type = 'COPY'
+        row.operator("gpencil.paste", text="Paste & Merge").type = 'MERGE'
 
         col = layout.column(align=True)
-        col.operator("gpencil.delete", text="Delete")
+        col.operator("gpencil.delete")
         col.operator("gpencil.duplicate_move", text="Duplicate")
-        col.operator("transform.mirror", text="Mirror")
+        if is_3d_view:
+            col.operator("gpencil.stroke_cyclical_set", text="Toggle Cyclic").type = 'TOGGLE'
 
         layout.separator()
 
@@ -176,8 +177,91 @@ class GreasePencilStrokeEditPanel:
 
         col = layout.column(align=True)
         col.operator("transform.bend", text="Bend")
+        col.operator("transform.mirror", text="Mirror")
         col.operator("transform.shear", text="Shear")
         col.operator("transform.tosphere", text="To Sphere")
+
+        layout.separator()
+        col = layout.column(align=True)
+        col.operator_menu_enum("gpencil.stroke_arrange", text="Arrange Strokes...", property="direction")
+        col.operator("gpencil.stroke_change_color", text="Move to Color")
+
+        layout.separator()
+        col = layout.column(align=True)
+        col.operator("gpencil.stroke_join", text="Join").type = 'JOIN'
+        col.operator("gpencil.stroke_join", text="Join & Copy").type = 'JOINCOPY'
+        col.operator("gpencil.stroke_flip", text="Flip direction")
+
+        gpd = context.gpencil_data
+        if gpd:
+            col.prop(gpd, "show_stroke_direction", text="Show drawing direction")
+
+
+class GreasePencilBrushPanel:
+    # subclass must set
+    # bl_space_type = 'IMAGE_EDITOR'
+    bl_label = "Drawing Brushes"
+    bl_category = "Grease Pencil"
+    bl_region_type = 'TOOLS'
+
+    @staticmethod
+    def draw(self, context):
+        layout = self.layout
+
+        row = layout.row()
+        col = row.column()
+        ts = context.scene.tool_settings
+        if len(ts.gpencil_brushes) >= 2:
+            brows = 3
+        else:
+            brows = 2
+        col.template_list("GPENCIL_UL_brush", "", ts, "gpencil_brushes", ts.gpencil_brushes, "active_index", rows=brows)
+
+        col = row.column()
+
+        sub = col.column(align=True)
+        sub.operator("gpencil.brush_add", icon='ZOOMIN', text="")
+        sub.operator("gpencil.brush_remove", icon='ZOOMOUT', text="")
+        sub.menu("GPENCIL_MT_brush_specials", icon='DOWNARROW_HLT', text="")
+        brush = context.active_gpencil_brush
+        if brush:
+            if len(ts.gpencil_brushes) > 1:
+                col.separator()
+                sub = col.column(align=True)
+                sub.operator("gpencil.brush_move", icon='TRIA_UP', text="").type = 'UP'
+                sub.operator("gpencil.brush_move", icon='TRIA_DOWN', text="").type = 'DOWN'
+
+        # Brush details
+        if brush is not None:
+            row = layout.row()
+            row.prop(brush, "line_width")
+            row = layout.row(align=True)
+            row.prop(brush, "use_random_pressure", text='', icon='RNDCURVE')
+            row.prop(brush, "pen_sensitivity_factor", slider=True)
+            row.prop(brush, "use_pressure", text='', icon='STYLUS_PRESSURE')
+            row = layout.row(align=True)
+            row.prop(brush, "use_random_strength", text='', icon='RNDCURVE')
+            row.prop(brush, "strength", slider=True)
+            row.prop(brush, "use_strength_pressure", text='', icon='STYLUS_PRESSURE')
+            row = layout.row(align=True)
+            row.prop(brush, "random_press", slider=True)
+
+            row = layout.row(align=True)
+            row.prop(brush, "jitter", slider=True)
+            row.prop(brush, "use_jitter_pressure", text='', icon='STYLUS_PRESSURE')
+            row = layout.row()
+            row.prop(brush, "angle", slider=True)
+            row.prop(brush, "angle_factor", text="Factor", slider=True)
+
+            box = layout.box()
+            col = box.column(align=True)
+            col.label(text="Stroke Quality:")
+            col.prop(brush, "pen_smooth_factor")
+            col.prop(brush, "pen_smooth_steps")
+            col.separator()
+            row = col.row(align=False)
+            row.prop(brush, "pen_subdivision_steps")
+            row.prop(brush, "random_subdiv", text='Randomness', slider=True)
 
 
 class GreasePencilStrokeSculptPanel:
@@ -203,7 +287,7 @@ class GreasePencilStrokeSculptPanel:
         tool = settings.tool
         brush = settings.brush
 
-        layout.column().prop(settings, "tool", expand=True)
+        layout.column().prop(settings, "tool")
 
         col = layout.column()
         col.prop(brush, "size", slider=True)
@@ -211,6 +295,11 @@ class GreasePencilStrokeSculptPanel:
         row.prop(brush, "strength", slider=True)
         row.prop(brush, "use_pressure_strength", text="")
         col.prop(brush, "use_falloff")
+        if tool in {'SMOOTH', 'RANDOMIZE'}:
+            row = layout.row(align=True)
+            row.prop(settings, "affect_position", text="Position", icon='MESH_DATA', toggle=True)
+            row.prop(settings, "affect_strength", text="Strength", icon='COLOR', toggle=True)
+            row.prop(settings, "affect_thickness", text="Thickness", icon='LINE_DATA', toggle=True)
 
         layout.separator()
 
@@ -220,16 +309,52 @@ class GreasePencilStrokeSculptPanel:
             row = layout.row(align=True)
             row.prop_enum(brush, "direction", 'ADD', text="Pinch")
             row.prop_enum(brush, "direction", 'SUBTRACT', text="Inflate")
-        elif tool == 'TWIST':
+        elif settings.tool == 'TWIST':
             row = layout.row(align=True)
             row.prop_enum(brush, "direction", 'SUBTRACT', text="CW")
             row.prop_enum(brush, "direction", 'ADD', text="CCW")
 
-        layout.separator()
-        layout.prop(settings, "use_select_mask")
+        row = layout.row(align=True)
+        row.prop(settings, "use_select_mask")
+        row = layout.row(align=True)
+        row.prop(settings, "selection_alpha", slider=True)
 
         if tool == 'SMOOTH':
             layout.prop(brush, "affect_pressure")
+
+
+class GreasePencilBrushCurvesPanel:
+    # subclass must set
+    # bl_space_type = 'IMAGE_EDITOR'
+    bl_label = "Grease Pencil Curves"
+    bl_category = "Grease Pencil"
+    bl_region_type = 'TOOLS'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        if context.active_gpencil_brush is None:
+            return False
+
+        brush = context.active_gpencil_brush
+        return bool(brush)
+
+    @staticmethod
+    def draw(self, context):
+        layout = self.layout
+        brush = context.active_gpencil_brush
+        # Brush
+        layout.label("Sensitivity")
+        box = layout.box()
+        box.template_curve_mapping(brush, "curve_sensitivity", brush=True)
+
+        layout.label("Strength")
+        box = layout.box()
+        box.template_curve_mapping(brush, "curve_strength", brush=True)
+
+        layout.label("Jitter")
+        box = layout.box()
+        box.template_curve_mapping(brush, "curve_jitter", brush=True)
 
 
 ###############################
@@ -282,6 +407,7 @@ class GPENCIL_PIE_tool_palette(Menu):
                 col.operator("gpencil.select_all", text="Select All", icon='PARTICLE_POINT')
                 col.operator("gpencil.select_all", text="Select Inverse", icon='BLANK1')
                 col.operator("gpencil.select_linked", text="Select Linked", icon='LINKED')
+                col.operator("gpencil.palettecolor_select", text="Select Color", icon='COLOR')
 
                 # NE - Select (Modal)
                 col = pie.column()
@@ -315,24 +441,47 @@ class GPENCIL_PIE_settings_palette(Menu):
         pie = layout.menu_pie()
         # gpd = context.gpencil_data
         gpl = context.active_gpencil_layer
+        palcolor = context.active_gpencil_palettecolor
+        brush = context.active_gpencil_brush
 
         # W - Stroke draw settings
         col = pie.column(align=True)
-        col.label(text="Stroke")
-        col.prop(gpl, "color", text="")
-        col.prop(gpl, "alpha", text="", slider=True)
+        if palcolor is not None:
+            col.label(text="Stroke")
+            col.prop(palcolor, "color", text="")
+            col.prop(palcolor, "alpha", text="", slider=True)
 
         # E - Fill draw settings
         col = pie.column(align=True)
-        col.label(text="Fill")
-        col.prop(gpl, "fill_color", text="")
-        col.prop(gpl, "fill_alpha", text="", slider=True)
+        if palcolor is not None:
+            col.label(text="Fill")
+            col.prop(palcolor, "fill_color", text="")
+            col.prop(palcolor, "fill_alpha", text="", slider=True)
 
-        # S - Layer settings
+        # S Brush settings
         col = pie.column()
-        col.prop(gpl, "line_width", slider=True)
-        # col.prop(gpl, "use_volumetric_strokes")
-        col.prop(gpl, "use_onion_skinning")
+        col.label("Active Brush:      ")
+
+        row = col.row()
+        row.operator_context = 'EXEC_REGION_WIN'
+        row.operator_menu_enum("gpencil.brush_change", "brush", text="", icon='BRUSH_DATA')
+        row.prop(brush, "name", text="")
+
+        col.prop(brush, "line_width", slider=True)
+        row = col.row(align=True)
+        row.prop(brush, "use_random_pressure", text='', icon='RNDCURVE')
+        row.prop(brush, "pen_sensitivity_factor", slider=True)
+        row.prop(brush, "use_pressure", text='', icon='STYLUS_PRESSURE')
+        row = col.row(align=True)
+        row.prop(brush, "use_random_strength", text='', icon='RNDCURVE')
+        row.prop(brush, "strength", slider=True)
+        row.prop(brush, "use_strength_pressure", text='', icon='STYLUS_PRESSURE')
+        row = col.row(align=True)
+        row.prop(brush, "jitter", slider=True)
+        row.prop(brush, "use_jitter_pressure", text='', icon='STYLUS_PRESSURE')
+        row = col.row()
+        row.prop(brush, "angle", slider=True)
+        row.prop(brush, "angle_factor", text="Factor", slider=True)
 
         # N - Active Layer
         col = pie.column()
@@ -347,6 +496,35 @@ class GPENCIL_PIE_settings_palette(Menu):
         row = col.row()
         row.prop(gpl, "lock")
         row.prop(gpl, "hide")
+        col.prop(gpl, "use_onion_skinning")
+
+        # NW - Move stroke Down
+        col = pie.column(align=True)
+        col.label("Arrange Strokes")
+        col.operator("gpencil.stroke_arrange", text="Send to Back").direction = 'BOTTOM'
+        col.operator("gpencil.stroke_arrange", text="Send Backward").direction = 'DOWN'
+
+        # NE - Move stroke Up
+        col = pie.column(align=True)
+        col.label("Arrange Strokes")
+        col.operator("gpencil.stroke_arrange", text="Bring to Front").direction = 'TOP'
+        col.operator("gpencil.stroke_arrange", text="Bring Forward").direction = 'UP'
+
+        # SW - Move stroke to color
+        col = pie.column(align=True)
+        col.operator("gpencil.stroke_change_color", text="Move to Color")
+
+        # SE - Join strokes
+        col = pie.column(align=True)
+        col.label("Join Strokes")
+        row = col.row()
+        row.operator("gpencil.stroke_join", text="Join").type = 'JOIN'
+        row.operator("gpencil.stroke_join", text="Join & Copy").type = 'JOINCOPY'
+        col.operator("gpencil.stroke_flip", text="Flip direction")
+
+        gpd = context.gpencil_data
+        if gpd:
+            col.prop(gpd, "show_stroke_direction", text="Show drawing direction")
 
 
 class GPENCIL_PIE_tools_more(Menu):
@@ -411,6 +589,11 @@ class GPENCIL_PIE_sculpt(Menu):
         row.prop(brush, "strength", slider=True)
         # row.prop(brush, "use_pressure_strength", text="", icon_only=True)
         col.prop(brush, "use_falloff")
+        if settings.tool in {'SMOOTH', 'RANDOMIZE'}:
+            row = col.row(align=True)
+            row.prop(settings, "affect_position", text="Position", icon='MESH_DATA', toggle=True)
+            row.prop(settings, "affect_strength", text="Strength", icon='COLOR', toggle=True)
+            row.prop(settings, "affect_thickness", text="Thickness", icon='LINE_DATA', toggle=True)
 
         # S - Change Brush Type Shortcuts
         row = pie.row()
@@ -422,6 +605,7 @@ class GPENCIL_PIE_sculpt(Menu):
         row = pie.row()
         row.prop_enum(settings, "tool", value='SMOOTH')
         row.prop_enum(settings, "tool", value='THICKNESS')
+        row.prop_enum(settings, "tool", value='STRENGTH')
         row.prop_enum(settings, "tool", value='RANDOMIZE')
 
 
@@ -448,6 +632,48 @@ class GPENCIL_MT_snap(Menu):
 ###############################
 
 
+class GPENCIL_UL_brush(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        # assert(isinstance(item, bpy.types.GPencilBrush)
+        brush = item
+
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            row = layout.row(align=True)
+            row.prop(brush, "name", text="", emboss=False, icon='BRUSH_DATA')
+        elif self.layout_type == 'GRID':
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon_value=icon)
+
+
+class GPENCIL_UL_palettecolor(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        # assert(isinstance(item, bpy.types.PaletteColor)
+        palcolor = item
+
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            if palcolor.lock:
+                layout.active = False
+
+            split = layout.split(percentage=0.25)
+            row = split.row(align=True)
+            row.prop(palcolor, "color", text="", emboss=palcolor.is_stroke_visible)
+            row.prop(palcolor, "fill_color", text="", emboss=palcolor.is_fill_visible)
+            split.prop(palcolor, "info", text="", emboss=False)
+
+            row = layout.row(align=True)
+            row.prop(palcolor, "lock", text="", emboss=False)
+            row.prop(palcolor, "hide", text="", emboss=False)
+            if palcolor.ghost is True:
+                icon = 'GHOST_DISABLED'
+            else:
+                icon = 'GHOST_ENABLED'
+            row.prop(palcolor, "ghost", text="", icon=icon, emboss=False)
+
+        elif self.layout_type == 'GRID':
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon_value=icon)
+
+
 class GPENCIL_UL_layer(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         # assert(isinstance(item, bpy.types.GPencilLayer)
@@ -457,15 +683,19 @@ class GPENCIL_UL_layer(UIList):
             if gpl.lock:
                 layout.active = False
 
-            split = layout.split(percentage=0.25)
-            row = split.row(align=True)
-            row.prop(gpl, "color", text="", emboss=gpl.is_stroke_visible)
-            row.prop(gpl, "fill_color", text="", emboss=gpl.is_fill_visible)
-            split.prop(gpl, "info", text="", emboss=False)
+            row = layout.row(align=True)
+            if gpl.is_parented:
+                icon = 'BONE_DATA'
+            else:
+                icon = 'BLANK1'
+
+            row.label(text="", icon=icon)
+            row.prop(gpl, "info", text="", emboss=False)
 
             row = layout.row(align=True)
             row.prop(gpl, "lock", text="", emboss=False)
             row.prop(gpl, "hide", text="", emboss=False)
+            row.prop(gpl, "unlock_color", text="", emboss=False)
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(text="", icon_value=icon)
@@ -489,11 +719,40 @@ class GPENCIL_MT_layer_specials(Menu):
         layout.operator("gpencil.lock_all", icon='LOCKED', text="Lock All")
         layout.operator("gpencil.unlock_all", icon='UNLOCKED', text="UnLock All")
 
+        layout.separator()
+
+        layout.operator("gpencil.layer_merge", icon='NLA', text="Merge Down")
+
+
+class GPENCIL_MT_brush_specials(Menu):
+    bl_label = "Layer"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("gpencil.brush_copy", icon='PASTEDOWN', text="Copy current drawing brush")
+        layout.operator("gpencil.brush_presets_create", icon='HELP', text="Create a set of predefined brushes")
+
+
+class GPENCIL_MT_palettecolor_specials(Menu):
+    bl_label = "Layer"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("gpencil.palettecolor_reveal", icon='RESTRICT_VIEW_OFF', text="Show All")
+        layout.operator("gpencil.palettecolor_hide", icon='RESTRICT_VIEW_ON', text="Hide Others").unselected = True
+
+        layout.separator()
+
+        layout.operator("gpencil.palettecolor_lock_all", icon='LOCKED', text="Lock All")
+        layout.operator("gpencil.palettecolor_unlock_all", icon='UNLOCKED', text="UnLock All")
+        layout.operator("gpencil.palettecolor_copy", icon='PASTEDOWN', text="Copy Color")
+
 
 class GreasePencilDataPanel:
     # subclass must set
     # bl_space_type = 'IMAGE_EDITOR'
-    bl_label = "Grease Pencil"
+    bl_label = "Grease Pencil Layers"
     bl_region_type = 'UI'
 
     @staticmethod
@@ -553,46 +812,56 @@ class GreasePencilDataPanel:
                 col.separator()
 
                 sub = col.column(align=True)
-                sub.operator("gpencil.layer_isolate", icon='SOLO_OFF', text="").affect_visibility = False
+                sub.operator("gpencil.layer_isolate", icon='LOCKED', text="").affect_visibility = False
                 sub.operator("gpencil.layer_isolate", icon='RESTRICT_VIEW_OFF', text="").affect_visibility = True
 
         if gpl:
-            self.draw_layer(layout, gpl)
+            self.draw_layer(context, layout, gpl)
 
-    def draw_layer(self, layout, gpl):
+    def draw_layer(self, context, layout, gpl):
+        row = layout.row(align=True)
+        row.prop(gpl, "opacity", text="Opacity", slider=True)
         # layer settings
         split = layout.split(percentage=0.5)
         split.active = not gpl.lock
-
-        # Column 1 - Stroke
-        col = split.column(align=True)
-        col.label(text="Stroke:")
-        col.prop(gpl, "color", text="")
-        col.prop(gpl, "alpha", slider=True)
-
-        # Column 2 - Fill
-        col = split.column(align=True)
-        col.label(text="Fill:")
-        col.prop(gpl, "fill_color", text="")
-        col.prop(gpl, "fill_alpha", text="Opacity", slider=True)
-
         # Options
-        col = layout.column(align=True)
-        col.active = not gpl.lock
-        col.prop(gpl, "line_width", slider=True)
-
         split = layout.split(percentage=0.5)
-        split.active = not gpl.lock
-
         col = split.column(align=True)
-        col.prop(gpl, "use_volumetric_strokes")
-        col.prop(gpl, "show_points", text="Points")
-
-        col = split.column(align=True)
-        col.prop(gpl, "use_hq_fill")
+        col.active = not gpl.lock
         col.prop(gpl, "show_x_ray")
 
-        layout.separator()
+        col.label("Tint")
+        col.prop(gpl, "tint_color", text="")
+        col.prop(gpl, "tint_factor", text="Factor", slider=True)
+
+        col = split.column(align=True)
+        col.active = not gpl.lock
+        col.prop(gpl, "show_points", text="Points")
+        # Full-Row - Parent
+        '''
+        row = layout.row()
+        if context.area.type == 'VIEW_3D' and not gpl.lock:
+            row.enabled = True
+        else:
+            row.enabled = False
+        '''
+
+        # col = row.column()
+        if context.space_data.type == 'VIEW_3D':
+            col.label(text="Parent:")
+            col.prop(gpl, "parent", text="")
+
+            sub = col.column()
+            sub.prop(gpl, "parent_type", text="")
+            parent = gpl.parent
+            if parent and gpl.parent_type == 'BONE' and parent.type == 'ARMATURE':
+                sub.prop_search(gpl, "parent_bone", parent.data, "bones", text="")
+
+        # Full-Row - Thickness
+        row = layout.row(align=True)
+        row.active = not gpl.lock
+        row.prop(gpl, "line_change", text="Thickness change", slider=True)
+        row.operator("gpencil.stroke_apply_thickness", icon='STYLUS_PRESSURE', text="")
 
         # Full-Row - Frame Locking (and Delete Frame)
         row = layout.row(align=True)
@@ -605,8 +874,6 @@ class GreasePencilDataPanel:
             lock_label = "Lock Frame"
         row.prop(gpl, "lock_frame", text=lock_label, icon='UNLOCKED')
         row.operator("gpencil.active_frame_delete", text="", icon='X')
-
-        layout.separator()
 
         # Onion skinning
         col = layout.column(align=True)
@@ -633,14 +900,103 @@ class GreasePencilDataPanel:
         row.prop(gpl, "after_color", text="")
         sub.prop(gpl, "ghost_after_range", text="After")
 
-        # Smooth and subdivide new strokes
-        layout.separator()
-        col = layout.column(align=True)
-        col.label(text="New Stroke Quality:")
-        col.prop(gpl, "pen_smooth_factor")
-        col.prop(gpl, "pen_smooth_steps")
-        col.separator()
-        col.prop(gpl, "pen_subdivision_steps")
+
+class GreasePencilPaletteColorPanel:
+    # subclass must set
+    bl_label = "Grease Pencil Colors"
+    bl_region_type = 'UI'
+
+    @classmethod
+    def poll(cls, context):
+        if context.gpencil_data is None:
+            return False
+
+        gpd = context.gpencil_data
+        return bool(gpd.layers.active)
+
+    @staticmethod
+    def draw(self, context):
+        layout = self.layout
+        palette = context.active_gpencil_palette
+
+        if palette:
+            row = layout.row(align=True)
+            row.operator_context = 'EXEC_REGION_WIN'
+            row.operator_menu_enum("gpencil.palette_change", "palette", text="", icon='COLOR')
+            row.prop(palette, "name", text="")
+            row.operator("gpencil.palette_add", icon='ZOOMIN', text="")
+            row.operator("gpencil.palette_remove", icon='ZOOMOUT', text="")
+
+            # Palette colors
+            row = layout.row()
+            col = row.column()
+            if len(palette.colors) >= 2:
+                color_rows = 5
+            else:
+                color_rows = 2
+            col.template_list("GPENCIL_UL_palettecolor", "", palette, "colors", palette.colors, "active_index",
+                              rows=color_rows)
+
+            col = row.column()
+
+            sub = col.column(align=True)
+            sub.operator("gpencil.palettecolor_add", icon='ZOOMIN', text="")
+            sub.operator("gpencil.palettecolor_remove", icon='ZOOMOUT', text="")
+
+            palcol = context.active_gpencil_palettecolor
+            if palcol:
+                sub.menu("GPENCIL_MT_palettecolor_specials", icon='DOWNARROW_HLT', text="")
+
+            if len(palette.colors) > 1:
+                col.separator()
+
+                sub = col.column(align=True)
+                sub.operator("gpencil.palettecolor_move", icon='TRIA_UP', text="").direction = 'UP'
+                sub.operator("gpencil.palettecolor_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+
+                col.separator()
+                sub = col.column(align=True)
+                sub.operator("gpencil.palettecolor_isolate", icon='LOCKED', text="").affect_visibility = False
+                sub.operator("gpencil.palettecolor_isolate", icon='RESTRICT_VIEW_OFF', text="").affect_visibility = True
+                sub.operator("gpencil.stroke_lock_color", icon='BORDER_RECT', text="")
+                sub.operator("gpencil.palette_lock_layer", icon='COLOR', text="")
+
+            pcolor = palette.colors.active
+            if pcolor:
+                self.draw_palettecolors(layout, pcolor)
+
+    # ----------------------------------------------
+    # Draw palette colors
+    # ----------------------------------------------
+    def draw_palettecolors(self, layout, pcolor):
+        # color settings
+        split = layout.split(percentage=0.5)
+        split.active = not pcolor.lock
+
+        # Column 1 - Stroke
+        col = split.column(align=True)
+        col.active = not pcolor.lock
+        col.label(text="Stroke:")
+        col.prop(pcolor, "color", text="")
+        col.prop(pcolor, "alpha", slider=True)
+
+        # Column 2 - Fill
+        col = split.column(align=True)
+        col.active = not pcolor.lock
+        col.label(text="Fill:")
+        col.prop(pcolor, "fill_color", text="")
+        col.prop(pcolor, "fill_alpha", text="Opacity", slider=True)
+
+        # Options
+        split = layout.split(percentage=0.5)
+        split.active = not pcolor.lock
+
+        col = split.column(align=True)
+        col.active = not pcolor.lock
+        col.prop(pcolor, "use_volumetric_strokes")
+        col = split.column(align=True)
+        col.active = not pcolor.lock
+        col.prop(pcolor, "use_hq_fill")
 
 
 class GreasePencilToolsPanel:

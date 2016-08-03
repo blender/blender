@@ -17,7 +17,7 @@
  *
  * The Original Code is Copyright (C) 2014, Blender Foundation
  *
- * Contributor(s): Joshua Leung
+ * Contributor(s): Joshua Leung, Antonio Vazquez
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -32,9 +32,13 @@
 #include <stddef.h>
 #include <math.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLT_translation.h"
+#include "BLI_rand.h"
 
 #include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
@@ -46,6 +50,7 @@
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
 #include "BKE_tracking.h"
+#include "BKE_action.h"
 
 #include "WM_api.h"
 
@@ -269,6 +274,34 @@ int gp_active_layer_poll(bContext *C)
 	return (gpl != NULL);
 }
 
+/* poll callback for checking if there is an active brush */
+int gp_active_brush_poll(bContext *C)
+{
+	ToolSettings *ts = CTX_data_tool_settings(C);
+	bGPDbrush *brush = gpencil_brush_getactive(ts);
+
+	return (brush != NULL);
+}
+
+/* poll callback for checking if there is an active palette */
+int gp_active_palette_poll(bContext *C)
+{
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	bGPDpalette *palette = gpencil_palette_getactive(gpd);
+
+	return (palette != NULL);
+}
+
+/* poll callback for checking if there is an active palette color */
+int gp_active_palettecolor_poll(bContext *C)
+{
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	bGPDpalette *palette = gpencil_palette_getactive(gpd);
+	bGPDpalettecolor *palcolor = gpencil_palettecolor_getactive(palette);
+
+	return (palcolor != NULL);
+}
+
 /* ******************************************************** */
 /* Dynamic Enums of GP Layers */
 /* NOTE: These include an option to create a new layer and use that... */
@@ -412,6 +445,60 @@ bool ED_gpencil_stroke_can_use(const bContext *C, const bGPDstroke *gps)
 	return ED_gpencil_stroke_can_use_direct(sa, gps);
 }
 
+/* Check whether given stroke can be edited for the current color */
+bool ED_gpencil_stroke_color_use(const bGPDlayer *gpl, const bGPDstroke *gps)
+{
+	/* check if the color is editable */
+	bGPDpalettecolor *palcolor = gps->palcolor;
+	if (palcolor != NULL) {
+		if (palcolor->flag & PC_COLOR_HIDE)
+			return false;
+		if (((gpl->flag & GP_LAYER_UNLOCK_COLOR) == 0) && (palcolor->flag & PC_COLOR_LOCKED))
+			return false;
+	}
+	
+	return true;
+}
+
+/* Get palette color or create a new one */
+bGPDpalettecolor *ED_gpencil_stroke_getcolor(bGPdata *gpd, bGPDstroke *gps)
+{
+	bGPDpalette *palette;
+	bGPDpalettecolor *palcolor;
+
+	if ((gps->palcolor != NULL) && ((gps->flag & GP_STROKE_RECALC_COLOR) == 0))
+		return gps->palcolor;
+
+	/* get palette */
+	palette = gpencil_palette_getactive(gpd);
+	if (palette == NULL) {
+		palette = gpencil_palette_addnew(gpd, DATA_("GP_Palette"), true);
+	}
+	/* get color */
+	palcolor = gpencil_palettecolor_getbyname(palette, gps->colorname);
+	if (palcolor == NULL) {
+		if (gps->palcolor == NULL) {
+			palcolor = gpencil_palettecolor_addnew(palette, DATA_("Color"), true);
+			/* set to a different color */
+			ARRAY_SET_ITEMS(palcolor->color, 1.0f, 0.0f, 1.0f, 0.9f);
+		}
+		else {
+			palcolor = gpencil_palettecolor_addnew(palette, gps->colorname, true);
+			/* set old color and attributes */
+			bGPDpalettecolor *gpscolor = gps->palcolor;
+			copy_v4_v4(palcolor->color, gpscolor->color);
+			copy_v4_v4(palcolor->fill, gpscolor->fill);
+			palcolor->flag = gpscolor->flag;
+		}
+	}
+
+	/* clear flag and set pointer */
+	gps->flag &= ~GP_STROKE_RECALC_COLOR;
+	gps->palcolor = palcolor;
+
+	return palcolor;
+}
+
 /* ******************************************************** */
 /* Space Conversion */
 
@@ -451,6 +538,50 @@ void gp_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
 	}
 }
 
+/* convert point to parent space */
+void gp_point_to_parent_space(bGPDspoint *pt, float diff_mat[4][4], bGPDspoint *r_pt) 
+{
+	float fpt[3];
+
+	mul_v3_m4v3(fpt, diff_mat, &pt->x);
+	copy_v3_v3(&r_pt->x, fpt);
+}
+
+/* Change position relative to parent object */
+void gp_apply_parent(bGPDlayer *gpl, bGPDstroke *gps)
+{
+	bGPDspoint *pt;
+	int i;
+
+	/* undo matrix */
+	float diff_mat[4][4];
+	float inverse_diff_mat[4][4];
+	float fpt[3];
+
+	ED_gpencil_parent_location(gpl, diff_mat);
+	invert_m4_m4(inverse_diff_mat, diff_mat);
+
+	for (i = 0; i < gps->totpoints; i++) {
+		pt = &gps->points[i];
+		mul_v3_m4v3(fpt, inverse_diff_mat, &pt->x);
+		copy_v3_v3(&pt->x, fpt);
+	}
+}
+
+/* Change point position relative to parent object */
+void gp_apply_parent_point(bGPDlayer *gpl, bGPDspoint *pt)
+{
+	/* undo matrix */
+	float diff_mat[4][4];
+	float inverse_diff_mat[4][4];
+	float fpt[3];
+
+	ED_gpencil_parent_location(gpl, diff_mat);
+	invert_m4_m4(inverse_diff_mat, diff_mat);
+
+	mul_v3_m4v3(fpt, inverse_diff_mat, &pt->x);
+	copy_v3_v3(&pt->x, fpt);
+}
 
 /* Convert Grease Pencil points to screen-space values
  * WARNING: This assumes that the caller has already checked whether the stroke in question can be drawn
@@ -591,21 +722,103 @@ bool gp_smooth_stroke(bGPDstroke *gps, int i, float inf, bool affect_pressure)
 			madd_v3_v3fl(sco, &pt1->x, average_fac);
 			madd_v3_v3fl(sco, &pt2->x, average_fac);
 			
+#if 0
+			/* XXX: Disabled because get weird result */
 			/* do pressure too? */
 			if (affect_pressure) {
 				pressure += pt1->pressure * average_fac;
 				pressure += pt2->pressure * average_fac;
 			}
+#endif
 		}
 	}
 	
 	/* Based on influence factor, blend between original and optimal smoothed coordinate */
 	interp_v3_v3v3(&pt->x, &pt->x, sco, inf);
 	
+#if 0
+	/* XXX: Disabled because get weird result */
 	if (affect_pressure) {
 		pt->pressure = pressure;
 	}
+#endif
 	
+	return true;
+}
+
+/**
+* Apply smooth for strength to stroke point
+* \param gps              Stroke to smooth
+* \param i                Point index
+* \param inf              Amount of smoothing to apply
+*/
+bool gp_smooth_stroke_strength(bGPDstroke *gps, int i, float inf)
+{
+	bGPDspoint *ptb = &gps->points[i];
+
+	/* Do nothing if not enough points */
+	if (gps->totpoints <= 2) {
+		return false;
+	}
+
+	/* Compute theoretical optimal value using distances */
+	bGPDspoint *pta, *ptc;
+	int before = i - 1;
+	int after = i + 1;
+
+	CLAMP_MIN(before, 0);
+	CLAMP_MAX(after, gps->totpoints - 1);
+
+	pta = &gps->points[before];
+	ptc = &gps->points[after];
+
+	/* the optimal value is the corresponding to the interpolation of the strength
+	*  at the distance of point b
+	*/
+	const float fac = line_point_factor_v3(&ptb->x, &pta->x, &ptc->x);
+	const float optimal = (1.0f - fac) * pta->strength + fac * ptc->strength;
+
+	/* Based on influence factor, blend between original and optimal */
+	ptb->strength = (1.0f - inf) * ptb->strength + inf * optimal;
+
+	return true;
+}
+
+/**
+* Apply smooth for thickness to stroke point (use pressure)
+* \param gps              Stroke to smooth
+* \param i                Point index
+* \param inf              Amount of smoothing to apply
+*/
+bool gp_smooth_stroke_thickness(bGPDstroke *gps, int i, float inf)
+{
+	bGPDspoint *ptb = &gps->points[i];
+
+	/* Do nothing if not enough points */
+	if (gps->totpoints <= 2) {
+		return false;
+	}
+
+	/* Compute theoretical optimal value using distances */
+	bGPDspoint *pta, *ptc;
+	int before = i - 1;
+	int after = i + 1;
+
+	CLAMP_MIN(before, 0);
+	CLAMP_MAX(after, gps->totpoints - 1);
+
+	pta = &gps->points[before];
+	ptc = &gps->points[after];
+
+	/* the optimal value is the corresponding to the interpolation of the pressure
+	*  at the distance of point b
+	*/
+	float fac = line_point_factor_v3(&ptb->x, &pta->x, &ptc->x);
+	float optimal = (1.0f - fac) * pta->pressure + fac * ptc->pressure;
+
+	/* Based on influence factor, blend between original and optimal */
+	ptb->pressure = (1.0f - inf) * ptb->pressure + inf * optimal;
+
 	return true;
 }
 
@@ -633,16 +846,99 @@ void gp_subdivide_stroke(bGPDstroke *gps, const int new_totpoints)
 		interp_v3_v3v3(&pt->x, &prev->x, &next->x, 0.5f);
 		
 		pt->pressure = interpf(prev->pressure, next->pressure, 0.5f);
-		pt->time     = interpf(prev->time, next->time, 0.5f);
+		pt->strength = interpf(prev->strength, next->strength, 0.5f);
+		CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
+		pt->time = interpf(prev->time, next->time, 0.5f);
 	}
 	
 	/* Update to new total number of points */
 	gps->totpoints = new_totpoints;
 }
 
+/**
+ * Add randomness to stroke
+ * \param gps           Stroke data
+ * \param brsuh         Brush data
+ */
+void gp_randomize_stroke(bGPDstroke *gps, bGPDbrush *brush)
+{
+	bGPDspoint *pt1, *pt2, *pt3;
+	float v1[3];
+	float v2[3];
+	if (gps->totpoints < 3) {
+		return;
+	}
+
+	/* get two vectors using 3 points */
+	pt1 = &gps->points[0];
+	pt2 = &gps->points[1];
+	pt3 = &gps->points[(int)(gps->totpoints * 0.75)];
+
+	sub_v3_v3v3(v1, &pt2->x, &pt1->x);
+	sub_v3_v3v3(v2, &pt3->x, &pt2->x);
+	normalize_v3(v1);
+	normalize_v3(v2);
+
+	/* get normal vector to plane created by two vectors */
+	float normal[3];
+	cross_v3_v3v3(normal, v1, v2);
+	normalize_v3(normal);
+	/* get orthogonal vector to plane to rotate random effect */
+	float ortho[3];
+	cross_v3_v3v3(ortho, v1, normal);
+	normalize_v3(ortho);
+	/* Read all points and apply shift vector (first and last point not modified) */
+	for (int i = 1; i < gps->totpoints - 1; ++i) {
+		bGPDspoint *pt = &gps->points[i];
+		/* get vector with shift (apply a division because random is too sensitive */
+		const float fac = BLI_frand() * (brush->draw_random_sub / 10.0f);
+		float svec[3];
+		copy_v3_v3(svec, ortho);
+		if (BLI_frand() > 0.5f) {
+			mul_v3_fl(svec, -fac);
+		}
+		else {
+			mul_v3_fl(svec, fac);
+		}
+
+		/* apply shift */
+		add_v3_v3(&pt->x, svec);
+	}
+
+}
+/* calculate difference matrix */
+void ED_gpencil_parent_location(bGPDlayer *gpl, float diff_mat[4][4])
+{
+	Object *ob = gpl->parent;
+
+	if (ob == NULL) {
+		unit_m4(diff_mat);
+		return;
+	}
+	else {
+		if ((gpl->partype == PAROBJECT) || (gpl->partype == PARSKEL)) {
+			mul_m4_m4m4(diff_mat, ob->obmat, gpl->inverse);
+			return;
+		}
+		else if (gpl->partype == PARBONE) {
+			bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, gpl->parsubstr);
+			if (pchan) {
+				float tmp_mat[4][4];
+				mul_m4_m4m4(tmp_mat, ob->obmat, pchan->pose_mat);
+				mul_m4_m4m4(diff_mat, tmp_mat, gpl->inverse);
+			}
+			else {
+				mul_m4_m4m4(diff_mat, ob->obmat, gpl->inverse); /* if bone not found use object (armature) */
+			}
+			return;
+		}
+		else {
+			unit_m4(diff_mat); /* not defined type */
+		}
+	}
+}
+
 /* ******************************************************** */
-
-
 bool ED_gpencil_stroke_minmax(
         const bGPDstroke *gps, const bool use_select,
         float r_min[3], float r_max[3])
@@ -659,3 +955,74 @@ bool ED_gpencil_stroke_minmax(
 	}
 	return changed;
 }
+/* Dynamic Enums of GP Brushes */
+
+EnumPropertyItem *ED_gpencil_brushes_enum_itemf(
+        bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop),
+        bool *r_free)
+{
+	ToolSettings *ts = CTX_data_tool_settings(C);
+	bGPDbrush *brush;
+	EnumPropertyItem *item = NULL, item_tmp = { 0 };
+	int totitem = 0;
+	int i = 0;
+
+	if (ELEM(NULL, C, ts)) {
+		return DummyRNA_DEFAULT_items;
+	}
+
+	/* Existing brushes */
+	for (brush = ts->gp_brushes.first; brush; brush = brush->next, i++) {
+		item_tmp.identifier = brush->info;
+		item_tmp.name = brush->info;
+		item_tmp.value = i;
+
+		if (brush->flag & GP_BRUSH_ACTIVE)
+			item_tmp.icon = ICON_BRUSH_DATA;
+		else
+			item_tmp.icon = ICON_NONE;
+
+		RNA_enum_item_add(&item, &totitem, &item_tmp);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+
+	return item;
+}
+/* Dynamic Enums of GP Palettes */
+
+EnumPropertyItem *ED_gpencil_palettes_enum_itemf(
+        bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop),
+        bool *r_free)
+{
+	bGPdata *gpd = CTX_data_gpencil_data(C);
+	bGPDpalette *palette;
+	EnumPropertyItem *item = NULL, item_tmp = { 0 };
+	int totitem = 0;
+	int i = 0;
+
+	if (ELEM(NULL, C, gpd)) {
+		return DummyRNA_DEFAULT_items;
+	}
+
+	/* Existing palettes */
+	for (palette = gpd->palettes.first; palette; palette = palette->next, i++) {
+		item_tmp.identifier = palette->info;
+		item_tmp.name = palette->info;
+		item_tmp.value = i;
+
+		if (palette->flag & PL_PALETTE_ACTIVE)
+			item_tmp.icon = ICON_COLOR;
+		else
+			item_tmp.icon = ICON_NONE;
+
+		RNA_enum_item_add(&item, &totitem, &item_tmp);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+
+	return item;
+}
+/* ******************************************************** */

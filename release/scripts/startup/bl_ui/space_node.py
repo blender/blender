@@ -25,8 +25,11 @@ from bl_ui.properties_grease_pencil_common import (
         GreasePencilDrawingToolsPanel,
         GreasePencilStrokeEditPanel,
         GreasePencilStrokeSculptPanel,
+        GreasePencilBrushPanel,
+        GreasePencilBrushCurvesPanel,
         GreasePencilDataPanel,
-        GreasePencilToolsPanel,
+        GreasePencilPaletteColorPanel,
+        GreasePencilToolsPanel
         )
 
 
@@ -464,6 +467,19 @@ class NODE_PT_grease_pencil(GreasePencilDataPanel, Panel):
         return snode is not None and snode.node_tree is not None
 
 
+# Grease Pencil palette colors
+class NODE_PT_grease_pencil_palettecolor(GreasePencilPaletteColorPanel, Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'UI'
+
+    # NOTE: this is just a wrapper around the generic GP Panel
+
+    @classmethod
+    def poll(cls, context):
+        snode = context.space_data
+        return snode is not None and snode.node_tree is not None
+
+
 class NODE_PT_grease_pencil_tools(GreasePencilToolsPanel, Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
@@ -491,6 +507,16 @@ class NODE_PT_tools_grease_pencil_edit(GreasePencilStrokeEditPanel, Panel):
 
 # Grease Pencil stroke sculpting tools
 class NODE_PT_tools_grease_pencil_sculpt(GreasePencilStrokeSculptPanel, Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'TOOLS'
+
+# Grease Pencil drawing brushes
+class NODE_PT_tools_grease_pencil_brush(GreasePencilBrushPanel, Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'TOOLS'
+
+# Grease Pencil drawing curves
+class NODE_PT_tools_grease_pencil_brushcurves(GreasePencilBrushCurvesPanel, Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'TOOLS'
 
