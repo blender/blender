@@ -289,6 +289,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 	GHOST_SystemCocoa *systemCocoa;
 }
 - (void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa;
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification;
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename;
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender;
 - (void)applicationWillTerminate:(NSNotification *)aNotification;
@@ -300,6 +301,15 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 -(void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa
 {
 	systemCocoa = sysCocoa;
+}
+
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
+{
+	// raise application to front, convenient when starting from the terminal
+	// and important for launching the animation player. we call this after the
+	// application finishes launching, as doing it earlier can make us end up
+	// with a frontmost window but an inactive application
+	[NSApp activateIgnoringOtherApps:YES];
 }
 
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename

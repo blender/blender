@@ -622,8 +622,6 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 		m_lionStyleFullScreen = true;
 	}
 	
-	[NSApp activateIgnoringOtherApps:YES]; // raise application to front, important for new blender instance animation play case
-	
 	[pool drain];
 }
 
