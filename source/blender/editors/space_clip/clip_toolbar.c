@@ -106,7 +106,7 @@ void CLIP_OT_properties(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Properties";
-	ot->description = "Toggle clip properties panel";
+	ot->description = "Toggle the properties region visibility";
 	ot->idname = "CLIP_OT_properties";
 
 	/* api callbacks */

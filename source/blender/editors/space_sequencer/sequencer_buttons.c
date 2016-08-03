@@ -94,7 +94,7 @@ void SEQUENCER_OT_properties(wmOperatorType *ot)
 {
 	ot->name = "Properties";
 	ot->idname = "SEQUENCER_OT_properties";
-	ot->description = "Open sequencer properties panel";
+	ot->description = "Toggle the properties region visibility";
 	
 	ot->exec = sequencer_properties_toggle_exec;
 	ot->poll = ED_operator_sequencer_active;

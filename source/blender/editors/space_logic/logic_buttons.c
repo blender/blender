@@ -63,7 +63,7 @@ static int logic_properties_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 void LOGIC_OT_properties(wmOperatorType *ot)
 {
 	ot->name = "Properties";
-	ot->description = "Toggle display properties panel";
+	ot->description = "Toggle the properties region visibility";
 	ot->idname = "LOGIC_OT_properties";
 	
 	ot->exec = logic_properties_toggle_exec;

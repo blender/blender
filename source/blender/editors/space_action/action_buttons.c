@@ -122,7 +122,7 @@ void ACTION_OT_properties(wmOperatorType *ot)
 {
 	ot->name = "Properties";
 	ot->idname = "ACTION_OT_properties";
-	ot->description = "Toggle display properties panel";
+	ot->description = "Toggle the properties region visibility";
 	
 	ot->exec = action_properties_toggle_exec;
 	ot->poll = ED_operator_action_active;
