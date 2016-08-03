@@ -151,13 +151,14 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         col.label(text="Operation:")
         col.prop(md, "operation", text="")
-        row = layout.row()
-        row.label("Solver:")
-        row.prop(md, "solver", expand=True)
 
         col = split.column()
         col.label(text="Object:")
         col.prop(md, "object", text="")
+
+        split = layout.split()
+        split.column().label(text="Solver:")
+        split.column().prop(md, "solver", text="")
 
         if md.solver == 'BMESH':
             layout.prop(md, "double_threshold")
