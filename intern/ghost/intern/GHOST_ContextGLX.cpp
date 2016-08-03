@@ -255,9 +255,6 @@ const bool GLXEW_ARB_create_context_robustness =
 		if (m_contextMajorVersion != 0) {
 			attribs[i++] = GLX_CONTEXT_MAJOR_VERSION_ARB;
 			attribs[i++] = m_contextMajorVersion;
-		}
-
-		if (m_contextMinorVersion != 0) {
 			attribs[i++] = GLX_CONTEXT_MINOR_VERSION_ARB;
 			attribs[i++] = m_contextMinorVersion;
 		}
@@ -300,8 +297,8 @@ const bool GLXEW_ARB_create_context_robustness =
 		}
 	}
 	else {
-		/* Create legacy context */
-		m_context = glXCreateContext(m_display, m_visualInfo, s_sharedContext, True);
+		/* Don't create legacy context */
+		fprintf(stderr, "Warning! GLX_ARB_create_context not available.\n");
 	}
 
 	GHOST_TSuccess success;
@@ -328,8 +325,14 @@ const bool GLXEW_ARB_create_context_robustness =
 
 		version = glGetString(GL_VERSION);
 
-		if (!version || version[0] < '2' || ((version[0] == '2') &&  (version[2] < '1'))) {
-			fprintf(stderr, "Error! Blender requires OpenGL 2.1 to run. Try updating your drivers.\n");
+#if 0 // enable this when Blender switches to 3.2 core profile
+		if (!version || version[0] < '3' || ((version[0] == '3') && (version[2] < '2'))) {
+			fprintf(stderr, "Error! Blender requires OpenGL 3.2 to run. Try updating your drivers.\n");
+#else
+		// with Mesa, the closest thing to 3.2 compatibility profile is 3.0
+		if (!version || version[0] < '3') {
+			fprintf(stderr, "Error! Blender requires OpenGL 3.0 (soon 3.2) to run. Try updating your drivers.\n");
+#endif
 			fflush(stderr);
 			/* ugly, but we get crashes unless a whole bunch of systems are patched. */
 			exit(0);
