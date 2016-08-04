@@ -209,8 +209,7 @@ static void makeAttribList(
 		attribs.push_back(NSOpenGLPFAAccelerated);
 	}
 
-	/* Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway */
-	//attribs.push_back(NSOpenGLPFAAllowOfflineRenderers);
+	attribs.push_back(NSOpenGLPFAAllowOfflineRenderers); // for automatic GPU switching
 
 	attribs.push_back(NSOpenGLPFADepthSize);
 	attribs.push_back((NSOpenGLPixelFormatAttribute) 32);
