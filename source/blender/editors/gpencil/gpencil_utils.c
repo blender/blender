@@ -225,7 +225,7 @@ bool ED_gpencil_has_keyframe_v3d(Scene *scene, Object *ob, int cfra)
 	/* just check both for now... */
 	// XXX: this could get confusing (e.g. if only on the object, but other places don't show this)
 	if (scene->gpd) {
-		bGPDlayer *gpl = gpencil_layer_getactive(scene->gpd);
+		bGPDlayer *gpl = BKE_gpencil_layer_getactive(scene->gpd);
 		if (gpl) {
 			if (gpl->actframe) {
 				// XXX: assumes that frame has been fetched already
@@ -239,7 +239,7 @@ bool ED_gpencil_has_keyframe_v3d(Scene *scene, Object *ob, int cfra)
 	}
 	
 	if (ob && ob->gpd) {
-		bGPDlayer *gpl = gpencil_layer_getactive(ob->gpd);
+		bGPDlayer *gpl = BKE_gpencil_layer_getactive(ob->gpd);
 		if (gpl) {
 			if (gpl->actframe) {
 				// XXX: assumes that frame has been fetched already
@@ -269,7 +269,7 @@ int gp_add_poll(bContext *C)
 int gp_active_layer_poll(bContext *C)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	bGPDlayer *gpl = gpencil_layer_getactive(gpd);
+	bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
 	
 	return (gpl != NULL);
 }
@@ -278,7 +278,7 @@ int gp_active_layer_poll(bContext *C)
 int gp_active_brush_poll(bContext *C)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
-	bGPDbrush *brush = gpencil_brush_getactive(ts);
+	bGPDbrush *brush = BKE_gpencil_brush_getactive(ts);
 
 	return (brush != NULL);
 }
@@ -287,7 +287,7 @@ int gp_active_brush_poll(bContext *C)
 int gp_active_palette_poll(bContext *C)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	bGPDpalette *palette = gpencil_palette_getactive(gpd);
+	bGPDpalette *palette = BKE_gpencil_palette_getactive(gpd);
 
 	return (palette != NULL);
 }
@@ -296,8 +296,8 @@ int gp_active_palette_poll(bContext *C)
 int gp_active_palettecolor_poll(bContext *C)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	bGPDpalette *palette = gpencil_palette_getactive(gpd);
-	bGPDpalettecolor *palcolor = gpencil_palettecolor_getactive(palette);
+	bGPDpalette *palette = BKE_gpencil_palette_getactive(gpd);
+	bGPDpalettecolor *palcolor = BKE_gpencil_palettecolor_getactive(palette);
 
 	return (palcolor != NULL);
 }
@@ -470,20 +470,20 @@ bGPDpalettecolor *ED_gpencil_stroke_getcolor(bGPdata *gpd, bGPDstroke *gps)
 		return gps->palcolor;
 
 	/* get palette */
-	palette = gpencil_palette_getactive(gpd);
+	palette = BKE_gpencil_palette_getactive(gpd);
 	if (palette == NULL) {
-		palette = gpencil_palette_addnew(gpd, DATA_("GP_Palette"), true);
+		palette = BKE_gpencil_palette_addnew(gpd, DATA_("GP_Palette"), true);
 	}
 	/* get color */
-	palcolor = gpencil_palettecolor_getbyname(palette, gps->colorname);
+	palcolor = BKE_gpencil_palettecolor_getbyname(palette, gps->colorname);
 	if (palcolor == NULL) {
 		if (gps->palcolor == NULL) {
-			palcolor = gpencil_palettecolor_addnew(palette, DATA_("Color"), true);
+			palcolor = BKE_gpencil_palettecolor_addnew(palette, DATA_("Color"), true);
 			/* set to a different color */
 			ARRAY_SET_ITEMS(palcolor->color, 1.0f, 0.0f, 1.0f, 0.9f);
 		}
 		else {
-			palcolor = gpencil_palettecolor_addnew(palette, gps->colorname, true);
+			palcolor = BKE_gpencil_palettecolor_addnew(palette, gps->colorname, true);
 			/* set old color and attributes */
 			bGPDpalettecolor *gpscolor = gps->palcolor;
 			copy_v4_v4(palcolor->color, gpscolor->color);

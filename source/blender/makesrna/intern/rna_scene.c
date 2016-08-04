@@ -454,7 +454,7 @@ EnumPropertyItem rna_enum_bake_pass_filter_type_items[] = {
 /* Grease pencil Drawing Brushes */
 static bGPDbrush *rna_GPencil_brush_new(ToolSettings *ts, const char *name, int setactive)
 {
-	bGPDbrush *brush = gpencil_brush_addnew(ts, name, setactive != 0);
+	bGPDbrush *brush = BKE_gpencil_brush_addnew(ts, name, setactive != 0);
 
 	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
@@ -469,7 +469,7 @@ static void rna_GPencil_brush_remove(ToolSettings *ts, ReportList *reports, Poin
 		return;
 	}
 
-	gpencil_brush_delete(ts, brush);
+	BKE_gpencil_brush_delete(ts, brush);
 	RNA_POINTER_INVALIDATE(brush_ptr);
 
 	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
@@ -514,7 +514,7 @@ static void rna_GPencil_active_brush_set(PointerRNA *ptr, PointerRNA value)
 static int rna_GPencilBrush_index_get(PointerRNA *ptr)
 {
 	ToolSettings *ts = (ToolSettings *) ptr->data;
-	bGPDbrush *brush = gpencil_brush_getactive(ts);
+	bGPDbrush *brush = BKE_gpencil_brush_getactive(ts);
 
 	return BLI_findindex(&ts->gp_brushes, brush);
 }
@@ -525,7 +525,7 @@ static void rna_GPencilBrush_index_set(PointerRNA *ptr, int value)
 
 	bGPDbrush *brush = BLI_findlink(&ts->gp_brushes, value);
 
-	gpencil_brush_setactive(ts, brush);
+	BKE_gpencil_brush_setactive(ts, brush);
 	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
 

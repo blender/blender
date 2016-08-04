@@ -462,7 +462,7 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 	}
 	else if (gpl == NULL) {
 		/* no active layer - let's just create one */
-		gpl = gpencil_layer_addnew(gpd, DATA_("GP_Layer"), true);
+		gpl = BKE_gpencil_layer_addnew(gpd, DATA_("GP_Layer"), true);
 	}
 	else if ((gpencil_layer_is_editable(gpl) == false) && (type == GP_COPY_MERGE)) {
 		BKE_report(op->reports, RPT_ERROR, "Can not paste strokes when active layer is hidden or locked");
@@ -525,7 +525,7 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 						gpl = CTX_data_active_gpencil_layer(C);
 					}
 				}
-				gpf = gpencil_layer_getframe(gpl, CFRA, true);
+				gpf = BKE_gpencil_layer_getframe(gpl, CFRA, true);
 				if (gpf) {
 					bGPDstroke *new_stroke = MEM_dupallocN(gps);
 					new_stroke->tmp_layerinfo[0] = '\0';
@@ -597,7 +597,7 @@ static int gp_move_to_layer_exec(bContext *C, wmOperator *op)
 	/* Get layer or create new one */
 	if (layer_num == -1) {
 		/* Create layer */
-		target_layer = gpencil_layer_addnew(gpd, DATA_("GP_Layer"), true);
+		target_layer = BKE_gpencil_layer_addnew(gpd, DATA_("GP_Layer"), true);
 	}
 	else {
 		/* Try to get layer */
@@ -642,7 +642,7 @@ static int gp_move_to_layer_exec(bContext *C, wmOperator *op)
 	/* Paste them all in one go */
 	if (strokes.first) {
 		Scene *scene = CTX_data_scene(C);
-		bGPDframe *gpf = gpencil_layer_getframe(target_layer, CFRA, true);
+		bGPDframe *gpf = BKE_gpencil_layer_getframe(target_layer, CFRA, true);
 		
 		BLI_movelisttolist(&gpf->strokes, &strokes);
 		BLI_assert((strokes.first == strokes.last) && (strokes.first == NULL));
@@ -679,7 +679,7 @@ void GPENCIL_OT_move_to_layer(wmOperatorType *ot)
 static int gp_actframe_delete_poll(bContext *C)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	bGPDlayer *gpl = gpencil_layer_getactive(gpd);
+	bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
 	
 	/* only if there's an active layer with an active frame */
 	return (gpl && gpl->actframe);
@@ -690,8 +690,8 @@ static int gp_actframe_delete_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	bGPDlayer *gpl = gpencil_layer_getactive(gpd);
-	bGPDframe *gpf = gpencil_layer_getframe(gpl, CFRA, 0);
+	bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
+	bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, CFRA, 0);
 	
 	/* if there's no existing Grease-Pencil data there, add some */
 	if (gpd == NULL) {
@@ -704,7 +704,7 @@ static int gp_actframe_delete_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* delete it... */
-	gpencil_layer_delframe(gpl, gpf);
+	BKE_gpencil_layer_delframe(gpl, gpf);
 	
 	/* notifiers */
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
@@ -746,13 +746,13 @@ static int gp_actframe_delete_all_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
 	{
 		/* try to get the "active" frame - but only if it actually occurs on this frame */
-		bGPDframe *gpf = gpencil_layer_getframe(gpl, CFRA, 0);
+		bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, CFRA, 0);
 		
 		if (gpf == NULL)
 			continue;
 		
 		/* delete it... */
-		gpencil_layer_delframe(gpl, gpf);
+		BKE_gpencil_layer_delframe(gpl, gpf);
 		
 		/* we successfully modified something */
 		success = true;

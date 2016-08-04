@@ -1359,7 +1359,7 @@ static void gp_draw_data_layers(
 			continue;
 		
 		/* get frame to draw */
-		gpf = gpencil_layer_getframe(gpl, cfra, 0);
+		gpf = BKE_gpencil_layer_getframe(gpl, cfra, 0);
 		if (gpf == NULL)
 			continue;
 		
@@ -1533,7 +1533,7 @@ static void gp_draw_data_all(Scene *scene, bGPdata *gpd, int offsx, int offsy, i
 		
 		if (gpd_source) {
 			ToolSettings *ts = scene->toolsettings;
-			bGPDbrush *brush = gpencil_brush_getactive(ts);
+			bGPDbrush *brush = BKE_gpencil_brush_getactive(ts);
 			if (brush != NULL) {
 				gp_draw_data(brush, ts->gp_sculpt.alpha, gpd_source,
 				             offsx, offsy, winx, winy, cfra, dflag);
@@ -1546,7 +1546,7 @@ static void gp_draw_data_all(Scene *scene, bGPdata *gpd, int offsx, int offsy, i
 	 * if gpd_source == gpd, we don't have any object/track data and we can skip */
 	if (gpd_source == NULL || (gpd_source && gpd_source != gpd)) {
 		ToolSettings *ts = scene->toolsettings;
-		bGPDbrush *brush = gpencil_brush_getactive(ts);
+		bGPDbrush *brush = BKE_gpencil_brush_getactive(ts);
 		if (brush != NULL) {
 			gp_draw_data(brush, ts->gp_sculpt.alpha, gpd,
 			             offsx, offsy, winx, winy, cfra, dflag);

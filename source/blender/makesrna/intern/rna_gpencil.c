@@ -323,7 +323,7 @@ static void rna_GPencil_active_layer_set(PointerRNA *ptr, PointerRNA value)
 static int rna_GPencil_active_layer_index_get(PointerRNA *ptr)
 {
 	bGPdata *gpd = (bGPdata *)ptr->id.data;
-	bGPDlayer *gpl = gpencil_layer_getactive(gpd);
+	bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
 	
 	return BLI_findindex(&gpd->layers, gpl);
 }
@@ -333,7 +333,7 @@ static void rna_GPencil_active_layer_index_set(PointerRNA *ptr, int value)
 	bGPdata *gpd   = (bGPdata *)ptr->id.data;
 	bGPDlayer *gpl = BLI_findlink(&gpd->layers, value);
 
-	gpencil_layer_setactive(gpd, gpl);
+	BKE_gpencil_layer_setactive(gpd, gpl);
 }
 
 static void rna_GPencil_active_layer_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
@@ -366,7 +366,7 @@ static void rna_GPencil_use_onion_skinning_set(PointerRNA *ptr, const int value)
 	/* set new value */
 	if (value) {
 		/* enable on active layer (it's the one that's most likely to be of interest right now) */
-		gpl = gpencil_layer_getactive(gpd);
+		gpl = BKE_gpencil_layer_getactive(gpd);
 		if (gpl) {
 			gpl->flag |= GP_LAYER_ONIONSKIN;
 		}
@@ -435,7 +435,7 @@ static void rna_GPencil_stroke_point_select_set(PointerRNA *ptr, const int value
 			pt->flag &= ~GP_SPOINT_SELECT;
 		
 		/* Check if the stroke should be selected or not... */
-		gpencil_stroke_sync_selection(gps);
+		BKE_gpencil_stroke_sync_selection(gps);
 	}
 }
 
@@ -534,7 +534,7 @@ static bGPDframe *rna_GPencil_frame_new(bGPDlayer *layer, ReportList *reports, i
 		return NULL;
 	}
 
-	frame = gpencil_frame_addnew(layer, frame_number);
+	frame = BKE_gpencil_frame_addnew(layer, frame_number);
 
 	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 
@@ -549,7 +549,7 @@ static void rna_GPencil_frame_remove(bGPDlayer *layer, ReportList *reports, Poin
 		return;
 	}
 
-	gpencil_layer_delframe(layer, frame);
+	BKE_gpencil_layer_delframe(layer, frame);
 	RNA_POINTER_INVALIDATE(frame_ptr);
 
 	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
@@ -557,7 +557,7 @@ static void rna_GPencil_frame_remove(bGPDlayer *layer, ReportList *reports, Poin
 
 static bGPDframe *rna_GPencil_frame_copy(bGPDlayer *layer, bGPDframe *src)
 {
-	bGPDframe *frame = gpencil_frame_duplicate(src);
+	bGPDframe *frame = BKE_gpencil_frame_duplicate(src);
 
 	while (BKE_gpencil_layer_find_frame(layer, frame->framenum)) {
 		frame->framenum++;
@@ -572,7 +572,7 @@ static bGPDframe *rna_GPencil_frame_copy(bGPDlayer *layer, bGPDframe *src)
 
 static bGPDlayer *rna_GPencil_layer_new(bGPdata *gpd, const char *name, int setactive)
 {
-	bGPDlayer *gl = gpencil_layer_addnew(gpd, name, setactive != 0);
+	bGPDlayer *gl = BKE_gpencil_layer_addnew(gpd, name, setactive != 0);
 
 	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
@@ -587,7 +587,7 @@ static void rna_GPencil_layer_remove(bGPdata *gpd, ReportList *reports, PointerR
 		return;
 	}
 
-	gpencil_layer_delete(gpd, layer);
+	BKE_gpencil_layer_delete(gpd, layer);
 	RNA_POINTER_INVALIDATE(layer_ptr);
 
 	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
@@ -595,21 +595,21 @@ static void rna_GPencil_layer_remove(bGPdata *gpd, ReportList *reports, PointerR
 
 static void rna_GPencil_frame_clear(bGPDframe *frame)
 {
-	free_gpencil_strokes(frame);
+	BKE_gpencil_free_strokes(frame);
 
 	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
 
 static void rna_GPencil_layer_clear(bGPDlayer *layer)
 {
-	free_gpencil_frames(layer);
+	BKE_gpencil_free_frames(layer);
 
 	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
 
 static void rna_GPencil_clear(bGPdata *gpd)
 {
-	free_gpencil_layers(&gpd->layers);
+	BKE_gpencil_free_layers(&gpd->layers);
 
 	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
@@ -617,7 +617,7 @@ static void rna_GPencil_clear(bGPdata *gpd)
 /* Palettes */
 static bGPDpalette *rna_GPencil_palette_new(bGPdata *gpd, const char *name, int setactive)
 {
-	bGPDpalette *palette = gpencil_palette_addnew(gpd, name, setactive != 0);
+	bGPDpalette *palette = BKE_gpencil_palette_addnew(gpd, name, setactive != 0);
 
 	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
@@ -632,7 +632,7 @@ static void rna_GPencil_palette_remove(bGPdata *gpd, ReportList *reports, Pointe
 		return;
 	}
 
-	gpencil_palette_delete(gpd, palette);
+	BKE_gpencil_palette_delete(gpd, palette);
 	RNA_POINTER_INVALIDATE(palette_ptr);
 
 	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
@@ -675,7 +675,7 @@ static void rna_GPencil_active_palette_set(PointerRNA *ptr, PointerRNA value)
 			}
 		}
 		/* force color recalc */
-		gpencil_palette_change_strokes(gpd);
+		BKE_gpencil_palette_change_strokes(gpd);
 
 		WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 	}
@@ -684,7 +684,7 @@ static void rna_GPencil_active_palette_set(PointerRNA *ptr, PointerRNA value)
 static int rna_GPencilPalette_index_get(PointerRNA *ptr)
 {
 	bGPdata *gpd = (bGPdata *)ptr->id.data;
-	bGPDpalette *palette = gpencil_palette_getactive(gpd);
+	bGPDpalette *palette = BKE_gpencil_palette_getactive(gpd);
 
 	return BLI_findindex(&gpd->palettes, palette);
 }
@@ -694,7 +694,7 @@ static void rna_GPencilPalette_index_set(PointerRNA *ptr, int value)
 	bGPdata *gpd   = (bGPdata *)ptr->id.data;
 	bGPDpalette *palette = BLI_findlink(&gpd->palettes, value);
 
-	gpencil_palette_setactive(gpd, palette);
+	BKE_gpencil_palette_setactive(gpd, palette);
 	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
 
@@ -712,7 +712,7 @@ static void rna_GPencilPalette_index_range(PointerRNA *ptr, int *min, int *max, 
 /* Palette colors */
 static bGPDpalettecolor *rna_GPencilPalette_color_new(bGPDpalette *palette)
 {
-	bGPDpalettecolor *color = gpencil_palettecolor_addnew(palette, DATA_("Color"), true);
+	bGPDpalettecolor *color = BKE_gpencil_palettecolor_addnew(palette, DATA_("Color"), true);
 
 	return color;
 }
@@ -726,7 +726,7 @@ static void rna_GPencilPalette_color_remove(bGPDpalette *palette, ReportList *re
 		return;
 	}
 
-	gpencil_palettecolor_delete(palette, color);
+	BKE_gpencil_palettecolor_delete(palette, color);
 	RNA_POINTER_INVALIDATE(color_ptr);
 
 	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
@@ -755,7 +755,7 @@ static void rna_GPencilPalette_active_color_set(PointerRNA *ptr, PointerRNA valu
 	bGPDpalette *palette = (bGPDpalette *)ptr->data;
 	bGPDpalettecolor *color = value.data;
 
-	gpencil_palettecolor_setactive(palette, color);
+	BKE_gpencil_palettecolor_setactive(palette, color);
 }
 
 static void rna_GPencilPalette_info_set(PointerRNA *ptr, const char *value)
@@ -773,7 +773,7 @@ static void rna_GPencilPalette_info_set(PointerRNA *ptr, const char *value)
 static char *rna_GPencilPalette_color_path(PointerRNA *ptr)
 {
 	bGPdata *gpd = ptr->id.data;
-	bGPDpalette *palette = gpencil_palette_getactive(gpd);
+	bGPDpalette *palette = BKE_gpencil_palette_getactive(gpd);
 	bGPDpalettecolor *palcolor = ptr->data;
 
 	char name_palette[sizeof(palette->info) * 2];
@@ -788,11 +788,11 @@ static char *rna_GPencilPalette_color_path(PointerRNA *ptr)
 static void rna_GPencilPaletteColor_info_set(PointerRNA *ptr, const char *value)
 {
 	bGPdata *gpd = ptr->id.data;
-	bGPDpalette *palette = gpencil_palette_getactive(gpd);
+	bGPDpalette *palette = BKE_gpencil_palette_getactive(gpd);
 	bGPDpalettecolor *palcolor = ptr->data;
 
 	/* rename all strokes */
-	gpencil_palettecolor_changename(gpd, palcolor->info, value);
+	BKE_gpencil_palettecolor_changename(gpd, palcolor->info, value);
 
 	/* copy the new name into the name slot */
 	BLI_strncpy_utf8(palcolor->info, value, sizeof(palcolor->info));
@@ -824,7 +824,7 @@ static int rna_GPencilPaletteColor_is_fill_visible_get(PointerRNA *ptr)
 static int rna_GPencilPaletteColor_index_get(PointerRNA *ptr)
 {
 	bGPDpalette *palette = (bGPDpalette *)ptr->data;
-	bGPDpalettecolor *pcolor = gpencil_palettecolor_getactive(palette);
+	bGPDpalettecolor *pcolor = BKE_gpencil_palettecolor_getactive(palette);
 
 	return BLI_findindex(&palette->colors, pcolor);
 }
@@ -833,7 +833,7 @@ static void rna_GPencilPaletteColor_index_set(PointerRNA *ptr, int value)
 {
 	bGPDpalette *palette = (bGPDpalette *)ptr->data;
 	bGPDpalettecolor *pcolor = BLI_findlink(&palette->colors, value);
-	gpencil_palettecolor_setactive(palette, pcolor);
+	BKE_gpencil_palettecolor_setactive(palette, pcolor);
 }
 
 static void rna_GPencilPaletteColor_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)

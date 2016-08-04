@@ -510,7 +510,7 @@ bool id_copy(Main *bmain, ID *id, ID **newid, bool test)
 			if (!test) *newid = (ID *)BKE_particlesettings_copy(bmain, (ParticleSettings *)id);
 			return true;
 		case ID_GD:
-			if (!test) *newid = (ID *)gpencil_data_duplicate(bmain, (bGPdata *)id, false);
+			if (!test) *newid = (ID *)BKE_gpencil_data_duplicate(bmain, (bGPdata *)id, false);
 			return true;
 		case ID_MC:
 			if (!test) *newid = (ID *)BKE_movieclip_copy(bmain, (MovieClip *)id);

@@ -266,7 +266,7 @@ static void gp_select_same_layer(bContext *C)
 	
 	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
 	{
-		bGPDframe *gpf = gpencil_layer_getframe(gpl, CFRA, 0);
+		bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, CFRA, 0);
 		bGPDstroke *gps;
 		bool found = false;
 		
@@ -709,7 +709,7 @@ static bool gp_stroke_do_circle_sel(
 		}
 		
 		/* Ensure that stroke selection is in sync with its points */
-		gpencil_stroke_sync_selection(gps);
+		BKE_gpencil_stroke_sync_selection(gps);
 	}
 	
 	return changed;
@@ -871,7 +871,7 @@ static int gpencil_border_select_exec(bContext *C, wmOperator *op)
 		}
 
 		/* Ensure that stroke selection is in sync with its points */
-		gpencil_stroke_sync_selection(gps);
+		BKE_gpencil_stroke_sync_selection(gps);
 	}
 	GP_EDITABLE_STROKES_END;
 
@@ -981,7 +981,7 @@ static int gpencil_lasso_select_exec(bContext *C, wmOperator *op)
 		}
 
 		/* Ensure that stroke selection is in sync with its points */
-		gpencil_stroke_sync_selection(gps);
+		BKE_gpencil_stroke_sync_selection(gps);
 	}
 	GP_EDITABLE_STROKES_END;
 
@@ -1152,7 +1152,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 			hit_point->flag &= ~GP_SPOINT_SELECT;
 			
 			/* ensure that stroke is selected correctly */
-			gpencil_stroke_sync_selection(hit_stroke);
+			BKE_gpencil_stroke_sync_selection(hit_stroke);
 		}
 	}
 	

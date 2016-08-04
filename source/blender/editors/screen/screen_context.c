@@ -467,7 +467,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		bGPdata *gpd = ED_gpencil_data_get_active_direct((ID *)sc, scene, sa, obact);
 		
 		if (gpd) {
-			bGPDlayer *gpl = gpencil_layer_getactive(gpd);
+			bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
 			
 			if (gpl) {
 				CTX_data_pointer_set(result, &gpd->id, &RNA_GPencilLayer, gpl);
@@ -480,7 +480,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		bGPdata *gpd = ED_gpencil_data_get_active_direct((ID *)sc, scene, sa, obact);
 
 		if (gpd) {
-			bGPDpalette *palette = gpencil_palette_getactive(gpd);
+			bGPDpalette *palette = BKE_gpencil_palette_getactive(gpd);
 
 			if (palette) {
 				CTX_data_pointer_set(result, &gpd->id, &RNA_GPencilPalette, palette);
@@ -493,10 +493,10 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		bGPdata *gpd = ED_gpencil_data_get_active_direct((ID *)sc, scene, sa, obact);
 
 		if (gpd) {
-			bGPDpalette *palette = gpencil_palette_getactive(gpd);
+			bGPDpalette *palette = BKE_gpencil_palette_getactive(gpd);
 
 			if (palette) {
-				bGPDpalettecolor *palcolor = gpencil_palettecolor_getactive(palette);
+				bGPDpalettecolor *palcolor = BKE_gpencil_palettecolor_getactive(palette);
 				if (palcolor) {
 					CTX_data_pointer_set(result, &gpd->id, &RNA_GPencilPaletteColor, palcolor);
 					return 1;
@@ -506,7 +506,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	}
 	else if (CTX_data_equals(member, "active_gpencil_brush")) {
 		/* XXX: see comment for gpencil_data case... */
-		bGPDbrush *brush = gpencil_brush_getactive(scene->toolsettings);
+		bGPDbrush *brush = BKE_gpencil_brush_getactive(scene->toolsettings);
 
 		if (brush) {
 			CTX_data_pointer_set(result, NULL, &RNA_GPencilBrush, brush);
@@ -518,7 +518,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		bGPdata *gpd = ED_gpencil_data_get_active_direct((ID *)sc, scene, sa, obact);
 		
 		if (gpd) {
-			bGPDlayer *gpl = gpencil_layer_getactive(gpd);
+			bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
 			
 			if (gpl) {
 				CTX_data_pointer_set(result, &gpd->id, &RNA_GPencilLayer, gpl->actframe);

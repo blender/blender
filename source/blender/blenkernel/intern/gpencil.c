@@ -60,7 +60,7 @@
 /* --------- Memory Management ------------ */
 
 /* free stroke, doesn't unlink from any listbase */
-void free_gpencil_stroke(bGPDstroke *gps)
+void BKE_gpencil_free_stroke(bGPDstroke *gps)
 {
 	if (gps == NULL) {
 		return;
@@ -76,7 +76,7 @@ void free_gpencil_stroke(bGPDstroke *gps)
 }
 
 /* Free strokes belonging to a gp-frame */
-bool free_gpencil_strokes(bGPDframe *gpf)
+bool BKE_gpencil_free_strokes(bGPDframe *gpf)
 {
 	bGPDstroke *gps_next;
 	bool changed = (BLI_listbase_is_empty(&gpf->strokes) == false);
@@ -84,7 +84,7 @@ bool free_gpencil_strokes(bGPDframe *gpf)
 	/* free strokes */
 	for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps_next) {
 		gps_next = gps->next;
-		free_gpencil_stroke(gps);
+		BKE_gpencil_free_stroke(gps);
 	}
 	BLI_listbase_clear(&gpf->strokes);
 
@@ -92,7 +92,7 @@ bool free_gpencil_strokes(bGPDframe *gpf)
 }
 
 /* Free all of a gp-layer's frames */
-void free_gpencil_frames(bGPDlayer *gpl)
+void BKE_gpencil_free_frames(bGPDlayer *gpl)
 {
 	bGPDframe *gpf_next;
 	
@@ -104,7 +104,7 @@ void free_gpencil_frames(bGPDlayer *gpl)
 		gpf_next = gpf->next;
 		
 		/* free strokes and their associated memory */
-		free_gpencil_strokes(gpf);
+		BKE_gpencil_free_strokes(gpf);
 		BLI_freelinkN(&gpl->frames, gpf);
 	}
 	gpl->actframe = NULL;
@@ -123,7 +123,7 @@ static void free_gpencil_colors(bGPDpalette *palette)
 }
 
 /* Free all of the gp-palettes and colors */
-void free_gpencil_palettes(ListBase *list)
+void BKE_gpencil_free_palettes(ListBase *list)
 {
 	bGPDpalette *palette_next;
 
@@ -144,7 +144,7 @@ void free_gpencil_palettes(ListBase *list)
 }
 
 /* Free all of the gp-brushes for a viewport (list should be &gpd->brushes or so) */
-void free_gpencil_brushes(ListBase *list)
+void BKE_gpencil_free_brushes(ListBase *list)
 {
 	bGPDbrush *brush_next;
 
@@ -173,7 +173,7 @@ void free_gpencil_brushes(ListBase *list)
 }
 
 /* Free all of the gp-layers for a viewport (list should be &gpd->layers or so) */
-void free_gpencil_layers(ListBase *list)
+void BKE_gpencil_free_layers(ListBase *list)
 {
 	bGPDlayer *gpl_next;
 	
@@ -185,7 +185,7 @@ void free_gpencil_layers(ListBase *list)
 		gpl_next = gpl->next;
 		
 		/* free layers and their data */
-		free_gpencil_frames(gpl);
+		BKE_gpencil_free_frames(gpl);
 		BLI_freelinkN(list, gpl);
 	}
 }
@@ -196,18 +196,18 @@ void BKE_gpencil_free(bGPdata *gpd, bool free_palettes)
 	BKE_animdata_free(&gpd->id, false);
 
 	/* free layers */
-	free_gpencil_layers(&gpd->layers);
+	BKE_gpencil_free_layers(&gpd->layers);
 
 	/* free palettes */
 	if (free_palettes) {
-		free_gpencil_palettes(&gpd->palettes);
+		BKE_gpencil_free_palettes(&gpd->palettes);
 	}
 }
 
 /* -------- Container Creation ---------- */
 
 /* add a new gp-frame to the given layer */
-bGPDframe *gpencil_frame_addnew(bGPDlayer *gpl, int cframe)
+bGPDframe *BKE_gpencil_frame_addnew(bGPDlayer *gpl, int cframe)
 {
 	bGPDframe *gpf = NULL, *gf = NULL;
 	short state = 0;
@@ -259,7 +259,7 @@ bGPDframe *gpencil_frame_addnew(bGPDlayer *gpl, int cframe)
 }
 
 /* add a copy of the active gp-frame to the given layer */
-bGPDframe *gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
+bGPDframe *BKE_gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
 {
 	bGPDframe *new_frame;
 	bool found = false;
@@ -271,11 +271,11 @@ bGPDframe *gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
 	}
 	else if (gpl->actframe == NULL) {
 		/* no active frame, so just create a new one from scratch */
-		return gpencil_frame_addnew(gpl, cframe);
+		return BKE_gpencil_frame_addnew(gpl, cframe);
 	}
 	
 	/* Create a copy of the frame */
-	new_frame = gpencil_frame_duplicate(gpl->actframe);
+	new_frame = BKE_gpencil_frame_duplicate(gpl->actframe);
 	
 	/* Find frame to insert it before */
 	for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
@@ -290,7 +290,7 @@ bGPDframe *gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
 			/* This only happens when we're editing with framelock on...
 			 * - Delete the new frame and don't do anything else here...
 			 */
-			free_gpencil_strokes(new_frame);
+			BKE_gpencil_free_strokes(new_frame);
 			MEM_freeN(new_frame);
 			new_frame = NULL;
 			
@@ -314,7 +314,7 @@ bGPDframe *gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
 }
 
 /* add a new gp-layer and make it the active layer */
-bGPDlayer *gpencil_layer_addnew(bGPdata *gpd, const char *name, bool setactive)
+bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd, const char *name, bool setactive)
 {
 	bGPDlayer *gpl;
 	
@@ -353,14 +353,14 @@ bGPDlayer *gpencil_layer_addnew(bGPdata *gpd, const char *name, bool setactive)
 	
 	/* make this one the active one */
 	if (setactive)
-		gpencil_layer_setactive(gpd, gpl);
+		BKE_gpencil_layer_setactive(gpd, gpl);
 	
 	/* return layer */
 	return gpl;
 }
 
 /* add a new gp-palette and make it the active */
-bGPDpalette *gpencil_palette_addnew(bGPdata *gpd, const char *name, bool setactive)
+bGPDpalette *BKE_gpencil_palette_addnew(bGPdata *gpd, const char *name, bool setactive)
 {
 	bGPDpalette *palette;
 
@@ -383,7 +383,7 @@ bGPDpalette *gpencil_palette_addnew(bGPdata *gpd, const char *name, bool setacti
 
 	/* make this one the active one */
 	if (setactive) {
-		gpencil_palette_setactive(gpd, palette);
+		BKE_gpencil_palette_setactive(gpd, palette);
 	}
 
 	/* return palette */
@@ -391,11 +391,11 @@ bGPDpalette *gpencil_palette_addnew(bGPdata *gpd, const char *name, bool setacti
 }
 
 /* create a set of default drawing brushes with predefined presets */
-void gpencil_brush_init_presets(ToolSettings *ts)
+void BKE_gpencil_brush_init_presets(ToolSettings *ts)
 {
 	bGPDbrush *brush;
 	/* Basic brush */
-	brush = gpencil_brush_addnew(ts, "Basic", true);
+	brush = BKE_gpencil_brush_addnew(ts, "Basic", true);
 	brush->thickness = 3.0f;
 	brush->flag &= ~GP_BRUSH_USE_RANDOM_PRESSURE;
 	brush->draw_sensitivity = 1.0f;
@@ -419,7 +419,7 @@ void gpencil_brush_init_presets(ToolSettings *ts)
 	brush->draw_random_sub = 0.0f;
 
 	/* Pencil brush */
-	brush = gpencil_brush_addnew(ts, "Pencil", false);
+	brush = BKE_gpencil_brush_addnew(ts, "Pencil", false);
 	brush->thickness = 7.0f;
 	brush->flag &= ~GP_BRUSH_USE_RANDOM_PRESSURE;
 	brush->draw_sensitivity = 1.0f;
@@ -443,7 +443,7 @@ void gpencil_brush_init_presets(ToolSettings *ts)
 	brush->draw_random_sub = 0.0f;
 
 	/* Ink brush */
-	brush = gpencil_brush_addnew(ts, "Ink", false);
+	brush = BKE_gpencil_brush_addnew(ts, "Ink", false);
 	brush->thickness = 7.0f;
 	brush->flag &= ~GP_BRUSH_USE_RANDOM_PRESSURE;
 	brush->draw_sensitivity = 1.6f;
@@ -467,7 +467,7 @@ void gpencil_brush_init_presets(ToolSettings *ts)
 	brush->draw_random_sub = 0.0f;
 
 	/* Ink Noise brush */
-	brush = gpencil_brush_addnew(ts, "Ink noise", false);
+	brush = BKE_gpencil_brush_addnew(ts, "Ink noise", false);
 	brush->thickness = 6.0f;
 	brush->flag |= GP_BRUSH_USE_RANDOM_PRESSURE;
 	brush->draw_sensitivity = 1.611f;
@@ -491,7 +491,7 @@ void gpencil_brush_init_presets(ToolSettings *ts)
 	brush->draw_random_sub = 0.0f;
 
 	/* Marker brush */
-	brush = gpencil_brush_addnew(ts, "Marker", false);
+	brush = BKE_gpencil_brush_addnew(ts, "Marker", false);
 	brush->thickness = 10.0f;
 	brush->flag &= ~GP_BRUSH_USE_RANDOM_PRESSURE;
 	brush->draw_sensitivity = 2.0f;
@@ -515,7 +515,7 @@ void gpencil_brush_init_presets(ToolSettings *ts)
 	brush->draw_random_sub = 0.0f;
 
 	/* Crayon brush */
-	brush = gpencil_brush_addnew(ts, "Crayon", false);
+	brush = BKE_gpencil_brush_addnew(ts, "Crayon", false);
 	brush->thickness = 10.0f;
 	brush->flag &= ~GP_BRUSH_USE_RANDOM_PRESSURE;
 	brush->draw_sensitivity = 3.0f;
@@ -541,7 +541,7 @@ void gpencil_brush_init_presets(ToolSettings *ts)
 }
 
 /* add a new gp-brush and make it the active */
-bGPDbrush *gpencil_brush_addnew(ToolSettings *ts, const char *name, bool setactive)
+bGPDbrush *BKE_gpencil_brush_addnew(ToolSettings *ts, const char *name, bool setactive)
 {
 	bGPDbrush *brush;
 
@@ -577,7 +577,7 @@ bGPDbrush *gpencil_brush_addnew(ToolSettings *ts, const char *name, bool setacti
 
 	/* make this one the active one */
 	if (setactive) {
-		gpencil_brush_setactive(ts, brush);
+		BKE_gpencil_brush_setactive(ts, brush);
 	}
 
 	/* return brush */
@@ -585,7 +585,7 @@ bGPDbrush *gpencil_brush_addnew(ToolSettings *ts, const char *name, bool setacti
 }
 
 /* add a new gp-palettecolor and make it the active */
-bGPDpalettecolor *gpencil_palettecolor_addnew(bGPDpalette *palette, const char *name, bool setactive)
+bGPDpalettecolor *BKE_gpencil_palettecolor_addnew(bGPDpalette *palette, const char *name, bool setactive)
 {
 	bGPDpalettecolor *palcolor;
 
@@ -612,7 +612,7 @@ bGPDpalettecolor *gpencil_palettecolor_addnew(bGPDpalette *palette, const char *
 
 	/* make this one the active one */
 	if (setactive) {
-		gpencil_palettecolor_setactive(palette, palcolor);
+		BKE_gpencil_palettecolor_setactive(palette, palcolor);
 	}
 
 	/* return palette color */
@@ -620,7 +620,7 @@ bGPDpalettecolor *gpencil_palettecolor_addnew(bGPDpalette *palette, const char *
 }
 
 /* add a new gp-datablock */
-bGPdata *gpencil_data_addnew(const char name[])
+bGPdata *BKE_gpencil_data_addnew(const char name[])
 {
 	bGPdata *gpd;
 	
@@ -641,7 +641,7 @@ bGPdata *gpencil_data_addnew(const char name[])
 /* -------- Data Duplication ---------- */
 
 /* make a copy of a given gpencil frame */
-bGPDframe *gpencil_frame_duplicate(const bGPDframe *gpf_src)
+bGPDframe *BKE_gpencil_frame_duplicate(const bGPDframe *gpf_src)
 {
 	bGPDstroke *gps_dst;
 	bGPDframe *gpf_dst;
@@ -671,7 +671,7 @@ bGPDframe *gpencil_frame_duplicate(const bGPDframe *gpf_src)
 }
 
 /* make a copy of a given gpencil brush */
-bGPDbrush *gpencil_brush_duplicate(const bGPDbrush *brush_src)
+bGPDbrush *BKE_gpencil_brush_duplicate(const bGPDbrush *brush_src)
 {
 	bGPDbrush *brush_dst;
 
@@ -693,7 +693,7 @@ bGPDbrush *gpencil_brush_duplicate(const bGPDbrush *brush_src)
 }
 
 /* make a copy of a given gpencil palette */
-bGPDpalette *gpencil_palette_duplicate(const bGPDpalette *palette_src)
+bGPDpalette *BKE_gpencil_palette_duplicate(const bGPDpalette *palette_src)
 {
 	bGPDpalette *palette_dst;
 	const bGPDpalettecolor *palcolor_src;
@@ -720,7 +720,7 @@ bGPDpalette *gpencil_palette_duplicate(const bGPDpalette *palette_src)
 	return palette_dst;
 }
 /* make a copy of a given gpencil layer */
-bGPDlayer *gpencil_layer_duplicate(const bGPDlayer *gpl_src)
+bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src)
 {
 	const bGPDframe *gpf_src;
 	bGPDframe *gpf_dst;
@@ -739,7 +739,7 @@ bGPDlayer *gpencil_layer_duplicate(const bGPDlayer *gpl_src)
 	BLI_listbase_clear(&gpl_dst->frames);
 	for (gpf_src = gpl_src->frames.first; gpf_src; gpf_src = gpf_src->next) {
 		/* make a copy of source frame */
-		gpf_dst = gpencil_frame_duplicate(gpf_src);
+		gpf_dst = BKE_gpencil_frame_duplicate(gpf_src);
 		BLI_addtail(&gpl_dst->frames, gpf_dst);
 		
 		/* if source frame was the current layer's 'active' frame, reassign that too */
@@ -752,7 +752,7 @@ bGPDlayer *gpencil_layer_duplicate(const bGPDlayer *gpl_src)
 }
 
 /* make a copy of a given gpencil datablock */
-bGPdata *gpencil_data_duplicate(Main *bmain, bGPdata *gpd_src, bool internal_copy)
+bGPdata *BKE_gpencil_data_duplicate(Main *bmain, bGPdata *gpd_src, bool internal_copy)
 {
 	const bGPDlayer *gpl_src;
 	bGPDlayer *gpl_dst;
@@ -777,7 +777,7 @@ bGPdata *gpencil_data_duplicate(Main *bmain, bGPdata *gpd_src, bool internal_cop
 	BLI_listbase_clear(&gpd_dst->layers);
 	for (gpl_src = gpd_src->layers.first; gpl_src; gpl_src = gpl_src->next) {
 		/* make a copy of source layer and its data */
-		gpl_dst = gpencil_layer_duplicate(gpl_src);
+		gpl_dst = BKE_gpencil_layer_duplicate(gpl_src);
 		BLI_addtail(&gpd_dst->layers, gpl_dst);
 	}
 	if (!internal_copy) {
@@ -785,7 +785,7 @@ bGPdata *gpencil_data_duplicate(Main *bmain, bGPdata *gpd_src, bool internal_cop
 		bGPDpalette *palette_src, *palette_dst;
 		BLI_listbase_clear(&gpd_dst->palettes);
 		for (palette_src = gpd_src->palettes.first; palette_src; palette_src = palette_src->next) {
-			palette_dst = gpencil_palette_duplicate(palette_src);
+			palette_dst = BKE_gpencil_palette_duplicate(palette_src);
 			BLI_addtail(&gpd_dst->palettes, palette_dst);
 		}
 	}
@@ -802,7 +802,7 @@ void BKE_gpencil_make_local(Main *bmain, bGPdata *gpd, const bool lib_local)
 /* -------- GP-Stroke API --------- */
 
 /* ensure selection status of stroke is in sync with its points */
-void gpencil_stroke_sync_selection(bGPDstroke *gps)
+void BKE_gpencil_stroke_sync_selection(bGPDstroke *gps)
 {
 	bGPDspoint *pt;
 	int i;
@@ -827,7 +827,7 @@ void gpencil_stroke_sync_selection(bGPDstroke *gps)
 /* -------- GP-Frame API ---------- */
 
 /* delete the last stroke of the given frame */
-void gpencil_frame_delete_laststroke(bGPDlayer *gpl, bGPDframe *gpf)
+void BKE_gpencil_frame_delete_laststroke(bGPDlayer *gpl, bGPDframe *gpf)
 {
 	bGPDstroke *gps = (gpf) ? gpf->strokes.last : NULL;
 	int cfra = (gpf) ? gpf->framenum : 0; /* assume that the current frame was not locked */
@@ -843,8 +843,8 @@ void gpencil_frame_delete_laststroke(bGPDlayer *gpl, bGPDframe *gpf)
 	
 	/* if frame has no strokes after this, delete it */
 	if (BLI_listbase_is_empty(&gpf->strokes)) {
-		gpencil_layer_delframe(gpl, gpf);
-		gpencil_layer_getframe(gpl, cfra, 0);
+		BKE_gpencil_layer_delframe(gpl, gpf);
+		BKE_gpencil_layer_getframe(gpl, cfra, 0);
 	}
 }
 
@@ -892,7 +892,7 @@ bGPDframe *BKE_gpencil_layer_find_frame(bGPDlayer *gpl, int cframe)
  *	- this sets the layer's actframe var (if allowed to)
  *	- extension beyond range (if first gp-frame is after all frame in interest and cannot add)
  */
-bGPDframe *gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_Mode addnew)
+bGPDframe *BKE_gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_Mode addnew)
 {
 	bGPDframe *gpf = NULL;
 	short found = 0;
@@ -931,9 +931,9 @@ bGPDframe *gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_Mode 
 				if ((found) && (gpf->framenum == cframe))
 					gpl->actframe = gpf;
 				else if (addnew == GP_GETFRAME_ADD_COPY)
-					gpl->actframe = gpencil_frame_addcopy(gpl, cframe);
+					gpl->actframe = BKE_gpencil_frame_addcopy(gpl, cframe);
 				else
-					gpl->actframe = gpencil_frame_addnew(gpl, cframe);
+					gpl->actframe = BKE_gpencil_frame_addnew(gpl, cframe);
 			}
 			else if (found)
 				gpl->actframe = gpf;
@@ -953,9 +953,9 @@ bGPDframe *gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_Mode 
 				if ((found) && (gpf->framenum == cframe))
 					gpl->actframe = gpf;
 				else if (addnew == GP_GETFRAME_ADD_COPY)
-					gpl->actframe = gpencil_frame_addcopy(gpl, cframe);
+					gpl->actframe = BKE_gpencil_frame_addcopy(gpl, cframe);
 				else
-					gpl->actframe = gpencil_frame_addnew(gpl, cframe);
+					gpl->actframe = BKE_gpencil_frame_addnew(gpl, cframe);
 			}
 			else if (found)
 				gpl->actframe = gpf;
@@ -992,7 +992,7 @@ bGPDframe *gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_Mode 
 			if ((found) && (gpf->framenum == cframe))
 				gpl->actframe = gpf;
 			else
-				gpl->actframe = gpencil_frame_addnew(gpl, cframe);
+				gpl->actframe = BKE_gpencil_frame_addnew(gpl, cframe);
 		}
 		else if (found)
 			gpl->actframe = gpf;
@@ -1005,7 +1005,7 @@ bGPDframe *gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_Mode 
 	else {
 		/* currently no frames (add if allowed to) */
 		if (addnew)
-			gpl->actframe = gpencil_frame_addnew(gpl, cframe);
+			gpl->actframe = BKE_gpencil_frame_addnew(gpl, cframe);
 		else {
 			/* don't do anything... this may be when no frames yet! */
 			/* gpl->actframe should still be NULL */
@@ -1017,7 +1017,7 @@ bGPDframe *gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_Mode 
 }
 
 /* delete the given frame from a layer */
-bool gpencil_layer_delframe(bGPDlayer *gpl, bGPDframe *gpf)
+bool BKE_gpencil_layer_delframe(bGPDlayer *gpl, bGPDframe *gpf)
 {
 	bool changed = false;
 	
@@ -1034,14 +1034,14 @@ bool gpencil_layer_delframe(bGPDlayer *gpl, bGPDframe *gpf)
 		gpl->actframe = NULL;
 	
 	/* free the frame and its data */
-	changed = free_gpencil_strokes(gpf);
+	changed = BKE_gpencil_free_strokes(gpf);
 	BLI_freelinkN(&gpl->frames, gpf);
 	
 	return changed;
 }
 
 /* get the active gp-layer for editing */
-bGPDlayer *gpencil_layer_getactive(bGPdata *gpd)
+bGPDlayer *BKE_gpencil_layer_getactive(bGPdata *gpd)
 {
 	bGPDlayer *gpl;
 	
@@ -1060,7 +1060,7 @@ bGPDlayer *gpencil_layer_getactive(bGPdata *gpd)
 }
 
 /* set the active gp-layer */
-void gpencil_layer_setactive(bGPdata *gpd, bGPDlayer *active)
+void BKE_gpencil_layer_setactive(bGPdata *gpd, bGPDlayer *active)
 {
 	bGPDlayer *gpl;
 	
@@ -1077,20 +1077,20 @@ void gpencil_layer_setactive(bGPdata *gpd, bGPDlayer *active)
 }
 
 /* delete the active gp-layer */
-void gpencil_layer_delete(bGPdata *gpd, bGPDlayer *gpl)
+void BKE_gpencil_layer_delete(bGPdata *gpd, bGPDlayer *gpl)
 {
 	/* error checking */
 	if (ELEM(NULL, gpd, gpl)) 
 		return;
 	
 	/* free layer */
-	free_gpencil_frames(gpl);
+	BKE_gpencil_free_frames(gpl);
 	BLI_freelinkN(&gpd->layers, gpl);
 }
 
 /* ************************************************** */
 /* get the active gp-brush for editing */
-bGPDbrush *gpencil_brush_getactive(ToolSettings *ts)
+bGPDbrush *BKE_gpencil_brush_getactive(ToolSettings *ts)
 {
 	bGPDbrush *brush;
 
@@ -1111,7 +1111,7 @@ bGPDbrush *gpencil_brush_getactive(ToolSettings *ts)
 }
 
 /* set the active gp-brush */
-void gpencil_brush_setactive(ToolSettings *ts, bGPDbrush *active)
+void BKE_gpencil_brush_setactive(ToolSettings *ts, bGPDbrush *active)
 {
 	bGPDbrush *brush;
 
@@ -1130,7 +1130,7 @@ void gpencil_brush_setactive(ToolSettings *ts, bGPDbrush *active)
 }
 
 /* delete the active gp-brush */
-void gpencil_brush_delete(ToolSettings *ts, bGPDbrush *brush)
+void BKE_gpencil_brush_delete(ToolSettings *ts, bGPDbrush *brush)
 {
 	/* error checking */
 	if (ELEM(NULL, ts, brush)) {
@@ -1154,7 +1154,7 @@ void gpencil_brush_delete(ToolSettings *ts, bGPDbrush *brush)
 
 /* ************************************************** */
 /* get the active gp-palette for editing */
-bGPDpalette *gpencil_palette_getactive(bGPdata *gpd)
+bGPDpalette *BKE_gpencil_palette_getactive(bGPdata *gpd)
 {
 	bGPDpalette *palette;
 
@@ -1174,7 +1174,7 @@ bGPDpalette *gpencil_palette_getactive(bGPdata *gpd)
 }
 
 /* set the active gp-palette */
-void gpencil_palette_setactive(bGPdata *gpd, bGPDpalette *active)
+void BKE_gpencil_palette_setactive(bGPdata *gpd, bGPDpalette *active)
 {
 	bGPDpalette *palette;
 
@@ -1191,11 +1191,11 @@ void gpencil_palette_setactive(bGPdata *gpd, bGPDpalette *active)
 	/* set as active one */
 	active->flag |= PL_PALETTE_ACTIVE;
 	/* force color recalc */
-	gpencil_palette_change_strokes(gpd);
+	BKE_gpencil_palette_change_strokes(gpd);
 }
 
 /* delete the active gp-palette */
-void gpencil_palette_delete(bGPdata *gpd, bGPDpalette *palette)
+void BKE_gpencil_palette_delete(bGPdata *gpd, bGPDpalette *palette)
 {
 	/* error checking */
 	if (ELEM(NULL, gpd, palette)) {
@@ -1206,11 +1206,11 @@ void gpencil_palette_delete(bGPdata *gpd, bGPDpalette *palette)
 	free_gpencil_colors(palette);
 	BLI_freelinkN(&gpd->palettes, palette);
 	/* force color recalc */
-	gpencil_palette_change_strokes(gpd);
+	BKE_gpencil_palette_change_strokes(gpd);
 }
 
 /* Set all strokes to recalc the palette color */
-void gpencil_palette_change_strokes(bGPdata *gpd)
+void BKE_gpencil_palette_change_strokes(bGPdata *gpd)
 {
 	bGPDlayer *gpl;
 	bGPDframe *gpf;
@@ -1227,7 +1227,7 @@ void gpencil_palette_change_strokes(bGPdata *gpd)
 
 
 /* get the active gp-palettecolor for editing */
-bGPDpalettecolor *gpencil_palettecolor_getactive(bGPDpalette *palette)
+bGPDpalettecolor *BKE_gpencil_palettecolor_getactive(bGPDpalette *palette)
 {
 	bGPDpalettecolor *palcolor;
 
@@ -1247,7 +1247,7 @@ bGPDpalettecolor *gpencil_palettecolor_getactive(bGPDpalette *palette)
 	return NULL;
 }
 /* get the gp-palettecolor looking for name */
-bGPDpalettecolor *gpencil_palettecolor_getbyname(bGPDpalette *palette, char *name)
+bGPDpalettecolor *BKE_gpencil_palettecolor_getbyname(bGPDpalette *palette, char *name)
 {
 	/* error checking */
 	if (ELEM(NULL, palette, name)) {
@@ -1258,7 +1258,7 @@ bGPDpalettecolor *gpencil_palettecolor_getbyname(bGPDpalette *palette, char *nam
 }
 
 /* Change color name in all strokes */
-void gpencil_palettecolor_changename(bGPdata *gpd, char *oldname, const char *newname)
+void BKE_gpencil_palettecolor_changename(bGPdata *gpd, char *oldname, const char *newname)
 {
 	bGPDlayer *gpl;
 	bGPDframe *gpf;
@@ -1277,7 +1277,7 @@ void gpencil_palettecolor_changename(bGPdata *gpd, char *oldname, const char *ne
 }
 
 /* Delete all strokes of the color */
-void gpencil_palettecolor_delete_strokes(struct bGPdata *gpd, char *name)
+void BKE_gpencil_palettecolor_delete_strokes(struct bGPdata *gpd, char *name)
 {
 	bGPDlayer *gpl;
 	bGPDframe *gpf;
@@ -1300,7 +1300,7 @@ void gpencil_palettecolor_delete_strokes(struct bGPdata *gpd, char *name)
 }
 
 /* set the active gp-palettecolor */
-void gpencil_palettecolor_setactive(bGPDpalette *palette, bGPDpalettecolor *active)
+void BKE_gpencil_palettecolor_setactive(bGPDpalette *palette, bGPDpalettecolor *active)
 {
 	bGPDpalettecolor *palcolor;
 
@@ -1319,7 +1319,7 @@ void gpencil_palettecolor_setactive(bGPDpalette *palette, bGPDpalettecolor *acti
 }
 
 /* delete the active gp-palettecolor */
-void gpencil_palettecolor_delete(bGPDpalette *palette, bGPDpalettecolor *palcolor)
+void BKE_gpencil_palettecolor_delete(bGPDpalette *palette, bGPDpalettecolor *palcolor)
 {
 	/* error checking */
 	if (ELEM(NULL, palette, palcolor)) {

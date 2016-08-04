@@ -750,7 +750,7 @@ static void insert_gpencil_keys(bAnimContext *ac, short mode)
 	/* insert gp frames */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		bGPDlayer *gpl = (bGPDlayer *)ale->data;
-		gpencil_layer_getframe(gpl, CFRA, add_frame_mode);
+		BKE_gpencil_layer_getframe(gpl, CFRA, add_frame_mode);
 	}
 	
 	ANIM_animdata_update(ac, &anim_data);

@@ -290,7 +290,7 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 		/* duplicate Grease Pencil Drawing Brushes */
 		BLI_listbase_clear(&ts->gp_brushes);
 		for (bGPDbrush *brush = sce->toolsettings->gp_brushes.first; brush; brush = brush->next) {
-			bGPDbrush *newbrush = gpencil_brush_duplicate(brush);
+			bGPDbrush *newbrush = BKE_gpencil_brush_duplicate(brush);
 			BLI_addtail(&ts->gp_brushes, newbrush);
 		}
 
@@ -342,7 +342,7 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 	/* grease pencil */
 	if (scen->gpd) {
 		if (type == SCE_COPY_FULL) {
-			scen->gpd = gpencil_data_duplicate(bmain, scen->gpd, false);
+			scen->gpd = BKE_gpencil_data_duplicate(bmain, scen->gpd, false);
 		}
 		else if (type == SCE_COPY_EMPTY) {
 			scen->gpd = NULL;
@@ -441,7 +441,7 @@ void BKE_scene_free(Scene *sce)
 			MEM_freeN(sce->toolsettings->uvsculpt);
 		}
 		/* free Grease Pencil Drawing Brushes */
-		free_gpencil_brushes(&sce->toolsettings->gp_brushes);
+		BKE_gpencil_free_brushes(&sce->toolsettings->gp_brushes);
 		BLI_freelistN(&sce->toolsettings->gp_brushes);
 
 		BKE_paint_free(&sce->toolsettings->imapaint.paint);

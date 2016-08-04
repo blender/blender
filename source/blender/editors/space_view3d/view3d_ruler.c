@@ -302,18 +302,18 @@ static bool view3d_ruler_to_gpencil(bContext *C, RulerInfo *ruler_info)
 	bool changed = false;
 
 	if (scene->gpd == NULL) {
-		scene->gpd = gpencil_data_addnew("GPencil");
+		scene->gpd = BKE_gpencil_data_addnew("GPencil");
 	}
 
 	gpl = BLI_findstring(&scene->gpd->layers, ruler_name, offsetof(bGPDlayer, info));
 	if (gpl == NULL) {
-		gpl = gpencil_layer_addnew(scene->gpd, ruler_name, false);
+		gpl = BKE_gpencil_layer_addnew(scene->gpd, ruler_name, false);
 		gpl->thickness = 1;
 		gpl->flag |= GP_LAYER_HIDE;
 	}
 
-	gpf = gpencil_layer_getframe(gpl, CFRA, true);
-	free_gpencil_strokes(gpf);
+	gpf = BKE_gpencil_layer_getframe(gpl, CFRA, true);
+	BKE_gpencil_free_strokes(gpf);
 
 	for (ruler_item = ruler_info->items.first; ruler_item; ruler_item = ruler_item->next) {
 		bGPDspoint *pt;
@@ -360,7 +360,7 @@ static bool view3d_ruler_from_gpencil(bContext *C, RulerInfo *ruler_info)
 		gpl = BLI_findstring(&scene->gpd->layers, ruler_name, offsetof(bGPDlayer, info));
 		if (gpl) {
 			bGPDframe *gpf;
-			gpf = gpencil_layer_getframe(gpl, CFRA, false);
+			gpf = BKE_gpencil_layer_getframe(gpl, CFRA, false);
 			if (gpf) {
 				bGPDstroke *gps;
 				for (gps = gpf->strokes.first; gps; gps = gps->next) {

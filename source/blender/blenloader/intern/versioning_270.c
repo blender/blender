@@ -1270,7 +1270,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
 					ToolSettings *ts = scene->toolsettings;
 					if (BLI_listbase_is_empty(&ts->gp_brushes)) {
-						gpencil_brush_init_presets(ts);
+						BKE_gpencil_brush_init_presets(ts);
 					}
 				}
 			}
@@ -1280,10 +1280,10 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			for (bGPdata *gpd = main->gpencil.first; gpd; gpd = gpd->id.next) {
 				if (BLI_listbase_is_empty(&gpd->palettes)) {
 					/* create palette */
-					bGPDpalette *palette = gpencil_palette_addnew(gpd, "GP_Palette", true);
+					bGPDpalette *palette = BKE_gpencil_palette_addnew(gpd, "GP_Palette", true);
 					for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 						/* create color using layer name */
-						bGPDpalettecolor *palcolor = gpencil_palettecolor_addnew(palette, gpl->info, true);
+						bGPDpalettecolor *palcolor = BKE_gpencil_palettecolor_addnew(palette, gpl->info, true);
 						if (palcolor != NULL) {
 							/* set color attributes */
 							copy_v4_v4(palcolor->color, gpl->color);
@@ -1314,7 +1314,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 					}
 					/* set first color as active */
 					if (palette->colors.first)
-						gpencil_palettecolor_setactive(palette, palette->colors.first);
+						BKE_gpencil_palettecolor_setactive(palette, palette->colors.first);
 				}
 			}
 		}

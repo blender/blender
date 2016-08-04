@@ -841,7 +841,7 @@ static void gp_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
 	
 	Scene *scene = gso->scene;
 	bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
-	bGPDframe *gpf = gpencil_layer_getframe(gpl, CFRA, true);
+	bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, CFRA, true);
 	bGPDstroke *gps;
 	
 	float delta[3];
@@ -1185,7 +1185,7 @@ static void gpsculpt_brush_init_stroke(tGP_BrushEditData *gso)
 			 */
 			// XXX: should this be allowed when framelock is enabled?
 			if (gpf->framenum != cfra) {
-				gpencil_frame_addcopy(gpl, cfra);
+				BKE_gpencil_frame_addcopy(gpl, cfra);
 			}
 		}
 	}

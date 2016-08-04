@@ -544,7 +544,7 @@ static short gp_stroke_addpoint(tGPsdata *p, const int mval[2], float pressure, 
 	}
 	else if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
 		
-		bGPDlayer *gpl = gpencil_layer_getactive(gpd);
+		bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
 		/* get pointer to destination point */
 		pt = (tGPspoint *)(gpd->sbuffer);
 		
@@ -920,8 +920,8 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 			MEM_freeN(depth_arr);
 	}
 	/* Save palette color */
-	bGPDpalette *palette = gpencil_palette_getactive(p->gpd);
-	bGPDpalettecolor *palcolor = gpencil_palettecolor_getactive(palette);
+	bGPDpalette *palette = BKE_gpencil_palette_getactive(p->gpd);
+	bGPDpalettecolor *palcolor = BKE_gpencil_palettecolor_getactive(palette);
 	gps->palcolor = palcolor;
 	strcpy(gps->colorname, palcolor->info);
 
@@ -1221,7 +1221,7 @@ static bGPDpalettecolor *gp_create_new_color(bGPDpalette *palette)
 {
 	bGPDpalettecolor *palcolor;
 
-	palcolor = gpencil_palettecolor_addnew(palette, DATA_("Color"), true);
+	palcolor = BKE_gpencil_palettecolor_addnew(palette, DATA_("Color"), true);
 	
 	return palcolor;
 }
@@ -1234,12 +1234,12 @@ static void gp_init_drawing_brush(ToolSettings *ts, tGPsdata *p)
 	/* if not exist, create a new one */
 	if (BLI_listbase_is_empty(&ts->gp_brushes)) {
 		/* create new brushes */
-		gpencil_brush_init_presets(ts);
-		brush = gpencil_brush_getactive(ts);
+		BKE_gpencil_brush_init_presets(ts);
+		brush = BKE_gpencil_brush_getactive(ts);
 	}
 	else {
 		/* Use the current */
-		brush = gpencil_brush_getactive(ts);
+		brush = BKE_gpencil_brush_getactive(ts);
 	}
 	/* be sure curves are initializated */
 	curvemapping_initialize(brush->cur_sensitivity);
@@ -1263,23 +1263,23 @@ static void gp_init_palette(tGPsdata *p)
 	/* if not exist, create a new palette */
 	if (BLI_listbase_is_empty(&gpd->palettes)) {
 		/* create new palette */
-		palette = gpencil_palette_addnew(gpd, DATA_("GP_Palette"), true);
+		palette = BKE_gpencil_palette_addnew(gpd, DATA_("GP_Palette"), true);
 		/* now create a default color */
 		palcolor = gp_create_new_color(palette);
 	}
 	else {
 		/* Use the current palette and color */
-		palette = gpencil_palette_getactive(gpd);
+		palette = BKE_gpencil_palette_getactive(gpd);
 		/* the palette needs one color */
 		if (BLI_listbase_is_empty(&palette->colors)) {
 			palcolor = gp_create_new_color(palette);
 		}
 		else {
-			palcolor = gpencil_palettecolor_getactive(palette);
+			palcolor = BKE_gpencil_palettecolor_getactive(palette);
 		}
 		/* in some situations can be null, so use first */
 		if (palcolor == NULL) {
-			gpencil_palettecolor_setactive(palette, palette->colors.first);
+			BKE_gpencil_palettecolor_setactive(palette, palette->colors.first);
 			palcolor = palette->colors.first;
 		}
 	}
@@ -1439,7 +1439,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 	else {
 		/* if no existing GPencil block exists, add one */
 		if (*gpd_ptr == NULL)
-			*gpd_ptr = gpencil_data_addnew("GPencil");
+			*gpd_ptr = BKE_gpencil_data_addnew("GPencil");
 		p->gpd = *gpd_ptr;
 	}
 	
@@ -1514,9 +1514,9 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode)
 	ToolSettings *ts = scene->toolsettings;
 	
 	/* get active layer (or add a new one if non-existent) */
-	p->gpl = gpencil_layer_getactive(p->gpd);
+	p->gpl = BKE_gpencil_layer_getactive(p->gpd);
 	if (p->gpl == NULL) {
-		p->gpl = gpencil_layer_addnew(p->gpd, "GP_Layer", true);
+		p->gpl = BKE_gpencil_layer_addnew(p->gpd, "GP_Layer", true);
 		
 		if (p->custom_color[3])
 			copy_v3_v3(p->gpl->color, p->custom_color);
@@ -1544,7 +1544,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode)
 			/* Add a new frame if needed (and based off the active frame,
 			 * as we need some existing strokes to erase)
 			 */
-			gpl->actframe = gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_ADD_COPY);
+			gpl->actframe = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_ADD_COPY);
 			
 			/* XXX: we omit GP_FRAME_PAINT here for now,
 			 * as it is only really useful for doing
@@ -1580,7 +1580,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode)
 		else
 			add_frame_mode = GP_GETFRAME_ADD_NEW;
 			
-		p->gpf = gpencil_layer_getframe(p->gpl, CFRA, add_frame_mode);
+		p->gpf = BKE_gpencil_layer_getframe(p->gpl, CFRA, add_frame_mode);
 		
 		if (p->gpf == NULL) {
 			p->status = GP_STATUS_ERROR;

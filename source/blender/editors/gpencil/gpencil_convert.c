@@ -1123,7 +1123,7 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 	struct Main *bmain = CTX_data_main(C);
 	View3D *v3d = CTX_wm_view3d(C);  /* may be NULL */
 	Scene *scene = CTX_data_scene(C);
-	bGPDframe *gpf = gpencil_layer_getframe(gpl, CFRA, 0);
+	bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, CFRA, 0);
 	bGPDstroke *gps, *prev_gps = NULL;
 	Object *ob;
 	Curve *cu;
@@ -1235,7 +1235,7 @@ static bool gp_convert_check_has_valid_timing(bContext *C, bGPDlayer *gpl, wmOpe
 	int i;
 	bool valid = true;
 	
-	if (!gpl || !(gpf = gpencil_layer_getframe(gpl, CFRA, 0)) || !(gps = gpf->strokes.first))
+	if (!gpl || !(gpf = BKE_gpencil_layer_getframe(gpl, CFRA, 0)) || !(gps = gpf->strokes.first))
 		return false;
 	
 	do {
@@ -1292,8 +1292,8 @@ static int gp_convert_poll(bContext *C)
 	 * and if we are not in edit mode!
 	 */
 	return ((sa && sa->spacetype == SPACE_VIEW3D) &&
-	        (gpl = gpencil_layer_getactive(gpd)) &&
-	        (gpf = gpencil_layer_getframe(gpl, CFRA, 0)) &&
+	        (gpl = BKE_gpencil_layer_getactive(gpd)) &&
+	        (gpf = BKE_gpencil_layer_getframe(gpl, CFRA, 0)) &&
 	        (gpf->strokes.first) &&
 	        (scene->obedit == NULL));
 }
@@ -1302,7 +1302,7 @@ static int gp_convert_layer_exec(bContext *C, wmOperator *op)
 {
 	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "use_timing_data");
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	bGPDlayer *gpl = gpencil_layer_getactive(gpd);
+	bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
 	Scene *scene = CTX_data_scene(C);
 	const int mode = RNA_enum_get(op->ptr, "type");
 	const bool norm_weights = RNA_boolean_get(op->ptr, "use_normalize_weights");

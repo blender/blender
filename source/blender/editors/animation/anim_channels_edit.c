@@ -1686,7 +1686,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 				bGPDlayer *gpl = (bGPDlayer *)ale->data;
 				
 				/* try to delete the layer's data and the layer itself */
-				free_gpencil_frames(gpl);
+				BKE_gpencil_free_frames(gpl);
 				BLI_freelinkN(&gpd->layers, gpl);
 				break;
 			}

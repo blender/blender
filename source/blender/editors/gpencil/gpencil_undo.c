@@ -100,14 +100,14 @@ int ED_undo_gpencil_step(bContext *C, int step, const char *name)
 				bGPdata *gpd = *gpd_ptr;
 				bGPDlayer *gpl, *gpld;
 				
-				free_gpencil_layers(&gpd->layers);
+				BKE_gpencil_free_layers(&gpd->layers);
 				
 				/* copy layers */
 				BLI_listbase_clear(&gpd->layers);
 				
 				for (gpl = new_gpd->layers.first; gpl; gpl = gpl->next) {
 					/* make a copy of source layer and its data */
-					gpld = gpencil_layer_duplicate(gpl);
+					gpld = BKE_gpencil_layer_duplicate(gpl);
 					BLI_addtail(&gpd->layers, gpld);
 				}
 			}
@@ -153,7 +153,7 @@ void gpencil_undo_push(bGPdata *gpd)
 	
 	/* create new undo node */
 	undo_node = MEM_callocN(sizeof(bGPundonode), "gpencil undo node");
-	undo_node->gpd = gpencil_data_duplicate(G.main, gpd, true);
+	undo_node->gpd = BKE_gpencil_data_duplicate(G.main, gpd, true);
 	
 	cur_node = undo_node;
 	
