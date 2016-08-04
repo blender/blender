@@ -549,7 +549,7 @@ string OSLCompiler::id(ShaderNode *node)
 {
 	/* assign layer unique name based on pointer address + bump mode */
 	stringstream stream;
-	stream << "node_" << node->name << "_" << node;
+	stream << "node_" << node->type->name << "_" << node;
 
 	return stream.str();
 }

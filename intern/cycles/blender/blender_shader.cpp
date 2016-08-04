@@ -837,8 +837,10 @@ static ShaderNode *add_node(Scene *scene,
 		}
 	}
 
-	if(node)
+	if(node) {
+		node->name = b_node.name();
 		graph->add(node);
+	}
 
 	return node;
 }
