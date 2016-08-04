@@ -471,7 +471,7 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, const float handsize_cla
 }
 
 /* draw info text on a sequence strip */
-static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float y1, float y2, const unsigned char background_col[3])
+static void draw_seq_text(View2D *v2d, SpaceSeq *sseq, Sequence *seq, float x1, float x2, float y1, float y2, const unsigned char background_col[3])
 {
 	rctf rect;
 	char str[32 + FILE_MAX];
@@ -540,7 +540,12 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 		                       name, seq->len);
 	}
 	else if (seq->type == SEQ_TYPE_SOUND_RAM) {
-		if (seq->sound) {
+		/* If a waveform is drawn, we don't want to overlay it with text,
+		 * as it would make both hard to read. */
+		if ((sseq->flag & SEQ_ALL_WAVEFORMS) || (seq->flag & SEQ_AUDIO_DRAW_WAVEFORM)) {
+			str[0] = 0;
+			str_len = 0;
+		} else if (seq->sound) {
 			str_len = BLI_snprintf(str, sizeof(str), "%s: %s | %d",
 			                       name, seq->sound->name, seq->len);
 		}
@@ -870,7 +875,7 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 
 	/* nice text here would require changing the view matrix for texture text */
 	if ((x2 - x1) / pixelx > 32) {
-		draw_seq_text(v2d, seq, x1, x2, y1, y2, background_col);
+		draw_seq_text(v2d, sseq, seq, x1, x2, y1, y2, background_col);
 	}
 }
 
