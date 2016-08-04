@@ -70,19 +70,28 @@ void Object::compute_bounds(bool motion_blur)
 	BoundBox mbounds = mesh->bounds;
 
 	if(motion_blur && use_motion) {
-		DecompMotionTransform decomp;
-		transform_motion_decompose(&decomp, &motion, &tfm);
+		if(motion.pre == transform_empty() ||
+		   motion.post == transform_empty()) {
+			/* Hide objects that have no valid previous or next transform, for
+			 * example particle that stop existing. TODO: add support for this
+			 * case in the kernel so we don't get render artifacts. */
+			bounds = BoundBox::empty;
+		}
+		else {
+			DecompMotionTransform decomp;
+			transform_motion_decompose(&decomp, &motion, &tfm);
 
-		bounds = BoundBox::empty;
+			bounds = BoundBox::empty;
 
-		/* todo: this is really terrible. according to pbrt there is a better
-		 * way to find this iteratively, but did not find implementation yet
-		 * or try to implement myself */
-		for(float t = 0.0f; t < 1.0f; t += (1.0f/128.0f)) {
-			Transform ttfm;
+			/* todo: this is really terrible. according to pbrt there is a better
+			 * way to find this iteratively, but did not find implementation yet
+			 * or try to implement myself */
+			for(float t = 0.0f; t < 1.0f; t += (1.0f/128.0f)) {
+				Transform ttfm;
 
-			transform_motion_interpolate(&ttfm, &decomp, t);
-			bounds.grow(mbounds.transformed(&ttfm));
+				transform_motion_interpolate(&ttfm, &decomp, t);
+				bounds.grow(mbounds.transformed(&ttfm));
+			}
 		}
 	}
 	else {
@@ -228,7 +237,7 @@ vector<float> Object::motion_times()
 bool Object::is_traceable()
 {
 	/* Mesh itself can be empty,can skip all such objects. */
-	if (bounds.size() == make_float3(0.0f, 0.0f, 0.0f)) {
+	if (!bounds.valid() || bounds.size() == make_float3(0.0f, 0.0f, 0.0f)) {
 		return false;
 	}
 	/* TODO(sergey): Check for mesh vertices/curves. visibility flags. */

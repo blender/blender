@@ -395,8 +395,8 @@ Object *BlenderSync::sync_object(BL::Object& b_parent,
 		object->name = b_ob.name().c_str();
 		object->pass_id = b_ob.pass_index();
 		object->tfm = tfm;
-		object->motion.pre = tfm;
-		object->motion.post = tfm;
+		object->motion.pre = transform_empty();
+		object->motion.post = transform_empty();
 		object->use_motion = false;
 
 		/* motion blur */

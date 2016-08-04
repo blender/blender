@@ -323,6 +323,15 @@ ccl_device_inline Transform transform_clear_scale(const Transform& tfm)
 	return ntfm;
 }
 
+ccl_device_inline Transform transform_empty()
+{
+	return make_transform(
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0);
+}
+
 #endif
 
 /* Motion Transform */
