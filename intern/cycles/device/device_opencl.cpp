@@ -875,6 +875,7 @@ public:
 
 		if(ciErr != CL_SUCCESS) {
 			opencl_error("OpenCL build failed: errors in console");
+			fprintf(stderr, "Build error: %s\n", clewErrorString(ciErr));
 			return false;
 		}
 
