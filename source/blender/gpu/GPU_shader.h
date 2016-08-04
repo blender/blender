@@ -89,6 +89,10 @@ typedef enum GPUBuiltinShader {
 	GPU_SHADER_SEP_GAUSSIAN_BLUR = 1,
 	GPU_SHADER_SMOKE             = 2,
 	GPU_SHADER_SMOKE_FIRE        = 3,
+
+	/* for simple drawing */
+	GPU_SHADER_2D_UNIFORM_COLOR,
+	GPU_SHADER_2D_SMOOTH_COLOR,
 } GPUBuiltinShader;
 
 GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader);

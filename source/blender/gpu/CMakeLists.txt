@@ -100,6 +100,11 @@ set(SRC
 	intern/gpu_private.h
 )
 
+data_to_c_simple(shaders/gpu_shader_2D_uniform_color_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_uniform_color_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_smooth_color_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_smooth_color_frag.glsl SRC)
+
 data_to_c_simple(shaders/gpu_shader_geometry.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_smoke_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_smoke_vert.glsl SRC)

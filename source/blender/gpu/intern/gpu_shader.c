@@ -45,6 +45,11 @@
 #define MAX_EXT_DEFINE_LENGTH 1024
 
 /* Non-generated shaders */
+extern char datatoc_gpu_shader_2D_uniform_color_vert_glsl[];
+extern char datatoc_gpu_shader_2D_uniform_color_frag_glsl[];
+extern char datatoc_gpu_shader_2D_smooth_color_vert_glsl[];
+extern char datatoc_gpu_shader_2D_smooth_color_frag_glsl[];
+
 extern char datatoc_gpu_shader_smoke_vert_glsl[];
 extern char datatoc_gpu_shader_smoke_frag_glsl[];
 extern char datatoc_gpu_shader_vsm_store_vert_glsl[];
@@ -69,6 +74,9 @@ static struct GPUShadersGlobal {
 		GPUShader *smoke_fire;
 		/* cache for shader fx. Those can exist in combinations so store them here */
 		GPUShader *fx_shaders[MAX_FX_SHADERS * 2];
+		/* for simple drawing */
+		GPUShader *uniform_color_2D;
+		GPUShader *smooth_color_2D;
 	} shaders;
 } GG = {{NULL}};
 
@@ -622,6 +630,22 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 				        NULL, NULL, "#define USE_FIRE;\n", 0, 0, 0);
 			retval = GG.shaders.smoke_fire;
 			break;
+		case GPU_SHADER_2D_UNIFORM_COLOR:
+			if (!GG.shaders.uniform_color_2D)
+				GG.shaders.uniform_color_2D = GPU_shader_create(
+				        datatoc_gpu_shader_2D_uniform_color_vert_glsl,
+				        datatoc_gpu_shader_2D_uniform_color_frag_glsl,
+				        NULL, NULL, NULL, 0, 0, 0);
+			retval = GG.shaders.uniform_color_2D;
+			break;
+		case GPU_SHADER_2D_SMOOTH_COLOR:
+			if (!GG.shaders.smooth_color_2D)
+				GG.shaders.smooth_color_2D = GPU_shader_create(
+				        datatoc_gpu_shader_2D_smooth_color_vert_glsl,
+				        datatoc_gpu_shader_2D_smooth_color_frag_glsl,
+				        NULL, NULL, NULL, 0, 0, 0);
+			retval = GG.shaders.smooth_color_2D;
+			break;
 	}
 
 	if (retval == NULL)
@@ -731,6 +755,16 @@ void GPU_shader_free_builtin_shaders(void)
 	if (GG.shaders.smoke_fire) {
 		GPU_shader_free(GG.shaders.smoke_fire);
 		GG.shaders.smoke_fire = NULL;
+	}
+
+	if (GG.shaders.uniform_color_2D) {
+		GPU_shader_free(GG.shaders.uniform_color_2D);
+		GG.shaders.uniform_color_2D = NULL;
+	}
+
+	if (GG.shaders.smooth_color_2D) {
+		GPU_shader_free(GG.shaders.smooth_color_2D);
+		GG.shaders.smooth_color_2D = NULL;
 	}
 
 	for (i = 0; i < 2 * MAX_FX_SHADERS; ++i) {
