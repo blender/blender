@@ -41,6 +41,8 @@ def update_script_node(node, report):
     import shutil
     import tempfile
 
+    oso_file_remove = False
+
     if node.mode == 'EXTERNAL':
         # compile external script file
         script_path = bpy.path.abspath(node.filepath, library=node.id_data.library)
@@ -49,7 +51,6 @@ def update_script_node(node, report):
         if script_ext == ".oso":
             # it's a .oso file, no need to compile
             ok, oso_path = True, script_path
-            oso_file_remove = False
         elif script_ext == ".osl":
             # compile .osl file
             ok, oso_path = osl_compile(script_path, report)
@@ -65,7 +66,6 @@ def update_script_node(node, report):
         elif os.path.dirname(node.filepath) == "":
             # module in search path
             oso_path = node.filepath
-            oso_file_remove = False
             ok = True
         else:
             # unknown
@@ -88,12 +88,10 @@ def update_script_node(node, report):
             osl_file.close()
 
             ok, oso_path = osl_compile(osl_file.name, report)
-            oso_file_remove = False
             os.remove(osl_file.name)
         else:
             # compile text datablock from disk directly
             ok, oso_path = osl_compile(osl_path, report)
-            oso_file_remove = False
 
         if ok:
             # read bytecode
