@@ -1087,82 +1087,23 @@ GHOST_TSuccess GHOST_WindowCocoa::setOrder(GHOST_TWindowOrder order)
 GHOST_Context *GHOST_WindowCocoa::newDrawingContext(GHOST_TDrawingContextType type)
 {
 	if (type == GHOST_kDrawingContextTypeOpenGL) {
-#if !defined(WITH_GL_EGL)
 
-#if defined(WITH_GL_PROFILE_CORE)
 		GHOST_Context *context = new GHOST_ContextCGL(
 			m_wantStereoVisual,
 			m_wantNumOfAASamples,
 			m_window,
 			m_openGLView,
+
+#if defined(WITH_GL_PROFILE_CORE)
 			GL_CONTEXT_CORE_PROFILE_BIT,
 			3, 2,
+#else
+			0, // no profile bit
+			2, 1,
+#endif
 			GHOST_OPENGL_CGL_CONTEXT_FLAGS,
 			GHOST_OPENGL_CGL_RESET_NOTIFICATION_STRATEGY);
-#elif defined(WITH_GL_PROFILE_ES20)
-		GHOST_Context *context = new GHOST_ContextCGL(
-			m_wantStereoVisual,
-			m_wantNumOfAASamples,
-			m_window,
-			m_openGLView,
-			CGL_CONTEXT_ES2_PROFILE_BIT_EXT,
-			2, 0,
-			GHOST_OPENGL_CGL_CONTEXT_FLAGS,
-			GHOST_OPENGL_CGL_RESET_NOTIFICATION_STRATEGY);
-#elif defined(WITH_GL_PROFILE_COMPAT)
-		GHOST_Context *context = new GHOST_ContextCGL(
-			m_wantStereoVisual,
-			m_wantNumOfAASamples,
-			m_window,
-			m_openGLView,
-			0, // profile bit
-			0, 0,
-			GHOST_OPENGL_CGL_CONTEXT_FLAGS,
-			GHOST_OPENGL_CGL_RESET_NOTIFICATION_STRATEGY);
-#else
-#  error
-#endif
 
-#else
-
-#if defined(WITH_GL_PROFILE_CORE)
-		GHOST_Context *context = new GHOST_ContextEGL(
-			m_wantStereoVisual,
-			m_wantNumOfAASamples,
-			m_window,
-			m_openGLView,
-			EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-			3, 2,
-			GHOST_OPENGL_EGL_CONTEXT_FLAGS,
-			GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
-			EGL_OPENGL_API);
-#elif defined(WITH_GL_PROFILE_ES20)
-		GHOST_Context *context = new GHOST_ContextEGL(
-			m_wantStereoVisual,
-			m_wantNumOfAASamples,
-			m_window,
-			m_openGLView,
-			0, // profile bit
-			2, 0,
-			GHOST_OPENGL_EGL_CONTEXT_FLAGS,
-			GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
-			EGL_OPENGL_ES_API);
-#elif defined(WITH_GL_PROFILE_COMPAT)
-		GHOST_Context *context = new GHOST_ContextEGL(
-			m_wantStereoVisual,
-			m_wantNumOfAASamples,
-			m_window,
-			m_openGLView,
-			0, // profile bit
-			0, 0,
-			GHOST_OPENGL_EGL_CONTEXT_FLAGS,
-			GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
-			EGL_OPENGL_API);
-#else
-#  error
-#endif
-
-#endif
 		if (context->initializeDrawingContext())
 			return context;
 		else

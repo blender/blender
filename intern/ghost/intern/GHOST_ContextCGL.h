@@ -134,6 +134,8 @@ private:
 	/** The OpenGL drawing context */
 	NSOpenGLContext *m_openGLContext;
 
+	bool m_coreProfile;
+
 	//static CGLEWContext *s_cglewContext;
 
 	/** The first created OpenGL context (for sharing display lists) */

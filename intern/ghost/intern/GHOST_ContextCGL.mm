@@ -62,6 +62,23 @@ GHOST_ContextCGL::GHOST_ContextCGL(
       m_openGLContext(nil)
 {
 	assert(openGLView != nil);
+
+	// for now be very strict about OpenGL version requested
+	switch (contextMajorVersion) {
+		case 2:
+			assert(contextMinorVersion == 1);
+			assert(contextProfileMask == 0);
+			m_coreProfile = false;
+			break;
+		case 3:
+			// Apple didn't implement 3.0 or 3.1
+			assert(contextMinorVersion == 2);
+			assert(contextProfileMask == GL_CONTEXT_CORE_PROFILE_BIT);
+			m_coreProfile = true;
+			break;
+		default:
+			assert(false);
+	}
 }
 
 
@@ -169,11 +186,15 @@ GHOST_TSuccess GHOST_ContextCGL::updateDrawingContext()
 
 static void makeAttribList(
         std::vector<NSOpenGLPixelFormatAttribute>& attribs,
+        bool coreProfile,
         bool stereoVisual,
         int numOfAASamples,
         bool needAlpha,
         bool needStencil)
 {
+	attribs.push_back(NSOpenGLPFAOpenGLProfile);
+	attribs.push_back(coreProfile ? NSOpenGLProfileVersion3_2Core : NSOpenGLProfileVersionLegacy);
+	
 	// Pixel Format Attributes for the windowed NSOpenGLContext
 	attribs.push_back(NSOpenGLPFADoubleBuffer);
 
@@ -248,7 +269,7 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 	static const bool needStencil = false;
 #endif
 
-	makeAttribList(attribs, m_stereoVisual, m_numOfAASamples, needAlpha, needStencil);
+	makeAttribList(attribs, m_coreProfile, m_stereoVisual, m_numOfAASamples, needAlpha, needStencil);
 
 	NSOpenGLPixelFormat *pixelFormat;
 
@@ -261,7 +282,7 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 		// (Now that I think about it, does WGL really require the code that it has for finding a lesser match?)
 
 		attribs.clear();
-		makeAttribList(attribs, m_stereoVisual, 0, needAlpha, needStencil);
+		makeAttribList(attribs, m_coreProfile, m_stereoVisual, 0, needAlpha, needStencil);
 		pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&attribs[0]];
 	}
 
