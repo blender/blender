@@ -1152,7 +1152,7 @@ static void gpencil_stroke_copy_point(bGPDstroke *gps, bGPDspoint *point, float 
 }
 
 /* Helper: join two strokes using the shortest distance (reorder stroke if necessary ) */
-static void gpencil_stroke_join_strokes(bGPDstroke *gps_a, bGPDstroke *gps_b)
+static void gpencil_stroke_join_strokes(bGPDstroke *gps_a, bGPDstroke *gps_b, const bool leave_gaps)
 {
 	bGPDspoint point, *pt;
 	int i;
@@ -1179,6 +1179,7 @@ static void gpencil_stroke_join_strokes(bGPDstroke *gps_a, bGPDstroke *gps_b)
 	
 	pt = &gps_b->points[gps_b->totpoints - 1];
 	copy_v3_v3(eb, &pt->x);
+	
 	/* review if need flip stroke B */
 	float ea_sb = len_squared_v3v3(ea, sb);
 	float ea_eb = len_squared_v3v3(ea, eb);
@@ -1187,15 +1188,18 @@ static void gpencil_stroke_join_strokes(bGPDstroke *gps_a, bGPDstroke *gps_b)
 		gpencil_flip_stroke(gps_b);
 	}
 
-	/* 1st: add one tail point to start invisible area */
-	point = gps_a->points[gps_a->totpoints - 1];
-	deltatime = point.time;
-	gpencil_stroke_copy_point(gps_a, &point, delta, 0.0f, 0.0f, 0.0f);
+	/* don't visibly link the first and last points? */
+	if (leave_gaps) {
+		/* 1st: add one tail point to start invisible area */
+		point = gps_a->points[gps_a->totpoints - 1];
+		deltatime = point.time;
+		gpencil_stroke_copy_point(gps_a, &point, delta, 0.0f, 0.0f, 0.0f);
 
-	/* 2nd: add one head point to finish invisible area */
-	point = gps_b->points[0];
-	gpencil_stroke_copy_point(gps_a, &point, delta, 0.0f, 0.0f, deltatime);
-
+		/* 2nd: add one head point to finish invisible area */
+		point = gps_b->points[0];
+		gpencil_stroke_copy_point(gps_a, &point, delta, 0.0f, 0.0f, deltatime);
+	}
+	
 	/* 3rd: add all points */
 	for (i = 0, pt = gps_b->points; i < gps_b->totpoints && pt; i++, pt++) {
 		/* check if still room in buffer */
@@ -1223,7 +1227,8 @@ static int gp_stroke_join_exec(bContext *C, wmOperator *op)
 	bGPDstroke *stroke_b = NULL;
 	bGPDstroke *new_stroke = NULL;
 
-	int type = RNA_enum_get(op->ptr, "type");
+	const int type = RNA_enum_get(op->ptr, "type");
+	const bool leave_gaps = RNA_boolean_get(op->ptr, "leave_gaps");
 
 	/* sanity checks */
 	if (ELEM(NULL, gpd))
@@ -1276,7 +1281,7 @@ static int gp_stroke_join_exec(bContext *C, wmOperator *op)
 						}
 					}
 					/* join new_stroke and stroke B. New stroke will contain all the previous data */
-					gpencil_stroke_join_strokes(new_stroke, stroke_b);
+					gpencil_stroke_join_strokes(new_stroke, stroke_b, leave_gaps);
 
 					/* if join only, delete old strokes */
 					if (type == GP_STROKE_JOIN) {
@@ -1335,6 +1340,7 @@ void GPENCIL_OT_stroke_join(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	ot->prop = RNA_def_enum(ot->srna, "type", join_type, GP_STROKE_JOIN, "Type", "");
+	RNA_def_boolean(ot->srna, "leave_gaps", false, "Leave Gaps", "Leave gaps between joined strokes instead of linking them");
 }
 
 /* ******************* Stroke flip ************************** */
