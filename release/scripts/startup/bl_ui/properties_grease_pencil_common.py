@@ -80,6 +80,7 @@ class GreasePencilDrawingToolsPanel:
         sub = col.column(align=True)
         sub.prop(context.tool_settings, "use_gpencil_additive_drawing", text="Additive Drawing")
         sub.prop(context.tool_settings, "use_gpencil_continuous_drawing", text="Continuous Drawing")
+        sub.prop(context.tool_settings, "use_gpencil_draw_onback", text="Draw on Back")
 
         col.separator()
         col.separator()

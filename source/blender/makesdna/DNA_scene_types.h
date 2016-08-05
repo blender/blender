@@ -2088,6 +2088,8 @@ typedef enum eGPencil_Flags {
 	GP_TOOL_FLAG_PAINTSESSIONS_ON       = (1 << 0),
 	/* When creating new frames, the last frame gets used as the basis for the new one */
 	GP_TOOL_FLAG_RETAIN_LAST            = (1 << 1),
+	/* Add the strokes below all strokes in the layer */
+	GP_TOOL_FLAG_PAINT_ONBACK = (1 << 2)
 } eGPencil_Flags;
 
 /* toolsettings->gpencil_src */

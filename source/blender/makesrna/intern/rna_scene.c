@@ -2612,6 +2612,12 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	                         "are included as the basis for the new one");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 	
+	prop = RNA_def_property(srna, "use_gpencil_draw_onback", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gpencil_flags", GP_TOOL_FLAG_PAINT_ONBACK);
+	RNA_def_property_ui_text(prop, "Draw Strokes on Back",
+		"When draw new strokes, the new stroke is drawn below of all strokes in the layer");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
 	prop = RNA_def_property(srna, "grease_pencil_source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "gpencil_src");
 	RNA_def_property_enum_items(prop, gpencil_source_3d_items);

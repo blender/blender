@@ -692,6 +692,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	bGPDspoint *pt;
 	tGPspoint *ptc;
 	bGPDbrush *brush = p->brush;
+	ToolSettings *ts = p->scene->toolsettings;
 	
 	int i, totelem;
 	/* since strokes are so fine, when using their depth we need a margin otherwise they might get missed */
@@ -925,8 +926,16 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	gps->palcolor = palcolor;
 	strcpy(gps->colorname, palcolor->info);
 
-	/* add stroke to frame */
-	BLI_addtail(&p->gpf->strokes, gps);
+	/* add stroke to frame, usually on tail of the listbase, but if on back is enabled the stroke is added on listbase head 
+	* because the drawing order is inverse and the head stroke is the first to draw. This is very useful for artist
+	* when drawing the background
+	*/
+	if (ts->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) {
+		BLI_addhead(&p->gpf->strokes, gps);
+	}
+	else {
+		BLI_addtail(&p->gpf->strokes, gps);
+	}
 	gp_stroke_added_enable(p);
 }
 
