@@ -1380,7 +1380,7 @@ void GPENCIL_OT_stroke_flip(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Flip Stroke";
 	ot->idname = "GPENCIL_OT_stroke_flip";
-	ot->description = "Change drawing direction of selected strokes";
+	ot->description = "Change direction of the points of the selected strokes";
 
 	/* api callbacks */
 	ot->exec = gp_stroke_flip_exec;

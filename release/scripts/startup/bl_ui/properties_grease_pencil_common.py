@@ -190,11 +190,11 @@ class GreasePencilStrokeEditPanel:
         col = layout.column(align=True)
         col.operator("gpencil.stroke_join", text="Join").type = 'JOIN'
         col.operator("gpencil.stroke_join", text="Join & Copy").type = 'JOINCOPY'
-        col.operator("gpencil.stroke_flip", text="Flip direction")
+        col.operator("gpencil.stroke_flip", text="Flip Direction")
 
         gpd = context.gpencil_data
         if gpd:
-            col.prop(gpd, "show_stroke_direction", text="Show drawing direction")
+            col.prop(gpd, "show_stroke_direction", text="Show Directions")
 
 
 class GreasePencilBrushPanel:
@@ -326,7 +326,7 @@ class GreasePencilStrokeSculptPanel:
 class GreasePencilBrushCurvesPanel:
     # subclass must set
     # bl_space_type = 'IMAGE_EDITOR'
-    bl_label = "Grease Pencil Curves"
+    bl_label = "Brush Curves"
     bl_category = "Grease Pencil"
     bl_region_type = 'TOOLS'
     bl_options = {'DEFAULT_CLOSED'}
@@ -925,7 +925,7 @@ class GreasePencilPaletteColorPanel:
             row.operator_menu_enum("gpencil.palette_change", "palette", text="", icon='COLOR')
             row.prop(palette, "name", text="")
             row.operator("gpencil.palette_add", icon='ZOOMIN', text="")
-            row.operator("gpencil.palette_remove", icon='ZOOMOUT', text="")
+            row.operator("gpencil.palette_remove", icon='X', text="")
 
             # Palette colors
             row = layout.row()
