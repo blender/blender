@@ -542,7 +542,7 @@ static void rna_GPencilBrush_index_range(PointerRNA *ptr, int *min, int *max, in
 
 static void rna_GPencilBrush_name_set(PointerRNA *ptr, const char *value)
 {
-	ToolSettings *ts = (ToolSettings *) ptr->data;
+	ToolSettings *ts = ((Scene *) ptr->id.data)->toolsettings;
 	bGPDbrush *brush = ptr->data;
 
 	/* copy the new name into the name slot */
