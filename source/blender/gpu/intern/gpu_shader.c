@@ -185,7 +185,7 @@ static void gpu_shader_standard_extensions(char defines[MAX_EXT_DEFINE_LENGTH], 
 			strcat(defines, "#extension GL_ARB_draw_instanced: enable\n");
 		}
 
-		if (!GLEW_VERSION_3_0 && GLEW_EXT_gpu_shader4) {
+		if (!GLEW_VERSION_3_0) {
 			strcat(defines, "#extension GL_EXT_gpu_shader4: require\n");
 		}
 	}
