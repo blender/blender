@@ -144,7 +144,7 @@ ccl_device_inline int bsdf_sample(KernelGlobals *kg,
 	return label;
 }
 
-#ifndef __KERNEL_CUDS__
+#ifndef __KERNEL_CUDA__
 ccl_device
 #else
 ccl_device_inline

@@ -87,7 +87,7 @@ ccl_device void svm_node_attr(KernelGlobals *kg, ShaderData *sd, float *stack, u
 	}
 }
 
-#ifndef __KERNEL_CUDS__
+#ifndef __KERNEL_CUDA__
 ccl_device
 #else
 ccl_device_noinline
@@ -128,7 +128,7 @@ void svm_node_attr_bump_dx(KernelGlobals *kg, ShaderData *sd, float *stack, uint
 	}
 }
 
-#ifndef __KERNEL_CUDS__
+#ifndef __KERNEL_CUDA__
 ccl_device
 #else
 ccl_device_noinline

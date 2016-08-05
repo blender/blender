@@ -149,7 +149,7 @@ ccl_device_noinline void shader_setup_from_ray(KernelGlobals *kg,
 /* ShaderData setup from BSSRDF scatter */
 
 #ifdef __SUBSURFACE__
-#  ifndef __KERNEL_CUDS__
+#  ifndef __KERNEL_CUDA__
 ccl_device
 #  else
 ccl_device_inline
@@ -539,7 +539,7 @@ ccl_device_inline void _shader_bsdf_multi_eval_branched(KernelGlobals *kg,
 #endif
 
 
-#ifndef __KERNEL_CUDS__
+#ifndef __KERNEL_CUDA__
 ccl_device
 #else
 ccl_device_inline
