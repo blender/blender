@@ -1641,11 +1641,9 @@ void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged
 	for (a = set_listbasepointers(bmain, lbarray); a--; ) {
 		id = lbarray[a]->first;
 
-		if (!id || !BKE_idcode_is_linkable(GS(id->name))) {
-			/* Do not explicitly make local non-linkable IDs (shapekeys, in fact), they are assumed to be handled
-			 * by real datablocks responsible of them. */
-			continue;
-		}
+		/* Do not explicitly make local non-linkable IDs (shapekeys, in fact), they are assumed to be handled
+		 * by real datablocks responsible of them. */
+		const bool do_skip = (id && BKE_idcode_is_linkable(GS(id->name)));
 
 		for (; id; id = id_next) {
 			id->newid = NULL;
@@ -1656,7 +1654,7 @@ void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged
 			 * appending data, so any libdata already linked wont become local
 			 * (very nasty to discover all your links are lost after appending)  
 			 * */
-			if (id->tag & (LIB_TAG_EXTERN | LIB_TAG_INDIRECT | LIB_TAG_NEW) &&
+			if (!do_skip && id->tag & (LIB_TAG_EXTERN | LIB_TAG_INDIRECT | LIB_TAG_NEW) &&
 			    ((untagged_only == false) || !(id->tag & LIB_TAG_PRE_EXISTING)))
 			{
 				if (lib == NULL || id->lib == lib) {
