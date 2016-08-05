@@ -332,8 +332,10 @@ void BKE_id_make_local_generic(Main *bmain, ID *id, const bool id_in_mainlist, c
  */
 bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 {
-	if (id->tag & LIB_TAG_INDIRECT)
+	/* We don't care whether ID is directly or indirectly linked in case we are making a whole lib local... */
+	if (!lib_local && (id->tag & LIB_TAG_INDIRECT)) {
 		return false;
+	}
 
 	switch ((ID_Type)GS(id->name)) {
 		case ID_SCE:
