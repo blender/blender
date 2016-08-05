@@ -614,7 +614,7 @@ static void cubic_from_points_offset_fallback(
 
 	double dists[2] = {0, 0};
 
-	const double *pt = points_offset;
+	const double *pt = &points_offset[dims];
 	for (uint i = 1; i < points_offset_len - 1; i++, pt += dims) {
 		for (uint k = 0; k < 2; k++) {
 			sub_vn_vnvn(tmp, p0, pt, dims);
@@ -896,7 +896,7 @@ static double points_calc_coord_length(
 	}
 	assert(!is_almost_zero(r_u[points_offset_len - 1]));
 	const double w = r_u[points_offset_len - 1];
-	for (uint i = 0; i < points_offset_len; i++) {
+	for (uint i = 1; i < points_offset_len; i++) {
 		r_u[i] /= w;
 	}
 	return w;
