@@ -206,7 +206,7 @@ EnumPropertyItem *ED_gpencil_palettes_enum_itemf(bContext *C, PointerRNA *UNUSED
 
 void GPENCIL_OT_draw(struct wmOperatorType *ot);
 
-/* Paint Modes for operator*/
+/* Paint Modes for operator */
 typedef enum eGPencil_PaintModes {
 	GP_PAINTMODE_DRAW = 0,
 	GP_PAINTMODE_ERASER,
@@ -274,6 +274,11 @@ void GPENCIL_OT_active_frame_delete(struct wmOperatorType *ot);
 void GPENCIL_OT_active_frames_delete_all(struct wmOperatorType *ot);
 
 void GPENCIL_OT_convert(struct wmOperatorType *ot);
+
+enum {
+	GP_STROKE_JOIN = -1,
+	GP_STROKE_JOINCOPY = 1
+};
 
 void GPENCIL_OT_stroke_arrange(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_change_color(struct wmOperatorType *ot);

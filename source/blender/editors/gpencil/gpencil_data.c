@@ -1209,11 +1209,6 @@ static void gpencil_stroke_join_strokes(bGPDstroke *gps_a, bGPDstroke *gps_b, co
 	}
 }
 
-enum {
-	GP_STROKE_JOIN = -1,
-	GP_STROKE_JOINCOPY = 1
-};
-
 static int gp_stroke_join_exec(bContext *C, wmOperator *op)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
