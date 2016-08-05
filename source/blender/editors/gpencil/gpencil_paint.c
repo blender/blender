@@ -2390,9 +2390,6 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			}
 			else {
 				/* printf("\t\tGP - end of stroke + op\n"); */
-				/* disable paint session */
-				p->scene->toolsettings->gpencil_flags &= ~GP_TOOL_FLAG_PAINTSESSIONS_ON;
-
 				p->status = GP_STATUS_DONE;
 				estate = OPERATOR_FINISHED;
 			}
@@ -2422,9 +2419,6 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					in_bounds = true;
 				}
 				else {
-					/* disable paint session */
-					p->scene->toolsettings->gpencil_flags &= ~GP_TOOL_FLAG_PAINTSESSIONS_ON;
-
 					/* Out of bounds, or invalid in some other way */
 					p->status = GP_STATUS_ERROR;
 					estate = OPERATOR_CANCELLED;
@@ -2441,9 +2435,6 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				in_bounds = BLI_rcti_isect_pt_v(&region_rect, event->mval);
 			}
 			else {
-				/* disable paint session */
-				p->scene->toolsettings->gpencil_flags &= ~GP_TOOL_FLAG_PAINTSESSIONS_ON;
-
 				/* No region */
 				p->status = GP_STATUS_ERROR;
 				estate = OPERATOR_CANCELLED;
@@ -2471,9 +2462,6 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				p = gpencil_stroke_begin(C, op);
 				
 				if (p->status == GP_STATUS_ERROR) {
-					/* disable paint session */
-					p->scene->toolsettings->gpencil_flags &= ~GP_TOOL_FLAG_PAINTSESSIONS_ON;
-
 					estate = OPERATOR_CANCELLED;
 				}
 			}
@@ -2482,9 +2470,6 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				 * NOTE: Don't eter this case if an error occurred while finding the
 				 *       region (as above)
 				 */
-				/* disable paint session */
-				p->scene->toolsettings->gpencil_flags &= ~GP_TOOL_FLAG_PAINTSESSIONS_ON;
-
 				p->status = GP_STATUS_DONE;
 				estate = OPERATOR_FINISHED;
 			}
