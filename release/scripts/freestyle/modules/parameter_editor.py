@@ -914,14 +914,25 @@ class QuantitativeInvisibilityRangeUP1D(UnaryPredicate1D):
         return self.qi_start <= qi <= self.qi_end
 
 
+def getQualifiedObjectName(ob):
+    if ob.library is not None:
+        return ob.library.filepath + '/' + ob.name
+    return ob.name
+
+
 class ObjectNamesUP1D(UnaryPredicate1D):
     def __init__(self, names, negative):
         UnaryPredicate1D.__init__(self)
         self.names = names
         self.negative = negative
 
+    def getViewShapeName(self, vs):
+        if vs.library_path is not None:
+            return vs.library_path + '/' + vs.name
+        return vs.name
+
     def __call__(self, viewEdge):
-        found = viewEdge.viewshape.name in self.names
+        found = self.getViewShapeName(viewEdge.viewshape) in self.names
         if self.negative:
             return not found
         return found
@@ -1256,7 +1267,7 @@ def process(layer_name, lineset_name):
     # prepare selection criteria by group of objects
     if lineset.select_by_group:
         if lineset.group is not None:
-            names = {ob.name: True for ob in lineset.group.objects}
+            names = {getQualifiedObjectName(ob): True for ob in lineset.group.objects}
             upred = ObjectNamesUP1D(names, lineset.group_negation == 'EXCLUSIVE')
             selection_criteria.append(upred)
     # prepare selection criteria by image border

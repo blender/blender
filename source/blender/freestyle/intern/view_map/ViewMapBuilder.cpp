@@ -1204,6 +1204,7 @@ void ViewMapBuilder::computeInitialViewEdges(WingedEdge& we)
 		psShape = new SShape;
 		psShape->setId((*it)->GetId());
 		psShape->setName((*it)->getName());
+		psShape->setLibraryPath((*it)->getLibraryPath());
 		psShape->setFrsMaterials((*it)->frs_materials()); // FIXME
 
 		// create the view shape

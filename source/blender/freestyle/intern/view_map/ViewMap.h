@@ -1565,10 +1565,16 @@ public:
 		return _SShape->getId();
 	}
 
-	/*! Returns the ViewShape id. */
+	/*! Returns the ViewShape name. */
 	inline const char *getName() const
 	{
 		return _SShape->getName();
+	}
+
+	/*! Returns the ViewShape library path. */
+	inline const char *getLibraryPath() const
+	{
+		return _SShape->getLibraryPath();
 	}
 
 	/* modifiers */

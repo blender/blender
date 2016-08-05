@@ -48,6 +48,8 @@ public:
 	inline Rep() : BaseObject()
 	{
 		_Id = 0;
+		_Name = 0;
+		_LibraryPath = 0;
 		_FrsMaterial = 0;
 	}
 
@@ -55,6 +57,7 @@ public:
 	{
 		_Id = iBrother._Id;
 		_Name = iBrother._Name;
+		_LibraryPath = iBrother._LibraryPath;
 		if (0 == iBrother._FrsMaterial)
 			_FrsMaterial = 0;
 		else
@@ -68,6 +71,7 @@ public:
 		std::swap(_BBox, ioOther._BBox);
 		std::swap(_Id, ioOther._Id);
 		std::swap(_Name, ioOther._Name);
+		std::swap(_LibraryPath, ioOther._LibraryPath);
 		std::swap(_FrsMaterial, ioOther._FrsMaterial);
 	}
 
@@ -76,6 +80,7 @@ public:
 		if (&iBrother != this) {
 			_Id = iBrother._Id;
 			_Name = iBrother._Name;
+			_LibraryPath = iBrother._LibraryPath;
 			if (0 == iBrother._FrsMaterial) {
 				_FrsMaterial = 0;
 			}
@@ -132,6 +137,11 @@ public:
 		return _Name;
 	}
 
+	inline const char *getLibraryPath() const
+	{
+		return _LibraryPath;
+	}
+
 	inline const FrsMaterial *frs_material() const
 	{
 		return _FrsMaterial;
@@ -153,6 +163,11 @@ public:
 		_Name = name;
 	}
 
+	inline void setLibraryPath(const char *path)
+	{
+		_LibraryPath = path;
+	}
+
 	inline void setFrsMaterial(const FrsMaterial& iMaterial)
 	{
 		_FrsMaterial = new FrsMaterial(iMaterial);
@@ -162,6 +177,7 @@ private:
 	BBox<Vec3f> _BBox;
 	Id _Id;
 	const char *_Name;
+	const char *_LibraryPath;
 	FrsMaterial *_FrsMaterial;
 };
 
