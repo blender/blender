@@ -305,7 +305,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 			library_foreach_animationData(&data, adt);
 		}
 
-		switch (GS(id->name)) {
+		switch ((ID_Type)GS(id->name)) {
 			case ID_LI:
 			{
 				Library *lib = (Library *) id;
@@ -842,6 +842,24 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				}
 				break;
 			}
+
+			/* Nothing needed for those... */
+			case ID_IM:
+			case ID_VF:
+			case ID_TXT:
+			case ID_SO:
+			case ID_AR:
+			case ID_AC:
+			case ID_GD:
+			case ID_WM:
+			case ID_PAL:
+			case ID_PC:
+				break;
+
+			/* Deprecated. */
+			case ID_IP:
+				break;
+
 		}
 	} while ((id = (flag & IDWALK_RECURSE) ? BLI_LINKSTACK_POP(data.ids_todo) : NULL));
 
