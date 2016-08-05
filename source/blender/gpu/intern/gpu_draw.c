@@ -277,7 +277,7 @@ void GPU_set_gpu_mipmapping(int gpu_mipmap)
 	int old_value = GTS.gpu_mipmap;
 
 	/* only actually enable if it's supported */
-	GTS.gpu_mipmap = gpu_mipmap && GLEW_EXT_framebuffer_object;
+	GTS.gpu_mipmap = gpu_mipmap;
 
 	if (old_value != GTS.gpu_mipmap) {
 		GPU_free_images();
@@ -297,11 +297,7 @@ static void gpu_generate_mipmap(GLenum target)
 			glEnable(target);
 	}
 
-	/* TODO: simplify when we transition to GL >= 3 */
-	if (GLEW_VERSION_3_0 || GLEW_ARB_framebuffer_object)
-		glGenerateMipmap(target);
-	else if (GLEW_EXT_framebuffer_object)
-		glGenerateMipmapEXT(target);
+	glGenerateMipmap(target);
 
 	if (is_ati && !target_enabled)
 		glDisable(target);

@@ -382,9 +382,6 @@ bool GPU_fx_compositor_initialize_passes(
 
 	fx->effects = 0;
 
-	if (!GLEW_EXT_framebuffer_object)
-		return false;
-
 	if (!fx_settings) {
 		cleanup_fx_gl_data(fx, true);
 		return false;

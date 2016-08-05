@@ -1434,7 +1434,7 @@ void view3d_opengl_read_pixels(ARegion *ar, int x, int y, int w, int h, int form
 
 	if (rv3d->gpuoffscreen) {
 		GPU_offscreen_bind(rv3d->gpuoffscreen, true);
-		glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
 		glReadPixels(x, y, w, h, format, type, data);
 		GPU_offscreen_unbind(rv3d->gpuoffscreen, true);
 	}

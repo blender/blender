@@ -56,10 +56,8 @@
 /* Extensions support */
 
 /* -- extension: version of GL that absorbs it
+ * EXT_gpu_shader4: 3.0
  * ARB_framebuffer object: 3.0
- * EXT_framebuffer_object: 3.0
- * EXT_framebuffer_blit: 3.0
- * EXT_framebuffer_multisample: 3.0
  * EXT_framebuffer_multisample_blit_scaled: ???
  * ARB_draw_instanced: 3.1
  * ARB_texture_multisample: 3.2

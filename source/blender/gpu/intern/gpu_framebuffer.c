@@ -57,30 +57,30 @@ static void GPU_print_framebuffer_error(GLenum status, char err_out[256])
 	const char *err = "unknown";
 
 	switch (status) {
-		case GL_FRAMEBUFFER_COMPLETE_EXT:
+		case GL_FRAMEBUFFER_COMPLETE:
 			break;
 		case GL_INVALID_OPERATION:
 			err = "Invalid operation";
 			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
+		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
 			err = "Incomplete attachment";
 			break;
-		case GL_FRAMEBUFFER_UNSUPPORTED_EXT:
+		case GL_FRAMEBUFFER_UNSUPPORTED:
 			err = "Unsupported framebuffer format";
 			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:
+		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
 			err = "Missing attachment";
 			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:
+		case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
 			err = "Attached images must have same dimensions";
 			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:
+		case GL_FRAMEBUFFER_INCOMPLETE_FORMATS:
 			err = "Attached images must have same format";
 			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:
+		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
 			err = "Missing draw buffer";
 			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:
+		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
 			err = "Missing read buffer";
 			break;
 	}
@@ -101,14 +101,8 @@ GPUFrameBuffer *GPU_framebuffer_create(void)
 {
 	GPUFrameBuffer *fb;
 
-	if (!(GLEW_VERSION_3_0 || GLEW_ARB_framebuffer_object ||
-	      (GLEW_EXT_framebuffer_object && GLEW_EXT_framebuffer_blit)))
-	{
-		return NULL;
-	}
-	
 	fb = MEM_callocN(sizeof(GPUFrameBuffer), "GPUFrameBuffer");
-	glGenFramebuffersEXT(1, &fb->object);
+	glGenFramebuffers(1, &fb->object);
 
 	if (!fb->object) {
 		fprintf(stderr, "GPUFFrameBuffer: framebuffer gen failed. %d\n",
@@ -118,10 +112,10 @@ GPUFrameBuffer *GPU_framebuffer_create(void)
 	}
 
 	/* make sure no read buffer is enabled, so completeness check will not fail. We set those at binding time */
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb->object);
+	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
 	glReadBuffer(GL_NONE);
 	glDrawBuffer(GL_NONE);
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 	return fb;
 }
@@ -147,17 +141,17 @@ int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot
 	}
 
 	if (GPU_texture_depth(tex))
-		attachment = GL_DEPTH_ATTACHMENT_EXT;
+		attachment = GL_DEPTH_ATTACHMENT;
 	else
-		attachment = GL_COLOR_ATTACHMENT0_EXT + slot;
+		attachment = GL_COLOR_ATTACHMENT0 + slot;
 
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb->object);
+	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
 	GG.currentfb = fb->object;
 
 	/* Clean glError buffer. */
 	while (glGetError() != GL_NO_ERROR) {}
 
-	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, attachment, 
+	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment,
 		GPU_texture_target(tex), GPU_texture_opengl_bindcode(tex), 0);
 
 	error = glGetError();
@@ -188,21 +182,21 @@ void GPU_framebuffer_texture_detach(GPUTexture *tex)
 		return;
 
 	if (GG.currentfb != fb->object) {
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb->object);
+		glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
 		GG.currentfb = fb->object;
 	}
 
 	if (GPU_texture_depth(tex)) {
 		fb->depthtex = NULL;
-		attachment = GL_DEPTH_ATTACHMENT_EXT;
+		attachment = GL_DEPTH_ATTACHMENT;
 	}
 	else {
 		BLI_assert(fb->colortex[fb_attachment] == tex);
 		fb->colortex[fb_attachment] = NULL;
-		attachment = GL_COLOR_ATTACHMENT0_EXT + fb_attachment;
+		attachment = GL_COLOR_ATTACHMENT0 + fb_attachment;
 	}
 
-	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, attachment, GPU_texture_target(tex), 0, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GPU_texture_target(tex), 0, 0);
 
 	GPU_texture_framebuffer_set(tex, NULL, -1);
 }
@@ -222,7 +216,7 @@ void GPU_texture_bind_as_framebuffer(GPUTexture *tex)
 	glDisable(GL_SCISSOR_TEST);
 
 	/* bind framebuffer */
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb->object);
+	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
 
 	if (GPU_texture_depth(tex)) {
 		glDrawBuffer(GL_NONE);
@@ -230,8 +224,8 @@ void GPU_texture_bind_as_framebuffer(GPUTexture *tex)
 	}
 	else {
 		/* last bound prevails here, better allow explicit control here too */
-		glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT + fb_attachment);
-		glReadBuffer(GL_COLOR_ATTACHMENT0_EXT + fb_attachment);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0 + fb_attachment);
+		glReadBuffer(GL_COLOR_ATTACHMENT0 + fb_attachment);
 	}
 	
 	if (GPU_texture_target(tex) == GL_TEXTURE_2D_MULTISAMPLE) {
@@ -260,7 +254,7 @@ void GPU_framebuffer_slots_bind(GPUFrameBuffer *fb, int slot)
 	
 	for (i = 0; i < 4; i++) {
 		if (fb->colortex[i]) {
-			attachments[numslots] = GL_COLOR_ATTACHMENT0_EXT + i;
+			attachments[numslots] = GL_COLOR_ATTACHMENT0 + i;
 			numslots++;
 		}
 	}
@@ -270,11 +264,11 @@ void GPU_framebuffer_slots_bind(GPUFrameBuffer *fb, int slot)
 	glDisable(GL_SCISSOR_TEST);
 
 	/* bind framebuffer */
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb->object);
+	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
 
 	/* last bound prevails here, better allow explicit control here too */
 	glDrawBuffers(numslots, attachments);
-	glReadBuffer(GL_COLOR_ATTACHMENT0_EXT + slot);
+	glReadBuffer(GL_COLOR_ATTACHMENT0 + slot);
 
 	/* push matrices and set default viewport and matrix */
 	glViewport(0, 0, GPU_texture_width(fb->colortex[slot]), GPU_texture_height(fb->colortex[slot]));
@@ -301,10 +295,10 @@ void GPU_framebuffer_texture_unbind(GPUFrameBuffer *UNUSED(fb), GPUTexture *UNUS
 
 void GPU_framebuffer_bind_no_save(GPUFrameBuffer *fb, int slot)
 {
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb->object);
+	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
 	/* last bound prevails here, better allow explicit control here too */
-	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT + slot);
-	glReadBuffer(GL_COLOR_ATTACHMENT0_EXT + slot);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0 + slot);
+	glReadBuffer(GL_COLOR_ATTACHMENT0 + slot);
 
 	/* push matrices and set default viewport and matrix */
 	glViewport(0, 0, GPU_texture_width(fb->colortex[slot]), GPU_texture_height(fb->colortex[slot]));
@@ -321,15 +315,15 @@ bool GPU_framebuffer_check_valid(GPUFrameBuffer *fb, char err_out[256])
 {
 	GLenum status;
 	
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb->object);
+	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
 	GG.currentfb = fb->object;
 	
 	/* Clean glError buffer. */
 	while (glGetError() != GL_NO_ERROR) {}
 	
-	status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+	status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	
-	if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
+	if (status != GL_FRAMEBUFFER_COMPLETE) {
 		GPU_framebuffer_restore();
 		GPU_print_framebuffer_error(status, err_out);
 		return false;
@@ -351,10 +345,10 @@ void GPU_framebuffer_free(GPUFrameBuffer *fb)
 	}
 
 	if (fb->object) {
-		glDeleteFramebuffersEXT(1, &fb->object);
+		glDeleteFramebuffers(1, &fb->object);
 
 		if (GG.currentfb == fb->object) {
-			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			GG.currentfb = 0;
 		}
 	}
@@ -365,7 +359,7 @@ void GPU_framebuffer_free(GPUFrameBuffer *fb)
 void GPU_framebuffer_restore(void)
 {
 	if (GG.currentfb != 0) {
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		GG.currentfb = 0;
 	}
 }
@@ -390,8 +384,8 @@ void GPU_framebuffer_blur(
 
 	/* We do the bind ourselves rather than using GPU_framebuffer_texture_bind() to avoid
 	 * pushing unnecessary matrices onto the OpenGL stack. */
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, blurfb->object);
-	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+	glBindFramebuffer(GL_FRAMEBUFFER, blurfb->object);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 	
 	/* avoid warnings from texture binding */
 	GG.currentfb = blurfb->object;
@@ -423,8 +417,8 @@ void GPU_framebuffer_blur(
 
 	/* Blurring vertically */
 
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb->object);
-	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 	
 	GG.currentfb = fb->object;
 	
@@ -464,12 +458,7 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, char err_
 	}
 
 	if (samples) {
-		if (!GLEW_EXT_framebuffer_multisample ||
-		    !GLEW_ARB_texture_multisample ||
-		    /* Only needed for GPU_offscreen_read_pixels.
-		     * We could add an arg if we intend to use multi-sample
-		     * offscreen buffers w/o reading their pixels */
-		    !GLEW_EXT_framebuffer_blit ||
+		if (!GLEW_ARB_texture_multisample ||
 		    /* This is required when blitting from a multi-sampled buffers,
 		     * even though we're not scaling. */
 		    !GLEW_EXT_framebuffer_multisample_blit_scaled)
@@ -569,37 +558,37 @@ void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels)
 
 #ifdef USE_FBO_CTX_SWITCH
 		/* read from multi-sample buffer */
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, ofs->color->fb->object);
-		glFramebufferTexture2DEXT(
-		        GL_READ_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + ofs->color->fb_attachment,
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, ofs->color->fb->object);
+		glFramebufferTexture2D(
+		        GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + ofs->color->fb_attachment,
 		        GL_TEXTURE_2D_MULTISAMPLE, ofs->color->bindcode, 0);
-		status = glCheckFramebufferStatusEXT(GL_READ_FRAMEBUFFER_EXT);
-		if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
+		status = glCheckFramebufferStatusEXT(GL_READ_FRAMEBUFFER);
+		if (status != GL_FRAMEBUFFER_COMPLETE) {
 			goto finally;
 		}
 #endif
 
 		/* write into new single-sample buffer */
-		glGenFramebuffersEXT(1, &fbo_blit);
-		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, fbo_blit);
-		glFramebufferTexture2DEXT(
-		        GL_DRAW_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
+		glGenFramebuffers(1, &fbo_blit);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_blit);
+		glFramebufferTexture2D(
+		        GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 		        GL_TEXTURE_2D, tex_blit, 0);
-		status = glCheckFramebufferStatusEXT(GL_DRAW_FRAMEBUFFER_EXT);
-		if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
+		status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
+		if (status != GL_FRAMEBUFFER_COMPLETE) {
 			goto finally;
 		}
 
 		/* perform the copy */
-		glBlitFramebufferEXT(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 		/* read the results */
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, fbo_blit);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_blit);
 		glReadPixels(0, 0, w, h, GL_RGBA, type, pixels);
 
 #ifdef USE_FBO_CTX_SWITCH
 		/* restore the original frame-bufer */
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, ofs->color->fb->object);
+		glBindFramebuffer(GL_FRAMEBUFFER, ofs->color->fb->object);
 #undef USE_FBO_CTX_SWITCH
 #endif
 
@@ -610,7 +599,7 @@ finally:
 			glDeleteTextures(1, &tex_blit);
 		}
 		if (fbo_blit) {
-			glDeleteFramebuffersEXT(1, &fbo_blit);
+			glDeleteFramebuffers(1, &fbo_blit);
 		}
 
 		GPU_ASSERT_NO_GL_ERRORS("Read Multi-Sample Pixels");
