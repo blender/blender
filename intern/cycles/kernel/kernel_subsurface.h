@@ -85,16 +85,11 @@ ccl_device ShaderClosure *subsurface_scatter_pick_closure(KernelGlobals *kg, Sha
 	return NULL;
 }
 
-#ifndef __KERNEL_GPU__
-ccl_device
-#else
-ccl_device_inline
-#endif
-float3 subsurface_scatter_eval(ShaderData *sd,
-                               ShaderClosure *sc,
-                               float disk_r,
-                               float r,
-                               bool all)
+ccl_device_noinline float3 subsurface_scatter_eval(ShaderData *sd,
+                                                   ShaderClosure *sc,
+                                                   float disk_r,
+                                                   float r,
+                                                   bool all)
 {
 #ifdef BSSRDF_MULTI_EVAL
 	/* this is the veach one-sample model with balance heuristic, some pdf
