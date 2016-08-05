@@ -130,8 +130,8 @@ void GPU_get_dfdy_factors(float fac[2])
 
 void gpu_extensions_init(void)
 {
-	/* BLI_assert(GLEW_VERSION_2_1); */
-	/* ^-- maybe a bit extreme? */
+	BLI_assert(GLEW_VERSION_3_0 || /* Mesa mininum requirement */
+	           GLEW_VERSION_2_1 && GLEW_EXT_gpu_shader4 && GLEW_ARB_framebuffer_object); /* Mac minimum requirement */
 
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &GG.maxtextures);
 

@@ -186,8 +186,7 @@ static void gpu_shader_standard_extensions(char defines[MAX_EXT_DEFINE_LENGTH], 
 		}
 
 		if (!GLEW_VERSION_3_0 && GLEW_EXT_gpu_shader4) {
-			strcat(defines, "#extension GL_EXT_gpu_shader4: enable\n");
-			/* TODO: maybe require this? shaders become so much nicer */
+			strcat(defines, "#extension GL_EXT_gpu_shader4: require\n");
 		}
 	}
 }
