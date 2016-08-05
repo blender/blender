@@ -55,9 +55,9 @@ Object::Object()
 	particle_system = NULL;
 	particle_index = 0;
 	bounds = BoundBox::empty;
-	motion.pre = transform_identity();
-	motion.mid = transform_identity();
-	motion.post = transform_identity();
+	motion.pre = transform_empty();
+	motion.mid = transform_empty();
+	motion.post = transform_empty();
 	use_motion = false;
 }
 
@@ -345,6 +345,15 @@ void ObjectManager::device_update_object_transform(UpdateObejctTransformState *s
 		 */
 		Transform mtfm_pre = ob->motion.pre;
 		Transform mtfm_post = ob->motion.post;
+
+		/* In case of missing motion information for previous/next frame,
+		 * assume there is no motion. */
+		if(!ob->use_motion || mtfm_pre == transform_empty()) {
+			mtfm_pre = ob->tfm;
+		}
+		if(!ob->use_motion || mtfm_post == transform_empty()) {
+			mtfm_post = ob->tfm;
+		}
 
 		if(!mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)) {
 			mtfm_pre = mtfm_pre * itfm;
