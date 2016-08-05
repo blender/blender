@@ -153,7 +153,7 @@ public:
 		_Name = name;
 	}
 
-	inline void setFrsMaterial(const FrsMaterial& iMaterial) 
+	inline void setFrsMaterial(const FrsMaterial& iMaterial)
 	{
 		_FrsMaterial = new FrsMaterial(iMaterial);
 	}
