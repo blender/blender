@@ -62,6 +62,14 @@ void immBegin(GLenum primitive, unsigned vertex_ct);
 void immEnd(void);
 
 void immAttrib1f(unsigned attrib_id, float x);
+void immAttrib2f(unsigned attrib_id, float x, float y);
 void immAttrib3f(unsigned attrib_id, float x, float y, float z);
 
+void immAttrib3ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned char b);
+void immAttrib4ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+
 void immEndVertex(void); // and move on to the next vertex
+
+// provide 2D or 3D attribute value and end the current vertex, similar to glVertex:
+void immVertex2f(unsigned attrib_id, float x, float y);
+void immVertex3f(unsigned attrib_id, float x, float y, float z);
