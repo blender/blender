@@ -1764,10 +1764,13 @@ static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, const in
 					/* copy already clears */
 				}
 				/* remap gpencil parenting */
-				bGPdata *gpd = scene->gpd;
-				for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-					if (gpl->parent == ob) {
-						gpl->parent = obn;
+
+				if (scene->gpd) {
+					bGPdata *gpd = scene->gpd;
+					for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+						if (gpl->parent == ob) {
+							gpl->parent = obn;
+						}
 					}
 				}
 
