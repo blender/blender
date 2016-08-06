@@ -38,11 +38,12 @@ class PhysicButtonsPanel:
     def poll(cls, context):
         ob = context.object
         rd = context.scene.render
-        return (ob and ob.type == 'MESH') and (not rd.use_game_engine) and (context.fluid)
+        return (ob and ob.type == 'MESH') and rd.engine in cls.COMPAT_ENGINES and (context.fluid)
 
 
 class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
     bl_label = "Fluid"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -205,12 +206,13 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
     bl_label = "Fluid World"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
         md = context.fluid
         rd = context.scene.render
-        return md and md.settings and (md.settings.type == 'DOMAIN') and (not rd.use_game_engine)
+        return md and md.settings and (md.settings.type == 'DOMAIN') and rd.engine in cls.COMPAT_ENGINES
 
     def draw(self, context):
         layout = self.layout
@@ -258,12 +260,13 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, Panel):
     bl_label = "Fluid Boundary"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
         md = context.fluid
         rd = context.scene.render
-        return md and md.settings and (md.settings.type == 'DOMAIN') and (not rd.use_game_engine)
+        return md and md.settings and (md.settings.type == 'DOMAIN') and rd.engine in cls.COMPAT_ENGINES
 
     def draw(self, context):
         layout = self.layout
@@ -288,12 +291,13 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_domain_particles(PhysicButtonsPanel, Panel):
     bl_label = "Fluid Particles"
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
         md = context.fluid
         rd = context.scene.render
-        return md and md.settings and (md.settings.type == 'DOMAIN') and (not rd.use_game_engine)
+        return md and md.settings and (md.settings.type == 'DOMAIN') and rd.engine in cls.COMPAT_ENGINES
 
     def draw(self, context):
         layout = self.layout

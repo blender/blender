@@ -2065,7 +2065,7 @@ bool BM_face_exists_multi(BMVert **varr, BMEdge **earr, int len)
 	}
 
 	/* 2) loop over non-boundary edges that use boundary verts,
-	 *    check each have 2 tagges faces connected (faces that only use 'varr' verts) */
+	 *    check each have 2 tagged faces connected (faces that only use 'varr' verts) */
 	ok = true;
 	for (i = 0; i < len; i++) {
 		BM_ITER_ELEM (e, &fiter, varr[i], BM_EDGES_OF_VERT) {

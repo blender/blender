@@ -48,6 +48,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_actuator_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
@@ -1144,9 +1145,21 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 		}
 		else if (is_indirectly_used && ID_REAL_USERS(base->object) <= 1) {
 			BKE_reportf(op->reports, RPT_WARNING,
-			            "Cannot delete object '%s' from scene '%s', indirectly used objects need at least one user",
-			            base->object->id.name + 2, scene->id.name + 2);
+			        "Cannot delete object '%s' from scene '%s', indirectly used objects need at least one user",
+			        base->object->id.name + 2, scene->id.name + 2);
 			continue;
+		}
+		/* remove from Grease Pencil parent */
+		for (bGPdata *gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next) {
+			for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+				if (gpl->parent != NULL) {
+					Object *ob = gpl->parent;
+					Object *curob = base->object;
+					if (ob == curob) {
+						gpl->parent = NULL;
+					}
+				}
+			}
 		}
 
 		/* deselect object -- it could be used in other scenes */

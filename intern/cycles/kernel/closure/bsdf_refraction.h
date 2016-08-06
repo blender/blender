@@ -37,9 +37,9 @@ CCL_NAMESPACE_BEGIN
 
 /* REFRACTION */
 
-ccl_device int bsdf_refraction_setup(ShaderClosure *sc)
+ccl_device int bsdf_refraction_setup(MicrofacetBsdf *bsdf)
 {
-	sc->type = CLOSURE_BSDF_REFRACTION_ID;
+	bsdf->type = CLOSURE_BSDF_REFRACTION_ID;
 	return SD_BSDF;
 }
 
@@ -55,8 +55,9 @@ ccl_device float3 bsdf_refraction_eval_transmit(const ShaderClosure *sc, const f
 
 ccl_device int bsdf_refraction_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	float m_eta = sc->data0;
-	float3 N = sc->N;
+	const MicrofacetBsdf *bsdf = (const MicrofacetBsdf*)sc;
+	float m_eta = bsdf->ior;
+	float3 N = bsdf->N;
 
 	float3 R, T;
 #ifdef __RAY_DIFFERENTIALS__

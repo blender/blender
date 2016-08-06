@@ -83,6 +83,9 @@ void render_result_save_empty_result_tiles(struct Render *re);
 void render_result_exr_file_begin(struct Render *re);
 void render_result_exr_file_end(struct Render *re);
 
+/* render pass wrapper for gpencil */
+struct RenderPass *gp_add_pass(struct RenderResult *rr, struct RenderLayer *rl, int channels, int passtype, const char *viewname);
+
 void render_result_exr_file_merge(struct RenderResult *rr, struct RenderResult *rrpart, const char *viewname);
 
 void render_result_exr_file_path(struct Scene *scene, const char *layname, int sample, char *filepath);

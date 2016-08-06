@@ -101,6 +101,7 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
 
             layout.prop(dopesheet, "use_datablock_sort", text="")
 
+
 #######################################
 # DopeSheet Editor - General/Standard UI
 

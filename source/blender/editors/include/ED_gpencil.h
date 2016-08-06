@@ -41,6 +41,8 @@ struct bGPdata;
 struct bGPDlayer;
 struct bGPDframe;
 struct bGPDstroke;
+struct bGPDpalette;
+struct bGPDpalettecolor;
 struct bAnimContext;
 struct KeyframeEditData;
 struct PointerRNA;
@@ -57,6 +59,7 @@ struct wmKeyConfig;
 typedef struct tGPspoint {
 	int x, y;               /* x and y coordinates of cursor (in relative to area) */
 	float pressure;         /* pressure of tablet at this point */
+	float strength;         /* pressure of tablet at this point for alpha factor */
 	float time;             /* Time relative to stroke start (used when converting to path) */
 } tGPspoint;
 
@@ -86,6 +89,9 @@ bool ED_gpencil_has_keyframe_v3d(struct Scene *scene, struct Object *ob, int cfr
 
 bool ED_gpencil_stroke_can_use_direct(const struct ScrArea *sa, const struct bGPDstroke *gps);
 bool ED_gpencil_stroke_can_use(const struct bContext *C, const struct bGPDstroke *gps);
+bool ED_gpencil_stroke_color_use(const struct bGPDlayer *gpl, const struct bGPDstroke *gps);
+
+struct bGPDpalettecolor *ED_gpencil_stroke_getcolor(struct bGPdata *gpd, struct bGPDstroke *gps);
 
 bool ED_gpencil_stroke_minmax(
         const struct bGPDstroke *gps, const bool use_select,
@@ -141,5 +147,11 @@ bool ED_gpencil_anim_copybuf_paste(struct bAnimContext *ac, const short copy_mod
 /* ------------ Grease-Pencil Undo System ------------------ */
 int ED_gpencil_session_active(void);
 int ED_undo_gpencil_step(struct bContext *C, int step, const char *name);
+
+/* ------------ Transformation Utilities ------------ */
+
+/* get difference matrix using parent */
+void ED_gpencil_parent_location(struct bGPDlayer *gpl, float diff_mat[4][4]);
+
 
 #endif /*  __ED_GPENCIL_H__ */

@@ -51,6 +51,11 @@
 #  include "GHOST_ContextGLX.h"
 #endif
 
+/* for XIWarpPointer */
+#ifdef WITH_X11_XINPUT
+#  include <X11/extensions/XInput2.h>
+#endif
+
 #if defined(__sun__) || defined(__sun) || defined(__sparc) || defined(__sparc__) || defined(_AIX)
 #  include <strings.h>
 #endif
@@ -1487,7 +1492,21 @@ setWindowCursorGrab(
 			/* use to generate a mouse move event, otherwise the last event
 			 * blender gets can be outside the screen causing menus not to show
 			 * properly unless the user moves the mouse */
-			XWarpPointer(m_display, None, None, 0, 0, 0, 0, 0, 0);
+
+#ifdef WITH_X11_XINPUT
+			if ((m_system->m_xinput_version.present) &&
+			    (m_system->m_xinput_version.major_version >= 2))
+			{
+				int device_id;
+				if (XIGetClientPointer(m_display, None, &device_id) != False) {
+					XIWarpPointer(m_display, device_id, None, None, 0, 0, 0, 0, 0, 0);
+				}
+			}
+			else
+#endif
+			{
+				XWarpPointer(m_display, None, None, 0, 0, 0, 0, 0, 0);
+			}
 		}
 
 		/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */

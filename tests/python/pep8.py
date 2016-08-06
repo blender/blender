@@ -113,7 +113,7 @@ def main():
                 print("%s:%d:0: empty class (), remove" % (f, i + 1))
     del re, class_check
 
-    print("\n\n\n# running pep8...")
+    print("\n\n\n# running flake8...")
 
     # these are very picky and often hard to follow
     # while keeping common script formatting.
@@ -128,6 +128,10 @@ def main():
         # "imports not at top of file."
         # prefer to load as needed (lazy load addons etc).
         "E402",
+        # "do not compare types, use 'isinstance()'"
+        # times types are compared,
+        # I rather keep them specific
+        "E721",
         )
 
     for f, pep8_type in files:
@@ -138,7 +142,10 @@ def main():
         else:
             ignore_tmp = ignore
 
-        os.system("pep8 --repeat --ignore=%s '%s'" % (",".join(ignore_tmp), f))
+        os.system("flake8 "
+                  "--isolated "
+                  "--ignore=%s '%s'" %
+                  (",".join(ignore_tmp), f))
 
     # frosted
     print("\n\n\n# running frosted...")
@@ -152,6 +159,7 @@ def main():
                   "--disable="
                   "C0111,"  # missing doc string
                   "C0103,"  # invalid name
+                  "C0413,"  # import should be placed at the top
                   "W0613,"  # unused argument, may add this back
                             # but happens a lot for 'context' for eg.
                   "W0232,"  # class has no __init__, Operator/Panel/Menu etc
@@ -165,7 +173,6 @@ def main():
                   "R0914,"  # Too many local variables
                   "R0915,"  # Too many statements
                   " "
-                  "--include-ids=y "
                   "--output-format=parseable "
                   "--reports=n "
                   "--max-line-length=1000"

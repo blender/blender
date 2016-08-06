@@ -966,7 +966,9 @@ static void recalcData_gpencil_strokes(TransInfo *t)
 	TransData *td = t->data;
 	for (int i = 0; i < t->total; i++, td++) {
 		bGPDstroke *gps = td->extra;
-		gps->flag |= GP_STROKE_RECALC_CACHES;
+		if (gps != NULL) {
+			gps->flag |= GP_STROKE_RECALC_CACHES;
+		}
 	}
 }
 

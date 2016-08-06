@@ -275,6 +275,12 @@ static void rna_Main_linestyle_begin(CollectionPropertyIterator *iter, PointerRN
 	rna_iterator_listbase_begin(iter, &bmain->linestyle, NULL);
 }
 
+static void rna_Main_cachefiles_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Main *bmain = (Main *)ptr->data;
+	rna_iterator_listbase_begin(iter, &bmain->cachefiles, NULL);
+}
+
 static void rna_Main_version_get(PointerRNA *ptr, int *value)
 {
 	Main *bmain = (Main *)ptr->data;
@@ -347,6 +353,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"movieclips", "MovieClip", "rna_Main_movieclips_begin", "Movie Clips", "Movie Clip datablocks", RNA_def_main_movieclips},
 		{"masks", "Mask", "rna_Main_masks_begin", "Masks", "Masks datablocks", RNA_def_main_masks},
 		{"linestyles", "FreestyleLineStyle", "rna_Main_linestyle_begin", "Line Styles", "Line Style datablocks", RNA_def_main_linestyles},
+		{"cache_files", "CacheFile", "rna_Main_cachefiles_begin", "Cache Files", "Cache Files datablocks", RNA_def_main_cachefiles},
 		{NULL, NULL, NULL, NULL, NULL, NULL}
 	};
 

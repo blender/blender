@@ -25,47 +25,75 @@ CCL_NAMESPACE_BEGIN
  * Lookup of attributes is different between OSL and SVM, as OSL is ustring
  * based while for SVM we use integer ids. */
 
+ccl_device_inline uint subd_triangle_patch(KernelGlobals *kg, const ShaderData *sd);
+
+ccl_device_inline uint attribute_primitive_type(KernelGlobals *kg, const ShaderData *sd)
+{
+#ifdef __HAIR__
+	if(ccl_fetch(sd, type) & PRIMITIVE_ALL_CURVE) {
+		return ATTR_PRIM_CURVE;
+	}
+	else
+#endif
+	if(subd_triangle_patch(kg, sd) != ~0) {
+		return ATTR_PRIM_SUBD;
+	}
+	else {
+		return ATTR_PRIM_TRIANGLE;
+	}
+}
+
+ccl_device_inline AttributeDescriptor attribute_not_found()
+{
+	const AttributeDescriptor desc = {ATTR_ELEMENT_NONE, (NodeAttributeType)0, ATTR_STD_NOT_FOUND};
+	return desc;
+}
+
 /* Find attribute based on ID */
 
-ccl_device_inline int find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id, AttributeElement *elem)
+ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id)
 {
-	if(ccl_fetch(sd, object) == PRIM_NONE)
-		return (int)ATTR_STD_NOT_FOUND;
+	if(ccl_fetch(sd, object) == PRIM_NONE) {
+		return attribute_not_found();
+	}
 
 	/* for SVM, find attribute by unique id */
 	uint attr_offset = ccl_fetch(sd, object)*kernel_data.bvh.attributes_map_stride;
-#ifdef __HAIR__
-	attr_offset = (ccl_fetch(sd, type) & PRIMITIVE_ALL_CURVE)? attr_offset + ATTR_PRIM_CURVE: attr_offset;
-#endif
+	attr_offset += attribute_primitive_type(kg, sd);
 	uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 	
 	while(attr_map.x != id) {
 		if(UNLIKELY(attr_map.x == ATTR_STD_NONE)) {
-			return ATTR_STD_NOT_FOUND;
+			return attribute_not_found();
 		}
 		attr_offset += ATTR_PRIM_TYPES;
 		attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 	}
 
-	*elem = (AttributeElement)attr_map.y;
+	AttributeDescriptor desc;
+	desc.element = (AttributeElement)attr_map.y;
 	
-	if(ccl_fetch(sd, prim) == PRIM_NONE && (AttributeElement)attr_map.y != ATTR_ELEMENT_MESH)
-		return ATTR_STD_NOT_FOUND;
+	if(ccl_fetch(sd, prim) == PRIM_NONE && desc.element != ATTR_ELEMENT_MESH) {
+		return attribute_not_found();
+	}
 
 	/* return result */
-	return (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.z;
+	desc.offset = (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.z;
+	desc.type = (NodeAttributeType)attr_map.w;
+
+	return desc;
 }
 
 /* Transform matrix attribute on meshes */
 
-ccl_device Transform primitive_attribute_matrix(KernelGlobals *kg, const ShaderData *sd, int offset)
+ccl_device Transform primitive_attribute_matrix(KernelGlobals *kg, const ShaderData *sd, const AttributeDescriptor desc)
 {
 	Transform tfm;
 
-	tfm.x = kernel_tex_fetch(__attributes_float3, offset + 0);
-	tfm.y = kernel_tex_fetch(__attributes_float3, offset + 1);
-	tfm.z = kernel_tex_fetch(__attributes_float3, offset + 2);
-	tfm.w = kernel_tex_fetch(__attributes_float3, offset + 3);
+	tfm.x = kernel_tex_fetch(__attributes_float3, desc.offset + 0);
+	tfm.y = kernel_tex_fetch(__attributes_float3, desc.offset + 1);
+	tfm.z = kernel_tex_fetch(__attributes_float3, desc.offset + 2);
+	tfm.w = kernel_tex_fetch(__attributes_float3, desc.offset + 3);
 
 	return tfm;
 }

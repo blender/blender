@@ -253,7 +253,7 @@ bool ED_gplayer_frames_delete(bGPDlayer *gpl)
 		gpfn = gpf->next;
 		
 		if (gpf->flag & GP_FRAME_SELECT)
-			changed |= gpencil_layer_delframe(gpl, gpf);
+			changed |= BKE_gpencil_layer_delframe(gpl, gpf);
 	}
 	
 	return changed;
@@ -277,7 +277,7 @@ void ED_gplayer_frames_duplicate(bGPDlayer *gpl)
 			bGPDframe *gpfd;
 			
 			/* duplicate frame, and deselect self */
-			gpfd = gpencil_frame_duplicate(gpf);
+			gpfd = BKE_gpencil_frame_duplicate(gpf);
 			gpf->flag &= ~GP_FRAME_SELECT;
 			
 			BLI_insertlinkafter(&gpl->frames, gpf, gpfd);
@@ -323,7 +323,7 @@ static int gp_anim_copy_cfra       =  0;
 /* This function frees any MEM_calloc'ed copy/paste buffer data */
 void ED_gpencil_anim_copybuf_free(void)
 {
-	free_gpencil_layers(&gp_anim_copybuf);
+	BKE_gpencil_free_layers(&gp_anim_copybuf);
 	BLI_listbase_clear(&gp_anim_copybuf);
 	
 	gp_anim_copy_firstframe =  999999999;
@@ -364,7 +364,7 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
 			/* if frame is selected, make duplicate it and its strokes */
 			if (gpf->flag & GP_FRAME_SELECT) {
 				/* make a copy of this frame */
-				bGPDframe *new_frame = gpencil_frame_duplicate(gpf);
+				bGPDframe *new_frame = BKE_gpencil_frame_duplicate(gpf);
 				BLI_addtail(&copied_frames, new_frame);
 				
 				/* extend extents for keyframes encountered */
@@ -475,7 +475,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
 			gpfs->framenum += offset;
 			
 			/* get frame to copy data into (if no frame returned, then just ignore) */
-			gpf = gpencil_layer_getframe(gpld, gpfs->framenum, 1);
+			gpf = BKE_gpencil_layer_getframe(gpld, gpfs->framenum, 1);
 			if (gpf) {
 				bGPDstroke *gps, *gpsn;
 				
@@ -498,7 +498,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
 				
 				/* if no strokes (i.e. new frame) added, free gpf */
 				if (BLI_listbase_is_empty(&gpf->strokes))
-					gpencil_layer_delframe(gpld, gpf);
+					BKE_gpencil_layer_delframe(gpld, gpf);
 			}
 			
 			/* unapply offset from buffer-frame */

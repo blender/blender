@@ -174,6 +174,11 @@ ccl_device_inline float clamp(float a, float mn, float mx)
 	return min(max(a, mn), mx);
 }
 
+ccl_device_inline float mix(float a, float b, float t)
+{
+    return a + t*(b - a);
+}
+
 #endif
 
 #ifndef __KERNEL_CUDA__
@@ -217,6 +222,11 @@ ccl_device_inline float smoothstepf(float f)
 {
 	float ff = f*f;
 	return (3.0f*ff - 2.0f*ff*f);
+}
+
+ccl_device_inline int mod(int x, int m)
+{
+	return (x % m + m) % m;
 }
 
 /* Float2 Vector */
@@ -652,6 +662,15 @@ ccl_device_inline float3 interp(float3 a, float3 b, float t)
 	return a + t*(b - a);
 }
 
+#ifndef __KERNEL_OPENCL__
+
+ccl_device_inline float3 mix(float3 a, float3 b, float t)
+{
+	return a + t*(b - a);
+}
+
+#endif
+
 ccl_device_inline bool is_zero(const float3 a)
 {
 #ifdef __KERNEL_SSE__
@@ -669,6 +688,15 @@ ccl_device_inline float reduce_add(const float3 a)
 ccl_device_inline float average(const float3 a)
 {
 	return reduce_add(a)*(1.0f/3.0f);
+}
+
+ccl_device_inline bool isequal_float3(const float3 a, const float3 b)
+{
+#ifdef __KERNEL_OPENCL__
+	return all(a == b);
+#else
+	return a == b;
+#endif
 }
 
 /* Float4 Vector */
@@ -1449,10 +1477,10 @@ ccl_device bool ray_triangle_intersect(
 	return true;
 }
 
-ccl_device bool ray_triangle_intersect_uv(
-	float3 ray_P, float3 ray_D, float ray_t,
-	float3 v0, float3 v1, float3 v2,
-	float *isect_u, float *isect_v, float *isect_t)
+ccl_device_inline bool ray_triangle_intersect_uv(
+        float3 ray_P, float3 ray_D, float ray_t,
+        float3 v0, float3 v1, float3 v2,
+        float *isect_u, float *isect_v, float *isect_t)
 {
 	/* Calculate intersection */
 	float3 e1 = v1 - v0;

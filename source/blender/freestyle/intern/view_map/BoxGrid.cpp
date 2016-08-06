@@ -77,11 +77,11 @@ BoxGrid::Iterator::Iterator (BoxGrid& grid, Vec3r& center, real /*epsilon*/)
 	// Find target cell
 	_cell = grid.findCell(_target);
 #if BOX_GRID_LOGGING
-		if (G.debug & G_DEBUG_FREESTYLE) {
-			cout << "Searching for occluders of edge centered at " << _target << " in cell [" <<
-			        1_cell->boundary[0] << ", " << _cell->boundary[1] << ", " << _cell->boundary[2] <<
-			        ", " << _cell->boundary[3] << "] (" << _cell->faces.size() << " occluders)" << endl;
-		}
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Searching for occluders of edge centered at " << _target << " in cell [" <<
+		        1_cell->boundary[0] << ", " << _cell->boundary[1] << ", " << _cell->boundary[2] <<
+		        ", " << _cell->boundary[3] << "] (" << _cell->faces.size() << " occluders)" << endl;
+	}
 #endif
 
 	// Set iterator

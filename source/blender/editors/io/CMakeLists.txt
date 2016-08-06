@@ -28,6 +28,8 @@ set(INC
 	../../makesrna
 	../../windowmanager
 	../../collada
+	../../alembic
+	../../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -35,15 +37,27 @@ set(INC_SYS
 )
 
 set(SRC
+	io_alembic.c
+	io_cache.c
 	io_collada.c
 	io_ops.c
 
+	io_alembic.h
+	io_cache.h
 	io_collada.h
 	io_ops.h
 )
 
 if(WITH_OPENCOLLADA)
 	add_definitions(-DWITH_COLLADA)
+endif()
+
+if(WITH_ALEMBIC)
+	add_definitions(-DWITH_ALEMBIC)
+
+	if(WITH_ALEMBIC_HDF5)
+		add_definitions(-DWITH_ALEMBIC_HDF5)
+	endif()
 endif()
 
 if(WITH_INTERNATIONAL)

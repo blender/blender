@@ -23,6 +23,7 @@ macro(BLENDER_SRC_GTEST_EX NAME SRC EXTRA_LIBS DO_ADD_TEST)
 			${CMAKE_SOURCE_DIR}/extern/glog/src
 			${CMAKE_SOURCE_DIR}/extern/gflags/src
 			${CMAKE_SOURCE_DIR}/extern/gtest/include
+			${CMAKE_SOURCE_DIR}/extern/gmock/include
 		)
 		unset(_current_include_directories)
 
@@ -33,6 +34,7 @@ macro(BLENDER_SRC_GTEST_EX NAME SRC EXTRA_LIBS DO_ADD_TEST)
 		                      bf_testing_main
 		                      bf_intern_guardedalloc
 		                      extern_gtest
+		                      extern_gmock
 		                      # needed for glog
 		                      ${PTHREADS_LIBRARIES}
 		                      extern_glog

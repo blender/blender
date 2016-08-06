@@ -74,9 +74,13 @@ public:
 	device_vector<uint> tri_shader;
 	device_vector<float4> tri_vnormal;
 	device_vector<uint4> tri_vindex;
+	device_vector<uint> tri_patch;
+	device_vector<float2> tri_patch_uv;
 
 	device_vector<float4> curves;
 	device_vector<float4> curve_keys;
+
+	device_vector<uint> patches;
 
 	/* objects */
 	device_vector<float4> objects;

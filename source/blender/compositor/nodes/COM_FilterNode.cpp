@@ -49,7 +49,7 @@ void FilterNode::convertToOperations(NodeConverter &converter, const CompositorC
 			operation->set3x3Filter(-1, -1, -1, -1, 9, -1, -1, -1, -1);
 			break;
 		case CMP_FILT_LAPLACE:
-			operation = new ConvolutionFilterOperation();
+			operation = new ConvolutionEdgeFilterOperation();
 			operation->set3x3Filter(-1 / 8.0f, -1 / 8.0f, -1 / 8.0f, -1 / 8.0f, 1.0f, -1 / 8.0f, -1 / 8.0f, -1 / 8.0f, -1 / 8.0f);
 			break;
 		case CMP_FILT_SOBEL:

@@ -376,7 +376,8 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s,
 		s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 		
 		// current_position = xold + t * (newposition - xold)
-		interp_v3_v3v3(goal_x, verts[s->ij].xold, verts[s->ij].xconst, time);
+		/* divide by time_scale to prevent goal vertices' delta locations from being multiplied */
+		interp_v3_v3v3(goal_x, verts[s->ij].xold, verts[s->ij].xconst, time / parms->time_scale);
 		sub_v3_v3v3(goal_v, verts[s->ij].xconst, verts[s->ij].xold); // distance covered over dt==1
 		
 		scaling = parms->goalspring + s->stiffness * fabsf(parms->max_struct - parms->goalspring);
@@ -1004,6 +1005,8 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 				float v[3];
 				sub_v3_v3v3(v, verts[i].xconst, verts[i].xold);
 				// mul_v3_fl(v, clmd->sim_parms->stepsPerFrame);
+				/* divide by time_scale to prevent constrained velocities from being multiplied */
+				mul_v3_fl(v, 1.0f / clmd->sim_parms->time_scale);
 				BPH_mass_spring_set_velocity(id, i, v);
 			}
 		}
@@ -1070,7 +1073,8 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 			if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) {
 				if (verts[i].flags & CLOTH_VERT_FLAG_PINNED) {
 					float x[3];
-					interp_v3_v3v3(x, verts[i].xold, verts[i].xconst, step + dt);
+					/* divide by time_scale to prevent pinned vertices' delta locations from being multiplied */
+					interp_v3_v3v3(x, verts[i].xold, verts[i].xconst, (step + dt) / clmd->sim_parms->time_scale);
 					BPH_mass_spring_set_position(id, i, x);
 				}
 			}

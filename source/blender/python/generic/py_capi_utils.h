@@ -53,6 +53,7 @@ void            PyC_List_Fill(PyObject *list, PyObject *value);
 PyObject *      PyC_UnicodeFromByte(const char *str);
 PyObject *      PyC_UnicodeFromByteAndSize(const char *str, Py_ssize_t size);
 const char *    PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce); /* coerce must be NULL */
+const char *    PyC_UnicodeAsByteAndSize(PyObject *py_str, Py_ssize_t *size, PyObject **coerce);
 
 /* name namespace function for bpy & bge */
 PyObject *		PyC_DefaultNameSpace(const char *filename);

@@ -18,8 +18,12 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __BAKING__
 
-ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadiance *L, RNG rng,
-                                   int pass_filter, int sample)
+ccl_device_inline void compute_light_pass(KernelGlobals *kg,
+                                          ShaderData *sd,
+                                          PathRadiance *L,
+                                          RNG rng,
+                                          int pass_filter,
+                                          int sample)
 {
 	/* initialize master radiance accumulator */
 	kernel_assert(kernel_data.film.use_light_pass);

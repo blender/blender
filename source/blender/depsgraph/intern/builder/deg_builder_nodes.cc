@@ -46,6 +46,7 @@ extern "C" {
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_cachefile_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
@@ -336,6 +337,14 @@ void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene)
 	/* grease pencil */
 	if (scene->gpd) {
 		build_gpencil(scene->gpd);
+	}
+
+	/* cache files */
+	for (CacheFile *cachefile = static_cast<CacheFile *>(bmain->cachefiles.first);
+	     cachefile;
+	     cachefile = static_cast<CacheFile *>(cachefile->id.next))
+	{
+		build_cachefile(cachefile);
 	}
 }
 
@@ -1210,6 +1219,20 @@ void DepsgraphNodeBuilder::build_gpencil(bGPdata *gpd)
 	 * need to be hosted somewhere...
 	 */
 	build_animdata(gpd_id);
+}
+
+void DepsgraphNodeBuilder::build_cachefile(CacheFile *cache_file)
+{
+	ID *cache_file_id = &cache_file->id;
+
+	add_component_node(cache_file_id, DEPSNODE_TYPE_CACHE);
+
+	add_operation_node(cache_file_id, DEPSNODE_TYPE_CACHE,
+	                   DEPSOP_TYPE_EXEC, NULL,
+	                   DEG_OPCODE_PLACEHOLDER, "Cache File Update");
+
+	add_id_node(cache_file_id);
+	build_animdata(cache_file_id);
 }
 
 }  // namespace DEG

@@ -1025,6 +1025,7 @@ protected:
 	vector<WFace *> _FaceList;
 	int _Id;
 	const char *_Name;
+	const char *_LibraryPath;
 	static unsigned _SceneCurrentId;
 #if 0
 	Vec3f _min;
@@ -1043,6 +1044,8 @@ public:
 #endif
 		_Id = _SceneCurrentId;
 		_SceneCurrentId++;
+		_Name = 0;
+		_LibraryPath = 0;
 	}
 
 	/*! copy constructor */
@@ -1127,6 +1130,11 @@ public:
 		return _Name;
 	}
 
+	inline const char *getLibraryPath() const
+	{
+		return _LibraryPath;
+	}
+
 	/*! modifiers */
 	static inline void setCurrentId(const unsigned id)
 	{
@@ -1174,6 +1182,11 @@ public:
 	inline void setName(const char *name)
 	{
 		_Name = name;
+	}
+
+	inline void setLibraryPath(const char *path)
+	{
+		_LibraryPath = path;
 	}
 
 	/*! designed to build a specialized WFace for use in MakeFace */

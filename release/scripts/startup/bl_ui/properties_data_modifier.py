@@ -151,13 +151,14 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         col.label(text="Operation:")
         col.prop(md, "operation", text="")
-        row = layout.row()
-        row.label("Solver:")
-        row.prop(md, "solver", expand=True)
 
         col = split.column()
         col.label(text="Object:")
         col.prop(md, "object", text="")
+
+        split = layout.split()
+        split.column().label(text="Solver:")
+        split.column().prop(md, "solver", text="")
 
         if md.solver == 'BMESH':
             layout.prop(md, "double_threshold")
@@ -179,6 +180,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
     def MESH_CACHE(self, layout, ob, md):
         layout.prop(md, "cache_format")
         layout.prop(md, "filepath")
+
+        if md.cache_format == 'ABC':
+            layout.prop(md, "sub_object")
 
         layout.label(text="Evaluation:")
         layout.prop(md, "factor", slider=True)
@@ -213,6 +217,22 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split.label(text="Flip Axis:")
         row = split.row()
         row.prop(md, "flip_axis")
+
+    def MESH_SEQUENCE_CACHE(self, layout, ob, md):
+        layout.label(text="Cache File Properties:")
+        box = layout.box()
+        box.template_cache_file(md, "cache_file")
+
+        cache_file = md.cache_file
+
+        layout.label(text="Modifier Properties:")
+        box = layout.box()
+
+        if cache_file is not None:
+            box.prop_search(md, "object_path", cache_file, "object_paths")
+
+        if ob.type == 'MESH':
+            box.row().prop(md, "read_data")
 
     def CAST(self, layout, ob, md):
         split = layout.split(percentage=0.25)
@@ -845,9 +865,21 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         split = layout.split()
         col = split.column()
-        col.label(text="Subdivisions:")
-        col.prop(md, "levels", text="View")
-        col.prop(md, "render_levels", text="Render")
+
+        engine = bpy.context.scene.render.engine
+        if engine == "CYCLES" and md == ob.modifiers[-1] and bpy.context.scene.cycles.feature_set == "EXPERIMENTAL":
+            col.label(text="Preview:")
+            col.prop(md, "levels", text="Levels")
+            col.label(text="Render:")
+            col.prop(ob.cycles, "use_adaptive_subdivision", text="Adaptive")
+            if ob.cycles.use_adaptive_subdivision:
+                col.prop(ob.cycles, "dicing_rate")
+            else:
+                col.prop(md, "render_levels", text="Levels")
+        else:
+            col.label(text="Subdivisions:")
+            col.prop(md, "levels", text="View")
+            col.prop(md, "render_levels", text="Render")
 
         col = split.column()
         col.label(text="Options:")

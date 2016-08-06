@@ -434,7 +434,7 @@ MLoopNorSpace *BKE_lnor_space_create(MLoopNorSpaceArray *lnors_spacearr)
 }
 
 /* This threshold is a bit touchy (usual float precision issue), this value seems OK. */
-#define LNOR_SPACE_TRIGO_THRESHOLD (1.0f - 1e-6f)
+#define LNOR_SPACE_TRIGO_THRESHOLD (1.0f - 1e-4f)
 
 /* Should only be called once.
  * Beware, this modifies ref_vec and other_vec in place!

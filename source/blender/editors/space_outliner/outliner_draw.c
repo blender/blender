@@ -1002,7 +1002,7 @@ static void tselem_draw_icon_uibut(struct DrawIconArg *arg, int icon)
 
 }
 
-static void tselem_draw_gp_icon_uibut(struct DrawIconArg *arg, ID *id, bGPDlayer *gpl)
+static void UNUSED_FUNCTION(tselem_draw_gp_icon_uibut)(struct DrawIconArg *arg, ID *id, bGPDlayer *gpl)
 {
 	/* restrict column clip - skip it for now... */
 	if (arg->x >= arg->xmax) {
@@ -1167,6 +1167,8 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 						UI_icon_draw(x, y, ICON_MOD_TRIANGULATE); break;
 					case eModifierType_MeshCache:
 						UI_icon_draw(x, y, ICON_MOD_MESHDEFORM); break;  /* XXX, needs own icon */
+					case eModifierType_MeshSequenceCache:
+						UI_icon_draw(x, y, ICON_MOD_MESHDEFORM); break;  /* XXX, needs own icon */
 					case eModifierType_Wireframe:
 						UI_icon_draw(x, y, ICON_MOD_WIREFRAME); break;
 					case eModifierType_LaplacianDeform:
@@ -1227,9 +1229,12 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 				else
 					UI_icon_draw(x, y, RNA_struct_ui_icon(te->rnaptr.type));
 				break;
+			/* Removed the icons from outliner. Need a better structure with Layers, Palettes and Colors */
+#if 0
 			case TSE_GP_LAYER:
 				tselem_draw_gp_icon_uibut(&arg, tselem->id, te->directdata);
 				break;
+#endif
 			default:
 				UI_icon_draw(x, y, ICON_DOT); break;
 		}

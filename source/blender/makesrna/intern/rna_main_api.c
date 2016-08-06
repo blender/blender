@@ -525,6 +525,7 @@ RNA_MAIN_ID_TAG_FUNCS_DEF(gpencil, gpencil, ID_GD)
 RNA_MAIN_ID_TAG_FUNCS_DEF(movieclips, movieclip, ID_MC)
 RNA_MAIN_ID_TAG_FUNCS_DEF(masks, mask, ID_MSK)
 RNA_MAIN_ID_TAG_FUNCS_DEF(linestyle, linestyle, ID_LS)
+RNA_MAIN_ID_TAG_FUNCS_DEF(cachefiles, cachefiles, ID_CF)
 
 #undef RNA_MAIN_ID_TAG_FUNCS_DEF
 
@@ -1502,6 +1503,21 @@ void RNA_def_main_palettes(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Main_palettes_is_updated_get", NULL);
 }
+void RNA_def_main_cachefiles(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	RNA_def_property_srna(cprop, "BlendDataCacheFiles");
+	StructRNA *srna = RNA_def_struct(brna, "BlendDataCacheFiles", NULL);
+	RNA_def_struct_sdna(srna, "Main");
+	RNA_def_struct_ui_text(srna, "Main Cache Files", "Collection of cache files");
+
+	FunctionRNA *func = RNA_def_function(srna, "tag", "rna_Main_cachefiles_tag");
+	PropertyRNA *parm = RNA_def_boolean(func, "value", 0, "Value", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	PropertyRNA *prop = RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Main_cachefiles_is_updated_get", NULL);
+}
 void RNA_def_main_gpencil(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
@@ -1518,7 +1534,7 @@ void RNA_def_main_gpencil(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_boolean(func, "value", 0, "Value", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
-	func = RNA_def_function(srna, "new", "gpencil_data_addnew");
+	func = RNA_def_function(srna, "new", "BKE_gpencil_data_addnew");
 	RNA_def_function_flag(func, FUNC_NO_SELF);
 	parm = RNA_def_string(func, "name", "GreasePencil", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);

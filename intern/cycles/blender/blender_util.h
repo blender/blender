@@ -45,14 +45,39 @@ static inline BL::Mesh object_to_mesh(BL::BlendData& data,
                                       BL::Scene& scene,
                                       bool apply_modifiers,
                                       bool render,
-                                      bool calc_undeformed)
+                                      bool calc_undeformed,
+                                      bool subdivision)
 {
+	bool subsurf_mod_show_render;
+	bool subsurf_mod_show_viewport;
+
+	if(subdivision) {
+		BL::Modifier subsurf_mod = object.modifiers[object.modifiers.length()-1];
+
+		subsurf_mod_show_render = subsurf_mod.show_render();
+		subsurf_mod_show_viewport = subsurf_mod.show_render();
+
+		subsurf_mod.show_render(false);
+		subsurf_mod.show_viewport(false);
+
+	}
+
 	BL::Mesh me = data.meshes.new_from_object(scene, object, apply_modifiers, (render)? 2: 1, false, calc_undeformed);
+
+	if(subdivision) {
+		BL::Modifier subsurf_mod = object.modifiers[object.modifiers.length()-1];
+
+		subsurf_mod.show_render(subsurf_mod_show_render);
+		subsurf_mod.show_viewport(subsurf_mod_show_viewport);
+	}
+
 	if((bool)me) {
 		if(me.use_auto_smooth()) {
 			me.calc_normals_split();
 		}
-		me.calc_tessface(true);
+		if(!subdivision) {
+			me.calc_tessface(true);
+		}
 	}
 	return me;
 }

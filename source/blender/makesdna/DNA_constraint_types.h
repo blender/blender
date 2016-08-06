@@ -458,6 +458,12 @@ typedef struct bObjectSolverConstraint {
 	struct Object *camera;
 } bObjectSolverConstraint;
 
+/* Transform matrix cache constraint */
+typedef struct bTransformCacheConstraint {
+	struct CacheFile *cache_file;
+	char object_path[1024];  /* FILE_MAX */
+} bTransformCacheConstraint;
+
 /* ------------------------------------------ */
 
 /* bConstraint->type 
@@ -494,6 +500,7 @@ typedef enum eBConstraint_Types {
 	CONSTRAINT_TYPE_FOLLOWTRACK = 26,		/* Follow Track Constraint */
 	CONSTRAINT_TYPE_CAMERASOLVER = 27,		/* Camera Solver Constraint */
 	CONSTRAINT_TYPE_OBJECTSOLVER = 28,		/* Object Solver Constraint */
+	CONSTRAINT_TYPE_TRANSFORM_CACHE = 29,	/* Transform Cache Constraint */
 	
 	/* NOTE: no constraints are allowed to be added after this */
 	NUM_CONSTRAINT_TYPES

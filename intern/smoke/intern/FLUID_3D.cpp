@@ -993,6 +993,9 @@ void FLUID_3D::project()
 
 	copyBorderAll(_pressure, 0, _zRes);
 
+	// fix fluid compression caused in isolated components by obstacle movement
+	fixObstacleCompression(_divergence);
+
 	// solve Poisson equation
 	solvePressurePre(_pressure, _divergence, _obstacles);
 
@@ -1289,6 +1292,142 @@ void FLUID_3D::setObstacleBoundaries(float *_pressure, int zBegin, int zEnd)
 		}	// y-loop
 		//vIndex += 2* _xRes;
 	}	// z-loop
+}
+
+void FLUID_3D::floodFillComponent(int *buffer, size_t *queue, size_t limit, size_t pos, int from, int to)
+{
+	/* Flood 'from' cells with 'to' in the grid. Rely on (from != 0 && from != to && edges == 0) to stop. */
+	int offsets[] = { -1, +1, -_xRes, +_xRes, -_slabSize, +_slabSize };
+	size_t qend = 0;
+
+	buffer[pos] = to;
+	queue[qend++] = pos;
+
+	for (size_t qidx = 0; qidx < qend; qidx++)
+	{
+		pos = queue[qidx];
+
+		for (int i = 0; i < 6; i++)
+		{
+			size_t next = pos + offsets[i];
+
+			if (next < limit && buffer[next] == from)
+			{
+				buffer[next] = to;
+				queue[qend++] = next;
+			}
+		}
+	}
+}
+
+void FLUID_3D::mergeComponents(int *buffer, size_t *queue, size_t cur, size_t other)
+{
+	/* Replace higher value with lower. */
+	if (buffer[other] < buffer[cur])
+	{
+		floodFillComponent(buffer, queue, cur, cur, buffer[cur], buffer[other]);
+	}
+	else if (buffer[cur] < buffer[other])
+	{
+		floodFillComponent(buffer, queue, cur, other, buffer[other], buffer[cur]);
+	}
+}
+
+void FLUID_3D::fixObstacleCompression(float *divergence)
+{
+	int x, y, z;
+	size_t index;
+
+	/* Find compartments completely separated by obstacles.
+	 * Edge of the domain is automatically component 0. */
+	int *component = new int[_totalCells];
+	size_t *queue = new size_t[_totalCells];
+
+	memset(component, 0, sizeof(int) * _totalCells);
+
+	int next_id = 1;
+
+	for (z = 1, index = _slabSize + _xRes + 1; z < _zRes - 1; z++, index += 2 * _xRes)
+	{
+		for (y = 1; y < _yRes - 1; y++, index += 2)
+		{
+			for (x = 1; x < _xRes - 1; x++, index++)
+			{
+				if(!_obstacles[index])
+				{
+					/* Check for connection to the domain edge at iteration end. */
+					if ((x == _xRes-2 && !_obstacles[index + 1]) ||
+					    (y == _yRes-2 && !_obstacles[index + _xRes]) ||
+					    (z == _zRes-2 && !_obstacles[index + _slabSize]))
+					{
+						component[index] = 0;
+					}
+					else {
+						component[index] = next_id;
+					}
+
+					if (!_obstacles[index - 1])
+						mergeComponents(component, queue, index, index - 1);
+					if (!_obstacles[index - _xRes])
+						mergeComponents(component, queue, index, index - _xRes);
+					if (!_obstacles[index - _slabSize])
+						mergeComponents(component, queue, index, index - _slabSize);
+
+					if (component[index] == next_id)
+						next_id++;
+				}
+			}
+		}
+	}
+
+	delete[] queue;
+
+	/* Compute average divergence within each component. */
+	float *total_divergence = new float[next_id];
+	int *component_size = new int[next_id];
+
+	memset(total_divergence, 0, sizeof(float) * next_id);
+	memset(component_size, 0, sizeof(int) * next_id);
+
+	for (z = 1, index = _slabSize + _xRes + 1; z < _zRes - 1; z++, index += 2 * _xRes)
+	{
+		for (y = 1; y < _yRes - 1; y++, index += 2)
+		{
+			for (x = 1; x < _xRes - 1; x++, index++)
+			{
+				if(!_obstacles[index])
+				{
+					int ci = component[index];
+
+					component_size[ci]++;
+					total_divergence[ci] += divergence[index];
+				}
+			}
+		}
+	}
+
+	/* Adjust divergence to make the average zero in each component except the edge. */
+	total_divergence[0] = 0.0f;
+
+	for (z = 1, index = _slabSize + _xRes + 1; z < _zRes - 1; z++, index += 2 * _xRes)
+	{
+		for (y = 1; y < _yRes - 1; y++, index += 2)
+		{
+			for (x = 1; x < _xRes - 1; x++, index++)
+			{
+				if(!_obstacles[index])
+				{
+					int ci = component[index];
+
+					divergence[index] -= total_divergence[ci] / component_size[ci];
+				}
+			}
+		}
+	}
+
+	delete[] component;
+	delete[] component_size;
+	delete[] total_divergence;
 }
 
 //////////////////////////////////////////////////////////////////////

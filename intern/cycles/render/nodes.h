@@ -350,6 +350,7 @@ public:
 	float roughness, anisotropy, rotation;
 	ClosureType distribution;
 
+	ClosureType get_closure_type() { return distribution; }
 	void attributes(Shader *shader, AttributeRequestSet *attributes);
 };
 
@@ -385,6 +386,7 @@ public:
 
 	void simplify_settings(Scene *scene);
 	bool has_integrator_dependency();
+	ClosureType get_closure_type() { return distribution; }
 
 	float roughness;
 	ClosureType distribution, distribution_orig;
@@ -396,6 +398,7 @@ public:
 
 	void simplify_settings(Scene *scene);
 	bool has_integrator_dependency();
+	ClosureType get_closure_type() { return distribution; }
 
 	float roughness, IOR;
 	ClosureType distribution, distribution_orig;
@@ -407,6 +410,7 @@ public:
 
 	void simplify_settings(Scene *scene);
 	bool has_integrator_dependency();
+	ClosureType get_closure_type() { return distribution; }
 
 	float roughness, IOR;
 	ClosureType distribution, distribution_orig;
@@ -425,6 +429,7 @@ public:
 	SHADER_NODE_CLASS(SubsurfaceScatteringNode)
 	bool has_surface_bssrdf() { return true; }
 	bool has_bssrdf_bump();
+	ClosureType get_closure_type() { return falloff; }
 
 	float scale;
 	float3 radius;
@@ -519,6 +524,7 @@ public:
 class HairBsdfNode : public BsdfNode {
 public:
 	SHADER_NODE_CLASS(HairBsdfNode)
+	ClosureType get_closure_type() { return component; }
 
 	ClosureType component;
 	float offset;
@@ -883,28 +889,32 @@ public:
 
 	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
 
-	bool has_spatial_varying() { return true; }
-	void compile(SVMCompiler& compiler, int type, ShaderInput *value_in, ShaderOutput *value_out);
-	void compile(OSLCompiler& compiler, const char *name);
-
 	array<float3> curves;
 	float min_x, max_x, fac;
 	float3 value;
+
+protected:
+	void constant_fold(const ConstantFolder& folder, ShaderInput *value_in);
+	void compile(SVMCompiler& compiler, int type, ShaderInput *value_in, ShaderOutput *value_out);
+	void compile(OSLCompiler& compiler, const char *name);
 };
 
 class RGBCurvesNode : public CurvesNode {
 public:
 	SHADER_NODE_CLASS(RGBCurvesNode)
+	void constant_fold(const ConstantFolder& folder);
 };
 
 class VectorCurvesNode : public CurvesNode {
 public:
 	SHADER_NODE_CLASS(VectorCurvesNode)
+	void constant_fold(const ConstantFolder& folder);
 };
 
 class RGBRampNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(RGBRampNode)
+	void constant_fold(const ConstantFolder& folder);
 	virtual int get_group() { return NODE_GROUP_LEVEL_1; }
 
 	array<float3> ramp;

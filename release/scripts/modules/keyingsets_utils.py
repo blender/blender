@@ -28,7 +28,7 @@ __all__ = (
     "RKS_POLL_selected_objects",
     "RKS_POLL_selected_bones",
     "RKS_POLL_selected_items",
-    "RKS_ITER_selected_object",
+    "RKS_ITER_selected_objects",
     "RKS_ITER_selected_bones",
     "RKS_ITER_selected_item",
     "RKS_GEN_available",
@@ -238,6 +238,7 @@ bbone_property_ids = (
     "bone.bbone_in",
     "bone.bbone_out",
 )
+
 
 # Add Keying Set entries for bendy bones
 def RKS_GEN_bendy_bones(ksi, context, ks, data):

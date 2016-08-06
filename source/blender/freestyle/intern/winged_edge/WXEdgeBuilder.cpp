@@ -42,6 +42,7 @@ void WXEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet& ifs)
 	}
 	shape->setId(ifs.getId().getFirst());
 	shape->setName(ifs.getName());
+	shape->setLibraryPath(ifs.getLibraryPath());
 	//ifs.setId(shape->GetId());
 }
 

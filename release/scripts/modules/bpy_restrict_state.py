@@ -24,7 +24,7 @@ This module contains RestrictBlend context manager.
 
 __all__ = (
     "RestrictBlend",
-    )
+)
 
 import bpy as _bpy
 

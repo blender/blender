@@ -742,17 +742,18 @@ void assign_material(Object *ob, Material *ma, short act, int assign_type)
 		if (mao)
 			id_us_min(&mao->id);
 		ob->mat[act - 1] = ma;
+		test_object_materials(ob, ob->data);
 	}
 	else {  /* in data */
 		mao = (*matarar)[act - 1];
 		if (mao)
 			id_us_min(&mao->id);
 		(*matarar)[act - 1] = ma;
+		test_all_objects_materials(G.main, ob->data);  /* Data may be used by several objects... */
 	}
 
 	if (ma)
 		id_us_plus(&ma->id);
-	test_object_materials(ob, ob->data);
 }
 
 

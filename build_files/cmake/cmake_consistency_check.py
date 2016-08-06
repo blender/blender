@@ -29,11 +29,11 @@ if not sys.version.startswith("3"):
     sys.exit(1)
 
 from cmake_consistency_check_config import (
-        IGNORE,
-        UTF8_CHECK,
-        SOURCE_DIR,
-        BUILD_DIR,
-        )
+    IGNORE,
+    UTF8_CHECK,
+    SOURCE_DIR,
+    BUILD_DIR,
+)
 
 
 import os

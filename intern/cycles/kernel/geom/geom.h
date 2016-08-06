@@ -18,6 +18,7 @@
 #include "geom_attribute.h"
 #include "geom_object.h"
 #include "geom_triangle.h"
+#include "geom_subd_triangle.h"
 #include "geom_triangle_intersect.h"
 #include "geom_motion_triangle.h"
 #include "geom_motion_curve.h"

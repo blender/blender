@@ -1943,6 +1943,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 		sc = ED_screen_add(win, oldscreen->scene, newname);
 		sc->state = state;
 		sc->redraws_flag = oldscreen->redraws_flag;
+		sc->temp = oldscreen->temp;
 
 		/* timer */
 		sc->animtimer = oldscreen->animtimer;

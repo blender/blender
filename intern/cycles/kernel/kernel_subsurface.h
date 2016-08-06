@@ -85,7 +85,16 @@ ccl_device ShaderClosure *subsurface_scatter_pick_closure(KernelGlobals *kg, Sha
 	return NULL;
 }
 
-ccl_device float3 subsurface_scatter_eval(ShaderData *sd, ShaderClosure *sc, float disk_r, float r, bool all)
+#ifndef __KERNEL_GPU__
+ccl_device_noinline
+#else
+ccl_device_inline
+#endif
+float3 subsurface_scatter_eval(ShaderData *sd,
+                               ShaderClosure *sc,
+                               float disk_r,
+                               float r,
+                               bool all)
 {
 #ifdef BSSRDF_MULTI_EVAL
 	/* this is the veach one-sample model with balance heuristic, some pdf
@@ -140,24 +149,21 @@ ccl_device void subsurface_scatter_setup_diffuse_bsdf(ShaderData *sd, float3 wei
 {
 	sd->flag &= ~SD_CLOSURE_FLAGS;
 	sd->randb_closure = 0.0f;
+	sd->num_closure = 0;
+	sd->num_closure_extra = 0;
 
 	if(hit) {
-		ShaderClosure *sc = &sd->closure[0];
-		sd->num_closure = 1;
+		DiffuseBsdf *bsdf = (DiffuseBsdf*)bsdf_alloc(sd, sizeof(DiffuseBsdf), weight);
 
-		sc->weight = weight;
-		sc->sample_weight = 1.0f;
-		sc->data0 = 0.0f;
-		sc->data1 = 0.0f;
-		sc->N = N;
-		sd->flag |= bsdf_diffuse_setup(sc);
+		if(bsdf) {
+			bsdf->N = N;
+			sd->flag |= bsdf_diffuse_setup(bsdf);
 
-		/* replace CLOSURE_BSDF_DIFFUSE_ID with this special ID so render passes
-		 * can recognize it as not being a regular diffuse closure */
-		sc->type = CLOSURE_BSDF_BSSRDF_ID;
+			/* replace CLOSURE_BSDF_DIFFUSE_ID with this special ID so render passes
+			 * can recognize it as not being a regular diffuse closure */
+			bsdf->type = CLOSURE_BSDF_BSSRDF_ID;
+		}
 	}
-	else
-		sd->num_closure = 0;
 }
 
 /* optionally do blurring of color and/or bump mapping, at the cost of a shader evaluation */
@@ -217,7 +223,12 @@ ccl_device void subsurface_color_bump_blur(KernelGlobals *kg,
 /* Subsurface scattering step, from a point on the surface to other
  * nearby points on the same object.
  */
-ccl_device int subsurface_scatter_multi_intersect(
+#ifndef __KERNEL_CUDA__
+ccl_device
+#else
+ccl_device_inline
+#endif
+int subsurface_scatter_multi_intersect(
         KernelGlobals *kg,
         SubsurfaceIntersection* ss_isect,
         ShaderData *sd,

@@ -44,6 +44,8 @@
 
 #include "bpy_rna_driver.h"  /* for pyrna_driver_get_variable_value */
 
+#include "bpy_intern_string.h"
+
 #include "bpy_driver.h"
 
 extern void BPY_update_rna_module(void);
@@ -97,26 +99,48 @@ int bpy_pydriver_create_dict(void)
 }
 
 /* note, this function should do nothing most runs, only when changing frame */
-static PyObject *bpy_pydriver_InternStr__frame = NULL;
 /* not thread safe but neither is python */
-static float bpy_pydriver_evaltime_prev = FLT_MAX;
+static struct {
+	float evaltime;
 
-static void bpy_pydriver_update_dict(const float evaltime)
+	/* borrowed reference to the 'self' in 'bpy_pydriver_Dict'
+	 * keep for as long as the same self is used. */
+	PyObject *self;
+} g_pydriver_state_prev = {
+	.evaltime = FLT_MAX,
+	.self = NULL,
+};
+
+static void bpy_pydriver_namespace_update_frame(const float evaltime)
 {
-	if (bpy_pydriver_evaltime_prev != evaltime) {
-
-		/* currently only update the frame */
-		if (bpy_pydriver_InternStr__frame == NULL) {
-			bpy_pydriver_InternStr__frame = PyUnicode_FromString("frame");
-		}
-
+	if (g_pydriver_state_prev.evaltime != evaltime) {
 		PyObject *item = PyFloat_FromDouble(evaltime);
-		PyDict_SetItem(bpy_pydriver_Dict,
-		               bpy_pydriver_InternStr__frame,
-		               item);
+		PyDict_SetItem(bpy_pydriver_Dict, bpy_intern_str_frame, item);
 		Py_DECREF(item);
 
-		bpy_pydriver_evaltime_prev = evaltime;
+		g_pydriver_state_prev.evaltime = evaltime;
+	}
+}
+
+static void bpy_pydriver_namespace_update_self(struct PathResolvedRNA *anim_rna)
+{
+	if ((g_pydriver_state_prev.self == NULL) ||
+	    (pyrna_driver_is_equal_anim_rna(anim_rna, g_pydriver_state_prev.self) == false))
+	{
+		PyObject *item = pyrna_driver_self_from_anim_rna(anim_rna);
+		PyDict_SetItem(bpy_pydriver_Dict, bpy_intern_str_self, item);
+		Py_DECREF(item);
+
+		g_pydriver_state_prev.self = item;
+	}
+}
+
+static void bpy_pydriver_namespace_clear_self(void)
+{
+	if (g_pydriver_state_prev.self) {
+		PyDict_DelItem(bpy_pydriver_Dict, bpy_intern_str_self);
+
+		g_pydriver_state_prev.self = NULL;
 	}
 }
 
@@ -139,11 +163,10 @@ void BPY_driver_reset(void)
 		bpy_pydriver_Dict = NULL;
 	}
 
-	if (bpy_pydriver_InternStr__frame) {
-		Py_DECREF(bpy_pydriver_InternStr__frame);
-		bpy_pydriver_InternStr__frame = NULL;
-		bpy_pydriver_evaltime_prev = FLT_MAX;
-	}
+	g_pydriver_state_prev.evaltime = FLT_MAX;
+
+	/* freed when clearing driver dict */
+	g_pydriver_state_prev.self = NULL;
 
 	if (use_gil)
 		PyGILState_Release(gilstate);
@@ -174,7 +197,7 @@ static void pydriver_error(ChannelDriver *driver)
  * now release the GIL on python operator execution instead, using
  * PyEval_SaveThread() / PyEval_RestoreThread() so we don't lock up blender.
  */
-float BPY_driver_exec(ChannelDriver *driver, const float evaltime)
+float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, const float evaltime)
 {
 	PyObject *driver_vars = NULL;
 	PyObject *retval = NULL;
@@ -224,8 +247,14 @@ float BPY_driver_exec(ChannelDriver *driver, const float evaltime)
 	}
 
 	/* update global namespace */
-	bpy_pydriver_update_dict(evaltime);
+	bpy_pydriver_namespace_update_frame(evaltime);
 
+	if (driver->flag & DRIVER_FLAG_USE_SELF) {
+		bpy_pydriver_namespace_update_self(anim_rna);
+	}
+	else {
+		bpy_pydriver_namespace_clear_self();
+	}
 
 	if (driver->expr_comp == NULL)
 		driver->flag |= DRIVER_FLAG_RECOMPILE;
@@ -264,7 +293,7 @@ float BPY_driver_exec(ChannelDriver *driver, const float evaltime)
 	}
 
 	/* add target values to a dict that will be used as '__locals__' dict */
-	driver_vars = PyDict_New();
+	driver_vars = _PyDict_NewPresized(PyTuple_GET_SIZE(expr_vars));
 	for (dvar = driver->variables.first, i = 0; dvar; dvar = dvar->next) {
 		PyObject *driver_arg = NULL;
 

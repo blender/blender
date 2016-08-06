@@ -209,57 +209,73 @@ void LightManager::disable_ineffective_light(Device *device, Scene *scene)
 	}
 }
 
+bool LightManager::object_usable_as_light(Object *object) {
+	Mesh *mesh = object->mesh;
+	/* Skip if we are not visible for BSDFs. */
+	if(!(object->visibility & (PATH_RAY_DIFFUSE|PATH_RAY_GLOSSY|PATH_RAY_TRANSMIT))) {
+		return false;
+	}
+	/* Skip motion blurred deforming meshes, not supported yet. */
+	if(mesh->has_motion_blur()) {
+		return false;
+	}
+	/* Skip if we have no emission shaders. */
+	/* TODO(sergey): Ideally we want to avoid such duplicated loop, since it'll
+	 * iterate all mesh shaders twice (when counting and when calculating
+	 * triangle area.
+	 */
+	foreach(const Shader *shader, mesh->used_shaders) {
+		if(shader->use_mis && shader->has_surface_emission) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void LightManager::device_update_distribution(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
 	progress.set_status("Updating Lights", "Computing distribution");
 
 	/* count */
 	size_t num_lights = 0;
+	size_t num_portals = 0;
 	size_t num_background_lights = 0;
 	size_t num_triangles = 0;
 
 	bool background_mis = false;
 
 	foreach(Light *light, scene->lights) {
-		if(light->is_enabled)
+		if(light->is_enabled) {
 			num_lights++;
+		}
+		if(light->is_portal) {
+			num_portals++;
+		}
 	}
 
 	foreach(Object *object, scene->objects) {
-		Mesh *mesh = object->mesh;
-		bool have_emission = false;
+		if(progress.get_cancel()) return;
 
-		/* skip if we are not visible for BSDFs */
-		if(!(object->visibility & (PATH_RAY_DIFFUSE|PATH_RAY_GLOSSY|PATH_RAY_TRANSMIT)))
+		if(!object_usable_as_light(object)) {
 			continue;
-
-		/* skip motion blurred deforming meshes, not supported yet */
-		if(mesh->has_motion_blur())
-			continue;
-
-		/* skip if we have no emission shaders */
-		foreach(Shader *shader, mesh->used_shaders) {
-			if(shader->use_mis && shader->has_surface_emission) {
-				have_emission = true;
-				break;
-			}
 		}
+		/* Count triangles. */
+		Mesh *mesh = object->mesh;
+		size_t mesh_num_triangles = mesh->num_triangles();
+		for(size_t i = 0; i < mesh_num_triangles; i++) {
+			int shader_index = mesh->shader[i];
+			Shader *shader = (shader_index < mesh->used_shaders.size())
+			                         ? mesh->used_shaders[shader_index]
+			                         : scene->default_surface;
 
-		/* count triangles */
-		if(have_emission) {
-			size_t mesh_num_triangles = mesh->num_triangles();
-			for(size_t i = 0; i < mesh_num_triangles; i++) {
-				int shader_index = mesh->shader[i];
-				Shader *shader = (shader_index < mesh->used_shaders.size()) ?
-					mesh->used_shaders[shader_index] : scene->default_surface;
-
-				if(shader->use_mis && shader->has_surface_emission)
-					num_triangles++;
+			if(shader->use_mis && shader->has_surface_emission) {
+				num_triangles++;
 			}
 		}
 	}
 
 	size_t num_distribution = num_triangles + num_lights;
+	VLOG(1) << "Total " << num_distribution << " of light distribution primitives.";
 
 	/* emission area */
 	float4 *distribution = dscene->light_distribution.resize(num_distribution + 1);
@@ -270,86 +286,67 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 	int j = 0;
 
 	foreach(Object *object, scene->objects) {
-		Mesh *mesh = object->mesh;
-		bool have_emission = false;
-
-		/* skip if we are not visible for BSDFs */
-		if(!(object->visibility & (PATH_RAY_DIFFUSE|PATH_RAY_GLOSSY|PATH_RAY_TRANSMIT))) {
-			j++;
-			continue;
-		}
-
-		/* skip motion blurred deforming meshes, not supported yet */
-		if(mesh->has_motion_blur()) {
-			j++;
-			continue;
-		}
-
-		/* skip if we have no emission shaders */
-		foreach(Shader *shader, mesh->used_shaders) {
-			if(shader->use_mis && shader->has_surface_emission) {
-				have_emission = true;
-				break;
-			}
-		}
-
-		/* sum area */
-		if(have_emission) {
-			bool transform_applied = mesh->transform_applied;
-			Transform tfm = object->tfm;
-			int object_id = j;
-			int shader_flag = 0;
-
-			if(transform_applied)
-				object_id = ~object_id;
-
-			if(!(object->visibility & PATH_RAY_DIFFUSE)) {
-				shader_flag |= SHADER_EXCLUDE_DIFFUSE;
-				use_light_visibility = true;
-			}
-			if(!(object->visibility & PATH_RAY_GLOSSY)) {
-				shader_flag |= SHADER_EXCLUDE_GLOSSY;
-				use_light_visibility = true;
-			}
-			if(!(object->visibility & PATH_RAY_TRANSMIT)) {
-				shader_flag |= SHADER_EXCLUDE_TRANSMIT;
-				use_light_visibility = true;
-			}
-			if(!(object->visibility & PATH_RAY_VOLUME_SCATTER)) {
-				shader_flag |= SHADER_EXCLUDE_SCATTER;
-				use_light_visibility = true;
-			}
-
-			size_t mesh_num_triangles = mesh->num_triangles();
-			for(size_t i = 0; i < mesh_num_triangles; i++) {
-				int shader_index = mesh->shader[i];
-				Shader *shader = (shader_index < mesh->used_shaders.size()) ?
-					mesh->used_shaders[shader_index] : scene->default_surface;
-
-				if(shader->use_mis && shader->has_surface_emission) {
-					distribution[offset].x = totarea;
-					distribution[offset].y = __int_as_float(i + mesh->tri_offset);
-					distribution[offset].z = __int_as_float(shader_flag);
-					distribution[offset].w = __int_as_float(object_id);
-					offset++;
-
-					Mesh::Triangle t = mesh->get_triangle(i);
-					float3 p1 = mesh->verts[t.v[0]];
-					float3 p2 = mesh->verts[t.v[1]];
-					float3 p3 = mesh->verts[t.v[2]];
-
-					if(!transform_applied) {
-						p1 = transform_point(&tfm, p1);
-						p2 = transform_point(&tfm, p2);
-						p3 = transform_point(&tfm, p3);
-					}
-
-					totarea += triangle_area(p1, p2, p3);
-				}
-			}
-		}
-
 		if(progress.get_cancel()) return;
+
+		if(!object_usable_as_light(object)) {
+			j++;
+			continue;
+		}
+		/* Sum area. */
+		Mesh *mesh = object->mesh;
+		bool transform_applied = mesh->transform_applied;
+		Transform tfm = object->tfm;
+		int object_id = j;
+		int shader_flag = 0;
+
+		if(transform_applied)
+			object_id = ~object_id;
+
+		if(!(object->visibility & PATH_RAY_DIFFUSE)) {
+			shader_flag |= SHADER_EXCLUDE_DIFFUSE;
+			use_light_visibility = true;
+		}
+		if(!(object->visibility & PATH_RAY_GLOSSY)) {
+			shader_flag |= SHADER_EXCLUDE_GLOSSY;
+			use_light_visibility = true;
+		}
+		if(!(object->visibility & PATH_RAY_TRANSMIT)) {
+			shader_flag |= SHADER_EXCLUDE_TRANSMIT;
+			use_light_visibility = true;
+		}
+		if(!(object->visibility & PATH_RAY_VOLUME_SCATTER)) {
+			shader_flag |= SHADER_EXCLUDE_SCATTER;
+			use_light_visibility = true;
+		}
+
+		size_t mesh_num_triangles = mesh->num_triangles();
+		for(size_t i = 0; i < mesh_num_triangles; i++) {
+			int shader_index = mesh->shader[i];
+			Shader *shader = (shader_index < mesh->used_shaders.size())
+			                         ? mesh->used_shaders[shader_index]
+			                         : scene->default_surface;
+
+			if(shader->use_mis && shader->has_surface_emission) {
+				distribution[offset].x = totarea;
+				distribution[offset].y = __int_as_float(i + mesh->tri_offset);
+				distribution[offset].z = __int_as_float(shader_flag);
+				distribution[offset].w = __int_as_float(object_id);
+				offset++;
+
+				Mesh::Triangle t = mesh->get_triangle(i);
+				float3 p1 = mesh->verts[t.v[0]];
+				float3 p2 = mesh->verts[t.v[1]];
+				float3 p3 = mesh->verts[t.v[2]];
+
+				if(!transform_applied) {
+					p1 = transform_point(&tfm, p1);
+					p2 = transform_point(&tfm, p2);
+					p3 = transform_point(&tfm, p3);
+				}
+
+				totarea += triangle_area(p1, p2, p3);
+			}
+		}
 
 		j++;
 	}
@@ -443,9 +440,9 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 		device->tex_alloc("__light_distribution", dscene->light_distribution);
 
 		/* Portals */
-		if(num_background_lights > 0 && light_index != num_lights) {
+		if(num_portals > 0) {
 			kintegrator->portal_offset = light_index;
-			kintegrator->num_portals = num_lights - light_index;
+			kintegrator->num_portals = num_portals;
 			kintegrator->portal_pdf = background_mis? 0.5f: 1.0f;
 		}
 		else {
@@ -609,19 +606,20 @@ void LightManager::device_update_points(Device *device,
                                         Scene *scene)
 {
 	int num_scene_lights = scene->lights.size();
-	int num_lights = 0;
 
+	int num_lights = 0;
 	foreach(Light *light, scene->lights) {
-		if(light->is_enabled) {
+		if(light->is_enabled || light->is_portal) {
 			num_lights++;
 		}
 	}
 
-
 	float4 *light_data = dscene->light_data.resize(num_lights*LIGHT_SIZE);
 
-	if(num_lights == 0)
+	if(num_lights == 0) {
+		VLOG(1) << "No effective light, ignoring points update.";
 		return;
+	}
 
 	int light_index = 0;
 

@@ -52,6 +52,7 @@ EnumPropertyItem rna_enum_id_type_items[] = {
 	{ID_AR, "ARMATURE", ICON_ARMATURE_DATA, "Armature", ""},
 	{ID_BR, "BRUSH", ICON_BRUSH_DATA, "Brush", ""},
 	{ID_CA, "CAMERA", ICON_CAMERA_DATA, "Camera", ""},
+	{ID_CF, "CACHEFILE", ICON_FILE, "Cache File", ""},
 	{ID_CU, "CURVE", ICON_CURVE_DATA, "Curve", ""},
 	{ID_VF, "FONT", ICON_FONT_DATA, "Font", ""},
 	{ID_GD, "GREASEPENCIL", ICON_GREASEPENCIL, "Grease Pencil", ""},
@@ -138,6 +139,7 @@ short RNA_type_to_ID_code(StructRNA *type)
 	if (RNA_struct_is_a(type, &RNA_Action)) return ID_AC;
 	if (RNA_struct_is_a(type, &RNA_Armature)) return ID_AR;
 	if (RNA_struct_is_a(type, &RNA_Brush)) return ID_BR;
+	if (RNA_struct_is_a(type, &RNA_CacheFile)) return ID_CF;
 	if (RNA_struct_is_a(type, &RNA_Camera)) return ID_CA;
 	if (RNA_struct_is_a(type, &RNA_Curve)) return ID_CU;
 	if (RNA_struct_is_a(type, &RNA_GreasePencil)) return ID_GD;
@@ -177,6 +179,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
 		case ID_AR: return &RNA_Armature;
 		case ID_BR: return &RNA_Brush;
 		case ID_CA: return &RNA_Camera;
+		case ID_CF: return &RNA_CacheFile;
 		case ID_CU: return &RNA_Curve;
 		case ID_GD: return &RNA_GreasePencil;
 		case ID_GR: return &RNA_Group;

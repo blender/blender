@@ -296,6 +296,19 @@ static PyObject *ViewShape_name_get(BPy_ViewShape *self, void *UNUSED(closure))
 	return PyUnicode_FromString(self->vs->getName());
 }
 
+PyDoc_STRVAR(ViewShape_library_path_doc,
+"The library path of the ViewShape.\n"
+"\n"
+":type: str, or None if the ViewShape is not part of a library");
+
+static PyObject *ViewShape_library_path_get(BPy_ViewShape *self, void *UNUSED(closure))
+{
+	const char *name = self->vs->getLibraryPath();
+	if (!name)
+		Py_RETURN_NONE;
+	return PyUnicode_FromString(name);
+}
+
 PyDoc_STRVAR(ViewShape_id_doc,
 "The Id of this ViewShape.\n"
 "\n"
@@ -313,6 +326,7 @@ static PyGetSetDef BPy_ViewShape_getseters[] = {
 	                     (char *)ViewShape_vertices_doc, NULL},
 	{(char *)"edges", (getter)ViewShape_edges_get, (setter)ViewShape_edges_set, (char *)ViewShape_edges_doc, NULL},
 	{(char *)"name", (getter)ViewShape_name_get, (setter)NULL, (char *)ViewShape_name_doc, NULL},
+	{(char *)"library_path", (getter)ViewShape_library_path_get, (setter)NULL, (char *)ViewShape_library_path_doc, NULL},
 	{(char *)"id", (getter)ViewShape_id_get, (setter)NULL, (char *)ViewShape_id_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };

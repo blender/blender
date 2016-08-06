@@ -32,7 +32,7 @@ USE_QUIET = (os.environ.get("QUIET", None) is not None)
 CHECKER_IGNORE_PREFIX = [
     "extern",
     "intern/moto",
-    ]
+]
 
 CHECKER_BIN = "python2"
 
@@ -42,7 +42,7 @@ CHECKER_ARGS = [
     "-I" + os.path.join(project_source_info.SOURCE_DIR, "extern", "glew", "include"),
     # stupid but needed
     "-Dbool=char"
-    ]
+]
 
 
 def main():

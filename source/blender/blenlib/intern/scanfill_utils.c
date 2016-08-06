@@ -257,7 +257,7 @@ static bool scanfill_preprocess_self_isect(
 
 				if (UNLIKELY(e_ls == NULL)) {
 					/* only happens in very rare cases (entirely overlapping splines).
-					 * in this case se can't do much useful. but at least don't crash */
+					 * in this case we can't do much useful. but at least don't crash */
 					continue;
 				}
 

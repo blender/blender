@@ -35,29 +35,49 @@
 
 CCL_NAMESPACE_BEGIN
 
+typedef ccl_addr_space struct HairBsdf {
+	SHADER_CLOSURE_BASE;
 
-ccl_device int bsdf_hair_reflection_setup(ShaderClosure *sc)
+	float3 T;
+	float roughness1;
+	float roughness2;
+	float offset;
+} HairBsdf;
+
+ccl_device int bsdf_hair_reflection_setup(HairBsdf *bsdf)
 {
-	sc->type = CLOSURE_BSDF_HAIR_REFLECTION_ID;
-	sc->data0 = clamp(sc->data0, 0.001f, 1.0f);
-	sc->data1 = clamp(sc->data1, 0.001f, 1.0f);
+	bsdf->type = CLOSURE_BSDF_HAIR_REFLECTION_ID;
+	bsdf->roughness1 = clamp(bsdf->roughness1, 0.001f, 1.0f);
+	bsdf->roughness2 = clamp(bsdf->roughness2, 0.001f, 1.0f);
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
-ccl_device int bsdf_hair_transmission_setup(ShaderClosure *sc)
+ccl_device int bsdf_hair_transmission_setup(HairBsdf *bsdf)
 {
-	sc->type = CLOSURE_BSDF_HAIR_TRANSMISSION_ID;
-	sc->data0 = clamp(sc->data0, 0.001f, 1.0f);
-	sc->data1 = clamp(sc->data1, 0.001f, 1.0f);
+	bsdf->type = CLOSURE_BSDF_HAIR_TRANSMISSION_ID;
+	bsdf->roughness1 = clamp(bsdf->roughness1, 0.001f, 1.0f);
+	bsdf->roughness2 = clamp(bsdf->roughness2, 0.001f, 1.0f);
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
+}
+
+ccl_device bool bsdf_hair_merge(const ShaderClosure *a, const ShaderClosure *b)
+{
+	const HairBsdf *bsdf_a = (const HairBsdf*)a;
+	const HairBsdf *bsdf_b = (const HairBsdf*)b;
+
+	return (isequal_float3(bsdf_a->T, bsdf_b->T)) &&
+	       (bsdf_a->roughness1 == bsdf_b->roughness1) &&
+	       (bsdf_a->roughness2 == bsdf_b->roughness2) &&
+	       (bsdf_a->offset == bsdf_b->offset);
 }
 
 ccl_device float3 bsdf_hair_reflection_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-	float offset = sc->data2;
-	float3 Tg = sc->T;
-	float roughness1 = sc->data0;
-	float roughness2 = sc->data1;
+	const HairBsdf *bsdf = (const HairBsdf*)sc;
+	float offset = bsdf->offset;
+	float3 Tg = bsdf->T;
+	float roughness1 = bsdf->roughness1;
+	float roughness2 = bsdf->roughness2;
 
 	float Iz = dot(Tg, I);
 	float3 locy = normalize(I - Tg * Iz);
@@ -107,10 +127,11 @@ ccl_device float3 bsdf_hair_reflection_eval_transmit(const ShaderClosure *sc, co
 
 ccl_device float3 bsdf_hair_transmission_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-	float offset = sc->data2;
-	float3 Tg = sc->T;
-	float roughness1 = sc->data0;
-	float roughness2 = sc->data1;
+	const HairBsdf *bsdf = (const HairBsdf*)sc;
+	float offset = bsdf->offset;
+	float3 Tg = bsdf->T;
+	float roughness1 = bsdf->roughness1;
+	float roughness2 = bsdf->roughness2;
 	float Iz = dot(Tg, I);
 	float3 locy = normalize(I - Tg * Iz);
 
@@ -148,10 +169,11 @@ ccl_device float3 bsdf_hair_transmission_eval_transmit(const ShaderClosure *sc, 
 
 ccl_device int bsdf_hair_reflection_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	float offset = sc->data2;
-	float3 Tg = sc->T;
-	float roughness1 = sc->data0;
-	float roughness2 = sc->data1;
+	const HairBsdf *bsdf = (const HairBsdf*)sc;
+	float offset = bsdf->offset;
+	float3 Tg = bsdf->T;
+	float roughness1 = bsdf->roughness1;
+	float roughness2 = bsdf->roughness2;
 	float Iz = dot(Tg, I);
 	float3 locy = normalize(I - Tg * Iz);
 	float3 locx = cross(locy, Tg);
@@ -198,10 +220,11 @@ ccl_device int bsdf_hair_reflection_sample(const ShaderClosure *sc, float3 Ng, f
 
 ccl_device int bsdf_hair_transmission_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	float offset = sc->data2;
-	float3 Tg = sc->T;
-	float roughness1 = sc->data0;
-	float roughness2 = sc->data1;
+	const HairBsdf *bsdf = (const HairBsdf*)sc;
+	float offset = bsdf->offset;
+	float3 Tg = bsdf->T;
+	float roughness1 = bsdf->roughness1;
+	float roughness2 = bsdf->roughness2;
 	float Iz = dot(Tg, I);
 	float3 locy = normalize(I - Tg * Iz);
 	float3 locx = cross(locy, Tg);

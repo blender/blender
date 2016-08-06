@@ -253,8 +253,18 @@ static bool object_boundbox_clip(Scene *scene,
 		                       boundbox[3 * i + 1],
 		                       boundbox[3 * i + 2]);
 		p = transform_point(&tfm, p);
-		p = transform_perspective(&worldtondc, p);
-		if(p.z >= -margin) {
+
+		float4 b = make_float4(p.x, p.y, p.z, 1.0f);
+		float4 c = make_float4(dot(worldtondc.x, b),
+		                       dot(worldtondc.y, b),
+		                       dot(worldtondc.z, b),
+		                       dot(worldtondc.w, b));
+		p = float4_to_float3(c / c.w);
+		if(c.z < 0.0f) {
+			p.x = 1.0f - p.x;
+			p.y = 1.0f - p.y;
+		}
+		if(c.z >= -margin) {
 			all_behind = false;
 		}
 		bb_min = min(bb_min, p);
@@ -385,8 +395,8 @@ Object *BlenderSync::sync_object(BL::Object& b_parent,
 		object->name = b_ob.name().c_str();
 		object->pass_id = b_ob.pass_index();
 		object->tfm = tfm;
-		object->motion.pre = tfm;
-		object->motion.post = tfm;
+		object->motion.pre = transform_empty();
+		object->motion.post = transform_empty();
 		object->use_motion = false;
 
 		/* motion blur */

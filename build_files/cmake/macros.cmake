@@ -333,6 +333,11 @@ function(SETUP_LIBDIRS)
 		link_directories(${LLVM_LIBPATH})
 	endif()
 
+	if(WITH_ALEMBIC)
+		link_directories(${ALEMBIC_LIBPATH})
+		link_directories(${HDF5_LIBPATH})
+	endif()
+
 	if(WIN32 AND NOT UNIX)
 		link_directories(${PTHREADS_LIBPATH})
 	endif()
@@ -434,6 +439,9 @@ function(setup_liblinks
 		endif()
 	endif()
 	target_link_libraries(${target} ${JPEG_LIBRARIES})
+	if(WITH_ALEMBIC)
+		target_link_libraries(${target} ${ALEMBIC_LIBRARIES} ${HDF5_LIBRARIES})
+	endif()
 	if(WITH_IMAGE_OPENEXR)
 		target_link_libraries(${target} ${OPENEXR_LIBRARIES})
 	endif()
@@ -607,6 +615,7 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		bf_imbuf_openimageio
 		bf_imbuf_dds
 		bf_collada
+		bf_alembic
 		bf_intern_elbeem
 		bf_intern_memutil
 		bf_intern_guardedalloc

@@ -1541,6 +1541,8 @@ int UI_idcode_icon_get(const int idcode)
 			return ICON_BRUSH_DATA;
 		case ID_CA:
 			return ICON_CAMERA_DATA;
+		case ID_CF:
+			return ICON_FILE;
 		case ID_CU:
 			return ICON_CURVE_DATA;
 		case ID_GD:

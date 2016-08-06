@@ -20,6 +20,7 @@
 #include "scene.h"
 #include "svm.h"
 #include "svm_color_util.h"
+#include "svm_ramp_util.h"
 #include "svm_math_util.h"
 #include "osl.h"
 #include "constant_fold.h"
@@ -1688,6 +1689,19 @@ void ConvertNode::constant_fold(const ConstantFolder& folder)
 			}
 		}
 	}
+	else {
+		ShaderInput *in = inputs[0];
+		ShaderNode *prev = in->link->parent;
+
+		/* no-op conversion of A to B to A */
+		if(prev->type == node_types[to][from]) {
+			ShaderInput *prev_in = prev->inputs[0];
+
+			if(SocketType::is_float3(from) && (to == SocketType::FLOAT || SocketType::is_float3(to)) && prev_in->link) {
+				folder.bypass(prev_in->link);
+			}
+		}
+	}
 }
 
 void ConvertNode::compile(SVMCompiler& compiler)
@@ -2295,6 +2309,7 @@ NODE_DEFINE(SubsurfaceScatteringNode)
 SubsurfaceScatteringNode::SubsurfaceScatteringNode()
 : BsdfNode(node_type)
 {
+	closure = falloff;
 }
 
 void SubsurfaceScatteringNode::compile(SVMCompiler& compiler)
@@ -2305,6 +2320,7 @@ void SubsurfaceScatteringNode::compile(SVMCompiler& compiler)
 
 void SubsurfaceScatteringNode::compile(OSLCompiler& compiler)
 {
+	closure = falloff;
 	compiler.parameter(this, "falloff");
 	compiler.add(this, "node_subsurface_scattering");
 }
@@ -3698,44 +3714,11 @@ void MixNode::compile(OSLCompiler& compiler)
 
 void MixNode::constant_fold(const ConstantFolder& folder)
 {
-	ShaderInput *fac_in = input("Fac");
-	ShaderInput *color1_in = input("Color1");
-	ShaderInput *color2_in = input("Color2");
-
-	/* evaluate fully constant node */
 	if(folder.all_inputs_constant()) {
 		folder.make_constant_clamp(svm_mix(type, fac, color1, color2), use_clamp);
-		return;
 	}
-
-	/* remove no-op node when factor is 0.0 */
-	if(!fac_in->link && fac <= 0.0f) {
-		/* note that some of the modes will clamp out of bounds values even without use_clamp */
-		if(type == NODE_MIX_LIGHT || type == NODE_MIX_DODGE || type == NODE_MIX_BURN) {
-			if(!color1_in->link) {
-				folder.make_constant_clamp(svm_mix(type, 0.0f, color1, color1), use_clamp);
-				return;
-			}
-		}
-		else if(folder.try_bypass_or_make_constant(color1_in, color1, use_clamp)) {
-			return;
-		}
-	}
-
-	if(type == NODE_MIX_BLEND) {
-		/* remove useless mix colors nodes */
-		if(color1_in->link ? (color1_in->link == color2_in->link) : (!color2_in->link && color1 == color2)) {
-			if(folder.try_bypass_or_make_constant(color1_in, color1, use_clamp)) {
-				return;
-			}
-		}
-
-		/* remove no-op mix color node when factor is 1.0 */
-		if(!fac_in->link && fac >= 1.0f) {
-			if(folder.try_bypass_or_make_constant(color2_in, color2, use_clamp)) {
-				return;
-			}
-		}
+	else {
+		folder.fold_mix(type, use_clamp);
 	}
 }
 
@@ -4621,6 +4604,9 @@ void MathNode::constant_fold(const ConstantFolder& folder)
 	if(folder.all_inputs_constant()) {
 		folder.make_constant_clamp(svm_math(type, value1, value2), use_clamp);
 	}
+	else {
+		folder.fold_math(type, use_clamp);
+	}
 }
 
 void MathNode::compile(SVMCompiler& compiler)
@@ -4692,6 +4678,9 @@ void VectorMathNode::constant_fold(const ConstantFolder& folder)
 		else if(folder.output == output("Vector")) {
 			folder.make_constant(vector);
 		}
+	}
+	else {
+		folder.fold_vector_math(type);
 	}
 }
 
@@ -4853,6 +4842,30 @@ CurvesNode::CurvesNode(const NodeType *node_type)
 {
 }
 
+void CurvesNode::constant_fold(const ConstantFolder& folder, ShaderInput *value_in)
+{
+	ShaderInput *fac_in = input("Fac");
+
+	/* remove no-op node */
+	if(!fac_in->link && fac == 0.0f) {
+		folder.bypass(value_in->link);
+	}
+	/* evaluate fully constant node */
+	else if(folder.all_inputs_constant()) {
+		if (curves.size() == 0)
+			return;
+
+		float3 pos = (value - make_float3(min_x, min_x, min_x)) / (max_x - min_x);
+		float3 result;
+
+		result[0] = rgb_ramp_lookup(curves.data(), pos[0], true, true, curves.size()).x;
+		result[1] = rgb_ramp_lookup(curves.data(), pos[1], true, true, curves.size()).y;
+		result[2] = rgb_ramp_lookup(curves.data(), pos[2], true, true, curves.size()).z;
+
+		folder.make_constant(interp(value, result, fac));
+	}
+}
+
 void CurvesNode::compile(SVMCompiler& compiler, int type, ShaderInput *value_in, ShaderOutput *value_out)
 {
 	if(curves.size() == 0)
@@ -4916,6 +4929,11 @@ RGBCurvesNode::RGBCurvesNode()
 {
 }
 
+void RGBCurvesNode::constant_fold(const ConstantFolder& folder)
+{
+	CurvesNode::constant_fold(folder, input("Color"));
+}
+
 void RGBCurvesNode::compile(SVMCompiler& compiler)
 {
 	CurvesNode::compile(compiler, NODE_RGB_CURVES, input("Color"), output("Color"));
@@ -4949,6 +4967,11 @@ VectorCurvesNode::VectorCurvesNode()
 {
 }
 
+void VectorCurvesNode::constant_fold(const ConstantFolder& folder)
+{
+	CurvesNode::constant_fold(folder, input("Vector"));
+}
+
 void VectorCurvesNode::compile(SVMCompiler& compiler)
 {
 	CurvesNode::compile(compiler, NODE_VECTOR_CURVES, input("Vector"), output("Vector"));
@@ -4980,6 +5003,31 @@ NODE_DEFINE(RGBRampNode)
 RGBRampNode::RGBRampNode()
 : ShaderNode(node_type)
 {
+}
+
+void RGBRampNode::constant_fold(const ConstantFolder& folder)
+{
+	if(ramp.size() == 0 || ramp.size() != ramp_alpha.size())
+		return;
+
+	if(folder.all_inputs_constant()) {
+		float f = clamp(fac, 0.0f, 1.0f) * (ramp.size() - 1);
+
+		/* clamp int as well in case of NaN */
+		int i = clamp((int)f, 0, ramp.size()-1);
+		float t = f - (float)i;
+
+		bool use_lerp = interpolate && t > 0.0f;
+
+		if(folder.output == output("Color")) {
+			float3 color = rgb_ramp_lookup(ramp.data(), fac, use_lerp, false, ramp.size());
+			folder.make_constant(color);
+		}
+		else if(folder.output == output("Alpha")) {
+			float alpha = float_ramp_lookup(ramp_alpha.data(), fac, use_lerp, false, ramp_alpha.size());
+			folder.make_constant(alpha);
+		}
+	}
 }
 
 void RGBRampNode::compile(SVMCompiler& compiler)

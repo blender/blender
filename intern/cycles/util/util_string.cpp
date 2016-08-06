@@ -74,7 +74,10 @@ bool string_iequals(const string& a, const string& b)
 	return false;
 }
 
-void string_split(vector<string>& tokens, const string& str, const string& separators)
+void string_split(vector<string>& tokens,
+                  const string& str,
+                  const string& separators,
+                  bool skip_empty_tokens)
 {
 	size_t token_start = 0, token_length = 0;
 	for(size_t i = 0; i < str.size(); ++i) {
@@ -87,9 +90,9 @@ void string_split(vector<string>& tokens, const string& str, const string& separ
 		}
 		else {
 			/* Current character is a separator,
-			 * append current token to the list (if token is not empty).
+			 * append current token to the list.
 			 */
-			if(token_length > 0) {
+			if(!skip_empty_tokens || token_length > 0) {
 				string token = str.substr(token_start, token_length);
 				tokens.push_back(token);
 			}

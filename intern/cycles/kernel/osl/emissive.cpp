@@ -36,7 +36,9 @@
 
 #include "osl_closures.h"
 
+#include "kernel_compat_cpu.h"
 #include "kernel_types.h"
+#include "closure/alloc.h"
 #include "closure/emissive.h"
 
 CCL_NAMESPACE_BEGIN
@@ -52,25 +54,10 @@ using namespace OSL;
 ///
 class GenericEmissiveClosure : public CClosurePrimitive {
 public:
-	GenericEmissiveClosure() : CClosurePrimitive(Emissive) { }
-
-	Color3 eval(const Vec3 &Ng, const Vec3 &omega_out) const
+	void setup(ShaderData *sd, int /* path_flag */, float3 weight)
 	{
-		float3 result = emissive_simple_eval(TO_FLOAT3(Ng), TO_FLOAT3(omega_out));
-		return TO_COLOR3(result);
-	}
-
-	void sample(const Vec3 &Ng, float randu, float randv,
-	            Vec3 &omega_out, float &pdf) const
-	{
-		float3 omega_out_;
-		emissive_sample(TO_FLOAT3(Ng), randu, randv, &omega_out_, &pdf);
-		omega_out = TO_VEC3(omega_out_);
-	}
-
-	float pdf(const Vec3 &Ng, const Vec3 &omega_out) const
-	{
-		return emissive_pdf(TO_FLOAT3(Ng), TO_FLOAT3(omega_out));
+		closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_EMISSION_ID, weight);
+		sd->flag |= SD_EMISSION;
 	}
 };
 

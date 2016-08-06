@@ -37,6 +37,7 @@ set(DEFSRC
 	rna_animviz.c
 	rna_armature.c
 	rna_brush.c
+	rna_cachefile.c
 	rna_camera.c
 	rna_cloth.c
 	rna_color.c
@@ -286,6 +287,13 @@ endif()
 
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
+endif()
+
+if(WITH_ALEMBIC)
+	list(APPEND INC
+		../../alembic
+	)
+	add_definitions(-DWITH_ALEMBIC)
 endif()
 
 if(WITH_BULLET)

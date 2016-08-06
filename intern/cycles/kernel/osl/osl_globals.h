@@ -59,8 +59,7 @@ struct OSLGlobals {
 	/* attributes */
 	struct Attribute {
 		TypeDesc type;
-		AttributeElement elem;
-		int offset;
+		AttributeDescriptor desc;
 		ParamValue value;
 	};
 

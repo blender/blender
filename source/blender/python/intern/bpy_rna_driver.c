@@ -77,3 +77,24 @@ PyObject *pyrna_driver_get_variable_value(
 
 	return driver_arg;
 }
+
+PyObject *pyrna_driver_self_from_anim_rna(PathResolvedRNA *anim_rna)
+{
+	return pyrna_struct_CreatePyObject(&anim_rna->ptr);
+}
+
+bool pyrna_driver_is_equal_anim_rna(const PathResolvedRNA *anim_rna, const PyObject *py_anim_rna)
+{
+	if (BPy_StructRNA_Check(py_anim_rna)) {
+		const PointerRNA *ptr_a = &anim_rna->ptr;
+		const PointerRNA *ptr_b = &(((const BPy_StructRNA *)py_anim_rna)->ptr);
+
+		if ((ptr_a->id.data == ptr_b->id.data) &&
+		    (ptr_a->type == ptr_b->type) &&
+		    (ptr_a->data == ptr_b->data))
+		{
+			return true;
+		}
+	}
+	return false;
+}

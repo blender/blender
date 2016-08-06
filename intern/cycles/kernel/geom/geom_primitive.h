@@ -23,19 +23,25 @@ CCL_NAMESPACE_BEGIN
 
 /* Generic primitive attribute reading functions */
 
-ccl_device float primitive_attribute_float(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float *dx, float *dy)
+ccl_device_inline float primitive_attribute_float(KernelGlobals *kg,
+                                                  const ShaderData *sd,
+                                                  const AttributeDescriptor desc,
+                                                  float *dx, float *dy)
 {
 	if(ccl_fetch(sd, type) & PRIMITIVE_ALL_TRIANGLE) {
-		return triangle_attribute_float(kg, sd, elem, offset, dx, dy);
+		if(subd_triangle_patch(kg, sd) == ~0)
+			return triangle_attribute_float(kg, sd, desc, dx, dy);
+		else
+			return subd_triangle_attribute_float(kg, sd, desc, dx, dy);
 	}
 #ifdef __HAIR__
 	else if(ccl_fetch(sd, type) & PRIMITIVE_ALL_CURVE) {
-		return curve_attribute_float(kg, sd, elem, offset, dx, dy);
+		return curve_attribute_float(kg, sd, desc, dx, dy);
 	}
 #endif
 #ifdef __VOLUME__
-	else if(ccl_fetch(sd, object) != OBJECT_NONE && elem == ATTR_ELEMENT_VOXEL) {
-		return volume_attribute_float(kg, sd, elem, offset, dx, dy);
+	else if(ccl_fetch(sd, object) != OBJECT_NONE && desc.element == ATTR_ELEMENT_VOXEL) {
+		return volume_attribute_float(kg, sd, desc, dx, dy);
 	}
 #endif
 	else {
@@ -45,19 +51,25 @@ ccl_device float primitive_attribute_float(KernelGlobals *kg, const ShaderData *
 	}
 }
 
-ccl_device float3 primitive_attribute_float3(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float3 *dx, float3 *dy)
+ccl_device_inline float3 primitive_attribute_float3(KernelGlobals *kg,
+                                                    const ShaderData *sd,
+                                                    const AttributeDescriptor desc,
+                                                    float3 *dx, float3 *dy)
 {
 	if(ccl_fetch(sd, type) & PRIMITIVE_ALL_TRIANGLE) {
-		return triangle_attribute_float3(kg, sd, elem, offset, dx, dy);
+		if(subd_triangle_patch(kg, sd) == ~0)
+			return triangle_attribute_float3(kg, sd, desc, dx, dy);
+		else
+			return subd_triangle_attribute_float3(kg, sd, desc, dx, dy);
 	}
 #ifdef __HAIR__
 	else if(ccl_fetch(sd, type) & PRIMITIVE_ALL_CURVE) {
-		return curve_attribute_float3(kg, sd, elem, offset, dx, dy);
+		return curve_attribute_float3(kg, sd, desc, dx, dy);
 	}
 #endif
 #ifdef __VOLUME__
-	else if(ccl_fetch(sd, object) != OBJECT_NONE && elem == ATTR_ELEMENT_VOXEL) {
-		return volume_attribute_float3(kg, sd, elem, offset, dx, dy);
+	else if(ccl_fetch(sd, object) != OBJECT_NONE && desc.element == ATTR_ELEMENT_VOXEL) {
+		return volume_attribute_float3(kg, sd, desc, dx, dy);
 	}
 #endif
 	else {
@@ -69,15 +81,14 @@ ccl_device float3 primitive_attribute_float3(KernelGlobals *kg, const ShaderData
 
 /* Default UV coordinate */
 
-ccl_device float3 primitive_uv(KernelGlobals *kg, ShaderData *sd)
+ccl_device_inline float3 primitive_uv(KernelGlobals *kg, ShaderData *sd)
 {
-	AttributeElement elem_uv;
-	int offset_uv = find_attribute(kg, sd, ATTR_STD_UV, &elem_uv);
+	const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_UV);
 
-	if(offset_uv == ATTR_STD_NOT_FOUND)
+	if(desc.offset == ATTR_STD_NOT_FOUND)
 		return make_float3(0.0f, 0.0f, 0.0f);
 
-	float3 uv = primitive_attribute_float3(kg, sd, elem_uv, offset_uv, NULL, NULL);
+	float3 uv = primitive_attribute_float3(kg, sd, desc, NULL, NULL);
 	uv.z = 1.0f;
 	return uv;
 }
@@ -87,15 +98,14 @@ ccl_device float3 primitive_uv(KernelGlobals *kg, ShaderData *sd)
 ccl_device bool primitive_ptex(KernelGlobals *kg, ShaderData *sd, float2 *uv, int *face_id)
 {
 	/* storing ptex data as attributes is not memory efficient but simple for tests */
-	AttributeElement elem_face_id, elem_uv;
-	int offset_face_id = find_attribute(kg, sd, ATTR_STD_PTEX_FACE_ID, &elem_face_id);
-	int offset_uv = find_attribute(kg, sd, ATTR_STD_PTEX_UV, &elem_uv);
+	const AttributeDescriptor desc_face_id = find_attribute(kg, sd, ATTR_STD_PTEX_FACE_ID);
+	const AttributeDescriptor desc_uv = find_attribute(kg, sd, ATTR_STD_PTEX_UV);
 
-	if(offset_face_id == ATTR_STD_NOT_FOUND || offset_uv == ATTR_STD_NOT_FOUND)
+	if(desc_face_id.offset == ATTR_STD_NOT_FOUND || desc_uv.offset == ATTR_STD_NOT_FOUND)
 		return false;
 
-	float3 uv3 = primitive_attribute_float3(kg, sd, elem_uv, offset_uv, NULL, NULL);
-	float face_id_f = primitive_attribute_float(kg, sd, elem_face_id, offset_face_id, NULL, NULL);
+	float3 uv3 = primitive_attribute_float3(kg, sd, desc_uv, NULL, NULL);
+	float face_id_f = primitive_attribute_float(kg, sd, desc_face_id, NULL, NULL);
 
 	*uv = make_float2(uv3.x, uv3.y);
 	*face_id = (int)face_id_f;
@@ -117,11 +127,10 @@ ccl_device float3 primitive_tangent(KernelGlobals *kg, ShaderData *sd)
 #endif
 
 	/* try to create spherical tangent from generated coordinates */
-	AttributeElement attr_elem;
-	int attr_offset = find_attribute(kg, sd, ATTR_STD_GENERATED, &attr_elem);
+	const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_GENERATED);
 
-	if(attr_offset != ATTR_STD_NOT_FOUND) {
-		float3 data = primitive_attribute_float3(kg, sd, attr_elem, attr_offset, NULL, NULL);
+	if(desc.offset != ATTR_STD_NOT_FOUND) {
+		float3 data = primitive_attribute_float3(kg, sd, desc, NULL, NULL);
 		data = make_float3(-(data.y - 0.5f), (data.x - 0.5f), 0.0f);
 		object_normal_transform(kg, sd, &data);
 		return cross(ccl_fetch(sd, N), normalize(cross(data, ccl_fetch(sd, N))));
@@ -138,7 +147,7 @@ ccl_device float3 primitive_tangent(KernelGlobals *kg, ShaderData *sd)
 
 /* Motion vector for motion pass */
 
-ccl_device float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *sd)
+ccl_device_inline float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *sd)
 {
 	/* center position */
 	float3 center;
@@ -158,19 +167,18 @@ ccl_device float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *sd)
 	float3 motion_pre = center, motion_post = center;
 
 	/* deformation motion */
-	AttributeElement elem;
-	int offset = find_attribute(kg, sd, ATTR_STD_MOTION_VERTEX_POSITION, &elem);
+	AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_MOTION_VERTEX_POSITION);
 
-	if(offset != ATTR_STD_NOT_FOUND) {
+	if(desc.offset != ATTR_STD_NOT_FOUND) {
 		/* get motion info */
 		int numverts, numkeys;
 		object_motion_info(kg, ccl_fetch(sd, object), NULL, &numverts, &numkeys);
 
 		/* lookup attributes */
-		int offset_next = (ccl_fetch(sd, type) & PRIMITIVE_ALL_TRIANGLE)? offset + numverts: offset + numkeys;
+		motion_pre = primitive_attribute_float3(kg, sd, desc, NULL, NULL);
 
-		motion_pre = primitive_attribute_float3(kg, sd, elem, offset, NULL, NULL);
-		motion_post = primitive_attribute_float3(kg, sd, elem, offset_next, NULL, NULL);
+		desc.offset += (ccl_fetch(sd, type) & PRIMITIVE_ALL_TRIANGLE)? numverts: numkeys;
+		motion_post = primitive_attribute_float3(kg, sd, desc, NULL, NULL);
 
 #ifdef __HAIR__
 		if(is_curve_primitive && (ccl_fetch(sd, flag) & SD_OBJECT_HAS_VERTEX_MOTION) == 0) {

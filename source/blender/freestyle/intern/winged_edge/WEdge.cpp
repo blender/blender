@@ -471,6 +471,7 @@ WShape::WShape(WShape& iBrother)
 {
 	_Id = iBrother.GetId();
 	_Name = iBrother._Name;
+	_LibraryPath = iBrother._LibraryPath;
 	_FrsMaterials = iBrother._FrsMaterials;
 #if 0
 	_meanEdgeSize = iBrother._meanEdgeSize;

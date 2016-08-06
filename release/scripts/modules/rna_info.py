@@ -95,7 +95,7 @@ class InfoStructRNA:
         "children",
         "references",
         "properties",
-        )
+    )
 
     global_lookup = {}
 
@@ -119,8 +119,10 @@ class InfoStructRNA:
     def build(self):
         rna_type = self.bl_rna
         parent_id = self.identifier
-        self.properties[:] = [GetInfoPropertyRNA(rna_prop, parent_id) for rna_prop in get_direct_properties(rna_type) if rna_prop.identifier != "rna_type"]
-        self.functions[:] = [GetInfoFunctionRNA(rna_prop, parent_id) for rna_prop in get_direct_functions(rna_type)]
+        self.properties[:] = [GetInfoPropertyRNA(rna_prop, parent_id)
+                              for rna_prop in get_direct_properties(rna_type) if rna_prop.identifier != "rna_type"]
+        self.functions[:] = [GetInfoFunctionRNA(rna_prop, parent_id)
+                             for rna_prop in get_direct_functions(rna_type)]
 
     def get_bases(self):
         bases = []
@@ -216,7 +218,7 @@ class InfoPropertyRNA:
         "is_required",
         "is_readonly",
         "is_never_none",
-        )
+    )
     global_lookup = {}
 
     def __init__(self, rna_prop):
@@ -362,7 +364,7 @@ class InfoFunctionRNA:
         "args",
         "return_values",
         "is_classmethod",
-        )
+    )
     global_lookup = {}
 
     def __init__(self, rna_func):
@@ -408,7 +410,7 @@ class InfoOperatorRNA:
         "func_name",
         "description",
         "args",
-        )
+    )
     global_lookup = {}
 
     def __init__(self, rna_op):
@@ -532,7 +534,7 @@ def BuildRNAInfo():
         rna_struct = getattr(rna_type, "bl_rna", None)
 
         if rna_struct:
-            #if not rna_type_name.startswith('__'):
+            # if not rna_type_name.startswith('__'):
 
             identifier = rna_struct.identifier
 
@@ -600,7 +602,8 @@ def BuildRNAInfo():
             for rna_prop_ptr in (getattr(rna_prop, "fixed_type", None), getattr(rna_prop, "srna", None)):
                 # Does this property point to me?
                 if rna_prop_ptr:
-                    rna_references_dict[rna_prop_ptr.identifier].append("%s.%s" % (rna_struct_path, rna_prop_identifier))
+                    rna_references_dict[rna_prop_ptr.identifier].append(
+                        "%s.%s" % (rna_struct_path, rna_prop_identifier))
 
         for rna_func in get_direct_functions(rna_struct):
             for rna_prop_identifier, rna_prop in rna_func.parameters.items():
@@ -612,7 +615,8 @@ def BuildRNAInfo():
 
                 # Does this property point to me?
                 if rna_prop_ptr:
-                    rna_references_dict[rna_prop_ptr.identifier].append("%s.%s" % (rna_struct_path, rna_func.identifier))
+                    rna_references_dict[rna_prop_ptr.identifier].append(
+                        "%s.%s" % (rna_struct_path, rna_func.identifier))
 
         # Store nested children
         nested = rna_struct.nested
@@ -625,8 +629,8 @@ def BuildRNAInfo():
 
     info_structs = []
     for (rna_base, identifier, rna_struct) in structs:
-        #if rna_struct.nested:
-        #    continue
+        # if rna_struct.nested:
+        #     continue
 
         #write_struct(rna_struct, '')
         info_struct = GetInfoStructRNA(rna_struct)
@@ -664,7 +668,8 @@ def BuildRNAInfo():
                 default = prop.default
                 if type(default) in {float, int}:
                     if default < prop.min or default > prop.max:
-                        print("\t %s.%s, %s not in [%s - %s]" % (rna_info.identifier, prop.identifier, default, prop.min, prop.max))
+                        print("\t %s.%s, %s not in [%s - %s]" %
+                              (rna_info.identifier, prop.identifier, default, prop.min, prop.max))
 
     # now for operators
     op_mods = dir(bpy.ops)
@@ -691,8 +696,8 @@ def BuildRNAInfo():
         for rna_prop in rna_info.args:
             rna_prop.build()
 
-    #for rna_info in InfoStructRNA.global_lookup.values():
-    #    print(rna_info)
+    # for rna_info in InfoStructRNA.global_lookup.values():
+    #     print(rna_info)
     return InfoStructRNA.global_lookup, InfoFunctionRNA.global_lookup, InfoOperatorRNA.global_lookup, InfoPropertyRNA.global_lookup
 
 
@@ -701,7 +706,7 @@ def main():
     struct = rna_info.BuildRNAInfo()[0]
     data = []
     for struct_id, v in sorted(struct.items()):
-        struct_id_str = v.identifier  #~ "".join(sid for sid in struct_id if struct_id)
+        struct_id_str = v.identifier  # "".join(sid for sid in struct_id if struct_id)
 
         for base in v.get_bases():
             struct_id_str = base.identifier + "|" + struct_id_str
@@ -714,7 +719,10 @@ def main():
             if prop.array_length > 0:
                 prop_type += "[%d]" % prop.array_length
 
-            data.append("%s.%s -> %s:    %s%s    %s" % (struct_id_str, prop.identifier, prop.identifier, prop_type, ", (read-only)" if prop.is_readonly else "", prop.description))
+            data.append(
+                "%s.%s -> %s:    %s%s    %s" %
+                (struct_id_str, prop.identifier, prop.identifier, prop_type,
+                 ", (read-only)" if prop.is_readonly else "", prop.description))
         data.sort()
 
     if bpy.app.background:

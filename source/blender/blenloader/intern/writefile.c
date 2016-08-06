@@ -107,6 +107,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_actuator_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_cachefile_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
 #include "DNA_constraint_types.h"
@@ -2445,6 +2446,20 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			writestruct(wd, DATA, UvSculpt, 1, tos->uvsculpt);
 			write_paint(wd, &tos->uvsculpt->paint);
 		}
+		/* write grease-pencil drawing brushes to file */
+		writelist(wd, DATA, bGPDbrush, &tos->gp_brushes);
+		for (bGPDbrush *brush = tos->gp_brushes.first; brush; brush = brush->next) {
+			if (brush->cur_sensitivity) {
+				write_curvemapping(wd, brush->cur_sensitivity);
+			}
+			if (brush->cur_strength) {
+				write_curvemapping(wd, brush->cur_strength);
+			}
+			if (brush->cur_jitter) {
+				write_curvemapping(wd, brush->cur_jitter);
+			}
+		}
+		
 
 		write_paint(wd, &tos->imapaint.paint);
 
@@ -2606,6 +2621,7 @@ static void write_gpencils(WriteData *wd, ListBase *lb)
 	bGPDlayer *gpl;
 	bGPDframe *gpf;
 	bGPDstroke *gps;
+	bGPDpalette *palette;
 
 	for (gpd = lb->first; gpd; gpd = gpd->id.next) {
 		if (gpd->id.us > 0 || wd->current) {
@@ -2631,6 +2647,11 @@ static void write_gpencils(WriteData *wd, ListBase *lb)
 						writestruct(wd, DATA, bGPDspoint, gps->totpoints, gps->points);
 					}
 				}
+			}
+			/* write grease-pencil palettes */
+			writelist(wd, DATA, bGPDpalette, &gpd->palettes);
+			for (palette = gpd->palettes.first; palette; palette = palette->next) {
+				writelist(wd, DATA, bGPDpalettecolor, &palette->colors);
 			}
 		}
 	}
@@ -3633,6 +3654,21 @@ static void write_linestyles(WriteData *wd, ListBase *idbase)
 	}
 }
 
+static void write_cachefiles(WriteData *wd, ListBase *idbase)
+{
+	CacheFile *cache_file;
+
+	for (cache_file = idbase->first; cache_file; cache_file = cache_file->id.next) {
+		if (cache_file->id.us > 0 || wd->current) {
+			writestruct(wd, ID_CF, CacheFile, 1, cache_file);
+
+			if (cache_file->adt) {
+				write_animdata(wd, cache_file->adt);
+			}
+		}
+	}
+}
+
 /* Keep it last of write_foodata functions. */
 static void write_libraries(WriteData *wd, Main *main)
 {
@@ -3829,6 +3865,7 @@ static bool write_file_handle(
 	write_paintcurves(wd, &mainvar->paintcurves);
 	write_gpencils(wd, &mainvar->gpencil);
 	write_linestyles(wd, &mainvar->linestyle);
+	write_cachefiles(wd, &mainvar->cachefiles);
 	write_libraries(wd,  mainvar->next);
 
 	/* So changes above don't cause a 'DNA1' to be detected as changed on undo. */

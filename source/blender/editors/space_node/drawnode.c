@@ -1338,7 +1338,7 @@ static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, Point
 	
 	scn_ptr = RNA_pointer_get(ptr, "scene");
 	RNA_string_get(&scn_ptr, "name", scene_name);
-	
+
 	WM_operator_properties_create_ptr(&op_ptr, ot);
 	RNA_string_set(&op_ptr, "layer", layer_name);
 	RNA_string_set(&op_ptr, "scene", scene_name);

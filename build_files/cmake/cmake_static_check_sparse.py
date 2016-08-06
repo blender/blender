@@ -25,11 +25,11 @@
 CHECKER_IGNORE_PREFIX = [
     "extern",
     "intern/moto",
-    ]
+]
 
 CHECKER_BIN = "sparse"
 CHECKER_ARGS = [
-    ]
+]
 
 import project_source_info
 import subprocess

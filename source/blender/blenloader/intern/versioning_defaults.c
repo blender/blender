@@ -108,6 +108,11 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 				brush->strength = 0.5f;
 				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
 				
+				brush = &gset->brush[GP_EDITBRUSH_TYPE_STRENGTH];
+				brush->size = 25;
+				brush->strength = 0.5f;
+				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+
 				brush = &gset->brush[GP_EDITBRUSH_TYPE_GRAB];
 				brush->size = 50;
 				brush->strength = 0.3f;

@@ -45,6 +45,7 @@ struct ARegion;
 struct ARegionType;
 struct BMEditMesh;
 struct Base;
+struct bContext;
 struct BoundBox;
 struct Brush;
 struct CSG_FaceIteratorDescriptor;
@@ -111,6 +112,7 @@ struct bConstraint;
 struct bConstraintOb;
 struct bConstraintTarget;
 struct bContextDataResult;
+struct bGPDlayer;
 struct bNode;
 struct bNodeType;
 struct bNodeSocket;
@@ -153,6 +155,7 @@ struct wmWindowManager;
 #include "../blender/editors/include/ED_clip.h"
 #include "../blender/editors/include/ED_curve.h"
 #include "../blender/editors/include/ED_fileselect.h"
+#include "../blender/editors/include/ED_gpencil.h"
 #include "../blender/editors/include/ED_image.h"
 #include "../blender/editors/include/ED_info.h"
 #include "../blender/editors/include/ED_keyframes_edit.h"
@@ -319,6 +322,19 @@ void WM_cursor_modal_restore(struct wmWindow *win) RET_NONE
 void WM_cursor_time(struct wmWindow *win, int nr) RET_NONE
 void WM_cursor_warp(struct wmWindow *win, int x, int y) RET_NONE
 
+struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner, const char *name, int flag, int job_type) RET_NULL
+void WM_jobs_customdata_set(struct wmJob *job, void *customdata, void (*free)(void *)) RET_NONE
+void WM_jobs_timer(struct wmJob *job, double timestep, unsigned int note, unsigned int endnote) RET_NONE
+
+void WM_jobs_callbacks(struct wmJob *job,
+                       void (*startjob)(void *, short *, short *, float *),
+                       void (*initjob)(void *),
+                       void (*update)(void *),
+                       void (*endjob)(void *)) RET_NONE
+
+void WM_jobs_start(struct wmWindowManager *wm, struct wmJob *job) RET_NONE
+void WM_report(ReportType type, const char *message) RET_NONE
+
 void WM_ndof_deadzone_set(float deadzone) RET_NONE
 
 void                WM_uilisttype_init(void) RET_NONE
@@ -349,6 +365,7 @@ void *ED_region_draw_cb_activate(struct ARegionType *art, void(*draw)(const stru
 void *ED_region_draw_cb_customdata(void *handle) RET_ZERO /* XXX This one looks wrong also */
 void ED_region_draw_cb_exit(struct ARegionType *art, void *handle) RET_NONE
 void ED_area_headerprint(struct ScrArea *sa, const char *str) RET_NONE
+void ED_gpencil_parent_location(struct bGPDlayer *gpl, float diff_mat[4][4]) RET_NONE
 void UI_view2d_region_to_view(struct View2D *v2d, float x, float y, float *viewx, float *viewy) RET_NONE
 bool UI_view2d_view_to_region_clip(struct View2D *v2d, float x, float y, int *regionx, int *regiony) RET_ZERO
 void UI_view2d_view_to_region(struct View2D *v2d, float x, float y, int *regionx, int *region_y) RET_NONE
@@ -615,6 +632,7 @@ void uiTemplateComponentMenu(struct uiLayout *layout, struct PointerRNA *ptr, co
 void uiTemplateNodeSocket(struct uiLayout *layout, struct bContext *C, float *color) RET_NONE
 void uiTemplatePalette(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, int color) RET_NONE
 void uiTemplateImageStereo3d(struct uiLayout *layout, struct PointerRNA *stereo3d_format_ptr) RET_NONE
+void uiTemplateCacheFile(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname) RET_NONE
 
 /* rna render */
 struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h, const char *layername, const char *viewname) RET_NULL
@@ -721,7 +739,7 @@ void BPY_text_free_code(struct Text *text) RET_NONE
 void BPY_id_release(struct ID *id) RET_NONE
 int BPY_context_member_get(struct bContext *C, const char *member, struct bContextDataResult *result) RET_ZERO
 void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTarget *ct) RET_NONE
-float BPY_driver_exec(struct ChannelDriver *driver, const float evaltime) RET_ZERO /* might need this one! */
+float BPY_driver_exec(PathResolvedRNA *anim_rna, struct ChannelDriver *driver, const float evaltime) RET_ZERO /* might need this one! */
 void BPY_DECREF(void *pyob_ptr) RET_NONE
 void BPY_pyconstraint_exec(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets) RET_NONE
 void macro_wrapper(struct wmOperatorType *ot, void *userdata) RET_NONE

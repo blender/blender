@@ -31,28 +31,30 @@ Other than that, the implementation directly follows the paper.
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device int bsdf_ashikhmin_shirley_setup(ShaderClosure *sc)
+ccl_device int bsdf_ashikhmin_shirley_setup(MicrofacetBsdf *bsdf)
 {
-	sc->data0 = clamp(sc->data0, 1e-4f, 1.0f);
-	sc->data1 = sc->data0;
+	bsdf->alpha_x = clamp(bsdf->alpha_x, 1e-4f, 1.0f);
+	bsdf->alpha_y = bsdf->alpha_x;
 
-	sc->type = CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID;
+	bsdf->type = CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID;
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
-ccl_device int bsdf_ashikhmin_shirley_aniso_setup(ShaderClosure *sc)
+ccl_device int bsdf_ashikhmin_shirley_aniso_setup(MicrofacetBsdf *bsdf)
 {
-	sc->data0 = clamp(sc->data0, 1e-4f, 1.0f);
-	sc->data1 = clamp(sc->data1, 1e-4f, 1.0f);
+	bsdf->alpha_x = clamp(bsdf->alpha_x, 1e-4f, 1.0f);
+	bsdf->alpha_y = clamp(bsdf->alpha_y, 1e-4f, 1.0f);
 
-	sc->type = CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID;
+	bsdf->type = CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ANISO_ID;
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
 ccl_device void bsdf_ashikhmin_shirley_blur(ShaderClosure *sc, float roughness)
 {
-	sc->data0 = fmaxf(roughness, sc->data0); /* clamp roughness */
-	sc->data1 = fmaxf(roughness, sc->data1);
+	MicrofacetBsdf *bsdf = (MicrofacetBsdf*)sc;
+
+	bsdf->alpha_x = fmaxf(roughness, bsdf->alpha_x);
+	bsdf->alpha_y = fmaxf(roughness, bsdf->alpha_y);
 }
 
 ccl_device_inline float bsdf_ashikhmin_shirley_roughness_to_exponent(float roughness)
@@ -60,16 +62,21 @@ ccl_device_inline float bsdf_ashikhmin_shirley_roughness_to_exponent(float rough
 	return 2.0f / (roughness*roughness) - 2.0f;
 }
 
-ccl_device float3 bsdf_ashikhmin_shirley_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+ccl_device_inline float3 bsdf_ashikhmin_shirley_eval_reflect(
+        const ShaderClosure *sc,
+        const float3 I,
+        const float3 omega_in,
+        float *pdf)
 {
-	float3 N = sc->N;
+	const MicrofacetBsdf *bsdf = (const MicrofacetBsdf*)sc;
+	float3 N = bsdf->N;
 
 	float NdotI = dot(N, I);           /* in Cycles/OSL convention I is omega_out    */
 	float NdotO = dot(N, omega_in);    /* and consequently we use for O omaga_in ;)  */
 
 	float out = 0.0f;
 
-	if(fmaxf(sc->data0, sc->data1) <= 1e-4f)
+	if(fmaxf(bsdf->alpha_x, bsdf->alpha_y) <= 1e-4f)
 		return make_float3(0.0f, 0.0f, 0.0f);
 
 	if(NdotI > 0.0f && NdotO > 0.0f) {
@@ -82,8 +89,8 @@ ccl_device float3 bsdf_ashikhmin_shirley_eval_reflect(const ShaderClosure *sc, c
 		float pump = 1.0f / fmaxf(1e-6f, (HdotI*fmaxf(NdotO, NdotI))); /* pump from original paper (first derivative disc., but cancels the HdotI in the pdf nicely) */
 		/*float pump = 1.0f / fmaxf(1e-4f, ((NdotO + NdotI) * (NdotO*NdotI))); */ /* pump from d-brdf paper */
 
-		float n_x = bsdf_ashikhmin_shirley_roughness_to_exponent(sc->data0);
-		float n_y = bsdf_ashikhmin_shirley_roughness_to_exponent(sc->data1);
+		float n_x = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_x);
+		float n_y = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_y);
 
 		if(n_x == n_y) {
 			/* isotropic */
@@ -97,12 +104,18 @@ ccl_device float3 bsdf_ashikhmin_shirley_eval_reflect(const ShaderClosure *sc, c
 		else {
 			/* anisotropic */
 			float3 X, Y;
-			make_orthonormals_tangent(N, sc->T, &X, &Y);
+			make_orthonormals_tangent(N, bsdf->T, &X, &Y);
 
 			float HdotX = dot(H, X);
 			float HdotY = dot(H, Y);
-			float e = (n_x * HdotX*HdotX + n_y * HdotY*HdotY) / (1.0f - HdotN*HdotN);
-			float lobe = powf(HdotN, e);
+			float lobe;
+			if(HdotN < 1.0f) {
+				float e = (n_x * HdotX*HdotX + n_y * HdotY*HdotY) / (1.0f - HdotN*HdotN);
+				lobe = powf(HdotN, e);
+			}
+			else {
+				lobe = 1.0f;
+			}
 			float norm = sqrtf((n_x + 1.0f)*(n_y + 1.0f)) / (8.0f * M_PI_F);
 			
 			out = NdotO * norm * lobe * pump;
@@ -128,13 +141,14 @@ ccl_device_inline void bsdf_ashikhmin_shirley_sample_first_quadrant(float n_x, f
 
 ccl_device int bsdf_ashikhmin_shirley_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	float3 N = sc->N;
+	const MicrofacetBsdf *bsdf = (const MicrofacetBsdf*)sc;
+	float3 N = bsdf->N;
 
 	float NdotI = dot(N, I);
 	if(NdotI > 0.0f) {
 
-		float n_x = bsdf_ashikhmin_shirley_roughness_to_exponent(sc->data0);
-		float n_y = bsdf_ashikhmin_shirley_roughness_to_exponent(sc->data1);
+		float n_x = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_x);
+		float n_y = bsdf_ashikhmin_shirley_roughness_to_exponent(bsdf->alpha_y);
 
 		/* get x,y basis on the surface for anisotropy */
 		float3 X, Y;
@@ -142,7 +156,7 @@ ccl_device int bsdf_ashikhmin_shirley_sample(const ShaderClosure *sc, float3 Ng,
 		if(n_x == n_y)
 			make_orthonormals(N, &X, &Y);
 		else
-			make_orthonormals_tangent(N, sc->T, &X, &Y);
+			make_orthonormals_tangent(N, bsdf->T, &X, &Y);
 
 		/* sample spherical coords for h in tangent space */
 		float phi;
@@ -193,7 +207,7 @@ ccl_device int bsdf_ashikhmin_shirley_sample(const ShaderClosure *sc, float3 Ng,
 		/* reflect I on H to get omega_in */
 		*omega_in = -I + (2.0f * HdotI) * H;
 
-		if(fmaxf(sc->data0, sc->data1) <= 1e-4f) {
+		if(fmaxf(bsdf->alpha_x, bsdf->alpha_y) <= 1e-4f) {
 			/* Some high number for MIS. */
 			*pdf = 1e6f;
 			*eval = make_float3(1e6f, 1e6f, 1e6f);

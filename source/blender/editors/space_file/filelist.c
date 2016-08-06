@@ -920,6 +920,8 @@ static int filelist_geticon_ex(
 		return ICON_FILE_BLANK;
 	else if (typeflag & FILE_TYPE_COLLADA)
 		return ICON_FILE_BLANK;
+	else if (typeflag & FILE_TYPE_ALEMBIC)
+		return ICON_FILE_BLANK;
 	else if (typeflag & FILE_TYPE_TEXT)
 		return ICON_FILE_TEXT;
 	else if (typeflag & FILE_TYPE_BLENDERLIB) {
@@ -1952,6 +1954,9 @@ int ED_path_extension_type(const char *path)
 	else if (BLI_testextensie(path, ".dae")) {
 		return FILE_TYPE_COLLADA;
 	}
+	else if (BLI_testextensie(path, ".abc")) {
+		return FILE_TYPE_ALEMBIC;
+	}
 	else if (BLI_testextensie_array(path, imb_ext_image) ||
 	         (G.have_quicktime && BLI_testextensie_array(path, imb_ext_image_qt)))
 	{
@@ -2003,6 +2008,8 @@ int ED_file_extension_icon(const char *path)
 		case FILE_TYPE_BTX:
 			return ICON_FILE_BLANK;
 		case FILE_TYPE_COLLADA:
+			return ICON_FILE_BLANK;
+		case FILE_TYPE_ALEMBIC:
 			return ICON_FILE_BLANK;
 		case FILE_TYPE_TEXT:
 			return ICON_FILE_TEXT;

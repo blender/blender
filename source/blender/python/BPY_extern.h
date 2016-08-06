@@ -32,6 +32,7 @@
 #ifndef __BPY_EXTERN_H__
 #define __BPY_EXTERN_H__
 
+struct PathResolvedRNA;
 struct Text; /* defined in DNA_text_types.h */
 struct ID; /* DNA_ID.h */
 struct Object; /* DNA_object_types.h */
@@ -85,7 +86,7 @@ void	BPY_modules_load_user(struct bContext *C);
 void	BPY_app_handlers_reset(const short do_all);
 
 void	BPY_driver_reset(void);
-float	BPY_driver_exec(struct ChannelDriver *driver, const float evaltime);
+float	BPY_driver_exec(struct PathResolvedRNA *anim_rna, struct ChannelDriver *driver, const float evaltime);
 
 void	BPY_DECREF(void *pyob_ptr);	/* Py_DECREF() */
 void	BPY_DECREF_RNA_INVALIDATE(void *pyob_ptr);

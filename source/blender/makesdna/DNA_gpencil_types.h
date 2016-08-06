@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008, Blender Foundation.
  * This is a new part of Blender
  *
- * Contributor(s): Joshua Leung
+ * Contributor(s): Joshua Leung, Antonio Vazquez
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -32,9 +32,10 @@
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
+#include "DNA_brush_types.h"
 
 struct AnimData;
-
+struct CurveMapping;
 
 /* Grease-Pencil Annotations - 'Stroke Point'
  *	-> Coordinates may either be 2d or 3d depending on settings at the time
@@ -44,6 +45,7 @@ struct AnimData;
 typedef struct bGPDspoint {
 	float x, y, z;			/* co-ordinates of point (usually 2d, but can be 3d as well) */
 	float pressure;			/* pressure of input device (from 0 to 1) at this point */
+	float strength;			/* color strength (used for alpha factor) */
 	float time;				/* seconds since start of stroke */
 	int flag;				/* additional options (NOTE: can shrink this field down later if needed) */
 } bGPDspoint;
@@ -65,24 +67,113 @@ typedef struct bGPDtriangle {
 	int v1, v2, v3;         /* indices for tesselated triangle used for GP Fill */
 } bGPDtriangle;
 
+/* GP brush (used for new strokes) */
+typedef struct bGPDbrush {
+	struct bGPDbrush *next, *prev;
+
+	char info[64];            /* Brush name. Must be unique. */
+	short thickness;          /* thickness to apply to strokes */
+	short flag;
+	float draw_smoothfac;     /* amount of smoothing to apply to newly created strokes */
+	short draw_smoothlvl;     /* number of times to apply smooth factor to new strokes */
+	short sublevel;           /* number of times to subdivide new strokes */
+
+	float draw_sensitivity;   /* amount of sensivity to apply to newly created strokes */
+	float draw_strength;      /* amount of alpha strength to apply to newly created strokes */
+	float draw_jitter;        /* amount of jitter to apply to newly created strokes */
+	float draw_angle;         /* angle when the brush has full thickness */
+	float draw_angle_factor;  /* factor to apply when angle change (only 90 degrees) */
+	float draw_random_press;  /* factor of randomness for sensitivity and strength */
+	float draw_random_sub;    /* factor of randomness for subdivision */
+	struct CurveMapping *cur_sensitivity;
+	struct CurveMapping *cur_strength;
+	struct CurveMapping *cur_jitter;
+} bGPDbrush;
+
+/* bGPDbrush->flag */
+typedef enum eGPDbrush_Flag {
+	/* brush is active */
+	GP_BRUSH_ACTIVE = (1 << 0),
+	/* brush use pressure */
+	GP_BRUSH_USE_PRESSURE = (1 << 1),
+	/* brush use pressure for alpha factor */
+	GP_BRUSH_USE_STENGTH_PRESSURE = (1 << 2),
+	/* brush use pressure for alpha factor */
+	GP_BRUSH_USE_JITTER_PRESSURE = (1 << 3),
+	/* brush use random for pressure */
+	GP_BRUSH_USE_RANDOM_PRESSURE = (1 << 4),
+	/* brush use random for strength */
+	GP_BRUSH_USE_RANDOM_STRENGTH = (1 << 5)
+} eGPDbrush_Flag;
+
+/* color of palettes */
+typedef struct bGPDpalettecolor {
+	struct bGPDpalettecolor *next, *prev;
+	char info[64];           /* Color name. Must be unique. */
+	float color[4];
+	float fill[4];           /* color that should be used for drawing "fills" for strokes */
+	short flag;              /* settings for palette color */
+	char  pad[6];            /* padding for compiler alignment error */
+} bGPDpalettecolor;
+
+/* bGPDpalettecolor->flag */
+typedef enum eGPDpalettecolor_Flag {
+	/* color is active */
+	PC_COLOR_ACTIVE = (1 << 0),
+	/* don't display color */
+	PC_COLOR_HIDE = (1 << 1),
+	/* protected from further editing */
+	PC_COLOR_LOCKED = (1 << 2),
+	/* do onion skinning */
+	PC_COLOR_ONIONSKIN = (1 << 3),
+	/* "volumetric" strokes (i.e. GLU Quadric discs in 3D) */
+	PC_COLOR_VOLUMETRIC = (1 << 4),
+	/* Use High quality fill */
+	PC_COLOR_HQ_FILL = (1 << 5)
+} eGPDpalettecolor_Flag;
+
+/* palette of colors */
+typedef struct bGPDpalette {
+	struct bGPDpalette *next, *prev;
+
+	/* pointer to individual colours */
+	ListBase colors;
+	char info[64];          /* Palette name. Must be unique. */
+
+	short flag;
+	char pad[6];            /* padding for compiler alignment error */
+} bGPDpalette;
+
+/* bGPDpalette->flag */
+typedef enum eGPDpalette_Flag {
+	/* palette is active */
+	PL_PALETTE_ACTIVE = (1 << 0)
+} eGPDpalette_Flag;
+
 /* Grease-Pencil Annotations - 'Stroke'
  * 	-> A stroke represents a (simplified version) of the curve
  *	   drawn by the user in one 'mousedown'->'mouseup' operation
  */
 typedef struct bGPDstroke {
 	struct bGPDstroke *next, *prev;
+
 	bGPDspoint *points;		/* array of data-points for stroke */
-	void *pad;				/* keep 4 pointers at the beginning, padding for 'inittime' is tricky 64/32bit */
-	int totpoints;			/* number of data-points in array */
-	
-	short thickness;		/* thickness of stroke (currently not used) */
-	short flag;				/* various settings about this stroke */
-	
 	bGPDtriangle *triangles;/* tesselated triangles for GP Fill */
+	int totpoints;          /* number of data-points in array */
 	int tot_triangles;      /* number of triangles in array */
-	int pad1, *pad2;
+
+	short thickness;        /* thickness of stroke */
+	short flag, pad[2];     /* various settings about this stroke */
 
 	double inittime;		/* Init time of stroke */
+	/* The pointer to color is only used during drawing, but not saved 
+	 * colorname is the join with the palette, but when draw, the pointer is update if the value is NULL
+	 * to speed up the drawing
+	 */
+	char colorname[128];    /* color name */
+	bGPDpalettecolor *palcolor; /* current palette color */
+	/* temporary layer name only used during copy/paste to put the stroke in the original layer */
+	char tmp_layerinfo[128];
 } bGPDstroke;
 
 /* bGPDstroke->flag */
@@ -97,6 +188,10 @@ typedef enum eGPDstroke_Flag {
 	GP_STROKE_SELECT		= (1 << 3),
 	/* Recalculate triangulation for high quality fill (when true, force a new recalc) */
 	GP_STROKE_RECALC_CACHES = (1 << 4),
+	/* Recalculate the color pointer using the name as index (true force a new recalc) */
+	GP_STROKE_RECALC_COLOR = (1 << 5),
+	/* Flag used to indicate that stroke is closed and draw edge between last and first point */
+	GP_STROKE_CYCLIC = (1 << 7),
 	/* only for use with stroke-buffer (while drawing eraser) */
 	GP_STROKE_ERASER		= (1 << 15)
 } eGPDstroke_Flag;
@@ -139,16 +234,18 @@ typedef struct bGPDlayer {
 	float gcolor_prev[3];	/* optional color for ghosts before the active frame */
 	float gcolor_next[3];	/* optional color for ghosts after the active frame */
 	
-	float color[4];			/* color that should be used to draw all the strokes in this layer */
-	float fill[4];			/* color that should be used for drawing "fills" for strokes */
+	float color[4];			/* Color for strokes in layers (replaced by palettecolor). Only used for ruler (which uses GPencil internally) */
+	float fill[4];			/* Fill color for strokes in layers.  Not used and replaced by palettecolor fill */
 	
 	char info[128];			/* optional reference info about this layer (i.e. "director's comments, 12/3")
 							 * this is used for the name of the layer  too and kept unique. */
 	
-	float draw_smoothfac;   /* amount of smoothing to apply to newly created strokes */
-	short draw_smoothlvl;   /* number of times to apply smooth factor to new strokes */
-	short sublevel;         /* number of times to subdivide new strokes */
-	short pad[4];           /* padding for compiler error */
+	struct Object *parent;  /* parent object */
+	float inverse[4][4];    /* inverse matrix (only used if parented) */
+	char parsubstr[64];     /* String describing subobject info, MAX_ID_NAME-2 */
+	short partype, pad;
+	float tintcolor[4];     /* Color used to tint layer, alpha value is used as factor */
+	float opacity;          /* Opacity of the layer */
 } bGPDlayer;
 
 /* bGPDlayer->flag */
@@ -176,7 +273,9 @@ typedef enum eGPDlayer_Flag {
 	/* "volumetric" strokes (i.e. GLU Quadric discs in 3D) */
 	GP_LAYER_VOLUMETRIC		= (1 << 10),
 	/* Use high quality fill (instead of buggy legacy OpenGL Fill) */
-	GP_LAYER_HQ_FILL        = (1 << 11)
+	GP_LAYER_HQ_FILL        = (1 << 11),
+	/* Unlock color */
+	GP_LAYER_UNLOCK_COLOR = (1 << 12)
 } eGPDlayer_Flag;
 
 /* Grease-Pencil Annotations - 'DataBlock' */
@@ -187,7 +286,7 @@ typedef struct bGPdata {
 	/* saved Grease-Pencil data */
 	ListBase layers;		/* bGPDlayers */
 	int flag;				/* settings for this datablock */
-	
+
 	/* not-saved stroke buffer data (only used during paint-session) 
 	 * 	- buffer must be initialized before use, but freed after 
 	 *	  whole paint operation is over
@@ -195,6 +294,13 @@ typedef struct bGPdata {
 	short sbuffer_size;			/* number of elements currently in cache */
 	short sbuffer_sflag;		/* flags for stroke that cache represents */
 	void *sbuffer;				/* stroke buffer (can hold GP_STROKE_BUFFER_MAX) */
+	float scolor[4];            /* buffer color using palettes */
+	char  pad[6];               /* padding for compiler alignment error */
+	short sflag;                /* settings for palette color */
+
+	/* saved paletes and brushes */
+	ListBase palettes;
+	//ListBase brushes;
 } bGPdata;
 
 /* bGPdata->flag */
@@ -229,7 +335,9 @@ typedef enum eGPdata_Flag {
 	GP_DATA_STROKE_EDITMODE	= (1 << 8),
 	
 	/* Convenience/cache flag to make it easier to quickly toggle onion skinning on/off */
-	GP_DATA_SHOW_ONIONSKINS = (1 << 9)
+	GP_DATA_SHOW_ONIONSKINS = (1 << 9),
+	/* Draw a green and red point to indicate start and end of the stroke */
+	GP_DATA_SHOW_DIRECTION = (1 << 10)   
 } eGPdata_Flag;
 
 #endif /*  __DNA_GPENCIL_TYPES_H__ */

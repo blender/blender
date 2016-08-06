@@ -947,14 +947,17 @@ static uint curve_incremental_simplify_corners(
 				        dims);
 
 				if (split_index != SPLIT_POINT_INVALID) {
+					const double *co_prev  = &params.pd->points[k_prev->index * dims];
+					const double *co_next  = &params.pd->points[k_next->index * dims];
+					const double *co_split = &params.pd->points[split_index * dims];
 
-					project_vn_vnvn(k_proj_ref,   &pd->points[k_prev->index * dims], k_prev->tan[1], dims);
-					project_vn_vnvn(k_proj_split, &pd->points[split_index   * dims], k_prev->tan[1], dims);
+					project_vn_vnvn_normalized(k_proj_ref,   co_prev, k_prev->tan[1], dims);
+					project_vn_vnvn_normalized(k_proj_split, co_split, k_prev->tan[1], dims);
 
 					if (len_squared_vnvn(k_proj_ref, k_proj_split, dims) < error_sq_2x_max) {
 
-						project_vn_vnvn(k_proj_ref,   &pd->points[k_next->index * dims], k_next->tan[0], dims);
-						project_vn_vnvn(k_proj_split, &pd->points[split_index   * dims], k_next->tan[0], dims);
+						project_vn_vnvn_normalized(k_proj_ref,   co_next, k_next->tan[0], dims);
+						project_vn_vnvn_normalized(k_proj_split, co_split, k_next->tan[0], dims);
 
 						if (len_squared_vnvn(k_proj_ref, k_proj_split, dims) < error_sq_2x_max) {
 
@@ -1156,8 +1159,22 @@ int curve_fit_cubic_to_points_refit_db(
 			k->handles[1] = len_next / 3;
 		}
 #else
-		if (is_cyclic) {
-			len_prev = normalize_vn_vnvn(tan_prev, &points[(knots_len - 2) * dims], &points[(knots_len - 1) * dims], dims);
+		if (knots_len < 2) {
+			/* NOP, set dummy values */
+			for (uint i = 0; i < knots_len; i++) {
+				struct Knot *k = &knots[i];
+				zero_vn(k->tan[0], dims);
+				zero_vn(k->tan[1], dims);
+				k->handles[0] = 0.0;
+				k->handles[1] = 0.0;
+#ifdef USE_LENGTH_CACHE
+				points_length_cache[i] = 0.0;
+#endif
+			}
+		}
+		else if (is_cyclic) {
+			len_prev = normalize_vn_vnvn(
+			        tan_prev, &points[(knots_len - 2) * dims], &points[(knots_len - 1) * dims], dims);
 			for (uint i_curr = knots_len - 1, i_next = 0; i_next < knots_len; i_curr = i_next++) {
 				struct Knot *k = &knots[i_curr];
 #ifdef USE_LENGTH_CACHE
@@ -1177,10 +1194,11 @@ int curve_fit_cubic_to_points_refit_db(
 		}
 		else {
 #ifdef USE_LENGTH_CACHE
-				points_length_cache[0] = 0.0;
-				points_length_cache[1] =
+			points_length_cache[0] = 0.0;
+			points_length_cache[1] =
 #endif
-			len_prev = normalize_vn_vnvn(tan_prev, &points[0 * dims], &points[1 * dims], dims);
+			len_prev = normalize_vn_vnvn(
+			        tan_prev, &points[0 * dims], &points[1 * dims], dims);
 			copy_vnvn(knots[0].tan[0], tan_prev, dims);
 			copy_vnvn(knots[0].tan[1], tan_prev, dims);
 			knots[0].handles[0] = len_prev / 3;

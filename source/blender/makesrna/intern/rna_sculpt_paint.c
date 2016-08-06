@@ -52,7 +52,8 @@
 EnumPropertyItem rna_enum_gpencil_sculpt_brush_items[] = {
 	{GP_EDITBRUSH_TYPE_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth stroke points"},
 	{GP_EDITBRUSH_TYPE_THICKNESS, "THICKNESS", 0, "Thickness", "Adjust thickness of strokes"},
-	{GP_EDITBRUSH_TYPE_GRAB, "GRAB", 0, "Grab", "Translate the set of points initially within the brush circle"},
+	{ GP_EDITBRUSH_TYPE_STRENGTH, "STRENGTH", 0, "Strength", "Adjust color strength of strokes" },
+	{ GP_EDITBRUSH_TYPE_GRAB, "GRAB", 0, "Grab", "Translate the set of points initially within the brush circle" },
 	{GP_EDITBRUSH_TYPE_PUSH, "PUSH", 0, "Push", "Move points out of the way, as if combing them"},
 	{GP_EDITBRUSH_TYPE_TWIST, "TWIST", 0, "Twist", "Rotate points around the midpoint of the brush"},
 	{GP_EDITBRUSH_TYPE_PINCH, "PINCH", 0, "Pinch", "Pull points towards the midpoint of the brush"},
@@ -60,7 +61,7 @@ EnumPropertyItem rna_enum_gpencil_sculpt_brush_items[] = {
 	//{GP_EDITBRUSH_TYPE_SUBDIVIDE, "SUBDIVIDE", 0, "Subdivide", "Increase point density for higher resolution strokes when zoomed in"},
 	//{GP_EDITBRUSH_TYPE_SIMPLIFY, "SIMPLIFY", 0, "Simplify", "Reduce density of stroke points"},
 	{GP_EDITBRUSH_TYPE_CLONE, "CLONE", 0, "Clone", "Paste copies of the strokes stored on the clipboard"},
-	{0, NULL, 0, NULL, NULL}
+	{ 0, NULL, 0, NULL, NULL }
 };
 
 EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
@@ -84,6 +85,11 @@ EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 #include "BKE_pbvh.h"
 
 #include "GPU_buffers.h"
+
+static void rna_GPencil_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+{
+	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
+}
 
 static int rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
 {
@@ -697,6 +703,27 @@ static void rna_def_gpencil_sculpt(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_VERTEXSEL, 0); // FIXME: this needs a custom icon
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 	
+	prop = RNA_def_property(srna, "affect_position", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSHEDIT_FLAG_APPLY_POSITION);
+	RNA_def_property_ui_text(prop, "Affect position", "The brush affects the position of the point");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+	prop = RNA_def_property(srna, "affect_strength", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSHEDIT_FLAG_APPLY_STRENGTH);
+	RNA_def_property_ui_text(prop, "Affect strength", "The brush affects the color strength of the point");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+	prop = RNA_def_property(srna, "affect_thickness", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSHEDIT_FLAG_APPLY_THICKNESS);
+	RNA_def_property_ui_text(prop, "Affect thickness", "The brush affects the thickness of the point");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+	prop = RNA_def_property(srna, "selection_alpha", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "alpha");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Alpha", "Alpha value for selected vertices");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_GPencil_update");
+
 	/* brush */
 	srna = RNA_def_struct(brna, "GPencilSculptBrush", NULL);
 	RNA_def_struct_sdna(srna, "GP_EditBrush_Data");

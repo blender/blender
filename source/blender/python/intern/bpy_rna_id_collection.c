@@ -198,7 +198,7 @@ static PyObject *bpy_user_map(PyObject *UNUSED(self), PyObject *args, PyObject *
 		PyObject **subset_array = PySequence_Fast_ITEMS(subset_fast);
 		Py_ssize_t subset_len = PySequence_Fast_GET_SIZE(subset_fast);
 
-		data_cb.user_map = PyDict_New();
+		data_cb.user_map = _PyDict_NewPresized(subset_len);
 		data_cb.is_subset = true;
 		for (; subset_len; subset_array++, subset_len--) {
 			PyObject *set = PySet_New(NULL);

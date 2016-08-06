@@ -121,8 +121,8 @@ def expand(line, cursor, namespace, private=True):
     """
     if line[:cursor].strip().endswith('('):
         from . import complete_calltip
-        matches, word, scrollback = complete_calltip.complete(line,
-            cursor, namespace)
+        matches, word, scrollback = complete_calltip.complete(
+            line, cursor, namespace)
         prefix = os.path.commonprefix(matches)[len(word):]
         no_calltip = False
     else:
@@ -138,11 +138,11 @@ def expand(line, cursor, namespace, private=True):
             white_space = "    " + (" " * (cursor + len(prefix)))
             word_prefix = word + prefix
             scrollback = '\n'.join(
-                    [white_space + m[len(word_prefix):]
-                     if (word_prefix and m.startswith(word_prefix))
-                     else
-                     white_space + m.split('.')[-1]
-                     for m in matches])
+                [white_space + m[len(word_prefix):]
+                 if (word_prefix and m.startswith(word_prefix))
+                 else
+                 white_space + m.split('.')[-1]
+                 for m in matches])
 
         no_calltip = True
 

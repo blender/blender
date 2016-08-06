@@ -58,11 +58,11 @@ public:
 	Attribute() {}
 	~Attribute();
 	void set(ustring name, TypeDesc type, AttributeElement element);
-	void resize(int numverts, int numfaces, int numsteps, int numcurves, int numkeys, bool reserve_only);
+	void resize(Mesh *mesh, AttributePrimitive prim, bool reserve_only);
 
 	size_t data_sizeof() const;
-	size_t element_size(int numverts, int numfaces, int numsteps, int numcurves, int numkeys) const;
-	size_t buffer_size(int numverts, int numfaces, int numsteps, int numcurves, int numkeys) const;
+	size_t element_size(Mesh *mesh, AttributePrimitive prim) const;
+	size_t buffer_size(Mesh *mesh, AttributePrimitive prim) const;
 
 	char *data() { return (buffer.size())? &buffer[0]: NULL; };
 	float3 *data_float3() { return (float3*)data(); }
@@ -78,6 +78,9 @@ public:
 	const float *data_float() const { return (const float*)data(); }
 	const Transform *data_transform() const { return (const Transform*)data(); }
 	const VoxelAttribute *data_voxel() const { return (const VoxelAttribute*)data(); }
+
+	void zero_data(void* dst);
+	void add_with_weight(void* dst, void* src, float weight);
 
 	void add(const float& f);
 	void add(const float3& f);
@@ -99,6 +102,7 @@ class AttributeSet {
 public:
 	Mesh *triangle_mesh;
 	Mesh *curve_mesh;
+	Mesh *subd_mesh;
 	list<Attribute> attributes;
 
 	AttributeSet();
@@ -130,9 +134,8 @@ public:
 	AttributeStandard std;
 
 	/* temporary variables used by MeshManager */
-	TypeDesc triangle_type, curve_type;
-	AttributeElement triangle_element, curve_element;
-	int triangle_offset, curve_offset;
+	TypeDesc triangle_type, curve_type, subd_type;
+	AttributeDescriptor triangle_desc, curve_desc, subd_desc;
 
 	explicit AttributeRequest(ustring name_);
 	explicit AttributeRequest(AttributeStandard std);

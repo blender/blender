@@ -46,6 +46,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_cachefile_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
@@ -2019,7 +2020,12 @@ static void dag_object_time_update_flags(Main *bmain, Scene *scene, Object *ob)
 			
 			if (cti) {
 				/* special case for camera tracking -- it doesn't use targets to define relations */
-				if (ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER, CONSTRAINT_TYPE_OBJECTSOLVER)) {
+				if (ELEM(cti->type,
+				         CONSTRAINT_TYPE_FOLLOWTRACK,
+				         CONSTRAINT_TYPE_CAMERASOLVER,
+				         CONSTRAINT_TYPE_OBJECTSOLVER,
+				         CONSTRAINT_TYPE_TRANSFORM_CACHE))
+				{
 					ob->recalc |= OB_RECALC_OB;
 				}
 				else if (cti->get_constraint_targets) {
@@ -2782,6 +2788,33 @@ void DAG_id_tag_update_ex(Main *bmain, ID *id, short flag)
 			/* disable because this is called on various ID types automatically.
 			 * where printing warning is not useful. for now just ignore */
 			/* BLI_assert(!"invalid flag for this 'idtype'"); */
+		}
+	}
+	else if (GS(id->name) == ID_CF) {
+		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+			ModifierData *md = modifiers_findByType(ob, eModifierType_MeshSequenceCache);
+
+			if (md) {
+				MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)md;
+
+				if (mcmd->cache_file && (&mcmd->cache_file->id == id)) {
+					ob->recalc |= OB_RECALC_DATA;
+					continue;
+				}
+			}
+
+			for (bConstraint *con = ob->constraints.first; con; con = con->next) {
+				if (con->type != CONSTRAINT_TYPE_TRANSFORM_CACHE) {
+					continue;
+				}
+
+				bTransformCacheConstraint *data = con->data;
+
+				if (data->cache_file && (&data->cache_file->id == id)) {
+					ob->recalc |= OB_RECALC_DATA;
+					break;
+				}
+			}
 		}
 	}
 }

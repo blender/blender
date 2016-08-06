@@ -24,6 +24,7 @@
 #include "util_debug.h"
 #include "util_foreach.h"
 #include "util_queue.h"
+#include "util_logging.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -543,6 +544,7 @@ void ShaderGraph::deduplicate_nodes()
 	ShaderNodeSet scheduled, done;
 	map<ustring, ShaderNodeSet> candidates;
 	queue<ShaderNode*> traverse_queue;
+	int num_deduplicated = 0;
 
 	/* Schedule nodes which doesn't have any dependencies. */
 	foreach(ShaderNode *node, nodes) {
@@ -557,8 +559,10 @@ void ShaderGraph::deduplicate_nodes()
 		traverse_queue.pop();
 		done.insert(node);
 		/* Schedule the nodes which were depending on the current node. */
+		bool has_output_links = false;
 		foreach(ShaderOutput *output, node->outputs) {
 			foreach(ShaderInput *input, output->links) {
+				has_output_links = true;
 				if(scheduled.find(input->parent) != scheduled.end()) {
 					/* Node might not be optimized yet but scheduled already
 					 * by other dependencies. No need to re-schedule it.
@@ -571,6 +575,10 @@ void ShaderGraph::deduplicate_nodes()
 					scheduled.insert(input->parent);
 				}
 			}
+		}
+		/* Only need to care about nodes that are actually used */
+		if(!has_output_links) {
+			continue;
 		}
 		/* Try to merge this node with another one. */
 		ShaderNode *merge_with = NULL;
@@ -585,10 +593,15 @@ void ShaderGraph::deduplicate_nodes()
 			for(int i = 0; i < node->outputs.size(); ++i) {
 				relink(node, node->outputs[i], merge_with->outputs[i]);
 			}
+			num_deduplicated++;
 		}
 		else {
 			candidates[node->type->name].insert(node);
 		}
+	}
+
+	if(num_deduplicated > 0) {
+		VLOG(1) << "Deduplicated " << num_deduplicated << " nodes.";
 	}
 }
 
@@ -965,6 +978,9 @@ int ShaderGraph::get_num_closures()
 			num_closures += 3;
 		}
 		else if(CLOSURE_IS_GLASS(closure_type)) {
+			num_closures += 2;
+		}
+		else if(CLOSURE_IS_BSDF_MULTISCATTER(closure_type)) {
 			num_closures += 2;
 		}
 		else {

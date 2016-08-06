@@ -120,6 +120,7 @@ bool BLT_lang_is_ime_supported(void);
 #define BLT_I18NCONTEXT_ID_ARMATURE             "Armature"
 #define BLT_I18NCONTEXT_ID_BRUSH                "Brush"
 #define BLT_I18NCONTEXT_ID_CAMERA               "Camera"
+#define BLT_I18NCONTEXT_ID_CACHEFILE            "CacheFile"
 #define BLT_I18NCONTEXT_ID_CURVE                "Curve"
 #define BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE   "FreestyleLineStyle"
 #define BLT_I18NCONTEXT_ID_GPENCIL              "GPencil"
@@ -170,6 +171,7 @@ typedef struct {
 	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_ARMATURE, "id_armature"),                                                 \
 	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_BRUSH, "id_brush"),                                                       \
 	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_CAMERA, "id_camera"),                                                     \
+	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_CACHEFILE, "id_cachefile"),                                               \
 	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_CURVE, "id_curve"),                                                       \
 	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE, "id_fs_linestyle"),                                   \
 	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_GPENCIL, "id_gpencil"),                                                   \

@@ -38,8 +38,6 @@ class DiagSplit {
 public:
 	vector<QuadDice::SubPatch> subpatches_quad;
 	vector<QuadDice::EdgeFactors> edgefactors_quad;
-	vector<TriangleDice::SubPatch> subpatches_triangle;
-	vector<TriangleDice::EdgeFactors> edgefactors_triangle;
 
 	SubdParams params;
 
@@ -53,11 +51,7 @@ public:
 	void dispatch(QuadDice::SubPatch& sub, QuadDice::EdgeFactors& ef);
 	void split(QuadDice::SubPatch& sub, QuadDice::EdgeFactors& ef, int depth=0);
 
-	void dispatch(TriangleDice::SubPatch& sub, TriangleDice::EdgeFactors& ef);
-	void split(TriangleDice::SubPatch& sub, TriangleDice::EdgeFactors& ef, int depth=0);
-
-	void split_triangle(Patch *patch);
-	void split_quad(Patch *patch);
+	void split_quad(Patch *patch, QuadDice::SubPatch *subpatch=NULL);
 };
 
 CCL_NAMESPACE_END

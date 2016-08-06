@@ -36,6 +36,9 @@
 
 #include "osl_closures.h"
 
+#include "kernel_compat_cpu.h"
+#include "closure/alloc.h"
+
 CCL_NAMESPACE_BEGIN
 
 using namespace OSL;
@@ -48,7 +51,10 @@ using namespace OSL;
 ///
 class GenericBackgroundClosure : public CClosurePrimitive {
 public:
-	GenericBackgroundClosure() : CClosurePrimitive(Background) {}
+	void setup(ShaderData *sd, int /* path_flag */, float3 weight)
+	{
+		closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_BACKGROUND_ID, weight);
+	}
 };
 
 /// Holdout closure
@@ -60,7 +66,11 @@ public:
 ///
 class HoldoutClosure : CClosurePrimitive {
 public:
-	HoldoutClosure () : CClosurePrimitive(Holdout) {}
+	void setup(ShaderData *sd, int /* path_flag */, float3 weight)
+	{
+		closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_HOLDOUT_ID, weight);
+		sd->flag |= SD_HOLDOUT;
+	}
 };
 
 /// ambient occlusion closure
@@ -71,7 +81,11 @@ public:
 ///
 class AmbientOcclusionClosure : public CClosurePrimitive {
 public:
-	AmbientOcclusionClosure () : CClosurePrimitive(AmbientOcclusion) {}
+	void setup(ShaderData *sd, int /* path_flag */, float3 weight)
+	{
+		closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_AMBIENT_OCCLUSION_ID, weight);
+		sd->flag |= SD_AO;
+	}
 };
 
 ClosureParam *closure_background_params()

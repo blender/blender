@@ -239,8 +239,8 @@ def file_check_arg_sizes(tu):
         if 0:
             print("---",
                   " <~> ".join(
-                  [" ".join([t.spelling for t in C.get_tokens()])
-                  for C in node.get_children()]
+                      [" ".join([t.spelling for t in C.get_tokens()])
+                       for C in node.get_children()]
                   ))
         # print(node.location)
 

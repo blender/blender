@@ -387,9 +387,7 @@ void		WM_gestures_remove(struct bContext *C);
 			/* fileselecting support */
 void		WM_event_add_fileselect(struct bContext *C, struct wmOperator *op);
 void		WM_event_fileselect_event(struct wmWindowManager *wm, void *ophandle, int eventval);
-#ifndef NDEBUG
 void		WM_event_print(const struct wmEvent *event);
-#endif
 
 void		WM_operator_region_active_win_set(struct bContext *C);
 
@@ -443,6 +441,7 @@ enum {
 	WM_JOB_TYPE_SEQ_BUILD_PREVIEW,
 	WM_JOB_TYPE_POINTCACHE,
 	WM_JOB_TYPE_DPAINT_BAKE,
+	WM_JOB_TYPE_ALEMBIC,
 	/* add as needed, screencast, seq proxy build
 	 * if having hard coded values is a problem */
 };

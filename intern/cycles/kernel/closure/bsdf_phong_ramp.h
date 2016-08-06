@@ -35,7 +35,17 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device float3 bsdf_phong_ramp_get_color(const ShaderClosure *sc, const float3 colors[8], float pos)
+#ifdef __OSL__
+
+typedef ccl_addr_space struct PhongRampBsdf {
+	SHADER_CLOSURE_BASE;
+
+	float3 N;
+	float exponent;
+	float3 *colors;
+} PhongRampBsdf;
+
+ccl_device float3 bsdf_phong_ramp_get_color(const float3 colors[8], float pos)
 {
 	int MAXCOLORS = 8;
 	
@@ -49,57 +59,54 @@ ccl_device float3 bsdf_phong_ramp_get_color(const ShaderClosure *sc, const float
 	return colors[ipos] * (1.0f - offset) + colors[ipos+1] * offset;
 }
 
-ccl_device int bsdf_phong_ramp_setup(ShaderClosure *sc)
+ccl_device int bsdf_phong_ramp_setup(PhongRampBsdf *bsdf)
 {
-	sc->type = CLOSURE_BSDF_PHONG_RAMP_ID;
-	sc->data0 = max(sc->data0, 0.0f);
-	sc->data1 = 0.0f;
+	bsdf->type = CLOSURE_BSDF_PHONG_RAMP_ID;
+	bsdf->exponent = max(bsdf->exponent, 0.0f);
 	return SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
-ccl_device void bsdf_phong_ramp_blur(ShaderClosure *sc, float roughness)
+ccl_device float3 bsdf_phong_ramp_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-}
-
-ccl_device float3 bsdf_phong_ramp_eval_reflect(const ShaderClosure *sc, const float3 colors[8], const float3 I, const float3 omega_in, float *pdf)
-{
-	float m_exponent = sc->data0;
-	float cosNI = dot(sc->N, omega_in);
-	float cosNO = dot(sc->N, I);
+	const PhongRampBsdf *bsdf = (const PhongRampBsdf*)sc;
+	float m_exponent = bsdf->exponent;
+	float cosNI = dot(bsdf->N, omega_in);
+	float cosNO = dot(bsdf->N, I);
 	
 	if(cosNI > 0 && cosNO > 0) {
 		// reflect the view vector
-		float3 R = (2 * cosNO) * sc->N - I;
+		float3 R = (2 * cosNO) * bsdf->N - I;
 		float cosRI = dot(R, omega_in);
 		if(cosRI > 0) {
 			float cosp = powf(cosRI, m_exponent);
 			float common = 0.5f * M_1_PI_F * cosp;
 			float out = cosNI * (m_exponent + 2) * common;
 			*pdf = (m_exponent + 1) * common;
-			return bsdf_phong_ramp_get_color(sc, colors, cosp) * out;
+			return bsdf_phong_ramp_get_color(bsdf->colors, cosp) * out;
 		}
 	}
 	
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-ccl_device float3 bsdf_phong_ramp_eval_transmit(const ShaderClosure *sc, const float3 colors[8], const float3 I, const float3 omega_in, float *pdf)
+ccl_device float3 bsdf_phong_ramp_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-ccl_device int bsdf_phong_ramp_sample(const ShaderClosure *sc, const float3 colors[8], float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+ccl_device int bsdf_phong_ramp_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	float cosNO = dot(sc->N, I);
-	float m_exponent = sc->data0;
+	const PhongRampBsdf *bsdf = (const PhongRampBsdf*)sc;
+	float cosNO = dot(bsdf->N, I);
+	float m_exponent = bsdf->exponent;
 	
 	if(cosNO > 0) {
 		// reflect the view vector
-		float3 R = (2 * cosNO) * sc->N - I;
+		float3 R = (2 * cosNO) * bsdf->N - I;
 
 #ifdef __RAY_DIFFERENTIALS__
-		*domega_in_dx = (2 * dot(sc->N, dIdx)) * sc->N - dIdx;
-		*domega_in_dy = (2 * dot(sc->N, dIdy)) * sc->N - dIdy;
+		*domega_in_dx = (2 * dot(bsdf->N, dIdx)) * bsdf->N - dIdx;
+		*domega_in_dy = (2 * dot(bsdf->N, dIdy)) * bsdf->N - dIdy;
 #endif
 		
 		float3 T, B;
@@ -114,7 +121,7 @@ ccl_device int bsdf_phong_ramp_sample(const ShaderClosure *sc, const float3 colo
 		if(dot(Ng, *omega_in) > 0.0f)
 		{
 			// common terms for pdf and eval
-			float cosNI = dot(sc->N, *omega_in);
+			float cosNI = dot(bsdf->N, *omega_in);
 			// make sure the direction we chose is still in the right hemisphere
 			if(cosNI > 0)
 			{
@@ -122,13 +129,14 @@ ccl_device int bsdf_phong_ramp_sample(const ShaderClosure *sc, const float3 colo
 				float common = 0.5f * M_1_PI_F * cosp;
 				*pdf = (m_exponent + 1) * common;
 				float out = cosNI * (m_exponent + 2) * common;
-				*eval = bsdf_phong_ramp_get_color(sc, colors, cosp) * out;
+				*eval = bsdf_phong_ramp_get_color(bsdf->colors, cosp) * out;
 			}
 		}
 	}
 	return LABEL_REFLECT|LABEL_GLOSSY;
 }
 
+#endif /* __OSL__ */
 
 CCL_NAMESPACE_END
 

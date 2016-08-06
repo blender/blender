@@ -39,16 +39,16 @@ __all__ = (
     "reduce_dirs",
     "relpath",
     "resolve_ncase",
-    )
+)
 
 import bpy as _bpy
 import os as _os
 
 from _bpy_path import (
-        extensions_audio,
-        extensions_movie,
-        extensions_image,
-        )
+    extensions_audio,
+    extensions_movie,
+    extensions_image,
+)
 
 
 def _getattr_bytes(var, attr):
@@ -71,22 +71,22 @@ def abspath(path, start=None, library=None):
         if path.startswith(b"//"):
             if library:
                 start = _os.path.dirname(
-                        abspath(_getattr_bytes(library, "filepath")))
+                    abspath(_getattr_bytes(library, "filepath")))
             return _os.path.join(
-                    _os.path.dirname(_getattr_bytes(_bpy.data, "filepath"))
-                    if start is None else start,
-                    path[2:],
-                    )
+                _os.path.dirname(_getattr_bytes(_bpy.data, "filepath"))
+                if start is None else start,
+                path[2:],
+            )
     else:
         if path.startswith("//"):
             if library:
                 start = _os.path.dirname(
-                        abspath(library.filepath))
+                    abspath(library.filepath))
             return _os.path.join(
-                    _os.path.dirname(_bpy.data.filepath)
-                    if start is None else start,
-                    path[2:],
-                    )
+                _os.path.dirname(_bpy.data.filepath)
+                if start is None else start,
+                path[2:],
+            )
 
     return path
 
@@ -175,7 +175,7 @@ def clean_name(name, replace="_"):
                 0xe8, 0xe9, 0xea, 0xeb, 0xec, 0xed, 0xee, 0xef,
                 0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7,
                 0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe,
-                )
+            )
             trans = str.maketrans({char: replace for char in bad_chars})
             trans_cache[replace] = trans
         return trans

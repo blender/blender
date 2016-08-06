@@ -24,7 +24,7 @@ SCRIPT_HELP_MSG = """
 
 API dump in RST files
 ---------------------
-  Run this script from blenders root path once you have compiled blender
+  Run this script from Blender's root path once you have compiled Blender
 
     ./blender.bin --background -noaudio --python doc/python_api/sphinx_doc_gen.py
 
@@ -61,14 +61,14 @@ Sphinx: PDF generation
 """
 
 try:
-    import bpy  # blender module
+    import bpy  # Blender module
 except ImportError:
     print("\nERROR: this script must run from inside Blender")
     print(SCRIPT_HELP_MSG)
     import sys
     sys.exit()
 
-import rna_info     # blender module
+import rna_info     # Blender module
 
 
 def rna_info_BuildRNAInfo_cache():
@@ -181,15 +181,13 @@ def handle_args():
                         dest="log",
                         default=False,
                         action='store_true',
-                        help=(
-                        "Log the output of the api dump and sphinx|latex "
-                        "warnings and errors (default=False).\n"
-                        "If given, save logs in:\n"
-                        "* OUTPUT_DIR/.bpy.log\n"
-                        "* OUTPUT_DIR/.sphinx-build.log\n"
-                        "* OUTPUT_DIR/.sphinx-build_pdf.log\n"
-                        "* OUTPUT_DIR/.latex_make.log",
-                        ),
+                        help="Log the output of the api dump and sphinx|latex "
+                             "warnings and errors (default=False).\n"
+                             "If given, save logs in:\n"
+                             "* OUTPUT_DIR/.bpy.log\n"
+                             "* OUTPUT_DIR/.sphinx-build.log\n"
+                             "* OUTPUT_DIR/.sphinx-build_pdf.log\n"
+                             "* OUTPUT_DIR/.latex_make.log",
                         required=False)
 
     # parse only the args passed after '--'
@@ -224,12 +222,12 @@ if not ARGS.partial:
     FILTER_BPY_OPS = None
     FILTER_BPY_TYPES = None
     EXCLUDE_INFO_DOCS = False
-    EXCLUDE_MODULES = ()
+    EXCLUDE_MODULES = []
 
 else:
     # can manually edit this too:
-    #FILTER_BPY_OPS = ("import.scene", )  # allow
-    #FILTER_BPY_TYPES = ("bpy_struct", "Operator", "ID")  # allow
+    # FILTER_BPY_OPS = ("import.scene", )  # allow
+    # FILTER_BPY_TYPES = ("bpy_struct", "Operator", "ID")  # allow
     EXCLUDE_INFO_DOCS = True
     EXCLUDE_MODULES = [
         "aud",
@@ -262,6 +260,7 @@ else:
         "bpy_extras",
         "gpu",
         "gpu.offscreen",
+        "idprop.types",
         "mathutils",
         "mathutils.bvhtree",
         "mathutils.geometry",
@@ -275,7 +274,7 @@ else:
         "freestyle.shaders",
         "freestyle.types",
         "freestyle.utils",
-        ]
+    ]
 
     # ------
     # Filter
@@ -301,7 +300,9 @@ else:
     del m
     del fnmatch
 
-    BPY_LOGGER.debug("Partial Doc Build, Skipping: %s\n" % "\n                             ".join(sorted(EXCLUDE_MODULES)))
+    BPY_LOGGER.debug(
+        "Partial Doc Build, Skipping: %s\n" %
+        "\n                             ".join(sorted(EXCLUDE_MODULES)))
 
     #
     # done filtering
@@ -311,19 +312,21 @@ try:
     __import__("aud")
 except ImportError:
     BPY_LOGGER.debug("Warning: Built without 'aud' module, docs incomplete...")
-    EXCLUDE_MODULES = list(EXCLUDE_MODULES) + ["aud"]
+    EXCLUDE_MODULES.append("aud")
 
 try:
     __import__("freestyle")
 except ImportError:
     BPY_LOGGER.debug("Warning: Built without 'freestyle' module, docs incomplete...")
-    EXCLUDE_MODULES = list(EXCLUDE_MODULES) + ["freestyle",
-                                               "freestyle.chainingiterators",
-                                               "freestyle.functions",
-                                               "freestyle.predicates",
-                                               "freestyle.shaders",
-                                               "freestyle.types",
-                                               "freestyle.utils"]
+    EXCLUDE_MODULES.extend([
+        "freestyle",
+        "freestyle.chainingiterators",
+        "freestyle.functions",
+        "freestyle.predicates",
+        "freestyle.shaders",
+        "freestyle.types",
+        "freestyle.utils",
+    ])
 
 # Source files we use, and need to copy to the OUTPUT_DIR
 # to have working out-of-source builds.
@@ -340,7 +343,7 @@ EXTRA_SOURCE_FILES = (
     "../examples/bge.texture.py",
     "../examples/bmesh.ops.1.py",
     "../examples/bpy.app.translations.py",
-    )
+)
 
 
 # examples
@@ -357,52 +360,59 @@ RST_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "rst"))
 # extra info, not api reference docs
 # stored in ./rst/info_*
 INFO_DOCS = (
-    ("info_quickstart.rst", "Blender/Python Quickstart: new to blender/scripting and want to get your feet wet?"),
-    ("info_overview.rst", "Blender/Python API Overview: a more complete explanation of python integration"),
-    ("info_tutorial_addon.rst", "Blender/Python Addon Tutorial: a step by step guide on how to write an addon from scratch"),
-    ("info_api_reference.rst", "Blender/Python API Reference Usage: examples of how to use the API reference docs"),
-    ("info_best_practice.rst", "Best Practice: Conventions to follow for writing good scripts"),
-    ("info_tips_and_tricks.rst", "Tips and Tricks: Hints to help you while writing scripts for blender"),
-    ("info_gotcha.rst", "Gotcha's: some of the problems you may come up against when writing scripts"),
-    )
+    ("info_quickstart.rst",
+     "Blender/Python Quickstart: new to Blender/scripting and want to get your feet wet?"),
+    ("info_overview.rst",
+     "Blender/Python API Overview: a more complete explanation of Python integration"),
+    ("info_tutorial_addon.rst",
+     "Blender/Python Addon Tutorial: a step by step guide on how to write an addon from scratch"),
+    ("info_api_reference.rst",
+     "Blender/Python API Reference Usage: examples of how to use the API reference docs"),
+    ("info_best_practice.rst",
+     "Best Practice: Conventions to follow for writing good scripts"),
+    ("info_tips_and_tricks.rst",
+     "Tips and Tricks: Hints to help you while writing scripts for Blender"),
+    ("info_gotcha.rst",
+     "Gotcha's: some of the problems you may come up against when writing scripts"),
+)
 
 # only support for properties atm.
 RNA_BLACKLIST = {
     # XXX messes up PDF!, really a bug but for now just workaround.
     "UserPreferencesSystem": {"language", }
-    }
+}
 
 MODULE_GROUPING = {
     "bmesh.types": (
-                    ("Base Mesh Type", '-'),
-                    "BMesh",
-                    ("Mesh Elements", '-'),
-                    "BMVert",
-                    "BMEdge",
-                    "BMFace",
-                    "BMLoop",
-                    ("Sequence Accessors", '-'),
-                    "BMElemSeq",
-                    "BMVertSeq",
-                    "BMEdgeSeq",
-                    "BMFaceSeq",
-                    "BMLoopSeq",
-                    "BMIter",
-                    ("Selection History", '-'),
-                    "BMEditSelSeq",
-                    "BMEditSelIter",
-                    ("Custom-Data Layer Access", '-'),
-                    "BMLayerAccessVert",
-                    "BMLayerAccessEdge",
-                    "BMLayerAccessFace",
-                    "BMLayerAccessLoop",
-                    "BMLayerCollection",
-                    "BMLayerItem",
-                    ("Custom-Data Layer Types", '-'),
-                    "BMLoopUV",
-                    "BMDeformVert"
-                    )
-    }
+        ("Base Mesh Type", '-'),
+        "BMesh",
+        ("Mesh Elements", '-'),
+        "BMVert",
+        "BMEdge",
+        "BMFace",
+        "BMLoop",
+        ("Sequence Accessors", '-'),
+        "BMElemSeq",
+        "BMVertSeq",
+        "BMEdgeSeq",
+        "BMFaceSeq",
+        "BMLoopSeq",
+        "BMIter",
+        ("Selection History", '-'),
+        "BMEditSelSeq",
+        "BMEditSelIter",
+        ("Custom-Data Layer Access", '-'),
+        "BMLayerAccessVert",
+        "BMLayerAccessEdge",
+        "BMLayerAccessFace",
+        "BMLayerAccessLoop",
+        "BMLayerCollection",
+        "BMLayerItem",
+        ("Custom-Data Layer Types", '-'),
+        "BMLoopUV",
+        "BMDeformVert"
+    )
+}
 
 # --------------------configure compile time options----------------------------
 
@@ -478,10 +488,10 @@ MethodDescriptorType = type(dict.get)
 GetSetDescriptorType = type(int.real)
 StaticMethodType = type(staticmethod(lambda: None))
 from types import (
-        MemberDescriptorType,
-        MethodType,
-        FunctionType,
-        )
+    MemberDescriptorType,
+    MethodType,
+    FunctionType,
+)
 
 _BPY_STRUCT_FAKE = "bpy_struct"
 _BPY_PROP_COLLECTION_FAKE = "bpy_prop_collection"
@@ -501,7 +511,7 @@ escape_rst.trans = str.maketrans({
     "|": "\\|",
     "*": "\\*",
     "\\": "\\\\",
-    })
+})
 
 
 def is_struct_seq(value):
@@ -746,7 +756,7 @@ def py_c_func2sphinx(ident, fw, module_name, type_name, identifier, py_func, is_
 
 def pyprop2sphinx(ident, fw, identifier, py_prop):
     '''
-    python property to sphinx
+    Python property to sphinx
     '''
     # readonly properties use "data" directive, variables use "attribute" directive
     if py_prop.fset is None:
@@ -846,7 +856,8 @@ def pymodule2sphinx(basepath, module_name, module, title):
         # naughty, we also add getset's into PyStructs, this is not typical py but also not incorrect.
 
         # type_name is only used for examples and messages
-        type_name = str(type(module)).strip("<>").split(" ", 1)[-1][1:-1]  # "<class 'bpy.app.handlers'>" --> bpy.app.handlers
+        # "<class 'bpy.app.handlers'>" --> bpy.app.handlers
+        type_name = str(type(module)).strip("<>").split(" ", 1)[-1][1:-1]
         if type(descr) == types.GetSetDescriptorType:
             py_descr2sphinx("", fw, descr, module_name, type_name, key)
             attribute_set.add(key)
@@ -907,7 +918,8 @@ def pymodule2sphinx(basepath, module_name, module, title):
     for attribute, value, value_type in module_dir_value_type:
         if value_type == FunctionType:
             pyfunc2sphinx("", fw, module_name, None, attribute, value, is_class=False)
-        elif value_type in {types.BuiltinMethodType, types.BuiltinFunctionType}:  # both the same at the moment but to be future proof
+        # both the same at the moment but to be future proof
+        elif value_type in {types.BuiltinMethodType, types.BuiltinFunctionType}:
             # note: can't get args from these, so dump the string as is
             # this means any module used like this must have fully formatted docstrings.
             py_c_func2sphinx("", fw, module_name, None, attribute, value, is_class=False)
@@ -973,7 +985,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
             if type(descr) == ClassMethodDescriptorType:
                 py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
 
-        # needed for pure python classes
+        # needed for pure Python classes
         for key, descr in descr_items:
             if type(descr) == FunctionType:
                 pyfunc2sphinx("   ", fw, module_name, type_name, key, descr, is_class=True)
@@ -996,7 +1008,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
 
     file.close()
 
-# Changes in blender will force errors here
+# Changes in Blender will force errors here
 context_type_map = {
     "active_base": ("ObjectBase", False),
     "active_bone": ("EditBone", False),
@@ -1084,9 +1096,10 @@ def pycontext2sphinx(basepath):
     fw(title_string("Context Access (bpy.context)", "="))
     fw(".. module:: bpy.context\n")
     fw("\n")
-    fw("The context members available depend on the area of blender which is currently being accessed.\n")
+    fw("The context members available depend on the area of Blender which is currently being accessed.\n")
     fw("\n")
-    fw("Note that all context values are readonly, but may be modified through the data api or by running operators\n\n")
+    fw("Note that all context values are readonly,\n")
+    fw("but may be modified through the data api or by running operators\n\n")
 
     def write_contex_cls():
 
@@ -1109,7 +1122,8 @@ def pycontext2sphinx(basepath):
             if prop.identifier in struct_blacklist:
                 continue
 
-            type_descr = prop.get_type_description(class_fmt=":class:`bpy.types.%s`", collection_id=_BPY_PROP_COLLECTION_ID)
+            type_descr = prop.get_type_description(
+                class_fmt=":class:`bpy.types.%s`", collection_id=_BPY_PROP_COLLECTION_ID)
             fw(".. data:: %s\n\n" % prop.identifier)
             if prop.description:
                 fw("   %s\n\n" % prop.description)
@@ -1129,7 +1143,7 @@ def pycontext2sphinx(basepath):
     del write_contex_cls
     # end
 
-    # nasty, get strings directly from blender because there is no other way to get it
+    # nasty, get strings directly from Blender because there is no other way to get it
     import ctypes
 
     context_strings = (
@@ -1165,7 +1179,9 @@ def pycontext2sphinx(basepath):
     # for member in sorted(unique):
     #     print('        "%s": ("", False),' % member)
     if len(context_type_map) > len(unique):
-        raise Exception("Some types are not used: %s" % str([member for member in context_type_map if member not in unique]))
+        raise Exception(
+            "Some types are not used: %s" %
+            str([member for member in context_type_map if member not in unique]))
     else:
         pass  # will have raised an error above
 
@@ -1244,11 +1260,11 @@ def pyrna2sphinx(basepath):
         fw(ident + ":%s%s: %s\n" % (id_type, identifier, type_descr))
 
     def write_struct(struct):
-        #if not struct.identifier.startswith("Sc") and not struct.identifier.startswith("I"):
-        #    return
+        # if not struct.identifier.startswith("Sc") and not struct.identifier.startswith("I"):
+        #     return
 
-        #if not struct.identifier == "Object":
-        #    return
+        # if not struct.identifier == "Object":
+        #     return
 
         filepath = os.path.join(basepath, "bpy.types.%s.rst" % struct.identifier)
         file = open(filepath, "w", encoding="utf-8")
@@ -1289,7 +1305,11 @@ def pyrna2sphinx(basepath):
             fw(", ".join((":class:`%s`" % base_id) for base_id in base_ids))
             fw("\n\n")
 
-        subclass_ids = [s.identifier for s in structs.values() if s.base is struct if not rna_info.rna_id_ignore(s.identifier)]
+        subclass_ids = [
+            s.identifier for s in structs.values()
+            if s.base is struct
+            if not rna_info.rna_id_ignore(s.identifier)
+        ]
         subclass_ids.sort()
         if subclass_ids:
             fw("subclasses --- \n" + ", ".join((":class:`%s`" % s) for s in subclass_ids) + "\n\n")
@@ -1340,7 +1360,7 @@ def pyrna2sphinx(basepath):
 
             fw("      :type: %s\n\n" % type_descr)
 
-        # python attributes
+        # Python attributes
         py_properties = struct.get_py_properties()
         py_prop = None
         for identifier, py_prop in py_properties:
@@ -1350,7 +1370,8 @@ def pyrna2sphinx(basepath):
         for func in struct.functions:
             args_str = ", ".join(prop.get_arg_default(force=False) for prop in func.args)
 
-            fw("   .. %s:: %s(%s)\n\n" % ("classmethod" if func.is_classmethod else "method", func.identifier, args_str))
+            fw("   .. %s:: %s(%s)\n\n" %
+               ("classmethod" if func.is_classmethod else "method", func.identifier, args_str))
             fw("      %s\n\n" % func.description)
 
             for prop in func.args:
@@ -1361,8 +1382,10 @@ def pyrna2sphinx(basepath):
             elif func.return_values:  # multiple return values
                 fw("      :return (%s):\n" % ", ".join(prop.identifier for prop in func.return_values))
                 for prop in func.return_values:
-                    # TODO, pyrna_enum2sphinx for multiple return values... actually dont think we even use this but still!!!
-                    type_descr = prop.get_type_description(as_ret=True, class_fmt=":class:`%s`", collection_id=_BPY_PROP_COLLECTION_ID)
+                    # TODO, pyrna_enum2sphinx for multiple return values... actually dont
+                    # think we even use this but still!!!
+                    type_descr = prop.get_type_description(
+                        as_ret=True, class_fmt=":class:`%s`", collection_id=_BPY_PROP_COLLECTION_ID)
                     descr = prop.description
                     if not descr:
                         descr = prop.name
@@ -1375,7 +1398,7 @@ def pyrna2sphinx(basepath):
 
             fw("\n")
 
-        # python methods
+        # Python methods
         py_funcs = struct.get_py_functions()
         py_func = None
 
@@ -1398,7 +1421,10 @@ def pyrna2sphinx(basepath):
             del lines[:]
 
             if _BPY_STRUCT_FAKE:
-                descr_items = [(key, descr) for key, descr in sorted(bpy.types.Struct.__bases__[0].__dict__.items()) if not key.startswith("__")]
+                descr_items = [
+                    (key, descr) for key, descr in sorted(bpy.types.Struct.__bases__[0].__dict__.items())
+                    if not key.startswith("__")
+                ]
 
             if _BPY_STRUCT_FAKE:
                 for key, descr in descr_items:
@@ -1494,19 +1520,28 @@ def pyrna2sphinx(basepath):
             fw("\n")
 
             if use_subclasses:
-                subclass_ids = [s.identifier for s in structs.values() if s.base is None if not rna_info.rna_id_ignore(s.identifier)]
+                subclass_ids = [
+                    s.identifier for s in structs.values()
+                    if s.base is None
+                    if not rna_info.rna_id_ignore(s.identifier)
+                ]
                 if subclass_ids:
                     fw("subclasses --- \n" + ", ".join((":class:`%s`" % s) for s in sorted(subclass_ids)) + "\n\n")
 
             fw(".. class:: %s\n\n" % class_name)
             fw("   %s\n\n" % descr_str)
             fw("   .. note::\n\n")
-            fw("      Note that bpy.types.%s is not actually available from within blender, it only exists for the purpose of documentation.\n\n" % class_name)
+            fw("      Note that bpy.types.%s is not actually available from within Blender,\n"
+               "      it only exists for the purpose of documentation.\n\n" % class_name)
 
-            descr_items = [(key, descr) for key, descr in sorted(class_value.__dict__.items()) if not key.startswith("__")]
+            descr_items = [
+                (key, descr) for key, descr in sorted(class_value.__dict__.items())
+                if not key.startswith("__")
+            ]
 
             for key, descr in descr_items:
-                if type(descr) == MethodDescriptorType:  # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
+                # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
+                if type(descr) == MethodDescriptorType:
                     py_descr2sphinx("   ", fw, descr, "bpy.types", class_name, key)
 
             for key, descr in descr_items:
@@ -1517,11 +1552,15 @@ def pyrna2sphinx(basepath):
         # write fake classes
         if _BPY_STRUCT_FAKE:
             class_value = bpy.types.Struct.__bases__[0]
-            fake_bpy_type(class_value, _BPY_STRUCT_FAKE, "built-in base class for all classes in bpy.types.", use_subclasses=True)
+            fake_bpy_type(
+                class_value, _BPY_STRUCT_FAKE,
+                "built-in base class for all classes in bpy.types.", use_subclasses=True)
 
         if _BPY_PROP_COLLECTION_FAKE:
             class_value = bpy.data.objects.__class__
-            fake_bpy_type(class_value, _BPY_PROP_COLLECTION_FAKE, "built-in class used for all collections.", use_subclasses=False)
+            fake_bpy_type(
+                class_value, _BPY_PROP_COLLECTION_FAKE,
+                "built-in class used for all collections.", use_subclasses=False)
 
     # operators
     def write_ops():
@@ -1633,11 +1672,13 @@ def write_rst_contents(basepath):
 
     fw(title_string("Blender Documentation Contents", "%", double=True))
     fw("\n")
-    fw("Welcome, this document is an API reference for Blender %s, built %s.\n" % (BLENDER_VERSION_DOTS, BLENDER_DATE))
+    fw("Welcome, this document is an API reference for Blender %s, built %s.\n" %
+       (BLENDER_VERSION_DOTS, BLENDER_DATE))
     fw("\n")
 
     # fw("`A PDF version of this document is also available <%s>`_\n" % BLENDER_PDF_FILENAME)
-    fw("This site can be downloaded for offline use `Download the full Documentation (zipped HTML files) <%s>`_\n" % BLENDER_ZIP_FILENAME)
+    fw("This site can be downloaded for offline use `Download the full Documentation (zipped HTML files) <%s>`_\n" %
+       BLENDER_ZIP_FILENAME)
 
     fw("\n")
 
@@ -1670,7 +1711,7 @@ def write_rst_contents(basepath):
 
         # C modules
         "bpy.props",
-        )
+    )
 
     for mod in app_modules:
         if mod not in EXCLUDE_MODULES:
@@ -1691,9 +1732,10 @@ def write_rst_contents(basepath):
         "freestyle", "bgl", "blf",
         "gpu", "gpu.offscreen",
         "aud", "bpy_extras",
+        "idprop.types",
         # bmesh, submodules are in own page
         "bmesh",
-        )
+    )
 
     for mod in standalone_modules:
         if mod not in EXCLUDE_MODULES:
@@ -1731,7 +1773,8 @@ def write_rst_contents(basepath):
     fw("      * mesh creation and editing functions\n")
     fw("   \n")
     fw("   These parts of the API are relatively stable and are unlikely to change significantly\n")
-    fw("      * data API, access to attributes of blender data such as mesh verts, material color, timeline frames and scene objects\n")
+    fw("      * data API, access to attributes of Blender data such as mesh verts, material color,\n")
+    fw("        timeline frames and scene objects\n")
     fw("      * user interface functions for defining buttons, creation of menus, headers, panels\n")
     fw("      * render engine integration\n")
     fw("      * modules: bgl, mathutils & game engine.\n")
@@ -1803,11 +1846,11 @@ def write_rst_data(basepath):
         fw(title_string("Data Access (bpy.data)", "="))
         fw(".. module:: bpy\n")
         fw("\n")
-        fw("This module is used for all blender/python access.\n")
+        fw("This module is used for all Blender/Python access.\n")
         fw("\n")
         fw(".. data:: data\n")
         fw("\n")
-        fw("   Access to blenders internal data\n")
+        fw("   Access to Blender's internal data\n")
         fw("\n")
         fw("   :type: :class:`bpy.types.BlendData`\n")
         fw("\n")
@@ -1822,37 +1865,38 @@ def write_rst_importable_modules(basepath):
     Write the rst files of importable modules
     '''
     importable_modules = {
-        # python_modules
-        "bpy.path"             : "Path Utilities",
-        "bpy.utils"            : "Utilities",
-        "bpy_extras"           : "Extra Utilities",
+        # Python_modules
+        "bpy.path": "Path Utilities",
+        "bpy.utils": "Utilities",
+        "bpy_extras": "Extra Utilities",
 
         # C_modules
-        "aud"                  : "Audio System",
-        "blf"                  : "Font Drawing",
-        "gpu.offscreen"        : "GPU Off-Screen Buffer",
-        "bmesh"                : "BMesh Module",
-        "bmesh.types"          : "BMesh Types",
-        "bmesh.utils"          : "BMesh Utilities",
-        "bmesh.geometry"       : "BMesh Geometry Utilities",
-        "bpy.app"              : "Application Data",
-        "bpy.app.handlers"     : "Application Handlers",
-        "bpy.app.translations" : "Application Translations",
-        "bpy.props"            : "Property Definitions",
-        "mathutils"            : "Math Types & Utilities",
-        "mathutils.geometry"   : "Geometry Utilities",
-        "mathutils.bvhtree"    : "BVHTree Utilities",
-        "mathutils.kdtree"     : "KDTree Utilities",
+        "aud": "Audio System",
+        "blf": "Font Drawing",
+        "gpu.offscreen": "GPU Off-Screen Buffer",
+        "bmesh": "BMesh Module",
+        "bmesh.types": "BMesh Types",
+        "bmesh.utils": "BMesh Utilities",
+        "bmesh.geometry": "BMesh Geometry Utilities",
+        "bpy.app": "Application Data",
+        "bpy.app.handlers": "Application Handlers",
+        "bpy.app.translations": "Application Translations",
+        "bpy.props": "Property Definitions",
+        "idprop.types": "ID Property Access",
+        "mathutils": "Math Types & Utilities",
+        "mathutils.geometry": "Geometry Utilities",
+        "mathutils.bvhtree": "BVHTree Utilities",
+        "mathutils.kdtree": "KDTree Utilities",
         "mathutils.interpolate": "Interpolation Utilities",
-        "mathutils.noise"      : "Noise Utilities",
-        "freestyle"            : "Freestyle Module",
-        "freestyle.types"      : "Freestyle Types",
-        "freestyle.predicates" : "Freestyle Predicates",
-        "freestyle.functions"  : "Freestyle Functions",
-        "freestyle.chainingiterators" : "Freestyle Chaining Iterators",
-        "freestyle.shaders"    : "Freestyle Shaders",
-        "freestyle.utils"      : "Freestyle Utilities",
-        }
+        "mathutils.noise": "Noise Utilities",
+        "freestyle": "Freestyle Module",
+        "freestyle.types": "Freestyle Types",
+        "freestyle.predicates": "Freestyle Predicates",
+        "freestyle.functions": "Freestyle Functions",
+        "freestyle.chainingiterators": "Freestyle Chaining Iterators",
+        "freestyle.shaders": "Freestyle Shaders",
+        "freestyle.utils": "Freestyle Utilities",
+    }
     for mod_name, mod_descr in importable_modules.items():
         if mod_name not in EXCLUDE_MODULES:
             module = __import__(mod_name,
@@ -1867,7 +1911,7 @@ def copy_handwritten_rsts(basepath):
         for info, info_desc in INFO_DOCS:
             shutil.copy2(os.path.join(RST_DIR, info), basepath)
 
-    # TODO put this docs in blender's code and use import as per modules above
+    # TODO put this docs in Blender's code and use import as per modules above
     handwritten_modules = [
         "bge.logic",
         "bge.render",

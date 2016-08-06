@@ -32,7 +32,10 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "DNA_cachefile_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -42,7 +45,10 @@
 #include "BLI_dlrbTree.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_constraint.h"
 #include "BKE_context.h"
+#include "BKE_main.h"
+#include "BKE_modifier.h"
 #include "BKE_screen.h"
 
 #include "ED_anim_api.h"
@@ -163,6 +169,9 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel)
 		case ID_GD:
 			gpencil_to_keylist(&ads, (bGPdata *)id, &keys);
 			break;
+		case ID_CF:
+			cachefile_to_keylist(&ads, (CacheFile *)id, &keys, NULL);
+			break;
 	}
 		
 	/* build linked-list for searching */
@@ -187,6 +196,56 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel)
 	BLI_dlrbTree_free(&keys);
 }
 
+static void time_draw_caches_keyframes(Main *bmain, Scene *scene, View2D *v2d, bool onlysel)
+{
+	CacheFile *cache_file;
+
+	for (cache_file = bmain->cachefiles.first;
+	     cache_file;
+	     cache_file = cache_file->id.next)
+	{
+		cache_file->draw_flag &= ~CACHEFILE_KEYFRAME_DRAWN;
+	}
+
+	for (Base *base = scene->base.first; base; base = base->next) {
+		Object *ob = base->object;
+
+		ModifierData *md = modifiers_findByType(ob, eModifierType_MeshSequenceCache);
+
+		if (md) {
+			MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)md;
+
+			cache_file = mcmd->cache_file;
+
+			if (!cache_file || (cache_file->draw_flag & CACHEFILE_KEYFRAME_DRAWN) != 0) {
+				continue;
+			}
+
+			cache_file->draw_flag |= CACHEFILE_KEYFRAME_DRAWN;
+
+			time_draw_idblock_keyframes(v2d, (ID *)cache_file, onlysel);
+		}
+
+		for (bConstraint *con = ob->constraints.first; con; con = con->next) {
+			if (con->type != CONSTRAINT_TYPE_TRANSFORM_CACHE) {
+				continue;
+			}
+
+			bTransformCacheConstraint *data = con->data;
+
+			cache_file = data->cache_file;
+
+			if (!cache_file || (cache_file->draw_flag & CACHEFILE_KEYFRAME_DRAWN) != 0) {
+				continue;
+			}
+
+			cache_file->draw_flag |= CACHEFILE_KEYFRAME_DRAWN;
+
+			time_draw_idblock_keyframes(v2d, (ID *)cache_file, onlysel);
+		}
+	}
+}
+
 /* draw keyframe lines for timeline */
 static void time_draw_keyframes(const bContext *C, ARegion *ar)
 {
@@ -197,7 +256,11 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 	
 	/* set this for all keyframe lines once and for all */
 	glLineWidth(1.0);
-	
+
+	/* draw cache files keyframes (if available) */
+	UI_ThemeColor(TH_TIME_KEYFRAME);
+	time_draw_caches_keyframes(CTX_data_main(C), scene, v2d, onlysel);
+
 	/* draw grease pencil keyframes (if available) */	
 	UI_ThemeColor(TH_TIME_GP_KEYFRAME);
 	if (scene->gpd) {
@@ -422,6 +485,10 @@ static void time_main_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), 
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			break;
+		case NC_GPENCIL:
+			if (wmn->data == ND_DATA)
+				ED_region_tag_redraw(ar);
 			break;
 	}
 }

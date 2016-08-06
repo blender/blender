@@ -18,7 +18,11 @@ CCL_NAMESPACE_BEGIN
 
 /* Geometry Node */
 
-ccl_device void svm_node_geometry(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+ccl_device_inline void svm_node_geometry(KernelGlobals *kg,
+                                         ShaderData *sd,
+                                         float *stack,
+                                         uint type,
+                                         uint out_offset)
 {
 	float3 data;
 
@@ -94,7 +98,11 @@ ccl_device void svm_node_object_info(KernelGlobals *kg, ShaderData *sd, float *s
 
 /* Particle Info */
 
-ccl_device void svm_node_particle_info(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+ccl_device void svm_node_particle_info(KernelGlobals *kg,
+                                       ShaderData *sd,
+                                       float *stack,
+                                       uint type,
+                                       uint out_offset)
 {
 	switch(type) {
 		case NODE_INFO_PAR_INDEX: {
@@ -146,7 +154,11 @@ ccl_device void svm_node_particle_info(KernelGlobals *kg, ShaderData *sd, float 
 
 /* Hair Info */
 
-ccl_device void svm_node_hair_info(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+ccl_device void svm_node_hair_info(KernelGlobals *kg,
+                                   ShaderData *sd,
+                                   float *stack,
+                                   uint type,
+                                   uint out_offset)
 {
 	float data;
 	float3 data3;

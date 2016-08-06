@@ -435,12 +435,16 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 	else {
 		/* draw with lights in the scene otherwise */
 		solidtex = false;
-		if (v3d->flag2 & V3D_SHADELESS_TEX)
+		if (v3d->flag2 & V3D_SHADELESS_TEX) {
 			Gtexdraw.is_lit = 0;
-		else
-			Gtexdraw.is_lit = GPU_scene_object_lights(scene, ob, v3d->lay, rv3d->viewmat, !rv3d->is_persp);
+		}
+		else {
+			Gtexdraw.is_lit = GPU_scene_object_lights(
+			                      scene, ob, v3d->localvd ? v3d->localvd->lay : v3d->lay,
+			                      rv3d->viewmat, !rv3d->is_persp);
+		}
 	}
-	
+
 	rgba_float_to_uchar(obcol, ob->col);
 
 	if (solidtex || v3d->drawtype == OB_TEXTURE) is_tex = true;

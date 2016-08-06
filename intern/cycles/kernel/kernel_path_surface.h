@@ -222,8 +222,13 @@ ccl_device_inline void kernel_path_surface_connect_light(KernelGlobals *kg, ccl_
 #endif
 
 /* path tracing: bounce off or through surface to with new direction stored in ray */
-ccl_device_inline bool kernel_path_surface_bounce(KernelGlobals *kg, ccl_addr_space RNG *rng,
-	ShaderData *sd, ccl_addr_space float3 *throughput, ccl_addr_space PathState *state, PathRadiance *L, ccl_addr_space Ray *ray)
+ccl_device bool kernel_path_surface_bounce(KernelGlobals *kg,
+                                           ccl_addr_space RNG *rng,
+                                           ShaderData *sd,
+                                           ccl_addr_space float3 *throughput,
+                                           ccl_addr_space PathState *state,
+                                           PathRadiance *L,
+                                           ccl_addr_space Ray *ray)
 {
 	/* no BSDF? we can stop here */
 	if(ccl_fetch(sd, flag) & SD_BSDF) {

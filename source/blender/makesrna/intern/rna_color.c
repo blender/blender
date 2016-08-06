@@ -682,7 +682,8 @@ static void rna_def_curvemappoint(BlenderRNA *brna)
 	PropertyRNA *prop;
 	static EnumPropertyItem prop_handle_type_items[] = {
 		{0, "AUTO", 0, "Auto Handle", ""},
-		{CUMA_VECTOR, "VECTOR", 0, "Vector Handle", ""},
+		{CUMA_HANDLE_AUTO_ANIM, "AUTO_CLAMPED", 0, "Auto Clamped Handle", ""},
+		{CUMA_HANDLE_VECTOR, "VECTOR", 0, "Vector Handle", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

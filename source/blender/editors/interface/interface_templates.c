@@ -32,6 +32,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_cachefile_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
@@ -366,6 +367,7 @@ static const char *template_id_browse_tip(StructRNA *type)
 			case ID_MSK: return N_("Browse Mask to be linked");
 			case ID_PAL: return N_("Browse Palette Data to be linked");
 			case ID_PC:  return N_("Browse Paint Curve Data to be linked");
+			case ID_CF:  return N_("Browse Cache Files to be linked");
 		}
 	}
 	return N_("Browse ID data to be linked");
@@ -1905,6 +1907,7 @@ enum {
 	UICURVE_FUNC_RESET_VIEW,
 	UICURVE_FUNC_HANDLE_VECTOR,
 	UICURVE_FUNC_HANDLE_AUTO,
+	UICURVE_FUNC_HANDLE_AUTO_ANIM,
 	UICURVE_FUNC_EXTEND_HOZ,
 	UICURVE_FUNC_EXTEND_EXP,
 };
@@ -1925,13 +1928,16 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
 			cumap->curr = cumap->clipr;
 			break;
 		case UICURVE_FUNC_HANDLE_VECTOR: /* set vector */
-			curvemap_sethandle(cuma, 1);
+			curvemap_handle_set(cuma, HD_VECT);
 			curvemapping_changed(cumap, false);
 			break;
 		case UICURVE_FUNC_HANDLE_AUTO: /* set auto */
-			curvemap_sethandle(cuma, 0);
+			curvemap_handle_set(cuma, HD_AUTO);
 			curvemapping_changed(cumap, false);
 			break;
+		case UICURVE_FUNC_HANDLE_AUTO_ANIM: /* set auto-clamped */
+			curvemap_handle_set(cuma, HD_AUTO_ANIM);
+			curvemapping_changed(cumap, false);
 		case UICURVE_FUNC_EXTEND_HOZ: /* extend horiz */
 			cuma->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
 			curvemapping_changed(cumap, false);
@@ -1965,6 +1971,9 @@ static uiBlock *curvemap_tools_func(
 		uiDefIconTextBut(
 		        block, UI_BTYPE_BUT_MENU, 1, ICON_BLANK1, IFACE_("Auto Handle"),
 		        0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, UICURVE_FUNC_HANDLE_AUTO, "");
+		uiDefIconTextBut(
+		        block, UI_BTYPE_BUT_MENU, 1, ICON_BLANK1, IFACE_("Auto Clamped Handle"),
+		        0, yco -= UI_UNIT_Y, menuwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, UICURVE_FUNC_HANDLE_AUTO_ANIM, "");
 	}
 
 	if (show_extend) {
@@ -3805,4 +3814,74 @@ void uiTemplateNodeSocket(uiLayout *layout, bContext *UNUSED(C), float *color)
 	rgba_float_to_uchar(but->col, color);
 	
 	UI_block_align_end(block);
+}
+
+/********************************* Cache File *********************************/
+
+void uiTemplateCacheFile(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname)
+{
+	if (!ptr->data) {
+		return;
+	}
+
+	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
+
+	if (!prop) {
+		printf("%s: property not found: %s.%s\n",
+		       __func__, RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	if (RNA_property_type(prop) != PROP_POINTER) {
+		printf("%s: expected pointer property for %s.%s\n",
+		       __func__, RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	PointerRNA fileptr = RNA_property_pointer_get(ptr, prop);
+	CacheFile *file = fileptr.data;
+
+	uiLayoutSetContextPointer(layout, "edit_cachefile", &fileptr);
+
+	uiTemplateID(layout, C, ptr, propname, NULL, "CACHEFILE_OT_open", NULL);
+
+	if (!file) {
+		return;
+	}
+
+	uiLayout *row = uiLayoutRow(layout, false);
+	uiBlock *block = uiLayoutGetBlock(row);
+	uiDefBut(block, UI_BTYPE_LABEL, 0, IFACE_("File Path:"), 0, 19, 145, 19, NULL, 0, 0, 0, 0, "");
+
+	row = uiLayoutRow(layout, false);
+	uiLayout *split = uiLayoutSplit(row, 0.0f, false);
+	row = uiLayoutRow(split, true);
+
+	uiItemR(row, &fileptr, "filepath", 0, "", ICON_NONE);
+	uiItemO(row, "", ICON_FILE_REFRESH, "cachefile.reload");
+
+	row = uiLayoutRow(layout, false);
+	uiItemR(row, &fileptr, "is_sequence", 0, "Is Sequence", ICON_NONE);
+
+	row = uiLayoutRow(layout, false);
+	uiItemR(row, &fileptr, "override_frame", 0, "Override Frame", ICON_NONE);
+
+	row = uiLayoutRow(layout, false);
+	uiLayoutSetEnabled(row, RNA_boolean_get(&fileptr, "override_frame"));
+	uiItemR(row, &fileptr, "frame", 0, "Frame", ICON_NONE);
+
+	row = uiLayoutRow(layout, false);
+	uiItemL(row, IFACE_("Manual Transform:"), ICON_NONE);
+
+	row = uiLayoutRow(layout, false);
+	uiItemR(row, &fileptr, "scale", 0, "Scale", ICON_NONE);
+
+	/* TODO: unused for now, so no need to expose. */
+#if 0
+	row = uiLayoutRow(layout, false);
+	uiItemR(row, &fileptr, "forward_axis", 0, "Forward Axis", ICON_NONE);
+
+	row = uiLayoutRow(layout, false);
+	uiItemR(row, &fileptr, "up_axis", 0, "Up Axis", ICON_NONE);
+#endif
 }

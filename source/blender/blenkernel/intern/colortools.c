@@ -293,8 +293,8 @@ void curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope)
 			cuma->curve[1].x = clipr->xmax;
 			cuma->curve[1].y = clipr->ymin;
 			if (slope == CURVEMAP_SLOPE_POS_NEG) {
-				cuma->curve[0].flag |= CUMA_VECTOR;
-				cuma->curve[1].flag |= CUMA_VECTOR;
+				cuma->curve[0].flag |= CUMA_HANDLE_VECTOR;
+				cuma->curve[1].flag |= CUMA_HANDLE_VECTOR;
 			}
 			break;
 		case CURVE_PRESET_SHARP:
@@ -391,15 +391,25 @@ void curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope)
 	}
 }
 
-/* if type==1: vector, else auto */
-void curvemap_sethandle(CurveMap *cuma, int type)
+/**
+ * \param type: eBezTriple_Handle
+ */
+void curvemap_handle_set(CurveMap *cuma, int type)
 {
 	int a;
 	
 	for (a = 0; a < cuma->totpoint; a++) {
 		if (cuma->curve[a].flag & CUMA_SELECT) {
-			if (type) cuma->curve[a].flag |= CUMA_VECTOR;
-			else cuma->curve[a].flag &= ~CUMA_VECTOR;
+			cuma->curve[a].flag &= ~(CUMA_HANDLE_VECTOR | CUMA_HANDLE_AUTO_ANIM);
+			if (type == HD_VECT) {
+				cuma->curve[a].flag |= CUMA_HANDLE_VECTOR;
+			}
+			else if (type == HD_AUTO_ANIM) {
+				cuma->curve[a].flag |= CUMA_HANDLE_AUTO_ANIM;
+			}
+			else {
+				/* pass */
+			}
 		}
 	}
 }
@@ -457,7 +467,7 @@ static void calchandle_curvemap(
 	if (len_a == 0.0f) len_a = 1.0f;
 	if (len_b == 0.0f) len_b = 1.0f;
 
-	if (bezt->h1 == HD_AUTO || bezt->h2 == HD_AUTO) { /* auto */
+	if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) || ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM)) {    /* auto */
 		float tvec[2];
 		tvec[0] = dvec_b[0] / len_b + dvec_a[0] / len_a;
 		tvec[1] = dvec_b[1] / len_b + dvec_a[1] / len_a;
@@ -465,13 +475,57 @@ static void calchandle_curvemap(
 		len = len_v2(tvec) * 2.5614f;
 		if (len != 0.0f) {
 			
-			if (bezt->h1 == HD_AUTO) {
+			if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM)) {
 				len_a /= len;
 				madd_v2_v2v2fl(p2_h1, p2, tvec, -len_a);
+
+				if ((bezt->h1 == HD_AUTO_ANIM) && next && prev) { /* keep horizontal if extrema */
+					const float ydiff1 = prev->vec[1][1] - bezt->vec[1][1];
+					const float ydiff2 = next->vec[1][1] - bezt->vec[1][1];
+					if ((ydiff1 <= 0.0f && ydiff2 <= 0.0f) ||
+					    (ydiff1 >= 0.0f && ydiff2 >= 0.0f))
+					{
+						bezt->vec[0][1] = bezt->vec[1][1];
+					}
+					else { /* handles should not be beyond y coord of two others */
+						if (ydiff1 <= 0.0f) {
+							if (prev->vec[1][1] > bezt->vec[0][1]) {
+								bezt->vec[0][1] = prev->vec[1][1];
+							}
+						}
+						else {
+							if (prev->vec[1][1] < bezt->vec[0][1]) {
+								bezt->vec[0][1] = prev->vec[1][1];
+							}
+						}
+					}
+				}
 			}
-			if (bezt->h2 == HD_AUTO) {
+			if (ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM)) {
 				len_b /= len;
 				madd_v2_v2v2fl(p2_h2, p2, tvec,  len_b);
+
+				if ((bezt->h2 == HD_AUTO_ANIM) && next && prev) { /* keep horizontal if extrema */
+					const float ydiff1 = prev->vec[1][1] - bezt->vec[1][1];
+					const float ydiff2 = next->vec[1][1] - bezt->vec[1][1];
+					if ((ydiff1 <= 0.0f && ydiff2 <= 0.0f)||
+					    (ydiff1 >= 0.0f && ydiff2 >= 0.0f))
+					{
+						bezt->vec[2][1] = bezt->vec[1][1];
+					}
+					else { /* handles should not be beyond y coord of two others */
+						if (ydiff1 <= 0.0f) {
+							if (next->vec[1][1] < bezt->vec[2][1]) {
+								bezt->vec[2][1] = next->vec[1][1];
+							}
+						}
+						else {
+							if (next->vec[1][1] > bezt->vec[2][1]) {
+								bezt->vec[2][1] = next->vec[1][1];
+							}
+						}
+					}
+				}
 			}
 		}
 	}
@@ -540,10 +594,15 @@ static void curvemap_make_table(CurveMap *cuma, const rctf *clipr)
 		cuma->maxtable = max_ff(cuma->maxtable, cmp[a].x);
 		bezt[a].vec[1][0] = cmp[a].x;
 		bezt[a].vec[1][1] = cmp[a].y;
-		if (cmp[a].flag & CUMA_VECTOR)
+		if (cmp[a].flag & CUMA_HANDLE_VECTOR) {
 			bezt[a].h1 = bezt[a].h2 = HD_VECT;
-		else
+		}
+		else if (cmp[a].flag & CUMA_HANDLE_AUTO_ANIM) {
+			bezt[a].h1 = bezt[a].h2 = HD_AUTO_ANIM;
+		}
+		else {
 			bezt[a].h1 = bezt[a].h2 = HD_AUTO;
+		}
 	}
 	
 	const BezTriple *bezt_prev = NULL;
@@ -773,12 +832,12 @@ void curvemapping_changed(CurveMapping *cumap, const bool rem_doubles)
 			dy = cmp[a].y - cmp[a + 1].y;
 			if (sqrtf(dx * dx + dy * dy) < thresh) {
 				if (a == 0) {
-					cmp[a + 1].flag |= CUMA_VECTOR;
+					cmp[a + 1].flag |= CUMA_HANDLE_VECTOR;
 					if (cmp[a + 1].flag & CUMA_SELECT)
 						cmp[a].flag |= CUMA_SELECT;
 				}
 				else {
-					cmp[a].flag |= CUMA_VECTOR;
+					cmp[a].flag |= CUMA_HANDLE_VECTOR;
 					if (cmp[a].flag & CUMA_SELECT)
 						cmp[a + 1].flag |= CUMA_SELECT;
 				}

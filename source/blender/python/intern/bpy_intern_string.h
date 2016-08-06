@@ -37,6 +37,8 @@ extern PyObject *bpy_intern_str_bl_property;
 extern PyObject *bpy_intern_str_bpy_types;
 extern PyObject *bpy_intern_str_order;
 extern PyObject *bpy_intern_str_attr;
+extern PyObject *bpy_intern_str_self;
+extern PyObject *bpy_intern_str_frame;
 extern PyObject *bpy_intern_str___slots__;
 extern PyObject *bpy_intern_str___name__;
 extern PyObject *bpy_intern_str___doc__;

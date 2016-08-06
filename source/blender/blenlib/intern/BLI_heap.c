@@ -55,9 +55,10 @@ struct HeapNode_Chunk {
  * or we allocate past the reserved number.
  *
  * \note Optimize number for 64kb allocs.
+ * \note keep type in sync with tot_nodes in heap_node_alloc_chunk.
  */
 #define HEAP_CHUNK_DEFAULT_NUM \
-	((MEM_SIZE_OPTIMAL((1 << 16) - sizeof(struct HeapNode_Chunk))) / sizeof(HeapNode))
+	((unsigned int)((MEM_SIZE_OPTIMAL((1 << 16) - sizeof(struct HeapNode_Chunk))) / sizeof(HeapNode)))
 
 struct Heap {
 	unsigned int size;

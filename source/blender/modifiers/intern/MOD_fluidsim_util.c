@@ -525,7 +525,7 @@ DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene,
 		return dm;
 
 	/* sanity check */
-	if (!fluidmd || (fluidmd && !fluidmd->fss))
+	if (!fluidmd || !fluidmd->fss)
 		return dm;
 
 	fss = fluidmd->fss;

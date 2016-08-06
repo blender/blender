@@ -14,7 +14,35 @@ endmacro()
 set(INC
 	.
 	..
+	../device
+	../graph
+	../kernel
+	../render
 	../util
+)
+
+set(ALL_CYCLES_LIBRARIES
+	cycles_render
+	cycles_device
+	cycles_bvh
+	cycles_graph
+	cycles_util
+	${OPENIMAGEIO_LIBRARIES}
+)
+if(WITH_CYCLES_OSL)
+	list(APPEND ALL_CYCLES_LIBRARIES
+		cycles_kernel_osl
+		${OSL_LIBRARIES}
+		${LLVM_LIBRARIES}
+	)
+endif()
+if(WITH_IMAGE_OPENJPEG AND NOT WITH_SYSTEM_OPENJPEG)
+	list(APPEND ALL_CYCLES_LIBRARIES
+		extern_openjpeg
+	)
+endif()
+list(APPEND ALL_CYCLES_LIBRARIES
+	${BOOST_LIBRARIES}
 )
 
 include_directories(${INC})
@@ -25,6 +53,7 @@ link_directories(${OPENIMAGEIO_LIBPATH})
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${PLATFORM_LINKFLAGS_DEBUG}")
 
+CYCLES_TEST(render_graph_finalize "${ALL_CYCLES_LIBRARIES}")
 CYCLES_TEST(util_aligned_malloc "cycles_util")
 CYCLES_TEST(util_path "cycles_util;${BOOST_LIBRARIES};${OPENIMAGEIO_LIBRARIES}")
 CYCLES_TEST(util_string "cycles_util;${BOOST_LIBRARIES}")

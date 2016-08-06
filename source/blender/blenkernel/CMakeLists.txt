@@ -80,6 +80,7 @@ set(SRC
 	intern/brush.c
 	intern/bullet.c
 	intern/bvhutils.c
+	intern/cachefile.c
 	intern/camera.c
 	intern/cdderivedmesh.c
 	intern/cloth.c
@@ -200,6 +201,7 @@ set(SRC
 	BKE_brush.h
 	BKE_bullet.h
 	BKE_bvhutils.h
+	BKE_cachefile.h
 	BKE_camera.h
 	BKE_ccg.h
 	BKE_cdderivedmesh.h
@@ -489,6 +491,13 @@ endif()
 
 if(WITH_FREESTYLE)
 	add_definitions(-DWITH_FREESTYLE)
+endif()
+
+if(WITH_ALEMBIC)
+	list(APPEND INC
+		../alembic
+	)
+	add_definitions(-DWITH_ALEMBIC)
 endif()
 
 if(WITH_OPENSUBDIV)

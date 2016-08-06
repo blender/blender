@@ -82,7 +82,6 @@ def init():
     import bpy
     import _cycles
     import os.path
-    import sys
 
     # Workaround possibly buggy legacy drivers which crashes on the OpenCL
     # device enumeration.
@@ -103,9 +102,11 @@ def init():
     _cycles.init(path, user_path, bpy.app.background)
     _parse_command_line()
 
+
 def exit():
     import _cycles
     _cycles.exit()
+
 
 def create(engine, data, scene, region=None, v3d=None, rv3d=None, preview_osl=False):
     import bpy

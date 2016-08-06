@@ -29,12 +29,13 @@ class PHYSICS_PT_rigidbody_constraint_panel:
 
 class PHYSICS_PT_rigid_body_constraint(PHYSICS_PT_rigidbody_constraint_panel, Panel):
     bl_label = "Rigid Body Constraint"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
         ob = context.object
         rd = context.scene.render
-        return (ob and ob.rigid_body_constraint and (not rd.use_game_engine))
+        return (ob and ob.rigid_body_constraint and rd.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout

@@ -38,6 +38,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_cachefile_types.h"
 #include "DNA_group_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_ipo_types.h"
@@ -69,6 +70,7 @@
 #include "BKE_armature.h"
 #include "BKE_brush.h"
 #include "BKE_camera.h"
+#include "BKE_cachefile.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
@@ -791,7 +793,7 @@ void BKE_libblock_free_ex(Main *bmain, void *idv, const bool do_id_user)
 				free_windowmanager_cb(NULL, (wmWindowManager *)id);
 			break;
 		case ID_GD:
-			BKE_gpencil_free((bGPdata *)id);
+			BKE_gpencil_free((bGPdata *)id, true);
 			break;
 		case ID_MC:
 			BKE_movieclip_free((MovieClip *)id);
@@ -807,6 +809,9 @@ void BKE_libblock_free_ex(Main *bmain, void *idv, const bool do_id_user)
 			break;
 		case ID_PC:
 			BKE_paint_curve_free((PaintCurve *)id);
+			break;
+		case ID_CF:
+			BKE_cachefile_free((CacheFile *)id);
 			break;
 	}
 

@@ -1126,8 +1126,8 @@ static int paint_2d_op(void *state, ImBuf *ibufb, unsigned short *curveb, unsign
 	/* blend into canvas */
 	for (a = 0; a < tot; a++) {
 		ED_imapaint_dirty_region(s->image, s->canvas,
-		                      region[a].destx, region[a].desty,
-		                      region[a].width, region[a].height, true);
+		                         region[a].destx, region[a].desty,
+		                         region[a].width, region[a].height, true);
 	
 		if (s->do_masking) {
 			/* masking, find original pixels tiles from undo buffer to composite over */

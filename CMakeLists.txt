@@ -323,6 +323,10 @@ option(WITH_CODEC_AVI           "Enable Blenders own AVI file support (raw/jpeg)
 option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" ${_init_CODEC_FFMPEG})
 option(WITH_CODEC_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
 
+# Alembic support
+option(WITH_ALEMBIC             "Enable Alembic Support" OFF)
+option(WITH_ALEMBIC_HDF5        "Enable Legacy Alembic Support (not officially supported)" OFF)
+
 if(APPLE)
 	option(WITH_CODEC_QUICKTIME     "Enable Quicktime Support" ON)
 endif()
@@ -720,6 +724,11 @@ if(WITH_OPENIMAGEIO)
 	set(WITH_IMAGE_TIFF ON)
 endif()
 
+# auto enable alembic linking dependencies
+if(WITH_ALEMBIC)
+	set(WITH_IMAGE_OPENEXR ON)
+endif()
+
 # don't store paths to libs for portable distribution
 if(WITH_INSTALL_PORTABLE)
 	set(CMAKE_SKIP_BUILD_RPATH TRUE)
@@ -1088,6 +1097,21 @@ if(UNIX AND NOT APPLE)
 			set(WITH_OPENVDB OFF)
 			set(WITH_OPENVDB_BLOSC OFF)
 			message(STATUS "OpenVDB not found, disabling it")
+		endif()
+	endif()
+
+	if(WITH_ALEMBIC)
+		set(ALEMBIC_ROOT_DIR ${LIBDIR}/alembic)
+		find_package_wrapper(Alembic)
+
+		if(WITH_ALEMBIC_HDF5)
+			set(HDF5_ROOT_DIR ${LIBDIR}/hdf5)
+			find_package_wrapper(HDF5)
+		endif()
+
+		if(NOT ALEMBIC_FOUND OR (WITH_ALEMBIC_HDF5 AND NOT HDF5_FOUND))
+			set(WITH_ALEMBIC OFF)
+			set(WITH_ALEMBIC_HDF5 OFF)
 		endif()
 	endif()
 
@@ -1660,6 +1684,21 @@ elseif(WIN32)
 			set(OPENVDB_LIBPATH ${LIBDIR}/openvdb/lib)
 		endif()
 
+		if(WITH_ALEMBIC)
+			set(ALEMBIC_ROOT_DIR ${LIBDIR}/alembic)
+			find_package(Alembic)
+
+			if(WITH_ALEMBIC_HDF5)
+				set(HDF5_ROOT_DIR ${LIBDIR}/hdf5)
+				find_package(HDF5)
+			endif()
+
+			if(NOT ALEMBIC_FOUND OR (WITH_ALEMBIC_HDF5 AND NOT HDF5_FOUND))
+				set(WITH_ALEMBIC OFF)
+				set(WITH_ALEMBIC_HDF5 OFF)
+			endif()
+		endif()
+
 		if(WITH_MOD_CLOTH_ELTOPO)
 			set(LAPACK ${LIBDIR}/lapack)
 			# set(LAPACK_INCLUDE_DIR ${LAPACK}/include)
@@ -1959,6 +1998,21 @@ elseif(WIN32)
 			set(OPENVDB_DEFINITIONS)
 		endif()
 
+		if(WITH_ALEMBIC)
+			set(ALEMBIC_ROOT_DIR ${LIBDIR}/alembic)
+			find_package_wrapper(Alembic)
+
+			if(WITH_ALEMBIC_HDF5)
+				set(HDF5_ROOT_DIR ${LIBDIR}/hdf5)
+				find_package_wrapper(HDF5)
+			endif()
+
+			if(NOT ALEMBIC_FOUND OR (WITH_ALEMBIC_HDF5 AND NOT HDF5_FOUND))
+				set(WITH_ALEMBIC OFF)
+				set(WITH_ALEMBIC_HDF5 OFF)
+			endif()
+		endif()
+
 		set(PLATFORM_LINKFLAGS "-Xlinker --stack=2097152")
 
 		## DISABLE - causes linking errors 
@@ -2040,6 +2094,20 @@ elseif(APPLE)
 			set(OPENAL_INCLUDE_DIR "${LIBDIR}/openal/include")
 		else()
 			set(WITH_OPENAL OFF)
+		endif()
+	endif()
+
+	if(WITH_ALEMBIC)
+		set(ALEMBIC_ROOT_DIR ${LIBDIR}/alembic)
+		find_package(Alembic)
+		if(WITH_ALEMBIC_HDF5)
+			set(HDF5_ROOT_DIR ${LIBDIR}/hdf5)
+			find_package(HDF5)
+		endif()
+
+		if(NOT ALEMBIC_FOUND OR (WITH_ALEMBIC_HDF5 AND NOT HDF5_FOUND))
+			set(WITH_ALEMBIC OFF)
+			set(WITH_ALEMBIC_HDF5 OFF)
 		endif()
 	endif()
 
@@ -3215,6 +3283,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_FREESTYLE)
 	info_cfg_option(WITH_OPENCOLORIO)
 	info_cfg_option(WITH_OPENVDB)
+	info_cfg_option(WITH_ALEMBIC)
 
 	info_cfg_text("Compiler Options:")
 	info_cfg_option(WITH_BUILDINFO)

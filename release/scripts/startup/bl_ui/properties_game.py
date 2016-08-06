@@ -568,7 +568,7 @@ class WORLD_PT_game_context_world(WorldButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
-        return (context.scene) and (rd.use_game_engine)
+        return (context.scene) and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout

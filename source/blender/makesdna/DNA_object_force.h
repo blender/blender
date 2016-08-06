@@ -255,6 +255,8 @@ typedef struct SoftBody {
 	float shearstiff;
 	float inpush;
 
+	struct Group *collision_group;
+
 	struct EffectorWeights *effector_weights;
 	/* reverse esimated obmatrix .. no need to store in blend file .. how ever who cares */ 
 	float lcom[3];

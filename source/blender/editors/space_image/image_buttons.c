@@ -1330,7 +1330,7 @@ void IMAGE_OT_properties(wmOperatorType *ot)
 {
 	ot->name = "Properties";
 	ot->idname = "IMAGE_OT_properties";
-	ot->description = "Toggle display properties panel";
+	ot->description = "Toggle the properties region visibility";
 	
 	ot->exec = image_properties_toggle_exec;
 	ot->poll = ED_operator_image_active;

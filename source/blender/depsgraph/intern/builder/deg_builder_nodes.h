@@ -33,6 +33,7 @@
 #include "intern/depsgraph_types.h"
 
 struct Base;
+struct CacheFile;
 struct bGPdata;
 struct ListBase;
 struct GHash;
@@ -144,6 +145,7 @@ struct DepsgraphNodeBuilder {
 	void build_world(World *world);
 	void build_compositor(Scene *scene);
 	void build_gpencil(bGPdata *gpd);
+	void build_cachefile(CacheFile *cache_file);
 
 protected:
 	Main *m_bmain;

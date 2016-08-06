@@ -74,7 +74,7 @@ def main():
         "rebuild_cache",
         "depend",
         "cmake_check_build_system",
-        ])
+    ])
 
     targets -= set(bad)
 

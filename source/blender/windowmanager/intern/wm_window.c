@@ -69,6 +69,8 @@
 #include "ED_screen.h"
 #include "ED_fileselect.h"
 
+#include "UI_interface.h"
+
 #include "PIL_time.h"
 
 #include "GPU_draw.h"
@@ -1194,14 +1196,27 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 				break;
 			}
 			case GHOST_kEventNativeResolutionChange:
+			{
 				// printf("change, pixel size %f\n", GHOST_GetNativePixelSize(win->ghostwin));
 				
 				U.pixelsize = wm_window_pixelsize(win);
 				BKE_blender_userdef_refresh();
+
+				// close all popups since they are positioned with the pixel
+				// size baked in and it's difficult to correct them
+				wmWindow *oldWindow = CTX_wm_window(C);
+				CTX_wm_window_set(C, win);
+				UI_popup_handlers_remove_all(C, &win->modalhandlers);
+				CTX_wm_window_set(C, oldWindow);
+
+				wm_window_make_drawable(wm, win);
+				wm_draw_window_clear(win);
+
 				WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
 				WM_event_add_notifier(C, NC_WINDOW | NA_EDITED, NULL);
 
 				break;
+			}
 			case GHOST_kEventTrackpad:
 			{
 				GHOST_TEventTrackpadData *pd = data;

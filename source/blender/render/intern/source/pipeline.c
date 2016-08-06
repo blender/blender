@@ -3992,3 +3992,31 @@ RenderPass *RE_pass_find_by_type(volatile RenderLayer *rl, int passtype, const c
 	}
 	return rp;
 }
+
+/* create a renderlayer and renderpass for grease pencil layer */
+RenderPass *RE_create_gp_pass(RenderResult *rr, const char *layername, const char *viewname)
+{
+	RenderLayer *rl = BLI_findstring(&rr->layers, layername, offsetof(RenderLayer, name));
+	/* only create render layer if not exist */
+	if (!rl) {
+		rl = MEM_callocN(sizeof(RenderLayer), layername);
+		BLI_addtail(&rr->layers, rl);
+		BLI_strncpy(rl->name, layername, sizeof(rl->name));
+		rl->lay = 0;
+		rl->layflag = SCE_LAY_SOLID;
+		rl->passflag = SCE_PASS_COMBINED;
+		rl->rectx = rr->rectx;
+		rl->recty = rr->recty;
+	}
+	
+	/* clear previous pass if exist or the new image will be over previous one*/
+	RenderPass *rp = RE_pass_find_by_type(rl, SCE_PASS_COMBINED, viewname);
+	if (rp) {
+		if (rp->rect) {
+			MEM_freeN(rp->rect);
+		}
+		BLI_freelinkN(&rl->passes, rp);
+	}
+	/* create a totally new pass */
+	return gp_add_pass(rr, rl, 4, SCE_PASS_COMBINED, viewname);
+}

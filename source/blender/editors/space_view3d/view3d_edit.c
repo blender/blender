@@ -4514,7 +4514,7 @@ void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 	/* note: having key shortcut here is bad practice,
 	 * but for now keep because this displays when dragging an image over the 3D viewport */
 	ot->name   = "Add Background Image (Ctrl for Empty Object)";
-	ot->description = "Add a new background image";
+	ot->description = "Add a new background image (Ctrl for Empty Object)";
 	ot->idname = "VIEW3D_OT_background_image_add";
 
 	/* api callbacks */
@@ -4523,7 +4523,7 @@ void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 	ot->poll   = ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag   = 0;
+	ot->flag   = OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME - 2, "Name", "Image name to assign");

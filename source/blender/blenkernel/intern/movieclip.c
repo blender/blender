@@ -1491,6 +1491,32 @@ void BKE_movieclip_free(MovieClip *clip)
 	BKE_tracking_free(&clip->tracking);
 }
 
+MovieClip *BKE_movieclip_copy(Main *bmain, MovieClip *clip)
+{
+	MovieClip *clip_new;
+
+	clip_new = BKE_libblock_copy(bmain, &clip->id);
+
+	clip_new->anim = NULL;
+	clip_new->cache = NULL;
+
+	BKE_tracking_copy(&clip_new->tracking, &clip->tracking);
+	clip_new->tracking_context = NULL;
+
+	id_us_plus((ID *)clip_new->gpd);
+
+	BKE_color_managed_colorspace_settings_copy(&clip_new->colorspace_settings, &clip->colorspace_settings);
+
+	BKE_id_copy_ensure_local(bmain, &clip->id, &clip_new->id);
+
+	return clip_new;
+}
+
+void BKE_movieclip_make_local(Main *bmain, MovieClip *clip, const bool lib_local)
+{
+	BKE_id_make_local_generic(bmain, &clip->id, true, lib_local);
+}
+
 float BKE_movieclip_remap_scene_to_clip_frame(MovieClip *clip, float framenr)
 {
 	return framenr - (float) clip->start_frame + 1.0f;

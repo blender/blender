@@ -131,6 +131,7 @@ bool nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA *nlt_p
 			case ANIMTYPE_DSMAT:    /* Datablock AnimData Expanders */
 			case ANIMTYPE_DSLAM:
 			case ANIMTYPE_DSCAM:
+			case ANIMTYPE_DSCACHEFILE:
 			case ANIMTYPE_DSCUR:
 			case ANIMTYPE_DSSKEY:
 			case ANIMTYPE_DSWOR:
@@ -566,7 +567,7 @@ void NLA_OT_properties(wmOperatorType *ot)
 {
 	ot->name = "Properties";
 	ot->idname = "NLA_OT_properties";
-	ot->description = "Toggle display properties panel";
+	ot->description = "Toggle the properties region visibility";
 	
 	ot->exec = nla_properties_toggle_exec;
 	ot->poll = ED_operator_nla_active;

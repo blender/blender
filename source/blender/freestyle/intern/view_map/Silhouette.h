@@ -1416,6 +1416,7 @@ private:
 	vector<FEdge*> _edgesList;       // list of all edges
 	Id _Id;
 	const char *_Name;
+	const char *_LibraryPath;
 	BBox<Vec3r> _BBox;
 	vector<FrsMaterial> _FrsMaterials;  
 
@@ -1436,6 +1437,7 @@ public:
 		_importance = 0.0f;
 		_ViewShape = NULL;
 		_Name = NULL;
+		_LibraryPath = NULL;
 	}
 
 	/*! Copy constructor */
@@ -1444,6 +1446,7 @@ public:
 		userdata = NULL;
 		_Id = iBrother._Id;
 		_Name = iBrother._Name;
+		_LibraryPath = iBrother._LibraryPath;
 		_BBox = iBrother.bbox();
 		_FrsMaterials = iBrother._FrsMaterials;
 		_importance = iBrother._importance;
@@ -1893,6 +1896,12 @@ public:
 		return _Name;
 	}
 
+	/*! Returns the library path of the Shape. */
+	inline const char *getLibraryPath() const
+	{
+		return _LibraryPath;
+	}
+
 	/* Modififers */
 	/*! Sets the Id of the shape.*/
 	inline void setId(Id id)
@@ -1904,6 +1913,12 @@ public:
 	inline void setName(const char *name)
 	{
 		_Name = name;
+	}
+
+	/*! Sets the library path of the shape.*/
+	inline void setLibraryPath(const char *path)
+	{
+		_LibraryPath = path;
 	}
 
 	/*! Sets the list of materials for the shape */

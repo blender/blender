@@ -81,9 +81,7 @@
 #include "wm_event_system.h"
 #include "wm_event_types.h"
 
-#ifndef NDEBUG
-#  include "RNA_enum_types.h"
-#endif
+#include "RNA_enum_types.h"
 
 static void wm_notifier_clear(wmNotifier *note);
 static void update_tablet_data(wmWindow *win, wmEvent *event);
@@ -550,8 +548,6 @@ void WM_operator_region_active_win_set(bContext *C)
 }
 
 /* for debugging only, getting inspecting events manually is tedious */
-#ifndef NDEBUG
-
 void WM_event_print(const wmEvent *event)
 {
 	if (event) {
@@ -592,8 +588,6 @@ void WM_event_print(const wmEvent *event)
 		printf("wmEvent - NULL\n");
 	}
 }
-
-#endif /* NDEBUG */
 
 /**
  * Show the report in the info header.
@@ -1969,15 +1963,11 @@ static int wm_action_not_handled(int action)
 
 static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers)
 {
-#ifndef NDEBUG
 	const bool do_debug_handler = (G.debug & G_DEBUG_HANDLERS) &&
 	        /* comment this out to flood the console! (if you really want to test) */
 	        !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)
 	        ;
-#    define PRINT if (do_debug_handler) printf
-#else
-#  define PRINT(format, ...)
-#endif
+# define PRINT if (do_debug_handler) printf
 
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmEventHandler *handler, *nexthandler;
@@ -2382,20 +2372,16 @@ void wm_event_do_handlers(bContext *C)
 		while ( (event = win->queue.first) ) {
 			int action = WM_HANDLER_CONTINUE;
 
-#ifndef NDEBUG
 			if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS) && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
 				printf("\n%s: Handling event\n", __func__);
 				WM_event_print(event);
 			}
-#endif
 
 			/* take care of pie event filter */
 			if (wm_event_pie_filter(win, event)) {
-#ifndef NDEBUG
 				if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS) && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
 					printf("\n%s: event filtered due to pie button pressed\n", __func__);
 				}
-#endif
 				BLI_remlink(&win->queue, event);
 				wm_event_free(event);
 				continue;

@@ -812,6 +812,11 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	}
 		
 	col = uiLayoutColumn(pa->layout, true);
+
+	if (driver->type == DRIVER_TYPE_PYTHON) {
+		uiItemR(col, &driver_ptr, "use_self", 0, NULL, ICON_NONE);
+	}
+
 	/* debug setting */
 	uiItemR(col, &driver_ptr, "show_debug_info", 0, NULL, ICON_NONE);
 		
@@ -1062,7 +1067,7 @@ void GRAPH_OT_properties(wmOperatorType *ot)
 {
 	ot->name = "Properties";
 	ot->idname = "GRAPH_OT_properties";
-	ot->description = "Toggle display properties panel";
+	ot->description = "Toggle the properties region visibility";
 	
 	ot->exec = graph_properties_toggle_exec;
 	ot->poll = ED_operator_graphedit_active;

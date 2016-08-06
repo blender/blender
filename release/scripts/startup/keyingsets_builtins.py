@@ -175,6 +175,7 @@ class BUILTIN_KSI_RotScale(KeyingSetInfo):
 
 # ------------
 
+
 # Bendy Bones
 class BUILTIN_KSI_BendyBones(KeyingSetInfo):
     """Insert a keyframe for each of the BBone shape properties"""

@@ -44,7 +44,20 @@ static bool jack_supported = false;
 void AUD_jack_init(void)
 {
 #ifdef WITH_JACK_DYNLOAD
-	jack_handle = dlopen("libjack.so", RTLD_LAZY);
+	const char *names[] = {"libjack.so",
+	                       "libjack.so.0",
+	                       "libjack.so.1",
+	                       "libjack.so.2",
+	                       NULL};
+	int index = 0;
+	while (names[index] != NULL) {
+		jack_handle = dlopen(names[index], RTLD_LAZY);
+		if (jack_handle != NULL) {
+			// Found existing library.
+			break;
+		}
+		++index;
+	}
 
 	if (!jack_handle) {
 		return;

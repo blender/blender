@@ -62,6 +62,7 @@ struct AnimData;
 struct Editing;
 struct SceneStats;
 struct bGPdata;
+struct bGPDbrush;
 struct MovieClip;
 struct ColorSpace;
 
@@ -1084,11 +1085,11 @@ typedef enum eGP_EditBrush_Types {
 	GP_EDITBRUSH_TYPE_SUBDIVIDE = 7,
 	GP_EDITBRUSH_TYPE_SIMPLIFY  = 8,
 	GP_EDITBRUSH_TYPE_CLONE     = 9,
-	
+	GP_EDITBRUSH_TYPE_STRENGTH  = 10,
+
 	/* !!! Update GP_EditBrush_Data brush[###]; below !!! */
 	TOT_GP_EDITBRUSH_TYPES
 } eGP_EditBrush_Types;
-
 
 /* Settings for a GPencil Stroke Sculpting Brush */
 typedef struct GP_EditBrush_Data {
@@ -1115,17 +1116,26 @@ typedef enum eGP_EditBrush_Flag {
 
 /* GPencil Stroke Sculpting Settings */
 typedef struct GP_BrushEdit_Settings {
-	GP_EditBrush_Data brush[10];  /* TOT_GP_EDITBRUSH_TYPES */
+	GP_EditBrush_Data brush[11];  /* TOT_GP_EDITBRUSH_TYPES */
 	void *paintcursor;            /* runtime */
 	
 	int brushtype;                /* eGP_EditBrush_Types */
 	int flag;                     /* eGP_BrushEdit_SettingsFlag */
+	char pad[4];
+	float alpha;                  /* alpha factor for selection color */
 } GP_BrushEdit_Settings;
 
 /* GP_BrushEdit_Settings.flag */
 typedef enum eGP_BrushEdit_SettingsFlag {
 	/* only affect selected points */
-	GP_BRUSHEDIT_FLAG_SELECT_MASK = (1 << 0)
+	GP_BRUSHEDIT_FLAG_SELECT_MASK = (1 << 0),
+	/* apply brush to position */
+	GP_BRUSHEDIT_FLAG_APPLY_POSITION = (1 << 1),
+	/* apply brush to strength */
+	GP_BRUSHEDIT_FLAG_APPLY_STRENGTH = (1 << 2),
+	/* apply brush to thickness */
+	GP_BRUSHEDIT_FLAG_APPLY_THICKNESS = (1 << 3)
+
 } eGP_BrushEdit_SettingsFlag;
 
 /* *************************************************************** */
@@ -1344,6 +1354,9 @@ typedef struct ToolSettings {
 	
 	/* Grease Pencil Sculpt */
 	struct GP_BrushEdit_Settings gp_sculpt;
+
+	/* Grease Pencil Drawing Brushes (bGPDbrush) */
+	ListBase gp_brushes; 
 
 	/* Image Paint (8 byttse aligned please!) */
 	struct ImagePaintSettings imapaint;

@@ -19,6 +19,17 @@
 
 CCL_NAMESPACE_BEGIN
 
+typedef ccl_addr_space struct Bssrdf {
+	SHADER_CLOSURE_BASE;
+
+	float radius;
+	float sharpness;
+	float d;
+	float texture_blur;
+	float albedo;
+	float3 N;
+} Bssrdf;
+
 /* Planar Truncated Gaussian
  *
  * Note how this is different from the typical gaussian, this one integrates
@@ -28,11 +39,12 @@ CCL_NAMESPACE_BEGIN
 /* paper suggests 1/12.46 which is much too small, suspect it's *12.46 */
 #define GAUSS_TRUNCATE 12.46f
 
-ccl_device float bssrdf_gaussian_eval(ShaderClosure *sc, float r)
+ccl_device float bssrdf_gaussian_eval(const ShaderClosure *sc, float r)
 {
 	/* integrate (2*pi*r * exp(-r*r/(2*v)))/(2*pi*v)) from 0 to Rm
 	 * = 1 - exp(-Rm*Rm/(2*v)) */
-	const float v = sc->data0*sc->data0*(0.25f*0.25f);
+	const Bssrdf *bssrdf = (const Bssrdf*)sc;
+	const float v = bssrdf->radius*bssrdf->radius*(0.25f*0.25f);
 	const float Rm = sqrtf(v*GAUSS_TRUNCATE);
 
 	if(r >= Rm)
@@ -41,7 +53,7 @@ ccl_device float bssrdf_gaussian_eval(ShaderClosure *sc, float r)
 	return expf(-r*r/(2.0f*v))/(2.0f*M_PI_F*v);
 }
 
-ccl_device float bssrdf_gaussian_pdf(ShaderClosure *sc, float r)
+ccl_device float bssrdf_gaussian_pdf(const ShaderClosure *sc, float r)
 {
 	/* 1.0 - expf(-Rm*Rm/(2*v)) simplified */
 	const float area_truncated = 1.0f - expf(-0.5f*GAUSS_TRUNCATE);
@@ -49,12 +61,12 @@ ccl_device float bssrdf_gaussian_pdf(ShaderClosure *sc, float r)
 	return bssrdf_gaussian_eval(sc, r) * (1.0f/(area_truncated));
 }
 
-ccl_device void bssrdf_gaussian_sample(ShaderClosure *sc, float xi, float *r, float *h)
+ccl_device void bssrdf_gaussian_sample(const ShaderClosure *sc, float xi, float *r, float *h)
 {
 	/* xi = integrate (2*pi*r * exp(-r*r/(2*v)))/(2*pi*v)) = -exp(-r^2/(2*v))
 	 * r = sqrt(-2*v*logf(xi)) */
-
-	const float v = sc->data0*sc->data0*(0.25f*0.25f);
+	const Bssrdf *bssrdf = (const Bssrdf*)sc;
+	const float v = bssrdf->radius*bssrdf->radius*(0.25f*0.25f);
 	const float Rm = sqrtf(v*GAUSS_TRUNCATE);
 
 	/* 1.0 - expf(-Rm*Rm/(2*v)) simplified */
@@ -75,12 +87,13 @@ ccl_device void bssrdf_gaussian_sample(ShaderClosure *sc, float xi, float *r, fl
  * far as I can tell has no closed form solution. So we get an iterative solution
  * instead with newton-raphson. */
 
-ccl_device float bssrdf_cubic_eval(ShaderClosure *sc, float r)
+ccl_device float bssrdf_cubic_eval(const ShaderClosure *sc, float r)
 {
-	const float sharpness = sc->T.x;
+	const Bssrdf *bssrdf = (const Bssrdf*)sc;
+	const float sharpness = bssrdf->sharpness;
 
 	if(sharpness == 0.0f) {
-		const float Rm = sc->data0;
+		const float Rm = bssrdf->radius;
 
 		if(r >= Rm)
 			return 0.0f;
@@ -94,7 +107,7 @@ ccl_device float bssrdf_cubic_eval(ShaderClosure *sc, float r)
 
 	}
 	else {
-		float Rm = sc->data0*(1.0f + sharpness);
+		float Rm = bssrdf->radius*(1.0f + sharpness);
 
 		if(r >= Rm)
 			return 0.0f;
@@ -122,13 +135,13 @@ ccl_device float bssrdf_cubic_eval(ShaderClosure *sc, float r)
 	}
 }
 
-ccl_device float bssrdf_cubic_pdf(ShaderClosure *sc, float r)
+ccl_device float bssrdf_cubic_pdf(const ShaderClosure *sc, float r)
 {
 	return bssrdf_cubic_eval(sc, r);
 }
 
 /* solve 10x^2 - 20x^3 + 15x^4 - 4x^5 - xi == 0 */
-ccl_device float bssrdf_cubic_quintic_root_find(float xi)
+ccl_device_inline float bssrdf_cubic_quintic_root_find(float xi)
 {
 	/* newton-raphson iteration, usually succeeds in 2-4 iterations, except
 	 * outside 0.02 ... 0.98 where it can go up to 10, so overall performance
@@ -155,12 +168,13 @@ ccl_device float bssrdf_cubic_quintic_root_find(float xi)
 	return x;
 }
 
-ccl_device void bssrdf_cubic_sample(ShaderClosure *sc, float xi, float *r, float *h)
+ccl_device void bssrdf_cubic_sample(const ShaderClosure *sc, float xi, float *r, float *h)
 {
-	float Rm = sc->data0;
+	const Bssrdf *bssrdf = (const Bssrdf*)sc;
+	const float sharpness = bssrdf->sharpness;
+	float Rm = bssrdf->radius;
 	float r_ = bssrdf_cubic_quintic_root_find(xi);
 
-	const float sharpness = sc->T.x;
 	if(sharpness != 0.0f) {
 		r_ = powf(r_, 1.0f + sharpness);
 		Rm *= (1.0f + sharpness);
@@ -198,21 +212,22 @@ ccl_device_inline float bssrdf_burley_compatible_mfp(float r)
 	return 0.25f * M_1_PI_F * r;
 }
 
-ccl_device void bssrdf_burley_setup(ShaderClosure *sc)
+ccl_device void bssrdf_burley_setup(Bssrdf *bssrdf)
 {
 	/* Mean free path length. */
-	const float l = bssrdf_burley_compatible_mfp(sc->data0);
+	const float l = bssrdf_burley_compatible_mfp(bssrdf->radius);
 	/* Surface albedo. */
-	const float A = sc->data2;
+	const float A = bssrdf->albedo;
 	const float s = bssrdf_burley_fitting(A);
 	const float d = l / s;
 
-	sc->custom1 = d;
+	bssrdf->d = d;
 }
 
-ccl_device float bssrdf_burley_eval(ShaderClosure *sc, float r)
+ccl_device float bssrdf_burley_eval(const ShaderClosure *sc, float r)
 {
-	const float d = sc->custom1;
+	const Bssrdf *bssrdf = (const Bssrdf*)sc;
+	const float d = bssrdf->d;
 	const float Rm = BURLEY_TRUNCATE * d;
 
 	if(r >= Rm)
@@ -231,7 +246,7 @@ ccl_device float bssrdf_burley_eval(ShaderClosure *sc, float r)
 	return (exp_r_d + exp_r_3_d) / (4.0f*d);
 }
 
-ccl_device float bssrdf_burley_pdf(ShaderClosure *sc, float r)
+ccl_device float bssrdf_burley_pdf(const ShaderClosure *sc, float r)
 {
 	return bssrdf_burley_eval(sc, r) * (1.0f/BURLEY_TRUNCATE_CDF);
 }
@@ -240,7 +255,7 @@ ccl_device float bssrdf_burley_pdf(ShaderClosure *sc, float r)
  * Returns scaled radius, meaning the result is to be scaled up by d.
  * Since there's no closed form solution we do Newton-Raphson method to find it.
  */
-ccl_device float bssrdf_burley_root_find(float xi)
+ccl_device_inline float bssrdf_burley_root_find(float xi)
 {
 	const float tolerance = 1e-6f;
 	const int max_iteration_count = 10;
@@ -276,12 +291,13 @@ ccl_device float bssrdf_burley_root_find(float xi)
 	return r;
 }
 
-ccl_device void bssrdf_burley_sample(ShaderClosure *sc,
+ccl_device void bssrdf_burley_sample(const ShaderClosure *sc,
                                      float xi,
                                      float *r,
                                      float *h)
 {
-	const float d = sc->custom1;
+	const Bssrdf *bssrdf = (const Bssrdf*)sc;
+	const float d = bssrdf->d;
 	const float Rm = BURLEY_TRUNCATE * d;
 	const float r_ = bssrdf_burley_root_find(xi * BURLEY_TRUNCATE_CDF) * d;
 
@@ -295,26 +311,29 @@ ccl_device void bssrdf_burley_sample(ShaderClosure *sc,
  *
  * Samples distributed over disk with no falloff, for reference. */
 
-ccl_device float bssrdf_none_eval(ShaderClosure *sc, float r)
+ccl_device float bssrdf_none_eval(const ShaderClosure *sc, float r)
 {
-	const float Rm = sc->data0;
+	const Bssrdf *bssrdf = (const Bssrdf*)sc;
+	const float Rm = bssrdf->radius;
 	return (r < Rm)? 1.0f: 0.0f;
 }
 
-ccl_device float bssrdf_none_pdf(ShaderClosure *sc, float r)
+ccl_device float bssrdf_none_pdf(const ShaderClosure *sc, float r)
 {
 	/* integrate (2*pi*r)/(pi*Rm*Rm) from 0 to Rm = 1 */
-	const float Rm = sc->data0;
+	const Bssrdf *bssrdf = (const Bssrdf*)sc;
+	const float Rm = bssrdf->radius;
 	const float area = (M_PI_F*Rm*Rm);
 
 	return bssrdf_none_eval(sc, r) / area;
 }
 
-ccl_device void bssrdf_none_sample(ShaderClosure *sc, float xi, float *r, float *h)
+ccl_device void bssrdf_none_sample(const ShaderClosure *sc, float xi, float *r, float *h)
 {
 	/* xi = integrate (2*pi*r)/(pi*Rm*Rm) = r^2/Rm^2
 	 * r = sqrt(xi)*Rm */
-	const float Rm = sc->data0;
+	const Bssrdf *bssrdf = (const Bssrdf*)sc;
+	const float Rm = bssrdf->radius;
 	const float r_ = sqrtf(xi)*Rm;
 
 	*r = r_;
@@ -325,30 +344,42 @@ ccl_device void bssrdf_none_sample(ShaderClosure *sc, float xi, float *r, float 
 
 /* Generic */
 
-ccl_device int bssrdf_setup(ShaderClosure *sc, ClosureType type)
+ccl_device_inline Bssrdf *bssrdf_alloc(ShaderData *sd, float3 weight)
 {
-	if(sc->data0 < BSSRDF_MIN_RADIUS) {
+	Bssrdf *bssrdf = (Bssrdf*)closure_alloc(sd, sizeof(Bssrdf), CLOSURE_NONE_ID, weight);
+
+	if(!bssrdf)
+		return NULL;
+
+	float sample_weight = fabsf(average(weight));
+	bssrdf->sample_weight = sample_weight;
+	return (sample_weight >= CLOSURE_WEIGHT_CUTOFF) ? bssrdf : NULL;
+}
+
+ccl_device int bssrdf_setup(Bssrdf *bssrdf, ClosureType type)
+{
+	if(bssrdf->radius < BSSRDF_MIN_RADIUS) {
 		/* revert to diffuse BSDF if radius too small */
-		sc->data0 = 0.0f;
-		sc->data1 = 0.0f;
-		int flag = bsdf_diffuse_setup(sc);
-		sc->type = CLOSURE_BSDF_BSSRDF_ID;
+		DiffuseBsdf *bsdf = (DiffuseBsdf*)bssrdf;
+		bsdf->N = bssrdf->N;
+		int flag = bsdf_diffuse_setup(bsdf);
+		bsdf->type = CLOSURE_BSDF_BSSRDF_ID;
 		return flag;
 	}
 	else {
-		sc->data1 = saturate(sc->data1); /* texture blur */
-		sc->T.x = saturate(sc->T.x); /* sharpness */
-		sc->type = type;
+		bssrdf->texture_blur = saturate(bssrdf->texture_blur);
+		bssrdf->sharpness = saturate(bssrdf->sharpness);
+		bssrdf->type = type;
 
 		if(type == CLOSURE_BSSRDF_BURLEY_ID) {
-			bssrdf_burley_setup(sc);
+			bssrdf_burley_setup(bssrdf);
 		}
 
 		return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSSRDF;
 	}
 }
 
-ccl_device void bssrdf_sample(ShaderClosure *sc, float xi, float *r, float *h)
+ccl_device void bssrdf_sample(const ShaderClosure *sc, float xi, float *r, float *h)
 {
 	if(sc->type == CLOSURE_BSSRDF_CUBIC_ID)
 		bssrdf_cubic_sample(sc, xi, r, h);
@@ -358,7 +389,7 @@ ccl_device void bssrdf_sample(ShaderClosure *sc, float xi, float *r, float *h)
 		bssrdf_burley_sample(sc, xi, r, h);
 }
 
-ccl_device float bssrdf_pdf(ShaderClosure *sc, float r)
+ccl_device_inline float bssrdf_pdf(const ShaderClosure *sc, float r)
 {
 	if(sc->type == CLOSURE_BSSRDF_CUBIC_ID)
 		return bssrdf_cubic_pdf(sc, r);

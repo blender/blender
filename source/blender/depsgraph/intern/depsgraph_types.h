@@ -133,6 +133,8 @@ typedef enum eDepsNode_Type {
 	DEPSNODE_TYPE_EVAL_PARTICLES   = 23,
 	/* Material Shading Component */
 	DEPSNODE_TYPE_SHADING          = 24,
+	/* Cache Component */
+	DEPSNODE_TYPE_CACHE            = 25,
 } eDepsNode_Type;
 
 /* Identifiers for common operations (as an enum). */
@@ -330,6 +332,9 @@ typedef enum eDepsRelation_Type {
 
 	/* relationship is used to trigger editor/screen updates */
 	DEPSREL_TYPE_UPDATE_UI,
+
+	/* cache dependency */
+	DEPSREL_TYPE_CACHE,
 } eDepsRelation_Type;
 
 }  // namespace DEG

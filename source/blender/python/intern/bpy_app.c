@@ -33,6 +33,7 @@
 
 #include "bpy_app.h"
 
+#include "bpy_app_alembic.h"
 #include "bpy_app_ffmpeg.h"
 #include "bpy_app_ocio.h"
 #include "bpy_app_oiio.h"
@@ -104,6 +105,7 @@ static PyStructSequence_Field app_info_fields[] = {
 	{(char *)"build_system", (char *)"Build system used"},
 
 	/* submodules */
+	{(char *)"alembic", (char *)"Alembic library information backend"},
 	{(char *)"ffmpeg", (char *)"FFmpeg library information backend"},
 	{(char *)"ocio", (char *)"OpenColorIO library information backend"},
 	{(char *)"oiio", (char *)"OpenImageIO library information backend"},
@@ -182,6 +184,7 @@ static PyObject *make_app_info(void)
 	SetBytesItem("Unknown");
 #endif
 
+	SetObjItem(BPY_app_alembic_struct());
 	SetObjItem(BPY_app_ffmpeg_struct());
 	SetObjItem(BPY_app_ocio_struct());
 	SetObjItem(BPY_app_oiio_struct());

@@ -35,12 +35,17 @@
  *
  */
 
-ccl_device void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
-                                            const Ray *ray,
-                                            SubsurfaceIntersection *ss_isect,
-                                            int subsurface_object,
-                                            uint *lcg_state,
-                                            int max_hits)
+#ifndef __KERNEL_GPU__
+ccl_device
+#else
+ccl_device_inline
+#endif
+void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
+                                 const Ray *ray,
+                                 SubsurfaceIntersection *ss_isect,
+                                 int subsurface_object,
+                                 uint *lcg_state,
+                                 int max_hits)
 {
 	/* todo:
 	 * - test if pushing distance on the stack helps (for non shadow rays)

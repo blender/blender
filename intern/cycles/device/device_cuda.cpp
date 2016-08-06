@@ -249,121 +249,161 @@ public:
 		return DebugFlags().cuda.adaptive_compile;
 	}
 
+	/* Common NVCC flags which stays the same regardless of shading model,
+	 * kernel sources md5 and only depends on compiler or compilation settings.
+	 */
+	string compile_kernel_get_common_cflags(
+	        const DeviceRequestedFeatures& requested_features)
+	{
+		const int cuda_version = cuewCompilerVersion();
+		const int machine = system_cpu_bits();
+		const string kernel_path = path_get("kernel");
+		const string include = kernel_path;
+		string cflags = string_printf("-m%d "
+		                              "--ptxas-options=\"-v\" "
+		                              "--use_fast_math "
+		                              "-DNVCC "
+		                              "-D__KERNEL_CUDA_VERSION__=%d "
+		                               "-I\"%s\"",
+		                              machine,
+		                              cuda_version,
+		                              include.c_str());
+		if(use_adaptive_compilation()) {
+			cflags += " " + requested_features.get_build_options();
+		}
+		const char *extra_cflags = getenv("CYCLES_CUDA_EXTRA_CFLAGS");
+		if(extra_cflags) {
+			cflags += string(" ") + string(extra_cflags);
+		}
+#ifdef WITH_CYCLES_DEBUG
+		cflags += " -D__KERNEL_DEBUG__";
+#endif
+		return cflags;
+	}
+
+	bool compile_check_compiler() {
+		const char *nvcc = cuewCompilerPath();
+		if(nvcc == NULL) {
+			cuda_error_message("CUDA nvcc compiler not found. "
+			                   "Install CUDA toolkit in default location.");
+			return false;
+		}
+		const int cuda_version = cuewCompilerVersion();
+		VLOG(1) << "Found nvcc " << nvcc
+		        << ", CUDA version " << cuda_version
+		        << ".";
+		const int major = cuda_version / 10, minor = cuda_version & 10;
+		if(cuda_version == 0) {
+			cuda_error_message("CUDA nvcc compiler version could not be parsed.");
+			return false;
+		}
+		if(cuda_version < 60) {
+			printf("Unsupported CUDA version %d.%d detected, "
+			       "you need CUDA 7.5 or newer.\n",
+			       major, minor);
+			return false;
+		}
+		else if(cuda_version != 75 && cuda_version != 80) {
+			printf("CUDA version %d.%d detected, build may succeed but only "
+			       "CUDA 7.5 and 8.0 are officially supported.\n",
+			       major, minor);
+		}
+		return true;
+	}
+
 	string compile_kernel(const DeviceRequestedFeatures& requested_features)
 	{
 		/* Compute cubin name. */
 		int major, minor;
 		cuDeviceComputeCapability(&major, &minor, cuDevId);
-		string cubin;
-
-		/* Adaptive Compile.
-		 * If enabled, always use that */
-		bool use_adaptive_compile = use_adaptive_compilation();
 
 		/* Attempt to use kernel provided with Blender. */
-		if(!use_adaptive_compile) {
-			cubin = path_get(string_printf("lib/kernel_sm_%d%d.cubin", major, minor));
-			VLOG(1) << "Testing for pre-compiled kernel " << cubin;
+		if(!use_adaptive_compilation()) {
+			const string cubin = path_get(string_printf("lib/kernel_sm_%d%d.cubin",
+			                                            major, minor));
+			VLOG(1) << "Testing for pre-compiled kernel " << cubin << ".";
 			if(path_exists(cubin)) {
-				VLOG(1) << "Using precompiled kernel";
+				VLOG(1) << "Using precompiled kernel.";
 				return cubin;
 			}
 		}
 
+		const string common_cflags =
+		        compile_kernel_get_common_cflags(requested_features);
+
 		/* Try to use locally compiled kernel. */
-		string kernel_path = path_get("kernel");
-		string md5 = path_files_md5_hash(kernel_path);
+		const string kernel_path = path_get("kernel");
+		const string kernel_md5 = path_files_md5_hash(kernel_path);
 
-		string feature_build_options;
-		if(use_adaptive_compile) {
-			feature_build_options = requested_features.get_build_options();
-			string device_md5 = util_md5_string(feature_build_options);
-			cubin = string_printf("cycles_kernel_%s_sm%d%d_%s.cubin",
-		                          device_md5.c_str(),
-		                          major, minor,
-		                          md5.c_str());
-		}
-		else {
-			cubin = string_printf("cycles_kernel_sm%d%d_%s.cubin", major, minor, md5.c_str());
-		}
+		/* We include cflags into md5 so changing cuda toolkit or changing other
+		 * compiler command line arguments makes sure cubin gets re-built.
+		 */
+		const string cubin_md5 = util_md5_string(kernel_md5 + common_cflags);
 
-		cubin = path_user_get(path_join("cache", cubin));
-		VLOG(1) << "Testing for locally compiled kernel " << cubin;
-		/* If exists already, use it. */
+		const string cubin_file = string_printf("cycles_kernel_sm%d%d_%s.cubin",
+		                                        major, minor,
+		                                        cubin_md5.c_str());
+		const string cubin = path_user_get(path_join("cache", cubin_file));
+		VLOG(1) << "Testing for locally compiled kernel " << cubin << ".";
 		if(path_exists(cubin)) {
-			VLOG(1) << "Using locally compiled kernel";
+			VLOG(1) << "Using locally compiled kernel.";
 			return cubin;
 		}
 
 #ifdef _WIN32
 		if(have_precompiled_kernels()) {
-			if(major < 2)
-				cuda_error_message(string_printf("CUDA device requires compute capability 2.0 or up, found %d.%d. Your GPU is not supported.", major, minor));
-			else
-				cuda_error_message(string_printf("CUDA binary kernel for this graphics card compute capability (%d.%d) not found.", major, minor));
+			if(major < 2) {
+				cuda_error_message(string_printf(
+				        "CUDA device requires compute capability 2.0 or up, "
+				        "found %d.%d. Your GPU is not supported.",
+				        major, minor));
+			}
+			else {
+				cuda_error_message(string_printf(
+				        "CUDA binary kernel for this graphics card compute "
+				        "capability (%d.%d) not found.",
+				        major, minor));
+			}
 			return "";
 		}
 #endif
 
-		/* If not, find CUDA compiler. */
-		const char *nvcc = cuewCompilerPath();
-
-		if(nvcc == NULL) {
-			cuda_error_message("CUDA nvcc compiler not found. Install CUDA toolkit in default location.");
-			return "";
-		}
-
-		int cuda_version = cuewCompilerVersion();
-		VLOG(1) << "Found nvcc " << nvcc << ", CUDA version " << cuda_version;
-
-		if(cuda_version == 0) {
-			cuda_error_message("CUDA nvcc compiler version could not be parsed.");
-			return "";
-		}
-		if(cuda_version < 60) {
-			printf("Unsupported CUDA version %d.%d detected, you need CUDA 7.5.\n", cuda_version/10, cuda_version%10);
-			return "";
-		}
-		else if(cuda_version != 75)
-			printf("CUDA version %d.%d detected, build may succeed but only CUDA 7.5 is officially supported.\n", cuda_version/10, cuda_version%10);
-
 		/* Compile. */
-		string kernel = path_join(kernel_path, path_join("kernels", path_join("cuda", "kernel.cu")));
-		string include = kernel_path;
-		const int machine = system_cpu_bits();
-
+		if(!compile_check_compiler()) {
+			return "";
+		}
+		const char *nvcc = cuewCompilerPath();
+		const string kernel = path_join(kernel_path,
+		                          path_join("kernels",
+		                                    path_join("cuda", "kernel.cu")));
 		double starttime = time_dt();
 		printf("Compiling CUDA kernel ...\n");
 
 		path_create_directories(cubin);
 
-		string command = string_printf("\"%s\" -arch=sm_%d%d -m%d --cubin \"%s\" "
-			"-o \"%s\" --ptxas-options=\"-v\" --use_fast_math -I\"%s\" "
-			"-DNVCC -D__KERNEL_CUDA_VERSION__=%d",
-			nvcc, major, minor, machine, kernel.c_str(), cubin.c_str(), include.c_str(), cuda_version);
-
-		if(use_adaptive_compile)
-			command += " " + feature_build_options;
-
-		const char* extra_cflags = getenv("CYCLES_CUDA_EXTRA_CFLAGS");
-		if(extra_cflags) {
-			command += string(" ") + string(extra_cflags);
-		}
-
-#ifdef WITH_CYCLES_DEBUG
-		command += " -D__KERNEL_DEBUG__";
-#endif
+		string command = string_printf("\"%s\" "
+		                               "-arch=sm_%d%d "
+		                               "--cubin \"%s\" "
+		                               "-o \"%s\" "
+		                               "%s ",
+		                               nvcc,
+		                               major, minor,
+		                               kernel.c_str(),
+		                               cubin.c_str(),
+		                               common_cflags.c_str());
 
 		printf("%s\n", command.c_str());
 
 		if(system(command.c_str()) == -1) {
-			cuda_error_message("Failed to execute compilation command, see console for details.");
+			cuda_error_message("Failed to execute compilation command, "
+			                   "see console for details.");
 			return "";
 		}
 
 		/* Verify if compilation succeeded */
 		if(!path_exists(cubin)) {
-			cuda_error_message("CUDA kernel compilation failed, see console for details.");
+			cuda_error_message("CUDA kernel compilation failed, "
+			                   "see console for details.");
 			return "";
 		}
 
@@ -964,11 +1004,11 @@ public:
 		if(!background) {
 			PixelMem pmem = pixel_mem_map[mem];
 			CUdeviceptr buffer;
-			
+
 			size_t bytes;
 			cuda_assert(cuGraphicsMapResources(1, &pmem.cuPBOresource, 0));
 			cuda_assert(cuGraphicsResourceGetMappedPointer(&buffer, &bytes, pmem.cuPBOresource));
-			
+
 			return buffer;
 		}
 
@@ -1000,9 +1040,9 @@ public:
 				glBufferData(GL_PIXEL_UNPACK_BUFFER, pmem.w*pmem.h*sizeof(GLhalf)*4, NULL, GL_DYNAMIC_DRAW);
 			else
 				glBufferData(GL_PIXEL_UNPACK_BUFFER, pmem.w*pmem.h*sizeof(uint8_t)*4, NULL, GL_DYNAMIC_DRAW);
-			
+
 			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-			
+
 			glGenTextures(1, &pmem.cuTexId);
 			glBindTexture(GL_TEXTURE_2D, pmem.cuTexId);
 			if(mem.data_type == TYPE_HALF)
@@ -1012,7 +1052,7 @@ public:
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glBindTexture(GL_TEXTURE_2D, 0);
-			
+
 			CUresult result = cuGraphicsGLRegisterBuffer(&pmem.cuPBOresource, pmem.cuPBO, CU_GRAPHICS_MAP_RESOURCE_FLAGS_NONE);
 
 			if(result == CUDA_SUCCESS) {
@@ -1114,9 +1154,9 @@ public:
 			else
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)offset);
 			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-			
+
 			glEnable(GL_TEXTURE_2D);
-			
+
 			if(transparent) {
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -1181,7 +1221,7 @@ public:
 
 			if(transparent)
 				glDisable(GL_BLEND);
-			
+
 			glBindTexture(GL_TEXTURE_2D, 0);
 			glDisable(GL_TEXTURE_2D);
 
@@ -1197,12 +1237,12 @@ public:
 	{
 		if(task->type == DeviceTask::PATH_TRACE) {
 			RenderTile tile;
-			
+
 			bool branched = task->integrator_branched;
 
 			/* Upload Bindless Mapping */
 			load_bindless_mapping();
-			
+
 			/* keep rendering tiles until done */
 			while(task->acquire_tile(this, tile)) {
 				int start_sample = tile.start_sample;
@@ -1339,7 +1379,7 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 		fprintf(stderr, "CUDA cuDeviceGetCount: %s\n", cuewErrorString(result));
 		return;
 	}
-	
+
 	vector<DeviceInfo> display_devices;
 
 	for(int num = 0; num < count; num++) {

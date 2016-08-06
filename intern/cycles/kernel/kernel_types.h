@@ -573,8 +573,13 @@ typedef enum PrimitiveType {
 
 /* Attributes */
 
-#define ATTR_PRIM_TYPES		2
-#define ATTR_PRIM_CURVE		1
+typedef enum AttributePrimitive {
+	ATTR_PRIM_TRIANGLE = 0,
+	ATTR_PRIM_CURVE,
+	ATTR_PRIM_SUBD,
+
+	ATTR_PRIM_TYPES
+} AttributePrimitive;
 
 typedef enum AttributeElement {
 	ATTR_ELEMENT_NONE,
@@ -619,6 +624,12 @@ typedef enum AttributeStandard {
 	ATTR_STD_NOT_FOUND = ~0
 } AttributeStandard;
 
+typedef struct AttributeDescriptor {
+	AttributeElement element;
+	NodeAttributeType type;
+	int offset;
+} AttributeDescriptor;
+
 /* Closure data */
 
 #ifdef __MULTI_CLOSURE__
@@ -631,32 +642,30 @@ typedef enum AttributeStandard {
 #  define MAX_CLOSURE 1
 #endif
 
-/* This struct is to be 16 bytes aligned, we also keep some extra precautions:
- * - All the float3 members are in the beginning of the struct, so compiler
- *   does not put own padding trying to align this members.
- * - We make sure OSL pointer is also 16 bytes aligned.
- */
+/* This struct is the base class for all closures. The common members are
+ * duplicated in all derived classes since we don't have C++ in the kernel
+ * yet, and because it lets us lay out the members to minimize padding. The
+ * weight member is located at the beginning of the struct for this reason.
+ *
+ * ShaderClosure has a fixed size, and any extra space must be allocated
+ * with closure_alloc_extra().
+ *
+ * float3 is 12 bytes on CUDA and 16 bytes on CPU/OpenCL, we set the data
+ * size to ensure ShaderClosure is 80 bytes total everywhere. */
+
+#define SHADER_CLOSURE_BASE \
+	float3 weight; \
+	ClosureType type; \
+	float sample_weight \
+
 typedef ccl_addr_space struct ShaderClosure {
-	float3 weight;
-	float3 N;
-	float3 T;
+	SHADER_CLOSURE_BASE;
 
-	ClosureType type;
-	float sample_weight;
-	float data0;
-	float data1;
-	float data2;
-
-	/* Following fields could be used to store pre-calculated
-	 * values by various BSDF closures for more effective sampling
-	 * and evaluation.
-	 */
-	float custom1;
-	float custom2;
-	float custom3;
-
-#ifdef __OSL__
-	void *prim, *pad4;
+	/* pad to 80 bytes, data types are aligned to own size */
+#ifdef __KERNEL_CUDA__
+	float data[15];
+#else
+	float data[14];
 #endif
 } ShaderClosure;
 
@@ -692,11 +701,10 @@ enum ShaderDataFlag {
 	SD_AO              = (1 << 8),   /* have ao closure? */
 	SD_TRANSPARENT     = (1 << 9),  /* have transparent closure? */
 	SD_BSDF_NEEDS_LCG  = (1 << 10),
-	SD_BSDF_HAS_CUSTOM = (1 << 11), /* are the custom variables relevant? */
 
 	SD_CLOSURE_FLAGS = (SD_EMISSION|SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSSRDF|
 	                    SD_HOLDOUT|SD_ABSORPTION|SD_SCATTER|SD_AO|
-	                    SD_BSDF_NEEDS_LCG|SD_BSDF_HAS_CUSTOM),
+	                    SD_BSDF_NEEDS_LCG),
 
 	/* shader flags */
 	SD_USE_MIS                = (1 << 12),  /* direct light sample */
@@ -729,94 +737,97 @@ enum ShaderDataFlag {
 	                   SD_OBJECT_INTERSECTS_VOLUME)
 };
 
-struct KernelGlobals;
-
 #ifdef __SPLIT_KERNEL__
 #  define SD_THREAD (get_global_id(1) * get_global_size(0) + get_global_id(0))
 #  if defined(__SPLIT_KERNEL_AOS__)
      /* ShaderData is stored as an Array-of-Structures */
-#    define ccl_fetch(s, t) (s[SD_THREAD].t)
-#    define ccl_fetch_array(s, t, index) (&s[SD_THREAD].t[index])
+#    define ccl_soa_member(type, name) type soa_##name;
+#    define ccl_fetch(s, t) (s[SD_THREAD].soa_##t)
+#    define ccl_fetch_array(s, t, index) (&s[SD_THREAD].soa_##t[index])
 #  else
      /* ShaderData is stored as an Structure-of-Arrays */
 #    define SD_GLOBAL_SIZE (get_global_size(0) * get_global_size(1))
 #    define SD_FIELD_SIZE(t) sizeof(((struct ShaderData*)0)->t)
 #    define SD_OFFSETOF(t) ((char*)(&((struct ShaderData*)0)->t) - (char*)0)
-#    define ccl_fetch(s, t) (((ShaderData*)((ccl_addr_space char*)s + SD_GLOBAL_SIZE * SD_OFFSETOF(t) +  SD_FIELD_SIZE(t) * SD_THREAD - SD_OFFSETOF(t)))->t)
+#    define ccl_soa_member(type, name) type soa_##name;
+#    define ccl_fetch(s, t) (((ShaderData*)((ccl_addr_space char*)s + SD_GLOBAL_SIZE * SD_OFFSETOF(soa_##t) +  SD_FIELD_SIZE(soa_##t) * SD_THREAD - SD_OFFSETOF(soa_##t)))->soa_##t)
 #    define ccl_fetch_array(s, t, index) (&ccl_fetch(s, t)[index])
 #  endif
 #else
+#  define ccl_soa_member(type, name) type name
 #  define ccl_fetch(s, t) (s->t)
 #  define ccl_fetch_array(s, t, index) (&s->t[index])
 #endif
 
 typedef ccl_addr_space struct ShaderData {
 	/* position */
-	float3 P;
+	ccl_soa_member(float3, P);
 	/* smooth normal for shading */
-	float3 N;
+	ccl_soa_member(float3, N);
 	/* true geometric normal */
-	float3 Ng;
+	ccl_soa_member(float3, Ng);
 	/* view/incoming direction */
-	float3 I;
+	ccl_soa_member(float3, I);
 	/* shader id */
-	int shader;
+	ccl_soa_member(int, shader);
 	/* booleans describing shader, see ShaderDataFlag */
-	int flag;
+	ccl_soa_member(int, flag);
 
 	/* primitive id if there is one, ~0 otherwise */
-	int prim;
+	ccl_soa_member(int, prim);
 
 	/* combined type and curve segment for hair */
-	int type;
+	ccl_soa_member(int, type);
 
 	/* parametric coordinates
 	 * - barycentric weights for triangles */
-	float u;
-	float v;
+	ccl_soa_member(float, u);
+	ccl_soa_member(float, v);
 	/* object id if there is one, ~0 otherwise */
-	int object;
+	ccl_soa_member(int, object);
 
 	/* motion blur sample time */
-	float time;
+	ccl_soa_member(float, time);
 
 	/* length of the ray being shaded */
-	float ray_length;
+	ccl_soa_member(float, ray_length);
 
 #ifdef __RAY_DIFFERENTIALS__
 	/* differential of P. these are orthogonal to Ng, not N */
-	differential3 dP;
+	ccl_soa_member(differential3, dP);
 	/* differential of I */
-	differential3 dI;
+	ccl_soa_member(differential3, dI);
 	/* differential of u, v */
-	differential du;
-	differential dv;
+	ccl_soa_member(differential, du);
+	ccl_soa_member(differential, dv);
 #endif
 #ifdef __DPDU__
 	/* differential of P w.r.t. parametric coordinates. note that dPdu is
 	 * not readily suitable as a tangent for shading on triangles. */
-	float3 dPdu;
-	float3 dPdv;
+	ccl_soa_member(float3, dPdu);
+	ccl_soa_member(float3, dPdv);
 #endif
 
 #ifdef __OBJECT_MOTION__
 	/* object <-> world space transformations, cached to avoid
 	 * re-interpolating them constantly for shading */
-	Transform ob_tfm;
-	Transform ob_itfm;
+	ccl_soa_member(Transform, ob_tfm);
+	ccl_soa_member(Transform, ob_itfm);
 #endif
 
 	/* Closure data, we store a fixed array of closures */
-	struct ShaderClosure closure[MAX_CLOSURE];
-	int num_closure;
-	float randb_closure;
+	ccl_soa_member(struct ShaderClosure, closure[MAX_CLOSURE]);
+	ccl_soa_member(int, num_closure);
+	ccl_soa_member(int, num_closure_extra);
+	ccl_soa_member(float, randb_closure);
+	ccl_soa_member(float3, svm_closure_weight);
 
 	/* LCG state for closures that require additional random numbers. */
-	uint lcg_state;
+	ccl_soa_member(uint, lcg_state);
 
 	/* ray start position, only set for backgrounds */
-	float3 ray_P;
-	differential3 ray_dP;
+	ccl_soa_member(float3, ray_P);
+	ccl_soa_member(differential3, ray_dP);
 
 #ifdef __OSL__
 	struct KernelGlobals * osl_globals;

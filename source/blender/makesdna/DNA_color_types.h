@@ -49,7 +49,8 @@ typedef struct CurveMapPoint {
 /* curvepoint->flag */
 enum {
 	CUMA_SELECT = 1,
-	CUMA_VECTOR = 2
+	CUMA_HANDLE_VECTOR = 2,
+	CUMA_HANDLE_AUTO_ANIM = 4,
 };
 
 typedef struct CurveMap {

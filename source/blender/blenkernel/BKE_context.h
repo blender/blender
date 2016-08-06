@@ -39,6 +39,7 @@ extern "C" {
 
 struct ARegion;
 struct bScreen;
+struct CacheFile;
 struct ListBase;
 struct Main;
 struct Object;
@@ -58,6 +59,9 @@ struct bPoseChannel;
 struct bGPdata;
 struct bGPDlayer;
 struct bGPDframe;
+struct bGPDpalette;
+struct bGPDpalettecolor;
+struct bGPDbrush;
 struct wmWindow;
 struct wmWindowManager;
 struct SpaceText;
@@ -267,6 +271,8 @@ struct Text *CTX_data_edit_text(const bContext *C);
 struct MovieClip *CTX_data_edit_movieclip(const bContext *C);
 struct Mask *CTX_data_edit_mask(const bContext *C);
 
+struct CacheFile *CTX_data_edit_cachefile(const bContext *C);
+
 int CTX_data_selected_nodes(const bContext *C, ListBase *list);
 
 struct EditBone *CTX_data_active_bone(const bContext *C);
@@ -282,6 +288,9 @@ int CTX_data_visible_pose_bones(const bContext *C, ListBase *list);
 struct bGPdata *CTX_data_gpencil_data(const bContext *C);
 struct bGPDlayer *CTX_data_active_gpencil_layer(const bContext *C);
 struct bGPDframe *CTX_data_active_gpencil_frame(const bContext *C);
+struct bGPDpalette *CTX_data_active_gpencil_palette(const bContext *C);
+struct bGPDpalettecolor *CTX_data_active_gpencil_palettecolor(const bContext *C);
+struct bGPDbrush *CTX_data_active_gpencil_brush(const bContext *C);
 int CTX_data_visible_gpencil_layers(const bContext *C, ListBase *list);
 int CTX_data_editable_gpencil_layers(const bContext *C, ListBase *list);
 int CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list);

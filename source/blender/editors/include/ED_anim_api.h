@@ -156,6 +156,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_DSMAT,
 	ANIMTYPE_DSLAM,
 	ANIMTYPE_DSCAM,
+	ANIMTYPE_DSCACHEFILE,
 	ANIMTYPE_DSCUR,
 	ANIMTYPE_DSSKEY,
 	ANIMTYPE_DSWOR,
@@ -274,6 +275,7 @@ typedef enum eAnimFilter_Flags {
 #define FILTER_MAT_OBJD(ma)     (CHECK_TYPE_INLINE(ma, Material *), ((ma->flag & MA_DS_EXPAND)))
 #define FILTER_LAM_OBJD(la)     (CHECK_TYPE_INLINE(la, Lamp *), ((la->flag & LA_DS_EXPAND)))
 #define FILTER_CAM_OBJD(ca)     (CHECK_TYPE_INLINE(ca, Camera *), ((ca->flag & CAM_DS_EXPAND)))
+#define FILTER_CACHEFILE_OBJD(cf)     (CHECK_TYPE_INLINE(cf, CacheFile *), ((cf->flag & CACHEFILE_DS_EXPAND)))
 #define FILTER_CUR_OBJD(cu)     (CHECK_TYPE_INLINE(cu, Curve *), ((cu->flag & CU_DS_EXPAND)))
 #define FILTER_MBALL_OBJD(mb)   (CHECK_TYPE_INLINE(mb, MetaBall *), ((mb->flag2 & MB_DS_EXPAND)))
 #define FILTER_ARM_OBJD(arm)    (CHECK_TYPE_INLINE(arm, bArmature *), ((arm->flag & ARM_DS_EXPAND)))

@@ -1859,7 +1859,7 @@ float driver_get_variable_value(ChannelDriver *driver, DriverVar *dvar)
  *	- "evaltime" is the frame at which F-Curve is being evaluated
  *  - has to return a float value
  */
-float evaluate_driver(ChannelDriver *driver, const float evaltime)
+float evaluate_driver(PathResolvedRNA *anim_rna, ChannelDriver *driver, const float evaltime)
 {
 	DriverVar *dvar;
 	
@@ -1944,7 +1944,9 @@ float evaluate_driver(ChannelDriver *driver, const float evaltime)
 				 *  - on errors it reports, then returns 0.0f
 				 */
 				BLI_mutex_lock(&python_driver_lock);
-				driver->curval = BPY_driver_exec(driver, evaltime);
+
+				driver->curval = BPY_driver_exec(anim_rna, driver, evaltime);
+
 				BLI_mutex_unlock(&python_driver_lock);
 			}
 #else /* WITH_PYTHON*/
@@ -2599,48 +2601,10 @@ static float fcurve_eval_samples(FCurve *fcu, FPoint *fpts, float evaltime)
 /* Evaluate and return the value of the given F-Curve at the specified frame ("evaltime") 
  * Note: this is also used for drivers
  */
-float evaluate_fcurve(FCurve *fcu, float evaltime)
+static float evaluate_fcurve_ex(FCurve *fcu, float evaltime, float cvalue)
 {
 	FModifierStackStorage *storage;
-	float cvalue = 0.0f;
 	float devaltime;
-	
-	/* if there is a driver (only if this F-Curve is acting as 'driver'), evaluate it to find value to use as "evaltime" 
-	 * since drivers essentially act as alternative input (i.e. in place of 'time') for F-Curves
-	 */
-	if (fcu->driver) {
-		/* evaltime now serves as input for the curve */
-		evaltime = evaluate_driver(fcu->driver, evaltime);
-		
-		/* only do a default 1-1 mapping if it's unlikely that anything else will set a value... */
-		if (fcu->totvert == 0) {
-			FModifier *fcm;
-			bool do_linear = true;
-			
-			/* out-of-range F-Modifiers will block, as will those which just plain overwrite the values 
-			 * XXX: additive is a bit more dicey; it really depends then if things are in range or not...
-			 */
-			for (fcm = fcu->modifiers.first; fcm; fcm = fcm->next) {
-				/* if there are range-restrictions, we must definitely block [#36950] */
-				if ((fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) == 0 ||
-				    ((fcm->sfra <= evaltime) && (fcm->efra >= evaltime)) )
-				{
-					/* within range: here it probably doesn't matter, though we'd want to check on additive... */
-				}
-				else {
-					/* outside range: modifier shouldn't contribute to the curve here, though it does in other areas,
-					 * so neither should the driver!
-					 */
-					do_linear = false;
-				}
-			}
-			
-			/* only copy over results if none of the modifiers disagreed with this */
-			if (do_linear) {
-				cvalue = evaltime;
-			}
-		}
-	}
 
 	/* evaluate modifiers which modify time to evaluate the base curve at */
 	storage = evaluate_fmodifiers_storage_new(&fcu->modifiers);
@@ -2670,8 +2634,60 @@ float evaluate_fcurve(FCurve *fcu, float evaltime)
 	return cvalue;
 }
 
+float evaluate_fcurve(FCurve *fcu, float evaltime)
+{
+	BLI_assert(fcu->driver == NULL);
+
+	return evaluate_fcurve_ex(fcu, evaltime, 0.0);
+}
+
+float evaluate_fcurve_driver(PathResolvedRNA *anim_rna, FCurve *fcu, float evaltime)
+{
+	BLI_assert(fcu->driver != NULL);
+	float cvalue = 0.0f;
+
+	/* if there is a driver (only if this F-Curve is acting as 'driver'), evaluate it to find value to use as "evaltime"
+	 * since drivers essentially act as alternative input (i.e. in place of 'time') for F-Curves
+	 */
+	if (fcu->driver) {
+		/* evaltime now serves as input for the curve */
+		evaltime = evaluate_driver(anim_rna, fcu->driver, evaltime);
+
+		/* only do a default 1-1 mapping if it's unlikely that anything else will set a value... */
+		if (fcu->totvert == 0) {
+			FModifier *fcm;
+			bool do_linear = true;
+
+			/* out-of-range F-Modifiers will block, as will those which just plain overwrite the values
+			 * XXX: additive is a bit more dicey; it really depends then if things are in range or not...
+			 */
+			for (fcm = fcu->modifiers.first; fcm; fcm = fcm->next) {
+				/* if there are range-restrictions, we must definitely block [#36950] */
+				if ((fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) == 0 ||
+				    ((fcm->sfra <= evaltime) && (fcm->efra >= evaltime)) )
+				{
+					/* within range: here it probably doesn't matter, though we'd want to check on additive... */
+				}
+				else {
+					/* outside range: modifier shouldn't contribute to the curve here, though it does in other areas,
+					 * so neither should the driver!
+					 */
+					do_linear = false;
+				}
+			}
+
+			/* only copy over results if none of the modifiers disagreed with this */
+			if (do_linear) {
+				cvalue = evaltime;
+			}
+		}
+	}
+
+	return evaluate_fcurve_ex(fcu, evaltime, cvalue);
+}
+
 /* Calculate the value of the given F-Curve at the given frame, and set its curval */
-float calculate_fcurve(FCurve *fcu, float evaltime)
+float calculate_fcurve(PathResolvedRNA *anim_rna, FCurve *fcu, float evaltime)
 {
 	/* only calculate + set curval (overriding the existing value) if curve has 
 	 * any data which warrants this...
@@ -2680,7 +2696,13 @@ float calculate_fcurve(FCurve *fcu, float evaltime)
 	    list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE))
 	{
 		/* calculate and set curval (evaluates driver too if necessary) */
-		float curval = evaluate_fcurve(fcu, evaltime);
+		float curval;
+		if (fcu->driver) {
+			curval = evaluate_fcurve_driver(anim_rna, fcu, evaltime);
+		}
+		else {
+			curval = evaluate_fcurve(fcu, evaltime);
+		}
 		fcu->curval = curval;  /* debug display only, not thread safe! */
 		return curval;
 	}

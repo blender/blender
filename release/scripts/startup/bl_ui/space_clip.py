@@ -25,8 +25,10 @@ from bl_ui.properties_grease_pencil_common import (
         GreasePencilDrawingToolsPanel,
         GreasePencilStrokeEditPanel,
         GreasePencilStrokeSculptPanel,
-        GreasePencilDataPanel
-        )
+        GreasePencilBrushPanel,
+        GreasePencilBrushCurvesPanel,
+        GreasePencilDataPanel,
+        GreasePencilPaletteColorPanel)
 
 
 class CLIP_UL_tracking_objects(UIList):
@@ -1126,6 +1128,16 @@ class CLIP_PT_grease_pencil(GreasePencilDataPanel, CLIP_PT_clip_view_panel, Pane
     # But, this should only be visible in "clip" view
 
 
+# Grease Pencil palette colors
+class CLIP_PT_grease_pencil_palettecolor(GreasePencilPaletteColorPanel, CLIP_PT_clip_view_panel, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    # NOTE: this is just a wrapper around the generic GP Panel
+    # But, this should only be visible in "clip" view
+
+
 # Grease Pencil drawing tools
 class CLIP_PT_tools_grease_pencil_draw(GreasePencilDrawingToolsPanel, Panel):
     bl_space_type = 'CLIP_EDITOR'
@@ -1140,6 +1152,15 @@ class CLIP_PT_tools_grease_pencil_edit(GreasePencilStrokeEditPanel, Panel):
 class CLIP_PT_tools_grease_pencil_sculpt(GreasePencilStrokeSculptPanel, Panel):
     bl_space_type = 'CLIP_EDITOR'
 
+
+# Grease Pencil drawing brushes
+class CLIP_PT_tools_grease_pencil_brush(GreasePencilBrushPanel, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+
+
+# Grease Pencil drawing curves
+class CLIP_PT_tools_grease_pencil_brushcurves(GreasePencilBrushCurvesPanel, Panel):
+    bl_space_type = 'CLIP_EDITOR'
 
 class CLIP_MT_view(Menu):
     bl_label = "View"

@@ -24,7 +24,6 @@
 def write_sysinfo(filepath):
     import sys
 
-    import textwrap
     import subprocess
 
     import bpy
@@ -53,7 +52,8 @@ def write_sysinfo(filepath):
 
     # build info
     output.write(title("Blender"))
-    output.write("version: %s, branch: %s, commit date: %s %s, hash: %s, type: %s\n" %
+    output.write(
+        "version: %s, branch: %s, commit date: %s %s, hash: %s, type: %s\n" %
         (bpy.app.version_string,
          prepr(bpy.app.build_branch),
          prepr(bpy.app.build_commit_date),
@@ -81,9 +81,9 @@ def write_sysinfo(filepath):
     output.write("binary path: %s\n" % prepr(bpy.app.binary_path_python))
     try:
         py_ver = prepr(subprocess.check_output([
-                bpy.app.binary_path_python,
-                "--version",
-                ]).strip())
+            bpy.app.binary_path_python,
+            "--version",
+        ]).strip())
     except Exception as e:
         py_ver = str(e)
     output.write("version: %s\n" % py_ver)
@@ -105,8 +105,9 @@ def write_sysinfo(filepath):
     ffmpeg = bpy.app.ffmpeg
     if ffmpeg.supported:
         for lib in ("avcodec", "avdevice", "avformat", "avutil", "swscale"):
-            output.write("%s:%s%r\n" % (lib, " " * (10 - len(lib)),
-                         getattr(ffmpeg, lib + "_version_string")))
+            output.write(
+                "%s:%s%r\n" % (lib, " " * (10 - len(lib)),
+                               getattr(ffmpeg, lib + "_version_string")))
     else:
         output.write("Blender was built without FFmpeg support\n")
 
@@ -157,6 +158,13 @@ def write_sysinfo(filepath):
     else:
         output.write("Blender was built without OpenVDB support\n")
 
+    alembic = bpy.app.alembic
+    output.write("Alembic: ")
+    if alembic.supported:
+        output.write("%s\n" % alembic.version_string)
+    else:
+        output.write("Blender was built without Alembic support\n")
+
     if not bpy.app.build_options.sdl:
         output.write("SDL: Blender was built without SDL support\n")
 
@@ -205,4 +213,3 @@ def write_sysinfo(filepath):
         output.write(cycles.engine.system_info())
 
     output.close()
-
