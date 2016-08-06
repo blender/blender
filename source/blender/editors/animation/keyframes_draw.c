@@ -44,6 +44,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_cachefile_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_gpencil_types.h"
@@ -962,6 +963,37 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, DLRBT_Tree *bl
 	for (ale = anim_data.first; ale; ale = ale->next)
 		fcurve_to_keylist(ale->adt, ale->data, keys, blocks);
 	
+	ANIM_animdata_freelist(&anim_data);
+}
+
+void cachefile_to_keylist(bDopeSheet *ads, CacheFile *cache_file, DLRBT_Tree *keys, DLRBT_Tree *blocks)
+{
+	if (cache_file == NULL) {
+		return;
+	}
+
+	/* create a dummy wrapper data to work with */
+	bAnimListElem dummychan = {NULL};
+	dummychan.type = ANIMTYPE_DSCACHEFILE;
+	dummychan.data = cache_file;
+	dummychan.id = &cache_file->id;
+	dummychan.adt = cache_file->adt;
+
+	bAnimContext ac = {NULL};
+	ac.ads = ads;
+	ac.data = &dummychan;
+	ac.datatype = ANIMCONT_CHANNEL;
+
+	/* get F-Curves to take keyframes from */
+	ListBase anim_data = { NULL, NULL };
+	int filter = ANIMFILTER_DATA_VISIBLE; // curves only
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+	/* loop through each F-Curve, grabbing the keyframes */
+	for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
+		fcurve_to_keylist(ale->adt, ale->data, keys, blocks);
+	}
+
 	ANIM_animdata_freelist(&anim_data);
 }
 

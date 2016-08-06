@@ -170,6 +170,7 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, float x, int channe
 		case ANIMTYPE_DSMAT:    /* Datablock AnimData Expanders */
 		case ANIMTYPE_DSLAM:
 		case ANIMTYPE_DSCAM:
+		case ANIMTYPE_DSCACHEFILE:
 		case ANIMTYPE_DSCUR:
 		case ANIMTYPE_DSSKEY:
 		case ANIMTYPE_DSWOR:

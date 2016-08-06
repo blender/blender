@@ -77,6 +77,13 @@ if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 
+if(WITH_ALEMBIC)
+	list(APPEND INC
+		../alembic
+	)
+	add_definitions(-DWITH_ALEMBIC)
+endif()
+
 blender_add_lib(bf_blenloader "${SRC}" "${INC}" "${INC_SYS}")
 
 # needed so writefile.c can use dna_type_offsets.h

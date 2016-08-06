@@ -4,6 +4,7 @@
 #   cmake -C../blender/build_files/cmake/config/blender_full.cmake  ../blender
 #
 
+set(WITH_ALEMBIC             ON  CACHE BOOL "" FORCE)
 set(WITH_BUILDINFO           ON  CACHE BOOL "" FORCE)
 set(WITH_BULLET              ON  CACHE BOOL "" FORCE)
 set(WITH_CODEC_AVI           ON  CACHE BOOL "" FORCE)

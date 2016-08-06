@@ -158,6 +158,13 @@ def write_sysinfo(filepath):
     else:
         output.write("Blender was built without OpenVDB support\n")
 
+    alembic = bpy.app.alembic
+    output.write("Alembic: ")
+    if alembic.supported:
+        output.write("%s\n" % alembic.version_string)
+    else:
+        output.write("Blender was built without Alembic support\n")
+
     if not bpy.app.build_options.sdl:
         output.write("SDL: Blender was built without SDL support\n")
 

@@ -738,6 +738,7 @@ typedef enum eFileSel_File_Types {
 	FILE_TYPE_COLLADA           = (1 << 13),
 	FILE_TYPE_OPERATOR          = (1 << 14), /* from filter_glob operator property */
 	FILE_TYPE_APPLICATIONBUNDLE = (1 << 15),
+	FILE_TYPE_ALEMBIC           = (1 << 16),
 
 	FILE_TYPE_DIR               = (1 << 30),  /* An FS directory (i.e. S_ISDIR on its path is true). */
 	FILE_TYPE_BLENDERLIB        = (1 << 31),

@@ -79,6 +79,7 @@ void DEG_scene_graph_free(struct Scene *scene);
  */
 struct DepsNodeHandle;
 
+struct CacheFile;
 struct Object;
 
 typedef enum eDepsSceneComponentType {
@@ -100,11 +101,13 @@ typedef enum eDepsObjectComponentType {
 	
 	DEG_OB_COMP_EVAL_PARTICLES,    /* Particle Systems Component */
 	DEG_OB_COMP_SHADING,           /* Material Shading Component */
+	DEG_OB_COMP_CACHE,             /* Cache Component */
 } eDepsObjectComponentType;
 
 void DEG_add_scene_relation(struct DepsNodeHandle *node, struct Scene *scene, eDepsSceneComponentType component, const char *description);
 void DEG_add_object_relation(struct DepsNodeHandle *node, struct Object *ob, eDepsObjectComponentType component, const char *description);
 void DEG_add_bone_relation(struct DepsNodeHandle *handle, struct Object *ob, const char *bone_name, eDepsObjectComponentType component, const char *description);
+void DEG_add_object_cache_relation(struct DepsNodeHandle *handle, struct CacheFile *cache_file, eDepsObjectComponentType component, const char *description);
 
 /* TODO(sergey): Remove once all geometry update is granular. */
 void DEG_add_special_eval_flag(struct Depsgraph *graph, struct ID *id, short flag);

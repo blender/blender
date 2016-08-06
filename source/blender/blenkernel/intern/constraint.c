@@ -46,6 +46,7 @@
 #include "BLT_translation.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_cachefile_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -63,6 +64,7 @@
 #include "BKE_anim.h" /* for the curve calculation part */
 #include "BKE_armature.h"
 #include "BKE_bvhutils.h"
+#include "BKE_cachefile.h"
 #include "BKE_camera.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
@@ -84,6 +86,10 @@
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
+#endif
+
+#ifdef WITH_ALEMBIC
+#  include "ABC_alembic.h"
 #endif
 
 /* ---------------------------------------------------------------------------- */
@@ -4333,6 +4339,73 @@ static bConstraintTypeInfo CTI_OBJECTSOLVER = {
 	objectsolver_evaluate /* evaluate */
 };
 
+/* ----------- Transform Cache ------------- */
+
+static void transformcache_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bTransformCacheConstraint *data = con->data;
+	func(con, (ID **)&data->cache_file, false, userdata);
+}
+
+static void transformcache_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targets)
+{
+#ifdef WITH_ALEMBIC
+	bTransformCacheConstraint *data = con->data;
+	Scene *scene = cob->scene;
+
+	const float frame = BKE_scene_frame_get(scene);
+	const float time = BKE_cachefile_time_offset(data->cache_file, frame, FPS);
+
+	CacheFile *cache_file = data->cache_file;
+
+	BKE_cachefile_ensure_handle(G.main, cache_file);
+
+	ABC_get_transform(cache_file->handle, cob->ob, data->object_path,
+	                  cob->matrix, time, cache_file->scale);
+#else
+	UNUSED_VARS(con, cob);
+#endif
+
+	UNUSED_VARS(targets);
+}
+
+static void transformcache_copy(bConstraint *con, bConstraint *srccon)
+{
+	bTransformCacheConstraint *src = srccon->data;
+	bTransformCacheConstraint *dst = con->data;
+
+	BLI_strncpy(dst->object_path, src->object_path, sizeof(dst->object_path));
+	dst->cache_file = src->cache_file;
+
+	if (dst->cache_file) {
+		id_us_plus(&dst->cache_file->id);
+	}
+}
+
+static void transformcache_free(bConstraint *con)
+{
+	bTransformCacheConstraint *data = con->data;
+
+	if (data->cache_file) {
+		id_us_min(&data->cache_file->id);
+	}
+}
+
+static bConstraintTypeInfo CTI_TRANSFORM_CACHE = {
+	CONSTRAINT_TYPE_TRANSFORM_CACHE, /* type */
+	sizeof(bTransformCacheConstraint), /* size */
+	"Transform Cache", /* name */
+	"bTransformCacheConstraint", /* struct name */
+	transformcache_free,  /* free data */
+	transformcache_id_looper,  /* id looper */
+	transformcache_copy,  /* copy data */
+	NULL,  /* new data */
+	NULL,  /* get constraint targets */
+	NULL,  /* flush constraint targets */
+	NULL,  /* get target matrix */
+	transformcache_evaluate  /* evaluate */
+};
+
 /* ************************* Constraints Type-Info *************************** */
 /* All of the constraints api functions use bConstraintTypeInfo structs to carry out
  * and operations that involve constraint specific code.
@@ -4374,6 +4447,7 @@ static void constraints_init_typeinfo(void)
 	constraintsTypeInfo[26] = &CTI_FOLLOWTRACK;      /* Follow Track Constraint */
 	constraintsTypeInfo[27] = &CTI_CAMERASOLVER;     /* Camera Solver Constraint */
 	constraintsTypeInfo[28] = &CTI_OBJECTSOLVER;     /* Object Solver Constraint */
+	constraintsTypeInfo[29] = &CTI_TRANSFORM_CACHE;  /* Transform Cache Constraint */
 }
 
 /* This function should be used for getting the appropriate type-info when only

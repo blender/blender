@@ -94,7 +94,7 @@ void id_clear_lib_data_ex(struct Main *bmain, struct ID *id, const bool id_in_ma
 
 struct ListBase *which_libbase(struct Main *mainlib, short type);
 
-#define MAX_LIBARRAY    34
+#define MAX_LIBARRAY    35
 int set_listbasepointers(struct Main *main, struct ListBase *lb[MAX_LIBARRAY]);
 
 /* Main API */

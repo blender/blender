@@ -1067,6 +1067,11 @@ struct EditBone *CTX_data_active_bone(const bContext *C)
 	return ctx_data_pointer_get(C, "active_bone");
 }
 
+struct CacheFile *CTX_data_edit_cachefile(const bContext *C)
+{
+	return ctx_data_pointer_get(C, "edit_cachefile");
+}
+
 int CTX_data_selected_bones(const bContext *C, ListBase *list)
 {
 	return ctx_data_collection_get(C, "selected_bones", list);

@@ -854,6 +854,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 			case ID_WM:
 			case ID_PAL:
 			case ID_PC:
+			case ID_CF:
 				break;
 
 			/* Deprecated. */

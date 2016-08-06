@@ -34,6 +34,7 @@
 
 struct bAnimContext;
 struct AnimData;
+struct CacheFile;
 struct FCurve;
 struct bDopeSheet;
 struct bAction;
@@ -141,6 +142,8 @@ void agroup_to_keylist(struct AnimData *adt, struct bActionGroup *agrp, struct D
 void action_to_keylist(struct AnimData *adt, struct bAction *act, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
 /* Object */
 void ob_to_keylist(struct bDopeSheet *ads, struct Object *ob, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+/* Cache File */
+void cachefile_to_keylist(struct bDopeSheet *ads, struct CacheFile *cache_file, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
 /* Scene */
 void scene_to_keylist(struct bDopeSheet *ads, struct Scene *sce, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
 /* DopeSheet Summary */

@@ -45,6 +45,7 @@ struct ARegion;
 struct ARegionType;
 struct BMEditMesh;
 struct Base;
+struct bContext;
 struct BoundBox;
 struct Brush;
 struct CSG_FaceIteratorDescriptor;
@@ -321,6 +322,19 @@ void WM_cursor_modal_set(struct wmWindow *win, int curor) RET_NONE
 void WM_cursor_modal_restore(struct wmWindow *win) RET_NONE
 void WM_cursor_time(struct wmWindow *win, int nr) RET_NONE
 void WM_cursor_warp(struct wmWindow *win, int x, int y) RET_NONE
+
+struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner, const char *name, int flag, int job_type) RET_NULL
+void WM_jobs_customdata_set(struct wmJob *job, void *customdata, void (*free)(void *)) RET_NONE
+void WM_jobs_timer(struct wmJob *job, double timestep, unsigned int note, unsigned int endnote) RET_NONE
+
+void WM_jobs_callbacks(struct wmJob *job,
+                       void (*startjob)(void *, short *, short *, float *),
+                       void (*initjob)(void *),
+                       void (*update)(void *),
+                       void (*endjob)(void *)) RET_NONE
+
+void WM_jobs_start(struct wmWindowManager *wm, struct wmJob *job) RET_NONE
+void WM_report(ReportType type, const char *message) RET_NONE
 
 void WM_ndof_deadzone_set(float deadzone) RET_NONE
 
@@ -623,6 +637,7 @@ void uiTemplateComponentMenu(struct uiLayout *layout, struct PointerRNA *ptr, co
 void uiTemplateNodeSocket(struct uiLayout *layout, struct bContext *C, float *color) RET_NONE
 void uiTemplatePalette(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, int color) RET_NONE
 void uiTemplateImageStereo3d(struct uiLayout *layout, struct PointerRNA *stereo3d_format_ptr) RET_NONE
+void uiTemplateCacheFile(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname) RET_NONE
 
 /* rna render */
 struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h, const char *layername, const char *viewname) RET_NULL

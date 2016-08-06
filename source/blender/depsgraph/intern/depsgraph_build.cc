@@ -33,6 +33,7 @@
 #include "MEM_guardedalloc.h"
 
 extern "C" {
+#include "DNA_cachefile_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -89,6 +90,7 @@ static DEG::eDepsNode_Type deg_build_object_component_type(
 		case DEG_OB_COMP_BONE:              return DEG::DEPSNODE_TYPE_BONE;
 		case DEG_OB_COMP_EVAL_PARTICLES:    return DEG::DEPSNODE_TYPE_EVAL_PARTICLES;
 		case DEG_OB_COMP_SHADING:           return DEG::DEPSNODE_TYPE_SHADING;
+		case DEG_OB_COMP_CACHE:             return DEG::DEPSNODE_TYPE_CACHE;
 	}
 	return DEG::DEPSNODE_TYPE_UNDEFINED;
 }
@@ -123,6 +125,20 @@ void DEG_add_object_relation(DepsNodeHandle *handle,
 	deg_handle->builder->add_node_handle_relation(comp_key,
 	                                              deg_handle,
 	                                              DEG::DEPSREL_TYPE_GEOMETRY_EVAL,
+	                                              description);
+}
+
+void DEG_add_object_cache_relation(DepsNodeHandle *handle,
+                                   CacheFile *cache_file,
+                                   eDepsObjectComponentType component,
+                                   const char *description)
+{
+	DEG::eDepsNode_Type type = deg_build_object_component_type(component);
+	DEG::ComponentKey comp_key(&cache_file->id, type);
+	DEG::DepsNodeHandle *deg_handle = get_handle(handle);
+	deg_handle->builder->add_node_handle_relation(comp_key,
+	                                              deg_handle,
+	                                              DEG::DEPSREL_TYPE_CACHE,
 	                                              description);
 }
 

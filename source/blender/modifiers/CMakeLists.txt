@@ -73,6 +73,7 @@ set(SRC
 	intern/MOD_meshcache_pc2.c
 	intern/MOD_meshcache_util.c
 	intern/MOD_meshdeform.c
+	intern/MOD_meshsequencecache.c
 	intern/MOD_mirror.c
 	intern/MOD_multires.c
 	intern/MOD_none.c
@@ -111,6 +112,13 @@ set(SRC
 	intern/MOD_util.h
 	intern/MOD_weightvg_util.h
 )
+
+if(WITH_ALEMBIC)
+	add_definitions(-DWITH_ALEMBIC)
+	list(APPEND INC
+		../alembic
+	)
+endif()
 
 if(WITH_MOD_BOOLEAN)
 	add_definitions(-DWITH_MOD_BOOLEAN)

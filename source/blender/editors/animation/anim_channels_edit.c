@@ -120,6 +120,7 @@ void ANIM_set_active_channel(bAnimContext *ac, void *data, eAnimCont_Types datat
 			case ANIMTYPE_DSMAT:    /* Datablock AnimData Expanders */
 			case ANIMTYPE_DSLAM:
 			case ANIMTYPE_DSCAM:
+			case ANIMTYPE_DSCACHEFILE:
 			case ANIMTYPE_DSCUR:
 			case ANIMTYPE_DSSKEY:
 			case ANIMTYPE_DSWOR:
@@ -175,6 +176,7 @@ void ANIM_set_active_channel(bAnimContext *ac, void *data, eAnimCont_Types datat
 			case ANIMTYPE_DSMAT:    /* Datablock AnimData Expanders */
 			case ANIMTYPE_DSLAM:
 			case ANIMTYPE_DSCAM:
+			case ANIMTYPE_DSCACHEFILE:
 			case ANIMTYPE_DSCUR:
 			case ANIMTYPE_DSSKEY:
 			case ANIMTYPE_DSWOR:
@@ -275,6 +277,7 @@ void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, eAnimCont_Types d
 				case ANIMTYPE_DSMAT:    /* Datablock AnimData Expanders */
 				case ANIMTYPE_DSLAM:
 				case ANIMTYPE_DSCAM:
+				case ANIMTYPE_DSCACHEFILE:
 				case ANIMTYPE_DSCUR:
 				case ANIMTYPE_DSSKEY:
 				case ANIMTYPE_DSWOR:
@@ -370,6 +373,7 @@ void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, eAnimCont_Types d
 			case ANIMTYPE_DSMAT:    /* Datablock AnimData Expanders */
 			case ANIMTYPE_DSLAM:
 			case ANIMTYPE_DSCAM:
+			case ANIMTYPE_DSCACHEFILE:
 			case ANIMTYPE_DSCUR:
 			case ANIMTYPE_DSSKEY:
 			case ANIMTYPE_DSWOR:
@@ -2716,6 +2720,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 		case ANIMTYPE_DSMAT:    /* Datablock AnimData Expanders */
 		case ANIMTYPE_DSLAM:
 		case ANIMTYPE_DSCAM:
+		case ANIMTYPE_DSCACHEFILE:
 		case ANIMTYPE_DSCUR:
 		case ANIMTYPE_DSSKEY:
 		case ANIMTYPE_DSWOR:

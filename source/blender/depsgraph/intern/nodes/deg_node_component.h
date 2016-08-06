@@ -209,6 +209,10 @@ struct ShadingComponentDepsNode : public ComponentDepsNode {
 	DEG_DEPSNODE_DECLARE;
 };
 
+struct CacheComponentDepsNode : public ComponentDepsNode {
+	DEG_DEPSNODE_DECLARE;
+};
+
 
 void deg_register_component_depsnodes();
 

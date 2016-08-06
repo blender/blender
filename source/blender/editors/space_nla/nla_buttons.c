@@ -131,6 +131,7 @@ bool nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA *nlt_p
 			case ANIMTYPE_DSMAT:    /* Datablock AnimData Expanders */
 			case ANIMTYPE_DSLAM:
 			case ANIMTYPE_DSCAM:
+			case ANIMTYPE_DSCACHEFILE:
 			case ANIMTYPE_DSCUR:
 			case ANIMTYPE_DSSKEY:
 			case ANIMTYPE_DSWOR:

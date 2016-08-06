@@ -69,6 +69,7 @@ static PyStructSequence_Field app_builtopts_info_fields[] = {
 	{(char *)"player", NULL},
 	{(char *)"openmp", NULL},
 	{(char *)"openvdb", NULL},
+	{(char *)"alembic", NULL},
 	{NULL}
 };
 
@@ -298,6 +299,12 @@ static PyObject *make_builtopts_info(void)
 #endif
 
 #ifdef WITH_OPENVDB
+	SetObjIncref(Py_True);
+#else
+	SetObjIncref(Py_False);
+#endif
+
+#ifdef WITH_ALEMBIC
 	SetObjIncref(Py_True);
 #else
 	SetObjIncref(Py_False);

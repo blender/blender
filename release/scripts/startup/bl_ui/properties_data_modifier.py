@@ -181,6 +181,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.prop(md, "cache_format")
         layout.prop(md, "filepath")
 
+        if md.cache_format == 'ABC':
+            layout.prop(md, "sub_object")
+
         layout.label(text="Evaluation:")
         layout.prop(md, "factor", slider=True)
         layout.prop(md, "deform_mode")
@@ -214,6 +217,22 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split.label(text="Flip Axis:")
         row = split.row()
         row.prop(md, "flip_axis")
+
+    def MESH_SEQUENCE_CACHE(self, layout, ob, md):
+        layout.label(text="Cache File Properties:")
+        box = layout.box()
+        box.template_cache_file(md, "cache_file")
+
+        cache_file = md.cache_file
+
+        layout.label(text="Modifier Properties:")
+        box = layout.box()
+
+        if cache_file is not None:
+            box.prop_search(md, "object_path", cache_file, "object_paths")
+
+        if ob.type == 'MESH':
+            box.row().prop(md, "read_data")
 
     def CAST(self, layout, ob, md):
         split = layout.split(percentage=0.25)

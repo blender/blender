@@ -45,6 +45,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_cachefile_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_group_types.h"
 #include "DNA_gpencil_types.h"
@@ -56,6 +57,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_node_types.h"
@@ -81,6 +83,7 @@
 #include "BKE_bpath.h"
 #include "BKE_brush.h"
 #include "BKE_camera.h"
+#include "BKE_cachefile.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
@@ -425,6 +428,9 @@ bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 		case ID_PC:
 			if (!test) BKE_paint_curve_make_local(bmain, (PaintCurve *)id, lib_local);
 			return true;
+		case ID_CF:
+			if (!test) BKE_cachefile_make_local(bmain, (CacheFile *)id, lib_local);
+			return true;
 		case ID_SCR:
 		case ID_LI:
 		case ID_KE:
@@ -528,6 +534,9 @@ bool id_copy(Main *bmain, ID *id, ID **newid, bool test)
 			return true;
 		case ID_PC:
 			if (!test) *newid = (ID *)BKE_paint_curve_copy(bmain, (PaintCurve *)id);
+			return true;
+		case ID_CF:
+			if (!test) *newid = (ID *)BKE_cachefile_copy(bmain, (CacheFile *)id);
 			return true;
 		case ID_SCE:
 		case ID_LI:
@@ -641,6 +650,8 @@ ListBase *which_libbase(Main *mainlib, short type)
 			return &(mainlib->palettes);
 		case ID_PC:
 			return &(mainlib->paintcurves);
+		case ID_CF:
+			return &(mainlib->cachefiles);
 	}
 	return NULL;
 }
@@ -764,6 +775,7 @@ int set_listbasepointers(Main *main, ListBase **lb)
 
 	lb[a++] = &(main->armature);
 
+	lb[a++] = &(main->cachefiles);
 	lb[a++] = &(main->mesh);
 	lb[a++] = &(main->curve);
 	lb[a++] = &(main->mball);
@@ -915,6 +927,9 @@ void *BKE_libblock_alloc_notest(short type)
 		case ID_PC:
 			id = MEM_callocN(sizeof(PaintCurve), "Paint Curve");
 			break;
+		case ID_CF:
+			id = MEM_callocN(sizeof(CacheFile), "Cache File");
+			break;
 	}
 	return id;
 }
@@ -1040,6 +1055,9 @@ void BKE_libblock_init_empty(ID *id)
 			break;
 		case ID_LS:
 			BKE_linestyle_init((FreestyleLineStyle *)id);
+			break;
+		case ID_CF:
+			BKE_cachefile_init((CacheFile *)id);
 			break;
 		case ID_KE:
 			/* Shapekeys are a complex topic too - they depend on their 'user' data type...
@@ -1228,6 +1246,7 @@ void BKE_main_free(Main *mainvar)
 				case  31: BKE_libblock_free_ex(mainvar, id, false); break;
 				case  32: BKE_libblock_free_ex(mainvar, id, false); break;
 				case  33: BKE_libblock_free_ex(mainvar, id, false); break;
+				case  34: BKE_libblock_free_ex(mainvar, id, false); break;
 				default:
 					BLI_assert(0);
 					break;

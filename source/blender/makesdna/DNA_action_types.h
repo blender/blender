@@ -694,7 +694,9 @@ typedef enum eAnimEdit_Context {
 	/* dopesheet (default) */
 	SACTCONT_DOPESHEET = 3,
 	/* mask */
-	SACTCONT_MASK = 4
+	SACTCONT_MASK = 4,
+	/* cache file */
+	SACTCONT_CACHEFILE = 5,
 } eAnimEdit_Context;
 
 /* SpaceAction AutoSnap Settings (also used by other Animation Editors) */

@@ -97,6 +97,7 @@ bool id_type_can_have_animdata(const short id_type)
 		case ID_MC:
 		case ID_MSK:
 		case ID_GD:
+		case ID_CF:
 			return true;
 		
 		/* no AnimData */
@@ -1160,6 +1161,9 @@ void BKE_animdata_main_cb(Main *mainptr, ID_AnimData_Edit_Callback func, void *u
 	
 	/* grease pencil */
 	ANIMDATA_IDS_CB(mainptr->gpencil.first);
+
+	/* cache files */
+	ANIMDATA_IDS_CB(mainptr->cachefiles.first);
 }
 
 /* Fix all RNA-Paths throughout the database (directly access the Global.main version)
@@ -1250,6 +1254,9 @@ void BKE_animdata_fix_paths_rename_all(ID *ref_id, const char *prefix, const cha
 	
 	/* grease pencil */
 	RENAMEFIX_ANIM_IDS(mainptr->gpencil.first);
+
+	/* cache files */
+	RENAMEFIX_ANIM_IDS(mainptr->cachefiles.first);
 	
 	/* scenes */
 	RENAMEFIX_ANIM_NODETREE_IDS(mainptr->scene.first, Scene);
@@ -2873,6 +2880,9 @@ void BKE_animsys_evaluate_all_animation(Main *main, Scene *scene, float ctime)
 	
 	/* grease pencil */
 	EVAL_ANIM_IDS(main->gpencil.first, ADT_RECALC_ANIM);
+
+	/* cache files */
+	EVAL_ANIM_IDS(main->cachefiles.first, ADT_RECALC_ANIM);
 	
 	/* objects */
 	/* ADT_RECALC_ANIM doesn't need to be supplied here, since object AnimData gets
