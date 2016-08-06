@@ -716,6 +716,8 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
             col.prop(boids, "land_personal_space")
             col.prop(boids, "land_stick_force")
 
+            layout.prop(part, "collision_group")
+
             split = layout.split()
 
             col = split.column(align=True)
