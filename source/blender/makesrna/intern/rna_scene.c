@@ -2103,8 +2103,8 @@ static void rna_def_gpencil_brush(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "GPencilBrush", NULL);
 	RNA_def_struct_sdna(srna, "bGPDbrush");
-	RNA_def_struct_ui_text(srna, "Grease Pencil Brush", "Collection of brushes being used to control the "
-	                       "line style of new strokes");
+	RNA_def_struct_ui_text(srna, "Grease Pencil Brush",
+	                       "Collection of brushes being used to control the line style of new strokes");
 	RNA_def_struct_ui_icon(srna, ICON_BRUSH_DATA);
 
 	/* Name */
@@ -2184,16 +2184,17 @@ static void rna_def_gpencil_brush(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "pen_smooth_steps", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "draw_smoothlvl");
 	RNA_def_property_range(prop, 1, 3);
-	RNA_def_property_ui_text(prop, "Iterations", "Number of times to smooth newly created strokes [+ reason/effect "
-	                         "of using higher values of this property]");
+	RNA_def_property_ui_text(prop, "Iterations",
+	                         "Number of times to smooth newly created strokes "
+	                         "[+ reason/effect of using higher values of this property]");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
 	/* Subdivision level for new strokes */
 	prop = RNA_def_property(srna, "pen_subdivision_steps", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "sublevel");
 	RNA_def_property_range(prop, 0, 3);
-	RNA_def_property_ui_text(prop, "Subdivision Steps", "Number of times to subdivide newly created strokes, for "
-	                         "less jagged strokes");
+	RNA_def_property_ui_text(prop, "Subdivision Steps",
+	                         "Number of times to subdivide newly created strokes, for less jagged strokes");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
 	/* Curves for pressure */
