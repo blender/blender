@@ -22,6 +22,17 @@
   #include <stdio.h>
 #endif
 
+#if defined(__APPLE__) && defined(WITH_GL_PROFILE_COMPAT)
+  #undef glGenVertexArrays
+  #define glGenVertexArrays glGenVertexArraysAPPLE
+
+  #undef glDeleteVertexArrays
+  #define glDeleteVertexArrays glDeleteVertexArraysAPPLE
+
+  #undef glBindVertexArray
+  #define glBindVertexArray glBindVertexArrayAPPLE
+#endif
+
 void clear_VertexFormat(VertexFormat* format)
 	{
 	for (unsigned a = 0; a < format->attrib_ct; ++a)
@@ -95,7 +106,7 @@ static unsigned padding(unsigned offset, unsigned alignment)
 	}
 
 #if PACK_DEBUG
-void show_pack(a_idx, sz, pad)
+static void show_pack(a_idx, sz, pad)
 	{
 	const char c = 'A' + a_idx;
 	for (unsigned i = 0; i < pad; ++i)
@@ -241,6 +252,11 @@ void immBegin(GLenum primitive, unsigned vertex_ct)
 		case GL_TRIANGLES:
 			assert(vertex_ct % 3 == 0);
 			break;
+  #ifdef WITH_GL_PROFILE_COMPAT
+		case GL_QUADS:
+			assert(vertex_ct % 4 == 0);
+			break;
+  #endif
 		default:
 			assert(false);
 		}
