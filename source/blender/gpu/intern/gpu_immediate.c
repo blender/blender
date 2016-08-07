@@ -22,7 +22,9 @@
   #include <stdio.h>
 #endif
 
-#if defined(__APPLE__) && defined(WITH_GL_PROFILE_COMPAT)
+#define APPLE_LEGACY (defined(__APPLE__) && defined(WITH_GL_PROFILE_COMPAT))
+
+#if APPLE_LEGACY
   #undef glGenVertexArrays
   #define glGenVertexArrays glGenVertexArraysAPPLE
 
@@ -210,6 +212,11 @@ void immInit()
 	glBindBuffer(GL_ARRAY_BUFFER, imm.vbo_id);
 	glBufferData(GL_ARRAY_BUFFER, IMM_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
 
+#if APPLE_LEGACY
+	glBufferParameteriAPPLE(GL_ARRAY_BUFFER, GL_BUFFER_SERIALIZED_MODIFY_APPLE, GL_FALSE);
+	glBufferParameteriAPPLE(GL_ARRAY_BUFFER, GL_BUFFER_FLUSHING_UNMAP_APPLE, GL_FALSE);
+#endif
+
 	imm.primitive = GL_NONE;
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -285,15 +292,23 @@ void immBegin(GLenum primitive, unsigned vertex_ct)
 	else
 		{
 		// orphan this buffer & start with a fresh one
+#if APPLE_LEGACY
+		glBufferData(GL_ARRAY_BUFFER, IMM_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
+#else
 		glMapBufferRange(GL_ARRAY_BUFFER, 0, IMM_BUFFER_SIZE, GL_MAP_INVALIDATE_BUFFER_BIT);
 		// glInvalidateBufferData(imm.vbo_id); // VERSION >= 4.3 || ARB_invalidate_subdata
+#endif
 
 		imm.buffer_offset = 0;
 		}
 
 //	printf("mapping %u to %u\n", imm.buffer_offset, imm.buffer_offset + bytes_needed - 1);
 
+#if APPLE_LEGACY
+	imm.buffer_data = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY) + imm.buffer_offset;
+#else
 	imm.buffer_data = glMapBufferRange(GL_ARRAY_BUFFER, imm.buffer_offset, bytes_needed, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+#endif
 
 #if TRUST_NO_ONE
 	assert(imm.buffer_data != NULL);
@@ -310,6 +325,11 @@ void immEnd()
 	assert(imm.vertex_idx == imm.vertex_ct); // with all vertices defined
 #endif
 
+#if APPLE_LEGACY
+	// tell OpenGL what range was modified so it doesn't copy the whole buffer
+	glFlushMappedBufferRangeAPPLE(GL_ARRAY_BUFFER, imm.buffer_offset, imm.buffer_bytes_mapped);
+//	printf("flushing %u to %u\n", imm.buffer_offset, imm.buffer_offset + imm.buffer_bytes_mapped - 1);
+#endif
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 
 	// set up VAO -- can be done during Begin or End really
