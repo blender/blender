@@ -251,6 +251,9 @@ void PackedPatchTable::pack(Far::PatchTable* patch_table, int offset)
 	}
 
 	build_patch_map(*this, patch_table, offset);
+#else
+	(void)patch_table;
+	(void)offset;
 #endif
 }
 
