@@ -1351,10 +1351,8 @@ elseif(WIN32)
 		# MSVC11 needs _ALLOW_KEYWORD_MACROS to build
 		add_definitions(-D_ALLOW_KEYWORD_MACROS)
 
-		if(CMAKE_CL_64)
-			# We want to support Vista level ABI for x64
-			add_definitions(-D_WIN32_WINNT=0x600)
-		endif()
+		# We want to support Vista level ABI 
+		add_definitions(-D_WIN32_WINNT=0x600)
 
 		# Make cmake find the msvc redistributables
 		set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
