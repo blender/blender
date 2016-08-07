@@ -7,5 +7,5 @@
 
 void main()
 {
-	gl_Position = gl_ModelViewMatrix * vec4(pos, 0.0, 1.0);
+	gl_Position = gl_ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);
 }
