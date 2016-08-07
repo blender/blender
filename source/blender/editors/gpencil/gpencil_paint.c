@@ -930,7 +930,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	* because the drawing order is inverse and the head stroke is the first to draw. This is very useful for artist
 	* when drawing the background
 	*/
-	if (ts->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) {
+	if ((ts->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) && (p->paintmode != GP_PAINTMODE_DRAW_POLY)) {
 		BLI_addhead(&p->gpf->strokes, gps);
 	}
 	else {
@@ -2287,6 +2287,28 @@ static void gpencil_stroke_end(wmOperator *op)
 	p->gpf = NULL;
 }
 
+/* if drawing polygon and draw on back is enabled, move the stroke below all previous strokes */
+static void gpencil_move_polygon_stroke_to_back(bContext *C)
+{
+	/* move last stroke (the polygon) to head of the listbase stroke to draw on back of all previous strokes */
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
+
+	/* sanity checks */
+	if (ELEM(NULL, gpd, gpl, gpl->actframe)) {
+		return;
+	}
+
+	bGPDframe *gpf = gpl->actframe;
+	bGPDstroke *gps = gpf->strokes.last;
+	if (ELEM(NULL, gps)) {
+		return;
+	}
+
+	BLI_remlink(&gpf->strokes, gps);
+	BLI_insertlinkbefore(&gpf->strokes, gpf->strokes.first, gps);
+}
+
 /* events handling during interactive drawing part of operator */
 static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -2343,6 +2365,10 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	if (ELEM(event->type, RETKEY, PADENTER, ESCKEY, SPACEKEY, EKEY)) {
 		/* exit() ends the current stroke before cleaning up */
 		/* printf("\t\tGP - end of paint op + end of stroke\n"); */
+		/* if drawing polygon and enable on back, must move stroke */
+		if ((p->scene->toolsettings->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) && (p->paintmode == GP_PAINTMODE_DRAW_POLY)) {
+			gpencil_move_polygon_stroke_to_back(C);
+		}
 		p->status = GP_STATUS_DONE;
 		estate = OPERATOR_FINISHED;
 	}
@@ -2399,6 +2425,10 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			}
 			else {
 				/* printf("\t\tGP - end of stroke + op\n"); */
+				/* if drawing polygon and enable on back, must move stroke */
+				if ((p->scene->toolsettings->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) && (p->paintmode == GP_PAINTMODE_DRAW_POLY)) {
+					gpencil_move_polygon_stroke_to_back(C);
+				}
 				p->status = GP_STATUS_DONE;
 				estate = OPERATOR_FINISHED;
 			}
@@ -2479,6 +2509,10 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				 * NOTE: Don't eter this case if an error occurred while finding the
 				 *       region (as above)
 				 */
+				/* if drawing polygon and enable on back, must move stroke */
+				if ((p->scene->toolsettings->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) && (p->paintmode == GP_PAINTMODE_DRAW_POLY)) {
+					gpencil_move_polygon_stroke_to_back(C);
+				}
 				p->status = GP_STATUS_DONE;
 				estate = OPERATOR_FINISHED;
 			}
