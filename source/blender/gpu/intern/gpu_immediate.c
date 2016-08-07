@@ -201,7 +201,8 @@ void immInit()
 
 	imm.primitive = GL_NONE;
 	
-	// glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 	initialized = true;
 	}
 
@@ -257,7 +258,7 @@ void immBegin(GLenum primitive, unsigned vertex_ct)
 	assert(bytes_needed <= IMM_BUFFER_SIZE);
 #endif
 
-//	glBindBuffer(GL_ARRAY_BUFFER, imm.vbo_id);
+	glBindBuffer(GL_ARRAY_BUFFER, imm.vbo_id);
 
 	// does the current buffer have enough room?
 	const unsigned available_bytes = IMM_BUFFER_SIZE - imm.buffer_offset;
@@ -296,7 +297,7 @@ void immEnd()
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 
 	// set up VAO -- can be done during Begin or End really
-//	glBindVertexArray(imm.vao_id);
+	glBindVertexArray(imm.vao_id);
 
 	const unsigned stride = immVertexFormat.stride;
 
@@ -334,7 +335,8 @@ void immEnd()
 
 	glDrawArrays(imm.primitive, 0, imm.vertex_ct);
 
-//	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 
 	// prep for next immBegin
 	imm.buffer_offset += imm.buffer_bytes_mapped;
