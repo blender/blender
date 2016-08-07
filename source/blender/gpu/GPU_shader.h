@@ -98,6 +98,8 @@ typedef enum GPUBuiltinShader {
 GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader);
 GPUShader *GPU_shader_get_builtin_fx_shader(int effects, bool persp);
 
+void GPU_shader_bind_immediate(GPUBuiltinShader);
+
 void GPU_shader_free_builtin_shaders(void);
 
 /* Vertex attributes for shaders */

@@ -39,6 +39,7 @@
 #include "GPU_glew.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
+#include "GPU_immediate.h"
 
 /* TODO(sergey): Find better default values for this constants. */
 #define MAX_DEFINE_LENGTH 1024
@@ -461,6 +462,13 @@ void GPU_shader_bind(GPUShader *shader)
 	GPU_ASSERT_NO_GL_ERRORS("Pre Shader Bind");
 	glUseProgram(shader->program);
 	GPU_ASSERT_NO_GL_ERRORS("Post Shader Bind");
+}
+
+void GPU_shader_bind_immediate(GPUBuiltinShader shader_id)
+{
+	GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
+	GPU_shader_bind(shader);
+	bind_attrib_locations(&immVertexFormat, shader->program);
 }
 
 void GPU_shader_unbind(void)
