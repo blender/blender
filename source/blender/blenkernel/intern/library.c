@@ -1662,12 +1662,12 @@ void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged
 
 		/* Do not explicitly make local non-linkable IDs (shapekeys, in fact), they are assumed to be handled
 		 * by real datablocks responsible of them. */
-		const bool do_skip = (id && BKE_idcode_is_linkable(GS(id->name)));
+		const bool do_skip = (id && !BKE_idcode_is_linkable(GS(id->name)));
 
 		for (; id; id = id_next) {
 			id->newid = NULL;
 			id_next = id->next;  /* id is possibly being inserted again */
-			
+
 			/* The check on the second line (LIB_TAG_PRE_EXISTING) is done so its
 			 * possible to tag data you don't want to be made local, used for
 			 * appending data, so any libdata already linked wont become local
