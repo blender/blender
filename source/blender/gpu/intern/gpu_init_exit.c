@@ -31,7 +31,7 @@
 
 #include "BLI_sys_types.h"
 #include "GPU_init_exit.h"  /* interface */
-
+#include "GPU_immediate.h"
 #include "BKE_global.h"
 
 #include "intern/gpu_codegen.h"
@@ -59,14 +59,18 @@ void GPU_init(void)
 	if (G.debug & G_DEBUG_GPU)
 		gpu_debug_init();
 
+	immInit();
 }
 
 
 
 void GPU_exit(void)
 {
+	immDestroy();
+
 	if (G.debug & G_DEBUG_GPU)
 		gpu_debug_exit();
+
 	gpu_codegen_exit();
 
 	gpu_extensions_exit(); /* must come last */
