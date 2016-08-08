@@ -54,44 +54,37 @@ struct GPUFrameBuffer {
 
 static void GPU_print_framebuffer_error(GLenum status, char err_out[256])
 {
+	const char *format = "GPUFrameBuffer: framebuffer status %s";
 	const char *err = "unknown";
 
+#define format_status(X) \
+	case GL_FRAMEBUFFER_##X: err = "GL_FRAMEBUFFER_"#X; \
+		break;
+
 	switch (status) {
-		case GL_FRAMEBUFFER_COMPLETE:
-			break;
-		case GL_INVALID_OPERATION:
-			err = "Invalid operation";
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-			err = "Incomplete attachment";
-			break;
-		case GL_FRAMEBUFFER_UNSUPPORTED:
-			err = "Unsupported framebuffer format";
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-			err = "Missing attachment";
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
-			err = "Attached images must have same dimensions";
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_FORMATS:
-			err = "Attached images must have same format";
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-			err = "Missing draw buffer";
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-			err = "Missing read buffer";
-			break;
+		/* success */
+		format_status(COMPLETE)
+		/* errors shared by OpenGL desktop & ES */
+		format_status(INCOMPLETE_ATTACHMENT)
+		format_status(INCOMPLETE_MISSING_ATTACHMENT)
+		format_status(UNSUPPORTED)
+#if 0 /* for OpenGL ES only */
+		format_status(INCOMPLETE_DIMENSIONS)
+#else /* for desktop GL only */
+		format_status(INCOMPLETE_DRAW_BUFFER)
+		format_status(INCOMPLETE_READ_BUFFER)
+		format_status(INCOMPLETE_MULTISAMPLE)
+		format_status(UNDEFINED)
+#endif
 	}
 
+#undef format_status
+
 	if (err_out) {
-		BLI_snprintf(err_out, 256, "GPUFrameBuffer: framebuffer incomplete error %d '%s'",
-			(int)status, err);
+		BLI_snprintf(err_out, 256, format, err);
 	}
 	else {
-		fprintf(stderr, "GPUFrameBuffer: framebuffer incomplete error %d '%s'\n",
-			(int)status, err);
+		fprintf(stderr, format, err);
 	}
 }
 
