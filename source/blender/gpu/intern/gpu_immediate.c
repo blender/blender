@@ -187,6 +187,8 @@ typedef struct {
 
 	GLuint vbo_id;
 	GLuint vao_id;
+	
+	GLuint bound_program;
 } Immediate;
 
 // size of internal buffer -- make this adjustable?
@@ -235,6 +237,27 @@ void immDestroy()
 	glDeleteVertexArrays(1, &imm.vao_id);
 	glDeleteBuffers(1, &imm.vbo_id);
 	initialized = false;
+	}
+
+void immBindProgram(GLuint program)
+	{
+#if TRUST_NO_ONE
+	assert(imm.bound_program == 0);
+#endif
+
+	glUseProgram(program);
+	bind_attrib_locations(&immVertexFormat, program);
+	imm.bound_program = program;
+	}
+
+void immUnbindProgram()
+	{
+#if TRUST_NO_ONE
+	assert(imm.bound_program != 0);
+#endif
+
+	glUseProgram(0);
+	imm.bound_program = 0;
 	}
 
 void immBegin(GLenum primitive, unsigned vertex_ct)
@@ -530,4 +553,15 @@ void immVertex3f(unsigned attrib_id, float x, float y, float z)
 	{
 	immAttrib3f(attrib_id, x, y, z);
 	immEndVertex();
+	}
+
+void immUniform4f(const char* name, float x, float y, float z, float w)
+	{
+	int loc = glGetUniformLocation(imm.bound_program, name);
+
+#if TRUST_NO_ONE
+	assert(loc != -1);
+#endif
+
+	glUniform4f(loc, x, y, z, w);
 	}

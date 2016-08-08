@@ -58,6 +58,9 @@ extern PER_THREAD VertexFormat immVertexFormat; // so we don't have to copy or p
 void immInit(void);
 void immDestroy(void);
 
+void immBindProgram(GLuint program);
+void immUnbindProgram(void);
+
 void immBegin(GLenum primitive, unsigned vertex_ct);
 void immEnd(void);
 
@@ -73,3 +76,6 @@ void immEndVertex(void); // and move on to the next vertex
 // provide 2D or 3D attribute value and end the current vertex, similar to glVertex:
 void immVertex2f(unsigned attrib_id, float x, float y);
 void immVertex3f(unsigned attrib_id, float x, float y, float z);
+
+// provide values that don't change for the entire draw call
+void immUniform4f(const char* name, float x, float y, float z, float w);
