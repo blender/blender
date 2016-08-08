@@ -379,11 +379,13 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 
 	/* setup buffer and draw */
 
-	int gl_depth = 0, gl_blend = 0;
+	int gl_depth = 0, gl_blend = 0, gl_depth_write = 0;
 	glGetBooleanv(GL_BLEND, (GLboolean *)&gl_blend);
 	glGetBooleanv(GL_DEPTH_TEST, (GLboolean *)&gl_depth);
+	glGetBooleanv(GL_DEPTH_WRITEMASK, (GLboolean *)&gl_depth_write);
 
 	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -421,6 +423,8 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	MEM_freeN(slicer.verts);
 
 	GPU_shader_unbind();
+
+	glDepthMask(gl_depth_write);
 
 	if (!gl_blend) {
 		glDisable(GL_BLEND);
