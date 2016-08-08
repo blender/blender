@@ -2367,7 +2367,9 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		/* printf("\t\tGP - end of paint op + end of stroke\n"); */
 		/* if drawing polygon and enable on back, must move stroke */
 		if ((p->scene->toolsettings->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) && (p->paintmode == GP_PAINTMODE_DRAW_POLY)) {
-			gpencil_move_polygon_stroke_to_back(C);
+			if (p->flags & GP_PAINTFLAG_STROKEADDED) {
+				gpencil_move_polygon_stroke_to_back(C);
+			}
 		}
 		p->status = GP_STATUS_DONE;
 		estate = OPERATOR_FINISHED;
@@ -2427,7 +2429,9 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				/* printf("\t\tGP - end of stroke + op\n"); */
 				/* if drawing polygon and enable on back, must move stroke */
 				if ((p->scene->toolsettings->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) && (p->paintmode == GP_PAINTMODE_DRAW_POLY)) {
-					gpencil_move_polygon_stroke_to_back(C);
+					if (p->flags & GP_PAINTFLAG_STROKEADDED) {
+						gpencil_move_polygon_stroke_to_back(C);
+					}
 				}
 				p->status = GP_STATUS_DONE;
 				estate = OPERATOR_FINISHED;
@@ -2511,7 +2515,9 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				 */
 				/* if drawing polygon and enable on back, must move stroke */
 				if ((p->scene->toolsettings->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) && (p->paintmode == GP_PAINTMODE_DRAW_POLY)) {
-					gpencil_move_polygon_stroke_to_back(C);
+					if (p->flags & GP_PAINTFLAG_STROKEADDED) {
+						gpencil_move_polygon_stroke_to_back(C);
+					}
 				}
 				p->status = GP_STATUS_DONE;
 				estate = OPERATOR_FINISHED;
