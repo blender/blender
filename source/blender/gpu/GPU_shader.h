@@ -98,9 +98,11 @@ typedef enum GPUBuiltinShader {
 GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader);
 GPUShader *GPU_shader_get_builtin_fx_shader(int effects, bool persp);
 
-void GPU_shader_bind_immediate(GPUBuiltinShader);
-
 void GPU_shader_free_builtin_shaders(void);
+
+/* Extend Gawain’s immBindProgram to use Blender’s library of built-in shader programs.
+ * Use immUnbindProgram() when done. */
+void immBindBuiltinProgram(GPUBuiltinShader);
 
 /* Vertex attributes for shaders */
 

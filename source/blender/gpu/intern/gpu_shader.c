@@ -464,13 +464,6 @@ void GPU_shader_bind(GPUShader *shader)
 	GPU_ASSERT_NO_GL_ERRORS("Post Shader Bind");
 }
 
-void GPU_shader_bind_immediate(GPUBuiltinShader shader_id)
-{
-	GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
-	GPU_shader_bind(shader);
-	bind_attrib_locations(&immVertexFormat, shader->program);
-}
-
 void GPU_shader_unbind(void)
 {
 	GPU_ASSERT_NO_GL_ERRORS("Pre Shader Unbind");
@@ -782,4 +775,8 @@ void GPU_shader_free_builtin_shaders(void)
 	}
 }
 
-
+void immBindBuiltinProgram(GPUBuiltinShader shader_id)
+{
+	GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
+	immBindProgram(shader->program);
+}
