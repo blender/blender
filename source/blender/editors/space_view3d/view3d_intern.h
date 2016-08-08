@@ -192,7 +192,6 @@ void ED_view3d_draw_depth(Scene *scene, struct ARegion *ar, View3D *v3d, bool al
 void ED_view3d_draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d);
 void ED_view3d_after_add(ListBase *lb, Base *base, const short dflag);
 
-void circf(float x, float y, float rad);
 void circ(float x, float y, float rad);
 void view3d_update_depths_rect(struct ARegion *ar, struct ViewDepths *d, struct rcti *rect);
 float view3d_depth_near(struct ViewDepths *d);

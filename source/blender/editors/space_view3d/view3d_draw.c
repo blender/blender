@@ -120,38 +120,16 @@ extern void bl_debug_draw_edge_add(const float v0[3], const float v1[3]);
 extern void bl_debug_color_set(const unsigned int col);
 #endif
 
-void circf(float x, float y, float rad)
-{
-	GLUquadricObj *qobj = gluNewQuadric(); 
-	
-	gluQuadricDrawStyle(qobj, GLU_FILL); 
-	
-	glPushMatrix(); 
-	
-	glTranslatef(x, y, 0.0);
-	
-	gluDisk(qobj, 0.0,  rad, 32, 1);
-	
-	glPopMatrix(); 
-	
-	gluDeleteQuadric(qobj);
-}
-
 void circ(float x, float y, float rad)
 {
-	GLUquadricObj *qobj = gluNewQuadric(); 
-	
-	gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
-	
-	glPushMatrix(); 
-	
-	glTranslatef(x, y, 0.0);
-	
-	gluDisk(qobj, 0.0,  rad, 32, 1);
-	
-	glPopMatrix(); 
-	
-	gluDeleteQuadric(qobj);
+	glBegin(GL_LINE_LOOP);
+	const int segments = 32;
+	for (int i = 0; i < segments; ++i) {
+		float angle = 2 * M_PI * ((float)i / (float)segments);
+		glVertex2f(x + rad * cosf(angle),
+		           y + rad * sinf(angle));
+	}
+	glEnd();
 }
 
 
@@ -563,7 +541,6 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool wr
 	glDepthMask(GL_TRUE);
 }
 
-
 static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	int co[2];
@@ -575,19 +552,39 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 		const float f20 = U.widget_unit;
 		
 		glLineWidth(1);
-		setlinestyle(0); 
-		cpack(0xFF);
-		circ((float)co[0], (float)co[1], f10);
-		setlinestyle(4);
-		cpack(0xFFFFFF);
-		circ((float)co[0], (float)co[1], f10);
-		setlinestyle(0);
+		glShadeModel(GL_FLAT);
+
+		glBegin(GL_LINE_LOOP);
+
+		const int segments = 16;
+		for (int i = 0; i < segments; ++i) {
+			float angle = 2 * M_PI * ((float)i / (float)segments);
+			float x = co[0] + f10 * cosf(angle);
+			float y = co[1] + f10 * sinf(angle);
+
+			if (i % 2 == 0)
+				glColor3ub(255,0,0);
+			else
+				glColor3ub(255,255,255);
+
+			glVertex2f(x,y);
+		}
+		glEnd();
 
 		UI_ThemeColor(TH_VIEW_OVERLAY);
-		sdrawline(co[0] - f20, co[1], co[0] - f5, co[1]);
-		sdrawline(co[0] + f5, co[1], co[0] + f20, co[1]);
-		sdrawline(co[0], co[1] - f20, co[0], co[1] - f5);
-		sdrawline(co[0], co[1] + f5, co[0], co[1] + f20);
+
+		glBegin(GL_LINES);
+		glVertex2f(co[0] - f20, co[1]);
+		glVertex2f(co[0] - f5, co[1]);
+		glVertex2f(co[0] + f5, co[1]);
+		glVertex2f(co[0] + f20, co[1]);
+		glVertex2f(co[0], co[1] - f20);
+		glVertex2f(co[0], co[1] - f5);
+		glVertex2f(co[0], co[1] + f5);
+		glVertex2f(co[0], co[1] + f20);
+		glEnd();
+
+		glShadeModel(GL_SMOOTH);
 	}
 }
 
