@@ -92,6 +92,7 @@ typedef enum GPUBuiltinShader {
 
 	/* for simple drawing */
 	GPU_SHADER_2D_UNIFORM_COLOR,
+	GPU_SHADER_2D_FLAT_COLOR,
 	GPU_SHADER_2D_SMOOTH_COLOR,
 } GPUBuiltinShader;
 
