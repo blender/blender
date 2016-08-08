@@ -937,8 +937,6 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 	mesh_synced.insert(mesh);
 
 	/* create derived mesh */
-	PointerRNA cmesh = RNA_pointer_get(&b_ob_data.ptr, "cycles");
-
 	array<int> oldtriangle = mesh->triangles;
 	
 	/* compares curve_keys rather than strands in order to handle quick hair
