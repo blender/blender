@@ -656,23 +656,18 @@ typedef struct AttributeDescriptor {
  * ShaderClosure has a fixed size, and any extra space must be allocated
  * with closure_alloc_extra().
  *
- * float3 is 12 bytes on CUDA and 16 bytes on CPU/OpenCL, we set the data
- * size to ensure ShaderClosure is 80 bytes total everywhere. */
+ * We pad the struct to 80 bytes and ensure it is aligned to 16 bytes, which
+ * we assume to be the maximum required alignment for any struct. */
 
 #define SHADER_CLOSURE_BASE \
 	float3 weight; \
 	ClosureType type; \
 	float sample_weight \
 
-typedef ccl_addr_space struct ShaderClosure {
+typedef ccl_addr_space struct ccl_align(16) ShaderClosure {
 	SHADER_CLOSURE_BASE;
 
-	/* pad to 80 bytes, data types are aligned to own size */
-#ifdef __KERNEL_CUDA__
-	float data[15];
-#else
-	float data[14];
-#endif
+	float data[14]; /* pad to 80 bytes */
 } ShaderClosure;
 
 /* Shader Context
