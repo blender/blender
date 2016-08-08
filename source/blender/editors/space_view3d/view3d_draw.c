@@ -100,6 +100,8 @@
 #include "GPU_material.h"
 #include "GPU_compositing.h"
 #include "GPU_extensions.h"
+#include "GPU_shader.h"
+#include "GPU_immediate.h"
 
 #include "view3d_intern.h"  /* own include */
 
@@ -552,39 +554,56 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 		const float f20 = U.widget_unit;
 		
 		glLineWidth(1);
-		glShadeModel(GL_FLAT);
 
-		glBegin(GL_LINE_LOOP);
+		clear_VertexFormat(&immVertexFormat);
+		unsigned color = add_attrib(&immVertexFormat, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+		unsigned pos = add_attrib(&immVertexFormat, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		pack(&immVertexFormat);
+
+		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
 		const int segments = 16;
+
+		immBegin(GL_LINE_LOOP, segments);
+
 		for (int i = 0; i < segments; ++i) {
 			float angle = 2 * M_PI * ((float)i / (float)segments);
 			float x = co[0] + f10 * cosf(angle);
 			float y = co[1] + f10 * sinf(angle);
 
 			if (i % 2 == 0)
-				glColor3ub(255,0,0);
+				immAttrib3ub(color, 255, 0, 0);
 			else
-				glColor3ub(255,255,255);
+				immAttrib3ub(color, 255, 255, 255);
 
-			glVertex2f(x,y);
+			immVertex2f(pos, x, y);
 		}
-		glEnd();
+		immEnd();
 
-		UI_ThemeColor(TH_VIEW_OVERLAY);
+		immUnbindProgram();
 
-		glBegin(GL_LINES);
-		glVertex2f(co[0] - f20, co[1]);
-		glVertex2f(co[0] - f5, co[1]);
-		glVertex2f(co[0] + f5, co[1]);
-		glVertex2f(co[0] + f20, co[1]);
-		glVertex2f(co[0], co[1] - f20);
-		glVertex2f(co[0], co[1] - f5);
-		glVertex2f(co[0], co[1] + f5);
-		glVertex2f(co[0], co[1] + f20);
-		glEnd();
+		clear_VertexFormat(&immVertexFormat);
+		pos = add_attrib(&immVertexFormat, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		pack(&immVertexFormat);
 
-		glShadeModel(GL_SMOOTH);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+		float crosshair_color[3];
+		UI_GetThemeColor3fv(TH_VIEW_OVERLAY, crosshair_color);
+		immUniform4f("color", crosshair_color[0], crosshair_color[1], crosshair_color[2], 1.0f);
+
+		immBegin(GL_LINES, 8);
+		immVertex2f(pos, co[0] - f20, co[1]);
+		immVertex2f(pos, co[0] - f5, co[1]);
+		immVertex2f(pos, co[0] + f5, co[1]);
+		immVertex2f(pos, co[0] + f20, co[1]);
+		immVertex2f(pos, co[0], co[1] - f20);
+		immVertex2f(pos, co[0], co[1] - f5);
+		immVertex2f(pos, co[0], co[1] + f5);
+		immVertex2f(pos, co[0], co[1] + f20);
+		immEnd();
+
+		immUnbindProgram();
 	}
 }
 
