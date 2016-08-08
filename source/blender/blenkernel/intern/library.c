@@ -753,60 +753,56 @@ void BKE_main_lib_objects_recalc_all(Main *bmain)
  * \note MAX_LIBARRAY define should match this code */
 int set_listbasepointers(Main *main, ListBase **lb)
 {
-	int a = 0;
-
 	/* BACKWARDS! also watch order of free-ing! (mesh<->mat), first items freed last.
 	 * This is important because freeing data decreases usercounts of other datablocks,
 	 * if this data is its self freed it can crash. */
-	lb[a++] = &(main->library);  /* Libraries may be accessed from pretty much any other ID... */
-	lb[a++] = &(main->ipo);
-	lb[a++] = &(main->action); /* moved here to avoid problems when freeing with animato (aligorith) */
-	lb[a++] = &(main->key);
-	lb[a++] = &(main->gpencil); /* referenced by nodes, objects, view, scene etc, before to free after. */
-	lb[a++] = &(main->nodetree);
-	lb[a++] = &(main->image);
-	lb[a++] = &(main->tex);
-	lb[a++] = &(main->mat);
-	lb[a++] = &(main->vfont);
+	lb[INDEX_ID_LI] = &(main->library);  /* Libraries may be accessed from pretty much any other ID... */
+	lb[INDEX_ID_IP] = &(main->ipo);
+	lb[INDEX_ID_AC] = &(main->action); /* moved here to avoid problems when freeing with animato (aligorith) */
+	lb[INDEX_ID_KE] = &(main->key);
+	lb[INDEX_ID_GD] = &(main->gpencil); /* referenced by nodes, objects, view, scene etc, before to free after. */
+	lb[INDEX_ID_NT] = &(main->nodetree);
+	lb[INDEX_ID_IM] = &(main->image);
+	lb[INDEX_ID_TE] = &(main->tex);
+	lb[INDEX_ID_MA] = &(main->mat);
+	lb[INDEX_ID_VF] = &(main->vfont);
 	
 	/* Important!: When adding a new object type,
 	 * the specific data should be inserted here 
 	 */
 
-	lb[a++] = &(main->armature);
+	lb[INDEX_ID_AR] = &(main->armature);
 
-	lb[a++] = &(main->cachefiles);
-	lb[a++] = &(main->mesh);
-	lb[a++] = &(main->curve);
-	lb[a++] = &(main->mball);
+	lb[INDEX_ID_CF] = &(main->cachefiles);
+	lb[INDEX_ID_ME] = &(main->mesh);
+	lb[INDEX_ID_CU] = &(main->curve);
+	lb[INDEX_ID_MB] = &(main->mball);
 
-	lb[a++] = &(main->latt);
-	lb[a++] = &(main->lamp);
-	lb[a++] = &(main->camera);
+	lb[INDEX_ID_LT] = &(main->latt);
+	lb[INDEX_ID_LA] = &(main->lamp);
+	lb[INDEX_ID_CA] = &(main->camera);
 
-	lb[a++] = &(main->text);
-	lb[a++] = &(main->sound);
-	lb[a++] = &(main->group);
-	lb[a++] = &(main->palettes);
-	lb[a++] = &(main->paintcurves);
-	lb[a++] = &(main->brush);
-	lb[a++] = &(main->particle);
-	lb[a++] = &(main->speaker);
+	lb[INDEX_ID_TXT] = &(main->text);
+	lb[INDEX_ID_SO]  = &(main->sound);
+	lb[INDEX_ID_GR]  = &(main->group);
+	lb[INDEX_ID_PAL] = &(main->palettes);
+	lb[INDEX_ID_PC]  = &(main->paintcurves);
+	lb[INDEX_ID_BR]  = &(main->brush);
+	lb[INDEX_ID_PA]  = &(main->particle);
+	lb[INDEX_ID_SPK] = &(main->speaker);
 
-	lb[a++] = &(main->world);
-	lb[a++] = &(main->movieclip);
-	lb[a++] = &(main->screen);
-	lb[a++] = &(main->object);
-	lb[a++] = &(main->linestyle); /* referenced by scenes */
-	lb[a++] = &(main->scene);
-	lb[a++] = &(main->wm);
-	lb[a++] = &(main->mask);
+	lb[INDEX_ID_WO]  = &(main->world);
+	lb[INDEX_ID_MC]  = &(main->movieclip);
+	lb[INDEX_ID_SCR] = &(main->screen);
+	lb[INDEX_ID_OB]  = &(main->object);
+	lb[INDEX_ID_LS]  = &(main->linestyle); /* referenced by scenes */
+	lb[INDEX_ID_SCE] = &(main->scene);
+	lb[INDEX_ID_WM]  = &(main->wm);
+	lb[INDEX_ID_MSK] = &(main->mask);
 	
-	lb[a] = NULL;
+	lb[INDEX_ID_NULL] = NULL;
 
-	BLI_assert(a + 1 == MAX_LIBARRAY);
-
-	return a;
+	return (MAX_LIBARRAY - 1);
 }
 
 /* *********** ALLOC AND FREE *****************

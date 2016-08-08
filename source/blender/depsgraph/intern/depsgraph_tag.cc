@@ -44,6 +44,7 @@ extern "C" {
 
 #include "BLI_task.h"
 
+#include "BKE_idcode.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
@@ -259,10 +260,8 @@ void DEG_id_type_tag(Main *bmain, short idtype)
 		DEG_id_type_tag(bmain, ID_WO);
 		DEG_id_type_tag(bmain, ID_SCE);
 	}
-	/* We tag based on first ID type character to avoid
-	 * looping over all ID's in case there are no tags.
-	 */
-	bmain->id_tag_update[((unsigned char *)&idtype)[0]] = 1;
+
+	bmain->id_tag_update[BKE_idcode_to_index(idtype)] = 1;
 }
 
 /* Recursively push updates out to all nodes dependent on this,
@@ -373,10 +372,7 @@ void DEG_ids_check_recalc(Main *bmain, Scene *scene, bool time)
 		ListBase *lb = lbarray[a];
 		ID *id = (ID *)lb->first;
 
-		/* We tag based on first ID type character to avoid
-		 * looping over all ID's in case there are no tags.
-		 */
-		if (id && bmain->id_tag_update[(unsigned char)id->name[0]]) {
+		if (id && bmain->id_tag_update[BKE_idcode_to_index(GS(id->name))]) {
 			updated = true;
 			break;
 		}
@@ -401,10 +397,7 @@ void DEG_ids_clear_recalc(Main *bmain)
 		ListBase *lb = lbarray[a];
 		ID *id = (ID *)lb->first;
 
-		/* We tag based on first ID type character to avoid
-		 * looping over all ID's in case there are no tags.
-		 */
-		if (id && bmain->id_tag_update[(unsigned char)id->name[0]]) {
+		if (id && bmain->id_tag_update[BKE_idcode_to_index(GS(id->name))]) {
 			for (; id; id = (ID *)id->next) {
 				id->tag &= ~(LIB_TAG_ID_RECALC | LIB_TAG_ID_RECALC_DATA);
 

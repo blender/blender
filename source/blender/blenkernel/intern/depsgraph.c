@@ -67,6 +67,7 @@
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
+#include "BKE_idcode.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
@@ -2805,9 +2806,7 @@ void DAG_ids_flush_tagged(Main *bmain)
 		ListBase *lb = lbarray[a];
 		ID *id = lb->first;
 
-		/* we tag based on first ID type character to avoid 
-		 * looping over all ID's in case there are no tags */
-		if (id && bmain->id_tag_update[id->name[0]]) {
+		if (id && bmain->id_tag_update[BKE_idcode_to_index(GS(id->name))]) {
 			for (; id; id = id->next) {
 				if (id->tag & (LIB_TAG_ID_RECALC | LIB_TAG_ID_RECALC_DATA)) {
 					
@@ -2847,9 +2846,7 @@ void DAG_ids_check_recalc(Main *bmain, Scene *scene, bool time)
 		ListBase *lb = lbarray[a];
 		ID *id = lb->first;
 
-		/* we tag based on first ID type character to avoid 
-		 * looping over all ID's in case there are no tags */
-		if (id && bmain->id_tag_update[id->name[0]]) {
+		if (id && bmain->id_tag_update[BKE_idcode_to_index(GS(id->name))]) {
 			updated = true;
 			break;
 		}
@@ -2930,9 +2927,7 @@ void DAG_ids_clear_recalc(Main *bmain)
 		ListBase *lb = lbarray[a];
 		ID *id = lb->first;
 
-		/* we tag based on first ID type character to avoid 
-		 * looping over all ID's in case there are no tags */
-		if (id && bmain->id_tag_update[id->name[0]]) {
+		if (id && bmain->id_tag_update[BKE_idcode_to_index(GS(id->name))]) {
 			for (; id; id = id->next) {
 				if (id->tag & (LIB_TAG_ID_RECALC | LIB_TAG_ID_RECALC_DATA))
 					id->tag &= ~(LIB_TAG_ID_RECALC | LIB_TAG_ID_RECALC_DATA);
@@ -3053,12 +3048,12 @@ void DAG_id_type_tag(Main *bmain, short idtype)
 		DAG_id_type_tag(bmain, ID_SCE);
 	}
 
-	bmain->id_tag_update[((char *)&idtype)[0]] = 1;
+	bmain->id_tag_update[BKE_idcode_to_index(idtype)] = 1;
 }
 
 int DAG_id_type_tagged(Main *bmain, short idtype)
 {
-	return bmain->id_tag_update[((char *)&idtype)[0]];
+	return bmain->id_tag_update[BKE_idcode_to_index(idtype)];
 }
 
 #if 0 // UNUSED
