@@ -2576,7 +2576,7 @@ else()
 	endif()
 	unset(_SYSTEM_BIG_ENDIAN)
 endif()
-
+if(MSVC)
 	if(WITH_ALEMBIC)
 		set(ALEMBIC ${LIBDIR}/alembic)
 		set(ALEMBIC_INCLUDE_DIR ${ALEMBIC}/include)
@@ -2586,7 +2586,7 @@ endif()
 			optimized ${ALEMBIC_LIBPATH}/alembic.lib
 			debug ${ALEMBIC_LIBPATH}/alembic_d.lib)
 	endif(WITH_ALEMBIC)
-
+endif(MSVC)
 if(WITH_IMAGE_OPENJPEG)
 	if(WITH_SYSTEM_OPENJPEG)
 		# dealt with above
