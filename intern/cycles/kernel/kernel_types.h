@@ -747,7 +747,7 @@ enum ShaderDataFlag {
 #  define SD_THREAD (get_global_id(1) * get_global_size(0) + get_global_id(0))
 #  if defined(__SPLIT_KERNEL_AOS__)
      /* ShaderData is stored as an Array-of-Structures */
-#    define ccl_soa_member(type, name) type soa_##name;
+#    define ccl_soa_member(type, name) type soa_##name
 #    define ccl_fetch(s, t) (s[SD_THREAD].soa_##t)
 #    define ccl_fetch_array(s, t, index) (&s[SD_THREAD].soa_##t[index])
 #  else
@@ -755,7 +755,7 @@ enum ShaderDataFlag {
 #    define SD_GLOBAL_SIZE (get_global_size(0) * get_global_size(1))
 #    define SD_FIELD_SIZE(t) sizeof(((struct ShaderData*)0)->t)
 #    define SD_OFFSETOF(t) ((char*)(&((struct ShaderData*)0)->t) - (char*)0)
-#    define ccl_soa_member(type, name) type soa_##name;
+#    define ccl_soa_member(type, name) type soa_##name
 #    define ccl_fetch(s, t) (((ShaderData*)((ccl_addr_space char*)s + SD_GLOBAL_SIZE * SD_OFFSETOF(soa_##t) +  SD_FIELD_SIZE(soa_##t) * SD_THREAD - SD_OFFSETOF(soa_##t)))->soa_##t)
 #    define ccl_fetch_array(s, t, index) (&ccl_fetch(s, t)[index])
 #  endif
