@@ -42,7 +42,9 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#if __cplusplus >= 201103L
 using std::isfinite;
+#endif
 
 static bool selected_node(RTBuilder::Object *node)
 {
