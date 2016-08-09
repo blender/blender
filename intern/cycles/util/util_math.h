@@ -572,6 +572,12 @@ ccl_device_inline float3 safe_normalize(const float3 a)
 	return (t != 0.0f)? a/t: a;
 }
 
+ccl_device_inline float3 safe_normalize_len(const float3 a, float *t)
+{
+	*t = len(a);
+	return (*t != 0.0f)? a/(*t): a;
+}
+
 #ifndef __KERNEL_OPENCL__
 
 ccl_device_inline bool operator==(const float3 a, const float3 b)
