@@ -628,7 +628,7 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 		        m_hDC,
 		        profile_mask,
 		        3, 2, // GL version requested
-		        GHOST_OPENGL_WGL_CONTEXT_FLAGS,
+		        (m_debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
 		        GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
 
 		if (context->initializeDrawingContext())
