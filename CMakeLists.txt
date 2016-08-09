@@ -1102,7 +1102,6 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_ALEMBIC)
-		set(ALEMBIC_ROOT_DIR ${LIBDIR}/alembic)
 		find_package_wrapper(Alembic)
 
 		if(WITH_ALEMBIC_HDF5)
