@@ -611,6 +611,9 @@ void ObjectManager::device_update_flags(Device *device,
 
 void ObjectManager::device_update_patch_map_offsets(Device *device, DeviceScene *dscene, Scene *scene)
 {
+	if (scene->objects.size() == 0)
+		return;
+
 	uint4* objects = (uint4*)dscene->objects.get_data();
 
 	bool update = false;
