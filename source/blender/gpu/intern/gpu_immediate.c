@@ -174,7 +174,7 @@ void bind_attrib_locations(const VertexFormat* format, GLuint program)
 
 typedef struct {
 	// current draw call
-	void* buffer_data;
+	GLubyte* buffer_data;
 	unsigned buffer_offset;
 	unsigned buffer_bytes_mapped;
 	unsigned vertex_ct;
@@ -182,7 +182,7 @@ typedef struct {
 
 	// current vertex
 	unsigned vertex_idx;
-	void* vertex_data;
+	GLubyte* vertex_data;
 	unsigned short attrib_value_bits; // which attributes of current vertex have been given values?
 
 	GLuint vbo_id;
@@ -365,7 +365,7 @@ void immEnd()
 		const Attrib* a = immVertexFormat.attribs + a_idx;
 
 		const unsigned offset = imm.buffer_offset + a->offset;
-		const GLvoid* pointer = (const GLvoid*)0 + offset;
+		const GLvoid* pointer = (const GLubyte*)0 + offset;
 
 //		printf("enabling attrib %u '%s' at offset %u, stride %u\n", a_idx, a->name, offset, stride);
 		glEnableVertexAttribArray(a_idx);
@@ -432,7 +432,7 @@ void immAttrib1f(unsigned attrib_id, float x)
 
 	setAttribValueBit(attrib_id);
 
-	float* data = imm.vertex_data + attrib->offset;
+	float* data = (float*)(imm.vertex_data + attrib->offset);
 //	printf("%s %ld %p\n", __FUNCTION__, (void*)data - imm.buffer_data, data);
 
 	data[0] = x;
@@ -452,7 +452,7 @@ void immAttrib2f(unsigned attrib_id, float x, float y)
 
 	setAttribValueBit(attrib_id);
 
-	float* data = imm.vertex_data + attrib->offset;
+	float* data = (float*)(imm.vertex_data + attrib->offset);
 //	printf("%s %ld %p\n", __FUNCTION__, (void*)data - imm.buffer_data, data);
 
 	data[0] = x;
@@ -473,7 +473,7 @@ void immAttrib3f(unsigned attrib_id, float x, float y, float z)
 
 	setAttribValueBit(attrib_id);
 
-	float* data = imm.vertex_data + attrib->offset;
+	float* data = (float*)(imm.vertex_data + attrib->offset);
 //	printf("%s %ld %p\n", __FUNCTION__, (void*)data - imm.buffer_data, data);
 
 	data[0] = x;
@@ -495,7 +495,7 @@ void immAttrib3ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned
 
 	setAttribValueBit(attrib_id);
 
-	unsigned char* data = imm.vertex_data + attrib->offset;
+	GLubyte* data = imm.vertex_data + attrib->offset;
 //	printf("%s %ld %p\n", __FUNCTION__, (void*)data - imm.buffer_data, data);
 
 	data[0] = r;
@@ -517,7 +517,7 @@ void immAttrib4ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned
 
 	setAttribValueBit(attrib_id);
 
-	unsigned char* data = imm.vertex_data + attrib->offset;
+	GLubyte* data = imm.vertex_data + attrib->offset;
 //	printf("%s %ld %p\n", __FUNCTION__, (void*)data - imm.buffer_data, data);
 
 	data[0] = r;
