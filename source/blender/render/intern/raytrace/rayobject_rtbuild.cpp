@@ -42,6 +42,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+using std::isfinite;
+
 static bool selected_node(RTBuilder::Object *node)
 {
 	return node->selected;
