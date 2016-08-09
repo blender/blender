@@ -318,8 +318,10 @@ void immBegin(GLenum primitive, unsigned vertex_ct)
 #if APPLE_LEGACY
 		glBufferData(GL_ARRAY_BUFFER, IMM_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
 #else
-		glMapBufferRange(GL_ARRAY_BUFFER, 0, IMM_BUFFER_SIZE, GL_MAP_INVALIDATE_BUFFER_BIT);
-		// glInvalidateBufferData(imm.vbo_id); // VERSION >= 4.3 || ARB_invalidate_subdata
+		if (GLEW_VERSION_4_3 || GLEW_ARB_invalidate_subdata)
+			glInvalidateBufferData(imm.vbo_id);
+		else
+			glMapBufferRange(GL_ARRAY_BUFFER, 0, IMM_BUFFER_SIZE, GL_MAP_INVALIDATE_BUFFER_BIT);
 #endif
 
 		imm.buffer_offset = 0;
