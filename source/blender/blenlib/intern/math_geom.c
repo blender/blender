@@ -2892,8 +2892,8 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], bool (*callback)(int, int
 	int x2 = p2[0];
 	int y2 = p2[1];
 
-	signed char ix;
-	signed char iy;
+	int ix;
+	int iy;
 
 	/* if x1 == x2 or y1 == y2, then it does not matter what we set here */
 	int delta_x = (x2 > x1 ? ((void)(ix = 1), x2 - x1) : ((void)(ix = -1), x1 - x2)) << 1;
