@@ -5595,3 +5595,31 @@ int BKE_sequencer_find_next_prev_edit(
 
 	return best_frame;
 }
+
+static void sequencer_all_free_anim_ibufs(ListBase *seqbase, int cfra)
+{
+	for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
+		if (seq->enddisp < cfra || seq->startdisp > cfra) {
+			BKE_sequence_free_anim(seq);
+		}
+		if (seq->type == SEQ_TYPE_META) {
+			sequencer_all_free_anim_ibufs(&seq->seqbase, cfra);
+		}
+	}
+}
+
+void BKE_sequencer_all_free_anim_ibufs(int cfra)
+{
+	BKE_sequencer_cache_cleanup();
+	for (Scene *scene = G.main->scene.first;
+	     scene != NULL;
+	     scene = scene->id.next)
+	{
+		Editing *ed = BKE_sequencer_editing_get(scene, false);
+		if (ed == NULL) {
+			/* Ignore scenes without sequencer. */
+			continue;
+		}
+		sequencer_all_free_anim_ibufs(&ed->seqbase, cfra);
+	}
+}
