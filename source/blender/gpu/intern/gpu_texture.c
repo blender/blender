@@ -55,7 +55,8 @@ struct GPUTexture {
 	int number;         /* number for multitexture binding */
 	int refcount;       /* reference count */
 	GLenum target;      /* GL_TEXTURE_* */
-	GLenum target_base; /* same as target, (but no multisample) */
+	GLenum target_base; /* same as target, (but no multisample)
+	                     * use it for unbinding */
 	GLuint bindcode;    /* opengl identifier for texture */
 	int fromblender;    /* we got the texture from Blender */
 
@@ -374,6 +375,9 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget
 	GLint bindcode = GPU_verify_image(ima, iuser, textarget, 0, 0, mipmap, is_data);
 	GPU_update_image_time(ima, time);
 
+	/* see GPUInput::textarget: it can take two values - GL_TEXTURE_2D and GL_TEXTURE_CUBE_MAP
+	 * these values are correct for glDisable, so textarget can be safely used in
+	 * GPU_texture_bind/GPU_texture_unbind through tex->target_base */
 	if (textarget == GL_TEXTURE_2D)
 		gputt = TEXTARGET_TEXTURE_2D;
 	else
@@ -390,7 +394,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget
 	tex->number = -1;
 	tex->refcount = 1;
 	tex->target = textarget;
-	tex->target_base = GL_TEXTURE_2D;
+	tex->target_base = textarget;
 	tex->fromblender = 1;
 
 	ima->gputexture[gputt] = tex;
@@ -626,11 +630,11 @@ void GPU_texture_bind(GPUTexture *tex, int number)
 	GLenum arbnumber = (GLenum)((GLuint)GL_TEXTURE0 + number);
 	if (number != 0) glActiveTexture(arbnumber);
 	if (tex->bindcode != 0) {
-		glBindTexture(tex->target, tex->bindcode);
+		glBindTexture(tex->target_base, tex->bindcode);
 	}
 	else
-		GPU_invalid_tex_bind(tex->target);
-	glEnable(tex->target);
+		GPU_invalid_tex_bind(tex->target_base);
+	glEnable(tex->target_base);
 	if (number != 0) glActiveTexture(GL_TEXTURE0);
 
 	tex->number = number;
@@ -652,8 +656,6 @@ void GPU_texture_unbind(GPUTexture *tex)
 
 	GLenum arbnumber = (GLenum)((GLuint)GL_TEXTURE0 + tex->number);
 	if (tex->number != 0) glActiveTexture(arbnumber);
-	glBindTexture(tex->target, 0);
-	glDisable(tex->target);
 	glBindTexture(tex->target_base, 0);
 	glDisable(tex->target_base);
 	if (tex->number != 0) glActiveTexture(GL_TEXTURE0);
