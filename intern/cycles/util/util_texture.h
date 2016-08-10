@@ -37,7 +37,7 @@ CCL_NAMESPACE_BEGIN
 
 /* CUDA (Geforce 4xx and 5xx) */
 #define TEX_NUM_FLOAT4_CUDA		5
-#define TEX_NUM_BYTE4_CUDA		88
+#define TEX_NUM_BYTE4_CUDA		85
 #define TEX_NUM_FLOAT_CUDA		0
 #define TEX_NUM_BYTE_CUDA		0
 #define TEX_NUM_HALF4_CUDA		0
