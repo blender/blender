@@ -555,10 +555,9 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 		
 		glLineWidth(1);
 
-		clear_VertexFormat(&immVertexFormat);
-		unsigned color = add_attrib(&immVertexFormat, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
-		unsigned pos = add_attrib(&immVertexFormat, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-		pack(&immVertexFormat);
+		VertexFormat* format = immVertexFormat();
+		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
@@ -582,9 +581,8 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 
 		immUnbindProgram();
 
-		clear_VertexFormat(&immVertexFormat);
-		pos = add_attrib(&immVertexFormat, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-		pack(&immVertexFormat);
+		clear_VertexFormat(format);
+		pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 

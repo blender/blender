@@ -233,12 +233,16 @@ void get_attrib_locations(const VertexFormat* format, AttribBinding* binding, GL
 // --- immediate mode work-alike --------------------------------
 
 typedef struct {
+	// TODO: organize this struct by frequency of change (run-time)
+
 	// current draw call
 	GLubyte* buffer_data;
 	unsigned buffer_offset;
 	unsigned buffer_bytes_mapped;
 	unsigned vertex_ct;
 	GLenum primitive;
+
+	VertexFormat vertex_format;
 
 	// current vertex
 	unsigned vertex_idx;
@@ -259,7 +263,6 @@ typedef struct {
 
 static PER_THREAD bool initialized = false;
 static PER_THREAD Immediate imm;
-PER_THREAD VertexFormat immVertexFormat;
 
 void immInit()
 	{
@@ -267,7 +270,6 @@ void immInit()
 	assert(!initialized);
 #endif
 
-	clear_VertexFormat(&immVertexFormat);
 	memset(&imm, 0, sizeof(Immediate));
 
 	glGenVertexArrays(1, &imm.vao_id);
@@ -295,10 +297,16 @@ void immDestroy()
 	assert(imm.primitive == GL_NONE); // make sure we're not between a Begin/End pair
 #endif
 
-	clear_VertexFormat(&immVertexFormat);
+	clear_VertexFormat(&imm.vertex_format);
 	glDeleteVertexArrays(1, &imm.vao_id);
 	glDeleteBuffers(1, &imm.vbo_id);
 	initialized = false;
+	}
+
+VertexFormat* immVertexFormat()
+	{
+	clear_VertexFormat(&imm.vertex_format);
+	return &imm.vertex_format;
 	}
 
 void immBindProgram(GLuint program)
@@ -307,8 +315,11 @@ void immBindProgram(GLuint program)
 	assert(imm.bound_program == 0);
 #endif
 
+	if (!imm.vertex_format.packed)
+		pack(&imm.vertex_format);
+
 	glUseProgram(program);
-	get_attrib_locations(&immVertexFormat, &imm.attrib_binding, program);
+	get_attrib_locations(&imm.vertex_format, &imm.attrib_binding, program);
 	imm.bound_program = program;
 	}
 
@@ -360,7 +371,7 @@ void immBegin(GLenum primitive, unsigned vertex_ct)
 	imm.attrib_value_bits = 0;
 
 	// how many bytes do we need for this draw call?
-	const unsigned bytes_needed = vertex_buffer_size(&immVertexFormat, vertex_ct);
+	const unsigned bytes_needed = vertex_buffer_size(&imm.vertex_format, vertex_ct);
 
 #if TRUST_NO_ONE
 	assert(bytes_needed <= IMM_BUFFER_SIZE);
@@ -371,7 +382,7 @@ void immBegin(GLenum primitive, unsigned vertex_ct)
 	// does the current buffer have enough room?
 	const unsigned available_bytes = IMM_BUFFER_SIZE - imm.buffer_offset;
 	// ensure vertex data is aligned
-	const unsigned pre_padding = padding(imm.buffer_offset, immVertexFormat.stride); // might waste a little space, but it's safe
+	const unsigned pre_padding = padding(imm.buffer_offset, imm.vertex_format.stride); // might waste a little space, but it's safe
 	if ((bytes_needed + pre_padding) <= available_bytes)
 		imm.buffer_offset += pre_padding;
 	else
@@ -445,11 +456,11 @@ void immEnd()
 		imm.prev_enabled_attrib_bits = imm.attrib_binding.enabled_bits;
 		}
 
-	const unsigned stride = immVertexFormat.stride;
+	const unsigned stride = imm.vertex_format.stride;
 
-	for (unsigned a_idx = 0; a_idx < immVertexFormat.attrib_ct; ++a_idx)
+	for (unsigned a_idx = 0; a_idx < imm.vertex_format.attrib_ct; ++a_idx)
 		{
-		const Attrib* a = immVertexFormat.attribs + a_idx;
+		const Attrib* a = imm.vertex_format.attribs + a_idx;
 
 		const unsigned offset = imm.buffer_offset + a->offset;
 		const GLvoid* pointer = (const GLubyte*)0 + offset;
@@ -500,10 +511,10 @@ static void setAttribValueBit(unsigned attrib_id)
 
 void immAttrib1f(unsigned attrib_id, float x)
 	{
-	Attrib* attrib = immVertexFormat.attribs + attrib_id;
+	Attrib* attrib = imm.vertex_format.attribs + attrib_id;
 
 #if TRUST_NO_ONE
-	assert(attrib_id < immVertexFormat.attrib_ct);
+	assert(attrib_id < imm.vertex_format.attrib_ct);
 	assert(attrib->comp_type == GL_FLOAT);
 	assert(attrib->comp_ct == 1);
 	assert(imm.vertex_idx < imm.vertex_ct);
@@ -520,10 +531,10 @@ void immAttrib1f(unsigned attrib_id, float x)
 
 void immAttrib2f(unsigned attrib_id, float x, float y)
 	{
-	Attrib* attrib = immVertexFormat.attribs + attrib_id;
+	Attrib* attrib = imm.vertex_format.attribs + attrib_id;
 
 #if TRUST_NO_ONE
-	assert(attrib_id < immVertexFormat.attrib_ct);
+	assert(attrib_id < imm.vertex_format.attrib_ct);
 	assert(attrib->comp_type == GL_FLOAT);
 	assert(attrib->comp_ct == 2);
 	assert(imm.vertex_idx < imm.vertex_ct);
@@ -541,10 +552,10 @@ void immAttrib2f(unsigned attrib_id, float x, float y)
 
 void immAttrib3f(unsigned attrib_id, float x, float y, float z)
 	{
-	Attrib* attrib = immVertexFormat.attribs + attrib_id;
+	Attrib* attrib = imm.vertex_format.attribs + attrib_id;
 
 #if TRUST_NO_ONE
-	assert(attrib_id < immVertexFormat.attrib_ct);
+	assert(attrib_id < imm.vertex_format.attrib_ct);
 	assert(attrib->comp_type == GL_FLOAT);
 	assert(attrib->comp_ct == 3);
 	assert(imm.vertex_idx < imm.vertex_ct);
@@ -563,10 +574,10 @@ void immAttrib3f(unsigned attrib_id, float x, float y, float z)
 
 void immAttrib3ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned char b)
 	{
-	Attrib* attrib = immVertexFormat.attribs + attrib_id;
+	Attrib* attrib = imm.vertex_format.attribs + attrib_id;
 
 #if TRUST_NO_ONE
-	assert(attrib_id < immVertexFormat.attrib_ct);
+	assert(attrib_id < imm.vertex_format.attrib_ct);
 	assert(attrib->comp_type == GL_UNSIGNED_BYTE);
 	assert(attrib->comp_ct == 3);
 	assert(imm.vertex_idx < imm.vertex_ct);
@@ -585,10 +596,10 @@ void immAttrib3ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned
 
 void immAttrib4ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 	{
-	Attrib* attrib = immVertexFormat.attribs + attrib_id;
+	Attrib* attrib = imm.vertex_format.attribs + attrib_id;
 
 #if TRUST_NO_ONE
-	assert(attrib_id < immVertexFormat.attrib_ct);
+	assert(attrib_id < imm.vertex_format.attrib_ct);
 	assert(attrib->comp_type == GL_UNSIGNED_BYTE);
 	assert(attrib->comp_ct == 4);
 	assert(imm.vertex_idx < imm.vertex_ct);
@@ -612,14 +623,14 @@ void immEndVertex()
 	assert(imm.primitive != GL_NONE); // make sure we're between a Begin/End pair
 
 	// have all attribs been assigned values?
-	const unsigned short all_bits = ~(0xFFFFU << immVertexFormat.attrib_ct);
+	const unsigned short all_bits = ~(0xFFFFU << imm.vertex_format.attrib_ct);
 	assert(imm.attrib_value_bits == all_bits);
 	
 	assert(imm.vertex_idx < imm.vertex_ct);
 #endif
 
 	imm.vertex_idx++;
-	imm.vertex_data += immVertexFormat.stride;
+	imm.vertex_data += imm.vertex_format.stride;
 	imm.attrib_value_bits = 0;
 	}
 

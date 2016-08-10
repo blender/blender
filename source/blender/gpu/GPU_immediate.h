@@ -53,10 +53,12 @@ void pack(VertexFormat*);
 // unsigned attrib_idx(const VertexFormat*, const char* name);
 void bind_attrib_locations(const VertexFormat*, GLuint program);
 
-extern PER_THREAD VertexFormat immVertexFormat; // so we don't have to copy or pass around
+// --- immediate mode work-alike --------------------------------
 
 void immInit(void);
 void immDestroy(void);
+
+VertexFormat* immVertexFormat(void); // returns a cleared vertex format, ready for add_attrib
 
 void immBindProgram(GLuint program);
 void immUnbindProgram(void);
