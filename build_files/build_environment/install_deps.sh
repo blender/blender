@@ -337,7 +337,7 @@ OSL_FORCE_REBUILD=false
 OSL_SKIP=false
 
 # OpenSubdiv needs to be compiled for now
-OSD_VERSION="3.0.2"
+OSD_VERSION="3.0.5"
 OSD_VERSION_MIN=$OSD_VERSION
 OSD_FORCE_BUILD=false
 OSD_FORCE_REBUILD=false
@@ -739,7 +739,7 @@ OSL_SOURCE_REPO=( "https://github.com/Nazg-Gul/OpenShadingLanguage.git" )
 OSL_SOURCE_REPO_UID="7d40ff5fe8e47b030042afb92d0e955f5aa96f48"
 OSL_SOURCE_REPO_BRANCH="blender-fixes"
 
-OSD_USE_REPO=true
+OSD_USE_REPO=false
 # Script foo to make the version string compliant with the archive name:
 # ${Varname//SearchForThisChar/ReplaceWithThisChar}
 OSD_SOURCE=( "https://github.com/PixarAnimationStudios/OpenSubdiv/archive/v${OSD_VERSION//./_}.tar.gz" )
@@ -1907,7 +1907,7 @@ compile_OSD() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  osd_magic=1
+  osd_magic=2
   _init_osd
 
   # Clean install if needed!
