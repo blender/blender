@@ -108,7 +108,7 @@ static unsigned padding(unsigned offset, unsigned alignment)
 	}
 
 #if PACK_DEBUG
-static void show_pack(a_idx, sz, pad)
+static void show_pack(unsigned a_idx, unsigned sz, unsigned pad)
 	{
 	const char c = 'A' + a_idx;
 	for (unsigned i = 0; i < pad; ++i)
@@ -435,7 +435,7 @@ void immAttrib1f(unsigned attrib_id, float x)
 	setAttribValueBit(attrib_id);
 
 	float* data = (float*)(imm.vertex_data + attrib->offset);
-//	printf("%s %ld %p\n", __FUNCTION__, (void*)data - imm.buffer_data, data);
+//	printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm.buffer_data, data);
 
 	data[0] = x;
 	}
@@ -455,7 +455,7 @@ void immAttrib2f(unsigned attrib_id, float x, float y)
 	setAttribValueBit(attrib_id);
 
 	float* data = (float*)(imm.vertex_data + attrib->offset);
-//	printf("%s %ld %p\n", __FUNCTION__, (void*)data - imm.buffer_data, data);
+//	printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm.buffer_data, data);
 
 	data[0] = x;
 	data[1] = y;
@@ -476,7 +476,7 @@ void immAttrib3f(unsigned attrib_id, float x, float y, float z)
 	setAttribValueBit(attrib_id);
 
 	float* data = (float*)(imm.vertex_data + attrib->offset);
-//	printf("%s %ld %p\n", __FUNCTION__, (void*)data - imm.buffer_data, data);
+//	printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm.buffer_data, data);
 
 	data[0] = x;
 	data[1] = y;
@@ -498,7 +498,7 @@ void immAttrib3ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned
 	setAttribValueBit(attrib_id);
 
 	GLubyte* data = imm.vertex_data + attrib->offset;
-//	printf("%s %ld %p\n", __FUNCTION__, (void*)data - imm.buffer_data, data);
+//	printf("%s %td %p\n", __FUNCTION__, data - imm.buffer_data, data);
 
 	data[0] = r;
 	data[1] = g;
@@ -520,7 +520,7 @@ void immAttrib4ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned
 	setAttribValueBit(attrib_id);
 
 	GLubyte* data = imm.vertex_data + attrib->offset;
-//	printf("%s %ld %p\n", __FUNCTION__, (void*)data - imm.buffer_data, data);
+//	printf("%s %td %p\n", __FUNCTION__, data - imm.buffer_data, data);
 
 	data[0] = r;
 	data[1] = g;
