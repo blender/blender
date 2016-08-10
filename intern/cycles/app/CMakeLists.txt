@@ -88,6 +88,9 @@ macro(cycles_target_link_libraries target)
 	if(WITH_CYCLES_OSL)
 		target_link_libraries(${target} ${OSL_LIBRARIES} ${LLVM_LIBRARIES})
 	endif()
+	if(WITH_CYCLES_OPENSUBDIV)
+		target_link_libraries(${target} ${OPENSUBDIV_LIBRARIES})
+	endif()
 	target_link_libraries(
 		${target}
 		${OPENIMAGEIO_LIBRARIES}
