@@ -14,6 +14,7 @@
 #include "GPU_immediate.h"
 #include <assert.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 
 #define PACK_DEBUG 0
@@ -165,8 +166,67 @@ void bind_attrib_locations(const VertexFormat* format, GLuint program)
 
 	for (unsigned a_idx = 0; a_idx < format->attrib_ct; ++a_idx)
 		{
-		const Attrib* a = &format->attribs[a_idx];
+		const Attrib* a = format->attribs + a_idx;
 		glBindAttribLocation(program, a_idx, a->name);
+		}
+	}
+
+typedef struct {
+	uint64_t loc_bits; // store 4 bits for each of the 16 attribs
+	uint16_t enabled_bits; // 1 bit for each attrib
+} AttribBinding;
+
+void clear_AttribBinding(AttribBinding* binding)
+	{
+	binding->loc_bits = 0;
+	binding->enabled_bits = 0;
+	}
+
+unsigned read_attrib_location(const AttribBinding* binding, unsigned a_idx)
+	{
+#if TRUST_NO_ONE
+	assert(MAX_VERTEX_ATTRIBS == 16);
+	assert(a_idx < MAX_VERTEX_ATTRIBS);
+	assert(binding->enabled_bits & (1 << a_idx));
+#endif
+
+	return (binding->loc_bits >> (4 * a_idx)) & 0xF;
+	}
+
+void write_attrib_location(AttribBinding* binding, unsigned a_idx, unsigned location)
+	{
+#if TRUST_NO_ONE
+	assert(MAX_VERTEX_ATTRIBS == 16);
+	assert(a_idx < MAX_VERTEX_ATTRIBS);
+	assert(location < MAX_VERTEX_ATTRIBS);
+#endif
+
+	const unsigned shift = 4 * a_idx;
+	const uint64_t mask = ((uint64_t)0xF) << shift;
+	// overwrite this attrib's previous location
+	binding->loc_bits = (binding->loc_bits & ~mask) | (location << shift);
+	// mark this attrib as enabled
+	binding->enabled_bits |= 1 << a_idx;
+	}
+
+void get_attrib_locations(const VertexFormat* format, AttribBinding* binding, GLuint program)
+	{
+#if TRUST_NO_ONE
+	assert(glIsProgram(program));
+#endif
+
+	clear_AttribBinding(binding);
+
+	for (unsigned a_idx = 0; a_idx < format->attrib_ct; ++a_idx)
+		{
+		const Attrib* a = format->attribs + a_idx;
+		GLint loc = glGetAttribLocation(program, a->name);
+
+#if TRUST_NO_ONE
+		assert(loc != -1);
+#endif
+
+		write_attrib_location(binding, a_idx, loc);
 		}
 	}
 
@@ -189,6 +249,7 @@ typedef struct {
 	GLuint vao_id;
 	
 	GLuint bound_program;
+	AttribBinding attrib_binding;
 } Immediate;
 
 // size of internal buffer -- make this adjustable?
@@ -246,7 +307,7 @@ void immBindProgram(GLuint program)
 #endif
 
 	glUseProgram(program);
-	bind_attrib_locations(&immVertexFormat, program);
+	get_attrib_locations(&immVertexFormat, &imm.attrib_binding, program);
 	imm.bound_program = program;
 	}
 
@@ -369,28 +430,37 @@ void immEnd()
 		const unsigned offset = imm.buffer_offset + a->offset;
 		const GLvoid* pointer = (const GLubyte*)0 + offset;
 
-//		printf("enabling attrib %u '%s' at offset %u, stride %u\n", a_idx, a->name, offset, stride);
-		glEnableVertexAttribArray(a_idx);
+		const unsigned loc = read_attrib_location(&imm.attrib_binding, a_idx);
+
+//		printf("enabling attrib %u '%s' at offset %u, stride %u\n", loc, a->name, offset, stride);
+		glEnableVertexAttribArray(loc);
 
 		switch (a->fetch_mode)
 			{
 			case KEEP_FLOAT:
 			case CONVERT_INT_TO_FLOAT:
-				glVertexAttribPointer(a_idx, a->comp_ct, a->comp_type, GL_FALSE, stride, pointer);
+				glVertexAttribPointer(loc, a->comp_ct, a->comp_type, GL_FALSE, stride, pointer);
 				break;
 			case NORMALIZE_INT_TO_FLOAT:
-				glVertexAttribPointer(a_idx, a->comp_ct, a->comp_type, GL_TRUE, stride, pointer);
+				glVertexAttribPointer(loc, a->comp_ct, a->comp_type, GL_TRUE, stride, pointer);
 				break;
 			case KEEP_INT:
-				glVertexAttribIPointer(a_idx, a->comp_ct, a->comp_type, stride, pointer);
+				glVertexAttribIPointer(loc, a->comp_ct, a->comp_type, stride, pointer);
 			}
 		}
 
-	for (unsigned a_idx = immVertexFormat.attrib_ct; a_idx < MAX_VERTEX_ATTRIBS; ++a_idx)
+	for (unsigned loc = 0; loc < MAX_VERTEX_ATTRIBS; ++loc)
 		{
-//		printf("disabling attrib %u\n", a_idx);
-		glDisableVertexAttribArray(a_idx);
-		// TODO: compare with previous draw's attrib_ct
+		if (imm.attrib_binding.enabled_bits & (1 << loc))
+			{
+			}
+		else
+			{
+//			printf("disabling attrib %u\n", loc);
+			glDisableVertexAttribArray(loc);
+			}
+
+		// TODO: compare with previous draw's attrib binding
 		// will always need to update pointers, but can reduce Enable/Disable calls
 		}
 
