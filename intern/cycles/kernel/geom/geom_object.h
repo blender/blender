@@ -292,6 +292,18 @@ ccl_device_inline void object_motion_info(KernelGlobals *kg, int object, int *nu
 		*numverts = __float_as_int(f.w);
 }
 
+/* Offset to an objects patch map */
+
+ccl_device_inline uint object_patch_map_offset(KernelGlobals *kg, int object)
+{
+	if(object == OBJECT_NONE)
+		return 0;
+
+	int offset = object*OBJECT_SIZE + 11;
+	float4 f = kernel_tex_fetch(__objects, offset);
+	return __float_as_uint(f.x);
+}
+
 /* Pass ID for shader */
 
 ccl_device int shader_pass_id(KernelGlobals *kg, const ShaderData *sd)

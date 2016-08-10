@@ -44,6 +44,7 @@ void Attribute::set(ustring name_, TypeDesc type_, AttributeElement element_)
 	type = type_;
 	element = element_;
 	std = ATTR_STD_NONE;
+	flags = 0;
 
 	/* string and matrix not supported! */
 	assert(type == TypeDesc::TypeFloat || type == TypeDesc::TypeColor ||
@@ -59,6 +60,11 @@ void Attribute::resize(Mesh *mesh, AttributePrimitive prim, bool reserve_only)
 	else {
 		buffer.resize(buffer_size(mesh, prim), 0);
 	}
+}
+
+void Attribute::resize(size_t num_elements)
+{
+	buffer.resize(num_elements * data_sizeof(), 0);
 }
 
 void Attribute::add(const float& f)
@@ -130,6 +136,10 @@ size_t Attribute::data_sizeof() const
 
 size_t Attribute::element_size(Mesh *mesh, AttributePrimitive prim) const
 {
+	if(flags & ATTR_FINAL_SIZE) {
+		return buffer.size() / data_sizeof();
+	}
+
 	size_t size;
 
 	switch(element) {

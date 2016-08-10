@@ -40,6 +40,7 @@
 #define ccl_local __local
 #define ccl_private __private
 #define ccl_restrict restrict
+#define ccl_align(n) __attribute__((aligned(n)))
 
 #ifdef __SPLIT_KERNEL__
 #  define ccl_addr_space __global

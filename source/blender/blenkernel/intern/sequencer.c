@@ -1656,6 +1656,9 @@ static bool seq_proxy_get_fname(Editing *ed, Sequence *seq, int cfra, int render
 	else if ((proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) && (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE)) {
 		BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
 	}
+	else if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE) {
+		BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
+	}
 	else if (sanim && sanim->anim && (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR)) {
 		char fname[FILE_MAXFILE];
 		BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
@@ -1675,13 +1678,21 @@ static bool seq_proxy_get_fname(Editing *ed, Sequence *seq, int cfra, int render
 	if (view_id > 0)
 		BLI_snprintf(suffix, sizeof(suffix), "_%d", view_id);
 
-	if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE && sanim && sanim->anim &&
+	if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE &&
 	    ed->proxy_storage != SEQ_EDIT_PROXY_DIR_STORAGE)
 	{
-		BLI_join_dirfile(name, PROXY_MAXFILE,
-		                 dir, proxy->file);
-		BLI_path_abs(name, G.main->name);
-		BLI_snprintf(name, PROXY_MAXFILE, "%s_%s", name, suffix);
+		char fname[FILE_MAXFILE];
+		BLI_join_dirfile(fname, PROXY_MAXFILE, dir, proxy->file);
+		BLI_path_abs(fname, G.main->name);
+		if (suffix[0] != '\0') {
+			/* TODO(sergey): This will actually append suffix after extension
+			 * which is weird but how was originally coded in multiview branch.
+			 */
+			BLI_snprintf(name, PROXY_MAXFILE, "%s_%s", fname, suffix);
+		}
+		else {
+			BLI_strncpy(name, fname, PROXY_MAXFILE);
+		}
 
 		return true;
 	}
@@ -5594,4 +5605,32 @@ int BKE_sequencer_find_next_prev_edit(
 	}
 
 	return best_frame;
+}
+
+static void sequencer_all_free_anim_ibufs(ListBase *seqbase, int cfra)
+{
+	for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
+		if (seq->enddisp < cfra || seq->startdisp > cfra) {
+			BKE_sequence_free_anim(seq);
+		}
+		if (seq->type == SEQ_TYPE_META) {
+			sequencer_all_free_anim_ibufs(&seq->seqbase, cfra);
+		}
+	}
+}
+
+void BKE_sequencer_all_free_anim_ibufs(int cfra)
+{
+	BKE_sequencer_cache_cleanup();
+	for (Scene *scene = G.main->scene.first;
+	     scene != NULL;
+	     scene = scene->id.next)
+	{
+		Editing *ed = BKE_sequencer_editing_get(scene, false);
+		if (ed == NULL) {
+			/* Ignore scenes without sequencer. */
+			continue;
+		}
+		sequencer_all_free_anim_ibufs(&ed->seqbase, cfra);
+	}
 }

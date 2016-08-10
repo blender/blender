@@ -26,6 +26,7 @@ set(ALL_CYCLES_LIBRARIES
 	cycles_device
 	cycles_bvh
 	cycles_graph
+	cycles_subd
 	cycles_util
 	${OPENIMAGEIO_LIBRARIES}
 )
@@ -39,6 +40,16 @@ endif()
 if(WITH_IMAGE_OPENJPEG AND NOT WITH_SYSTEM_OPENJPEG)
 	list(APPEND ALL_CYCLES_LIBRARIES
 		extern_openjpeg
+	)
+endif()
+if(WITH_CYCLES_OPENSUBDIV)
+	add_definitions(-DWITH_OPENSUBDIV)
+	include_directories(
+		SYSTEM
+		${OPENSUBDIV_INCLUDE_DIR}
+	)
+	list(APPEND ALL_CYCLES_LIBRARIES
+		${OPENSUBDIV_LIBRARIES}
 	)
 endif()
 list(APPEND ALL_CYCLES_LIBRARIES

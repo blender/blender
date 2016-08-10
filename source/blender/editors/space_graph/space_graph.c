@@ -687,7 +687,7 @@ static void graph_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID
 		return;
 	}
 
-	if ((ID *)sgraph->ads->filter_grp == old_id) {
+	if (sgraph->ads && (ID *)sgraph->ads->filter_grp == old_id) {
 		sgraph->ads->filter_grp = (Group *)new_id;
 	}
 }

@@ -61,6 +61,7 @@ extern "C"
 
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_genfile.h"
 
 #include "BLO_readfile.h"
 #include "BLO_runtime.h"
@@ -491,6 +492,8 @@ int main(
 	// We don't use threads directly in the BGE, but we need to call this so things like
 	// freeing up GPU_Textures works correctly.
 	BLI_threadapi_init();
+
+	DNA_sdna_current_init();
 
 	RNA_init();
 

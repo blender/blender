@@ -379,6 +379,45 @@ enum {
 	FILTER_ID_CF        = (1 << 27),
 };
 
+/* IMPORTANT: this enum matches the order currently use in set_lisbasepointers,
+ * keep them in sync! */
+enum {
+	INDEX_ID_LI = 0,
+	INDEX_ID_IP,
+	INDEX_ID_AC,
+	INDEX_ID_KE,
+	INDEX_ID_GD,
+	INDEX_ID_NT,
+	INDEX_ID_IM,
+	INDEX_ID_TE,
+	INDEX_ID_MA,
+	INDEX_ID_VF,
+	INDEX_ID_AR,
+	INDEX_ID_CF,
+	INDEX_ID_ME,
+	INDEX_ID_CU,
+	INDEX_ID_MB,
+	INDEX_ID_LT,
+	INDEX_ID_LA,
+	INDEX_ID_CA,
+	INDEX_ID_TXT,
+	INDEX_ID_SO,
+	INDEX_ID_GR,
+	INDEX_ID_PAL,
+	INDEX_ID_PC,
+	INDEX_ID_BR,
+	INDEX_ID_SPK,
+	INDEX_ID_WO,
+	INDEX_ID_MC,
+	INDEX_ID_SCR,
+	INDEX_ID_OB,
+	INDEX_ID_LS,
+	INDEX_ID_SCE,
+	INDEX_ID_WM,
+	INDEX_ID_MSK,
+	INDEX_ID_NULL,
+};
+
 #ifdef __cplusplus
 }
 #endif

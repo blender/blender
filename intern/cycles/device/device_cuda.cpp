@@ -297,7 +297,7 @@ public:
 			cuda_error_message("CUDA nvcc compiler version could not be parsed.");
 			return false;
 		}
-		if(cuda_version < 60) {
+		if(cuda_version < 75) {
 			printf("Unsupported CUDA version %d.%d detected, "
 			       "you need CUDA 7.5 or newer.\n",
 			       major, minor);

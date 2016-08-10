@@ -54,11 +54,13 @@ public:
 	TypeDesc type;
 	vector<char> buffer;
 	AttributeElement element;
+	uint flags; /* enum AttributeFlag */
 
 	Attribute() {}
 	~Attribute();
 	void set(ustring name, TypeDesc type, AttributeElement element);
 	void resize(Mesh *mesh, AttributePrimitive prim, bool reserve_only);
+	void resize(size_t num_elements);
 
 	size_t data_sizeof() const;
 	size_t element_size(Mesh *mesh, AttributePrimitive prim) const;

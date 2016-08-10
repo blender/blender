@@ -32,21 +32,17 @@ ccl_device void svm_vector_math(float *Fac, float3 *Vector, NodeVectorMath type,
 		*Fac = average_fac(*Vector);
 	}
 	else if(type == NODE_VECTOR_MATH_AVERAGE) {
-		*Fac = len(Vector1 + Vector2);
-		*Vector = normalize(Vector1 + Vector2);
+		*Vector = safe_normalize_len(Vector1 + Vector2, Fac);
 	}
 	else if(type == NODE_VECTOR_MATH_DOT_PRODUCT) {
 		*Fac = dot(Vector1, Vector2);
 		*Vector = make_float3(0.0f, 0.0f, 0.0f);
 	}
 	else if(type == NODE_VECTOR_MATH_CROSS_PRODUCT) {
-		float3 c = cross(Vector1, Vector2);
-		*Fac = len(c);
-		*Vector = normalize(c);
+		*Vector = safe_normalize_len(cross(Vector1, Vector2), Fac);
 	}
 	else if(type == NODE_VECTOR_MATH_NORMALIZE) {
-		*Fac = len(Vector1);
-		*Vector = normalize(Vector1);
+		*Vector = safe_normalize_len(Vector1, Fac);
 	}
 	else {
 		*Fac = 0.0f;
