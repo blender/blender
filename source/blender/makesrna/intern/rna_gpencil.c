@@ -482,7 +482,9 @@ static void rna_GPencil_stroke_point_pop(bGPDstroke *stroke, ReportList *reports
 static bGPDstroke *rna_GPencil_stroke_new(bGPDframe *frame, const char *colorname)
 {
 	bGPDstroke *stroke = MEM_callocN(sizeof(bGPDstroke), "gp_stroke");
-	strcpy(stroke->colorname, colorname);
+	if (colorname) {
+		strcpy(stroke->colorname, colorname);
+	}
 	stroke->palcolor = NULL;
 	stroke->flag |= GP_STROKE_RECALC_COLOR;
 	BLI_addtail(&frame->strokes, stroke);
