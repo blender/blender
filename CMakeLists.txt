@@ -397,6 +397,7 @@ option(WITH_CYCLES					"Enable Cycles Render Engine" ON)
 option(WITH_CYCLES_STANDALONE		"Build Cycles standalone application" OFF)
 option(WITH_CYCLES_STANDALONE_GUI	"Build Cycles standalone with GUI" OFF)
 option(WITH_CYCLES_OSL				"Build Cycles with OSL support" ${_init_CYCLES_OSL})
+option(WITH_CYCLES_OPENSUBDIV		"Build Cycles with OpenSubdiv support" ON)
 option(WITH_CYCLES_CUDA_BINARIES	"Build Cycles CUDA binaries" OFF)
 set(CYCLES_CUDA_BINARIES_ARCH sm_20 sm_21 sm_30 sm_35 sm_37 sm_50 sm_52 CACHE STRING "CUDA architectures to build binaries for")
 mark_as_advanced(CYCLES_CUDA_BINARIES_ARCH)
@@ -1101,7 +1102,6 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_ALEMBIC)
-		set(ALEMBIC_ROOT_DIR ${LIBDIR}/alembic)
 		find_package_wrapper(Alembic)
 
 		if(WITH_ALEMBIC_HDF5)
@@ -1350,10 +1350,8 @@ elseif(WIN32)
 		# MSVC11 needs _ALLOW_KEYWORD_MACROS to build
 		add_definitions(-D_ALLOW_KEYWORD_MACROS)
 
-		if(CMAKE_CL_64)
-			# We want to support Vista level ABI for x64
-			add_definitions(-D_WIN32_WINNT=0x600)
-		endif()
+		# We want to support Vista level ABI 
+		add_definitions(-D_WIN32_WINNT=0x600)
 
 		# Make cmake find the msvc redistributables
 		set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
@@ -1685,18 +1683,11 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_ALEMBIC)
-			set(ALEMBIC_ROOT_DIR ${LIBDIR}/alembic)
-			find_package(Alembic)
-
-			if(WITH_ALEMBIC_HDF5)
-				set(HDF5_ROOT_DIR ${LIBDIR}/hdf5)
-				find_package(HDF5)
-			endif()
-
-			if(NOT ALEMBIC_FOUND OR (WITH_ALEMBIC_HDF5 AND NOT HDF5_FOUND))
-				set(WITH_ALEMBIC OFF)
-				set(WITH_ALEMBIC_HDF5 OFF)
-			endif()
+			set(ALEMBIC ${LIBDIR}/alembic)
+			set(ALEMBIC_INCLUDE_DIR ${ALEMBIC}/include)
+			set(ALEMBIC_INCLUDE_DIRS ${ALEMBIC_INCLUDE_DIR})
+			set(ALEMBIC_LIBPATH ${ALEMBIC}/lib)
+			set(ALEMBIC_LIBRARIES optimized alembic debug alembic_d)
 		endif()
 
 		if(WITH_MOD_CLOTH_ELTOPO)
@@ -1999,14 +1990,16 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_ALEMBIC)
-			set(ALEMBIC_ROOT_DIR ${LIBDIR}/alembic)
+			# TODO(sergey): For until someone drops by and compiles libraries for
+			# MinGW we allow users to compile their own Alembic library and use
+			# that via find_package(),
+			#
+			# Once precompiled libraries are there we'll use hardcoded locations.
 			find_package_wrapper(Alembic)
-
 			if(WITH_ALEMBIC_HDF5)
 				set(HDF5_ROOT_DIR ${LIBDIR}/hdf5)
 				find_package_wrapper(HDF5)
 			endif()
-
 			if(NOT ALEMBIC_FOUND OR (WITH_ALEMBIC_HDF5 AND NOT HDF5_FOUND))
 				set(WITH_ALEMBIC OFF)
 				set(WITH_ALEMBIC_HDF5 OFF)
@@ -2098,17 +2091,11 @@ elseif(APPLE)
 	endif()
 
 	if(WITH_ALEMBIC)
-		set(ALEMBIC_ROOT_DIR ${LIBDIR}/alembic)
-		find_package(Alembic)
-		if(WITH_ALEMBIC_HDF5)
-			set(HDF5_ROOT_DIR ${LIBDIR}/hdf5)
-			find_package(HDF5)
-		endif()
-
-		if(NOT ALEMBIC_FOUND OR (WITH_ALEMBIC_HDF5 AND NOT HDF5_FOUND))
-			set(WITH_ALEMBIC OFF)
-			set(WITH_ALEMBIC_HDF5 OFF)
-		endif()
+		set(ALEMBIC ${LIBDIR}/alembic)
+		set(ALEMBIC_INCLUDE_DIR ${ALEMBIC}/include)
+		set(ALEMBIC_INCLUDE_DIRS ${ALEMBIC_INCLUDE_DIR})
+		set(ALEMBIC_LIBPATH ${ALEMBIC}/lib)
+		set(ALEMBIC_LIBRARIES Alembic)
 	endif()
 
 	if(WITH_OPENSUBDIV)
@@ -2520,6 +2507,11 @@ if(WITH_CYCLES)
 			)
 		endif()
 	endif()
+
+	if(WITH_CYCLES_OPENSUBDIV AND NOT WITH_OPENSUBDIV)
+		message(STATUS "WITH_CYCLES_OPENSUBDIV requires WITH_OPENSUBDIV to be ON, turning OFF")
+		set(WITH_CYCLES_OPENSUBDIV OFF)
+	endif()
 endif()
 
 if(WITH_INTERNATIONAL)
@@ -2572,8 +2564,6 @@ else()
 	endif()
 	unset(_SYSTEM_BIG_ENDIAN)
 endif()
-
-
 if(WITH_IMAGE_OPENJPEG)
 	if(WITH_SYSTEM_OPENJPEG)
 		# dealt with above

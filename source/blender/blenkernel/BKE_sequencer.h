@@ -477,4 +477,6 @@ struct ImBuf *BKE_sequencer_render_mask_input(
         int cfra, int fra_offset, bool make_float);
 void BKE_sequencer_color_balance_apply(struct StripColorBalance *cb, struct ImBuf *ibuf, float mul, bool make_float, struct ImBuf *mask_input);
 
+void BKE_sequencer_all_free_anim_ibufs(int cfra);
+
 #endif  /* __BKE_SEQUENCER_H__ */

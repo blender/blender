@@ -857,8 +857,8 @@ static uiLayout *draw_modifier(
 		
 		/* mode enabling buttons */
 		UI_block_align_begin(block);
-		/* Softbody not allowed in this situation, enforce! */
-		if (((md->type != eModifierType_Softbody && md->type != eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) &&
+		/* Collision and Surface are always enabled, hide buttons! */
+		if (((md->type != eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) &&
 		    (md->type != eModifierType_Surface) )
 		{
 			uiItemR(row, &ptr, "show_render", 0, "", ICON_NONE);

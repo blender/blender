@@ -64,6 +64,14 @@ static VolumeInterpolation get_volume_interpolation(PointerRNA& ptr)
 	                                     VOLUME_INTERPOLATION_LINEAR);
 }
 
+static DisplacementMethod get_displacement_method(PointerRNA& ptr)
+{
+	return (DisplacementMethod)get_enum(ptr,
+	                                    "displacement_method",
+	                                    DISPLACE_NUM_METHODS,
+	                                    DISPLACE_BUMP);
+}
+
 static int validate_enum_value(int value, int num_values, int default_value)
 {
 	if(value >= num_values) {
@@ -1182,6 +1190,7 @@ void BlenderSync::sync_materials(bool update_all)
 			shader->heterogeneous_volume = !get_boolean(cmat, "homogeneous_volume");
 			shader->volume_sampling_method = get_volume_sampling(cmat);
 			shader->volume_interpolation_method = get_volume_interpolation(cmat);
+			shader->displacement_method = (experimental) ? get_displacement_method(cmat) : DISPLACE_BUMP;
 
 			shader->set_graph(graph);
 			shader->tag_update(scene);

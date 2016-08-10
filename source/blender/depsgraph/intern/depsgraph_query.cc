@@ -33,6 +33,7 @@
 #include "MEM_guardedalloc.h"
 
 extern "C" {
+#include "BKE_idcode.h"
 #include "BKE_main.h"
 
 #include "DEG_depsgraph_query.h"
@@ -42,7 +43,7 @@ extern "C" {
 
 bool DEG_id_type_tagged(Main *bmain, short idtype)
 {
-	return bmain->id_tag_update[((unsigned char *)&idtype)[0]] != 0;
+	return bmain->id_tag_update[BKE_idcode_to_index(idtype)] != 0;
 }
 
 short DEG_get_eval_flags_for_id(Depsgraph *graph, ID *id)

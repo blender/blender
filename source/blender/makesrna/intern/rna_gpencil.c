@@ -1381,8 +1381,9 @@ static void rna_def_gpencil_palettecolor(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
 	/* Name */
-	prop = RNA_def_property(srna, "info", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Info", "Color name");
+	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "info");
+	RNA_def_property_ui_text(prop, "Name", "Color name");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_GPencilPaletteColor_info_set");
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");

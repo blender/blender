@@ -747,7 +747,7 @@ static int gp_stroke_arrange_exec(bContext *C, wmOperator *op)
 	bGPDframe *gpf = gpl->actframe;
 	/* temp listbase to store selected strokes */
 	ListBase selected = {NULL};
-	const int direction = RNA_enum_get(op->ptr, "type");
+	const int direction = RNA_enum_get(op->ptr, "direction");
 
 	/* verify if any selected stroke is in the extreme of the stack and select to move */
 	for (gps = gpf->strokes.first; gps; gps = gps->next) {
