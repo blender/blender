@@ -250,6 +250,7 @@ typedef struct {
 	
 	GLuint bound_program;
 	AttribBinding attrib_binding;
+	uint16_t prev_enabled_attrib_bits;
 } Immediate;
 
 // size of internal buffer -- make this adjustable?
@@ -421,6 +422,29 @@ void immEnd()
 	// set up VAO -- can be done during Begin or End really
 	glBindVertexArray(imm.vao_id);
 
+	// enable/disable vertex attribs as needed
+	if (imm.attrib_binding.enabled_bits != imm.prev_enabled_attrib_bits)
+		{
+		for (unsigned loc = 0; loc < MAX_VERTEX_ATTRIBS; ++loc)
+			{
+			bool is_enabled = imm.attrib_binding.enabled_bits & (1 << loc);
+			bool was_enabled = imm.prev_enabled_attrib_bits & (1 << loc);
+
+			if (is_enabled && !was_enabled)
+				{
+//				printf("enabling attrib %u\n", loc);
+				glEnableVertexAttribArray(loc);
+				}
+			else if (was_enabled && !is_enabled)
+				{
+//				printf("disabling attrib %u\n", loc);
+				glDisableVertexAttribArray(loc);
+				}
+			}
+
+		imm.prev_enabled_attrib_bits = imm.attrib_binding.enabled_bits;
+		}
+
 	const unsigned stride = immVertexFormat.stride;
 
 	for (unsigned a_idx = 0; a_idx < immVertexFormat.attrib_ct; ++a_idx)
@@ -432,8 +456,7 @@ void immEnd()
 
 		const unsigned loc = read_attrib_location(&imm.attrib_binding, a_idx);
 
-//		printf("enabling attrib %u '%s' at offset %u, stride %u\n", loc, a->name, offset, stride);
-		glEnableVertexAttribArray(loc);
+//		printf("specifying attrib %u '%s' with offset %u, stride %u\n", loc, a->name, offset, stride);
 
 		switch (a->fetch_mode)
 			{
@@ -447,21 +470,6 @@ void immEnd()
 			case KEEP_INT:
 				glVertexAttribIPointer(loc, a->comp_ct, a->comp_type, stride, pointer);
 			}
-		}
-
-	for (unsigned loc = 0; loc < MAX_VERTEX_ATTRIBS; ++loc)
-		{
-		if (imm.attrib_binding.enabled_bits & (1 << loc))
-			{
-			}
-		else
-			{
-//			printf("disabling attrib %u\n", loc);
-			glDisableVertexAttribArray(loc);
-			}
-
-		// TODO: compare with previous draw's attrib binding
-		// will always need to update pointers, but can reduce Enable/Disable calls
 		}
 
 	glDrawArrays(imm.primitive, 0, imm.vertex_ct);
