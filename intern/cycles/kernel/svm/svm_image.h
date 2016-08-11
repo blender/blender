@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Float4 textures on various devices. */
 #if defined(__KERNEL_CPU__)
-#  define TEX_NUM_FLOAT4_IMAGES	TEX_NUM_FLOAT4_CPU
+#  define TEX_NUM_FLOAT4_IMAGES		TEX_NUM_FLOAT4_CPU
 #elif defined(__KERNEL_CUDA__)
 #  if __CUDA_ARCH__ < 300
 #    define TEX_NUM_FLOAT4_IMAGES	TEX_NUM_FLOAT4_CUDA
@@ -277,8 +277,10 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 	}
 #  else
 	CUtexObject tex = kernel_tex_fetch(__bindless_mapping, id);
+	/* float4, byte4 and half4 */
 	if(id < TEX_START_FLOAT_CUDA_KEPLER)
 		r = kernel_tex_image_interp_float4(tex, x, y);
+	/* float, byte and half */
 	else {
 		float f = kernel_tex_image_interp_float(tex, x, y);
 		r = make_float4(f, f, f, 1.0);

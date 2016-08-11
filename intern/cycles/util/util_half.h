@@ -33,17 +33,21 @@ CCL_NAMESPACE_BEGIN
 
 #else
 
+/* CUDA has its own half data type, no need to define then */
+#ifndef __KERNEL_CUDA__
 typedef unsigned short half;
+#endif
+
 struct half4 { half x, y, z, w; };
 
 #ifdef __KERNEL_CUDA__
 
 ccl_device_inline void float4_store_half(half *h, float4 f, float scale)
 {
-	h[0] = __float2half_rn(f.x * scale);
-	h[1] = __float2half_rn(f.y * scale);
-	h[2] = __float2half_rn(f.z * scale);
-	h[3] = __float2half_rn(f.w * scale);
+	h[0] = __float2half(f.x * scale);
+	h[1] = __float2half(f.y * scale);
+	h[2] = __float2half(f.z * scale);
+	h[3] = __float2half(f.w * scale);
 }
 
 #else

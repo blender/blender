@@ -31,6 +31,7 @@
 #endif
 
 #include <cuda.h>
+#include <cuda_fp16.h>
 #include <float.h>
 
 /* Qualifier wrappers for different names on different devices */
