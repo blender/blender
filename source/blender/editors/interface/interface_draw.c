@@ -57,6 +57,8 @@
 
 #include "GPU_draw.h"
 #include "GPU_basic_shader.h"
+#include "GPU_shader.h"
+#include "GPU_immediate.h"
 
 #include "UI_interface.h"
 
@@ -1668,46 +1670,54 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol
 /* ****************************************************** */
 
 
-static void ui_shadowbox(float minx, float miny, float maxx, float maxy, float shadsize, unsigned char alpha)
+static void ui_shadowbox(unsigned pos, unsigned color, float minx, float miny, float maxx, float maxy, float shadsize, unsigned char alpha)
 {
 	/* right quad */
-	glColor4ub(0, 0, 0, alpha);
-	glVertex2f(maxx, miny);
-	glVertex2f(maxx, maxy - 0.3f * shadsize);
-	glColor4ub(0, 0, 0, 0);
-	glVertex2f(maxx + shadsize, maxy - 0.75f * shadsize);
-	glVertex2f(maxx + shadsize, miny);
+	immAttrib4ub(color, 0, 0, 0, alpha);
+	immVertex2f(pos, maxx, miny);
+	immVertex2f(pos, maxx, maxy - 0.3f * shadsize);
+	immAttrib4ub(color, 0, 0, 0, 0);
+	immVertex2f(pos, maxx + shadsize, maxy - 0.75f * shadsize);
+	immVertex2f(pos, maxx + shadsize, miny);
 	
 	/* corner shape */
-	glColor4ub(0, 0, 0, alpha);
-	glVertex2f(maxx, miny);
-	glColor4ub(0, 0, 0, 0);
-	glVertex2f(maxx + shadsize, miny);
-	glVertex2f(maxx + 0.7f * shadsize, miny - 0.7f * shadsize);
-	glVertex2f(maxx, miny - shadsize);
+	immAttrib4ub(color, 0, 0, 0, alpha);
+	immVertex2f(pos, maxx, miny);
+	immAttrib4ub(color, 0, 0, 0, 0);
+	immVertex2f(pos, maxx + shadsize, miny);
+	immVertex2f(pos, maxx + 0.7f * shadsize, miny - 0.7f * shadsize);
+	immVertex2f(pos, maxx, miny - shadsize);
 	
 	/* bottom quad */
-	glColor4ub(0, 0, 0, alpha);
-	glVertex2f(minx + 0.3f * shadsize, miny);
-	glVertex2f(maxx, miny);
-	glColor4ub(0, 0, 0, 0);
-	glVertex2f(maxx, miny - shadsize);
-	glVertex2f(minx + 0.5f * shadsize, miny - shadsize);
+	immAttrib4ub(color, 0, 0, 0, alpha);
+	immVertex2f(pos, minx + 0.3f * shadsize, miny);
+	immVertex2f(pos, maxx, miny);
+	immAttrib4ub(color, 0, 0, 0, 0);
+	immVertex2f(pos, maxx, miny - shadsize);
+	immVertex2f(pos, minx + 0.5f * shadsize, miny - shadsize);
 }
 
 void UI_draw_box_shadow(unsigned char alpha, float minx, float miny, float maxx, float maxy)
 {
 	glEnable(GL_BLEND);
-	
-	glBegin(GL_QUADS);
+
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+
+	immBegin(GL_QUADS, 36);
 
 	/* accumulated outline boxes to make shade not linear, is more pleasant */
-	ui_shadowbox(minx, miny, maxx, maxy, 11.0, (20 * alpha) >> 8);
-	ui_shadowbox(minx, miny, maxx, maxy, 7.0, (40 * alpha) >> 8);
-	ui_shadowbox(minx, miny, maxx, maxy, 5.0, (80 * alpha) >> 8);
+	ui_shadowbox(pos, color, minx, miny, maxx, maxy, 11.0, (20 * alpha) >> 8);
+	ui_shadowbox(pos, color, minx, miny, maxx, maxy, 7.0, (40 * alpha) >> 8);
+	ui_shadowbox(pos, color, minx, miny, maxx, maxy, 5.0, (80 * alpha) >> 8);
 	
-	glEnd();
-	
+	immEnd();
+
+	immUnbindProgram();
+
 	glDisable(GL_BLEND);
 }
 
