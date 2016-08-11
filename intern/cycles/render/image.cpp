@@ -52,15 +52,15 @@ ImageManager::ImageManager(const DeviceInfo& info)
 	{ \
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_NUM_FLOAT4_ ## ARCH; \
 		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = TEX_NUM_BYTE4_ ## ARCH; \
+		tex_num_images[IMAGE_DATA_TYPE_HALF4] = TEX_NUM_HALF4_ ## ARCH; \
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = TEX_NUM_FLOAT_ ## ARCH; \
 		tex_num_images[IMAGE_DATA_TYPE_BYTE] = TEX_NUM_BYTE_ ## ARCH; \
-		tex_num_images[IMAGE_DATA_TYPE_HALF4] = TEX_NUM_HALF4_ ## ARCH; \
 		tex_num_images[IMAGE_DATA_TYPE_HALF] = TEX_NUM_HALF_ ## ARCH; \
 		tex_start_images[IMAGE_DATA_TYPE_FLOAT4] = TEX_START_FLOAT4_ ## ARCH; \
 		tex_start_images[IMAGE_DATA_TYPE_BYTE4] = TEX_START_BYTE4_ ## ARCH; \
+		tex_start_images[IMAGE_DATA_TYPE_HALF4] = TEX_START_HALF4_ ## ARCH; \
 		tex_start_images[IMAGE_DATA_TYPE_FLOAT] = TEX_START_FLOAT_ ## ARCH; \
 		tex_start_images[IMAGE_DATA_TYPE_BYTE] = TEX_START_BYTE_ ## ARCH; \
-		tex_start_images[IMAGE_DATA_TYPE_HALF4] = TEX_START_HALF4_ ## ARCH; \
 		tex_start_images[IMAGE_DATA_TYPE_HALF] = TEX_START_HALF_ ## ARCH; \
 	}
 
@@ -82,15 +82,15 @@ ImageManager::ImageManager(const DeviceInfo& info)
 		/* Should not happen. */
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT4] = 0;
 		tex_num_images[IMAGE_DATA_TYPE_BYTE4] = 0;
+		tex_num_images[IMAGE_DATA_TYPE_HALF4] = 0;
 		tex_num_images[IMAGE_DATA_TYPE_FLOAT] = 0;
 		tex_num_images[IMAGE_DATA_TYPE_BYTE] = 0;
-		tex_num_images[IMAGE_DATA_TYPE_HALF4] = 0;
 		tex_num_images[IMAGE_DATA_TYPE_HALF] = 0;
 		tex_start_images[IMAGE_DATA_TYPE_FLOAT4] = 0;
 		tex_start_images[IMAGE_DATA_TYPE_BYTE4] = 0;
+		tex_start_images[IMAGE_DATA_TYPE_HALF4] = 0;
 		tex_start_images[IMAGE_DATA_TYPE_FLOAT] = 0;
 		tex_start_images[IMAGE_DATA_TYPE_BYTE] = 0;
-		tex_start_images[IMAGE_DATA_TYPE_HALF4] = 0;
 		tex_start_images[IMAGE_DATA_TYPE_HALF] = 0;
 		assert(0);
 	}
@@ -216,7 +216,7 @@ ImageManager::ImageDataType ImageManager::get_image_metadata(const string& filen
 }
 
 /* We use a consecutive slot counting scheme on the devices, in order
- * float4, byte4, float, byte.
+ * float4, byte4, half4, float, byte, half.
  * These functions convert the slot ids from ImageManager "images" ones
  * to device ones and vice versa. */
 int ImageManager::type_index_to_flattened_slot(int slot, ImageDataType type)

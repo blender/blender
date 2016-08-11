@@ -277,7 +277,7 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 	}
 #  else
 	CUtexObject tex = kernel_tex_fetch(__bindless_mapping, id);
-	if(id < 2048) /* TODO(dingto): Make this a variable */
+	if(id < TEX_START_FLOAT_CUDA_KEPLER)
 		r = kernel_tex_image_interp_float4(tex, x, y);
 	else {
 		float f = kernel_tex_image_interp_float(tex, x, y);
