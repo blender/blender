@@ -71,6 +71,7 @@ set(SRC_HEADERS
 	util_ssef.h
 	util_ssei.h
 	util_stack_allocator.h
+	util_static_assert.h
 	util_stats.h
 	util_string.h
 	util_system.h

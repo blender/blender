@@ -19,6 +19,7 @@
 
 #include "kernel_math.h"
 #include "svm/svm_types.h"
+#include "util_static_assert.h"
 
 #ifndef __KERNEL_GPU__
 #  define __KERNEL_CPU__
@@ -986,6 +987,7 @@ typedef struct KernelCamera {
 
 	int pad;
 } KernelCamera;
+static_assert_align(KernelCamera, 16);
 
 typedef struct KernelFilm {
 	float exposure;
@@ -1040,6 +1042,7 @@ typedef struct KernelFilm {
 	int pass_pad3;
 #endif
 } KernelFilm;
+static_assert_align(KernelFilm, 16);
 
 typedef struct KernelBackground {
 	/* only shader index */
@@ -1053,6 +1056,7 @@ typedef struct KernelBackground {
 	float ao_distance;
 	float ao_pad1, ao_pad2;
 } KernelBackground;
+static_assert_align(KernelBackground, 16);
 
 typedef struct KernelIntegrator {
 	/* emission */
@@ -1123,6 +1127,7 @@ typedef struct KernelIntegrator {
 	int pad1;
 	int pad2;
 } KernelIntegrator;
+static_assert_align(KernelIntegrator, 16);
 
 typedef struct KernelBVH {
 	/* root node */
@@ -1134,6 +1139,7 @@ typedef struct KernelBVH {
 	int use_qbvh;
 	int pad1, pad2;
 } KernelBVH;
+static_assert_align(KernelBVH, 16);
 
 typedef enum CurveFlag {
 	/* runtime flags */
@@ -1153,11 +1159,13 @@ typedef struct KernelCurves {
 	float minimum_width;
 	float maximum_width;
 } KernelCurves;
+static_assert_align(KernelCurves, 16);
 
 typedef struct KernelTables {
 	int beckmann_offset;
 	int pad1, pad2, pad3;
 } KernelTables;
+static_assert_align(KernelTables, 16);
 
 typedef struct KernelData {
 	KernelCamera cam;
@@ -1168,8 +1176,12 @@ typedef struct KernelData {
 	KernelCurves curve;
 	KernelTables tables;
 } KernelData;
+static_assert_align(KernelData, 16);
 
 #ifdef __KERNEL_DEBUG__
+/* NOTE: This is a runtime-only struct, alignment is not
+ * really important here.
+ */
 typedef ccl_addr_space struct DebugData {
 	// Total number of BVH node traversal steps and primitives intersections
 	// for the camera rays.

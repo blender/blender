@@ -20,6 +20,8 @@
 #include <cassert>
 #include <iostream>
 
+#include "util_static_assert.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Global storage for all sort of flags used to fine-tune behavior of particular
