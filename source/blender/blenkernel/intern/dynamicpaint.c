@@ -2015,11 +2015,13 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 				}
 
 				/* try to read from cache */
-				if (BKE_ptcache_read(&pid, (float)scene->r.cfra)) {
+				bool can_simulate = ((int)scene->r.cfra == current_frame) && !(cache->flag & PTCACHE_BAKED);
+
+				if (BKE_ptcache_read(&pid, (float)scene->r.cfra, can_simulate)) {
 					BKE_ptcache_validate(cache, (int)scene->r.cfra);
 				}
 				/* if read failed and we're on surface range do recalculate */
-				else if ((int)scene->r.cfra == current_frame && !(cache->flag & PTCACHE_BAKED)) {
+				else if (can_simulate) {
 					/* calculate surface frame */
 					canvas->flags |= MOD_DPAINT_BAKING;
 					dynamicPaint_calculateFrame(surface, scene, ob, current_frame);

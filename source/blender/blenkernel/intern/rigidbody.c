@@ -1560,14 +1560,16 @@ void BKE_rigidbody_do_simulation(Scene *scene, float ctime)
 
 	/* try to read from cache */
 	// RB_TODO deal with interpolated, old and baked results
-	if (BKE_ptcache_read(&pid, ctime)) {
+	bool can_simulate = (ctime == rbw->ltime + 1) && !(cache->flag & PTCACHE_BAKED);
+
+	if (BKE_ptcache_read(&pid, ctime, can_simulate)) {
 		BKE_ptcache_validate(cache, (int)ctime);
 		rbw->ltime = ctime;
 		return;
 	}
 
 	/* advance simulation, we can only step one frame forward */
-	if (ctime == rbw->ltime + 1 && !(cache->flag & PTCACHE_BAKED)) {
+	if (can_simulate) {
 		/* write cache for first frame when on second frame */
 		if (rbw->ltime == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact == 0)) {
 			BKE_ptcache_write(&pid, startframe);

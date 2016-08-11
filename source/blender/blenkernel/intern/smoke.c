@@ -2737,19 +2737,18 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 			return;
 		}
 
+		/* only calculate something when we advanced a single frame */
+		/* don't simulate if viewing start frame, but scene frame is not real start frame */
+		bool can_simulate = (framenr == (int)smd->time + 1) && (framenr == scene->r.cfra);
+
 		/* try to read from cache */
-		if (BKE_ptcache_read(&pid, (float)framenr) == PTCACHE_READ_EXACT) {
+		if (BKE_ptcache_read(&pid, (float)framenr, can_simulate) == PTCACHE_READ_EXACT) {
 			BKE_ptcache_validate(cache, framenr);
 			smd->time = framenr;
 			return;
 		}
 
-		/* only calculate something when we advanced a single frame */
-		if (framenr != (int)smd->time + 1)
-			return;
-
-		/* don't simulate if viewing start frame, but scene frame is not real start frame */
-		if (framenr != scene->r.cfra)
+		if (!can_simulate)
 			return;
 
 #ifdef DEBUG_TIME

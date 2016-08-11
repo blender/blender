@@ -304,7 +304,7 @@ void BKE_ptcache_mem_pointers_incr(struct PTCacheMem *pm);
 int  BKE_ptcache_mem_pointers_seek(int point_index, struct PTCacheMem *pm);
 
 /* Main cache reading call. */
-int     BKE_ptcache_read(PTCacheID *pid, float cfra);
+int     BKE_ptcache_read(PTCacheID *pid, float cfra, bool no_extrapolate_old);
 
 /* Main cache writing call. */
 int     BKE_ptcache_write(PTCacheID *pid, unsigned int cfra);

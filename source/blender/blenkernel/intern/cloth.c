@@ -449,9 +449,12 @@ void clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, Derived
 	}
 
 	/* try to read from cache */
-	cache_result = BKE_ptcache_read(&pid, (float)framenr+scene->r.subframe);
+	bool can_simulate = (framenr == clmd->clothObject->last_frame+1) && !(cache->flag & PTCACHE_BAKED);
 
-	if (cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED) {
+	cache_result = BKE_ptcache_read(&pid, (float)framenr+scene->r.subframe, can_simulate);
+
+	if (cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED ||
+	    (!can_simulate && cache_result == PTCACHE_READ_OLD)) {
 		BKE_cloth_solver_set_positions(clmd);
 		cloth_to_object (ob, clmd, vertexCos);
 
@@ -473,7 +476,7 @@ void clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, Derived
 		return;
 	}
 
-	if (framenr!=clmd->clothObject->last_frame+1)
+	if (!can_simulate)
 		return;
 
 	/* if on second frame, write cache for first frame */

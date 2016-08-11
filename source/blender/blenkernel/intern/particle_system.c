@@ -3925,7 +3925,7 @@ static void system_step(ParticleSimulationData *sim, float cfra, const bool use_
 
 /* 2. try to read from the cache */
 	if (pid) {
-		int cache_result = BKE_ptcache_read(pid, cache_cfra);
+		int cache_result = BKE_ptcache_read(pid, cache_cfra, true);
 
 		if (ELEM(cache_result, PTCACHE_READ_EXACT, PTCACHE_READ_INTERPOLATED)) {
 			cached_step(sim, cfra);
