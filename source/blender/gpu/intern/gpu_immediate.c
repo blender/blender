@@ -621,14 +621,33 @@ void immEndVertex()
 	{
 #if TRUST_NO_ONE
 	assert(imm.primitive != GL_NONE); // make sure we're between a Begin/End pair
-
-	// have all attribs been assigned values?
-	const unsigned short all_bits = ~(0xFFFFU << imm.vertex_format.attrib_ct);
-	assert(imm.attrib_value_bits == all_bits);
-	
 	assert(imm.vertex_idx < imm.vertex_ct);
 #endif
 
+	// have all attribs been assigned values?
+	// if not, copy value from previous vertex
+	const unsigned short all_bits = ~(0xFFFFU << imm.vertex_format.attrib_ct);
+	if (imm.attrib_value_bits != all_bits)
+		{
+#if TRUST_NO_ONE
+		assert(imm.vertex_idx > 0); // first vertex must have all attribs specified
+#endif
+
+		for (unsigned a_idx = 0; a_idx < imm.vertex_format.attrib_ct; ++a_idx)
+			{
+			const uint16_t mask = 1 << a_idx;
+			if ((imm.attrib_value_bits & mask) == 0)
+				{
+				const Attrib* a = imm.vertex_format.attribs + a_idx;
+
+//				printf("copying %s from vertex %u to %u\n", a->name, imm.vertex_idx - 1, imm.vertex_idx);
+
+				GLubyte* data = imm.vertex_data + a->offset;
+				memcpy(data, data - imm.vertex_format.stride, a->sz);
+				}
+			}
+		}
+	
 	imm.vertex_idx++;
 	imm.vertex_data += imm.vertex_format.stride;
 	imm.attrib_value_bits = 0;
