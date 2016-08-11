@@ -1266,7 +1266,7 @@ enum RayState {
 /* Patch map node flags */
 
 #define PATCH_MAP_NODE_IS_SET (1 << 30)
-#define PATCH_MAP_NODE_IS_LEAF (1 << 31)
+#define PATCH_MAP_NODE_IS_LEAF (1u << 31)
 #define PATCH_MAP_NODE_INDEX_MASK (~(PATCH_MAP_NODE_IS_SET | PATCH_MAP_NODE_IS_LEAF))
 
 CCL_NAMESPACE_END
