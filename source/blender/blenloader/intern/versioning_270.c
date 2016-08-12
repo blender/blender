@@ -1246,7 +1246,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 
 	if (!MAIN_VERSION_ATLEAST(main, 277, 3)) {
 		/* ------- init of grease pencil initialization --------------- */
-		if (!DNA_struct_elem_find(fd->filesdna, "bGPDstroke", "bGPDpalettecolor", "palcolor")) {
+		if (!DNA_struct_elem_find(fd->filesdna, "bGPDstroke", "bGPDpalettecolor", "*palcolor")) {
 			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
 				ToolSettings *ts = scene->toolsettings;
 				/* initialize use position for sculpt brushes */
