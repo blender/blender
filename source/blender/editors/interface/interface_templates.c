@@ -326,7 +326,9 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 				}
 				else {
 					if (id) {
+						Main *bmain = CTX_data_main(C);
 						id_single_user(C, id, &template->ptr, template->prop);
+						DAG_relations_tag_update(bmain);
 					}
 				}
 			}
