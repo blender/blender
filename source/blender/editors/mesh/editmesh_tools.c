@@ -3080,7 +3080,7 @@ static void bm_mesh_hflag_flush_vert(BMesh *bm, const char hflag)
  * \note This could be used for split-by-material for non mesh types.
  * \note This could take material data from another object or args.
  */
-static void mesh_separate_material_assign_mat_nr(Object *ob, const short mat_nr)
+static void mesh_separate_material_assign_mat_nr(Main *bmain, Object *ob, const short mat_nr)
 {
 	ID *obdata = ob->data;
 
@@ -3116,18 +3116,18 @@ static void mesh_separate_material_assign_mat_nr(Object *ob, const short mat_nr)
 			ma_obdata = NULL;
 		}
 
-		BKE_material_clear_id(obdata, true);
-		BKE_material_resize_object(ob, 1, true);
-		BKE_material_resize_id(obdata, 1, true);
+		BKE_material_clear_id(bmain, obdata, true);
+		BKE_material_resize_object(bmain, ob, 1, true);
+		BKE_material_resize_id(bmain, obdata, 1, true);
 
 		ob->mat[0] = ma_ob;
 		ob->matbits[0] = matbit;
 		(*matarar)[0] = ma_obdata;
 	}
 	else {
-		BKE_material_clear_id(obdata, true);
-		BKE_material_resize_object(ob, 0, true);
-		BKE_material_resize_id(obdata, 0, true);
+		BKE_material_clear_id(bmain, obdata, true);
+		BKE_material_resize_object(bmain, ob, 0, true);
+		BKE_material_resize_id(bmain, obdata, 0, true);
 	}
 }
 
@@ -3162,7 +3162,7 @@ static bool mesh_separate_material(Main *bmain, Scene *scene, Base *base_old, BM
 
 		/* leave the current object with some materials */
 		if (tot == bm_old->totface) {
-			mesh_separate_material_assign_mat_nr(base_old->object, mat_nr);
+			mesh_separate_material_assign_mat_nr(bmain, base_old->object, mat_nr);
 
 			/* since we're in editmode, must set faces here */
 			BM_ITER_MESH (f, &iter, bm_old, BM_FACES_OF_MESH) {
@@ -3174,7 +3174,7 @@ static bool mesh_separate_material(Main *bmain, Scene *scene, Base *base_old, BM
 		/* Move selection into a separate object */
 		base_new = mesh_separate_tagged(bmain, scene, base_old, bm_old);
 		if (base_new) {
-			mesh_separate_material_assign_mat_nr(base_new->object, mat_nr);
+			mesh_separate_material_assign_mat_nr(bmain, base_new->object, mat_nr);
 		}
 
 		result |= (base_new != NULL);
