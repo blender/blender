@@ -217,21 +217,18 @@ bool ED_view3d_clipping_test(const RegionView3D *rv3d, const float co[3], const 
 /* ********* end custom clipping *********** */
 
 
-static void drawgrid_draw(ARegion *ar, double wx, double wy, double x, double y, double dx)
+static void drawgrid_draw(ARegion *ar, double x, double y, double dx)
 {	
-	double verts[2][2];
-
-	x += (wx);
-	y += (wy);
+	float verts[2][2];
 
 	/* set fixed 'Y' */
 	verts[0][1] = 0.0f;
-	verts[1][1] = (double)ar->winy;
+	verts[1][1] = (float)ar->winy;
 
 	/* iter over 'X' */
 	verts[0][0] = verts[1][0] = x - dx * floor(x / dx);
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_DOUBLE, 0, verts);
+	glVertexPointer(2, GL_FLOAT, 0, verts);
 
 	while (verts[0][0] < ar->winx) {
 		glDrawArrays(GL_LINES, 0, 2);
@@ -240,7 +237,7 @@ static void drawgrid_draw(ARegion *ar, double wx, double wy, double x, double y,
 
 	/* set fixed 'X' */
 	verts[0][0] = 0.0f;
-	verts[1][0] = (double)ar->winx;
+	verts[1][0] = (float)ar->winx;
 
 	/* iter over 'Y' */
 	verts[0][1] = verts[1][1] = y - dx * floor(y / dx);
@@ -252,62 +249,57 @@ static void drawgrid_draw(ARegion *ar, double wx, double wy, double x, double y,
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-#define GRID_MIN_PX_D   6.0
+#define GRID_MIN_PX_D 6.0
 #define GRID_MIN_PX_F 6.0f
 
 static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **grid_unit)
 {
 	/* extern short bgpicmode; */
 	RegionView3D *rv3d = ar->regiondata;
-	double wx, wy, x, y, fw, fx, fy, dx;
-	double vec4[4];
-	unsigned char col[3], col2[3];
 
-	fx = rv3d->persmat[3][0];
-	fy = rv3d->persmat[3][1];
-	fw = rv3d->persmat[3][3];
+	double fx = rv3d->persmat[3][0];
+	double fy = rv3d->persmat[3][1];
+	double fw = rv3d->persmat[3][3];
 
-	wx = (ar->winx / 2.0); /* because of rounding errors, grid at wrong location */
-	wy = (ar->winy / 2.0);
+	const double wx = 0.5 * ar->winx;  /* because of rounding errors, grid at wrong location */
+	const double wy = 0.5 * ar->winy;
 
-	x = (wx) * fx / fw;
-	y = (wy) * fy / fw;
+	double x = wx * fx / fw;
+	double y = wy * fy / fw;
 
-	vec4[0] = vec4[1] = v3d->grid;
-
-	vec4[2] = 0.0;
-	vec4[3] = 1.0;
+	double vec4[4] = { v3d->grid, v3d->grid, 0.0, 1.0 };
 	mul_m4_v4d(rv3d->persmat, vec4);
 	fx = vec4[0];
 	fy = vec4[1];
 	fw = vec4[3];
 
-	dx = fabs(x - (wx) * fx / fw);
-	if (dx == 0) dx = fabs(y - (wy) * fy / fw);
-	
+	double dx = fabs(x - wx * fx / fw);
+	if (dx == 0) dx = fabs(y - wy * fy / fw);
+
+	x += wx;
+	y += wy;
+
 	glLineWidth(1.0f);
 
-	glDepthMask(GL_FALSE);     /* disable write in zbuffer */
+	glDepthMask(GL_FALSE);  /* disable write in zbuffer */
 
 	/* check zoom out */
 	UI_ThemeColor(TH_GRID);
-	
+
 	if (unit->system) {
 		/* Use GRID_MIN_PX * 2 for units because very very small grid
 		 * items are less useful when dealing with units */
 		const void *usys;
-		int len, i;
-		double dx_scalar;
-		float blend_fac;
+		int len;
 
 		bUnit_GetSystem(unit->system, B_UNIT_LENGTH, &usys, &len);
 
 		if (usys) {
-			i = len;
+			int i = len;
 			while (i--) {
 				double scalar = bUnit_GetScaler(usys, i);
 
-				dx_scalar = dx * scalar / (double)unit->scale_length;
+				double dx_scalar = dx * scalar / (double)unit->scale_length;
 				if (dx_scalar < (GRID_MIN_PX_D * 2.0))
 					continue;
 
@@ -316,16 +308,15 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 					*grid_unit = bUnit_GetNameDisplay(usys, i);
 					rv3d->gridview = (float)((scalar * (double)v3d->grid) / (double)unit->scale_length);
 				}
-				blend_fac = 1.0f - ((GRID_MIN_PX_F * 2.0f) / (float)dx_scalar);
+				float blend_fac = 1.0f - ((GRID_MIN_PX_F * 2.0f) / (float)dx_scalar);
 
 				/* tweak to have the fade a bit nicer */
 				blend_fac = (blend_fac * blend_fac) * 2.0f;
 				CLAMP(blend_fac, 0.3f, 1.0f);
 
-
 				UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, blend_fac);
 
-				drawgrid_draw(ar, wx, wy, x, y, dx_scalar);
+				drawgrid_draw(ar, x, y, dx_scalar);
 			}
 		}
 	}
@@ -349,23 +340,23 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 					}
 					else {
 						UI_ThemeColor(TH_GRID);
-						drawgrid_draw(ar, wx, wy, x, y, dx);
+						drawgrid_draw(ar, x, y, dx);
 					}
 				}
 				else {  /* start blending out */
 					UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
-					drawgrid_draw(ar, wx, wy, x, y, dx);
+					drawgrid_draw(ar, x, y, dx);
 
 					UI_ThemeColor(TH_GRID);
-					drawgrid_draw(ar, wx, wy, x, y, sublines * dx);
+					drawgrid_draw(ar, x, y, sublines * dx);
 				}
 			}
 			else {  /* start blending out (GRID_MIN_PX < dx < (GRID_MIN_PX * 10)) */
 				UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
-				drawgrid_draw(ar, wx, wy, x, y, dx);
+				drawgrid_draw(ar, x, y, dx);
 
 				UI_ThemeColor(TH_GRID);
-				drawgrid_draw(ar, wx, wy, x, y, sublines * dx);
+				drawgrid_draw(ar, x, y, sublines * dx);
 			}
 		}
 		else {
@@ -377,46 +368,43 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 					dx /= sublines;
 					if (dx > (GRID_MIN_PX_D * 10.0)) {
 						UI_ThemeColor(TH_GRID);
-						drawgrid_draw(ar, wx, wy, x, y, dx);
+						drawgrid_draw(ar, x, y, dx);
 					}
 					else {
 						UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
-						drawgrid_draw(ar, wx, wy, x, y, dx);
+						drawgrid_draw(ar, x, y, dx);
 						UI_ThemeColor(TH_GRID);
-						drawgrid_draw(ar, wx, wy, x, y, dx * sublines);
+						drawgrid_draw(ar, x, y, dx * sublines);
 					}
 				}
 				else {
 					UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
-					drawgrid_draw(ar, wx, wy, x, y, dx);
+					drawgrid_draw(ar, x, y, dx);
 					UI_ThemeColor(TH_GRID);
-					drawgrid_draw(ar, wx, wy, x, y, dx * sublines);
+					drawgrid_draw(ar, x, y, dx * sublines);
 				}
 			}
 			else {
 				UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
-				drawgrid_draw(ar, wx, wy, x, y, dx);
+				drawgrid_draw(ar, x, y, dx);
 				UI_ThemeColor(TH_GRID);
-				drawgrid_draw(ar, wx, wy, x, y, dx * sublines);
+				drawgrid_draw(ar, x, y, dx * sublines);
 			}
 		}
 	}
 
+	/* center cross */
+	unsigned char col[3], col2[3];
 
-	x += (wx);
-	y += (wy);
 	UI_GetThemeColor3ubv(TH_GRID, col);
 
-	setlinestyle(0);
-	
-	/* center cross */
 	/* horizontal line */
 	if (ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT))
 		UI_make_axis_color(col, col2, 'Y');
 	else UI_make_axis_color(col, col2, 'X');
 	glColor3ubv(col2);
 	
-	fdrawline(0.0,  y,  (float)ar->winx,  y); 
+	fdrawline(0.0, y, (float)ar->winx, y); 
 	
 	/* vertical line */
 	if (ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM))
