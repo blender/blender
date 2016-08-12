@@ -56,6 +56,12 @@ static void rna_cloth_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 }
 
+static void rna_cloth_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	DAG_relations_tag_update(bmain);
+	rna_cloth_update(bmain, scene, ptr);
+}
+
 static void rna_cloth_pinning_changed(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
@@ -729,7 +735,7 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Collision Group", "Limit colliders to this Group");
-	RNA_def_property_update(prop, 0, "rna_cloth_update");
+	RNA_def_property_update(prop, 0, "rna_cloth_dependency_update");
 
 	prop = RNA_def_property(srna, "vertex_group_self_collisions", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_CollSettings_selfcol_vgroup_get", "rna_CollSettings_selfcol_vgroup_length",

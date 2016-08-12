@@ -155,15 +155,20 @@ static EffectorCache *new_effector_cache(Scene *scene, Object *ob, ParticleSyste
 	eff->frame = -1;
 	return eff;
 }
-static void add_object_to_effectors(ListBase **effectors, Scene *scene, EffectorWeights *weights, Object *ob, Object *ob_src)
+static void add_object_to_effectors(ListBase **effectors, Scene *scene, EffectorWeights *weights, Object *ob, Object *ob_src, bool for_simulation)
 {
 	EffectorCache *eff = NULL;
 
-	if ( ob == ob_src || weights->weight[ob->pd->forcefield] == 0.0f )
+	if ( ob == ob_src )
 		return;
 
-	if (ob->pd->shape == PFIELD_SHAPE_POINTS && !ob->derivedFinal )
-		return;
+	if (for_simulation) {
+		if (weights->weight[ob->pd->forcefield] == 0.0f )
+			return;
+
+		if (ob->pd->shape == PFIELD_SHAPE_POINTS && !ob->derivedFinal )
+			return;
+	}
 
 	if (*effectors == NULL)
 		*effectors = MEM_callocN(sizeof(ListBase), "effectors list");
@@ -175,7 +180,7 @@ static void add_object_to_effectors(ListBase **effectors, Scene *scene, Effector
 
 	BLI_addtail(*effectors, eff);
 }
-static void add_particles_to_effectors(ListBase **effectors, Scene *scene, EffectorWeights *weights, Object *ob, ParticleSystem *psys, ParticleSystem *psys_src)
+static void add_particles_to_effectors(ListBase **effectors, Scene *scene, EffectorWeights *weights, Object *ob, ParticleSystem *psys, ParticleSystem *psys_src, bool for_simulation)
 {
 	ParticleSettings *part= psys->part;
 
@@ -185,14 +190,14 @@ static void add_particles_to_effectors(ListBase **effectors, Scene *scene, Effec
 	if ( psys == psys_src && (part->flag & PART_SELF_EFFECT) == 0)
 		return;
 
-	if ( part->pd && part->pd->forcefield && weights->weight[part->pd->forcefield] != 0.0f) {
+	if ( part->pd && part->pd->forcefield && (!for_simulation || weights->weight[part->pd->forcefield] != 0.0f)) {
 		if (*effectors == NULL)
 			*effectors = MEM_callocN(sizeof(ListBase), "effectors list");
 
 		BLI_addtail(*effectors, new_effector_cache(scene, ob, psys, part->pd));
 	}
 
-	if (part->pd2 && part->pd2->forcefield && weights->weight[part->pd2->forcefield] != 0.0f) {
+	if (part->pd2 && part->pd2->forcefield && (!for_simulation || weights->weight[part->pd2->forcefield] != 0.0f)) {
 		if (*effectors == NULL)
 			*effectors = MEM_callocN(sizeof(ListBase), "effectors list");
 
@@ -202,7 +207,7 @@ static void add_particles_to_effectors(ListBase **effectors, Scene *scene, Effec
 
 /* returns ListBase handle with objects taking part in the effecting */
 ListBase *pdInitEffectors(Scene *scene, Object *ob_src, ParticleSystem *psys_src,
-                          EffectorWeights *weights, bool precalc)
+                          EffectorWeights *weights, bool for_simulation)
 {
 	Base *base;
 	unsigned int layer= ob_src->lay;
@@ -214,13 +219,13 @@ ListBase *pdInitEffectors(Scene *scene, Object *ob_src, ParticleSystem *psys_src
 		for (go= weights->group->gobject.first; go; go= go->next) {
 			if ( (go->ob->lay & layer) ) {
 				if ( go->ob->pd && go->ob->pd->forcefield )
-					add_object_to_effectors(&effectors, scene, weights, go->ob, ob_src);
+					add_object_to_effectors(&effectors, scene, weights, go->ob, ob_src, for_simulation);
 
 				if ( go->ob->particlesystem.first ) {
 					ParticleSystem *psys= go->ob->particlesystem.first;
 
 					for ( ; psys; psys=psys->next )
-						add_particles_to_effectors(&effectors, scene, weights, go->ob, psys, psys_src);
+						add_particles_to_effectors(&effectors, scene, weights, go->ob, psys, psys_src, for_simulation);
 				}
 			}
 		}
@@ -229,19 +234,19 @@ ListBase *pdInitEffectors(Scene *scene, Object *ob_src, ParticleSystem *psys_src
 		for (base = scene->base.first; base; base= base->next) {
 			if ( (base->lay & layer) ) {
 				if ( base->object->pd && base->object->pd->forcefield )
-					add_object_to_effectors(&effectors, scene, weights, base->object, ob_src);
+					add_object_to_effectors(&effectors, scene, weights, base->object, ob_src, for_simulation);
 
 				if ( base->object->particlesystem.first ) {
 					ParticleSystem *psys= base->object->particlesystem.first;
 
 					for ( ; psys; psys=psys->next )
-						add_particles_to_effectors(&effectors, scene, weights, base->object, psys, psys_src);
+						add_particles_to_effectors(&effectors, scene, weights, base->object, psys, psys_src, for_simulation);
 				}
 			}
 		}
 	}
 	
-	if (precalc)
+	if (for_simulation)
 		pdPrecalculateEffectors(effectors);
 	
 	return effectors;

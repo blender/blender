@@ -34,6 +34,11 @@
 #include "DNA_constraint_types.h"
 #include "BKE_constraint.h"
 
+struct Scene;
+struct Group;
+struct EffectorWeights;
+struct ModifierData;
+
 /* **** DAG relation types *** */
 
 /* scene link to object */
@@ -151,6 +156,11 @@ DagNode *dag_add_node(DagForest *forest, void *fob);
 DagNode *dag_get_node(DagForest *forest, void *fob);
 DagNode *dag_get_sub_node(DagForest *forest, void *fob);
 void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel, const char *name);
+
+typedef bool (*DagCollobjFilterFunction)(struct Object *obj, struct ModifierData *md);
+
+void dag_add_collision_relations(DagForest *dag, struct Scene *scene, Object *ob, DagNode *node, struct Group *group, int layer, unsigned int modifier_type, DagCollobjFilterFunction fn, bool dupli, const char *name);
+void dag_add_forcefield_relations(DagForest *dag, struct Scene *scene, Object *ob, DagNode *node, struct EffectorWeights *eff, bool add_absorption, int skip_forcefield, const char *name);
 
 void graph_print_queue(DagNodeQueue *nqueue);
 void graph_print_queue_dist(DagNodeQueue *nqueue);

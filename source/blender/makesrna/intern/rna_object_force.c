@@ -730,6 +730,11 @@ static void rna_softbody_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Point
 	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 }
 
+static void rna_softbody_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	DAG_relations_tag_update(bmain);
+	rna_softbody_update(bmain, scene, ptr);
+}
 
 static EnumPropertyItem *rna_Effector_shape_itemf(bContext *UNUSED(C), PointerRNA *ptr,
                                                   PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
@@ -1378,7 +1383,7 @@ static void rna_def_field(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_absorption", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_VISIBILITY);
 	RNA_def_property_ui_text(prop, "Absorption", "Force gets absorbed by collision objects");
-	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_dependency_update");
 
 	prop = RNA_def_property(srna, "use_multiple_springs", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_MULTIPLE_SPRINGS);
@@ -1855,7 +1860,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "collision_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Collision Group", "Limit colliders to this Group");
-	RNA_def_property_update(prop, 0, "rna_softbody_update");
+	RNA_def_property_update(prop, 0, "rna_softbody_dependency_update");
 
 	prop = RNA_def_property(srna, "effector_weights", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "effector_weights");

@@ -42,6 +42,8 @@ struct Depsgraph;
 
 struct Main;
 struct Scene;
+struct Group;
+struct EffectorWeights;
 
 #ifdef __cplusplus
 extern "C" {
@@ -111,6 +113,12 @@ void DEG_add_object_cache_relation(struct DepsNodeHandle *handle, struct CacheFi
 
 /* TODO(sergey): Remove once all geometry update is granular. */
 void DEG_add_special_eval_flag(struct Depsgraph *graph, struct ID *id, short flag);
+
+/* Utility functions for physics modifiers */
+typedef bool (*DEG_CollobjFilterFunction)(struct Object *obj, struct ModifierData *md);
+
+void DEG_add_collision_relations(struct DepsNodeHandle *handle, struct Scene *scene, Object *ob, struct Group *group, int layer, unsigned int modifier_type, DEG_CollobjFilterFunction fn, bool dupli, const char *name);
+void DEG_add_forcefield_relations(struct DepsNodeHandle *handle, struct Scene *scene, Object *ob, struct EffectorWeights *eff, bool add_absorption, int skip_forcefield, const char *name);
 
 /* ************************************************ */
 

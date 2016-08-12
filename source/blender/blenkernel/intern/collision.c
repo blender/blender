@@ -503,12 +503,13 @@ static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned 
 
 // return all collision objects in scene
 // collision object will exclude self 
-Object **get_collisionobjects(Scene *scene, Object *self, Group *group, unsigned int *numcollobj, unsigned int modifier_type)
+Object **get_collisionobjects_ext(Scene *scene, Object *self, Group *group, int layer, unsigned int *numcollobj, unsigned int modifier_type, bool dupli)
 {
 	Base *base;
 	Object **objs;
 	GroupObject *go;
 	unsigned int numobj= 0, maxobj= 100;
+	int level = dupli ? 0 : 1;
 	
 	objs= MEM_callocN(sizeof(Object *)*maxobj, "CollisionObjectsArray");
 
@@ -516,16 +517,14 @@ Object **get_collisionobjects(Scene *scene, Object *self, Group *group, unsigned
 	if (group) {
 		/* use specified group */
 		for (go= group->gobject.first; go; go= go->next)
-			add_collision_object(&objs, &numobj, &maxobj, go->ob, self, 0, modifier_type);
+			add_collision_object(&objs, &numobj, &maxobj, go->ob, self, level, modifier_type);
 	}
 	else {
 		Scene *sce_iter;
 		/* add objects in same layer in scene */
 		for (SETLOOPER(scene, sce_iter, base)) {
-			/* Need to check for active layers, too.
-			Otherwise this check fails if the objects are not on the same layer - DG */
-			if ((base->lay & self->lay) || (base->lay & scene->lay))
-				add_collision_object(&objs, &numobj, &maxobj, base->object, self, 0, modifier_type);
+			if ( base->lay & layer )
+				add_collision_object(&objs, &numobj, &maxobj, base->object, self, level, modifier_type);
 
 		}
 	}
@@ -533,6 +532,13 @@ Object **get_collisionobjects(Scene *scene, Object *self, Group *group, unsigned
 	*numcollobj= numobj;
 
 	return objs;
+}
+
+Object **get_collisionobjects(Scene *scene, Object *self, Group *group, unsigned int *numcollobj, unsigned int modifier_type)
+{
+	/* Need to check for active layers, too.
+	   Otherwise this check fails if the objects are not on the same layer - DG */
+	return get_collisionobjects_ext(scene, self, group, self->lay | scene->lay, numcollobj, modifier_type, true);
 }
 
 static void add_collider_cache_object(ListBase **objs, Object *ob, Object *self, int level)
