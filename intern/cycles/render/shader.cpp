@@ -240,6 +240,10 @@ void Shader::tag_update(Scene *scene)
 	attributes.clear();
 	foreach(ShaderNode *node, graph->nodes)
 		node->attributes(this, &attributes);
+
+	if(has_displacement && displacement_method == DISPLACE_BOTH) {
+		attributes.add(ATTR_STD_POSITION_UNDISPLACED);
+	}
 	
 	/* compare if the attributes changed, mesh manager will check
 	 * need_update_attributes, update the relevant meshes and clear it. */
