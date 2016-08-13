@@ -216,37 +216,113 @@ bool ED_view3d_clipping_test(const RegionView3D *rv3d, const float co[3], const 
 
 /* ********* end custom clipping *********** */
 
+#define DEBUG_GRID 0
 
-static void drawgrid_draw(ARegion *ar, double x, double y, double dx)
-{	
-	float verts[2][2];
+static void gridline_range(double x0, double dx, double max, int* first_out, int* count_out)
+{
+	/* determine range of gridlines that appear in this Area -- similar calc but separate ranges for x & y
+	 * x0 is gridline 0, the axis in screen space
+	 * Area covers [0 .. max) pixels */
 
-	/* set fixed 'Y' */
-	verts[0][1] = 0.0f;
-	verts[1][1] = (float)ar->winy;
+	int first, last;
+	if (remquo(0.0 - x0, dx, &first) > 0.0) ++first;
+	if (remquo(max - x0, dx, &last) < 0.0) --last;
+	/* +/-1 adjustments are to ensure we fit inside the [0 .. max) range */
 
-	/* iter over 'X' */
-	verts[0][0] = verts[1][0] = x - dx * floor(x / dx);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, 0, verts);
+#if DEBUG_GRID
+	printf("   first %d * dx = %f\n", first, x0 + first * dx);
+	printf("   last %d * dx = %f\n", last, x0 + last * dx);
+#endif
 
-	while (verts[0][0] < ar->winx) {
-		glDrawArrays(GL_LINES, 0, 2);
-		verts[0][0] = verts[1][0] = verts[0][0] + dx;
+	if (first <= last) {
+		*first_out = first;
+		*count_out = last - first + 1;
+	}
+	else {
+		*first_out = 0;
+		*count_out = 0;
+	}
+}
+
+static int gridline_count(ARegion *ar, double x0, double y0, double dx)
+{
+	/* x0 & y0 establish the "phase" of the grid within this 2D region
+	 * dx is the frequency, shared by x & y directions
+	 * pass in dx of smallest (highest precision) grid we want to draw */
+
+#if DEBUG_GRID
+	printf("  %s(%f, %f, dx:%f)\n", __FUNCTION__, x0, y0, dx);
+#endif
+
+	int first, x_ct, y_ct;
+
+	gridline_range(x0, dx, ar->winx, &first, &x_ct);
+	gridline_range(y0, dx, ar->winy, &first, &y_ct);
+
+	int total_ct = x_ct + y_ct;
+
+#if DEBUG_GRID
+	printf("   %d + %d = %d gridlines\n", x_ct, y_ct, total_ct);
+#endif
+
+	return total_ct;
+}
+
+static void drawgrid_draw(ARegion *ar, double x0, double y0, double dx, int skip_mod, unsigned pos, unsigned col, GLubyte col_value[3])
+{
+	/* skip every skip_mod lines relative to each axis; they will be overlaid by another drawgrid_draw
+	 * always skip exact x0 & y0 axes; they will be drawn later in color
+	 *
+	 * set grid color once, just before the first line is drawn
+	 * it's harmless to set same color for every line, or every vertex
+	 * but if no lines are drawn, color must not be set! */
+
+#if DEBUG_GRID
+	printf("  %s(%f, %f, dx:%f)\n", __FUNCTION__, x0, y0, dx);
+#endif
+
+	const float x_max = (float)ar->winx;
+	const float y_max = (float)ar->winy;
+
+	int first, ct;
+	int x_ct = 0, y_ct = 0; /* count of lines actually drawn */
+
+	/* draw vertical lines */
+	gridline_range(x0, dx, x_max, &first, &ct);
+
+	for (int i = first; i < first + ct; ++i) {
+		if (i == 0 || skip_mod && (i % skip_mod) == 0)
+			continue;
+
+		if (x_ct == 0)
+			immAttrib3ub(col, col_value[0], col_value[1], col_value[2]);
+
+		float x = (float)(x0 + i * dx);
+		immVertex2f(pos, x, 0.0f);
+		immVertex2f(pos, x, y_max);
+		++x_ct;
 	}
 
-	/* set fixed 'X' */
-	verts[0][0] = 0.0f;
-	verts[1][0] = (float)ar->winx;
+	/* draw horizontal lines */
+	gridline_range(y0, dx, y_max, &first, &ct);
 
-	/* iter over 'Y' */
-	verts[0][1] = verts[1][1] = y - dx * floor(y / dx);
-	while (verts[0][1] < ar->winy) {
-		glDrawArrays(GL_LINES, 0, 2);
-		verts[0][1] = verts[1][1] = verts[0][1] + dx;
+	for (int i = first; i < first + ct; ++i) {
+		if (i == 0 || skip_mod && (i % skip_mod) == 0)
+			continue;
+
+		if (x_ct + y_ct == 0)
+			immAttrib3ub(col, col_value[0], col_value[1], col_value[2]);
+
+		float y = (float)(y0 + i * dx);
+		immVertex2f(pos, 0.0f, y);
+		immVertex2f(pos, x_max, y);
+		++y_ct;
 	}
 
-	glDisableClientState(GL_VERTEX_ARRAY);
+#if DEBUG_GRID
+	unsigned total_ct = x_ct + y_ct;
+	printf("    %u + %u = %u gridlines drawn\n", x_ct, y_ct, total_ct);
+#endif
 }
 
 #define GRID_MIN_PX_D 6.0
@@ -254,14 +330,17 @@ static void drawgrid_draw(ARegion *ar, double x, double y, double dx)
 
 static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **grid_unit)
 {
-	/* extern short bgpicmode; */
 	RegionView3D *rv3d = ar->regiondata;
+
+#if DEBUG_GRID
+	printf("%s width %d, height %d\n", __FUNCTION__, ar->winx, ar->winy);
+#endif
 
 	double fx = rv3d->persmat[3][0];
 	double fy = rv3d->persmat[3][1];
 	double fw = rv3d->persmat[3][3];
 
-	const double wx = 0.5 * ar->winx;  /* because of rounding errors, grid at wrong location */
+	const double wx = 0.5 * ar->winx;  /* use double precision to avoid rounding errors */
 	const double wy = 0.5 * ar->winy;
 
 	double x = wx * fx / fw;
@@ -279,20 +358,30 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	x += wx;
 	y += wy;
 
+	/* now x, y, and dx have their final values
+	 * (x,y) is the world origin (0,0,0) mapped to Area-relative screen space
+	 * dx is the distance in pixels between grid lines -- same for horiz or vert grid lines */
+
 	glLineWidth(1.0f);
 
 	glDepthMask(GL_FALSE);  /* disable write in zbuffer */
 
-	/* check zoom out */
-	UI_ThemeColor(TH_GRID);
+	VertexFormat* format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+
+	unsigned char col[3], col2[3];
+	UI_GetThemeColor3ubv(TH_GRID, col);
 
 	if (unit->system) {
-		/* Use GRID_MIN_PX * 2 for units because very very small grid
-		 * items are less useful when dealing with units */
 		const void *usys;
 		int len;
 
 		bUnit_GetSystem(unit->system, B_UNIT_LENGTH, &usys, &len);
+
+		bool first = true;
 
 		if (usys) {
 			int i = len;
@@ -300,23 +389,41 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 				double scalar = bUnit_GetScaler(usys, i);
 
 				double dx_scalar = dx * scalar / (double)unit->scale_length;
-				if (dx_scalar < (GRID_MIN_PX_D * 2.0))
+				if (dx_scalar < (GRID_MIN_PX_D * 2.0)) {
+					/* very very small grid items are less useful when dealing with units */
 					continue;
+				}
 
-				/* Store the smallest drawn grid size units name so users know how big each grid cell is */
-				if (*grid_unit == NULL) {
+				if (first) {
+					first = false;
+
+					/* Store the smallest drawn grid size units name so users know how big each grid cell is */
 					*grid_unit = bUnit_GetNameDisplay(usys, i);
 					rv3d->gridview = (float)((scalar * (double)v3d->grid) / (double)unit->scale_length);
-				}
-				float blend_fac = 1.0f - ((GRID_MIN_PX_F * 2.0f) / (float)dx_scalar);
 
+					int gridline_ct = gridline_count(ar, x, y, dx_scalar);
+					if (gridline_ct == 0)
+						goto drawgrid_cleanup; /* nothing to draw */
+
+					immBegin(GL_LINES, gridline_ct * 2);
+				}
+
+				float blend_fac = 1.0f - ((GRID_MIN_PX_F * 2.0f) / (float)dx_scalar);
 				/* tweak to have the fade a bit nicer */
 				blend_fac = (blend_fac * blend_fac) * 2.0f;
 				CLAMP(blend_fac, 0.3f, 1.0f);
 
-				UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, blend_fac);
+				UI_GetThemeColorBlend3ubv(TH_HIGH_GRAD, TH_GRID, blend_fac, col2);
 
-				drawgrid_draw(ar, x, y, dx_scalar);
+				const int skip_mod = (i == 0) ? 0 : (int)nearbyint(bUnit_GetScaler(usys, i - 1) / scalar);
+#if DEBUG_GRID
+				printf("%s %f, ", bUnit_GetNameDisplay(usys, i), scalar);
+				if (i > 0)
+					printf("next unit is %d times larger\n", skip_mod);
+				else
+					printf("largest unit\n");
+#endif
+				drawgrid_draw(ar, x, y, dx_scalar, skip_mod, pos, color, col2);
 			}
 		}
 	}
@@ -324,39 +431,19 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 		const double sublines    = v3d->gridsubdiv;
 		const float  sublines_fl = v3d->gridsubdiv;
 
+		int grids_to_draw = 2; /* first the faint fine grid, then the bold coarse grid */
+
 		if (dx < GRID_MIN_PX_D) {
 			rv3d->gridview *= sublines_fl;
 			dx *= sublines;
-
 			if (dx < GRID_MIN_PX_D) {
 				rv3d->gridview *= sublines_fl;
 				dx *= sublines;
-
 				if (dx < GRID_MIN_PX_D) {
 					rv3d->gridview *= sublines_fl;
 					dx *= sublines;
-					if (dx < GRID_MIN_PX_D) {
-						/* pass */
-					}
-					else {
-						UI_ThemeColor(TH_GRID);
-						drawgrid_draw(ar, x, y, dx);
-					}
+					grids_to_draw = (dx < GRID_MIN_PX_D) ? 0 : 1;
 				}
-				else {  /* start blending out */
-					UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
-					drawgrid_draw(ar, x, y, dx);
-
-					UI_ThemeColor(TH_GRID);
-					drawgrid_draw(ar, x, y, sublines * dx);
-				}
-			}
-			else {  /* start blending out (GRID_MIN_PX < dx < (GRID_MIN_PX * 10)) */
-				UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
-				drawgrid_draw(ar, x, y, dx);
-
-				UI_ThemeColor(TH_GRID);
-				drawgrid_draw(ar, x, y, sublines * dx);
 			}
 		}
 		else {
@@ -367,56 +454,55 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 					rv3d->gridview /= sublines_fl;
 					dx /= sublines;
 					if (dx > (GRID_MIN_PX_D * 10.0)) {
-						UI_ThemeColor(TH_GRID);
-						drawgrid_draw(ar, x, y, dx);
-					}
-					else {
-						UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
-						drawgrid_draw(ar, x, y, dx);
-						UI_ThemeColor(TH_GRID);
-						drawgrid_draw(ar, x, y, dx * sublines);
+						grids_to_draw = 1;
 					}
 				}
-				else {
-					UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
-					drawgrid_draw(ar, x, y, dx);
-					UI_ThemeColor(TH_GRID);
-					drawgrid_draw(ar, x, y, dx * sublines);
-				}
 			}
-			else {
-				UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
-				drawgrid_draw(ar, x, y, dx);
-				UI_ThemeColor(TH_GRID);
-				drawgrid_draw(ar, x, y, dx * sublines);
-			}
+		}
+
+		int gridline_ct = gridline_count(ar, x, y, dx);
+		if (gridline_ct == 0)
+			goto drawgrid_cleanup; /* nothing to draw */
+
+		immBegin(GL_LINES, gridline_ct * 2);
+
+		if (grids_to_draw == 2) {
+			UI_GetThemeColorBlend3ubv(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0), col2);
+			drawgrid_draw(ar, x, y, dx, v3d->gridsubdiv, pos, color, col2);
+			drawgrid_draw(ar, x, y, dx * sublines, 0, pos, color, col);
+		}
+		else if (grids_to_draw == 1) {
+			drawgrid_draw(ar, x, y, dx, 0, pos, color, col);
 		}
 	}
 
-	/* center cross */
-	unsigned char col[3], col2[3];
-
-	UI_GetThemeColor3ubv(TH_GRID, col);
-
+	/* draw visible axes */
 	/* horizontal line */
-	if (ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT))
-		UI_make_axis_color(col, col2, 'Y');
-	else UI_make_axis_color(col, col2, 'X');
-	glColor3ubv(col2);
-	
-	fdrawline(0.0, y, (float)ar->winx, y); 
-	
+	if (0 <= y && y < ar->winy) {
+		UI_make_axis_color(col, col2, ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT) ? 'Y' : 'X');
+		immAttrib3ub(color, col2[0], col2[1], col2[2]);
+		immVertex2f(pos, 0.0f, y);
+		immVertex2f(pos, (float)ar->winx, y); 
+	}
+
 	/* vertical line */
-	if (ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM))
-		UI_make_axis_color(col, col2, 'Y');
-	else UI_make_axis_color(col, col2, 'Z');
-	glColor3ubv(col2);
+	if (0 <= x && x < ar->winx) {
+		UI_make_axis_color(col, col2, ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM) ? 'Y' : 'Z');
+		immAttrib3ub(color, col2[0], col2[1], col2[2]);
+		immVertex2f(pos, x, 0.0f);
+		immVertex2f(pos, x, (float)ar->winy); 
+	}
 
-	fdrawline(x, 0.0, x, (float)ar->winy); 
+	immEnd();
 
+drawgrid_cleanup:
+	immUnbindProgram();
 	glDepthMask(GL_TRUE);  /* enable write in zbuffer */
 }
-#undef GRID_MIN_PX
+
+#undef DEBUG_GRID
+#undef GRID_MIN_PX_D
+#undef GRID_MIN_PX_F
 
 /** could move this elsewhere, but tied into #ED_view3d_grid_scale */
 float ED_scene_grid_scale(Scene *scene, const char **grid_unit)
