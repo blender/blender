@@ -276,25 +276,16 @@ static bNodeSocket *best_socket_input(bNodeTree *ntree, bNode *node, int num, in
 	return NULL;
 }
 
-static int snode_autoconnect_input(SpaceNode *snode, bNode *node_fr, bNodeSocket *sock_fr, bNode *node_to, bNodeSocket *sock_to, int replace)
+static bool snode_autoconnect_input(SpaceNode *snode, bNode *node_fr, bNodeSocket *sock_fr, bNode *node_to, bNodeSocket *sock_to, int replace)
 {
 	bNodeTree *ntree = snode->edittree;
-	bNodeLink *link;
 
 	/* then we can connect */
 	if (replace)
 		nodeRemSocketLinks(ntree, sock_to);
 
-	link = nodeAddLink(ntree, node_fr, sock_fr, node_to, sock_to);
-	/* validate the new link */
-	ntreeUpdateTree(G.main, ntree);
-	if (!(link->flag & NODE_LINK_VALID)) {
-		nodeRemLink(ntree, link);
-		return 0;
-	}
-
-	snode_update(snode, node_to);
-	return 1;
+	nodeAddLink(ntree, node_fr, sock_fr, node_to, sock_to);
+	return true;
 }
 
 static void snode_autoconnect(SpaceNode *snode, const bool allow_multiple, const bool replace)
