@@ -258,8 +258,7 @@ typedef struct {
 } Immediate;
 
 // size of internal buffer -- make this adjustable?
-// #define IMM_BUFFER_SIZE (4 * 1024 * 1024)
-#define IMM_BUFFER_SIZE 1024
+#define IMM_BUFFER_SIZE (4 * 1024 * 1024)
 
 static PER_THREAD bool initialized = false;
 static PER_THREAD Immediate imm;
