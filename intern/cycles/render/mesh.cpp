@@ -30,6 +30,7 @@
 
 #include "osl_globals.h"
 
+#include "subd_split.h"
 #include "subd_patch_table.h"
 
 #include "util_foreach.h"
@@ -172,6 +173,7 @@ Mesh::Mesh()
 	num_ngons = 0;
 
 	subdivision_type = SUBDIVISION_NONE;
+	subd_params = NULL;
 
 	patch_table = NULL;
 }
@@ -180,6 +182,7 @@ Mesh::~Mesh()
 {
 	delete bvh;
 	delete patch_table;
+	delete subd_params;
 }
 
 void Mesh::resize_mesh(int numverts, int numtris)
@@ -1659,6 +1662,42 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 		}
 	}
 
+	/* Tessellate meshes that are using subdivision */
+	size_t total_tess_needed = 0;
+	foreach(Mesh *mesh, scene->meshes) {
+		if(mesh->need_update &&
+		   mesh->subdivision_type != Mesh::SUBDIVISION_NONE &&
+		   mesh->num_subd_verts == 0 &&
+		   mesh->subd_params)
+		{
+			total_tess_needed++;
+		}
+	}
+
+	size_t i = 0;
+	foreach(Mesh *mesh, scene->meshes) {
+		if(mesh->need_update &&
+		   mesh->subdivision_type != Mesh::SUBDIVISION_NONE &&
+		   mesh->num_subd_verts == 0 &&
+		   mesh->subd_params)
+		{
+			string msg = "Tessellating ";
+			if(mesh->name == "")
+				msg += string_printf("%u/%u", (uint)(i+1), (uint)total_tess_needed);
+			else
+				msg += string_printf("%s %u/%u", mesh->name.c_str(), (uint)(i+1), (uint)total_tess_needed);
+
+			progress.set_status("Updating Mesh", msg);
+
+			DiagSplit dsplit(*mesh->subd_params);
+			mesh->tessellate(&dsplit);
+
+			i++;
+
+			if(progress.get_cancel()) return;
+		}
+	}
+
 	/* Update images needed for true displacement. */
 	bool true_displacement_used = false;
 	bool old_need_object_flags_update = false;
@@ -1719,7 +1758,7 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 	}
 
 	/* Update bvh. */
-	size_t i = 0, num_bvh = 0;
+	size_t num_bvh = 0;
 	foreach(Mesh *mesh, scene->meshes) {
 		if(mesh->need_update && mesh->need_build_bvh()) {
 			num_bvh++;
@@ -1728,6 +1767,7 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 
 	TaskPool pool;
 
+	i = 0;
 	foreach(Mesh *mesh, scene->meshes) {
 		if(mesh->need_update) {
 			pool.push(function_bind(&Mesh::compute_bvh,

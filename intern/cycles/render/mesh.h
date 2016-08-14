@@ -39,6 +39,7 @@ class Progress;
 class Scene;
 class SceneParams;
 class AttributeRequest;
+struct SubdParams;
 class DiagSplit;
 struct PackedPatchTable;
 
@@ -155,6 +156,8 @@ public:
 	int num_ngons;
 
 	array<SubdEdgeCrease> subd_creases;
+
+	SubdParams *subd_params;
 
 	vector<Shader*> used_shaders;
 	AttributeSet attributes;

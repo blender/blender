@@ -22,6 +22,7 @@ set(SRC
 set(SRC_HEADERS
 	subd_dice.h
 	subd_patch.h
+	subd_patch_table.h
 	subd_split.h
 )
 
