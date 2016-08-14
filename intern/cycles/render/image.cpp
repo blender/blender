@@ -176,9 +176,7 @@ ImageManager::ImageDataType ImageManager::get_image_metadata(const string& filen
 			}
 
 			/* check if it's half float */
-			if(spec.format == TypeDesc::HALF ||
-			   spec.format == TypeDesc::USHORT ||
-			   spec.format == TypeDesc::SHORT)
+			if(spec.format == TypeDesc::HALF)
 				is_half = true;
 
 			channels = spec.nchannels;
