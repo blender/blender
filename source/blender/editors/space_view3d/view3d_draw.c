@@ -224,15 +224,8 @@ static void gridline_range(double x0, double dx, double max, int* first_out, int
 	 * x0 is gridline 0, the axis in screen space
 	 * Area covers [0 .. max) pixels */
 
-	int first, last;
-	if (remquo(0.0 - x0, dx, &first) > 0.0) ++first;
-	if (remquo(max - x0, dx, &last) < 0.0) --last;
-	/* +/-1 adjustments are to ensure we fit inside the [0 .. max) range */
-
-#if DEBUG_GRID
-	printf("   first %d * dx = %f\n", first, x0 + first * dx);
-	printf("   last %d * dx = %f\n", last, x0 + last * dx);
-#endif
+	int first = (int)ceil(-x0 / dx);
+	int last = (int)floor((max - x0) / dx);
 
 	if (first <= last) {
 		*first_out = first;
@@ -242,6 +235,12 @@ static void gridline_range(double x0, double dx, double max, int* first_out, int
 		*first_out = 0;
 		*count_out = 0;
 	}
+
+#if DEBUG_GRID
+	printf("   first %d * dx = %f\n", first, x0 + first * dx);
+	printf("   last %d * dx = %f\n", last, x0 + last * dx);
+	printf("   count = %d\n", *count_out);
+#endif
 }
 
 static int gridline_count(ARegion *ar, double x0, double y0, double dx)
@@ -278,7 +277,7 @@ static void drawgrid_draw(ARegion *ar, double x0, double y0, double dx, int skip
 	 * but if no lines are drawn, color must not be set! */
 
 #if DEBUG_GRID
-	printf("  %s(%f, %f, dx:%f)\n", __FUNCTION__, x0, y0, dx);
+	printf("  %s(%f, %f, dx:%f, skip_mod:%d)\n", __FUNCTION__, x0, y0, dx, skip_mod);
 #endif
 
 	const float x_max = (float)ar->winx;
@@ -291,8 +290,11 @@ static void drawgrid_draw(ARegion *ar, double x0, double y0, double dx, int skip
 	gridline_range(x0, dx, x_max, &first, &ct);
 
 	for (int i = first; i < first + ct; ++i) {
-		if (i == 0 || skip_mod && (i % skip_mod) == 0)
+		if (i == 0)
 			continue;
+		else if (skip_mod && (i % skip_mod) == 0) {
+			continue;
+		}
 
 		if (x_ct == 0)
 			immAttrib3ub(col, col_value[0], col_value[1], col_value[2]);
@@ -307,8 +309,11 @@ static void drawgrid_draw(ARegion *ar, double x0, double y0, double dx, int skip
 	gridline_range(y0, dx, y_max, &first, &ct);
 
 	for (int i = first; i < first + ct; ++i) {
-		if (i == 0 || skip_mod && (i % skip_mod) == 0)
+		if (i == 0)
 			continue;
+		else if (skip_mod && (i % skip_mod) == 0) {
+			continue;
+		}
 
 		if (x_ct + y_ct == 0)
 			immAttrib3ub(col, col_value[0], col_value[1], col_value[2]);
@@ -320,8 +325,8 @@ static void drawgrid_draw(ARegion *ar, double x0, double y0, double dx, int skip
 	}
 
 #if DEBUG_GRID
-	unsigned total_ct = x_ct + y_ct;
-	printf("    %u + %u = %u gridlines drawn\n", x_ct, y_ct, total_ct);
+	int total_ct = x_ct + y_ct;
+	printf("    %d + %d = %d gridlines drawn\n", x_ct, y_ct, total_ct);
 #endif
 }
 
@@ -415,7 +420,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 
 				UI_GetThemeColorBlend3ubv(TH_HIGH_GRAD, TH_GRID, blend_fac, col2);
 
-				const int skip_mod = (i == 0) ? 0 : (int)nearbyint(bUnit_GetScaler(usys, i - 1) / scalar);
+				const int skip_mod = (i == 0) ? 0 : (int)round(bUnit_GetScaler(usys, i - 1) / scalar);
 #if DEBUG_GRID
 				printf("%s %f, ", bUnit_GetNameDisplay(usys, i), scalar);
 				if (i > 0)
