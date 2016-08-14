@@ -267,7 +267,7 @@ static int gridline_count(ARegion *ar, double x0, double y0, double dx)
 	return total_ct;
 }
 
-static void drawgrid_draw(ARegion *ar, double x0, double y0, double dx, int skip_mod, unsigned pos, unsigned col, GLubyte col_value[3])
+static bool drawgrid_draw(ARegion *ar, double x0, double y0, double dx, int skip_mod, unsigned pos, unsigned col, GLubyte col_value[3])
 {
 	/* skip every skip_mod lines relative to each axis; they will be overlaid by another drawgrid_draw
 	 * always skip exact x0 & y0 axes; they will be drawn later in color
@@ -285,6 +285,7 @@ static void drawgrid_draw(ARegion *ar, double x0, double y0, double dx, int skip
 
 	int first, ct;
 	int x_ct = 0, y_ct = 0; /* count of lines actually drawn */
+	int lines_skipped_for_next_unit = 0;
 
 	/* draw vertical lines */
 	gridline_range(x0, dx, x_max, &first, &ct);
@@ -293,6 +294,7 @@ static void drawgrid_draw(ARegion *ar, double x0, double y0, double dx, int skip
 		if (i == 0)
 			continue;
 		else if (skip_mod && (i % skip_mod) == 0) {
+			++lines_skipped_for_next_unit;
 			continue;
 		}
 
@@ -312,6 +314,7 @@ static void drawgrid_draw(ARegion *ar, double x0, double y0, double dx, int skip
 		if (i == 0)
 			continue;
 		else if (skip_mod && (i % skip_mod) == 0) {
+			++lines_skipped_for_next_unit;
 			continue;
 		}
 
@@ -326,8 +329,10 @@ static void drawgrid_draw(ARegion *ar, double x0, double y0, double dx, int skip
 
 #if DEBUG_GRID
 	int total_ct = x_ct + y_ct;
-	printf("    %d + %d = %d gridlines drawn\n", x_ct, y_ct, total_ct);
+	printf("    %d + %d = %d gridlines drawn, %d skipped for next unit\n", x_ct, y_ct, total_ct, lines_skipped_for_next_unit);
 #endif
+	
+	return lines_skipped_for_next_unit > 0;
 }
 
 #define GRID_MIN_PX_D 6.0
@@ -428,7 +433,8 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 				else
 					printf("largest unit\n");
 #endif
-				drawgrid_draw(ar, x, y, dx_scalar, skip_mod, pos, color, col2);
+				if (!drawgrid_draw(ar, x, y, dx_scalar, skip_mod, pos, color, col2))
+					break;
 			}
 		}
 	}
@@ -473,8 +479,8 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 
 		if (grids_to_draw == 2) {
 			UI_GetThemeColorBlend3ubv(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0), col2);
-			drawgrid_draw(ar, x, y, dx, v3d->gridsubdiv, pos, color, col2);
-			drawgrid_draw(ar, x, y, dx * sublines, 0, pos, color, col);
+			if (drawgrid_draw(ar, x, y, dx, v3d->gridsubdiv, pos, color, col2))
+				drawgrid_draw(ar, x, y, dx * sublines, 0, pos, color, col);
 		}
 		else if (grids_to_draw == 1) {
 			drawgrid_draw(ar, x, y, dx, 0, pos, color, col);
