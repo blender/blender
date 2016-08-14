@@ -123,6 +123,8 @@ public:
 	/* opencl images */
 	device_vector<uchar4> tex_image_byte4_packed;
 	device_vector<float4> tex_image_float4_packed;
+	device_vector<uchar> tex_image_byte_packed;
+	device_vector<float> tex_image_float_packed;
 	device_vector<uint4> tex_image_packed_info;
 
 	KernelData data;

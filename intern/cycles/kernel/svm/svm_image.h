@@ -36,13 +36,26 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline float4 svm_image_texture_read(KernelGlobals *kg, int id, int offset)
 {
-	if(id >= TEX_NUM_FLOAT4_IMAGES) {
+	/* Float4 */
+	if(id < TEX_START_BYTE4_OPENCL) {
+		return kernel_tex_fetch(__tex_image_float4_packed, offset);
+	}
+	/* Byte4 */
+	else if(id < TEX_START_FLOAT_OPENCL) {
 		uchar4 r = kernel_tex_fetch(__tex_image_byte4_packed, offset);
 		float f = 1.0f/255.0f;
 		return make_float4(r.x*f, r.y*f, r.z*f, r.w*f);
 	}
+	/* Float */
+	else if(id < TEX_START_BYTE_OPENCL) {
+		float f = kernel_tex_fetch(__tex_image_float_packed, offset);
+		return make_float4(f, f, f, 1.0f);
+	}
+	/* Byte */
 	else {
-		return kernel_tex_fetch(__tex_image_float4_packed, offset);
+		uchar r = kernel_tex_fetch(__tex_image_byte_packed, offset);
+		float f = r * (1.0f/255.0f);
+		return make_float4(f, f, f, 1.0f);
 	}
 }
 
