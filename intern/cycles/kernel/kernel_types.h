@@ -714,20 +714,21 @@ enum ShaderDataFlag {
 	SD_VOLUME_MIS             = (1 << 19),  /* use multiple importance sampling */
 	SD_VOLUME_CUBIC           = (1 << 20),  /* use cubic interpolation for voxels */
 	SD_HAS_BUMP               = (1 << 21),  /* has data connected to the displacement input */
+	SD_HAS_DISPLACEMENT       = (1 << 22),  /* has true displacement */
 
 	SD_SHADER_FLAGS = (SD_USE_MIS|SD_HAS_TRANSPARENT_SHADOW|SD_HAS_VOLUME|
 	                   SD_HAS_ONLY_VOLUME|SD_HETEROGENEOUS_VOLUME|
 	                   SD_HAS_BSSRDF_BUMP|SD_VOLUME_EQUIANGULAR|SD_VOLUME_MIS|
-	                   SD_VOLUME_CUBIC|SD_HAS_BUMP),
+	                   SD_VOLUME_CUBIC|SD_HAS_BUMP|SD_HAS_DISPLACEMENT),
 
 	/* object flags */
-	SD_HOLDOUT_MASK             = (1 << 22),  /* holdout for camera rays */
-	SD_OBJECT_MOTION            = (1 << 23),  /* has object motion blur */
-	SD_TRANSFORM_APPLIED        = (1 << 24),  /* vertices have transform applied */
-	SD_NEGATIVE_SCALE_APPLIED   = (1 << 25),  /* vertices have negative scale applied */
-	SD_OBJECT_HAS_VOLUME        = (1 << 26),  /* object has a volume shader */
-	SD_OBJECT_INTERSECTS_VOLUME = (1 << 27),  /* object intersects AABB of an object with volume shader */
-	SD_OBJECT_HAS_VERTEX_MOTION = (1 << 28),  /* has position for motion vertices */
+	SD_HOLDOUT_MASK             = (1 << 23),  /* holdout for camera rays */
+	SD_OBJECT_MOTION            = (1 << 24),  /* has object motion blur */
+	SD_TRANSFORM_APPLIED        = (1 << 25),  /* vertices have transform applied */
+	SD_NEGATIVE_SCALE_APPLIED   = (1 << 26),  /* vertices have negative scale applied */
+	SD_OBJECT_HAS_VOLUME        = (1 << 27),  /* object has a volume shader */
+	SD_OBJECT_INTERSECTS_VOLUME = (1 << 28),  /* object intersects AABB of an object with volume shader */
+	SD_OBJECT_HAS_VERTEX_MOTION = (1 << 29),  /* has position for motion vertices */
 
 	SD_OBJECT_FLAGS = (SD_HOLDOUT_MASK|SD_OBJECT_MOTION|SD_TRANSFORM_APPLIED|
 	                   SD_NEGATIVE_SCALE_APPLIED|SD_OBJECT_HAS_VOLUME|

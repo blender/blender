@@ -609,7 +609,7 @@ bool OSLCompiler::node_skip_input(ShaderNode *node, ShaderInput *input)
 			return true;
 		if(input->name() == "Displacement" && current_type != SHADER_TYPE_DISPLACEMENT)
 			return true;
-		if(input->name() == "Normal")
+		if(input->name() == "Normal" && current_type != SHADER_TYPE_BUMP)
 			return true;
 	}
 	else if(node->special_type == SHADER_SPECIAL_TYPE_BUMP) {
@@ -683,6 +683,8 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 	else if(current_type == SHADER_TYPE_VOLUME)
 		ss->Shader("surface", name, id(node).c_str());
 	else if(current_type == SHADER_TYPE_DISPLACEMENT)
+		ss->Shader("displacement", name, id(node).c_str());
+	else if(current_type == SHADER_TYPE_BUMP)
 		ss->Shader("displacement", name, id(node).c_str());
 	else
 		assert(0);
@@ -1055,6 +1057,12 @@ OSL::ShaderGroupRef OSLCompiler::compile_type(Shader *shader, ShaderGraph *graph
 		generate_nodes(dependencies);
 		output->compile(*this);
 	}
+	else if(type == SHADER_TYPE_BUMP) {
+		/* generate bump shader */
+		find_dependencies(dependencies, output->input("Normal"));
+		generate_nodes(dependencies);
+		output->compile(*this);
+	}
 	else if(type == SHADER_TYPE_VOLUME) {
 		/* generate volume shader */
 		find_dependencies(dependencies, output->input("Volume"));
@@ -1116,10 +1124,10 @@ void OSLCompiler::compile(Scene *scene, OSLGlobals *og, Shader *shader)
 		if(shader->used && graph && output->input("Surface")->link) {
 			shader->osl_surface_ref = compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);
 
-			if(shader->graph_bump)
-				shader->osl_surface_bump_ref = compile_type(shader, shader->graph_bump, SHADER_TYPE_SURFACE);
+			if(shader->graph_bump && shader->displacement_method != DISPLACE_TRUE)
+				shader->osl_surface_bump_ref = compile_type(shader, shader->graph_bump, SHADER_TYPE_BUMP);
 			else
-				shader->osl_surface_bump_ref = shader->osl_surface_ref;
+				shader->osl_surface_bump_ref = OSL::ShaderGroupRef();
 
 			shader->has_surface = true;
 		}
@@ -1146,15 +1154,10 @@ void OSLCompiler::compile(Scene *scene, OSLGlobals *og, Shader *shader)
 	}
 
 	/* push state to array for lookup */
-	if(shader->displacement_method == DISPLACE_TRUE || !shader->graph_bump) {
-		og->surface_state.push_back(shader->osl_surface_ref);
-	}
-	else {
-		og->surface_state.push_back(shader->osl_surface_bump_ref);
-	}
-
+	og->surface_state.push_back(shader->osl_surface_ref);
 	og->volume_state.push_back(shader->osl_volume_ref);
 	og->displacement_state.push_back(shader->osl_displacement_ref);
+	og->bump_state.push_back(shader->osl_surface_bump_ref);
 }
 
 #else

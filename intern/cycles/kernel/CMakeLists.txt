@@ -113,6 +113,7 @@ set(SRC_SVM_HEADERS
 	svm/svm.h
 	svm/svm_attribute.h
 	svm/svm_blackbody.h
+	svm/svm_bump.h
 	svm/svm_camera.h
 	svm/svm_closure.h
 	svm/svm_convert.h

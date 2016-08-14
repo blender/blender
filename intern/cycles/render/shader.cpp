@@ -407,6 +407,8 @@ void ShaderManager::device_update_common(Device *device,
 			flag |= SD_VOLUME_CUBIC;
 		if(shader->graph_bump)
 			flag |= SD_HAS_BUMP;
+		if(shader->displacement_method != DISPLACE_BUMP)
+			flag |= SD_HAS_DISPLACEMENT;
 
 		/* shader with bump mapping */
 		if(shader->displacement_method != DISPLACE_TRUE && shader->graph_bump)

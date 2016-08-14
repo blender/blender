@@ -856,27 +856,8 @@ void ShaderGraph::bump_from_displacement()
 	/* connect the bump out to the set normal in: */
 	connect(bump->output("Normal"), set_normal->input("Direction"));
 
-	/* connect bump output to normal input nodes that aren't set yet. actually
-	 * this will only set the normal input to the geometry node that we created
-	 * and connected to all other normal inputs already. */
-	foreach(ShaderNode *node, nodes) {
-		/* Don't connect normal to the bump node we're coming from,
-		 * otherwise it'll be a cycle in graph.
-		 */
-		if(node == bump) {
-			continue;
-		}
-		foreach(ShaderInput *input, node->inputs) {
-			if(!input->link && (input->flags() & SocketType::LINK_NORMAL))
-				connect(set_normal->output("Normal"), input);
-		}
-	}
-
-	/* for displacement bump, clear the normal input in case the above loop
-	 * connected the setnormal out to the bump normalin */
-	ShaderInput *bump_normal_in = bump->input("Normal");
-	if(bump_normal_in)
-		bump_normal_in->link = NULL;
+	/* connect to output node */
+	connect(set_normal->output("Normal"), output()->input("Normal"));
 
 	/* finally, add the copied nodes to the graph. we can't do this earlier
 	 * because we would create dependency cycles in the above loop */
