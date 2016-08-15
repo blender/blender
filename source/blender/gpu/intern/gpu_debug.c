@@ -207,13 +207,21 @@ static void APIENTRY gpu_debug_proc(
         GLenum severity, GLsizei UNUSED(length),
         const GLchar *message, const GLvoid *UNUSED(userParm))
 {
+	bool backtrace = false;
+
 	switch (severity) {
 		case GL_DEBUG_SEVERITY_HIGH:
+			backtrace = true;
+			/* fall through */
 		case GL_DEBUG_SEVERITY_MEDIUM:
 		case GL_DEBUG_SEVERITY_LOW:
 		case GL_DEBUG_SEVERITY_NOTIFICATION: /* KHR has this, ARB does not */
 			fprintf(stderr, "GL %s %s: %s\n", source_name(source), message_type_name(type), message);
-			fflush(stderr);
+	}
+
+	if (backtrace) {
+		BLI_system_backtrace(stderr);
+		fflush(stderr);
 	}
 }
 
@@ -224,12 +232,20 @@ static void APIENTRY gpu_debug_proc_amd(
         GLenum severity, GLsizei UNUSED(length),
         const GLchar *message,  GLvoid *UNUSED(userParm))
 {
+	bool backtrace = false;
+
 	switch (severity) {
 		case GL_DEBUG_SEVERITY_HIGH:
+			backtrace = true;
+			/* fall through */
 		case GL_DEBUG_SEVERITY_MEDIUM:
 		case GL_DEBUG_SEVERITY_LOW:
 			fprintf(stderr, "GL %s: %s\n", category_name_amd(category), message);
-			fflush(stderr);
+	}
+
+	if (backtrace) {
+		BLI_system_backtrace(stderr);
+		fflush(stderr);
 	}
 }
 #endif
