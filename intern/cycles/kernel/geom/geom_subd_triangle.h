@@ -101,6 +101,7 @@ ccl_device_noinline float subd_triangle_attribute_float(KernelGlobals *kg, const
 {
 	int patch = subd_triangle_patch(kg, sd);
 
+#ifdef __PATCH_EVAL__
 	if(desc.flags & ATTR_SUBDIVIDED) {
 		float2 uv[3];
 		subd_triangle_patch_uv(kg, sd, uv);
@@ -144,7 +145,9 @@ ccl_device_noinline float subd_triangle_attribute_float(KernelGlobals *kg, const
 
 		return a;
 	}
-	else if(desc.element == ATTR_ELEMENT_FACE) {
+	else
+#endif /* __PATCH_EVAL__ */
+	if(desc.element == ATTR_ELEMENT_FACE) {
 		if(dx) *dx = 0.0f;
 		if(dy) *dy = 0.0f;
 
@@ -217,6 +220,7 @@ ccl_device_noinline float3 subd_triangle_attribute_float3(KernelGlobals *kg, con
 {
 	int patch = subd_triangle_patch(kg, sd);
 
+#ifdef __PATCH_EVAL__
 	if(desc.flags & ATTR_SUBDIVIDED) {
 		float2 uv[3];
 		subd_triangle_patch_uv(kg, sd, uv);
@@ -266,7 +270,9 @@ ccl_device_noinline float3 subd_triangle_attribute_float3(KernelGlobals *kg, con
 
 		return a;
 	}
-	else if(desc.element == ATTR_ELEMENT_FACE) {
+	else
+#endif /* __PATCH_EVAL__ */
+	if(desc.element == ATTR_ELEMENT_FACE) {
 		if(dx) *dx = make_float3(0.0f, 0.0f, 0.0f);
 		if(dy) *dy = make_float3(0.0f, 0.0f, 0.0f);
 

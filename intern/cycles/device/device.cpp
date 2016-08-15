@@ -56,8 +56,14 @@ std::ostream& operator <<(std::ostream &os,
 	   << string_from_bool(requested_features.use_camera_motion)  << std::endl;
 	os << "Use Baking: "
 	   << string_from_bool(requested_features.use_baking)  << std::endl;
+	os << "Use Subsurface: "
+	   << string_from_bool(requested_features.use_subsurface) << std::endl;
 	os << "Use Volume: "
 	   << string_from_bool(requested_features.use_volume)  << std::endl;
+	os << "Use Branched Integrator: "
+	   << string_from_bool(requested_features.use_integrator_branched) << std::endl;
+	os << "Use Patch Evaluation: "
+	   << string_from_bool(requested_features.use_patch_evaluation) << std::endl;
 	return os;
 }
 

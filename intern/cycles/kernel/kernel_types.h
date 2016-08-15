@@ -148,6 +148,7 @@ CCL_NAMESPACE_BEGIN
 #define __CAMERA_CLIPPING__
 #define __INTERSECTION_REFINE__
 #define __CLAMP_SAMPLE__
+#define __PATCH_EVAL__
 
 #ifdef __KERNEL_SHADING__
 #  define __SVM__
@@ -196,6 +197,9 @@ CCL_NAMESPACE_BEGIN
 #endif
 #ifdef __NO_BRANCHED_PATH__
 #  undef __BRANCHED_PATH__
+#endif
+#ifdef __NO_PATCH_EVAL__
+#  undef __PATCH_EVAL__
 #endif
 
 /* Random Numbers */
