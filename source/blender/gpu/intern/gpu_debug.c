@@ -30,6 +30,7 @@
  */
 
 #include "BLI_sys_types.h"
+#include "BLI_system.h"
 
 #include "BKE_global.h"
 
@@ -42,10 +43,6 @@
 #include <string.h>
 
 #define CASE_CODE_RETURN_STR(code) case code: return #code;
-
-#if (defined(__GNUC__) && !defined(__clang__)) && defined(NDEBUG)
-#  pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
-#endif
 
 static const char *gpu_gl_error_symbol(GLenum err)
 {
