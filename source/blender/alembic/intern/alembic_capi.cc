@@ -585,6 +585,9 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 	IArchive *archive = open_archive(data->filename);
 
 	if (!archive || !archive->valid()) {
+		if (archive) {
+			delete archive;
+		}
 		data->error_code = ABC_ARCHIVE_FAIL;
 		return;
 	}
