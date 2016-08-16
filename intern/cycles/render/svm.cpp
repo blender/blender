@@ -63,7 +63,6 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 
 	for(i = 0; i < scene->shaders.size(); i++) {
 		svm_nodes.push_back(make_int4(NODE_SHADER_JUMP, 0, 0, 0));
-		svm_nodes.push_back(make_int4(NODE_SHADER_JUMP, 0, 0, 0));
 	}
 
 	foreach(Shader *shader, scene->shaders) {
@@ -754,18 +753,16 @@ void SVMCompiler::compile(Scene *scene,
 	shader->has_integrator_dependency = false;
 
 	/* generate surface shader */
-	{
+	if(shader->displacement_method == DISPLACE_TRUE || !shader->graph_bump) {
 		scoped_timer timer((summary != NULL)? &summary->time_generate_surface: NULL);
 		compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);
-		global_svm_nodes[index*2 + 0].y = global_svm_nodes.size();
-		global_svm_nodes[index*2 + 1].y = global_svm_nodes.size();
+		global_svm_nodes[index].y = global_svm_nodes.size();
 		global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
 	}
-
-	if(shader->graph_bump) {
+	else {
 		scoped_timer timer((summary != NULL)? &summary->time_generate_bump: NULL);
 		compile_type(shader, shader->graph_bump, SHADER_TYPE_SURFACE);
-		global_svm_nodes[index*2 + 1].y = global_svm_nodes.size();
+		global_svm_nodes[index].y = global_svm_nodes.size();
 		global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
 	}
 
@@ -773,8 +770,7 @@ void SVMCompiler::compile(Scene *scene,
 	{
 		scoped_timer timer((summary != NULL)? &summary->time_generate_volume: NULL);
 		compile_type(shader, shader->graph, SHADER_TYPE_VOLUME);
-		global_svm_nodes[index*2 + 0].z = global_svm_nodes.size();
-		global_svm_nodes[index*2 + 1].z = global_svm_nodes.size();
+		global_svm_nodes[index].z = global_svm_nodes.size();
 		global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
 	}
 
@@ -782,8 +778,7 @@ void SVMCompiler::compile(Scene *scene,
 	{
 		scoped_timer timer((summary != NULL)? &summary->time_generate_displacement: NULL);
 		compile_type(shader, shader->graph, SHADER_TYPE_DISPLACEMENT);
-		global_svm_nodes[index*2 + 0].w = global_svm_nodes.size();
-		global_svm_nodes[index*2 + 1].w = global_svm_nodes.size();
+		global_svm_nodes[index].w = global_svm_nodes.size();
 		global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
 	}
 

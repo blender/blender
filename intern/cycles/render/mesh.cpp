@@ -610,7 +610,7 @@ void Mesh::pack_normals(Scene *scene, uint *tri_shader, float4 *vnormal)
 			last_smooth = smooth[i];
 			Shader *shader = (last_shader < used_shaders.size()) ?
 				used_shaders[last_shader] : scene->default_surface;
-			shader_id = scene->shader_manager->get_shader_id(shader, this, last_smooth);
+			shader_id = scene->shader_manager->get_shader_id(shader, last_smooth);
 		}
 
 		tri_shader[i] = shader_id;
@@ -679,7 +679,7 @@ void Mesh::pack_curves(Scene *scene, float4 *curve_key_co, float4 *curve_data, s
 		int shader_id = curve_shader[i];
 		Shader *shader = (shader_id < used_shaders.size()) ?
 			used_shaders[shader_id] : scene->default_surface;
-		shader_id = scene->shader_manager->get_shader_id(shader, this, false);
+		shader_id = scene->shader_manager->get_shader_id(shader, false);
 
 		curve_data[i] = make_float4(
 			__int_as_float(curve.first_key + curvekey_offset),

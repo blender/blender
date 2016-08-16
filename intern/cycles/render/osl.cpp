@@ -1146,13 +1146,14 @@ void OSLCompiler::compile(Scene *scene, OSLGlobals *og, Shader *shader)
 	}
 
 	/* push state to array for lookup */
-	og->surface_state.push_back(shader->osl_surface_ref);
-	og->surface_state.push_back(shader->osl_surface_bump_ref);
+	if(shader->displacement_method == DISPLACE_TRUE || !shader->graph_bump) {
+		og->surface_state.push_back(shader->osl_surface_ref);
+	}
+	else {
+		og->surface_state.push_back(shader->osl_surface_bump_ref);
+	}
 
 	og->volume_state.push_back(shader->osl_volume_ref);
-	og->volume_state.push_back(shader->osl_volume_ref);
-
-	og->displacement_state.push_back(shader->osl_displacement_ref);
 	og->displacement_state.push_back(shader->osl_displacement_ref);
 }
 

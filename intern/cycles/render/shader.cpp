@@ -312,14 +312,11 @@ uint ShaderManager::get_attribute_id(AttributeStandard std)
 	return (uint)std;
 }
 
-int ShaderManager::get_shader_id(Shader *shader, Mesh *mesh, bool smooth)
+int ShaderManager::get_shader_id(Shader *shader, bool smooth)
 {
 	/* get a shader id to pass to the kernel */
-	int id = shader->id*2;
-	
-	/* index depends bump since this setting is not in the shader */
-	if(mesh && shader->displacement_method != DISPLACE_TRUE)
-		id += 1;
+	int id = shader->id;
+
 	/* smooth flag */
 	if(smooth)
 		id |= SHADER_SMOOTH_NORMAL;
@@ -368,7 +365,7 @@ void ShaderManager::device_update_common(Device *device,
 	if(scene->shaders.size() == 0)
 		return;
 
-	uint shader_flag_size = scene->shaders.size()*4;
+	uint shader_flag_size = scene->shaders.size()*2;
 	uint *shader_flag = dscene->shader_flag.resize(shader_flag_size);
 	uint i = 0;
 	bool has_volumes = false;
@@ -407,14 +404,11 @@ void ShaderManager::device_update_common(Device *device,
 		if(shader->graph_bump)
 			flag |= SD_HAS_BUMP;
 
-		/* regular shader */
-		shader_flag[i++] = flag;
-		shader_flag[i++] = shader->pass_id;
-
 		/* shader with bump mapping */
-		if(shader->graph_bump)
+		if(shader->displacement_method != DISPLACE_TRUE && shader->graph_bump)
 			flag |= SD_HAS_BSSRDF_BUMP;
 
+		/* regular shader */
 		shader_flag[i++] = flag;
 		shader_flag[i++] = shader->pass_id;
 
