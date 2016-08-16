@@ -91,6 +91,9 @@ static void migrate_single_rot_stabilization_track_settings(MovieTrackingStabili
 		}
 	}
 	stab->rot_track = NULL; /* this field is now ignored */
+
+	/* by default show the track lists expanded, to improve "discoverability" */
+	stab->flag |= TRACKING_SHOW_STAB_TRACKS;
 }
 
 static void do_version_constraints_radians_degrees_270_1(ListBase *lb)

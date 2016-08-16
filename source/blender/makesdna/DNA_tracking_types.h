@@ -463,6 +463,7 @@ enum {
 	TRACKING_AUTOSCALE          = (1 << 1),
 	TRACKING_STABILIZE_ROTATION = (1 << 2),
 	TRACKING_STABILIZE_SCALE    = (1 << 3),
+	TRACKING_SHOW_STAB_TRACKS   = (1 << 5)
 };
 
 /* MovieTrackingStrabilization->filter */

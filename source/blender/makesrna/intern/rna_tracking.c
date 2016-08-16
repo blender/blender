@@ -1815,6 +1815,13 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, filter_items);
 	RNA_def_property_ui_text(prop, "Interpolate", "Interpolation to use for sub-pixel shifts and rotations due to stabilization");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, "rna_tracking_flushUpdate");
+
+	/* UI display : show participating tracks */
+	prop = RNA_def_property(srna, "show_tracks_expanded", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACKING_SHOW_STAB_TRACKS);
+	RNA_def_property_ui_text(prop, "Show Tracks", "Show UI list of tracks participating in stabilization");
+	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 }
 
 static void rna_def_reconstructedCamera(BlenderRNA *brna)
