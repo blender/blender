@@ -1393,7 +1393,7 @@ int BKE_ffmpeg_property_add_string(RenderData *rd, const char *type, const char 
 	
 	avcodec_get_context_defaults3(&c, NULL);
 
-	strncpy(name_, str, sizeof(name_));
+	BLI_strncpy(name_, str, sizeof(name_));
 
 	name = name_;
 	while (*name == ' ') name++;

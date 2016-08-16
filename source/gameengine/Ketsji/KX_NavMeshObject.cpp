@@ -306,7 +306,12 @@ bool KX_NavMeshObject::BuildNavMesh()
 			|| vertsPerPoly<3)
 	{
 		printf("Can't build navigation mesh data for object:%s\n", m_name.ReadPtr());
-		if (vertices) delete[] vertices;
+		if (vertices) {
+			delete[] vertices;
+		}
+		if (dvertices) {
+			delete[] dvertices;
+		}
 		return false;
 	}
 	

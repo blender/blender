@@ -3901,7 +3901,12 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
 	
 	/* send notifiers before doing anything else... */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
-	
+
+	/* verify that we have a channel to operate on. */
+	if (!ale_setting) {
+		return;
+	}
+
 	if (ale_setting->type == ANIMTYPE_GPLAYER)
 		WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, NULL);
 	
@@ -3909,17 +3914,13 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return;
 	
-	/* verify that we have a channel to operate on, and that it has all we need */
-	if (ale_setting) {
-		/* check if the setting is on... */
-		on = ANIM_channel_setting_get(&ac, ale_setting, setting);
-		
-		/* on == -1 means setting not found... */
-		if (on == -1)
-			return;
-	}
-	else
+	/* check if the setting is on... */
+	on = ANIM_channel_setting_get(&ac, ale_setting, setting);
+
+	/* on == -1 means setting not found... */
+	if (on == -1) {
 		return;
+	}
 	
 	/* get all channels that can possibly be chosen - but ignore hierarchy */
 	filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS;

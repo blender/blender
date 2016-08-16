@@ -3051,9 +3051,15 @@ float smoke_get_velocity_at(struct Object *ob, float position[3], float velocity
 int smoke_get_data_flags(SmokeDomainSettings *sds)
 {
 	int flags = 0;
-	if (smoke_has_heat(sds->fluid)) flags |= SM_ACTIVE_HEAT;
-	if (smoke_has_fuel(sds->fluid)) flags |= SM_ACTIVE_FIRE;
-	if (smoke_has_colors(sds->fluid)) flags |= SM_ACTIVE_COLORS;
+
+	if (sds->fluid) {
+		if (smoke_has_heat(sds->fluid))
+			flags |= SM_ACTIVE_HEAT;
+		if (smoke_has_fuel(sds->fluid))
+			flags |= SM_ACTIVE_FIRE;
+		if (smoke_has_colors(sds->fluid))
+			flags |= SM_ACTIVE_COLORS;
+	}
 
 	return flags;
 }

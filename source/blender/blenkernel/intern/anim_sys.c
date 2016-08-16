@@ -1513,7 +1513,7 @@ static bool animsys_store_rna_setting(
 				if (array_len && array_index >= array_len) {
 					if (G.debug & G_DEBUG) {
 						printf("Animato: Invalid array index. ID = '%s',  '%s[%d]', array length is %d\n",
-						       (ptr && ptr->id.data) ? (((ID *)ptr->id.data)->name + 2) : "<No ID>",
+						       (ptr->id.data) ? (((ID *)ptr->id.data)->name + 2) : "<No ID>",
 						       path, array_index, array_len - 1);
 					}
 				}
