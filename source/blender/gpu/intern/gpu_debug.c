@@ -29,6 +29,7 @@
  *  \ingroup gpu
  */
 
+#include "BLI_utildefines.h"
 #include "BLI_sys_types.h"
 #include "BLI_system.h"
 

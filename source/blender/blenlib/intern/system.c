@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "BLI_utildefines.h"
 #include "BLI_system.h"
 
 #include "MEM_guardedalloc.h"
