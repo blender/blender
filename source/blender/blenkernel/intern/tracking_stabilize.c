@@ -360,7 +360,7 @@ static void retrieve_next_lower_usable_frame(StabContext *ctx,
                                              int *next_lower)
 {
 	MovieTrackingMarker *markers = track->markers;
-	BLI_assert(0 <= i && i < end);
+	BLI_assert(0 <= i && i < track->markersnr);
 	while (i >= 0 &&
 	       (markers[i].framenr > ref_frame ||
 	        is_effectively_disabled(ctx, track, &markers[i])))
