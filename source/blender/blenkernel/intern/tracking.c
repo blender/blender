@@ -345,7 +345,6 @@ void BKE_tracking_settings_init(MovieTracking *tracking)
 	tracking->stabilization.rotinf = 1.0f;
 	tracking->stabilization.maxscale = 2.0f;
 	tracking->stabilization.filter = TRACKING_FILTER_BILINEAR;
-	tracking->stabilization.flag |= TRACKING_SHOW_STAB_TRACKS;
 
 	BKE_tracking_object_add(tracking, "Camera");
 }
