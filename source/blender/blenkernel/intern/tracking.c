@@ -241,13 +241,9 @@ static void tracking_reconstruction_copy(
 
 /* Copy stabilization structure. */
 static void tracking_stabilization_copy(
-        MovieTrackingStabilization *stabilization_dst, MovieTrackingStabilization *stabilization_src,
-        GHash *tracks_mapping)
+        MovieTrackingStabilization *stabilization_dst, MovieTrackingStabilization *stabilization_src)
 {
 	*stabilization_dst = *stabilization_src;
-	if (stabilization_src->rot_track) {
-		stabilization_dst->rot_track = BLI_ghash_lookup(tracks_mapping, stabilization_src->rot_track);
-	}
 }
 
 /* Copy tracking object. */
@@ -284,7 +280,7 @@ void BKE_tracking_copy(MovieTracking *tracking_dst, MovieTracking *tracking_src)
 	tracking_tracks_copy(&tracking_dst->tracks, &tracking_src->tracks, tracks_mapping);
 	tracking_plane_tracks_copy(&tracking_dst->plane_tracks, &tracking_src->plane_tracks, tracks_mapping);
 	tracking_reconstruction_copy(&tracking_dst->reconstruction, &tracking_src->reconstruction);
-	tracking_stabilization_copy(&tracking_dst->stabilization, &tracking_src->stabilization, tracks_mapping);
+	tracking_stabilization_copy(&tracking_dst->stabilization, &tracking_src->stabilization);
 	if (tracking_src->act_track) {
 		tracking_dst->act_track = BLI_ghash_lookup(tracks_mapping, tracking_src->act_track);
 	}
@@ -316,7 +312,7 @@ void BKE_tracking_copy(MovieTracking *tracking_dst, MovieTracking *tracking_src)
 }
 
 /* Initialize motion tracking settings to default values,
- * used when new movie clip datablock is creating.
+ * used when new movie clip datablock is created.
  */
 void BKE_tracking_settings_init(MovieTracking *tracking)
 {
@@ -334,10 +330,22 @@ void BKE_tracking_settings_init(MovieTracking *tracking)
 	tracking->settings.object_distance = 1;
 
 	tracking->stabilization.scaleinf = 1.0f;
+	tracking->stabilization.anchor_frame = MINFRAME;
+	zero_v2(tracking->stabilization.target_pos);
+	tracking->stabilization.target_rot = 0.0f;
+	tracking->stabilization.scale = 1.0f;
+
+	tracking->stabilization.act_track = 0;
+	tracking->stabilization.act_rot_track = 0;
+	tracking->stabilization.tot_track = 0;
+	tracking->stabilization.tot_rot_track = 0;
+
+	tracking->stabilization.scaleinf = 1.0f;
 	tracking->stabilization.locinf = 1.0f;
 	tracking->stabilization.rotinf = 1.0f;
 	tracking->stabilization.maxscale = 2.0f;
 	tracking->stabilization.filter = TRACKING_FILTER_BILINEAR;
+	tracking->stabilization.flag |= TRACKING_SHOW_STAB_TRACKS;
 
 	BKE_tracking_object_add(tracking, "Camera");
 }
@@ -552,6 +560,7 @@ MovieTrackingTrack *BKE_tracking_track_add(MovieTracking *tracking, ListBase *tr
 	track->flag = settings->default_flag;
 	track->algorithm_flag = settings->default_algorithm_flag;
 	track->weight = settings->default_weight;
+	track->weight_stab = settings->default_weight;
 
 	memset(&marker, 0, sizeof(marker));
 	marker.pos[0] = x;
@@ -589,6 +598,12 @@ MovieTrackingTrack *BKE_tracking_track_duplicate(MovieTrackingTrack *track)
 	new_track->next = new_track->prev = NULL;
 
 	new_track->markers = MEM_dupallocN(new_track->markers);
+
+	/* Orevent duplicate from being used for 2D stabilization.
+	 * If necessary, it shall be added explicitly.
+	 */
+	new_track->flag &= ~TRACK_USE_2D_STAB;
+	new_track->flag &= ~TRACK_USE_2D_STAB_ROT;
 
 	return new_track;
 }

@@ -158,7 +158,10 @@ typedef struct MovieTrackingTrack {
 	 * Used to prevent jumps of the camera when tracks are appearing or
 	 * disappearing.
 	 */
-	float weight, pad;
+	float weight;
+
+	/* track weight especially for 2D stabilization */
+	float weight_stab;
 } MovieTrackingTrack;
 
 typedef struct MovieTrackingPlaneMarker {
@@ -250,19 +253,24 @@ typedef struct MovieTrackingSettings {
 
 typedef struct MovieTrackingStabilization {
 	int flag;
-	int tot_track, act_track;       /* total number and index of active track in list */
+	int tot_track, act_track;       	/* total number of translation tracks and index of active track in list */
+	int tot_rot_track, act_rot_track;	/* total number of rotation tracks and index of active track in list */
 
 	/* 2d stabilization */
 	float maxscale;         /* max auto-scale factor */
-	MovieTrackingTrack *rot_track;  /* track used to stabilize rotation */
+	MovieTrackingTrack *rot_track DNA_DEPRECATED;  /* use TRACK_USE_2D_STAB_ROT on individual tracks instead */
+
+	int anchor_frame;		/* reference point to anchor stabilization offset */
+	float target_pos[2];	/* expected target position of frame after raw stabilization, will be subtracted */
+	float target_rot;       /* expected target rotation of frame after raw stabilization, will be compensated */
+	float scale;			/* zoom factor known to be present on original footage. Also used for autoscale */
 
 	float locinf, scaleinf, rotinf; /* influence on location, scale and rotation */
 
 	int filter;     /* filter used for pixel interpolation */
 
-	/* some pre-computing run-time variables */
-	int ok;                     /* are precomputed values and scaled buf relevant? */
-	float scale;                /* autoscale factor */
+	/* initialization and run-time data */
+	int ok DNA_DEPRECATED;	/* Without effect now, we initialize on every frame. Formerly used for caching of init values */
 } MovieTrackingStabilization;
 
 typedef struct MovieTrackingReconstruction {
@@ -386,7 +394,8 @@ enum {
 	TRACK_USE_2D_STAB       = (1 << 8),
 	TRACK_PREVIEW_GRAYSCALE = (1 << 9),
 	TRACK_DOPE_SEL          = (1 << 10),
-	TRACK_PREVIEW_ALPHA     = (1 << 11)
+	TRACK_PREVIEW_ALPHA     = (1 << 11),
+	TRACK_USE_2D_STAB_ROT   = (1 << 12)
 };
 
 /* MovieTrackingTrack->motion_model */
@@ -452,7 +461,9 @@ enum {
 enum {
 	TRACKING_2D_STABILIZATION   = (1 << 0),
 	TRACKING_AUTOSCALE          = (1 << 1),
-	TRACKING_STABILIZE_ROTATION = (1 << 2)
+	TRACKING_STABILIZE_ROTATION = (1 << 2),
+	TRACKING_STABILIZE_SCALE    = (1 << 3),
+	TRACKING_SHOW_STAB_TRACKS   = (1 << 5)
 };
 
 /* MovieTrackingStrabilization->filter */

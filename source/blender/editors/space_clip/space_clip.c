@@ -225,18 +225,6 @@ static void clip_scopes_check_gpencil_change(ScrArea *sa)
 	}
 }
 
-static void clip_stabilization_tag_refresh(ScrArea *sa)
-{
-	SpaceClip *sc = (SpaceClip *) sa->spacedata.first;
-	MovieClip *clip = ED_space_clip_get_clip(sc);
-
-	if (clip) {
-		MovieTrackingStabilization *stab = &clip->tracking.stabilization;
-
-		stab->ok = false;
-	}
-}
-
 /* ******************** default callbacks for clip space ***************** */
 
 static SpaceLink *clip_new(const bContext *C)
@@ -368,7 +356,6 @@ static void clip_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 				case NA_REMOVED:
 				case NA_EDITED:
 				case NA_EVALUATED:
-					clip_stabilization_tag_refresh(sa);
 					/* fall-through */
 
 				case NA_SELECTED:
@@ -412,7 +399,6 @@ static void clip_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 		case NC_SPACE:
 			if (wmn->data == ND_SPACE_CLIP) {
 				clip_scopes_tag_refresh(sa);
-				clip_stabilization_tag_refresh(sa);
 				ED_area_tag_redraw(sa);
 			}
 			break;
@@ -457,7 +443,7 @@ static void clip_operatortypes(void)
 	/* navigation */
 	WM_operatortype_append(CLIP_OT_frame_jump);
 
-	/* foorage */
+	/* set optical center to frame center */
 	WM_operatortype_append(CLIP_OT_set_center_principal);
 
 	/* selection */
@@ -505,7 +491,9 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_stabilize_2d_add);
 	WM_operatortype_append(CLIP_OT_stabilize_2d_remove);
 	WM_operatortype_append(CLIP_OT_stabilize_2d_select);
-	WM_operatortype_append(CLIP_OT_stabilize_2d_set_rotation);
+	WM_operatortype_append(CLIP_OT_stabilize_2d_rotation_add);
+	WM_operatortype_append(CLIP_OT_stabilize_2d_rotation_remove);
+	WM_operatortype_append(CLIP_OT_stabilize_2d_rotation_select);
 
 	/* clean-up */
 	WM_operatortype_append(CLIP_OT_clear_track_path);

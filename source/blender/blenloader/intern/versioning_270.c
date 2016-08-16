@@ -63,6 +63,7 @@
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 #include "BKE_screen.h"
+#include "BKE_tracking.h"
 #include "BKE_gpencil.h"
 
 #include "BLI_math.h"
@@ -74,6 +75,26 @@
 #include "readfile.h"
 
 #include "MEM_guardedalloc.h"
+
+/**
+ * Setup rotation stabilization from ancient single track spec.
+ * Former Version of 2D stabilization used a single tracking marker to determine the rotation
+ * to be compensated. Now several tracks can contribute to rotation detection and this feature
+ * is enabled by the MovieTrackingTrack#flag on a per track base.
+ */
+static void migrate_single_rot_stabilization_track_settings(MovieTrackingStabilization *stab)
+{
+	if (stab->rot_track) {
+		if (!(stab->rot_track->flag & TRACK_USE_2D_STAB_ROT)) {
+			stab->tot_rot_track++;
+			stab->rot_track->flag |= TRACK_USE_2D_STAB_ROT;
+		}
+	}
+	stab->rot_track = NULL; /* this field is now ignored */
+
+	/* by default show the track lists expanded, to improve "discoverability" */
+	stab->flag |= TRACKING_SHOW_STAB_TRACKS;
+}
 
 static void do_version_constraints_radians_degrees_270_1(ListBase *lb)
 {
@@ -1321,4 +1342,41 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		/* ------- end of grease pencil initialization --------------- */
 	}
 
+	if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingTrack", "float", "weight_stab")) {
+		MovieClip *clip;
+		for (clip = main->movieclip.first; clip; clip = clip->id.next) {
+			MovieTracking *tracking = &clip->tracking;
+			MovieTrackingObject *tracking_object;
+			for (tracking_object = tracking->objects.first;
+			     tracking_object != NULL;
+			     tracking_object = tracking_object->next)
+			{
+				ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
+				MovieTrackingTrack *track;
+				for (track = tracksbase->first;
+				     track != NULL;
+				     track = track->next)
+				{
+					track->weight_stab = track->weight;
+				}
+			}
+		}
+	}
+
+	if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingStabilization", "int", "tot_rot_track")) {
+
+		MovieClip *clip;
+		for (clip = main->movieclip.first; clip != NULL; clip = clip->id.next) {
+			if (clip->tracking.stabilization.rot_track) {
+				migrate_single_rot_stabilization_track_settings(&clip->tracking.stabilization);
+
+				if (!clip->tracking.stabilization.scale) {
+					/* ensure init.
+					 * Was previously used for autoscale only,
+					 * now used always (as "target scale") */
+					clip->tracking.stabilization.scale = 1.0f;
+				}
+			}
+		}
+	}
 }

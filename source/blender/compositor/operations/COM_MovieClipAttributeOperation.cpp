@@ -47,7 +47,7 @@ void MovieClipAttributeOperation::executePixelSampled(float output[4],
 		angle = 0.0f;
 		if (this->m_clip) {
 			int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(this->m_clip, this->m_framenumber);
-			BKE_tracking_stabilization_data_get(&this->m_clip->tracking, clip_framenr, getWidth(), getHeight(), loc, &scale, &angle);
+			BKE_tracking_stabilization_data_get(this->m_clip, clip_framenr, getWidth(), getHeight(), loc, &scale, &angle);
 		}
 		switch (this->m_attribute) {
 			case MCA_SCALE:

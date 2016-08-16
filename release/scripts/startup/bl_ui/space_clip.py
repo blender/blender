@@ -621,6 +621,7 @@ class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
                  text="", toggle=True, icon='IMAGE_ALPHA')
 
         layout.prop(act_track, "weight")
+        layout.prop(act_track, "weight_stab")
 
         if act_track.has_bundle:
             label_text = "Average Error: %.4f" % (act_track.average_error)
@@ -907,44 +908,80 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
         self.layout.prop(stab, "use_2d_stabilization", text="")
 
     def draw(self, context):
-        layout = self.layout
-
         tracking = context.space_data.clip.tracking
         stab = tracking.stabilization
 
+        layout = self.layout
         layout.active = stab.use_2d_stabilization
 
-        row = layout.row()
-        row.template_list("UI_UL_list", "stabilization_tracks", stab, "tracks",
-                          stab, "active_track_index", rows=2)
+        layout.prop(stab, "anchor_frame")
 
-        sub = row.column(align=True)
+        box = layout.box()
+        row = box.row(align=True)
+        row.prop(stab, "show_tracks_expanded", text="", emboss=False)
 
-        sub.operator("clip.stabilize_2d_add", icon='ZOOMIN', text="")
-        sub.operator("clip.stabilize_2d_remove", icon='ZOOMOUT', text="")
+        if not stab.show_tracks_expanded:
+            row.label(text="Tracks For Stabilization")
+        else:
+            row.label(text="Tracks For Location")
+            row = box.row()
+            row.template_list("UI_UL_list", "stabilization_tracks", stab, "tracks",
+                              stab, "active_track_index", rows=2)
 
-        sub.menu('CLIP_MT_stabilize_2d_specials', text="",
-                 icon='DOWNARROW_HLT')
+            sub = row.column(align=True)
 
-        layout.prop(stab, "influence_location")
+            sub.operator("clip.stabilize_2d_add", icon='ZOOMIN', text="")
+            sub.operator("clip.stabilize_2d_remove", icon='ZOOMOUT', text="")
 
-        layout.prop(stab, "use_autoscale")
-        col = layout.column()
-        col.active = stab.use_autoscale
-        col.prop(stab, "scale_max")
-        col.prop(stab, "influence_scale")
+            sub.menu('CLIP_MT_stabilize_2d_specials', text="",
+                     icon='DOWNARROW_HLT')
+
+            row = box.row()
+            row.label(text="Tracks For Rotation / Scale")
+            row = box.row()
+            row.active = stab.use_stabilize_rotation
+            row.template_list("UI_UL_list", "stabilization_rotation_tracks", stab, "rotation_tracks",
+                              stab, "active_rotation_track_index", rows=2)
+
+            sub = row.column(align=True)
+
+            sub.operator("clip.stabilize_2d_rotation_add", icon='ZOOMIN', text="")
+            sub.operator("clip.stabilize_2d_rotation_remove", icon='ZOOMOUT', text="")
+
+            sub.menu('CLIP_MT_stabilize_2d_rotation_specials', text="",
+                     icon='DOWNARROW_HLT')
 
         layout.prop(stab, "use_stabilize_rotation")
+        row = layout.row()
+        row.active = stab.use_stabilize_rotation
+        row.prop(stab, "use_stabilize_scale")
+        if stab.use_autoscale:
+            row = layout.row(align=True)
+            row.prop(stab, "use_autoscale")
+            row.prop(stab, "scale_max", text="Max")
+        else:
+            layout.prop(stab, "use_autoscale")
+
+        layout.separator()
+        layout.label(text="Expected Position")
+        layout.prop(stab, "target_pos", text="")
+        layout.prop(stab, "target_rot")
+        if stab.use_autoscale:
+            layout.label(text="Auto Scale Factor: %5.3f" % (1.0 / stab.target_zoom))
+        else:
+            layout.prop(stab, "target_zoom")
+
+        layout.separator()
+        row = layout.row()
+        row.active = 0 < len(stab.tracks.values())
+        row.prop(stab, "influence_location")
+
         col = layout.column()
-        col.active = stab.use_stabilize_rotation
-
-        row = col.row(align=True)
-        row.prop_search(stab, "rotation_track", tracking, "tracks", text="")
-        row.operator("clip.stabilize_2d_set_rotation", text="", icon='ZOOMIN')
-
+        col.active = stab.use_stabilize_rotation and 0 < len(stab.rotation_tracks.values())
         row = col.row()
-        row.active = stab.rotation_track is not None
         row.prop(stab, "influence_rotation")
+        row = col.row()
+        row.prop(stab, "influence_scale")
 
         layout.prop(stab, "filter_type")
 
@@ -1434,12 +1471,21 @@ class CLIP_MT_track_color_specials(Menu):
 
 
 class CLIP_MT_stabilize_2d_specials(Menu):
-    bl_label = "Track Color Specials"
+    bl_label = "Translation Track Specials"
 
     def draw(self, context):
         layout = self.layout
 
         layout.operator("clip.stabilize_2d_select")
+
+
+class CLIP_MT_stabilize_2d_rotation_specials(Menu):
+    bl_label = "Rotation Track Specials"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("clip.stabilize_2d_rotation_select")
 
 
 if __name__ == "__main__":  # only for live edit.

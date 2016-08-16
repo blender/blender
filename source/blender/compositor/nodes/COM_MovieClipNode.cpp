@@ -91,7 +91,7 @@ void MovieClipNode::convertToOperations(NodeConverter &converter, const Composit
 		if (stab->flag & TRACKING_2D_STABILIZATION) {
 			int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(movieClip, context.getFramenumber());
 
-			BKE_tracking_stabilization_data_get(&movieClip->tracking, clip_framenr, ibuf->x, ibuf->y, loc, &scale, &angle);
+			BKE_tracking_stabilization_data_get(movieClip, clip_framenr, ibuf->x, ibuf->y, loc, &scale, &angle);
 		}
 	}
 
