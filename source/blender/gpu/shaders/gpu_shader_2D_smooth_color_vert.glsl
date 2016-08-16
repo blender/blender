@@ -3,7 +3,7 @@
   attribute vec2 pos;
   attribute vec4 color;
 
-  varying vec4 finalColor;
+  noperspective varying vec4 finalColor;
 #else
   in vec2 pos;
   in vec4 color;

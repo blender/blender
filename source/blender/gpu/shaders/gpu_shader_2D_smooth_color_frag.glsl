@@ -1,6 +1,6 @@
 
 #if __VERSION__ == 120
-  varying vec4 finalColor;
+  noperspective varying vec4 finalColor;
   #define fragColor gl_FragColor
 #else
   noperspective in vec4 finalColor;
