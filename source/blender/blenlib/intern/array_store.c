@@ -579,7 +579,7 @@ static void bchunk_list_calc_trim_len(
 /**
  * Append and don't manage merging small chunks.
  */
-static bool bchunk_list_append_only(
+static void bchunk_list_append_only(
         BArrayMemory *bs_mem,
         BChunkList *chunk_list, BChunk *chunk)
 {
@@ -588,7 +588,6 @@ static bool bchunk_list_append_only(
 	cref->link = chunk;
 	chunk_list->chunk_refs_len += 1;
 	chunk->users += 1;
-	return chunk;
 }
 
 /**
