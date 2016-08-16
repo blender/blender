@@ -633,7 +633,7 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
  * for aborting need to define WITH_ASSERT_ABORT
  */
 #ifndef NDEBUG
-extern void BLI_system_backtrace(FILE *fp);
+#  include "BLI_system.h"
 #  ifdef WITH_ASSERT_ABORT
 #    define _BLI_DUMMY_ABORT abort
 #  else
