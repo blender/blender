@@ -117,6 +117,7 @@ static int cachefile_open_exec(bContext *C, wmOperator *op)
 void CACHEFILE_OT_open(wmOperatorType *ot)
 {
 	ot->name = "Open Cache File";
+	ot->description = "Load a cache file";
 	ot->idname = "CACHEFILE_OT_open";
 
 	ot->invoke = cachefile_open_invoke;

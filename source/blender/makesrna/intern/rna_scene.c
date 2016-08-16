@@ -2162,22 +2162,25 @@ static void rna_def_gpencil_brush(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "draw_angle");
 	RNA_def_property_range(prop, 0.0f, M_PI_2);
-	RNA_def_property_ui_text(prop, "Angle", "Angle of drawing when brush has full size");
+	RNA_def_property_ui_text(prop, "Angle",
+	                         "Direction of the stroke at which brush gives maximal thickness "
+	                         "(0° for horizontal, 90° for vertical)");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
 	/* Factor to change brush size depending of angle */
 	prop = RNA_def_property(srna, "angle_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "draw_angle_factor");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Angle Factor", "Factor to apply when the brush rotate of its full size");
+	RNA_def_property_ui_text(prop, "Angle Factor",
+	                         "Reduce brush thickness by this factor when stroke is perpendicular to 'Angle' direction");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
 	/* Smoothing factor for new strokes */
 	prop = RNA_def_property(srna, "pen_smooth_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "draw_smoothfac");
 	RNA_def_property_range(prop, 0.0, 2.0f);
-	RNA_def_property_ui_text(prop, "Smooth", "Amount of smoothing to apply to newly created strokes, to "
-	                         "reduce jitter/noise");
+	RNA_def_property_ui_text(prop, "Smooth",
+	                         "Amount of smoothing to apply to newly created strokes, to reduce jitter/noise");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
 	/* Iterations of the Smoothing factor */

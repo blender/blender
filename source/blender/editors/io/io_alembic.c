@@ -215,7 +215,8 @@ static void wm_alembic_export_draw(bContext *UNUSED(C), wmOperator *op)
 
 void WM_OT_alembic_export(wmOperatorType *ot)
 {
-	ot->name = "Export Alembic Archive";
+	ot->name = "Export Alembic";
+	ot->description = "Export current scene in an Alembic archive";
 	ot->idname = "WM_OT_alembic_export";
 
 	ot->invoke = wm_alembic_export_invoke;
@@ -237,7 +238,7 @@ void WM_OT_alembic_export(wmOperatorType *ot)
 	            "Transform Samples", "Number of times per frame transformations are sampled", 1, 128);
 
 	RNA_def_int(ot->srna, "gsamples", 1, 1, 128,
-	            "Geometry Samples", "Number of times per frame object datas are sampled", 1, 128);
+	            "Geometry Samples", "Number of times per frame object data are sampled", 1, 128);
 
 	RNA_def_float(ot->srna, "sh_open", 0.0f, -1.0f, 1.0f,
 	              "Shutter Open", "Time at which the shutter is open", -1.0f, 1.0f);
@@ -428,7 +429,8 @@ static int wm_alembic_import_exec(bContext *C, wmOperator *op)
 
 void WM_OT_alembic_import(wmOperatorType *ot)
 {
-	ot->name = "Import Alembic Archive";
+	ot->name = "Import Alembic";
+	ot->description = "Load an Alembic archive";
 	ot->idname = "WM_OT_alembic_import";
 
 	ot->invoke = WM_operator_filesel;
