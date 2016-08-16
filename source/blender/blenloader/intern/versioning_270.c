@@ -1339,39 +1339,39 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		/* ------- end of grease pencil initialization --------------- */
 	}
 
-	if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingTrack", "float", "weight_stab")) {
-		MovieClip *clip;
-		for (clip = main->movieclip.first; clip; clip = clip->id.next) {
-			MovieTracking *tracking = &clip->tracking;
-			MovieTrackingObject *tracking_object;
-			for (tracking_object = tracking->objects.first;
-			     tracking_object != NULL;
-			     tracking_object = tracking_object->next)
-			{
-				ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
-				MovieTrackingTrack *track;
-				for (track = tracksbase->first;
-				     track != NULL;
-				     track = track->next)
+	{
+		if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingTrack", "float", "weight_stab")) {
+			MovieClip *clip;
+			for (clip = main->movieclip.first; clip; clip = clip->id.next) {
+				MovieTracking *tracking = &clip->tracking;
+				MovieTrackingObject *tracking_object;
+				for (tracking_object = tracking->objects.first;
+				     tracking_object != NULL;
+				     tracking_object = tracking_object->next)
 				{
-					track->weight_stab = track->weight;
+					ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
+					MovieTrackingTrack *track;
+					for (track = tracksbase->first;
+					     track != NULL;
+					     track = track->next)
+					{
+						track->weight_stab = track->weight;
+					}
 				}
 			}
 		}
-	}
 
-	if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingStabilization", "int", "tot_rot_track")) {
-
-		MovieClip *clip;
-		for (clip = main->movieclip.first; clip != NULL; clip = clip->id.next) {
-			if (clip->tracking.stabilization.rot_track) {
-				migrate_single_rot_stabilization_track_settings(&clip->tracking.stabilization);
-
-				if (!clip->tracking.stabilization.scale) {
-					/* ensure init.
-					 * Was previously used for autoscale only,
-					 * now used always (as "target scale") */
-					clip->tracking.stabilization.scale = 1.0f;
+		if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingStabilization", "int", "tot_rot_track")) {
+			MovieClip *clip;
+			for (clip = main->movieclip.first; clip != NULL; clip = clip->id.next) {
+				if (clip->tracking.stabilization.rot_track) {
+					migrate_single_rot_stabilization_track_settings(&clip->tracking.stabilization);
+					if (!clip->tracking.stabilization.scale) {
+						/* ensure init.
+						 * Was previously used for autoscale only,
+						 * now used always (as "target scale") */
+						clip->tracking.stabilization.scale = 1.0f;
+					}
 				}
 			}
 		}
