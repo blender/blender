@@ -21,11 +21,14 @@
 #ifndef __BLI_SYSTEM_H__
 #define __BLI_SYSTEM_H__
 
+#include <stdio.h>
+
 /** \file BLI_system.h
  *  \ingroup bli
  */
 
 int BLI_cpu_support_sse2(void);
+void BLI_system_backtrace(FILE *fp);
 
 /* getpid */
 #ifdef WIN32
