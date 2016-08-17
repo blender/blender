@@ -57,7 +57,7 @@ void EdgeDice::reserve(int num_verts)
 
 	Attribute *attr_vN = mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
 
-	mesh_P = &mesh->verts[0];
+	mesh_P = mesh->verts.data();
 	mesh_N = attr_vN->data_float3();
 }
 
