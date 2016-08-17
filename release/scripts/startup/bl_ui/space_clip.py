@@ -973,9 +973,7 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
             layout.prop(stab, "target_zoom")
 
         layout.separator()
-        row = layout.row()
-        row.active = 0 < len(stab.tracks.values())
-        row.prop(stab, "influence_location")
+        layout.prop(stab, "influence_location")
 
         col = layout.column()
         col.active = stab.use_stabilize_rotation
