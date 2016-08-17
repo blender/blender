@@ -977,10 +977,8 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
 
         col = layout.column()
         col.active = stab.use_stabilize_rotation
-        row = col.row()
-        row.prop(stab, "influence_rotation")
-        row = col.row()
-        row.prop(stab, "influence_scale")
+        col.prop(stab, "influence_rotation")
+        col.prop(stab, "influence_scale")
 
         layout.prop(stab, "filter_type")
 
