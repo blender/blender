@@ -2161,10 +2161,10 @@ static void rna_def_gpencil_brush(BlenderRNA *brna)
 	/* Angle when brush is full size */
 	prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "draw_angle");
-	RNA_def_property_range(prop, 0.0f, M_PI_2);
+	RNA_def_property_range(prop, -M_PI_2, M_PI_2);
 	RNA_def_property_ui_text(prop, "Angle",
 	                         "Direction of the stroke at which brush gives maximal thickness "
-	                         "(0° for horizontal, 90° for vertical)");
+	                         "(0° for horizontal)");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
 	/* Factor to change brush size depending of angle */
