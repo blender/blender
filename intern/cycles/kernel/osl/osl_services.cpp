@@ -127,8 +127,10 @@ OSLRenderServices::OSLRenderServices()
 
 OSLRenderServices::~OSLRenderServices()
 {
-	VLOG(2) << "OSL texture system stats:\n"
-	        << osl_ts->getstats();
+	if(osl_ts) {
+		VLOG(2) << "OSL texture system stats:\n"
+		        << osl_ts->getstats();
+	}
 #ifdef WITH_PTEX
 	ptex_cache->release();
 #endif
