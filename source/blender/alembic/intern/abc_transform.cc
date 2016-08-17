@@ -137,7 +137,7 @@ AbcEmptyReader::AbcEmptyReader(const Alembic::Abc::IObject &object, ImportSettin
 	Alembic::AbcGeom::IXform xform(object, Alembic::AbcGeom::kWrapExisting);
 	m_schema = xform.getSchema();
 
-	get_min_max_time(m_schema, m_min_time, m_max_time);
+	get_min_max_time(m_iobject, m_schema, m_min_time, m_max_time);
 }
 
 bool AbcEmptyReader::valid() const

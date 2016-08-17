@@ -201,7 +201,7 @@ AbcNurbsReader::AbcNurbsReader(const IObject &object, ImportSettings &settings)
     : AbcObjectReader(object, settings)
 {
 	getNurbsPatches(m_iobject);
-	get_min_max_time(m_schemas[0].first, m_min_time, m_max_time);
+	get_min_max_time(m_iobject, m_schemas[0].first, m_min_time, m_max_time);
 }
 
 bool AbcNurbsReader::valid() const

@@ -141,7 +141,7 @@ AbcPointsReader::AbcPointsReader(const Alembic::Abc::IObject &object, ImportSett
 {
 	IPoints ipoints(m_iobject, kWrapExisting);
 	m_schema = ipoints.getSchema();
-	get_min_max_time(m_schema, m_min_time, m_max_time);
+	get_min_max_time(m_iobject, m_schema, m_min_time, m_max_time);
 }
 
 bool AbcPointsReader::valid() const
