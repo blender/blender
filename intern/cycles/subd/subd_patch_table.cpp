@@ -214,7 +214,7 @@ void PackedPatchTable::pack(Far::PatchTable* patch_table, int offset)
 	}
 
 	table.resize(total_size());
-	uint* data = table.data();
+	uint* data = &table[0];
 
 	uint* array = data;
 	uint* index = array + num_arrays * PATCH_ARRAY_SIZE;
@@ -259,7 +259,7 @@ void PackedPatchTable::pack(Far::PatchTable* patch_table, int offset)
 
 void PackedPatchTable::copy_adjusting_offsets(uint* dest, int doffset)
 {
-	uint* src = table.data();
+	uint* src = &table[0];
 
 	/* arrays */
 	for(int i = 0; i < num_arrays; i++) {

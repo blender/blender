@@ -298,17 +298,17 @@ int Mesh::split_vertex(int vertex)
 
 	foreach(Attribute& attr, attributes.attributes) {
 		if(attr.element == ATTR_ELEMENT_VERTEX) {
-			array<char> tmp(attr.data_sizeof());
-			memcpy(tmp.data(), attr.data() + tmp.size()*vertex, tmp.size());
-			attr.add(tmp.data());
+			vector<char> tmp(attr.data_sizeof());
+			memcpy(&tmp[0], attr.data() + tmp.size()*vertex, tmp.size());
+			attr.add(&tmp[0]);
 		}
 	}
 
 	foreach(Attribute& attr, subd_attributes.attributes) {
 		if(attr.element == ATTR_ELEMENT_VERTEX) {
-			array<char> tmp(attr.data_sizeof());
-			memcpy(tmp.data(), attr.data() + tmp.size()*vertex, tmp.size());
-			attr.add(tmp.data());
+			vector<char> tmp(attr.data_sizeof());
+			memcpy(&tmp[0], attr.data() + tmp.size()*vertex, tmp.size());
+			attr.add(&tmp[0]);
 		}
 	}
 
@@ -474,7 +474,7 @@ void Mesh::add_face_normals()
 	bool flip = transform_negative_scaled;
 
 	if(triangles_size) {
-		float3 *verts_ptr = verts.data();
+		float3 *verts_ptr = &verts[0];
 
 		for(size_t i = 0; i < triangles_size; i++) {
 			fN[i] = compute_face_normal(get_triangle(i), verts_ptr);
@@ -568,7 +568,7 @@ void Mesh::pack_normals(Scene *scene, uint *tri_shader, float4 *vnormal)
 	bool last_smooth = false;
 
 	size_t triangles_size = num_triangles();
-	int *shader_ptr = shader.data();
+	int *shader_ptr = (shader.size())? &shader[0]: NULL;
 
 	bool do_transform = transform_applied;
 	Transform ntfm = transform_normal;
@@ -608,7 +608,7 @@ void Mesh::pack_verts(const vector<uint>& tri_prim_index,
 	size_t verts_size = verts.size();
 
 	if(verts_size && subd_faces.size()) {
-		float2 *vert_patch_uv_ptr = vert_patch_uv.data();
+		float2 *vert_patch_uv_ptr = &vert_patch_uv[0];
 
 		for(size_t i = 0; i < verts_size; i++) {
 			tri_patch_uv[i] = vert_patch_uv_ptr[i];
@@ -636,8 +636,8 @@ void Mesh::pack_curves(Scene *scene, float4 *curve_key_co, float4 *curve_data, s
 
 	/* pack curve keys */
 	if(curve_keys_size) {
-		float3 *keys_ptr = curve_keys.data();
-		float *radius_ptr = curve_radius.data();
+		float3 *keys_ptr = &curve_keys[0];
+		float *radius_ptr = &curve_radius[0];
 
 		for(size_t i = 0; i < curve_keys_size; i++)
 			curve_key_co[i] = make_float4(keys_ptr[i].x, keys_ptr[i].y, keys_ptr[i].z, radius_ptr[i]);

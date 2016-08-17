@@ -45,7 +45,7 @@ namespace Far {
 		setNumBaseVertices(refiner, mesh.verts.size());
 		setNumBaseFaces(refiner, mesh.subd_faces.size());
 
-		ccl::Mesh::SubdFace* face = mesh.subd_faces.data();
+		ccl::Mesh::SubdFace* face = &mesh.subd_faces[0];
 
 		for(int i = 0; i < mesh.subd_faces.size(); i++, face++) {
 			setNumBaseFaceVertices(refiner, i, face->num_corners);
@@ -57,7 +57,7 @@ namespace Far {
 	template<>
 	bool TopologyRefinerFactory<ccl::Mesh>::assignComponentTopology(TopologyRefiner& refiner, ccl::Mesh const& mesh)
 	{
-		ccl::Mesh::SubdFace* face = mesh.subd_faces.data()
+		ccl::Mesh::SubdFace* face = &mesh.subd_faces[0];
 
 		for(int i = 0; i < mesh.subd_faces.size(); i++, face++) {
 			IndexArray face_verts = getBaseFaceVertices(refiner, i);
@@ -195,14 +195,14 @@ public:
 			verts[i].value = mesh->verts[i];
 		}
 
-		OsdValue<float3>* src = verts.data()
+		OsdValue<float3>* src = &verts[0];
 		for(int i = 0; i < refiner->GetMaxLevel(); i++) {
 			OsdValue<float3>* dest = src + refiner->GetLevel(i).GetNumVertices();
 			Far::PrimvarRefiner(*refiner).Interpolate(i+1, src, dest);
 			src = dest;
 		}
 
-		patch_table->ComputeLocalPointValues(verts.data(), &verts[num_refiner_verts]);
+		patch_table->ComputeLocalPointValues(&verts[0], &verts[num_refiner_verts]);
 
 		/* create patch map */
 		patch_map = new Far::PatchMap(*patch_table);
@@ -219,7 +219,7 @@ public:
 			attr.resize(num_refiner_verts + num_local_points);
 			attr.flags |= ATTR_FINAL_SIZE;
 
-			char* src = attr.buffer.data();
+			char* src = &attr.buffer[0];
 
 			for(int i = 0; i < refiner->GetMaxLevel(); i++) {
 				char* dest = src + refiner->GetLevel(i).GetNumVertices() * attr.data_sizeof();
@@ -235,12 +235,12 @@ public:
 			}
 
 			if(attr.same_storage(attr.type, TypeDesc::TypeFloat)) {
-				patch_table->ComputeLocalPointValues((OsdValue<float>*)attr.buffer.data(),
-					                                 (OsdValue<float>*)(attr.buffer.data() + num_refiner_verts * attr.data_sizeof()));
+				patch_table->ComputeLocalPointValues((OsdValue<float>*)&attr.buffer[0],
+					                                 (OsdValue<float>*)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
 			}
 			else {
-				patch_table->ComputeLocalPointValues((OsdValue<float4>*)attr.buffer.data(),
-					                                 (OsdValue<float4>*)(attr.buffer.data() + num_refiner_verts * attr.data_sizeof()));
+				patch_table->ComputeLocalPointValues((OsdValue<float4>*)&attr.buffer[0],
+					                                 (OsdValue<float4>*)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
 			}
 		}
 		else if(attr.element == ATTR_ELEMENT_CORNER || attr.element == ATTR_ELEMENT_CORNER_BYTE) {

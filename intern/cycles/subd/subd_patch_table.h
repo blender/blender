@@ -43,7 +43,7 @@ namespace Far { struct PatchTable; }
 #define PATCH_NODE_SIZE 1
 
 struct PackedPatchTable {
-	array<uint> table;
+	vector<uint> table;
 
 	size_t num_arrays;
 	size_t num_indices;
