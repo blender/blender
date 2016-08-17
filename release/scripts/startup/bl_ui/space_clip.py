@@ -938,10 +938,10 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
             sub.menu('CLIP_MT_stabilize_2d_specials', text="",
                      icon='DOWNARROW_HLT')
 
-            row = box.row()
-            row.label(text="Tracks For Rotation / Scale")
-            row = box.row()
-            row.active = stab.use_stabilize_rotation
+            col = box.column()
+            col.active = stab.use_stabilize_rotation
+            col.label(text="Tracks For Rotation / Scale")
+            row = col.row()
             row.template_list("UI_UL_list", "stabilization_rotation_tracks", stab, "rotation_tracks",
                               stab, "active_rotation_track_index", rows=2)
 
