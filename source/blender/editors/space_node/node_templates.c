@@ -428,6 +428,20 @@ static int ui_node_item_name_compare(const void *a, const void *b)
 	return BLI_natstrcmp(type_a->ui_name, type_b->ui_name);
 }
 
+static bool ui_node_item_special_poll(const bNodeTree *UNUSED(ntree),
+                                      const bNodeType *ntype)
+{
+	if (STREQ(ntype->idname, "ShaderNodeUVAlongStroke")) {
+		/* TODO(sergey): Currently we don't have Freestyle nodes edited from
+		 * the buttons context, so can ignore it's nodes completely.
+		 *
+		 * However, we might want to do some extra checks here later.
+		 */
+		return false;
+	}
+	return true;
+}
+
 static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 {
 	bNodeTree *ntree = arg->ntree;
@@ -452,11 +466,17 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 	BLI_array_declare(sorted_ntypes);
 
 	NODE_TYPES_BEGIN(ntype) {
-		if (compatibility && !(ntype->compatibility & compatibility))
+		if (compatibility && !(ntype->compatibility & compatibility)) {
 			continue;
+		}
 
-		if (ntype->nclass != nclass)
+		if (ntype->nclass != nclass) {
 			continue;
+		}
+
+		if (!ui_node_item_special_poll(ntree, ntype)) {
+			continue;
+		}
 
 		BLI_array_append(sorted_ntypes, ntype);
 	}
