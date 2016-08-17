@@ -267,7 +267,7 @@ void WM_OT_alembic_export(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "normals", 1, "Normals", "Export normals");
 
-	RNA_def_boolean(ot->srna, "vcolors", 0, "Vertex colors", "Export vertex colors");
+	RNA_def_boolean(ot->srna, "vcolors", 0, "Vertex Colors", "Export vertex colors");
 
 	RNA_def_boolean(ot->srna, "face_sets", 0, "Face Sets", "Export per face shading group assignments");
 
