@@ -414,21 +414,18 @@ static MovieTrackingMarker *get_closest_marker(StabContext *ctx,
                                                MovieTrackingTrack *track,
                                                int ref_frame)
 {
-	if (track->markersnr > 0) {
-		int next_lower = MINAFRAME;
-		int next_higher = MAXFRAME;
-		int  i = search_closest_marker_index(track, ref_frame);
-		retrieve_next_higher_usable_frame(ctx, track, i, ref_frame, &next_higher);
-		retrieve_next_lower_usable_frame(ctx, track, i, ref_frame, &next_lower);
+	int next_lower = MINAFRAME;
+	int next_higher = MAXFRAME;
+	int i = search_closest_marker_index(track, ref_frame);
+	retrieve_next_higher_usable_frame(ctx, track, i, ref_frame, &next_higher);
+	retrieve_next_lower_usable_frame(ctx, track, i, ref_frame, &next_lower);
 
-		if ((next_higher - ref_frame) < (ref_frame - next_lower)) {
-			return BKE_tracking_marker_get_exact(track, next_higher);
-		}
-		else {
-			return BKE_tracking_marker_get_exact(track, next_lower);
-		}
+	if ((next_higher - ref_frame) < (ref_frame - next_lower)) {
+		return BKE_tracking_marker_get_exact(track, next_higher);
 	}
-	return NULL;
+	else {
+		return BKE_tracking_marker_get_exact(track, next_lower);
+	}
 }
 
 
