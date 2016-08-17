@@ -616,6 +616,11 @@ void immAttrib4ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned
 	data[3] = a;
 	}
 
+void immAttrib4ubv(unsigned attrib_id, const unsigned char data[4])
+	{
+	immAttrib4ub(attrib_id, data[0], data[1], data[2], data[3]);
+	}
+
 void immEndVertex()
 	{
 #if TRUST_NO_ONE
@@ -661,6 +666,12 @@ void immVertex2f(unsigned attrib_id, float x, float y)
 void immVertex3f(unsigned attrib_id, float x, float y, float z)
 	{
 	immAttrib3f(attrib_id, x, y, z);
+	immEndVertex();
+	}
+
+void immVertex3fv(unsigned attrib_id, const float data[3])
+	{
+	immAttrib3f(attrib_id, data[0], data[1], data[2]);
 	immEndVertex();
 	}
 
