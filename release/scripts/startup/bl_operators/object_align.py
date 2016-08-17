@@ -365,6 +365,7 @@ class AlignObjects(Operator):
             )
     align_mode = EnumProperty(
             name="Align Mode:",
+            description="Side of object to use for alignment",
             items=(('OPT_1', "Negative Sides", ""),
                    ('OPT_2', "Centers", ""),
                    ('OPT_3', "Positive Sides", ""),
@@ -373,10 +374,11 @@ class AlignObjects(Operator):
             )
     relative_to = EnumProperty(
             name="Relative To:",
-            items=(('OPT_1', "Scene Origin", ""),
-                   ('OPT_2', "3D Cursor", ""),
-                   ('OPT_3', "Selection", ""),
-                   ('OPT_4', "Active", ""),
+            description="Reference location to align to",
+            items=(('OPT_1', "Scene Origin", "Use the Scene Origin as the position for the selected objects to align to"),
+                   ('OPT_2', "3D Cursor", "Use the 3D cursor as the position for the selected objects to align to"),
+                   ('OPT_3', "Selection", "Use the selected objects as the position for the selected objects to align to"),
+                   ('OPT_4', "Active", "Use the active object as the position for the selected objects to align to"),
                    ),
             default='OPT_4',
             )
