@@ -2188,8 +2188,7 @@ static void rna_def_gpencil_brush(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "draw_smoothlvl");
 	RNA_def_property_range(prop, 1, 3);
 	RNA_def_property_ui_text(prop, "Iterations",
-	                         "Number of times to smooth newly created strokes "
-	                         "[+ reason/effect of using higher values of this property]");
+	                         "Number of times to smooth newly created strokes");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
 	/* Subdivision level for new strokes */
