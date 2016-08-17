@@ -355,6 +355,7 @@ static bool view3d_ruler_to_gpencil(bContext *C, RulerInfo *ruler_info)
 			}
 		}
 		gps->flag = GP_STROKE_3DSPACE;
+		gps->thickness = 3;
 		/* assign color to stroke */
 		strcpy(gps->colorname, palcolor->info);
 		gps->palcolor = palcolor;
