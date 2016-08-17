@@ -750,7 +750,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 	float o[3];    /* center of rotation */
 	float end[3];  /* endpoints for drawing */
 
-	float color[4] = {0.0f, 0.4235f, 1.0f, 1.0f};  /* bright blue so it matches device LEDs */
+	GLubyte color[4] = {0, 108, 255, 255};  /* bright blue so it matches device LEDs */
 
 	negate_v3_v3(o, rv3d->ofs);
 
@@ -760,6 +760,12 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 	glEnable(GL_POINT_SMOOTH);
 	glDepthMask(0);  /* don't overwrite zbuf */
 
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	unsigned col = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
+
 	if (rv3d->rot_angle != 0.0f) {
 		/* -- draw rotation axis -- */
 		float scaled_axis[3];
@@ -767,26 +773,26 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 		mul_v3_v3fl(scaled_axis, rv3d->rot_axis, scale);
 
 
-		glBegin(GL_LINE_STRIP);
-		color[3] = 0.0f;  /* more transparent toward the ends */
-		glColor4fv(color);
+		immBegin(GL_LINE_STRIP, 3);
+		color[3] = 0; /* more transparent toward the ends */
+		immAttrib4ubv(col, color);
 		add_v3_v3v3(end, o, scaled_axis);
-		glVertex3fv(end);
+		immVertex3fv(pos, end);
 
 #if 0
 		color[3] = 0.2f + fabsf(rv3d->rot_angle);  /* modulate opacity with angle */
 		/* ^^ neat idea, but angle is frame-rate dependent, so it's usually close to 0.2 */
 #endif
 
-		color[3] = 0.5f;  /* more opaque toward the center */
-		glColor4fv(color);
-		glVertex3fv(o);
+		color[3] = 127; /* more opaque toward the center */
+		immAttrib4ubv(col, color);
+		immVertex3fv(pos, o);
 
-		color[3] = 0.0f;
-		glColor4fv(color);
+		color[3] = 0;
+		immAttrib4ubv(col, color);
 		sub_v3_v3v3(end, o, scaled_axis);
-		glVertex3fv(end);
-		glEnd();
+		immVertex3fv(pos, end);
+		immEnd();
 		
 		/* -- draw ring around rotation center -- */
 		{
@@ -808,9 +814,9 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 				axis_angle_to_quat(q, vis_axis, vis_angle);
 			}
 
-			color[3] = 0.25f;  /* somewhat faint */
-			glColor4fv(color);
-			glBegin(GL_LINE_LOOP);
+			immBegin(GL_LINE_LOOP, ROT_AXIS_DETAIL);
+			color[3] = 63; /* somewhat faint */
+			immAttrib4ubv(col, color);
 			for (i = 0, angle = 0.0f; i < ROT_AXIS_DETAIL; ++i, angle += step) {
 				float p[3] = {s * cosf(angle), s * sinf(angle), 0.0f};
 
@@ -819,23 +825,23 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 				}
 
 				add_v3_v3(p, o);
-				glVertex3fv(p);
+				immVertex3fv(pos, p);
 			}
-			glEnd();
+			immEnd();
 
 #undef      ROT_AXIS_DETAIL
 		}
 
-		color[3] = 1.0f;  /* solid dot */
+		color[3] = 255;  /* solid dot */
 	}
 	else
-		color[3] = 0.5f;  /* see-through dot */
+		color[3] = 127;  /* see-through dot */
 
 	/* -- draw rotation center -- */
-	glColor4fv(color);
-	glBegin(GL_POINTS);
-	glVertex3fv(o);
-	glEnd();
+	immBegin(GL_POINTS, 1);
+	immAttrib4ubv(col, color);
+	immVertex3fv(pos, o);
+	immEnd();
 
 #if 0
 	/* find screen coordinates for rotation center, then draw pretty icon */
