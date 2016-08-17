@@ -978,7 +978,7 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
         row.prop(stab, "influence_location")
 
         col = layout.column()
-        col.active = stab.use_stabilize_rotation and 0 < len(stab.rotation_tracks.values())
+        col.active = stab.use_stabilize_rotation
         row = col.row()
         row.prop(stab, "influence_rotation")
         row = col.row()
