@@ -1439,8 +1439,8 @@ static int gp_brush_remove_exec(bContext *C, wmOperator *op)
 	if (ELEM(NULL, ts, brush))
 		return OPERATOR_CANCELLED;
 
-	if (BLI_listbase_count(&ts->gp_brushes) < 2) {
-		BKE_report(op->reports, RPT_ERROR, "Grease Pencil needs a brush. Unable to delete brush");
+	if (BLI_listbase_count_ex(&ts->gp_brushes, 2) < 2) {
+		BKE_report(op->reports, RPT_ERROR, "Grease Pencil needs a brush, unable to delete the last one");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1466,7 +1466,7 @@ static int gp_brush_remove_exec(bContext *C, wmOperator *op)
 void GPENCIL_OT_brush_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Remove brush";
+	ot->name = "Remove Brush";
 	ot->idname = "GPENCIL_OT_brush_remove";
 	ot->description = "Remove active Grease Pencil drawing brush";
 
@@ -1797,8 +1797,8 @@ static int gp_palette_remove_exec(bContext *C, wmOperator *op)
 	if (ELEM(NULL, gpd, palette))
 		return OPERATOR_CANCELLED;
 
-	if (BLI_listbase_count(&gpd->palettes) < 2) {
-		BKE_report(op->reports, RPT_ERROR, "Grease Pencil needs a palette. Unable to delete palette");
+	if (BLI_listbase_count_ex(&gpd->palettes, 2) < 2) {
+		BKE_report(op->reports, RPT_ERROR, "Grease Pencil needs a palette, unable to delete the last one");
 		return OPERATOR_CANCELLED;
 	}
 
