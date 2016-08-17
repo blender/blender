@@ -965,8 +965,8 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
 
         layout.separator()
         layout.label(text="Expected Position")
-        layout.prop(stab, "target_pos", text="")
-        layout.prop(stab, "target_rot")
+        layout.prop(stab, "target_position", text="")
+        layout.prop(stab, "target_rotation")
         if stab.use_autoscale:
             layout.label(text="Auto Scale Factor: %5.3f" % (1.0 / stab.target_zoom))
         else:

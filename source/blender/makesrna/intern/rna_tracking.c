@@ -1750,7 +1750,7 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, "rna_tracking_flushUpdate");
 
 	/* target position */
-	prop = RNA_def_property(srna, "target_pos", PROP_FLOAT, PROP_TRANSLATION);
+	prop = RNA_def_property(srna, "target_position", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 3); /* increment in steps of 0.01 and show 3 digit after point */
 	RNA_def_property_float_sdna(prop, NULL, "target_pos");
@@ -1758,7 +1758,7 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
 
 	/* target rotation */
-	prop = RNA_def_property(srna, "target_rot", PROP_FLOAT, PROP_ANGLE);
+	prop = RNA_def_property(srna, "target_rotation", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "target_rot");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 3);
