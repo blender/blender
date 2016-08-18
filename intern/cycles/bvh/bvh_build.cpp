@@ -713,14 +713,14 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 	 *    can not control.
 	 */
 	typedef StackAllocator<256, int> LeafStackAllocator;
+	typedef StackAllocator<256, BVHReference> LeafReferenceStackAllocator;
 
 	vector<int, LeafStackAllocator> p_type[PRIMITIVE_NUM_TOTAL];
 	vector<int, LeafStackAllocator> p_index[PRIMITIVE_NUM_TOTAL];
 	vector<int, LeafStackAllocator> p_object[PRIMITIVE_NUM_TOTAL];
-	vector<BVHReference, LeafStackAllocator> p_ref[PRIMITIVE_NUM_TOTAL];
+	vector<BVHReference, LeafReferenceStackAllocator> p_ref[PRIMITIVE_NUM_TOTAL];
 
 	/* TODO(sergey): In theory we should be able to store references. */
-	typedef StackAllocator<256, BVHReference> LeafReferenceStackAllocator;
 	vector<BVHReference, LeafReferenceStackAllocator> object_references;
 
 	uint visibility[PRIMITIVE_NUM_TOTAL] = {0};
