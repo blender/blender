@@ -430,7 +430,7 @@ static int *bm_edge_symmetry_map(BMesh *bm, unsigned int symmetry_axis, float li
 
 	tree = BLI_kdtree_new(bm->totedge);
 
-	etable = MEM_mallocN(sizeof(BMEdge **) * bm->totedge, __func__);
+	etable = MEM_mallocN(sizeof(*etable) * bm->totedge, __func__);
 	edge_symmetry_map = MEM_mallocN(sizeof(*edge_symmetry_map) * bm->totedge, __func__);
 
 	BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
