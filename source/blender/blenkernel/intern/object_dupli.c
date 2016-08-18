@@ -221,7 +221,7 @@ static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChild
 
 	if (ctx->group) {
 		unsigned int lay = ctx->group->layer;
-		unsigned int groupid = 0;
+		int groupid = 0;
 		GroupObject *go;
 		for (go = ctx->group->gobject.first; go; go = go->next, groupid++) {
 			Object *ob = go->ob;
@@ -240,7 +240,7 @@ static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChild
 	}
 	else {
 		unsigned int lay = ctx->scene->lay;
-		unsigned int baseid = 0;
+		int baseid = 0;
 		Base *base;
 		for (base = ctx->scene->base.first; base; base = base->next, baseid++) {
 			Object *ob = base->object;
