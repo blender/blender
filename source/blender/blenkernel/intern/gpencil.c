@@ -1268,7 +1268,7 @@ void BKE_gpencil_palettecolor_changename(bGPdata *gpd, char *oldname, const char
 		for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
 			for (gps = gpf->strokes.first; gps; gps = gps->next) {
 				if (STREQ(gps->colorname, oldname)) {
-					strcpy(gps->colorname, newname);
+					BLI_strncpy(gps->colorname, newname, sizeof(gps->colorname));
 				}
 			}
 		}

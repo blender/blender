@@ -483,7 +483,7 @@ static bGPDstroke *rna_GPencil_stroke_new(bGPDframe *frame, const char *colornam
 {
 	bGPDstroke *stroke = MEM_callocN(sizeof(bGPDstroke), "gp_stroke");
 	if (colorname) {
-		strcpy(stroke->colorname, colorname);
+		BLI_strncpy(stroke->colorname, colorname, sizeof(stroke->colorname));
 	}
 	stroke->palcolor = NULL;
 	stroke->flag |= GP_STROKE_RECALC_COLOR;

@@ -883,7 +883,7 @@ static int gp_stroke_change_color_exec(bContext *C, wmOperator *UNUSED(op))
 
 					/* asign new color (only if different) */
 					if (STREQ(gps->colorname, color->info) == false) {
-						strcpy(gps->colorname, color->info);
+						BLI_strncpy(gps->colorname, color->info, sizeof(gps->colorname));
 						gps->flag |= GP_STROKE_RECALC_COLOR;
 					}
 				}
@@ -1271,7 +1271,7 @@ static int gp_stroke_join_exec(bContext *C, wmOperator *op)
 						/* if new, set current color */
 						if (type == GP_STROKE_JOINCOPY) {
 							new_stroke->palcolor = palcolor;
-							strcpy(new_stroke->colorname, palcolor->info);
+							BLI_strncpy(new_stroke->colorname, palcolor->info, sizeof(new_stroke->colorname));
 							new_stroke->flag |= GP_STROKE_RECALC_COLOR;
 						}
 					}
