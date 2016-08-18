@@ -382,7 +382,7 @@ EnumPropertyItem rna_enum_event_type_items[] = {
 	{NDOF_BUTTON_B, "NDOF_BUTTON_B", 0, "NDOF Button B", "NdofBB"},
 	{NDOF_BUTTON_C, "NDOF_BUTTON_C", 0, "NDOF Button C", "NdofBC"},
 #endif /* WITH_INPUT_NDOF */
-    {0, NULL, 0, NULL, NULL}
+	{0, NULL, 0, NULL, NULL}
 };
 
 EnumPropertyItem rna_enum_event_value_items[] = {
