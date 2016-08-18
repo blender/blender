@@ -127,6 +127,7 @@ static int view_pan_init(bContext *C, wmOperator *op)
 	return 1;
 }
 
+#ifdef WITH_INPUT_NDOF
 static int view_pan_poll(bContext *C)
 {
 	ARegion *ar = CTX_wm_region(C);
@@ -144,6 +145,7 @@ static int view_pan_poll(bContext *C)
 	/* view can pan */
 	return 1;
 }
+#endif
 
 /* apply transform to view (i.e. adjust 'cur' rect) */
 static void view_pan_apply_ex(bContext *C, v2dViewPanData *vpd, float dx, float dy)
