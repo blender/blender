@@ -70,4 +70,8 @@ if(WITH_FREESTYLE)
 	add_definitions(-DWITH_FREESTYLE)
 endif()
 
+if(WITH_INPUT_NDOF)
+	add_definitions(-DWITH_INPUT_NDOF)
+endif()
+
 blender_add_lib_nolist(blenkernel_blc "${SRC}" "${INC}" "${INC_SYS}")
