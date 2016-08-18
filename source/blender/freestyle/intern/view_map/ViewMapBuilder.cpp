@@ -2099,7 +2099,7 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe, Grid *iGrid, real eps
 	}
 
 	// Find occludee
-	FindOccludee(fe, iGrid, epsilon, oaPolygon, timestamp, u, center, edge, origin, faceVertices);
+	FindOccludee(fe, iGrid, epsilon, oaPolygon, timestamp, u, center, origin, edge, faceVertices);
 
 	return qi;
 }
