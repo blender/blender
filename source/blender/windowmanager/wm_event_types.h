@@ -40,7 +40,9 @@ enum {
 	EVT_DATA_GESTURE     = 1,
 	EVT_DATA_TIMER       = 2,
 	EVT_DATA_DRAGDROP    = 3,
+#ifdef WITH_INPUT_NDOF
 	EVT_DATA_NDOF_MOTION = 4,
+#endif
 };
 
 /* tablet active, matches GHOST_TTabletMode */
@@ -236,6 +238,7 @@ enum {
 
 	/* *** End of keyboard codes. *** */
 
+#ifdef WITH_INPUT_NDOF
 	/* NDOF (from SpaceNavigator & friends)
 	 * These should be kept in sync with GHOST_NDOFManager.h
 	 * Ordering matters, exact values do not. */
@@ -290,6 +293,7 @@ enum {
 	NDOF_BUTTON_C,
 	/* the end */
 	NDOF_LAST,
+#endif /* WITH_INPUT_NDOF */
 
 	/* ********** End of Input devices. ********** */
 
@@ -369,8 +373,12 @@ enum {
 /* test whether the event is tweak event */
 #define ISTWEAK(event_type)  ((event_type) >= EVT_TWEAK_L && (event_type) <= EVT_GESTURE)
 
+#ifdef WITH_INPUT_NDOF
 /* test whether the event is a NDOF event */
-#define ISNDOF(event_type)  ((event_type) >= NDOF_MOTION && (event_type) < NDOF_LAST)
+#  define ISNDOF(event_type)  ((event_type) >= NDOF_MOTION && (event_type) < NDOF_LAST)
+#else
+#  define ISNDOF(event_type)  false
+#endif
 
 /* test whether event type is acceptable as hotkey, excluding modifiers */
 #define ISHOTKEY(event_type)                                                  \

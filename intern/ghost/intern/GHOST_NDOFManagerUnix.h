@@ -24,8 +24,6 @@
 #ifndef __GHOST_NDOFMANAGERUNIX_H__
 #define __GHOST_NDOFMANAGERUNIX_H__
 
-#ifdef WITH_INPUT_NDOF
-
 #include "GHOST_NDOFManager.h"
 
 /* Event capture is handled within the NDOF manager on Linux,
@@ -43,5 +41,4 @@ private:
 	bool m_available;
 };
 
-#endif  /* WITH_INPUT_NDOF */
 #endif  /* __GHOST_NDOFMANAGERUNIX_H__ */

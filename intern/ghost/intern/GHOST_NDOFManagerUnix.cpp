@@ -21,8 +21,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef WITH_INPUT_NDOF
-
 #include "GHOST_NDOFManagerUnix.h"
 #include "GHOST_System.h"
 
@@ -144,5 +142,3 @@ bool GHOST_NDOFManagerUnix::processEvents()
 
 	return anyProcessed;
 }
-
-#endif /* WITH_INPUT_NDOF */

@@ -24,8 +24,6 @@
 #ifndef __GHOST_NDOFMANAGERCOCOA_H__
 #define __GHOST_NDOFMANAGERCOCOA_H__
 
-#ifdef WITH_INPUT_NDOF
-
 #include "GHOST_NDOFManager.h"
 
 // Event capture is handled within the NDOF manager on Macintosh,
@@ -40,6 +38,4 @@ public:
 	bool available();
 };
 
-
-#endif // WITH_INPUT_NDOF
 #endif // #include guard

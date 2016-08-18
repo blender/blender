@@ -22,8 +22,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef WITH_INPUT_NDOF // use contents of this file
-
 #include "GHOST_NDOFManagerWin32.h"
 
 
@@ -40,5 +38,3 @@ bool GHOST_NDOFManagerWin32::available()
 	// always available since RawInput is built into Windows
 	return true;
 }
-
-#endif // WITH_INPUT_NDOF

@@ -377,11 +377,13 @@ public:
 	 */
 	virtual GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool& isDown) const = 0;
 
+#ifdef WITH_INPUT_NDOF
 	/**
 	 * Sets 3D mouse deadzone
 	 * \param deadzone: Deadzone of the 3D mouse (both for rotation and pan) relative to full range
 	 */
 	virtual void setNDOFDeadZone(float deadzone) = 0;
+#endif
 
 	/**
 	 * Toggles console

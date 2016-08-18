@@ -38,11 +38,13 @@
 
 #include "GHOST_DisplayManager.h"
 #include "GHOST_EventManager.h"
-#include "GHOST_NDOFManager.h"
 #include "GHOST_TimerTask.h"
 #include "GHOST_TimerManager.h"
 #include "GHOST_WindowManager.h"
 
+#ifdef WITH_INPUT_NDOF
+#  include "GHOST_NDOFManager.h"
+#endif
 
 GHOST_System::GHOST_System()
     : m_nativePixel(false),
@@ -292,14 +294,12 @@ GHOST_TSuccess GHOST_System::getButtonState(GHOST_TButtonMask mask, bool& isDown
 	return success;
 }
 
+#ifdef WITH_INPUT_NDOF
 void GHOST_System::setNDOFDeadZone(float deadzone)
 {
-#ifdef WITH_INPUT_NDOF
 	this->m_ndofManager->setDeadZone(deadzone);
-#else
-	(void)deadzone;
-#endif
 }
+#endif
 
 GHOST_TSuccess GHOST_System::init()
 {
@@ -345,6 +345,7 @@ GHOST_TSuccess GHOST_System::exit()
 	delete m_ndofManager;
 	m_ndofManager = NULL;
 #endif
+
 	return GHOST_kSuccess;
 }
 

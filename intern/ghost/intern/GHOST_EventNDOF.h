@@ -22,8 +22,11 @@
 
 /** \file ghost/intern/GHOST_EventNDOF.h
  *  \ingroup GHOST
- * Declaration of GHOST_EventManager class.
  */
+
+#ifndef WITH_INPUT_NDOF
+#  error NDOF code included in non-NDOF-enabled build
+#endif
 
 #ifndef __GHOST_EVENTNDOF_H__
 #define __GHOST_EVENTNDOF_H__

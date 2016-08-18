@@ -46,7 +46,6 @@ struct bContext;
 struct bMotionPath;
 struct bPoseChannel;
 struct Mesh;
-struct wmNDOFMotionData;
 struct wmOperatorType;
 struct wmWindowManager;
 struct wmKeyConfig;
@@ -76,10 +75,12 @@ void VIEW3D_OT_dolly(struct wmOperatorType *ot);
 void VIEW3D_OT_zoom_camera_1_to_1(struct wmOperatorType *ot);
 void VIEW3D_OT_move(struct wmOperatorType *ot);
 void VIEW3D_OT_rotate(struct wmOperatorType *ot);
+#ifdef WITH_INPUT_NDOF
 void VIEW3D_OT_ndof_orbit(struct wmOperatorType *ot);
 void VIEW3D_OT_ndof_orbit_zoom(struct wmOperatorType *ot);
 void VIEW3D_OT_ndof_pan(struct wmOperatorType *ot);
 void VIEW3D_OT_ndof_all(struct wmOperatorType *ot);
+#endif /* WITH_INPUT_NDOF */
 void VIEW3D_OT_view_all(struct wmOperatorType *ot);
 void VIEW3D_OT_viewnumpad(struct wmOperatorType *ot);
 void VIEW3D_OT_view_selected(struct wmOperatorType *ot);
@@ -111,11 +112,15 @@ void view3d_orbit_apply_dyn_ofs(
         float r_ofs[3], const float ofs_old[3], const float viewquat_old[4],
         const float viewquat_new[4], const float dyn_ofs[3]);
 
+#ifdef WITH_INPUT_NDOF
+struct wmNDOFMotionData;
+
 void view3d_ndof_fly(
         const struct wmNDOFMotionData *ndof,
         struct View3D *v3d, struct RegionView3D *rv3d,
         const bool use_precision, const short protectflag,
         bool *r_has_translate, bool *r_has_rotate);
+#endif /* WITH_INPUT_NDOF */
 
 /* view3d_fly.c */
 void view3d_keymap(struct wmKeyConfig *keyconf);
