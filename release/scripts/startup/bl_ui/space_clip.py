@@ -916,7 +916,11 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
 
         layout.prop(stab, "anchor_frame")
 
-        layout.prop(stab, "use_stabilize_rotation")
+        row = layout.row(align=True)
+        row.prop(stab, "use_stabilize_rotation", text="Rotation", toggle=True)
+        sub = row.row(align=True)
+        sub.active = stab.use_stabilize_rotation
+        sub.prop(stab, "use_stabilize_scale", text="Scale", toggle=True)
 
         box = layout.box()
         row = box.row(align=True)
@@ -938,47 +942,46 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
             sub.menu('CLIP_MT_stabilize_2d_specials', text="",
                      icon='DOWNARROW_HLT')
 
-            col = box.column()
-            col.active = stab.use_stabilize_rotation
-            col.label(text="Tracks For Rotation / Scale")
-            row = col.row()
-            row.template_list("UI_UL_list", "stabilization_rotation_tracks", stab, "rotation_tracks",
-                              stab, "active_rotation_track_index", rows=2)
+            # Usually we don't hide things from iterface, but here every pixel of
+            # vertical space is precious.
+            if stab.use_stabilize_rotation:
+                box.label(text="Tracks For Rotation / Scale")
+                row = box.row()
+                row.template_list("UI_UL_list", "stabilization_rotation_tracks",
+                                  stab, "rotation_tracks",
+                                  stab, "active_rotation_track_index", rows=2)
 
-            sub = row.column(align=True)
+                sub = row.column(align=True)
 
-            sub.operator("clip.stabilize_2d_rotation_add", icon='ZOOMIN', text="")
-            sub.operator("clip.stabilize_2d_rotation_remove", icon='ZOOMOUT', text="")
+                sub.operator("clip.stabilize_2d_rotation_add", icon='ZOOMIN', text="")
+                sub.operator("clip.stabilize_2d_rotation_remove", icon='ZOOMOUT', text="")
 
-            sub.menu('CLIP_MT_stabilize_2d_rotation_specials', text="",
-                     icon='DOWNARROW_HLT')
+                sub.menu('CLIP_MT_stabilize_2d_rotation_specials', text="",
+                         icon='DOWNARROW_HLT')
 
         row = layout.row()
         row.active = stab.use_stabilize_rotation
-        row.prop(stab, "use_stabilize_scale")
+        row.prop(stab, "use_autoscale")
+        sub = row.row()
+        sub.active = stab.use_autoscale
+        sub.prop(stab, "scale_max", text="Max")
+
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        # Hrm, how to make it more obvious label?
+        row.prop(stab, "target_position", text="")
+        col.prop(stab, "target_rotation")
         if stab.use_autoscale:
-            row = layout.row(align=True)
-            row.prop(stab, "use_autoscale")
-            row.prop(stab, "scale_max", text="Max")
+            col.label(text="Auto Scale Factor: %5.3f" % (1.0 / stab.target_zoom))
         else:
-            layout.prop(stab, "use_autoscale")
+            col.prop(stab, "target_zoom")
 
-        layout.separator()
-        layout.label(text="Expected Position")
-        layout.prop(stab, "target_position", text="")
-        layout.prop(stab, "target_rotation")
-        if stab.use_autoscale:
-            layout.label(text="Auto Scale Factor: %5.3f" % (1.0 / stab.target_zoom))
-        else:
-            layout.prop(stab, "target_zoom")
-
-        layout.separator()
-        layout.prop(stab, "influence_location")
-
-        col = layout.column()
-        col.active = stab.use_stabilize_rotation
-        col.prop(stab, "influence_rotation")
-        col.prop(stab, "influence_scale")
+        col = layout.column(align=True)
+        col.prop(stab, "influence_location")
+        sub = col.column(align=True)
+        sub.active = stab.use_stabilize_rotation
+        sub.prop(stab, "influence_rotation")
+        sub.prop(stab, "influence_scale")
 
         layout.prop(stab, "filter_type")
 
