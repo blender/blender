@@ -68,8 +68,16 @@
 static int wm_alembic_export_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+		Main *bmain = CTX_data_main(C);
 		char filepath[FILE_MAX];
-		BLI_strncpy(filepath, G.main->name, sizeof(filepath));
+
+		if (bmain->name[0] == '\0') {
+			BLI_strncpy(filepath, "untitled", sizeof(filepath));
+		}
+		else {
+			BLI_strncpy(filepath, bmain->name, sizeof(filepath));
+		}
+
 		BLI_replace_extension(filepath, sizeof(filepath), ".abc");
 		RNA_string_set(op->ptr, "filepath", filepath);
 	}
@@ -213,6 +221,20 @@ static void wm_alembic_export_draw(bContext *UNUSED(C), wmOperator *op)
 	ui_alembic_export_settings(op->layout, &ptr);
 }
 
+static bool wm_alembic_export_check(bContext *UNUSED(C), wmOperator *op)
+{
+	char filepath[FILE_MAX];
+	RNA_string_get(op->ptr, "filepath", filepath);
+
+	if (!BLI_testextensie(filepath, ".abc")) {
+		BLI_ensure_extension(filepath, FILE_MAX, ".abc");
+		RNA_string_set(op->ptr, "filepath", filepath);
+		return true;
+	}
+
+	return false;
+}
+
 void WM_OT_alembic_export(wmOperatorType *ot)
 {
 	ot->name = "Export Alembic";
@@ -223,6 +245,7 @@ void WM_OT_alembic_export(wmOperatorType *ot)
 	ot->exec = wm_alembic_export_exec;
 	ot->poll = WM_operator_winactive;
 	ot->ui = wm_alembic_export_draw;
+	ot->check = wm_alembic_export_check;
 
 	WM_operator_properties_filesel(ot, FILE_TYPE_FOLDER | FILE_TYPE_ALEMBIC,
 	                               FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH,
