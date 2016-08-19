@@ -98,8 +98,7 @@ GPUFrameBuffer *GPU_framebuffer_create(void)
 	glGenFramebuffers(1, &fb->object);
 
 	if (!fb->object) {
-		fprintf(stderr, "GPUFFrameBuffer: framebuffer gen failed. %d\n",
-			(int)glGetError());
+		fprintf(stderr, "GPUFFrameBuffer: framebuffer gen failed.\n");
 		GPU_framebuffer_free(fb);
 		return NULL;
 	}
@@ -113,16 +112,15 @@ GPUFrameBuffer *GPU_framebuffer_create(void)
 	return fb;
 }
 
-int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, char err_out[256])
+bool GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot)
 {
 	GLenum attachment;
-	GLenum error;
 
 	if (slot >= GPU_FB_MAX_SLOTS) {
 		fprintf(stderr,
 		        "Attaching to index %d framebuffer slot unsupported. "
 		        "Use at most %d\n", slot, GPU_FB_MAX_SLOTS);
-		return 0;
+		return false;
 	}
 
 	if ((G.debug & G_DEBUG)) {
@@ -141,19 +139,8 @@ int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot
 	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
 	GG.currentfb = fb->object;
 
-	/* Clean glError buffer. */
-	while (glGetError() != GL_NO_ERROR) {}
-
 	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment,
 		GPU_texture_target(tex), GPU_texture_opengl_bindcode(tex), 0);
-
-	error = glGetError();
-
-	if (error == GL_INVALID_OPERATION) {
-		GPU_framebuffer_restore();
-		GPU_print_framebuffer_error(error, err_out);
-		return 0;
-	}
 
 	if (GPU_texture_depth(tex))
 		fb->depthtex = tex;
@@ -162,7 +149,7 @@ int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot
 
 	GPU_texture_framebuffer_set(tex, fb, slot);
 
-	return 1;
+	return true;
 }
 
 void GPU_framebuffer_texture_detach(GPUTexture *tex)
@@ -306,22 +293,17 @@ bool GPU_framebuffer_bound(GPUFrameBuffer *fb)
 
 bool GPU_framebuffer_check_valid(GPUFrameBuffer *fb, char err_out[256])
 {
-	GLenum status;
-	
 	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
 	GG.currentfb = fb->object;
-	
-	/* Clean glError buffer. */
-	while (glGetError() != GL_NO_ERROR) {}
-	
-	status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
 	if (status != GL_FRAMEBUFFER_COMPLETE) {
 		GPU_framebuffer_restore();
 		GPU_print_framebuffer_error(status, err_out);
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -466,7 +448,7 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, char err_
 		return NULL;
 	}
 
-	if (!GPU_framebuffer_texture_attach(ofs->fb, ofs->depth, 0, err_out)) {
+	if (!GPU_framebuffer_texture_attach(ofs->fb, ofs->depth, 0)) {
 		GPU_offscreen_free(ofs);
 		return NULL;
 	}
@@ -477,7 +459,7 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, char err_
 		return NULL;
 	}
 
-	if (!GPU_framebuffer_texture_attach(ofs->fb, ofs->color, 0, err_out)) {
+	if (!GPU_framebuffer_texture_attach(ofs->fb, ofs->color, 0)) {
 		GPU_offscreen_free(ofs);
 		return NULL;
 	}
@@ -594,8 +576,6 @@ finally:
 		if (fbo_blit) {
 			glDeleteFramebuffers(1, &fbo_blit);
 		}
-
-		GPU_ASSERT_NO_GL_ERRORS("Read Multi-Sample Pixels");
 	}
 	else {
 		glReadPixels(0, 0, w, h, GL_RGBA, type, pixels);

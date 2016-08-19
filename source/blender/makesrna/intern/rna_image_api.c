@@ -251,6 +251,8 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int frame, int f
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (GLint)filter);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (GLint)mag);
 
+	/* TODO(merwin): validate input (dimensions, filter, mag) before calling OpenGL
+	 *               instead of trusting input & testing for error after */
 	error = glGetError();
 
 	if (error) {

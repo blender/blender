@@ -470,16 +470,12 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
 
 void GPU_shader_bind(GPUShader *shader)
 {
-	GPU_ASSERT_NO_GL_ERRORS("Pre Shader Bind");
 	glUseProgram(shader->program);
-	GPU_ASSERT_NO_GL_ERRORS("Post Shader Bind");
 }
 
 void GPU_shader_unbind(void)
 {
-	GPU_ASSERT_NO_GL_ERRORS("Pre Shader Unbind");
 	glUseProgram(0);
-	GPU_ASSERT_NO_GL_ERRORS("Post Shader Unbind");
 }
 
 void GPU_shader_free(GPUShader *shader)
@@ -519,16 +515,12 @@ void GPU_shader_uniform_vector(GPUShader *UNUSED(shader), int location, int leng
 	if (location == -1 || value == NULL)
 		return;
 
-	GPU_ASSERT_NO_GL_ERRORS("Pre Uniform Vector");
-
 	if (length == 1) glUniform1fv(location, arraysize, value);
 	else if (length == 2) glUniform2fv(location, arraysize, value);
 	else if (length == 3) glUniform3fv(location, arraysize, value);
 	else if (length == 4) glUniform4fv(location, arraysize, value);
 	else if (length == 9) glUniformMatrix3fv(location, arraysize, 0, value);
 	else if (length == 16) glUniformMatrix4fv(location, arraysize, 0, value);
-
-	GPU_ASSERT_NO_GL_ERRORS("Post Uniform Vector");
 }
 
 void GPU_shader_uniform_vector_int(GPUShader *UNUSED(shader), int location, int length, int arraysize, const int *value)
@@ -536,14 +528,10 @@ void GPU_shader_uniform_vector_int(GPUShader *UNUSED(shader), int location, int 
 	if (location == -1)
 		return;
 
-	GPU_ASSERT_NO_GL_ERRORS("Pre Uniform Vector");
-
 	if (length == 1) glUniform1iv(location, arraysize, value);
 	else if (length == 2) glUniform2iv(location, arraysize, value);
 	else if (length == 3) glUniform3iv(location, arraysize, value);
 	else if (length == 4) glUniform4iv(location, arraysize, value);
-
-	GPU_ASSERT_NO_GL_ERRORS("Post Uniform Vector");
 }
 
 void GPU_shader_uniform_int(GPUShader *UNUSED(shader), int location, int value)
@@ -551,7 +539,7 @@ void GPU_shader_uniform_int(GPUShader *UNUSED(shader), int location, int value)
 	if (location == -1)
 		return;
 
-	GPU_CHECK_ERRORS_AROUND(glUniform1i(location, value));
+	glUniform1i(location, value);
 }
 
 void GPU_shader_geometry_stage_primitive_io(GPUShader *shader, int input, int output, int number)
@@ -582,8 +570,6 @@ void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUText
 	if (location == -1)
 		return;
 
-	GPU_ASSERT_NO_GL_ERRORS("Pre Uniform Texture");
-
 	arbnumber = (GLenum)((GLuint)GL_TEXTURE0 + number);
 
 	if (number != 0) glActiveTexture(arbnumber);
@@ -594,17 +580,11 @@ void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUText
 	glUniform1i(location, number);
 	glEnable(target);
 	if (number != 0) glActiveTexture(GL_TEXTURE0);
-
-	GPU_ASSERT_NO_GL_ERRORS("Post Uniform Texture");
 }
 
 int GPU_shader_get_attribute(GPUShader *shader, const char *name)
 {
-	int index;
-	
-	GPU_CHECK_ERRORS_AROUND(index = glGetAttribLocation(shader->program, name));
-
-	return index;
+	return glGetAttribLocation(shader->program, name);
 }
 
 GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)

@@ -376,7 +376,7 @@ static void wm_draw_triple_fail(bContext *C, wmWindow *win)
 	wm_method_draw_overlap_all(C, win, 0);
 }
 
-static int wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
+static bool wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
 {
 	const int winsize_x = WM_window_pixels_x(win);
 	const int winsize_y = WM_window_pixels_y(win);
@@ -400,7 +400,7 @@ static int wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
 	if (!triple->bind) {
 		/* not the typical failure case but we handle it anyway */
 		printf("WM: failed to allocate texture for triple buffer drawing (glGenTextures).\n");
-		return 0;
+		return false;
 	}
 
 	/* proxy texture is only guaranteed to test for the cases that
@@ -411,7 +411,7 @@ static int wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
 		glBindTexture(triple->target, 0);
 		printf("WM: failed to allocate texture for triple buffer drawing "
 			   "(texture too large for graphics card).\n");
-		return 0;
+		return false;
 	}
 
 	/* setup actual texture */
@@ -421,13 +421,7 @@ static int wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
 	glTexParameteri(triple->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glBindTexture(triple->target, 0);
 
-	/* not sure if this works everywhere .. */
-	if (glGetError() == GL_OUT_OF_MEMORY) {
-		printf("WM: failed to allocate texture for triple buffer drawing (out of memory).\n");
-		return 0;
-	}
-
-	return 1;
+	return true;
 }
 
 void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)

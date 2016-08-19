@@ -68,8 +68,6 @@
 
 #include "RNA_access.h"
 
-#include "GPU_debug.h"
-
 #include "UI_interface.h"
 
 #include "PIL_time.h"
@@ -2526,8 +2524,6 @@ void wm_event_do_handlers(bContext *C)
 
 	/* update key configuration after handling events */
 	WM_keyconfig_update(wm);
-
-	GPU_ASSERT_NO_GL_ERRORS("wm_event_do_handlers");
 }
 
 /* ********** filesector handling ************ */

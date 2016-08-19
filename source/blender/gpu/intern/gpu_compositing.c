@@ -582,11 +582,8 @@ bool GPU_fx_compositor_initialize_passes(
 	/* bind the buffers */
 
 	/* first depth buffer, because system assumes read/write buffers */
-	if (!GPU_framebuffer_texture_attach(fx->gbuffer, fx->depth_buffer, 0, err_out))
-		printf("%.256s\n", err_out);
-
-	if (!GPU_framebuffer_texture_attach(fx->gbuffer, fx->color_buffer, 0, err_out))
-		printf("%.256s\n", err_out);
+	GPU_framebuffer_texture_attach(fx->gbuffer, fx->depth_buffer, 0);
+	GPU_framebuffer_texture_attach(fx->gbuffer, fx->color_buffer, 0);
 
 	if (!GPU_framebuffer_check_valid(fx->gbuffer, err_out))
 		printf("%.256s\n", err_out);
@@ -631,7 +628,7 @@ static void gpu_fx_bind_render_target(int *passes_left, GPUFX *fx, struct GPUOff
 	}
 	else {
 		/* bind the ping buffer to the color buffer */
-		GPU_framebuffer_texture_attach(fx->gbuffer, target, 0, NULL);
+		GPU_framebuffer_texture_attach(fx->gbuffer, target, 0);
 	}
 }
 
@@ -660,8 +657,7 @@ void GPU_fx_compositor_setup_XRay_pass(GPUFX *fx, bool do_xray)
 	GPU_framebuffer_texture_detach(fx->depth_buffer);
 
 	/* first depth buffer, because system assumes read/write buffers */
-	if (!GPU_framebuffer_texture_attach(fx->gbuffer, fx->depth_buffer_xray, 0, err_out))
-		printf("%.256s\n", err_out);
+	GPU_framebuffer_texture_attach(fx->gbuffer, fx->depth_buffer_xray, 0);
 }
 
 
@@ -671,7 +667,7 @@ void GPU_fx_compositor_XRay_resolve(GPUFX *fx)
 	GPU_framebuffer_texture_detach(fx->depth_buffer_xray);
 
 	/* attach regular framebuffer */
-	GPU_framebuffer_texture_attach(fx->gbuffer, fx->depth_buffer, 0, NULL);
+	GPU_framebuffer_texture_attach(fx->gbuffer, fx->depth_buffer, 0);
 
 	/* full screen quad where we will always write to depth buffer */
 	glPushAttrib(GL_DEPTH_BUFFER_BIT | GL_SCISSOR_BIT);
@@ -919,9 +915,9 @@ bool GPU_fx_do_composite_pass(
 				GPU_shader_uniform_texture(dof_shader_pass2, interface->color_uniform, src);
 
 				/* target is the downsampled coc buffer */
-				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_half_downsampled_near, 0, NULL);
-				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_half_downsampled_far, 1, NULL);
-				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_nearfar_coc, 2, NULL);
+				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_half_downsampled_near, 0);
+				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_half_downsampled_far, 1);
+				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_nearfar_coc, 2);
 				/* binding takes care of setting the viewport to the downsampled size */
 				GPU_framebuffer_slots_bind(fx->gbuffer, 0);
 
@@ -965,7 +961,7 @@ bool GPU_fx_do_composite_pass(
 				GPU_texture_filter_mode(fx->dof_half_downsampled_far, false, false);
 
 				/* target is the downsampled coc buffer */
-				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_far_blur, 0, NULL);
+				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_far_blur, 0);
 				GPU_texture_bind_as_framebuffer(fx->dof_far_blur);
 
 				glDisable(GL_DEPTH_TEST);
@@ -989,7 +985,7 @@ bool GPU_fx_do_composite_pass(
 
 				GPU_shader_uniform_vector(dof_shader_pass2, interface->select_uniform, 2, 1, selection);
 
-				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_near_blur, 0, NULL);
+				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_near_blur, 0);
 				/* have to clear the buffer unfortunately */
 				glClear(GL_COLOR_BUFFER_BIT);
 				/* the draw call we all waited for, draw a point per pixel, scaled per circle of confusion */
@@ -1108,7 +1104,7 @@ bool GPU_fx_do_composite_pass(
 				GPU_shader_uniform_texture(dof_shader_pass1, interface->depth_uniform, fx->depth_buffer);
 
 				/* target is the downsampled coc buffer */
-				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_near_coc_buffer, 0, NULL);
+				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_near_coc_buffer, 0);
 				/* binding takes care of setting the viewport to the downsampled size */
 				GPU_texture_bind_as_framebuffer(fx->dof_near_coc_buffer);
 
@@ -1148,7 +1144,7 @@ bool GPU_fx_do_composite_pass(
 				GPU_shader_uniform_texture(dof_shader_pass2, interface->color_uniform, fx->dof_near_coc_buffer);
 
 				/* use final buffer as a temp here */
-				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_near_coc_final_buffer, 0, NULL);
+				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_near_coc_final_buffer, 0);
 
 				/* Drawing quad */
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -1165,7 +1161,7 @@ bool GPU_fx_do_composite_pass(
 				GPU_texture_bind(fx->dof_near_coc_final_buffer, numslots++);
 				GPU_shader_uniform_texture(dof_shader_pass2, interface->color_uniform, fx->dof_near_coc_final_buffer);
 
-				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_near_coc_blurred_buffer, 0, NULL);
+				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_near_coc_blurred_buffer, 0);
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 				/* *unbind/detach */
@@ -1192,7 +1188,7 @@ bool GPU_fx_do_composite_pass(
 				GPU_texture_bind(fx->dof_near_coc_blurred_buffer, numslots++);
 				GPU_shader_uniform_texture(dof_shader_pass3, interface->near_coc_blurred, fx->dof_near_coc_blurred_buffer);
 
-				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_near_coc_final_buffer, 0, NULL);
+				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_near_coc_final_buffer, 0);
 
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 				/* disable bindings */
@@ -1218,7 +1214,7 @@ bool GPU_fx_do_composite_pass(
 				GPU_shader_uniform_texture(dof_shader_pass4, interface->near_coc_downsampled, fx->dof_near_coc_final_buffer);
 				GPU_shader_uniform_vector(dof_shader_pass4, interface->invrendertargetdim_uniform, 2, 1, invrendertargetdim);
 
-				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_near_coc_buffer, 0, NULL);
+				GPU_framebuffer_texture_attach(fx->gbuffer, fx->dof_near_coc_buffer, 0);
 
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 				/* disable bindings */

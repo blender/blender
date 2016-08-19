@@ -43,113 +43,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define CASE_CODE_RETURN_STR(code) case code: return #code;
-
-static const char *gpu_gl_error_symbol(GLenum err)
-{
-	switch (err) {
-		CASE_CODE_RETURN_STR(GL_NO_ERROR)
-		CASE_CODE_RETURN_STR(GL_INVALID_ENUM)
-		CASE_CODE_RETURN_STR(GL_INVALID_VALUE)
-		CASE_CODE_RETURN_STR(GL_INVALID_OPERATION)
-		CASE_CODE_RETURN_STR(GL_STACK_OVERFLOW)
-		CASE_CODE_RETURN_STR(GL_STACK_UNDERFLOW)
-		CASE_CODE_RETURN_STR(GL_OUT_OF_MEMORY)
-
-#if GL_ARB_imaging
-		CASE_CODE_RETURN_STR(GL_TABLE_TOO_LARGE)
-#endif
-
-#if defined(WITH_GLU)
-		CASE_CODE_RETURN_STR(GLU_INVALID_ENUM)
-		CASE_CODE_RETURN_STR(GLU_INVALID_VALUE)
-		CASE_CODE_RETURN_STR(GLU_OUT_OF_MEMORY)
-#endif
-
-		default:
-			return "<unknown error>";
-	}
-}
-
-#undef CASE_CODE_RETURN_STR
-
-
-static bool gpu_report_gl_errors(const char *file, int line, const char *str)
-{
-	GLenum gl_error = glGetError();
-
-	if (gl_error == GL_NO_ERROR) {
-		return true;
-	}
-	else {
-		/* glGetError should have cleared the error flag, so if we get the
-		 * same flag twice that means glGetError itself probably triggered
-		 * the error. This happens on Windows if the GL context is invalid.
-		 */
-		{
-			GLenum new_error = glGetError();
-			if (gl_error == new_error) {
-				fprintf(stderr, "GL: Possible context invalidation issue\n");
-				return false;
-			}
-		}
-
-		fprintf(stderr,
-		        "%s:%d: ``%s'' -> GL Error (0x%04X - %s): %s\n",
-		        file, line, str, gl_error,
-		        gpu_gl_error_symbol(gl_error),
-		        gpuErrorString(gl_error));
-
-		return false;
-	}
-}
-
-
-const char *gpuErrorString(GLenum err)
-{
-	switch (err) {
-		case GL_NO_ERROR:
-			return "No Error";
-
-		case GL_INVALID_ENUM:
-			return "Invalid Enumeration";
-
-		case GL_INVALID_VALUE:
-			return "Invalid Value";
-
-		case GL_INVALID_OPERATION:
-			return "Invalid Operation";
-
-		case GL_STACK_OVERFLOW:
-			return "Stack Overflow";
-
-		case GL_STACK_UNDERFLOW:
-			return "Stack Underflow";
-
-		case GL_OUT_OF_MEMORY:
-			return "Out of Memory";
-
-#if GL_ARB_imaging
-		case GL_TABLE_TOO_LARGE:
-			return "Table Too Large";
-#endif
-
-#if defined(WITH_GLU)
-		case GLU_INVALID_ENUM:
-			return "Invalid Enum (GLU)";
-
-		case GLU_INVALID_VALUE:
-			return "Invalid Value (GLU)";
-
-		case GLU_OUT_OF_MEMORY:
-			return "Out of Memory (GLU)";
-#endif
-
-		default:
-			return "<unknown error>";
-	}
-}
-
 
 /* Debug callbacks need the same calling convention as OpenGL functions.
  */
@@ -400,18 +293,6 @@ void GPU_print_error_debug(const char *str)
 		fprintf(stderr, "GPU: %s\n", str);
 }
 
-
-void GPU_assert_no_gl_errors(const char *file, int line, const char *str)
-{
-	if (G.debug) {
-		GLboolean gl_ok = gpu_report_gl_errors(file, line, str);
-
-		BLI_assert(gl_ok);
-		(void) gl_ok;
-	}
-}
-
-
 static void gpu_state_print_fl_ex(const char *name, GLenum type)
 {
 	const unsigned char err_mark[4] = {0xff, 0xff, 0xff, 0xff};
@@ -438,7 +319,8 @@ static void gpu_state_print_fl_ex(const char *name, GLenum type)
 
 void GPU_state_print(void)
 {
-	GPU_ASSERT_NO_GL_ERRORS("GPU_state_print"); /* clear any errors */
+	/* clear any errors */ 
+	while (glGetError() != GL_NO_ERROR) {} 
 
 	gpu_state_print_fl(GL_ACCUM_ALPHA_BITS);
 	gpu_state_print_fl(GL_ACCUM_BLUE_BITS);
