@@ -960,7 +960,6 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
                          icon='DOWNARROW_HLT')
 
         row = layout.row()
-        row.active = stab.use_stabilize_rotation
         row.prop(stab, "use_autoscale")
         sub = row.row()
         sub.active = stab.use_autoscale
@@ -971,10 +970,9 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
         # Hrm, how to make it more obvious label?
         row.prop(stab, "target_position", text="")
         col.prop(stab, "target_rotation")
-        if stab.use_autoscale:
-            col.label(text="Auto Scale Factor: %5.3f" % (1.0 / stab.target_zoom))
-        else:
-            col.prop(stab, "target_zoom")
+        row = col.row(align=True)
+        row.prop(stab, "target_scale")
+        row.active = not stab.use_autoscale
 
         col = layout.column(align=True)
         col.prop(stab, "influence_location")

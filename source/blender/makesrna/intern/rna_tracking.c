@@ -1774,7 +1774,7 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
 
 	/* target scale */
-	prop = RNA_def_property(srna, "target_zoom", PROP_FLOAT, PROP_FACTOR);
+	prop = RNA_def_property(srna, "target_scale", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "scale");
 	RNA_def_property_range(prop, FLT_EPSILON, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.01f, 10.0f, 0.001f, 3); /* increment in steps of 0.001. Show 3 digit after point */
