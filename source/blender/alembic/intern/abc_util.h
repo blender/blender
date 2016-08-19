@@ -86,8 +86,11 @@ void get_min_max_time(const Alembic::AbcGeom::IObject &object, const Schema &sch
 {
 	get_min_max_time_ex(schema, min, max);
 
-	Alembic::AbcGeom::IXform parent(object.getParent(), Alembic::AbcGeom::kWrapExisting);
-	get_min_max_time_ex(parent.getSchema(), min, max);
+	const Alembic::AbcGeom::IObject &parent = object.getParent();
+	if (parent.valid() && Alembic::AbcGeom::IXform::matches(parent.getMetaData())) {
+		Alembic::AbcGeom::IXform xform(parent, Alembic::AbcGeom::kWrapExisting);
+		get_min_max_time_ex(xform.getSchema(), min, max);
+	}
 }
 
 bool has_property(const Alembic::Abc::ICompoundProperty &prop, const std::string &name);
