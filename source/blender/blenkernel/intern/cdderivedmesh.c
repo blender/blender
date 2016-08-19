@@ -687,20 +687,24 @@ static void cdDM_drawMappedFaces(
 					const int orig = (index_mp_to_orig) ? index_mp_to_orig[i] : i;
 					bool is_hidden;
 
-					if (use_hide) {
-						if (flag & DM_DRAW_SELECT_USE_EDITMODE) {
-							BMFace *efa = BM_face_at_index(bm, orig);
-							is_hidden = BM_elem_flag_test(efa, BM_ELEM_HIDDEN) != 0;
+					if (orig != ORIGINDEX_NONE) {
+						if (use_hide) {
+							if (flag & DM_DRAW_SELECT_USE_EDITMODE) {
+								BMFace *efa = BM_face_at_index(bm, orig);
+								is_hidden = BM_elem_flag_test(efa, BM_ELEM_HIDDEN) != 0;
+							}
+							else {
+								is_hidden = (me->mpoly[orig].flag & ME_HIDE) != 0;
+							}
+
+							if (!is_hidden) {
+								GPU_select_index_get(orig + 1, &selcol);
+							}
 						}
 						else {
-							is_hidden = (me->mpoly[orig].flag & ME_HIDE) != 0;
-						}
-
-						if ((orig != ORIGINDEX_NONE) && !is_hidden)
 							GPU_select_index_get(orig + 1, &selcol);
+						}
 					}
-					else if (orig != ORIGINDEX_NONE)
-						GPU_select_index_get(orig + 1, &selcol);
 
 					for (j = 0; j < mpoly->totloop; j++)
 						fi_map[start_element++] = selcol;
