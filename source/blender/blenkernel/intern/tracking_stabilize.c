@@ -1023,7 +1023,7 @@ static void stabilization_calculate_data(StabContext *ctx,
 	float target_pos[2];
 	float scaleinf = get_animated_scaleinf(ctx, framenr);
 
-	*r_scale = (get_animated_target_scale(ctx,framenr) - 1.0f) * scaleinf + 1.0f;
+	*r_scale = get_animated_target_scale(ctx,framenr);
 
 	if (ctx->stab->flag & TRACKING_STABILIZE_SCALE) {
 		*r_scale *= expf(scale_step * scaleinf);  /* Averaged in log scale */
