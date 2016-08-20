@@ -132,10 +132,11 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
 
 static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
 {
-	uiLayout *box = uiLayoutBox(layout);
+	uiLayout *box;
 	uiLayout *row;
 
 #ifdef WITH_ALEMBIC_HDF5
+	box = uiLayoutBox(layout);
 	row = uiLayoutRow(box, false);
 	uiItemL(row, IFACE_("Archive Options:"), ICON_NONE);
 
