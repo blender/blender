@@ -69,9 +69,15 @@ void immEnd(void);
 void immAttrib1f(unsigned attrib_id, float x);
 void immAttrib2f(unsigned attrib_id, float x, float y);
 void immAttrib3f(unsigned attrib_id, float x, float y, float z);
+void immAttrib4f(unsigned attrib_id, float x, float y, float z, float w);
+
+void immAttrib3fv(unsigned attrib_id, const float data[3]);
+void immAttrib4fv(unsigned attrib_id, const float data[4]);
 
 void immAttrib3ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned char b);
 void immAttrib4ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+
+void immAttrib3ubv(unsigned attrib_id, const unsigned char data[4]);
 void immAttrib4ubv(unsigned attrib_id, const unsigned char data[4]);
 
 void immEndVertex(void); // and move on to the next vertex
@@ -79,6 +85,8 @@ void immEndVertex(void); // and move on to the next vertex
 // provide 2D or 3D attribute value and end the current vertex, similar to glVertex:
 void immVertex2f(unsigned attrib_id, float x, float y);
 void immVertex3f(unsigned attrib_id, float x, float y, float z);
+
+void immVertex2fv(unsigned attrib_id, const float data[2]);
 void immVertex3fv(unsigned attrib_id, const float data[3]);
 
 // provide values that don't change for the entire draw call

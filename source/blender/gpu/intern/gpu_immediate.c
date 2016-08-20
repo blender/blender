@@ -571,6 +571,39 @@ void immAttrib3f(unsigned attrib_id, float x, float y, float z)
 	data[2] = z;
 	}
 
+void immAttrib4f(unsigned attrib_id, float x, float y, float z, float w)
+	{
+	Attrib* attrib = imm.vertex_format.attribs + attrib_id;
+
+#if TRUST_NO_ONE
+	assert(attrib_id < imm.vertex_format.attrib_ct);
+	assert(attrib->comp_type == GL_FLOAT);
+	assert(attrib->comp_ct == 4);
+	assert(imm.vertex_idx < imm.vertex_ct);
+	assert(imm.primitive != GL_NONE); // make sure we're between a Begin/End pair
+#endif
+
+	setAttribValueBit(attrib_id);
+
+	float* data = (float*)(imm.vertex_data + attrib->offset);
+//	printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm.buffer_data, data);
+
+	data[0] = x;
+	data[1] = y;
+	data[2] = z;
+	data[3] = w;
+	}
+
+void immAttrib3fv(unsigned attrib_id, const float data[3])
+	{
+	immAttrib3f(attrib_id, data[0], data[1], data[2]);
+	}
+
+void immAttrib4fv(unsigned attrib_id, const float data[4])
+	{
+	immAttrib4f(attrib_id, data[0], data[1], data[2], data[3]);
+	}
+
 void immAttrib3ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned char b)
 	{
 	Attrib* attrib = imm.vertex_format.attribs + attrib_id;
@@ -614,6 +647,11 @@ void immAttrib4ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned
 	data[1] = g;
 	data[2] = b;
 	data[3] = a;
+	}
+
+void immAttrib3ubv(unsigned attrib_id, const unsigned char data[3])
+	{
+	immAttrib3ub(attrib_id, data[0], data[1], data[2]);
 	}
 
 void immAttrib4ubv(unsigned attrib_id, const unsigned char data[4])
@@ -666,6 +704,12 @@ void immVertex2f(unsigned attrib_id, float x, float y)
 void immVertex3f(unsigned attrib_id, float x, float y, float z)
 	{
 	immAttrib3f(attrib_id, x, y, z);
+	immEndVertex();
+	}
+
+void immVertex2fv(unsigned attrib_id, const float data[2])
+	{
+	immAttrib2f(attrib_id, data[0], data[1]);
 	immEndVertex();
 	}
 
