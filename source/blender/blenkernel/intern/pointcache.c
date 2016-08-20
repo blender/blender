@@ -1137,13 +1137,13 @@ static int ptcache_smoke_openvdb_read(struct OpenVDBReader *reader, void *smoke_
 
 		OpenVDB_import_grid_fl(reader, "density", &dens, sds->res_wt);
 
-		if (fluid_fields & SM_ACTIVE_FIRE) {
+		if (cache_fields & SM_ACTIVE_FIRE) {
 			OpenVDB_import_grid_fl(reader, "flame", &flame, sds->res_wt);
 			OpenVDB_import_grid_fl(reader, "fuel", &fuel, sds->res_wt);
 			OpenVDB_import_grid_fl(reader, "react", &react, sds->res_wt);
 		}
 
-		if (fluid_fields & SM_ACTIVE_COLORS) {
+		if (cache_fields & SM_ACTIVE_COLORS) {
 			OpenVDB_import_grid_vec(reader, "color", &r, &g, &b, sds->res_wt);
 		}
 
