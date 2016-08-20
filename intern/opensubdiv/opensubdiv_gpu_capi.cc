@@ -115,7 +115,7 @@ static Transform g_transform;
 struct OpenSubdiv_GLMeshFVarData
 {
 	OpenSubdiv_GLMeshFVarData() :
-		texture_buffer(0) {
+		texture_buffer(0), offset_buffer(0) {
 	}
 
 	~OpenSubdiv_GLMeshFVarData()
