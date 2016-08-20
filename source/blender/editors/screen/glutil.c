@@ -56,38 +56,6 @@
 #define GL_CLAMP_TO_EDGE                        0x812F
 #endif
 
-/* UNUSED */
-#if 0
-void fdrawbezier(float vec[4][3])
-{
-	float dist;
-	float curve_res = 24, spline_step = 0.0f;
-	
-	dist = 0.5f * fabsf(vec[0][0] - vec[3][0]);
-	
-	/* check direction later, for top sockets */
-	vec[1][0] = vec[0][0] + dist;
-	vec[1][1] = vec[0][1];
-	
-	vec[2][0] = vec[3][0] - dist;
-	vec[2][1] = vec[3][1];
-	/* we can reuse the dist variable here to increment the GL curve eval amount */
-	dist = 1.0f / curve_res;
-	
-	cpack(0x0);
-	glMap1f(GL_MAP1_VERTEX_3, 0.0, 1.0, 3, 4, vec[0]);
-	glBegin(GL_LINE_STRIP);
-	while (spline_step < 1.000001f) {
-#if 0
-		if (do_shaded)
-			UI_ThemeColorBlend(th_col1, th_col2, spline_step);
-#endif
-		glEvalCoord1f(spline_step);
-		spline_step += dist;
-	}
-	glEnd();
-}
-#endif
 
 void fdrawline(float x1, float y1, float x2, float y2)
 {
@@ -131,38 +99,6 @@ void sdrawline(int x1, int y1, int x2, int y2)
 	glEnd();
 }
 
-/* UNUSED */
-#if 0
-/*
- *     x1,y2
- *     |  \
- *     |   \
- *     |    \
- *     x1,y1-- x2,y1
- */
-
-static void sdrawtripoints(int x1, int y1, int x2, int y2)
-{
-	glVertex2i(x1, y1);
-	glVertex2i(x1, y2);
-	glVertex2i(x2, y1);
-}
-
-void sdrawtri(int x1, int y1, int x2, int y2)
-{
-	glBegin(GL_LINE_STRIP);
-	sdrawtripoints(x1, y1, x2, y2);
-	glEnd();
-}
-
-void sdrawtrifill(int x1, int y1, int x2, int y2)
-{
-	glBegin(GL_TRIANGLES);
-	sdrawtripoints(x1, y1, x2, y2);
-	glEnd();
-}
-#endif
-
 void sdrawbox(int x1, int y1, int x2, int y2)
 {
 	glBegin(GL_LINE_LOOP);
@@ -203,81 +139,6 @@ void set_inverted_drawing(int enable)
 	GL_TOGGLE(GL_COLOR_LOGIC_OP, enable);
 	GL_TOGGLE(GL_DITHER, !enable);
 }
-
-/* UNUSED */
-#if 0
-void sdrawXORline(int x0, int y0, int x1, int y1)
-{
-	if (x0 == x1 && y0 == y1) return;
-
-	set_inverted_drawing(1);
-	
-	glBegin(GL_LINES);
-	glVertex2i(x0, y0);
-	glVertex2i(x1, y1);
-	glEnd();
-	
-	set_inverted_drawing(0);
-}
-
-void sdrawXORline4(int nr, int x0, int y0, int x1, int y1)
-{
-	static int old[4][2][2];
-	static char flags[4] = {0, 0, 0, 0};
-	
-	/* with builtin memory, max 4 lines */
-
-	set_inverted_drawing(1);
-		
-	glBegin(GL_LINES);
-	if (nr == -1) { /* flush */
-		for (nr = 0; nr < 4; nr++) {
-			if (flags[nr]) {
-				glVertex2iv(old[nr][0]);
-				glVertex2iv(old[nr][1]);
-				flags[nr] = 0;
-			}
-		}
-	}
-	else {
-		if (nr >= 0 && nr < 4) {
-			if (flags[nr]) {
-				glVertex2iv(old[nr][0]);
-				glVertex2iv(old[nr][1]);
-			}
-
-			old[nr][0][0] = x0;
-			old[nr][0][1] = y0;
-			old[nr][1][0] = x1;
-			old[nr][1][1] = y1;
-			
-			flags[nr] = 1;
-		}
-		
-		glVertex2i(x0, y0);
-		glVertex2i(x1, y1);
-	}
-	glEnd();
-	
-	set_inverted_drawing(0);
-}
-
-void fdrawXORellipse(float xofs, float yofs, float hw, float hh)
-{
-	if (hw == 0) return;
-
-	set_inverted_drawing(1);
-
-	glPushMatrix();
-	glTranslatef(xofs, yofs, 0.0f);
-	glScalef(1.0f, hh / hw, 1.0f);
-	glutil_draw_lined_arc(0.0, M_PI * 2.0, hw, 20);
-	glPopMatrix();
-
-	set_inverted_drawing(0);
-}
-
-#endif
 
 void fdrawXORcirc(float xofs, float yofs, float rad)
 {
@@ -401,12 +262,6 @@ void glaDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, zoomfilter);
 
-#if defined(__APPLE__) && 0
-	/* [merwin] disable this workaround and see if anyone is affected. If not scrap it! Also at end of this function */
-	/* workaround for os x 10.5/10.6 driver bug: http://lists.apple.com/archives/Mac-opengl/2008/Jul/msg00117.html */
-	glPixelZoom(1.0f, 1.0f);
-#endif
-	
 	/* setup seamless 2=on, 0=off */
 	seamless = ((tex_w < img_w || tex_h < img_h) && tex_w > 2 && tex_h > 2) ? 2 : 0;
 	
@@ -514,11 +369,6 @@ void glaDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-	
-#if defined(__APPLE__) && 0
-	/* workaround for os x 10.5/10.6 driver bug (above) */
-	glPixelZoom(xzoom, yzoom);
-#endif
 }
 
 void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h,
@@ -673,6 +523,8 @@ void glaDefine2DArea(rcti *screen_rect)
 	glLoadIdentity();
 }
 
+/* TODO(merwin): put the following 2D code to use, or build new 2D code inspired & informd by it */
+
 #if 0 /* UNUSED */
 
 struct gla2DDrawInfo {
@@ -785,7 +637,8 @@ void glaEnd2DDraw(gla2DDrawInfo *di)
 
 	MEM_freeN(di);
 }
-#endif
+
+#endif /* UNUSED */
 
 
 /* Uses current OpenGL state to get view matrices for gluProject/gluUnProject */
