@@ -58,6 +58,8 @@
 #include "interface_intern.h"
 
 #include "GPU_basic_shader.h"
+#include "GPU_shader.h"
+#include "GPU_immediate.h"
 
 #ifdef WITH_INPUT_IME
 #  include "WM_types.h"
@@ -2266,18 +2268,17 @@ void ui_hsvcircle_pos_from_vals(uiBut *but, const rcti *rect, float *hsv, float 
 
 static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 {
+	/* TODO(merwin): reimplement as shader for pixel-perfect colors */
+
 	const int tot = 64;
 	const float radstep = 2.0f * (float)M_PI / (float)tot;
 	const float centx = BLI_rcti_cent_x_fl(rect);
 	const float centy = BLI_rcti_cent_y_fl(rect);
 	float radius = (float)min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
 
-	/* gouraud triangle fan */
 	ColorPicker *cpicker = but->custom_data;
 	const float *hsv_ptr = cpicker->color_data;
-	float xpos, ypos, ang = 0.0f;
 	float rgb[3], hsvo[3], hsv[3], col[3], colcent[3];
-	int a;
 	bool color_profile = ui_but_is_colorpicker_display_space(but);
 		
 	/* color */
@@ -2308,11 +2309,18 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	
 	ui_color_picker_to_rgb(0.0f, 0.0f, hsv[2], colcent, colcent + 1, colcent + 2);
 
-	glBegin(GL_TRIANGLE_FAN);
-	glColor3fv(colcent);
-	glVertex2f(centx, centy);
+	VertexFormat* format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned color = add_attrib(format, "color", GL_FLOAT, 3, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+
+	immBegin(GL_TRIANGLE_FAN, tot + 2);
+	immAttrib3fv(color, colcent);
+	immVertex2f(pos, centx, centy);
 	
-	for (a = 0; a <= tot; a++, ang += radstep) {
+	float ang = 0.0f;
+	for (int a = 0; a <= tot; a++, ang += radstep) {
 		float si = sinf(ang);
 		float co = cosf(ang);
 		
@@ -2320,25 +2328,37 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 
 		ui_color_picker_to_rgb_v(hsv, col);
 
-		glColor3fv(col);
-		glVertex2f(centx + co * radius, centy + si * radius);
+		immAttrib3fv(color, col);
+		immVertex2f(pos, centx + co * radius, centy + si * radius);
 	}
-	glEnd();
-	
+	immEnd();
+	immUnbindProgram();
+
 	/* fully rounded outline */
-	glPushMatrix();
-	glTranslatef(centx, centy, 0.0f);
+	format = immVertexFormat();
+	pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
-	glColor3ubv((unsigned char *)wcol->outline);
-	glutil_draw_lined_arc(0.0f, M_PI * 2.0, radius, tot + 1);
+
+	const float scale = 1.0f / 255.0f; /* TODO: treat as sRGB? */
+	const float outline_r = scale * (unsigned char)wcol->outline[0];
+	const float outline_g = scale * (unsigned char)wcol->outline[1];
+	const float outline_b = scale * (unsigned char)wcol->outline[2];
+
+	immUniform4f("color", outline_r, outline_g, outline_b, 1.0f);
+	imm_draw_lined_circle(pos, centx, centy, radius, tot);
+
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
-	glPopMatrix();
+
+	immUnbindProgram();
 
 	/* cursor */
+	float xpos, ypos;
 	ui_hsvcircle_pos_from_vals(but, rect, hsvo, &xpos, &ypos);
-
 	ui_hsv_cursor(xpos, ypos);
 }
 

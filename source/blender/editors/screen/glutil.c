@@ -49,6 +49,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "GPU_basic_shader.h"
+#include "GPU_immediate.h"
 
 #include "UI_interface.h"
 
@@ -179,6 +180,17 @@ void glutil_draw_lined_arc(float start, float angle, float radius, int nsegments
 		glVertex2f(cosf(cur) * radius, sinf(cur) * radius);
 	}
 	glEnd();
+}
+
+void imm_draw_lined_circle(unsigned pos, float x, float y, float rad, int nsegments)
+{
+	immBegin(GL_LINE_LOOP, nsegments);
+	for (int i = 0; i < nsegments; ++i) {
+		float angle = 2 * M_PI * ((float)i / (float)nsegments);
+		immVertex2f(pos, x + rad * cosf(angle),
+		                 y + rad * sinf(angle));
+	}
+	immEnd();
 }
 
 float glaGetOneFloat(int param)

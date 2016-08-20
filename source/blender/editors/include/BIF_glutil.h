@@ -81,6 +81,20 @@ void glutil_draw_lined_arc(float start, float angle, float radius, int nsegments
 void glutil_draw_filled_arc(float start, float angle, float radius, int nsegments);
 
 /**
+ * Draw a circle outline with the given \a radius,
+ * starting at angle \a start and arcing through
+ * \a angle. The circle is centered at \a x, \a y
+ * and drawn in the XY plane.
+ *
+ * \param pos The vertex attribute number for position.
+ * \param x Horizontal center.
+ * \param y Vertical center.
+ * \param radius The circle's radius.
+ * \param nsegments The number of segments to use in drawing (more = smoother).
+ */
+void imm_draw_lined_circle(unsigned pos, float x, float y, float radius, int nsegments);
+
+/**
  * Returns a float value as obtained by glGetFloatv.
  * The param must cause only one value to be gotten from GL.
  */
