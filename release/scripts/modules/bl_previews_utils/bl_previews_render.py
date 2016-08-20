@@ -169,7 +169,7 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
                     scene.objects.unlink(bpy.data.objects[render_context.camera, None])
                 if render_context.lamp:
                     scene.objects.unlink(bpy.data.objects[render_context.lamp, None])
-                bpy.data.scenes.remove(scene)
+                bpy.data.scenes.remove(scene, do_unlink=True)
                 scene = None
             else:
                 rna_backup_restore(scene, render_context.backup_scene)
