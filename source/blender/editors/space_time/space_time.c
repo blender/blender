@@ -813,6 +813,7 @@ void ED_spacetype_time(void)
 	art->draw = time_main_region_draw;
 	art->listener = time_main_region_listener;
 	art->keymap = time_keymap;
+	art->lock = 1;   /* Due to pointcache, see T4960. */
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */
