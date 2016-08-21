@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Float4 textures on various devices. */
 #if defined(__KERNEL_CPU__)
-#  define TEX_NUM_FLOAT4_IMAGES	TEX_NUM_FLOAT4_CPU
+#  define TEX_NUM_FLOAT4_IMAGES		TEX_NUM_FLOAT4_CPU
 #elif defined(__KERNEL_CUDA__)
 #  if __CUDA_ARCH__ < 300
 #    define TEX_NUM_FLOAT4_IMAGES	TEX_NUM_FLOAT4_CUDA
@@ -36,13 +36,26 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline float4 svm_image_texture_read(KernelGlobals *kg, int id, int offset)
 {
-	if(id >= TEX_NUM_FLOAT4_IMAGES) {
+	/* Float4 */
+	if(id < TEX_START_BYTE4_OPENCL) {
+		return kernel_tex_fetch(__tex_image_float4_packed, offset);
+	}
+	/* Byte4 */
+	else if(id < TEX_START_FLOAT_OPENCL) {
 		uchar4 r = kernel_tex_fetch(__tex_image_byte4_packed, offset);
 		float f = 1.0f/255.0f;
 		return make_float4(r.x*f, r.y*f, r.z*f, r.w*f);
 	}
+	/* Float */
+	else if(id < TEX_START_BYTE_OPENCL) {
+		float f = kernel_tex_fetch(__tex_image_float_packed, offset);
+		return make_float4(f, f, f, 1.0f);
+	}
+	/* Byte */
 	else {
-		return kernel_tex_fetch(__tex_image_float4_packed, offset);
+		uchar r = kernel_tex_fetch(__tex_image_byte_packed, offset);
+		float f = r * (1.0f/255.0f);
+		return make_float4(f, f, f, 1.0f);
 	}
 }
 
@@ -277,8 +290,10 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 	}
 #  else
 	CUtexObject tex = kernel_tex_fetch(__bindless_mapping, id);
-	if(id < 2048) /* TODO(dingto): Make this a variable */
+	/* float4, byte4 and half4 */
+	if(id < TEX_START_FLOAT_CUDA_KEPLER)
 		r = kernel_tex_image_interp_float4(tex, x, y);
+	/* float, byte and half */
 	else {
 		float f = kernel_tex_image_interp_float(tex, x, y);
 		r = make_float4(f, f, f, 1.0);

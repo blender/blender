@@ -25,8 +25,6 @@
 #ifndef __GHOST_NDOFMANAGERWIN32_H__
 #define __GHOST_NDOFMANAGERWIN32_H__
 
-#ifdef WITH_INPUT_NDOF
-
 #include "GHOST_NDOFManager.h"
 
 
@@ -37,6 +35,4 @@ public:
 	bool available();
 };
 
-
-#endif // WITH_INPUT_NDOF
 #endif // #include guard

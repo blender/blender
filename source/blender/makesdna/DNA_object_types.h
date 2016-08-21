@@ -329,7 +329,7 @@ typedef struct DupliObject {
 
 	/* persistent identifier for a dupli object, for inter-frame matching of
 	 * objects with motion blur, or inter-update matching for syncing */
-	int persistent_id[8]; /* MAX_DUPLI_RECUR */
+	int persistent_id[16]; /* 2*MAX_DUPLI_RECUR */
 } DupliObject;
 
 /* **************** OBJECT ********************* */

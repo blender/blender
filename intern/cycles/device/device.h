@@ -109,6 +109,9 @@ public:
 	/* Use branched integrator. */
 	bool use_integrator_branched;
 
+	/* Use OpenSubdiv patch evaluation */
+	bool use_patch_evaluation;
+
 	DeviceRequestedFeatures()
 	{
 		/* TODO(sergey): Find more meaningful defaults. */
@@ -123,6 +126,7 @@ public:
 		use_subsurface = false;
 		use_volume = false;
 		use_integrator_branched = false;
+		use_patch_evaluation = false;
 	}
 
 	bool modified(const DeviceRequestedFeatures& requested_features)
@@ -137,7 +141,8 @@ public:
 		         use_baking == requested_features.use_baking &&
 		         use_subsurface == requested_features.use_subsurface &&
 		         use_volume == requested_features.use_volume &&
-		         use_integrator_branched == requested_features.use_integrator_branched);
+		         use_integrator_branched == requested_features.use_integrator_branched &&
+		         use_patch_evaluation == requested_features.use_patch_evaluation);
 	}
 
 	/* Convert the requested features structure to a build options,
@@ -174,6 +179,9 @@ public:
 		}
 		if(!use_integrator_branched) {
 			build_options += " -D__NO_BRANCHED_PATH__";
+		}
+		if(!use_patch_evaluation) {
+			build_options += " -D__NO_PATCH_EVAL__";
 		}
 		return build_options;
 	}

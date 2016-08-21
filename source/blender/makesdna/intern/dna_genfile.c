@@ -1294,6 +1294,11 @@ int DNA_elem_offset(SDNA *sdna, const char *stype, const char *vartype, const ch
 	return (int)((intptr_t)cp);
 }
 
+bool DNA_struct_find(const SDNA *sdna, const char *stype)
+{
+	return DNA_struct_find_nr(sdna, stype) != -1;
+}
+
 bool DNA_struct_elem_find(const SDNA *sdna, const char *stype, const char *vartype, const char *name)
 {
 	const int SDNAnr = DNA_struct_find_nr(sdna, stype);

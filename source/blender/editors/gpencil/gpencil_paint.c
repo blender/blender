@@ -924,7 +924,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	bGPDpalette *palette = BKE_gpencil_palette_getactive(p->gpd);
 	bGPDpalettecolor *palcolor = BKE_gpencil_palettecolor_getactive(palette);
 	gps->palcolor = palcolor;
-	strcpy(gps->colorname, palcolor->info);
+	BLI_strncpy(gps->colorname, palcolor->info, sizeof(gps->colorname));
 
 	/* add stroke to frame, usually on tail of the listbase, but if on back is enabled the stroke is added on listbase head 
 	* because the drawing order is inverse and the head stroke is the first to draw. This is very useful for artist

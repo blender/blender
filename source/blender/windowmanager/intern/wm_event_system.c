@@ -565,6 +565,7 @@ void WM_event_print(const wmEvent *event)
 		       BLI_str_utf8_size(event->utf8_buf), event->utf8_buf,
 		       event->keymap_idname, (const void *)event);
 
+#ifdef WITH_INPUT_NDOF
 		if (ISNDOF(event->type)) {
 			const wmNDOFMotionData *ndof = event->customdata;
 			if (event->type == NDOF_MOTION) {
@@ -575,6 +576,7 @@ void WM_event_print(const wmEvent *event)
 				/* ndof buttons printed already */
 			}
 		}
+#endif /* WITH_INPUT_NDOF */
 
 		if (event->tablet_data) {
 			const wmTabletData *wmtab = event->tablet_data;
@@ -611,10 +613,12 @@ bool WM_event_is_absolute(const wmEvent *event)
 	return (event->tablet_data != NULL);
 }
 
+#ifdef WITH_INPUT_NDOF
 void WM_ndof_deadzone_set(float deadzone)
 {
 	GHOST_setNDOFDeadZone(deadzone);
 }
+#endif
 
 static void wm_add_reports(ReportList *reports)
 {
@@ -2421,9 +2425,11 @@ void wm_event_do_handlers(bContext *C)
 					/* for regions having custom cursors */
 					wm_paintcursor_test(C, event);
 				}
+#ifdef WITH_INPUT_NDOF
 				else if (event->type == NDOF_MOTION) {
 					win->addmousemove = true;
 				}
+#endif
 
 				for (sa = win->screen->areabase.first; sa; sa = sa->next) {
 					/* after restoring a screen from SCREENMAXIMIZED we have to wait
@@ -3022,6 +3028,7 @@ static void update_tablet_data(wmWindow *win, wmEvent *event)
 	}
 }
 
+#ifdef WITH_INPUT_NDOF
 /* adds customdata to event */
 static void attach_ndof_data(wmEvent *event, const GHOST_TEventNDOFMotionData *ghost)
 {
@@ -3048,6 +3055,7 @@ static void attach_ndof_data(wmEvent *event, const GHOST_TEventNDOFMotionData *g
 	event->customdata = data;
 	event->customdatafree = 1;
 }
+#endif /* WITH_INPUT_NDOF */
 
 /* imperfect but probably usable... draw/enable drags to other windows */
 static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *win, wmEvent *event)
@@ -3435,6 +3443,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			break;
 		}
 
+#ifdef WITH_INPUT_NDOF
 		case GHOST_kEventNDOFMotion:
 		{
 			event.type = NDOF_MOTION;
@@ -3470,6 +3479,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 
 			break;
 		}
+#endif /* WITH_INPUT_NDOF */
 
 		case GHOST_kEventUnknown:
 		case GHOST_kNumEventTypes:
@@ -3541,6 +3551,7 @@ void WM_set_locked_interface(wmWindowManager *wm, bool lock)
 }
 
 
+#ifdef WITH_INPUT_NDOF
 /* -------------------------------------------------------------------- */
 /* NDOF */
 
@@ -3583,6 +3594,7 @@ void WM_event_ndof_to_quat(const struct wmNDOFMotionData *ndof, float q[4])
 	angle = WM_event_ndof_to_axis_angle(ndof, axis);
 	axis_angle_to_quat(q, axis, angle);
 }
+#endif /* WITH_INPUT_NDOF */
 
 /* if this is a tablet event, return tablet pressure and set *pen_flip
  * to 1 if the eraser tool is being used, 0 otherwise */

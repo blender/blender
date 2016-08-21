@@ -64,7 +64,7 @@ void create_input_transform(const Alembic::AbcGeom::ISampleSelector &sample_sel,
                             float r_mat[4][4], float scale, bool has_alembic_parent = false);
 
 template <typename Schema>
-void get_min_max_time(const Schema &schema, chrono_t &min, chrono_t &max)
+void get_min_max_time_ex(const Schema &schema, chrono_t &min, chrono_t &max)
 {
 	const Alembic::Abc::TimeSamplingPtr &time_samp = schema.getTimeSampling();
 
@@ -78,6 +78,18 @@ void get_min_max_time(const Schema &schema, chrono_t &min, chrono_t &max)
 			const chrono_t max_time = time_samp->getSampleTime(num_samps - 1);
 			max = std::max(max, max_time);
 		}
+	}
+}
+
+template <typename Schema>
+void get_min_max_time(const Alembic::AbcGeom::IObject &object, const Schema &schema, chrono_t &min, chrono_t &max)
+{
+	get_min_max_time_ex(schema, min, max);
+
+	const Alembic::AbcGeom::IObject &parent = object.getParent();
+	if (parent.valid() && Alembic::AbcGeom::IXform::matches(parent.getMetaData())) {
+		Alembic::AbcGeom::IXform xform(parent, Alembic::AbcGeom::kWrapExisting);
+		get_min_max_time_ex(xform.getSchema(), min, max);
 	}
 }
 

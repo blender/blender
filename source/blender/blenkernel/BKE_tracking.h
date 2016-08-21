@@ -277,9 +277,9 @@ void BKE_tracking_detect_harris(struct MovieTracking *tracking, struct ListBase 
                                 bool place_outside_layer);
 
 /* **** 2D stabilization **** */
-void BKE_tracking_stabilization_data_get(struct MovieTracking *tracking, int framenr, int width, int height,
+void BKE_tracking_stabilization_data_get(struct MovieClip *clip, int framenr, int width, int height,
                                          float translation[2], float *scale, float *angle);
-struct ImBuf *BKE_tracking_stabilize_frame(struct MovieTracking *tracking, int framenr, struct ImBuf *ibuf,
+struct ImBuf *BKE_tracking_stabilize_frame(struct MovieClip *clip, int framenr, struct ImBuf *ibuf,
                                            float translation[2], float *scale, float *angle);
 void BKE_tracking_stabilization_data_to_mat4(int width, int height, float aspect, float translation[2],
                                              float scale, float angle, float mat[4][4]);

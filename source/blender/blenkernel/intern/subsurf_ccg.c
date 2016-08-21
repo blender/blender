@@ -2707,7 +2707,6 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 	GPU_vertex_setup(dm);
 	GPU_normal_setup(dm);
 	GPU_triangle_setup(dm);
-	glShadeModel(GL_SMOOTH);
 	for (a = 0; a < dm->drawObject->totmaterial; a++) {
 		if (!setMaterial || setMaterial(dm->drawObject->materials[a].mat_nr + 1, NULL)) {
 			GPU_buffer_draw_elements(dm->drawObject->triangles, GL_TRIANGLES, dm->drawObject->materials[a].start,
@@ -2810,8 +2809,6 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 		return;
 	}
 #endif
-
-	glShadeModel(GL_SMOOTH);
 
 	CCG_key_top_level(&key, ss);
 	ccgdm_pbvh_update(ccgdm);
@@ -2965,6 +2962,7 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 			}
 		}
 
+		glShadeModel(GL_SMOOTH);
 #undef PASSATTRIB
 	}
 	else {
@@ -3170,8 +3168,6 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 		MEM_freeN(mat_orig_to_new);
 		MEM_freeN(matconv);
 	}
-
-	glShadeModel(GL_SMOOTH);
 }
 
 static void ccgDM_drawFacesGLSL(DerivedMesh *dm, DMSetMaterial setMaterial)
@@ -3369,6 +3365,7 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm,
 		}
 	}
 
+	glShadeModel(GL_SMOOTH);
 #undef PASSATTRIB
 }
 
@@ -3503,7 +3500,6 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 
 	next_actualFace = 0;
 
-	glShadeModel(GL_SMOOTH);
 	/* lastFlag = 0; */ /* UNUSED */
 	for (mat_index = 0; mat_index < dm->drawObject->totmaterial; mat_index++) {
 		GPUBufferMaterial *bufmat = dm->drawObject->materials + mat_index;
@@ -3681,8 +3677,8 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 		if (do_draw) {
 			glShadeModel(draw_smooth ? GL_SMOOTH : GL_FLAT);
 			ccgSubSurf_drawGLMesh(ss, true, -1, -1);
+			glShadeModel(GL_SMOOTH);
 		}
-		glShadeModel(GL_SMOOTH);
 		return;
 	}
 #endif
@@ -3744,10 +3740,6 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 					GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_QUARTTONE);
 				}
 
-				/* no need to set shading mode to flat because
-				 *  normals are already used to change shading */
-				glShadeModel(GL_SMOOTH);
-				
 				for (S = 0; S < numVerts; S++) {
 					CCGElem *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
 					if (ln) {

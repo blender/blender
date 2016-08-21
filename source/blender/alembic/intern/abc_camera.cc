@@ -109,7 +109,7 @@ AbcCameraReader::AbcCameraReader(const Alembic::Abc::IObject &object, ImportSett
 	ICamera abc_cam(m_iobject, kWrapExisting);
 	m_schema = abc_cam.getSchema();
 
-	get_min_max_time(m_schema, m_min_time, m_max_time);
+	get_min_max_time(m_iobject, m_schema, m_min_time, m_max_time);
 }
 
 bool AbcCameraReader::valid() const

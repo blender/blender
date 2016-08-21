@@ -50,7 +50,7 @@
 #ifndef NDEBUG
 void BLI_system_backtrace(FILE *fp)
 {
-	(void)fp;
+       (void)fp;
 }
 #endif
 

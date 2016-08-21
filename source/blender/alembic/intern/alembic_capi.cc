@@ -585,6 +585,9 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 	IArchive *archive = open_archive(data->filename);
 
 	if (!archive || !archive->valid()) {
+		if (archive) {
+			delete archive;
+		}
 		data->error_code = ABC_ARCHIVE_FAIL;
 		return;
 	}
@@ -933,12 +936,12 @@ static DerivedMesh *read_mesh_sample(DerivedMesh *dm, const IObject &iobject, co
 
 	CDStreamConfig config = get_config(new_dm ? new_dm : dm);
 
-	bool has_loop_normals = false;
-	read_mesh_sample(&settings, schema, sample_sel, config, has_loop_normals);
+	bool do_normals = false;
+	read_mesh_sample(&settings, schema, sample_sel, config, do_normals);
 
 	if (new_dm) {
 		/* Check if we had ME_SMOOTH flag set to restore it. */
-		if (!has_loop_normals && check_smooth_poly_flag(dm)) {
+		if (!do_normals && check_smooth_poly_flag(dm)) {
 			set_smooth_poly_flag(new_dm);
 		}
 
@@ -946,6 +949,10 @@ static DerivedMesh *read_mesh_sample(DerivedMesh *dm, const IObject &iobject, co
 		CDDM_calc_edges(new_dm);
 
 		return new_dm;
+	}
+
+	if (do_normals) {
+		CDDM_calc_normals(dm);
 	}
 
 	return dm;

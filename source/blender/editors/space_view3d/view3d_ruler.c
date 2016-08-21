@@ -297,6 +297,8 @@ static bool view3d_ruler_to_gpencil(bContext *C, RulerInfo *ruler_info)
 	bGPDlayer *gpl;
 	bGPDframe *gpf;
 	bGPDstroke *gps;
+	bGPDpalette *palette;
+	bGPDpalettecolor *palcolor;
 	RulerItem *ruler_item;
 	const char *ruler_name = RULER_ID;
 	bool changed = false;
@@ -312,6 +314,17 @@ static bool view3d_ruler_to_gpencil(bContext *C, RulerInfo *ruler_info)
 		gpl->flag |= GP_LAYER_HIDE;
 	}
 
+	/* try to get active palette or create a new one */
+	palette = BKE_gpencil_palette_getactive(scene->gpd);
+	if (palette == NULL) {
+		palette = BKE_gpencil_palette_addnew(scene->gpd, DATA_("GP_Palette"), true);
+	}
+	/* try to get color with the ruler name or create a new one */
+	palcolor = BKE_gpencil_palettecolor_getbyname(palette, (char *)ruler_name);
+	if (palcolor == NULL) {
+		palcolor = BKE_gpencil_palettecolor_addnew(palette, (char *)ruler_name, true);
+	}
+	
 	gpf = BKE_gpencil_layer_getframe(gpl, CFRA, true);
 	BKE_gpencil_free_strokes(gpf);
 
@@ -342,6 +355,10 @@ static bool view3d_ruler_to_gpencil(bContext *C, RulerInfo *ruler_info)
 			}
 		}
 		gps->flag = GP_STROKE_3DSPACE;
+		gps->thickness = 3;
+		/* assign color to stroke */
+		strcpy(gps->colorname, palcolor->info);
+		gps->palcolor = palcolor;
 		BLI_addtail(&gpf->strokes, gps);
 		changed = true;
 	}

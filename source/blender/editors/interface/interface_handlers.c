@@ -5415,6 +5415,7 @@ static bool ui_numedit_but_HSVCUBE(
 	return changed;
 }
 
+#ifdef WITH_INPUT_NDOF
 static void ui_ndofedit_but_HSVCUBE(
         uiBut *but, uiHandleButtonData *data,
         const wmNDOFMotionData *ndof,
@@ -5487,6 +5488,7 @@ static void ui_ndofedit_but_HSVCUBE(
 	copy_v3_v3(data->vec, rgb);
 	ui_but_v3_set(but, data->vec);
 }
+#endif /* WITH_INPUT_NDOF */
 
 static int ui_do_but_HSVCUBE(
         bContext *C, uiBlock *block, uiBut *but,
@@ -5514,6 +5516,7 @@ static int ui_do_but_HSVCUBE(
 			
 			return WM_UI_HANDLER_BREAK;
 		}
+#ifdef WITH_INPUT_NDOF
 		else if (event->type == NDOF_MOTION) {
 			const wmNDOFMotionData *ndof = event->customdata;
 			const enum eSnapType snap = ui_event_to_snap(event);
@@ -5525,6 +5528,7 @@ static int ui_do_but_HSVCUBE(
 			
 			return WM_UI_HANDLER_BREAK;
 		}
+#endif /* WITH_INPUT_NDOF */
 		/* XXX hardcoded keymap check.... */
 		else if (event->type == BACKSPACEKEY && event->val == KM_PRESS) {
 			if (ELEM(but->a1, UI_GRAD_V_ALT, UI_GRAD_L_ALT)) {
@@ -5680,6 +5684,7 @@ static bool ui_numedit_but_HSVCIRCLE(
 	return changed;
 }
 
+#ifdef WITH_INPUT_NDOF
 static void ui_ndofedit_but_HSVCIRCLE(
         uiBut *but, uiHandleButtonData *data,
         const wmNDOFMotionData *ndof,
@@ -5750,7 +5755,7 @@ static void ui_ndofedit_but_HSVCIRCLE(
 	
 	ui_but_v3_set(but, data->vec);
 }
-
+#endif /* WITH_INPUT_NDOF */
 
 static int ui_do_but_HSVCIRCLE(
         bContext *C, uiBlock *block, uiBut *but,
@@ -5778,6 +5783,7 @@ static int ui_do_but_HSVCIRCLE(
 			
 			return WM_UI_HANDLER_BREAK;
 		}
+#ifdef WITH_INPUT_NDOF
 		else if (event->type == NDOF_MOTION) {
 			const enum eSnapType snap = ui_event_to_snap(event);
 			const wmNDOFMotionData *ndof = event->customdata;
@@ -5789,6 +5795,7 @@ static int ui_do_but_HSVCIRCLE(
 			
 			return WM_UI_HANDLER_BREAK;
 		}
+#endif /* WITH_INPUT_NDOF */
 		/* XXX hardcoded keymap check.... */
 		else if (event->type == BACKSPACEKEY && event->val == KM_PRESS) {
 			int len;

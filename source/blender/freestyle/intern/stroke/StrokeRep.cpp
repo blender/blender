@@ -135,11 +135,11 @@ void Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
 	int orientationErrors = 0;
 
 	//special case of first vertex
-	v = iStrokeVertices.begin();
+	v2 = v = iStrokeVertices.begin();
+	++v2;
 	sv = *v;
 	vPrev = v; //in case the stroke has only 2 vertices;
-	++v;
-	sv2 = *v;
+	sv2 = *v2;
 	Vec2r dir(sv2->getPoint() - sv->getPoint());
 	Vec2r orthDir(-dir[1], dir[0]);
 	if (orthDir.norm() > ZERO)
@@ -189,11 +189,7 @@ void Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
 
 	int i = 2; // 2 because we have already processed the first vertex
 
-	for (vend = iStrokeVertices.end(); v != vend; ++v) {
-		v2 = v;
-		++v2;
-		if (v2 == vend)
-			break;
+	for (vend = iStrokeVertices.end(), ++v, ++v2; v2 != vend; vPrev = v++, ++v2) {
 		sv = (*v);
 		sv2 = (*v2);
 		svPrev = (*vPrev);
@@ -289,8 +285,6 @@ void Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
 		{
 			_vertices[i - 1]->setPoint2d(p - thickness[0] * stripDir);
 		}
-
-		vPrev = v;
 	} // end of for
 
 	//special case of last vertex

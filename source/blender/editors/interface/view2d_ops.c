@@ -127,6 +127,7 @@ static int view_pan_init(bContext *C, wmOperator *op)
 	return 1;
 }
 
+#ifdef WITH_INPUT_NDOF
 static int view_pan_poll(bContext *C)
 {
 	ARegion *ar = CTX_wm_region(C);
@@ -144,6 +145,7 @@ static int view_pan_poll(bContext *C)
 	/* view can pan */
 	return 1;
 }
+#endif
 
 /* apply transform to view (i.e. adjust 'cur' rect) */
 static void view_pan_apply_ex(bContext *C, v2dViewPanData *vpd, float dx, float dy)
@@ -1296,7 +1298,7 @@ static void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 	WM_operator_properties_gesture_border(ot, false);
 }
 
-
+#ifdef WITH_INPUT_NDOF
 static int view2d_ndof_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (event->type != NDOF_MOTION) {
@@ -1369,6 +1371,7 @@ static void VIEW2D_OT_ndof(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_LOCK_BYPASS;
 }
+#endif /* WITH_INPUT_NDOF */
 
 /* ********************************************************* */
 /* SMOOTH VIEW */
@@ -2067,7 +2070,9 @@ void ED_operatortypes_view2d(void)
 	WM_operatortype_append(VIEW2D_OT_zoom);
 	WM_operatortype_append(VIEW2D_OT_zoom_border);
 
+#ifdef WITH_INPUT_NDOF
 	WM_operatortype_append(VIEW2D_OT_ndof);
+#endif
 
 	WM_operatortype_append(VIEW2D_OT_smoothview);
 	
@@ -2097,7 +2102,9 @@ void ED_keymap_view2d(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", WHEELDOWNMOUSE, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_up", WHEELUPMOUSE, KM_PRESS, KM_SHIFT, 0);
 	
+#ifdef WITH_INPUT_NDOF
 	WM_keymap_add_item(keymap, "VIEW2D_OT_ndof", NDOF_MOTION, 0, 0, 0);
+#endif
 
 	/* zoom - single step */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_out", WHEELOUTMOUSE, KM_PRESS, 0, 0);

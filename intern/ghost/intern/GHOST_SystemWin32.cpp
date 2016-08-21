@@ -57,7 +57,7 @@
 #include "GHOST_WindowWin32.h"
 
 #ifdef WITH_INPUT_NDOF
-#include "GHOST_NDOFManagerWin32.h"
+  #include "GHOST_NDOFManagerWin32.h"
 #endif
 
 // Key code values not found in winuser.h
@@ -125,9 +125,9 @@
 static void initRawInput()
 {
 #ifdef WITH_INPUT_NDOF
-#define DEVICE_COUNT 2
+  #define DEVICE_COUNT 2
 #else
-#define DEVICE_COUNT 1
+  #define DEVICE_COUNT 1
 #endif
 
 	RAWINPUTDEVICE devices[DEVICE_COUNT];

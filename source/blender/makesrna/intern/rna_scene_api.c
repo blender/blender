@@ -278,8 +278,8 @@ static void rna_Scene_collada_export(
         int use_object_instantiation,
         int use_blender_profile,
         int sort_by_name,
-        int export_transformation_type,
-        int open_sim)
+        int open_sim,
+        int export_transformation_type)
 {
 	collada_export(scene, filepath, apply_modifiers, export_mesh_type, selected,
 	               include_children, include_armatures, include_shapekeys, deform_bones_only,

@@ -80,8 +80,10 @@ void cloth_init(ClothModifierData *clmd )
 	clmd->sim_parms->gravity[1] = 0.0;
 	clmd->sim_parms->gravity[2] = -9.81;
 	clmd->sim_parms->structural = 15.0;
+	clmd->sim_parms->max_struct = 15.0;
 	clmd->sim_parms->shear = 15.0;
 	clmd->sim_parms->bending = 0.5;
+	clmd->sim_parms->max_bend = 0.5;
 	clmd->sim_parms->bending_damping = 0.5;
 	clmd->sim_parms->Cdis = 5.0; 
 	clmd->sim_parms->Cvi = 1.0;

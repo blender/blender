@@ -167,7 +167,7 @@ static EnumPropertyItem event_ndof_type_items[] = {
 	{NDOF_BUTTON_C, "NDOF_BUTTON_C", 0, "Button C", ""},
 	{0, NULL, 0, NULL, NULL}
 };
-#endif
+#endif /* RNA_RUNTIME */
 
 /* not returned: CAPSLOCKKEY, UNKNOWNKEY */
 EnumPropertyItem rna_enum_event_type_items[] = {

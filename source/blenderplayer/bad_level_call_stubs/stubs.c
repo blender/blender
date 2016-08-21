@@ -335,7 +335,9 @@ void WM_jobs_callbacks(struct wmJob *job,
 void WM_jobs_start(struct wmWindowManager *wm, struct wmJob *job) RET_NONE
 void WM_report(ReportType type, const char *message) RET_NONE
 
-void WM_ndof_deadzone_set(float deadzone) RET_NONE
+#ifdef WITH_INPUT_NDOF
+    void WM_ndof_deadzone_set(float deadzone) RET_NONE
+#endif
 
 void                WM_uilisttype_init(void) RET_NONE
 struct uiListType  *WM_uilisttype_find(const char *idname, bool quiet) RET_NULL

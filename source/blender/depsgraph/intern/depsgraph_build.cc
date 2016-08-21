@@ -36,11 +36,15 @@ extern "C" {
 #include "DNA_cachefile_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_force.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
 #include "BKE_main.h"
+#include "BKE_collision.h"
+#include "BKE_effect.h"
+#include "BKE_modifier.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_debug.h"
@@ -303,4 +307,46 @@ void DEG_scene_graph_free(Scene *scene)
 		DEG_graph_free(scene->depsgraph);
 		scene->depsgraph = NULL;
 	}
+}
+
+void DEG_add_collision_relations(DepsNodeHandle *handle, Scene *scene, Object *ob, Group *group, int layer, unsigned int modifier_type, DEG_CollobjFilterFunction fn, bool dupli, const char *name)
+{
+	unsigned int numcollobj;
+	Object **collobjs = get_collisionobjects_ext(scene, ob, group, layer, &numcollobj, modifier_type, dupli);
+
+	for (unsigned int i = 0; i < numcollobj; i++) {
+		Object *ob1 = collobjs[i];
+
+		if (!fn || fn(ob1, modifiers_findByType(ob1, (ModifierType)modifier_type))) {
+			DEG_add_object_relation(handle, ob1, DEG_OB_COMP_TRANSFORM, name);
+			DEG_add_object_relation(handle, ob1, DEG_OB_COMP_GEOMETRY, name);
+		}
+	}
+
+	if (collobjs)
+		MEM_freeN(collobjs);
+}
+
+void DEG_add_forcefield_relations(DepsNodeHandle *handle, Scene *scene, Object *ob, EffectorWeights *effector_weights, bool add_absorption, int skip_forcefield, const char *name)
+{
+	ListBase *effectors = pdInitEffectors(scene, ob, effector_weights, false);
+
+	if (effectors) {
+		for (EffectorCache *eff = (EffectorCache*)effectors->first; eff; eff = eff->next) {
+			if (eff->ob != ob && eff->pd->forcefield != skip_forcefield) {
+				DEG_add_object_relation(handle, eff->ob, DEG_OB_COMP_TRANSFORM, name);
+
+				if (eff->pd->forcefield == PFIELD_SMOKEFLOW && eff->pd->f_source) {
+					DEG_add_object_relation(handle, eff->pd->f_source, DEG_OB_COMP_TRANSFORM, "Smoke Force Domain");
+					DEG_add_object_relation(handle, eff->pd->f_source, DEG_OB_COMP_GEOMETRY, "Smoke Force Domain");
+				}
+
+				if (add_absorption && (eff->pd->flag & PFIELD_VISIBILITY)) {
+					DEG_add_collision_relations(handle, scene, ob, NULL, eff->ob->lay, eModifierType_Collision, NULL, true, "Force Absorption");
+				}
+			}
+		}
+	}
+
+	pdEndEffectors(&effectors);
 }

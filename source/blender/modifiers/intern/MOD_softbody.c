@@ -36,11 +36,15 @@
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_force.h"
 
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_softbody.h"
+
+#include "depsgraph_private.h"
+#include "DEG_depsgraph_build.h"
 
 #include "MOD_modifiertypes.h"
 
@@ -58,6 +62,31 @@ static bool dependsOnTime(ModifierData *UNUSED(md))
 	return true;
 }
 
+static void updateDepgraph(ModifierData *UNUSED(md), DagForest *forest,
+                           struct Main *UNUSED(bmain),
+                           Scene *scene, Object *ob, DagNode *obNode)
+{
+	if (ob->soft) {
+		/* Actual code uses ccd_build_deflector_hash */
+		dag_add_collision_relations(forest, scene, ob, obNode, ob->soft->collision_group, ob->lay, eModifierType_Collision, NULL, false, "Softbody Collision");
+
+		dag_add_forcefield_relations(forest, scene, ob, obNode, ob->soft->effector_weights, true, 0, "Softbody Field");
+	}
+}
+
+static void updateDepsgraph(ModifierData *UNUSED(md),
+                            struct Main *UNUSED(bmain),
+                            struct Scene *scene,
+                            Object *ob,
+                            struct DepsNodeHandle *node)
+{
+	if (ob->soft) {
+		/* Actual code uses ccd_build_deflector_hash */
+		DEG_add_collision_relations(node, scene, ob, ob->soft->collision_group, ob->lay, eModifierType_Collision, NULL, false, "Softbody Collision");
+
+		DEG_add_forcefield_relations(node, scene, ob, ob->soft->effector_weights, true, 0, "Softbody Field");
+	}
+}
 
 ModifierTypeInfo modifierType_Softbody = {
 	/* name */              "Softbody",
@@ -80,8 +109,8 @@ ModifierTypeInfo modifierType_Softbody = {
 	/* requiredDataMask */  NULL,
 	/* freeData */          NULL,
 	/* isDisabled */        NULL,
-	/* updateDepgraph */    NULL,
-	/* updateDepsgraph */   NULL,
+	/* updateDepgraph */    updateDepgraph,
+	/* updateDepsgraph */   updateDepsgraph,
 	/* dependsOnTime */     dependsOnTime,
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,

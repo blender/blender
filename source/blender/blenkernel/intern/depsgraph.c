@@ -61,11 +61,14 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_mask_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_rigidbody_types.h"
 
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_collision.h"
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
@@ -450,29 +453,51 @@ static void dag_add_lamp_driver_relations(DagForest *dag, DagNode *node, Lamp *l
 	la->id.tag &= ~LIB_TAG_DOIT;
 }
 
-static void check_and_create_collision_relation(DagForest *dag, Object *ob, DagNode *node, Object *ob1, int skip_forcefield, bool no_collision)
+static void create_collision_relation(DagForest *dag, DagNode *node, Object *ob1, const char *name)
 {
-	DagNode *node2;
-	if (ob1->pd && (ob1->pd->deflect || ob1->pd->forcefield) && (ob1 != ob)) {
-		if ((skip_forcefield && ob1->pd->forcefield == skip_forcefield) || (no_collision && ob1->pd->forcefield == 0))
-			return;
-		node2 = dag_get_node(dag, ob1);
-		dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Field Collision");
-	}
+	DagNode *node2 = dag_get_node(dag, ob1);
+	dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, name);
 }
 
-static void dag_add_collision_field_relation(DagForest *dag, Scene *scene, Object *ob, DagNode *node, int skip_forcefield, bool no_collision)
+void dag_add_collision_relations(DagForest *dag, Scene *scene, Object *ob, DagNode *node, Group *group, int layer, unsigned int modifier_type, DagCollobjFilterFunction fn, bool dupli, const char *name)
 {
-	Base *base;
+	unsigned int numcollobj;
+	Object **collobjs = get_collisionobjects_ext(scene, ob, group, layer, &numcollobj, modifier_type, dupli);
 
-	/* would be nice to have a list of colliders here
-	 * so for now walk all objects in scene check 'same layer rule' */
-	for (base = scene->base.first; base; base = base->next) {
-		if ((base->lay & ob->lay)) {
-			Object *ob1 = base->object;
-			check_and_create_collision_relation(dag, ob, node, ob1, skip_forcefield, no_collision);
+	for (unsigned int i = 0; i < numcollobj; i++) {
+		Object *ob1 = collobjs[i];
+
+		if (!fn || fn(ob1, modifiers_findByType(ob1, modifier_type))) {
+			create_collision_relation(dag, node, ob1, name);
 		}
 	}
+
+	if (collobjs)
+		MEM_freeN(collobjs);
+}
+
+void dag_add_forcefield_relations(DagForest *dag, Scene *scene, Object *ob, DagNode *node, EffectorWeights *effector_weights, bool add_absorption, int skip_forcefield, const char *name)
+{
+	ListBase *effectors = pdInitEffectors(scene, ob, effector_weights, false);
+
+	if (effectors) {
+		for (EffectorCache *eff = effectors->first; eff; eff = eff->next) {
+			if (eff->ob != ob && eff->pd->forcefield != skip_forcefield) {
+				create_collision_relation(dag, node, eff->ob, name);
+
+				if (eff->pd->forcefield == PFIELD_SMOKEFLOW && eff->pd->f_source) {
+					create_collision_relation(dag, node, eff->pd->f_source, "Smoke Force Domain");
+				}
+
+				if (add_absorption && (eff->pd->flag & PFIELD_VISIBILITY)) {
+					/* Actual code uses get_collider_cache */
+					dag_add_collision_relations(dag, scene, ob, node, NULL, eff->ob->lay, eModifierType_Collision, NULL, true, "Force Absorption");
+				}
+			}
+		}
+	}
+
+	pdEndEffectors(&effectors);
 }
 
 static void build_dag_object(DagForest *dag, DagNode *scenenode, Main *bmain, Scene *scene, Object *ob, int mask)
@@ -622,22 +647,13 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Main *bmain, Sc
 		}
 	}
 
-	/* softbody collision  */
+	/* rigidbody force fields  */
 	if ((ob->type == OB_MESH) || (ob->type == OB_CURVE) || (ob->type == OB_LATTICE)) {
-		if (modifiers_isModifierEnabled(ob, eModifierType_Softbody) ||
-		    modifiers_isModifierEnabled(ob, eModifierType_Cloth) ||
-		    modifiers_isModifierEnabled(ob, eModifierType_DynamicPaint))
-		{
-			dag_add_collision_field_relation(dag, scene, ob, node, 0, false);  /* TODO: use effectorweight->group */
-		}
-		else if (modifiers_isModifierEnabled(ob, eModifierType_Smoke)) {
-			dag_add_collision_field_relation(dag, scene, ob, node, PFIELD_SMOKEFLOW, false);
-		}
-		else if (ob->rigidbody_object) {
-			dag_add_collision_field_relation(dag, scene, ob, node, 0, true);
+		if (ob->rigidbody_object && scene->rigidbody_world) {
+			dag_add_forcefield_relations(dag, scene, ob, node, scene->rigidbody_world->effector_weights, true, 0, "Force Field");
 		}
 	}
-	
+
 	/* object data drivers */
 	if (ob->data) {
 		AnimData *adt = BKE_animdata_from_id((ID *)ob->data);

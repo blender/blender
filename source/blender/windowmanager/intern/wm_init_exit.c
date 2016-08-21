@@ -198,8 +198,11 @@ void WM_init(bContext *C, int argc, const char **argv)
 	BLT_lang_set(NULL);
 
 	if (!G.background) {
+
+#ifdef WITH_INPUT_NDOF
 		/* sets 3D mouse deadzone */
 		WM_ndof_deadzone_set(U.ndof_deadzone);
+#endif
 
 		GPU_init();
 

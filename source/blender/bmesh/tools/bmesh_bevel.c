@@ -3563,7 +3563,7 @@ static void find_bevel_edge_order(BMesh *bm, BevVert *bv, BMEdge *first_bme)
 		BLI_assert(first_bme != NULL);
 		bv->edges[i].e = first_bme;
 		BM_BEVEL_EDGE_TAG_ENABLE(first_bme);
-		if (fast_bevel_edge_order(bv))
+		if (i == 0 && fast_bevel_edge_order(bv))
 			break;
 		i = bevel_edge_order_extend(bm, bv, i);
 		i++;
@@ -3588,6 +3588,7 @@ static void find_bevel_edge_order(BMesh *bm, BevVert *bv, BMEdge *first_bme)
 		e2 = (i == bv->edgecount - 1) ? &bv->edges[0] : &bv->edges[i + 1];
 		bme = e->e;
 		bme2 = e2->e;
+		BLI_assert(bme != NULL);
 		BM_ITER_ELEM(l, &iter, bme, BM_LOOPS_OF_EDGE) {
 			f = l->f;
 			if ((l->prev->e == bme2 || l->next->e == bme2) && !e->fnext && !e2->fprev)

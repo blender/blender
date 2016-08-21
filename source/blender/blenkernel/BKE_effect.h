@@ -60,6 +60,8 @@ typedef struct EffectedPoint {
 
 	unsigned int flag;
 	int index;
+
+	struct ParticleSystem *psys;  /* particle system the point belongs to */
 } EffectedPoint;
 
 typedef struct GuideEffectorData {
@@ -105,7 +107,7 @@ typedef struct EffectorCache {
 } EffectorCache;
 
 void            free_partdeflect(struct PartDeflect *pd);
-struct ListBase *pdInitEffectors(struct Scene *scene, struct Object *ob_src, struct EffectorWeights *weights, bool precalc);
+struct ListBase *pdInitEffectors(struct Scene *scene, struct Object *ob_src, struct EffectorWeights *weights, bool for_simulation);
 void            pdEndEffectors(struct ListBase **effectors);
 void            pdPrecalculateEffectors(struct ListBase *effectors);
 void            pdDoEffectors(struct ListBase *effectors, struct ListBase *colliders, struct EffectorWeights *weights, struct EffectedPoint *point, float *force, float *impulse);

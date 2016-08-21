@@ -122,19 +122,11 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 {
 	ClothModifierData *clmd = (ClothModifierData *) md;
 	
-	Base *base;
-	
 	if (clmd) {
-		for (base = scene->base.first; base; base = base->next) {
-			Object *ob1 = base->object;
-			if (ob1 != ob) {
-				CollisionModifierData *coll_clmd = (CollisionModifierData *)modifiers_findByType(ob1, eModifierType_Collision);
-				if (coll_clmd) {
-					DagNode *curNode = dag_get_node(forest, ob1);
-					dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Cloth Collision");
-				}
-			}
-		}
+		/* Actual code uses get_collisionobjects */
+		dag_add_collision_relations(forest, scene, ob, obNode, clmd->coll_parms->group, ob->lay|scene->lay, eModifierType_Collision, NULL, true, "Cloth Collision");
+
+		dag_add_forcefield_relations(forest, scene, ob, obNode, clmd->sim_parms->effector_weights, true, 0, "Cloth Field");
 	}
 }
 
@@ -146,16 +138,10 @@ static void updateDepsgraph(ModifierData *md,
 {
 	ClothModifierData *clmd = (ClothModifierData *)md;
 	if (clmd != NULL) {
-		Base *base;
-		for (base = scene->base.first; base; base = base->next) {
-			Object *ob1 = base->object;
-			if (ob1 != ob) {
-				CollisionModifierData *coll_clmd = (CollisionModifierData *)modifiers_findByType(ob1, eModifierType_Collision);
-				if (coll_clmd) {
-					DEG_add_object_relation(node, ob1, DEG_OB_COMP_TRANSFORM, "Cloth Modifier");
-				}
-			}
-		}
+		/* Actual code uses get_collisionobjects */
+		DEG_add_collision_relations(node, scene, ob, clmd->coll_parms->group, ob->lay|scene->lay, eModifierType_Collision, NULL, true, "Cloth Collision");
+
+		DEG_add_forcefield_relations(node, scene, ob, clmd->sim_parms->effector_weights, true, 0, "Cloth Field");
 	}
 }
 

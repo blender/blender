@@ -162,7 +162,6 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 	
 	if (type == SCE_COPY_EMPTY) {
 		ListBase rl, rv;
-		/* XXX. main should become an arg */
 		scen = BKE_scene_add(bmain, sce->id.name + 2);
 		
 		rl = scen->r.layers;

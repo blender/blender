@@ -272,7 +272,7 @@ static ModifierData *get_subsurf_modifier(Scene *scene, Object *ob)
 		}
 
 		/* mesh is not a subsurf. break */
-		if ((md->type != eModifierType_Displace) && (md->type != eModifierType_ParticleSystem)) {
+		if ((md->type != eModifierType_Displace) /*&& (md->type != eModifierType_ParticleSystem)*/) {
 			return NULL;
 		}
 	}
@@ -968,7 +968,8 @@ AbcMeshReader::AbcMeshReader(const IObject &object, ImportSettings &settings)
 
 	IPolyMesh ipoly_mesh(m_iobject, kWrapExisting);
 	m_schema = ipoly_mesh.getSchema();
-	get_min_max_time(m_schema, m_min_time, m_max_time);
+
+	get_min_max_time(m_iobject, m_schema, m_min_time, m_max_time);
 }
 
 bool AbcMeshReader::valid() const
@@ -1120,7 +1121,8 @@ AbcSubDReader::AbcSubDReader(const IObject &object, ImportSettings &settings)
 
 	ISubD isubd_mesh(m_iobject, kWrapExisting);
 	m_schema = isubd_mesh.getSchema();
-	get_min_max_time(m_schema, m_min_time, m_max_time);
+
+	get_min_max_time(m_iobject, m_schema, m_min_time, m_max_time);
 }
 
 bool AbcSubDReader::valid() const

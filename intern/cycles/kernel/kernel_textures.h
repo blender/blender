@@ -188,6 +188,8 @@ KERNEL_TEX(uint, texture_uint, __bindless_mapping)
 /* packed image (opencl) */
 KERNEL_TEX(uchar4, texture_uchar4, __tex_image_byte4_packed)
 KERNEL_TEX(float4, texture_float4, __tex_image_float4_packed)
+KERNEL_TEX(uchar, texture_uchar, __tex_image_byte_packed)
+KERNEL_TEX(float, texture_float, __tex_image_float_packed)
 KERNEL_TEX(uint4, texture_uint4, __tex_image_packed_info)
 
 #undef KERNEL_TEX

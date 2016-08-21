@@ -152,15 +152,20 @@ static EffectorCache *new_effector_cache(Scene *scene, Object *ob, PartDeflect *
 	eff->frame = -1;
 	return eff;
 }
-static void add_object_to_effectors(ListBase **effectors, Scene *scene, EffectorWeights *weights, Object *ob, Object *ob_src)
+static void add_object_to_effectors(ListBase **effectors, Scene *scene, EffectorWeights *weights, Object *ob, Object *ob_src, bool for_simulation)
 {
 	EffectorCache *eff = NULL;
 
-	if ( ob == ob_src || weights->weight[ob->pd->forcefield] == 0.0f )
+	if ( ob == ob_src )
 		return;
 
-	if (ob->pd->shape == PFIELD_SHAPE_POINTS && !ob->derivedFinal )
-		return;
+	if (for_simulation) {
+		if (weights->weight[ob->pd->forcefield] == 0.0f )
+			return;
+
+		if (ob->pd->shape == PFIELD_SHAPE_POINTS && !ob->derivedFinal )
+			return;
+	}
 
 	if (*effectors == NULL)
 		*effectors = MEM_callocN(sizeof(ListBase), "effectors list");
@@ -175,7 +180,7 @@ static void add_object_to_effectors(ListBase **effectors, Scene *scene, Effector
 
 /* returns ListBase handle with objects taking part in the effecting */
 ListBase *pdInitEffectors(Scene *scene, Object *ob_src,
-                          EffectorWeights *weights, bool precalc)
+                          EffectorWeights *weights, bool for_simulation)
 {
 	Base *base;
 	unsigned int layer= ob_src->lay;
@@ -187,7 +192,7 @@ ListBase *pdInitEffectors(Scene *scene, Object *ob_src,
 		for (go= weights->group->gobject.first; go; go= go->next) {
 			if ( (go->ob->lay & layer) ) {
 				if ( go->ob->pd && go->ob->pd->forcefield )
-					add_object_to_effectors(&effectors, scene, weights, go->ob, ob_src);
+					add_object_to_effectors(&effectors, scene, weights, go->ob, ob_src, for_simulation);
 			}
 		}
 	}
@@ -195,12 +200,12 @@ ListBase *pdInitEffectors(Scene *scene, Object *ob_src,
 		for (base = scene->base.first; base; base= base->next) {
 			if ( (base->lay & layer) ) {
 				if ( base->object->pd && base->object->pd->forcefield )
-					add_object_to_effectors(&effectors, scene, weights, base->object, ob_src);
+					add_object_to_effectors(&effectors, scene, weights, base->object, ob_src, for_simulation);
 			}
 		}
 	}
 	
-	if (precalc)
+	if (for_simulation)
 		pdPrecalculateEffectors(effectors);
 	
 	return effectors;

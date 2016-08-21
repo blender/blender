@@ -100,6 +100,7 @@ void *DNA_struct_reconstruct(
 int DNA_elem_array_size(const char *str);
 int DNA_elem_offset(struct SDNA *sdna, const char *stype, const char *vartype, const char *name);
 
+bool DNA_struct_find(const struct SDNA *sdna, const char *stype);
 bool DNA_struct_elem_find(const struct SDNA *sdna, const char *stype, const char *vartype, const char *name);
 
 

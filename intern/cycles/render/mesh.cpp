@@ -30,6 +30,7 @@
 
 #include "osl_globals.h"
 
+#include "subd_split.h"
 #include "subd_patch_table.h"
 
 #include "util_foreach.h"
@@ -172,6 +173,7 @@ Mesh::Mesh()
 	num_ngons = 0;
 
 	subdivision_type = SUBDIVISION_NONE;
+	subd_params = NULL;
 
 	patch_table = NULL;
 }
@@ -180,6 +182,7 @@ Mesh::~Mesh()
 {
 	delete bvh;
 	delete patch_table;
+	delete subd_params;
 }
 
 void Mesh::resize_mesh(int numverts, int numtris)
@@ -295,17 +298,17 @@ int Mesh::split_vertex(int vertex)
 
 	foreach(Attribute& attr, attributes.attributes) {
 		if(attr.element == ATTR_ELEMENT_VERTEX) {
-			vector<char> tmp(attr.data_sizeof());
-			memcpy(&tmp[0], attr.data() + tmp.size()*vertex, tmp.size());
-			attr.add(&tmp[0]);
+			array<char> tmp(attr.data_sizeof());
+			memcpy(tmp.data(), attr.data() + tmp.size()*vertex, tmp.size());
+			attr.add(tmp.data());
 		}
 	}
 
 	foreach(Attribute& attr, subd_attributes.attributes) {
 		if(attr.element == ATTR_ELEMENT_VERTEX) {
-			vector<char> tmp(attr.data_sizeof());
-			memcpy(&tmp[0], attr.data() + tmp.size()*vertex, tmp.size());
-			attr.add(&tmp[0]);
+			array<char> tmp(attr.data_sizeof());
+			memcpy(tmp.data(), attr.data() + tmp.size()*vertex, tmp.size());
+			attr.add(tmp.data());
 		}
 	}
 
@@ -471,7 +474,7 @@ void Mesh::add_face_normals()
 	bool flip = transform_negative_scaled;
 
 	if(triangles_size) {
-		float3 *verts_ptr = &verts[0];
+		float3 *verts_ptr = verts.data();
 
 		for(size_t i = 0; i < triangles_size; i++) {
 			fN[i] = compute_face_normal(get_triangle(i), verts_ptr);
@@ -565,7 +568,7 @@ void Mesh::pack_normals(Scene *scene, uint *tri_shader, float4 *vnormal)
 	bool last_smooth = false;
 
 	size_t triangles_size = num_triangles();
-	int *shader_ptr = (shader.size())? &shader[0]: NULL;
+	int *shader_ptr = shader.data();
 
 	bool do_transform = transform_applied;
 	Transform ntfm = transform_normal;
@@ -605,7 +608,7 @@ void Mesh::pack_verts(const vector<uint>& tri_prim_index,
 	size_t verts_size = verts.size();
 
 	if(verts_size && subd_faces.size()) {
-		float2 *vert_patch_uv_ptr = &vert_patch_uv[0];
+		float2 *vert_patch_uv_ptr = vert_patch_uv.data();
 
 		for(size_t i = 0; i < verts_size; i++) {
 			tri_patch_uv[i] = vert_patch_uv_ptr[i];
@@ -633,8 +636,8 @@ void Mesh::pack_curves(Scene *scene, float4 *curve_key_co, float4 *curve_data, s
 
 	/* pack curve keys */
 	if(curve_keys_size) {
-		float3 *keys_ptr = &curve_keys[0];
-		float *radius_ptr = &curve_radius[0];
+		float3 *keys_ptr = curve_keys.data();
+		float *radius_ptr = curve_radius.data();
 
 		for(size_t i = 0; i < curve_keys_size; i++)
 			curve_key_co[i] = make_float4(keys_ptr[i].x, keys_ptr[i].y, keys_ptr[i].z, radius_ptr[i]);
@@ -1659,6 +1662,42 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 		}
 	}
 
+	/* Tessellate meshes that are using subdivision */
+	size_t total_tess_needed = 0;
+	foreach(Mesh *mesh, scene->meshes) {
+		if(mesh->need_update &&
+		   mesh->subdivision_type != Mesh::SUBDIVISION_NONE &&
+		   mesh->num_subd_verts == 0 &&
+		   mesh->subd_params)
+		{
+			total_tess_needed++;
+		}
+	}
+
+	size_t i = 0;
+	foreach(Mesh *mesh, scene->meshes) {
+		if(mesh->need_update &&
+		   mesh->subdivision_type != Mesh::SUBDIVISION_NONE &&
+		   mesh->num_subd_verts == 0 &&
+		   mesh->subd_params)
+		{
+			string msg = "Tessellating ";
+			if(mesh->name == "")
+				msg += string_printf("%u/%u", (uint)(i+1), (uint)total_tess_needed);
+			else
+				msg += string_printf("%s %u/%u", mesh->name.c_str(), (uint)(i+1), (uint)total_tess_needed);
+
+			progress.set_status("Updating Mesh", msg);
+
+			DiagSplit dsplit(*mesh->subd_params);
+			mesh->tessellate(&dsplit);
+
+			i++;
+
+			if(progress.get_cancel()) return;
+		}
+	}
+
 	/* Update images needed for true displacement. */
 	bool true_displacement_used = false;
 	bool old_need_object_flags_update = false;
@@ -1719,7 +1758,7 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 	}
 
 	/* Update bvh. */
-	size_t i = 0, num_bvh = 0;
+	size_t num_bvh = 0;
 	foreach(Mesh *mesh, scene->meshes) {
 		if(mesh->need_update && mesh->need_build_bvh()) {
 			num_bvh++;
@@ -1728,6 +1767,7 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 
 	TaskPool pool;
 
+	i = 0;
 	foreach(Mesh *mesh, scene->meshes) {
 		if(mesh->need_update) {
 			pool.push(function_bind(&Mesh::compute_bvh,

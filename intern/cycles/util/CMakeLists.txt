@@ -25,10 +25,6 @@ set(SRC
 	util_windows.cpp
 )
 
-if(NOT CYCLES_STANDALONE_REPOSITORY)
-	add_definitions(-DWITH_GLEW_MX)
-endif()
-
 if(WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI)
 	list(APPEND SRC
 		util_view.cpp
@@ -71,6 +67,7 @@ set(SRC_HEADERS
 	util_ssef.h
 	util_ssei.h
 	util_stack_allocator.h
+	util_static_assert.h
 	util_stats.h
 	util_string.h
 	util_system.h

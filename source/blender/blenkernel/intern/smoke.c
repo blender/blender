@@ -2458,11 +2458,10 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 		}
 
 		/* only calculate something when we advanced a single frame */
-		if (framenr != (int)smd->time + 1)
-			return;
-
 		/* don't simulate if viewing start frame, but scene frame is not real start frame */
-		if (framenr != scene->r.cfra)
+		bool can_simulate = (framenr == (int)smd->time + 1) && (framenr == scene->r.cfra);
+
+		if (!can_simulate)
 			return;
 
 #ifdef DEBUG_TIME
@@ -2756,9 +2755,15 @@ float smoke_get_velocity_at(struct Object *ob, float position[3], float velocity
 int smoke_get_data_flags(SmokeDomainSettings *sds)
 {
 	int flags = 0;
-	if (smoke_has_heat(sds->fluid)) flags |= SM_ACTIVE_HEAT;
-	if (smoke_has_fuel(sds->fluid)) flags |= SM_ACTIVE_FIRE;
-	if (smoke_has_colors(sds->fluid)) flags |= SM_ACTIVE_COLORS;
+
+	if (sds->fluid) {
+		if (smoke_has_heat(sds->fluid))
+			flags |= SM_ACTIVE_HEAT;
+		if (smoke_has_fuel(sds->fluid))
+			flags |= SM_ACTIVE_FIRE;
+		if (smoke_has_colors(sds->fluid))
+			flags |= SM_ACTIVE_COLORS;
+	}
 
 	return flags;
 }

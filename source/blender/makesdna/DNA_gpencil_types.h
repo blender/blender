@@ -298,9 +298,8 @@ typedef struct bGPdata {
 	char  pad[6];               /* padding for compiler alignment error */
 	short sflag;                /* settings for palette color */
 
-	/* saved paletes and brushes */
+	/* saved palettes */
 	ListBase palettes;
-	//ListBase brushes;
 } bGPdata;
 
 /* bGPdata->flag */

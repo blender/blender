@@ -117,219 +117,48 @@ static bool dependsOnTime(ModifierData *UNUSED(md))
 	return true;
 }
 
-static void update_depsgraph_flow_coll_object(DagForest *forest,
-                                              DagNode *obNode,
-                                              Object *object2)
+static bool is_flow_cb(Object *UNUSED(ob), ModifierData *md)
 {
-	SmokeModifierData *smd;
-	if ((object2->id.tag & LIB_TAG_DOIT) == 0) {
-		return;
-	}
-	object2->id.tag &= ~LIB_TAG_DOIT;
-	smd = (SmokeModifierData *)modifiers_findByType(object2, eModifierType_Smoke);
-	if (smd && (((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow) ||
-	            ((smd->type & MOD_SMOKE_TYPE_COLL) && smd->coll)))
-	{
-		DagNode *curNode = dag_get_node(forest, object2);
-		dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Smoke Flow/Coll");
-	}
-	if ((object2->transflag & OB_DUPLIGROUP) && object2->dup_group) {
-		GroupObject *go;
-		for (go = object2->dup_group->gobject.first;
-		     go != NULL;
-		     go = go->next)
-		{
-			if (go->ob == NULL) {
-				continue;
-			}
-			update_depsgraph_flow_coll_object(forest, obNode, go->ob);
-		}
-	}
+	SmokeModifierData *smd = (SmokeModifierData *) md;
+	return (smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow;
 }
 
-static void update_depsgraph_field_source_object(DagForest *forest,
-                                                 DagNode *obNode,
-                                                 Object *object,
-                                                 Object *object2)
+static bool is_coll_cb(Object *UNUSED(ob), ModifierData *md)
 {
-	if ((object2->id.tag & LIB_TAG_DOIT) == 0) {
-		return;
-	}
-	object2->id.tag &= ~LIB_TAG_DOIT;
-	if (object2->pd && object2->pd->forcefield == PFIELD_SMOKEFLOW && object2->pd->f_source == object) {
-		DagNode *node2 = dag_get_node(forest, object2);
-		dag_add_relation(forest, obNode, node2, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Field Source Object");
-	}
-	if ((object2->transflag & OB_DUPLIGROUP) && object2->dup_group) {
-		GroupObject *go;
-		for (go = object2->dup_group->gobject.first;
-		     go != NULL;
-		     go = go->next)
-		{
-			if (go->ob == NULL) {
-				continue;
-			}
-			update_depsgraph_field_source_object(forest, obNode, object, go->ob);
-		}
-	}
+	SmokeModifierData *smd = (SmokeModifierData *) md;
+	return (smd->type & MOD_SMOKE_TYPE_COLL) && smd->coll;
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,
-                           struct Main *bmain,
+                           struct Main *UNUSED(bmain),
                            struct Scene *scene, struct Object *ob,
                            DagNode *obNode)
 {
 	SmokeModifierData *smd = (SmokeModifierData *) md;
-	Base *base;
 
 	if (smd && (smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
-		if (smd->domain->fluid_group || smd->domain->coll_group) {
-			GroupObject *go = NULL;
-			
-			if (smd->domain->fluid_group)
-				for (go = smd->domain->fluid_group->gobject.first; go; go = go->next) {
-					if (go->ob) {
-						SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(go->ob, eModifierType_Smoke);
-						
-						/* check for initialized smoke object */
-						if (smd2 && (smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow) {
-							DagNode *curNode = dag_get_node(forest, go->ob);
-							dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Smoke Flow");
-						}
-					}
-				}
+		/* Actual code uses get_collisionobjects */
+		dag_add_collision_relations(forest, scene, ob, obNode, smd->domain->fluid_group, ob->lay|scene->lay, eModifierType_Smoke, is_flow_cb, true, "Smoke Flow");
+		dag_add_collision_relations(forest, scene, ob, obNode, smd->domain->coll_group, ob->lay|scene->lay, eModifierType_Smoke, is_coll_cb, true, "Smoke Coll");
 
-			if (smd->domain->coll_group)
-				for (go = smd->domain->coll_group->gobject.first; go; go = go->next) {
-					if (go->ob) {
-						SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(go->ob, eModifierType_Smoke);
-						
-						/* check for initialized smoke object */
-						if (smd2 && (smd2->type & MOD_SMOKE_TYPE_COLL) && smd2->coll) {
-							DagNode *curNode = dag_get_node(forest, go->ob);
-							dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Smoke Coll");
-						}
-					}
-				}
-		}
-		else {
-			BKE_main_id_tag_listbase(&bmain->object, LIB_TAG_DOIT, true);
-			base = scene->base.first;
-			for (; base; base = base->next) {
-				update_depsgraph_flow_coll_object(forest, obNode, base->object);
-			}
-		}
-		/* add relation to all "smoke flow" force fields */
-		base = scene->base.first;
-		BKE_main_id_tag_listbase(&bmain->object, LIB_TAG_DOIT, true);
-		for (; base; base = base->next) {
-			update_depsgraph_field_source_object(forest, obNode, ob, base->object);
-		}
-	}
-}
-
-static void update_depsgraph_flow_coll_object_new(struct DepsNodeHandle *node,
-                                                  Object *object2)
-{
-	SmokeModifierData *smd;
-	if ((object2->id.tag & LIB_TAG_DOIT) == 0) {
-		return;
-	}
-	object2->id.tag &= ~LIB_TAG_DOIT;
-	smd = (SmokeModifierData *)modifiers_findByType(object2, eModifierType_Smoke);
-	if (smd && (((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow) ||
-	            ((smd->type & MOD_SMOKE_TYPE_COLL) && smd->coll)))
-	{
-		DEG_add_object_relation(node, object2, DEG_OB_COMP_TRANSFORM, "Smoke Flow/Coll");
-		DEG_add_object_relation(node, object2, DEG_OB_COMP_GEOMETRY, "Smoke Flow/Coll");
-	}
-	if ((object2->transflag & OB_DUPLIGROUP) && object2->dup_group) {
-		GroupObject *go;
-		for (go = object2->dup_group->gobject.first;
-		     go != NULL;
-		     go = go->next)
-		{
-			if (go->ob == NULL) {
-				continue;
-			}
-			update_depsgraph_flow_coll_object_new(node, go->ob);
-		}
-	}
-}
-
-static void update_depsgraph_field_source_object_new(struct DepsNodeHandle *node,
-                                                     Object *object,
-                                                     Object *object2)
-{
-	if ((object2->id.tag & LIB_TAG_DOIT) == 0) {
-		return;
-	}
-	object2->id.tag &= ~LIB_TAG_DOIT;
-	if (object2->pd && object2->pd->forcefield == PFIELD_SMOKEFLOW && object2->pd->f_source == object) {
-		DEG_add_object_relation(node, object2, DEG_OB_COMP_TRANSFORM, "Field Source Object");
-		DEG_add_object_relation(node, object2, DEG_OB_COMP_GEOMETRY, "Field Source Object");
-	}
-	if ((object2->transflag & OB_DUPLIGROUP) && object2->dup_group) {
-		GroupObject *go;
-		for (go = object2->dup_group->gobject.first;
-		     go != NULL;
-		     go = go->next)
-		{
-			if (go->ob == NULL) {
-				continue;
-			}
-			update_depsgraph_field_source_object_new(node, object, go->ob);
-		}
+		dag_add_forcefield_relations(forest, scene, ob, obNode, smd->domain->effector_weights, true, PFIELD_SMOKEFLOW, "Smoke Force Field");
 	}
 }
 
 static void updateDepsgraph(ModifierData *md,
-                            struct Main *bmain,
+                            struct Main *UNUSED(bmain),
                             struct Scene *scene,
                             Object *ob,
                             struct DepsNodeHandle *node)
 {
 	SmokeModifierData *smd = (SmokeModifierData *)md;
-	Base *base;
+
 	if (smd && (smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
-		if (smd->domain->fluid_group || smd->domain->coll_group) {
-			GroupObject *go = NULL;
-			if (smd->domain->fluid_group != NULL) {
-				for (go = smd->domain->fluid_group->gobject.first; go; go = go->next) {
-					if (go->ob != NULL) {
-						SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(go->ob, eModifierType_Smoke);
-						/* Check for initialized smoke object. */
-						if (smd2 && (smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow) {
-							DEG_add_object_relation(node, go->ob, DEG_OB_COMP_TRANSFORM, "Smoke Flow");
-						}
-					}
-				}
-			}
-			if (smd->domain->coll_group != NULL) {
-				for (go = smd->domain->coll_group->gobject.first; go; go = go->next) {
-					if (go->ob != NULL) {
-						SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(go->ob, eModifierType_Smoke);
-						/* Check for initialized smoke object. */
-						if (smd2 && (smd2->type & MOD_SMOKE_TYPE_COLL) && smd2->coll) {
-							DEG_add_object_relation(node, go->ob, DEG_OB_COMP_TRANSFORM, "Smoke Coll");
-						}
-					}
-				}
-			}
-		}
-		else {
-			BKE_main_id_tag_listbase(&bmain->object, LIB_TAG_DOIT, true);
-			base = scene->base.first;
-			for (; base; base = base->next) {
-				update_depsgraph_flow_coll_object_new(node, base->object);
-			}
-		}
-		/* add relation to all "smoke flow" force fields */
-		base = scene->base.first;
-		BKE_main_id_tag_listbase(&bmain->object, LIB_TAG_DOIT, true);
-		for (; base; base = base->next) {
-			update_depsgraph_field_source_object_new(node, ob, base->object);
-		}
+		/* Actual code uses get_collisionobjects */
+		DEG_add_collision_relations(node, scene, ob, smd->domain->fluid_group, ob->lay|scene->lay, eModifierType_Smoke, is_flow_cb, true, "Smoke Flow");
+		DEG_add_collision_relations(node, scene, ob, smd->domain->coll_group, ob->lay|scene->lay, eModifierType_Smoke, is_coll_cb, true, "Smoke Coll");
+
+		DEG_add_forcefield_relations(node, scene, ob, smd->domain->effector_weights, true, PFIELD_SMOKEFLOW, "Smoke Force Field");
 	}
 }
 

@@ -2105,6 +2105,7 @@ void ED_object_single_users(Main *bmain, Scene *scene, const bool full, const bo
 	}
 
 	BKE_main_id_clear_newpoins(bmain);
+	DAG_relations_tag_update(bmain);
 }
 
 /******************************* Make Local ***********************************/

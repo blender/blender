@@ -883,7 +883,7 @@ static int gp_stroke_change_color_exec(bContext *C, wmOperator *UNUSED(op))
 
 					/* asign new color (only if different) */
 					if (STREQ(gps->colorname, color->info) == false) {
-						strcpy(gps->colorname, color->info);
+						BLI_strncpy(gps->colorname, color->info, sizeof(gps->colorname));
 						gps->flag |= GP_STROKE_RECALC_COLOR;
 					}
 				}
@@ -1271,7 +1271,7 @@ static int gp_stroke_join_exec(bContext *C, wmOperator *op)
 						/* if new, set current color */
 						if (type == GP_STROKE_JOINCOPY) {
 							new_stroke->palcolor = palcolor;
-							strcpy(new_stroke->colorname, palcolor->info);
+							BLI_strncpy(new_stroke->colorname, palcolor->info, sizeof(new_stroke->colorname));
 							new_stroke->flag |= GP_STROKE_RECALC_COLOR;
 						}
 					}
@@ -1439,8 +1439,8 @@ static int gp_brush_remove_exec(bContext *C, wmOperator *op)
 	if (ELEM(NULL, ts, brush))
 		return OPERATOR_CANCELLED;
 
-	if (BLI_listbase_count(&ts->gp_brushes) < 2) {
-		BKE_report(op->reports, RPT_ERROR, "Grease Pencil needs a brush. Unable to delete brush");
+	if (BLI_listbase_count_ex(&ts->gp_brushes, 2) < 2) {
+		BKE_report(op->reports, RPT_ERROR, "Grease Pencil needs a brush, unable to delete the last one");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1466,7 +1466,7 @@ static int gp_brush_remove_exec(bContext *C, wmOperator *op)
 void GPENCIL_OT_brush_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Remove brush";
+	ot->name = "Remove Brush";
 	ot->idname = "GPENCIL_OT_brush_remove";
 	ot->description = "Remove active Grease Pencil drawing brush";
 
@@ -1797,8 +1797,8 @@ static int gp_palette_remove_exec(bContext *C, wmOperator *op)
 	if (ELEM(NULL, gpd, palette))
 		return OPERATOR_CANCELLED;
 
-	if (BLI_listbase_count(&gpd->palettes) < 2) {
-		BKE_report(op->reports, RPT_ERROR, "Grease Pencil needs a palette. Unable to delete palette");
+	if (BLI_listbase_count_ex(&gpd->palettes, 2) < 2) {
+		BKE_report(op->reports, RPT_ERROR, "Grease Pencil needs a palette, unable to delete the last one");
 		return OPERATOR_CANCELLED;
 	}
 

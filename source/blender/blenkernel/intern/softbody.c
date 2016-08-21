@@ -3696,7 +3696,10 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 		return;
 	}
 
-	if (framenr!=sb->last_frame+1)
+	/* try to read from cache */
+	bool can_simulate = (framenr == sb->last_frame + 1);
+
+	if (!can_simulate)
 		return;
 
 	softbody_update_positions(ob, sb, vertexCos, numVerts);

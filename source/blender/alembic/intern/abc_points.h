@@ -28,14 +28,12 @@
 #include "abc_object.h"
 #include "abc_customdata.h"
 
-class ParticleSystem;
-
 /* ************************************************************************** */
 
 class AbcPointsWriter : public AbcObjectWriter {
 	Alembic::AbcGeom::OPointsSchema m_schema;
 	Alembic::AbcGeom::OPointsSchema::Sample m_sample;
-	ParticleSystem *m_psys;
+	/*ParticleSystem*/ void *m_psys;
 
 public:
 	AbcPointsWriter(Scene *scene,
@@ -43,7 +41,7 @@ public:
 	                AbcTransformWriter *parent,
 	                uint32_t time_sampling,
 	                ExportSettings &settings,
-	                ParticleSystem *psys);
+	                /*ParticleSystem*/ void *psys);
 
 	void do_write();
 };

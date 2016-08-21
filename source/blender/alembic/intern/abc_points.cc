@@ -30,11 +30,11 @@
 
 extern "C" {
 #include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
-#include "BKE_particle.h"
 #include "BKE_scene.h"
 
 #include "BLI_math.h"
@@ -61,10 +61,10 @@ AbcPointsWriter::AbcPointsWriter(Scene *scene,
 	                             AbcTransformWriter *parent,
 	                             uint32_t time_sampling,
 	                             ExportSettings &settings,
-	                             ParticleSystem *psys)
+	                             void *UNUSED(psys))
     : AbcObjectWriter(scene, ob, time_sampling, settings, parent)
 {
-	m_psys = psys;
+	m_psys = NULL; // = psys;
 
 	OPoints points(parent->alembicXform(), m_name, m_time_sampling);
 	m_schema = points.getSchema();
@@ -75,7 +75,7 @@ void AbcPointsWriter::do_write()
 	if (!m_psys) {
 		return;
 	}
-
+#if 0
 	std::vector<Imath::V3f> points;
 	std::vector<Imath::V3f> velocities;
 	std::vector<float> widths;
@@ -132,6 +132,7 @@ void AbcPointsWriter::do_write()
 	m_sample.setSelfBounds(bounds());
 
 	m_schema.set(m_sample);
+#endif
 }
 
 /* ************************************************************************** */
@@ -141,7 +142,7 @@ AbcPointsReader::AbcPointsReader(const Alembic::Abc::IObject &object, ImportSett
 {
 	IPoints ipoints(m_iobject, kWrapExisting);
 	m_schema = ipoints.getSchema();
-	get_min_max_time(m_schema, m_min_time, m_max_time);
+	get_min_max_time(m_iobject, m_schema, m_min_time, m_max_time);
 }
 
 bool AbcPointsReader::valid() const

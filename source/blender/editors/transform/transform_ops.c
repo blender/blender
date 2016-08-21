@@ -386,7 +386,7 @@ static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	TransInfo *t = op->customdata;
 	const enum TfmMode mode_prev = t->mode;
 
-#if 0
+#if defined(WITH_INPUT_NDOF) && 0
 	// stable 2D mouse coords map to different 3D coords while the 3D mouse is active
 	// in other words, 2D deltas are no longer good enough!
 	// disable until individual 'transformers' behave better

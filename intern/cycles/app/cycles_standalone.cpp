@@ -375,6 +375,8 @@ static void options_parse(int argc, const char **argv)
 		"--threads %d", &options.session_params.threads, "CPU Rendering Threads",
 		"--width  %d", &options.width, "Window width in pixel",
 		"--height %d", &options.height, "Window height in pixel",
+		"--tile-width %d", &options.session_params.tile_size.x, "Tile width in pixels",
+		"--tile-height %d", &options.session_params.tile_size.y, "Tile height in pixels",
 		"--list-devices", &list, "List information about all available devices",
 #ifdef WITH_CYCLES_LOGGING
 		"--debug", &debug, "Enable debug logging",

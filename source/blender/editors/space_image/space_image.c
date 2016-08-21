@@ -235,7 +235,9 @@ static void image_operatortypes(void)
 	WM_operatortype_append(IMAGE_OT_view_zoom_out);
 	WM_operatortype_append(IMAGE_OT_view_zoom_ratio);
 	WM_operatortype_append(IMAGE_OT_view_zoom_border);
+#ifdef WITH_INPUT_NDOF
 	WM_operatortype_append(IMAGE_OT_view_ndof);
+#endif
 
 	WM_operatortype_append(IMAGE_OT_new);
 	WM_operatortype_append(IMAGE_OT_open);
@@ -296,8 +298,10 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_pan", MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_pan", MOUSEPAN, 0, 0, 0);
 
+#ifdef WITH_INPUT_NDOF
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_all", NDOF_BUTTON_FIT, KM_PRESS, 0, 0); // or view selected?
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_ndof", NDOF_MOTION, 0, 0, 0);
+#endif
 
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_in", WHEELINMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_out", WHEELOUTMOUSE, KM_PRESS, 0, 0);

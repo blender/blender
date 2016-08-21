@@ -106,7 +106,9 @@ void CLIP_OT_change_frame(wmOperatorType *ot);
 void CLIP_OT_rebuild_proxy(struct wmOperatorType *ot);
 void CLIP_OT_mode_set(struct wmOperatorType *ot);
 
+#ifdef WITH_INPUT_NDOF
 void CLIP_OT_view_ndof(struct wmOperatorType *ot);
+#endif
 
 void CLIP_OT_prefetch(struct wmOperatorType *ot);
 
@@ -185,7 +187,10 @@ void CLIP_OT_detect_features(struct wmOperatorType *ot);
 void CLIP_OT_stabilize_2d_add(struct wmOperatorType *ot);
 void CLIP_OT_stabilize_2d_remove(struct wmOperatorType *ot);
 void CLIP_OT_stabilize_2d_select(struct wmOperatorType *ot);
-void CLIP_OT_stabilize_2d_set_rotation(struct wmOperatorType *ot);
+
+void CLIP_OT_stabilize_2d_rotation_add(struct wmOperatorType *ot);
+void CLIP_OT_stabilize_2d_rotation_remove(struct wmOperatorType *ot);
+void CLIP_OT_stabilize_2d_rotation_select(struct wmOperatorType *ot);
 
 void CLIP_OT_clean_tracks(struct wmOperatorType *ot);
 
