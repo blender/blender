@@ -30,6 +30,7 @@
 
 extern "C" {
 #include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
