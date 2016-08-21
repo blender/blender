@@ -88,7 +88,6 @@ typedef struct PaintStroke {
 
 	/* Cached values */
 	ViewContext vc;
-	bglMats mats;
 	Brush *brush;
 	UnifiedPaintSettings *ups;
 
@@ -675,8 +674,6 @@ PaintStroke *paint_stroke_new(bContext *C,
 	float zoomx, zoomy;
 
 	view3d_set_viewcontext(C, &stroke->vc);
-	if (stroke->vc.v3d)
-		view3d_get_transformation(stroke->vc.ar, stroke->vc.rv3d, stroke->vc.obact, &stroke->mats);
 
 	stroke->get_location = get_location;
 	stroke->test_start = test_start;
