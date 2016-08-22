@@ -21,8 +21,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef WITH_INPUT_NDOF
-
 #define DEBUG_NDOF_DRIVER false
 
 #include "GHOST_NDOFManagerCocoa.h"
@@ -115,13 +113,15 @@ static void* load_func(void* module, const char* func_name)
 
 #define LOAD_FUNC(name) name = (name##_ptr) load_func(module, #name)
 
+static void* module; // handle to the whole driver
+
 static bool load_driver_functions()
 {
 	if (driver_loaded) {
 		return true;
 	}
 
-	void* module = dlopen("3DconnexionClient.framework/3DconnexionClient", RTLD_LAZY | RTLD_LOCAL);
+	module = dlopen("3DconnexionClient.framework/3DconnexionClient", RTLD_LAZY | RTLD_LOCAL);
 
 	if (module) {
 		LOAD_FUNC(SetConnexionHandlers);
@@ -145,8 +145,6 @@ static bool load_driver_functions()
 
 			has_old_driver = (SetConnexionClientButtonMask == NULL);
 		}
-
-		dlclose(module); // functions will remain loaded
 	}
 #if DEBUG_NDOF_DRIVER
 	else {
@@ -161,6 +159,10 @@ static bool load_driver_functions()
 	return driver_loaded;
 	}
 
+static void unload_driver()
+{
+	dlclose(module);
+}
 
 static void DeviceAdded(uint32_t unused)
 {
@@ -268,6 +270,7 @@ GHOST_NDOFManagerCocoa::~GHOST_NDOFManagerCocoa()
 	if (driver_loaded) {
 		UnregisterConnexionClient(clientID);
 		CleanupConnexionHandlers();
+		unload_driver();
 
 		ghost_system = NULL;
 		ndof_manager = NULL;
@@ -278,5 +281,3 @@ bool GHOST_NDOFManagerCocoa::available()
 {
 	return driver_loaded;
 }
-
-#endif // WITH_INPUT_NDOF
