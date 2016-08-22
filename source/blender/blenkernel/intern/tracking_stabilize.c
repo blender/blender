@@ -452,6 +452,29 @@ static MovieTrackingMarker *get_tracking_data_point(
 	}
 }
 
+
+/* Define the reference point for rotation/scale measurement and compensation.
+ * The stabilizator works by assuming the image was distorted by a affine linear
+ * transform, i.e. it was rotated and stretched around this reference point
+ * (pivot point) and then shifted laterally. Any scale and orientation changes
+ * will be picked up relative to this point. And later the image will be
+ * stabilized by rotating around this point. The result can only be as
+ * accurate as this pivot point actually matches the real rotation center
+ * of the actual movements. Thus any scheme to define a pivot point is
+ * always guesswork.
+ *
+ * As a simple default, we use the weighted average of the location markers
+ * of the current frame as pivot point. TODO It is planned to add further
+ * options,  like e.g. anchoring the pivot point at the canvas. Moreover,
+ * it is planned to allow for a user controllable offset.
+ */
+static void setup_pivot(const float ref_pos[2], float r_pivot[2])
+{
+	zero_v2(r_pivot);  /* TODO: add an animated offset position here. */
+	add_v2_v2(r_pivot, ref_pos);
+}
+
+
 /* Calculate the contribution of a single track at the time position (frame) of
  * the given marker. Each track has a local reference frame, which is as close
  * as possible to the global anchor_frame. Thus the translation contribution is
@@ -508,22 +531,21 @@ static void translation_contribution(TrackStabilizationBase *track_ref,
  *   in the same framework, we average the scales as logarithms.
  *
  * aspect is a total aspect ratio of the undistorted image (includes fame and
- * pixel aspect).
+ * pixel aspect). The function returns a quality factor, which can be used
+ * to damp the contributions of points in close proximity to the pivot point,
+ * since such contributions might be dominated by rounding errors and thus
+ * poison the calculated average. When the quality factor goes towards zero,
+ * the weight of this contribution should be reduced accordingly.
  */
-static void rotation_contribution(TrackStabilizationBase *track_ref,
-                                  MovieTrackingMarker *marker,
-                                  float aspect,
-                                  float target_pos[2],
-                                  float averaged_translation_contribution[2],
-                                  float *result_angle,
-                                  float *result_scale)
+static float rotation_contribution(TrackStabilizationBase *track_ref,
+                                   MovieTrackingMarker *marker,
+                                   const float aspect,
+                                   const float pivot[2],
+                                   float *result_angle,
+                                   float *result_scale)
 {
-	float len;
+	float len, quality;
 	float pos[2];
-	float pivot[2];
-	copy_v2_fl(pivot, 0.5f);  /* Use center of frame as hard wired pivot. */
-	add_v2_v2(pivot, averaged_translation_contribution);
-	sub_v2_v2(pivot, target_pos);
 	sub_v2_v2v2(pos, marker->pos, pivot);
 
 	pos[0] *= aspect;
@@ -531,9 +553,47 @@ static void rotation_contribution(TrackStabilizationBase *track_ref,
 
 	*result_angle = atan2f(pos[1],pos[0]);
 
-	len = len_v2(pos) + SCALE_ERROR_LIMIT_BIAS;
+	len = len_v2(pos);
+
+	/* prevent points very close to the pivot point from poisoning the result */
+	quality = 1 - expf(-len*len / SCALE_ERROR_LIMIT_BIAS*SCALE_ERROR_LIMIT_BIAS);
+	len += SCALE_ERROR_LIMIT_BIAS;
+
 	*result_scale = len * track_ref->stabilization_scale_base;
 	BLI_assert(0.0 < *result_scale);
+
+	return quality;
+}
+
+
+/* Workaround to allow for rotation around an arbitrary pivot point.
+ * Currently, the public API functions do not support this flexibility.
+ * Rather, rotation will always be applied around a fixed origin.
+ * As a workaround, we shift the image after rotation to match the
+ * desired rotation centre. And since this offset needs to be applied
+ * after the rotation and scaling, we can collapse it with the
+ * translation compensation, which is also a lateral shift (offset).
+ * The offset to apply is intended_pivot - rotated_pivot
+ */
+static void compensate_rotation_center(const int size, float aspect,
+                                       const float angle,
+                                       const float scale,
+                                       const float pivot[2],
+                                       float result_translation[2])
+{
+	const float origin[2]  = {0.5f*aspect*size, 0.5f*size};
+	float intended_pivot[2], rotated_pivot[2];
+	float rotation_mat[2][2];
+
+	copy_v2_v2(intended_pivot, pivot);
+	copy_v2_v2(rotated_pivot, pivot);
+	rotate_m2(rotation_mat, +angle);
+	sub_v2_v2(rotated_pivot, origin);
+	mul_m2v2(rotation_mat, rotated_pivot);
+	mul_v2_fl(rotated_pivot, scale);
+	add_v2_v2(rotated_pivot, origin);
+	add_v2_v2(result_translation, intended_pivot);
+	sub_v2_v2(result_translation, rotated_pivot);
 }
 
 
@@ -553,6 +613,7 @@ static bool average_track_contributions(StabContext *ctx,
                                         int framenr,
                                         float aspect,
                                         float r_translation[2],
+                                        float r_pivot[2],
                                         float *r_angle,
                                         float *r_scale_step)
 {
@@ -561,11 +622,14 @@ static bool average_track_contributions(StabContext *ctx,
 	MovieTrackingTrack *track;
 	MovieTracking *tracking = ctx->tracking;
 	MovieTrackingStabilization *stab = &tracking->stabilization;
+	float ref_pos[2];
 	BLI_assert(stab->flag & TRACKING_2D_STABILIZATION);
 
 	zero_v2(r_translation);
 	*r_scale_step = 0.0f;  /* logarithm */
 	*r_angle = 0.0f;
+
+	zero_v2(ref_pos);
 
 	ok = false;
 	weight_sum = 0.0f;
@@ -586,8 +650,10 @@ static bool average_track_contributions(StabContext *ctx,
 				float offset[2];
 				weight_sum += weight;
 				translation_contribution(stabilization_base, marker, offset);
-				mul_v2_fl(offset, weight);
-				add_v2_v2(r_translation, offset);
+				r_translation[0] += weight * offset[0];
+				r_translation[1] += weight * offset[1];
+				ref_pos[0] += weight * marker->pos[0];
+				ref_pos[1] += weight * marker->pos[1];
 				ok |= (weight_sum > EPSILON_WEIGHT);
 			}
 		}
@@ -596,8 +662,11 @@ static bool average_track_contributions(StabContext *ctx,
 		return false;
 	}
 
+	ref_pos[0] /= weight_sum;
+	ref_pos[1] /= weight_sum;
 	r_translation[0] /= weight_sum;
 	r_translation[1] /= weight_sum;
+	setup_pivot(ref_pos, r_pivot);
 
 	if (!(stab->flag & TRACKING_STABILIZE_ROTATION)) {
 		return ok;
@@ -619,17 +688,15 @@ static bool average_track_contributions(StabContext *ctx,
 				TrackStabilizationBase *stabilization_base =
 				        access_stabilization_baseline_data(ctx, track);
 				BLI_assert(stabilization_base != NULL);
-				float rotation, scale;
-				float target_pos[2];
+				float rotation, scale, quality;
+				quality = rotation_contribution(stabilization_base,
+				                                marker,
+				                                aspect,
+				                                r_pivot,
+				                                &rotation,
+				                                &scale);
+				weight *= quality;
 				weight_sum += weight;
-				get_animated_target_pos(ctx, framenr, target_pos);
-				rotation_contribution(stabilization_base,
-				                      marker,
-				                      aspect,
-				                      target_pos,
-				                      r_translation,
-				                      &rotation,
-				                      &scale);
 				*r_angle += rotation * weight;
 				if (stab->flag & TRACKING_STABILIZE_SCALE) {
 					*r_scale_step += logf(scale) * weight;
@@ -656,6 +723,75 @@ static bool average_track_contributions(StabContext *ctx,
 }
 
 
+/* Calculate weight center of location tracks for given frame.
+ * This function performs similar calculations as average_track_contributions(),
+ * but does not require the tracks to be initialized for stabilisation. Moreover,
+ * when there is no usable tracking data for the given frame number, data from
+ * a neighbouring frame is used. Thus this function can be used to calculate
+ * a starting point on initialization.
+ */
+static void average_marker_positions(StabContext *ctx, int framenr, float r_ref_pos[2])
+{
+	bool ok = false;
+	float weight_sum;
+	MovieTrackingTrack *track;
+	MovieTracking *tracking = ctx->tracking;
+
+	zero_v2(r_ref_pos);
+	weight_sum = 0.0f;
+	for (track = tracking->tracks.first; track; track = track->next) {
+		if (track->flag & TRACK_USE_2D_STAB) {
+			float weight = 0.0f;
+			MovieTrackingMarker *marker =
+				get_tracking_data_point(ctx, track, framenr, &weight);
+			if (marker) {
+				weight_sum += weight;
+				r_ref_pos[0] += weight * marker->pos[0];
+				r_ref_pos[1] += weight * marker->pos[1];
+				ok |= (weight_sum > EPSILON_WEIGHT);
+			}
+		}
+	}
+	if (ok) {
+		r_ref_pos[0] /= weight_sum;
+		r_ref_pos[1] /= weight_sum;
+	} else {
+		/* No usable tracking data on any track on this frame.
+		 * Use data from neighbouring frames to extrapolate...
+		 */
+		int next_lower = MINAFRAME;
+		int next_higher = MAXFRAME;
+		use_values_from_fcurves(ctx, true);
+		for (track = tracking->tracks.first; track; track = track->next) {
+			/* Note: we deliberately do not care if this track
+			 *       is already initialized for stabilisation */
+			if (track->flag & TRACK_USE_2D_STAB) {
+				int startpoint = search_closest_marker_index(track, framenr);
+				retrieve_next_higher_usable_frame(ctx,
+                                                  track,
+                                                  startpoint,
+                                                  framenr,
+                                                  &next_higher);
+				retrieve_next_lower_usable_frame(ctx,
+                                                  track,
+                                                  startpoint,
+                                                  framenr,
+                                                  &next_lower);
+			}
+		}
+		if (next_lower >= MINFRAME) {
+			/* use next usable frame to the left.
+			 * Also default to this frame when we're in a gap */
+			average_marker_positions(ctx, next_lower, r_ref_pos);
+
+		} else if (next_higher < MAXFRAME) {
+			average_marker_positions(ctx, next_higher, r_ref_pos);
+		}
+		use_values_from_fcurves(ctx, false);
+	}
+}
+
+
 /* Linear interpolation of data retrieved at two measurement points.
  * This function is used to fill gaps in the middle of the covered area,
  * at frames without any usable tracks for stabilization.
@@ -670,8 +806,9 @@ static bool interpolate_averaged_track_contributions(StabContext *ctx,
                                                      int framenr,
                                                      int frame_a,
                                                      int frame_b,
-                                                     float aspect,
-                                                     float translation[2],
+                                                     const float aspect,
+                                                     float r_translation[2],
+                                                     float r_pivot[2],
                                                      float *r_angle,
                                                      float *r_scale_step)
 {
@@ -679,6 +816,7 @@ static bool interpolate_averaged_track_contributions(StabContext *ctx,
 	float trans_a[2], trans_b[2];
 	float angle_a, angle_b;
 	float scale_a, scale_b;
+	float pivot_a[2], pivot_b[2];
 	bool success = false;
 
 	BLI_assert(frame_a <= frame_b);
@@ -688,16 +826,17 @@ static bool interpolate_averaged_track_contributions(StabContext *ctx,
 	t = ((float)framenr - frame_a) / (frame_b - frame_a);
 	s = 1.0f - t;
 
-	success = average_track_contributions(ctx, frame_a, aspect, trans_a, &angle_a, &scale_a);
+	success = average_track_contributions(ctx, frame_a, aspect, trans_a, pivot_a, &angle_a, &scale_a);
 	if (!success) {
 		return false;
 	}
-	success = average_track_contributions(ctx, frame_b, aspect, trans_b, &angle_b, &scale_b);
+	success = average_track_contributions(ctx, frame_b, aspect, trans_b, pivot_b, &angle_b, &scale_b);
 	if (!success) {
 		return false;
 	}
 
-	interp_v2_v2v2(translation, trans_a, trans_b, t);
+	interp_v2_v2v2(r_translation, trans_a, trans_b, t);
+	interp_v2_v2v2(r_pivot, pivot_a, pivot_b, t);
 	*r_scale_step = s * scale_a + t * scale_b;
 	*r_angle = s * angle_a + t * angle_b;
 	return true;
@@ -802,13 +941,12 @@ static void initialize_track_for_stabilization(StabContext *ctx,
                                                MovieTrackingTrack *track,
                                                int reference_frame,
                                                float aspect,
-                                               const float target_pos[2],
                                                const float average_translation[2],
-                                               float average_angle,
-                                               float average_scale_step)
+                                               const float pivot[2],
+                                               const float average_angle,
+                                               const float average_scale_step)
 {
 	float pos[2], angle, len;
-	float pivot[2];
 	TrackStabilizationBase *local_data =
 	        access_stabilization_baseline_data(ctx, track);
 	MovieTrackingMarker *marker =
@@ -825,9 +963,6 @@ static void initialize_track_for_stabilization(StabContext *ctx,
 	            marker->pos);
 
 	/* Per track baseline value for rotation. */
-	copy_v2_fl(pivot, 0.5f);  /* Use center of frame as hard wired pivot. */
-	add_v2_v2(pivot, average_translation);
-	sub_v2_v2(pivot, target_pos);
 	sub_v2_v2v2(pos, marker->pos, pivot);
 
 	pos[0] *= aspect;
@@ -855,10 +990,9 @@ static void initialize_all_tracks(StabContext *ctx, float aspect)
 	 */
 	int reference_frame = tracking->stabilization.anchor_frame;
 	float average_angle=0, average_scale_step=0;
-	float average_translation[2];
-	float target_pos_at_ref_frame[2];
-	zero_v2(target_pos_at_ref_frame);
+	float average_translation[2], average_pos[2], pivot[2];
 	zero_v2(average_translation);
+	zero_v2(pivot);
 
 	/* Initialize private working data. */
 	for (track = tracking->tracks.first; track != NULL; track = track->next) {
@@ -891,6 +1025,10 @@ static void initialize_all_tracks(StabContext *ctx, float aspect)
 		goto cleanup;
 	}
 
+	/* starting point for pivot, before having initialized any track */
+	average_marker_positions(ctx, reference_frame, average_pos);
+	setup_pivot(average_pos, pivot);
+
 	for (i = 0; i < track_cnt; ++i) {
 		track = order[i].data;
 		if (reference_frame != order[i].reference_frame) {
@@ -899,18 +1037,16 @@ static void initialize_all_tracks(StabContext *ctx, float aspect)
 			                            reference_frame,
 			                            aspect,
 			                            average_translation,
+			                            pivot,
 			                            &average_angle,
 			                            &average_scale_step);
-			get_animated_target_pos(ctx,
-			                        reference_frame,
-			                        target_pos_at_ref_frame);
 		}
 		initialize_track_for_stabilization(ctx,
 		                                   track,
 		                                   reference_frame,
 		                                   aspect,
-		                                   target_pos_at_ref_frame,
 		                                   average_translation,
+		                                   pivot,
 		                                   average_angle,
 		                                   average_scale_step);
 	}
@@ -936,6 +1072,7 @@ static bool stabilization_determine_offset_for_frame(StabContext *ctx,
                                                      int framenr,
                                                      float aspect,
                                                      float r_translation[2],
+                                                     float r_pivot[2],
                                                      float *r_angle,
                                                      float *r_scale_step)
 {
@@ -953,6 +1090,7 @@ static bool stabilization_determine_offset_for_frame(StabContext *ctx,
 	                                      framenr,
 	                                      aspect,
 	                                      r_translation,
+	                                      r_pivot,
 	                                      r_angle,
 	                                      r_scale_step);
 	if (!success) {
@@ -971,6 +1109,7 @@ static bool stabilization_determine_offset_for_frame(StabContext *ctx,
 			                                                   next_higher,
 			                                                   aspect,
 			                                                   r_translation,
+			                                                   r_pivot,
 			                                                   r_angle,
 			                                                   r_scale_step);
 		}
@@ -982,6 +1121,7 @@ static bool stabilization_determine_offset_for_frame(StabContext *ctx,
 			                                      next_higher,
 			                                      aspect,
 			                                      r_translation,
+			                                      r_pivot,
 			                                      r_angle,
 			                                      r_scale_step);
 		}
@@ -991,6 +1131,7 @@ static bool stabilization_determine_offset_for_frame(StabContext *ctx,
 			                                      next_lower,
 			                                      aspect,
 			                                      r_translation,
+			                                      r_pivot,
 			                                      r_angle,
 			                                      r_scale_step);
 		}
@@ -1017,6 +1158,7 @@ static void stabilization_calculate_data(StabContext *ctx,
                                          bool do_compensate,
                                          float scale_step,
                                          float r_translation[2],
+                                         float r_pivot[0],
                                          float *r_scale,
                                          float *r_angle)
 {
@@ -1048,6 +1190,8 @@ static void stabilization_calculate_data(StabContext *ctx,
 	/* Convert from relative to absolute coordinates, square pixels. */
 	r_translation[0] *= (float)size * aspect;
 	r_translation[1] *= (float)size;
+	r_pivot[0] *= (float)size * aspect;
+	r_pivot[1] *= (float)size;
 
 	/* Output measured data, or inverse of the measured values for
 	 * compensation?
@@ -1062,24 +1206,24 @@ static void stabilization_calculate_data(StabContext *ctx,
 }
 
 
-/* Determine the inner part of the frame, which is always safe to use.
- * When enlarging the image by the inverse of this factor, any black areas
- * appearing due to frame translation and rotation will be removed.
+/* Calculate scale factor necessary to eliminate black image areas
+ * caused by the compensating movements of the stabilizator.
+ * This function visits every frame where stabilisation data is
+ * available and determines the factor for this frame. The overall
+ * largest factor found is returned as result.
  *
- * NOTE: When calling this function, basic initialization of tracks must be
- *       done already
+ * NOTE: all tracks need to be initialized before calling this function.
  */
-static void stabilization_determine_safe_image_area(StabContext *ctx,
-                                                    int size,
-                                                    float image_aspect)
+static float calculate_autoscale_factor(StabContext *ctx,
+                                        int size, float aspect)
 {
 	MovieTrackingStabilization *stab = ctx->stab;
 	float pixel_aspect = ctx->tracking->camera.pixel_aspect;
+	int height = size, width = aspect*size;
 
 	int sfra = INT_MAX, efra = INT_MIN, cfra;
 	float scale = 1.0f, scale_step = 0.0f;
 	MovieTrackingTrack *track;
-	stab->scale = 1.0f;
 
 	/* Calculate maximal frame range of tracks where stabilization is active. */
 	for (track = ctx->tracking->tracks.first; track; track = track->next) {
@@ -1094,38 +1238,40 @@ static void stabilization_determine_safe_image_area(StabContext *ctx,
 		}
 	}
 
-	/* For every frame we calculate scale factor needed to eliminate black border area
-	 * and choose largest scale factor as final one.
-	 */
+	use_values_from_fcurves(ctx, true);
 	for (cfra = sfra; cfra <= efra; cfra++) {
-		float translation[2], angle, tmp_scale;
+		float translation[2], pivot[2], angle, tmp_scale;
 		int i;
 		float mat[4][4];
 		float points[4][2] = {{0.0f, 0.0f},
-		                      {0.0f, size},
-		                      {image_aspect * size, size},
-		                      {image_aspect * size, 0.0f}};
+		                      {0.0f, height},
+		                      {width, height},
+		                      {width, 0.0f}};
 		float si, co;
 		bool do_compensate = true;
 
 		stabilization_determine_offset_for_frame(ctx,
 		                                         cfra,
-		                                         image_aspect,
+		                                         aspect,
 		                                         translation,
+		                                         pivot,
 		                                         &angle,
 		                                         &scale_step);
 		stabilization_calculate_data(ctx,
 		                             cfra,
 		                             size,
-		                             image_aspect,
+		                             aspect,
 		                             do_compensate,
 		                             scale_step,
 		                             translation,
+		                             pivot,
 		                             &tmp_scale,
 		                             &angle);
+		compensate_rotation_center(size, aspect,
+                                   angle, tmp_scale, pivot,
+                                   translation);
 
-		BKE_tracking_stabilization_data_to_mat4(size * image_aspect,
-		                                        size,
+		BKE_tracking_stabilization_data_to_mat4(width, height,
 		                                        pixel_aspect,
 		                                        translation,
 		                                        1.0f,
@@ -1175,12 +1321,12 @@ static void stabilization_determine_safe_image_area(StabContext *ctx,
 					float w, h, E, F, G, H, I, J, K, S;
 
 					if (j % 2) {
-						w = (float)size / 2.0f;
-						h = image_aspect*size / 2.0f;
+						w = (float)height / 2.0f;
+						h = (float)width / 2.0f;
 					}
 					else {
-						w = image_aspect*size / 2.0f;
-						h = (float)size / 2.0f;
+						w = (float)width / 2.0f;
+						h = (float)height / 2.0f;
 					}
 
 					E = -w * co + h * si;
@@ -1206,12 +1352,12 @@ static void stabilization_determine_safe_image_area(StabContext *ctx,
 			}
 		}
 	}
-
-	stab->scale = scale;
-
 	if (stab->maxscale > 0.0f) {
-		stab->scale = min_ff(stab->scale, stab->maxscale);
+		scale = min_ff(scale, stab->maxscale);
 	}
+	use_values_from_fcurves(ctx, false);
+
+	return scale;
 }
 
 
@@ -1223,19 +1369,14 @@ static void stabilization_determine_safe_image_area(StabContext *ctx,
  *       turns out to be tricky, hard to maintain and generally not worth the
  *       effort. Thus we'll re-initialize on every frame.
  */
-static StabContext *init_stabilizer(MovieClip *clip, int width, int height)
+static StabContext *init_stabilizer(MovieClip *clip, int size, float aspect)
 {
-	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingStabilization *stab = &tracking->stabilization;
-	float pixel_aspect = tracking->camera.pixel_aspect;
-	float aspect = (float)width * pixel_aspect / height;
-	int size = height;
-
 	StabContext *ctx = initialize_stabilization_working_context(clip);
 	BLI_assert(ctx != NULL);
 	initialize_all_tracks(ctx, aspect);
-	if (stab->flag & TRACKING_AUTOSCALE) {
-		stabilization_determine_safe_image_area(ctx, size, aspect);
+	if (ctx->stab->flag & TRACKING_AUTOSCALE) {
+		ctx->stab->scale = 1.0;
+		ctx->stab->scale = calculate_autoscale_factor(ctx, size, aspect);
 	}
 	/* By default, just use values for the global current frame. */
 	use_values_from_fcurves(ctx, false);
@@ -1280,9 +1421,10 @@ void BKE_tracking_stabilization_data_get(MovieClip *clip,
 	float pixel_aspect = tracking->camera.pixel_aspect;
 	float aspect = (float)width * pixel_aspect / height;
 	int size = height;
+	float pivot[2];
 
 	if (enabled) {
-		ctx = init_stabilizer(clip, width, height);
+		ctx = init_stabilizer(clip, size, aspect);
 	}
 
 	if (enabled &&
@@ -1290,6 +1432,7 @@ void BKE_tracking_stabilization_data_get(MovieClip *clip,
 		                                         framenr,
 		                                         aspect,
 		                                         translation,
+		                                         pivot,
 		                                         angle,
 		                                         &scale_step))
 	{
@@ -1300,8 +1443,12 @@ void BKE_tracking_stabilization_data_get(MovieClip *clip,
 		                             do_compensate,
 		                             scale_step,
 		                             translation,
+		                             pivot,
 		                             scale,
 		                             angle);
+		compensate_rotation_center(size, aspect,
+		                           *angle, *scale, pivot,
+		                           translation);
 	}
 	else {
 		zero_v2(translation);
@@ -1439,18 +1586,21 @@ void BKE_tracking_stabilization_data_to_mat4(int buffer_width,
 	      aspect_mat[4][4], inv_aspect_mat[4][4];
 	float scale_vector[3] = {scale, scale, 1.0f};
 
-	float pivot[2]; /* XXX this should be a parameter, it is part of the stabilization data */
+	float pivot[2]; /* TODO this should be a parameter, it is part of the stabilization data */
 
-	/* Use the motion compensated image center as rotation center.
-	 * This is not 100% correct, but reflects the way the rotation data was
-	 * measured. Actually we'd need a way to find a good pivot, and use that
-	 * both for averaging and for compensation.
+	/* Since we cannot receive the real pivot point coordinates (API limitation),
+	 * we perform the rotation/scale around the center of frame.
+	 * Then we correct by an additional shift, which was calculated in
+	 * compensate_rotation_center() and "sneaked in" as additional offset
+	 * in the translation parameter. This works, since translation needs to be
+	 * applied after rotation/scale anyway. Thus effectively the image gets
+	 * rotated around the desired pivot point
 	 */
 	/* TODO(sergey) pivot shouldn't be calculated here, rather received
 	 * as a parameter.
 	 */
-	pivot[0] = pixel_aspect * buffer_width / 2.0f - translation[0];
-	pivot[1] = (float)buffer_height        / 2.0f - translation[1];
+	pivot[0] = 0.5f * pixel_aspect * buffer_width;
+	pivot[1] = 0.5f * buffer_height;
 
 	unit_m4(translation_mat);
 	unit_m4(rotation_mat);
