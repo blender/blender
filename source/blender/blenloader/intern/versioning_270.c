@@ -1373,6 +1373,9 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 					 * now used always (as "target scale") */
 					clip->tracking.stabilization.scale = 1.0f;
 				}
+				/* blender prefers 1-based frame counting;
+				 * thus using frame 1 as reference typically works best */
+				clip->tracking.stabilization.anchor_frame = 1;
 				/* by default show the track lists expanded, to improve "discoverability" */
 				clip->tracking.stabilization.flag |= TRACKING_SHOW_STAB_TRACKS;
 				/* deprecated, not used anymore */
