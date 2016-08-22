@@ -1020,13 +1020,13 @@ static void stabilization_calculate_data(StabContext *ctx,
                                          float *r_scale,
                                          float *r_angle)
 {
-	float target_pos[2];
+	float target_pos[2], target_scale;
 	float scaleinf = get_animated_scaleinf(ctx, framenr);
 
-	*r_scale = get_animated_target_scale(ctx,framenr);
-
 	if (ctx->stab->flag & TRACKING_STABILIZE_SCALE) {
-		*r_scale *= expf(scale_step * scaleinf);  /* Averaged in log scale */
+		*r_scale = expf(scale_step * scaleinf);  /* Averaged in log scale */
+	} else {
+		*r_scale = 1.0f;
 	}
 
 	mul_v2_fl(r_translation, get_animated_locinf(ctx, framenr));
@@ -1039,6 +1039,11 @@ static void stabilization_calculate_data(StabContext *ctx,
 	get_animated_target_pos(ctx, framenr, target_pos);
 	sub_v2_v2(r_translation, target_pos);
 	*r_angle -= get_animated_target_rot(ctx,framenr);
+	target_scale = get_animated_target_scale(ctx,framenr);
+	if (target_scale != 0.0f) {
+		*r_scale /= target_scale;
+		/* target_scale is an expected/intended reference zoom value*/
+	}
 
 	/* Convert from relative to absolute coordinates, square pixels. */
 	r_translation[0] *= (float)size * aspect;
@@ -1194,9 +1199,9 @@ static void stabilization_determine_safe_image_area(StabContext *ctx,
 					J = G - E;
 					K = G * F - E * H;
 
-					S = (dx * I + dy * J + K) / (-w * I - h * J);
+					S = (-w * I - h * J) / (dx * I + dy * J + K);
 
-					scale = min_ff(scale, S);
+					scale = max_ff(scale, S);
 				}
 			}
 		}
@@ -1205,7 +1210,7 @@ static void stabilization_determine_safe_image_area(StabContext *ctx,
 	stab->scale = scale;
 
 	if (stab->maxscale > 0.0f) {
-		stab->scale = max_ff(stab->scale, 1.0f / stab->maxscale);
+		stab->scale = min_ff(stab->scale, stab->maxscale);
 	}
 }
 

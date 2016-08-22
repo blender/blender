@@ -1768,7 +1768,7 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "target_rotation", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "target_rot");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
-	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 3);
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 10.0f, 3);
 	RNA_def_property_ui_text(prop, "Expected Rotation",
 	                         "Rotation present on original shot, will be compensated (e.g. for deliberate tilting)");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
@@ -1776,9 +1776,9 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
 	/* target scale */
 	prop = RNA_def_property(srna, "target_zoom", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "scale");
-	RNA_def_property_range(prop, FLT_EPSILON, 100.0f);
-	RNA_def_property_ui_range(prop, 0.1f, 10.0f, 1, 3); /* increment in steps of 0.01. Show 3 digit after point */
-	RNA_def_property_ui_text(prop, "Expected Zoom",
+	RNA_def_property_range(prop, FLT_EPSILON, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.01f, 10.0f, 0.001f, 3); /* increment in steps of 0.001. Show 3 digit after point */
+	RNA_def_property_ui_text(prop, "Expected Scale",
 	                         "Explicitly scale resulting frame to compensate zoom of original shot");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, "rna_tracking_flushUpdate");
 
