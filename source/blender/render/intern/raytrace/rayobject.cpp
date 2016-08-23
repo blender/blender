@@ -138,6 +138,68 @@ MALWAYS_INLINE int vlr_check_bake(Isect *is, ObjectInstanceRen *obi, VlakRen *UN
 
 /* Ray Triangle/Quad Intersection */
 
+static bool isect_ray_tri_watertight_no_sign_check_v3(
+        const float ray_origin[3], const struct IsectRayPrecalc *isect_precalc,
+        const float v0[3], const float v1[3], const float v2[3],
+        float *r_lambda, float r_uv[2])
+{
+	const int kx = isect_precalc->kx;
+	const int ky = isect_precalc->ky;
+	const int kz = isect_precalc->kz;
+	const float sx = isect_precalc->sx;
+	const float sy = isect_precalc->sy;
+	const float sz = isect_precalc->sz;
+
+	/* Calculate vertices relative to ray origin. */
+	const float a[3] = {v0[0] - ray_origin[0], v0[1] - ray_origin[1], v0[2] - ray_origin[2]};
+	const float b[3] = {v1[0] - ray_origin[0], v1[1] - ray_origin[1], v1[2] - ray_origin[2]};
+	const float c[3] = {v2[0] - ray_origin[0], v2[1] - ray_origin[1], v2[2] - ray_origin[2]};
+
+	const float a_kx = a[kx], a_ky = a[ky], a_kz = a[kz];
+	const float b_kx = b[kx], b_ky = b[ky], b_kz = b[kz];
+	const float c_kx = c[kx], c_ky = c[ky], c_kz = c[kz];
+
+	/* Perform shear and scale of vertices. */
+	const float ax = a_kx - sx * a_kz;
+	const float ay = a_ky - sy * a_kz;
+	const float bx = b_kx - sx * b_kz;
+	const float by = b_ky - sy * b_kz;
+	const float cx = c_kx - sx * c_kz;
+	const float cy = c_ky - sy * c_kz;
+
+	/* Calculate scaled barycentric coordinates. */
+	const float u = cx * by - cy * bx;
+	const float v = ax * cy - ay * cx;
+	const float w = bx * ay - by * ax;
+	float det;
+
+	if ((u < 0.0f || v < 0.0f || w < 0.0f) &&
+	    (u > 0.0f || v > 0.0f || w > 0.0f))
+	{
+		return false;
+	}
+
+	/* Calculate determinant. */
+	det = u + v + w;
+	if (UNLIKELY(det == 0.0f)) {
+		return false;
+	}
+	else {
+		/* Calculate scaled z-coordinates of vertices and use them to calculate
+		 * the hit distance.
+		 */
+		const float t = (u * a_kz + v * b_kz + w * c_kz) * sz;
+		/* Normalize u, v and t. */
+		const float inv_det = 1.0f / det;
+		if (r_uv) {
+			r_uv[0] = u * inv_det;
+			r_uv[1] = v * inv_det;
+		}
+		*r_lambda = t * inv_det;
+		return true;
+	}
+}
+
 MALWAYS_INLINE int isec_tri_quad(float start[3], const struct IsectRayPrecalc *isect_precalc, RayFace *face, float r_uv[2], float *lambda)
 {
 	float uv[2], l;
@@ -181,13 +243,13 @@ MALWAYS_INLINE int isec_tri_quad_neighbour(float start[3], float dir[3], RayFace
 
 	isect_ray_tri_watertight_v3_precalc(&isect_precalc, r);
 
-	if (isect_ray_tri_watertight_v3(start, &isect_precalc, face->v1, face->v2, face->v3, &l, uv)) {
+	if (isect_ray_tri_watertight_no_sign_check_v3(start, &isect_precalc, face->v1, face->v2, face->v3, &l, uv)) {
 		return 1;
 	}
 
 	/* intersect second triangle in quad */
 	if (RE_rayface_isQuad(face)) {
-		if (isect_ray_tri_watertight_v3(start, &isect_precalc, face->v1, face->v3, face->v4, &l, uv)) {
+		if (isect_ray_tri_watertight_no_sign_check_v3(start, &isect_precalc, face->v1, face->v3, face->v4, &l, uv)) {
 			return 2;
 		}
 	}
