@@ -1158,7 +1158,7 @@ static void stabilization_calculate_data(StabContext *ctx,
                                          bool do_compensate,
                                          float scale_step,
                                          float r_translation[2],
-                                         float r_pivot[0],
+                                         float r_pivot[2],
                                          float *r_scale,
                                          float *r_angle)
 {
@@ -1184,7 +1184,7 @@ static void stabilization_calculate_data(StabContext *ctx,
 	target_scale = get_animated_target_scale(ctx,framenr);
 	if (target_scale != 0.0f) {
 		*r_scale /= target_scale;
-		/* target_scale is an expected/intended reference zoom value*/
+		/* target_scale is an expected/intended reference zoom value */
 	}
 
 	/* Convert from relative to absolute coordinates, square pixels. */
