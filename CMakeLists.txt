@@ -508,6 +508,10 @@ mark_as_advanced(WITH_CXX11)
 option(WITH_LEGACY_DEPSGRAPH "Build Blender with legacy dependency graph" ON)
 mark_as_advanced(WITH_LEGACY_DEPSGRAPH)
 
+# Use hardcoded paths or find_package to find externals
+option(WITH_WINDOWS_FIND_MODULES "Use find_package to locate libraries" OFF)
+mark_as_advanced(WITH_WINDOWS_FIND_MODULES)
+
 # avoid using again
 option_defaults_clear()
 

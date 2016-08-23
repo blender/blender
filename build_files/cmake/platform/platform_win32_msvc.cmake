@@ -23,6 +23,20 @@
 
 # Libraries configuration for Windows when compiling with MSVC.
 
+macro(warn_hardcoded_paths package_name
+	)
+	if(WITH_WINDOWS_FIND_MODULES)
+		message(WARNING "Using HARDCODED ${package_name} locations")
+	endif(WITH_WINDOWS_FIND_MODULES)
+endmacro()
+
+macro(windows_find_package package_name
+	)
+	if(WITH_WINDOWS_FIND_MODULES)
+		find_package( ${package_name})
+	endif(WITH_WINDOWS_FIND_MODULES)
+endmacro()
+
 add_definitions(-DWIN32)
 # Minimum MSVC Version
 if(MSVC_VERSION EQUAL 1800)
@@ -141,12 +155,12 @@ set(ZLIB_LIBRARIES ${LIBDIR}/zlib/lib/libz_st.lib)
 set(ZLIB_INCLUDE_DIR ${LIBDIR}/zlib/include)
 set(ZLIB_LIBRARY ${LIBDIR}/zlib/lib/libz_st.lib)
 set(ZLIB_DIR ${LIBDIR}/zlib)
-#find_package(zlib) # we want to find before finding things that depend on it like png
 
+windows_find_package(zlib) # we want to find before finding things that depend on it like png
+windows_find_package(png)
 
-find_package(png)
 if(NOT PNG_FOUND)
-	message(WARNING "Using HARDCODED libpng locations")
+	warn_hardcoded_paths(libpng)
 	set(PNG_PNG_INCLUDE_DIR ${LIBDIR}/png/include)
 	set(PNG_LIBRARIES libpng)
 	set(PNG "${LIBDIR}/png")
@@ -155,7 +169,12 @@ if(NOT PNG_FOUND)
 endif()
 
 set(JPEG_NAMES ${JPEG_NAMES} libjpeg)
-find_package(jpeg REQUIRED)
+windows_find_package(jpeg REQUIRED)
+if(NOT JPEG_FOUND)
+	warn_hardcoded_paths(jpeg)
+	set(JPEG_INCLUDE_DIR ${LIBDIR}/jpeg/include)
+	set(JPEG_LIBRARIES ${LIBDIR}/jpeg/lib/libjpeg.lib)
+endif()
 
 set(PTHREADS_INCLUDE_DIRS ${LIBDIR}/pthreads/include)
 set(PTHREADS_LIBRARIES ${LIBDIR}/pthreads/lib/pthreadVC2.lib)
@@ -166,7 +185,7 @@ set(FREETYPE_INCLUDE_DIRS
 	${LIBDIR}/freetype/include/freetype2
 )
 set(FREETYPE_LIBRARY ${LIBDIR}/freetype/lib/freetype2ST.lib)
-find_package(freetype REQUIRED)
+windows_find_package(freetype REQUIRED)
 
 if(WITH_FFTW3)
 	set(FFTW3 ${LIBDIR}/fftw3)
@@ -212,9 +231,9 @@ if(WITH_CODEC_FFMPEG)
 		${LIBDIR}/ffmpeg/include
 		${LIBDIR}/ffmpeg/include/msvc
 	)
-	find_package(FFMPEG)
+	windows_find_package(FFMPEG)
 	if(NOT FFMPEG_FOUND)
-		message(WARNING "Using HARDCODED ffmpeg locations")
+		warn_hardcoded_paths(ffmpeg)
 		set(FFMPEG_LIBRARY_VERSION 55)
 		set(FFMPEG_LIBRARY_VERSION_AVU 52)
 		set(FFMPEG_LIBRARIES
@@ -230,9 +249,9 @@ endif()
 if(WITH_IMAGE_OPENEXR)
 	set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
 	set(OPENEXR_VERSION "2.1")
-	find_package(OPENEXR REQUIRED)
+	windows_find_package(OPENEXR REQUIRED)
 	if(NOT OPENEXR_FOUND)
-		message(WARNING "Using HARDCODED OpenEXR locations")
+		warn_hardcoded_paths(OpenEXR)
 		set(OPENEXR ${LIBDIR}/openexr)
 		set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
 		set(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCLUDE_DIR} ${OPENEXR}/include/OpenEXR)
@@ -254,9 +273,9 @@ endif()
 
 if(WITH_IMAGE_TIFF)
 	# Try to find tiff first then complain and set static and maybe wrong paths
-	find_package(TIFF)
+	windows_find_package(TIFF)
 	if(NOT TIFF_FOUND)
-		message(WARNING "Using HARDCODED libtiff locations")
+		warn_hardcoded_paths(libtiff)
 		set(TIFF_LIBRARY ${LIBDIR}/tiff/lib/libtiff.lib)
 		set(TIFF_INCLUDE_DIR ${LIBDIR}/tiff/include)
 	endif()
@@ -299,9 +318,11 @@ if(WITH_BOOST)
 	set(Boost_USE_STATIC_RUNTIME ON) # prefix lib
 	set(Boost_USE_MULTITHREADED ON) # suffix -mt
 	set(Boost_USE_STATIC_LIBS ON) # suffix -s
-	find_package(Boost COMPONENTS date_time filesystem thread regex system ${boost_extra_libs})
+	if (WITH_WINDOWS_FIND_MODULES)
+		find_package(Boost COMPONENTS date_time filesystem thread regex system ${boost_extra_libs})
+	endif (WITH_WINDOWS_FIND_MODULES)
 	if(NOT Boost_FOUND)
-		message(WARNING "USING HARDCODED boost locations")
+		warn_hardcoded_paths(BOOST)
 		set(BOOST ${LIBDIR}/boost)
 		set(BOOST_INCLUDE_DIR ${BOOST}/include)
 		if(MSVC12)
@@ -344,7 +365,7 @@ if(WITH_BOOST)
 endif()
 
 if(WITH_OPENIMAGEIO)
-	find_package(OpenImageIO)
+	windows_find_package(OpenImageIO)
 	set(OPENIMAGEIO ${LIBDIR}/openimageio)
 	set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO}/include)
 	set(OIIO_OPTIMIZED optimized OpenImageIO optimized OpenImageIO_Util)
