@@ -132,7 +132,13 @@ ccl_device_inline float path_rng_1D(KernelGlobals *kg, ccl_addr_space RNG *rng, 
 #endif
 }
 
-ccl_device_inline void path_rng_2D(KernelGlobals *kg, ccl_addr_space RNG *rng, int sample, int num_samples, int dimension, float *fx, float *fy)
+/* Temporary workaround for Pascal cards, otherwise AA does not work properly. */
+#if defined(__KERNEL_GPU__) && __CUDA_ARCH__ >= 600
+__device__ __forceinline__
+#else
+ccl_device_inline
+#endif
+void path_rng_2D(KernelGlobals *kg, ccl_addr_space RNG *rng, int sample, int num_samples, int dimension, float *fx, float *fy)
 {
 #ifdef __CMJ__
 	if(kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_CMJ) {
