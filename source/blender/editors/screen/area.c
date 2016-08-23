@@ -57,6 +57,9 @@
 #include "ED_screen_types.h"
 #include "ED_space_api.h"
 
+#include "GPU_shader.h"
+#include "GPU_immediate.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BLF_api.h"
@@ -206,7 +209,7 @@ static void area_draw_azone_fullscreen(short x1, short y1, short x2, short y2, f
 	if (G.debug_value == 1) {
 		rcti click_rect;
 		float icon_size = UI_DPI_ICON_SIZE + 7 * UI_DPI_FAC;
-		char alpha_debug = 255 * alpha;
+		unsigned char alpha_debug = 255 * alpha;
 
 		BLI_rcti_init(&click_rect, x, x + icon_size, y, y + icon_size);
 
@@ -229,59 +232,73 @@ static void area_draw_azone(short x1, short y1, short x2, short y2)
 	dx = copysign(ceilf(0.3f * abs(dx)), dx);
 	dy = copysign(ceilf(0.3f * abs(dy)), dy);
 
-	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
+
+	VertexFormat* format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned col = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+	immBegin(GL_LINES, 12);
+
+	immAttrib4ub(col, 255, 255, 255, 180);
+	immVertex2f(pos, x1, y2);
+	immVertex2f(pos, x2, y1);
+
+	immAttrib4ub(col, 255, 255, 255, 130);
+	immVertex2f(pos, x1, y2 - dy);
+	immVertex2f(pos, x2 - dx, y1);
+
+	immAttrib4ub(col, 255, 255, 255, 80);
+	immVertex2f(pos, x1, y2 - 2 * dy);
+	immVertex2f(pos, x2 - 2 * dx, y1);
 	
-	glColor4ub(255, 255, 255, 180);
-	fdrawline(x1, y2, x2, y1);
-	glColor4ub(255, 255, 255, 130);
-	fdrawline(x1, y2 - dy, x2 - dx, y1);
-	glColor4ub(255, 255, 255, 80);
-	fdrawline(x1, y2 - 2 * dy, x2 - 2 * dx, y1);
-	
-	glColor4ub(0, 0, 0, 210);
-	fdrawline(x1, y2 + 1, x2 + 1, y1);
-	glColor4ub(0, 0, 0, 180);
-	fdrawline(x1, y2 - dy + 1, x2 - dx + 1, y1);
-	glColor4ub(0, 0, 0, 150);
-	fdrawline(x1, y2 - 2 * dy + 1, x2 - 2 * dx + 1, y1);
+	immAttrib4ub(col, 0, 0, 0, 210);
+	immVertex2f(pos, x1, y2 + 1);
+	immVertex2f(pos, x2 + 1, y1);
+
+	immAttrib4ub(col, 0, 0, 0, 180);
+	immVertex2f(pos, x1, y2 - dy + 1);
+	immVertex2f(pos, x2 - dx + 1, y1);
+
+	immAttrib4ub(col, 0, 0, 0, 150);
+	immVertex2f(pos, x1, y2 - 2 * dy + 1);
+	immVertex2f(pos, x2 - 2 * dx + 1, y1);
+
+	immEnd();
+	immUnbindProgram();
 
 	glDisable(GL_LINE_SMOOTH);
-	glDisable(GL_BLEND);
 }
 
 static void region_draw_azone_icon(AZone *az)
 {
-	GLUquadricObj *qobj = NULL; 
-	short midx = az->x1 + (az->x2 - az->x1) / 2;
-	short midy = az->y1 + (az->y2 - az->y1) / 2;
-		
-	qobj = gluNewQuadric();
-	
-	glPushMatrix();
-	glTranslatef(midx, midy, 0.0);
-	
+	float midx = az->x1 + (az->x2 - az->x1) * 0.5f;
+	float midy = az->y1 + (az->y2 - az->y1) * 0.5f;
+
+	VertexFormat* format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
 	/* outlined circle */
+	immUniform4f("color", 1.0f, 1.0f, 1.0f, 0.8f);
+	imm_draw_filled_circle(pos, midx, midy, 4.25f, 12);
+	/* TODO(merwin): replace this --^ with one round point once shader is ready */
 	glEnable(GL_LINE_SMOOTH);
-
-	glColor4f(1.f, 1.f, 1.f, 0.8f);
-
-	gluQuadricDrawStyle(qobj, GLU_FILL); 
-	gluDisk(qobj, 0.0,  4.25f, 16, 1);
-
-	glColor4f(0.2f, 0.2f, 0.2f, 0.9f);
-	
-	gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
-	gluDisk(qobj, 0.0,  4.25f, 16, 1);
-	
+	immUniform4f("color", 0.2f, 0.2f, 0.2f, 0.9f);
+	imm_draw_lined_circle(pos, midx, midy, 4.25f, 12);
 	glDisable(GL_LINE_SMOOTH);
-	
-	glPopMatrix();
-	gluDeleteQuadric(qobj);
-	
+
 	/* + */
-	sdrawline(midx, midy - 2, midx, midy + 3);
-	sdrawline(midx - 2, midy, midx + 3, midy);
+	immBegin(GL_LINES, 4);
+	immVertex2f(pos, midx, midy - 2);
+	immVertex2f(pos, midx, midy + 3);
+	immVertex2f(pos, midx - 2, midy);
+	immVertex2f(pos, midx + 3, midy);
+	immEnd();
+
+	immUnbindProgram();
 }
 
 static void draw_azone_plus(float x1, float y1, float x2, float y2)

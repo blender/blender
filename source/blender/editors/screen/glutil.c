@@ -182,15 +182,25 @@ void glutil_draw_lined_arc(float start, float angle, float radius, int nsegments
 	glEnd();
 }
 
-void imm_draw_lined_circle(unsigned pos, float x, float y, float rad, int nsegments)
+static void imm_draw_circle(GLenum prim_type, unsigned pos, float x, float y, float rad, int nsegments)
 {
-	immBegin(GL_LINE_LOOP, nsegments);
+	immBegin(prim_type, nsegments);
 	for (int i = 0; i < nsegments; ++i) {
 		float angle = 2 * M_PI * ((float)i / (float)nsegments);
 		immVertex2f(pos, x + rad * cosf(angle),
 		                 y + rad * sinf(angle));
 	}
 	immEnd();
+}
+
+void imm_draw_lined_circle(unsigned pos, float x, float y, float rad, int nsegments)
+{
+	imm_draw_circle(GL_LINE_LOOP, pos, x, y, rad, nsegments);
+}
+
+void imm_draw_filled_circle(unsigned pos, float x, float y, float rad, int nsegments)
+{
+	imm_draw_circle(GL_TRIANGLE_FAN, pos, x, y, rad, nsegments);
 }
 
 float glaGetOneFloat(int param)
