@@ -200,16 +200,19 @@ static bool isect_ray_tri_watertight_no_sign_check_v3(
 	}
 }
 
-MALWAYS_INLINE int isec_tri_quad(float start[3], const struct IsectRayPrecalc *isect_precalc, RayFace *face, float r_uv[2], float *lambda)
+MALWAYS_INLINE int isec_tri_quad(const float start[3],
+                                 const struct IsectRayPrecalc *isect_precalc,
+                                 const RayFace *face,
+                                 float r_uv[2], float *r_lambda)
 {
 	float uv[2], l;
 
 	if (isect_ray_tri_watertight_v3(start, isect_precalc, face->v1, face->v2, face->v3, &l, uv)) {
 		/* check if intersection is within ray length */
-		if (l > -RE_RAYTRACE_EPSILON && l < *lambda) {
+		if (l > -RE_RAYTRACE_EPSILON && l < *r_lambda) {
 			r_uv[0] = -uv[0];
 			r_uv[1] = -uv[1];
-			*lambda = l;
+			*r_lambda = l;
 			return 1;
 		}
 	}
@@ -218,10 +221,10 @@ MALWAYS_INLINE int isec_tri_quad(float start[3], const struct IsectRayPrecalc *i
 	if (RE_rayface_isQuad(face)) {
 		if (isect_ray_tri_watertight_v3(start, isect_precalc, face->v1, face->v3, face->v4, &l, uv)) {
 			/* check if intersection is within ray length */
-			if (l > -RE_RAYTRACE_EPSILON && l < *lambda) {
+			if (l > -RE_RAYTRACE_EPSILON && l < *r_lambda) {
 				r_uv[0] = -uv[0];
 				r_uv[1] = -uv[1];
-				*lambda = l;
+				*r_lambda = l;
 				return 2;
 			}
 		}
@@ -232,12 +235,13 @@ MALWAYS_INLINE int isec_tri_quad(float start[3], const struct IsectRayPrecalc *i
 
 /* Simpler yes/no Ray Triangle/Quad Intersection */
 
-MALWAYS_INLINE int isec_tri_quad_neighbour(float start[3], float dir[3], RayFace *face)
+MALWAYS_INLINE int isec_tri_quad_neighbour(const float start[3],
+                                           const float dir[3],
+                                           const RayFace *face)
 {
 	float r[3];
 	struct IsectRayPrecalc isect_precalc;
 	float uv[2], l;
-
 
 	negate_v3_v3(r, dir); /* note, different than above function */
 
