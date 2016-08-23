@@ -768,15 +768,15 @@ static void average_marker_positions(StabContext *ctx, int framenr, float r_ref_
 			if (track->flag & TRACK_USE_2D_STAB) {
 				int startpoint = search_closest_marker_index(track, framenr);
 				retrieve_next_higher_usable_frame(ctx,
-                                                  track,
-                                                  startpoint,
-                                                  framenr,
-                                                  &next_higher);
+				                                  track,
+				                                  startpoint,
+				                                  framenr,
+				                                  &next_higher);
 				retrieve_next_lower_usable_frame(ctx,
-                                                  track,
-                                                  startpoint,
-                                                  framenr,
-                                                  &next_lower);
+				                                 track,
+				                                 startpoint,
+				                                 framenr,
+				                                 &next_lower);
 			}
 		}
 		if (next_lower >= MINFRAME) {
@@ -1205,6 +1205,41 @@ static void stabilization_calculate_data(StabContext *ctx,
 	}
 }
 
+static void stabilization_data_to_mat4(float pixel_aspect,
+                                       const float pivot[2],
+                                       const float translation[2],
+                                       float scale,
+                                       float angle,
+                                       float r_mat[4][4])
+{
+	float translation_mat[4][4], rotation_mat[4][4], scale_mat[4][4],
+	      pivot_mat[4][4], inv_pivot_mat[4][4],
+	      aspect_mat[4][4], inv_aspect_mat[4][4];
+	float scale_vector[3] = {scale, scale, 1.0f};
+
+	unit_m4(translation_mat);
+	unit_m4(rotation_mat);
+	unit_m4(scale_mat);
+	unit_m4(aspect_mat);
+	unit_m4(pivot_mat);
+	unit_m4(inv_pivot_mat);
+
+	/* aspect ratio correction matrix */
+	aspect_mat[0][0] /= pixel_aspect;
+	invert_m4_m4(inv_aspect_mat, aspect_mat);
+
+	add_v2_v2(pivot_mat[3],     pivot);
+	sub_v2_v2(inv_pivot_mat[3], pivot);
+
+	size_to_mat4(scale_mat, scale_vector);       /* scale matrix */
+	add_v2_v2(translation_mat[3], translation);  /* translation matrix */
+	rotate_m4(rotation_mat, 'Z', angle);         /* rotation matrix */
+
+	/* Compose transformation matrix. */
+	mul_m4_series(r_mat, aspect_mat, translation_mat,
+	                     pivot_mat, scale_mat, rotation_mat, inv_pivot_mat,
+	                     inv_aspect_mat);
+}
 
 /* Calculate scale factor necessary to eliminate black image areas
  * caused by the compensating movements of the stabilizator.
@@ -1215,7 +1250,8 @@ static void stabilization_calculate_data(StabContext *ctx,
  * NOTE: all tracks need to be initialized before calling this function.
  */
 static float calculate_autoscale_factor(StabContext *ctx,
-                                        int size, float aspect)
+                                        int size,
+                                        float aspect)
 {
 	MovieTrackingStabilization *stab = ctx->stab;
 	float pixel_aspect = ctx->tracking->camera.pixel_aspect;
@@ -1241,15 +1277,13 @@ static float calculate_autoscale_factor(StabContext *ctx,
 	use_values_from_fcurves(ctx, true);
 	for (cfra = sfra; cfra <= efra; cfra++) {
 		float translation[2], pivot[2], angle, tmp_scale;
-		int i;
 		float mat[4][4];
-		float points[4][2] = {{0.0f, 0.0f},
-		                      {0.0f, height},
-		                      {width, height},
-		                      {width, 0.0f}};
-		float si, co;
-		bool do_compensate = true;
-
+		const float points[4][2] = {{0.0f, 0.0f},
+		                            {0.0f, height},
+		                            {width, height},
+		                            {width, 0.0f}};
+		const bool do_compensate = true;
+		/* Calculate stabilization parameters for the current frame. */
 		stabilization_determine_offset_for_frame(ctx,
 		                                         cfra,
 		                                         aspect,
@@ -1267,86 +1301,79 @@ static float calculate_autoscale_factor(StabContext *ctx,
 		                             pivot,
 		                             &tmp_scale,
 		                             &angle);
-		compensate_rotation_center(size, aspect,
-                                   angle, tmp_scale, pivot,
-                                   translation);
-
-		BKE_tracking_stabilization_data_to_mat4(width, height,
-		                                        pixel_aspect,
-		                                        translation,
-		                                        1.0f,
-		                                        angle,
-		                                        mat);
-
-		si = sinf(angle);
-		co = cosf(angle);
-
+		/* Compose transformation matrix. */
+		/* NOTE: Here we operate in NON-COMPENSATED coordinates, meaning we have
+		 * to construct transformation matrix using proper pivot point.
+		 * Compensation for that will happen later on.
+		 */
+		stabilization_data_to_mat4(pixel_aspect,
+		                           pivot,
+		                           translation,
+		                           tmp_scale,
+		                           angle,
+		                           mat);
 		/* Investigate the transformed border lines for this frame;
 		 * find out, where it cuts the original frame.
 		 */
-		for (i = 0; i < 4; i++) {
-			int j;
-			float a[3] = {0.0f, 0.0f, 0.0f},
-			      b[3] = {0.0f, 0.0f, 0.0f};
-
-			copy_v2_v2(a, points[i]);
-			copy_v2_v2(b, points[(i + 1) % 4]);
-			a[2] = b[2] = 0.0f;
-
-			mul_m4_v3(mat, a);
-			mul_m4_v3(mat, b);
-
-			for (j = 0; j < 4; j++) {
-				float point[3] = {points[j][0], points[j][1], 0.0f};
-				float v1[3], v2[3];
-
-				sub_v3_v3v3(v1, b, a);
-				sub_v3_v3v3(v2, point, a);
-
-				if (cross_v2v2(v1, v2) >= 0.0f) {
-					const float rot_dx[4][2] = {{1.0f, 0.0f},
-					                            {0.0f, -1.0f},
-					                            {-1.0f, 0.0f},
-					                            {0.0f, 1.0f}};
-					const float rot_dy[4][2] = {{0.0f, 1.0f},
-					                            {1.0f, 0.0f},
-					                            {0.0f, -1.0f},
-					                            {-1.0f, 0.0f}};
-
-					float dx = translation[0] * rot_dx[j][0] +
-					           translation[1] * rot_dx[j][1],
-					      dy = translation[0] * rot_dy[j][0] +
-					           translation[1] * rot_dy[j][1];
-
-					float w, h, E, F, G, H, I, J, K, S;
-
-					if (j % 2) {
-						w = (float)height / 2.0f;
-						h = (float)width / 2.0f;
-					}
-					else {
-						w = (float)width / 2.0f;
-						h = (float)height / 2.0f;
-					}
-
-					E = -w * co + h * si;
-					F = -h * co - w * si;
-
-					if ((i % 2) == (j % 2)) {
-						G = -w * co - h * si;
-						H = h * co - w * si;
-					}
-					else {
-						G = w * co + h * si;
-						H = -h * co + w * si;
-					}
-
-					I = F - H;
-					J = G - E;
-					K = G * F - E * H;
-
-					S = (-w * I - h * J) / (dx * I + dy * J + K);
-
+		for (int edge_index = 0; edge_index < 4; edge_index++) {
+			/* Calculate coordinates of stabilized frame edge points.
+			 * Use matrix multiplication here so we operate in homogeneous
+			 * coordinates.
+			 */
+			float stable_edge_p1[3], stable_edge_p2[3];
+			copy_v2_v2(stable_edge_p1, points[edge_index]);
+			copy_v2_v2(stable_edge_p2, points[(edge_index + 1) % 4]);
+			stable_edge_p1[2] = stable_edge_p2[2] = 0.0f;
+			mul_m4_v3(mat, stable_edge_p1);
+			mul_m4_v3(mat, stable_edge_p2);
+			/* Now we iterate over all original frame corners (we call them
+			 * 'point' here) to see if there's black area between stabilized
+			 * frame edge and original point.
+			 */
+			for (int point_index = 0; point_index < 4; point_index++) {
+				const float point[3] = {points[point_index][0],
+				                        points[point_index][1],
+				                        0.0f};
+				/* Calculate vector which goes from first edge point to
+				 * second one.
+				 */
+				float stable_edge_vec[3];
+				sub_v3_v3v3(stable_edge_vec, stable_edge_p2, stable_edge_p1);
+				/* Calculate vector which connects current frame point to
+				 * first edge point.
+				 */
+				float point_to_edge_start_vec[3];
+				sub_v3_v3v3(point_to_edge_start_vec, point, stable_edge_p1);
+				/* Use this two vectors to check whether frame point is inside
+				 * of the stabilized frame or not.
+				 * If the point is inside, there is no black area happening
+				 * and no scaling required for it.
+				 */
+				if (cross_v2v2(stable_edge_vec, point_to_edge_start_vec) >= 0.0f) {
+					/* We are scaling around motion-compensated pivot point. */
+					float scale_pivot[2];
+					add_v2_v2v2(scale_pivot, pivot, translation);
+					/* Calculate line which goes via `point` and parallel to
+					 * the stabilized frame edge. This line is coming via
+					 * `point` and `point2` at the end.
+					 */
+					float point2[2];
+					add_v2_v2v2(point2, point, stable_edge_vec);
+					/* Calculate actual distance between pivot point and
+					 * the stabilized frame edge. Then calculate distance
+					 * between pivot point and line which goes via actual
+					 * corner and is parallel to the edge.
+					 *
+					 * Dividing one by another will give us required scale
+					 * factor to get rid of black areas.
+					 */
+					float real_dist = dist_to_line_v2(scale_pivot,
+					                                  stable_edge_p1,
+					                                  stable_edge_p2);
+					float required_dist = dist_to_line_v2(scale_pivot,
+					                                      point,
+					                                      point2);
+					const float S = required_dist / real_dist;
 					scale = max_ff(scale, S);
 				}
 			}
@@ -1446,8 +1473,11 @@ void BKE_tracking_stabilization_data_get(MovieClip *clip,
 		                             pivot,
 		                             scale,
 		                             angle);
-		compensate_rotation_center(size, aspect,
-		                           *angle, *scale, pivot,
+		compensate_rotation_center(size,
+		                           aspect,
+		                           *angle,
+		                           *scale,
+		                           pivot,
 		                           translation);
 	}
 	else {
@@ -1578,16 +1608,11 @@ ImBuf *BKE_tracking_stabilize_frame(MovieClip *clip,
 void BKE_tracking_stabilization_data_to_mat4(int buffer_width,
                                              int buffer_height,
                                              float pixel_aspect,
-                                             float translation[2], float scale, float angle,
-                                             float mat[4][4])
+                                             float translation[2],
+                                             float scale,
+                                             float angle,
+                                             float r_mat[4][4])
 {
-	float translation_mat[4][4], rotation_mat[4][4], scale_mat[4][4],
-	      pivot_mat[4][4], inv_pivot_mat[4][4],
-	      aspect_mat[4][4], inv_aspect_mat[4][4];
-	float scale_vector[3] = {scale, scale, 1.0f};
-
-	float pivot[2]; /* TODO this should be a parameter, it is part of the stabilization data */
-
 	/* Since we cannot receive the real pivot point coordinates (API limitation),
 	 * we perform the rotation/scale around the center of frame.
 	 * Then we correct by an additional shift, which was calculated in
@@ -1599,29 +1624,14 @@ void BKE_tracking_stabilization_data_to_mat4(int buffer_width,
 	/* TODO(sergey) pivot shouldn't be calculated here, rather received
 	 * as a parameter.
 	 */
+	float pivot[2];
 	pivot[0] = 0.5f * pixel_aspect * buffer_width;
 	pivot[1] = 0.5f * buffer_height;
-
-	unit_m4(translation_mat);
-	unit_m4(rotation_mat);
-	unit_m4(scale_mat);
-	unit_m4(aspect_mat);
-	unit_m4(pivot_mat);
-	unit_m4(inv_pivot_mat);
-
-	/* aspect ratio correction matrix */
-	aspect_mat[0][0] /= pixel_aspect;
-	invert_m4_m4(inv_aspect_mat, aspect_mat);
-
-	add_v2_v2(pivot_mat[3],     pivot);
-	sub_v2_v2(inv_pivot_mat[3], pivot);
-
-	size_to_mat4(scale_mat, scale_vector);       /* scale matrix */
-	add_v2_v2(translation_mat[3], translation);  /* translation matrix */
-	rotate_m4(rotation_mat, 'Z', angle);         /* rotation matrix */
-
-	/* compose transformation matrix */
-	mul_m4_series(mat, aspect_mat, translation_mat,
-	                   pivot_mat, scale_mat, rotation_mat, inv_pivot_mat,
-	                   inv_aspect_mat);
+	/* Compose transformation matrix. */
+	stabilization_data_to_mat4(pixel_aspect,
+	                           pivot,
+	                           translation,
+	                           scale,
+	                           angle,
+	                           r_mat);
 }
