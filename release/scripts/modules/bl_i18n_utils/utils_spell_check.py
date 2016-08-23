@@ -477,6 +477,12 @@ class SpellChecker:
         "wpaint",
         "uvwarp",
 
+        # UOC (Ugly Operator Categories)
+        "cachefile",
+        "paintcurve",
+        "ptcache",
+        "dpaint",
+
         # Algorithm/library names
         "ashikhmin",  # Ashikhmin-Shirley
         "beckmann",
