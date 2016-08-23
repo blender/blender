@@ -1380,6 +1380,7 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
 			rect_pre.xmax = rect_post.xmin = rect.xmin + ((rect.xmax - rect.xmin) / 4);
 
 			/* widget itself */
+			/* NOTE: i18n messages extracting tool does the same, please keep it in sync. */
 			{
 				wmOperatorType *ot = data->items.pointers[a];
 
@@ -1400,7 +1401,8 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
 				}
 
 				rect_pre.xmax += 4;  /* sneaky, avoid showing ugly margin */
-				ui_draw_menu_item(&data->fstyle, &rect_pre, text_pre, data->items.icons[a], state, false);
+				ui_draw_menu_item(&data->fstyle, &rect_pre, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, text_pre),
+				                  data->items.icons[a], state, false);
 				ui_draw_menu_item(&data->fstyle, &rect_post, data->items.names[a], 0, state, data->use_sep);
 			}
 
