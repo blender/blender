@@ -500,7 +500,7 @@ void Mesh::add_vertex_normals()
 	size_t triangles_size = num_triangles();
 
 	/* static vertex normals */
-	if(!attributes.find(ATTR_STD_VERTEX_NORMAL)) {
+	if(!attributes.find(ATTR_STD_VERTEX_NORMAL) && triangles_size) {
 		/* get attributes */
 		Attribute *attr_fN = attributes.find(ATTR_STD_FACE_NORMAL);
 		Attribute *attr_vN = attributes.add(ATTR_STD_VERTEX_NORMAL);
@@ -529,7 +529,7 @@ void Mesh::add_vertex_normals()
 	Attribute *attr_mP = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 	Attribute *attr_mN = attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
 
-	if(has_motion_blur() && attr_mP && !attr_mN) {
+	if(has_motion_blur() && attr_mP && !attr_mN && triangles_size) {
 		/* create attribute */
 		attr_mN = attributes.add(ATTR_STD_MOTION_VERTEX_NORMAL);
 
@@ -553,6 +553,32 @@ void Mesh::add_vertex_normals()
 				mN[i] = normalize(mN[i]);
 				if(flip)
 					mN[i] = -mN[i];
+			}
+		}
+	}
+
+	/* subd vertex normals */
+	if(!subd_attributes.find(ATTR_STD_VERTEX_NORMAL) && subd_faces.size()) {
+		/* get attributes */
+		Attribute *attr_vN = subd_attributes.add(ATTR_STD_VERTEX_NORMAL);
+		float3 *vN = attr_vN->data_float3();
+
+		/* compute vertex normals */
+		memset(vN, 0, verts.size()*sizeof(float3));
+
+		for(size_t i = 0; i < subd_faces.size(); i++) {
+			SubdFace& face = subd_faces[i];
+
+			for(size_t j = 0; j < face.num_corners; j++) {
+				size_t corner = subd_face_corners[face.start_corner+j];
+				vN[corner] += verts[corner];
+			}
+		}
+
+		for(size_t i = 0; i < verts_size; i++) {
+			vN[i] = normalize(vN[i]);
+			if(flip) {
+				vN[i] = -vN[i];
 			}
 		}
 	}

@@ -49,7 +49,7 @@ struct SubdParams {
 
 		test_steps = 3;
 		split_threshold = 1;
-		dicing_rate = 0.1f;
+		dicing_rate = 1.0f;
 		max_level = 12;
 		camera = NULL;
 	}
