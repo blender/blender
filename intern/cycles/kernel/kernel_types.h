@@ -745,7 +745,7 @@ enum ShaderDataFlag {
 
 #ifdef __SPLIT_KERNEL__
 #  define SD_THREAD (get_global_id(1) * get_global_size(0) + get_global_id(0))
-#  if defined(__SPLIT_KERNEL_AOS__)
+#  if !defined(__SPLIT_KERNEL_SOA__)
      /* ShaderData is stored as an Array-of-Structures */
 #    define ccl_soa_member(type, name) type soa_##name
 #    define ccl_fetch(s, t) (s[SD_THREAD].soa_##t)
