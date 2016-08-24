@@ -20,6 +20,8 @@
  *		Monique Dewanchand
  */
 
+#include <stdlib.h>
+
 #include "COM_DoubleEdgeMaskOperation.h"
 #include "BLI_math.h"
 #include "DNA_node_types.h"
@@ -1151,12 +1153,13 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
 	
 	if (true) {                    // if both input sockets have some data coming in...
 		
-		t = (this->getWidth() * this->getHeight()) - 1;                                // determine size of the frame
+		rw = this->getWidth();                   // width of a row of pixels
+		t = (rw * this->getHeight()) - 1;        // determine size of the frame
+		memset(res, 0, sizeof(float) * (t + 1)); // clear output buffer (not all pixels will be written later)
 		
 		lres = (unsigned int *)res;      // unsigned int pointer to output buffer (for bit level ops)
 		limask = (unsigned int *)imask;   // unsigned int pointer to input mask (for bit level ops)
 		lomask = (unsigned int *)omask;   // unsigned int pointer to output mask (for bit level ops)
-		rw = this->getWidth();                   // width of a row of pixels
 		
 		
 		/*
