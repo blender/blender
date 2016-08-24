@@ -3059,6 +3059,13 @@ bool RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *
 	}
 #endif
 
+	if (RE_seq_render_active(scene, &scene->r)) {
+		if (scene->r.mode & R_BORDER) {
+			BKE_report(reports, RPT_ERROR, "Border rendering is not supported by sequencer");
+			return false;
+		}
+	}
+
 	/* layer flag tests */
 	if (!render_scene_has_layers_to_render(scene)) {
 		BKE_report(reports, RPT_ERROR, "All render layers are disabled");
