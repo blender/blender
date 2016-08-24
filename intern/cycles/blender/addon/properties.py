@@ -369,12 +369,14 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Size of a micropolygon in pixels",
                 min=0.1, max=1000.0,
                 default=1.0,
+                subtype="PIXEL"
                 )
         cls.preview_dicing_rate = FloatProperty(
                 name="Preview Dicing Rate",
                 description="Size of a micropolygon in pixels during preview render",
                 min=0.1, max=1000.0,
                 default=8.0,
+                subtype="PIXEL"
                 )
 
         cls.max_subdivisions = IntProperty(
@@ -1007,8 +1009,8 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
                 )
 
         cls.dicing_rate = FloatProperty(
-                name="Dicing Rate",
-                description="Multiplier for scene dicing rate",
+                name="Dicing Scale",
+                description="Multiplier for scene dicing rate (located in the Geometry Panel)",
                 min=0.1, max=1000.0,
                 default=1.0,
                 )
