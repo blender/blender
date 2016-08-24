@@ -113,16 +113,7 @@ CCL_NAMESPACE_BEGIN
 #  ifdef __KERNEL_OPENCL_AMD__
 #    define __CL_USE_NATIVE__
 #    define __KERNEL_SHADING__
-#    define __MULTI_CLOSURE__
-#    define __PASSES__
-#    define __BACKGROUND_MIS__
-#    define __LAMP_MIS__
-#    define __AO__
-#    define __CAMERA_MOTION__
-#    define __OBJECT_MOTION__
-#    define __HAIR__
-#    define __BAKING__
-#    define __TRANSPARENT_SHADOWS__
+#    define __KERNEL_ADV_SHADING__
 #  endif  /* __KERNEL_OPENCL_AMD__ */
 
 #  ifdef __KERNEL_OPENCL_INTEL_CPU__
