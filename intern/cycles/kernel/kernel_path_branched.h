@@ -112,7 +112,7 @@ ccl_device_noinline void kernel_branched_path_surface_indirect_light(KernelGloba
 			}
 
 			kernel_path_indirect(kg,
-						         indirect_sd,
+			                     indirect_sd,
 			                     emission_sd,
 			                     rng,
 			                     &bsdf_ray,
@@ -224,7 +224,7 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 				        kg,
 				        rng,
 				        &bssrdf_sd,
-						indirect_sd,
+				        indirect_sd,
 				        emission_sd,
 				        throughput,
 				        num_samples_inv,
