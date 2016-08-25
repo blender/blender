@@ -1010,7 +1010,8 @@ ccl_device bool kernel_volume_use_decoupled(KernelGlobals *kg, bool heterogeneou
 
 ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
                                          ShaderData *stack_sd,
-                                         Ray *ray,
+                                         const PathState *state,
+                                         const Ray *ray,
                                          VolumeStack *stack)
 {
 	/* NULL ray happens in the baker, does it need proper initialization of
@@ -1031,9 +1032,12 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 		return;
 	}
 
+	kernel_assert(state->flag & PATH_RAY_CAMERA);
+
 	Ray volume_ray = *ray;
 	volume_ray.t = FLT_MAX;
 
+	const uint visibility = (state->flag & PATH_RAY_ALL_VISIBILITY);
 	int stack_index = 0, enclosed_index = 0;
 
 #ifdef __VOLUME_RECORD_ALL__
@@ -1042,7 +1046,7 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 	                                           &volume_ray,
 	                                           hits,
 	                                           2*VOLUME_STACK_SIZE,
-	                                           PATH_RAY_ALL_VISIBILITY);
+	                                           visibility);
 	if(num_hits > 0) {
 		int enclosed_volumes[VOLUME_STACK_SIZE];
 		Intersection *isect = hits;
@@ -1091,7 +1095,7 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 	      step < 2 * VOLUME_STACK_SIZE)
 	{
 		Intersection isect;
-		if(!scene_intersect_volume(kg, &volume_ray, &isect, PATH_RAY_ALL_VISIBILITY)) {
+		if(!scene_intersect_volume(kg, &volume_ray, &isect, visibility)) {
 			break;
 		}
 

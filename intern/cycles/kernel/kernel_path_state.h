@@ -45,9 +45,9 @@ ccl_device_inline void path_state_init(KernelGlobals *kg,
 	state->volume_bounce = 0;
 
 	if(kernel_data.integrator.use_volumes) {
-		/* initialize volume stack with volume we are inside of */
-		kernel_volume_stack_init(kg, stack_sd, ray, state->volume_stack);
-		/* seed RNG for cases where we can't use stratified samples */
+		/* Initialize volume stack with volume we are inside of. */
+		kernel_volume_stack_init(kg, stack_sd, state, ray, state->volume_stack);
+		/* Seed RNG for cases where we can't use stratified samples .*/
 		state->rng_congruential = lcg_init(*rng + sample*0x51633e2d);
 	}
 	else {
