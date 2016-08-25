@@ -5477,54 +5477,56 @@ static void draw_editfont(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *b
 /* draw a sphere for use as an empty drawtype */
 static void draw_empty_sphere(float size)
 {
-	static GLuint displist = 0;
-	
-	if (displist == 0) {
-		GLUquadricObj *qobj;
-		
-		displist = glGenLists(1);
-		glNewList(displist, GL_COMPILE);
-		
-		glPushMatrix();
-		
-		qobj = gluNewQuadric();
-		gluQuadricDrawStyle(qobj, GLU_SILHOUETTE);
-		gluDisk(qobj, 0.0,  1, 16, 1);
-		
-		glRotatef(90, 0, 1, 0);
-		gluDisk(qobj, 0.0,  1, 16, 1);
-		
-		glRotatef(90, 1, 0, 0);
-		gluDisk(qobj, 0.0,  1, 16, 1);
-		
-		gluDeleteQuadric(qobj);
-		
-		glPopMatrix();
-		glEndList();
+#define NSEGMENTS 16
+	/* a single ring of vertices */
+	float p[NSEGMENTS][2];
+	for (int i = 0; i < NSEGMENTS; ++i) {
+		float angle = 2 * M_PI * ((float)i / (float)NSEGMENTS);
+		p[i][0] = size * cosf(angle);
+		p[i][1] = size * sinf(angle);
 	}
 	
-	glScalef(size, size, size);
-	glCallList(displist);
-	glScalef(1.0f / size, 1.0f / size, 1.0f / size);
+	glBegin(GL_LINE_LOOP);
+	for (int i = 0; i < NSEGMENTS; ++i)
+		glVertex3f(p[i][0], p[i][1], 0.0f);
+	glEnd();
+	glBegin(GL_LINE_LOOP);
+	for (int i = 0; i < NSEGMENTS; ++i)
+		glVertex3f(p[i][0], 0.0f, p[i][1]);
+	glEnd();
+	glBegin(GL_LINE_LOOP);
+	for (int i = 0; i < NSEGMENTS; ++i)
+		glVertex3f(0.0f, p[i][0], p[i][1]);
+	glEnd();
+#undef NSEGMENTS
 }
 
 /* draw a cone for use as an empty drawtype */
 static void draw_empty_cone(float size)
 {
-	const float radius = size;
+#define NSEGMENTS 8
+	/* a single ring of vertices */
+	float p[NSEGMENTS][2];
+	for (int i = 0; i < NSEGMENTS; ++i) {
+		float angle = 2 * M_PI * ((float)i / (float)NSEGMENTS);
+		p[i][0] = size * cosf(angle);
+		p[i][1] = size * sinf(angle);
+	}
 
-	GLUquadricObj *qobj = gluNewQuadric();
-	gluQuadricDrawStyle(qobj, GLU_SILHOUETTE);
-	
-	glPushMatrix();
-	
-	glScalef(radius, size * 2.0f, radius);
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(qobj, 1.0, 0.0, 1.0, 8, 1);
+	/* cone sides */
+	glBegin(GL_LINES);
+	for (int i = 0; i < NSEGMENTS; ++i) {
+		glVertex3f(0.0f, 2.0f * size, 0.0f);
+		glVertex3f(p[i][0], 0.0f, p[i][1]);
+	}
+	glEnd();
 
-	glPopMatrix();
-	
-	gluDeleteQuadric(qobj);
+	/* end ring */
+	glBegin(GL_LINE_LOOP);
+	for (int i = 0; i < NSEGMENTS; ++i)
+		glVertex3f(p[i][0], 0.0f, p[i][1]);
+	glEnd();
+#undef NSEGMENTS
 }
 
 static void drawspiral(const float cent[3], float rad, float tmat[4][4], int start)
