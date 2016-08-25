@@ -49,7 +49,7 @@
  *     <bh.len>            int,  len data after BHead
  *     <bh.old>            void,  old pointer
  *     <bh.SDNAnr>         int
- *     <bh.nr>             int, in case of array: amount of structs
+ *     <bh.nr>             int, in case of array: number of structs
  *     data
  *     ...
  *     ...
