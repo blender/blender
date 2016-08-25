@@ -33,6 +33,7 @@ set(INC
 	../makesrna
 	../windowmanager
 	../../../intern/guardedalloc
+	../../../intern/utfconv
 )
 
 set(INC_SYS
