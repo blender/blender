@@ -1355,38 +1355,76 @@ static void draw_manipulator_scale(
 	glFrontFace(GL_CCW);
 }
 
-
-static void draw_cone(GLUquadricObj *qobj, float len, float width)
+#define NSEGMENTS 8
+static void draw_cone(float len, float width)
 {
-	glTranslatef(0.0, 0.0, -0.5f * len);
-	gluCylinder(qobj, width, 0.0, len, 8, 1);
-	gluQuadricOrientation(qobj, GLU_INSIDE);
-	gluDisk(qobj, 0.0, width, 8, 1);
-	gluQuadricOrientation(qobj, GLU_OUTSIDE);
-	glTranslatef(0.0, 0.0, 0.5f * len);
+	/* a ring of vertices in the XY plane */
+	float p[NSEGMENTS][2];
+	for (int i = 0; i < NSEGMENTS; ++i) {
+		float angle = 2 * M_PI * ((float)i / (float)NSEGMENTS);
+		p[i][0] = width * cosf(angle);
+		p[i][1] = width * sinf(angle);
+	}
+
+	float zbase = -0.5f * len;
+	float ztop = 0.5f * len;
+
+	/* cone sides */
+	glBegin(GL_TRIANGLE_FAN);
+	glVertex3f(0, 0, ztop);
+	for (int i = 0; i < NSEGMENTS; ++i)
+		glVertex3f(p[i][0], p[i][1], zbase);
+	glVertex3f(p[0][0], p[0][1], zbase);
+	glEnd();
+
+	/* end cap */
+	glBegin(GL_TRIANGLE_FAN);
+	for (int i = NSEGMENTS - 1; i >= 0; --i)
+		glVertex3f(p[i][0], p[i][1], zbase);
+	glEnd();
 }
 
-static void draw_cylinder(GLUquadricObj *qobj, float len, float width)
+static void draw_cylinder(float len, float width)
 {
-
 	width *= 0.8f;   // just for beauty
 
-	glTranslatef(0.0, 0.0, -0.5f * len);
-	gluCylinder(qobj, width, width, len, 8, 1);
-	gluQuadricOrientation(qobj, GLU_INSIDE);
-	gluDisk(qobj, 0.0, width, 8, 1);
-	gluQuadricOrientation(qobj, GLU_OUTSIDE);
-	glTranslatef(0.0, 0.0, len);
-	gluDisk(qobj, 0.0, width, 8, 1);
-	glTranslatef(0.0, 0.0, -0.5f * len);
-}
+	/* a ring of vertices in the XY plane */
+	float p[NSEGMENTS][2];
+	for (int i = 0; i < NSEGMENTS; ++i) {
+		float angle = 2 * M_PI * ((float)i / (float)NSEGMENTS);
+		p[i][0] = width * cosf(angle);
+		p[i][1] = width * sinf(angle);
+	}
 
+	float zbase = -0.5f * len;
+	float ztop = 0.5f * len;
+
+	/* cylinder sides */
+	glBegin(GL_TRIANGLE_STRIP);
+	for (int i = 0; i < NSEGMENTS; ++i) {
+		glVertex3f(p[i][0], p[i][1], zbase);
+		glVertex3f(p[i][0], p[i][1], ztop);
+	}
+	glVertex3f(p[0][0], p[0][1], zbase);
+	glVertex3f(p[0][0], p[0][1], ztop);
+	glEnd();
+
+	/* end caps */
+	glBegin(GL_TRIANGLE_FAN);
+	for (int i = NSEGMENTS - 1; i >= 0; --i)
+		glVertex3f(p[i][0], p[i][1], zbase);
+	glEnd();
+	glBegin(GL_TRIANGLE_FAN);
+	for (int i = 0; i < NSEGMENTS; ++i)
+		glVertex3f(p[i][0], p[i][1], ztop);
+	glEnd();
+}
+#undef NSEGMENTS
 
 static void draw_manipulator_translate(
         View3D *v3d, RegionView3D *rv3d, int drawflags, int combo, int colcode,
         const bool UNUSED(is_moving), const bool is_picksel)
 {
-	GLUquadricObj *qobj;
 	float cylen = 0.01f * (float)U.tw_handlesize;
 	float cywid = 0.25f * cylen, dz, size;
 	float unitmat[4][4];
@@ -1425,63 +1463,57 @@ static void draw_manipulator_translate(
 		                      axis_order, is_picksel);
 	}
 
-
 	/* offset in combo mode, for rotate a bit more */
 	if (combo & (V3D_MANIP_ROTATE)) dz = 1.0f + 2.0f * cylen;
 	else if (combo & (V3D_MANIP_SCALE)) dz = 1.0f + 0.5f * cylen;
 	else dz = 1.0f;
 
-	qobj = gluNewQuadric();
-	gluQuadricDrawStyle(qobj, GLU_FILL);
-
 	for (i = 0; i < 3; i++) {
 		switch (axis_order[i]) {
 			case 0: /* Z Cone */
 				if (drawflags & MAN_TRANS_Z) {
+					glPushMatrix();
 					glTranslatef(0.0, 0.0, dz);
 					if (is_picksel) GPU_select_load_id(MAN_TRANS_Z);
 					else manipulator_setcolor(v3d, 'Z', colcode, axisBlendAngle(rv3d->tw_idot[2]));
-					draw_cone(qobj, cylen, cywid);
-					glTranslatef(0.0, 0.0, -dz);
+					draw_cone(cylen, cywid);
+					glPopMatrix();
 				}
 				break;
 			case 1: /* X Cone */
 				if (drawflags & MAN_TRANS_X) {
+					glPushMatrix();
 					glTranslatef(dz, 0.0, 0.0);
 					if (is_picksel) GPU_select_load_id(MAN_TRANS_X);
 					else manipulator_setcolor(v3d, 'X', colcode, axisBlendAngle(rv3d->tw_idot[0]));
 					glRotatef(90.0, 0.0, 1.0, 0.0);
-					draw_cone(qobj, cylen, cywid);
-					glRotatef(-90.0, 0.0, 1.0, 0.0);
-					glTranslatef(-dz, 0.0, 0.0);
+					draw_cone(cylen, cywid);
+					glPopMatrix();
 				}
 				break;
 			case 2: /* Y Cone */
 				if (drawflags & MAN_TRANS_Y) {
+					glPushMatrix();
 					glTranslatef(0.0, dz, 0.0);
 					if (is_picksel) GPU_select_load_id(MAN_TRANS_Y);
 					else manipulator_setcolor(v3d, 'Y', colcode, axisBlendAngle(rv3d->tw_idot[1]));
 					glRotatef(-90.0, 1.0, 0.0, 0.0);
-					draw_cone(qobj, cylen, cywid);
-					glRotatef(90.0, 1.0, 0.0, 0.0);
-					glTranslatef(0.0, -dz, 0.0);
+					draw_cone(cylen, cywid);
+					glPopMatrix();
 				}
 				break;
 		}
 	}
 
-	gluDeleteQuadric(qobj);
 	glLoadMatrixf(rv3d->viewmat);
 
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
-
 }
 
 static void draw_manipulator_rotate_cyl(
         View3D *v3d, RegionView3D *rv3d, int drawflags, const int combo, const int colcode,
         const bool is_moving, const bool is_picksel)
 {
-	GLUquadricObj *qobj;
 	float size;
 	float cylen = 0.01f * (float)U.tw_handlesize;
 	float cywid = 0.25f * cylen;
@@ -1498,8 +1530,6 @@ static void draw_manipulator_rotate_cyl(
 	size = screen_aligned(rv3d, rv3d->twmat);
 
 	glDisable(GL_DEPTH_TEST);
-
-	qobj = gluNewQuadric();
 
 	/* Screen aligned view rot circle */
 	if (drawflags & MAN_ROT_V) {
@@ -1549,54 +1579,49 @@ static void draw_manipulator_rotate_cyl(
 			                      drawflags & MAN_ROT_X, drawflags & MAN_ROT_Y, drawflags & MAN_ROT_Z,
 			                      axis_order, is_picksel);
 		}
-
-		/* only has to be set when not in picking */
-		gluQuadricDrawStyle(qobj, GLU_FILL);
 	}
 
 	for (i = 0; i < 3; i++) {
 		switch (axis_order[i]) {
 			case 0: /* X cylinder */
 				if (drawflags & MAN_ROT_X) {
+					glPushMatrix();
 					glTranslatef(1.0, 0.0, 0.0);
 					if (is_picksel) GPU_select_load_id(MAN_ROT_X);
 					glRotatef(90.0, 0.0, 1.0, 0.0);
 					manipulator_setcolor(v3d, 'X', colcode, 255);
-					draw_cylinder(qobj, cylen, cywid);
-					glRotatef(-90.0, 0.0, 1.0, 0.0);
-					glTranslatef(-1.0, 0.0, 0.0);
+					draw_cylinder(cylen, cywid);
+					glPopMatrix();
 				}
 				break;
 			case 1: /* Y cylinder */
 				if (drawflags & MAN_ROT_Y) {
+					glPushMatrix();
 					glTranslatef(0.0, 1.0, 0.0);
 					if (is_picksel) GPU_select_load_id(MAN_ROT_Y);
 					glRotatef(-90.0, 1.0, 0.0, 0.0);
 					manipulator_setcolor(v3d, 'Y', colcode, 255);
-					draw_cylinder(qobj, cylen, cywid);
-					glRotatef(90.0, 1.0, 0.0, 0.0);
-					glTranslatef(0.0, -1.0, 0.0);
+					draw_cylinder(cylen, cywid);
+					glPopMatrix();
 				}
 				break;
 			case 2: /* Z cylinder */
 				if (drawflags & MAN_ROT_Z) {
+					glPushMatrix();
 					glTranslatef(0.0, 0.0, 1.0);
 					if (is_picksel) GPU_select_load_id(MAN_ROT_Z);
 					manipulator_setcolor(v3d, 'Z', colcode, 255);
-					draw_cylinder(qobj, cylen, cywid);
-					glTranslatef(0.0, 0.0, -1.0);
+					draw_cylinder(cylen, cywid);
+					glPopMatrix();
 				}
 				break;
 		}
 	}
 
 	/* restore */
-
-	gluDeleteQuadric(qobj);
 	glLoadMatrixf(rv3d->viewmat);
 
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
-
 }
 
 
