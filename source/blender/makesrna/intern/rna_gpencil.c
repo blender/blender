@@ -899,9 +899,7 @@ static void rna_def_gpencil_stroke_point(BlenderRNA *brna)
 static void rna_def_gpencil_stroke_points_api(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
-
 	FunctionRNA *func;
-	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "GPencilStrokePoints");
 	srna = RNA_def_struct(brna, "GPencilStrokePoints", NULL);
