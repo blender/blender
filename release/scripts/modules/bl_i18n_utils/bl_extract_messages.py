@@ -230,12 +230,13 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
         _rna = {getattr(bpy.types, cls) for cls in dir(bpy.types)}
 
         # Classes which are attached to collections can be skipped too, these are api access only.
-        for cls in _rna:
-            for prop in cls.bl_rna.properties:
-                if prop.type == 'COLLECTION':
-                    prop_cls = prop.srna
-                    if prop_cls is not None:
-                        blacklist_rna_class.add(prop_cls.__class__)
+        # XXX This is not true, some of those show in UI, see e.g. tooltip of KeyingSets.active...
+        #~ for cls in _rna:
+            #~ for prop in cls.bl_rna.properties:
+                #~ if prop.type == 'COLLECTION':
+                    #~ prop_cls = prop.srna
+                    #~ if prop_cls is not None:
+                        #~ blacklist_rna_class.add(prop_cls.__class__)
 
         # Now here is the *ugly* hack!
         # Unfortunately, all classes we want to access are not available from bpy.types (OperatorProperties subclasses
