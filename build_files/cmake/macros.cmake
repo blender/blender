@@ -359,7 +359,6 @@ function(setup_liblinks
 	target_link_libraries(
 		${target}
 		${PNG_LIBRARIES}
-		${ZLIB_LIBRARIES}
 		${FREETYPE_LIBRARY}
 	)
 
@@ -509,6 +508,11 @@ function(setup_liblinks
 			target_link_libraries(${target} ${CUDA_CUDA_LIBRARY})
 		endif()
 	endif()
+
+	target_link_libraries(
+		${target}
+		${ZLIB_LIBRARIES}
+	)
 
 	#system libraries with no dependencies such as platform link libs or opengl should go last
 	target_link_libraries(${target}
