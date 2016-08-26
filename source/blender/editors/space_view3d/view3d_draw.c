@@ -951,9 +951,11 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 			UI_ThemeColor(TH_TEXT_HI);
 	}
 	else {
-		/* no object */		
-		/* color is always white */
-		UI_ThemeColor(TH_TEXT_HI);
+		/* no object */
+		if (ED_gpencil_has_keyframe_v3d(scene, NULL, cfra))
+			UI_ThemeColor(TH_TIME_GP_KEYFRAME);
+		else
+			UI_ThemeColor(TH_TEXT_HI);
 	}
 
 	if (markern) {
