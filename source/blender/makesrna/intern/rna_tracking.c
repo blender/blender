@@ -2094,7 +2094,7 @@ static void rna_def_trackingObjects(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_srna(cprop, "MovieTrackingObjects");
 	srna = RNA_def_struct(brna, "MovieTrackingObjects", NULL);
 	RNA_def_struct_sdna(srna, "MovieTracking");
-	RNA_def_struct_ui_text(srna, "Movie Objects", "Collection of movie trackingobjects");
+	RNA_def_struct_ui_text(srna, "Movie Objects", "Collection of movie tracking objects");
 
 	func = RNA_def_function(srna, "new", "rna_trackingObject_new");
 	RNA_def_function_ui_description(func, "Add tracking object to this movie clip");
