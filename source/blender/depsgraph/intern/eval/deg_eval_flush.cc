@@ -127,6 +127,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 	}
 	GSET_FOREACH_END();
 
+	int num_flushed_objects = 0;
 	while (!queue.empty()) {
 		OperationDepsNode *node = queue.front();
 		queue.pop_front();
@@ -149,6 +150,9 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 				Object *object = NULL;
 				if (GS(id->name) == ID_OB) {
 					object = (Object *)id;
+					if(id_node->done == 0) {
+						++num_flushed_objects;
+					}
 				}
 				foreach (OperationDepsNode *op, comp_node->operations) {
 					op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
@@ -198,6 +202,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 			}
 		}
 	}
+	DEG_DEBUG_PRINTF("Update flushed to %d objects\n", num_flushed_objects);
 }
 
 static void graph_clear_func(void *data_v, int i)
