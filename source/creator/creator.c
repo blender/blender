@@ -54,6 +54,7 @@
 #include "BKE_appdir.h"
 #include "BKE_blender.h"
 #include "BKE_brush.h"
+#include "BKE_cachefile.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h" /* for DAG_init */
 #include "BKE_font.h"
@@ -357,6 +358,7 @@ int main(
 	BKE_blender_globals_init();  /* blender.c */
 
 	IMB_init();
+	BKE_cachefiles_init();
 	BKE_images_init();
 	BKE_modifier_init();
 	DAG_init();

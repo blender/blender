@@ -2707,6 +2707,7 @@ static void lib_link_cachefiles(FileData *fd, Main *bmain)
 
 		BLI_listbase_clear(&cache_file->object_paths);
 		cache_file->handle = NULL;
+		cache_file->handle_mutex = NULL;
 
 		if (cache_file->adt) {
 			lib_link_animdata(fd, &cache_file->id, cache_file->adt);
@@ -2717,6 +2718,7 @@ static void lib_link_cachefiles(FileData *fd, Main *bmain)
 static void direct_link_cachefile(FileData *fd, CacheFile *cache_file)
 {
 	cache_file->handle = NULL;
+	cache_file->handle_mutex = NULL;
 
 	/* relink animdata */
 	cache_file->adt = newdataadr(fd, cache_file->adt);

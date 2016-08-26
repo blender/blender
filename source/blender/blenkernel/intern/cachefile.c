@@ -35,6 +35,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
@@ -47,6 +48,13 @@
 #ifdef WITH_ALEMBIC
 #  include "ABC_alembic.h"
 #endif
+
+static SpinLock spin;
+
+void BKE_cachefiles_init(void)
+{
+	BLI_spin_init(&spin);
+}
 
 void *BKE_cachefile_add(Main *bmain, const char *name)
 {
@@ -65,6 +73,7 @@ void BKE_cachefile_init(CacheFile *cache_file)
 	cache_file->frame = 0.0f;
 	cache_file->is_sequence = false;
 	cache_file->scale = 1.0f;
+	cache_file->handle_mutex = BLI_mutex_alloc();
 }
 
 /** Free (or release) any data used by this cachefile (does not free the cachefile itself). */
@@ -76,6 +85,7 @@ void BKE_cachefile_free(CacheFile *cache_file)
 	ABC_free_handle(cache_file->handle);
 #endif
 
+	BLI_mutex_free(cache_file->handle_mutex);
 	BLI_freelistN(&cache_file->object_paths);
 }
 
@@ -114,9 +124,19 @@ void BKE_cachefile_reload(const Main *bmain, CacheFile *cache_file)
 
 void BKE_cachefile_ensure_handle(const Main *bmain, CacheFile *cache_file)
 {
+	BLI_spin_lock(&spin);
+	if (cache_file->handle_mutex == NULL) {
+		cache_file->handle_mutex = BLI_mutex_alloc();
+	}
+	BLI_spin_unlock(&spin);
+
+	BLI_mutex_lock(cache_file->handle_mutex);
+
 	if (cache_file->handle == NULL) {
 		BKE_cachefile_reload(bmain, cache_file);
 	}
+
+	BLI_mutex_unlock(cache_file->handle_mutex);
 }
 
 void BKE_cachefile_update_frame(Main *bmain, Scene *scene, const float ctime, const float fps)
