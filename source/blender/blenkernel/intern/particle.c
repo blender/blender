@@ -3172,6 +3172,9 @@ void object_remove_particle_system(Scene *UNUSED(scene), Object *ob)
 
 	/* clear particle system */
 	BLI_remlink(&ob->particlesystem, psys);
+	if (psys->part) {
+		id_us_min(&psys->part->id);
+	}
 	psys_free(ob, psys);
 
 	if (ob->particlesystem.first)
