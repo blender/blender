@@ -1561,8 +1561,8 @@ static void print_threads_statistics(ThreadedObjectUpdateState *state)
 	tot_thread = BLI_system_thread_count();
 
 	for (i = 0; i < tot_thread; i++) {
-		int total_objects = 0;
-		double total_time = 0.0;
+		int thread_total_objects = 0;
+		double thread_total_time = 0.0;
 		StatisicsEntry *entry;
 
 		if (state->has_updated_objects) {
@@ -1571,11 +1571,14 @@ static void print_threads_statistics(ThreadedObjectUpdateState *state)
 			     entry;
 			     entry = entry->next)
 			{
-				total_objects++;
-				total_time += entry->duration;
+				thread_total_objects++;
+				thread_total_time += entry->duration;
 			}
 
-			printf("Thread %d: total %d objects in %f sec.\n", i, total_objects, total_time);
+			printf("Thread %d: total %d objects in %f sec.\n",
+			       i,
+			       thread_total_objects,
+			       thread_total_time);
 
 			for (entry = state->statistics[i].first;
 			     entry;

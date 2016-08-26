@@ -617,9 +617,9 @@ void BKE_pose_eval_bone(EvaluationContext *UNUSED(eval_ctx),
 				/* pass */
 			}
 			else {
-				/* TODO(sergey): Use time source node for time. */
-				float ctime = BKE_scene_frame_get(scene); /* not accurate... */
 				if ((pchan->flag & POSE_DONE) == 0) {
+					/* TODO(sergey): Use time source node for time. */
+					float ctime = BKE_scene_frame_get(scene); /* not accurate... */
 					BKE_pose_where_is_bone(scene, ob, pchan, ctime, 1);
 				}
 			}
@@ -641,8 +641,8 @@ void BKE_pose_constraints_evaluate(EvaluationContext *UNUSED(eval_ctx),
 		/* IK are being solved separately/ */
 	}
 	else {
-		float ctime = BKE_scene_frame_get(scene); /* not accurate... */
 		if ((pchan->flag & POSE_DONE) == 0) {
+			float ctime = BKE_scene_frame_get(scene); /* not accurate... */
 			BKE_pose_where_is_bone(scene, ob, pchan, ctime, 1);
 		}
 	}
