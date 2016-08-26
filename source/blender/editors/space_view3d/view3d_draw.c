@@ -543,89 +543,164 @@ float ED_view3d_grid_scale(Scene *scene, View3D *v3d, const char **grid_unit)
 
 static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool write_depth)
 {
-	float grid, grid_scale;
-	unsigned char col_grid[3];
-	const int gridlines = v3d->gridlines / 2;
+	/* draw only if there is something to draw */
+	if (v3d->gridflag & (V3D_SHOW_FLOOR | V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z)) {
+		/* draw how many lines?
+		 * trunc(v3d->gridlines / 2) * 4
+		 * + 2 for xy axes (possibly with special colors)
+		 * + 1 for z axis (the only line not in xy plane)
+		 * even v3d->gridlines are honored, odd rounded down */
+		const int gridlines = v3d->gridlines / 2;
+		const float grid_scale = ED_view3d_grid_scale(scene, v3d, grid_unit);
+		const float grid = gridlines * grid_scale;
 
-	if (v3d->gridlines < 3) return;
-	
-	/* use 'grid_scale' instead of 'v3d->grid' from now on */
-	grid_scale = ED_view3d_grid_scale(scene, v3d, grid_unit);
-	grid = gridlines * grid_scale;
+		const bool show_floor = (v3d->gridflag & V3D_SHOW_FLOOR) && gridlines >= 1;
 
-	if (!write_depth)
-		glDepthMask(GL_FALSE);
+		bool show_axis_x = v3d->gridflag & V3D_SHOW_X;
+		bool show_axis_y = v3d->gridflag & V3D_SHOW_Y;
+		bool show_axis_z = v3d->gridflag & V3D_SHOW_Z;
 
-	UI_GetThemeColor3ubv(TH_GRID, col_grid);
+		unsigned char col_grid[3], col_axis[3];
 
-	glLineWidth(1);
+		glLineWidth(1.0f);
 
-	/* draw the Y axis and/or grid lines */
-	if (v3d->gridflag & V3D_SHOW_FLOOR) {
-		const int sublines = v3d->gridsubdiv;
-		float vert[4][3] = {{0.0f}};
-		unsigned char col_bg[3];
-		unsigned char col_grid_emphasise[3], col_grid_light[3];
-		int a;
-		int prev_emphasise = -1;
+		UI_GetThemeColor3ubv(TH_GRID, col_grid);
 
-		UI_GetThemeColor3ubv(TH_BACK, col_bg);
+		if (!write_depth)
+			glDepthMask(GL_FALSE);
 
-		/* emphasise division lines lighter instead of darker, if background is darker than grid */
-		UI_GetColorPtrShade3ubv(col_grid, col_grid_light, 10);
-		UI_GetColorPtrShade3ubv(col_grid, col_grid_emphasise,
-		                        (((col_grid[0] + col_grid[1] + col_grid[2]) + 30) >
-		                         (col_bg[0] + col_bg[1] + col_bg[2])) ? 20 : -10);
+		if (show_floor) {
+			const unsigned vertex_ct = 2 * (gridlines * 4 + 2);
+			const int sublines = v3d->gridsubdiv;
 
-		/* set fixed axis */
-		vert[0][0] = vert[2][1] = grid;
-		vert[1][0] = vert[3][1] = -grid;
+			unsigned char col_bg[3], col_grid_emphasise[3], col_grid_light[3];
 
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 0, vert);
+			VertexFormat* format = immVertexFormat();
+			unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+			unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
 
-		for (a = -gridlines; a <= gridlines; a++) {
-			const float line = a * grid_scale;
-			const int is_emphasise = (a % sublines) == 0;
+			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
-			if (is_emphasise != prev_emphasise) {
-				glColor3ubv(is_emphasise ? col_grid_emphasise : col_grid_light);
-				prev_emphasise = is_emphasise;
+			glDepthFunc(GL_ALWAYS); /* draw lines in order given */
+
+			immBegin(GL_LINES, vertex_ct);
+
+			/* draw normal grid lines */
+			UI_GetColorPtrShade3ubv(col_grid, col_grid_light, 10);
+			immAttrib3ubv(color, col_grid_light);
+
+			for (int a = 1; a <= gridlines; a++) {
+				/* skip emphasised divider lines */
+				if (a % sublines != 0) {
+					const float line = a * grid_scale;
+
+					immVertex2f(pos, -grid, -line);
+					immVertex2f(pos, +grid, -line);
+					immVertex2f(pos, -grid, +line);
+					immVertex2f(pos, +grid, +line);
+
+					immVertex2f(pos, -line, -grid);
+					immVertex2f(pos, -line, +grid);
+					immVertex2f(pos, +line, -grid);
+					immVertex2f(pos, +line, +grid);
+				}
 			}
 
-			/* set variable axis */
-			vert[0][1] = vert[1][1] = vert[2][0] = vert[3][0] = line;
+			/* draw emphasised grid lines */
+			UI_GetThemeColor3ubv(TH_BACK, col_bg);
+			/* emphasise division lines lighter instead of darker, if background is darker than grid */
+			UI_GetColorPtrShade3ubv(col_grid, col_grid_emphasise,
+			                        (col_grid[0] + col_grid[1] + col_grid[2] + 30 >
+			                         col_bg[0] + col_bg[1] + col_bg[2]) ? 20 : -10);
 
-			glDrawArrays(GL_LINES, 0, 4);
-		}
+			if (sublines <= gridlines) {
+				immAttrib3ubv(color, col_grid_emphasise);
 
-		glDisableClientState(GL_VERTEX_ARRAY);
-	}
-	
-	/* draw the Z axis line */
-	/* check for the 'show Z axis' preference */
-	if (v3d->gridflag & (V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z)) {
-		glBegin(GL_LINES);
-		int axis;
-		for (axis = 0; axis < 3; axis++) {
-			if (v3d->gridflag & (V3D_SHOW_X << axis)) {
-				float vert[3];
-				unsigned char tcol[3];
+				for (int a = sublines; a <= gridlines; a += sublines) {
+					const float line = a * grid_scale;
 
-				UI_make_axis_color(col_grid, tcol, 'X' + axis);
-				glColor3ubv(tcol);
+					immVertex2f(pos, -grid, -line);
+					immVertex2f(pos, +grid, -line);
+					immVertex2f(pos, -grid, +line);
+					immVertex2f(pos, +grid, +line);
 
-				zero_v3(vert);
-				vert[axis] = grid;
-				glVertex3fv(vert);
-				vert[axis] = -grid;
-				glVertex3fv(vert);
+					immVertex2f(pos, -line, -grid);
+					immVertex2f(pos, -line, +grid);
+					immVertex2f(pos, +line, -grid);
+					immVertex2f(pos, +line, +grid);
+				}
 			}
+
+			/* draw X axis */
+			if (show_axis_x) {
+				show_axis_x = false; /* drawing now, won't need to draw later */
+				UI_make_axis_color(col_grid, col_axis, 'X');
+				immAttrib3ubv(color, col_axis);
+			}
+			else
+				immAttrib3ubv(color, col_grid_emphasise);
+
+			immVertex2f(pos, -grid, 0.0f);
+			immVertex2f(pos, +grid, 0.0f);
+
+			/* draw Y axis */
+			if (show_axis_y) {
+				show_axis_y = false; /* drawing now, won't need to draw later */
+				UI_make_axis_color(col_grid, col_axis, 'Y');
+				immAttrib3ubv(color, col_axis);
+			}
+			else
+				immAttrib3ubv(color, col_grid_emphasise);
+
+			immVertex2f(pos, 0.0f, -grid);
+			immVertex2f(pos, 0.0f, +grid);
+
+			immEnd();
+			immUnbindProgram();
+
+			/* done with XY plane */
+
+			glDepthFunc(GL_LESS); /* restore default */
 		}
-		glEnd();
+
+		if (show_axis_x || show_axis_y || show_axis_z) {
+			/* draw axis lines -- sometimes grid floor is off, other times we still need to draw the Z axis */
+
+			VertexFormat* format = immVertexFormat();
+			unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+
+			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+			immBegin(GL_LINES, (show_axis_x + show_axis_y + show_axis_z) * 2);
+
+			if (show_axis_x) {
+				UI_make_axis_color(col_grid, col_axis, 'X');
+				immAttrib3ubv(color, col_axis);
+				immVertex3f(pos, -grid, 0.0f, 0.0f);
+				immVertex3f(pos, +grid, 0.0f, 0.0f);
+			}
+
+			if (show_axis_y) {
+				UI_make_axis_color(col_grid, col_axis, 'Y');
+				immAttrib3ubv(color, col_axis);
+				immVertex3f(pos, 0.0f, -grid, 0.0f);
+				immVertex3f(pos, 0.0f, +grid, 0.0f);
+			}
+
+			if (show_axis_z) {
+				UI_make_axis_color(col_grid, col_axis, 'Z');
+				immAttrib3ubv(color, col_axis);
+				immVertex3f(pos, 0.0f, 0.0f, -grid);
+				immVertex3f(pos, 0.0f, 0.0f, +grid);
+			}
+
+			immEnd();
+			immUnbindProgram();
+		}
+
+		if (!write_depth)
+			glDepthMask(GL_TRUE);
 	}
-	
-	glDepthMask(GL_TRUE);
 }
 
 static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
