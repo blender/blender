@@ -439,12 +439,23 @@ static void rna_GPencil_stroke_point_select_set(PointerRNA *ptr, const int value
 	}
 }
 
-static void rna_GPencil_stroke_point_add(bGPDstroke *stroke, int count)
+static void rna_GPencil_stroke_point_add(bGPDstroke *stroke, int count, float pressure, float strength)
 {
 	if (count > 0) {
+		/* create space at the end of the array for extra points */
 		stroke->points = MEM_recallocN_id(stroke->points,
 		                                  sizeof(bGPDspoint) * (stroke->totpoints + count),
 		                                  "gp_stroke_points");
+		
+		/* init the pressure and strength values so that old scripts won't need to
+		 * be modified to give these initial values...
+		 */
+		for (int i = 0; i < count; i++) {
+			bGPDspoint *pt = stroke->points + (stroke->totpoints + i);
+			pt->pressure = pressure;
+			pt->strength = strength;
+		}
+		
 		stroke->totpoints += count;
 	}
 }
@@ -890,7 +901,7 @@ static void rna_def_gpencil_stroke_points_api(BlenderRNA *brna, PropertyRNA *cpr
 	StructRNA *srna;
 
 	FunctionRNA *func;
-	/* PropertyRNA *parm; */
+	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "GPencilStrokePoints");
 	srna = RNA_def_struct(brna, "GPencilStrokePoints", NULL);
@@ -900,6 +911,8 @@ static void rna_def_gpencil_stroke_points_api(BlenderRNA *brna, PropertyRNA *cpr
 	func = RNA_def_function(srna, "add", "rna_GPencil_stroke_point_add");
 	RNA_def_function_ui_description(func, "Add a new grease pencil stroke point");
 	RNA_def_int(func, "count", 1, 0, INT_MAX, "Number", "Number of points to add to the stroke", 0, INT_MAX);
+	RNA_def_float(func, "pressure", 1.0f, 0.0f, 1.0f, "Pressure", "Pressure for newly created points", 0.0f, 1.0f);
+	RNA_def_float(func, "strength", 1.0f, 0.0f, 1.0f, "Strength", "Color intensity (alpha factor) for newly created points", 0.0f, 1.0f);
 
 	func = RNA_def_function(srna, "pop", "rna_GPencil_stroke_point_pop");
 	RNA_def_function_ui_description(func, "Remove a grease pencil stroke point");
