@@ -214,6 +214,9 @@ typedef enum eGPencil_PaintModes {
 	GP_PAINTMODE_DRAW_POLY
 } eGPencil_PaintModes;
 
+/* maximum sizes of gp-session buffer */
+#define GP_STROKE_BUFFER_MAX    5000
+
 /* stroke editing ----- */
 
 void GPENCIL_OT_editmode_toggle(struct wmOperatorType *ot);

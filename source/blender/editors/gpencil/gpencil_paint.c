@@ -164,9 +164,6 @@ typedef struct tGPsdata {
 
 /* ------ */
 
-/* maximum sizes of gp-session buffer */
-#define GP_STROKE_BUFFER_MAX    5000
-
 /* Macros for accessing sensitivity thresholds... */
 /* minimum number of pixels mouse should move before new point created */
 #define MIN_MANHATTEN_PX    (U.gp_manhattendist)
