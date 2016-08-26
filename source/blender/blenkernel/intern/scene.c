@@ -1559,6 +1559,7 @@ static void print_threads_statistics(ThreadedObjectUpdateState *state)
 #else
 	finish_time = PIL_check_seconds_timer();
 	tot_thread = BLI_system_thread_count();
+	int total_objects = 0;
 
 	for (i = 0; i < tot_thread; i++) {
 		int thread_total_objects = 0;
@@ -1586,12 +1587,16 @@ static void print_threads_statistics(ThreadedObjectUpdateState *state)
 			{
 				printf("  %s in %f sec\n", entry->object->id.name + 2, entry->duration);
 			}
+
+			total_objects += thread_total_objects;
 		}
 
 		BLI_freelistN(&state->statistics[i]);
 	}
 	if (state->has_updated_objects) {
-		printf("Scene update in %f sec\n", finish_time - state->base_time);
+		printf("Scene updated %d objects in %f sec\n",
+		       total_objects,
+		       finish_time - state->base_time);
 	}
 #endif
 }
