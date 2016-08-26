@@ -4344,7 +4344,7 @@ static bConstraintTypeInfo CTI_OBJECTSOLVER = {
 static void transformcache_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
 {
 	bTransformCacheConstraint *data = con->data;
-	func(con, (ID **)&data->cache_file, false, userdata);
+	func(con, (ID **)&data->cache_file, true, userdata);
 }
 
 static void transformcache_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targets)
