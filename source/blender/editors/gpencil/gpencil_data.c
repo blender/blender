@@ -879,9 +879,9 @@ static int gp_stroke_change_color_exec(bContext *C, wmOperator *UNUSED(op))
 						continue;
 
 					/* asign new color (only if different) */
-					if (STREQ(gps->colorname, color->info) == false) {
+					if ((STREQ(gps->colorname, color->info) == false) || (gps->palcolor != color)) {
 						BLI_strncpy(gps->colorname, color->info, sizeof(gps->colorname));
-						gps->flag |= GP_STROKE_RECALC_COLOR;
+						gps->palcolor = color;
 					}
 				}
 			}
