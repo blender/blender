@@ -729,3 +729,15 @@ void immUniform4f(const char* name, float x, float y, float z, float w)
 
 	glUniform4f(loc, x, y, z, w);
 	}
+
+void immUniformColor3ubv(const unsigned char rgb[3])
+	{
+	const float scale = 1.0f / 255.0f;
+	immUniform4f("color", scale * rgb[0], scale * rgb[1], scale * rgb[2], 1.0f);
+	}
+
+void immUniformColor4ubv(const unsigned char rgba[4])
+	{
+	const float scale = 1.0f / 255.0f;
+	immUniform4f("color", scale * rgba[0], scale * rgba[1], scale * rgba[2], rgba[3]);
+	}

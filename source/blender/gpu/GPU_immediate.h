@@ -91,3 +91,8 @@ void immVertex3fv(unsigned attrib_id, const float data[3]);
 
 // provide values that don't change for the entire draw call
 void immUniform4f(const char* name, float x, float y, float z, float w);
+
+// these set "uniform vec4 color"
+// TODO: treat as sRGB?
+void immUniformColor3ubv(const unsigned char data[3]);
+void immUniformColor4ubv(const unsigned char data[4]);
