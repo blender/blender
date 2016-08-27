@@ -746,9 +746,9 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-		float crosshair_color[3];
-		UI_GetThemeColor3fv(TH_VIEW_OVERLAY, crosshair_color);
-		immUniform4f("color", crosshair_color[0], crosshair_color[1], crosshair_color[2], 1.0f);
+		unsigned char crosshair_color[3];
+		UI_GetThemeColor3ubv(TH_VIEW_OVERLAY, crosshair_color);
+		immUniformColor3ubv(crosshair_color);
 
 		immBegin(GL_LINES, 8);
 		immVertex2f(pos, co[0] - f20, co[1]);

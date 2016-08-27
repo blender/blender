@@ -2343,12 +2343,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
 
-	const float scale = 1.0f / 255.0f; /* TODO: treat as sRGB? */
-	const float outline_r = scale * (unsigned char)wcol->outline[0];
-	const float outline_g = scale * (unsigned char)wcol->outline[1];
-	const float outline_b = scale * (unsigned char)wcol->outline[2];
-
-	immUniform4f("color", outline_r, outline_g, outline_b, 1.0f);
+	immUniformColor3ubv(wcol->outline);
 	imm_draw_lined_circle(pos, centx, centy, radius, tot);
 
 	glDisable(GL_BLEND);
