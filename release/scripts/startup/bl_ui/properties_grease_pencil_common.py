@@ -749,6 +749,10 @@ class GPENCIL_MT_palettecolor_specials(Menu):
         layout.operator("gpencil.palettecolor_unlock_all", icon='UNLOCKED', text="UnLock All")
         layout.operator("gpencil.palettecolor_copy", icon='PASTEDOWN', text="Copy Color")
 
+        layout.separator()
+
+        layout.operator("gpencil.palettecolor_select", icon='COLOR', text="Select Strokes")
+
 
 class GreasePencilDataPanel:
     # subclass must set
