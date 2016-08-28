@@ -834,7 +834,10 @@ class GreasePencilDataPanel:
         split.prop(gpl, "show_points")
 
         # Offsets + Parenting (where available)
-        split = layout.split(percentage=0.5)
+        if context.space_data.type == 'VIEW_3D':
+            split = layout.split(percentage=0.5)
+        else:
+            split = layout.column()  # parenting is not available in 2D editors...
         split.active = not gpl.lock
 
         # Offsets - Color Tint
