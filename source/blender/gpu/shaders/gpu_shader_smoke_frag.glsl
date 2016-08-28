@@ -8,11 +8,6 @@ uniform float density_scale;
 uniform sampler3D soot_texture;
 uniform sampler3D shadow_texture;
 
-#ifdef USE_FIRE
-uniform sampler3D flame_texture;
-uniform sampler1D spectrum_texture;
-#endif
-
 void main()
 {
 	/* compute color and density from volume texture */
@@ -36,13 +31,6 @@ void main()
 
 	/* premultiply alpha */
 	vec4 color = vec4(soot_alpha * soot_color, soot_alpha);
-
-#ifdef USE_FIRE
-	/* fire */
-	float flame = texture3D(flame_texture, coords).r;
-	vec4 emission = texture1D(spectrum_texture, flame);
-	color.rgb += (1 - color.a) * emission.a * emission.rgb;
-#endif
 
 	gl_FragColor = color;
 }
