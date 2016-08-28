@@ -52,6 +52,34 @@ def gpencil_stroke_placement_settings(context, layout):
         row.prop(ts, "use_gpencil_stroke_endpoints")
 
 
+def gpencil_active_brush_settings_simple(context, layout):
+    brush = context.active_gpencil_brush
+
+    col = layout.column()
+    col.label("Active Brush:      ")
+
+    row = col.row(align=True)
+    row.operator_context = 'EXEC_REGION_WIN'
+    row.operator_menu_enum("gpencil.brush_change", "brush", text="", icon='BRUSH_DATA')
+    row.prop(brush, "name", text="")
+
+    col.prop(brush, "line_width", slider=True)
+    row = col.row(align=True)
+    row.prop(brush, "use_random_pressure", text='', icon='RNDCURVE')
+    row.prop(brush, "pen_sensitivity_factor", slider=True)
+    row.prop(brush, "use_pressure", text='', icon='STYLUS_PRESSURE')
+    row = col.row(align=True)
+    row.prop(brush, "use_random_strength", text='', icon='RNDCURVE')
+    row.prop(brush, "strength", slider=True)
+    row.prop(brush, "use_strength_pressure", text='', icon='STYLUS_PRESSURE')
+    row = col.row(align=True)
+    row.prop(brush, "jitter", slider=True)
+    row.prop(brush, "use_jitter_pressure", text='', icon='STYLUS_PRESSURE')
+    row = col.row()
+    row.prop(brush, "angle", slider=True)
+    row.prop(brush, "angle_factor", text="Factor", slider=True)
+
+
 class GreasePencilDrawingToolsPanel:
     # subclass must set
     # bl_space_type = 'IMAGE_EDITOR'
@@ -460,29 +488,7 @@ class GPENCIL_PIE_settings_palette(Menu):
             col.prop(palcolor, "fill_alpha", text="", slider=True)
 
         # S Brush settings
-        col = pie.column()
-        col.label("Active Brush:      ")
-
-        row = col.row()
-        row.operator_context = 'EXEC_REGION_WIN'
-        row.operator_menu_enum("gpencil.brush_change", "brush", text="", icon='BRUSH_DATA')
-        row.prop(brush, "name", text="")
-
-        col.prop(brush, "line_width", slider=True)
-        row = col.row(align=True)
-        row.prop(brush, "use_random_pressure", text='', icon='RNDCURVE')
-        row.prop(brush, "pen_sensitivity_factor", slider=True)
-        row.prop(brush, "use_pressure", text='', icon='STYLUS_PRESSURE')
-        row = col.row(align=True)
-        row.prop(brush, "use_random_strength", text='', icon='RNDCURVE')
-        row.prop(brush, "strength", slider=True)
-        row.prop(brush, "use_strength_pressure", text='', icon='STYLUS_PRESSURE')
-        row = col.row(align=True)
-        row.prop(brush, "jitter", slider=True)
-        row.prop(brush, "use_jitter_pressure", text='', icon='STYLUS_PRESSURE')
-        row = col.row()
-        row.prop(brush, "angle", slider=True)
-        row.prop(brush, "angle_factor", text="Factor", slider=True)
+        gpencil_active_brush_settings_simple(context, pie)
 
         # N - Active Layer
         col = pie.column()
@@ -1032,6 +1038,10 @@ class GreasePencilToolsPanel:
         row.prop(context.tool_settings, "proportional_edit_falloff", text="")
 
         layout.separator()
+        layout.separator()
+
+        gpencil_active_brush_settings_simple(context, layout)
+
         layout.separator()
 
         gpencil_stroke_placement_settings(context, layout)
