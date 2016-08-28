@@ -36,6 +36,8 @@ bool BlenderSync::sync_dupli_particle(BL::Object& b_ob,
 	if(!b_psys)
 		return false;
 
+	object->hide_on_missing_motion = true;
+
 	/* test if we need particle data */
 	if(!object->mesh->need_attribute(scene, ATTR_STD_PARTICLE))
 		return false;
