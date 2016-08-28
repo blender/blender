@@ -225,6 +225,10 @@ class GreasePencilStrokeEditPanel:
         if gpd:
             col.prop(gpd, "show_stroke_direction", text="Show Directions")
 
+        if is_3d_view:
+            layout.separator()
+            layout.operator("gpencil.reproject")
+
 
 class GreasePencilBrushPanel:
     # subclass must set

@@ -72,6 +72,7 @@
 
 #include "ED_gpencil.h"
 #include "ED_object.h"
+#include "ED_screen.h"
 #include "ED_view3d.h"
 
 #include "gpencil_intern.h"
@@ -1876,6 +1877,85 @@ void GPENCIL_OT_stroke_flip(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = gp_stroke_flip_exec;
 	ot->poll = gp_active_layer_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ***************** Reproject Strokes ********************** */
+
+static int gp_strokes_reproject_poll(bContext *C)
+{
+	/* 2 Requirements:
+	 *  - 1) Editable GP data
+	 *  - 2) 3D View only (2D editors don't have projection issues)
+	 */
+	return (gp_stroke_edit_poll(C) && ED_operator_view3d_active(C));
+}
+
+static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	GP_SpaceConversion gsc = {NULL};
+	
+	/* init space conversion stuff */
+	gp_point_conversion_init(C, &gsc);
+	
+	/* Go through each editable + selected stroke, adjusting each of its points one by one... */
+	GP_EDITABLE_STROKES_BEGIN(C, gpl, gps)
+	{
+		if (gps->flag & GP_STROKE_SELECT) {
+			bGPDspoint *pt;
+			int i;
+			
+			for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+				float xy[2];
+				
+				/* 3D to Screenspace */
+				/* Note: We can't use gp_point_to_xy() here because that uses ints for the screenspace
+				 *       coordinates, resulting in lost precision, which in turn causes stairstepping
+				 *       artifacts in the final points.
+				 */
+				if (gpl->parent == NULL) {
+					gp_point_to_xy_fl(&gsc, gps, pt, &xy[0], &xy[1]);
+				}
+				else {
+					bGPDspoint pt2;
+					gp_point_to_parent_space(pt, diff_mat, &pt2);
+					gp_point_to_xy_fl(&gsc, gps, &pt2, &xy[0], &xy[1]);
+				}
+				
+				/* Project screenspace back to 3D space (from current perspective)
+				 * so that all points have been treated the same way
+				 */
+				gp_point_xy_to_3d(&gsc, scene, xy, &pt->x);
+				
+				/* Unapply parent corrections */
+				if (gpl->parent) {
+					float inverse_diff_mat[4][4];
+					invert_m4_m4(inverse_diff_mat, diff_mat);
+					mul_m4_v3(inverse_diff_mat, &pt->x);
+				}
+			}
+		}
+	}
+	GP_EDITABLE_STROKES_END;
+	
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_reproject(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Reproject Strokes";
+	ot->idname = "GPENCIL_OT_reproject";
+	ot->description = "Reproject the selected strokes from the current viewpoint to get all points on the same plane again "
+	                  "(e.g. to fix problems from accidental 3D cursor movement, or viewport changes)";
+	
+	/* callbacks */
+	ot->exec = gp_strokes_reproject_exec;
+	ot->poll = gp_strokes_reproject_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

@@ -101,6 +101,18 @@ void gp_point_to_xy(GP_SpaceConversion *settings, struct bGPDstroke *gps, struct
                     int *r_x, int *r_y);
 
 /**
+ * Convert a Grease Pencil coordinate (i.e. can be 2D or 3D) to screenspace (2D)
+ *
+ * Just like gp_point_to_xy(), except the resulting coordinates are floats not ints.
+ * Use this version to solve "stair-step" artifacts which may arise when roundtripping the calculations.
+ *
+ * \param[out] r_x  The screen-space x-coordinate of the point
+ * \param[out] r_y  The screen-space y-coordinate of the point
+ */
+void gp_point_to_xy_fl(GP_SpaceConversion *gsc, bGPDstroke *gps, bGPDspoint *pt,
+                       float *r_x, float *r_y);
+
+/**
  * Convert point to parent space
  *
  * \param pt         Original point
@@ -250,6 +262,7 @@ void GPENCIL_OT_snap_to_cursor(struct wmOperatorType *ot);
 void GPENCIL_OT_snap_cursor_to_selected(struct wmOperatorType *ot);
 void GPENCIL_OT_snap_cursor_to_center(struct wmOperatorType *ot);
 
+void GPENCIL_OT_reproject(struct wmOperatorType *ot);
 
 /* stroke sculpting -- */
 
