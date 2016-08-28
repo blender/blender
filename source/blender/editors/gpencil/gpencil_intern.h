@@ -183,7 +183,7 @@ void gp_subdivide_stroke(bGPDstroke *gps, const int new_totpoints);
 /**
 * Add randomness to stroke
 * \param gps           Stroke data
-* \param brsuh         Brush data
+* \param brush         Brush data
 */
 void gp_randomize_stroke(bGPDstroke *gps, bGPDbrush *brush);
 
@@ -199,6 +199,7 @@ EnumPropertyItem *ED_gpencil_brushes_enum_itemf(bContext *C, PointerRNA *UNUSED(
 /* Enums of GP palettes */
 EnumPropertyItem *ED_gpencil_palettes_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop),
                                                  bool *r_free);
+
 /* ***************************************************** */
 /* Operator Defines */
 
@@ -303,10 +304,10 @@ void GPENCIL_OT_palette_add(struct wmOperatorType *ot);
 void GPENCIL_OT_palette_remove(struct wmOperatorType *ot);
 void GPENCIL_OT_palette_change(struct wmOperatorType *ot);
 void GPENCIL_OT_palette_lock_layer(struct wmOperatorType *ot);
+
 void GPENCIL_OT_palettecolor_add(struct wmOperatorType *ot);
 void GPENCIL_OT_palettecolor_remove(struct wmOperatorType *ot);
 void GPENCIL_OT_palettecolor_isolate(struct wmOperatorType *ot);
-
 void GPENCIL_OT_palettecolor_hide(struct wmOperatorType *ot);
 void GPENCIL_OT_palettecolor_reveal(struct wmOperatorType *ot);
 void GPENCIL_OT_palettecolor_lock_all(struct wmOperatorType *ot);
@@ -321,7 +322,7 @@ void gpencil_undo_init(struct bGPdata *gpd);
 void gpencil_undo_push(struct bGPdata *gpd);
 void gpencil_undo_finish(void);
 
-/******************************************************* */
+/* ****************************************************** */
 /* FILTERED ACTION DATA - TYPES  ---> XXX DEPRECEATED OLD ANIM SYSTEM CODE! */
 
 /* XXX - TODO: replace this with the modern bAnimListElem... */
@@ -343,7 +344,7 @@ typedef struct bActListElem {
 	short  ownertype;  /* type of owner */
 } bActListElem;
 
-/******************************************************* */
+/* ****************************************************** */
 /* FILTER ACTION DATA - METHODS/TYPES */
 
 /* filtering flags  - under what circumstances should a channel be added */
@@ -365,6 +366,9 @@ typedef enum ACTCONT_TYPES {
 	ACTCONT_SHAPEKEY,
 	ACTCONT_GPENCIL
 } ACTCONT_TYPES;
+
+/* ****************************************************** */
+/* Stroke Iteration Utilities */
 
 /**
 * Iterate over all editable strokes in the current context,
@@ -400,5 +404,7 @@ typedef enum ACTCONT_TYPES {
 	}                              \
 	CTX_DATA_END;                  \
 } (void)0
+
+/* ****************************************************** */
 
 #endif /* __GPENCIL_INTERN_H__ */

@@ -883,10 +883,12 @@ void gp_randomize_stroke(bGPDstroke *gps, bGPDbrush *brush)
 	float normal[3];
 	cross_v3_v3v3(normal, v1, v2);
 	normalize_v3(normal);
+	
 	/* get orthogonal vector to plane to rotate random effect */
 	float ortho[3];
 	cross_v3_v3v3(ortho, v1, normal);
 	normalize_v3(ortho);
+	
 	/* Read all points and apply shift vector (first and last point not modified) */
 	for (int i = 1; i < gps->totpoints - 1; ++i) {
 		bGPDspoint *pt = &gps->points[i];
@@ -955,8 +957,8 @@ bool ED_gpencil_stroke_minmax(
 	}
 	return changed;
 }
-/* Dynamic Enums of GP Brushes */
 
+/* Dynamic Enums of GP Brushes */
 EnumPropertyItem *ED_gpencil_brushes_enum_itemf(
         bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop),
         bool *r_free)
@@ -990,8 +992,8 @@ EnumPropertyItem *ED_gpencil_brushes_enum_itemf(
 
 	return item;
 }
-/* Dynamic Enums of GP Palettes */
 
+/* Dynamic Enums of GP Palettes */
 EnumPropertyItem *ED_gpencil_palettes_enum_itemf(
         bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop),
         bool *r_free)
