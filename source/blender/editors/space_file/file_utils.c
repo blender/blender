@@ -48,17 +48,3 @@ void file_tile_boundbox(const ARegion *ar, FileLayout *layout, const int file, r
 	BLI_rcti_init(r_bounds, xmin, xmin + layout->tile_w + layout->tile_border_x,
 	              ymax - layout->tile_h - layout->tile_border_y, ymax);
 }
-
-/* Cannot directly use BLI_is_dir in libloading context... */
-bool file_is_dir(struct SpaceFile *sfile, const char *path)
-{
-	if (sfile->params->type == FILE_LOADLIB) {
-		char tdir[FILE_MAX_LIBEXTRA];
-		char *name;
-		if (BLO_library_path_explode(sfile->params->dir, tdir, NULL, &name) && BLI_is_file(tdir)) {
-			/* .blend file itself and group are considered as directories, not final datablock names. */
-			return name ? false : true;
-		}
-	}
-	return BLI_is_dir(path);
-}

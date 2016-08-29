@@ -592,7 +592,7 @@ void ED_file_change_dir(bContext *C)
 		sfile->params->filter_search[0] = '\0';
 		sfile->params->active_file = -1;
 
-		if (!file_is_dir(sfile, sfile->params->dir)) {
+		if (!filelist_is_dir(sfile->files, sfile->params->dir)) {
 			BLI_strncpy(sfile->params->dir, filelist_dir(sfile->files), sizeof(sfile->params->dir));
 			/* could return but just refresh the current dir */
 		}
