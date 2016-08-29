@@ -145,6 +145,7 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 	opdata->em = em;
 	opdata->is_modal = is_modal;
 	opdata->value_mode = OFFSET_VALUE;
+	opdata->segments = (float) RNA_int_get(op->ptr, "segments");
 	pixels_per_inch = U.dpi * U.pixelsize;
 
 	for (i = 0; i < NUM_VALUE_KINDS; i++) {
