@@ -969,10 +969,13 @@ class GreasePencilPaletteColorPanel:
                 sub.operator("gpencil.palettecolor_move", icon='TRIA_UP', text="").direction = 'UP'
                 sub.operator("gpencil.palettecolor_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-                col.separator()
-                sub = col.column(align=True)
+                row = layout.row()
+                sub = row.row(align=True)
+                sub.label(text="Isolate:") # based on active color only
                 sub.operator("gpencil.palettecolor_isolate", icon='LOCKED', text="").affect_visibility = False
                 sub.operator("gpencil.palettecolor_isolate", icon='RESTRICT_VIEW_OFF', text="").affect_visibility = True
+                sub = row.row(align=True)
+                sub.label(text="Lock:") # based on other stuff...
                 sub.operator("gpencil.stroke_lock_color", icon='BORDER_RECT', text="")
                 sub.operator("gpencil.palette_lock_layer", icon='COLOR', text="")
 
@@ -980,9 +983,7 @@ class GreasePencilPaletteColorPanel:
             if pcolor:
                 self.draw_palettecolors(layout, pcolor)
 
-    # ----------------------------------------------
     # Draw palette colors
-    # ----------------------------------------------
     def draw_palettecolors(self, layout, pcolor):
         # color settings
         split = layout.split(percentage=0.5)
@@ -1015,6 +1016,7 @@ class GreasePencilPaletteColorPanel:
 
 
 class GreasePencilToolsPanel:
+    # For use in "2D" Editors without their own toolbar
     # subclass must set
     # bl_space_type = 'IMAGE_EDITOR'
     # bl_options = {'DEFAULT_CLOSED'}
