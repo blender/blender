@@ -347,6 +347,8 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "colorspace_settings");
 	RNA_def_property_struct_type(prop, "ColorManagedInputColorspaceSettings");
 	RNA_def_property_ui_text(prop, "Color Space Settings", "Input color space settings");
+
+	rna_def_animdata_common(srna);
 }
 
 void RNA_def_movieclip(BlenderRNA *brna)
