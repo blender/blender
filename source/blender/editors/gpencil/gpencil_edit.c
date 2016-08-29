@@ -440,10 +440,10 @@ static int gp_strokes_paste_poll(bContext *C)
 	return (ED_gpencil_data_get_active(C) != NULL) && (!BLI_listbase_is_empty(&gp_strokes_copypastebuf));
 }
 
-enum {
+typedef enum eGP_PasteMode {
 	GP_COPY_ONLY = -1,
 	GP_COPY_MERGE = 1
-};
+} eGP_PasteMode;
 
 static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 {
@@ -451,9 +451,9 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	bGPDlayer *gpl = CTX_data_active_gpencil_layer(C); /* only use active for copy merge */
 	bGPDframe *gpf;
-
-	int type = RNA_enum_get(op->ptr, "type");
-
+	
+	eGP_PasteMode type = RNA_enum_get(op->ptr, "type");
+	
 	/* check for various error conditions */
 	if (gpd == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
@@ -510,39 +510,37 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	/* Ensure we have a frame to draw into
-	 * NOTE: Since this is an op which creates strokes,
-	 *       we are obliged to add a new frame if one
-	 *       doesn't exist already
-	 */
-	
-		bGPDstroke *gps;
-		/* Copy each stroke into the layer */
-		for (gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
-			if (ED_gpencil_stroke_can_use(C, gps)) {
-				/* need to verify if layer exist nad frame */
-				if (type != GP_COPY_MERGE) {
-					gpl = BLI_findstring(&gpd->layers, gps->tmp_layerinfo, offsetof(bGPDlayer, info));
-					if (gpl == NULL) {
-						/* no layer - use active (only if layer deleted before paste) */
-						gpl = CTX_data_active_gpencil_layer(C);
-					}
-				}
-				gpf = BKE_gpencil_layer_getframe(gpl, CFRA, true);
-				if (gpf) {
-					bGPDstroke *new_stroke = MEM_dupallocN(gps);
-					new_stroke->tmp_layerinfo[0] = '\0';
-
-					new_stroke->points = MEM_dupallocN(gps->points);
-
-					new_stroke->flag |= GP_STROKE_RECALC_CACHES;
-					new_stroke->triangles = NULL;
-
-					new_stroke->next = new_stroke->prev = NULL;
-					BLI_addtail(&gpf->strokes, new_stroke);
+	for (bGPDstroke *gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
+		if (ED_gpencil_stroke_can_use(C, gps)) {
+			/* Need to verify if layer exists */
+			if (type != GP_COPY_MERGE) {
+				gpl = BLI_findstring(&gpd->layers, gps->tmp_layerinfo, offsetof(bGPDlayer, info));
+				if (gpl == NULL) {
+					/* no layer - use active (only if layer deleted before paste) */
+					gpl = CTX_data_active_gpencil_layer(C);
 				}
 			}
+			
+			/* Ensure we have a frame to draw into
+			 * NOTE: Since this is an op which creates strokes,
+			 *       we are obliged to add a new frame if one
+			 *       doesn't exist already
+			 */
+			gpf = BKE_gpencil_layer_getframe(gpl, CFRA, true);
+			if (gpf) {
+				bGPDstroke *new_stroke = MEM_dupallocN(gps);
+				new_stroke->tmp_layerinfo[0] = '\0';
+				
+				new_stroke->points = MEM_dupallocN(gps->points);
+				
+				new_stroke->flag |= GP_STROKE_RECALC_CACHES;
+				new_stroke->triangles = NULL;
+				
+				new_stroke->next = new_stroke->prev = NULL;
+				BLI_addtail(&gpf->strokes, new_stroke);
+			}
 		}
+	}
 	
 	/* updates */
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
@@ -557,7 +555,7 @@ void GPENCIL_OT_paste(wmOperatorType *ot)
 		{GP_COPY_MERGE, "MERGE", 0, "Merge", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-
+	
 	/* identifiers */
 	ot->name = "Paste Strokes";
 	ot->idname = "GPENCIL_OT_paste";
@@ -569,7 +567,8 @@ void GPENCIL_OT_paste(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
+	
+	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", copy_type, 0, "Type", "");
 }
 
