@@ -1894,7 +1894,7 @@ static int gp_strokes_reproject_poll(bContext *C)
 	return (gp_stroke_edit_poll(C) && ED_operator_view3d_active(C));
 }
 
-static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
+static int gp_strokes_reproject_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	GP_SpaceConversion gsc = {NULL};
@@ -1908,7 +1908,7 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
 		if (gps->flag & GP_STROKE_SELECT) {
 			bGPDspoint *pt;
 			int i;
-			float inverse_diff_mat[4][4] = {0.0f};
+			float inverse_diff_mat[4][4];
 			
 			/* Compute inverse matrix for unapplying parenting once instead of doing per-point */
 			/* TODO: add this bit to the iteration macro? */
