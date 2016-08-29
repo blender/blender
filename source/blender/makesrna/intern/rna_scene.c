@@ -2291,7 +2291,7 @@ static void rna_def_gpencil_brushes(BlenderRNA *brna, PropertyRNA *cprop)
 		"rna_GPencilBrushes_index_get",
 		"rna_GPencilBrushes_index_set",
 		"rna_GPencilBrushes_index_range");
-	RNA_def_property_ui_text(prop, "Active brush Index", "Index of active brush");
+	RNA_def_property_ui_text(prop, "Active Brush Index", "Index of active brush");
 }
 
 static void rna_def_transform_orientation(BlenderRNA *brna)

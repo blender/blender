@@ -153,7 +153,7 @@ class SpellChecker:
         "realtime",
         "rekey",
         "remesh",
-        "reprojection",
+        "reprojection", "reproject",
         "resize",
         "restpose",
         "retarget", "retargets", "retargeting", "retargeted",
