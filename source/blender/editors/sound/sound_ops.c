@@ -348,10 +348,10 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
 	BLI_path_abs(filename, bmain->name);
 
 	if (split)
-		result = AUD_mixdown_per_channel(scene->sound_scene, SFRA * specs.rate / FPS, (EFRA - SFRA) * specs.rate / FPS,
+		result = AUD_mixdown_per_channel(scene->sound_scene, SFRA * specs.rate / FPS, (EFRA - SFRA + 1) * specs.rate / FPS,
 		                                 accuracy, filename, specs, container, codec, bitrate);
 	else
-		result = AUD_mixdown(scene->sound_scene, SFRA * specs.rate / FPS, (EFRA - SFRA) * specs.rate / FPS,
+		result = AUD_mixdown(scene->sound_scene, SFRA * specs.rate / FPS, (EFRA - SFRA + 1) * specs.rate / FPS,
 		                     accuracy, filename, specs, container, codec, bitrate);
 
 	if (result) {
