@@ -432,10 +432,12 @@ void GPENCIL_OT_copy(wmOperatorType *ot)
 
 static int gp_strokes_paste_poll(bContext *C)
 {
-	/* 1) Must have GP layer to paste to...
+	/* 1) Must have GP datablock to paste to
+	 *    - We don't need to have an active layer though, as that can easily get added
+	 *    - If the active layer is locked, we can't paste there, but that should prompt a warning instead
 	 * 2) Copy buffer must at least have something (though it may be the wrong sort...)
 	 */
-	return (CTX_data_active_gpencil_layer(C) != NULL) && (!BLI_listbase_is_empty(&gp_strokes_copypastebuf));
+	return (ED_gpencil_data_get_active(C) != NULL) && (!BLI_listbase_is_empty(&gp_strokes_copypastebuf));
 }
 
 enum {
