@@ -20,6 +20,7 @@
 
 
 from bpy.types import Menu, UIList
+from bpy.app.translations import pgettext_iface as iface_
 
 
 def gpencil_stroke_placement_settings(context, layout):
@@ -881,10 +882,10 @@ class GreasePencilDataPanel:
         row.active = not gpl.lock
 
         if gpl.active_frame:
-            lock_status = "Locked" if gpl.lock_frame else "Unlocked"
-            lock_label = "Frame: %d (%s)" % (gpl.active_frame.frame_number, lock_status)
+            lock_status = iface_("Locked") if gpl.lock_frame else iface_("Unlocked")
+            lock_label = iface_("Frame: %d (%s)") % (gpl.active_frame.frame_number, lock_status)
         else:
-            lock_label = "Lock Frame"
+            lock_label = iface_("Lock Frame")
         row.prop(gpl, "lock_frame", text=lock_label, icon='UNLOCKED')
         row.operator("gpencil.active_frame_delete", text="", icon='X')
 
