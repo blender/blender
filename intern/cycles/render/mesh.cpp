@@ -567,10 +567,11 @@ void Mesh::add_vertex_normals()
 
 		for(size_t i = 0; i < subd_faces.size(); i++) {
 			SubdFace& face = subd_faces[i];
+			float3 fN = face.normal(this);
 
 			for(size_t j = 0; j < face.num_corners; j++) {
 				size_t corner = subd_face_corners[face.start_corner+j];
-				vN[corner] += verts[corner];
+				vN[corner] += fN;
 			}
 		}
 
