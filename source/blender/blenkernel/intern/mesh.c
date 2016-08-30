@@ -2197,8 +2197,9 @@ Mesh *BKE_mesh_new_from_object(
 {
 	Mesh *tmpmesh;
 	Curve *tmpcu = NULL, *copycu;
-	bool render = settings == eModifierMode_Render, i;
-	bool cage = !apply_modifiers;
+	int i;
+	const bool render = (settings == eModifierMode_Render);
+	const bool cage = !apply_modifiers;
 	bool do_mat_id_us = true;
 
 	/* perform the mesh extraction based on type */
