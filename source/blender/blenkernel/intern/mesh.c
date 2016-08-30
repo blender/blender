@@ -2197,8 +2197,9 @@ Mesh *BKE_mesh_new_from_object(
 {
 	Mesh *tmpmesh;
 	Curve *tmpcu = NULL, *copycu;
-	int render = settings == eModifierMode_Render, i;
-	int cage = !apply_modifiers;
+	bool render = settings == eModifierMode_Render, i;
+	bool cage = !apply_modifiers;
+	bool do_mat_id_us = true;
 
 	/* perform the mesh extraction based on type */
 	switch (ob->type) {
@@ -2268,6 +2269,12 @@ Mesh *BKE_mesh_new_from_object(
 			BKE_mesh_texspace_copy_from_object(tmpmesh, ob);
 
 			BKE_libblock_free_us(bmain, tmpobj);
+
+			/* XXX The curve to mesh conversion is convoluted... But essentially, BKE_mesh_from_nurbs_displist()
+			 *     already transfers the ownership of materials from the temp copy of the Curve ID to the new
+			 *     Mesh ID, so we do not want to increase materials' usercount later. */
+			do_mat_id_us = false;
+
 			break;
 		}
 
@@ -2315,8 +2322,11 @@ Mesh *BKE_mesh_new_from_object(
 			if (cage) {
 				/* copies the data */
 				tmpmesh = BKE_mesh_copy(bmain, ob->data);
-				/* if not getting the original caged mesh, get final derived mesh */
+
+				/* XXX BKE_mesh_copy() already handles materials usercount. */
+				do_mat_id_us = false;
 			}
+			/* if not getting the original caged mesh, get final derived mesh */
 			else {
 				/* Make a dummy mesh, saves copying */
 				DerivedMesh *dm;
@@ -2360,7 +2370,7 @@ Mesh *BKE_mesh_new_from_object(
 
 					tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : tmpcu->mat[i];
 
-					if (tmpmesh->mat[i]) {
+					if (do_mat_id_us && tmpmesh->mat[i]) {
 						id_us_plus(&tmpmesh->mat[i]->id);
 					}
 				}
@@ -2379,7 +2389,7 @@ Mesh *BKE_mesh_new_from_object(
 					/* are we an object material or data based? */
 					tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : tmpmb->mat[i];
 
-					if (tmpmesh->mat[i]) {
+					if (do_mat_id_us && tmpmesh->mat[i]) {
 						id_us_plus(&tmpmesh->mat[i]->id);
 					}
 				}
@@ -2399,7 +2409,7 @@ Mesh *BKE_mesh_new_from_object(
 						/* are we an object material or data based? */
 						tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : origmesh->mat[i];
 
-						if (tmpmesh->mat[i]) {
+						if (do_mat_id_us && tmpmesh->mat[i]) {
 							id_us_plus(&tmpmesh->mat[i]->id);
 						}
 					}
