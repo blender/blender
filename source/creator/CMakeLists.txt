@@ -263,6 +263,7 @@ if(WITH_PYTHON_MODULE)
 
 else()
 	add_executable(blender ${EXETYPE} ${SRC})
+	WINDOWS_SIGN_TARGET(blender)
 endif()
 
 if(WITH_BUILDINFO)
