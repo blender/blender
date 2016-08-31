@@ -345,7 +345,9 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
         layout.prop(rd, "use_stamp")
         col = layout.column()
         col.active = rd.use_stamp
-        col.prop(rd, "stamp_font_size", text="Font Size")
+        row = col.row()
+        row.prop(rd, "stamp_font_size", text="Font Size")
+        row.prop(rd, "use_stamp_labels", text="Draw labels")
 
         row = col.row()
         row.column().prop(rd, "stamp_foreground", slider=True)
