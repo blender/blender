@@ -154,8 +154,6 @@ Lamp *localize_lamp(Lamp *la)
 		if (lan->mtex[a]) {
 			lan->mtex[a] = MEM_mallocN(sizeof(MTex), "localize_lamp");
 			memcpy(lan->mtex[a], la->mtex[a], sizeof(MTex));
-			/* free lamp decrements */
-			id_us_plus((ID *)lan->mtex[a]->tex);
 		}
 	}
 	
