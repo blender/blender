@@ -60,7 +60,7 @@ bool WSDLSSolver::solve(const e_matrix& A, const e_vector& Wy, const e_vector& y
 	e_scalar N, M;
 
 	// Create the Weighted jacobian
-    m_AWq.noalias() = A*Wq;
+	m_AWq.noalias() = A*Wq;
 	for (i=0; i<m_nc; i++)
 		m_WyAWq.row(i) = Wy(i)*m_AWq.row(i);
 
@@ -72,11 +72,11 @@ bool WSDLSSolver::solve(const e_matrix& A, const e_vector& Wy, const e_vector& y
 	} else {
 		ret = KDL::svd_eigen_HH(m_WyAWq,m_U,m_S,m_V,m_temp);
 	}
-    if(ret<0)
-        return false;
+	if(ret<0)
+		return false;
 
 	m_Wy_ydot = Wy.array() * ydot.array();
-    m_WqV.noalias() = Wq*m_V;
+	m_WqV.noalias() = Wq*m_V;
 	qdot.setZero();
 	e_scalar maxDeltaS = e_scalar(0.0);
 	e_scalar prevS = e_scalar(0.0);

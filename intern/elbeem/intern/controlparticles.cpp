@@ -1316,7 +1316,8 @@ void ControlParticles::finishControl(std::vector<ControlForces> &forces, LbmFloa
 			if(cvweight>1.) { cvweight = 1.; }
 			// thus cvweight is in the range of 0..influenceVelocity, currently not normalized by numCParts
 			cvweight *= ivel;
-			if(cvweight<0.) cvweight=0.; if(cvweight>1.) cvweight=1.;
+			if(cvweight<0.) cvweight=0.;
+			if(cvweight>1.) cvweight=1.;
 			// LBM, FIXME todo use relaxation factor
 			//pvel = (cvel*0.5 * cvweight) + (pvel * (1.0-cvweight)); 
 			forces[i].weightVel = cvweight;
