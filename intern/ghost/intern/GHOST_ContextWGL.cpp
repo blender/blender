@@ -183,6 +183,7 @@ static int weight_pixel_format(PIXELFORMATDESCRIPTOR &pfd, PIXELFORMATDESCRIPTOR
 	    !(pfd.dwFlags & PFD_DOUBLEBUFFER)    || /* Blender _needs_ this */
 	    !(pfd.iPixelType == PFD_TYPE_RGBA)   ||
 	     (pfd.cDepthBits < 16)               ||
+	     (pfd.cColorBits > 32)               || /* 64 bit formats disable aero */
 	     (pfd.dwFlags & PFD_GENERIC_FORMAT))    /* no software renderers */
 	{
 		return 0;
