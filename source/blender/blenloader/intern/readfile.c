@@ -5303,6 +5303,9 @@ static void direct_link_object(FileData *fd, Object *ob)
 	 */
 	ob->recalc = 0;
 
+	/* XXX This should not be needed - but seems like it can happen in some cases, so for now play safe... */
+	ob->proxy_from = NULL;
+
 	/* loading saved files with editmode enabled works, but for undo we like
 	 * to stay in object mode during undo presses so keep editmode disabled.
 	 *
