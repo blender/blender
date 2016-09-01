@@ -9921,6 +9921,17 @@ static int ui_handle_menus_recursive(
 	return retval;
 }
 
+/**
+ * Allow setting menu return value from externals. E.g. WM might need to do this for exiting files correctly.
+ */
+void UI_popup_menu_retval_set(const uiBlock *block, const int retval, const bool enable)
+{
+	uiPopupBlockHandle *menu = block->handle;
+	if (menu) {
+		menu->menuretval = enable ? (menu->menuretval | retval) : (menu->menuretval & retval);
+	}
+}
+
 /* *************** UI event handlers **************** */
 
 static int ui_region_handler(bContext *C, const wmEvent *event, void *UNUSED(userdata))
@@ -10163,7 +10174,11 @@ static void ui_popup_handler_remove(bContext *C, void *userdata)
 {
 	uiPopupBlockHandle *menu = userdata;
 
-	if (menu->cancel_func) {
+	/* More correct would be to expect UI_RETURN_CANCEL here, but not wanting to
+	 * cancel when removing handlers because of file exit is a rare exception.
+	 * So instead of setting cancel flag for all menus before removing handlers,
+	 * just explicitly flag menu with UI_RETURN_OK to avoid cancelling it. */
+	if ((menu->menuretval & UI_RETURN_OK) == 0 && menu->cancel_func) {
 		menu->cancel_func(C, menu->popup_arg);
 	}
 

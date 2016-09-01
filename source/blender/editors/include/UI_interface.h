@@ -393,6 +393,8 @@ struct uiLayout *UI_popup_menu_layout(uiPopupMenu *head);
 void UI_popup_menu_reports(struct bContext *C, struct ReportList *reports) ATTR_NONNULL();
 int UI_popup_menu_invoke(struct bContext *C, const char *idname, struct ReportList *reports) ATTR_NONNULL(1, 2);
 
+void UI_popup_menu_retval_set(const uiBlock *block, const int retval, const bool enable);
+
 /* Pie menus */
 typedef struct uiPieMenu uiPieMenu;
 
