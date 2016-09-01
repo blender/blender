@@ -2565,11 +2565,15 @@ static void editbmesh_calc_modifiers(
  * we'll be using GPU backend of OpenSubdiv. This is so
  * playback performance is kept as high as possible.
  */
-static bool calc_modifiers_skip_orco(const Object *ob)
+static bool calc_modifiers_skip_orco(Scene *scene,
+                                     const Object *ob,
+                                     bool use_render_params)
 {
-	const ModifierData *last_md = ob->modifiers.last;
+	ModifierData *last_md = ob->modifiers.last;
+	const int required_mode = use_render_params ? eModifierMode_Render : eModifierMode_Realtime;
 	if (last_md != NULL &&
-	    last_md->type == eModifierType_Subsurf)
+	    last_md->type == eModifierType_Subsurf &&
+	    modifier_isEnabled(scene, last_md, required_mode))
 	{
 		SubsurfModifierData *smd = (SubsurfModifierData *)last_md;
 		/* TODO(sergey): Deduplicate this with checks from subsurf_ccg.c. */
@@ -2589,7 +2593,7 @@ static void mesh_build_data(
 	BKE_object_sculpt_modifiers_changed(ob);
 
 #ifdef WITH_OPENSUBDIV
-	if (calc_modifiers_skip_orco(ob)) {
+	if (calc_modifiers_skip_orco(scene, ob, false)) {
 		dataMask &= ~(CD_MASK_ORCO | CD_MASK_PREVIEW_MCOL);
 	}
 #endif
@@ -2624,7 +2628,7 @@ static void editbmesh_build_data(Scene *scene, Object *obedit, BMEditMesh *em, C
 	BKE_editmesh_free_derivedmesh(em);
 
 #ifdef WITH_OPENSUBDIV
-	if (calc_modifiers_skip_orco(obedit)) {
+	if (calc_modifiers_skip_orco(scene, obedit, false)) {
 		dataMask &= ~(CD_MASK_ORCO | CD_MASK_PREVIEW_MCOL);
 	}
 #endif
