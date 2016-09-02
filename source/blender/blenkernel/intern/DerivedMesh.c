@@ -3836,7 +3836,7 @@ void DM_draw_attrib_vertex(DMVertexAttribs *attribs, int a, int index, int vert,
 	for (b = 0; b < attribs->tottang; b++) {
 		if (attribs->tang[b].array) {
 			/*const*/ float (*array)[4] = attribs->tang[b].array;
-			const float *tang = (array) ? array[a * 4 + vert] : zero;
+			const float *tang = (array) ? array[loop] : zero;
 			glVertexAttrib4fv(attribs->tang[b].gl_index, tang);
 		}
 	}
