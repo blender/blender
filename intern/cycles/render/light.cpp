@@ -177,6 +177,16 @@ LightManager::~LightManager()
 {
 }
 
+bool LightManager::has_background_light(Scene *scene)
+{
+	foreach(Light *light, scene->lights) {
+		if(light->type == LIGHT_BACKGROUND) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void LightManager::disable_ineffective_light(Device *device, Scene *scene)
 {
 	/* Make all lights enabled by default, and perform some preliminary checks

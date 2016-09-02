@@ -221,6 +221,16 @@ void Shader::tag_update(Scene *scene)
 	if(use_mis && has_surface_emission)
 		scene->light_manager->need_update = true;
 
+	/* Special handle of background MIS light for now: for some reason it
+	 * has use_mis set to false. We are quite close to release now, so
+	 * better to be safe.
+	 */
+	if(this == scene->default_background &&
+	   scene->light_manager->has_background_light(scene))
+	{
+		scene->light_manager->need_update = true;
+	}
+
 	/* quick detection of which kind of shaders we have to avoid loading
 	 * e.g. surface attributes when there is only a volume shader. this could
 	 * be more fine grained but it's better than nothing */
