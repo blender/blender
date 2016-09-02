@@ -1410,24 +1410,6 @@ static void emDM_drawMappedFacesTex(
 	emDM_drawFacesTex_common(dm, NULL, setDrawOptions, compareDrawOptions, userData);
 }
 
-static void emdm_pass_attrib_update_uniforms(const DMVertexAttribs *attribs)
-{
-	int i;
-	if (attribs->totorco) {
-		glUniform1i(attribs->orco.gl_info_index, 0);
-	}
-	for (i = 0; i < attribs->tottface; i++) {
-		glUniform1i(attribs->tface[i].gl_info_index, 0);
-	}
-	for (i = 0; i < attribs->totmcol; i++) {
-		glUniform1i(attribs->mcol[i].gl_info_index, GPU_ATTR_INFO_SRGB);
-	}
-
-	for (i = 0; i < attribs->tottang; i++) {
-		glUniform1i(attribs->tang[i].gl_info_index, 0);
-	}
-}
-
 /**
  * \note
  *
@@ -1548,7 +1530,7 @@ static void emDM_drawMappedFacesGLSL(
 			do_draw = setMaterial(matnr = new_matnr, &gattribs);
 			if (do_draw) {
 				DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
-				emdm_pass_attrib_update_uniforms(&attribs);
+				DM_draw_attrib_vertex_uniforms(&attribs);
 				if (UNLIKELY(attribs.tottang && bm->elem_index_dirty & BM_LOOP)) {
 					BM_mesh_elem_index_ensure(bm, BM_LOOP);
 				}
