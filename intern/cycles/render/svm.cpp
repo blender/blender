@@ -767,7 +767,8 @@ void SVMCompiler::compile(Scene *scene,
 		shader->graph_bump->finalize(scene,
 		                             true,
 		                             false,
-		                             shader->has_integrator_dependency);
+		                             shader->has_integrator_dependency,
+		                             shader->displacement_method == DISPLACE_BOTH);
 	}
 
 	current_shader = shader;
