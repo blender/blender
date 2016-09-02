@@ -2820,12 +2820,13 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 		int matnr = -1;
 		int do_draw = 0;
 
-#define PASSATTRIB(dx, dy, vert) {                                            \
-	if (attribs.totorco)                                                      \
-		index = getFaceIndex(ss, f, S, x + dx, y + dy, edgeSize, gridSize);   \
-	else                                                                      \
-		index = 0;                                                            \
-	DM_draw_attrib_vertex(&attribs, a, index, vert, ((a) * 4) + vert);        \
+#define PASSATTRIB(dx, dy, vert) {                                                  \
+	if (attribs.totorco)                                                        \
+		index = getFaceIndex(ss, f, S, x + dx, y + dy, edgeSize, gridSize); \
+	else                                                                        \
+		index = 0;                                                          \
+	DM_draw_attrib_vertex(&attribs, a, index, vert, ((a) * 4) + vert);          \
+	DM_draw_attrib_vertex_uniforms(&attribs);                                   \
 } (void)0
 
 		totpoly = ccgSubSurf_getNumFaces(ss);
@@ -3222,12 +3223,13 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm,
 
 	matnr = -1;
 
-#define PASSATTRIB(dx, dy, vert) {                                            \
-	if (attribs.totorco)                                                      \
-		index = getFaceIndex(ss, f, S, x + dx, y + dy, edgeSize, gridSize);   \
-	else                                                                      \
-		index = 0;                                                            \
-	DM_draw_attrib_vertex(&attribs, a, index, vert, ((a) * 4) + vert);          \
+#define PASSATTRIB(dx, dy, vert) {                                                   \
+	if (attribs.totorco)                                                         \
+		index = getFaceIndex(ss, f, S, x + dx, y + dy, edgeSize, gridSize);  \
+	else                                                                         \
+		index = 0;                                                           \
+	DM_draw_attrib_vertex(&attribs, a, index, vert, ((a) * 4) + vert);           \
+	DM_draw_attrib_vertex_uniforms(&attribs);                                    \
 } (void)0
 
 	totface = ccgSubSurf_getNumFaces(ss);

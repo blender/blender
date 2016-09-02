@@ -783,6 +783,7 @@ void DM_vertex_attributes_from_gpu(
         struct GPUVertexAttribs *gattribs, DMVertexAttribs *attribs);
 
 void DM_draw_attrib_vertex(DMVertexAttribs *attribs, int a, int index, int vert, int loop);
+void DM_draw_attrib_vertex_uniforms(const DMVertexAttribs *attribs);
 
 void DM_calc_tangents_names_from_gpu(
         const struct GPUVertexAttribs *gattribs,
