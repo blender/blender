@@ -312,7 +312,8 @@ void ShaderGraph::relink(ShaderNode *node, ShaderOutput *from, ShaderOutput *to)
 void ShaderGraph::finalize(Scene *scene,
                            bool do_bump,
                            bool do_osl,
-                           bool do_simplify)
+                           bool do_simplify,
+                           bool bump_in_object_space)
 {
 	/* before compiling, the shader graph may undergo a number of modifications.
 	 * currently we set default geometry shader inputs, and create automatic bump
@@ -325,7 +326,7 @@ void ShaderGraph::finalize(Scene *scene,
 		refine_bump_nodes();
 
 		if(do_bump)
-			bump_from_displacement();
+			bump_from_displacement(bump_in_object_space);
 
 		ShaderInput *surface_in = output()->input("Surface");
 		ShaderInput *volume_in = output()->input("Volume");
@@ -793,7 +794,7 @@ void ShaderGraph::refine_bump_nodes()
 	}
 }
 
-void ShaderGraph::bump_from_displacement()
+void ShaderGraph::bump_from_displacement(bool use_object_space)
 {
 	/* generate bump mapping automatically from displacement. bump mapping is
 	 * done using a 3-tap filter, computing the displacement at the center,
@@ -842,7 +843,8 @@ void ShaderGraph::bump_from_displacement()
 	ShaderNode *set_normal = add(new SetNormalNode());
 	
 	/* add bump node and connect copied graphs to it */
-	ShaderNode *bump = add(new BumpNode());
+	BumpNode *bump = (BumpNode*)add(new BumpNode());
+	bump->use_object_space = use_object_space;
 
 	ShaderOutput *out = displacement_in->link;
 	ShaderOutput *out_center = nodes_center[out->parent]->output(out->name());
