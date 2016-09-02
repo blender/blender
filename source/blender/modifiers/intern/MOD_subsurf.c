@@ -130,6 +130,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		if (U.opensubdiv_compute_type == USER_OPENSUBDIV_COMPUTE_NONE) {
 			modifier_setError(md, "OpenSubdiv is disabled in User Preferences");
 		}
+		else if ((ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) != 0) {
+			modifier_setError(md, "OpenSubdiv is not supported in paint modes");
+		}
 		else if ((DAG_get_eval_flags_for_object(md->scene, ob) & DAG_EVAL_NEED_CPU) == 0) {
 			subsurf_flags |= SUBSURF_USE_GPU_BACKEND;
 			do_cddm_convert = false;
