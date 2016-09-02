@@ -1348,7 +1348,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		/* ------- end of grease pencil initialization --------------- */
 	}
 
-	{
+	if (!MAIN_VERSION_ATLEAST(main, 278, 0)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingTrack", "float", "weight_stab")) {
 			MovieClip *clip;
 			for (clip = main->movieclip.first; clip; clip = clip->id.next) {
