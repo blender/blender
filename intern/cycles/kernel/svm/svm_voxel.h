@@ -50,7 +50,7 @@ ccl_device void svm_node_tex_voxel(KernelGlobals *kg,
 		r = kernel_tex_image_interp_3d_float4(tex, co.x, co.y, co.z);
 	else {
 		float f = kernel_tex_image_interp_3d_float(tex, co.x, co.y, co.z);
-		r = make_float4(f, f, f, 1.0);
+		r = make_float4(f, f, f, 1.0f);
 	}
 #    else /* __CUDA_ARCH__ >= 300 */
 	r = volume_image_texture_3d(id, co.x, co.y, co.z);
