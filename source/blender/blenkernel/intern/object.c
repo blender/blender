@@ -1138,7 +1138,7 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, bool copy_caches)
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);
 	id_us_plus((ID *)obn->gpd);
-	id_lib_extern((ID *)obn->dup_group);
+	id_us_plus((ID *)obn->dup_group);
 
 	for (a = 0; a < obn->totcol; a++) id_us_plus((ID *)obn->mat[a]);
 	

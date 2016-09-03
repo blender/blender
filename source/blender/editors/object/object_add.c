@@ -998,7 +998,7 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 		Object *ob = ED_object_add_type(C, OB_EMPTY, group->id.name + 2, loc, rot, false, layer);
 		ob->dup_group = group;
 		ob->transflag |= OB_DUPLIGROUP;
-		id_lib_extern(&group->id);
+		id_us_plus(&group->id);
 
 		/* works without this except if you try render right after, see: 22027 */
 		DAG_relations_tag_update(bmain);
