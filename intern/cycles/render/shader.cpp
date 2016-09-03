@@ -194,6 +194,28 @@ Shader::~Shader()
 	delete graph_bump;
 }
 
+bool Shader::is_constant_emission(float3 *emission)
+{
+	ShaderInput *surf = graph->output()->input("Surface");
+
+	if(!surf->link || surf->link->parent->type != EmissionNode::node_type) {
+		return false;
+	}
+
+	EmissionNode *node = (EmissionNode*) surf->link->parent;
+
+	assert(node->input("Color"));
+	assert(node->input("Strength"));
+
+	if(node->input("Color")->link || node->input("Strength")->link) {
+		return false;
+	}
+
+	*emission = node->color*node->strength;
+
+	return true;
+}
+
 void Shader::set_graph(ShaderGraph *graph_)
 {
 	/* do this here already so that we can detect if mesh or object attributes

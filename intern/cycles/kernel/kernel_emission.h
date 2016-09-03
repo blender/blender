@@ -49,6 +49,12 @@ ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg,
 	}
 	else
 #endif
+	if(ls->lamp != LAMP_NONE && (ls->shader & SHADER_FIXED_EMISSION))
+	{
+		float4 L = kernel_tex_fetch(__light_data, ls->lamp*LIGHT_SIZE + 4);
+		eval = make_float3(L.y, L.z, L.w);
+	}
+	else
 	{
 		shader_setup_from_sample(kg, emission_sd,
 		                         ls->P, ls->Ng, I,
