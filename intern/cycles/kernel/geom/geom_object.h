@@ -564,6 +564,15 @@ ccl_device_inline void bvh_instance_motion_pop_factor(KernelGlobals *kg,
  */
 
 #ifdef __KERNEL_OPENCL__
+ccl_device_inline void object_position_transform_addrspace(KernelGlobals *kg,
+                                                         const ShaderData *sd,
+                                                         ccl_addr_space float3 *P)
+{
+	float3 private_P = *P;
+	object_position_transform(kg, sd, &private_P);
+	*P = private_P;
+}
+
 ccl_device_inline void object_dir_transform_addrspace(KernelGlobals *kg,
                                                       const ShaderData *sd,
                                                       ccl_addr_space float3 *D)
@@ -584,9 +593,11 @@ ccl_device_inline void object_normal_transform_addrspace(KernelGlobals *kg,
 #endif
 
 #ifndef __KERNEL_OPENCL__
+#  define object_position_transform_auto object_position_transform
 #  define object_dir_transform_auto object_dir_transform
 #  define object_normal_transform_auto object_normal_transform
 #else
+#  define object_position_transform_auto object_position_transform_addrspace
 #  define object_dir_transform_auto object_dir_transform_addrspace
 #  define object_normal_transform_auto object_normal_transform_addrspace
 #endif
