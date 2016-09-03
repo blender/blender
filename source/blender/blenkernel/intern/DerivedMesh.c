@@ -2282,7 +2282,7 @@ static void editbmesh_calc_modifiers(
 {
 	ModifierData *md, *previewmd = NULL;
 	float (*deformedVerts)[3] = NULL;
-	CustomDataMask mask, previewmask = 0, append_mask = 0;
+	CustomDataMask mask = 0, previewmask = 0, append_mask = 0;
 	DerivedMesh *dm = NULL, *orcodm = NULL;
 	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 	CDMaskLink *datamasks, *curr;
