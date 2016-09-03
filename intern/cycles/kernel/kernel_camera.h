@@ -321,7 +321,7 @@ ccl_device_inline void camera_sample(KernelGlobals *kg,
 #ifdef __CAMERA_MOTION__
 	/* motion blur */
 	if(kernel_data.cam.shuttertime == -1.0f) {
-		ray->time = TIME_INVALID;
+		ray->time = 0.5f;
 	}
 	else {
 		/* TODO(sergey): Such lookup is unneeded when there's rolling shutter

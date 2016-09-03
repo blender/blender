@@ -56,7 +56,10 @@ ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg,
 	}
 	else
 	{
-		shader_setup_from_sample(kg, emission_sd, ls->P, ls->Ng, I, ls->shader, ls->object, ls->prim, ls->u, ls->v, t, time);
+		shader_setup_from_sample(kg, emission_sd,
+		                         ls->P, ls->Ng, I,
+		                         ls->shader, ls->object, ls->prim,
+		                         ls->u, ls->v, t, time, false);
 
 		ls->Ng = ccl_fetch(emission_sd, Ng);
 

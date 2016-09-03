@@ -261,7 +261,7 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ccl_a
 				svm_node_geometry_bump_dy(kg, sd, stack, node.y, node.z);
 				break;
 			case NODE_SET_DISPLACEMENT:
-				svm_node_set_displacement(sd, stack, node.y);
+				svm_node_set_displacement(kg, sd, stack, node.y);
 				break;
 #  endif  /* NODES_FEATURE(NODE_FEATURE_BUMP) */
 #  ifdef __TEXTURES__

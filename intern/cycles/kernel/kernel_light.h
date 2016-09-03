@@ -747,7 +747,7 @@ ccl_device void object_transform_light_sample(KernelGlobals *kg, LightSample *ls
 {
 #ifdef __INSTANCING__
 	/* instance transform */
-	if(object >= 0) {
+	if(!(kernel_tex_fetch(__object_flag, object) & SD_TRANSFORM_APPLIED)) {
 #  ifdef __OBJECT_MOTION__
 		Transform itfm;
 		Transform tfm = object_fetch_transform_motion_test(kg, object, time, &itfm);

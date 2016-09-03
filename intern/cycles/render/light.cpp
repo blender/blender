@@ -309,9 +309,6 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 		int object_id = j;
 		int shader_flag = 0;
 
-		if(transform_applied)
-			object_id = ~object_id;
-
 		if(!(object->visibility & PATH_RAY_DIFFUSE)) {
 			shader_flag |= SHADER_EXCLUDE_DIFFUSE;
 			use_light_visibility = true;

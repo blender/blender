@@ -86,8 +86,7 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 			done[t.v[j]] = true;
 
 			/* set up object, primitive and barycentric coordinates */
-			/* when used, non-instanced convention: object = ~object */
-			int object = ~object_index;
+			int object = object_index;
 			int prim = mesh->tri_offset + i;
 			float u, v;
 			
