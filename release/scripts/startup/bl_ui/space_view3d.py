@@ -417,12 +417,12 @@ class VIEW3D_MT_edit_proportional(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.props_enum(context.tool_settings,"proportional_edit")
+        layout.props_enum(context.tool_settings, "proportional_edit")
 
         layout.separator()
 
         layout.label("Falloff:")
-        layout.props_enum(context.tool_settings,"proportional_edit_falloff")
+        layout.props_enum(context.tool_settings, "proportional_edit_falloff")
 
 
 # ********** View menus **********
