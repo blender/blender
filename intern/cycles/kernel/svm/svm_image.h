@@ -296,7 +296,7 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 	/* float, byte and half */
 	else {
 		float f = kernel_tex_image_interp_float(tex, x, y);
-		r = make_float4(f, f, f, 1.0);
+		r = make_float4(f, f, f, 1.0f);
 	}
 #  endif
 #endif

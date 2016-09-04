@@ -838,7 +838,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		case KeyRelease:
 		{
 			XKeyEvent *xke = &(xe->xkey);
-			KeySym key_sym;
+			KeySym key_sym = XK_VoidSymbol;
 			KeySym key_sym_str;
 			char ascii;
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
@@ -870,25 +870,29 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			 *
 			 * To address this, we:
 			 *
-			 *     - Try to get a 'number' key_sym using XLookupKeysym (with or without shift modifier).
+			 *     - Try to get a 'number' key_sym using XLookupKeysym (with virtual shift modifier),
+			 *       in a very restrictive set of cases.
 			 *     - Fallback to XLookupString to get a key_sym from active user-defined keymap.
 			 *
-			 * Note that this enforces users to use an ascii-compatible keymap with Blender - but at least it gives
-			 * predictable and consistent results.
+			 * Note that:
+			 *     - This effectively 'lock' main number keys to always output number events (except when using alt-gr).
+			 *     - This enforces users to use an ascii-compatible keymap with Blender - but at least it gives
+			 *       predictable and consistent results.
 			 *
 			 * Also, note that nothing in XLib sources [1] makes it obvious why those two functions give different
 			 * key_sym results...
 			 *
 			 * [1] http://cgit.freedesktop.org/xorg/lib/libX11/tree/src/KeyBind.c
 			 */
-			if ((xke->keycode >= 10 && xke->keycode < 20)) {
+			/* Mode_switch 'modifier' is AltGr - when this one or Shift are enabled, we do not want to apply
+			 * that 'forced number' hack. */
+			const unsigned int mode_switch_mask = XkbKeysymToModifiers(xke->display, XK_Mode_switch);
+			const unsigned int number_hack_forbidden_kmods_mask = mode_switch_mask | ShiftMask;
+			if ((xke->keycode >= 10 && xke->keycode < 20) && ((xke->state & number_hack_forbidden_kmods_mask) == 0)) {
 				key_sym = XLookupKeysym(xke, ShiftMask);
 				if (!((key_sym >= XK_0) && (key_sym <= XK_9))) {
-					key_sym = XLookupKeysym(xke, 0);
+					key_sym = XK_VoidSymbol;
 				}
-			}
-			else {
-				key_sym = XLookupKeysym(xke, 0);
 			}
 
 			if (!XLookupString(xke, &ascii, 1, &key_sym_str, NULL)) {

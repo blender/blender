@@ -1247,8 +1247,6 @@ static void free_buffers(MovieClip *clip)
 		IMB_free_anim(clip->anim);
 		clip->anim = NULL;
 	}
-
-	BKE_animdata_free((ID *) clip, false);
 }
 
 void BKE_movieclip_clear_cache(MovieClip *clip)
@@ -1487,6 +1485,7 @@ void BKE_movieclip_free(MovieClip *clip)
 	free_buffers(clip);
 
 	BKE_tracking_free(&clip->tracking);
+	BKE_animdata_free((ID *) clip, false);
 }
 
 MovieClip *BKE_movieclip_copy(Main *bmain, MovieClip *clip)

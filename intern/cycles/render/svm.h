@@ -99,6 +99,7 @@ public:
 	int stack_assign(ShaderInput *input);
 	int stack_assign_if_linked(ShaderInput *input);
 	int stack_assign_if_linked(ShaderOutput *output);
+	int stack_find_offset(int size);
 	int stack_find_offset(SocketType::Type type);
 	void stack_clear_offset(SocketType::Type type, int offset);
 	void stack_link(ShaderInput *input, ShaderOutput *output);

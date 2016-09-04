@@ -58,6 +58,7 @@ typedef struct CacheFile {
 	struct AnimData *adt;
 
 	struct AbcArchiveHandle *handle;
+	void *handle_mutex;
 
 	/* Paths of the objects inside of the Alembic archive referenced by this
 	 * CacheFile. */

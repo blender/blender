@@ -500,7 +500,7 @@ void Mesh::add_vertex_normals()
 	size_t triangles_size = num_triangles();
 
 	/* static vertex normals */
-	if(!attributes.find(ATTR_STD_VERTEX_NORMAL)) {
+	if(!attributes.find(ATTR_STD_VERTEX_NORMAL) && triangles_size) {
 		/* get attributes */
 		Attribute *attr_fN = attributes.find(ATTR_STD_FACE_NORMAL);
 		Attribute *attr_vN = attributes.add(ATTR_STD_VERTEX_NORMAL);
@@ -511,17 +511,17 @@ void Mesh::add_vertex_normals()
 		/* compute vertex normals */
 		memset(vN, 0, verts.size()*sizeof(float3));
 
-		if(triangles_size) {
-
-			for(size_t i = 0; i < triangles_size; i++)
-				for(size_t j = 0; j < 3; j++)
-					vN[get_triangle(i).v[j]] += fN[i];
+		for(size_t i = 0; i < triangles_size; i++) {
+			for(size_t j = 0; j < 3; j++) {
+				vN[get_triangle(i).v[j]] += fN[i];
+			}
 		}
 
 		for(size_t i = 0; i < verts_size; i++) {
 			vN[i] = normalize(vN[i]);
-			if(flip)
+			if(flip) {
 				vN[i] = -vN[i];
+			}
 		}
 	}
 
@@ -529,7 +529,7 @@ void Mesh::add_vertex_normals()
 	Attribute *attr_mP = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 	Attribute *attr_mN = attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
 
-	if(has_motion_blur() && attr_mP && !attr_mN) {
+	if(has_motion_blur() && attr_mP && !attr_mN && triangles_size) {
 		/* create attribute */
 		attr_mN = attributes.add(ATTR_STD_MOTION_VERTEX_NORMAL);
 
@@ -540,27 +540,79 @@ void Mesh::add_vertex_normals()
 			/* compute */
 			memset(mN, 0, verts.size()*sizeof(float3));
 
-			if(triangles_size) {
-				for(size_t i = 0; i < triangles_size; i++) {
-					for(size_t j = 0; j < 3; j++) {
-						float3 fN = compute_face_normal(get_triangle(i), mP);
-						mN[get_triangle(i).v[j]] += fN;
-					}
+			for(size_t i = 0; i < triangles_size; i++) {
+				for(size_t j = 0; j < 3; j++) {
+					float3 fN = compute_face_normal(get_triangle(i), mP);
+					mN[get_triangle(i).v[j]] += fN;
 				}
 			}
 
 			for(size_t i = 0; i < verts_size; i++) {
 				mN[i] = normalize(mN[i]);
-				if(flip)
+				if(flip) {
 					mN[i] = -mN[i];
+				}
 			}
 		}
+	}
+
+	/* subd vertex normals */
+	if(!subd_attributes.find(ATTR_STD_VERTEX_NORMAL) && subd_faces.size()) {
+		/* get attributes */
+		Attribute *attr_vN = subd_attributes.add(ATTR_STD_VERTEX_NORMAL);
+		float3 *vN = attr_vN->data_float3();
+
+		/* compute vertex normals */
+		memset(vN, 0, verts.size()*sizeof(float3));
+
+		for(size_t i = 0; i < subd_faces.size(); i++) {
+			SubdFace& face = subd_faces[i];
+			float3 fN = face.normal(this);
+
+			for(size_t j = 0; j < face.num_corners; j++) {
+				size_t corner = subd_face_corners[face.start_corner+j];
+				vN[corner] += fN;
+			}
+		}
+
+		for(size_t i = 0; i < verts_size; i++) {
+			vN[i] = normalize(vN[i]);
+			if(flip) {
+				vN[i] = -vN[i];
+			}
+		}
+	}
+}
+
+void Mesh::add_undisplaced()
+{
+	AttributeSet& attrs = (subdivision_type == SUBDIVISION_NONE) ? attributes : subd_attributes;
+
+	/* don't compute if already there */
+	if(attrs.find(ATTR_STD_POSITION_UNDISPLACED)) {
+		return;
+	}
+
+	/* get attribute */
+	Attribute *attr = attrs.add(ATTR_STD_POSITION_UNDISPLACED);
+	attr->flags |= ATTR_SUBDIVIDED;
+
+	float3 *data = attr->data_float3();
+
+	/* copy verts */
+	size_t size = attr->buffer_size(this, (subdivision_type == SUBDIVISION_NONE) ? ATTR_PRIM_TRIANGLE : ATTR_PRIM_SUBD);
+	if(size) {
+		memcpy(data, verts.data(), size);
 	}
 }
 
 void Mesh::pack_normals(Scene *scene, uint *tri_shader, float4 *vnormal)
 {
 	Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
+	if(attr_vN == NULL) {
+		/* Happens on objects with just hair. */
+		return;
+	}
 
 	float3 *vN = attr_vN->data_float3();
 	uint shader_id = 0;
@@ -580,7 +632,7 @@ void Mesh::pack_normals(Scene *scene, uint *tri_shader, float4 *vnormal)
 			last_smooth = smooth[i];
 			Shader *shader = (last_shader < used_shaders.size()) ?
 				used_shaders[last_shader] : scene->default_surface;
-			shader_id = scene->shader_manager->get_shader_id(shader, this, last_smooth);
+			shader_id = scene->shader_manager->get_shader_id(shader, last_smooth);
 		}
 
 		tri_shader[i] = shader_id;
@@ -617,16 +669,14 @@ void Mesh::pack_verts(const vector<uint>& tri_prim_index,
 
 	size_t triangles_size = num_triangles();
 
-	if(triangles_size) {
-		for(size_t i = 0; i < triangles_size; i++) {
-			Triangle t = get_triangle(i);
-			tri_vindex[i] = make_uint4(t.v[0] + vert_offset,
-			                           t.v[1] + vert_offset,
-			                           t.v[2] + vert_offset,
-			                           tri_prim_index[i + tri_offset]);
+	for(size_t i = 0; i < triangles_size; i++) {
+		Triangle t = get_triangle(i);
+		tri_vindex[i] = make_uint4(t.v[0] + vert_offset,
+		                           t.v[1] + vert_offset,
+		                           t.v[2] + vert_offset,
+		                           tri_prim_index[i + tri_offset]);
 
-			tri_patch[i] = (!subd_faces.size()) ? -1 : (triangle_patch[i]*8 + patch_offset);
-		}
+		tri_patch[i] = (!subd_faces.size()) ? -1 : (triangle_patch[i]*8 + patch_offset);
 	}
 }
 
@@ -646,20 +696,18 @@ void Mesh::pack_curves(Scene *scene, float4 *curve_key_co, float4 *curve_data, s
 	/* pack curve segments */
 	size_t curve_num = num_curves();
 
-	if(curve_num) {
-		for(size_t i = 0; i < curve_num; i++) {
-			Curve curve = get_curve(i);
-			int shader_id = curve_shader[i];
-			Shader *shader = (shader_id < used_shaders.size()) ?
-				used_shaders[shader_id] : scene->default_surface;
-			shader_id = scene->shader_manager->get_shader_id(shader, this, false);
+	for(size_t i = 0; i < curve_num; i++) {
+		Curve curve = get_curve(i);
+		int shader_id = curve_shader[i];
+		Shader *shader = (shader_id < used_shaders.size()) ?
+			used_shaders[shader_id] : scene->default_surface;
+		shader_id = scene->shader_manager->get_shader_id(shader, false);
 
-			curve_data[i] = make_float4(
-				__int_as_float(curve.first_key + curvekey_offset),
-				__int_as_float(curve.num_keys),
-				__int_as_float(shader_id),
-				0.0f);
-		}
+		curve_data[i] = make_float4(
+			__int_as_float(curve.first_key + curvekey_offset),
+			__int_as_float(curve.num_keys),
+			__int_as_float(shader_id),
+			0.0f);
 	}
 }
 
@@ -668,13 +716,30 @@ void Mesh::pack_patches(uint *patch_data, uint vert_offset, uint face_offset, ui
 	size_t num_faces = subd_faces.size();
 	int ngons = 0;
 
-	if(num_faces) {
-		for(size_t f = 0; f < num_faces; f++) {
-			SubdFace face = subd_faces[f];
+	for(size_t f = 0; f < num_faces; f++) {
+		SubdFace face = subd_faces[f];
 
-			if(face.is_quad()) {
+		if(face.is_quad()) {
+			int c[4];
+			memcpy(c, &subd_face_corners[face.start_corner], sizeof(int)*4);
+
+			*(patch_data++) = c[0] + vert_offset;
+			*(patch_data++) = c[1] + vert_offset;
+			*(patch_data++) = c[2] + vert_offset;
+			*(patch_data++) = c[3] + vert_offset;
+
+			*(patch_data++) = f+face_offset;
+			*(patch_data++) = face.num_corners;
+			*(patch_data++) = face.start_corner + corner_offset;
+			*(patch_data++) = 0;
+		}
+		else {
+			for(int i = 0; i < face.num_corners; i++) {
 				int c[4];
-				memcpy(c, &subd_face_corners[face.start_corner], sizeof(int)*4);
+				c[0] = subd_face_corners[face.start_corner + mod(i + 0, face.num_corners)];
+				c[1] = subd_face_corners[face.start_corner + mod(i + 1, face.num_corners)];
+				c[2] = verts.size() - num_subd_verts + ngons;
+				c[3] = subd_face_corners[face.start_corner + mod(i - 1, face.num_corners)];
 
 				*(patch_data++) = c[0] + vert_offset;
 				*(patch_data++) = c[1] + vert_offset;
@@ -682,31 +747,12 @@ void Mesh::pack_patches(uint *patch_data, uint vert_offset, uint face_offset, ui
 				*(patch_data++) = c[3] + vert_offset;
 
 				*(patch_data++) = f+face_offset;
-				*(patch_data++) = face.num_corners;
+				*(patch_data++) = face.num_corners | (i << 16);
 				*(patch_data++) = face.start_corner + corner_offset;
-				*(patch_data++) = 0;
+				*(patch_data++) = subd_face_corners.size() + ngons + corner_offset;
 			}
-			else {
-				for(int i = 0; i < face.num_corners; i++) {
-					int c[4];
-					c[0] = subd_face_corners[face.start_corner + mod(i + 0, face.num_corners)];
-					c[1] = subd_face_corners[face.start_corner + mod(i + 1, face.num_corners)];
-					c[2] = verts.size() - num_subd_verts + ngons;
-					c[3] = subd_face_corners[face.start_corner + mod(i - 1, face.num_corners)];
 
-					*(patch_data++) = c[0] + vert_offset;
-					*(patch_data++) = c[1] + vert_offset;
-					*(patch_data++) = c[2] + vert_offset;
-					*(patch_data++) = c[3] + vert_offset;
-
-					*(patch_data++) = f+face_offset;
-					*(patch_data++) = face.num_corners | (i << 16);
-					*(patch_data++) = face.start_corner + corner_offset;
-					*(patch_data++) = subd_face_corners.size() + ngons + corner_offset;
-				}
-
-				ngons++;
-			}
+			ngons++;
 		}
 	}
 }
@@ -1657,6 +1703,10 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 		if(mesh->need_update) {
 			mesh->add_face_normals();
 			mesh->add_vertex_normals();
+
+			if(mesh->need_attribute(scene, ATTR_STD_POSITION_UNDISPLACED)) {
+				mesh->add_undisplaced();
+			}
 
 			if(progress.get_cancel()) return;
 		}

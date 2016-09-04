@@ -24,6 +24,7 @@
 #define __ABC_EXPORTER_H__
 
 #include <Alembic/Abc/All.h>
+#include <fstream>
 #include <map>
 #include <set>
 #include <vector>
@@ -75,6 +76,7 @@ class AbcExporter {
 
 	const char *m_filename;
 
+	std::ofstream m_out_file;
 	Alembic::Abc::OArchive m_archive;
 	unsigned int m_trans_sampling_index, m_shape_sampling_index;
 

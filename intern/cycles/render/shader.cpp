@@ -221,6 +221,16 @@ void Shader::tag_update(Scene *scene)
 	if(use_mis && has_surface_emission)
 		scene->light_manager->need_update = true;
 
+	/* Special handle of background MIS light for now: for some reason it
+	 * has use_mis set to false. We are quite close to release now, so
+	 * better to be safe.
+	 */
+	if(this == scene->default_background &&
+	   scene->light_manager->has_background_light(scene))
+	{
+		scene->light_manager->need_update = true;
+	}
+
 	/* quick detection of which kind of shaders we have to avoid loading
 	 * e.g. surface attributes when there is only a volume shader. this could
 	 * be more fine grained but it's better than nothing */
@@ -240,6 +250,10 @@ void Shader::tag_update(Scene *scene)
 	attributes.clear();
 	foreach(ShaderNode *node, graph->nodes)
 		node->attributes(this, &attributes);
+
+	if(has_displacement && displacement_method == DISPLACE_BOTH) {
+		attributes.add(ATTR_STD_POSITION_UNDISPLACED);
+	}
 	
 	/* compare if the attributes changed, mesh manager will check
 	 * need_update_attributes, update the relevant meshes and clear it. */
@@ -312,14 +326,11 @@ uint ShaderManager::get_attribute_id(AttributeStandard std)
 	return (uint)std;
 }
 
-int ShaderManager::get_shader_id(Shader *shader, Mesh *mesh, bool smooth)
+int ShaderManager::get_shader_id(Shader *shader, bool smooth)
 {
 	/* get a shader id to pass to the kernel */
-	int id = shader->id*2;
-	
-	/* index depends bump since this setting is not in the shader */
-	if(mesh && shader->displacement_method != DISPLACE_TRUE)
-		id += 1;
+	int id = shader->id;
+
 	/* smooth flag */
 	if(smooth)
 		id |= SHADER_SMOOTH_NORMAL;
@@ -368,7 +379,7 @@ void ShaderManager::device_update_common(Device *device,
 	if(scene->shaders.size() == 0)
 		return;
 
-	uint shader_flag_size = scene->shaders.size()*4;
+	uint shader_flag_size = scene->shaders.size()*2;
 	uint *shader_flag = dscene->shader_flag.resize(shader_flag_size);
 	uint i = 0;
 	bool has_volumes = false;
@@ -406,15 +417,14 @@ void ShaderManager::device_update_common(Device *device,
 			flag |= SD_VOLUME_CUBIC;
 		if(shader->graph_bump)
 			flag |= SD_HAS_BUMP;
-
-		/* regular shader */
-		shader_flag[i++] = flag;
-		shader_flag[i++] = shader->pass_id;
+		if(shader->displacement_method != DISPLACE_BUMP)
+			flag |= SD_HAS_DISPLACEMENT;
 
 		/* shader with bump mapping */
-		if(shader->graph_bump)
+		if(shader->displacement_method != DISPLACE_TRUE && shader->graph_bump)
 			flag |= SD_HAS_BSSRDF_BUMP;
 
+		/* regular shader */
 		shader_flag[i++] = flag;
 		shader_flag[i++] = shader->pass_id;
 

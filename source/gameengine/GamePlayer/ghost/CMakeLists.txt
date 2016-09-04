@@ -81,6 +81,10 @@ if(WIN32)
 	blender_include_dirs(../../../../intern/utfconv)
 endif()
 
+if(WITH_INPUT_NDOF)
+	add_definitions(-DWITH_INPUT_NDOF)
+endif(WITH_INPUT_NDOF)
+
 if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()

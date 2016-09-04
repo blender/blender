@@ -1015,12 +1015,18 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 		else {
 			userData.me = NULL;
 
-			if ((ob->mode & OB_MODE_ALL_PAINT) == 0) {
+			/* if ((ob->mode & OB_MODE_ALL_PAINT) == 0) */ {
 
 				/* Note: this isn't efficient and runs on every redraw,
 				 * its needed so material colors are used for vertex colors.
 				 * In the future we will likely remove 'texface' so, just avoid running this where possible,
-				 * (when vertex paint or weight paint are used). */
+				 * (when vertex paint or weight paint are used).
+				 *
+				 * Note 2: We disable optimization for now since it causes T48788
+				 * and it is now too close to release to do something smarter.
+				 *
+				 * TODO(sergey): Find some real solution here.
+				 */
 
 				update_tface_color_layer(dm, !(ob->mode & OB_MODE_TEXTURE_PAINT));
 			}

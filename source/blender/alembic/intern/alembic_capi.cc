@@ -29,6 +29,12 @@
 #include <Alembic/AbcCoreOgawa/All.h>
 #include <Alembic/AbcMaterial/IMaterial.h>
 
+#include <fstream>
+
+#ifdef WIN32
+#  include "utfconv.h"
+#endif
+
 #include "abc_camera.h"
 #include "abc_curves.h"
 #include "abc_hair.h"
@@ -109,49 +115,97 @@ using Alembic::AbcGeom::V3fArraySamplePtr;
 
 using Alembic::AbcMaterial::IMaterial;
 
-struct AbcArchiveHandle {
-	int unused;
-};
-
-ABC_INLINE IArchive *archive_from_handle(AbcArchiveHandle *handle)
+static IArchive open_archive(const std::string &filename,
+                             const std::vector<std::istream *> &input_streams,
+                             bool &is_hdf5)
 {
-	return reinterpret_cast<IArchive *>(handle);
-}
-
-ABC_INLINE AbcArchiveHandle *handle_from_archive(IArchive *archive)
-{
-	return reinterpret_cast<AbcArchiveHandle *>(archive);
-}
-
-static IArchive *open_archive(const std::string &filename)
-{
-	Alembic::AbcCoreAbstract::ReadArraySampleCachePtr cache_ptr;
-	IArchive *archive;
-
 	try {
-		archive = new IArchive(Alembic::AbcCoreOgawa::ReadArchive(),
-		                       filename.c_str(), ErrorHandler::kThrowPolicy,
-		                       cache_ptr);
+		is_hdf5 = false;
+		Alembic::AbcCoreOgawa::ReadArchive archive_reader(input_streams);
+
+		return IArchive(archive_reader(filename),
+		                kWrapExisting,
+		                ErrorHandler::kThrowPolicy);
 	}
 	catch (const Exception &e) {
 		std::cerr << e.what() << '\n';
 
 #ifdef WITH_ALEMBIC_HDF5
 		try {
-			archive = new IArchive(Alembic::AbcCoreHDF5::ReadArchive(),
-			                       filename.c_str(), ErrorHandler::kThrowPolicy,
-			                       cache_ptr);
+			is_hdf5 = true;
+			Alembic::AbcCoreAbstract::ReadArraySampleCachePtr cache_ptr;
+
+			return IArchive(Alembic::AbcCoreHDF5::ReadArchive(),
+			                filename.c_str(), ErrorHandler::kThrowPolicy,
+			                cache_ptr);
 		}
 		catch (const Exception &) {
 			std::cerr << e.what() << '\n';
-			return NULL;
+			return IArchive();
 		}
 #else
-		return NULL;
+		return IArchive();
 #endif
 	}
 
-	return archive;
+	return IArchive();
+}
+
+/* Wrapper around an archive to be able to use streams so that unicode paths
+ * work on Windows (T49112), and to make sure the input stream remains valid as
+ * long as the archive is open. */
+class ArchiveWrapper {
+	IArchive m_archive;
+	std::ifstream m_infile;
+	std::vector<std::istream *> m_streams;
+
+public:
+	explicit ArchiveWrapper(const char *filename)
+	{
+#ifdef WIN32
+		UTF16_ENCODE(filename);
+		std::wstring wstr(filename_16);
+		m_infile.open(wstr.c_str(), std::ios::in | std::ios::binary);
+		UTF16_UN_ENCODE(filename);
+#else
+		m_infile.open(filename, std::ios::in | std::ios::binary);
+#endif
+
+		m_streams.push_back(&m_infile);
+
+		bool is_hdf5;
+		m_archive = open_archive(filename, m_streams, is_hdf5);
+
+		/* We can't open an HDF5 file from a stream, so close it. */
+		if (is_hdf5) {
+			m_infile.close();
+			m_streams.clear();
+		}
+	}
+
+	bool valid() const
+	{
+		return m_archive.valid();
+	}
+
+	IObject getTop()
+	{
+		return m_archive.getTop();
+	}
+};
+
+struct AbcArchiveHandle {
+	int unused;
+};
+
+ABC_INLINE ArchiveWrapper *archive_from_handle(AbcArchiveHandle *handle)
+{
+	return reinterpret_cast<ArchiveWrapper *>(handle);
+}
+
+ABC_INLINE AbcArchiveHandle *handle_from_archive(ArchiveWrapper *archive)
+{
+	return reinterpret_cast<AbcArchiveHandle *>(archive);
 }
 
 //#define USE_NURBS
@@ -247,9 +301,10 @@ static void gather_objects_paths(const IObject &object, ListBase *object_paths)
 
 AbcArchiveHandle *ABC_create_handle(const char *filename, ListBase *object_paths)
 {
-	IArchive *archive = open_archive(filename);
+	ArchiveWrapper *archive = new ArchiveWrapper(filename);
 
-	if (!archive) {
+	if (!archive->valid()) {
+		delete archive;
 		return NULL;
 	}
 
@@ -582,12 +637,10 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 	data->do_update = do_update;
 	data->progress = progress;
 
-	IArchive *archive = open_archive(data->filename);
+	ArchiveWrapper *archive = new ArchiveWrapper(data->filename);
 
-	if (!archive || !archive->valid()) {
-		if (archive) {
-			delete archive;
-		}
+	if (!archive->valid()) {
+		delete archive;
 		data->error_code = ABC_ARCHIVE_FAIL;
 		return;
 	}
@@ -812,7 +865,7 @@ void ABC_import(bContext *C, const char *filepath, float scale, bool is_sequence
 
 void ABC_get_transform(AbcArchiveHandle *handle, Object *ob, const char *object_path, float r_mat[4][4], float time, float scale)
 {
-	IArchive *archive = archive_from_handle(handle);
+	ArchiveWrapper *archive = archive_from_handle(handle);
 
 	if (!archive || !archive->valid()) {
 		return;
@@ -1088,7 +1141,7 @@ DerivedMesh *ABC_read_mesh(AbcArchiveHandle *handle,
                            const char **err_str,
                            int read_flag)
 {
-	IArchive *archive = archive_from_handle(handle);
+	ArchiveWrapper *archive = archive_from_handle(handle);
 
 	if (!archive || !archive->valid()) {
 		*err_str = "Invalid archive!";

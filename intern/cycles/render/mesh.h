@@ -215,6 +215,7 @@ public:
 	void compute_bounds();
 	void add_face_normals();
 	void add_vertex_normals();
+	void add_undisplaced();
 
 	void pack_normals(Scene *scene, uint *shader, float4 *vnormal);
 	void pack_verts(const vector<uint>& tri_prim_index,

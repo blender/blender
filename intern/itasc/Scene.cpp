@@ -146,11 +146,11 @@ bool Scene::addObject(const std::string& name, Object* object, UncontrolledObjec
 
 bool Scene::addConstraintSet(const std::string& name,ConstraintSet* task,const std::string& object1,const std::string& object2, const std::string& ee1, const std::string& ee2)
 {
-    //Check if objects exist:
-    ObjectMap::iterator object1_it = objects.find(object1);
-    ObjectMap::iterator object2_it = objects.find(object2);
-    if(object1_it==objects.end()||object2_it==objects.end())
-        return false;
+	//Check if objects exist:
+	ObjectMap::iterator object1_it = objects.find(object1);
+	ObjectMap::iterator object2_it = objects.find(object2);
+	if(object1_it==objects.end()||object2_it==objects.end())
+		return false;
 	int ee1_index = object1_it->second->object->addEndEffector(ee1);
 	int ee2_index = object2_it->second->object->addEndEffector(ee2);
 	if (ee1_index < 0 || ee2_index < 0)
@@ -159,11 +159,11 @@ bool Scene::addConstraintSet(const std::string& name,ConstraintSet* task,const s
 		constraints.insert(ConstraintMap::value_type(name,new ConstraintSet_struct(
 			task,object1_it,ee1_index,object2_it,ee2_index,
 			Range(m_ncTotal,task->getNrOfConstraints()),Range(6*m_nsets,6))));
-    if(!result.second)
-        return false;
-    m_ncTotal+=task->getNrOfConstraints();
-    m_nsets+=1;
-    return true;
+	if(!result.second)
+		return false;
+	m_ncTotal+=task->getNrOfConstraints();
+	m_nsets+=1;
+	return true;
 }
 
 bool Scene::addSolver(Solver* _solver){

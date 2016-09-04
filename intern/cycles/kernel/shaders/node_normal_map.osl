@@ -26,6 +26,7 @@ shader node_normal_map(
 	output normal Normal = NormalIn)
 {
 	color mcolor = 2.0 * color(Color[0] - 0.5, Color[1] - 0.5, Color[2] - 0.5);
+	int is_backfacing = backfacing();
 
 	if (space == "tangent") {
 		vector tangent;
@@ -34,8 +35,14 @@ shader node_normal_map(
 		float is_smooth;
 
 		getattribute("geom:is_smooth", is_smooth);
-		if (!is_smooth)
+		if (!is_smooth) {
 			ninterp = normalize(transform("world", "object", Ng));
+
+			/* the normal is already inverted, which is too soon for the math here */
+			if (is_backfacing) {
+				ninterp = -ninterp;
+			}
+		}
 
 		// get _unnormalized_ interpolated normal and tangent
 		if (getattribute(attr_name, tangent) &&
@@ -73,7 +80,12 @@ shader node_normal_map(
 	
 		Normal = normalize(vector(mcolor));
 	}
-	
+
+	/* invert normal for backfacing polygons */
+	if (is_backfacing) {
+		Normal = -Normal;
+	}
+
 	if (Strength != 1.0)
 		Normal = normalize(NormalIn + (Normal - NormalIn) * max(Strength, 0.0));
 }

@@ -101,6 +101,18 @@ void gp_point_to_xy(GP_SpaceConversion *settings, struct bGPDstroke *gps, struct
                     int *r_x, int *r_y);
 
 /**
+ * Convert a Grease Pencil coordinate (i.e. can be 2D or 3D) to screenspace (2D)
+ *
+ * Just like gp_point_to_xy(), except the resulting coordinates are floats not ints.
+ * Use this version to solve "stair-step" artifacts which may arise when roundtripping the calculations.
+ *
+ * \param[out] r_x  The screen-space x-coordinate of the point
+ * \param[out] r_y  The screen-space y-coordinate of the point
+ */
+void gp_point_to_xy_fl(GP_SpaceConversion *gsc, bGPDstroke *gps, bGPDspoint *pt,
+                       float *r_x, float *r_y);
+
+/**
  * Convert point to parent space
  *
  * \param pt         Original point
@@ -183,7 +195,7 @@ void gp_subdivide_stroke(bGPDstroke *gps, const int new_totpoints);
 /**
 * Add randomness to stroke
 * \param gps           Stroke data
-* \param brsuh         Brush data
+* \param brush         Brush data
 */
 void gp_randomize_stroke(bGPDstroke *gps, bGPDbrush *brush);
 
@@ -199,6 +211,7 @@ EnumPropertyItem *ED_gpencil_brushes_enum_itemf(bContext *C, PointerRNA *UNUSED(
 /* Enums of GP palettes */
 EnumPropertyItem *ED_gpencil_palettes_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop),
                                                  bool *r_free);
+
 /* ***************************************************** */
 /* Operator Defines */
 
@@ -213,6 +226,9 @@ typedef enum eGPencil_PaintModes {
 	GP_PAINTMODE_DRAW_STRAIGHT,
 	GP_PAINTMODE_DRAW_POLY
 } eGPencil_PaintModes;
+
+/* maximum sizes of gp-session buffer */
+#define GP_STROKE_BUFFER_MAX    5000
 
 /* stroke editing ----- */
 
@@ -246,6 +262,7 @@ void GPENCIL_OT_snap_to_cursor(struct wmOperatorType *ot);
 void GPENCIL_OT_snap_cursor_to_selected(struct wmOperatorType *ot);
 void GPENCIL_OT_snap_cursor_to_center(struct wmOperatorType *ot);
 
+void GPENCIL_OT_reproject(struct wmOperatorType *ot);
 
 /* stroke sculpting -- */
 
@@ -300,10 +317,10 @@ void GPENCIL_OT_palette_add(struct wmOperatorType *ot);
 void GPENCIL_OT_palette_remove(struct wmOperatorType *ot);
 void GPENCIL_OT_palette_change(struct wmOperatorType *ot);
 void GPENCIL_OT_palette_lock_layer(struct wmOperatorType *ot);
+
 void GPENCIL_OT_palettecolor_add(struct wmOperatorType *ot);
 void GPENCIL_OT_palettecolor_remove(struct wmOperatorType *ot);
 void GPENCIL_OT_palettecolor_isolate(struct wmOperatorType *ot);
-
 void GPENCIL_OT_palettecolor_hide(struct wmOperatorType *ot);
 void GPENCIL_OT_palettecolor_reveal(struct wmOperatorType *ot);
 void GPENCIL_OT_palettecolor_lock_all(struct wmOperatorType *ot);
@@ -318,7 +335,7 @@ void gpencil_undo_init(struct bGPdata *gpd);
 void gpencil_undo_push(struct bGPdata *gpd);
 void gpencil_undo_finish(void);
 
-/******************************************************* */
+/* ****************************************************** */
 /* FILTERED ACTION DATA - TYPES  ---> XXX DEPRECEATED OLD ANIM SYSTEM CODE! */
 
 /* XXX - TODO: replace this with the modern bAnimListElem... */
@@ -340,7 +357,7 @@ typedef struct bActListElem {
 	short  ownertype;  /* type of owner */
 } bActListElem;
 
-/******************************************************* */
+/* ****************************************************** */
 /* FILTER ACTION DATA - METHODS/TYPES */
 
 /* filtering flags  - under what circumstances should a channel be added */
@@ -362,6 +379,9 @@ typedef enum ACTCONT_TYPES {
 	ACTCONT_SHAPEKEY,
 	ACTCONT_GPENCIL
 } ACTCONT_TYPES;
+
+/* ****************************************************** */
+/* Stroke Iteration Utilities */
 
 /**
 * Iterate over all editable strokes in the current context,
@@ -397,5 +417,7 @@ typedef enum ACTCONT_TYPES {
 	}                              \
 	CTX_DATA_END;                  \
 } (void)0
+
+/* ****************************************************** */
 
 #endif /* __GPENCIL_INTERN_H__ */

@@ -153,7 +153,7 @@ class SpellChecker:
         "realtime",
         "rekey",
         "remesh",
-        "reprojection",
+        "reprojection", "reproject",
         "resize",
         "restpose",
         "retarget", "retargets", "retargeting", "retargeted",
@@ -476,6 +476,12 @@ class SpellChecker:
         "wetmap", "wetmaps",
         "wpaint",
         "uvwarp",
+
+        # UOC (Ugly Operator Categories)
+        "cachefile",
+        "paintcurve",
+        "ptcache",
+        "dpaint",
 
         # Algorithm/library names
         "ashikhmin",  # Ashikhmin-Shirley

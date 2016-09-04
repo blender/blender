@@ -181,6 +181,7 @@ CCL_NAMESPACE_END
 #include "svm_brick.h"
 #include "svm_vector_transform.h"
 #include "svm_voxel.h"
+#include "svm_bump.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -293,6 +294,12 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ccl_a
 				break;
 			case NODE_CLOSURE_SET_NORMAL:
 				svm_node_set_normal(kg, sd, stack, node.y, node.z);
+				break;
+			case NODE_ENTER_BUMP_EVAL:
+				svm_node_enter_bump_eval(kg, sd, stack, node.y);
+				break;
+			case NODE_LEAVE_BUMP_EVAL:
+				svm_node_leave_bump_eval(kg, sd, stack, node.y);
 				break;
 #    endif  /* NODES_FEATURE(NODE_FEATURE_BUMP) */
 			case NODE_HSV:

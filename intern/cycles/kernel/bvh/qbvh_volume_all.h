@@ -240,6 +240,14 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 			/* If node is leaf, fetch triangle list. */
 			if(node_addr < 0) {
 				float4 leaf = kernel_tex_fetch(__bvh_leaf_nodes, (-node_addr-1));
+
+				if((__float_as_uint(leaf.z) & visibility) == 0) {
+					/* Pop. */
+					node_addr = traversal_stack[stack_ptr].addr;
+					--stack_ptr;
+					continue;
+				}
+
 				int prim_addr = __float_as_int(leaf.x);
 
 #if BVH_FEATURE(BVH_INSTANCING)

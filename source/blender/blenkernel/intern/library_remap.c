@@ -871,8 +871,8 @@ void BKE_libblock_delete(Main *bmain, void *idv)
 	BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
 	/* First tag all datablocks directly from target lib.
-     * Note that we go forward here, since we want to check dependencies before users (e.g. meshes before objects).
-     * Avoids to have to loop twice. */
+	 * Note that we go forward here, since we want to check dependencies before users (e.g. meshes before objects).
+	 * Avoids to have to loop twice. */
 	for (i = 0; i < base_count; i++) {
 		ListBase *lb = lbarray[i];
 		ID *id;

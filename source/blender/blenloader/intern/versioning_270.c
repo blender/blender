@@ -90,9 +90,6 @@ static void migrate_single_rot_stabilization_track_settings(MovieTrackingStabili
 		}
 	}
 	stab->rot_track = NULL; /* this field is now ignored */
-
-	/* by default show the track lists expanded, to improve "discoverability" */
-	stab->flag |= TRACKING_SHOW_STAB_TRACKS;
 }
 
 static void do_version_constraints_radians_degrees_270_1(ListBase *lb)
@@ -1221,12 +1218,20 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 							/* set color attributes */
 							copy_v4_v4(palcolor->color, gpl->color);
 							copy_v4_v4(palcolor->fill, gpl->fill);
-							palcolor->flag = gpl->flag;
+							
+							if (gpl->flag & GP_LAYER_HIDE)       palcolor->flag |= PC_COLOR_HIDE;
+							if (gpl->flag & GP_LAYER_LOCKED)     palcolor->flag |= PC_COLOR_LOCKED;
+							if (gpl->flag & GP_LAYER_ONIONSKIN)  palcolor->flag |= PC_COLOR_ONIONSKIN;
+							if (gpl->flag & GP_LAYER_VOLUMETRIC) palcolor->flag |= PC_COLOR_VOLUMETRIC;
+							if (gpl->flag & GP_LAYER_HQ_FILL)    palcolor->flag |= PC_COLOR_HQ_FILL;
+							
 							/* set layer opacity to 1 */
 							gpl->opacity = 1.0f;
+							
 							/* set tint color */
 							ARRAY_SET_ITEMS(gpl->tintcolor, 0.0f, 0.0f, 0.0f, 0.0f);
-
+							
+							/* flush relevant layer-settings to strokes */
 							for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
 								for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
 									/* set stroke to palette and force recalculation */
@@ -1234,14 +1239,15 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 									gps->palcolor = NULL;
 									gps->flag |= GP_STROKE_RECALC_COLOR;
 									gps->thickness = gpl->thickness;
+									
 									/* set alpha strength to 1 */
 									for (int i = 0; i < gps->totpoints; i++) {
 										gps->points[i].strength = 1.0f;
 									}
-
 								}
 							}
 						}
+						
 						/* set thickness to 0 (now it is a factor to override stroke thickness) */
 						gpl->thickness = 0.0f;
 					}
@@ -1254,7 +1260,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		/* ------- end of grease pencil initialization --------------- */
 	}
 
-	{
+	if (!MAIN_VERSION_ATLEAST(main, 278, 0)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingTrack", "float", "weight_stab")) {
 			MovieClip *clip;
 			for (clip = main->movieclip.first; clip; clip = clip->id.next) {
@@ -1281,13 +1287,20 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			for (clip = main->movieclip.first; clip != NULL; clip = clip->id.next) {
 				if (clip->tracking.stabilization.rot_track) {
 					migrate_single_rot_stabilization_track_settings(&clip->tracking.stabilization);
-					if (!clip->tracking.stabilization.scale) {
-						/* ensure init.
-						 * Was previously used for autoscale only,
-						 * now used always (as "target scale") */
-						clip->tracking.stabilization.scale = 1.0f;
-					}
 				}
+				if (clip->tracking.stabilization.scale == 0.0f) {
+					/* ensure init.
+					 * Was previously used for autoscale only,
+					 * now used always (as "target scale") */
+					clip->tracking.stabilization.scale = 1.0f;
+				}
+				/* blender prefers 1-based frame counting;
+				 * thus using frame 1 as reference typically works best */
+				clip->tracking.stabilization.anchor_frame = 1;
+				/* by default show the track lists expanded, to improve "discoverability" */
+				clip->tracking.stabilization.flag |= TRACKING_SHOW_STAB_TRACKS;
+				/* deprecated, not used anymore */
+				clip->tracking.stabilization.ok = false;
 			}
 		}
 	}

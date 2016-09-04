@@ -67,8 +67,10 @@ class IsoSurface :
 		/*! set # of subdivisions, this has to be done before init! */
 		void setSubdivs(int s) { 
 			if(mInitDone) errFatal("IsoSurface::setSubdivs","Changing subdivs after init!", SIMWORLD_INITERROR);
-			if(s<1) s=1; if(s>10) s=10;
-			mSubdivs = s; }
+			if(s<1) s=1;
+			if(s>10) s=10;
+			mSubdivs = s;
+		}
 		int  getSubdivs() { return mSubdivs;}
 		/*! set full edge settings, this has to be done before init! */
 		void setUseFulledgeArrays(bool set) { 

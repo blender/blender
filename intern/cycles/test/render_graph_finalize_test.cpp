@@ -403,6 +403,26 @@ TEST(render_graph, constant_fold_invert_fac_0)
 
 /*
  * Tests:
+ *  - Folding of Invert with zero Fac and constant input.
+ */
+TEST(render_graph, constant_fold_invert_fac_0_const)
+{
+	DEFINE_COMMON_VARIABLES(builder, log);
+
+	EXPECT_ANY_MESSAGE(log);
+	CORRECT_INFO_MESSAGE(log, "Folding Invert::Color to constant (0.2, 0.5, 0.8).");
+
+	builder
+		.add_node(ShaderNodeBuilder<InvertNode>("Invert")
+		          .set("Fac", 0.0f)
+		          .set("Color", make_float3(0.2f, 0.5f, 0.8f)))
+		.output_color("Invert::Color");
+
+	graph.finalize(&scene);
+}
+
+/*
+ * Tests:
  *  - Folding of MixRGB Add with all constant inputs (clamp false).
  */
 TEST(render_graph, constant_fold_mix_add)
@@ -1339,6 +1359,33 @@ TEST(render_graph, constant_fold_rgb_curves_fac_0)
 		          .set(&CurvesNode::max_x, 0.9f)
 		          .set("Fac", 0.0f))
 		.add_connection("Attribute::Color", "Curves::Color")
+		.output_color("Curves::Color");
+
+	graph.finalize(&scene);
+}
+
+
+/*
+ * Tests:
+ *  - Folding of RGB Curves with zero Fac and all constant inputs.
+ */
+TEST(render_graph, constant_fold_rgb_curves_fac_0_const)
+{
+	DEFINE_COMMON_VARIABLES(builder, log);
+
+	EXPECT_ANY_MESSAGE(log);
+	CORRECT_INFO_MESSAGE(log, "Folding Curves::Color to constant (0.3, 0.5, 0.7).");
+
+	array<float3> curve;
+	init_test_curve(curve, make_float3(0.0f, 0.25f, 1.0f), make_float3(1.0f, 0.75f, 0.0f), 257);
+
+	builder
+		.add_node(ShaderNodeBuilder<RGBCurvesNode>("Curves")
+		          .set(&CurvesNode::curves, curve)
+		          .set(&CurvesNode::min_x, 0.1f)
+		          .set(&CurvesNode::max_x, 0.9f)
+		          .set("Fac", 0.0f)
+		          .set("Color", make_float3(0.3f, 0.5f, 0.7f)))
 		.output_color("Curves::Color");
 
 	graph.finalize(&scene);

@@ -51,6 +51,7 @@ public:
 	uint visibility;
 	MotionTransform motion;
 	bool use_motion;
+	bool hide_on_missing_motion;
 	bool use_holdout;
 
 	float3 dupli_generated;

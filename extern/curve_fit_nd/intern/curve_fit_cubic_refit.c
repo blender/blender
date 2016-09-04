@@ -1048,7 +1048,6 @@ int curve_fit_cubic_to_points_refit_db(
 {
 	const uint knots_len = points_len;
 	struct Knot *knots = malloc(sizeof(Knot) * knots_len);
-	knots[0].next = NULL;
 
 #ifndef USE_CORNER_DETECT
 	(void)r_corner_index_array;
@@ -1084,7 +1083,6 @@ int curve_fit_cubic_to_points_refit_db(
 			knots[i].prev = (knots + i) - 1;
 
 			knots[i].heap_node = NULL;
-			knots[i].index = i;
 			knots[i].index = i;
 			knots[i].can_remove = true;
 			knots[i].is_removed = false;
@@ -1155,8 +1153,8 @@ int curve_fit_cubic_to_points_refit_db(
 			add_vn_vnvn(k->tan[0], tan_prev, tan_next, dims);
 			normalize_vn(k->tan[0], dims);
 			copy_vnvn(k->tan[1], k->tan[0], dims);
-			k->handles[0] = len_prev / 3;
-			k->handles[1] = len_next / 3;
+			k->handles[0] = len_prev /  3;
+			k->handles[1] = len_next / -3;
 		}
 #else
 		if (knots_len < 2) {
@@ -1185,8 +1183,8 @@ int curve_fit_cubic_to_points_refit_db(
 				add_vn_vnvn(k->tan[0], tan_prev, tan_next, dims);
 				normalize_vn(k->tan[0], dims);
 				copy_vnvn(k->tan[1], k->tan[0], dims);
-				k->handles[0] = len_prev / 3;
-				k->handles[1] = len_next / 3;
+				k->handles[0] = len_prev /  3;
+				k->handles[1] = len_next / -3;
 
 				copy_vnvn(tan_prev, tan_next, dims);
 				len_prev = len_next;
@@ -1201,8 +1199,8 @@ int curve_fit_cubic_to_points_refit_db(
 			        tan_prev, &points[0 * dims], &points[1 * dims], dims);
 			copy_vnvn(knots[0].tan[0], tan_prev, dims);
 			copy_vnvn(knots[0].tan[1], tan_prev, dims);
-			knots[0].handles[0] = len_prev / 3;
-			knots[0].handles[1] = len_prev / 3;
+			knots[0].handles[0] = len_prev /  3;
+			knots[0].handles[1] = len_prev / -3;
 
 			for (uint i_curr = 1, i_next = 2; i_next < knots_len; i_curr = i_next++) {
 				struct Knot *k = &knots[i_curr];
@@ -1215,8 +1213,8 @@ int curve_fit_cubic_to_points_refit_db(
 				add_vn_vnvn(k->tan[0], tan_prev, tan_next, dims);
 				normalize_vn(k->tan[0], dims);
 				copy_vnvn(k->tan[1], k->tan[0], dims);
-				k->handles[0] = len_prev / 3;
-				k->handles[1] = len_next / 3;
+				k->handles[0] = len_prev /  3;
+				k->handles[1] = len_next / -3;
 
 				copy_vnvn(tan_prev, tan_next, dims);
 				len_prev = len_next;
@@ -1224,8 +1222,8 @@ int curve_fit_cubic_to_points_refit_db(
 			copy_vnvn(knots[knots_len - 1].tan[0], tan_next, dims);
 			copy_vnvn(knots[knots_len - 1].tan[1], tan_next, dims);
 
-			knots[knots_len - 1].handles[0] = len_next / 3;
-			knots[knots_len - 1].handles[1] = len_next / 3;
+			knots[knots_len - 1].handles[0] = len_next /  3;
+			knots[knots_len - 1].handles[1] = len_next / -3;
 		}
 #endif
 	}

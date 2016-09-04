@@ -45,6 +45,7 @@ NODE_DEFINE(Object)
 	SOCKET_UINT(random_id, "Random ID", 0);
 	SOCKET_INT(pass_id, "Pass ID", 0);
 	SOCKET_BOOLEAN(use_holdout, "Use Holdout", false);
+	SOCKET_BOOLEAN(hide_on_missing_motion, "Hide on Missing Motion", false);
 	SOCKET_POINT(dupli_generated, "Dupli Generated", make_float3(0.0f, 0.0f, 0.0f));
 	SOCKET_POINT2(dupli_uv, "Dupli UV", make_float2(0.0f, 0.0f));
 
@@ -72,28 +73,41 @@ void Object::compute_bounds(bool motion_blur)
 	BoundBox mbounds = mesh->bounds;
 
 	if(motion_blur && use_motion) {
-		if(motion.pre == transform_empty() ||
-		   motion.post == transform_empty()) {
+		MotionTransform mtfm = motion;
+
+		if(hide_on_missing_motion) {
 			/* Hide objects that have no valid previous or next transform, for
 			 * example particle that stop existing. TODO: add support for this
 			 * case in the kernel so we don't get render artifacts. */
-			bounds = BoundBox::empty;
-		}
-		else {
-			DecompMotionTransform decomp;
-			transform_motion_decompose(&decomp, &motion, &tfm);
-
-			bounds = BoundBox::empty;
-
-			/* todo: this is really terrible. according to pbrt there is a better
-			 * way to find this iteratively, but did not find implementation yet
-			 * or try to implement myself */
-			for(float t = 0.0f; t < 1.0f; t += (1.0f/128.0f)) {
-				Transform ttfm;
-
-				transform_motion_interpolate(&ttfm, &decomp, t);
-				bounds.grow(mbounds.transformed(&ttfm));
+			if(mtfm.pre == transform_empty() ||
+			   mtfm.post == transform_empty()) {
+				bounds = BoundBox::empty;
+				return;
 			}
+		}
+
+		/* In case of missing motion information for previous/next frame,
+		 * assume there is no motion. */
+		if(mtfm.pre == transform_empty()) {
+			mtfm.pre = tfm;
+		}
+		if(mtfm.post == transform_empty()) {
+			mtfm.post = tfm;
+		}
+
+		DecompMotionTransform decomp;
+		transform_motion_decompose(&decomp, &mtfm, &tfm);
+
+		bounds = BoundBox::empty;
+
+		/* todo: this is really terrible. according to pbrt there is a better
+		 * way to find this iteratively, but did not find implementation yet
+		 * or try to implement myself */
+		for(float t = 0.0f; t < 1.0f; t += (1.0f/128.0f)) {
+			Transform ttfm;
+
+			transform_motion_interpolate(&ttfm, &decomp, t);
+			bounds.grow(mbounds.transformed(&ttfm));
 		}
 	}
 	else {
@@ -345,28 +359,27 @@ void ObjectManager::device_update_object_transform(UpdateObejctTransformState *s
 		 * comes with deformed position in object space, or if we transform
 		 * the shading point in world space.
 		 */
-		Transform mtfm_pre = ob->motion.pre;
-		Transform mtfm_post = ob->motion.post;
+		MotionTransform mtfm = ob->motion;
 
 		/* In case of missing motion information for previous/next frame,
 		 * assume there is no motion. */
-		if(!ob->use_motion || mtfm_pre == transform_empty()) {
-			mtfm_pre = ob->tfm;
+		if(!ob->use_motion || mtfm.pre == transform_empty()) {
+			mtfm.pre = ob->tfm;
 		}
-		if(!ob->use_motion || mtfm_post == transform_empty()) {
-			mtfm_post = ob->tfm;
+		if(!ob->use_motion || mtfm.post == transform_empty()) {
+			mtfm.post = ob->tfm;
 		}
 
 		if(!mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)) {
-			mtfm_pre = mtfm_pre * itfm;
-			mtfm_post = mtfm_post * itfm;
+			mtfm.pre = mtfm.pre * itfm;
+			mtfm.post = mtfm.post * itfm;
 		}
 		else {
 			flag |= SD_OBJECT_HAS_VERTEX_MOTION;
 		}
 
-		memcpy(&objects_vector[object_index*OBJECT_VECTOR_SIZE+0], &mtfm_pre, sizeof(float4)*3);
-		memcpy(&objects_vector[object_index*OBJECT_VECTOR_SIZE+3], &mtfm_post, sizeof(float4)*3);
+		memcpy(&objects_vector[object_index*OBJECT_VECTOR_SIZE+0], &mtfm.pre, sizeof(float4)*3);
+		memcpy(&objects_vector[object_index*OBJECT_VECTOR_SIZE+3], &mtfm.post, sizeof(float4)*3);
 	}
 #ifdef __OBJECT_MOTION__
 	else if(state->need_motion == Scene::MOTION_BLUR) {
@@ -692,7 +705,7 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, u
 		 * Could be solved by moving reference counter to Mesh.
 		 */
 		if((mesh_users[object->mesh] == 1 && !object->mesh->has_surface_bssrdf) &&
-		   !object->mesh->has_true_displacement())
+		   !object->mesh->has_true_displacement() && object->mesh->subdivision_type == Mesh::SUBDIVISION_NONE)
 		{
 			if(!(motion_blur && object->use_motion)) {
 				if(!object->mesh->transform_applied) {

@@ -1327,8 +1327,10 @@ void drawnodespace(const bContext *C, ARegion *ar)
 		path = snode->treepath.last;
 		
 		/* update tree path name (drawn in the bottom left) */
-		if (snode->id && UNLIKELY(!STREQ(path->node_name, snode->id->name + 2))) {
-			BLI_strncpy(path->node_name, snode->id->name + 2, sizeof(path->node_name));
+		ID *name_id = (path->nodetree && path->nodetree != snode->nodetree) ? &path->nodetree->id : snode->id;
+
+		if (name_id && UNLIKELY(!STREQ(path->node_name, name_id->name + 2))) {
+			BLI_strncpy(path->node_name, name_id->name + 2, sizeof(path->node_name));
 		}
 		
 		/* current View2D center, will be set temporarily for parent node trees */

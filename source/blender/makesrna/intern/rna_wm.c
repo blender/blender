@@ -1935,15 +1935,15 @@ static void rna_def_wm_keyconfigs(BlenderRNA *brna, PropertyRNA *cprop)
 	prop = RNA_def_property(srna, "addon", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "addonconf");
 	RNA_def_property_struct_type(prop, "KeyConfig");
-	RNA_def_property_ui_text(prop, "Addon Key Configuration",
-	                         "Key configuration that can be extended by addons, and is added to the active "
+	RNA_def_property_ui_text(prop, "Add-on Key Configuration",
+	                         "Key configuration that can be extended by add-ons, and is added to the active "
 	                         "configuration when handling events");
 
 	prop = RNA_def_property(srna, "user", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "userconf");
 	RNA_def_property_struct_type(prop, "KeyConfig");
 	RNA_def_property_ui_text(prop, "User Key Configuration",
-	                         "Final key configuration that combines keymaps from the active and addon configurations, "
+	                         "Final key configuration that combines keymaps from the active and add-on configurations, "
 	                         "and can be edited by the user");
 	
 	RNA_api_keyconfigs(srna);

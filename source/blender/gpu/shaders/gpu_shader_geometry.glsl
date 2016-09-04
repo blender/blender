@@ -31,6 +31,18 @@ uniform int osd_fvar_count;
 		             tessCoord.t); \
 	}
 
+#ifdef USE_NEW_SHADING
+#  define INTERP_FACE_VARYING_ATT_2(result, fvarOffset, tessCoord) \
+	{ \
+		vec2 tmp; \
+		INTERP_FACE_VARYING_2(tmp, fvarOffset, tessCoord); \
+		result = vec3(tmp, 0); \
+	}
+#else
+#  define INTERP_FACE_VARYING_ATT_2(result, fvarOffset, tessCoord) \
+	INTERP_FACE_VARYING_2(result, fvarOffset, tessCoord)
+#endif
+
 uniform samplerBuffer FVarDataBuffer;
 uniform isamplerBuffer FVarDataOffsetBuffer;
 

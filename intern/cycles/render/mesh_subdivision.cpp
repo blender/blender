@@ -299,7 +299,9 @@ void Mesh::tessellate(DiagSplit *split)
 	bool need_packed_patch_table = false;
 
 	if(subdivision_type == SUBDIVISION_CATMULL_CLARK) {
-		osd_data.build_from_mesh(this);
+		if(subd_faces.size()) {
+			osd_data.build_from_mesh(this);
+		}
 	}
 	else
 #endif
@@ -468,7 +470,7 @@ void Mesh::tessellate(DiagSplit *split)
 				/* keep subdivision for corner attributes disabled for now */
 				attr.flags &= ~ATTR_SUBDIVIDED;
 			}
-			else {
+			else if(subd_faces.size()) {
 				osd_data.subdivide_attribute(attr);
 
 				need_packed_patch_table = true;

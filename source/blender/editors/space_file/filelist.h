@@ -86,6 +86,7 @@ void                filelist_clear_ex(struct FileList *filelist, const bool do_c
 void                filelist_free(struct FileList *filelist);
 
 const char *        filelist_dir(struct FileList *filelist);
+bool                filelist_is_dir(struct FileList *filelist, const char *path);
 void                filelist_setdir(struct FileList *filelist, char *r_dir);
 
 int                 filelist_files_ensure(struct FileList *filelist);

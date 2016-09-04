@@ -1499,14 +1499,15 @@ static void rna_def_freestyle_thickness_modifiers(BlenderRNA *brna, PropertyRNA 
 	RNA_def_property_srna(cprop, "LineStyleThicknessModifiers");
 	srna = RNA_def_struct(brna, "LineStyleThicknessModifiers", NULL);
 	RNA_def_struct_sdna(srna, "FreestyleLineStyle");
-	RNA_def_struct_ui_text(srna, "Thickness Modifiers", "Thickness modifiers for changing line thicknesss");
+	RNA_def_struct_ui_text(srna, "Thickness Modifiers", "Thickness modifiers for changing line thickness");
 
 	func = RNA_def_function(srna, "new", "rna_LineStyle_thickness_modifier_add");
 	RNA_def_function_ui_description(func, "Add a thickness modifier to line style");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_string(func, "name", "ThicknessModifier", 0, "", "New name for the thickness modifier (not unique)");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_enum(func, "type", rna_enum_linestyle_thickness_modifier_type_items, 0, "", "Thickness modifier type to add");
+	parm = RNA_def_enum(func, "type", rna_enum_linestyle_thickness_modifier_type_items, 0,
+	                    "", "Thickness modifier type to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "modifier", "LineStyleThicknessModifier", "", "Newly added thickness modifier");
 	RNA_def_function_return(func, parm);
@@ -1528,14 +1529,15 @@ static void rna_def_freestyle_geometry_modifiers(BlenderRNA *brna, PropertyRNA *
 	RNA_def_property_srna(cprop, "LineStyleGeometryModifiers");
 	srna = RNA_def_struct(brna, "LineStyleGeometryModifiers", NULL);
 	RNA_def_struct_sdna(srna, "FreestyleLineStyle");
-	RNA_def_struct_ui_text(srna, "Geometry Modifiers", "Geometry modifiers for changing line geometrys");
+	RNA_def_struct_ui_text(srna, "Geometry Modifiers", "Geometry modifiers for changing line geometries");
 
 	func = RNA_def_function(srna, "new", "rna_LineStyle_geometry_modifier_add");
 	RNA_def_function_ui_description(func, "Add a geometry modifier to line style");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_string(func, "name", "GeometryModifier", 0, "", "New name for the geometry modifier (not unique)");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_enum(func, "type", rna_enum_linestyle_geometry_modifier_type_items, 0, "", "Geometry modifier type to add");
+	parm = RNA_def_enum(func, "type", rna_enum_linestyle_geometry_modifier_type_items, 0,
+	                    "", "Geometry modifier type to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "modifier", "LineStyleGeometryModifier", "", "Newly added geometry modifier");
 	RNA_def_function_return(func, parm);

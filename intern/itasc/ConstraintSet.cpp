@@ -145,27 +145,29 @@ bool ConstraintSet::closeLoop(){
     //toggle=!toggle;
     //svd_boost_Macie(Jf,U,S,V,B,temp,1e-3*threshold,toggle);
 	int ret = KDL::svd_eigen_HH(m_Jf,m_U,m_S,m_V,m_temp);
-    if(ret<0)
-        return false;
+	if(ret<0)
+		return false;
 
 	// the reference point and frame of the jacobian is the base frame
 	// m_externalPose-m_internalPose is the twist to extend the end effector
 	// to get the required pose => change the reference point to the base frame
 	Twist twist_delta(diff(m_internalPose,m_externalPose));
 	twist_delta=twist_delta.RefPoint(-m_internalPose.p);
-    for(unsigned int i=0;i<6;i++)
-        m_tdelta(i)=twist_delta(i);
-    //TODO: use damping in constraintset inversion?
-    for(unsigned int i=0;i<6;i++)
-        if(m_S(i)<m_threshold){
+	for(unsigned int i=0;i<6;i++)
+		m_tdelta(i)=twist_delta(i);
+	//TODO: use damping in constraintset inversion?
+	for(unsigned int i=0;i<6;i++) {
+		if(m_S(i)<m_threshold){
 			m_B.row(i).setConstant(0.0);
-        }else
-            m_B.row(i) = m_U.col(i)/m_S(i);
+		} else {
+			m_B.row(i) = m_U.col(i)/m_S(i);
+		}
+	}
 
-    m_Jf_inv.noalias()=m_V*m_B;
+	m_Jf_inv.noalias()=m_V*m_B;
 
-    m_chi.noalias()+=m_Jf_inv*m_tdelta;
-    updateJacobian();
+	m_chi.noalias()+=m_Jf_inv*m_tdelta;
+	updateJacobian();
 	// m_externalPose-m_internalPose in end effector frame
 	// this is just to compare the pose, a different formula would work too
 	return Equal(m_internalPose.Inverse()*m_externalPose,F_identity,m_threshold);

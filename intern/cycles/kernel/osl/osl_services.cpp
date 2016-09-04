@@ -93,6 +93,7 @@ ustring OSLRenderServices::u_geom_numpolyvertices("geom:numpolyvertices");
 ustring OSLRenderServices::u_geom_trianglevertices("geom:trianglevertices");
 ustring OSLRenderServices::u_geom_polyvertices("geom:polyvertices");
 ustring OSLRenderServices::u_geom_name("geom:name");
+ustring OSLRenderServices::u_geom_undisplaced("geom:undisplaced");
 ustring OSLRenderServices::u_is_smooth("geom:is_smooth");
 #ifdef __HAIR__
 ustring OSLRenderServices::u_is_curve("geom:is_curve");
@@ -127,8 +128,10 @@ OSLRenderServices::OSLRenderServices()
 
 OSLRenderServices::~OSLRenderServices()
 {
-	VLOG(2) << "OSL texture system stats:\n"
-	        << osl_ts->getstats();
+	if(osl_ts) {
+		VLOG(2) << "OSL texture system stats:\n"
+		        << osl_ts->getstats();
+	}
 #ifdef WITH_PTEX
 	ptex_cache->release();
 #endif

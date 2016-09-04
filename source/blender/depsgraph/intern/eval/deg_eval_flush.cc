@@ -33,7 +33,7 @@
 #include "intern/eval/deg_eval_flush.h"
 
 // TODO(sergey): Use some sort of wrapper.
-#include <queue>
+#include <deque>
 
 extern "C" {
 #include "DNA_object_types.h"
@@ -71,7 +71,7 @@ void lib_id_recalc_data_tag(Main *bmain, ID *id)
 
 }  /* namespace */
 
-typedef std::queue<OperationDepsNode *> FlushQueue;
+typedef std::deque<OperationDepsNode *> FlushQueue;
 
 static void flush_init_func(void *data_v, int i)
 {
@@ -122,20 +122,60 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 	 */
 	GSET_FOREACH_BEGIN(OperationDepsNode *, node, graph->entry_tags)
 	{
-		queue.push(node);
+		queue.push_back(node);
 		node->scheduled = true;
 	}
 	GSET_FOREACH_END();
 
+	int num_flushed_objects = 0;
 	while (!queue.empty()) {
 		OperationDepsNode *node = queue.front();
-		queue.pop();
+		queue.pop_front();
 
 		for (;;) {
 			node->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
 
 			ComponentDepsNode *comp_node = node->owner;
 			IDDepsNode *id_node = comp_node->owner;
+
+			ID *id = id_node->id;
+			if(id_node->done == 0) {
+				deg_editors_id_update(bmain, id);
+				lib_id_recalc_tag(bmain, id);
+				/* TODO(sergey): For until we've got proper data nodes in the graph. */
+				lib_id_recalc_data_tag(bmain, id);
+			}
+
+			if(comp_node->done == 0) {
+				Object *object = NULL;
+				if (GS(id->name) == ID_OB) {
+					object = (Object *)id;
+					if(id_node->done == 0) {
+						++num_flushed_objects;
+					}
+				}
+				foreach (OperationDepsNode *op, comp_node->operations) {
+					op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
+				}
+				if (object != NULL) {
+					/* This code is used to preserve those areas which does
+					 * direct object update,
+					 *
+					 * Plus it ensures visibility changes and relations and
+					 * layers visibility update has proper flags to work with.
+					 */
+					if (comp_node->type == DEPSNODE_TYPE_ANIMATION) {
+						object->recalc |= OB_RECALC_TIME;
+					}
+					else if (comp_node->type == DEPSNODE_TYPE_TRANSFORM) {
+						object->recalc |= OB_RECALC_OB;
+					}
+					else {
+						object->recalc |= OB_RECALC_DATA;
+					}
+				}
+			}
+
 			id_node->done = 1;
 			comp_node->done = 1;
 
@@ -154,7 +194,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 				foreach (DepsRelation *rel, node->outlinks) {
 					OperationDepsNode *to_node = (OperationDepsNode *)rel->to;
 					if (to_node->scheduled == false) {
-						queue.push(to_node);
+						queue.push_front(to_node);
 						to_node->scheduled = true;
 					}
 				}
@@ -162,52 +202,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 			}
 		}
 	}
-
-	GHASH_FOREACH_BEGIN(DEG::IDDepsNode *, id_node, graph->id_hash)
-	{
-		if (id_node->done == 1) {
-			ID *id = id_node->id;
-			Object *object = NULL;
-
-			if (GS(id->name) == ID_OB) {
-				object = (Object *)id;
-			}
-
-			deg_editors_id_update(bmain, id_node->id);
-
-			lib_id_recalc_tag(bmain, id_node->id);
-			/* TODO(sergey): For until we've got proper data nodes in the graph. */
-			lib_id_recalc_data_tag(bmain, id_node->id);
-
-			GHASH_FOREACH_BEGIN(const ComponentDepsNode *, comp_node, id_node->components)
-			{
-				if (comp_node->done) {
-					foreach (OperationDepsNode *op, comp_node->operations) {
-						op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
-					}
-					if (object != NULL) {
-						/* This code is used to preserve those areas which does
-						 * direct object update,
-						 *
-						 * Plus it ensures visibility changes and relations and
-						 * layers visibility update has proper flags to work with.
-						 */
-						if (comp_node->type == DEPSNODE_TYPE_ANIMATION) {
-							object->recalc |= OB_RECALC_TIME;
-						}
-						else if (comp_node->type == DEPSNODE_TYPE_TRANSFORM) {
-							object->recalc |= OB_RECALC_OB;
-						}
-						else {
-							object->recalc |= OB_RECALC_DATA;
-						}
-					}
-				}
-			}
-			GHASH_FOREACH_END();
-		}
-	}
-	GHASH_FOREACH_END();
+	DEG_DEBUG_PRINTF("Update flushed to %d objects\n", num_flushed_objects);
 }
 
 static void graph_clear_func(void *data_v, int i)

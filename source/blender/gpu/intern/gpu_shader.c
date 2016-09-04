@@ -57,6 +57,7 @@ extern char datatoc_gpu_shader_3D_flat_color_vert_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_vert_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
 
+extern char datatoc_gpu_shader_fire_frag_glsl[];
 extern char datatoc_gpu_shader_smoke_vert_glsl[];
 extern char datatoc_gpu_shader_smoke_frag_glsl[];
 extern char datatoc_gpu_shader_vsm_store_vert_glsl[];
@@ -618,7 +619,7 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 			if (!GG.shaders.smoke_fire)
 				GG.shaders.smoke_fire = GPU_shader_create(
 				        datatoc_gpu_shader_smoke_vert_glsl, datatoc_gpu_shader_smoke_frag_glsl,
-				        NULL, NULL, "#define USE_FIRE;\n", 0, 0, 0);
+				        NULL, NULL, NULL, 0, 0, 0);
 			retval = GG.shaders.smoke_fire;
 			break;
 		case GPU_SHADER_2D_UNIFORM_COLOR:

@@ -287,6 +287,108 @@ static int create_view_aligned_slices(VolumeSlicer *slicer,
 	return num_points;
 }
 
+static void bind_shader(SmokeDomainSettings *sds, GPUShader *shader, GPUTexture *tex_spec,
+                        bool use_fire, const float min[3],
+                        const float ob_sizei[3], const float invsize[3])
+{
+	int invsize_location = GPU_shader_get_uniform(shader, "invsize");
+	int ob_sizei_location = GPU_shader_get_uniform(shader, "ob_sizei");
+	int min_location = GPU_shader_get_uniform(shader, "min_location");
+
+	int soot_location;
+	int stepsize_location;
+	int densityscale_location;
+	int spec_location, flame_location;
+	int shadow_location, actcol_location;
+
+	if (use_fire) {
+		spec_location = GPU_shader_get_uniform(shader, "spectrum_texture");
+		flame_location = GPU_shader_get_uniform(shader, "flame_texture");
+	}
+	else {
+		shadow_location = GPU_shader_get_uniform(shader, "shadow_texture");
+		actcol_location = GPU_shader_get_uniform(shader, "active_color");
+		soot_location = GPU_shader_get_uniform(shader, "soot_texture");
+		stepsize_location = GPU_shader_get_uniform(shader, "step_size");
+		densityscale_location = GPU_shader_get_uniform(shader, "density_scale");
+	}
+
+	GPU_shader_bind(shader);
+
+	if (use_fire) {
+		GPU_texture_bind(sds->tex_flame, 2);
+		GPU_shader_uniform_texture(shader, flame_location, sds->tex_flame);
+
+		GPU_texture_bind(tex_spec, 3);
+		GPU_shader_uniform_texture(shader, spec_location, tex_spec);
+	}
+	else {
+		float density_scale = 10.0f;
+
+		GPU_shader_uniform_vector(shader, stepsize_location, 1, 1, &sds->dx);
+		GPU_shader_uniform_vector(shader, densityscale_location, 1, 1, &density_scale);
+
+		GPU_texture_bind(sds->tex, 0);
+		GPU_shader_uniform_texture(shader, soot_location, sds->tex);
+
+		GPU_texture_bind(sds->tex_shadow, 1);
+		GPU_shader_uniform_texture(shader, shadow_location, sds->tex_shadow);
+
+		float active_color[3] = { 0.9, 0.9, 0.9 };
+		if ((sds->active_fields & SM_ACTIVE_COLORS) == 0)
+			mul_v3_v3(active_color, sds->active_color);
+		GPU_shader_uniform_vector(shader, actcol_location, 3, 1, active_color);
+	}
+
+	GPU_shader_uniform_vector(shader, min_location, 3, 1, min);
+	GPU_shader_uniform_vector(shader, ob_sizei_location, 3, 1, ob_sizei);
+	GPU_shader_uniform_vector(shader, invsize_location, 3, 1, invsize);
+}
+
+static void unbind_shader(SmokeDomainSettings *sds, GPUTexture *tex_spec, bool use_fire)
+{
+	GPU_shader_unbind();
+
+	GPU_texture_unbind(sds->tex);
+
+	if (use_fire) {
+		GPU_texture_unbind(sds->tex_flame);
+		GPU_texture_unbind(tex_spec);
+		GPU_texture_free(tex_spec);
+	}
+	else {
+		GPU_texture_unbind(sds->tex_shadow);
+	}
+}
+
+static void draw_buffer(SmokeDomainSettings *sds, GPUShader *shader, const VolumeSlicer *slicer,
+                        const float ob_sizei[3], const float invsize[3], const int num_points, const bool do_fire)
+{
+	GPUTexture *tex_spec = (do_fire) ? create_flame_spectrum_texture() : NULL;
+
+	GLuint vertex_buffer;
+	glGenBuffers(1, &vertex_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * num_points, &slicer->verts[0][0], GL_STATIC_DRAW);
+
+	bind_shader(sds, shader, tex_spec, do_fire, slicer->min, ob_sizei, invsize);
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, NULL);
+
+	glDrawArrays(GL_TRIANGLES, 0, num_points);
+
+	glDisableClientState(GL_VERTEX_ARRAY);
+
+	unbind_shader(sds, tex_spec, do_fire);
+
+	/* cleanup */
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glDeleteBuffers(1, &vertex_buffer);
+}
+
 void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
                        const float min[3], const float max[3],
                         const float viewnormal[3])
@@ -298,12 +400,21 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 
 	const bool use_fire = (sds->active_fields & SM_ACTIVE_FIRE) && sds->tex_flame;
 
-	GPUShader *shader = GPU_shader_get_builtin_shader(
-	                        (use_fire) ? GPU_SHADER_SMOKE_FIRE : GPU_SHADER_SMOKE);
+	GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_SMOKE);
 
 	if (!shader) {
 		fprintf(stderr, "Unable to create GLSL smoke shader.\n");
 		return;
+	}
+
+	GPUShader *fire_shader = NULL;
+	if (use_fire) {
+		fire_shader = GPU_shader_get_builtin_shader(GPU_SHADER_SMOKE_FIRE);
+
+		if (!fire_shader) {
+			fprintf(stderr, "Unable to create GLSL fire shader.\n");
+			return;
+		}
 	}
 
 	const float ob_sizei[3] = {
@@ -318,50 +429,6 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 #ifdef DEBUG_DRAW_TIME
 	TIMEIT_START(draw);
 #endif
-
-	/* setup smoke shader */
-
-	int soot_location = GPU_shader_get_uniform(shader, "soot_texture");
-	int spec_location = GPU_shader_get_uniform(shader, "spectrum_texture");
-	int shadow_location = GPU_shader_get_uniform(shader, "shadow_texture");
-	int flame_location = GPU_shader_get_uniform(shader, "flame_texture");
-	int actcol_location = GPU_shader_get_uniform(shader, "active_color");
-	int stepsize_location = GPU_shader_get_uniform(shader, "step_size");
-	int densityscale_location = GPU_shader_get_uniform(shader, "density_scale");
-	int invsize_location = GPU_shader_get_uniform(shader, "invsize");
-	int ob_sizei_location = GPU_shader_get_uniform(shader, "ob_sizei");
-	int min_location = GPU_shader_get_uniform(shader, "min_location");
-
-	GPU_shader_bind(shader);
-
-	GPU_texture_bind(sds->tex, 0);
-	GPU_shader_uniform_texture(shader, soot_location, sds->tex);
-
-	GPU_texture_bind(sds->tex_shadow, 1);
-	GPU_shader_uniform_texture(shader, shadow_location, sds->tex_shadow);
-
-	GPUTexture *tex_spec = NULL;
-
-	if (use_fire) {
-		GPU_texture_bind(sds->tex_flame, 2);
-		GPU_shader_uniform_texture(shader, flame_location, sds->tex_flame);
-
-		tex_spec = create_flame_spectrum_texture();
-		GPU_texture_bind(tex_spec, 3);
-		GPU_shader_uniform_texture(shader, spec_location, tex_spec);
-	}
-
-	float active_color[3] = { 0.9, 0.9, 0.9 };
-	float density_scale = 10.0f;
-	if ((sds->active_fields & SM_ACTIVE_COLORS) == 0)
-		mul_v3_v3(active_color, sds->active_color);
-
-	GPU_shader_uniform_vector(shader, actcol_location, 3, 1, active_color);
-	GPU_shader_uniform_vector(shader, stepsize_location, 1, 1, &sds->dx);
-	GPU_shader_uniform_vector(shader, densityscale_location, 1, 1, &density_scale);
-	GPU_shader_uniform_vector(shader, min_location, 3, 1, min);
-	GPU_shader_uniform_vector(shader, ob_sizei_location, 3, 1, ob_sizei);
-	GPU_shader_uniform_vector(shader, invsize_location, 3, 1, invsize);
 
 	/* setup slicing information */
 
@@ -386,42 +453,22 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND);
+
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	draw_buffer(sds, shader, &slicer, ob_sizei, invsize, num_points, false);
 
-	GLuint vertex_buffer;
-	glGenBuffers(1, &vertex_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * num_points, &slicer.verts[0][0], GL_STATIC_DRAW);
-
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 0, NULL);
-
-	glDrawArrays(GL_TRIANGLES, 0, num_points);
-
-	glDisableClientState(GL_VERTEX_ARRAY);
+	/* Draw fire separately (T47639). */
+	if (use_fire) {
+		glBlendFunc(GL_ONE, GL_ONE);
+		draw_buffer(sds, fire_shader, &slicer, ob_sizei, invsize, num_points, true);
+	}
 
 #ifdef DEBUG_DRAW_TIME
 	printf("Draw Time: %f\n", (float)TIMEIT_VALUE(draw));
 	TIMEIT_END(draw);
 #endif
 
-	/* cleanup */
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glDeleteBuffers(1, &vertex_buffer);
-
-	GPU_texture_unbind(sds->tex);
-	GPU_texture_unbind(sds->tex_shadow);
-
-	if (use_fire) {
-		GPU_texture_unbind(sds->tex_flame);
-		GPU_texture_unbind(tex_spec);
-		GPU_texture_free(tex_spec);
-	}
-
 	MEM_freeN(slicer.verts);
-
-	GPU_shader_unbind();
 
 	glDepthMask(gl_depth_write);
 

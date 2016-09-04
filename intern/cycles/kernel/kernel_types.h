@@ -113,16 +113,7 @@ CCL_NAMESPACE_BEGIN
 #  ifdef __KERNEL_OPENCL_AMD__
 #    define __CL_USE_NATIVE__
 #    define __KERNEL_SHADING__
-#    define __MULTI_CLOSURE__
-#    define __PASSES__
-#    define __BACKGROUND_MIS__
-#    define __LAMP_MIS__
-#    define __AO__
-#    define __CAMERA_MOTION__
-#    define __OBJECT_MOTION__
-#    define __HAIR__
-#    define __BAKING__
-#    define __TRANSPARENT_SHADOWS__
+#    define __KERNEL_ADV_SHADING__
 #  endif  /* __KERNEL_OPENCL_AMD__ */
 
 #  ifdef __KERNEL_OPENCL_INTEL_CPU__
@@ -723,20 +714,21 @@ enum ShaderDataFlag {
 	SD_VOLUME_MIS             = (1 << 19),  /* use multiple importance sampling */
 	SD_VOLUME_CUBIC           = (1 << 20),  /* use cubic interpolation for voxels */
 	SD_HAS_BUMP               = (1 << 21),  /* has data connected to the displacement input */
+	SD_HAS_DISPLACEMENT       = (1 << 22),  /* has true displacement */
 
 	SD_SHADER_FLAGS = (SD_USE_MIS|SD_HAS_TRANSPARENT_SHADOW|SD_HAS_VOLUME|
 	                   SD_HAS_ONLY_VOLUME|SD_HETEROGENEOUS_VOLUME|
 	                   SD_HAS_BSSRDF_BUMP|SD_VOLUME_EQUIANGULAR|SD_VOLUME_MIS|
-	                   SD_VOLUME_CUBIC|SD_HAS_BUMP),
+	                   SD_VOLUME_CUBIC|SD_HAS_BUMP|SD_HAS_DISPLACEMENT),
 
 	/* object flags */
-	SD_HOLDOUT_MASK             = (1 << 22),  /* holdout for camera rays */
-	SD_OBJECT_MOTION            = (1 << 23),  /* has object motion blur */
-	SD_TRANSFORM_APPLIED        = (1 << 24),  /* vertices have transform applied */
-	SD_NEGATIVE_SCALE_APPLIED   = (1 << 25),  /* vertices have negative scale applied */
-	SD_OBJECT_HAS_VOLUME        = (1 << 26),  /* object has a volume shader */
-	SD_OBJECT_INTERSECTS_VOLUME = (1 << 27),  /* object intersects AABB of an object with volume shader */
-	SD_OBJECT_HAS_VERTEX_MOTION = (1 << 28),  /* has position for motion vertices */
+	SD_HOLDOUT_MASK             = (1 << 23),  /* holdout for camera rays */
+	SD_OBJECT_MOTION            = (1 << 24),  /* has object motion blur */
+	SD_TRANSFORM_APPLIED        = (1 << 25),  /* vertices have transform applied */
+	SD_NEGATIVE_SCALE_APPLIED   = (1 << 26),  /* vertices have negative scale applied */
+	SD_OBJECT_HAS_VOLUME        = (1 << 27),  /* object has a volume shader */
+	SD_OBJECT_INTERSECTS_VOLUME = (1 << 28),  /* object intersects AABB of an object with volume shader */
+	SD_OBJECT_HAS_VERTEX_MOTION = (1 << 29),  /* has position for motion vertices */
 
 	SD_OBJECT_FLAGS = (SD_HOLDOUT_MASK|SD_OBJECT_MOTION|SD_TRANSFORM_APPLIED|
 	                   SD_NEGATIVE_SCALE_APPLIED|SD_OBJECT_HAS_VOLUME|
@@ -745,7 +737,7 @@ enum ShaderDataFlag {
 
 #ifdef __SPLIT_KERNEL__
 #  define SD_THREAD (get_global_id(1) * get_global_size(0) + get_global_id(0))
-#  if defined(__SPLIT_KERNEL_AOS__)
+#  if !defined(__SPLIT_KERNEL_SOA__)
      /* ShaderData is stored as an Array-of-Structures */
 #    define ccl_soa_member(type, name) type soa_##name
 #    define ccl_fetch(s, t) (s[SD_THREAD].soa_##t)

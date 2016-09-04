@@ -158,6 +158,7 @@ public:
 	static ustring u_geom_trianglevertices;
 	static ustring u_geom_polyvertices;
 	static ustring u_geom_name;
+	static ustring u_geom_undisplaced;
 	static ustring u_is_smooth;
 	static ustring u_is_curve;
 	static ustring u_curve_thickness;

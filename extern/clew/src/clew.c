@@ -137,6 +137,17 @@ PFNCLCREATEFROMGLTEXTURE3D          __clewCreateFromGLTexture3D         = NULL;
 #endif
 PFNCLGETGLCONTEXTINFOKHR            __clewGetGLContextInfoKHR           = NULL;
 
+static CLEW_DYNLIB_HANDLE dynamic_library_open_find(const char **paths) {
+  int i = 0;
+  while (paths[i] != NULL) {
+      CLEW_DYNLIB_HANDLE lib = CLEW_DYNLIB_OPEN(paths[i]);
+      if (lib != NULL) {
+        return lib;
+      }
+      ++i;
+  }
+  return NULL;
+}
 
 static void clewExit(void)
 {
@@ -151,11 +162,15 @@ static void clewExit(void)
 int clewInit()
 {
 #ifdef _WIN32
-    const char *path = "OpenCL.dll";
+    const char *paths[] = {"OpenCL.dll", NULL};
 #elif defined(__APPLE__)
-    const char *path = "/Library/Frameworks/OpenCL.framework/OpenCL";
+    const char *paths[] = {"/Library/Frameworks/OpenCL.framework/OpenCL", NULL};
 #else
-    const char *path = "libOpenCL.so";
+    const char *paths[] = {"libOpenCL.so",
+                           "libOpenCL.so.0",
+                           "libOpenCL.so.1",
+                           "libOpenCL.so.2",
+                           NULL};
 #endif
 
     int error = 0;
@@ -167,7 +182,7 @@ int clewInit()
     }
 
     //  Load library
-    module = CLEW_DYNLIB_OPEN(path);
+    module = dynamic_library_open_find(paths);
 
     //  Check for errors
     if (module == NULL)

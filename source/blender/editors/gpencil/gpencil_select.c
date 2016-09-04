@@ -36,6 +36,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 #include "BLI_lasso.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
@@ -253,6 +254,9 @@ typedef enum eGP_SelectGrouped {
 	/* Select strokes in the same layer */
 	GP_SEL_SAME_LAYER     = 0,
 	
+	/* Select strokes with the same color */
+	GP_SEL_SAME_COLOR     = 1,
+	
 	/* TODO: All with same prefix - Useful for isolating all layers for a particular character for instance */
 	/* TODO: All with same appearance - colour/opacity/volumetric/fills ? */
 } eGP_SelectGrouped;
@@ -302,6 +306,43 @@ static void gp_select_same_layer(bContext *C)
 	CTX_DATA_END;
 }
 
+/* Select all strokes with same colors as selected ones */
+static void gp_select_same_color(bContext *C)
+{
+	/* First, build set containing all the colors of selected strokes
+	 * - We use the palette names, so that we can select all strokes with one 
+	 *   (potentially missing) color, and remap them to something else
+	 */
+	GSet *selected_colors = BLI_gset_str_new("GP Selected Colors");
+	
+	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+	{
+		if (gps->flag & GP_STROKE_SELECT) {
+			/* add instead of insert here, otherwise the uniqueness check gets skipped,
+			 * and we get many duplicate entries...
+			 */
+			BLI_gset_add(selected_colors, gps->colorname);
+		}
+	}
+	CTX_DATA_END;
+	
+	/* Second, select any visible stroke that uses these colors */
+	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+	{
+		if (BLI_gset_haskey(selected_colors, gps->colorname)) {
+			/* select this stroke */
+			bGPDspoint *pt;
+			int i;
+			
+			for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+				pt->flag |= GP_SPOINT_SELECT;
+			}
+			
+			gps->flag |= GP_STROKE_SELECT;
+		}
+	}
+	CTX_DATA_END;
+}
 
 
 /* ----------------------------------- */
@@ -313,6 +354,9 @@ static int gpencil_select_grouped_exec(bContext *C, wmOperator *op)
 	switch (mode) {
 		case GP_SEL_SAME_LAYER:
 			gp_select_same_layer(C);
+			break;
+		case GP_SEL_SAME_COLOR:
+			gp_select_same_color(C);
 			break;
 			
 		default:
@@ -329,6 +373,7 @@ void GPENCIL_OT_select_grouped(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_select_grouped_types[] = {
 		{GP_SEL_SAME_LAYER, "LAYER", 0, "Layer", "Shared layers"},
+		{GP_SEL_SAME_COLOR, "COLOR", 0, "Color", "Shared colors"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
@@ -338,7 +383,7 @@ void GPENCIL_OT_select_grouped(wmOperatorType *ot)
 	ot->description = "Select all strokes with similar characteristics";
 	
 	/* callbacks */
-	//ot->invoke = WM_menu_invoke;
+	ot->invoke = WM_menu_invoke;
 	ot->exec = gpencil_select_grouped_exec;
 	ot->poll = gpencil_select_poll;
 	

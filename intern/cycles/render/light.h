@@ -91,6 +91,9 @@ public:
 
 	void tag_update(Scene *scene);
 
+	/* Check whether there is a background light. */
+	bool has_background_light(Scene *scene);
+
 protected:
 	/* Optimization: disable light which is either unsupported or
 	 * which doesn't contribute to the scene or which is only used for MIS

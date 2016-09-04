@@ -158,8 +158,6 @@ World *localize_world(World *wrld)
 		if (wrld->mtex[a]) {
 			wrldn->mtex[a] = MEM_mallocN(sizeof(MTex), "localize_world");
 			memcpy(wrldn->mtex[a], wrld->mtex[a], sizeof(MTex));
-			/* free world decrements */
-			id_us_plus((ID *)wrldn->mtex[a]->tex);
 		}
 	}
 

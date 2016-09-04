@@ -30,14 +30,14 @@ ccl_device AttributeDescriptor svm_node_attr_init(KernelGlobals *kg, ShaderData 
 	if(ccl_fetch(sd, object) != OBJECT_NONE) {
 		desc = find_attribute(kg, sd, node.y);
 		if(desc.offset == ATTR_STD_NOT_FOUND) {
-			desc.element = ATTR_ELEMENT_NONE;
+			desc = attribute_not_found();
 			desc.offset = 0;
 			desc.type = (NodeAttributeType)node.w;
 		}
 	}
 	else {
 		/* background */
-		desc.element = ATTR_ELEMENT_NONE;
+		desc = attribute_not_found();
 		desc.offset = 0;
 		desc.type = (NodeAttributeType)node.w;
 	}
