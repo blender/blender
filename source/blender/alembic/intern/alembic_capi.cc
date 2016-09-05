@@ -599,10 +599,6 @@ struct ImportJobData {
 
 ABC_INLINE bool is_mesh_and_strands(const IObject &object)
 {
-	if (object.getNumChildren() != 2) {
-		return false;
-	}
-
 	bool has_mesh = false;
 	bool has_curve = false;
 
@@ -622,6 +618,9 @@ ABC_INLINE bool is_mesh_and_strands(const IObject &object)
 			has_mesh = true;
 		}
 		else if (ICurves::matches(md)) {
+			has_curve = true;
+		}
+		else if (IPoints::matches(md)) {
 			has_curve = true;
 		}
 	}
