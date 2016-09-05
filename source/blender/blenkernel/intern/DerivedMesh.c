@@ -80,6 +80,7 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm);
 #include "GPU_shader.h"
 
 #ifdef WITH_OPENSUBDIV
+#  include "BKE_depsgraph.h"
 #  include "DNA_userdef_types.h"
 #endif
 
@@ -2566,7 +2567,7 @@ static void editbmesh_calc_modifiers(
  * playback performance is kept as high as possible.
  */
 static bool calc_modifiers_skip_orco(Scene *scene,
-                                     const Object *ob,
+                                     Object *ob,
                                      bool use_render_params)
 {
 	ModifierData *last_md = ob->modifiers.last;
@@ -2575,9 +2576,18 @@ static bool calc_modifiers_skip_orco(Scene *scene,
 	    last_md->type == eModifierType_Subsurf &&
 	    modifier_isEnabled(scene, last_md, required_mode))
 	{
+		if (U.opensubdiv_compute_type == USER_OPENSUBDIV_COMPUTE_NONE) {
+			return false;
+		}
+		else if ((ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) != 0) {
+			return false;
+		}
+		else if ((DAG_get_eval_flags_for_object(scene, ob) & DAG_EVAL_NEED_CPU) != 0) {
+			return false;
+		}
 		SubsurfModifierData *smd = (SubsurfModifierData *)last_md;
 		/* TODO(sergey): Deduplicate this with checks from subsurf_ccg.c. */
-		return smd->use_opensubdiv && U.opensubdiv_compute_type != USER_OPENSUBDIV_COMPUTE_NONE;
+		return smd->use_opensubdiv != 0;
 	}
 	return false;
 }
