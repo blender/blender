@@ -987,7 +987,7 @@ public:
 			string clbin = string_printf("cycles_kernel_%s_%s.clbin",
 			                             device_md5.c_str(),
 			                             kernel_md5.c_str());
-			clbin = path_user_get(path_join("cache", clbin));
+			clbin = path_cache_get(path_join("kernels", clbin));
 
 			/* path to preprocessed source for debugging */
 			string clsrc, *debug_src = NULL;
@@ -996,7 +996,7 @@ public:
 				clsrc = string_printf("cycles_kernel_%s_%s.cl",
 				                      device_md5.c_str(),
 				                      kernel_md5.c_str());
-				clsrc = path_user_get(path_join("cache", clsrc));
+				clsrc = path_cache_get(path_join("kernels", clsrc));
 				debug_src = &clsrc;
 			}
 
@@ -1680,7 +1680,7 @@ public:
 			string clbin = string_printf("cycles_kernel_%s_%s.clbin",
 			                             device_md5.c_str(),
 			                             kernel_md5.c_str());
-			clbin = path_user_get(path_join("cache", clbin));
+			clbin = path_cache_get(path_join("kernels", clbin));
 
 			/* Path to preprocessed source for debugging. */
 			string clsrc, *debug_src = NULL;
@@ -1688,7 +1688,7 @@ public:
 				clsrc = string_printf("cycles_kernel_%s_%s.cl",
 				                      device_md5.c_str(),
 				                      kernel_md5.c_str());
-				clsrc = path_user_get(path_join("cache", clsrc));
+				clsrc = path_cache_get(path_join("kernels", clsrc));
 				debug_src = &clsrc;
 			}
 
@@ -2102,7 +2102,7 @@ public:
 			return false;
 		}
 
-		string cache_clbin = path_user_get(path_join("cache", clbin));
+		string cache_clbin = path_cache_get(path_join("kernels", clbin));
 
 		/* If exists already, try use it. */
 		if(path_exists(cache_clbin) && load_binary(kernel_path,
@@ -2220,7 +2220,7 @@ public:
 		if(opencl_kernel_use_debug()) { \
 			clsrc = string_printf("cycles_kernel_%s_%s_" #name ".cl", \
 			                      device_md5.c_str(), kernel_md5.c_str()); \
-			clsrc = path_user_get(path_join("cache", clsrc)); \
+			clsrc = path_cache_get(path_join("kernels", clsrc)); \
 			debug_src = &clsrc; \
 		} \
 		if(!load_split_kernel(#name, \

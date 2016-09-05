@@ -35,6 +35,7 @@ CCL_NAMESPACE_BEGIN
 void path_init(const string& path = "", const string& user_path = "");
 string path_get(const string& sub = "");
 string path_user_get(const string& sub = "");
+string path_cache_get(const string& sub = "");
 
 /* path string manipulation */
 string path_filename(const string& path);
