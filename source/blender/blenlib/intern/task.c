@@ -780,9 +780,10 @@ BLI_INLINE bool parallel_range_next_iter_get(
         ParallelRangeState * __restrict state,
         int * __restrict iter, int * __restrict count)
 {
-	uint32_t previter = atomic_fetch_and_add_uint32((uint32_t *)(&state->iter), state->chunk_size);
+	uint32_t uval = atomic_fetch_and_add_uint32((uint32_t *)(&state->iter), state->chunk_size);
+	int previter = *(int32_t*)&uval;
 
-	*iter = (int)previter;
+	*iter = previter;
 	*count = max_ii(0, min_ii(state->chunk_size, state->stop - previter));
 
 	return (previter < state->stop);
