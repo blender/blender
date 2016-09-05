@@ -1841,6 +1841,52 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 #undef USE_FLAT_INACTIVE
 }
 
+static int ui_handle_panel_category_cycling(const wmEvent *event, ARegion *ar, const uiBut *active_but)
+{
+	const bool is_mousewheel = ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE);
+	const bool inside_tabregion = (event->mval[0] < ((PanelCategoryDyn *)ar->panels_category.first)->rect.xmax);
+
+	/* if mouse is inside non-tab region, ctrl key is required */
+	if (is_mousewheel && !event->ctrl && !inside_tabregion)
+		return WM_UI_HANDLER_CONTINUE;
+
+
+	if (active_but && ui_but_supports_cycling(active_but)) {
+		/* skip - exception to make cycling buttons
+		 * using ctrl+mousewheel work in tabbed regions */
+	}
+	else {
+		const char *category = UI_panel_category_active_get(ar, false);
+		if (LIKELY(category)) {
+			PanelCategoryDyn *pc_dyn = UI_panel_category_find(ar, category);
+			if (LIKELY(pc_dyn)) {
+				if (is_mousewheel) {
+					/* we can probably get rid of this and only allow ctrl+tabbing */
+					pc_dyn = (event->type == WHEELDOWNMOUSE) ? pc_dyn->next : pc_dyn->prev;
+				}
+				else {
+					const bool backwards = event->shift;
+					pc_dyn = backwards ? pc_dyn->prev : pc_dyn->next;
+					if (!pc_dyn) {
+						/* proper cyclic behavior, back to first/last category (only used for ctrl+tab) */
+						pc_dyn = backwards ? ar->panels_category.last : ar->panels_category.first;
+					}
+				}
+
+				if (pc_dyn) {
+					/* intentionally don't reset scroll in this case,
+					 * this allows for quick browsing between tabs */
+					UI_panel_category_active_set(ar, pc_dyn->idname);
+					ED_region_tag_redraw(ar);
+				}
+			}
+		}
+		return WM_UI_HANDLER_BREAK;
+	}
+
+	return WM_UI_HANDLER_CONTINUE;
+}
+
 /* XXX should become modal keymap */
 /* AKey is opening/closing panels, independent of button state now */
 
@@ -1853,6 +1899,7 @@ int ui_handler_panel_region(bContext *C, const wmEvent *event, ARegion *ar, cons
 
 	retval = WM_UI_HANDLER_CONTINUE;
 
+	/* handle category tabs */
 	if (has_category_tabs) {
 		if (event->val == KM_PRESS) {
 			if (event->type == LEFTMOUSE) {
@@ -1867,32 +1914,9 @@ int ui_handler_panel_region(bContext *C, const wmEvent *event, ARegion *ar, cons
 					retval = WM_UI_HANDLER_BREAK;
 				}
 			}
-			else if (ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
-				/* mouse wheel cycle tabs */
-
-				/* first check if the mouse is in the tab region */
-				if (event->ctrl || (event->mval[0] < ((PanelCategoryDyn *)ar->panels_category.first)->rect.xmax)) {
-					if (active_but && ui_but_supports_cycling(active_but)) {
-						/* skip - exception to make cycling buttons
-						 * using ctrl+mousewheel work in tabbed regions */
-					}
-					else {
-						const char *category = UI_panel_category_active_get(ar, false);
-						if (LIKELY(category)) {
-							PanelCategoryDyn *pc_dyn = UI_panel_category_find(ar, category);
-							if (LIKELY(pc_dyn)) {
-								pc_dyn = (event->type == WHEELDOWNMOUSE) ? pc_dyn->next : pc_dyn->prev;
-								if (pc_dyn) {
-									/* intentionally don't reset scroll in this case,
-									 * this allows for quick browsing between tabs */
-									UI_panel_category_active_set(ar, pc_dyn->idname);
-									ED_region_tag_redraw(ar);
-								}
-							}
-						}
-						retval = WM_UI_HANDLER_BREAK;
-					}
-				}
+			else if ((event->type == TABKEY && event->ctrl) || ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
+				/* cycle tabs */
+				retval = ui_handle_panel_category_cycling(event, ar, active_but);
 			}
 		}
 	}

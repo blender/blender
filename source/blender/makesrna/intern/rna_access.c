@@ -2873,6 +2873,45 @@ void *RNA_property_enum_py_data_get(PropertyRNA *prop)
 	return eprop->py_data;
 }
 
+/**
+ * Get the value of the item that is \a step items away from \a from_value.
+ *
+ * \param from_value: Item value to start stepping from.
+ * \param step: Absolute value defines step size, sign defines direction.
+ *              E.g to get the next item, pass 1, for the previous -1.
+ */
+int RNA_property_enum_step(const bContext *C, PointerRNA *ptr, PropertyRNA *prop, int from_value, int step)
+{
+	EnumPropertyItem *item_array;
+	int totitem;
+	bool free;
+	int result_value = from_value;
+	int i, i_init;
+	int single_step = (step < 0) ? -1 : 1;
+	int step_tot = 0;
+
+	RNA_property_enum_items((bContext *)C, ptr, prop, &item_array, &totitem, &free);
+	i = RNA_enum_from_value(item_array, from_value);
+	i_init = i;
+
+	do {
+		i = mod_i(i + single_step, totitem);
+		if (item_array[i].identifier[0]) {
+			step_tot += single_step;
+		}
+	} while ((i != i_init) && (step_tot != step));
+
+	if (i != i_init) {
+		result_value = item_array[i].value;
+	}
+
+	if (free) {
+		MEM_freeN(item_array);
+	}
+
+	return result_value;
+}
+
 PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
 {
 	PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
