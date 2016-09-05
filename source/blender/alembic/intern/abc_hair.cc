@@ -59,7 +59,7 @@ AbcHairWriter::AbcHairWriter(Scene *scene,
 {
 	m_psys = psys;
 
-	OCurves curves(parent->alembicXform(), m_name, m_time_sampling);
+	OCurves curves(parent->alembicXform(), psys->name, m_time_sampling);
 	m_schema = curves.getSchema();
 }
 
