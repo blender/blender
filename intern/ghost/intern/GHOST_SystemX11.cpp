@@ -922,7 +922,6 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				case GHOST_kKey7:
 				case GHOST_kKey8:
 				case GHOST_kKey9:
-					printf("ModKey!\n");
 					break;
 				default:
 					gkey = convertXKey(key_sym_str);
