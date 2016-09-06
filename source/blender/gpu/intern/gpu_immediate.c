@@ -242,6 +242,7 @@ typedef struct {
 	unsigned buffer_offset;
 	unsigned buffer_bytes_mapped;
 	unsigned vertex_ct;
+	bool strict_vertex_ct;
 	GLenum primitive;
 
 	VertexFormat vertex_format;
@@ -285,7 +286,8 @@ void immInit()
 #endif
 
 	imm.primitive = PRIM_NONE;
-	
+	imm.strict_vertex_ct = true;
+
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	initialized = true;
@@ -334,36 +336,38 @@ void immUnbindProgram()
 	imm.bound_program = 0;
 	}
 
+static bool vertex_count_makes_sense_for_primitive(unsigned vertex_ct, GLenum primitive)
+	{
+	// does vertex_ct make sense for this primitive type?
+	if (vertex_ct == 0)
+		return false;
+
+	switch (primitive)
+		{
+		case GL_POINTS:
+			return true;
+		case GL_LINES:
+			return vertex_ct % 2 == 0;
+		case GL_LINE_STRIP:
+		case GL_LINE_LOOP:
+			return vertex_ct > 2; // otherwise why bother?
+		case GL_TRIANGLES:
+			return vertex_ct % 3 == 0;
+  #ifdef WITH_GL_PROFILE_COMPAT
+		case GL_QUADS:
+			return vertex_ct % 4 == 0;
+  #endif
+		default:
+			return false;
+		}
+	}
+
 void immBegin(GLenum primitive, unsigned vertex_ct)
 	{
 #if TRUST_NO_ONE
 	assert(initialized);
 	assert(imm.primitive == PRIM_NONE); // make sure we haven't already begun
-
-	// does vertex_ct make sense for this primitive type?
-	assert(vertex_ct > 0);
-	switch (primitive)
-		{
-		case GL_POINTS:
-			break;
-		case GL_LINES:
-			assert(vertex_ct % 2 == 0);
-			break;
-		case GL_LINE_STRIP:
-		case GL_LINE_LOOP:
-			assert(vertex_ct > 2); // otherwise why bother?
-			break;
-		case GL_TRIANGLES:
-			assert(vertex_ct % 3 == 0);
-			break;
-  #ifdef WITH_GL_PROFILE_COMPAT
-		case GL_QUADS:
-			assert(vertex_ct % 4 == 0);
-			break;
-  #endif
-		default:
-			assert(false);
-		}
+	assert(vertex_count_makes_sense_for_primitive(vertex_ct, primitive));
 #endif
 
 	imm.primitive = primitive;
@@ -417,17 +421,43 @@ void immBegin(GLenum primitive, unsigned vertex_ct)
 	imm.vertex_data = imm.buffer_data;
 	}
 
+void immBeginAtMost(GLenum primitive, unsigned vertex_ct)
+	{
+	imm.strict_vertex_ct = false;
+	immBegin(primitive, vertex_ct);
+	}
+
 void immEnd()
 	{
 #if TRUST_NO_ONE
 	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
-	assert(imm.vertex_idx == imm.vertex_ct); // with all vertices defined
 #endif
+
+	unsigned buffer_bytes_used;
+	if (imm.strict_vertex_ct)
+		{
+#if TRUST_NO_ONE
+		assert(imm.vertex_idx == imm.vertex_ct); // with all vertices defined
+#endif
+		buffer_bytes_used = imm.buffer_bytes_mapped;
+		}
+	else
+		{
+#if TRUST_NO_ONE
+		assert(imm.vertex_idx <= imm.vertex_ct);
+		assert(vertex_count_makes_sense_for_primitive(imm.vertex_idx, imm.primitive));
+#endif
+		// printf("used %u of %u verts,", imm.vertex_idx, imm.vertex_ct);
+		imm.vertex_ct = imm.vertex_idx;
+		buffer_bytes_used = vertex_buffer_size(&imm.vertex_format, imm.vertex_ct);
+		// unused buffer bytes are available to the next immBegin
+		// printf(" %u of %u bytes\n", buffer_bytes_used, imm.buffer_bytes_mapped);
+		}
 
 #if APPLE_LEGACY
 	// tell OpenGL what range was modified so it doesn't copy the whole buffer
-	glFlushMappedBufferRangeAPPLE(GL_ARRAY_BUFFER, imm.buffer_offset, imm.buffer_bytes_mapped);
-//	printf("flushing %u to %u\n", imm.buffer_offset, imm.buffer_offset + imm.buffer_bytes_mapped - 1);
+	glFlushMappedBufferRangeAPPLE(GL_ARRAY_BUFFER, imm.buffer_offset, buffer_bytes_used);
+//	printf("flushing %u to %u\n", imm.buffer_offset, imm.buffer_offset + buffer_bytes_used - 1);
 #endif
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 
@@ -490,8 +520,9 @@ void immEnd()
 	glBindVertexArray(0);
 
 	// prep for next immBegin
-	imm.buffer_offset += imm.buffer_bytes_mapped;
+	imm.buffer_offset += buffer_bytes_used;
 	imm.primitive = PRIM_NONE;
+	imm.strict_vertex_ct = true;
 
 	// further optional cleanup
 	imm.buffer_bytes_mapped = 0;

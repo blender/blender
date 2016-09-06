@@ -63,7 +63,8 @@ VertexFormat* immVertexFormat(void); // returns a cleared vertex format, ready f
 void immBindProgram(GLuint program);
 void immUnbindProgram(void);
 
-void immBegin(GLenum primitive, unsigned vertex_ct);
+void immBegin(GLenum primitive, unsigned vertex_ct); // must supply exactly vertex_ct vertices
+void immBeginAtMost(GLenum primitive, unsigned max_vertex_ct); // can supply fewer vertices
 void immEnd(void);
 
 void immAttrib1f(unsigned attrib_id, float x);
