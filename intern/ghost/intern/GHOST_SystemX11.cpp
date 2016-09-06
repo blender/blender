@@ -1606,6 +1606,7 @@ convertXKey(KeySym key)
 		switch (key) {
 			GXMAP(type, XK_BackSpace,    GHOST_kKeyBackSpace);
 			GXMAP(type, XK_Tab,          GHOST_kKeyTab);
+			GXMAP(type, XK_ISO_Left_Tab, GHOST_kKeyTab);
 			GXMAP(type, XK_Return,       GHOST_kKeyEnter);
 			GXMAP(type, XK_Escape,       GHOST_kKeyEsc);
 			GXMAP(type, XK_space,        GHOST_kKeySpace);
