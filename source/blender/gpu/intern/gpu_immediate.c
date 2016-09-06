@@ -36,6 +36,8 @@
   #define glBindVertexArray glBindVertexArrayAPPLE
 #endif
 
+#define PRIM_NONE 0xF
+
 void clear_VertexFormat(VertexFormat* format)
 	{
 	for (unsigned a = 0; a < format->attrib_ct; ++a)
@@ -282,7 +284,7 @@ void immInit()
 	glBufferParameteriAPPLE(GL_ARRAY_BUFFER, GL_BUFFER_FLUSHING_UNMAP_APPLE, GL_FALSE);
 #endif
 
-	imm.primitive = GL_NONE;
+	imm.primitive = PRIM_NONE;
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -293,7 +295,7 @@ void immDestroy()
 	{
 #if TRUST_NO_ONE
 	assert(initialized);
-	assert(imm.primitive == GL_NONE); // make sure we're not between a Begin/End pair
+	assert(imm.primitive == PRIM_NONE); // make sure we're not between a Begin/End pair
 #endif
 
 	clear_VertexFormat(&imm.vertex_format);
@@ -336,7 +338,7 @@ void immBegin(GLenum primitive, unsigned vertex_ct)
 	{
 #if TRUST_NO_ONE
 	assert(initialized);
-	assert(imm.primitive == GL_NONE); // make sure we haven't already begun
+	assert(imm.primitive == PRIM_NONE); // make sure we haven't already begun
 
 	// does vertex_ct make sense for this primitive type?
 	assert(vertex_ct > 0);
@@ -418,7 +420,7 @@ void immBegin(GLenum primitive, unsigned vertex_ct)
 void immEnd()
 	{
 #if TRUST_NO_ONE
-	assert(imm.primitive != GL_NONE); // make sure we're between a Begin/End pair
+	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
 	assert(imm.vertex_idx == imm.vertex_ct); // with all vertices defined
 #endif
 
@@ -489,7 +491,7 @@ void immEnd()
 
 	// prep for next immBegin
 	imm.buffer_offset += imm.buffer_bytes_mapped;
-	imm.primitive = GL_NONE;
+	imm.primitive = PRIM_NONE;
 
 	// further optional cleanup
 	imm.buffer_bytes_mapped = 0;
@@ -517,7 +519,7 @@ void immAttrib1f(unsigned attrib_id, float x)
 	assert(attrib->comp_type == GL_FLOAT);
 	assert(attrib->comp_ct == 1);
 	assert(imm.vertex_idx < imm.vertex_ct);
-	assert(imm.primitive != GL_NONE); // make sure we're between a Begin/End pair
+	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
 #endif
 
 	setAttribValueBit(attrib_id);
@@ -537,7 +539,7 @@ void immAttrib2f(unsigned attrib_id, float x, float y)
 	assert(attrib->comp_type == GL_FLOAT);
 	assert(attrib->comp_ct == 2);
 	assert(imm.vertex_idx < imm.vertex_ct);
-	assert(imm.primitive != GL_NONE); // make sure we're between a Begin/End pair
+	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
 #endif
 
 	setAttribValueBit(attrib_id);
@@ -558,7 +560,7 @@ void immAttrib3f(unsigned attrib_id, float x, float y, float z)
 	assert(attrib->comp_type == GL_FLOAT);
 	assert(attrib->comp_ct == 3);
 	assert(imm.vertex_idx < imm.vertex_ct);
-	assert(imm.primitive != GL_NONE); // make sure we're between a Begin/End pair
+	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
 #endif
 
 	setAttribValueBit(attrib_id);
@@ -580,7 +582,7 @@ void immAttrib4f(unsigned attrib_id, float x, float y, float z, float w)
 	assert(attrib->comp_type == GL_FLOAT);
 	assert(attrib->comp_ct == 4);
 	assert(imm.vertex_idx < imm.vertex_ct);
-	assert(imm.primitive != GL_NONE); // make sure we're between a Begin/End pair
+	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
 #endif
 
 	setAttribValueBit(attrib_id);
@@ -613,7 +615,7 @@ void immAttrib3ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned
 	assert(attrib->comp_type == GL_UNSIGNED_BYTE);
 	assert(attrib->comp_ct == 3);
 	assert(imm.vertex_idx < imm.vertex_ct);
-	assert(imm.primitive != GL_NONE); // make sure we're between a Begin/End pair
+	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
 #endif
 
 	setAttribValueBit(attrib_id);
@@ -635,7 +637,7 @@ void immAttrib4ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned
 	assert(attrib->comp_type == GL_UNSIGNED_BYTE);
 	assert(attrib->comp_ct == 4);
 	assert(imm.vertex_idx < imm.vertex_ct);
-	assert(imm.primitive != GL_NONE); // make sure we're between a Begin/End pair
+	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
 #endif
 
 	setAttribValueBit(attrib_id);
@@ -662,7 +664,7 @@ void immAttrib4ubv(unsigned attrib_id, const unsigned char data[4])
 void immEndVertex()
 	{
 #if TRUST_NO_ONE
-	assert(imm.primitive != GL_NONE); // make sure we're between a Begin/End pair
+	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
 	assert(imm.vertex_idx < imm.vertex_ct);
 #endif
 
