@@ -304,7 +304,7 @@ static void schedule_node(TaskPool *pool, Depsgraph *graph, unsigned int layers,
 					                               deg_task_run_func,
 					                               node,
 					                               false,
-					                               TASK_PRIORITY_HIGH,
+					                               TASK_PRIORITY_LOW,
 					                               thread_id);
 				}
 			}
