@@ -838,7 +838,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		case KeyRelease:
 		{
 			XKeyEvent *xke = &(xe->xkey);
-			KeySym key_sym = XK_VoidSymbol;
+			KeySym key_sym;
 			KeySym key_sym_str;
 			char ascii;
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
@@ -891,16 +891,41 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			if ((xke->keycode >= 10 && xke->keycode < 20) && ((xke->state & number_hack_forbidden_kmods_mask) == 0)) {
 				key_sym = XLookupKeysym(xke, ShiftMask);
 				if (!((key_sym >= XK_0) && (key_sym <= XK_9))) {
-					key_sym = XK_VoidSymbol;
+					key_sym = XLookupKeysym(xke, 0);
 				}
+			}
+			else {
+				key_sym = XLookupKeysym(xke, 0);
 			}
 
 			if (!XLookupString(xke, &ascii, 1, &key_sym_str, NULL)) {
 				ascii = '\0';
 			}
 
-			if ((gkey = convertXKey(key_sym)) == GHOST_kKeyUnknown) {
-				gkey = convertXKey(key_sym_str);
+			/* Only allow a very limited set of keys from XLookupKeysym, all others we take from XLookupString... */
+			gkey = convertXKey(key_sym);
+			switch (gkey) {
+				case GHOST_kKeyRightAlt:
+				case GHOST_kKeyLeftAlt:
+				case GHOST_kKeyRightShift:
+				case GHOST_kKeyLeftShift:
+				case GHOST_kKeyRightControl:
+				case GHOST_kKeyLeftControl:
+				case GHOST_kKeyOS:
+				case GHOST_kKey0:
+				case GHOST_kKey1:
+				case GHOST_kKey2:
+				case GHOST_kKey3:
+				case GHOST_kKey4:
+				case GHOST_kKey5:
+				case GHOST_kKey6:
+				case GHOST_kKey7:
+				case GHOST_kKey8:
+				case GHOST_kKey9:
+					printf("ModKey!\n");
+					break;
+				default:
+					gkey = convertXKey(key_sym_str);
 			}
 #else
 			/* In keyboards like latin ones,
