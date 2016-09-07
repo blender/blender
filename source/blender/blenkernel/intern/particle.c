@@ -318,16 +318,24 @@ void psys_check_group_weights(ParticleSettings *part)
 	int current = 0;
 
 	if (part->ren_as == PART_DRAW_GR && part->dup_group && part->dup_group->gobject.first) {
-		/* first remove all weights that don't have an object in the group */
+		/* First try to find NULL objects from their index,
+		 * and remove all weights that don't have an object in the group. */
 		dw = part->dupliweights.first;
 		while (dw) {
-			if (!BKE_group_object_exists(part->dup_group, dw->ob)) {
-				tdw = dw->next;
-				BLI_freelinkN(&part->dupliweights, dw);
-				dw = tdw;
+			if (dw->ob == NULL || !BKE_group_object_exists(part->dup_group, dw->ob)) {
+				GroupObject *go = (GroupObject *)BLI_findlink(&part->dup_group->gobject, dw->index);
+				if (go) {
+					dw->ob = go->ob;
+				}
+				else {
+					tdw = dw->next;
+					BLI_freelinkN(&part->dupliweights, dw);
+					dw = tdw;
+				}
 			}
-			else
+			else {
 				dw = dw->next;
+			}
 		}
 
 		/* then add objects in the group to new list */
