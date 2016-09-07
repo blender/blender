@@ -3195,24 +3195,62 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm,
 
 #ifdef WITH_OPENSUBDIV
 	if (ccgdm->useGpuBackend) {
-		int new_matnr;
-		bool draw_smooth;
+		const int level = ccgSubSurf_getSubdivisionLevels(ss);
+		const int face_side = 1 << level;
+		const int grid_side = 1 << (level - 1);
+		const int face_patches = face_side * face_side;
+		const int grid_patches = grid_side * grid_side;
+		const int num_base_faces = ccgSubSurf_getNumGLMeshBaseFaces(ss);
+		int current_patch = 0;
+		int mat_nr = -1;
+		bool draw_smooth = false;
+		int start_draw_patch = -1, num_draw_patches = 0;
 		GPU_draw_update_fvar_offset(dm);
 		if (UNLIKELY(ccgSubSurf_prepareGLMesh(ss, true, -1) == false)) {
 			return;
 		}
-		/* TODO(sergey): Single matierial currently. */
-		if (faceFlags) {
-			draw_smooth = (faceFlags[0].flag & ME_SMOOTH);
-			new_matnr = (faceFlags[0].mat_nr + 1);
+		for (i = 0; i < num_base_faces; ++i) {
+			const int num_face_verts = ccgSubSurf_getNumGLMeshBaseFaceVerts(ss, i);
+			const int num_patches = (num_face_verts == 4) ? face_patches
+			                                              : num_face_verts * grid_patches;
+			int new_matnr;
+			bool new_draw_smooth;
+
+			if (faceFlags) {
+				new_draw_smooth = (faceFlags[i].flag & ME_SMOOTH);
+				new_matnr = (faceFlags[i].mat_nr + 1);
+			}
+			else {
+				new_draw_smooth = true;
+				new_matnr = 1;
+			}
+			if (new_draw_smooth != draw_smooth || new_matnr != mat_nr) {
+				if (num_draw_patches != 0) {
+					setMaterial(userData, mat_nr, &gattribs);
+					glShadeModel(draw_smooth ? GL_SMOOTH : GL_FLAT);
+					ccgSubSurf_drawGLMesh(ss,
+					                      true,
+					                      start_draw_patch,
+					                      num_draw_patches);
+				}
+				start_draw_patch = current_patch;
+				num_draw_patches = num_patches;
+				mat_nr = new_matnr;
+				draw_smooth = new_draw_smooth;
+			}
+			else {
+				num_draw_patches += num_patches;
+			}
+			current_patch += num_patches;
 		}
-		else {
-			draw_smooth = true;
-			new_matnr = 1;
+		if (num_draw_patches != 0) {
+			setMaterial(userData, mat_nr, &gattribs);
+			glShadeModel(draw_smooth ? GL_SMOOTH : GL_FLAT);
+			ccgSubSurf_drawGLMesh(ss,
+			                      true,
+			                      start_draw_patch,
+			                      num_draw_patches);
 		}
-		glShadeModel(draw_smooth ? GL_SMOOTH : GL_FLAT);
-		setMaterial(userData, new_matnr, &gattribs);
-		ccgSubSurf_drawGLMesh(ss, true, -1, -1);
 		glShadeModel(GL_SMOOTH);
 		return;
 	}
