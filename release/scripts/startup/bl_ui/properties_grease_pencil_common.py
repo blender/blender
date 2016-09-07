@@ -772,6 +772,7 @@ class GPENCIL_MT_palettecolor_specials(Menu):
         layout.separator()
 
         layout.operator("gpencil.palettecolor_select", icon='COLOR', text="Select Strokes")
+        layout.operator("gpencil.stroke_change_color", icon='MAN_TRANS', text="Move to Color")
 
 
 class GreasePencilDataPanel:
