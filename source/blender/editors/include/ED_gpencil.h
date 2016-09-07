@@ -30,6 +30,8 @@
 #ifndef __ED_GPENCIL_H__
 #define __ED_GPENCIL_H__
 
+#include "ED_numinput.h"
+
 struct ID;
 struct ListBase;
 struct bContext;
@@ -51,6 +53,33 @@ struct wmKeyConfig;
 
 
 /* ------------- Grease-Pencil Helpers ---------------- */
+typedef struct tGPDinterpolate_layer {
+	struct tGPDinterpolate_layer *next, *prev;
+
+	struct bGPDlayer *gpl;            /* layer */
+	struct bGPDframe *prevFrame;      /* frame before current frame (interpolate-from) */
+	struct bGPDframe *nextFrame;      /* frame after current frame (interpolate-to) */
+	struct bGPDframe *interFrame;     /* interpolated frame */
+	float factor;                     /* interpolate factor */
+
+} tGPDinterpolate_layer;
+
+/* Temporary interpolate operation data */
+typedef struct tGPDinterpolate {
+	struct Scene *scene;       /* current scene from context */
+	struct ScrArea *sa;        /* area where painting originated */
+	struct ARegion *ar;        /* region where painting originated */
+	struct bGPdata *gpd;       /* current GP datablock */
+
+	int cframe;                /* current frame number */
+	ListBase ilayers;   /* (tGPDinterpolate_layer) layers to be interpolated */
+	float shift;        /* -1/1 value for determining the displacement influence */
+	int flag;           /* flag from toolsettings */
+
+	NumInput num;       /* numeric input */
+	void *draw_handle_3d; /* handle for drawing strokes while operator is running 3d stuff */
+	void *draw_handle_screen; /* handle for drawing strokes while operator is running screen stuff */
+} tGPDinterpolate;
 
 /* Temporary 'Stroke Point' data 
  *
@@ -118,6 +147,7 @@ void ED_gpencil_draw_view2d(const struct bContext *C, bool onlyv2d);
 void ED_gpencil_draw_view3d(struct wmWindowManager *wm, struct Scene *scene, struct View3D *v3d, struct ARegion *ar, bool only3d);
 void ED_gpencil_draw_ex(struct Scene *scene, struct bGPdata *gpd, int winx, int winy,
                         const int cfra, const char spacetype);
+void ED_gp_draw_interpolation(struct tGPDinterpolate *tgpi, const int type);
 
 /* ----------- Grease-Pencil AnimEdit API ------------------ */
 bool  ED_gplayer_frames_looper(struct bGPDlayer *gpl, struct Scene *scene,

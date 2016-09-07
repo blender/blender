@@ -216,6 +216,15 @@ class GreasePencilStrokeEditPanel:
         col.operator_menu_enum("gpencil.stroke_arrange", text="Arrange Strokes...", property="direction")
         col.operator("gpencil.stroke_change_color", text="Move to Color")
 
+        if is_3d_view:
+            layout.separator()
+            col = layout.column(align=True)
+            col.operator("gpencil.interpolate", text="Interpolate")
+            col.operator("gpencil.interpolate_sequence", text="Sequence")
+            settings = context.tool_settings.gpencil_sculpt
+            col.prop(settings, "interpolate_all_layers")
+            col.prop(settings, "interpolate_selected_only")
+
         layout.separator()
         col = layout.column(align=True)
         col.operator("gpencil.stroke_join", text="Join").type = 'JOIN'

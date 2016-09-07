@@ -335,6 +335,11 @@ void gpencil_undo_init(struct bGPdata *gpd);
 void gpencil_undo_push(struct bGPdata *gpd);
 void gpencil_undo_finish(void);
 
+/* interpolation ---------- */
+
+void GPENCIL_OT_interpolate(struct wmOperatorType *ot);
+void GPENCIL_OT_interpolate_sequence(struct wmOperatorType *ot);
+
 /* ****************************************************** */
 /* FILTERED ACTION DATA - TYPES  ---> XXX DEPRECEATED OLD ANIM SYSTEM CODE! */
 
