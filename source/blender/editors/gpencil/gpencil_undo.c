@@ -124,6 +124,17 @@ void gpencil_undo_init(bGPdata *gpd)
 	gpencil_undo_push(gpd);
 }
 
+static void gpencil_undo_free_node(bGPundonode *undo_node)
+{
+	/* HACK: animdata wasn't duplicated, so it shouldn't be freed here,
+	 * or else the real copy will segfault when accessed
+	 */
+	undo_node->gpd->adt = NULL;
+	
+	BKE_gpencil_free(undo_node->gpd, false);
+	MEM_freeN(undo_node->gpd);
+}
+
 void gpencil_undo_push(bGPdata *gpd)
 {
 	bGPundonode *undo_node;
@@ -137,14 +148,7 @@ void gpencil_undo_push(bGPdata *gpd)
 		while (undo_node) {
 			bGPundonode *next_node = undo_node->next;
 			
-			/* HACK: animdata wasn't duplicated, so it shouldn't be freed here,
-			 * or else the real copy will segfault when accessed
-			 */
-			undo_node->gpd->adt = NULL;
-			
-			BKE_gpencil_free(undo_node->gpd, false);
-			MEM_freeN(undo_node->gpd);
-			
+			gpencil_undo_free_node(undo_node);
 			BLI_freelinkN(&undo_nodes, undo_node);
 			
 			undo_node = next_node;
@@ -188,14 +192,7 @@ void gpencil_undo_finish(void)
 	bGPundonode *undo_node = undo_nodes.first;
 	
 	while (undo_node) {
-		/* HACK: animdata wasn't duplicated, so it shouldn't be freed here,
-		 * or else the real copy will segfault when accessed
-		 */
-		undo_node->gpd->adt = NULL;
-		
-		BKE_gpencil_free(undo_node->gpd, false);
-		MEM_freeN(undo_node->gpd);
-		
+		gpencil_undo_free_node(undo_node);
 		undo_node = undo_node->next;
 	}
 	
