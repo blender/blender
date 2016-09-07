@@ -151,6 +151,29 @@ void gpencil_undo_push(bGPdata *gpd)
 		}
 	}
 	
+	/* limit number of undo steps to the maximum undo steps
+	 *  - to prevent running out of memory during **really** 
+	 *    long drawing sessions (triggering swapping)
+	 */
+	/* TODO: Undo-memory constraint is not respected yet, but can be added if we have any need for it */
+	if (U.undosteps && !BLI_listbase_is_empty(&undo_nodes)) {
+		/* remove anything older than n-steps before cur_node */
+		int steps = 0;
+		
+		undo_node = (cur_node) ? cur_node : undo_nodes.last;
+		while (undo_node) {
+			bGPundonode *prev_node = undo_node->prev;
+			
+			if (steps >= U.undosteps) {
+				gpencil_undo_free_node(undo_node);
+				BLI_freelinkN(&undo_nodes, undo_node);
+			}
+			
+			steps++;
+			undo_node = prev_node;
+		}
+	}
+	
 	/* create new undo node */
 	undo_node = MEM_callocN(sizeof(bGPundonode), "gpencil undo node");
 	undo_node->gpd = BKE_gpencil_data_duplicate(G.main, gpd, true);
