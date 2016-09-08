@@ -425,6 +425,7 @@ RegularBVH::RegularBVH(const BVHParams& params_, const vector<Object*>& objects_
 void RegularBVH::pack_leaf(const BVHStackEntry& e,
                            const LeafNode *leaf)
 {
+	assert(e.idx + BVH_NODE_LEAF_SIZE <= pack.leaf_nodes.size());
 	float4 data[BVH_NODE_LEAF_SIZE];
 	memset(data, 0, sizeof(data));
 	if(leaf->num_triangles() == 1 && pack.prim_index[leaf->m_lo] == -1) {
@@ -472,8 +473,11 @@ void RegularBVH::pack_aligned_node(int idx,
                                    int c0, int c1,
                                    uint visibility0, uint visibility1)
 {
-	int4 data[BVH_NODE_SIZE] =
-	{
+	assert(idx + BVH_NODE_SIZE <= pack.nodes.size());
+	assert(c0 < 0 || c0 < pack.nodes.size());
+	assert(c1 < 0 || c1 < pack.nodes.size());
+
+	int4 data[BVH_NODE_SIZE] = {
 		make_int4(visibility0 & ~PATH_RAY_NODE_UNALIGNED,
 		          visibility1 & ~PATH_RAY_NODE_UNALIGNED,
 		          c0, c1),
@@ -515,6 +519,10 @@ void RegularBVH::pack_unaligned_node(int idx,
                                      int c0, int c1,
                                      uint visibility0, uint visibility1)
 {
+	assert(idx + BVH_UNALIGNED_NODE_SIZE <= pack.nodes.size());
+	assert(c0 < 0 || c0 < pack.nodes.size());
+	assert(c1 < 0 || c1 < pack.nodes.size());
+
 	float4 data[BVH_UNALIGNED_NODE_SIZE];
 	Transform space0 = BVHUnaligned::compute_node_transform(bounds0,
 	                                                        aligned_space0);
@@ -624,6 +632,7 @@ void RegularBVH::refit_nodes()
 void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 {
 	if(leaf) {
+		assert(idx + BVH_NODE_LEAF_SIZE <= pack.leaf_nodes.size());
 		int4 *data = &pack.leaf_nodes[idx];
 		int c0 = data[0].x;
 		int c1 = data[0].y;
@@ -701,6 +710,7 @@ void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility
 		memcpy(&pack.leaf_nodes[idx], leaf_data, sizeof(float4)*BVH_NODE_LEAF_SIZE);
 	}
 	else {
+		assert(idx + BVH_NODE_SIZE <= pack.nodes.size());
 		int4 *data = &pack.nodes[idx];
 		int c0 = data[0].z;
 		int c1 = data[0].w;
