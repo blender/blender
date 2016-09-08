@@ -25,6 +25,10 @@ CCL_NAMESPACE_BEGIN
 #ifndef __KERNEL_GPU__
 #  if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
 /* C++11 has built-in static_assert() */
+#  elif defined(static_assert)
+/* Some platforms might have static_assert() defined even tho their
+ * C++ support wouldn't be declared to be C++11.
+ */
 #  else  /* C++11 or MSVC2015 */
 template <bool Test> class StaticAssertFailure;
 template <> class StaticAssertFailure<true> {};
