@@ -30,6 +30,8 @@
 #define NUM_STR_REP_LEN 64
 #define NUM_MAX_ELEMENTS 3
 
+struct wmEvent;
+
 typedef struct NumInput {
 	short  idx_max;                      /* idx_max < NUM_MAX_ELEMENTS */
 	int    unit_sys;
