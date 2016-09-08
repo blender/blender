@@ -2264,7 +2264,6 @@ static tGPDinterpolate *gp_session_init_interpolation(bContext *C, wmOperator *o
 static void gpencil_interpolate_exit(bContext *C, wmOperator *op)
 {
 	tGPDinterpolate *tgpi = op->customdata;
-	bGPdata *gpd = CTX_data_gpencil_data(C);
 	tGPDinterpolate_layer *tgpil;
 
 	/* don't assume that operator data exists at all */
@@ -2334,7 +2333,7 @@ static void gpencil_interpolate_draw_3d(const struct bContext *UNUSED(C), ARegio
 }
 
 /* Invoke handler: Initialize the operator */
-static int gpencil_interpolate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int gpencil_interpolate_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	wmWindow *win = CTX_wm_window(C);
 	Scene *scene = CTX_data_scene(C);
