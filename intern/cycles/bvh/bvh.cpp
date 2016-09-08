@@ -475,10 +475,20 @@ void RegularBVH::pack_aligned_node(int idx,
 	int4 data[BVH_NODE_SIZE] =
 	{
 		make_int4(visibility0 & ~PATH_RAY_NODE_UNALIGNED,
-		          visibility1 & ~PATH_RAY_NODE_UNALIGNED, c0, c1),
-		make_int4(__float_as_int(b0.min.x), __float_as_int(b1.min.x), __float_as_int(b0.max.x), __float_as_int(b1.max.x)),
-		make_int4(__float_as_int(b0.min.y), __float_as_int(b1.min.y), __float_as_int(b0.max.y), __float_as_int(b1.max.y)),
-		make_int4(__float_as_int(b0.min.z), __float_as_int(b1.min.z), __float_as_int(b0.max.z), __float_as_int(b1.max.z)),
+		          visibility1 & ~PATH_RAY_NODE_UNALIGNED,
+		          c0, c1),
+		make_int4(__float_as_int(b0.min.x),
+		          __float_as_int(b1.min.x),
+		          __float_as_int(b0.max.x),
+		          __float_as_int(b1.max.x)),
+		make_int4(__float_as_int(b0.min.y),
+		          __float_as_int(b1.min.y),
+		          __float_as_int(b0.max.y),
+		          __float_as_int(b1.max.y)),
+		make_int4(__float_as_int(b0.min.z),
+		          __float_as_int(b1.min.z),
+		          __float_as_int(b0.max.z),
+		          __float_as_int(b1.max.z)),
 	};
 
 	memcpy(&pack.nodes[idx], data, sizeof(int4)*BVH_NODE_SIZE);
