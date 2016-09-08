@@ -633,9 +633,9 @@ void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility
 {
 	if(leaf) {
 		assert(idx + BVH_NODE_LEAF_SIZE <= pack.leaf_nodes.size());
-		int4 *data = &pack.leaf_nodes[idx];
-		int c0 = data[0].x;
-		int c1 = data[0].y;
+		const int4 *data = &pack.leaf_nodes[idx];
+		const int c0 = data[0].x;
+		const int c1 = data[0].y;
 		/* refit leaf node */
 		for(int prim = c0; prim < c1; prim++) {
 			int pidx = pack.prim_index[prim];
@@ -711,9 +711,11 @@ void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility
 	}
 	else {
 		assert(idx + BVH_NODE_SIZE <= pack.nodes.size());
-		int4 *data = &pack.nodes[idx];
-		int c0 = data[0].z;
-		int c1 = data[0].w;
+
+		const int4 *data = &pack.nodes[idx];
+		const bool is_unaligned = (data[0].x & PATH_RAY_NODE_UNALIGNED) != 0;
+		const int c0 = data[0].z;
+		const int c1 = data[0].w;
 		/* refit inner node, set bbox from children */
 		BoundBox bbox0 = BoundBox::empty, bbox1 = BoundBox::empty;
 		uint visibility0 = 0, visibility1 = 0;
@@ -721,7 +723,22 @@ void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility
 		refit_node((c0 < 0)? -c0-1: c0, (c0 < 0), bbox0, visibility0);
 		refit_node((c1 < 0)? -c1-1: c1, (c1 < 0), bbox1, visibility1);
 
-		pack_aligned_node(idx, bbox0, bbox1, c0, c1, visibility0, visibility1);
+		if(is_unaligned) {
+			Transform aligned_space = transform_identity();
+			pack_unaligned_node(idx,
+			                    aligned_space, aligned_space,
+			                    bbox0, bbox1,
+			                    c0, c1,
+			                    visibility0,
+			                    visibility1);
+		}
+		else {
+			pack_aligned_node(idx,
+			                  bbox0, bbox1,
+			                  c0, c1,
+			                  visibility0,
+			                  visibility1);
+		}
 
 		bbox.grow(bbox0);
 		bbox.grow(bbox1);
