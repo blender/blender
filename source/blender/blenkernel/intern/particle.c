@@ -323,7 +323,7 @@ void psys_check_group_weights(ParticleSettings *part)
 		dw = part->dupliweights.first;
 		while (dw) {
 			if (dw->ob == NULL || !BKE_group_object_exists(part->dup_group, dw->ob)) {
-				GroupObject *go = (GroupObject *)BLI_findlink(&part->dup_group->gobject, dw->index);
+				go = (GroupObject *)BLI_findlink(&part->dup_group->gobject, dw->index);
 				if (go) {
 					dw->ob = go->ob;
 				}
