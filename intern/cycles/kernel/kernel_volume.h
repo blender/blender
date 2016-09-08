@@ -1262,4 +1262,30 @@ ccl_device void kernel_volume_stack_update_for_subsurface(KernelGlobals *kg,
 }
 #endif
 
+/* Clean stack after the last bounce.
+ *
+ * It is expected that all volumes are closed manifolds, so at the time when ray
+ * hits nothing (for example, it is a last bounce which goes to environment) the
+ * only expected volume in the stack is the world's one. All the rest volume
+ * entries should have been exited already.
+ *
+ * This isn't always true because of ray intersection precision issues, which
+ * could lead us to an infinite non-world volume in the stack, causing render
+ * artifacts.
+ *
+ * Use this function after the last bounce to get rid of all volumes apart from
+ * the world's one after the last bounce to avoid render artifacts.
+ */
+ccl_device_inline void kernel_volume_clean_stack(KernelGlobals *kg,
+                                                 VolumeStack *volume_stack)
+{
+	if(kernel_data.background.volume_shader != SHADER_NONE) {
+		/* Keep the world's volume in stack. */
+		volume_stack[1].shader = SHADER_NONE;
+	}
+	else {
+		volume_stack[0].shader = SHADER_NONE;
+	}
+}
+
 CCL_NAMESPACE_END
