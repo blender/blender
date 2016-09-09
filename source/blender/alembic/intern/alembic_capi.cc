@@ -22,19 +22,9 @@
 
 #include "../ABC_alembic.h"
 
-#ifdef WITH_ALEMBIC_HDF5
-#  include <Alembic/AbcCoreHDF5/All.h>
-#endif
-
-#include <Alembic/AbcCoreOgawa/All.h>
 #include <Alembic/AbcMaterial/IMaterial.h>
 
-#include <fstream>
-
-#ifdef WIN32
-#  include "utfconv.h"
-#endif
-
+#include "abc_archive.h"
 #include "abc_camera.h"
 #include "abc_curves.h"
 #include "abc_hair.h"
@@ -83,13 +73,10 @@ extern "C" {
 using Alembic::Abc::Int32ArraySamplePtr;
 using Alembic::Abc::ObjectHeader;
 
-using Alembic::AbcGeom::ErrorHandler;
-using Alembic::AbcGeom::Exception;
 using Alembic::AbcGeom::MetaData;
 using Alembic::AbcGeom::P3fArraySamplePtr;
 using Alembic::AbcGeom::kWrapExisting;
 
-using Alembic::AbcGeom::IArchive;
 using Alembic::AbcGeom::ICamera;
 using Alembic::AbcGeom::ICurves;
 using Alembic::AbcGeom::ICurvesSchema;
@@ -115,95 +102,16 @@ using Alembic::AbcGeom::V3fArraySamplePtr;
 
 using Alembic::AbcMaterial::IMaterial;
 
-static IArchive open_archive(const std::string &filename,
-                             const std::vector<std::istream *> &input_streams,
-                             bool &is_hdf5)
-{
-	try {
-		is_hdf5 = false;
-		Alembic::AbcCoreOgawa::ReadArchive archive_reader(input_streams);
-
-		return IArchive(archive_reader(filename),
-		                kWrapExisting,
-		                ErrorHandler::kThrowPolicy);
-	}
-	catch (const Exception &e) {
-		std::cerr << e.what() << '\n';
-
-#ifdef WITH_ALEMBIC_HDF5
-		try {
-			is_hdf5 = true;
-			Alembic::AbcCoreAbstract::ReadArraySampleCachePtr cache_ptr;
-
-			return IArchive(Alembic::AbcCoreHDF5::ReadArchive(),
-			                filename.c_str(), ErrorHandler::kThrowPolicy,
-			                cache_ptr);
-		}
-		catch (const Exception &) {
-			std::cerr << e.what() << '\n';
-			return IArchive();
-		}
-#else
-		return IArchive();
-#endif
-	}
-
-	return IArchive();
-}
-
-/* Wrapper around an archive to be able to use streams so that unicode paths
- * work on Windows (T49112), and to make sure the input stream remains valid as
- * long as the archive is open. */
-class ArchiveWrapper {
-	IArchive m_archive;
-	std::ifstream m_infile;
-	std::vector<std::istream *> m_streams;
-
-public:
-	explicit ArchiveWrapper(const char *filename)
-	{
-#ifdef WIN32
-		UTF16_ENCODE(filename);
-		std::wstring wstr(filename_16);
-		m_infile.open(wstr.c_str(), std::ios::in | std::ios::binary);
-		UTF16_UN_ENCODE(filename);
-#else
-		m_infile.open(filename, std::ios::in | std::ios::binary);
-#endif
-
-		m_streams.push_back(&m_infile);
-
-		bool is_hdf5;
-		m_archive = open_archive(filename, m_streams, is_hdf5);
-
-		/* We can't open an HDF5 file from a stream, so close it. */
-		if (is_hdf5) {
-			m_infile.close();
-			m_streams.clear();
-		}
-	}
-
-	bool valid() const
-	{
-		return m_archive.valid();
-	}
-
-	IObject getTop()
-	{
-		return m_archive.getTop();
-	}
-};
-
 struct AbcArchiveHandle {
 	int unused;
 };
 
-ABC_INLINE ArchiveWrapper *archive_from_handle(AbcArchiveHandle *handle)
+ABC_INLINE ArchiveReader *archive_from_handle(AbcArchiveHandle *handle)
 {
-	return reinterpret_cast<ArchiveWrapper *>(handle);
+	return reinterpret_cast<ArchiveReader *>(handle);
 }
 
-ABC_INLINE AbcArchiveHandle *handle_from_archive(ArchiveWrapper *archive)
+ABC_INLINE AbcArchiveHandle *handle_from_archive(ArchiveReader *archive)
 {
 	return reinterpret_cast<AbcArchiveHandle *>(archive);
 }
@@ -301,7 +209,7 @@ static void gather_objects_paths(const IObject &object, ListBase *object_paths)
 
 AbcArchiveHandle *ABC_create_handle(const char *filename, ListBase *object_paths)
 {
-	ArchiveWrapper *archive = new ArchiveWrapper(filename);
+	ArchiveReader *archive = new ArchiveReader(filename);
 
 	if (!archive->valid()) {
 		delete archive;
@@ -636,7 +544,7 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 	data->do_update = do_update;
 	data->progress = progress;
 
-	ArchiveWrapper *archive = new ArchiveWrapper(data->filename);
+	ArchiveReader *archive = new ArchiveReader(data->filename);
 
 	if (!archive->valid()) {
 		delete archive;
@@ -864,7 +772,7 @@ void ABC_import(bContext *C, const char *filepath, float scale, bool is_sequence
 
 void ABC_get_transform(AbcArchiveHandle *handle, Object *ob, const char *object_path, float r_mat[4][4], float time, float scale)
 {
-	ArchiveWrapper *archive = archive_from_handle(handle);
+	ArchiveReader *archive = archive_from_handle(handle);
 
 	if (!archive || !archive->valid()) {
 		return;
@@ -1140,7 +1048,7 @@ DerivedMesh *ABC_read_mesh(AbcArchiveHandle *handle,
                            const char **err_str,
                            int read_flag)
 {
-	ArchiveWrapper *archive = archive_from_handle(handle);
+	ArchiveReader *archive = archive_from_handle(handle);
 
 	if (!archive || !archive->valid()) {
 		*err_str = "Invalid archive!";

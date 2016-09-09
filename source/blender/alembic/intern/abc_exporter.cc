@@ -24,16 +24,7 @@
 
 #include <cmath>
 
-#ifdef WITH_ALEMBIC_HDF5
-#  include <Alembic/AbcCoreHDF5/All.h>
-#endif
-
-#include <Alembic/AbcCoreOgawa/All.h>
-
-#ifdef WIN32
-#  include "utfconv.h"
-#endif
-
+#include "abc_archive.h"
 #include "abc_camera.h"
 #include "abc_curves.h"
 #include "abc_hair.h"
@@ -70,54 +61,6 @@ extern "C" {
 
 using Alembic::Abc::TimeSamplingPtr;
 using Alembic::Abc::OBox3dProperty;
-
-
-/* ************************************************************************** */
-
-/* This kinda duplicates CreateArchiveWithInfo, but Alembic does not seem to
- * have a version supporting streams. */
-static Alembic::Abc::OArchive create_archive(std::ostream *ostream,
-                                             const std::string &filename,
-                                             const std::string &scene_name,
-                                             const Alembic::Abc::Argument &arg0,
-                                             const Alembic::Abc::Argument &arg1,
-                                             bool ogawa)
-{
-    Alembic::Abc::MetaData md = GetMetaData(arg0, arg1);
-    md.set(Alembic::Abc::kApplicationNameKey, "Blender");
-	md.set(Alembic::Abc::kUserDescriptionKey, scene_name);
-
-    time_t raw_time;
-    time(&raw_time);
-    char buffer[128];
-
-#if defined _WIN32 || defined _WIN64
-    ctime_s(buffer, 128, &raw_time);
-#else
-    ctime_r(&raw_time, buffer);
-#endif
-
-    const std::size_t buffer_len = strlen(buffer);
-    if (buffer_len > 0 && buffer[buffer_len - 1] == '\n') {
-        buffer[buffer_len - 1] = '\0';
-    }
-
-    md.set(Alembic::Abc::kDateWrittenKey, buffer);
-
-	Alembic::Abc::ErrorHandler::Policy policy = GetErrorHandlerPolicyFromArgs(arg0, arg1);
-
-#ifdef WITH_ALEMBIC_HDF5
-	if (!ogawa) {
-		return Alembic::Abc::OArchive(Alembic::AbcCoreHDF5::WriteArchive(), filename, md, policy);
-	}
-#else
-	static_cast<void>(filename);
-	static_cast<void>(ogawa);
-#endif
-
-	Alembic::AbcCoreOgawa::WriteArchive archive_writer;
-	return Alembic::Abc::OArchive(archive_writer(ostream, md), Alembic::Abc::kWrapExisting, policy);
-}
 
 /* ************************************************************************** */
 
@@ -297,26 +240,8 @@ void AbcExporter::operator()(Main *bmain, float &progress, bool &was_canceled)
 	Alembic::AbcCoreAbstract::MetaData md;
 	md.set("FramesPerTimeUnit", str_fps);
 
-	Alembic::Abc::Argument arg(md);
-
-	/* Use stream to support unicode character paths on Windows. */
-	if (m_settings.export_ogawa) {
-#ifdef WIN32
-		UTF16_ENCODE(m_filename);
-		std::wstring wstr(m_filename_16);
-		m_out_file.open(wstr.c_str(), std::ios::out | std::ios::binary);
-		UTF16_UN_ENCODE(m_filename);
-#else
-		m_out_file.open(m_filename, std::ios::out | std::ios::binary);
-#endif
-	}
-
-	m_archive = create_archive(&m_out_file,
-	                           m_filename,
-	                           scene_name,
-	                           Alembic::Abc::ErrorHandler::kThrowPolicy,
-	                           arg,
-	                           m_settings.export_ogawa);
+	ArchiveWriter writer(m_filename, scene_name.c_str(), m_settings.export_ogawa, md);
+	m_archive = writer.archive();
 
 	/* Create time samplings for transforms and shapes. */
 
