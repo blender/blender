@@ -54,15 +54,15 @@ ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobal
 				path_branched_rng_2D(kg, &lamp_rng, state, j, num_samples, PRNG_LIGHT_U, &light_u, &light_v);
 
 				LightSample ls;
-				lamp_light_sample(kg, i, light_u, light_v, ccl_fetch(sd, P), &ls);
+				if(lamp_light_sample(kg, i, light_u, light_v, ccl_fetch(sd, P), &ls)) {
+					if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
+						/* trace shadow ray */
+						float3 shadow;
 
-				if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
-					/* trace shadow ray */
-					float3 shadow;
-
-					if(!shadow_blocked(kg, emission_sd, state, &light_ray, &shadow)) {
-						/* accumulate */
-						path_radiance_accum_light(L, throughput*num_samples_inv, &L_light, shadow, num_samples_inv, state->bounce, is_lamp);
+						if(!shadow_blocked(kg, emission_sd, state, &light_ray, &shadow)) {
+							/* accumulate */
+							path_radiance_accum_light(L, throughput*num_samples_inv, &L_light, shadow, num_samples_inv, state->bounce, is_lamp);
+						}
 					}
 				}
 			}
@@ -86,15 +86,15 @@ ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobal
 					light_t = 0.5f*light_t;
 
 				LightSample ls;
-				light_sample(kg, light_t, light_u, light_v, ccl_fetch(sd, time), ccl_fetch(sd, P), state->bounce, &ls);
+				if(light_sample(kg, light_t, light_u, light_v, ccl_fetch(sd, time), ccl_fetch(sd, P), state->bounce, &ls)) {
+					if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
+						/* trace shadow ray */
+						float3 shadow;
 
-				if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
-					/* trace shadow ray */
-					float3 shadow;
-
-					if(!shadow_blocked(kg, emission_sd, state, &light_ray, &shadow)) {
-						/* accumulate */
-						path_radiance_accum_light(L, throughput*num_samples_inv, &L_light, shadow, num_samples_inv, state->bounce, is_lamp);
+						if(!shadow_blocked(kg, emission_sd, state, &light_ray, &shadow)) {
+							/* accumulate */
+							path_radiance_accum_light(L, throughput*num_samples_inv, &L_light, shadow, num_samples_inv, state->bounce, is_lamp);
+						}
 					}
 				}
 			}
@@ -107,16 +107,16 @@ ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobal
 		path_state_rng_2D(kg, rng, state, PRNG_LIGHT_U, &light_u, &light_v);
 
 		LightSample ls;
-		light_sample(kg, light_t, light_u, light_v, ccl_fetch(sd, time), ccl_fetch(sd, P), state->bounce, &ls);
+		if(light_sample(kg, light_t, light_u, light_v, ccl_fetch(sd, time), ccl_fetch(sd, P), state->bounce, &ls)) {
+			/* sample random light */
+			if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
+				/* trace shadow ray */
+				float3 shadow;
 
-		/* sample random light */
-		if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
-			/* trace shadow ray */
-			float3 shadow;
-
-			if(!shadow_blocked(kg, emission_sd, state, &light_ray, &shadow)) {
-				/* accumulate */
-				path_radiance_accum_light(L, throughput*num_samples_adjust, &L_light, shadow, num_samples_adjust, state->bounce, is_lamp);
+				if(!shadow_blocked(kg, emission_sd, state, &light_ray, &shadow)) {
+					/* accumulate */
+					path_radiance_accum_light(L, throughput*num_samples_adjust, &L_light, shadow, num_samples_adjust, state->bounce, is_lamp);
+				}
 			}
 		}
 	}
@@ -206,15 +206,15 @@ ccl_device_inline void kernel_path_surface_connect_light(KernelGlobals *kg, ccl_
 #endif
 
 	LightSample ls;
-	light_sample(kg, light_t, light_u, light_v, ccl_fetch(sd, time), ccl_fetch(sd, P), state->bounce, &ls);
+	if(light_sample(kg, light_t, light_u, light_v, ccl_fetch(sd, time), ccl_fetch(sd, P), state->bounce, &ls)) {
+		if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
+			/* trace shadow ray */
+			float3 shadow;
 
-	if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
-		/* trace shadow ray */
-		float3 shadow;
-
-		if(!shadow_blocked(kg, emission_sd, state, &light_ray, &shadow)) {
-			/* accumulate */
-			path_radiance_accum_light(L, throughput, &L_light, shadow, 1.0f, state->bounce, is_lamp);
+			if(!shadow_blocked(kg, emission_sd, state, &light_ray, &shadow)) {
+				/* accumulate */
+				path_radiance_accum_light(L, throughput, &L_light, shadow, 1.0f, state->bounce, is_lamp);
+			}
 		}
 	}
 #endif
