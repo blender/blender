@@ -3474,13 +3474,17 @@ void DM_calc_loop_tangents(
 
 		/* Update active layer index */
 		uv_index = CustomData_get_layer_index_n(&dm->loopData, CD_MLOOPUV, act_uv_n);
-		tan_index = CustomData_get_named_layer_index(&dm->loopData, CD_TANGENT, dm->loopData.layers[uv_index].name);
-		CustomData_set_layer_active_index(&dm->loopData, CD_TANGENT, tan_index);
+		if (uv_index != -1) {
+			tan_index = CustomData_get_named_layer_index(&dm->loopData, CD_TANGENT, dm->loopData.layers[uv_index].name);
+			CustomData_set_layer_active_index(&dm->loopData, CD_TANGENT, tan_index);
+		}
 
 		/* Update render layer index */
 		uv_index = CustomData_get_layer_index_n(&dm->loopData, CD_MLOOPUV, ren_uv_n);
-		tan_index = CustomData_get_named_layer_index(&dm->loopData, CD_TANGENT, dm->loopData.layers[uv_index].name);
-		CustomData_set_layer_render_index(&dm->loopData, CD_TANGENT, tan_index);
+		if (uv_index != -1) {
+			tan_index = CustomData_get_named_layer_index(&dm->loopData, CD_TANGENT, dm->loopData.layers[uv_index].name);
+			CustomData_set_layer_render_index(&dm->loopData, CD_TANGENT, tan_index);
+		}
 	}
 }
 
