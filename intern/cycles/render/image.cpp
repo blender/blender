@@ -280,6 +280,8 @@ int ImageManager::add_image(const string& filename,
 
 	ImageDataType type = get_image_metadata(filename, builtin_data, is_linear);
 
+	thread_scoped_lock device_lock(device_mutex);
+
 	/* Do we have a float? */
 	if(type == IMAGE_DATA_TYPE_FLOAT || type == IMAGE_DATA_TYPE_FLOAT4)
 		is_float = true;
