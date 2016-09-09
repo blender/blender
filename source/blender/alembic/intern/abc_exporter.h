@@ -65,6 +65,10 @@ struct ExportSettings {
 	bool export_child_hairs;
 	bool export_ogawa;
 	bool pack_uv;
+	bool triangulate;
+
+	int quad_method;
+	int ngon_method;
 
 	bool do_convert_axis;
 	float convert_matrix[3][3];

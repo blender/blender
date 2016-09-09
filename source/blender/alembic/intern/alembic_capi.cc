@@ -351,6 +351,9 @@ void ABC_export(
 	job->settings.export_ogawa = (params->compression_type == ABC_ARCHIVE_OGAWA);
 	job->settings.pack_uv = params->packuv;
 	job->settings.global_scale = params->global_scale;
+	job->settings.triangulate = params->triangulate;
+	job->settings.quad_method = params->quad_method;
+	job->settings.ngon_method = params->ngon_method;
 
 	if (job->settings.frame_start > job->settings.frame_end) {
 		std::swap(job->settings.frame_start, job->settings.frame_end);

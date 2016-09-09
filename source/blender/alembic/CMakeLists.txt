@@ -28,6 +28,7 @@ set(INC
 	../blenkernel
 	../blenlib
 	../blenloader
+	../bmesh
 	../editors/include
 	../makesdna
 	../makesrna

@@ -37,8 +37,8 @@ extern "C" {
 #include "BLI_math_geom.h"
 #include "BLI_string.h"
 
+#include "BKE_cdderivedmesh.h"
 #include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
@@ -49,6 +49,9 @@ extern "C" {
 #include "WM_types.h"
 
 #include "ED_mesh.h"
+
+#include "bmesh.h"
+#include "bmesh_tools.h"
 }
 
 using Alembic::Abc::FloatArraySample;
@@ -536,6 +539,23 @@ DerivedMesh *AbcMeshWriter::getFinalMesh()
 
 	if (m_subsurf_mod) {
 		m_subsurf_mod->mode &= ~eModifierMode_DisableTemporary;
+	}
+
+	if (m_settings.triangulate) {
+		const bool tag_only = false;
+		const int quad_method = m_settings.quad_method;
+		const int ngon_method = m_settings.ngon_method;
+
+		BMesh *bm = DM_to_bmesh(dm, true);
+
+		BM_mesh_triangulate(bm, quad_method, ngon_method, tag_only, NULL, NULL, NULL);
+
+		DerivedMesh *result = CDDM_from_bmesh(bm, false);
+		BM_mesh_free(bm);
+
+		freeMesh(dm);
+
+		dm = result;
 	}
 
 	m_custom_data_config.pack_uvs = m_settings.pack_uv;

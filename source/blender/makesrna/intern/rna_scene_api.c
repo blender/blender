@@ -210,7 +210,10 @@ static void rna_Scene_alembic_export(
         int use_subdiv_schema,
         int compression_type,
         int packuv,
-        float scale)
+        float scale,
+        int triangulate,
+        int quad_method,
+        int ngon_method)
 {
 /* We have to enable allow_threads, because we may change scene frame number
  * during export. */
@@ -240,6 +243,9 @@ static void rna_Scene_alembic_export(
 	    .use_subdiv_schema = use_subdiv_schema,
 	    .compression_type = compression_type,
 	    .packuv = packuv,
+		.triangulate = triangulate,
+		.quad_method = quad_method,
+		.ngon_method = ngon_method,
 
 	    .global_scale = scale,
 	};
@@ -404,6 +410,9 @@ void RNA_api_scene(StructRNA *srna)
 	RNA_def_enum(func, "compression_type", rna_enum_abc_compression_items, 0, "Compression", "");
 	RNA_def_boolean(func, "packuv"		, 0, "Export with packed UV islands", "Export with packed UV islands");
 	RNA_def_float(func, "scale", 1.0f, 0.0001f, 1000.0f, "Scale", "Value by which to enlarge or shrink the objects with respect to the world's origin", 0.0001f, 1000.0f);
+	RNA_def_boolean(func, "triangulate", 0, "Triangulate", "Export Polygons (Quads & NGons) as Triangles");
+	RNA_def_enum(func, "quad_method", rna_enum_modifier_triangulate_quad_method_items, 0, "Quad Method", "Method for splitting the quads into triangles");
+	RNA_def_enum(func, "ngon_method", rna_enum_modifier_triangulate_quad_method_items, 0, "Polygon Method", "Method for splitting the polygons into triangles");
 
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 #endif
