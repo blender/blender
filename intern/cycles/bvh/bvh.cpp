@@ -835,13 +835,32 @@ void QBVH::pack_aligned_inner(const BVHStackEntry& e,
                               const BVHStackEntry *en,
                               int num)
 {
+	BoundBox bounds[4];
+	int child[4];
+	for(int i = 0; i < num; ++i) {
+		bounds[i] = en[i].node->m_bounds;
+		child[i] = en[i].encodeIdx();
+	}
+	pack_aligned_node(e.idx,
+	                  bounds,
+	                  child,
+	                  e.node->m_visibility,
+	                  num);
+}
+
+void QBVH::pack_aligned_node(int idx,
+                             const BoundBox *bounds,
+                             const int *child,
+                             const uint visibility,
+                             const int num)
+{
 	float4 data[BVH_QNODE_SIZE];
 	memset(data, 0, sizeof(data));
 
-	data[0].x = __uint_as_float(e.node->m_visibility & ~PATH_RAY_NODE_UNALIGNED);
+	data[0].x = __uint_as_float(visibility & ~PATH_RAY_NODE_UNALIGNED);
 	for(int i = 0; i < num; i++) {
-		float3 bb_min = en[i].node->m_bounds.min;
-		float3 bb_max = en[i].node->m_bounds.max;
+		float3 bb_min = bounds[i].min;
+		float3 bb_max = bounds[i].max;
 
 		data[1][i] = bb_min.x;
 		data[2][i] = bb_max.x;
@@ -850,7 +869,7 @@ void QBVH::pack_aligned_inner(const BVHStackEntry& e,
 		data[5][i] = bb_min.z;
 		data[6][i] = bb_max.z;
 
-		data[7][i] = __int_as_float(en[i].encodeIdx());
+		data[7][i] = __int_as_float(child[i]);
 	}
 
 	for(int i = num; i < 4; i++) {
@@ -869,22 +888,45 @@ void QBVH::pack_aligned_inner(const BVHStackEntry& e,
 		data[7][i] = __int_as_float(0);
 	}
 
-	memcpy(&pack.nodes[e.idx], data, sizeof(float4)*BVH_QNODE_SIZE);
+	memcpy(&pack.nodes[idx], data, sizeof(float4)*BVH_QNODE_SIZE);
 }
 
 void QBVH::pack_unaligned_inner(const BVHStackEntry& e,
                                 const BVHStackEntry *en,
                                 int num)
 {
+	Transform aligned_space[4];
+	BoundBox bounds[4];
+	int child[4];
+	for(int i = 0; i < num; ++i) {
+		aligned_space[i] = en[i].node->get_aligned_space();
+		bounds[i] = en[i].node->m_bounds;
+		child[i] = en[i].encodeIdx();
+	}
+	pack_unaligned_node(e.idx,
+	                    aligned_space,
+	                    bounds,
+	                    child,
+	                    e.node->m_visibility,
+	                    num);
+}
+
+void QBVH::pack_unaligned_node(int idx,
+                               const Transform *aligned_space,
+                               const BoundBox *bounds,
+                               const int *child,
+                               const uint visibility,
+                               const int num)
+{
 	float4 data[BVH_UNALIGNED_QNODE_SIZE];
 	memset(data, 0, sizeof(data));
 
-	data[0].x = __uint_as_float(e.node->m_visibility | PATH_RAY_NODE_UNALIGNED);
+	data[0].x = __uint_as_float(visibility | PATH_RAY_NODE_UNALIGNED);
 
 	for(int i = 0; i < num; i++) {
 		Transform space = BVHUnaligned::compute_node_transform(
-		        en[i].node->m_bounds,
-		        en[i].node->get_aligned_space());
+		        bounds[i],
+		        aligned_space[i]);
 
 		data[1][i] = space.x.x;
 		data[2][i] = space.x.y;
@@ -902,7 +944,7 @@ void QBVH::pack_unaligned_inner(const BVHStackEntry& e,
 		data[11][i] = space.y.w;
 		data[12][i] = space.z.w;
 
-		data[13][i] = __int_as_float(en[i].encodeIdx());
+		data[13][i] = __int_as_float(child[i]);
 	}
 
 	for(int i = num; i < 4; i++) {
@@ -915,7 +957,7 @@ void QBVH::pack_unaligned_inner(const BVHStackEntry& e,
 		data[13][i] = __int_as_float(0);
 	}
 
-	memcpy(&pack.nodes[e.idx], data, sizeof(float4)*BVH_UNALIGNED_QNODE_SIZE);
+	memcpy(&pack.nodes[idx], data, sizeof(float4)*BVH_UNALIGNED_QNODE_SIZE);
 }
 
 /* Quad SIMD Nodes */
@@ -1141,61 +1183,24 @@ void QBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 			}
 		}
 
-		/* TODO(sergey): To be de-duplicated with pack_inner(),
-		 * but for that need some sort of pack_node(). which operates with
-		 * direct data, not stack element.
-		 */
 		if(is_unaligned) {
-			Transform aligned_space = transform_identity();
-			float4 inner_data[BVH_UNALIGNED_QNODE_SIZE];
-			inner_data[0] = make_float4(
-			        __int_as_float(visibility | PATH_RAY_NODE_UNALIGNED),
-			        0.0f,
-			        0.0f,
-			        0.0f);
-			for(int i = 0; i < 4; ++i) {
-				Transform space = BVHUnaligned::compute_node_transform(
-				        child_bbox[i],
-				        aligned_space);
-				inner_data[1][i] = space.x.x;
-				inner_data[2][i] = space.x.y;
-				inner_data[3][i] = space.x.z;
-
-				inner_data[4][i] = space.y.x;
-				inner_data[5][i] = space.y.y;
-				inner_data[6][i] = space.y.z;
-
-				inner_data[7][i] = space.z.x;
-				inner_data[8][i] = space.z.y;
-				inner_data[9][i] = space.z.z;
-
-				inner_data[10][i] = space.x.w;
-				inner_data[11][i] = space.y.w;
-				inner_data[12][i] = space.z.w;
-
-				inner_data[13][i] = __int_as_float(c[i]);
-			}
-			memcpy(&pack.nodes[idx], inner_data, sizeof(float4)*BVH_UNALIGNED_QNODE_SIZE);
+			Transform aligned_space[4] = {transform_identity(),
+			                              transform_identity(),
+			                              transform_identity(),
+			                              transform_identity()};
+			pack_unaligned_node(idx,
+			                    aligned_space,
+			                    child_bbox,
+			                    &c[0],
+			                    visibility,
+			                    4);
 		}
 		else {
-			float4 inner_data[BVH_QNODE_SIZE];
-			inner_data[0] = make_float4(
-			        __int_as_float(visibility & ~PATH_RAY_NODE_UNALIGNED),
-			        0.0f,
-			        0.0f,
-			        0.0f);
-			for(int i = 0; i < 4; ++i) {
-				float3 bb_min = child_bbox[i].min;
-				float3 bb_max = child_bbox[i].max;
-				inner_data[1][i] = bb_min.x;
-				inner_data[2][i] = bb_max.x;
-				inner_data[3][i] = bb_min.y;
-				inner_data[4][i] = bb_max.y;
-				inner_data[5][i] = bb_min.z;
-				inner_data[6][i] = bb_max.z;
-				inner_data[7][i] = __int_as_float(c[i]);
-			}
-			memcpy(&pack.nodes[idx], inner_data, sizeof(float4)*BVH_QNODE_SIZE);
+			pack_aligned_node(idx,
+			                  child_bbox,
+			                  &c[0],
+			                  visibility,
+			                  4);
 		}
 	}
 }
