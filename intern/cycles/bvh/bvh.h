@@ -171,9 +171,21 @@ protected:
 	void pack_aligned_inner(const BVHStackEntry& e,
 	                        const BVHStackEntry *en,
 	                        int num);
+	void pack_aligned_node(int idx,
+	                       const BoundBox *bounds,
+	                       const int *child,
+	                       const uint visibility,
+	                       const int num);
+
 	void pack_unaligned_inner(const BVHStackEntry& e,
 	                          const BVHStackEntry *en,
 	                          int num);
+	void pack_unaligned_node(int idx,
+	                         const Transform *aligned_space,
+	                         const BoundBox *bounds,
+	                         const int *child,
+	                         const uint visibility,
+	                         const int num);
 
 	/* refit */
 	void refit_nodes();
