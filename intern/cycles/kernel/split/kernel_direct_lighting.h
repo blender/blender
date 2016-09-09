@@ -74,30 +74,31 @@ ccl_device char kernel_direct_lighting(
 			path_state_rng_2D(kg, rng, state, PRNG_LIGHT_U, &light_u, &light_v);
 
 			LightSample ls;
-			light_sample(kg,
-			             light_t, light_u, light_v,
-			             ccl_fetch(sd, time),
-			             ccl_fetch(sd, P),
-			             state->bounce,
-			             &ls);
+			if(light_sample(kg,
+			                light_t, light_u, light_v,
+			                ccl_fetch(sd, time),
+			                ccl_fetch(sd, P),
+			                state->bounce,
+			                &ls)) {
 
-			Ray light_ray;
+				Ray light_ray;
 #ifdef __OBJECT_MOTION__
-			light_ray.time = ccl_fetch(sd, time);
+				light_ray.time = ccl_fetch(sd, time);
 #endif
 
-			BsdfEval L_light;
-			bool is_lamp;
-			if(direct_emission(kg, sd, kg->sd_input, &ls, state, &light_ray, &L_light, &is_lamp)) {
-				/* Write intermediate data to global memory to access from
-				 * the next kernel.
-				 */
-				LightRay_coop[ray_index] = light_ray;
-				BSDFEval_coop[ray_index] = L_light;
-				ISLamp_coop[ray_index] = is_lamp;
-				/* Mark ray state for next shadow kernel. */
-				ADD_RAY_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_DL);
-				enqueue_flag = 1;
+				BsdfEval L_light;
+				bool is_lamp;
+				if(direct_emission(kg, sd, kg->sd_input, &ls, state, &light_ray, &L_light, &is_lamp)) {
+					/* Write intermediate data to global memory to access from
+					 * the next kernel.
+					 */
+					LightRay_coop[ray_index] = light_ray;
+					BSDFEval_coop[ray_index] = L_light;
+					ISLamp_coop[ray_index] = is_lamp;
+					/* Mark ray state for next shadow kernel. */
+					ADD_RAY_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_DL);
+					enqueue_flag = 1;
+				}
 			}
 		}
 #endif  /* __EMISSION__ */
