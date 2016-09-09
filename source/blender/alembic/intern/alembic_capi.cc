@@ -898,6 +898,7 @@ static DerivedMesh *read_mesh_sample(DerivedMesh *dm, const IObject &iobject, co
 	}
 
 	CDStreamConfig config = get_config(new_dm ? new_dm : dm);
+	config.time = time;
 
 	bool do_normals = false;
 	read_mesh_sample(&settings, schema, sample_sel, config, do_normals);
@@ -952,6 +953,7 @@ static DerivedMesh *read_subd_sample(DerivedMesh *dm, const IObject &iobject, co
 
 	/* Only read point data when streaming meshes, unless we need to create new ones. */
 	CDStreamConfig config = get_config(new_dm ? new_dm : dm);
+	config.time = time;
 	read_subd_sample(&settings, schema, sample_sel, config);
 
 	if (new_dm) {
