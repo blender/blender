@@ -51,6 +51,8 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 
 	VLOG(1) << "Total " << scene->shaders.size() << " shaders.";
 
+	double start_time = time_dt();
+
 	/* test if we need to update */
 	device_free(device, dscene, scene);
 
@@ -95,6 +97,10 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 	device_update_common(device, dscene, scene, progress);
 
 	need_update = false;
+
+	VLOG(1) << "Shader manager updated "
+	        << scene->shaders.size() << " shaders in "
+	        << time_dt() - start_time << " seconds.";
 }
 
 void SVMShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *scene)
