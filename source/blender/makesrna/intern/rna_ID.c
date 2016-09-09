@@ -997,12 +997,12 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Replace all usage in the .blend file of this ID by new given one");
 	RNA_def_function_flag(func, FUNC_USE_MAIN);
 	parm = RNA_def_pointer(func, "new_id", "ID", "", "New ID to use");
-	RNA_def_property_flag(parm, PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 
 	func = RNA_def_function(srna, "user_of_id", "BKE_library_ID_use_ID");
 	RNA_def_function_ui_description(func, "Count the number of times that ID uses/references given one");
 	parm = RNA_def_pointer(func, "id", "ID", "", "ID to count usages");
-	RNA_def_property_flag(parm, PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 	parm = RNA_def_int(func, "count", 0, 0, INT_MAX,
 	                   "", "Number of usages/references of given id by current datablock", 0, INT_MAX);
 	RNA_def_function_return(func, parm);
