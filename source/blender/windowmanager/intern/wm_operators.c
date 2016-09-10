@@ -2299,6 +2299,11 @@ int WM_border_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		}
 
 	}
+#ifdef WITH_INPUT_NDOF
+	else if (event->type == NDOF_MOTION) {
+		return OPERATOR_PASS_THROUGH;
+	}
+#endif
 //	/* Allow view navigation??? */
 //	else {
 //		return OPERATOR_PASS_THROUGH;
@@ -2413,6 +2418,11 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				return OPERATOR_FINISHED; /* use finish or we don't get an undo */
 		}
 	}
+#ifdef WITH_INPUT_NDOF
+	else if (event->type == NDOF_MOTION) {
+		return OPERATOR_PASS_THROUGH;
+	}
+#endif
 	/* Allow view navigation??? */
 	/* note, this gives issues: 1) other modal ops run on top (border select), 2) middlemouse is used now 3) tablet/trackpad? */
 //	else {
