@@ -165,7 +165,7 @@ static void interpolate_fvar_data(OpenSubdiv::Far::TopologyRefiner& refiner,
 	const int max_level = refiner.GetMaxLevel();
 	size_t fvar_data_offset = 0, values_offset = 0;
 	for (int channel = 0; channel < refiner.GetNumFVarChannels(); ++channel) {
-		const int num_values = refiner.GetLevel(0).GetNumFVarValues(0) * 2,
+		const int num_values = refiner.GetLevel(0).GetNumFVarValues(channel) * 2,
 		          num_values_max = refiner.GetLevel(max_level).GetNumFVarValues(channel),
 		          num_values_total = refiner.GetNumFVarValuesTotal(channel);
 		if (num_values_total <= 0) {
