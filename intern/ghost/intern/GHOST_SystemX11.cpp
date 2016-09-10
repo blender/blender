@@ -902,7 +902,8 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				ascii = '\0';
 			}
 
-			/* Only allow a very limited set of keys from XLookupKeysym, all others we take from XLookupString... */
+			/* Only allow a limited set of keys from XLookupKeysym, all others we take from XLookupString,
+			 * unless it gives unknown key... */
 			gkey = convertXKey(key_sym);
 			switch (gkey) {
 				case GHOST_kKeyRightAlt:
@@ -922,9 +923,28 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				case GHOST_kKey7:
 				case GHOST_kKey8:
 				case GHOST_kKey9:
+				case GHOST_kKeyNumpad0:
+				case GHOST_kKeyNumpad1:
+				case GHOST_kKeyNumpad2:
+				case GHOST_kKeyNumpad3:
+				case GHOST_kKeyNumpad4:
+				case GHOST_kKeyNumpad5:
+				case GHOST_kKeyNumpad6:
+				case GHOST_kKeyNumpad7:
+				case GHOST_kKeyNumpad8:
+				case GHOST_kKeyNumpad9:
+				case GHOST_kKeyNumpadPeriod:
+				case GHOST_kKeyNumpadEnter:
+				case GHOST_kKeyNumpadPlus:
+				case GHOST_kKeyNumpadMinus:
+				case GHOST_kKeyNumpadAsterisk:
+				case GHOST_kKeyNumpadSlash:
 					break;
 				default:
-					gkey = convertXKey(key_sym_str);
+					GHOST_TKey gkey_str = convertXKey(key_sym_str);
+					if (gkey_str != GHOST_kKeyUnknown) {
+						gkey = gkey_str;
+					}
 			}
 #else
 			/* In keyboards like latin ones,
