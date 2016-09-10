@@ -39,20 +39,22 @@ endmacro()
 
 add_definitions(-DWIN32)
 # Minimum MSVC Version
-if(MSVC_VERSION EQUAL 1800)
-	set(_min_ver "18.0.31101")
-	if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${_min_ver})
-		message(FATAL_ERROR
-			"Visual Studio 2013 (Update 4, ${_min_ver}) required, "
-			"found (${CMAKE_CXX_COMPILER_VERSION})")
+if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+	if(MSVC_VERSION EQUAL 1800)
+		set(_min_ver "18.0.31101")
+		if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${_min_ver})
+			message(FATAL_ERROR
+				"Visual Studio 2013 (Update 4, ${_min_ver}) required, "
+				"found (${CMAKE_CXX_COMPILER_VERSION})")
+		endif()
 	endif()
-endif()
-if(MSVC_VERSION EQUAL 1900)
-	set(_min_ver "19.0.24210")
-	if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${_min_ver})
-		message(FATAL_ERROR
-			"Visual Studio 2015 (Update 3, ${_min_ver}) required, "
-			"found (${CMAKE_CXX_COMPILER_VERSION})")
+	if(MSVC_VERSION EQUAL 1900)
+		set(_min_ver "19.0.24210")
+		if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${_min_ver})
+			message(FATAL_ERROR
+				"Visual Studio 2015 (Update 3, ${_min_ver}) required, "
+				"found (${CMAKE_CXX_COMPILER_VERSION})")
+		endif()
 	endif()
 endif()
 unset(_min_ver)
