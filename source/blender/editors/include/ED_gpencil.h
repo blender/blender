@@ -73,7 +73,10 @@ typedef struct tGPDinterpolate {
 
 	int cframe;                /* current frame number */
 	ListBase ilayers;   /* (tGPDinterpolate_layer) layers to be interpolated */
-	float shift;        /* -1/1 value for determining the displacement influence */
+	float shift;        /* value for determining the displacement influence */
+	float init_factor;  /* initial interpolation factor for active layer */
+	float low_limit;    /* shift low limit (-100%) */
+	float high_limit;   /* shift upper limit (200%) */
 	int flag;           /* flag from toolsettings */
 
 	NumInput num;       /* numeric input */

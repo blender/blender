@@ -2076,6 +2076,12 @@ static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
 	bGPDstroke *gps_from, *gps_to, *new_stroke;
 	int fFrame;
 
+	/* save initial factor for active layer to define shift limits */
+	tgpi->init_factor = (float)(tgpi->cframe - active_gpl->actframe->framenum) / (active_gpl->actframe->next->framenum - active_gpl->actframe->framenum + 1);
+	/* limits are 100% below 0 and 100% over the 100% */
+	tgpi->low_limit = -1.0f - tgpi->init_factor;
+	tgpi->high_limit = 2.0f - tgpi->init_factor;
+
 	/* set layers */
 	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 		/* all layers or only active */
@@ -2099,7 +2105,7 @@ static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
 		tgpil->interFrame = MEM_callocN(sizeof(bGPDframe), "bGPDframe");
 		tgpil->interFrame->framenum = tgpi->cframe;
 
-		/* get interpolation factor */
+		/* get interpolation factor by layer (usually must be equal for all layers, but not sure) */
 		tgpil->factor = (float)(tgpi->cframe - tgpil->prevFrame->framenum) / (tgpil->nextFrame->framenum - tgpil->prevFrame->framenum + 1);
 		/* create new strokes data with interpolated points reading original stroke */
 		for (gps_from = tgpil->prevFrame->strokes.first; gps_from; gps_from = gps_from->next) {
@@ -2159,13 +2165,13 @@ static void gpencil_mouse_update_shift(tGPDinterpolate *tgpi, wmOperator *op, co
 	float mid = (float)(tgpi->ar->winx - tgpi->ar->winrct.xmin) / 2.0f;
 	float mpos = event->x - tgpi->ar->winrct.xmin;
 	if (mpos >= mid) {
-		tgpi->shift = (mpos - mid) / mid;
+		tgpi->shift = ((mpos - mid) * tgpi->high_limit) / mid;
 	}
 	else {
-		tgpi->shift = -1.0f * (1.0f - (mpos / mid));
+		tgpi->shift = tgpi->low_limit - ((mpos * tgpi->low_limit) / mid);
 	}
 
-	CLAMP(tgpi->shift, -1.0f, 1.0f);
+	CLAMP(tgpi->shift, tgpi->low_limit, tgpi->high_limit);
 	RNA_float_set(op->ptr, "shift", tgpi->shift);
 }
 
@@ -2185,7 +2191,7 @@ static void gpencil_interpolate_status_indicators(tGPDinterpolate *p)
 		BLI_snprintf(status_str, sizeof(status_str), "%s: %s", msg_str, str_offs);
 	}
 	else {
-		BLI_snprintf(status_str, sizeof(status_str), "%s: %d", msg_str, (int)(p->shift * 100.0f));
+		BLI_snprintf(status_str, sizeof(status_str), "%s: %d %%", msg_str, (int)((p->init_factor + p->shift)  * 100.0f));
 	}
 
 	ED_area_headerprint(p->sa, status_str);
@@ -2343,13 +2349,13 @@ static int gpencil_interpolate_invoke(bContext *C, wmOperator *op, const wmEvent
 
 	/* cannot interpolate if not between 2 frames */
 	if ((gpl->actframe == NULL) || (gpl->actframe->next == NULL)) {
-		BKE_report(op->reports, RPT_ERROR, "Interpolation requires to be between two grease pencil frames");
+		BKE_report(op->reports, RPT_ERROR, "Interpolation requires to be between two grease pencil frames in active layer");
 		return OPERATOR_CANCELLED;
 	}
 
 	/* cannot interpolate in extremes */
 	if ((gpl->actframe->framenum == scene->r.cfra) || (gpl->actframe->next->framenum == scene->r.cfra)) {
-		BKE_report(op->reports, RPT_ERROR, "Interpolation requires to be between two grease pencil frames");
+		BKE_report(op->reports, RPT_ERROR, "Interpolation requires to be between two grease pencil frames in active layer");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2444,7 +2450,7 @@ static int gpencil_interpolate_modal(bContext *C, wmOperator *op, const wmEvent 
 		case WHEELUPMOUSE:
 		{
 			tgpi->shift = tgpi->shift + 0.01f;
-			CLAMP(tgpi->shift, -1.0f, 1.0f);
+			CLAMP(tgpi->shift, tgpi->low_limit, tgpi->high_limit);
 			RNA_float_set(op->ptr, "shift", tgpi->shift);
 			/* update screen */
 			gpencil_interpolate_update(C, op, tgpi);
@@ -2453,7 +2459,7 @@ static int gpencil_interpolate_modal(bContext *C, wmOperator *op, const wmEvent 
 		case WHEELDOWNMOUSE:
 		{
 			tgpi->shift = tgpi->shift - 0.01f;
-			CLAMP(tgpi->shift, -1.0f, 1.0f);
+			CLAMP(tgpi->shift, tgpi->low_limit, tgpi->high_limit);
 			RNA_float_set(op->ptr, "shift", tgpi->shift);
 			/* update screen */
 			gpencil_interpolate_update(C, op, tgpi);
@@ -2473,13 +2479,16 @@ static int gpencil_interpolate_modal(bContext *C, wmOperator *op, const wmEvent 
 		default:
 			if ((event->val == KM_PRESS) && handleNumInput(C, &tgpi->num, event)) {
 				float value;
+				float factor = tgpi->init_factor;
 
 				/* Grab shift from numeric input, and store this new value (the user see an int) */
-				value = tgpi->shift * 100.0f;
+				value = (factor + tgpi->shift) * 100.0f;
 				applyNumInput(&tgpi->num, &value);
-
 				tgpi->shift = value / 100.0f;
-				CLAMP(tgpi->shift, -1.0f, 1.0f);
+				/* recalculate the shift to get the right value in the frame scale */
+				tgpi->shift = tgpi->shift - factor;
+
+				CLAMP(tgpi->shift, tgpi->low_limit, tgpi->high_limit);
 				RNA_float_set(op->ptr, "shift", tgpi->shift);
 
 				/* update screen */
