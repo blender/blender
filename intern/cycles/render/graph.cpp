@@ -483,6 +483,8 @@ void ShaderGraph::constant_fold()
 	ShaderNodeSet done, scheduled;
 	queue<ShaderNode*> traverse_queue;
 
+	bool has_displacement = (output()->input("Displacement")->link != NULL);
+
 	/* Schedule nodes which doesn't have any dependencies. */
 	foreach(ShaderNode *node, nodes) {
 		if(!check_node_inputs_has_links(node)) {
@@ -519,6 +521,17 @@ void ShaderGraph::constant_fold()
 			ConstantFolder folder(this, node, output);
 			node->constant_fold(folder);
 		}
+	}
+
+	/* Folding might have removed all nodes connected to the displacement output
+	 * even tho there is displacement to be applied, so add in a value node if
+	 * that happens to ensure there is still a valid graph for displacement.
+	 */
+	if(has_displacement && !output()->input("Displacement")->link) {
+		ValueNode *value = (ValueNode*)add(new ValueNode());
+		value->value = output()->displacement;
+
+		connect(value->output("Value"), output()->input("Displacement"));
 	}
 }
 
