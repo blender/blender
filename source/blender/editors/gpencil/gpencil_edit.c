@@ -2349,19 +2349,19 @@ static int gpencil_interpolate_invoke(bContext *C, wmOperator *op, const wmEvent
 
 	/* cannot interpolate if not between 2 frames */
 	if ((gpl->actframe == NULL) || (gpl->actframe->next == NULL)) {
-		BKE_report(op->reports, RPT_ERROR, IFACE_("Interpolation requires to be between two grease pencil frames in active layer"));
+		BKE_report(op->reports, RPT_ERROR, "Interpolation requires to be between two grease pencil frames in active layer");
 		return OPERATOR_CANCELLED;
 	}
 
 	/* cannot interpolate in extremes */
 	if ((gpl->actframe->framenum == scene->r.cfra) || (gpl->actframe->next->framenum == scene->r.cfra)) {
-		BKE_report(op->reports, RPT_ERROR, IFACE_("Interpolation requires to be between two grease pencil frames in active layer"));
+		BKE_report(op->reports, RPT_ERROR, "Interpolation requires to be between two grease pencil frames in active layer");
 		return OPERATOR_CANCELLED;
 	}
 
 	/* need editable strokes */
 	if (!gp_interpolate_check_todo(C, gpd)) {
-		BKE_report(op->reports, RPT_ERROR, IFACE_("Interpolation requires some editable stroke"));
+		BKE_report(op->reports, RPT_ERROR, "Interpolation requires some editable stroke");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2543,12 +2543,12 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
 
 	/* cannot interpolate if not between 2 frames */
 	if ((active_gpl->actframe == NULL) || (active_gpl->actframe->next == NULL)) {
-		BKE_report(op->reports, RPT_ERROR, IFACE_("Interpolation requires to be between two grease pencil frames"));
+		BKE_report(op->reports, RPT_ERROR, "Interpolation requires to be between two grease pencil frames");
 		return OPERATOR_CANCELLED;
 	}
 	/* cannot interpolate in extremes */
 	if ((active_gpl->actframe->framenum == scene->r.cfra) || (active_gpl->actframe->next->framenum == scene->r.cfra)) {
-		BKE_report(op->reports, RPT_ERROR, IFACE_("Interpolation requires to be between two grease pencil frames"));
+		BKE_report(op->reports, RPT_ERROR, "Interpolation requires to be between two grease pencil frames");
 		return OPERATOR_CANCELLED;
 	}
 	
