@@ -29,8 +29,8 @@ shader node_rgb_curves(
 	color c = (ColorIn - color(min_x, min_x, min_x)) / (max_x - min_x);
 
 	color r = rgb_ramp_lookup(ramp, c[0], 1, 1);
-	color g = rgb_ramp_lookup(ramp, c[0], 1, 1);
-	color b = rgb_ramp_lookup(ramp, c[0], 1, 1);
+	color g = rgb_ramp_lookup(ramp, c[1], 1, 1);
+	color b = rgb_ramp_lookup(ramp, c[2], 1, 1);
 
 	ColorOut[0] = r[0];
 	ColorOut[1] = g[1];
