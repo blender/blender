@@ -2194,9 +2194,12 @@ static void fill_vmesh_fracs(VMesh *vm, float *frac, int i)
 		total += len_v3v3(mesh_vert(vm, i, 0, k)->co, mesh_vert(vm, i, 0, k + 1)->co);
 		frac[k + 1] = total;
 	}
-	if (total > BEVEL_EPSILON) {
+	if (total > 0.0f) {
 		for (k = 1; k <= ns; k++)
 			frac[k] /= total;
+	}
+	else {
+		frac[ns] = 1.0f;
 	}
 }
 
@@ -2215,10 +2218,13 @@ static void fill_profile_fracs(BevelParams *bp, BoundVert *bndv, float *frac, in
 		frac[k + 1] = total;
 		copy_v3_v3(co, nextco);
 	}
-	if (total > BEVEL_EPSILON) {
+	if (total > 0.0f) {
 		for (k = 1; k <= ns; k++) {
 			frac[k] /= total;
 		}
+	}
+	else {
+		frac[ns] = 1.0f;
 	}
 }
 
