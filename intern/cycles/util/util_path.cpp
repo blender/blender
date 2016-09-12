@@ -37,6 +37,8 @@ OIIO_NAMESPACE_USING
 #  define DIR_SEP '/'
 #  include <dirent.h>
 #  include <pwd.h>
+#  include <unistd.h>
+#  include <sys/types.h>
 #endif
 
 #ifdef HAVE_SHLWAPI_H
