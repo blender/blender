@@ -2825,7 +2825,12 @@ static bool animdata_filter_base_is_ok(bDopeSheet *ads, Scene *scene, Base *base
 		if ((ob->adt) && (ob->adt->flag & ADT_CURVES_NOT_VISIBLE))
 			return false;
 	}
-	
+
+	/* Pinned curves are visible regardless of selection flags. */
+	if ((ob->adt) && (ob->adt->flag & ADT_CURVES_ALWAYS_VISIBLE)) {
+		//return true;
+	}
+
 	/* check selection and object type filters */
 	if ((ads->filterflag & ADS_FILTER_ONLYSEL) && !((base->flag & SELECT) /*|| (base == sce->basact)*/)) {
 		/* only selected should be shown */

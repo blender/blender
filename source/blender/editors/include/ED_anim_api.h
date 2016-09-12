@@ -417,7 +417,8 @@ typedef enum eAnimChannel_Settings {
 	ACHANNEL_SETTING_VISIBLE  = 4,  /* only for Graph Editor */
 	ACHANNEL_SETTING_SOLO     = 5,  /* only for NLA Tracks */
 	ACHANNEL_SETTING_PINNED   = 6,  /* only for NLA Actions */
-	ACHANNEL_SETTING_MOD_OFF  = 7
+	ACHANNEL_SETTING_MOD_OFF  = 7,
+	ACHANNEL_SETTING_ALWAYS_VISIBLE = 8,  /* channel is pinned and always visible */
 } eAnimChannel_Settings;
 
 

@@ -529,7 +529,10 @@ static bool acf_scene_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale)
 		case ACHANNEL_SETTING_SELECT:
 		case ACHANNEL_SETTING_EXPAND:
 			return true;
-			
+
+		case ACHANNEL_SETTING_ALWAYS_VISIBLE:
+			return false;
+
 		default:
 			return false;
 	}
@@ -555,7 +558,7 @@ static int acf_scene_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Setting
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
 			*neg = true;
 			return ADT_CURVES_NOT_VISIBLE;
-			
+
 		default: /* unsupported */
 			return 0;
 	}
@@ -682,7 +685,10 @@ static bool acf_object_setting_valid(bAnimContext *ac, bAnimListElem *ale, eAnim
 		case ACHANNEL_SETTING_SELECT:
 		case ACHANNEL_SETTING_EXPAND:
 			return true;
-			
+
+		case ACHANNEL_SETTING_ALWAYS_VISIBLE:
+			return ((ac) && (ac->spacetype == SPACE_IPO) && (ob->adt));
+
 		default:
 			return false;
 	}
@@ -708,7 +714,10 @@ static int acf_object_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settin
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
 			*neg = true;
 			return ADT_CURVES_NOT_VISIBLE;
-			
+
+		case ACHANNEL_SETTING_ALWAYS_VISIBLE:
+			return ADT_CURVES_ALWAYS_VISIBLE;
+
 		default: /* unsupported */
 			return 0;
 	}
@@ -732,6 +741,7 @@ static void *acf_object_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings se
 			
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
+		case ACHANNEL_SETTING_ALWAYS_VISIBLE:
 			if (ob->adt)
 				return GET_ACF_FLAG_PTR(ob->adt->flag, type);
 			return NULL;
@@ -839,7 +849,10 @@ static bool acf_group_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale)
 		/* conditionally supported */
 		case ACHANNEL_SETTING_VISIBLE: /* Only available in Graph Editor */
 			return (ac->spacetype == SPACE_IPO);
-			
+
+		case ACHANNEL_SETTING_ALWAYS_VISIBLE:
+			return false;
+
 		default: /* always supported */
 			return true;
 	}
@@ -965,7 +978,10 @@ static bool acf_fcurve_setting_valid(bAnimContext *ac, bAnimListElem *ale, eAnim
 				
 		case ACHANNEL_SETTING_VISIBLE: /* Only available in Graph Editor */
 			return (ac->spacetype == SPACE_IPO);
-			
+
+		case ACHANNEL_SETTING_ALWAYS_VISIBLE:
+			return false;
+
 		/* always available */
 		default:
 			return true;
@@ -3749,7 +3765,9 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 	 *	- in Grease Pencil mode, color swatches for layer color
 	 */
 	if (ac->sl) {
-		if ((ac->spacetype == SPACE_IPO) && acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE)) {
+		if ((ac->spacetype == SPACE_IPO) &&
+		    (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE) ||
+		     acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE))) {
 			/* for F-Curves, draw color-preview of curve behind checkbox */
 			if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
 				FCurve *fcu = (FCurve *)ale->data;
@@ -3763,9 +3781,13 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 				 */
 				glRectf(offset, yminc, offset + ICON_WIDTH, ymaxc);
 			}
-			
 			/* icon is drawn as widget now... */
-			offset += ICON_WIDTH; 
+			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE)) {
+				offset += ICON_WIDTH;
+			}
+			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE)) {
+				offset += ICON_WIDTH;
+			}
 		}
 		else if ((ac->spacetype == SPACE_NLA) && acf->has_setting(ac, ale, ACHANNEL_SETTING_SOLO)) {
 			/* just skip - drawn as widget now */
@@ -4110,6 +4132,11 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, const bAni
 				tooltip = TIP_("Channels are visible in Graph Editor for editing");
 			break;
 
+		case ACHANNEL_SETTING_ALWAYS_VISIBLE:
+			icon = ICON_UNPINNED;
+			tooltip = TIP_("Channels are visible in Graph Editor for editing");
+			break;
+
 		case ACHANNEL_SETTING_MOD_OFF:  /* modifiers disabled */
 			icon = ICON_MODIFIER;
 			usetoggle = false;
@@ -4219,6 +4246,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, const bAni
 				case ACHANNEL_SETTING_MUTE: /* General - muting flags */
 				case ACHANNEL_SETTING_PINNED: /* NLA Actions - 'map/nomap' */
 				case ACHANNEL_SETTING_MOD_OFF:
+				case ACHANNEL_SETTING_ALWAYS_VISIBLE:
 					UI_but_funcN_set(but, achannel_setting_flush_widget_cb, MEM_dupallocN(ale), SET_INT_IN_POINTER(setting));
 					break;
 					
@@ -4282,10 +4310,20 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 	 *	- in Grease Pencil mode, color swatches for layer color
 	 */
 	if (ac->sl) {
-		if ((ac->spacetype == SPACE_IPO) && acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE)) {
+		if ((ac->spacetype == SPACE_IPO) &&
+		    (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE) ||
+		     acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE)))
+		{
+			/* pin toggle  */
+			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_ALWAYS_VISIBLE)) {
+				draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_ALWAYS_VISIBLE);
+				offset += ICON_WIDTH;
+			}
 			/* visibility toggle  */
-			draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_VISIBLE);
-			offset += ICON_WIDTH; 
+			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE)) {
+				draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_VISIBLE);
+				offset += ICON_WIDTH;
+			}
 		}
 		else if ((ac->spacetype == SPACE_NLA) && acf->has_setting(ac, ale, ACHANNEL_SETTING_SOLO)) {
 			/* 'solo' setting for NLA Tracks */
