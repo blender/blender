@@ -233,8 +233,26 @@ static PyObject *bpy_user_map(PyObject *UNUSED(self), PyObject *args, PyObject *
 				data_cb.py_id_key_lookup_only = pyrna_id_CreatePyObject(id);
 			}
 
+			if (!data_cb.is_subset) {
+				PyObject *key = data_cb.py_id_key_lookup_only;
+				PyObject *set;
+
+				RNA_id_pointer_create(id, &((BPy_StructRNA *)key)->ptr);
+
+				/* We have to insert the key now, otherwise ID unused would be missing from final dict... */
+				if ((set = PyDict_GetItem(data_cb.user_map, key)) == NULL) {
+					/* Cannot use our placeholder key here! */
+					key = pyrna_id_CreatePyObject(id);
+					set = PySet_New(NULL);
+					PyDict_SetItem(data_cb.user_map, key, set);
+					Py_DECREF(set);
+					Py_DECREF(key);
+				}
+			}
+
 			data_cb.id_curr = id;
 			BKE_library_foreach_ID_link(id, foreach_libblock_id_user_map_callback, &data_cb, IDWALK_NOP);
+
 			if (data_cb.py_id_curr) {
 				Py_DECREF(data_cb.py_id_curr);
 				data_cb.py_id_curr = NULL;
