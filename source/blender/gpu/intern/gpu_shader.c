@@ -46,13 +46,14 @@
 #define MAX_EXT_DEFINE_LENGTH 1024
 
 /* Non-generated shaders */
+extern char datatoc_gpu_shader_depth_only_frag_glsl[];
 extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 extern char datatoc_gpu_shader_flat_color_frag_glsl[];
-extern char datatoc_gpu_shader_2D_uniform_color_vert_glsl[];
+extern char datatoc_gpu_shader_2D_no_color_vert_glsl[];
 extern char datatoc_gpu_shader_2D_flat_color_vert_glsl[];
 extern char datatoc_gpu_shader_2D_smooth_color_vert_glsl[];
 extern char datatoc_gpu_shader_2D_smooth_color_frag_glsl[];
-extern char datatoc_gpu_shader_3D_uniform_color_vert_glsl[];
+extern char datatoc_gpu_shader_3D_no_color_vert_glsl[];
 extern char datatoc_gpu_shader_3D_flat_color_vert_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_vert_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
@@ -90,6 +91,7 @@ static struct GPUShadersGlobal {
 		GPUShader *uniform_color_3D;
 		GPUShader *flat_color_3D;
 		GPUShader *smooth_color_3D;
+		GPUShader *depth_only_3D;
 	} shaders;
 } GG = {{NULL}};
 
@@ -625,7 +627,7 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		case GPU_SHADER_2D_UNIFORM_COLOR:
 			if (!GG.shaders.uniform_color_2D)
 				GG.shaders.uniform_color_2D = GPU_shader_create(
-				        datatoc_gpu_shader_2D_uniform_color_vert_glsl,
+				        datatoc_gpu_shader_2D_no_color_vert_glsl,
 				        datatoc_gpu_shader_uniform_color_frag_glsl,
 				        NULL, NULL, NULL, 0, 0, 0);
 			retval = GG.shaders.uniform_color_2D;
@@ -649,7 +651,7 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		case GPU_SHADER_3D_UNIFORM_COLOR:
 			if (!GG.shaders.uniform_color_3D)
 				GG.shaders.uniform_color_3D = GPU_shader_create(
-				        datatoc_gpu_shader_3D_uniform_color_vert_glsl,
+				        datatoc_gpu_shader_3D_no_color_vert_glsl,
 				        datatoc_gpu_shader_uniform_color_frag_glsl,
 				        NULL, NULL, NULL, 0, 0, 0);
 			retval = GG.shaders.uniform_color_3D;
@@ -669,6 +671,14 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 				        datatoc_gpu_shader_3D_smooth_color_frag_glsl,
 				        NULL, NULL, NULL, 0, 0, 0);
 			retval = GG.shaders.smooth_color_3D;
+			break;
+		case GPU_SHADER_3D_DEPTH_ONLY:
+			if (!GG.shaders.depth_only_3D)
+				GG.shaders.depth_only_3D = GPU_shader_create(
+				        datatoc_gpu_shader_3D_no_color_vert_glsl,
+				        datatoc_gpu_shader_depth_only_frag_glsl,
+				        NULL, NULL, NULL, 0, 0, 0);
+			retval = GG.shaders.depth_only_3D;
 			break;
 	}
 

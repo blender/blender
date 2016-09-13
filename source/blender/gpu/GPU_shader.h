@@ -98,6 +98,7 @@ typedef enum GPUBuiltinShader {
 	GPU_SHADER_3D_UNIFORM_COLOR,
 	GPU_SHADER_3D_FLAT_COLOR,
 	GPU_SHADER_3D_SMOOTH_COLOR,
+	GPU_SHADER_3D_DEPTH_ONLY,
 } GPUBuiltinShader;
 
 GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader);
