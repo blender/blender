@@ -885,7 +885,7 @@ void QBVH::pack_aligned_node(int idx,
 		data[5][i] = FLT_MAX;
 		data[6][i] = -FLT_MAX;
 
-		data[7][i] = __int_as_float(0);
+		data[7][i] = __int_as_float(INT_MAX);
 	}
 
 	memcpy(&pack.nodes[idx], data, sizeof(float4)*BVH_QNODE_SIZE);
@@ -968,7 +968,7 @@ void QBVH::pack_unaligned_node(int idx,
 		data[11][i] = -FLT_MAX;
 		data[12][i] = -FLT_MAX;
 
-		data[13][i] = __int_as_float(0);
+		data[13][i] = __int_as_float(INT_MAX);
 	}
 
 	memcpy(&pack.nodes[idx], data, sizeof(float4)*BVH_UNALIGNED_QNODE_SIZE);
