@@ -15,6 +15,7 @@
 
 #include <GL/glew.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #if TRUST_NO_ONE
   #include <assert.h>
