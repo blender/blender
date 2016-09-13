@@ -54,12 +54,19 @@ set(SRC
 	intern/gpu_draw.c
 	intern/gpu_extensions.c
 	intern/gpu_framebuffer.c
-	intern/gpu_immediate.c
 	intern/gpu_init_exit.c
 	intern/gpu_material.c
 	intern/gpu_select.c
 	intern/gpu_shader.c
 	intern/gpu_texture.c
+
+	gawain/attrib_binding.c
+	gawain/attrib_binding.h
+	gawain/common.h
+	gawain/immediate.c
+	gawain/immediate.h
+	gawain/vertex_format.c
+	gawain/vertex_format.h
 
 	shaders/gpu_shader_fx_lib.glsl
 	shaders/gpu_shader_fx_ssao_frag.glsl
@@ -97,6 +104,7 @@ set(SRC
 	GPU_select.h
 	GPU_shader.h
 	GPU_texture.h
+
 	intern/gpu_codegen.h
 	intern/gpu_private.h
 )

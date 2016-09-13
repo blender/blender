@@ -1,238 +1,17 @@
 
-// Gawain immediate mode work-alike, take 2
+// Gawain immediate mode work-alike
 //
 // This code is part of the Gawain library, with modifications
 // specific to integration with Blender.
 //
 // Copyright 2016 Mike Erwin
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-// http://www.apache.org/licenses/LICENSE-2.0
+// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of
+// the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#include "GPU_immediate.h"
-#include <assert.h>
-#include <stdlib.h>
-#include <stdint.h>
+#include "immediate.h"
+#include "attrib_binding.h"
 #include <string.h>
-
-#define PACK_DEBUG 0
-
-#if PACK_DEBUG
-  #include <stdio.h>
-#endif
-
-#define APPLE_LEGACY (defined(__APPLE__) && defined(WITH_GL_PROFILE_COMPAT))
-
-#if APPLE_LEGACY
-  #undef glGenVertexArrays
-  #define glGenVertexArrays glGenVertexArraysAPPLE
-
-  #undef glDeleteVertexArrays
-  #define glDeleteVertexArrays glDeleteVertexArraysAPPLE
-
-  #undef glBindVertexArray
-  #define glBindVertexArray glBindVertexArrayAPPLE
-#endif
-
-#define PRIM_NONE 0xF
-
-void clear_VertexFormat(VertexFormat* format)
-	{
-	for (unsigned a = 0; a < format->attrib_ct; ++a)
-		free(format->attribs[a].name);
-
-#if TRUST_NO_ONE
-	memset(format, 0, sizeof(VertexFormat));
-#else
-	format->attrib_ct = 0;
-	format->packed = false;
-#endif
-	}
-
-static unsigned comp_sz(GLenum type)
-	{
-#if TRUST_NO_ONE
-	assert(type >= GL_BYTE && type <= GL_FLOAT);
-#endif
-
-	const GLubyte sizes[] = {1,1,2,2,4,4,4};
-	return sizes[type - GL_BYTE];
-	}
-
-static unsigned attrib_sz(const Attrib *a)
-	{
-	return a->comp_ct * comp_sz(a->comp_type);
-	}
-
-static unsigned attrib_align(const Attrib *a)
-	{
-	unsigned c = comp_sz(a->comp_type);
-	if (a->comp_ct == 3 && c <= 2)
-		return 4 * c; // AMD HW can't fetch these well, so pad it out (other vendors too?)
-	else
-		return c; // most fetches are ok if components are naturally aligned
-	}
-
-static unsigned vertex_buffer_size(const VertexFormat* format, unsigned vertex_ct)
-	{
-#if TRUST_NO_ONE
-	assert(format->packed && format->stride > 0);
-#endif
-
-	return format->stride * vertex_ct;
-	}
-
-unsigned add_attrib(VertexFormat* format, const char* name, GLenum comp_type, unsigned comp_ct, VertexFetchMode fetch_mode)
-	{
-#if TRUST_NO_ONE
-	assert(format->attrib_ct < MAX_VERTEX_ATTRIBS); // there's room for more
-	assert(!format->packed); // packed means frozen/locked
-#endif
-
-	const unsigned attrib_id = format->attrib_ct++;
-	Attrib* attrib = format->attribs + attrib_id;
-
-	attrib->name = strdup(name);
-	attrib->comp_type = comp_type;
-	attrib->comp_ct = comp_ct;
-	attrib->sz = attrib_sz(attrib);
-	attrib->offset = 0; // offsets & stride are calculated later (during pack)
-	attrib->fetch_mode = fetch_mode;
-
-	return attrib_id;
-	}
-
-static unsigned padding(unsigned offset, unsigned alignment)
-	{
-	const unsigned mod = offset % alignment;
-	return (mod == 0) ? 0 : (alignment - mod);
-	}
-
-#if PACK_DEBUG
-static void show_pack(unsigned a_idx, unsigned sz, unsigned pad)
-	{
-	const char c = 'A' + a_idx;
-	for (unsigned i = 0; i < pad; ++i)
-		putchar('-');
-	for (unsigned i = 0; i < sz; ++i)
-		putchar(c);
-	}
-#endif
-
-void pack(VertexFormat* format)
-	{
-	// for now, attributes are packed in the order they were added,
-	// making sure each attrib is naturally aligned (add padding where necessary)
-
-	// later we can implement more efficient packing w/ reordering
-
-	Attrib* a0 = format->attribs + 0;
-	a0->offset = 0;
-	unsigned offset = a0->sz;
-
-#if PACK_DEBUG
-	show_pack(0, a0->sz, 0);
-#endif
-
-	for (unsigned a_idx = 1; a_idx < format->attrib_ct; ++a_idx)
-		{
-		Attrib* a = format->attribs + a_idx;
-		unsigned mid_padding = padding(offset, attrib_align(a));
-		offset += mid_padding;
-		a->offset = offset;
-		offset += a->sz;
-
-#if PACK_DEBUG
-		show_pack(a_idx, a->sz, mid_padding);
-#endif
-		}
-
-	unsigned end_padding = padding(offset, attrib_align(a0));
-
-#if PACK_DEBUG
-	show_pack(0, 0, end_padding);
-	putchar('\n');
-#endif
-
-	format->stride = offset + end_padding;
-	format->packed = true;
-	}
-
-void bind_attrib_locations(const VertexFormat* format, GLuint program)
-	{
-#if TRUST_NO_ONE
-	assert(glIsProgram(program));
-#endif
-
-	for (unsigned a_idx = 0; a_idx < format->attrib_ct; ++a_idx)
-		{
-		const Attrib* a = format->attribs + a_idx;
-		glBindAttribLocation(program, a_idx, a->name);
-		}
-	}
-
-typedef struct {
-	uint64_t loc_bits; // store 4 bits for each of the 16 attribs
-	uint16_t enabled_bits; // 1 bit for each attrib
-} AttribBinding;
-
-void clear_AttribBinding(AttribBinding* binding)
-	{
-	binding->loc_bits = 0;
-	binding->enabled_bits = 0;
-	}
-
-unsigned read_attrib_location(const AttribBinding* binding, unsigned a_idx)
-	{
-#if TRUST_NO_ONE
-	assert(MAX_VERTEX_ATTRIBS == 16);
-	assert(a_idx < MAX_VERTEX_ATTRIBS);
-	assert(binding->enabled_bits & (1 << a_idx));
-#endif
-
-	return (binding->loc_bits >> (4 * a_idx)) & 0xF;
-	}
-
-void write_attrib_location(AttribBinding* binding, unsigned a_idx, unsigned location)
-	{
-#if TRUST_NO_ONE
-	assert(MAX_VERTEX_ATTRIBS == 16);
-	assert(a_idx < MAX_VERTEX_ATTRIBS);
-	assert(location < MAX_VERTEX_ATTRIBS);
-#endif
-
-	const unsigned shift = 4 * a_idx;
-	const uint64_t mask = ((uint64_t)0xF) << shift;
-	// overwrite this attrib's previous location
-	binding->loc_bits = (binding->loc_bits & ~mask) | (location << shift);
-	// mark this attrib as enabled
-	binding->enabled_bits |= 1 << a_idx;
-	}
-
-void get_attrib_locations(const VertexFormat* format, AttribBinding* binding, GLuint program)
-	{
-#if TRUST_NO_ONE
-	assert(glIsProgram(program));
-#endif
-
-	clear_AttribBinding(binding);
-
-	for (unsigned a_idx = 0; a_idx < format->attrib_ct; ++a_idx)
-		{
-		const Attrib* a = format->attribs + a_idx;
-		GLint loc = glGetAttribLocation(program, a->name);
-
-#if TRUST_NO_ONE
-		assert(loc != -1);
-#endif
-
-		write_attrib_location(binding, a_idx, loc);
-		}
-	}
-
-// --- immediate mode work-alike --------------------------------
 
 typedef struct {
 	// TODO: organize this struct by frequency of change (run-time)
@@ -257,7 +36,7 @@ typedef struct {
 	
 	GLuint bound_program;
 	AttribBinding attrib_binding;
-	uint16_t prev_enabled_attrib_bits;
+	uint16_t prev_enabled_attrib_bits; // <-- only affects this VAO, so we're ok
 } Immediate;
 
 // size of internal buffer -- make this adjustable?
