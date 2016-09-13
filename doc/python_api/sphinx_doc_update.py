@@ -108,18 +108,19 @@ def main():
         subprocess.run(doc_gen_cmd)
 
         # III) Get Blender version info.
-        blenver = ""
+        blenver = blenver_zip = ""
         getver_file = os.path.join(tmp_dir, "blendver.txt")
         getver_script = (""
             "import sys, bpy\n"
             "with open(sys.argv[-1], 'w') as f:\n"
-            "    f.write('%d_%d%s_release' % (bpy.app.version[0], bpy.app.version[1], bpy.app.version_char)\n"
-            "            if bpy.app.version_cycle in {'rc', 'release'} else '%d_%d_%d' % bpy.app.version)\n")
+            "    f.write('%d_%d%s_release\\n' % (bpy.app.version[0], bpy.app.version[1], bpy.app.version_char)\n"
+            "            if bpy.app.version_cycle in {'rc', 'release'} else '%d_%d_%d\\n' % bpy.app.version)\n"
+            "    f.write('%d_%d_%d' % bpy.app.version)\n")
         get_ver_cmd = (args.blender, "--background", "-noaudio", "--factory-startup", "--python-exit-code", "1",
                        "--python-expr", getver_script, "--", getver_file)
         subprocess.run(get_ver_cmd)
         with open(getver_file) as f:
-            blenver = f.read()
+            blenver, blenver_zip = f.read().split("\n")
         os.remove(getver_file)
 
         # IV) Build doc.
@@ -138,7 +139,7 @@ def main():
         os.rename(os.path.join(tmp_dir, "sphinx-out"), api_dir)
 
     # VI) Create zip archive.
-    zip_name = "blender_python_reference_%s" % blenver
+    zip_name = "blender_python_reference_%s" % blenver_zip  # We can't use 'release' postfix here...
     zip_path = os.path.join(args.mirror_dir, zip_name)
     with zipfile.ZipFile(zip_path, 'w') as zf:
         for de in os.scandir(api_dir):
