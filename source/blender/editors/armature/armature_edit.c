@@ -410,6 +410,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 			if (type < 3) vec[type] = 1.0f;
 			else vec[type - 2] = -1.0f;
 			mul_m3_v3(imat, vec);
+			normalize_v3(vec);
 		}
 		
 		if (axis_flip) negate_v3(vec);
