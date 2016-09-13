@@ -415,7 +415,7 @@ function(setup_liblinks
 	if(WITH_OPENCOLORIO)
 		target_link_libraries(${target} ${OPENCOLORIO_LIBRARIES})
 	endif()
-	if(WITH_OPENSUBDIV)
+	if(WITH_OPENSUBDIV OR WITH_CYCLES_OPENSUBDIV)
 		if(WIN32 AND NOT UNIX)
 			file_list_suffix(OPENSUBDIV_LIBRARIES_DEBUG "${OPENSUBDIV_LIBRARIES}" "_d")
 			target_link_libraries_debug(${target} "${OPENSUBDIV_LIBRARIES_DEBUG}")
@@ -745,7 +745,7 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_gpudirect)
 	endif()
 
-	if(WITH_OPENSUBDIV)
+	if(WITH_OPENSUBDIV OR WITH_CYCLES_OPENSUBDIV)
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_opensubdiv)
 	endif()
 
