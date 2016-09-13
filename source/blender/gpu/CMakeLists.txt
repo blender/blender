@@ -63,8 +63,12 @@ set(SRC
 	gawain/attrib_binding.c
 	gawain/attrib_binding.h
 	gawain/common.h
+	gawain/element.c
+	gawain/element.h
 	gawain/immediate.c
 	gawain/immediate.h
+	gawain/vertex_buffer.c
+	gawain/vertex_buffer.h
 	gawain/vertex_format.c
 	gawain/vertex_format.h
 
