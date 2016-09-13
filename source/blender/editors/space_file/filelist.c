@@ -1651,6 +1651,7 @@ bool filelist_file_cache_block(struct FileList *filelist, const int index)
 	int start_index = max_ii(0, index - (cache_size / 2));
 	int end_index = min_ii(nbr_entries, index + (cache_size / 2));
 	int i;
+	const bool full_refresh = (filelist->flags & FL_IS_READY) != 0;
 
 	if ((index < 0) || (index >= nbr_entries)) {
 //		printf("Wrong index %d ([%d:%d])", index, 0, nbr_entries);
@@ -1673,8 +1674,8 @@ bool filelist_file_cache_block(struct FileList *filelist, const int index)
 //	       start_index, end_index, index, cache->block_start_index, cache->block_end_index);
 
 	/* If we have something to (re)cache... */
-	if ((start_index != cache->block_start_index) || (end_index != cache->block_end_index)) {
-		if ((start_index >= cache->block_end_index) || (end_index <= cache->block_start_index)) {
+	if (full_refresh || (start_index != cache->block_start_index) || (end_index != cache->block_end_index)) {
+		if (full_refresh || (start_index >= cache->block_end_index) || (end_index <= cache->block_start_index)) {
 			int size1 = cache->block_end_index - cache->block_start_index;
 			int size2 = 0;
 			int idx1 = cache->block_cursor, idx2 = 0;
