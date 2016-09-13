@@ -245,18 +245,15 @@ static void do_item_rename(ARegion *ar, TreeElement *te, TreeStoreElem *tselem, 
 }
 
 void item_rename_cb(
-        bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *te,
+        bContext *C, ReportList *reports, Scene *UNUSED(scene), TreeElement *te,
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	ARegion *ar = CTX_wm_region(C);
-	ReportList *reports = CTX_wm_reports(C); // XXX
 	do_item_rename(ar, te, tselem, reports);
 }
 
-static int do_outliner_item_rename(bContext *C, ARegion *ar, SpaceOops *soops, TreeElement *te, const float mval[2])
-{	
-	ReportList *reports = CTX_wm_reports(C); // XXX
-	
+static int do_outliner_item_rename(ReportList *reports, ARegion *ar, SpaceOops *soops, TreeElement *te, const float mval[2])
+{
 	if (mval[1] > te->ys && mval[1] < te->ys + UI_UNIT_Y) {
 		TreeStoreElem *tselem = TREESTORE(te);
 		
@@ -269,12 +266,12 @@ static int do_outliner_item_rename(bContext *C, ARegion *ar, SpaceOops *soops, T
 	}
 	
 	for (te = te->subtree.first; te; te = te->next) {
-		if (do_outliner_item_rename(C, ar, soops, te, mval)) return 1;
+		if (do_outliner_item_rename(reports, ar, soops, te, mval)) return 1;
 	}
 	return 0;
 }
 
-static int outliner_item_rename(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int outliner_item_rename(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -285,7 +282,7 @@ static int outliner_item_rename(bContext *C, wmOperator *UNUSED(op), const wmEve
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 	
 	for (te = soops->tree.first; te; te = te->next) {
-		if (do_outliner_item_rename(C, ar, soops, te, fmval)) {
+		if (do_outliner_item_rename(op->reports, ar, soops, te, fmval)) {
 			changed = true;
 			break;
 		}
