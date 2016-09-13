@@ -788,12 +788,17 @@ int common_restrict_check(bContext *C, Object *ob)
 /* Toggle Visibility ---------------------------------------- */
 
 void object_toggle_visibility_cb(
-        bContext *C, ReportList *UNUSED(reports), Scene *scene, TreeElement *te,
+        bContext *C, ReportList *reports, Scene *scene, TreeElement *te,
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	Base *base = (Base *)te->directdata;
 	Object *ob = (Object *)tselem->id;
-	
+
+	if (ID_IS_LINKED_DATABLOCK(tselem->id)) {
+		BKE_report(reports, RPT_WARNING, "Cannot edit external libdata");
+		return;
+	}
+
 	/* add check for edit mode */
 	if (!common_restrict_check(C, ob)) return;
 	
@@ -845,11 +850,16 @@ void OUTLINER_OT_visibility_toggle(wmOperatorType *ot)
 /* Toggle Selectability ---------------------------------------- */
 
 void object_toggle_selectability_cb(
-        bContext *UNUSED(C), ReportList *UNUSED(reports), Scene *scene, TreeElement *te,
+        bContext *UNUSED(C), ReportList *reports, Scene *scene, TreeElement *te,
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	Base *base = (Base *)te->directdata;
-	
+
+	if (ID_IS_LINKED_DATABLOCK(tselem->id)) {
+		BKE_report(reports, RPT_WARNING, "Cannot edit external libdata");
+		return;
+	}
+
 	if (base == NULL) base = BKE_scene_base_find(scene, (Object *)tselem->id);
 	if (base) {
 		base->object->restrictflag ^= OB_RESTRICT_SELECT;
@@ -895,11 +905,16 @@ void OUTLINER_OT_selectability_toggle(wmOperatorType *ot)
 /* Toggle Renderability ---------------------------------------- */
 
 void object_toggle_renderability_cb(
-        bContext *UNUSED(C), ReportList *UNUSED(reports), Scene *scene, TreeElement *te,
+        bContext *UNUSED(C), ReportList *reports, Scene *scene, TreeElement *te,
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	Base *base = (Base *)te->directdata;
-	
+
+	if (ID_IS_LINKED_DATABLOCK(tselem->id)) {
+		BKE_report(reports, RPT_WARNING, "Cannot edit external libdata");
+		return;
+	}
+
 	if (base == NULL) base = BKE_scene_base_find(scene, (Object *)tselem->id);
 	if (base) {
 		base->object->restrictflag ^= OB_RESTRICT_RENDER;
