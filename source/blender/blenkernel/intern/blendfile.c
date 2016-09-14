@@ -510,7 +510,7 @@ bool BKE_blendfile_write_partial(
 
 	/* This is needed to be able to load that file as a real one later
 	 * (otherwise main->name will not be set at read time). */
-	BLI_strncpy(bmain_dst->name, filepath, sizeof(bmain_dst->name));
+	BLI_strncpy(bmain_dst->name, bmain_src->name, sizeof(bmain_dst->name));
 
 	if (write_flags & G_FILE_RELATIVE_REMAP) {
 		path_list_backup = BKE_bpath_list_backup(bmain_src, path_list_flag);
