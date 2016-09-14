@@ -107,8 +107,8 @@ bool GHOST_NDOFManagerUnix::processEvents()
 				{
 					/* convert to blender view coords */
 					GHOST_TUns64 now = m_system.getMilliSeconds();
-					const short t[3] = {(short)e.motion.x, (short)e.motion.y, (short)-e.motion.z};
-					const short r[3] = {(short)-e.motion.rx, (short)-e.motion.ry, (short)e.motion.rz};
+					const int t[3] = {(int)e.motion.x, (int)e.motion.y, (int)-e.motion.z};
+					const int r[3] = {(int)-e.motion.rx, (int)-e.motion.ry, (int)e.motion.rz};
 
 					updateTranslation(t, now);
 					updateRotation(r, now);
@@ -128,7 +128,7 @@ bool GHOST_NDOFManagerUnix::processEvents()
 #ifdef USE_FINISH_GLITCH_WORKAROUND
 		if (motion_test_prev == true && motion_test == false) {
 			GHOST_TUns64 now = m_system.getMilliSeconds();
-			const short v[3] = {0, 0, 0};
+			const int v[3] = {0, 0, 0};
 
 			updateTranslation(v, now);
 			updateRotation(v, now);

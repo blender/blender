@@ -871,12 +871,12 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const &raw)
 		{
 			const short *axis = (short *)(data + 1);
 			// massage into blender view coords (same goes for rotation)
-			const short t[3] = {axis[0], -axis[2], axis[1]};
+			const int t[3] = {axis[0], -axis[2], axis[1]};
 			m_ndofManager->updateTranslation(t, now);
 
 			if (raw.data.hid.dwSizeHid == 13) {
 				// this report also includes rotation
-				const short r[3] = {-axis[3], axis[5], -axis[4]};
+				const int r[3] = {-axis[3], axis[5], -axis[4]};
 				m_ndofManager->updateRotation(r, now);
 
 				// I've never gotten one of these, has anyone else?
@@ -887,7 +887,7 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const &raw)
 		case 2: // rotation
 		{
 			const short *axis = (short *)(data + 1);
-			const short r[3] = {-axis[0], axis[2], -axis[1]};
+			const int r[3] = {-axis[0], axis[2], -axis[1]};
 			m_ndofManager->updateRotation(r, now);
 			break;
 		}
