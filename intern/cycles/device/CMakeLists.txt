@@ -36,6 +36,15 @@ set(SRC
 	device_task.cpp
 )
 
+set(SRC_OPENCL
+	opencl/opencl.h
+
+	opencl/opencl_base.cpp
+	opencl/opencl_mega.cpp
+	opencl/opencl_split.cpp
+	opencl/opencl_util.cpp
+)
+
 if(WITH_CYCLES_NETWORK)
 	list(APPEND SRC
 		device_network.cpp
@@ -67,4 +76,4 @@ endif()
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
 
-add_library(cycles_device ${SRC} ${SRC_HEADERS})
+add_library(cycles_device ${SRC} ${SRC_OPENCL} ${SRC_HEADERS})
