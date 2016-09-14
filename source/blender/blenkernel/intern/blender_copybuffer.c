@@ -85,6 +85,31 @@ bool BKE_copybuffer_save(Main *bmain_src, const char *filename, ReportList *repo
 	return retval;
 }
 
+bool BKE_copybuffer_read(Main *bmain_dst, const char *libname, ReportList *reports)
+{
+	BlendHandle *bh = BLO_blendhandle_from_file(libname, reports);
+	if (bh == NULL) {
+		/* Error reports will have been made by BLO_blendhandle_from_file(). */
+		return false;
+	}
+	/* Here appending/linking starts. */
+	Main *mainl = BLO_library_link_begin(bmain_dst, &bh, libname);
+	BLO_library_link_copypaste(mainl, bh);
+	BLO_library_link_end(mainl, &bh, 0, NULL, NULL);
+	/* Mark all library linked objects to be updated. */
+	BKE_main_lib_objects_recalc_all(bmain_dst);
+	IMB_colormanagement_check_file_config(bmain_dst);
+	/* Append, rather than linking. */
+	Library *lib = BLI_findstring(&bmain_dst->library, libname, offsetof(Library, filepath));
+	BKE_library_make_local(bmain_dst, lib, true, false);
+	/* Important we unset, otherwise these object wont
+	 * link into other scenes from this blend file.
+	 */
+	BKE_main_id_tag_all(bmain_dst, LIB_TAG_PRE_EXISTING, false);
+	BLO_blendhandle_close(bh);
+	return true;
+}
+
 /**
  * \return Success.
  */

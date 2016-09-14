@@ -39,7 +39,9 @@
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_appdir.h"
 #include "BKE_armature.h"
+#include "BKE_blender_copybuffer.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
@@ -248,30 +250,6 @@ void POSE_OT_visual_transform_apply(wmOperatorType *ot)
 /* ********************************************** */
 /* Copy/Paste */
 
-/* Global copy/paste buffer for pose - cleared on start/end session + before every copy operation */
-static bPose *g_posebuf = NULL;
-
-void ED_clipboard_posebuf_free(void)
-{
-	if (g_posebuf) {
-		bPoseChannel *pchan;
-		
-		for (pchan = g_posebuf->chanbase.first; pchan; pchan = pchan->next) {
-			if (pchan->prop) {
-				IDP_FreeProperty(pchan->prop);
-				MEM_freeN(pchan->prop);
-			}
-		}
-		
-		/* was copied without constraints */
-		BLI_freelistN(&g_posebuf->chanbase);
-		BKE_pose_channels_hash_free(g_posebuf);
-		MEM_freeN(g_posebuf);
-	}
-	
-	g_posebuf = NULL;
-}
-
 /* This function is used to indicate that a bone is selected 
  * and needs to be included in copy buffer (used to be for inserting keys)
  */
@@ -436,22 +414,24 @@ static bPoseChannel *pose_bone_do_paste(Object *ob, bPoseChannel *chan, const bo
 
 static int pose_copy_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
-	
-	/* sanity checking */
+	char str[FILE_MAX];
+	/* Sanity checking. */
 	if (ELEM(NULL, ob, ob->pose)) {
 		BKE_report(op->reports, RPT_ERROR, "No pose to copy");
 		return OPERATOR_CANCELLED;
 	}
-
-	/* free existing pose buffer */
-	ED_clipboard_posebuf_free();
-	
-	/* sets chan->flag to POSE_KEY if bone selected, then copy those bones to the buffer */
-	set_pose_keys(ob);  
-	BKE_pose_copy_data(&g_posebuf, ob->pose, 0);
-	
-	
+	/* Sets chan->flag to POSE_KEY if bone selected. */
+	set_pose_keys(ob);
+	/* Store the whole object to the copy buffer because pose can't be
+	 * existing on it's own.
+	 */
+	BKE_copybuffer_begin(bmain);
+	BKE_copybuffer_tag_ID(&ob->id);
+	BLI_make_file_string("/", str, BKE_tempdir_base(), "copybuffer_pose.blend");
+	BKE_copybuffer_save(bmain, str, op->reports);
+	BKE_report(op->reports, RPT_INFO, "Copied pose to buffer");
 	return OPERATOR_FINISHED;
 }
 
@@ -479,44 +459,60 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
 	bPoseChannel *chan;
 	const bool flip = RNA_boolean_get(op->ptr, "flipped");
 	bool selOnly = RNA_boolean_get(op->ptr, "selected_mask");
-
-	/* get KeyingSet to use */
+	/* Get KeyingSet to use. */
 	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
-
-	/* sanity checks */
-	if (ELEM(NULL, ob, ob->pose))
-		return OPERATOR_CANCELLED;
-
-	if (g_posebuf == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Copy buffer is empty");
+	/* Sanity checks. */
+	if (ELEM(NULL, ob, ob->pose)) {
 		return OPERATOR_CANCELLED;
 	}
-	
-	/* if selOnly option is enabled, if user hasn't selected any bones, 
-	 * just go back to default behavior to be more in line with other pose tools
+	/* Read copy buffer .blend file. */
+	char str[FILE_MAX];
+	Main *tmp_bmain = BKE_main_new();
+	BLI_make_file_string("/", str, BKE_tempdir_base(), "copybuffer_pose.blend");
+	if (!BKE_copybuffer_read(tmp_bmain, str, op->reports)) {
+		BKE_report(op->reports, RPT_ERROR, "Copy buffer is empty");
+		BKE_main_free(tmp_bmain);
+		return OPERATOR_CANCELLED;
+	}
+	/* Make sure data from this file is usable for pose paste. */
+	if (BLI_listbase_count_ex(&tmp_bmain->object, 2) != 1) {
+		BKE_report(op->reports, RPT_ERROR, "Copy buffer is not from pose mode");
+		BKE_main_free(tmp_bmain);
+		return OPERATOR_CANCELLED;
+	}
+	Object *object_from = tmp_bmain->object.first;
+	bPose *pose_from = object_from->pose;
+	if (pose_from == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Copy buffer has no pose");
+		BKE_main_free(tmp_bmain);
+		return OPERATOR_CANCELLED;
+	}
+	/* If selOnly option is enabled, if user hasn't selected any bones,
+	 * just go back to default behavior to be more in line with other
+	 * pose tools.
 	 */
 	if (selOnly) {
-		if (CTX_DATA_COUNT(C, selected_pose_bones) == 0)
-			selOnly = 0;
+		if (CTX_DATA_COUNT(C, selected_pose_bones) == 0) {
+			selOnly = false;
+		}
 	}
-
-	/* Safely merge all of the channels in the buffer pose into any existing pose */
-	for (chan = g_posebuf->chanbase.first; chan; chan = chan->next) {
+	/* Safely merge all of the channels in the buffer pose into any
+	 * existing pose.
+	 */
+	for (chan = pose_from->chanbase.first; chan; chan = chan->next) {
 		if (chan->flag & POSE_KEY) {
-			/* try to perform paste on this bone */
+			/* Try to perform paste on this bone. */
 			bPoseChannel *pchan = pose_bone_do_paste(ob, chan, selOnly, flip);
-			
-			if (pchan) {
-				/* keyframing tagging for successful paste */
+			if (pchan != NULL) {
+				/* Keyframing tagging for successful paste, */
 				ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
 			}
 		}
 	}
-	
-	/* Update event for pose and deformation children */
+	BKE_main_free(tmp_bmain);
+	/* Update event for pose and deformation children. */
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		
-	/* notifiers for updates */
+	/* Notifiers for updates, */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 
 	return OPERATOR_FINISHED;
