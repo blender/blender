@@ -324,14 +324,14 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 	return m_deviceType != NDOF_UnknownDevice;
 }
 
-void GHOST_NDOFManager::updateTranslation(const short t[3], GHOST_TUns64 time)
+void GHOST_NDOFManager::updateTranslation(const int t[3], GHOST_TUns64 time)
 {
 	memcpy(m_translation, t, sizeof(m_translation));
 	m_motionTime = time;
 	m_motionEventPending = true;
 }
 
-void GHOST_NDOFManager::updateRotation(const short r[3], GHOST_TUns64 time)
+void GHOST_NDOFManager::updateRotation(const int r[3], GHOST_TUns64 time)
 {
 	memcpy(m_rotation, r, sizeof(m_rotation));
 	m_motionTime = time;
