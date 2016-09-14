@@ -661,11 +661,6 @@ void LightManager::device_update_points(Device *device,
 			use_light_visibility = true;
 		}
 
-		float3 fixed_emission = make_float3(0.0f, 0.0f, 0.0f);
-		if(shader->is_constant_emission(&fixed_emission)) {
-			shader_id |= SHADER_FIXED_EMISSION;
-		}
-
 		if(light->type == LIGHT_POINT) {
 			shader_id &= ~SHADER_AREA_LIGHT;
 
@@ -765,7 +760,7 @@ void LightManager::device_update_points(Device *device,
 			light_data[light_index*LIGHT_SIZE + 3] = make_float4(samples, 0.0f, 0.0f, 0.0f);
 		}
 
-		light_data[light_index*LIGHT_SIZE + 4] = make_float4(max_bounces, fixed_emission.x, fixed_emission.y, fixed_emission.z);
+		light_data[light_index*LIGHT_SIZE + 4] = make_float4(max_bounces, 0.0f, 0.0f, 0.0f);
 
 		light_index++;
 	}

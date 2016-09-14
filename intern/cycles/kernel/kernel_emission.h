@@ -29,6 +29,8 @@ ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg,
 	/* setup shading at emitter */
 	float3 eval;
 
+	int shader_flag = kernel_tex_fetch(__shader_flag, (ls->shader & SHADER_MASK)*SHADER_SIZE);
+
 #ifdef __BACKGROUND_MIS__
 	if(ls->type == LIGHT_BACKGROUND) {
 		Ray ray;
@@ -49,10 +51,14 @@ ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg,
 	}
 	else
 #endif
-	if(ls->lamp != LAMP_NONE && (ls->shader & SHADER_FIXED_EMISSION))
+	if(shader_flag & SD_HAS_CONSTANT_EMISSION)
 	{
-		float4 L = kernel_tex_fetch(__light_data, ls->lamp*LIGHT_SIZE + 4);
-		eval = make_float3(L.y, L.z, L.w);
+		eval.x = __int_as_float(kernel_tex_fetch(__shader_flag, (ls->shader & SHADER_MASK)*SHADER_SIZE + 2));
+		eval.y = __int_as_float(kernel_tex_fetch(__shader_flag, (ls->shader & SHADER_MASK)*SHADER_SIZE + 3));
+		eval.z = __int_as_float(kernel_tex_fetch(__shader_flag, (ls->shader & SHADER_MASK)*SHADER_SIZE + 4));
+		if((ls->prim != PRIM_NONE) && dot(ls->Ng, I) < 0.0f) {
+			ls->Ng = -ls->Ng;
+		}
 	}
 	else
 	{
