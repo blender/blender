@@ -285,7 +285,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
  * CocoaAppDelegate
  * ObjC object to capture applicationShouldTerminate, and send quit event
  **/
-@interface CocoaAppDelegate : NSObject <NSFileManagerDelegate> {
+@interface CocoaAppDelegate : NSObject <NSApplicationDelegate> {
 	GHOST_SystemCocoa *systemCocoa;
 }
 - (void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa;
@@ -412,65 +412,64 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 		}*/
 		
 		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-		if (NSApp == nil) {
-			[NSApplication sharedApplication];
+		[NSApplication sharedApplication]; // initializes	NSApp
+		
+		if ([NSApp mainMenu] == nil) {
+			NSMenu *mainMenubar = [[NSMenu alloc] init];
+			NSMenuItem *menuItem;
+			NSMenu *windowMenu;
+			NSMenu *appMenu;
 			
-			if ([NSApp mainMenu] == nil) {
-				NSMenu *mainMenubar = [[NSMenu alloc] init];
-				NSMenuItem *menuItem;
-				NSMenu *windowMenu;
-				NSMenu *appMenu;
-				
-				//Create the application menu
-				appMenu = [[NSMenu alloc] initWithTitle:@"Blender"];
-				
-				[appMenu addItemWithTitle:@"About Blender" action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
-				[appMenu addItem:[NSMenuItem separatorItem]];
-				
-				menuItem = [appMenu addItemWithTitle:@"Hide Blender" action:@selector(hide:) keyEquivalent:@"h"];
-				[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
-				 
-				menuItem = [appMenu addItemWithTitle:@"Hide others" action:@selector(hideOtherApplications:) keyEquivalent:@"h"];
-				[menuItem setKeyEquivalentModifierMask:(NSAlternateKeyMask | NSCommandKeyMask)];
-				
-				[appMenu addItemWithTitle:@"Show All" action:@selector(unhideAllApplications:) keyEquivalent:@""];
-				
-				menuItem = [appMenu addItemWithTitle:@"Quit Blender" action:@selector(terminate:) keyEquivalent:@"q"];
-				[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
-				
-				menuItem = [[NSMenuItem alloc] init];
-				[menuItem setSubmenu:appMenu];
-				
-				[mainMenubar addItem:menuItem];
-				[menuItem release];
-				[NSApp performSelector:@selector(setAppleMenu:) withObject:appMenu]; //Needed for 10.5
-				[appMenu release];
-				
-				//Create the window menu
-				windowMenu = [[NSMenu alloc] initWithTitle:@"Window"];
-				
-				menuItem = [windowMenu addItemWithTitle:@"Minimize" action:@selector(performMiniaturize:) keyEquivalent:@"m"];
-				[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
-				
-				[windowMenu addItemWithTitle:@"Zoom" action:@selector(performZoom:) keyEquivalent:@""];
-				
-				menuItem = [windowMenu addItemWithTitle:@"Enter Full Screen" action:@selector(toggleFullScreen:) keyEquivalent:@"f" ];
-				[menuItem setKeyEquivalentModifierMask:NSControlKeyMask | NSCommandKeyMask];
+			//Create the application menu
+			appMenu = [[NSMenu alloc] initWithTitle:@"Blender"];
+			
+			[appMenu addItemWithTitle:@"About Blender" action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
+			[appMenu addItem:[NSMenuItem separatorItem]];
+			
+			menuItem = [appMenu addItemWithTitle:@"Hide Blender" action:@selector(hide:) keyEquivalent:@"h"];
+			[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
+			 
+			menuItem = [appMenu addItemWithTitle:@"Hide others" action:@selector(hideOtherApplications:) keyEquivalent:@"h"];
+			[menuItem setKeyEquivalentModifierMask:(NSAlternateKeyMask | NSCommandKeyMask)];
+			
+			[appMenu addItemWithTitle:@"Show All" action:@selector(unhideAllApplications:) keyEquivalent:@""];
+			
+			menuItem = [appMenu addItemWithTitle:@"Quit Blender" action:@selector(terminate:) keyEquivalent:@"q"];
+			[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
+			
+			menuItem = [[NSMenuItem alloc] init];
+			[menuItem setSubmenu:appMenu];
+			
+			[mainMenubar addItem:menuItem];
+			[menuItem release];
+			[NSApp performSelector:@selector(setAppleMenu:) withObject:appMenu]; //Needed for 10.5
+			[appMenu release];
+			
+			//Create the window menu
+			windowMenu = [[NSMenu alloc] initWithTitle:@"Window"];
+			
+			menuItem = [windowMenu addItemWithTitle:@"Minimize" action:@selector(performMiniaturize:) keyEquivalent:@"m"];
+			[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
+			
+			[windowMenu addItemWithTitle:@"Zoom" action:@selector(performZoom:) keyEquivalent:@""];
+			
+			menuItem = [windowMenu addItemWithTitle:@"Enter Full Screen" action:@selector(toggleFullScreen:) keyEquivalent:@"f" ];
+			[menuItem setKeyEquivalentModifierMask:NSControlKeyMask | NSCommandKeyMask];
 
-				menuItem = [windowMenu addItemWithTitle:@"Close" action:@selector(performClose:) keyEquivalent:@"w"];
-				[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
-				
-				menuItem = [[NSMenuItem	alloc] init];
-				[menuItem setSubmenu:windowMenu];
-				
-				[mainMenubar addItem:menuItem];
-				[menuItem release];
-				
-				[NSApp setMainMenu:mainMenubar];
-				[NSApp setWindowsMenu:windowMenu];
-				[windowMenu release];
-			}
+			menuItem = [windowMenu addItemWithTitle:@"Close" action:@selector(performClose:) keyEquivalent:@"w"];
+			[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
+			
+			menuItem = [[NSMenuItem	alloc] init];
+			[menuItem setSubmenu:windowMenu];
+			
+			[mainMenubar addItem:menuItem];
+			[menuItem release];
+			
+			[NSApp setMainMenu:mainMenubar];
+			[NSApp setWindowsMenu:windowMenu];
+			[windowMenu release];
 		}
+
 		if ([NSApp delegate] == nil) {
 			CocoaAppDelegate *appDelegate = [[CocoaAppDelegate alloc] init];
 			[appDelegate setSystemCocoa:this];
