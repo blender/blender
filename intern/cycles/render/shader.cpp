@@ -401,7 +401,7 @@ void ShaderManager::device_update_common(Device *device,
 	if(scene->shaders.size() == 0)
 		return;
 
-	uint shader_flag_size = scene->shaders.size()*2;
+	uint shader_flag_size = scene->shaders.size()*SHADER_SIZE;
 	uint *shader_flag = dscene->shader_flag.resize(shader_flag_size);
 	uint i = 0;
 	bool has_volumes = false;
@@ -446,9 +446,17 @@ void ShaderManager::device_update_common(Device *device,
 		if(shader->displacement_method != DISPLACE_TRUE && shader->graph_bump)
 			flag |= SD_HAS_BSSRDF_BUMP;
 
+		/* constant emission check */
+		float3 constant_emission = make_float3(0.0f, 0.0f, 0.0f);
+		if(shader->is_constant_emission(&constant_emission))
+			flag |= SD_HAS_CONSTANT_EMISSION;
+
 		/* regular shader */
 		shader_flag[i++] = flag;
 		shader_flag[i++] = shader->pass_id;
+		shader_flag[i++] = __float_as_int(constant_emission.x);
+		shader_flag[i++] = __float_as_int(constant_emission.y);
+		shader_flag[i++] = __float_as_int(constant_emission.z);
 
 		has_transparent_shadow |= (flag & SD_HAS_TRANSPARENT_SHADOW) != 0;
 	}
