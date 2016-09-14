@@ -367,7 +367,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"masks", "Mask", "rna_Main_masks_begin", "Masks", "Masks datablocks", RNA_def_main_masks},
 		{"linestyles", "FreestyleLineStyle", "rna_Main_linestyle_begin", "Line Styles", "Line Style datablocks", RNA_def_main_linestyles},
 		{"cache_files", "CacheFile", "rna_Main_cachefiles_begin", "Cache Files", "Cache Files datablocks", RNA_def_main_cachefiles},
-	    {"paint_curves", "PaintCurve", "rna_Main_paintcurves_begin", "Paint Curves", "Paint Curves datablocks", RNA_def_main_paintcurves},
+		{"paint_curves", "PaintCurve", "rna_Main_paintcurves_begin", "Paint Curves", "Paint Curves datablocks", RNA_def_main_paintcurves},
 		{NULL, NULL, NULL, NULL, NULL, NULL}
 	};
 
