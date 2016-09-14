@@ -265,6 +265,7 @@ void ED_clipboard_posebuf_free(void)
 		
 		/* was copied without constraints */
 		BLI_freelistN(&g_posebuf->chanbase);
+		BKE_pose_channels_hash_free(g_posebuf);
 		MEM_freeN(g_posebuf);
 	}
 	
