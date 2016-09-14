@@ -1651,7 +1651,7 @@ bool filelist_file_cache_block(struct FileList *filelist, const int index)
 	int start_index = max_ii(0, index - (cache_size / 2));
 	int end_index = min_ii(nbr_entries, index + (cache_size / 2));
 	int i;
-	const bool full_refresh = (filelist->flags & FL_IS_READY) != 0;
+	const bool full_refresh = (filelist->flags & FL_IS_READY) == 0;
 
 	if ((index < 0) || (index >= nbr_entries)) {
 //		printf("Wrong index %d ([%d:%d])", index, 0, nbr_entries);
