@@ -698,6 +698,7 @@ void BlenderSync::sync_motion(BL::RenderSettings& b_render,
 	Camera prevcam = *(scene->camera);
 
 	int frame_center = b_scene.frame_current();
+	float subframe_center = b_scene.frame_subframe();
 	float frame_center_delta = 0.0f;
 
 	if(scene->need_motion() != Scene::MOTION_PASS &&
@@ -711,7 +712,7 @@ void BlenderSync::sync_motion(BL::RenderSettings& b_render,
 			assert(scene->camera->motion_position == Camera::MOTION_POSITION_START);
 			frame_center_delta = shuttertime * 0.5f;
 		}
-		float time = frame_center + frame_center_delta;
+		float time = frame_center + subframe_center + frame_center_delta;
 		int frame = (int)floorf(time);
 		float subframe = time - frame;
 		python_thread_state_restore(python_thread_state);
@@ -734,7 +735,7 @@ void BlenderSync::sync_motion(BL::RenderSettings& b_render,
 		float shuttertime = scene->motion_shutter_time();
 
 		/* compute frame and subframe time */
-		float time = frame_center + frame_center_delta + relative_time * shuttertime * 0.5f;
+		float time = frame_center + subframe_center + frame_center_delta + relative_time * shuttertime * 0.5f;
 		int frame = (int)floorf(time);
 		float subframe = time - frame;
 
@@ -759,7 +760,7 @@ void BlenderSync::sync_motion(BL::RenderSettings& b_render,
 	 * function assumes it is being executed from python and will
 	 * try to save the thread state */
 	python_thread_state_restore(python_thread_state);
-	b_engine.frame_set(frame_center, 0.0f);
+	b_engine.frame_set(frame_center, subframe_center);
 	python_thread_state_save(python_thread_state);
 
 	/* tag camera for motion update */
