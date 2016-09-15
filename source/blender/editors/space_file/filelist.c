@@ -1405,7 +1405,9 @@ void filelist_setdir(struct FileList *filelist, char *r_dir)
 	BLI_assert(strlen(r_dir) < FILE_MAX_LIBEXTRA);
 
 	BLI_cleanup_dir(G.main->name, r_dir);
-	BLI_assert(filelist->checkdirf(filelist, r_dir, true));
+	const bool is_valid_path = filelist->checkdirf(filelist, r_dir, true);
+	BLI_assert(is_valid_path);
+	UNUSED_VARS_NDEBUG(is_valid_path);
 
 	if (!STREQ(filelist->filelist.root, r_dir)) {
 		BLI_strncpy(filelist->filelist.root, r_dir, sizeof(filelist->filelist.root));
