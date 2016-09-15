@@ -242,6 +242,9 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "GPENCIL_OT_active_frames_delete_all", XKEY, KM_PRESS, KM_SHIFT, 0);
 	
+	/* subdivide strokes */
+	WM_keymap_add_item(keymap, "GPENCIL_OT_stroke_subdivide", WKEY, KM_PRESS, 0, 0);
+
 	/* join strokes */
 	WM_keymap_add_item(keymap, "GPENCIL_OT_stroke_join", JKEY, KM_PRESS, KM_CTRL, 0);
 	
@@ -410,6 +413,7 @@ void ED_operatortypes_gpencil(void)
 	WM_operatortype_append(GPENCIL_OT_stroke_cyclical_set);
 	WM_operatortype_append(GPENCIL_OT_stroke_join);
 	WM_operatortype_append(GPENCIL_OT_stroke_flip);
+	WM_operatortype_append(GPENCIL_OT_stroke_subdivide);
 
 	WM_operatortype_append(GPENCIL_OT_palette_add);
 	WM_operatortype_append(GPENCIL_OT_palette_remove);

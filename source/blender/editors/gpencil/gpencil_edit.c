@@ -1970,6 +1970,125 @@ void GPENCIL_OT_reproject(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/* ******************* Stroke subdivide ************************** */
+/* helper: Count how many points need to be inserted */
+static int gp_count_subdivision_cuts(bGPDstroke *gps)
+{
+	bGPDspoint *pt;
+	int i;
+	int totnewpoints = 0;
+	for (i = 0, pt = gps->points; i < gps->totpoints && pt; i++, pt++) {
+		if (pt->flag & GP_SPOINT_SELECT) {
+			if (i + 1 < gps->totpoints){
+				if (gps->points[i + 1].flag & GP_SPOINT_SELECT) {
+					++totnewpoints;
+				};
+			}
+		}
+	}
+
+	return totnewpoints;
+}
+static int gp_stroke_subdivide_exec(bContext *C, wmOperator *op)
+{
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	bGPDspoint *temp_points;
+	const int cuts = RNA_int_get(op->ptr, "number_cuts");
+
+	int totnewpoints, oldtotpoints;
+	int i2;
+
+	/* sanity checks */
+	if (ELEM(NULL, gpd))
+		return OPERATOR_CANCELLED;
+
+	/* Go through each editable + selected stroke */
+	GP_EDITABLE_STROKES_BEGIN(C, gpl, gps)
+	{
+		if (gps->flag & GP_STROKE_SELECT) {
+			/* loop as many times as cuts */
+			for (int s = 0; s < cuts; s++) {
+				totnewpoints = gp_count_subdivision_cuts(gps);
+				if (totnewpoints == 0) {
+					continue;
+				}
+				/* duplicate points in a temp area */
+				temp_points = MEM_dupallocN(gps->points);
+				oldtotpoints = gps->totpoints;
+
+				/* resize the points arrys */
+				gps->totpoints += totnewpoints;
+				gps->points = MEM_recallocN(gps->points, sizeof(*gps->points) * gps->totpoints);
+				gps->flag |= GP_STROKE_RECALC_CACHES;
+
+				/* loop and interpolate */
+				i2 = 0;
+				for (int i = 0; i < oldtotpoints; i++) {
+					bGPDspoint *pt = &temp_points[i];
+					bGPDspoint *pt_final = &gps->points[i2];
+
+					/* copy current point */
+					copy_v3_v3(&pt_final->x, &pt->x);
+					pt_final->pressure = pt->pressure;
+					pt_final->strength = pt->strength;
+					pt_final->time = pt->time;
+					pt_final->flag = pt->flag;
+					++i2;
+
+					/* if next point is selected add a half way point */
+					if (pt->flag & GP_SPOINT_SELECT) {
+						if (i + 1 < oldtotpoints){
+							if (temp_points[i + 1].flag & GP_SPOINT_SELECT) {
+								pt_final = &gps->points[i2];
+								/* Interpolate all values */
+								bGPDspoint *next = &temp_points[i + 1];
+								interp_v3_v3v3(&pt_final->x, &pt->x, &next->x, 0.5f);
+								pt_final->pressure = interpf(pt->pressure, next->pressure, 0.5f);
+								pt_final->strength = interpf(pt->strength, next->strength, 0.5f);
+								CLAMP(pt_final->strength, GPENCIL_STRENGTH_MIN, 1.0f);
+								pt_final->time = interpf(pt->time, next->time, 0.5f);
+								pt_final->flag |= GP_SPOINT_SELECT;
+								++i2;
+							};
+						}
+					}
+				}
+				/* free temp memory */
+				MEM_freeN(temp_points);
+			}
+		}
+	}
+	GP_EDITABLE_STROKES_END;
+
+	/* notifiers */
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_stroke_subdivide(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name = "Subdivide Stroke";
+	ot->idname = "GPENCIL_OT_stroke_subdivide";
+	ot->description = "Subdivide between continuous selected points of the stroke adding a point half way between them";
+
+	/* api callbacks */
+	ot->exec = gp_stroke_subdivide_exec;
+	ot->poll = gp_active_layer_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+
+	/* properties */
+	prop = RNA_def_int(ot->srna, "number_cuts", 1, 1, 10, "Number of Cuts", "", 1, 5);
+	/* avoid re-using last var because it can cause _very_ high value and annoy users */
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+}
+
 /* =========  Interpolation operators ========================== */
 /* Helper: Update point with interpolation */
 static void gp_interpolate_update_points(bGPDstroke *gps_from, bGPDstroke *gps_to, bGPDstroke *new_stroke, float factor)

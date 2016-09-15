@@ -227,6 +227,7 @@ class GreasePencilStrokeEditPanel:
 
         layout.separator()
         col = layout.column(align=True)
+        col.operator("gpencil.stroke_subdivide", text="Subdivide")
         col.operator("gpencil.stroke_join", text="Join").type = 'JOIN'
         col.operator("gpencil.stroke_join", text="Join & Copy").type = 'JOINCOPY'
         col.operator("gpencil.stroke_flip", text="Flip Direction")
