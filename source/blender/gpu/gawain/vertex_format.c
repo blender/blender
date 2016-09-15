@@ -19,7 +19,7 @@
   #include <stdio.h>
 #endif
 
-void clear_VertexFormat(VertexFormat* format)
+void VertexFormat_clear(VertexFormat* format)
 	{
 	for (unsigned a = 0; a < format->attrib_ct; ++a)
 		free(format->attribs[a].name);
@@ -30,6 +30,20 @@ void clear_VertexFormat(VertexFormat* format)
 	format->attrib_ct = 0;
 	format->packed = false;
 #endif
+	}
+
+void VertexFormat_copy(VertexFormat* dest, const VertexFormat* src)
+	{
+	// discard dest format's old name strings
+	for (unsigned a = 0; a < dest->attrib_ct; ++a)
+		free(dest->attribs[a].name);
+
+	// copy regular struct fields
+	memcpy(dest, src, sizeof(VertexFormat));
+	
+	// give dest attribs their own copy of name strings
+	for (unsigned i = 0; i < src->attrib_ct; ++i)
+		dest->attribs[i].name = strdup(src->attribs[i].name);
 	}
 
 static unsigned comp_sz(GLenum type)
@@ -102,7 +116,7 @@ static void show_pack(unsigned a_idx, unsigned sz, unsigned pad)
 	}
 #endif
 
-void pack(VertexFormat* format)
+void VertexFormat_pack(VertexFormat* format)
 	{
 	// for now, attributes are packed in the order they were added,
 	// making sure each attrib is naturally aligned (add padding where necessary)

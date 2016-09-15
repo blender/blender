@@ -22,21 +22,60 @@ VertexBuffer* VertexBuffer_create()
 	return verts;
 	}
 
+VertexBuffer* VertexBuffer_create_with_format(const VertexFormat* format)
+	{
+	VertexBuffer* verts = VertexBuffer_create();
+	VertexFormat_copy(&verts->format, format);
+	if (!format->packed)
+		VertexFormat_pack(&verts->format);
+	return verts;
+
+	// this function might seem redundant, but there is potential for memory savings here...
+	// TODO: implement those memory savings
+	}
+
 void VertexBuffer_init(VertexBuffer* verts)
 	{
 	memset(verts, 0, sizeof(VertexBuffer));
+	}
+
+void VertexBuffer_init_with_format(VertexBuffer* verts, const VertexFormat* format)
+	{
+	VertexBuffer_init(verts);
+	VertexFormat_copy(&verts->format, format);
+	if (!format->packed)
+		VertexFormat_pack(&verts->format);
+	}
+
+unsigned VertexBuffer_size(const VertexBuffer* verts)
+	{
+	return vertex_buffer_size(&verts->format, verts->vertex_ct);
 	}
 
 void VertexBuffer_allocate_data(VertexBuffer* verts, unsigned v_ct)
 	{
 	VertexFormat* format = &verts->format;
 	if (!format->packed)
-		pack(format);
+		VertexFormat_pack(format);
 
 	verts->vertex_ct = v_ct;
 
 	// Data initially lives in main memory. Will be transferred to VRAM when we "prime" it.
-	verts->data = malloc(vertex_buffer_size(format, v_ct));
+	verts->data = malloc(VertexBuffer_size(verts));
+	}
+
+void VertexBuffer_resize_data(VertexBuffer* verts, unsigned v_ct)
+	{
+#if TRUST_NO_ONE
+	assert(verts->vertex_ct != v_ct); // allow this?
+	assert(verts->data != NULL); // has already been allocated
+	assert(verts->vbo_id == 0); // has not been sent to VRAM
+#endif
+
+	verts->vertex_ct = v_ct;
+	verts->data = realloc(verts->data, VertexBuffer_size(verts));
+	// TODO: skip realloc if v_ct < existing vertex count
+	// extra space will be reclaimed, and never sent to VRAM (see VertexBuffer_prime)
 	}
 
 void setAttrib(VertexBuffer* verts, unsigned a_idx, unsigned v_idx, const void* data)

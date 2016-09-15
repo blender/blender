@@ -13,6 +13,8 @@
 
 #include "vertex_format.h"
 
+#define IMM_BATCH_COMBO 1
+
 void immInit(void);
 void immDestroy(void);
 
@@ -23,7 +25,16 @@ void immUnbindProgram(void);
 
 void immBegin(GLenum primitive, unsigned vertex_ct); // must supply exactly vertex_ct vertices
 void immBeginAtMost(GLenum primitive, unsigned max_vertex_ct); // can supply fewer vertices
-void immEnd(void);
+void immEnd(void); // finishes and draws
+
+#if IMM_BATCH_COMBO
+#include "gawain/batch.h"
+// immBegin a batch, then use standard immFunctions as usual.
+// immEnd will finalize the batch instead of drawing.
+// Then you can draw it as many times as you like! Partially replaces the need for display lists.
+Batch* immBeginBatch(GLenum prim_type, unsigned vertex_ct);
+Batch* immBeginBatchAtMost(GLenum prim_type, unsigned vertex_ct);
+#endif
 
 void immAttrib1f(unsigned attrib_id, float x);
 void immAttrib2f(unsigned attrib_id, float x, float y);

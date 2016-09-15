@@ -14,6 +14,13 @@
 #include "vertex_buffer.h"
 #include "element.h"
 
+typedef enum {
+	READY_TO_FORMAT,
+	READY_TO_BUILD,
+	BUILDING,
+	READY_TO_DRAW
+} BatchPhase;
+
 typedef struct {
 	// geometry
 	VertexBuffer* verts;
@@ -22,6 +29,7 @@ typedef struct {
 
 	// book-keeping
 	GLuint vao_id; // remembers all geometry state (vertex attrib bindings & element buffer)
+	BatchPhase phase;
 	bool program_dirty;
 
 	// state
@@ -29,6 +37,9 @@ typedef struct {
 } Batch;
 
 Batch* Batch_create(GLenum prim_type, VertexBuffer*, ElementList*);
+
+// TODO: void Batch_discard(Batch*);
+// must first decide how sharing of vertex buffers & index buffers should work
 
 void Batch_set_program(Batch*, GLuint program);
 // Entire batch draws with one shader program, but can be redrawn later with another program.
@@ -44,20 +55,6 @@ void Batch_draw(Batch*);
 #if 0 // future plans
 
 // Can multiple batches share a VertexBuffer? Use ref count?
-
-
-// for multithreaded batch building:
-typedef enum {
-	READY_TO_FORMAT,
-	READY_TO_BUILD,
-	BUILDING, BUILDING_IMM, // choose one
-	READY_TO_DRAW
-} BatchPhase;
-
-
-Batch* immBeginBatch(GLenum prim_type, unsigned v_ct);
-// use standard immFunctions after this. immEnd will finalize the batch instead
-// of drawing.
 
 
 // We often need a batch with its own data, to be created and discarded together.

@@ -740,7 +740,7 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 
 		immUnbindProgram();
 
-		clear_VertexFormat(format);
+		VertexFormat_clear(format);
 		pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);

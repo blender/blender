@@ -38,10 +38,12 @@ typedef struct {
 	Attrib attribs[MAX_VERTEX_ATTRIBS]; // TODO: variable-size attribs array
 } VertexFormat;
 
-void clear_VertexFormat(VertexFormat*);
+void VertexFormat_clear(VertexFormat*);
+void VertexFormat_copy(VertexFormat* dest, const VertexFormat* src);
+
 unsigned add_attrib(VertexFormat*, const char* name, GLenum comp_type, unsigned comp_ct, VertexFetchMode);
 
 // for internal use
-void pack(VertexFormat*);
+void VertexFormat_pack(VertexFormat*);
 unsigned padding(unsigned offset, unsigned alignment);
 unsigned vertex_buffer_size(const VertexFormat*, unsigned vertex_ct);

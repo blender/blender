@@ -25,6 +25,7 @@ Batch* Batch_create(GLenum prim_type, VertexBuffer* verts, ElementList* elem)
 	batch->verts = verts;
 	batch->elem = elem;
 	batch->prim_type = prim_type;
+	batch->phase = READY_TO_DRAW;
 
 	return batch;
 	}
@@ -38,7 +39,7 @@ void Batch_set_program(Batch* batch, GLuint program)
 static void Batch_update_program_bindings(Batch* batch)
 	{
 #if TRUST_NO_ONE
-	assert(glIsProgram(program));
+	assert(glIsProgram(batch->program));
 #endif
 
 	const VertexFormat* format = &batch->verts->format;
@@ -88,6 +89,10 @@ static void Batch_prime(Batch* batch)
 
 void Batch_draw(Batch* batch)
 	{
+#if TRUST_NO_ONE
+	assert(batch->phase == READY_TO_DRAW);
+#endif
+
 	if (batch->vao_id)
 		glBindVertexArray(batch->vao_id);
 	else

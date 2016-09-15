@@ -16,6 +16,10 @@
 typedef struct {
 	// TODO: organize this struct by frequency of change (run-time)
 
+#if IMM_BATCH_COMBO
+	Batch* batch;
+#endif
+
 	// current draw call
 	GLubyte* buffer_data;
 	unsigned buffer_offset;
@@ -79,7 +83,7 @@ void immDestroy()
 	assert(imm.primitive == PRIM_NONE); // make sure we're not between a Begin/End pair
 #endif
 
-	clear_VertexFormat(&imm.vertex_format);
+	VertexFormat_clear(&imm.vertex_format);
 	glDeleteVertexArrays(1, &imm.vao_id);
 	glDeleteBuffers(1, &imm.vbo_id);
 	initialized = false;
@@ -87,7 +91,7 @@ void immDestroy()
 
 VertexFormat* immVertexFormat()
 	{
-	clear_VertexFormat(&imm.vertex_format);
+	VertexFormat_clear(&imm.vertex_format);
 	return &imm.vertex_format;
 	}
 
@@ -98,7 +102,7 @@ void immBindProgram(GLuint program)
 #endif
 
 	if (!imm.vertex_format.packed)
-		pack(&imm.vertex_format);
+		VertexFormat_pack(&imm.vertex_format);
 
 	glUseProgram(program);
 	get_attrib_locations(&imm.vertex_format, &imm.attrib_binding, program);
@@ -151,8 +155,6 @@ void immBegin(GLenum primitive, unsigned vertex_ct)
 
 	imm.primitive = primitive;
 	imm.vertex_ct = vertex_ct;
-	imm.vertex_idx = 0;
-	imm.attrib_value_bits = 0;
 
 	// how many bytes do we need for this draw call?
 	const unsigned bytes_needed = vertex_buffer_size(&imm.vertex_format, vertex_ct);
@@ -206,40 +208,43 @@ void immBeginAtMost(GLenum primitive, unsigned vertex_ct)
 	immBegin(primitive, vertex_ct);
 	}
 
-void immEnd()
+#if IMM_BATCH_COMBO
+
+Batch* immBeginBatch(GLenum prim_type, unsigned vertex_ct)
 	{
 #if TRUST_NO_ONE
-	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
+	assert(initialized);
+	assert(imm.primitive == PRIM_NONE); // make sure we haven't already begun
+	assert(vertex_count_makes_sense_for_primitive(vertex_ct, prim_type));
 #endif
 
-	unsigned buffer_bytes_used;
-	if (imm.strict_vertex_ct)
-		{
-#if TRUST_NO_ONE
-		assert(imm.vertex_idx == imm.vertex_ct); // with all vertices defined
-#endif
-		buffer_bytes_used = imm.buffer_bytes_mapped;
-		}
-	else
-		{
-#if TRUST_NO_ONE
-		assert(imm.vertex_idx <= imm.vertex_ct);
-		assert(vertex_count_makes_sense_for_primitive(imm.vertex_idx, imm.primitive));
-#endif
-		// printf("used %u of %u verts,", imm.vertex_idx, imm.vertex_ct);
-		imm.vertex_ct = imm.vertex_idx;
-		buffer_bytes_used = vertex_buffer_size(&imm.vertex_format, imm.vertex_ct);
-		// unused buffer bytes are available to the next immBegin
-		// printf(" %u of %u bytes\n", buffer_bytes_used, imm.buffer_bytes_mapped);
-		}
+	imm.primitive = prim_type;
+	imm.vertex_ct = vertex_ct;
 
-#if APPLE_LEGACY
-	// tell OpenGL what range was modified so it doesn't copy the whole buffer
-	glFlushMappedBufferRangeAPPLE(GL_ARRAY_BUFFER, imm.buffer_offset, buffer_bytes_used);
-//	printf("flushing %u to %u\n", imm.buffer_offset, imm.buffer_offset + buffer_bytes_used - 1);
-#endif
-	glUnmapBuffer(GL_ARRAY_BUFFER);
+	VertexBuffer* verts = VertexBuffer_create_with_format(&imm.vertex_format);
+	VertexBuffer_allocate_data(verts, vertex_ct);
 
+	imm.buffer_bytes_mapped = VertexBuffer_size(verts);
+	imm.vertex_data = verts->data;
+
+	imm.batch = Batch_create(prim_type, verts, NULL);
+	imm.batch->phase = BUILDING;
+
+	Batch_set_program(imm.batch, imm.bound_program);
+
+	return imm.batch;
+	}
+
+Batch* immBeginBatchAtMost(GLenum prim_type, unsigned vertex_ct)
+	{
+	imm.strict_vertex_ct = false;
+	return immBeginBatch(prim_type, vertex_ct);
+	}
+
+#endif // IMM_BATCH_COMBO
+
+static void immDrawSetup()
+	{
 	// set up VAO -- can be done during Begin or End really
 	glBindVertexArray(imm.vao_id);
 
@@ -292,21 +297,78 @@ void immEnd()
 				glVertexAttribIPointer(loc, a->comp_ct, a->comp_type, stride, pointer);
 			}
 		}
+	}
 
-	glDrawArrays(imm.primitive, 0, imm.vertex_ct);
+void immEnd()
+	{
+#if TRUST_NO_ONE
+	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
+#endif
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+	unsigned buffer_bytes_used;
+	if (imm.strict_vertex_ct)
+		{
+#if TRUST_NO_ONE
+		assert(imm.vertex_idx == imm.vertex_ct); // with all vertices defined
+#endif
+		buffer_bytes_used = imm.buffer_bytes_mapped;
+		}
+	else
+		{
+#if TRUST_NO_ONE
+		assert(imm.vertex_idx <= imm.vertex_ct);
+		assert(vertex_count_makes_sense_for_primitive(imm.vertex_idx, imm.primitive));
+#endif
+		// printf("used %u of %u verts,", imm.vertex_idx, imm.vertex_ct);
+		imm.vertex_ct = imm.vertex_idx;
+		buffer_bytes_used = vertex_buffer_size(&imm.vertex_format, imm.vertex_ct);
+		// unused buffer bytes are available to the next immBegin
+		// printf(" %u of %u bytes\n", buffer_bytes_used, imm.buffer_bytes_mapped);
+		}
+
+#if IMM_BATCH_COMBO
+	if (imm.batch)
+		{
+		if (buffer_bytes_used != imm.buffer_bytes_mapped)
+			{
+			VertexBuffer_resize_data(imm.batch->verts, imm.vertex_ct);
+			// TODO: resize only if vertex count is much smaller
+			}
+
+		imm.batch->phase = READY_TO_DRAW;
+		imm.batch = NULL; // don't free, batch belongs to caller
+		}
+	else
+#endif
+		{
+#if APPLE_LEGACY
+		// tell OpenGL what range was modified so it doesn't copy the whole buffer
+		glFlushMappedBufferRangeAPPLE(GL_ARRAY_BUFFER, imm.buffer_offset, buffer_bytes_used);
+//		printf("flushing %u to %u\n", imm.buffer_offset, imm.buffer_offset + buffer_bytes_used - 1);
+#endif
+		glUnmapBuffer(GL_ARRAY_BUFFER);
+
+		immDrawSetup();
+
+		glDrawArrays(imm.primitive, 0, imm.vertex_ct);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+
+		// prep for next immBegin
+		imm.buffer_offset += buffer_bytes_used;
+		}
 
 	// prep for next immBegin
-	imm.buffer_offset += buffer_bytes_used;
 	imm.primitive = PRIM_NONE;
 	imm.strict_vertex_ct = true;
+	imm.vertex_idx = 0;
+	imm.attrib_value_bits = 0;
 
 	// further optional cleanup
-	imm.buffer_bytes_mapped = 0;
-	imm.buffer_data = NULL;
-	imm.vertex_data = NULL;
+//	imm.buffer_bytes_mapped = 0;
+//	imm.buffer_data = NULL;
+//	imm.vertex_data = NULL;
 	}
 
 static void setAttribValueBit(unsigned attrib_id)
