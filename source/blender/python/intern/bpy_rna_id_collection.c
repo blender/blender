@@ -40,6 +40,7 @@
 #include "BKE_library_query.h"
 
 #include "DNA_ID.h"
+#include "DNA_object_types.h"
 
 #include "bpy_util.h"
 #include "bpy_rna_id_collection.h"
@@ -81,7 +82,7 @@ static bool id_check_type(const ID *id, const BLI_bitmap *types_bitmap)
 }
 
 static int foreach_libblock_id_user_map_callback(
-        void *user_data, ID *UNUSED(self_id), ID **id_p, int UNUSED(cb_flag))
+        void *user_data, ID *self_id, ID **id_p, int UNUSED(cb_flag))
 {
 	IDUserMapData *data = user_data;
 
@@ -91,6 +92,11 @@ static int foreach_libblock_id_user_map_callback(
 			if (!id_check_type(*id_p, data->types_bitmap)) {
 				return IDWALK_RET_NOP;
 			}
+		}
+
+		if ((GS(self_id->name) == ID_OB) && (id_p == (ID **)&((Object *)self_id)->proxy_from)) {
+			/* We skip proxy_from here, since it some internal pointer which is not irrelevant info for py/API level. */
+			return IDWALK_RET_NOP;
 		}
 
 		/* pyrna_struct_hash() uses ptr.data only,
