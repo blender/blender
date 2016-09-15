@@ -74,8 +74,14 @@
 #include "GPU_compositing.h"
 #include "GPU_framebuffer.h"
 
-
 #include "render_intern.h"
+
+/* Define this to get timing information. */
+// #undef DEBUG_TIME
+
+#ifdef DEBUG_TIME
+#  include "PIL_time.h"
+#endif
 
 typedef struct OGLRender {
 	Main *bmain;
@@ -123,6 +129,10 @@ typedef struct OGLRender {
 
 	wmTimer *timer; /* use to check if running modal or not (invoke'd or exec'd)*/
 	void **movie_ctx_arr;
+
+#ifdef DEBUG_TIME
+	double time_start;
+#endif
 } OGLRender;
 
 /* added because v3d is not always valid */
@@ -698,6 +708,10 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 	oglrender->mh = NULL;
 	oglrender->movie_ctx_arr = NULL;
 
+#ifdef DEBUG_TIME
+	oglrender->time_start = PIL_check_seconds_timer();
+#endif
+
 	return true;
 }
 
@@ -706,6 +720,10 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = oglrender->scene;
 	int i;
+
+#ifdef DEBUG_TIME
+	printf("Total render time: %f\n", PIL_check_seconds_timer() - oglrender->time_start);
+#endif
 
 	if (oglrender->mh) {
 		if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
