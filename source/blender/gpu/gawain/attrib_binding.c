@@ -11,19 +11,6 @@
 
 #include "attrib_binding.h"
 
-void bind_attrib_locations(const VertexFormat* format, GLuint program)
-	{
-#if TRUST_NO_ONE
-	assert(glIsProgram(program));
-#endif
-
-	for (unsigned a_idx = 0; a_idx < format->attrib_ct; ++a_idx)
-		{
-		const Attrib* a = format->attribs + a_idx;
-		glBindAttribLocation(program, a_idx, a->name);
-		}
-	}
-
 void clear_AttribBinding(AttribBinding* binding)
 	{
 	binding->loc_bits = 0;
