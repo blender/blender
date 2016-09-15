@@ -11,6 +11,10 @@
 
 #include "attrib_binding.h"
 
+#if MAX_VERTEX_ATTRIBS != 16
+  #error "attrib binding code assumes MAX_VERTEX_ATTRIBS = 16"
+#endif
+
 void clear_AttribBinding(AttribBinding* binding)
 	{
 	binding->loc_bits = 0;
@@ -20,7 +24,6 @@ void clear_AttribBinding(AttribBinding* binding)
 unsigned read_attrib_location(const AttribBinding* binding, unsigned a_idx)
 	{
 #if TRUST_NO_ONE
-	assert(MAX_VERTEX_ATTRIBS == 16);
 	assert(a_idx < MAX_VERTEX_ATTRIBS);
 	assert(binding->enabled_bits & (1 << a_idx));
 #endif
@@ -28,10 +31,9 @@ unsigned read_attrib_location(const AttribBinding* binding, unsigned a_idx)
 	return (binding->loc_bits >> (4 * a_idx)) & 0xF;
 	}
 
-void write_attrib_location(AttribBinding* binding, unsigned a_idx, unsigned location)
+static void write_attrib_location(AttribBinding* binding, unsigned a_idx, unsigned location)
 	{
 #if TRUST_NO_ONE
-	assert(MAX_VERTEX_ATTRIBS == 16);
 	assert(a_idx < MAX_VERTEX_ATTRIBS);
 	assert(location < MAX_VERTEX_ATTRIBS);
 #endif
@@ -59,6 +61,7 @@ void get_attrib_locations(const VertexFormat* format, AttribBinding* binding, GL
 
 #if TRUST_NO_ONE
 		assert(loc != -1);
+		// TODO: make this a recoverable runtime error? indicates mismatch between vertex format and program
 #endif
 
 		write_attrib_location(binding, a_idx, loc);

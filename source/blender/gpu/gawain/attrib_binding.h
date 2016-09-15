@@ -20,7 +20,5 @@ typedef struct {
 
 void clear_AttribBinding(AttribBinding*);
 
-unsigned read_attrib_location(const AttribBinding*, unsigned a_idx);
-void write_attrib_location(AttribBinding*, unsigned a_idx, unsigned location);
-
 void get_attrib_locations(const VertexFormat*, AttribBinding*, GLuint program);
+unsigned read_attrib_location(const AttribBinding*, unsigned a_idx);
