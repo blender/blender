@@ -478,7 +478,7 @@ static void add_gpencil_renderpass(OGLRender *oglrender, RenderResult *rr, Rende
 				if (pixSrc[3] > 0) {
 					float *pixDest = dest + 4 * (rectx * y + x);
 					float float_src[4];
-					F4TOCHAR4(float_src, pixSrc);
+					srgb_to_linearrgb_uchar4(float_src, pixSrc);
 					addAlphaOverFloat(pixDest, float_src);
 				}
 			}
