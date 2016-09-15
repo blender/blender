@@ -16,14 +16,34 @@
 
 unsigned ElementList_size(const ElementList* elem)
 	{
+#if TRACK_INDEX_RANGE
 	switch (elem->index_type)
 		{
 		case GL_UNSIGNED_BYTE: return elem->index_ct * sizeof(GLubyte);
 		case GL_UNSIGNED_SHORT: return elem->index_ct * sizeof(GLushort);
 		case GL_UNSIGNED_INT: return elem->index_ct * sizeof(GLuint);
+		default:
+			assert(false);
+			return 0;
 		}
 
-	return 0;
+#else
+	return elem->index_ct * sizeof(GLuint);
+#endif
+	}
+
+static void ElementList_prime(ElementList* elem)
+	{
+	glGenBuffers(1, &elem->vbo_id);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem->vbo_id);
+	// fill with delicious data & send to GPU the first time only
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, ElementList_size(elem), elem->data, GL_STATIC_DRAW);
+
+#if KEEP_SINGLE_COPY
+	// now that GL has a copy, discard original
+	free(elem->data);
+	elem->data = NULL;
+#endif
 	}
 
 void ElementList_use(ElementList* elem)
@@ -31,28 +51,12 @@ void ElementList_use(ElementList* elem)
 	if (elem->vbo_id)
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem->vbo_id);
 	else
-		{
-		glGenBuffers(1, &elem->vbo_id);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem->vbo_id);
-		// fill with delicious data & send to GPU the first time only
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, ElementList_size(elem), elem->data, GL_STATIC_DRAW);
-
-#if KEEP_SINGLE_COPY
-		// now that GL has a copy, discard original
-		free(elem->data);
-		elem->data = NULL;
-#endif
-		}
+		ElementList_prime(elem);
 	}
 
-void ElementList_done_using()
+void ElementListBuilder_init(ElementListBuilder* builder, GLenum prim_type, unsigned prim_ct, unsigned vertex_ct)
 	{
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	}
-
-void init_ElementListBuilder(ElementListBuilder* builder, GLenum prim_type, unsigned prim_ct, unsigned vertex_ct)
-	{
-	unsigned verts_per_prim;
+	unsigned verts_per_prim = 0;
 	switch (prim_type)
 		{
 		case GL_POINTS:
@@ -195,7 +199,7 @@ static void squeeze_indices_short(const unsigned values[], ElementList* elem)
 
 #endif // TRACK_INDEX_RANGE
 
-void build_ElementList(ElementListBuilder* builder, ElementList* elem)
+void ElementList_build(ElementListBuilder* builder, ElementList* elem)
 	{
 #if TRUST_NO_ONE
 	assert(builder->data != NULL);

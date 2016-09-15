@@ -13,19 +13,21 @@
 #include <stdlib.h>
 #include <string.h>
 
-VertexBuffer* create_VertexBuffer()
+#define KEEP_SINGLE_COPY 1
+
+VertexBuffer* VertexBuffer_create()
 	{
 	VertexBuffer* verts = malloc(sizeof(VertexBuffer));
-	init_VertexBuffer(verts);
+	VertexBuffer_init(verts);
 	return verts;
 	}
 
-void init_VertexBuffer(VertexBuffer* verts)
+void VertexBuffer_init(VertexBuffer* verts)
 	{
 	memset(verts, 0, sizeof(VertexBuffer));
 	}
 
-void allocate_vertex_data(VertexBuffer* verts, unsigned v_ct)
+void VertexBuffer_allocate_data(VertexBuffer* verts, unsigned v_ct)
 	{
 	VertexFormat* format = &verts->format;
 	if (!format->packed)
@@ -88,4 +90,28 @@ void fillAttribStride(VertexBuffer* verts, unsigned a_idx, unsigned stride, cons
 		for (unsigned v = 0; v < vertex_ct; ++v)
 			memcpy((GLubyte*)verts->data + a->offset + v * format->stride, (const GLubyte*)data + v * stride, a->sz);
 		}
+	}
+
+static void VertexBuffer_prime(VertexBuffer* verts)
+	{
+	const VertexFormat* format = &verts->format;
+
+	glGenBuffers(1, &verts->vbo_id);
+	glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
+	// fill with delicious data & send to GPU the first time only
+	glBufferData(GL_ARRAY_BUFFER, vertex_buffer_size(format, verts->vertex_ct), verts->data, GL_STATIC_DRAW);
+
+#if KEEP_SINGLE_COPY
+	// now that GL has a copy, discard original
+	free(verts->data);
+	verts->data = NULL;
+#endif
+	}
+
+void VertexBuffer_use(VertexBuffer* verts)
+	{
+	if (verts->vbo_id)
+		glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
+	else
+		VertexBuffer_prime(verts);
 	}

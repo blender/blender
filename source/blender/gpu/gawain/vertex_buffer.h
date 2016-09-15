@@ -29,13 +29,13 @@ typedef struct {
 	GLuint vbo_id; // 0 indicates not yet sent to VRAM
 } VertexBuffer;
 
-VertexBuffer* create_VertexBuffer(void); // create means allocate, then init
-void init_VertexBuffer(VertexBuffer*);
+VertexBuffer* VertexBuffer_create(void); // create means allocate, then init
+void VertexBuffer_init(VertexBuffer*);
 
 // TODO: use copy of existing format
 // void init_VertexBuffer_with_format(VertexBuffer*, VertexFormat*);
 
-void allocate_vertex_data(VertexBuffer*, unsigned v_ct);
+void VertexBuffer_allocate_data(VertexBuffer*, unsigned v_ct);
 
 // The most important setAttrib variant is the untyped one. Get it right first.
 // It takes a void* so the app developer is responsible for matching their app data types
@@ -56,3 +56,5 @@ void fillAttribStride(VertexBuffer*, unsigned a_idx, unsigned stride, const void
 //
 //	void setAttrib3ub(unsigned a_idx, unsigned v_idx, unsigned char r, unsigned char g, unsigned char b);
 //	void setAttrib4ub(unsigned a_idx, unsigned v_idx, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+
+void VertexBuffer_use(VertexBuffer*);

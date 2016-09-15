@@ -62,6 +62,8 @@ set(SRC
 
 	gawain/attrib_binding.c
 	gawain/attrib_binding.h
+	gawain/batch.c
+	gawain/batch.h
 	gawain/common.h
 	gawain/element.c
 	gawain/element.h
@@ -95,6 +97,7 @@ set(SRC
 	shaders/gpu_shader_smoke_vert.glsl
 
 	GPU_basic_shader.h
+	GPU_batch.h
 	GPU_buffers.h
 	GPU_compositing.h
 	GPU_debug.h

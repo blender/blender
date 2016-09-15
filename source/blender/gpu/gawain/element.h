@@ -28,7 +28,6 @@ typedef struct {
 } ElementList;
 
 void ElementList_use(ElementList*);
-void ElementList_done_using(void);
 unsigned ElementList_size(const ElementList*);
 
 typedef struct {
@@ -44,8 +43,8 @@ typedef struct {
 //  GL_LINES
 //  GL_TRIANGLES
 
-void init_ElementListBuilder(ElementListBuilder*, GLenum prim_type, unsigned prim_ct, unsigned vertex_ct);
-//void init_CustomElementListBuilder(ElementListBuilder*, GLenum prim_type, unsigned index_ct, unsigned vertex_ct);
+void ElementListBuilder_init(ElementListBuilder*, GLenum prim_type, unsigned prim_ct, unsigned vertex_ct);
+//void ElementListBuilder_init_custom(ElementListBuilder*, GLenum prim_type, unsigned index_ct, unsigned vertex_ct);
 
 void add_generic_vertex(ElementListBuilder*, unsigned v);
 
@@ -53,4 +52,4 @@ void add_point_vertex(ElementListBuilder*, unsigned v);
 void add_line_vertices(ElementListBuilder*, unsigned v1, unsigned v2);
 void add_triangle_vertices(ElementListBuilder*, unsigned v1, unsigned v2, unsigned v3);
 
-void build_ElementList(ElementListBuilder*, ElementList*);
+void ElementList_build(ElementListBuilder*, ElementList*);
