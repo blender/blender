@@ -48,7 +48,6 @@ struct ReportList;
 struct Scene;
 struct SceneRenderLayer;
 struct EnvMap;
-struct RenderResult;
 struct StampData;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
