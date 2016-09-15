@@ -247,6 +247,7 @@ colorspaces:
     allocation: uniform
     allocationvars: [-0.125, 4.875]
     to_reference: !<FileTransform> {src: srgb.spi1d, interpolation: linear}
+    from_reference: !<FileTransform> {src: srgb_inv.spi1d, interpolation: linear}
 
   - !<ColorSpace>
     name: VD16
