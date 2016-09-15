@@ -445,6 +445,9 @@ static void add_gpencil_renderpass(OGLRender *oglrender, RenderResult *rr, Rende
 	if (BLI_listbase_is_empty(&gpd->layers)) {
 		return;
 	}
+	if ((oglrender->v3d->flag2 & V3D_SHOW_GPENCIL) == 0) {
+		return;
+	}
 
 	/* save old alpha mode */
 	short oldalphamode = scene->r.alphamode;
