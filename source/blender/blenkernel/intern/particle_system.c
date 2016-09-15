@@ -4336,7 +4336,9 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
 		func(psys, (ID **)&pt->ob, userdata, IDWALK_NOP);
 	}
 
-	if (psys->part->phystype == PART_PHYS_BOIDS) {
+	/* Even though psys->part should never be NULL, this can happen as an exception during deletion.
+	 * See ID_REMAP_SKIP/FORCE/FLAG_NEVER_NULL_USAGE in BKE_library_remap. */
+	if (psys->part && psys->part->phystype == PART_PHYS_BOIDS) {
 		ParticleData *pa;
 		int p;
 

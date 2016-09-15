@@ -503,7 +503,9 @@ void psys_free_particles(ParticleSystem *psys)
 	PARTICLE_P;
 
 	if (psys->particles) {
-		if (psys->part->type == PART_HAIR) {
+		/* Even though psys->part should never be NULL, this can happen as an exception during deletion.
+		 * See ID_REMAP_SKIP/FORCE/FLAG_NEVER_NULL_USAGE in BKE_library_remap. */
+		if (psys->part && psys->part->type == PART_HAIR) {
 			LOOP_PARTICLES {
 				if (pa->hair)
 					MEM_freeN(pa->hair);
