@@ -192,6 +192,9 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 			if (rv_del->rectz)
 				MEM_freeN(rv_del->rectz);
 
+			if (rv_del->rect32)
+				MEM_freeN(rv_del->rect32);
+
 			MEM_freeN(rv_del);
 		}
 	}
@@ -204,8 +207,6 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 		while (rv) {
 			srv = BLI_findstring(&rd->views, rv->name, offsetof(SceneRenderView, name));
 			if (BKE_scene_multiview_is_render_view_active(rd, srv)) {
-				if (rv->rectf == NULL)
-					rv->rectf = MEM_callocN(sizeof(float) * 4 * oglrender->sizex * oglrender->sizey, "screen_opengl_render_init rect");
 				rv = rv->prev;
 			}
 			else {
@@ -219,6 +220,9 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 
 				if (rv_del->rectz)
 					MEM_freeN(rv_del->rectz);
+
+				if (rv_del->rect32)
+					MEM_freeN(rv_del->rect32);
 
 				MEM_freeN(rv_del);
 			}
@@ -236,12 +240,6 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 				BLI_strncpy(rv->name, srv->name, sizeof(rv->name));
 				BLI_addtail(&rr->views, rv);
 			}
-		}
-	}
-
-	for (rv = rr->views.first; rv; rv = rv->next) {
-		if (rv->rectf == NULL) {
-			rv->rectf = MEM_callocN(sizeof(float) * 4 * oglrender->sizex * oglrender->sizey, "screen_opengl_render_init rect");
 		}
 	}
 
@@ -276,6 +274,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 	bool draw_sky = (scene->r.alphamode == R_ADDSKY);
 	unsigned char *rect = NULL;
 	const char *viewname = RE_GetActiveRenderView(oglrender->re);
+	ImBuf *ibuf_result = NULL;
 
 	if (oglrender->is_sequencer) {
 		SpaceSeq *sseq = oglrender->sseq;
@@ -359,46 +358,22 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 		}
 
 		if (ibuf_view) {
-			/* steal rect reference from ibuf */
+			ibuf_result = ibuf_view;
 			rect = (unsigned char *)ibuf_view->rect;
-			ibuf_view->mall &= ~IB_rect;
-
-			IMB_freeImBuf(ibuf_view);
 		}
 		else {
 			fprintf(stderr, "%s: failed to get buffer, %s\n", __func__, err_out);
 		}
 	}
 
-	/* note on color management:
-	 *
-	 * OpenGL renders into sRGB colors, but render buffers are expected to be
-	 * linear So we convert to linear here, so the conversion back to bytes can make it
-	 * sRGB (or other display space) again, and so that e.g. openexr saving also saves the
-	 * correct linear float buffer.
-	 */
+	if (ibuf_result != NULL) {
 
-	if (rect) {
-		int profile_to;
-		float *rectf = RE_RenderViewGetById(rr, oglrender->view_id)->rectf;
-
-		if (BKE_scene_check_color_management_enabled(scene))
-			profile_to = IB_PROFILE_LINEAR_RGB;
-		else
-			profile_to = IB_PROFILE_SRGB;
-
-		/* sequencer has got trickier conversion happened above
-		 * also assume opengl's space matches byte buffer color space */
-		IMB_buffer_float_from_byte(rectf, rect,
-		                           profile_to, IB_PROFILE_SRGB, true,
-		                           oglrender->sizex, oglrender->sizey, oglrender->sizex, oglrender->sizex);
-
-		/* rr->rectf is now filled with image data */
+		RE_render_result_rect_from_ibuf(rr, &scene->r, ibuf_result, oglrender->view_id);
 
 		if ((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW))
-			BKE_image_stamp_buf(scene, camera, NULL, rect, rectf, rr->rectx, rr->recty, 4);
+			BKE_image_stamp_buf(scene, camera, NULL, rect, NULL, rr->rectx, rr->recty, 4);
 
-		MEM_freeN(rect);
+		IMB_freeImBuf(ibuf_result);
 	}
 }
 
@@ -490,19 +465,21 @@ static void add_gpencil_renderpass(OGLRender *oglrender, RenderResult *rr, Rende
 		RenderPass *rp = RE_create_gp_pass(rr, gpl->info, rv->name);
 
 		/* copy image data from rectf */
-		float *src = RE_RenderViewGetById(rr, oglrender->view_id)->rectf;
+		// XXX: Needs conversion.
+		unsigned char *src = (unsigned char *)RE_RenderViewGetById(rr, oglrender->view_id)->rect32;
 		float *dest = rp->rect;
 
-		float *pixSrc, *pixDest;
 		int x, y, rectx, recty;
 		rectx = rr->rectx;
 		recty = rr->recty;
 		for (y = 0; y < recty; y++) {
 			for (x = 0; x < rectx; x++) {
-				pixSrc = src + 4 * (rectx * y + x);
-				if (pixSrc[3] > 0.0) {
-					pixDest = dest + 4 * (rectx * y + x);
-					addAlphaOverFloat(pixDest, pixSrc);
+				unsigned char *pixSrc = src + 4 * (rectx * y + x);
+				if (pixSrc[3] > 0) {
+					float *pixDest = dest + 4 * (rectx * y + x);
+					float float_src[4];
+					F4TOCHAR4(float_src, pixSrc);
+					addAlphaOverFloat(pixDest, float_src);
 				}
 			}
 		}
