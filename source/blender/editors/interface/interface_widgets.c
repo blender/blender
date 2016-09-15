@@ -58,7 +58,6 @@
 #include "interface_intern.h"
 
 #include "GPU_basic_shader.h"
-#include "GPU_shader.h"
 #include "GPU_immediate.h"
 
 #ifdef WITH_INPUT_IME

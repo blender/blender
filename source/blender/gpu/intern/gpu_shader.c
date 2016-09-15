@@ -36,10 +36,9 @@
 #include "GPU_compositing.h"
 #include "GPU_debug.h"
 #include "GPU_extensions.h"
-#include "GPU_glew.h"
 #include "GPU_shader.h"
+#include "GPU_shader_private.h"
 #include "GPU_texture.h"
-#include "GPU_immediate.h"
 
 /* TODO(sergey): Find better default values for this constants. */
 #define MAX_DEFINE_LENGTH 1024
@@ -95,20 +94,6 @@ static struct GPUShadersGlobal {
 	} shaders;
 } GG = {{NULL}};
 
-/* GPUShader */
-
-struct GPUShader {
-	GLuint program;  /* handle for full program (links shader stages below) */
-
-	GLuint vertex;   /* handle for vertex shader */
-	GLuint geometry; /* handle for geometry shader */
-	GLuint fragment; /* handle for fragment shader */
-
-	int totattrib;   /* total number of attributes */
-	int uniforms;    /* required uniforms */
-
-	void *uniform_interface; /* cached uniform interface for shader. Data depends on shader */
-};
 
 static void shader_print_errors(const char *task, const char *log, const char **code, int totcode)
 {
@@ -827,10 +812,4 @@ void GPU_shader_free_builtin_shaders(void)
 			GG.shaders.fx_shaders[i] = NULL;
 		}
 	}
-}
-
-void immBindBuiltinProgram(GPUBuiltinShader shader_id)
-{
-	GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
-	immBindProgram(shader->program);
 }

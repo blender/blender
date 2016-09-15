@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,24 +15,26 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2016 Blender Foundation.
- * All rights reserved.
- *
- * 
- * Contributor(s): Mike Erwin
- *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/* Immediate mode rendering is powered by the Gawain library.
- * This file contains any additions or modifications specific to Blender.
+/** \file gpu_shader_private.h
+ *  \ingroup gpu
  */
 
 #pragma once
 
-#include "gawain/immediate.h"
-#include "GPU_shader.h"
+#include "GPU_glew.h"
 
-/* Extend immBindProgram to use Blender’s library of built-in shader programs.
- * Use immUnbindProgram() when done. */
-void immBindBuiltinProgram(GPUBuiltinShader);
+struct GPUShader {
+	GLuint program;  /* handle for full program (links shader stages below) */
+
+	GLuint vertex;   /* handle for vertex shader */
+	GLuint geometry; /* handle for geometry shader */
+	GLuint fragment; /* handle for fragment shader */
+
+	int totattrib;   /* total number of attributes */
+	int uniforms;    /* required uniforms */
+
+	void *uniform_interface; /* cached uniform interface for shader. Data depends on shader */
+};

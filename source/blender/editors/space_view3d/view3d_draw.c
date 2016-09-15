@@ -100,7 +100,6 @@
 #include "GPU_material.h"
 #include "GPU_compositing.h"
 #include "GPU_extensions.h"
-#include "GPU_shader.h"
 #include "GPU_immediate.h"
 
 #include "view3d_intern.h"  /* own include */

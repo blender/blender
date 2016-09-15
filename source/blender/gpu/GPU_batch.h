@@ -31,3 +31,7 @@
 #pragma once
 
 #include "gawain/batch.h"
+#include "GPU_shader.h"
+
+/* Extend Batch_set_program to use Blender’s library of built-in shader programs. */
+void Batch_set_builtin_program(Batch*, GPUBuiltinShader);

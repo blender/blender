@@ -106,10 +106,6 @@ GPUShader *GPU_shader_get_builtin_fx_shader(int effects, bool persp);
 
 void GPU_shader_free_builtin_shaders(void);
 
-/* Extend Gawain’s immBindProgram to use Blender’s library of built-in shader programs.
- * Use immUnbindProgram() when done. */
-void immBindBuiltinProgram(GPUBuiltinShader);
-
 /* Vertex attributes for shaders */
 
 #define GPU_MAX_ATTRIB 32

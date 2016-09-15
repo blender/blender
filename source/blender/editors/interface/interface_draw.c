@@ -57,7 +57,6 @@
 
 #include "GPU_draw.h"
 #include "GPU_basic_shader.h"
-#include "GPU_shader.h"
 #include "GPU_immediate.h"
 
 #include "UI_interface.h"

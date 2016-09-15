@@ -57,7 +57,6 @@
 #include "ED_screen_types.h"
 #include "ED_space_api.h"
 
-#include "GPU_shader.h"
 #include "GPU_immediate.h"
 
 #include "BIF_gl.h"

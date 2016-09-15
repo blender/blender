@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,21 +18,18 @@
  * The Original Code is Copyright (C) 2016 Blender Foundation.
  * All rights reserved.
  *
- * 
+ * The Original Code is: all of this file.
+ *
  * Contributor(s): Mike Erwin
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/* Immediate mode rendering is powered by the Gawain library.
- * This file contains any additions or modifications specific to Blender.
- */
+#include "GPU_batch.h"
+#include "gpu_shader_private.h"
 
-#pragma once
-
-#include "gawain/immediate.h"
-#include "GPU_shader.h"
-
-/* Extend immBindProgram to use Blender’s library of built-in shader programs.
- * Use immUnbindProgram() when done. */
-void immBindBuiltinProgram(GPUBuiltinShader);
+void Batch_set_builtin_program(Batch* batch, GPUBuiltinShader shader_id)
+{
+	GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
+	Batch_set_program(batch, shader->program);
+}
