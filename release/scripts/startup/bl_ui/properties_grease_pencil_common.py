@@ -668,10 +668,6 @@ class GPENCIL_MT_gpencil_edit_specials(Menu):
         layout.operator("gpencil.stroke_join", text="Join & Copy").type = 'JOINCOPY'
         layout.operator("gpencil.stroke_flip", text="Flip Direction")
 
-        gpd = context.gpencil_data
-        if gpd:
-            layout.prop(gpd, "show_stroke_direction", text="Show Directions")
-
         if is_3d_view:
             layout.separator()
             layout.operator("gpencil.reproject")
