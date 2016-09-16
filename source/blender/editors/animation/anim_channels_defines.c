@@ -851,7 +851,7 @@ static bool acf_group_setting_valid(bAnimContext *ac, bAnimListElem *UNUSED(ale)
 			return (ac->spacetype == SPACE_IPO);
 
 		case ACHANNEL_SETTING_ALWAYS_VISIBLE:
-			return false;
+			return (ac->spacetype == SPACE_IPO);
 
 		default: /* always supported */
 			return true;
@@ -892,7 +892,10 @@ static int acf_group_setting_flag(bAnimContext *ac, eAnimChannel_Settings settin
 		case ACHANNEL_SETTING_VISIBLE: /* visibility - graph editor */
 			*neg = 1;
 			return AGRP_NOTVISIBLE;
-			
+
+		case ACHANNEL_SETTING_ALWAYS_VISIBLE:
+			return ADT_CURVES_ALWAYS_VISIBLE;
+
 		default:
 			/* this shouldn't happen */
 			return 0;
