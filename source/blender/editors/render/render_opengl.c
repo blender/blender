@@ -133,6 +133,7 @@ typedef struct OGLRender {
 
 	TaskPool *task_pool;
 	bool pool_ok;
+	bool is_animation;
 	SpinLock reports_lock;
 
 #ifdef DEBUG_TIME
@@ -636,6 +637,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 	oglrender->cfrao = scene->r.cfra;
 
 	oglrender->write_still = is_write_still && !is_animation;
+	oglrender->is_animation = is_animation;
 
 	oglrender->views_len = BKE_scene_multiview_num_views_get(&scene->r);
 
@@ -701,12 +703,12 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 			oglrender->task_pool = BLI_task_pool_create(task_scheduler,
 			                                            oglrender);
 		}
+		oglrender->pool_ok = true;
+		BLI_spin_init(&oglrender->reports_lock);
 	}
 	else {
 		oglrender->task_pool = NULL;
 	}
-	oglrender->pool_ok = true;
-	BLI_spin_init(&oglrender->reports_lock);
 
 #ifdef DEBUG_TIME
 	oglrender->time_start = PIL_check_seconds_timer();
@@ -721,9 +723,11 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 	Scene *scene = oglrender->scene;
 	int i;
 
-	BLI_task_pool_work_and_wait(oglrender->task_pool);
-	BLI_task_pool_free(oglrender->task_pool);
-	BLI_spin_end(&oglrender->reports_lock);
+	if (oglrender->is_animation) {
+		BLI_task_pool_work_and_wait(oglrender->task_pool);
+		BLI_task_pool_free(oglrender->task_pool);
+		BLI_spin_end(&oglrender->reports_lock);
+	}
 
 #ifdef DEBUG_TIME
 	printf("Total render time: %f\n", PIL_check_seconds_timer() - oglrender->time_start);
