@@ -466,11 +466,11 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 			disabled_msg = CTX_wm_operator_poll_msg_get(C);
 		}
 		/* alternatively, buttons can store some reasoning too */
-		else if (but->lockstr && but->lockstr[0]) {
+		else if (but->lockstr) {
 			disabled_msg = but->lockstr;
 		}
 
-		if (disabled_msg) {
+		if (disabled_msg && disabled_msg[0]) {
 			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Disabled: %s"), disabled_msg);
 			data->format[data->totline].color_id = UI_TIP_LC_ALERT;
 			data->totline++;
