@@ -243,7 +243,7 @@ Batch* immBeginBatchAtMost(GLenum prim_type, unsigned vertex_ct)
 
 #endif // IMM_BATCH_COMBO
 
-static void immDrawSetup()
+static void immDrawSetup(void)
 	{
 	// set up VAO -- can be done during Begin or End really
 	glBindVertexArray(imm.vao_id);

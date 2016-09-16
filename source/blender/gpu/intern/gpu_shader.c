@@ -37,8 +37,9 @@
 #include "GPU_debug.h"
 #include "GPU_extensions.h"
 #include "GPU_shader.h"
-#include "GPU_shader_private.h"
 #include "GPU_texture.h"
+
+#include "gpu_shader_private.h"
 
 /* TODO(sergey): Find better default values for this constants. */
 #define MAX_DEFINE_LENGTH 1024
