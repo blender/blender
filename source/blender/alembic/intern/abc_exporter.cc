@@ -148,6 +148,7 @@ AbcExporter::AbcExporter(Scene *scene, const char *filename, ExportSettings &set
     , m_trans_sampling_index(0)
     , m_shape_sampling_index(0)
     , m_scene(scene)
+    , m_writer(NULL)
 {}
 
 AbcExporter::~AbcExporter()
@@ -160,6 +161,8 @@ AbcExporter::~AbcExporter()
 	for (int i = 0, e = m_shapes.size(); i != e; ++i) {
 		delete m_shapes[i];
 	}
+
+	delete m_writer;
 }
 
 void AbcExporter::getShutterSamples(double step, bool time_relative,
@@ -243,14 +246,13 @@ void AbcExporter::operator()(Main *bmain, float &progress, bool &was_canceled)
 	Alembic::AbcCoreAbstract::MetaData md;
 	md.set("FramesPerTimeUnit", str_fps);
 
-	ArchiveWriter writer(m_filename, scene_name.c_str(), m_settings.export_ogawa, md);
-	m_archive = writer.archive();
+	m_writer = new ArchiveWriter(m_filename, scene_name.c_str(), m_settings.export_ogawa, md);
 
 	/* Create time samplings for transforms and shapes. */
 
 	TimeSamplingPtr trans_time = createTimeSampling(m_settings.frame_step_xform);
 
-	m_trans_sampling_index = m_archive.addTimeSampling(*trans_time);
+	m_trans_sampling_index = m_writer->archive().addTimeSampling(*trans_time);
 
 	TimeSamplingPtr shape_time;
 
@@ -262,10 +264,10 @@ void AbcExporter::operator()(Main *bmain, float &progress, bool &was_canceled)
 	}
 	else {
 		shape_time = createTimeSampling(m_settings.frame_step_shape);
-		m_shape_sampling_index = m_archive.addTimeSampling(*shape_time);
+		m_shape_sampling_index = m_writer->archive().addTimeSampling(*shape_time);
 	}
 
-	OBox3dProperty archive_bounds_prop = Alembic::AbcGeom::CreateOArchiveBounds(m_archive, m_trans_sampling_index);
+	OBox3dProperty archive_bounds_prop = Alembic::AbcGeom::CreateOArchiveBounds(m_writer->archive(), m_trans_sampling_index);
 
 	if (m_settings.flatten_hierarchy) {
 		createTransformWritersFlat();
@@ -371,7 +373,7 @@ void AbcExporter::createTransformWritersFlat()
 
 		if (export_object(&m_settings, ob) && object_is_shape(ob)) {
 			std::string name = get_id_name(ob);
-			m_xforms[name] = new AbcTransformWriter(ob, m_archive.getTop(), 0, m_trans_sampling_index, m_settings);
+			m_xforms[name] = new AbcTransformWriter(ob, m_writer->archive().getTop(), 0, m_trans_sampling_index, m_settings);
 		}
 
 		base = base->next;
@@ -437,7 +439,7 @@ void AbcExporter::createTransformWriter(Object *ob, Object *parent, Object *dupl
 		m_xforms[name]->setParent(parent);
 	}
 	else {
-		m_xforms[name] = new AbcTransformWriter(ob, m_archive.getTop(), NULL, m_trans_sampling_index, m_settings);
+		m_xforms[name] = new AbcTransformWriter(ob, m_writer->archive().getTop(), NULL, m_trans_sampling_index, m_settings);
 	}
 }
 

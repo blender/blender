@@ -54,13 +54,13 @@ public:
 };
 
 class ArchiveWriter {
-	Alembic::Abc::OArchive m_archive;
 	std::ofstream m_outfile;
+	Alembic::Abc::OArchive m_archive;
 
 public:
 	explicit ArchiveWriter(const char *filename, const char *scene, bool do_ogawa, Alembic::Abc::MetaData &md);
 
-	Alembic::Abc::OArchive archive();
+	Alembic::Abc::OArchive &archive();
 };
 
 #endif /* __ABC_ARCHIVE_H__ */

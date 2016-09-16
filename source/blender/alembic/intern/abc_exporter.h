@@ -30,6 +30,7 @@
 
 class AbcObjectWriter;
 class AbcTransformWriter;
+class ArchiveWriter;
 
 struct EvaluationContext;
 struct Main;
@@ -79,10 +80,11 @@ class AbcExporter {
 
 	const char *m_filename;
 
-	Alembic::Abc::OArchive m_archive;
 	unsigned int m_trans_sampling_index, m_shape_sampling_index;
 
 	Scene *m_scene;
+
+	ArchiveWriter *m_writer;
 
 	std::map<std::string, AbcTransformWriter *> m_xforms;
 	std::vector<AbcObjectWriter *> m_shapes;

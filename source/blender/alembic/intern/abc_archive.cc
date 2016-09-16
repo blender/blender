@@ -169,7 +169,7 @@ ArchiveWriter::ArchiveWriter(const char *filename, const char *scene, bool do_og
 	                           do_ogawa);
 }
 
-OArchive ArchiveWriter::archive()
+OArchive &ArchiveWriter::archive()
 {
 	return m_archive;
 }
