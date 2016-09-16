@@ -770,7 +770,7 @@ static int poselib_move_exec(bContext *C, wmOperator *op)
 		void *prev = marker->prev;
 
 		if (prev == NULL)
-			return OPERATOR_FINISHED;
+			return OPERATOR_CANCELLED;
 
 		BLI_remlink(&act->markers, marker);
 		BLI_insertlinkbefore(&act->markers, prev, marker);
@@ -779,7 +779,7 @@ static int poselib_move_exec(bContext *C, wmOperator *op)
 		void *next = marker->next;
 
 		if (next == NULL)
-			return OPERATOR_FINISHED;
+			return OPERATOR_CANCELLED;
 
 		BLI_remlink(&act->markers, marker);
 		BLI_insertlinkafter(&act->markers, next, marker);
