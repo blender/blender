@@ -422,23 +422,6 @@ void GPU_basic_shader_bind(int options)
 {
 	if (USE_GLSL) {
 		if (options) {
-			const int bound_options = GPU_MATERIAL_STATE.bound_options;
-
-			/* texture options need to be set for basic shader too */
-			if (options & GPU_SHADER_TEXTURE_2D) {
-				glEnable(GL_TEXTURE_2D);
-			}
-			else if (bound_options & GPU_SHADER_TEXTURE_2D) {
-				glDisable(GL_TEXTURE_2D);
-			}
-
-			if (options & GPU_SHADER_TEXTURE_RECT) {
-				glEnable(GL_TEXTURE_RECTANGLE);
-			}
-			else if (bound_options & GPU_SHADER_TEXTURE_RECT) {
-				glDisable(GL_TEXTURE_RECTANGLE);
-			}
-
 			GPUShader *shader = gpu_basic_shader(options);
 
 			if (shader) {
