@@ -22,14 +22,23 @@ ccl_device void svm_node_set_bump(KernelGlobals *kg, ShaderData *sd, float *stac
 {
 #ifdef __RAY_DIFFERENTIALS__
 	/* get normal input */
-	uint normal_offset, distance_offset, invert;
-	decode_node_uchar4(node.y, &normal_offset, &distance_offset, &invert, NULL);
+	uint normal_offset, distance_offset, invert, use_object_space;
+	decode_node_uchar4(node.y, &normal_offset, &distance_offset, &invert, &use_object_space);
 
 	float3 normal_in = stack_valid(normal_offset)? stack_load_float3(stack, normal_offset): ccl_fetch(sd, N);
 
+	float3 dPdx = ccl_fetch(sd, dP).dx;
+	float3 dPdy = ccl_fetch(sd, dP).dy;
+
+	if(use_object_space) {
+		object_inverse_normal_transform(kg, sd, &normal_in);
+		object_inverse_dir_transform(kg, sd, &dPdx);
+		object_inverse_dir_transform(kg, sd, &dPdy);
+	}
+
 	/* get surface tangents from normal */
-	float3 Rx = cross(ccl_fetch(sd, dP).dy, normal_in);
-	float3 Ry = cross(normal_in, ccl_fetch(sd, dP).dx);
+	float3 Rx = cross(dPdy, normal_in);
+	float3 Ry = cross(normal_in, dPdx);
 
 	/* get bump values */
 	uint c_offset, x_offset, y_offset, strength_offset;
@@ -40,7 +49,7 @@ ccl_device void svm_node_set_bump(KernelGlobals *kg, ShaderData *sd, float *stac
 	float h_y = stack_load_float(stack, y_offset);
 
 	/* compute surface gradient and determinant */
-	float det = dot(ccl_fetch(sd, dP).dx, Rx);
+	float det = dot(dPdx, Rx);
 	float3 surfgrad = (h_x - h_c)*Rx + (h_y - h_c)*Ry;
 
 	float absdet = fabsf(det);
@@ -56,16 +65,29 @@ ccl_device void svm_node_set_bump(KernelGlobals *kg, ShaderData *sd, float *stac
 	/* compute and output perturbed normal */
 	float3 normal_out = normalize(absdet*normal_in - distance*signf(det)*surfgrad);
 	normal_out = normalize(strength*normal_out + (1.0f - strength)*normal_in);
+
+	if(use_object_space) {
+		object_normal_transform(kg, sd, &normal_out);
+	}
+
 	stack_store_float3(stack, node.w, normal_out);
 #endif
 }
 
 /* Displacement Node */
 
-ccl_device void svm_node_set_displacement(ShaderData *sd, float *stack, uint fac_offset)
+ccl_device void svm_node_set_displacement(KernelGlobals *kg, ShaderData *sd, float *stack, uint fac_offset)
 {
 	float d = stack_load_float(stack, fac_offset);
-	ccl_fetch(sd, P) += ccl_fetch(sd, N)*d*0.1f; /* todo: get rid of this factor */
+
+	float3 dP = ccl_fetch(sd, N);
+	object_inverse_normal_transform(kg, sd, &dP);
+
+	dP *= d*0.1f; /* todo: get rid of this factor */
+
+	object_dir_transform(kg, sd, &dP);
+
+	ccl_fetch(sd, P) += dP;
 }
 
 CCL_NAMESPACE_END

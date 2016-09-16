@@ -73,38 +73,6 @@
 #define MENU_PADDING		(int)(0.2f * UI_UNIT_Y)
 #define MENU_BORDER			(int)(0.3f * U.widget_unit)
 
-static int rna_property_enum_step(const bContext *C, PointerRNA *ptr, PropertyRNA *prop, int direction)
-{
-	EnumPropertyItem *item_array;
-	int totitem;
-	bool free;
-	int value;
-	int i, i_init;
-	int step = (direction < 0) ? -1 : 1;
-	int step_tot = 0;
-
-	RNA_property_enum_items((bContext *)C, ptr, prop, &item_array, &totitem, &free);
-	value = RNA_property_enum_get(ptr, prop);
-	i = RNA_enum_from_value(item_array, value);
-	i_init = i;
-
-	do {
-		i = mod_i(i + step, totitem);
-		if (item_array[i].identifier[0]) {
-			step_tot += step;
-		}
-	} while ((i != i_init) && (step_tot != direction));
-
-	if (i != i_init) {
-		value = item_array[i].value;
-	}
-
-	if (free) {
-		MEM_freeN(item_array);
-	}
-
-	return value;
-}
 
 bool ui_but_menu_step_poll(const uiBut *but)
 {
@@ -122,7 +90,8 @@ int ui_but_menu_step(uiBut *but, int direction)
 			return but->menu_step_func(but->block->evil_C, direction, but->poin);
 		}
 		else {
-			return rna_property_enum_step(but->block->evil_C, &but->rnapoin, but->rnaprop, direction);
+			const int curval = RNA_property_enum_get(&but->rnapoin, but->rnaprop);
+			return RNA_property_enum_step(but->block->evil_C, &but->rnapoin, but->rnaprop, curval, direction);
 		}
 	}
 
@@ -484,20 +453,30 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 		}
 
 		MEM_freeN(str);
+	}
 
-		/* second check if we are disabled - why */
-		if (but->flag & UI_BUT_DISABLED) {
-			const char *poll_msg;
+	/* button is disabled, we may be able to tell user why */
+	if ((but->flag & UI_BUT_DISABLED) || but->lock) {
+		const char *disabled_msg = NULL;
+
+		/* if operator poll check failed, it can give pretty precise info why */
+		if (but->optype) {
 			CTX_wm_operator_poll_msg_set(C, NULL);
 			WM_operator_poll_context(C, but->optype, but->opcontext);
-			poll_msg = CTX_wm_operator_poll_msg_get(C);
-			if (poll_msg) {
-				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Disabled: %s"), poll_msg);
-				data->format[data->totline].color_id = UI_TIP_LC_ALERT;
-				data->totline++;
-			}
+			disabled_msg = CTX_wm_operator_poll_msg_get(C);
+		}
+		/* alternatively, buttons can store some reasoning too */
+		else if (but->lockstr) {
+			disabled_msg = but->lockstr;
+		}
+
+		if (disabled_msg && disabled_msg[0]) {
+			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Disabled: %s"), disabled_msg);
+			data->format[data->totline].color_id = UI_TIP_LC_ALERT;
+			data->totline++;
 		}
 	}
+
 	if ((U.flag & USER_TOOLTIPS_PYTHON) == 0 && !but->optype && rna_struct.strinfo) {
 		if (rna_prop.strinfo) {
 			/* Struct and prop */

@@ -121,7 +121,12 @@ static void setup_app_data(
 		LOAD_UNDO,
 	} mode;
 
-	if (BLI_listbase_is_empty(&bfd->main->screen)) {
+	/* may happen with library files - UNDO file should never have NULL cursccene... */
+	if (ELEM(NULL, bfd->curscreen, bfd->curscene)) {
+		BKE_report(reports, RPT_WARNING, "Library file, loading empty scene");
+		mode = LOAD_UI_OFF;
+	}
+	else if (BLI_listbase_is_empty(&bfd->main->screen)) {
 		mode = LOAD_UNDO;
 	}
 	else if (G.fileflags & G_FILE_NO_UI) {
@@ -129,14 +134,6 @@ static void setup_app_data(
 	}
 	else {
 		mode = LOAD_UI;
-	}
-
-	if (mode != LOAD_UNDO) {
-		/* may happen with library files */
-		if (ELEM(NULL, bfd->curscreen, bfd->curscene)) {
-			BKE_report(reports, RPT_WARNING, "Library file, loading empty scene");
-			mode = LOAD_UI_OFF;
-		}
 	}
 
 	/* Free all render results, without this stale data gets displayed after loading files */
@@ -510,6 +507,10 @@ bool BKE_blendfile_write_partial(
 
 	void     *path_list_backup = NULL;
 	const int path_list_flag = (BKE_BPATH_TRAVERSE_SKIP_LIBRARY | BKE_BPATH_TRAVERSE_SKIP_MULTIFILE);
+
+	/* This is needed to be able to load that file as a real one later
+	 * (otherwise main->name will not be set at read time). */
+	BLI_strncpy(bmain_dst->name, bmain_src->name, sizeof(bmain_dst->name));
 
 	if (write_flags & G_FILE_RELATIVE_REMAP) {
 		path_list_backup = BKE_bpath_list_backup(bmain_src, path_list_flag);

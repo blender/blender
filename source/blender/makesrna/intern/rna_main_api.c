@@ -526,6 +526,7 @@ RNA_MAIN_ID_TAG_FUNCS_DEF(movieclips, movieclip, ID_MC)
 RNA_MAIN_ID_TAG_FUNCS_DEF(masks, mask, ID_MSK)
 RNA_MAIN_ID_TAG_FUNCS_DEF(linestyle, linestyle, ID_LS)
 RNA_MAIN_ID_TAG_FUNCS_DEF(cachefiles, cachefiles, ID_CF)
+RNA_MAIN_ID_TAG_FUNCS_DEF(paintcurves, paintcurves, ID_PC)
 
 #undef RNA_MAIN_ID_TAG_FUNCS_DEF
 
@@ -1517,6 +1518,21 @@ void RNA_def_main_cachefiles(BlenderRNA *brna, PropertyRNA *cprop)
 	PropertyRNA *prop = RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Main_cachefiles_is_updated_get", NULL);
+}
+void RNA_def_main_paintcurves(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	RNA_def_property_srna(cprop, "BlendDataPaintCurves");
+	StructRNA *srna = RNA_def_struct(brna, "BlendDataPaintCurves", NULL);
+	RNA_def_struct_sdna(srna, "Main");
+	RNA_def_struct_ui_text(srna, "Main Paint Curves", "Collection of paint curves");
+
+	FunctionRNA *func = RNA_def_function(srna, "tag", "rna_Main_paintcurves_tag");
+	PropertyRNA *parm = RNA_def_boolean(func, "value", 0, "Value", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	PropertyRNA *prop = RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Main_paintcurves_is_updated_get", NULL);
 }
 void RNA_def_main_gpencil(BlenderRNA *brna, PropertyRNA *cprop)
 {

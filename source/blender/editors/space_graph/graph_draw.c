@@ -1131,7 +1131,7 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 	 *	  start of list offset, and the second is as a correction for the scrollers.
 	 */
 	height = (float)((items * ACHANNEL_STEP(ac)) + (ACHANNEL_HEIGHT(ac) * 2));
-	UI_view2d_totRect_set(v2d, ar->winx, height);
+	UI_view2d_totRect_set(v2d, BLI_rcti_size_x(&ar->v2d.mask), height);
 	
 	/* loop through channels, and set up drawing depending on their type  */
 	{   /* first pass: just the standard GL-drawing for backdrop + text */

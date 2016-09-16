@@ -113,6 +113,32 @@ namespace DEG {
 /* ***************** */
 /* Relations Builder */
 
+/* TODO(sergey): This is somewhat weak, but we don't want neither false-positive
+ * time dependencies nor special exceptions in the depsgraph evaluation.
+ */
+static bool python_driver_depends_on_time(ChannelDriver *driver)
+{
+	if (driver->expression[0] == '\0') {
+		/* Empty expression depends on nothing. */
+		return false;
+	}
+	if (strchr(driver->expression, '(') != NULL) {
+		/* Function calls are considered dependent on a time. */
+		return true;
+	}
+	if (strstr(driver->expression, "time") != NULL) {
+		/* Variable `time` depends on time. */
+		/* TODO(sergey): This is a bit weak, but not sure about better way of
+		 * handling this.
+		 */
+		return true;
+	}
+	/* Possible indirect time relation s should be handled via variable
+	 * targets.
+	 */
+	return false;
+}
+
 /* **** General purpose functions ****  */
 
 RNAPathKey::RNAPathKey(ID *id, const char *path) :
@@ -994,7 +1020,9 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 	 * so for now we'll be quite conservative here about optimization and consider
 	 * all python drivers to be depending on time.
 	 */
-	if (driver->type == DRIVER_TYPE_PYTHON) {
+	if ((driver->type == DRIVER_TYPE_PYTHON) &&
+	    python_driver_depends_on_time(driver))
+	{
 		TimeSourceKey time_src_key;
 		add_relation(time_src_key, driver_key, DEPSREL_TYPE_TIME, "[TimeSrc -> Driver]");
 	}

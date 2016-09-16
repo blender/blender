@@ -216,8 +216,18 @@ class GreasePencilStrokeEditPanel:
         col.operator_menu_enum("gpencil.stroke_arrange", text="Arrange Strokes...", property="direction")
         col.operator("gpencil.stroke_change_color", text="Move to Color")
 
+        if is_3d_view:
+            layout.separator()
+            col = layout.column(align=True)
+            col.operator("gpencil.interpolate", text="Interpolate")
+            col.operator("gpencil.interpolate_sequence", text="Sequence")
+            settings = context.tool_settings.gpencil_sculpt
+            col.prop(settings, "interpolate_all_layers")
+            col.prop(settings, "interpolate_selected_only")
+
         layout.separator()
         col = layout.column(align=True)
+        col.operator("gpencil.stroke_subdivide", text="Subdivide")
         col.operator("gpencil.stroke_join", text="Join").type = 'JOIN'
         col.operator("gpencil.stroke_join", text="Join & Copy").type = 'JOINCOPY'
         col.operator("gpencil.stroke_flip", text="Flip Direction")
@@ -641,6 +651,28 @@ class GPENCIL_MT_snap(Menu):
         layout.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid")
 
 
+class GPENCIL_MT_gpencil_edit_specials(Menu):
+    bl_label = "GPencil Specials"
+
+    def draw(self, context):
+        layout = self.layout
+        is_3d_view = context.space_data.type == 'VIEW_3D'
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        layout.operator("gpencil.stroke_subdivide", text="Subdivide")
+
+        layout.separator()
+
+        layout.operator("gpencil.stroke_join", text="Join").type = 'JOIN'
+        layout.operator("gpencil.stroke_join", text="Join & Copy").type = 'JOINCOPY'
+        layout.operator("gpencil.stroke_flip", text="Flip Direction")
+
+        if is_3d_view:
+            layout.separator()
+            layout.operator("gpencil.reproject")
+
+
 ###############################
 
 
@@ -763,6 +795,7 @@ class GPENCIL_MT_palettecolor_specials(Menu):
         layout.separator()
 
         layout.operator("gpencil.palettecolor_select", icon='COLOR', text="Select Strokes")
+        layout.operator("gpencil.stroke_change_color", icon='MAN_TRANS', text="Move to Color")
 
 
 class GreasePencilDataPanel:

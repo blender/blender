@@ -343,7 +343,7 @@ public:
 		const string cubin_file = string_printf("cycles_kernel_sm%d%d_%s.cubin",
 		                                        major, minor,
 		                                        cubin_md5.c_str());
-		const string cubin = path_user_get(path_join("cache", cubin_file));
+		const string cubin = path_cache_get(path_join("kernels", cubin_file));
 		VLOG(1) << "Testing for locally compiled kernel " << cubin << ".";
 		if(path_exists(cubin)) {
 			VLOG(1) << "Using locally compiled kernel.";

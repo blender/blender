@@ -1665,3 +1665,84 @@ RenderView *RE_RenderViewGetByName(RenderResult *res, const char *viewname)
 	BLI_assert(res->views.first);
 	return rv ? rv : res->views.first;
 }
+
+static RenderPass *duplicate_render_pass(RenderPass *rpass)
+{
+	RenderPass *new_rpass = MEM_mallocN(sizeof(RenderPass), "new render pass");
+	*new_rpass = *rpass;
+	new_rpass->next = new_rpass->prev = NULL;
+	if (new_rpass->rect != NULL) {
+		new_rpass->rect = MEM_dupallocN(new_rpass->rect);
+	}
+	return new_rpass;
+}
+
+static RenderLayer *duplicate_render_layer(RenderLayer *rl)
+{
+	RenderLayer *new_rl = MEM_mallocN(sizeof(RenderLayer), "new render layer");
+	*new_rl = *rl;
+	new_rl->next = new_rl->prev = NULL;
+	new_rl->passes.first = new_rl->passes.last = NULL;
+	new_rl->exrhandle = NULL;
+	if (new_rl->acolrect != NULL) {
+		new_rl->acolrect = MEM_dupallocN(new_rl->acolrect);
+	}
+	if (new_rl->scolrect != NULL) {
+		new_rl->scolrect = MEM_dupallocN(new_rl->scolrect);
+	}
+	if (new_rl->display_buffer != NULL) {
+		new_rl->display_buffer = MEM_dupallocN(new_rl->display_buffer);
+	}
+	for (RenderPass *rpass = rl->passes.first; rpass != NULL; rpass = rpass->next) {
+		RenderPass  *new_rpass = duplicate_render_pass(rpass);
+		BLI_addtail(&new_rl->passes, new_rpass);
+	}
+	return new_rl;
+}
+
+static RenderView *duplicate_render_view(RenderView *rview)
+{
+	RenderView *new_rview = MEM_mallocN(sizeof(RenderView), "new render view");
+	*new_rview = *rview;
+	if (new_rview->rectf != NULL) {
+		new_rview->rectf = MEM_dupallocN(new_rview->rectf);
+	}
+	if (new_rview->rectf != NULL) {
+		new_rview->rectf = MEM_dupallocN(new_rview->rectf);
+	}
+	if (new_rview->rectz != NULL) {
+		new_rview->rectz = MEM_dupallocN(new_rview->rectz);
+	}
+	if (new_rview->rect32 != NULL) {
+		new_rview->rect32 = MEM_dupallocN(new_rview->rect32);
+	}
+	return new_rview;
+}
+
+RenderResult *RE_DuplicateRenderResult(RenderResult *rr)
+{
+	RenderResult *new_rr = MEM_mallocN(sizeof(RenderResult), "new render result");
+	*new_rr = *rr;
+	new_rr->next = new_rr->prev = NULL;
+	new_rr->layers.first = new_rr->layers.last = NULL;
+	new_rr->views.first = new_rr->views.last = NULL;
+	for (RenderLayer *rl = rr->layers.first; rl != NULL; rl = rl->next) {
+		RenderLayer *new_rl = duplicate_render_layer(rl);
+		BLI_addtail(&new_rr->layers, new_rl);
+	}
+	for (RenderView *rview = rr->views.first; rview != NULL; rview = rview->next) {
+		RenderView *new_rview = duplicate_render_view(rview);
+		BLI_addtail(&new_rr->views, new_rview);
+	}
+	if (new_rr->rect32 != NULL) {
+		new_rr->rect32 = MEM_dupallocN(new_rr->rect32);
+	}
+	if (new_rr->rectf != NULL) {
+		new_rr->rectf = MEM_dupallocN(new_rr->rectf);
+	}
+	if (new_rr->rectz != NULL) {
+		new_rr->rectz = MEM_dupallocN(new_rr->rectz);
+	}
+	new_rr->stamp_data = MEM_dupallocN(new_rr->stamp_data);
+	return new_rr;
+}

@@ -41,10 +41,12 @@ static bNodeSocketTemplate sh_node_fresnel_out[] = {
 
 static int node_shader_gpu_fresnel(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	if (!in[1].link)
+	if (!in[1].link) {
 		in[1].link = GPU_builtin(GPU_VIEW_NORMAL);
-	else
+	}
+	else if (GPU_material_use_world_space_shading(mat)) {
 		GPU_link(mat, "direction_transform_m4v3", in[1].link, GPU_builtin(GPU_VIEW_MATRIX), &in[1].link);
+	}
 	
 	return GPU_stack_link(mat, "node_fresnel", in, out, GPU_builtin(GPU_VIEW_POSITION));
 }

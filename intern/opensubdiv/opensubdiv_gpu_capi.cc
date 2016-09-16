@@ -49,7 +49,9 @@
 
 using OpenSubdiv::Osd::GLMeshInterface;
 
-extern "C" char datatoc_gpu_shader_opensubd_display_glsl[];
+extern "C" char datatoc_gpu_shader_opensubdiv_vertex_glsl[];
+extern "C" char datatoc_gpu_shader_opensubdiv_geometry_glsl[];
+extern "C" char datatoc_gpu_shader_opensubdiv_fragment_glsl[];
 
 /* TODO(sergey): This is bit of bad level calls :S */
 extern "C" {
@@ -206,25 +208,23 @@ struct OpenSubdiv_GLMeshFVarData
 namespace {
 
 GLuint compileShader(GLenum shaderType,
-                     const char *section,
                      const char *version,
-                     const char *define)
+                     const char *define,
+                     const char *source)
 {
-	char sdefine[64];
-	sprintf(sdefine, "#define %s\n", section);
-
 	const char *sources[] = {
 		version,
 		define,
-		sdefine,
 #ifdef SUPPORT_COLOR_MATERIAL
 		"#define SUPPORT_COLOR_MATERIAL\n",
+#else
+		"",
 #endif
-		datatoc_gpu_shader_opensubd_display_glsl
+		source,
 	};
 
 	GLuint shader = glCreateShader(shaderType);
-	glShaderSource(shader, 5, sources, NULL);
+	glShaderSource(shader, 4, sources, NULL);
 	glCompileShader(shader);
 
 	GLint status;
@@ -232,10 +232,10 @@ GLuint compileShader(GLenum shaderType,
 	if (status == GL_FALSE) {
 		GLchar emsg[1024];
 		glGetShaderInfoLog(shader, sizeof(emsg), 0, emsg);
-		fprintf(stderr, "Error compiling GLSL %s: %s\n", section, emsg);
+		fprintf(stderr, "Error compiling GLSL: %s\n", emsg);
 		fprintf(stderr, "Version: %s\n", version);
 		fprintf(stderr, "Defines: %s\n", define);
-		fprintf(stderr, "Source: %s\n", datatoc_gpu_shader_opensubd_display_glsl);
+		fprintf(stderr, "Source: %s\n", source);
 		return 0;
 	}
 
@@ -245,23 +245,23 @@ GLuint compileShader(GLenum shaderType,
 GLuint linkProgram(const char *version, const char *define)
 {
 	GLuint vertexShader = compileShader(GL_VERTEX_SHADER,
-	                                    "VERTEX_SHADER",
 	                                    version,
-	                                    define);
+	                                    define,
+	                                    datatoc_gpu_shader_opensubdiv_vertex_glsl);
 	if (vertexShader == 0) {
 		return 0;
 	}
 	GLuint geometryShader = compileShader(GL_GEOMETRY_SHADER,
-	                                      "GEOMETRY_SHADER",
 	                                      version,
-	                                      define);
+	                                      define,
+	                                      datatoc_gpu_shader_opensubdiv_geometry_glsl);
 	if (geometryShader == 0) {
 		return 0;
 	}
 	GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER,
-	                                      "FRAGMENT_SHADER",
 	                                      version,
-	                                      define);
+	                                      define,
+	                                      datatoc_gpu_shader_opensubdiv_fragment_glsl );
 	if (fragmentShader == 0) {
 		return 0;
 	}

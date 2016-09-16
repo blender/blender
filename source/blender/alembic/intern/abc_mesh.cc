@@ -37,8 +37,8 @@ extern "C" {
 #include "BLI_math_geom.h"
 #include "BLI_string.h"
 
+#include "BKE_cdderivedmesh.h"
 #include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
@@ -49,6 +49,9 @@ extern "C" {
 #include "WM_types.h"
 
 #include "ED_mesh.h"
+
+#include "bmesh.h"
+#include "bmesh_tools.h"
 }
 
 using Alembic::Abc::FloatArraySample;
@@ -538,6 +541,23 @@ DerivedMesh *AbcMeshWriter::getFinalMesh()
 		m_subsurf_mod->mode &= ~eModifierMode_DisableTemporary;
 	}
 
+	if (m_settings.triangulate) {
+		const bool tag_only = false;
+		const int quad_method = m_settings.quad_method;
+		const int ngon_method = m_settings.ngon_method;
+
+		BMesh *bm = DM_to_bmesh(dm, true);
+
+		BM_mesh_triangulate(bm, quad_method, ngon_method, tag_only, NULL, NULL, NULL);
+
+		DerivedMesh *result = CDDM_from_bmesh(bm, false);
+		BM_mesh_free(bm);
+
+		freeMesh(dm);
+
+		dm = result;
+	}
+
 	m_custom_data_config.pack_uvs = m_settings.pack_uv;
 	m_custom_data_config.mpoly = dm->getPolyArray(dm);
 	m_custom_data_config.mloop = dm->getLoopArray(dm);
@@ -784,6 +804,7 @@ struct AbcMeshData {
 	Int32ArraySamplePtr face_counts;
 
 	P3fArraySamplePtr positions;
+	P3fArraySamplePtr ceil_positions;
 
 	N3fArraySamplePtr vertex_normals;
 	N3fArraySamplePtr face_normals;
@@ -831,11 +852,31 @@ CDStreamConfig create_config(Mesh *mesh)
 	return config;
 }
 
+static void read_mverts_interp(MVert *mverts, const P3fArraySamplePtr &positions, const P3fArraySamplePtr &ceil_positions, const float weight)
+{
+	float tmp[3];
+	for (int i = 0; i < positions->size(); ++i) {
+		MVert &mvert = mverts[i];
+		const Imath::V3f &floor_pos = (*positions)[i];
+		const Imath::V3f &ceil_pos = (*ceil_positions)[i];
+
+		interp_v3_v3v3(tmp, floor_pos.getValue(), ceil_pos.getValue(), weight);
+		copy_yup_zup(mvert.co, tmp);
+
+		mvert.bweight = 0;
+	}
+}
+
 static void read_mverts(CDStreamConfig &config, const AbcMeshData &mesh_data)
 {
 	MVert *mverts = config.mvert;
 	const P3fArraySamplePtr &positions = mesh_data.positions;
 	const N3fArraySamplePtr &normals = mesh_data.vertex_normals;
+
+	if (config.weight != 0.0f && mesh_data.ceil_positions) {
+		read_mverts_interp(mverts, positions, mesh_data.ceil_positions, config.weight);
+		return;
+	}
 
 	read_mverts(mverts, positions, normals);
 }
@@ -1063,6 +1104,46 @@ void AbcMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, size_t poly_star
 	utils::assign_materials(bmain, m_object, mat_map);
 }
 
+typedef std::pair<Alembic::AbcCoreAbstract::index_t, float> index_time_pair_t;
+
+static void get_weight_and_index(CDStreamConfig &config,
+                                 Alembic::AbcCoreAbstract::TimeSamplingPtr time_sampling,
+                                 size_t samples_number)
+{
+	if (samples_number == 0) {
+		samples_number = 1;
+	}
+
+	index_time_pair_t floor_index = time_sampling->getFloorIndex(config.time, samples_number);
+
+	config.index = floor_index.first;
+	config.ceil_index = config.index;
+
+	if (fabs(config.time - floor_index.second) < 0.0001f) {
+		config.weight = 0.0f;
+		return;
+	}
+
+	index_time_pair_t ceil_index = time_sampling->getCeilIndex(config.time, samples_number);
+
+	if (config.index == ceil_index.first) {
+		config.weight = 0.0f;
+		return;
+	}
+
+	config.ceil_index = ceil_index.first;
+
+	float alpha = (config.time - floor_index.second) / (ceil_index.second - floor_index.second);
+
+	/* Since we so closely match the ceiling, we'll just use it. */
+	if (fabs(1.0f - alpha) < 0.0001f) {
+		config.index = config.ceil_index;
+		alpha = 0.0f;
+	}
+
+	config.weight = alpha;
+}
+
 void read_mesh_sample(ImportSettings *settings,
                       const IPolyMeshSchema &schema,
                       const ISampleSelector &selector,
@@ -1079,6 +1160,14 @@ void read_mesh_sample(ImportSettings *settings,
 	read_normals_params(abc_mesh_data, schema.getNormalsParam(), selector);
 
 	do_normals = (abc_mesh_data.face_normals != NULL);
+
+	get_weight_and_index(config, schema.getTimeSampling(), schema.getNumSamples());
+
+	if (config.weight != 0.0f) {
+		Alembic::AbcGeom::IPolyMeshSchema::Sample ceil_sample;
+		schema.get(ceil_sample, Alembic::Abc::ISampleSelector(static_cast<Alembic::AbcCoreAbstract::index_t>(config.ceil_index)));
+		abc_mesh_data.ceil_positions = ceil_sample.getPositions();
+	}
 
 	if ((settings->read_flag & MOD_MESHSEQ_READ_UV) != 0) {
 		read_uvs_params(config, abc_mesh_data, schema.getUVsParam(), selector);
@@ -1194,6 +1283,14 @@ void read_subd_sample(ImportSettings *settings,
 	abc_mesh_data.vertex_normals = N3fArraySamplePtr();
 	abc_mesh_data.face_normals = N3fArraySamplePtr();
 	abc_mesh_data.positions = sample.getPositions();
+
+	get_weight_and_index(config, schema.getTimeSampling(), schema.getNumSamples());
+
+	if (config.weight != 0.0f) {
+		Alembic::AbcGeom::ISubDSchema::Sample ceil_sample;
+		schema.get(ceil_sample, Alembic::Abc::ISampleSelector(static_cast<Alembic::AbcCoreAbstract::index_t>(config.ceil_index)));
+		abc_mesh_data.ceil_positions = ceil_sample.getPositions();
+	}
 
 	if ((settings->read_flag & MOD_MESHSEQ_READ_UV) != 0) {
 		read_uvs_params(config, abc_mesh_data, schema.getUVsParam(), selector);

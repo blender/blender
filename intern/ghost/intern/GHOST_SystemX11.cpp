@@ -838,7 +838,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		case KeyRelease:
 		{
 			XKeyEvent *xke = &(xe->xkey);
-			KeySym key_sym = XK_VoidSymbol;
+			KeySym key_sym;
 			KeySym key_sym_str;
 			char ascii;
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
@@ -891,16 +891,60 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			if ((xke->keycode >= 10 && xke->keycode < 20) && ((xke->state & number_hack_forbidden_kmods_mask) == 0)) {
 				key_sym = XLookupKeysym(xke, ShiftMask);
 				if (!((key_sym >= XK_0) && (key_sym <= XK_9))) {
-					key_sym = XK_VoidSymbol;
+					key_sym = XLookupKeysym(xke, 0);
 				}
+			}
+			else {
+				key_sym = XLookupKeysym(xke, 0);
 			}
 
 			if (!XLookupString(xke, &ascii, 1, &key_sym_str, NULL)) {
 				ascii = '\0';
 			}
 
-			if ((gkey = convertXKey(key_sym)) == GHOST_kKeyUnknown) {
-				gkey = convertXKey(key_sym_str);
+			/* Only allow a limited set of keys from XLookupKeysym, all others we take from XLookupString,
+			 * unless it gives unknown key... */
+			gkey = convertXKey(key_sym);
+			switch (gkey) {
+				case GHOST_kKeyRightAlt:
+				case GHOST_kKeyLeftAlt:
+				case GHOST_kKeyRightShift:
+				case GHOST_kKeyLeftShift:
+				case GHOST_kKeyRightControl:
+				case GHOST_kKeyLeftControl:
+				case GHOST_kKeyOS:
+				case GHOST_kKey0:
+				case GHOST_kKey1:
+				case GHOST_kKey2:
+				case GHOST_kKey3:
+				case GHOST_kKey4:
+				case GHOST_kKey5:
+				case GHOST_kKey6:
+				case GHOST_kKey7:
+				case GHOST_kKey8:
+				case GHOST_kKey9:
+				case GHOST_kKeyNumpad0:
+				case GHOST_kKeyNumpad1:
+				case GHOST_kKeyNumpad2:
+				case GHOST_kKeyNumpad3:
+				case GHOST_kKeyNumpad4:
+				case GHOST_kKeyNumpad5:
+				case GHOST_kKeyNumpad6:
+				case GHOST_kKeyNumpad7:
+				case GHOST_kKeyNumpad8:
+				case GHOST_kKeyNumpad9:
+				case GHOST_kKeyNumpadPeriod:
+				case GHOST_kKeyNumpadEnter:
+				case GHOST_kKeyNumpadPlus:
+				case GHOST_kKeyNumpadMinus:
+				case GHOST_kKeyNumpadAsterisk:
+				case GHOST_kKeyNumpadSlash:
+					break;
+				default:
+					GHOST_TKey gkey_str = convertXKey(key_sym_str);
+					if (gkey_str != GHOST_kKeyUnknown) {
+						gkey = gkey_str;
+					}
 			}
 #else
 			/* In keyboards like latin ones,
@@ -1582,6 +1626,7 @@ convertXKey(KeySym key)
 		switch (key) {
 			GXMAP(type, XK_BackSpace,    GHOST_kKeyBackSpace);
 			GXMAP(type, XK_Tab,          GHOST_kKeyTab);
+			GXMAP(type, XK_ISO_Left_Tab, GHOST_kKeyTab);
 			GXMAP(type, XK_Return,       GHOST_kKeyEnter);
 			GXMAP(type, XK_Escape,       GHOST_kKeyEsc);
 			GXMAP(type, XK_space,        GHOST_kKeySpace);

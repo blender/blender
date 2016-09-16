@@ -151,6 +151,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSELIB_OT_pose_add);
 	WM_operatortype_append(POSELIB_OT_pose_remove);
 	WM_operatortype_append(POSELIB_OT_pose_rename);
+	WM_operatortype_append(POSELIB_OT_pose_move);
 	
 	WM_operatortype_append(POSELIB_OT_new);
 	WM_operatortype_append(POSELIB_OT_unlink);

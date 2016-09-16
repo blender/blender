@@ -79,7 +79,6 @@ static void ed_keymap_gpencil_general(wmKeyConfig *keyconf)
 	RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_ERASER);
 	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
 	
-	
 	/* Tablet Mappings for Drawing ------------------ */
 	/* For now, only support direct drawing using the eraser, as most users using a tablet
 	 * may still want to use that as their primary pointing device!
@@ -144,7 +143,10 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_string_set(kmi->ptr, "data_path_primary", "user_preferences.edit.grease_pencil_eraser_radius");
 	
-	
+	/* Interpolation */
+	WM_keymap_add_item(keymap, "GPENCIL_OT_interpolate", EKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "GPENCIL_OT_interpolate_sequence", EKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
+
 	/* Sculpting ------------------------------------- */
 	
 	/* Brush-Based Editing:
@@ -240,6 +242,9 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "GPENCIL_OT_active_frames_delete_all", XKEY, KM_PRESS, KM_SHIFT, 0);
 	
+	/* menu edit specials */
+	WM_keymap_add_menu(keymap, "GPENCIL_MT_gpencil_edit_specials", WKEY, KM_PRESS, 0, 0);
+
 	/* join strokes */
 	WM_keymap_add_item(keymap, "GPENCIL_OT_stroke_join", JKEY, KM_PRESS, KM_CTRL, 0);
 	
@@ -408,6 +413,7 @@ void ED_operatortypes_gpencil(void)
 	WM_operatortype_append(GPENCIL_OT_stroke_cyclical_set);
 	WM_operatortype_append(GPENCIL_OT_stroke_join);
 	WM_operatortype_append(GPENCIL_OT_stroke_flip);
+	WM_operatortype_append(GPENCIL_OT_stroke_subdivide);
 
 	WM_operatortype_append(GPENCIL_OT_palette_add);
 	WM_operatortype_append(GPENCIL_OT_palette_remove);
@@ -433,6 +439,10 @@ void ED_operatortypes_gpencil(void)
 	WM_operatortype_append(GPENCIL_OT_brush_select);
 
 	/* Editing (Time) --------------- */
+	
+	/* Interpolation */
+	WM_operatortype_append(GPENCIL_OT_interpolate);
+	WM_operatortype_append(GPENCIL_OT_interpolate_sequence);
 }
 
 void ED_operatormacros_gpencil(void)

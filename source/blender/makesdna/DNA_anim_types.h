@@ -939,7 +939,10 @@ typedef enum eAnimData_Flag {
 	ADT_UI_ACTIVE           = (1<<15),
 
 		/* F-Curves from this AnimData block are not visible in the Graph Editor */
-	ADT_CURVES_NOT_VISIBLE  = (1<<16)
+	ADT_CURVES_NOT_VISIBLE  = (1<<16),
+
+		/* F-Curves from this AnimData block are always visible */
+	ADT_CURVES_ALWAYS_VISIBLE = (1<<17),
 } eAnimData_Flag;
 
 /* Animation Data recalculation settings (to be set by depsgraph) */

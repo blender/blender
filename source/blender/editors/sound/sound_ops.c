@@ -217,32 +217,56 @@ static void SOUND_OT_open_mono(wmOperatorType *ot)
 
 /* ******************************************************* */
 
-static int sound_update_animation_flags_exec(bContext *C, wmOperator *UNUSED(op))
+static void sound_update_animation_flags(Scene *scene);
+
+static int sound_update_animation_flags_cb(Sequence *seq, void *user_data)
 {
-	Sequence *seq;
-	Scene *scene = CTX_data_scene(C);
+	struct FCurve *fcu;
+	Scene *scene = (Scene *)user_data;
+	bool driven;
+
+	fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, &driven);
+	if (fcu || driven)
+		seq->flag |= SEQ_AUDIO_VOLUME_ANIMATED;
+	else
+		seq->flag &= ~SEQ_AUDIO_VOLUME_ANIMATED;
+
+	fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "pitch", 0, &driven);
+	if (fcu || driven)
+		seq->flag |= SEQ_AUDIO_PITCH_ANIMATED;
+	else
+		seq->flag &= ~SEQ_AUDIO_PITCH_ANIMATED;
+
+	fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "pan", 0, &driven);
+	if (fcu || driven)
+		seq->flag |= SEQ_AUDIO_PAN_ANIMATED;
+	else
+		seq->flag &= ~SEQ_AUDIO_PAN_ANIMATED;
+
+	if (seq->type == SEQ_TYPE_SCENE) {
+		/* TODO(sergey): For now we do manual recursion into the scene strips,
+		 * but perhaps it should be covered by recursive_apply?
+		 */
+		sound_update_animation_flags(seq->scene);
+	}
+
+	return 0;
+}
+
+static void sound_update_animation_flags(Scene *scene)
+{
 	struct FCurve *fcu;
 	bool driven;
+	Sequence *seq;
+
+	if (scene->id.tag & LIB_TAG_DOIT) {
+		return;
+	}
+	scene->id.tag |= LIB_TAG_DOIT;
 
 	SEQ_BEGIN(scene->ed, seq)
 	{
-		fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, &driven);
-		if (fcu || driven)
-			seq->flag |= SEQ_AUDIO_VOLUME_ANIMATED;
-		else
-			seq->flag &= ~SEQ_AUDIO_VOLUME_ANIMATED;
-
-		fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "pitch", 0, &driven);
-		if (fcu || driven)
-			seq->flag |= SEQ_AUDIO_PITCH_ANIMATED;
-		else
-			seq->flag &= ~SEQ_AUDIO_PITCH_ANIMATED;
-
-		fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "pan", 0, &driven);
-		if (fcu || driven)
-			seq->flag |= SEQ_AUDIO_PAN_ANIMATED;
-		else
-			seq->flag &= ~SEQ_AUDIO_PAN_ANIMATED;
+		BKE_sequencer_recursive_apply(seq, sound_update_animation_flags_cb, scene);
 	}
 	SEQ_END
 
@@ -251,7 +275,12 @@ static int sound_update_animation_flags_exec(bContext *C, wmOperator *UNUSED(op)
 		scene->audio.flag |= AUDIO_VOLUME_ANIMATED;
 	else
 		scene->audio.flag &= ~AUDIO_VOLUME_ANIMATED;
+}
 
+static int sound_update_animation_flags_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	BKE_main_id_tag_idcode(CTX_data_main(C), ID_SCE, LIB_TAG_DOIT, false);
+	sound_update_animation_flags(CTX_data_scene(C));
 	return OPERATOR_FINISHED;
 }
 

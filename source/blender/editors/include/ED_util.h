@@ -78,9 +78,6 @@ void undo_editmode_push(struct bContext *C, const char *name,
 
 void    undo_editmode_clear(void);
 
-/* cut-paste buffer free */
-void ED_clipboard_posebuf_free(void);
-
 /* ************** XXX OLD CRUFT WARNING ************* */
 
 void apply_keyb_grid(int shift, int ctrl, float *val, float fac1, float fac2, float fac3, int invert);

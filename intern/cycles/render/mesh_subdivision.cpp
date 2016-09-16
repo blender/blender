@@ -284,7 +284,12 @@ struct OsdPatch : Patch {
 
 		if(dPdu) *dPdu = du;
 		if(dPdv) *dPdv = dv;
-		if(N) *N = normalize(cross(du, dv));
+		if(N) {
+			*N = cross(du, dv);
+
+			float t = len(*N);
+			*N = (t != 0.0f) ? *N/t : make_float3(0.0f, 0.0f, 1.0f);
+		}
 	}
 
 	BoundBox bound() { return BoundBox::empty; }

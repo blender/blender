@@ -408,6 +408,20 @@ class VIEW3D_MT_uv_map(Menu):
         layout.operator("uv.reset")
 
 
+class VIEW3D_MT_edit_proportional(Menu):
+    bl_label = "Proportional Editing"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.props_enum(context.tool_settings, "proportional_edit")
+
+        layout.separator()
+
+        layout.label("Falloff:")
+        layout.props_enum(context.tool_settings, "proportional_edit_falloff")
+
+
 # ********** View menus **********
 
 
@@ -2200,8 +2214,7 @@ class VIEW3D_MT_edit_mesh(Menu):
         layout.separator()
 
         layout.prop(toolsettings, "use_mesh_automerge")
-        layout.prop_menu_enum(toolsettings, "proportional_edit")
-        layout.prop_menu_enum(toolsettings, "proportional_edit_falloff")
+        layout.menu("VIEW3D_MT_edit_proportional")
 
         layout.separator()
 
@@ -2316,6 +2329,8 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
+        with_bullet = bpy.app.build_options.bullet
+
         layout.operator("mesh.merge")
         layout.operator("mesh.rip_move")
         layout.operator("mesh.rip_move_fill")
@@ -2336,7 +2351,8 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
         layout.separator()
 
         layout.operator("mesh.bevel").vertex_only = True
-        layout.operator("mesh.convex_hull")
+        if with_bullet:
+            layout.operator("mesh.convex_hull")
         layout.operator("mesh.vertices_smooth")
         layout.operator("mesh.remove_doubles")
 
@@ -2570,8 +2586,7 @@ def draw_curve(self, context):
 
     layout.separator()
 
-    layout.prop_menu_enum(toolsettings, "proportional_edit")
-    layout.prop_menu_enum(toolsettings, "proportional_edit_falloff")
+    layout.menu("VIEW3D_MT_edit_proportional")
 
     layout.separator()
 
@@ -2730,8 +2745,7 @@ class VIEW3D_MT_edit_meta(Menu):
 
         layout.separator()
 
-        layout.prop_menu_enum(toolsettings, "proportional_edit")
-        layout.prop_menu_enum(toolsettings, "proportional_edit_falloff")
+        layout.menu("VIEW3D_MT_edit_proportional")
 
         layout.separator()
 
@@ -2768,8 +2782,7 @@ class VIEW3D_MT_edit_lattice(Menu):
 
         layout.separator()
 
-        layout.prop_menu_enum(toolsettings, "proportional_edit")
-        layout.prop_menu_enum(toolsettings, "proportional_edit_falloff")
+        layout.menu("VIEW3D_MT_edit_proportional")
 
 
 class VIEW3D_MT_edit_armature(Menu):
@@ -2929,8 +2942,7 @@ class VIEW3D_MT_edit_gpencil(Menu):
 
         layout.separator()
 
-        layout.prop_menu_enum(toolsettings, "proportional_edit")
-        layout.prop_menu_enum(toolsettings, "proportional_edit_falloff")
+        layout.menu("VIEW3D_MT_edit_proportional")
 
         layout.separator()
 

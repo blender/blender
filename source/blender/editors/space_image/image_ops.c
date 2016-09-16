@@ -1608,6 +1608,11 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 			/* imtype */
 			simopts->im_format = scene->r.im_format;
 			is_depth_set = true;
+			if (!BKE_image_is_multiview(ima)) {
+				/* In case multiview is disabled, render settings would be invalid for render result in this area. */
+				simopts->im_format.stereo3d_format = *ima->stereo3d_format;
+				simopts->im_format.views_format = ima->views_format;
+			}
 		}
 		else {
 			if (ima->source == IMA_SRC_GENERATED) {

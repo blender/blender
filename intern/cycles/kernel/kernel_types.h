@@ -42,7 +42,7 @@ CCL_NAMESPACE_BEGIN
 #define RAMP_TABLE_SIZE		256
 #define SHUTTER_TABLE_SIZE		256
 #define PARTICLE_SIZE 		5
-#define TIME_INVALID		FLT_MAX
+#define SHADER_SIZE		5
 
 #define BSSRDF_MIN_RADIUS			1e-8f
 #define BSSRDF_MAX_HITS				4
@@ -715,20 +715,21 @@ enum ShaderDataFlag {
 	SD_VOLUME_CUBIC           = (1 << 20),  /* use cubic interpolation for voxels */
 	SD_HAS_BUMP               = (1 << 21),  /* has data connected to the displacement input */
 	SD_HAS_DISPLACEMENT       = (1 << 22),  /* has true displacement */
+	SD_HAS_CONSTANT_EMISSION  = (1 << 23),  /* has constant emission (value stored in __shader_flag) */
 
 	SD_SHADER_FLAGS = (SD_USE_MIS|SD_HAS_TRANSPARENT_SHADOW|SD_HAS_VOLUME|
 	                   SD_HAS_ONLY_VOLUME|SD_HETEROGENEOUS_VOLUME|
 	                   SD_HAS_BSSRDF_BUMP|SD_VOLUME_EQUIANGULAR|SD_VOLUME_MIS|
-	                   SD_VOLUME_CUBIC|SD_HAS_BUMP|SD_HAS_DISPLACEMENT),
+	                   SD_VOLUME_CUBIC|SD_HAS_BUMP|SD_HAS_DISPLACEMENT|SD_HAS_CONSTANT_EMISSION),
 
 	/* object flags */
-	SD_HOLDOUT_MASK             = (1 << 23),  /* holdout for camera rays */
-	SD_OBJECT_MOTION            = (1 << 24),  /* has object motion blur */
-	SD_TRANSFORM_APPLIED        = (1 << 25),  /* vertices have transform applied */
-	SD_NEGATIVE_SCALE_APPLIED   = (1 << 26),  /* vertices have negative scale applied */
-	SD_OBJECT_HAS_VOLUME        = (1 << 27),  /* object has a volume shader */
-	SD_OBJECT_INTERSECTS_VOLUME = (1 << 28),  /* object intersects AABB of an object with volume shader */
-	SD_OBJECT_HAS_VERTEX_MOTION = (1 << 29),  /* has position for motion vertices */
+	SD_HOLDOUT_MASK             = (1 << 24),  /* holdout for camera rays */
+	SD_OBJECT_MOTION            = (1 << 25),  /* has object motion blur */
+	SD_TRANSFORM_APPLIED        = (1 << 26),  /* vertices have transform applied */
+	SD_NEGATIVE_SCALE_APPLIED   = (1 << 27),  /* vertices have negative scale applied */
+	SD_OBJECT_HAS_VOLUME        = (1 << 28),  /* object has a volume shader */
+	SD_OBJECT_INTERSECTS_VOLUME = (1 << 29),  /* object intersects AABB of an object with volume shader */
+	SD_OBJECT_HAS_VERTEX_MOTION = (1 << 30),  /* has position for motion vertices */
 
 	SD_OBJECT_FLAGS = (SD_HOLDOUT_MASK|SD_OBJECT_MOTION|SD_TRANSFORM_APPLIED|
 	                   SD_NEGATIVE_SCALE_APPLIED|SD_OBJECT_HAS_VOLUME|

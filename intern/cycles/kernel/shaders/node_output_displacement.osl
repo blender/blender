@@ -18,6 +18,8 @@
 
 displacement node_output_displacement(float Displacement = 0.0)
 {
-	P += N * Displacement * 0.1;  /* todo: get rid of this factor */
+	vector dP = normalize(transform("object", N));
+	dP *= Displacement * 0.1; /* todo: get rid of this factor */
+	P += transform("object", "world", dP);
 }
 

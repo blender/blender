@@ -38,11 +38,11 @@ def render_file(filepath):
         elif b"blender probably wont start" in e.output:
             return "NO_START"
         return "CRASH"
-    except:
+    except BaseException as e:
         if os.path.exists(TEMP_FILE):
             os.remove(TEMP_FILE)
         if VERBOSE:
-            print(e.output.decode("utf-8"))
+            print(e)
         return "CRASH"
 
 

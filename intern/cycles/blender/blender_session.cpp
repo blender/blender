@@ -681,8 +681,7 @@ void BlenderSession::bake(BL::Object& b_object,
 		}
 	}
 
-	/* when used, non-instanced convention: object = ~object */
-	int object = ~object_index;
+	int object = object_index;
 
 	BakeData *bake_data = scene->bake_manager->init(object, tri_offset, num_pixels);
 

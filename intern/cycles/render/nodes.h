@@ -770,6 +770,7 @@ class CameraNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(CameraNode)
 	bool has_spatial_varying() { return true; }
+	virtual int get_group() { return NODE_GROUP_LEVEL_2; }
 };
 
 class FresnelNode : public ShaderNode {
@@ -873,6 +874,7 @@ public:
 	}
 
 	bool invert;
+	bool use_object_space;
 	float height;
 	float sample_center;
 	float sample_x;

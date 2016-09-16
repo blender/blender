@@ -398,18 +398,21 @@ void RNA_api_wm(StructRNA *srna)
 	rna_generic_op_invoke(func, 0);
 
 	func = RNA_def_function(srna, "modal_handler_add", "rna_event_modal_handler_add");
+	RNA_def_function_ui_description(func, "Add a modal handler to the window manager, for the given modal operator "
+	                                "(called by invoke() with self, just before returning {'RUNNING_MODAL'})");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "operator", "Operator", "", "Operator to call");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_function_return(func, RNA_def_boolean(func, "handle", 1, "", ""));
+	RNA_def_function_return(func, RNA_def_boolean(func, "handle", 1, "", "Whether adding the handler was successful"));
 
 
 	func = RNA_def_function(srna, "event_timer_add", "rna_event_timer_add");
+	RNA_def_function_ui_description(func, "Add a timer to the given window, to generate periodic 'TIMER' events");
 	parm = RNA_def_property(func, "time_step", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_property_range(parm, 0.0, FLT_MAX);
 	RNA_def_property_ui_text(parm, "Time Step", "Interval in seconds between timer events");
-	RNA_def_pointer(func, "window", "Window", "", "Window to attach the timer to or None");
+	RNA_def_pointer(func, "window", "Window", "", "Window to attach the timer to, or None");
 	parm = RNA_def_pointer(func, "result", "Timer", "", "");
 	RNA_def_function_return(func, parm);
 
@@ -421,44 +424,49 @@ void RNA_api_wm(StructRNA *srna)
 	/* Progress bar interface */
 	func = RNA_def_function(srna, "progress_begin", "rna_progress_begin");
 	RNA_def_function_ui_description(func, "Start progress report");
-
 	parm = RNA_def_property(func, "min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_ui_text(parm, "min", "any value in range [0,9999]");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-
 	parm = RNA_def_property(func, "max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_property_ui_text(parm, "max", "any value in range [min+1,9998]");
 
 	func = RNA_def_function(srna, "progress_update", "rna_progress_update");
+	RNA_def_function_ui_description(func, "Update the progress feedback");
 	parm = RNA_def_property(func, "value", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_property_ui_text(parm, "value", "any value between min and max as set in progress_begin()");
+	RNA_def_property_ui_text(parm, "value", "Any value between min and max as set in progress_begin()");
 
 	func = RNA_def_function(srna, "progress_end", "rna_progress_end");
 	RNA_def_function_ui_description(func, "Terminate progress report");
 
 	/* invoke functions, for use with python */
 	func = RNA_def_function(srna, "invoke_props_popup", "rna_Operator_props_popup");
-	RNA_def_function_ui_description(func, "Operator popup invoke");
+	RNA_def_function_ui_description(func, "Operator popup invoke "
+	                                "(show operator properties and execute it automatically on changes)");
 	rna_generic_op_invoke(func, WM_GEN_INVOKE_EVENT | WM_GEN_INVOKE_RETURN);
 
 	/* invoked dialog opens popup with OK button, does not auto-exec operator. */
 	func = RNA_def_function(srna, "invoke_props_dialog", "WM_operator_props_dialog_popup");
-	RNA_def_function_ui_description(func, "Operator dialog (non-autoexec popup) invoke");
+	RNA_def_function_ui_description(func, "Operator dialog (non-autoexec popup) invoke "
+	                                "(show operator properties and only execute it on click on OK button)");
 	rna_generic_op_invoke(func, WM_GEN_INVOKE_SIZE | WM_GEN_INVOKE_RETURN);
 
 	/* invoke enum */
 	func = RNA_def_function(srna, "invoke_search_popup", "rna_Operator_enum_search_invoke");
+	RNA_def_function_ui_description(func, "Operator search popup invoke (search in values of "
+	                                "operator's type 'prop' EnumProperty, and execute it on confirmation)");
 	rna_generic_op_invoke(func, 0);
 
 	/* invoke functions, for use with python */
 	func = RNA_def_function(srna, "invoke_popup", "WM_operator_ui_popup");
-	RNA_def_function_ui_description(func, "Operator popup invoke");
+	RNA_def_function_ui_description(func, "Operator popup invoke "
+	                                "(only shows operator's properties, without executing it)");
 	rna_generic_op_invoke(func, WM_GEN_INVOKE_SIZE | WM_GEN_INVOKE_RETURN);
 
 	func = RNA_def_function(srna, "invoke_confirm", "rna_Operator_confirm");
-	RNA_def_function_ui_description(func, "Operator confirmation");
+	RNA_def_function_ui_description(func, "Operator confirmation popup "
+	                                "(only to let user confirm the execution, no operator properties shown)");
 	rna_generic_op_invoke(func, WM_GEN_INVOKE_EVENT | WM_GEN_INVOKE_RETURN);
 
 

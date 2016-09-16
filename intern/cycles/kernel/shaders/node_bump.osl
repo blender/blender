@@ -21,6 +21,7 @@
 
 surface node_bump(
 	int invert = 0,
+	int use_object_space = 0,
 	normal NormalIn = N,
 	float Strength = 0.1,
 	float Distance = 1.0,
@@ -29,12 +30,20 @@ surface node_bump(
 	float SampleY = 0.0,
 	output normal NormalOut = N)
 {
-	/* get surface tangents from normal */
-	vector dPdx = Dx(P);
-	vector dPdy = Dy(P);
+	point Ptmp = P;
+	normal Normal = NormalIn;
 
-	vector Rx = cross(dPdy, NormalIn);
-	vector Ry = cross(NormalIn, dPdx);
+	if (use_object_space) {
+		Ptmp = transform("object", Ptmp);
+		Normal = normalize(transform("object", Normal));
+	}
+
+	/* get surface tangents from normal */
+	vector dPdx = Dx(Ptmp);
+	vector dPdy = Dy(Ptmp);
+
+	vector Rx = cross(dPdy, Normal);
+	vector Ry = cross(Normal, dPdx);
 
 	/* compute surface gradient and determinant */
 	float det = dot(dPdx, Rx);
@@ -49,7 +58,11 @@ surface node_bump(
 		dist *= -1.0;
 	
 	/* compute and output perturbed normal */
-	NormalOut = normalize(absdet * NormalIn - dist * sign(det) * surfgrad);
-	NormalOut = normalize(strength * NormalOut + (1.0 - strength) * NormalIn);
+	NormalOut = normalize(absdet * Normal - dist * sign(det) * surfgrad);
+	NormalOut = normalize(strength * NormalOut + (1.0 - strength) * Normal);
+
+	if (use_object_space) {
+		NormalOut = normalize(transform("object", "world", NormalOut));
+	}
 }
 

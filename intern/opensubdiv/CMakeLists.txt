@@ -64,7 +64,9 @@ OPENSUBDIV_DEFINE_COMPONENT(OPENSUBDIV_HAS_OPENMP)
 OPENSUBDIV_DEFINE_COMPONENT(OPENSUBDIV_HAS_GLSL_TRANSFORM_FEEDBACK)
 OPENSUBDIV_DEFINE_COMPONENT(OPENSUBDIV_HAS_GLSL_COMPUTE)
 
-data_to_c_simple(gpu_shader_opensubd_display.glsl SRC)
+data_to_c_simple(gpu_shader_opensubdiv_vertex.glsl SRC)
+data_to_c_simple(gpu_shader_opensubdiv_geometry.glsl SRC)
+data_to_c_simple(gpu_shader_opensubdiv_fragment.glsl SRC)
 
 add_definitions(-DGLEW_STATIC)
 

@@ -34,6 +34,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -121,6 +122,9 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
 	    .use_subdiv_schema = RNA_boolean_get(op->ptr, "subdiv_schema"),
 	    .compression_type = RNA_enum_get(op->ptr, "compression_type"),
 	    .packuv = RNA_boolean_get(op->ptr, "packuv"),
+		.triangulate = RNA_boolean_get(op->ptr, "triangulate"),
+		.quad_method = RNA_enum_get(op->ptr, "quad_method"),
+		.ngon_method = RNA_enum_get(op->ptr, "ngon_method"),
 
 	    .global_scale = RNA_float_get(op->ptr, "global_scale"),
 	};
@@ -212,6 +216,19 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
 
 	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "apply_subdiv", 0, NULL, ICON_NONE);
+
+	row = uiLayoutRow(box, false);
+	uiItemR(row, imfptr, "triangulate", 0, NULL, ICON_NONE);
+
+	const bool triangulate = RNA_boolean_get(imfptr, "triangulate");
+
+	row = uiLayoutRow(box, false);
+	uiLayoutSetEnabled(row, triangulate);
+	uiItemR(row, imfptr, "quad_method", 0, NULL, ICON_NONE);
+
+	row = uiLayoutRow(box, false);
+	uiLayoutSetEnabled(row, triangulate);
+	uiItemR(row, imfptr, "ngon_method", 0, NULL, ICON_NONE);
 }
 
 static void wm_alembic_export_draw(bContext *UNUSED(C), wmOperator *op)
@@ -308,6 +325,15 @@ void WM_OT_alembic_export(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "global_scale", 1.0f, 0.0001f, 1000.0f, "Scale",
 	              "Value by which to enlarge or shrink the objects with respect to the world's origin",
 	              0.0001f, 1000.0f);
+
+	RNA_def_boolean(ot->srna, "triangulate", false, "Triangulate",
+	                "Export Polygons (Quads & NGons) as Triangles");
+
+	RNA_def_enum(ot->srna, "quad_method", rna_enum_modifier_triangulate_quad_method_items,
+	             MOD_TRIANGULATE_QUAD_SHORTEDGE, "Quad Method", "Method for splitting the quads into triangles");
+
+	RNA_def_enum(ot->srna, "ngon_method", rna_enum_modifier_triangulate_quad_method_items,
+	             MOD_TRIANGULATE_NGON_BEAUTY, "Polygon Method", "Method for splitting the polygons into triangles");
 }
 
 /* ************************************************************************** */

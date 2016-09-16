@@ -941,8 +941,10 @@ static void cdDM_drawMappedFacesGLSL(
 
 				matnr = new_matnr;
 				do_draw = setMaterial(matnr + 1, &gattribs);
-				if (do_draw)
+				if (do_draw) {
 					DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
+					DM_draw_attrib_vertex_uniforms(&attribs);
+				}
 
 				glBegin(GL_TRIANGLES);
 			}
@@ -1210,6 +1212,7 @@ static void cdDM_drawMappedFacesMat(
 
 			setMaterial(userData, matnr = new_matnr, &gattribs);
 			DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
+			DM_draw_attrib_vertex_uniforms(&attribs);
 
 			glBegin(GL_TRIANGLES);
 		}

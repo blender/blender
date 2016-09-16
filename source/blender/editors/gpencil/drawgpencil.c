@@ -66,6 +66,7 @@
 #include "ED_gpencil.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
+#include "ED_space_api.h"
 
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
@@ -74,7 +75,6 @@
 /* GREASE PENCIL DRAWING */
 
 /* ----- General Defines ------ */
-
 /* flags for sflag */
 typedef enum eDrawStrokeFlags {
 	GP_DRAWDATA_NOSTATUS    = (1 << 0),   /* don't draw status info */
@@ -1336,6 +1336,39 @@ static void gp_draw_onionskins(
 		/* don't draw - disabled */
 	}
 	
+}
+
+/* draw interpolate strokes (used only while operator is running) */
+void ED_gp_draw_interpolation(tGPDinterpolate *tgpi, const int type)
+{
+	tGPDinterpolate_layer *tgpil;
+	float diff_mat[4][4];
+	float color[4];
+
+	int offsx = 0;
+	int offsy = 0;
+	int winx = tgpi->ar->winx;
+	int winy = tgpi->ar->winy;
+
+	UI_GetThemeColor3fv(TH_GP_VERTEX_SELECT, color);
+	color[3] = 0.6f;
+	int dflag = 0; 
+	/* if 3d stuff, enable flags */
+	if (type == REGION_DRAW_POST_VIEW) {
+		dflag |= (GP_DRAWDATA_ONLY3D | GP_DRAWDATA_NOSTATUS);
+	}
+
+	/* turn on alpha-blending */
+	glEnable(GL_BLEND);
+	for (tgpil = tgpi->ilayers.first; tgpil; tgpil = tgpil->next) {
+		/* calculate parent position */
+		ED_gpencil_parent_location(tgpil->gpl, diff_mat);
+		if (tgpil->interFrame) {
+			gp_draw_strokes(tgpi->gpd, tgpil->interFrame, offsx, offsy, winx, winy, dflag, false,
+				tgpil->gpl->thickness, 1.0f, color, true, true, diff_mat);
+		}
+	}
+	glDisable(GL_BLEND);
 }
 
 /* loop over gpencil data layers, drawing them */

@@ -27,6 +27,7 @@
 #include "util_logging.h"
 #include "util_foreach.h"
 #include "util_progress.h"
+#include "util_task.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -44,12 +45,59 @@ void SVMShaderManager::reset(Scene * /*scene*/)
 {
 }
 
+void SVMShaderManager::device_update_shader(Scene *scene,
+                                            Shader *shader,
+                                            Progress *progress,
+                                            vector<int4> *global_svm_nodes)
+{
+	if(progress->get_cancel()) {
+		return;
+	}
+	assert(shader->graph);
+
+	vector<int4> svm_nodes;
+	svm_nodes.push_back(make_int4(NODE_SHADER_JUMP, 0, 0, 0));
+
+	SVMCompiler::Summary summary;
+	SVMCompiler compiler(scene->shader_manager, scene->image_manager);
+	compiler.background = (shader == scene->default_background);
+	compiler.compile(scene, shader, svm_nodes, 0, &summary);
+
+	VLOG(2) << "Compilation summary:\n"
+	        << "Shader name: " << shader->name << "\n"
+	        << summary.full_report();
+
+	if(shader->use_mis && shader->has_surface_emission) {
+		scene->light_manager->need_update = true;
+	}
+
+	/* We only calculate offset and do re-allocation from the locked block,
+	 * actual copy we do after the lock is releases to hopefully gain some
+	 * percent of performance.
+	 */
+	nodes_lock_.lock();
+	size_t global_nodes_size = global_svm_nodes->size();
+	global_svm_nodes->resize(global_nodes_size + svm_nodes.size());
+	nodes_lock_.unlock();
+	/* Offset local SVM nodes to a global address space. */
+	int4& jump_node = global_svm_nodes->at(shader->id);
+	jump_node.y = svm_nodes[0].y + global_nodes_size - 1;
+	jump_node.z = svm_nodes[0].z + global_nodes_size - 1;
+	jump_node.w = svm_nodes[0].w + global_nodes_size - 1;
+	/* Copy new nodes to global storage. */
+	memcpy(&global_svm_nodes->at(global_nodes_size),
+	       &svm_nodes[1],
+	       sizeof(int4) * (svm_nodes.size() - 1));
+}
+
 void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
 	if(!need_update)
 		return;
 
 	VLOG(1) << "Total " << scene->shaders.size() << " shaders.";
+
+	double start_time = time_dt();
 
 	/* test if we need to update */
 	device_free(device, dscene, scene);
@@ -65,23 +113,20 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 		svm_nodes.push_back(make_int4(NODE_SHADER_JUMP, 0, 0, 0));
 	}
 
+	TaskPool task_pool;
 	foreach(Shader *shader, scene->shaders) {
-		if(progress.get_cancel()) return;
+		task_pool.push(function_bind(&SVMShaderManager::device_update_shader,
+		                             this,
+		                             scene,
+		                             shader,
+		                             &progress,
+		                             &svm_nodes),
+		               false);
+	}
+	task_pool.wait_work();
 
-		assert(shader->graph);
-
-		SVMCompiler::Summary summary;
-		SVMCompiler compiler(scene->shader_manager, scene->image_manager);
-		compiler.background = (shader == scene->default_background);
-		compiler.compile(scene, shader, svm_nodes, shader->id, &summary);
-
-		if(shader->use_mis && shader->has_surface_emission) {
-			scene->light_manager->need_update = true;
-		}
-
-		VLOG(2) << "Compilation summary:\n"
-		        << "Shader name: " << shader->name << "\n"
-		        << summary.full_report();
+	if(progress.get_cancel()) {
+		return;
 	}
 
 	dscene->svm_nodes.copy((uint4*)&svm_nodes[0], svm_nodes.size());
@@ -95,6 +140,10 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 	device_update_common(device, dscene, scene, progress);
 
 	need_update = false;
+
+	VLOG(1) << "Shader manager updated "
+	        << scene->shaders.size() << " shaders in "
+	        << time_dt() - start_time << " seconds.";
 }
 
 void SVMShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *scene)
@@ -317,17 +366,17 @@ uint SVMCompiler::encode_uchar4(uint x, uint y, uint z, uint w)
 
 void SVMCompiler::add_node(int a, int b, int c, int d)
 {
-	svm_nodes.push_back(make_int4(a, b, c, d));
+	current_svm_nodes.push_back(make_int4(a, b, c, d));
 }
 
 void SVMCompiler::add_node(ShaderNodeType type, int a, int b, int c)
 {
-	svm_nodes.push_back(make_int4(type, a, b, c));
+	current_svm_nodes.push_back(make_int4(type, a, b, c));
 }
 
 void SVMCompiler::add_node(ShaderNodeType type, const float3& f)
 {
-	svm_nodes.push_back(make_int4(type,
+	current_svm_nodes.push_back(make_int4(type,
 		__float_as_int(f.x),
 		__float_as_int(f.y),
 		__float_as_int(f.z)));
@@ -335,7 +384,7 @@ void SVMCompiler::add_node(ShaderNodeType type, const float3& f)
 
 void SVMCompiler::add_node(const float4& f)
 {
-	svm_nodes.push_back(make_int4(
+	current_svm_nodes.push_back(make_int4(
 		__float_as_int(f.x),
 		__float_as_int(f.y),
 		__float_as_int(f.z),
@@ -572,26 +621,38 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 
 			/* generate instructions for input closure 1 */
 			if(cl1in->link) {
-				/* add instruction to skip closure and its dependencies if mix weight is zero */
-				svm_nodes.push_back(make_int4(NODE_JUMP_IF_ONE, 0, stack_assign(facin), 0));
-				int node_jump_skip_index = svm_nodes.size() - 1;
+				/* Add instruction to skip closure and its dependencies if mix
+				 * weight is zero.
+				 */
+				current_svm_nodes.push_back(make_int4(NODE_JUMP_IF_ONE,
+				                                      0,
+				                                      stack_assign(facin),
+				                                      0));
+				int node_jump_skip_index = current_svm_nodes.size() - 1;
 
 				generate_multi_closure(root_node, cl1in->link->parent, state);
 
-				/* fill in jump instruction location to be after closure */
-				svm_nodes[node_jump_skip_index].y = svm_nodes.size() - node_jump_skip_index - 1;
+				/* Fill in jump instruction location to be after closure. */
+				current_svm_nodes[node_jump_skip_index].y =
+				        current_svm_nodes.size() - node_jump_skip_index - 1;
 			}
 
 			/* generate instructions for input closure 2 */
 			if(cl2in->link) {
-				/* add instruction to skip closure and its dependencies if mix weight is zero */
-				svm_nodes.push_back(make_int4(NODE_JUMP_IF_ZERO, 0, stack_assign(facin), 0));
-				int node_jump_skip_index = svm_nodes.size() - 1;
+				/* Add instruction to skip closure and its dependencies if mix
+				 * weight is zero.
+				 */
+				current_svm_nodes.push_back(make_int4(NODE_JUMP_IF_ZERO,
+				                                      0,
+				                                      stack_assign(facin),
+				                                      0));
+				int node_jump_skip_index = current_svm_nodes.size() - 1;
 
 				generate_multi_closure(root_node, cl2in->link->parent, state);
 
-				/* fill in jump instruction location to be after closure */
-				svm_nodes[node_jump_skip_index].y = svm_nodes.size() - node_jump_skip_index - 1;
+				/* Fill in jump instruction location to be after closure. */
+				current_svm_nodes[node_jump_skip_index].y =
+				        current_svm_nodes.size() - node_jump_skip_index - 1;
 			}
 
 			/* unassign */
@@ -661,7 +722,7 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 
 	/* clear all compiler state */
 	memset(&active_stack, 0, sizeof(active_stack));
-	svm_nodes.clear();
+	current_svm_nodes.clear();
 
 	foreach(ShaderNode *node_iter, graph->nodes) {
 		foreach(ShaderInput *input, node_iter->inputs)
@@ -671,8 +732,9 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 	}
 
 	/* for the bump shader we need add a node to store the shader state */
+	bool need_bump_state = (type == SHADER_TYPE_BUMP) && (shader->displacement_method == DISPLACE_BOTH);
 	int bump_state_offset = SVM_STACK_INVALID;
-	if(type == SHADER_TYPE_BUMP) {
+	if(need_bump_state) {
 		bump_state_offset = stack_find_offset(SVM_BUMP_EVAL_STATE_SIZE);
 		add_node(NODE_ENTER_BUMP_EVAL, bump_state_offset);
 	}
@@ -714,13 +776,13 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 	}
 
 	/* add node to restore state after bump shader has finished */
-	if(type == SHADER_TYPE_BUMP) {
+	if(need_bump_state) {
 		add_node(NODE_LEAVE_BUMP_EVAL, bump_state_offset);
 	}
 
 	/* if compile failed, generate empty shader */
 	if(compile_failed) {
-		svm_nodes.clear();
+		current_svm_nodes.clear();
 		compile_failed = false;
 	}
 
@@ -732,13 +794,13 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 
 void SVMCompiler::compile(Scene *scene,
                           Shader *shader,
-                          vector<int4>& global_svm_nodes,
+                          vector<int4>& svm_nodes,
                           int index,
                           Summary *summary)
 {
 	/* copy graph for shader with bump mapping */
 	ShaderNode *node = shader->graph->output();
-	int start_num_svm_nodes = global_svm_nodes.size();
+	int start_num_svm_nodes = svm_nodes.size();
 
 	const double time_start = time_dt();
 
@@ -760,7 +822,8 @@ void SVMCompiler::compile(Scene *scene,
 		shader->graph_bump->finalize(scene,
 		                             true,
 		                             false,
-		                             shader->has_integrator_dependency);
+		                             shader->has_integrator_dependency,
+		                             shader->displacement_method == DISPLACE_BOTH);
 	}
 
 	current_shader = shader;
@@ -781,8 +844,10 @@ void SVMCompiler::compile(Scene *scene,
 	if(shader->displacement_method != DISPLACE_TRUE && shader->graph_bump) {
 		scoped_timer timer((summary != NULL)? &summary->time_generate_bump: NULL);
 		compile_type(shader, shader->graph_bump, SHADER_TYPE_BUMP);
-		global_svm_nodes[index].y = global_svm_nodes.size();
-		global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
+		svm_nodes[index].y = svm_nodes.size();
+		svm_nodes.insert(svm_nodes.end(),
+		                 current_svm_nodes.begin(),
+		                 current_svm_nodes.end());
 	}
 
 	/* generate surface shader */
@@ -791,32 +856,38 @@ void SVMCompiler::compile(Scene *scene,
 		compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);
 		/* only set jump offset if there's no bump shader, as the bump shader will fall thru to this one if it exists */
 		if(shader->displacement_method == DISPLACE_TRUE || !shader->graph_bump) {
-			global_svm_nodes[index].y = global_svm_nodes.size();
+			svm_nodes[index].y = svm_nodes.size();
 		}
-		global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
+		svm_nodes.insert(svm_nodes.end(),
+		                 current_svm_nodes.begin(),
+		                 current_svm_nodes.end());
 	}
 
 	/* generate volume shader */
 	{
 		scoped_timer timer((summary != NULL)? &summary->time_generate_volume: NULL);
 		compile_type(shader, shader->graph, SHADER_TYPE_VOLUME);
-		global_svm_nodes[index].z = global_svm_nodes.size();
-		global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
+		svm_nodes[index].z = svm_nodes.size();
+		svm_nodes.insert(svm_nodes.end(),
+		                 current_svm_nodes.begin(),
+		                 current_svm_nodes.end());
 	}
 
 	/* generate displacement shader */
 	{
 		scoped_timer timer((summary != NULL)? &summary->time_generate_displacement: NULL);
 		compile_type(shader, shader->graph, SHADER_TYPE_DISPLACEMENT);
-		global_svm_nodes[index].w = global_svm_nodes.size();
-		global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
+		svm_nodes[index].w = svm_nodes.size();
+		svm_nodes.insert(svm_nodes.end(),
+		                 current_svm_nodes.begin(),
+		                 current_svm_nodes.end());
 	}
 
 	/* Fill in summary information. */
 	if(summary != NULL) {
 		summary->time_total = time_dt() - time_start;
 		summary->peak_stack_usage = max_stack_use;
-		summary->num_svm_nodes = global_svm_nodes.size() - start_num_svm_nodes;
+		summary->num_svm_nodes = svm_nodes.size() - start_num_svm_nodes;
 	}
 }
 

@@ -360,14 +360,15 @@ int subsurface_scatter_multi_intersect(
 	return num_eval_hits;
 }
 
-ccl_device void subsurface_scatter_multi_setup(KernelGlobals *kg,
-                                               SubsurfaceIntersection* ss_isect,
-                                               int hit,
-                                               ShaderData *sd,
-                                               PathState *state,
-                                               int state_flag,
-                                               ShaderClosure *sc,
-                                               bool all)
+ccl_device_noinline void subsurface_scatter_multi_setup(
+        KernelGlobals *kg,
+        SubsurfaceIntersection* ss_isect,
+        int hit,
+        ShaderData *sd,
+        PathState *state,
+        int state_flag,
+        ShaderClosure *sc,
+        bool all)
 {
 	/* Setup new shading point. */
 	shader_setup_from_subsurface(kg, sd, &ss_isect->hits[hit], &ss_isect->ray);

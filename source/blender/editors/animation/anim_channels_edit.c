@@ -431,7 +431,11 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAn
 	/* sanity check */
 	if (ELEM(NULL, anim_data, anim_data->first))
 		return;
-	
+
+	if (setting == ACHANNEL_SETTING_ALWAYS_VISIBLE) {
+		return;
+	}
+
 	/* find the channel that got changed */
 	for (ale = anim_data->first; ale; ale = ale->next) {
 		/* compare data, and type as main way of identifying the channel */

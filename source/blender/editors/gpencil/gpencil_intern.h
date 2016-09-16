@@ -304,6 +304,7 @@ void GPENCIL_OT_stroke_apply_thickness(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_cyclical_set(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_join(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_flip(struct wmOperatorType *ot);
+void GPENCIL_OT_stroke_subdivide(struct wmOperatorType *ot);
 
 void GPENCIL_OT_brush_add(struct wmOperatorType *ot);
 void GPENCIL_OT_brush_remove(struct wmOperatorType *ot);
@@ -334,6 +335,11 @@ void GPENCIL_OT_palettecolor_copy(struct wmOperatorType *ot);
 void gpencil_undo_init(struct bGPdata *gpd);
 void gpencil_undo_push(struct bGPdata *gpd);
 void gpencil_undo_finish(void);
+
+/* interpolation ---------- */
+
+void GPENCIL_OT_interpolate(struct wmOperatorType *ot);
+void GPENCIL_OT_interpolate_sequence(struct wmOperatorType *ot);
 
 /* ****************************************************** */
 /* FILTERED ACTION DATA - TYPES  ---> XXX DEPRECEATED OLD ANIM SYSTEM CODE! */

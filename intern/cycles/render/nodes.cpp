@@ -4762,6 +4762,7 @@ NODE_DEFINE(BumpNode)
 	NodeType* type = NodeType::add("bump", create, NodeType::SHADER);
 
 	SOCKET_BOOLEAN(invert, "Invert", false);
+	SOCKET_BOOLEAN(use_object_space, "UseObjectSpace", false);
 
 	/* this input is used by the user, but after graph transform it is no longer
 	 * used and moved to sampler center/x/y instead */
@@ -4800,7 +4801,8 @@ void BumpNode::compile(SVMCompiler& compiler)
 		compiler.encode_uchar4(
 			compiler.stack_assign_if_linked(normal_in),
 			compiler.stack_assign(distance_in),
-			invert),
+			invert,
+			use_object_space),
 		compiler.encode_uchar4(
 			compiler.stack_assign(center_in),
 			compiler.stack_assign(dx_in),
@@ -4812,6 +4814,7 @@ void BumpNode::compile(SVMCompiler& compiler)
 void BumpNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter(this, "invert");
+	compiler.parameter(this, "use_object_space");
 	compiler.add(this, "node_bump");
 }
 

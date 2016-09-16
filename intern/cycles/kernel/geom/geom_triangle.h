@@ -52,8 +52,8 @@ ccl_device_inline void triangle_point_normal(KernelGlobals *kg, int object, int 
 	float t = 1.0f - u - v;
 	*P = (u*v0 + v*v1 + t*v2);
 
-	/* get object flags, instance-aware */
-	int object_flag = kernel_tex_fetch(__object_flag, object >= 0 ? object : ~object);
+	/* get object flags */
+	int object_flag = kernel_tex_fetch(__object_flag, object);
 
 	/* compute normal */
 	if(object_flag & SD_NEGATIVE_SCALE_APPLIED)

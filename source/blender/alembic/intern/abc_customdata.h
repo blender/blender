@@ -63,6 +63,11 @@ struct CDStreamConfig {
 	void *user_data;
 	void *(*add_customdata_cb)(void *user_data, const char *name, int data_type);
 
+	float weight;
+	float time;
+	int index;
+	int ceil_index;
+
 	CDStreamConfig()
 	    : mloop(NULL)
 	    , totloop(0)
@@ -72,6 +77,10 @@ struct CDStreamConfig {
 	    , pack_uvs(false)
 	    , user_data(NULL)
 	    , add_customdata_cb(NULL)
+	    , weight(0.0f)
+	    , time(0.0f)
+	    , index(0)
+	    , ceil_index(0)
 	{}
 };
 

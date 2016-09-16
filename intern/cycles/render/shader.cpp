@@ -194,6 +194,28 @@ Shader::~Shader()
 	delete graph_bump;
 }
 
+bool Shader::is_constant_emission(float3 *emission)
+{
+	ShaderInput *surf = graph->output()->input("Surface");
+
+	if(!surf->link || surf->link->parent->type != EmissionNode::node_type) {
+		return false;
+	}
+
+	EmissionNode *node = (EmissionNode*) surf->link->parent;
+
+	assert(node->input("Color"));
+	assert(node->input("Strength"));
+
+	if(node->input("Color")->link || node->input("Strength")->link) {
+		return false;
+	}
+
+	*emission = node->color*node->strength;
+
+	return true;
+}
+
 void Shader::set_graph(ShaderGraph *graph_)
 {
 	/* do this here already so that we can detect if mesh or object attributes
@@ -379,7 +401,7 @@ void ShaderManager::device_update_common(Device *device,
 	if(scene->shaders.size() == 0)
 		return;
 
-	uint shader_flag_size = scene->shaders.size()*2;
+	uint shader_flag_size = scene->shaders.size()*SHADER_SIZE;
 	uint *shader_flag = dscene->shader_flag.resize(shader_flag_size);
 	uint i = 0;
 	bool has_volumes = false;
@@ -424,9 +446,17 @@ void ShaderManager::device_update_common(Device *device,
 		if(shader->displacement_method != DISPLACE_TRUE && shader->graph_bump)
 			flag |= SD_HAS_BSSRDF_BUMP;
 
+		/* constant emission check */
+		float3 constant_emission = make_float3(0.0f, 0.0f, 0.0f);
+		if(shader->is_constant_emission(&constant_emission))
+			flag |= SD_HAS_CONSTANT_EMISSION;
+
 		/* regular shader */
 		shader_flag[i++] = flag;
 		shader_flag[i++] = shader->pass_id;
+		shader_flag[i++] = __float_as_int(constant_emission.x);
+		shader_flag[i++] = __float_as_int(constant_emission.y);
+		shader_flag[i++] = __float_as_int(constant_emission.z);
 
 		has_transparent_shadow |= (flag & SD_HAS_TRANSPARENT_SHADOW) != 0;
 	}
@@ -561,6 +591,9 @@ void ShaderManager::get_requested_features(Scene *scene,
 		ShaderNode *output_node = shader->graph->output();
 		if(output_node->input("Displacement")->link != NULL) {
 			requested_features->nodes_features |= NODE_FEATURE_BUMP;
+			if(shader->displacement_method == DISPLACE_BOTH && requested_features->experimental) {
+				requested_features->nodes_features |= NODE_FEATURE_BUMP_STATE;
+			}
 		}
 		/* On top of volume nodes, also check if we need volume sampling because
 		 * e.g. an Emission node would slip through the NODE_FEATURE_VOLUME check */

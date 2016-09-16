@@ -1134,7 +1134,11 @@ typedef enum eGP_BrushEdit_SettingsFlag {
 	/* apply brush to strength */
 	GP_BRUSHEDIT_FLAG_APPLY_STRENGTH = (1 << 2),
 	/* apply brush to thickness */
-	GP_BRUSHEDIT_FLAG_APPLY_THICKNESS = (1 << 3)
+	GP_BRUSHEDIT_FLAG_APPLY_THICKNESS = (1 << 3),
+	/* apply interpolation to all layers */
+	GP_BRUSHEDIT_FLAG_INTERPOLATE_ALL_LAYERS = (1 << 4),
+	/* apply interpolation to only selected */
+	GP_BRUSHEDIT_FLAG_INTERPOLATE_ONLY_SELECTED = (1 << 5)
 
 } eGP_BrushEdit_SettingsFlag;
 

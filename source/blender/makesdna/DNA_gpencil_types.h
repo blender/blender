@@ -336,7 +336,7 @@ typedef enum eGPdata_Flag {
 	/* Convenience/cache flag to make it easier to quickly toggle onion skinning on/off */
 	GP_DATA_SHOW_ONIONSKINS = (1 << 9),
 	/* Draw a green and red point to indicate start and end of the stroke */
-	GP_DATA_SHOW_DIRECTION = (1 << 10)   
+	GP_DATA_SHOW_DIRECTION = (1 << 10)
 } eGPdata_Flag;
 
 #endif /*  __DNA_GPENCIL_TYPES_H__ */
