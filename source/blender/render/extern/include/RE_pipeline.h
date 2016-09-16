@@ -391,6 +391,8 @@ bool RE_RenderResult_is_stereo(RenderResult *res);
 struct RenderView *RE_RenderViewGetById(struct RenderResult *res, const int view_id);
 struct RenderView *RE_RenderViewGetByName(struct RenderResult *res, const char *viewname);
 
+RenderResult *RE_DuplicateRenderResult(RenderResult *rr);
+
 /******* Debug pass helper functions *********/
 
 #ifdef WITH_CYCLES_DEBUG
