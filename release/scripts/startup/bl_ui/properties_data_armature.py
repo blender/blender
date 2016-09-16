@@ -201,6 +201,10 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
 
             col.operator("poselib.action_sanitize", icon='HELP', text="")  # XXX: put in menu?
 
+            if pose_marker_active is not None:
+                col.operator("poselib.pose_move", icon='TRIA_UP', text="").direction = 'UP'
+                col.operator("poselib.pose_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+
 
 # TODO: this panel will soon be deprecated too
 class DATA_PT_ghost(ArmatureButtonsPanel, Panel):

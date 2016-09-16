@@ -201,6 +201,7 @@ void POSELIB_OT_action_sanitize(struct wmOperatorType *ot);
 void POSELIB_OT_pose_add(struct wmOperatorType *ot);
 void POSELIB_OT_pose_remove(struct wmOperatorType *ot);
 void POSELIB_OT_pose_rename(struct wmOperatorType *ot);
+void POSELIB_OT_pose_move(struct wmOperatorType *ot);
 
 void POSELIB_OT_browse_interactive(struct wmOperatorType *ot);
 void POSELIB_OT_apply_pose(struct wmOperatorType *ot);
