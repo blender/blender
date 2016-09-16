@@ -74,6 +74,7 @@ if 'cmake' in builder:
             cmake_extra_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64')
         cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE=/usr/local/cuda-hack/bin/nvcc')
         cmake_extra_options.append('-DCUDA_NVCC8_EXECUTABLE=/usr/local/cuda8-hack/bin/nvcc')
+        cmake_extra_options.append('-DWITH_CODEC_QUICKTIME=OFF')
 
     elif builder.startswith('win'):
         if builder.endswith('_vc2015'):
