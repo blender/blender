@@ -453,20 +453,30 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 		}
 
 		MEM_freeN(str);
+	}
 
-		/* second check if we are disabled - why */
-		if (but->flag & UI_BUT_DISABLED) {
-			const char *poll_msg;
+	/* button is disabled, we may be able to tell user why */
+	if ((but->flag & UI_BUT_DISABLED) || but->lock) {
+		const char *disabled_msg = NULL;
+
+		/* if operator poll check failed, it can give pretty precise info why */
+		if (but->optype) {
 			CTX_wm_operator_poll_msg_set(C, NULL);
 			WM_operator_poll_context(C, but->optype, but->opcontext);
-			poll_msg = CTX_wm_operator_poll_msg_get(C);
-			if (poll_msg) {
-				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Disabled: %s"), poll_msg);
-				data->format[data->totline].color_id = UI_TIP_LC_ALERT;
-				data->totline++;
-			}
+			disabled_msg = CTX_wm_operator_poll_msg_get(C);
+		}
+		/* alternatively, buttons can store some reasoning too */
+		else if (but->lockstr && but->lockstr[0]) {
+			disabled_msg = but->lockstr;
+		}
+
+		if (disabled_msg) {
+			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Disabled: %s"), disabled_msg);
+			data->format[data->totline].color_id = UI_TIP_LC_ALERT;
+			data->totline++;
 		}
 	}
+
 	if ((U.flag & USER_TOOLTIPS_PYTHON) == 0 && !but->optype && rna_struct.strinfo) {
 		if (rna_prop.strinfo) {
 			/* Struct and prop */
