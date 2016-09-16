@@ -824,7 +824,8 @@ void POSELIB_OT_pose_move(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
 	ot->prop = prop;
 
-	RNA_def_enum(ot->srna, "direction", pose_lib_pose_move, 0, "Direction", "Direction to move, UP or DOWN");
+	RNA_def_enum(ot->srna, "direction", pose_lib_pose_move, 0, "Direction",
+	             "Direction to move the chosen pose towards");
 }
 
 

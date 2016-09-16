@@ -449,7 +449,8 @@ void OBJECT_OT_material_slot_move(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_enum(ot->srna, "direction", material_slot_move, 0, "Direction", "Direction to move, UP or DOWN");
+	RNA_def_enum(ot->srna, "direction", material_slot_move, 0, "Direction",
+	             "Direction to move the active material towards");
 }
 
 /********************** new material operator *********************/
@@ -861,7 +862,8 @@ void SCENE_OT_freestyle_module_move(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* props */
-	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction", "Direction to move, UP or DOWN");
+	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction",
+	             "Direction to move the chosen style module towards");
 }
 
 static int freestyle_lineset_add_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1024,7 +1026,8 @@ void SCENE_OT_freestyle_lineset_move(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* props */
-	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction", "Direction to move, UP or DOWN");
+	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction",
+	             "Direction to move the active line set towards");
 }
 
 static int freestyle_linestyle_new_exec(bContext *C, wmOperator *op)
@@ -1396,7 +1399,8 @@ void SCENE_OT_freestyle_modifier_move(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* props */
-	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction", "Direction to move, UP or DOWN");
+	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction",
+	             "Direction to move the chosen modifier towards");
 }
 
 static int freestyle_stroke_material_create_exec(bContext *C, wmOperator *op)

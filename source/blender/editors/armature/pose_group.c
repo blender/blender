@@ -365,7 +365,8 @@ void POSE_OT_group_move(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_enum(ot->srna, "direction", group_slot_move, 0, "Direction", "Direction to move, UP or DOWN");
+	RNA_def_enum(ot->srna, "direction", group_slot_move, 0, "Direction",
+	             "Direction to move the active Bone Group towards");
 }
 
 /* bone group sort element */

@@ -3687,7 +3687,8 @@ void OBJECT_OT_vertex_group_move(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_enum(ot->srna, "direction", vgroup_slot_move, 0, "Direction", "Direction to move, UP or DOWN");
+	RNA_def_enum(ot->srna, "direction", vgroup_slot_move, 0, "Direction",
+	             "Direction to move the active vertex group towards");
 }
 
 static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
