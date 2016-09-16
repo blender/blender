@@ -222,7 +222,7 @@ class BakeAction(Operator):
             )
     only_selected = BoolProperty(
             name="Only Selected",
-            description="Only key selected object/bones",
+            description="Only key selected bones (Pose baking only)",
             default=True,
             )
     visual_keying = BoolProperty(
