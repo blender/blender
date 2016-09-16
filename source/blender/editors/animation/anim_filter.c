@@ -478,7 +478,7 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 #define ANIMDATA_FILTER_CASES(id, adtOk, nlaOk, driversOk, nlaKeysOk, keysOk) \
 	{ \
 		if ((id)->adt) { \
-			if (!(filter_mode & ANIMFILTER_CURVE_VISIBLE) || !((id)->adt->flag & ADT_CURVES_NOT_VISIBLE) || 1) { \
+			if (!(filter_mode & ANIMFILTER_CURVE_VISIBLE) || !((id)->adt->flag & ADT_CURVES_NOT_VISIBLE)) { \
 				if (filter_mode & ANIMFILTER_ANIMDATA) { \
 					adtOk \
 				} \
