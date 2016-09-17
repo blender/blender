@@ -491,6 +491,7 @@ class GPENCIL_PIE_settings_palette(Menu):
         # W - Stroke draw settings
         col = pie.column(align=True)
         if palcolor is not None:
+            col.enabled = not palcolor.lock
             col.label(text="Stroke")
             col.prop(palcolor, "color", text="")
             col.prop(palcolor, "alpha", text="", slider=True)
@@ -498,6 +499,7 @@ class GPENCIL_PIE_settings_palette(Menu):
         # E - Fill draw settings
         col = pie.column(align=True)
         if palcolor is not None:
+            col.enabled = not palcolor.lock
             col.label(text="Fill")
             col.prop(palcolor, "fill_color", text="")
             col.prop(palcolor, "fill_alpha", text="", slider=True)
@@ -700,6 +702,7 @@ class GPENCIL_UL_palettecolor(UIList):
 
             split = layout.split(percentage=0.25)
             row = split.row(align=True)
+            row.enabled = not palcolor.lock
             row.prop(palcolor, "color", text="", emboss=palcolor.is_stroke_visible)
             row.prop(palcolor, "fill_color", text="", emboss=palcolor.is_fill_visible)
             split.prop(palcolor, "name", text="", emboss=False)
@@ -888,6 +891,7 @@ class GreasePencilDataPanel:
         col = split.column()
         subcol = col.column(align=True)
         subcol.label("Tint")
+        subcol.enabled = not gpl.lock
         subcol.prop(gpl, "tint_color", text="")
         subcol.prop(gpl, "tint_factor", text="Factor", slider=True)
 
@@ -1025,14 +1029,14 @@ class GreasePencilPaletteColorPanel:
 
         # Column 1 - Stroke
         col = split.column(align=True)
-        col.active = not pcolor.lock
+        col.enabled = not pcolor.lock
         col.label(text="Stroke:")
         col.prop(pcolor, "color", text="")
         col.prop(pcolor, "alpha", slider=True)
 
         # Column 2 - Fill
         col = split.column(align=True)
-        col.active = not pcolor.lock
+        col.enabled = not pcolor.lock
         col.label(text="Fill:")
         col.prop(pcolor, "fill_color", text="")
         col.prop(pcolor, "fill_alpha", text="Opacity", slider=True)
