@@ -130,6 +130,9 @@ data_to_c_simple(shaders/gpu_shader_3D_flat_color_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_smooth_color_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_smooth_color_frag.glsl SRC)
 
+data_to_c_simple(shaders/gpu_shader_text_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_text_frag.glsl SRC)
+
 data_to_c_simple(shaders/gpu_shader_geometry.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_fire_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_smoke_frag.glsl SRC)

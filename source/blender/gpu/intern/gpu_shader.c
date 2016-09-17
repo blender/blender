@@ -58,6 +58,9 @@ extern char datatoc_gpu_shader_3D_flat_color_vert_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_vert_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
 
+extern char datatoc_gpu_shader_text_vert_glsl[];
+extern char datatoc_gpu_shader_text_frag_glsl[];
+
 extern char datatoc_gpu_shader_fire_frag_glsl[];
 extern char datatoc_gpu_shader_smoke_vert_glsl[];
 extern char datatoc_gpu_shader_smoke_frag_glsl[];
@@ -83,6 +86,8 @@ static struct GPUShadersGlobal {
 		GPUShader *smoke_fire;
 		/* cache for shader fx. Those can exist in combinations so store them here */
 		GPUShader *fx_shaders[MAX_FX_SHADERS * 2];
+		/* for drawing text */
+		GPUShader *text;
 		/* for simple 2D drawing */
 		GPUShader *uniform_color_2D;
 		GPUShader *flat_color_2D;
@@ -610,6 +615,14 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 				        NULL, NULL, NULL, 0, 0, 0);
 			retval = GG.shaders.smoke_fire;
 			break;
+		case GPU_SHADER_TEXT:
+			if (!GG.shaders.text)
+				GG.shaders.text = GPU_shader_create(
+				        datatoc_gpu_shader_text_vert_glsl,
+				        datatoc_gpu_shader_text_frag_glsl,
+				        NULL, NULL, NULL, 0, 0, 0);
+			retval = GG.shaders.text;
+			break;
 		case GPU_SHADER_2D_UNIFORM_COLOR:
 			if (!GG.shaders.uniform_color_2D)
 				GG.shaders.uniform_color_2D = GPU_shader_create(
@@ -775,6 +788,11 @@ void GPU_shader_free_builtin_shaders(void)
 	if (GG.shaders.smoke_fire) {
 		GPU_shader_free(GG.shaders.smoke_fire);
 		GG.shaders.smoke_fire = NULL;
+	}
+
+	if (GG.shaders.text) {
+		GPU_shader_free(GG.shaders.text);
+		GG.shaders.text = NULL;
 	}
 
 	if (GG.shaders.uniform_color_2D) {
