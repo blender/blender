@@ -507,11 +507,8 @@ static void blf_draw_gl__start(FontBLF *font, GLint *mode)
 	/* Save the current matrix mode. */
 	glGetIntegerv(GL_MATRIX_MODE, mode);
 
-	glMatrixMode(GL_TEXTURE);
-	glPushMatrix();
-	glLoadIdentity();
-
-	glMatrixMode(GL_MODELVIEW);
+	if (*mode != GL_MODELVIEW)
+		glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 
 	if (font->flags & BLF_MATRIX)
@@ -534,10 +531,6 @@ static void blf_draw_gl__start(FontBLF *font, GLint *mode)
 
 static void blf_draw_gl__end(GLint mode)
 {
-	glMatrixMode(GL_TEXTURE);
-	glPopMatrix();
-
-	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
 
 	if (mode != GL_MODELVIEW)

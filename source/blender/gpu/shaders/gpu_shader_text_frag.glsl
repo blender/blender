@@ -1,6 +1,6 @@
 
 flat varying vec4 color;
-varying vec2 texcoord;
+noperspective varying vec2 texcoord;
 
 uniform sampler2D glyph;
 
