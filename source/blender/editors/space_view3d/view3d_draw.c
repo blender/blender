@@ -764,58 +764,70 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 	}
 }
 
-/* Draw a live substitute of the view icon, which is always shown
- * colors copied from transform_manipulator.c, we should keep these matching. */
 static void draw_view_axis(RegionView3D *rv3d, rcti *rect)
 {
-	const float k = U.rvisize * U.pixelsize;   /* axis size */
-	const float toll = 0.5;      /* used to see when view is quasi-orthogonal */
-	float startx = k + 1.0f; /* axis center in screen coordinates, x=y */
-	float starty = k + 1.0f;
-	float ydisp = 0.0;          /* vertical displacement to allow obj info text */
-	int bright = - 20 * (10 - U.rvibright); /* axis alpha offset (rvibright has range 0-10) */
-	float vec[3];
-	float dx, dy;
+	const float k = U.rvisize * U.pixelsize;  /* axis size */
+	const int bright = - 20 * (10 - U.rvibright);  /* axis alpha offset (rvibright has range 0-10) */
+
+	const float startx = rect->xmin + k + 1.0f;  /* axis center in screen coordinates, x=y */
+	const float starty = rect->ymin + k + 1.0f;
+
+	float axis_pos[3][2];
+	unsigned char axis_col[3][4];
 
 	int axis_order[3] = {0, 1, 2};
-	int axis_i;
-
-	startx += rect->xmin;
-	starty += rect->ymin;
-
 	axis_sort_v3(rv3d->viewinv[2], axis_order);
 
-	/* thickness of lines is proportional to k */
-	glLineWidth(2);
+	for (int axis_i = 0; axis_i < 3; axis_i++) {
+		int i = axis_order[axis_i];
 
+		/* get position of each axis tip on screen */
+		float vec[3] = { 0.0f };
+		vec[i] = 1.0f;
+		mul_qt_v3(rv3d->viewquat, vec);
+		axis_pos[i][0] = startx + vec[0] * k;
+		axis_pos[i][1] = starty + vec[1] * k;
+
+		/* get color of each axis */
+		UI_GetThemeColorShade3ubv(TH_AXIS_X + i, bright, axis_col[i]); /* rgb */
+		axis_col[i][3] = 255 * hypotf(vec[0], vec[1]); /* alpha */
+	}
+
+	/* draw axis lines */
+	glLineWidth(2);
+	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	for (axis_i = 0; axis_i < 3; axis_i++) {
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned col = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+	immBegin(GL_LINES, 6);
+
+	for (int axis_i = 0; axis_i < 3; axis_i++) {
 		int i = axis_order[axis_i];
-		const char axis_text[2] = {'x' + i, '\0'};
 
-		zero_v3(vec);
-		vec[i] = 1.0f;
-		mul_qt_v3(rv3d->viewquat, vec);
-		dx = vec[0] * k;
-		dy = vec[1] * k;
-
-		UI_ThemeColorShadeAlpha(TH_AXIS_X + i, 0, bright);
-		glBegin(GL_LINES);
-		glVertex2f(startx, starty + ydisp);
-		glVertex2f(startx + dx, starty + dy + ydisp);
-		glEnd();
-
-		if (fabsf(dx) > toll || fabsf(dy) > toll) {
-			BLF_draw_default_ascii(startx + dx + 2, starty + dy + ydisp + 2, 0.0f, axis_text, 1);
-
-			/* BLF_draw_default disables blending */
-			glEnable(GL_BLEND);
-		}
+		immAttrib4ubv(col, axis_col[i]);
+		immVertex2f(pos, startx, starty);
+		immVertex2fv(pos, axis_pos[i]);
 	}
 
-	glDisable(GL_BLEND);
+	immEnd();
+	immUnbindProgram();
+	glDisable(GL_LINE_SMOOTH);
+
+	/* draw axis names */
+	for (int axis_i = 0; axis_i < 3; axis_i++) {
+		int i = axis_order[axis_i];
+
+		const char axis_text[2] = {'x' + i, '\0'};
+		glColor4ubv(axis_col[i]); /* text shader still uses gl_Color */
+		BLF_draw_default_ascii(axis_pos[i][0] + 2, axis_pos[i][1] + 2, 0.0f, axis_text, 1);
+	}
+
+	/* BLF_draw_default disabled blending for us */
 }
 
 #ifdef WITH_INPUT_NDOF
@@ -917,6 +929,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 	immAttrib4ubv(col, color);
 	immVertex3fv(pos, o);
 	immEnd();
+	immUnbindProgram();
 
 #if 0
 	/* find screen coordinates for rotation center, then draw pretty icon */
