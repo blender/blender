@@ -815,6 +815,8 @@ static int gp_stroke_arrange_exec(bContext *C, wmOperator *op)
 			BLI_assert(0);
 			break;
 	}
+	BLI_freelistN(&selected);
+
 	/* notifiers */
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
