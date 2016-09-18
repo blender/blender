@@ -343,12 +343,12 @@ void BLI_insertlinkbefore(ListBase *listbase, void *vnextlink, void *vnewlink)
 }
 
 /**
- * Reinsert \a link relative to its current position but offset by \a step. Doesn't move
+ * Reinsert \a vlink relative to its current position but offset by \a step. Doesn't move
  * item if new position would exceed list (could optionally move to head/tail).
  *
  * \param step: Absolute value defines step size, sign defines direction. E.g pass -1
- *              to move \a link before previous, or 1 to move behind next.
- * \return If position of \a link has changed.
+ *              to move \a vlink before previous, or 1 to move behind next.
+ * \return If position of \a vlink has changed.
  */
 bool BLI_listbase_link_move(ListBase *listbase, void *vlink, int step)
 {

@@ -292,7 +292,6 @@ static int group_move_exec(bContext *C, wmOperator *op)
 	bPoseChannel *pchan;
 	bActionGroup *grp;
 	int dir = RNA_enum_get(op->ptr, "direction");
-	int grpIndexA, grpIndexB;
 
 	if (ELEM(NULL, ob, pose))
 		return OPERATOR_CANCELLED;
@@ -305,9 +304,10 @@ static int group_move_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* move bone group */
-	grpIndexA = pose->active_group;
 	if (BLI_listbase_link_move(&pose->agroups, grp, dir)) {
-		grpIndexB = grpIndexA + dir;
+		int grpIndexA = pose->active_group;
+		int grpIndexB = grpIndexA + dir;
+
 		pose->active_group += dir;
 		/* fix changed bone group indices in bones (swap grpIndexA with grpIndexB) */
 		for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
