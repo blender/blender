@@ -761,14 +761,12 @@ static int gp_stroke_arrange_exec(bContext *C, wmOperator *op)
 			/* some stroke is already at front*/
 			if ((direction == GP_STROKE_MOVE_TOP) || (direction == GP_STROKE_MOVE_UP)) {
 				if (gps == gpf->strokes.last) {
-					BKE_report(op->reports, RPT_ERROR, "Some selected stroke is already on top");
 					return OPERATOR_CANCELLED;
 				}
 			}
 			/* some stroke is already at botom */
 			if ((direction == GP_STROKE_MOVE_BOTTOM) || (direction == GP_STROKE_MOVE_DOWN)) {
 				if (gps == gpf->strokes.first) {
-					BKE_report(op->reports, RPT_ERROR, "Some selected stroke is already on bottom");
 					return OPERATOR_CANCELLED;
 				}
 			}
