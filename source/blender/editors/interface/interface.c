@@ -1247,7 +1247,6 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2])
 
 			if (ot == NULL || WM_operator_poll_context((bContext *)C, ot, but->opcontext) == 0) {
 				but->flag |= UI_BUT_DISABLED;
-				but->lock = true;
 			}
 
 			if (but->context)
@@ -3122,7 +3121,6 @@ static uiBut *ui_def_but(
 	but->a2 = a2;
 	but->tip = tip;
 
-	but->lock = block->lock;
 	but->lockstr = block->lockstr;
 	but->dt = block->dt;
 	but->pie_dir = UI_RADIAL_NONE;
@@ -3171,10 +3169,8 @@ static uiBut *ui_def_but(
 
 	but->drawflag |= (block->flag & UI_BUT_ALIGN);
 
-	if (but->lock == true) {
-		if (but->lockstr) {
-			but->flag |= UI_BUT_DISABLED;
-		}
+	if (block->lock == true) {
+		but->flag |= UI_BUT_DISABLED;
 	}
 
 	/* keep track of UI_interface.h */
@@ -3222,7 +3218,6 @@ void ui_def_but_icon(uiBut *but, const int icon, const int flag)
 static void ui_def_but_rna__disable(uiBut *but)
 {
 	but->flag |= UI_BUT_DISABLED;
-	but->lock = true;
 	but->lockstr = "";
 }
 
@@ -3548,7 +3543,6 @@ static uiBut *ui_def_but_operator_ptr(uiBlock *block, int type, wmOperatorType *
 
 	if (!ot) {
 		but->flag |= UI_BUT_DISABLED;
-		but->lock = true;
 		but->lockstr = "";
 	}
 

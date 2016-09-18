@@ -2248,7 +2248,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 	bool buf_paste_alloc = false;
 	bool show_report = false;  /* use to display errors parsing paste input */
 
-	if (mode == 'v' && but->lock  == true) {
+	if (mode == 'v' && (but->flag & UI_BUT_DISABLED)) {
 		return;
 	}
 
@@ -7100,8 +7100,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 
 	/* verify if we can edit this button */
 	if (ELEM(event->type, LEFTMOUSE, RETKEY)) {
-		/* this should become disabled button .. */
-		if (but->lock == true) {
+		if (but->flag & UI_BUT_DISABLED) {
 			if (but->lockstr) {
 				WM_report(RPT_INFO, but->lockstr);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);

@@ -456,7 +456,7 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 	}
 
 	/* button is disabled, we may be able to tell user why */
-	if ((but->flag & UI_BUT_DISABLED) || but->lock) {
+	if (but->flag & UI_BUT_DISABLED) {
 		const char *disabled_msg = NULL;
 
 		/* if operator poll check failed, it can give pretty precise info why */
