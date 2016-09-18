@@ -606,7 +606,7 @@ static void create_mesh(Scene *scene,
 	int numtris = 0;
 	int numcorners = 0;
 	int numngons = 0;
-	bool use_loop_normals = b_mesh.use_auto_smooth();
+	bool use_loop_normals = b_mesh.use_auto_smooth() && (mesh->subdivision_type != Mesh::SUBDIVISION_CATMULL_CLARK);
 
 	BL::Mesh::vertices_iterator v;
 	BL::Mesh::tessfaces_iterator f;
