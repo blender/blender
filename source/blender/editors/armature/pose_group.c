@@ -306,41 +306,22 @@ static int group_move_exec(bContext *C, wmOperator *op)
 
 	/* move bone group */
 	grpIndexA = pose->active_group;
-	if (dir == 1) { /* up */
-		void *prev = grp->prev;
-		
-		if (prev == NULL)
-			return OPERATOR_FINISHED;
-			
-		BLI_remlink(&pose->agroups, grp);
-		BLI_insertlinkbefore(&pose->agroups, prev, grp);
-		
-		grpIndexB = grpIndexA - 1;
-		pose->active_group--;
-	}
-	else { /* down */
-		void *next = grp->next;
-		
-		if (next == NULL)
-			return OPERATOR_FINISHED;
-			
-		BLI_remlink(&pose->agroups, grp);
-		BLI_insertlinkafter(&pose->agroups, next, grp);
-		
-		grpIndexB = grpIndexA + 1;
-		pose->active_group++;
-	}
+	if (BLI_listbase_link_move(&pose->agroups, grp, dir)) {
+		grpIndexB = grpIndexA + dir;
+		pose->active_group += dir;
+		/* fix changed bone group indices in bones (swap grpIndexA with grpIndexB) */
+		for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+			if (pchan->agrp_index == grpIndexB) {
+				pchan->agrp_index = grpIndexA;
+			}
+			else if (pchan->agrp_index == grpIndexA) {
+				pchan->agrp_index = grpIndexB;
+			}
+		}
 
-	/* fix changed bone group indices in bones (swap grpIndexA with grpIndexB) */
-	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-		if (pchan->agrp_index == grpIndexB)
-			pchan->agrp_index = grpIndexA;
-		else if (pchan->agrp_index == grpIndexA)
-			pchan->agrp_index = grpIndexB;
+		/* notifiers for updates */
+		WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 	}
-
-	/* notifiers for updates */
-	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -348,8 +329,8 @@ static int group_move_exec(bContext *C, wmOperator *op)
 void POSE_OT_group_move(wmOperatorType *ot)
 {
 	static EnumPropertyItem group_slot_move[] = {
-		{1, "UP", 0, "Up", ""},
-		{-1, "DOWN", 0, "Down", ""},
+		{-1, "UP", 0, "Up", ""},
+		{1, "DOWN", 0, "Down", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

@@ -55,8 +55,7 @@ void BKE_freestyle_config_copy(FreestyleConfig *new_config, FreestyleConfig *con
 /* FreestyleConfig.modules */
 FreestyleModuleConfig *BKE_freestyle_module_add(FreestyleConfig *config);
 bool BKE_freestyle_module_delete(FreestyleConfig *config, FreestyleModuleConfig *module_conf);
-bool BKE_freestyle_module_move_up(FreestyleConfig *config, FreestyleModuleConfig *module_conf);
-bool BKE_freestyle_module_move_down(FreestyleConfig *config, FreestyleModuleConfig *module_conf);
+bool BKE_freestyle_module_move(FreestyleConfig *config, FreestyleModuleConfig *module_conf, int direction);
 
 /* FreestyleConfig.linesets */
 FreestyleLineSet *BKE_freestyle_lineset_add(struct Main *bmain, FreestyleConfig *config, const char *name);

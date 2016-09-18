@@ -73,10 +73,10 @@ int BKE_linestyle_alpha_modifier_remove(FreestyleLineStyle *linestyle, LineStyle
 int BKE_linestyle_thickness_modifier_remove(FreestyleLineStyle *linestyle, LineStyleModifier *modifier);
 int BKE_linestyle_geometry_modifier_remove(FreestyleLineStyle *linestyle, LineStyleModifier *modifier);
 
-void BKE_linestyle_color_modifier_move(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
-void BKE_linestyle_alpha_modifier_move(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
-void BKE_linestyle_thickness_modifier_move(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
-void BKE_linestyle_geometry_modifier_move(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
+bool BKE_linestyle_color_modifier_move(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
+bool BKE_linestyle_alpha_modifier_move(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
+bool BKE_linestyle_thickness_modifier_move(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
+bool BKE_linestyle_geometry_modifier_move(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
 
 void BKE_linestyle_modifier_list_color_ramps(FreestyleLineStyle *linestyle, ListBase *listbase);
 char *BKE_linestyle_path_to_color_ramp(FreestyleLineStyle *linestyle, struct ColorBand *color_ramp);

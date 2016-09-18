@@ -151,22 +151,14 @@ bool BKE_freestyle_module_delete(FreestyleConfig *config, FreestyleModuleConfig 
 	return true;
 }
 
-bool BKE_freestyle_module_move_up(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
+/**
+ * Reinsert \a module_conf offset by \a direction from current position.
+ * \return if position of \a module_conf changed.
+ */
+bool BKE_freestyle_module_move(FreestyleConfig *config, FreestyleModuleConfig *module_conf, int direction)
 {
-	if (BLI_findindex(&config->modules, module_conf) == -1)
-		return false;
-	BLI_remlink(&config->modules, module_conf);
-	BLI_insertlinkbefore(&config->modules, module_conf->prev, module_conf);
-	return true;
-}
-
-bool BKE_freestyle_module_move_down(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
-{
-	if (BLI_findindex(&config->modules, module_conf) == -1)
-		return false;
-	BLI_remlink(&config->modules, module_conf);
-	BLI_insertlinkafter(&config->modules, module_conf->next, module_conf);
-	return true;
+	return ((BLI_findindex(&config->modules, module_conf) > -1) &&
+	        (BLI_listbase_link_move(&config->modules, module_conf, direction) == true));
 }
 
 void BKE_freestyle_lineset_unique_name(FreestyleConfig *config, FreestyleLineSet *lineset)

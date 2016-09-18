@@ -916,7 +916,7 @@ int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value);
 int RNA_property_enum_get_default(PointerRNA *ptr, PropertyRNA *prop);
 void *RNA_property_enum_py_data_get(PropertyRNA *prop);
-int RNA_property_enum_step(const struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, int from_value, int direction);
+int RNA_property_enum_step(const struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, int from_value, int step);
 
 PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr_value);

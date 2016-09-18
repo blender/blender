@@ -272,20 +272,10 @@ static int gp_layer_move_exec(bContext *C, wmOperator *op)
 	if (ELEM(NULL, gpd, gpl))
 		return OPERATOR_CANCELLED;
 	
-	/* up or down? */
-	if (direction == GP_LAYER_MOVE_UP) {
-		/* up */
-		BLI_remlink(&gpd->layers, gpl);
-		BLI_insertlinkbefore(&gpd->layers, gpl->prev, gpl);
+	BLI_assert(ELEM(direction, -1, 0, 1)); /* we use value below */
+	if (BLI_listbase_link_move(&gpd->layers, gpl, direction)) {
+		WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 	}
-	else {
-		/* down */
-		BLI_remlink(&gpd->layers, gpl);
-		BLI_insertlinkafter(&gpd->layers, gpl->next, gpl);
-	}
-	
-	/* notifiers */
-	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -782,23 +772,21 @@ static int gp_stroke_arrange_exec(bContext *C, wmOperator *op)
 			for (LinkData *link = selected.first; link; link = link->next) {
 				gps = link->data;
 				BLI_remlink(&gpf->strokes, gps);
-				BLI_insertlinkafter(&gpf->strokes, gpf->strokes.last, gps);
+				BLI_addtail(&gpf->strokes, gps);
 			}
 			break;
 		/* Bring Forward */
 		case GP_STROKE_MOVE_UP:
 			for (LinkData *link = selected.last; link; link = link->prev) {
 				gps = link->data;
-				BLI_remlink(&gpf->strokes, gps);
-				BLI_insertlinkafter(&gpf->strokes, gps->next, gps);
+				BLI_listbase_link_move(&gpf->strokes, gps, 1);
 			}
 			break;
-			/* Send Backward */
+		/* Send Backward */
 		case GP_STROKE_MOVE_DOWN:
 			for (LinkData *link = selected.first; link; link = link->next) {
 				gps = link->data;
-				BLI_remlink(&gpf->strokes, gps);
-				BLI_insertlinkbefore(&gpf->strokes, gps->prev, gps);
+				BLI_listbase_link_move(&gpf->strokes, gps, -1);
 			}
 			break;
 		/* Send to Back */
@@ -806,7 +794,7 @@ static int gp_stroke_arrange_exec(bContext *C, wmOperator *op)
 			for (LinkData *link = selected.last; link; link = link->prev) {
 				gps = link->data;
 				BLI_remlink(&gpf->strokes, gps);
-				BLI_insertlinkbefore(&gpf->strokes, gpf->strokes.first, gps);
+				BLI_addhead(&gpf->strokes, gps);
 			}
 			break;
 		default:
