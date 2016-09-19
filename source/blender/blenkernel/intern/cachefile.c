@@ -56,6 +56,11 @@ void BKE_cachefiles_init(void)
 	BLI_spin_init(&spin);
 }
 
+void BKE_cachefiles_exit(void)
+{
+	BLI_spin_end(&spin);
+}
+
 void *BKE_cachefile_add(Main *bmain, const char *name)
 {
 	CacheFile *cache_file = BKE_libblock_alloc(bmain, ID_CF, name);
