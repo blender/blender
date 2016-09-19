@@ -55,11 +55,10 @@ static inline BL::Mesh object_to_mesh(BL::BlendData& data,
 		BL::Modifier subsurf_mod = object.modifiers[object.modifiers.length()-1];
 
 		subsurf_mod_show_render = subsurf_mod.show_render();
-		subsurf_mod_show_viewport = subsurf_mod.show_render();
+		subsurf_mod_show_viewport = subsurf_mod.show_viewport();
 
 		subsurf_mod.show_render(false);
 		subsurf_mod.show_viewport(false);
-
 	}
 
 	BL::Mesh me = data.meshes.new_from_object(scene, object, apply_modifiers, (render)? 2: 1, false, calc_undeformed);
