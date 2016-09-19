@@ -37,6 +37,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
                                              uint *num_hits)
 {
 	/* TODO(sergey):
+	*  - Test if pushing distance on the stack helps.
 	 * - Likely and unlikely for if() statements.
 	 * - Test restrict attribute for pointers.
 	 */
@@ -74,7 +75,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 	int num_hits_in_instance = 0;
 #endif
 
-	ssef tnear(0.0f), tfar(tmax);
+	ssef tnear(0.0f), tfar(isect_t);
 #if BVH_FEATURE(BVH_HAIR)
 	sse3f dir4(ssef(dir.x), ssef(dir.y), ssef(dir.z));
 #endif
@@ -122,12 +123,12 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 #ifdef __KERNEL_AVX2__
 				                                P_idir4,
 #endif
-#  if BVH_FEATURE(BVH_HAIR) || !defined(__KERNEL_AVX2__)
+#if BVH_FEATURE(BVH_HAIR) || !defined(__KERNEL_AVX2__)
 				                                org4,
-#  endif
-#  if BVH_FEATURE(BVH_HAIR)
+#endif
+#if BVH_FEATURE(BVH_HAIR)
 				                                dir4,
-#  endif
+#endif
 				                                idir4,
 				                                near_x, near_y, near_z,
 				                                far_x, far_y, far_z,
@@ -427,21 +428,18 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 			/* Instance pop. */
 			if(num_hits_in_instance) {
 				float t_fac;
-
 #  if BVH_FEATURE(BVH_MOTION)
 				bvh_instance_motion_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac, &ob_itfm);
 #  else
 				bvh_instance_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac);
 #  endif
-
-				/* scale isect->t to adjust for instancing */
+				/* Scale isect->t to adjust for instancing. */
 				for(int i = 0; i < num_hits_in_instance; i++) {
 					(isect_array-i-1)->t *= t_fac;
 				}
 			}
 			else {
 				float ignore_t = FLT_MAX;
-
 #  if BVH_FEATURE(BVH_MOTION)
 				bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &ignore_t, &ob_itfm);
 #  else
@@ -455,7 +453,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 			if(idir.x >= 0.0f) { near_x = 0; far_x = 1; } else { near_x = 1; far_x = 0; }
 			if(idir.y >= 0.0f) { near_y = 2; far_y = 3; } else { near_y = 3; far_y = 2; }
 			if(idir.z >= 0.0f) { near_z = 4; far_z = 5; } else { near_z = 5; far_z = 4; }
-			tfar = ssef(tmax);
+			tfar = ssef(isect_t);
 #  if BVH_FEATURE(BVH_HAIR)
 			dir4 = sse3f(ssef(dir.x), ssef(dir.y), ssef(dir.z));
 #  endif
