@@ -1148,7 +1148,7 @@ int main(
 								MEM_freeN(python_code);
 							}
 							else {
-								fprintf(stderr, "ERROR: cannot yield control to Python: no Python text data block named '%s'\n", python_main);
+								fprintf(stderr, "ERROR: cannot yield control to Python: no Python text data-block named '%s'\n", python_main);
 							}
 						}
 						else {

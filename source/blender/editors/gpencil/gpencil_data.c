@@ -108,7 +108,7 @@ void GPENCIL_OT_data_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Grease Pencil Add New";
 	ot->idname = "GPENCIL_OT_data_add";
-	ot->description = "Add new Grease Pencil datablock";
+	ot->description = "Add new Grease Pencil data-block";
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* callbacks */
@@ -156,7 +156,7 @@ void GPENCIL_OT_data_unlink(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Grease Pencil Unlink";
 	ot->idname = "GPENCIL_OT_data_unlink";
-	ot->description = "Unlink active Grease Pencil datablock";
+	ot->description = "Unlink active Grease Pencil data-block";
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* callbacks */
@@ -197,7 +197,7 @@ void GPENCIL_OT_layer_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Add New Layer";
 	ot->idname = "GPENCIL_OT_layer_add";
-	ot->description = "Add new Grease Pencil layer for the active Grease Pencil datablock";
+	ot->description = "Add new Grease Pencil layer for the active Grease Pencil data-block";
 	
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
@@ -979,7 +979,7 @@ void GPENCIL_OT_brush_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Add Brush";
 	ot->idname = "GPENCIL_OT_brush_add";
-	ot->description = "Add new Grease Pencil drawing brush for the active Grease Pencil datablock";
+	ot->description = "Add new Grease Pencil drawing brush for the active Grease Pencil data-block";
 
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -1337,7 +1337,7 @@ void GPENCIL_OT_palette_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Add Palette";
 	ot->idname = "GPENCIL_OT_palette_add";
-	ot->description = "Add new Grease Pencil palette for the active Grease Pencil datablock";
+	ot->description = "Add new Grease Pencil palette for the active Grease Pencil data-block";
 
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -1554,7 +1554,7 @@ void GPENCIL_OT_palettecolor_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Add Palette Color";
 	ot->idname = "GPENCIL_OT_palettecolor_add";
-	ot->description = "Add new Grease Pencil palette color for the active Grease Pencil datablock";
+	ot->description = "Add new Grease Pencil palette color for the active Grease Pencil data-block";
 
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 

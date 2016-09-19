@@ -2145,7 +2145,7 @@ static void ANIM_OT_channels_clean_empty(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Remove Empty Animation Data";
 	ot->idname = "ANIM_OT_channels_clean_empty";
-	ot->description = "Delete all empty animation data containers from visible datablocks";
+	ot->description = "Delete all empty animation data containers from visible data-blocks";
 	
 	/* api callbacks */
 	ot->exec = animchannels_clean_empty_exec;

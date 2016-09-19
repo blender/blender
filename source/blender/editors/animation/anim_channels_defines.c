@@ -4155,7 +4155,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, const bAni
 		case ACHANNEL_SETTING_SOLO: /* NLA Tracks only */
 			//icon = ((enabled) ? ICON_SOLO_OFF : ICON_SOLO_ON);
 			icon = ICON_SOLO_OFF;
-			tooltip = TIP_("NLA Track is the only one evaluated in this Animation Data block, with all others muted");
+			tooltip = TIP_("NLA Track is the only one evaluated in this animation data-block, with all others muted");
 			break;
 		
 		/* --- */

@@ -320,7 +320,7 @@ static void id_delete(bContext *C, ReportList *reports, TreeElement *te, TreeSto
 	}
 	else if (BKE_library_ID_is_indirectly_used(bmain, id) && ID_REAL_USERS(id) <= 1) {
 		BKE_reportf(reports, RPT_WARNING,
-		            "Cannot delete id '%s', indirectly used datablocks need at least one user",
+		            "Cannot delete id '%s', indirectly used data-blocks need at least one user",
 		            id->name);
 		return;
 	}
@@ -389,7 +389,7 @@ static int outliner_id_delete_invoke(bContext *C, wmOperator *op, const wmEvent 
 
 void OUTLINER_OT_id_delete(wmOperatorType *ot)
 {
-	ot->name = "Delete Datablock";
+	ot->name = "Delete Data-Block";
 	ot->idname = "OUTLINER_OT_id_delete";
 	ot->description = "Delete the ID under cursor";
 
@@ -422,7 +422,7 @@ static int outliner_id_remap_exec(bContext *C, wmOperator *op)
 
 	if (ID_IS_LINKED_DATABLOCK(old_id)) {
 		BKE_reportf(op->reports, RPT_WARNING,
-		            "Old ID '%s' is linked from a library, indirect usages of this datablock will not be remapped",
+		            "Old ID '%s' is linked from a library, indirect usages of this data-block will not be remapped",
 		            old_id->name);
 	}
 
@@ -1942,7 +1942,7 @@ static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEv
 {
 	/* present a prompt to informing users that this change is irreversible */
 	return WM_operator_confirm_message(C, op,
-	                                   "Purging unused datablocks cannot be undone. "
+	                                   "Purging unused data-blocks cannot be undone. "
 	                                   "Click here to proceed...");
 }
 
@@ -1964,7 +1964,7 @@ void OUTLINER_OT_orphans_purge(wmOperatorType *ot)
 	/* identifiers */
 	ot->idname = "OUTLINER_OT_orphans_purge";
 	ot->name = "Purge All";
-	ot->description = "Clear all orphaned datablocks without any users from the file (cannot be undone)";
+	ot->description = "Clear all orphaned data-blocks without any users from the file (cannot be undone)";
 	
 	/* callbacks */
 	ot->invoke = outliner_orphans_purge_invoke;

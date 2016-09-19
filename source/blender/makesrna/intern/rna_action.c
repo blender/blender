@@ -310,8 +310,8 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "use_datablock_sort", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ADS_FLAG_NO_DB_SORT);
-	RNA_def_property_ui_text(prop, "Sort Datablocks",
-	                         "Alphabetically sorts datablocks - mainly objects in the scene "
+	RNA_def_property_ui_text(prop, "Sort Data-Blocks",
+	                         "Alphabetically sorts data-blocks - mainly objects in the scene "
 	                         "(disable to increase viewport speed)");
 	RNA_def_property_ui_icon(prop, ICON_SORTALPHA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
@@ -377,7 +377,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_missing_nla", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NLA_NOACT);
 	RNA_def_property_ui_text(prop, "Include Missing NLA",
-	                         "Include animation data blocks with no NLA data (NLA editor only)");
+	                         "Include animation data-blocks with no NLA data (NLA editor only)");
 	RNA_def_property_ui_icon(prop, ICON_ACTION, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
@@ -516,7 +516,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_gpencil_3d_only", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_GP_3DONLY);
 	RNA_def_property_ui_text(prop, "Active Scene Only", 
-	                         "Only show Grease Pencil datablocks used as part of the active scene");
+	                         "Only show Grease Pencil data-blocks used as part of the active scene");
 	RNA_def_property_ui_icon(prop, ICON_SCENE_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 }

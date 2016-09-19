@@ -2624,7 +2624,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "gpencil_src");
 	RNA_def_property_enum_items(prop, gpencil_source_3d_items);
 	RNA_def_property_ui_text(prop, "Grease Pencil Source",
-	                         "Datablock where active Grease Pencil data is found from");
+	                         "Data-block where active Grease Pencil data is found from");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 	
 	prop = RNA_def_property(srna, "gpencil_sculpt", PROP_POINTER, PROP_NONE);
@@ -6776,8 +6776,8 @@ void RNA_def_scene(BlenderRNA *brna)
 
 	/* Struct definition */
 	srna = RNA_def_struct(brna, "Scene", "ID");
-	RNA_def_struct_ui_text(srna, "Scene",
-	                       "Scene data block, consisting in objects and defining time and render related settings");
+	RNA_def_struct_ui_text(srna, "Scene", "Scene data-block, consisting in objects and "
+	                       "defining time and render related settings");
 	RNA_def_struct_ui_icon(srna, ICON_SCENE_DATA);
 	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
 	

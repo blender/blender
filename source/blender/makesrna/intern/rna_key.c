@@ -797,7 +797,7 @@ static void rna_def_key(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "user", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "from");
-	RNA_def_property_ui_text(prop, "User", "Datablock using these shape keys");
+	RNA_def_property_ui_text(prop, "User", "Data-block using these shape keys");
 
 	prop = RNA_def_property(srna, "use_relative", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "type", KEY_RELATIVE);

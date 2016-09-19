@@ -806,7 +806,7 @@ static void rna_def_keyingset_paths(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_pointer(func, "ksp", "KeyingSetPath", "New Path", "Path created and added to the Keying Set");
 	RNA_def_function_return(func, parm);
 	/* ID-block for target */
-	parm = RNA_def_pointer(func, "target_id", "ID", "Target ID", "ID-Datablock for the destination");
+	parm = RNA_def_pointer(func, "target_id", "ID", "Target ID", "ID data-block for the destination");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* rna-path */
 	/* XXX hopefully this is long enough */
