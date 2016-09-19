@@ -402,7 +402,6 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 #  else
 				bvh_instance_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac);
 #  endif
-				triangle_intersect_precalc(dir, &isect_precalc);
 				/* Scale isect->t to adjust for instancing. */
 				for(int i = 0; i < num_hits_in_instance; i++) {
 					(isect_array-i-1)->t *= t_fac;
@@ -415,7 +414,6 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 #  else
 				bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &ignore_t);
 #  endif
-				triangle_intersect_precalc(dir, &isect_precalc);
 			}
 
 			if(idir.x >= 0.0f) { near_x = 0; far_x = 1; } else { near_x = 1; far_x = 0; }
