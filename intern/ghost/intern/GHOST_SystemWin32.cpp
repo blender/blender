@@ -41,7 +41,7 @@
 
 #include <shlobj.h>
 #include <tlhelp32.h>
-#include <Psapi.h>
+#include <psapi.h>
 #include <windowsx.h>
 
 #include "utfconv.h"

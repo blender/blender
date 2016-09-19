@@ -35,7 +35,7 @@
 #  include <execinfo.h>
 #elif defined(WIN32)
 #  include <windows.h>
-#  include <DbgHelp.h>
+#  include <dbghelp.h>
 #endif
 
 int BLI_cpu_support_sse2(void)
