@@ -414,7 +414,6 @@ static bPoseChannel *pose_bone_do_paste(Object *ob, bPoseChannel *chan, const bo
 
 static int pose_copy_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain = CTX_data_main(C);
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	char str[FILE_MAX];
 	/* Sanity checking. */
@@ -424,13 +423,36 @@ static int pose_copy_exec(bContext *C, wmOperator *op)
 	}
 	/* Sets chan->flag to POSE_KEY if bone selected. */
 	set_pose_keys(ob);
+	/* Construct a local bmain and only put object and it's data into it,
+	 * o this way we don't expand any other objects into the copy buffer
+	 * file.
+	 *
+	 * TODO(sergey): Find an easier way to tell copy buffer to only store
+	 * data we are actually interested in. Maybe pass it a flag to skip
+	 * any datablock expansion?
+	 */
+	Main *temp_bmain = BKE_main_new();
+	Object ob_copy = *ob;
+	bArmature arm_copy = *((bArmature *)ob->data);
+	ob_copy.data = &arm_copy;
+	BLI_addtail(&temp_bmain->object, &ob_copy);
+	BLI_addtail(&temp_bmain->armature, &arm_copy);
+	/* begin copy buffer on a temp bmain. */
+	BKE_copybuffer_begin(temp_bmain);
 	/* Store the whole object to the copy buffer because pose can't be
 	 * existing on it's own.
 	 */
-	BKE_copybuffer_begin(bmain);
-	BKE_copybuffer_tag_ID(&ob->id);
+	BKE_copybuffer_tag_ID(&ob_copy.id);
 	BLI_make_file_string("/", str, BKE_tempdir_base(), "copybuffer_pose.blend");
-	BKE_copybuffer_save(bmain, str, op->reports);
+	BKE_copybuffer_save(temp_bmain, str, op->reports);
+	/* We clear the lists so no datablocks gets freed,
+	 * This is required because objects in temp bmain shares same pointers
+	 * as the real ones.
+	 */
+	BLI_listbase_clear(&temp_bmain->object);
+	BLI_listbase_clear(&temp_bmain->armature);
+	BKE_main_free(temp_bmain);
+	/* We are all done! */
 	BKE_report(op->reports, RPT_INFO, "Copied pose to buffer");
 	return OPERATOR_FINISHED;
 }
