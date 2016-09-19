@@ -28,54 +28,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Don't inline intersect functions on GPU, this is faster */
-#ifdef __KERNEL_GPU__
-#  define ccl_device_intersect ccl_device_noinline
-#else
-#  define ccl_device_intersect ccl_device_inline
-#endif
-
-/* bottom-most stack entry, indicating the end of traversal */
-#define ENTRYPOINT_SENTINEL 0x76543210
-
-/* 64 object BVH + 64 mesh BVH + 64 object node splitting */
-#define BVH_STACK_SIZE 192
-#define BVH_QSTACK_SIZE 384
-
-/* BVH intersection function variations */
-
-#define BVH_INSTANCING			1
-#define BVH_MOTION				2
-#define BVH_HAIR				4
-#define BVH_HAIR_MINIMUM_WIDTH	8
-
-#define BVH_NAME_JOIN(x,y) x ## _ ## y
-#define BVH_NAME_EVAL(x,y) BVH_NAME_JOIN(x,y)
-#define BVH_FUNCTION_FULL_NAME(prefix) BVH_NAME_EVAL(prefix, BVH_FUNCTION_NAME)
-
-#define BVH_FEATURE(f) (((BVH_FUNCTION_FEATURES) & (f)) != 0)
-
-/* Debugging heleprs */
-#ifdef __KERNEL_DEBUG__
-#  define BVH_DEBUG_INIT() \
-	do { \
-		isect->num_traversal_steps = 0; \
-		isect->num_traversed_instances = 0; \
-	} while(0)
-#  define BVH_DEBUG_NEXT_STEP() \
-	do { \
-		++isect->num_traversal_steps; \
-	} while(0)
-#  define BVH_DEBUG_NEXT_INSTANCE() \
-	do { \
-		++isect->num_traversed_instances; \
-	} while(0)
-#else  /* __KERNEL_DEBUG__ */
-#  define BVH_DEBUG_INIT()
-#  define BVH_DEBUG_NEXT_STEP()
-#  define BVH_DEBUG_NEXT_INSTANCE()
-#endif  /* __KERNEL_DEBUG__ */
-
+#include "bvh_types.h"
 
 /* Common QBVH functions. */
 #ifdef __QBVH__

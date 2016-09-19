@@ -34,6 +34,7 @@ set(SRC_BVH_HEADERS
 	bvh/bvh_shadow_all.h
 	bvh/bvh_subsurface.h
 	bvh/bvh_traversal.h
+	bvh/bvh_types.h
 	bvh/bvh_volume.h
 	bvh/bvh_volume_all.h
 	bvh/qbvh_nodes.h
