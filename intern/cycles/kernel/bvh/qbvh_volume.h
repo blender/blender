@@ -103,8 +103,9 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 		do {
 			/* Traverse internal nodes. */
 			while(node_addr >= 0 && node_addr != ENTRYPOINT_SENTINEL) {
-#ifdef __VISIBILITY_FLAG__
 				float4 inodes = kernel_tex_fetch(__bvh_nodes, node_addr+0);
+
+#ifdef __VISIBILITY_FLAG__
 				if((__float_as_uint(inodes.x) & visibility) == 0) {
 					/* Pop. */
 					node_addr = traversal_stack[stack_ptr].addr;
