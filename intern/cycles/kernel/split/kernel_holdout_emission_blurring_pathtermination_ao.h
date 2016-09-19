@@ -212,7 +212,8 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 				if(terminate >= probability) {
 					ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
 					*enqueue_flag = 1;
-				} else {
+				}
+				else {
 					throughput_coop[ray_index] = throughput/probability;
 				}
 			}
