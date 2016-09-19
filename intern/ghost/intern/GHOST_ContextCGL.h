@@ -136,6 +136,8 @@ private:
 
 	//static CGLEWContext *s_cglewContext;
 
+	const bool m_debug;
+
 	/** The first created OpenGL context (for sharing display lists) */
 	static NSOpenGLContext *s_sharedOpenGLContext;
 	static int              s_sharedCount;

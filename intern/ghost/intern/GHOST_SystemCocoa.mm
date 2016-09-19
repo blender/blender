@@ -562,7 +562,7 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
 	// Add contentRect.origin.y to respect docksize
 	bottom = bottom > contentRect.origin.y ? bottom + contentRect.origin.y : contentRect.origin.y;
 
-	window = new GHOST_WindowCocoa (this, title, left, bottom, width, height, state, type, ((glSettings.flags & GHOST_glStereoVisual) != 0), glSettings.numOfAASamples);
+	window = new GHOST_WindowCocoa(this, title, left, bottom, width, height, state, type, glSettings.flags & GHOST_glStereoVisual, glSettings.numOfAASamples, glSettings.flags & GHOST_glDebugContext);
 
 	if (window->getValid()) {
 		// Store the pointer to the window
