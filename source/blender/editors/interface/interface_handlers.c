@@ -2248,9 +2248,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 	bool buf_paste_alloc = false;
 	bool show_report = false;  /* use to display errors parsing paste input */
 
-	if (mode == 'v' && (but->flag & UI_BUT_DISABLED)) {
-		return;
-	}
+	BLI_assert((but->flag & UI_BUT_DISABLED) == 0); /* caller should check */
 
 	if (mode == 'c') {
 		/* disallow copying from any passwords */
@@ -6974,6 +6972,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 	if (but->flag & UI_BUT_DISABLED)
 		return WM_UI_HANDLER_CONTINUE;
 
+	/* if but->pointype is set, but->poin should be too */
+	BLI_assert(!but->pointype || but->poin);
+
 	if ((data->state == BUTTON_STATE_HIGHLIGHT) || (event->type == EVT_DROP)) {
 		/* handle copy-paste */
 		if (ELEM(event->type, CKEY, VKEY) && event->val == KM_PRESS &&
@@ -7095,23 +7096,6 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 			if (ui_but_menu(C, but)) {
 				return WM_UI_HANDLER_BREAK;
 			}
-		}
-	}
-
-	/* verify if we can edit this button */
-	if (ELEM(event->type, LEFTMOUSE, RETKEY)) {
-		if (but->flag & UI_BUT_DISABLED) {
-			if (but->lockstr) {
-				WM_report(RPT_INFO, but->lockstr);
-				button_activate_state(C, but, BUTTON_STATE_EXIT);
-				return WM_UI_HANDLER_BREAK;
-			}
-		}
-		else if (but->pointype && but->poin == NULL) {
-			/* there's a pointer needed */
-			BKE_reportf(NULL, RPT_WARNING, "DoButton pointer error: %s", but->str);
-			button_activate_state(C, but, BUTTON_STATE_EXIT);
-			return WM_UI_HANDLER_BREAK;
 		}
 	}
 

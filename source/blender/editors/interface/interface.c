@@ -3121,7 +3121,7 @@ static uiBut *ui_def_but(
 	but->a2 = a2;
 	but->tip = tip;
 
-	but->lockstr = block->lockstr;
+	but->disabled_info = block->lockstr;
 	but->dt = block->dt;
 	but->pie_dir = UI_RADIAL_NONE;
 
@@ -3218,7 +3218,7 @@ void ui_def_but_icon(uiBut *but, const int icon, const int flag)
 static void ui_def_but_rna__disable(uiBut *but)
 {
 	but->flag |= UI_BUT_DISABLED;
-	but->lockstr = "";
+	but->disabled_info = "";
 }
 
 static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *but_p)
@@ -3543,7 +3543,7 @@ static uiBut *ui_def_but_operator_ptr(uiBlock *block, int type, wmOperatorType *
 
 	if (!ot) {
 		but->flag |= UI_BUT_DISABLED;
-		but->lockstr = "";
+		but->disabled_info = "";
 	}
 
 	return but;

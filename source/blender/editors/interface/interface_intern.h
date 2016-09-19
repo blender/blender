@@ -271,7 +271,8 @@ struct uiBut {
 	uiButToolTipFunc tip_func;
 	void *tip_argN;
 
-	const char *lockstr;
+	/* info on why button is disabled, displayed in tooltip */
+	const char *disabled_info;
 
 	BIFIconID icon;
 	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSS_NONE ... etc, copied from the block */

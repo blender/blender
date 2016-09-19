@@ -466,8 +466,8 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 			disabled_msg = CTX_wm_operator_poll_msg_get(C);
 		}
 		/* alternatively, buttons can store some reasoning too */
-		else if (but->lockstr) {
-			disabled_msg = but->lockstr;
+		else if (but->disabled_info) {
+			disabled_msg = but->disabled_info;
 		}
 
 		if (disabled_msg && disabled_msg[0]) {
