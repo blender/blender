@@ -434,8 +434,9 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 #  endif
 
 				/* scale isect->t to adjust for instancing */
-				for(int i = 0; i < num_hits_in_instance; i++)
+				for(int i = 0; i < num_hits_in_instance; i++) {
 					(isect_array-i-1)->t *= t_fac;
+				}
 			}
 			else {
 				float ignore_t = FLT_MAX;
