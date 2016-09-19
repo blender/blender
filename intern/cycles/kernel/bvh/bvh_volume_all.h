@@ -334,6 +334,7 @@ uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 		if(stack_ptr >= 0) {
 			kernel_assert(object != OBJECT_NONE);
 
+			/* Instance pop. */
 			if(num_hits_in_instance) {
 				float t_fac;
 #  if BVH_FEATURE(BVH_MOTION)
