@@ -356,7 +356,7 @@ bool BLI_listbase_link_move(ListBase *listbase, void *vlink, int step)
 	Link *hook = link;
 	const bool is_up = step < 0;
 
-	if (step == 0 || vlink == NULL) {
+	if (step == 0) {
 		return false;
 	}
 	BLI_assert(BLI_findindex(listbase, link) != -1);
