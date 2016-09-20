@@ -2342,7 +2342,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
 
-	immUniformColor3ubv(wcol->outline);
+	immUniformColor3ubv((unsigned char *)wcol->outline);
 	imm_draw_lined_circle(pos, centx, centy, radius, tot);
 
 	glDisable(GL_BLEND);
