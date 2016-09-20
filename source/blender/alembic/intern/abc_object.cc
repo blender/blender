@@ -153,6 +153,61 @@ Object *AbcObjectReader::object() const
 	return m_object;
 }
 
+static Imath::M44d blend_matrices(const Imath::M44d &m0, const Imath::M44d &m1, const float weight)
+{
+	float mat0[4][4], mat1[4][4], ret[4][4];
+
+	/* Cannot use Imath::M44d::getValue() since this returns a pointer to
+	 * doubles and interp_m4_m4m4 expects pointers to floats. So need to convert
+	 * the matrices manually.
+	 */
+
+	for (int i = 0; i < 4; ++i) {
+		for (int j = 0; j < 4; ++j) {
+			mat0[i][j] = m0[i][j];
+		}
+	}
+
+	for (int i = 0; i < 4; ++i) {
+		for (int j = 0; j < 4; ++j) {
+			mat1[i][j] = m1[i][j];
+		}
+	}
+
+	interp_m4_m4m4(ret, mat0, mat1, weight);
+
+	Imath::M44d m;
+
+	for (int i = 0; i < 4; ++i) {
+		for (int j = 0; j < 4; ++j) {
+			m[i][j] = ret[i][j];
+		}
+	}
+
+	return m;
+}
+
+Imath::M44d get_matrix(const IXformSchema &schema, const float time)
+{
+	Alembic::AbcGeom::index_t i0, i1;
+	Alembic::AbcGeom::XformSample s0, s1;
+
+	const float weight = get_weight_and_index(time,
+	                                          schema.getTimeSampling(),
+	                                          schema.getNumSamples(),
+	                                          i0,
+	                                          i1);
+
+	schema.get(s0, Alembic::AbcGeom::ISampleSelector(i0));
+
+	if (i0 != i1) {
+		schema.get(s1, Alembic::AbcGeom::ISampleSelector(i1));
+		return blend_matrices(s0.getMatrix(), s1.getMatrix(), weight);
+	}
+
+	return s0.getMatrix();
+}
+
 void AbcObjectReader::readObjectMatrix(const float time)
 {
 	IXform ixform;
@@ -194,11 +249,8 @@ void AbcObjectReader::readObjectMatrix(const float time)
 		return;
 	}
 
-	Alembic::AbcGeom::ISampleSelector sample_sel(time);
-	Alembic::AbcGeom::XformSample xs;
-	schema.get(xs, sample_sel);
-
-	create_input_transform(sample_sel, ixform, m_object, m_object->obmat, m_settings->scale, has_alembic_parent);
+	const Imath::M44d matrix = get_matrix(schema, time);
+	convert_matrix(matrix, m_object, m_object->obmat, m_settings->scale, has_alembic_parent);
 
 	invert_m4_m4(m_object->imat, m_object->obmat);
 

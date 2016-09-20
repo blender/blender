@@ -166,4 +166,6 @@ public:
 	chrono_t maxTime() const;
 };
 
+Imath::M44d get_matrix(const Alembic::AbcGeom::IXformSchema &schema, const float time);
+
 #endif  /* __ABC_OBJECT_H__ */

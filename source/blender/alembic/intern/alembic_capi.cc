@@ -799,9 +799,8 @@ void ABC_get_transform(AbcArchiveHandle *handle, Object *ob, const char *object_
 		return;
 	}
 
-	ISampleSelector sample_sel(time);
-
-	create_input_transform(sample_sel, ixform, ob, r_mat, scale);
+	const Imath::M44d matrix = get_matrix(schema, time);
+	convert_matrix(matrix, ob, r_mat, scale);
 }
 
 /* ***************************************** */
