@@ -101,6 +101,8 @@ void Batch_draw(Batch* batch)
 	if (batch->program_dirty)
 		Batch_update_program_bindings(batch);
 
+	glUseProgram(batch->program);
+
 	if (batch->elem)
 		{
 		const ElementList* el = batch->elem;
@@ -117,5 +119,6 @@ void Batch_draw(Batch* batch)
 	else
 		glDrawArrays(batch->prim_type, 0, batch->verts->vertex_ct);
 
+	glUseProgram(0);
 	glBindVertexArray(0);
 	}
