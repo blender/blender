@@ -922,6 +922,53 @@ static char *rna_RenderSettings_path(PointerRNA *UNUSED(ptr))
 	return BLI_sprintfN("render");
 }
 
+static char *rna_ImageFormatSettings_path(PointerRNA *ptr)
+{
+	ImageFormatData *imf = (ImageFormatData *)ptr->data;
+	ID *id = ptr->id.data;
+
+	switch (GS(id->name)) {
+		case ID_SCE:
+		{
+			Scene *scene = (Scene *)id;
+
+			if (&scene->r.im_format == imf) {
+				return BLI_sprintfN("render.image_settings");
+			}
+			else if (&scene->r.bake.im_format == imf) {
+				return BLI_sprintfN("render.bake.image_settings");
+			}
+			return BLI_sprintfN("..");
+		}
+		case ID_NT:
+		{
+			bNodeTree *ntree = (bNodeTree *)id;
+			bNode *node;
+
+			for (node = ntree->nodes.first; node; node = node->next) {
+				if (node->type == CMP_NODE_OUTPUT_FILE) {
+					if (&((NodeImageMultiFile *)node->storage)->format == imf) {
+						return BLI_sprintfN("nodes['%s'].format", node->name);
+					}
+					else {
+						bNodeSocket *sock;
+
+						for (sock = node->inputs.first; sock; sock = sock->next) {
+							NodeImageMultiFileSocket *sockdata = sock->storage;
+							if (&sockdata->format == imf) {
+								return BLI_sprintfN("nodes['%s'].file_slots['%s'].format", node->name, sockdata->path);
+							}
+						}
+					}
+				}
+			}
+			return BLI_sprintfN("..");
+		}
+		default:
+			return BLI_sprintfN("..");
+	}
+}
+
 static int rna_RenderSettings_threads_get(PointerRNA *ptr)
 {
 	RenderData *rd = (RenderData *)ptr->data;
@@ -5116,7 +5163,7 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "ImageFormatSettings", NULL);
 	RNA_def_struct_sdna(srna, "ImageFormatData");
 	RNA_def_struct_nested(brna, srna, "Scene");
-	/* RNA_def_struct_path_func(srna, "rna_RenderSettings_path");  *//* no need for the path, its not animated! */
+	RNA_def_struct_path_func(srna, "rna_ImageFormatSettings_path");
 	RNA_def_struct_ui_text(srna, "Image Format", "Settings for image formats");
 
 	prop = RNA_def_property(srna, "file_format", PROP_ENUM, PROP_NONE);
