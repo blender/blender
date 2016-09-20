@@ -1,11 +1,15 @@
 
 // TODO(merwin):
-// - use modern GLSL
 // - uniform color, not per vertex
 // - generic attrib inputs (2D pos, tex coord)
 
-flat varying vec4 color;
-noperspective varying vec2 texcoord;
+#if __VERSION__ == 120
+  flat varying vec4 color;
+  noperspective varying vec2 texcoord;
+#else
+  flat out vec4 color;
+  noperspective out vec2 texcoord;
+#endif
 
 void main()
 {
