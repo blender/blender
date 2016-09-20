@@ -1255,6 +1255,9 @@ void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 
 	/* matrix after circle */
 	glPopMatrix();
+
+	/* We disabled all blender lights above, so restore them here. */
+	GPU_default_lights();
 }
 
 static void ui_draw_but_curve_grid(const rcti *rect, float zoomx, float zoomy, float offsx, float offsy, float step)
