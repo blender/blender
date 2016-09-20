@@ -468,6 +468,26 @@ void immAttrib4f(unsigned attrib_id, float x, float y, float z, float w)
 	data[3] = w;
 	}
 
+void immAttrib2i(unsigned attrib_id, int x, int y)
+	{
+	Attrib* attrib = imm.vertex_format.attribs + attrib_id;
+
+#if TRUST_NO_ONE
+	assert(attrib_id < imm.vertex_format.attrib_ct);
+	assert(attrib->comp_type == GL_INT);
+	assert(attrib->comp_ct == 2);
+	assert(imm.vertex_idx < imm.vertex_ct);
+	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
+#endif
+
+	setAttribValueBit(attrib_id);
+
+	int* data = (int*)(imm.vertex_data + attrib->offset);
+
+	data[0] = x;
+	data[1] = y;
+	}
+
 void immAttrib3fv(unsigned attrib_id, const float data[3])
 	{
 	immAttrib3f(attrib_id, data[0], data[1], data[2]);
@@ -581,6 +601,12 @@ void immVertex3f(unsigned attrib_id, float x, float y, float z)
 	immEndVertex();
 	}
 
+void immVertex2i(unsigned attrib_id, int x, int y)
+	{
+	immAttrib2i(attrib_id, x, y);
+	immEndVertex();
+	}
+
 void immVertex2fv(unsigned attrib_id, const float data[2])
 	{
 	immAttrib2f(attrib_id, data[0], data[1]);
@@ -602,6 +628,12 @@ void immUniform4f(const char* name, float x, float y, float z, float w)
 #endif
 
 	glUniform4f(loc, x, y, z, w);
+	}
+
+void immVertex2iv(unsigned attrib_id, const int data[2])
+	{
+	immAttrib2i(attrib_id, data[0], data[1]);
+	immEndVertex();
 	}
 
 void immUniformColor3ubv(const unsigned char rgb[3])

@@ -41,6 +41,8 @@ void immAttrib2f(unsigned attrib_id, float x, float y);
 void immAttrib3f(unsigned attrib_id, float x, float y, float z);
 void immAttrib4f(unsigned attrib_id, float x, float y, float z, float w);
 
+void immAttrib2i(unsigned attrib_id, int x, int y);
+
 void immAttrib3fv(unsigned attrib_id, const float data[3]);
 void immAttrib4fv(unsigned attrib_id, const float data[4]);
 
@@ -56,8 +58,12 @@ void immEndVertex(void); // and move on to the next vertex
 void immVertex2f(unsigned attrib_id, float x, float y);
 void immVertex3f(unsigned attrib_id, float x, float y, float z);
 
+void immVertex2i(unsigned attrib_id, int x, int y);
+
 void immVertex2fv(unsigned attrib_id, const float data[2]);
 void immVertex3fv(unsigned attrib_id, const float data[3]);
+
+void immVertex2iv(unsigned attrib_id, const int data[2]);
 
 // provide values that don't change for the entire draw call
 void immUniform4f(const char* name, float x, float y, float z, float w);
