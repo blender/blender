@@ -57,6 +57,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "GPU_immediate.h"
+
 #include "view3d_intern.h"  /* own include */
 
 #ifdef WITH_INPUT_NDOF
@@ -338,24 +340,35 @@ static void drawWalkPixel(const struct bContext *UNUSED(C), ARegion *ar, void *a
 		yoff = walk->ar->winy / 2;
 	}
 
-	UI_ThemeColor(TH_VIEW_OVERLAY);
-	glBegin(GL_LINES);
+	VertexFormat* format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	unsigned char crosshair_color[3];
+	UI_GetThemeColor3ubv(TH_VIEW_OVERLAY, crosshair_color);
+	immUniformColor3ubv(crosshair_color);
+
+	immBegin(GL_LINES, 8);
+
 	/* North */
-	glVertex2i(xoff, yoff + inner_length);
-	glVertex2i(xoff, yoff + outter_length);
+	immVertex2i(pos, xoff, yoff + inner_length);
+	immVertex2i(pos, xoff, yoff + outter_length);
 
 	/* East */
-	glVertex2i(xoff + inner_length, yoff);
-	glVertex2i(xoff + outter_length, yoff);
+	immVertex2i(pos, xoff + inner_length, yoff);
+	immVertex2i(pos, xoff + outter_length, yoff);
 
 	/* South */
-	glVertex2i(xoff, yoff - inner_length);
-	glVertex2i(xoff, yoff - outter_length);
+	immVertex2i(pos, xoff, yoff - inner_length);
+	immVertex2i(pos, xoff, yoff - outter_length);
 
 	/* West */
-	glVertex2i(xoff - inner_length, yoff);
-	glVertex2i(xoff - outter_length, yoff);
-	glEnd();
+	immVertex2i(pos, xoff - inner_length, yoff);
+	immVertex2i(pos, xoff - outter_length, yoff);
+
+	immEnd();
+	immUnbindProgram();
 }
 
 static void walk_update_header(bContext *C, wmOperator *op, WalkInfo *walk)
