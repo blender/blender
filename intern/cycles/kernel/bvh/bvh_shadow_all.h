@@ -108,7 +108,7 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 		do {
 			/* traverse internal nodes */
 			while(node_addr >= 0 && node_addr != ENTRYPOINT_SENTINEL) {
-				int node_addr_ahild1, traverse_mask;
+				int node_addr_child1, traverse_mask;
 				float dist[2];
 				float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr+0);
 
@@ -141,25 +141,25 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #endif // __KERNEL_SSE2__
 
 				node_addr = __float_as_int(cnodes.z);
-				node_addr_ahild1 = __float_as_int(cnodes.w);
+				node_addr_child1 = __float_as_int(cnodes.w);
 
 				if(traverse_mask == 3) {
 					/* Both children were intersected, push the farther one. */
 					bool is_closest_child1 = (dist[1] < dist[0]);
 					if(is_closest_child1) {
 						int tmp = node_addr;
-						node_addr = node_addr_ahild1;
-						node_addr_ahild1 = tmp;
+						node_addr = node_addr_child1;
+						node_addr_child1 = tmp;
 					}
 
 					++stack_ptr;
 					kernel_assert(stack_ptr < BVH_STACK_SIZE);
-					traversal_stack[stack_ptr] = node_addr_ahild1;
+					traversal_stack[stack_ptr] = node_addr_child1;
 				}
 				else {
 					/* One child was intersected. */
 					if(traverse_mask == 2) {
-						node_addr = node_addr_ahild1;
+						node_addr = node_addr_child1;
 					}
 					else if(traverse_mask == 0) {
 						/* Neither child was intersected. */
