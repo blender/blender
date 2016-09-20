@@ -56,6 +56,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "GPU_immediate.h"
+
 #include "view3d_intern.h"  /* own include */
 
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
@@ -257,36 +259,47 @@ static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), 
 	x2 = xoff + 0.55f * fly->width;
 	y2 = yoff + 0.55f * fly->height;
 
-	UI_ThemeColor(TH_VIEW_OVERLAY);
-	glBegin(GL_LINES);
-	/* bottom left */
-	glVertex2f(x1, y1);
-	glVertex2f(x1, y1 + 5);
+	VertexFormat* format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
-	glVertex2f(x1, y1);
-	glVertex2f(x1 + 5, y1);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	unsigned char square_color[3];
+	UI_GetThemeColor3ubv(TH_VIEW_OVERLAY, square_color);
+	immUniformColor3ubv(square_color);
+
+	immBegin(GL_LINES, 16);
+
+	/* bottom left */
+	immVertex2f(pos, x1, y1);
+	immVertex2f(pos, x1, y1 + 5);
+
+	immVertex2f(pos, x1, y1);
+	immVertex2f(pos, x1 + 5, y1);
 
 	/* top right */
-	glVertex2f(x2, y2);
-	glVertex2f(x2, y2 - 5);
+	immVertex2f(pos, x2, y2);
+	immVertex2f(pos, x2, y2 - 5);
 
-	glVertex2f(x2, y2);
-	glVertex2f(x2 - 5, y2);
+	immVertex2f(pos, x2, y2);
+	immVertex2f(pos, x2 - 5, y2);
 
 	/* top left */
-	glVertex2f(x1, y2);
-	glVertex2f(x1, y2 - 5);
+	immVertex2f(pos, x1, y2);
+	immVertex2f(pos, x1, y2 - 5);
 
-	glVertex2f(x1, y2);
-	glVertex2f(x1 + 5, y2);
+	immVertex2f(pos, x1, y2);
+	immVertex2f(pos, x1 + 5, y2);
 
 	/* bottom right */
-	glVertex2f(x2, y1);
-	glVertex2f(x2, y1 + 5);
+	immVertex2f(pos, x2, y1);
+	immVertex2f(pos, x2, y1 + 5);
 
-	glVertex2f(x2, y1);
-	glVertex2f(x2 - 5, y1);
-	glEnd();
+	immVertex2f(pos, x2, y1);
+	immVertex2f(pos, x2 - 5, y1);
+
+	immEnd();
+	immUnbindProgram();
 }
 
 static void fly_update_header(bContext *C, wmOperator *op, FlyInfo *fly)
