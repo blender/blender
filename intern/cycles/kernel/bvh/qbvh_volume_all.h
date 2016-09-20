@@ -66,7 +66,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 
 #ifndef __KERNEL_SSE41__
 	if(!isfinite(P.x)) {
-		return false;
+		return 0;
 	}
 #endif
 
