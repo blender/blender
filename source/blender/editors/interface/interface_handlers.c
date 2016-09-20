@@ -1266,6 +1266,10 @@ static bool ui_drag_toggle_set_xy_xy(
 			}
 		}
 	}
+	if (changed) {
+		/* apply now, not on release (or if handlers are cancelled for whatever reason) */
+		ui_apply_but_funcs_after(C);
+	}
 
 	return changed;
 }
