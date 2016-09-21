@@ -170,12 +170,11 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ShaderData *shadow_sd, 
 
 #ifdef __VOLUME__
 			/* Attenuation for last line segment towards light. */
-			if(ps.volume_stack[0].shader != SHADER_NONE)
+			if(ps.volume_stack[0].shader != SHADER_NONE) {
 				kernel_volume_shadow(kg, shadow_sd, &ps, ray, &throughput);
+			}
 #endif
-
 			*shadow = throughput;
-
 			return is_zero(throughput);
 		}
 	}
@@ -230,9 +229,13 @@ ccl_device_noinline bool shadow_blocked(KernelGlobals *kg,
 	Intersection isect_object;
 	Intersection *isect = &isect_object;
 #endif
-
-	bool blocked = scene_intersect(kg, *ray, PATH_RAY_SHADOW_OPAQUE, isect, NULL, 0.0f, 0.0f);
-
+	/* Early check for opaque shadows. */
+	bool blocked = scene_intersect(kg,
+	                               *ray,
+	                               PATH_RAY_SHADOW_OPAQUE,
+	                               isect,
+	                               NULL,
+	                               0.0f, 0.0f);
 #ifdef __TRANSPARENT_SHADOWS__
 	if(blocked && kernel_data.integrator.transparent_shadows) {
 		if(shader_transparent_shadow(kg, isect)) {
@@ -243,20 +246,16 @@ ccl_device_noinline bool shadow_blocked(KernelGlobals *kg,
 			PathState ps = *state;
 #  endif
 			for(;;) {
-				if(bounce >= kernel_data.integrator.transparent_max_bounce)
+				if(bounce >= kernel_data.integrator.transparent_max_bounce) {
 					return true;
-
-				if(!scene_intersect(kg, *ray, PATH_RAY_SHADOW_TRANSPARENT, isect, NULL, 0.0f, 0.0f))
+				if(!scene_intersect(kg,
+				                    *ray,
+				                    PATH_RAY_SHADOW_TRANSPARENT,
+				                    isect,
+				                    NULL,
+				                    0.0f, 0.0f))
 				{
-#  ifdef __VOLUME__
-					/* Attenuation for last line segment towards light. */
-					if(ps.volume_stack[0].shader != SHADER_NONE)
-						kernel_volume_shadow(kg, shadow_sd, &ps, ray, &throughput);
-#  endif
-
-					*shadow *= throughput;
-
-					return false;
+					break;
 				}
 				if(!shader_transparent_shadow(kg, isect)) {
 					return true;
@@ -278,11 +277,19 @@ ccl_device_noinline bool shadow_blocked(KernelGlobals *kg,
 				}
 				bounce++;
 			}
+#  ifdef __VOLUME__
+			/* Attenuation for last line segment towards light. */
+			if(ps.volume_stack[0].shader != SHADER_NONE) {
+				kernel_volume_shadow(kg, shadow_sd, &ps, ray, &throughput);
+			}
+#  endif
+			*shadow *= throughput;
+			return is_zero(throughput);
 		}
 	}
 #  ifdef __VOLUME__
 	else if(!blocked && state->volume_stack[0].shader != SHADER_NONE) {
-		/* apply attenuation from current volume shader */
+		/* Apply attenuation from current volume shader. */
 		kernel_volume_shadow(kg, shadow_sd, state, ray, shadow);
 	}
 #  endif
