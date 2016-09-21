@@ -1082,79 +1082,6 @@ static void UI_OT_drop_color(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "gamma", 0, "Gamma Corrected", "The source color is gamma corrected ");
 }
 
-/* ------------------------------------------------------------------------- */
-
-static EnumPropertyItem space_context_cycle_direction[] = {
-	{SPACE_CONTEXT_CYCLE_PREV, "PREV", 0, "Previous", ""},
-	{SPACE_CONTEXT_CYCLE_NEXT, "NEXT", 0, "Next", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static int space_context_cycle_poll(bContext *C)
-{
-	ScrArea *sa = CTX_wm_area(C);
-	return ELEM(sa->spacetype, SPACE_BUTS, SPACE_USERPREF);
-}
-
-/**
- * Helper to get the correct RNA pointer/property pair for changing
- * the display context of active space type in \sa.
- */
-static void context_cycle_prop_get(
-        bScreen *screen, const ScrArea *sa,
-        PointerRNA *r_ptr, PropertyRNA **r_prop)
-{
-	const char *propname;
-
-	switch (sa->spacetype) {
-		case SPACE_BUTS:
-			RNA_pointer_create(&screen->id, &RNA_SpaceProperties, sa->spacedata.first, r_ptr);
-			propname = "context";
-			break;
-		case SPACE_USERPREF:
-			RNA_pointer_create(NULL, &RNA_UserPreferences, &U, r_ptr);
-			propname = "active_section";
-			break;
-	}
-
-	*r_prop = RNA_struct_find_property(r_ptr, propname);
-}
-
-static int space_context_cycle_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{
-	const int direction = RNA_enum_get(op->ptr, "direction");
-
-	PointerRNA ptr;
-	PropertyRNA *prop;
-	context_cycle_prop_get(CTX_wm_screen(C), CTX_wm_area(C), &ptr, &prop);
-
-	const int old_context = RNA_property_enum_get(&ptr, prop);
-	const int new_context = RNA_property_enum_step(
-	                  C, &ptr, prop, old_context,
-	                  direction == SPACE_CONTEXT_CYCLE_PREV ? -1 : 1);
-	RNA_property_enum_set(&ptr, prop, new_context);
-	RNA_property_update(C, &ptr, prop);
-
-	return OPERATOR_FINISHED;
-}
-
-static void UI_OT_space_context_cycle(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Cycle Space Context";
-	ot->description = "Cycle through the editor context by activating the next/previous one";
-	ot->idname = "UI_OT_space_context_cycle";
-
-	/* api callbacks */
-	ot->invoke = space_context_cycle_invoke;
-	ot->poll = space_context_cycle_poll;
-
-	ot->flag = 0;
-
-	RNA_def_enum(ot->srna, "direction", space_context_cycle_direction, SPACE_CONTEXT_CYCLE_NEXT, "Direction",
-	             "Direction to cycle through");
-}
-
 
 /* ********************************************************* */
 /* Registration */
@@ -1174,7 +1101,6 @@ void ED_operatortypes_ui(void)
 	WM_operatortype_append(UI_OT_edittranslation_init);
 #endif
 	WM_operatortype_append(UI_OT_reloadtranslation);
-	WM_operatortype_append(UI_OT_space_context_cycle);
 
 	/* external */
 	WM_operatortype_append(UI_OT_eyedropper_color);
