@@ -122,7 +122,7 @@ void rna_ID_name_set(PointerRNA *ptr, const char *value)
 	BLI_libblock_ensure_unique_name(G.main, id->name);
 }
 
-static int rna_ID_name_editable(PointerRNA *ptr)
+static int rna_ID_name_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	ID *id = (ID *)ptr->data;
 	

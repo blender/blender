@@ -292,7 +292,7 @@ static int rna_Sequence_frame_length_get(PointerRNA *ptr)
 	return BKE_sequence_tx_get_final_right(seq, false) - BKE_sequence_tx_get_final_left(seq, false);
 }
 
-static int rna_Sequence_frame_editable(PointerRNA *ptr)
+static int rna_Sequence_frame_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	Sequence *seq = (Sequence *)ptr->data;
 	/* Effect sequences' start frame and length must be readonly! */

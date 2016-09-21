@@ -199,13 +199,13 @@ static StructRNA *rna_DriverTarget_id_typef(PointerRNA *ptr)
 	return ID_code_to_RNA_type(dtar->idtype);
 }
 
-static int rna_DriverTarget_id_editable(PointerRNA *ptr)
+static int rna_DriverTarget_id_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	DriverTarget *dtar = (DriverTarget *)ptr->data;
 	return (dtar->idtype) ? PROP_EDITABLE : 0;
 }
 
-static int rna_DriverTarget_id_type_editable(PointerRNA *ptr)
+static int rna_DriverTarget_id_type_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	DriverTarget *dtar = (DriverTarget *)ptr->data;
 	

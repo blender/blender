@@ -467,7 +467,7 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 		}
 		/* alternatively, buttons can store some reasoning too */
 		else if (but->disabled_info) {
-			disabled_msg = but->disabled_info;
+			disabled_msg = TIP_(but->disabled_info);
 		}
 
 		if (disabled_msg && disabled_msg[0]) {

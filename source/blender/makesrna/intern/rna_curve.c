@@ -221,7 +221,7 @@ static void rna_Curve_texspace_set(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 		BKE_curve_texspace_calc(cu);
 }
 
-static int rna_Curve_texspace_editable(PointerRNA *ptr)
+static int rna_Curve_texspace_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	Curve *cu = (Curve *)ptr->data;
 	return (cu->texflag & CU_AUTOSPACE) ? 0 : PROP_EDITABLE;

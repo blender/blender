@@ -1619,20 +1619,56 @@ bool RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
 {
 	ID *id = ptr->id.data;
 	int flag;
+	const char *dummy_info;
 
 	prop = rna_ensure_property(prop);
-	flag = prop->editable ? prop->editable(ptr) : prop->flag;
+	flag = prop->editable ? prop->editable(ptr, &dummy_info) : prop->flag;
+
 	return ((flag & PROP_EDITABLE) &&
 	        (flag & PROP_REGISTER) == 0 &&
 	        (!id || !ID_IS_LINKED_DATABLOCK(id) || (prop->flag & PROP_LIB_EXCEPTION)));
 }
 
-bool RNA_property_editable_flag(PointerRNA *ptr, PropertyRNA *prop)
+/**
+ * Version of #RNA_property_editable that tries to return additional info in \a r_info that can be exposed in UI.
+ */
+bool RNA_property_editable_info(PointerRNA *ptr, PropertyRNA *prop, const char **r_info)
 {
+	ID *id = ptr->id.data;
 	int flag;
 
 	prop = rna_ensure_property(prop);
-	flag = prop->editable ? prop->editable(ptr) : prop->flag;
+	*r_info = "";
+
+	/* get flag */
+	if (prop->editable) {
+		flag = prop->editable(ptr, r_info);
+	}
+	else {
+		flag = prop->flag;
+		if ((flag & PROP_EDITABLE) == 0 || (flag & PROP_REGISTER)) {
+			*r_info = "This property is for internal use only and can't be edited.";
+		}
+	}
+
+	/* property from linked data-block */
+	if (id && ID_IS_LINKED_DATABLOCK(id) && (prop->flag & PROP_LIB_EXCEPTION) == 0) {
+		if (!(*r_info)[0]) {
+			*r_info = "Can't edit this property from a linked data-block.";
+		}
+		return false;
+	}
+
+	return ((flag & PROP_EDITABLE) && (flag & PROP_REGISTER) == 0);
+}
+
+bool RNA_property_editable_flag(PointerRNA *ptr, PropertyRNA *prop)
+{
+	int flag;
+	const char *dummy_info;
+
+	prop = rna_ensure_property(prop);
+	flag = prop->editable ? prop->editable(ptr, &dummy_info) : prop->flag;
 	return (flag & PROP_EDITABLE) != 0;
 }
 
@@ -1647,9 +1683,11 @@ bool RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 	prop = rna_ensure_property(prop);
 
 	flag = prop->flag;
-	
-	if (prop->editable)
-		flag &= prop->editable(ptr);
+
+	if (prop->editable) {
+		const char *dummy_info;
+		flag &= prop->editable(ptr, &dummy_info);
+	}
 
 	if (prop->itemeditable)
 		flag &= prop->itemeditable(ptr, index);

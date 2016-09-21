@@ -712,7 +712,7 @@ static void rna_Object_active_material_set(PointerRNA *ptr, PointerRNA value)
 	assign_material(ob, value.data, ob->actcol, BKE_MAT_ASSIGN_EXISTING);
 }
 
-static int rna_Object_active_material_editable(PointerRNA *ptr)
+static int rna_Object_active_material_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	Object *ob = (Object *)ptr->id.data;
 	bool is_editable;

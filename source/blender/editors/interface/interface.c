@@ -3215,10 +3215,10 @@ void ui_def_but_icon(uiBut *but, const int icon, const int flag)
 	}
 }
 
-static void ui_def_but_rna__disable(uiBut *but)
+static void ui_def_but_rna__disable(uiBut *but, const char *info)
 {
 	but->flag |= UI_BUT_DISABLED;
-	but->disabled_info = "";
+	but->disabled_info = info;
 }
 
 static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *but_p)
@@ -3483,8 +3483,9 @@ static uiBut *ui_def_but_rna(
 		but->flag |= UI_BUT_ICON_SUBMENU;
 	}
 
-	if (!RNA_property_editable(&but->rnapoin, prop)) {
-		ui_def_but_rna__disable(but);
+	const char *info;
+	if (!RNA_property_editable_info(&but->rnapoin, prop, &info)) {
+		ui_def_but_rna__disable(but, info);
 	}
 
 	if (but->flag & UI_BUT_UNDO && (ui_but_is_rna_undo(but) == false)) {
@@ -3515,7 +3516,7 @@ static uiBut *ui_def_but_rna_propname(uiBlock *block, int type, int retval, cons
 	else {
 		but = ui_def_but(block, type, retval, propname, x, y, width, height, NULL, min, max, a1, a2, tip);
 
-		ui_def_but_rna__disable(but);
+		ui_def_but_rna__disable(but, "Unknown Property.");
 	}
 
 	return but;

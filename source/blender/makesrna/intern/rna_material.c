@@ -233,7 +233,7 @@ static void rna_Material_active_texture_set(PointerRNA *ptr, PointerRNA value)
 	set_current_material_texture(ma, value.data);
 }
 
-static int rna_Material_active_texture_editable(PointerRNA *ptr)
+static int rna_Material_active_texture_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	Material *ma = (Material *)ptr->id.data;
 

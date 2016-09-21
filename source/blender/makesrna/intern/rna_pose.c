@@ -556,13 +556,18 @@ static void rna_PoseChannel_constraints_remove(ID *id, bPoseChannel *pchan, Repo
 	}
 }
 
-static int rna_PoseChannel_proxy_editable(PointerRNA *ptr)
+static int rna_PoseChannel_proxy_editable(PointerRNA *ptr, const char **r_info)
 {
 	Object *ob = (Object *)ptr->id.data;
 	bArmature *arm = ob->data;
 	bPoseChannel *pchan = (bPoseChannel *)ptr->data;
 	
-	return (ob->proxy && pchan->bone && (pchan->bone->layer & arm->layer_protected)) ? 0 : PROP_EDITABLE;
+	if (ob->proxy && pchan->bone && (pchan->bone->layer & arm->layer_protected)) {
+		*r_info = "Can't edit property of a proxy on a protected layer";
+		return 0;
+	}
+	
+	return PROP_EDITABLE;
 }
 
 static int rna_PoseChannel_location_editable(PointerRNA *ptr, int index)

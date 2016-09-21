@@ -1645,7 +1645,7 @@ static void rna_FileBrowser_FSMenuEntry_name_set(PointerRNA *ptr, const char *va
 	ED_fsmenu_entry_set_name(fsm, value);
 }
 
-static int rna_FileBrowser_FSMenuEntry_name_get_editable(PointerRNA *ptr)
+static int rna_FileBrowser_FSMenuEntry_name_get_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	FSMenuEntry *fsm = ptr->data;
 

@@ -120,7 +120,7 @@ static char *rna_GPencilLayer_path(PointerRNA *ptr)
 	return BLI_sprintfN("layers[\"%s\"]", name_esc);
 }
 
-static int rna_GPencilLayer_active_frame_editable(PointerRNA *ptr)
+static int rna_GPencilLayer_active_frame_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	bGPDlayer *gpl = (bGPDlayer *)ptr->data;
 
