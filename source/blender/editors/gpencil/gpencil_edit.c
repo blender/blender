@@ -1504,6 +1504,9 @@ static int gp_stroke_cyclical_set_exec(bContext *C, wmOperator *op)
 	/* loop all selected strokes */
 	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
 	{
+		if (gpl->actframe == NULL)
+			continue;
+			
 		for (bGPDstroke *gps = gpl->actframe->strokes.last; gps; gps = gps->prev) {
 			bGPDpalettecolor *palcolor = gps->palcolor;
 			
@@ -1724,6 +1727,9 @@ static int gp_stroke_join_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
 	{
 		bGPDframe *gpf = gpl->actframe;
+		if (gpf == NULL)
+			continue;
+		
 		for (gps = gpf->strokes.first; gps; gps = gpsn) {
 			gpsn = gps->next;
 			if (gps->flag & GP_STROKE_SELECT) {
