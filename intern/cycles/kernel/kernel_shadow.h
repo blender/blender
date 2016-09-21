@@ -109,8 +109,12 @@ ccl_device_inline bool shadow_blocked_all(KernelGlobals *kg,
 		/* Intersect to find an opaque surface, or record all transparent
 		 * surface hits.
 		 */
+#ifdef __KERNEL_CUDA__
+		Intersection *hits = kg->hits_stack;
+#else
 		Intersection hits_stack[SHADOW_STACK_MAX_HITS];
 		Intersection *hits = hits_stack;
+#endif
 		const int transparent_max_bounce = kernel_data.integrator.transparent_max_bounce;
 		uint max_hits = transparent_max_bounce - state->transparent_bounce - 1;
 #ifndef __KERNEL_GPU__
@@ -247,6 +251,7 @@ ccl_device_noinline bool shadow_blocked_stepped(KernelGlobals *kg,
 			for(;;) {
 				if(bounce >= kernel_data.integrator.transparent_max_bounce) {
 					return true;
+				}
 				if(!scene_intersect(kg,
 				                    *ray,
 				                    PATH_RAY_SHADOW_TRANSPARENT,

@@ -76,7 +76,10 @@ typedef struct KernelGlobals {
 #ifdef __KERNEL_CUDA__
 
 __constant__ KernelData __data;
-typedef struct KernelGlobals {} KernelGlobals;
+typedef struct KernelGlobals {
+	/* NOTE: Keep the size in sync with SHADOW_STACK_MAX_HITS. */
+	Intersection hits_stack[64];
+} KernelGlobals;
 
 #  ifdef __KERNEL_CUDA_TEX_STORAGE__
 #    define KERNEL_TEX(type, ttype, name) ttype name;
