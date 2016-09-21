@@ -67,6 +67,25 @@ ccl_device_inline bool shadow_handle_transparent_isect(KernelGlobals *kg,
 
 #ifdef __SHADOW_RECORD_ALL__
 
+ccl_device_inline void sort_intersections(Intersection *hits, uint num_hits)
+{
+#ifdef __KERNEL_GPU__
+	/* Use bubble sort which has more friendly memory pattern on GPU. */
+	int i, j;
+	for(i = 0; i < num_hits; ++i) {
+		for(j = 0; j < num_hits - 1; ++j) {
+			if(hits[j].t < hits[j + 1].t) {
+				Intersection tmp = hits[j];
+				hits[j] = hits[j + 1];
+				hits[j + 1] = tmp;
+			}
+		}
+	}
+#else
+	qsort(hits, num_hits, sizeof(Intersection), intersections_compare);
+#endif
+}
+
 /* Shadow function to compute how much light is blocked, CPU variation.
  *
  * We trace a single ray. If it hits any opaque surface, or more than a given
@@ -93,28 +112,32 @@ ccl_device_inline bool shadow_handle_transparent_isect(KernelGlobals *kg,
 ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ShaderData *shadow_sd, PathState *state, Ray *ray, float3 *shadow)
 {
 	*shadow = make_float3(1.0f, 1.0f, 1.0f);
-
-	if(ray->t == 0.0f)
+	if(ray->t == 0.0f) {
 		return false;
-	
+	}
 	bool blocked;
-
 	if(kernel_data.integrator.transparent_shadows) {
-		/* check transparent bounces here, for volume scatter which can do
-		 * lighting before surface path termination is checked */
-		if(state->transparent_bounce >= kernel_data.integrator.transparent_max_bounce)
+		/* Check transparent bounces here, for volume scatter which can do
+		 * lighting before surface path termination is checked.
+		 */
+		if(state->transparent_bounce >= kernel_data.integrator.transparent_max_bounce) {
 			return true;
-
-		/* intersect to find an opaque surface, or record all transparent surface hits */
+		}
+		/* Intersect to find an opaque surface, or record all transparent
+		 * surface hits.
+		 */
 		Intersection hits_stack[STACK_MAX_HITS];
 		Intersection *hits = hits_stack;
 		const int transparent_max_bounce = kernel_data.integrator.transparent_max_bounce;
 		uint max_hits = transparent_max_bounce - state->transparent_bounce - 1;
-
-		/* prefer to use stack but use dynamic allocation if too deep max hits
+#ifndef __KERNEL_GPU__
+		/* Prefer to use stack but use dynamic allocation if too deep max hits
 		 * we need max_hits + 1 storage space due to the logic in
 		 * scene_intersect_shadow_all which will first store and then check if
-		 * the limit is exceeded */
+		 * the limit is exceeded.
+		 *
+		 * Ignore this on GPU because of slow/unavailable malloc().
+		 */
 		if(max_hits + 1 > STACK_MAX_HITS) {
 			if(kg->transparent_shadow_intersections == NULL) {
 				kg->transparent_shadow_intersections =
@@ -122,11 +145,12 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ShaderData *shadow_sd, 
 			}
 			hits = kg->transparent_shadow_intersections;
 		}
-
+#endif  /* __KERNEL_GPU__ */
 		uint num_hits;
 		blocked = scene_intersect_shadow_all(kg, ray, hits, max_hits, &num_hits);
-
-		/* if no opaque surface found but we did find transparent hits, shade them */
+		/* If no opaque surface found but we did find transparent hits,
+		 * shade them.
+		 */
 		if(!blocked && num_hits > 0) {
 			float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
 			float3 Pend = ray->P + ray->D*ray->t;
@@ -136,9 +160,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ShaderData *shadow_sd, 
 #ifdef __VOLUME__
 			PathState ps = *state;
 #endif
-
-			qsort(hits, num_hits, sizeof(Intersection), intersections_compare);
-
+			sort_intersections(hits, num_hits);
 			for(int hit = 0; hit < num_hits; hit++, isect++) {
 				/* Adjust intersection distance for moving ray forward. */
 				float new_t = isect->t;
@@ -167,7 +189,6 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ShaderData *shadow_sd, 
 				}
 				bounce++;
 			}
-
 #ifdef __VOLUME__
 			/* Attenuation for last line segment towards light. */
 			if(ps.volume_stack[0].shader != SHADER_NONE) {
@@ -182,14 +203,12 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ShaderData *shadow_sd, 
 		Intersection isect;
 		blocked = scene_intersect(kg, *ray, PATH_RAY_SHADOW_OPAQUE, &isect, NULL, 0.0f, 0.0f);
 	}
-
 #ifdef __VOLUME__
 	if(!blocked && state->volume_stack[0].shader != SHADER_NONE) {
-		/* apply attenuation from current volume shader */
+		/* Apply attenuation from current volume shader/ */
 		kernel_volume_shadow(kg, shadow_sd, state, ray, shadow);
 	}
 #endif
-
 	return blocked;
 }
 
@@ -301,4 +320,3 @@ ccl_device_noinline bool shadow_blocked(KernelGlobals *kg,
 #endif
 
 CCL_NAMESPACE_END
-
