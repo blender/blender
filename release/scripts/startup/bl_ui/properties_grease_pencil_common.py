@@ -483,10 +483,12 @@ class GPENCIL_PIE_settings_palette(Menu):
         layout = self.layout
 
         pie = layout.menu_pie()
-        # gpd = context.gpencil_data
+        gpd = context.gpencil_data
         gpl = context.active_gpencil_layer
         palcolor = context.active_gpencil_palettecolor
         brush = context.active_gpencil_brush
+
+        is_editmode = bool(gpd and gpd.use_stroke_edit_mode and context.editable_gpencil_strokes)
 
         # W - Stroke draw settings
         col = pie.column(align=True)
@@ -522,32 +524,33 @@ class GPENCIL_PIE_settings_palette(Menu):
         row.prop(gpl, "hide")
         col.prop(gpl, "use_onion_skinning")
 
-        # NW - Move stroke Down
-        col = pie.column(align=True)
-        col.label("Arrange Strokes")
-        col.operator("gpencil.stroke_arrange", text="Send to Back").direction = 'BOTTOM'
-        col.operator("gpencil.stroke_arrange", text="Send Backward").direction = 'DOWN'
+        # NW/NE/SW/SE - These operators are only available in editmode
+        # as they require strokes to be selected to work
+        if is_editmode:
+            # NW - Move stroke Down
+            col = pie.column(align=True)
+            col.label("Arrange Strokes")
+            col.operator("gpencil.stroke_arrange", text="Send to Back").direction = 'BOTTOM'
+            col.operator("gpencil.stroke_arrange", text="Send Backward").direction = 'DOWN'
 
-        # NE - Move stroke Up
-        col = pie.column(align=True)
-        col.label("Arrange Strokes")
-        col.operator("gpencil.stroke_arrange", text="Bring to Front").direction = 'TOP'
-        col.operator("gpencil.stroke_arrange", text="Bring Forward").direction = 'UP'
+            # NE - Move stroke Up
+            col = pie.column(align=True)
+            col.label("Arrange Strokes")
+            col.operator("gpencil.stroke_arrange", text="Bring to Front").direction = 'TOP'
+            col.operator("gpencil.stroke_arrange", text="Bring Forward").direction = 'UP'
 
-        # SW - Move stroke to color
-        col = pie.column(align=True)
-        col.operator("gpencil.stroke_change_color", text="Move to Color")
+            # SW - Move stroke to color
+            col = pie.column(align=True)
+            col.operator("gpencil.stroke_change_color", text="Move to Color")
 
-        # SE - Join strokes
-        col = pie.column(align=True)
-        col.label("Join Strokes")
-        row = col.row()
-        row.operator("gpencil.stroke_join", text="Join").type = 'JOIN'
-        row.operator("gpencil.stroke_join", text="Join & Copy").type = 'JOINCOPY'
-        col.operator("gpencil.stroke_flip", text="Flip direction")
+            # SE - Join strokes
+            col = pie.column(align=True)
+            col.label("Join Strokes")
+            row = col.row()
+            row.operator("gpencil.stroke_join", text="Join").type = 'JOIN'
+            row.operator("gpencil.stroke_join", text="Join & Copy").type = 'JOINCOPY'
+            col.operator("gpencil.stroke_flip", text="Flip direction")
 
-        gpd = context.gpencil_data
-        if gpd:
             col.prop(gpd, "show_stroke_direction", text="Show drawing direction")
 
 
