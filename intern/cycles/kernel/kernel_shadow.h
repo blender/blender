@@ -34,10 +34,8 @@ ccl_device_inline bool shadow_handle_transparent_isect(KernelGlobals *kg,
 		kernel_volume_shadow(kg, shadow_sd, state, &segment_ray, throughput);
 	}
 #endif
-
 	/* Setup shader data at surface. */
 	shader_setup_from_ray(kg, shadow_sd, isect, ray);
-
 	/* Attenuation from transparent surface. */
 	if(!(shadow_sd->flag & SD_HAS_ONLY_VOLUME)) {
 		path_state_modify_bounce(state, true);
@@ -51,42 +49,19 @@ ccl_device_inline bool shadow_handle_transparent_isect(KernelGlobals *kg,
 		path_state_modify_bounce(state, false);
 		*throughput *= shader_bsdf_transparency(kg, shadow_sd);
 	}
-
 	/* Stop if all light is blocked. */
 	if(is_zero(*throughput)) {
 		return true;
 	}
-
 #ifdef __VOLUME__
 	/* Exit/enter volume. */
 	kernel_volume_stack_enter_exit(kg, shadow_sd, state->volume_stack);
 #endif
-
 	return false;
 }
 
 #ifdef __SHADOW_RECORD_ALL__
-
-ccl_device_inline void sort_intersections(Intersection *hits, uint num_hits)
-{
-#ifdef __KERNEL_GPU__
-	/* Use bubble sort which has more friendly memory pattern on GPU. */
-	int i, j;
-	for(i = 0; i < num_hits; ++i) {
-		for(j = 0; j < num_hits - 1; ++j) {
-			if(hits[j].t < hits[j + 1].t) {
-				Intersection tmp = hits[j];
-				hits[j] = hits[j + 1];
-				hits[j + 1] = tmp;
-			}
-		}
-	}
-#else
-	qsort(hits, num_hits, sizeof(Intersection), intersections_compare);
-#endif
-}
-
-/* Shadow function to compute how much light is blocked, CPU variation.
+/* Shadow function to compute how much light is blocked,
  *
  * We trace a single ray. If it hits any opaque surface, or more than a given
  * number of transparent surfaces is hit, then we consider the geometry to be
@@ -104,12 +79,20 @@ ccl_device_inline void sort_intersections(Intersection *hits, uint num_hits)
  * or there is a performance increase anyway due to avoiding the need to send
  * two rays with transparent shadows.
  *
- * This is CPU only because of qsort, and malloc or high stack space usage to
- * record all these intersections. */
+ * On CPU it'll handle all transparent bounces (by allocating storage for
+ * intersections when they don't fit into the stack storage).
+ *
+ * On GPU it'll only handle SHADOW_STACK_MAX_HITS-1 intersections, so this
+ * is something to be kept an eye on.
+ */
 
-#define STACK_MAX_HITS 64
+#define SHADOW_STACK_MAX_HITS 64
 
-ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ShaderData *shadow_sd, PathState *state, Ray *ray, float3 *shadow)
+ccl_device_inline bool shadow_blocked_all(KernelGlobals *kg,
+                                          ShaderData *shadow_sd,
+                                          PathState *state,
+                                          Ray *ray,
+                                          float3 *shadow)
 {
 	*shadow = make_float3(1.0f, 1.0f, 1.0f);
 	if(ray->t == 0.0f) {
@@ -126,7 +109,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ShaderData *shadow_sd, 
 		/* Intersect to find an opaque surface, or record all transparent
 		 * surface hits.
 		 */
-		Intersection hits_stack[STACK_MAX_HITS];
+		Intersection hits_stack[SHADOW_STACK_MAX_HITS];
 		Intersection *hits = hits_stack;
 		const int transparent_max_bounce = kernel_data.integrator.transparent_max_bounce;
 		uint max_hits = transparent_max_bounce - state->transparent_bounce - 1;
@@ -138,7 +121,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ShaderData *shadow_sd, 
 		 *
 		 * Ignore this on GPU because of slow/unavailable malloc().
 		 */
-		if(max_hits + 1 > STACK_MAX_HITS) {
+		if(max_hits + 1 > SHADOW_STACK_MAX_HITS) {
 			if(kg->transparent_shadow_intersections == NULL) {
 				kg->transparent_shadow_intersections =
 				    (Intersection*)malloc(sizeof(Intersection)*(transparent_max_bounce + 1));
@@ -211,30 +194,27 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ShaderData *shadow_sd, 
 #endif
 	return blocked;
 }
+#endif  /* __SHADOW_RECORD_ALL__ */
 
-#undef STACK_MAX_HITS
-
-#else
-
-/* Shadow function to compute how much light is blocked, GPU variation.
+#ifndef __KERNEL_CPU__
+/* Shadow function to compute how much light is blocked,
  *
  * Here we raytrace from one transparent surface to the next step by step.
  * To minimize overhead in cases where we don't need transparent shadows, we
  * first trace a regular shadow ray. We check if the hit primitive was
  * potentially transparent, and only in that case start marching. this gives
- * one extra ray cast for the cases were we do want transparency. */
-
-ccl_device_noinline bool shadow_blocked(KernelGlobals *kg,
-                                        ShaderData *shadow_sd,
-                                        ccl_addr_space PathState *state,
-                                        ccl_addr_space Ray *ray_input,
-                                        float3 *shadow)
+ * one extra ray cast for the cases were we do want transparency.
+ */
+ccl_device_noinline bool shadow_blocked_stepped(KernelGlobals *kg,
+                                                ShaderData *shadow_sd,
+                                                ccl_addr_space PathState *state,
+                                                ccl_addr_space Ray *ray_input,
+                                                float3 *shadow)
 {
 	*shadow = make_float3(1.0f, 1.0f, 1.0f);
-
-	if(ray_input->t == 0.0f)
+	if(ray_input->t == 0.0f) {
 		return false;
-
+	}
 #ifdef __SPLIT_KERNEL__
 	Ray private_ray = *ray_input;
 	Ray *ray = &private_ray;
@@ -313,10 +293,32 @@ ccl_device_noinline bool shadow_blocked(KernelGlobals *kg,
 	}
 #  endif
 #endif
-
 	return blocked;
 }
+#endif  /* __KERNEL_CPU__ */
 
+ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
+                                      ShaderData *shadow_sd,
+                                      PathState *state,
+                                      Ray *ray,
+                                      float3 *shadow)
+{
+#ifdef __SHADOW_RECORD_ALL__
+#  ifdef __KERNEL_CPU__
+	return shadow_blocked_all(kg, shadow_sd, state, ray, shadow);
+#  else
+	const int transparent_max_bounce = kernel_data.integrator.transparent_max_bounce;
+	const uint max_hits = transparent_max_bounce - state->transparent_bounce - 1;
+	if(max_hits + 1 < SHADOW_STACK_MAX_HITS) {
+		return shadow_blocked_all(kg, shadow_sd, state, ray, shadow);
+	}
+#  endif
 #endif
+#ifndef __KERNEL_CPU__
+	return shadow_blocked_stepped(kg, shadow_sd, state, ray, shadow);
+#endif
+}
+
+#undef SHADOW_STACK_MAX_HITS
 
 CCL_NAMESPACE_END
