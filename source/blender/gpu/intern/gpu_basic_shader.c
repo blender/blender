@@ -269,7 +269,7 @@ const GLubyte stipple_hexagon[128] = {
 
 /* GLSL State */
 
-static bool USE_GLSL = false;
+static bool USE_GLSL = true;
 
 /**
  * \note this isn't part of the basic shader API,

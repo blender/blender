@@ -1186,13 +1186,13 @@ static int arg_handle_depsgraph_use_new(int UNUSED(argc), const char **UNUSED(ar
 	return 0;
 }
 
-static const char arg_handle_basic_shader_glsl_use_new_doc[] =
-"\n\tUse new GLSL basic shader"
+static const char arg_handle_basic_shader_use_legacy_doc[] =
+"\n\tUse legacy (non-GLSL) basic shader"
 ;
-static int arg_handle_basic_shader_glsl_use_new(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+static int arg_handle_basic_shader_use_legacy(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
-	printf("Using new GLSL basic shader.\n");
-	GPU_basic_shader_use_glsl_set(true);
+	printf("Using legacy (non-GLSL) basic shader.\n");
+	GPU_basic_shader_use_glsl_set(false);
 	return 0;
 }
 
@@ -1830,7 +1830,7 @@ void main_args_setup(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	            CB_EX(arg_handle_debug_mode_generic_set, gpumem), (void *)G_DEBUG_GPU_MEM);
 
 	BLI_argsAdd(ba, 1, NULL, "--enable-new-depsgraph", CB(arg_handle_depsgraph_use_new), NULL);
-	BLI_argsAdd(ba, 1, NULL, "--enable-new-basic-shader-glsl", CB(arg_handle_basic_shader_glsl_use_new), NULL);
+	BLI_argsAdd(ba, 1, NULL, "--enable-legacy-basic-shader", CB(arg_handle_basic_shader_use_legacy), NULL);
 
 	BLI_argsAdd(ba, 1, NULL, "--verbose", CB(arg_handle_verbosity_set), NULL);
 
