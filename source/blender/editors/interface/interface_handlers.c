@@ -7040,27 +7040,6 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 				}
 			}
 		}
-		/* handle keyframing */
-		else if ((event->type == IKEY) &&
-		         !IS_EVENT_MOD(event, ctrl, oskey) &&
-		         (event->val == KM_PRESS))
-		{
-			if (event->alt) {
-				if (event->shift) {
-					ui_but_anim_clear_keyframe(C);
-				}
-				else {
-					ui_but_anim_delete_keyframe(C);
-				}
-			}
-			else {
-				ui_but_anim_insert_keyframe(C);
-			}
-			
-			ED_region_tag_redraw(data->region);
-			
-			return WM_UI_HANDLER_BREAK;
-		}
 		/* handle drivers */
 		else if ((event->type == DKEY) &&
 		         !IS_EVENT_MOD(event, shift, oskey) &&
@@ -8082,8 +8061,13 @@ uiBut *UI_context_active_but_get(const struct bContext *C)
 	return ui_context_button_active(C, NULL);
 }
 
-/* helper function for insert keyframe, reset to default, etc operators */
-void UI_context_active_but_prop_get(
+/**
+ * Version of #UI_context_active_but_get that also returns RNA property info.
+ * Helper function for insert keyframe, reset to default, etc operators.
+ *
+ * \return active button, NULL if none found or if it doesn't contain valid RNA data.
+ */
+uiBut *UI_context_active_but_prop_get(
         const bContext *C,
         struct PointerRNA *r_ptr, struct PropertyRNA **r_prop, int *r_index)
 {
@@ -8099,6 +8083,8 @@ void UI_context_active_but_prop_get(
 		*r_prop = NULL;
 		*r_index = 0;
 	}
+
+	return activebut;
 }
 
 void UI_context_active_but_prop_handle(bContext *C)

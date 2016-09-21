@@ -1114,7 +1114,12 @@ void ED_operatortypes_ui(void)
  */
 void ED_keymap_ui(wmKeyConfig *keyconf)
 {
-	WM_keymap_find(keyconf, "User Interface", 0, 0);
+	wmKeyMap *keymap = WM_keymap_find(keyconf, "User Interface", 0, 0);
+
+	/* keyframes */
+	WM_keymap_add_item(keymap, "ANIM_OT_keyframe_insert_button", IKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_keyframe_delete_button", IKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_keyframe_clear_button", IKEY, KM_PRESS, KM_SHIFT | KM_ALT, 0);
 
 	eyedropper_modal_keymap(keyconf);
 }

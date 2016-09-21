@@ -1027,7 +1027,7 @@ bool UI_context_copy_to_selected_list(
 
 /* Helpers for Operators */
 uiBut *UI_context_active_but_get(const struct bContext *C);
-void UI_context_active_but_prop_get(
+uiBut *UI_context_active_but_prop_get(
         const struct bContext *C,
         struct PointerRNA *r_ptr, struct PropertyRNA **r_prop, int *r_index);
 void UI_context_active_but_prop_handle(struct bContext *C);
