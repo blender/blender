@@ -729,15 +729,8 @@ void ui_block_align_calc(uiBlock *block);
 
 /* interface_anim.c */
 void ui_but_anim_flag(uiBut *but, float cfra);
-void ui_but_anim_insert_keyframe(struct bContext *C);
-void ui_but_anim_delete_keyframe(struct bContext *C);
-void ui_but_anim_clear_keyframe(struct bContext *C);
-void ui_but_anim_add_driver(struct bContext *C);
-void ui_but_anim_remove_driver(struct bContext *C);
 void ui_but_anim_copy_driver(struct bContext *C);
 void ui_but_anim_paste_driver(struct bContext *C);
-void ui_but_anim_add_keyingset(struct bContext *C);
-void ui_but_anim_remove_keyingset(struct bContext *C);
 bool ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen);
 bool ui_but_anim_expression_set(uiBut *but, const char *str);
 bool ui_but_anim_expression_create(uiBut *but, const char *str);

@@ -7040,36 +7040,6 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 				}
 			}
 		}
-		/* handle drivers */
-		else if ((event->type == DKEY) &&
-		         !IS_EVENT_MOD(event, shift, oskey) &&
-		         (event->val == KM_PRESS))
-		{
-			/* quick check to prevent this opening within the popup menu its self */
-			if (!ELEM(NULL, but->rnapoin.data, but->rnaprop)) {
-				if (event->alt)
-					ui_but_anim_remove_driver(C);
-				else if (event->ctrl)
-					ui_but_anim_add_driver(C);
-
-				ED_region_tag_redraw(data->region);
-			}
-			return WM_UI_HANDLER_BREAK;
-		}
-		/* handle keyingsets */
-		else if ((event->type == KKEY) &&
-		         !IS_EVENT_MOD(event, shift, ctrl, oskey) &&
-		         (event->val == KM_PRESS))
-		{
-			if (event->alt)
-				ui_but_anim_remove_keyingset(C);
-			else
-				ui_but_anim_add_keyingset(C);
-				
-			ED_region_tag_redraw(data->region);
-			
-			return WM_UI_HANDLER_BREAK;
-		}
 		/* handle menu */
 		else if ((event->type == RIGHTMOUSE) &&
 		         !IS_EVENT_MOD(event, shift, ctrl, alt, oskey) &&

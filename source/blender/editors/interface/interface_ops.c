@@ -1121,5 +1121,13 @@ void ED_keymap_ui(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "ANIM_OT_keyframe_delete_button", IKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "ANIM_OT_keyframe_clear_button", IKEY, KM_PRESS, KM_SHIFT | KM_ALT, 0);
 
+	/* drivers */
+	WM_keymap_add_item(keymap, "ANIM_OT_driver_button_add", DKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_driver_button_remove", DKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
+
+	/* keyingsets */
+	WM_keymap_add_item(keymap, "ANIM_OT_keyingset_button_add", KKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_keyingset_button_remove", KKEY, KM_PRESS, KM_ALT, 0);
+
 	eyedropper_modal_keymap(keyconf);
 }
