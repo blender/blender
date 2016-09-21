@@ -1185,8 +1185,6 @@ void ED_operatortypes_ui(void)
 
 /**
  * \brief User Interface Keymap
- *
- * For now only modal maps here, since UI uses special ui-handlers instead of operators.
  */
 void ED_keymap_ui(wmKeyConfig *keyconf)
 {
