@@ -136,6 +136,9 @@ static bool vertex_count_makes_sense_for_primitive(unsigned vertex_ct, GLenum pr
 			return vertex_ct > 2; // otherwise why bother?
 		case GL_TRIANGLES:
 			return vertex_ct % 3 == 0;
+		case GL_TRIANGLE_STRIP:
+		case GL_TRIANGLE_FAN:
+			return vertex_ct > 3; // otherwise why bother?
   #ifdef WITH_GL_PROFILE_COMPAT
 		case GL_QUADS:
 			return vertex_ct % 4 == 0;
