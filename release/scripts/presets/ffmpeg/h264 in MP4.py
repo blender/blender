@@ -1,13 +1,14 @@
 import bpy
 is_ntsc = (bpy.context.scene.render.fps != 25)
 
-bpy.context.scene.render.ffmpeg.format = "OGG"
-bpy.context.scene.render.ffmpeg.codec = "THEORA"
+bpy.context.scene.render.ffmpeg.format = "MPEG4"
+bpy.context.scene.render.ffmpeg.codec = "H264"
 
 if is_ntsc:
     bpy.context.scene.render.ffmpeg.gopsize = 18
 else:
     bpy.context.scene.render.ffmpeg.gopsize = 15
+bpy.context.scene.render.ffmpeg.use_max_b_frames = False
 
 bpy.context.scene.render.ffmpeg.video_bitrate = 6000
 bpy.context.scene.render.ffmpeg.maxrate = 9000

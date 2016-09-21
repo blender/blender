@@ -282,15 +282,10 @@ EnumPropertyItem rna_enum_image_type_items[] = {
 	{R_IMF_IMTYPE_FRAMESERVER, "FRAMESERVER", ICON_FILE_SCRIPT, "Frame Server", "Output image to a frameserver"},
 #endif
 #ifdef WITH_FFMPEG
-	{R_IMF_IMTYPE_H264, "H264", ICON_FILE_MOVIE, "H.264", "Output video in H.264 format"},
-	{R_IMF_IMTYPE_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "MPEG", "Output video in MPEG format"},
-	{R_IMF_IMTYPE_THEORA, "THEORA", ICON_FILE_MOVIE, "Ogg Theora", "Output video in Ogg format"},
+	{R_IMF_IMTYPE_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "FFmpeg video", "The most versatile way to output video files"},
 #endif
 #ifdef WITH_QUICKTIME
 	{R_IMF_IMTYPE_QUICKTIME, "QUICKTIME", ICON_FILE_MOVIE, "QuickTime", "Output video in Quicktime format"},
-#endif
-#ifdef WITH_FFMPEG
-	{R_IMF_IMTYPE_XVID, "XVID", ICON_FILE_MOVIE, "Xvid", "Output video in Xvid format"},
 #endif
 	{0, NULL, 0, NULL, NULL}
 };
@@ -5320,6 +5315,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 #ifdef WITH_FFMPEG
+	/* Container types */
 	static EnumPropertyItem ffmpeg_format_items[] = {
 		{FFMPEG_MPEG1, "MPEG1", 0, "MPEG-1", ""},
 		{FFMPEG_MPEG2, "MPEG2", 0, "MPEG-2", ""},
@@ -5327,8 +5323,8 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 		{FFMPEG_AVI, "AVI", 0, "AVI", ""},
 		{FFMPEG_MOV, "QUICKTIME", 0, "Quicktime", ""},
 		{FFMPEG_DV, "DV", 0, "DV", ""},
-		{FFMPEG_H264, "H264", 0, "H.264", ""},
-		{FFMPEG_XVID, "XVID", 0, "Xvid", ""},
+//		{FFMPEG_H264, "H264", 0, "H.264", ""},  not a container
+//		{FFMPEG_XVID, "XVID", 0, "Xvid", ""},   not a container
 		{FFMPEG_OGG, "OGG", 0, "Ogg", ""},
 		{FFMPEG_MKV, "MKV", 0, "Matroska", ""},
 		{FFMPEG_FLV, "FLASH", 0, "Flash", ""},
@@ -5349,6 +5345,32 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 		{AV_CODEC_ID_QTRLE, "QTRLE", 0, "QT rle / QT Animation", ""},
 		{AV_CODEC_ID_DNXHD, "DNXHD", 0, "DNxHD", ""},
 		{AV_CODEC_ID_PNG, "PNG", 0, "PNG", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem ffmpeg_preset_items[] = {
+		{FFM_PRESET_ULTRAFAST, "ULTRAFAST", 0, "Ultra fast; biggest file", ""},
+		{FFM_PRESET_SUPERFAST, "SUPERFAST", 0, "Super fast", ""},
+		{FFM_PRESET_VERYFAST, "VERYFAST", 0, "Very fast", ""},
+		{FFM_PRESET_FASTER, "FASTER", 0, "Faster", ""},
+		{FFM_PRESET_FAST, "FAST", 0, "Fast", ""},
+		{FFM_PRESET_MEDIUM, "MEDIUM", 0, "Medium speed", ""},
+		{FFM_PRESET_SLOW, "SLOW", 0, "Slow", ""},
+		{FFM_PRESET_SLOWER, "SLOWER", 0, "Slower", ""},
+		{FFM_PRESET_VERYSLOW, "VERYSLOW", 0, "Very slow; smallest file", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem ffmpeg_crf_items[] = {
+		{FFM_CRF_NONE, "NONE", 0, "None; use constant bit-rate",
+		 "Use constant bit rate, rather than constant output quality"},
+		{FFM_CRF_LOSSLESS, "LOSSLESS", 0, "Lossless", ""},
+		{FFM_CRF_PERC_LOSSLESS, "PERC_LOSSLESS", 0, "Perceptually lossless", ""},
+		{FFM_CRF_HIGH, "HIGH", 0, "High quality", ""},
+		{FFM_CRF_MEDIUM, "MEDIUM", 0, "Medium quality", ""},
+		{FFM_CRF_LOW, "LOW", 0, "Low quality", ""},
+		{FFM_CRF_VERYLOW, "VERYLOW", 0, "Very low quality", ""},
+		{FFM_CRF_LOWEST, "LOWEST", 0, "Lowest quality", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -5383,13 +5405,15 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "type");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, ffmpeg_format_items);
-	RNA_def_property_ui_text(prop, "Format", "Output file format");
+	RNA_def_property_enum_default(prop, FFMPEG_MKV);
+	RNA_def_property_ui_text(prop, "Container", "Output file container");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_FFmpegSettings_codec_settings_update");
 
 	prop = RNA_def_property(srna, "codec", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "codec");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, ffmpeg_codec_items);
+	RNA_def_property_enum_default(prop, AV_CODEC_ID_H264);
 	RNA_def_property_ui_text(prop, "Codec", "FFmpeg codec to use");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_FFmpegSettings_codec_settings_update");
 
@@ -5421,8 +5445,25 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "gopsize", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gop_size");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_range(prop, 0, 100);
-	RNA_def_property_ui_text(prop, "GOP Size", "Distance between key frames");
+	RNA_def_property_range(prop, 0, 500);
+	RNA_def_property_int_default(prop, 25);
+	RNA_def_property_ui_text(prop, "Keyframe interval",
+	                         "Distance between key frames, also known as GOP size; "
+	                         "influences file size and seekability");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "max_b_frames", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "max_b_frames");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_range(prop, 0, 16);
+	RNA_def_property_ui_text(prop, "Max B-frames",
+	                         "Maximum number of B-frames between non-B-frames; influences file size and seekability");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "use_max_b_frames", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", FFMPEG_USE_MAX_B_FRAMES);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Use max B-frames", "Set a maximum number of B-frames");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "buffersize", PROP_INT, PROP_NONE);
@@ -5437,6 +5478,24 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0, 16384);
 	RNA_def_property_ui_text(prop, "Mux Packet Size", "Mux packet size (byte)");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "constant_rate_factor", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "constant_rate_factor");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_enum_items(prop, ffmpeg_crf_items);
+	RNA_def_property_enum_default(prop, FFM_CRF_MEDIUM);
+	RNA_def_property_ui_text(prop, "Output quality",
+	                         "Constant Rate Factor (CRF); tradeoff between video quality and file size");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "ffmpeg_preset", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "ffmpeg_preset");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_enum_items(prop, ffmpeg_preset_items);
+	RNA_def_property_enum_default(prop, FFM_PRESET_MEDIUM);
+	RNA_def_property_ui_text(prop, "Encoding speed",
+	                         "Tradeoff between encoding speed and compression ratio");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "use_autosplit", PROP_BOOLEAN, PROP_NONE);

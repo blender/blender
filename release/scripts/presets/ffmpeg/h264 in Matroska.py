@@ -1,7 +1,7 @@
 import bpy
 is_ntsc = (bpy.context.scene.render.fps != 25)
 
-bpy.context.scene.render.ffmpeg.format = "H264"
+bpy.context.scene.render.ffmpeg.format = "MKV"
 bpy.context.scene.render.ffmpeg.codec = "H264"
 
 if is_ntsc:

@@ -69,9 +69,13 @@ typedef struct FFMpegContext {
 	int ffmpeg_video_bitrate;
 	int ffmpeg_audio_bitrate;
 	int ffmpeg_gop_size;
+	int ffmpeg_max_b_frames;
 	int ffmpeg_autosplit;
 	int ffmpeg_autosplit_count;
 	bool ffmpeg_preview;
+
+	int ffmpeg_crf;  /* set to 0 to not use CRF mode; we have another flag for lossless anyway. */
+	int ffmpeg_preset; /* see FFMpegPreset */
 
 	AVFormatContext *outfile;
 	AVStream *video_stream;
@@ -560,10 +564,37 @@ static AVStream *alloc_video_stream(FFMpegContext *context, RenderData *rd, int 
 	}
 	
 	c->gop_size = context->ffmpeg_gop_size;
-	c->bit_rate = context->ffmpeg_video_bitrate * 1000;
-	c->rc_max_rate = rd->ffcodecdata.rc_max_rate * 1000;
-	c->rc_min_rate = rd->ffcodecdata.rc_min_rate * 1000;
-	c->rc_buffer_size = rd->ffcodecdata.rc_buffer_size * 1024;
+	c->max_b_frames = context->ffmpeg_max_b_frames;
+
+	if (context->ffmpeg_crf >= 0) {
+		ffmpeg_dict_set_int(&opts, "crf", context->ffmpeg_crf);
+	} else {
+		c->bit_rate = context->ffmpeg_video_bitrate * 1000;
+		c->rc_max_rate = rd->ffcodecdata.rc_max_rate * 1000;
+		c->rc_min_rate = rd->ffcodecdata.rc_min_rate * 1000;
+		c->rc_buffer_size = rd->ffcodecdata.rc_buffer_size * 1024;
+	}
+
+	if (context->ffmpeg_preset) {
+		char const * preset_name;
+		switch(context->ffmpeg_preset) {
+			case FFM_PRESET_ULTRAFAST: preset_name = "ultrafast"; break;
+			case FFM_PRESET_SUPERFAST: preset_name = "superfast"; break;
+			case FFM_PRESET_VERYFAST: preset_name = "veryfast"; break;
+			case FFM_PRESET_FASTER: preset_name = "faster"; break;
+			case FFM_PRESET_FAST: preset_name = "fast"; break;
+			case FFM_PRESET_MEDIUM: preset_name = "medium"; break;
+			case FFM_PRESET_SLOW: preset_name = "slow"; break;
+			case FFM_PRESET_SLOWER: preset_name = "slower"; break;
+			case FFM_PRESET_VERYSLOW: preset_name = "veryslow"; break;
+			default:
+				printf("Unknown preset number %i, ignoring.\n", context->ffmpeg_preset);
+				preset_name = NULL;
+		}
+		if (preset_name != NULL) {
+			av_dict_set(&opts, "preset", preset_name, 0);
+		}
+	}
 
 #if 0
 	/* this options are not set in ffmpeg.c and leads to artifacts with MPEG-4
@@ -819,6 +850,12 @@ static int start_ffmpeg_impl(FFMpegContext *context, struct RenderData *rd, int 
 	context->ffmpeg_audio_bitrate = rd->ffcodecdata.audio_bitrate;
 	context->ffmpeg_gop_size = rd->ffcodecdata.gop_size;
 	context->ffmpeg_autosplit = rd->ffcodecdata.flags & FFMPEG_AUTOSPLIT_OUTPUT;
+	context->ffmpeg_crf = rd->ffcodecdata.constant_rate_factor;
+	context->ffmpeg_preset = rd->ffcodecdata.ffmpeg_preset;
+
+	if ((rd->ffcodecdata.flags & FFMPEG_USE_MAX_B_FRAMES) != 0) {
+		context->ffmpeg_max_b_frames = rd->ffcodecdata.max_b_frames;
+	}
 
 	/* Determine the correct filename */
 	ffmpeg_filepath_get(context, name, rd, context->ffmpeg_preview, suffix);
@@ -852,12 +889,16 @@ static int start_ffmpeg_impl(FFMpegContext *context, struct RenderData *rd, int 
 	/* Returns after this must 'goto fail;' */
 
 	of->oformat = fmt;
-	of->packet_size = rd->ffcodecdata.mux_packet_size;
-	if (context->ffmpeg_audio_codec != AV_CODEC_ID_NONE) {
-		ffmpeg_dict_set_int(&opts, "muxrate", rd->ffcodecdata.mux_rate);
-	}
-	else {
-		av_dict_set(&opts, "muxrate", "0", 0);
+
+	/* Only bother with setting packet size & mux rate when CRF is not used. */
+	if (context->ffmpeg_crf == 0) {
+		of->packet_size = rd->ffcodecdata.mux_packet_size;
+		if (context->ffmpeg_audio_codec != AV_CODEC_ID_NONE) {
+			ffmpeg_dict_set_int(&opts, "muxrate", rd->ffcodecdata.mux_rate);
+		}
+		else {
+			av_dict_set(&opts, "muxrate", "0", 0);
+		}
 	}
 
 	ffmpeg_dict_set_int(&opts, "preload", (int)(0.5 * AV_TIME_BASE));
@@ -1503,14 +1544,6 @@ static void ffmpeg_set_expert_options(RenderData *rd)
 		BKE_ffmpeg_property_add_string(rd, "video", "fast-pskip:1");
 		BKE_ffmpeg_property_add_string(rd, "video", "wpredp:2");
 #endif
-
-		if (rd->ffcodecdata.flags & FFMPEG_LOSSLESS_OUTPUT) {
-#ifdef FFMPEG_HAVE_DEPRECATED_FLAGS2
-			BKE_ffmpeg_property_add_string(rd, "video", "cqp:0");
-#else
-			BKE_ffmpeg_property_add_string(rd, "video", "qp:0");
-#endif
-		}
 	}
 	else if (codec_id == AV_CODEC_ID_DNXHD) {
 		if (rd->ffcodecdata.flags & FFMPEG_LOSSLESS_OUTPUT)
@@ -1622,9 +1655,10 @@ void BKE_ffmpeg_image_type_verify(RenderData *rd, ImageFormatData *imf)
 		    rd->ffcodecdata.audio_codec <= 0 ||
 		    rd->ffcodecdata.video_bitrate <= 1)
 		{
-			rd->ffcodecdata.codec = AV_CODEC_ID_MPEG2VIDEO;
-
-			BKE_ffmpeg_preset_set(rd, FFMPEG_PRESET_DVD);
+			BKE_ffmpeg_preset_set(rd, FFMPEG_PRESET_H264);
+			rd->ffcodecdata.constant_rate_factor = FFM_CRF_MEDIUM;
+			rd->ffcodecdata.ffmpeg_preset = FFM_PRESET_MEDIUM;
+			rd->ffcodecdata.type = FFMPEG_MKV;
 		}
 		if (rd->ffcodecdata.type == FFMPEG_OGG) {
 			rd->ffcodecdata.type = FFMPEG_MPEG2;
