@@ -4191,7 +4191,8 @@ static EnumPropertyItem space_context_cycle_direction[] = {
 static int space_context_cycle_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
-	return ELEM(sa->spacetype, SPACE_BUTS, SPACE_USERPREF);
+	/* sa might be NULL if called out of window bounds */
+	return (sa && ELEM(sa->spacetype, SPACE_BUTS, SPACE_USERPREF));
 }
 
 /**
