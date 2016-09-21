@@ -6979,6 +6979,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 	/* if but->pointype is set, but->poin should be too */
 	BLI_assert(!but->pointype || but->poin);
 
+	/* Only hard-coded stuff here, button interactions with configurable
+	 * keymaps are handled using operators (see #ED_keymap_ui). */
+
 	if ((data->state == BUTTON_STATE_HIGHLIGHT) || (event->type == EVT_DROP)) {
 		/* handle copy-paste */
 		if (ELEM(event->type, CKEY, VKEY) && event->val == KM_PRESS &&
@@ -7005,40 +7008,6 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		/* handle drop */
 		else if (event->type == EVT_DROP) {
 			ui_but_drop(C, event, but, data);
-		}
-		/* handle eyedropper */
-		else if ((event->type == EKEY) && (event->val == KM_PRESS)) {
-			if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
-				/* pass */
-			}
-			else {
-				if (but->type == UI_BTYPE_COLOR) {
-					WM_operator_name_call(C, "UI_OT_eyedropper_color", WM_OP_INVOKE_DEFAULT, NULL);
-					return WM_UI_HANDLER_BREAK;
-				}
-				else if ((but->type == UI_BTYPE_SEARCH_MENU) &&
-				         (but->flag & UI_BUT_SEARCH_UNLINK))
-				{
-					if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_POINTER) {
-						StructRNA *type = RNA_property_pointer_type(&but->rnapoin, but->rnaprop);
-						const short idcode = RNA_type_to_ID_code(type);
-						if ((idcode == ID_OB) || OB_DATA_SUPPORT_ID(idcode)) {
-							WM_operator_name_call(C, "UI_OT_eyedropper_id", WM_OP_INVOKE_DEFAULT, NULL);
-							return WM_UI_HANDLER_BREAK;
-						}
-					}
-				}
-				else if (but->type == UI_BTYPE_NUM) {
-					if (but->rnaprop &&
-					    (RNA_property_type(but->rnaprop) == PROP_FLOAT) &&
-					    (RNA_property_subtype(but->rnaprop) & PROP_UNIT_LENGTH) &&
-					    (RNA_property_array_check(but->rnaprop) == false))
-					{
-						WM_operator_name_call(C, "UI_OT_eyedropper_depth", WM_OP_INVOKE_DEFAULT, NULL);
-						return WM_UI_HANDLER_BREAK;
-					}
-				}
-			}
 		}
 		/* handle menu */
 		else if ((event->type == RIGHTMOUSE) &&
