@@ -220,22 +220,6 @@ void gpuLoadMatrix(eGPUMatrixMode stack, const float *m)
 	CHECKMAT(ms_current);
 }
 
-void gpuLoadMatrixd(eGPUMatrixMode stack, const double *md)
-{
-	GPU_matrix_stack *ms_current = mstacks + stack;
-	float mf[16];
-	int i;
-
-	for (i = 0; i < 16; i++) {
-		mf[i] = md[i];
-	}
-
-	copy_m4_m4(ms_current->dynstack[ms_current->pos], (float (*)[4])mf);
-
-	CHECKMAT(ms_current);
-}
-
-
 const GLfloat *gpuGetMatrix(eGPUMatrixMode stack, GLfloat *m)
 {
 	GPU_matrix_stack *ms_select = mstacks + stack;
@@ -246,20 +230,6 @@ const GLfloat *gpuGetMatrix(eGPUMatrixMode stack, GLfloat *m)
 	}
 	else {
 		return (GLfloat*)(ms_select->dynstack[ms_select->pos]);
-	}
-}
-
-void gpuGetMatrixd(eGPUMatrixMode stack, double m[16])
-{
-	GPU_matrix_stack *ms_select = mstacks + stack;
-
-	if (m) {
-		int i;
-		float *f = ms_select->dynstack[ms_select->pos][0];
-		for (i = 0; i < 16; i++) {
-			m[i] = f[i];
-			/* copy_m3_m3d(); should use something like */
-		}
 	}
 }
 
@@ -296,18 +266,6 @@ void gpuMultMatrix(eGPUMatrixMode stack, const float *m)
 	mult_m4_m4m4_q(ms_current->dynstack[ms_current->pos], cm, (GLfloat (*)[4])m);
 
 	CHECKMAT(ms_current);
-}
-
-void gpuMultMatrixd(eGPUMatrixMode stack, const double *m)
-{
-	GLfloat mf[16];
-	GLint i;
-
-	for (i = 0; i < 16; i++) {
-		mf[i] = m[i];
-	}
-
-	gpuMultMatrix(stack, mf);
 }
 
 void gpuRotateVector(eGPUMatrixMode stack, GLfloat deg, GLfloat vector[3])
@@ -458,11 +416,4 @@ void GPU_feedback_vertex_4fv(GLenum type, GLfloat x, GLfloat y, GLfloat z, GLflo
 	GPU_matrix *m = (GPU_matrix*)gpuGetMatrix(type, NULL);
 	float in[4] = {x, y, z, w};
 	mul_v4_m4v4(out, m[0], in);
-}
-
-void GPU_feedback_vertex_4dv(GLenum type, GLdouble x, GLdouble y, GLdouble z, GLdouble w, GLdouble out[3])
-{
-	GPU_matrix *m = (GPU_matrix*)gpuGetMatrix(type, NULL);
-	double in[4] = {x, y, z, w};
-	mul_v4d_m4v4d(out, m[0], in);
 }

@@ -48,14 +48,11 @@ void gpuPushMatrix(eGPUMatrixMode stack);
 void gpuPopMatrix(eGPUMatrixMode stack);
 
 void gpuLoadMatrix(eGPUMatrixMode stack, const float m[16]);
-void gpuLoadMatrixd(eGPUMatrixMode stack, const double m[16]);
 const float *gpuGetMatrix(eGPUMatrixMode stack, float m[16]);
-void gpuGetMatrixd(eGPUMatrixMode stack, double m[16]);
 
 void gpuLoadIdentity(eGPUMatrixMode stack);
 
 void gpuMultMatrix(eGPUMatrixMode stack, const float m[16]);
-void gpuMultMatrixd(eGPUMatrixMode stack, const double m[16]);
 
 void gpuTranslate(eGPUMatrixMode stack, float x, float y, float z);
 void gpuScale(eGPUMatrixMode stack, GLfloat x, GLfloat y, GLfloat z);
@@ -78,7 +75,6 @@ void gpu_commit_matrix(void);
 
 void GPU_feedback_vertex_3fv(GLenum type, GLfloat x, GLfloat y, GLfloat z,            GLfloat out[3]);
 void GPU_feedback_vertex_4fv(GLenum type, GLfloat x, GLfloat y, GLfloat z, GLfloat w, GLfloat out[4]);
-void GPU_feedback_vertex_4dv(GLenum type, GLdouble x, GLdouble y, GLdouble z, GLdouble w, GLdouble out[4]);
 
 #if defined(GLEW_ES_ONLY)
 
