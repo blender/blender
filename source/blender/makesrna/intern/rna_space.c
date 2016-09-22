@@ -1635,7 +1635,7 @@ static void rna_FileBrowser_FSMenuEntry_name_set(PointerRNA *ptr, const char *va
 	ED_fsmenu_entry_set_name(fsm, value);
 }
 
-static int rna_FileBrowser_FSMenuEntry_name_get_editable(PointerRNA *ptr)
+static int rna_FileBrowser_FSMenuEntry_name_get_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	FSMenuEntry *fsm = ptr->data;
 
@@ -4286,17 +4286,17 @@ static void rna_def_space_node(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "ID", "Datablock whose nodes are being edited");
+	RNA_def_property_ui_text(prop, "ID", "Data-block whose nodes are being edited");
 
 	prop = RNA_def_property(srna, "id_from", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "from");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "ID From", "Datablock from which the edited data-block is linked");
+	RNA_def_property_ui_text(prop, "ID From", "Data-block from which the edited data-block is linked");
 
 	prop = RNA_def_property(srna, "path", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "treepath", NULL);
 	RNA_def_property_struct_type(prop, "NodeTreePath");
-	RNA_def_property_ui_text(prop, "Node Tree Path", "Path from the data block to the currently edited node tree");
+	RNA_def_property_ui_text(prop, "Node Tree Path", "Path from the data-block to the currently edited node tree");
 	rna_def_space_node_path_api(brna, prop);
 
 	prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);

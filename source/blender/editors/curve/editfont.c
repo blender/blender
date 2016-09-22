@@ -1788,7 +1788,7 @@ void FONT_OT_unlink(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Unlink";
 	ot->idname = "FONT_OT_unlink";
-	ot->description = "Unlink active font data block";
+	ot->description = "Unlink active font data-block";
 	
 	/* api callbacks */
 	ot->exec = font_unlink_exec;

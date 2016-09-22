@@ -1247,7 +1247,6 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2])
 
 			if (ot == NULL || WM_operator_poll_context((bContext *)C, ot, but->opcontext) == 0) {
 				but->flag |= UI_BUT_DISABLED;
-				but->lock = true;
 			}
 
 			if (but->context)
@@ -3122,8 +3121,7 @@ static uiBut *ui_def_but(
 	but->a2 = a2;
 	but->tip = tip;
 
-	but->lock = block->lock;
-	but->lockstr = block->lockstr;
+	but->disabled_info = block->lockstr;
 	but->dt = block->dt;
 	but->pie_dir = UI_RADIAL_NONE;
 
@@ -3171,10 +3169,8 @@ static uiBut *ui_def_but(
 
 	but->drawflag |= (block->flag & UI_BUT_ALIGN);
 
-	if (but->lock == true) {
-		if (but->lockstr) {
-			but->flag |= UI_BUT_DISABLED;
-		}
+	if (block->lock == true) {
+		but->flag |= UI_BUT_DISABLED;
 	}
 
 	/* keep track of UI_interface.h */
@@ -3219,11 +3215,10 @@ void ui_def_but_icon(uiBut *but, const int icon, const int flag)
 	}
 }
 
-static void ui_def_but_rna__disable(uiBut *but)
+static void ui_def_but_rna__disable(uiBut *but, const char *info)
 {
 	but->flag |= UI_BUT_DISABLED;
-	but->lock = true;
-	but->lockstr = "";
+	but->disabled_info = info;
 }
 
 static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *but_p)
@@ -3488,8 +3483,9 @@ static uiBut *ui_def_but_rna(
 		but->flag |= UI_BUT_ICON_SUBMENU;
 	}
 
-	if (!RNA_property_editable(&but->rnapoin, prop)) {
-		ui_def_but_rna__disable(but);
+	const char *info;
+	if (!RNA_property_editable_info(&but->rnapoin, prop, &info)) {
+		ui_def_but_rna__disable(but, info);
 	}
 
 	if (but->flag & UI_BUT_UNDO && (ui_but_is_rna_undo(but) == false)) {
@@ -3520,7 +3516,7 @@ static uiBut *ui_def_but_rna_propname(uiBlock *block, int type, int retval, cons
 	else {
 		but = ui_def_but(block, type, retval, propname, x, y, width, height, NULL, min, max, a1, a2, tip);
 
-		ui_def_but_rna__disable(but);
+		ui_def_but_rna__disable(but, "Unknown Property.");
 	}
 
 	return but;
@@ -3548,8 +3544,7 @@ static uiBut *ui_def_but_operator_ptr(uiBlock *block, int type, wmOperatorType *
 
 	if (!ot) {
 		but->flag |= UI_BUT_DISABLED;
-		but->lock = true;
-		but->lockstr = "";
+		but->disabled_info = "";
 	}
 
 	return but;

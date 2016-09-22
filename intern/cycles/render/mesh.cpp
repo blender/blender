@@ -601,6 +601,12 @@ void Mesh::add_undisplaced()
 
 	/* copy verts */
 	size_t size = attr->buffer_size(this, (subdivision_type == SUBDIVISION_NONE) ? ATTR_PRIM_TRIANGLE : ATTR_PRIM_SUBD);
+
+	/* Center points for ngons aren't stored in Mesh::verts but are included in size since they will be
+	 * calculated later, we subtract them from size here so we don't have an overflow while copying.
+	 */
+	size -= num_ngons * attr->data_sizeof();
+
 	if(size) {
 		memcpy(data, verts.data(), size);
 	}

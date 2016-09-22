@@ -44,7 +44,7 @@
 #include "WM_api.h"
 
 /* matching fnction in rna_ID.c */
-static int rna_VectorFont_filepath_editable(PointerRNA *ptr)
+static int rna_VectorFont_filepath_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	VFont *vfont = ptr->id.data;
 	if (BKE_vfont_is_builtin(vfont)) {

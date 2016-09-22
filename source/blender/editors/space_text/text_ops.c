@@ -197,7 +197,7 @@ void TEXT_OT_new(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Create Text Block";
 	ot->idname = "TEXT_OT_new";
-	ot->description = "Create a new text data block";
+	ot->description = "Create a new text data-block";
 	
 	/* api callbacks */
 	ot->exec = text_new_exec;
@@ -288,7 +288,7 @@ void TEXT_OT_open(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Open Text Block";
 	ot->idname = "TEXT_OT_open";
-	ot->description = "Open a new text data block";
+	ot->description = "Open a new text data-block";
 
 	/* api callbacks */
 	ot->exec = text_open_exec;
@@ -348,7 +348,7 @@ void TEXT_OT_reload(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Reload";
 	ot->idname = "TEXT_OT_reload";
-	ot->description = "Reload active text data block from its file";
+	ot->description = "Reload active text data-block from its file";
 	
 	/* api callbacks */
 	ot->exec = text_reload_exec;
@@ -397,7 +397,7 @@ void TEXT_OT_unlink(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Unlink";
 	ot->idname = "TEXT_OT_unlink";
-	ot->description = "Unlink active text data block";
+	ot->description = "Unlink active text data-block";
 	
 	/* api callbacks */
 	ot->exec = text_unlink_exec;
@@ -512,7 +512,7 @@ void TEXT_OT_save(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Save";
 	ot->idname = "TEXT_OT_save";
-	ot->description = "Save active text data block";
+	ot->description = "Save active text data-block";
 
 	/* api callbacks */
 	ot->exec = text_save_exec;
@@ -3187,7 +3187,7 @@ void TEXT_OT_to_3d_object(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "To 3D Object";
 	ot->idname = "TEXT_OT_to_3d_object";
-	ot->description = "Create 3D text object from active text data block";
+	ot->description = "Create 3D text object from active text data-block";
 	
 	/* api callbacks */
 	ot->exec = text_to_3d_object_exec;

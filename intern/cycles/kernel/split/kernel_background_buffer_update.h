@@ -232,7 +232,8 @@ ccl_device char kernel_background_buffer_update(
 #endif
 				ASSIGN_RAY_STATE(ray_state, ray_index, RAY_REGENERATED);
 				enqueue_flag = 1;
-			} else {
+			}
+			else {
 				/* These rays do not participate in path-iteration. */
 				float4 L_rad = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 				/* Accumulate result in output buffer. */

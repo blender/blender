@@ -171,7 +171,7 @@ static void rna_Lattice_use_outside_set(PointerRNA *ptr, int value)
 	}
 }
 
-static int rna_Lattice_size_editable(PointerRNA *ptr)
+static int rna_Lattice_size_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	Lattice *lt = (Lattice *)ptr->data;
 

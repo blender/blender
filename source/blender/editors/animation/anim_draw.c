@@ -343,12 +343,13 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
 			}
 		}
 
-		range = max_coord - min_coord;
-
-		if (range > FLT_EPSILON) {
-			factor = 2.0f / range;
+		if (max_coord > min_coord) {
+			range = max_coord - min_coord;
+			if (range > FLT_EPSILON) {
+				factor = 2.0f / range;
+			}
+			offset = -min_coord - range / 2.0f;
 		}
-		offset = -min_coord - range / 2.0f;
 	}
 	BLI_assert(factor != 0.0f);
 	if (r_offset) {

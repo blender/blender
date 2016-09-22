@@ -605,8 +605,8 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
 	else if (act->idroot == 0) {
 		/* hopefully in this case (i.e. library of userless actions), the user knows what they're doing... */
 		BKE_reportf(op->reports, RPT_WARNING,
-		            "Action '%s' does not specify what datablocks it can be used on "
-		            "(try setting the 'ID Root Type' setting from the Datablocks Editor "
+		            "Action '%s' does not specify what data-blocks it can be used on "
+		            "(try setting the 'ID Root Type' setting from the data-blocks editor "
 		            "for this action to avoid future problems)",
 		            act->id.name + 2);
 	}

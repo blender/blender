@@ -606,7 +606,7 @@ static void create_mesh(Scene *scene,
 	int numtris = 0;
 	int numcorners = 0;
 	int numngons = 0;
-	bool use_loop_normals = b_mesh.use_auto_smooth();
+	bool use_loop_normals = b_mesh.use_auto_smooth() && (mesh->subdivision_type != Mesh::SUBDIVISION_CATMULL_CLARK);
 
 	BL::Mesh::vertices_iterator v;
 	BL::Mesh::tessfaces_iterator f;
@@ -959,25 +959,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 
 		bool need_undeformed = mesh->need_attribute(scene, ATTR_STD_GENERATED);
 
-		mesh->subdivision_type = Mesh::SUBDIVISION_NONE;
-
-		PointerRNA cobj = RNA_pointer_get(&b_ob.ptr, "cycles");
-
-		if(cobj.data && b_ob.modifiers.length() > 0 && experimental) {
-			BL::Modifier mod = b_ob.modifiers[b_ob.modifiers.length()-1];
-			bool enabled = preview ? mod.show_viewport() : mod.show_render();
-
-			if(enabled && mod.type() == BL::Modifier::type_SUBSURF && RNA_boolean_get(&cobj, "use_adaptive_subdivision")) {
-				BL::SubsurfModifier subsurf(mod);
-
-				if(subsurf.subdivision_type() == BL::SubsurfModifier::subdivision_type_CATMULL_CLARK) {
-					mesh->subdivision_type = Mesh::SUBDIVISION_CATMULL_CLARK;
-				}
-				else {
-					mesh->subdivision_type = Mesh::SUBDIVISION_LINEAR;
-				}
-			}
-		}
+		mesh->subdivision_type = object_subdivision_type(b_ob, preview, experimental);
 
 		BL::Mesh b_mesh = object_to_mesh(b_data, b_ob, b_scene, true, !preview, need_undeformed, mesh->subdivision_type);
 

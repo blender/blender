@@ -4174,6 +4174,86 @@ static void SCREEN_OT_region_blend(wmOperatorType *ot)
 	/* properties */
 }
 
+/* ******************** space context cycling operator ******************** */
+
+/* SCREEN_OT_space_context_cycle direction */
+enum {
+	SPACE_CONTEXT_CYCLE_PREV,
+	SPACE_CONTEXT_CYCLE_NEXT,
+};
+
+static EnumPropertyItem space_context_cycle_direction[] = {
+	{SPACE_CONTEXT_CYCLE_PREV, "PREV", 0, "Previous", ""},
+	{SPACE_CONTEXT_CYCLE_NEXT, "NEXT", 0, "Next", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static int space_context_cycle_poll(bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	/* sa might be NULL if called out of window bounds */
+	return (sa && ELEM(sa->spacetype, SPACE_BUTS, SPACE_USERPREF));
+}
+
+/**
+ * Helper to get the correct RNA pointer/property pair for changing
+ * the display context of active space type in \sa.
+ */
+static void context_cycle_prop_get(
+        bScreen *screen, const ScrArea *sa,
+        PointerRNA *r_ptr, PropertyRNA **r_prop)
+{
+	const char *propname;
+
+	switch (sa->spacetype) {
+		case SPACE_BUTS:
+			RNA_pointer_create(&screen->id, &RNA_SpaceProperties, sa->spacedata.first, r_ptr);
+			propname = "context";
+			break;
+		case SPACE_USERPREF:
+			RNA_pointer_create(NULL, &RNA_UserPreferences, &U, r_ptr);
+			propname = "active_section";
+			break;
+	}
+
+	*r_prop = RNA_struct_find_property(r_ptr, propname);
+}
+
+static int space_context_cycle_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	const int direction = RNA_enum_get(op->ptr, "direction");
+
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	context_cycle_prop_get(CTX_wm_screen(C), CTX_wm_area(C), &ptr, &prop);
+
+	const int old_context = RNA_property_enum_get(&ptr, prop);
+	const int new_context = RNA_property_enum_step(
+	                  C, &ptr, prop, old_context,
+	                  direction == SPACE_CONTEXT_CYCLE_PREV ? -1 : 1);
+	RNA_property_enum_set(&ptr, prop, new_context);
+	RNA_property_update(C, &ptr, prop);
+
+	return OPERATOR_FINISHED;
+}
+
+static void SCREEN_OT_space_context_cycle(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Cycle Space Context";
+	ot->description = "Cycle through the editor context by activating the next/previous one";
+	ot->idname = "SCREEN_OT_space_context_cycle";
+
+	/* api callbacks */
+	ot->invoke = space_context_cycle_invoke;
+	ot->poll = space_context_cycle_poll;
+
+	ot->flag = 0;
+
+	RNA_def_enum(ot->srna, "direction", space_context_cycle_direction, SPACE_CONTEXT_CYCLE_NEXT, "Direction",
+	             "Direction to cycle through");
+}
+
 
 /* ****************  Assigning operatortypes to global list, adding handlers **************** */
 
@@ -4209,6 +4289,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_screencast);
 	WM_operatortype_append(SCREEN_OT_userpref_show);
 	WM_operatortype_append(SCREEN_OT_region_blend);
+	WM_operatortype_append(SCREEN_OT_space_context_cycle);
 	
 	/*frame changes*/
 	WM_operatortype_append(SCREEN_OT_frame_offset);
@@ -4332,10 +4413,9 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SCREEN_OT_screenshot", F3KEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screencast", F3KEY, KM_PRESS, KM_ALT, 0);
 
-	/* UI */
-	kmi = WM_keymap_add_item(keymap, "UI_OT_space_context_cycle", TABKEY, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_space_context_cycle", TABKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "direction", SPACE_CONTEXT_CYCLE_NEXT);
-	kmi = WM_keymap_add_item(keymap, "UI_OT_space_context_cycle", TABKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_space_context_cycle", TABKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "direction", SPACE_CONTEXT_CYCLE_PREV);
 
 	/* tests */

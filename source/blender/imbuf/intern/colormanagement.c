@@ -3268,6 +3268,13 @@ bool IMB_colormanagement_setup_glsl_draw_from_space(const ColorManagedViewSettin
 	update_glsl_display_processor(applied_view_settings, display_settings,
 	                              from_colorspace ? from_colorspace->name : global_role_scene_linear);
 
+	if (global_glsl_state.processor == NULL) {
+		/* Happens when requesting non-existing color space or LUT in the
+		 * configuration file does not exist.
+		 */
+		return false;
+	}
+
 	return OCIO_setupGLSLDraw(&global_glsl_state.ocio_glsl_state, global_glsl_state.processor,
 	                          global_glsl_state.use_curve_mapping ? &global_glsl_state.curve_mapping_settings : NULL,
 	                          dither, predivide);
@@ -3304,5 +3311,7 @@ bool IMB_colormanagement_setup_glsl_draw_ctx(const bContext *C, float dither, bo
 /* Finish GLSL-based display space conversion */
 void IMB_colormanagement_finish_glsl_draw(void)
 {
-	OCIO_finishGLSLDraw(global_glsl_state.ocio_glsl_state);
+	if (global_glsl_state.ocio_glsl_state != NULL) {
+		OCIO_finishGLSLDraw(global_glsl_state.ocio_glsl_state);
+	}
 }

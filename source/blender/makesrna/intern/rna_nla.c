@@ -282,7 +282,7 @@ static void rna_NlaStrip_use_auto_blend_set(PointerRNA *ptr, int value)
 	}
 }
 
-static int rna_NlaStrip_action_editable(PointerRNA *ptr)
+static int rna_NlaStrip_action_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	NlaStrip *strip = (NlaStrip *)ptr->data;
 	

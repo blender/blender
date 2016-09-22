@@ -829,7 +829,7 @@ typedef ccl_addr_space struct ShaderData {
 	ccl_soa_member(differential3, ray_dP);
 
 #ifdef __OSL__
-	struct KernelGlobals * osl_globals;
+	struct KernelGlobals *osl_globals;
 	struct PathState *osl_path_state;
 #endif
 } ShaderData;

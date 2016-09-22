@@ -53,7 +53,7 @@
 #include "WM_types.h"
 #include "WM_api.h"
 
-static int rna_Meta_texspace_editable(PointerRNA *ptr)
+static int rna_Meta_texspace_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	MetaBall *mb = (MetaBall *)ptr->data;
 	return (mb->texflag & MB_AUTOSPACE) ? 0 : PROP_EDITABLE;

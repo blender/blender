@@ -528,10 +528,11 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	GHOST_TUns32 height,
 	GHOST_TWindowState state,
 	GHOST_TDrawingContextType type,
-	const bool stereoVisual, const GHOST_TUns16 numOfAASamples
+	const bool stereoVisual, const GHOST_TUns16 numOfAASamples, bool is_debug
 ) :
 	GHOST_Window(width, height, state, stereoVisual, false, numOfAASamples),
-	m_customCursor(0)
+	m_customCursor(0),
+	m_debug_context(is_debug)
 {
 	m_systemCocoa = systemCocoa;
 	m_fullScreen = false;

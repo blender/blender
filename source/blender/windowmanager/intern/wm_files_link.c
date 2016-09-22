@@ -466,7 +466,7 @@ static void wm_link_append_properties_common(wmOperatorType *ot, bool is_link)
 	/* better not save _any_ settings for this operator */
 	/* properties */
 	prop = RNA_def_boolean(ot->srna, "link", is_link,
-	                       "Link", "Link the objects or datablocks rather than appending");
+	                       "Link", "Link the objects or data-blocks rather than appending");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 	prop = RNA_def_boolean(ot->srna, "autoselect", true,
 	                       "Select", "Select new objects");
@@ -675,7 +675,7 @@ static void lib_relocate_do(
 			id_sort_by_name(which_libbase(bmain, GS(old_id->name)), old_id);
 
 			BKE_reportf(reports, RPT_WARNING,
-			            "Lib Reload: Replacing all references to old datablock '%s' by reloaded one failed, "
+			            "Lib Reload: Replacing all references to old data-block '%s' by reloaded one failed, "
 			            "old one (%d remaining users) had to be kept and was renamed to '%s'",
 			            new_id->name, old_id->us, old_id->name);
 		}

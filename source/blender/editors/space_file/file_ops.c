@@ -1061,7 +1061,8 @@ void FILE_OT_bookmark_move(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER;  /* No undo! */
 
-	RNA_def_enum(ot->srna, "direction", slot_move, 0, "Direction", "Direction to move, UP or DOWN");
+	RNA_def_enum(ot->srna, "direction", slot_move, 0, "Direction",
+	             "Direction to move the active bookmark towards");
 }
 
 static int reset_recent_exec(bContext *C, wmOperator *UNUSED(op))

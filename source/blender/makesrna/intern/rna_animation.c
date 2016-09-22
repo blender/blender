@@ -89,7 +89,7 @@ static void rna_AnimData_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Point
 	DAG_id_tag_update(id, OB_RECALC_OB | OB_RECALC_DATA);
 }
 
-static int rna_AnimData_action_editable(PointerRNA *ptr)
+static int rna_AnimData_action_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	AnimData *adt = (AnimData *)ptr->data;
 	
@@ -305,7 +305,7 @@ static StructRNA *rna_ksPath_id_typef(PointerRNA *ptr)
 	return ID_code_to_RNA_type(ksp->idtype);
 }
 
-static int rna_ksPath_id_editable(PointerRNA *ptr)
+static int rna_ksPath_id_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	KS_Path *ksp = (KS_Path *)ptr->data;
 	return (ksp->idtype) ? PROP_EDITABLE : 0;
@@ -393,7 +393,7 @@ static void rna_KeyingSet_name_set(PointerRNA *ptr, const char *value)
 }
 
 
-static int rna_KeyingSet_active_ksPath_editable(PointerRNA *ptr)
+static int rna_KeyingSet_active_ksPath_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	KeyingSet *ks = (KeyingSet *)ptr->data;
 	
@@ -806,7 +806,7 @@ static void rna_def_keyingset_paths(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_pointer(func, "ksp", "KeyingSetPath", "New Path", "Path created and added to the Keying Set");
 	RNA_def_function_return(func, parm);
 	/* ID-block for target */
-	parm = RNA_def_pointer(func, "target_id", "ID", "Target ID", "ID-Datablock for the destination");
+	parm = RNA_def_pointer(func, "target_id", "ID", "Target ID", "ID data-block for the destination");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* rna-path */
 	/* XXX hopefully this is long enough */

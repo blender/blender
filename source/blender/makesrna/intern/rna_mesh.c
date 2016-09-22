@@ -662,7 +662,7 @@ static void rna_MeshLoopColor_color_set(PointerRNA *ptr, const float *values)
 	(&mcol->r)[2] = (char)(CLAMPIS(values[2] * 255.0f, 0, 255));
 }
 
-static int rna_Mesh_texspace_editable(PointerRNA *ptr)
+static int rna_Mesh_texspace_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
 	Mesh *me = (Mesh *)ptr->data;
 	return (me->texflag & ME_AUTOSPACE) ? 0 : PROP_EDITABLE;

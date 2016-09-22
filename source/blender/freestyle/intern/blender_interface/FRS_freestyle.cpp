@@ -730,24 +730,14 @@ void FRS_delete_active_lineset(FreestyleConfig *config)
 	}
 }
 
-void FRS_move_active_lineset_up(FreestyleConfig *config)
+/**
+ * Reinsert the active lineset at an offset \a direction from current position.
+ * \return if position of active lineset has changed.
+ */
+bool FRS_move_active_lineset(FreestyleConfig *config, int direction)
 {
 	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(config);
-
-	if (lineset) {
-		BLI_remlink(&config->linesets, lineset);
-		BLI_insertlinkbefore(&config->linesets, lineset->prev, lineset);
-	}
-}
-
-void FRS_move_active_lineset_down(FreestyleConfig *config)
-{
-	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(config);
-
-	if (lineset) {
-		BLI_remlink(&config->linesets, lineset);
-		BLI_insertlinkafter(&config->linesets, lineset->next, lineset);
-	}
+	return (lineset != NULL) && BLI_listbase_link_move(&config->linesets, lineset, direction);
 }
 
 // Testing

@@ -111,7 +111,7 @@ private:
 	BoneExtended &add_bone_extended(EditBone *bone, COLLADAFW::Node * node, int sibcount, std::vector<std::string> &layer_labels);
 	void clear_extended_boneset();
 
-	void fix_leaf_bones(bArmature *armature, Bone *bone);
+	void fix_leaf_bones(bArmature *armature, Bone *bone, bool fix_orientation);
 	void fix_parent_connect(bArmature *armature, Bone *bone);
 	void connect_bone_chains(bArmature *armature, Bone *bone, const int max_chain_length);
 

@@ -766,31 +766,17 @@ static int poselib_move_exec(bContext *C, wmOperator *op)
 	dir = RNA_enum_get(op->ptr, "direction");
 
 	/* move pose */
-	if (dir == 1) { /* up */
-		void *prev = marker->prev;
+	if (BLI_listbase_link_move(&act->markers, marker, dir)) {
+		act->active_marker = marker_index + dir + 1;
 
-		if (prev == NULL)
-			return OPERATOR_FINISHED;
-
-		BLI_remlink(&act->markers, marker);
-		BLI_insertlinkbefore(&act->markers, prev, marker);
+		/* send notifiers for this - using keyframe editing notifiers, since action
+		 * may be being shown in anim editors as active action
+		 */
+		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	}
-	else { /* down */
-		void *next = marker->next;
-
-		if (next == NULL)
-			return OPERATOR_FINISHED;
-
-		BLI_remlink(&act->markers, marker);
-		BLI_insertlinkafter(&act->markers, next, marker);
+	else {
+		return OPERATOR_CANCELLED;
 	}
-
-	act->active_marker = marker_index - dir + 1;
-
-	/* send notifiers for this - using keyframe editing notifiers, since action
-	 * may be being shown in anim editors as active action
-	 */
-	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 
 	/* done */
 	return OPERATOR_FINISHED;
@@ -800,8 +786,8 @@ void POSELIB_OT_pose_move(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	static EnumPropertyItem pose_lib_pose_move[] = {
-		{1, "UP", 0, "Up", ""},
-		{-1, "DOWN", 0, "Down", ""},
+		{-1, "UP", 0, "Up", ""},
+		{1, "DOWN", 0, "Down", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -824,7 +810,8 @@ void POSELIB_OT_pose_move(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
 	ot->prop = prop;
 
-	RNA_def_enum(ot->srna, "direction", pose_lib_pose_move, 0, "Direction", "Direction to move, UP or DOWN");
+	RNA_def_enum(ot->srna, "direction", pose_lib_pose_move, 0, "Direction",
+	             "Direction to move the chosen pose towards");
 }
 
 

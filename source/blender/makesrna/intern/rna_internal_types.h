@@ -62,7 +62,7 @@ struct Scene;
 typedef void (*UpdateFunc)(struct Main *main, struct Scene *scene, struct PointerRNA *ptr);
 typedef void (*ContextPropUpdateFunc)(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop);
 typedef void (*ContextUpdateFunc)(struct bContext *C, struct PointerRNA *ptr);
-typedef int (*EditableFunc)(struct PointerRNA *ptr);
+typedef int (*EditableFunc)(struct PointerRNA *ptr, const char **r_info);
 typedef int (*ItemEditableFunc)(struct PointerRNA *ptr, int index);
 typedef struct IDProperty *(*IDPropertiesFunc)(struct PointerRNA *ptr, bool create);
 typedef struct StructRNA *(*StructRefineFunc)(struct PointerRNA *ptr);
@@ -188,7 +188,9 @@ struct PropertyRNA {
 	UpdateFunc update;
 	int noteflag;
 
-	/* callback for testing if editable */
+	/* Callback for testing if editable. Its r_info parameter can be used to
+	 * return info on editable state that might be shown to user. E.g. tooltips
+	 * of disabled buttons can show reason why button is disabled using this. */
 	EditableFunc editable;
 	/* callback for testing if array-item editable (if applicable) */
 	ItemEditableFunc itemeditable;

@@ -103,10 +103,10 @@ class VIEW3D_HT_header(Header):
             else:
                 row.prop(toolsettings, "snap_target", text="")
                 if obj:
-                    if mode in {'OBJECT', 'POSE'} and snap_element != 'VOLUME':
-                        row.prop(toolsettings, "use_snap_align_rotation", text="")
-                    elif mode == 'EDIT':
+                    if mode == 'EDIT':
                         row.prop(toolsettings, "use_snap_self", text="")
+                    if mode in {'OBJECT', 'POSE', 'EDIT'} and snap_element != 'VOLUME':
+                        row.prop(toolsettings, "use_snap_align_rotation", text="")
 
             if snap_element == 'VOLUME':
                 row.prop(toolsettings, "use_snap_peel_object", text="")

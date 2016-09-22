@@ -579,11 +579,10 @@ static void MergeVertsFast(int piTriList_in_and_out[], STmpVert pTmpVert[], cons
 {
 	// make bbox
 	int c=0, l=0, channel=0;
-	float fvMin[3], fvMax[3];
+	float fvMin[3] = {INFINITY, INFINITY, INFINITY};
+	float fvMax[3] = {-INFINITY, -INFINITY, -INFINITY};
 	float dx=0, dy=0, dz=0, fSep=0;
-	for (c=0; c<3; c++)
-	{	fvMin[c]=pTmpVert[iL_in].vert[c]; fvMax[c]=fvMin[c];	}
-	for (l=(iL_in+1); l<=iR_in; l++)
+	for (l=iL_in; l<=iR_in; l++)
 		for (c=0; c<3; c++)
 			if (fvMin[c]>pTmpVert[l].vert[c]) fvMin[c]=pTmpVert[l].vert[c];
 			else if (fvMax[c]<pTmpVert[l].vert[c]) fvMax[c]=pTmpVert[l].vert[c];
@@ -597,6 +596,10 @@ static void MergeVertsFast(int piTriList_in_and_out[], STmpVert pTmpVert[], cons
 	else if (dz>dx) channel=2;
 
 	fSep = 0.5f*(fvMax[channel]+fvMin[channel]);
+
+	// stop if all vertices are NaNs
+	if (!isfinite(fSep))
+		return;
 
 	// terminate recursion when the separation/average value
 	// is no longer strictly between fMin and fMax values.

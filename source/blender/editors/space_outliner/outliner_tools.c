@@ -900,7 +900,7 @@ static EnumPropertyItem prop_object_op_types[] = {
 	{OL_OP_DELETE, "DELETE", 0, "Delete", ""},
 	{OL_OP_DELETE_HIERARCHY, "DELETE_HIERARCHY", 0, "Delete Hierarchy", ""},
 	{OL_OP_REMAP, "REMAP",   0, "Remap Users",
-	 "Make all users of selected datablocks to use instead a new chosen one"},
+	 "Make all users of selected data-blocks to use instead a new chosen one"},
 	{OL_OP_TOGVIS, "TOGVIS", 0, "Toggle Visible", ""},
 	{OL_OP_TOGSEL, "TOGSEL", 0, "Toggle Selectable", ""},
 	{OL_OP_TOGREN, "TOGREN", 0, "Toggle Renderable", ""},
@@ -1046,7 +1046,7 @@ static EnumPropertyItem prop_group_op_types[] = {
 	{OL_GROUPOP_LINK, "LINK",         0, "Link Group Objects to Scene", ""},
 	{OL_GROUPOP_DELETE, "DELETE",     0, "Delete Group", "WARNING: no undo"},
 	{OL_GROUPOP_REMAP, "REMAP",       0, "Remap Users",
-	 "Make all users of selected datablocks to use instead current (clicked) one"},
+	 "Make all users of selected data-blocks to use instead current (clicked) one"},
 	{OL_GROUPOP_INSTANCE, "INSTANCE", 0, "Instance Groups in Scene", ""},
 	{OL_GROUPOP_TOGVIS, "TOGVIS",     0, "Toggle Visible Group", ""},
 	{OL_GROUPOP_TOGSEL, "TOGSEL",     0, "Toggle Selectable", ""},
@@ -1153,9 +1153,9 @@ static EnumPropertyItem prop_id_op_types[] = {
 	{OUTLINER_IDOP_SINGLE, "SINGLE", 0, "Make Single User", ""},
 	{OUTLINER_IDOP_DELETE, "DELETE", 0, "Delete", "WARNING: no undo"},
 	{OUTLINER_IDOP_REMAP, "REMAP", 0, "Remap Users",
-	 "Make all users of selected datablocks to use instead current (clicked) one"},
+	 "Make all users of selected data-blocks to use instead current (clicked) one"},
 	{OUTLINER_IDOP_FAKE_ADD, "ADD_FAKE", 0, "Add Fake User",
-	 "Ensure datablock gets saved even if it isn't in use (e.g. for motion and material libraries)"},
+	 "Ensure data-block gets saved even if it isn't in use (e.g. for motion and material libraries)"},
 	{OUTLINER_IDOP_FAKE_CLEAR, "CLEAR_FAKE", 0, "Clear Fake User", ""},
 	{OUTLINER_IDOP_RENAME, "RENAME", 0, "Rename", ""},
 	{OUTLINER_IDOP_SELECT_LINKED, "SELECT_LINKED", 0, "Select Linked", ""},
@@ -1476,8 +1476,8 @@ static int outliner_action_set_exec(bContext *C, wmOperator *op)
 	else if (act->idroot == 0) {
 		/* hopefully in this case (i.e. library of userless actions), the user knows what they're doing... */
 		BKE_reportf(op->reports, RPT_WARNING,
-		            "Action '%s' does not specify what datablocks it can be used on "
-		            "(try setting the 'ID Root Type' setting from the Datablocks Editor "
+		            "Action '%s' does not specify what data-blocks it can be used on "
+		            "(try setting the 'ID Root Type' setting from the data-blocks editor "
 		            "for this action to avoid future problems)",
 		            act->id.name + 2);
 	}

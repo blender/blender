@@ -221,7 +221,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
   * tail locations for the affected bones (nodes which don't have any connected child)
   * Hint: The extended_bones set gets populated in ArmatureImporter::create_bone
 **/
-void ArmatureImporter::fix_leaf_bones(bArmature *armature, Bone *bone)
+void ArmatureImporter::fix_leaf_bones(bArmature *armature, Bone *bone, bool fix_orientation)
 {
 	if (bone == NULL)
 		return;
@@ -237,7 +237,7 @@ void ArmatureImporter::fix_leaf_bones(bArmature *armature, Bone *bone)
 			EditBone *ebone = bc_get_edit_bone(armature, bone->name);
 			float vec[3];
 
-			if (ebone->parent != NULL) {
+			if (ebone->parent != NULL && fix_orientation) {
 				EditBone *parent = ebone->parent;
 				sub_v3_v3v3(vec, ebone->head, parent->head);
 				if (len_squared_v3(vec) < MINIMUM_BONE_LENGTH)
@@ -257,7 +257,7 @@ void ArmatureImporter::fix_leaf_bones(bArmature *armature, Bone *bone)
 	}
 
 	for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
-		fix_leaf_bones(armature, child);
+		fix_leaf_bones(armature, child, fix_orientation);
 	}
 }
 
@@ -756,17 +756,10 @@ void ArmatureImporter::make_armatures(bContext *C, std::vector<Object *> &object
 		/* and step back to edit mode to fix the leaf nodes */
 		ED_armature_to_edit(armature);
 
-		if (this->import_settings->fix_orientation || this->import_settings->find_chains) {
+		if (this->import_settings->find_chains)
+			connect_bone_chains(armature, (Bone *)armature->bonebase.first, UNLIMITED_CHAIN_MAX);
 
-			if (this->import_settings->find_chains)
-				connect_bone_chains(armature, (Bone *)armature->bonebase.first, UNLIMITED_CHAIN_MAX);
-
-			if (this->import_settings->fix_orientation)
-				fix_leaf_bones(armature, (Bone *)armature->bonebase.first);
-
-			// exit armature edit mode
-
-		}
+		fix_leaf_bones(armature, (Bone *)armature->bonebase.first, this->import_settings->fix_orientation);
 
 		fix_parent_connect(armature, (Bone *)armature->bonebase.first);
 

@@ -13,30 +13,7 @@ if NOT "%1" == "" (
 
 	REM Help Message
 	if "%1" == "help" (
-		echo.
-		echo Convenience targets
-		echo - release 
-		echo - debug
-		echo - full
-		echo - lite
-		echo - headless
-		echo - cycles
-		echo - bpy
-		echo.
-		echo Utilities ^(not associated with building^)
-		echo - clean
-		echo - update
-		echo - nobuild ^(only generate project files^)
-		echo - showhash ^(Show git hashes of source tree^)
-		echo.
-		echo Configuration options
-		echo - packagename [newname] ^(override default cpack package name^)
-		echo - x86 ^(override host autodetect and build 32 bit code^)
-		echo - x64 ^(override host autodetect and build 64 bit code^)
-		echo - 2013 ^(build with visual studio 2013^)
-		echo - 2015 ^(build with visual studio 2015^) [EXPERIMENTAL]
-		echo.
-		goto EOF
+		goto HELP
 	)
 
 	REM Build Types
@@ -46,26 +23,32 @@ if NOT "%1" == "" (
 
 	REM Build Configurations
 	) else if "%1" == "full" (
+		set TARGET_SET=1
 		set BUILD_DIR=%BUILD_DIR%_full
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
 		    -C"%BLENDER_DIR%\build_files\cmake\config\blender_full.cmake"
 	) else if "%1" == "lite" (
+		set TARGET_SET=1
 		set BUILD_DIR=%BUILD_DIR%_lite
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
 		    -C"%BLENDER_DIR%\build_files\cmake\config\blender_lite.cmake"
 	) else if "%1" == "cycles" (
+		set TARGET_SET=1
 		set BUILD_DIR=%BUILD_DIR%_cycles
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
 		    -C"%BLENDER_DIR%\build_files\cmake\config\cycles_standalone.cmake"
 	) else if "%1" == "headless" (
+		set TARGET_SET=1
 		set BUILD_DIR=%BUILD_DIR%_headless
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
 		    -C"%BLENDER_DIR%\build_files\cmake\config\blender_headless.cmake"
 	) else if "%1" == "bpy" (
+		set TARGET_SET=1
 		set BUILD_DIR=%BUILD_DIR%_bpy
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
 		    -C"%BLENDER_DIR%\build_files\cmake\config\bpy_module.cmake"
 	) else if "%1" == "release" (
+		set TARGET_SET=1
 		if "%CUDA_PATH_V7_5%"=="" (
 			echo Cuda 7.5 Not found, aborting!
 			goto EOF
@@ -110,15 +93,7 @@ if NOT "%1" == "" (
 		git submodule foreach git pull --rebase origin master
 		goto EOF
 	) else if "%1" == "clean" (
-		msbuild ^
-			%BUILD_DIR%\Blender.sln ^
-			/target:clean ^
-			/property:Configuration=%BUILD_TYPE% ^
-			/verbosity:minimal
-		if %ERRORLEVEL% NEQ 0 (
-			echo Cleaned "%BUILD_DIR%"
-		)
-		goto EOF
+		set MUST_CLEAN=1
 	) else (
 		echo Command "%1" unknown, aborting!
 		goto EOF
@@ -181,12 +156,29 @@ if NOT EXIST %BLENDER_DIR%..\lib\nul (
 	echo This is needed for building, aborting!
 	goto EOF
 )
+if NOT "%TARGET_SET%"=="1" (
+	echo Error: Convenience target not set
+	echo This is required for building, aborting!
+	echo . 
+	goto HELP
+)
 
 set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -G "Visual Studio %BUILD_VS_VER% %BUILD_VS_YEAR%%WINDOWS_ARCH%"
 if NOT EXIST %BUILD_DIR%\nul (
 	mkdir %BUILD_DIR%
 )
-
+if "%MUST_CLEAN%"=="1" (
+		echo Cleaning %BUILD_DIR%
+		msbuild ^
+			%BUILD_DIR%\Blender.sln ^
+			/target:clean ^
+			/property:Configuration=%BUILD_TYPE% ^
+			/verbosity:minimal
+		if %ERRORLEVEL% NEQ 0 (
+			echo Cleaned "%BUILD_DIR%"
+		)
+		goto EOF
+)
 REM Only configure on first run or when called with nobuild
 if NOT EXIST %BUILD_DIR%\Blender.sln set MUST_CONFIGURE=1
 if "%NOBUILD%"=="1" set MUST_CONFIGURE=1
@@ -228,6 +220,31 @@ echo "%BUILD_DIR%\CMakeCache.txt", then run "make" again to build with the chang
 echo.
 echo Blender successfully built, run from: "%BUILD_DIR%\bin\%BUILD_TYPE%"
 echo.
+goto EOF
+:HELP
+		echo.
+		echo Convenience targets
+		echo - release 
+		echo - debug
+		echo - full
+		echo - lite
+		echo - headless
+		echo - cycles
+		echo - bpy
+		echo.
+		echo Utilities ^(not associated with building^)
+		echo - clean ^(Target must be set^)
+		echo - update
+		echo - nobuild ^(only generate project files^)
+		echo - showhash ^(Show git hashes of source tree^)
+		echo.
+		echo Configuration options
+		echo - packagename [newname] ^(override default cpack package name^)
+		echo - x86 ^(override host autodetect and build 32 bit code^)
+		echo - x64 ^(override host autodetect and build 64 bit code^)
+		echo - 2013 ^(build with visual studio 2013^)
+		echo - 2015 ^(build with visual studio 2015^) [EXPERIMENTAL]
+		echo.
 
 :EOF
 

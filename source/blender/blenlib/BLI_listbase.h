@@ -69,6 +69,7 @@ void BLI_insertlinkbefore(struct ListBase *listbase, void *vnextlink, void *vnew
 void BLI_insertlinkafter(struct ListBase *listbase, void *vprevlink, void *vnewlink) ATTR_NONNULL(1);
 void BLI_listbase_sort(struct ListBase *listbase, int (*cmp)(const void *, const void *)) ATTR_NONNULL(1, 2);
 void BLI_listbase_sort_r(ListBase *listbase, int (*cmp)(void *, const void *, const void *), void *thunk) ATTR_NONNULL(1, 2);
+bool BLI_listbase_link_move(ListBase *listbase, void *vlink, int step) ATTR_NONNULL();
 void BLI_freelist(struct ListBase *listbase) ATTR_NONNULL(1);
 int  BLI_listbase_count_ex(const struct ListBase *listbase, const int count_max) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 int  BLI_listbase_count(const struct ListBase *listbase) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);

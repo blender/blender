@@ -1104,44 +1104,20 @@ void AbcMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, size_t poly_star
 	utils::assign_materials(bmain, m_object, mat_map);
 }
 
-typedef std::pair<Alembic::AbcCoreAbstract::index_t, float> index_time_pair_t;
-
 static void get_weight_and_index(CDStreamConfig &config,
                                  Alembic::AbcCoreAbstract::TimeSamplingPtr time_sampling,
                                  size_t samples_number)
 {
-	if (samples_number == 0) {
-		samples_number = 1;
-	}
+	Alembic::AbcGeom::index_t i0, i1;
 
-	index_time_pair_t floor_index = time_sampling->getFloorIndex(config.time, samples_number);
+	config.weight = get_weight_and_index(config.time,
+	                                     time_sampling,
+	                                     samples_number,
+	                                     i0,
+	                                     i1);
 
-	config.index = floor_index.first;
-	config.ceil_index = config.index;
-
-	if (fabs(config.time - floor_index.second) < 0.0001f) {
-		config.weight = 0.0f;
-		return;
-	}
-
-	index_time_pair_t ceil_index = time_sampling->getCeilIndex(config.time, samples_number);
-
-	if (config.index == ceil_index.first) {
-		config.weight = 0.0f;
-		return;
-	}
-
-	config.ceil_index = ceil_index.first;
-
-	float alpha = (config.time - floor_index.second) / (ceil_index.second - floor_index.second);
-
-	/* Since we so closely match the ceiling, we'll just use it. */
-	if (fabs(1.0f - alpha) < 0.0001f) {
-		config.index = config.ceil_index;
-		alpha = 0.0f;
-	}
-
-	config.weight = alpha;
+	config.index = i0;
+	config.ceil_index = i1;
 }
 
 void read_mesh_sample(ImportSettings *settings,

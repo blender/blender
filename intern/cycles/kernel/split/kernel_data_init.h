@@ -215,7 +215,8 @@ ccl_device void kernel_data_init(
 #ifdef __KERNEL_DEBUG__
 			debug_data_init(&debugdata_coop[ray_index]);
 #endif
-		} else {
+		}
+		else {
 			/* These rays do not participate in path-iteration. */
 			float4 L_rad = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 			/* Accumulate result in output buffer. */

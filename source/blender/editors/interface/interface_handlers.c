@@ -1266,6 +1266,10 @@ static bool ui_drag_toggle_set_xy_xy(
 			}
 		}
 	}
+	if (changed) {
+		/* apply now, not on release (or if handlers are cancelled for whatever reason) */
+		ui_apply_but_funcs_after(C);
+	}
 
 	return changed;
 }
@@ -2248,9 +2252,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 	bool buf_paste_alloc = false;
 	bool show_report = false;  /* use to display errors parsing paste input */
 
-	if (mode == 'v' && but->lock  == true) {
-		return;
-	}
+	BLI_assert((but->flag & UI_BUT_DISABLED) == 0); /* caller should check */
 
 	if (mode == 'c') {
 		/* disallow copying from any passwords */
@@ -6974,6 +6976,12 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 	if (but->flag & UI_BUT_DISABLED)
 		return WM_UI_HANDLER_CONTINUE;
 
+	/* if but->pointype is set, but->poin should be too */
+	BLI_assert(!but->pointype || but->poin);
+
+	/* Only hard-coded stuff here, button interactions with configurable
+	 * keymaps are handled using operators (see #ED_keymap_ui). */
+
 	if ((data->state == BUTTON_STATE_HIGHLIGHT) || (event->type == EVT_DROP)) {
 		/* handle copy-paste */
 		if (ELEM(event->type, CKEY, VKEY) && event->val == KM_PRESS &&
@@ -7001,91 +7009,6 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		else if (event->type == EVT_DROP) {
 			ui_but_drop(C, event, but, data);
 		}
-		/* handle eyedropper */
-		else if ((event->type == EKEY) && (event->val == KM_PRESS)) {
-			if (IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
-				/* pass */
-			}
-			else {
-				if (but->type == UI_BTYPE_COLOR) {
-					WM_operator_name_call(C, "UI_OT_eyedropper_color", WM_OP_INVOKE_DEFAULT, NULL);
-					return WM_UI_HANDLER_BREAK;
-				}
-				else if ((but->type == UI_BTYPE_SEARCH_MENU) &&
-				         (but->flag & UI_BUT_SEARCH_UNLINK))
-				{
-					if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_POINTER) {
-						StructRNA *type = RNA_property_pointer_type(&but->rnapoin, but->rnaprop);
-						const short idcode = RNA_type_to_ID_code(type);
-						if ((idcode == ID_OB) || OB_DATA_SUPPORT_ID(idcode)) {
-							WM_operator_name_call(C, "UI_OT_eyedropper_id", WM_OP_INVOKE_DEFAULT, NULL);
-							return WM_UI_HANDLER_BREAK;
-						}
-					}
-				}
-				else if (but->type == UI_BTYPE_NUM) {
-					if (but->rnaprop &&
-					    (RNA_property_type(but->rnaprop) == PROP_FLOAT) &&
-					    (RNA_property_subtype(but->rnaprop) & PROP_UNIT_LENGTH) &&
-					    (RNA_property_array_check(but->rnaprop) == false))
-					{
-						WM_operator_name_call(C, "UI_OT_eyedropper_depth", WM_OP_INVOKE_DEFAULT, NULL);
-						return WM_UI_HANDLER_BREAK;
-					}
-				}
-			}
-		}
-		/* handle keyframing */
-		else if ((event->type == IKEY) &&
-		         !IS_EVENT_MOD(event, ctrl, oskey) &&
-		         (event->val == KM_PRESS))
-		{
-			if (event->alt) {
-				if (event->shift) {
-					ui_but_anim_clear_keyframe(C);
-				}
-				else {
-					ui_but_anim_delete_keyframe(C);
-				}
-			}
-			else {
-				ui_but_anim_insert_keyframe(C);
-			}
-			
-			ED_region_tag_redraw(data->region);
-			
-			return WM_UI_HANDLER_BREAK;
-		}
-		/* handle drivers */
-		else if ((event->type == DKEY) &&
-		         !IS_EVENT_MOD(event, shift, oskey) &&
-		         (event->val == KM_PRESS))
-		{
-			/* quick check to prevent this opening within the popup menu its self */
-			if (!ELEM(NULL, but->rnapoin.data, but->rnaprop)) {
-				if (event->alt)
-					ui_but_anim_remove_driver(C);
-				else if (event->ctrl)
-					ui_but_anim_add_driver(C);
-
-				ED_region_tag_redraw(data->region);
-			}
-			return WM_UI_HANDLER_BREAK;
-		}
-		/* handle keyingsets */
-		else if ((event->type == KKEY) &&
-		         !IS_EVENT_MOD(event, shift, ctrl, oskey) &&
-		         (event->val == KM_PRESS))
-		{
-			if (event->alt)
-				ui_but_anim_remove_keyingset(C);
-			else
-				ui_but_anim_add_keyingset(C);
-				
-			ED_region_tag_redraw(data->region);
-			
-			return WM_UI_HANDLER_BREAK;
-		}
 		/* handle menu */
 		else if ((event->type == RIGHTMOUSE) &&
 		         !IS_EVENT_MOD(event, shift, ctrl, alt, oskey) &&
@@ -7095,24 +7018,6 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 			if (ui_but_menu(C, but)) {
 				return WM_UI_HANDLER_BREAK;
 			}
-		}
-	}
-
-	/* verify if we can edit this button */
-	if (ELEM(event->type, LEFTMOUSE, RETKEY)) {
-		/* this should become disabled button .. */
-		if (but->lock == true) {
-			if (but->lockstr) {
-				WM_report(RPT_INFO, but->lockstr);
-				button_activate_state(C, but, BUTTON_STATE_EXIT);
-				return WM_UI_HANDLER_BREAK;
-			}
-		}
-		else if (but->pointype && but->poin == NULL) {
-			/* there's a pointer needed */
-			BKE_reportf(NULL, RPT_WARNING, "DoButton pointer error: %s", but->str);
-			button_activate_state(C, but, BUTTON_STATE_EXIT);
-			return WM_UI_HANDLER_BREAK;
 		}
 	}
 
@@ -8095,8 +8000,13 @@ uiBut *UI_context_active_but_get(const struct bContext *C)
 	return ui_context_button_active(C, NULL);
 }
 
-/* helper function for insert keyframe, reset to default, etc operators */
-void UI_context_active_but_prop_get(
+/**
+ * Version of #UI_context_active_but_get that also returns RNA property info.
+ * Helper function for insert keyframe, reset to default, etc operators.
+ *
+ * \return active button, NULL if none found or if it doesn't contain valid RNA data.
+ */
+uiBut *UI_context_active_but_prop_get(
         const bContext *C,
         struct PointerRNA *r_ptr, struct PropertyRNA **r_prop, int *r_index)
 {
@@ -8112,6 +8022,8 @@ void UI_context_active_but_prop_get(
 		*r_prop = NULL;
 		*r_index = 0;
 	}
+
+	return activebut;
 }
 
 void UI_context_active_but_prop_handle(bContext *C)

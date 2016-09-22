@@ -132,6 +132,7 @@ void BKE_library_callback_remap_editor_id_reference_set(BKE_library_remap_editor
 }
 
 typedef struct IDRemap {
+	Main *bmain;  /* Only used to trigger depsgraph updates in the right bmain. */
 	ID *old_id;
 	ID *new_id;
 	ID *id;  /* The ID in which we are replacing old_id by new_id usages. */
@@ -211,7 +212,7 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
 		else {
 			if (!is_never_null) {
 				*id_p = new_id;
-				DAG_id_tag_update(id_self, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+				DAG_id_tag_update_ex(id_remap_data->bmain, id_self, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 			}
 			if (cb_flag & IDWALK_USER) {
 				id_us_min(old_id);
@@ -385,15 +386,15 @@ static void libblock_remap_data_postprocess_obdata_relink(Main *UNUSED(bmain), O
  * - \a id is non-NULL:
  *   + If \a old_id is NULL, \a new_id must also be NULL, and all ID pointers from \a id are cleared (i.e. \a id
  *     does not references any other datablock anymore).
- *   + If \a old_id is non-NULL, behavior is as with a NULL \a id, but only for given \a id.
+ *   + If \a old_id is non-NULL, behavior is as with a NULL \a id, but only within given \a id.
  *
- * \param bmain: the Main data storage to operate on (can be NULL if \a id is non-NULL).
- * \param id: the datablock to operate on (can be NULL if \a bmain is non-NULL).
+ * \param bmain: the Main data storage to operate on (must never be NULL).
+ * \param id: the datablock to operate on (can be NULL, in which case we operate over all IDs from given bmain).
  * \param old_id: the datablock to dereference (may be NULL if \a id is non-NULL).
  * \param new_id: the new datablock to replace \a old_id references with (may be NULL).
  * \param r_id_remap_data: if non-NULL, the IDRemap struct to use (uselful to retrieve info about remapping process).
  */
-static void libblock_remap_data(
+ATTR_NONNULL(1) static void libblock_remap_data(
         Main *bmain, ID *id, ID *old_id, ID *new_id, const short remap_flags, IDRemap *r_id_remap_data)
 {
 	IDRemap id_remap_data;
@@ -403,6 +404,7 @@ static void libblock_remap_data(
 	if (r_id_remap_data == NULL) {
 		r_id_remap_data = &id_remap_data;
 	}
+	r_id_remap_data->bmain = bmain;
 	r_id_remap_data->old_id = old_id;
 	r_id_remap_data->new_id = new_id;
 	r_id_remap_data->id = NULL;
@@ -610,7 +612,7 @@ void BKE_libblock_relink_ex(
 		BLI_assert(new_id == NULL);
 	}
 
-	libblock_remap_data(NULL, id, old_id, new_id, remap_flags, NULL);
+	libblock_remap_data(bmain, id, old_id, new_id, remap_flags, NULL);
 
 	/* Some after-process updates.
 	 * This is a bit ugly, but cannot see a way to avoid it. Maybe we should do a per-ID callback for this instead?

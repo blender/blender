@@ -632,13 +632,13 @@ static void rna_def_maskParent(BlenderRNA *brna)
 
 	/* parent */
 	prop = RNA_def_property(srna, "parent", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Parent", "Name of parent object in specified data block to which parenting happens");
+	RNA_def_property_ui_text(prop, "Parent", "Name of parent object in specified data-block to which parenting happens");
 	RNA_def_property_string_maxlength(prop, MAX_ID_NAME - 2);
 	RNA_def_property_update(prop, 0, "rna_Mask_update_parent");
 
 	/* sub_parent */
 	prop = RNA_def_property(srna, "sub_parent", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Sub Parent", "Name of parent sub-object in specified data block to which parenting happens");
+	RNA_def_property_ui_text(prop, "Sub Parent", "Name of parent sub-object in specified data-block to which parenting happens");
 	RNA_def_property_string_maxlength(prop, MAX_ID_NAME - 2);
 	RNA_def_property_update(prop, 0, "rna_Mask_update_parent");
 }

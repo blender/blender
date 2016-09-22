@@ -99,7 +99,7 @@ uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	ssef tsplat(0.0f, 0.0f, -isect_t, -isect_t);
 
 	gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
-#endif
+#endif  /* __KERNEL_SSE2__ */
 
 	IsectPrecalc isect_precalc;
 	triangle_intersect_precalc(dir, &isect_precalc);
@@ -334,6 +334,7 @@ uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 		if(stack_ptr >= 0) {
 			kernel_assert(object != OBJECT_NONE);
 
+			/* Instance pop. */
 			if(num_hits_in_instance) {
 				float t_fac;
 #  if BVH_FEATURE(BVH_MOTION)
@@ -377,7 +378,7 @@ uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 			node_addr = traversal_stack[stack_ptr];
 			--stack_ptr;
 		}
-#endif  /* FEATURE(BVH_MOTION) */
+#endif  /* FEATURE(BVH_INSTANCING) */
 	} while(node_addr != ENTRYPOINT_SENTINEL);
 
 	return num_hits;

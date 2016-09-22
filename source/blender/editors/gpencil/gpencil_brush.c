@@ -1350,6 +1350,10 @@ static bool gpsculpt_brush_apply_standard(bContext *C, tGP_BrushEditData *gso)
 
 	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
 	{
+		bGPDframe *gpf = gpl->actframe;
+		if (gpf == NULL)
+			continue;
+		
 		/* calculate difference matrix if parent object */
 		if (gpl->parent != NULL) {
 			ED_gpencil_parent_location(gpl, diff_mat);
@@ -1358,10 +1362,8 @@ static bool gpsculpt_brush_apply_standard(bContext *C, tGP_BrushEditData *gso)
 		else {
 			parented = false;
 		}
-
-		bGPDframe *gpf = gpl->actframe;
-		bGPDstroke *gps;
-		for (gps = gpf->strokes.first; gps; gps = gps->next) {
+		
+		for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
 			/* skip strokes that are invalid for current view */
 			if (ED_gpencil_stroke_can_use(C, gps) == false)
 				continue;

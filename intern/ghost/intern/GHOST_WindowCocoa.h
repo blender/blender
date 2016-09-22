@@ -74,7 +74,8 @@ public:
 	    GHOST_TWindowState state,
 	    GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
 	    const bool stereoVisual = false,
-	    const GHOST_TUns16 numOfAASamples = 0
+	    const GHOST_TUns16 numOfAASamples = 0,
+	    bool is_debug = false
 	    );
 
 	/**
@@ -305,6 +306,7 @@ protected:
 	bool m_lionStyleFullScreen;
 
 	bool m_immediateDraw;
+	bool m_debug_context; // for debug messages during context setup
 };
 
 #endif // __GHOST_WINDOWCOCOA_H__

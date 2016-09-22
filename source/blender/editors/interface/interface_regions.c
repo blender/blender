@@ -456,7 +456,7 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 	}
 
 	/* button is disabled, we may be able to tell user why */
-	if ((but->flag & UI_BUT_DISABLED) || but->lock) {
+	if (but->flag & UI_BUT_DISABLED) {
 		const char *disabled_msg = NULL;
 
 		/* if operator poll check failed, it can give pretty precise info why */
@@ -466,8 +466,8 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 			disabled_msg = CTX_wm_operator_poll_msg_get(C);
 		}
 		/* alternatively, buttons can store some reasoning too */
-		else if (but->lockstr) {
-			disabled_msg = but->lockstr;
+		else if (but->disabled_info) {
+			disabled_msg = TIP_(but->disabled_info);
 		}
 
 		if (disabled_msg && disabled_msg[0]) {

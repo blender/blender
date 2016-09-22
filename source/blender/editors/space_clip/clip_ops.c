@@ -476,7 +476,7 @@ void CLIP_OT_view_pan(wmOperatorType *ot)
 	ot->poll = ED_space_clip_view_clip_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "offset", 2, NULL, -FLT_MAX, FLT_MAX,

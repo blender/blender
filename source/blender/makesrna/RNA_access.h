@@ -832,6 +832,7 @@ StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_pointer_poll(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *value);
 
 bool RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop);
+bool RNA_property_editable_info(PointerRNA *ptr, PropertyRNA *prop, const char **r_info);
 bool RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 bool RNA_property_editable_flag(PointerRNA *ptr, PropertyRNA *prop); /* without lib check, only checks the flag */
 bool RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop);
@@ -892,7 +893,7 @@ int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value);
 int RNA_property_enum_get_default(PointerRNA *ptr, PropertyRNA *prop);
 void *RNA_property_enum_py_data_get(PropertyRNA *prop);
-int RNA_property_enum_step(const struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, int from_value, int direction);
+int RNA_property_enum_step(const struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, int from_value, int step);
 
 PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr_value);

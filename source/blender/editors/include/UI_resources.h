@@ -298,7 +298,10 @@ enum {
 	TH_V3D_CLIPPING_BORDER,
 
 	TH_METADATA_BG,
-	TH_METADATA_TEXT
+	TH_METADATA_TEXT,
+
+	TH_EDGE_BEVEL,
+	TH_VERTEX_BEVEL
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 

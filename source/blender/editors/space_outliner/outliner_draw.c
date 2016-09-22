@@ -835,11 +835,11 @@ static void outliner_draw_userbuts(uiBlock *block, ARegion *ar, SpaceOops *soops
 
 				if (id->flag & LIB_FAKEUSER) {
 					icon = ICON_FILE_TICK;
-					tip  = TIP_("Datablock will be retained using a fake user");
+					tip  = TIP_("Data-block will be retained using a fake user");
 				}
 				else {
 					icon = ICON_X;
-					tip  = TIP_("Datablock has no users and will be deleted");
+					tip  = TIP_("Data-block has no users and will be deleted");
 				}
 				bt = uiDefIconButBitS(block, UI_BTYPE_TOGGLE, LIB_FAKEUSER, 1, icon,
 				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X, UI_UNIT_Y,
@@ -852,14 +852,14 @@ static void outliner_draw_userbuts(uiBlock *block, ARegion *ar, SpaceOops *soops
 				bt = uiDefBut(block, UI_BTYPE_BUT, 1, buf, 
 				              (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, 
 				              UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0,
-				              TIP_("Number of users of this datablock"));
+				              TIP_("Number of users of this data-block"));
 				UI_but_flag_enable(bt, but_flag);
 				
 				
 				bt = uiDefButBitS(block, UI_BTYPE_TOGGLE, LIB_FAKEUSER, 1, (id->flag & LIB_FAKEUSER) ? "F" : " ",
 				                  (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), te->ys, UI_UNIT_X, UI_UNIT_Y,
 				                  &id->flag, 0, 0, 0, 0,
-				                  TIP_("Datablock has a 'fake' user which will keep it in the file "
+				                  TIP_("Data-block has a 'fake' user which will keep it in the file "
 				                       "even if nothing else uses it"));
 				UI_but_func_set(bt, restrictbutton_id_user_toggle, id, NULL);
 				UI_but_flag_enable(bt, but_flag);
