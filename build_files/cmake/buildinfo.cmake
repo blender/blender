@@ -27,13 +27,12 @@ if(EXISTS ${SOURCE_DIR}/.git)
 		                OUTPUT_VARIABLE MY_WC_HASH
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-		execute_process(COMMAND git branch --list master --contains ${MY_WC_HASH}
+		execute_process(COMMAND git branch --list master blender-v* --contains ${MY_WC_HASH}
 		                WORKING_DIRECTORY ${SOURCE_DIR}
 		                OUTPUT_VARIABLE _git_contains_check
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-		STRING(REGEX REPLACE "^[ \t]+" "" _git_contains_check "${_git_contains_check}")
-		if(_git_contains_check STREQUAL "master")
+		if(NOT _git_contains_check STREQUAL "")
 			set(MY_WC_BRANCH "master")
 		else()
 			execute_process(COMMAND git show-ref --tags -d
@@ -48,6 +47,22 @@ if(EXISTS ${SOURCE_DIR}/.git)
 
 			if(_git_tag_hashes MATCHES "${_git_head_hash}")
 				set(MY_WC_BRANCH "master")
+			else()
+				execute_process(COMMAND git branch --contains ${MY_WC_HASH}
+				                WORKING_DIRECTORY ${SOURCE_DIR}
+				                OUTPUT_VARIABLE _git_contains_branches
+				                OUTPUT_STRIP_TRAILING_WHITESPACE)
+				string(REGEX REPLACE "^\\*[ \t]+" "" _git_contains_branches "${_git_contains_branches}")
+				string(REGEX REPLACE "[\r\n]+" ";" _git_contains_branches "${_git_contains_branches}")
+				string(REGEX REPLACE ";[ \t]+" ";" _git_contains_branches "${_git_contains_branches}")
+				foreach(_branch ${_git_contains_branches})
+					if (NOT "${_branch}" MATCHES "\\(HEAD.*")
+						set(MY_WC_BRANCH "${_branch}")
+						break()
+					endif()
+				endforeach()
+				unset(_branch)
+				unset(_git_contains_branches)
 			endif()
 
 			unset(_git_tag_hashes)
