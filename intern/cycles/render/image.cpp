@@ -587,8 +587,7 @@ bool ImageManager::file_load_float_image(Image *img, ImageDataType type, device_
 		}
 
 		if(depth <= 1) {
-			int scanlinesize = width*components*sizeof(float);
-
+			size_t scanlinesize = ((size_t)width)*components*sizeof(float);
 			in->read_image(TypeDesc::FLOAT,
 			               (uchar*)readpixels + (height-1)*scanlinesize,
 			               AutoStride,
@@ -696,8 +695,7 @@ bool ImageManager::file_load_half_image(Image *img, ImageDataType type, device_v
 		}
 
 		if(depth <= 1) {
-			int scanlinesize = width*components*sizeof(half);
-
+			size_t scanlinesize = ((size_t)width)*components*sizeof(half);
 			in->read_image(TypeDesc::HALF,
 			               (uchar*)readpixels + (height-1)*scanlinesize,
 			               AutoStride,
