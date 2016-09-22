@@ -72,3 +72,5 @@ void immUniform4f(const char* name, float x, float y, float z, float w);
 // TODO: treat as sRGB?
 void immUniformColor3ubv(const unsigned char data[3]);
 void immUniformColor4ubv(const unsigned char data[4]);
+
+void immUniform1i(const char *name, const unsigned int data);

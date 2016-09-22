@@ -59,6 +59,7 @@
 #include "GPU_extensions.h"
 #include "GPU_glew.h"
 #include "GPU_basic_shader.h"
+#include "GPU_immediate.h"
 
 #include "RE_engine.h"
 
@@ -445,28 +446,36 @@ void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)
 		halfy /= triple->y;
 	}
 
-	GPU_basic_shader_bind((triple->target == GL_TEXTURE_2D) ? GPU_SHADER_TEXTURE_2D : GPU_SHADER_TEXTURE_RECT);
+	VertexFormat *format = immVertexFormat();
+	unsigned texcoord = add_attrib(format, "texcoord", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned pos = add_attrib(format, "position", GL_FLOAT, 2, KEEP_FLOAT);
+
+	glEnable(triple->target);
+	immBindBuiltinProgram((triple->target == GL_TEXTURE_2D) ? GPU_SHADER_2D_TEXTURE_2D : GPU_SHADER_2D_TEXTURE_RECT);
 
 	glBindTexture(triple->target, triple->bind);
 
-	glColor4f(1.0f, 1.0f, 1.0f, alpha);
-	glBegin(GL_QUADS);
-	glTexCoord2f(halfx, halfy);
-	glVertex2f(0, 0);
+	immUniform1i("texture_map", 0);
 
-	glTexCoord2f(ratiox + halfx, halfy);
-	glVertex2f(sizex, 0);
+	immBegin(GL_QUADS, 4);
 
-	glTexCoord2f(ratiox + halfx, ratioy + halfy);
-	glVertex2f(sizex, sizey);
+	immAttrib2f(texcoord, halfx, halfy);
+	immVertex2f(pos, 0.0f, 0.0f);
 
-	glTexCoord2f(halfx, ratioy + halfy);
-	glVertex2f(0, sizey);
-	glEnd();
+	immAttrib2f(texcoord, ratiox + halfx, halfy);
+	immVertex2f(pos, sizex, 0.0f);
+
+	immAttrib2f(texcoord, ratiox + halfx, ratioy + halfy);
+	immVertex2f(pos, sizex, sizey);
+
+	immAttrib2f(texcoord, halfx, ratioy + halfy);
+	immVertex2f(pos, 0.0f, sizey);
+
+	immEnd();
+	immUnbindProgram();
 
 	glBindTexture(triple->target, 0);
-
-	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
+	glDisable(triple->target);
 }
 
 static void wm_triple_copy_textures(wmWindow *win, wmDrawTriple *triple)
