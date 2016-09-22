@@ -373,12 +373,10 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 	}
 
 	if (ibuf_result != NULL) {
-
-		RE_render_result_rect_from_ibuf(rr, &scene->r, ibuf_result, oglrender->view_id);
-
-		if ((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW))
+		if ((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW)) {
 			BKE_image_stamp_buf(scene, camera, NULL, rect, NULL, rr->rectx, rr->recty, 4);
-
+		}
+		RE_render_result_rect_from_ibuf(rr, &scene->r, ibuf_result, oglrender->view_id);
 		IMB_freeImBuf(ibuf_result);
 	}
 }
