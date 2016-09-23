@@ -697,6 +697,9 @@ static bool remap_hair_emitter(Scene *scene, Object *ob, ParticleSystem *psys,
 		dm = target_psmd->dm_deformed;
 	}
 	target_dm = target_psmd->dm_final;
+	if (dm == NULL) {
+		return false;
+	}
 	/* don't modify the original vertices */
 	dm = CDDM_copy(dm);
 
@@ -1078,7 +1081,7 @@ static bool copy_particle_systems_to_object(Main *bmain,
 			copy_particle_edit(scene, ob_to, psys, psys_from);
 
 		if (duplicate_settings) {
-			id_us_min(psys->part);
+			id_us_min(&psys->part->id);
 			psys->part = BKE_particlesettings_copy(bmain, psys->part);
 		}
 	}
