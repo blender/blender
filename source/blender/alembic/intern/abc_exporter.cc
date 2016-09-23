@@ -87,10 +87,10 @@ ExportSettings::ExportSettings()
     , export_child_hairs(true)
     , export_ogawa(true)
     , pack_uv(false)
-    , do_convert_axis(false)
     , triangulate(false)
     , quad_method(0)
     , ngon_method(0)
+    , do_convert_axis(false)
 {}
 
 static bool object_is_smoke_sim(Object *ob)
