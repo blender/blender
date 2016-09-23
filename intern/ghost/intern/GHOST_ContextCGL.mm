@@ -187,6 +187,7 @@ GHOST_TSuccess GHOST_ContextCGL::updateDrawingContext()
 
 static void makeAttribList(
         std::vector<NSOpenGLPixelFormatAttribute>& attribs,
+        bool coreProfile, 
         bool stereoVisual,
         int numOfAASamples,
         bool needAlpha,
@@ -282,7 +283,7 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 	NSOpenGLPixelFormat *pixelFormat;
 	// TODO: keep pixel format for subsequent windows/contexts instead of recreating each time
 
-	makeAttribList(attribs, coreProfile, m_stereoVisual, m_numOfAASamples, needAlpha, needStencil, softwareGL);
+	makeAttribList(attribs, m_coreProfile, m_stereoVisual, m_numOfAASamples, needAlpha, needStencil, softwareGL);
 
 	pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&attribs[0]];
 
@@ -293,7 +294,7 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 		// (Now that I think about it, does WGL really require the code that it has for finding a lesser match?)
 
 		attribs.clear();
-		makeAttribList(attribs, coreProfile, m_stereoVisual, 0, needAlpha, needStencil, softwareGL);
+		makeAttribList(attribs, m_coreProfile, m_stereoVisual, 0, needAlpha, needStencil, softwareGL);
 		pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&attribs[0]];
 	}
 
@@ -335,7 +336,7 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 		[m_openGLContext release];
 
 		// create software GL context
-		makeAttribList(attribs, m_stereoVisual, m_numOfAASamples, needAlpha, needStencil, softwareGL);
+		makeAttribList(attribs, m_coreProfile, m_stereoVisual, m_numOfAASamples, needAlpha, needStencil, softwareGL);
 		pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&attribs[0]];
 		m_openGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:s_sharedOpenGLContext];
 		[pixelFormat release];
