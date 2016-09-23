@@ -31,8 +31,9 @@
  *  \ingroup bke
  */
 
-struct bSensor;
+struct Main;
 struct Object;
+struct bSensor;
 struct bController;
 struct bActuator;
 
@@ -67,6 +68,9 @@ void clear_sca_new_poins_ob(struct Object *ob);
 void clear_sca_new_poins(void);
 void set_sca_new_poins_ob(struct Object *ob);
 void set_sca_new_poins(void);
+
+void BKE_sca_logic_links_remap(struct Main *bmain, struct Object *ob_old, struct Object *ob_new);
+void BKE_sca_logic_copy(struct Object *ob_new, struct Object *ob);
 
 void sca_move_sensor(struct bSensor *sens_to_move, struct Object *ob, int move_up);
 void sca_move_controller(struct bController *cont_to_move, struct Object *ob, int move_up);
