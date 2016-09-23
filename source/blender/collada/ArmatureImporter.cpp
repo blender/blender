@@ -52,10 +52,10 @@ static const char *bc_get_joint_name(T *node)
 
 
 ArmatureImporter::ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, Scene *sce, const ImportSettings *import_settings) :
-	import_settings(import_settings),
+	scene(sce),
 	unit_converter(conv),
+	import_settings(import_settings),
 	TransformReader(conv), 
-	scene(sce), 
 	empty(NULL), 
 	mesh_importer(mesh) {
 }
