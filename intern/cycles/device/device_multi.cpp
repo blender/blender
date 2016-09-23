@@ -51,7 +51,7 @@ public:
 		Device *device;
 
 		foreach(DeviceInfo& subinfo, info.multi_devices) {
-			device = Device::create(subinfo, stats, background);
+			device = Device::create(subinfo, sub_stats_, background);
 			devices.push_back(SubDevice(device));
 		}
 
@@ -107,6 +107,7 @@ public:
 		}
 
 		mem.device_pointer = unique_ptr++;
+		stats.mem_alloc(mem.device_size);
 	}
 
 	void mem_copy_to(device_memory& mem)
@@ -161,6 +162,7 @@ public:
 		}
 
 		mem.device_pointer = 0;
+		stats.mem_free(mem.device_size);
 	}
 
 	void const_copy_to(const char *name, void *host, size_t size)
@@ -186,6 +188,7 @@ public:
 		}
 
 		mem.device_pointer = unique_ptr++;
+		stats.mem_alloc(mem.device_size);
 	}
 
 	void tex_free(device_memory& mem)
@@ -199,6 +202,7 @@ public:
 		}
 
 		mem.device_pointer = 0;
+		stats.mem_free(mem.device_size);
 	}
 
 	void pixels_alloc(device_memory& mem)
@@ -336,6 +340,9 @@ public:
 		foreach(SubDevice& sub, devices)
 			sub.device->task_cancel();
 	}
+
+protected:
+	Stats sub_stats_;
 };
 
 Device *device_multi_create(DeviceInfo& info, Stats &stats, bool background)
