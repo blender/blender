@@ -99,6 +99,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
+#include "BKE_sca.h"
 #include "BKE_speaker.h"
 #include "BKE_sound.h"
 #include "BKE_screen.h"
@@ -446,6 +447,10 @@ ATTR_NONNULL(1) static void libblock_remap_data(
 				            id_curr, foreach_libblock_remap_callback, (void *)r_id_remap_data, IDWALK_NOP);
 			}
 		}
+	}
+
+	if (old_id && GS(old_id->name) == ID_OB) {
+		BKE_sca_logic_links_remap(bmain, (Object *)old_id, (Object *)new_id);
 	}
 
 	/* XXX We may not want to always 'transfer' fakeuser from old to new id... Think for now it's desired behavior

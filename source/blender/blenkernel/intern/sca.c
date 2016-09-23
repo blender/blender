@@ -44,7 +44,9 @@
 #include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 #include "BLI_math.h"
+
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_library.h"
@@ -650,6 +652,160 @@ void set_sca_new_poins(void)
 	while (ob) {
 		set_sca_new_poins_ob(ob);
 		ob= ob->id.next;
+	}
+}
+
+/**
+ * Try to remap logic links to new object... Very, *very* weak.
+ */
+/* XXX Logick bricks... I don't have words to say what I think about this behavior.
+ *     They have silent hidden ugly inter-objects dependencies (a sensor can link into any other
+ *     object's controllers, and same between controllers and actuators, without *any* explicit reference
+ *     to data-block involved).
+ *     This is bad, bad, bad!!!
+ *     ...and forces us to add yet another very ugly hack to get remapping with logic bricks working. */
+void BKE_sca_logic_links_remap(Main *bmain, Object *ob_old, Object *ob_new)
+{
+	GHash *controllers_map = ob_old->controllers.first ?
+	                             BLI_ghash_ptr_new_ex(__func__, BLI_listbase_count(&ob_old->controllers)) : NULL;
+	GHash *actuators_map = ob_old->actuators.first ?
+	                           BLI_ghash_ptr_new_ex(__func__, BLI_listbase_count(&ob_old->actuators)) : NULL;
+
+	if (!(controllers_map || actuators_map)) {
+		return;
+	}
+
+	/* We try to remap old controllers/actuators to new ones - in a very basic way. */
+	for (bController *cont_old = ob_old->controllers.first, *cont_new = ob_new->controllers.first;
+	     cont_old;
+	     cont_old = cont_old->next)
+	{
+		bController *cont_new2 = cont_new;
+
+		if (cont_old->mynew != NULL) {
+			cont_new2 = cont_old->mynew;
+			if (!(cont_new2 == cont_new || BLI_findindex(&ob_new->controllers, cont_new2) >= 0)) {
+				cont_new2 = NULL;
+			}
+		}
+		else if (cont_new && cont_old->type != cont_new->type) {
+			cont_new2 = NULL;
+		}
+
+		BLI_ghash_insert(controllers_map, cont_old, cont_new2);
+
+		if (cont_new) {
+			cont_new = cont_new->next;
+		}
+	}
+
+	for (bActuator *act_old = ob_old->actuators.first, *act_new = ob_new->actuators.first;
+	     act_old;
+	     act_old = act_old->next)
+	{
+		bActuator *act_new2 = act_new;
+
+		if (act_old->mynew != NULL) {
+			act_new2 = act_old->mynew;
+			if (!(act_new2 == act_new || BLI_findindex(&ob_new->actuators, act_new2) >= 0)) {
+				act_new2 = NULL;
+			}
+		}
+		else if (act_new && act_old->type != act_new->type) {
+			act_new2 = NULL;
+		}
+
+		BLI_ghash_insert(actuators_map, act_old, act_new2);
+
+		if (act_new) {
+			act_new = act_new->next;
+		}
+	}
+
+	for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+		if (controllers_map != NULL) {
+			for (bSensor *sens = ob->sensors.first; sens; sens = sens->next) {
+				for (int a = 0; a < sens->totlinks; a++) {
+					if (sens->links[a]) {
+						bController *old_link = sens->links[a];
+						bController **new_link_p = (bController **)BLI_ghash_lookup_p(controllers_map, old_link);
+
+						if (new_link_p == NULL) {
+							/* old_link is *not* in map's keys (i.e. not to any ob_old->controllers),
+							 * which means we ignore it totally here. */
+						}
+						else if (*new_link_p == NULL) {
+							unlink_logicbricks((void **)&old_link, (void ***)&(sens->links), &sens->totlinks);
+							a--;
+						}
+						else {
+							sens->links[a] = *new_link_p;
+						}
+					}
+				}
+			}
+		}
+
+		if (actuators_map != NULL) {
+			for (bController *cont = ob->controllers.first; cont; cont = cont->next) {
+				for (int a = 0; a < cont->totlinks; a++) {
+					if (cont->links[a]) {
+						bActuator *old_link = cont->links[a];
+						bActuator **new_link_p = (bActuator **)BLI_ghash_lookup_p(actuators_map, old_link);
+
+						if (new_link_p == NULL) {
+							/* old_link is *not* in map's keys (i.e. not to any ob_old->actuators),
+							 * which means we ignore it totally here. */
+						}
+						else if (*new_link_p == NULL) {
+							unlink_logicbricks((void **)&old_link, (void ***)&(cont->links), &cont->totlinks);
+							a--;
+						}
+						else {
+							cont->links[a] = *new_link_p;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (controllers_map) {
+		BLI_ghash_free(controllers_map, NULL, NULL);
+	}
+	if (actuators_map) {
+		BLI_ghash_free(actuators_map, NULL, NULL);
+	}
+}
+
+/**
+ * Handle the copying of logic data into a new object, including internal logic links update.
+ * External links (links between logic bricks of different objects) must be handled separately.
+ */
+void BKE_sca_logic_copy(Object *ob_new, Object *ob)
+{
+	copy_sensors(&ob_new->sensors, &ob->sensors);
+	copy_controllers(&ob_new->controllers, &ob->controllers);
+	copy_actuators(&ob_new->actuators, &ob->actuators);
+
+	for (bSensor *sens = ob->sensors.first; sens; sens = sens->next) {
+		if (sens->flag & SENS_NEW) {
+			for (int a = 0; a < sens->totlinks; a++) {
+				if (sens->links[a] && sens->links[a]->mynew) {
+					sens->links[a] = sens->links[a]->mynew;
+				}
+			}
+		}
+	}
+
+	for (bController *cont = ob->controllers.first; cont; cont = cont->next) {
+		if (cont->flag & CONT_NEW) {
+			for (int a = 0; a < cont->totlinks; a++) {
+				if (cont->links[a] && cont->links[a]->mynew) {
+					cont->links[a] = cont->links[a]->mynew;
+				}
+			}
+		}
 	}
 }
 
