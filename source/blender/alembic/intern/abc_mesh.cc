@@ -309,7 +309,6 @@ AbcMeshWriter::AbcMeshWriter(Scene *scene,
 {
 	m_is_animated = isAnimated();
 	m_subsurf_mod = NULL;
-	m_has_per_face_materials = false;
 	m_is_subd = false;
 
 	/* If the object is static, use the default static time sampling. */
@@ -406,8 +405,8 @@ void AbcMeshWriter::writeMesh(DerivedMesh *dm)
 	get_vertices(dm, points);
 	get_topology(dm, poly_verts, loop_counts, smooth_normal);
 
-	if (m_first_frame) {
-		writeCommonData(dm, m_mesh_schema);
+	if (m_first_frame && m_settings.export_face_sets) {
+		writeFaceSets(dm, m_mesh_schema);
 	}
 
 	m_mesh_sample = OPolyMeshSchema::Sample(V3fArraySample(points),
@@ -475,9 +474,8 @@ void AbcMeshWriter::writeSubD(DerivedMesh *dm)
 	get_topology(dm, poly_verts, loop_counts, smooth_normal);
 	get_creases(dm, crease_indices, crease_lengths, crease_sharpness);
 
-	if (m_first_frame) {
-		/* create materials' face_sets */
-		writeCommonData(dm, m_subdiv_schema);
+	if (m_first_frame && m_settings.export_face_sets) {
+		writeFaceSets(dm, m_subdiv_schema);
 	}
 
 	m_subdiv_sample = OSubDSchema::Sample(V3fArraySample(points),
@@ -514,7 +512,7 @@ void AbcMeshWriter::writeSubD(DerivedMesh *dm)
 }
 
 template <typename Schema>
-void AbcMeshWriter::writeCommonData(DerivedMesh *dm, Schema &schema)
+void AbcMeshWriter::writeFaceSets(DerivedMesh *dm, Schema &schema)
 {
 	std::map< std::string, std::vector<int32_t> > geo_groups;
 	getGeoGroups(dm, geo_groups);
@@ -586,18 +584,6 @@ void AbcMeshWriter::writeArbGeoParams(DerivedMesh *dm)
 		}
 		else {
 			write_custom_data(m_mesh_schema.getArbGeomParams(), m_custom_data_config, &dm->loopData, CD_MLOOPCOL);
-		}
-	}
-
-	if (m_first_frame && m_has_per_face_materials) {
-		std::vector<int32_t> material_indices;
-
-		if (m_settings.export_face_sets) {
-			get_material_indices(dm, material_indices);
-
-			OFaceSetSchema::Sample samp;
-			samp.setFaces(Int32ArraySample(material_indices));
-			m_face_set.getSchema().set(samp);
 		}
 	}
 }
