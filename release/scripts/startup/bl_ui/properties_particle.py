@@ -79,6 +79,8 @@ class PARTICLE_MT_specials(Menu):
         props.use_active = False
         props.remove_target_particles = True
 
+        layout.operator("particle.duplicate_particle_system")
+
 
 class PARTICLE_MT_hair_dynamics_presets(Menu):
     bl_label = "Hair Dynamics Presets"

@@ -1187,3 +1187,37 @@ void PARTICLE_OT_copy_particle_systems(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "remove_target_particles", true, "Remove Target Particles", "Remove particle systems on the target objects");
 	RNA_def_boolean(ot->srna, "use_active", false, "Use Active", "Use the active particle system from the context");
 }
+
+static int duplicate_particle_systems_poll(bContext *C)
+{
+	if (!ED_operator_object_active_editable(C)) {
+		return false;
+	}
+	Object *ob = ED_object_active_context(C);
+	if (BLI_listbase_is_empty(&ob->particlesystem)) {
+		return false;
+	}
+	return true;
+}
+
+static int duplicate_particle_systems_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = ED_object_active_context(C);
+	ParticleSystem *psys = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data;
+	copy_particle_systems_to_object(scene, ob, psys, ob, PAR_COPY_SPACE_OBJECT);
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_duplicate_particle_system(wmOperatorType *ot)
+{
+	ot->name = "Duplicate Particle Systems";
+	ot->description = "Duplicate particle system within the active object";
+	ot->idname = "PARTICLE_OT_duplicate_particle_system";
+
+	ot->poll = duplicate_particle_systems_poll;
+	ot->exec = duplicate_particle_systems_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
