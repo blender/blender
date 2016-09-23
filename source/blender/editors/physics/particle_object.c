@@ -1097,8 +1097,9 @@ static bool copy_particle_systems_to_object(Scene *scene, Object *ob_from, Parti
 				BLI_assert(false);
 				break;
 		}
-		
-		remap_hair_emitter(scene, ob_from, psys_from, ob_to, psys, psys->edit, from_mat, to_mat, psys_from->flag & PSYS_GLOBAL_HAIR, psys->flag & PSYS_GLOBAL_HAIR);
+		if (ob_from != ob_to) {
+			remap_hair_emitter(scene, ob_from, psys_from, ob_to, psys, psys->edit, from_mat, to_mat, psys_from->flag & PSYS_GLOBAL_HAIR, psys->flag & PSYS_GLOBAL_HAIR);
+		}
 		
 		/* tag for recalc */
 //		psys->recalc |= PSYS_RECALC_RESET;
