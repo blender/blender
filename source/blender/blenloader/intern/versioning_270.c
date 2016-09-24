@@ -52,6 +52,7 @@
 #include "DNA_linestyle_types.h"
 #include "DNA_actuator_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_smoke_types.h"
 
 #include "DNA_genfile.h"
 
@@ -1403,6 +1404,24 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
 				/* fall back to behaviour from before we introduced CRF for old files */
 				scene->r.ffcodecdata.constant_rate_factor = FFM_CRF_NONE;
+			}
+		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "SmokeModifierData", "float", "slice_per_voxel")) {
+			Object *ob;
+			ModifierData *md;
+
+			for (ob = main->object.first; ob; ob = ob->id.next) {
+				for (md = ob->modifiers.first; md; md = md->next) {
+					if (md->type == eModifierType_Smoke) {
+						SmokeModifierData *smd = (SmokeModifierData *)md;
+						if (smd->domain) {
+							smd->domain->slice_per_voxel = 5.0f;
+							smd->domain->slice_depth = 0.5f;
+							smd->domain->display_thickness = 1.0f;
+						}
+					}
+				}
 			}
 		}
 	}

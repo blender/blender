@@ -536,6 +536,13 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 #endif
 			smd->domain->data_depth = 0;
 			smd->domain->cache_file_format = PTCACHE_FILE_PTCACHE;
+
+			smd->domain->display_thickness = 1.0f;
+			smd->domain->slice_method = MOD_SMOKE_SLICE_VIEW_ALIGNED;
+			smd->domain->axis_slice_method = AXIS_SLICE_FULL;
+			smd->domain->slice_per_voxel = 5.0f;
+			smd->domain->slice_depth = 0.5f;
+			smd->domain->slice_axis = 0;
 		}
 		else if (smd->type & MOD_SMOKE_TYPE_FLOW)
 		{
@@ -629,6 +636,12 @@ void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData 
 		tsmd->domain->openvdb_comp = smd->domain->openvdb_comp;
 		tsmd->domain->data_depth = smd->domain->data_depth;
 		tsmd->domain->cache_file_format = smd->domain->cache_file_format;
+
+		tsmd->domain->slice_method = smd->domain->slice_method;
+		tsmd->domain->axis_slice_method = smd->domain->axis_slice_method;
+		tsmd->domain->slice_per_voxel = smd->domain->slice_per_voxel;
+		tsmd->domain->slice_depth = smd->domain->slice_depth;
+		tsmd->domain->slice_axis = smd->domain->slice_axis;
 	}
 	else if (tsmd->flow) {
 		tsmd->flow->psys = smd->flow->psys;

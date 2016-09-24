@@ -113,6 +113,63 @@ typedef struct VolumeSlicer {
 	float (*verts)[3];
 } VolumeSlicer;
 
+/* *************************** Axis Aligned Slicing ************************** */
+
+static void create_single_slice(VolumeSlicer *slicer, const float depth,
+                                const int axis, const int idx)
+{
+	const float vertices[3][4][3] = {
+	    {
+	        { depth, slicer->min[1], slicer->min[2] },
+	        { depth, slicer->max[1], slicer->min[2] },
+	        { depth, slicer->max[1], slicer->max[2] },
+	        { depth, slicer->min[1], slicer->max[2] }
+	    },
+	    {
+	        { slicer->min[0], depth, slicer->min[2] },
+	        { slicer->min[0], depth, slicer->max[2] },
+	        { slicer->max[0], depth, slicer->max[2] },
+	        { slicer->max[0], depth, slicer->min[2] }
+	    },
+	    {
+	        { slicer->min[0], slicer->min[1], depth },
+	        { slicer->min[0], slicer->max[1], depth },
+	        { slicer->max[0], slicer->max[1], depth },
+	        { slicer->max[0], slicer->min[1], depth }
+	    }
+	};
+
+	copy_v3_v3(slicer->verts[idx + 0], vertices[axis][0]);
+	copy_v3_v3(slicer->verts[idx + 1], vertices[axis][1]);
+	copy_v3_v3(slicer->verts[idx + 2], vertices[axis][2]);
+	copy_v3_v3(slicer->verts[idx + 3], vertices[axis][0]);
+	copy_v3_v3(slicer->verts[idx + 4], vertices[axis][2]);
+	copy_v3_v3(slicer->verts[idx + 5], vertices[axis][3]);
+}
+
+static void create_axis_aligned_slices(VolumeSlicer *slicer, const int num_slices,
+                                       const float view_dir[3], const int axis)
+{
+	float depth, slice_size = slicer->size[axis] / num_slices;
+
+	/* always process slices in back to front order! */
+	if (view_dir[axis] > 0.0f) {
+		depth = slicer->min[axis];
+	}
+	else {
+		depth = slicer->max[axis];
+		slice_size = -slice_size;
+	}
+
+	int count = 0;
+	for (int slice = 0; slice < num_slices; slice++) {
+		create_single_slice(slicer, depth, axis, count);
+
+		count += 6;
+		depth += slice_size;
+	}
+}
+
 /* *************************** View Aligned Slicing ************************** */
 
 /* Code adapted from:
@@ -433,8 +490,25 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 
 	/* setup slicing information */
 
-	const int max_slices = 256;
-	const int max_points = max_slices * 12;
+	const bool view_aligned = (sds->slice_method == MOD_SMOKE_SLICE_VIEW_ALIGNED);
+	int max_slices, max_points, axis = 0;
+
+	if (view_aligned) {
+		max_slices = max_iii(sds->res[0], sds->res[1], sds->res[2]) * sds->slice_per_voxel;
+		max_points = max_slices * 12;
+	}
+	else {
+		if (sds->axis_slice_method == AXIS_SLICE_FULL) {
+			axis = axis_dominant_v3_single(viewnormal);
+			max_slices = sds->res[axis] * sds->slice_per_voxel;
+		}
+		else {
+			axis = (sds->slice_axis == SLICE_AXIS_AUTO) ? axis_dominant_v3_single(viewnormal) : sds->slice_axis - 1;
+			max_slices = 1;
+		}
+
+		max_points = max_slices * 6;
+	}
 
 	VolumeSlicer slicer;
 	copy_v3_v3(slicer.min, min);
@@ -442,7 +516,22 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	copy_v3_v3(slicer.size, size);
 	slicer.verts = MEM_mallocN(sizeof(float) * 3 * max_points, "smoke_slice_vertices");
 
-	const int num_points = create_view_aligned_slices(&slicer, max_slices, viewnormal);
+	int num_points;
+
+	if (view_aligned) {
+		num_points = create_view_aligned_slices(&slicer, max_slices, viewnormal);
+	}
+	else {
+		num_points = max_points;
+
+		if (sds->axis_slice_method == AXIS_SLICE_FULL) {
+			create_axis_aligned_slices(&slicer, max_slices, viewnormal, axis);
+		}
+		else {
+			const float depth = (sds->slice_depth - 0.5f) * size[axis];
+			create_single_slice(&slicer, depth, axis, 0);
+		}
+	}
 
 	/* setup buffer and draw */
 
