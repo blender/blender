@@ -648,16 +648,26 @@ typedef void (*vector_draw_func)(float(*)[3], float(*)[3], float*, float*, float
 
 void draw_smoke_velocity(SmokeDomainSettings *domain, float viewnormal[3])
 {
+#ifdef WITH_SMOKE
+	const float *vel_x = smoke_get_velocity_x(domain->fluid);
+	const float *vel_y = smoke_get_velocity_y(domain->fluid);
+	const float *vel_z = smoke_get_velocity_z(domain->fluid);
+#else
+	const float *vel_x = NULL;
+	const float *vel_y = NULL;
+	const float *vel_z = NULL;
+#endif
+
+	if (ELEM(NULL, vel_x, vel_y, vel_z)) {
+		return;
+	}
+
 	const int *base_res = domain->base_res;
 	const int *res = domain->res;
 	const int *res_min = domain->res_min;
 
 	int res_max[3];
 	copy_v3_v3_int(res_max, domain->res_max);
-
-	const float *vel_x = smoke_get_velocity_x(domain->fluid);
-	const float *vel_y = smoke_get_velocity_y(domain->fluid);
-	const float *vel_z = smoke_get_velocity_z(domain->fluid);
 
 	const float *cell_size = domain->cell_size;
 	const float step_size = ((float)max_iii(base_res[0], base_res[1], base_res[2])) / 16.0f;
