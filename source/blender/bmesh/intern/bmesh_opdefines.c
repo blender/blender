@@ -1635,7 +1635,8 @@ static BMOpDefine bmo_create_icosphere_def = {
 static BMOpDefine bmo_create_monkey_def = {
 	"create_monkey",
 	/* slots_in */
-	{{"matrix", BMO_OP_SLOT_MAT}, /* matrix to multiply the new geometry with */
+	{{"matrix",    BMO_OP_SLOT_MAT},  /* matrix to multiply the new geometry with */
+	 {"calc_uvs",  BMO_OP_SLOT_BOOL}, /* calculate default UVs */
 	 {{'\0'}},
 	},
 	/* slots_out */
