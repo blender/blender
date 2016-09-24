@@ -383,6 +383,14 @@ class PHYSICS_PT_smoke_display_settings(PhysicButtonsPanel, Panel):
         if axis_slice_method == 'FULL':
             layout.prop(domain, "slice_per_voxel")
 
+            layout.separator()
+            layout.label(text="Debug:")
+            layout.prop(domain, "draw_velocity")
+            col = layout.column();
+            col.enabled = domain.draw_velocity
+            col.prop(domain, "vector_draw_type")
+            col.prop(domain, "vector_scale")
+
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

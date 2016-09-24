@@ -72,6 +72,11 @@ enum {
 	SLICE_AXIS_Z    = 3,
 };
 
+enum {
+	VECTOR_DRAW_NEEDLE     = 0,
+	VECTOR_DRAW_STREAMLINE = 1,
+};
+
 /* cache compression */
 #define SM_CACHE_LIGHT		0
 #define SM_CACHE_HEAVY		1
@@ -184,10 +189,13 @@ typedef struct SmokeDomainSettings {
 
 	/* Display settings */
 	char slice_method, axis_slice_method;
-	char slice_axis, pad2;
+	char slice_axis, draw_velocity;
 	float slice_per_voxel;
 	float slice_depth;
 	float display_thickness;
+	float vector_scale;
+	char vector_draw_type;
+	char pad2[3];
 } SmokeDomainSettings;
 
 

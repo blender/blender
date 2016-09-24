@@ -7912,9 +7912,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			}
 
 			/* smoke debug render */
-#ifdef SMOKE_DEBUG_VELOCITY
-			draw_smoke_velocity(smd->domain, ob);
-#endif
+			if (!render_override && sds->draw_velocity) {
+				draw_smoke_velocity(sds, viewnormal);
+			}
+
 #ifdef SMOKE_DEBUG_HEAT
 			draw_smoke_heat(smd->domain, ob);
 #endif

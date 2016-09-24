@@ -543,6 +543,7 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->domain->slice_per_voxel = 5.0f;
 			smd->domain->slice_depth = 0.5f;
 			smd->domain->slice_axis = 0;
+			smd->domain->vector_scale = 1.0f;
 		}
 		else if (smd->type & MOD_SMOKE_TYPE_FLOW)
 		{
@@ -642,6 +643,9 @@ void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData 
 		tsmd->domain->slice_per_voxel = smd->domain->slice_per_voxel;
 		tsmd->domain->slice_depth = smd->domain->slice_depth;
 		tsmd->domain->slice_axis = smd->domain->slice_axis;
+		tsmd->domain->draw_velocity = smd->domain->draw_velocity;
+		tsmd->domain->vector_draw_type = smd->domain->vector_draw_type;
+		tsmd->domain->vector_scale = smd->domain->vector_scale;
 	}
 	else if (tsmd->flow) {
 		tsmd->flow->psys = smd->flow->psys;

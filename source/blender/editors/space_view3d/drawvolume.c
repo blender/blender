@@ -40,6 +40,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
+#include "BKE_DerivedMesh.h"
 #include "BKE_particle.h"
 
 #include "smoke_API.h"
@@ -571,61 +572,180 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	}
 }
 
-#ifdef SMOKE_DEBUG_VELOCITY
-void draw_smoke_velocity(SmokeDomainSettings *domain, Object *ob)
+static void add_tri(float (*verts)[3], float(*colors)[3], int *offset,
+                    float p1[3], float p2[3], float p3[3], float rgb[3])
 {
-	float x, y, z;
-	float x0, y0, z0;
-	int *base_res = domain->base_res;
-	int *res = domain->res;
-	int *res_min = domain->res_min;
-	int *res_max = domain->res_max;
-	float *vel_x = smoke_get_velocity_x(domain->fluid);
-	float *vel_y = smoke_get_velocity_y(domain->fluid);
-	float *vel_z = smoke_get_velocity_z(domain->fluid);
+	copy_v3_v3(verts[*offset + 0], p1);
+	copy_v3_v3(verts[*offset + 1], p2);
+	copy_v3_v3(verts[*offset + 2], p3);
+
+	copy_v3_v3(colors[*offset + 0], rgb);
+	copy_v3_v3(colors[*offset + 1], rgb);
+	copy_v3_v3(colors[*offset + 2], rgb);
+
+	*offset += 3;
+}
+
+static void add_needle(float (*verts)[3], float (*colors)[3], float center[3],
+                       float dir[3], float scale, float voxel_size, int *offset)
+{
+	float len = len_v3(dir);
+
+	float rgb[3];
+	weight_to_rgb(rgb, len);
+
+	if (len != 0.0f) {
+		mul_v3_fl(dir, 1.0f / len);
+		len *= scale;
+	}
+
+	len *= voxel_size;
+
+	float corners[4][3] = {
+	    { 0.0f, 0.2f, -0.5f },
+	    { -0.2f * 0.866f, -0.2f * 0.5f, -0.5f },
+	    { 0.2f * 0.866f, -0.2f * 0.5f, -0.5f },
+	    { 0.0f, 0.0f, 0.5f }
+	};
+
+	const float up[3] = { 0.0f, 0.0f, 1.0f };
+	float rot[3][3];
+
+	rotation_between_vecs_to_mat3(rot, up, dir);
+	transpose_m3(rot);
+
+	for (int i = 0; i < 4; i++) {
+		mul_m3_v3(rot, corners[i]);
+		mul_v3_fl(corners[i], len);
+		add_v3_v3(corners[i], center);
+	}
+
+	add_tri(verts, colors, offset, corners[0], corners[1], corners[2], rgb);
+	add_tri(verts, colors, offset, corners[0], corners[1], corners[3], rgb);
+	add_tri(verts, colors, offset, corners[1], corners[2], corners[3], rgb);
+	add_tri(verts, colors, offset, corners[2], corners[0], corners[3], rgb);
+}
+
+static void add_streamline(float (*verts)[3], float(*colors)[3], float center[3],
+                           float dir[3], float scale, float voxel_size, int *offset)
+{
+	const float len = len_v3(dir);
+
+	float rgb[3];
+	weight_to_rgb(rgb, len);
+
+	copy_v3_v3(colors[(*offset)], rgb);
+	copy_v3_v3(verts[(*offset)++], center);
+
+	mul_v3_fl(dir, scale * voxel_size);
+	add_v3_v3(center, dir);
+
+	copy_v3_v3(colors[(*offset)], rgb);
+	copy_v3_v3(verts[(*offset)++], center);
+}
+
+typedef void (*vector_draw_func)(float(*)[3], float(*)[3], float*, float*, float, float, int*);
+
+void draw_smoke_velocity(SmokeDomainSettings *domain, float viewnormal[3])
+{
+	const int *base_res = domain->base_res;
+	const int *res = domain->res;
+	const int *res_min = domain->res_min;
+
+	int res_max[3];
+	copy_v3_v3_int(res_max, domain->res_max);
+
+	const float *vel_x = smoke_get_velocity_x(domain->fluid);
+	const float *vel_y = smoke_get_velocity_y(domain->fluid);
+	const float *vel_z = smoke_get_velocity_z(domain->fluid);
+
+	const float *cell_size = domain->cell_size;
+	const float step_size = ((float)max_iii(base_res[0], base_res[1], base_res[2])) / 16.0f;
+
+	/* set first position so that it doesn't jump when domain moves */
+	float xyz[3] = {
+	    res_min[0] + fmod(-(float)domain->shift[0] + res_min[0], step_size),
+	    res_min[1] + fmod(-(float)domain->shift[1] + res_min[1], step_size),
+	    res_min[2] + fmod(-(float)domain->shift[2] + res_min[2], step_size)
+	};
+
+	if (xyz[0] < res_min[0]) xyz[0] += step_size;
+	if (xyz[1] < res_min[1]) xyz[1] += step_size;
+	if (xyz[2] < res_min[2]) xyz[2] += step_size;
 
 	float min[3];
-	float *cell_size = domain->cell_size;
-	float step_size = ((float)max_iii(base_res[0], base_res[1], base_res[2])) / 16.f;
-	float vf = domain->scale / 16.f * 2.f; /* velocity factor */
+	add_v3_v3v3(min, domain->p0, domain->obj_shift_f);
+
+	int num_points_v[3] = {
+	    ((float)(res_max[0] - floor(xyz[0])) / step_size) + 0.5f,
+	    ((float)(res_max[1] - floor(xyz[1])) / step_size) + 0.5f,
+	    ((float)(res_max[2] - floor(xyz[2])) / step_size) + 0.5f
+	};
+
+	if (domain->slice_method == MOD_SMOKE_SLICE_AXIS_ALIGNED &&
+	    domain->axis_slice_method == AXIS_SLICE_SINGLE)
+	{
+		const int axis = (domain->slice_axis == SLICE_AXIS_AUTO) ?
+		                     axis_dominant_v3_single(viewnormal) : domain->slice_axis - 1;
+
+		xyz[axis] = (float)res[axis] * domain->slice_depth;
+		num_points_v[axis] = 1;
+		res_max[axis] = xyz[axis] + 1;
+	}
+
+	vector_draw_func func;
+	int max_points;
+
+	if (domain->vector_draw_type == VECTOR_DRAW_NEEDLE) {
+		func = add_needle;
+		max_points = (num_points_v[0] * num_points_v[1] * num_points_v[2]) * 4 * 3;
+	}
+	else {
+		func = add_streamline;
+		max_points = (num_points_v[0] * num_points_v[1] * num_points_v[2]) * 2;
+	}
+
+	float (*verts)[3] = MEM_mallocN(sizeof(float) * 3 * max_points, "");
+	float (*colors)[3] = MEM_mallocN(sizeof(float) * 3 * max_points, "");
+
+	int num_points = 0;
+
+	for (float x = floor(xyz[0]); x < res_max[0]; x += step_size) {
+		for (float y = floor(xyz[1]); y < res_max[1]; y += step_size) {
+			for (float z = floor(xyz[2]); z < res_max[2]; z += step_size) {
+				int index = (floor(x) - res_min[0]) + (floor(y) - res_min[1]) * res[0] + (floor(z) - res_min[2]) * res[0] * res[1];
+
+				float pos[3] = {
+				    min[0] + ((float)x + 0.5f) * cell_size[0],
+				    min[1] + ((float)y + 0.5f) * cell_size[1],
+				    min[2] + ((float)z + 0.5f) * cell_size[2]
+				};
+
+				float vel[3] = {
+				    vel_x[index], vel_y[index], vel_z[index]
+				};
+
+				func(verts, colors, pos, vel, domain->vector_scale, cell_size[0], &num_points);
+			}
+		}
+	}
 
 	glLineWidth(1.0f);
 
-	/* set first position so that it doesn't jump when domain moves */
-	x0 = res_min[0] + fmod(-(float)domain->shift[0] + res_min[0], step_size);
-	y0 = res_min[1] + fmod(-(float)domain->shift[1] + res_min[1], step_size);
-	z0 = res_min[2] + fmod(-(float)domain->shift[2] + res_min[2], step_size);
-	if (x0 < res_min[0]) x0 += step_size;
-	if (y0 < res_min[1]) y0 += step_size;
-	if (z0 < res_min[2]) z0 += step_size;
-	add_v3_v3v3(min, domain->p0, domain->obj_shift_f);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, verts);
 
-	for (x = floor(x0); x < res_max[0]; x += step_size)
-		for (y = floor(y0); y < res_max[1]; y += step_size)
-			for (z = floor(z0); z < res_max[2]; z += step_size) {
-				int index = (floor(x) - res_min[0]) + (floor(y) - res_min[1]) * res[0] + (floor(z) - res_min[2]) * res[0] * res[1];
+	glEnableClientState(GL_COLOR_ARRAY);
+	glColorPointer(3, GL_FLOAT, 0, colors);
 
-				float pos[3] = {min[0] + ((float)x + 0.5f) * cell_size[0], min[1] + ((float)y + 0.5f) * cell_size[1], min[2] + ((float)z + 0.5f) * cell_size[2]};
-				float vel = sqrtf(vel_x[index] * vel_x[index] + vel_y[index] * vel_y[index] + vel_z[index] * vel_z[index]);
+	glDrawArrays(GL_LINES, 0, num_points);
 
-				/* draw heat as scaled "arrows" */
-				if (vel >= 0.01f) {
-					float col_g = 1.0f - vel;
-					CLAMP(col_g, 0.0f, 1.0f);
-					glColor3f(1.0f, col_g, 0.0f);
-					glPointSize(10.0f * vel);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
 
-					glBegin(GL_LINES);
-					glVertex3f(pos[0], pos[1], pos[2]);
-					glVertex3f(pos[0] + vel_x[index] * vf, pos[1] + vel_y[index] * vf, pos[2] + vel_z[index] * vf);
-					glEnd();
-					glBegin(GL_POINTS);
-					glVertex3f(pos[0] + vel_x[index] * vf, pos[1] + vel_y[index] * vf, pos[2] + vel_z[index] * vf);
-					glEnd();
-				}
-			}
+	MEM_freeN(verts);
+	MEM_freeN(colors);
 }
-#endif
 
 #ifdef SMOKE_DEBUG_HEAT
 void draw_smoke_heat(SmokeDomainSettings *domain, Object *ob)
