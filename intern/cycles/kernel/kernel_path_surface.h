@@ -46,15 +46,17 @@ ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobal
 			float num_samples_inv = num_samples_adjust/(num_samples*kernel_data.integrator.num_all_lights);
 			RNG lamp_rng = cmj_hash(*rng, i);
 
-			if(kernel_data.integrator.pdf_triangles != 0.0f)
-				num_samples_inv *= 0.5f;
-
 			for(int j = 0; j < num_samples; j++) {
 				float light_u, light_v;
 				path_branched_rng_2D(kg, &lamp_rng, state, j, num_samples, PRNG_LIGHT_U, &light_u, &light_v);
 
 				LightSample ls;
 				if(lamp_light_sample(kg, i, light_u, light_v, ccl_fetch(sd, P), &ls)) {
+					/* The sampling probability returned by lamp_light_sample assumes that all lights were sampled.
+					 * However, this code only samples lamps, so if the scene also had mesh lights, the real probability is twice as high. */
+					if(kernel_data.integrator.pdf_triangles != 0.0f)
+						ls.pdf *= 2.0f;
+
 					if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
 						/* trace shadow ray */
 						float3 shadow;
@@ -73,9 +75,6 @@ ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobal
 			int num_samples = ceil_to_int(num_samples_adjust*kernel_data.integrator.mesh_light_samples);
 			float num_samples_inv = num_samples_adjust/num_samples;
 
-			if(kernel_data.integrator.num_all_lights)
-				num_samples_inv *= 0.5f;
-
 			for(int j = 0; j < num_samples; j++) {
 				float light_t = path_branched_rng_1D(kg, rng, state, j, num_samples, PRNG_LIGHT);
 				float light_u, light_v;
@@ -87,6 +86,10 @@ ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobal
 
 				LightSample ls;
 				if(light_sample(kg, light_t, light_u, light_v, ccl_fetch(sd, time), ccl_fetch(sd, P), state->bounce, &ls)) {
+					/* Same as above, probability needs to be corrected since the sampling was forced to select a mesh light. */
+					if(kernel_data.integrator.num_all_lights)
+						ls.pdf *= 2.0f;
+
 					if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
 						/* trace shadow ray */
 						float3 shadow;
