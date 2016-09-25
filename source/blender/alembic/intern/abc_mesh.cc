@@ -146,19 +146,6 @@ static void get_topology(DerivedMesh *dm,
 	}
 }
 
-static void get_material_indices(DerivedMesh *dm, std::vector<int32_t> &indices)
-{
-	indices.clear();
-	indices.reserve(dm->getNumTessFaces(dm));
-
-	MPoly *mpolys = dm->getPolyArray(dm);
-
-	for (int i = 1, e = dm->getNumPolys(dm); i < e; ++i) {
-		MPoly *mpoly = &mpolys[i];
-		indices.push_back(mpoly->mat_nr);
-	}
-}
-
 static void get_creases(DerivedMesh *dm,
                         std::vector<int32_t> &indices,
                         std::vector<int32_t> &lengths,
