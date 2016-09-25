@@ -471,16 +471,12 @@ void Mesh::add_face_normals()
 
 	/* compute face normals */
 	size_t triangles_size = num_triangles();
-	bool flip = transform_negative_scaled;
 
 	if(triangles_size) {
 		float3 *verts_ptr = verts.data();
 
 		for(size_t i = 0; i < triangles_size; i++) {
 			fN[i] = compute_face_normal(get_triangle(i), verts_ptr);
-
-			if(flip)
-				fN[i] = -fN[i];
 		}
 	}
 
