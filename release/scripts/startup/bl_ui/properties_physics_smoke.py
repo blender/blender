@@ -373,17 +373,20 @@ class PHYSICS_PT_smoke_display_settings(PhysicButtonsPanel, Panel):
         slice_method = domain.slice_method
         axis_slice_method = domain.axis_slice_method
 
+        do_axis_slicing = (slice_method == 'AXIS_ALIGNED')
+        do_full_slicing = (axis_slice_method == 'FULL')
+
         row = layout.row();
-        row.enabled = (slice_method == 'AXIS_ALIGNED')
+        row.enabled = do_axis_slicing
         row.prop(domain, "axis_slice_method")
 
         col = layout.column();
-        col.enabled = (axis_slice_method == 'SINGLE')
+        col.enabled = not do_full_slicing and do_axis_slicing
         col.prop(domain, "slice_axis")
         col.prop(domain, "slice_depth")
 
         row = layout.row();
-        row.enabled = (axis_slice_method == 'FULL')
+        row.enabled = do_full_slicing or not do_axis_slicing
         row.prop(domain, "slice_per_voxel")
 
         layout.separator()
