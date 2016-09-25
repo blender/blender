@@ -1028,26 +1028,24 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 	int uvi = 0;
 	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 	for (a = 0; a < 20; a++) {
-		BMFace *eftemp;
+		BMFace *f;
 		BMVert *v1, *v2, *v3;
 
 		v1 = eva[icoface[a][0]];
 		v2 = eva[icoface[a][1]];
 		v3 = eva[icoface[a][2]];
 
-		eftemp = BM_face_create_quad_tri(bm, v1, v2, v3, NULL, NULL, BM_CREATE_NOP);
+		f = BM_face_create_quad_tri(bm, v1, v2, v3, NULL, NULL, BM_CREATE_NOP);
 		
-		BM_ITER_ELEM (l, &liter, eftemp, BM_LOOPS_OF_FACE) {
+		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 			BMO_edge_flag_enable(bm, l->e, EDGE_MARK);
 		}
 
 		/* Set the UVs here, the iteration order of the faces is not guaranteed,
 		 * so it's best to set the UVs right after the face is created. */
-		if(calc_uvs) {
-			BMLoop* l;
-			BMIter liter2;
+		if (calc_uvs) {
 			int loop_index;
-			BM_ITER_ELEM_INDEX (l, &liter2, eftemp, BM_LOOPS_OF_FACE, loop_index) {
+			BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, loop_index) {
 				MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 				luv->uv[0] = icouvs[uvi][0];
 				luv->uv[1] = icouvs[uvi][1];
