@@ -665,13 +665,11 @@ static void cubic_from_points(
 	double alpha_l, alpha_r;
 #ifdef USE_VLA
 	double a[2][dims];
-	double tmp[dims];
 #else
 	double *a[2] = {
 	    alloca(sizeof(double) * dims),
 	    alloca(sizeof(double) * dims),
 	};
-	double *tmp = alloca(sizeof(double) * dims);
 #endif
 
 	{
@@ -682,22 +680,22 @@ static void cubic_from_points(
 			mul_vnvn_fl(a[0], tan_l, B1(u_prime[i]), dims);
 			mul_vnvn_fl(a[1], tan_r, B2(u_prime[i]), dims);
 
-			c[0][0] += dot_vnvn(a[0], a[0], dims);
-			c[0][1] += dot_vnvn(a[0], a[1], dims);
-			c[1][1] += dot_vnvn(a[1], a[1], dims);
+			const double b0_plus_b1 = B0plusB1(u_prime[i]);
+			const double b2_plus_b3 = B2plusB3(u_prime[i]);
+
+			/* inline dot product */
+			for (uint j = 0; j < dims; j++) {
+				const double tmp = (pt[j] - (p0[j] * b0_plus_b1)) + (p3[j] * b2_plus_b3);
+
+				x[0] += a[0][j] * tmp;
+				x[1] += a[1][j] * tmp;
+
+				c[0][0] += a[0][j] * a[0][j];
+				c[0][1] += a[0][j] * a[1][j];
+				c[1][1] += a[1][j] * a[1][j];
+			}
 
 			c[1][0] = c[0][1];
-
-			{
-				const double b0_plus_b1 = B0plusB1(u_prime[i]);
-				const double b2_plus_b3 = B2plusB3(u_prime[i]);
-				for (uint j = 0; j < dims; j++) {
-					tmp[j] = (pt[j] - (p0[j] * b0_plus_b1)) + (p3[j] * b2_plus_b3);
-				}
-
-				x[0] += dot_vnvn(a[0], tmp, dims);
-				x[1] += dot_vnvn(a[1], tmp, dims);
-			}
 		}
 
 		double det_C0_C1 = c[0][0] * c[1][1] - c[0][1] * c[1][0];
