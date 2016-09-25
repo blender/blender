@@ -611,8 +611,8 @@ static void cubic_from_points_offset_fallback(
 		}
 	}
 
-	double alpha_l = (dists[0] / 0.75) /  dot_vnvn(tan_l, a[0], dims);
-	double alpha_r = (dists[1] / 0.75) / -dot_vnvn(tan_r, a[1], dims);
+	double alpha_l = (dists[0] / 0.75) / fabs(dot_vnvn(tan_l, a[0], dims));
+	double alpha_r = (dists[1] / 0.75) / fabs(dot_vnvn(tan_r, a[1], dims));
 
 	if (!(alpha_l > 0.0)) {
 		alpha_l = dir_dist / 3.0;
