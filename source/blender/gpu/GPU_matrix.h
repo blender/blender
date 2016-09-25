@@ -23,7 +23,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Alexandr Kuznetsov, Jason Wilkins
+ * Contributor(s): Alexandr Kuznetsov, Jason Wilkins, Mike Erwin
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -33,67 +33,87 @@
  */
 
 #include "GPU_glew.h"
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef enum eGPUMatrixMode {
-	GPU_MODELVIEW_MATRIX = 0,
-	GPU_PROJECTION_MATRIX = 1,
-	GPU_TEXTURE_MATRIX = 2
-} eGPUMatrixMode;
+void gpuMatrixInit(void); /* called by system -- make private? */
 
-void gpuPushMatrix(eGPUMatrixMode stack);
-void gpuPopMatrix(eGPUMatrixMode stack);
 
-void gpuLoadMatrix(eGPUMatrixMode stack, const float m[16]);
-const float *gpuGetMatrix(eGPUMatrixMode stack, float m[16]);
+/* MatrixMode is conceptually different from GL_MATRIX_MODE */
 
-void gpuLoadIdentity(eGPUMatrixMode stack);
+typedef enum {
+	MATRIX_MODE_INACTIVE,
+	MATRIX_MODE_2D,
+	MATRIX_MODE_3D
+} MatrixMode;
 
-void gpuMultMatrix(eGPUMatrixMode stack, const float m[16]);
+MatrixMode gpuMatrixMode(void);
 
-void gpuTranslate(eGPUMatrixMode stack, float x, float y, float z);
-void gpuScale(eGPUMatrixMode stack, GLfloat x, GLfloat y, GLfloat z);
-void gpuRotateVector(eGPUMatrixMode stack, GLfloat deg, GLfloat vector[3]);
-void gpuRotateAxis(eGPUMatrixMode stack, GLfloat deg, char axis);
-void gpuRotateRight(eGPUMatrixMode stack, char type);
+void gpuMatrixBegin2D(void);
+void gpuMatrixBegin3D(void);
+void gpuMatrixEnd(void);
+/* TODO: gpuMatrixResume2D & gpuMatrixResume3D to switch modes but not reset stack */
 
-void gpuOrtho(eGPUMatrixMode stack, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat nearVal, GLfloat farVal);
-void gpuFrustum(eGPUMatrixMode stack, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat nearVal, GLfloat farVal);
 
-void gpuLoadOrtho(eGPUMatrixMode stack, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat nearVal, GLfloat farVal);
-void gpuLoadFrustum(eGPUMatrixMode stack, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat nearVal, GLfloat farVal);
+/* ModelView Matrix (2D or 3D) */
 
-void gpuLookAt(eGPUMatrixMode stack, GLfloat eyeX, GLfloat eyeY, GLfloat eyeZ, GLfloat centerX, GLfloat centerY, GLfloat centerZ, GLfloat upX, GLfloat upY, GLfloat upZ);
+void gpuPushMatrix(void); /* TODO: PushCopy vs PushIdentity? */
+void gpuPopMatrix(void);
 
-void gpuProject(const GLfloat obj[3], const GLfloat model[16], const GLfloat proj[16], const GLint view[4], GLfloat win[3]);
-GLboolean gpuUnProject(const GLfloat win[3], const GLfloat model[16], const GLfloat proj[16], const GLint view[4], GLfloat obj[3]);
+void gpuLoadIdentity(void);
 
-void gpu_commit_matrix(void);
+void gpuScaleUniform(float factor);
 
-void GPU_feedback_vertex_3fv(GLenum type, GLfloat x, GLfloat y, GLfloat z,            GLfloat out[3]);
-void GPU_feedback_vertex_4fv(GLenum type, GLfloat x, GLfloat y, GLfloat z, GLfloat w, GLfloat out[4]);
 
-#if defined(GLEW_ES_ONLY)
+/* 3D ModelView Matrix */
 
-/* ES 2.0 doesn't define these symbolic constants, but the matrix stack replacement library emulates them
- * (GL core has deprecated matrix stacks, but it should still be in the header) */
+void gpuLoadMatrix3D(const float m[4][4]);
+void gpuMultMatrix3D(const float m[4][4]);
+//const float *gpuGetMatrix3D(float m[4][4]);
 
-#ifndef GL_MODELVIEW_MATRIX
-#define GL_MODELVIEW_MATRIX 0x0BA6
-#endif
+void gpuTranslate3f(float x, float y, float z);
+void gpuTranslate3fv(const float vec[3]);
+void gpuScale3f(float x, float y, float z);
+void gpuScale3fv(const float vec[3]);
+void gpuRotate3fv(float deg, const float axis[3]); /* axis of rotation should be a unit vector */
+void gpuRotateAxis(float deg, char axis); /* TODO: enum for axis? */
 
-#ifndef GL_PROJECTION_MATRIX
-#define GL_PROJECTION_MATRIX 0x0BA7
-#endif
+void gpuLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ);
+/* TODO: variant that takes eye[3], center[3], up[3] */
 
-#ifndef GL_TEXTURE_MATRIX
-#define GL_TEXTURE_MATRIX 0x0BA8
-#endif
 
-#endif
+/* 2D ModelView Matrix */
+
+void gpuLoadMatrix2D(const float m[3][3]);
+void gpuMultMatrix2D(const float m[3][3]);
+
+void gpuTranslate2f(float x, float y);
+void gpuTranslate2fv(const float vec[2]);
+void gpuScale2f(float x, float y);
+void gpuScale2fv(const float vec[2]);
+void gpuRotate2D(float deg);
+
+
+/* 3D Projection Matrix */
+
+void gpuOrtho(float left, float right, float bottom, float top, float near, float far);
+void gpuFrustum(float left, float right, float bottom, float top, float near, float far);
+void gpuPerspective(float fovy, float aspect, float near, float far);
+
+/* pass vector through current transform (world --> screen) */
+void gpuProject(const float obj[3], const float model[4][4], const float proj[4][4], const GLint view[4], float win[3]);
+
+/* pass vector through inverse transform (world <-- screen) */
+bool gpuUnProject(const float win[3], const float model[4][4], const float proj[4][4], const GLint view[4], float obj[3]);
+
+
+/* 2D Projection Matrix */
+
+void gpuOrtho2D(float left, float right, float bottom, float top);
+
 
 #ifdef __cplusplus
 }

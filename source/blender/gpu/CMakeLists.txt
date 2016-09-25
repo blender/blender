@@ -58,6 +58,7 @@ set(SRC
 	intern/gpu_immediate.c
 	intern/gpu_init_exit.c
 	intern/gpu_material.c
+	intern/gpu_matrix.c
 	intern/gpu_select.c
 	intern/gpu_shader.c
 	intern/gpu_texture.c
@@ -110,6 +111,7 @@ set(SRC
 	GPU_immediate.h
 	GPU_init_exit.h
 	GPU_material.h
+	GPU_matrix.h
 	GPU_select.h
 	GPU_shader.h
 	GPU_texture.h

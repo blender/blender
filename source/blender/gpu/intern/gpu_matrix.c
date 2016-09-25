@@ -20,7 +20,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Alexandr Kuznetsov, Jason Wilkins
+ * Contributor(s): Alexandr Kuznetsov, Jason Wilkins, Mike Erwin
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -29,50 +29,77 @@
  *  \ingroup gpu
  */
 
-#if WITH_GL_PROFILE_COMPAT
-#define GPU_MANGLE_DEPRECATED 0 /* Allow use of deprecated OpenGL functions in this file */
-#endif
-
-#include "BLI_sys_types.h"
-
-#include "GPU_common.h"
-#include "GPU_debug.h"
-#include "GPU_extensions.h"
 #include "GPU_matrix.h"
-
-/* internal */
-#include "intern/gpu_private.h"
-
-/* external */
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 
-#include "MEM_guardedalloc.h"
 
+#define MATRIX_STACK_DEPTH 32
 
+typedef float Mat4[4][4];
+typedef float Mat3[3][3];
 
-typedef GLfloat GPU_matrix[4][4];
+typedef struct {
+	Mat4 ModelViewStack3D[MATRIX_STACK_DEPTH];
+	Mat4 ProjectionMatrix3D;
 
-typedef struct GPU_matrix_stack
+	Mat3 ModelViewStack2D[MATRIX_STACK_DEPTH];
+	Mat3 ProjectionMatrix2D;
+
+	MatrixMode mode;
+	unsigned top; /* of current stack (would have to replicate if gpuResume2D/3D are implemented) */
+	
+	/* TODO: cache of derived matrices (Normal, MVP, inverse MVP, etc)
+	 * generate as needed for shaders, invalidate when original matrices change
+	 *
+	 * TODO: separate Model from View transform? Batches/objects have model,
+	 * camera/eye has view & projection
+	 */
+} MatrixState;
+
+static MatrixState state; /* TODO(merwin): make part of GPUContext, alongside immediate mode & state tracker */
+
+#define ModelView3D state.ModelViewStack3D[state.top]
+#define ModelView2D state.ModelViewStack2D[state.top]
+#define Projection3D state.ProjectionMatrix3D
+#define Projection2D state.ProjectionMatrix2D
+
+void gpuMatrixInit()
 {
-	GLsizei size;
-	GLsizei pos;
-	GPU_matrix *dynstack;
-} GPU_matrix_stack;
+	memset(&state, 0, sizeof(MatrixState));
+}
+
+void gpuMatrixBegin2D()
+{
+	state.mode = MATRIX_MODE_2D;
+	state.top = 0;
+	unit_m3(ModelView2D);
+	gpuOrtho2D(-1.0f, +1.0f, -1.0f, +1.0f); // or identity?
+}
+
+void gpuMatrixBegin3D()
+{
+	state.mode = MATRIX_MODE_3D;
+	state.top = 0;
+	unit_m4(ModelView3D);
+	gpuOrtho(-1.0f, +1.0f, -1.0f, +1.0f, -1.0f, +1.0f); // or identity?
+}
+
+void gpuMatrixEnd()
+{
+	state.mode = MATRIX_MODE_INACTIVE;
+}
 
 
-static GPU_matrix_stack mstacks[3];
-
-/* Check if we have a good matrix */
 #ifdef WITH_GPU_SAFETY
 
-static void checkmat(GLfloat *m)
+/* Check if matrix is numerically good */
+static void checkmat(cosnt float *m)
 {
-	GLint i;
-
-	for (i = 0; i < 16; i++) {
+	const int n = state.mode == MATRIX_MODE_3D ? 16 : 9;
+	for (int i = 0; i < n; i++) {
 #if _MSC_VER
 		BLI_assert(_finite(m[i]));
 #else
@@ -81,7 +108,7 @@ static void checkmat(GLfloat *m)
 	}
 }
 
-#define CHECKMAT(m) checkmat((GLfloat*)m)
+#define CHECKMAT(m) checkmat((const float*)m)
 
 #else
 
@@ -89,254 +116,331 @@ static void checkmat(GLfloat *m)
 
 #endif
 
-static void ms_init(GPU_matrix_stack* ms, GLint initsize)
-{
-	BLI_assert(initsize > 0);
 
-	ms->size = initsize;
-	ms->pos = 0;
-	ms->dynstack = (GPU_matrix*)MEM_mallocN(ms->size * sizeof(*(ms->dynstack)), "MatrixStack");
+void gpuPushMatrix()
+{
+	BLI_assert(state.mode != MATRIX_MODE_INACTIVE);
+	BLI_assert(state.top < MATRIX_STACK_DEPTH);
+	state.top++;
+	if (state.mode == MATRIX_MODE_3D)
+		copy_m4_m4(ModelView3D, state.ModelViewStack3D[state.top - 1]);
+	else
+		copy_m3_m3(ModelView2D, state.ModelViewStack2D[state.top - 1]);
 }
 
-static void ms_free(GPU_matrix_stack *ms)
+void gpuPopMatrix()
 {
-	ms->size = 0;
-	ms->pos = 0;
-	MEM_freeN(ms->dynstack);
-	ms->dynstack = NULL;
+	BLI_assert(state.mode != MATRIX_MODE_INACTIVE);
+	BLI_assert(state.top > 0);
+	state.top--;
 }
 
-void gpu_matrix_init(void)
+void gpuLoadMatrix3D(const float m[4][4])
 {
-	ms_init(&mstacks[GPU_TEXTURE_MATRIX], 16);
-	ms_init(&mstacks[GPU_PROJECTION_MATRIX], 16);
-	ms_init(&mstacks[GPU_MODELVIEW_MATRIX], 32);
+	BLI_assert(state.mode == MATRIX_MODE_3D);
+	copy_m4_m4(ModelView3D, m);
+	CHECKMAT(ModelView3D);
 }
 
-void gpu_matrix_exit(void)
+void gpuLoadMatrix2D(const float m[3][3])
 {
-	ms_free(&mstacks[GPU_TEXTURE_MATRIX]);
-	ms_free(&mstacks[GPU_PROJECTION_MATRIX]);
-	ms_free(&mstacks[GPU_MODELVIEW_MATRIX]);
+	BLI_assert(state.mode == MATRIX_MODE_2D);
+	copy_m3_m3(ModelView2D, m);
+	CHECKMAT(ModelView2D);
 }
 
-void gpu_commit_matrix(void)
+//const float *gpuGetMatrix(eGPUMatrixMode stack, float *m)
+//{
+//	GPU_matrix_stack *ms_select = mstacks + stack;
+//
+//	if (m) {
+//		copy_m4_m4((float (*)[4])m, ms_select->dynstack[ms_select->pos]);
+//		return m;
+//	}
+//	else {
+//		return (float*)(ms_select->dynstack[ms_select->pos]);
+//	}
+//}
+
+void gpuLoadIdentity()
 {
-	const struct GPUcommon *common = gpu_get_common();
-
-	GPU_ASSERT_NO_GL_ERRORS("gpu_commit_matrix start");
-
-	if (common) {
-		int i;
-
-		float (*m)[4] = (float (*)[4])gpuGetMatrix(GPU_MODELVIEW_MATRIX, NULL);
-		float (*p)[4] = (float (*)[4])gpuGetMatrix(GPU_PROJECTION_MATRIX, NULL);
-
-		if (common->modelview_matrix != -1)
-			glUniformMatrix4fv(common->modelview_matrix, 1, GL_FALSE, m[0]);
-
-		if (common->normal_matrix != -1) {
-			float n[3][3];
-			copy_m3_m4(n, m);
-			invert_m3(n);
-			transpose_m3(n);
-			glUniformMatrix3fv(common->normal_matrix, 1, GL_FALSE, n[0]);
-		}
-
-		if (common->modelview_matrix_inverse != -1) {
-			float i[4][4];
-			invert_m4_m4(i, m);
-			glUniformMatrix4fv(common->modelview_matrix_inverse, 1, GL_FALSE, i[0]);
-		}
-
-		if (common->modelview_projection_matrix != -1) {
-			float pm[4][4];
-			mul_m4_m4m4(pm, p, m);
-			glUniformMatrix4fv(common->modelview_projection_matrix, 1, GL_FALSE, pm[0]);
-		}
-
-		if (common->projection_matrix != -1)
-			glUniformMatrix4fv(common->projection_matrix, 1, GL_FALSE, p[0]);
-
-		for (i = 0; i < GPU_MAX_COMMON_TEXCOORDS; i++) {
-			if (common->texture_matrix[i] != -1) {
-				GPU_set_common_active_texture(i);
-				glUniformMatrix4fv(common->texture_matrix[i], 1, GL_FALSE, gpuGetMatrix(GPU_TEXTURE_MATRIX, NULL));
-			}
-		}
-
-		GPU_set_common_active_texture(0);
-
-		GPU_ASSERT_NO_GL_ERRORS("gpu_commit_matrix end");
-
-		return;
+	switch (state.mode) {
+		case MATRIX_MODE_3D:
+			unit_m4(ModelView3D);
+			break;
+		case MATRIX_MODE_2D:
+			unit_m3(ModelView2D);
+			break;
+		default:
+			BLI_assert(false);
 	}
+}
 
-#if defined(WITH_GL_PROFILE_COMPAT)
-	glMatrixMode(GL_TEXTURE);
-	glLoadMatrixf(gpuGetMatrix(GPU_TEXTURE_MATRIX, NULL));
+void gpuTranslate2f(float x, float y)
+{
+	Mat3 m;
+	unit_m3(m);
+	m[2][0] = x;
+	m[2][1] = y;
+	gpuMultMatrix2D(m);
+}
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(gpuGetMatrix(GPU_PROJECTION_MATRIX, NULL));
+void gpuTranslate2fv(const float vec[2])
+{
+	gpuTranslate2f(vec[0], vec[1]);
+}
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(gpuGetMatrix(GPU_MODELVIEW_MATRIX, NULL));
+void gpuTranslate3f(float x, float y, float z)
+{
+	BLI_assert(state.mode == MATRIX_MODE_3D);
+	translate_m4(ModelView3D, x, y, z);
+	CHECKMAT(ModelView3D);
+}
+
+void gpuTranslate3fv(const float vec[3])
+{
+	gpuTranslate3f(vec[0], vec[1], vec[2]);
+}
+
+void gpuScaleUniform(float factor)
+{
+	switch (state.mode) {
+		case MATRIX_MODE_3D:
+		{
+			Mat4 m;
+			scale_m4_fl(m, factor);
+			gpuMultMatrix3D(m);
+			break;
+		}
+		case MATRIX_MODE_2D:
+		{
+		#if 0
+			Mat3 m;
+			scale_m3_fl(m, factor);
+			/* this does 3D scaling in a 3x3 matrix. Can 2D scaling use this safely, or must set m[2][2] = 1.0? */
+		#else
+			Mat3 m = {{0.0f}};
+			m[0][0] = factor;
+			m[1][1] = factor;
+			m[2][2] = 1.0f;
+		#endif
+			gpuMultMatrix2D(m);
+			break;
+		}
+		default:
+			BLI_assert(false);
+	}
+}
+
+void gpuScale2f(float x, float y)
+{
+	Mat3 m = {{0.0f}};
+	m[0][0] = x;
+	m[1][1] = y;
+	m[2][2] = 1.0f;
+	gpuMultMatrix2D(m);
+}
+
+void gpuScale2fv(const float vec[2])
+{
+	gpuScale2f(vec[0], vec[1]);
+}
+
+void gpuScale3f(float x, float y, float z)
+{
+	Mat4 m = {{0.0f}};
+	m[0][0] = x;
+	m[1][1] = y;
+	m[2][2] = z;
+	m[3][3] = 1.0f;
+	gpuMultMatrix3D(m);
+}
+
+void gpuScale3fv(const float vec[3])
+{
+	gpuScale3f(vec[0], vec[1], vec[2]);
+}
+
+void gpuMultMatrix3D(const float m[4][4])
+{
+	BLI_assert(state.mode == MATRIX_MODE_3D);
+	mul_m4_m4_post(ModelView3D, m);
+	CHECKMAT(ModelView3D);
+}
+
+void gpuMultMatrix2D(const float m[3][3])
+{
+	BLI_assert(state.mode == MATRIX_MODE_2D);
+	mul_m3_m3_post(ModelView2D, m);
+	CHECKMAT(ModelView2D);
+}
+
+void gpuRotate3fv(float deg, const float axis[3])
+{
+	Mat4 m;
+	axis_angle_to_mat4(m, axis, DEG2RADF(deg));
+	gpuMultMatrix3D(m);
+}
+
+void gpuRotateAxis(float deg, char axis)
+{
+#if 1 /* rotate_m4 works in place, right? */
+	BLI_assert(state.mode == MATRIX_MODE_3D);
+	rotate_m4(ModelView3D, axis, DEG2RADF(deg));
+	CHECKMAT(ModelView3D);
+#else /* rotate_m4 creates a new matrix */
+	Mat4 m;
+	rotate_m4(m, axis, DEG2RADF(deg));
+	gpuMultMatrix3D(m);
 #endif
-
-	GPU_ASSERT_NO_GL_ERRORS("gpu_commit_matrix end");
 }
 
-void gpuPushMatrix(eGPUMatrixMode stack)
+static void mat4_ortho_set(float m[4][4], float left, float right, float bottom, float top, float near, float far)
 {
-	GPU_matrix_stack *ms_current = mstacks + stack;
-	GLsizei new_pos = ms_current->pos + 1;
+	m[0][0] = 2.0f / (right - left);
+	m[1][0] = 0.0f;
+	m[2][0] = 0.0f;
+	m[3][0] = -(right + left) / (right - left);
 
-	BLI_assert(new_pos < ms_current->size);
+	m[0][1] = 0.0f;
+	m[1][1] = 2.0f / (top - bottom);
+	m[2][1] = 0.0f;
+	m[3][1] = -(top + bottom) / (top - bottom);
 
-	if (new_pos < ms_current->size) {
-		ms_current->pos++;
+	m[0][2] = 0.0f;
+	m[1][2] = 0.0f;
+	m[2][2] = -2.0f / (far - near);
+	m[3][2] = -(far + near) / (far - near);
 
-		gpuLoadMatrix(stack, ms_current->dynstack[ms_current->pos - 1][0]);
-	}
+	m[0][3] = 0.0f;
+	m[1][3] = 0.0f;
+	m[2][3] = 0.0f;
+	m[3][3] = 1.0f;
 }
 
-void gpuPopMatrix(eGPUMatrixMode stack)
+static void mat4_frustum_set(float m[][4], float left, float right, float bottom, float top, float near, float far)
 {
-	GPU_matrix_stack *ms_current = mstacks + stack;
-	BLI_assert(ms_current->pos != 0);
+	m[0][0] = 2.0f * near / (right - left);
+	m[1][0] = 0.0f;
+	m[2][0] = (right + left) / (right - left);
+	m[3][0] = 0.0f;
 
-	if (ms_current->pos != 0) {
-		ms_current->pos--;
+	m[0][1] = 0.0f;
+	m[1][1] = 2.0f * near / (top - bottom);
+	m[2][1] = (top + bottom) / (top - bottom);
+	m[3][1] = 0.0f;
 
-		CHECKMAT(ms_current);
-	}
+	m[0][2] = 0.0f;
+	m[1][2] = 0.0f;
+	m[2][2] = -(far + near) / (far - near);
+	m[3][2] = -2.0f * far * near / (far - near);
+
+	m[0][3] = 0.0f;
+	m[1][3] = 0.0f;
+	m[2][3] = -1.0f;
+	m[3][3] = 0.0f;
 }
 
-void gpuLoadMatrix(eGPUMatrixMode stack, const float *m)
+static void mat4_look_from_origin(float m[4][4], float lookdir[3], float camup[3])
 {
-	GPU_matrix_stack *ms_current = mstacks + stack;
-	copy_m4_m4(ms_current->dynstack[ms_current->pos], (GLfloat (*)[4])m);
+/* This function is loosely based on Mesa implementation.
+ *
+ * SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008)
+ * Copyright (C) 1991-2000 Silicon Graphics, Inc. All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice including the dates of first publication and
+ * either this permission notice or a reference to
+ * http://oss.sgi.com/projects/FreeB/
+ * shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * SILICON GRAPHICS, INC. BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+ * OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Except as contained in this notice, the name of Silicon Graphics, Inc.
+ * shall not be used in advertising or otherwise to promote the sale, use or
+ * other dealings in this Software without prior written authorization from
+ * Silicon Graphics, Inc.
+ */
 
-	CHECKMAT(ms_current);
+	float side[3];
+
+	normalize_v3(lookdir);
+
+	cross_v3_v3v3(side, lookdir, camup);
+
+	normalize_v3(side);
+
+	cross_v3_v3v3(camup, side, lookdir);
+
+	m[0][0] = side[0];
+	m[1][0] = side[1];
+	m[2][0] = side[2];
+	m[3][0] = 0.0f;
+
+	m[0][1] = camup[0];
+	m[1][1] = camup[1];
+	m[2][1] = camup[2];
+	m[3][1] = 0.0f;
+
+	m[0][2] = -lookdir[0];
+	m[1][2] = -lookdir[1];
+	m[2][2] = -lookdir[2];
+	m[3][2] = 0.0f;
+
+	m[0][3] = 0.0f;
+	m[1][3] = 0.0f;
+	m[2][3] = 0.0f;
+	m[3][3] = 1.0f;
 }
 
-const GLfloat *gpuGetMatrix(eGPUMatrixMode stack, GLfloat *m)
+void gpuOrtho(float left, float right, float bottom, float top, float near, float far)
 {
-	GPU_matrix_stack *ms_select = mstacks + stack;
-
-	if (m) {
-		copy_m4_m4((GLfloat (*)[4])m, ms_select->dynstack[ms_select->pos]);
-		return m;
-	}
-	else {
-		return (GLfloat*)(ms_select->dynstack[ms_select->pos]);
-	}
+	BLI_assert(state.mode == MATRIX_MODE_3D);
+	mat4_ortho_set(Projection3D, left, right, bottom, top, near, far);
+	CHECKMAT(Projection3D);
 }
 
-void gpuLoadIdentity(eGPUMatrixMode stack)
+void gpuOrtho2D(float left, float right, float bottom, float top)
 {
-	GPU_matrix_stack *ms_current = mstacks + stack;
-	unit_m4(ms_current->dynstack[ms_current->pos]);
-
-	CHECKMAT(ms_current);
+	/* TODO: this function, but correct */
+	BLI_assert(state.mode == MATRIX_MODE_2D);
+	Mat4 m;
+	mat4_ortho_set(m, left, right, bottom, top, -1.0f, 1.0f);
+	copy_m3_m4(Projection2D, m);
+	CHECKMAT(Projection2D);
 }
 
-void gpuTranslate(eGPUMatrixMode stack, float x, float y, float z)
+void gpuFrustum(float left, float right, float bottom, float top, float near, float far)
 {
-	GPU_matrix_stack *ms_current = mstacks + stack;
-	translate_m4(ms_current->dynstack[ms_current->pos], x, y, z);
-
-	CHECKMAT(ms_current);
+	BLI_assert(state.mode == MATRIX_MODE_3D);
+	mat4_frustum_set(Projection3D, left, right, bottom, top, near, far);
+	CHECKMAT(Projection3D);
 }
 
-void gpuScale(eGPUMatrixMode stack, GLfloat x, GLfloat y, GLfloat z)
+void gpuPerspective(float fovy, float aspect, float near, float far)
 {
-	GPU_matrix_stack *ms_current = mstacks + stack;
-	scale_m4(ms_current->dynstack[ms_current->pos], x, y, z);
-
-	CHECKMAT(ms_current);
+	float half_height = tanf(fovy * (float)(M_PI / 360.0)) * near;
+	float half_width = half_height * aspect;
+	gpuFrustum(-half_width, +half_width, -half_height, +half_height, near, far);
 }
 
-void gpuMultMatrix(eGPUMatrixMode stack, const float *m)
+void gpuLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ)
 {
-	GPU_matrix_stack *ms_current = mstacks + stack;
-	GPU_matrix cm;
-
-	copy_m4_m4(cm, ms_current->dynstack[ms_current->pos]);
-	mult_m4_m4m4_q(ms_current->dynstack[ms_current->pos], cm, (GLfloat (*)[4])m);
-
-	CHECKMAT(ms_current);
-}
-
-void gpuRotateVector(eGPUMatrixMode stack, GLfloat deg, GLfloat vector[3])
-{
-	GPU_matrix_stack *ms_current = mstacks + stack;
-	float rm[3][3];
-	GPU_matrix cm;
-
-	axis_angle_to_mat3(rm, vector, DEG2RADF(deg));
-
-	copy_m4_m4(cm, ms_current->dynstack[ms_current->pos]);
-	mult_m4_m3m4_q(ms_current->dynstack[ms_current->pos], cm, rm);
-
-	CHECKMAT(ms_current);
-}
-
-void gpuRotateAxis(eGPUMatrixMode stack, GLfloat deg, char axis)
-{
-	GPU_matrix_stack *ms_current = mstacks + stack;
-	rotate_m4(ms_current->dynstack[ms_current->pos], axis, DEG2RADF(deg));
-
-	CHECKMAT(ms_current);
-}
-
-void gpuRotateRight(eGPUMatrixMode stack, char type)
-{
-	GPU_matrix_stack *ms_current = mstacks + stack;
-	rotate_m4_right(ms_current->dynstack[ms_current->pos], type);
-
-	CHECKMAT(ms_current);
-}
-
-void gpuLoadOrtho(eGPUMatrixMode stack, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat nearVal, GLfloat farVal)
-{
-	GPU_matrix_stack *ms_current = mstacks + stack;
-	mat4_ortho_set(ms_current->dynstack[ms_current->pos], left, right, bottom, top, nearVal, farVal);
-
-	CHECKMAT(ms_current);
-}
-
-void gpuOrtho(eGPUMatrixMode stack, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat nearVal, GLfloat farVal)
-{
-	GPU_matrix om;
-
-	mat4_ortho_set(om, left, right, bottom, top, nearVal, farVal);
-
-	gpuMultMatrix(stack, om[0]);
-}
-
-void gpuFrustum(eGPUMatrixMode stack, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat nearVal, GLfloat farVal)
-{
-	GPU_matrix fm;
-
-	mat4_frustum_set(fm, left, right, bottom, top, nearVal, farVal);
-
-	gpuMultMatrix(stack, fm[0]);
-}
-
-void gpuLoadFrustum(eGPUMatrixMode stack, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat nearVal, GLfloat farVal)
-{
-	GPU_matrix_stack *ms_current = mstacks + stack;
-	mat4_frustum_set(ms_current->dynstack[ms_current->pos], left, right, bottom, top, nearVal, farVal);
-
-	CHECKMAT(ms_current);
-}
-
-void gpuLookAt(eGPUMatrixMode stack, GLfloat eyeX, GLfloat eyeY, GLfloat eyeZ, GLfloat centerX, GLfloat centerY, GLfloat centerZ, GLfloat upX, GLfloat upY, GLfloat upZ)
-{
-	GPU_matrix cm;
-	GLfloat lookdir[3];
-	GLfloat camup[3] = {upX, upY, upZ};
+	Mat4 cm;
+	float lookdir[3];
+	float camup[3] = {upX, upY, upZ};
 
 	lookdir[0] = centerX - eyeX;
 	lookdir[1] = centerY - eyeY;
@@ -344,32 +448,32 @@ void gpuLookAt(eGPUMatrixMode stack, GLfloat eyeX, GLfloat eyeY, GLfloat eyeZ, G
 
 	mat4_look_from_origin(cm, lookdir, camup);
 
-	gpuMultMatrix(stack, cm[0]);
-	gpuTranslate(stack, -eyeX, -eyeY, -eyeZ);
+	gpuMultMatrix3D(cm);
+	gpuTranslate3f(-eyeX, -eyeY, -eyeZ);
 }
 
-void gpuProject(const GLfloat obj[3], const GLfloat model[16], const GLfloat proj[16], const GLint view[4], GLfloat win[3])
+void gpuProject(const float obj[3], const float model[4][4], const float proj[4][4], const GLint view[4], float win[3])
 {
 	float v[4];
 
-	mul_v4_m4v3(v, (float(*)[4])model, obj);
-	mul_m4_v4((float(*)[4])proj, v);
+	mul_v4_m4v3(v, model, obj);
+	mul_m4_v4(proj, v);
 
 	win[0] = view[0] + (view[2] * (v[0] + 1)) * 0.5f;
 	win[1] = view[1] + (view[3] * (v[1] + 1)) * 0.5f;
 	win[2] = (v[2] + 1) * 0.5f;
 }
 
-GLboolean gpuUnProject(const GLfloat win[3], const GLfloat model[16], const GLfloat proj[16], const GLint view[4], GLfloat obj[3])
+bool gpuUnProject(const float win[3], const float model[4][4], const float proj[4][4], const GLint view[4], float obj[3])
 {
-	GLfloat pm[4][4];
-	GLfloat in[4];
-	GLfloat out[4];
+	float pm[4][4];
+	float in[4];
+	float out[4];
 
-	mul_m4_m4m4(pm, (float(*)[4])proj, (float(*)[4])model);
+	mul_m4_m4m4(pm, proj, model);
 
 	if (!invert_m4(pm)) {
-		return GL_FALSE;
+		return false;
 	}
 
 	in[0] = win[0];
@@ -381,7 +485,7 @@ GLboolean gpuUnProject(const GLfloat win[3], const GLfloat model[16], const GLfl
 	in[0] = (in[0] - view[0]) / view[2];
 	in[1] = (in[1] - view[1]) / view[3];
 
-	/* Map to range -1 to 1 */
+	/* Map to range -1 to +1 */
 	in[0] = 2 * in[0] - 1;
 	in[1] = 2 * in[1] - 1;
 	in[2] = 2 * in[2] - 1;
@@ -389,7 +493,7 @@ GLboolean gpuUnProject(const GLfloat win[3], const GLfloat model[16], const GLfl
 	mul_v4_m4v3(out, pm, in);
 
 	if (out[3] == 0.0f) {
-		return GL_FALSE;
+		return false;
 	}
 	else {
 		out[0] /= out[3];
@@ -400,20 +504,6 @@ GLboolean gpuUnProject(const GLfloat win[3], const GLfloat model[16], const GLfl
 		obj[1] = out[1];
 		obj[2] = out[2];
 
-		return GL_TRUE;
+		return true;
 	}
-}
-
-void GPU_feedback_vertex_3fv(GLenum type, GLfloat x, GLfloat y, GLfloat z, GLfloat out[3])
-{
-	GPU_matrix *m = (GPU_matrix*)gpuGetMatrix(type, NULL);
-	float in[3] = {x, y, z};
-	mul_v3_m4v3(out, m[0], in);
-}
-
-void GPU_feedback_vertex_4fv(GLenum type, GLfloat x, GLfloat y, GLfloat z, GLfloat w, GLfloat out[3])
-{
-	GPU_matrix *m = (GPU_matrix*)gpuGetMatrix(type, NULL);
-	float in[4] = {x, y, z, w};
-	mul_v4_m4v4(out, m[0], in);
 }
