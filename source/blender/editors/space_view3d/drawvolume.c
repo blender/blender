@@ -680,8 +680,11 @@ void draw_smoke_velocity(SmokeDomainSettings *domain, float viewnormal[3])
 	if (xyz[1] < res_min[1]) xyz[1] += step_size;
 	if (xyz[2] < res_min[2]) xyz[2] += step_size;
 
-	float min[3];
-	add_v3_v3v3(min, domain->p0, domain->obj_shift_f);
+	float min[3] = {
+	    domain->p0[0] - domain->cell_size[0] * domain->adapt_res,
+		domain->p0[1] - domain->cell_size[1] * domain->adapt_res,
+		domain->p0[2] - domain->cell_size[2] * domain->adapt_res,
+	};
 
 	int num_points_v[3] = {
 	    ((float)(res_max[0] - floor(xyz[0])) / step_size) + 0.5f,
@@ -695,7 +698,7 @@ void draw_smoke_velocity(SmokeDomainSettings *domain, float viewnormal[3])
 		const int axis = (domain->slice_axis == SLICE_AXIS_AUTO) ?
 		                     axis_dominant_v3_single(viewnormal) : domain->slice_axis - 1;
 
-		xyz[axis] = (float)res[axis] * domain->slice_depth;
+		xyz[axis] = (float)base_res[axis] * domain->slice_depth;
 		num_points_v[axis] = 1;
 		res_max[axis] = xyz[axis] + 1;
 	}
