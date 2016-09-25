@@ -373,23 +373,26 @@ class PHYSICS_PT_smoke_display_settings(PhysicButtonsPanel, Panel):
         slice_method = domain.slice_method
         axis_slice_method = domain.axis_slice_method
 
-        if slice_method == 'AXIS_ALIGNED':
-            layout.prop(domain, "axis_slice_method")
+        row = layout.row();
+        row.enabled = (slice_method == 'AXIS_ALIGNED')
+        row.prop(domain, "axis_slice_method")
 
-            if axis_slice_method == 'SINGLE':
-                layout.prop(domain, "slice_axis")
-                layout.prop(domain, "slice_depth")
+        col = layout.column();
+        col.enabled = (axis_slice_method == 'SINGLE')
+        col.prop(domain, "slice_axis")
+        col.prop(domain, "slice_depth")
 
-        if axis_slice_method == 'FULL':
-            layout.prop(domain, "slice_per_voxel")
+        row = layout.row();
+        row.enabled = (axis_slice_method == 'FULL')
+        row.prop(domain, "slice_per_voxel")
 
-            layout.separator()
-            layout.label(text="Debug:")
-            layout.prop(domain, "draw_velocity")
-            col = layout.column();
-            col.enabled = domain.draw_velocity
-            col.prop(domain, "vector_draw_type")
-            col.prop(domain, "vector_scale")
+        layout.separator()
+        layout.label(text="Debug:")
+        layout.prop(domain, "draw_velocity")
+        col = layout.column();
+        col.enabled = domain.draw_velocity
+        col.prop(domain, "vector_draw_type")
+        col.prop(domain, "vector_scale")
 
 
 if __name__ == "__main__":  # only for live edit.

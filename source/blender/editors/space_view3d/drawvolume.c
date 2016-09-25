@@ -382,7 +382,7 @@ static void bind_shader(SmokeDomainSettings *sds, GPUShader *shader, GPUTexture 
 		GPU_shader_uniform_texture(shader, spec_location, tex_spec);
 	}
 	else {
-		float density_scale = 10.0f;
+		float density_scale = 10.0f * sds->display_thickness;
 
 		GPU_shader_uniform_vector(shader, stepsize_location, 1, 1, &sds->dx);
 		GPU_shader_uniform_vector(shader, densityscale_location, 1, 1, &density_scale);
@@ -572,6 +572,7 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	}
 }
 
+#ifdef WITH_SMOKE
 static void add_tri(float (*verts)[3], float(*colors)[3], int *offset,
                     float p1[3], float p2[3], float p3[3], float rgb[3])
 {
@@ -645,6 +646,7 @@ static void add_streamline(float (*verts)[3], float(*colors)[3], float center[3]
 }
 
 typedef void (*vector_draw_func)(float(*)[3], float(*)[3], float*, float*, float, float, int*);
+#endif  /* WITH_SMOKE */
 
 void draw_smoke_velocity(SmokeDomainSettings *domain, float viewnormal[3])
 {
@@ -652,11 +654,6 @@ void draw_smoke_velocity(SmokeDomainSettings *domain, float viewnormal[3])
 	const float *vel_x = smoke_get_velocity_x(domain->fluid);
 	const float *vel_y = smoke_get_velocity_y(domain->fluid);
 	const float *vel_z = smoke_get_velocity_z(domain->fluid);
-#else
-	const float *vel_x = NULL;
-	const float *vel_y = NULL;
-	const float *vel_z = NULL;
-#endif
 
 	if (ELEM(NULL, vel_x, vel_y, vel_z)) {
 		return;
@@ -755,6 +752,9 @@ void draw_smoke_velocity(SmokeDomainSettings *domain, float viewnormal[3])
 
 	MEM_freeN(verts);
 	MEM_freeN(colors);
+#else
+	UNUSED_VARS(domain, viewnormal);
+#endif
 }
 
 #ifdef SMOKE_DEBUG_HEAT
