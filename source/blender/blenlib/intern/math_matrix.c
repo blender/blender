@@ -229,27 +229,47 @@ void mul_m4_m4_post(float R[4][4], const float B[4][4])
 	mul_m4_m4m4_uniq(R, A, B);
 }
 
-void mul_m3_m3m3(float m1[3][3], const float m3_[3][3], const float m2_[3][3])
+void mul_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3])
 {
-	float m2[3][3], m3[3][3];
+	if (A == R)
+		mul_m3_m3_post(R, B);
+	else if (B == R)
+		mul_m3_m3_pre(R, A);
+	else
+		mul_m3_m3m3_uniq(R, A, B);
+}
 
-	/* copy so it works when m1 is the same pointer as m2 or m3 */
-	/* TODO: avoid copying when matrices are different */
-	copy_m3_m3(m2, m2_);
-	copy_m3_m3(m3, m3_);
+void mul_m3_m3_pre(float R[3][3], const float A[3][3])
+{
+	BLI_assert(A != R);
+	float B[3][3];
+	copy_m3_m3(B, R);
+	mul_m3_m3m3_uniq(R, A, B);
+}
 
-	/* m1[i][j] = m2[i][k] * m3[k][j], args are flipped!  */
-	m1[0][0] = m2[0][0] * m3[0][0] + m2[0][1] * m3[1][0] + m2[0][2] * m3[2][0];
-	m1[0][1] = m2[0][0] * m3[0][1] + m2[0][1] * m3[1][1] + m2[0][2] * m3[2][1];
-	m1[0][2] = m2[0][0] * m3[0][2] + m2[0][1] * m3[1][2] + m2[0][2] * m3[2][2];
+void mul_m3_m3_post(float R[3][3], const float B[3][3])
+{
+	BLI_assert(B != R);
+	float A[3][3];
+	copy_m3_m3(A, R);
+	mul_m3_m3m3_uniq(R, A, B);
+}
 
-	m1[1][0] = m2[1][0] * m3[0][0] + m2[1][1] * m3[1][0] + m2[1][2] * m3[2][0];
-	m1[1][1] = m2[1][0] * m3[0][1] + m2[1][1] * m3[1][1] + m2[1][2] * m3[2][1];
-	m1[1][2] = m2[1][0] * m3[0][2] + m2[1][1] * m3[1][2] + m2[1][2] * m3[2][2];
+void mul_m3_m3m3_uniq(float R[3][3], const float A[3][3], const float B[3][3])
+{
+	BLI_assert(R != A && R != B);
 
-	m1[2][0] = m2[2][0] * m3[0][0] + m2[2][1] * m3[1][0] + m2[2][2] * m3[2][0];
-	m1[2][1] = m2[2][0] * m3[0][1] + m2[2][1] * m3[1][1] + m2[2][2] * m3[2][1];
-	m1[2][2] = m2[2][0] * m3[0][2] + m2[2][1] * m3[1][2] + m2[2][2] * m3[2][2];
+	R[0][0] = B[0][0] * A[0][0] + B[0][1] * A[1][0] + B[0][2] * A[2][0];
+	R[0][1] = B[0][0] * A[0][1] + B[0][1] * A[1][1] + B[0][2] * A[2][1];
+	R[0][2] = B[0][0] * A[0][2] + B[0][1] * A[1][2] + B[0][2] * A[2][2];
+
+	R[1][0] = B[1][0] * A[0][0] + B[1][1] * A[1][0] + B[1][2] * A[2][0];
+	R[1][1] = B[1][0] * A[0][1] + B[1][1] * A[1][1] + B[1][2] * A[2][1];
+	R[1][2] = B[1][0] * A[0][2] + B[1][1] * A[1][2] + B[1][2] * A[2][2];
+
+	R[2][0] = B[2][0] * A[0][0] + B[2][1] * A[1][0] + B[2][2] * A[2][0];
+	R[2][1] = B[2][0] * A[0][1] + B[2][1] * A[1][1] + B[2][2] * A[2][1];
+	R[2][2] = B[2][0] * A[0][2] + B[2][1] * A[1][2] + B[2][2] * A[2][2];
 }
 
 void mul_m4_m4m3(float m1[4][4], const float m3_[4][4], const float m2_[3][3])
@@ -1651,7 +1671,7 @@ void translate_m4(float mat[4][4], float Tx, float Ty, float Tz)
 	mat[3][2] += (Tx * mat[0][2] + Ty * mat[1][2] + Tz * mat[2][2]);
 }
 
-/* TODO: enum for axis */
+/* TODO: enum for axis? */
 void rotate_m4(float mat[4][4], const char axis, const float angle)
 {
 	int col;
