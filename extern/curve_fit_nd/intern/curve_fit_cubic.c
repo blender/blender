@@ -255,7 +255,7 @@ static void cubic_list_clear(CubicList *clist)
 /** \name Cubic Evaluation
  * \{ */
 
-static void cubic_evaluate(
+static void cubic_calc_point(
         const Cubic *cubic, const double t, const uint dims,
         double r_v[])
 {
@@ -268,18 +268,6 @@ static void cubic_evaluate(
 		const double p23 = (p2[j] * s) + (p3[j] * t);
 		r_v[j] = ((((p01 * s) + (p12 * t))) * s) +
 		         ((((p12 * s) + (p23 * t))) * t);
-	}
-}
-
-static void cubic_calc_point(
-        const Cubic *cubic, const double t, const uint dims,
-        double r_v[])
-{
-	CUBIC_VARS_CONST(cubic, dims, p0, p1, p2, p3);
-	const double s = 1.0 - t;
-	for (uint j = 0; j < dims; j++) {
-		r_v[j] = p0[j] * s * s * s +
-		         3.0 * t * s * (s * p1[j] + t * p2[j]) + t * t * t * p3[j];
 	}
 }
 
@@ -332,7 +320,7 @@ static double cubic_calc_error(
 #endif
 
 	for (uint i = 1; i < points_offset_len - 1; i++, pt_real += dims) {
-		cubic_evaluate(cubic, u[i], dims, pt_eval);
+		cubic_calc_point(cubic, u[i], dims, pt_eval);
 
 		const double err_sq = len_squared_vnvn(pt_real, pt_eval, dims);
 		if (err_sq >= error_max_sq) {
@@ -368,7 +356,7 @@ static double cubic_calc_error_simple(
 #endif
 
 	for (uint i = 1; i < points_offset_len - 1; i++, pt_real += dims) {
-		cubic_evaluate(cubic, u[i], dims, pt_eval);
+		cubic_calc_point(cubic, u[i], dims, pt_eval);
 
 		const double err_sq = len_squared_vnvn(pt_real, pt_eval, dims);
 		if (err_sq >= error_threshold_sq) {
@@ -501,7 +489,7 @@ static double points_calc_circle_tangent_factor(
 		return (1.0 / 3.0) * 0.75;
 	}
 	else if (tan_dot < -1.0 + eps) {
-		/* parallele tangents (half-circle) */
+		/* parallel tangents (half-circle) */
 		return (1.0 / 2.0);
 	}
 	else {
