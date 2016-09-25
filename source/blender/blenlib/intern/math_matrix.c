@@ -623,6 +623,15 @@ void mul_m4_v4d(const float mat[4][4], double r[4])
 	mul_v4d_m4v4d(r, mat, r);
 }
 
+void mul_v4_m4v3(float r[4], const float M[4][4], const float v[3])
+{
+	/* v has implicit w = 1.0f */
+	r[0] = v[0] * M[0][0] + v[1] * M[1][0] + M[2][0] * v[2] + M[3][0];
+	r[1] = v[0] * M[0][1] + v[1] * M[1][1] + M[2][1] * v[2] + M[3][1];
+	r[2] = v[0] * M[0][2] + v[1] * M[1][2] + M[2][2] * v[2] + M[3][2];
+	r[3] = v[0] * M[0][3] + v[1] * M[1][3] + M[2][3] * v[2] + M[3][3];
+}
+
 void mul_v3_m3v3(float r[3], const float M[3][3], const float a[3])
 {
 	BLI_assert(r != a);
