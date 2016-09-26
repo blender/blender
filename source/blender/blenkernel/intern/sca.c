@@ -666,14 +666,15 @@ void set_sca_new_poins(void)
  *     ...and forces us to add yet another very ugly hack to get remapping with logic bricks working. */
 void BKE_sca_logic_links_remap(Main *bmain, Object *ob_old, Object *ob_new)
 {
+	if (ob_new == NULL || (ob_old->controllers.first == NULL && ob_old->actuators.first == NULL)) {
+		/* Nothing to do here... */
+		return;
+	}
+
 	GHash *controllers_map = ob_old->controllers.first ?
 	                             BLI_ghash_ptr_new_ex(__func__, BLI_listbase_count(&ob_old->controllers)) : NULL;
 	GHash *actuators_map = ob_old->actuators.first ?
 	                           BLI_ghash_ptr_new_ex(__func__, BLI_listbase_count(&ob_old->actuators)) : NULL;
-
-	if (!(controllers_map || actuators_map)) {
-		return;
-	}
 
 	/* We try to remap old controllers/actuators to new ones - in a very basic way. */
 	for (bController *cont_old = ob_old->controllers.first, *cont_new = ob_new->controllers.first;
