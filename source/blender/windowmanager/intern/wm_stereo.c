@@ -168,7 +168,6 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 	wmDrawData *drawdata;
 	wmDrawTriple *triple;
 	float halfx, halfy, ratiox, ratioy;
-	float alpha = 1.0f;
 	int view;
 	int soffx;
 	bool cross_eyed = (win->stereo3d_format->flag & S3D_SIDEBYSIDE_CROSSEYED) != 0;
@@ -187,8 +186,6 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 				soffx = 0;
 		}
 
-		glEnable(triple->target);
-
 		const int sizex = triple->x;
 		const int sizey = triple->y;
 
@@ -206,9 +203,10 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 			halfy /= triple->y;
 		}
 
+		glEnable(triple->target);
 		glBindTexture(triple->target, triple->bind);
 
-		glColor4f(1.0f, 1.0f, 1.0f, alpha);
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		glBegin(GL_QUADS);
 		glTexCoord2f(halfx, halfy);
 		glVertex2f(soffx, 0);
@@ -225,7 +223,6 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 
 		glBindTexture(triple->target, 0);
 		glDisable(triple->target);
-		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	}
 }
 
@@ -234,7 +231,6 @@ static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 	wmDrawData *drawdata;
 	wmDrawTriple *triple;
 	float halfx, halfy, ratiox, ratioy;
-	float alpha = 1.0f;
 	int view;
 	int soffy;
 
@@ -248,8 +244,6 @@ static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 		else { /* STEREO_RIGHT_ID */
 			soffy = 0;
 		}
-
-		glEnable(triple->target);
 
 		const int sizex = triple->x;
 		const int sizey = triple->y;
@@ -268,9 +262,10 @@ static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 			halfy /= triple->y;
 		}
 
+		glEnable(triple->target);
 		glBindTexture(triple->target, triple->bind);
 
-		glColor4f(1.0f, 1.0f, 1.0f, alpha);
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		glBegin(GL_QUADS);
 		glTexCoord2f(halfx, halfy);
 		glVertex2f(0, soffy);
@@ -287,7 +282,6 @@ static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 
 		glBindTexture(triple->target, 0);
 		glDisable(triple->target);
-		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	}
 }
 
