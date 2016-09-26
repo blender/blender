@@ -91,3 +91,6 @@ void ED_operatortypes_physics(void)
 void ED_keymap_physics(wmKeyConfig *UNUSED(keyconf))
 {
 }
+
+
+

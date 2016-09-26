@@ -136,9 +136,6 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 			float num_samples_inv = 1.0f/(num_samples*kernel_data.integrator.num_all_lights);
 			RNG lamp_rng = cmj_hash(*rng, i);
 
-			if(kernel_data.integrator.pdf_triangles != 0.0f)
-				num_samples_inv *= 0.5f;
-
 			for(int j = 0; j < num_samples; j++) {
 				/* sample random position on given light */
 				float light_u, light_v;
@@ -161,6 +158,9 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 
 				/* todo: split up light_sample so we don't have to call it again with new position */
 				if(lamp_light_sample(kg, i, light_u, light_v, sd->P, &ls)) {
+					if(kernel_data.integrator.pdf_triangles != 0.0f)
+						ls.pdf *= 2.0f;
+
 					if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
 						/* trace shadow ray */
 						float3 shadow;
@@ -178,9 +178,6 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 		if(kernel_data.integrator.pdf_triangles != 0.0f) {
 			int num_samples = kernel_data.integrator.mesh_light_samples;
 			float num_samples_inv = 1.0f/num_samples;
-
-			if(kernel_data.integrator.num_all_lights)
-				num_samples_inv *= 0.5f;
 
 			for(int j = 0; j < num_samples; j++) {
 				/* sample random position on random triangle */
@@ -209,6 +206,9 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 
 				/* todo: split up light_sample so we don't have to call it again with new position */
 				if(light_sample(kg, light_t, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
+					if(kernel_data.integrator.num_all_lights)
+						ls.pdf *= 2.0f;
+
 					if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
 						/* trace shadow ray */
 						float3 shadow;

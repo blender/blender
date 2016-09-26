@@ -68,8 +68,7 @@ private:
 
 	// std::map<int, JointData> joint_index_to_joint_info_map;
 	// std::map<COLLADAFW::UniqueId, int> joint_id_to_joint_index_map;
-
-	std::map<std::string, BoneExtended *> extended_bones;
+	BoneExtensionManager bone_extension_manager;
 	// int bone_direction_row; // XXX not used
 	float leaf_bone_length;
 	int totbone;
@@ -108,15 +107,14 @@ private:
 	int create_bone(SkinInfo* skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
 		float parent_mat[4][4], bArmature *arm, std::vector<std::string> &layer_labels);
 
-	BoneExtended &add_bone_extended(EditBone *bone, COLLADAFW::Node * node, int sibcount, std::vector<std::string> &layer_labels);
-	void clear_extended_boneset();
+	BoneExtended &add_bone_extended(EditBone *bone, COLLADAFW::Node * node, int sibcount, std::vector<std::string> &layer_labels, BoneExtensionMap &extended_bones);
 
-	void fix_leaf_bones(bArmature *armature, Bone *bone, bool fix_orientation);
+	void fix_leaf_bone_hierarchy(bArmature *armature, Bone *bone, bool fix_orientation);
+	void fix_leaf_bone(bArmature *armature, EditBone *ebone, BoneExtended *be, bool fix_orientation);
 	void fix_parent_connect(bArmature *armature, Bone *bone);
 	void connect_bone_chains(bArmature *armature, Bone *bone, const int max_chain_length);
 
 	void set_pose( Object *ob_arm,  COLLADAFW::Node *root_node, const char *parentname, float parent_mat[4][4]);
-
 
 #if 0
 	void set_leaf_bone_shapes(Object *ob_arm);
@@ -132,7 +130,7 @@ private:
 #endif
 
 	Object *create_armature_bones(SkinInfo& skin);
-	Object *create_armature_bones(std::vector<Object *> &arm_objs);
+	void create_armature_bones(std::vector<Object *> &arm_objs);
 
 	/** TagsMap typedef for uid_tags_map. */
 	typedef std::map<std::string, ExtraTags*> TagsMap;

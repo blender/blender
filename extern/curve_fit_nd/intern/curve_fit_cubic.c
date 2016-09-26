@@ -255,7 +255,7 @@ static void cubic_list_clear(CubicList *clist)
 /** \name Cubic Evaluation
  * \{ */
 
-static void cubic_evaluate(
+static void cubic_calc_point(
         const Cubic *cubic, const double t, const uint dims,
         double r_v[])
 {
@@ -268,18 +268,6 @@ static void cubic_evaluate(
 		const double p23 = (p2[j] * s) + (p3[j] * t);
 		r_v[j] = ((((p01 * s) + (p12 * t))) * s) +
 		         ((((p12 * s) + (p23 * t))) * t);
-	}
-}
-
-static void cubic_calc_point(
-        const Cubic *cubic, const double t, const uint dims,
-        double r_v[])
-{
-	CUBIC_VARS_CONST(cubic, dims, p0, p1, p2, p3);
-	const double s = 1.0 - t;
-	for (uint j = 0; j < dims; j++) {
-		r_v[j] = p0[j] * s * s * s +
-		         3.0 * t * s * (s * p1[j] + t * p2[j]) + t * t * t * p3[j];
 	}
 }
 
@@ -332,7 +320,7 @@ static double cubic_calc_error(
 #endif
 
 	for (uint i = 1; i < points_offset_len - 1; i++, pt_real += dims) {
-		cubic_evaluate(cubic, u[i], dims, pt_eval);
+		cubic_calc_point(cubic, u[i], dims, pt_eval);
 
 		const double err_sq = len_squared_vnvn(pt_real, pt_eval, dims);
 		if (err_sq >= error_max_sq) {
@@ -368,7 +356,7 @@ static double cubic_calc_error_simple(
 #endif
 
 	for (uint i = 1; i < points_offset_len - 1; i++, pt_real += dims) {
-		cubic_evaluate(cubic, u[i], dims, pt_eval);
+		cubic_calc_point(cubic, u[i], dims, pt_eval);
 
 		const double err_sq = len_squared_vnvn(pt_real, pt_eval, dims);
 		if (err_sq >= error_threshold_sq) {
@@ -501,7 +489,7 @@ static double points_calc_circle_tangent_factor(
 		return (1.0 / 3.0) * 0.75;
 	}
 	else if (tan_dot < -1.0 + eps) {
-		/* parallele tangents (half-circle) */
+		/* parallel tangents (half-circle) */
 		return (1.0 / 2.0);
 	}
 	else {
@@ -623,8 +611,8 @@ static void cubic_from_points_offset_fallback(
 		}
 	}
 
-	double alpha_l = (dists[0] / 0.75) /  dot_vnvn(tan_l, a[0], dims);
-	double alpha_r = (dists[1] / 0.75) / -dot_vnvn(tan_r, a[1], dims);
+	double alpha_l = (dists[0] / 0.75) / fabs(dot_vnvn(tan_l, a[0], dims));
+	double alpha_r = (dists[1] / 0.75) / fabs(dot_vnvn(tan_r, a[1], dims));
 
 	if (!(alpha_l > 0.0)) {
 		alpha_l = dir_dist / 3.0;
@@ -677,13 +665,11 @@ static void cubic_from_points(
 	double alpha_l, alpha_r;
 #ifdef USE_VLA
 	double a[2][dims];
-	double tmp[dims];
 #else
 	double *a[2] = {
 	    alloca(sizeof(double) * dims),
 	    alloca(sizeof(double) * dims),
 	};
-	double *tmp = alloca(sizeof(double) * dims);
 #endif
 
 	{
@@ -694,22 +680,22 @@ static void cubic_from_points(
 			mul_vnvn_fl(a[0], tan_l, B1(u_prime[i]), dims);
 			mul_vnvn_fl(a[1], tan_r, B2(u_prime[i]), dims);
 
-			c[0][0] += dot_vnvn(a[0], a[0], dims);
-			c[0][1] += dot_vnvn(a[0], a[1], dims);
-			c[1][1] += dot_vnvn(a[1], a[1], dims);
+			const double b0_plus_b1 = B0plusB1(u_prime[i]);
+			const double b2_plus_b3 = B2plusB3(u_prime[i]);
+
+			/* inline dot product */
+			for (uint j = 0; j < dims; j++) {
+				const double tmp = (pt[j] - (p0[j] * b0_plus_b1)) + (p3[j] * b2_plus_b3);
+
+				x[0] += a[0][j] * tmp;
+				x[1] += a[1][j] * tmp;
+
+				c[0][0] += a[0][j] * a[0][j];
+				c[0][1] += a[0][j] * a[1][j];
+				c[1][1] += a[1][j] * a[1][j];
+			}
 
 			c[1][0] = c[0][1];
-
-			{
-				const double b0_plus_b1 = B0plusB1(u_prime[i]);
-				const double b2_plus_b3 = B2plusB3(u_prime[i]);
-				for (uint j = 0; j < dims; j++) {
-					tmp[j] = (pt[j] - (p0[j] * b0_plus_b1)) + (p3[j] * b2_plus_b3);
-				}
-
-				x[0] += dot_vnvn(a[0], tmp, dims);
-				x[1] += dot_vnvn(a[1], tmp, dims);
-			}
 		}
 
 		double det_C0_C1 = c[0][0] * c[1][1] - c[0][1] * c[1][0];

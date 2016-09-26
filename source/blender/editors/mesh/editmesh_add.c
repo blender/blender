@@ -461,6 +461,7 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 	bool enter_editmode;
 	unsigned int layer;
 	bool was_editmode;
+	const bool calc_uvs = RNA_boolean_get(op->ptr, "calc_uvs");
 
 	WM_operator_view3d_unit_defaults(C, op);
 	ED_object_add_generic_get_opts(C, op, 'Y', loc, rot, &enter_editmode, &layer, NULL);
@@ -471,9 +472,13 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 
 	em = BKE_editmesh_from_object(obedit);
 
+	if (calc_uvs) {
+		ED_mesh_uv_texture_ensure(obedit->data, NULL);
+	}
+
 	if (!EDBM_op_call_and_selectf(
 	        em, op, "verts.out",  false,
-	        "create_monkey matrix=%m4", mat))
+	        "create_monkey matrix=%m4 calc_uvs=%b", mat, calc_uvs))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -498,6 +503,8 @@ void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
 	ED_object_add_unit_props(ot);
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+	/* props */
+	ED_object_add_mesh_props(ot);
 	ED_object_add_generic_props(ot, true);
 }
 

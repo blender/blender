@@ -330,5 +330,54 @@ class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel, Panel):
         domain = context.smoke.domain_settings
         effector_weights_ui(self, context, domain.effector_weights, 'SMOKE')
 
+
+class PHYSICS_PT_smoke_display_settings(PhysicButtonsPanel, Panel):
+    bl_label = "Smoke Display Settings"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        md = context.smoke
+        rd = context.scene.render
+        return md and (md.smoke_type == 'DOMAIN') and (not rd.use_game_engine)
+
+    def draw(self, context):
+        domain = context.smoke.domain_settings
+        layout = self.layout
+
+        layout.prop(domain, "display_thickness")
+
+        layout.separator()
+        layout.label(text="Slicing:")
+        layout.prop(domain, "slice_method")
+
+        slice_method = domain.slice_method
+        axis_slice_method = domain.axis_slice_method
+
+        do_axis_slicing = (slice_method == 'AXIS_ALIGNED')
+        do_full_slicing = (axis_slice_method == 'FULL')
+
+        row = layout.row();
+        row.enabled = do_axis_slicing
+        row.prop(domain, "axis_slice_method")
+
+        col = layout.column();
+        col.enabled = not do_full_slicing and do_axis_slicing
+        col.prop(domain, "slice_axis")
+        col.prop(domain, "slice_depth")
+
+        row = layout.row();
+        row.enabled = do_full_slicing or not do_axis_slicing
+        row.prop(domain, "slice_per_voxel")
+
+        layout.separator()
+        layout.label(text="Debug:")
+        layout.prop(domain, "draw_velocity")
+        col = layout.column();
+        col.enabled = domain.draw_velocity
+        col.prop(domain, "vector_draw_type")
+        col.prop(domain, "vector_scale")
+
+
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

@@ -503,7 +503,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		bGPDbrush *brush = BKE_gpencil_brush_getactive(scene->toolsettings);
 
 		if (brush) {
-			CTX_data_pointer_set(result, NULL, &RNA_GPencilBrush, brush);
+			CTX_data_pointer_set(result, &scene->id, &RNA_GPencilBrush, brush);
 			return 1;
 		}
 	}

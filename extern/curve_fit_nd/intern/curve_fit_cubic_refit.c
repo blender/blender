@@ -463,7 +463,7 @@ static uint curve_incremental_simplify(
 	rstate_pool_create(&epool, 0);
 #endif
 
-	Heap *heap = HEAP_new(knots_len);
+	Heap *heap = HEAP_new(knots_len_remaining);
 
 	struct KnotRemove_Params params = {
 	    .pd = pd,
@@ -698,7 +698,7 @@ static uint curve_incremental_simplify_refit(
 	refit_pool_create(&epool, 0);
 #endif
 
-	Heap *heap = HEAP_new(knots_len);
+	Heap *heap = HEAP_new(knots_len_remaining);
 
 	struct KnotRefit_Params params = {
 	    .pd = pd,
@@ -890,7 +890,7 @@ static void knot_corner_error_recalculate(
 static uint curve_incremental_simplify_corners(
         const struct PointData *pd,
         struct Knot *knots, const uint knots_len, uint knots_len_remaining,
-        const double error_sq_max, const double error_sq_2x_max,
+        const double error_sq_max, const double error_sq_collapse_max,
         const double corner_angle,
         const uint dims,
         uint *r_corner_index_len)
@@ -954,12 +954,12 @@ static uint curve_incremental_simplify_corners(
 					project_vn_vnvn_normalized(k_proj_ref,   co_prev, k_prev->tan[1], dims);
 					project_vn_vnvn_normalized(k_proj_split, co_split, k_prev->tan[1], dims);
 
-					if (len_squared_vnvn(k_proj_ref, k_proj_split, dims) < error_sq_2x_max) {
+					if (len_squared_vnvn(k_proj_ref, k_proj_split, dims) < error_sq_collapse_max) {
 
 						project_vn_vnvn_normalized(k_proj_ref,   co_next, k_next->tan[0], dims);
 						project_vn_vnvn_normalized(k_proj_split, co_split, k_next->tan[0], dims);
 
-						if (len_squared_vnvn(k_proj_ref, k_proj_split, dims) < error_sq_2x_max) {
+						if (len_squared_vnvn(k_proj_ref, k_proj_split, dims) < error_sq_collapse_max) {
 
 							struct Knot *k_split = &knots[split_index];
 
@@ -1260,9 +1260,12 @@ int curve_fit_cubic_to_points_refit_db(
 
 #ifdef USE_CORNER_DETECT
 	if (use_corner) {
+
+#ifdef DEBUG
 		for (uint i = 0; i < knots_len; i++) {
 			assert(knots[i].heap_node == NULL);
 		}
+#endif
 
 		knots_len_remaining = curve_incremental_simplify_corners(
 		        &pd, knots, knots_len, knots_len_remaining,

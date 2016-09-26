@@ -412,6 +412,38 @@ int bc_set_layer(int bitfield, int layer, bool enable)
 	return bitfield;
 }
 
+/*
+ | This method creates a new extension map when needed.
+ | Note: The ~BoneExtensionManager destructor takes care
+ | to delete the created maps when the manager is removed.
+*/
+BoneExtensionMap &BoneExtensionManager::getExtensionMap(bArmature *armature)
+{
+	std::string key = armature->id.name;
+	BoneExtensionMap *result = extended_bone_maps[key];
+	if (result == NULL)
+	{
+		result = new BoneExtensionMap();
+		extended_bone_maps[key] = result;
+	}
+	return *result;
+}
+
+BoneExtensionManager::~BoneExtensionManager()
+{
+	std::map<std::string, BoneExtensionMap *>::iterator map_it;
+	for (map_it = extended_bone_maps.begin(); map_it != extended_bone_maps.end(); ++map_it)
+	{
+		BoneExtensionMap *extended_bones = map_it->second;
+		for (BoneExtensionMap::iterator ext_it = extended_bones->begin(); ext_it != extended_bones->end(); ++ext_it) {
+			if (ext_it->second != NULL)
+				delete ext_it->second;
+		}
+		extended_bones->clear();
+		delete extended_bones;
+	}
+}
+
 /**
  * BoneExtended is a helper class needed for the Bone chain finder
  * See ArmatureImporter::fix_leaf_bones()

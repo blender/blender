@@ -39,8 +39,6 @@ class AbcMeshWriter : public AbcObjectWriter {
 	Alembic::AbcGeom::OSubDSchema m_subdiv_schema;
 	Alembic::AbcGeom::OSubDSchema::Sample m_subdiv_sample;
 
-	bool m_has_per_face_materials;
-	Alembic::AbcGeom::OFaceSet m_face_set;
 	Alembic::Abc::OArrayProperty m_mat_indices;
 
 	bool m_is_animated;
@@ -87,7 +85,7 @@ private:
 	void getVelocities(DerivedMesh *dm, std::vector<Imath::V3f> &vels);
 
 	template <typename Schema>
-	void writeCommonData(DerivedMesh *dm, Schema &schema);
+	void writeFaceSets(DerivedMesh *dm, Schema &schema);
 };
 
 /* ************************************************************************** */

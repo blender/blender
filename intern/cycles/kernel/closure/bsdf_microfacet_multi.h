@@ -373,6 +373,11 @@ ccl_device float3 bsdf_microfacet_multi_ggx_eval_transmit(const ShaderClosure *s
 
 ccl_device float3 bsdf_microfacet_multi_ggx_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf, ccl_addr_space uint *lcg_state) {
 	const MicrofacetBsdf *bsdf = (const MicrofacetBsdf*)sc;
+
+	if(bsdf->alpha_x*bsdf->alpha_y < 1e-7f) {
+		return make_float3(0.0f, 0.0f, 0.0f);
+	}
+
 	bool is_aniso = (bsdf->alpha_x != bsdf->alpha_y);
 	float3 X, Y, Z;
 	Z = bsdf->N;
@@ -394,9 +399,18 @@ ccl_device float3 bsdf_microfacet_multi_ggx_eval_reflect(const ShaderClosure *sc
 ccl_device int bsdf_microfacet_multi_ggx_sample(KernelGlobals *kg, const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf, ccl_addr_space uint *lcg_state)
 {
 	const MicrofacetBsdf *bsdf = (const MicrofacetBsdf*)sc;
-	bool is_aniso = (bsdf->alpha_x != bsdf->alpha_y);
+
 	float3 X, Y, Z;
 	Z = bsdf->N;
+
+	if(bsdf->alpha_x*bsdf->alpha_y < 1e-7f) {
+		*omega_in = 2*dot(Z, I)*Z - I;
+		*pdf = 1e6f;
+		*eval = make_float3(1e6f, 1e6f, 1e6f);
+		return LABEL_REFLECT|LABEL_SINGULAR;
+	}
+
+	bool is_aniso = (bsdf->alpha_x != bsdf->alpha_y);
 	if(is_aniso)
 		make_orthonormals_tangent(Z, bsdf->T, &X, &Y);
 	else
@@ -438,6 +452,11 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_setup(MicrofacetBsdf *bsdf)
 
 ccl_device float3 bsdf_microfacet_multi_ggx_glass_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf, ccl_addr_space uint *lcg_state) {
 	const MicrofacetBsdf *bsdf = (const MicrofacetBsdf*)sc;
+
+	if(bsdf->alpha_x*bsdf->alpha_y < 1e-7f) {
+		return make_float3(0.0f, 0.0f, 0.0f);
+	}
+
 	float3 X, Y, Z;
 	Z = bsdf->N;
 	make_orthonormals(Z, &X, &Y);
@@ -451,6 +470,11 @@ ccl_device float3 bsdf_microfacet_multi_ggx_glass_eval_transmit(const ShaderClos
 
 ccl_device float3 bsdf_microfacet_multi_ggx_glass_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf, ccl_addr_space uint *lcg_state) {
 	const MicrofacetBsdf *bsdf = (const MicrofacetBsdf*)sc;
+
+	if(bsdf->alpha_x*bsdf->alpha_y < 1e-7f) {
+		return make_float3(0.0f, 0.0f, 0.0f);
+	}
+
 	float3 X, Y, Z;
 	Z = bsdf->N;
 	make_orthonormals(Z, &X, &Y);
@@ -465,8 +489,42 @@ ccl_device float3 bsdf_microfacet_multi_ggx_glass_eval_reflect(const ShaderClosu
 ccl_device int bsdf_microfacet_multi_ggx_glass_sample(KernelGlobals *kg, const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf, ccl_addr_space uint *lcg_state)
 {
 	const MicrofacetBsdf *bsdf = (const MicrofacetBsdf*)sc;
+
 	float3 X, Y, Z;
 	Z = bsdf->N;
+
+	if(bsdf->alpha_x*bsdf->alpha_y < 1e-7f) {
+		float3 R, T;
+#ifdef __RAY_DIFFERENTIALS__
+		float3 dRdx, dRdy, dTdx, dTdy;
+#endif
+		bool inside;
+		float fresnel = fresnel_dielectric(bsdf->ior, Z, I, &R, &T,
+#ifdef __RAY_DIFFERENTIALS__
+		                dIdx, dIdy, &dRdx, &dRdy, &dTdx, &dTdy,
+#endif
+		                &inside);
+
+		*pdf = 1e6f;
+		*eval = make_float3(1e6f, 1e6f, 1e6f);
+		if(randu < fresnel) {
+			*omega_in = R;
+#ifdef __RAY_DIFFERENTIALS__
+			*domega_in_dx = dRdx;
+			*domega_in_dy = dRdy;
+#endif
+			return LABEL_REFLECT|LABEL_SINGULAR;
+		}
+		else {
+			*omega_in = T;
+#ifdef __RAY_DIFFERENTIALS__
+			*domega_in_dx = dTdx;
+			*domega_in_dy = dTdy;
+#endif
+			return LABEL_TRANSMIT|LABEL_SINGULAR;
+		}
+	}
+
 	make_orthonormals(Z, &X, &Y);
 
 	float3 localI = make_float3(dot(I, X), dot(I, Y), dot(I, Z));
