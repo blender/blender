@@ -470,6 +470,8 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
 
 void GPU_shader_bind(GPUShader *shader)
 {
+	BLI_assert(shader && shader->program);
+
 	glUseProgram(shader->program);
 }
 
@@ -480,6 +482,8 @@ void GPU_shader_unbind(void)
 
 void GPU_shader_free(GPUShader *shader)
 {
+	BLI_assert(shader);
+
 	if (shader->vertex)
 		glDeleteShader(shader->vertex);
 	if (shader->geometry)
@@ -497,6 +501,8 @@ void GPU_shader_free(GPUShader *shader)
 
 int GPU_shader_get_uniform(GPUShader *shader, const char *name)
 {
+	BLI_assert(shader && shader->program);
+
 	return glGetUniformLocation(shader->program, name);
 }
 
@@ -584,6 +590,8 @@ void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUText
 
 int GPU_shader_get_attribute(GPUShader *shader, const char *name)
 {
+	BLI_assert(shader && shader->program);
+
 	return glGetAttribLocation(shader->program, name);
 }
 
