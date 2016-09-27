@@ -58,7 +58,7 @@ uniform sampler2D_default texture_map;
 #ifdef USE_STIPPLE
 uniform int stipple_id;
 #if defined(DRAW_LINE)
-varying in float t;
+varying float t;
 uniform int stipple_pattern;
 #endif
 #endif
