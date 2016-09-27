@@ -627,7 +627,10 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
 			            .dist = &rv3d->dist, .lens = &v3d->lens});
 		}
 
-		WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS | NC_OBJECT | ND_DRAW, CTX_data_scene(C));
+		if (v3d->scenelock) {
+			WM_event_add_notifier(C, NC_SCENE, scene);
+		}
+		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, scene);
 	}
 	
 	return OPERATOR_FINISHED;
