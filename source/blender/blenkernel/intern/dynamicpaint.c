@@ -2673,6 +2673,7 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface, flo
 						const int index = tx + w * ty;
 
 						if (tempPoints[index].tri_index != -1) {
+							int start_pos = n_pos;
 							ed->n_index[final_index[index]] = n_pos;
 							ed->n_num[final_index[index]] = 0;
 
@@ -2681,10 +2682,20 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface, flo
 								const int n_target = dynamic_paint_find_neighbour_pixel(
 								                         &data, vert_to_looptri_map, w, h, tx, ty, i);
 
-								if (n_target >= 0) {
-									ed->n_target[n_pos] = final_index[n_target];
-									ed->n_num[final_index[index]]++;
-									n_pos++;
+								if (n_target >= 0 && n_target != index) {
+									bool duplicate = false;
+									for (int j = start_pos; j < n_pos; j++) {
+										if (ed->n_target[j] == final_index[n_target]) {
+											duplicate = true;
+											break;
+										}
+									}
+
+									if (!duplicate) {
+										ed->n_target[n_pos] = final_index[n_target];
+										ed->n_num[final_index[index]]++;
+										n_pos++;
+									}
 								}
 								else if (n_target == ON_MESH_EDGE || n_target == OUT_OF_TEXTURE) {
 									ed->flags[final_index[index]] |= ADJ_ON_MESH_EDGE;
