@@ -101,6 +101,10 @@ static const float gaussianTotal = 3.309425f;
 static int neighX[8] = {1, 1, 0, -1, -1, -1, 0, 1};
 static int neighY[8] = {0, 1, 1, 1, 0, -1, -1, -1};
 
+/* Neighbor x/y list that prioritizes grid directions over diagonals */
+static int neighStraightX[8] = {1, 0, -1,  0, 1, -1, -1,  1};
+static int neighStraightY[8] = {0, 1,  0, -1, 1,  1, -1, -1};
+
 /* subframe_updateObject() flags */
 #define SUBFRAME_RECURSION 5
 /* surface_getBrushFlags() return vals */
@@ -2233,9 +2237,12 @@ static void dynamic_paint_create_uv_surface_neighbor_cb(void *userdata, const in
 			point[0] = ((float)tx + 0.5f) / w;
 			point[1] = ((float)ty + 0.5f) / h;
 
-			/* search through defined area for neighbor	*/
-			for (int u = u_min; u <= u_max; u++) {
-				for (int v = v_min; v <= v_max; v++) {
+			/* search through defined area for neighbor, checking grid directions first */
+			for (int ni = 0; ni < 8; ni++) {
+				int u = neighStraightX[ni];
+				int v = neighStraightY[ni];
+
+				if (u >= u_min && u <= u_max && v >= v_min && v <= v_max) {
 					/* if not this pixel itself	*/
 					if (u != 0 || v != 0) {
 						const int ind = (tx + u) + w * (ty + v);
@@ -2273,7 +2280,6 @@ static void dynamic_paint_create_uv_surface_neighbor_cb(void *userdata, const in
 							tPoint->v2 = mloop[mlooptri[i].tri[1]].v;
 							tPoint->v3 = mloop[mlooptri[i].tri[2]].v;
 
-							u = u_max + 1;  /* make sure we exit outer loop as well */
 							break;
 						}
 					}
@@ -2445,7 +2451,22 @@ static int dynamic_paint_find_neighbour_pixel(
 		    ((s_uv2[0] == t_uv1[0] && s_uv2[1] == t_uv1[1]) &&
 		     (s_uv1[0] == t_uv2[0] && s_uv1[1] == t_uv2[1])))
 		{
-			return ((px + neighX[n_index]) + w * (py + neighY[n_index]));
+			final_index = x + w * y;
+
+			/* If not an active pixel, bail out */
+			if (tempPoints[final_index].tri_index == -1)
+				return NOT_FOUND;
+
+			/* If final point is an "edge pixel", use it's "real" neighbor instead */
+			if (tempPoints[final_index].neighbour_pixel != -1) {
+				final_index = tempPoints[final_index].neighbour_pixel;
+
+				/* If we ended up to our origin point */
+				if (final_index == (px + w * py))
+					return NOT_FOUND;
+			}
+
+			return final_index;
 		}
 
 		/*
@@ -2467,8 +2488,8 @@ static int dynamic_paint_find_neighbour_pixel(
 
 		copy_v2_v2(pixel, mloopuv[mlooptri[target_tri].tri[target_uv1]].uv);
 		add_v2_v2(pixel, dir_vec);
-		pixel[0] = (pixel[0] * (float)w) - 0.5f;
-		pixel[1] = (pixel[1] * (float)h) - 0.5f;
+		pixel[0] = (pixel[0] * (float)w);
+		pixel[1] = (pixel[1] * (float)h);
 
 		final_pixel[0] = (int)floorf(pixel[0]);
 		final_pixel[1] = (int)floorf(pixel[1]);
@@ -2487,8 +2508,13 @@ static int dynamic_paint_find_neighbour_pixel(
 			return NOT_FOUND;
 
 		/* If final point is an "edge pixel", use it's "real" neighbor instead */
-		if (tempPoints[final_index].neighbour_pixel != -1)
-			final_index = cPoint->neighbour_pixel;
+		if (tempPoints[final_index].neighbour_pixel != -1) {
+			final_index = tempPoints[final_index].neighbour_pixel;
+
+			/* If we ended up to our origin point */
+			if (final_index == (px + w * py))
+				return NOT_FOUND;
+		}
 
 		return final_index;
 	}
