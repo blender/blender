@@ -4779,6 +4779,8 @@ static void dynamic_paint_effect_drip_cb(void *userdata, const int index)
 		return;
 	CLAMP(w_factor, 0.0f, 1.0f);
 
+	float ppoint_wetness_diff = 0.0f;
+
 	/* get force affect points */
 	surface_determineForceTargetPoints(sData, index, &force[index * 4], closest_d, closest_id);
 
@@ -4800,9 +4802,9 @@ static void dynamic_paint_effect_drip_cb(void *userdata, const int index)
 			/* Sort of spinlock, but only for given ePoint.
 			 * Since the odds a same ePoint is modified at the same time by several threads is very low, this is
 			 * much more efficient than a global spin lock. */
-			const unsigned int pointlock_idx = n_trgt / 8;
-			const uint8_t pointlock_bitmask = 1 << (n_trgt & 7);  /* 7 == 0b111 */
-			while (atomic_fetch_and_or_uint8(&point_locks[pointlock_idx], pointlock_bitmask) & pointlock_bitmask);
+			const unsigned int epointlock_idx = n_trgt / 8;
+			const uint8_t epointlock_bitmask = 1 << (n_trgt & 7);  /* 7 == 0b111 */
+			while (atomic_fetch_and_or_uint8(&point_locks[epointlock_idx], epointlock_bitmask) & epointlock_bitmask);
 
 			PaintPoint *ePoint = &((PaintPoint *)sData->type_data)[n_trgt];
 			const float e_wet = ePoint->wetness;
@@ -4823,17 +4825,37 @@ static void dynamic_paint_effect_drip_cb(void *userdata, const int index)
 				CLAMP_MAX(ePoint->e_color[3], pPoint_prev->e_color[3]);
 			}
 
-			/* decrease paint wetness on current point */
-			pPoint->wetness -= (ePoint->wetness - e_wet);
-			CLAMP(pPoint->wetness, 0.0f, MAX_WETNESS);
+			/* Decrease paint wetness on current point
+			 * (just store diff here, that way we can only lock current point once at the end to apply it). */
+			ppoint_wetness_diff += (ePoint->wetness - e_wet);
 
 #ifndef NDEBUG
-			uint8_t ret = atomic_fetch_and_and_uint8(&point_locks[pointlock_idx], ~pointlock_bitmask);
-			BLI_assert(ret & pointlock_bitmask);
+			{
+				uint8_t ret = atomic_fetch_and_and_uint8(&point_locks[epointlock_idx], ~epointlock_bitmask);
+				BLI_assert(ret & epointlock_bitmask);
+			}
 #else
-			atomic_fetch_and_and_uint8(&point_locks[pointlock_idx], ~pointlock_bitmask);
+			atomic_fetch_and_and_uint8(&point_locks[epointlock_idx], ~epointlock_bitmask);
 #endif
 		}
+	}
+
+	{
+		const unsigned int ppointlock_idx = index / 8;
+		const uint8_t ppointlock_bitmask = 1 << (index & 7);  /* 7 == 0b111 */
+		while (atomic_fetch_and_or_uint8(&point_locks[ppointlock_idx], ppointlock_bitmask) & ppointlock_bitmask);
+
+		pPoint->wetness -= ppoint_wetness_diff;
+		CLAMP(pPoint->wetness, 0.0f, MAX_WETNESS);
+
+#ifndef NDEBUG
+		{
+			uint8_t ret = atomic_fetch_and_and_uint8(&point_locks[ppointlock_idx], ~ppointlock_bitmask);
+			BLI_assert(ret & ppointlock_bitmask);
+		}
+#else
+		atomic_fetch_and_and_uint8(&point_locks[ppointlock_idx], ~ppointlock_bitmask);
+#endif
 	}
 }
 
