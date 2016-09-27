@@ -932,17 +932,18 @@ static EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(bConte
 			CustomData *pdata;
 			int num_data, i;
 
-			/* XXX Is this OK? */
-			dm_src = mesh_get_derived_final(dtmd->modifier.scene, ob_src, CD_MASK_BAREMESH | CD_MTEXPOLY);
-			pdata = dm_src->getPolyDataLayout(dm_src);
-			num_data = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
+			dm_src = object_get_derived_final(ob_src, false);
+			if (dm_src != NULL) {
+				pdata = dm_src->getPolyDataLayout(dm_src);
+				num_data = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
 
-			RNA_enum_item_add_separator(&item, &totitem);
+				RNA_enum_item_add_separator(&item, &totitem);
 
-			for (i = 0; i < num_data; i++) {
-				tmp_item.value = i;
-				tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(pdata, CD_MTEXPOLY, i);
-				RNA_enum_item_add(&item, &totitem, &tmp_item);
+				for (i = 0; i < num_data; i++) {
+					tmp_item.value = i;
+					tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(pdata, CD_MTEXPOLY, i);
+					RNA_enum_item_add(&item, &totitem, &tmp_item);
+				}
 			}
 		}
 	}
@@ -954,17 +955,18 @@ static EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(bConte
 			CustomData *ldata;
 			int num_data, i;
 
-			/* XXX Is this OK? */
-			dm_src = mesh_get_derived_final(dtmd->modifier.scene, ob_src, CD_MASK_BAREMESH | CD_MLOOPCOL);
-			ldata = dm_src->getLoopDataLayout(dm_src);
-			num_data = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
+			dm_src = object_get_derived_final(ob_src, false);
+			if (dm_src != NULL) {
+				ldata = dm_src->getLoopDataLayout(dm_src);
+				num_data = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
 
-			RNA_enum_item_add_separator(&item, &totitem);
+				RNA_enum_item_add_separator(&item, &totitem);
 
-			for (i = 0; i < num_data; i++) {
-				tmp_item.value = i;
-				tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(ldata, CD_MLOOPCOL, i);
-				RNA_enum_item_add(&item, &totitem, &tmp_item);
+				for (i = 0; i < num_data; i++) {
+					tmp_item.value = i;
+					tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(ldata, CD_MLOOPCOL, i);
+					RNA_enum_item_add(&item, &totitem, &tmp_item);
+				}
 			}
 		}
 	}
