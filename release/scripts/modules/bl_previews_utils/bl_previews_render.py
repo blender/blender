@@ -236,8 +236,8 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
         return success
 
     def objects_render_engine_guess(obs):
-        for obname in obs:
-            ob = bpy.data.objects[obname, None]
+        for obname, libpath in obs:
+            ob = bpy.data.objects[obname, libpath]
             for matslot in ob.material_slots:
                 mat = matslot.material
                 if mat and mat.use_nodes and mat.node_tree:
@@ -247,10 +247,20 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
         return 'BLENDER_RENDER'
 
     def object_bbox_merge(bbox, ob, ob_space, offset_matrix):
-        if ob.bound_box:
+        # Take group instances into account (including linked one in this case).
+        if ob.type == 'EMPTY' and ob.dupli_type == 'GROUP':
+            grp_objects = tuple((ob.name, ob.library.filepath if ob.library else None) for ob in ob.dupli_group.objects)
+            if (len(grp_objects) == 0):
+                ob_bbox = ob.bound_box
+            else:
+                coords = objects_bbox_calc(ob_space, grp_objects,
+                                           Matrix.Translation(ob.dupli_group.dupli_offset).inverted())
+                ob_bbox = ((coords[0], coords[1], coords[2]), (coords[21], coords[22], coords[23]))
+        elif ob.bound_box:
             ob_bbox = ob.bound_box
         else:
             ob_bbox = ((-ob.scale.x, -ob.scale.y, -ob.scale.z), (ob.scale.x, ob.scale.y, ob.scale.z))
+
         for v in ob_bbox:
             v = offset_matrix * Vector(v) if offset_matrix is not None else Vector(v)
             v = ob_space.matrix_world.inverted() * ob.matrix_world * v
@@ -269,8 +279,8 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
 
     def objects_bbox_calc(camera, objects, offset_matrix):
         bbox = (Vector((1e9, 1e9, 1e9)), Vector((-1e9, -1e9, -1e9)))
-        for obname in objects:
-            ob = bpy.data.objects[obname, None]
+        for obname, libpath in objects:
+            ob = bpy.data.objects[obname, libpath]
             object_bbox_merge(bbox, ob, camera, offset_matrix)
         # Our bbox has been generated in camera local space, bring it back in world one
         bbox[0][:] = camera.matrix_world * bbox[0]
@@ -333,7 +343,7 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
                 continue
             if root.type not in OBJECT_TYPES_RENDER:
                 continue
-            objects = (root.name,)
+            objects = ((root.name, None),)
 
             render_engine = objects_render_engine_guess(objects)
             render_context = render_contexts.get(render_engine, None)
@@ -344,8 +354,8 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
             scene = bpy.data.scenes[render_context.scene, None]
             bpy.context.screen.scene = scene
 
-            for obname in objects:
-                ob = bpy.data.objects[obname, None]
+            for obname, libpath in objects:
+                ob = bpy.data.objects[obname, libpath]
                 if obname not in scene.objects:
                     scene.objects.link(ob)
                 ob.hide_render = False
@@ -363,8 +373,8 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
             #         OverflowError: Python int too large to convert to C long
             #    ... :(
             scene = bpy.data.scenes[render_context.scene, None]
-            for obname in objects:
-                ob = bpy.data.objects[obname, None]
+            for obname, libpath in objects:
+                ob = bpy.data.objects[obname, libpath]
                 scene.objects.unlink(ob)
                 ob.hide_render = True
 
@@ -377,7 +387,8 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
         for grp in ids_nolib(bpy.data.groups):
             if grp.name in groups_ignored:
                 continue
-            objects = tuple(ob.name for ob in grp.objects)
+            # Here too, we do want to keep linked objects members of local group...
+            objects = tuple((ob.name, ob.library.filepath if ob.library else None) for ob in grp.objects)
 
             render_engine = objects_render_engine_guess(objects)
             render_context = render_contexts.get(render_engine, None)
@@ -415,7 +426,7 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
             objects = None
             if not has_camera:
                 # We had to add a temp camera, now we need to place it to see interesting objects!
-                objects = tuple(ob.name for ob in scene.objects
+                objects = tuple((ob.name, ob.library.filepath if ob.library else None) for ob in scene.objects
                                         if (not ob.hide_render) and (ob.type in OBJECT_TYPES_RENDER))
 
             preview_render_do(render_context, 'scenes', scene.name, objects)
