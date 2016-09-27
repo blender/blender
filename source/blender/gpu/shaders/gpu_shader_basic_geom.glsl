@@ -14,9 +14,9 @@ layout(line_strip, max_vertices = 10) out;
 layout(triangle_strip, max_vertices = 6) out;
 #endif
 
-varying out float t;
-varying in vec4 varying_vertex_color_line[];
-varying out vec4 varying_vertex_color;
+out float t;
+in vec4 varying_vertex_color_line[];
+out vec4 varying_vertex_color;
 
 uniform ivec4 viewport;
 uniform float line_width;
