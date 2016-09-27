@@ -414,7 +414,7 @@ if(WITH_OPENCOLORIO)
 endif()
 
 if(WITH_OPENVDB)
-	set(BLOSC_LIBRARIES optimized ${LIBDIR}/blosc/lib/libblosc.lib debug ${LIBDIR}/blosc/lib/libblosc_d.lib)
+	set(BLOSC_LIBRARIES ${LIBDIR}/blosc/lib/libblosc.lib )
 	set(TBB_LIBRARIES optimized ${LIBDIR}/tbb/lib/tbb.lib debug ${LIBDIR}/tbb/lib/tbb_debug.lib)
 	set(TBB_INCLUDE_DIR ${LIBDIR}/tbb/include)
 	set(OPENVDB ${LIBDIR}/openvdb)
