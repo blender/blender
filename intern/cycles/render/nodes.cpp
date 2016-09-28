@@ -3898,6 +3898,19 @@ void GammaNode::constant_fold(const ConstantFolder& folder)
 	if(folder.all_inputs_constant()) {
 		folder.make_constant(svm_math_gamma_color(color, gamma));
 	}
+	else {
+		ShaderInput *color_in = input("Color");
+		ShaderInput *gamma_in = input("Gamma");
+
+		/* 1 ^ X == X ^ 0 == 1 */
+		if(folder.is_one(color_in) || folder.is_zero(gamma_in)) {
+			folder.make_one();
+		}
+		/* X ^ 1 == X */
+		else if(folder.is_one(gamma_in)) {
+			folder.try_bypass_or_make_constant(color_in, false);
+		}
+	}
 }
 
 void GammaNode::compile(SVMCompiler& compiler)

@@ -43,6 +43,7 @@ public:
 	void make_constant_clamp(float value, bool clamp) const;
 	void make_constant_clamp(float3 value, bool clamp) const;
 	void make_zero() const;
+	void make_one() const;
 
 	/* Bypass node, relinking to another output socket. */
 	void bypass(ShaderOutput *output) const;
