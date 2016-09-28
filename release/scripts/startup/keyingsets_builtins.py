@@ -25,6 +25,9 @@ to work correctly.
 
 Beware also about changing the order that these are defined here, since this can result in old files referring to the
 wrong Keying Set as the active one, potentially resulting in lost (i.e. unkeyed) animation.
+
+Note that these classes cannot be subclassed further; only direct subclasses of KeyingSetInfo
+are supported.
 """
 
 import bpy
@@ -524,11 +527,11 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
                 ksi.addProp(ks, bone, prop)
 
 # All properties that are likely to get animated in a character rig, only selected bones.
-class BUILTIN_KSI_WholeCharacterSelected(BUILTIN_KSI_WholeCharacter):
+class BUILTIN_KSI_WholeCharacterSelected(KeyingSetInfo):
     """Insert a keyframe for all properties that are likely to get animated in a character rig """
     """(only selected bones)"""
     bl_idname = ANIM_KS_WHOLE_CHARACTER_SELECTED_ID
-    bl_label = "Whole Character (Selected bones)"
+    bl_label = "Whole Character (Selected bones only)"
 
     # iterator - all bones regardless of selection
     def iterator(ksi, context, ks):
@@ -536,9 +539,20 @@ class BUILTIN_KSI_WholeCharacterSelected(BUILTIN_KSI_WholeCharacter):
         bones = context.selected_pose_bones or context.active_object.pose.bones
 
         for bone in bones:
-            if bone.name.startswith(BUILTIN_KSI_WholeCharacterSelected.badBonePrefixes):
+            if bone.name.startswith(BUILTIN_KSI_WholeCharacter.badBonePrefixes):
                 continue
             ksi.generate(context, ks, bone)
+
+    # Poor man's subclassing. Blender breaks when we actually subclass BUILTIN_KSI_WholeCharacter.
+    poll = BUILTIN_KSI_WholeCharacter.poll
+    generate = BUILTIN_KSI_WholeCharacter.generate
+    addProp = BUILTIN_KSI_WholeCharacter.addProp
+    doLoc = BUILTIN_KSI_WholeCharacter.doLoc
+    doRot4d = BUILTIN_KSI_WholeCharacter.doRot4d
+    doRot3d = BUILTIN_KSI_WholeCharacter.doRot3d
+    doScale = BUILTIN_KSI_WholeCharacter.doScale
+    doBBone = BUILTIN_KSI_WholeCharacter.doBBone
+    doCustomProps = BUILTIN_KSI_WholeCharacter.doCustomProps
 
 ###############################
 
