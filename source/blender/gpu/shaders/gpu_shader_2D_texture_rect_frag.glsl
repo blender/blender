@@ -11,5 +11,6 @@ uniform sampler2DRect texture_map;
 
 void main()
 {
-	fragColor = vec4(texture2DRect(texture_map, texture_coord).rgb, alpha);
+	fragColor = texture2DRect(texture_map, texture_coord);
+	fragColor.a *= alpha;
 }
