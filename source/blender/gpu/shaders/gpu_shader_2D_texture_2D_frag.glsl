@@ -6,9 +6,10 @@
   out vec4 fragColor;
 #endif
 
+uniform float alpha;
 uniform sampler2D texture_map;
 
 void main()
 {
-	fragColor = texture2D(texture_map, texture_coord);
+	fragColor = vec4(texture2D(texture_map, texture_coord).rgb, alpha);
 }

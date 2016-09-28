@@ -66,6 +66,7 @@ void immVertex3fv(unsigned attrib_id, const float data[3]);
 void immVertex2iv(unsigned attrib_id, const int data[2]);
 
 // provide values that don't change for the entire draw call
+void immUniform1f(const char* name, float x);
 void immUniform4f(const char* name, float x, float y, float z, float w);
 
 // these set "uniform vec4 color"

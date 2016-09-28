@@ -282,6 +282,7 @@ static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 
 		glBindTexture(triple->target, triple->bind);
 
+		immUniform1f("alpha", 1.0f);
 		immUniform1i("texture_map", 0);
 
 		immBegin(GL_QUADS, 4);

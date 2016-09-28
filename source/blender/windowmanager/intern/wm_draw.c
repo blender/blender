@@ -455,6 +455,7 @@ void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)
 
 	glBindTexture(triple->target, triple->bind);
 
+	immUniform1f("alpha", alpha);
 	immUniform1i("texture_map", 0);
 
 	immBegin(GL_QUADS, 4);
