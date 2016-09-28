@@ -461,7 +461,7 @@ static int poselib_add_exec(bContext *C, wmOperator *op)
 	bAction *act = poselib_validate(ob);
 	bPose *pose = (ob) ? ob->pose : NULL;
 	TimeMarker *marker;
-	KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_WHOLE_CHARACTER_ID); /* this includes custom props :)*/
+	KeyingSet *ks;
 	int frame = RNA_int_get(op->ptr, "frame");
 	char name[64];
 	
@@ -495,8 +495,7 @@ static int poselib_add_exec(bContext *C, wmOperator *op)
 	BLI_uniquename(&act->markers, marker, DATA_("Pose"), '.', offsetof(TimeMarker, name), sizeof(marker->name));
 	
 	/* use Keying Set to determine what to store for the pose */
-	/* FIXME: in the past, the Keying Set respected selections (LocRotScale), but the current one doesn't
-	 * (WholeCharacter) so perhaps we need either a new Keying Set, or just to add overrides here... */
+	ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_WHOLE_CHARACTER_SELECTED_ID); /* this includes custom props :)*/
 	ANIM_apply_keyingset(C, NULL, act, ks, MODIFYKEY_MODE_INSERT, (float)frame);
 	
 	/* store new 'active' pose number */
