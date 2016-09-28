@@ -390,7 +390,10 @@ static bool acf_generic_dataexpand_setting_valid(bAnimContext *ac, bAnimListElem
 		/* select is ok for most "ds*" channels (e.g. dsmat) */
 		case ACHANNEL_SETTING_SELECT:
 			return true;
-			
+
+		case ACHANNEL_SETTING_ALWAYS_VISIBLE:
+			return true;
+
 		/* other flags are never supported */
 		default:
 			return false;
@@ -1704,7 +1707,10 @@ static int acf_dscam_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Setting
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
 			return ADT_UI_SELECTED;
-		
+
+		case ACHANNEL_SETTING_ALWAYS_VISIBLE:
+			return ADT_CURVES_ALWAYS_VISIBLE;
+
 		default: /* unsupported */
 			return 0;
 	}
@@ -1725,6 +1731,7 @@ static void *acf_dscam_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
 		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
+		case ACHANNEL_SETTING_ALWAYS_VISIBLE:
 			if (ca->adt)
 				return GET_ACF_FLAG_PTR(ca->adt->flag, type);
 			return NULL;
