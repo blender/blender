@@ -374,6 +374,8 @@ ccl_device bool bsdf_merge(ShaderClosure *a, ShaderClosure *b)
 		default:
 			return false;
 	}
+#else
+	return false;
 #endif
 }
 
