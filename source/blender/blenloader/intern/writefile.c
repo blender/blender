@@ -1306,13 +1306,11 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 
 			dw = part->dupliweights.first;
 			for (; dw; dw = dw->next) {
-				/* update indices */
-				dw->index = 0;
-				if (part->dup_group) { /* can be NULL if lining fails or set to None */
-					go = part->dup_group->gobject.first;
-					while (go && go->ob != dw->ob) {
-						go = go->next;
-						dw->index++;
+				/* update indices, but only if dw->ob is set (can be NULL after loading e.g.) */
+				if (dw->ob != NULL) {
+					dw->index = 0;
+					if (part->dup_group) { /* can be NULL if lining fails or set to None */
+						for (go = part->dup_group->gobject.first; go && go->ob != dw->ob; go = go->next, dw->index++);
 					}
 				}
 				writestruct(wd, DATA, ParticleDupliWeight, 1, dw);
