@@ -931,6 +931,72 @@ TEST(render_graph, constant_fold_gamma)
 }
 
 /*
+ * Tests: Gamma with one constant 0 input.
+ */
+TEST(render_graph, constant_fold_gamma_part_0)
+{
+	DEFINE_COMMON_VARIABLES(builder, log);
+
+	EXPECT_ANY_MESSAGE(log);
+	INVALID_INFO_MESSAGE(log, "Folding Gamma_Cx::");
+	CORRECT_INFO_MESSAGE(log, "Folding Gamma_xC::Color to constant (1, 1, 1).");
+
+	builder
+		.add_attribute("Attribute")
+		/* constant on the left */
+		.add_node(ShaderNodeBuilder<GammaNode>("Gamma_Cx")
+		          .set("Color", make_float3(0.0f, 0.0f, 0.0f)))
+		.add_connection("Attribute::Fac", "Gamma_Cx::Gamma")
+		/* constant on the right */
+		.add_node(ShaderNodeBuilder<GammaNode>("Gamma_xC")
+		          .set("Gamma", 0.0f))
+		.add_connection("Attribute::Color", "Gamma_xC::Color")
+		/* output sum */
+		.add_node(ShaderNodeBuilder<MixNode>("Out")
+		          .set(&MixNode::type, NODE_MIX_ADD)
+		          .set(&MixNode::use_clamp, true)
+		          .set("Fac", 1.0f))
+		.add_connection("Gamma_Cx::Color", "Out::Color1")
+		.add_connection("Gamma_xC::Color", "Out::Color2")
+		.output_color("Out::Color");
+
+	graph.finalize(&scene);
+}
+
+/*
+ * Tests: Gamma with one constant 1 input.
+ */
+TEST(render_graph, constant_fold_gamma_part_1)
+{
+	DEFINE_COMMON_VARIABLES(builder, log);
+
+	EXPECT_ANY_MESSAGE(log);
+	CORRECT_INFO_MESSAGE(log, "Folding Gamma_Cx::Color to constant (1, 1, 1).");
+	CORRECT_INFO_MESSAGE(log, "Folding Gamma_xC::Color to socket Attribute::Color.");
+
+	builder
+		.add_attribute("Attribute")
+		/* constant on the left */
+		.add_node(ShaderNodeBuilder<GammaNode>("Gamma_Cx")
+		          .set("Color", make_float3(1.0f, 1.0f, 1.0f)))
+		.add_connection("Attribute::Fac", "Gamma_Cx::Gamma")
+		/* constant on the right */
+		.add_node(ShaderNodeBuilder<GammaNode>("Gamma_xC")
+		          .set("Gamma", 1.0f))
+		.add_connection("Attribute::Color", "Gamma_xC::Color")
+		/* output sum */
+		.add_node(ShaderNodeBuilder<MixNode>("Out")
+		          .set(&MixNode::type, NODE_MIX_ADD)
+		          .set(&MixNode::use_clamp, true)
+		          .set("Fac", 1.0f))
+		.add_connection("Gamma_Cx::Color", "Out::Color1")
+		.add_connection("Gamma_xC::Color", "Out::Color2")
+		.output_color("Out::Color");
+
+	graph.finalize(&scene);
+}
+
+/*
  * Tests: BrightnessContrast with all constant inputs.
  */
 TEST(render_graph, constant_fold_bright_contrast)
@@ -1139,6 +1205,40 @@ TEST(render_graph, constant_fold_part_math_div_0)
 	INVALID_INFO_MESSAGE(log, "Folding Out::");
 
 	build_math_partial_test_graph(builder, NODE_MATH_DIVIDE, 0.0f);
+	graph.finalize(&scene);
+}
+
+/*
+ * Tests: partial folding for Math Power with known 0.
+ */
+TEST(render_graph, constant_fold_part_math_pow_0)
+{
+	DEFINE_COMMON_VARIABLES(builder, log);
+
+	EXPECT_ANY_MESSAGE(log);
+	/* X ^ 0 == 1 */
+	INVALID_INFO_MESSAGE(log, "Folding Math_Cx::");
+	CORRECT_INFO_MESSAGE(log, "Folding Math_xC::Value to constant (1).");
+	INVALID_INFO_MESSAGE(log, "Folding Out::");
+
+	build_math_partial_test_graph(builder, NODE_MATH_POWER, 0.0f);
+	graph.finalize(&scene);
+}
+
+/*
+ * Tests: partial folding for Math Power with known 1.
+ */
+TEST(render_graph, constant_fold_part_math_pow_1)
+{
+	DEFINE_COMMON_VARIABLES(builder, log);
+
+	EXPECT_ANY_MESSAGE(log);
+	/* 1 ^ X == 1; X ^ 1 == X */
+	CORRECT_INFO_MESSAGE(log, "Folding Math_Cx::Value to constant (1)");
+	CORRECT_INFO_MESSAGE(log, "Folding Math_xC::Value to socket Attribute::Fac.");
+	INVALID_INFO_MESSAGE(log, "Folding Out::");
+
+	build_math_partial_test_graph(builder, NODE_MATH_POWER, 1.0f);
 	graph.finalize(&scene);
 }
 

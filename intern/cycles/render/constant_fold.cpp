@@ -89,6 +89,19 @@ void ConstantFolder::make_zero() const
 	}
 }
 
+void ConstantFolder::make_one() const
+{
+	if(output->type() == SocketType::FLOAT) {
+		make_constant(1.0f);
+	}
+	else if(SocketType::is_float3(output->type())) {
+		make_constant(make_float3(1.0f, 1.0f, 1.0f));
+	}
+	else {
+		assert(0);
+	}
+}
+
 void ConstantFolder::bypass(ShaderOutput *new_output) const
 {
 	assert(new_output);
@@ -321,6 +334,15 @@ void ConstantFolder::fold_math(NodeMath type, bool clamp) const
 				make_zero();
 			}
 			break;
+		case NODE_MATH_POWER:
+			/* 1 ^ X == X ^ 0 == 1 */
+			if(is_one(value1_in) || is_zero(value2_in)) {
+				make_one();
+			}
+			/* X ^ 1 == X */
+			else if(is_one(value2_in)) {
+				try_bypass_or_make_constant(value1_in, clamp);
+			}
 		default:
 			break;
 	}
