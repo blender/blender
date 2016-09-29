@@ -18,54 +18,34 @@ if NOT "%1" == "" (
 
 	REM Build Types
 	if "%1" == "debug" (
-		set BUILD_DIR=%BUILD_DIR%_debug
 		set BUILD_TYPE=Debug
-
 	REM Build Configurations
 	) else if "%1" == "full" (
-		set TARGET_SET=1
-		set BUILD_DIR=%BUILD_DIR%_full
+		set TARGET=Full
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
 		    -C"%BLENDER_DIR%\build_files\cmake\config\blender_full.cmake"
 	) else if "%1" == "lite" (
-		set TARGET_SET=1
-		set BUILD_DIR=%BUILD_DIR%_lite
+		set TARGET=Lite
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
 		    -C"%BLENDER_DIR%\build_files\cmake\config\blender_lite.cmake"
 	) else if "%1" == "cycles" (
-		set TARGET_SET=1
-		set BUILD_DIR=%BUILD_DIR%_cycles
+		set TARGET=Cycles
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
 		    -C"%BLENDER_DIR%\build_files\cmake\config\cycles_standalone.cmake"
 	) else if "%1" == "headless" (
-		set TARGET_SET=1
-		set BUILD_DIR=%BUILD_DIR%_headless
+		set TARGET=Headless
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
 		    -C"%BLENDER_DIR%\build_files\cmake\config\blender_headless.cmake"
 	) else if "%1" == "bpy" (
-		set TARGET_SET=1
-		set BUILD_DIR=%BUILD_DIR%_bpy
+		set TARGET=Bpy
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
 		    -C"%BLENDER_DIR%\build_files\cmake\config\bpy_module.cmake"
 	) else if "%1" == "release" (
-		set TARGET_SET=1
-		if "%CUDA_PATH_V7_5%"=="" (
-			echo Cuda 7.5 Not found, aborting!
-			goto EOF
-		)
-		if "%CUDA_PATH_V8_0%"=="" (
-			echo Cuda 8.0 Not found, aborting!
-			goto EOF
-		)
-		set BUILD_DIR=%BUILD_DIR%_Release
-		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
-		    -C"%BLENDER_DIR%\build_files\cmake\config\blender_release.cmake" -DCUDA_NVCC_EXECUTABLE:FILEPATH=%CUDA_PATH_V7_5%/bin/nvcc.exe -DCUDA_NVCC8_EXECUTABLE:FILEPATH=%CUDA_PATH_V8_0%/bin/nvcc.exe  
+		set TARGET=Release
 	)	else if "%1" == "x86" (
 		set BUILD_ARCH=x86
-		set BUILD_DIR=%BUILD_DIR%_x86
 	)	else if "%1" == "x64" (
 		set BUILD_ARCH=x64
-		set BUILD_DIR=%BUILD_DIR%_x64
 	)	else if "%1" == "2015" (
 	set BUILD_VS_VER=14
 	set BUILD_VS_YEAR=2015
@@ -105,10 +85,13 @@ if NOT "%1" == "" (
 if "%BUILD_ARCH%"=="" (
 	if "%PROCESSOR_ARCHITECTURE%" == "AMD64" (
 		set WINDOWS_ARCH= Win64
+		set BUILD_ARCH=x64
 	) else if "%PROCESSOR_ARCHITEW6432%" == "AMD64" (
 		set WINDOWS_ARCH= Win64
+		set BUILD_ARCH=x64
 	) else (
 		set WINDOWS_ARCH=
+		set BUILD_ARCH=x86
 	)
 ) else if "%BUILD_ARCH%"=="x64" (
 		set WINDOWS_ARCH= Win64
@@ -121,7 +104,30 @@ if "%BUILD_VS_VER%"=="" (
 	set BUILD_VS_YEAR=2013
 )
 
-set BUILD_DIR=%BUILD_DIR%_vc%BUILD_VS_VER%
+set BUILD_DIR=%BUILD_DIR%_%TARGET%_%BUILD_ARCH%_vc%BUILD_VS_VER%_%BUILD_TYPE%
+
+
+if "%target%"=="Release" (
+		rem for vc12 check for both cuda 7.5 and 8 
+		if "%BUILD_VS_VER%"=="12" (
+			if "%CUDA_PATH_V7_5%"=="" (
+				echo Cuda 7.5 Not found, aborting!
+				goto EOF
+			)
+		)
+		if "%CUDA_PATH_V8_0%"=="" (
+			echo Cuda 8.0 Not found, aborting!
+			goto EOF
+		)
+		if "%BUILD_VS_VER%"=="12" (
+					set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
+					-C"%BLENDER_DIR%\build_files\cmake\config\blender_release.cmake" -DCUDA_NVCC_EXECUTABLE:FILEPATH=%CUDA_PATH_V7_5%/bin/nvcc.exe -DCUDA_NVCC8_EXECUTABLE:FILEPATH=%CUDA_PATH_V8_0%/bin/nvcc.exe  
+		)		
+		if "%BUILD_VS_VER%"=="14" (
+					set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
+					-C"%BLENDER_DIR%\build_files\cmake\config\blender_release.cmake" -DCUDA_NVCC_EXECUTABLE:FILEPATH=%CUDA_PATH_V8_0%/bin/nvcc.exe -DCUDA_NVCC8_EXECUTABLE:FILEPATH=%CUDA_PATH_V8_0%/bin/nvcc.exe  
+		)
+)
 
 REM Detect MSVC Installation
 if DEFINED VisualStudioVersion goto msvc_detect_finally
@@ -156,7 +162,7 @@ if NOT EXIST %BLENDER_DIR%..\lib\nul (
 	echo This is needed for building, aborting!
 	goto EOF
 )
-if NOT "%TARGET_SET%"=="1" (
+if "%TARGET%"=="" (
 	echo Error: Convenience target not set
 	echo This is required for building, aborting!
 	echo . 
@@ -224,10 +230,9 @@ goto EOF
 :HELP
 		echo.
 		echo Convenience targets
-		echo - release 
-		echo - debug
-		echo - full
-		echo - lite
+		echo - release ^(identical to the offical blender.org builds^)
+		echo - full ^(same as release minus the cuda kernels^)
+		echo - lite 
 		echo - headless
 		echo - cycles
 		echo - bpy
@@ -239,6 +244,7 @@ goto EOF
 		echo - showhash ^(Show git hashes of source tree^)
 		echo.
 		echo Configuration options
+		echo - debug ^(Build an unoptimized debuggable build^)
 		echo - packagename [newname] ^(override default cpack package name^)
 		echo - x86 ^(override host autodetect and build 32 bit code^)
 		echo - x64 ^(override host autodetect and build 64 bit code^)
