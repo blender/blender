@@ -33,6 +33,8 @@
 #include "MEM_guardedalloc.h"
 
 extern "C" {
+#include "DNA_scene_types.h"
+
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
@@ -125,7 +127,14 @@ void DEG_evaluate_on_refresh(EvaluationContext *eval_ctx,
 	/* Update time on primary timesource. */
 	DEG::TimeSourceDepsNode *tsrc = deg_graph->find_time_source();
 	tsrc->cfra = BKE_scene_frame_get(scene);
-	DEG::deg_evaluate_on_refresh(eval_ctx, deg_graph, deg_graph->layers);
+	unsigned int layers = deg_graph->layers;
+	/* XXX(sergey): This works around missing updates in temp scenes used
+	 * by various scripts, but is weak and needs closer investigation.
+	 */
+	if (layers == 0) {
+		layers = scene->lay;
+	}
+	DEG::deg_evaluate_on_refresh(eval_ctx, deg_graph, layers);
 }
 
 /* Frame-change happened for root scene that graph belongs to. */

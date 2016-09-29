@@ -851,11 +851,11 @@ ccl_device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd, ccl_addr_
 #ifdef __SVM__
 		svm_eval_nodes(kg, sd, state, SHADER_TYPE_SURFACE, path_flag);
 #else
-		ccl_fetch_array(sd, closure, 0)->weight = make_float3(0.8f, 0.8f, 0.8f);
-		ccl_fetch_array(sd, closure, 0)->N = ccl_fetch(sd, N);
-		ccl_fetch_array(sd, closure, 0)->data0 = 0.0f;
-		ccl_fetch_array(sd, closure, 0)->data1 = 0.0f;
-		ccl_fetch(sd, flag) |= bsdf_diffuse_setup(ccl_fetch_array(sd, closure, 0));
+		DiffuseBsdf *bsdf = (DiffuseBsdf*)bsdf_alloc(sd,
+		                                             sizeof(DiffuseBsdf),
+		                                             make_float3(0.8f, 0.8f, 0.8f));
+		bsdf->N = ccl_fetch(sd, N);
+		ccl_fetch(sd, flag) |= bsdf_diffuse_setup(bsdf);
 #endif
 	}
 

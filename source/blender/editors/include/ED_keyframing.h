@@ -389,6 +389,7 @@ bool ED_autokeyframe_pchan(struct bContext *C, struct Scene *scene, struct Objec
 #define ANIM_KS_LOC_ROT_SCALE_ID    "LocRotScale"
 #define ANIM_KS_AVAILABLE_ID        "Available"
 #define ANIM_KS_WHOLE_CHARACTER_ID  "WholeCharacter"
+#define ANIM_KS_WHOLE_CHARACTER_SELECTED_ID  "WholeCharacterSelected"
 
 #ifdef __cplusplus
 }

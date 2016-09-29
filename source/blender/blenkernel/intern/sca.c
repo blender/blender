@@ -789,7 +789,7 @@ void BKE_sca_logic_copy(Object *ob_new, Object *ob)
 	copy_controllers(&ob_new->controllers, &ob->controllers);
 	copy_actuators(&ob_new->actuators, &ob->actuators);
 
-	for (bSensor *sens = ob->sensors.first; sens; sens = sens->next) {
+	for (bSensor *sens = ob_new->sensors.first; sens; sens = sens->next) {
 		if (sens->flag & SENS_NEW) {
 			for (int a = 0; a < sens->totlinks; a++) {
 				if (sens->links[a] && sens->links[a]->mynew) {
@@ -799,7 +799,7 @@ void BKE_sca_logic_copy(Object *ob_new, Object *ob)
 		}
 	}
 
-	for (bController *cont = ob->controllers.first; cont; cont = cont->next) {
+	for (bController *cont = ob_new->controllers.first; cont; cont = cont->next) {
 		if (cont->flag & CONT_NEW) {
 			for (int a = 0; a < cont->totlinks; a++) {
 				if (cont->links[a] && cont->links[a]->mynew) {

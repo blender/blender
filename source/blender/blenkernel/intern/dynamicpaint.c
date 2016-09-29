@@ -100,6 +100,10 @@ static const float gaussianTotal = 3.309425f;
 static int neighX[8] = {1, 1, 0, -1, -1, -1, 0, 1};
 static int neighY[8] = {0, 1, 1, 1, 0, -1, -1, -1};
 
+/* Neighbor x/y list that prioritizes grid directions over diagonals */
+static int neighStraightX[8] = {1, 0, -1,  0, 1, -1, -1,  1};
+static int neighStraightY[8] = {0, 1,  0, -1, 1,  1, -1, -1};
+
 /* subframe_updateObject() flags */
 #define SUBFRAME_RECURSION 5
 /* surface_getBrushFlags() return vals */
@@ -2187,9 +2191,12 @@ static void dynamic_paint_create_uv_surface_neighbor_cb(void *userdata, const in
 			point[0] = ((float)tx + 0.5f) / w;
 			point[1] = ((float)ty + 0.5f) / h;
 
-			/* search through defined area for neighbor	*/
-			for (int u = u_min; u <= u_max; u++) {
-				for (int v = v_min; v <= v_max; v++) {
+			/* search through defined area for neighbor, checking grid directions first */
+			for (int ni = 0; ni < 8; ni++) {
+				int u = neighStraightX[ni];
+				int v = neighStraightY[ni];
+
+				if (u >= u_min && u <= u_max && v >= v_min && v <= v_max) {
 					/* if not this pixel itself	*/
 					if (u != 0 || v != 0) {
 						const int ind = (tx + u) + w * (ty + v);
@@ -2227,7 +2234,6 @@ static void dynamic_paint_create_uv_surface_neighbor_cb(void *userdata, const in
 							tPoint->v2 = mloop[mlooptri[i].tri[1]].v;
 							tPoint->v3 = mloop[mlooptri[i].tri[2]].v;
 
-							u = u_max + 1;  /* make sure we exit outer loop as well */
 							break;
 						}
 					}
@@ -2399,7 +2405,22 @@ static int dynamic_paint_find_neighbour_pixel(
 		    ((s_uv2[0] == t_uv1[0] && s_uv2[1] == t_uv1[1]) &&
 		     (s_uv1[0] == t_uv2[0] && s_uv1[1] == t_uv2[1])))
 		{
-			return ((px + neighX[n_index]) + w * (py + neighY[n_index]));
+			final_index = x + w * y;
+
+			/* If not an active pixel, bail out */
+			if (tempPoints[final_index].tri_index == -1)
+				return NOT_FOUND;
+
+			/* If final point is an "edge pixel", use it's "real" neighbor instead */
+			if (tempPoints[final_index].neighbour_pixel != -1) {
+				final_index = tempPoints[final_index].neighbour_pixel;
+
+				/* If we ended up to our origin point */
+				if (final_index == (px + w * py))
+					return NOT_FOUND;
+			}
+
+			return final_index;
 		}
 
 		/*
@@ -2421,8 +2442,8 @@ static int dynamic_paint_find_neighbour_pixel(
 
 		copy_v2_v2(pixel, mloopuv[mlooptri[target_tri].tri[target_uv1]].uv);
 		add_v2_v2(pixel, dir_vec);
-		pixel[0] = (pixel[0] * (float)w) - 0.5f;
-		pixel[1] = (pixel[1] * (float)h) - 0.5f;
+		pixel[0] = (pixel[0] * (float)w);
+		pixel[1] = (pixel[1] * (float)h);
 
 		final_pixel[0] = (int)floorf(pixel[0]);
 		final_pixel[1] = (int)floorf(pixel[1]);
@@ -2441,8 +2462,13 @@ static int dynamic_paint_find_neighbour_pixel(
 			return NOT_FOUND;
 
 		/* If final point is an "edge pixel", use it's "real" neighbor instead */
-		if (tempPoints[final_index].neighbour_pixel != -1)
-			final_index = cPoint->neighbour_pixel;
+		if (tempPoints[final_index].neighbour_pixel != -1) {
+			final_index = tempPoints[final_index].neighbour_pixel;
+
+			/* If we ended up to our origin point */
+			if (final_index == (px + w * py))
+				return NOT_FOUND;
+		}
 
 		return final_index;
 	}
@@ -2601,6 +2627,7 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface, flo
 						const int index = tx + w * ty;
 
 						if (tempPoints[index].tri_index != -1) {
+							int start_pos = n_pos;
 							ed->n_index[final_index[index]] = n_pos;
 							ed->n_num[final_index[index]] = 0;
 
@@ -2609,10 +2636,20 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface, flo
 								const int n_target = dynamic_paint_find_neighbour_pixel(
 								                         &data, vert_to_looptri_map, w, h, tx, ty, i);
 
-								if (n_target >= 0) {
-									ed->n_target[n_pos] = final_index[n_target];
-									ed->n_num[final_index[index]]++;
-									n_pos++;
+								if (n_target >= 0 && n_target != index) {
+									bool duplicate = false;
+									for (int j = start_pos; j < n_pos; j++) {
+										if (ed->n_target[j] == final_index[n_target]) {
+											duplicate = true;
+											break;
+										}
+									}
+
+									if (!duplicate) {
+										ed->n_target[n_pos] = final_index[n_target];
+										ed->n_num[final_index[index]]++;
+										n_pos++;
+									}
 								}
 								else if (n_target == ON_MESH_EDGE || n_target == OUT_OF_TEXTURE) {
 									ed->flags[final_index[index]] |= ADJ_ON_MESH_EDGE;
@@ -4455,6 +4492,8 @@ static void dynamic_paint_effect_drip_cb(void *userdata, const int index)
 		return;
 	CLAMP(w_factor, 0.0f, 1.0f);
 
+	float ppoint_wetness_diff = 0.0f;
+
 	/* get force affect points */
 	surface_determineForceTargetPoints(sData, index, &force[index * 4], closest_d, closest_id);
 
@@ -4476,9 +4515,9 @@ static void dynamic_paint_effect_drip_cb(void *userdata, const int index)
 			/* Sort of spinlock, but only for given ePoint.
 			 * Since the odds a same ePoint is modified at the same time by several threads is very low, this is
 			 * much more efficient than a global spin lock. */
-			const unsigned int pointlock_idx = n_trgt / 8;
-			const uint8_t pointlock_bitmask = 1 << (n_trgt & 7);  /* 7 == 0b111 */
-			while (atomic_fetch_and_or_uint8(&point_locks[pointlock_idx], pointlock_bitmask) & pointlock_bitmask);
+			const unsigned int epointlock_idx = n_trgt / 8;
+			const uint8_t epointlock_bitmask = 1 << (n_trgt & 7);  /* 7 == 0b111 */
+			while (atomic_fetch_and_or_uint8(&point_locks[epointlock_idx], epointlock_bitmask) & epointlock_bitmask);
 
 			PaintPoint *ePoint = &((PaintPoint *)sData->type_data)[n_trgt];
 			const float e_wet = ePoint->wetness;
@@ -4499,17 +4538,37 @@ static void dynamic_paint_effect_drip_cb(void *userdata, const int index)
 				CLAMP_MAX(ePoint->e_color[3], pPoint_prev->e_color[3]);
 			}
 
-			/* decrease paint wetness on current point */
-			pPoint->wetness -= (ePoint->wetness - e_wet);
-			CLAMP(pPoint->wetness, 0.0f, MAX_WETNESS);
+			/* Decrease paint wetness on current point
+			 * (just store diff here, that way we can only lock current point once at the end to apply it). */
+			ppoint_wetness_diff += (ePoint->wetness - e_wet);
 
 #ifndef NDEBUG
-			uint8_t ret = atomic_fetch_and_and_uint8(&point_locks[pointlock_idx], ~pointlock_bitmask);
-			BLI_assert(ret & pointlock_bitmask);
+			{
+				uint8_t ret = atomic_fetch_and_and_uint8(&point_locks[epointlock_idx], ~epointlock_bitmask);
+				BLI_assert(ret & epointlock_bitmask);
+			}
 #else
-			atomic_fetch_and_and_uint8(&point_locks[pointlock_idx], ~pointlock_bitmask);
+			atomic_fetch_and_and_uint8(&point_locks[epointlock_idx], ~epointlock_bitmask);
 #endif
 		}
+	}
+
+	{
+		const unsigned int ppointlock_idx = index / 8;
+		const uint8_t ppointlock_bitmask = 1 << (index & 7);  /* 7 == 0b111 */
+		while (atomic_fetch_and_or_uint8(&point_locks[ppointlock_idx], ppointlock_bitmask) & ppointlock_bitmask);
+
+		pPoint->wetness -= ppoint_wetness_diff;
+		CLAMP(pPoint->wetness, 0.0f, MAX_WETNESS);
+
+#ifndef NDEBUG
+		{
+			uint8_t ret = atomic_fetch_and_and_uint8(&point_locks[ppointlock_idx], ~ppointlock_bitmask);
+			BLI_assert(ret & ppointlock_bitmask);
+		}
+#else
+		atomic_fetch_and_and_uint8(&point_locks[ppointlock_idx], ~ppointlock_bitmask);
+#endif
 	}
 }
 

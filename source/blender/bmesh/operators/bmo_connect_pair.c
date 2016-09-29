@@ -48,7 +48,7 @@
  *   - store a heap of paths which are being scanned (#PathContext.states).
  *   - continuously search the shortest path in the heap.
  *   - never step over the same element twice (tag elements as #ELE_TOUCHED).
- *     this avoids going into an eternal loop of there are many possible branches (see T45582).
+ *     this avoids going into an eternal loop if there are many possible branches (see T45582).
  *   - when running into a branch, create a new #PathLinkState state and add to the heap.
  *   - when the target is reached, finish - since none of the other paths can be shorter then the one just found.
  * - if the connection can't be found - fail.
@@ -82,13 +82,13 @@
 
 
 #define ELE_TOUCH_TEST_VERT(v) BMO_vert_flag_test(pc->bm_bmoflag, v, ELE_TOUCHED)
-// #define ELE_TOUCH_MARK_VERT(v) BMO_vert_flag_enable(pc->bm_bmoflag, (BMElemF *)e, ELE_TOUCHED)
+// #define ELE_TOUCH_MARK_VERT(v) BMO_vert_flag_enable(pc->bm_bmoflag, (BMElemF *)v, ELE_TOUCHED)
 
-// #define ELE_TOUCH_TEST_EDGE(v) BMO_edge_flag_test(pc->bm_bmoflag, v, ELE_TOUCHED)
-// #define ELE_TOUCH_MARK_EDGE(v) BMO_edge_flag_enable(pc->bm_bmoflag, (BMElemF *)e, ELE_TOUCHED)
+#define ELE_TOUCH_TEST_EDGE(e) BMO_edge_flag_test(pc->bm_bmoflag, e, ELE_TOUCHED)
+// #define ELE_TOUCH_MARK_EDGE(e) BMO_edge_flag_enable(pc->bm_bmoflag, (BMElemF *)e, ELE_TOUCHED)
 
-// #define ELE_TOUCH_TEST_FACE(v) BMO_face_flag_test(pc->bm_bmoflag, v, ELE_TOUCHED)
-// #define ELE_TOUCH_MARK_FACE(v) BMO_face_flag_enable(pc->bm_bmoflag, (BMElemF *)e, ELE_TOUCHED)
+// #define ELE_TOUCH_TEST_FACE(f) BMO_face_flag_test(pc->bm_bmoflag, f, ELE_TOUCHED)
+// #define ELE_TOUCH_MARK_FACE(f) BMO_face_flag_enable(pc->bm_bmoflag, (BMElemF *)f, ELE_TOUCHED)
 
 // #define DEBUG_PRINT
 
@@ -363,7 +363,7 @@ static PathLinkState *state_step__face_edges(
 				BMElem *ele_next_from = (BMElem *)l_iter->f;
 
 				if (FACE_WALK_TEST((BMFace *)ele_next_from) &&
-				    (ELE_TOUCH_TEST_VERT((BMVert *)ele_next) == false))
+				    (ELE_TOUCH_TEST_EDGE((BMEdge *)ele_next) == false))
 				{
 					min_dist_dir_update(mddir, dist_dir);
 					mddir->dist_min[index] = dist_test;
@@ -661,7 +661,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 	while (!BLI_heap_is_empty(pc.states)) {
 
 #ifdef DEBUG_PRINT
-		printf("\n%s: stepping %d\n", __func__, BLI_heap_size(pc.states));
+		printf("\n%s: stepping %u\n", __func__, BLI_heap_size(pc.states));
 #endif
 
 		while (!BLI_heap_is_empty(pc.states)) {
