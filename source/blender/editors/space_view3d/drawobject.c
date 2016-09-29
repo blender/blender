@@ -5003,66 +5003,94 @@ static void drawhandlesN_active(Nurb *nu)
 	glColor3ub(0, 0, 0);
 }
 
-static void drawvertsN(Nurb *nu, const char sel, const bool hide_handles, const void *vert)
+static void drawvertsN(const Nurb *nurb, const bool hide_handles, const void *vert)
 {
-	if (nu->hide) return;
+	const Nurb *nu;
 
-	const int color = sel ? TH_VERTEX_SELECT : TH_VERTEX;
+	// just quick guesstimate of how many verts to draw
+	int count = 0;
+	for (nu = nurb; nu; nu = nu->next) {
+		if (!nu->hide) {
+			if (nu->type == CU_BEZIER) {
+				count += nu->pntsu * 3;
+			}
+			else {
+				count += nu->pntsu * nu->pntsv;
+			}
+		}
+	}
+	if (count == 0) return;
 
-	UI_ThemeColor(color);
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+
+	unsigned char vert_color[3];
+	unsigned char vert_color_select[3];
+	unsigned char vert_color_active[3];
+	UI_GetThemeColor3ubv(TH_VERTEX, vert_color);
+	UI_GetThemeColor3ubv(TH_VERTEX_SELECT, vert_color_select);
+	UI_GetThemeColor3ubv(TH_ACTIVE_VERT, vert_color_active);
 
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
-	
-	glBegin(GL_POINTS);
-	
-	if (nu->type == CU_BEZIER) {
 
-		BezTriple *bezt = nu->bezt;
-		int a = nu->pntsu;
-		while (a--) {
-			if (bezt->hide == 0) {
-				if (sel == 1 && bezt == vert) {
-					UI_ThemeColor(TH_ACTIVE_VERT);
+	immBeginAtMost(GL_POINTS, count);
+	
+	for (nu = nurb; nu; nu = nu->next) {
 
-					if (bezt->f2 & SELECT) glVertex3fv(bezt->vec[1]);
-					if (!hide_handles) {
-						if (bezt->f1 & SELECT) glVertex3fv(bezt->vec[0]);
-						if (bezt->f3 & SELECT) glVertex3fv(bezt->vec[2]);
+		if (nu->hide) continue;
+
+		if (nu->type == CU_BEZIER) {
+
+			const BezTriple *bezt = nu->bezt;
+			int a = nu->pntsu;
+			while (a--) {
+				if (bezt->hide == 0) {
+					if (bezt == vert) {
+						immAttrib3ubv(color, bezt->f2 & SELECT ? vert_color_active : vert_color);
+						immVertex3fv(pos, bezt->vec[1]);
+						if (!hide_handles) {
+							immAttrib3ubv(color, bezt->f1 & SELECT ? vert_color_active : vert_color);
+							immVertex3fv(pos, bezt->vec[0]);
+							immAttrib3ubv(color, bezt->f3 & SELECT ? vert_color_active : vert_color);
+							immVertex3fv(pos, bezt->vec[2]);
+						}
 					}
+					else {
+						immAttrib3ubv(color, bezt->f2 & SELECT ? vert_color_select : vert_color);
+						immVertex3fv(pos, bezt->vec[1]);
+						if (!hide_handles) {
+							immAttrib3ubv(color, bezt->f1 & SELECT ? vert_color_select : vert_color);
+							immVertex3fv(pos, bezt->vec[0]);
+							immAttrib3ubv(color, bezt->f3 & SELECT ? vert_color_select : vert_color);
+							immVertex3fv(pos, bezt->vec[2]);
+						}
+					}
+				}
+				bezt++;
+			}
+		}
+		else {
+			const BPoint *bp = nu->bp;
+			int a = nu->pntsu * nu->pntsv;
+			while (a--) {
+				if (bp->hide == 0) {
+					if (bp == vert) {
+						immAttrib3ubv(color, vert_color_active);
+					}
+					else {
+						immAttrib3ubv(color, bp->f1 & SELECT ? vert_color_select : vert_color);
+					}
+					immVertex3fv(pos, bp->vec);
+				}
+				bp++;
+			}
+		}
+	}
 
-					UI_ThemeColor(color);
-				}
-				else if (hide_handles) {
-					if ((bezt->f2 & SELECT) == sel) glVertex3fv(bezt->vec[1]);
-				}
-				else {
-					if ((bezt->f1 & SELECT) == sel) glVertex3fv(bezt->vec[0]);
-					if ((bezt->f2 & SELECT) == sel) glVertex3fv(bezt->vec[1]);
-					if ((bezt->f3 & SELECT) == sel) glVertex3fv(bezt->vec[2]);
-				}
-			}
-			bezt++;
-		}
-	}
-	else {
-		BPoint *bp = nu->bp;
-		int a = nu->pntsu * nu->pntsv;
-		while (a--) {
-			if (bp->hide == 0) {
-				if (bp == vert) {
-					UI_ThemeColor(TH_ACTIVE_VERT);
-					glVertex3fv(bp->vec);
-					UI_ThemeColor(color);
-				}
-				else {
-					if ((bp->f1 & SELECT) == sel) glVertex3fv(bp->vec);
-				}
-			}
-			bp++;
-		}
-	}
-	
-	glEnd();
+	immEnd();
+	immUnbindProgram();
 }
 
 static void editnurb_draw_active_poly(Nurb *nu)
@@ -5280,7 +5308,6 @@ static void draw_editnurb(
 	for (nu = nurb; nu; nu = nu->next) {
 		if (nu->type == CU_BEZIER && (cu->drawflag & CU_HIDE_HANDLES) == 0)
 			drawhandlesN(nu, 1, hide_handles);
-		drawvertsN(nu, 0, hide_handles, NULL);
 	}
 	
 	if (v3d->zbuf) glDepthFunc(GL_LEQUAL);
@@ -5331,11 +5358,9 @@ static void draw_editnurb(
 	}
 
 	if (v3d->zbuf) glDepthFunc(GL_ALWAYS);
-	
-	for (nu = nurb; nu; nu = nu->next) {
-		drawvertsN(nu, 1, hide_handles, vert);
-	}
-	
+
+	drawvertsN(nu, hide_handles, vert);
+
 	if (v3d->zbuf) glDepthFunc(GL_LEQUAL);
 }
 
