@@ -2186,14 +2186,16 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 }
 
 /* flag similar to draw_object() */
-static void drawspeaker(const unsigned char ob_wire_col[3]) {
+static void drawspeaker(const unsigned char ob_wire_col[3])
+{
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-	if (ob_wire_col)
+	if (ob_wire_col) {
 		immUniformColor3ubv(ob_wire_col);
+	}
 
 	glLineWidth(1);
 
