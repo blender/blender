@@ -89,6 +89,7 @@
 #include "GPU_select.h"
 #include "GPU_basic_shader.h"
 #include "GPU_shader.h"
+#include "GPU_immediate.h"
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
@@ -2185,43 +2186,48 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 }
 
 /* flag similar to draw_object() */
-static void drawspeaker(Scene *UNUSED(scene), View3D *UNUSED(v3d), RegionView3D *UNUSED(rv3d),
-                        Object *UNUSED(ob), int UNUSED(flag))
-{
-	float vec[3];
+static void drawspeaker(const unsigned char ob_wire_col[3]) {
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
 
-	glEnable(GL_BLEND);
+	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+
+	if (ob_wire_col)
+		immUniformColor3ubv(ob_wire_col);
+
 	glLineWidth(1);
 
-	for (int j = 0; j < 3; j++) {
-		vec[2] = 0.25f * j - 0.125f;
+	const int segments = 16;
 
-		glBegin(GL_LINE_LOOP);
-		for (int i = 0; i < 16; i++) {
-			vec[0] = cosf((float)M_PI * i / 8.0f) * (j == 0 ? 0.5f : 0.25f);
-			vec[1] = sinf((float)M_PI * i / 8.0f) * (j == 0 ? 0.5f : 0.25f);
-			glVertex3fv(vec);
+	for (int j = 0; j < 3; j++) {
+		float z = 0.25f * j - 0.125f;
+
+		immBegin(GL_LINE_LOOP, segments);
+		for (int i = 0; i < segments; i++) {
+			float x = cosf((float)M_PI * i / 8.0f) * (j == 0 ? 0.5f : 0.25f);
+			float y = sinf((float)M_PI * i / 8.0f) * (j == 0 ? 0.5f : 0.25f);
+			immVertex3f(pos, x, y, z);
 		}
-		glEnd();
+		immEnd();
 	}
 
 	for (int j = 0; j < 4; j++) {
-		vec[0] = (((j + 1) % 2) * (j - 1)) * 0.5f;
-		vec[1] = ((j % 2) * (j - 2)) * 0.5f;
-		glBegin(GL_LINE_STRIP);
+		float x = (((j + 1) % 2) * (j - 1)) * 0.5f;
+		float y = ((j % 2) * (j - 2)) * 0.5f;
+		immBegin(GL_LINE_STRIP, 3);
 		for (int i = 0; i < 3; i++) {
 			if (i == 1) {
-				vec[0] *= 0.5f;
-				vec[1] *= 0.5f;
+				x *= 0.5f;
+				y *= 0.5f;
 			}
 
-			vec[2] = 0.25f * i - 0.125f;
-			glVertex3fv(vec);
+			float z = 0.25f * i - 0.125f;
+			immVertex3f(pos, x, y, z);
 		}
-		glEnd();
+		immEnd();
 	}
 
-	glDisable(GL_BLEND);
+	immUnbindProgram();
 }
 
 static void lattice_draw_verts(Lattice *lt, DispList *dl, BPoint *actbp, short sel)
@@ -6596,7 +6602,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				break;
 			case OB_SPEAKER:
 				if (!render_override)
-					drawspeaker(scene, v3d, rv3d, ob, dflag);
+					drawspeaker(ob_wire_col);
 				break;
 			case OB_LATTICE:
 				if (!render_override) {
