@@ -993,7 +993,7 @@ public:
 				cuda_assert(cuCtxSynchronize());
 
 				if(task.get_cancel()) {
-					canceled = false;
+					canceled = true;
 					break;
 				}
 			}
