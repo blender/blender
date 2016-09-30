@@ -804,7 +804,7 @@ static void shade_light_textures(GPUMaterial *mat, GPULamp *lamp, GPUNodeLink **
 	for (int i = 0; i < MAX_MTEX; ++i) {
 		MTex *mtex = lamp->la->mtex[i];
 
-		if (mtex && mtex->tex->type & TEX_IMAGE && mtex->tex->ima) {
+		if (mtex && mtex->tex && (mtex->tex->type & TEX_IMAGE) && mtex->tex->ima) {
 			mat->dynproperty |= DYN_LAMP_PERSMAT;
 
 			float one = 1.0f;
