@@ -378,6 +378,10 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 					CALLBACK_INVOKE(base->object, IDWALK_USER);
 				}
 
+				for (TimeMarker *marker = scene->markers.first; marker; marker = marker->next) {
+					CALLBACK_INVOKE(marker->camera, IDWALK_NOP);
+				}
+
 				if (toolsett) {
 					CALLBACK_INVOKE(toolsett->skgen_template, IDWALK_NOP);
 
@@ -842,6 +846,15 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				}
 				break;
 			}
+			case ID_AC:
+			{
+				bAction *act = (bAction *) id;
+
+				for (TimeMarker *marker = act->markers.first; marker; marker = marker->next) {
+					CALLBACK_INVOKE(marker->camera, IDWALK_NOP);
+				}
+				break;
+			}
 
 			/* Nothing needed for those... */
 			case ID_IM:
@@ -849,7 +862,6 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 			case ID_TXT:
 			case ID_SO:
 			case ID_AR:
-			case ID_AC:
 			case ID_GD:
 			case ID_WM:
 			case ID_PAL:
