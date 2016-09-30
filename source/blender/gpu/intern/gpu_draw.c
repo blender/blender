@@ -2247,7 +2247,13 @@ void GPU_state_init(void)
 	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 
 	GPU_default_lights();
-	
+
+	GPU_disable_program_point_size();
+#ifdef __APPLE__
+	/* TODO: remove this when we switch to core profile */
+	glEnable(GL_POINT_SPRITE);
+#endif
+
 	glDepthFunc(GL_LEQUAL);
 	/* scaling matrices */
 	glEnable(GL_NORMALIZE);
@@ -2269,7 +2275,7 @@ void GPU_state_init(void)
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	
+
 	glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
 	glPixelTransferi(GL_RED_SCALE, 1);
 	glPixelTransferi(GL_RED_BIAS, 0);
@@ -2279,7 +2285,7 @@ void GPU_state_init(void)
 	glPixelTransferi(GL_BLUE_BIAS, 0);
 	glPixelTransferi(GL_ALPHA_SCALE, 1);
 	glPixelTransferi(GL_ALPHA_BIAS, 0);
-	
+
 	glPixelTransferi(GL_DEPTH_BIAS, 0);
 	glPixelTransferi(GL_DEPTH_SCALE, 1);
 	glDepthRange(0.0, 1.0);
@@ -2295,6 +2301,26 @@ void GPU_state_init(void)
 	gpu_multisample(false);
 
 	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
+}
+
+void GPU_enable_program_point_size()
+{
+#ifdef __APPLE__
+	/* TODO: remove this when we switch to core profile */
+	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+#else
+	glEnable(GL_PROGRAM_POINT_SIZE);
+#endif
+}
+
+void GPU_disable_program_point_size()
+{
+#ifdef __APPLE__
+	/* TODO: remove this when we switch to core profile */
+	glDisable(GL_VERTEX_PROGRAM_POINT_SIZE);
+#else
+	glDisable(GL_PROGRAM_POINT_SIZE);
+#endif
 }
 
 #ifdef WITH_OPENSUBDIV
