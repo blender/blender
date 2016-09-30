@@ -370,10 +370,12 @@ void DepsgraphRelationBuilder::add_node_handle_relation(
 	}
 	else {
 		if (!op_from) {
-			/* XXX TODO handle as error or report if needed */
+			fprintf(stderr, "add_node_handle_relation(%d, %s) - Could not find op_from (%s)\n",
+			        type, description, key_from.identifier().c_str());
 		}
 		if (!op_to) {
-			/* XXX TODO handle as error or report if needed */
+			fprintf(stderr, "add_node_handle_relation(%d, %s) - Could not find op_to (%s)\n",
+			        type, description, key_from.identifier().c_str());
 		}
 	}
 }
