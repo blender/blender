@@ -533,7 +533,7 @@ static void updateDepsgraph(ModifierData *md,
 {
 	NormalEditModifierData *smd = (NormalEditModifierData *) md;
 	if (smd->target) {
-		DEG_add_object_relation(node, smd->target, DEG_OB_COMP_GEOMETRY, "NormalEdit Modifier");
+		DEG_add_object_relation(node, smd->target, DEG_OB_COMP_TRANSFORM, "NormalEdit Modifier");
 	}
 }
 
