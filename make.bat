@@ -6,7 +6,17 @@ setlocal ENABLEEXTENSIONS
 set BLENDER_DIR=%~dp0
 set BUILD_DIR=%BLENDER_DIR%..\build_windows
 set BUILD_TYPE=Release
+rem reset all variables so they do not get accidentally get carried over from previous builds
 set BUILD_CMAKE_ARGS=
+set BUILD_ARCH=
+set BUILD_VS_VER=
+set BUILD_VS_YEAR=
+set KEY_NAME=
+set MSBUILD_PLATFORM=
+set MUST_CLEAN=
+set NOBUILD=
+set TARGET=
+set WINDOWS_ARCH=
 
 :argv_loop
 if NOT "%1" == "" (
@@ -95,8 +105,10 @@ if "%BUILD_ARCH%"=="" (
 	)
 ) else if "%BUILD_ARCH%"=="x64" (
 		set WINDOWS_ARCH= Win64
+		set MSBUILD_PLATFORM=x64
 	) else if "%BUILD_ARCH%"=="x86" (
 		set WINDOWS_ARCH=
+		set MSBUILD_PLATFORM=win32
 	)
 
 if "%BUILD_VS_VER%"=="" (
@@ -129,6 +141,7 @@ if "%target%"=="Release" (
 		)
 )
 
+:DetectMSVC
 REM Detect MSVC Installation
 if DEFINED VisualStudioVersion goto msvc_detect_finally
 set VALUE_NAME=ProductDir
@@ -146,10 +159,18 @@ if DEFINED MSVC_VC_DIR call "%MSVC_VC_DIR%\vcvarsall.bat"
 REM Sanity Checks
 where /Q msbuild
 if %ERRORLEVEL% NEQ 0 (
-	echo Error: "MSBuild" command not in the PATH.
-	echo You must have MSVC installed and run this from the "Developer Command Prompt"
-	echo ^(available from Visual Studio's Start menu entry^), aborting!
-	goto EOF
+	if "%BUILD_VS_VER%"=="12" (
+		rem vs12 not found, try vs14
+		echo Visual Studio 2012 not found, trying Visual Studio 2015.
+		set BUILD_VS_VER=14
+		set BUILD_VS_YEAR=2015
+		goto DetectMSVC
+	)	else	(
+		echo Error: "MSBuild" command not in the PATH.
+		echo You must have MSVC installed and run this from the "Developer Command Prompt"
+		echo ^(available from Visual Studio's Start menu entry^), aborting!
+		goto EOF
+	)
 )
 where /Q cmake
 if %ERRORLEVEL% NEQ 0 (
@@ -179,7 +200,9 @@ if "%MUST_CLEAN%"=="1" (
 			%BUILD_DIR%\Blender.sln ^
 			/target:clean ^
 			/property:Configuration=%BUILD_TYPE% ^
-			/verbosity:minimal
+			/verbosity:minimal ^
+			/p:platform=%MSBUILD_PLATFORM%
+
 		if %ERRORLEVEL% NEQ 0 (
 			echo Cleaned "%BUILD_DIR%"
 		)
@@ -208,7 +231,8 @@ msbuild ^
 	/target:build ^
 	/property:Configuration=%BUILD_TYPE% ^
 	/maxcpucount ^
-	/verbosity:minimal
+	/verbosity:minimal ^
+	/p:platform=%MSBUILD_PLATFORM%
 
 if %ERRORLEVEL% NEQ 0 (
 	echo "Build Failed"
@@ -218,7 +242,8 @@ if %ERRORLEVEL% NEQ 0 (
 msbuild ^
 	%BUILD_DIR%\INSTALL.vcxproj ^
 	/property:Configuration=%BUILD_TYPE% ^
-	/verbosity:minimal
+	/verbosity:minimal ^
+	/p:platform=%MSBUILD_PLATFORM%
 
 echo.
 echo At any point you can optionally modify your build configuration by editing:
