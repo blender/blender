@@ -105,16 +105,21 @@ if "%BUILD_ARCH%"=="" (
 	)
 ) else if "%BUILD_ARCH%"=="x64" (
 		set WINDOWS_ARCH= Win64
-		set MSBUILD_PLATFORM=x64
 	) else if "%BUILD_ARCH%"=="x86" (
 		set WINDOWS_ARCH=
-		set MSBUILD_PLATFORM=win32
 	)
 
 if "%BUILD_VS_VER%"=="" (
 	set BUILD_VS_VER=12
 	set BUILD_VS_YEAR=2013
 )
+
+if "%BUILD_ARCH%"=="x64" (
+	set MSBUILD_PLATFORM=x64
+	) else if "%BUILD_ARCH%"=="x86" (
+		set MSBUILD_PLATFORM=win32
+)
+
 
 set BUILD_DIR=%BUILD_DIR%_%TARGET%_%BUILD_ARCH%_vc%BUILD_VS_VER%_%BUILD_TYPE%
 
