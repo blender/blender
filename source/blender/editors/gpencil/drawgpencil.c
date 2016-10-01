@@ -63,6 +63,9 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "GPU_immediate.h"
+#include "GPU_draw.h"
+
 #include "ED_gpencil.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -94,6 +97,9 @@ typedef enum eDrawStrokeFlags {
 /* thickness above which we should use special drawing */
 #define GP_DRAWTHICKNESS_SPECIAL    3
 
+/* conversion utility (float --> normalized unsigned byte) */
+#define F2UB(x) (unsigned char)(255.0f * x)
+
 /* ----- Tool Buffer Drawing ------ */
 /* helper function to set color of buffer point */
 static void gp_set_tpoint_color(tGPspoint *pt, float ink[4])
@@ -103,12 +109,26 @@ static void gp_set_tpoint_color(tGPspoint *pt, float ink[4])
 	glColor4f(ink[0], ink[1], ink[2], alpha);
 }
 
-/* helper function to set color of point */
+/* helper functions to set color of point */
 static void gp_set_point_color(bGPDspoint *pt, float ink[4])
 {
 	float alpha = ink[3] * pt->strength;
 	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
 	glColor4f(ink[0], ink[1], ink[2], alpha);
+}
+
+static void gp_set_point_uniform_color(bGPDspoint *pt, const float ink[4])
+{
+	float alpha = ink[3] * pt->strength;
+	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
+	immUniform4f("color", ink[0], ink[1], ink[2], alpha);
+}
+
+static void gp_set_point_varying_color(bGPDspoint *pt, const float ink[4], unsigned attrib_id)
+{
+	float alpha = ink[3] * pt->strength;
+	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
+	immAttrib4ub(attrib_id, F2UB(ink[0]), F2UB(ink[1]), F2UB(ink[2]), F2UB(alpha));
 }
 
 /* helper function to set color and point */
@@ -259,109 +279,58 @@ static void gp_draw_stroke_volumetric_2d(bGPDspoint *points, int totpoints, shor
                                          int offsx, int offsy, int winx, int winy,
                                          float diff_mat[4][4], float ink[4])
 {
-	GLUquadricObj *qobj = gluNewQuadric();
-	float modelview[4][4];
-	float baseloc[3];
-	float scalefac = 1.0f;
-	
-	bGPDspoint *pt;
-	int i;
-	float fpt[3];
-	
-	/* HACK: We need a scale factor for the drawing in the image editor,
-	 * which seems to use 1 unit as it's maximum size, whereas everything
-	 * else assumes 1 unit = 1 pixel. Otherwise, we only get a massive blob.
-	 */
-	if ((dflag & GP_DRAWDATA_IEDITHACK) && (dflag & GP_DRAWDATA_ONLYV2D)) {
-		scalefac = 0.001f;
-	}
-	
-	/* get basic matrix */
-	glGetFloatv(GL_MODELVIEW_MATRIX, (float *)modelview);
-	copy_v3_v3(baseloc, modelview[3]);
-	
-	/* draw points */
-	glPushMatrix();
-	
-	for (i = 0, pt = points; i < totpoints; i++, pt++) {
-		/* color of point */
-		gp_set_point_color(pt, ink);
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned size = add_attrib(format, "size", GL_FLOAT, 1, KEEP_FLOAT);
+	unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
 
-		/* set the transformed position */
+	immBindBuiltinProgram(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR);
+	GPU_enable_program_point_size();
+	immBegin(GL_POINTS, totpoints);
+
+	bGPDspoint *pt = points;
+	for (int i = 0; i < totpoints; i++, pt++) {
+		/* transform position to 2D */
 		float co[2];
-		
+		float fpt[3];
+
 		mul_v3_m4v3(fpt, diff_mat, &pt->x);
 		gp_calc_2d_stroke_fxy(fpt, sflag, offsx, offsy, winx, winy, co);
-		translate_m4(modelview, co[0], co[1], 0.0f);
-		
-		glLoadMatrixf((float *)modelview);
-		
-		/* draw the disk using the current state... */
-		gluDisk(qobj, 0.0,  pt->pressure * thickness * scalefac, 32, 1);
-		
-		/* restore matrix */
-		copy_v3_v3(modelview[3], baseloc);
+
+		gp_set_point_varying_color(pt, ink, color);
+		immAttrib1f(size, pt->pressure * thickness); /* TODO: scale based on view transform */
+		immVertex2f(pos, co[0], co[1]);
 	}
-	
-	glPopMatrix();
-	gluDeleteQuadric(qobj);
+
+	immEnd();
+	immUnbindProgram();
+	GPU_disable_program_point_size();
 }
 
 /* draw a 3D stroke in "volumetric" style */
 static void gp_draw_stroke_volumetric_3d(
         bGPDspoint *points, int totpoints, short thickness,
-        short UNUSED(dflag), short UNUSED(sflag), float diff_mat[4][4], float ink[4])
+        float ink[4])
 {
-	GLUquadricObj *qobj = gluNewQuadric();
-	
-	float base_modelview[4][4], modelview[4][4];
-	float base_loc[3];
-	
-	bGPDspoint *pt;
-	int i;
-	float fpt[3];
-	
-	/* Get the basic modelview matrix we use for performing calculations */
-	glGetFloatv(GL_MODELVIEW_MATRIX, (float *)base_modelview);
-	copy_v3_v3(base_loc, base_modelview[3]);
-	
-	/* Create the basic view-aligned billboard matrix we're going to actually draw qobj with:
-	 * - We need to knock out the rotation so that we are
-	 *   simply left with a camera-facing billboard
-	 * - The scale factors here are chosen so that the thickness
-	 *   is relatively reasonable. Otherwise, it gets far too
-	 *   large!
-	 */
-	scale_m4_fl(modelview, 0.1f);
-	
-	/* draw each point as a disk... */
-	glPushMatrix();
-	
-	for (i = 0, pt = points; i < totpoints && pt; i++, pt++) {
-		/* color of point */
-		gp_set_point_color(pt, ink);
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	unsigned size = add_attrib(format, "size", GL_FLOAT, 1, KEEP_FLOAT);
+	unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
 
-		mul_v3_m4v3(fpt, diff_mat, &pt->x);
+	immBindBuiltinProgram(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR);
+	GPU_enable_program_point_size();
+	immBegin(GL_POINTS, totpoints);
 
-		/* apply translation to base_modelview, so that the translated point is put in the right place */
-		translate_m4(base_modelview, fpt[0], fpt[1], fpt[2]);
-		
-		/* copy the translation component to the billboard matrix we're going to use,
-		 * then reset the base matrix to the original values so that we can do the same
-		 * for the next point without accumulation/pollution effects
-		 */
-		copy_v3_v3(modelview[3], base_modelview[3]); /* copy offset value */
-		copy_v3_v3(base_modelview[3], base_loc);     /* restore */
-		
-		/* apply our billboard matrix for drawing... */
-		glLoadMatrixf((float *)modelview);
-		
-		/* draw the disk using the current state... */
-		gluDisk(qobj, 0.0,  pt->pressure * thickness, 32, 1);
+	bGPDspoint *pt = points;
+	for (int i = 0; i < totpoints && pt; i++, pt++) {
+		gp_set_point_varying_color(pt, ink, color);		
+		immAttrib1f(size, pt->pressure * thickness); /* TODO: scale based on view transform */
+		immVertex3fv(pos, &pt->x);                   /* we can adjust size in vertex shader based on view/projection! */
 	}
-	
-	glPopMatrix();
-	gluDeleteQuadric(qobj);
+
+	immEnd();
+	immUnbindProgram();
+	GPU_disable_program_point_size();
 }
 
 
@@ -996,7 +965,7 @@ static void gp_draw_strokes(
 			}
 			if (palcolor->flag & PC_COLOR_VOLUMETRIC) {
 				/* volumetric stroke drawing */
-				gp_draw_stroke_volumetric_3d(gps->points, gps->totpoints, sthickness, dflag, gps->flag, diff_mat, ink);
+				gp_draw_stroke_volumetric_3d(gps->points, gps->totpoints, sthickness, ink);
 			}
 			else {
 				/* 3D Lines - OpenGL primitives-based */
