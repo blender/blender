@@ -2249,10 +2249,10 @@ void GPU_state_init(void)
 	GPU_default_lights();
 
 	GPU_disable_program_point_size();
-#ifdef __APPLE__
+
 	/* TODO: remove this when we switch to core profile */
 	glEnable(GL_POINT_SPRITE);
-#endif
+
 
 	glDepthFunc(GL_LEQUAL);
 	/* scaling matrices */
