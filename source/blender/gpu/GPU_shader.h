@@ -104,6 +104,9 @@ typedef enum GPUBuiltinShader {
 	/* basic 2D texture drawing */
 	GPU_SHADER_2D_TEXTURE_2D,
 	GPU_SHADER_2D_TEXTURE_RECT,
+	/* points */
+	GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR,
+	GPU_SHADER_3D_POINT_VARYING_SIZE_UNIFORM_COLOR,
 } GPUBuiltinShader;
 
 GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader);
