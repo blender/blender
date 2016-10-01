@@ -107,6 +107,7 @@ typedef enum GPUBuiltinShader {
 	/* points */
 	GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR,
 	GPU_SHADER_3D_POINT_VARYING_SIZE_UNIFORM_COLOR,
+	GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR,
 } GPUBuiltinShader;
 
 GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader);
