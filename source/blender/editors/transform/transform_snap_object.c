@@ -294,7 +294,7 @@ static void copy_vert_no(const BVHTreeFromMeshType *meshdata, const int index, f
 		case SNAP_MESH:
 		{
 			BVHTreeFromMesh *data = meshdata->userdata;
-			const MVert *vert = data->vert;
+			const MVert *vert = data->vert + index;
 			normal_short_to_float_v3(r_no, vert->no);
 			break;
 		}
@@ -1302,6 +1302,7 @@ static bool snapDerivedMesh(
 				}
 			}
 		}
+		/* SCE_SNAP_MODE_VERTEX or SCE_SNAP_MODE_EDGE */
 		else {
 			const ARegion *ar = sctx->v3d_data.ar;
 
