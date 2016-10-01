@@ -2705,7 +2705,7 @@ void node_geometry(
 
 	parametric = vec3(0.0);
 	backfacing = (gl_FrontFacing) ? 0.0 : 1.0;
-	pointiness = 0.0;
+	pointiness = 0.5;
 }
 
 void node_tex_coord(
