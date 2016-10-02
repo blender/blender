@@ -71,7 +71,7 @@ __forceinline operator          int      ( ) const { return std::numeric_limits<
 #define _lzcnt_u64 __lzcnt64
 #endif
 
-#if defined(_WIN32) && !defined(__MINGW32__)
+#if defined(_WIN32) && !defined(__MINGW32__) && !defined(__clang__)
 
 __forceinline int __popcnt(int in) {
   return _mm_popcnt_u32(in);
