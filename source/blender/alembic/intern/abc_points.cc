@@ -66,8 +66,10 @@ AbcPointsWriter::AbcPointsWriter(Scene *scene,
 {
 	m_psys = NULL; // = psys;
 
+#if 0
 	OPoints points(parent->alembicXform(), psys->name, m_time_sampling);
 	m_schema = points.getSchema();
+#endif
 }
 
 void AbcPointsWriter::do_write()

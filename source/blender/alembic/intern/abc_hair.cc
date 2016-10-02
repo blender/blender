@@ -58,8 +58,10 @@ AbcHairWriter::AbcHairWriter(Scene *scene,
 {
 	m_psys = NULL; // = psys;
 
+#if 0
 	OCurves curves(parent->alembicXform(), psys->name, m_time_sampling);
 	m_schema = curves.getSchema();
+#endif
 }
 
 void AbcHairWriter::do_write()
