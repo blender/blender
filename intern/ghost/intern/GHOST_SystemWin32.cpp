@@ -712,18 +712,26 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, 
 }
 
 
-GHOST_EventWheel *GHOST_SystemWin32::processWheelEvent(GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam)
+void GHOST_SystemWin32::processWheelEvent(GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam)
 {
-	// short fwKeys = LOWORD(wParam);			// key flags
-	int zDelta = (short) HIWORD(wParam);    // wheel rotation
-	
-	// zDelta /= WHEEL_DELTA;
-	// temporary fix below: microsoft now has added more precision, making the above division not work
-	zDelta = (zDelta <= 0) ? -1 : 1;
+	GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
-	// short xPos = (short) LOWORD(lParam);	// horizontal position of pointer
-	// short yPos = (short) HIWORD(lParam);	// vertical position of pointer
-	return new GHOST_EventWheel(getSystem()->getMilliSeconds(), window, zDelta);
+	int acc = system->m_wheelDeltaAccum;
+	int delta = GET_WHEEL_DELTA_WPARAM(wParam);
+	
+	if (acc * delta < 0) {
+		// scroll direction reversed.
+		acc = 0;
+	}
+	acc += delta;
+	int direction = (acc >= 0) ? 1 : -1;
+	acc = abs(acc);
+	
+	while (acc >= WHEEL_DELTA) {
+		system->pushEvent(new GHOST_EventWheel(system->getMilliSeconds(), window, direction));
+		acc -= WHEEL_DELTA;
+	}
+	system->m_wheelDeltaAccum = acc * direction;
 }
 
 
@@ -1137,14 +1145,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					POINT mouse_pos = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
 					HWND mouse_hwnd = ChildWindowFromPoint(HWND_DESKTOP, mouse_pos);
 					GHOST_WindowWin32 *mouse_window = (GHOST_WindowWin32 *)::GetWindowLongPtr(mouse_hwnd, GWLP_USERDATA);
-					if (mouse_window != NULL) {
-						event = processWheelEvent(mouse_window, wParam, lParam);
-					}
-					else {
-						/* Happens when mouse is not over any of blender's windows. */
-						event = processWheelEvent(window, wParam, lParam);
-					}
-
+					
+					processWheelEvent(mouse_window ? mouse_window : window , wParam, lParam);
+					eventHandled = true;
 #ifdef BROKEN_PEEK_TOUCHPAD
 					PostMessage(hwnd, WM_USER, 0, 0);
 #endif
@@ -1203,6 +1206,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					GHOST_ModifierKeys modifiers;
 					modifiers.clear();
 					system->storeModifierKeys(modifiers);
+					system->m_wheelDeltaAccum = 0;
 					event = processWindowEvent(LOWORD(wParam) ? GHOST_kEventWindowActivate : GHOST_kEventWindowDeactivate, window);
 					/* WARNING: Let DefWindowProc handle WM_ACTIVATE, otherwise WM_MOUSEWHEEL
 					 * will not be dispatched to OUR active window if we minimize one of OUR windows. */

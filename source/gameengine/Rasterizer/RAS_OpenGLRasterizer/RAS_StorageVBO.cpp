@@ -149,6 +149,9 @@ void VBO::Draw(int texco_num, RAS_IRasterizer::TexCoGen* texco, int attrib_num, 
 					glVertexAttribPointerARB(unit, 4, GL_FLOAT, GL_FALSE, this->stride, this->tangent_offset);
 					glEnableVertexAttribArrayARB(unit);
 					break;
+				case RAS_IRasterizer::RAS_TEXCO_VCOL:
+					glVertexAttribPointerARB(unit, 4, GL_UNSIGNED_BYTE, GL_TRUE, this->stride, this->color_offset);
+					glEnableVertexAttribArrayARB(unit);
 				default:
 					break;
 			}

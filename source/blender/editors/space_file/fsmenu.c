@@ -559,6 +559,9 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 				if (pathString == NULL || !CFStringGetCString(pathString, line, sizeof(line), kCFStringEncodingUTF8))
 					continue;
 
+				/* Add end slash for consistency with other platforms */
+				BLI_add_slash(line);
+
 				/* Exclude "all my files" as it makes no sense in blender fileselector */
 				/* Exclude "airdrop" if wlan not active as it would show "" ) */
 				if (!strstr(line, "myDocuments.cannedSearch") && (*line != '\0')) {

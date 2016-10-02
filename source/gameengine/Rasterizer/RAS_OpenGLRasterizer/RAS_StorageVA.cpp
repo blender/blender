@@ -171,7 +171,7 @@ void RAS_StorageVA::TexCoordPtr(const RAS_TexVert *tv)
 					glVertexAttribPointerARB(unit, 4, GL_FLOAT, GL_FALSE, sizeof(RAS_TexVert), tv->getTangent());
 					break;
 				case RAS_IRasterizer::RAS_TEXCO_VCOL:
-					glVertexAttribPointerARB(unit, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(RAS_TexVert), tv->getRGBA());
+					glVertexAttribPointerARB(unit, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(RAS_TexVert), tv->getRGBA());
 					break;
 				default:
 					break;

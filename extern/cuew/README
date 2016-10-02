@@ -4,7 +4,7 @@ for determining which CUDA functions and extensions extensions are supported
 on the target platform.
 
 CUDA core and extension functionality is exposed in a single header file.
-GUEW has been tested on a variety of operating systems, including Windows,
+CUEW has been tested on a variety of operating systems, including Windows,
 Linux, Mac OS X.
 
 LICENSE

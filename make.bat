@@ -6,7 +6,17 @@ setlocal ENABLEEXTENSIONS
 set BLENDER_DIR=%~dp0
 set BUILD_DIR=%BLENDER_DIR%..\build_windows
 set BUILD_TYPE=Release
+rem reset all variables so they do not get accidentally get carried over from previous builds
 set BUILD_CMAKE_ARGS=
+set BUILD_ARCH=
+set BUILD_VS_VER=
+set BUILD_VS_YEAR=
+set KEY_NAME=
+set MSBUILD_PLATFORM=
+set MUST_CLEAN=
+set NOBUILD=
+set TARGET=
+set WINDOWS_ARCH=
 
 :argv_loop
 if NOT "%1" == "" (
@@ -18,54 +28,34 @@ if NOT "%1" == "" (
 
 	REM Build Types
 	if "%1" == "debug" (
-		set BUILD_DIR=%BUILD_DIR%_debug
 		set BUILD_TYPE=Debug
-
 	REM Build Configurations
 	) else if "%1" == "full" (
-		set TARGET_SET=1
-		set BUILD_DIR=%BUILD_DIR%_full
+		set TARGET=Full
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
 		    -C"%BLENDER_DIR%\build_files\cmake\config\blender_full.cmake"
 	) else if "%1" == "lite" (
-		set TARGET_SET=1
-		set BUILD_DIR=%BUILD_DIR%_lite
+		set TARGET=Lite
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
 		    -C"%BLENDER_DIR%\build_files\cmake\config\blender_lite.cmake"
 	) else if "%1" == "cycles" (
-		set TARGET_SET=1
-		set BUILD_DIR=%BUILD_DIR%_cycles
+		set TARGET=Cycles
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
 		    -C"%BLENDER_DIR%\build_files\cmake\config\cycles_standalone.cmake"
 	) else if "%1" == "headless" (
-		set TARGET_SET=1
-		set BUILD_DIR=%BUILD_DIR%_headless
+		set TARGET=Headless
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
 		    -C"%BLENDER_DIR%\build_files\cmake\config\blender_headless.cmake"
 	) else if "%1" == "bpy" (
-		set TARGET_SET=1
-		set BUILD_DIR=%BUILD_DIR%_bpy
+		set TARGET=Bpy
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
 		    -C"%BLENDER_DIR%\build_files\cmake\config\bpy_module.cmake"
 	) else if "%1" == "release" (
-		set TARGET_SET=1
-		if "%CUDA_PATH_V7_5%"=="" (
-			echo Cuda 7.5 Not found, aborting!
-			goto EOF
-		)
-		if "%CUDA_PATH_V8_0%"=="" (
-			echo Cuda 8.0 Not found, aborting!
-			goto EOF
-		)
-		set BUILD_DIR=%BUILD_DIR%_Release
-		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
-		    -C"%BLENDER_DIR%\build_files\cmake\config\blender_release.cmake" -DCUDA_NVCC_EXECUTABLE:FILEPATH=%CUDA_PATH_V7_5%/bin/nvcc.exe -DCUDA_NVCC8_EXECUTABLE:FILEPATH=%CUDA_PATH_V8_0%/bin/nvcc.exe  
+		set TARGET=Release
 	)	else if "%1" == "x86" (
 		set BUILD_ARCH=x86
-		set BUILD_DIR=%BUILD_DIR%_x86
 	)	else if "%1" == "x64" (
 		set BUILD_ARCH=x64
-		set BUILD_DIR=%BUILD_DIR%_x64
 	)	else if "%1" == "2015" (
 	set BUILD_VS_VER=14
 	set BUILD_VS_YEAR=2015
@@ -105,10 +95,13 @@ if NOT "%1" == "" (
 if "%BUILD_ARCH%"=="" (
 	if "%PROCESSOR_ARCHITECTURE%" == "AMD64" (
 		set WINDOWS_ARCH= Win64
+		set BUILD_ARCH=x64
 	) else if "%PROCESSOR_ARCHITEW6432%" == "AMD64" (
 		set WINDOWS_ARCH= Win64
+		set BUILD_ARCH=x64
 	) else (
 		set WINDOWS_ARCH=
+		set BUILD_ARCH=x86
 	)
 ) else if "%BUILD_ARCH%"=="x64" (
 		set WINDOWS_ARCH= Win64
@@ -121,8 +114,39 @@ if "%BUILD_VS_VER%"=="" (
 	set BUILD_VS_YEAR=2013
 )
 
-set BUILD_DIR=%BUILD_DIR%_vc%BUILD_VS_VER%
+if "%BUILD_ARCH%"=="x64" (
+	set MSBUILD_PLATFORM=x64
+	) else if "%BUILD_ARCH%"=="x86" (
+		set MSBUILD_PLATFORM=win32
+)
 
+
+set BUILD_DIR=%BUILD_DIR%_%TARGET%_%BUILD_ARCH%_vc%BUILD_VS_VER%_%BUILD_TYPE%
+
+
+if "%target%"=="Release" (
+		rem for vc12 check for both cuda 7.5 and 8 
+		if "%BUILD_VS_VER%"=="12" (
+			if "%CUDA_PATH_V7_5%"=="" (
+				echo Cuda 7.5 Not found, aborting!
+				goto EOF
+			)
+		)
+		if "%CUDA_PATH_V8_0%"=="" (
+			echo Cuda 8.0 Not found, aborting!
+			goto EOF
+		)
+		if "%BUILD_VS_VER%"=="12" (
+					set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
+					-C"%BLENDER_DIR%\build_files\cmake\config\blender_release.cmake" -DCUDA_NVCC_EXECUTABLE:FILEPATH=%CUDA_PATH_V7_5%/bin/nvcc.exe -DCUDA_NVCC8_EXECUTABLE:FILEPATH=%CUDA_PATH_V8_0%/bin/nvcc.exe  
+		)		
+		if "%BUILD_VS_VER%"=="14" (
+					set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
+					-C"%BLENDER_DIR%\build_files\cmake\config\blender_release.cmake" -DCUDA_NVCC_EXECUTABLE:FILEPATH=%CUDA_PATH_V8_0%/bin/nvcc.exe -DCUDA_NVCC8_EXECUTABLE:FILEPATH=%CUDA_PATH_V8_0%/bin/nvcc.exe  
+		)
+)
+
+:DetectMSVC
 REM Detect MSVC Installation
 if DEFINED VisualStudioVersion goto msvc_detect_finally
 set VALUE_NAME=ProductDir
@@ -140,10 +164,18 @@ if DEFINED MSVC_VC_DIR call "%MSVC_VC_DIR%\vcvarsall.bat"
 REM Sanity Checks
 where /Q msbuild
 if %ERRORLEVEL% NEQ 0 (
-	echo Error: "MSBuild" command not in the PATH.
-	echo You must have MSVC installed and run this from the "Developer Command Prompt"
-	echo ^(available from Visual Studio's Start menu entry^), aborting!
-	goto EOF
+	if "%BUILD_VS_VER%"=="12" (
+		rem vs12 not found, try vs14
+		echo Visual Studio 2012 not found, trying Visual Studio 2015.
+		set BUILD_VS_VER=14
+		set BUILD_VS_YEAR=2015
+		goto DetectMSVC
+	)	else	(
+		echo Error: "MSBuild" command not in the PATH.
+		echo You must have MSVC installed and run this from the "Developer Command Prompt"
+		echo ^(available from Visual Studio's Start menu entry^), aborting!
+		goto EOF
+	)
 )
 where /Q cmake
 if %ERRORLEVEL% NEQ 0 (
@@ -156,7 +188,7 @@ if NOT EXIST %BLENDER_DIR%..\lib\nul (
 	echo This is needed for building, aborting!
 	goto EOF
 )
-if NOT "%TARGET_SET%"=="1" (
+if "%TARGET%"=="" (
 	echo Error: Convenience target not set
 	echo This is required for building, aborting!
 	echo . 
@@ -173,7 +205,9 @@ if "%MUST_CLEAN%"=="1" (
 			%BUILD_DIR%\Blender.sln ^
 			/target:clean ^
 			/property:Configuration=%BUILD_TYPE% ^
-			/verbosity:minimal
+			/verbosity:minimal ^
+			/p:platform=%MSBUILD_PLATFORM%
+
 		if %ERRORLEVEL% NEQ 0 (
 			echo Cleaned "%BUILD_DIR%"
 		)
@@ -202,7 +236,8 @@ msbuild ^
 	/target:build ^
 	/property:Configuration=%BUILD_TYPE% ^
 	/maxcpucount ^
-	/verbosity:minimal
+	/verbosity:minimal ^
+	/p:platform=%MSBUILD_PLATFORM%
 
 if %ERRORLEVEL% NEQ 0 (
 	echo "Build Failed"
@@ -212,7 +247,8 @@ if %ERRORLEVEL% NEQ 0 (
 msbuild ^
 	%BUILD_DIR%\INSTALL.vcxproj ^
 	/property:Configuration=%BUILD_TYPE% ^
-	/verbosity:minimal
+	/verbosity:minimal ^
+	/p:platform=%MSBUILD_PLATFORM%
 
 echo.
 echo At any point you can optionally modify your build configuration by editing:
@@ -224,10 +260,9 @@ goto EOF
 :HELP
 		echo.
 		echo Convenience targets
-		echo - release 
-		echo - debug
-		echo - full
-		echo - lite
+		echo - release ^(identical to the offical blender.org builds^)
+		echo - full ^(same as release minus the cuda kernels^)
+		echo - lite 
 		echo - headless
 		echo - cycles
 		echo - bpy
@@ -239,6 +274,7 @@ goto EOF
 		echo - showhash ^(Show git hashes of source tree^)
 		echo.
 		echo Configuration options
+		echo - debug ^(Build an unoptimized debuggable build^)
 		echo - packagename [newname] ^(override default cpack package name^)
 		echo - x86 ^(override host autodetect and build 32 bit code^)
 		echo - x64 ^(override host autodetect and build 64 bit code^)

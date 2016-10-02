@@ -332,7 +332,7 @@ class LbmFsgrSolver :
 		void debugMarkCellCall(int level, int vi,int vj,int vk);
 		
 		// loop over grid, stream&collide update
-		void mainLoop(int lev);
+		void mainLoop(const int lev);
 		// change time step size
 		void adaptTimestep();
 		//! init mObjectSpeeds for current parametrization

@@ -164,6 +164,9 @@ ccl_device float3 svm_math_blackbody_color(float t) {
 
 ccl_device_inline float3 svm_math_gamma_color(float3 color, float gamma)
 {
+	if(gamma == 0.0f)
+		return make_float3(1.0f, 1.0f, 1.0f);
+
 	if(color.x > 0.0f)
 		color.x = powf(color.x, gamma);
 	if(color.y > 0.0f)

@@ -109,7 +109,7 @@ namespace Far {
 
 	template<>
 	void TopologyRefinerFactory<ccl::Mesh>::reportInvalidTopology(TopologyError /*err_code*/,
-		char const */*msg*/, ccl::Mesh const& /*mesh*/)
+		char const * /*msg*/, ccl::Mesh const& /*mesh*/)
 	{
 	}
 } /* namespace Far */

@@ -23,6 +23,7 @@ from bpy.types import Operator
 from bpy.props import (
         FloatProperty,
         IntProperty,
+        BoolProperty,
         )
 from bpy.app.translations import pgettext_data as data_
 
@@ -79,6 +80,33 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg):
             i1 += 1
 
     return verts, faces
+
+
+def add_uvs(mesh, minor_seg, major_seg):
+    mesh.uv_textures.new()
+    uv_layer = mesh.uv_layers.active
+    u_step = 1.0/major_seg
+    v_step = 1.0/minor_seg
+    vertex_index = 0
+
+    u = 0.5
+    for major_index in range(major_seg):
+        v = 0.5
+        for minor_index in range(minor_seg):
+            loops = mesh.polygons[vertex_index].loop_indices
+            if minor_index == minor_seg-1 and major_index == 0:
+                uv_layer.data[loops[1]].uv = (u, v)
+                uv_layer.data[loops[2]].uv = (u + u_step, v)
+                uv_layer.data[loops[0]].uv = (u, v + v_step)
+                uv_layer.data[loops[3]].uv = (u + u_step, v + v_step)
+            else:
+                uv_layer.data[loops[0]].uv = (u, v)
+                uv_layer.data[loops[1]].uv = (u + u_step, v)
+                uv_layer.data[loops[3]].uv = (u, v + v_step)
+                uv_layer.data[loops[2]].uv = (u + u_step, v + v_step)
+            v = (v + v_step) % 1.0
+            vertex_index += 1
+        u = (u + u_step) % 1.0
 
 
 class AddTorus(Operator, object_utils.AddObjectHelper):
@@ -145,10 +173,18 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
             subtype='DISTANCE',
             unit='LENGTH',
             )
+    generate_uvs = BoolProperty(
+            name="Generate UVs",
+            description="Generate a default UV map",
+            default=False,
+            )
 
     def draw(self, context):
         layout = self.layout
+
         col = layout.column(align=True)
+        col.prop(self, 'generate_uvs')
+        col.separator()
         col.prop(self, 'view_align')
 
         col = layout.column(align=True)
@@ -217,6 +253,10 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
         mesh.polygons.foreach_set("loop_start", range(0, nbr_loops, 4))
         mesh.polygons.foreach_set("loop_total", (4,) * nbr_polys)
         mesh.loops.foreach_set("vertex_index", faces)
+
+        if self.generate_uvs:
+            add_uvs(mesh, self.minor_segments, self.major_segments)
+
         mesh.update()
 
         object_utils.object_data_add(context, mesh, operator=self)

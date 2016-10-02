@@ -3447,7 +3447,13 @@ static ImBuf *do_render_strip_uncached(
 					state->scene_parents = &scene_parent;
 					/* end check */
 
-					ibuf = do_render_strip_seqbase(context, state, seq, nr, use_preprocess);
+					/* Use the Scene Seq's scene for the context when rendering the scene's sequences
+					 * (necessary for Multicam Selector among others).
+					 */
+					SeqRenderData local_context = *context;
+					local_context.scene = seq->scene;
+
+					ibuf = do_render_strip_seqbase(&local_context, state, seq, nr, use_preprocess);
 
 					/* step back in the list */
 					state->scene_parents = state->scene_parents->next;
