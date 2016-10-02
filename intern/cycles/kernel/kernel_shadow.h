@@ -155,7 +155,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ShaderData *shadow_sd, 
 	}
 	else {
 		Intersection isect;
-		blocked = scene_intersect(kg, ray, PATH_RAY_SHADOW_OPAQUE, &isect, NULL, 0.0f, 0.0f);
+		blocked = scene_intersect(kg, *ray, PATH_RAY_SHADOW_OPAQUE, &isect, NULL, 0.0f, 0.0f);
 	}
 
 #ifdef __VOLUME__
@@ -205,7 +205,7 @@ ccl_device_noinline bool shadow_blocked(KernelGlobals *kg,
 	Intersection *isect = &isect_object;
 #endif
 
-	bool blocked = scene_intersect(kg, ray, PATH_RAY_SHADOW_OPAQUE, isect, NULL, 0.0f, 0.0f);
+	bool blocked = scene_intersect(kg, *ray, PATH_RAY_SHADOW_OPAQUE, isect, NULL, 0.0f, 0.0f);
 
 #ifdef __TRANSPARENT_SHADOWS__
 	if(blocked && kernel_data.integrator.transparent_shadows) {
@@ -221,7 +221,7 @@ ccl_device_noinline bool shadow_blocked(KernelGlobals *kg,
 				if(bounce >= kernel_data.integrator.transparent_max_bounce)
 					return true;
 
-				if(!scene_intersect(kg, ray, PATH_RAY_SHADOW_TRANSPARENT, isect, NULL, 0.0f, 0.0f))
+				if(!scene_intersect(kg, *ray, PATH_RAY_SHADOW_TRANSPARENT, isect, NULL, 0.0f, 0.0f))
 				{
 #ifdef __VOLUME__
 					/* attenuation for last line segment towards light */

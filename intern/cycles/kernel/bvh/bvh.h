@@ -157,8 +157,9 @@ CCL_NAMESPACE_BEGIN
 #undef BVH_NAME_EVAL
 #undef BVH_FUNCTION_FULL_NAME
 
+/* Note: ray is passed by value to work around a possible CUDA compiler bug. */
 ccl_device_intersect bool scene_intersect(KernelGlobals *kg,
-                                          const Ray *ray,
+                                          const Ray ray,
                                           const uint visibility,
                                           Intersection *isect,
                                           uint *lcg_state,
@@ -169,32 +170,32 @@ ccl_device_intersect bool scene_intersect(KernelGlobals *kg,
 	if(kernel_data.bvh.have_motion) {
 #  ifdef __HAIR__
 		if(kernel_data.bvh.have_curves)
-			return bvh_intersect_hair_motion(kg, ray, isect, visibility, lcg_state, difl, extmax);
+			return bvh_intersect_hair_motion(kg, &ray, isect, visibility, lcg_state, difl, extmax);
 #  endif /* __HAIR__ */
 
-		return bvh_intersect_motion(kg, ray, isect, visibility);
+		return bvh_intersect_motion(kg, &ray, isect, visibility);
 	}
 #endif /* __OBJECT_MOTION__ */
 
 #ifdef __HAIR__
 	if(kernel_data.bvh.have_curves)
-		return bvh_intersect_hair(kg, ray, isect, visibility, lcg_state, difl, extmax);
+		return bvh_intersect_hair(kg, &ray, isect, visibility, lcg_state, difl, extmax);
 #endif /* __HAIR__ */
 
 #ifdef __KERNEL_CPU__
 
 #  ifdef __INSTANCING__
 	if(kernel_data.bvh.have_instancing)
-		return bvh_intersect_instancing(kg, ray, isect, visibility);
+		return bvh_intersect_instancing(kg, &ray, isect, visibility);
 #  endif /* __INSTANCING__ */
 
-	return bvh_intersect(kg, ray, isect, visibility);
+	return bvh_intersect(kg, &ray, isect, visibility);
 #else /* __KERNEL_CPU__ */
 
 #  ifdef __INSTANCING__
-	return bvh_intersect_instancing(kg, ray, isect, visibility);
+	return bvh_intersect_instancing(kg, &ray, isect, visibility);
 #  else
-	return bvh_intersect(kg, ray, isect, visibility);
+	return bvh_intersect(kg, &ray, isect, visibility);
 #  endif /* __INSTANCING__ */
 
 #endif /* __KERNEL_CPU__ */

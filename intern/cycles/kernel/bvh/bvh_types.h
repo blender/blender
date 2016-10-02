@@ -21,7 +21,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Don't inline intersect functions on GPU, this is faster */
 #ifdef __KERNEL_GPU__
-#  define ccl_device_intersect ccl_device_noinline
+#  define ccl_device_intersect ccl_device_forceinline
 #else
 #  define ccl_device_intersect ccl_device_inline
 #endif

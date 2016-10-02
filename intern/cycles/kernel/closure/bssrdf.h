@@ -141,7 +141,7 @@ ccl_device float bssrdf_cubic_pdf(const ShaderClosure *sc, float r)
 }
 
 /* solve 10x^2 - 20x^3 + 15x^4 - 4x^5 - xi == 0 */
-ccl_device_inline float bssrdf_cubic_quintic_root_find(float xi)
+ccl_device_forceinline float bssrdf_cubic_quintic_root_find(float xi)
 {
 	/* newton-raphson iteration, usually succeeds in 2-4 iterations, except
 	 * outside 0.02 ... 0.98 where it can go up to 10, so overall performance
@@ -255,7 +255,7 @@ ccl_device float bssrdf_burley_pdf(const ShaderClosure *sc, float r)
  * Returns scaled radius, meaning the result is to be scaled up by d.
  * Since there's no closed form solution we do Newton-Raphson method to find it.
  */
-ccl_device_inline float bssrdf_burley_root_find(float xi)
+ccl_device_forceinline float bssrdf_burley_root_find(float xi)
 {
 	const float tolerance = 1e-6f;
 	const int max_iteration_count = 10;
@@ -389,7 +389,7 @@ ccl_device void bssrdf_sample(const ShaderClosure *sc, float xi, float *r, float
 		bssrdf_burley_sample(sc, xi, r, h);
 }
 
-ccl_device_inline float bssrdf_pdf(const ShaderClosure *sc, float r)
+ccl_device_forceinline float bssrdf_pdf(const ShaderClosure *sc, float r)
 {
 	if(sc->type == CLOSURE_BSSRDF_CUBIC_ID)
 		return bssrdf_cubic_pdf(sc, r);
