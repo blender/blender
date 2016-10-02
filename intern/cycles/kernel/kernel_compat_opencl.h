@@ -33,6 +33,7 @@
 /* in opencl all functions are device functions, so leave this empty */
 #define ccl_device
 #define ccl_device_inline ccl_device
+#define ccl_device_forceinline ccl_device
 #define ccl_device_noinline ccl_device ccl_noinline
 #define ccl_may_alias
 #define ccl_constant __constant

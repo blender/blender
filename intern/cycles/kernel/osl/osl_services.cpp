@@ -1153,7 +1153,7 @@ bool OSLRenderServices::trace(TraceOpt &options, OSL::ShaderGlobals *sg,
 	tracedata->sd.osl_globals = sd->osl_globals;
 
 	/* raytrace */
-	return scene_intersect(sd->osl_globals, &ray, PATH_RAY_ALL_VISIBILITY, &tracedata->isect, NULL, 0.0f, 0.0f);
+	return scene_intersect(sd->osl_globals, ray, PATH_RAY_ALL_VISIBILITY, &tracedata->isect, NULL, 0.0f, 0.0f);
 }
 
 

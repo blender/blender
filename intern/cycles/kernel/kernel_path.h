@@ -69,7 +69,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		Intersection isect;
 		uint visibility = path_state_ray_visibility(kg, state);
 		bool hit = scene_intersect(kg,
-		                           ray,
+		                           *ray,
 		                           visibility,
 		                           &isect,
 		                           NULL,
@@ -655,9 +655,9 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 			lcg_state = lcg_state_init(rng, &state, 0x51633e2d);
 		}
 
-		bool hit = scene_intersect(kg, &ray, visibility, &isect, &lcg_state, difl, extmax);
+		bool hit = scene_intersect(kg, ray, visibility, &isect, &lcg_state, difl, extmax);
 #else
-		bool hit = scene_intersect(kg, &ray, visibility, &isect, NULL, 0.0f, 0.0f);
+		bool hit = scene_intersect(kg, ray, visibility, &isect, NULL, 0.0f, 0.0f);
 #endif
 
 #ifdef __KERNEL_DEBUG__

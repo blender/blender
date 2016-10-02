@@ -16,7 +16,7 @@
 
 // TODO(sergey): Look into avoid use of full Transform and use 3x3 matrix and
 // 3-vector which might be faster.
-ccl_device_inline Transform bvh_unaligned_node_fetch_space(KernelGlobals *kg,
+ccl_device_forceinline Transform bvh_unaligned_node_fetch_space(KernelGlobals *kg,
                                                            int node_addr,
                                                            int child)
 {
@@ -30,7 +30,7 @@ ccl_device_inline Transform bvh_unaligned_node_fetch_space(KernelGlobals *kg,
 }
 
 #if !defined(__KERNEL_SSE2__)
-ccl_device_inline int bvh_aligned_node_intersect(KernelGlobals *kg,
+ccl_device_forceinline int bvh_aligned_node_intersect(KernelGlobals *kg,
                                                  const float3 P,
                                                  const float3 idir,
                                                  const float t,
@@ -77,7 +77,7 @@ ccl_device_inline int bvh_aligned_node_intersect(KernelGlobals *kg,
 #endif
 }
 
-ccl_device_inline int bvh_aligned_node_intersect_robust(KernelGlobals *kg,
+ccl_device_forceinline int bvh_aligned_node_intersect_robust(KernelGlobals *kg,
                                                         const float3 P,
                                                         const float3 idir,
                                                         const float t,
@@ -139,7 +139,7 @@ ccl_device_inline int bvh_aligned_node_intersect_robust(KernelGlobals *kg,
 #endif
 }
 
-ccl_device_inline bool bvh_unaligned_node_intersect_child(
+ccl_device_forceinline bool bvh_unaligned_node_intersect_child(
         KernelGlobals *kg,
         const float3 P,
         const float3 dir,
@@ -166,7 +166,7 @@ ccl_device_inline bool bvh_unaligned_node_intersect_child(
 	return tnear <= tfar;
 }
 
-ccl_device_inline bool bvh_unaligned_node_intersect_child_robust(
+ccl_device_forceinline bool bvh_unaligned_node_intersect_child_robust(
         KernelGlobals *kg,
         const float3 P,
         const float3 dir,
@@ -202,7 +202,7 @@ ccl_device_inline bool bvh_unaligned_node_intersect_child_robust(
 	}
 }
 
-ccl_device_inline int bvh_unaligned_node_intersect(KernelGlobals *kg,
+ccl_device_forceinline int bvh_unaligned_node_intersect(KernelGlobals *kg,
                                                    const float3 P,
                                                    const float3 dir,
                                                    const float3 idir,
@@ -232,7 +232,7 @@ ccl_device_inline int bvh_unaligned_node_intersect(KernelGlobals *kg,
 	return mask;
 }
 
-ccl_device_inline int bvh_unaligned_node_intersect_robust(KernelGlobals *kg,
+ccl_device_forceinline int bvh_unaligned_node_intersect_robust(KernelGlobals *kg,
                                                           const float3 P,
                                                           const float3 dir,
                                                           const float3 idir,
@@ -264,7 +264,7 @@ ccl_device_inline int bvh_unaligned_node_intersect_robust(KernelGlobals *kg,
 	return mask;
 }
 
-ccl_device_inline int bvh_node_intersect(KernelGlobals *kg,
+ccl_device_forceinline int bvh_node_intersect(KernelGlobals *kg,
                                          const float3 P,
                                          const float3 dir,
                                          const float3 idir,
@@ -295,7 +295,7 @@ ccl_device_inline int bvh_node_intersect(KernelGlobals *kg,
 	}
 }
 
-ccl_device_inline int bvh_node_intersect_robust(KernelGlobals *kg,
+ccl_device_forceinline int bvh_node_intersect_robust(KernelGlobals *kg,
                                                 const float3 P,
                                                 const float3 dir,
                                                 const float3 idir,
@@ -333,7 +333,7 @@ ccl_device_inline int bvh_node_intersect_robust(KernelGlobals *kg,
 }
 #else  /* !defined(__KERNEL_SSE2__) */
 
-int ccl_device_inline bvh_aligned_node_intersect(
+int ccl_device_forceinline bvh_aligned_node_intersect(
         KernelGlobals *kg,
         const float3& P,
         const float3& dir,
@@ -377,7 +377,7 @@ int ccl_device_inline bvh_aligned_node_intersect(
 #  endif
 }
 
-int ccl_device_inline bvh_aligned_node_intersect_robust(
+ccl_device_forceinline int bvh_aligned_node_intersect_robust(
         KernelGlobals *kg,
         const float3& P,
         const float3& dir,
@@ -441,7 +441,7 @@ int ccl_device_inline bvh_aligned_node_intersect_robust(
 #  endif
 }
 
-int ccl_device_inline bvh_unaligned_node_intersect(KernelGlobals *kg,
+ccl_device_forceinline int bvh_unaligned_node_intersect(KernelGlobals *kg,
                                                    const float3 P,
                                                    const float3 dir,
                                                    const ssef& isect_near,
@@ -502,7 +502,7 @@ int ccl_device_inline bvh_unaligned_node_intersect(KernelGlobals *kg,
 #  endif
 }
 
-int ccl_device_inline bvh_unaligned_node_intersect_robust(KernelGlobals *kg,
+ccl_device_forceinline int bvh_unaligned_node_intersect_robust(KernelGlobals *kg,
                                                           const float3 P,
                                                           const float3 dir,
                                                           const ssef& isect_near,
@@ -573,7 +573,7 @@ int ccl_device_inline bvh_unaligned_node_intersect_robust(KernelGlobals *kg,
 #  endif
 }
 
-ccl_device_inline int bvh_node_intersect(KernelGlobals *kg,
+ccl_device_forceinline int bvh_node_intersect(KernelGlobals *kg,
                                          const float3& P,
                                          const float3& dir,
                                          const ssef& isect_near,
@@ -611,7 +611,7 @@ ccl_device_inline int bvh_node_intersect(KernelGlobals *kg,
 	}
 }
 
-ccl_device_inline int bvh_node_intersect_robust(KernelGlobals *kg,
+ccl_device_forceinline int bvh_node_intersect_robust(KernelGlobals *kg,
                                                 const float3& P,
                                                 const float3& dir,
                                                 const ssef& isect_near,
