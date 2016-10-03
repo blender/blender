@@ -183,7 +183,7 @@ ccl_device_inline void microfacet_ggx_sample_slopes(
 	*slope_y = S * z * safe_sqrtf(1.0f + (*slope_x)*(*slope_x));
 }
 
-ccl_device_inline float3 microfacet_sample_stretched(
+ccl_device_forceinline float3 microfacet_sample_stretched(
 	KernelGlobals *kg, const float3 omega_i,
 	const float alpha_x, const float alpha_y,
 	const float randu, const float randv,

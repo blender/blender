@@ -98,7 +98,7 @@ ccl_device uint sobol_lookup(const uint m, const uint frame, const uint ex, cons
 	return index;
 }
 
-ccl_device_inline float path_rng_1D(KernelGlobals *kg, ccl_addr_space RNG *rng, int sample, int num_samples, int dimension)
+ccl_device_forceinline float path_rng_1D(KernelGlobals *kg, ccl_addr_space RNG *rng, int sample, int num_samples, int dimension)
 {
 #ifdef __CMJ__
 	if(kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_CMJ) {
@@ -132,13 +132,7 @@ ccl_device_inline float path_rng_1D(KernelGlobals *kg, ccl_addr_space RNG *rng, 
 #endif
 }
 
-/* Temporary workaround for Pascal cards, otherwise AA does not work properly. */
-#if defined(__KERNEL_GPU__) && __CUDA_ARCH__ >= 600
-__device__ __forceinline__
-#else
-ccl_device_inline
-#endif
-void path_rng_2D(KernelGlobals *kg, ccl_addr_space RNG *rng, int sample, int num_samples, int dimension, float *fx, float *fy)
+ccl_device_forceinline void path_rng_2D(KernelGlobals *kg, ccl_addr_space RNG *rng, int sample, int num_samples, int dimension, float *fx, float *fy)
 {
 #ifdef __CMJ__
 	if(kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_CMJ) {
@@ -199,7 +193,7 @@ ccl_device void path_rng_end(KernelGlobals *kg, ccl_global uint *rng_state, RNG 
 
 /* Linear Congruential Generator */
 
-ccl_device_inline float path_rng_1D(KernelGlobals *kg, RNG& rng, int sample, int num_samples, int dimension)
+ccl_device_forceinline float path_rng_1D(KernelGlobals *kg, RNG& rng, int sample, int num_samples, int dimension)
 {
 	/* implicit mod 2^32 */
 	rng = (1103515245*(rng) + 12345);

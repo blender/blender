@@ -72,8 +72,7 @@ if 'cmake' in builder:
         # Set up OSX architecture
         if builder.endswith('x86_64_10_6_cmake'):
             cmake_extra_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64')
-        cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE=/usr/local/cuda-hack/bin/nvcc')
-        cmake_extra_options.append('-DCUDA_NVCC8_EXECUTABLE=/usr/local/cuda8-hack/bin/nvcc')
+        cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE=/usr/local/cuda8-hack/bin/nvcc')
         cmake_extra_options.append('-DWITH_CODEC_QUICKTIME=OFF')
         cmake_extra_options.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=10.6')
         build_cubins = False
@@ -94,8 +93,7 @@ if 'cmake' in builder:
             elif builder.startswith('win32'):
                 bits = 32
                 cmake_options.extend(['-G', 'Visual Studio 12 2013'])
-        cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE:FILEPATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v7.5/bin/nvcc.exe')
-        cmake_extra_options.append('-DCUDA_NVCC8_EXECUTABLE:FILEPATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v8.0/bin/nvcc.exe')
+        cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE:FILEPATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v8.0/bin/nvcc.exe')
 
     elif builder.startswith('linux'):
         tokens = builder.split("_")
@@ -115,8 +113,7 @@ if 'cmake' in builder:
             cuda_chroot_name = 'buildbot_' + deb_name + '_x86_64'
             targets = ['player', 'blender', 'cuda']
 
-        cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE=/usr/local/cuda-7.5/bin/nvcc')
-        cmake_extra_options.append('-DCUDA_NVCC8_EXECUTABLE=/usr/local/cuda-8.0/bin/nvcc')
+        cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE=/usr/local/cuda-8.0/bin/nvcc')
 
     cmake_options.append("-C" + os.path.join(blender_dir, cmake_config_file))
 
