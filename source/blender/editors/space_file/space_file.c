@@ -435,6 +435,7 @@ static void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_bookmark_cleanup);
 	WM_operatortype_append(FILE_OT_bookmark_move);
 	WM_operatortype_append(FILE_OT_reset_recent);
+	WM_operatortype_append(FILE_OT_hidedot);
 	WM_operatortype_append(FILE_OT_filenum);
 	WM_operatortype_append(FILE_OT_directory_new);
 	WM_operatortype_append(FILE_OT_delete);
