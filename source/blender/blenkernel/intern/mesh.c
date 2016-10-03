@@ -1359,7 +1359,7 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use
 		}
 
 		/* make mesh */
-		me = BKE_mesh_add(G.main, "Mesh");
+		me = BKE_mesh_add(bmain, "Mesh");
 		me->totvert = totvert;
 		me->totedge = totedge;
 		me->totloop = totloop;
@@ -1379,7 +1379,7 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use
 		BKE_mesh_calc_normals(me);
 	}
 	else {
-		me = BKE_mesh_add(G.main, "Mesh");
+		me = BKE_mesh_add(bmain, "Mesh");
 		DM_to_mesh(dm, me, ob, CD_MASK_MESH, false);
 	}
 
@@ -2200,7 +2200,7 @@ Mesh *BKE_mesh_new_from_object(
 	int i;
 	const bool render = (settings == eModifierMode_Render);
 	const bool cage = !apply_modifiers;
-	bool do_mat_id_us = true;
+	bool do_mat_id_data_us = true;
 
 	/* perform the mesh extraction based on type */
 	switch (ob->type) {
@@ -2274,7 +2274,7 @@ Mesh *BKE_mesh_new_from_object(
 			/* XXX The curve to mesh conversion is convoluted... But essentially, BKE_mesh_from_nurbs_displist()
 			 *     already transfers the ownership of materials from the temp copy of the Curve ID to the new
 			 *     Mesh ID, so we do not want to increase materials' usercount later. */
-			do_mat_id_us = false;
+			do_mat_id_data_us = false;
 
 			break;
 		}
@@ -2325,7 +2325,7 @@ Mesh *BKE_mesh_new_from_object(
 				tmpmesh = BKE_mesh_copy(bmain, ob->data);
 
 				/* XXX BKE_mesh_copy() already handles materials usercount. */
-				do_mat_id_us = false;
+				do_mat_id_data_us = false;
 			}
 			/* if not getting the original caged mesh, get final derived mesh */
 			else {
@@ -2375,7 +2375,7 @@ Mesh *BKE_mesh_new_from_object(
 						tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : tmpcu->mat[i];
 					}
 
-					if (do_mat_id_us && tmpmesh->mat[i]) {
+					if ((ob->matbits[i] || do_mat_id_data_us)  && tmpmesh->mat[i]) {
 						id_us_plus(&tmpmesh->mat[i]->id);
 					}
 				}
@@ -2399,7 +2399,7 @@ Mesh *BKE_mesh_new_from_object(
 						tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : tmpmb->mat[i];
 					}
 
-					if (do_mat_id_us && tmpmesh->mat[i]) {
+					if ((ob->matbits[i] || do_mat_id_data_us) && tmpmesh->mat[i]) {
 						id_us_plus(&tmpmesh->mat[i]->id);
 					}
 				}
@@ -2424,7 +2424,7 @@ Mesh *BKE_mesh_new_from_object(
 							tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : origmesh->mat[i];
 						}
 
-						if (do_mat_id_us && tmpmesh->mat[i]) {
+						if ((ob->matbits[i] || do_mat_id_data_us)  && tmpmesh->mat[i]) {
 							id_us_plus(&tmpmesh->mat[i]->id);
 						}
 					}
