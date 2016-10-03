@@ -398,11 +398,7 @@
       </ThemeGraphEditor>
     </graph_editor>
     <file_browser>
-      <ThemeFileBrowser selected_file="#607f9e"
-                        scrollbar="#a0a0a0"
-                        scroll_handle="#7f7070"
-                        active_file="#ffffff"
-                        active_file_text="#ffffff">
+      <ThemeFileBrowser selected_file="#607f9e">
         <space>
           <ThemeSpaceGeneric back="#4b4b4b"
                              title="#e4e4e4"
@@ -428,13 +424,6 @@
             </panelcolors>
           </ThemeSpaceGeneric>
         </space>
-        <space_list>
-          <ThemeSpaceListGeneric list="#3b3b3b"
-                                 list_title="#8b8b8b"
-                                 list_text="#8b8b8b"
-                                 list_text_hi="#ffffff">
-          </ThemeSpaceListGeneric>
-        </space_list>
       </ThemeFileBrowser>
     </file_browser>
     <nla_editor>
