@@ -120,7 +120,8 @@ static void wm_keymap_item_properties_update_ot(wmKeyMapItem *kmi)
 		}
 		else {
 			/* zombie keymap item */
-			MEM_SAFE_FREE(kmi->ptr);
+			wm_keymap_item_free(kmi);
+			kmi->ptr = NULL;
 		}
 	}
 }
