@@ -376,11 +376,11 @@ LbmFsgrSolver::mainLoop(const int lev)
   // main loop region
 	const bool doReduce = true;
 	const int gridLoopBound=1;
-	const int gDebugLevel = ::gDebugLevel;
 	int calcNumInvIfCells = 0;
 	LbmFloat calcInitialMass = 0;
 	GRID_REGION_INIT();
 #if PARALLEL==1
+	const int gDebugLevel = ::gDebugLevel;
 #pragma omp parallel default(none) num_threads(mNumOMPThreads) \
   reduction(+: \
 	  calcCurrentMass,calcCurrentVolume, \
@@ -868,10 +868,8 @@ LbmFsgrSolver::mainLoop(const int lev)
 			// physical drop model
 			if(mPartUsePhysModel) {
 				LbmFloat realWorldFac = (mLevel[lev].simCellSize / mLevel[lev].timestep);
-				LbmFloat rux = (ux * realWorldFac);
-				LbmFloat ruy = (uy * realWorldFac);
-				LbmFloat ruz = (uz * realWorldFac);
-				LbmFloat rl = norm(ntlVec3Gfx(rux,ruy,ruz));
+				LbmVec ru(ux * realWorldFac, uy * realWorldFac, uz * realWorldFac);
+				LbmFloat rl = norm(ru);
 				basethresh *= rl;
 
 				// reduce probability in outer region?
@@ -963,14 +961,15 @@ LbmFsgrSolver::mainLoop(const int lev)
 				// average normal & velocity 
 				// -> mostly along velocity dir, many into surface
 				// fluid velocity (not normalized!)
-				LbmVec flvelVel = LbmVec(ux,uy,uz);
+				LbmVec flvelVel(ux,uy,uz);
 				LbmFloat flvelLen = norm(flvelVel);
 				// surface normal
-				LbmVec normVel = LbmVec(surfaceNormal[0],surfaceNormal[1],surfaceNormal[2]);
+				LbmVec normVel(surfaceNormal[0],surfaceNormal[1],surfaceNormal[2]);
 				normalize(normVel);
 				LbmFloat normScale = (0.01+flvelLen);
 				// jitter vector, 0.2 * flvel
-				LbmVec jittVel = LbmVec(jx,jy,jz)*(0.05+flvelLen)*0.1;
+				LbmVec jittVel(jx,jy,jz);
+				jittVel *= (0.05+flvelLen)*0.1;
 				// weighten velocities
 				const LbmFloat flvelWeight = 0.9;
 				LbmVec newpartVel = normVel*normScale*(1.-flvelWeight) + flvelVel*(flvelWeight) + jittVel; 
@@ -1120,13 +1119,13 @@ LbmFsgrSolver::preinitGrids()
 	const int lev = mMaxRefine;
 	const bool doReduce = false;
 	const int gridLoopBound=0;
-	const int gDebugLevel = ::gDebugLevel;
 
 	// preinit both grids
 	for(int s=0; s<2; s++) {
 	
 		GRID_REGION_INIT();
 #if PARALLEL==1
+	const int gDebugLevel = ::gDebugLevel;
 #pragma omp parallel default(none) num_threads(mNumOMPThreads) \
   reduction(+: \
 	  calcCurrentMass,calcCurrentVolume, \
@@ -1161,10 +1160,10 @@ LbmFsgrSolver::standingFluidPreinit()
 	const int lev = mMaxRefine;
 	const bool doReduce = false;
 	const int gridLoopBound=1;
-	const int gDebugLevel = ::gDebugLevel;
 
 	GRID_REGION_INIT();
 #if PARALLEL==1
+	const int gDebugLevel = ::gDebugLevel;
 #pragma omp parallel default(none) num_threads(mNumOMPThreads) \
   reduction(+: \
 	  calcCurrentMass,calcCurrentVolume, \
