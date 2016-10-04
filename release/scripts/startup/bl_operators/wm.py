@@ -1006,10 +1006,10 @@ class WM_OT_doc_view(Operator):
 
     doc_id = doc_id
     if bpy.app.version_cycle == "release":
-        _prefix = ("http://www.blender.org/documentation/blender_python_api_%s%s_release" %
+        _prefix = ("https://www.blender.org/api/blender_python_api_%s%s_release" %
                    ("_".join(str(v) for v in bpy.app.version[:2]), bpy.app.version_char))
     else:
-        _prefix = ("http://www.blender.org/documentation/blender_python_api_%s" %
+        _prefix = ("https://www.blender.org/api/blender_python_api_%s" %
                    "_".join(str(v) for v in bpy.app.version))
 
     def execute(self, context):
@@ -1021,79 +1021,6 @@ class WM_OT_doc_view(Operator):
         webbrowser.open(url)
 
         return {'FINISHED'}
-
-
-'''
-class WM_OT_doc_edit(Operator):
-    """Edit online reference docs"""
-    bl_idname = "wm.doc_edit"
-    bl_label = "Edit Documentation"
-
-    doc_id = doc_id
-    doc_new = doc_new
-
-    _url = "http://www.mindrones.com/blender/svn/xmlrpc.php"
-
-    def _send_xmlrpc(self, data_dict):
-        print("sending data:", data_dict)
-
-        import xmlrpc.client
-        user = "blenderuser"
-        pwd = "blender>user"
-
-        docblog = xmlrpc.client.ServerProxy(self._url)
-        docblog.metaWeblog.newPost(1, user, pwd, data_dict, 1)
-
-    def execute(self, context):
-
-        doc_id = self.doc_id
-        doc_new = self.doc_new
-
-        class_name, class_prop = doc_id.split('.')
-
-        if not doc_new:
-            self.report({'ERROR'}, "No input given for '%s'" % doc_id)
-            return {'CANCELLED'}
-
-        # check if this is an operator
-        op_name = class_name.upper() + '_OT_' + class_prop
-        op_class = getattr(bpy.types, op_name, None)
-
-        # Upload this to the web server
-        upload = {}
-
-        if op_class:
-            rna = op_class.bl_rna
-            doc_orig = rna.description
-            if doc_orig == doc_new:
-                return {'RUNNING_MODAL'}
-
-            print("op - old:'%s' -> new:'%s'" % (doc_orig, doc_new))
-            upload["title"] = 'OPERATOR %s:%s' % (doc_id, doc_orig)
-        else:
-            rna = getattr(bpy.types, class_name).bl_rna
-            doc_orig = rna.properties[class_prop].description
-            if doc_orig == doc_new:
-                return {'RUNNING_MODAL'}
-
-            print("rna - old:'%s' -> new:'%s'" % (doc_orig, doc_new))
-            upload["title"] = 'RNA %s:%s' % (doc_id, doc_orig)
-
-        upload["description"] = doc_new
-
-        self._send_xmlrpc(upload)
-
-        return {'FINISHED'}
-
-    def draw(self, context):
-        layout = self.layout
-        layout.label(text="Descriptor ID: '%s'" % self.doc_id)
-        layout.prop(self, "doc_new", text="")
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self, width=600)
-'''
 
 
 rna_path = StringProperty(
