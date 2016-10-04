@@ -140,7 +140,7 @@ void gpu_extensions_init(void)
 	                            && GLEW_ARB_draw_elements_base_vertex
 	                            && GLEW_APPLE_flush_buffer_range);
 #else
-	BLI_assert(GLEW_VERSION_3_2 || (GLEW_VERSION_3_0 && ARB_draw_elements_base_vertex));
+	BLI_assert(GLEW_VERSION_3_2 || (GLEW_VERSION_3_0 && GLEW_ARB_draw_elements_base_vertex));
 	/*           vendor driver  ||  Mesa compatibility profile */
 #endif
 
