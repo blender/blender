@@ -319,6 +319,7 @@ typedef struct View3D {
 
 /* View3d->flag3 (short) */
 #define V3D_SHOW_WORLD			(1 << 0)
+#define V3D_NEW_VIEWPORT		(1 << 1)
 
 /* View3D->around */
 enum {

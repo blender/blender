@@ -52,6 +52,7 @@ set(SRC
 	view3d_buttons.c
 	view3d_camera_control.c
 	view3d_draw.c
+	view3d_draw_legacy.c
 	view3d_edit.c
 	view3d_fly.c
 	view3d_walk.c
