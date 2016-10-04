@@ -131,7 +131,7 @@ if "%target%"=="Release" (
 			goto EOF
 		)
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
-		-C"%BLENDER_DIR%\build_files\cmake\config\blender_release.cmake" -DCUDA_NVCC_EXECUTABLE:FILEPATH=%CUDA_PATH%/bin/nvcc.exe 
+		-C"%BLENDER_DIR%\build_files\cmake\config\blender_release.cmake" 
 )
 
 :DetectMSVC
