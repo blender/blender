@@ -659,7 +659,7 @@ void immUniformColor3ubv(const unsigned char rgb[3])
 void immUniformColor4ubv(const unsigned char rgba[4])
 	{
 	const float scale = 1.0f / 255.0f;
-	immUniform4f("color", scale * rgba[0], scale * rgba[1], scale * rgba[2], rgba[3]);
+	immUniform4f("color", scale * rgba[0], scale * rgba[1], scale * rgba[2], scale * rgba[3]);
 	}
 
 void immUniform1i(const char *name, const unsigned int data)
