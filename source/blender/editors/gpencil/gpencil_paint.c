@@ -68,8 +68,9 @@
 #include "ED_view3d.h"
 #include "ED_clip.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
+
+#include "GPU_immediate.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -1750,28 +1751,28 @@ static void gp_paint_cleanup(tGPsdata *p)
 static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
 {
 	tGPsdata *p = (tGPsdata *)p_ptr;
-	
+
 	if (p->paintmode == GP_PAINTMODE_ERASER) {
-		glPushMatrix();
-		
-		glTranslatef((float)x, (float)y, 0.0f);
-		
+		VertexFormat *format = immVertexFormat();
+		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
-		
-		glColor4ub(255, 100, 100, 20);
-		glutil_draw_filled_arc(0.0, M_PI * 2.0, p->radius, 40);
-		
-		setlinestyle(6);
-		
-		glColor4ub(255, 100, 100, 200);
-		glutil_draw_lined_arc(0.0, M_PI * 2.0, p->radius, 40);
-		
+
+		immUniformColor4ub(255, 100, 100, 20);
+		imm_draw_filled_circle(pos, x, y, p->radius, 40);
+
+		setlinestyle(6); /* TODO: handle line stipple in shader */
+
+		immUniformColor4ub(255, 100, 100, 200);
+		imm_draw_lined_circle(pos, x, y, p->radius, 40);
+
+		immUnbindProgram();
+
 		setlinestyle(0);
 		glDisable(GL_BLEND);
 		glDisable(GL_LINE_SMOOTH);
-		
-		glPopMatrix();
 	}
 }
 
