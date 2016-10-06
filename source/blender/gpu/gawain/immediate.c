@@ -650,6 +650,16 @@ void immVertex2iv(unsigned attrib_id, const int data[2])
 	immEndVertex();
 	}
 
+void immUniformColor3fv(const float rgb[3])
+	{
+	immUniform4f("color", rgb[0], rgb[1], rgb[2], 1.0f);
+	}
+
+void immUniformColor4fv(const float rgba[4])
+	{
+	immUniform4f("color", rgba[0], rgba[1], rgba[2], rgba[3]);
+	}
+
 void immUniformColor3ub(unsigned char r, unsigned char g, unsigned char b)
 	{
 	const float scale = 1.0f / 255.0f;

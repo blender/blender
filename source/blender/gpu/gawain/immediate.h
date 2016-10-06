@@ -70,7 +70,9 @@ void immUniform1f(const char* name, float x);
 void immUniform4f(const char* name, float x, float y, float z, float w);
 
 // these set "uniform vec4 color"
-// TODO: treat as sRGB?
+void immUniformColor3fv(const float rgb[3]);
+void immUniformColor4fv(const float rgba[4]);
+// TODO: v-- treat as sRGB? --v
 void immUniformColor3ub(unsigned char r, unsigned char g, unsigned char b);
 void immUniformColor4ub(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 void immUniformColor3ubv(const unsigned char data[3]);
