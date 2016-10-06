@@ -1058,26 +1058,22 @@ static void gp_draw_strokes_edit(
 #endif
 		}
 	}
-	
-	
+
+	GPU_enable_program_point_size();
+
 	/* draw stroke verts */
 	for (gps = gpf->strokes.first; gps; gps = gps->next) {
-		bGPDspoint *pt;
-		float vsize, bsize;
-		int i;
-		float fpt[3];
-
 		/* check if stroke can be drawn */
 		if (gp_can_draw_stroke(gps, dflag) == false)
 			continue;
-		
+
 		/* Optimisation: only draw points for selected strokes
 		 * We assume that selected points can only occur in
 		 * strokes that are selected too.
 		 */
 		if ((gps->flag & GP_STROKE_SELECT) == 0)
 			continue;
-		
+
 		/* verify palette color lock */
 		{
 			bGPDpalettecolor *palcolor = ED_gpencil_stroke_getcolor(gpd, gps);
@@ -1096,7 +1092,8 @@ static void gp_draw_strokes_edit(
 		 *   they stand out more.
 		 * - We use the theme setting for size of the unselected verts
 		 */
-		bsize = UI_GetThemeValuef(TH_GP_VERTEX_SIZE);
+		float bsize = UI_GetThemeValuef(TH_GP_VERTEX_SIZE);
+		float vsize;
 		if ((int)bsize > 8) {
 			vsize = 10.0f;
 			bsize = 8.0f;
@@ -1104,89 +1101,83 @@ static void gp_draw_strokes_edit(
 		else {
 			vsize = bsize + 2;
 		}
-		
-		/* First Pass: Draw all the verts (i.e. these become the unselected state) */
+
 		/* for now, we assume that the base color of the points is not too close to the real color */
 		/* set color using palette */
 		bGPDpalettecolor *palcolor = ED_gpencil_stroke_getcolor(gpd, gps);
-		glColor3fv(palcolor->color);
 
-		glPointSize(bsize);
-		
-		glBegin(GL_POINTS);
-		for (i = 0, pt = gps->points; i < gps->totpoints && pt; i++, pt++) {
+		float selectColor[4];
+		UI_GetThemeColor3fv(TH_GP_VERTEX_SELECT, selectColor);
+		selectColor[3] = alpha;
+
+		VertexFormat *format = immVertexFormat();
+		unsigned pos; /* specified later */
+		unsigned size = add_attrib(format, "size", GL_FLOAT, 1, KEEP_FLOAT);
+		unsigned color = add_attrib(format, "color", GL_FLOAT, 3, KEEP_FLOAT);
+
+		if (gps->flag & GP_STROKE_3DSPACE) {
+			pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			immBindBuiltinProgram(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR);
+		}
+		else {
+			pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+			immBindBuiltinProgram(GPU_SHADER_2D_POINT_VARYING_SIZE_VARYING_COLOR);
+		}
+
+		immBegin(GL_POINTS, gps->totpoints);
+
+		/* Draw start and end point differently if enabled stroke direction hint */
+		bool show_direction_hint = (gpd->flag & GP_DATA_SHOW_DIRECTION) && (gps->totpoints > 1);
+
+		/* Draw all the stroke points (selected or not) */
+		bGPDspoint *pt = gps->points;
+		float fpt[3];
+		for (int i = 0; i < gps->totpoints; i++, pt++) {
+			/* size and color first */
+			if (show_direction_hint && i == 0) {
+				/* start point in green bigger */
+				immAttrib3f(color, 0.0f, 1.0f, 0.0f);
+				immAttrib1f(size, vsize + 4);
+			}
+			else if (show_direction_hint && (i == gps->totpoints - 1)) {
+				/* end point in red smaller */
+				immAttrib3f(color, 1.0f, 0.0f, 0.0f);
+				immAttrib1f(size, vsize + 1);
+			}
+			else if (pt->flag & GP_SPOINT_SELECT) {
+				immAttrib3fv(color, selectColor);
+				immAttrib1f(size, vsize);
+			}
+			else {
+				immAttrib3fv(color, palcolor->color);
+				immAttrib1f(size, bsize);
+			}
+
+			/* then position */
 			if (gps->flag & GP_STROKE_3DSPACE) {
 				mul_v3_m4v3(fpt, diff_mat, &pt->x);
-				glVertex3fv(fpt);
+				immVertex3fv(pos, fpt);
 			}
 			else {
 				float co[2];
 				mul_v3_m4v3(fpt, diff_mat, &pt->x);
 				gp_calc_2d_stroke_fxy(fpt, gps->flag, offsx, offsy, winx, winy, co);
-				glVertex2fv(co);
+				immVertex2fv(pos, co);
 			}
 		}
-		glEnd();
-		
-		
-		/* Second Pass: Draw only verts which are selected */
-		float curColor[4];
-		UI_GetThemeColor3fv(TH_GP_VERTEX_SELECT, curColor);
-		glColor4f(curColor[0], curColor[1], curColor[2], alpha);
 
-		glPointSize(vsize);
-		
-		glBegin(GL_POINTS);
-		for (i = 0, pt = gps->points; i < gps->totpoints && pt; i++, pt++) {
-			if (pt->flag & GP_SPOINT_SELECT) {
-				if (gps->flag & GP_STROKE_3DSPACE) {
-					mul_v3_m4v3(fpt, diff_mat, &pt->x);
-					glVertex3fv(fpt);
-				}
-				else {
-					float co[2];
-					
-					mul_v3_m4v3(fpt, diff_mat, &pt->x);
-					gp_calc_2d_stroke_fxy(fpt, gps->flag, offsx, offsy, winx, winy, co);
-					glVertex2fv(co);
-				}
-			}
-		}
-		glEnd();
-
-		/* Draw start and end point if enabled stroke direction hint */
-		if ((gpd->flag & GP_DATA_SHOW_DIRECTION) && (gps->totpoints > 1)) {
-			bGPDspoint *p;
-			
-			glPointSize(vsize + 4);
-			glBegin(GL_POINTS);
-
-			/* start point in green bigger */
-			glColor3f(0.0f, 1.0f, 0.0f);
-			p = &gps->points[0];
-			mul_v3_m4v3(fpt, diff_mat, &p->x);
-			glVertex3fv(fpt);
-			glEnd();
-
-			/* end point in red smaller */
-			glPointSize(vsize + 1);
-			glBegin(GL_POINTS);
-
-			glColor3f(1.0f, 0.0f, 0.0f);
-			p = &gps->points[gps->totpoints - 1];
-			mul_v3_m4v3(fpt, diff_mat, &p->x);
-			glVertex3fv(fpt);
-			glEnd();
-		}
+		immEnd();
+		immUnbindProgram();
 	}
-	
-	
+
+	GPU_disable_program_point_size();
+
 	/* clear depth mask */
 	if (dflag & GP_DRAWDATA_ONLY3D) {
 		if (no_xray) {
 			glDepthMask(mask_orig);
 			glDisable(GL_DEPTH_TEST);
-			
+
 			bglPolygonOffset(0.0, 0.0);
 #if 0
 			glDisable(GL_POLYGON_OFFSET_LINE);
