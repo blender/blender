@@ -102,14 +102,14 @@ typedef enum eDrawStrokeFlags {
 
 /* ----- Tool Buffer Drawing ------ */
 /* helper functions to set color of buffer point */
-static void gp_set_tpoint_color(tGPspoint *pt, float ink[4])
+static void gp_set_tpoint_color(const tGPspoint *pt, const float ink[4])
 {
 	float alpha = ink[3] * pt->strength;
 	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
 	glColor4f(ink[0], ink[1], ink[2], alpha);
 }
 
-static void gp_set_tpoint_varying_color(tGPspoint *pt, float ink[4], unsigned attrib_id)
+static void gp_set_tpoint_varying_color(const tGPspoint *pt, const float ink[4], unsigned attrib_id)
 {
 	float alpha = ink[3] * pt->strength;
 	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
@@ -117,21 +117,21 @@ static void gp_set_tpoint_varying_color(tGPspoint *pt, float ink[4], unsigned at
 }
 
 /* helper functions to set color of point */
-static void gp_set_point_color(bGPDspoint *pt, float ink[4])
+static void gp_set_point_color(const bGPDspoint *pt, const float ink[4])
 {
 	float alpha = ink[3] * pt->strength;
 	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
 	glColor4f(ink[0], ink[1], ink[2], alpha);
 }
 
-static void gp_set_point_uniform_color(bGPDspoint *pt, const float ink[4])
+static void gp_set_point_uniform_color(const bGPDspoint *pt, const float ink[4])
 {
 	float alpha = ink[3] * pt->strength;
 	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
 	immUniform4f("color", ink[0], ink[1], ink[2], alpha);
 }
 
-static void gp_set_point_varying_color(bGPDspoint *pt, const float ink[4], unsigned attrib_id)
+static void gp_set_point_varying_color(const bGPDspoint *pt, const float ink[4], unsigned attrib_id)
 {
 	float alpha = ink[3] * pt->strength;
 	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
@@ -139,7 +139,7 @@ static void gp_set_point_varying_color(bGPDspoint *pt, const float ink[4], unsig
 }
 
 /* helper function to set color and point */
-static void gp_set_color_and_tpoint(tGPspoint *pt, float ink[4])
+static void gp_set_color_and_tpoint(const tGPspoint *pt, const float ink[4])
 {
 	gp_set_tpoint_color(pt, ink);
 	glVertex2iv(&pt->x);
@@ -527,56 +527,39 @@ static void gp_draw_stroke_fill(
 /* draw a given stroke - just a single dot (only one point) */
 static void gp_draw_stroke_point(
         bGPDspoint *points, short thickness, short dflag, short sflag,
-        int offsx, int offsy, int winx, int winy, float diff_mat[4][4], float ink[4])
+        int offsx, int offsy, int winx, int winy, const float diff_mat[4][4], const float ink[4])
 {
-	float fpt[3];
-	bGPDspoint *pt = &points[0];
-
-	/* color of point */
-	gp_set_point_color(pt, ink);
-
-	/* set point thickness (since there's only one of these) */
-	glPointSize((float)(thickness + 2) * points->pressure);
+	const bGPDspoint *pt = points;
 	
 	/* get final position using parent matrix */
+	float fpt[3];
 	mul_v3_m4v3(fpt, diff_mat, &pt->x);
 
-	/* draw point */
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+
 	if (sflag & GP_STROKE_3DSPACE) {
-		glBegin(GL_POINTS);
-		glVertex3fv(fpt);
-		glEnd();
+		immBindBuiltinProgram(GPU_SHADER_3D_POINT_FIXED_SIZE_UNIFORM_COLOR);
 	}
 	else {
-		float co[2];
-		
-		/* get coordinates of point */
+		immBindBuiltinProgram(GPU_SHADER_2D_POINT_FIXED_SIZE_UNIFORM_COLOR);
+
+		/* get 2D coordinates of point */
+		float co[3] = { 0.0f };
 		gp_calc_2d_stroke_fxy(fpt, sflag, offsx, offsy, winx, winy, co);
-		
-		/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, simple dot looks ok
-		 *  - also mandatory in if Image Editor 'image-based' dot
-		 */
-		if ((thickness < GP_DRAWTHICKNESS_SPECIAL) ||
-		    ((dflag & GP_DRAWDATA_IEDITHACK) && (sflag & GP_STROKE_2DSPACE)))
-		{
-			glBegin(GL_POINTS);
-			glVertex2fv(co);
-			glEnd();
-		}
-		else {
-			/* draw filled circle as is done in circf (but without the matrix push/pops which screwed things up) */
-			GLUquadricObj *qobj = gluNewQuadric();
-			
-			gluQuadricDrawStyle(qobj, GLU_FILL);
-			
-			/* need to translate drawing position, but must reset after too! */
-			glTranslate2fv(co);
-			gluDisk(qobj, 0.0,  thickness, 32, 1);
-			glTranslatef(-co[0], -co[1], 0.0);
-			
-			gluDeleteQuadric(qobj);
-		}
+		copy_v3_v3(fpt, co);
 	}
+
+	gp_set_point_uniform_color(pt, ink);
+
+	/* set point thickness (since there's only one of these) */
+	glPointSize((float)(thickness + 2) * pt->pressure);
+
+	immBegin(GL_POINTS, 1);
+	immVertex3fv(pos, fpt);
+	immEnd();
+
+	immUnbindProgram();
 }
 
 /* draw a given stroke in 3d (i.e. in 3d-space), using simple ogl lines */
