@@ -609,8 +609,6 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool wr
 
 			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
-			glDepthFunc(GL_ALWAYS); /* draw lines in order given */
-
 			immBegin(GL_LINES, vertex_ct);
 
 			/* draw normal grid lines */
@@ -687,8 +685,6 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool wr
 			immUnbindProgram();
 
 			/* done with XY plane */
-
-			glDepthFunc(GL_LESS); /* restore default */
 		}
 
 		if (show_axis_x || show_axis_y || show_axis_z) {
