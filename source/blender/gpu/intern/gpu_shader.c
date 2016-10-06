@@ -110,6 +110,8 @@ static struct GPUShadersGlobal {
 		GPUShader *smooth_color_3D;
 		GPUShader *depth_only_3D;
 		/* points */
+		GPUShader *point_fixed_size_uniform_color_2D;
+		GPUShader *point_fixed_size_uniform_color_3D;
 		GPUShader *point_fixed_size_varying_color_3D;
 		GPUShader *point_varying_size_uniform_color_3D;
 		GPUShader *point_varying_size_varying_color_3D;
@@ -719,6 +721,22 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 				        NULL, NULL, NULL, 0, 0, 0);
 			retval = GG.shaders.depth_only_3D;
 			break;
+		case GPU_SHADER_2D_POINT_FIXED_SIZE_UNIFORM_COLOR:
+			if (!GG.shaders.point_fixed_size_uniform_color_2D)
+				GG.shaders.point_fixed_size_uniform_color_2D = GPU_shader_create(
+				        datatoc_gpu_shader_2D_no_color_vert_glsl,
+				        datatoc_gpu_shader_point_uniform_color_frag_glsl,
+				        NULL, NULL, NULL, 0, 0, 0);
+			retval = GG.shaders.point_fixed_size_uniform_color_2D;
+			break;
+		case GPU_SHADER_3D_POINT_FIXED_SIZE_UNIFORM_COLOR:
+			if (!GG.shaders.point_fixed_size_uniform_color_3D)
+				GG.shaders.point_fixed_size_uniform_color_3D = GPU_shader_create(
+				        datatoc_gpu_shader_3D_no_color_vert_glsl,
+				        datatoc_gpu_shader_point_uniform_color_frag_glsl,
+				        NULL, NULL, NULL, 0, 0, 0);
+			retval = GG.shaders.point_fixed_size_uniform_color_3D;
+			break;
 		case GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR:
 			if (!GG.shaders.point_fixed_size_varying_color_3D)
 				GG.shaders.point_fixed_size_varying_color_3D = GPU_shader_create(
@@ -897,6 +915,16 @@ void GPU_shader_free_builtin_shaders(void)
 	if (GG.shaders.smooth_color_3D) {
 		GPU_shader_free(GG.shaders.smooth_color_3D);
 		GG.shaders.smooth_color_3D = NULL;
+	}
+
+	if (GG.shaders.point_fixed_size_uniform_color_2D) {
+		GPU_shader_free(GG.shaders.point_fixed_size_uniform_color_2D);
+		GG.shaders.point_fixed_size_uniform_color_2D = NULL;
+	}
+
+	if (GG.shaders.point_fixed_size_uniform_color_3D) {
+		GPU_shader_free(GG.shaders.point_fixed_size_uniform_color_3D);
+		GG.shaders.point_fixed_size_uniform_color_3D = NULL;
 	}
 
 	if (GG.shaders.point_fixed_size_varying_color_3D) {
