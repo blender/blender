@@ -126,24 +126,12 @@ set BUILD_DIR=%BUILD_DIR%_%TARGET%_%BUILD_ARCH%_vc%BUILD_VS_VER%_%BUILD_TYPE%
 
 if "%target%"=="Release" (
 		rem for vc12 check for both cuda 7.5 and 8 
-		if "%BUILD_VS_VER%"=="12" (
-			if "%CUDA_PATH_V7_5%"=="" (
-				echo Cuda 7.5 Not found, aborting!
-				goto EOF
-			)
-		)
-		if "%CUDA_PATH_V8_0%"=="" (
-			echo Cuda 8.0 Not found, aborting!
+		if "%CUDA_PATH%"=="" (
+			echo Cuda Not found, aborting!
 			goto EOF
 		)
-		if "%BUILD_VS_VER%"=="12" (
-					set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
-					-C"%BLENDER_DIR%\build_files\cmake\config\blender_release.cmake" -DCUDA_NVCC_EXECUTABLE:FILEPATH=%CUDA_PATH_V7_5%/bin/nvcc.exe -DCUDA_NVCC8_EXECUTABLE:FILEPATH=%CUDA_PATH_V8_0%/bin/nvcc.exe  
-		)		
-		if "%BUILD_VS_VER%"=="14" (
-					set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
-					-C"%BLENDER_DIR%\build_files\cmake\config\blender_release.cmake" -DCUDA_NVCC_EXECUTABLE:FILEPATH=%CUDA_PATH_V8_0%/bin/nvcc.exe -DCUDA_NVCC8_EXECUTABLE:FILEPATH=%CUDA_PATH_V8_0%/bin/nvcc.exe  
-		)
+		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
+		-C"%BLENDER_DIR%\build_files\cmake\config\blender_release.cmake" 
 )
 
 :DetectMSVC

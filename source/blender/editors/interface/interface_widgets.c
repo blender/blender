@@ -2639,6 +2639,7 @@ static void ui_draw_separator(const rcti *rect,  uiWidgetColors *wcol)
 	
 	glEnable(GL_BLEND);
 	glColor4ubv(col);
+	glLineWidth(1.0f);
 	sdrawline(rect->xmin, y, rect->xmax, y);
 	glDisable(GL_BLEND);
 }

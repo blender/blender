@@ -3049,6 +3049,14 @@ static bool constructive_modifier_is_deform_modified(ModifierData *md)
 		ScrewModifierData *smd = (ScrewModifierData *)md;
 		return smd->ob_axis != NULL && object_moves_in_time(smd->ob_axis);
 	}
+	else if (md->type == eModifierType_MeshSequenceCache) {
+		/* NOTE: Not ideal because it's unknown whether topology changes or not.
+		 * This will be detected later, so by assuming it's only deformation
+		 * going on here we allow to bake deform-only mesh to Alembic and have
+		 * proper motion blur after that.
+		 */
+		return true;
+	}
 	return false;
 }
 
