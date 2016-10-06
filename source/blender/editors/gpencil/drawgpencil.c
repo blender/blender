@@ -101,12 +101,19 @@ typedef enum eDrawStrokeFlags {
 #define F2UB(x) (unsigned char)(255.0f * x)
 
 /* ----- Tool Buffer Drawing ------ */
-/* helper function to set color of buffer point */
+/* helper functions to set color of buffer point */
 static void gp_set_tpoint_color(tGPspoint *pt, float ink[4])
 {
 	float alpha = ink[3] * pt->strength;
 	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
 	glColor4f(ink[0], ink[1], ink[2], alpha);
+}
+
+static void gp_set_tpoint_varying_color(tGPspoint *pt, float ink[4], unsigned attrib_id)
+{
+	float alpha = ink[3] * pt->strength;
+	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
+	immAttrib4ub(attrib_id, F2UB(ink[0]), F2UB(ink[1]), F2UB(ink[2]), F2UB(alpha));
 }
 
 /* helper functions to set color of point */
@@ -231,46 +238,35 @@ static void gp_calc_2d_stroke_fxy(float pt[3], short sflag, int offsx, int offsy
  * NOTE: the stroke buffer doesn't have any coordinate offsets/transforms
  */
 static void gp_draw_stroke_volumetric_buffer(tGPspoint *points, int totpoints, short thickness,
-                                             short dflag, short UNUSED(sflag), float ink[4])
+                                             short dflag, float ink[4])
 {
-	GLUquadricObj *qobj = gluNewQuadric();
-	float modelview[4][4];
-	
-	tGPspoint *pt;
-	int i;
-	
 	/* error checking */
 	if ((points == NULL) || (totpoints <= 0))
 		return;
-	
+
 	/* check if buffer can be drawn */
 	if (dflag & (GP_DRAWDATA_ONLY3D | GP_DRAWDATA_ONLYV2D))
 		return;
-	
-	/* get basic matrix - should be camera space (i.e "identity") */
-	glGetFloatv(GL_MODELVIEW_MATRIX, (float *)modelview);
-	
-	/* draw points */
-	glPushMatrix();
-	
-	for (i = 0, pt = points; i < totpoints; i++, pt++) {
-		/* set the transformed position */
-		// TODO: scale should change based on zoom level, which requires proper translation mult too!
-		modelview[3][0] = pt->x;
-		modelview[3][1] = pt->y;
-		
-		glLoadMatrixf((float *)modelview);
-		
-		/* draw the disk using the current state... */
-		gp_set_tpoint_color(pt, ink);
-		gluDisk(qobj, 0.0,  pt->pressure * thickness, 32, 1);
-		
-		
-		modelview[3][0] = modelview[3][1] = 0.0f;
+
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned size = add_attrib(format, "size", GL_FLOAT, 1, KEEP_FLOAT);
+	unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR);
+	GPU_enable_program_point_size();
+	immBegin(GL_POINTS, totpoints);
+
+	tGPspoint *pt = points;
+	for (int i = 0; i < totpoints; i++, pt++) {
+		gp_set_tpoint_varying_color(pt, ink, color);
+		immAttrib1f(size, pt->pressure * thickness); /* TODO: scale based on view transform (zoom level) */
+		immVertex2f(pos, pt->x, pt->y);
 	}
 
-	glPopMatrix();
-	gluDeleteQuadric(qobj);
+	immEnd();
+	immUnbindProgram();
+	GPU_disable_program_point_size();
 }
 
 /* draw a 2D strokes in "volumetric" style */
@@ -1432,7 +1428,7 @@ static void gp_draw_data_layers(
 			 */
 			if (gpd->sflag & PC_COLOR_VOLUMETRIC) {
 				gp_draw_stroke_volumetric_buffer(gpd->sbuffer, gpd->sbuffer_size, lthick,
-				                                 dflag, gpd->sbuffer_sflag, gpd->scolor);
+				                                 dflag, gpd->scolor);
 			}
 			else {
 				gp_draw_stroke_buffer(gpd->sbuffer, gpd->sbuffer_size, lthick, dflag, gpd->sbuffer_sflag, gpd->scolor);
