@@ -140,6 +140,7 @@ data_to_c_simple(shaders/gpu_shader_point_varying_color_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_point_fixed_size_varying_color_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_point_varying_size_no_color_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_point_varying_size_varying_color_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_2D_point_varying_size_varying_color_vert.glsl SRC)
 
 data_to_c_simple(shaders/gpu_shader_text_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_text_frag.glsl SRC)
