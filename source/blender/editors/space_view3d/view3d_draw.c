@@ -777,11 +777,13 @@ static void view3d_draw_grid(const bContext *C, ARegion *ar)
 	/* needs to be done always, gridview is adjusted in drawgrid() now, but only for ortho views. */
 	rv3d->gridview = ED_view3d_grid_scale(scene, v3d, grid_unit);
 
+	glEnable(GL_DEPTH_TEST);
+
 	if (!draw_floor) {
 		ED_region_pixelspace(ar);
 		*(&grid_unit) = NULL;  /* drawgrid need this to detect/affect smallest valid unit... */
 		drawgrid(&scene->unit, ar, v3d, &grid_unit);
-		/* XXX make function? replaces persp(1) */
+
 		glMatrixMode(GL_PROJECTION);
 		glLoadMatrixf(rv3d->winmat);
 		glMatrixMode(GL_MODELVIEW);
@@ -790,8 +792,9 @@ static void view3d_draw_grid(const bContext *C, ARegion *ar)
 	else {
 		drawfloor(scene, v3d, &grid_unit, false);
 	}
-}
 
+	glDisable(GL_DEPTH_TEST);
+}
 
 /* ******************** view loop ***************** */
 
