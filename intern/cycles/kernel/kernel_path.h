@@ -84,7 +84,7 @@ ccl_device_noinline void kernel_path_ao(KernelGlobals *kg,
 		light_ray.t = kernel_data.background.ao_distance;
 #ifdef __OBJECT_MOTION__
 		light_ray.time = ccl_fetch(sd, time);
-#endif
+#endif  /* __OBJECT_MOTION__ */
 		light_ray.dP = ccl_fetch(sd, dP);
 		light_ray.dD = differential3_zero();
 
@@ -138,7 +138,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 				                             state->bounce);
 			}
 		}
-#endif
+#endif  /* __LAMP_MIS__ */
 
 #ifdef __VOLUME__
 		/* volume attenuation, emission, scatter */
@@ -239,7 +239,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 				}
 			}
 			else
-#  endif
+#  endif  /* __VOLUME_DECOUPLED__ */
 			{
 				/* integrate along volume segment with distance sampling */
 				VolumeIntegrateResult result = kernel_volume_integrate(
@@ -271,10 +271,10 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 						break;
 					}
 				}
-#  endif
+#  endif  /* __VOLUME_SCATTER__ */
 			}
 		}
-#endif
+#endif  /* __VOLUME__ */
 
 		if(!hit) {
 #ifdef __BACKGROUND__
@@ -284,7 +284,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 			                               throughput,
 			                               L_background,
 			                               state->bounce);
-#endif
+#endif  /* __BACKGROUND__ */
 
 			break;
 		}
@@ -298,7 +298,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		shader_eval_surface(kg, sd, rng, state, rbsdf, state->flag, SHADER_CONTEXT_INDIRECT);
 #ifdef __BRANCHED_PATH__
 		shader_merge_closures(sd);
-#endif
+#endif  /* __BRANCHED_PATH__ */
 
 		/* blurring of bsdf after bounces, for rays that have a small likelihood
 		 * of following this particular path (diffuse, rough glossy) */
@@ -321,7 +321,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 			                                              state->ray_pdf);
 			path_radiance_accum_emission(L, throughput, emission, state->bounce);
 		}
-#endif
+#endif  /* __EMISSION__ */
 
 		/* path termination. this is a strange place to put the termination, it's
 		 * mainly due to the mixed in MIS that we use. gives too many unneeded
@@ -348,7 +348,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		if(kernel_data.integrator.use_ambient_occlusion || (sd->flag & SD_AO)) {
 			kernel_path_ao(kg, sd, emission_sd, L, state, rng, throughput, make_float3(0.0f, 0.0f, 0.0f));
 		}
-#endif
+#endif  /* __AO__ */
 
 #ifdef __SUBSURFACE__
 		/* bssrdf scatter to a different location on the same object, replacing
@@ -380,7 +380,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 				                        false);
 			}
 		}
-#endif
+#endif  /* __SUBSURFACE__ */
 
 #if defined(__EMISSION__) && defined(__BRANCHED_PATH__)
 		if(kernel_data.integrator.use_direct_light) {
@@ -395,7 +395,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 			                                           L,
 			                                           all);
 		}
-#endif
+#endif  /* defined(__EMISSION__) && defined(__BRANCHED_PATH__) */
 
 		if(!kernel_path_surface_bounce(kg, rng, sd, &throughput, state, L, ray))
 			break;
@@ -449,7 +449,7 @@ bool kernel_path_subsurface_scatter(
 		ss_indirect->need_update_volume_stack =
 		        kernel_data.integrator.use_volumes &&
 		        ccl_fetch(sd, flag) & SD_OBJECT_INTERSECTS_VOLUME;
-#  endif
+#  endif  /* __VOLUME__ */
 
 		/* compute lighting with the BSDF closure */
 		for(int hit = 0; hit < num_hits; hit++) {
@@ -492,7 +492,7 @@ bool kernel_path_subsurface_scatter(
 			{
 #  ifdef __LAMP_MIS__
 				hit_state->ray_t = 0.0f;
-#  endif
+#  endif  /* __LAMP_MIS__ */
 
 #  ifdef __VOLUME__
 				if(ss_indirect->need_update_volume_stack) {
@@ -507,7 +507,7 @@ bool kernel_path_subsurface_scatter(
 					    &volume_ray,
 					    hit_state->volume_stack);
 				}
-#  endif
+#  endif  /* __VOLUME__ */
 				path_radiance_reset_indirect(L);
 				ss_indirect->num_rays++;
 			}
@@ -593,14 +593,14 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 #ifdef __KERNEL_DEBUG__
 	DebugData debug_data;
 	debug_data_init(&debug_data);
-#endif
+#endif  /* __KERNEL_DEBUG__ */
 
 #ifdef __SUBSURFACE__
 	SubsurfaceIndirectRays ss_indirect;
 	kernel_path_subsurface_init_indirect(&ss_indirect);
 
 	for(;;) {
-#endif
+#endif  /* __SUBSURFACE__ */
 
 	/* path iteration */
 	for(;;) {
@@ -626,7 +626,7 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 		bool hit = scene_intersect(kg, ray, visibility, &isect, &lcg_state, difl, extmax);
 #else
 		bool hit = scene_intersect(kg, ray, visibility, &isect, NULL, 0.0f, 0.0f);
-#endif
+#endif  /* __HAIR__ */
 
 #ifdef __KERNEL_DEBUG__
 		if(state.flag & PATH_RAY_CAMERA) {
@@ -634,7 +634,7 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 			debug_data.num_bvh_traversed_instances += isect.num_traversed_instances;
 		}
 		debug_data.num_ray_bounces++;
-#endif
+#endif  /* __KERNEL_DEBUG__ */
 
 #ifdef __LAMP_MIS__
 		if(kernel_data.integrator.use_lamp_mis && !(state.flag & PATH_RAY_CAMERA)) {
@@ -655,7 +655,7 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 			if(indirect_lamp_emission(kg, &emission_sd, &state, &light_ray, &emission))
 				path_radiance_accum_emission(&L, throughput, emission, state.bounce);
 		}
-#endif
+#endif  /* __LAMP_MIS__ */
 
 #ifdef __VOLUME__
 		/* volume attenuation, emission, scatter */
@@ -719,7 +719,7 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 				}
 			}
 			else
-#  endif
+#  endif  /* __VOLUME_DECOUPLED__ */
 			{
 				/* integrate along volume segment with distance sampling */
 				VolumeIntegrateResult result = kernel_volume_integrate(
@@ -736,10 +736,10 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 					else
 						break;
 				}
-#  endif
+#  endif  /* __VOLUME_SCATTER__ */
 			}
 		}
-#endif
+#endif  /* __VOLUME__ */
 
 		if(!hit) {
 			/* eval background shader if nothing hit */
@@ -748,7 +748,7 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 
 #ifdef __PASSES__
 				if(!(kernel_data.film.pass_flag & PASS_BACKGROUND))
-#endif
+#endif  /* __PASSES__ */
 					break;
 			}
 
@@ -756,7 +756,7 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 			/* sample background shader */
 			float3 L_background = indirect_background(kg, &emission_sd, &state, &ray);
 			path_radiance_accum_background(&L, throughput, L_background, state.bounce);
-#endif
+#endif  /* __BACKGROUND__ */
 
 			break;
 		}
@@ -784,7 +784,7 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 			if(sd.flag & SD_HOLDOUT_MASK)
 				break;
 		}
-#endif
+#endif  /* __HOLDOUT__ */
 
 		/* holdout mask objects do not write data passes */
 		kernel_write_data_passes(kg, buffer, &L, &sd, sample, &state, throughput);
@@ -807,7 +807,7 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 			float3 emission = indirect_primitive_emission(kg, &sd, isect.t, state.flag, state.ray_pdf);
 			path_radiance_accum_emission(&L, throughput, emission, state.bounce);
 		}
-#endif
+#endif  /* __EMISSION__ */
 
 		/* path termination. this is a strange place to put the termination, it's
 		 * mainly due to the mixed in MIS that we use. gives too many unneeded
@@ -830,7 +830,7 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 		if(kernel_data.integrator.use_ambient_occlusion || (sd.flag & SD_AO)) {
 			kernel_path_ao(kg, &sd, &emission_sd, &L, &state, rng, throughput, shader_bsdf_alpha(kg, &sd));
 		}
-#endif
+#endif  /* __AO__ */
 
 #ifdef __SUBSURFACE__
 		/* bssrdf scatter to a different location on the same object, replacing
@@ -885,7 +885,7 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 
 #ifdef __KERNEL_DEBUG__
 	kernel_write_debug_passes(kg, buffer, &state, &debug_data, sample);
-#endif
+#endif  /* __KERNEL_DEBUG__ */
 
 	return make_float4(L_sum.x, L_sum.y, L_sum.z, 1.0f - L_transparent);
 }
