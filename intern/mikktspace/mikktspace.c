@@ -579,13 +579,16 @@ static void MergeVertsFast(int piTriList_in_and_out[], STmpVert pTmpVert[], cons
 {
 	// make bbox
 	int c=0, l=0, channel=0;
-	float fvMin[3] = {INFINITY, INFINITY, INFINITY};
-	float fvMax[3] = {-INFINITY, -INFINITY, -INFINITY};
+	float fvMin[3], fvMax[3];
 	float dx=0, dy=0, dz=0, fSep=0;
-	for (l=iL_in; l<=iR_in; l++)
-		for (c=0; c<3; c++)
+	for (c=0; c<3; c++)
+	{	fvMin[c]=pTmpVert[iL_in].vert[c]; fvMax[c]=fvMin[c];	}
+	for (l=(iL_in+1); l<=iR_in; l++) {
+		for (c=0; c<3; c++) {
 			if (fvMin[c]>pTmpVert[l].vert[c]) fvMin[c]=pTmpVert[l].vert[c];
-			else if (fvMax[c]<pTmpVert[l].vert[c]) fvMax[c]=pTmpVert[l].vert[c];
+			if (fvMax[c]<pTmpVert[l].vert[c]) fvMax[c]=pTmpVert[l].vert[c];
+		}
+	}
 
 	dx = fvMax[0]-fvMin[0];
 	dy = fvMax[1]-fvMin[1];
