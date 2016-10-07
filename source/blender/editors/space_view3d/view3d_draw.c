@@ -221,7 +221,7 @@ static void view3d_stereo3d_setup(Scene *scene, View3D *v3d, ARegion *ar)
 static void view3d_draw_background(const bContext *C)
 {
 	/* TODO viewport */
-	glClearColor(0.0, 0.0, 0.0, 0.0);
+	UI_ThemeClearColor(TH_HIGH_GRAD);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
