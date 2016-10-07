@@ -587,6 +587,8 @@ static void gp_draw_stroke_3d(const bGPDspoint *points, int totpoints, short thi
 
 	immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
+	/* TODO: implement this with a geometry shader to draw one continuous tapered stroke */
+
 	/* draw stroke curve */
 	glLineWidth(max_ff(curpressure * thickness, 1.0f));
 	immBeginAtMost(GL_LINE_STRIP, totpoints);
@@ -662,6 +664,8 @@ static void gp_draw_stroke_2d(const bGPDspoint *points, int totpoints, short thi
 		scalefac = 0.001f;
 	}
 
+	/* TODO: fancy++ with the magic of shaders */
+
 	/* tessellation code - draw stroke as series of connected quads with connection
 	 * edges rotated to minimize shrinking artifacts, and rounded endcaps
 	 */
@@ -671,8 +675,13 @@ static void gp_draw_stroke_2d(const bGPDspoint *points, int totpoints, short thi
 		int i;
 		float fpt[3];
 
-		glShadeModel(GL_FLAT);
-		glBegin(GL_QUADS);
+		VertexFormat *format = immVertexFormat();
+		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
+
+		/* this code previously used glShadeModel(GL_FLAT) */
+		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+		immBegin(GL_QUADS, (totpoints - 2) * 4 + 12);
 
 		for (i = 0, pt1 = points, pt2 = points + 1; i < (totpoints - 1); i++, pt1++, pt2++) {
 			float s0[2], s1[2];     /* segment 'center' points */
@@ -699,7 +708,7 @@ static void gp_draw_stroke_2d(const bGPDspoint *points, int totpoints, short thi
 			pthick = (pt1->pressure * thickness * scalefac);
 
 			/* color of point */
-			gp_set_point_color(pt1, ink);
+			gp_set_point_varying_color(pt1, ink, color);
 
 			/* if the first segment, start of segment is segment's normal */
 			if (i == 0) {
@@ -716,8 +725,8 @@ static void gp_draw_stroke_2d(const bGPDspoint *points, int totpoints, short thi
 				t1[0] = sc[0] + mt[0];
 				t1[1] = sc[1] + mt[1];
 
-				glVertex2fv(t0);
-				glVertex2fv(t1);
+				immVertex2fv(pos, t0);
+				immVertex2fv(pos, t1);
 
 				/* calculate points for start of segment */
 				mt[0] = m2[0] * pthick;
@@ -729,10 +738,10 @@ static void gp_draw_stroke_2d(const bGPDspoint *points, int totpoints, short thi
 				t1[1] = s0[1] + mt[1];
 
 				/* draw this line twice (first to finish off start cap, then for stroke) */
-				glVertex2fv(t1);
-				glVertex2fv(t0);
-				glVertex2fv(t0);
-				glVertex2fv(t1);
+				immVertex2fv(pos, t1);
+				immVertex2fv(pos, t0);
+				immVertex2fv(pos, t0);
+				immVertex2fv(pos, t1);
 			}
 			/* if not the first segment, use bisector of angle between segments */
 			else {
@@ -765,10 +774,10 @@ static void gp_draw_stroke_2d(const bGPDspoint *points, int totpoints, short thi
 				t1[1] = s0[1] + mt[1];
 
 				/* draw this line twice (once for end of current segment, and once for start of next) */
-				glVertex2fv(t1);
-				glVertex2fv(t0);
-				glVertex2fv(t0);
-				glVertex2fv(t1);
+				immVertex2fv(pos, t1);
+				immVertex2fv(pos, t0);
+				immVertex2fv(pos, t0);
+				immVertex2fv(pos, t1);
 			}
 
 			/* if last segment, also draw end of segment (defined as segment's normal) */
@@ -777,7 +786,7 @@ static void gp_draw_stroke_2d(const bGPDspoint *points, int totpoints, short thi
 				pthick = (pt2->pressure * thickness * scalefac);
 
 				/* color of point */
-				gp_set_point_color(pt2, ink);
+				gp_set_point_varying_color(pt2, ink, color);
 
 				/* calculate points for end of segment */
 				mt[0] = m2[0] * pthick;
@@ -789,10 +798,10 @@ static void gp_draw_stroke_2d(const bGPDspoint *points, int totpoints, short thi
 				t1[1] = s1[1] + mt[1];
 
 				/* draw this line twice (once for end of stroke, and once for endcap)*/
-				glVertex2fv(t1);
-				glVertex2fv(t0);
-				glVertex2fv(t0);
-				glVertex2fv(t1);
+				immVertex2fv(pos, t1);
+				immVertex2fv(pos, t0);
+				immVertex2fv(pos, t0);
+				immVertex2fv(pos, t1);
 
 				/* draw end cap as last step
 				 *	- make points slightly closer to center (about halfway across)
@@ -807,16 +816,16 @@ static void gp_draw_stroke_2d(const bGPDspoint *points, int totpoints, short thi
 				t1[0] = sc[0] + mt[0];
 				t1[1] = sc[1] + mt[1];
 
-				glVertex2fv(t1);
-				glVertex2fv(t0);
+				immVertex2fv(pos, t1);
+				immVertex2fv(pos, t0);
 			}
 
 			/* store stroke's 'natural' normal for next stroke to use */
 			copy_v2_v2(pm, m2);
 		}
 
-		glEnd();
-		glShadeModel(GL_SMOOTH);
+		immEnd();
+		immUnbindProgram();
 	}
 
 #if 0 /* convert to modern GL only if needed */
