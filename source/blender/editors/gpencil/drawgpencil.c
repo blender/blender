@@ -157,16 +157,24 @@ static void gp_draw_stroke_buffer(const tGPspoint *points, int totpoints, short 
 	if (dflag & (GP_DRAWDATA_ONLY3D | GP_DRAWDATA_ONLYV2D))
 		return;
 
+	if (sflag & GP_STROKE_ERASER) {
+		/* don't draw stroke at all! */
+		return;
+	}
+
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+	unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
+
+	const tGPspoint *pt = points;
+
 	if (totpoints == 1) {
 		/* if drawing a single point, draw it larger */
 		glPointSize((float)(thickness + 2) * points->pressure);
-		glBegin(GL_POINTS);
-
-		gp_set_color_and_tpoint(points, ink);
-		glEnd();
-	}
-	else if (sflag & GP_STROKE_ERASER) {
-		/* don't draw stroke at all! */
+		immBindBuiltinProgram(GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR);
+		immBegin(GL_POINTS, 1);
+		gp_set_tpoint_varying_color(pt, ink, color);
+		immVertex2iv(pos, &pt->x);
 	}
 	else {
 		float oldpressure = points[0].pressure;
@@ -175,36 +183,39 @@ static void gp_draw_stroke_buffer(const tGPspoint *points, int totpoints, short 
 		if (G.debug & G_DEBUG) setlinestyle(2);
 
 		glLineWidth(max_ff(oldpressure * thickness, 1.0));
-		glBegin(GL_LINE_STRIP);
+		immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+		immBeginAtMost(GL_LINE_STRIP, totpoints);
 
-		const tGPspoint *pt = points;
+		/* TODO: implement this with a geometry shader to draw one continuous tapered stroke */
+
 		for (int i = 0; i < totpoints; i++, pt++) {
 			/* if there was a significant pressure change, stop the curve, change the thickness of the stroke,
 			 * and continue drawing again (since line-width cannot change in middle of GL_LINE_STRIP)
 			 */
 			if (fabsf(pt->pressure - oldpressure) > 0.2f) {
-				glEnd();
+				immEnd();
 				glLineWidth(max_ff(pt->pressure * thickness, 1.0f));
-				glBegin(GL_LINE_STRIP);
+				immBeginAtMost(GL_LINE_STRIP, totpoints - i + 1);
 
 				/* need to roll-back one point to ensure that there are no gaps in the stroke */
 				if (i != 0) { 
-					gp_set_color_and_tpoint((pt - 1), ink);
+					gp_set_tpoint_varying_color(pt - 1, ink, color);
+					immVertex2iv(pos, &(pt - 1)->x);
 				}
 
-				/* now the point we want... */
-				gp_set_color_and_tpoint(pt, ink);
+				oldpressure = pt->pressure; /* reset our threshold */
+			}
 
-				oldpressure = pt->pressure;
-			}
-			else {
-				gp_set_color_and_tpoint(pt, ink);
-			}
+			/* now the point we want */
+			gp_set_tpoint_varying_color(pt, ink, color);
+			immVertex2iv(pos, &pt->x);
 		}
-		glEnd();
 
 		if (G.debug & G_DEBUG) setlinestyle(0);
 	}
+
+	immEnd();
+	immUnbindProgram();
 }
 
 /* --------- 2D Stroke Drawing Helpers --------- */
