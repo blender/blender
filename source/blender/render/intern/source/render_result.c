@@ -1721,7 +1721,7 @@ static RenderView *duplicate_render_view(RenderView *rview)
 
 RenderResult *RE_DuplicateRenderResult(RenderResult *rr)
 {
-	RenderResult *new_rr = MEM_mallocN(sizeof(RenderResult), "new render result");
+	RenderResult *new_rr = MEM_mallocN(sizeof(RenderResult), "new duplicated render result");
 	*new_rr = *rr;
 	new_rr->next = new_rr->prev = NULL;
 	new_rr->layers.first = new_rr->layers.last = NULL;
