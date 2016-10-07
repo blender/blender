@@ -118,11 +118,10 @@ static void acf_generic_root_backdrop(bAnimContext *ac, bAnimListElem *ale, floa
 	
 	/* set backdrop drawing color */
 	acf->get_backdrop_color(ac, ale, color);
-	glColor3fv(color);
 	
 	/* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
 	UI_draw_roundbox_corner_set((expanded) ? UI_CNR_TOP_LEFT : (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
-	UI_draw_roundbox_gl_mode(GL_POLYGON, offset,  yminc, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 8);
+	UI_draw_roundbox_gl_mode_3fvAlpha(GL_POLYGON, offset,  yminc, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 8, color, 1.0f);
 }
 
 
@@ -420,14 +419,13 @@ static void acf_summary_backdrop(bAnimContext *ac, bAnimListElem *ale, float ymi
 	
 	/* set backdrop drawing color */
 	acf->get_backdrop_color(ac, ale, color);
-	glColor3fv(color);
 	
 	/* rounded corners on LHS only 
 	 *	- top and bottom 
 	 *	- special hack: make the top a bit higher, since we are first... 
 	 */
 	UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT);
-	UI_draw_roundbox_gl_mode(GL_POLYGON, 0,  yminc - 2, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 8);
+	UI_draw_roundbox_gl_mode_3fvAlpha(GL_POLYGON, 0,  yminc - 2, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 8, color, 1.0f);
 }
 
 /* name for summary entries */
@@ -813,11 +811,10 @@ static void acf_group_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc
 	
 	/* set backdrop drawing color */
 	acf->get_backdrop_color(ac, ale, color);
-	glColor3fv(color);
 	
 	/* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
 	UI_draw_roundbox_corner_set(expanded ? UI_CNR_TOP_LEFT : (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
-	UI_draw_roundbox_gl_mode(GL_POLYGON, offset,  yminc, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 8);
+	UI_draw_roundbox_gl_mode_3fvAlpha(GL_POLYGON, offset,  yminc, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 8, color, 1.0f);
 }
 
 /* name for group entries */
@@ -1070,11 +1067,10 @@ static void acf_nla_controls_backdrop(bAnimContext *ac, bAnimListElem *ale, floa
 	
 	/* set backdrop drawing color */
 	acf->get_backdrop_color(ac, ale, color);
-	glColor3fv(color);
 	
-	/* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
+	/* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */	
 	UI_draw_roundbox_corner_set(expanded ? UI_CNR_TOP_LEFT : (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
-	UI_draw_roundbox_gl_mode(GL_POLYGON, offset,  yminc, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 5);
+	UI_draw_roundbox_gl_mode_3fvAlpha(GL_POLYGON, offset,  yminc, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc, 5, color, 1.0f);
 }
 
 /* name for nla controls expander entries */
@@ -3264,24 +3260,20 @@ static void acf_nlaaction_backdrop(bAnimContext *ac, bAnimListElem *ale, float y
 	 */
 	nla_action_get_color(adt, (bAction *)ale->data, color);
 	
-	if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {
-		/* Yes, the color vector has 4 components, BUT we only want to be using 3 of them! */
-		glColor3fv(color);
-	}
-	else {
-		float alpha = (adt && (adt->flag & ADT_NLA_SOLO_TRACK)) ? 0.3f : 1.0f;
-		glColor4f(color[0], color[1], color[2], alpha);
-	}
-	
-	/* only on top left corner, to show that this channel sits on top of the preceding ones 
+	if (adt && (adt->flag & ADT_NLA_EDIT_ON))
+		color[3] = 1.0f;
+	else
+		color[3] = (adt && (adt->flag & ADT_NLA_SOLO_TRACK)) ? 0.3f : 1.0f;
+
+	/* only on top left corner, to show that this channel sits on top of the preceding ones
 	 * while still linking into the action line strip to the right
 	 */
 	UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT);
-	
+
 	/* draw slightly shifted up vertically to look like it has more separation from other channels,
 	 * but we then need to slightly shorten it so that it doesn't look like it overlaps
 	 */
-	UI_draw_roundbox_gl_mode(GL_POLYGON, offset,  yminc + NLACHANNEL_SKIP, (float)v2d->cur.xmax, ymaxc + NLACHANNEL_SKIP - 1, 8);
+	UI_draw_roundbox_gl_mode(GL_POLYGON, offset,  yminc + NLACHANNEL_SKIP, (float)v2d->cur.xmax, ymaxc + NLACHANNEL_SKIP - 1, 8, color);
 }
 
 /* name for nla action entries */

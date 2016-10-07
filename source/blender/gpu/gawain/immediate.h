@@ -76,6 +76,8 @@ void immUniformColor4fv(const float rgba[4]);
 void immUniformColor3ub(unsigned char r, unsigned char g, unsigned char b);
 void immUniformColor4ub(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 void immUniformColor3ubv(const unsigned char data[3]);
+void immUniformColor3fvAlpha(float rgb[3], float alpha);
 void immUniformColor4ubv(const unsigned char data[4]);
+void immUniformColor4f(float r, float g, float b, float a);
 
 void immUniform1i(const char *name, const unsigned int data);

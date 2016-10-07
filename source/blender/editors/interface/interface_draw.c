@@ -80,68 +80,98 @@ int UI_draw_roundbox_corner_get(void)
 	return roundboxtype;
 }
 
-void UI_draw_roundbox_gl_mode(int mode, float minx, float miny, float maxx, float maxy, float rad)
+void UI_draw_roundbox_gl_mode_3ubAlpha(int mode, float minx, float miny, float maxx, float maxy, float rad, unsigned char col[3], unsigned char alpha)
+{
+	float colv[4];
+	colv[0] = ((float)col[0]) / 255;
+	colv[1] = ((float)col[1]) / 255;
+	colv[2] = ((float)col[2]) / 255;
+	colv[3] = ((float)alpha) / 255;
+	UI_draw_roundbox_gl_mode(mode, minx, miny, maxx, maxy, rad, colv);
+}
+
+void UI_draw_roundbox_gl_mode_3fvAlpha(int mode, float minx, float miny, float maxx, float maxy, float rad, float col[3], float alpha)
+{
+	float colv[4];
+	colv[0] = col[0];
+	colv[1] = col[1];
+	colv[2] = col[2];
+	colv[3] = alpha;
+	UI_draw_roundbox_gl_mode(mode, minx, miny, maxx, maxy, rad, colv);
+}
+
+void UI_draw_roundbox_gl_mode(int mode, float minx, float miny, float maxx, float maxy, float rad, float col[4])
 {
 	float vec[7][2] = {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
 	                   {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
 	int a;
 	
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
 	/* mult */
 	for (a = 0; a < 7; a++) {
 		mul_v2_fl(vec[a], rad);
 	}
 
-	glBegin(mode);
+	if (mode == GL_POLYGON) {
+		mode = GL_TRIANGLE_FAN;
+	}
 
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformColor4fv(col);
+
+	immBeginAtMost(mode, 36);
 	/* start with corner right-bottom */
 	if (roundboxtype & UI_CNR_BOTTOM_RIGHT) {
-		glVertex2f(maxx - rad, miny);
+		immVertex2f(pos, maxx - rad, miny);
 		for (a = 0; a < 7; a++) {
-			glVertex2f(maxx - rad + vec[a][0], miny + vec[a][1]);
+			immVertex2f(pos, maxx - rad + vec[a][0], miny + vec[a][1]);
 		}
-		glVertex2f(maxx, miny + rad);
+		immVertex2f(pos, maxx, miny + rad);
 	}
 	else {
-		glVertex2f(maxx, miny);
+		immVertex2f(pos, maxx, miny);
 	}
 	
 	/* corner right-top */
 	if (roundboxtype & UI_CNR_TOP_RIGHT) {
-		glVertex2f(maxx, maxy - rad);
+		immVertex2f(pos, maxx, maxy - rad);
 		for (a = 0; a < 7; a++) {
-			glVertex2f(maxx - vec[a][1], maxy - rad + vec[a][0]);
+			immVertex2f(pos, maxx - vec[a][1], maxy - rad + vec[a][0]);
 		}
-		glVertex2f(maxx - rad, maxy);
+		immVertex2f(pos, maxx - rad, maxy);
 	}
 	else {
-		glVertex2f(maxx, maxy);
+		immVertex2f(pos, maxx, maxy);
 	}
 	
 	/* corner left-top */
 	if (roundboxtype & UI_CNR_TOP_LEFT) {
-		glVertex2f(minx + rad, maxy);
+		immVertex2f(pos, minx + rad, maxy);
 		for (a = 0; a < 7; a++) {
-			glVertex2f(minx + rad - vec[a][0], maxy - vec[a][1]);
+			immVertex2f(pos, minx + rad - vec[a][0], maxy - vec[a][1]);
 		}
-		glVertex2f(minx, maxy - rad);
+		immVertex2f(pos, minx, maxy - rad);
 	}
 	else {
-		glVertex2f(minx, maxy);
+		immVertex2f(pos, minx, maxy);
 	}
 	
 	/* corner left-bottom */
 	if (roundboxtype & UI_CNR_BOTTOM_LEFT) {
-		glVertex2f(minx, miny + rad);
+		immVertex2f(pos, minx, miny + rad);
 		for (a = 0; a < 7; a++) {
-			glVertex2f(minx + vec[a][1], miny + rad - vec[a][0]);
+			immVertex2f(pos, minx + vec[a][1], miny + rad - vec[a][0]);
 		}
-		glVertex2f(minx + rad, miny);
+		immVertex2f(pos, minx + rad, miny);
 	}
 	else {
-		glVertex2f(minx, miny);
+		immVertex2f(pos, minx, miny);
 	}
 	
-	glEnd();
+	immEnd();
+	immUnbindProgram();
 }
 
 static void round_box_shade_col(const float col1[3], float const col2[3], const float fac)
@@ -382,8 +412,7 @@ void UI_draw_roundbox_unfilled(float minx, float miny, float maxx, float maxy, f
 	/* set antialias line */
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
-
-	UI_draw_roundbox_gl_mode(GL_LINE_LOOP, minx, miny, maxx, maxy, rad);
+	UI_draw_roundbox_gl_mode(GL_LINE_LOOP, minx, miny, maxx, maxy, rad, color);
 
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
@@ -502,9 +531,9 @@ static void draw_scope_end(const rctf *rect, GLint *scissor)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	/* outline */
-	glColor4f(0.f, 0.f, 0.f, 0.5f);
 	UI_draw_roundbox_corner_set(UI_CNR_ALL);
-	UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rect->xmin - 1, rect->ymin, rect->xmax + 1, rect->ymax + 1, 3.0f);
+	float color[4] = {0.0f, 0.0f, 0.0f, 0.5f};
+	UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rect->xmin - 1, rect->ymin, rect->xmax + 1, rect->ymax + 1, 3.0f, color);
 }
 
 static void histogram_draw_one(
@@ -574,9 +603,10 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	UI_ThemeColor4(TH_PREVIEW_BACK);
+	float color[4];
+	UI_GetThemeColor4fv(TH_PREVIEW_BACK, color);
 	UI_draw_roundbox_corner_set(UI_CNR_ALL);
-	UI_draw_roundbox_gl_mode(GL_POLYGON, rect.xmin - 1, rect.ymin - 1, rect.xmax + 1, rect.ymax + 1, 3.0f);
+	UI_draw_roundbox_gl_mode(GL_POLYGON, rect.xmin - 1, rect.ymin - 1, rect.xmax + 1, rect.ymax + 1, 3.0f, color);
 
 	/* need scissor test, histogram can draw outside of boundary */
 	GLint scissor[4];
@@ -661,9 +691,10 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	UI_ThemeColor4(TH_PREVIEW_BACK);
+	float color[4];
+	UI_GetThemeColor4fv(TH_PREVIEW_BACK, color);
 	UI_draw_roundbox_corner_set(UI_CNR_ALL);
-	UI_draw_roundbox_gl_mode(GL_POLYGON, rect.xmin - 1, rect.ymin - 1, rect.xmax + 1, rect.ymax + 1, 3.0f);
+	UI_draw_roundbox_gl_mode(GL_POLYGON, rect.xmin - 1, rect.ymin - 1, rect.xmax + 1, rect.ymax + 1, 3.0f, color);
 
 	/* need scissor test, waveform can draw outside of boundary */
 	glGetIntegerv(GL_VIEWPORT, scissor);
@@ -905,9 +936,10 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	UI_ThemeColor4(TH_PREVIEW_BACK);
+	float color[4];
+	UI_GetThemeColor4fv(TH_PREVIEW_BACK, color);
 	UI_draw_roundbox_corner_set(UI_CNR_ALL);
-	UI_draw_roundbox_gl_mode(GL_POLYGON, rect.xmin - 1, rect.ymin - 1, rect.xmax + 1, rect.ymax + 1, 3.0f);
+	UI_draw_roundbox_gl_mode(GL_POLYGON, rect.xmin - 1, rect.ymin - 1, rect.xmax + 1, rect.ymax + 1, 3.0f, color);
 
 	/* need scissor test, hvectorscope can draw outside of boundary */
 	GLint scissor[4];
@@ -1190,9 +1222,8 @@ void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 	float size;
 	
 	/* backdrop */
-	glColor3ubv((unsigned char *)wcol->inner);
 	UI_draw_roundbox_corner_set(UI_CNR_ALL);
-	UI_draw_roundbox_gl_mode(GL_POLYGON, rect->xmin, rect->ymin, rect->xmax, rect->ymax, 5.0f);
+	UI_draw_roundbox_gl_mode_3ubAlpha(GL_POLYGON, rect->xmin, rect->ymin, rect->xmax, rect->ymax, 5.0f, (unsigned char *)wcol->inner, 255);
 	
 	/* sphere color */
 	glCullFace(GL_BACK);
@@ -1514,9 +1545,9 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 	          (rect.ymax + 1) - (rect.ymin - 1));
 
 	if (scopes->track_disabled) {
-		glColor4f(0.7f, 0.3f, 0.3f, 0.3f);
+		float color[4] = {0.7f, 0.3f, 0.3f, 0.3f};
 		UI_draw_roundbox_corner_set(UI_CNR_ALL);
-		UI_draw_roundbox_gl_mode(GL_POLYGON, rect.xmin - 1, rect.ymin, rect.xmax + 1, rect.ymax + 1, 3.0f);
+		UI_draw_roundbox_gl_mode(GL_POLYGON, rect.xmin - 1, rect.ymin, rect.xmax + 1, rect.ymax + 1, 3.0f, color);
 
 		ok = true;
 	}
@@ -1552,9 +1583,9 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 			ImBuf *drawibuf = scopes->track_preview;
 
 			if (scopes->use_track_mask) {
-				glColor4f(0.0f, 0.0f, 0.0f, 0.3f);
+				float color[4] = {0.0f, 0.0f, 0.0f, 0.3f};
 				UI_draw_roundbox_corner_set(UI_CNR_ALL);
-				UI_draw_roundbox_gl_mode(GL_POLYGON, rect.xmin - 1, rect.ymin, rect.xmax + 1, rect.ymax + 1, 3.0f);
+				UI_draw_roundbox_gl_mode(GL_POLYGON, rect.xmin - 1, rect.ymin, rect.xmax + 1, rect.ymax + 1, 3.0f, color);
 			}
 
 			glaDrawPixelsSafe(rect.xmin, rect.ymin + 1, drawibuf->x, drawibuf->y,
@@ -1596,9 +1627,9 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 	}
 
 	if (!ok) {
-		glColor4f(0.f, 0.f, 0.f, 0.3f);
+		float color[4] = {0.0f, 0.0f, 0.0f, 0.3f};
 		UI_draw_roundbox_corner_set(UI_CNR_ALL);
-		UI_draw_roundbox_gl_mode(GL_POLYGON, rect.xmin - 1, rect.ymin, rect.xmax + 1, rect.ymax + 1, 3.0f);
+		UI_draw_roundbox_gl_mode(GL_POLYGON, rect.xmin - 1, rect.ymin, rect.xmax + 1, rect.ymax + 1, 3.0f, color);
 	}
 
 	/* outline */
@@ -1750,16 +1781,15 @@ void ui_draw_dropshadow(const rctf *rct, float radius, float aspect, float alpha
 	float calpha = dalpha;
 	for (; i--; a -= aspect) {
 		/* alpha ranges from 2 to 20 or so */
-		glColor4f(0.0f, 0.0f, 0.0f, calpha);
+		float color[4] = {0.0f, 0.0f, 0.0f, calpha};
+		UI_draw_roundbox_gl_mode(GL_POLYGON, rct->xmin - a, rct->ymin - a, rct->xmax + a, rct->ymax - 10.0f + a, rad + a, color);
 		calpha += dalpha;
-		
-		UI_draw_roundbox_gl_mode(GL_POLYGON, rct->xmin - a, rct->ymin - a, rct->xmax + a, rct->ymax - 10.0f + a, rad + a);
 	}
 	
 	/* outline emphasis */
 	glEnable(GL_LINE_SMOOTH);
-	glColor4ub(0, 0, 0, 100);
-	UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rct->xmin - 0.5f, rct->ymin - 0.5f, rct->xmax + 0.5f, rct->ymax + 0.5f, radius + 0.5f);
+	float color[4] = {0.0f, 0.0f, 0.0f, 0.4f};
+	UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rct->xmin - 0.5f, rct->ymin - 0.5f, rct->xmax + 0.5f, rct->ymax + 0.5f, radius + 0.5f, color);
 	glDisable(GL_LINE_SMOOTH);
 	
 	glDisable(GL_BLEND);

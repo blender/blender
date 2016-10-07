@@ -465,7 +465,7 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode,
 {
 	rctf *rct = &node->totr;
 	int color_id = node_get_colorid(node);
-	unsigned char color[4];
+	float color[4];
 	float alpha;
 	
 	/* skip if out of view */
@@ -475,8 +475,8 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode,
 		return;
 	}
 
-	UI_GetThemeColor4ubv(TH_NODE_FRAME, color);
-	alpha = (float)(color[3]) / 255.0f;
+	UI_GetThemeColor4fv(TH_NODE_FRAME, color);
+	alpha = color[3];
 	
 	/* shadow */
 	node_draw_shadow(snode, node, BASIS_RAD, alpha);
@@ -495,16 +495,16 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode,
 	if (node->flag & SELECT) {
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
-		
+				
 		if (node->flag & NODE_ACTIVE)
-			UI_ThemeColorShadeAlpha(TH_ACTIVE, 0, -40);
+			UI_GetThemeColorShadeAlpha4fv(TH_ACTIVE, 0, -40, color);
 		else
-			UI_ThemeColorShadeAlpha(TH_SELECT, 0, -40);
+			UI_GetThemeColorShadeAlpha4fv(TH_SELECT, 0, -40, color);
+
 		UI_draw_roundbox_corner_set(UI_CNR_ALL);
-		UI_draw_roundbox_gl_mode(GL_LINE_LOOP,
-		          rct->xmin, rct->ymin,
-		          rct->xmax, rct->ymax, BASIS_RAD);
-		
+		UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD, color);
+
+
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
 	}

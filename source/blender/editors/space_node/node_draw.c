@@ -790,6 +790,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	/* float socket_size = NODE_SOCKSIZE*U.dpi/72; */ /* UNUSED */
 	float iconbutw = 0.8f * UI_UNIT_X;
 	int color_id = node_get_colorid(node);
+	float color[4];
 	char showname[128]; /* 128 used below */
 	View2D *v2d = &ar->v2d;
 	
@@ -922,13 +923,13 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		glEnable(GL_LINE_SMOOTH);
 		
 		if (node->flag & NODE_ACTIVE)
-			UI_ThemeColorShadeAlpha(TH_ACTIVE, 0, -40);
+			UI_GetThemeColorShadeAlpha4fv(TH_ACTIVE, 0, -40, color);
 		else
-			UI_ThemeColorShadeAlpha(TH_SELECT, 0, -40);
-		
+			UI_GetThemeColorShadeAlpha4fv(TH_SELECT, 0, -40, color);
+
 		UI_draw_roundbox_corner_set(UI_CNR_ALL);
-		UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD);
-		
+		UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD, color);
+
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
 	}
@@ -979,6 +980,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	float hiddenrad = BLI_rctf_size_y(rct) / 2.0f;
 	float socket_size = NODE_SOCKSIZE;
 	int color_id = node_get_colorid(node);
+	float color[4];
 	char showname[128]; /* 128 is used below */
 	
 	/* shadow */
@@ -1007,11 +1009,12 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		glEnable(GL_LINE_SMOOTH);
 		
 		if (node->flag & NODE_ACTIVE)
-			UI_ThemeColorShadeAlpha(TH_ACTIVE, 0, -40);
+			UI_GetThemeColorShadeAlpha4fv(TH_ACTIVE, 0, -40, color);
 		else
-			UI_ThemeColorShadeAlpha(TH_SELECT, 0, -40);
-		UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
-		
+			UI_GetThemeColorShadeAlpha4fv(TH_SELECT, 0,-40, color);
+
+		UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad, color);
+
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
 	}
@@ -1021,8 +1024,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
 
-		glColor3fv(node->color);
-		UI_draw_roundbox_gl_mode(GL_LINE_LOOP, rct->xmin + 1, rct->ymin + 1, rct->xmax -1, rct->ymax - 1, hiddenrad);
+		UI_draw_roundbox_gl_mode_3fvAlpha(GL_LINE_LOOP, rct->xmin + 1, rct->ymin + 1, rct->xmax -1, rct->ymax - 1, hiddenrad, node->color, 1.0f);
 
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
@@ -1272,12 +1274,14 @@ static void draw_group_overlay(const bContext *C, ARegion *ar)
 	View2D *v2d = &ar->v2d;
 	rctf rect = v2d->cur;
 	uiBlock *block;
-	
+	float color[4];
+
 	/* shade node groups to separate them visually */
-	UI_ThemeColorShadeAlpha(TH_NODE_GROUP, 0, -70);
 	glEnable(GL_BLEND);
+
+	UI_GetThemeColorShadeAlpha4fv(TH_NODE_GROUP, 0, -70, color);
 	UI_draw_roundbox_corner_set(UI_CNR_NONE);
-	UI_draw_roundbox_gl_mode(GL_POLYGON, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 0);
+	UI_draw_roundbox_gl_mode(GL_POLYGON, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 0, color);
 	glDisable(GL_BLEND);
 	
 	/* set the block bounds to clip mouse events from underlying nodes */

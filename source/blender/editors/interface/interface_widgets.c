@@ -218,16 +218,15 @@ void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float m
 	int j;
 	
 	glEnable(GL_BLEND);
-	glGetFloatv(GL_CURRENT_COLOR, color);
+	glGetFloatv(GL_CURRENT_COLOR, color);  // I will make the change in a futur patch, use as it is for now
 	if (use_alpha) {
 		color[3] = 0.5f;
 	}
 	color[3] *= 0.125f;
-	glColor4fv(color);
 	
 	for (j = 0; j < WIDGET_AA_JITTER; j++) {
 		glTranslate2fv(jit[j]);
-		UI_draw_roundbox_gl_mode(mode, minx, miny, maxx, maxy, rad);
+		UI_draw_roundbox_gl_mode(mode, minx, miny, maxx, maxy, rad, color);
 		glTranslatef(-jit[j][0], -jit[j][1], 0.0f);
 	}
 

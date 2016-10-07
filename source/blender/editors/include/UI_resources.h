@@ -320,13 +320,13 @@ struct bThemeState {
 void    UI_ThemeColor(int colorid);
 
 // sets the color plus alpha
-void    UI_ThemeColor4(int colorid);
+void	UI_ThemeColor4(int colorid);
 
 // sets color plus offset for shade
-void    UI_ThemeColorShade(int colorid, int offset);
+void	UI_ThemeColorShade(int colorid, int offset);
 
 // sets color plus offset for alpha
-void    UI_ThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset);
+void	UI_ThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset);
 
 // sets color, which is blend between two theme colors
 void    UI_ThemeColorBlend(int colorid1, int colorid2, float fac);
@@ -352,6 +352,7 @@ void    UI_GetThemeColorShade3ubv(int colorid, int offset, unsigned char col[3])
 void    UI_GetThemeColor4fv(int colorid, float col[4]);
 // get four color values, range 0.0-1.0, complete with shading offset for the RGB components
 void    UI_GetThemeColorShade4fv(int colorid, int offset, float col[4]);
+void	UI_GetThemeColorShadeAlpha4fv(int colorid, int coloffset, int alphaoffset, float col[4]);
 
 // get the 3 or 4 byte values
 void UI_GetThemeColor3ubv(int colorid, unsigned char col[3]);

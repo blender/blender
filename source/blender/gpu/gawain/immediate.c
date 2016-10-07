@@ -655,6 +655,11 @@ void immUniformColor3fv(const float rgb[3])
 	immUniform4f("color", rgb[0], rgb[1], rgb[2], 1.0f);
 	}
 
+void immUniformColor3fvAlpha(float rgb[3], float alpha)
+	{
+	immUniform4f("color",rgb[0], rgb[1], rgb[2], alpha);
+	}
+
 void immUniformColor4fv(const float rgba[4])
 	{
 	immUniform4f("color", rgba[0], rgba[1], rgba[2], rgba[3]);
@@ -680,6 +685,11 @@ void immUniformColor3ubv(const unsigned char rgb[3])
 void immUniformColor4ubv(const unsigned char rgba[4])
 	{
 	immUniformColor4ub(rgba[0], rgba[1], rgba[2], rgba[3]);
+	}
+
+void immUniformColor4f(float r, float g, float b, float a)
+	{
+	immUniform4f("color", r, g, b, a);
 	}
 
 void immUniform1i(const char *name, const unsigned int data)
