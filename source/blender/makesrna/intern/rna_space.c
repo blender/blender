@@ -2738,7 +2738,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 
 	/* *** Blender 2.8 Viewport temporary *** */
 	prop = RNA_def_property(srna, "use_modern_viewport", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag3", V3D_NEW_VIEWPORT);
+	RNA_def_property_boolean_sdna(prop, NULL, "tmp_compat_flag", V3D_NEW_VIEWPORT);
 	RNA_def_property_ui_text(prop, "Modern Viewport", "Use modern viewport");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
