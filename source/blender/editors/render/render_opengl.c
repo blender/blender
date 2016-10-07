@@ -131,6 +131,7 @@ typedef struct OGLRender {
 	wmTimer *timer; /* use to check if running modal or not (invoke'd or exec'd)*/
 	void **movie_ctx_arr;
 
+	TaskScheduler *task_scheduler;
 	TaskPool *task_pool;
 	bool pool_ok;
 	bool is_animation;
@@ -693,11 +694,14 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 	if (is_animation) {
 		TaskScheduler *task_scheduler = BLI_task_scheduler_get();
 		if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
+			task_scheduler = BLI_task_scheduler_create(1);
+			oglrender->task_scheduler = task_scheduler;
 			oglrender->task_pool = BLI_task_pool_create_background(task_scheduler,
 			                                                       oglrender);
 			BLI_pool_set_num_threads(oglrender->task_pool, 1);
 		}
 		else {
+			oglrender->task_scheduler = NULL;
 			oglrender->task_pool = BLI_task_pool_create(task_scheduler,
 			                                            oglrender);
 		}
@@ -705,6 +709,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 		BLI_spin_init(&oglrender->reports_lock);
 	}
 	else {
+		oglrender->task_scheduler = NULL;
 		oglrender->task_pool = NULL;
 	}
 
@@ -724,6 +729,7 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 	if (oglrender->is_animation) {
 		BLI_task_pool_work_and_wait(oglrender->task_pool);
 		BLI_task_pool_free(oglrender->task_pool);
+		BLI_task_scheduler_free(oglrender->task_scheduler);
 		BLI_spin_end(&oglrender->reports_lock);
 	}
 
