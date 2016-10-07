@@ -367,11 +367,6 @@ void immEnd()
 	imm.strict_vertex_ct = true;
 	imm.vertex_idx = 0;
 	imm.attrib_value_bits = 0;
-
-	// further optional cleanup
-//	imm.buffer_bytes_mapped = 0;
-//	imm.buffer_data = NULL;
-//	imm.vertex_data = NULL;
 	}
 
 static void setAttribValueBit(unsigned attrib_id)
@@ -384,6 +379,9 @@ static void setAttribValueBit(unsigned attrib_id)
 
 	imm.attrib_value_bits |= mask;
 	}
+
+
+// --- generic attribute functions ---
 
 void immAttrib1f(unsigned attrib_id, float x)
 	{
@@ -556,7 +554,7 @@ void immAttrib4ubv(unsigned attrib_id, const unsigned char data[4])
 	immAttrib4ub(attrib_id, data[0], data[1], data[2], data[3]);
 	}
 
-void immEndVertex()
+static void immEndVertex(void) // and move on to the next vertex
 	{
 #if TRUST_NO_ONE
 	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
@@ -586,7 +584,7 @@ void immEndVertex()
 				}
 			}
 		}
-	
+
 	imm.vertex_idx++;
 	imm.vertex_data += imm.vertex_format.stride;
 	imm.attrib_value_bits = 0;
@@ -622,8 +620,17 @@ void immVertex3fv(unsigned attrib_id, const float data[3])
 	immEndVertex();
 	}
 
+void immVertex2iv(unsigned attrib_id, const int data[2])
+	{
+	immAttrib2i(attrib_id, data[0], data[1]);
+	immEndVertex();
+	}
+
+
+// --- generic uniform functions ---
+
 void immUniform1f(const char* name, float x)
-{
+	{
 	int loc = glGetUniformLocation(imm.bound_program, name);
 
 #if TRUST_NO_ONE
@@ -631,7 +638,7 @@ void immUniform1f(const char* name, float x)
 #endif
 
 	glUniform1f(loc, x);
-}
+	}
 
 void immUniform4f(const char* name, float x, float y, float z, float w)
 	{
@@ -644,10 +651,28 @@ void immUniform4f(const char* name, float x, float y, float z, float w)
 	glUniform4f(loc, x, y, z, w);
 	}
 
-void immVertex2iv(unsigned attrib_id, const int data[2])
+void immUniform1i(const char* name, int x)
 	{
-	immAttrib2i(attrib_id, data[0], data[1]);
-	immEndVertex();
+	int loc = glGetUniformLocation(imm.bound_program, name);
+
+#if TRUST_NO_ONE
+	assert(loc != -1);
+#endif
+
+	glUniform1i(loc, x);
+	}
+
+
+// --- convenience functions for setting "uniform vec4 color" ---
+
+void immUniformColor4f(float r, float g, float b, float a)
+	{
+	immUniform4f("color", r, g, b, a);
+	}
+
+void immUniformColor4fv(const float rgba[4])
+	{
+	immUniform4f("color", rgba[0], rgba[1], rgba[2], rgba[3]);
 	}
 
 void immUniformColor3fv(const float rgb[3])
@@ -655,15 +680,12 @@ void immUniformColor3fv(const float rgb[3])
 	immUniform4f("color", rgb[0], rgb[1], rgb[2], 1.0f);
 	}
 
-void immUniformColor3fvAlpha(float rgb[3], float alpha)
+void immUniformColor3fvAlpha(const float rgb[3], float a)
 	{
-	immUniform4f("color",rgb[0], rgb[1], rgb[2], alpha);
+	immUniform4f("color", rgb[0], rgb[1], rgb[2], a);
 	}
 
-void immUniformColor4fv(const float rgba[4])
-	{
-	immUniform4f("color", rgba[0], rgba[1], rgba[2], rgba[3]);
-	}
+// TODO: v-- treat as sRGB? --v
 
 void immUniformColor3ub(unsigned char r, unsigned char g, unsigned char b)
 	{
@@ -685,20 +707,4 @@ void immUniformColor3ubv(const unsigned char rgb[3])
 void immUniformColor4ubv(const unsigned char rgba[4])
 	{
 	immUniformColor4ub(rgba[0], rgba[1], rgba[2], rgba[3]);
-	}
-
-void immUniformColor4f(float r, float g, float b, float a)
-	{
-	immUniform4f("color", r, g, b, a);
-	}
-
-void immUniform1i(const char *name, const unsigned int data)
-	{
-	int loc = glGetUniformLocation(imm.bound_program, name);
-
-#if TRUST_NO_ONE
-	assert(loc != -1);
-#endif
-
-	glUniform1i(loc, data);
 	}
