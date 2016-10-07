@@ -1660,6 +1660,8 @@ void init_userdef_do_versions(void)
 		U.tw_size = 25;          /* percentage of window size */
 		U.tw_handlesize = 16;    /* percentage of widget radius */
 	}
+	if (U.manipulator_scale == 0)
+		U.manipulator_scale = 75;
 	if (U.pad_rot_angle == 0.0f)
 		U.pad_rot_angle = 15.0f;
 	

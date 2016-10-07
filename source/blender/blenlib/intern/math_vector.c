@@ -772,6 +772,20 @@ void ortho_v2_v2(float out[2], const float v[2])
 }
 
 /**
+ * Rotate a point \a p by \a angle around origin (0, 0)
+ */
+void rotate_v2_v2fl(float r[2], const float p[2], const float angle)
+{
+	const float co = cosf(angle);
+	const float si = sinf(angle);
+
+	BLI_assert(r != p);
+
+	r[0] = co * p[0] - si * p[1];
+	r[1] = si * p[0] + co * p[1];
+}
+
+/**
  * Rotate a point \a p by \a angle around an arbitrary unit length \a axis.
  * http://local.wasp.uwa.edu.au/~pbourke/geometry/
  */

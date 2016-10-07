@@ -265,9 +265,10 @@ typedef struct ARegion {
 	ListBase ui_previews;		/* uiPreview */
 	ListBase handlers;			/* wmEventHandler */
 	ListBase panels_category;	/* Panel categories runtime */
-	
+
+	struct wmManipulatorMap *manipulator_map; /* manipulator-map of this region */
 	struct wmTimer *regiontimer; /* blend in/out */
-	
+
 	char *headerstr;			/* use this string to draw info */
 	void *regiondata;			/* XXX 2.50, need spacedata equivalent? */
 } ARegion;

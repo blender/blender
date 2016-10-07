@@ -42,6 +42,9 @@
 #include "WM_keymap.h"
 #include "BLI_compiler_attrs.h"
 
+/* Include external manipulator API's */
+#include "manipulators/WM_manipulator_api.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -70,6 +73,9 @@ struct wmNDOFMotionData;
 #endif
 
 typedef struct wmJob wmJob;
+typedef struct wmManipulator wmManipulator;
+typedef struct wmManipulatorMap wmManipulatorMap;
+typedef struct wmManipulatorMapType wmManipulatorMapType;
 
 /* general API */
 void		WM_init_state_size_set		(int stax, int stay, int sizx, int sizy);

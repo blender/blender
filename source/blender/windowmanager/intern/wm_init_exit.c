@@ -169,6 +169,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 
 	BKE_library_callback_free_window_manager_set(wm_close_and_free);   /* library.c */
 	BKE_library_callback_free_notifier_reference_set(WM_main_remove_notifier_reference);   /* library.c */
+	BKE_region_callback_free_manipulatormap_set(wm_manipulatormap_delete); /* screen.c */
 	BKE_library_callback_remap_editor_id_reference_set(WM_main_remap_editor_id_reference);   /* library.c */
 	BKE_blender_callback_test_break_set(wm_window_testbreak); /* blender.c */
 	BKE_spacedata_callback_id_remap_set(ED_spacedata_id_remap); /* screen.c */
@@ -528,6 +529,9 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	ED_gpencil_anim_copybuf_free();
 	ED_gpencil_strokes_copybuf_free();
 	BKE_node_clipboard_clear();
+
+	/* free manipulator-maps after freeing blender, so no deleted data get accessed during cleaning up of areas */
+	wm_manipulatormaptypes_free();
 
 	BLF_exit();
 

@@ -1069,6 +1069,9 @@ static void region_cursor_set(wmWindow *win, int swinid, int swin_changed)
 		for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
 			if (ar->swinid == swinid) {
 				if (swin_changed || (ar->type && ar->type->event_cursor)) {
+					if (WM_manipulatormap_cursor_set(ar->manipulator_map, win)) {
+						return;
+					}
 					ED_region_cursor_set(win, sa, ar);
 				}
 				return;

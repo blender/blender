@@ -1672,7 +1672,12 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			wm_handler_op_context(C, handler, event);
 			wm_region_mouse_co(C, event);
 			wm_event_modalkeymap(C, op, event, &dbl_click_disabled);
-			
+
+			/* attach manipulator-map to handler if not there yet */
+			if (ot->mgrouptype && !handler->manipulator_map) {
+				wm_manipulatorgroup_attach_to_modal_handler(C, handler, ot->mgrouptype, op);
+			}
+
 			if (ot->flag & OPTYPE_UNDO)
 				wm->op_undo_depth++;
 
@@ -1720,6 +1725,9 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 					CTX_wm_area_set(C, NULL);
 					CTX_wm_region_set(C, NULL);
 				}
+
+				/* update manipulators during modal handlers */
+				wm_manipulatormaps_handled_modal_update(C, event, handler, ot);
 
 				/* remove modal handler, operator itself should have been canceled and freed */
 				if (retval & (OPERATOR_CANCELLED | OPERATOR_FINISHED)) {
@@ -2088,6 +2096,71 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 							}
 						}
 					}
+				}
+			}
+			else if (handler->manipulator_map) {
+				ScrArea *area = CTX_wm_area(C);
+				ARegion *region = CTX_wm_region(C);
+				wmManipulatorMap *mmap = handler->manipulator_map;
+				wmManipulator *manipulator = wm_manipulatormap_get_highlighted_manipulator(mmap);
+				unsigned char part;
+
+				wm_manipulatormap_handler_context(C, handler);
+				wm_region_mouse_co(C, event);
+
+				/* handle manipulator highlighting */
+				if (event->type == MOUSEMOVE && !wm_manipulatormap_get_active_manipulator(mmap)) {
+					manipulator = wm_manipulatormap_find_highlighted_manipulator(mmap, C, event, &part);
+					wm_manipulatormap_set_highlighted_manipulator(mmap, C, manipulator, part);
+				}
+				/* handle user configurable manipulator-map keymap */
+				else if (manipulator) {
+					/* get user customized keymap from default one */
+					const wmManipulatorGroup *highlightgroup = wm_manipulator_get_parent_group(manipulator);
+					const wmKeyMap *keymap = WM_keymap_active(wm, highlightgroup->type->keymap);
+					wmKeyMapItem *kmi;
+
+					PRINT("%s:   checking '%s' ...", __func__, keymap->idname);
+
+					if (!keymap->poll || keymap->poll(C)) {
+						PRINT("pass\n");
+						for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
+							if (wm_eventmatch(event, kmi)) {
+								wmOperator *op = handler->op;
+
+								PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
+
+								/* weak, but allows interactive callback to not use rawkey */
+								event->keymap_idname = kmi->idname;
+
+								/* handler->op is called later, we want keymap op to be triggered here */
+								handler->op = NULL;
+								action |= wm_handler_operator_call(C, handlers, handler, event, kmi->ptr);
+								handler->op = op;
+
+								if (action & WM_HANDLER_BREAK) {
+									if (action & WM_HANDLER_HANDLED) {
+										if (G.debug & (G_DEBUG_EVENTS | G_DEBUG_HANDLERS))
+											printf("%s:       handled - and pass on! '%s'\n", __func__, kmi->idname);
+									}
+									else {
+										PRINT("%s:       un-handled '%s'\n", __func__, kmi->idname);
+									}
+								}
+							}
+						}
+					}
+					else {
+						PRINT("fail\n");
+					}
+				}
+
+				/* restore the area */
+				CTX_wm_area_set(C, area);
+				CTX_wm_region_set(C, region);
+
+				if (handler->op) {
+					action |= wm_handler_operator_call(C, handlers, handler, event, NULL);
 				}
 			}
 			else {

@@ -25,6 +25,8 @@
 
 set(INC
 	.
+	manipulators
+	manipulators/intern
 	../blenfont
 	../blenkernel
 	../blenlib
@@ -68,6 +70,10 @@ set(SRC
 	intern/wm_subwindow.c
 	intern/wm_window.c
 	intern/wm_stereo.c
+	manipulators/intern/wm_manipulator.c
+	manipulators/intern/wm_manipulatorgroup.c
+	manipulators/intern/wm_manipulatormap.c
+	manipulators/intern/manipulator_library/manipulator_library_utils.c
 
 	WM_api.h
 	WM_keymap.h
@@ -80,6 +86,11 @@ set(SRC
 	wm_files.h
 	wm_subwindow.h
 	wm_window.h
+	manipulators/WM_manipulator_api.h
+	manipulators/WM_manipulator_types.h
+	manipulators/wm_manipulator_wmapi.h
+	manipulators/intern/wm_manipulator_intern.h
+	manipulators/intern/manipulator_library/manipulator_library_intern.h
 )
 
 if(WITH_AUDASPACE)

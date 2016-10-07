@@ -49,6 +49,7 @@ struct bScreen;
 struct uiLayout;
 struct uiList;
 struct wmKeyConfig;
+struct wmManipulatorMap;
 struct wmNotifier;
 struct wmWindow;
 struct wmWindowManager;
@@ -95,6 +96,9 @@ typedef struct SpaceType {
 	void (*keymap)(struct wmKeyConfig *);
 	/* on startup, define dropboxes for spacetype+regions */
 	void (*dropboxes)(void);
+
+	/* initialize manipulator-map-types and manipulator-group-types with the region */
+	void (*manipulators)(void);
 
 	/* return context data */
 	int (*context)(const struct bContext *, const char *, struct bContextDataResult *);
@@ -284,6 +288,8 @@ void BKE_spacedata_id_unref(struct ScrArea *sa, struct SpaceLink *sl, struct ID 
 struct ARegion *BKE_area_region_copy(struct SpaceType *st, struct ARegion *ar);
 void            BKE_area_region_free(struct SpaceType *st, struct ARegion *ar);
 void            BKE_screen_area_free(struct ScrArea *sa);
+/* Manipulator-maps of a region need to be freed with the region. Uses callback to avoid low-level call. */
+void BKE_region_callback_free_manipulatormap_set(void (*callback)(struct wmManipulatorMap *));
 
 struct ARegion *BKE_area_find_region_type(struct ScrArea *sa, int type);
 struct ARegion *BKE_area_find_region_active_win(struct ScrArea *sa);

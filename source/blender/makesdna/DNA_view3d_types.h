@@ -111,7 +111,7 @@ typedef struct RegionView3D {
 	struct wmTimer *smooth_timer;
 
 
-	/* transform widget matrix */
+	/* transform manipulator matrix */
 	float twmat[4][4];
 
 	float viewquat[4];			/* view rotation, must be kept normalized */
@@ -202,7 +202,7 @@ typedef struct View3D {
 	short gridsubdiv;	/* Number of subdivisions in the grid between each highlighted grid line */
 	char gridflag;
 
-	/* transform widget info */
+	/* transform manipulator info */
 	char twtype, twmode, twflag;
 	
 	short flag3;
