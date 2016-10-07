@@ -2977,6 +2977,31 @@ class VIEW3D_MT_edit_gpencil_transform(Menu):
 # ********** Panel **********
 
 
+class VIEW3D_PT_viewport_debug(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Modern Viewport"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        view = context.space_data
+        return (view)
+
+    def draw_header(self, context):
+        view = context.space_data
+        self.layout.prop(view, "use_modern_viewport", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        view = context.space_data
+
+        layout.active = view.use_modern_viewport
+
+        col = layout.column()
+        col.label(text="Placeholder for debugging options")
+
+
 class VIEW3D_PT_grease_pencil(GreasePencilDataPanel, Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -3632,31 +3657,6 @@ class VIEW3D_PT_context_properties(Panel):
         if member:
             # Draw with no edit button
             rna_prop_ui.draw(self.layout, context, member, object, False)
-
-
-class VIEW3D_PT_viewport_debug(Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_label = "..."
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        view = context.space_data
-        return (view)
-
-    def draw_header(self, context):
-        view = context.space_data
-        self.layout.prop(view, "use_modern_viewport")
-
-    def draw(self, context):
-        layout = self.layout
-        view = context.space_data
-
-        layout.active = view.use_modern_viewport
-
-        col = layout.column()
-        col.label(text="Placeholder for debugging options")
 
 
 def register():
