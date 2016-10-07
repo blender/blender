@@ -842,7 +842,7 @@ static void write_result_func(TaskPool * __restrict pool,
 	const int cfra = task_data->cfra;
 	bool ok;
 	/* Don't attempt to write if we've got an error. */
-	if (!oglrender->pool_ok) {
+	if (!oglrender->pool_ok || G.is_break) {
 		RE_FreeRenderResult(rr);
 		return;
 	}
