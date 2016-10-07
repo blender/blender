@@ -841,6 +841,11 @@ static void write_result_func(TaskPool * __restrict pool,
 	const bool is_movie = BKE_imtype_is_movie(scene->r.im_format.imtype);
 	const int cfra = task_data->cfra;
 	bool ok;
+	/* Don't attempt to write if we've got an error. */
+	if (!oglrender->pool_ok) {
+		RE_FreeRenderResult(rr);
+		return;
+	}
 	/* Construct local thread0safe copy of reports structure which we can
 	 * safely pass to the underlying functions.
 	 */
@@ -907,6 +912,7 @@ static void write_result_func(TaskPool * __restrict pool,
 static bool schedule_write_result(OGLRender *oglrender, RenderResult *rr)
 {
 	if (!oglrender->pool_ok) {
+		RE_FreeRenderResult(rr);
 		return false;
 	}
 	Scene *scene = oglrender->scene;
