@@ -581,48 +581,54 @@ static void gp_draw_stroke_3d(const bGPDspoint *points, int totpoints, short thi
 	float fpt[3];
 	float cyclic_fpt[3];
 
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
+
 	/* draw stroke curve */
 	glLineWidth(max_ff(curpressure * thickness, 1.0f));
-	glBegin(GL_LINE_STRIP);
+	immBeginAtMost(GL_LINE_STRIP, totpoints);
 	const bGPDspoint *pt = points;
 	for (int i = 0; i < totpoints; i++, pt++) {
-		gp_set_point_color(pt, ink);
+		gp_set_point_varying_color(pt, ink, color);
 
 		/* if there was a significant pressure change, stop the curve, change the thickness of the stroke,
 		 * and continue drawing again (since line-width cannot change in middle of GL_LINE_STRIP)
 		 * Note: we want more visible levels of pressures when thickness is bigger.
 		 */
 		if (fabsf(pt->pressure - curpressure) > 0.2f / (float)thickness) {
-			glEnd();
+			immEnd();
 			curpressure = pt->pressure;
 			glLineWidth(max_ff(curpressure * thickness, 1.0f));
-			glBegin(GL_LINE_STRIP);
+			immBeginAtMost(GL_LINE_STRIP, totpoints - i + 1);
 
 			/* need to roll-back one point to ensure that there are no gaps in the stroke */
 			if (i != 0) { 
 				const bGPDspoint *pt2 = pt - 1;
 				mul_v3_m4v3(fpt, diff_mat, &pt2->x);
-				glVertex3fv(fpt);
+				immVertex3fv(pos, fpt);
 			}
+		}
 
-			/* now the point we want... */
-			mul_v3_m4v3(fpt, diff_mat, &pt->x);
-			glVertex3fv(fpt);
-		}
-		else {
-			mul_v3_m4v3(fpt, diff_mat, &pt->x);
-			glVertex3fv(fpt);
-		}
-		/* saves first point to use in cyclic */
-		if (i == 0) {
+		/* now the point we want */
+		mul_v3_m4v3(fpt, diff_mat, &pt->x);
+		immVertex3fv(pos, fpt);
+
+		if (cyclic && i == 0) {
+			/* save first point to use in cyclic */
 			copy_v3_v3(cyclic_fpt, fpt);
 		}
 	}
-	/* if cyclic draw line to first point */
+
 	if (cyclic) {
-		glVertex3fv(cyclic_fpt);
+		/* draw line to first point to complete the cycle */
+		immVertex3fv(pos, cyclic_fpt);
 	}
-	glEnd();
+
+	immEnd();
+	immUnbindProgram();
 
 #if 0 /* convert to modern GL only if needed */
 	/* draw debug points of curve on top? */
