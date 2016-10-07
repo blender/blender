@@ -499,6 +499,8 @@ static void gp_draw_stroke_fill(
 		}
 		glEnd();
 	}
+
+#if 0 /* convert to modern GL only if needed */
 	else {
 		/* As an initial implementation, we use the OpenGL filled polygon drawing
 		* here since it's the easiest option to implement for this case. It does
@@ -528,6 +530,7 @@ static void gp_draw_stroke_fill(
 
 		glEnd();
 	}
+#endif
 }
 
 /* ----- Existing Strokes Drawing (3D and Point) ------ */
@@ -571,7 +574,7 @@ static void gp_draw_stroke_point(
 }
 
 /* draw a given stroke in 3d (i.e. in 3d-space), using simple ogl lines */
-static void gp_draw_stroke_3d(const bGPDspoint *points, int totpoints, short thickness, bool debug,
+static void gp_draw_stroke_3d(const bGPDspoint *points, int totpoints, short thickness, bool UNUSED(debug),
                               short UNUSED(sflag), const float diff_mat[4][4], const float ink[4], bool cyclic)
 {
 	float curpressure = points[0].pressure;
@@ -621,6 +624,7 @@ static void gp_draw_stroke_3d(const bGPDspoint *points, int totpoints, short thi
 	}
 	glEnd();
 
+#if 0 /* convert to modern GL only if needed */
 	/* draw debug points of curve on top? */
 	/* XXX: for now, we represent "selected" strokes in the same way as debug, which isn't used anymore */
 	if (debug) {
@@ -634,6 +638,7 @@ static void gp_draw_stroke_3d(const bGPDspoint *points, int totpoints, short thi
 		}
 		glEnd();
 	}
+#endif
 }
 
 /* ----- Fancy 2D-Stroke Drawing ------ */
@@ -808,6 +813,7 @@ static void gp_draw_stroke_2d(const bGPDspoint *points, int totpoints, short thi
 		glShadeModel(GL_SMOOTH);
 	}
 
+#if 0 /* convert to modern GL only if needed */
 	/* draw debug points of curve on top? (original stroke points) */
 	if (debug) {
 		glPointSize((float)(thickness_s + 2));
@@ -823,6 +829,7 @@ static void gp_draw_stroke_2d(const bGPDspoint *points, int totpoints, short thi
 		}
 		glEnd();
 	}
+#endif
 }
 
 /* ----- Strokes Drawing ------ */
@@ -1053,7 +1060,7 @@ static void gp_draw_strokes_edit(
 			 * available here and seems to work quite well without */
 			bglPolygonOffset(1.0f, 1.0f);
 #if 0
-			glEnable(GL_POLYGON_OFFSET_LINE);
+			glEnable(GL_POLYGON_OFFSET_LINE); /* do we want LINE or POINT here? (merwin) */
 			glPolygonOffset(-1.0f, -1.0f);
 #endif
 		}
@@ -1313,7 +1320,7 @@ static void gp_draw_data_layers(
 		/* calculate parent position */
 		ED_gpencil_parent_location(gpl, diff_mat);
 
-		bool debug = (gpl->flag & GP_LAYER_DRAWDEBUG) ? true : false;
+		bool debug = (gpl->flag & GP_LAYER_DRAWDEBUG);
 		short lthick = brush->thickness + gpl->thickness;
 
 		/* don't draw layer if hidden */
@@ -1381,9 +1388,6 @@ static void gp_draw_data_layers(
 		if (ED_gpencil_session_active() && (gpl->flag & GP_LAYER_ACTIVE) &&
 		    (gpf->flag & GP_FRAME_PAINT))
 		{
-			/* Set color for drawing buffer stroke - since this may not be set yet */
-			// glColor4fv(gpl->color);
-
 			/* Buffer stroke needs to be drawn with a different linestyle
 			 * to help differentiate them from normal strokes.
 			 * 
@@ -1450,8 +1454,10 @@ static void gp_draw_data(
         const bGPDbrush *brush, float alpha, bGPdata *gpd,
         int offsx, int offsy, int winx, int winy, int cfra, int dflag)
 {
+#if 0 /* disable to see if really needed. re-enable or delete by Dec 2016 */
 	/* reset line drawing style (in case previous user didn't reset) */
 	setlinestyle(0);
+#endif
 
 	/* turn on smooth lines (i.e. anti-aliasing) */
 	glEnable(GL_LINE_SMOOTH);
@@ -1472,8 +1478,10 @@ static void gp_draw_data(
 	glDisable(GL_BLEND); // alpha blending
 	glDisable(GL_LINE_SMOOTH); // smooth lines
 
+#if 0 /* disable to see if really needed. re-enable or delete by Dec 2016 */
 	/* restore initial gl conditions */
 	glColor4f(0, 0, 0, 1);
+#endif
 }
 
 /* if we have strokes for scenes (3d view)/clips (movie clip editor)
@@ -1589,8 +1597,8 @@ void ED_gpencil_draw_2dimage(const bContext *C)
 }
 
 /* draw grease-pencil sketches to specified 2d-view assuming that matrices are already set correctly
- * Note: this gets called twice - first time with onlyv2d=1 to draw 'canvas' strokes,
- * second time with onlyv2d=0 for screen-aligned strokes */
+ * Note: this gets called twice - first time with onlyv2d=true to draw 'canvas' strokes,
+ * second time with onlyv2d=false for screen-aligned strokes */
 void ED_gpencil_draw_view2d(const bContext *C, bool onlyv2d)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
@@ -1622,8 +1630,8 @@ void ED_gpencil_draw_view2d(const bContext *C, bool onlyv2d)
 }
 
 /* draw grease-pencil sketches to specified 3d-view assuming that matrices are already set correctly
- * Note: this gets called twice - first time with only3d=1 to draw 3d-strokes,
- * second time with only3d=0 for screen-aligned strokes */
+ * Note: this gets called twice - first time with only3d=true to draw 3d-strokes,
+ * second time with only3d=false for screen-aligned strokes */
 void ED_gpencil_draw_view3d(wmWindowManager *wm, Scene *scene, View3D *v3d, ARegion *ar, bool only3d)
 {
 	int dflag = 0;
