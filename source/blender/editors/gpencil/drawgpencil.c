@@ -442,41 +442,55 @@ static void gp_triangulate_stroke_fill(bGPDstroke *gps)
 /* draw fills for shapes */
 static void gp_draw_stroke_fill(
         bGPdata *gpd, bGPDstroke *gps,
-        int offsx, int offsy, int winx, int winy, const float diff_mat[4][4])
+        int offsx, int offsy, int winx, int winy, const float diff_mat[4][4], const float color[4])
 {
-	bGPDpalettecolor *palcolor;
 	float fpt[3];
 
 	BLI_assert(gps->totpoints >= 3);
 
-	palcolor = ED_gpencil_stroke_getcolor(gpd, gps);
+	bGPDpalettecolor *palcolor = ED_gpencil_stroke_getcolor(gpd, gps);
 
 	/* Triangulation fill if high quality flag is enabled */
 	if (palcolor->flag & PC_COLOR_HQ_FILL) {
-		bGPDtriangle *stroke_triangle = gps->triangles;
-		bGPDspoint *pt;
-
 		/* Calculate triangles cache for filling area (must be done only after changes) */
 		if ((gps->flag & GP_STROKE_RECALC_CACHES) || (gps->tot_triangles == 0) || (gps->triangles == NULL)) {
 			gp_triangulate_stroke_fill(gps);
 		}
-		/* Draw all triangles for filling the polygon (cache must be calculated before) */
 		BLI_assert(gps->tot_triangles >= 1);
-		glBegin(GL_TRIANGLES);
+
+		unsigned pos;
+		if (gps->flag & GP_STROKE_3DSPACE) {
+			pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+		}
+		else {
+			pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+		}
+
+		immUniformColor4fv(color);
+
+		/* Draw all triangles for filling the polygon (cache must be calculated before) */
+		immBegin(GL_TRIANGLES, gps->tot_triangles * 3);
+		/* TODO: use batch instead of immediate mode, to share vertices */
+
+		bGPDtriangle *stroke_triangle = gps->triangles;
+		bGPDspoint *pt;
+
 		for (int i = 0; i < gps->tot_triangles; i++, stroke_triangle++) {
 			if (gps->flag & GP_STROKE_3DSPACE) {
 				/* vertex 1 */
 				pt = &gps->points[stroke_triangle->v1];
 				mul_v3_m4v3(fpt, diff_mat, &pt->x);
-				glVertex3fv(fpt);
+				immVertex3fv(pos, fpt);
 				/* vertex 2 */
 				pt = &gps->points[stroke_triangle->v2];
 				mul_v3_m4v3(fpt, diff_mat, &pt->x);
-				glVertex3fv(fpt);
+				immVertex3fv(pos, fpt);
 				/* vertex 3 */
 				pt = &gps->points[stroke_triangle->v3];
 				mul_v3_m4v3(fpt, diff_mat, &pt->x);
-				glVertex3fv(fpt);
+				immVertex3fv(pos, fpt);
 			}
 			else {
 				float co[2];
@@ -484,20 +498,22 @@ static void gp_draw_stroke_fill(
 				pt = &gps->points[stroke_triangle->v1];
 				mul_v3_m4v3(fpt, diff_mat, &pt->x);
 				gp_calc_2d_stroke_fxy(fpt, gps->flag, offsx, offsy, winx, winy, co);
-				glVertex2fv(co);
+				immVertex2fv(pos, co);
 				/* vertex 2 */
 				pt = &gps->points[stroke_triangle->v2];
 				mul_v3_m4v3(fpt, diff_mat, &pt->x);
 				gp_calc_2d_stroke_fxy(fpt, gps->flag, offsx, offsy, winx, winy, co);
-				glVertex2fv(co);
+				immVertex2fv(pos, co);
 				/* vertex 3 */
 				pt = &gps->points[stroke_triangle->v3];
 				mul_v3_m4v3(fpt, diff_mat, &pt->x);
 				gp_calc_2d_stroke_fxy(fpt, gps->flag, offsx, offsy, winx, winy, co);
-				glVertex2fv(co);
+				immVertex2fv(pos, co);
 			}
 		}
-		glEnd();
+
+		immEnd();
+		immUnbindProgram();
 	}
 
 #if 0 /* convert to modern GL only if needed */
@@ -934,19 +950,20 @@ static void gp_draw_strokes(
 				interp_v3_v3v3(tfill, palcolor->fill, tintcolor, tintcolor[3]);
 				tfill[3] = palcolor->fill[3] * opacity;
 				if (tfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) {
+					const float *color;
 					if (!onion) {
-						glColor4fv(tfill);
+						color = tfill;
 					}
 					else {
 						if (custonion) {
-							glColor4fv(tintcolor);
+							color = tintcolor;
 						}
 						else {
 							ARRAY_SET_ITEMS(tfill, UNPACK3(palcolor->fill), tintcolor[3]);
-							glColor4fv(tfill);
+							color = tfill;
 						}
 					}
-					gp_draw_stroke_fill(gpd, gps, offsx, offsy, winx, winy, diff_mat);
+					gp_draw_stroke_fill(gpd, gps, offsx, offsy, winx, winy, diff_mat, color);
 				}
 			}
 
@@ -999,20 +1016,21 @@ static void gp_draw_strokes(
 				interp_v3_v3v3(tfill, palcolor->fill, tintcolor, tintcolor[3]);
 				tfill[3] = palcolor->fill[3] * opacity;
 				if (tfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) {
+					const float *color;
 					if (!onion) {
-						glColor4fv(tfill);
+						color = tfill;
 					}
 					else {
 						if (custonion) {
-							glColor4fv(tintcolor);
+							color = tintcolor;
 						}
 						else {
 							ARRAY_SET_ITEMS(tfill, palcolor->fill[0], palcolor->fill[1], palcolor->fill[2],
 							                tintcolor[3]);
-							glColor4fv(tfill);
+							color = tfill;
 						}
 					}
-					gp_draw_stroke_fill(gpd, gps, offsx, offsy, winx, winy, diff_mat);
+					gp_draw_stroke_fill(gpd, gps, offsx, offsy, winx, winy, diff_mat, color);
 				}
 			}
 
