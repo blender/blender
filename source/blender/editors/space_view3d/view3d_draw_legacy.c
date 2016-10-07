@@ -1911,7 +1911,7 @@ static void draw_dupli_objects_color(
 		glDeleteLists(displist, 1);
 }
 
-static void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, Base *base)
+void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, Base *base)
 {
 	/* define the color here so draw_dupli_objects_color can be called
 	 * from the set loop */
@@ -2381,22 +2381,7 @@ static void view3d_draw_objects(
 		view3d_draw_clipping(rv3d);
 
 	/* set zbuffer after we draw clipping region */
-	if (v3d->drawtype > OB_WIRE) {
-		v3d->zbuf = true;
-	}
-	else {
-		v3d->zbuf = false;
-	}
-
-	/* special case (depth for wire color) */
-	if (v3d->drawtype <= OB_WIRE) {
-		if (scene->obedit && scene->obedit->type == OB_MESH) {
-			Mesh *me = scene->obedit->data;
-			if (me->drawflag & ME_DRAWEIGHT) {
-				v3d->zbuf = true;
-			}
-		}
-	}
+	v3d->zbuf = VP_legacy_use_depth(scene, v3d);
 
 	if (v3d->zbuf) {
 		glEnable(GL_DEPTH_TEST);
@@ -3252,6 +3237,10 @@ bool ED_view3d_calc_render_border(Scene *scene, View3D *v3d, ARegion *ar, rcti *
 	return true;
 }
 
+/**
+  * IMPORTANT: this is deprecated, any changes made in this function should
+  * be mirrored in view3d_draw_render_draw() in view3d_draw.c
+  */
 static bool view3d_main_region_draw_engine(const bContext *C, Scene *scene,
                                          ARegion *ar, View3D *v3d,
                                          bool clip_border, const rcti *border_rect)

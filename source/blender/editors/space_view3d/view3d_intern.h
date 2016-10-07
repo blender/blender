@@ -326,5 +326,7 @@ void VP_legacy_drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool
 void VP_legacy_view3d_main_region_setup_view(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[4][4], float winmat[4][4]);
 bool VP_legacy_view3d_stereo3d_active(const struct bContext *C, Scene *scene, View3D *v3d, RegionView3D *rv3d);
 void VP_legacy_view3d_stereo3d_setup(Scene *scene, View3D *v3d, ARegion *ar);
+void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, Base *base);
+bool VP_legacy_use_depth(Scene *scene, View3D *v3d);
 
 #endif /* __VIEW3D_INTERN_H__ */
