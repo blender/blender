@@ -60,6 +60,7 @@ static void initData(ModifierData *md)
 	collmd->time_x = collmd->time_xnew = -1000;
 	collmd->mvert_num = 0;
 	collmd->tri_num = 0;
+	collmd->is_static = false;
 	collmd->bvhtree = NULL;
 }
 
@@ -87,6 +88,7 @@ static void freeData(ModifierData *md)
 		collmd->time_x = collmd->time_xnew = -1000;
 		collmd->mvert_num = 0;
 		collmd->tri_num = 0;
+		collmd->is_static = false;
 	}
 }
 
@@ -169,6 +171,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 				        ob->pd->pdef_sboft);
 
 				collmd->time_x = collmd->time_xnew = current_time;
+				collmd->is_static = true;
 			}
 			else if (mvert_num == collmd->mvert_num) {
 				/* put positions to old positions */
@@ -179,14 +182,19 @@ static void deformVerts(ModifierData *md, Object *ob,
 
 				memcpy(collmd->xnew, dm->getVertArray(dm), mvert_num * sizeof(MVert));
 
+				bool is_static = true;
+
 				for (i = 0; i < mvert_num; i++) {
 					/* we save global positions */
 					mul_m4_v3(ob->obmat, collmd->xnew[i].co);
+
+					/* detect motion */
+					is_static = is_static && equals_v3v3(collmd->x[i].co, collmd->xnew[i].co);
 				}
-				
+
 				memcpy(collmd->current_xnew, collmd->x, mvert_num * sizeof(MVert));
 				memcpy(collmd->current_x, collmd->x, mvert_num * sizeof(MVert));
-				
+
 				/* check if GUI setting has changed for bvh */
 				if (collmd->bvhtree) {
 					if (ob->pd->pdef_sboft != BLI_bvhtree_get_epsilon(collmd->bvhtree)) {
@@ -206,7 +214,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 					        collmd->tri, collmd->tri_num,
 					        ob->pd->pdef_sboft);
 				}
-				else {
+				else if (!collmd->is_static || !is_static) {
 					/* recalc static bounding boxes */
 					bvhtree_update_from_mvert(
 					        collmd->bvhtree,
@@ -214,7 +222,8 @@ static void deformVerts(ModifierData *md, Object *ob,
 					        collmd->tri, collmd->tri_num,
 					        true);
 				}
-				
+
+				collmd->is_static = is_static;
 				collmd->time_xnew = current_time;
 			}
 			else if (mvert_num != collmd->mvert_num) {
