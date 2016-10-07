@@ -730,12 +730,13 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool wr
 
 			/* draw normal grid lines */
 			UI_GetColorPtrShade3ubv(col_grid, col_grid_light, 10);
-			immAttrib3ubv(color, col_grid_light);
 
 			for (int a = 1; a <= gridlines; a++) {
 				/* skip emphasised divider lines */
 				if (a % sublines != 0) {
 					const float line = a * grid_scale;
+
+					immAttrib3ubv(color, col_grid_light);
 
 					immVertex2f(pos, -grid, -line);
 					immVertex2f(pos, +grid, -line);
