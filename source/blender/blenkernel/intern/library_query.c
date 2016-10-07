@@ -968,6 +968,10 @@ static int foreach_libblock_id_users_callback(void *user_data, ID *self_id, ID *
 	if ((GS(self_id->name) == ID_KE) && (((Key *)self_id)->from == *id_p)) {
 		return IDWALK_RET_NOP;
 	}
+	/* XXX another hack, for similar reasons as above one. */
+	if ((GS(self_id->name) == ID_OB) && (((Object *)self_id)->proxy_from == (Object *)*id_p)) {
+		return IDWALK_RET_NOP;
+	}
 
 	if (*id_p && (*id_p == iter->id)) {
 #if 0

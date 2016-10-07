@@ -3200,9 +3200,9 @@ static void rna_def_skin_vertices(BlenderRNA *brna, PropertyRNA *UNUSED(cprop))
 	RNA_def_struct_ui_text(srna, "Skin Vertex", "Per-vertex skin data for use with the Skin modifier");
 	RNA_def_struct_path_func(srna, "rna_MeshSkinVertex_path");
 
-	prop = RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "radius", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_array(prop, 2);
-	RNA_def_property_ui_range(prop, 0.001, 100, 1, 3);
+	RNA_def_property_ui_range(prop, 0.001, 100.0, 1, 3);
 	RNA_def_property_ui_text(prop, "Radius", "Radius of the skin");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
