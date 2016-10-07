@@ -5,7 +5,7 @@
 
   varying vec4 finalColor;
 #else
-  in vec2 pos;
+  in vec3 pos;
   in vec4 color;
 
   out vec4 finalColor;
