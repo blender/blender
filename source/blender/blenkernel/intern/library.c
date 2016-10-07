@@ -1725,10 +1725,10 @@ void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged
 						Object *ob = (Object *)id;
 						Object *ob_new = (Object *)id->newid;
 
-						/* Proxies only work when the proxied object is linked-in from a library. */
+						/* Proxies only work when the proxified object is linked-in from a library. */
 						if (ob->proxy->id.lib == NULL) {
 							printf("Warning, proxy object %s will loose its link to %s, because the "
-							       "proxied object is local.\n", id->newid->name, ob->proxy->id.name);
+							       "proxified object is local.\n", id->newid->name, ob->proxy->id.name);
 						}
 						/* We can only switch the proxy'ing to a made-local proxy if it is no longer
 						 * referred to from a library. Not checking for local use; if new local proxy
