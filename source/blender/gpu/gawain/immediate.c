@@ -133,12 +133,12 @@ static bool vertex_count_makes_sense_for_primitive(unsigned vertex_ct, GLenum pr
 			return vertex_ct % 2 == 0;
 		case GL_LINE_STRIP:
 		case GL_LINE_LOOP:
-			return vertex_ct > 2; // otherwise why bother?
+			return vertex_ct >= 2;
 		case GL_TRIANGLES:
 			return vertex_ct % 3 == 0;
 		case GL_TRIANGLE_STRIP:
 		case GL_TRIANGLE_FAN:
-			return vertex_ct > 3; // otherwise why bother?
+			return vertex_ct >= 3;
   #ifdef WITH_GL_PROFILE_COMPAT
 		case GL_QUADS:
 			return vertex_ct % 4 == 0;
