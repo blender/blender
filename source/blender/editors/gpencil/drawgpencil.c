@@ -60,7 +60,6 @@
 
 #include "WM_api.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "GPU_immediate.h"
@@ -102,26 +101,12 @@ typedef enum eDrawStrokeFlags {
 
 /* ----- Tool Buffer Drawing ------ */
 /* helper functions to set color of buffer point */
-static void gp_set_tpoint_color(const tGPspoint *pt, const float ink[4])
-{
-	float alpha = ink[3] * pt->strength;
-	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
-	glColor4f(ink[0], ink[1], ink[2], alpha);
-}
 
 static void gp_set_tpoint_varying_color(const tGPspoint *pt, const float ink[4], unsigned attrib_id)
 {
 	float alpha = ink[3] * pt->strength;
 	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
 	immAttrib4ub(attrib_id, F2UB(ink[0]), F2UB(ink[1]), F2UB(ink[2]), F2UB(alpha));
-}
-
-/* helper functions to set color of point */
-static void gp_set_point_color(const bGPDspoint *pt, const float ink[4])
-{
-	float alpha = ink[3] * pt->strength;
-	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
-	glColor4f(ink[0], ink[1], ink[2], alpha);
 }
 
 static void gp_set_point_uniform_color(const bGPDspoint *pt, const float ink[4])
@@ -136,13 +121,6 @@ static void gp_set_point_varying_color(const bGPDspoint *pt, const float ink[4],
 	float alpha = ink[3] * pt->strength;
 	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
 	immAttrib4ub(attrib_id, F2UB(ink[0]), F2UB(ink[1]), F2UB(ink[2]), F2UB(alpha));
-}
-
-/* helper function to set color and point */
-static void gp_set_color_and_tpoint(const tGPspoint *pt, const float ink[4])
-{
-	gp_set_tpoint_color(pt, ink);
-	glVertex2iv(&pt->x);
 }
 
 /* draw stroke defined in buffer (simple ogl lines/points for now, as dotted lines) */
