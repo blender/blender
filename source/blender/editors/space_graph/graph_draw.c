@@ -50,6 +50,9 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "GPU_draw.h"
+#include "GPU_immediate.h"
+
 #include "ED_anim_api.h"
 
 #include "graph_intern.h"
@@ -121,16 +124,37 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm, View2D *v2d)
 
 /* Points ---------------- */
 
-/* helper func - draw keyframe vertices only for an F-Curve */
-static void draw_fcurve_vertices_keyframes(FCurve *fcu, SpaceIpo *UNUSED(sipo), View2D *v2d, short edit, short sel)
+/* helper func - set color to draw F-Curve data with */
+static void set_fcurve_vertex_color(FCurve *fcu, bool sel)
 {
-	BezTriple *bezt = fcu->bezt;
+	/* Fade the 'intensity' of the vertices based on the selection of the curves too */
+	int alphaOffset = (int)((fcurve_display_alpha(fcu) - 1.0f) * 255);
+
+	float color[3];
+
+	/* Set color of curve vertex based on state of curve (i.e. 'Edit' Mode) */
+	if ((fcu->flag & FCURVE_PROTECTED) == 0) {
+		/* Curve's points ARE BEING edited */
+		UI_GetThemeColorShadeAlpha4fv(sel ? TH_VERTEX_SELECT : TH_VERTEX, 0, alphaOffset, color);
+	}
+	else {
+		/* Curve's points CANNOT BE edited */
+		UI_GetThemeColorShadeAlpha4fv(sel ? TH_TEXT_HI : TH_TEXT, 0, alphaOffset, color);
+	}
+
+	immUniformColor4fv(color);
+}
+
+static void draw_fcurve_selected_keyframe_vertices(FCurve *fcu, View2D *v2d, bool edit, bool sel, unsigned pos)
+{
 	const float fac = 0.05f * BLI_rctf_size_x(&v2d->cur);
-	int i;
-	
-	glBegin(GL_POINTS);
-	
-	for (i = 0; i < fcu->totvert; i++, bezt++) {
+
+	set_fcurve_vertex_color(fcu, sel);
+
+	immBeginAtMost(GL_POINTS, fcu->totvert);
+
+	BezTriple *bezt = fcu->bezt;
+	for (int i = 0; i < fcu->totvert; i++, bezt++) {
 		/* as an optimization step, only draw those in view 
 		 *	- we apply a correction factor to ensure that points don't pop in/out due to slight twitches of view size
 		 */
@@ -141,80 +165,50 @@ static void draw_fcurve_vertices_keyframes(FCurve *fcu, SpaceIpo *UNUSED(sipo), 
 				 *	- 
 				 */
 				if ((bezt->f2 & SELECT) == sel)
-					glVertex3fv(bezt->vec[1]);
+					immVertex2fv(pos, bezt->vec[1]);
 			}
 			else {
 				/* no check for selection here, as curve is not editable... */
 				/* XXX perhaps we don't want to even draw points?   maybe add an option for that later */
-				glVertex3fv(bezt->vec[1]);
+				immVertex2fv(pos, bezt->vec[1]);
 			}
 		}
 	}
-	
-	glEnd();
+
+	immEnd();
 }
 
-
-/* helper func - draw handle vertex for an F-Curve as a round unfilled circle 
- * NOTE: the caller MUST HAVE GL_LINE_SMOOTH & GL_BLEND ENABLED, otherwise, the controls don't 
- * have a consistent appearance (due to off-pixel alignments)...
- */
-static void draw_fcurve_handle_control(float x, float y, float xscale, float yscale, float hsize)
+/* helper func - draw keyframe vertices only for an F-Curve */
+static void draw_fcurve_keyframe_vertices(FCurve *fcu, View2D *v2d, bool edit, unsigned pos)
 {
-	static GLuint displist = 0;
-	
-	/* initialize round circle shape */
-	if (displist == 0) {
-		GLUquadricObj *qobj;
-		
-		displist = glGenLists(1);
-		glNewList(displist, GL_COMPILE);
-		
-		qobj    = gluNewQuadric();
-		gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
-		gluDisk(qobj, 0,  0.7, 8, 1);
-		gluDeleteQuadric(qobj);  
-		
-		glEndList();
-	}
-	
-	/* adjust view transform before starting */
-	glTranslatef(x, y, 0.0f);
-	glScalef(1.0f / xscale * hsize, 1.0f / yscale * hsize, 1.0f);
-	
-	/* draw! */
-	glCallList(displist);
-	
-	/* restore view transform */
-	glScalef(xscale / hsize, yscale / hsize, 1.0);
-	glTranslatef(-x, -y, 0.0f);
+	immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_SMOOTH);
+
+	immUniform1f("size", UI_GetThemeValuef(TH_VERTEX_SIZE) * U.pixelsize);
+
+	draw_fcurve_selected_keyframe_vertices(fcu, v2d, edit, false, pos);
+	draw_fcurve_selected_keyframe_vertices(fcu, v2d, edit, true, pos);
+
+	immUnbindProgram();
 }
+
 
 /* helper func - draw handle vertices only for an F-Curve (if it is not protected) */
-static void draw_fcurve_vertices_handles(FCurve *fcu, SpaceIpo *sipo, View2D *v2d, short sel, short sel_handle_only, float units_scale)
+static void draw_fcurve_selected_handle_vertices(FCurve *fcu, View2D *v2d, bool sel, bool sel_handle_only, unsigned pos)
 {
+	(void) v2d; /* TODO: use this to draw only points in view */
+
+	/* set handle color */
+	float hcolor[3];
+	UI_GetThemeColor3fv(sel ? TH_HANDLE_VERTEX_SELECT : TH_HANDLE_VERTEX, hcolor);
+	immUniform4f("outlineColor", hcolor[0], hcolor[1], hcolor[2], 1.0f);
+	immUniformColor3fvAlpha(hcolor, 0.4f);
+
+	immBeginAtMost(GL_POINTS, fcu->totvert * 2);
+
 	BezTriple *bezt = fcu->bezt;
 	BezTriple *prevbezt = NULL;
-	float hsize, xscale, yscale;
-	int i;
-	
-	/* get view settings */
-	hsize = UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE) * U.pixelsize;
-	UI_view2d_scale_get(v2d, &xscale, &yscale);
-
-	/* Compensate OGL scale sued for unit mapping, so circle will be circle, not ellipse */
-	yscale *= units_scale;
-	
-	/* set handle color */
-	if (sel) UI_ThemeColor(TH_HANDLE_VERTEX_SELECT);
-	else UI_ThemeColor(TH_HANDLE_VERTEX);
-	
-	/* anti-aliased lines for more consistent appearance */
-	if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) glEnable(GL_LINE_SMOOTH);
-	glEnable(GL_BLEND);
-	
-	for (i = 0; i < fcu->totvert; i++, prevbezt = bezt, bezt++) {
-		/* Draw the editmode handles for a bezier curve (others don't have handles) 
+	for (int i = 0; i < fcu->totvert; i++, prevbezt = bezt, bezt++) {
+		/* Draw the editmode handles for a bezier curve (others don't have handles)
 		 * if their selection status matches the selection status we're drawing for
 		 *	- first handle only if previous beztriple was bezier-mode
 		 *	- second handle only if current beztriple is bezier-mode
@@ -225,68 +219,61 @@ static void draw_fcurve_vertices_handles(FCurve *fcu, SpaceIpo *sipo, View2D *v2
 		if (!sel_handle_only || BEZT_ISSEL_ANY(bezt)) {
 			if ((!prevbezt && (bezt->ipo == BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ))) {
 				if ((bezt->f1 & SELECT) == sel) /* && v2d->cur.xmin < bezt->vec[0][0] < v2d->cur.xmax)*/
-					draw_fcurve_handle_control(bezt->vec[0][0], bezt->vec[0][1], xscale, yscale, hsize);
+					immVertex2fv(pos, bezt->vec[0]);
 			}
-			
+
 			if (bezt->ipo == BEZT_IPO_BEZ) {
 				if ((bezt->f3 & SELECT) == sel) /* && v2d->cur.xmin < bezt->vec[2][0] < v2d->cur.xmax)*/
-					draw_fcurve_handle_control(bezt->vec[2][0], bezt->vec[2][1], xscale, yscale, hsize);
+					immVertex2fv(pos, bezt->vec[2]);
 			}
 		}
 	}
-	
-	if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) glDisable(GL_LINE_SMOOTH);
-	glDisable(GL_BLEND);
+
+	immEnd();
 }
 
-/* helper func - set color to draw F-Curve data with */
-static void set_fcurve_vertex_color(FCurve *fcu, short sel)
+/* helper func - draw handle vertices only for an F-Curve (if it is not protected) */
+static void draw_fcurve_handle_vertices(FCurve *fcu, View2D *v2d, bool sel_handle_only, unsigned pos)
 {
-	/* Fade the 'intensity' of the vertices based on the selection of the curves too */
-	int alphaOffset = (int)((fcurve_display_alpha(fcu) - 1.0f) * 255);
-	
-	/* Set color of curve vertex based on state of curve (i.e. 'Edit' Mode) */
-	if ((fcu->flag & FCURVE_PROTECTED) == 0) {
-		/* Curve's points ARE BEING edited */
-		if (sel) UI_ThemeColorShadeAlpha(TH_VERTEX_SELECT, 0, alphaOffset); 
-		else UI_ThemeColorShadeAlpha(TH_VERTEX, 0, alphaOffset);
-	}
-	else {
-		/* Curve's points CANNOT BE edited */
-		if (sel) UI_ThemeColorShadeAlpha(TH_TEXT_HI, 0, alphaOffset);
-		else UI_ThemeColorShadeAlpha(TH_TEXT, 0, alphaOffset);
-	}
+	/* smooth outlines for more consistent appearance */
+	immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_SMOOTH);
+
+	/* set handle size */
+	immUniform1f("size", (UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE) + 1.0f) * U.pixelsize);
+	immUniform1f("outlineWidth", 1.0f * U.pixelsize);
+
+	draw_fcurve_selected_handle_vertices(fcu, v2d, false, sel_handle_only, pos);
+	draw_fcurve_selected_handle_vertices(fcu, v2d, true, sel_handle_only, pos);
+
+	immUnbindProgram();
 }
 
 
-static void draw_fcurve_vertices(SpaceIpo *sipo, ARegion *ar, FCurve *fcu, short do_handles, short sel_handle_only, float units_scale)
+static void draw_fcurve_vertices(ARegion *ar, FCurve *fcu, bool do_handles, bool sel_handle_only)
 {
 	View2D *v2d = &ar->v2d;
-	
+
 	/* only draw points if curve is visible 
-	 *  - draw unselected points before selected points as separate passes to minimize color-changing overhead
-	 *	   (XXX dunno if this is faster than drawing all in one pass though) 
-	 *     and also to make sure in the case of overlapping points that the selected is always visible
+	 *  - draw unselected points before selected points as separate passes
+	 *     to make sure in the case of overlapping points that the selected is always visible
 	 *	- draw handles before keyframes, so that keyframes will overlap handles (keyframes are more important for users)
 	 */
-	
-	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
-	
+
+	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+	glEnable(GL_BLEND);
+	GPU_enable_program_point_size();
+
 	/* draw the two handles first (if they're shown, the curve doesn't have just a single keyframe, and the curve is being edited) */
 	if (do_handles) {
-		set_fcurve_vertex_color(fcu, 0);
-		draw_fcurve_vertices_handles(fcu, sipo, v2d, 0, sel_handle_only, units_scale);
-		
-		set_fcurve_vertex_color(fcu, 1);
-		draw_fcurve_vertices_handles(fcu, sipo, v2d, 1, sel_handle_only, units_scale);
+		draw_fcurve_handle_vertices(fcu, v2d, sel_handle_only, pos);
 	}
-		
+
 	/* draw keyframes over the handles */
-	set_fcurve_vertex_color(fcu, 0);
-	draw_fcurve_vertices_keyframes(fcu, sipo, v2d, !(fcu->flag & FCURVE_PROTECTED), 0);
-	
-	set_fcurve_vertex_color(fcu, 1);
-	draw_fcurve_vertices_keyframes(fcu, sipo, v2d, !(fcu->flag & FCURVE_PROTECTED), 1);
+	draw_fcurve_keyframe_vertices(fcu, v2d, !(fcu->flag & FCURVE_PROTECTED), pos);
+
+	GPU_disable_program_point_size();
+	glDisable(GL_BLEND);
 }
 
 /* Handles ---------------- */
@@ -303,10 +290,10 @@ static bool draw_fcurve_handles_check(SpaceIpo *sipo, FCurve *fcu)
 	        (fcu->totvert <= 1) /* do not show handles if there is only 1 keyframe, otherwise they all clump together in an ugly ball */
 	        )
 	{
-		return 0;
+		return false;
 	}
 	else {
-		return 1;
+		return true;
 	}
 }
 
@@ -1080,7 +1067,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 						glDisable(GL_BLEND);
 					}
 					
-					draw_fcurve_vertices(sipo, ar, fcu, do_handles, (sipo->flag & SIPO_SELVHANDLESONLY), unit_scale);
+					draw_fcurve_vertices(ar, fcu, do_handles, (sipo->flag & SIPO_SELVHANDLESONLY));
 				}
 				else {
 					/* samples: only draw two indicators at either end as indicators */
