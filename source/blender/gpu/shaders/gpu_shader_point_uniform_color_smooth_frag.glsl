@@ -20,5 +20,6 @@ void main() {
 // ...
 // dist = 0 at center of point
 
-	fragColor = mix(color, vec4(0.0), smoothstep(radii[1], radii[0], dist));
+	fragColor.rgb = color.rgb;
+	fragColor.a = mix(color.a, 0.0, smoothstep(radii[1], radii[0], dist));
 }
