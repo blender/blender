@@ -320,7 +320,7 @@ void immEnd()
 		{
 #if TRUST_NO_ONE
 		assert(imm.vertex_idx <= imm.vertex_ct);
-		assert(vertex_count_makes_sense_for_primitive(imm.vertex_idx, imm.primitive));
+		assert(imm.vertex_idx == 0 || vertex_count_makes_sense_for_primitive(imm.vertex_idx, imm.primitive));
 #endif
 		// printf("used %u of %u verts,", imm.vertex_idx, imm.vertex_ct);
 		imm.vertex_ct = imm.vertex_idx;
@@ -351,9 +351,11 @@ void immEnd()
 #endif
 		glUnmapBuffer(GL_ARRAY_BUFFER);
 
-		immDrawSetup();
-
-		glDrawArrays(imm.primitive, 0, imm.vertex_ct);
+		if (imm.vertex_ct > 0)
+			{
+			immDrawSetup();
+			glDrawArrays(imm.primitive, 0, imm.vertex_ct);
+			}
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
