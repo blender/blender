@@ -84,6 +84,31 @@ unsigned add_attrib(VertexFormat* format, const char* name, GLenum comp_type, un
 #if TRUST_NO_ONE
 	assert(format->attrib_ct < MAX_VERTEX_ATTRIBS); // there's room for more
 	assert(!format->packed); // packed means frozen/locked
+	assert(comp_ct >= 1 && comp_ct <= 4);
+	switch (comp_type)
+		{
+		case GL_FLOAT:
+			// float type can only kept as float
+			assert(fetch_mode == KEEP_FLOAT);
+			break;
+	#if 0 // enable this after switching to our own enum for comp_type
+		default:
+			// integer types can be kept as int or converted/normalized to float
+			assert(fetch_mode != KEEP_FLOAT);
+	#else
+		case GL_BYTE:
+		case GL_UNSIGNED_BYTE:
+		case GL_SHORT:
+		case GL_UNSIGNED_SHORT:
+		case GL_INT:
+		case GL_UNSIGNED_INT:
+			// integer types can be converted, normalized, or kept as int
+			assert(fetch_mode != KEEP_FLOAT);
+			break;
+		default:
+			assert(false); // invalid comp_type
+	#endif
+		}
 #endif
 
 	const unsigned attrib_id = format->attrib_ct++;
