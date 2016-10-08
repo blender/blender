@@ -91,21 +91,30 @@ static void region_draw_emboss(const ARegion *ar, const rcti *scirct)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
+	VertexFormat* format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+	immBegin(GL_LINE_STRIP, 5);
+	
 	/* right  */
-	glColor4ub(0, 0, 0, 30);
-	sdrawline(rect.xmax, rect.ymin, rect.xmax, rect.ymax);
+	immAttrib4ub(color, 0, 0, 0, 30);
+	immVertex2f(pos, rect.xmax, rect.ymax);
+	immVertex2f(pos, rect.xmax, rect.ymin);
 	
 	/* bottom  */
-	glColor4ub(0, 0, 0, 30);
-	sdrawline(rect.xmin, rect.ymin, rect.xmax, rect.ymin);
+	immVertex2f(pos, rect.xmin, rect.ymin);
 	
-	/* top  */
-	glColor4ub(255, 255, 255, 30);
-	sdrawline(rect.xmin, rect.ymax, rect.xmax, rect.ymax);
-
 	/* left  */
-	glColor4ub(255, 255, 255, 30);
-	sdrawline(rect.xmin, rect.ymin, rect.xmin, rect.ymax);
+	immAttrib4ub(color, 255, 255, 255, 30);
+	immVertex2f(pos, rect.xmin, rect.ymax);
+
+	/* top  */
+	immVertex2f(pos, rect.xmax, rect.ymax);
+	
+	immEnd();
+	immUnbindProgram();
 	
 	glDisable(GL_BLEND);
 }
