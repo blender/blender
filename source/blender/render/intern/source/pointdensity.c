@@ -333,7 +333,16 @@ static void pointdensity_cache_vertex_color(PointDensity *pd, Object *UNUSED(ob)
 	
 	for (i = 0; i < totloop; i++) {
 		int v = mloop[i].v;
-		rgb_uchar_to_float(&data_color[v*3], &mcol[i].r);
+
+		if (mcorners[v] == 0) {
+			rgb_uchar_to_float(&data_color[v * 3], &mcol[i].r);
+		}
+		else {
+			float col[3];
+			rgb_uchar_to_float(col, &mcol[i].r);
+			add_v3_v3(&data_color[v * 3], col);
+		}
+
 		++mcorners[v];
 	}
 	
