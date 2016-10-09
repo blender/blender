@@ -71,6 +71,10 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+//#include "GPU_draw.h"
+//#include "GPU_basic_shader.h"
+#include "GPU_immediate.h"
+
 #include "filelist.h"
 
 #include "file_intern.h"    // own include
@@ -467,7 +471,15 @@ static void draw_dividers(FileLayout *layout, View2D *v2d)
 	const int step = (layout->tile_w + 2 * layout->tile_border_x);
 	int v1[2], v2[2];
 	int sx;
+	unsigned int vertex_ct = 0;
 	unsigned char col_hi[3], col_lo[3];
+
+	VertexFormat* format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+	unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+
+	vertex_ct = (v2d->cur.xmax - v2d->tot.xmin) / step + 1; /* paint at least 1 divider */
+	vertex_ct *= 4; /* vertex_count = 2 points per divider * 2 lines per divider */
 
 	UI_GetThemeColorShade3ubv(TH_BACK,  30, col_hi);
 	UI_GetThemeColorShade3ubv(TH_BACK, -30, col_lo);
@@ -475,25 +487,27 @@ static void draw_dividers(FileLayout *layout, View2D *v2d)
 	v1[1] = v2d->cur.ymax - layout->tile_border_y;
 	v2[1] = v2d->cur.ymin;
 
-	glBegin(GL_LINES);
+	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+	immBegin(GL_LINES, vertex_ct);
 
 	/* vertical column dividers */
 	sx = (int)v2d->tot.xmin;
 	while (sx < v2d->cur.xmax) {
 		sx += step;
 
-		glColor3ubv(col_lo);
 		v1[0] = v2[0] = sx;
-		glVertex2iv(v1);
-		glVertex2iv(v2);
+		immAttrib3ubv(color, col_lo);
+		immVertex2iv(pos, v1);
+		immVertex2iv(pos, v2);
 
-		glColor3ubv(col_hi);
 		v1[0] = v2[0] = sx + 1;
-		glVertex2iv(v1);
-		glVertex2iv(v2);
+		immAttrib3ubv(color, col_hi);
+		immVertex2iv(pos, v1);
+		immVertex2iv(pos, v2);
 	}
 
-	glEnd();
+	immEnd();
+	immUnbindProgram();
 }
 
 void file_draw_list(const bContext *C, ARegion *ar)
