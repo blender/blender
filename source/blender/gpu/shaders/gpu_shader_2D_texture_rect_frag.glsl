@@ -4,6 +4,7 @@
 #else
   in vec2 texture_coord;
   out vec4 fragColor;
+  #define texture2DRect texture
 #endif
 
 uniform float alpha;
