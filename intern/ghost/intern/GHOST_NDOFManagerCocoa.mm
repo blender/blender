@@ -200,8 +200,8 @@ static void DeviceEvent(uint32_t unused, uint32_t msg_type, void* msg_arg)
 				case kConnexionCmdHandleAxis:
 				{
 					// convert to blender view coordinates
-					const short t[3] = {s->axis[0], -(s->axis[2]), s->axis[1]};
-					const short r[3] = {-(s->axis[3]), s->axis[5], -(s->axis[4])};
+					const int t[3] = {s->axis[0], -(s->axis[2]), s->axis[1]};
+					const int r[3] = {-(s->axis[3]), s->axis[5], -(s->axis[4])};
 
 					ndof_manager->updateTranslation(t, now);
 					ndof_manager->updateRotation(r, now);

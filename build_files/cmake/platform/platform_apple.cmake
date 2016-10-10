@@ -24,7 +24,11 @@
 # Libraries configuration for Apple.
 
 if(NOT DEFINED LIBDIR)
-	set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-9.x.universal)
+	if(WITH_CXX11)
+		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin)
+	else()
+		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-9.x.universal)
+	endif()
 else()
 	message(STATUS "Using pre-compiled LIBDIR: ${LIBDIR}")
 endif()
@@ -74,7 +78,7 @@ if(WITH_CODEC_SNDFILE)
 	set(SNDFILE ${LIBDIR}/sndfile)
 	set(SNDFILE_INCLUDE_DIRS ${SNDFILE}/include)
 	set(SNDFILE_LIBRARIES sndfile FLAC ogg vorbis vorbisenc)
-	set(SNDFILE_LIBPATH ${SNDFILE}/lib ${FFMPEG}/lib)  # TODO, deprecate
+	set(SNDFILE_LIBPATH ${SNDFILE}/lib ${LIBDIR}/ffmpeg/lib)  # TODO, deprecate
 endif()
 
 if(WITH_PYTHON)
@@ -132,7 +136,17 @@ if(WITH_IMAGE_OPENEXR)
 	set(OPENEXR ${LIBDIR}/openexr)
 	set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
 	set(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCLUDE_DIR} ${OPENEXR}/include/OpenEXR)
-	set(OPENEXR_LIBRARIES Iex Half IlmImf Imath IlmThread)
+	if(WITH_CXX11)
+		set(OPENEXR_POSTFIX -2_2)
+	else()
+		set(OPENEXR_POSTFIX)
+	endif()
+	set(OPENEXR_LIBRARIES
+		Iex${OPENEXR_POSTFIX}
+		Half
+		IlmImf${OPENEXR_POSTFIX}
+		Imath${OPENEXR_POSTFIX}
+		IlmThread${OPENEXR_POSTFIX})
 	set(OPENEXR_LIBPATH ${OPENEXR}/lib)
 endif()
 
@@ -143,7 +157,20 @@ if(WITH_CODEC_FFMPEG)
 		avcodec avdevice avformat avutil
 		mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg
 	)
+	if(WITH_CXX11)
+		set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} schroedinger orc vpx)
+	endif()
 	set(FFMPEG_LIBPATH ${FFMPEG}/lib)
+endif()
+
+if(WITH_OPENJPEG OR WITH_CODEC_FFMPEG)
+	# use openjpeg from libdir that is linked into ffmpeg
+	if(WITH_CXX11)
+		set(OPENJPEG ${LIBDIR}/openjpeg)
+		set(WITH_SYSTEM_OPENJPEG ON)
+		set(OPENJPEG_INCLUDE_DIRS ${OPENJPEG}/include)
+		set(OPENJPEG_LIBRARIES ${OPENJPEG}/lib/libopenjpeg.a)
+	endif()
 endif()
 
 find_library(SYSTEMSTUBS_LIBRARY
@@ -223,7 +250,11 @@ if(WITH_SDL)
 	set(SDL_INCLUDE_DIR ${SDL}/include)
 	set(SDL_LIBRARY SDL2)
 	set(SDL_LIBPATH ${SDL}/lib)
-	set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -lazy_framework ForceFeedback")
+	if(WITH_CXX11)
+		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework ForceFeedback")
+	else()
+		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -lazy_framework ForceFeedback")
+	endif()
 endif()
 
 set(PNG "${LIBDIR}/png")
@@ -244,22 +275,27 @@ endif()
 if(WITH_BOOST)
 	set(BOOST ${LIBDIR}/boost)
 	set(BOOST_INCLUDE_DIR ${BOOST}/include)
+	if(WITH_CXX11)
+		set(BOOST_POSTFIX)
+	else()
+		set(BOOST_POSTFIX -mt)
+	endif()
 	set(BOOST_LIBRARIES
-		boost_date_time-mt
-		boost_filesystem-mt
-		boost_regex-mt
-		boost_system-mt
-		boost_thread-mt
-		boost_wave-mt
+		boost_date_time${BOOST_POSTFIX}
+		boost_filesystem${BOOST_POSTFIX}
+		boost_regex${BOOST_POSTFIX}
+		boost_system${BOOST_POSTFIX}
+		boost_thread${BOOST_POSTFIX}
+		boost_wave${BOOST_POSTFIX}
 	)
 	if(WITH_INTERNATIONAL)
-		list(APPEND BOOST_LIBRARIES boost_locale-mt)
+		list(APPEND BOOST_LIBRARIES boost_locale${BOOST_POSTFIX})
 	endif()
 	if(WITH_CYCLES_NETWORK)
-		list(APPEND BOOST_LIBRARIES boost_serialization-mt)
+		list(APPEND BOOST_LIBRARIES boost_serialization${BOOST_POSTFIX})
 	endif()
 	if(WITH_OPENVDB)
-		list(APPEND BOOST_LIBRARIES boost_iostreams-mt)
+		list(APPEND BOOST_LIBRARIES boost_iostreams${BOOST_POSTFIX})
 	endif()
 	set(BOOST_LIBPATH ${BOOST}/lib)
 	set(BOOST_DEFINITIONS)

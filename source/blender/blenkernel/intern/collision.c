@@ -71,6 +71,15 @@ void collision_move_object(CollisionModifierData *collmd, float step, float prev
 	float tv[3] = {0, 0, 0};
 	unsigned int i = 0;
 
+	/* the collider doesn't move this frame */
+	if (collmd->is_static) {
+		for (i = 0; i < collmd->mvert_num; i++) {
+			zero_v3(collmd->current_v[i].co);
+		}
+
+		return;
+	}
+
 	for (i = 0; i < collmd->mvert_num; i++) {
 		sub_v3_v3v3(tv, collmd->xnew[i].co, collmd->x[i].co);
 		VECADDS(collmd->current_x[i].co, collmd->x[i].co, tv, prevstep);

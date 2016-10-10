@@ -619,6 +619,9 @@ typedef struct CollisionModifierData {
 	unsigned int mvert_num;
 	unsigned int tri_num;
 	float time_x, time_xnew;    /* cfra time of modifier */
+	char is_static;             /* collider doesn't move this frame, i.e. x[].co==xnew[].co */
+	char pad[7];
+
 	struct BVHTree *bvhtree;    /* bounding volume hierarchy for this cloth object */
 } CollisionModifierData;
 

@@ -138,8 +138,8 @@ public:
 	//       rotations are + when CCW, - when CW
 	// each platform is responsible for getting axis data into this form
 	// these values should not be scaled (just shuffled or flipped)
-	void updateTranslation(const short t[3], GHOST_TUns64 time);
-	void updateRotation(const short r[3], GHOST_TUns64 time);
+	void updateTranslation(const int t[3], GHOST_TUns64 time);
+	void updateRotation(const int r[3], GHOST_TUns64 time);
 
 	// the latest raw button data from the device
 	// use HID button encoding (not NDOF_ButtonT)
@@ -163,8 +163,8 @@ private:
 	int m_buttonMask;
 	const NDOF_ButtonT *m_hidMap;
 
-	short m_translation[3];
-	short m_rotation[3];
+	int m_translation[3];
+	int m_rotation[3];
 	int m_buttons; // bit field
 
 	GHOST_TUns64 m_motionTime; // in milliseconds

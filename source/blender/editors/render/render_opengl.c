@@ -84,6 +84,10 @@
 #  include "PIL_time.h"
 #endif
 
+// TODO(sergey): Find better approximation of the scheduled frames.
+// For really highres renders it might fail still.
+#define MAX_SCHEDULED_FRAMES 8
+
 typedef struct OGLRender {
 	Main *bmain;
 	Render *re;
@@ -131,10 +135,14 @@ typedef struct OGLRender {
 	wmTimer *timer; /* use to check if running modal or not (invoke'd or exec'd)*/
 	void **movie_ctx_arr;
 
+	TaskScheduler *task_scheduler;
 	TaskPool *task_pool;
 	bool pool_ok;
 	bool is_animation;
 	SpinLock reports_lock;
+	unsigned int num_scheduled_frames;
+	ThreadMutex task_mutex;
+	ThreadCondition task_condition;
 
 #ifdef DEBUG_TIME
 	double time_start;
@@ -693,11 +701,14 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 	if (is_animation) {
 		TaskScheduler *task_scheduler = BLI_task_scheduler_get();
 		if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
+			task_scheduler = BLI_task_scheduler_create(1);
+			oglrender->task_scheduler = task_scheduler;
 			oglrender->task_pool = BLI_task_pool_create_background(task_scheduler,
 			                                                       oglrender);
 			BLI_pool_set_num_threads(oglrender->task_pool, 1);
 		}
 		else {
+			oglrender->task_scheduler = NULL;
 			oglrender->task_pool = BLI_task_pool_create(task_scheduler,
 			                                            oglrender);
 		}
@@ -705,8 +716,12 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 		BLI_spin_init(&oglrender->reports_lock);
 	}
 	else {
+		oglrender->task_scheduler = NULL;
 		oglrender->task_pool = NULL;
 	}
+	oglrender->num_scheduled_frames = 0;
+	BLI_mutex_init(&oglrender->task_mutex);
+	BLI_condition_init(&oglrender->task_condition);
 
 #ifdef DEBUG_TIME
 	oglrender->time_start = PIL_check_seconds_timer();
@@ -724,8 +739,11 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 	if (oglrender->is_animation) {
 		BLI_task_pool_work_and_wait(oglrender->task_pool);
 		BLI_task_pool_free(oglrender->task_pool);
+		BLI_task_scheduler_free(oglrender->task_scheduler);
 		BLI_spin_end(&oglrender->reports_lock);
 	}
+	BLI_mutex_end(&oglrender->task_mutex);
+	BLI_condition_end(&oglrender->task_condition);
 
 #ifdef DEBUG_TIME
 	printf("Total render time: %f\n", PIL_check_seconds_timer() - oglrender->time_start);
@@ -841,6 +859,15 @@ static void write_result_func(TaskPool * __restrict pool,
 	const bool is_movie = BKE_imtype_is_movie(scene->r.im_format.imtype);
 	const int cfra = task_data->cfra;
 	bool ok;
+	/* Don't attempt to write if we've got an error. */
+	if (!oglrender->pool_ok || G.is_break) {
+		RE_FreeRenderResult(rr);
+		BLI_mutex_lock(&oglrender->task_mutex);
+		oglrender->num_scheduled_frames--;
+		BLI_condition_notify_all(&oglrender->task_condition);
+		BLI_mutex_unlock(&oglrender->task_mutex);
+		return;
+	}
 	/* Construct local thread0safe copy of reports structure which we can
 	 * safely pass to the underlying functions.
 	 */
@@ -902,17 +929,29 @@ static void write_result_func(TaskPool * __restrict pool,
 		oglrender->pool_ok = false;
 	}
 	RE_FreeRenderResult(rr);
+	BLI_mutex_lock(&oglrender->task_mutex);
+	oglrender->num_scheduled_frames--;
+	BLI_condition_notify_all(&oglrender->task_condition);
+	BLI_mutex_unlock(&oglrender->task_mutex);
 }
 
 static bool schedule_write_result(OGLRender *oglrender, RenderResult *rr)
 {
 	if (!oglrender->pool_ok) {
+		RE_FreeRenderResult(rr);
 		return false;
 	}
 	Scene *scene = oglrender->scene;
 	WriteTaskData *task_data = MEM_mallocN(sizeof(WriteTaskData), "write task data");
 	task_data->rr = rr;
 	task_data->cfra = scene->r.cfra;
+	BLI_mutex_lock(&oglrender->task_mutex);
+	oglrender->num_scheduled_frames++;
+	if (oglrender->num_scheduled_frames > MAX_SCHEDULED_FRAMES) {
+		BLI_condition_wait(&oglrender->task_condition,
+		                   &oglrender->task_mutex);
+	}
+	BLI_mutex_unlock(&oglrender->task_mutex);
 	BLI_task_pool_push(oglrender->task_pool,
 	                   write_result_func,
 	                   task_data,
