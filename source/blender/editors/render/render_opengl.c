@@ -737,6 +737,8 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 	int i;
 
 	if (oglrender->is_animation) {
+		/* Flag pool for cancel. */
+		oglrender->pool_ok = false;
 		BLI_task_pool_work_and_wait(oglrender->task_pool);
 		BLI_task_pool_free(oglrender->task_pool);
 		BLI_task_scheduler_free(oglrender->task_scheduler);
@@ -860,7 +862,7 @@ static void write_result_func(TaskPool * __restrict pool,
 	const int cfra = task_data->cfra;
 	bool ok;
 	/* Don't attempt to write if we've got an error. */
-	if (!oglrender->pool_ok || G.is_break) {
+	if (!oglrender->pool_ok) {
 		RE_FreeRenderResult(rr);
 		BLI_mutex_lock(&oglrender->task_mutex);
 		oglrender->num_scheduled_frames--;
