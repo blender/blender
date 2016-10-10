@@ -590,13 +590,8 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 1) != 0);
 		bool restrictAnimFPS = (gm->flag & GAME_RESTRICT_ANIM_UPDATES) != 0;
 
-		if (GLEW_ARB_multitexture && GLEW_VERSION_1_1)
-			m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", 1) != 0);
-
-		if (GPU_glsl_support())
-			m_blenderglslmat = (SYS_GetCommandLineInt(syshandle, "blender_glsl_material", 1) != 0);
-		else if (m_globalSettings->matmode == GAME_MAT_GLSL)
-			m_blendermat = false;
+		m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", 1) != 0);
+		m_blenderglslmat = (SYS_GetCommandLineInt(syshandle, "blender_glsl_material", 1) != 0);
 
 		// create the canvas, rasterizer and rendertools
 		m_canvas = new GPG_Canvas(window);
