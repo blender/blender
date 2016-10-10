@@ -72,6 +72,8 @@ set(SRC
 	gawain/element.h
 	gawain/immediate.c
 	gawain/immediate.h
+	gawain/imm_util.c
+	gawain/imm_util.h
 	gawain/vertex_buffer.c
 	gawain/vertex_buffer.h
 	gawain/vertex_format.c
