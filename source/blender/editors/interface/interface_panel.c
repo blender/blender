@@ -65,6 +65,8 @@
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
 
+#include "GPU_immediate.h"
+
 #include "interface_intern.h"
 
 /*********************** defines and structs ************************/
@@ -1518,7 +1520,8 @@ static void ui_panel_category_draw_tab(
         int mode, float minx, float miny, float maxx, float maxy, float rad,
         int roundboxtype,
         const bool use_highlight, const bool use_shadow,
-        const unsigned char highlight_fade[3])
+        const unsigned char highlight_fade[3],
+		const unsigned char col[3])
 {
 	float vec[4][2] = {
 	    {0.195, 0.02},
@@ -1527,74 +1530,88 @@ static void ui_panel_category_draw_tab(
 	    {0.98, 0.805}};
 	int a;
 
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+
 	/* mult */
 	for (a = 0; a < 4; a++) {
 		mul_v2_fl(vec[a], rad);
 	}
 
-	glBegin(mode);
+	if (mode == GL_POLYGON) {
+		mode = GL_TRIANGLE_FAN;
+	}
+
+	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+
+	immBeginAtMost(mode, 24);
+
+	immAttrib3ubv(color, col);
 
 	/* start with corner right-top */
 	if (use_highlight) {
 		if (roundboxtype & UI_CNR_TOP_RIGHT) {
-			glVertex2f(maxx, maxy - rad);
+			immVertex2f(pos, maxx, maxy - rad);
 			for (a = 0; a < 4; a++) {
-				glVertex2f(maxx - vec[a][1], maxy - rad + vec[a][0]);
+				immVertex2f(pos, maxx - vec[a][1], maxy - rad + vec[a][0]);
 			}
-			glVertex2f(maxx - rad, maxy);
+			immVertex2f(pos, maxx - rad, maxy);
 		}
 		else {
-			glVertex2f(maxx, maxy);
+			immVertex2f(pos, maxx, maxy);
 		}
 
 		/* corner left-top */
 		if (roundboxtype & UI_CNR_TOP_LEFT) {
-			glVertex2f(minx + rad, maxy);
+			immVertex2f(pos, minx + rad, maxy);
 			for (a = 0; a < 4; a++) {
-				glVertex2f(minx + rad - vec[a][0], maxy - vec[a][1]);
+				immVertex2f(pos, minx + rad - vec[a][0], maxy - vec[a][1]);
 			}
-			glVertex2f(minx, maxy - rad);
+			immVertex2f(pos, minx, maxy - rad);
 		}
 		else {
-			glVertex2f(minx, maxy);
+			immVertex2f(pos, minx, maxy);
 		}
 	}
 
 	if (use_highlight && !use_shadow) {
 		if (highlight_fade) {
-			glColor3ubv(highlight_fade);
+			immAttrib3ubv(color, highlight_fade);
 		}
-		glVertex2f(minx, miny + rad);
-		glEnd();
+		immVertex2f(pos, minx, miny + rad);
+		immEnd();
+		immUnbindProgram();
 		return;
 	}
 
 	/* corner left-bottom */
 	if (roundboxtype & UI_CNR_BOTTOM_LEFT) {
-		glVertex2f(minx, miny + rad);
+		immVertex2f(pos, minx, miny + rad);
 		for (a = 0; a < 4; a++) {
-			glVertex2f(minx + vec[a][1], miny + rad - vec[a][0]);
+			immVertex2f(pos, minx + vec[a][1], miny + rad - vec[a][0]);
 		}
-		glVertex2f(minx + rad, miny);
+		immVertex2f(pos, minx + rad, miny);
 	}
 	else {
-		glVertex2f(minx, miny);
+		immVertex2f(pos, minx, miny);
 	}
 
 	/* corner right-bottom */
 
 	if (roundboxtype & UI_CNR_BOTTOM_RIGHT) {
-		glVertex2f(maxx - rad, miny);
+		immVertex2f(pos, maxx - rad, miny);
 		for (a = 0; a < 4; a++) {
-			glVertex2f(maxx - rad + vec[a][0], miny + vec[a][1]);
+			immVertex2f(pos, maxx - rad + vec[a][0], miny + vec[a][1]);
 		}
-		glVertex2f(maxx, miny + rad);
+		immVertex2f(pos, maxx, miny + rad);
 	}
 	else {
-		glVertex2f(maxx, miny);
+		immVertex2f(pos, maxx, miny);
 	}
 
-	glEnd();
+	immEnd();
+	immUnbindProgram();
 }
 
 
@@ -1754,19 +1771,19 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 		if (is_active)
 #endif
 		{
-			glColor3ubv(is_active ? theme_col_tab_active : theme_col_tab_inactive);
 			ui_panel_category_draw_tab(GL_POLYGON, rct->xmin, rct->ymin, rct->xmax, rct->ymax,
-			                           tab_curve_radius - px, roundboxtype, true, true, NULL);
+			                           tab_curve_radius - px, roundboxtype, true, true, NULL,
+			                           is_active ? theme_col_tab_active : theme_col_tab_inactive);
 
 			/* tab outline */
-			glColor3ubv(theme_col_tab_outline);
 			ui_panel_category_draw_tab(GL_LINE_STRIP, rct->xmin - px, rct->ymin - px, rct->xmax - px, rct->ymax + px,
-			                           tab_curve_radius, roundboxtype, true, true, NULL);
+			                           tab_curve_radius, roundboxtype, true, true, NULL, theme_col_tab_outline);
+
 			/* tab highlight (3d look) */
-			glColor3ubv(is_active ? theme_col_tab_highlight : theme_col_tab_highlight_inactive);
 			ui_panel_category_draw_tab(GL_LINE_STRIP, rct->xmin, rct->ymin, rct->xmax, rct->ymax,
 			                           tab_curve_radius, roundboxtype, true, false,
-			                           is_active ? theme_col_back : theme_col_tab_inactive);
+			                           is_active ? theme_col_back : theme_col_tab_inactive,
+			                           is_active ? theme_col_tab_highlight : theme_col_tab_highlight_inactive);
 		}
 
 		/* tab blackline */
