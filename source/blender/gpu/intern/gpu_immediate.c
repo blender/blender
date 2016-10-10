@@ -26,10 +26,12 @@
  */
 
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 #include "gpu_shader_private.h"
 
 void immBindBuiltinProgram(GPUBuiltinShader shader_id)
 {
 	GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
 	immBindProgram(shader->program);
+	gpuBindMatrices(shader->program);
 }

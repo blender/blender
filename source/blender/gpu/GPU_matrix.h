@@ -115,6 +115,14 @@ bool gpuUnProject(const float win[3], const float model[4][4], const float proj[
 void gpuOrtho2D(float left, float right, float bottom, float top);
 
 
+/* functions to get matrix values */
+const float *gpuGetModelViewMatrix3D(float m[4][4]);
+const float *gpuGetProjectionMatrix3D(float m[4][4]);
+const float *gpuGetModelViewProjectionMatrix3D(float m[4][4]);
+
+/* set uniform values for currently bound shader */
+void gpuBindMatrices(GLuint program);
+
 #ifdef __cplusplus
 }
 #endif

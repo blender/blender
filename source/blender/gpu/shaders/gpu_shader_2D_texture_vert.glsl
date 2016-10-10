@@ -1,3 +1,6 @@
+
+uniform mat4 ModelViewProjectionMatrix;
+
 #if __VERSION__ == 120
   attribute vec2 texcoord;
   attribute vec3 position;
@@ -11,6 +14,6 @@
 
 void main()
 {
-	gl_Position = gl_ModelViewProjectionMatrix * vec4(position.xyz, 1.0f);
+	gl_Position = ModelViewProjectionMatrix * vec4(position.xyz, 1.0f);
 	texture_coord = texcoord;
 }

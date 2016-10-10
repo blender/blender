@@ -1,4 +1,6 @@
 
+uniform mat4 ModelViewProjectionMatrix;
+
 #if __VERSION__ == 120
   attribute vec3 pos;
   attribute vec4 color;
@@ -11,6 +13,6 @@
 
 void main()
 {
-	gl_Position = gl_ModelViewProjectionMatrix * vec4(pos, 1.0);
+	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
 	finalColor = color;
 }

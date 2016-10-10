@@ -1,4 +1,5 @@
 
+uniform mat4 ModelViewProjectionMatrix;
 uniform float size;
 uniform float outlineWidth;
 
@@ -11,7 +12,7 @@ uniform float outlineWidth;
 #endif
 
 void main() {
-	gl_Position = gl_ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);
+	gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);
 	gl_PointSize = size;
 
 	// calculate concentric radii in pixels

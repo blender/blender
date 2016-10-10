@@ -35,6 +35,10 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 
+/* For now we support the legacy matrix stack in gpuGetMatrix functions.
+ * Will remove this after switching to core profile, which can happen after
+ * we convert all code to use the API in this file. */
+#define SUPPORT_LEGACY_MATRIX 1
 
 #define MATRIX_STACK_DEPTH 32
 
@@ -148,19 +152,6 @@ void gpuLoadMatrix2D(const float m[3][3])
 	copy_m3_m3(ModelView2D, m);
 	CHECKMAT(ModelView2D);
 }
-
-//const float *gpuGetMatrix(eGPUMatrixMode stack, float *m)
-//{
-//	GPU_matrix_stack *ms_select = mstacks + stack;
-//
-//	if (m) {
-//		copy_m4_m4((float (*)[4])m, ms_select->dynstack[ms_select->pos]);
-//		return m;
-//	}
-//	else {
-//		return (float*)(ms_select->dynstack[ms_select->pos]);
-//	}
-//}
 
 void gpuLoadIdentity()
 {
@@ -505,5 +496,115 @@ bool gpuUnProject(const float win[3], const float model[4][4], const float proj[
 		obj[2] = out[2];
 
 		return true;
+	}
+}
+
+const float *gpuGetModelViewMatrix3D(float m[4][4])
+{
+#if SUPPORT_LEGACY_MATRIX
+	if (state.mode == MATRIX_MODE_INACTIVE) {
+		if (m == NULL) {
+			static Mat4 temp;
+			m = temp;
+		}
+
+		glGetFloatv(GL_MODELVIEW_MATRIX, (float*)m);
+		return (const float*)m;		
+	}
+#endif
+
+	BLI_assert(state.mode == MATRIX_MODE_3D);
+
+	if (m) {
+		copy_m4_m4(m, ModelView3D);
+		return (const float*)m;
+	}
+	else {
+		return (const float*)ModelView3D;
+	}
+}
+
+const float *gpuGetProjectionMatrix3D(float m[4][4])
+{
+#if SUPPORT_LEGACY_MATRIX
+	if (state.mode == MATRIX_MODE_INACTIVE) {
+		if (m == NULL) {
+			static Mat4 temp;
+			m = temp;
+		}
+
+		glGetFloatv(GL_PROJECTION_MATRIX, (float*)m);
+		return (const float*)m;
+	}
+#endif
+
+	BLI_assert(state.mode == MATRIX_MODE_3D);
+
+	if (m) {
+		copy_m4_m4(m, ModelView3D);
+		return (const float*)m;
+	}
+	else {
+		return (const float*)ModelView3D;
+	}
+}
+
+const float *gpuGetModelViewProjectionMatrix3D(float m[4][4])
+{
+#if SUPPORT_LEGACY_MATRIX
+	if (state.mode == MATRIX_MODE_INACTIVE) {
+		if (m == NULL) {
+			static Mat4 temp;
+			m = temp;
+		}
+
+		Mat4 proj;
+		glGetFloatv(GL_MODELVIEW_MATRIX, (float*)proj);
+		glGetFloatv(GL_PROJECTION_MATRIX, (float*)m);
+		mul_m4_m4_post(m, proj);
+		return (const float*)m;
+	}
+#endif
+
+	BLI_assert(state.mode == MATRIX_MODE_3D);
+
+	if (m == NULL) {
+		static Mat4 temp;
+		m = temp;
+	}
+
+	mul_m4_m4m4(m, ModelView3D, Projection3D);
+	return (const float*)m;
+}
+
+void gpuBindMatrices(GLuint program)
+{
+	/* TODO: split this into 2 functions
+	 * 1) get uniform locations & determine 2D or 3D
+	 */
+	GLint loc_MV = glGetUniformLocation(program, "ModelViewMatrix");
+	GLint loc_P = glGetUniformLocation(program, "ProjectionMatrix");
+	GLint loc_MVP = glGetUniformLocation(program, "ModelViewProjectionMatrix");
+
+	/* 2) set uniform values to matrix stack values
+	 * program needs to be bound
+	 */
+	glUseProgram(program);
+
+
+	/* call this portion before a draw call if desired matrices are dirty */
+	if (loc_MV != -1) {
+		puts("setting MV matrix");
+		glUniformMatrix4fv(loc_MV, 1, GL_FALSE, gpuGetModelViewMatrix3D(NULL));
+	}
+
+	if (loc_P != -1) {
+		puts("setting P matrix");
+		glUniformMatrix4fv(loc_P, 1, GL_FALSE, gpuGetProjectionMatrix3D(NULL));
+	}
+
+	if (loc_MVP != -1) {
+		puts("setting MVP matrix");
+		glUniformMatrix4fv(loc_MVP, 1, GL_FALSE, gpuGetModelViewProjectionMatrix3D(NULL));
 	}
 }
