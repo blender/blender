@@ -737,8 +737,6 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 	int i;
 
 	if (oglrender->is_animation) {
-		/* Flag pool for cancel. */
-		oglrender->pool_ok = false;
 		BLI_task_pool_work_and_wait(oglrender->task_pool);
 		BLI_task_pool_free(oglrender->task_pool);
 		BLI_task_scheduler_free(oglrender->task_scheduler);
@@ -1053,6 +1051,7 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, const wmEvent
 	switch (event->type) {
 		case ESCKEY:
 			/* cancel */
+			oglrender->pool_ok = false;  /* Flag pool for cancel. */
 			screen_opengl_render_end(C, op->customdata);
 			return OPERATOR_FINISHED;
 		case TIMER:
