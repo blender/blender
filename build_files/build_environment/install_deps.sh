@@ -800,7 +800,7 @@ Those libraries should be available as packages in all recent distributions (opt
     * libjpeg, libpng, libtiff, [libopenjpeg], [libopenal].
     * libx11, libxcursor, libxi, libxrandr, libxinerama (and other libx... as needed).
     * libsqlite3, libbz2, libssl, libfftw3, libxml2, libtinyxml, yasm, libyaml-cpp.
-    * libsdl1.2, libglew, libglewmx.\""
+    * libsdl1.2, libglew, [libglewmx].\""
 
 DEPS_SPECIFIC_INFO="\"BUILDABLE DEPENDENCIES:
 
@@ -2587,8 +2587,9 @@ install_DEB() {
              git libfreetype6-dev libx11-dev flex bison libtbb-dev libxxf86vm-dev \
              libxcursor-dev libxi-dev wget libsqlite3-dev libxrandr-dev libxinerama-dev \
              libbz2-dev libncurses5-dev libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV \
-             libopenal-dev libglew-dev libglewmx-dev yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV \
+             libopenal-dev libglew-dev yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV \
              libsdl1.2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev libjemalloc-dev"
+             # libglewmx-dev  (broken in deb testing currently...)
 
   OPENJPEG_USE=true
   VORBIS_USE=true
