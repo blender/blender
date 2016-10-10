@@ -592,6 +592,54 @@ void VIEW3D_OT_camera_to_view_selected(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static void sync_viewport_camera_smoothview(bContext *C, View3D *v3d, Object *ob, const int smooth_viewtx)
+{
+	Main *bmain = CTX_data_main(C);
+	for (bScreen *screen = bmain->screen.first; screen != NULL; screen = screen->id.next) {
+		for (ScrArea *area = screen->areabase.first; area != NULL; area = area->next) {
+			for (SpaceLink *space_link = area->spacedata.first; space_link != NULL; space_link = space_link->next) {
+				if (space_link->spacetype == SPACE_VIEW3D) {
+					View3D *other_v3d = (View3D *)space_link;
+					if (other_v3d == v3d) {
+						continue;
+					}
+					if (other_v3d->camera == ob) {
+						continue;
+					}
+					if (v3d->scenelock) {
+						ListBase *lb = (space_link == area->spacedata.first)
+						                   ? &area->regionbase
+						                   : &space_link->regionbase;
+						for (ARegion *other_ar = lb->first; other_ar != NULL; other_ar = other_ar->next) {
+							if (other_ar->regiontype == RGN_TYPE_WINDOW) {
+								if (other_ar->regiondata) {
+									RegionView3D *other_rv3d = other_ar->regiondata;
+									if (other_rv3d->persp == RV3D_CAMOB) {
+										Object *other_camera_old = other_v3d->camera;
+										other_v3d->camera = ob;
+										ED_view3d_lastview_store(other_rv3d);
+										ED_view3d_smooth_view(
+										        C, other_v3d, other_ar, smooth_viewtx,
+										        &(const V3D_SmoothParams) {
+										            .camera_old = other_camera_old,
+										            .camera = other_v3d->camera,
+										            .ofs = other_rv3d->ofs,
+										            .quat = other_rv3d->viewquat,
+										            .dist = &other_rv3d->dist,
+										            .lens = &other_v3d->lens});
+									}
+									else {
+										other_v3d->camera = ob;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
 static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
 {	
@@ -628,6 +676,7 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
 		}
 
 		if (v3d->scenelock) {
+			sync_viewport_camera_smoothview(C, v3d, ob, smooth_viewtx);
 			WM_event_add_notifier(C, NC_SCENE, scene);
 		}
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, scene);
