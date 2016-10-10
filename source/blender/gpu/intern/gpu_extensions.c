@@ -280,12 +280,6 @@ bool GPU_legacy_support(void)
 	return support;
 }
 
-bool GPU_glsl_support(void)
-{
-	/* always supported, still queried by game engine */
-	return true;
-}
-
 bool GPU_full_non_power_of_two_support(void)
 {
 	/* always supported on full GL but still relevant for OpenGL ES 2.0 where
