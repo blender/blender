@@ -37,6 +37,11 @@ struct GlyphBLF;
 struct GlyphCacheBLF;
 struct rctf;
 
+/* vertex attribute IDs (fixed IDs so we don't have to pass them around) */
+#define BLF_POS_ID 0
+#define BLF_COORD_ID 1
+#define BLF_COLOR_ID 2
+
 unsigned int blf_next_p2(unsigned int x);
 unsigned int blf_hash(unsigned int val);
 

@@ -57,6 +57,7 @@
 
 #ifndef BLF_STANDALONE
 #include "GPU_shader.h"
+#include "GPU_immediate.h"
 #endif
 
 #include "blf_internal_types.h"
@@ -500,10 +501,6 @@ static void blf_draw_gl__start(FontBLF *font, GLint *mode)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-#ifndef BLF_STANDALONE
-	GPU_shader_bind(GPU_shader_get_builtin_shader(GPU_SHADER_TEXT));
-#endif
-
 	/* Save the current matrix mode. */
 	glGetIntegerv(GL_MATRIX_MODE, mode);
 
@@ -522,8 +519,20 @@ static void blf_draw_gl__start(FontBLF *font, GLint *mode)
 	if (font->flags & BLF_ROTATION)  /* radians -> degrees */
 		glRotatef(font->angle * (float)(180.0 / M_PI), 0.0f, 0.0f, 1.0f);
 
-	if (font->shadow || font->blur)
-		glGetFloatv(GL_CURRENT_COLOR, font->orig_col);
+	glGetFloatv(GL_CURRENT_COLOR, font->orig_col); /* TODO(merwin): new BLF_color function? */
+
+#ifndef BLF_STANDALONE
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned texCoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned color = add_attrib(format, "color", GL_FLOAT, 4, KEEP_FLOAT);
+
+	BLI_assert(pos == BLF_POS_ID);
+	BLI_assert(texCoord == BLF_COORD_ID);
+	BLI_assert(color == BLF_COLOR_ID);
+
+	immBindBuiltinProgram(GPU_SHADER_TEXT);
+#endif
 
 	/* always bind the texture for the first glyph */
 	font->tex_bind_state = -1;
@@ -537,7 +546,7 @@ static void blf_draw_gl__end(GLint mode)
 		glMatrixMode(mode);
 
 #ifndef BLF_STANDALONE
-	GPU_shader_unbind();
+	immUnbindProgram();
 #endif
 
 	glDisable(GL_BLEND);

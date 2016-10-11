@@ -56,7 +56,7 @@
 #include "BLF_api.h"
 
 #ifndef BLF_STANDALONE
-#include "GPU_basic_shader.h"
+#include "GPU_immediate.h"
 #endif
 
 #include "blf_internal_types.h"
@@ -182,17 +182,6 @@ static void blf_glyph_cache_texture(FontBLF *font, GlyphCacheBLF *gc)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-#ifndef BLF_STANDALONE
-	/* needed since basic shader doesn't support alpha-only textures,
-	 * while we could add support this is only used in a few places
-	 * (an alternative could be to have a simple shader for BLF). */
-	if (GLEW_ARB_texture_swizzle && GPU_basic_shader_use_glsl_get()) {
-		GLint swizzle_mask[] = {GL_ONE, GL_ONE, GL_ONE, GL_ALPHA};
-		glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle_mask);
-	}
-#endif
-
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA8, gc->p2_width, gc->p2_height, 0, GL_ALPHA, GL_UNSIGNED_BYTE, NULL);
 }
 
@@ -328,19 +317,17 @@ void blf_glyph_free(GlyphBLF *g)
 
 static void blf_texture_draw(float uv[2][2], float dx, float y1, float dx1, float y2)
 {
-	glBegin(GL_QUADS);
-	glTexCoord2f(uv[0][0], uv[0][1]);
-	glVertex2f(dx, y1);
-	
-	glTexCoord2f(uv[0][0], uv[1][1]);
-	glVertex2f(dx, y2);
-	
-	glTexCoord2f(uv[1][0], uv[1][1]);
-	glVertex2f(dx1, y2);
-	
-	glTexCoord2f(uv[1][0], uv[0][1]);
-	glVertex2f(dx1, y1);
-	glEnd();
+	immAttrib2f(BLF_COORD_ID, uv[0][0], uv[0][1]);
+	immVertex2f(BLF_POS_ID, dx, y1);
+
+	immAttrib2f(BLF_COORD_ID, uv[0][0], uv[1][1]);
+	immVertex2f(BLF_POS_ID, dx, y2);
+
+	immAttrib2f(BLF_COORD_ID, uv[1][0], uv[1][1]);
+	immVertex2f(BLF_POS_ID, dx1, y2);
+
+	immAttrib2f(BLF_COORD_ID, uv[1][0], uv[0][1]);
+	immVertex2f(BLF_POS_ID, dx1, y1);
 }
 
 static void blf_texture5_draw(const float shadow_col[4], float uv[2][2], float x1, float y1, float x2, float y2)
@@ -350,7 +337,7 @@ static void blf_texture5_draw(const float shadow_col[4], float uv[2][2], float x
 	                        2 / 60.0f, 5 / 60.0f, 8 / 60.0f, 5 / 60.0f, 2 / 60.0f,
 	                        1 / 60.0f, 3 / 60.0f, 5 / 60.0f, 3 / 60.0f, 1 / 60.0f,
 	                        1 / 60.0f, 1 / 60.0f, 2 / 60.0f, 1 / 60.0f, 1 / 60.0f};
-	
+
 	const float *fp = soft;
 	float color[4];
 	float dx, dy;
@@ -358,16 +345,14 @@ static void blf_texture5_draw(const float shadow_col[4], float uv[2][2], float x
 	color[0] = shadow_col[0];
 	color[1] = shadow_col[1];
 	color[2] = shadow_col[2];
-	
+
 	for (dx = -2; dx < 3; dx++) {
 		for (dy = -2; dy < 3; dy++, fp++) {
 			color[3] = *(fp) * shadow_col[3];
-			glColor4fv(color);
+			immAttrib4fv(BLF_COLOR_ID, color);
 			blf_texture_draw(uv, x1 + dx, y1 + dy, x2 + dx, y2 + dy);
 		}
 	}
-	
-	glColor4fv(color);
 }
 
 static void blf_texture3_draw(const float shadow_col[4], float uv[2][2], float x1, float y1, float x2, float y2)
@@ -387,12 +372,10 @@ static void blf_texture3_draw(const float shadow_col[4], float uv[2][2], float x
 	for (dx = -1; dx < 2; dx++) {
 		for (dy = -1; dy < 2; dy++, fp++) {
 			color[3] = *(fp) * shadow_col[3];
-			glColor4fv(color);
+			immAttrib4fv(BLF_COLOR_ID, color);
 			blf_texture_draw(uv, x1 + dx, y1 + dy, x2 + dx, y2 + dy);
 		}
 	}
-	
-	glColor4fv(color);
 }
 
 static void blf_glyph_calc_rect(rctf *rect, GlyphBLF *g, float x, float y)
@@ -486,6 +469,18 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		glBindTexture(GL_TEXTURE_2D, (font->tex_bind_state = g->tex));
 	}
 
+#if 0 /* determine exact count of quads */
+	unsigned quad_ct = 1 + (unsigned)font->blur;
+	if (font->flags & BLF_SHADOW)
+		quad_ct += (unsigned)font->shadow;
+
+	immBegin(GL_QUADS, quad_ct * 4);
+#else
+	immBeginAtMost(GL_QUADS, 40); /* (5 shadow + 5 blur) * 4 verts per quad */
+#endif
+
+	/* TODO: blur & shadow in shader, single quad per glyph */
+
 	if (font->flags & BLF_SHADOW) {
 		rctf rect_ofs;
 		blf_glyph_calc_rect(&rect_ofs, g,
@@ -500,12 +495,9 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 				blf_texture5_draw(font->shadow_col, g->uv, rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
 				break;
 			default:
-				glColor4fv(font->shadow_col);
+				immAttrib4fv(BLF_COLOR_ID, font->shadow_col);
 				blf_texture_draw(g->uv, rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
-				break;
 		}
-
-		glColor4fv(font->orig_col);
 	}
 
 	switch (font->blur) {
@@ -516,9 +508,9 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 			blf_texture5_draw(font->orig_col, g->uv, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 			break;
 		default:
+			immAttrib4fv(BLF_COLOR_ID, font->orig_col);
 			blf_texture_draw(g->uv, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
-			break;
 	}
 
-	return;
+	immEnd();
 }
