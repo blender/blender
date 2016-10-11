@@ -2368,14 +2368,9 @@ Mesh *BKE_mesh_new_from_object(
 			if (tmpcu->mat) {
 				for (i = tmpcu->totcol; i-- > 0; ) {
 					/* are we an object material or data based? */
-					if (ob->matbits[i] && i >= ob->totcol) {
-						tmpmesh->mat[i] = NULL;
-					}
-					else {
-						tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : tmpcu->mat[i];
-					}
+					tmpmesh->mat[i] = give_current_material(ob, i + 1);
 
-					if ((ob->matbits[i] || do_mat_id_data_us)  && tmpmesh->mat[i]) {
+					if (((ob->matbits && ob->matbits[i]) || do_mat_id_data_us)  && tmpmesh->mat[i]) {
 						id_us_plus(&tmpmesh->mat[i]->id);
 					}
 				}
@@ -2392,14 +2387,9 @@ Mesh *BKE_mesh_new_from_object(
 			if (tmpmb->mat) {
 				for (i = tmpmb->totcol; i-- > 0; ) {
 					/* are we an object material or data based? */
-					if (ob->matbits[i] && i >= ob->totcol) {
-						tmpmesh->mat[i] = NULL;
-					}
-					else {
-						tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : tmpmb->mat[i];
-					}
+					tmpmesh->mat[i] = give_current_material(ob, i + 1);
 
-					if ((ob->matbits[i] || do_mat_id_data_us) && tmpmesh->mat[i]) {
+					if (((ob->matbits[i] && ob->matbits) || do_mat_id_data_us) && tmpmesh->mat[i]) {
 						id_us_plus(&tmpmesh->mat[i]->id);
 					}
 				}
@@ -2417,14 +2407,9 @@ Mesh *BKE_mesh_new_from_object(
 				if (origmesh->mat) {
 					for (i = origmesh->totcol; i-- > 0; ) {
 						/* are we an object material or data based? */
-						if (ob->matbits[i] && i >= ob->totcol) {
-							tmpmesh->mat[i] = NULL;
-						}
-						else {
-							tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : origmesh->mat[i];
-						}
+						tmpmesh->mat[i] = give_current_material(ob, i + 1);
 
-						if ((ob->matbits[i] || do_mat_id_data_us)  && tmpmesh->mat[i]) {
+						if (((ob->matbits && ob->matbits[i]) || do_mat_id_data_us)  && tmpmesh->mat[i]) {
 							id_us_plus(&tmpmesh->mat[i]->id);
 						}
 					}

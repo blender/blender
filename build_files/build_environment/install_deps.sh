@@ -25,7 +25,8 @@
 ARGS=$( \
 getopt \
 -o s:i:t:h \
---long source:,install:,tmp:,info:,threads:,help,show-deps,no-sudo,no-build,no-confirm,with-all,with-opencollada,\
+--long source:,install:,tmp:,info:,threads:,help,show-deps,no-sudo,no-build,no-confirm,use-cxx11,\
+with-all,with-opencollada,\
 ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,ver-osd:,ver-openvdb:,\
 force-all,force-python,force-numpy,force-boost,\
 force-ocio,force-openexr,force-oiio,force-llvm,force-osl,force-osd,force-openvdb,\
@@ -102,6 +103,11 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     --no-confirm
         Disable any interaction with user (suitable for automated run).
+
+    --use-cxx11
+        Build all libraries in cpp11 'mode' (will be mandatory soon in blender2.8 branch).
+        NOTE: If your compiler is gcc-6.0 or above, you probably *want* to enable this option (since it's default
+              standard starting from this version).
 
     --with-all
         By default, a number of optional and not-so-often needed libraries are not installed.
@@ -281,6 +287,7 @@ SUDO="sudo"
 
 NO_BUILD=false
 NO_CONFIRM=false
+USE_CXX11=false
 
 PYTHON_VERSION="3.5.1"
 PYTHON_VERSION_MIN="3.5"
@@ -491,6 +498,9 @@ while true; do
     ;;
     --no-confirm)
       NO_CONFIRM=true; shift; continue
+    ;;
+    --use-cxx11)
+      USE_CXX11=true; shift; continue
     ;;
     --with-all)
       WITH_ALL=true; shift; continue
@@ -766,7 +776,18 @@ OPENCOLLADA_REPO_BRANCH="master"
 
 FFMPEG_SOURCE=( "http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2" )
 
+CXXFLAGS_BACK=$CXXFLAGS
+if [ "$USE_CXX11" = true ]; then
+  WARNING "You are trying to use c++11, this *should* go smoothely with any very recent distribution
+However, if you are experiencing linking errors (also when building Blender itself), please try the following:
+    * Re-run this script with `--build-all --force-all` options.
+    * Ensure your gcc version is at the very least 4.8, if possible you should really rather use gcc-5.1 or above.
 
+Please note that until the transition to C++11-built libraries if completed in your distribution, situation will
+remain fuzzy and incompatibilities may happen..."
+  CXXFLAGS="$CXXFLAGS -std=c++11"
+  export CXXFLAGS
+fi
 
 #### Show Dependencies ####
 
@@ -779,7 +800,7 @@ Those libraries should be available as packages in all recent distributions (opt
     * libjpeg, libpng, libtiff, [libopenjpeg], [libopenal].
     * libx11, libxcursor, libxi, libxrandr, libxinerama (and other libx... as needed).
     * libsqlite3, libbz2, libssl, libfftw3, libxml2, libtinyxml, yasm, libyaml-cpp.
-    * libsdl1.2, libglew, libglewmx.\""
+    * libsdl1.2, libglew, [libglewmx].\""
 
 DEPS_SPECIFIC_INFO="\"BUILDABLE DEPENDENCIES:
 
@@ -953,7 +974,7 @@ prepare_opt() {
 
 # Check whether the current package needs to be recompiled, based on a dummy file containing a magic number in its name...
 magic_compile_check() {
-  if [ -f $INST/.$1-magiccheck-$2 ]; then
+  if [ -f $INST/.$1-magiccheck-$2-$USE_CXX11 ]; then
     return 0
   else
     return 1
@@ -962,7 +983,7 @@ magic_compile_check() {
 
 magic_compile_set() {
   rm -f $INST/.$1-magiccheck-*
-  touch $INST/.$1-magiccheck-$2
+  touch $INST/.$1-magiccheck-$2-$USE_CXX11
 }
 
 # Note: should clean nicely in $INST, but not in $SRC, when we switch to a new version of a lib...
@@ -1621,6 +1642,10 @@ compile_OIIO() {
 #      cmake_d="$cmake_d -D OCIO_PATH=$INST/ocio"
 #    fi
     cmake_d="$cmake_d -D USE_OCIO=OFF"
+
+    if [ "$USE_CXX11" = true ]; then
+      cmake_d="$cmake_d -D OIIO_BUILD_CPP11=ON"
+    fi
 
     if file /bin/cp | grep -q '32-bit'; then
       cflags="-fPIC -m32 -march=i686"
@@ -2562,8 +2587,9 @@ install_DEB() {
              git libfreetype6-dev libx11-dev flex bison libtbb-dev libxxf86vm-dev \
              libxcursor-dev libxi-dev wget libsqlite3-dev libxrandr-dev libxinerama-dev \
              libbz2-dev libncurses5-dev libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV \
-             libopenal-dev libglew-dev libglewmx-dev yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV \
+             libopenal-dev libglew-dev yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV \
              libsdl1.2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev libjemalloc-dev"
+             # libglewmx-dev  (broken in deb testing currently...)
 
   OPENJPEG_USE=true
   VORBIS_USE=true
@@ -4164,6 +4190,12 @@ print_info() {
   _buildargs="$_buildargs -U *OPENCOLORIO* -U *OPENEXR* -U *OPENIMAGEIO* -U *LLVM* -U *CYCLES*"
   _buildargs="$_buildargs -U *OPENSUBDIV* -U *OPENVDB* -U *COLLADA* -U *FFMPEG* -U *ALEMBIC*"
 
+  if [ "$USE_CXX11" = true ]; then
+    _1="-D WITH_CXX11=ON"
+    PRINT "  $_1"
+    _buildargs="$_buildargs $_1"
+  fi
+
   _1="-D WITH_CODEC_SNDFILE=ON"
   PRINT "  $_1"
   _buildargs="$_buildargs $_1"
@@ -4327,3 +4359,6 @@ PRINT ""
 # Switch back to user language.
 LANG=LANG_BACK
 export LANG
+
+CXXFLAGS=$CXXFLAGS_BACK
+export CXXFLAGS

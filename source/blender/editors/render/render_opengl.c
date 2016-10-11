@@ -860,7 +860,7 @@ static void write_result_func(TaskPool * __restrict pool,
 	const int cfra = task_data->cfra;
 	bool ok;
 	/* Don't attempt to write if we've got an error. */
-	if (!oglrender->pool_ok || G.is_break) {
+	if (!oglrender->pool_ok) {
 		RE_FreeRenderResult(rr);
 		BLI_mutex_lock(&oglrender->task_mutex);
 		oglrender->num_scheduled_frames--;
@@ -1051,6 +1051,7 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, const wmEvent
 	switch (event->type) {
 		case ESCKEY:
 			/* cancel */
+			oglrender->pool_ok = false;  /* Flag pool for cancel. */
 			screen_opengl_render_end(C, op->customdata);
 			return OPERATOR_FINISHED;
 		case TIMER:

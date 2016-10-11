@@ -452,6 +452,15 @@ EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, P
 }
 
 /* Space 3D View */
+static void rna_SpaceView3D_camera_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	View3D *v3d = (View3D *)(ptr->data);
+	if (v3d->scenelock) {
+		scene->camera = v3d->camera;
+		BKE_screen_view3d_main_sync(&bmain->screen, scene);
+	}
+}
+
 static void rna_SpaceView3D_lock_camera_and_layers_set(PointerRNA *ptr, int value)
 {
 	View3D *v3d = (View3D *)(ptr->data);
@@ -2358,7 +2367,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "camera");
 	RNA_def_property_ui_text(prop, "Camera",
 	                         "Active camera used in this view (when unlocked from the scene's active camera)");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_camera_update");
 
 	/* render border */
 	prop = RNA_def_property(srna, "use_render_border", PROP_BOOLEAN, PROP_NONE);
