@@ -40,6 +40,8 @@
  * we convert all code to use the API in this file. */
 #define SUPPORT_LEGACY_MATRIX 1
 
+#define DEBUG_MATRIX_BIND 0
+
 #define MATRIX_STACK_DEPTH 32
 
 typedef float Mat4[4][4];
@@ -594,17 +596,26 @@ void gpuBindMatrices(GLuint program)
 
 	/* call this portion before a draw call if desired matrices are dirty */
 	if (loc_MV != -1) {
-		puts("setting MV matrix");
+		#if DEBUG_MATRIX_BIND
+		puts("setting 3D MV matrix");
+		#endif
+
 		glUniformMatrix4fv(loc_MV, 1, GL_FALSE, gpuGetModelViewMatrix3D(NULL));
 	}
 
 	if (loc_P != -1) {
-		puts("setting P matrix");
+		#if DEBUG_MATRIX_BIND
+		puts("setting 3D P matrix");
+		#endif
+
 		glUniformMatrix4fv(loc_P, 1, GL_FALSE, gpuGetProjectionMatrix3D(NULL));
 	}
 
 	if (loc_MVP != -1) {
-		puts("setting MVP matrix");
+		#if DEBUG_MATRIX_BIND
+		puts("setting 3D MVP matrix");
+		#endif
+
 		glUniformMatrix4fv(loc_MVP, 1, GL_FALSE, gpuGetModelViewProjectionMatrix3D(NULL));
 	}
 }
