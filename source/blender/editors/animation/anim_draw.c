@@ -350,6 +350,10 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
 			}
 			offset = -min_coord - range / 2.0f;
 		}
+		else if (max_coord == min_coord) {
+			factor = 1.0f;
+			offset = -min_coord;
+		}
 	}
 	BLI_assert(factor != 0.0f);
 	if (r_offset) {
