@@ -68,6 +68,8 @@
 #include "ED_space_api.h"
 #include "ED_markers.h"
 
+#include "GPU_immediate.h"
+
 #include "time_intern.h"
 
 /* ************************ main time area region *********************** */
@@ -79,21 +81,42 @@ static void time_draw_sfra_efra(Scene *scene, View2D *v2d)
 	 */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
-	glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
-		
+
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformColor4f(0.0f, 0.0f, 0.0f, 0.4f);
+
 	if (PSFRA < PEFRA) {
-		glRectf(v2d->cur.xmin, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
-		glRectf((float)PEFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+		immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
+		immRectf(pos, (float)PEFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
 	}
 	else {
-		glRectf(v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+		immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
 	}
+
+	immUnbindProgram();
+
 	glDisable(GL_BLEND);
 
-	UI_ThemeColorShade(TH_BACK, -60);
 	/* thin lines where the actual frames are */
-	fdrawline((float)PSFRA, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
-	fdrawline((float)PEFRA, v2d->cur.ymin, (float)PEFRA, v2d->cur.ymax);
+	unsigned char color[3];
+	UI_GetThemeColorShade3ubv(TH_BACK, -60, color);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformColor3ubv(color);
+
+	immBegin(GL_LINES, 4);
+
+	immVertex2f(pos, (float)PSFRA, v2d->cur.ymin);
+	immVertex2f(pos, (float)PSFRA, v2d->cur.ymax);
+
+	immVertex2f(pos, (float)PEFRA, v2d->cur.ymin);
+	immVertex2f(pos, (float)PEFRA, v2d->cur.ymax);
+
+	immEnd();
+	immUnbindProgram();
 }
 
 static void time_cache_free(SpaceTime *stime)
@@ -139,7 +162,7 @@ static ActKeyColumn *time_cfra_find_ak(ActKeyColumn *ak, float cframe)
 }
 
 /* helper for time_draw_keyframes() */
-static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel)
+static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel, const unsigned char color[3])
 {
 	bDopeSheet ads = {NULL};
 	DLRBT_Tree keys;
@@ -182,21 +205,39 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel)
 	 *	  the first visible keyframe (last one can then be easily checked)
 	 *	- draw within a single GL block to be faster
 	 */
-	glBegin(GL_LINES);
-	for (ak = time_cfra_find_ak(keys.root, v2d->cur.xmin);
-	     (ak) && (ak->cfra <= v2d->cur.xmax);
+
+	ActKeyColumn *link;
+	int max_len = 0;
+
+	ak = time_cfra_find_ak(keys.root, v2d->cur.xmin);
+
+	for (link = ak; link; link = link->next) {
+		max_len++;
+	}
+
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformColor3ubv(color);
+
+	immBeginAtMost(GL_LINES, max_len * 2.0f);
+
+	for (;(ak) && (ak->cfra <= v2d->cur.xmax);
 	     ak = ak->next)
 	{
-		glVertex2f(ak->cfra, ymin);
-		glVertex2f(ak->cfra, ymax);
+		immVertex2f(pos, ak->cfra, ymin);
+		immVertex2f(pos, ak->cfra, ymax);
 	}
-	glEnd(); // GL_LINES
-		
+
+	immEnd();
+	immUnbindProgram();
+
 	/* free temp stuff */
 	BLI_dlrbTree_free(&keys);
 }
 
-static void time_draw_caches_keyframes(Main *bmain, Scene *scene, View2D *v2d, bool onlysel)
+static void time_draw_caches_keyframes(Main *bmain, Scene *scene, View2D *v2d, bool onlysel, const unsigned char color[3])
 {
 	CacheFile *cache_file;
 
@@ -223,7 +264,7 @@ static void time_draw_caches_keyframes(Main *bmain, Scene *scene, View2D *v2d, b
 
 			cache_file->draw_flag |= CACHEFILE_KEYFRAME_DRAWN;
 
-			time_draw_idblock_keyframes(v2d, (ID *)cache_file, onlysel);
+			time_draw_idblock_keyframes(v2d, (ID *)cache_file, onlysel, color);
 		}
 
 		for (bConstraint *con = ob->constraints.first; con; con = con->next) {
@@ -241,7 +282,7 @@ static void time_draw_caches_keyframes(Main *bmain, Scene *scene, View2D *v2d, b
 
 			cache_file->draw_flag |= CACHEFILE_KEYFRAME_DRAWN;
 
-			time_draw_idblock_keyframes(v2d, (ID *)cache_file, onlysel);
+			time_draw_idblock_keyframes(v2d, (ID *)cache_file, onlysel, color);
 		}
 	}
 }
@@ -253,21 +294,23 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 	Object *ob = CTX_data_active_object(C);
 	View2D *v2d = &ar->v2d;
 	bool onlysel = ((scene->flag & SCE_KEYS_NO_SELONLY) == 0);
+	unsigned char color[3];
 	
 	/* set this for all keyframe lines once and for all */
 	glLineWidth(1.0);
 
 	/* draw cache files keyframes (if available) */
-	UI_ThemeColor(TH_TIME_KEYFRAME);
-	time_draw_caches_keyframes(CTX_data_main(C), scene, v2d, onlysel);
+	UI_GetThemeColor3ubv(TH_TIME_KEYFRAME, color);
+	time_draw_caches_keyframes(CTX_data_main(C), scene, v2d, onlysel, color);
 
 	/* draw grease pencil keyframes (if available) */	
-	UI_ThemeColor(TH_TIME_GP_KEYFRAME);
+	UI_GetThemeColor3ubv(TH_TIME_GP_KEYFRAME, color);
+
 	if (scene->gpd) {
-		time_draw_idblock_keyframes(v2d, (ID *)scene->gpd, onlysel);
+		time_draw_idblock_keyframes(v2d, (ID *)scene->gpd, onlysel, color);
 	}
 	if (ob && ob->gpd) {
-		time_draw_idblock_keyframes(v2d, (ID *)ob->gpd, onlysel);
+		time_draw_idblock_keyframes(v2d, (ID *)ob->gpd, onlysel, color);
 	}
 	
 	/* draw scene keyframes first 
@@ -276,8 +319,8 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 	 */
 	if (onlysel == 0) {
 		/* set draw color */
-		UI_ThemeColorShade(TH_TIME_KEYFRAME, -50);
-		time_draw_idblock_keyframes(v2d, (ID *)scene, onlysel);
+		UI_GetThemeColorShade3ubv(TH_TIME_KEYFRAME, -50, color);
+		time_draw_idblock_keyframes(v2d, (ID *)scene, onlysel, color);
 	}
 	
 	/* draw keyframes from selected objects 
@@ -285,11 +328,11 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 	 *    OR the onlysel flag was set, which means that only active object's keyframes should
 	 *    be considered
 	 */
-	UI_ThemeColor(TH_TIME_KEYFRAME);
-	
+	UI_GetThemeColor3ubv(TH_TIME_KEYFRAME, color);
+
 	if (ob && ((ob->mode == OB_MODE_POSE) || onlysel)) {
 		/* draw keyframes for active object only */
-		time_draw_idblock_keyframes(v2d, (ID *)ob, onlysel);
+		time_draw_idblock_keyframes(v2d, (ID *)ob, onlysel, color);
 	}
 	else {
 		bool active_done = false;
@@ -298,7 +341,7 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 		CTX_DATA_BEGIN (C, Object *, obsel, selected_objects)
 		{
 			/* last arg is 0, since onlysel doesn't apply here... */
-			time_draw_idblock_keyframes(v2d, (ID *)obsel, 0);
+			time_draw_idblock_keyframes(v2d, (ID *)obsel, 0, color);
 			
 			/* if this object is the active one, set flag so that we don't draw again */
 			if (obsel == ob)
@@ -308,7 +351,7 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 		
 		/* if active object hasn't been done yet, draw it... */
 		if (ob && (active_done == 0))
-			time_draw_idblock_keyframes(v2d, (ID *)ob, 0);
+			time_draw_idblock_keyframes(v2d, (ID *)ob, 0, color);
 	}
 }
 
