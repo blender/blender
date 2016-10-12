@@ -220,7 +220,7 @@ ccl_device void subsurface_color_bump_blur(KernelGlobals *kg,
  */
 ccl_device_inline int subsurface_scatter_multi_intersect(
         KernelGlobals *kg,
-        SubsurfaceIntersection* ss_isect,
+        SubsurfaceIntersection *ss_isect,
         ShaderData *sd,
         ShaderClosure *sc,
         uint *lcg_state,
