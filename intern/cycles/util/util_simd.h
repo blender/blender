@@ -455,6 +455,7 @@ CCL_NAMESPACE_END
 #include "util_sseb.h"
 #include "util_ssei.h"
 #include "util_ssef.h"
+#include "util_avxf.h"
 
 #endif /* __UTIL_SIMD_TYPES_H__ */
 
