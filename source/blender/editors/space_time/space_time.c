@@ -101,11 +101,8 @@ static void time_draw_sfra_efra(Scene *scene, View2D *v2d)
 	glDisable(GL_BLEND);
 
 	/* thin lines where the actual frames are */
-	unsigned char color[3];
-	UI_GetThemeColorShade3ubv(TH_BACK, -60, color);
-
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-	immUniformColor3ubv(color);
+	immUniformThemeColorShade(TH_BACK, -60);
 
 	immBegin(GL_LINES, 4);
 

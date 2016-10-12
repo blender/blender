@@ -345,9 +345,7 @@ static void drawWalkPixel(const struct bContext *UNUSED(C), ARegion *ar, void *a
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-	unsigned char crosshair_color[3];
-	UI_GetThemeColor3ubv(TH_VIEW_OVERLAY, crosshair_color);
-	immUniformColor3ubv(crosshair_color);
+	immUniformThemeColor(TH_VIEW_OVERLAY);
 
 	immBegin(GL_LINES, 8);
 

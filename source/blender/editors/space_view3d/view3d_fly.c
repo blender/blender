@@ -264,9 +264,7 @@ static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), 
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-	unsigned char square_color[3];
-	UI_GetThemeColor3ubv(TH_VIEW_OVERLAY, square_color);
-	immUniformColor3ubv(square_color);
+	immUniformThemeColor(TH_VIEW_OVERLAY);
 
 	immBegin(GL_LINES, 16);
 
