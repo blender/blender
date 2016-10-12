@@ -35,10 +35,6 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 
-/* For now we support the legacy matrix stack in gpuGetMatrix functions.
- * Will remove this after switching to core profile, which can happen after
- * we convert all code to use the API in this file. */
-#define SUPPORT_LEGACY_MATRIX 1
 
 #define DEBUG_MATRIX_BIND 0
 
@@ -92,6 +88,16 @@ void gpuMatrixBegin3D()
 	unit_m4(ModelView3D);
 	gpuOrtho(-1.0f, +1.0f, -1.0f, +1.0f, -1.0f, +1.0f); // or identity?
 }
+
+#if SUPPORT_LEGACY_MATRIX
+void gpuMatrixBegin3D_legacy() {
+	/* copy top matrix from each legacy stack into new fresh stack */
+	state.mode = MATRIX_MODE_3D;
+	state.top = 0;
+	glGetFloatv(GL_MODELVIEW_MATRIX, (float*)ModelView3D);
+	glGetFloatv(GL_PROJECTION_MATRIX, (float*)Projection3D);
+}
+#endif
 
 void gpuMatrixEnd()
 {
@@ -185,9 +191,18 @@ void gpuTranslate2fv(const float vec[2])
 
 void gpuTranslate3f(float x, float y, float z)
 {
+#if 1
 	BLI_assert(state.mode == MATRIX_MODE_3D);
 	translate_m4(ModelView3D, x, y, z);
 	CHECKMAT(ModelView3D);
+#else /* above works well in early testing, below is generic version */
+	Mat4 m;
+	unit_m4(m);
+	m[3][0] = x;
+	m[3][1] = y;
+	m[3][2] = z;
+	gpuMultMatrix3D(m);
+#endif
 }
 
 void gpuTranslate3fv(const float vec[3])
@@ -257,14 +272,14 @@ void gpuScale3fv(const float vec[3])
 void gpuMultMatrix3D(const float m[4][4])
 {
 	BLI_assert(state.mode == MATRIX_MODE_3D);
-	mul_m4_m4_post(ModelView3D, m);
+	mul_m4_m4_pre(ModelView3D, m);
 	CHECKMAT(ModelView3D);
 }
 
 void gpuMultMatrix2D(const float m[3][3])
 {
 	BLI_assert(state.mode == MATRIX_MODE_2D);
-	mul_m3_m3_post(ModelView2D, m);
+	mul_m3_m3_pre(ModelView2D, m);
 	CHECKMAT(ModelView2D);
 }
 
@@ -575,7 +590,7 @@ const float *gpuGetModelViewProjectionMatrix3D(float m[4][4])
 		m = temp;
 	}
 
-	mul_m4_m4m4(m, ModelView3D, Projection3D);
+	mul_m4_m4m4(m, Projection3D, ModelView3D);
 	return (const float*)m;
 }
 
