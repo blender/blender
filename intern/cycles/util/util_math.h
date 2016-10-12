@@ -424,53 +424,87 @@ ccl_device_inline float2 interp(float2 a, float2 b, float t)
 
 #ifndef __KERNEL_OPENCL__
 
-ccl_device_inline float3 operator-(const float3 a)
+ccl_device_inline float3 operator-(const float3& a)
 {
+#ifdef __KERNEL_SSE__
+	return float3(_mm_xor_ps(a.m128, _mm_castsi128_ps(_mm_set1_epi32(0x80000000))));
+#else
 	return make_float3(-a.x, -a.y, -a.z);
+#endif
 }
 
-ccl_device_inline float3 operator*(const float3 a, const float3 b)
+ccl_device_inline float3 operator*(const float3& a, const float3& b)
 {
+#ifdef __KERNEL_SSE__
+	return float3(_mm_mul_ps(a.m128,b.m128));
+#else
 	return make_float3(a.x*b.x, a.y*b.y, a.z*b.z);
+#endif
 }
 
-ccl_device_inline float3 operator*(const float3 a, float f)
+ccl_device_inline float3 operator*(const float3& a, const float f)
 {
+#ifdef __KERNEL_SSE__
+	return float3(_mm_mul_ps(a.m128,_mm_set1_ps(f)));
+#else
 	return make_float3(a.x*f, a.y*f, a.z*f);
+#endif
 }
 
-ccl_device_inline float3 operator*(float f, const float3 a)
+ccl_device_inline float3 operator*(const float f, const float3& a)
 {
+#ifdef __KERNEL_SSE__
+	return float3(_mm_mul_ps(a.m128, _mm_set1_ps(f)));
+#else
 	return make_float3(a.x*f, a.y*f, a.z*f);
+#endif
 }
 
-ccl_device_inline float3 operator/(float f, const float3 a)
+ccl_device_inline float3 operator/(const float f, const float3& a)
 {
-	return make_float3(f/a.x, f/a.y, f/a.z);
+#ifdef __KERNEL_SSE__
+	__m128 rc = _mm_rcp_ps(a.m128);
+	return float3(_mm_mul_ps(_mm_set1_ps(f),rc));
+#else
+	return make_float3(f / a.x, f / a.y, f / a.z);
+#endif
 }
 
-ccl_device_inline float3 operator/(const float3 a, float f)
+ccl_device_inline float3 operator/(const float3& a, const float f)
 {
 	float invf = 1.0f/f;
-	return make_float3(a.x*invf, a.y*invf, a.z*invf);
+	return a * invf;
 }
 
-ccl_device_inline float3 operator/(const float3 a, const float3 b)
+ccl_device_inline float3 operator/(const float3& a, const float3& b)
 {
-	return make_float3(a.x/b.x, a.y/b.y, a.z/b.z);
+#ifdef __KERNEL_SSE__
+	__m128 rc = _mm_rcp_ps(b.m128);
+	return float3(_mm_mul_ps(a, rc));
+#else
+	return make_float3(a.x / b.x, a.y / b.y, a.z / b.z);
+#endif
 }
 
-ccl_device_inline float3 operator+(const float3 a, const float3 b)
+ccl_device_inline float3 operator+(const float3& a, const float3& b)
 {
-	return make_float3(a.x+b.x, a.y+b.y, a.z+b.z);
+#ifdef __KERNEL_SSE__
+	return float3(_mm_add_ps(a.m128, b.m128));
+#else
+	return make_float3(a.x + b.x, a.y + b.y, a.z + b.z);
+#endif
 }
 
-ccl_device_inline float3 operator-(const float3 a, const float3 b)
+ccl_device_inline float3 operator-(const float3& a, const float3& b)
 {
-	return make_float3(a.x-b.x, a.y-b.y, a.z-b.z);
+#ifdef __KERNEL_SSE__
+	return float3(_mm_sub_ps(a.m128, b.m128));
+#else
+	return make_float3(a.x - b.x, a.y - b.y, a.z - b.z);
+#endif
 }
 
-ccl_device_inline float3 operator+=(float3& a, const float3 b)
+ccl_device_inline float3 operator+=(float3& a, const float3& b)
 {
 	return a = a + b;
 }
@@ -502,6 +536,15 @@ ccl_device_inline float dot(const float3 a, const float3 b)
 	return _mm_cvtss_f32(_mm_dp_ps(a, b, 0x7F));
 #else	
 	return a.x*b.x + a.y*b.y + a.z*b.z;
+#endif
+}
+
+ccl_device_inline float dot_xy(const float3& a, const float3& b)
+{
+#if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
+	return _mm_cvtss_f32(_mm_hadd_ps(_mm_mul_ps(a,b),b));
+#else
+	return a.x*b.x + a.y*b.y;
 #endif
 }
 
@@ -563,13 +606,14 @@ ccl_device_inline float3 saturate3(float3 a)
 ccl_device_inline float3 normalize_len(const float3 a, float *t)
 {
 	*t = len(a);
-	return a/(*t);
+	float x = 1.0f / *t;
+	return a*x;
 }
 
 ccl_device_inline float3 safe_normalize(const float3 a)
 {
 	float t = len(a);
-	return (t != 0.0f)? a/t: a;
+	return (t != 0.0f)? a * (1.0f/t) : a;
 }
 
 ccl_device_inline float3 safe_normalize_len(const float3 a, float *t)

@@ -174,6 +174,9 @@ struct ccl_try_align(16) int3 {
 	__forceinline int3(const __m128i a) : m128(a) {}
 	__forceinline operator const __m128i&(void) const { return m128; }
 	__forceinline operator __m128i&(void) { return m128; }
+
+	int3(const int3& a) { m128 = a.m128; }
+	int3& operator =(const int3& a) { m128 = a.m128; return *this; }
 #else
 	int x, y, z, w;
 #endif
@@ -193,6 +196,9 @@ struct ccl_try_align(16) int4 {
 	__forceinline int4(const __m128i a) : m128(a) {}
 	__forceinline operator const __m128i&(void) const { return m128; }
 	__forceinline operator __m128i&(void) { return m128; }
+
+	int4(const int4& a) : m128(a.m128) {}
+	int4& operator=(const int4& a) { m128 = a.m128; return *this; }
 #else
 	int x, y, z, w;
 #endif
@@ -237,9 +243,12 @@ struct ccl_try_align(16) float3 {
 	};
 
 	__forceinline float3() {}
-	__forceinline float3(const __m128 a) : m128(a) {}
+	__forceinline float3(const __m128& a) : m128(a) {}
 	__forceinline operator const __m128&(void) const { return m128; }
 	__forceinline operator __m128&(void) { return m128; }
+
+	__forceinline float3(const float3& a) : m128(a.m128) {}
+	__forceinline float3& operator =(const float3& a) { m128 = a.m128; return *this; }
 #else
 	float x, y, z, w;
 #endif
@@ -259,6 +268,10 @@ struct ccl_try_align(16) float4 {
 	__forceinline float4(const __m128 a) : m128(a) {}
 	__forceinline operator const __m128&(void) const { return m128; }
 	__forceinline operator __m128&(void) { return m128; }
+
+	__forceinline float4(const float4& a) : m128(a.m128) {}
+	__forceinline float4& operator =(const float4& a) { m128 = a.m128; return *this; }
+
 #else
 	float x, y, z, w;
 #endif
