@@ -976,8 +976,10 @@ static void draw_depth_buffer(const bContext *C, ARegion *ar)
  */
 static void view3d_draw_prerender_buffers(const bContext *C, ARegion *ar, DrawData *draw_data)
 {
+	View3D *v3d = CTX_wm_view3d(C);
+
 	/* TODO viewport */
-	if (draw_data->is_render && (!draw_data->clip_border)) {
+	if (draw_data->is_render && ((!draw_data->clip_border) || (v3d->drawtype <= OB_WIRE))) {
 		draw_depth_buffer(C, ar);
 	}
 }
