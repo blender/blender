@@ -321,8 +321,8 @@ void ShaderGraph::finalize(Scene *scene,
 	 * modified afterwards. */
 
 	if(!finalized) {
-		clean(scene);
 		default_inputs(do_osl);
+		clean(scene);
 		refine_bump_nodes();
 
 		if(do_bump)
