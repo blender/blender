@@ -2862,8 +2862,8 @@ void WM_OT_straightline_gesture(wmOperatorType *ot)
 
 /* *********************** radial control ****************** */
 
-#define WM_RADIAL_CONTROL_DISPLAY_SIZE (200)
-#define WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE (35)
+#define WM_RADIAL_CONTROL_DISPLAY_SIZE (200 * UI_DPI_FAC)
+#define WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE (35 * UI_DPI_FAC)
 #define WM_RADIAL_CONTROL_DISPLAY_WIDTH (WM_RADIAL_CONTROL_DISPLAY_SIZE - WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE)
 #define WM_RADIAL_MAX_STR 10
 
@@ -3140,7 +3140,7 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 	if (rmin > 0.0f)
 		glutil_draw_lined_arc(0.0, (float)(M_PI * 2.0), rmin, 40);
 
-	BLF_size(fontid, 1.5 * fstyle_points, 1.0f / U.dpi);
+	BLF_size(fontid, 1.5 * fstyle_points * U.pixelsize, U.dpi);
 	BLF_enable(fontid, BLF_SHADOW);
 	BLF_shadow(fontid, 3, (const float[4]){0.0f, 0.0f, 0.0f, 0.5f});
 	BLF_shadow_offset(fontid, 1, -1);
