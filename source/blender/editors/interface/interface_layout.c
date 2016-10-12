@@ -184,11 +184,8 @@ static const char *ui_item_name_add_colon(const char *name, char namestr[UI_MAX_
 	return name;
 }
 
-static int ui_item_fit(int item, int pos, int all, int available, bool is_last, int alignment, int *offset)
+static int ui_item_fit(int item, int pos, int all, int available, bool is_last, int alignment)
 {
-	if (offset)
-		*offset = 0;
-
 	/* available == 0 is unlimited */
 	if (available == 0)
 		return item;
@@ -2110,7 +2107,7 @@ static void ui_litem_layout_row(uiLayout *litem)
 			minw = ui_litem_min_width(itemw);
 
 			if (w - lastw > 0)
-				neww = ui_item_fit(itemw, x, totw, w - lastw, !item->next, litem->alignment, NULL);
+				neww = ui_item_fit(itemw, x, totw, w - lastw, !item->next, litem->alignment);
 			else
 				neww = 0;  /* no space left, all will need clamping to minimum size */
 
@@ -2144,12 +2141,12 @@ static void ui_litem_layout_row(uiLayout *litem)
 
 		if (item->flag) {
 			/* fixed minimum size items */
-			itemw = ui_item_fit(minw, fixedx, fixedw, min_ii(w, fixedw), !item->next, litem->alignment, NULL);
+			itemw = ui_item_fit(minw, fixedx, fixedw, min_ii(w, fixedw), !item->next, litem->alignment);
 			fixedx += itemw;
 		}
 		else {
 			/* free size item */
-			itemw = ui_item_fit(itemw, freex, freew, w - fixedw, !item->next, litem->alignment, NULL);
+			itemw = ui_item_fit(itemw, freex, freew, w - fixedw, !item->next, litem->alignment);
 			freex += itemw;
 		}
 
@@ -2469,7 +2466,7 @@ static void ui_litem_layout_column_flow(uiLayout *litem)
 	uiLayoutItemFlow *flow = (uiLayoutItemFlow *)litem;
 	uiItem *item;
 	int col, x, y, w, emh, emy, miny, itemw, itemh;
-	int toth, totitem, offset;
+	int toth, totitem;
 
 	/* compute max needed width and total height */
 	toth = 0;
@@ -2493,11 +2490,11 @@ static void ui_litem_layout_column_flow(uiLayout *litem)
 	col = 0;
 	for (item = litem->items.first; item; item = item->next) {
 		ui_item_size(item, NULL, &itemh);
-		itemw = ui_item_fit(1, x - litem->x, flow->totcol, w, col == flow->totcol - 1, litem->alignment, &offset);
+		itemw = ui_item_fit(1, x - litem->x, flow->totcol, w, col == flow->totcol - 1, litem->alignment);
 	
 		y -= itemh;
 		emy -= itemh;
-		ui_item_position(item, x + offset, y, itemw, itemh);
+		ui_item_position(item, x, y, itemw, itemh);
 		y -= style->buttonspacey;
 		miny = min_ii(miny, y);
 
