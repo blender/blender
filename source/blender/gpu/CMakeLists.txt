@@ -32,6 +32,8 @@ set(INC
 	../makesdna
 	../makesrna
 
+	../editors/include
+
 	# For node muting stuff...
 	../nodes
 	../nodes/intern
