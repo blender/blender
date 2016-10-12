@@ -230,7 +230,7 @@ ccl_device_inline
 #endif
 int subsurface_scatter_multi_intersect(
         KernelGlobals *kg,
-        SubsurfaceIntersection* ss_isect,
+        SubsurfaceIntersection *ss_isect,
         ShaderData *sd,
         ShaderClosure *sc,
         uint *lcg_state,
