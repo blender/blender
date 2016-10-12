@@ -327,7 +327,8 @@ static void ntree_shader_link_builtin_group_normal(
 	/* Need to update tree so all node instances nodes gets proper sockets. */
 	bNode *group_input_node = ntreeFindType(group_ntree, NODE_GROUP_INPUT);
 	node_group_verify(ntree, group_node, &group_ntree->id);
-	node_group_input_verify(group_ntree, group_input_node, &group_ntree->id);
+	if (group_input_node)
+		node_group_input_verify(group_ntree, group_input_node, &group_ntree->id);
 	ntreeUpdateTree(G.main, group_ntree);
 	/* Assumes sockets are always added at the end. */
 	bNodeSocket *group_node_normal_socket = group_node->inputs.last;
@@ -370,7 +371,7 @@ static void ntree_shader_link_builtin_group_normal(
 		                                 group_displacement_socket);
 		ntreeUpdateTree(G.main, group_ntree);
 	}
-	else {
+	else if (group_input_node) {
 		/* Connect group node normal input. */
 		nodeAddLink(ntree,
 		            node_from, socket_from,
