@@ -330,6 +330,10 @@ int subsurface_scatter_multi_intersect(
 			                                          verts);
 		}
 #endif  /* __OBJECT_MOTION__ */
+		else {
+			ss_isect->weight[hit] = make_float3(0.0f, 0.0f, 0.0f);
+			continue;
+		}
 
 		float3 hit_Ng = ss_isect->Ng[hit];
 		if(ss_isect->hits[hit].object != OBJECT_NONE) {
