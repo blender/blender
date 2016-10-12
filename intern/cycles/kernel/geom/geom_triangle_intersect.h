@@ -107,6 +107,67 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 
 	/* Calculate vertices relative to ray origin. */
 	const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, triAddr);
+
+#if defined(__KERNEL_AVX2__)
+	const avxf avxf_P(P.m128, P.m128);
+
+	const avxf tri_ab = kernel_tex_fetch_avxf(__prim_tri_verts, tri_vindex + 0);
+	const avxf tri_bc = kernel_tex_fetch_avxf(__prim_tri_verts, tri_vindex + 1);
+
+	const avxf AB = tri_ab - avxf_P;
+	const avxf BC = tri_bc - avxf_P;
+
+	const __m256i permuteMask = _mm256_set_epi32(0x3, kz, ky, kx, 0x3, kz, ky, kx);
+
+	const avxf AB_k = shuffle(AB, permuteMask);
+	const avxf BC_k = shuffle(BC, permuteMask);
+
+	/* Akz, Akz, Bkz, Bkz, Bkz, Bkz, Ckz, Ckz */
+	const avxf ABBC_kz = shuffle<2>(AB_k, BC_k);
+
+	/* Akx, Aky, Bkx, Bky, Bkx,Bky, Ckx, Cky */
+	const avxf ABBC_kxy = shuffle<0,1,0,1>(AB_k, BC_k);
+
+	const avxf Sxy(Sy, Sx, Sy, Sx);
+
+	/* Ax, Ay, Bx, By, Bx, By, Cx, Cy */
+	const avxf ABBC_xy = nmadd(ABBC_kz, Sxy, ABBC_kxy);
+
+	float ABBC_kz_array[8];
+	_mm256_storeu_ps((float*)&ABBC_kz_array, ABBC_kz);
+
+	const float A_kz = ABBC_kz_array[0];
+	const float B_kz = ABBC_kz_array[2];
+	const float C_kz = ABBC_kz_array[6];
+
+	/* By, Bx, Cy, Cx, By, Bx, Ay, Ax */
+	const avxf BCBA_yx = permute<3,2,7,6,3,2,1,0>(ABBC_xy);
+
+	const avxf negMask(0,0,0,0,0x80000000, 0x80000000, 0x80000000, 0x80000000);
+
+	/* W           U                             V
+	 * (AxBy-AyBx) (BxCy-ByCx) XX XX (BxBy-ByBx) (CxAy-CyAx) XX XX
+	 */
+	const avxf WUxxxxVxx_neg = _mm256_hsub_ps(ABBC_xy * BCBA_yx, negMask /* Dont care */);
+
+	const avxf WUVWnegWUVW = permute<0,1,5,0,0,1,5,0>(WUxxxxVxx_neg) ^ negMask;
+
+	/* Calculate scaled barycentric coordinates. */
+	float WUVW_array[4];
+	_mm_storeu_ps((float*)&WUVW_array, _mm256_castps256_ps128 (WUVWnegWUVW));
+
+	const float W = WUVW_array[0];
+	const float U = WUVW_array[1];
+	const float V = WUVW_array[2];
+
+	const int WUVW_mask = 0x7 & _mm256_movemask_ps(WUVWnegWUVW);
+	const int WUVW_zero = 0x7 & _mm256_movemask_ps(_mm256_cmp_ps(WUVWnegWUVW,
+	                                               _mm256_setzero_ps(), 0));
+
+	if(!((WUVW_mask == 7) || (WUVW_mask == 0)) && ((WUVW_mask | WUVW_zero) != 7)) {
+		return false;
+	}
+#else
 	const float4 tri_a = kernel_tex_fetch(__prim_tri_verts, tri_vindex+0),
 	             tri_b = kernel_tex_fetch(__prim_tri_verts, tri_vindex+1),
 	             tri_c = kernel_tex_fetch(__prim_tri_verts, tri_vindex+2);
@@ -135,6 +196,7 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 	{
 		return false;
 	}
+#endif
 
 	/* Calculate determinant. */
 	float det = U + V + W;
