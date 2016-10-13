@@ -57,8 +57,6 @@ void immInit()
 
 	memset(&imm, 0, sizeof(Immediate));
 
-	glGenVertexArrays(1, &imm.vao_id);
-	glBindVertexArray(imm.vao_id);
 	glGenBuffers(1, &imm.vbo_id);
 	glBindBuffer(GL_ARRAY_BUFFER, imm.vbo_id);
 	glBufferData(GL_ARRAY_BUFFER, IMM_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
@@ -72,19 +70,38 @@ void immInit()
 	imm.strict_vertex_ct = true;
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
 	initialized = true;
+
+	immActivate();
 	}
 
-void immDestroy()
+void immActivate()
 	{
 #if TRUST_NO_ONE
 	assert(initialized);
 	assert(imm.primitive == PRIM_NONE); // make sure we're not between a Begin/End pair
+	assert(imm.vao_id == 0);
 #endif
 
-	VertexFormat_clear(&imm.vertex_format);
+	glGenVertexArrays(1, &imm.vao_id);
+	}
+
+void immDeactivate()
+	{
+#if TRUST_NO_ONE
+	assert(initialized);
+	assert(imm.primitive == PRIM_NONE); // make sure we're not between a Begin/End pair
+	assert(imm.vao_id != 0);
+#endif
+
 	glDeleteVertexArrays(1, &imm.vao_id);
+	imm.vao_id = 0;
+	imm.prev_enabled_attrib_bits = 0;
+	}
+
+void immDestroy()
+	{
+	immDeactivate();
 	glDeleteBuffers(1, &imm.vbo_id);
 	initialized = false;
 	}

@@ -90,4 +90,6 @@ void immUniformColor4ubv(const unsigned char rgba[4]);
 // these are called by the system -- not part of drawing API
 
 void immInit(void);
+void immActivate(void);
+void immDeactivate(void);
 void immDestroy(void);
