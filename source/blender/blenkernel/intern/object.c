@@ -1181,7 +1181,7 @@ Object *BKE_object_copy(Main *bmain, Object *ob)
 	return BKE_object_copy_ex(bmain, ob, false);
 }
 
-void BKE_object_make_local(Main *bmain, Object *ob, const bool lib_local)
+void BKE_object_make_local_ex(Main *bmain, Object *ob, const bool lib_local, const bool clear_proxy)
 {
 	bool is_local = false, is_lib = false;
 
@@ -1201,6 +1201,13 @@ void BKE_object_make_local(Main *bmain, Object *ob, const bool lib_local)
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &ob->id);
 			BKE_id_expand_local(&ob->id);
+			if (clear_proxy) {
+				if (ob->proxy_from != NULL) {
+					ob->proxy_from->proxy = NULL;
+					ob->proxy_from->proxy_group = NULL;
+				}
+				ob->proxy = ob->proxy_from = ob->proxy_group = NULL;
+			}
 		}
 		else {
 			Object *ob_new = BKE_object_copy(bmain, ob);
@@ -1213,6 +1220,11 @@ void BKE_object_make_local(Main *bmain, Object *ob, const bool lib_local)
 			}
 		}
 	}
+}
+
+void BKE_object_make_local(Main *bmain, Object *ob, const bool lib_local)
+{
+	BKE_object_make_local_ex(bmain, ob, lib_local, true);
 }
 
 /* Returns true if the Object is from an external blend file (libdata) */
