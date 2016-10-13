@@ -43,3 +43,4 @@ void immBindBuiltinProgram(GPUBuiltinShader shader_id);
  */
 void immUniformThemeColor(int colorid);
 void immUniformThemeColorShade(int colorid, int offset);
+void immUniformThemeColorBlendShade(int colorid1, int colorid2, float fac, int offset);

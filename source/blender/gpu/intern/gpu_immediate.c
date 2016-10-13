@@ -51,3 +51,10 @@ void immUniformThemeColorShade(int colorid, int offset)
 	UI_GetThemeColorShade4fv(colorid, offset, color);
 	immUniformColor4fv(color);
 }
+
+void immUniformThemeColorBlendShade(int colorid1, int colorid2, float fac, int offset)
+{
+	float color[4];
+	UI_GetThemeColorBlendShade4fv(colorid1, colorid2, fac, offset, color);
+	immUniformColor4fv(color);
+}

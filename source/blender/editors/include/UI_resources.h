@@ -353,6 +353,8 @@ void    UI_GetThemeColor4fv(int colorid, float col[4]);
 // get four color values, range 0.0-1.0, complete with shading offset for the RGB components
 void    UI_GetThemeColorShade4fv(int colorid, int offset, float col[4]);
 void	UI_GetThemeColorShadeAlpha4fv(int colorid, int coloffset, int alphaoffset, float col[4]);
+// get four color values, range 0.0-1.0, complete with shading offset for the RGB components and blending
+void    UI_GetThemeColorBlendShade4fv(int colorid1, int colorid2, float fac, int offset, float col[4]);
 
 // get the 3 or 4 byte values
 void UI_GetThemeColor3ubv(int colorid, unsigned char col[3]);
