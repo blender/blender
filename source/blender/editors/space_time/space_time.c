@@ -212,23 +212,26 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel, cons
 		max_len++;
 	}
 
-	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	if (max_len > 0) {
 
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-	immUniformColor3ubv(color);
+		VertexFormat *format = immVertexFormat();
+		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
-	immBeginAtMost(GL_LINES, max_len * 2.0f);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+		immUniformColor3ubv(color);
 
-	for (;(ak) && (ak->cfra <= v2d->cur.xmax);
-	     ak = ak->next)
-	{
-		immVertex2f(pos, ak->cfra, ymin);
-		immVertex2f(pos, ak->cfra, ymax);
+		immBeginAtMost(GL_LINES, max_len * 2.0f);
+
+		for (; (ak) && (ak->cfra <= v2d->cur.xmax);
+			ak = ak->next)
+		{
+			immVertex2f(pos, ak->cfra, ymin);
+			immVertex2f(pos, ak->cfra, ymax);
+		}
+
+		immEnd();
+		immUnbindProgram();
 	}
-
-	immEnd();
-	immUnbindProgram();
 
 	/* free temp stuff */
 	BLI_dlrbTree_free(&keys);
