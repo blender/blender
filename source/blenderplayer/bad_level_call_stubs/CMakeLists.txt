@@ -35,11 +35,12 @@ set(INC
 	../../blender/blenloader
 	../../blender/makesdna
 	../../blender/makesrna
+	../../../intern/glew-mx
 	../../../intern/guardedalloc
 )
 
 set(INC_SYS
-	
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC

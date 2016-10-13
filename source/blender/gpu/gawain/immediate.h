@@ -26,7 +26,7 @@ void immBeginAtMost(GLenum primitive, unsigned max_vertex_ct); // can supply few
 void immEnd(void); // finishes and draws
 
 #if IMM_BATCH_COMBO
-#include "gawain/batch.h"
+#include "batch.h"
 // immBegin a batch, then use standard immFunctions as usual.
 // immEnd will finalize the batch instead of drawing.
 // Then you can draw it as many times as you like! Partially replaces the need for display lists.

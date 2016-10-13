@@ -90,7 +90,8 @@ void gpuMatrixBegin3D()
 }
 
 #if SUPPORT_LEGACY_MATRIX
-void gpuMatrixBegin3D_legacy() {
+void gpuMatrixBegin3D_legacy()
+{
 	/* copy top matrix from each legacy stack into new fresh stack */
 	state.mode = MATRIX_MODE_3D;
 	state.top = 0;

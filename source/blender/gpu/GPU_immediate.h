@@ -36,7 +36,7 @@
 
 /* Extend immBindProgram to use Blender’s library of built-in shader programs.
  * Use immUnbindProgram() when done. */
-void immBindBuiltinProgram(GPUBuiltinShader);
+void immBindBuiltinProgram(GPUBuiltinShader shader_id);
 
 /*
  * Extend immUniformColor to take Blender's themes
