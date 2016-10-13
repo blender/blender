@@ -2489,10 +2489,12 @@ static void ui_litem_layout_column_flow(uiLayout *litem)
 
 	/* create column per column */
 	col = 0;
+	w = (litem->w - (flow->totcol - 1) * style->columnspace) / flow->totcol;
 	for (item = litem->items.first; item; item = item->next) {
-		ui_item_size(item, NULL, &itemh);
-		itemw = ui_item_fit(1, x - litem->x, flow->totcol, w, col == flow->totcol - 1, litem->alignment);
-	
+		ui_item_size(item, &itemw, &itemh);
+
+		itemw = (litem->alignment == UI_LAYOUT_ALIGN_EXPAND) ? w : min_ii(w, itemw);
+
 		y -= itemh;
 		emy -= itemh;
 		ui_item_position(item, x, y, itemw, itemh);
@@ -2501,10 +2503,13 @@ static void ui_litem_layout_column_flow(uiLayout *litem)
 
 		/* decide to go to next one */
 		if (col < flow->totcol - 1 && emy <= -emh) {
-			x += itemw + style->columnspace;
+			x += w + style->columnspace;
 			y = litem->y;
 			emy = 0; /* need to reset height again for next column */
 			col++;
+
+			/*  (<     remaining width     > - <      space between remaining columns      >) / <remamining columns > */
+			w = ((litem->w - (x - litem->x)) - (flow->totcol - col - 1) * style->columnspace) / (flow->totcol - col);
 		}
 	}
 
