@@ -76,7 +76,7 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_init_exit.h"
-#include "GPU_glew.h"
+#include "GPU_immediate.h"
 
 /* for assert */
 #ifndef NDEBUG
@@ -827,13 +827,16 @@ void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win)
 {
 	if (win != wm->windrawable && win->ghostwin) {
 //		win->lmbut = 0;	/* keeps hanging when mousepressed while other window opened */
-		
+
 		wm->windrawable = win;
 		if (G.debug & G_DEBUG_EVENTS) {
 			printf("%s: set drawable %d\n", __func__, win->winid);
 		}
+
+		immDeactivate();
 		GHOST_ActivateWindowDrawingContext(win->ghostwin);
-		
+		immActivate();
+
 		/* this can change per window */
 		U.pixelsize = wm_window_pixelsize(win);
 		BKE_blender_userdef_refresh();
