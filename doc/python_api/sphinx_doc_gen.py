@@ -26,16 +26,16 @@ API dump in RST files
 ---------------------
   Run this script from Blender's root path once you have compiled Blender
 
-    ./blender.bin --background -noaudio --python doc/python_api/sphinx_doc_gen.py
+    blender --background --factory-startup -noaudio --python doc/python_api/sphinx_doc_gen.py
 
   This will generate python files in doc/python_api/sphinx-in/
-  providing ./blender.bin is or links to the blender executable
+  providing ./blender is or links to the blender executable
 
   To choose sphinx-in directory:
-    ./blender.bin --background --python doc/python_api/sphinx_doc_gen.py -- --output ../python_api
+    blender --background --factory-startup --python doc/python_api/sphinx_doc_gen.py -- --output ../python_api
 
   For quick builds:
-    ./blender.bin --background --python doc/python_api/sphinx_doc_gen.py -- --partial bmesh.*
+    blender --background --factory-startup --python doc/python_api/sphinx_doc_gen.py -- --partial bmesh.*
 
 
 Sphinx: HTML generation
@@ -45,8 +45,6 @@ Sphinx: HTML generation
 
     cd doc/python_api
     sphinx-build sphinx-in sphinx-out
-
-  This requires sphinx 1.0.7 to be installed.
 
 
 Sphinx: PDF generation
@@ -68,7 +66,7 @@ except ImportError:
     import sys
     sys.exit()
 
-import rna_info     # Blender module
+import rna_info  # Blender module
 
 
 def rna_info_BuildRNAInfo_cache():
@@ -86,7 +84,7 @@ import shutil
 import logging
 
 from platform import platform
-PLATFORM = platform().split('-')[0].lower()    # 'linux', 'darwin', 'windows'
+PLATFORM = platform().split('-')[0].lower()  # 'linux', 'darwin', 'windows'
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -208,12 +206,12 @@ BPY_LOGGER.setLevel(logging.DEBUG)
 """
 # for quick rebuilds
 rm -rf /b/doc/python_api/sphinx-* && \
-./blender.bin -b -noaudio --factory-startup -P doc/python_api/sphinx_doc_gen.py && \
+./blender -b -noaudio --factory-startup -P doc/python_api/sphinx_doc_gen.py && \
 sphinx-build doc/python_api/sphinx-in doc/python_api/sphinx-out
 
 or
 
-./blender.bin -b -noaudio --factory-startup -P doc/python_api/sphinx_doc_gen.py -- -f -B
+./blender -b -noaudio --factory-startup -P doc/python_api/sphinx_doc_gen.py -- -f -B
 """
 
 # Switch for quick testing so doc-builds don't take so long
@@ -420,7 +418,7 @@ MODULE_GROUPING = {
 
 blender_version_strings = [str(v) for v in bpy.app.version]
 
-# converting bytes to strings, due to #30154
+# converting bytes to strings, due to T30154
 BLENDER_REVISION = str(bpy.app.build_hash, 'utf_8')
 BLENDER_DATE = str(bpy.app.build_date, 'utf_8')
 
@@ -1567,9 +1565,9 @@ def pyrna2sphinx(basepath):
 
     # operators
     def write_ops():
-        API_BASEURL = "http://svn.blender.org/svnroot/bf-blender/trunk/blender/release/scripts"
-        API_BASEURL_ADDON = "http://svn.blender.org/svnroot/bf-extensions/trunk/py/scripts"
-        API_BASEURL_ADDON_CONTRIB = "http://svn.blender.org/svnroot/bf-extensions/contrib/py/scripts"
+        API_BASEURL = "https://developer.blender.org/diffusion/B/browse/master/release/scripts/ "
+        API_BASEURL_ADDON = "https://developer.blender.org/diffusion/BA/"
+        API_BASEURL_ADDON_CONTRIB = "https://developer.blender.org/diffusion/BAC/"
 
         op_modules = {}
         for op in ops.values():
@@ -1645,7 +1643,7 @@ def write_sphinx_conf_py(basepath):
 
     if ARGS.sphinx_theme == "blender-org":
         fw("html_theme_path = ['../']\n")
-        # copied with the theme, exclude else we get an error [#28873]
+        # copied with the theme, exclude else we get an error [T28873]
         fw("html_favicon = 'favicon.ico'\n")    # in <theme>/static/
 
     # not helpful since the source is generated, adds to upload size.
