@@ -481,10 +481,11 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 /**
  * Draw title and text safe areas.
  *
- * The first 4 parameters are the offsets for the view, not the zones.
+ * The first parameter is a GL_FLOAT, 2, KEEP_FLOAT vertex attrib
+ * The next 4 parameters are the offsets for the view, not the zones.
  */
 void UI_draw_safe_areas(
-        float x1, float x2, float y1, float y2,
+        unsigned pos, float x1, float x2, float y1, float y2,
         const float title_aspect[2], const float action_aspect[2])
 {
 	const float size_x_half = (x2 - x1) * 0.5f;
@@ -512,12 +513,7 @@ void UI_draw_safe_areas(
 			maxx = x2 - margin_x;
 			maxy = y2 - margin_y;
 
-			glBegin(GL_LINE_LOOP);
-			glVertex2f(maxx, miny);
-			glVertex2f(maxx, maxy);
-			glVertex2f(minx, maxy);
-			glVertex2f(minx, miny);
-			glEnd();
+			imm_draw_line_box(pos, minx, miny, maxx, maxy);
 		}
 	}
 }

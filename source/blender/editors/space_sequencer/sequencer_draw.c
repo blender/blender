@@ -59,6 +59,7 @@
 #include "BIF_glutil.h"
 
 #include "GPU_basic_shader.h"
+#include "GPU_immediate.h"
 
 #include "ED_anim_api.h"
 #include "ED_gpencil.h"
@@ -1048,29 +1049,30 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 	/* border */
 	setlinestyle(3);
 
-	UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 1.0, 0);
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
-	glBegin(GL_LINE_LOOP);
-	glVertex2f(x1 - 0.5f, y1 - 0.5f);
-	glVertex2f(x1 - 0.5f, y2 + 0.5f);
-	glVertex2f(x2 + 0.5f, y2 + 0.5f);
-	glVertex2f(x2 + 0.5f, y1 - 0.5f);
-	glEnd();
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformThemeColor(TH_BACK);
+
+	imm_draw_line_box(pos, x1 - 0.5f, y1 - 0.5f, x2 + 0.5f, y2 + 0.5f);
 
 	/* safety border */
 	if (sseq->flag & SEQ_SHOW_SAFE_MARGINS) {
 		UI_draw_safe_areas(
-		        x1, x2, y1, y2,
+		        pos, x1, x2, y1, y2,
 		        scene->safe_areas.title,
 		        scene->safe_areas.action);
 
 		if (sseq->flag & SEQ_SHOW_SAFE_CENTER) {
 			UI_draw_safe_areas(
-			        x1, x2, y1, y2,
+			        pos, x1, x2, y1, y2,
 			        scene->safe_areas.title_center,
 			        scene->safe_areas.action_center);
 		}
 	}
+
+	immUnbindProgram();
 
 	setlinestyle(0);
 }

@@ -725,7 +725,7 @@ void ED_view3d_calc_camera_border(
 	view3d_camera_border(scene, ar, v3d, rv3d, r_viewborder, no_shift, false);
 }
 
-static void drawviewborder_grid3(float x1, float x2, float y1, float y2, float fac)
+static void drawviewborder_grid3(unsigned pos, float x1, float x2, float y1, float y2, float fac)
 {
 	float x3, y3, x4, y4;
 
@@ -734,29 +734,29 @@ static void drawviewborder_grid3(float x1, float x2, float y1, float y2, float f
 	x4 = x1 + (1.0f - fac) * (x2 - x1);
 	y4 = y1 + (1.0f - fac) * (y2 - y1);
 
-	glBegin(GL_LINES);
-	glVertex2f(x1, y3);
-	glVertex2f(x2, y3);
+	immBegin(GL_LINES, 8);
+	immVertex2f(pos, x1, y3);
+	immVertex2f(pos, x2, y3);
 
-	glVertex2f(x1, y4);
-	glVertex2f(x2, y4);
+	immVertex2f(pos, x1, y4);
+	immVertex2f(pos, x2, y4);
 
-	glVertex2f(x3, y1);
-	glVertex2f(x3, y2);
+	immVertex2f(pos, x3, y1);
+	immVertex2f(pos, x3, y2);
 
-	glVertex2f(x4, y1);
-	glVertex2f(x4, y2);
-	glEnd();
+	immVertex2f(pos, x4, y1);
+	immVertex2f(pos, x4, y2);
+	immEnd();
 }
 
 /* harmonious triangle */
-static void drawviewborder_triangle(float x1, float x2, float y1, float y2, const char golden, const char dir)
+static void drawviewborder_triangle(unsigned pos, float x1, float x2, float y1, float y2, const char golden, const char dir)
 {
 	float ofs;
 	float w = x2 - x1;
 	float h = y2 - y1;
 
-	glBegin(GL_LINES);
+	immBegin(GL_LINES, 6);
 	if (w > h) {
 		if (golden) {
 			ofs = w * (1.0f - (1.0f / 1.61803399f));
@@ -766,14 +766,14 @@ static void drawviewborder_triangle(float x1, float x2, float y1, float y2, cons
 		}
 		if (dir == 'B') SWAP(float, y1, y2);
 
-		glVertex2f(x1, y1);
-		glVertex2f(x2, y2);
+		immVertex2f(pos, x1, y1);
+		immVertex2f(pos, x2, y2);
 
-		glVertex2f(x2, y1);
-		glVertex2f(x1 + (w - ofs), y2);
+		immVertex2f(pos, x2, y1);
+		immVertex2f(pos, x1 + (w - ofs), y2);
 
-		glVertex2f(x1, y2);
-		glVertex2f(x1 + ofs, y1);
+		immVertex2f(pos, x1, y2);
+		immVertex2f(pos, x1 + ofs, y1);
 	}
 	else {
 		if (golden) {
@@ -784,16 +784,16 @@ static void drawviewborder_triangle(float x1, float x2, float y1, float y2, cons
 		}
 		if (dir == 'B') SWAP(float, x1, x2);
 
-		glVertex2f(x1, y1);
-		glVertex2f(x2, y2);
+		immVertex2f(pos, x1, y1);
+		immVertex2f(pos, x2, y2);
 
-		glVertex2f(x2, y1);
-		glVertex2f(x1, y1 + ofs);
+		immVertex2f(pos, x2, y1);
+		immVertex2f(pos, x1, y1 + ofs);
 
-		glVertex2f(x1, y2);
-		glVertex2f(x2, y1 + (h - ofs));
+		immVertex2f(pos, x1, y2);
+		immVertex2f(pos, x2, y1 + (h - ofs));
 	}
-	glEnd();
+	immEnd();
 }
 
 static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
@@ -830,43 +830,49 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	y1i = (int)(y1 - 1.0001f);
 	x2i = (int)(x2 + (1.0f - 0.0001f));
 	y2i = (int)(y2 + (1.0f - 0.0001f));
-	
+
+	/* use the same program for everything */
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
 	/* passepartout, specified in camera edit buttons */
 	if (ca && (ca->flag & CAM_SHOWPASSEPARTOUT) && ca->passepartalpha > 0.000001f) {
 		const float winx = (ar->winx + 1);
 		const float winy = (ar->winy + 1);
 
-		if (ca->passepartalpha == 1.0f) {
-			glColor3f(0, 0, 0);
-		}
-		else {
+		float alpha = 1.0f;
+
+		if (ca->passepartalpha != 1.0f) {
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
-			glColor4f(0, 0, 0, ca->passepartalpha);
+			alpha = ca->passepartalpha;
 		}
 
+		immUniformColor4f(0.0f, 0.0f, 0.0f, alpha);
+
 		if (x1i > 0.0f)
-			glRectf(0.0, winy, x1i, 0.0);
+			immRectf(pos, 0.0f, winy, x1i, 0.0f);
 		if (x2i < winx)
-			glRectf(x2i, winy, winx, 0.0);
+			immRectf(pos, x2i, winy, winx, 0.0f);
 		if (y2i < winy)
-			glRectf(x1i, winy, x2i, y2i);
+			immRectf(pos, x1i, winy, x2i, y2i);
 		if (y2i > 0.0f)
-			glRectf(x1i, y1i, x2i, 0.0);
-		
+			immRectf(pos, x1i, y1i, x2i, 0.0f);
+
 		glDisable(GL_BLEND);
 	}
 
 	setlinestyle(0);
 
-	UI_ThemeColor(TH_BACK);
-		
-	fdrawbox(x1i, y1i, x2i, y2i);
+	immUniformThemeColor(TH_BACK);
+	imm_draw_line_box(pos, x1i, y1i, x2i, y2i);
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
 	if (view3d_camera_border_hack_test == true) {
-		glColor3ubv(view3d_camera_border_hack_col);
-		fdrawbox(x1i + 1, y1i + 1, x2i - 1, y2i - 1);
+		immUniformColor3ubv(view3d_camera_border_hack_col);
+		imm_draw_line_box(pos, x1i + 1, y1i + 1, x2i - 1, y2i - 1);
 		view3d_camera_border_hack_test = false;
 	}
 #endif
@@ -875,12 +881,12 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 
 	/* outer line not to confuse with object selecton */
 	if (v3d->flag2 & V3D_LOCK_CAMERA) {
-		UI_ThemeColor(TH_REDALERT);
-		fdrawbox(x1i - 1, y1i - 1, x2i + 1, y2i + 1);
+		immUniformThemeColor(TH_REDALERT);
+		imm_draw_line_box(pos, x1i - 1, y1i - 1, x2i + 1, y2i + 1);
 	}
 
-	UI_ThemeColor(TH_VIEW_OVERLAY);
-	fdrawbox(x1i, y1i, x2i, y2i);
+	immUniformThemeColor(TH_VIEW_OVERLAY);
+	imm_draw_line_box(pos, x1i, y1i, x2i, y2i);
 
 	/* border */
 	if (scene->r.mode & R_BORDER) {
@@ -891,8 +897,8 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		x4 = floorf(x1 + (scene->r.border.xmax * (x2 - x1))) + (U.pixelsize - 1);
 		y4 = floorf(y1 + (scene->r.border.ymax * (y2 - y1))) + (U.pixelsize - 1);
 
-		cpack(0x4040FF);
-		sdrawbox(x3,  y3,  x4,  y4);
+		imm_cpack(0x4040FF);
+		imm_draw_line_box(pos, x3, y3, x4, y4);
 	}
 
 	/* safety border */
@@ -903,10 +909,6 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			x3 = x1 + 0.5f * (x2 - x1);
 			y3 = y1 + 0.5f * (y2 - y1);
 
-			VertexFormat *format = immVertexFormat();
-			unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-
-			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 			immUniformThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25f, 0);
 			immBegin(GL_LINES, 4);
 
@@ -917,15 +919,10 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			immVertex2f(pos, x3, y2);
 
 			immEnd();
-			immUnbindProgram();
 		}
 
 		if (ca->dtx & CAM_DTX_CENTER_DIAG) {
 
-			VertexFormat *format = immVertexFormat();
-			unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-
-			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 			immUniformThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25f, 0);
 			immBegin(GL_LINES, 4);
 
@@ -936,48 +933,47 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			immVertex2f(pos, x2, y1);
 
 			immEnd();
-			immUnbindProgram();
 		}
 
 		if (ca->dtx & CAM_DTX_THIRDS) {
-			UI_ThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25, 0);
-			drawviewborder_grid3(x1, x2, y1, y2, 1.0f / 3.0f);
+			immUniformThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25f, 0);
+			drawviewborder_grid3(pos, x1, x2, y1, y2, 1.0f / 3.0f);
 		}
 
 		if (ca->dtx & CAM_DTX_GOLDEN) {
-			UI_ThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25, 0);
-			drawviewborder_grid3(x1, x2, y1, y2, 1.0f - (1.0f / 1.61803399f));
+			immUniformThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25f, 0);
+			drawviewborder_grid3(pos, x1, x2, y1, y2, 1.0f - (1.0f / 1.61803399f));
 		}
 
 		if (ca->dtx & CAM_DTX_GOLDEN_TRI_A) {
-			UI_ThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25, 0);
-			drawviewborder_triangle(x1, x2, y1, y2, 0, 'A');
+			immUniformThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25f, 0);
+			drawviewborder_triangle(pos, x1, x2, y1, y2, 0, 'A');
 		}
 
 		if (ca->dtx & CAM_DTX_GOLDEN_TRI_B) {
-			UI_ThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25, 0);
-			drawviewborder_triangle(x1, x2, y1, y2, 0, 'B');
+			immUniformThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25f, 0);
+			drawviewborder_triangle(pos, x1, x2, y1, y2, 0, 'B');
 		}
 
 		if (ca->dtx & CAM_DTX_HARMONY_TRI_A) {
-			UI_ThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25, 0);
-			drawviewborder_triangle(x1, x2, y1, y2, 1, 'A');
+			immUniformThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25f, 0);
+			drawviewborder_triangle(pos, x1, x2, y1, y2, 1, 'A');
 		}
 
 		if (ca->dtx & CAM_DTX_HARMONY_TRI_B) {
-			UI_ThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25, 0);
-			drawviewborder_triangle(x1, x2, y1, y2, 1, 'B');
+			immUniformThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25f, 0);
+			drawviewborder_triangle(pos, x1, x2, y1, y2, 1, 'B');
 		}
 
 		if (ca->flag & CAM_SHOW_SAFE_MARGINS) {
 			UI_draw_safe_areas(
-			        x1, x2, y1, y2,
+			        pos, x1, x2, y1, y2,
 			        scene->safe_areas.title,
 			        scene->safe_areas.action);
 
 			if (ca->flag & CAM_SHOW_SAFE_CENTER) {
 				UI_draw_safe_areas(
-				        x1, x2, y1, y2,
+				        pos, x1, x2, y1, y2,
 				        scene->safe_areas.title_center,
 				        scene->safe_areas.action_center);
 			}
@@ -1030,6 +1026,8 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		        x1i, y1i - (0.7f * U.widget_unit), 0.0f,
 		        v3d->camera->id.name + 2, sizeof(v3d->camera->id.name) - 2);
 	}
+
+	immUnbindProgram();
 }
 
 /* *********************** backdraw for selection *************** */
