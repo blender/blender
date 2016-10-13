@@ -14,6 +14,8 @@
 #include "common.h"
 
 #define MAX_VERTEX_ATTRIBS 16
+#define AVG_VERTEX_ATTRIB_NAME_LEN 5
+#define VERTEX_ATTRIB_NAMES_BUFFER_LEN ((AVG_VERTEX_ATTRIB_NAME_LEN + 1) * MAX_VERTEX_ATTRIBS)
 
 typedef enum {
 	KEEP_FLOAT,
@@ -28,7 +30,7 @@ typedef struct {
 	unsigned sz; // size in bytes, 1 to 16
 	unsigned offset; // from beginning of vertex, in bytes
 	VertexFetchMode fetch_mode;
-	char* name; // TODO: shared allocation of all names within a VertexFormat
+	const char* name;
 } Attrib;
 
 typedef struct {
@@ -36,6 +38,8 @@ typedef struct {
 	unsigned stride; // stride in bytes, 1 to 256
 	bool packed;
 	Attrib attribs[MAX_VERTEX_ATTRIBS]; // TODO: variable-size attribs array
+	char names[VERTEX_ATTRIB_NAMES_BUFFER_LEN];
+	unsigned name_offset;
 } VertexFormat;
 
 void VertexFormat_clear(VertexFormat*);

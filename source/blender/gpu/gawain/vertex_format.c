@@ -21,29 +21,19 @@
 
 void VertexFormat_clear(VertexFormat* format)
 	{
-	for (unsigned a = 0; a < format->attrib_ct; ++a)
-		free(format->attribs[a].name);
-
 #if TRUST_NO_ONE
 	memset(format, 0, sizeof(VertexFormat));
 #else
 	format->attrib_ct = 0;
 	format->packed = false;
+	format->name_offset = 0;
 #endif
 	}
 
 void VertexFormat_copy(VertexFormat* dest, const VertexFormat* src)
 	{
-	// discard dest format's old name strings
-	for (unsigned a = 0; a < dest->attrib_ct; ++a)
-		free(dest->attribs[a].name);
-
 	// copy regular struct fields
 	memcpy(dest, src, sizeof(VertexFormat));
-	
-	// give dest attribs their own copy of name strings
-	for (unsigned i = 0; i < src->attrib_ct; ++i)
-		dest->attribs[i].name = strdup(src->attribs[i].name);
 	}
 
 static unsigned comp_sz(GLenum type)
@@ -77,6 +67,33 @@ unsigned vertex_buffer_size(const VertexFormat* format, unsigned vertex_ct)
 #endif
 
 	return format->stride * vertex_ct;
+	}
+
+static const char* copy_attrib_name(VertexFormat* format, const char* name)
+	{
+	// strncpy does 110% of what we need; let's do exactly 100%
+	char* name_copy = format->names + format->name_offset;
+	unsigned available = VERTEX_ATTRIB_NAMES_BUFFER_LEN - format->name_offset;
+	bool terminated = false;
+
+	for (unsigned i = 0; i < available; ++i)
+		{
+		const char c = name[i];
+		name_copy[i] = c;
+		if (c == '\0')
+			{
+			terminated = true;
+			format->name_offset += (i + 1);
+			break;
+			}
+		}
+
+#if TRUST_NO_ONE
+	assert(terminated);
+	assert(format->name_offset <= VERTEX_ATTRIB_NAMES_BUFFER_LEN);
+#endif
+
+	return name_copy;
 	}
 
 unsigned add_attrib(VertexFormat* format, const char* name, GLenum comp_type, unsigned comp_ct, VertexFetchMode fetch_mode)
@@ -114,7 +131,7 @@ unsigned add_attrib(VertexFormat* format, const char* name, GLenum comp_type, un
 	const unsigned attrib_id = format->attrib_ct++;
 	Attrib* attrib = format->attribs + attrib_id;
 
-	attrib->name = strdup(name);
+	attrib->name = copy_attrib_name(format, name);
 	attrib->comp_type = comp_type;
 	attrib->comp_ct = comp_ct;
 	attrib->sz = attrib_sz(attrib);
@@ -149,11 +166,8 @@ void VertexFormat_pack(VertexFormat* format)
 	// later we can implement more efficient packing w/ reordering
 	// (keep attrib ID order, adjust their offsets to reorder in buffer)
 
-	// TODO: concatentate name strings into attribs[0].name, point attribs[i] to
-	// offset into the combined string. Free all other name strings. Could save more
-	// space by storing combined string in VertexFormat, with each attrib having an
-	// offset into it. Could also append each name string as it's added... pack()
-	// could alloc just enough to hold the final combo string. And just enough to
+	// TODO:
+	// realloc just enough to hold the final combo string. And just enough to
 	// hold used attribs, not all 16.
 
 	Attrib* a0 = format->attribs + 0;
