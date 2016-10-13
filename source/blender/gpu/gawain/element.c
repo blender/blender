@@ -23,7 +23,9 @@ unsigned ElementList_size(const ElementList* elem)
 		case GL_UNSIGNED_SHORT: return elem->index_ct * sizeof(GLushort);
 		case GL_UNSIGNED_INT: return elem->index_ct * sizeof(GLuint);
 		default:
+	#if TRUST_NO_ONE
 			assert(false);
+	#endif
 			return 0;
 		}
 
@@ -69,7 +71,10 @@ void ElementListBuilder_init(ElementListBuilder* builder, GLenum prim_type, unsi
 			verts_per_prim = 3;
 			break;
 		default:
+#if TRUST_NO_ONE
 			assert(false);
+#endif
+			return;
 		}
 
 	builder->max_allowed_index = vertex_ct - 1;
