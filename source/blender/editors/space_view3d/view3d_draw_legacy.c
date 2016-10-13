@@ -900,30 +900,43 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		if (ca->dtx & CAM_DTX_CENTER) {
 			float x3, y3;
 
-			UI_ThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25, 0);
-
 			x3 = x1 + 0.5f * (x2 - x1);
 			y3 = y1 + 0.5f * (y2 - y1);
 
-			glBegin(GL_LINES);
-			glVertex2f(x1, y3);
-			glVertex2f(x2, y3);
+			VertexFormat *format = immVertexFormat();
+			unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
-			glVertex2f(x3, y1);
-			glVertex2f(x3, y2);
-			glEnd();
+			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+			immUniformThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25f, 0);
+			immBegin(GL_LINES, 4);
+
+			immVertex2f(pos, x1, y3);
+			immVertex2f(pos, x2, y3);
+
+			immVertex2f(pos, x3, y1);
+			immVertex2f(pos, x3, y2);
+
+			immEnd();
+			immUnbindProgram();
 		}
 
 		if (ca->dtx & CAM_DTX_CENTER_DIAG) {
-			UI_ThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25, 0);
 
-			glBegin(GL_LINES);
-			glVertex2f(x1, y1);
-			glVertex2f(x2, y2);
+			VertexFormat *format = immVertexFormat();
+			unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
-			glVertex2f(x1, y2);
-			glVertex2f(x2, y1);
-			glEnd();
+			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+			immUniformThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25f, 0);
+			immBegin(GL_LINES, 4);
+
+			immVertex2f(pos, x1, y1);
+			immVertex2f(pos, x2, y2);
+
+			immVertex2f(pos, x1, y2);
+			immVertex2f(pos, x2, y1);
+
+			immEnd();
+			immUnbindProgram();
 		}
 
 		if (ca->dtx & CAM_DTX_THIRDS) {
