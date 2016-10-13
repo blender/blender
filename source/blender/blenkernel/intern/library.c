@@ -1713,6 +1713,40 @@ void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged
 				if (id->newid) {
 					bool is_local = false, is_lib = false;
 
+					/* Attempt to re-link copied proxy objects. This allows appending of an entire scene
+					 * from another blend file into this one, even when that blend file contains proxified
+					 * armatures that have local references. Since the proxified object needs to be linked
+					 * (not local), this will only work when the "Localize all" checkbox is disabled.
+					 * TL;DR: this is a dirty hack on top of an already weak feature (proxies). */
+					if (GS(id->name) == ID_OB && ((Object *)id)->proxy != NULL) {
+						Object *ob = (Object *)id;
+						Object *ob_new = (Object *)id->newid;
+
+						/* Proxies only work when the proxified object is linked-in from a library. */
+						if (ob->proxy->id.lib == NULL) {
+							printf("Warning, proxy object %s will loose its link to %s, because the "
+							       "proxified object is local.\n", id->newid->name, ob->proxy->id.name);
+						}
+						/* We can only switch the proxy'ing to a made-local proxy if it is no longer
+						 * referred to from a library. Not checking for local use; if new local proxy
+						 * was not used locally would be a nasty bug! */
+						else if (is_local || is_lib) {
+							printf("Warning, made-local proxy object %s will loose its link to %s, "
+							       "because the linked-in proxy is referenced (is_local=%i, is_lib=%i).\n",
+							       id->newid->name, ob->proxy->id.name, is_local, is_lib);
+						}
+						else {
+							/* we can switch the proxy'ing from the linked-in to the made-local proxy.
+							 * BKE_object_make_proxy() shouldn't be used here, as it allocates memory that
+							 * was already allocated by BKE_object_make_local_ex() (which called BKE_object_copy_ex). */
+							ob_new->proxy = ob->proxy;
+							ob_new->proxy_group = ob->proxy_group;
+							ob_new->proxy_from = ob->proxy_from;
+							ob_new->proxy->proxy_from = ob_new;
+							ob->proxy = ob->proxy_from = ob->proxy_group = NULL;
+						}
+					}
+
 					BKE_library_ID_test_usages(bmain, id, &is_local, &is_lib);
 					if (!is_local && !is_lib) {
 						BKE_libblock_free(bmain, id);
