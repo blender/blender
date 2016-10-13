@@ -48,6 +48,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "ED_screen.h"
+#include "ED_transform.h"
 
 #include "GPU_immediate.h"
 
@@ -959,7 +960,10 @@ static void draw_all_objects(const bContext *C, ARegion *ar, const bool only_dep
 	if (only_depth)
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
-	glDisable(GL_DEPTH_TEST);
+	if (only_depth || use_depth) {
+		glDisable(GL_DEPTH_TEST);
+		v3d->zbuf = false;
+	}
 }
 
 /**
@@ -1041,6 +1045,16 @@ static void view3d_draw_reference_images(const bContext *C)
 }
 
 /**
+* 3D manipulators
+*/
+static void view3d_draw_manipulator(const bContext *C)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	v3d->zbuf = false;
+	BIF_draw_manipulator(C);
+}
+
+/**
  * Grease Pencil
  */
 static void view3d_draw_grease_pencil(const bContext *C)
@@ -1067,6 +1081,7 @@ static void view3d_draw_view(const bContext *C, ARegion *ar, DrawData *draw_data
 	view3d_draw_other_elements(C, ar);
 	view3d_draw_tool_ui(C);
 	view3d_draw_reference_images(C);
+	view3d_draw_manipulator(C);
 	view3d_draw_grease_pencil(C);
 }
 
