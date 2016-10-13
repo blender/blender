@@ -3675,15 +3675,15 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 			 * We do it based on the specified name.
 			 */
 			if (gattribs->layer[b].name[0]) {
-				layer = CustomData_get_named_layer_index(&dm->loopData, CD_TANGENT, gattribs->layer[b].name);
-				type = CD_TANGENT;
+				layer = CustomData_get_named_layer_index(ldata, CD_MLOOPUV, gattribs->layer[b].name);
+				type = CD_MTFACE;
 				if (layer == -1) {
 					layer = CustomData_get_named_layer_index(ldata, CD_MLOOPCOL, gattribs->layer[b].name);
 					type = CD_MCOL;
 				}
 				if (layer == -1) {
-					layer = CustomData_get_named_layer_index(ldata, CD_MLOOPUV, gattribs->layer[b].name);
-					type = CD_MTFACE;
+					layer = CustomData_get_named_layer_index(&dm->loopData, CD_TANGENT, gattribs->layer[b].name);
+					type = CD_TANGENT;
 				}
 				if (layer == -1) {
 					continue;

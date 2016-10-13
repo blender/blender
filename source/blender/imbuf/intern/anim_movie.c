@@ -522,9 +522,9 @@ static int startffmpeg(struct anim *anim)
 		anim->duration = pFormatCtx->streams[videoStream]->nb_frames;
 	}
 	else {
-		anim->duration = ceil(pFormatCtx->duration *
-		                      av_q2d(frame_rate) /
-		                      AV_TIME_BASE);
+		anim->duration = (int)(pFormatCtx->duration *
+		                       av_q2d(frame_rate) /
+		                       AV_TIME_BASE + 0.5f);
 	}
 
 	frs_num = frame_rate.num;

@@ -2767,6 +2767,10 @@ void init_userdef_do_versions(void)
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			rgba_char_args_set(btheme->tv3d.vertex_bevel, 0, 165, 255, 255);
 			rgba_char_args_set(btheme->tv3d.edge_bevel, 0, 165, 255, 255);
+
+			/* 3dView Keyframe Indicators */
+			btheme->tv3d.time_keyframe[3] = 0xFF;
+			btheme->tv3d.time_gp_keyframe[3] = 0xFF;
 		}
 	}
 

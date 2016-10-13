@@ -71,6 +71,20 @@ template<typename T> struct texture  {
 		return data[index];
 	}
 
+#ifdef __KERNEL_AVX__
+	/* Reads 256 bytes but indexes in blocks of 128 bytes to maintain
+	 * compatibility with existing indicies and data structures.
+	 */
+	ccl_always_inline avxf fetch_avxf(const int index)
+	{
+		kernel_assert(index >= 0 && (index+1) < width);
+		ssef *ssefData = (ssef*)data;
+		ssef *ssefNodeData = &ssefData[index];
+		return _mm256_loadu_ps((float *)ssefNodeData);
+	}
+
+#endif
+
 #ifdef __KERNEL_SSE2__
 	ccl_always_inline ssef fetch_ssef(int index)
 	{
@@ -506,6 +520,7 @@ typedef texture_image<half4> texture_image_half4;
 /* Macros to handle different memory storage on different devices */
 
 #define kernel_tex_fetch(tex, index) (kg->tex.fetch(index))
+#define kernel_tex_fetch_avxf(tex, index) (kg->tex.fetch_avxf(index))
 #define kernel_tex_fetch_ssef(tex, index) (kg->tex.fetch_ssef(index))
 #define kernel_tex_fetch_ssei(tex, index) (kg->tex.fetch_ssei(index))
 #define kernel_tex_lookup(tex, t, offset, size) (kg->tex.lookup(t, offset, size))

@@ -1575,15 +1575,6 @@ void id_clear_lib_data_ex(Main *bmain, ID *id, const bool id_in_mainlist)
 	if ((key = BKE_key_from_id(id))) {
 		id_clear_lib_data_ex(bmain, &key->id, id_in_mainlist);  /* sigh, why are keys in Main? */
 	}
-
-	if (GS(id->name) == ID_OB) {
-		Object *object = (Object *)id;
-		if (object->proxy_from != NULL) {
-			object->proxy_from->proxy = NULL;
-			object->proxy_from->proxy_group = NULL;
-		}
-		object->proxy = object->proxy_from = object->proxy_group = NULL;
-	}
 }
 
 void id_clear_lib_data(Main *bmain, ID *id)
@@ -1658,7 +1649,15 @@ void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged
 				if (lib == NULL || id->lib == lib) {
 					if (id->lib) {
 						/* In this specific case, we do want to make ID local even if it has no local usage yet... */
-						id_make_local(bmain, id, false, true);
+						if (GS(id->name) == ID_OB) {
+							/* Special case for objects because we don't want proxy pointers to be
+							 * cleared yet. This will happen down the road in this function.
+							 */
+							BKE_object_make_local_ex(bmain, (Object*)id, true, false);
+						}
+						else {
+							id_make_local(bmain, id, false, true);
+						}
 					}
 					else {
 						id->tag &= ~(LIB_TAG_EXTERN | LIB_TAG_INDIRECT | LIB_TAG_NEW);
@@ -1697,12 +1696,10 @@ void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged
 				if (id->newid) {
 					bool is_local = false, is_lib = false;
 
-					BKE_library_ID_test_usages(bmain, id, &is_local, &is_lib);
-
-					/* Attempt to re-link appended proxy objects. This allows appending of an entire scene
+					/* Attempt to re-link copied proxy objects. This allows appending of an entire scene
 					 * from another blend file into this one, even when that blend file contains proxified
-					 * armatures. Since the proxified object needs to be linked (not local), this will
-					 * only work when the "Localize all" checkbox is disabled.
+					 * armatures that have local references. Since the proxified object needs to be linked
+					 * (not local), this will only work when the "Localize all" checkbox is disabled.
 					 * TL;DR: this is a dirty hack on top of an already weak feature (proxies). */
 					if (GS(id->name) == ID_OB && ((Object *)id)->proxy != NULL) {
 						Object *ob = (Object *)id;
@@ -1722,12 +1719,18 @@ void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged
 							       id->newid->name, ob->proxy->id.name, is_local, is_lib);
 						}
 						else {
-							/* we can switch the proxy'ing from the linked-in to the made-local proxy. */
-							BKE_object_make_proxy(ob_new, ob->proxy, ob->proxy_group);
+							/* we can switch the proxy'ing from the linked-in to the made-local proxy.
+							 * BKE_object_make_proxy() shouldn't be used here, as it allocates memory that
+							 * was already allocated by BKE_object_make_local_ex() (which called BKE_object_copy_ex). */
+							ob_new->proxy = ob->proxy;
+							ob_new->proxy_group = ob->proxy_group;
+							ob_new->proxy_from = ob->proxy_from;
+							ob_new->proxy->proxy_from = ob_new;
 							ob->proxy = ob->proxy_from = ob->proxy_group = NULL;
 						}
 					}
 
+					BKE_library_ID_test_usages(bmain, id, &is_local, &is_lib);
 					if (!is_local && !is_lib) {
 						BKE_libblock_free(bmain, id);
 						do_loop = true;
