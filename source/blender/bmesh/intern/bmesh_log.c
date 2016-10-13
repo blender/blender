@@ -45,7 +45,7 @@
 
 #include "bmesh.h"
 #include "bmesh_log.h"
-#include "range_tree_c_api.h"
+#include "range_tree.h"
 
 #include "BLI_strict_flags.h"
 
