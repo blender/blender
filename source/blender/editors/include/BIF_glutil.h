@@ -105,6 +105,24 @@ void imm_draw_lined_circle(unsigned pos, float x, float y, float radius, int nse
 void imm_draw_filled_circle(unsigned pos, float x, float y, float radius, int nsegments);
 
 /**
+* Draw a lined box.
+*
+* \param pos The vertex attribute number for position.
+* \param x1 left.
+* \param y1 bottom.
+* \param x2 right.
+* \param y2 top.
+*/
+void imm_draw_line_box(unsigned pos, float x1, float y1, float x2, float y2);
+
+/**
+* Pack color into 3 bytes
+*
+* \param x color.
+*/
+void imm_cpack(unsigned int x);
+
+/**
  * Returns a float value as obtained by glGetFloatv.
  * The param must cause only one value to be gotten from GL.
  */
