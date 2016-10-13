@@ -130,7 +130,7 @@ static void set_fcurve_vertex_color(FCurve *fcu, bool sel)
 	/* Fade the 'intensity' of the vertices based on the selection of the curves too */
 	int alphaOffset = (int)((fcurve_display_alpha(fcu) - 1.0f) * 255);
 
-	float color[3];
+	float color[4];
 
 	/* Set color of curve vertex based on state of curve (i.e. 'Edit' Mode) */
 	if ((fcu->flag & FCURVE_PROTECTED) == 0) {
