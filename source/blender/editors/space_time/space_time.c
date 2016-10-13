@@ -96,12 +96,9 @@ static void time_draw_sfra_efra(Scene *scene, View2D *v2d)
 		immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
 	}
 
-	immUnbindProgram();
-
 	glDisable(GL_BLEND);
 
 	/* thin lines where the actual frames are */
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColorShade(TH_BACK, -60);
 
 	immBegin(GL_LINES, 4);
@@ -220,7 +217,7 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel, cons
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor3ubv(color);
 
-		immBeginAtMost(GL_LINES, max_len * 2.0f);
+		immBeginAtMost(GL_LINES, max_len * 2);
 
 		for (; (ak) && (ak->cfra <= v2d->cur.xmax);
 			ak = ak->next)
