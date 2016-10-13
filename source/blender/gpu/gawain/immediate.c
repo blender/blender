@@ -207,6 +207,10 @@ void immBegin(GLenum primitive, unsigned vertex_ct)
 
 void immBeginAtMost(GLenum primitive, unsigned vertex_ct)
 	{
+#if TRUST_NO_ONE
+	assert(vertex_ct > 0);
+#endif
+
 	imm.strict_vertex_ct = false;
 	immBegin(primitive, vertex_ct);
 	}
