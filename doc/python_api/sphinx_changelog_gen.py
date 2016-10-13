@@ -27,7 +27,7 @@ output from this tool should be added into "doc/python_api/rst/change_log.rst"
 blender --background --python doc/python_api/sphinx_changelog_gen.py -- --dump
 
 # create changelog
-blender --background --python doc/python_api/sphinx_changelog_gen.py -- \
+blender --background --factory-startup --python doc/python_api/sphinx_changelog_gen.py -- \
         --api_from blender_2_63_0.py \
         --api_to   blender_2_64_0.py \
         --api_out changes.rst
@@ -331,7 +331,7 @@ def main():
 
     # When --help or no args are given, print this help
     usage_text = "Run blender in background mode with this script: "
-    "blender --background --python %s -- [options]" % os.path.basename(__file__)
+    "blender --background --factory-startup --python %s -- [options]" % os.path.basename(__file__)
 
     epilog = "Run this before releases"
 
