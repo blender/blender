@@ -363,7 +363,7 @@ INFO_DOCS = (
     ("info_overview.rst",
      "Blender/Python API Overview: a more complete explanation of Python integration"),
     ("info_tutorial_addon.rst",
-     "Blender/Python Addon Tutorial: a step by step guide on how to write an addon from scratch"),
+     "Blender/Python Add-on Tutorial: a step by step guide on how to write an add-on from scratch"),
     ("info_api_reference.rst",
      "Blender/Python API Reference Usage: examples of how to use the API reference docs"),
     ("info_best_practice.rst",

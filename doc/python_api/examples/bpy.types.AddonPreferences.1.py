@@ -1,10 +1,10 @@
 bl_info = {
-    "name": "Example Addon Preferences",
+    "name": "Example Add-on Preferences",
     "author": "Your Name Here",
     "version": (1, 0),
     "blender": (2, 65, 0),
-    "location": "SpaceBar Search -> Addon Preferences Example",
-    "description": "Example Addon",
+    "location": "SpaceBar Search -> Add-on Preferences Example",
+    "description": "Example Add-on",
     "warning": "",
     "wiki_url": "",
     "tracker_url": "",
@@ -18,7 +18,7 @@ from bpy.props import StringProperty, IntProperty, BoolProperty
 
 
 class ExampleAddonPreferences(AddonPreferences):
-    # this must match the addon name, use '__package__'
+    # this must match the add-on name, use '__package__'
     # when defining this in a submodule of a python package.
     bl_idname = __name__
 
@@ -37,7 +37,7 @@ class ExampleAddonPreferences(AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
-        layout.label(text="This is a preferences view for our addon")
+        layout.label(text="This is a preferences view for our add-on")
         layout.prop(self, "filepath")
         layout.prop(self, "number")
         layout.prop(self, "boolean")
@@ -46,7 +46,7 @@ class ExampleAddonPreferences(AddonPreferences):
 class OBJECT_OT_addon_prefs_example(Operator):
     """Display example preferences"""
     bl_idname = "object.addon_prefs_example"
-    bl_label = "Addon Preferences Example"
+    bl_label = "Add-on Preferences Example"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
