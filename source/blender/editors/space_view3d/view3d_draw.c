@@ -51,6 +51,7 @@
 #include "ED_transform.h"
 
 #include "GPU_immediate.h"
+#include "GPU_viewport.h"
 
 #include "UI_resources.h"
 
@@ -1088,11 +1089,15 @@ static void view3d_draw_view(const bContext *C, ARegion *ar, DrawData *draw_data
 void view3d_main_region_draw(const bContext *C, ARegion *ar)
 {
 	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d = ar->regiondata;
 
 	if (IS_VIEWPORT_LEGACY(v3d)) {
 		view3d_main_region_draw_legacy(C, ar);
 		return;
 	}
+
+	if (!rv3d->viewport)
+		rv3d->viewport = GPU_viewport_create();
 
 	/* TODO viewport - there is so much to be done, in fact a lot will need to happen in the space_view3d.c
 	 * before we even call the drawing routine, but let's move on for now (dfelinto)

@@ -57,6 +57,7 @@
 #include "GPU_compositing.h"
 #include "GPU_framebuffer.h"
 #include "GPU_material.h"
+#include "GPU_viewport.h"
 
 #include "BIF_gl.h"
 
@@ -582,6 +583,11 @@ static void view3d_main_region_exit(wmWindowManager *wm, ARegion *ar)
 		GPU_fx_compositor_destroy(rv3d->compositor);
 		rv3d->compositor = NULL;
 	}
+
+	if (rv3d->viewport) {
+		GPU_viewport_free(rv3d->viewport);
+		rv3d->viewport = NULL;
+	}
 }
 
 static int view3d_ob_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
@@ -739,6 +745,9 @@ static void view3d_main_region_free(ARegion *ar)
 		if (rv3d->compositor) {
 			GPU_fx_compositor_destroy(rv3d->compositor);
 		}
+		if (rv3d->viewport) {
+			GPU_viewport_free(rv3d->viewport);
+		}
 
 		MEM_freeN(rv3d);
 		ar->regiondata = NULL;
@@ -763,6 +772,7 @@ static void *view3d_main_region_duplicate(void *poin)
 		new->sms = NULL;
 		new->smooth_timer = NULL;
 		new->compositor = NULL;
+		new->viewport = NULL;
 		
 		return new;
 	}

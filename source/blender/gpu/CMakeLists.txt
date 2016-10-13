@@ -64,6 +64,7 @@ set(SRC
 	intern/gpu_select.c
 	intern/gpu_shader.c
 	intern/gpu_texture.c
+	intern/gpu_viewport.c
 
 	gawain/attrib_binding.c
 	gawain/attrib_binding.h
@@ -119,6 +120,7 @@ set(SRC
 	GPU_select.h
 	GPU_shader.h
 	GPU_texture.h
+	GPU_viewport.h
 
 	intern/gpu_codegen.h
 	intern/gpu_private.h
