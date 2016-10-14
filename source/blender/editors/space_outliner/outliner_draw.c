@@ -1748,8 +1748,10 @@ static void outliner_draw_highlights(ARegion *ar, SpaceOops *soops, int startx, 
 	glDisable(GL_BLEND);
 }
 
-static void outliner_draw_tree(bContext *C, uiBlock *block, Scene *scene, ARegion *ar,
-                               SpaceOops *soops, TreeElement **te_edit)
+static void outliner_draw_tree(
+        bContext *C, uiBlock *block, Scene *scene, ARegion *ar,
+        SpaceOops *soops, const bool has_restrict_icons,
+        TreeElement **te_edit)
 {
 	const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 	int starty, startx;
@@ -1768,7 +1770,17 @@ static void outliner_draw_tree(bContext *C, uiBlock *block, Scene *scene, ARegio
 	starty = (int)ar->v2d.tot.ymax - UI_UNIT_Y - OL_Y_OFFSET;
 	startx = 0;
 	outliner_draw_highlights(ar, soops, startx, &starty);
-	
+
+	/* set scissor so tree elements or lines can't overlap restriction icons */
+	GLfloat scissor[4] = {0};
+	if (has_restrict_icons) {
+		int mask_x = BLI_rcti_size_x(&ar->v2d.mask) - (int)OL_TOGW + 1;
+		CLAMP_MIN(mask_x, 0);
+
+		glGetFloatv(GL_SCISSOR_BOX, scissor);
+		glScissor(ar->winrct.xmin, ar->winrct.ymin, mask_x, ar->winy);
+	}
+
 	// gray hierarchy lines
 	UI_ThemeColorBlend(TH_BACK, TH_TEXT, 0.4f);
 	starty = (int)ar->v2d.tot.ymax - UI_UNIT_Y / 2 - OL_Y_OFFSET;
@@ -1780,6 +1792,11 @@ static void outliner_draw_tree(bContext *C, uiBlock *block, Scene *scene, ARegio
 	startx = 0;
 	for (TreeElement *te = soops->tree.first; te; te = te->next) {
 		outliner_draw_tree_element(C, block, fstyle, scene, ar, soops, te, startx, &starty, te_edit);
+	}
+
+	if (has_restrict_icons) {
+		/* reset scissor */
+		glScissor(UNPACK4(scissor));
 	}
 }
 
@@ -1800,22 +1817,6 @@ static void outliner_back(ARegion *ar)
 
 static void outliner_draw_restrictcols(ARegion *ar)
 {
-	int ystart;
-	
-	/* background underneath */
-	UI_ThemeColor(TH_BACK);
-	glRecti((int)(ar->v2d.cur.xmax - OL_TOGW),
-	        (int)(ar->v2d.cur.ymin - 1), (int)ar->v2d.cur.xmax, (int)ar->v2d.cur.ymax);
-	
-	UI_ThemeColorShade(TH_BACK, 6);
-	ystart = (int)ar->v2d.tot.ymax;
-	ystart = UI_UNIT_Y * (ystart / (UI_UNIT_Y)) - OL_Y_OFFSET;
-	
-	while (ystart + 2 * UI_UNIT_Y > ar->v2d.cur.ymin) {
-		glRecti((int)ar->v2d.cur.xmax - OL_TOGW, ystart, (int)ar->v2d.cur.xmax, ystart + UI_UNIT_Y);
-		ystart -= 2 * UI_UNIT_Y;
-	}
-	
 	UI_ThemeColorShadeAlpha(TH_BACK, -15, -200);
 
 	/* view */
@@ -1850,6 +1851,7 @@ void draw_outliner(const bContext *C)
 	uiBlock *block;
 	int sizey = 0, sizex = 0, sizex_rna = 0;
 	TreeElement *te_edit = NULL;
+	bool has_restrict_icons;
 
 	outliner_build_tree(mainvar, scene, soops); // always
 	
@@ -1871,6 +1873,7 @@ void draw_outliner(const bContext *C)
 		
 		/* get width of data (for setting 'tot' rect, this is column 1 + column 2 + a bit extra) */
 		sizex = sizex_rna + OL_RNA_COL_SIZEX + 50;
+		has_restrict_icons = false;
 	}
 	else {
 		/* width must take into account restriction columns (if visible) so that entries will still be visible */
@@ -1882,7 +1885,8 @@ void draw_outliner(const bContext *C)
 		// XXX this isn't that great yet...
 		if ((soops->flag & SO_HIDE_RESTRICTCOLS) == 0)
 			sizex += OL_TOGW * 3;
-		
+
+		has_restrict_icons = !(soops->flag & SO_HIDE_RESTRICTCOLS);
 	}
 	
 	/* adds vertical offset */
@@ -1899,19 +1903,19 @@ void draw_outliner(const bContext *C)
 	/* draw outliner stuff (background, hierarchy lines and names) */
 	outliner_back(ar);
 	block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
-	outliner_draw_tree((bContext *)C, block, scene, ar, soops, &te_edit);
+	outliner_draw_tree((bContext *)C, block, scene, ar, soops, has_restrict_icons, &te_edit);
 	
 	if (ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {
 		/* draw rna buttons */
 		outliner_draw_rnacols(ar, sizex_rna);
 		outliner_draw_rnabuts(block, scene, ar, soops, sizex_rna, &soops->tree);
 	}
-	else if ((soops->outlinevis == SO_ID_ORPHANS) && !(soops->flag & SO_HIDE_RESTRICTCOLS)) {
+	else if ((soops->outlinevis == SO_ID_ORPHANS) && has_restrict_icons) {
 		/* draw user toggle columns */
 		outliner_draw_restrictcols(ar);
 		outliner_draw_userbuts(block, ar, soops, &soops->tree);
 	}
-	else if (!(soops->flag & SO_HIDE_RESTRICTCOLS)) {
+	else if (has_restrict_icons) {
 		/* draw restriction columns */
 		outliner_draw_restrictcols(ar);
 		outliner_draw_restrictbuts(block, scene, ar, soops, &soops->tree);
