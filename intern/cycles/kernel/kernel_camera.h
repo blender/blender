@@ -221,14 +221,6 @@ ccl_device_inline void camera_sample_panorama(KernelGlobals *kg,
 
 	/* create ray form raster position */
 	ray->P = make_float3(0.0f, 0.0f, 0.0f);
-
-#ifdef __CAMERA_CLIPPING__
-	/* clipping */
-	ray->t = kernel_data.cam.cliplength;
-#else
-	ray->t = FLT_MAX;
-#endif
-
 	ray->D = panorama_to_direction(kg, Pcamera.x, Pcamera.y);
 
 	/* indicates ray should not receive any light, outside of the lens */
@@ -301,6 +293,14 @@ ccl_device_inline void camera_sample_panorama(KernelGlobals *kg,
 	Pcamera = spherical_stereo_position(kg, tD, tP);
 	ray->dD.dy = spherical_stereo_direction(kg, tD, tP, Pcamera) - Ddiff;
 	/* dP.dy is zero, since the omnidirectional panorama only shift the eyes horizontally */
+#endif
+
+#ifdef __CAMERA_CLIPPING__
+	/* clipping */
+	ray->P += kernel_data.cam.nearclip*ray->D;
+	ray->t = kernel_data.cam.cliplength;
+#else
+	ray->t = FLT_MAX;
 #endif
 }
 
