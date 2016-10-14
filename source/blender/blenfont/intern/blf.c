@@ -566,6 +566,10 @@ void BLF_draw_ex(
 }
 void BLF_draw(int fontid, const char *str, size_t len)
 {
+	if (len == 0 || str[0] == '\0') {
+		return;
+	}
+
 	BLF_draw_ex(fontid, str, len, NULL);
 }
 
@@ -591,11 +595,19 @@ void BLF_draw_ascii_ex(
 }
 void BLF_draw_ascii(int fontid, const char *str, size_t len)
 {
+	if (len == 0 || str[0] == '\0') {
+		return;
+	}
+
 	BLF_draw_ascii_ex(fontid, str, len, NULL);
 }
 
 int BLF_draw_mono(int fontid, const char *str, size_t len, int cwidth)
 {
+	if (len == 0 || str[0] == '\0') {
+		return 0;
+	}
+
 	FontBLF *font = blf_get(fontid);
 	int columns = 0;
 
