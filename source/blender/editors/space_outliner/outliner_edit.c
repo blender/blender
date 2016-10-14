@@ -151,7 +151,69 @@ TreeElement *outliner_dropzone_find(const SpaceOops *soops, const float fmval[2]
 }
 
 /* ************************************************************** */
-/* Click Activated */
+
+/* Highlight --------------------------------------------------- */
+
+/**
+ * Try to find an item under y-coordinate \a view_co_y (view-space).
+ * \note Recursive
+ */
+static TreeElement *outliner_find_item_at_y(
+        const SpaceOops *soops, const ListBase *tree, float view_co_y)
+{
+	for (TreeElement *te_iter = tree->first; te_iter; te_iter = te_iter->next) {
+		if (view_co_y < (te_iter->ys + UI_UNIT_Y)) {
+			if (view_co_y > te_iter->ys) {
+				/* co_y is inside this element */
+				return te_iter;
+			}
+			else if (TSELEM_OPEN(te_iter->store_elem, soops)) {
+				/* co_y is lower than current element, possibly inside children */
+				TreeElement *te_sub = outliner_find_item_at_y(soops, &te_iter->subtree, view_co_y);
+				if (te_sub) {
+					return te_sub;
+				}
+			}
+		}
+	}
+
+	return NULL;
+}
+
+static int outliner_highlight_update(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+{
+	ARegion *ar = CTX_wm_region(C);
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	const float my = UI_view2d_region_to_view_y(&ar->v2d, event->mval[1]);
+
+	TreeElement *hovered_te = outliner_find_item_at_y(soops, &soops->tree, my);
+	bool changed;
+
+	if (!hovered_te || !(hovered_te->store_elem->flag & TSE_HIGHLIGHTED)) {
+		changed = outliner_set_flag(soops, &soops->tree, TSE_HIGHLIGHTED, false);
+		if (hovered_te) {
+			hovered_te->store_elem->flag |= TSE_HIGHLIGHTED;
+			changed = true;
+		}
+	}
+
+	if (changed) {
+		ED_region_tag_redraw(ar);
+	}
+
+	return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
+}
+
+void OUTLINER_OT_highlight_update(wmOperatorType *ot)
+{
+	ot->name = "Update Highlight";
+	ot->idname = "OUTLINER_OT_highlight_update";
+	ot->description = "Update the item highlight based on the current mouse position";
+
+	ot->invoke = outliner_highlight_update;
+
+	ot->poll = ED_operator_outliner_active;
+}
 
 /* Toggle Open/Closed ------------------------------------------- */
 
@@ -742,17 +804,34 @@ int outliner_has_one_flag(SpaceOops *soops, ListBase *lb, short flag, const int 
 	return 0;
 }
 
-void outliner_set_flag(SpaceOops *soops, ListBase *lb, short flag, short set)
+/**
+ * Set or unset \a flag for all outliner elements in \a lb and sub-trees.
+ * \return if any flag was modified.
+ */
+bool outliner_set_flag(SpaceOops *soops, ListBase *lb, short flag, short set)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
-	
+	bool changed = false;
+	bool has_flag;
+
 	for (te = lb->first; te; te = te->next) {
 		tselem = TREESTORE(te);
-		if (set == 0) tselem->flag &= ~flag;
-		else tselem->flag |= flag;
-		outliner_set_flag(soops, &te->subtree, flag, set);
+		has_flag = (tselem->flag & flag);
+		if (set == 0) {
+			if (has_flag) {
+				tselem->flag &= ~flag;
+				changed = true;
+			}
+		}
+		else if (!has_flag){
+			tselem->flag |= flag;
+			changed = true;
+		}
+		changed |= outliner_set_flag(soops, &te->subtree, flag, set);
 	}
+
+	return changed;
 }
 
 /* Restriction Columns ------------------------------- */

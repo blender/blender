@@ -50,11 +50,14 @@ typedef struct TreeStore {
 } TreeStore;
 
 /* TreeStoreElem->flag */
-#define TSE_CLOSED		1
-#define TSE_SELECTED	2
-#define TSE_TEXTBUT		4
-#define TSE_CHILDSEARCH 8
-#define TSE_SEARCHMATCH 16
+enum {
+	TSE_CLOSED      = (1 << 0),
+	TSE_SELECTED    = (1 << 1),
+	TSE_TEXTBUT     = (1 << 2),
+	TSE_CHILDSEARCH = (1 << 3),
+	TSE_SEARCHMATCH = (1 << 4),
+	TSE_HIGHLIGHTED = (1 << 5),
+};
 
 /* TreeStoreElem->types */
 #define TSE_NLA             1  /* NO ID */

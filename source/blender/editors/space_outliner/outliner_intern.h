@@ -167,7 +167,7 @@ void outliner_do_object_operation(
 int common_restrict_check(struct bContext *C, struct Object *ob);
 
 int outliner_has_one_flag(struct SpaceOops *soops, ListBase *lb, short flag, const int curlevel);
-void outliner_set_flag(struct SpaceOops *soops, ListBase *lb, short flag, short set);
+bool outliner_set_flag(struct SpaceOops *soops, ListBase *lb, short flag, short set);
 
 void object_toggle_visibility_cb(
         struct bContext *C, struct ReportList *reports, struct Scene *scene,
@@ -209,6 +209,8 @@ void id_remap_cb(
 
 TreeElement *outliner_dropzone_find(const struct SpaceOops *soops, const float fmval[2], const bool children);
 /* ...................................................... */
+
+void OUTLINER_OT_highlight_update(struct wmOperatorType *ot);
 
 void OUTLINER_OT_item_activate(struct wmOperatorType *ot);
 void OUTLINER_OT_item_openclose(struct wmOperatorType *ot);

@@ -1448,23 +1448,8 @@ static void outliner_draw_tree_element(
 		
 		glEnable(GL_BLEND);
 
-		/* start by highlighting search matches 
-		 *	we don't expand items when searching in the datablocks but we 
-		 *	still want to highlight any filter matches. 
-		 */
-		if ((SEARCHING_OUTLINER(soops) || (soops->outlinevis == SO_DATABLOCKS && soops->search_string[0] != 0)) &&
-		    (tselem->flag & TSE_SEARCHMATCH))
-		{
-			char col[4];
-			UI_GetThemeColorType4ubv(TH_MATCH, SPACE_OUTLINER, col);
-			col[3] = alpha;
-			glColor4ubv((GLubyte *)col);
-			glRecti(startx, *starty + 1, ar->v2d.cur.xmax, *starty + UI_UNIT_Y - 1);
-		}
-
 		/* colors for active/selected data */
 		if (tselem->type == 0) {
-			
 			if (te->idcode == ID_SCE) {
 				if (tselem->id == (ID *)scene) {
 					glColor4ub(255, 255, 255, alpha);
@@ -1650,7 +1635,7 @@ static void outliner_draw_tree_element(
 	}
 }
 
-static void outliner_draw_hierarchy(SpaceOops *soops, ListBase *lb, int startx, int *starty)
+static void outliner_draw_hierarchy_lines(SpaceOops *soops, ListBase *lb, int startx, int *starty)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -1670,7 +1655,7 @@ static void outliner_draw_hierarchy(SpaceOops *soops, ListBase *lb, int startx, 
 		*starty -= UI_UNIT_Y;
 		
 		if (TSELEM_OPEN(tselem, soops))
-			outliner_draw_hierarchy(soops, &te->subtree, startx + UI_UNIT_X, starty);
+			outliner_draw_hierarchy_lines(soops, &te->subtree, startx + UI_UNIT_X, starty);
 	}
 	
 	/* vertical line */
@@ -1706,34 +1691,71 @@ static void outliner_draw_struct_marks(ARegion *ar, SpaceOops *soops, ListBase *
 	}
 }
 
-static void outliner_draw_selection(ARegion *ar, SpaceOops *soops, ListBase *lb, int *starty) 
+static void outliner_draw_highlights_recursive(
+        const ARegion *ar, const SpaceOops *soops, const ListBase *lb,
+        const float col_selection[4], const float col_highlight[4], const float col_searchmatch[4],
+        int start_x, int *io_start_y)
 {
-	TreeElement *te;
-	TreeStoreElem *tselem;
-	
-	for (te = lb->first; te; te = te->next) {
-		tselem = TREESTORE(te);
-		
+	const bool is_searching = SEARCHING_OUTLINER(soops) ||
+	                          (soops->outlinevis == SO_DATABLOCKS && soops->search_string[0] != 0);
+
+	for (TreeElement *te = lb->first; te; te = te->next) {
+		const TreeStoreElem *tselem = TREESTORE(te);
+		const int start_y = *io_start_y;
+
 		/* selection status */
 		if (tselem->flag & TSE_SELECTED) {
-			glRecti(0, *starty + 1, (int)ar->v2d.cur.xmax, *starty + UI_UNIT_Y - 1);
+			glColor4fv(col_selection);
+			glRecti(0, start_y + 1, (int)ar->v2d.cur.xmax, start_y + UI_UNIT_Y - 1);
 		}
-		*starty -= UI_UNIT_Y;
-		if (TSELEM_OPEN(tselem, soops)) outliner_draw_selection(ar, soops, &te->subtree, starty);
+
+		/* search match highlights
+		 *   we don't expand items when searching in the datablocks but we
+		 *   still want to highlight any filter matches. */
+		if (is_searching && (tselem->flag & TSE_SEARCHMATCH)) {
+			glColor4fv(col_searchmatch);
+			glRecti(start_x, start_y + 1, ar->v2d.cur.xmax, start_y + UI_UNIT_Y - 1);
+		}
+
+		/* mouse hover highlights */
+		if (tselem->flag & TSE_HIGHLIGHTED) {
+			glColor4fv(col_highlight);
+			glRecti(0, start_y + 1, (int)ar->v2d.cur.xmax, start_y + UI_UNIT_Y - 1);
+		}
+
+		*io_start_y -= UI_UNIT_Y;
+		if (TSELEM_OPEN(tselem, soops)) {
+			outliner_draw_highlights_recursive(
+			            ar, soops, &te->subtree, col_selection, col_highlight, col_searchmatch,
+			            start_x, io_start_y);
+		}
 	}
 }
 
+static void outliner_draw_highlights(ARegion *ar, SpaceOops *soops, int startx, int *starty)
+{
+	const float col_highlight[4] = {1.0f, 1.0f, 1.0f, 0.13f};
+	float col_selection[4], col_searchmatch[4];
+
+	UI_GetThemeColor3fv(TH_SELECT_HIGHLIGHT, col_selection);
+	col_selection[3] = 1.0f; /* no alpha */
+	UI_GetThemeColor4fv(TH_MATCH, col_searchmatch);
+	col_searchmatch[3] = 0.5f;
+
+	glEnable(GL_BLEND);
+	outliner_draw_highlights_recursive(ar, soops, &soops->tree, col_selection, col_highlight, col_searchmatch,
+	                                   startx, starty);
+	glDisable(GL_BLEND);
+}
 
 static void outliner_draw_tree(bContext *C, uiBlock *block, Scene *scene, ARegion *ar,
                                SpaceOops *soops, TreeElement **te_edit)
 {
 	const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-	TreeElement *te;
 	int starty, startx;
-	float col[3];
-		
+
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); // only once
-	
+
 	if (ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {
 		/* struct marks */
 		UI_ThemeColorShadeAlpha(TH_BACK, -15, -200);
@@ -1741,23 +1763,22 @@ static void outliner_draw_tree(bContext *C, uiBlock *block, Scene *scene, ARegio
 		starty = (int)ar->v2d.tot.ymax - UI_UNIT_Y - OL_Y_OFFSET;
 		outliner_draw_struct_marks(ar, soops, &soops->tree, &starty);
 	}
-	
-	/* always draw selection fill before hierarchy */
-	UI_GetThemeColor3fv(TH_SELECT_HIGHLIGHT, col);
-	glColor3fv(col);
+
+	/* draw highlights before hierarchy */
 	starty = (int)ar->v2d.tot.ymax - UI_UNIT_Y - OL_Y_OFFSET;
-	outliner_draw_selection(ar, soops, &soops->tree, &starty);
+	startx = 0;
+	outliner_draw_highlights(ar, soops, startx, &starty);
 	
 	// gray hierarchy lines
 	UI_ThemeColorBlend(TH_BACK, TH_TEXT, 0.4f);
 	starty = (int)ar->v2d.tot.ymax - UI_UNIT_Y / 2 - OL_Y_OFFSET;
 	startx = 6;
-	outliner_draw_hierarchy(soops, &soops->tree, startx, &starty);
-	
+	outliner_draw_hierarchy_lines(soops, &soops->tree, startx, &starty);
+
 	// items themselves
 	starty = (int)ar->v2d.tot.ymax - UI_UNIT_Y - OL_Y_OFFSET;
 	startx = 0;
-	for (te = soops->tree.first; te; te = te->next) {
+	for (TreeElement *te = soops->tree.first; te; te = te->next) {
 		outliner_draw_tree_element(C, block, fstyle, scene, ar, soops, te, startx, &starty, te_edit);
 	}
 }
