@@ -3396,14 +3396,7 @@ static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
 		drawviewborder(scene, ar, v3d);
 	}
 	else if (v3d->flag2 & V3D_RENDER_BORDER) {
-		glLineWidth(1.0f);
-		setlinestyle(3);
-		cpack(0x4040FF);
-
-		sdrawbox(v3d->render_border.xmin * ar->winx, v3d->render_border.ymin * ar->winy,
-		         v3d->render_border.xmax * ar->winx, v3d->render_border.ymax * ar->winy);
-
-		setlinestyle(0);
+		VP_drawrenderborder(ar, v3d);
 	}
 
 	if (v3d->flag2 & V3D_SHOW_GPENCIL) {

@@ -31,6 +31,7 @@
 #include <math.h>
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "BKE_camera.h"
 #include "BKE_context.h"
@@ -260,6 +261,26 @@ static void view3d_stereo3d_setup(Scene *scene, View3D *v3d, ARegion *ar)
 		v3d->camera = view_ob;
 		BLI_unlock_thread(LOCK_VIEW3D);
 	}
+}
+
+void drawrenderborder(ARegion *ar, View3D *v3d)
+{
+	/* use the same program for everything */
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	glLineWidth(1.0f);
+	setlinestyle(3);
+	imm_cpack(0x4040FF);
+
+	imm_draw_line_box(
+	    pos, v3d->render_border.xmin * ar->winx, v3d->render_border.ymin * ar->winy,
+	    v3d->render_border.xmax * ar->winx, v3d->render_border.ymax * ar->winy);
+
+	setlinestyle(0);
+
+	immUnbindProgram();
 }
 
 /* ******************** offline engine ***************** */
@@ -1143,4 +1164,9 @@ void VP_legacy_view3d_stereo3d_setup(Scene *scene, View3D *v3d, ARegion *ar)
 bool VP_legacy_use_depth(Scene *scene, View3D *v3d)
 {
 	return use_depth_doit(scene, v3d);
+}
+
+void VP_drawrenderborder(ARegion *ar, View3D *v3d)
+{
+	drawrenderborder(ar, v3d);
 }
