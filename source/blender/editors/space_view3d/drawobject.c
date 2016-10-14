@@ -1169,8 +1169,8 @@ static void draw_transp_sun_volume(Lamp *la)
 }
 #endif
 
-static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
-                     const char dt, const short dflag, const unsigned char ob_wire_col[4], const bool is_obact)
+void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
+              const char dt, const short dflag, const unsigned char ob_wire_col[4], const bool is_obact)
 {
 	Object *ob = base->object;
 	const float pixsize = ED_view3d_pixel_size(rv3d, ob->obmat[3]);
@@ -3929,7 +3929,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 
 /* Mesh drawing routines */
 
-static void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm)
+void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm)
 {
 	if ((v3d->transp == false) &&  /* not when we draw the transparent pass */
 	    (ob->mode & OB_MODE_ALL_PAINT) == false) /* not when painting (its distracting) - campbell */
@@ -6540,6 +6540,13 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			}
 		}
 
+		/* TODO Viewport: draw only depth here, for selection */
+		if (!IS_VIEWPORT_LEGACY(v3d)) {
+			if (ELEM(ob->type, OB_EMPTY, OB_LAMP)) {
+				glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+			}
+		}
+
 		switch (ob->type) {
 			case OB_MESH:
 				empty_object = draw_mesh_object(scene, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
@@ -6666,6 +6673,11 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 					drawaxes(rv3d->viewmatob, 1.0, OB_ARROWS);
 				}
 				break;
+		}
+
+		/* TODO Viewport: some eleemnts are being drawn for depth only */
+		if (!IS_VIEWPORT_LEGACY(v3d)) {
+			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		}
 
 		if (!render_override) {

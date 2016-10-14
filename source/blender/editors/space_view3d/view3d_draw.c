@@ -1300,6 +1300,41 @@ static void view3d_draw_grid(const bContext *C, ARegion *ar)
 	glDisable(GL_DEPTH_TEST);
 }
 
+/* ******************** non-meshes ***************** */
+
+static void view3d_draw_non_mesh(
+Object *ob, Base *base, View3D *v3d,
+RegionView3D *rv3d, const unsigned char color[4])
+{
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+
+	/* multiply view with object matrix.
+	* local viewmat and persmat, to calculate projections */
+	ED_view3d_init_mats_rv3d_gl(ob, rv3d);
+
+	switch (ob->type) {
+		case OB_EMPTY:
+			drawaxes(rv3d->viewmatob, ob->empty_drawsize, ob->empty_drawtype);
+			break;
+		case OB_LAMP:
+			drawlamp(v3d, rv3d, base, OB_SOLID, DRAW_CONSTCOLOR, color, false);
+			break;
+		default:
+		/* TODO Viewport: handle the other cases*/
+			break;
+	}
+
+	ED_view3d_clear_mats_rv3d(rv3d);
+
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+}
+
 /* ******************** info ***************** */
 
 /**
@@ -1432,8 +1467,59 @@ static void view3d_draw_geometry_overlay(const bContext *C)
 	view3d_draw_outline_plates(C);
 }
 
+/* drawing cameras, lamps, ... */
+static void view3d_draw_non_meshes(const bContext *C, ARegion *ar)
+{
+	/* TODO viewport
+	 * for now we draw them all, in the near future
+	 * we filter them based on the plates/layers
+	 */
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d = ar->regiondata;
+	Object *ob_act = CTX_data_active_object(C);
+	Base *base;
+
+	unsigned char *color, *color_prev = NULL;
+	unsigned char color_active[4], color_select[4], color_normal[4];
+
+	UI_GetThemeColor4ubv(TH_ACTIVE, color_active);
+	UI_GetThemeColor4ubv(TH_SELECT, color_select);
+	UI_GetThemeColor4ubv(TH_WIRE, color_normal);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);  /* disable write in zbuffer */
+	/* TODO Viewport
+	 * we are already temporarily writing to zbuffer in draw_object()
+	 * for now let's avoid writing again to zbuffer to prevent glitches
+	 */
+
+	for (base = scene->base.first; base; base = base->next) {
+		if (v3d->lay & base->lay) {
+			Object *ob = base->object;
+
+			if (ob == ob_act)
+				color = color_active;
+			else if (ob->flag & SELECT)
+				color = color_select;
+			else
+				color = color_normal;
+
+			if (color != color_prev) {
+				glColor4ubv(color);
+				color_prev = color;
+			}
+
+			view3d_draw_non_mesh(ob, base, v3d, rv3d, color);
+		}
+	}
+
+	glDepthMask(GL_TRUE);
+	glDisable(GL_DEPTH_TEST);
+}
+
 /**
-* Empties, lamps, parent lines, grid, ...
+* Parent lines, grid, ...
 */
 static void view3d_draw_other_elements(const bContext *C, ARegion *ar)
 {
@@ -1502,6 +1588,7 @@ static void view3d_draw_view(const bContext *C, ARegion *ar, DrawData *draw_data
 	view3d_draw_prerender_buffers(C, ar, draw_data);
 	view3d_draw_solid_plates(C, ar, draw_data);
 	view3d_draw_geometry_overlay(C);
+	view3d_draw_non_meshes(C, ar);
 	view3d_draw_other_elements(C, ar);
 	view3d_draw_tool_ui(C);
 	view3d_draw_reference_images(C);
