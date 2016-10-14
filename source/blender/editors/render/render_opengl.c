@@ -739,7 +739,10 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 	if (oglrender->is_animation) {
 		BLI_task_pool_work_and_wait(oglrender->task_pool);
 		BLI_task_pool_free(oglrender->task_pool);
-		BLI_task_scheduler_free(oglrender->task_scheduler);
+		/* Depending on various things we might or might not use global scheduler. */
+		if (oglrender->task_scheduler != NULL) {
+			BLI_task_scheduler_free(oglrender->task_scheduler);
+		}
 		BLI_spin_end(&oglrender->reports_lock);
 	}
 	BLI_mutex_end(&oglrender->task_mutex);
