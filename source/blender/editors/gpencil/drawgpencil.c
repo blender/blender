@@ -190,6 +190,8 @@ static void gp_draw_stroke_buffer_fill(tGPspoint *points, int totpoints, float i
 static void gp_draw_stroke_buffer(const tGPspoint *points, int totpoints, short thickness,
                                   short dflag, short sflag, float ink[4], float fill_ink[4])
 {
+	int draw_points = 0;
+
 	/* error checking */
 	if ((points == NULL) || (totpoints <= 0))
 		return;
@@ -234,7 +236,15 @@ static void gp_draw_stroke_buffer(const tGPspoint *points, int totpoints, short 
 			 * and continue drawing again (since line-width cannot change in middle of GL_LINE_STRIP)
 			 */
 			if (fabsf(pt->pressure - oldpressure) > 0.2f) {
+				/* need to have 2 points to avoid immEnd assert error */
+				if (draw_points < 2) {
+					gp_set_tpoint_varying_color(pt - 1, ink, color);
+					immVertex2iv(pos, &(pt - 1)->x);
+				}
+
 				immEnd();
+				draw_points = 0;
+
 				glLineWidth(max_ff(pt->pressure * thickness, 1.0f));
 				immBeginAtMost(GL_LINE_STRIP, totpoints - i + 1);
 
@@ -242,6 +252,7 @@ static void gp_draw_stroke_buffer(const tGPspoint *points, int totpoints, short 
 				if (i != 0) { 
 					gp_set_tpoint_varying_color(pt - 1, ink, color);
 					immVertex2iv(pos, &(pt - 1)->x);
+					++draw_points;
 				}
 
 				oldpressure = pt->pressure; /* reset our threshold */
@@ -250,6 +261,12 @@ static void gp_draw_stroke_buffer(const tGPspoint *points, int totpoints, short 
 			/* now the point we want */
 			gp_set_tpoint_varying_color(pt, ink, color);
 			immVertex2iv(pos, &pt->x);
+			++draw_points;
+		}
+		/* need to have 2 points to avoid immEnd assert error */
+		if (draw_points < 2) {
+			gp_set_tpoint_varying_color(pt - 1, ink, color);
+			immVertex2iv(pos, &(pt - 1)->x);
 		}
 
 		if (G.debug & G_DEBUG) setlinestyle(0);
