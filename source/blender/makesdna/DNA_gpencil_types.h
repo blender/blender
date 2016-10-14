@@ -295,6 +295,7 @@ typedef struct bGPdata {
 	short sbuffer_sflag;		/* flags for stroke that cache represents */
 	void *sbuffer;				/* stroke buffer (can hold GP_STROKE_BUFFER_MAX) */
 	float scolor[4];            /* buffer color using palettes */
+	float sfill[4];             /* buffer fill color */
 	char  pad[6];               /* padding for compiler alignment error */
 	short sflag;                /* settings for palette color */
 

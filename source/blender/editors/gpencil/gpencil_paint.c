@@ -1467,6 +1467,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 	bGPDpalettecolor *palcolor = p->palettecolor;
 	bGPdata *pdata = p->gpd;
 	copy_v4_v4(pdata->scolor, palcolor->color);
+	copy_v4_v4(pdata->sfill, palcolor->fill);
 	pdata->sflag = palcolor->flag;
 
 	return 1;

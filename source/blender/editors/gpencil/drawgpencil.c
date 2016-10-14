@@ -123,9 +123,72 @@ static void gp_set_point_varying_color(const bGPDspoint *pt, const float ink[4],
 	immAttrib4ub(attrib_id, F2UB(ink[0]), F2UB(ink[1]), F2UB(ink[2]), F2UB(alpha));
 }
 
+/* draw fills for buffer stroke */
+static void gp_draw_stroke_buffer_fill(tGPspoint *points, int totpoints, float ink[4])
+{
+	if (totpoints < 3) {
+		return;
+	}
+	int tot_triangles = totpoints - 2;
+	/* allocate memory for temporary areas */
+	unsigned int(*tmp_triangles)[3] = MEM_mallocN(sizeof(*tmp_triangles) * tot_triangles, "GP Stroke buffer temp triangulation");
+	float(*points2d)[2] = MEM_mallocN(sizeof(*points2d) * totpoints, "GP Stroke buffer temp 2d points");
+
+	/* Convert points to array and triangulate
+	* Here a cache is not used because while drawing the information changes all the time, so the cache
+	* would be recalculated constantly, so it is better to do direct calculation for each function call
+	*/
+	for (int i = 0; i < totpoints; i++) {
+		const tGPspoint *pt = &points[i];
+		points2d[i][0] = pt->x;
+		points2d[i][1] = pt->y;
+	}
+	BLI_polyfill_calc((const float(*)[2])points2d, (unsigned int)totpoints, 0, (unsigned int(*)[3])tmp_triangles);
+
+	/* draw triangulation data */
+	if (tot_triangles > 0) {
+		VertexFormat *format = immVertexFormat();
+		unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+		unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
+
+		immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+
+		/* Draw all triangles for filling the polygon */
+		immBegin(GL_TRIANGLES, tot_triangles * 3);
+		/* TODO: use batch instead of immediate mode, to share vertices */
+
+		tGPspoint *pt;
+		for (int i = 0; i < tot_triangles; i++) {
+			/* vertex 1 */
+			pt = &points[tmp_triangles[i][0]];
+			gp_set_tpoint_varying_color(pt, ink, color);
+			immVertex2iv(pos, &pt->x);
+			/* vertex 2 */
+			pt = &points[tmp_triangles[i][1]];
+			gp_set_tpoint_varying_color(pt, ink, color);
+			immVertex2iv(pos, &pt->x);
+			/* vertex 3 */
+			pt = &points[tmp_triangles[i][2]];
+			gp_set_tpoint_varying_color(pt, ink, color);
+			immVertex2iv(pos, &pt->x);
+		}
+
+		immEnd();
+		immUnbindProgram();
+	}
+
+	/* clear memory */
+	if (tmp_triangles) {
+		MEM_freeN(tmp_triangles);
+	}
+	if (points2d) {
+		MEM_freeN(points2d);
+	}
+}
+
 /* draw stroke defined in buffer (simple ogl lines/points for now, as dotted lines) */
 static void gp_draw_stroke_buffer(const tGPspoint *points, int totpoints, short thickness,
-                                  short dflag, short sflag, float ink[4])
+                                  short dflag, short sflag, float ink[4], float fill_ink[4])
 {
 	/* error checking */
 	if ((points == NULL) || (totpoints <= 0))
@@ -194,6 +257,11 @@ static void gp_draw_stroke_buffer(const tGPspoint *points, int totpoints, short 
 
 	immEnd();
 	immUnbindProgram();
+
+	// draw fill
+	if (fill_ink[3] > GPENCIL_ALPHA_OPACITY_THRESH) {
+		gp_draw_stroke_buffer_fill(points, totpoints, fill_ink);
+	}
 }
 
 /* --------- 2D Stroke Drawing Helpers --------- */
@@ -1410,7 +1478,7 @@ static void gp_draw_data_layers(
 				                                 dflag, gpd->scolor);
 			}
 			else {
-				gp_draw_stroke_buffer(gpd->sbuffer, gpd->sbuffer_size, lthick, dflag, gpd->sbuffer_sflag, gpd->scolor);
+				gp_draw_stroke_buffer(gpd->sbuffer, gpd->sbuffer_size, lthick, dflag, gpd->sbuffer_sflag, gpd->scolor, gpd->sfill);
 			}
 		}
 	}
