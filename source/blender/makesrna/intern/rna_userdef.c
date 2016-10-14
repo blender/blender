@@ -83,7 +83,7 @@ static EnumPropertyItem audio_device_items[] = {
 	{2, "OPENAL", 0, "OpenAL", "OpenAL device - supports 3D audio, recommended for game engine usage"},
 #endif
 #ifdef WITH_JACK
-	{3, "JACK", 0, "Jack", "JACK - Audio Connection Kit, recommended for pro audio users"},
+	{3, "JACK", 0, "JACK", "JACK Audio Connection Kit, recommended for pro audio users"},
 #endif
 	{0, NULL, 0, NULL, NULL}
 };
