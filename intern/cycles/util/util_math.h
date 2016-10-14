@@ -462,12 +462,13 @@ ccl_device_inline float3 operator*(const float f, const float3& a)
 
 ccl_device_inline float3 operator/(const float f, const float3& a)
 {
-#ifdef __KERNEL_SSE__
-	__m128 rc = _mm_rcp_ps(a.m128);
-	return float3(_mm_mul_ps(_mm_set1_ps(f),rc));
-#else
+	/* TODO(sergey): Currently disabled, gives speedup but makes intersection tets non-watertight. */
+// #ifdef __KERNEL_SSE__
+// 	__m128 rc = _mm_rcp_ps(a.m128);
+// 	return float3(_mm_mul_ps(_mm_set1_ps(f),rc));
+// #else
 	return make_float3(f / a.x, f / a.y, f / a.z);
-#endif
+// #endif
 }
 
 ccl_device_inline float3 operator/(const float3& a, const float f)
