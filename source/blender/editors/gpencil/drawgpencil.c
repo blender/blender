@@ -642,6 +642,14 @@ static void gp_draw_stroke_3d(const bGPDspoint *points, int totpoints, short thi
 	float curpressure = points[0].pressure;
 	float fpt[3];
 	float cyclic_fpt[3];
+	int draw_points = 0;
+
+	/* if cyclic needs one vertex more */
+	int cyclic_add = 0;
+	if (cyclic) {
+		++cyclic_add;
+	}
+
 
 	VertexFormat *format = immVertexFormat();
 	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
@@ -653,7 +661,7 @@ static void gp_draw_stroke_3d(const bGPDspoint *points, int totpoints, short thi
 
 	/* draw stroke curve */
 	glLineWidth(max_ff(curpressure * thickness, 1.0f));
-	immBeginAtMost(GL_LINE_STRIP, totpoints);
+	immBeginAtMost(GL_LINE_STRIP, totpoints + cyclic_add);
 	const bGPDspoint *pt = points;
 	for (int i = 0; i < totpoints; i++, pt++) {
 		gp_set_point_varying_color(pt, ink, color);
@@ -663,22 +671,33 @@ static void gp_draw_stroke_3d(const bGPDspoint *points, int totpoints, short thi
 		 * Note: we want more visible levels of pressures when thickness is bigger.
 		 */
 		if (fabsf(pt->pressure - curpressure) > 0.2f / (float)thickness) {
+			/* if the pressure changes before get at least 2 vertices, need to repeat last point to avoid assert in immEnd() */
+			if (draw_points < 2) {
+				const bGPDspoint *pt2 = pt - 1;
+				mul_v3_m4v3(fpt, diff_mat, &pt2->x);
+				immVertex3fv(pos, fpt);
+			}
 			immEnd();
+			draw_points = 0;
+
 			curpressure = pt->pressure;
 			glLineWidth(max_ff(curpressure * thickness, 1.0f));
-			immBeginAtMost(GL_LINE_STRIP, totpoints - i + 1);
+			immBeginAtMost(GL_LINE_STRIP, totpoints - i + 1 + cyclic_add);
 
 			/* need to roll-back one point to ensure that there are no gaps in the stroke */
 			if (i != 0) { 
 				const bGPDspoint *pt2 = pt - 1;
 				mul_v3_m4v3(fpt, diff_mat, &pt2->x);
+				gp_set_point_varying_color(pt2, ink, color);
 				immVertex3fv(pos, fpt);
+				++draw_points;
 			}
 		}
 
 		/* now the point we want */
 		mul_v3_m4v3(fpt, diff_mat, &pt->x);
 		immVertex3fv(pos, fpt);
+		++draw_points;
 
 		if (cyclic && i == 0) {
 			/* save first point to use in cyclic */
@@ -689,6 +708,15 @@ static void gp_draw_stroke_3d(const bGPDspoint *points, int totpoints, short thi
 	if (cyclic) {
 		/* draw line to first point to complete the cycle */
 		immVertex3fv(pos, cyclic_fpt);
+		++draw_points;
+	}
+
+	/* if less of two points, need to repeat last point to avoid assert in immEnd() */
+	if (draw_points < 2) {
+		const bGPDspoint *pt2 = pt - 1;
+		mul_v3_m4v3(fpt, diff_mat, &pt2->x);
+		gp_set_point_varying_color(pt2, ink, color);
+		immVertex3fv(pos, fpt);
 	}
 
 	immEnd();
