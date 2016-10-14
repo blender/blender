@@ -469,16 +469,6 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		glBindTexture(GL_TEXTURE_2D, (font->tex_bind_state = g->tex));
 	}
 
-#if 0 /* determine exact count of quads */
-	unsigned quad_ct = 1 + (unsigned)font->blur;
-	if (font->flags & BLF_SHADOW)
-		quad_ct += (unsigned)font->shadow;
-
-	immBegin(GL_QUADS, quad_ct * 4);
-#else
-	immBeginAtMost(GL_QUADS, 40); /* (5 shadow + 5 blur) * 4 verts per quad */
-#endif
-
 	/* TODO: blur & shadow in shader, single quad per glyph */
 
 	if (font->flags & BLF_SHADOW) {
@@ -511,6 +501,4 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 			immAttrib4fv(BLF_COLOR_ID, font->orig_col);
 			blf_texture_draw(g->uv, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	}
-
-	immEnd();
 }
