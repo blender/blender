@@ -328,6 +328,7 @@ bool VP_legacy_view3d_stereo3d_active(const struct bContext *C, Scene *scene, Vi
 void VP_legacy_view3d_stereo3d_setup(Scene *scene, View3D *v3d, ARegion *ar);
 void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, Base *base);
 bool VP_legacy_use_depth(Scene *scene, View3D *v3d);
+void VP_drawviewborder(Scene *scene, ARegion *ar, View3D *v3d);
 void VP_drawrenderborder(ARegion *ar, View3D *v3d);
 
 #endif /* __VIEW3D_INTERN_H__ */
