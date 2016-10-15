@@ -1100,9 +1100,6 @@ void UI_view2d_view_ortho(View2D *v2d)
 	
 	/* set matrix on all appropriate axes */
 	wmOrtho2(curmasked.xmin, curmasked.xmax, curmasked.ymin, curmasked.ymax);
-
-	/* XXX is this necessary? */
-	glLoadIdentity();
 }
 
 /**
@@ -1130,9 +1127,6 @@ void UI_view2d_view_orthoSpecial(ARegion *ar, View2D *v2d, const bool xaxis)
 		wmOrtho2(curmasked.xmin - xofs, curmasked.xmax - xofs, -yofs, ar->winy - yofs);
 	else
 		wmOrtho2(-xofs, ar->winx - xofs, curmasked.ymin - yofs, curmasked.ymax - yofs);
-		
-	/* XXX is this necessary? */
-	glLoadIdentity();
 } 
 
 
@@ -2424,11 +2418,6 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 		BLI_memarena_free(g_v2d_strings_arena);
 		g_v2d_strings_arena = NULL;
 	}
-
-	// glMatrixMode(GL_PROJECTION);
-	// glPopMatrix();
-	// glMatrixMode(GL_MODELVIEW);
-	// glPopMatrix();
 }
 
 
