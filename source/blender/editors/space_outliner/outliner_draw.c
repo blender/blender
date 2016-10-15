@@ -1727,7 +1727,7 @@ static void outliner_draw_highlights_recursive(
 		if (TSELEM_OPEN(tselem, soops)) {
 			outliner_draw_highlights_recursive(
 			            ar, soops, &te->subtree, col_selection, col_highlight, col_searchmatch,
-			            start_x, io_start_y);
+			            start_x + UI_UNIT_X, io_start_y);
 		}
 	}
 }
