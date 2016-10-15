@@ -325,13 +325,13 @@ const bool GLXEW_ARB_create_context_robustness =
 
 		version = glGetString(GL_VERSION);
 
-#if 0 // enable this when Blender switches to 3.2 core profile
-		if (!version || version[0] < '3' || ((version[0] == '3') && (version[2] < '2'))) {
-			fprintf(stderr, "Error! Blender requires OpenGL 3.2 to run. Try updating your drivers.\n");
+#if 0 // enable this when Blender switches to 3.3 core profile
+		if (!version || version[0] < '3' || ((version[0] == '3') && (version[2] < '3'))) {
+			fprintf(stderr, "Error! Blender requires OpenGL 3.3 to run. Try updating your drivers.\n");
 #else
-		// with Mesa, the closest thing to 3.2 compatibility profile is 3.0
+		// with Mesa, the closest thing to 3.3 compatibility profile is 3.0
 		if (!version || version[0] < '3') {
-			fprintf(stderr, "Error! Blender requires OpenGL 3.0 (soon 3.2) to run. Try updating your drivers.\n");
+			fprintf(stderr, "Error! Blender requires OpenGL 3.0 (soon 3.3) to run. Try updating your drivers.\n");
 #endif
 			fflush(stderr);
 			/* ugly, but we get crashes unless a whole bunch of systems are patched. */

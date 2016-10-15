@@ -1308,11 +1308,11 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
 	if (type == GHOST_kDrawingContextTypeOpenGL) {
 
 		// During development:
-		//   try 3.2 compatibility profile
+		//   try 3.3 compatibility profile
 		//   fall back to 3.0 if needed
 		//
 		// Final Blender 2.8:
-		//   try 3.2 core profile
+		//   try 3.3 core profile
 		//   no fallbacks
 
 		const int profile_mask =
@@ -1332,7 +1332,7 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
 		        m_visualInfo,
 		        (GLXFBConfig)m_fbconfig,
 		        profile_mask,
-		        3, 2,
+		        3, 3,
 		        GHOST_OPENGL_GLX_CONTEXT_FLAGS | (m_is_debug_context ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
 		        GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY);
 
