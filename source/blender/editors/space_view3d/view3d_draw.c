@@ -1277,9 +1277,10 @@ static void view3d_draw_grid(const bContext *C, ARegion *ar)
 	const char *grid_unit = NULL;
 
 	/* ortho grid goes first, does not write to depth buffer and doesn't need depth test so it will override
-	* objects if done last */
-	/* needs to be done always, gridview is adjusted in drawgrid() now, but only for ortho views. */
-	rv3d->gridview = ED_view3d_grid_scale(scene, v3d, grid_unit);
+	 * objects if done last
+	 * needs to be done always, gridview is adjusted in drawgrid() now, but only for ortho views.
+	 */
+	rv3d->gridview = ED_view3d_grid_scale(scene, v3d, &grid_unit);
 
 	glEnable(GL_DEPTH_TEST);
 
