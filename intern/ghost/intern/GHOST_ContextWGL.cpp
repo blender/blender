@@ -962,7 +962,7 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 	     strcmp(renderer, "GDI Generic") == 0) && version[0] == '1' && version[2] == '1')
 	{
 		MessageBox(m_hWnd, "Your system does not use 3D hardware acceleration.\n"
-		                   "Blender requires a graphics driver with OpenGL 3.2 support.\n\n"
+		                   "Blender requires a graphics driver with OpenGL 3.3 support.\n\n"
 		                   "This may be caused by:\n"
 		                   "* A missing or faulty graphics driver installation.\n"
 		                   "  Blender needs a graphics card driver to work correctly.\n"
@@ -973,8 +973,8 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 		           MB_OK | MB_ICONERROR);
 		exit(0);
 	}
-	else if (version[0] < '3' || (version[0] == '3' && version[2] < '2')) {
-		MessageBox(m_hWnd, "Blender requires a graphics driver with OpenGL 3.2 support.\n\n"
+	else if (version[0] < '3' || (version[0] == '3' && version[2] < '3')) {
+		MessageBox(m_hWnd, "Blender requires a graphics driver with OpenGL 3.3 support.\n\n"
 		                   "The program will now close.",
 		           "Blender - Unsupported Graphics Driver!",
 		           MB_OK | MB_ICONERROR);

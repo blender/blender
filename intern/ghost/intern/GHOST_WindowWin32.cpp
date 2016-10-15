@@ -628,12 +628,12 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 		        m_hDC,
 		        profile_mask,
 #if 0
-		        3, 2, // specific GL version requested
+		        3, 3, // specific GL version requested
 		              // AMD gives us exactly this version
 		              // NVIDIA gives at least this version <-- desired behavior
 #else
 		        2, 1, // any GL version >= 2.1 (hopefully the latest)
-		              // we check later to ensure it's >= 3.2 on Windows
+		              // we check later to ensure it's >= 3.3 on Windows
 		              // TODO(merwin): fix properly!
 		              //               2.1 ignores the profile bit & is incompatible with core profile
 		              //               query version of initial dummy context, request that + profile + debug
