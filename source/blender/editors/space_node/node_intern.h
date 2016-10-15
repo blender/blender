@@ -68,7 +68,7 @@ void snode_group_offset(struct SpaceNode *snode, float *x, float *y);	/* transfo
 /* node_draw.c */
 int node_get_colorid(struct bNode *node);
 void node_socket_circle_draw(const struct bContext *C, struct bNodeTree *ntree, struct bNode *node,
-                             struct bNodeSocket *sock, float size, int highlight);
+                             struct bNodeSocket *sock, float size, int highlight, unsigned pos);
 int node_get_resize_cursor(int directions);
 void node_draw_shadow(struct SpaceNode *snode, struct bNode *node, float radius, float alpha);
 void node_draw_default(const struct bContext *C, struct ARegion *ar, struct SpaceNode *snode,

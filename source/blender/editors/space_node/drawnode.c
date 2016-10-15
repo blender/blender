@@ -53,6 +53,9 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "GPU_draw.h"
+#include "GPU_immediate.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -62,6 +65,7 @@
 #include "WM_types.h"
 
 #include "UI_resources.h"
+#include "UI_view2d.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
@@ -583,11 +587,14 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	bNodeSocket *sock;
 	char showname[128]; /* 128 used below */
 	rctf *rct = &node->totr;
+	View2D *v2d = &ar->v2d;
+	float xscale, yscale;
+
+	UI_view2d_scale_get(v2d, &xscale, &yscale);
 
 #if 0   /* UNUSED */
 	float size = NODE_REROUTE_SIZE;
 #endif
-	float socket_size = NODE_SOCKSIZE;
 
 	/* skip if out of view */
 	if (node->totr.xmax < ar->v2d.cur.xmin || node->totr.xmin > ar->v2d.cur.xmax ||
@@ -637,9 +644,21 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	/* only draw input socket. as they all are placed on the same position.
 	 * highlight also if node itself is selected, since we don't display the node body separately!
 	 */
+	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+	glEnable(GL_BLEND);
+	GPU_enable_program_point_size();
+
+	immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_SMOOTH);
+
 	for (sock = node->inputs.first; sock; sock = sock->next) {
-		node_socket_circle_draw(C, ntree, node, sock, socket_size, (sock->flag & SELECT) || (node->flag & SELECT));
+		node_socket_circle_draw(C, ntree, node, sock, NODE_SOCKSIZE * xscale, (sock->flag & SELECT) || (node->flag & SELECT), pos);
 	}
+
+	immUnbindProgram();
+
+	GPU_disable_program_point_size();
+	glDisable(GL_BLEND);
 
 	UI_block_end(C, node->block);
 	UI_block_draw(C, node->block);

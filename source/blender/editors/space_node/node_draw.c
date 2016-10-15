@@ -54,6 +54,9 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "GPU_draw.h"
+#include "GPU_immediate.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -618,51 +621,30 @@ static void node_draw_mute_line(View2D *v2d, SpaceNode *snode, bNode *node)
 }
 
 /* this might have some more generic use */
-static void node_circle_draw(float x, float y, float size, const float col[4], int highlight)
+static void node_circle_draw(float x, float y, float size, const float col[4], int highlight, unsigned pos)
 {
-	/* 16 values of sin function */
-	static const float si[16] = {
-		0.00000000f, 0.39435585f, 0.72479278f, 0.93775213f,
-		0.99871650f, 0.89780453f, 0.65137248f, 0.29936312f,
-		-0.10116832f, -0.48530196f, -0.79077573f, -0.96807711f,
-		-0.98846832f, -0.84864425f, -0.57126821f, -0.20129852f
-	};
-	/* 16 values of cos function */
-	static const float co[16] = {
-		1.00000000f, 0.91895781f, 0.68896691f, 0.34730525f,
-		-0.05064916f, -0.44039415f, -0.75875812f, -0.95413925f,
-		-0.99486932f, -0.87434661f, -0.61210598f, -0.25065253f,
-		0.15142777f, 0.52896401f, 0.82076344f, 0.97952994f,
-	};
-	int a;
-	
-	glColor4fv(col);
-	
-	glEnable(GL_BLEND);
-	glBegin(GL_POLYGON);
-	for (a = 0; a < 16; a++)
-		glVertex2f(x + size * si[a], y + size * co[a]);
-	glEnd();
-	glDisable(GL_BLEND);
-	
+	/* set handle size */
+	immUniform1f("size", 2.0f * size); //2 * size to have diameter
+
 	if (highlight) {
-		UI_ThemeColor(TH_TEXT_HI);
-		glLineWidth(1.5f);
+		float c[3];
+		UI_GetThemeColor3fv(TH_TEXT_HI, c);
+		immUniform4f("outlineColor", c[0], c[1], c[2], 1.0f);
+		immUniform1f("outlineWidth", 1.5f);
 	}
 	else {
-		glColor4ub(0, 0, 0, 150);
+		immUniform4f("outlineColor", 0, 0, 0, 0.6);
+		immUniform1f("outlineWidth", 1.0f);
 	}
-	glEnable(GL_BLEND);
-	glEnable(GL_LINE_SMOOTH);
-	glBegin(GL_LINE_LOOP);
-	for (a = 0; a < 16; a++)
-		glVertex2f(x + size * si[a], y + size * co[a]);
-	glEnd();
-	glDisable(GL_LINE_SMOOTH);
-	glDisable(GL_BLEND);
+
+	immUniformColor4fv(col);
+
+	immBegin(GL_POINTS, 1);
+	immVertex2f(pos , x, y);
+	immEnd();
 }
 
-void node_socket_circle_draw(const bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *sock, float size, int highlight)
+void node_socket_circle_draw(const bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *sock, float size, int highlight, unsigned pos)
 {
 	PointerRNA ptr, node_ptr;
 	float color[4];
@@ -670,7 +652,7 @@ void node_socket_circle_draw(const bContext *C, bNodeTree *ntree, bNode *node, b
 	RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
 	RNA_pointer_create((ID *)ntree, &RNA_Node, node, &node_ptr);
 	sock->typeinfo->draw_color((bContext *)C, &ptr, &node_ptr, color);
-	node_circle_draw(sock->locx, sock->locy, size, color, highlight);
+	node_circle_draw(sock->locx, sock->locy, size, color, highlight, pos);
 }
 
 /* **************  Socket callbacks *********** */
@@ -793,6 +775,9 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	float color[4];
 	char showname[128]; /* 128 used below */
 	View2D *v2d = &ar->v2d;
+	float xscale, yscale;
+
+	UI_view2d_scale_get(v2d, &xscale, &yscale);
 	
 	/* XXX hack: copy values from linked ID data where displayed as sockets */
 	if (node->block)
@@ -938,23 +923,34 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	if (node->flag & NODE_MUTED)
 		node_draw_mute_line(v2d, snode, node);
 
-	
+	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+	glEnable(GL_BLEND);
+	GPU_enable_program_point_size();
+
+	immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_SMOOTH);
+
 	/* socket inputs, buttons */
 	for (sock = node->inputs.first; sock; sock = sock->next) {
 		if (nodeSocketIsHidden(sock))
 			continue;
-		
-		node_socket_circle_draw(C, ntree, node, sock, NODE_SOCKSIZE, sock->flag & SELECT);
+
+		node_socket_circle_draw(C, ntree, node, sock, NODE_SOCKSIZE * xscale, sock->flag & SELECT, pos);
 	}
 	
 	/* socket outputs */
 	for (sock = node->outputs.first; sock; sock = sock->next) {
 		if (nodeSocketIsHidden(sock))
 			continue;
-		
-		node_socket_circle_draw(C, ntree, node, sock, NODE_SOCKSIZE, sock->flag & SELECT);
+
+		node_socket_circle_draw(C, ntree, node, sock, NODE_SOCKSIZE * xscale, sock->flag & SELECT, pos);
 	}
-	
+
+	immUnbindProgram();
+
+	GPU_disable_program_point_size();
+	glDisable(GL_BLEND);
+
 	/* preview */
 	if (node->flag & NODE_PREVIEW && previews) {
 		bNodePreview *preview = BKE_node_instance_hash_lookup(previews, key);
@@ -978,10 +974,13 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	rctf *rct = &node->totr;
 	float dx, centy = BLI_rctf_cent_y(rct);
 	float hiddenrad = BLI_rctf_size_y(rct) / 2.0f;
-	float socket_size = NODE_SOCKSIZE;
 	int color_id = node_get_colorid(node);
 	float color[4];
 	char showname[128]; /* 128 is used below */
+	View2D *v2d = &ar->v2d;
+	float xscale, yscale;
+
+	UI_view2d_scale_get(v2d, &xscale, &yscale);
 	
 	/* shadow */
 	node_draw_shadow(snode, node, hiddenrad, 1.0f);
@@ -1084,16 +1083,29 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	fdrawline(rct->xmax - dx, centy - 4.0f, rct->xmax - dx, centy + 4.0f);
 	fdrawline(rct->xmax - dx - 3.0f * snode->aspect, centy - 4.0f, rct->xmax - dx - 3.0f * snode->aspect, centy + 4.0f);
 
-	/* sockets */
+	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+	glEnable(GL_BLEND);
+	GPU_enable_program_point_size();
+
+	immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_SMOOTH);
+
+	/* socket inputs, buttons */
 	for (sock = node->inputs.first; sock; sock = sock->next) {
 		if (!nodeSocketIsHidden(sock))
-			node_socket_circle_draw(C, ntree, node, sock, socket_size, sock->flag & SELECT);
+			node_socket_circle_draw(C, ntree, node, sock, NODE_SOCKSIZE * xscale, sock->flag & SELECT, pos);
 	}
-	
+
+	/* socket outputs */
 	for (sock = node->outputs.first; sock; sock = sock->next) {
 		if (!nodeSocketIsHidden(sock))
-			node_socket_circle_draw(C, ntree, node, sock, socket_size, sock->flag & SELECT);
+			node_socket_circle_draw(C, ntree, node, sock, NODE_SOCKSIZE * xscale, sock->flag & SELECT, pos);
 	}
+
+	immUnbindProgram();
+
+	GPU_disable_program_point_size();
+	glDisable(GL_BLEND);
 	
 	UI_block_end(C, node->block);
 	UI_block_draw(C, node->block);
