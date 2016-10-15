@@ -169,6 +169,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_DSLINESTYLE,
 	ANIMTYPE_DSSPK,
 	ANIMTYPE_DSGPENCIL,
+	ANIMTYPE_DSMCLIP,
 	
 	ANIMTYPE_SHAPEKEY,
 	
@@ -327,6 +328,8 @@ typedef enum eAnimFilter_Flags {
 #define SEL_NLT(nlt) (nlt->flag & NLATRACK_SELECTED)
 #define EDITABLE_NLT(nlt) ((nlt->flag & NLATRACK_PROTECTED) == 0)
 
+/* Movie clip only */
+#define EXPANDED_MCLIP(clip) (clip->flag & MCLIP_DATA_EXPAND)
 
 /* AnimData - NLA mostly... */
 #define SEL_ANIMDATA(adt) (adt->flag & ADT_UI_SELECTED)

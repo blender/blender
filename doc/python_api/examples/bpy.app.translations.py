@@ -5,7 +5,7 @@ Intro
 .. warning::
 
    Most of this object should only be useful if you actually manipulate i18n stuff from Python.
-   If you are a regular addon, you should only bother about :const:`contexts` member,
+   If you are a regular add-on, you should only bother about :const:`contexts` member,
    and the :func:`register`/:func:`unregister` functions! The :func:`pgettext` family of functions
    should only be used in rare, specific cases (like e.g. complex "composited" UI strings...).
 
@@ -21,7 +21,7 @@ Intro
 Then, call ``bpy.app.translations.register(__name__, your_dict)`` in your ``register()`` function, and
 ``bpy.app.translations.unregister(__name__)`` in your ``unregister()`` one.
 
-The ``Manage UI translations`` addon has several functions to help you collect strings to translate, and
+The ``Manage UI translations`` add-on has several functions to help you collect strings to translate, and
 generate the needed python code (the translation dictionary), as well as optional intermediary po files
 if you want some... See
 `How to Translate Blender <http://wiki.blender.org/index.php/Dev:Doc/Process/Translate_Blender>`_ and

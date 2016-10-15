@@ -865,7 +865,7 @@ char **BKE_sound_get_device_names(void)
 		audio_device_names = AUD_getDeviceNames();
 #else
 		static const char *names[] = {
-			"Null", "SDL", "OpenAL", "Jack", NULL
+			"Null", "SDL", "OpenAL", "JACK", NULL
 		};
 		audio_device_names = (char **)names;
 #endif

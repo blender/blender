@@ -13,7 +13,7 @@ be animated, accessed from the user interface and from python.
    definitions are not, this means whenever you load blender the class needs
    to be registered too.
 
-   This is best done by creating an addon which loads on startup and registers
+   This is best done by creating an add-on which loads on startup and registers
    your properties.
 
 .. note::

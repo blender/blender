@@ -2,9 +2,9 @@
 Extending Menus
 +++++++++++++++
 
-When creating menus for addons you can't reference menus in Blender's default
-scripts.
-Instead, the addon can add menu items to existing menus.
+When creating menus for add-ons you can't reference menus
+in Blender's default scripts.
+Instead, the add-on can add menu items to existing menus.
 
 The function menu_draw acts like :class:`Menu.draw`.
 """

@@ -62,6 +62,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"
 #include "DNA_sequence_types.h"
@@ -825,6 +826,19 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 				ale->key_data = (adt) ? adt->action : NULL;
 				ale->datatype = ALE_ACT;
 				
+				ale->adt = BKE_animdata_from_id(data);
+				break;
+			}
+			case ANIMTYPE_DSMCLIP:
+			{
+				MovieClip *clip = (MovieClip *)data;
+				AnimData *adt = clip->adt;
+
+				ale->flag = EXPANDED_MCLIP(clip);
+
+				ale->key_data = (adt) ? adt->action : NULL;
+				ale->datatype = ALE_ACT;
+
 				ale->adt = BKE_animdata_from_id(data);
 				break;
 			}
@@ -2721,6 +2735,50 @@ static size_t animdata_filter_dopesheet_scene(bAnimContext *ac, ListBase *anim_d
 	return items;
 }
 
+static size_t animdata_filter_ds_movieclip(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, MovieClip *clip, int filter_mode)
+{
+	ListBase tmp_data = {NULL, NULL};
+	size_t tmp_items = 0;
+	size_t items = 0;
+	/* add world animation channels */
+	BEGIN_ANIMFILTER_SUBCHANNELS(EXPANDED_MCLIP(clip))
+	{
+		/* animation data filtering */
+		tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)clip, filter_mode);
+	}
+	END_ANIMFILTER_SUBCHANNELS;
+	/* did we find anything? */
+	if (tmp_items) {
+		/* include data-expand widget first */
+		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
+			/* check if filtering by active status */
+			if (ANIMCHANNEL_ACTIVEOK(clip)) {
+				ANIMCHANNEL_NEW_CHANNEL(clip, ANIMTYPE_DSMCLIP, clip);
+			}
+		}
+		/* now add the list of collected channels */
+		BLI_movelisttolist(anim_data, &tmp_data);
+		BLI_assert(BLI_listbase_is_empty(&tmp_data));
+		items += tmp_items;
+	}
+	/* return the number of items added to the list */
+	return items;
+}
+
+static size_t animdata_filter_dopesheet_movieclips(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, int filter_mode)
+{
+	size_t items = 0;
+	MovieClip *clip;
+	for (clip = G.main->movieclip.first; clip != NULL; clip = clip->id.next) {
+		/* only show if gpd is used by something... */
+		if (ID_REAL_USERS(clip) < 1) {
+			continue;
+		}
+		items += animdata_filter_ds_movieclip(ac, anim_data, ads, clip, filter_mode);
+	}
+	/* return the number of items added to the list */
+	return items;
+}
 
 /* Helper for animdata_filter_dopesheet() - For checking if an object should be included or not */
 static bool animdata_filter_base_is_ok(bDopeSheet *ads, Scene *scene, Base *base, int filter_mode)
@@ -2854,9 +2912,12 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac, ListBase *anim_data, b
 		items += animdata_filter_ds_cachefile(ac, anim_data, ads, cache_file, filter_mode);
 	}
 
+	/* movie clip's animation */
+	items += animdata_filter_dopesheet_movieclips(ac, anim_data, ads, filter_mode);
+
 	/* scene-linked animation - e.g. world, compositing nodes, scene anim (including sequencer currently) */
 	items += animdata_filter_dopesheet_scene(ac, anim_data, ads, scene, filter_mode);
-	
+
 	/* If filtering for channel drawing, we want the objects in alphabetical order,
 	 * to make it easier to predict where items are in the hierarchy
 	 *  - This order only really matters if we need to show all channels in the list (e.g. for drawing)

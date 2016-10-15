@@ -122,7 +122,7 @@ static void sima_zoom_set(SpaceImage *sima, ARegion *ar, float zoom, const float
 		width *= sima->zoom;
 		height *= sima->zoom;
 
-		if ((width < 4) && (height < 4))
+		if ((width < 4) && (height < 4) && sima->zoom < oldzoom)
 			sima->zoom = oldzoom;
 		else if (BLI_rcti_size_x(&ar->winrct) <= sima->zoom)
 			sima->zoom = oldzoom;

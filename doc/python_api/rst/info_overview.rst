@@ -77,22 +77,22 @@ To run as modules:
 - The obvious way, ``import some_module`` command from the text window or interactive console.
 - Open as a text block and tick "Register" option, this will load with the blend file.
 - copy into one of the directories ``scripts/startup``, where they will be automatically imported on startup.
-- define as an addon, enabling the addon will load it as a Python module.
+- define as an add-on, enabling the add-on will load it as a Python module.
 
 
-Addons
+Add-ons
 ------
 
 Some of Blenders functionality is best kept optional,
-alongside scripts loaded at startup we have addons which are kept in their own directory ``scripts/addons``,
+alongside scripts loaded at startup we have add-ons which are kept in their own directory ``scripts/addons``,
 and only load on startup if selected from the user preferences.
 
-The only difference between addons and built-in Python modules is that addons must contain a ``bl_info``
+The only difference between add-ons and built-in Python modules is that add-ons must contain a ``bl_info``
 variable which Blender uses to read metadata such as name, author, category and URL.
 
-The user preferences addon listing uses **bl_info** to display information about each addon.
+The User Preferences add-on listing uses **bl_info** to display information about each add-on.
 
-`See Addons <http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Guidelines/Addons>`__
+`See Add-ons <http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Guidelines/Addons>`__
 for details on the ``bl_info`` dictionary.
 
 
@@ -223,7 +223,7 @@ These functions usually appear at the bottom of the script containing class regi
 You can also use them for internal purposes setting up data for your own tools but take care
 since register won't re-run when a new blend file is loaded.
 
-The register/unregister calls are used so it's possible to toggle addons and reload scripts while Blender runs.
+The register/unregister calls are used so it's possible to toggle add-ons and reload scripts while Blender runs.
 If the register calls were placed in the body of the script, registration would be called on import,
 meaning there would be no distinction between importing a module or loading its classes into Blender.
 

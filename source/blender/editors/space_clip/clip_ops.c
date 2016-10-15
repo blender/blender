@@ -103,7 +103,7 @@ static void sclip_zoom_set(const bContext *C, float zoom, float location[2])
 		width *= sc->zoom;
 		height *= sc->zoom;
 
-		if ((width < 4) && (height < 4))
+		if ((width < 4) && (height < 4) && sc->zoom < oldzoom)
 			sc->zoom = oldzoom;
 		else if (BLI_rcti_size_x(&ar->winrct) <= sc->zoom)
 			sc->zoom = oldzoom;
