@@ -198,6 +198,7 @@ static int outliner_highlight_update(bContext *C, wmOperator *UNUSED(op), const 
 	}
 
 	if (changed) {
+		soops->storeflag |= SO_TREESTORE_REDRAW; /* only needs to redraw, no rebuild */
 		ED_region_tag_redraw(ar);
 	}
 
