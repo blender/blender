@@ -67,12 +67,11 @@ void snode_group_offset(struct SpaceNode *snode, float *x, float *y);	/* transfo
 
 /* node_draw.c */
 int node_get_colorid(struct bNode *node);
-void node_socket_circle_draw(const struct bContext *C, struct bNodeTree *ntree, struct bNode *node,
-                             struct bNodeSocket *sock, float size, int highlight, unsigned pos);
 int node_get_resize_cursor(int directions);
 void node_draw_shadow(struct SpaceNode *snode, struct bNode *node, float radius, float alpha);
 void node_draw_default(const struct bContext *C, struct ARegion *ar, struct SpaceNode *snode,
                        struct bNodeTree *ntree, struct bNode *node, bNodeInstanceKey key);
+void node_draw_sockets(struct View2D *v2d, const struct bContext *C, struct bNodeTree *ntree, struct bNode *node, bool draw_outputs, bool select_all);
 void node_update_default(const struct bContext *C, struct bNodeTree *ntree, struct bNode *node);
 int node_select_area_default(struct bNode *node, int x, int y);
 int node_tweak_area_default(struct bNode *node, int x, int y);

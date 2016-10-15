@@ -84,49 +84,6 @@ static void node_socket_button_label(bContext *UNUSED(C), uiLayout *layout, Poin
 	uiItemL(layout, text, 0);
 }
 
-
-/* ****************** BASE DRAW FUNCTIONS FOR NEW OPERATOR NODES ***************** */
-
-#if 0 /* UNUSED */
-static void node_draw_socket_new(bNodeSocket *sock, float size)
-{
-	float x = sock->locx, y = sock->locy;
-	
-	/* 16 values of sin function */
-	static float si[16] = {
-		0.00000000f, 0.39435585f, 0.72479278f, 0.93775213f,
-		0.99871650f, 0.89780453f, 0.65137248f, 0.29936312f,
-		-0.10116832f, -0.48530196f, -0.79077573f, -0.96807711f,
-		-0.98846832f, -0.84864425f, -0.57126821f, -0.20129852f
-	};
-	/* 16 values of cos function */
-	static float co[16] = {
-		1.00000000f, 0.91895781f, 0.68896691f, 0.34730525f,
-		-0.05064916f, -0.44039415f, -0.75875812f, -0.95413925f,
-		-0.99486932f, -0.87434661f, -0.61210598f, -0.25065253f,
-		0.15142777f, 0.52896401f, 0.82076344f, 0.97952994f,
-	};
-	int a;
-	
-	glColor3ub(180, 180, 180);
-	
-	glBegin(GL_POLYGON);
-	for (a = 0; a < 16; a++)
-		glVertex2f(x + size * si[a], y + size * co[a]);
-	glEnd();
-	
-	glColor4ub(0, 0, 0, 150);
-	glEnable(GL_BLEND);
-	glEnable(GL_LINE_SMOOTH);
-	glBegin(GL_LINE_LOOP);
-	for (a = 0; a < 16; a++)
-		glVertex2f(x + size * si[a], y + size * co[a]);
-	glEnd();
-	glDisable(GL_LINE_SMOOTH);
-	glDisable(GL_BLEND);
-}
-#endif
-
 /* ****************** BUTTON CALLBACKS FOR ALL TREES ***************** */
 
 static void node_buts_value(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -584,13 +541,8 @@ static void node_draw_reroute_prepare(const bContext *UNUSED(C), bNodeTree *UNUS
 static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(snode),
                               bNodeTree *ntree, bNode *node, bNodeInstanceKey UNUSED(key))
 {
-	bNodeSocket *sock;
 	char showname[128]; /* 128 used below */
 	rctf *rct = &node->totr;
-	View2D *v2d = &ar->v2d;
-	float xscale, yscale;
-
-	UI_view2d_scale_get(v2d, &xscale, &yscale);
 
 #if 0   /* UNUSED */
 	float size = NODE_REROUTE_SIZE;
@@ -644,21 +596,7 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	/* only draw input socket. as they all are placed on the same position.
 	 * highlight also if node itself is selected, since we don't display the node body separately!
 	 */
-	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
-
-	glEnable(GL_BLEND);
-	GPU_enable_program_point_size();
-
-	immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_SMOOTH);
-
-	for (sock = node->inputs.first; sock; sock = sock->next) {
-		node_socket_circle_draw(C, ntree, node, sock, NODE_SOCKSIZE * xscale, (sock->flag & SELECT) || (node->flag & SELECT), pos);
-	}
-
-	immUnbindProgram();
-
-	GPU_disable_program_point_size();
-	glDisable(GL_BLEND);
+	node_draw_sockets(&ar->v2d, C, ntree, node, false, node->flag & SELECT);
 
 	UI_block_end(C, node->block);
 	UI_block_draw(C, node->block);
