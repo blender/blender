@@ -187,7 +187,7 @@ static int outliner_highlight_update(bContext *C, wmOperator *UNUSED(op), const 
 	const float my = UI_view2d_region_to_view_y(&ar->v2d, event->mval[1]);
 
 	TreeElement *hovered_te = outliner_find_item_at_y(soops, &soops->tree, my);
-	bool changed;
+	bool changed = false;
 
 	if (!hovered_te || !(hovered_te->store_elem->flag & TSE_HIGHLIGHTED)) {
 		changed = outliner_set_flag(soops, &soops->tree, TSE_HIGHLIGHTED, false);
