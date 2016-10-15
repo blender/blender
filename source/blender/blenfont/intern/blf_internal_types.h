@@ -175,8 +175,10 @@ typedef struct FontBLF {
 	/* angle in radians. */
 	float angle;
 	
+#if BLF_BLUR_ENABLE
 	/* blur: 3 or 5 large kernel */
 	int blur;
+#endif
 
 	/* shadow level. */
 	int shadow;

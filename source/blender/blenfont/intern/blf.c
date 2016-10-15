@@ -455,6 +455,7 @@ void BLF_size(int fontid, int size, int dpi)
 	}
 }
 
+#if BLF_BLUR_ENABLE
 void BLF_blur(int fontid, int size)
 {
 	FontBLF *font = blf_get(fontid);
@@ -463,6 +464,7 @@ void BLF_blur(int fontid, int size)
 		font->blur = size;
 	}
 }
+#endif
 
 void BLF_draw_default(float x, float y, float z, const char *str, size_t len)
 {

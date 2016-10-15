@@ -490,6 +490,7 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		}
 	}
 
+#if BLF_BLUR_ENABLE
 	switch (font->blur) {
 		case 3:
 			blf_texture3_draw(font->orig_col, g->uv, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
@@ -501,4 +502,8 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 			immAttrib4fv(BLF_COLOR_ID, font->orig_col);
 			blf_texture_draw(g->uv, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	}
+#else
+	immAttrib4fv(BLF_COLOR_ID, font->orig_col);
+	blf_texture_draw(g->uv, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+#endif
 }

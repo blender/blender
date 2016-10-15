@@ -34,6 +34,9 @@
 
 #include "BLI_compiler_attrs.h"
 
+/* enable this only if needed (unused circa 2016) */
+#define BLF_BLUR_ENABLE 0
+
 struct rctf;
 struct ColorManagedDisplay;
 struct ResultBLF;
@@ -144,7 +147,10 @@ void BLF_rotation(int fontid, float angle);
 void BLF_clipping(int fontid, float xmin, float ymin, float xmax, float ymax);
 void BLF_clipping_default(float xmin, float ymin, float xmax, float ymax);
 void BLF_wordwrap(int fontid, int wrap_width);
+
+#if BLF_BLUR_ENABLE
 void BLF_blur(int fontid, int size);
+#endif
 
 void BLF_enable(int fontid, int option);
 void BLF_disable(int fontid, int option);

@@ -951,7 +951,9 @@ static void blf_font_fill(FontBLF *font)
 	font->size = 0;
 	BLI_listbase_clear(&font->cache);
 	font->glyph_cache = NULL;
+#if BLF_BLUR_ENABLE
 	font->blur = 0;
+#endif
 	font->max_tex_size = -1;
 
 	font->buf_info.fbuf = NULL;
