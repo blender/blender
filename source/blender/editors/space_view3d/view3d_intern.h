@@ -323,7 +323,7 @@ extern bool view3d_camera_border_hack_test;
 #endif
 
 /* temporary test for blender 2.8 viewport */
-#define IS_VIEWPORT_LEGACY(v3d) (v3d->tmp_compat_flag & V3D_NEW_VIEWPORT) == 0
+#define IS_VIEWPORT_LEGACY(v3d) ((v3d->tmp_compat_flag & V3D_NEW_VIEWPORT) == 0)
 
 /* temporary for legacy viewport to work */
 void VP_legacy_drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **grid_unit);
