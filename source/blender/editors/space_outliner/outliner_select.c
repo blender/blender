@@ -897,19 +897,19 @@ static void outliner_item_select(SpaceOops *soops, const TreeElement *te, const 
 	const short new_flag = toggle ? (tselem->flag ^ TSE_SELECTED) : (tselem->flag | TSE_SELECTED);
 
 	if (extend == false) {
-		outliner_set_flag(soops, &soops->tree, TSE_SELECTED, false);
+		outliner_set_flag(&soops->tree, TSE_SELECTED, false);
 	}
 	tselem->flag = new_flag;
 }
 
-static void outliner_item_toggle_closed(SpaceOops *soops, TreeElement *te, const bool toggle_children)
+static void outliner_item_toggle_closed(TreeElement *te, const bool toggle_children)
 {
 	TreeStoreElem *tselem = TREESTORE(te);
 	if (toggle_children) {
 		tselem->flag &= ~TSE_CLOSED;
 
-		const bool all_opened = !outliner_has_one_flag(soops, &te->subtree, TSE_CLOSED, 1);
-		outliner_set_flag(soops, &te->subtree, TSE_CLOSED, all_opened);
+		const bool all_opened = !outliner_has_one_flag(&te->subtree, TSE_CLOSED, 1);
+		outliner_set_flag(&te->subtree, TSE_CLOSED, all_opened);
 	}
 	else {
 		tselem->flag ^= TSE_CLOSED;
@@ -946,7 +946,7 @@ int outliner_item_activate_or_toggle_closed(bContext *C, int x, int y, bool exte
 		/* skip */
 	}
 	else if (outliner_item_is_co_within_close_toggle(te, view_mval[0])) {
-		outliner_item_toggle_closed(soops, te, extend);
+		outliner_item_toggle_closed(te, extend);
 		changed = true;
 	}
 	else {
@@ -994,7 +994,7 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
 /* ****************************************************** */
 
 /* **************** Border Select Tool ****************** */
-static void outliner_item_border_select(Scene *scene, SpaceOops *soops, rctf *rectf, TreeElement *te, int gesture_mode)
+static void outliner_item_border_select(Scene *scene, rctf *rectf, TreeElement *te, int gesture_mode)
 {
 	TreeStoreElem *tselem = TREESTORE(te);
 
@@ -1010,7 +1010,7 @@ static void outliner_item_border_select(Scene *scene, SpaceOops *soops, rctf *re
 	/* Look at its children. */
 	if ((tselem->flag & TSE_CLOSED) == 0) {
 		for (te = te->subtree.first; te; te = te->next) {
-			outliner_item_border_select(scene, soops, rectf, te, gesture_mode);
+			outliner_item_border_select(scene, rectf, te, gesture_mode);
 		}
 	}
 }
@@ -1028,7 +1028,7 @@ static int outliner_border_select_exec(bContext *C, wmOperator *op)
 	UI_view2d_region_to_view_rctf(&ar->v2d, &rectf, &rectf);
 
 	for (te = soops->tree.first; te; te = te->next) {
-		outliner_item_border_select(scene, soops, &rectf, te, gesture_mode);
+		outliner_item_border_select(scene, &rectf, te, gesture_mode);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);

@@ -1832,8 +1832,8 @@ void OUTLINER_OT_data_operation(wmOperatorType *ot)
 /* ******************** */
 
 
-static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops,
-                                       TreeElement *te, const wmEvent *event, const float mval[2])
+static int do_outliner_operation_event(bContext *C, ARegion *ar, SpaceOops *soops,
+                                       TreeElement *te, const float mval[2])
 {
 	ReportList *reports = CTX_wm_reports(C); // XXX...
 	
@@ -1844,8 +1844,8 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 		/* select object that's clicked on and popup context menu */
 		if (!(tselem->flag & TSE_SELECTED)) {
 			
-			if (outliner_has_one_flag(soops, &soops->tree, TSE_SELECTED, 1))
-				outliner_set_flag(soops, &soops->tree, TSE_SELECTED, 0);
+			if (outliner_has_one_flag(&soops->tree, TSE_SELECTED, 1))
+				outliner_set_flag(&soops->tree, TSE_SELECTED, 0);
 			
 			tselem->flag |= TSE_SELECTED;
 			/* redraw, same as outliner_select function */
@@ -1916,7 +1916,7 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 	}
 	
 	for (te = te->subtree.first; te; te = te->next) {
-		if (do_outliner_operation_event(C, scene, ar, soops, te, event, mval))
+		if (do_outliner_operation_event(C, ar, soops, te, mval))
 			return 1;
 	}
 	return 0;
@@ -1925,7 +1925,6 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 
 static int outliner_operation(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
-	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	uiBut *but = UI_context_active_but_get(C);
@@ -1939,7 +1938,7 @@ static int outliner_operation(bContext *C, wmOperator *UNUSED(op), const wmEvent
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 	
 	for (te = soops->tree.first; te; te = te->next) {
-		if (do_outliner_operation_event(C, scene, ar, soops, te, event, fmval)) {
+		if (do_outliner_operation_event(C, ar, soops, te, fmval)) {
 			break;
 		}
 	}
