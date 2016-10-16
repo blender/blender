@@ -701,6 +701,17 @@ void immUniform4f(const char* name, float x, float y, float z, float w)
 	glUniform4f(loc, x, y, z, w);
 	}
 
+void immUniform4fv(const char* name, const float data[4])
+	{
+	int loc = glGetUniformLocation(imm.bound_program, name);
+
+#if TRUST_NO_ONE
+	assert(loc != -1);
+#endif
+
+	glUniform4fv(loc, 1, data);
+	}
+
 void immUniform1i(const char* name, int x)
 	{
 	int loc = glGetUniformLocation(imm.bound_program, name);
@@ -722,7 +733,7 @@ void immUniformColor4f(float r, float g, float b, float a)
 
 void immUniformColor4fv(const float rgba[4])
 	{
-	immUniform4f("color", rgba[0], rgba[1], rgba[2], rgba[3]);
+	immUniform4fv("color", rgba);
 	}
 
 void immUniformColor3fv(const float rgb[3])

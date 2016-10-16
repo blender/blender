@@ -76,6 +76,7 @@ void immVertex2iv(unsigned attrib_id, const int data[2]);
 void immUniform1i(const char* name, int x);
 void immUniform1f(const char* name, float x);
 void immUniform4f(const char* name, float x, float y, float z, float w);
+void immUniform4fv(const char* name, const float data[4]);
 
 
 // convenience functions for setting "uniform vec4 color"
