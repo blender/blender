@@ -315,22 +315,26 @@ void blf_glyph_free(GlyphBLF *g)
 	MEM_freeN(g);
 }
 
-static void blf_texture_draw(float uv[2][2], float dx, float y1, float dx1, float y2)
+static void blf_texture_draw(const unsigned char color[4], float uv[2][2], float dx, float y1, float dx1, float y2)
 {
 	immAttrib2f(BLF_COORD_ID, uv[0][0], uv[0][1]);
+	immSkipAttrib(BLF_COLOR_ID); /* skip color of most vertices */
 	immVertex2f(BLF_POS_ID, dx, y1);
 
 	immAttrib2f(BLF_COORD_ID, uv[0][0], uv[1][1]);
+	immSkipAttrib(BLF_COLOR_ID);
 	immVertex2f(BLF_POS_ID, dx, y2);
 
 	immAttrib2f(BLF_COORD_ID, uv[1][0], uv[1][1]);
+	immSkipAttrib(BLF_COLOR_ID);
 	immVertex2f(BLF_POS_ID, dx1, y2);
 
 	immAttrib2f(BLF_COORD_ID, uv[1][0], uv[0][1]);
+	immAttrib4ubv(BLF_COLOR_ID, color); /* set color of provoking vertex */
 	immVertex2f(BLF_POS_ID, dx1, y1);
 }
 
-static void blf_texture5_draw(const float shadow_col[4], float uv[2][2], float x1, float y1, float x2, float y2)
+static void blf_texture5_draw(const unsigned char color_in[4], float uv[2][2], float x1, float y1, float x2, float y2)
 {
 	const float soft[25] = {1 / 60.0f, 1 / 60.0f, 2 / 60.0f, 1 / 60.0f, 1 / 60.0f,
 	                        1 / 60.0f, 3 / 60.0f, 5 / 60.0f, 3 / 60.0f, 1 / 60.0f,
@@ -339,41 +343,43 @@ static void blf_texture5_draw(const float shadow_col[4], float uv[2][2], float x
 	                        1 / 60.0f, 1 / 60.0f, 2 / 60.0f, 1 / 60.0f, 1 / 60.0f};
 
 	const float *fp = soft;
-	float color[4];
+	unsigned char color[4];
 	float dx, dy;
 
-	color[0] = shadow_col[0];
-	color[1] = shadow_col[1];
-	color[2] = shadow_col[2];
+	color[0] = color_in[0];
+	color[1] = color_in[1];
+	color[2] = color_in[2];
+
+	const float alpha_in = (1 / 255.0f) * color_in[3];
 
 	for (dx = -2; dx < 3; dx++) {
 		for (dy = -2; dy < 3; dy++, fp++) {
-			color[3] = *(fp) * shadow_col[3];
-			immAttrib4fv(BLF_COLOR_ID, color);
-			blf_texture_draw(uv, x1 + dx, y1 + dy, x2 + dx, y2 + dy);
+			color[3] = FTOCHAR(*fp * alpha_in);
+			blf_texture_draw(color, uv, x1 + dx, y1 + dy, x2 + dx, y2 + dy);
 		}
 	}
 }
 
-static void blf_texture3_draw(const float shadow_col[4], float uv[2][2], float x1, float y1, float x2, float y2)
+static void blf_texture3_draw(const unsigned char color_in[4], float uv[2][2], float x1, float y1, float x2, float y2)
 {
 	const float soft[9] = {1 / 16.0f, 2 / 16.0f, 1 / 16.0f,
 	                       2 / 16.0f, 4 / 16.0f, 2 / 16.0f,
 	                       1 / 16.0f, 2 / 16.0f, 1 / 16.0f};
 
 	const float *fp = soft;
-	float color[4];
+	unsigned char color[4];
 	float dx, dy;
 
-	color[0] = shadow_col[0];
-	color[1] = shadow_col[1];
-	color[2] = shadow_col[2];
+	color[0] = color_in[0];
+	color[1] = color_in[1];
+	color[2] = color_in[2];
+
+	const float alpha_in = (1 / 255.0f) * color_in[3];
 
 	for (dx = -1; dx < 2; dx++) {
 		for (dy = -1; dy < 2; dy++, fp++) {
-			color[3] = *(fp) * shadow_col[3];
-			immAttrib4fv(BLF_COLOR_ID, color);
-			blf_texture_draw(uv, x1 + dx, y1 + dy, x2 + dx, y2 + dy);
+			color[3] = FTOCHAR(*fp * alpha_in);
+			blf_texture_draw(color, uv, x1 + dx, y1 + dy, x2 + dx, y2 + dy);
 		}
 	}
 }
@@ -478,31 +484,28 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		                    y + (float)font->shadow_y);
 
 		if (font->shadow == 0) {
-			immAttrib4fv(BLF_COLOR_ID, font->shadow_col);
-			blf_texture_draw(g->uv, rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
+			blf_texture_draw(font->shadow_color, g->uv, rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
 		}
 		else if (font->shadow <= 4) {
-			blf_texture3_draw(font->shadow_col, g->uv, rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
+			blf_texture3_draw(font->shadow_color, g->uv, rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
 		}
 		else {
-			blf_texture5_draw(font->shadow_col, g->uv, rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
+			blf_texture5_draw(font->shadow_color, g->uv, rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
 		}
 	}
 
 #if BLF_BLUR_ENABLE
 	switch (font->blur) {
 		case 3:
-			blf_texture3_draw(font->orig_col, g->uv, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+			blf_texture3_draw(font->color, g->uv, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 			break;
 		case 5:
-			blf_texture5_draw(font->orig_col, g->uv, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+			blf_texture5_draw(font->color, g->uv, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 			break;
 		default:
-			immAttrib4fv(BLF_COLOR_ID, font->orig_col);
-			blf_texture_draw(g->uv, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+			blf_texture_draw(font->color, g->uv, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	}
 #else
-	immAttrib4fv(BLF_COLOR_ID, font->orig_col);
-	blf_texture_draw(g->uv, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+	blf_texture_draw(font->color, g->uv, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 #endif
 }

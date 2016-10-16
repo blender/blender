@@ -517,13 +517,15 @@ static void blf_draw_gl__start(FontBLF *font)
 	if (font->flags & BLF_ROTATION)  /* radians -> degrees */
 		gpuRotateAxis(font->angle * (float)(180.0 / M_PI), 'Z');
 
-	glGetFloatv(GL_CURRENT_COLOR, font->orig_col); /* TODO(merwin): new BLF_color function? */
+	float temp_color[4];
+	glGetFloatv(GL_CURRENT_COLOR, temp_color); /* TODO(merwin): new BLF_color function? */
+	rgba_float_to_uchar(font->color, temp_color);
 
 #ifndef BLF_STANDALONE
 	VertexFormat *format = immVertexFormat();
 	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 	unsigned texCoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
-	unsigned color = add_attrib(format, "color", GL_FLOAT, 4, KEEP_FLOAT);
+	unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
 
 	BLI_assert(pos == BLF_POS_ID);
 	BLI_assert(texCoord == BLF_COORD_ID);
@@ -862,7 +864,7 @@ void BLF_shadow(int fontid, int level, const float rgba[4])
 
 	if (font) {
 		font->shadow = level;
-		copy_v4_v4(font->shadow_col, rgba);
+		rgba_float_to_uchar(font->shadow_color, rgba);
 	}
 }
 
