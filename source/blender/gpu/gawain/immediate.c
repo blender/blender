@@ -592,6 +592,17 @@ void immAttrib4ubv(unsigned attrib_id, const unsigned char data[4])
 	immAttrib4ub(attrib_id, data[0], data[1], data[2], data[3]);
 	}
 
+void immSkipAttrib(unsigned attrib_id)
+	{
+#if TRUST_NO_ONE
+	assert(attrib_id < imm.vertex_format.attrib_ct);
+	assert(imm.vertex_idx < imm.vertex_ct);
+	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
+#endif
+
+	setAttribValueBit(attrib_id);
+	}
+
 static void immEndVertex(void) // and move on to the next vertex
 	{
 #if TRUST_NO_ONE
@@ -619,6 +630,7 @@ static void immEndVertex(void) // and move on to the next vertex
 
 				GLubyte* data = imm.vertex_data + a->offset;
 				memcpy(data, data - imm.vertex_format.stride, a->sz);
+				// TODO: consolidate copy of adjacent attributes
 				}
 			}
 		}

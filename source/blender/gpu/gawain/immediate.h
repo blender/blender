@@ -54,6 +54,10 @@ void immAttrib4ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned
 void immAttrib3ubv(unsigned attrib_id, const unsigned char data[4]);
 void immAttrib4ubv(unsigned attrib_id, const unsigned char data[4]);
 
+// explicitly skip an attribute
+// this advanced option kills automatic value copying for this attrib_id
+void immSkipAttrib(unsigned attrib_id);
+
 
 // provide one last attribute value & end the current vertex
 // this is most often used for 2D or 3D position (similar to glVertex)
