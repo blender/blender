@@ -38,23 +38,30 @@ void immBindBuiltinProgram(GPUBuiltinShader shader_id)
 	gpuBindMatrices(shader->program);
 }
 
-void immUniformThemeColor(int colorid)
+void immUniformThemeColor(int color_id)
 {
 	float color[4];
-	UI_GetThemeColor4fv(colorid, color);
+	UI_GetThemeColor4fv(color_id, color);
 	immUniformColor4fv(color);
 }
 
-void immUniformThemeColorShade(int colorid, int offset)
+void immUniformThemeColorShade(int color_id, int offset)
 {
 	float color[4];
-	UI_GetThemeColorShade4fv(colorid, offset, color);
+	UI_GetThemeColorShade4fv(color_id, offset, color);
 	immUniformColor4fv(color);
 }
 
-void immUniformThemeColorBlendShade(int colorid1, int colorid2, float fac, int offset)
+void immUniformThemeColorShadeAlpha(int color_id, int color_offset, int alpha_offset)
 {
 	float color[4];
-	UI_GetThemeColorBlendShade4fv(colorid1, colorid2, fac, offset, color);
+	UI_GetThemeColorShadeAlpha4fv(color_id, color_offset, alpha_offset, color);
+	immUniformColor4fv(color);
+}
+
+void immUniformThemeColorBlendShade(int color_id1, int color_id2, float fac, int offset)
+{
+	float color[4];
+	UI_GetThemeColorBlendShade4fv(color_id1, color_id2, fac, offset, color);
 	immUniformColor4fv(color);
 }
