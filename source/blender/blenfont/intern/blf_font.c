@@ -177,16 +177,18 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 static unsigned verts_needed(const FontBLF *font, const char *str, size_t len)
 {
 	unsigned length = (unsigned)((len == INT_MAX) ? strlen(str) : len);
-	return length * 40;
-	/* (5 shadow + 5 blur) * 4 verts per quad
-	 * TODO: determine exact count of quads, somthing like this: */
-#if 0
-	unsigned quad_ct = 1 + (unsigned)font->blur;
-	if (font->flags & BLF_SHADOW)
-		quad_ct += (unsigned)font->shadow;
+	unsigned quad_ct = 1;
 
-	immBegin(GL_QUADS, length * quad_ct * 4);
-#endif
+	if (font->flags & BLF_SHADOW) {
+		if (font->shadow == 0)
+			quad_ct += 1;
+		if (font->shadow <= 4)
+			quad_ct += 9; /* 3x3 kernel */
+		else
+			quad_ct += 25; /* 5x5 kernel */
+	}
+
+	return length * quad_ct * 4;
 }
 
 static void blf_font_draw_ex(
@@ -205,6 +207,7 @@ static void blf_font_draw_ex(
 	blf_font_ensure_ascii_table(font);
 
 	immBeginAtMost(GL_QUADS, verts_needed(font, str, len));
+	/* at most because some glyphs might be clipped & not drawn */
 
 	while ((i < len) && str[i]) {
 		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);

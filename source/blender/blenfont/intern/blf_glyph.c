@@ -477,16 +477,15 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		                    x + (float)font->shadow_x,
 		                    y + (float)font->shadow_y);
 
-		switch (font->shadow) {
-			case 3:
-				blf_texture3_draw(font->shadow_col, g->uv, rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
-				break;
-			case 5:
-				blf_texture5_draw(font->shadow_col, g->uv, rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
-				break;
-			default:
-				immAttrib4fv(BLF_COLOR_ID, font->shadow_col);
-				blf_texture_draw(g->uv, rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
+		if (font->shadow == 0) {
+			immAttrib4fv(BLF_COLOR_ID, font->shadow_col);
+			blf_texture_draw(g->uv, rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
+		}
+		else if (font->shadow <= 4) {
+			blf_texture3_draw(font->shadow_col, g->uv, rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
+		}
+		else {
+			blf_texture5_draw(font->shadow_col, g->uv, rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
 		}
 	}
 
