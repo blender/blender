@@ -751,47 +751,49 @@ void drawcircball(int mode, const float cent[3], float rad, const float tmat[4][
 /* circle for object centers, special_color is for library or ob users */
 static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, const float co[3], int selstate, bool special_color)
 {
-	const float size = ED_view3d_pixel_size(rv3d, co) * (float)U.obcenter_dia * 0.5f;
-	float verts[CIRCLE_RESOL][3];
+	const float outlineWidth = 1.0f * U.pixelsize;
+	const float size = U.obcenter_dia * U.pixelsize + outlineWidth;
 
-	/* using glDepthFunc guarantees that it does write z values,
-	 * but not checks for it, so centers remain visible independent of draw order */
-	if (v3d->zbuf) glDepthFunc(GL_ALWAYS);
-	/* write to near buffer always */
-	glDepthRange(0.0, 0.0);
+ 	if (v3d->zbuf) {
+		glDisable(GL_DEPTH_TEST);
+		/* TODO(merwin): fit things like this into plates/buffers design */
+	}
+
 	glEnable(GL_BLEND);
-	
+	GPU_enable_program_point_size();
+
+	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_SMOOTH);
+	immUniform1f("size", size);
+
 	if (special_color) {
-		if (selstate == ACTIVE || selstate == SELECT) glColor4ub(0x88, 0xFF, 0xFF, 155);
-		else glColor4ub(0x55, 0xCC, 0xCC, 155);
+		if (selstate == ACTIVE || selstate == SELECT) immUniformColor4ub(0x88, 0xFF, 0xFF, 155);
+		else immUniformColor4ub(0x55, 0xCC, 0xCC, 155);
 	}
 	else {
-		if (selstate == ACTIVE) UI_ThemeColorShadeAlpha(TH_ACTIVE, 0, -80);
-		else if (selstate == SELECT) UI_ThemeColorShadeAlpha(TH_SELECT, 0, -80);
-		else if (selstate == DESELECT) UI_ThemeColorShadeAlpha(TH_TRANSFORM, 0, -80);
+		if (selstate == ACTIVE) immUniformThemeColorShadeAlpha(TH_ACTIVE, 0, -80);
+		else if (selstate == SELECT) immUniformThemeColorShadeAlpha(TH_SELECT, 0, -80);
+		else if (selstate == DESELECT) immUniformThemeColorShadeAlpha(TH_TRANSFORM, 0, -80);
 	}
 
-	circball_array_fill(verts, co, size, rv3d->viewinv);
+	/* set up outline */
+	float outlineColor[4];
+	UI_GetThemeColorShadeAlpha4fv(TH_WIRE, 0, -30, outlineColor);
+	immUniform4fv("outlineColor", outlineColor);
+	immUniform1f("outlineWidth", outlineWidth);
 
-	/* enable vertex array */
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 0, verts);
+	immBegin(GL_POINTS, 1);
+	immVertex3fv(pos, co);
+	immEnd();
 
-	/* 1. draw filled, blended polygon */
-	glDrawArrays(GL_POLYGON, 0, CIRCLE_RESOL);
+	immUnbindProgram();
 
-	/* 2. draw outline */
-	glLineWidth(1);
-	UI_ThemeColorShadeAlpha(TH_WIRE, 0, -30);
-	glDrawArrays(GL_LINE_LOOP, 0, CIRCLE_RESOL);
-
-	/* finish up */
-	glDisableClientState(GL_VERTEX_ARRAY);
-
-	glDepthRange(0.0, 1.0);
+	GPU_disable_program_point_size();
 	glDisable(GL_BLEND);
 
-	if (v3d->zbuf) glDepthFunc(GL_LEQUAL);
+ 	if (v3d->zbuf) {
+		glEnable(GL_DEPTH_TEST);
+	}
 }
 
 /* *********** text drawing for object/particles/armature ************* */
@@ -6895,10 +6897,15 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				if ((base->sx != IS_CLIPPED) &&
 				    (U.obcenter_dia != 0.0))
 				{
+					unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+					immBindBuiltinProgram(GPU_SHADER_3D_POINT_FIXED_SIZE_UNIFORM_COLOR);
+					/* TODO: short term, use DEPTH_ONLY shader or set appropriate color */
+					/* TODO: long term, solve picking & selection problem better */
 					glPointSize(U.obcenter_dia);
-					glBegin(GL_POINTS);
-					glVertex3fv(ob->obmat[3]);
-					glEnd();
+					immBegin(GL_POINTS, 1);
+					immVertex3fv(pos, ob->obmat[3]);
+					immEnd();
+					immUnbindProgram();
 				}
 			}
 			else if ((dflag & DRAW_CONSTCOLOR) == 0) {
