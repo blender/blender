@@ -124,7 +124,7 @@ static void gp_set_point_varying_color(const bGPDspoint *pt, const float ink[4],
 }
 
 /* draw fills for buffer stroke */
-static void gp_draw_stroke_buffer_fill(tGPspoint *points, int totpoints, float ink[4])
+static void gp_draw_stroke_buffer_fill(const tGPspoint *points, int totpoints, float ink[4])
 {
 	if (totpoints < 3) {
 		return;
@@ -157,7 +157,7 @@ static void gp_draw_stroke_buffer_fill(tGPspoint *points, int totpoints, float i
 		immBegin(GL_TRIANGLES, tot_triangles * 3);
 		/* TODO: use batch instead of immediate mode, to share vertices */
 
-		tGPspoint *pt;
+		const tGPspoint *pt;
 		for (int i = 0; i < tot_triangles; i++) {
 			/* vertex 1 */
 			pt = &points[tmp_triangles[i][0]];
@@ -343,7 +343,7 @@ static void gp_draw_stroke_volumetric_buffer(const tGPspoint *points, int totpoi
 
 /* draw a 2D strokes in "volumetric" style */
 static void gp_draw_stroke_volumetric_2d(const bGPDspoint *points, int totpoints, short thickness,
-                                         short dflag, short sflag,
+                                         short UNUSED(dflag), short sflag,
                                          int offsx, int offsy, int winx, int winy,
                                          const float diff_mat[4][4], const float ink[4])
 {
@@ -616,7 +616,7 @@ static void gp_draw_stroke_fill(
 
 /* draw a given stroke - just a single dot (only one point) */
 static void gp_draw_stroke_point(
-        const bGPDspoint *points, short thickness, short dflag, short sflag,
+        const bGPDspoint *points, short thickness, short UNUSED(dflag), short sflag,
         int offsx, int offsy, int winx, int winy, const float diff_mat[4][4], const float ink[4])
 {
 	const bGPDspoint *pt = points;
@@ -951,6 +951,8 @@ static void gp_draw_stroke_2d(const bGPDspoint *points, int totpoints, short thi
 		}
 		glEnd();
 	}
+#else
+	UNUSED_VARS(debug);
 #endif
 }
 

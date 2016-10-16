@@ -626,7 +626,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	immUnbindProgram();
 }
 
-void drawrenderborder(ARegion *ar, View3D *v3d)
+static void drawrenderborder(ARegion *ar, View3D *v3d)
 {
 	/* use the same program for everything */
 	VertexFormat *format = immVertexFormat();
@@ -1344,7 +1344,6 @@ RegionView3D *rv3d, const unsigned char color[4])
 static void view3d_draw_border(const bContext *C, ARegion *ar)
 {
 	Scene *scene = CTX_data_scene(C);
-	wmWindowManager *wm = CTX_wm_manager(C);
 	RegionView3D *rv3d = ar->regiondata;
 	View3D *v3d = CTX_wm_view3d(C);
 

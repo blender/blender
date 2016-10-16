@@ -507,7 +507,7 @@ static void blf_draw_gl__start(FontBLF *font)
 	gpuMatrixBegin3D_legacy();
 
 	if (font->flags & BLF_MATRIX)
-		gpuMultMatrix3D(font->m);
+		gpuMultMatrix3D((float (*)[4])font->m);
 
 	gpuTranslate3fv(font->pos);
 
@@ -515,7 +515,7 @@ static void blf_draw_gl__start(FontBLF *font)
 		gpuScale3fv(font->aspect);
 
 	if (font->flags & BLF_ROTATION)  /* radians -> degrees */
-		gpuRotateAxis(font->angle * (float)(180.0 / M_PI), 'Z');
+		gpuRotateAxis(RAD2DEG(font->angle), 'Z');
 
 	float temp_color[4];
 	glGetFloatv(GL_CURRENT_COLOR, temp_color); /* TODO(merwin): new BLF_color function? */
