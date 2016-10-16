@@ -3855,9 +3855,10 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 			bv = find_bevvert(bp, l->v);
 			vm = bv->vmesh;
 			e = find_edge_half(bv, l->e);
+			BLI_assert(e != NULL);
 			bme = e->e;
 			eprev = find_edge_half(bv, lprev->e);
-			BLI_assert(e != NULL && eprev != NULL);
+			BLI_assert(eprev != NULL);
 
 			/* which direction around our vertex do we travel to match orientation of f? */
 			if (e->prev == eprev) {
