@@ -934,7 +934,7 @@ int outliner_item_activate_or_toggle_closed(bContext *C, int x, int y, bool exte
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	TreeElement *te;
 	float view_mval[2];
-	bool changed = false;
+	bool changed = false, rebuild_tree = false;
 
 	UI_view2d_region_to_view(&ar->v2d, x, y, &view_mval[0], &view_mval[1]);
 
@@ -948,6 +948,7 @@ int outliner_item_activate_or_toggle_closed(bContext *C, int x, int y, bool exte
 	else if (outliner_item_is_co_within_close_toggle(te, view_mval[0])) {
 		outliner_item_toggle_closed(te, extend);
 		changed = true;
+		rebuild_tree = true;
 	}
 	else {
 		/* the row may also contain children, if one is hovered we want this instead of current te */
@@ -959,7 +960,10 @@ int outliner_item_activate_or_toggle_closed(bContext *C, int x, int y, bool exte
 	}
 
 	if (changed) {
-		soops->storeflag |= SO_TREESTORE_REDRAW; /* only needs to redraw, no rebuild */
+		if (!rebuild_tree) {
+			/* only needs to redraw, no rebuild */
+			soops->storeflag |= SO_TREESTORE_REDRAW;
+		}
 		ED_undo_push(C, "Outliner selection change");
 		ED_region_tag_redraw(ar);
 	}
