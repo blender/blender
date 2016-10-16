@@ -133,8 +133,8 @@ void outliner_cleanup_tree(struct SpaceOops *soops);
 TreeElement *outliner_find_tse(struct SpaceOops *soops, const TreeStoreElem *tse);
 TreeElement *outliner_find_tree_element(ListBase *lb, const TreeStoreElem *store_elem);
 TreeElement *outliner_find_id(struct SpaceOops *soops, ListBase *lb, const struct ID *id);
-TreeElement *outliner_find_posechannel(struct SpaceOops *soops, ListBase *lb, const struct bPoseChannel *pchan);
-TreeElement *outliner_find_editbone(struct SpaceOops *soops, ListBase *lb, const struct EditBone *ebone);
+TreeElement *outliner_find_posechannel(ListBase *lb, const struct bPoseChannel *pchan);
+TreeElement *outliner_find_editbone(ListBase *lb, const struct EditBone *ebone);
 struct ID *outliner_search_back(SpaceOops *soops, TreeElement *te, short idcode);
 
 void outliner_build_tree(struct Main *mainvar, struct Scene *scene, struct SpaceOops *soops);
@@ -166,8 +166,8 @@ void outliner_do_object_operation(
 
 int common_restrict_check(struct bContext *C, struct Object *ob);
 
-int outliner_has_one_flag(struct SpaceOops *soops, ListBase *lb, short flag, const int curlevel);
-void outliner_set_flag(struct SpaceOops *soops, ListBase *lb, short flag, short set);
+int outliner_has_one_flag(ListBase *lb, short flag, const int curlevel);
+void outliner_set_flag(ListBase *lb, short flag, short set);
 
 void object_toggle_visibility_cb(
         struct bContext *C, struct ReportList *reports, struct Scene *scene,
