@@ -967,6 +967,10 @@ void ui_theme_init_default(void)
 	btheme->tv3d.gradients.show_grad = false;
 
 	rgba_char_args_set(btheme->tv3d.clipping_border_3d, 50, 50, 50, 255);
+
+	rgba_char_args_set(btheme->tv3d.time_keyframe, 0xDD, 0xD7, 0x00, 0xFF);
+	rgba_char_args_set(btheme->tv3d.time_gp_keyframe, 0xB5, 0xE6, 0x1D, 0xFF);
+
 	/* space buttons */
 	/* to have something initialized */
 	btheme->tbuts = btheme->tv3d;
@@ -1154,8 +1158,8 @@ void ui_theme_init_default(void)
 	rgba_char_args_set_fl(btheme->ttime.grid,   0.36, 0.36, 0.36, 1.0);
 	rgba_char_args_set(btheme->ttime.shade1,  173, 173, 173, 255);      /* sliders */
 	
-	rgba_char_args_set(btheme->ttime.time_keyframe, 0xDD, 0xD7, 0x00, 1.0);
-	rgba_char_args_set(btheme->ttime.time_gp_keyframe, 0xB5, 0xE6, 0x1D, 1.0);
+	rgba_char_args_set(btheme->ttime.time_keyframe, 0xDD, 0xD7, 0x00, 0xFF);
+	rgba_char_args_set(btheme->ttime.time_gp_keyframe, 0xB5, 0xE6, 0x1D, 0xFF);
 	
 	/* space node, re-uses syntax and console color storage */
 	btheme->tnode = btheme->tv3d;
@@ -2634,8 +2638,8 @@ void init_userdef_do_versions(void)
 			btheme->tnode.gp_vertex_size = 3;
 			
 			/* Timeline Keyframe Indicators */
-			rgba_char_args_set(btheme->ttime.time_keyframe, 0xDD, 0xD7, 0x00, 1.0);
-			rgba_char_args_set(btheme->ttime.time_gp_keyframe, 0xB5, 0xE6, 0x1D, 1.0);
+			rgba_char_args_set(btheme->ttime.time_keyframe, 0xDD, 0xD7, 0x00, 0xFF);
+			rgba_char_args_set(btheme->ttime.time_gp_keyframe, 0xB5, 0xE6, 0x1D, 0xFF);
 		}
 	}
 
@@ -2715,8 +2719,8 @@ void init_userdef_do_versions(void)
 		bTheme *btheme;
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			/* 3dView Keyframe Indicators */
-			rgba_char_args_set(btheme->tv3d.time_keyframe, 0xDD, 0xD7, 0x00, 1.0);
-			rgba_char_args_set(btheme->tv3d.time_gp_keyframe, 0xB5, 0xE6, 0x1D, 1.0);
+			rgba_char_args_set(btheme->tv3d.time_keyframe, 0xDD, 0xD7, 0x00, 0xFF);
+			rgba_char_args_set(btheme->tv3d.time_gp_keyframe, 0xB5, 0xE6, 0x1D, 0xFF);
 		}
 	}
 
@@ -2743,10 +2747,6 @@ void init_userdef_do_versions(void)
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			rgba_char_args_set(btheme->tv3d.vertex_bevel, 0, 165, 255, 255);
 			rgba_char_args_set(btheme->tv3d.edge_bevel, 0, 165, 255, 255);
-
-			/* 3dView Keyframe Indicators */
-			btheme->tv3d.time_keyframe[3] = 0xFF;
-			btheme->tv3d.time_gp_keyframe[3] = 0xFF;
 		}
 	}
 
@@ -2756,6 +2756,11 @@ void init_userdef_do_versions(void)
 	 * (keep this block even if it becomes empty).
 	 */
 	{
+		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
+			/* Keyframe Indicators (were using wrong alpha) */
+			btheme->tv3d.time_keyframe[3] = btheme->tv3d.time_gp_keyframe[3] = 255;
+			btheme->ttime.time_keyframe[3] = btheme->ttime.time_gp_keyframe[3] = 255;
+		}
 	}
 
 	if (U.pixelsize == 0.0f)
