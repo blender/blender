@@ -394,10 +394,12 @@ void wm_manipulatormaps_handled_modal_update(
         bContext *C, wmEvent *event, wmEventHandler *handler,
         const wmOperatorType *ot)
 {
+	ScrArea *area = CTX_wm_area(C);
+	ARegion *region = CTX_wm_region(C);
 	const bool modal_running = (handler->op != NULL);
 
-	/* happens on render */
-	if (!handler->op_region || !handler->op_region->manipulator_map)
+	/* happens on render or when joining areas */
+	if (!region || !region->manipulator_map)
 		return;
 
 	/* hide operator manipulators */
@@ -405,10 +407,8 @@ void wm_manipulatormaps_handled_modal_update(
 		ot->mgrouptype->op = NULL;
 	}
 
-	wmManipulatorMap *mmap = handler->op_region->manipulator_map;
+	wmManipulatorMap *mmap = region->manipulator_map;
 	wmManipulator *manipulator = wm_manipulatormap_get_active_manipulator(mmap);
-	ScrArea *area = CTX_wm_area(C);
-	ARegion *region = CTX_wm_region(C);
 
 	wm_manipulatormap_handler_context(C, handler);
 
