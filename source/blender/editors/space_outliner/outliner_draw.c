@@ -1411,11 +1411,14 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Spa
 static void outliner_set_coord_tree_element(SpaceOops *soops, TreeElement *te, int startx, int starty)
 {
 	TreeElement *ten;
-	
-	/* store coord and continue, we need coordinates for elements outside view too */
-	te->xs = startx;
-	te->ys = starty;
-	
+
+	/* closed items may be displayed in row of parent, don't change their coordinate! */
+	if ((te->flag & TE_ICONROW) == 0) {
+		/* store coord and continue, we need coordinates for elements outside view too */
+		te->xs = startx;
+		te->ys = starty;
+	}
+
 	for (ten = te->subtree.first; ten; ten = ten->next) {
 		outliner_set_coord_tree_element(soops, ten, startx + UI_UNIT_X, starty);
 	}

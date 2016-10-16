@@ -380,7 +380,7 @@ static void object_select_hierarchy_cb(
 	wmWindow *win = CTX_wm_window(C);
 	int x = win->eventstate->mval[0];
 	int y = win->eventstate->mval[1];
-	outliner_item_do_activate(C, x, y, true, true);
+	outliner_item_activate_or_toggle_closed(C, x, y, true, true);
 }
 
 

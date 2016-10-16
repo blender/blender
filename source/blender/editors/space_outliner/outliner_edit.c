@@ -150,16 +150,11 @@ TreeElement *outliner_dropzone_find(const SpaceOops *soops, const float fmval[2]
 	return NULL;
 }
 
-/* ************************************************************** */
-
-/* Highlight --------------------------------------------------- */
-
 /**
  * Try to find an item under y-coordinate \a view_co_y (view-space).
  * \note Recursive
  */
-static TreeElement *outliner_find_item_at_y(
-        const SpaceOops *soops, const ListBase *tree, float view_co_y)
+TreeElement *outliner_find_item_at_y(const SpaceOops *soops, const ListBase *tree, float view_co_y)
 {
 	for (TreeElement *te_iter = tree->first; te_iter; te_iter = te_iter->next) {
 		if (view_co_y < (te_iter->ys + UI_UNIT_Y)) {
@@ -179,6 +174,35 @@ static TreeElement *outliner_find_item_at_y(
 
 	return NULL;
 }
+
+/**
+ * Collapsed items can show their children as click-able icons. This function tries to find
+ * such an icon that represents the child item at x-coordinate \a view_co_x (view-space).
+ *
+ * \return a hovered child item or \a parent_te (if no hovered child found).
+ */
+TreeElement *outliner_find_item_at_x_in_row(const SpaceOops *soops, const TreeElement *parent_te, float view_co_x)
+{
+	if (!TSELEM_OPEN(TREESTORE(parent_te), soops)) { /* if parent_te is opened, it doesn't show childs in row */
+		/* no recursion, items can only display their direct children in the row */
+		for (TreeElement *child_te = parent_te->subtree.first;
+		     child_te && view_co_x >= child_te->xs; /* don't look further if co_x is smaller than child position*/
+		     child_te = child_te->next)
+		{
+			if ((child_te->flag & TE_ICONROW) && (view_co_x > child_te->xs) && (view_co_x < child_te->xend)) {
+				return child_te;
+			}
+		}
+	}
+
+	/* return parent if no child is hovered */
+	return (TreeElement *)parent_te;
+}
+
+
+/* ************************************************************** */
+
+/* Highlight --------------------------------------------------- */
 
 static int outliner_highlight_update(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
