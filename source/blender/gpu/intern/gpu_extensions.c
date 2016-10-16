@@ -129,18 +129,18 @@ void GPU_get_dfdy_factors(float fac[2])
 void gpu_extensions_init(void)
 {
 	/* during 2.8 development each platform has its own OpenGL minimum requirements
-	 * final 2.8 release will be unified on OpenGL 3.2 core profile, no required extensions
+	 * final 2.8 release will be unified on OpenGL 3.3 core profile, no required extensions
 	 * see developer.blender.org/T49012 for details
 	 */
 #ifdef _WIN32
-	BLI_assert(GLEW_VERSION_3_2);
+	BLI_assert(GLEW_VERSION_3_3);
 #elif defined(__APPLE__)
 	BLI_assert(GLEW_VERSION_2_1 && GLEW_EXT_gpu_shader4
 	                            && GLEW_ARB_framebuffer_object
 	                            && GLEW_ARB_draw_elements_base_vertex
 	                            && GLEW_APPLE_flush_buffer_range);
 #else
-	BLI_assert(GLEW_VERSION_3_2 || (GLEW_VERSION_3_0 && GLEW_ARB_draw_elements_base_vertex));
+	BLI_assert(GLEW_VERSION_3_3 || (GLEW_VERSION_3_0 && GLEW_ARB_draw_elements_base_vertex));
 	/*           vendor driver  ||  Mesa compatibility profile */
 #endif
 
@@ -257,6 +257,8 @@ void gpu_extensions_exit(void)
 bool GPU_legacy_support(void)
 {
 	/* return whether or not current GL context is compatible with legacy OpenGL */
+	/* (will be removed after switching to core profile) */
+
 	static bool checked = false;
 	static bool support = true;
 

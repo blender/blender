@@ -132,12 +132,11 @@ static struct GPUShadersGlobal {
 
 static void shader_print_errors(const char *task, const char *log, const char **code, int totcode)
 {
-	int i;
 	int line = 1;
 
 	fprintf(stderr, "GPUShader: %s error:\n", task);
 
-	for (i = 0; i < totcode; i++) {
+	for (int i = 0; i < totcode; i++) {
 		const char *c, *pos, *end = code[i] + strlen(code[i]);
 
 		if (G.debug & G_DEBUG) {
@@ -160,23 +159,13 @@ static void shader_print_errors(const char *task, const char *log, const char **
 
 static const char *gpu_shader_version(void)
 {
-	if (GLEW_VERSION_3_2) {
-		if (GLEW_ARB_compatibility) {
-			return "#version 150 compatibility\n";
+	if (GLEW_VERSION_3_3) {
+		if (GPU_legacy_support()) {
+			return "#version 330 compatibility\n";
 			/* highest version that is widely supported
 			 * gives us native geometry shaders!
 			 * use compatibility profile so we can continue using builtin shader input/output names
 			 */
-		}
-		else {
-			return "#version 130\n";
-			/* latest version that is compatible with existing shaders */
-		}
-	}
-	else if (GLEW_VERSION_3_1) {
-		if (GLEW_ARB_compatibility) {
-			return "#version 140\n";
-			/* also need the ARB_compatibility extension, handled below */
 		}
 		else {
 			return "#version 130\n";
