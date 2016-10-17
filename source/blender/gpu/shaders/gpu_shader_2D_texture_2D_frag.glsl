@@ -12,6 +12,6 @@ uniform sampler2D texture_map;
 
 void main()
 {
-	fragColor = texture2D(texture_map, texture_coord)
+	fragColor = texture2D(texture_map, texture_coord);
 	fragColor.a *= alpha;
 }
