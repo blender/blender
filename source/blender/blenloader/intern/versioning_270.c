@@ -1393,7 +1393,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
-	if (!MAIN_VERSION_ATLEAST(main, 279, 0)) {
+	if (!MAIN_VERSION_ATLEAST(main, 278, 2)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "FFMpegCodecData", "int", "ffmpeg_preset")) {
 			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
 				/* "medium" is the preset FFmpeg uses when no presets are given. */
