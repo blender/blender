@@ -126,10 +126,12 @@ static GPUTexture *GPU_texture_create_nD(
 		return NULL;
 	}
 
+#if 0 /* this should be a compile-time check */
 	if (!GPU_full_non_power_of_two_support()) {
 		tex->w = power_of_2_max_i(tex->w);
 		tex->h = power_of_2_max_i(tex->h);
 	}
+#endif
 
 	tex->number = 0;
 	glBindTexture(tex->target, tex->bindcode);
