@@ -1746,6 +1746,11 @@ void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged
 							ob->proxy = ob->proxy_from = ob->proxy_group = NULL;
 						}
 					}
+					/* Special hack for groups... Thing is, since we can't instantiate them here, we need to ensure
+					 * they remain 'alive' (only instantiation is a real group 'user'... *sigh* See T49722. */
+					else if (GS(id->name) == ID_GR && (id->tag & LIB_TAG_INDIRECT) != 0) {
+						id_us_ensure_real(id->newid);
+					}
 
 					BKE_library_ID_test_usages(bmain, id, &is_local, &is_lib);
 					if (!is_local && !is_lib) {
