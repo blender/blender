@@ -489,9 +489,9 @@ void OpenCLDeviceBase::shader(DeviceTask& task)
 	cl_kernel kernel;
 
 	if(task.shader_eval_type >= SHADER_EVAL_BAKE)
-		kernel = base_program(ustring("shader"));
-	else
 		kernel = base_program(ustring("bake"));
+	else
+		kernel = base_program(ustring("shader"));
 
 	cl_uint start_arg_index =
 		kernel_set_args(kernel,
