@@ -2717,6 +2717,33 @@ wmEventHandler *WM_event_add_modal_handler(bContext *C, wmOperator *op)
 	return handler;
 }
 
+/**
+ * Modal handlers store a pointer to an area which might be freed while the handler runs.
+ * Use this function to NULL all handler pointers to \a old_area.
+ */
+void WM_event_modal_handler_area_replace(wmWindow *win, const ScrArea *old_area, ScrArea *new_area)
+{
+	for (wmEventHandler *handler = win->modalhandlers.first; handler; handler = handler->next) {
+		if (handler->op_area == old_area) {
+			handler->op_area = new_area;
+		}
+	}
+}
+
+/**
+ * Modal handlers store a pointer to a region which might be freed while the handler runs.
+ * Use this function to NULL all handler pointers to \a old_region.
+ */
+void WM_event_modal_handler_region_replace(wmWindow *win, const ARegion *old_region, ARegion *new_region)
+{
+	for (wmEventHandler *handler = win->modalhandlers.first; handler; handler = handler->next) {
+		if (handler->op_region == old_region) {
+			handler->op_region = new_region;
+			handler->op_region_type = new_region ? new_region->regiontype : RGN_TYPE_WINDOW;
+		}
+	}
+}
+
 wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap *keymap)
 {
 	wmEventHandler *handler;

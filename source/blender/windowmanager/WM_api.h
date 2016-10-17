@@ -67,6 +67,7 @@ struct wmDrag;
 struct ImBuf;
 struct ImageFormatData;
 struct ARegion;
+struct ScrArea;
 
 #ifdef WITH_INPUT_NDOF
 struct wmNDOFMotionData;
@@ -177,6 +178,9 @@ void WM_event_free_ui_handler_all(
         wmUIHandlerFunc ui_handle, wmUIHandlerRemoveFunc ui_remove);
 
 struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op);
+void WM_event_modal_handler_area_replace(wmWindow *win, const struct ScrArea *old_area, struct ScrArea *new_area);
+void WM_event_modal_handler_region_replace(wmWindow *win, const struct ARegion *old_region, struct ARegion *new_region);
+
 void		WM_event_remove_handlers(struct bContext *C, ListBase *handlers);
 
 /* handler flag */
