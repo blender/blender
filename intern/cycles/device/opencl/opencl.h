@@ -191,7 +191,8 @@ public:
 		OpenCLProgram(OpenCLDeviceBase *device,
 		              string program_name,
 		              string kernel_name,
-		              string kernel_build_options);
+		              string kernel_build_options,
+		              bool use_stdout = true);
 		~OpenCLProgram();
 
 		void add_kernel(ustring name);
@@ -212,6 +213,9 @@ public:
 		bool load_binary(const string& clbin, const string *debug_src = NULL);
 		bool save_binary(const string& clbin);
 
+		void add_log(string msg, bool is_debug);
+		void add_error(string msg);
+
 		bool loaded;
 		cl_program program;
 		OpenCLDeviceBase *device;
@@ -220,8 +224,10 @@ public:
 		string program_name;
 
 		string kernel_file, kernel_build_options, device_md5;
-		string error_msg, output_msg;
-		string log;
+
+		bool use_stdout;
+		string log, error_msg;
+		string compile_output;
 
 		map<ustring, cl_kernel> kernels;
 	};

@@ -239,11 +239,16 @@ string OpenCLCache::get_kernel_md5()
 	return self.kernel_md5;
 }
 
-OpenCLDeviceBase::OpenCLProgram::OpenCLProgram(OpenCLDeviceBase *device, string program_name, string kernel_file, string kernel_build_options)
+OpenCLDeviceBase::OpenCLProgram::OpenCLProgram(OpenCLDeviceBase *device,
+                                               string program_name,
+                                               string kernel_file,
+                                               string kernel_build_options,
+                                               bool use_stdout)
  : device(device),
    program_name(program_name),
    kernel_file(kernel_file),
-   kernel_build_options(kernel_build_options)
+   kernel_build_options(kernel_build_options),
+   use_stdout(use_stdout)
 {
 	loaded = false;
 	program = NULL;
@@ -266,6 +271,30 @@ void OpenCLDeviceBase::OpenCLProgram::release()
 		clReleaseProgram(program);
 		program = NULL;
 	}
+}
+
+void OpenCLDeviceBase::OpenCLProgram::add_log(string msg, bool debug)
+{
+	if(!use_stdout) {
+		log += msg + "\n";
+	}
+	else if(!debug) {
+		printf("%s\n", msg.c_str());
+	}
+	else {
+		VLOG(2) << msg;
+	}
+}
+
+void OpenCLDeviceBase::OpenCLProgram::add_error(string msg)
+{
+	if(use_stdout) {
+		fprintf(stderr, "%s\n", msg.c_str());
+	}
+	if(error_msg == "") {
+		error_msg += "\n";
+	}
+	error_msg += msg;
 }
 
 void OpenCLDeviceBase::OpenCLProgram::add_kernel(ustring name)
@@ -294,12 +323,18 @@ bool OpenCLDeviceBase::OpenCLProgram::build_kernel(const string *debug_src)
 		build_log[ret_val_size] = '\0';
 		/* Skip meaningless empty output from the NVidia compiler. */
 		if(!(ret_val_size == 2 && build_log[0] == '\n')) {
-			output_msg = string(&build_log[0]);
+			add_error("OpenCL build failed: errors in console");
+			if(use_stdout) {
+				fprintf(stderr, "OpenCL kernel build output:\n%s\n", &build_log[0]);
+			}
+			else {
+				compile_output = string(&build_log[0]);
+			}
 		}
 	}
 
 	if(ciErr != CL_SUCCESS) {
-		error_msg = string("OpenCL build failed: ") + clewErrorString(ciErr);
+		add_error(string("OpenCL build failed: ") + clewErrorString(ciErr));
 		return false;
 	}
 
@@ -330,18 +365,18 @@ bool OpenCLDeviceBase::OpenCLProgram::compile_kernel(const string *debug_src)
 	                                   &ciErr);
 
 	if(ciErr != CL_SUCCESS) {
-		error_msg = string("OpenCL program creation failed: ") + clewErrorString(ciErr);
+		add_error(string("OpenCL program creation failed: ") + clewErrorString(ciErr));
 		return false;
 	}
 
 	double starttime = time_dt();
-
-	log += "Build flags: " + kernel_build_options + "\n";
+	add_log(string("Compiling OpenCL program ") + program_name.c_str(), false);
+	add_log(string("Build flags: ") + kernel_build_options, true);
 
 	if(!build_kernel(debug_src))
 		return false;
 
-	log += "Kernel compilation of " + program_name + " finished in " + string_printf("%.2lfs.\n", time_dt() - starttime);
+	add_log(string("Kernel compilation of ") + program_name + " finished in " + string_printf("%.2lfs.\n", time_dt() - starttime), false);
 
 	return true;
 }
@@ -353,7 +388,7 @@ bool OpenCLDeviceBase::OpenCLProgram::load_binary(const string& clbin,
 	vector<uint8_t> binary;
 
 	if(!path_read_binary(clbin, binary)) {
-		error_msg = "OpenCL failed to read cached binary " + clbin + ".";
+		add_error(string_printf("OpenCL failed to read cached binary %s.", clbin.c_str()));
 		return false;
 	}
 
@@ -366,7 +401,8 @@ bool OpenCLDeviceBase::OpenCLProgram::load_binary(const string& clbin,
 		&size, &bytes, &status, &ciErr);
 
 	if(status != CL_SUCCESS || ciErr != CL_SUCCESS) {
-		error_msg = "OpenCL failed create program from cached binary " + clbin + ": " + clewErrorString(status) + " " + clewErrorString(ciErr);
+		add_error(string("OpenCL failed create program from cached binary ") + clbin + ": "
+		                 + clewErrorString(status) + " " + clewErrorString(ciErr));
 		return false;
 	}
 
@@ -407,7 +443,7 @@ void OpenCLDeviceBase::OpenCLProgram::load()
 	                                     cache_locker);
 
 	if(!program) {
-		log += "OpenCL program " + program_name + " not found in cache.\n";
+		add_log(string("OpenCL program ") + program_name + " not found in cache.", true);
 
 		string basename = "cycles_kernel_" + program_name + "_" + device_md5 + "_" + OpenCLCache::get_kernel_md5();
 		basename = path_cache_get(path_join("kernels", basename));
@@ -424,10 +460,10 @@ void OpenCLDeviceBase::OpenCLProgram::load()
 		/* If binary kernel exists already, try use it. */
 		if(path_exists(clbin) && load_binary(clbin)) {
 			/* Kernel loaded from binary, nothing to do. */
-			log += "Loaded program from " + clbin + ".\n";
+			add_log(string("Loaded program from ") + clbin + ".", true);
 		}
 		else {
-			log += "Kernel file " + clbin + " either doesn't exist or failed to be loaded by driver.\n";
+			add_log(string("Kernel file ") + clbin + " either doesn't exist or failed to be loaded by driver.", true);
 
 			/* If does not exist or loading binary failed, compile kernel. */
 			if(!compile_kernel(debug_src)) {
@@ -436,7 +472,7 @@ void OpenCLDeviceBase::OpenCLProgram::load()
 
 			/* Save binary for reuse. */
 			if(!save_binary(clbin)) {
-				log += "Saving compiled OpenCL kernel to " + clbin + " failed!";
+				add_log(string("Saving compiled OpenCL kernel to ") + clbin + " failed!", true);
 			}
 		}
 
@@ -446,7 +482,7 @@ void OpenCLDeviceBase::OpenCLProgram::load()
 		                            cache_locker);
 	}
 	else {
-		log += "Found cached OpenCL program " + program_name + ".\n";
+		add_log(string("Found cached OpenCL program ") + program_name + ".", true);
 	}
 
 	for(map<ustring, cl_kernel>::iterator kernel = kernels.begin(); kernel != kernels.end(); ++kernel) {
@@ -455,7 +491,7 @@ void OpenCLDeviceBase::OpenCLProgram::load()
 		string name = "kernel_ocl_" + kernel->first.string();
 		kernel->second = clCreateKernel(program, name.c_str(), &ciErr);
 		if(device->opencl_error(ciErr)) {
-			error_msg = "Error getting kernel " + name + " from program " + program_name + ": " + clewErrorString(ciErr);
+			add_error(string("Error getting kernel ") + name + " from program " + program_name + ": " + clewErrorString(ciErr));
 			return;
 		}
 	}
@@ -465,12 +501,15 @@ void OpenCLDeviceBase::OpenCLProgram::load()
 
 void OpenCLDeviceBase::OpenCLProgram::report_error()
 {
+	/* If loaded is true, there was no error. */
 	if(loaded) return;
+	/* if use_stdout is true, the error was already reported. */
+	if(use_stdout) return;
 
 	cerr << error_msg << endl;
-	if(!output_msg.empty()) {
+	if(!compile_output.empty()) {
 		cerr << "OpenCL kernel build output for " << program_name << ":" << endl;
-		cerr << output_msg << endl;
+		cerr << compile_output << endl;
 	}
 }
 
