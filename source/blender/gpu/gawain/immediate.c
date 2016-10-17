@@ -33,7 +33,7 @@ typedef struct {
 	// current vertex
 	unsigned vertex_idx;
 	GLubyte* vertex_data;
-	unsigned short attrib_value_bits; // which attributes of current vertex have been given values?
+	uint16_t unassigned_attrib_bits; // which attributes of current vertex have not been given values?
 
 	GLuint vbo_id;
 	GLuint vao_id;
@@ -175,6 +175,8 @@ void immBegin(GLenum primitive, unsigned vertex_ct)
 
 	imm.primitive = primitive;
 	imm.vertex_ct = vertex_ct;
+	imm.vertex_idx = 0;
+	imm.unassigned_attrib_bits = imm.attrib_binding.enabled_bits;
 
 	// how many bytes do we need for this draw call?
 	const unsigned bytes_needed = vertex_buffer_size(&imm.vertex_format, vertex_ct);
@@ -245,6 +247,8 @@ Batch* immBeginBatch(GLenum prim_type, unsigned vertex_ct)
 
 	imm.primitive = prim_type;
 	imm.vertex_ct = vertex_ct;
+	imm.vertex_idx = 0;
+	imm.unassigned_attrib_bits = imm.attrib_binding.enabled_bits;
 
 	VertexBuffer* verts = VertexBuffer_create_with_format(&imm.vertex_format);
 	VertexBuffer_allocate_data(verts, vertex_ct);
@@ -403,19 +407,17 @@ void immEnd()
 	// prep for next immBegin
 	imm.primitive = PRIM_NONE;
 	imm.strict_vertex_ct = true;
-	imm.vertex_idx = 0;
-	imm.attrib_value_bits = 0;
 	}
 
 static void setAttribValueBit(unsigned attrib_id)
 	{
-	unsigned short mask = 1 << attrib_id;
+	uint16_t mask = 1 << attrib_id;
 
 #if TRUST_NO_ONE
-	assert((imm.attrib_value_bits & mask) == 0); // not already set
+	assert(imm.unassigned_attrib_bits & mask); // not already set
 #endif
 
-	imm.attrib_value_bits |= mask;
+	imm.unassigned_attrib_bits &= ~mask;
 	}
 
 
@@ -612,8 +614,7 @@ static void immEndVertex(void) // and move on to the next vertex
 
 	// have all attribs been assigned values?
 	// if not, copy value from previous vertex
-	const unsigned short all_bits = ~(0xFFFFU << imm.vertex_format.attrib_ct);
-	if (imm.attrib_value_bits != all_bits)
+	if (imm.unassigned_attrib_bits)
 		{
 #if TRUST_NO_ONE
 		assert(imm.vertex_idx > 0); // first vertex must have all attribs specified
@@ -621,8 +622,7 @@ static void immEndVertex(void) // and move on to the next vertex
 
 		for (unsigned a_idx = 0; a_idx < imm.vertex_format.attrib_ct; ++a_idx)
 			{
-			const uint16_t mask = 1 << a_idx;
-			if ((imm.attrib_value_bits & mask) == 0)
+			if ((imm.unassigned_attrib_bits >> a_idx) & 1)
 				{
 				const Attrib* a = imm.vertex_format.attribs + a_idx;
 
@@ -637,7 +637,7 @@ static void immEndVertex(void) // and move on to the next vertex
 
 	imm.vertex_idx++;
 	imm.vertex_data += imm.vertex_format.stride;
-	imm.attrib_value_bits = 0;
+	imm.unassigned_attrib_bits = imm.attrib_binding.enabled_bits;
 	}
 
 void immVertex2f(unsigned attrib_id, float x, float y)
