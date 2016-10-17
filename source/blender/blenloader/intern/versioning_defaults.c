@@ -147,6 +147,7 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 			ParticleEditSettings *pset = &ts->particle;
 			for (int a = 0; a < PE_TOT_BRUSH; a++) {
 				pset->brush[a].strength = 0.5f;
+				pset->brush[a].count = 10;
 			}
 			pset->brush[PE_BRUSH_CUT].strength = 1.0f;
 		}

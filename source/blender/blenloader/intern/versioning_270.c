@@ -1392,4 +1392,18 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
+
+	{
+		for (Scene *scene = main->scene.first; scene != NULL; scene = scene->id.next) {
+			if (scene->toolsettings != NULL) {
+				ToolSettings *ts = scene->toolsettings;
+				ParticleEditSettings *pset = &ts->particle;
+				for (int a = 0; a < PE_TOT_BRUSH; a++) {
+					if (pset->brush[a].count == 0) {
+						pset->brush[a].count = 10;
+					}
+				}
+			}
+		}
+	}
 }
