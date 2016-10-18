@@ -1713,6 +1713,8 @@ void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged
 				if (id->newid) {
 					bool is_local = false, is_lib = false;
 
+					BKE_library_ID_test_usages(bmain, id, &is_local, &is_lib);
+
 					/* Attempt to re-link copied proxy objects. This allows appending of an entire scene
 					 * from another blend file into this one, even when that blend file contains proxified
 					 * armatures that have local references. Since the proxified object needs to be linked
@@ -1752,7 +1754,6 @@ void BKE_library_make_local(Main *bmain, const Library *lib, const bool untagged
 						id_us_ensure_real(id->newid);
 					}
 
-					BKE_library_ID_test_usages(bmain, id, &is_local, &is_lib);
 					if (!is_local && !is_lib) {
 						BKE_libblock_free(bmain, id);
 						do_loop = true;
