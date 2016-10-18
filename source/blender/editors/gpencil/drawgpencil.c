@@ -1018,6 +1018,10 @@ static void gp_draw_strokes(
 		/* calculate thickness */
 		sthickness = gps->thickness + lthick;
 
+		if (sthickness <= 0) {
+			continue;
+		}
+
 		/* check which stroke-drawer to use */
 		if (dflag & GP_DRAWDATA_ONLY3D) {
 			const int no_xray = (dflag & GP_DRAWDATA_NO_XRAY);
