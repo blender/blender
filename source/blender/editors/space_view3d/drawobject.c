@@ -633,92 +633,104 @@ void drawaxes(const float viewmat_local[4][4], float size, char drawtype)
 static void draw_empty_image(Object *ob, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Image *ima = ob->data;
-	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, ob->iuser, NULL);
 
-	if (ibuf && (ibuf->rect == NULL) && (ibuf->rect_float != NULL)) {
-		IMB_rect_from_float(ibuf);
-	}
+	const float ob_alpha = ob->col[3];
+	float width, height;
 
-	int ima_x, ima_y;
+	const int texUnit = GL_TEXTURE0;
+	int bindcode = 0;
 
-	/* Get the buffer dimensions so we can fallback to fake ones */
-	if (ibuf && ibuf->rect) {
-		ima_x = ibuf->x;
-		ima_y = ibuf->y;
+	if (ima) {
+		if (ob_alpha > 0.0f) {
+			glActiveTexture(texUnit);
+			bindcode = GPU_verify_image(ima, ob->iuser, GL_TEXTURE_2D, 0, false, false, false);
+			/* don't bother drawing the image if alpha = 0 */
+		}
+
+		int w, h;
+		BKE_image_get_size(ima, ob->iuser, &w, &h);
+		width = w;
+		height = h;
 	}
 	else {
-		ima_x = 1;
-		ima_y = 1;
+		/* if no image, make it a 1x1 empty square, honor scale & offset */
+		width = height = 1.0f;
 	}
 
-	float sca_x = 1.0f;
-	float sca_y = 1.0f;
+	const float aspect = height / width;
 
-	/* Get the image aspect even if the buffer is invalid */
-	if (ima) {
-		if (ima->aspx > ima->aspy) {
-			sca_y = ima->aspy / ima->aspx;
+	float left = ob->ima_ofs[0];
+	float right = ob->ima_ofs[0] + ob->empty_drawsize;
+	float top = ob->ima_ofs[1] + ob->empty_drawsize * aspect;
+	float bottom = ob->ima_ofs[1];
+
+	bool use_blend = false;
+
+	if (bindcode) {
+		use_blend = ob_alpha < 1.0f || BKE_image_has_alpha(ima);
+
+		if (use_blend) {
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
-		else if (ima->aspx < ima->aspy) {
-			sca_x = ima->aspx / ima->aspy;
-		}
+
+		VertexFormat *format = immVertexFormat();
+		unsigned pos = add_attrib(format, "position", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned texCoord = add_attrib(format, "texcoord", GL_FLOAT, 2, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_2D_TEXTURE_2D); /* TODO: rename GPU_SHADER_3D_IMAGE_2D_MODULATE_ALPHA */
+		immUniform1f("alpha", ob_alpha);
+		immUniform1i("texture_map", texUnit); /* TODO: rename "image" */
+
+		immBegin(GL_TRIANGLE_FAN, 4);
+		immAttrib2f(texCoord, 0.0f, 0.0f);
+		immVertex2f(pos, left, bottom);
+
+		immAttrib2f(texCoord, 1.0f, 0.0f);
+		immVertex2f(pos, right, bottom);
+
+		immAttrib2f(texCoord, 1.0f, 1.0f);
+		immVertex2f(pos, right, top);
+
+		immAttrib2f(texCoord, 0.0f, 1.0f);
+		immVertex2f(pos, left, top);
+		immEnd();
+
+		immUnbindProgram();
+
+		glBindTexture(GL_TEXTURE_2D, 0); /* necessary? */
 	}
 
-	/* Calculate the scale center based on object's origin */
-	float ofs_x = ob->ima_ofs[0] * ima_x;
-	float ofs_y = ob->ima_ofs[1] * ima_y;
+	/* Draw the image outline */
+	glLineWidth(1.5f);
+	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-
-	/* Calculate Image scale */
-	float scale = ob->empty_drawsize / max_ff((float)ima_x * sca_x, (float)ima_y * sca_y);
-
-	/* Set the object scale */
-	glScalef(scale * sca_x, scale * sca_y, 1.0f);
-
-	if (ibuf && ibuf->rect) {
-		const bool use_clip = (U.glalphaclip != 1.0f);
-		int zoomfilter = (U.gameflags & USER_DISABLE_MIPMAP) ? GL_NEAREST : GL_LINEAR;
-		/* Setup GL params */
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		if (use_clip) {
-			glEnable(GL_ALPHA_TEST);
-			glAlphaFunc(GL_GREATER, U.glalphaclip);
+	const bool picking = dflag & DRAW_CONSTCOLOR;
+	if (picking) {
+		/* TODO: deal with picking separately, use this function just to draw */
+		immBindBuiltinProgram(GPU_SHADER_3D_DEPTH_ONLY);
+		if (use_blend) {
+			glDisable(GL_BLEND);
 		}
 
-		/* Use the object color and alpha */
-		glColor4fv(ob->col);
+		imm_draw_line_box(pos, left, bottom, right, top);
+	}
+	else {
+		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+		immUniformColor3ubv(ob_wire_col);
+		glEnable(GL_LINE_SMOOTH);
 
-		/* Draw the Image on the screen */
-		glaDrawPixelsTex(ofs_x, ofs_y, ima_x, ima_y, GL_RGBA, GL_UNSIGNED_BYTE, zoomfilter, ibuf->rect);
+		if (!use_blend) {
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		}
 
+		imm_draw_line_box(pos, left, bottom, right, top);
+
+		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
-
-		if (use_clip) {
-			glDisable(GL_ALPHA_TEST);
-			glAlphaFunc(GL_ALWAYS, 0.0f);
-		}
 	}
 
-	if ((dflag & DRAW_CONSTCOLOR) == 0) {
-		glColor3ubv(ob_wire_col);
-	}
-
-	/* Calculate the outline vertex positions */
-	glBegin(GL_LINE_LOOP);
-	glVertex2f(ofs_x, ofs_y);
-	glVertex2f(ofs_x + ima_x, ofs_y);
-	glVertex2f(ofs_x + ima_x, ofs_y + ima_y);
-	glVertex2f(ofs_x, ofs_y + ima_y);
-	glEnd();
-
-	/* Reset GL settings */
-	glPopMatrix();
-
-	BKE_image_release_ibuf(ima, ibuf, NULL);
+	immUnbindProgram();
 }
 
 static void circball_array_fill(float verts[CIRCLE_RESOL][3], const float cent[3], float rad, const float tmat[4][4])
