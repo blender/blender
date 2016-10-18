@@ -629,10 +629,10 @@ static void gp_draw_stroke_point(
 	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
 
 	if (sflag & GP_STROKE_3DSPACE) {
-		immBindBuiltinProgram(GPU_SHADER_3D_POINT_FIXED_SIZE_UNIFORM_COLOR);
+		immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_SMOOTH);
 	}
 	else {
-		immBindBuiltinProgram(GPU_SHADER_2D_POINT_FIXED_SIZE_UNIFORM_COLOR);
+		immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_SMOOTH);
 
 		/* get 2D coordinates of point */
 		float co[3] = { 0.0f };
@@ -641,9 +641,8 @@ static void gp_draw_stroke_point(
 	}
 
 	gp_set_point_uniform_color(pt, ink);
-
 	/* set point thickness (since there's only one of these) */
-	glPointSize((float)(thickness + 2) * pt->pressure);
+	immUniform1f("size", (float)(thickness + 2) * pt->pressure);
 
 	immBegin(GL_POINTS, 1);
 	immVertex3fv(pos, fpt);
@@ -999,6 +998,8 @@ static void gp_draw_strokes(
 	short sthickness;
 	float ink[4];
 
+	GPU_enable_program_point_size();
+
 	for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
 		/* check if stroke can be drawn */
 		if (gp_can_draw_stroke(gps, dflag) == false) {
@@ -1161,6 +1162,8 @@ static void gp_draw_strokes(
 			}
 		}
 	}
+
+	GPU_disable_program_point_size();
 }
 
 /* Draw selected verts for strokes being edited */
