@@ -136,7 +136,7 @@ static void attach_stabilization_baseline_data(
         MovieTrackingTrack *track,
         TrackStabilizationBase *private_data)
 {
-	return BLI_ghash_insert(ctx->private_track_data, track, private_data);
+	BLI_ghash_insert(ctx->private_track_data, track, private_data);
 }
 
 static void discard_stabilization_baseline_data(void *val)

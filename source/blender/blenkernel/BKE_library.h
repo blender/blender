@@ -64,7 +64,7 @@ struct ID *BKE_libblock_find_name(const short type, const char *name) ATTR_WARN_
 
 /* library_remap.c (keep here since they're general functions) */
 void  BKE_libblock_free(struct Main *bmain, void *idv) ATTR_NONNULL();
-void  BKE_libblock_free_ex(struct Main *bmain, void *idv, bool do_id_user) ATTR_NONNULL();
+void  BKE_libblock_free_ex(struct Main *bmain, void *idv, const bool do_id_user) ATTR_NONNULL();
 void  BKE_libblock_free_us(struct Main *bmain, void *idv) ATTR_NONNULL();
 void  BKE_libblock_free_data(struct Main *bmain, struct ID *id) ATTR_NONNULL();
 void  BKE_libblock_delete(struct Main *bmain, void *idv) ATTR_NONNULL();

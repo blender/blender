@@ -55,7 +55,7 @@ void BKE_cachefile_reload(const struct Main *bmain, struct CacheFile *cache_file
 
 void BKE_cachefile_ensure_handle(const struct Main *bmain, struct CacheFile *cache_file);
 
-void BKE_cachefile_update_frame(struct Main *bmain, struct Scene *scene, float ctime, const float fps);
+void BKE_cachefile_update_frame(struct Main *bmain, struct Scene *scene,const float ctime, const float fps);
 
 bool BKE_cachefile_filepath_get(
         const struct Main *bmain, const struct CacheFile *cache_file, float frame,
