@@ -447,16 +447,16 @@ void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)
 	}
 
 	VertexFormat *format = immVertexFormat();
-	unsigned texcoord = add_attrib(format, "texcoord", GL_FLOAT, 2, KEEP_FLOAT);
-	unsigned pos = add_attrib(format, "position", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned texcoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
-	glEnable(triple->target);
-	immBindBuiltinProgram((triple->target == GL_TEXTURE_2D) ? GPU_SHADER_2D_TEXTURE_2D : GPU_SHADER_2D_TEXTURE_RECT);
-
+	const int activeTex = GL_TEXTURE0;
+	glActiveTexture(activeTex);
 	glBindTexture(triple->target, triple->bind);
 
+	immBindBuiltinProgram((triple->target == GL_TEXTURE_2D) ? GPU_SHADER_3D_IMAGE_MODULATE_ALPHA : GPU_SHADER_3D_IMAGE_RECT_MODULATE_ALPHA);
 	immUniform1f("alpha", alpha);
-	immUniform1i("texture_map", 0);
+	immUniform1i("image", activeTex);
 
 	immBegin(GL_QUADS, 4);
 
@@ -476,7 +476,6 @@ void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)
 	immUnbindProgram();
 
 	glBindTexture(triple->target, 0);
-	glDisable(triple->target);
 }
 
 static void wm_triple_copy_textures(wmWindow *win, wmDrawTriple *triple)

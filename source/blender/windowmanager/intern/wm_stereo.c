@@ -173,6 +173,13 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 	int soffx;
 	bool cross_eyed = (win->stereo3d_format->flag & S3D_SIDEBYSIDE_CROSSEYED) != 0;
 
+	const int activeTex = GL_TEXTURE0;
+	glActiveTexture(activeTex);
+
+	VertexFormat *format = immVertexFormat();
+	unsigned texcoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
 	for (view = 0; view < 2; view ++) {
 		drawdata = BLI_findlink(&win->drawdata, (view * 2) + 1);
 		triple = drawdata->triple;
@@ -204,16 +211,12 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 			halfy /= triple->y;
 		}
 
-		VertexFormat *format = immVertexFormat();
-		unsigned texcoord = add_attrib(format, "texcoord", GL_FLOAT, 2, KEEP_FLOAT);
-		unsigned pos = add_attrib(format, "position", GL_FLOAT, 2, KEEP_FLOAT);
-
-		glEnable(triple->target);
-		immBindBuiltinProgram((triple->target == GL_TEXTURE_2D) ? GPU_SHADER_2D_TEXTURE_2D : GPU_SHADER_2D_TEXTURE_RECT);
+		/* TODO: if target is always same for both eyes, bind program & set uniform before loop */
+		immBindBuiltinProgram((triple->target == GL_TEXTURE_2D) ? GPU_SHADER_3D_IMAGE_MODULATE_ALPHA : GPU_SHADER_3D_IMAGE_RECT_MODULATE_ALPHA);
 
 		glBindTexture(triple->target, triple->bind);
 
-		immUniform1i("texture_map", 0);
+		immUniform1i("image", activeTex);
 
 		immBegin(GL_QUADS, 4);
 
@@ -230,10 +233,10 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 		immVertex2f(pos, soffx, sizey);
 
 		immEnd();
-		immUnbindProgram();
 
+		/* TODO: if target is always same for both eyes, unbind program & texture target after loop */
 		glBindTexture(triple->target, 0);
-		glDisable(triple->target);
+		immUnbindProgram();
 	}
 }
 
@@ -244,6 +247,13 @@ static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 	float halfx, halfy, ratiox, ratioy;
 	int view;
 	int soffy;
+
+	const int activeTex = GL_TEXTURE0;
+	glActiveTexture(activeTex);
+
+	VertexFormat *format = immVertexFormat();
+	unsigned texcoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 	for (view = 0; view < 2; view ++) {
 		drawdata = BLI_findlink(&win->drawdata, (view * 2) + 1);
@@ -273,17 +283,13 @@ static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 			halfy /= triple->y;
 		}
 
-		VertexFormat *format = immVertexFormat();
-		unsigned texcoord = add_attrib(format, "texcoord", GL_FLOAT, 2, KEEP_FLOAT);
-		unsigned pos = add_attrib(format, "position", GL_FLOAT, 2, KEEP_FLOAT);
-
-		glEnable(triple->target);
-		immBindBuiltinProgram((triple->target == GL_TEXTURE_2D) ? GPU_SHADER_2D_TEXTURE_2D : GPU_SHADER_2D_TEXTURE_RECT);
+		/* TODO: if target is always same for both eyes, bind program & set uniforms before loop */
+		immBindBuiltinProgram((triple->target == GL_TEXTURE_2D) ? GPU_SHADER_3D_IMAGE_MODULATE_ALPHA : GPU_SHADER_3D_IMAGE_RECT_MODULATE_ALPHA);
 
 		glBindTexture(triple->target, triple->bind);
 
 		immUniform1f("alpha", 1.0f);
-		immUniform1i("texture_map", 0);
+		immUniform1i("image", activeTex);
 
 		immBegin(GL_QUADS, 4);
 
@@ -300,10 +306,10 @@ static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 		immVertex2f(pos, 0.0f, soffy + (sizey * 0.5f));
 
 		immEnd();
-		immUnbindProgram();
 
+		/* TODO: if target is always same for both eyes, unbind program & texture target after loop */
+		immUnbindProgram();
 		glBindTexture(triple->target, 0);
-		glDisable(triple->target);
 	}
 }
 

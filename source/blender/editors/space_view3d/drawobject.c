@@ -675,11 +675,11 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 		}
 
 		VertexFormat *format = immVertexFormat();
-		unsigned pos = add_attrib(format, "position", GL_FLOAT, 2, KEEP_FLOAT);
-		unsigned texCoord = add_attrib(format, "texcoord", GL_FLOAT, 2, KEEP_FLOAT);
-		immBindBuiltinProgram(GPU_SHADER_2D_TEXTURE_2D); /* TODO: rename GPU_SHADER_3D_IMAGE_2D_MODULATE_ALPHA */
+		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned texCoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA);
 		immUniform1f("alpha", ob_alpha);
-		immUniform1i("texture_map", texUnit); /* TODO: rename "image" */
+		immUniform1i("image", texUnit);
 
 		immBegin(GL_TRIANGLE_FAN, 4);
 		immAttrib2f(texCoord, 0.0f, 0.0f);
