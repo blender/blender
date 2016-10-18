@@ -53,10 +53,6 @@
 
 #include "UI_interface.h"
 
-#ifndef GL_CLAMP_TO_EDGE
-#define GL_CLAMP_TO_EDGE                        0x812F
-#endif
-
 
 void fdrawline(float x1, float y1, float x2, float y2)
 {
@@ -157,6 +153,7 @@ void fdrawXORcirc(float xofs, float yofs, float rad)
 
 void glutil_draw_filled_arc(float start, float angle, float radius, int nsegments)
 {
+	/* DEPRECATED */
 	int i;
 	
 	glBegin(GL_TRIANGLE_FAN);
@@ -172,6 +169,7 @@ void glutil_draw_filled_arc(float start, float angle, float radius, int nsegment
 
 void glutil_draw_lined_arc(float start, float angle, float radius, int nsegments)
 {
+	/* DEPRECATED */
 	int i;
 	
 	glBegin(GL_LINE_STRIP);
