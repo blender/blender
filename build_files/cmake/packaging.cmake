@@ -97,6 +97,8 @@ if(WIN32)
 endif()
 
 set(CPACK_PACKAGE_EXECUTABLES "blender" "blender")
+set(CPACK_CREATE_DESKTOP_LINKS "blender" "blender")
+
 include(CPack)
 
 # Target for build_archive.py script, to automatically pass along
