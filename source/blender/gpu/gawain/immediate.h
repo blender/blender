@@ -83,6 +83,7 @@ void immUniform4fv(const char* name, const float data[4]);
 // the rgb functions have implicit alpha = 1.0
 void immUniformColor4f(float r, float g, float b, float a);
 void immUniformColor4fv(const float rgba[4]);
+void immUniformColor3f(float r, float g, float b);
 void immUniformColor3fv(const float rgb[3]);
 void immUniformColor3fvAlpha(const float rgb[3], float a);
 

@@ -736,6 +736,11 @@ void immUniformColor4fv(const float rgba[4])
 	immUniform4fv("color", rgba);
 	}
 
+void immUniformColor3f(float r, float g, float b)
+	{
+	immUniform4f("color", r, g, b, 1.0f);
+	}
+
 void immUniformColor3fv(const float rgb[3])
 	{
 	immUniform4f("color", rgb[0], rgb[1], rgb[2], 1.0f);
