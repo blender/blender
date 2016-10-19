@@ -210,10 +210,11 @@ typedef struct drawBMSelect_userData {
 
 static void draw_bounding_volume(Object *ob, char type);
 
-static void drawcube_size(float size);
-static void drawcircle_size(float size);
-static void draw_empty_sphere(float size);
-static void draw_empty_cone(float size);
+static void drawcube_size(float size, unsigned pos);
+static void drawcircle_size(float size, unsigned pos);
+static void draw_empty_sphere(float size, unsigned pos);
+static void draw_empty_cone(float size, unsigned pos);
+
 static void draw_box(const float vec[8][3], bool solid);
 
 static void ob_wire_color_blend_theme_id(const unsigned char ob_wire_col[4], const int theme_id, float fac)
@@ -414,7 +415,7 @@ static const float cosval[CIRCLE_RESOL] = {
  * \param viewmat_local_unit is typically the 'rv3d->viewmatob'
  * copied into a 3x3 matrix and normalized.
  */
-static void draw_xyz_wire(const float viewmat_local_unit[3][3], const float c[3], float size, int axis)
+static void draw_xyz_wire(const float viewmat_local_unit[3][3], const float c[3], float size, int axis, unsigned pos)
 {
 	int line_type;
 	float buffer[4][3];
@@ -501,18 +502,25 @@ static void draw_xyz_wire(const float viewmat_local_unit[3][3], const float c[3]
 			return;
 	}
 
+	immBegin(line_type, n);
 	for (int i = 0; i < n; i++) {
 		mul_transposed_m3_v3((float (*)[3])viewmat_local_unit, buffer[i]);
 		add_v3_v3(buffer[i], c);
+		immVertex3fv(pos, buffer[i]);
 	}
+	immEnd();
 
+	/* TODO: recode this function for clarity once we're not in a hurry to modernize GL usage */
+
+#if 0
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, 0, buffer);
 	glDrawArrays(line_type, 0, n);
 	glDisableClientState(GL_VERTEX_ARRAY);
+#endif
 }
 
-void drawaxes(const float viewmat_local[4][4], float size, char drawtype)
+void drawaxes(const float viewmat_local[4][4], float size, char drawtype, const unsigned char color[4])
 {
 	int axis;
 	float v1[3] = {0.0, 0.0, 0.0};
@@ -521,34 +529,40 @@ void drawaxes(const float viewmat_local[4][4], float size, char drawtype)
 
 	glLineWidth(1);
 
+	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	if (color) {
+		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+		immUniformColor4ubv(color);
+	}
+	else {
+		immBindBuiltinProgram(GPU_SHADER_3D_DEPTH_ONLY);
+	}
+
 	switch (drawtype) {
-
 		case OB_PLAINAXES:
+			immBegin(GL_LINES, 6);
 			for (axis = 0; axis < 3; axis++) {
-				glBegin(GL_LINES);
-
 				v1[axis] = size;
 				v2[axis] = -size;
-				glVertex3fv(v1);
-				glVertex3fv(v2);
+				immVertex3fv(pos, v1);
+				immVertex3fv(pos, v2);
 
 				/* reset v1 & v2 to zero */
 				v1[axis] = v2[axis] = 0.0f;
-
-				glEnd();
 			}
+			immEnd();
 			break;
-		case OB_SINGLE_ARROW:
 
-			glBegin(GL_LINES);
+		case OB_SINGLE_ARROW:
+			immBegin(GL_LINES, 2);
 			/* in positive z direction only */
 			v1[2] = size;
-			glVertex3fv(v1);
-			glVertex3fv(v2);
-			glEnd();
+			immVertex3fv(pos, v1);
+			immVertex3fv(pos, v2);
+			immEnd();
 
 			/* square pyramid */
-			glBegin(GL_TRIANGLES);
+			immBegin(GL_TRIANGLES, 12);
 
 			v2[0] = size * 0.035f; v2[1] = size * 0.035f;
 			v3[0] = size * -0.035f; v3[1] = size * 0.035f;
@@ -564,28 +578,27 @@ void drawaxes(const float viewmat_local[4][4], float size, char drawtype)
 					v3[0] = -v3[0];
 				}
 
-				glVertex3fv(v1);
-				glVertex3fv(v2);
-				glVertex3fv(v3);
-
+				immVertex3fv(pos, v1);
+				immVertex3fv(pos, v2);
+				immVertex3fv(pos, v3);
 			}
-			glEnd();
-
+			immEnd();
 			break;
+
 		case OB_CUBE:
-			drawcube_size(size);
+			drawcube_size(size, pos);
 			break;
 
 		case OB_CIRCLE:
-			drawcircle_size(size);
+			drawcircle_size(size, pos);
 			break;
 
 		case OB_EMPTY_SPHERE:
-			draw_empty_sphere(size);
+			draw_empty_sphere(size, pos);
 			break;
 
 		case OB_EMPTY_CONE:
-			draw_empty_cone(size);
+			draw_empty_cone(size, pos);
 			break;
 
 		case OB_ARROWS:
@@ -599,34 +612,34 @@ void drawaxes(const float viewmat_local[4][4], float size, char drawtype)
 			for (axis = 0; axis < 3; axis++) {
 				const int arrow_axis = (axis == 0) ? 1 : 0;
 
-				glBegin(GL_LINES);
+				immBegin(GL_LINES, 6);
 
 				v2[axis] = size;
-				glVertex3fv(v1);
-				glVertex3fv(v2);
-				
+				immVertex3fv(pos, v1);
+				immVertex3fv(pos, v2);
+
 				v1[axis] = size * 0.85f;
 				v1[arrow_axis] = -size * 0.08f;
-				glVertex3fv(v1);
-				glVertex3fv(v2);
-				
-				v1[arrow_axis] = size * 0.08f;
-				glVertex3fv(v1);
-				glVertex3fv(v2);
+				immVertex3fv(pos, v1);
+				immVertex3fv(pos, v2);
 
-				glEnd();
-				
+				v1[arrow_axis] = size * 0.08f;
+				immVertex3fv(pos, v1);
+				immVertex3fv(pos, v2);
+
+				immEnd();
+
 				v2[axis] += size * 0.125f;
 
-				draw_xyz_wire(viewmat_local_unit, v2, size, axis);
-
+				draw_xyz_wire(viewmat_local_unit, v2, size, axis, pos);
 
 				/* reset v1 & v2 to zero */
 				v1[arrow_axis] = v1[axis] = v2[axis] = 0.0f;
 			}
-			break;
 		}
 	}
+
+	immUnbindProgram();
 }
 
 
@@ -759,6 +772,19 @@ void drawcircball(int mode, const float cent[3], float rad, const float tmat[4][
 	glVertexPointer(3, GL_FLOAT, 0, verts);
 	glDrawArrays(mode, 0, CIRCLE_RESOL);
 	glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], unsigned pos)
+{
+	float verts[CIRCLE_RESOL][3];
+
+	circball_array_fill(verts, cent, rad, tmat);
+
+	immBegin(GL_LINE_LOOP, CIRCLE_RESOL);
+	for (int i = 0; i < CIRCLE_RESOL; ++i) {
+		immVertex3fv(pos, verts[i]);
+	}
+	immEnd();
 }
 
 /* circle for object centers, special_color is for library or ob users */
@@ -978,9 +1004,9 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, flo
 /* draws a cube given the scaling of the cube, assuming that
  * all required matrices have been set (used for drawing empties)
  */
-static void drawcube_size(float size)
+static void drawcube_size(float size, unsigned pos)
 {
-	const GLfloat pos[8][3] = {
+	const GLfloat verts[8][3] = {
 		{-size, -size, -size},
 		{-size, -size,  size},
 		{-size,  size, -size},
@@ -993,10 +1019,18 @@ static void drawcube_size(float size)
 
 	const GLubyte indices[24] = {0,1,1,3,3,2,2,0,0,4,4,5,5,7,7,6,6,4,1,5,3,7,2,6};
 
+#if 0
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 0, pos);
+	glVertexPointer(3, GL_FLOAT, 0, verts);
 	glDrawRangeElements(GL_LINES, 0, 7, 24, GL_UNSIGNED_BYTE, indices);
 	glDisableClientState(GL_VERTEX_ARRAY);
+#else
+	immBegin(GL_LINES, 24);
+	for (int i = 0; i < 24; ++i) {
+		immVertex3fv(pos, verts[indices[i]]);
+	}
+	immEnd();
+#endif
 }
 
 static void drawshadbuflimits(Lamp *la, float mat[4][4])
@@ -1685,16 +1719,19 @@ static void draw_viewport_object_reconstruction(
 
 		const int v3d_drawtype = view3d_effective_drawtype(v3d);
 		if (v3d_drawtype == OB_WIRE) {
+			unsigned char color[4];
+			const unsigned char *color_ptr = NULL;
 			if ((dflag & DRAW_CONSTCOLOR) == 0) {
 				if (selected && (track->flag & TRACK_CUSTOMCOLOR) == 0) {
-					glColor3ubv(ob_wire_col);
+					color_ptr = ob_wire_col;
 				}
 				else {
-					glColor3fv(track->color);
+					rgba_float_to_uchar(color, track->color);
+					color_ptr = color;
 				}
 			}
 
-			drawaxes(rv3d->viewmatob, 0.05f, v3d->bundle_drawtype);
+			drawaxes(rv3d->viewmatob, 0.05f, v3d->bundle_drawtype, color_ptr);
 		}
 		else if (v3d_drawtype > OB_WIRE) {
 			if (v3d->bundle_drawtype == OB_EMPTY_SPHERE) {
@@ -1720,17 +1757,21 @@ static void draw_viewport_object_reconstruction(
 				draw_bundle_sphere();
 			}
 			else {
+				unsigned char color[4];
+				const unsigned char *color_ptr = NULL;
 				if ((dflag & DRAW_CONSTCOLOR) == 0) {
 					if (selected) {
-						glColor3ubv(ob_wire_col);
+						color_ptr = ob_wire_col;
 					}
 					else {
-						if (track->flag & TRACK_CUSTOMCOLOR) glColor3fv(track->color);
-						else UI_ThemeColor(TH_WIRE);
+						if (track->flag & TRACK_CUSTOMCOLOR) rgba_float_to_uchar(color, track->color);
+						else UI_GetThemeColor4ubv(TH_WIRE, color);
+
+						color_ptr = color;
 					}
 				}
 
-				drawaxes(rv3d->viewmatob, 0.05f, v3d->bundle_drawtype);
+				drawaxes(rv3d->viewmatob, 0.05f, v3d->bundle_drawtype, color_ptr);
 			}
 		}
 
@@ -5538,7 +5579,7 @@ static void draw_editfont(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *b
 }
 
 /* draw a sphere for use as an empty drawtype */
-static void draw_empty_sphere(float size)
+static void draw_empty_sphere(float size, unsigned pos)
 {
 #define NSEGMENTS 16
 	/* a single ring of vertices */
@@ -5548,24 +5589,24 @@ static void draw_empty_sphere(float size)
 		p[i][0] = size * cosf(angle);
 		p[i][1] = size * sinf(angle);
 	}
-	
-	glBegin(GL_LINE_LOOP);
+
+	immBegin(GL_LINE_LOOP, NSEGMENTS);
 	for (int i = 0; i < NSEGMENTS; ++i)
-		glVertex3f(p[i][0], p[i][1], 0.0f);
-	glEnd();
-	glBegin(GL_LINE_LOOP);
+		immVertex3f(pos, p[i][0], p[i][1], 0.0f);
+	immEnd();
+	immBegin(GL_LINE_LOOP, NSEGMENTS);
 	for (int i = 0; i < NSEGMENTS; ++i)
-		glVertex3f(p[i][0], 0.0f, p[i][1]);
-	glEnd();
-	glBegin(GL_LINE_LOOP);
+		immVertex3f(pos, p[i][0], 0.0f, p[i][1]);
+	immEnd();
+	immBegin(GL_LINE_LOOP, NSEGMENTS);
 	for (int i = 0; i < NSEGMENTS; ++i)
-		glVertex3f(0.0f, p[i][0], p[i][1]);
-	glEnd();
+		immVertex3f(pos, 0.0f, p[i][0], p[i][1]);
+	immEnd();
 #undef NSEGMENTS
 }
 
 /* draw a cone for use as an empty drawtype */
-static void draw_empty_cone(float size)
+static void draw_empty_cone(float size, unsigned pos)
 {
 #define NSEGMENTS 8
 	/* a single ring of vertices */
@@ -5577,18 +5618,18 @@ static void draw_empty_cone(float size)
 	}
 
 	/* cone sides */
-	glBegin(GL_LINES);
+	immBegin(GL_LINES, NSEGMENTS * 2);
 	for (int i = 0; i < NSEGMENTS; ++i) {
-		glVertex3f(0.0f, 2.0f * size, 0.0f);
-		glVertex3f(p[i][0], 0.0f, p[i][1]);
+		immVertex3f(pos, 0.0f, 2.0f * size, 0.0f);
+		immVertex3f(pos, p[i][0], 0.0f, p[i][1]);
 	}
-	glEnd();
+	immEnd();
 
 	/* end ring */
-	glBegin(GL_LINE_LOOP);
+	immBegin(GL_LINE_LOOP, NSEGMENTS);
 	for (int i = 0; i < NSEGMENTS; ++i)
-		glVertex3f(p[i][0], 0.0f, p[i][1]);
-	glEnd();
+		immVertex3f(pos, p[i][0], 0.0f, p[i][1]);
+	immEnd();
 #undef NSEGMENTS
 }
 
@@ -5660,20 +5701,19 @@ static void drawspiral(const float cent[3], float rad, float tmat[4][4], int sta
 
 /* draws a circle on x-z plane given the scaling of the circle, assuming that
  * all required matrices have been set (used for drawing empties) */
-static void drawcircle_size(float size)
+static void drawcircle_size(float size, unsigned pos)
 {
-	glBegin(GL_LINE_LOOP);
+	immBegin(GL_LINE_LOOP, CIRCLE_RESOL);
 
 	/* coordinates are: cos(degrees * 11.25) = x, sin(degrees * 11.25) = y, 0.0f = z */
 	for (short degrees = 0; degrees < CIRCLE_RESOL; degrees++) {
 		float x = cosval[degrees];
 		float y = sinval[degrees];
-		
-		glVertex3f(x * size, 0.0f, y * size);
-	}
-	
-	glEnd();
 
+		immVertex3f(pos, x * size, 0.0f, y * size);
+	}
+
+	immEnd();
 }
 
 /* needs fixing if non-identity matrix used */
@@ -5700,6 +5740,29 @@ static void drawtube(const float vec[3], float radius, float height, float tmat[
 }
 
 /* needs fixing if non-identity matrix used */
+static void imm_drawtube(const float vec[3], float radius, float height, float tmat[4][4], unsigned pos)
+{
+	float cur[3];
+	imm_drawcircball(vec, radius, tmat, pos);
+
+	copy_v3_v3(cur, vec);
+	cur[2] += height;
+
+	imm_drawcircball(cur, radius, tmat, pos);
+
+	immBegin(GL_LINES, 8);
+	immVertex3f(pos, vec[0] + radius, vec[1], vec[2]);
+	immVertex3f(pos, cur[0] + radius, cur[1], cur[2]);
+	immVertex3f(pos, vec[0] - radius, vec[1], vec[2]);
+	immVertex3f(pos, cur[0] - radius, cur[1], cur[2]);
+	immVertex3f(pos, vec[0], vec[1] + radius, vec[2]);
+	immVertex3f(pos, cur[0], cur[1] + radius, cur[2]);
+	immVertex3f(pos, vec[0], vec[1] - radius, vec[2]);
+	immVertex3f(pos, cur[0], cur[1] - radius, cur[2]);
+	immEnd();
+}
+
+/* needs fixing if non-identity matrix used */
 static void drawcone(const float vec[3], float radius, float height, float tmat[4][4])
 {
 	float cur[3];
@@ -5715,10 +5778,33 @@ static void drawcone(const float vec[3], float radius, float height, float tmat[
 	glVertex3f(vec[0], vec[1], vec[2]);
 	glVertex3f(cur[0] - radius, cur[1], cur[2]);
 	glVertex3f(vec[0], vec[1], vec[2]);
+
 	glVertex3f(cur[0], cur[1] + radius, cur[2]);
 	glVertex3f(vec[0], vec[1], vec[2]);
 	glVertex3f(cur[0], cur[1] - radius, cur[2]);
 	glEnd();
+}
+
+/* needs fixing if non-identity matrix used */
+static void imm_drawcone(const float vec[3], float radius, float height, float tmat[4][4], unsigned pos)
+{
+	float cur[3];
+
+	copy_v3_v3(cur, vec);
+	cur[2] += height;
+
+	imm_drawcircball(cur, radius, tmat, pos);
+
+	immBegin(GL_LINES, 8);
+	immVertex3f(pos, vec[0], vec[1], vec[2]);
+	immVertex3f(pos, cur[0] + radius, cur[1], cur[2]);
+	immVertex3f(pos, vec[0], vec[1], vec[2]);
+	immVertex3f(pos, cur[0] - radius, cur[1], cur[2]);
+	immVertex3f(pos, vec[0], vec[1], vec[2]);
+	immVertex3f(pos, cur[0], cur[1] + radius, cur[2]);
+	immVertex3f(pos, vec[0], vec[1], vec[2]);
+	immVertex3f(pos, cur[0], cur[1] - radius, cur[2]);
+	immEnd();
 }
 
 /* return true if nothing was drawn */
@@ -6648,7 +6734,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 						draw_empty_image(ob, dflag, ob_wire_col);
 					}
 					else {
-						drawaxes(rv3d->viewmatob, ob->empty_drawsize, ob->empty_drawtype);
+						drawaxes(rv3d->viewmatob, ob->empty_drawsize, ob->empty_drawtype, ob_wire_col);
 					}
 				}
 				break;
@@ -6700,9 +6786,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				break;
 			default:
 				if (!render_override) {
-					drawaxes(rv3d->viewmatob, 1.0, OB_ARROWS);
+					drawaxes(rv3d->viewmatob, 1.0, OB_ARROWS, ob_wire_col);
 				}
-				break;
 		}
 
 		/* TODO Viewport: some eleemnts are being drawn for depth only */
@@ -6838,7 +6923,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		if (dtx && (G.f & G_RENDER_OGL) == 0) {
 
 			if (dtx & OB_AXIS) {
-				drawaxes(rv3d->viewmatob, 1.0f, OB_ARROWS);
+				drawaxes(rv3d->viewmatob, 1.0f, OB_ARROWS, NULL);
 			}
 			if (dtx & OB_DRAWBOUNDOX) {
 				draw_bounding_volume(ob, ob->boundtype);
@@ -7390,7 +7475,7 @@ void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 				draw_empty_image(ob, DRAW_CONSTCOLOR, NULL);
 			}
 			else {
-				drawaxes(rv3d->viewmatob, ob->empty_drawsize, ob->empty_drawtype);
+				drawaxes(rv3d->viewmatob, ob->empty_drawsize, ob->empty_drawtype, NULL); /* TODO: use proper color */
 			}
 			break;
 	}

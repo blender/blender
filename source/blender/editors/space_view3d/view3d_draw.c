@@ -1318,7 +1318,7 @@ RegionView3D *rv3d, const unsigned char color[4])
 
 	switch (ob->type) {
 		case OB_EMPTY:
-			drawaxes(rv3d->viewmatob, ob->empty_drawsize, ob->empty_drawtype);
+			drawaxes(rv3d->viewmatob, ob->empty_drawsize, ob->empty_drawtype, color);
 			break;
 		case OB_LAMP:
 			drawlamp(v3d, rv3d, base, OB_SOLID, DRAW_CONSTCOLOR, color, false);
