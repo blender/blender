@@ -1557,36 +1557,38 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 	glPopMatrix();
 }
 
-static void draw_limit_line(float sta, float end, const short dflag, const unsigned char col[3])
+static void draw_limit_line(float sta, float end, const short dflag, const unsigned char col[3], unsigned pos)
 {
-	glBegin(GL_LINES);
-	glVertex3f(0.0, 0.0, -sta);
-	glVertex3f(0.0, 0.0, -end);
-	glEnd();
+	immBegin(GL_LINES, 2);
+	immVertex3f(pos, 0.0, 0.0, -sta);
+	immVertex3f(pos, 0.0, 0.0, -end);
+	immEnd();
 
 	if (!(dflag & DRAW_PICKING)) {
 		glPointSize(3.0);
-		glBegin(GL_POINTS);
+		/* would like smooth round points here, but that means binding another shader...
+		 * if it's really desired, pull these points into their own function to be called after */
+		immBegin(GL_POINTS, 2);
 		if ((dflag & DRAW_CONSTCOLOR) == 0) {
-			glColor3ubv(col);
+			immUniformColor3ubv(col);
 		}
-		glVertex3f(0.0, 0.0, -sta);
-		glVertex3f(0.0, 0.0, -end);
-		glEnd();
+		immVertex3f(pos, 0.0, 0.0, -sta);
+		immVertex3f(pos, 0.0, 0.0, -end);
+		immEnd();
 	}
 }
 
 
 /* yafray: draw camera focus point (cross, similar to aqsis code in tuhopuu) */
 /* qdn: now also enabled for Blender to set focus point for defocus composite node */
-static void draw_focus_cross(float dist, float size)
+static void draw_focus_cross(float dist, float size, unsigned pos)
 {
-	glBegin(GL_LINES);
-	glVertex3f(-size, 0.0f, -dist);
-	glVertex3f(size, 0.0f, -dist);
-	glVertex3f(0.0f, -size, -dist);
-	glVertex3f(0.0f, size, -dist);
-	glEnd();
+	immBegin(GL_LINES, 4);
+	immVertex3f(pos, -size, 0.0f, -dist);
+	immVertex3f(pos, size, 0.0f, -dist);
+	immVertex3f(pos, 0.0f, -size, -dist);
+	immVertex3f(pos, 0.0f, size, -dist);
+	immEnd();
 }
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
@@ -1809,59 +1811,68 @@ static void draw_viewport_reconstruction(
 		GPU_select_load_id(base->selcol);
 }
 
-static void drawcamera_volume(float near_plane[4][3], float far_plane[4][3], const GLenum mode)
-{
-	glBegin(mode);
-	glVertex3fv(near_plane[0]);
-	glVertex3fv(far_plane[0]);
-	glVertex3fv(far_plane[1]);
-	glVertex3fv(near_plane[1]);
-	glEnd();
-
-	glBegin(mode);
-	glVertex3fv(near_plane[1]);
-	glVertex3fv(far_plane[1]);
-	glVertex3fv(far_plane[2]);
-	glVertex3fv(near_plane[2]);
-	glEnd();
-
-	glBegin(mode);
-	glVertex3fv(near_plane[2]);
-	glVertex3fv(near_plane[1]);
-	glVertex3fv(far_plane[1]);
-	glVertex3fv(far_plane[2]);
-	glEnd();
-
-	glBegin(mode);
-	glVertex3fv(far_plane[0]);
-	glVertex3fv(near_plane[0]);
-	glVertex3fv(near_plane[3]);
-	glVertex3fv(far_plane[3]);
-	glEnd();
-}
-
 /* camera frame */
-static void drawcamera_frame(float vec[4][3], const GLenum mode)
+static void drawcamera_frame(float vec[4][3], bool filled, unsigned pos)
 {
-	glBegin(mode);
-	glVertex3fv(vec[0]);
-	glVertex3fv(vec[1]);
-	glVertex3fv(vec[2]);
-	glVertex3fv(vec[3]);
-	glEnd();
+	immBegin(filled ? GL_QUADS : GL_LINE_LOOP, 4);
+	immVertex3fv(pos, vec[0]);
+	immVertex3fv(pos, vec[1]);
+	immVertex3fv(pos, vec[2]);
+	immVertex3fv(pos, vec[3]);
+	immEnd();
 }
 
 /* center point to camera frame */
-static void drawcamera_framelines(float vec[4][3], float origin[3])
+static void drawcamera_framelines(float vec[4][3], float origin[3], unsigned pos)
 {
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(vec[1]);
-	glVertex3fv(origin);
-	glVertex3fv(vec[0]);
-	glVertex3fv(vec[3]);
-	glVertex3fv(origin);
-	glVertex3fv(vec[2]);
-	glEnd();
+	immBegin(GL_LINES, 8);
+	immVertex3fv(pos, origin);
+	immVertex3fv(pos, vec[0]);
+	immVertex3fv(pos, origin);
+	immVertex3fv(pos, vec[1]);
+	immVertex3fv(pos, origin);
+	immVertex3fv(pos, vec[2]);
+	immVertex3fv(pos, origin);
+	immVertex3fv(pos, vec[3]);
+	immEnd();
+}
+
+static void drawcamera_volume(float near_plane[4][3], float far_plane[4][3], bool filled, unsigned pos)
+{
+	drawcamera_frame(near_plane, filled, pos);
+	drawcamera_frame(far_plane, filled, pos);
+
+	if (filled) {
+		immBegin(GL_QUADS, 16); /* TODO(merwin): use GL_TRIANGLE_STRIP here */
+		immVertex3fv(pos, near_plane[0]);
+		immVertex3fv(pos, far_plane[0]);
+		immVertex3fv(pos, far_plane[1]);
+		immVertex3fv(pos, near_plane[1]);
+
+		immVertex3fv(pos, near_plane[1]);
+		immVertex3fv(pos, far_plane[1]);
+		immVertex3fv(pos, far_plane[2]);
+		immVertex3fv(pos, near_plane[2]);
+
+		immVertex3fv(pos, near_plane[2]);
+		immVertex3fv(pos, near_plane[1]);
+		immVertex3fv(pos, far_plane[1]);
+		immVertex3fv(pos, far_plane[2]);
+
+		immVertex3fv(pos, far_plane[0]);
+		immVertex3fv(pos, near_plane[0]);
+		immVertex3fv(pos, near_plane[3]);
+		immVertex3fv(pos, far_plane[3]);
+		immEnd();
+	}
+	else {
+		immBegin(GL_LINES, 8);
+		for (int i = 0; i < 4; ++i) {
+			immVertex3fv(pos, near_plane[i]);
+			immVertex3fv(pos, far_plane[i]);
+		}
+		immEnd();
+	}
 }
 
 static bool drawcamera_is_stereo3d(Scene *scene, View3D *v3d, Object *ob)
@@ -1873,7 +1884,7 @@ static bool drawcamera_is_stereo3d(Scene *scene, View3D *v3d, Object *ob)
 
 static void drawcamera_stereo3d(
         Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, const Camera *cam,
-        float vec[4][3], float drawsize, const float scale[3])
+        float vec[4][3], float drawsize, const float scale[3], unsigned pos)
 {
 	float obmat[4][4];
 	float vec_lr[2][4][3];
@@ -1888,6 +1899,8 @@ static void drawcamera_stereo3d(
 	const bool is_stereo3d_volume = (v3d->stereo3d_flag & V3D_S3D_DISPVOLUME);
 
 	zero_v3(tvec);
+
+	/* caller bound GPU_SHADER_3D_UNIFORM_COLOR, passed in pos attribute ID */
 
 	glPushMatrix();
 
@@ -1914,10 +1927,10 @@ static void drawcamera_stereo3d(
 
 		if (is_stereo3d_cameras) {
 			/* camera frame */
-			drawcamera_frame(vec_lr[i], GL_LINE_LOOP);
+			drawcamera_frame(vec_lr[i], false, pos);
 
 			/* center point to camera frame */
-			drawcamera_framelines(vec_lr[i], tvec);
+			drawcamera_framelines(vec_lr[i], tvec, pos);
 		}
 
 		/* connecting line */
@@ -1931,21 +1944,20 @@ static void drawcamera_stereo3d(
 		}
 	}
 
-
 	/* the remaining drawing takes place in the view space */
 	glLoadMatrixf(rv3d->viewmat);
 
 	if (is_stereo3d_cameras) {
 		/* draw connecting lines */
-		glPushAttrib(GL_ENABLE_BIT);
-
+		glPushAttrib(GL_ENABLE_BIT); /* TODO(merwin): new state tracking! */
 		glLineStipple(2, 0xAAAA);
 		glEnable(GL_LINE_STIPPLE);
 
-		glBegin(GL_LINES);
-		glVertex3fv(origin[0]);
-		glVertex3fv(origin[1]);
-		glEnd();
+		immBegin(GL_LINES, 2);
+		immVertex3fv(pos, origin[0]);
+		immVertex3fv(pos, origin[1]);
+		immEnd();
+
 		glPopAttrib();
 	}
 
@@ -1971,18 +1983,18 @@ static void drawcamera_stereo3d(
 			add_v3_v3(local_plane[i], axis_center);
 		}
 
-		glColor3f(0.0f, 0.0f, 0.0f);
+		immUniformColor3f(0.0f, 0.0f, 0.0f);
 
 		/* camera frame */
-		drawcamera_frame(local_plane, GL_LINE_LOOP);
+		drawcamera_frame(local_plane, false, pos);
 
 		if (v3d->stereo3d_convergence_alpha > 0.0f) {
 			glEnable(GL_BLEND);
 			glDepthMask(0);  /* disable write in zbuffer, needed for nice transp */
 
-			glColor4f(0.0f, 0.0f, 0.0f, v3d->stereo3d_convergence_alpha);
+			immUniformColor4f(0.0f, 0.0f, 0.0f, v3d->stereo3d_convergence_alpha);
 
-			drawcamera_frame(local_plane, GL_QUADS);
+			drawcamera_frame(local_plane, true, pos);
 
 			glDisable(GL_BLEND);
 			glDepthMask(1);  /* restore write in zbuffer */
@@ -2010,24 +2022,20 @@ static void drawcamera_stereo3d(
 			}
 
 			/* camera frame */
-			glColor3f(0.0f, 0.0f, 0.0f);
+			immUniformColor3f(0.0f, 0.0f, 0.0f);
 
-			drawcamera_frame(near_plane, GL_LINE_LOOP);
-			drawcamera_frame(far_plane, GL_LINE_LOOP);
-			drawcamera_volume(near_plane, far_plane, GL_LINE_LOOP);
+			drawcamera_volume(near_plane, far_plane, false, pos);
 
 			if (v3d->stereo3d_volume_alpha > 0.0f) {
 				glEnable(GL_BLEND);
 				glDepthMask(0);  /* disable write in zbuffer, needed for nice transp */
 
 				if (i == 0)
-					glColor4f(0.0f, 1.0f, 1.0f, v3d->stereo3d_volume_alpha);
+					immUniformColor4f(0.0f, 1.0f, 1.0f, v3d->stereo3d_volume_alpha);
 				else
-					glColor4f(1.0f, 0.0f, 0.0f, v3d->stereo3d_volume_alpha);
+					immUniformColor4f(1.0f, 0.0f, 0.0f, v3d->stereo3d_volume_alpha);
 
-				drawcamera_frame(near_plane, GL_QUADS);
-				drawcamera_frame(far_plane, GL_QUADS);
-				drawcamera_volume(near_plane, far_plane, GL_QUADS);
+				drawcamera_volume(near_plane, far_plane, true, pos);
 
 				glDisable(GL_BLEND);
 				glDepthMask(1);  /* restore write in zbuffer */
@@ -2103,6 +2111,11 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	BKE_camera_view_frame_ex(scene, cam, cam->drawsize, is_view, scale,
 	                         asp, shift, &drawsize, vec);
 
+	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+	if (ob_wire_col) {
+		immUniformColor3ubv(ob_wire_col);
+	}
 	glDisable(GL_CULL_FACE);
 	glLineWidth(1);
 
@@ -2118,22 +2131,24 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 			BKE_camera_multiview_model_matrix(&scene->r, ob, is_left ? STEREO_LEFT_NAME : STEREO_RIGHT_NAME, obmat);
 			glMultMatrixf(obmat);
 
-			drawcamera_frame(vec, GL_LINE_LOOP);
+			drawcamera_frame(vec, false, pos);
 			glPopMatrix();
 		}
 		else {
-			drawcamera_frame(vec, GL_LINE_LOOP);
+			drawcamera_frame(vec, false, pos);
 		}
 	}
 
-	if (is_view)
+	if (is_view) {
+		immUnbindProgram();
 		return;
+	}
 
 	zero_v3(tvec);
 
 	/* center point to camera frame */
 	if (!is_stereo3d_cameras)
-		drawcamera_framelines(vec, tvec);
+		drawcamera_framelines(vec, tvec, pos);
 
 	/* arrow on top */
 	tvec[2] = vec[1][2]; /* copy the depth */
@@ -2142,22 +2157,22 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	 * for active cameras. We actually draw both outline+filled
 	 * for active cameras so the wire can be seen side-on */
 	for (int i = 0; i < 2; i++) {
-		if (i == 0) glBegin(GL_LINE_LOOP);
-		else if (i == 1 && is_active) glBegin(GL_TRIANGLES);
+		if (i == 0) immBegin(GL_LINE_LOOP, 3);
+		else if (i == 1 && is_active) immBegin(GL_TRIANGLES, 3);
 		else break;
 
 		tvec[0] = shift[0] + ((-0.7f * drawsize) * scale[0]);
 		tvec[1] = shift[1] + ((drawsize * (asp[1] + 0.1f)) * scale[1]);
-		glVertex3fv(tvec); /* left */
+		immVertex3fv(pos, tvec); /* left */
 		
 		tvec[0] = shift[0] + ((0.7f * drawsize) * scale[0]);
-		glVertex3fv(tvec); /* right */
+		immVertex3fv(pos, tvec); /* right */
 		
 		tvec[0] = shift[0];
 		tvec[1] = shift[1] + ((1.1f * drawsize * (asp[1] + 0.7f)) * scale[1]);
-		glVertex3fv(tvec); /* top */
+		immVertex3fv(pos, tvec); /* top */
 
-		glEnd();
+		immEnd();
 	}
 
 	if ((dflag & DRAW_SCENESET) == 0) {
@@ -2175,9 +2190,9 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 			if (cam->flag & CAM_SHOWLIMITS) {
 				const unsigned char col[3] = {128, 128, 60}, col_hi[3] = {255, 255, 120};
 
-				draw_limit_line(cam->clipsta, cam->clipend, dflag, (is_active ? col_hi : col));
+				draw_limit_line(cam->clipsta, cam->clipend, dflag, (is_active ? col_hi : col), pos);
 				/* qdn: was yafray only, now also enabled for Blender to be used with defocus composite node */
-				draw_focus_cross(BKE_camera_object_dof_distance(ob), cam->drawsize);
+				draw_focus_cross(BKE_camera_object_dof_distance(ob), cam->drawsize, pos);
 			}
 
 			if (cam->flag & CAM_SHOWMIST) {
@@ -2186,7 +2201,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 
 				if (world) {
 					draw_limit_line(world->miststa, world->miststa + world->mistdist,
-					                dflag, (is_active ? col_hi : col));
+					                dflag, (is_active ? col_hi : col), pos);
 				}
 			}
 			glPopMatrix();
@@ -2195,8 +2210,10 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 
 	/* stereo cameras drawing */
 	if (is_stereo3d) {
-		drawcamera_stereo3d(scene, v3d, rv3d, ob, cam, vec, drawsize, scale);
+		drawcamera_stereo3d(scene, v3d, rv3d, ob, cam, vec, drawsize, scale, pos);
 	}
+
+	immUnbindProgram();
 }
 
 /* flag similar to draw_object() */
