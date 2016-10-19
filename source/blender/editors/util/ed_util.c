@@ -70,6 +70,8 @@
 #include "ED_space_api.h"
 #include "ED_util.h"
 
+#include "GPU_immediate.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -312,15 +314,23 @@ void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *ar, void *arg_info
 {
 	wmWindow *win = CTX_wm_window(C);
 	const float *mval_src = (float *)arg_info;
-	const int mval_dst[2] = {win->eventstate->x - ar->winrct.xmin,
-	                         win->eventstate->y - ar->winrct.ymin};
+	const float mval_dst[2] = {win->eventstate->x - ar->winrct.xmin,
+	                           win->eventstate->y - ar->winrct.ymin};
 
-	UI_ThemeColor(TH_VIEW_OVERLAY);
 	setlinestyle(3);
-	glBegin(GL_LINES);
-	glVertex2iv(mval_dst);
-	glVertex2fv(mval_src);
-	glEnd();
+
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformThemeColor(TH_VIEW_OVERLAY);
+
+	immBegin(GL_LINES, 2);
+	immVertex2fv(pos, mval_dst);
+	immVertex2fv(pos, mval_src);
+	immEnd();
+	immUnbindProgram();
+
 	setlinestyle(0);
 }
 
