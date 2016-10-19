@@ -90,6 +90,7 @@
 #include "GPU_basic_shader.h"
 #include "GPU_shader.h"
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
@@ -1902,15 +1903,13 @@ static void drawcamera_stereo3d(
 
 	/* caller bound GPU_SHADER_3D_UNIFORM_COLOR, passed in pos attribute ID */
 
-	glPushMatrix();
-
 	for (int i = 0; i < 2; i++) {
 		ob = BKE_camera_multiview_render(scene, ob, names[i]);
 		cam_lr[i] = ob->data;
 
-		glLoadMatrixf(rv3d->viewmat);
+		gpuLoadMatrix3D(rv3d->viewmat);
 		BKE_camera_multiview_model_matrix(&scene->r, ob, names[i], obmat);
-		glMultMatrixf(obmat);
+		gpuMultMatrix3D(obmat);
 
 		copy_m3_m3(vec_lr[i], vec);
 		copy_v3_v3(vec_lr[i][3], vec[3]);
@@ -1945,7 +1944,7 @@ static void drawcamera_stereo3d(
 	}
 
 	/* the remaining drawing takes place in the view space */
-	glLoadMatrixf(rv3d->viewmat);
+	gpuLoadMatrix3D(rv3d->viewmat);
 
 	if (is_stereo3d_cameras) {
 		/* draw connecting lines */
@@ -2042,8 +2041,6 @@ static void drawcamera_stereo3d(
 			}
 		}
 	}
-
-	glPopMatrix();
 }
 
 /* flag similar to draw_object() */
@@ -2111,6 +2108,8 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	BKE_camera_view_frame_ex(scene, cam, cam->drawsize, is_view, scale,
 	                         asp, shift, &drawsize, vec);
 
+	gpuMatrixBegin3D_legacy();
+
 	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 	if (ob_wire_col) {
@@ -2126,13 +2125,13 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 			float obmat[4][4];
 			bool is_left = v3d->multiview_eye == STEREO_LEFT_ID;
 
-			glPushMatrix();
-			glLoadMatrixf(rv3d->viewmat);
+			gpuPushMatrix();
+			gpuLoadMatrix3D(rv3d->viewmat);
 			BKE_camera_multiview_model_matrix(&scene->r, ob, is_left ? STEREO_LEFT_NAME : STEREO_RIGHT_NAME, obmat);
-			glMultMatrixf(obmat);
+			gpuMultMatrix3D(obmat);
 
 			drawcamera_frame(vec, false, pos);
-			glPopMatrix();
+			gpuPopMatrix();
 		}
 		else {
 			drawcamera_frame(vec, false, pos);
@@ -2141,6 +2140,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 
 	if (is_view) {
 		immUnbindProgram();
+		gpuMatrixEnd();
 		return;
 	}
 
@@ -2183,9 +2183,8 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 			copy_m4_m4(nobmat, ob->obmat);
 			normalize_m4(nobmat);
 
-			glPushMatrix();
-			glLoadMatrixf(rv3d->viewmat);
-			glMultMatrixf(nobmat);
+			gpuLoadMatrix3D(rv3d->viewmat);
+			gpuMultMatrix3D(nobmat);
 
 			if (cam->flag & CAM_SHOWLIMITS) {
 				const unsigned char col[3] = {128, 128, 60}, col_hi[3] = {255, 255, 120};
@@ -2204,7 +2203,6 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 					                dflag, (is_active ? col_hi : col), pos);
 				}
 			}
-			glPopMatrix();
 		}
 	}
 
@@ -2214,6 +2212,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	}
 
 	immUnbindProgram();
+	gpuMatrixEnd();
 }
 
 /* flag similar to draw_object() */
