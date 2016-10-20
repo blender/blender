@@ -401,7 +401,7 @@ void AbcMeshWriter::writeMesh(DerivedMesh *dm)
 	                                        Int32ArraySample(loop_counts));
 
 	UVSample sample;
-	if (m_settings.export_uvs) {
+	if (m_first_frame && m_settings.export_uvs) {
 		const char *name = get_uv_sample(sample, m_custom_data_config, &dm->loopData);
 
 		if (!sample.indices.empty() && !sample.uvs.empty()) {
@@ -470,7 +470,7 @@ void AbcMeshWriter::writeSubD(DerivedMesh *dm)
 	                                      Int32ArraySample(loop_counts));
 
 	UVSample sample;
-	if (m_settings.export_uvs) {
+	if (m_first_frame && m_settings.export_uvs) {
 		const char *name = get_uv_sample(sample, m_custom_data_config, &dm->loopData);
 
 		if (!sample.indices.empty() && !sample.uvs.empty()) {
@@ -565,7 +565,7 @@ void AbcMeshWriter::writeArbGeoParams(DerivedMesh *dm)
 		return;
 	}
 
-	if (m_settings.export_vcols) {
+	if (m_first_frame && m_settings.export_vcols) {
 		if (m_subdiv_schema.valid()) {
 			write_custom_data(m_subdiv_schema.getArbGeomParams(), m_custom_data_config, &dm->loopData, CD_MLOOPCOL);
 		}
