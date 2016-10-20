@@ -1033,7 +1033,7 @@ static void drawcube_size(float size, unsigned pos)
 #endif
 }
 
-static void drawshadbuflimits(Lamp *la, float mat[4][4])
+static void drawshadbuflimits(const Lamp *la, const float mat[4][4], unsigned pos)
 {
 	float sta[3], end[3], lavec[3];
 
@@ -1043,16 +1043,16 @@ static void drawshadbuflimits(Lamp *la, float mat[4][4])
 	madd_v3_v3v3fl(sta, mat[3], lavec, la->clipsta);
 	madd_v3_v3v3fl(end, mat[3], lavec, la->clipend);
 
-	glBegin(GL_LINES);
-	glVertex3fv(sta);
-	glVertex3fv(end);
-	glEnd();
+	immBegin(GL_LINES, 2);
+	immVertex3fv(pos, sta);
+	immVertex3fv(pos, end);
+	immEnd();
 
 	glPointSize(3.0);
-	glBegin(GL_POINTS);
-	glVertex3fv(sta);
-	glVertex3fv(end);
-	glEnd();
+	immBegin(GL_POINTS, 2);
+	immVertex3fv(pos, sta);
+	immVertex3fv(pos, end);
+	immEnd();
 }
 
 static void spotvolume(float lvec[3], float vvec[3], const float inp)
@@ -1118,31 +1118,33 @@ static void spotvolume(float lvec[3], float vvec[3], const float inp)
 	mul_m3_v3(mat2, vvec);
 }
 
-static void draw_spot_cone(Lamp *la, float x, float z)
+static void draw_spot_cone(Lamp *la, float x, float z, unsigned pos)
 {
 	z = fabsf(z);
 
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex3f(0.0f, 0.0f, -x);
+	const bool square = (la->mode & LA_SQUARE);
 
-	if (la->mode & LA_SQUARE) {
-		glVertex3f(z, z, 0);
-		glVertex3f(-z, z, 0);
-		glVertex3f(-z, -z, 0);
-		glVertex3f(z, -z, 0);
-		glVertex3f(z, z, 0);
+	immBegin(GL_TRIANGLE_FAN, square ? 6 : 34);
+	immVertex3f(pos, 0.0f, 0.0f, -x);
+
+	if (square) {
+		immVertex3f(pos, z, z, 0);
+		immVertex3f(pos, -z, z, 0);
+		immVertex3f(pos, -z, -z, 0);
+		immVertex3f(pos, z, -z, 0);
+		immVertex3f(pos, z, z, 0);
 	}
 	else {
 		for (int a = 0; a < 33; a++) {
 			float angle = a * M_PI * 2 / (33 - 1);
-			glVertex3f(z * cosf(angle), z * sinf(angle), 0);
+			immVertex3f(pos, z * cosf(angle), z * sinf(angle), 0.0f);
 		}
 	}
 
-	glEnd();
+	immEnd();
 }
 
-static void draw_transp_spot_volume(Lamp *la, float x, float z)
+static void draw_transp_spot_volume(Lamp *la, float x, float z, unsigned pos)
 {
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
@@ -1152,17 +1154,17 @@ static void draw_transp_spot_volume(Lamp *la, float x, float z)
 	glCullFace(GL_FRONT);
 
 	glBlendFunc(GL_ZERO, GL_SRC_ALPHA);
-	glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
+	immUniformColor4f(0.0f, 0.0f, 0.0f, 0.4f);
 
-	draw_spot_cone(la, x, z);
+	draw_spot_cone(la, x, z, pos);
 
 	/* draw front side lighting */
 	glCullFace(GL_BACK);
 
 	glBlendFunc(GL_ONE, GL_ONE);
-	glColor4f(0.2f, 0.2f, 0.2f, 1.0f);
+	immUniformColor4f(0.2f, 0.2f, 0.2f, 1.0f);
 
-	draw_spot_cone(la, x, z);
+	draw_spot_cone(la, x, z, pos);
 
 	/* restore state */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1173,7 +1175,7 @@ static void draw_transp_spot_volume(Lamp *la, float x, float z)
 }
 
 #ifdef WITH_GAMEENGINE
-static void draw_transp_sun_volume(Lamp *la)
+static void draw_transp_sun_volume(Lamp *la, unsigned pos)
 {
 	float box[8][3];
 
@@ -1186,7 +1188,7 @@ static void draw_transp_sun_volume(Lamp *la)
 	box[1][2] = box[2][2] = box[5][2] = box[6][2] = -la->clipsta;
 
 	/* draw edges */
-	draw_box(box, false);
+	imm_draw_box(box, false, pos);
 
 	/* draw faces */
 	glEnable(GL_CULL_FACE);
@@ -1197,17 +1199,17 @@ static void draw_transp_sun_volume(Lamp *la)
 	glCullFace(GL_FRONT);
 
 	glBlendFunc(GL_ZERO, GL_SRC_ALPHA);
-	glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
+	immUniformColor4f(0.0f, 0.0f, 0.0f, 0.4f);
 
-	draw_box(box, true);
+	imm_draw_box(box, true, pos);
 
 	/* draw front side lighting */
 	glCullFace(GL_BACK);
 
 	glBlendFunc(GL_ONE, GL_ONE);
-	glColor4f(0.2f, 0.2f, 0.2f, 1.0f);
+	immUniformColor4f(0.2f, 0.2f, 0.2f, 1.0f);
 
-	draw_box(box, true);
+	imm_draw_box(box, true, pos);
 
 	/* restore state */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1225,11 +1227,8 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 	const float pixsize = ED_view3d_pixel_size(rv3d, ob->obmat[3]);
 	Lamp *la = ob->data;
 	float vec[3], lvec[3], vvec[3], circrad;
-	float lampsize;
 	float imat[4][4];
 
-	unsigned char curcol[4];
-	unsigned char col[4];
 	/* cone can't be drawn for duplicated lamps, because duplilist would be freed */
 	/* the moment of view3d_draw_transp() call */
 	const bool is_view = (rv3d->persp == RV3D_CAMOB && v3d->camera == base->object);
@@ -1260,115 +1259,155 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 		ED_view3d_after_add(&v3d->afterdraw_transp, base, dflag);
 		return;
 	}
-	
+
 	/* we first draw only the screen aligned & fixed scale stuff */
-	glPushMatrix();
-	glLoadMatrixf(rv3d->viewmat);
+	gpuMatrixBegin3D_legacy();
+	gpuPushMatrix();
+	gpuLoadMatrix3D(rv3d->viewmat);
 
 	/* lets calculate the scale: */
-	lampsize = pixsize * ((float)U.obcenter_dia * 0.5f);
+	const float lampsize_px = U.obcenter_dia;
+	const float lampsize = pixsize * lampsize_px * 0.5f;
 
 	/* and view aligned matrix: */
 	copy_m4_m4(imat, rv3d->viewinv);
 	normalize_v3(imat[0]);
 	normalize_v3(imat[1]);
 
+	const unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+
 	/* lamp center */
 	copy_v3_v3(vec, ob->obmat[3]);
 
+	float curcol[4];
 	if ((dflag & DRAW_CONSTCOLOR) == 0) {
 		/* for AA effects */
-		curcol[0] = ob_wire_col[0];
-		curcol[1] = ob_wire_col[1];
-		curcol[2] = ob_wire_col[2];
-		curcol[3] = 154;
-		glColor4ubv(curcol);
+		rgb_uchar_to_float(curcol, ob_wire_col);
+		curcol[3] = 0.6f;
+		/* TODO: pay attention to GL_BLEND */
 	}
 
 	glLineWidth(1);
+	setlinestyle(3);
 
 	if (lampsize > 0.0f) {
+		const float outlineWidth = 1.5f * U.pixelsize;
+		const float lampdot_size = lampsize_px * U.pixelsize + outlineWidth;
 
+		/* Inner Circle */
 		if ((dflag & DRAW_CONSTCOLOR) == 0) {
+			const float *color = curcol;
 			if (ob->id.us > 1) {
 				if (is_obact || (ob->flag & SELECT)) {
-					glColor4ub(0x88, 0xFF, 0xFF, 155);
+					static const float active_color[4] = {0.533f, 1.0f, 1.0f, 1.0f};
+					color = active_color;
 				}
 				else {
-					glColor4ub(0x77, 0xCC, 0xCC, 155);
+					static const float inactive_color[4] = {0.467f, 0.8f, 0.8f, 1.0f};
+					color = inactive_color;
 				}
 			}
+
+			GPU_enable_program_point_size();
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_SMOOTH);
+			immUniform1f("size", lampdot_size);
+			immUniform1f("outlineWidth", outlineWidth);
+			immUniformColor3fvAlpha(color, 0.3f);
+			immUniform4fv("outlineColor", color);
+
+			immBegin(GL_POINTS, 1);
+			immVertex3fv(pos, vec);
+			immEnd();
+
+			immUnbindProgram();
+
+			glDisable(GL_BLEND);
+			GPU_disable_program_point_size();
 		}
-		
-		/* Inner Circle */
-		glEnable(GL_BLEND);
-		drawcircball(GL_LINE_LOOP, vec, lampsize, imat);
-		glDisable(GL_BLEND);
-		drawcircball(GL_POLYGON, vec, lampsize, imat);
-		
+		else {
+			/* CONSTCOLOR in effect */
+			/* TODO: separate picking from drawing */
+			immBindBuiltinProgram(GPU_SHADER_3D_POINT_FIXED_SIZE_UNIFORM_COLOR);
+			/* color doesn't matter, so don't set */
+			glPointSize(lampdot_size);
+
+			immBegin(GL_POINTS, 1);
+			immVertex3fv(pos, vec);
+			immEnd();
+
+			immUnbindProgram();
+		}
+
+		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+		/* TODO(merwin): short term, use DEPTH_ONLY for picking
+		 *               long term, separate picking from drawing
+		 */
+
 		/* restore */
 		if ((dflag & DRAW_CONSTCOLOR) == 0) {
-			if (ob->id.us > 1)
-				glColor4ubv(curcol);
+			immUniformColor4fv(curcol);
 		}
 
 		/* Outer circle */
 		circrad = 3.0f * lampsize;
-		setlinestyle(3);
 
-		drawcircball(GL_LINE_LOOP, vec, circrad, imat);
+		imm_drawcircball(vec, circrad, imat, pos);
 
 		/* draw dashed outer circle if shadow is on. remember some lamps can't have certain shadows! */
 		if (la->type != LA_HEMI) {
 			if ((la->mode & LA_SHAD_RAY) || ((la->mode & LA_SHAD_BUF) && (la->type == LA_SPOT))) {
-				drawcircball(GL_LINE_LOOP, vec, circrad + 3.0f * pixsize, imat);
+				imm_drawcircball(vec, circrad + 3.0f * pixsize, imat, pos);
 			}
 		}
 	}
 	else {
-		setlinestyle(3);
+		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+		immUniformColor4fv(curcol);
 		circrad = 0.0f;
 	}
-	
+
 	/* draw the pretty sun rays */
 	if (la->type == LA_SUN) {
 		float v1[3], v2[3], mat[3][3];
 		short axis;
-		
+
 		/* setup a 45 degree rotation matrix */
 		axis_angle_normalized_to_mat3_ex(mat, imat[2], M_SQRT1_2, M_SQRT1_2);
 
 		/* vectors */
 		mul_v3_v3fl(v1, imat[0], circrad * 1.2f);
 		mul_v3_v3fl(v2, imat[0], circrad * 2.5f);
-		
+
 		/* center */
-		glTranslate3fv(vec);
-		
+		gpuPushMatrix();
+		gpuTranslate3fv(vec);
+
 		setlinestyle(3);
-		
-		glBegin(GL_LINES);
+
+		immBegin(GL_LINES, 16);
 		for (axis = 0; axis < 8; axis++) {
-			glVertex3fv(v1);
-			glVertex3fv(v2);
+			immVertex3fv(pos, v1);
+			immVertex3fv(pos, v2);
 			mul_m3_v3(mat, v1);
 			mul_m3_v3(mat, v2);
 		}
-		glEnd();
-		
-		glTranslatef(-vec[0], -vec[1], -vec[2]);
+		immEnd();
 
+		gpuPopMatrix();
 	}
-	
+
 	if (la->type == LA_LOCAL) {
 		if (la->mode & LA_SPHERE) {
-			drawcircball(GL_LINE_LOOP, vec, la->dist, imat);
+			imm_drawcircball(vec, la->dist, imat, pos);
 		}
 	}
-	
-	glPopMatrix();  /* back in object space */
+
+	gpuPopMatrix();  /* back in object space */
 	zero_v3(vec);
-	
+
 	if (is_view) {
 		/* skip drawing extra info */
 	}
@@ -1400,24 +1439,18 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 			    {z_abs, -z_abs, x},
 			    {-z_abs, z_abs, x},
 			};
-			const unsigned char indices[] = {
-			    0, 1, 3,
-			    0, 3, 2,
-			    0, 2, 4,
-			    0, 1, 4,
-			};
 
-			/* Draw call:
-			 * activate and specify pointer to vertex array */
-			glEnableClientState(GL_VERTEX_ARRAY);
-			glVertexPointer(3, GL_FLOAT, 0, vertices);
-			/* draw the pyramid */
-			glDrawElements(GL_LINE_STRIP, 12, GL_UNSIGNED_BYTE, indices);
+			immBegin(GL_LINES, 16);
+			for (int i = 1; i <= 4; ++i) {
+				immVertex3fv(pos, vertices[0]); /* apex to corner */
+				immVertex3fv(pos, vertices[i]);
+				int next_i = (i == 4) ? 1 : (i + 1);
+				immVertex3fv(pos, vertices[i]); /* corner to next corner */
+				immVertex3fv(pos, vertices[next_i]);
+			}
+			immEnd();
 
-			/* deactivate vertex arrays after drawing */
-			glDisableClientState(GL_VERTEX_ARRAY);
-
-			glTranslatef(0.0f, 0.0f, x);
+			gpuTranslate3f(0.0f, 0.0f, x);
 
 			/* draw the square representing spotbl */
 			if (la->type == LA_SPOT) {
@@ -1427,22 +1460,21 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 				 * previously it adjusted to always to show it but that seems
 				 * confusing because it doesn't show the actual blend size */
 				if (blend != 0.0f && blend != z_abs) {
-					fdrawbox(blend, -blend, -blend, blend);
+					imm_draw_line_box_3D(pos, blend, -blend, -blend, blend);
 				}
 			}
 		}
 		else {
-
 			/* draw the angled sides of the cone */
-			glBegin(GL_LINE_STRIP);
-			glVertex3fv(vvec);
-			glVertex3fv(vec);
-			glVertex3fv(lvec);
-			glEnd();
+			immBegin(GL_LINE_STRIP, 3);
+			immVertex3fv(pos, vvec);
+			immVertex3fv(pos, vec);
+			immVertex3fv(pos, lvec);
+			immEnd();
 
 			/* draw the circle at the end of the cone */
-			glTranslatef(0.0f, 0.0f, x);
-			circ(0.0f, 0.0f, z_abs);
+			gpuTranslate3f(0.0f, 0.0f, x);
+			imm_draw_lined_circle_3D(pos, 0.0f, 0.0f, z_abs, 32);
 
 			/* draw the circle representing spotbl */
 			if (la->type == LA_SPOT) {
@@ -1452,17 +1484,17 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 				 * previously it adjusted to always to show it but that seems
 				 * confusing because it doesn't show the actual blend size */
 				if (blend != 0.0f && blend != z_abs) {
-					circ(0.0f, 0.0f, blend);
+					imm_draw_lined_circle_3D(pos, 0.0f, 0.0f, blend, 32);
 				}
 			}
 		}
 
 		if (drawcone)
-			draw_transp_spot_volume(la, x, z);
+			draw_transp_spot_volume(la, x, z, pos);
 
 		/* draw clip start, useful for wide cones where its not obvious where the start is */
-		glTranslatef(0.0, 0.0, -x);  /* reverse translation above */
-		glBegin(GL_LINES);
+		gpuTranslate3f(0.0f, 0.0f, -x);  /* reverse translation above */
+		immBegin(GL_LINES, 2);
 		if (la->type == LA_SPOT && (la->mode & LA_SHAD_BUF)) {
 			float lvec_clip[3];
 			float vvec_clip[3];
@@ -1471,41 +1503,40 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 			interp_v3_v3v3(lvec_clip, vec, lvec, clipsta_fac);
 			interp_v3_v3v3(vvec_clip, vec, vvec, clipsta_fac);
 
-			glVertex3fv(lvec_clip);
-			glVertex3fv(vvec_clip);
+			immVertex3fv(pos, lvec_clip);
+			immVertex3fv(pos, vvec_clip);
 		}
 		/* Else, draw spot direction (using distance as end limit, same as for Area lamp). */
 		else {
-			glVertex3f(0.0, 0.0, -circrad);
-			glVertex3f(0.0, 0.0, -la->dist);
+			immVertex3f(pos, 0.0f, 0.0f, -circrad);
+			immVertex3f(pos, 0.0f, 0.0f, -la->dist);
 		}
-		glEnd();
+		immEnd();
 	}
 	else if (ELEM(la->type, LA_HEMI, LA_SUN)) {
-		
 		/* draw the line from the circle along the dist */
-		glBegin(GL_LINES);
+		immBegin(GL_LINES, 2);
 		vec[2] = -circrad;
-		glVertex3fv(vec);
+		immVertex3fv(pos, vec);
 		vec[2] = -la->dist;
-		glVertex3fv(vec);
-		glEnd();
-		
+		immVertex3fv(pos, vec);
+		immEnd();
+
 		if (la->type == LA_HEMI) {
 			/* draw the hemisphere curves */
 			short axis, steps, dir;
 			float outdist, zdist, mul;
 			zero_v3(vec);
-			outdist = 0.14; mul = 1.4; dir = 1;
-			
+			outdist = 0.14f; mul = 1.4f; dir = 1;
+
 			setlinestyle(4);
 			/* loop over the 4 compass points, and draw each arc as a LINE_STRIP */
 			for (axis = 0; axis < 4; axis++) {
-				float v[3] = {0.0, 0.0, 0.0};
-				zdist = 0.02;
-				
-				glBegin(GL_LINE_STRIP);
-				
+				float v[3] = {0.0f, 0.0f, 0.0f};
+				zdist = 0.02f;
+
+				immBegin(GL_LINE_STRIP, 6);
+
 				for (steps = 0; steps < 6; steps++) {
 					if (axis == 0 || axis == 1) {       /* x axis up, x axis down */
 						/* make the arcs start at the edge of the energy circle */
@@ -1518,13 +1549,13 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 					}
 
 					v[2] = v[2] - steps * zdist;
-					
-					glVertex3fv(v);
-					
+
+					immVertex3fv(pos, v);
+
 					zdist = zdist * mul;
 				}
-				
-				glEnd();
+
+				immEnd();
 				/* flip the direction */
 				dir = -dir;
 			}
@@ -1532,71 +1563,65 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 
 #ifdef WITH_GAMEENGINE
 		if (drawshadowbox) {
-			draw_transp_sun_volume(la);
+			draw_transp_sun_volume(la, pos);
 		}
 #endif
-
 	}
 	else if (la->type == LA_AREA) {
 		setlinestyle(3);
 		if (la->area_shape == LA_AREA_SQUARE)
-			fdrawbox(-la->area_size * 0.5f, -la->area_size * 0.5f, la->area_size * 0.5f, la->area_size * 0.5f);
+			imm_draw_line_box_3D(pos, -la->area_size * 0.5f, -la->area_size * 0.5f, la->area_size * 0.5f, la->area_size * 0.5f);
 		else if (la->area_shape == LA_AREA_RECT)
-			fdrawbox(-la->area_size * 0.5f, -la->area_sizey * 0.5f, la->area_size * 0.5f, la->area_sizey * 0.5f);
+			imm_draw_line_box_3D(pos, -la->area_size * 0.5f, -la->area_sizey * 0.5f, la->area_size * 0.5f, la->area_sizey * 0.5f);
 
-		glBegin(GL_LINES);
-		glVertex3f(0.0, 0.0, -circrad);
-		glVertex3f(0.0, 0.0, -la->dist);
-		glEnd();
+		immBegin(GL_LINES, 2);
+		immVertex3f(pos, 0.0f, 0.0f, -circrad);
+		immVertex3f(pos, 0.0f, 0.0f, -la->dist);
+		immEnd();
 	}
-	
+
 	/* and back to viewspace */
-	glPushMatrix();
-	glLoadMatrixf(rv3d->viewmat);
+	gpuPushMatrix();
+	gpuLoadMatrix3D(rv3d->viewmat);
 	copy_v3_v3(vec, ob->obmat[3]);
 
 	setlinestyle(0);
-	
+
 	if ((la->type == LA_SPOT) && (la->mode & LA_SHAD_BUF) && (is_view == false)) {
-		drawshadbuflimits(la, ob->obmat);
+		drawshadbuflimits(la, ob->obmat, pos);
 	}
-	
+
 	if ((dflag & DRAW_CONSTCOLOR) == 0) {
-		UI_GetThemeColor4ubv(TH_LAMP, col);
-		glColor4ubv(col);
+		immUniformThemeColor(TH_LAMP);
 	}
 
 	glEnable(GL_BLEND);
-	
+
 	if (vec[2] > 0) vec[2] -= circrad;
 	else vec[2] += circrad;
-	
-	glBegin(GL_LINES);
-	glVertex3fv(vec);
+
+	immBegin(GL_LINES, 2);
+	immVertex3fv(pos, vec);
 	vec[2] = 0;
-	glVertex3fv(vec);
-	glEnd();
-	
+	immVertex3fv(pos, vec);
+	immEnd();
+
 	glPointSize(2.0);
-	glBegin(GL_POINTS);
-	glVertex3fv(vec);
-	glEnd();
-	
+	immBegin(GL_POINTS, 1);
+	immVertex3fv(pos, vec);
+	immEnd();
+
 	glDisable(GL_BLEND);
-	
-	if ((dflag & DRAW_CONSTCOLOR) == 0) {
-		/* restore for drawing extra stuff */
-		glColor3ubv(ob_wire_col);
-	}
-	/* and finally back to org object space! */
-	glPopMatrix();
+
+	immUnbindProgram();
+	gpuMatrixEnd();
 }
 
 static void draw_limit_line(float sta, float end, const short dflag, const unsigned char col[3], unsigned pos)
 {
 	immBegin(GL_LINES, 2);
-	immVertex3f(pos, 0.0, 0.0, -sta);
-	immVertex3f(pos, 0.0, 0.0, -end);
+	immVertex3f(pos, 0.0f, 0.0f, -sta);
+	immVertex3f(pos, 0.0f, 0.0f, -end);
 	immEnd();
 
 	if (!(dflag & DRAW_PICKING)) {
@@ -1607,8 +1632,8 @@ static void draw_limit_line(float sta, float end, const short dflag, const unsig
 		if ((dflag & DRAW_CONSTCOLOR) == 0) {
 			immUniformColor3ubv(col);
 		}
-		immVertex3f(pos, 0.0, 0.0, -sta);
-		immVertex3f(pos, 0.0, 0.0, -end);
+		immVertex3f(pos, 0.0f, 0.0f, -sta);
+		immVertex3f(pos, 0.0f, 0.0f, -end);
 		immEnd();
 	}
 }
@@ -6053,6 +6078,30 @@ static void draw_box(const float vec[8][3], bool solid)
 	}
 
 	glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+static void imm_draw_box(const float vec[8][3], bool solid, unsigned pos)
+{
+	static const GLubyte quad_indices[24] = {0,1,2,3,7,6,5,4,4,5,1,0,3,2,6,7,3,7,4,0,1,5,6,2};
+	static const GLubyte line_indices[24] = {0,1,1,2,2,3,3,0,0,4,4,5,5,6,6,7,7,4,1,5,2,6,3,7};
+
+	const GLubyte *indices;
+	GLenum prim_type;
+
+	if (solid) {
+		indices = quad_indices;
+		prim_type = GL_QUADS;
+	}
+	else {
+		indices = line_indices;
+		prim_type = GL_LINES;
+	}
+
+	immBegin(prim_type, 24);
+	for (int i = 0; i < 24; ++i) {
+		immVertex3fv(pos, vec[indices[i]]);
+	}
+	immEnd();
 }
 
 static void draw_bb_quadric(BoundBox *bb, char type, bool around_origin)
