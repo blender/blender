@@ -135,6 +135,7 @@ void gpuMatrixBegin3D_legacy(void);
 
 /* set uniform values for currently bound shader */
 void gpuBindMatrices(GLuint program);
+bool gpuMatricesDirty(void); /* since last bind */
 
 #ifdef __cplusplus
 }
