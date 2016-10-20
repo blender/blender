@@ -92,6 +92,9 @@ void glutil_draw_filled_arc(float start, float angle, float radius, int nsegment
  */
 void imm_draw_lined_circle(unsigned pos, float x, float y, float radius, int nsegments);
 
+/* use this version when VertexFormat has a vec3 position */
+void imm_draw_lined_circle_3D(unsigned pos, float x, float y, float radius, int nsegments);
+
 /**
  * Draw a filled circle with the given \a radius.
  * The circle is centered at \a x, \a y and drawn in the XY plane.
@@ -114,6 +117,9 @@ void imm_draw_filled_circle(unsigned pos, float x, float y, float radius, int ns
 * \param y2 top.
 */
 void imm_draw_line_box(unsigned pos, float x1, float y1, float x2, float y2);
+
+/* use this version when VertexFormat has a vec3 position */
+void imm_draw_line_box_3D(unsigned pos, float x1, float y1, float x2, float y2);
 
 /**
 * Pack color into 3 bytes

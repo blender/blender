@@ -203,6 +203,17 @@ void imm_draw_filled_circle(unsigned pos, float x, float y, float rad, int nsegm
 	imm_draw_circle(GL_TRIANGLE_FAN, pos, x, y, rad, nsegments);
 }
 
+void imm_draw_lined_circle_3D(unsigned pos, float x, float y, float rad, int nsegments)
+{
+	immBegin(GL_LINE_LOOP, nsegments);
+	for (int i = 0; i < nsegments; ++i) {
+		float angle = 2 * M_PI * ((float)i / (float)nsegments);
+		immVertex3f(pos, x + rad * cosf(angle),
+		                 y + rad * sinf(angle), 0.0f);
+	}
+	immEnd();
+}
+
 void imm_draw_line_box(unsigned pos, float x1, float y1, float x2, float y2)
 {
 	immBegin(GL_LINE_LOOP, 4);
@@ -210,6 +221,17 @@ void imm_draw_line_box(unsigned pos, float x1, float y1, float x2, float y2)
 	immVertex2f(pos, x1, y2);
 	immVertex2f(pos, x2, y2);
 	immVertex2f(pos, x2, y1);
+	immEnd();
+}
+
+void imm_draw_line_box_3D(unsigned pos, float x1, float y1, float x2, float y2)
+{
+	/* use this version when VertexFormat has a vec3 position */
+	immBegin(GL_LINE_LOOP, 4);
+	immVertex3f(pos, x1, y1, 0.0f);
+	immVertex3f(pos, x1, y2, 0.0f);
+	immVertex3f(pos, x2, y2, 0.0f);
+	immVertex3f(pos, x2, y1, 0.0f);
 	immEnd();
 }
 
