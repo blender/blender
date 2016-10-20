@@ -35,7 +35,6 @@ void immBindBuiltinProgram(GPUBuiltinShader shader_id)
 {
 	GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
 	immBindProgram(shader->program);
-	gpuBindMatrices(shader->program);
 }
 
 void immUniformThemeColor(int color_id)
