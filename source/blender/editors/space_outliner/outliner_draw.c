@@ -68,6 +68,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "GPU_immediate.h"
+
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
@@ -1806,14 +1808,32 @@ static void outliner_back(ARegion *ar)
 {
 	int ystart;
 	
-	UI_ThemeColorShade(TH_BACK, 6);
 	ystart = (int)ar->v2d.tot.ymax;
 	ystart = UI_UNIT_Y * (ystart / (UI_UNIT_Y)) - OL_Y_OFFSET;
-	
-	while (ystart + 2 * UI_UNIT_Y > ar->v2d.cur.ymin) {
-		glRecti(0, ystart, (int)ar->v2d.cur.xmax, ystart + UI_UNIT_Y);
-		ystart -= 2 * UI_UNIT_Y;
+
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformThemeColorShade(TH_BACK, 6);
+
+	const float x1 = 0.0f, x2 = ar->v2d.cur.xmax;
+	float y1 = ystart, y2;
+	int tot = (int)floor(ystart - ar->v2d.cur.ymin + 2 * UI_UNIT_Y) / (2 * UI_UNIT_Y);
+
+	if (tot > 0) {
+		immBegin(GL_QUADS, 4 * tot);
+		while (tot--) {
+			y1 -= 2 * UI_UNIT_Y;
+			y2 = y1 + UI_UNIT_Y;
+			immVertex2f(pos, x1, y1);
+			immVertex2f(pos, x2, y1);
+			immVertex2f(pos, x2, y2);
+			immVertex2f(pos, x1, y2);
+		}
+		immEnd();
 	}
+	immUnbindProgram();
 }
 
 static void outliner_draw_restrictcols(ARegion *ar)
