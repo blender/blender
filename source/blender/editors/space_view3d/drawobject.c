@@ -105,6 +105,9 @@
 
 #include "view3d_intern.h"  /* bad level include */
 
+/* prototypes */
+static void imm_draw_box(const float vec[8][3], bool solid, unsigned pos);
+
 /* Workaround for sequencer scene render mode.
  *
  * Strips doesn't use DAG to update objects or so, which
