@@ -233,6 +233,9 @@ bool OpenCLDeviceBase::load_kernels(const DeviceRequestedFeatures& requested_fea
 #else
 	foreach(OpenCLProgram *program, programs) {
 		program->load();
+		if(!program->is_loaded()) {
+			return false;
+		}
 	}
 #endif
 
