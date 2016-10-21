@@ -211,8 +211,6 @@ typedef struct drawBMSelect_userData {
 	bool select;
 } drawBMSelect_userData;
 
-static void draw_bounding_volume(Object *ob, char type);
-
 static void drawcube_size(float size, unsigned pos);
 static void drawcircle_size(float size, unsigned pos);
 static void draw_empty_sphere(float size, unsigned pos);
@@ -2113,8 +2111,8 @@ static void drawcamera_stereo3d(
 }
 
 /* flag similar to draw_object() */
-static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
-                       const short dflag, const unsigned char ob_wire_col[4])
+void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
+                const short dflag, const unsigned char ob_wire_col[4])
 {
 	/* a standing up pyramid with (0,0,0) as top */
 	Camera *cam;
@@ -2287,7 +2285,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 }
 
 /* flag similar to draw_object() */
-static void drawspeaker(const unsigned char ob_wire_col[3])
+void drawspeaker(const unsigned char ob_wire_col[3])
 {
 	VertexFormat *format = immVertexFormat();
 	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
@@ -6158,7 +6156,7 @@ static void draw_bb_quadric(BoundBox *bb, char type, bool around_origin)
 	gluDeleteQuadric(qobj);
 }
 
-static void draw_bounding_volume(Object *ob, char type)
+void draw_bounding_volume(Object *ob, char type)
 {
 	BoundBox  bb_local;
 	BoundBox *bb = NULL;
@@ -6406,7 +6404,7 @@ static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data,
 	setlinestyle(0);
 }
 
-static void draw_object_wire_color(Scene *scene, Base *base, unsigned char r_ob_wire_col[4])
+void draw_object_wire_color(Scene *scene, Base *base, unsigned char r_ob_wire_col[4])
 {
 	Object *ob = base->object;
 	int colindex = 0;
@@ -6500,7 +6498,7 @@ static void draw_object_matcap_check(View3D *v3d, Object *ob)
 	v3d->flag2 |= V3D_SHOW_SOLID_MATCAP;
 }
 
-static void draw_rigidbody_shape(Object *ob)
+void draw_rigidbody_shape(Object *ob)
 {
 	BoundBox *bb = NULL;
 	float size[3], vec[8][3];
@@ -6712,7 +6710,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 
 		/* TODO Viewport: draw only depth here, for selection */
 		if (!IS_VIEWPORT_LEGACY(v3d)) {
-			if (ELEM(ob->type, OB_EMPTY, OB_LAMP)) {
+			if ((dt == OB_BOUNDBOX) || ELEM(ob->type, OB_EMPTY, OB_LAMP, OB_CAMERA, OB_SPEAKER)) {
 				glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 			}
 		}

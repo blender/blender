@@ -148,10 +148,17 @@ void draw_mesh_object_outline(View3D *v3d, Object *ob, struct DerivedMesh *dm);
 bool draw_glsl_material(Scene *scene, struct Object *ob, View3D *v3d, const char dt);
 void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob, const char dt, int outline);
 void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob);
+
+void draw_object_wire_color(Scene *scene, Base *base, unsigned char r_ob_wire_col[4]);
 void drawaxes(const float viewmat_local[4][4], float size, char drawtype, const unsigned char color[4]);
 void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
               const char dt, const short dflag, const unsigned char ob_wire_col[4],
               const bool is_obact);
+void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
+                const short dflag, const unsigned char ob_wire_col[4]);
+void drawspeaker(const unsigned char ob_wire_col[3]);
+void draw_bounding_volume(struct Object *ob, char type);
+void draw_rigidbody_shape(struct Object *ob);
 
 void view3d_cached_text_draw_begin(void);
 void view3d_cached_text_draw_add(const float co[3],

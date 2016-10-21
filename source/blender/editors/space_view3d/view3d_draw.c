@@ -1304,8 +1304,8 @@ static void view3d_draw_grid(const bContext *C, ARegion *ar)
 /* ******************** non-meshes ***************** */
 
 static void view3d_draw_non_mesh(
-Object *ob, Base *base, View3D *v3d,
-RegionView3D *rv3d, const unsigned char color[4])
+Scene *scene, Object *ob, Base *base, View3D *v3d,
+RegionView3D *rv3d, const bool is_boundingbox, const unsigned char color[4])
 {
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
@@ -1317,15 +1317,40 @@ RegionView3D *rv3d, const unsigned char color[4])
 	ED_view3d_init_mats_rv3d_gl(ob, rv3d);
 
 	switch (ob->type) {
+		case OB_MESH:
+		case OB_FONT:
+		case OB_CURVE:
+		case OB_SURF:
+		case OB_MBALL:
+			if (is_boundingbox) {
+				draw_bounding_volume(ob, ob->boundtype);
+			}
+			break;
 		case OB_EMPTY:
 			drawaxes(rv3d->viewmatob, ob->empty_drawsize, ob->empty_drawtype, color);
 			break;
 		case OB_LAMP:
-			drawlamp(v3d, rv3d, base, OB_SOLID, DRAW_CONSTCOLOR, color, false);
+			drawlamp(v3d, rv3d, base, OB_SOLID, DRAW_CONSTCOLOR, color, ob == OBACT);
+			break;
+		case OB_CAMERA:
+			drawcamera(scene, v3d, rv3d, base, DRAW_CONSTCOLOR, color);
+			break;
+		case OB_SPEAKER:
+			drawspeaker(color);
+			break;
+		case OB_LATTICE:
+			/* TODO */
+			break;
+		case OB_ARMATURE:
+			/* TODO */
 			break;
 		default:
 		/* TODO Viewport: handle the other cases*/
 			break;
+	}
+
+	if (ob->rigidbody_object) {
+		draw_rigidbody_shape(ob);
 	}
 
 	ED_view3d_clear_mats_rv3d(rv3d);
@@ -1480,12 +1505,10 @@ static void view3d_draw_non_meshes(const bContext *C, ARegion *ar)
 	Object *ob_act = CTX_data_active_object(C);
 	Base *base;
 
-	unsigned char *color, *color_prev = NULL;
-	unsigned char color_active[4], color_select[4], color_normal[4];
+	bool is_boundingbox = ((v3d->drawtype == OB_BOUNDBOX) ||
+	                        ((v3d->drawtype == OB_RENDER) && (v3d->prev_drawtype == OB_BOUNDBOX)));
 
-	UI_GetThemeColor4ubv(TH_ACTIVE, color_active);
-	UI_GetThemeColor4ubv(TH_SELECT, color_select);
-	UI_GetThemeColor4ubv(TH_WIRE, color_normal);
+	unsigned char ob_wire_col[4];            /* dont initialize this */
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);  /* disable write in zbuffer */
@@ -1498,19 +1521,8 @@ static void view3d_draw_non_meshes(const bContext *C, ARegion *ar)
 		if (v3d->lay & base->lay) {
 			Object *ob = base->object;
 
-			if (ob == ob_act)
-				color = color_active;
-			else if (ob->flag & SELECT)
-				color = color_select;
-			else
-				color = color_normal;
-
-			if (color != color_prev) {
-				glColor4ubv(color);
-				color_prev = color;
-			}
-
-			view3d_draw_non_mesh(ob, base, v3d, rv3d, color);
+			draw_object_wire_color(scene, base, ob_wire_col);
+			view3d_draw_non_mesh(scene, ob, base, v3d, rv3d, is_boundingbox, ob_wire_col);
 		}
 	}
 
