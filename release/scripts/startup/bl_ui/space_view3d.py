@@ -3000,6 +3000,19 @@ class VIEW3D_PT_viewport_debug(Panel):
 
         col = layout.column()
         col.label(text="Placeholder for debugging options")
+        col.separator()
+
+        row = col.row()
+        row.active = not view.show_combined_depth
+        row.prop(view, "show_scene_depth")
+        row = col.row()
+        row.active = not view.show_scene_depth
+        row.prop(view, "show_combined_depth")
+
+        row = col.row(align=True)
+        row.active = view.show_scene_depth or view.show_combined_depth
+        row.prop(view, "debug_near")
+        row.prop(view, "debug_far")
 
 
 class VIEW3D_PT_grease_pencil(GreasePencilDataPanel, Panel):

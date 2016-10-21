@@ -2777,6 +2777,30 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Modern Viewport", "Use modern viewport");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
+	prop = RNA_def_property(srna, "show_scene_depth", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "tmp_compat_flag", V3D_DEBUG_SHOW_SCENE_DEPTH);
+	RNA_def_property_ui_text(prop, "Show Scene Depth", "Debug option to show the depth in the viewport");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "show_combined_depth", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "tmp_compat_flag", V3D_DEBUG_SHOW_COMBINED_DEPTH);
+	RNA_def_property_ui_text(prop, "Show Combined Depth", "Debug option to show the depth in the viewport");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "debug_near", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_float_sdna(prop, NULL, "debug.znear");
+	RNA_def_property_ui_text(prop, "Near", "Near distance for depth debugging");
+	RNA_def_property_range(prop, 1e-6f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 3);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "debug_far", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_float_sdna(prop, NULL, "debug.zfar");
+	RNA_def_property_range(prop, 1e-6f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 3);
+	RNA_def_property_ui_text(prop, "Far", "Far distance for depth debugging");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
 	/* *** Animated *** */
 	RNA_define_animate_sdna(true);
 	/* region */

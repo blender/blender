@@ -56,6 +56,8 @@
 #include "GPU_immediate.h"
 #include "GPU_viewport.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -73,9 +75,10 @@ typedef struct DrawData {
 	bool render_border;
 	bool clip_border;
 	bool is_render;
+	GPUViewport *viewport;
 } DrawData;
 
-static void view3d_draw_data_init(const bContext *C, ARegion *ar, DrawData *draw_data)
+static void view3d_draw_data_init(const bContext *C, ARegion *ar, RegionView3D *rv3d, DrawData *draw_data)
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -84,6 +87,8 @@ static void view3d_draw_data_init(const bContext *C, ARegion *ar, DrawData *draw
 
 	draw_data->render_border = ED_view3d_calc_render_border(scene, v3d, ar, &draw_data->border_rect);
 	draw_data->clip_border = (draw_data->render_border && !BLI_rcti_compare(&ar->drawrct, &draw_data->border_rect));
+
+	draw_data->viewport = rv3d->viewport;
 }
 
 /* ******************** general functions ***************** */
@@ -263,6 +268,70 @@ static void view3d_stereo3d_setup(Scene *scene, View3D *v3d, ARegion *ar)
 
 		v3d->camera = view_ob;
 		BLI_unlock_thread(LOCK_VIEW3D);
+	}
+}
+
+/* ******************** debug ***************** */
+
+static void view3d_draw_debug_store_depth(ARegion *ar, DrawData *draw_data)
+{
+	GPUViewport *viewport = draw_data->viewport;
+	GLint viewport_size[4];
+	glGetIntegerv(GL_VIEWPORT, viewport_size);
+
+	const int x = viewport_size[0];
+	const int y = viewport_size[1];
+	const int w = viewport_size[2];
+	const int h = viewport_size[3];
+
+	if (GPU_viewport_debug_depth_is_valid(viewport)) {
+		if ((GPU_viewport_debug_depth_width(viewport) != w) ||
+			(GPU_viewport_debug_depth_height(viewport) != h))
+		{
+			GPU_viewport_debug_depth_free(viewport);
+		}
+	}
+
+	if (!GPU_viewport_debug_depth_is_valid(viewport)) {
+		char error[256];
+		if (!GPU_viewport_debug_depth_create(viewport, w, h, 0, error)) {
+			fprintf(stderr, "Failed to create depth buffer for debug: %s\n", error);
+			return;
+		}
+	}
+
+	GPU_viewport_debug_depth_store(viewport, x, y);
+}
+
+static void view3d_draw_debug_post_solid(const bContext *C, ARegion *ar, DrawData *draw_data)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+
+	if ((v3d->tmp_compat_flag & V3D_DEBUG_SHOW_SCENE_DEPTH) != 0) {
+		view3d_draw_debug_store_depth(ar, draw_data);
+	}
+}
+
+static void view3d_draw_debug(const bContext *C, ARegion *ar, DrawData *draw_data)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+
+	if ((v3d->tmp_compat_flag & V3D_DEBUG_SHOW_COMBINED_DEPTH) != 0) {
+		/* store */
+		view3d_draw_debug_store_depth(ar, draw_data);
+	}
+
+	if (((v3d->tmp_compat_flag & V3D_DEBUG_SHOW_SCENE_DEPTH) != 0) ||
+		((v3d->tmp_compat_flag & V3D_DEBUG_SHOW_COMBINED_DEPTH) != 0))
+	{
+		/* draw */
+		if (GPU_viewport_debug_depth_is_valid(draw_data->viewport)) {
+			GPU_viewport_debug_depth_draw(draw_data->viewport, v3d->debug.znear, v3d->debug.zfar);
+		}
+	}
+	else {
+		/* cleanup */
+		GPU_viewport_debug_depth_free(draw_data->viewport);
 	}
 }
 
@@ -1481,6 +1550,9 @@ static void view3d_draw_solid_plates(const bContext *C, ARegion *ar, DrawData *d
 	if (draw_data->is_render) {
 		view3d_draw_render_draw(C, scene, ar, v3d, draw_data->clip_border, &draw_data->border_rect);
 	}
+
+	/* debug */
+	view3d_draw_debug_post_solid(C, ar, draw_data);
 }
 
 /**
@@ -1606,6 +1678,7 @@ static void view3d_draw_view(const bContext *C, ARegion *ar, DrawData *draw_data
 	view3d_draw_reference_images(C);
 	view3d_draw_manipulator(C);
 	view3d_draw_region_info(C, ar);
+	view3d_draw_debug(C, ar, draw_data);
 }
 
 void view3d_main_region_draw(const bContext *C, ARegion *ar)
@@ -1625,7 +1698,7 @@ void view3d_main_region_draw(const bContext *C, ARegion *ar)
 	 * before we even call the drawing routine, but let's move on for now (dfelinto)
 	 * but this is a provisory way to start seeing things in the viewport */
 	DrawData draw_data;
-	view3d_draw_data_init(C, ar, &draw_data);
+	view3d_draw_data_init(C, ar, rv3d, &draw_data);
 	view3d_draw_view(C, ar, &draw_data);
 
 	v3d->flag |= V3D_INVALID_BACKBUF;
