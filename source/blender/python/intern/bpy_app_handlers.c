@@ -317,7 +317,13 @@ void bpy_app_generic_callback(struct Main *UNUSED(main), struct ID *id, void *ar
 			func = PyList_GET_ITEM(cb_list, pos);
 			ret = PyObject_Call(func, args, NULL);
 			if (ret == NULL) {
-				PyErr_Print();
+				/* Don't set last system variables because they might cause some
+				 * dangling pointers to external render engines (when exception
+				 * happens during rendering) which will break logic of render pipeline
+				 * which expects to be the only user of render engine when rendering
+				 * is finished.
+				 */
+				PyErr_PrintEx(0);
 				PyErr_Clear();
 			}
 			else {

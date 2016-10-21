@@ -113,19 +113,33 @@ static int copy_data_path_button_poll(bContext *C)
 	return 0;
 }
 
-static int copy_data_path_button_exec(bContext *C, wmOperator *UNUSED(op))
+static int copy_data_path_button_exec(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;
 	char *path;
 	int index;
 
+	const bool full_path = RNA_boolean_get(op->ptr, "full_path");
+
 	/* try to create driver using property retrieved from UI */
 	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
-	if (ptr.id.data && ptr.data && prop) {
-		path = RNA_path_from_ID_to_property(&ptr, prop);
-		
+	if (ptr.id.data != NULL) {
+
+		if (full_path) {
+
+			if (prop) {
+				path = RNA_path_full_property_py_ex(&ptr, prop, index, true);
+			}
+			else {
+				path = RNA_path_full_struct_py(&ptr);
+			}
+		}
+		else {
+			path = RNA_path_from_ID_to_property(&ptr, prop);
+		}
+
 		if (path) {
 			WM_clipboard_text_set(path, false);
 			MEM_freeN(path);
@@ -138,6 +152,8 @@ static int copy_data_path_button_exec(bContext *C, wmOperator *UNUSED(op))
 
 static void UI_OT_copy_data_path_button(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Copy Data Path";
 	ot->idname = "UI_OT_copy_data_path_button";
@@ -149,6 +165,10 @@ static void UI_OT_copy_data_path_button(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER;
+
+	/* properties */
+	prop = RNA_def_boolean(ot->srna, "full_path", false, "full_path", "Copy full data path");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int copy_python_command_button_poll(bContext *C)
@@ -1115,12 +1135,18 @@ void ED_operatortypes_ui(void)
 void ED_keymap_ui(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap = WM_keymap_find(keyconf, "User Interface", 0, 0);
+	wmKeyMapItem *kmi;
 
 	/* eyedroppers - notice they all have the same shortcut, but pass the event
 	 * through until a suitable eyedropper for the active button is found */
 	WM_keymap_add_item(keymap, "UI_OT_eyedropper_color", EKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "UI_OT_eyedropper_id", EKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "UI_OT_eyedropper_depth", EKEY, KM_PRESS, 0, 0);
+
+	/* Copy Data Path */
+	WM_keymap_add_item(keymap, "UI_OT_copy_data_path_button", CKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "UI_OT_copy_data_path_button", CKEY, KM_PRESS, KM_CTRL | KM_SHIFT | KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "full_path", true);
 
 	/* keyframes */
 	WM_keymap_add_item(keymap, "ANIM_OT_keyframe_insert_button", IKEY, KM_PRESS, 0, 0);

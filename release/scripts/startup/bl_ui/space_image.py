@@ -687,6 +687,12 @@ class IMAGE_PT_view_properties(Panel):
             sub.active = uvedit.show_stretch
             sub.row().prop(uvedit, "draw_stretch_type", expand=True)
 
+            col = layout.column()
+            col.prop(uvedit, "show_other_objects")
+            row = col.row()
+            row.active = uvedit.show_other_objects
+            row.prop(uvedit, "other_uv_filter", text="Filter")
+
         if show_render and ima:
             layout.separator()
             render_slot = ima.render_slots.active

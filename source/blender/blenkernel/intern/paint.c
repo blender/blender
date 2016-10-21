@@ -409,7 +409,7 @@ Palette *BKE_palette_copy(Main *bmain, Palette *palette)
 	return palette_new;
 }
 
-void BKE_palette_make_local(Main *bmain, Palette *palette, bool lib_local)
+void BKE_palette_make_local(Main *bmain, Palette *palette, const bool lib_local)
 {
 	BKE_id_make_local_generic(bmain, &palette->id, true, lib_local);
 }

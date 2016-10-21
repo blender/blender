@@ -2791,7 +2791,7 @@ void init_userdef_do_versions(void)
 		}
 	}
 
-	if (!USER_VERSION_ATLEAST(278, 1)) {
+	if (!USER_VERSION_ATLEAST(278, 2)) {
 		bTheme *btheme;
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			rgba_char_args_set(btheme->tv3d.vertex_bevel, 0, 165, 255, 255);

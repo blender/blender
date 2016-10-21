@@ -986,7 +986,7 @@ if(SUPPORT_SSE_BUILD)
 	add_definitions(-D__SSE__ -D__MMX__)
 endif()
 if(SUPPORT_SSE2_BUILD)
-	set(PLATFORM_CFLAGS " ${COMPILER_SSE2_FLAG} ${PLATFORM_CFLAGS}")
+	set(PLATFORM_CFLAGS " ${PLATFORM_CFLAGS} ${COMPILER_SSE2_FLAG}")
 	add_definitions(-D__SSE2__)
 	if(NOT SUPPORT_SSE_BUILD) # dont double up
 		add_definitions(-D__MMX__)

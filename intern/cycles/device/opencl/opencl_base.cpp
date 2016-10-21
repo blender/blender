@@ -212,6 +212,11 @@ bool OpenCLDeviceBase::load_kernels(const DeviceRequestedFeatures& requested_fea
 	/* Call actual class to fill the vector with its programs. */
 	load_kernels(requested_features, programs);
 
+	/* Parallel compilation is supported by Cycles, but currently all OpenCL frameworks
+	 * serialize the calls internally, so it's not much use right now.
+	 * Note: When enabling parallel compilation, use_stdout in the OpenCLProgram constructor
+	 * should be set to false as well. */
+#if 0
 	TaskPool task_pool;
 	foreach(OpenCLProgram *program, programs) {
 		task_pool.push(function_bind(&OpenCLProgram::load, program));
@@ -225,6 +230,14 @@ bool OpenCLDeviceBase::load_kernels(const DeviceRequestedFeatures& requested_fea
 			return false;
 		}
 	}
+#else
+	foreach(OpenCLProgram *program, programs) {
+		program->load();
+		if(!program->is_loaded()) {
+			return false;
+		}
+	}
+#endif
 
 	return true;
 }
@@ -479,9 +492,9 @@ void OpenCLDeviceBase::shader(DeviceTask& task)
 	cl_kernel kernel;
 
 	if(task.shader_eval_type >= SHADER_EVAL_BAKE)
-		kernel = base_program(ustring("shader"));
-	else
 		kernel = base_program(ustring("bake"));
+	else
+		kernel = base_program(ustring("shader"));
 
 	cl_uint start_arg_index =
 		kernel_set_args(kernel,

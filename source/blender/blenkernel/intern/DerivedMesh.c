@@ -3256,7 +3256,7 @@ void DM_calc_tangents_names_from_gpu(
 	*r_tangent_names_count = count;
 }
 
-static void DM_calc_loop_tangents_thread(TaskPool *UNUSED(pool), void *taskdata, int UNUSED(threadid))
+static void DM_calc_loop_tangents_thread(TaskPool * __restrict UNUSED(pool), void *taskdata, int UNUSED(threadid))
 {
 	struct SGLSLMeshToTangent *mesh2tangent = taskdata;
 	/* new computation method */
