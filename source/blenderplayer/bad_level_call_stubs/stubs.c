@@ -781,12 +781,6 @@ bool RE_RenderResult_is_stereo(RenderResult *res) RET_ZERO
 void uiTemplateImageViews(uiLayout *layout, struct PointerRNA *imfptr) RET_NONE
 
 /* GPU */
-void gpuMatrixBegin3D_legacy(void) RET_NONE
-void gpuMatrixEnd() RET_NONE
-void gpuMultMatrix3D(const float m[4][4]) RET_NONE
-void gpuTranslate3fv(const float vec[3]) RET_NONE
-void gpuScale3fv(const float vec[3]) RET_NONE
-void gpuRotateAxis(float deg, char axis) RET_NONE
 void immBindBuiltinProgram(GPUBuiltinShader shader_id) RET_NONE
 
 #endif // WITH_GAMEENGINE
