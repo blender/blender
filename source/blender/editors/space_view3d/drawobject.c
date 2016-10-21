@@ -2184,7 +2184,6 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	if (ob_wire_col) {
 		immUniformColor3ubv(ob_wire_col);
 	}
-	glDisable(GL_CULL_FACE);
 	glLineWidth(1);
 
 	/* camera frame */
@@ -2227,7 +2226,10 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	 * for active cameras so the wire can be seen side-on */
 	for (int i = 0; i < 2; i++) {
 		if (i == 0) immBegin(GL_LINE_LOOP, 3);
-		else if (i == 1 && is_active) immBegin(GL_TRIANGLES, 3);
+		else if (i == 1 && is_active) {
+			glDisable(GL_CULL_FACE); /* TODO: declarative state tracking */
+			immBegin(GL_TRIANGLES, 3);
+		}
 		else break;
 
 		tvec[0] = shift[0] + ((-0.7f * drawsize) * scale[0]);
