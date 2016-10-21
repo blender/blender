@@ -110,8 +110,18 @@ void TextureBaseOperation::executePixelSampled(float output[4], float x, float y
 	int retval;
 	const float cx = this->getWidth() / 2;
 	const float cy = this->getHeight() / 2;
-	const float u = (x - cx) / this->getWidth() * 2;
-	const float v = (y - cy) / this->getHeight() * 2;
+	float u = (x - cx) / this->getWidth() * 2;
+	float v = (y - cy) / this->getHeight() * 2;
+
+	/* When no interpolation/filtering happens in multitex() foce nearest interpolation.
+	 * We do it here because (a) we can't easily say multitex() that we want nearest
+	 * interpolaiton and (b) in such configuration multitex() sinply floor's the value
+	 * which often produces artifacts.
+	 */
+	if ((m_texture->imaflag & TEX_INTERPOL) == 0) {
+		u += 0.5f / cx;
+		v += 0.5f / cy;
+	}
 
 	this->m_inputSize->readSampled(textureSize, x, y, sampler);
 	this->m_inputOffset->readSampled(textureOffset, x, y, sampler);
