@@ -216,6 +216,7 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 
 		glBindTexture(triple->target, triple->bind);
 
+		immUniform1f("alpha", 1.0f);
 		immUniform1i("image", activeTex);
 
 		immBegin(GL_QUADS, 4);
