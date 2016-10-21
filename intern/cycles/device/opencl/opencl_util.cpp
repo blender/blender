@@ -316,6 +316,10 @@ bool OpenCLDeviceBase::OpenCLProgram::build_kernel(const string *debug_src)
 
 	clGetProgramBuildInfo(program, device->cdDevice, CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
 
+	if(ciErr != CL_SUCCESS) {
+		add_error(string("OpenCL build failed with error ") + clewErrorString(ciErr) + ", errors in console.");
+	}
+
 	if(ret_val_size > 1) {
 		vector<char> build_log(ret_val_size + 1);
 		clGetProgramBuildInfo(program, device->cdDevice, CL_PROGRAM_BUILD_LOG, ret_val_size, &build_log[0], NULL);
@@ -323,22 +327,11 @@ bool OpenCLDeviceBase::OpenCLProgram::build_kernel(const string *debug_src)
 		build_log[ret_val_size] = '\0';
 		/* Skip meaningless empty output from the NVidia compiler. */
 		if(!(ret_val_size == 2 && build_log[0] == '\n')) {
-			add_error("OpenCL build failed: errors in console");
-			if(use_stdout) {
-				fprintf(stderr, "OpenCL kernel build output:\n%s\n", &build_log[0]);
-			}
-			else {
-				compile_output = string(&build_log[0]);
-			}
+			add_log(string("OpenCL program ") + program_name + " build output: " + string(&build_log[0]), ciErr == CL_SUCCESS);
 		}
 	}
 
-	if(ciErr != CL_SUCCESS) {
-		add_error(string("OpenCL build failed: ") + clewErrorString(ciErr));
-		return false;
-	}
-
-	return true;
+	return (ciErr == CL_SUCCESS);
 }
 
 bool OpenCLDeviceBase::OpenCLProgram::compile_kernel(const string *debug_src)
