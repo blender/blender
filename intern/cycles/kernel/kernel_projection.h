@@ -224,24 +224,18 @@ ccl_device_inline float2 direction_to_panorama(KernelGlobals *kg, float3 dir)
 	}
 }
 
-ccl_device_inline float3 spherical_stereo_position(KernelGlobals *kg,
-                                                   float3 dir,
-                                                   float3 pos)
+ccl_device_inline void spherical_stereo_transform(KernelGlobals *kg, float3 *P, float3 *D)
 {
 	float interocular_offset = kernel_data.cam.interocular_offset;
 
 	/* Interocular offset of zero means either non stereo, or stereo without
-	 * spherical stereo.
-	 */
-	if(interocular_offset == 0.0f) {
-		return pos;
-	}
+	 * spherical stereo. */
+	kernel_assert(interocular_offset != 0.0f);
 
 	if(kernel_data.cam.pole_merge_angle_to > 0.0f) {
-		float3 normalized_direction = normalize(dir);
 		const float pole_merge_angle_from = kernel_data.cam.pole_merge_angle_from,
 		            pole_merge_angle_to = kernel_data.cam.pole_merge_angle_to;
-		float altitude = fabsf(safe_asinf(normalized_direction.z));
+		float altitude = fabsf(safe_asinf(D->z));
 		if(altitude > pole_merge_angle_to) {
 			interocular_offset = 0.0f;
 		}
@@ -253,32 +247,20 @@ ccl_device_inline float3 spherical_stereo_position(KernelGlobals *kg,
 	}
 
 	float3 up = make_float3(0.0f, 0.0f, 1.0f);
-	float3 side = normalize(cross(dir, up));
+	float3 side = normalize(cross(*D, up));
+	float3 stereo_offset = side * interocular_offset;
 
-	return pos + (side * interocular_offset);
-}
+	*P += stereo_offset;
 
-/* NOTE: Ensures direction is normalized. */
-ccl_device float3 spherical_stereo_direction(KernelGlobals *kg,
-                                             float3 dir,
-                                             float3 pos,
-                                             float3 newpos)
-{
+	/* Convergence distance is FLT_MAX in the case of parallel convergence mode,
+	 * no need to modify direction in this case either. */
 	const float convergence_distance = kernel_data.cam.convergence_distance;
-	const float3 normalized_dir = normalize(dir);
-	/* Interocular offset of zero means either no stereo, or stereo without
-	 * spherical stereo.
-	 * Convergence distance is FLT_MAX in the case of parallel convergence mode,
-	 * no need to mdify direction in this case either.
-	 */
-	if(kernel_data.cam.interocular_offset == 0.0f ||
-	   convergence_distance == FLT_MAX)
-	{
-		return normalized_dir;
-	}
 
-	float3 screenpos = pos + (normalized_dir * convergence_distance);
-	return normalize(screenpos - newpos);
+	if(convergence_distance != FLT_MAX)
+	{
+		float3 screen_offset = convergence_distance * (*D);
+		*D = normalize(screen_offset - stereo_offset);
+	}
 }
 
 CCL_NAMESPACE_END
