@@ -43,7 +43,7 @@ ccl_device void svm_node_tex_voxel(KernelGlobals *kg,
 		co = transform_point(&tfm, co);
 	}
 	float4 r;
-#  if defined(__KERNEL_GPU__)
+#  if defined(__KERNEL_CUDA__)
 #    if __CUDA_ARCH__ >= 300
 	CUtexObject tex = kernel_tex_fetch(__bindless_mapping, id);
 	if(id < 2048) /* TODO(dingto): Make this a variable */
@@ -55,9 +55,11 @@ ccl_device void svm_node_tex_voxel(KernelGlobals *kg,
 #    else /* __CUDA_ARCH__ >= 300 */
 	r = volume_image_texture_3d(id, co.x, co.y, co.z);
 #    endif
-#  else /* __KERNEL_GPU__ */
+#  elif defined(__KERNEL_OPENCL__)
+	r = kernel_tex_image_interp_3d(kg, id, co.x, co.y, co.z);
+#  else
 	r = kernel_tex_image_interp_3d(id, co.x, co.y, co.z);
-#  endif
+#  endif /* __KERNEL_CUDA__ */
 #else
 	float4 r = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 #endif
