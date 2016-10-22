@@ -29,147 +29,6 @@ CCL_NAMESPACE_BEGIN
 #  define TEX_NUM_FLOAT4_IMAGES	TEX_NUM_FLOAT4_OPENCL
 #endif
 
-#ifdef __KERNEL_OPENCL__
-
-/* For OpenCL all images are packed in a single array, and we do manual lookup
- * and interpolation. */
-
-ccl_device_inline float4 svm_image_texture_read(KernelGlobals *kg, int id, int offset)
-{
-	/* Float4 */
-	if(id < TEX_START_BYTE4_OPENCL) {
-		return kernel_tex_fetch(__tex_image_float4_packed, offset);
-	}
-	/* Byte4 */
-	else if(id < TEX_START_FLOAT_OPENCL) {
-		uchar4 r = kernel_tex_fetch(__tex_image_byte4_packed, offset);
-		float f = 1.0f/255.0f;
-		return make_float4(r.x*f, r.y*f, r.z*f, r.w*f);
-	}
-	/* Float */
-	else if(id < TEX_START_BYTE_OPENCL) {
-		float f = kernel_tex_fetch(__tex_image_float_packed, offset);
-		return make_float4(f, f, f, 1.0f);
-	}
-	/* Byte */
-	else {
-		uchar r = kernel_tex_fetch(__tex_image_byte_packed, offset);
-		float f = r * (1.0f/255.0f);
-		return make_float4(f, f, f, 1.0f);
-	}
-}
-
-ccl_device_inline int svm_image_texture_wrap_periodic(int x, int width)
-{
-	x %= width;
-	if(x < 0)
-		x += width;
-	return x;
-}
-
-ccl_device_inline int svm_image_texture_wrap_clamp(int x, int width)
-{
-	return clamp(x, 0, width-1);
-}
-
-ccl_device_inline float svm_image_texture_frac(float x, int *ix)
-{
-	int i = float_to_int(x) - ((x < 0.0f)? 1: 0);
-	*ix = i;
-	return x - (float)i;
-}
-
-ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint srgb, uint use_alpha)
-{
-	uint4 info = kernel_tex_fetch(__tex_image_packed_info, id);
-	uint width = info.x;
-	uint height = info.y;
-	uint offset = info.z;
-
-	/* Image Options */
-	uint interpolation = (info.w & (1 << 0)) ? INTERPOLATION_CLOSEST : INTERPOLATION_LINEAR;
-	uint extension;
-	if(info.w & (1 << 1))
-		extension = EXTENSION_REPEAT;
-	else if(info.w & (1 << 2))
-		extension = EXTENSION_EXTEND;
-	else
-		extension = EXTENSION_CLIP;
-
-	float4 r;
-	int ix, iy, nix, niy;
-	if(interpolation == INTERPOLATION_CLOSEST) {
-		svm_image_texture_frac(x*width, &ix);
-		svm_image_texture_frac(y*height, &iy);
-
-		if(extension == EXTENSION_REPEAT) {
-			ix = svm_image_texture_wrap_periodic(ix, width);
-			iy = svm_image_texture_wrap_periodic(iy, height);
-		}
-		else if(extension == EXTENSION_CLIP) {
-			if(x < 0.0f || y < 0.0f || x > 1.0f || y > 1.0f)
-				return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-		}
-		else { /* EXTENSION_EXTEND */
-			ix = svm_image_texture_wrap_clamp(ix, width);
-			iy = svm_image_texture_wrap_clamp(iy, height);
-		}
-
-		r = svm_image_texture_read(kg, id, offset + ix + iy*width);
-	}
-	else { /* INTERPOLATION_LINEAR */
-		float tx = svm_image_texture_frac(x*width - 0.5f, &ix);
-		float ty = svm_image_texture_frac(y*height - 0.5f, &iy);
-
-		if(extension == EXTENSION_REPEAT) {
-			ix = svm_image_texture_wrap_periodic(ix, width);
-			iy = svm_image_texture_wrap_periodic(iy, height);
-
-			nix = svm_image_texture_wrap_periodic(ix+1, width);
-			niy = svm_image_texture_wrap_periodic(iy+1, height);
-		}
-		else {
-			if(extension == EXTENSION_CLIP) {
-				if(x < 0.0f || y < 0.0f || x > 1.0f || y > 1.0f) {
-					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-				}
-			}
-			nix = svm_image_texture_wrap_clamp(ix+1, width);
-			niy = svm_image_texture_wrap_clamp(iy+1, height);
-			ix = svm_image_texture_wrap_clamp(ix, width);
-			iy = svm_image_texture_wrap_clamp(iy, height);
-		}
-
-		r = (1.0f - ty)*(1.0f - tx)*svm_image_texture_read(kg, id, offset + ix + iy*width);
-		r += (1.0f - ty)*tx*svm_image_texture_read(kg, id, offset + nix + iy*width);
-		r += ty*(1.0f - tx)*svm_image_texture_read(kg, id, offset + ix + niy*width);
-		r += ty*tx*svm_image_texture_read(kg, id, offset + nix + niy*width);
-	}
-
-	if(use_alpha && r.w != 1.0f && r.w != 0.0f) {
-		float invw = 1.0f/r.w;
-		r.x *= invw;
-		r.y *= invw;
-		r.z *= invw;
-
-		if(id >= TEX_NUM_FLOAT4_IMAGES) {
-			r.x = min(r.x, 1.0f);
-			r.y = min(r.y, 1.0f);
-			r.z = min(r.z, 1.0f);
-		}
-	}
-
-	if(srgb) {
-		r.x = color_srgb_to_scene_linear(r.x);
-		r.y = color_srgb_to_scene_linear(r.y);
-		r.z = color_srgb_to_scene_linear(r.z);
-	}
-
-	return r;
-}
-
-#else
-
 ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint srgb, uint use_alpha)
 {
 #ifdef __KERNEL_CPU__
@@ -180,6 +39,8 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 #  else
 	float4 r = kernel_tex_image_interp(id, x, y);
 #  endif
+#elif defined(__KERNEL_OPENCL__)
+	float4 r = kernel_tex_image_interp(kg, id, x, y);
 #else
 	float4 r;
 
@@ -338,8 +199,6 @@ ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y,
 
 	return r;
 }
-
-#endif
 
 /* Remap coordnate from 0..1 box to -1..-1 */
 ccl_device_inline float3 texco_remap_square(float3 co)
