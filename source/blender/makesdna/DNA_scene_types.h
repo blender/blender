@@ -1160,6 +1160,14 @@ typedef enum eGP_EditBrush_Types {
 	TOT_GP_EDITBRUSH_TYPES
 } eGP_EditBrush_Types;
 
+/* Lock axis options */
+typedef enum eGP_Lockaxis_Types {
+	GP_LOCKAXIS_NONE = 0,
+	GP_LOCKAXIS_X = 1,
+	GP_LOCKAXIS_Y = 2,
+	GP_LOCKAXIS_Z = 3
+} eGP_Lockaxis_Types;
+
 /* Settings for a GPencil Stroke Sculpting Brush */
 typedef struct GP_EditBrush_Data {
 	short size;             /* radius of brush */
@@ -1190,7 +1198,7 @@ typedef struct GP_BrushEdit_Settings {
 	
 	int brushtype;                /* eGP_EditBrush_Types */
 	int flag;                     /* eGP_BrushEdit_SettingsFlag */
-	char pad[4];
+	int lock_axis;                /* lock drawing to one axis */
 	float alpha;                  /* alpha factor for selection color */
 } GP_BrushEdit_Settings;
 
