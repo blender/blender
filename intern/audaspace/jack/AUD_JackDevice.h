@@ -41,7 +41,7 @@
 typedef void (*AUD_syncFunction)(void*, int, float);
 
 /**
- * This device plays back through Jack.
+ * This device plays back through JACK.
  */
 class AUD_JackDevice : public AUD_SoftwareDevice
 {
@@ -90,7 +90,7 @@ private:
 	static int jack_sync(jack_transport_state_t state, jack_position_t* pos, void* data);
 
 	/**
-	 * Next Jack Transport state (-1 if not expected to change).
+	 * Next JACK Transport state (-1 if not expected to change).
 	 */
 	jack_transport_state_t m_nextState;
 
@@ -150,7 +150,7 @@ protected:
 
 public:
 	/**
-	 * Creates a Jack client for audio output.
+	 * Creates a JACK client for audio output.
 	 * \param name The client name.
 	 * \param specs The wanted audio specification, where only the channel count
 	 *              is important.
@@ -160,7 +160,7 @@ public:
 	AUD_JackDevice(std::string name, AUD_DeviceSpecs specs, int buffersize = AUD_DEFAULT_BUFFER_SIZE);
 
 	/**
-	 * Closes the Jack client.
+	 * Closes the JACK client.
 	 */
 	virtual ~AUD_JackDevice();
 

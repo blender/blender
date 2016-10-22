@@ -155,18 +155,18 @@ AUD_Device* AUD_init(const char* device, AUD_DeviceSpecs specs, int buffersize, 
 		}
 #endif
 #ifdef WITH_JACK
-		else if(dname == "Jack")
+		else if(dname == "JACK")
 		{
 #ifdef __APPLE__
 			struct stat st;
 			if (stat("/Library/Frameworks/Jackmp.framework", &st) != 0) {
-				printf("Warning: Jack Framework not installed\n");
+				printf("Warning: JACK Framework not installed\n");
 				return NULL;
 			}
 			else
 #endif
 			if (!AUD_jack_supported()) {
-				printf("Warning: Jack cllient not installed\n");
+				printf("Warning: JACK cllient not installed\n");
 				return NULL;
 			}
 			else {
