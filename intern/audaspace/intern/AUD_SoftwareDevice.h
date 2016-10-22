@@ -84,6 +84,7 @@ protected:
 
 		/// The calculated final volume of the source.
 		float m_volume;
+		float m_old_volume;
 
 		/// The loop count of the source.
 		int m_loopcount;
