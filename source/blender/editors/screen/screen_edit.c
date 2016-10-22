@@ -2076,7 +2076,13 @@ void ED_screen_animation_timer(bContext *C, int redraws, int refresh, int sync, 
 		sad->flag |= (sync == 0) ? ANIMPLAY_FLAG_NO_SYNC : (sync == 1) ? ANIMPLAY_FLAG_SYNC : 0;
 
 		ScrArea *sa = CTX_wm_area(C);
-		sad->from_anim_edit = (ELEM(sa->spacetype, SPACE_IPO, SPACE_ACTION, SPACE_NLA, SPACE_TIME));
+
+		char spacetype = -1;
+
+		if (sa)
+			spacetype = sa->spacetype;
+
+		sad->from_anim_edit = (ELEM(spacetype, SPACE_IPO, SPACE_ACTION, SPACE_NLA, SPACE_TIME));
 
 		screen->animtimer->customdata = sad;
 		

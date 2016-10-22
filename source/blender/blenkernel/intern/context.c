@@ -49,6 +49,7 @@
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
+#include "BKE_sound.h"
 
 #include "RNA_access.h"
 
@@ -882,6 +883,7 @@ Main *CTX_data_main(const bContext *C)
 void CTX_data_main_set(bContext *C, Main *bmain)
 {
 	C->data.main = bmain;
+	BKE_sound_init_main(bmain);
 }
 
 Scene *CTX_data_scene(const bContext *C)
