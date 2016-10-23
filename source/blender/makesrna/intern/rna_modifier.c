@@ -2100,6 +2100,12 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem prop_space_items[] = {
+		{MOD_DISP_SPACE_LOCAL, "LOCAL", 0, "Local", "Direction is defined in local coordinates"},
+		{MOD_DISP_SPACE_GLOBAL, "GLOBAL", 0, "Global", "Direction is defined in global coordinates"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "DisplaceModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Displace Modifier", "Displacement modifier");
 	RNA_def_struct_sdna(srna, "DisplaceModifierData");
@@ -2129,6 +2135,11 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, prop_direction_items);
 	RNA_def_property_ui_text(prop, "Direction", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "space", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_space_items);
+	RNA_def_property_ui_text(prop, "Space", "");
+	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
 	rna_def_modifier_generic_map_info(srna);
 }
