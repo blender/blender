@@ -982,6 +982,11 @@ void GPU_shader_free_builtin_shaders(void)
 		GG.shaders.smooth_color_3D = NULL;
 	}
 
+	if (GG.shaders.depth_only_3D) {
+		GPU_shader_free(GG.shaders.depth_only_3D);
+		GG.shaders.depth_only_3D = NULL;
+	}
+
 	if (GG.shaders.point_fixed_size_uniform_color_2D) {
 		GPU_shader_free(GG.shaders.point_fixed_size_uniform_color_2D);
 		GG.shaders.point_fixed_size_uniform_color_2D = NULL;
