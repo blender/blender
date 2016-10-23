@@ -1632,6 +1632,13 @@ def write_sphinx_conf_py(basepath):
     file = open(filepath, "w", encoding="utf-8")
     fw = file.write
 
+    fw("import sys, os\n")
+    fw("\n")
+    fw("extensions = ['sphinx.ext.intersphinx']\n")
+    fw("\n")
+    fw("intersphinx_mapping = {'blender_manual': ('https://www.blender.org/manual/', None)}\n")
+    fw("\n")
+
     fw("project = 'Blender'\n")
     # fw("master_doc = 'index'\n")
     fw("copyright = u'Blender Foundation'\n")
