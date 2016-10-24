@@ -588,7 +588,7 @@ BVHNode* BVHBuild::build_node(const BVHRange& range,
 	float unalignedSplitSAH = FLT_MAX;
 	/* float unalignedLeafSAH = FLT_MAX; */
 	Transform aligned_space;
-	bool do_unalinged_split;
+	bool do_unalinged_split = false;
 	if(params.use_unaligned_nodes &&
 	   splitSAH > params.unaligned_split_threshold*leafSAH)
 	{
