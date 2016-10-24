@@ -2389,7 +2389,7 @@ Mesh *BKE_mesh_new_from_object(
 					/* are we an object material or data based? */
 					tmpmesh->mat[i] = give_current_material(ob, i + 1);
 
-					if (((ob->matbits[i] && ob->matbits) || do_mat_id_data_us) && tmpmesh->mat[i]) {
+					if (((ob->matbits && ob->matbits[i]) || do_mat_id_data_us) && tmpmesh->mat[i]) {
 						id_us_plus(&tmpmesh->mat[i]->id);
 					}
 				}
