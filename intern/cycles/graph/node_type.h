@@ -125,8 +125,8 @@ struct NodeType
 
 	ustring name;
 	Type type;
-	vector<SocketType> inputs;
-	vector<SocketType> outputs;
+	vector<SocketType, std::allocator<SocketType> > inputs;
+	vector<SocketType, std::allocator<SocketType> > outputs;
 	CreateFunc create;
 
 	static NodeType *add(const char *name, CreateFunc create, Type type = NONE);
