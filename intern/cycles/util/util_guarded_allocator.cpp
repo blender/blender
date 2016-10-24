@@ -19,7 +19,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-static Stats global_stats;
+static Stats global_stats(Stats::static_init);
 
 /* Internal API. */
 
