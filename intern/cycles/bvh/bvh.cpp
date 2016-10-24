@@ -597,7 +597,7 @@ void RegularBVH::pack_nodes(const BVHNode *root)
 		else {
 			/* innner node */
 			int idx[2];
-			for (int i = 0; i < 2; ++i) {
+			for(int i = 0; i < 2; ++i) {
 				if(e.node->get_child(i)->is_leaf()) {
 					idx[i] = nextLeafNodeIdx++;
 				}

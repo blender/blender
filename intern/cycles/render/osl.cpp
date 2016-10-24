@@ -825,7 +825,7 @@ void OSLCompiler::parameter(ShaderNode* node, const char *name)
 			// OSL does not support booleans, so convert to int
 			const array<bool>& value = node->get_bool_array(socket);
 			array<int> intvalue(value.size());
-			for (size_t i = 0; i < value.size(); i++)
+			for(size_t i = 0; i < value.size(); i++)
 				intvalue[i] = value[i];
 			ss->Parameter(uname, array_typedesc(TypeDesc::TypeInt, value.size()), intvalue.data());
 			break;
@@ -861,8 +861,7 @@ void OSLCompiler::parameter(ShaderNode* node, const char *name)
 			// convert to tightly packed array since float3 has padding
 			const array<float3>& value = node->get_float3_array(socket);
 			array<float> fvalue(value.size() * 3);
-			for (size_t i = 0, j = 0; i < value.size(); i++)
-			{
+			for(size_t i = 0, j = 0; i < value.size(); i++) {
 				fvalue[j++] = value[i].x;
 				fvalue[j++] = value[i].y;
 				fvalue[j++] = value[i].z;
