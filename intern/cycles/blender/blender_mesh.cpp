@@ -1081,7 +1081,7 @@ void BlenderSync::sync_mesh_motion(BL::Object& b_ob,
 
 	/* fluid motion is exported immediate with mesh, skip here */
 	BL::DomainFluidSettings b_fluid_domain = object_fluid_domain_find(b_ob);
-	if (b_fluid_domain)
+	if(b_fluid_domain)
 		return;
 
 	if(ccl::BKE_object_is_deform_modified(b_ob, b_scene, preview)) {

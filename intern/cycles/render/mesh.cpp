@@ -1462,7 +1462,7 @@ void MeshManager::device_update_mesh(Device *device,
 	else {
 		PackedBVH& pack = bvh->pack;
 		for(size_t i = 0; i < pack.prim_index.size(); ++i) {
-			if ((pack.prim_type[i] & PRIMITIVE_ALL_TRIANGLE) != 0) {
+			if((pack.prim_type[i] & PRIMITIVE_ALL_TRIANGLE) != 0) {
 				tri_prim_index[pack.prim_index[i]] = pack.prim_tri_index[i];
 			}
 		}

@@ -1254,7 +1254,7 @@ public:
 		 * much work per pixel (if we don't check global ID on Y axis) or will
 		 * be checking for global ID to always have Y of 0.
 		 */
-		if (h == 1) {
+		if(h == 1) {
 			global_size[h] = 1;
 		}
 
@@ -2810,7 +2810,7 @@ public:
 		/* Execute SumALLRadiance kernel to accumulate radiance calculated in
 		 * per_sample_output_buffers into RenderTile's output buffer.
 		 */
-		if (!canceled) {
+		if(!canceled) {
 			size_t sum_all_radiance_local_size[2] = {16, 16};
 			size_t sum_all_radiance_global_size[2];
 			sum_all_radiance_global_size[0] =

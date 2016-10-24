@@ -147,7 +147,7 @@ void BVH::pack_primitives()
 	/* Count number of triangles primitives in BVH. */
 	for(unsigned int i = 0; i < tidx_size; i++) {
 		if((pack.prim_index[i] != -1)) {
-			if ((pack.prim_type[i] & PRIMITIVE_ALL_TRIANGLE) != 0) {
+			if((pack.prim_type[i] & PRIMITIVE_ALL_TRIANGLE) != 0) {
 				++num_prim_triangles;
 			}
 		}
@@ -450,7 +450,7 @@ void RegularBVH::pack_inner(const BVHStackEntry& e,
                             const BVHStackEntry& e0,
                             const BVHStackEntry& e1)
 {
-	if (e0.node->is_unaligned() || e1.node->is_unaligned()) {
+	if(e0.node->is_unaligned() || e1.node->is_unaligned()) {
 		pack_unaligned_inner(e, e0, e1);
 	} else {
 		pack_aligned_inner(e, e0, e1);
@@ -598,7 +598,7 @@ void RegularBVH::pack_nodes(const BVHNode *root)
 			/* innner node */
 			int idx[2];
 			for (int i = 0; i < 2; ++i) {
-				if (e.node->get_child(i)->is_leaf()) {
+				if(e.node->get_child(i)->is_leaf()) {
 					idx[i] = nextLeafNodeIdx++;
 				}
 				else {

@@ -2378,8 +2378,9 @@ void EmissionNode::constant_fold(const ConstantFolder& folder)
 	ShaderInput *color_in = input("Color");
 	ShaderInput *strength_in = input("Strength");
 
-	if ((!color_in->link && color == make_float3(0.0f, 0.0f, 0.0f)) ||
-	    (!strength_in->link && strength == 0.0f)) {
+	if((!color_in->link && color == make_float3(0.0f, 0.0f, 0.0f)) ||
+	   (!strength_in->link && strength == 0.0f))
+	{
 		folder.discard();
 	}
 }
@@ -2430,8 +2431,9 @@ void BackgroundNode::constant_fold(const ConstantFolder& folder)
 	ShaderInput *color_in = input("Color");
 	ShaderInput *strength_in = input("Strength");
 
-	if ((!color_in->link && color == make_float3(0.0f, 0.0f, 0.0f)) ||
-	    (!strength_in->link && strength == 0.0f)) {
+	if((!color_in->link && color == make_float3(0.0f, 0.0f, 0.0f)) ||
+	   (!strength_in->link && strength == 0.0f))
+	{
 		folder.discard();
 	}
 }
@@ -4851,8 +4853,9 @@ void CurvesNode::constant_fold(const ConstantFolder& folder, ShaderInput *value_
 
 	/* evaluate fully constant node */
 	if(folder.all_inputs_constant()) {
-		if (curves.size() == 0)
+		if(curves.size() == 0) {
 			return;
+		}
 
 		float3 pos = (value - make_float3(min_x, min_x, min_x)) / (max_x - min_x);
 		float3 result;
@@ -5127,7 +5130,7 @@ OSLNode* OSLNode::create(size_t num_inputs, const OSLNode *from)
 	char *node_memory = (char*) operator new(node_size + inputs_size);
 	memset(node_memory, 0, node_size + inputs_size);
 
-	if (!from) {
+	if(!from) {
 		return new(node_memory) OSLNode();
 	}
 	else {

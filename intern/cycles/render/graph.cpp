@@ -148,8 +148,9 @@ void ShaderNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 
 bool ShaderNode::equals(const ShaderNode& other)
 {
-	if (type != other.type || bump != other.bump)
+	if(type != other.type || bump != other.bump) {
 		return false;
+	}
 
 	assert(inputs.size() == other.inputs.size());
 
@@ -597,13 +598,13 @@ void ShaderGraph::deduplicate_nodes()
 		/* Try to merge this node with another one. */
 		ShaderNode *merge_with = NULL;
 		foreach(ShaderNode *other_node, candidates[node->type->name]) {
-			if (node != other_node && node->equals(*other_node)) {
+			if(node != other_node && node->equals(*other_node)) {
 				merge_with = other_node;
 				break;
 			}
 		}
 		/* If found an equivalent, merge; otherwise keep node for later merges */
-		if (merge_with != NULL) {
+		if(merge_with != NULL) {
 			for(int i = 0; i < node->outputs.size(); ++i) {
 				relink(node, node->outputs[i], merge_with->outputs[i]);
 			}

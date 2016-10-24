@@ -109,7 +109,7 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 	ray->D = normalize(transform_direction(&cameratoworld, ray->D));
 
 	bool use_stereo = kernel_data.cam.interocular_offset != 0.0f;
-	if (!use_stereo) {
+	if(!use_stereo) {
 		/* No stereo */
 #ifdef __RAY_DIFFERENTIALS__
 		float3 Dcenter = transform_direction(&cameratoworld, Pcamera);
@@ -295,7 +295,7 @@ ccl_device_inline void camera_sample_panorama(KernelGlobals *kg,
 
 	/* Stereo transform */
 	bool use_stereo = kernel_data.cam.interocular_offset != 0.0f;
-	if (use_stereo) {
+	if(use_stereo) {
 		spherical_stereo_transform(kg, &ray->P, &ray->D);
 	}
 
@@ -308,7 +308,7 @@ ccl_device_inline void camera_sample_panorama(KernelGlobals *kg,
 	float3 Dcenter = panorama_to_direction(kg, Pcenter.x, Pcenter.y);
 	Pcenter = transform_point(&cameratoworld, Pcenter);
 	Dcenter = normalize(transform_direction(&cameratoworld, Dcenter));
-	if (use_stereo) {
+	if(use_stereo) {
 		spherical_stereo_transform(kg, &Pcenter, &Dcenter);
 	}
 
@@ -316,7 +316,7 @@ ccl_device_inline void camera_sample_panorama(KernelGlobals *kg,
 	float3 Dx = panorama_to_direction(kg, Px.x, Px.y);
 	Px = transform_point(&cameratoworld, Px);
 	Dx = normalize(transform_direction(&cameratoworld, Dx));
-	if (use_stereo) {
+	if(use_stereo) {
 		spherical_stereo_transform(kg, &Px, &Dx);
 	}
 
@@ -327,7 +327,7 @@ ccl_device_inline void camera_sample_panorama(KernelGlobals *kg,
 	float3 Dy = panorama_to_direction(kg, Py.x, Py.y);
 	Py = transform_point(&cameratoworld, Py);
 	Dy = normalize(transform_direction(&cameratoworld, Dy));
-	if (use_stereo) {
+	if(use_stereo) {
 		spherical_stereo_transform(kg, &Py, &Dy);
 	}
 
