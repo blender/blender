@@ -145,6 +145,10 @@ typedef DMDrawOption (*DMSetDrawOptions)(void *userData, int index);
 typedef DMDrawOption (*DMSetDrawOptionsMappedTex)(void *userData, int origindex, int mat_nr);
 typedef DMDrawOption (*DMSetDrawOptionsTex)(struct MTexPoly *mtexpoly, const bool has_vcol, int matnr);
 
+/* Cleanup callback type */
+typedef void (*DMCleanupBatchCache)(void *batchCache);
+void DM_set_batch_cleanup_callback(DMCleanupBatchCache);
+
 typedef enum DMDrawFlag {
 	DM_DRAW_USE_COLORS          = (1 << 0),
 	DM_DRAW_ALWAYS_SMOOTH       = (1 << 1),
@@ -183,6 +187,7 @@ struct DerivedMesh {
 	int deformedOnly; /* set by modifier stack if only deformed from original */
 	BVHCache *bvhCache;
 	struct GPUDrawObject *drawObject;
+	void *batchCache;
 	DerivedMeshType type;
 	float auto_bump_scale;
 	DMDirtyFlag dirty;
