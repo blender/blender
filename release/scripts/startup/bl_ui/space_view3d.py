@@ -3014,6 +3014,9 @@ class VIEW3D_PT_viewport_debug(Panel):
         row.prop(view, "debug_near")
         row.prop(view, "debug_far")
 
+        col.label(text="Background:")
+        col.row(align=True).prop(view, "debug_background", expand=True)
+
 
 class VIEW3D_PT_grease_pencil(GreasePencilDataPanel, Panel):
     bl_space_type = 'VIEW_3D'

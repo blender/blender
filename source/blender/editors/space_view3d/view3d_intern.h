@@ -342,5 +342,7 @@ void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, Base *base);
 bool VP_legacy_use_depth(Scene *scene, View3D *v3d);
 void VP_drawviewborder(Scene *scene, ARegion *ar, View3D *v3d);
 void VP_drawrenderborder(ARegion *ar, View3D *v3d);
+void VP_view3d_draw_background_none(void);
+void VP_view3d_draw_background_world(Scene *scene, View3D *v3d, RegionView3D *rv3d);
 
 #endif /* __VIEW3D_INTERN_H__ */

@@ -54,6 +54,7 @@
 #include "ED_transform.h"
 
 #include "GPU_immediate.h"
+#include "GPU_material.h"
 #include "GPU_viewport.h"
 
 #include "MEM_guardedalloc.h"
@@ -784,16 +785,76 @@ static bool view3d_draw_render_draw(const bContext *C, Scene *scene,
 	return true;
 }
 
+/* ******************** background plates ***************** */
+
+static void view3d_draw_background_none()
+{
+	UI_ThemeClearColorAlpha(TH_HIGH_GRAD, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+static void view3d_draw_background_gradient()
+{
+	/* TODO viewport */
+	view3d_draw_background_none();
+}
+
+static void view3d_draw_background_world(Scene *scene, View3D *v3d, RegionView3D *rv3d)
+{
+	if (scene->world) {
+		GPUMaterial *gpumat = GPU_material_world(scene, scene->world);
+
+		/* calculate full shader for background */
+		GPU_material_bind(gpumat, 1, 1, 1.0f, false, rv3d->viewmat, rv3d->viewinv, rv3d->viewcamtexcofac, (v3d->scenelock != 0));
+
+		if (!GPU_material_bound(gpumat)) {
+			view3d_draw_background_none();
+		}
+
+		glClear(GL_DEPTH_BUFFER_BIT);
+		glDisable(GL_DEPTH_TEST);
+
+		/* TODO viewport (dfelinto): GPU_material_bind relies on immediate mode,
+		* we can't get rid of the following code without a bigger refactor
+		* or we dropping this functionality. */
+
+		glBegin(GL_TRIANGLE_STRIP);
+		glVertex2f(-1.0f, -1.0f);
+		glVertex2f(1.0f, -1.0f);
+		glVertex2f(-1.0f, 1.0f);
+		glVertex2f(1.0f, 1.0f);
+		glEnd();
+
+		GPU_material_unbind(gpumat);
+	}
+	else {
+		view3d_draw_background_none();
+	}
+}
+
 /* ******************** solid plates ***************** */
 
 /**
- *
+ * Clear the buffer and draw the proper shader
  */
 static void view3d_draw_background(const bContext *C)
 {
-	/* TODO viewport */
-	UI_ThemeClearColor(TH_HIGH_GRAD);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+
+	switch (v3d->debug.background) {
+		case V3D_DEBUG_BACKGROUND_WORLD:
+			view3d_draw_background_world(scene, v3d, rv3d);
+			break;
+		case V3D_DEBUG_BACKGROUND_GRADIENT:
+			view3d_draw_background_gradient();
+			break;
+		case V3D_DEBUG_BACKGROUND_NONE:
+		default:
+			view3d_draw_background_none(v3d);
+			break;
+	}
 }
 
 /**
@@ -1748,4 +1809,14 @@ void VP_drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 void VP_drawrenderborder(ARegion *ar, View3D *v3d)
 {
 	drawrenderborder(ar, v3d);
+}
+
+void VP_view3d_draw_background_none(void)
+{
+	view3d_draw_background_none();
+}
+
+void VP_view3d_draw_background_world(Scene *scene, View3D *v3d, RegionView3D *rv3d)
+{
+	view3d_draw_background_world(scene, v3d, rv3d);
 }

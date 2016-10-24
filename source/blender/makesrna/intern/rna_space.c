@@ -2379,6 +2379,13 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 	
+	static EnumPropertyItem debug_background_items[] = {
+		{V3D_DEBUG_BACKGROUND_NONE, "NONE", 0, "None", ""},
+		{V3D_DEBUG_BACKGROUND_GRADIENT, "GRADIENT", 0, "Gradient", ""},
+		{V3D_DEBUG_BACKGROUND_WORLD, "WORLD", 0, "World", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "SpaceView3D", "Space");
 	RNA_def_struct_sdna(srna, "View3D");
 	RNA_def_struct_ui_text(srna, "3D View Space", "3D View space data");
@@ -2799,6 +2806,12 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1e-6f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 3);
 	RNA_def_property_ui_text(prop, "Far", "Far distance for depth debugging");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "debug_background", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "debug.background");
+	RNA_def_property_enum_items(prop, debug_background_items);
+	RNA_def_property_ui_text(prop, "Background", "");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	/* *** Animated *** */
