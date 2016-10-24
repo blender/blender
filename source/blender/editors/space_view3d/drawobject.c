@@ -6708,10 +6708,12 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			}
 		}
 
-		/* TODO Viewport: draw only depth here, for selection */
+		/* TODO Viewport: draw only for selection */
 		if (!IS_VIEWPORT_LEGACY(v3d)) {
-			if ((dt == OB_BOUNDBOX) || ELEM(ob->type, OB_EMPTY, OB_LAMP, OB_CAMERA, OB_SPEAKER)) {
-				glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+			if ((dflag & DRAW_PICKING) == 0) {
+				if ((dt == OB_BOUNDBOX) || ELEM(ob->type, OB_EMPTY, OB_LAMP, OB_CAMERA, OB_SPEAKER)) {
+					goto afterdraw;
+				}
 			}
 		}
 
@@ -6842,10 +6844,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				}
 		}
 
-		/* TODO Viewport: some eleemnts are being drawn for depth only */
-		if (!IS_VIEWPORT_LEGACY(v3d)) {
-			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		}
+		/* TODO Viewport: some elements are being drawn for object selection only */
+afterdraw:
 
 		if (!render_override) {
 			if (ob->soft /*&& dflag & OB_SBMOTION*/) {

@@ -1583,7 +1583,7 @@ static void view3d_draw_non_meshes(const bContext *C, ARegion *ar)
 	unsigned char ob_wire_col[4];            /* dont initialize this */
 
 	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_FALSE);  /* disable write in zbuffer */
+	glDepthMask(GL_TRUE);
 	/* TODO Viewport
 	 * we are already temporarily writing to zbuffer in draw_object()
 	 * for now let's avoid writing again to zbuffer to prevent glitches
@@ -1598,7 +1598,7 @@ static void view3d_draw_non_meshes(const bContext *C, ARegion *ar)
 		}
 	}
 
-	glDepthMask(GL_TRUE);
+	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
 }
 
