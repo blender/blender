@@ -1407,8 +1407,9 @@ void init_test_curve(array<T> &buffer, T start, T end, int steps)
 {
 	buffer.resize(steps);
 
-	for (int i = 0; i < steps; i++)
+	for(int i = 0; i < steps; i++) {
 		buffer[i] = lerp(start, end, float(i)/(steps-1));
+	}
 }
 
 /*

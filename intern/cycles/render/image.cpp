@@ -43,7 +43,7 @@ ImageManager::ImageManager(const DeviceInfo& info)
 	 * be screwed on so many levels..
 	 */
 	DeviceType device_type = info.type;
-	if (device_type == DEVICE_MULTI) {
+	if(device_type == DEVICE_MULTI) {
 		device_type = info.multi_devices[0].type;
 	}
 

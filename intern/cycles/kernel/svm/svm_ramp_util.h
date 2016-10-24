@@ -27,9 +27,9 @@ ccl_device_inline float3 rgb_ramp_lookup(const float3 *ramp,
                                          bool extrapolate,
                                          int table_size)
 {
-	if ((f < 0.0f || f > 1.0f) && extrapolate) {
+	if((f < 0.0f || f > 1.0f) && extrapolate) {
 		float3 t0, dy;
-		if (f < 0.0f) {
+		if(f < 0.0f) {
 			t0 = ramp[0];
 			dy = t0 - ramp[1],
 			f = -f;
@@ -50,8 +50,9 @@ ccl_device_inline float3 rgb_ramp_lookup(const float3 *ramp,
 
 	float3 result = ramp[i];
 
-	if (interpolate && t > 0.0f)
+	if(interpolate && t > 0.0f) {
 		result = (1.0f - t) * result + t * ramp[i + 1];
+	}
 
 	return result;
 }
@@ -62,9 +63,9 @@ ccl_device float float_ramp_lookup(const float *ramp,
                                    bool extrapolate,
                                    int table_size)
 {
-	if ((f < 0.0f || f > 1.0f) && extrapolate) {
+	if((f < 0.0f || f > 1.0f) && extrapolate) {
 		float t0, dy;
-		if (f < 0.0f) {
+		if(f < 0.0f) {
 			t0 = ramp[0];
 			dy = t0 - ramp[1],
 			f = -f;
@@ -85,8 +86,9 @@ ccl_device float float_ramp_lookup(const float *ramp,
 
 	float result = ramp[i];
 
-	if (interpolate && t > 0.0f)
+	if(interpolate && t > 0.0f) {
 		result = (1.0f - t) * result + t * ramp[i + 1];
+	}
 
 	return result;
 }

@@ -162,16 +162,18 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x,
 		svm_image_texture_frac(y*height, &iy);
 		svm_image_texture_frac(z*depth, &iz);
 
-		if (extension == EXTENSION_REPEAT) {
+		if(extension == EXTENSION_REPEAT) {
 			ix = svm_image_texture_wrap_periodic(ix, width);
 			iy = svm_image_texture_wrap_periodic(iy, height);
 			iz = svm_image_texture_wrap_periodic(iz, depth);
 		}
 		else {
-			if (extension == EXTENSION_CLIP) {
+			if(extension == EXTENSION_CLIP) {
 				if(x < 0.0f || y < 0.0f || z < 0.0f ||
 				   x > 1.0f || y > 1.0f || z > 1.0f)
+				 {
 					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+				}
 			}
 			/* Fall through. */
 			/* EXTENSION_EXTEND */
@@ -196,10 +198,12 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x,
 			niz = svm_image_texture_wrap_periodic(iz+1, depth);
 		}
 		else {
-			if (extension == EXTENSION_CLIP)
+			if(extension == EXTENSION_CLIP)
 				if(x < 0.0f || y < 0.0f || z < 0.0f ||
 				   x > 1.0f || y > 1.0f || z > 1.0f)
+				{
 					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+				}
 			/* Fall through. */
 			/*  EXTENSION_EXTEND */
 			nix = svm_image_texture_wrap_clamp(ix+1, width);

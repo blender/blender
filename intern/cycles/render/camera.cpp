@@ -32,8 +32,9 @@ CCL_NAMESPACE_BEGIN
 static float shutter_curve_eval(float x,
                                 array<float>& shutter_curve)
 {
-	if (shutter_curve.size() == 0)
+	if(shutter_curve.size() == 0) {
 		return 1.0f;
+	}
 
 	x *= shutter_curve.size();
 	int index = (int)x;

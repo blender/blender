@@ -66,7 +66,7 @@ public:
 	inline void set_aligned_space(const Transform& aligned_space)
 	{
 		m_is_unaligned = true;
-		if (m_aligned_space == NULL) {
+		if(m_aligned_space == NULL) {
 			m_aligned_space = new Transform(aligned_space);
 		}
 		else {
