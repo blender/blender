@@ -615,6 +615,34 @@ const float *gpuGetModelViewProjectionMatrix3D(float m[4][4])
 	return (const float*)m;
 }
 
+const float *gpuGetNormalMatrix(float m[3][3])
+{
+	if (m == NULL) {
+		static Mat3 temp3;
+		m = temp3;
+	}
+
+	copy_m3_m4(m, gpuGetModelViewMatrix3D(NULL));
+
+	invert_m3(m);
+	transpose_m3(m);
+
+	return (const float*)m;
+}
+
+const float *gpuGetNormalMatrixInverse(float m[3][3])
+{
+	if (m == NULL) {
+		static Mat3 temp3;
+		m = temp3;
+	}
+
+	gpuGetNormalMatrix(m);
+	invert_m3(m);
+
+	return (const float*)m;
+}
+
 void gpuBindMatrices(GLuint program)
 {
 	/* TODO: split this into 2 functions
@@ -623,6 +651,7 @@ void gpuBindMatrices(GLuint program)
 	GLint loc_MV = glGetUniformLocation(program, "ModelViewMatrix");
 	GLint loc_P = glGetUniformLocation(program, "ProjectionMatrix");
 	GLint loc_MVP = glGetUniformLocation(program, "ModelViewProjectionMatrix");
+	GLint loc_N = glGetUniformLocation(program, "NormalMatrix");
 
 	/* 2) set uniform values to matrix stack values
 	 * program needs to be bound
@@ -653,6 +682,14 @@ void gpuBindMatrices(GLuint program)
 		#endif
 
 		glUniformMatrix4fv(loc_MVP, 1, GL_FALSE, gpuGetModelViewProjectionMatrix3D(NULL));
+	}
+
+	if (loc_N != -1) {
+		#if DEBUG_MATRIX_BIND
+		puts("setting 3D normal matrix");
+		#endif
+
+		glUniformMatrix3fv(loc_N, 1, GL_FALSE, gpuGetNormalMatrix(NULL));
 	}
 
 	state.dirty = false;

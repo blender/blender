@@ -126,6 +126,9 @@ const float *gpuGetModelViewMatrix3D(float m[4][4]);
 const float *gpuGetProjectionMatrix3D(float m[4][4]);
 const float *gpuGetModelViewProjectionMatrix3D(float m[4][4]);
 
+const float *gpuGetNormalMatrix(float m[3][3]);
+const float *gpuGetNormalMatrixInverse(float m[3][3]);
+
 
 #if SUPPORT_LEGACY_MATRIX
 /* copy top matrix from each legacy stack into new fresh stack */
