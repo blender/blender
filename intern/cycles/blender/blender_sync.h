@@ -165,7 +165,7 @@ private:
 	id_map<ParticleSystemKey, ParticleSystem> particle_system_map;
 	set<Mesh*> mesh_synced;
 	set<Mesh*> mesh_motion_synced;
-	std::set<float> motion_times;
+	set<float> motion_times;
 	void *world_map;
 	bool world_recalc;
 
