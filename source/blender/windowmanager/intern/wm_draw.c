@@ -80,6 +80,8 @@
 #define WIN_FRONT_OK    2
 #define WIN_BOTH_OK     3
 
+#define USE_TEXTURE_RECTANGLE 1
+
 /* ******************* drawing, overlays *************** */
 
 
@@ -129,7 +131,7 @@ static bool wm_area_test_invalid_backbuf(ScrArea *sa)
 	if (sa->spacetype == SPACE_VIEW3D)
 		return (((View3D *)sa->spacedata.first)->flag & V3D_INVALID_BACKBUF) != 0;
 	else
-		return 1;
+		return true;
 }
 
 static void wm_region_test_render_do_draw(bScreen *screen, ScrArea *sa, ARegion *ar)
@@ -373,53 +375,52 @@ static void wm_draw_triple_fail(bContext *C, wmWindow *win)
 {
 	wm_draw_window_clear(win);
 
-	win->drawfail = 1;
+	win->drawfail = true;
 	wm_method_draw_overlap_all(C, win, 0);
 }
 
 static bool wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
 {
-	const int winsize_x = WM_window_pixels_x(win);
-	const int winsize_y = WM_window_pixels_y(win);
-
-	GLint maxsize;
-
 	/* compute texture sizes */
-	if (GLEW_ARB_texture_rectangle || GLEW_NV_texture_rectangle || GLEW_EXT_texture_rectangle) {
-		triple->target = GL_TEXTURE_RECTANGLE_ARB;
-	}
-	else {
-		triple->target = GL_TEXTURE_2D;
-	}
+	triple->x = WM_window_pixels_x(win);
+	triple->y = WM_window_pixels_y(win);
 
-	triple->x = winsize_x;
-	triple->y = winsize_y;
+#if USE_TEXTURE_RECTANGLE
+	/* GL_TEXTURE_RECTANGLE is part of GL 3.1 so we can use it soon without runtime checks */
+	triple->target = GL_TEXTURE_RECTANGLE;
+#else
+	triple->target = GL_TEXTURE_2D;
+#endif
 
 	/* generate texture names */
 	glGenTextures(1, &triple->bind);
 
-	if (!triple->bind) {
-		/* not the typical failure case but we handle it anyway */
-		printf("WM: failed to allocate texture for triple buffer drawing (glGenTextures).\n");
-		return false;
-	}
-
 	/* proxy texture is only guaranteed to test for the cases that
 	 * there is only one texture in use, which may not be the case */
-	maxsize = GPU_max_texture_size();
+	const GLint maxsize = GPU_max_texture_size();
 
 	if (triple->x > maxsize || triple->y > maxsize) {
-		glBindTexture(triple->target, 0);
 		printf("WM: failed to allocate texture for triple buffer drawing "
-			   "(texture too large for graphics card).\n");
+		       "(texture too large for graphics card).\n");
 		return false;
 	}
 
 	/* setup actual texture */
 	glBindTexture(triple->target, triple->bind);
-	glTexImage2D(triple->target, 0, GL_RGB8, triple->x, triple->y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
+	/* no mipmaps */
+#if USE_TEXTURE_RECTANGLE
+	/* already has no mipmaps */
+#else
+	glTexParameteri(triple->target, GL_TEXTURE_MAX_LEVEL, 0);
+	/* GL_TEXTURE_BASE_LEVEL = 0 by default */
+#endif
+
 	glTexParameteri(triple->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(triple->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glTexImage2D(triple->target, 0, GL_RGB8, triple->x, triple->y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
 	glBindTexture(triple->target, 0);
 
 	return true;
@@ -430,31 +431,37 @@ void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)
 	const int sizex = WM_window_pixels_x(win);
 	const int sizey = WM_window_pixels_y(win);
 
-	float halfx, halfy, ratiox, ratioy;
-
 	/* wmOrtho for the screen has this same offset */
-	ratiox = sizex;
-	ratioy = sizey;
-	halfx = GLA_PIXEL_OFS;
-	halfy = GLA_PIXEL_OFS;
+	float ratiox = sizex;
+	float ratioy = sizey;
+	float halfx = GLA_PIXEL_OFS;
+	float halfy = GLA_PIXEL_OFS;
 
+#if USE_TEXTURE_RECTANGLE
 	/* texture rectangle has unnormalized coordinates */
-	if (triple->target == GL_TEXTURE_2D) {
-		ratiox /= triple->x;
-		ratioy /= triple->y;
-		halfx /= triple->x;
-		halfy /= triple->y;
-	}
+#else
+	ratiox /= triple->x;
+	ratioy /= triple->y;
+	halfx /= triple->x;
+	halfy /= triple->y;
+#endif
 
 	VertexFormat *format = immVertexFormat();
 	unsigned texcoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
 	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
-	const int activeTex = GL_TEXTURE0;
-	glActiveTexture(activeTex);
+	const int activeTex = 7; /* arbitrary */
+	glActiveTexture(GL_TEXTURE0 + activeTex);
 	glBindTexture(triple->target, triple->bind);
 
-	immBindBuiltinProgram((triple->target == GL_TEXTURE_2D) ? GPU_SHADER_3D_IMAGE_MODULATE_ALPHA : GPU_SHADER_3D_IMAGE_RECT_MODULATE_ALPHA);
+#if USE_TEXTURE_RECTANGLE
+	immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_RECT_MODULATE_ALPHA);
+#else
+	immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA);
+	/* TODO: make pure 2D version
+	 * and a 2D_IMAGE (replace, not modulate) version for when alpha = 1.0
+	 */
+#endif
 	immUniform1f("alpha", alpha);
 	immUniform1i("image", activeTex);
 
@@ -476,6 +483,8 @@ void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)
 	immUnbindProgram();
 
 	glBindTexture(triple->target, 0);
+	if (activeTex != 0)
+		glActiveTexture(GL_TEXTURE0);
 }
 
 static void wm_triple_copy_textures(wmWindow *win, wmDrawTriple *triple)
@@ -484,8 +493,8 @@ static void wm_triple_copy_textures(wmWindow *win, wmDrawTriple *triple)
 	const int sizey = WM_window_pixels_y(win);
 
 	glBindTexture(triple->target, triple->bind);
+	/* what is GL_READ_BUFFER right now? */
 	glCopyTexSubImage2D(triple->target, 0, 0, 0, 0, 0, sizex, sizey);
-
 	glBindTexture(triple->target, 0);
 }
 
@@ -506,16 +515,17 @@ static void wm_draw_region_blend(wmWindow *win, ARegion *ar, wmDrawTriple *tripl
 static void wm_method_draw_triple(bContext *C, wmWindow *win)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
-	wmDrawTriple *triple;
 	wmDrawData *dd, *dd_next, *drawdata = win->drawdata.first;
 	bScreen *screen = win->screen;
 	ScrArea *sa;
 	ARegion *ar;
-	int copytex = false;
+	bool copytex = false;
 
 	if (drawdata && drawdata->triple) {
-		glClearColor(0, 0, 0, 0);
+		#if 0 /* why do we need to clear before overwriting? */
+		glClearColor(1, 1, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		#endif
 
 		wmSubWindowSet(win, screen->mainwin);
 
@@ -546,7 +556,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 		MEM_freeN(dd);
 	}
 
-	triple = drawdata->triple;
+	wmDrawTriple *triple = drawdata->triple;
 
 	/* draw marked area regions */
 	for (sa = screen->areabase.first; sa; sa = sa->next) {
@@ -554,7 +564,6 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
 			if (ar->swinid && ar->do_draw) {
-
 				if (ar->overlap == false) {
 					CTX_wm_region_set(C, ar);
 					ED_region_do_draw(C, ar);
@@ -654,8 +663,10 @@ static void wm_method_draw_triple_multiview(bContext *C, wmWindow *win, StereoVi
 
 		if (drawdata && drawdata->triple) {
 			if (id == 0) {
+				#if 0 /* why do we need to clear before overwriting? */
 				glClearColor(0, 0, 0, 0);
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				#endif
 
 				wmSubWindowSet(win, screen->mainwin);
 
@@ -841,20 +852,20 @@ static bool wm_draw_update_test_window(wmWindow *win)
 	}
 
 	if (do_draw)
-		return 1;
+		return true;
 	
 	if (win->screen->do_refresh)
-		return 1;
+		return true;
 	if (win->screen->do_draw)
-		return 1;
+		return true;
 	if (win->screen->do_draw_gesture)
-		return 1;
+		return true;
 	if (win->screen->do_draw_paintcursor)
-		return 1;
+		return true;
 	if (win->screen->do_draw_drag)
-		return 1;
+		return true;
 	
-	return 0;
+	return false;
 }
 
 static int wm_automatic_draw_method(wmWindow *win)
@@ -908,7 +919,6 @@ void wm_draw_update(bContext *C)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win;
-	int drawmethod;
 
 #ifdef WITH_OPENSUBDIV
 	BKE_subsurf_free_unused_buffers();
@@ -944,7 +954,7 @@ void wm_draw_update(bContext *C)
 			if (win->screen->do_refresh)
 				ED_screen_refresh(wm, win);
 
-			drawmethod = wm_automatic_draw_method(win);
+			int drawmethod = wm_automatic_draw_method(win);
 
 			if (win->drawfail)
 				wm_method_draw_overlap_all(C, win, 0);
