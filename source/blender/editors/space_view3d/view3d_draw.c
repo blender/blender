@@ -789,8 +789,48 @@ static bool view3d_draw_render_draw(const bContext *C, Scene *scene,
 
 static void view3d_draw_background_none()
 {
-	UI_ThemeClearColorAlpha(TH_HIGH_GRAD, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	if (UI_GetThemeValue(TH_SHOW_BACK_GRAD)) {
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+
+		glClear(GL_DEPTH_BUFFER_BIT);
+		glDisable(GL_DEPTH_TEST);
+
+		VertexFormat *format = immVertexFormat();
+		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+		unsigned char col_hi[3], col_lo[3];
+
+		immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+
+		UI_GetThemeColor3ubv(TH_LOW_GRAD, col_lo);
+		UI_GetThemeColor3ubv(TH_HIGH_GRAD, col_hi);
+
+		immBegin(GL_QUADS, 4);
+		immAttrib3ubv(color, col_lo);
+		immVertex2f(pos, -1.0f, -1.0f);
+		immVertex2f(pos, 1.0f, -1.0f);
+
+		immAttrib3ubv(color, col_hi);
+		immVertex2f(pos, 1.0f, 1.0f);
+		immVertex2f(pos, -1.0f, 1.0f);
+		immEnd();
+
+		immUnbindProgram();
+
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
+	}
+	else {
+		UI_ThemeClearColorAlpha(TH_HIGH_GRAD, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
 }
 
 static void view3d_draw_background_gradient()
