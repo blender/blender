@@ -343,7 +343,7 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 			size_t leaf_nodes_offset_size = bvh->pack.leaf_nodes.size();
 			for(size_t i = 0, j = 0;
 			    i < leaf_nodes_offset_size;
-			    i+= BVH_NODE_LEAF_SIZE, j++)
+			    i += BVH_NODE_LEAF_SIZE, j++)
 			{
 				int4 data = leaf_nodes_offset[i];
 				data.x += prim_offset;

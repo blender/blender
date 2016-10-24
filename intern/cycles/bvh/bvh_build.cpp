@@ -787,7 +787,7 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 				if(params.use_unaligned_nodes && !alignment_found) {
 					alignment_found =
 						unaligned_heuristic.compute_aligned_space(p_ref[i][j],
-						                                           &aligned_space);
+						                                          &aligned_space);
 				}
 			}
 			LeafNode *leaf_node = new LeafNode(bounds[i],
