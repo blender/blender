@@ -204,7 +204,14 @@ static void squeeze_indices_short(const unsigned values[], ElementList* elem)
 
 #endif // TRACK_INDEX_RANGE
 
-void ElementList_build(ElementListBuilder* builder, ElementList* elem)
+ElementList* ElementList_build(ElementListBuilder* builder)
+	{
+	ElementList* elem = calloc(1, sizeof(ElementList));
+	ElementList_build_in_place(builder, elem);
+	return elem;
+	}
+
+void ElementList_build_in_place(ElementListBuilder* builder, ElementList* elem)
 	{
 #if TRUST_NO_ONE
 	assert(builder->data != NULL);
@@ -259,4 +266,9 @@ void ElementList_build(ElementListBuilder* builder, ElementList* elem)
 		free(builder->data);
 	builder->data = NULL;
 	// other fields are safe to leave
+	}
+
+void ElementList_discard(ElementList* elem)
+	{
+	// TODO: clean up
 	}

@@ -47,6 +47,11 @@ void VertexBuffer_init_with_format(VertexBuffer* verts, const VertexFormat* form
 		VertexFormat_pack(&verts->format);
 	}
 
+void VertexBuffer_discard(VertexBuffer* verts)
+	{
+	// TODO: clean up
+	}
+
 unsigned VertexBuffer_size(const VertexBuffer* verts)
 	{
 	return vertex_buffer_size(&verts->format, verts->vertex_ct);

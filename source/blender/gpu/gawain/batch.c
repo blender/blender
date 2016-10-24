@@ -12,6 +12,10 @@
 #include "batch.h"
 #include <stdlib.h>
 
+// necessary functions from matrix API
+extern void gpuBindMatrices(GLuint program);
+extern bool gpuMatricesDirty(void); // how best to use this here?
+
 Batch* Batch_create(GLenum prim_type, VertexBuffer* verts, ElementList* elem)
 	{
 #if TRUST_NO_ONE
@@ -30,22 +34,42 @@ Batch* Batch_create(GLenum prim_type, VertexBuffer* verts, ElementList* elem)
 	return batch;
 	}
 
+void Batch_discard(Batch* batch)
+	{
+	// TODO: clean up
+	}
+
+void Batch_discard_all(Batch* batch)
+	{
+	VertexBuffer_discard(batch->verts);
+	if (batch->elem)
+		ElementList_discard(batch->elem);
+	Batch_discard(batch);
+	}
+
 void Batch_set_program(Batch* batch, GLuint program)
 	{
+#if TRUST_NO_ONE
+	assert(glIsProgram(program));
+#endif
+
 	batch->program = program;
 	batch->program_dirty = true;
 	}
 
 static void Batch_update_program_bindings(Batch* batch)
 	{
-#if TRUST_NO_ONE
-	assert(glIsProgram(batch->program));
-#endif
-
 	const VertexFormat* format = &batch->verts->format;
 
 	const unsigned attrib_ct = format->attrib_ct;
 	const unsigned stride = format->stride;
+
+	// disable all as a precaution
+	// why are we not using prev_attrib_enabled_bits?? see immediate.c
+	for (unsigned a_idx = 0; a_idx < MAX_VERTEX_ATTRIBS; ++a_idx)
+		glDisableVertexAttribArray(a_idx);
+
+	VertexBuffer_use(batch->verts);
 
 	for (unsigned a_idx = 0; a_idx < attrib_ct; ++a_idx)
 		{
@@ -53,7 +77,11 @@ static void Batch_update_program_bindings(Batch* batch)
 
 		const GLvoid* pointer = (const GLubyte*)0 + a->offset;
 
-		const unsigned loc = glGetAttribLocation(batch->program, a->name);
+		const GLint loc = glGetAttribLocation(batch->program, a->name);
+
+#if TRUST_NO_ONE
+		assert(loc != -1);
+#endif
 
 		glEnableVertexAttribArray(loc);
 
@@ -74,6 +102,60 @@ static void Batch_update_program_bindings(Batch* batch)
 	batch->program_dirty = false;
 	}
 
+static void Batch_use_program(Batch* batch)
+	{
+	if (!batch->program_in_use)
+		{
+		glUseProgram(batch->program);
+		batch->program_in_use = true;
+		}
+	}
+
+static void Batch_done_using_program(Batch* batch)
+	{
+	if (batch->program_in_use)
+		{
+		glUseProgram(0);
+		batch->program_in_use = false;
+		}
+	}
+
+void Batch_Uniform1b(Batch* batch, const char* name, bool value)
+	{
+	int loc = glGetUniformLocation(batch->program, name);
+
+#if TRUST_NO_ONE
+	assert(loc != -1);
+#endif
+
+	Batch_use_program(batch);
+	glUniform1i(loc, value ? GL_TRUE : GL_FALSE);
+	}
+
+void Batch_Uniform3fv(Batch* batch, const char* name, const float data[3])
+	{
+	int loc = glGetUniformLocation(batch->program, name);
+
+#if TRUST_NO_ONE
+	assert(loc != -1);
+#endif
+
+	Batch_use_program(batch);
+	glUniform3fv(loc, 1, data);
+	}
+
+void Batch_Uniform4fv(Batch* batch, const char* name, const float data[4])
+	{
+	int loc = glGetUniformLocation(batch->program, name);
+
+#if TRUST_NO_ONE
+	assert(loc != -1);
+#endif
+
+	Batch_use_program(batch);
+	glUniform4fv(loc, 1, data);
+	}
+
 static void Batch_prime(Batch* batch)
 	{
 	glGenVertexArrays(1, &batch->vao_id);
@@ -91,6 +173,7 @@ void Batch_draw(Batch* batch)
 	{
 #if TRUST_NO_ONE
 	assert(batch->phase == READY_TO_DRAW);
+	assert(glIsProgram(batch->program));
 #endif
 
 	if (batch->vao_id)
@@ -101,7 +184,9 @@ void Batch_draw(Batch* batch)
 	if (batch->program_dirty)
 		Batch_update_program_bindings(batch);
 
-	glUseProgram(batch->program);
+	Batch_use_program(batch);
+
+	gpuBindMatrices(batch->program);
 
 	if (batch->elem)
 		{
@@ -119,6 +204,6 @@ void Batch_draw(Batch* batch)
 	else
 		glDrawArrays(batch->prim_type, 0, batch->verts->vertex_ct);
 
-	glUseProgram(0);
+	Batch_done_using_program(batch);
 	glBindVertexArray(0);
 	}

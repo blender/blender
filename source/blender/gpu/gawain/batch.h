@@ -31,6 +31,7 @@ typedef struct {
 	GLuint vao_id; // remembers all geometry state (vertex attrib bindings & element buffer)
 	BatchPhase phase;
 	bool program_dirty;
+	bool program_in_use;
 
 	// state
 	GLuint program;
@@ -38,12 +39,18 @@ typedef struct {
 
 Batch* Batch_create(GLenum prim_type, VertexBuffer*, ElementList*);
 
-// TODO: void Batch_discard(Batch*);
-// must first decide how sharing of vertex buffers & index buffers should work
+void Batch_discard(Batch*); // verts & elem are not discarded
+void Batch_discard_all(Batch*); // including verts & elem
 
 void Batch_set_program(Batch*, GLuint program);
 // Entire batch draws with one shader program, but can be redrawn later with another program.
 // Vertex shader's inputs must be compatible with the batch's vertex format.
+
+void Batch_Uniform1b(Batch*, const char* name, bool value);
+// void Batch_Uniform1f(Batch*, float value);
+// void Batch_Uniform4f(Batch*, float x, float y, float z, float w);
+void Batch_Uniform3fv(Batch*, const char* name, const float data[3]);
+void Batch_Uniform4fv(Batch*, const char* name, const float data[4]);
 
 void Batch_draw(Batch*);
 

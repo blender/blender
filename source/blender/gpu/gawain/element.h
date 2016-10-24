@@ -52,4 +52,7 @@ void add_point_vertex(ElementListBuilder*, unsigned v);
 void add_line_vertices(ElementListBuilder*, unsigned v1, unsigned v2);
 void add_triangle_vertices(ElementListBuilder*, unsigned v1, unsigned v2, unsigned v3);
 
-void ElementList_build(ElementListBuilder*, ElementList*);
+ElementList* ElementList_build(ElementListBuilder*);
+void ElementList_build_in_place(ElementListBuilder*, ElementList*);
+
+void ElementList_discard(ElementList*);

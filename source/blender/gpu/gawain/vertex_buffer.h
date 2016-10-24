@@ -32,6 +32,8 @@ typedef struct {
 VertexBuffer* VertexBuffer_create(void);
 VertexBuffer* VertexBuffer_create_with_format(const VertexFormat*);
 
+void VertexBuffer_discard(VertexBuffer*);
+
 void VertexBuffer_init(VertexBuffer*);
 void VertexBuffer_init_with_format(VertexBuffer*, const VertexFormat*);
 
