@@ -2254,34 +2254,50 @@ static void view3d_main_region_clear(Scene *scene, View3D *v3d, ARegion *ar)
 
 		bool material_not_bound = !GPU_material_bound(gpumat);
 
-		if (material_not_bound) {
-			glMatrixMode(GL_PROJECTION);
-			glPushMatrix();
-			glLoadIdentity();
-			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
-			glLoadIdentity();
-			glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
-		}
-
 		/* Draw world */
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_ALWAYS);
-		glBegin(GL_TRIANGLE_STRIP);
-		glVertex3f(-1.0, -1.0, 1.0);
-		glVertex3f(1.0, -1.0, 1.0);
-		glVertex3f(-1.0, 1.0, 1.0);
-		glVertex3f(1.0, 1.0, 1.0);
-		glEnd();
 
 		if (material_not_bound) {
+			GPU_material_unbind(gpumat);
+
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glLoadIdentity();
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glLoadIdentity();
+
+			unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+			immUniformColor4ub(0.0f, 0.0f, 0.0f, 1.0f);
+
+			immBegin(GL_TRIANGLE_STRIP, 4);
+			immVertex3f(pos, -1.0f, -1.0f, 1.0f);
+			immVertex3f(pos, 1.0f, -1.0f, 1.0f);
+			immVertex3f(pos, -1.0f, 1.0f, 1.0f);
+			immVertex3f(pos, 1.0f, 1.0f, 1.0f);
+			immEnd();
+
+			immUnbindProgram();
+
 			glMatrixMode(GL_PROJECTION);
 			glPopMatrix();
 			glMatrixMode(GL_MODELVIEW);
 			glPopMatrix();
 		}
-
-		GPU_material_unbind(gpumat);
+		else {
+			/* TODO viewport (dfelinto): GPU_material_bind relies on immediate mode,
+			 * we can't get rid of the following code without a bigger refactor
+			 * or we dropping this functionality. */
+			glBegin(GL_TRIANGLE_STRIP);
+			glVertex3f(-1.0f, -1.0f, 1.0f);
+			glVertex3f(1.0f, -1.0f, 1.0f);
+			glVertex3f(-1.0f, 1.0f, 1.0f);
+			glVertex3f(1.0f, 1.0f, 1.0f);
+			glEnd();
+			GPU_material_unbind(gpumat);
+		}
 
 		glDepthFunc(GL_LEQUAL);
 		glDisable(GL_DEPTH_TEST);
@@ -2297,14 +2313,29 @@ static void view3d_main_region_clear(Scene *scene, View3D *v3d, ARegion *ar)
 
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_ALWAYS);
-			glBegin(GL_QUADS);
-			UI_ThemeColor(TH_LOW_GRAD);
-			glVertex3f(-1.0, -1.0, 1.0);
-			glVertex3f(1.0, -1.0, 1.0);
-			UI_ThemeColor(TH_HIGH_GRAD);
-			glVertex3f(1.0, 1.0, 1.0);
-			glVertex3f(-1.0, 1.0, 1.0);
-			glEnd();
+
+			VertexFormat *format = immVertexFormat();
+			unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+			unsigned char col_hi[3], col_lo[3];
+
+			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+
+			UI_GetThemeColor3ubv(TH_LOW_GRAD, col_lo);
+			UI_GetThemeColor3ubv(TH_LOW_GRAD, col_hi);
+
+			immBegin(GL_QUADS, 4);
+			immAttrib3ubv(color, col_lo);
+			immVertex3f(pos, -1.0f, -1.0f, 1.0f);
+			immVertex3f(pos, 1.0f, -1.0f, 1.0f);
+
+			immAttrib3ubv(color, col_hi);
+			immVertex3f(pos, 1.0f, 1.0f, 1.0f);
+			immVertex3f(pos, -1.0f, 1.0f, 1.0f);
+			immEnd();
+
+			immUnbindProgram();
+
 			glDepthFunc(GL_LEQUAL);
 			glDisable(GL_DEPTH_TEST);
 
