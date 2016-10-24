@@ -264,13 +264,13 @@ ccl_device_inline void camera_sample_panorama(KernelGlobals *kg,
 		float2 lensuv = camera_sample_aperture(kg, lens_u, lens_v)*aperturesize;
 
 		/* compute point on plane of focus */
-		float3 D = normalize(D);
-		float3 Pfocus = D * kernel_data.cam.focaldistance;
+		float3 Dfocus = normalize(D);
+		float3 Pfocus = Dfocus * kernel_data.cam.focaldistance;
 
-		/* calculate orthonormal coordinates perpendicular to D */
+		/* calculate orthonormal coordinates perpendicular to Dfocus */
 		float3 U, V;
-		U = normalize(make_float3(1.0f, 0.0f, 0.0f) -  D.x * D);
-		V = normalize(cross(D, U));
+		U = normalize(make_float3(1.0f, 0.0f, 0.0f) -  Dfocus.x * Dfocus);
+		V = normalize(cross(Dfocus, U));
 
 		/* update ray for effect of lens */
 		P = U * lensuv.x + V * lensuv.y;
