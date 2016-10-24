@@ -68,8 +68,8 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 	}
 #endif
 
-	ray->P = make_float3(0.0f, 0.0f, 0.0f);
-	ray->D = Pcamera;
+	float3 P = make_float3(0.0f, 0.0f, 0.0f);
+	float3 D = Pcamera;
 
 	/* modify ray for depth of field */
 	float aperturesize = kernel_data.cam.aperturesize;
@@ -79,12 +79,12 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 		float2 lensuv = camera_sample_aperture(kg, lens_u, lens_v)*aperturesize;
 
 		/* compute point on plane of focus */
-		float ft = kernel_data.cam.focaldistance/ray->D.z;
-		float3 Pfocus = ray->D*ft;
+		float ft = kernel_data.cam.focaldistance/D.z;
+		float3 Pfocus = D*ft;
 
 		/* update ray for effect of lens */
-		ray->P = make_float3(lensuv.x, lensuv.y, 0.0f);
-		ray->D = normalize(Pfocus - ray->P);
+		P = make_float3(lensuv.x, lensuv.y, 0.0f);
+		D = normalize(Pfocus - P);
 	}
 
 	/* transform ray from camera to world */
@@ -105,12 +105,15 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 	}
 #endif
 
-	ray->P = transform_point(&cameratoworld, ray->P);
-	ray->D = normalize(transform_direction(&cameratoworld, ray->D));
+	P = transform_point(&cameratoworld, P);
+	D = normalize(transform_direction(&cameratoworld, D));
 
 	bool use_stereo = kernel_data.cam.interocular_offset != 0.0f;
 	if(!use_stereo) {
 		/* No stereo */
+		ray->P = P;
+		ray->D = D;
+
 #ifdef __RAY_DIFFERENTIALS__
 		float3 Dcenter = transform_direction(&cameratoworld, Pcamera);
 
@@ -121,7 +124,9 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 	}
 	else {
 		/* Spherical stereo */
-		spherical_stereo_transform(kg, &ray->P, &ray->D);
+		spherical_stereo_transform(kg, &P, &D);
+		ray->P = P;
+		ray->D = D;
 
 #ifdef __RAY_DIFFERENTIALS__
 		/* Ray differentials, computed from scratch using the raster coordinates
@@ -173,7 +178,8 @@ ccl_device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, fl
 	Transform rastertocamera = kernel_data.cam.rastertocamera;
 	float3 Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
 
-	ray->D = make_float3(0.0f, 0.0f, 1.0f);
+	float3 P;
+	float3 D = make_float3(0.0f, 0.0f, 1.0f);
 
 	/* modify ray for depth of field */
 	float aperturesize = kernel_data.cam.aperturesize;
@@ -183,15 +189,15 @@ ccl_device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, fl
 		float2 lensuv = camera_sample_aperture(kg, lens_u, lens_v)*aperturesize;
 
 		/* compute point on plane of focus */
-		float3 Pfocus = ray->D * kernel_data.cam.focaldistance;
+		float3 Pfocus = D * kernel_data.cam.focaldistance;
 
 		/* update ray for effect of lens */
 		float3 lensuvw = make_float3(lensuv.x, lensuv.y, 0.0f);
-		ray->P = Pcamera + lensuvw;
-		ray->D = normalize(Pfocus - lensuvw);
+		P = Pcamera + lensuvw;
+		D = normalize(Pfocus - lensuvw);
 	}
 	else {
-		ray->P = Pcamera;
+		P = Pcamera;
 	}
 	/* transform ray from camera to world */
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
@@ -211,9 +217,8 @@ ccl_device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, fl
 	}
 #endif
 
-	ray->P = transform_point(&cameratoworld, ray->P);
-	ray->D = transform_direction(&cameratoworld, ray->D);
-	ray->D = normalize(ray->D);
+	ray->P = transform_point(&cameratoworld, P);
+	ray->D = normalize(transform_direction(&cameratoworld, D));
 
 #ifdef __RAY_DIFFERENTIALS__
 	/* ray differential */
@@ -242,11 +247,11 @@ ccl_device_inline void camera_sample_panorama(KernelGlobals *kg,
 	float3 Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
 
 	/* create ray form raster position */
-	ray->P = make_float3(0.0f, 0.0f, 0.0f);
-	ray->D = panorama_to_direction(kg, Pcamera.x, Pcamera.y);
+	float3 P = make_float3(0.0f, 0.0f, 0.0f);
+	float3 D = panorama_to_direction(kg, Pcamera.x, Pcamera.y);
 
 	/* indicates ray should not receive any light, outside of the lens */
-	if(is_zero(ray->D)) {	
+	if(is_zero(D)) {
 		ray->t = 0.0f;
 		return;
 	}
@@ -259,7 +264,7 @@ ccl_device_inline void camera_sample_panorama(KernelGlobals *kg,
 		float2 lensuv = camera_sample_aperture(kg, lens_u, lens_v)*aperturesize;
 
 		/* compute point on plane of focus */
-		float3 D = normalize(ray->D);
+		float3 D = normalize(D);
 		float3 Pfocus = D * kernel_data.cam.focaldistance;
 
 		/* calculate orthonormal coordinates perpendicular to D */
@@ -268,8 +273,8 @@ ccl_device_inline void camera_sample_panorama(KernelGlobals *kg,
 		V = normalize(cross(D, U));
 
 		/* update ray for effect of lens */
-		ray->P = U * lensuv.x + V * lensuv.y;
-		ray->D = normalize(Pfocus - ray->P);
+		P = U * lensuv.x + V * lensuv.y;
+		D = normalize(Pfocus - P);
 	}
 
 	/* transform ray from camera to world */
@@ -290,14 +295,17 @@ ccl_device_inline void camera_sample_panorama(KernelGlobals *kg,
 	}
 #endif
 
-	ray->P = transform_point(&cameratoworld, ray->P);
-	ray->D = normalize(transform_direction(&cameratoworld, ray->D));
+	P = transform_point(&cameratoworld, P);
+	D = normalize(transform_direction(&cameratoworld, D));
 
 	/* Stereo transform */
 	bool use_stereo = kernel_data.cam.interocular_offset != 0.0f;
 	if(use_stereo) {
-		spherical_stereo_transform(kg, &ray->P, &ray->D);
+		spherical_stereo_transform(kg, &P, &D);
 	}
+
+	ray->P = P;
+	ray->D = D;
 
 #ifdef __RAY_DIFFERENTIALS__
 	/* Ray differentials, computed from scratch using the raster coordinates
