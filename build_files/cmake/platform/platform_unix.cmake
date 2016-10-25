@@ -298,6 +298,7 @@ if(WITH_OPENIMAGEIO)
 		${JPEG_LIBRARIES}
 		${ZLIB_LIBRARIES}
 		${BOOST_LIBRARIES}
+		${CMAKE_DL_LIBS}
 	)
 	set(OPENIMAGEIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
 	set(OPENIMAGEIO_DEFINITIONS "")
