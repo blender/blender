@@ -42,6 +42,7 @@
 #    define __KERNEL_SSE41__
 #  endif
 #  ifdef __AVX__
+#    define __KERNEL_SSE__
 #    define __KERNEL_AVX__
 #  endif
 #  ifdef __AVX2__
