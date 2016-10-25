@@ -381,7 +381,7 @@ ccl_device_inline float3 bvh_clamp_direction(float3 dir)
 	const ssef mask = _mm_cmpgt_ps(fabs(dir), oopes);
 	const ssef signdir = signmsk(dir.m128) | oopes;
 #  ifndef __KERNEL_AVX__
-	ssef res = mask & signdir;
+	ssef res = mask & ssef(dir);
 	res = _mm_or_ps(res,_mm_andnot_ps(mask, signdir));
 #  else
 	ssef res = _mm_blendv_ps(signdir, dir, mask);
