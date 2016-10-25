@@ -378,13 +378,13 @@ ccl_device_inline float3 bvh_clamp_direction(float3 dir)
 	/* clamp absolute values by exp2f(-80.0f) to avoid division by zero when calculating inverse direction */
 #if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE2__)
 	const ssef oopes(8.271806E-25f,8.271806E-25f,8.271806E-25f,0.0f);
-	const ssef mask = _mm_cmpgt_ps(fabs(dir),oopes);
+	const ssef mask = _mm_cmpgt_ps(fabs(dir), oopes);
 	const ssef signdir = signmsk(dir.m128) | oopes;
 #  ifndef __KERNEL_AVX__
-	ssef res = mask & dir;
+	ssef res = mask & signdir;
 	res = _mm_or_ps(res,_mm_andnot_ps(mask, signdir));
 #  else
-	ssef res = _mm_blendv_ps(signdir,dir,mask);
+	ssef res = _mm_blendv_ps(signdir, dir, mask);
 #  endif
 	return float3(res);
 #else  /* __KERNEL_SSE__ && __KERNEL_SSE2__ */
