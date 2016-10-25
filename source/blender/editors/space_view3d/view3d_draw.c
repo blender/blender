@@ -275,6 +275,11 @@ static void view3d_stereo3d_setup(Scene *scene, View3D *v3d, ARegion *ar)
 
 /* ******************** debug ***************** */
 
+#define VIEW3D_DRAW_DEBUG 1
+/* TODO: expand scope of this flag so UI reflects the underlying code */
+
+#if VIEW3D_DRAW_DEBUG
+
 static void view3d_draw_debug_store_depth(ARegion *ar, DrawData *draw_data)
 {
 	GPUViewport *viewport = draw_data->viewport;
@@ -336,6 +341,8 @@ static void view3d_draw_debug(const bContext *C, ARegion *ar, DrawData *draw_dat
 		GPU_viewport_debug_depth_free(draw_data->viewport);
 	}
 }
+
+#endif /* VIEW3D_DRAW_DEBUG */
 
 /* ******************** view border ***************** */
 
@@ -1658,8 +1665,9 @@ static void view3d_draw_solid_plates(const bContext *C, ARegion *ar, DrawData *d
 		view3d_draw_render_draw(C, scene, ar, v3d, draw_data->clip_border, &draw_data->border_rect);
 	}
 
-	/* debug */
+#if VIEW3D_DRAW_DEBUG
 	view3d_draw_debug_post_solid(C, ar, draw_data);
+#endif
 }
 
 /**
@@ -1785,7 +1793,10 @@ static void view3d_draw_view(const bContext *C, ARegion *ar, DrawData *draw_data
 	view3d_draw_reference_images(C);
 	view3d_draw_manipulator(C);
 	view3d_draw_region_info(C, ar);
+
+#if VIEW3D_DRAW_DEBUG
 	view3d_draw_debug(C, ar, draw_data);
+#endif
 }
 
 void view3d_main_region_draw(const bContext *C, ARegion *ar)
