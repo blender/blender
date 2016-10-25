@@ -430,7 +430,7 @@ void BLI_cleanup_file(const char *relabase, char *path)
  * \return true if \a fname was changed, false otherwise.
  *
  * For now, simply replaces reserved chars (as listed in
- * http://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words )
+ * https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words )
  * by underscores ('_').
  *
  * \note Space case ' ' is a bit of an edge case here - in theory it is allowed, but again can be an issue

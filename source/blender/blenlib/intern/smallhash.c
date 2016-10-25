@@ -34,7 +34,7 @@
  * based on a doubling hashing approach (non-chaining) which uses more buckets then entries
  * stepping over buckets when two keys share the same hash so any key can find a free bucket.
  *
- * See: http://en.wikipedia.org/wiki/Double_hashing
+ * See: https://en.wikipedia.org/wiki/Double_hashing
  *
  * \warning This should _only_ be used for small hashes where allocating a hash every time is unacceptable.
  * Otherwise #GHash should be used instead.

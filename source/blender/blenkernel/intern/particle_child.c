@@ -136,7 +136,7 @@ static void do_kink_spiral_deform(ParticleKey *state, const float dir[3], const 
 		 * 
 		 * The "density" parameter b is defined by the shape parameter
 		 * and goes up to the Golden Spiral for 1.0
-		 * http://en.wikipedia.org/wiki/Golden_spiral
+		 * https://en.wikipedia.org/wiki/Golden_spiral
 		 */
 		const float b = shape * (1.0f + sqrtf(5.0f)) / (float)M_PI * 0.25f;
 		/* angle of the spiral against the curve (rotated opposite to make a smooth transition) */

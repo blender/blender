@@ -2180,7 +2180,7 @@ static void basic_rotate(ParticleSettings *part, ParticleData *pa, float dfra, f
  * The algorithm is roughly:
  *  1. Use a BVH tree to search for faces that a particle may collide with.
  *  2. Use Newton's method to find the exact time at which the collision occurs.
- *     http://en.wikipedia.org/wiki/Newton's_method
+ *     https://en.wikipedia.org/wiki/Newton's_method
  *
  ************************************************/
 #define COLLISION_MIN_RADIUS 0.001f

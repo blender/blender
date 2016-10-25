@@ -269,7 +269,7 @@ MINLINE void cpack_cpy_3ub(unsigned char r_col[3], const unsigned int pack)
 
 /**
  * ITU-R BT.709 primaries
- * http://en.wikipedia.org/wiki/Relative_luminance
+ * https://en.wikipedia.org/wiki/Relative_luminance
  *
  * Real values are:
  * ``Y = 0.2126390059(R) + 0.7151686788(G) + 0.0721923154(B)``

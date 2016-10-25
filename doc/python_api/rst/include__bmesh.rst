@@ -23,7 +23,7 @@ The features exposed closely follow the C API,
 giving python access to the functions used by blenders own mesh editing tools.
 
 For an overview of BMesh data types and how they reference each other see:
-`BMesh Design Document <http://wiki.blender.org/index.php/Dev:2.6/Source/Modeling/BMesh/Design>`_ .
+`BMesh Design Document <https://wiki.blender.org/index.php/Dev:Source/Modeling/BMesh/Design>`_ .
 
 
 .. note::
@@ -31,12 +31,11 @@ For an overview of BMesh data types and how they reference each other see:
    **Disk** and **Radial** data is not exposed by the python api since this is for internal use only.
 
 
-.. warning::
-
-   TODO items are...
+.. warning:: TODO items are...
 
    * add access to BMesh **walkers**
    * add custom-data manipulation functions add/remove/rename.
+
 
 Example Script
 --------------

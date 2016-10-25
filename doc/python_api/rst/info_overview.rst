@@ -43,8 +43,7 @@ scene manipulation, automation, defining your own toolset and customization.
 
 On startup Blender scans the ``scripts/startup/`` directory for Python modules and imports them.
 The exact location of this directory depends on your installation.
-`See the directory layout docs
-<https://www.blender.org/manual/getting_started/installing_blender/directorylayout.html>`__
+See the :ref:`directory layout docs <blender_manual:getting-started_installing-config-directories>`.
 
 
 Script Loading
@@ -92,7 +91,7 @@ variable which Blender uses to read metadata such as name, author, category and 
 
 The User Preferences add-on listing uses **bl_info** to display information about each add-on.
 
-`See Add-ons <http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Guidelines/Addons>`__
+`See Add-ons <https://wiki.blender.org/index.php/Dev:Py/Scripts/Guidelines/Addons>`__
 for details on the ``bl_info`` dictionary.
 
 

@@ -27,7 +27,7 @@ There are 3 main uses for the terminal, these are:
 
 .. note::
 
-   For Linux and OSX users this means starting the terminal first, then running Blender from within it.
+   For Linux and macOS users this means starting the terminal first, then running Blender from within it.
    On Windows the terminal can be enabled from the help menu.
 
 
@@ -306,7 +306,7 @@ Advantages include:
 This is marked advanced because to run Blender as a Python module requires a special build option.
 
 For instructions on building see
-`Building Blender as a Python module <http://wiki.blender.org/index.php/User:Ideasman42/BlenderAsPyModule>`_
+`Building Blender as a Python module <https://wiki.blender.org/index.php/User:Ideasman42/BlenderAsPyModule>`_
 
 
 Python Safety (Build Option)

@@ -49,7 +49,7 @@ vec2d[:] = vec3d[:2]
 
 
 # Vectors support 'swizzle' operations
-# See http://en.wikipedia.org/wiki/Swizzling_(computer_graphics)
+# See https://en.wikipedia.org/wiki/Swizzling_(computer_graphics)
 vec.xyz = vec.zyx
 vec.xy = vec4d.zw
 vec.xyz = vec4d.wzz

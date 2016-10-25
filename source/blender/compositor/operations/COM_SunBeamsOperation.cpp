@@ -186,8 +186,8 @@ struct BufferLineAccumulator {
 			}
 			
 			/* TODO implement proper filtering here, see
-			 * http://en.wikipedia.org/wiki/Lanczos_resampling
-			 * http://en.wikipedia.org/wiki/Sinc_function
+			 * https://en.wikipedia.org/wiki/Lanczos_resampling
+			 * https://en.wikipedia.org/wiki/Sinc_function
 			 *
 			 * using lanczos with x = distance from the line segment,
 			 * normalized to a == 0.5f, could give a good result
