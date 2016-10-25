@@ -11,7 +11,7 @@ uniform vec4 frontColor;
 uniform vec4 backColor;
 uniform vec4 silhouetteColor;
 
-uniform vec4 eye; // direction we are looking
+uniform vec3 eye; // direction we are looking
 
 uniform mat4 ModelViewProjectionMatrix;
 
