@@ -173,9 +173,6 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 	int soffx;
 	bool cross_eyed = (win->stereo3d_format->flag & S3D_SIDEBYSIDE_CROSSEYED) != 0;
 
-	const int activeTex = GL_TEXTURE0;
-	glActiveTexture(activeTex);
-
 	VertexFormat *format = immVertexFormat();
 	unsigned texcoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
 	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
@@ -217,7 +214,7 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 		glBindTexture(triple->target, triple->bind);
 
 		immUniform1f("alpha", 1.0f);
-		immUniform1i("image", activeTex);
+		immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
 
 		immBegin(GL_QUADS, 4);
 
@@ -248,9 +245,6 @@ static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 	float halfx, halfy, ratiox, ratioy;
 	int view;
 	int soffy;
-
-	const int activeTex = GL_TEXTURE0;
-	glActiveTexture(activeTex);
 
 	VertexFormat *format = immVertexFormat();
 	unsigned texcoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
@@ -290,7 +284,7 @@ static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 		glBindTexture(triple->target, triple->bind);
 
 		immUniform1f("alpha", 1.0f);
-		immUniform1i("image", activeTex);
+		immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
 
 		immBegin(GL_QUADS, 4);
 
@@ -339,9 +333,9 @@ void wm_method_draw_stereo3d(const bContext *UNUSED(C), wmWindow *win)
 
 static bool wm_stereo3d_quadbuffer_supported(void)
 {
-	int gl_stereo = 0;
-	glGetBooleanv(GL_STEREO, (GLboolean *)&gl_stereo);
-	return gl_stereo != 0;
+	GLboolean stereo = GL_FALSE;
+	glGetBooleanv(GL_STEREO, &stereo);
+	return stereo == GL_TRUE;
 }
 
 static bool wm_stereo3d_is_fullscreen_required(eStereoDisplayMode stereo_display)

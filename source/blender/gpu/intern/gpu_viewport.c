@@ -89,9 +89,6 @@ void GPU_viewport_debug_depth_draw(GPUViewport *viewport, const float znear, con
 	const float w = (float)GPU_texture_width(viewport->debug_depth);
 	const float h = (float)GPU_texture_height(viewport->debug_depth);
 
-	const int activeTex = GL_TEXTURE0;
-	glActiveTexture(activeTex);
-
 	VertexFormat *format = immVertexFormat();
 	unsigned texcoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
 	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
@@ -102,7 +99,7 @@ void GPU_viewport_debug_depth_draw(GPUViewport *viewport, const float znear, con
 
 	immUniform1f("znear", znear);
 	immUniform1f("zfar", zfar);
-	immUniform1i("image", activeTex);
+	immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
 
 	immBegin(GL_QUADS, 4);
 

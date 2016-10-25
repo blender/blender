@@ -616,15 +616,18 @@ void GPU_texture_bind(GPUTexture *tex, int number)
 	if (number < 0)
 		return;
 
-	GLenum arbnumber = (GLenum)((GLuint)GL_TEXTURE0 + number);
-	if (number != 0) glActiveTexture(arbnumber);
-	if (tex->bindcode != 0) {
+	if (number != 0)
+		glActiveTexture(GL_TEXTURE0 + number);
+
+	if (tex->bindcode != 0)
 		glBindTexture(tex->target_base, tex->bindcode);
-	}
 	else
 		GPU_invalid_tex_bind(tex->target_base);
-	glEnable(tex->target_base);
-	if (number != 0) glActiveTexture(GL_TEXTURE0);
+
+	glEnable(tex->target_base); /* TODO: remove this line once we're using GLSL everywhere */
+
+	if (number != 0)
+		glActiveTexture(GL_TEXTURE0);
 
 	tex->number = number;
 }
@@ -639,11 +642,14 @@ void GPU_texture_unbind(GPUTexture *tex)
 	if (tex->number == -1)
 		return;
 
-	GLenum arbnumber = (GLenum)((GLuint)GL_TEXTURE0 + tex->number);
-	if (tex->number != 0) glActiveTexture(arbnumber);
+	if (tex->number != 0)
+		glActiveTexture(GL_TEXTURE0 + tex->number);
+
 	glBindTexture(tex->target_base, 0);
-	glDisable(tex->target_base);
-	if (tex->number != 0) glActiveTexture(GL_TEXTURE0);
+	glDisable(tex->target_base); /* TODO: remove this line */
+
+	if (tex->number != 0)
+		glActiveTexture(GL_TEXTURE0);
 
 	tex->number = -1;
 }
@@ -663,25 +669,19 @@ void GPU_texture_filter_mode(GPUTexture *tex, bool compare, bool use_filter)
 	if (tex->number == -1)
 		return;
 
-	GLenum arbnumber = (GLenum)((GLuint)GL_TEXTURE0 + tex->number);
-	if (tex->number != 0) glActiveTexture(arbnumber);
+	if (tex->number != 0)
+		glActiveTexture(GL_TEXTURE0 + tex->number);
 
 	if (tex->depth) {
-		if (compare)
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
-		else
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, compare ? GL_COMPARE_R_TO_TEXTURE : GL_NONE);
 	}
 
-	if (use_filter) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	}
-	else {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	}
-	if (tex->number != 0) glActiveTexture(GL_TEXTURE0);
+	GLenum filter = use_filter ? GL_LINEAR : GL_NEAREST;
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+
+	if (tex->number != 0)
+		glActiveTexture(GL_TEXTURE0);
 }
 
 void GPU_texture_free(GPUTexture *tex)

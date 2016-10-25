@@ -578,7 +578,6 @@ void GPU_shader_geometry_stage_primitive_io(GPUShader *shader, int input, int ou
 
 void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUTexture *tex)
 {
-	GLenum arbnumber;
 	int number = GPU_texture_bound_number(tex);
 	int bindcode = GPU_texture_opengl_bindcode(tex);
 	int target = GPU_texture_target(tex);
@@ -594,16 +593,18 @@ void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUText
 	if (location == -1)
 		return;
 
-	arbnumber = (GLenum)((GLuint)GL_TEXTURE0 + number);
+	if (number != 0)
+		glActiveTexture(GL_TEXTURE0 + number);
 
-	if (number != 0) glActiveTexture(arbnumber);
 	if (bindcode != 0)
 		glBindTexture(target, bindcode);
 	else
 		GPU_invalid_tex_bind(target);
+
 	glUniform1i(location, number);
-	glEnable(target);
-	if (number != 0) glActiveTexture(GL_TEXTURE0);
+
+	if (number != 0)
+		glActiveTexture(GL_TEXTURE0);
 }
 
 int GPU_shader_get_attribute(GPUShader *shader, const char *name)

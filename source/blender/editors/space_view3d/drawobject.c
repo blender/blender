@@ -652,12 +652,10 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 	const float ob_alpha = ob->col[3];
 	float width, height;
 
-	const int texUnit = GL_TEXTURE0;
 	int bindcode = 0;
 
 	if (ima) {
 		if (ob_alpha > 0.0f) {
-			glActiveTexture(texUnit);
 			bindcode = GPU_verify_image(ima, ob->iuser, GL_TEXTURE_2D, 0, false, false, false);
 			/* don't bother drawing the image if alpha = 0 */
 		}
@@ -694,7 +692,7 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 		unsigned texCoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA);
 		immUniform1f("alpha", ob_alpha);
-		immUniform1i("image", texUnit);
+		immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
 
 		immBegin(GL_TRIANGLE_FAN, 4);
 		immAttrib2f(texCoord, 0.0f, 0.0f);
