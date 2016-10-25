@@ -100,12 +100,27 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 #endif
 
 	/* Offsets to select the side that becomes the lower or upper bound. */
+#ifdef __KERNEL_SSE__
+	int near_x = 0, near_y = 2, near_z = 4;
+	int far_x = 1, far_y = 3, far_z = 5;
+
+	const size_t mask = movemask(ssef(idir.m128));
+
+	const int mask_x = mask & 1;
+	const int mask_y = (mask & 2) >> 1;
+	const int mask_z = (mask & 4) >> 2;
+
+	near_x += mask_x; far_x -= mask_x;
+	near_y += mask_y; far_y -= mask_y;
+	near_z += mask_z; far_z -= mask_z;
+#else
 	int near_x, near_y, near_z;
 	int far_x, far_y, far_z;
 
 	if(idir.x >= 0.0f) { near_x = 0; far_x = 1; } else { near_x = 1; far_x = 0; }
 	if(idir.y >= 0.0f) { near_y = 2; far_y = 3; } else { near_y = 3; far_y = 2; }
 	if(idir.z >= 0.0f) { near_z = 4; far_z = 5; } else { near_z = 5; far_z = 4; }
+#endif
 
 	IsectPrecalc isect_precalc;
 	triangle_intersect_precalc(dir, &isect_precalc);
@@ -427,9 +442,24 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					qbvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect->t, &node_dist);
 #  endif
 
+#ifdef __KERNEL_SSE__
+					near_x = 0; near_y = 2; near_z = 4;
+					far_x = 1; far_y = 3; far_z = 5;
+
+					const size_t mask = movemask(ssef(idir.m128));
+
+					const int mask_x = mask & 1;
+					const int mask_y = (mask & 2) >> 1;
+					const int mask_z = (mask & 4) >> 2;
+
+					near_x += mask_x; far_x -= mask_x;
+					near_y += mask_y; far_y -= mask_y;
+					near_z += mask_z; far_z -= mask_z;
+#else
 					if(idir.x >= 0.0f) { near_x = 0; far_x = 1; } else { near_x = 1; far_x = 0; }
 					if(idir.y >= 0.0f) { near_y = 2; far_y = 3; } else { near_y = 3; far_y = 2; }
 					if(idir.z >= 0.0f) { near_z = 4; far_z = 5; } else { near_z = 5; far_z = 4; }
+#endif
 					tfar = ssef(isect->t);
 #  if BVH_FEATURE(BVH_HAIR)
 					dir4 = sse3f(ssef(dir.x), ssef(dir.y), ssef(dir.z));
@@ -469,9 +499,25 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 			bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &isect->t);
 #  endif
 
+#ifdef __KERNEL_SSE__
+			near_x = 0; near_y = 2; near_z = 4;
+			far_x = 1; far_y = 3; far_z = 5;
+
+			const size_t mask = movemask(ssef(idir.m128));
+
+			const int mask_x = mask & 1;
+			const int mask_y = (mask & 2) >> 1;
+			const int mask_z = (mask & 4) >> 2;
+
+			near_x += mask_x; far_x -= mask_x;
+			near_y += mask_y; far_y -= mask_y;
+			near_z += mask_z; far_z -= mask_z;
+#else
 			if(idir.x >= 0.0f) { near_x = 0; far_x = 1; } else { near_x = 1; far_x = 0; }
 			if(idir.y >= 0.0f) { near_y = 2; far_y = 3; } else { near_y = 3; far_y = 2; }
 			if(idir.z >= 0.0f) { near_z = 4; far_z = 5; } else { near_z = 5; far_z = 4; }
+#endif
+
 			tfar = ssef(isect->t);
 #  if BVH_FEATURE(BVH_HAIR)
 			dir4 = sse3f(ssef(dir.x), ssef(dir.y), ssef(dir.z));
