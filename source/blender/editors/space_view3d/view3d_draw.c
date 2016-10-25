@@ -53,6 +53,7 @@
 #include "ED_screen.h"
 #include "ED_transform.h"
 
+#include "GPU_matrix.h"
 #include "GPU_immediate.h"
 #include "GPU_material.h"
 #include "GPU_viewport.h"
@@ -766,7 +767,7 @@ static bool view3d_draw_render_draw(const bContext *C, Scene *scene,
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	/* don't change depth buffer */
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT); /* is this necessary? -- merwin */
 
 	/* render result draw */
 	type = rv3d->render_engine->type;
@@ -787,56 +788,46 @@ static bool view3d_draw_render_draw(const bContext *C, Scene *scene,
 
 /* ******************** background plates ***************** */
 
+static void view3d_draw_background_gradient()
+{
+	gpuMatrixBegin3D(); /* TODO: finish 2D API */
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+	unsigned char col_hi[3], col_lo[3];
+
+	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+
+	UI_GetThemeColor3ubv(TH_LOW_GRAD, col_lo);
+	UI_GetThemeColor3ubv(TH_HIGH_GRAD, col_hi);
+
+	immBegin(GL_QUADS, 4);
+	immAttrib3ubv(color, col_lo);
+	immVertex2f(pos, -1.0f, -1.0f);
+	immVertex2f(pos, 1.0f, -1.0f);
+
+	immAttrib3ubv(color, col_hi);
+	immVertex2f(pos, 1.0f, 1.0f);
+	immVertex2f(pos, -1.0f, 1.0f);
+	immEnd();
+
+	immUnbindProgram();
+
+	gpuMatrixEnd();
+}
+
 static void view3d_draw_background_none()
 {
 	if (UI_GetThemeValue(TH_SHOW_BACK_GRAD)) {
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
-
-		glClear(GL_DEPTH_BUFFER_BIT);
-		glDisable(GL_DEPTH_TEST);
-
-		VertexFormat *format = immVertexFormat();
-		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-		unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
-		unsigned char col_hi[3], col_lo[3];
-
-		immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
-
-		UI_GetThemeColor3ubv(TH_LOW_GRAD, col_lo);
-		UI_GetThemeColor3ubv(TH_HIGH_GRAD, col_hi);
-
-		immBegin(GL_QUADS, 4);
-		immAttrib3ubv(color, col_lo);
-		immVertex2f(pos, -1.0f, -1.0f);
-		immVertex2f(pos, 1.0f, -1.0f);
-
-		immAttrib3ubv(color, col_hi);
-		immVertex2f(pos, 1.0f, 1.0f);
-		immVertex2f(pos, -1.0f, 1.0f);
-		immEnd();
-
-		immUnbindProgram();
-
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
+		view3d_draw_background_gradient();
 	}
 	else {
 		UI_ThemeClearColorAlpha(TH_HIGH_GRAD, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
-}
-
-static void view3d_draw_background_gradient()
-{
-	/* TODO viewport */
-	view3d_draw_background_none();
 }
 
 static void view3d_draw_background_world(Scene *scene, View3D *v3d, RegionView3D *rv3d)
@@ -847,25 +838,26 @@ static void view3d_draw_background_world(Scene *scene, View3D *v3d, RegionView3D
 		/* calculate full shader for background */
 		GPU_material_bind(gpumat, 1, 1, 1.0f, false, rv3d->viewmat, rv3d->viewinv, rv3d->viewcamtexcofac, (v3d->scenelock != 0));
 
-		if (!GPU_material_bound(gpumat)) {
+		if (GPU_material_bound(gpumat)) {
+
+			glClear(GL_DEPTH_BUFFER_BIT);
+
+			/* TODO viewport (dfelinto): GPU_material_bind relies on immediate mode,
+			* we can't get rid of the following code without a bigger refactor
+			* or we dropping this functionality. */
+
+			glBegin(GL_TRIANGLE_STRIP);
+			glVertex2f(-1.0f, -1.0f);
+			glVertex2f(1.0f, -1.0f);
+			glVertex2f(-1.0f, 1.0f);
+			glVertex2f(1.0f, 1.0f);
+			glEnd();
+
+			GPU_material_unbind(gpumat);
+		}
+		else {
 			view3d_draw_background_none();
 		}
-
-		glClear(GL_DEPTH_BUFFER_BIT);
-		glDisable(GL_DEPTH_TEST);
-
-		/* TODO viewport (dfelinto): GPU_material_bind relies on immediate mode,
-		* we can't get rid of the following code without a bigger refactor
-		* or we dropping this functionality. */
-
-		glBegin(GL_TRIANGLE_STRIP);
-		glVertex2f(-1.0f, -1.0f);
-		glVertex2f(1.0f, -1.0f);
-		glVertex2f(-1.0f, 1.0f);
-		glVertex2f(1.0f, 1.0f);
-		glEnd();
-
-		GPU_material_unbind(gpumat);
 	}
 	else {
 		view3d_draw_background_none();
@@ -883,6 +875,12 @@ static void view3d_draw_background(const bContext *C)
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 
+	glDisable(GL_DEPTH_TEST);
+	/* Background functions do not read or write depth, but they do clear or completely
+	 * overwrite color buffer. It's more efficient to clear color & depth in once call, so
+	 * background functions do this even though they don't use depth.
+	 */
+
 	switch (v3d->debug.background) {
 		case V3D_DEBUG_BACKGROUND_WORLD:
 			view3d_draw_background_world(scene, v3d, rv3d);
@@ -892,7 +890,7 @@ static void view3d_draw_background(const bContext *C)
 			break;
 		case V3D_DEBUG_BACKGROUND_NONE:
 		default:
-			view3d_draw_background_none(v3d);
+			view3d_draw_background_none();
 			break;
 	}
 }
@@ -1101,7 +1099,9 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 
 	glLineWidth(1.0f);
 
+#if 0 /* TODO: write to UI/widget depth buffer, not scene depth */
 	glDepthMask(GL_FALSE);  /* disable write in zbuffer */
+#endif
 
 	VertexFormat* format = immVertexFormat();
 	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
@@ -1235,7 +1235,10 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 
 drawgrid_cleanup:
 	immUnbindProgram();
+
+#if 0 /* depth write is left enabled above */
 	glDepthMask(GL_TRUE);  /* enable write in zbuffer */
+#endif
 }
 
 #undef DEBUG_GRID
@@ -1453,6 +1456,7 @@ static void view3d_draw_grid(const bContext *C, ARegion *ar)
 	rv3d->gridview = ED_view3d_grid_scale(scene, v3d, &grid_unit);
 
 	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE); /* read & test depth, but don't alter it. TODO: separate UI depth buffer */
 
 	if (!draw_floor) {
 		ED_region_pixelspace(ar);
@@ -1587,6 +1591,8 @@ static void draw_all_objects(const bContext *C, ARegion *ar, const bool only_dep
 
 	if (only_depth || use_depth) {
 		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
+		glDepthMask(GL_TRUE);
 		v3d->zbuf = true;
 	}
 
