@@ -42,7 +42,7 @@
 # define JACK_SYM extern
 #endif
 
-/* All loadable Jack sumbols, prototypes from original jack.h */
+/* All loadable JACK sumbols, prototypes from original jack.h */
 
 JACK_SYM jack_transport_state_t (*AUD_jack_transport_query) (
         const jack_client_t *client,

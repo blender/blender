@@ -43,7 +43,7 @@ ImageManager::ImageManager(const DeviceInfo& info)
 	 * be screwed on so many levels..
 	 */
 	DeviceType device_type = info.type;
-	if (device_type == DEVICE_MULTI) {
+	if(device_type == DEVICE_MULTI) {
 		device_type = info.multi_devices[0].type;
 	}
 
@@ -1107,7 +1107,7 @@ void ImageManager::device_pack_images(Device *device,
 
 	int info_size = tex_num_images[IMAGE_DATA_TYPE_FLOAT4] + tex_num_images[IMAGE_DATA_TYPE_BYTE4]
 	                + tex_num_images[IMAGE_DATA_TYPE_FLOAT] + tex_num_images[IMAGE_DATA_TYPE_BYTE];
-	uint4 *info = dscene->tex_image_packed_info.resize(info_size);
+	uint4 *info = dscene->tex_image_packed_info.resize(info_size*2);
 
 	/* Byte4 Textures*/
 	type = IMAGE_DATA_TYPE_BYTE4;
@@ -1130,7 +1130,9 @@ void ImageManager::device_pack_images(Device *device,
 
 		uint8_t options = pack_image_options(type, slot);
 
-		info[type_index_to_flattened_slot(slot, type)] = make_uint4(tex_img.data_width, tex_img.data_height, offset, options);
+		int index = type_index_to_flattened_slot(slot, type) * 2;
+		info[index] = make_uint4(tex_img.data_width, tex_img.data_height, offset, options);
+		info[index+1] = make_uint4(tex_img.data_depth, 0, 0, 0);
 
 		memcpy(pixels_byte4+offset, (void*)tex_img.data_pointer, tex_img.memory_size());
 		offset += tex_img.size();
@@ -1159,7 +1161,10 @@ void ImageManager::device_pack_images(Device *device,
 		/* todo: support 3D textures, only CPU for now */
 
 		uint8_t options = pack_image_options(type, slot);
-		info[type_index_to_flattened_slot(slot, type)] = make_uint4(tex_img.data_width, tex_img.data_height, offset, options);
+
+		int index = type_index_to_flattened_slot(slot, type) * 2;
+		info[index] = make_uint4(tex_img.data_width, tex_img.data_height, offset, options);
+		info[index+1] = make_uint4(tex_img.data_depth, 0, 0, 0);
 
 		memcpy(pixels_float4+offset, (void*)tex_img.data_pointer, tex_img.memory_size());
 		offset += tex_img.size();
@@ -1187,7 +1192,9 @@ void ImageManager::device_pack_images(Device *device,
 
 		uint8_t options = pack_image_options(type, slot);
 
-		info[type_index_to_flattened_slot(slot, type)] = make_uint4(tex_img.data_width, tex_img.data_height, offset, options);
+		int index = type_index_to_flattened_slot(slot, type) * 2;
+		info[index] = make_uint4(tex_img.data_width, tex_img.data_height, offset, options);
+		info[index+1] = make_uint4(tex_img.data_depth, 0, 0, 0);
 
 		memcpy(pixels_byte+offset, (void*)tex_img.data_pointer, tex_img.memory_size());
 		offset += tex_img.size();
@@ -1216,7 +1223,10 @@ void ImageManager::device_pack_images(Device *device,
 		/* todo: support 3D textures, only CPU for now */
 
 		uint8_t options = pack_image_options(type, slot);
-		info[type_index_to_flattened_slot(slot, type)] = make_uint4(tex_img.data_width, tex_img.data_height, offset, options);
+
+		int index = type_index_to_flattened_slot(slot, type) * 2;
+		info[index] = make_uint4(tex_img.data_width, tex_img.data_height, offset, options);
+		info[index+1] = make_uint4(tex_img.data_depth, 0, 0, 0);
 
 		memcpy(pixels_float+offset, (void*)tex_img.data_pointer, tex_img.memory_size());
 		offset += tex_img.size();

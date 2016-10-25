@@ -27,12 +27,13 @@
 #include "blender_util.h"
 
 #include "util_debug.h"
+#include "util_string.h"
 
 CCL_NAMESPACE_BEGIN
 
 typedef map<void*, ShaderInput*> PtrInputMap;
 typedef map<void*, ShaderOutput*> PtrOutputMap;
-typedef map<std::string, ConvertNode*> ProxyMap;
+typedef map<string, ConvertNode*> ProxyMap;
 
 /* Find */
 

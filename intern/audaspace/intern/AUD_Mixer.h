@@ -95,6 +95,8 @@ public:
 	 */
 	void mix(sample_t* buffer, int start, int length, float volume);
 
+	void mix(sample_t* buffer, int start, int length, float volume_to, float volume_from);
+
 	/**
 	 * Writes the mixing buffer into an output buffer.
 	 * \param buffer The target buffer for superposing.

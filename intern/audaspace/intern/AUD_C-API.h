@@ -61,7 +61,7 @@ typedef struct
 #endif
 
 /**
- * Initializes audio rutines (FFMPEG/Jack if it is enabled).
+ * Initializes audio routines (FFMPEG/JACK if it is enabled).
  */
 extern void AUD_initOnce(void);
 

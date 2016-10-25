@@ -4197,7 +4197,7 @@ static int space_context_cycle_poll(bContext *C)
 
 /**
  * Helper to get the correct RNA pointer/property pair for changing
- * the display context of active space type in \sa.
+ * the display context of active space type in \a sa.
  */
 static void context_cycle_prop_get(
         bScreen *screen, const ScrArea *sa,
@@ -4214,6 +4214,9 @@ static void context_cycle_prop_get(
 			RNA_pointer_create(NULL, &RNA_UserPreferences, &U, r_ptr);
 			propname = "active_section";
 			break;
+		default:
+			BLI_assert(0);
+			propname = "";
 	}
 
 	*r_prop = RNA_struct_find_property(r_ptr, propname);

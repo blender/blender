@@ -383,7 +383,7 @@ typedef struct DisplaceModifierData {
 	int direction;
 	char defgrp_name[64];   /* MAX_VGROUP_NAME */
 	float midlevel;
-	int pad;
+	int space;
 } DisplaceModifierData;
 
 /* DisplaceModifierData->direction */
@@ -402,6 +402,12 @@ enum {
 	MOD_DISP_MAP_GLOBAL = 1,
 	MOD_DISP_MAP_OBJECT = 2,
 	MOD_DISP_MAP_UV     = 3,
+};
+
+/* DisplaceModifierData->space */
+enum {
+	MOD_DISP_SPACE_LOCAL  = 0,
+	MOD_DISP_SPACE_GLOBAL = 1,
 };
 
 typedef struct UVProjectModifierData {

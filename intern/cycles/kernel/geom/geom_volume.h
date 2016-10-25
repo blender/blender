@@ -29,7 +29,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Return position normalized to 0..1 in mesh bounds */
 
-#if defined(__KERNEL_GPU__) && __CUDA_ARCH__ < 300
+#if defined(__KERNEL_CUDA__) && __CUDA_ARCH__ < 300
 ccl_device float4 volume_image_texture_3d(int id, float x, float y, float z)
 {
 	float4 r;
@@ -42,7 +42,7 @@ ccl_device float4 volume_image_texture_3d(int id, float x, float y, float z)
 	}
 	return r;
 }
-#endif  /* __KERNEL_GPU__ */
+#endif  /* __KERNEL_CUDA__ */
 
 ccl_device_inline float3 volume_normalized_position(KernelGlobals *kg,
                                                     const ShaderData *sd,
@@ -64,8 +64,8 @@ ccl_device_inline float3 volume_normalized_position(KernelGlobals *kg,
 
 ccl_device float volume_attribute_float(KernelGlobals *kg, const ShaderData *sd, const AttributeDescriptor desc, float *dx, float *dy)
 {
-	float3 P = volume_normalized_position(kg, sd, sd->P);
-#ifdef __KERNEL_GPU__
+	float3 P = volume_normalized_position(kg, sd, ccl_fetch(sd, P));
+#ifdef __KERNEL_CUDA__
 #  if __CUDA_ARCH__ >= 300
 	CUtexObject tex = kernel_tex_fetch(__bindless_mapping, desc.offset);
 	float f = kernel_tex_image_interp_3d_float(tex, P.x, P.y, P.z);
@@ -73,6 +73,8 @@ ccl_device float volume_attribute_float(KernelGlobals *kg, const ShaderData *sd,
 #  else
 	float4 r = volume_image_texture_3d(desc.offset, P.x, P.y, P.z);
 #  endif
+#elif defined(__KERNEL_OPENCL__)
+	float4 r = kernel_tex_image_interp_3d(kg, desc.offset, P.x, P.y, P.z);
 #else
 	float4 r;
 	if(sd->flag & SD_VOLUME_CUBIC)
@@ -89,14 +91,16 @@ ccl_device float volume_attribute_float(KernelGlobals *kg, const ShaderData *sd,
 
 ccl_device float3 volume_attribute_float3(KernelGlobals *kg, const ShaderData *sd, const AttributeDescriptor desc, float3 *dx, float3 *dy)
 {
-	float3 P = volume_normalized_position(kg, sd, sd->P);
-#ifdef __KERNEL_GPU__
+	float3 P = volume_normalized_position(kg, sd, ccl_fetch(sd, P));
+#ifdef __KERNEL_CUDA__
 #  if __CUDA_ARCH__ >= 300
 	CUtexObject tex = kernel_tex_fetch(__bindless_mapping, desc.offset);
 	float4 r = kernel_tex_image_interp_3d_float4(tex, P.x, P.y, P.z);
 #  else
 	float4 r = volume_image_texture_3d(desc.offset, P.x, P.y, P.z);
 #  endif
+#elif defined(__KERNEL_OPENCL__)
+	float4 r = kernel_tex_image_interp_3d(kg, desc.offset, P.x, P.y, P.z);
 #else
 	float4 r;
 	if(sd->flag & SD_VOLUME_CUBIC)

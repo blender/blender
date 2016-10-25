@@ -26,6 +26,7 @@
 #include "util_md5.h"
 #include "util_opengl.h"
 #include "util_path.h"
+#include "util_string.h"
 #include "util_types.h"
 
 #ifdef WITH_OSL
@@ -437,13 +438,13 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
 			continue;
 
 		/* determine socket type */
-		std::string socket_type;
+		string socket_type;
 		BL::NodeSocket::type_enum data_type = BL::NodeSocket::type_VALUE;
 		float4 default_float4 = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
 		float default_float = 0.0f;
 		int default_int = 0;
-		std::string default_string = "";
-		
+		string default_string = "";
+
 		if(param->isclosure) {
 			socket_type = "NodeSocketShader";
 			data_type = BL::NodeSocket::type_SHADER;

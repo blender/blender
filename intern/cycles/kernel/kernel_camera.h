@@ -68,8 +68,8 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 	}
 #endif
 
-	ray->P = make_float3(0.0f, 0.0f, 0.0f);
-	ray->D = Pcamera;
+	float3 P = make_float3(0.0f, 0.0f, 0.0f);
+	float3 D = Pcamera;
 
 	/* modify ray for depth of field */
 	float aperturesize = kernel_data.cam.aperturesize;
@@ -79,12 +79,12 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 		float2 lensuv = camera_sample_aperture(kg, lens_u, lens_v)*aperturesize;
 
 		/* compute point on plane of focus */
-		float ft = kernel_data.cam.focaldistance/ray->D.z;
-		float3 Pfocus = ray->D*ft;
+		float ft = kernel_data.cam.focaldistance/D.z;
+		float3 Pfocus = D*ft;
 
 		/* update ray for effect of lens */
-		ray->P = make_float3(lensuv.x, lensuv.y, 0.0f);
-		ray->D = normalize(Pfocus - ray->P);
+		P = make_float3(lensuv.x, lensuv.y, 0.0f);
+		D = normalize(Pfocus - P);
 	}
 
 	/* transform ray from camera to world */
@@ -105,39 +105,66 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 	}
 #endif
 
-	float3 tP = transform_point(&cameratoworld, ray->P);
-	float3 tD = transform_direction(&cameratoworld, ray->D);
-	ray->P = spherical_stereo_position(kg, tD, tP);
-	ray->D = spherical_stereo_direction(kg, tD, tP, ray->P);
+	P = transform_point(&cameratoworld, P);
+	D = normalize(transform_direction(&cameratoworld, D));
+
+	bool use_stereo = kernel_data.cam.interocular_offset != 0.0f;
+	if(!use_stereo) {
+		/* No stereo */
+		ray->P = P;
+		ray->D = D;
 
 #ifdef __RAY_DIFFERENTIALS__
-	/* ray differential */
-	ray->dP = differential3_zero();
+		float3 Dcenter = transform_direction(&cameratoworld, Pcamera);
 
-	float3 tD_diff = transform_direction(&cameratoworld, Pcamera);
-	float3 Pdiff = spherical_stereo_position(kg, tD_diff, Pcamera);
-	float3 Ddiff = spherical_stereo_direction(kg, tD_diff, Pcamera, Pdiff);
-
-	tP = transform_perspective(&rastertocamera,
-	                           make_float3(raster_x + 1.0f, raster_y, 0.0f));
-	tD = tD_diff + float4_to_float3(kernel_data.cam.dx);
-	Pcamera = spherical_stereo_position(kg, tD, tP);
-	ray->dD.dx = spherical_stereo_direction(kg, tD, tP, Pcamera) - Ddiff;
-	ray->dP.dx = Pcamera - Pdiff;
-
-	tP = transform_perspective(&rastertocamera,
-	                           make_float3(raster_x, raster_y + 1.0f, 0.0f));
-	tD = tD_diff + float4_to_float3(kernel_data.cam.dy);
-	Pcamera = spherical_stereo_position(kg, tD, tP);
-	ray->dD.dy = spherical_stereo_direction(kg, tD, tP, Pcamera) - Ddiff;
-	/* dP.dy is zero, since the omnidirectional panorama only shift the eyes horizontally */
+		ray->dP = differential3_zero();
+		ray->dD.dx = normalize(Dcenter + float4_to_float3(kernel_data.cam.dx)) - normalize(Dcenter);
+		ray->dD.dy = normalize(Dcenter + float4_to_float3(kernel_data.cam.dy)) - normalize(Dcenter);
 #endif
+	}
+	else {
+		/* Spherical stereo */
+		spherical_stereo_transform(kg, &P, &D);
+		ray->P = P;
+		ray->D = D;
+
+#ifdef __RAY_DIFFERENTIALS__
+		/* Ray differentials, computed from scratch using the raster coordinates
+		 * because we don't want to be affected by depth of field. We compute
+		 * ray origin and direction for the center and two neighbouring pixels
+		 * and simply take their differences. */
+		float3 Pnostereo = transform_point(&cameratoworld, make_float3(0.0f, 0.0f, 0.0f));
+
+		float3 Pcenter = Pnostereo;
+		float3 Dcenter = Pcamera;
+		Dcenter = normalize(transform_direction(&cameratoworld, Dcenter));
+		spherical_stereo_transform(kg, &Pcenter, &Dcenter);
+
+		float3 Px = Pnostereo;
+		float3 Dx = transform_perspective(&rastertocamera, make_float3(raster_x + 1.0f, raster_y, 0.0f));
+		Dx = normalize(transform_direction(&cameratoworld, Dx));
+		spherical_stereo_transform(kg, &Px, &Dx);
+
+		ray->dP.dx = Px - Pcenter;
+		ray->dD.dx = Dx - Dcenter;
+
+		float3 Py = Pnostereo;
+		float3 Dy = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y + 1.0f, 0.0f));
+		Dy = normalize(transform_direction(&cameratoworld, Dy));
+		spherical_stereo_transform(kg, &Py, &Dy);
+
+		ray->dP.dy = Py - Pcenter;
+		ray->dD.dy = Dy - Dcenter;
+#endif
+	}
 
 #ifdef __CAMERA_CLIPPING__
 	/* clipping */
-	float3 Pclip = normalize(Pcamera);
-	float z_inv = 1.0f / Pclip.z;
-	ray->P += kernel_data.cam.nearclip*ray->D * z_inv;
+	float z_inv = 1.0f / normalize(Pcamera).z;
+	float nearclip = kernel_data.cam.nearclip * z_inv;
+	ray->P += nearclip * ray->D;
+	ray->dP.dx += nearclip * ray->dD.dx;
+	ray->dP.dy += nearclip * ray->dD.dy;
 	ray->t = kernel_data.cam.cliplength * z_inv;
 #else
 	ray->t = FLT_MAX;
@@ -151,7 +178,8 @@ ccl_device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, fl
 	Transform rastertocamera = kernel_data.cam.rastertocamera;
 	float3 Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
 
-	ray->D = make_float3(0.0f, 0.0f, 1.0f);
+	float3 P;
+	float3 D = make_float3(0.0f, 0.0f, 1.0f);
 
 	/* modify ray for depth of field */
 	float aperturesize = kernel_data.cam.aperturesize;
@@ -161,15 +189,15 @@ ccl_device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, fl
 		float2 lensuv = camera_sample_aperture(kg, lens_u, lens_v)*aperturesize;
 
 		/* compute point on plane of focus */
-		float3 Pfocus = ray->D * kernel_data.cam.focaldistance;
+		float3 Pfocus = D * kernel_data.cam.focaldistance;
 
 		/* update ray for effect of lens */
 		float3 lensuvw = make_float3(lensuv.x, lensuv.y, 0.0f);
-		ray->P = Pcamera + lensuvw;
-		ray->D = normalize(Pfocus - lensuvw);
+		P = Pcamera + lensuvw;
+		D = normalize(Pfocus - lensuvw);
 	}
 	else {
-		ray->P = Pcamera;
+		P = Pcamera;
 	}
 	/* transform ray from camera to world */
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
@@ -189,9 +217,8 @@ ccl_device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, fl
 	}
 #endif
 
-	ray->P = transform_point(&cameratoworld, ray->P);
-	ray->D = transform_direction(&cameratoworld, ray->D);
-	ray->D = normalize(ray->D);
+	ray->P = transform_point(&cameratoworld, P);
+	ray->D = normalize(transform_direction(&cameratoworld, D));
 
 #ifdef __RAY_DIFFERENTIALS__
 	/* ray differential */
@@ -220,11 +247,11 @@ ccl_device_inline void camera_sample_panorama(KernelGlobals *kg,
 	float3 Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
 
 	/* create ray form raster position */
-	ray->P = make_float3(0.0f, 0.0f, 0.0f);
-	ray->D = panorama_to_direction(kg, Pcamera.x, Pcamera.y);
+	float3 P = make_float3(0.0f, 0.0f, 0.0f);
+	float3 D = panorama_to_direction(kg, Pcamera.x, Pcamera.y);
 
 	/* indicates ray should not receive any light, outside of the lens */
-	if(is_zero(ray->D)) {	
+	if(is_zero(D)) {
 		ray->t = 0.0f;
 		return;
 	}
@@ -237,17 +264,17 @@ ccl_device_inline void camera_sample_panorama(KernelGlobals *kg,
 		float2 lensuv = camera_sample_aperture(kg, lens_u, lens_v)*aperturesize;
 
 		/* compute point on plane of focus */
-		float3 D = normalize(ray->D);
-		float3 Pfocus = D * kernel_data.cam.focaldistance;
+		float3 Dfocus = normalize(D);
+		float3 Pfocus = Dfocus * kernel_data.cam.focaldistance;
 
-		/* calculate orthonormal coordinates perpendicular to D */
+		/* calculate orthonormal coordinates perpendicular to Dfocus */
 		float3 U, V;
-		U = normalize(make_float3(1.0f, 0.0f, 0.0f) -  D.x * D);
-		V = normalize(cross(D, U));
+		U = normalize(make_float3(1.0f, 0.0f, 0.0f) -  Dfocus.x * Dfocus);
+		V = normalize(cross(Dfocus, U));
 
 		/* update ray for effect of lens */
-		ray->P = U * lensuv.x + V * lensuv.y;
-		ray->D = normalize(Pfocus - ray->P);
+		P = U * lensuv.x + V * lensuv.y;
+		D = normalize(Pfocus - P);
 	}
 
 	/* transform ray from camera to world */
@@ -268,36 +295,60 @@ ccl_device_inline void camera_sample_panorama(KernelGlobals *kg,
 	}
 #endif
 
-	float3 tP = transform_point(&cameratoworld, ray->P);
-	float3 tD = transform_direction(&cameratoworld, ray->D);
-	ray->P = spherical_stereo_position(kg, tD, tP);
-	ray->D = spherical_stereo_direction(kg, tD, tP, ray->P);
+	P = transform_point(&cameratoworld, P);
+	D = normalize(transform_direction(&cameratoworld, D));
+
+	/* Stereo transform */
+	bool use_stereo = kernel_data.cam.interocular_offset != 0.0f;
+	if(use_stereo) {
+		spherical_stereo_transform(kg, &P, &D);
+	}
+
+	ray->P = P;
+	ray->D = D;
 
 #ifdef __RAY_DIFFERENTIALS__
-	/* ray differential */
-	ray->dP = differential3_zero();
+	/* Ray differentials, computed from scratch using the raster coordinates
+	 * because we don't want to be affected by depth of field. We compute
+	 * ray origin and direction for the center and two neighbouring pixels
+	 * and simply take their differences. */
+	float3 Pcenter = Pcamera;
+	float3 Dcenter = panorama_to_direction(kg, Pcenter.x, Pcenter.y);
+	Pcenter = transform_point(&cameratoworld, Pcenter);
+	Dcenter = normalize(transform_direction(&cameratoworld, Dcenter));
+	if(use_stereo) {
+		spherical_stereo_transform(kg, &Pcenter, &Dcenter);
+	}
 
-	tP = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
-	tD = transform_direction(&cameratoworld, panorama_to_direction(kg, tP.x, tP.y));
-	float3 Pdiff = spherical_stereo_position(kg, tD, tP);
-	float3 Ddiff = spherical_stereo_direction(kg, tD, tP, Pdiff);
+	float3 Px = transform_perspective(&rastertocamera, make_float3(raster_x + 1.0f, raster_y, 0.0f));
+	float3 Dx = panorama_to_direction(kg, Px.x, Px.y);
+	Px = transform_point(&cameratoworld, Px);
+	Dx = normalize(transform_direction(&cameratoworld, Dx));
+	if(use_stereo) {
+		spherical_stereo_transform(kg, &Px, &Dx);
+	}
 
-	tP = transform_perspective(&rastertocamera, make_float3(raster_x + 1.0f, raster_y, 0.0f));
-	tD = transform_direction(&cameratoworld, panorama_to_direction(kg, tP.x, tP.y));
-	Pcamera = spherical_stereo_position(kg, tD, tP);
-	ray->dD.dx = spherical_stereo_direction(kg, tD, tP, Pcamera) - Ddiff;
-	ray->dP.dx = Pcamera - Pdiff;
+	ray->dP.dx = Px - Pcenter;
+	ray->dD.dx = Dx - Dcenter;
 
-	tP = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y + 1.0f, 0.0f));
-	tD = transform_direction(&cameratoworld, panorama_to_direction(kg, tP.x, tP.y));
-	Pcamera = spherical_stereo_position(kg, tD, tP);
-	ray->dD.dy = spherical_stereo_direction(kg, tD, tP, Pcamera) - Ddiff;
-	/* dP.dy is zero, since the omnidirectional panorama only shift the eyes horizontally */
+	float3 Py = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y + 1.0f, 0.0f));
+	float3 Dy = panorama_to_direction(kg, Py.x, Py.y);
+	Py = transform_point(&cameratoworld, Py);
+	Dy = normalize(transform_direction(&cameratoworld, Dy));
+	if(use_stereo) {
+		spherical_stereo_transform(kg, &Py, &Dy);
+	}
+
+	ray->dP.dy = Py - Pcenter;
+	ray->dD.dy = Dy - Dcenter;
 #endif
 
 #ifdef __CAMERA_CLIPPING__
 	/* clipping */
-	ray->P += kernel_data.cam.nearclip*ray->D;
+	float nearclip = kernel_data.cam.nearclip;
+	ray->P += nearclip * ray->D;
+	ray->dP.dx += nearclip * ray->dD.dx;
+	ray->dP.dy += nearclip * ray->dD.dy;
 	ray->t = kernel_data.cam.cliplength;
 #else
 	ray->t = FLT_MAX;

@@ -46,7 +46,7 @@ struct PatchMapQuadNode {
 	/* sets all the children to point to the patch of index */
 	void set_child(int index)
 	{
-		for (int i = 0; i < 4; i++) {
+		for(int i = 0; i < 4; i++) {
 			children[i] = index | PATCH_MAP_NODE_IS_SET | PATCH_MAP_NODE_IS_LEAF;
 		}
 	}

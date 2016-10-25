@@ -477,6 +477,7 @@ BVHNode* BVHBuild::build_node(const BVHObjectBinning& range, int level)
 	float unalignedSplitSAH = FLT_MAX;
 	float unalignedLeafSAH = FLT_MAX;
 	Transform aligned_space;
+	bool do_unalinged_split = false;
 	if(params.use_unaligned_nodes &&
 	   splitSAH > params.unaligned_split_threshold*leafSAH)
 	{
@@ -496,11 +497,15 @@ BVHNode* BVHBuild::build_node(const BVHObjectBinning& range, int level)
 				return create_leaf_node(range, references);
 			}
 		}
+		/* Check whether unaligned split is better than the regulat one. */
+		if(unalignedSplitSAH < splitSAH) {
+			do_unalinged_split = true;
+		}
 	}
 
 	/* Perform split. */
 	BVHObjectBinning left, right;
-	if(unalignedSplitSAH < splitSAH) {
+	if(do_unalinged_split) {
 		unaligned_range.split(&references[0], left, right);
 	}
 	else {
@@ -508,7 +513,7 @@ BVHNode* BVHBuild::build_node(const BVHObjectBinning& range, int level)
 	}
 
 	BoundBox bounds;
-	if(unalignedSplitSAH < splitSAH) {
+	if(do_unalinged_split) {
 		bounds = unaligned_heuristic.compute_aligned_boundbox(
 		        range, &references[0], aligned_space);
 	}
@@ -533,7 +538,7 @@ BVHNode* BVHBuild::build_node(const BVHObjectBinning& range, int level)
 		task_pool.push(new BVHBuildTask(this, inner, 1, right, level + 1), true);
 	}
 
-	if(unalignedSplitSAH < splitSAH) {
+	if(do_unalinged_split) {
 		inner->set_aligned_space(aligned_space);
 	}
 
@@ -583,6 +588,7 @@ BVHNode* BVHBuild::build_node(const BVHRange& range,
 	float unalignedSplitSAH = FLT_MAX;
 	/* float unalignedLeafSAH = FLT_MAX; */
 	Transform aligned_space;
+	bool do_unalinged_split = false;
 	if(params.use_unaligned_nodes &&
 	   splitSAH > params.unaligned_split_threshold*leafSAH)
 	{
@@ -599,11 +605,15 @@ BVHNode* BVHBuild::build_node(const BVHRange& range,
 		unalignedSplitSAH = params.sah_node_cost * unaligned_split.bounds.half_area() +
 		                    params.sah_primitive_cost * unaligned_split.nodeSAH;
 		/* TOOD(sergey): Check we can create leaf already. */
+		/* Check whether unaligned split is better than the regulat one. */
+		if(unalignedSplitSAH < splitSAH) {
+			do_unalinged_split = true;
+		}
 	}
 
 	/* Do split. */
 	BVHRange left, right;
-	if(unalignedSplitSAH < splitSAH) {
+	if(do_unalinged_split) {
 		unaligned_split.split(this, left, right, range);
 	}
 	else {
@@ -613,7 +623,7 @@ BVHNode* BVHBuild::build_node(const BVHRange& range,
 	progress_total += left.size() + right.size() - range.size();
 
 	BoundBox bounds;
-	if(unalignedSplitSAH < splitSAH) {
+	if(do_unalinged_split) {
 		bounds = unaligned_heuristic.compute_aligned_boundbox(
 		        range, &references->at(0), aligned_space);
 	}
@@ -657,7 +667,7 @@ BVHNode* BVHBuild::build_node(const BVHRange& range,
 		               true);
 	}
 
-	if(unalignedSplitSAH < splitSAH) {
+	if(do_unalinged_split) {
 		inner->set_aligned_space(aligned_space);
 	}
 
@@ -787,7 +797,7 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 				if(params.use_unaligned_nodes && !alignment_found) {
 					alignment_found =
 						unaligned_heuristic.compute_aligned_space(p_ref[i][j],
-						                                           &aligned_space);
+						                                          &aligned_space);
 				}
 			}
 			LeafNode *leaf_node = new LeafNode(bounds[i],

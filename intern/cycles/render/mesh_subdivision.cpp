@@ -92,7 +92,7 @@ namespace Far {
 
 			if(vert_edges.size() == 2) {
 				float sharpness = refiner.getLevel(0).getEdgeSharpness(vert_edges[0]);
-				sharpness = std::min(sharpness, refiner.getLevel(0).getEdgeSharpness(vert_edges[1]));
+				sharpness = min(sharpness, refiner.getLevel(0).getEdgeSharpness(vert_edges[1]));
 
 				setBaseVertexSharpness(refiner, i, sharpness);
 			}

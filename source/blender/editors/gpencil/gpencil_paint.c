@@ -40,6 +40,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_rand.h"
+#include "BLI_math_geom.h"
 
 #include "BLT_translation.h"
 
@@ -161,6 +162,7 @@ typedef struct tGPsdata {
 	bGPDpalettecolor *palettecolor; /* current palette color */
 	bGPDbrush *brush; /* current drawing brush */
 	short straight[2];   /* 1: line horizontal, 2: line vertical, other: not defined, second element position */
+	int lock_axis;       /* lock drawing to one axis */
 } tGPsdata;
 
 /* ------ */
@@ -277,6 +279,64 @@ static bool gp_stroke_filtermval(tGPsdata *p, const int mval[2], int pmval[2])
 	/* mouse 'didn't move' */
 	else
 		return false;
+}
+
+/* reproject the points of the stroke to a plane locked to axis to avoid stroke offset */
+static void gp_project_points_to_plane(RegionView3D *rv3d, bGPDstroke *gps, const float origin[3], const int axis)
+{
+	float plane_normal[3];
+	float vn[3];
+
+	float ray[3];
+	float rpoint[3];
+
+	/* normal vector for a plane locked to axis */
+	zero_v3(plane_normal);
+	plane_normal[axis] = 1.0f;
+
+	/* Reproject the points in the plane */
+	for (int i = 0; i < gps->totpoints; i++) {
+		bGPDspoint *pt = &gps->points[i];
+
+		/* get a vector from the point with the current view direction of the viewport */
+		ED_view3d_global_to_vector(rv3d, &pt->x, vn);
+
+		/* calculate line extrem point to create a ray that cross the plane */
+		mul_v3_fl(vn, -50.0f);
+		add_v3_v3v3(ray, &pt->x, vn);
+
+		/* if the line never intersect, the point is not changed */
+		if (isect_line_plane_v3(rpoint, &pt->x, ray, origin, plane_normal)) {
+			copy_v3_v3(&pt->x, rpoint);
+		}
+	}
+}
+
+/* reproject stroke to plane locked to axis in 3d cursor location */
+static void gp_reproject_toplane(tGPsdata *p, bGPDstroke *gps)
+{
+	bGPdata *gpd = p->gpd;
+	float origin[3];
+	float cursor[3];
+	RegionView3D *rv3d = p->ar->regiondata;
+
+	/* verify the stroke mode is CURSOR 3d space mode */
+	if ((gpd->sbuffer_sflag & GP_STROKE_3DSPACE) == 0) {
+		return;
+	}
+	if ((*p->align_flag & GP_PROJECT_VIEWSPACE) == 0) {
+		return;
+	}
+	if ((*p->align_flag & GP_PROJECT_DEPTH_VIEW) || (*p->align_flag & GP_PROJECT_DEPTH_STROKE)) {
+		return;
+	}
+
+	/* get 3d cursor and set origin for locked axis only. Uses axis-1 because the enum for XYZ start with 1 */
+	gp_get_3d_reference(p, cursor);
+	zero_v3(origin);
+	origin[p->lock_axis - 1] = cursor[p->lock_axis - 1];
+
+	gp_project_points_to_plane(rv3d, gps, origin, p->lock_axis - 1);
 }
 
 /* convert screen-coordinates to buffer-coordinates */
@@ -582,6 +642,10 @@ static short gp_stroke_addpoint(tGPsdata *p, const int mval[2], float pressure, 
 			
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
 			gp_stroke_convertcoords(p, &pt->x, &pts->x, NULL);
+			/* if axis locked, reproject to plane locked (only in 3d space) */
+			if (p->lock_axis > GP_LOCKAXIS_NONE) {
+				gp_reproject_toplane(p, gps);
+			}
 			/* if parented change position relative to parent object */
 			if (gpl->parent != NULL) {
 				gp_apply_parent_point(gpl, pts);
@@ -680,7 +744,6 @@ static void gp_stroke_simplify(tGPsdata *p)
 	MEM_freeN(old_points);
 }
 
-
 /* make a new stroke from the buffer data */
 static void gp_stroke_newfrombuffer(tGPsdata *p)
 {
@@ -757,6 +820,10 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 			
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
 			gp_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
+			/* if axis locked, reproject to plane locked (only in 3d space) */
+			if (p->lock_axis > GP_LOCKAXIS_NONE) {
+				gp_reproject_toplane(p, gps);
+			}
 			/* if parented change position relative to parent object */
 			if (gpl->parent != NULL) {
 				gp_apply_parent_point(gpl, pt);
@@ -776,6 +843,10 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 			
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
 			gp_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
+			/* if axis locked, reproject to plane locked (only in 3d space) */
+			if (p->lock_axis > GP_LOCKAXIS_NONE) {
+				gp_reproject_toplane(p, gps);
+			}
 			/* if parented change position relative to parent object */
 			if (gpl->parent != NULL) {
 				gp_apply_parent_point(gpl, pt);
@@ -794,6 +865,10 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		
 		/* convert screen-coordinates to appropriate coordinates (and store them) */
 		gp_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
+		/* if axis locked, reproject to plane locked (only in 3d space) */
+		if (p->lock_axis > GP_LOCKAXIS_NONE) {
+			gp_reproject_toplane(p, gps);
+		}
 		/* if parented change position relative to parent object */
 		if (gpl->parent != NULL) {
 			gp_apply_parent_point(gpl, pt);
@@ -806,30 +881,30 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	}
 	else {
 		float *depth_arr = NULL;
-		
+
 		/* get an array of depths, far depths are blended */
 		if (gpencil_project_check(p)) {
-			int mval[2], mval_prev[2] = {0};
+			int mval[2], mval_prev[2] = { 0 };
 			int interp_depth = 0;
 			int found_depth = 0;
-			
+
 			depth_arr = MEM_mallocN(sizeof(float) * gpd->sbuffer_size, "depth_points");
-			
+
 			for (i = 0, ptc = gpd->sbuffer; i < gpd->sbuffer_size; i++, ptc++, pt++) {
 				copy_v2_v2_int(mval, &ptc->x);
-				
+
 				if ((ED_view3d_autodist_depth(p->ar, mval, depth_margin, depth_arr + i) == 0) &&
-				    (i && (ED_view3d_autodist_depth_seg(p->ar, mval, mval_prev, depth_margin + 1, depth_arr + i) == 0)))
+					(i && (ED_view3d_autodist_depth_seg(p->ar, mval, mval_prev, depth_margin + 1, depth_arr + i) == 0)))
 				{
 					interp_depth = true;
 				}
 				else {
 					found_depth = true;
 				}
-				
+
 				copy_v2_v2_int(mval_prev, mval);
 			}
-			
+
 			if (found_depth == false) {
 				/* eeh... not much we can do.. :/, ignore depth in this case, use the 3D cursor */
 				for (i = gpd->sbuffer_size - 1; i >= 0; i--)
@@ -840,54 +915,54 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 					/* remove all info between the valid endpoints */
 					int first_valid = 0;
 					int last_valid = 0;
-					
+
 					for (i = 0; i < gpd->sbuffer_size; i++) {
 						if (depth_arr[i] != FLT_MAX)
 							break;
 					}
 					first_valid = i;
-					
+
 					for (i = gpd->sbuffer_size - 1; i >= 0; i--) {
 						if (depth_arr[i] != FLT_MAX)
 							break;
 					}
 					last_valid = i;
-					
+
 					/* invalidate non-endpoints, so only blend between first and last */
 					for (i = first_valid + 1; i < last_valid; i++)
 						depth_arr[i] = FLT_MAX;
-					
+
 					interp_depth = true;
 				}
-				
+
 				if (interp_depth) {
 					interp_sparse_array(depth_arr, gpd->sbuffer_size, FLT_MAX);
 				}
 			}
 		}
-		
-		
+
+
 		pt = gps->points;
-		
+
 		/* convert all points (normal behavior) */
 		for (i = 0, ptc = gpd->sbuffer; i < gpd->sbuffer_size && ptc; i++, ptc++, pt++) {
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
 			gp_stroke_convertcoords(p, &ptc->x, &pt->x, depth_arr ? depth_arr + i : NULL);
-			
+
 			/* copy pressure and time */
 			pt->pressure = ptc->pressure;
 			pt->strength = ptc->strength;
 			CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
 			pt->time = ptc->time;
 		}
-		
+
 		/* subdivide the stroke */
 		if (sublevel > 0) {
 			int totpoints = gps->totpoints;
 			for (i = 0; i < sublevel; i++) {
 				/* we're adding one new point between each pair of verts on each step */
 				totpoints += totpoints - 1;
-				
+
 				gp_subdivide_stroke(gps, totpoints);
 			}
 		}
@@ -896,8 +971,8 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 			gp_randomize_stroke(gps, brush);
 		}
 
-		/* smooth stroke after subdiv - only if there's something to do 
-		 * for each iteration, the factor is reduced to get a better smoothing without changing too much 
+		/* smooth stroke after subdiv - only if there's something to do
+		 * for each iteration, the factor is reduced to get a better smoothing without changing too much
 		 * the original stroke
 		 */
 		if (brush->draw_smoothfac > 0.0f) {
@@ -909,6 +984,11 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 				}
 				reduce += 0.25f;  // reduce the factor
 			}
+		}
+
+		/* if axis locked, reproject to plane locked (only in 3d space) */
+		if (p->lock_axis > GP_LOCKAXIS_NONE) {
+			gp_reproject_toplane(p, gps);
 		}
 		/* if parented change position relative to parent object */
 		if (gpl->parent != NULL) {
@@ -1469,6 +1549,8 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 	copy_v4_v4(pdata->scolor, palcolor->color);
 	copy_v4_v4(pdata->sfill, palcolor->fill);
 	pdata->sflag = palcolor->flag;
+	/* lock axis */
+	p->lock_axis = ts->gp_sculpt.lock_axis;
 
 	return 1;
 }

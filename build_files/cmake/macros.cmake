@@ -518,7 +518,8 @@ function(setup_liblinks
 	target_link_libraries(${target}
 			${BLENDER_GL_LIBRARIES})
 
-	target_link_libraries(${target} ${PLATFORM_LINKLIBS} ${CMAKE_DL_LIBS})
+	#target_link_libraries(${target} ${PLATFORM_LINKLIBS} ${CMAKE_DL_LIBS})
+	target_link_libraries(${target} ${PLATFORM_LINKLIBS})
 endfunction()
 
 

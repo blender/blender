@@ -336,6 +336,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = split.column(align=True)
         col.label(text="Direction:")
         col.prop(md, "direction", text="")
+        if md.direction in {'X', 'Y', 'Z', 'RGB_TO_XYZ'}:
+            col.label(text="Space:")
+            col.prop(md, "space", text="")
         col.label(text="Vertex Group:")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 

@@ -46,6 +46,7 @@
 #include "BKE_modifier.h"
 #include "BKE_texture.h"
 #include "BKE_deform.h"
+#include "BKE_object.h"
 
 #include "depsgraph_private.h"
 #include "MEM_guardedalloc.h"
@@ -65,6 +66,7 @@ static void initData(ModifierData *md)
 	dmd->strength = 1;
 	dmd->direction = MOD_DISP_DIR_NOR;
 	dmd->midlevel = 0.5;
+	dmd->space = MOD_DISP_SPACE_LOCAL;
 }
 
 static void copyData(ModifierData *md, ModifierData *target)
@@ -171,10 +173,13 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	}
 	
 
-	if (dmd->texmapping == MOD_DISP_MAP_GLOBAL)
+	if (dmd->texmapping == MOD_DISP_MAP_GLOBAL ||
+	    (ELEM(dmd->direction, MOD_DISP_DIR_X, MOD_DISP_DIR_Y, MOD_DISP_DIR_Z, MOD_DISP_DIR_RGB_XYZ) &&
+	    dmd->space == MOD_DISP_SPACE_GLOBAL))
+	{
 		dag_add_relation(forest, obNode, obNode,
 		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Displace Modifier");
-	
+	}
 }
 
 static void updateDepsgraph(ModifierData *md,
@@ -187,7 +192,10 @@ static void updateDepsgraph(ModifierData *md,
 	if (dmd->map_object != NULL && dmd->texmapping == MOD_DISP_MAP_OBJECT) {
 		DEG_add_object_relation(node, dmd->map_object, DEG_OB_COMP_TRANSFORM, "Displace Modifier");
 	}
-	if (dmd->texmapping == MOD_DISP_MAP_GLOBAL) {
+	if (dmd->texmapping == MOD_DISP_MAP_GLOBAL ||
+	    (ELEM(dmd->direction, MOD_DISP_DIR_X, MOD_DISP_DIR_Y, MOD_DISP_DIR_Z, MOD_DISP_DIR_RGB_XYZ) &&
+	    dmd->space == MOD_DISP_SPACE_GLOBAL))
+	{
 		DEG_add_object_relation(node, ob, DEG_OB_COMP_TRANSFORM, "Displace Modifier");
 	}
 }
@@ -206,6 +214,8 @@ static void displaceModifier_do(
 	float weight = 1.0f; /* init value unused but some compilers may complain */
 	const float delta_fixed = 1.0f - dmd->midlevel;  /* when no texture is used, we fallback to white */
 	float (*vert_clnors)[3] = NULL;
+	float local_mat[4][4];
+	const bool use_global_direction = dmd->space == MOD_DISP_SPACE_GLOBAL;
 
 	if (!dmd->texture && dmd->direction == MOD_DISP_DIR_RGB_XYZ) return;
 	if (dmd->strength == 0.0f) return;
@@ -243,11 +253,17 @@ static void displaceModifier_do(
 			direction = MOD_DISP_DIR_NOR;
 		}
 	}
+	else if (ELEM(direction, MOD_DISP_DIR_X, MOD_DISP_DIR_Y, MOD_DISP_DIR_Z, MOD_DISP_DIR_RGB_XYZ) &&
+	         use_global_direction)
+	{
+		copy_m4_m4(local_mat, ob->obmat);
+	}
 
 	for (i = 0; i < numVerts; i++) {
 		TexResult texres;
 		float strength = dmd->strength;
 		float delta;
+		float local_vec[3];
 
 		if (dvert) {
 			weight = defvert_find_weight(dvert + i, defgrp_index);
@@ -270,18 +286,44 @@ static void displaceModifier_do(
 
 		switch (direction) {
 			case MOD_DISP_DIR_X:
-				vertexCos[i][0] += delta;
+				if (use_global_direction) {
+					vertexCos[i][0] += delta * local_mat[0][0];
+					vertexCos[i][1] += delta * local_mat[1][0];
+					vertexCos[i][2] += delta * local_mat[2][0];
+				}
+				else {
+					vertexCos[i][0] += delta;
+				}
 				break;
 			case MOD_DISP_DIR_Y:
-				vertexCos[i][1] += delta;
+				if (use_global_direction) {
+					vertexCos[i][0] += delta * local_mat[0][1];
+					vertexCos[i][1] += delta * local_mat[1][1];
+					vertexCos[i][2] += delta * local_mat[2][1];
+				}
+				else {
+					vertexCos[i][1] += delta;
+				}
 				break;
 			case MOD_DISP_DIR_Z:
-				vertexCos[i][2] += delta;
+				if (use_global_direction) {
+					vertexCos[i][0] += delta * local_mat[0][2];
+					vertexCos[i][1] += delta * local_mat[1][2];
+					vertexCos[i][2] += delta * local_mat[2][2];
+				}
+				else {
+					vertexCos[i][2] += delta;
+				}
 				break;
 			case MOD_DISP_DIR_RGB_XYZ:
-				vertexCos[i][0] += (texres.tr - dmd->midlevel) * strength;
-				vertexCos[i][1] += (texres.tg - dmd->midlevel) * strength;
-				vertexCos[i][2] += (texres.tb - dmd->midlevel) * strength;
+				local_vec[0] = texres.tr - dmd->midlevel;
+				local_vec[1] = texres.tg - dmd->midlevel;
+				local_vec[2] = texres.tb - dmd->midlevel;
+				if (use_global_direction) {
+					mul_transposed_mat3_m4_v3(local_mat, local_vec);
+				}
+				mul_v3_fl(local_vec, strength);
+				add_v3_v3(vertexCos[i], local_vec);
 				break;
 			case MOD_DISP_DIR_NOR:
 				vertexCos[i][0] += delta * (mvert[i].no[0] / 32767.0f);

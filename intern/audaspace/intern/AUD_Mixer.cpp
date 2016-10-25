@@ -95,6 +95,21 @@ void AUD_Mixer::mix(sample_t* buffer, int start, int length, float volume)
 		out[i + start] += buffer[i] * volume;
 }
 
+void AUD_Mixer::mix(sample_t* buffer, int start, int length, float volume_to, float volume_from)
+{
+	sample_t* out = m_buffer.getBuffer();
+
+	length = (std::min(m_length, length + start) - start);
+
+	for(int i = 0; i < length; i++)
+	{
+		float volume = volume_from * (1.0f - i / float(length)) + volume_to * (i / float(length));
+
+		for(int c = 0; c < m_specs.channels; c++)
+			out[(i + start) * m_specs.channels + c] += buffer[i * m_specs.channels + c] * volume;
+	}
+}
+
 void AUD_Mixer::read(data_t* buffer, float volume)
 {
 	sample_t* out = m_buffer.getBuffer();

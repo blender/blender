@@ -121,14 +121,8 @@ Add the following script to the text editor in Blender.
        obj.location.x += 1.0
 
 
-.. image:: run_script.png
-   :width: 924px
-   :align: center
-   :height: 574px
-   :alt: Run Script button
-
-Click the Run Script button, all objects in the active scene are moved by 1.0 Blender unit.
-Next we will make this script into an add-on.
+Click the :ref:`Run Script button <blender_manual:editors-text-run-script>`,
+all objects in the active scene are moved by 1.0 Blender unit.
 
 
 Write the Add-on (Simple)

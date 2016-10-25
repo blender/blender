@@ -847,7 +847,7 @@ static void sync_mesh_fluid_motion(BL::Object& b_ob, Scene *scene, Mesh *mesh)
 
 	/* Only export previous and next frame, we don't have any in between data. */
 	float motion_times[2] = {-1.0f, 1.0f};
-	for (int step = 0; step < 2; step++) {
+	for(int step = 0; step < 2; step++) {
 		float relative_time = motion_times[step] * scene->motion_shutter_time() * 0.5f;
 		float3 *mP = attr_mP->data_float3() + step*mesh->verts.size();
 
@@ -1081,7 +1081,7 @@ void BlenderSync::sync_mesh_motion(BL::Object& b_ob,
 
 	/* fluid motion is exported immediate with mesh, skip here */
 	BL::DomainFluidSettings b_fluid_domain = object_fluid_domain_find(b_ob);
-	if (b_fluid_domain)
+	if(b_fluid_domain)
 		return;
 
 	if(ccl::BKE_object_is_deform_modified(b_ob, b_scene, preview)) {
