@@ -90,6 +90,7 @@
 #include "GPU_basic_shader.h"
 #include "GPU_shader.h"
 #include "GPU_immediate.h"
+#include "GPU_batch.h"
 #include "GPU_matrix.h"
 
 #include "ED_mesh.h"
@@ -210,6 +211,206 @@ typedef struct drawBMSelect_userData {
 	BMesh *bm;
 	bool select;
 } drawBMSelect_userData;
+
+typedef struct {
+	VertexBuffer *pos_in_order;
+	ElementList *edges_in_order;
+	ElementList *faces_in_order;
+
+	Batch *all_verts;
+	Batch *all_edges;
+	Batch *all_faces;
+
+	Batch *fancy_edges; /* owns its vertex buffer (not shared) */
+} MeshBatchCache;
+
+static MeshBatchCache *MBC_get(DerivedMesh *dm)
+{
+	if (dm->batchCache == NULL) {
+		/* create cache */
+		dm->batchCache = MEM_callocN(sizeof(MeshBatchCache), "MeshBatchCache");
+		/* init everything to 0 is ok for now */
+	}
+
+	return dm->batchCache;
+}
+
+static void MBC_discard(MeshBatchCache *cache)
+{
+	if (cache->all_verts) Batch_discard(cache->all_verts);
+	if (cache->all_edges) Batch_discard(cache->all_edges);
+	if (cache->all_faces) Batch_discard(cache->all_faces);
+
+	if (cache->pos_in_order) VertexBuffer_discard(cache->pos_in_order);
+	if (cache->edges_in_order) ElementList_discard(cache->edges_in_order);
+	if (cache->faces_in_order) ElementList_discard(cache->faces_in_order);
+
+	if (cache->fancy_edges) {
+		Batch_discard_all(cache->fancy_edges);
+	}
+}
+/* need to set this as DM callback:
+ * DM_set_batch_cleanup_callback((DMCleanupBatchCache)MBC_discard);
+ */
+
+static VertexBuffer *MBC_get_pos_in_order(DerivedMesh *dm)
+{
+	MeshBatchCache *cache = MBC_get(dm);
+
+	if (cache->pos_in_order == NULL) {
+		static VertexFormat format = { 0 };
+		static unsigned pos_id;
+		if (format.attrib_ct == 0) {
+			/* initialize vertex format */
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		}
+
+		const int vertex_ct = dm->getNumVerts(dm);
+		const MVert *verts = dm->getVertArray(dm);
+		const unsigned stride = (verts + 1) - verts; /* or sizeof(MVert) */
+
+		cache->pos_in_order = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(cache->pos_in_order, vertex_ct);
+#if 0
+		fillAttribStride(cache->pos_in_order, pos_id, stride, &verts[0].co);
+#else
+		for (int i = 0; i < vertex_ct; ++i) {
+			setAttrib(cache->pos_in_order, pos_id, i, &verts[i].co);
+		}
+#endif
+	}
+
+	return cache->pos_in_order;
+}
+
+static Batch *MBC_get_all_verts(DerivedMesh *dm)
+{
+	MeshBatchCache *cache = MBC_get(dm);
+
+	if (cache->all_verts == NULL) {
+		/* create batch from DM */
+		cache->all_verts = Batch_create(GL_POINTS, MBC_get_pos_in_order(dm), NULL);
+		Batch_set_builtin_program(cache->all_verts, GPU_SHADER_3D_POINT_FIXED_SIZE_UNIFORM_COLOR);
+	}
+
+	return cache->all_verts;
+}
+
+static ElementList *MBC_get_edges_in_order(DerivedMesh *dm)
+{
+	MeshBatchCache *cache = MBC_get(dm);
+
+	if (cache->edges_in_order == NULL) {
+		const int vertex_ct = dm->getNumVerts(dm);
+		const int edge_ct = dm->getNumEdges(dm);
+		const MEdge *edges = dm->getEdgeArray(dm);
+		ElementListBuilder elb;
+		ElementListBuilder_init(&elb, GL_LINES, edge_ct, vertex_ct);
+		for (int i = 0; i < edge_ct; ++i) {
+			const MEdge *edge = edges + i;
+			add_line_vertices(&elb, edge->v1, edge->v2);
+		}
+		cache->edges_in_order = ElementList_build(&elb);
+	}
+
+	return cache->edges_in_order;
+}
+
+static Batch *MBC_get_all_edges(DerivedMesh *dm)
+{
+	MeshBatchCache *cache = MBC_get(dm);
+
+	if (cache->all_edges == NULL) {
+		/* create batch from DM */
+		cache->all_edges = Batch_create(GL_LINES, MBC_get_pos_in_order(dm), MBC_get_edges_in_order(dm));
+	}
+
+	return cache->all_edges;
+}
+
+static Batch *MBC_get_all_faces(DerivedMesh *dm)
+{
+	MeshBatchCache *cache = MBC_get(dm);
+
+	if (cache->all_faces == NULL) {
+		/* create batch from DM */
+	}
+
+	return cache->all_faces;
+}
+
+static Batch *MBC_get_fancy_edges(DerivedMesh *dm)
+{
+	MeshBatchCache *cache = MBC_get(dm);
+
+	if (cache->fancy_edges == NULL) {
+		/* create batch from DM */
+		static VertexFormat format = { 0 };
+		static unsigned pos_id, n1_id, n2_id;
+		if (format.attrib_ct == 0) {
+			/* initialize vertex format */
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			n1_id = add_attrib(&format, "N1", GL_FLOAT, 3, KEEP_FLOAT); /* TODO: make N1 and N2 10_10_10 format */
+			n2_id = add_attrib(&format, "N2", GL_FLOAT, 3, KEEP_FLOAT); /*      (takes 1/3 the space)           */
+		}
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+
+		const MVert *verts = dm->getVertArray(dm);
+		const MEdge *edges = dm->getEdgeArray(dm);
+		const MPoly *polys = dm->getPolyArray(dm);
+		const MLoop *loops = dm->getLoopArray(dm);
+		const int edge_ct = dm->getNumEdges(dm);
+		const int poly_ct = dm->getNumPolys(dm);
+
+		/* need normal of each face, and which faces are adjacent to each edge */
+		typedef struct {
+			int count;
+			int face_index[2];
+		} AdjacentFaces;
+
+		float (*face_normal)[3] = MEM_mallocN(poly_ct * 3 * sizeof(float), "face_normal");
+		AdjacentFaces *adj_faces = MEM_callocN(edge_ct * sizeof(AdjacentFaces), "adj_faces");
+
+		for (int i = 0; i < poly_ct; ++i) {
+			const MPoly *poly = polys + i;
+
+			BKE_mesh_calc_poly_normal(poly, loops + poly->loopstart, verts, face_normal[i]);
+
+			for (int j = poly->loopstart; j < (poly->loopstart + poly->totloop); ++j) {
+				AdjacentFaces *adj = adj_faces + loops[j].e;
+				if (adj->count < 2)
+					adj->face_index[adj->count] = i;
+				adj->count++;
+			}
+		}
+
+		const int vertex_ct = edge_ct * 2; /* these are GL_LINE verts, not mesh verts */
+		VertexBuffer_allocate_data(vbo, vertex_ct);
+		for (int i = 0; i < edge_ct; ++i) {
+			const MEdge *edge = edges + i;
+			float dummy1[3] = { 0.0f, 0.0f, +1.0f };
+			float dummy2[3] = { 0.0f, 0.0f, -1.0f };
+			const AdjacentFaces *adj = adj_faces + i;
+			const float *n1 = (adj->count == 2) ? face_normal[adj->face_index[0]] : dummy1;
+			const float *n2 = (adj->count == 2) ? face_normal[adj->face_index[1]] : dummy2;
+
+			setAttrib(vbo, pos_id, 2 * i, &verts[edge->v1].co);
+			setAttrib(vbo, n1_id, 2 * i, n1);
+			setAttrib(vbo, n2_id, 2 * i, n2);
+
+			setAttrib(vbo, pos_id, 2 * i + 1, &verts[edge->v2].co);
+			setAttrib(vbo, n1_id, 2 * i + 1, n1);
+			setAttrib(vbo, n2_id, 2 * i + 1, n2);
+		}
+
+		MEM_freeN(adj_faces);
+		MEM_freeN(face_normal);
+
+		cache->fancy_edges = Batch_create(GL_LINES, vbo, NULL);
+	}
+
+	return cache->fancy_edges;
+}
 
 static void drawcube_size(float size, unsigned pos);
 static void drawcircle_size(float size, unsigned pos);
