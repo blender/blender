@@ -90,7 +90,10 @@ typedef enum GPUBuiltinShader {
 	GPU_SHADER_SMOKE             = 2,
 	GPU_SHADER_SMOKE_FIRE        = 3,
 
+	/* specialized drawing */
 	GPU_SHADER_TEXT,
+	GPU_SHADER_EDGES_FRONT_BACK_PERSP,
+	GPU_SHADER_EDGES_FRONT_BACK_ORTHO,
 
 	/* for simple 2D drawing */
 	GPU_SHADER_2D_UNIFORM_COLOR,

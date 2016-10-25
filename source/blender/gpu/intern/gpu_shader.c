@@ -77,6 +77,8 @@ extern char datatoc_gpu_shader_2D_point_uniform_size_smooth_vert_glsl[];
 extern char datatoc_gpu_shader_2D_point_uniform_size_outline_smooth_vert_glsl[];
 extern char datatoc_gpu_shader_2D_point_uniform_size_varying_color_outline_smooth_vert_glsl[];
 
+extern char datatoc_gpu_shader_edges_front_back_persp_vert_glsl[];
+extern char datatoc_gpu_shader_edges_front_back_ortho_vert_glsl[];
 extern char datatoc_gpu_shader_text_vert_glsl[];
 extern char datatoc_gpu_shader_text_frag_glsl[];
 
@@ -105,8 +107,10 @@ static struct GPUShadersGlobal {
 		GPUShader *smoke_fire;
 		/* cache for shader fx. Those can exist in combinations so store them here */
 		GPUShader *fx_shaders[MAX_FX_SHADERS * 2];
-		/* for drawing text */
+		/* specialized drawing */
 		GPUShader *text;
+		GPUShader *edges_front_back_persp;
+		GPUShader *edges_front_back_ortho;
 		/* for drawing images */
 		GPUShader *image_modulate_alpha_3D;
 		GPUShader *image_rect_modulate_alpha_3D;
@@ -656,6 +660,22 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 				        NULL, NULL, NULL, 0, 0, 0);
 			retval = GG.shaders.text;
 			break;
+		case GPU_SHADER_EDGES_FRONT_BACK_PERSP:
+			if (!GG.shaders.edges_front_back_persp)
+				GG.shaders.edges_front_back_persp = GPU_shader_create(
+				        datatoc_gpu_shader_edges_front_back_persp_vert_glsl,
+				        datatoc_gpu_shader_flat_color_frag_glsl,
+				        NULL, NULL, NULL, 0, 0, 0);
+			retval = GG.shaders.edges_front_back_persp;
+			break;
+		case GPU_SHADER_EDGES_FRONT_BACK_ORTHO:
+			if (!GG.shaders.edges_front_back_ortho)
+				GG.shaders.edges_front_back_ortho = GPU_shader_create(
+				        datatoc_gpu_shader_edges_front_back_ortho_vert_glsl,
+				        datatoc_gpu_shader_flat_color_frag_glsl,
+				        NULL, NULL, NULL, 0, 0, 0);
+			retval = GG.shaders.edges_front_back_ortho;
+			break;
 		case GPU_SHADER_3D_IMAGE_MODULATE_ALPHA:
 			if (!GG.shaders.image_modulate_alpha_3D)
 				GG.shaders.image_modulate_alpha_3D = GPU_shader_create(
@@ -936,6 +956,16 @@ void GPU_shader_free_builtin_shaders(void)
 	if (GG.shaders.text) {
 		GPU_shader_free(GG.shaders.text);
 		GG.shaders.text = NULL;
+	}
+
+	if (GG.shaders.edges_front_back_persp) {
+		GPU_shader_free(GG.shaders.edges_front_back_persp);
+		GG.shaders.edges_front_back_persp = NULL;
+	}
+
+	if (GG.shaders.edges_front_back_ortho) {
+		GPU_shader_free(GG.shaders.edges_front_back_ortho);
+		GG.shaders.edges_front_back_ortho = NULL;
 	}
 
 	if (GG.shaders.image_modulate_alpha_3D) {
