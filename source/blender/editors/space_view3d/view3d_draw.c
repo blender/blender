@@ -883,6 +883,7 @@ static void view3d_draw_background(const bContext *C)
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 
 	glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
 	/* Background functions do not read or write depth, but they do clear or completely
 	 * overwrite color buffer. It's more efficient to clear color & depth in once call, so
 	 * background functions do this even though they don't use depth.
