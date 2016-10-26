@@ -49,6 +49,7 @@
 extern char datatoc_gpu_shader_depth_only_frag_glsl[];
 extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 extern char datatoc_gpu_shader_flat_color_frag_glsl[];
+extern char datatoc_gpu_shader_flat_color_alpha_test_0_frag_glsl[];
 extern char datatoc_gpu_shader_2D_vert_glsl[];
 extern char datatoc_gpu_shader_2D_flat_color_vert_glsl[];
 extern char datatoc_gpu_shader_2D_smooth_color_vert_glsl[];
@@ -664,7 +665,7 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 			if (!GG.shaders.edges_front_back_persp)
 				GG.shaders.edges_front_back_persp = GPU_shader_create(
 				        datatoc_gpu_shader_edges_front_back_persp_vert_glsl,
-				        datatoc_gpu_shader_flat_color_frag_glsl,
+				        datatoc_gpu_shader_flat_color_alpha_test_0_frag_glsl,
 				        NULL, NULL, NULL, 0, 0, 0);
 			retval = GG.shaders.edges_front_back_persp;
 			break;
