@@ -453,8 +453,9 @@ ccl_device_inline float3 operator*(const float3& a, const float f)
 
 ccl_device_inline float3 operator*(const float f, const float3& a)
 {
-#ifdef __KERNEL_SSE__
-	return float3(_mm_mul_ps(a.m128, _mm_set1_ps(f)));
+	/* TODO(sergey): Currently disabled, gives speedup but causes precision issues. */
+#if defined(__KERNEL_SSE__) && 0
+	return float3(_mm_mul_ps(_mm_set1_ps(f), a.m128));
 #else
 	return make_float3(a.x*f, a.y*f, a.z*f);
 #endif
@@ -462,13 +463,13 @@ ccl_device_inline float3 operator*(const float f, const float3& a)
 
 ccl_device_inline float3 operator/(const float f, const float3& a)
 {
-	/* TODO(sergey): Currently disabled, gives speedup but makes intersection tets non-watertight. */
-// #ifdef __KERNEL_SSE__
-// 	__m128 rc = _mm_rcp_ps(a.m128);
-// 	return float3(_mm_mul_ps(_mm_set1_ps(f),rc));
-// #else
+	/* TODO(sergey): Currently disabled, gives speedup but causes precision issues. */
+#if defined(__KERNEL_SSE__) && 0
+	__m128 rc = _mm_rcp_ps(a.m128);
+	return float3(_mm_mul_ps(_mm_set1_ps(f),rc));
+#else
 	return make_float3(f / a.x, f / a.y, f / a.z);
-// #endif
+#endif
 }
 
 ccl_device_inline float3 operator/(const float3& a, const float f)
@@ -479,7 +480,8 @@ ccl_device_inline float3 operator/(const float3& a, const float f)
 
 ccl_device_inline float3 operator/(const float3& a, const float3& b)
 {
-#ifdef __KERNEL_SSE__
+	/* TODO(sergey): Currently disabled, gives speedup but causes precision issues. */
+#if defined(__KERNEL_SSE__) && 0
 	__m128 rc = _mm_rcp_ps(b.m128);
 	return float3(_mm_mul_ps(a, rc));
 #else
@@ -799,7 +801,7 @@ ccl_device_inline float4 operator*(const float4& a, const float4& b)
 
 ccl_device_inline float4 operator*(const float4& a, float f)
 {
-#ifdef __KERNEL_SSE__
+#if defined(__KERNEL_SSE__)
 	return a * make_float4(f);
 #else
 	return make_float4(a.x*f, a.y*f, a.z*f, a.w*f);
