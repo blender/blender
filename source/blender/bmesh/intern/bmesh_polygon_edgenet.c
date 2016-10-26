@@ -161,7 +161,7 @@ static bool bm_face_split_edgenet_find_loop_pair(
 			e_pair[1] = BLI_SMALLSTACK_POP(edges_boundary);
 
 			if (edges_boundary_len > 2) {
-				BLI_SMALLSTACK_SWAP(edges_search, edges_wire);
+				BLI_SMALLSTACK_SWAP(edges_search, edges_boundary);
 			}
 		}
 		else {
