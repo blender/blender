@@ -120,7 +120,7 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 	/* Calculate vertices relative to ray origin. */
 	const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, triAddr);
 
-#if defined(__KERNEL_AVX2__)
+#if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
 	const avxf avxf_P(P.m128, P.m128);
 
 	const avxf tri_ab = kernel_tex_fetch_avxf(__prim_tri_verts, tri_vindex + 0);
@@ -282,7 +282,7 @@ ccl_device_inline void triangle_intersect_subsurface(
 	             tri_b = kernel_tex_fetch(__prim_tri_verts, tri_vindex+1),
 	             tri_c = kernel_tex_fetch(__prim_tri_verts, tri_vindex+2);
 
-#if defined(__KERNEL_AVX2__)
+#if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
 	const avxf avxf_P(P.m128, P.m128);
 
 	const avxf tri_ab = kernel_tex_fetch_avxf(__prim_tri_verts, tri_vindex + 0);
