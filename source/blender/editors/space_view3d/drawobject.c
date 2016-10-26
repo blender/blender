@@ -4267,6 +4267,8 @@ static void draw_mesh_object_outline_new(View3D *v3d, RegionView3D *rv3d, Object
 
 		const float outline_color[4];
 		UI_GetThemeColor4fv(TH_SELECT, outline_color);
+		/* TODO: use TH_ACTIVE if this is the active object */
+
 #if 1
 		Batch *fancy_edges = MBC_get_fancy_edges(dm);
 
@@ -4279,7 +4281,6 @@ static void draw_mesh_object_outline_new(View3D *v3d, RegionView3D *rv3d, Object
 		}
 		else {
 			Batch_set_builtin_program(fancy_edges, GPU_SHADER_EDGES_FRONT_BACK_PERSP);
-			glEnable(GL_BLEND); /* hack until we support geometry shaders on Mac */
 		}
 
 		Batch_Uniform1b(fancy_edges, "drawFront", false);
@@ -4289,9 +4290,6 @@ static void draw_mesh_object_outline_new(View3D *v3d, RegionView3D *rv3d, Object
 
 		Batch_draw(fancy_edges);
 
-		if (rv3d->persp != RV3D_ORTHO) {
-			glDisable(GL_BLEND); /* hack */
-		}
 #else
 		Batch *batch = MBC_get_all_edges(dm);
 		Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
@@ -4680,6 +4678,28 @@ static bool draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3
 	return retval;
 }
 
+static void make_color_variations(const unsigned char base_ubyte[4], float low[4], float med[4], float high[4])
+{
+	/* original idea: nice variations (lighter & darker shades) of base color
+	 * current implementation uses input color as high; med & low get closer to background color
+	 */
+
+	float bg[3];
+	UI_GetThemeColor3fv(TH_BACK, bg);
+
+	float base[4];
+	rgba_uchar_to_float(base, base_ubyte);
+
+	interp_v3_v3v3(low, bg, base, 0.333f);
+	interp_v3_v3v3(med, bg, base, 0.667f);
+	copy_v3_v3(high, base);
+
+	/* use original alpha */
+	low[3] = base[3];
+	med[3] = base[3];
+	high[3] = base[3];
+}
+
 static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
                                 const char dt, const unsigned char ob_wire_col[4], const short dflag)
 {
@@ -4750,20 +4770,13 @@ static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionVi
 		// TODO: draw smooth round points as a batch
 	}
 	else if ((dt == OB_WIRE) || no_faces) {
-		draw_wire = OBDRAW_WIRE_ON; /* draw wire only, no depth buffer stuff */
+		draw_wire = OBDRAW_WIRE_ON;
 
-		/* TODO: enable depth for wireframes */
+		/* enable depth for wireframes */
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
 
 		glLineWidth(1.0f);
-
-		float color[4];
-		rgba_uchar_to_float(color, ob_wire_col);
-
-		/* TODO:
-		 * const bool active = (ob == CTX_data_active_object(C));
-		 * const int theme = active ? TH_ACTIVE : (base->flag & SELECT) ? TH_SELECT : TH_WIRE;
-		 * UI_GetThemeColor4fv(theme, color);
-		 */
 
 #if 0
 		Batch *fancy_edges = MBC_get_fancy_edges(dm);
@@ -4779,14 +4792,23 @@ static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionVi
 			Batch_set_builtin_program(fancy_edges, GPU_SHADER_EDGES_FRONT_BACK_PERSP);
 		}
 
-		/* TODO: nice variations (lighter & darker shades) of base color */
-		float backColor[4] = { 0.5f, 0.3f, 0.0f, 1.0f };
-		float outlineColor[4] = { 1.0f, 0.7f, 0.3f, 1.0f };
+		float frontColor[4];
+		float backColor[4];
+		float outlineColor[4];
+		make_color_variations(ob_wire_col, backColor, frontColor, outlineColor);
 
-		Batch_Uniform4fv(fancy_edges, "frontColor", color);
+		Batch_Uniform4fv(fancy_edges, "frontColor", frontColor);
 		Batch_Uniform4fv(fancy_edges, "backColor", backColor);
 		Batch_Uniform1b(fancy_edges, "drawFront", true);
-		Batch_Uniform1b(fancy_edges, "drawBack", true);
+		Batch_Uniform1b(fancy_edges, "drawBack", true); /* false here = backface cull */
+		Batch_Uniform1b(fancy_edges, "drawSilhouette", false);
+
+		Batch_draw(fancy_edges);
+
+		glLineWidth(2.0f);
+
+		Batch_Uniform1b(fancy_edges, "drawFront", false);
+		Batch_Uniform1b(fancy_edges, "drawBack", false);
 		Batch_Uniform1b(fancy_edges, "drawSilhouette", true);
 		Batch_Uniform4fv(fancy_edges, "silhouetteColor", outlineColor);
 
@@ -4794,7 +4816,12 @@ static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionVi
 #else
 		Batch *batch = MBC_get_all_edges(dm);
 		Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
+
+		float color[4];
+		rgba_uchar_to_float(color, ob_wire_col);
+
 		Batch_Uniform4fv(batch, "color", color);
+
 		Batch_draw(batch);
 #endif
 	}
