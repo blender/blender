@@ -998,9 +998,10 @@ static void track_mask_gpencil_layer_rasterize(int frame_width, int frame_height
 					point[1] = (stroke_points[i].y - marker->search_min[1]) * frame_height;
 				}
 				/* TODO: add an option to control whether AA is enabled or not */
-				fill_poly_v2i_n(0, 0, mask_width, mask_height,
-				                (const int (*)[2])mask_points, stroke->totpoints,
-				                track_mask_set_pixel_cb, &data);
+				BLI_bitmap_draw_2d_poly_v2i_n(
+				        0, 0, mask_width, mask_height,
+				        (const int (*)[2])mask_points, stroke->totpoints,
+				        track_mask_set_pixel_cb, &data);
 				MEM_freeN(mask_points);
 			}
 			stroke = stroke->next;
