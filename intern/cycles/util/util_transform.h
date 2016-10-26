@@ -73,7 +73,8 @@ ccl_device_inline float3 transform_perspective(const Transform *t, const float3 
 
 ccl_device_inline float3 transform_point(const Transform *t, const float3 a)
 {
-#if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE2__)
+	/* TODO(sergey): Disabled for now, causes crashes in certain cases. */
+#if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE2__) && 0
 	ssef x, y, z, w, aa;
 	aa = a.m128;
 
