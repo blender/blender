@@ -84,9 +84,10 @@ ccl_device_inline float3 transform_point(const Transform *t, const float3 a)
 
 	_MM_TRANSPOSE4_PS(x, y, z, w);
 
-	ssef tmp = madd(x, shuffle<0>(aa), w);
-	tmp = madd(y, shuffle<1>(aa), tmp);
-	tmp = madd(z, shuffle<2>(aa), tmp);
+	ssef tmp = shuffle<0>(aa) * x;
+	tmp = madd(shuffle<1>(aa), y, tmp);
+	tmp = madd(shuffle<2>(aa), z, tmp);
+	tmp += w;
 
 	return float3(tmp.m128);
 #else
@@ -101,7 +102,8 @@ ccl_device_inline float3 transform_point(const Transform *t, const float3 a)
 
 ccl_device_inline float3 transform_direction(const Transform *t, const float3 a)
 {
-#if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE2__)
+	/* TODO(sergey): Disabled for now, causes crashes in certain cases. */
+#if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE2__) && 0
 	ssef x, y, z, w, aa;
 	aa = a.m128;
 	x = _mm_loadu_ps(&t->x.x);
@@ -111,9 +113,9 @@ ccl_device_inline float3 transform_direction(const Transform *t, const float3 a)
 
 	_MM_TRANSPOSE4_PS(x, y, z, w);
 
-	ssef tmp = x * shuffle<0>(aa);
-	tmp = madd(y, shuffle<1>(aa), tmp);
-	tmp = madd(z, shuffle<2>(aa), tmp);
+	ssef tmp = shuffle<0>(aa) * x;
+	tmp = madd(shuffle<1>(aa), y, tmp);
+	tmp = madd(shuffle<2>(aa), z, tmp);
 
 	return float3(tmp.m128);
 #else
