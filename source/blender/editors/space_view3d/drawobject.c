@@ -4257,7 +4257,7 @@ void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm) /* LEGAC
 	}
 }
 
-static void draw_mesh_object_outline_new(View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm)
+static void draw_mesh_object_outline_new(View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, const bool is_active)
 {
 	if ((v3d->transp == false) &&  /* not when we draw the transparent pass */
 	    (ob->mode & OB_MODE_ALL_PAINT) == false) /* not when painting (its distracting) - campbell */
@@ -4265,9 +4265,8 @@ static void draw_mesh_object_outline_new(View3D *v3d, RegionView3D *rv3d, Object
 		glLineWidth(UI_GetThemeValuef(TH_OUTLINE_WIDTH) * 2.0f);
 		glDepthMask(GL_FALSE);
 
-		const float outline_color[4];
-		UI_GetThemeColor4fv(TH_SELECT, outline_color);
-		/* TODO: use TH_ACTIVE if this is the active object */
+		float outline_color[4];
+		UI_GetThemeColor4fv((is_active ? TH_ACTIVE : TH_SELECT), outline_color);
 
 #if 1
 		Batch *fancy_edges = MBC_get_fancy_edges(dm);
@@ -4836,7 +4835,7 @@ static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionVi
 		    !(G.f & G_PICKSEL || (draw_flags & DRAW_FACE_SELECT)) &&
 		    (draw_wire == OBDRAW_WIRE_OFF))
 		{
-			draw_mesh_object_outline_new(v3d, rv3d, ob, dm);
+			draw_mesh_object_outline_new(v3d, rv3d, ob, dm, (ob == OBACT));
 		}
 
 		if (draw_glsl_material(scene, ob, v3d, dt) && !(draw_flags & DRAW_MODIFIERS_PREVIEW)) {
@@ -4903,7 +4902,7 @@ static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionVi
 				    (draw_wire == OBDRAW_WIRE_OFF) &&
 				    (ob->sculpt == NULL))
 				{
-					draw_mesh_object_outline_new(v3d, rv3d, ob, dm);
+					draw_mesh_object_outline_new(v3d, rv3d, ob, dm, (ob == OBACT));
 				}
 
 				/* materials arent compatible with vertex colors */
@@ -4928,7 +4927,7 @@ static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionVi
 			    (ob->sculpt == NULL))
 			{
 				/* TODO: move this into a separate pass */
-				draw_mesh_object_outline_new(v3d, rv3d, ob, dm);
+				draw_mesh_object_outline_new(v3d, rv3d, ob, dm, (ob == OBACT));
 			}
 
 			glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
