@@ -172,6 +172,13 @@ enum ePreviewImage_Flag {
 	PRV_USER_EDITED      = (1 << 1),  /* if user-edited, do not auto-update this anymore! */
 };
 
+/* for PreviewImage->tag */
+enum  {
+	PRV_TAG_DEFFERED           = (1 << 0),  /* Actual loading of preview is deffered. */
+	PRV_TAG_DEFFERED_RENDERING = (1 << 1),  /* Deffered preview is being loaded. */
+	PRV_TAG_DEFFERED_DELETE    = (1 << 2),  /* Deffered preview should be deleted asap. */
+};
+
 typedef struct PreviewImage {
 	/* All values of 2 are really NUM_ICON_SIZES */
 	unsigned int w[2];
@@ -184,12 +191,12 @@ typedef struct PreviewImage {
 	struct GPUTexture *gputexture[2];
 	int icon_id;  /* Used by previews outside of ID context. */
 
-	char pad[3];
-	char use_deferred;  /* for now a mere bool, if we add more deferred loading methods we can switch to bitflag. */
+	short tag;  /* Runtime data. */
+	char pad[2];
 } PreviewImage;
 
 #define PRV_DEFERRED_DATA(prv) \
-	(CHECK_TYPE_INLINE(prv, PreviewImage *), BLI_assert((prv)->use_deferred), (void *)((prv) + 1))
+	(CHECK_TYPE_INLINE(prv, PreviewImage *), BLI_assert((prv)->tag & PRV_TAG_DEFFERED), (void *)((prv) + 1))
 
 /**
  * Defines for working with IDs.
