@@ -521,6 +521,10 @@ static bool rb_is_balanced_root(const Node *root)
 /* ------------------------------------------------------------------------- */
 /* Internal RangeTreeUInt API */
 
+#ifdef _WIN32
+#define inline __inline
+#endif
+
 static inline Node *rt_node_alloc(RangeTreeUInt *rt)
 {
 #ifdef USE_TPOOL
