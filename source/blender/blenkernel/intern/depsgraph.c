@@ -2997,7 +2997,7 @@ void DAG_id_tag_update_ex(Main *bmain, ID *id, short flag)
 				MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)md;
 
 				if (mcmd->cache_file && (&mcmd->cache_file->id == id)) {
-					ob->recalc |= OB_RECALC_DATA;
+					ob->recalc |= OB_RECALC_ALL;
 					continue;
 				}
 			}
@@ -3010,7 +3010,7 @@ void DAG_id_tag_update_ex(Main *bmain, ID *id, short flag)
 				bTransformCacheConstraint *data = con->data;
 
 				if (data->cache_file && (&data->cache_file->id == id)) {
-					ob->recalc |= OB_RECALC_DATA;
+					ob->recalc |= OB_RECALC_ALL;
 					break;
 				}
 			}
