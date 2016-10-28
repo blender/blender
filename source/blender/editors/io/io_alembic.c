@@ -231,11 +231,20 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
 	uiItemR(row, imfptr, "ngon_method", 0, NULL, ICON_NONE);
 }
 
-static void wm_alembic_export_draw(bContext *UNUSED(C), wmOperator *op)
+static void wm_alembic_export_draw(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr;
 
 	RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+
+	/* Conveniently set start and end frame to match the scene's frame range. */
+	Scene *scene = CTX_data_scene(C);
+
+	if (scene != NULL) {
+		RNA_int_set(&ptr, "start", SFRA);
+		RNA_int_set(&ptr, "end", EFRA);
+	}
+
 	ui_alembic_export_settings(op->layout, &ptr);
 }
 
