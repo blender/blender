@@ -398,8 +398,13 @@ static void file_draw_preview(
 
 	/* border */
 	if (use_dropshadow) {
-		glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
-		fdrawbox((float)xco, (float)yco, (float)(xco + ex), (float)(yco + ey));
+		VertexFormat* format = immVertexFormat();
+		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2,KEEP_FLOAT);
+
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+		immUniformColor4f(0.0f, 0.0f, 0.0f, 0.4f);
+		imm_draw_line_box(pos, (float)xco, (float)yco, (float)(xco + ex), (float)(yco + ey));
+		immUnbindProgram();
 	}
 
 	but = uiDefBut(block, UI_BTYPE_LABEL, 0, "", xco, yco, ex, ey, NULL, 0.0, 0.0, 0, 0, NULL);
