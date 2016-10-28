@@ -59,7 +59,9 @@ static int cachefile_open_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 {
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		char filepath[FILE_MAX];
-		BLI_strncpy(filepath, G.main->name, sizeof(filepath));
+		Main *bmain = CTX_data_main(C);
+
+		BLI_strncpy(filepath, bmain->name, sizeof(filepath));
 		BLI_replace_extension(filepath, sizeof(filepath), ".abc");
 		RNA_string_set(op->ptr, "filepath", filepath);
 	}
