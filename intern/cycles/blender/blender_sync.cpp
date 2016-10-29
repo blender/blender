@@ -284,6 +284,7 @@ void BlenderSync::sync_integrator()
 
 	integrator->sample_all_lights_direct = get_boolean(cscene, "sample_all_lights_direct");
 	integrator->sample_all_lights_indirect = get_boolean(cscene, "sample_all_lights_indirect");
+	integrator->light_sampling_threshold = get_float(cscene, "light_sampling_threshold");
 
 	int diffuse_samples = get_int(cscene, "diffuse_samples");
 	int glossy_samples = get_int(cscene, "glossy_samples");

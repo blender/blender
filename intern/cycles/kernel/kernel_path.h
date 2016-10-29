@@ -851,7 +851,6 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 		}
 		else if(probability != 1.0f) {
 			float terminate = path_state_rng_1D_for_decision(kg, rng, &state, PRNG_TERMINATE);
-
 			if(terminate >= probability)
 				break;
 

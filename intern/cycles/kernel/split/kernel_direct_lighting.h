@@ -72,6 +72,7 @@ ccl_device char kernel_direct_lighting(
 			float light_t = path_state_rng_1D(kg, rng, state, PRNG_LIGHT);
 			float light_u, light_v;
 			path_state_rng_2D(kg, rng, state, PRNG_LIGHT_U, &light_u, &light_v);
+			float terminate = path_state_rng_light_termination(kg, rng, state);
 
 			LightSample ls;
 			if(light_sample(kg,
@@ -88,7 +89,7 @@ ccl_device char kernel_direct_lighting(
 
 				BsdfEval L_light;
 				bool is_lamp;
-				if(direct_emission(kg, sd, kg->sd_input, &ls, state, &light_ray, &L_light, &is_lamp)) {
+				if(direct_emission(kg, sd, kg->sd_input, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
 					/* Write intermediate data to global memory to access from
 					 * the next kernel.
 					 */

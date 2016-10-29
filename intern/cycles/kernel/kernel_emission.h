@@ -94,7 +94,8 @@ ccl_device_noinline bool direct_emission(KernelGlobals *kg,
                                          ccl_addr_space PathState *state,
                                          Ray *ray,
                                          BsdfEval *eval,
-                                         bool *is_lamp)
+                                         bool *is_lamp,
+                                         float rand_terminate)
 {
 	if(ls->pdf == 0.0f)
 		return false;
@@ -134,7 +135,7 @@ ccl_device_noinline bool direct_emission(KernelGlobals *kg,
 	shader_bsdf_eval(kg, sd, ls->D, eval, ls->pdf, ls->shader & SHADER_USE_MIS);
 #endif
 
-	bsdf_eval_mul(eval, light_eval/ls->pdf);
+	bsdf_eval_mul3(eval, light_eval/ls->pdf);
 
 #ifdef __PASSES__
 	/* use visibility flag to skip lights */
@@ -154,6 +155,16 @@ ccl_device_noinline bool direct_emission(KernelGlobals *kg,
 
 	if(bsdf_eval_is_zero(eval))
 		return false;
+
+	if(kernel_data.integrator.light_inv_rr_threshold > 0.0f) {
+		float probability = max3(bsdf_eval_sum(eval)) * kernel_data.integrator.light_inv_rr_threshold;
+		if(probability < 1.0f) {
+			if(rand_terminate >= probability) {
+				return false;
+			}
+			bsdf_eval_mul(eval, 1.0f / probability);
+		}
+	}
 
 	if(ls->shader & SHADER_CAST_SHADOW) {
 		/* setup ray */

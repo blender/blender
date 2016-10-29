@@ -166,6 +166,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
 
         sub.prop(cscene, "sample_clamp_direct")
         sub.prop(cscene, "sample_clamp_indirect")
+        sub.prop(cscene, "light_sampling_threshold")
 
         if cscene.progressive == 'PATH' or use_branched_path(context) is False:
             col = split.column()

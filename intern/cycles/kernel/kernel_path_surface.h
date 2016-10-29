@@ -49,6 +49,7 @@ ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobal
 			for(int j = 0; j < num_samples; j++) {
 				float light_u, light_v;
 				path_branched_rng_2D(kg, &lamp_rng, state, j, num_samples, PRNG_LIGHT_U, &light_u, &light_v);
+				float terminate = path_branched_rng_light_termination(kg, &lamp_rng, state, j, num_samples);
 
 				LightSample ls;
 				if(lamp_light_sample(kg, i, light_u, light_v, ccl_fetch(sd, P), &ls)) {
@@ -57,7 +58,7 @@ ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobal
 					if(kernel_data.integrator.pdf_triangles != 0.0f)
 						ls.pdf *= 2.0f;
 
-					if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
+					if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
 						/* trace shadow ray */
 						float3 shadow;
 
@@ -79,6 +80,7 @@ ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobal
 				float light_t = path_branched_rng_1D(kg, rng, state, j, num_samples, PRNG_LIGHT);
 				float light_u, light_v;
 				path_branched_rng_2D(kg, rng, state, j, num_samples, PRNG_LIGHT_U, &light_u, &light_v);
+				float terminate = path_branched_rng_light_termination(kg, rng, state, j, num_samples);
 
 				/* only sample triangle lights */
 				if(kernel_data.integrator.num_all_lights)
@@ -90,7 +92,7 @@ ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobal
 					if(kernel_data.integrator.num_all_lights)
 						ls.pdf *= 2.0f;
 
-					if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
+					if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
 						/* trace shadow ray */
 						float3 shadow;
 
@@ -108,11 +110,12 @@ ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobal
 		float light_t = path_state_rng_1D(kg, rng, state, PRNG_LIGHT);
 		float light_u, light_v;
 		path_state_rng_2D(kg, rng, state, PRNG_LIGHT_U, &light_u, &light_v);
+		float terminate = path_state_rng_light_termination(kg, rng, state);
 
 		LightSample ls;
 		if(light_sample(kg, light_t, light_u, light_v, ccl_fetch(sd, time), ccl_fetch(sd, P), state->bounce, &ls)) {
 			/* sample random light */
-			if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
+			if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
 				/* trace shadow ray */
 				float3 shadow;
 
@@ -210,7 +213,8 @@ ccl_device_inline void kernel_path_surface_connect_light(KernelGlobals *kg, ccl_
 
 	LightSample ls;
 	if(light_sample(kg, light_t, light_u, light_v, ccl_fetch(sd, time), ccl_fetch(sd, P), state->bounce, &ls)) {
-		if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
+		float terminate = path_state_rng_light_termination(kg, rng, state);
+		if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
 			/* trace shadow ray */
 			float3 shadow;
 
