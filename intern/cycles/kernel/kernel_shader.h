@@ -242,7 +242,8 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals *kg,
                                                 int shader, int object, int prim,
                                                 float u, float v, float t,
                                                 float time,
-                                                bool object_space)
+                                                bool object_space,
+                                                int lamp)
 {
 	/* vectors */
 	ccl_fetch(sd, P) = P;
@@ -250,7 +251,12 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals *kg,
 	ccl_fetch(sd, Ng) = Ng;
 	ccl_fetch(sd, I) = I;
 	ccl_fetch(sd, shader) = shader;
-	ccl_fetch(sd, type) = (prim == PRIM_NONE)? PRIMITIVE_NONE: PRIMITIVE_TRIANGLE;
+	if(prim != PRIM_NONE)
+		ccl_fetch(sd, type) = PRIMITIVE_TRIANGLE;
+	else if(lamp != LAMP_NONE)
+		ccl_fetch(sd, type) = PRIMITIVE_LAMP;
+	else
+		ccl_fetch(sd, type) = PRIMITIVE_NONE;
 
 	/* primitive */
 #ifdef __INSTANCING__
@@ -270,11 +276,15 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals *kg,
 
 #ifdef __OBJECT_MOTION__
 		shader_setup_object_transforms(kg, sd, time);
-	}
-
-	ccl_fetch(sd, time) = time;
 #else
 	}
+	else if(lamp != LAMP_NONE) {
+		ccl_fetch(sd, ob_tfm)  = lamp_fetch_transform(kg, lamp, false);
+		ccl_fetch(sd, ob_itfm) = lamp_fetch_transform(kg, lamp, true);
+	}
+
+#ifdef __OBJECT_MOTION__
+	ccl_fetch(sd, time) = time;
 #endif
 
 	/* transform into world space */
@@ -357,7 +367,8 @@ ccl_device void shader_setup_from_displace(KernelGlobals *kg, ShaderData *sd,
 	                         P, Ng, I,
 	                         shader, object, prim,
 	                         u, v, 0.0f, 0.5f,
-	                         !(kernel_tex_fetch(__object_flag, object) & SD_TRANSFORM_APPLIED));
+	                         !(kernel_tex_fetch(__object_flag, object) & SD_TRANSFORM_APPLIED),
+	                         LAMP_NONE);
 }
 
 /* ShaderData setup from ray into background */

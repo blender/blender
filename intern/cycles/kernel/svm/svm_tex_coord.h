@@ -49,7 +49,7 @@ ccl_device void svm_node_tex_coord(KernelGlobals *kg,
 		}
 		case NODE_TEXCO_NORMAL: {
 			data = ccl_fetch(sd, N);
-			if(ccl_fetch(sd, object) != OBJECT_NONE)
+			if((ccl_fetch(sd, object) != OBJECT_NONE) || (ccl_fetch(sd, type) == PRIMITIVE_LAMP))
 				object_inverse_normal_transform(kg, sd, &data);
 			break;
 		}
@@ -131,7 +131,7 @@ ccl_device void svm_node_tex_coord_bump_dx(KernelGlobals *kg,
 		}
 		case NODE_TEXCO_NORMAL: {
 			data = ccl_fetch(sd, N);
-			if(ccl_fetch(sd, object) != OBJECT_NONE)
+			if((ccl_fetch(sd, object) != OBJECT_NONE) || (ccl_fetch(sd, type) == PRIMITIVE_LAMP))
 				object_inverse_normal_transform(kg, sd, &data);
 			break;
 		}
@@ -216,7 +216,7 @@ ccl_device void svm_node_tex_coord_bump_dy(KernelGlobals *kg,
 		}
 		case NODE_TEXCO_NORMAL: {
 			data = ccl_fetch(sd, N);
-			if(ccl_fetch(sd, object) != OBJECT_NONE)
+			if((ccl_fetch(sd, object) != OBJECT_NONE) || (ccl_fetch(sd, type) == PRIMITIVE_LAMP))
 				object_inverse_normal_transform(kg, sd, &data);
 			break;
 		}
