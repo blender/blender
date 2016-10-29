@@ -572,7 +572,7 @@ void shader_bsdf_eval(KernelGlobals *kg,
 		_shader_bsdf_multi_eval(kg, sd, omega_in, &pdf, -1, eval, 0.0f, 0.0f);
 		if(use_mis) {
 			float weight = power_heuristic(light_pdf, pdf);
-			bsdf_eval_mul(eval, make_float3(weight, weight, weight));
+			bsdf_eval_mul(eval, weight);
 		}
 	}
 }

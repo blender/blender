@@ -48,7 +48,8 @@ ccl_device_inline void kernel_path_volume_connect_light(
 
 	if(light_sample(kg, light_t, light_u, light_v, sd->time, sd->P, state->bounce, &ls))
 	{
-		if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
+		float terminate = path_state_rng_light_termination(kg, rng, state);
+		if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
 			/* trace shadow ray */
 			float3 shadow;
 
@@ -161,7 +162,8 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 					if(kernel_data.integrator.pdf_triangles != 0.0f)
 						ls.pdf *= 2.0f;
 
-					if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
+					float terminate = path_branched_rng_light_termination(kg, rng, state, j, num_samples);
+					if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
 						/* trace shadow ray */
 						float3 shadow;
 
@@ -209,7 +211,8 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 					if(kernel_data.integrator.num_all_lights)
 						ls.pdf *= 2.0f;
 
-					if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
+					float terminate = path_branched_rng_light_termination(kg, rng, state, j, num_samples);
+					if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
 						/* trace shadow ray */
 						float3 shadow;
 
@@ -246,7 +249,8 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 		/* todo: split up light_sample so we don't have to call it again with new position */
 		if(light_sample(kg, light_t, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
 			/* sample random light */
-			if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
+			float terminate = path_state_rng_light_termination(kg, rng, state);
+			if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
 				/* trace shadow ray */
 				float3 shadow;
 

@@ -96,7 +96,7 @@ ccl_device_inline bool bsdf_eval_is_zero(BsdfEval *eval)
 	}
 }
 
-ccl_device_inline void bsdf_eval_mul(BsdfEval *eval, float3 value)
+ccl_device_inline void bsdf_eval_mul(BsdfEval *eval, float value)
 {
 #ifdef __PASSES__
 	if(eval->use_light_pass) {
@@ -113,6 +113,36 @@ ccl_device_inline void bsdf_eval_mul(BsdfEval *eval, float3 value)
 	{
 		eval->diffuse *= value;
 	}
+}
+
+ccl_device_inline void bsdf_eval_mul3(BsdfEval *eval, float3 value)
+{
+#ifdef __PASSES__
+	if(eval->use_light_pass) {
+		eval->diffuse *= value;
+		eval->glossy *= value;
+		eval->transmission *= value;
+		eval->subsurface *= value;
+		eval->scatter *= value;
+
+		/* skipping transparent, this function is used by for eval(), will be zero then */
+	}
+	else
+		eval->diffuse *= value;
+#else
+	eval->diffuse *= value;
+#endif
+}
+
+ccl_device_inline float3 bsdf_eval_sum(BsdfEval *eval)
+{
+#ifdef __PASSES__
+	if(eval->use_light_pass) {
+		return eval->diffuse + eval->glossy + eval->transmission + eval->subsurface + eval->scatter;
+	}
+	else
+#endif
+	return eval->diffuse;
 }
 
 /* Path Radiance
@@ -193,8 +223,7 @@ ccl_device_inline void path_radiance_bsdf_bounce(PathRadiance *L, ccl_addr_space
 		}
 		else {
 			/* transparent bounce before first hit, or indirectly visible through BSDF */
-			float3 sum = (bsdf_eval->diffuse + bsdf_eval->glossy + bsdf_eval->transmission + bsdf_eval->transparent +
-						  bsdf_eval->subsurface + bsdf_eval->scatter) * inverse_pdf;
+			float3 sum = (bsdf_eval_sum(bsdf_eval) + bsdf_eval->transparent) * inverse_pdf;
 			*throughput *= sum;
 		}
 	}
@@ -264,8 +293,7 @@ ccl_device_inline void path_radiance_accum_light(PathRadiance *L, float3 through
 		}
 		else {
 			/* indirectly visible lighting after BSDF bounce */
-			float3 sum = bsdf_eval->diffuse + bsdf_eval->glossy + bsdf_eval->transmission + bsdf_eval->subsurface + bsdf_eval->scatter;
-			L->indirect += throughput*sum*shadow;
+			L->indirect += throughput*bsdf_eval_sum(bsdf_eval)*shadow;
 		}
 	}
 	else

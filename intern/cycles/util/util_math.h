@@ -162,6 +162,11 @@ ccl_device_inline float max4(float a, float b, float c, float d)
 	return max(max(a, b), max(c, d));
 }
 
+ccl_device_inline float max3(float3 a)
+{
+	return max(max(a.x, a.y), a.z);
+}
+
 #ifndef __KERNEL_OPENCL__
 
 ccl_device_inline int clamp(int a, int mn, int mx)

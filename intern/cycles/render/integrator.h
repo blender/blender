@@ -64,8 +64,10 @@ public:
 	int mesh_light_samples;
 	int subsurface_samples;
 	int volume_samples;
+
 	bool sample_all_lights_direct;
 	bool sample_all_lights_indirect;
+	float light_sampling_threshold;
 
 	enum Method {
 		BRANCHED_PATH = 0,
