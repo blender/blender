@@ -135,15 +135,7 @@ void RenderBuffers::reset(Device *device, BufferParams& params_)
 	/* allocate rng state */
 	rng_state.resize(params.width, params.height);
 
-	uint *init_state = rng_state.resize(params.width, params.height);
-	int x, y, width = params.width, height = params.height;
-	
-	for(y = 0; y < height; y++)
-		for(x = 0; x < width; x++)
-			init_state[y*width + x] = hash_int_2d(params.full_x+x, params.full_y+y);
-
 	device->mem_alloc(rng_state, MEM_READ_WRITE);
-	device->mem_copy_to(rng_state);
 }
 
 bool RenderBuffers::copy_from_device()
