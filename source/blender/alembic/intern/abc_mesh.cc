@@ -646,75 +646,6 @@ void AbcMeshWriter::getGeoGroups(
 /* Some helpers for mesh generation */
 namespace utils {
 
-void mesh_add_verts(Mesh *mesh, size_t len)
-{
-	if (len == 0) {
-		return;
-	}
-
-	const int totvert = mesh->totvert + len;
-	CustomData vdata;
-	CustomData_copy(&mesh->vdata, &vdata, CD_MASK_MESH, CD_DEFAULT, totvert);
-	CustomData_copy_data(&mesh->vdata, &vdata, 0, 0, mesh->totvert);
-
-	if (!CustomData_has_layer(&vdata, CD_MVERT)) {
-		CustomData_add_layer(&vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
-	}
-
-	CustomData_free(&mesh->vdata, mesh->totvert);
-	mesh->vdata = vdata;
-	BKE_mesh_update_customdata_pointers(mesh, false);
-
-	mesh->totvert = totvert;
-}
-
-static void mesh_add_mloops(Mesh *mesh, size_t len)
-{
-	if (len == 0) {
-		return;
-	}
-
-	/* new face count */
-	const int totloops = mesh->totloop + len;
-
-	CustomData ldata;
-	CustomData_copy(&mesh->ldata, &ldata, CD_MASK_MESH, CD_DEFAULT, totloops);
-	CustomData_copy_data(&mesh->ldata, &ldata, 0, 0, mesh->totloop);
-
-	if (!CustomData_has_layer(&ldata, CD_MLOOP)) {
-		CustomData_add_layer(&ldata, CD_MLOOP, CD_CALLOC, NULL, totloops);
-	}
-
-	CustomData_free(&mesh->ldata, mesh->totloop);
-	mesh->ldata = ldata;
-	BKE_mesh_update_customdata_pointers(mesh, false);
-
-	mesh->totloop = totloops;
-}
-
-static void mesh_add_mpolygons(Mesh *mesh, size_t len)
-{
-	if (len == 0) {
-		return;
-	}
-
-	const int totpolys = mesh->totpoly + len;
-
-	CustomData pdata;
-	CustomData_copy(&mesh->pdata, &pdata, CD_MASK_MESH, CD_DEFAULT, totpolys);
-	CustomData_copy_data(&mesh->pdata, &pdata, 0, 0, mesh->totpoly);
-
-	if (!CustomData_has_layer(&pdata, CD_MPOLY)) {
-		CustomData_add_layer(&pdata, CD_MPOLY, CD_CALLOC, NULL, totpolys);
-	}
-
-	CustomData_free(&mesh->pdata, mesh->totpoly);
-	mesh->pdata = pdata;
-	BKE_mesh_update_customdata_pointers(mesh, false);
-
-	mesh->totpoly = totpolys;
-}
-
 static void build_mat_map(const Main *bmain, std::map<std::string, Material *> &mat_map)
 {
 	Material *material = static_cast<Material *>(bmain->mat.first);
@@ -785,45 +716,6 @@ struct AbcMeshData {
 	V2fArraySamplePtr uvs;
 	UInt32ArraySamplePtr uvs_indices;
 };
-
-static void *add_customdata_cb(void *user_data, const char *name, int data_type)
-{
-	Mesh *mesh = static_cast<Mesh *>(user_data);
-	CustomDataType cd_data_type = static_cast<CustomDataType>(data_type);
-	void *cd_ptr = NULL;
-
-	int index = -1;
-	if (cd_data_type == CD_MLOOPUV) {
-		index = ED_mesh_uv_texture_add(mesh, name, true);
-		cd_ptr = CustomData_get_layer(&mesh->ldata, cd_data_type);
-	}
-	else if (cd_data_type == CD_MLOOPCOL) {
-		index = ED_mesh_color_add(mesh, name, true);
-		cd_ptr = CustomData_get_layer(&mesh->ldata, cd_data_type);
-	}
-
-	if (index == -1) {
-		return NULL;
-	}
-
-	return cd_ptr;
-}
-
-CDStreamConfig create_config(Mesh *mesh)
-{
-	CDStreamConfig config;
-
-	config.mvert = mesh->mvert;
-	config.mpoly = mesh->mpoly;
-	config.mloop = mesh->mloop;
-	config.totpoly = mesh->totpoly;
-	config.totloop = mesh->totloop;
-	config.user_data = mesh;
-	config.loopdata = &mesh->ldata;
-	config.add_customdata_cb = add_customdata_cb;
-
-	return config;
-}
 
 static void read_mverts_interp(MVert *mverts, const P3fArraySamplePtr &positions, const P3fArraySamplePtr &ceil_positions, const float weight)
 {
@@ -1002,23 +894,15 @@ void AbcMeshReader::readObjectData(Main *bmain, float time)
 	m_object->data = mesh;
 
 	const ISampleSelector sample_sel(time);
-	const IPolyMeshSchema::Sample sample = m_schema.getValue(sample_sel);
 
-	const P3fArraySamplePtr &positions = sample.getPositions();
-	const Int32ArraySamplePtr &face_indices = sample.getFaceIndices();
-    const Int32ArraySamplePtr &face_counts = sample.getFaceCounts();
+	DerivedMesh *dm = CDDM_from_mesh(mesh);
+	DerivedMesh *ndm = this->read_derivedmesh(dm, time, MOD_MESHSEQ_READ_ALL);
 
-	utils::mesh_add_verts(mesh, positions->size());
-	utils::mesh_add_mpolygons(mesh, face_counts->size());
-	utils::mesh_add_mloops(mesh, face_indices->size());
+	if (ndm != dm) {
+		dm->release(dm);
+	}
 
-	m_mesh_data = create_config(mesh);
-
-	bool has_smooth_normals = false;
-	read_mesh_sample(m_settings, m_schema, sample_sel, m_mesh_data, has_smooth_normals);
-
-	BKE_mesh_calc_normals(mesh);
-	BKE_mesh_calc_edges(mesh, false, false);
+	DM_to_mesh(ndm, mesh, m_object, CD_MASK_MESH, true);
 
 	if (m_settings->validate_meshes) {
 		BKE_mesh_validate(mesh, false, false);
@@ -1029,6 +913,120 @@ void AbcMeshReader::readObjectData(Main *bmain, float time)
 	if (has_animations(m_schema, m_settings)) {
 		addCacheModifier();
 	}
+}
+
+static bool check_smooth_poly_flag(DerivedMesh *dm)
+{
+	MPoly *mpolys = dm->getPolyArray(dm);
+
+	for (int i = 0, e = dm->getNumPolys(dm); i < e; ++i) {
+		MPoly &poly = mpolys[i];
+
+		if ((poly.flag & ME_SMOOTH) != 0) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static void set_smooth_poly_flag(DerivedMesh *dm)
+{
+	MPoly *mpolys = dm->getPolyArray(dm);
+
+	for (int i = 0, e = dm->getNumPolys(dm); i < e; ++i) {
+		MPoly &poly = mpolys[i];
+		poly.flag |= ME_SMOOTH;
+	}
+}
+
+static void *add_customdata_cb(void *user_data, const char *name, int data_type)
+{
+	DerivedMesh *dm = static_cast<DerivedMesh *>(user_data);
+	CustomDataType cd_data_type = static_cast<CustomDataType>(data_type);
+	void *cd_ptr = NULL;
+
+	if (ELEM(cd_data_type, CD_MLOOPUV, CD_MLOOPCOL)) {
+		cd_ptr = CustomData_get_layer_named(dm->getLoopDataLayout(dm), cd_data_type, name);
+
+		if (cd_ptr == NULL) {
+			cd_ptr = CustomData_add_layer_named(dm->getLoopDataLayout(dm),
+			                                    cd_data_type,
+			                                    CD_DEFAULT,
+			                                    NULL,
+			                                    dm->getNumLoops(dm),
+			                                    name);
+		}
+	}
+
+	return cd_ptr;
+}
+
+CDStreamConfig get_config(DerivedMesh *dm)
+{
+	CDStreamConfig config;
+
+	config.user_data = dm;
+	config.mvert = dm->getVertArray(dm);
+	config.mloop = dm->getLoopArray(dm);
+	config.mpoly = dm->getPolyArray(dm);
+	config.totloop = dm->getNumLoops(dm);
+	config.totpoly = dm->getNumPolys(dm);
+	config.loopdata = dm->getLoopDataLayout(dm);
+	config.add_customdata_cb = add_customdata_cb;
+
+	return config;
+}
+
+DerivedMesh *AbcMeshReader::read_derivedmesh(DerivedMesh *dm, const float time, int read_flag)
+{
+	ISampleSelector sample_sel(time);
+	const IPolyMeshSchema::Sample sample = m_schema.getValue(sample_sel);
+
+	const P3fArraySamplePtr &positions = sample.getPositions();
+	const Alembic::Abc::Int32ArraySamplePtr &face_indices = sample.getFaceIndices();
+	const Alembic::Abc::Int32ArraySamplePtr &face_counts = sample.getFaceCounts();
+
+	DerivedMesh *new_dm = NULL;
+
+	/* Only read point data when streaming meshes, unless we need to create new ones. */
+	ImportSettings settings;
+	settings.read_flag |= read_flag;
+
+	if (dm->getNumVerts(dm) != positions->size()) {
+		new_dm = CDDM_from_template(dm,
+		                            positions->size(),
+		                            0,
+		                            0,
+		                            face_indices->size(),
+		                            face_counts->size());
+
+		settings.read_flag |= MOD_MESHSEQ_READ_ALL;
+	}
+
+	CDStreamConfig config = get_config(new_dm ? new_dm : dm);
+	config.time = time;
+
+	bool do_normals = false;
+	read_mesh_sample(&settings, m_schema, sample_sel, config, do_normals);
+
+	if (new_dm) {
+		/* Check if we had ME_SMOOTH flag set to restore it. */
+		if (!do_normals && check_smooth_poly_flag(dm)) {
+			set_smooth_poly_flag(new_dm);
+		}
+
+		CDDM_calc_normals(new_dm);
+		CDDM_calc_edges(new_dm);
+
+		return new_dm;
+	}
+
+	if (do_normals) {
+		CDDM_calc_normals(dm);
+	}
+
+	return dm;
 }
 
 void AbcMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, size_t poly_start,
@@ -1178,21 +1176,17 @@ void AbcSubDReader::readObjectData(Main *bmain, float time)
 	m_object = BKE_object_add_only_object(bmain, OB_MESH, m_object_name.c_str());
 	m_object->data = mesh;
 
+	DerivedMesh *dm = CDDM_from_mesh(mesh);
+	DerivedMesh *ndm = this->read_derivedmesh(dm, time, MOD_MESHSEQ_READ_ALL);
+
+	if (ndm != dm) {
+		dm->release(dm);
+	}
+
+	DM_to_mesh(ndm, mesh, m_object, CD_MASK_MESH, true);
+
 	const ISampleSelector sample_sel(time);
 	const ISubDSchema::Sample sample = m_schema.getValue(sample_sel);
-
-	const P3fArraySamplePtr &positions = sample.getPositions();
-	const Int32ArraySamplePtr &face_indices = sample.getFaceIndices();
-    const Int32ArraySamplePtr &face_counts = sample.getFaceCounts();
-
-	utils::mesh_add_verts(mesh, positions->size());
-	utils::mesh_add_mpolygons(mesh, face_counts->size());
-	utils::mesh_add_mloops(mesh, face_indices->size());
-
-	m_mesh_data = create_config(mesh);
-
-	read_subd_sample(m_settings, m_schema, sample_sel, m_mesh_data);
-
 	Int32ArraySamplePtr indices = sample.getCreaseIndices();
 	Alembic::Abc::FloatArraySamplePtr sharpnesses = sample.getCreaseSharpnesses();
 
@@ -1261,4 +1255,49 @@ void read_subd_sample(ImportSettings *settings,
 	}
 
 	/* TODO: face sets */
+}
+
+DerivedMesh *AbcSubDReader::read_derivedmesh(DerivedMesh *dm, const float time, int read_flag)
+{
+	ISampleSelector sample_sel(time);
+	const ISubDSchema::Sample sample = m_schema.getValue(sample_sel);
+
+	const P3fArraySamplePtr &positions = sample.getPositions();
+	const Alembic::Abc::Int32ArraySamplePtr &face_indices = sample.getFaceIndices();
+	const Alembic::Abc::Int32ArraySamplePtr &face_counts = sample.getFaceCounts();
+
+	DerivedMesh *new_dm = NULL;
+
+	ImportSettings settings;
+	settings.read_flag |= read_flag;
+
+	if (dm->getNumVerts(dm) != positions->size()) {
+		new_dm = CDDM_from_template(dm,
+		                            positions->size(),
+		                            0,
+		                            0,
+		                            face_indices->size(),
+		                            face_counts->size());
+
+		settings.read_flag |= MOD_MESHSEQ_READ_ALL;
+	}
+
+	/* Only read point data when streaming meshes, unless we need to create new ones. */
+	CDStreamConfig config = get_config(new_dm ? new_dm : dm);
+	config.time = time;
+	read_subd_sample(&settings, m_schema, sample_sel, config);
+
+	if (new_dm) {
+		/* Check if we had ME_SMOOTH flag set to restore it. */
+		if (check_smooth_poly_flag(dm)) {
+			set_smooth_poly_flag(new_dm);
+		}
+
+		CDDM_calc_normals(new_dm);
+		CDDM_calc_edges(new_dm);
+
+		return new_dm;
+	}
+
+	return dm;
 }

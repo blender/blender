@@ -130,6 +130,8 @@ static bool has_animations(Schema &schema, ImportSettings *settings)
 
 /* ************************************************************************** */
 
+struct DerivedMesh;
+
 using Alembic::AbcCoreAbstract::chrono_t;
 
 class AbcObjectReader {
@@ -145,6 +147,10 @@ protected:
 	chrono_t m_min_time;
 	chrono_t m_max_time;
 
+	/* Use reference counting since the same reader may be used by multiple
+	 * modifiers and/or constraints. */
+	int m_refcount;
+
 public:
 	explicit AbcObjectReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
 
@@ -153,17 +159,31 @@ public:
 	const Alembic::Abc::IObject &iobject() const;
 
 	Object *object() const;
+	void object(Object *ob);
 
 	virtual bool valid() const = 0;
 
 	virtual void readObjectData(Main *bmain, float time) = 0;
 
+	virtual DerivedMesh *read_derivedmesh(DerivedMesh *dm, const float time, int read_flag)
+	{
+		(void)time;
+		(void)read_flag;
+		return dm;
+	}
+
 	void readObjectMatrix(const float time);
 
-	void addCacheModifier() const;
+	void addCacheModifier();
 
 	chrono_t minTime() const;
 	chrono_t maxTime() const;
+
+	int refcount() const;
+	void incref();
+	void decref();
+
+	void read_matrix(float mat[4][4], const float time, const float scale, bool &is_constant);
 };
 
 Imath::M44d get_matrix(const Alembic::AbcGeom::IXformSchema &schema, const float time);

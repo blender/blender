@@ -63,6 +63,8 @@ bool BKE_cachefile_filepath_get(
 
 float BKE_cachefile_time_offset(struct CacheFile *cache_file, const float time, const float fps);
 
+void BKE_cachefile_clean(struct Scene *scene, struct CacheFile *cache_file);
+
 #ifdef __cplusplus
 }
 #endif

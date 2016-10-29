@@ -36,10 +36,10 @@
 extern "C" {
 #endif
 
-
 /* CacheFile::flag */
 enum {
 	CACHEFILE_DS_EXPAND = (1 << 0),
+	CACHEFILE_DIRTY     = (1 << 1),
 };
 
 /* CacheFile::draw_flag */

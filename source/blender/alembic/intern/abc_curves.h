@@ -56,6 +56,7 @@ public:
 	bool valid() const;
 
 	void readObjectData(Main *bmain, float time);
+	DerivedMesh *read_derivedmesh(DerivedMesh *, const float time, int);
 };
 
 /* ************************************************************************** */

@@ -28,6 +28,7 @@ extern "C" {
 #endif
 
 struct bContext;
+struct CacheReader;
 struct DerivedMesh;
 struct ListBase;
 struct Object;
@@ -92,20 +93,24 @@ AbcArchiveHandle *ABC_create_handle(const char *filename, struct ListBase *objec
 
 void ABC_free_handle(AbcArchiveHandle *handle);
 
-void ABC_get_transform(AbcArchiveHandle *handle,
-                       struct Object *ob,
-                       const char *object_path,
+void ABC_get_transform(struct CacheReader *reader,
                        float r_mat[4][4],
                        float time,
                        float scale);
 
-struct DerivedMesh *ABC_read_mesh(AbcArchiveHandle *handle,
+struct DerivedMesh *ABC_read_mesh(struct CacheReader *reader,
                                   struct Object *ob,
                                   struct DerivedMesh *dm,
-                                  const char *object_path,
                                   const float time,
                                   const char **err_str,
                                   int flags);
+
+void CacheReader_free(struct CacheReader *reader);
+
+struct CacheReader *CacheReader_open_alembic_object(struct AbcArchiveHandle *handle,
+                                                    struct CacheReader *reader,
+                                                    struct Object *object,
+                                                    const char *object_path);
 
 #ifdef __cplusplus
 }

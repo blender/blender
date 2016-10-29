@@ -29,6 +29,8 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_cachefile_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_fileops.h"
@@ -43,6 +45,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_modifier.h"
 #include "BKE_scene.h"
 
 #ifdef WITH_ALEMBIC
@@ -195,4 +198,38 @@ float BKE_cachefile_time_offset(CacheFile *cache_file, const float time, const f
 {
 	const float frame = (cache_file->override_frame ? cache_file->frame : time);
 	return cache_file->is_sequence ? frame : frame / fps;
+}
+
+/* TODO(kevin): replace this with some depsgraph mechanism, or something similar. */
+void BKE_cachefile_clean(Scene *scene, CacheFile *cache_file)
+{
+	for (Base *base = scene->base.first; base; base = base->next) {
+		Object *ob = base->object;
+
+		ModifierData *md = modifiers_findByType(ob, eModifierType_MeshSequenceCache);
+
+		if (md) {
+			MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)md;
+
+			if (cache_file == mcmd->cache_file) {
+				CacheReader_free(mcmd->reader);
+				mcmd->reader = NULL;
+				mcmd->object_path[0] = '\0';
+			}
+		}
+
+		for (bConstraint *con = ob->constraints.first; con; con = con->next) {
+			if (con->type != CONSTRAINT_TYPE_TRANSFORM_CACHE) {
+				continue;
+			}
+
+			bTransformCacheConstraint *data = con->data;
+
+			if (cache_file == data->cache_file) {
+				CacheReader_free(data->reader);
+				data->reader = NULL;
+				data->object_path[0] = '\0';
+			}
+		}
+	}
 }

@@ -60,6 +60,8 @@ public:
 	bool valid() const;
 
 	void readObjectData(Main *bmain, float time);
+
+	DerivedMesh *read_derivedmesh(DerivedMesh *dm, const float time, int read_flag);
 };
 
 void read_points_sample(const Alembic::AbcGeom::IPointsSchema &schema,
