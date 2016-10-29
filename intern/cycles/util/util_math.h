@@ -1579,7 +1579,7 @@ ccl_device_inline bool ray_triangle_intersect_uv(
 
 ccl_device bool ray_quad_intersect(float3 ray_P, float3 ray_D, float ray_mint, float ray_maxt,
                                    float3 quad_P, float3 quad_u, float3 quad_v, float3 quad_n,
-                                   float3 *isect_P, float *isect_t)
+                                   float3 *isect_P, float *isect_t, float *isect_u, float *isect_v)
 {
 	float t = -(dot(ray_P, quad_n) - dot(quad_P, quad_n)) / dot(ray_D, quad_n);
 	if(t < ray_mint || t > ray_maxt)
@@ -1587,13 +1587,19 @@ ccl_device bool ray_quad_intersect(float3 ray_P, float3 ray_D, float ray_mint, f
 
 	float3 hit = ray_P + t*ray_D;
 	float3 inplane = hit - quad_P;
-	if(fabsf(dot(inplane, quad_u) / dot(quad_u, quad_u)) > 0.5f)
+
+	float u = dot(inplane, quad_u) / dot(quad_u, quad_u) + 0.5f;
+	if(u < 0.0f || u > 1.0f)
 		return false;
-	if(fabsf(dot(inplane, quad_v) / dot(quad_v, quad_v)) > 0.5f)
+
+	float v = dot(inplane, quad_v) / dot(quad_v, quad_v) + 0.5f;
+	if(v < 0.0f || v > 1.0f)
 		return false;
 
 	if(isect_P) *isect_P = hit;
 	if(isect_t) *isect_t = t;
+	if(isect_u) *isect_u = u;
+	if(isect_v) *isect_v = v;
 
 	return true;
 }
