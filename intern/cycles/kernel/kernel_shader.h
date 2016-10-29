@@ -276,7 +276,7 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals *kg,
 
 #ifdef __OBJECT_MOTION__
 		shader_setup_object_transforms(kg, sd, time);
-#else
+#endif
 	}
 	else if(lamp != LAMP_NONE) {
 		ccl_fetch(sd, ob_tfm)  = lamp_fetch_transform(kg, lamp, false);
