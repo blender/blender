@@ -235,7 +235,7 @@ ccl_device_inline void spherical_stereo_transform(KernelGlobals *kg, float3 *P, 
 	if(kernel_data.cam.pole_merge_angle_to > 0.0f) {
 		const float pole_merge_angle_from = kernel_data.cam.pole_merge_angle_from,
 		            pole_merge_angle_to = kernel_data.cam.pole_merge_angle_to;
-		float altitude = fabsf(safe_asinf(D->z));
+		float altitude = fabsf(safe_asinf((*D).z));
 		if(altitude > pole_merge_angle_to) {
 			interocular_offset = 0.0f;
 		}
