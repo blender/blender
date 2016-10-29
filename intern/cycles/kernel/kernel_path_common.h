@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include "util_hash.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device_inline void kernel_path_trace_setup(KernelGlobals *kg,
@@ -27,6 +29,10 @@ ccl_device_inline void kernel_path_trace_setup(KernelGlobals *kg,
 	float filter_v;
 
 	int num_samples = kernel_data.integrator.aa_samples;
+
+	if(sample == 0) {
+		*rng_state = hash_int_2d(x, y);
+	}
 
 	path_rng_init(kg, rng_state, sample, num_samples, rng, x, y, &filter_u, &filter_v);
 
