@@ -295,8 +295,6 @@ static BMLoop *bm_face_boundary_add(
 #else
 	f->l_first = l;
 #endif
-
-	l->f = f;
 	
 	return l;
 }
@@ -458,13 +456,10 @@ BMFace *BM_face_create(
 	f = bm_face_create__internal(bm);
 
 	startl = lastl = bm_face_boundary_add(bm, f, verts[0], edges[0], create_flag);
-	
-	startl->v = verts[0];
-	startl->e = edges[0];
+
 	for (i = 1; i < len; i++) {
 		l = bm_loop_create(bm, verts[i], edges[i], f, NULL /* edges[i]->l */, create_flag);
-		
-		l->f = f;
+
 		bmesh_radial_append(edges[i], l);
 
 		l->prev = lastl;
