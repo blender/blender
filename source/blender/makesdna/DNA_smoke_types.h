@@ -77,6 +77,23 @@ enum {
 	VECTOR_DRAW_STREAMLINE = 1,
 };
 
+enum {
+	FLUID_FIELD_DENSITY    = 0,
+	FLUID_FIELD_HEAT       = 1,
+	FLUID_FIELD_FUEL       = 2,
+	FLUID_FIELD_REACT      = 3,
+	FLUID_FIELD_FLAME      = 4,
+	FLUID_FIELD_VELOCITY_X = 5,
+	FLUID_FIELD_VELOCITY_Y = 6,
+	FLUID_FIELD_VELOCITY_Z = 7,
+	FLUID_FIELD_COLOR_R    = 8,
+	FLUID_FIELD_COLOR_G    = 9,
+	FLUID_FIELD_COLOR_B    = 10,
+	FLUID_FIELD_FORCE_X    = 11,
+	FLUID_FIELD_FORCE_Y    = 12,
+	FLUID_FIELD_FORCE_Z    = 13,
+};
+
 /* cache compression */
 #define SM_CACHE_LIGHT		0
 #define SM_CACHE_HEAVY		1
@@ -193,9 +210,13 @@ typedef struct SmokeDomainSettings {
 	float slice_per_voxel;
 	float slice_depth;
 	float display_thickness;
+
+	struct ColorBand *coba;
 	float vector_scale;
 	char vector_draw_type;
-	char pad2[3];
+	char use_coba;
+	char coba_field;  /* simulation field used for the color mapping */
+	char pad2;
 } SmokeDomainSettings;
 
 

@@ -360,6 +360,10 @@ static void smokeModifier_freeDomain(SmokeModifierData *smd)
 		BKE_ptcache_free_list(&(smd->domain->ptcaches[0]));
 		smd->domain->point_cache[0] = NULL;
 
+		if (smd->domain->coba) {
+			MEM_freeN(smd->domain->coba);
+		}
+
 		MEM_freeN(smd->domain);
 		smd->domain = NULL;
 	}
@@ -544,6 +548,9 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->domain->slice_depth = 0.5f;
 			smd->domain->slice_axis = 0;
 			smd->domain->vector_scale = 1.0f;
+
+			smd->domain->coba = NULL;
+			smd->domain->coba_field = FLUID_FIELD_DENSITY;
 		}
 		else if (smd->type & MOD_SMOKE_TYPE_FLOW)
 		{
@@ -646,6 +653,10 @@ void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData 
 		tsmd->domain->draw_velocity = smd->domain->draw_velocity;
 		tsmd->domain->vector_draw_type = smd->domain->vector_draw_type;
 		tsmd->domain->vector_scale = smd->domain->vector_scale;
+
+		if (smd->domain->coba) {
+			tsmd->domain->coba = MEM_dupallocN(smd->domain->coba);
+		}
 	}
 	else if (tsmd->flow) {
 		tsmd->flow->psys = smd->flow->psys;

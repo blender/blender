@@ -68,6 +68,7 @@ static struct GPUShadersGlobal {
 		GPUShader *sep_gaussian_blur;
 		GPUShader *smoke;
 		GPUShader *smoke_fire;
+		GPUShader *smoke_coba;
 		/* cache for shader fx. Those can exist in combinations so store them here */
 		GPUShader *fx_shaders[MAX_FX_SHADERS * 2];
 	} shaders;
@@ -623,6 +624,13 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 				        NULL, NULL, NULL, 0, 0, 0);
 			retval = GG.shaders.smoke_fire;
 			break;
+		case GPU_SHADER_SMOKE_COBA:
+			if (!GG.shaders.smoke_coba)
+				GG.shaders.smoke_coba = GPU_shader_create(
+				        datatoc_gpu_shader_smoke_vert_glsl, datatoc_gpu_shader_smoke_frag_glsl,
+				        NULL, NULL, "#define USE_COBA;\n", 0, 0, 0);
+			retval = GG.shaders.smoke_coba;
+			break;
 	}
 
 	if (retval == NULL)
@@ -732,6 +740,11 @@ void GPU_shader_free_builtin_shaders(void)
 	if (GG.shaders.smoke_fire) {
 		GPU_shader_free(GG.shaders.smoke_fire);
 		GG.shaders.smoke_fire = NULL;
+	}
+
+	if (GG.shaders.smoke_coba) {
+		GPU_shader_free(GG.shaders.smoke_coba);
+		GG.shaders.smoke_coba = NULL;
 	}
 
 	for (i = 0; i < 2 * MAX_FX_SHADERS; ++i) {

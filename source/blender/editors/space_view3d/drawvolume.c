@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -41,6 +41,7 @@
 #include "BLI_math.h"
 
 #include "BKE_DerivedMesh.h"
+#include "BKE_texture.h"
 #include "BKE_particle.h"
 
 #include "smoke_API.h"
@@ -62,28 +63,33 @@ struct GPUTexture;
 #  include "PIL_time_utildefines.h"
 #endif
 
-static GPUTexture *create_flame_spectrum_texture(void)
+/* *************************** Transfer functions *************************** */
+
+enum {
+	TFUNC_FLAME_SPECTRUM = 0,
+	TFUNC_COLOR_RAMP     = 1,
+};
+
+#define TFUNC_WIDTH 256
+
+static void create_flame_spectrum_texture(float *data)
 {
-#define SPEC_WIDTH 256
 #define FIRE_THRESH 7
 #define MAX_FIRE_ALPHA 0.06f
 #define FULL_ON_FIRE 100
 
-	GPUTexture *tex;
-	int i, j, k;
-	float *spec_data = MEM_mallocN(SPEC_WIDTH * 4 * sizeof(float), "spec_data");
-	float *spec_pixels = MEM_mallocN(SPEC_WIDTH * 4 * 16 * 16 * sizeof(float), "spec_pixels");
+	float *spec_pixels = MEM_mallocN(TFUNC_WIDTH * 4 * 16 * 16 * sizeof(float), "spec_pixels");
 
-	blackbody_temperature_to_rgb_table(spec_data, SPEC_WIDTH, 1500, 3000);
+	blackbody_temperature_to_rgb_table(data, TFUNC_WIDTH, 1500, 3000);
 
-	for (i = 0; i < 16; i++) {
-		for (j = 0; j < 16; j++) {
-			for (k = 0; k < SPEC_WIDTH; k++) {
-				int index = (j * SPEC_WIDTH * 16 + i * SPEC_WIDTH + k) * 4;
+	for (int i = 0; i < 16; i++) {
+		for (int j = 0; j < 16; j++) {
+			for (int k = 0; k < TFUNC_WIDTH; k++) {
+				int index = (j * TFUNC_WIDTH * 16 + i * TFUNC_WIDTH + k) * 4;
 				if (k >= FIRE_THRESH) {
-					spec_pixels[index] = (spec_data[k * 4]);
-					spec_pixels[index + 1] = (spec_data[k * 4 + 1]);
-					spec_pixels[index + 2] = (spec_data[k * 4 + 2]);
+					spec_pixels[index] = (data[k * 4]);
+					spec_pixels[index + 1] = (data[k * 4 + 1]);
+					spec_pixels[index + 2] = (data[k * 4 + 2]);
 					spec_pixels[index + 3] = MAX_FIRE_ALPHA * (
 					        (k > FULL_ON_FIRE) ? 1.0f : (k - FIRE_THRESH) / ((float)FULL_ON_FIRE - FIRE_THRESH));
 				}
@@ -94,17 +100,67 @@ static GPUTexture *create_flame_spectrum_texture(void)
 		}
 	}
 
-	tex = GPU_texture_create_1D(SPEC_WIDTH, spec_pixels, NULL);
+	memcpy(data, spec_pixels, sizeof(float) * 4 * TFUNC_WIDTH);
 
-	MEM_freeN(spec_data);
 	MEM_freeN(spec_pixels);
 
-#undef SPEC_WIDTH
 #undef FIRE_THRESH
 #undef MAX_FIRE_ALPHA
 #undef FULL_ON_FIRE
+}
+
+static void create_color_ramp(const ColorBand *coba, float *data)
+{
+	for (int i = 0; i < TFUNC_WIDTH; i++) {
+		do_colorband(coba, (float)i / TFUNC_WIDTH, &data[i * 4]);
+	}
+}
+
+static GPUTexture *create_transfer_function(int type, const ColorBand *coba)
+{
+	float *data = MEM_mallocN(sizeof(float) * 4 * TFUNC_WIDTH, __func__);
+
+	switch (type) {
+		case TFUNC_FLAME_SPECTRUM:
+			create_flame_spectrum_texture(data);
+			break;
+		case TFUNC_COLOR_RAMP:
+			create_color_ramp(coba, data);
+			break;
+	}
+
+	GPUTexture *tex = GPU_texture_create_1D(TFUNC_WIDTH, data, NULL);
+
+	MEM_freeN(data);
 
 	return tex;
+}
+
+static GPUTexture *create_field_texture(SmokeDomainSettings *sds)
+{
+	float *field = NULL;
+
+	switch (sds->coba_field) {
+#ifdef WITH_SMOKE
+		case FLUID_FIELD_DENSITY:    field = smoke_get_density(sds->fluid); break;
+		case FLUID_FIELD_HEAT:       field = smoke_get_heat(sds->fluid); break;
+		case FLUID_FIELD_FUEL:       field = smoke_get_fuel(sds->fluid); break;
+		case FLUID_FIELD_REACT:      field = smoke_get_react(sds->fluid); break;
+		case FLUID_FIELD_FLAME:      field = smoke_get_flame(sds->fluid); break;
+		case FLUID_FIELD_VELOCITY_X: field = smoke_get_velocity_x(sds->fluid); break;
+		case FLUID_FIELD_VELOCITY_Y: field = smoke_get_velocity_y(sds->fluid); break;
+		case FLUID_FIELD_VELOCITY_Z: field = smoke_get_velocity_z(sds->fluid); break;
+		case FLUID_FIELD_COLOR_R:    field = smoke_get_color_r(sds->fluid); break;
+		case FLUID_FIELD_COLOR_G:    field = smoke_get_color_g(sds->fluid); break;
+		case FLUID_FIELD_COLOR_B:    field = smoke_get_color_b(sds->fluid); break;
+		case FLUID_FIELD_FORCE_X:    field = smoke_get_force_x(sds->fluid); break;
+		case FLUID_FIELD_FORCE_Y:    field = smoke_get_force_y(sds->fluid); break;
+		case FLUID_FIELD_FORCE_Z:    field = smoke_get_force_z(sds->fluid); break;
+#endif
+		default: return NULL;
+	}
+
+	return GPU_texture_create_3D(sds->res[0], sds->res[1], sds->res[2], 1, field);
 }
 
 typedef struct VolumeSlicer {
@@ -347,6 +403,7 @@ static int create_view_aligned_slices(VolumeSlicer *slicer,
 }
 
 static void bind_shader(SmokeDomainSettings *sds, GPUShader *shader, GPUTexture *tex_spec,
+                        GPUTexture *tex_tfunc, GPUTexture *tex_coba,
                         bool use_fire, const float min[3],
                         const float ob_sizei[3], const float invsize[3])
 {
@@ -359,6 +416,8 @@ static void bind_shader(SmokeDomainSettings *sds, GPUShader *shader, GPUTexture 
 	int densityscale_location;
 	int spec_location, flame_location;
 	int shadow_location, actcol_location;
+	int tfunc_location = 0;
+	int coba_location = 0;
 
 	if (use_fire) {
 		spec_location = GPU_shader_get_uniform(shader, "spectrum_texture");
@@ -370,6 +429,11 @@ static void bind_shader(SmokeDomainSettings *sds, GPUShader *shader, GPUTexture 
 		soot_location = GPU_shader_get_uniform(shader, "soot_texture");
 		stepsize_location = GPU_shader_get_uniform(shader, "step_size");
 		densityscale_location = GPU_shader_get_uniform(shader, "density_scale");
+
+		if (sds->use_coba) {
+			tfunc_location = GPU_shader_get_uniform(shader, "transfer_texture");
+			coba_location = GPU_shader_get_uniform(shader, "color_band_texture");
+		}
 	}
 
 	GPU_shader_bind(shader);
@@ -397,6 +461,14 @@ static void bind_shader(SmokeDomainSettings *sds, GPUShader *shader, GPUTexture 
 		if ((sds->active_fields & SM_ACTIVE_COLORS) == 0)
 			mul_v3_v3(active_color, sds->active_color);
 		GPU_shader_uniform_vector(shader, actcol_location, 3, 1, active_color);
+
+		if (sds->use_coba) {
+			GPU_texture_bind(tex_tfunc, 4);
+			GPU_shader_uniform_texture(shader, tfunc_location, tex_tfunc);
+
+			GPU_texture_bind(tex_coba, 5);
+			GPU_shader_uniform_texture(shader, coba_location, tex_coba);
+		}
 	}
 
 	GPU_shader_uniform_vector(shader, min_location, 3, 1, min);
@@ -404,7 +476,8 @@ static void bind_shader(SmokeDomainSettings *sds, GPUShader *shader, GPUTexture 
 	GPU_shader_uniform_vector(shader, invsize_location, 3, 1, invsize);
 }
 
-static void unbind_shader(SmokeDomainSettings *sds, GPUTexture *tex_spec, bool use_fire)
+static void unbind_shader(SmokeDomainSettings *sds, GPUTexture *tex_spec,
+                          GPUTexture *tex_tfunc, GPUTexture *tex_coba, bool use_fire)
 {
 	GPU_shader_unbind();
 
@@ -417,20 +490,30 @@ static void unbind_shader(SmokeDomainSettings *sds, GPUTexture *tex_spec, bool u
 	}
 	else {
 		GPU_texture_unbind(sds->tex_shadow);
+
+		if (sds->use_coba) {
+			GPU_texture_unbind(tex_tfunc);
+			GPU_texture_free(tex_tfunc);
+
+			GPU_texture_unbind(tex_coba);
+			GPU_texture_free(tex_coba);
+		}
 	}
 }
 
 static void draw_buffer(SmokeDomainSettings *sds, GPUShader *shader, const VolumeSlicer *slicer,
                         const float ob_sizei[3], const float invsize[3], const int num_points, const bool do_fire)
 {
-	GPUTexture *tex_spec = (do_fire) ? create_flame_spectrum_texture() : NULL;
+	GPUTexture *tex_spec = (do_fire) ? create_transfer_function(TFUNC_FLAME_SPECTRUM, NULL) : NULL;
+	GPUTexture *tex_tfunc = (sds->use_coba) ? create_transfer_function(TFUNC_COLOR_RAMP, sds->coba) : NULL;
+	GPUTexture *tex_coba = (sds->use_coba) ? create_field_texture(sds) : NULL;
 
 	GLuint vertex_buffer;
 	glGenBuffers(1, &vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * num_points, &slicer->verts[0][0], GL_STATIC_DRAW);
 
-	bind_shader(sds, shader, tex_spec, do_fire, slicer->min, ob_sizei, invsize);
+	bind_shader(sds, shader, tex_spec, tex_tfunc, tex_coba, do_fire, slicer->min, ob_sizei, invsize);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, 0, NULL);
@@ -439,7 +522,7 @@ static void draw_buffer(SmokeDomainSettings *sds, GPUShader *shader, const Volum
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 
-	unbind_shader(sds, tex_spec, do_fire);
+	unbind_shader(sds, tex_spec, tex_tfunc, tex_coba, do_fire);
 
 	/* cleanup */
 
@@ -459,7 +542,16 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 
 	const bool use_fire = (sds->active_fields & SM_ACTIVE_FIRE) && sds->tex_flame;
 
-	GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_SMOKE);
+	GPUBuiltinShader builtin_shader;
+
+	if (sds->use_coba) {
+		builtin_shader = GPU_SHADER_SMOKE_COBA;
+	}
+	else {
+		builtin_shader = GPU_SHADER_SMOKE;
+	}
+
+	GPUShader *shader = GPU_shader_get_builtin_shader(builtin_shader);
 
 	if (!shader) {
 		fprintf(stderr, "Unable to create GLSL smoke shader.\n");
@@ -549,7 +641,7 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	draw_buffer(sds, shader, &slicer, ob_sizei, invsize, num_points, false);
 
 	/* Draw fire separately (T47639). */
-	if (use_fire) {
+	if (use_fire && !sds->use_coba) {
 		glBlendFunc(GL_ONE, GL_ONE);
 		draw_buffer(sds, fire_shader, &slicer, ob_sizei, invsize, num_points, true);
 	}
@@ -759,50 +851,3 @@ void draw_smoke_velocity(SmokeDomainSettings *domain, float viewnormal[3])
 	UNUSED_VARS(domain, viewnormal);
 #endif
 }
-
-#ifdef SMOKE_DEBUG_HEAT
-void draw_smoke_heat(SmokeDomainSettings *domain, Object *ob)
-{
-	float x, y, z;
-	float x0, y0, z0;
-	int *base_res = domain->base_res;
-	int *res = domain->res;
-	int *res_min = domain->res_min;
-	int *res_max = domain->res_max;
-	float *heat = smoke_get_heat(domain->fluid);
-
-	float min[3];
-	float *cell_size = domain->cell_size;
-	float step_size = ((float)max_iii(base_res[0], base_res[1], base_res[2])) / 16.f;
-	float vf = domain->scale / 16.f * 2.f; /* velocity factor */
-
-	/* set first position so that it doesn't jump when domain moves */
-	x0 = res_min[0] + fmod(-(float)domain->shift[0] + res_min[0], step_size);
-	y0 = res_min[1] + fmod(-(float)domain->shift[1] + res_min[1], step_size);
-	z0 = res_min[2] + fmod(-(float)domain->shift[2] + res_min[2], step_size);
-	if (x0 < res_min[0]) x0 += step_size;
-	if (y0 < res_min[1]) y0 += step_size;
-	if (z0 < res_min[2]) z0 += step_size;
-	add_v3_v3v3(min, domain->p0, domain->obj_shift_f);
-
-	for (x = floor(x0); x < res_max[0]; x += step_size)
-		for (y = floor(y0); y < res_max[1]; y += step_size)
-			for (z = floor(z0); z < res_max[2]; z += step_size) {
-				int index = (floor(x) - res_min[0]) + (floor(y) - res_min[1]) * res[0] + (floor(z) - res_min[2]) * res[0] * res[1];
-
-				float pos[3] = {min[0] + ((float)x + 0.5f) * cell_size[0], min[1] + ((float)y + 0.5f) * cell_size[1], min[2] + ((float)z + 0.5f) * cell_size[2]};
-
-				/* draw heat as different sized points */
-				if (heat[index] >= 0.01f) {
-					float col_gb = 1.0f - heat[index];
-					CLAMP(col_gb, 0.0f, 1.0f);
-					glColor3f(1.0f, col_gb, col_gb);
-					glPointSize(24.0f * heat[index]);
-
-					glBegin(GL_POINTS);
-					glVertex3f(pos[0], pos[1], pos[2]);
-					glEnd();
-				}
-			}
-}
-#endif

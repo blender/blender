@@ -1728,6 +1728,10 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 					smd->domain->point_cache[1]->step = 1;
 
 					write_pointcaches(wd, &(smd->domain->ptcaches[1]));
+
+					if (smd->domain->coba) {
+						writestruct(wd, DATA, ColorBand, 1, smd->domain->coba);
+					}
 				}
 
 				writestruct(wd, DATA, SmokeDomainSettings, 1, smd->domain);
