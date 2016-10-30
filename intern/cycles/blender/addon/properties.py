@@ -269,7 +269,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         cls.light_sampling_threshold = FloatProperty(
                 name="Light Sampling Threshold",
                 description="Probabilistically terminate light samples when the light contribution is below this threshold (more noise but faster rendering). "
-                            "Zero disables the test and never ignores lights.",
+                            "Zero disables the test and never ignores lights",
                 min=0.0, max=1.0,
                 default=0.05,
                 )
