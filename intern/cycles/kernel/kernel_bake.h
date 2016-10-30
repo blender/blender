@@ -63,7 +63,7 @@ ccl_device_inline void compute_light_pass(KernelGlobals *kg,
 
 		/* sample ambient occlusion */
 		if(pass_filter & BAKE_FILTER_AO) {
-			kernel_path_ao(kg, sd, &emission_sd, &L_sample, &state, &rng, throughput);
+			kernel_path_ao(kg, sd, &emission_sd, &L_sample, &state, &rng, throughput, shader_bsdf_alpha(kg, sd));
 		}
 
 		/* sample emission */
