@@ -78,7 +78,9 @@ static void freeData(ModifierData *md)
 	}
 
 	if (mcmd->reader) {
+#ifdef WITH_ALEMBIC
 		CacheReader_free(mcmd->reader);
+#endif
 	}
 }
 

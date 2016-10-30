@@ -1133,6 +1133,7 @@ static int rna_CorrectiveSmoothModifier_is_bind_get(PointerRNA *ptr)
 
 static void rna_MeshSequenceCache_object_path_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
+#ifdef WITH_ALEMBIC
 	MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)ptr->data;
 	Object *ob = (Object *)ptr->id.data;
 
@@ -1140,6 +1141,7 @@ static void rna_MeshSequenceCache_object_path_update(Main *bmain, Scene *scene, 
 	                                               mcmd->reader,
 	                                               ob,
 	                                               mcmd->object_path);
+#endif
 
 	rna_Modifier_update(bmain, scene, ptr);
 }

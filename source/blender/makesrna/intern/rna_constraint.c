@@ -478,6 +478,7 @@ static void rna_Constraint_objectSolver_camera_set(PointerRNA *ptr, PointerRNA v
 
 static void rna_Constraint_transformCache_object_path_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
+#ifdef WITH_ALEMBIC
 	bConstraint *con = (bConstraint *)ptr->data;
 	bTransformCacheConstraint *data = (bTransformCacheConstraint *)con->data;
 	Object *ob = (Object *)ptr->id.data;
@@ -486,6 +487,7 @@ static void rna_Constraint_transformCache_object_path_update(Main *bmain, Scene 
 	                                               data->reader,
 	                                               ob,
 	                                               data->object_path);
+#endif
 
 	rna_Constraint_update(bmain, scene, ptr);
 }

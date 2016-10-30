@@ -212,7 +212,9 @@ void BKE_cachefile_clean(Scene *scene, CacheFile *cache_file)
 			MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)md;
 
 			if (cache_file == mcmd->cache_file) {
+#ifdef WITH_ALEMBIC
 				CacheReader_free(mcmd->reader);
+#endif
 				mcmd->reader = NULL;
 				mcmd->object_path[0] = '\0';
 			}
@@ -226,7 +228,9 @@ void BKE_cachefile_clean(Scene *scene, CacheFile *cache_file)
 			bTransformCacheConstraint *data = con->data;
 
 			if (cache_file == data->cache_file) {
+#ifdef WITH_ALEMBIC
 				CacheReader_free(data->reader);
+#endif
 				data->reader = NULL;
 				data->object_path[0] = '\0';
 			}
