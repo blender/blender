@@ -112,7 +112,7 @@ ccl_device void svm_node_tex_brick(KernelGlobals *kg, ShaderData *sd, float *sta
 	}
 
 	if(stack_valid(color_offset))
-		stack_store_float3(stack, color_offset, lerp(color1, mortar, f));
+		stack_store_float3(stack, color_offset, color1*(1.0f-f) + mortar*f);
 	if(stack_valid(fac_offset))
 		stack_store_float(stack, fac_offset, f);
 }
