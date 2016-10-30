@@ -6617,15 +6617,22 @@ static void popup_add_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
 void ui_panel_menu(bContext *C, ARegion *ar, Panel *pa)
 {
 	bScreen *sc = CTX_wm_screen(C);
+	const bool has_panel_category = UI_panel_category_is_visible(ar);
+	const bool any_item_visible = has_panel_category;
 	PointerRNA ptr;
 	uiPopupMenu *pup;
 	uiLayout *layout;
+
+	if (!any_item_visible) {
+		return;
+	}
 
 	RNA_pointer_create(&sc->id, &RNA_Panel, pa, &ptr);
 
 	pup = UI_popup_menu_begin(C, IFACE_("Panel"), ICON_NONE);
 	layout = UI_popup_menu_layout(pup);
-	if (UI_panel_category_is_visible(ar)) {
+
+	if (has_panel_category) {
 		char tmpstr[80];
 		BLI_snprintf(tmpstr, sizeof(tmpstr), "%s" UI_SEP_CHAR_S "%s", IFACE_("Pin"), IFACE_("Shift+Left Mouse"));
 		uiItemR(layout, &ptr, "use_pin", 0, tmpstr, ICON_NONE);
@@ -6636,7 +6643,6 @@ void ui_panel_menu(bContext *C, ARegion *ar, Panel *pa)
 			uiBut *but = block->buttons.last;
 			but->flag |= UI_BUT_HAS_SEP_CHAR;
 		}
-
 	}
 	UI_popup_menu_end(C, pup);
 }
