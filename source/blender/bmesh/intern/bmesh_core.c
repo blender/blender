@@ -976,23 +976,8 @@ void BM_face_kill_loose(BMesh *bm, BMFace *f)
  */
 void BM_edge_kill(BMesh *bm, BMEdge *e)
 {
-
-	if (e->l) {
-		BMLoop *l = e->l, *lnext, *startl = e->l;
-
-		do {
-			lnext = l->radial_next;
-			if (lnext->f == l->f) {
-				BM_face_kill(bm, l->f);
-				break;
-			}
-			
-			BM_face_kill(bm, l->f);
-
-			if (l == lnext)
-				break;
-			l = lnext;
-		} while (l != startl);
+	while (e->l) {
+		BM_face_kill(bm, e->l->f);
 	}
 
 	bmesh_disk_edge_remove(e, e->v1);
@@ -1006,15 +991,8 @@ void BM_edge_kill(BMesh *bm, BMEdge *e)
  */
 void BM_vert_kill(BMesh *bm, BMVert *v)
 {
-	if (v->e) {
-		BMEdge *e, *e_next;
-		
-		e = v->e;
-		while (v->e) {
-			e_next = bmesh_disk_edge_next(e, v);
-			BM_edge_kill(bm, e);
-			e = e_next;
-		}
+	while (v->e) {
+		BM_edge_kill(bm, v->e);
 	}
 
 	bm_kill_only_vert(bm, v);
