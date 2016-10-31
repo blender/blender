@@ -143,7 +143,7 @@ void bmesh_disk_vert_replace(BMEdge *e, BMVert *v_dst, BMVert *v_src)
  * to store non-manifold conditions since BM does not keep track of region/shell information.
  *
  * Functions relating to this cycle:
- * - #bmesh_radial_append
+ * - #bmesh_radial_loop_append
  * - #bmesh_radial_loop_remove
  * - #bmesh_radial_facevert_count
  * - #bmesh_radial_facevert_check
@@ -389,6 +389,30 @@ bool bmesh_radial_validate(int radlen, BMLoop *l)
 	return true;
 }
 
+void bmesh_radial_loop_append(BMEdge *e, BMLoop *l)
+{
+	if (e->l == NULL) {
+		e->l = l;
+		l->radial_next = l->radial_prev = l;
+	}
+	else {
+		l->radial_prev = e->l;
+		l->radial_next = e->l->radial_next;
+
+		e->l->radial_next->radial_prev = l;
+		e->l->radial_next = l;
+
+		e->l = l;
+	}
+
+	if (UNLIKELY(l->e && l->e != e)) {
+		/* l is already in a radial cycle for a different edge */
+		BMESH_ASSERT(0);
+	}
+
+	l->e = e;
+}
+
 /**
  * \brief BMESH RADIAL REMOVE LOOP
  *
@@ -397,28 +421,27 @@ bool bmesh_radial_validate(int radlen, BMLoop *l)
  * updated (in the case that the edge's link into the radial
  * cycle was the loop which is being removed from the cycle).
  */
-void bmesh_radial_loop_remove(BMLoop *l, BMEdge *e)
+void bmesh_radial_loop_remove(BMEdge *e, BMLoop *l)
 {
 	/* if e is non-NULL, l must be in the radial cycle of e */
-	if (UNLIKELY(e && e != l->e)) {
+	if (UNLIKELY(e != l->e)) {
 		BMESH_ASSERT(0);
 	}
 
 	if (l->radial_next != l) {
-		if (e && l == e->l)
+		if (l == e->l) {
 			e->l = l->radial_next;
+		}
 
 		l->radial_next->radial_prev = l->radial_prev;
 		l->radial_prev->radial_next = l->radial_next;
 	}
 	else {
-		if (e) {
-			if (l == e->l) {
-				e->l = NULL;
-			}
-			else {
-				BMESH_ASSERT(0);
-			}
+		if (l == e->l) {
+			e->l = NULL;
+		}
+		else {
+			BMESH_ASSERT(0);
 		}
 	}
 
@@ -428,6 +451,22 @@ void bmesh_radial_loop_remove(BMLoop *l, BMEdge *e)
 	l->e = NULL;
 }
 
+/**
+ * A version of #bmesh_radial_loop_remove which only performs the radial unlink,
+ * leaving the edge untouched.
+ */
+void bmesh_radial_loop_unlink(BMLoop *l)
+{
+	if (l->radial_next != l) {
+		l->radial_next->radial_prev = l->radial_prev;
+		l->radial_prev->radial_next = l->radial_next;
+	}
+
+	/* l is no longer in a radial cycle; empty the links
+	 * to the cycle and the link back to an edge */
+	l->radial_next = l->radial_prev = NULL;
+	l->e = NULL;
+}
 
 /**
  * \brief BME RADIAL FIND FIRST FACE VERT
@@ -482,30 +521,6 @@ int bmesh_radial_length(const BMLoop *l)
 	} while ((l_iter = l_iter->radial_next) != l);
 
 	return i;
-}
-
-void bmesh_radial_append(BMEdge *e, BMLoop *l)
-{
-	if (e->l == NULL) {
-		e->l = l;
-		l->radial_next = l->radial_prev = l;
-	}
-	else {
-		l->radial_prev = e->l;
-		l->radial_next = e->l->radial_next;
-
-		e->l->radial_next->radial_prev = l;
-		e->l->radial_next = l;
-
-		e->l = l;
-	}
-
-	if (UNLIKELY(l->e && l->e != e)) {
-		/* l is already in a radial cycle for a different edge */
-		BMESH_ASSERT(0);
-	}
-	
-	l->e = e;
 }
 
 /**

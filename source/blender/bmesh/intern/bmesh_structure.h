@@ -55,8 +55,9 @@ BMEdge *bmesh_disk_faceedge_find_first(const BMEdge *e, const BMVert *v) ATTR_WA
 BMEdge *bmesh_disk_faceedge_find_next(const BMEdge *e, const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /* RADIAL CYCLE MANAGMENT */
-void    bmesh_radial_append(BMEdge *e, BMLoop *l) ATTR_NONNULL();
-void    bmesh_radial_loop_remove(BMLoop *l, BMEdge *e) ATTR_NONNULL(1);
+void    bmesh_radial_loop_append(BMEdge *e, BMLoop *l) ATTR_NONNULL();
+void    bmesh_radial_loop_remove(BMEdge *e, BMLoop *l) ATTR_NONNULL();
+void    bmesh_radial_loop_unlink(BMLoop *l) ATTR_NONNULL();
 /* note:
  *      bmesh_radial_loop_next(BMLoop *l) / prev.
  * just use member access l->radial_next, l->radial_prev now */
