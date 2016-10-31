@@ -1,3 +1,4 @@
+
 /*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -55,6 +56,9 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+
+#include "GPU_immediate.h"
+#include "GPU_draw.h"
 
 #include "WM_types.h"
 
@@ -268,13 +272,14 @@ static void nla_strip_get_color_inside(AnimData *adt, NlaStrip *strip, float col
 /* helper call for drawing influence/time control curves for a given NLA-strip */
 static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc)
 {
+
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformColor4f(0.7f, 0.7f, 0.7f, 1.0f);
+
 	const float yheight = ymaxc - yminc;
-	
-	/* drawing color is simply a light-gray */
-	// TODO: is this color suitable?
-	// XXX nasty hacked color for now... which looks quite bad too...
-	glColor3f(0.7f, 0.7f, 0.7f);
-	
+		
 	/* draw with AA'd line */
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
@@ -285,45 +290,49 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc)
 		float cfra;
 		
 		/* plot the curve (over the strip's main region) */
-		glBegin(GL_LINE_STRIP);
+		immBegin(GL_LINE_STRIP, abs(strip->end - strip->start + 1));
+
 		/* sample at 1 frame intervals, and draw
 		 *	- min y-val is yminc, max is y-maxc, so clamp in those regions
 		 */
 		for (cfra = strip->start; cfra <= strip->end; cfra += 1.0f) {
 			float y = evaluate_fcurve(fcu, cfra);    // assume this to be in 0-1 range
-			glVertex2f(cfra, ((y * yheight) + yminc));
+			immVertex2f(pos, cfra, ((y * yheight) + yminc));
 		}
-		glEnd(); // GL_LINE_STRIP
+
+		immEnd();
 	}
 	else {
 		/* use blend in/out values only if both aren't zero */
 		if ((IS_EQF(strip->blendin, 0.0f) && IS_EQF(strip->blendout, 0.0f)) == 0) {
-			glBegin(GL_LINE_STRIP);
+			immBeginAtMost(GL_LINE_STRIP, 4);
+
 			/* start of strip - if no blendin, start straight at 1, otherwise from 0 to 1 over blendin frames */
 			if (IS_EQF(strip->blendin, 0.0f) == 0) {
-				glVertex2f(strip->start,                    yminc);
-				glVertex2f(strip->start + strip->blendin,   ymaxc);
+				immVertex2f(pos, strip->start,                    yminc);
+				immVertex2f(pos, strip->start + strip->blendin,   ymaxc);
 			}
 			else
-				glVertex2f(strip->start, ymaxc);
+				immVertex2f(pos, strip->start, ymaxc);
 					
 			/* end of strip */
 			if (IS_EQF(strip->blendout, 0.0f) == 0) {
-				glVertex2f(strip->end - strip->blendout,    ymaxc);
-				glVertex2f(strip->end,                      yminc);
+				immVertex2f(pos, strip->end - strip->blendout,    ymaxc);
+				immVertex2f(pos, strip->end,                      yminc);
 			}
 			else
-				glVertex2f(strip->end, ymaxc);
-			glEnd(); // GL_LINE_STRIP
+				immVertex2f(pos, strip->end, ymaxc);
+
+			immEnd();
 		}
 	}
-	
-	/* time -------------------------- */
-	// XXX do we want to draw this curve? in a different color too?
-	
+
 	/* turn off AA'd lines */
 	glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
+
+	//Unbind GPU_SHADER_2D_UNIFORM_COLOR
+	immUnbindProgram();
 }
 
 /* main call for drawing a single NLA-strip */
