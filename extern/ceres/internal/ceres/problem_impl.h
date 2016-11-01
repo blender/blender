@@ -128,6 +128,8 @@ class ProblemImpl {
 
   void SetParameterBlockConstant(double* values);
   void SetParameterBlockVariable(double* values);
+  bool IsParameterBlockConstant(double* values) const;
+
   void SetParameterization(double* values,
                            LocalParameterization* local_parameterization);
   const LocalParameterization* GetParameterization(double* values) const;

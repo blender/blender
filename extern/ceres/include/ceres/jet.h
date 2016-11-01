@@ -164,6 +164,7 @@
 
 #include "Eigen/Core"
 #include "ceres/fpclassify.h"
+#include "ceres/internal/port.h"
 
 namespace ceres {
 
@@ -227,21 +228,23 @@ struct Jet {
   T a;
 
   // The infinitesimal part.
-  //
-  // Note the Eigen::DontAlign bit is needed here because this object
-  // gets allocated on the stack and as part of other arrays and
-  // structs. Forcing the right alignment there is the source of much
-  // pain and suffering. Even if that works, passing Jets around to
-  // functions by value has problems because the C++ ABI does not
-  // guarantee alignment for function arguments.
-  //
-  // Setting the DontAlign bit prevents Eigen from using SSE for the
-  // various operations on Jets. This is a small performance penalty
-  // since the AutoDiff code will still expose much of the code as
-  // statically sized loops to the compiler. But given the subtle
-  // issues that arise due to alignment, especially when dealing with
-  // multiple platforms, it seems to be a trade off worth making.
+
+  // We allocate Jets on the stack and other places they
+  // might not be aligned to 16-byte boundaries.  If we have C++11, we
+  // can specify their alignment anyway, and thus can safely enable
+  // vectorization on those matrices; in C++99, we are out of luck.  Figure out
+  // what case we're in and do the right thing.
+#ifndef CERES_USE_CXX11
+  // fall back to safe version:
   Eigen::Matrix<T, N, 1, Eigen::DontAlign> v;
+#else
+  static constexpr bool kShouldAlignMatrix =
+      16 <= ::ceres::port_constants::kMaxAlignBytes;
+  static constexpr int kAlignHint = kShouldAlignMatrix ?
+      Eigen::AutoAlign : Eigen::DontAlign;
+  static constexpr size_t kAlignment = kShouldAlignMatrix ? 16 : 1;
+  alignas(kAlignment) Eigen::Matrix<T, N, 1, kAlignHint> v;
+#endif
 };
 
 // Unary +
@@ -388,6 +391,8 @@ inline double atan    (double x) { return std::atan(x);     }
 inline double sinh    (double x) { return std::sinh(x);     }
 inline double cosh    (double x) { return std::cosh(x);     }
 inline double tanh    (double x) { return std::tanh(x);     }
+inline double floor   (double x) { return std::floor(x);    }
+inline double ceil    (double x) { return std::ceil(x);     }
 inline double pow  (double x, double y) { return std::pow(x, y);   }
 inline double atan2(double y, double x) { return std::atan2(y, x); }
 
@@ -482,10 +487,51 @@ Jet<T, N> tanh(const Jet<T, N>& f) {
   return Jet<T, N>(tanh_a, tmp * f.v);
 }
 
+// The floor function should be used with extreme care as this operation will
+// result in a zero derivative which provides no information to the solver.
+//
+// floor(a + h) ~= floor(a) + 0
+template <typename T, int N> inline
+Jet<T, N> floor(const Jet<T, N>& f) {
+  return Jet<T, N>(floor(f.a));
+}
+
+// The ceil function should be used with extreme care as this operation will
+// result in a zero derivative which provides no information to the solver.
+//
+// ceil(a + h) ~= ceil(a) + 0
+template <typename T, int N> inline
+Jet<T, N> ceil(const Jet<T, N>& f) {
+  return Jet<T, N>(ceil(f.a));
+}
+
 // Bessel functions of the first kind with integer order equal to 0, 1, n.
-inline double BesselJ0(double x) { return j0(x); }
-inline double BesselJ1(double x) { return j1(x); }
-inline double BesselJn(int n, double x) { return jn(n, x); }
+//
+// Microsoft has deprecated the j[0,1,n]() POSIX Bessel functions in favour of
+// _j[0,1,n]().  Where available on MSVC, use _j[0,1,n]() to avoid deprecated
+// function errors in client code (the specific warning is suppressed when
+// Ceres itself is built).
+inline double BesselJ0(double x) {
+#if defined(_MSC_VER) && defined(_j0)
+  return _j0(x);
+#else
+  return j0(x);
+#endif
+}
+inline double BesselJ1(double x) {
+#if defined(_MSC_VER) && defined(_j1)
+  return _j1(x);
+#else
+  return j1(x);
+#endif
+}
+inline double BesselJn(int n, double x) {
+#if defined(_MSC_VER) && defined(_jn)
+  return _jn(n, x);
+#else
+  return jn(n, x);
+#endif
+}
 
 // For the formulae of the derivatives of the Bessel functions see the book:
 // Olver, Lozier, Boisvert, Clark, NIST Handbook of Mathematical Functions,
@@ -743,7 +789,15 @@ template<typename T, int N> inline       Jet<T, N>  ei_pow (const Jet<T, N>& x, 
 // strange compile errors.
 template <typename T, int N>
 inline std::ostream &operator<<(std::ostream &s, const Jet<T, N>& z) {
-  return s << "[" << z.a << " ; " << z.v.transpose() << "]";
+  s << "[" << z.a << " ; ";
+  for (int i = 0; i < N; ++i) {
+    s << z.v[i];
+    if (i != N - 1) {
+      s << ", ";
+    }
+  }
+  s << "]";
+  return s;
 }
 
 }  // namespace ceres
@@ -757,6 +811,7 @@ struct NumTraits<ceres::Jet<T, N> > {
   typedef ceres::Jet<T, N> Real;
   typedef ceres::Jet<T, N> NonInteger;
   typedef ceres::Jet<T, N> Nested;
+  typedef ceres::Jet<T, N> Literal;
 
   static typename ceres::Jet<T, N> dummy_precision() {
     return ceres::Jet<T, N>(1e-12);
@@ -776,6 +831,21 @@ struct NumTraits<ceres::Jet<T, N> > {
     MulCost = 3,
     HasFloatingPoint = 1,
     RequireInitialization = 1
+  };
+
+  template<bool Vectorized>
+  struct Div {
+    enum {
+#if defined(EIGEN_VECTORIZE_AVX)
+      AVX = true,
+#else
+      AVX = false,
+#endif
+
+      // Assuming that for Jets, division is as expensive as
+      // multiplication.
+      Cost = 3
+    };
   };
 };
 

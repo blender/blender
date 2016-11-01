@@ -357,6 +357,28 @@ class CERES_EXPORT Covariance {
                                   const double*> >& covariance_blocks,
       Problem* problem);
 
+  // Compute a part of the covariance matrix.
+  //
+  // The vector parameter_blocks contains the parameter blocks that
+  // are used for computing the covariance matrix. From this vector
+  // all covariance pairs are generated. This allows the covariance
+  // estimation algorithm to only compute and store these blocks.
+  //
+  // parameter_blocks cannot contain duplicates. Bad things will
+  // happen if they do.
+  //
+  // Note that the list of covariance_blocks is only used to determine
+  // what parts of the covariance matrix are computed. The full
+  // Jacobian is used to do the computation, i.e. they do not have an
+  // impact on what part of the Jacobian is used for computation.
+  //
+  // The return value indicates the success or failure of the
+  // covariance computation. Please see the documentation for
+  // Covariance::Options for more on the conditions under which this
+  // function returns false.
+  bool Compute(const std::vector<const double*>& parameter_blocks,
+               Problem* problem);
+
   // Return the block of the cross-covariance matrix corresponding to
   // parameter_block1 and parameter_block2.
   //
@@ -393,6 +415,40 @@ class CERES_EXPORT Covariance {
   bool GetCovarianceBlockInTangentSpace(const double* parameter_block1,
                                         const double* parameter_block2,
                                         double* covariance_block) const;
+
+  // Return the covariance matrix corresponding to all parameter_blocks.
+  //
+  // Compute must be called before calling GetCovarianceMatrix and all
+  // parameter_blocks must have been present in the vector
+  // parameter_blocks when Compute was called. Otherwise
+  // GetCovarianceMatrix returns false.
+  //
+  // covariance_matrix must point to a memory location that can store
+  // the size of the covariance matrix. The covariance matrix will be
+  // a square matrix whose row and column count is equal to the sum of
+  // the sizes of the individual parameter blocks. The covariance
+  // matrix will be a row-major matrix.
+  bool GetCovarianceMatrix(const std::vector<const double *> &parameter_blocks,
+                           double *covariance_matrix);
+
+  // Return the covariance matrix corresponding to parameter_blocks
+  // in the tangent space if a local parameterization is associated
+  // with one of the parameter blocks else returns the covariance
+  // matrix in the ambient space.
+  //
+  // Compute must be called before calling GetCovarianceMatrix and all
+  // parameter_blocks must have been present in the vector
+  // parameters_blocks when Compute was called. Otherwise
+  // GetCovarianceMatrix returns false.
+  //
+  // covariance_matrix must point to a memory location that can store
+  // the size of the covariance matrix. The covariance matrix will be
+  // a square matrix whose row and column count is equal to the sum of
+  // the sizes of the tangent spaces of the individual parameter
+  // blocks. The covariance matrix will be a row-major matrix.
+  bool GetCovarianceMatrixInTangentSpace(
+      const std::vector<const double*>& parameter_blocks,
+      double* covariance_matrix);
 
  private:
   internal::scoped_ptr<internal::CovarianceImpl> impl_;

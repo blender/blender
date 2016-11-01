@@ -69,7 +69,7 @@ struct CERES_EXPORT IterationSummary {
   // Step was numerically valid, i.e., all values are finite and the
   // step reduces the value of the linearized model.
   //
-  // Note: step_is_valid is false when iteration = 0.
+  // Note: step_is_valid is always true when iteration = 0.
   bool step_is_valid;
 
   // Step did not reduce the value of the objective function
@@ -77,7 +77,7 @@ struct CERES_EXPORT IterationSummary {
   // acceptance criterion used by the non-monotonic trust region
   // algorithm.
   //
-  // Note: step_is_nonmonotonic is false when iteration = 0;
+  // Note: step_is_nonmonotonic is always false when iteration = 0;
   bool step_is_nonmonotonic;
 
   // Whether or not the minimizer accepted this step or not. If the
@@ -89,7 +89,7 @@ struct CERES_EXPORT IterationSummary {
   // relative decrease is not sufficient, the algorithm may accept the
   // step and the step is declared successful.
   //
-  // Note: step_is_successful is false when iteration = 0.
+  // Note: step_is_successful is always true when iteration = 0.
   bool step_is_successful;
 
   // Value of the objective function.

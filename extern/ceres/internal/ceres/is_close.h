@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2016 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -26,23 +26,26 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Author: mierle@gmail.com (Keir Mierle)
+// Authors: keir@google.com (Keir Mierle), dgossow@google.com (David Gossow)
+//
+// Utility routine for comparing two values.
 
-#ifndef CERES_PUBLIC_VERSION_H_
-#define CERES_PUBLIC_VERSION_H_
+#ifndef CERES_INTERNAL_IS_CLOSE_H_
+#define CERES_INTERNAL_IS_CLOSE_H_
 
-#define CERES_VERSION_MAJOR 1
-#define CERES_VERSION_MINOR 12
-#define CERES_VERSION_REVISION 0
+namespace ceres {
+namespace internal {
+// Returns true if x and y have a relative (unsigned) difference less than
+// relative_precision and false otherwise. Stores the relative and absolute
+// difference in relative/absolute_error if non-NULL. If one of the two values
+// is exactly zero, the absolute difference will be compared, and relative_error
+// will be set to the absolute difference.
+bool IsClose(double x,
+             double y,
+             double relative_precision,
+             double *relative_error,
+             double *absolute_error);
+}  // namespace internal
+}  // namespace ceres
 
-// Classic CPP stringifcation; the extra level of indirection allows the
-// preprocessor to expand the macro before being converted to a string.
-#define CERES_TO_STRING_HELPER(x) #x
-#define CERES_TO_STRING(x) CERES_TO_STRING_HELPER(x)
-
-// The Ceres version as a string; for example "1.9.0".
-#define CERES_VERSION_STRING CERES_TO_STRING(CERES_VERSION_MAJOR) "." \
-                             CERES_TO_STRING(CERES_VERSION_MINOR) "." \
-                             CERES_TO_STRING(CERES_VERSION_REVISION)
-
-#endif  // CERES_PUBLIC_VERSION_H_
+#endif  // CERES_INTERNAL_IS_CLOSE_H_

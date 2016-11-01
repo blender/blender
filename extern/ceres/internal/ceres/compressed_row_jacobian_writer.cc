@@ -46,6 +46,7 @@ namespace internal {
 using std::make_pair;
 using std::pair;
 using std::vector;
+using std::adjacent_find;
 
 void CompressedRowJacobianWriter::PopulateJacobianRowAndColumnBlockVectors(
     const Program* program, CompressedRowSparseMatrix* jacobian) {
@@ -140,12 +141,21 @@ SparseMatrix* CompressedRowJacobianWriter::CreateJacobian() const {
 
     // Sort the parameters by their position in the state vector.
     sort(parameter_indices.begin(), parameter_indices.end());
-    CHECK(unique(parameter_indices.begin(), parameter_indices.end()) ==
-          parameter_indices.end())
-          << "Ceres internal error:  "
-          << "Duplicate parameter blocks detected in a cost function. "
-          << "This should never happen. Please report this to "
-          << "the Ceres developers.";
+    if (adjacent_find(parameter_indices.begin(), parameter_indices.end()) !=
+        parameter_indices.end()) {
+      std::string parameter_block_description;
+      for (int j = 0; j < num_parameter_blocks; ++j) {
+        ParameterBlock* parameter_block = residual_block->parameter_blocks()[j];
+        parameter_block_description +=
+            parameter_block->ToString() + "\n";
+      }
+      LOG(FATAL) << "Ceres internal error: "
+                 << "Duplicate parameter blocks detected in a cost function. "
+                 << "This should never happen. Please report this to "
+                 << "the Ceres developers.\n"
+                 << "Residual Block: " << residual_block->ToString() << "\n"
+                 << "Parameter Blocks: " << parameter_block_description;
+    }
 
     // Update the row indices.
     const int num_residuals = residual_block->NumResiduals();

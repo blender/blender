@@ -33,6 +33,7 @@
 #include <algorithm>
 #include <ctime>
 #include <set>
+#include <sstream>
 #include <vector>
 
 #include "ceres/block_random_access_dense_matrix.h"
@@ -563,6 +564,12 @@ SparseSchurComplementSolver::SolveReducedLinearSystemUsingEigen(
     // worse than the one computed using the block version of the
     // algorithm.
     simplicial_ldlt_->analyzePattern(eigen_lhs);
+    if (VLOG_IS_ON(2)) {
+      std::stringstream ss;
+      simplicial_ldlt_->dumpMemory(ss);
+      VLOG(2) << "Symbolic Analysis\n"
+              << ss.str();
+    }
     event_logger.AddEvent("Analysis");
     if (simplicial_ldlt_->info() != Eigen::Success) {
       summary.termination_type = LINEAR_SOLVER_FATAL_ERROR;

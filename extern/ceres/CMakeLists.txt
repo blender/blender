@@ -73,10 +73,12 @@ set(SRC
 	internal/ceres/file.cc
 	internal/ceres/generated/partitioned_matrix_view_d_d_d.cc
 	internal/ceres/generated/schur_eliminator_d_d_d.cc
+	internal/ceres/gradient_checker.cc
 	internal/ceres/gradient_checking_cost_function.cc
 	internal/ceres/gradient_problem.cc
 	internal/ceres/gradient_problem_solver.cc
 	internal/ceres/implicit_schur_complement.cc
+	internal/ceres/is_close.cc
 	internal/ceres/iterative_schur_complement_solver.cc
 	internal/ceres/lapack.cc
 	internal/ceres/levenberg_marquardt_strategy.cc
@@ -116,6 +118,7 @@ set(SRC
 	internal/ceres/triplet_sparse_matrix.cc
 	internal/ceres/trust_region_minimizer.cc
 	internal/ceres/trust_region_preprocessor.cc
+	internal/ceres/trust_region_step_evaluator.cc
 	internal/ceres/trust_region_strategy.cc
 	internal/ceres/types.cc
 	internal/ceres/wall_time.cc
@@ -204,6 +207,7 @@ set(SRC
 	internal/ceres/householder_vector.h
 	internal/ceres/implicit_schur_complement.h
 	internal/ceres/integral_types.h
+	internal/ceres/is_close.h
 	internal/ceres/iterative_schur_complement_solver.h
 	internal/ceres/lapack.h
 	internal/ceres/levenberg_marquardt_strategy.h
@@ -248,6 +252,7 @@ set(SRC
 	internal/ceres/triplet_sparse_matrix.h
 	internal/ceres/trust_region_minimizer.h
 	internal/ceres/trust_region_preprocessor.h
+	internal/ceres/trust_region_step_evaluator.h
 	internal/ceres/trust_region_strategy.h
 	internal/ceres/visibility_based_preconditioner.h
 	internal/ceres/wall_time.h

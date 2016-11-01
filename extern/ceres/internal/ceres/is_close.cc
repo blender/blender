@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2016 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -26,23 +26,34 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Author: mierle@gmail.com (Keir Mierle)
+// Authors: keir@google.com (Keir Mierle), dgossow@google.com (David Gossow)
 
-#ifndef CERES_PUBLIC_VERSION_H_
-#define CERES_PUBLIC_VERSION_H_
+#include "ceres/is_close.h"
 
-#define CERES_VERSION_MAJOR 1
-#define CERES_VERSION_MINOR 12
-#define CERES_VERSION_REVISION 0
+#include <algorithm>
+#include <cmath>
 
-// Classic CPP stringifcation; the extra level of indirection allows the
-// preprocessor to expand the macro before being converted to a string.
-#define CERES_TO_STRING_HELPER(x) #x
-#define CERES_TO_STRING(x) CERES_TO_STRING_HELPER(x)
-
-// The Ceres version as a string; for example "1.9.0".
-#define CERES_VERSION_STRING CERES_TO_STRING(CERES_VERSION_MAJOR) "." \
-                             CERES_TO_STRING(CERES_VERSION_MINOR) "." \
-                             CERES_TO_STRING(CERES_VERSION_REVISION)
-
-#endif  // CERES_PUBLIC_VERSION_H_
+namespace ceres {
+namespace internal {
+bool IsClose(double x, double y, double relative_precision,
+             double *relative_error,
+             double *absolute_error) {
+  double local_absolute_error;
+  double local_relative_error;
+  if (!absolute_error) {
+    absolute_error = &local_absolute_error;
+  }
+  if (!relative_error) {
+    relative_error = &local_relative_error;
+  }
+  *absolute_error = std::fabs(x - y);
+  *relative_error = *absolute_error / std::max(std::fabs(x), std::fabs(y));
+  if (x == 0 || y == 0) {
+    // If x or y is exactly zero, then relative difference doesn't have any
+    // meaning. Take the absolute difference instead.
+    *relative_error = *absolute_error;
+  }
+  return *relative_error < std::fabs(relative_precision);
+}
+}  // namespace internal
+}  // namespace ceres

@@ -67,7 +67,7 @@ FindOrDie(const Collection& collection,
 // If the key is present in the map then the value associated with that
 // key is returned, otherwise the value passed as a default is returned.
 template <class Collection>
-const typename Collection::value_type::second_type&
+const typename Collection::value_type::second_type
 FindWithDefault(const Collection& collection,
                 const typename Collection::value_type::first_type& key,
                 const typename Collection::value_type::second_type& value) {

@@ -36,6 +36,8 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <numeric>
+#include <sstream>
 #include <utility>
 #include <vector>
 
@@ -43,6 +45,7 @@
 #include "Eigen/SparseQR"
 #include "Eigen/SVD"
 
+#include "ceres/collections_port.h"
 #include "ceres/compressed_col_sparse_matrix_utils.h"
 #include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/covariance.h"
@@ -51,6 +54,7 @@
 #include "ceres/map_util.h"
 #include "ceres/parameter_block.h"
 #include "ceres/problem_impl.h"
+#include "ceres/residual_block.h"
 #include "ceres/suitesparse.h"
 #include "ceres/wall_time.h"
 #include "glog/logging.h"
@@ -61,6 +65,7 @@ namespace internal {
 using std::make_pair;
 using std::map;
 using std::pair;
+using std::sort;
 using std::swap;
 using std::vector;
 
@@ -86,8 +91,38 @@ CovarianceImpl::CovarianceImpl(const Covariance::Options& options)
 CovarianceImpl::~CovarianceImpl() {
 }
 
+template <typename T> void CheckForDuplicates(vector<T> blocks) {
+  sort(blocks.begin(), blocks.end());
+  typename vector<T>::iterator it =
+      std::adjacent_find(blocks.begin(), blocks.end());
+  if (it != blocks.end()) {
+    // In case there are duplicates, we search for their location.
+    map<T, vector<int> > blocks_map;
+    for (int i = 0; i < blocks.size(); ++i) {
+      blocks_map[blocks[i]].push_back(i);
+    }
+
+    std::ostringstream duplicates;
+    while (it != blocks.end()) {
+      duplicates << "(";
+      for (int i = 0; i < blocks_map[*it].size() - 1; ++i) {
+        duplicates << blocks_map[*it][i] << ", ";
+      }
+      duplicates << blocks_map[*it].back() << ")";
+      it = std::adjacent_find(it + 1, blocks.end());
+      if (it < blocks.end()) {
+        duplicates << " and ";
+      }
+    }
+
+    LOG(FATAL) << "Covariance::Compute called with duplicate blocks at "
+               << "indices " << duplicates.str();
+  }
+}
+
 bool CovarianceImpl::Compute(const CovarianceBlocks& covariance_blocks,
                              ProblemImpl* problem) {
+  CheckForDuplicates<pair<const double*, const double*> >(covariance_blocks);
   problem_ = problem;
   parameter_block_to_row_index_.clear();
   covariance_matrix_.reset(NULL);
@@ -95,6 +130,20 @@ bool CovarianceImpl::Compute(const CovarianceBlocks& covariance_blocks,
                ComputeCovarianceValues());
   is_computed_ = true;
   return is_valid_;
+}
+
+bool CovarianceImpl::Compute(const vector<const double*>& parameter_blocks,
+                             ProblemImpl* problem) {
+  CheckForDuplicates<const double*>(parameter_blocks);
+  CovarianceBlocks covariance_blocks;
+  for (int i = 0; i < parameter_blocks.size(); ++i) {
+    for (int j = i; j < parameter_blocks.size(); ++j) {
+      covariance_blocks.push_back(make_pair(parameter_blocks[i],
+                                            parameter_blocks[j]));
+    }
+  }
+
+  return Compute(covariance_blocks, problem);
 }
 
 bool CovarianceImpl::GetCovarianceBlockInTangentOrAmbientSpace(
@@ -120,9 +169,17 @@ bool CovarianceImpl::GetCovarianceBlockInTangentOrAmbientSpace(
     ParameterBlock* block2 =
         FindOrDie(parameter_map,
                   const_cast<double*>(original_parameter_block2));
+
     const int block1_size = block1->Size();
     const int block2_size = block2->Size();
-    MatrixRef(covariance_block, block1_size, block2_size).setZero();
+    const int block1_local_size = block1->LocalSize();
+    const int block2_local_size = block2->LocalSize();
+    if (!lift_covariance_to_ambient_space) {
+      MatrixRef(covariance_block, block1_local_size, block2_local_size)
+          .setZero();
+    } else {
+      MatrixRef(covariance_block, block1_size, block2_size).setZero();
+    }
     return true;
   }
 
@@ -240,6 +297,94 @@ bool CovarianceImpl::GetCovarianceBlockInTangentOrAmbientSpace(
   return true;
 }
 
+bool CovarianceImpl::GetCovarianceMatrixInTangentOrAmbientSpace(
+    const vector<const double*>& parameters,
+    bool lift_covariance_to_ambient_space,
+    double* covariance_matrix) const {
+  CHECK(is_computed_)
+      << "Covariance::GetCovarianceMatrix called before Covariance::Compute";
+  CHECK(is_valid_)
+      << "Covariance::GetCovarianceMatrix called when Covariance::Compute "
+      << "returned false.";
+
+  const ProblemImpl::ParameterMap& parameter_map = problem_->parameter_map();
+  // For OpenMP compatibility we need to define these vectors in advance
+  const int num_parameters = parameters.size();
+  vector<int> parameter_sizes;
+  vector<int> cum_parameter_size;
+  parameter_sizes.reserve(num_parameters);
+  cum_parameter_size.resize(num_parameters + 1);
+  cum_parameter_size[0] = 0;
+  for (int i = 0; i < num_parameters; ++i) {
+    ParameterBlock* block =
+        FindOrDie(parameter_map, const_cast<double*>(parameters[i]));
+    if (lift_covariance_to_ambient_space) {
+      parameter_sizes.push_back(block->Size());
+    } else {
+      parameter_sizes.push_back(block->LocalSize());
+    }
+  }
+  std::partial_sum(parameter_sizes.begin(), parameter_sizes.end(),
+                   cum_parameter_size.begin() + 1);
+  const int max_covariance_block_size =
+      *std::max_element(parameter_sizes.begin(), parameter_sizes.end());
+  const int covariance_size = cum_parameter_size.back();
+
+  // Assemble the blocks in the covariance matrix.
+  MatrixRef covariance(covariance_matrix, covariance_size, covariance_size);
+  const int num_threads = options_.num_threads;
+  scoped_array<double> workspace(
+      new double[num_threads * max_covariance_block_size *
+                 max_covariance_block_size]);
+
+  bool success = true;
+
+// The collapse() directive is only supported in OpenMP 3.0 and higher. OpenMP
+// 3.0 was released in May 2008 (hence the version number).
+#if _OPENMP >= 200805
+#  pragma omp parallel for num_threads(num_threads) schedule(dynamic) collapse(2)
+#else
+#  pragma omp parallel for num_threads(num_threads) schedule(dynamic)
+#endif
+  for (int i = 0; i < num_parameters; ++i) {
+    for (int j = 0; j < num_parameters; ++j) {
+      // The second loop can't start from j = i for compatibility with OpenMP
+      // collapse command. The conditional serves as a workaround
+      if (j >= i) {
+        int covariance_row_idx = cum_parameter_size[i];
+        int covariance_col_idx = cum_parameter_size[j];
+        int size_i = parameter_sizes[i];
+        int size_j = parameter_sizes[j];
+#ifdef CERES_USE_OPENMP
+        int thread_id = omp_get_thread_num();
+#else
+        int thread_id = 0;
+#endif
+        double* covariance_block =
+            workspace.get() +
+            thread_id * max_covariance_block_size * max_covariance_block_size;
+        if (!GetCovarianceBlockInTangentOrAmbientSpace(
+                parameters[i], parameters[j], lift_covariance_to_ambient_space,
+                covariance_block)) {
+          success = false;
+        }
+
+        covariance.block(covariance_row_idx, covariance_col_idx,
+                         size_i, size_j) =
+            MatrixRef(covariance_block, size_i, size_j);
+
+        if (i != j) {
+          covariance.block(covariance_col_idx, covariance_row_idx,
+                           size_j, size_i) =
+              MatrixRef(covariance_block, size_i, size_j).transpose();
+
+        }
+      }
+    }
+  }
+  return success;
+}
+
 // Determine the sparsity pattern of the covariance matrix based on
 // the block pairs requested by the user.
 bool CovarianceImpl::ComputeCovarianceSparsity(
@@ -252,18 +397,28 @@ bool CovarianceImpl::ComputeCovarianceSparsity(
   vector<double*> all_parameter_blocks;
   problem->GetParameterBlocks(&all_parameter_blocks);
   const ProblemImpl::ParameterMap& parameter_map = problem->parameter_map();
+  HashSet<ParameterBlock*> parameter_blocks_in_use;
+  vector<ResidualBlock*> residual_blocks;
+  problem->GetResidualBlocks(&residual_blocks);
+
+  for (int i = 0; i < residual_blocks.size(); ++i) {
+    ResidualBlock* residual_block = residual_blocks[i];
+    parameter_blocks_in_use.insert(residual_block->parameter_blocks(),
+                                   residual_block->parameter_blocks() +
+                                   residual_block->NumParameterBlocks());
+  }
+
   constant_parameter_blocks_.clear();
   vector<double*>& active_parameter_blocks =
       evaluate_options_.parameter_blocks;
   active_parameter_blocks.clear();
   for (int i = 0; i < all_parameter_blocks.size(); ++i) {
     double* parameter_block = all_parameter_blocks[i];
-
     ParameterBlock* block = FindOrDie(parameter_map, parameter_block);
-    if (block->IsConstant()) {
-      constant_parameter_blocks_.insert(parameter_block);
-    } else {
+    if (!block->IsConstant() && (parameter_blocks_in_use.count(block) > 0)) {
       active_parameter_blocks.push_back(parameter_block);
+    } else {
+      constant_parameter_blocks_.insert(parameter_block);
     }
   }
 
@@ -386,8 +541,8 @@ bool CovarianceImpl::ComputeCovarianceValues() {
   switch (options_.algorithm_type) {
     case DENSE_SVD:
       return ComputeCovarianceValuesUsingDenseSVD();
-#ifndef CERES_NO_SUITESPARSE
     case SUITE_SPARSE_QR:
+#ifndef CERES_NO_SUITESPARSE
       return ComputeCovarianceValuesUsingSuiteSparseQR();
 #else
       LOG(ERROR) << "SuiteSparse is required to use the "
@@ -624,7 +779,10 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingDenseSVD() {
       if (automatic_truncation) {
         break;
       } else {
-        LOG(ERROR) << "Cholesky factorization of J'J is not reliable. "
+        LOG(ERROR) << "Error: Covariance matrix is near rank deficient "
+                   << "and the user did not specify a non-zero"
+                   << "Covariance::Options::null_space_rank "
+                   << "to enable the computation of a Pseudo-Inverse. "
                    << "Reciprocal condition number: "
                    << singular_value_ratio * singular_value_ratio << " "
                    << "min_reciprocal_condition_number: "

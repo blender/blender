@@ -85,22 +85,6 @@ class DynamicNumericDiffCostFunction : public CostFunction {
         options_(options) {
   }
 
-  // Deprecated. New users should avoid using this constructor. Instead, use the
-  // constructor with NumericDiffOptions.
-  DynamicNumericDiffCostFunction(
-      const CostFunctor* functor,
-      Ownership ownership,
-      double relative_step_size)
-      : functor_(functor),
-        ownership_(ownership),
-        options_() {
-    LOG(WARNING) << "This constructor is deprecated and will be removed in "
-                    "a future version. Please use the NumericDiffOptions "
-                    "constructor instead.";
-
-    options_.relative_step_size = relative_step_size;
-  }
-
   virtual ~DynamicNumericDiffCostFunction() {
     if (ownership_ != TAKE_OWNERSHIP) {
       functor_.release();
@@ -138,19 +122,19 @@ class DynamicNumericDiffCostFunction : public CostFunction {
     std::vector<double> parameters_copy(parameters_size);
     std::vector<double*> parameters_references_copy(block_sizes.size());
     parameters_references_copy[0] = &parameters_copy[0];
-    for (int block = 1; block < block_sizes.size(); ++block) {
+    for (size_t block = 1; block < block_sizes.size(); ++block) {
       parameters_references_copy[block] = parameters_references_copy[block - 1]
           + block_sizes[block - 1];
     }
 
     // Copy the parameters into the local temp space.
-    for (int block = 0; block < block_sizes.size(); ++block) {
+    for (size_t block = 0; block < block_sizes.size(); ++block) {
       memcpy(parameters_references_copy[block],
              parameters[block],
              block_sizes[block] * sizeof(*parameters[block]));
     }
 
-    for (int block = 0; block < block_sizes.size(); ++block) {
+    for (size_t block = 0; block < block_sizes.size(); ++block) {
       if (jacobians[block] != NULL &&
           !NumericDiff<CostFunctor, method, DYNAMIC,
                        DYNAMIC, DYNAMIC, DYNAMIC, DYNAMIC, DYNAMIC,

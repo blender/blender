@@ -191,6 +191,7 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
       options.line_search_sufficient_curvature_decrease;
   line_search_options.max_step_expansion =
       options.max_line_search_step_expansion;
+  line_search_options.is_silent = options.is_silent;
   line_search_options.function = &line_search_function;
 
   scoped_ptr<LineSearch>
@@ -341,10 +342,12 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
           "as the step was valid when it was selected by the line search.";
       LOG_IF(WARNING, is_not_silent) << "Terminating: " << summary->message;
       break;
-    } else if (!Evaluate(evaluator,
-                         x_plus_delta,
-                         &current_state,
-                         &summary->message)) {
+    }
+
+    if (!Evaluate(evaluator,
+                  x_plus_delta,
+                  &current_state,
+                  &summary->message)) {
       summary->termination_type = FAILURE;
       summary->message =
           "Step failed to evaluate. This should not happen as the step was "
@@ -352,15 +355,17 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
           summary->message;
       LOG_IF(WARNING, is_not_silent) << "Terminating: " << summary->message;
       break;
-    } else {
-      x = x_plus_delta;
     }
+
+    // Compute the norm of the step in the ambient space.
+    iteration_summary.step_norm = (x_plus_delta - x).norm();
+    x = x_plus_delta;
 
     iteration_summary.gradient_max_norm = current_state.gradient_max_norm;
     iteration_summary.gradient_norm = sqrt(current_state.gradient_squared_norm);
     iteration_summary.cost_change = previous_state.cost - current_state.cost;
     iteration_summary.cost = current_state.cost + summary->fixed_cost;
-    iteration_summary.step_norm = delta.norm();
+
     iteration_summary.step_is_valid = true;
     iteration_summary.step_is_successful = true;
     iteration_summary.step_size =  current_state.step_size;
@@ -376,6 +381,13 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
         WallTimeInSeconds() - start_time
         + summary->preprocessor_time_in_seconds;
 
+    // Iterations inside the line search algorithm are considered
+    // 'steps' in the broader context, to distinguish these inner
+    // iterations from from the outer iterations of the line search
+    // minimizer. The number of line search steps is the total number
+    // of inner line search iterations (or steps) across the entire
+    // minimization.
+    summary->num_line_search_steps +=  line_search_summary.num_iterations;
     summary->line_search_cost_evaluation_time_in_seconds +=
         line_search_summary.cost_evaluation_time_in_seconds;
     summary->line_search_gradient_evaluation_time_in_seconds +=
