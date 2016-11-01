@@ -4,6 +4,11 @@ REM This is for users who like to configure & build Blender with a single comman
 
 setlocal ENABLEEXTENSIONS
 set BLENDER_DIR=%~dp0
+set BLENDER_DIR_NOSPACES=%BLENDER_DIR: =%
+if not "%BLENDER_DIR%"=="%BLENDER_DIR_NOSPACES%" ( 
+	echo There are spaces detected in the build path "%BLENDER_DIR%", this is currently not supported, exiting.... 
+	goto EOF
+)
 set BUILD_DIR=%BLENDER_DIR%..\build_windows
 set BUILD_TYPE=Release
 rem reset all variables so they do not get accidentally get carried over from previous builds
