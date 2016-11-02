@@ -318,6 +318,7 @@ void DepsgraphRelationBuilder::add_relation(const KeyFrom &key_from,
 	else {
 		if (!op_from) {
 			/* XXX TODO handle as error or report if needed */
+			node_from = find_node(key_from);
 			fprintf(stderr, "add_relation(%d, %s) - Could not find op_from (%s)\n",
 			        type, description, key_from.identifier().c_str());
 		}

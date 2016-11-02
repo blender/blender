@@ -500,7 +500,7 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 	build_animdata(&ob->id);
 
 	// XXX: This should be hooked up by the build_animdata code
-	if (ob->adt && (ob->adt->action || ob->adt->nla_tracks.first)) {
+	if (needs_animdata_node(&ob->id)) {
 		ComponentKey adt_key(&ob->id, DEPSNODE_TYPE_ANIMATION);
 		add_relation(adt_key, local_transform_key, DEPSREL_TYPE_OPERATION, "Object Animation");
 	}
@@ -1527,7 +1527,7 @@ void DepsgraphRelationBuilder::build_rig(Scene *scene, Object *ob)
 	                          "Armature Eval");
 	add_relation(armature_key, init_key, DEPSREL_TYPE_COMPONENT_ORDER, "Data dependency");
 
-	if (ob->adt && (ob->adt->action || ob->adt->nla_tracks.first)) {
+	if (needs_animdata_node(&ob->id)) {
 		ComponentKey animation_key(&ob->id, DEPSNODE_TYPE_ANIMATION);
 		add_relation(animation_key, init_key, DEPSREL_TYPE_OPERATION, "Rig Animation");
 	}
@@ -1765,7 +1765,7 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 				 * for either the modifier needing time, or that it is animated.
 				 */
 				/* XXX: Remove this hack when these links are added as part of build_animdata() instead */
-				if (modifier_dependsOnTime(md) == false) {
+				if (modifier_dependsOnTime(md) == false && needs_animdata_node(&ob->id)) {
 					ComponentKey animation_key(&ob->id, DEPSNODE_TYPE_ANIMATION);
 					add_relation(animation_key, mod_key, DEPSREL_TYPE_OPERATION, "Modifier Animation");
 				}
@@ -2063,7 +2063,7 @@ bool DepsgraphRelationBuilder::needs_animdata_node(ID *id)
 {
 	AnimData *adt = BKE_animdata_from_id(id);
 	if (adt != NULL) {
-		return adt->action != NULL;
+		return (adt->action != NULL) || (adt->nla_tracks.first != NULL);
 	}
 	return false;
 }

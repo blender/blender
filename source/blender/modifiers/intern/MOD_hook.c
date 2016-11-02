@@ -145,12 +145,9 @@ static void updateDepsgraph(ModifierData *md,
 	HookModifierData *hmd = (HookModifierData *)md;
 	if (hmd->object != NULL) {
 		if (hmd->subtarget[0]) {
-			DEG_add_bone_relation(node, hmd->object, hmd->subtarget, DEG_OB_COMP_TRANSFORM, "Hook Modifier");
 			DEG_add_bone_relation(node, hmd->object, hmd->subtarget, DEG_OB_COMP_BONE, "Hook Modifier");
 		}
-		else {
-			DEG_add_object_relation(node, hmd->object, DEG_OB_COMP_TRANSFORM, "Hook Modifier");
-		}
+		DEG_add_object_relation(node, hmd->object, DEG_OB_COMP_TRANSFORM, "Hook Modifier");
 	}
 	/* We need own transformation as well. */
 	DEG_add_object_relation(node, ob, DEG_OB_COMP_TRANSFORM, "Hook Modifier");
