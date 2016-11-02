@@ -135,7 +135,7 @@ add_test(export_obj_cube ${TEST_BLENDER_EXE}
 	--run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/export_obj_cube.obj',use_selection=False\)
 	--md5_source=${TEST_OUT_DIR}/export_obj_cube.obj
 	--md5_source=${TEST_OUT_DIR}/export_obj_cube.mtl
-	--md5=826f74e6b7a2128b0b61a52071ada36e --md5_method=FILE
+	--md5=e80660437ad9bfe082849641c361a233 --md5_method=FILE
 )
 
 add_test(export_obj_nurbs ${TEST_BLENDER_EXE}
