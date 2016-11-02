@@ -249,10 +249,11 @@ ResidualBlock* ProblemImpl::AddResidualBlock(
     // Check for duplicate parameter blocks.
     vector<double*> sorted_parameter_blocks(parameter_blocks);
     sort(sorted_parameter_blocks.begin(), sorted_parameter_blocks.end());
-    vector<double*>::const_iterator duplicate_items =
-        unique(sorted_parameter_blocks.begin(),
-               sorted_parameter_blocks.end());
-    if (duplicate_items != sorted_parameter_blocks.end()) {
+    const bool has_duplicate_items =
+        (std::adjacent_find(sorted_parameter_blocks.begin(),
+                            sorted_parameter_blocks.end())
+         != sorted_parameter_blocks.end());
+    if (has_duplicate_items) {
       string blocks;
       for (int i = 0; i < parameter_blocks.size(); ++i) {
         blocks += StringPrintf(" %p ", parameter_blocks[i]);
@@ -570,6 +571,16 @@ void ProblemImpl::SetParameterBlockConstant(double* values) {
   }
 
   parameter_block->SetConstant();
+}
+
+bool ProblemImpl::IsParameterBlockConstant(double* values) const {
+  const ParameterBlock* parameter_block =
+      FindWithDefault(parameter_block_map_, values, NULL);
+  CHECK(parameter_block != NULL)
+    << "Parameter block not found: " << values << ". You must add the "
+    << "parameter block to the problem before it can be queried.";
+
+  return parameter_block->IsConstant();
 }
 
 void ProblemImpl::SetParameterBlockVariable(double* values) {

@@ -1588,7 +1588,7 @@ double BLI_ghash_calc_quality_ex(
 
 	if (r_variance) {
 		/* We already know our mean (i.e. load factor), easy to compute variance.
-		 * See http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Two-pass_algorithm
+		 * See https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Two-pass_algorithm
 		 */
 		double sum = 0.0;
 		for (i = 0; i < gh->nbuckets; i++) {

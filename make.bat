@@ -225,7 +225,8 @@ msbuild ^
 	/property:Configuration=%BUILD_TYPE% ^
 	/maxcpucount ^
 	/verbosity:minimal ^
-	/p:platform=%MSBUILD_PLATFORM%
+	/p:platform=%MSBUILD_PLATFORM% ^
+	/flp:Summary;Verbosity=minimal;LogFile=%BUILD_DIR%\Build.log
 
 if %ERRORLEVEL% NEQ 0 (
 	echo "Build Failed"

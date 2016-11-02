@@ -2233,7 +2233,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 			           "Orphan library objects added to the current scene to avoid loss");
 		}
 
-		BKE_library_make_local(bmain, NULL, false, false); /* NULL is all libs */
+		BKE_library_make_local(bmain, NULL, NULL, false, false); /* NULL is all libs */
 		WM_event_add_notifier(C, NC_WINDOW, NULL);
 		return OPERATOR_FINISHED;
 	}

@@ -149,6 +149,7 @@ internal/ceres/generated/schur_eliminator_4_4_d.cc
 internal/ceres/generated/schur_eliminator_d_d_d.cc
 internal/ceres/generate_eliminator_specialization.py
 internal/ceres/generate_partitioned_matrix_view_specializations.py
+internal/ceres/gradient_checker.cc
 internal/ceres/gradient_checking_cost_function.cc
 internal/ceres/gradient_checking_cost_function.h
 internal/ceres/gradient_problem.cc
@@ -160,6 +161,8 @@ internal/ceres/householder_vector.h
 internal/ceres/implicit_schur_complement.cc
 internal/ceres/implicit_schur_complement.h
 internal/ceres/integral_types.h
+internal/ceres/is_close.cc
+internal/ceres/is_close.h
 internal/ceres/iterative_schur_complement_solver.cc
 internal/ceres/iterative_schur_complement_solver.h
 internal/ceres/lapack.cc
@@ -243,6 +246,8 @@ internal/ceres/trust_region_minimizer.cc
 internal/ceres/trust_region_minimizer.h
 internal/ceres/trust_region_preprocessor.cc
 internal/ceres/trust_region_preprocessor.h
+internal/ceres/trust_region_step_evaluator.cc
+internal/ceres/trust_region_step_evaluator.h
 internal/ceres/trust_region_strategy.cc
 internal/ceres/trust_region_strategy.h
 internal/ceres/types.cc

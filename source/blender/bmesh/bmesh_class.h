@@ -245,7 +245,7 @@ typedef struct BMesh {
 	/* ID of the shape key this bmesh came from */
 	int shapenr;
 	
-	int walkers, totflags;
+	int totflags;
 	ListBase selected;
 
 	BMFace *act_face;

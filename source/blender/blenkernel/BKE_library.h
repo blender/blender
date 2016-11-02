@@ -39,6 +39,7 @@ extern "C" {
 #include "BLI_compiler_attrs.h"
 
 struct BlendThumbnail;
+struct GHash;
 struct ListBase;
 struct ID;
 struct ImBuf;
@@ -125,7 +126,8 @@ void BKE_id_ui_prefix(char name[66 + 1], const struct ID *id);
 void BKE_library_free(struct Library *lib);
 
 void BKE_library_make_local(
-        struct Main *bmain, const struct Library *lib, const bool untagged_only, const bool set_fake);
+        struct Main *bmain, const struct Library *lib, struct GHash *old_to_new_ids,
+        const bool untagged_only, const bool set_fake);
 
 
 /* use when "" is given to new_id() */

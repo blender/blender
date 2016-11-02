@@ -32,6 +32,7 @@ extern "C" {
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_cdderivedmesh.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
@@ -156,14 +157,14 @@ void AbcPointsReader::readObjectData(Main *bmain, float time)
 {
 	Mesh *mesh = BKE_mesh_add(bmain, m_data_name.c_str());
 
-	const ISampleSelector sample_sel(time);
-	m_sample = m_schema.getValue(sample_sel);
+	DerivedMesh *dm = CDDM_from_mesh(mesh);
+	DerivedMesh *ndm = this->read_derivedmesh(dm, time, 0);
 
-	const P3fArraySamplePtr &positions = m_sample.getPositions();
-	utils::mesh_add_verts(mesh, positions->size());
+	if (ndm != dm) {
+		dm->release(dm);
+	}
 
-	CDStreamConfig config = create_config(mesh);
-	read_points_sample(m_schema, sample_sel, config, time);
+	DM_to_mesh(ndm, mesh, m_object, CD_MASK_MESH, true);
 
 	if (m_settings->validate_meshes) {
 		BKE_mesh_validate(mesh, false, false);
@@ -198,4 +199,23 @@ void read_points_sample(const IPointsSchema &schema,
 	}
 
 	read_mverts(config.mvert, positions, vnormals);
+}
+
+DerivedMesh *AbcPointsReader::read_derivedmesh(DerivedMesh *dm, const float time, int /*read_flag*/)
+{
+	ISampleSelector sample_sel(time);
+	const IPointsSchema::Sample sample = m_schema.getValue(sample_sel);
+
+	const P3fArraySamplePtr &positions = sample.getPositions();
+
+	DerivedMesh *new_dm = NULL;
+
+	if (dm->getNumVerts(dm) != positions->size()) {
+		new_dm = CDDM_new(positions->size(), 0, 0, 0, 0);
+	}
+
+	CDStreamConfig config = get_config(new_dm ? new_dm : dm);
+	read_points_sample(m_schema, sample_sel, config, time);
+
+	return new_dm ? new_dm : dm;
 }

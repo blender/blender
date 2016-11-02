@@ -174,6 +174,10 @@ void Problem::SetParameterBlockVariable(double* values) {
   problem_impl_->SetParameterBlockVariable(values);
 }
 
+bool Problem::IsParameterBlockConstant(double* values) const {
+  return problem_impl_->IsParameterBlockConstant(values);
+}
+
 void Problem::SetParameterization(
     double* values,
     LocalParameterization* local_parameterization) {

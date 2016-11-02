@@ -161,25 +161,34 @@ class ParameterBlock {
   // does not take ownership of the parameterization.
   void SetParameterization(LocalParameterization* new_parameterization) {
     CHECK(new_parameterization != NULL) << "NULL parameterization invalid.";
+    // Nothing to do if the new parameterization is the same as the
+    // old parameterization.
+    if (new_parameterization == local_parameterization_) {
+      return;
+    }
+
+    CHECK(local_parameterization_ == NULL)
+        << "Can't re-set the local parameterization; it leads to "
+        << "ambiguous ownership. Current local parameterization is: "
+        << local_parameterization_;
+
     CHECK(new_parameterization->GlobalSize() == size_)
         << "Invalid parameterization for parameter block. The parameter block "
         << "has size " << size_ << " while the parameterization has a global "
         << "size of " << new_parameterization->GlobalSize() << ". Did you "
         << "accidentally use the wrong parameter block or parameterization?";
-    if (new_parameterization != local_parameterization_) {
-      CHECK(local_parameterization_ == NULL)
-          << "Can't re-set the local parameterization; it leads to "
-          << "ambiguous ownership.";
-      local_parameterization_ = new_parameterization;
-      local_parameterization_jacobian_.reset(
-          new double[local_parameterization_->GlobalSize() *
-                     local_parameterization_->LocalSize()]);
-      CHECK(UpdateLocalParameterizationJacobian())
-          << "Local parameterization Jacobian computation failed for x: "
-          << ConstVectorRef(state_, Size()).transpose();
-    } else {
-      // Ignore the case that the parameterizations match.
-    }
+
+    CHECK_GT(new_parameterization->LocalSize(), 0)
+        << "Invalid parameterization. Parameterizations must have a positive "
+        << "dimensional tangent space.";
+
+    local_parameterization_ = new_parameterization;
+    local_parameterization_jacobian_.reset(
+        new double[local_parameterization_->GlobalSize() *
+                   local_parameterization_->LocalSize()]);
+    CHECK(UpdateLocalParameterizationJacobian())
+        << "Local parameterization Jacobian computation failed for x: "
+        << ConstVectorRef(state_, Size()).transpose();
   }
 
   void SetUpperBound(int index, double upper_bound) {

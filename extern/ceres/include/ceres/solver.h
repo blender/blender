@@ -134,7 +134,7 @@ class CERES_EXPORT Solver {
       trust_region_problem_dump_format_type = TEXTFILE;
       check_gradients = false;
       gradient_check_relative_precision = 1e-8;
-      numeric_derivative_relative_step_size = 1e-6;
+      gradient_check_numeric_derivative_relative_step_size = 1e-6;
       update_state_every_iteration = false;
     }
 
@@ -701,12 +701,22 @@ class CERES_EXPORT Solver {
     // this number, then the jacobian for that cost term is dumped.
     double gradient_check_relative_precision;
 
-    // Relative shift used for taking numeric derivatives. For finite
-    // differencing, each dimension is evaluated at slightly shifted
-    // values; for the case of central difference, this is what gets
-    // evaluated:
+    // WARNING: This option only applies to the to the numeric
+    // differentiation used for checking the user provided derivatives
+    // when when Solver::Options::check_gradients is true. If you are
+    // using NumericDiffCostFunction and are interested in changing
+    // the step size for numeric differentiation in your cost
+    // function, please have a look at
+    // include/ceres/numeric_diff_options.h.
     //
-    //   delta = numeric_derivative_relative_step_size;
+    // Relative shift used for taking numeric derivatives when
+    // Solver::Options::check_gradients is true.
+    //
+    // For finite differencing, each dimension is evaluated at
+    // slightly shifted values; for the case of central difference,
+    // this is what gets evaluated:
+    //
+    //   delta = gradient_check_numeric_derivative_relative_step_size;
     //   f_initial  = f(x)
     //   f_forward  = f((1 + delta) * x)
     //   f_backward = f((1 - delta) * x)
@@ -723,7 +733,7 @@ class CERES_EXPORT Solver {
     // theory a good choice is sqrt(eps) * x, which for doubles means
     // about 1e-8 * x. However, I have found this number too
     // optimistic. This number should be exposed for users to change.
-    double numeric_derivative_relative_step_size;
+    double gradient_check_numeric_derivative_relative_step_size;
 
     // If true, the user's parameter blocks are updated at the end of
     // every Minimizer iteration, otherwise they are updated when the
@@ -800,6 +810,13 @@ class CERES_EXPORT Solver {
 
     // Number of times inner iterations were performed.
     int num_inner_iteration_steps;
+
+    // Total number of iterations inside the line search algorithm
+    // across all invocations. We call these iterations "steps" to
+    // distinguish them from the outer iterations of the line search
+    // and trust region minimizer algorithms which call the line
+    // search algorithm as a subroutine.
+    int num_line_search_steps;
 
     // All times reported below are wall times.
 

@@ -153,6 +153,7 @@ void BlenderSync::sync_light(BL::Object& b_parent,
 	/* location and (inverted!) direction */
 	light->co = transform_get_column(&tfm, 3);
 	light->dir = -transform_get_column(&tfm, 2);
+	light->tfm = tfm;
 
 	/* shader */
 	vector<Shader*> used_shaders;

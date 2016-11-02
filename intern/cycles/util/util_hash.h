@@ -21,7 +21,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-static inline uint hash_int_2d(uint kx, uint ky)
+ccl_device_inline uint hash_int_2d(uint kx, uint ky)
 {
 #define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))
 
@@ -44,11 +44,12 @@ static inline uint hash_int_2d(uint kx, uint ky)
 #undef rot
 }
 
-static inline uint hash_int(uint k)
+ccl_device_inline uint hash_int(uint k)
 {
 	return hash_int_2d(k, 0);
 }
 
+#ifndef __KERNEL_GPU__
 static inline uint hash_string(const char *str)
 {
 	uint i = 0, c;
@@ -58,6 +59,7 @@ static inline uint hash_string(const char *str)
 
 	return i;
 }
+#endif
 
 CCL_NAMESPACE_END
 

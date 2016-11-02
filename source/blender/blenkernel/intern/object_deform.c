@@ -399,8 +399,9 @@ void BKE_object_defgroup_remove(Object *ob, bDeformGroup *defgroup)
 
 /**
  * Remove all vgroups from object. Work in Object and Edit modes.
+ * When only_unlocked=true, locked vertex groups are not removed.
  */
-void BKE_object_defgroup_remove_all(Object *ob)
+void BKE_object_defgroup_remove_all_ex(struct Object *ob, bool only_unlocked)
 {
 	bDeformGroup *dg = (bDeformGroup *)ob->defbase.first;
 	const bool edit_mode = BKE_object_is_in_editmode_vgroup(ob);
@@ -409,10 +410,12 @@ void BKE_object_defgroup_remove_all(Object *ob)
 		while (dg) {
 			bDeformGroup *next_dg = dg->next;
 
-			if (edit_mode)
-				object_defgroup_remove_edit_mode(ob, dg);
-			else
-				object_defgroup_remove_object_mode(ob, dg);
+			if (!only_unlocked || (dg->flag & DG_LOCK_WEIGHT) == 0) {
+				if (edit_mode)
+					object_defgroup_remove_edit_mode(ob, dg);
+				else
+					object_defgroup_remove_object_mode(ob, dg);
+			}
 
 			dg = next_dg;
 		}
@@ -435,6 +438,15 @@ void BKE_object_defgroup_remove_all(Object *ob)
 		ob->actdef = 0;
 	}
 }
+
+/**
+ * Remove all vgroups from object. Work in Object and Edit modes.
+ */
+void BKE_object_defgroup_remove_all(struct Object *ob)
+{
+	BKE_object_defgroup_remove_all_ex(ob, false);
+}
+
 
 /**
  * Get MDeformVert vgroup data from given object. Should only be used in Object mode.

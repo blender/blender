@@ -26,7 +26,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Author: keir@google.com (Keir Mierle)
+// Authors: keir@google.com (Keir Mierle),
+//          dgossow@google.com (David Gossow)
 
 #ifndef CERES_INTERNAL_GRADIENT_CHECKING_COST_FUNCTION_H_
 #define CERES_INTERNAL_GRADIENT_CHECKING_COST_FUNCTION_H_
@@ -34,50 +35,76 @@
 #include <string>
 
 #include "ceres/cost_function.h"
+#include "ceres/iteration_callback.h"
+#include "ceres/local_parameterization.h"
+#include "ceres/mutex.h"
 
 namespace ceres {
 namespace internal {
 
 class ProblemImpl;
 
-// Creates a CostFunction that checks the jacobians that cost_function computes
-// with finite differences. Bad results are logged; required precision is
-// controlled by relative_precision and the numeric differentiation step size is
-// controlled with relative_step_size. See solver.h for a better explanation of
-// relative_step_size. Caller owns result.
-//
-// The condition enforced is that
-//
-//    (J_actual(i, j) - J_numeric(i, j))
-//   ------------------------------------  <  relative_precision
-//   max(J_actual(i, j), J_numeric(i, j))
-//
-// where J_actual(i, j) is the jacobian as computed by the supplied cost
-// function (by the user) and J_numeric is the jacobian as computed by finite
-// differences.
-//
-// Note: This is quite inefficient and is intended only for debugging.
+// Callback that collects information about gradient checking errors, and
+// will abort the solve as soon as an error occurs.
+class GradientCheckingIterationCallback : public IterationCallback {
+ public:
+  GradientCheckingIterationCallback();
+
+  // Will return SOLVER_CONTINUE until a gradient error has been detected,
+  // then return SOLVER_ABORT.
+  virtual CallbackReturnType operator()(const IterationSummary& summary);
+
+  // Notify this that a gradient error has occurred (thread safe).
+  void SetGradientErrorDetected(std::string& error_log);
+
+  // Retrieve error status (not thread safe).
+  bool gradient_error_detected() const { return gradient_error_detected_; }
+  const std::string& error_log() const { return error_log_; }
+ private:
+  bool gradient_error_detected_;
+  std::string error_log_;
+  // Mutex protecting member variables.
+  ceres::internal::Mutex mutex_;
+};
+
+// Creates a CostFunction that checks the Jacobians that cost_function computes
+// with finite differences. This API is only intended for unit tests that intend
+// to  check the functionality of the GradientCheckingCostFunction
+// implementation directly.
 CostFunction* CreateGradientCheckingCostFunction(
     const CostFunction* cost_function,
+    const std::vector<const LocalParameterization*>* local_parameterizations,
     double relative_step_size,
     double relative_precision,
-    const std::string& extra_info);
+    const std::string& extra_info,
+    GradientCheckingIterationCallback* callback);
 
-// Create a new ProblemImpl object from the input problem_impl, where
-// each CostFunctions in problem_impl are wrapped inside a
-// GradientCheckingCostFunctions. This gives us a ProblemImpl object
-// which checks its derivatives against estimates from numeric
-// differentiation everytime a ResidualBlock is evaluated.
+// Create a new ProblemImpl object from the input problem_impl, where all
+// cost functions are wrapped so that each time their Evaluate method is called,
+// an additional check is performed that compares the Jacobians computed by
+// the original cost function with alternative Jacobians computed using
+// numerical differentiation. If local parameterizations are given for any
+// parameters, the Jacobians will be compared in the local space instead of the
+// ambient space. For details on the gradient checking procedure, see the
+// documentation of the GradientChecker class. If an error is detected in any
+// iteration, the respective cost function will notify the
+// GradientCheckingIterationCallback.
+//
+// The caller owns the returned ProblemImpl object.
+//
+// Note: This is quite inefficient and is intended only for debugging.
 //
 // relative_step_size and relative_precision are parameters to control
 // the numeric differentiation and the relative tolerance between the
 // jacobian computed by the CostFunctions in problem_impl and
-// jacobians obtained by numerically differentiating them. For more
-// details see the documentation for
-// CreateGradientCheckingCostFunction above.
-ProblemImpl* CreateGradientCheckingProblemImpl(ProblemImpl* problem_impl,
-                                               double relative_step_size,
-                                               double relative_precision);
+// jacobians obtained by numerically differentiating them. See the
+// documentation of 'numeric_derivative_relative_step_size' in solver.h for a
+// better explanation.
+ProblemImpl* CreateGradientCheckingProblemImpl(
+    ProblemImpl* problem_impl,
+    double relative_step_size,
+    double relative_precision,
+    GradientCheckingIterationCallback* callback);
 
 }  // namespace internal
 }  // namespace ceres

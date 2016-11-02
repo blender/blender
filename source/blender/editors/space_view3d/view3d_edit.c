@@ -41,6 +41,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bitmap_draw_2d.h"
 #include "BLI_blenlib.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_math.h"
@@ -5048,7 +5049,7 @@ bool ED_view3d_autodist_depth_seg(ARegion *ar, const int mval_sta[2], const int 
 	copy_v2_v2_int(p1, mval_sta);
 	copy_v2_v2_int(p2, mval_end);
 
-	plot_line_v2v2i(p1, p2, depth_segment_cb, &data);
+	BLI_bitmap_draw_2d_line_v2v2i(p1, p2, depth_segment_cb, &data);
 
 	*depth = data.depth;
 

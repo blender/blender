@@ -51,7 +51,9 @@ bool BKE_object_defgroup_clear(struct Object *ob, struct bDeformGroup *dg, const
 bool BKE_object_defgroup_clear_all(struct Object *ob, const bool use_selection);
 
 void BKE_object_defgroup_remove(struct Object *ob, struct bDeformGroup *defgroup);
+void BKE_object_defgroup_remove_all_ex(struct Object *ob, bool only_unlocked);
 void BKE_object_defgroup_remove_all(struct Object *ob);
+
 
 
 /* Select helpers */

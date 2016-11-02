@@ -30,6 +30,8 @@
 
 #include "ceres/local_parameterization.h"
 
+#include <algorithm>
+#include "Eigen/Geometry"
 #include "ceres/householder_vector.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/fixed_array.h"
@@ -87,28 +89,17 @@ bool IdentityParameterization::MultiplyByJacobian(const double* x,
 }
 
 SubsetParameterization::SubsetParameterization(
-    int size,
-    const vector<int>& constant_parameters)
-    : local_size_(size - constant_parameters.size()),
-      constancy_mask_(size, 0) {
-  CHECK_GT(constant_parameters.size(), 0)
-      << "The set of constant parameters should contain at least "
-      << "one element. If you do not wish to hold any parameters "
-      << "constant, then do not use a SubsetParameterization";
-
+    int size, const vector<int>& constant_parameters)
+    : local_size_(size - constant_parameters.size()), constancy_mask_(size, 0) {
   vector<int> constant = constant_parameters;
-  sort(constant.begin(), constant.end());
-  CHECK(unique(constant.begin(), constant.end()) == constant.end())
+  std::sort(constant.begin(), constant.end());
+  CHECK_GE(constant.front(), 0)
+      << "Indices indicating constant parameter must be greater than zero.";
+  CHECK_LT(constant.back(), size)
+      << "Indices indicating constant parameter must be less than the size "
+      << "of the parameter block.";
+  CHECK(std::adjacent_find(constant.begin(), constant.end()) == constant.end())
       << "The set of constant parameters cannot contain duplicates";
-  CHECK_LT(constant_parameters.size(), size)
-      << "Number of parameters held constant should be less "
-      << "than the size of the parameter block. If you wish "
-      << "to hold the entire parameter block constant, then a "
-      << "efficient way is to directly mark it as constant "
-      << "instead of using a LocalParameterization to do so.";
-  CHECK_GE(*min_element(constant.begin(), constant.end()), 0);
-  CHECK_LT(*max_element(constant.begin(), constant.end()), size);
-
   for (int i = 0; i < constant_parameters.size(); ++i) {
     constancy_mask_[constant_parameters[i]] = 1;
   }
@@ -129,6 +120,10 @@ bool SubsetParameterization::Plus(const double* x,
 
 bool SubsetParameterization::ComputeJacobian(const double* x,
                                              double* jacobian) const {
+  if (local_size_ == 0) {
+    return true;
+  }
+
   MatrixRef m(jacobian, constancy_mask_.size(), local_size_);
   m.setZero();
   for (int i = 0, j = 0; i < constancy_mask_.size(); ++i) {
@@ -143,6 +138,10 @@ bool SubsetParameterization::MultiplyByJacobian(const double* x,
                                                const int num_rows,
                                                const double* global_matrix,
                                                double* local_matrix) const {
+  if (local_size_ == 0) {
+    return true;
+  }
+
   for (int row = 0; row < num_rows; ++row) {
     for (int col = 0, j = 0; col < constancy_mask_.size(); ++col) {
       if (!constancy_mask_[col]) {
@@ -181,6 +180,39 @@ bool QuaternionParameterization::ComputeJacobian(const double* x,
   jacobian[3] =  x[0]; jacobian[4]  =  x[3]; jacobian[5]  = -x[2];  // NOLINT
   jacobian[6] = -x[3]; jacobian[7]  =  x[0]; jacobian[8]  =  x[1];  // NOLINT
   jacobian[9] =  x[2]; jacobian[10] = -x[1]; jacobian[11] =  x[0];  // NOLINT
+  return true;
+}
+
+bool EigenQuaternionParameterization::Plus(const double* x_ptr,
+                                           const double* delta,
+                                           double* x_plus_delta_ptr) const {
+  Eigen::Map<Eigen::Quaterniond> x_plus_delta(x_plus_delta_ptr);
+  Eigen::Map<const Eigen::Quaterniond> x(x_ptr);
+
+  const double norm_delta =
+      sqrt(delta[0] * delta[0] + delta[1] * delta[1] + delta[2] * delta[2]);
+  if (norm_delta > 0.0) {
+    const double sin_delta_by_delta = sin(norm_delta) / norm_delta;
+
+    // Note, in the constructor w is first.
+    Eigen::Quaterniond delta_q(cos(norm_delta),
+                               sin_delta_by_delta * delta[0],
+                               sin_delta_by_delta * delta[1],
+                               sin_delta_by_delta * delta[2]);
+    x_plus_delta = delta_q * x;
+  } else {
+    x_plus_delta = x;
+  }
+
+  return true;
+}
+
+bool EigenQuaternionParameterization::ComputeJacobian(const double* x,
+                                                      double* jacobian) const {
+  jacobian[0] =  x[3]; jacobian[1]  =  x[2]; jacobian[2]  = -x[1];  // NOLINT
+  jacobian[3] = -x[2]; jacobian[4]  =  x[3]; jacobian[5]  =  x[0];  // NOLINT
+  jacobian[6] =  x[1]; jacobian[7]  = -x[0]; jacobian[8]  =  x[3];  // NOLINT
+  jacobian[9] = -x[0]; jacobian[10] = -x[1]; jacobian[11] = -x[2];  // NOLINT
   return true;
 }
 
@@ -332,9 +364,9 @@ bool ProductParameterization::ComputeJacobian(const double* x,
     if (!param->ComputeJacobian(x + x_cursor, buffer.get())) {
       return false;
     }
-
     jacobian.block(x_cursor, delta_cursor, global_size, local_size)
         = MatrixRef(buffer.get(), global_size, local_size);
+
     delta_cursor += local_size;
     x_cursor += global_size;
   }

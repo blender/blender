@@ -18,7 +18,7 @@ amongst our own scripts and make it easier to use python scripts from other proj
 
 Using our style guide for your own scripts makes it easier if you eventually want to contribute them to blender.
 
-This style guide is known as pep8 and can be found `here <http://www.python.org/dev/peps/pep-0008>`_
+This style guide is known as pep8 and can be found `here <https://www.python.org/dev/peps/pep-0008/>`_
 
 A brief listing of pep8 criteria.
 
@@ -316,7 +316,7 @@ use to join a list of strings (the list may be temporary). In the following exam
 
 
 Join is fastest on many strings,
-`string formatting <http://docs.python.org/py3k/library/string.html#string-formatting>`__
+`string formatting <https://wiki.blender.org/index.php/Dev:Source/Modeling/BMesh/Design>`__
 is quite fast too (better for converting data types). String arithmetic is slowest.
 
 

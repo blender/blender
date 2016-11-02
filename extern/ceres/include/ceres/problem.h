@@ -309,6 +309,9 @@ class CERES_EXPORT Problem {
   // Allow the indicated parameter block to vary during optimization.
   void SetParameterBlockVariable(double* values);
 
+  // Returns true if a parameter block is set constant, and false otherwise.
+  bool IsParameterBlockConstant(double* values) const;
+
   // Set the local parameterization for one of the parameter blocks.
   // The local_parameterization is owned by the Problem by default. It
   // is acceptable to set the same parameterization for multiple
@@ -461,6 +464,10 @@ class CERES_EXPORT Problem {
   // parameter block has a local parameterization, then it contributes
   // "LocalSize" entries to the gradient vector (and the number of
   // columns in the jacobian).
+  //
+  // Note 3: This function cannot be called while the problem is being
+  // solved, for example it cannot be called from an IterationCallback
+  // at the end of an iteration during a solve.
   bool Evaluate(const EvaluateOptions& options,
                 double* cost,
                 std::vector<double>* residuals,

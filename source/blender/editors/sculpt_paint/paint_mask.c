@@ -37,6 +37,7 @@
 
 #include "BIF_glutil.h"
 
+#include "BLI_bitmap_draw_2d.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_geom.h"
 #include "BLI_utildefines.h"
@@ -439,7 +440,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		data.width = data.rect.xmax - data.rect.xmin;
 		data.px = BLI_BITMAP_NEW(data.width * (data.rect.ymax - data.rect.ymin), __func__);
 
-		fill_poly_v2i_n(
+		BLI_bitmap_draw_2d_poly_v2i_n(
 		       data.rect.xmin, data.rect.ymin, data.rect.xmax, data.rect.ymax,
 		       mcords, mcords_tot,
 		       mask_lasso_px_cb, &data);

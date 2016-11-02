@@ -130,7 +130,8 @@ class CostFunctionToFunctor {
     const int num_parameter_blocks =
         (N0 > 0) + (N1 > 0) + (N2 > 0) + (N3 > 0) + (N4 > 0) +
         (N5 > 0) + (N6 > 0) + (N7 > 0) + (N8 > 0) + (N9 > 0);
-    CHECK_EQ(parameter_block_sizes.size(), num_parameter_blocks);
+    CHECK_EQ(static_cast<int>(parameter_block_sizes.size()),
+             num_parameter_blocks);
 
     CHECK_EQ(N0, parameter_block_sizes[0]);
     if (parameter_block_sizes.size() > 1) CHECK_EQ(N1, parameter_block_sizes[1]);  // NOLINT

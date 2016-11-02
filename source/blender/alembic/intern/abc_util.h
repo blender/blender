@@ -32,8 +32,13 @@
 #  define ABC_INLINE static inline
 #endif
 
+struct CacheReader {
+	int unused;
+};
+
 using Alembic::Abc::chrono_t;
 
+class AbcObjectReader;
 class ImportSettings;
 
 struct ID;
@@ -99,6 +104,8 @@ float get_weight_and_index(float time,
                            int samples_number,
                            Alembic::AbcGeom::index_t &i0,
                            Alembic::AbcGeom::index_t &i1);
+
+AbcObjectReader *create_reader(const Alembic::AbcGeom::IObject &object, ImportSettings &settings);
 
 /* ************************** */
 

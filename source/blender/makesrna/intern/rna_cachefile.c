@@ -37,6 +37,8 @@
 #include "BKE_cachefile.h"
 #include "BKE_depsgraph.h"
 
+#include "BLI_string.h"
+
 #include "DEG_depsgraph.h"
 
 #include "WM_api.h"
@@ -60,6 +62,12 @@ static void rna_CacheFile_update_handle(Main *bmain, Scene *scene, PointerRNA *p
 {
 	CacheFile *cache_file = ptr->data;
 
+	if ((cache_file->flag & CACHEFILE_DIRTY) != 0) {
+		BKE_cachefile_clean(scene, cache_file);
+		BLI_freelistN(&cache_file->object_paths);
+		cache_file->flag &= ~CACHEFILE_DIRTY;
+	}
+
 	BKE_cachefile_reload(bmain, cache_file);
 
 	rna_CacheFile_update(bmain, scene, ptr);
@@ -69,6 +77,20 @@ static void rna_CacheFile_object_paths_begin(CollectionPropertyIterator *iter, P
 {
 	CacheFile *cache_file = (CacheFile *)ptr->data;
 	rna_iterator_listbase_begin(iter, &cache_file->object_paths, NULL);
+}
+
+static void rna_CacheFile_filename_set(PointerRNA *ptr, const char *value)
+{
+	CacheFile *cache_file = ptr->data;
+
+	if (STREQ(cache_file->filepath, value)) {
+		return;
+	}
+
+	/* Different file is opened, close all readers. */
+	cache_file->flag |= CACHEFILE_DIRTY;
+
+	BLI_strncpy(cache_file->filepath, value, sizeof(cache_file->filepath));
 }
 
 #else
@@ -103,6 +125,7 @@ static void rna_def_cachefile(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_FILE);
 
 	PropertyRNA *prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_CacheFile_filename_set");
 	RNA_def_property_ui_text(prop, "File Path", "Path to external displacements file");
 	RNA_def_property_update(prop, 0, "rna_CacheFile_update_handle");
 

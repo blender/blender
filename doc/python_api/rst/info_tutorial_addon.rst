@@ -232,7 +232,7 @@ if you want it to be enabled on restart, press *Save as Default*.
       print(addon_utils.paths())
 
    More is written on this topic here:
-   `Directory Layout <https://www.blender.org/manual/getting_started/installing_blender/directorylayout.html>`_
+   :ref:`Directory Layout <blender_manual:getting-started_installing-config-directories>`.
 
 
 Your Second Add-on
@@ -630,6 +630,6 @@ Here are some sites you might like to check on after completing this tutorial.
   *Great info for those who are still learning Python.*
 - `Blender Development (Wiki) <https://wiki.blender.org/index.php/Dev:Contents>`_ -
   *Blender Development, general information and helpful links.*
-- `Blender Artists (Coding Section) <http://blenderartists.org/forum/forumdisplay.php?47-Coding>`_ -
+- `Blender Artists (Coding Section) <https://blenderartists.org/forum/forumdisplay.php?47-Coding>`_ -
   *forum where people ask Python development questions*
 

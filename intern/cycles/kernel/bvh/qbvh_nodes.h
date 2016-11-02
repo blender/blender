@@ -21,6 +21,36 @@ struct QBVHStackItem {
 	float dist;
 };
 
+ccl_device_inline void qbvh_near_far_idx_calc(const float3& idir,
+                                              int *ccl_restrict near_x,
+                                              int *ccl_restrict near_y,
+                                              int *ccl_restrict near_z,
+                                              int *ccl_restrict far_x,
+                                              int *ccl_restrict far_y,
+                                              int *ccl_restrict far_z)
+
+{
+#ifdef __KERNEL_SSE__
+	*near_x = 0; *far_x = 1;
+	*near_y = 2; *far_y = 3;
+	*near_z = 4; *far_z = 5;
+
+	const size_t mask = movemask(ssef(idir.m128));
+
+	const int mask_x = mask & 1;
+	const int mask_y = (mask & 2) >> 1;
+	const int mask_z = (mask & 4) >> 2;
+
+	*near_x += mask_x; *far_x -= mask_x;
+	*near_y += mask_y; *far_y -= mask_y;
+	*near_z += mask_z; *far_z -= mask_z;
+#else
+	if(idir.x >= 0.0f) { *near_x = 0; *far_x = 1; } else { *near_x = 1; *far_x = 0; }
+	if(idir.y >= 0.0f) { *near_y = 2; *far_y = 3; } else { *near_y = 3; *far_y = 2; }
+	if(idir.z >= 0.0f) { *near_z = 4; *far_z = 5; } else { *near_z = 5; *far_z = 4; }
+#endif
+}
+
 /* TOOD(sergey): Investigate if using intrinsics helps for both
  * stack item swap and float comparison.
  */

@@ -63,7 +63,7 @@ ccl_device_inline void compute_light_pass(KernelGlobals *kg,
 
 		/* sample ambient occlusion */
 		if(pass_filter & BAKE_FILTER_AO) {
-			kernel_path_ao(kg, sd, &emission_sd, &L_sample, &state, &rng, throughput);
+			kernel_path_ao(kg, sd, &emission_sd, &L_sample, &state, &rng, throughput, shader_bsdf_alpha(kg, sd));
 		}
 
 		/* sample emission */
@@ -320,7 +320,8 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 	                         P, Ng, Ng,
 	                         shader, object, prim,
 	                         u, v, 1.0f, 0.5f,
-	                         !(kernel_tex_fetch(__object_flag, object) & SD_TRANSFORM_APPLIED));
+	                         !(kernel_tex_fetch(__object_flag, object) & SD_TRANSFORM_APPLIED),
+	                         LAMP_NONE);
 	sd.I = sd.N;
 
 	/* update differentials */

@@ -148,12 +148,17 @@ static EnumPropertyItem space_object_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+#include "DNA_cachefile_types.h"
+
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 
+#ifdef WITH_ALEMBIC
+#  include "ABC_alembic.h"
+#endif
 
 static StructRNA *rna_ConstraintType_refine(struct PointerRNA *ptr)
 {
@@ -469,6 +474,22 @@ static void rna_Constraint_objectSolver_camera_set(PointerRNA *ptr, PointerRNA v
 	else {
 		data->camera = NULL;
 	}
+}
+
+static void rna_Constraint_transformCache_object_path_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+#ifdef WITH_ALEMBIC
+	bConstraint *con = (bConstraint *)ptr->data;
+	bTransformCacheConstraint *data = (bTransformCacheConstraint *)con->data;
+	Object *ob = (Object *)ptr->id.data;
+
+	data->reader = CacheReader_open_alembic_object(data->cache_file->handle,
+	                                               data->reader,
+	                                               ob,
+	                                               data->object_path);
+#endif
+
+	rna_Constraint_update(bmain, scene, ptr);
 }
 
 #else
@@ -2593,7 +2614,7 @@ static void rna_def_constraint_transform_cache(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "object_path", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Object Path", "Path to the object in the Alembic archive used to lookup the transform matrix");
-	RNA_def_property_update(prop, 0, "rna_Constraint_update");
+	RNA_def_property_update(prop, 0, "rna_Constraint_transformCache_object_path_update");
 }
 
 /* base struct for constraints */

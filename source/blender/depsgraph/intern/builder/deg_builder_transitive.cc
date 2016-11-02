@@ -47,7 +47,7 @@ namespace DEG {
 /* -------------------------------------------------- */
 
 /* Performs a transitive reduction to remove redundant relations.
- * http://en.wikipedia.org/wiki/Transitive_reduction
+ * https://en.wikipedia.org/wiki/Transitive_reduction
  *
  * XXX The current implementation is somewhat naive and has O(V*E) worst case
  * runtime.

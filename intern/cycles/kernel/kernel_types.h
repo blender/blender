@@ -37,7 +37,7 @@ CCL_NAMESPACE_BEGIN
 /* constants */
 #define OBJECT_SIZE 		12
 #define OBJECT_VECTOR_SIZE	6
-#define LIGHT_SIZE			5
+#define LIGHT_SIZE		11
 #define FILTER_TABLE_SIZE	1024
 #define RAMP_TABLE_SIZE		256
 #define SHUTTER_TABLE_SIZE		256
@@ -250,7 +250,7 @@ enum PathTraceDimension {
 	PRNG_LIGHT = 3,
 	PRNG_LIGHT_U = 4,
 	PRNG_LIGHT_V = 5,
-	PRNG_UNUSED_3 = 6,
+	PRNG_LIGHT_TERMINATE = 6,
 	PRNG_TERMINATE = 7,
 
 #ifdef __VOLUME__
@@ -552,6 +552,8 @@ typedef enum PrimitiveType {
 	PRIMITIVE_MOTION_TRIANGLE = 2,
 	PRIMITIVE_CURVE = 4,
 	PRIMITIVE_MOTION_CURVE = 8,
+	/* Lamp primitive is not included below on purpose, since it is no real traceable primitive */
+	PRIMITIVE_LAMP = 16,
 
 	PRIMITIVE_ALL_TRIANGLE = (PRIMITIVE_TRIANGLE|PRIMITIVE_MOTION_TRIANGLE),
 	PRIMITIVE_ALL_CURVE = (PRIMITIVE_CURVE|PRIMITIVE_MOTION_CURVE),
@@ -1121,8 +1123,9 @@ typedef struct KernelIntegrator {
 	float volume_step_size;
 	int volume_samples;
 
+	float light_inv_rr_threshold;
+
 	int pad1;
-	int pad2;
 } KernelIntegrator;
 static_assert_align(KernelIntegrator, 16);
 

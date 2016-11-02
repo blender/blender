@@ -209,6 +209,9 @@ void DEG_id_tag_update_ex(Main *bmain, ID *id, short flag)
 			if (flag & (OB_RECALC_OB | OB_RECALC_DATA)) {
 				DEG_graph_id_tag_update(bmain, graph, id);
 			}
+			else if (flag & OB_RECALC_TIME) {
+				DEG_graph_id_tag_update(bmain, graph, id);
+			}
 		}
 	}
 }

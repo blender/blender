@@ -86,12 +86,13 @@ class TrustRegionStrategy {
   struct PerSolveOptions {
     PerSolveOptions()
         : eta(0),
-          dump_filename_base(""),
           dump_format_type(TEXTFILE) {
     }
 
     // Forcing sequence for inexact solves.
     double eta;
+
+    DumpFormatType dump_format_type;
 
     // If non-empty and dump_format_type is not CONSOLE, the trust
     // regions strategy will write the linear system to file(s) with
@@ -99,7 +100,6 @@ class TrustRegionStrategy {
     // CONSOLE then dump_filename_base will be ignored and the linear
     // system will be written to the standard error.
     std::string dump_filename_base;
-    DumpFormatType dump_format_type;
   };
 
   struct Summary {

@@ -32,7 +32,7 @@
 #define CERES_PUBLIC_VERSION_H_
 
 #define CERES_VERSION_MAJOR 1
-#define CERES_VERSION_MINOR 11
+#define CERES_VERSION_MINOR 12
 #define CERES_VERSION_REVISION 0
 
 // Classic CPP stringifcation; the extra level of indirection allows the

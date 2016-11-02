@@ -37,6 +37,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bitmap_draw_2d.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -272,7 +273,7 @@ static void draw_filled_lasso(wmWindow *win, wmGesture *gt)
 		unsigned char *pixel_buf = MEM_callocN(sizeof(*pixel_buf) * w * h, __func__);
 		struct LassoFillData lasso_fill_data = {pixel_buf, w};
 
-		fill_poly_v2i_n(
+		BLI_bitmap_draw_2d_poly_v2i_n(
 		       rect.xmin, rect.ymin, rect.xmax, rect.ymax,
 		       (const int (*)[2])moves, tot,
 		       draw_filled_lasso_px_cb, &lasso_fill_data);

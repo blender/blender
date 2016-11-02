@@ -137,12 +137,14 @@ def object_data_add(context, obdata, operator=None, use_active_layer=True, name=
     if context.space_data and context.space_data.type == 'VIEW_3D':
         v3d = context.space_data
 
+    if v3d and v3d.local_view:
+        base.layers_from_view(context.space_data)
+
     if operator is not None and any(operator.layers):
         base.layers = operator.layers
     else:
         if use_active_layer:
             if v3d and v3d.local_view:
-                base.layers_from_view(context.space_data)
                 base.layers[scene.active_layer] = True
             else:
                 if v3d and not v3d.lock_camera_and_layers:

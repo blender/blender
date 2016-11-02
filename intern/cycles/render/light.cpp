@@ -126,6 +126,8 @@ NODE_DEFINE(Light)
 	SOCKET_FLOAT(spot_angle, "Spot Angle", M_PI_4_F);
 	SOCKET_FLOAT(spot_smooth, "Spot Smooth", 0.0f);
 
+	SOCKET_TRANSFORM(tfm, "Transform", transform_identity());
+
 	SOCKET_BOOLEAN(cast_shadow, "Cast Shadow", true);
 	SOCKET_BOOLEAN(use_mis, "Use Mis", false);
 	SOCKET_BOOLEAN(use_diffuse, "Use Diffuse", true);
@@ -762,6 +764,11 @@ void LightManager::device_update_points(Device *device,
 
 		light_data[light_index*LIGHT_SIZE + 4] = make_float4(max_bounces, 0.0f, 0.0f, 0.0f);
 
+		Transform tfm = light->tfm;
+		Transform itfm = transform_inverse(tfm);
+		memcpy(&light_data[light_index*LIGHT_SIZE + 5], &tfm, sizeof(float4)*3);
+		memcpy(&light_data[light_index*LIGHT_SIZE + 8], &itfm, sizeof(float4)*3);
+
 		light_index++;
 	}
 
@@ -787,6 +794,11 @@ void LightManager::device_update_points(Device *device,
 		light_data[light_index*LIGHT_SIZE + 2] = make_float4(invarea, axisv.x, axisv.y, axisv.z);
 		light_data[light_index*LIGHT_SIZE + 3] = make_float4(-1, dir.x, dir.y, dir.z);
 		light_data[light_index*LIGHT_SIZE + 4] = make_float4(-1, 0.0f, 0.0f, 0.0f);
+
+		Transform tfm = light->tfm;
+		Transform itfm = transform_inverse(tfm);
+		memcpy(&light_data[light_index*LIGHT_SIZE + 5], &tfm, sizeof(float4)*3);
+		memcpy(&light_data[light_index*LIGHT_SIZE + 8], &itfm, sizeof(float4)*3);
 
 		light_index++;
 	}

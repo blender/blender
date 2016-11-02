@@ -1394,7 +1394,7 @@ PyDoc_STRVAR(Matrix_invert_doc,
 "      (instead of raising a :exc:`ValueError` exception).\n"
 "   :type fallback: :class:`Matrix`\n"
 "\n"
-"   .. seealso:: <http://en.wikipedia.org/wiki/Inverse_matrix>\n"
+"   .. seealso:: <https://en.wikipedia.org/wiki/Inverse_matrix>\n"
 );
 static PyObject *Matrix_invert(MatrixObject *self, PyObject *args)
 {
@@ -1505,7 +1505,7 @@ PyDoc_STRVAR(Matrix_invert_safe_doc,
 "   If degenerated (e.g. zero scale on an axis), add some epsilon to its diagonal, to get an invertible one.\n"
 "   If tweaked matrix is still degenerated, set to the identity matrix instead.\n"
 "\n"
-"   .. seealso:: <http://en.wikipedia.org/wiki/Inverse_matrix>\n"
+"   .. seealso:: <https://en.wikipedia.org/wiki/Inverse_matrix>\n"
 );
 static PyObject *Matrix_invert_safe(MatrixObject *self)
 {
@@ -1556,7 +1556,7 @@ PyDoc_STRVAR(Matrix_adjugate_doc,
 "\n"
 "   .. note:: When the matrix cant be adjugated a :exc:`ValueError` exception is raised.\n"
 "\n"
-"   .. seealso:: <http://en.wikipedia.org/wiki/Adjugate_matrix>\n"
+"   .. seealso:: <https://en.wikipedia.org/wiki/Adjugate_matrix>\n"
 );
 static PyObject *Matrix_adjugate(MatrixObject *self)
 {
@@ -1733,7 +1733,7 @@ PyDoc_STRVAR(Matrix_determinant_doc,
 "   :return: Return the determinant of a matrix.\n"
 "   :rtype: float\n"
 "\n"
-"   .. seealso:: <http://en.wikipedia.org/wiki/Determinant>\n"
+"   .. seealso:: <https://en.wikipedia.org/wiki/Determinant>\n"
 );
 static PyObject *Matrix_determinant(MatrixObject *self)
 {
@@ -1755,7 +1755,7 @@ PyDoc_STRVAR(Matrix_transpose_doc,
 "\n"
 "   Set the matrix to its transpose.\n"
 "\n"
-"   .. seealso:: <http://en.wikipedia.org/wiki/Transpose>\n"
+"   .. seealso:: <https://en.wikipedia.org/wiki/Transpose>\n"
 );
 static PyObject *Matrix_transpose(MatrixObject *self)
 {
@@ -1890,7 +1890,7 @@ PyDoc_STRVAR(Matrix_identity_doc,
 "   .. note:: An object with zero location and rotation, a scale of one,\n"
 "      will have an identity matrix.\n"
 "\n"
-"   .. seealso:: <http://en.wikipedia.org/wiki/Identity_matrix>\n"
+"   .. seealso:: <https://en.wikipedia.org/wiki/Identity_matrix>\n"
 );
 static PyObject *Matrix_identity(MatrixObject *self)
 {

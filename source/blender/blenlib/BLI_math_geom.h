@@ -325,11 +325,6 @@ bool clip_segment_v3_plane_n(
         const float p1[3], const float p2[3], const float plane_array[][4], const int plane_tot,
         float r_p1[3], float r_p2[3]);
 
-void plot_line_v2v2i(const int p1[2], const int p2[2], bool (*callback)(int, int, void *), void *userData);
-void fill_poly_v2i_n(
-        const int xmin, const int ymin, const int xmax, const int ymax,
-        const int polyXY[][2], const int polyCorners,
-        void (*callback)(int x, int x_end, int y, void *), void *userData);
 /****************************** Interpolation ********************************/
 
 /* tri or quad, d can be NULL */

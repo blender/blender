@@ -1117,6 +1117,21 @@ static int rna_CorrectiveSmoothModifier_is_bind_get(PointerRNA *ptr)
 	return (csmd->bind_coords != NULL);
 }
 
+static void rna_MeshSequenceCache_object_path_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+#ifdef WITH_ALEMBIC
+	MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)ptr->data;
+	Object *ob = (Object *)ptr->id.data;
+
+	mcmd->reader = CacheReader_open_alembic_object(mcmd->cache_file->handle,
+	                                               mcmd->reader,
+	                                               ob,
+	                                               mcmd->object_path);
+#endif
+
+	rna_Modifier_update(bmain, scene, ptr);
+}
+
 #else
 
 static PropertyRNA *rna_def_property_subdivision_common(StructRNA *srna, const char type[])
@@ -4135,7 +4150,7 @@ static void rna_def_modifier_meshseqcache(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "object_path", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Object Path", "Path to the object in the Alembic archive used to lookup geometric data");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+	RNA_def_property_update(prop, 0, "rna_MeshSequenceCache_object_path_update");
 
 	static EnumPropertyItem read_flag_items[] = {
 		{MOD_MESHSEQ_READ_VERT,  "VERT", 0, "Vertex", ""},

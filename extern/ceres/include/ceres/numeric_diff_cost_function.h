@@ -206,29 +206,6 @@ class NumericDiffCostFunction
     }
   }
 
-  // Deprecated. New users should avoid using this constructor. Instead, use the
-  // constructor with NumericDiffOptions.
-  NumericDiffCostFunction(CostFunctor* functor,
-                          Ownership ownership,
-                          int num_residuals,
-                          const double relative_step_size)
-      :functor_(functor),
-       ownership_(ownership),
-       options_() {
-    LOG(WARNING) << "This constructor is deprecated and will be removed in "
-                    "a future version. Please use the NumericDiffOptions "
-                    "constructor instead.";
-
-    if (kNumResiduals == DYNAMIC) {
-      SizedCostFunction<kNumResiduals,
-                        N0, N1, N2, N3, N4,
-                        N5, N6, N7, N8, N9>
-          ::set_num_residuals(num_residuals);
-    }
-
-    options_.relative_step_size = relative_step_size;
-  }
-
   ~NumericDiffCostFunction() {
     if (ownership_ != TAKE_OWNERSHIP) {
       functor_.release();

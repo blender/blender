@@ -22,6 +22,15 @@
 
 #include "abc_util.h"
 
+#include "abc_camera.h"
+#include "abc_curves.h"
+#include "abc_mesh.h"
+#include "abc_nurbs.h"
+#include "abc_points.h"
+#include "abc_transform.h"
+
+#include <Alembic/AbcMaterial/IMaterial.h>
+
 #include <algorithm>
 
 extern "C" {
@@ -461,4 +470,57 @@ float get_weight_and_index(float time,
 	}
 
 	return bias;
+}
+
+//#define USE_NURBS
+
+AbcObjectReader *create_reader(const Alembic::AbcGeom::IObject &object, ImportSettings &settings)
+{
+	AbcObjectReader *reader = NULL;
+
+	const Alembic::AbcGeom::MetaData &md = object.getMetaData();
+
+	if (Alembic::AbcGeom::IXform::matches(md)) {
+		reader = new AbcEmptyReader(object, settings);
+	}
+	else if (Alembic::AbcGeom::IPolyMesh::matches(md)) {
+		reader = new AbcMeshReader(object, settings);
+	}
+	else if (Alembic::AbcGeom::ISubD::matches(md)) {
+		reader = new AbcSubDReader(object, settings);
+	}
+	else if (Alembic::AbcGeom::INuPatch::matches(md)) {
+#ifdef USE_NURBS
+		/* TODO(kevin): importing cyclic NURBS from other software crashes
+		 * at the moment. This is due to the fact that NURBS in other
+		 * software have duplicated points which causes buffer overflows in
+		 * Blender. Need to figure out exactly how these points are
+		 * duplicated, in all cases (cyclic U, cyclic V, and cyclic UV).
+		 * Until this is fixed, disabling NURBS reading. */
+		reader = new AbcNurbsReader(child, settings);
+#endif
+	}
+	else if (Alembic::AbcGeom::ICamera::matches(md)) {
+		reader = new AbcCameraReader(object, settings);
+	}
+	else if (Alembic::AbcGeom::IPoints::matches(md)) {
+		reader = new AbcPointsReader(object, settings);
+	}
+	else if (Alembic::AbcMaterial::IMaterial::matches(md)) {
+		/* Pass for now. */
+	}
+	else if (Alembic::AbcGeom::ILight::matches(md)) {
+		/* Pass for now. */
+	}
+	else if (Alembic::AbcGeom::IFaceSet::matches(md)) {
+		/* Pass, those are handled in the mesh reader. */
+	}
+	else if (Alembic::AbcGeom::ICurves::matches(md)) {
+		reader = new AbcCurveReader(object, settings);
+	}
+	else {
+		assert(false);
+	}
+
+	return reader;
 }

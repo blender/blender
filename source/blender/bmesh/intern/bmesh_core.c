@@ -287,7 +287,7 @@ static BMLoop *bm_face_boundary_add(
 #endif
 	BMLoop *l = bm_loop_create(bm, startv, starte, f, NULL /* starte->l */, create_flag);
 	
-	bmesh_radial_append(starte, l);
+	bmesh_radial_loop_append(starte, l);
 
 #ifdef USE_BMESH_HOLES
 	lst->first = lst->last = l;
@@ -295,8 +295,6 @@ static BMLoop *bm_face_boundary_add(
 #else
 	f->l_first = l;
 #endif
-
-	l->f = f;
 	
 	return l;
 }
@@ -458,14 +456,11 @@ BMFace *BM_face_create(
 	f = bm_face_create__internal(bm);
 
 	startl = lastl = bm_face_boundary_add(bm, f, verts[0], edges[0], create_flag);
-	
-	startl->v = verts[0];
-	startl->e = edges[0];
+
 	for (i = 1; i < len; i++) {
 		l = bm_loop_create(bm, verts[i], edges[i], f, NULL /* edges[i]->l */, create_flag);
-		
-		l->f = f;
-		bmesh_radial_append(edges[i], l);
+
+		bmesh_radial_loop_append(edges[i], l);
 
 		l->prev = lastl;
 		lastl->next = l;
@@ -904,7 +899,7 @@ void BM_face_kill(BMesh *bm, BMFace *f)
 		do {
 			l_next = l_iter->next;
 
-			bmesh_radial_loop_remove(l_iter, l_iter->e);
+			bmesh_radial_loop_remove(l_iter->e, l_iter);
 			bm_kill_only_loop(bm, l_iter);
 
 		} while ((l_iter = l_next) != l_first);
@@ -949,7 +944,7 @@ void BM_face_kill_loose(BMesh *bm, BMFace *f)
 			l_next = l_iter->next;
 
 			e = l_iter->e;
-			bmesh_radial_loop_remove(l_iter, e);
+			bmesh_radial_loop_remove(e, l_iter);
 			bm_kill_only_loop(bm, l_iter);
 
 			if (e->l == NULL) {
@@ -981,23 +976,8 @@ void BM_face_kill_loose(BMesh *bm, BMFace *f)
  */
 void BM_edge_kill(BMesh *bm, BMEdge *e)
 {
-
-	if (e->l) {
-		BMLoop *l = e->l, *lnext, *startl = e->l;
-
-		do {
-			lnext = l->radial_next;
-			if (lnext->f == l->f) {
-				BM_face_kill(bm, l->f);
-				break;
-			}
-			
-			BM_face_kill(bm, l->f);
-
-			if (l == lnext)
-				break;
-			l = lnext;
-		} while (l != startl);
+	while (e->l) {
+		BM_face_kill(bm, e->l->f);
 	}
 
 	bmesh_disk_edge_remove(e, e->v1);
@@ -1011,15 +991,8 @@ void BM_edge_kill(BMesh *bm, BMEdge *e)
  */
 void BM_vert_kill(BMesh *bm, BMVert *v)
 {
-	if (v->e) {
-		BMEdge *e, *e_next;
-		
-		e = v->e;
-		while (v->e) {
-			e_next = bmesh_disk_edge_next(e, v);
-			BM_edge_kill(bm, e);
-			e = e_next;
-		}
+	while (v->e) {
+		BM_edge_kill(bm, v->e);
 	}
 
 	bm_kill_only_vert(bm, v);
@@ -1077,7 +1050,7 @@ static bool bm_loop_reverse_loop(
 	int i, j, edok;
 
 	for (i = 0, l_iter = l_first; i < len; i++, l_iter = l_iter->next) {
-		bmesh_radial_loop_remove(l_iter, (edar[i] = l_iter->e));
+		bmesh_radial_loop_remove((edar[i] = l_iter->e), l_iter);
 	}
 
 	/* actually reverse the loop */
@@ -1113,7 +1086,7 @@ static bool bm_loop_reverse_loop(
 	}
 	/* rebuild radial */
 	for (i = 0, l_iter = l_first; i < len; i++, l_iter = l_iter->next)
-		bmesh_radial_append(l_iter->e, l_iter);
+		bmesh_radial_loop_append(l_iter->e, l_iter);
 
 #ifndef NDEBUG
 	/* validate radial */
@@ -1585,8 +1558,8 @@ BMFace *bmesh_sfme(
 	} while ((l_iter = l_iter->next) != l_first);
 
 	/* link up the new loops into the new edges radial */
-	bmesh_radial_append(e, l_f1);
-	bmesh_radial_append(e, l_f2);
+	bmesh_radial_loop_append(e, l_f1);
+	bmesh_radial_loop_append(e, l_f2);
 
 	f2->len = f2len;
 
@@ -1700,7 +1673,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 			l = l_next;
 			l->f->len++;
 			l_next = l_next != l_next->radial_next ? l_next->radial_next : NULL;
-			bmesh_radial_loop_remove(l, NULL);
+			bmesh_radial_loop_unlink(l);
 
 			l_new = bm_loop_create(bm, NULL, NULL, l->f, l, 0);
 			l_new->prev = l;
@@ -1725,8 +1698,8 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 					l->radial_next = l->radial_prev = NULL;
 				}
 				
-				bmesh_radial_append(l_new->e, l_new);
-				bmesh_radial_append(l->e, l);
+				bmesh_radial_loop_append(l_new->e, l_new);
+				bmesh_radial_loop_append(l->e, l);
 			}
 			else if (BM_verts_in_edge(l_new->v, l_new->next->v, e_new)) {
 				l_new->e = e_new;
@@ -1743,8 +1716,8 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 					l->radial_next = l->radial_prev = NULL;
 				}
 
-				bmesh_radial_append(l_new->e, l_new);
-				bmesh_radial_append(l->e, l);
+				bmesh_radial_loop_append(l_new->e, l_new);
+				bmesh_radial_loop_append(l->e, l);
 			}
 
 		}
@@ -2619,8 +2592,8 @@ bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src)
 		l = e_src->l;
 		BLI_assert(BM_vert_in_edge(e_dst, l->v));
 		BLI_assert(BM_vert_in_edge(e_dst, l->next->v));
-		bmesh_radial_loop_remove(l, e_src);
-		bmesh_radial_append(e_dst, l);
+		bmesh_radial_loop_remove(e_src, l);
+		bmesh_radial_loop_append(e_dst, l);
 	}
 
 	BLI_assert(bmesh_radial_length(e_src->l) == 0);
@@ -2667,8 +2640,8 @@ void bmesh_edge_separate(
 	}
 
 	e_new = BM_edge_create(bm, e->v1, e->v2, e, BM_CREATE_NOP);
-	bmesh_radial_loop_remove(l_sep, e);
-	bmesh_radial_append(e_new, l_sep);
+	bmesh_radial_loop_remove(e, l_sep);
+	bmesh_radial_loop_append(e_new, l_sep);
 	l_sep->e = e_new;
 
 	if (copy_select) {
@@ -2855,8 +2828,8 @@ BMVert *bmesh_urmv_loop_multi(
 				do {
 					l_next = l_iter->radial_next;
 					if (BM_ELEM_API_FLAG_TEST(l_iter, LOOP_VISIT)) {
-						bmesh_radial_loop_remove(l_iter, e);
-						bmesh_radial_append(e_new, l_iter);
+						bmesh_radial_loop_remove(e, l_iter);
+						bmesh_radial_loop_append(e_new, l_iter);
 						l_iter->e = e_new;
 					}
 				} while ((l_iter = l_next) != l_first);

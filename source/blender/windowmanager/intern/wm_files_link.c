@@ -419,7 +419,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 		const bool use_recursive = RNA_boolean_get(op->ptr, "use_recursive");
 
 		if (use_recursive) {
-			BKE_library_make_local(bmain, NULL, true, set_fake);
+			BKE_library_make_local(bmain, NULL, NULL, true, set_fake);
 		}
 		else {
 			LinkNode *itemlink;
@@ -430,7 +430,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 				ID *new_id = ((WMLinkAppendDataItem *)(itemlink->link))->new_id;
 
 				if (new_id && !BLI_gset_haskey(done_libraries, new_id->lib)) {
-					BKE_library_make_local(bmain, new_id->lib, true, set_fake);
+					BKE_library_make_local(bmain, new_id->lib, NULL, true, set_fake);
 					BLI_gset_insert(done_libraries, new_id->lib);
 				}
 			}

@@ -21,10 +21,10 @@ set(INC
 )
 
 set(SRC
-	range_tree.hh
-	range_tree_c_api.h
+	range_tree.h
+	intern/generic_alloc_impl.h
 
-	range_tree_c_api.cc
+	intern/range_tree.c
 )
 
 blender_add_lib(extern_rangetree "${SRC}" "${INC}" "")

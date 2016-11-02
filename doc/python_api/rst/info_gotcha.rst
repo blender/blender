@@ -1,3 +1,4 @@
+
 *******
 Gotchas
 *******
@@ -37,7 +38,6 @@ but some operators are more picky about when they run.
 
 In most cases you can figure out what context an operator needs
 simply be seeing how it's used in Blender and thinking about what it does.
-
 
 Unfortunately if you're still stuck - the only way to **really** know
 whats going on is to read the source code for the poll function and see what its checking.
@@ -81,7 +81,6 @@ it should be reported to the bug tracker.
 
 Stale Data
 ==========
-
 
 No updates after setting values
 -------------------------------
@@ -174,8 +173,8 @@ In this situation you can...
 
 .. _info_gotcha_mesh_faces:
 
-NGons and Tessellation Faces
-============================
+N-Gons and Tessellation Faces
+=============================
 
 Since 2.63 NGons are supported, this adds some complexity
 since in some cases you need to access triangles/quads still (some exporters for example).
@@ -509,7 +508,7 @@ Unicode Problems
 Python supports many different encodings so there is nothing stopping you from
 writing a script in ``latin1`` or ``iso-8859-15``.
 
-See `pep-0263 <http://www.python.org/dev/peps/pep-0263/>`_
+See `pep-0263 <https://www.python.org/dev/peps/pep-0263/>`_
 
 However this complicates matters for Blender's Python API because ``.blend`` files don't have an explicit encoding.
 
@@ -657,7 +656,7 @@ Here are some general hints to avoid running into these problems.
 .. note::
 
    To find the line of your script that crashes you can use the ``faulthandler`` module.
-   See `faulthandler docs <http://docs.python.org/dev/library/faulthandler.html>`_.
+   See the `faulthandler docs <https://docs.python.org/dev/library/faulthandler.html>`_.
 
    While the crash may be in Blenders C/C++ code,
    this can help a lot to track down the area of the script that causes the crash.

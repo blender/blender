@@ -1080,13 +1080,19 @@ static void icon_preview_add_size(IconPreview *ip, unsigned int *rect, int sizex
 static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short *do_update, float *progress)
 {
 	IconPreview *ip = (IconPreview *)customdata;
-	IconPreviewSize *cur_size = ip->sizes.first;
+	IconPreviewSize *cur_size;
 	const bool use_new_shading = BKE_scene_use_new_shading_nodes(ip->scene);
 
-	while (cur_size) {
+	for (cur_size = ip->sizes.first; cur_size; cur_size = cur_size->next) {
 		PreviewImage *prv = ip->owner;
+
+		if (prv->tag & PRV_TAG_DEFFERED_DELETE) {
+			/* Non-thread-protected reading is not an issue here. */
+			continue;
+		}
+
 		ShaderPreview *sp = MEM_callocN(sizeof(ShaderPreview), "Icon ShaderPreview");
-		const bool is_render = !prv->use_deferred;
+		const bool is_render = !(prv->tag & PRV_TAG_DEFFERED);
 
 		/* construct shader preview from image size and previewcustomdata */
 		sp->scene = ip->scene;
@@ -1117,8 +1123,6 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 
 		common_preview_startjob(sp, stop, do_update, progress);
 		shader_preview_free(sp);
-
-		cur_size = cur_size->next;
 	}
 }
 
@@ -1146,6 +1150,15 @@ static void icon_preview_endjob(void *customdata)
 			}
 		}
 #endif
+	}
+
+	if (ip->owner) {
+		PreviewImage *prv_img = ip->owner;
+		prv_img->tag &= ~PRV_TAG_DEFFERED_RENDERING;
+		if (prv_img->tag & PRV_TAG_DEFFERED_DELETE) {
+			BLI_assert(prv_img->tag & PRV_TAG_DEFFERED);
+			BKE_previewimg_cached_release_pointer(prv_img);
+		}
 	}
 }
 
@@ -1204,6 +1217,14 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 	ip->id = id;
 
 	icon_preview_add_size(ip, rect, sizex, sizey);
+
+	/* Special threading hack: warn main code that this preview is being rendered and cannot be freed... */
+	{
+		PreviewImage *prv_img = owner;
+		if (prv_img->tag & PRV_TAG_DEFFERED) {
+			prv_img->tag |= PRV_TAG_DEFFERED_RENDERING;
+		}
+	}
 
 	/* setup job */
 	WM_jobs_customdata_set(wm_job, ip, icon_preview_free);

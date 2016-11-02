@@ -4364,8 +4364,14 @@ static void transformcache_evaluate(bConstraint *con, bConstraintOb *cob, ListBa
 
 	BKE_cachefile_ensure_handle(G.main, cache_file);
 
-	ABC_get_transform(cache_file->handle, cob->ob, data->object_path,
-	                  cob->matrix, time, cache_file->scale);
+	if (!data->reader) {
+		data->reader = CacheReader_open_alembic_object(cache_file->handle,
+		                                               data->reader,
+		                                               cob->ob,
+		                                               data->object_path);
+	}
+
+	ABC_get_transform(data->reader, cob->matrix, time, cache_file->scale);
 #else
 	UNUSED_VARS(con, cob);
 #endif
@@ -4392,6 +4398,12 @@ static void transformcache_free(bConstraint *con)
 
 	if (data->cache_file) {
 		id_us_min(&data->cache_file->id);
+	}
+
+	if (data->reader) {
+#ifdef WITH_ALEMBIC
+		CacheReader_free(data->reader);
+#endif
 	}
 }
 

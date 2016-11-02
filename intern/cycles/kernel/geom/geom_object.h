@@ -55,6 +55,21 @@ ccl_device_inline Transform object_fetch_transform(KernelGlobals *kg, int object
 	return tfm;
 }
 
+/* Lamp to world space transformation */
+
+ccl_device_inline Transform lamp_fetch_transform(KernelGlobals *kg, int lamp, bool inverse)
+{
+	int offset = lamp*LIGHT_SIZE + (inverse? 8 : 5);
+
+	Transform tfm;
+	tfm.x = kernel_tex_fetch(__light_data, offset + 0);
+	tfm.y = kernel_tex_fetch(__light_data, offset + 1);
+	tfm.z = kernel_tex_fetch(__light_data, offset + 2);
+	tfm.w = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
+
+	return tfm;
+}
+
 /* Object to world space transformation for motion vectors */
 
 ccl_device_inline Transform object_fetch_vector_transform(KernelGlobals *kg, int object, enum ObjectVectorTransform type)
@@ -376,15 +391,33 @@ ccl_device float3 particle_angular_velocity(KernelGlobals *kg, int particle)
 ccl_device_inline float3 bvh_clamp_direction(float3 dir)
 {
 	/* clamp absolute values by exp2f(-80.0f) to avoid division by zero when calculating inverse direction */
-	float ooeps = 8.271806E-25f;
+#if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE2__)
+	const ssef oopes(8.271806E-25f,8.271806E-25f,8.271806E-25f,0.0f);
+	const ssef mask = _mm_cmpgt_ps(fabs(dir), oopes);
+	const ssef signdir = signmsk(dir.m128) | oopes;
+#  ifndef __KERNEL_AVX__
+	ssef res = mask & ssef(dir);
+	res = _mm_or_ps(res,_mm_andnot_ps(mask, signdir));
+#  else
+	ssef res = _mm_blendv_ps(signdir, dir, mask);
+#  endif
+	return float3(res);
+#else  /* __KERNEL_SSE__ && __KERNEL_SSE2__ */
+	const float ooeps = 8.271806E-25f;
 	return make_float3((fabsf(dir.x) > ooeps)? dir.x: copysignf(ooeps, dir.x),
 	                   (fabsf(dir.y) > ooeps)? dir.y: copysignf(ooeps, dir.y),
 	                   (fabsf(dir.z) > ooeps)? dir.z: copysignf(ooeps, dir.z));
+#endif  /* __KERNEL_SSE__ && __KERNEL_SSE2__ */
 }
 
 ccl_device_inline float3 bvh_inverse_direction(float3 dir)
 {
+	/* TODO(sergey): Currently disabled, gives speedup but causes precision issues. */
+#if defined(__KERNEL_SSE__) && 0
+	return rcp(dir);
+#else
 	return 1.0f / dir;
+#endif
 }
 
 /* Transform ray into object space to enter static object in BVH */

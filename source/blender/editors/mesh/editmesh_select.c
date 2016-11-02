@@ -32,6 +32,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
+#include "BLI_bitmap_draw_2d.h"
 #include "BLI_listbase.h"
 #include "BLI_linklist.h"
 #include "BLI_linklist_stack.h"
@@ -294,7 +295,7 @@ bool EDBM_backbuf_border_mask_init(ViewContext *vc, const int mcords[][2], short
 	lasso_mask_data.px = dr_mask;
 	lasso_mask_data.width = (xmax - xmin) + 1;
 
-	fill_poly_v2i_n(
+	BLI_bitmap_draw_2d_poly_v2i_n(
 	       xmin, ymin, xmax + 1, ymax + 1,
 	       mcords, tot,
 	       edbm_mask_lasso_px_cb, &lasso_mask_data);

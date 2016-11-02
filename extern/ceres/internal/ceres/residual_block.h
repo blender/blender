@@ -127,7 +127,7 @@ class ResidualBlock {
   int index() const { return index_; }
   void set_index(int index) { index_ = index; }
 
-  std::string ToString() {
+  std::string ToString() const {
     return StringPrintf("{residual block; index=%d}", index_);
   }
 

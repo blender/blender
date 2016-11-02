@@ -35,7 +35,7 @@
  * in addition to distance already walked. This heuristic allows more efficiency
  * in finding optimal path.
  *
- * Implementation based on Wikipedia A* page [http://en.wikipedia.org/wiki/A*_search_algorithm].
+ * Implementation based on Wikipedia A* page [https://en.wikipedia.org/wiki/A*_search_algorithm].
  *
  * Note that most memory handling here is done through two different MemArena's. Those should also be used to allocate
  * custom data needed to a specific use of A*.

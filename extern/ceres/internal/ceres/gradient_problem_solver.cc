@@ -84,6 +84,12 @@ Solver::Options GradientProblemSolverOptionsToSolverOptions(
 
 }  // namespace
 
+bool GradientProblemSolver::Options::IsValid(std::string* error) const {
+  const Solver::Options solver_options =
+      GradientProblemSolverOptionsToSolverOptions(*this);
+  return solver_options.IsValid(error);
+}
+
 GradientProblemSolver::~GradientProblemSolver() {
 }
 
@@ -99,8 +105,6 @@ void GradientProblemSolver::Solve(const GradientProblemSolver::Options& options,
   using internal::SetSummaryFinalCost;
 
   double start_time = WallTimeInSeconds();
-  Solver::Options solver_options =
-      GradientProblemSolverOptionsToSolverOptions(options);
 
   *CHECK_NOTNULL(summary) = Summary();
   summary->num_parameters                    = problem.NumParameters();
@@ -112,14 +116,16 @@ void GradientProblemSolver::Solve(const GradientProblemSolver::Options& options,
   summary->nonlinear_conjugate_gradient_type = options.nonlinear_conjugate_gradient_type;  //  NOLINT
 
   // Check validity
-  if (!solver_options.IsValid(&summary->message)) {
+  if (!options.IsValid(&summary->message)) {
     LOG(ERROR) << "Terminating: " << summary->message;
     return;
   }
 
-  // Assuming that the parameter blocks in the program have been
-  Minimizer::Options minimizer_options;
-  minimizer_options = Minimizer::Options(solver_options);
+  // TODO(sameeragarwal): This is a bit convoluted, we should be able
+  // to convert to minimizer options directly, but this will do for
+  // now.
+  Minimizer::Options minimizer_options =
+      Minimizer::Options(GradientProblemSolverOptionsToSolverOptions(options));
   minimizer_options.evaluator.reset(new GradientProblemEvaluator(problem));
 
   scoped_ptr<IterationCallback> logging_callback;

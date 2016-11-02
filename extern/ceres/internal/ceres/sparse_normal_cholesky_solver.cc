@@ -33,6 +33,7 @@
 #include <algorithm>
 #include <cstring>
 #include <ctime>
+#include <sstream>
 
 #include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/cxsparse.h"
@@ -71,6 +72,12 @@ LinearSolver::Summary SimplicialLDLTSolve(
 
   if (do_symbolic_analysis) {
     solver->analyzePattern(lhs);
+    if (VLOG_IS_ON(2)) {
+      std::stringstream ss;
+      solver->dumpMemory(ss);
+      VLOG(2) << "Symbolic Analysis\n"
+              << ss.str();
+    }
     event_logger->AddEvent("Analyze");
     if (solver->info() != Eigen::Success) {
       summary.termination_type = LINEAR_SOLVER_FATAL_ERROR;

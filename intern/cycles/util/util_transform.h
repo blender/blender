@@ -73,22 +73,60 @@ ccl_device_inline float3 transform_perspective(const Transform *t, const float3 
 
 ccl_device_inline float3 transform_point(const Transform *t, const float3 a)
 {
+	/* TODO(sergey): Disabled for now, causes crashes in certain cases. */
+#if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE2__) && 0
+	ssef x, y, z, w, aa;
+	aa = a.m128;
+
+	x = _mm_loadu_ps(&t->x.x);
+	y = _mm_loadu_ps(&t->y.x);
+	z = _mm_loadu_ps(&t->z.x);
+	w = _mm_loadu_ps(&t->w.x);
+
+	_MM_TRANSPOSE4_PS(x, y, z, w);
+
+	ssef tmp = shuffle<0>(aa) * x;
+	tmp = madd(shuffle<1>(aa), y, tmp);
+	tmp = madd(shuffle<2>(aa), z, tmp);
+	tmp += w;
+
+	return float3(tmp.m128);
+#else
 	float3 c = make_float3(
 		a.x*t->x.x + a.y*t->x.y + a.z*t->x.z + t->x.w,
 		a.x*t->y.x + a.y*t->y.y + a.z*t->y.z + t->y.w,
 		a.x*t->z.x + a.y*t->z.y + a.z*t->z.z + t->z.w);
 
 	return c;
+#endif
 }
 
 ccl_device_inline float3 transform_direction(const Transform *t, const float3 a)
 {
+	/* TODO(sergey): Disabled for now, causes crashes in certain cases. */
+#if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE2__) && 0
+	ssef x, y, z, w, aa;
+	aa = a.m128;
+	x = _mm_loadu_ps(&t->x.x);
+	y = _mm_loadu_ps(&t->y.x);
+	z = _mm_loadu_ps(&t->z.x);
+	w = _mm_setzero_ps();
+
+	_MM_TRANSPOSE4_PS(x, y, z, w);
+
+	ssef tmp = shuffle<0>(aa) * x;
+	tmp = madd(shuffle<1>(aa), y, tmp);
+	tmp = madd(shuffle<2>(aa), z, tmp);
+
+	return float3(tmp.m128);
+#else
 	float3 c = make_float3(
 		a.x*t->x.x + a.y*t->x.y + a.z*t->x.z,
 		a.x*t->y.x + a.y*t->y.y + a.z*t->y.z,
 		a.x*t->z.x + a.y*t->z.y + a.z*t->z.z);
 
 	return c;
+#endif
 }
 
 ccl_device_inline float3 transform_direction_transposed(const Transform *t, const float3 a)

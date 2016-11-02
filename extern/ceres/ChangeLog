@@ -1,659 +1,588 @@
-commit aef9c9563b08d5f39eee1576af133a84749d1b48
-Author: Alessandro Gentilini <agentilini@gmail.com>
-Date:   Tue Oct 6 20:43:45 2015 +0200
-
-    Add test for Bessel functions.
-    
-    Change-Id: Ief5881e8027643d7ef627e60a88fdbad17f3d884
-
-commit 49c86018e00f196c4aa9bd25daccb9919917efee
-Author: Alessandro Gentilini <agentilini@gmail.com>
-Date:   Wed Sep 23 21:59:44 2015 +0200
-
-    Add Bessel functions in order to use them in residual code.
-    
-    See "How can I use the Bessel function in the residual function?" at
-    https://groups.google.com/d/msg/ceres-solver/Vh1gpqac8v0/NIK1EiWJCAAJ
-    
-    Change-Id: I3e80d9f9d1cadaf7177076e493ff46ace5233b76
-
-commit dfb201220c034fde00a242d0533bef3f73b2907d
-Author: Simon Rutishauser <simon.rutishauser@pix4d.com>
-Date:   Tue Oct 13 07:33:58 2015 +0200
-
-    Make miniglog threadsafe on non-windows system by using
-    localtime_r() instead of localtime() for time formatting
-    
-    Change-Id: Ib8006c685cd8ed4f374893bef56c4061ca2c9747
-
-commit 41455566ac633e55f222bce7c4d2cb4cc33d5c72
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Mon Sep 28 22:43:42 2015 +0100
-
-    Remove link-time optimisation (LTO).
-    
-    - On GCC 4.9+ although GCC supports LTO, it requires use of the
-      non-default gcc-ar & gcc-ranlib.  Whilst we can ensure Ceres is
-      compiled with these, doing so with GCC 4.9 causes multiple definition
-      linker errors of static ints inside Eigen when compiling the tests
-      and examples when they are not also built with LTO.
-    - On OS X (Xcode 6 & 7) after the latest update to gtest, if LTO
-      is used when compiling the tests (& examples), two tests fail
-      due to typeinfo::operator== (things are fine if only Ceres itself is
-      compiled with LTO).
-    - This patch disables LTO for all compilers. It should be revisited when
-      the performance is more stable across our supported compilers.
-    
-    Change-Id: I17b52957faefbdeff0aa40846dc9b342db1b02e3
-
-commit 89c40005bfceadb4163bd16b7464b3c2ce740daf
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sun Sep 27 13:37:26 2015 +0100
-
-    Only use LTO when compiling Ceres itself, not tests or examples.
-    
-    - If Ceres is built as a shared library, and LTO is enabled for Ceres
-      and the tests, then type_info::operator==() incorrectly returns false
-      in gtests' CheckedDowncastToActualType() in the following tests:
-    -- levenberg_marquardt_strategy_test.
-    -- gradient_checking_cost_function_test.
-      on at least Xcode 6 & 7 as reported here:
-      https://github.com/google/googletest/issues/595.
-    - This does not appear to be a gtest issue, but is perhaps an LLVM bug
-      or an RTTI shared library issue.  Either way, disabling the use of
-      LTO when compiling the test application resolves the issue.
-    - Allow LTO to be enabled for GCC, if it is supported.
-    - Add CMake function to allow easy appending to target properties s/t
-      Ceres library-specific compile flags can be iteratively constructed.
-    
-    Change-Id: I923e6aae4f7cefa098cf32b2f8fc19389e7918c9
-
-commit 0794f41cca440f7f65d9a44e671f66f6e498ef7c
+commit 8590e6e8e057adba4ec0083446d00268565bb444
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sat Sep 26 14:10:15 2015 -0700
+Date:   Thu Oct 27 12:29:37 2016 -0700
 
-    Documentation updates.
+    Remove two checks from rotation.h
     
-    1. Fix a typo in the Trust Region algorithm.
-    2. Add ARL in the list of users.
-    3. Update the version history.
+    This allows rotation.h to remove its dependency on glog.
     
-    Change-Id: Ic286e8ef1a71af07f3890b7592dd3aed9c5f87ce
+    Change-Id: Ia6aede93ee51a4bd4039570dc8edd100a7045329
 
-commit 90e32a8dc437dfb0e6747ce15a1f3193c13b7d5b
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Mon Sep 21 21:08:25 2015 +0100
+commit e892499e8d8977b9178a760348bdd201ec5f3489
+Author: Je Hyeong Hong <jhh37@outlook.com>
+Date:   Tue Oct 18 22:49:11 2016 +0100
 
-    Use old minimum iOS version flags on Xcode < 7.0.
+    Relax the tolerance in QuaternionParameterizationTestHelper.
     
-    - The newer style, which are more specific and match the SDK names
-      are not available on Xcode < 7.0.
+    This commit relaxes the tolerance value for comparing between the actual
+    local matrix and the expected local matrix. Without this fix,
+    EigenQuaternionParameterization.ZeroTest could fail as the difference
+    exactly matches the value of std::numeric_limits<double>::epsilon().
     
-    Change-Id: I2f07a0365183d2781157cdb05fd49b30ae001ac5
+    Change-Id: Ic4d3f26c0acdf5f16fead80dfdc53df9e7dabbf9
 
-commit 26cd5326a1fb99ae02c667eab9942e1308046984
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Mon Sep 21 10:16:01 2015 +0100
-
-    Add gtest-specific flags when building/using as a shared library.
-    
-    - Currently these flags are only used to define the relevant DLL export
-      prefix for Windows.
-    
-    Change-Id: I0c05207b512cb4a985390aefc779b91febdabb38
-
-commit c4c79472112a49bc1340da0074af2d15b1c89749
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sun Sep 20 18:26:59 2015 +0100
-
-    Clean up iOS.cmake to use xcrun/xcodebuild & libtool.
-    
-    - Substantial cleanup of iOS.cmake to use xcrun & xcodebuild to
-      determine the SDK & tool paths.
-    - Use libtool -static to link libraries instead of ar + ranlib, which
-      is not compatible with Xcode 7+, this change should be backwards
-      compatible to at least Xcode 6.
-    - Force locations of unordered_map & shared_ptr on iOS to work around
-      check_cxx_source_compiles() running in a forked CMake instance without
-      access to the variables (IOS_PLATFORM) defined by the user.
-    - Minor CMake style updates.
-    
-    Change-Id: I5f83a60607db34d461ebe85f9dce861f53d98277
-
-commit 155765bbb358f1d19f072a4b54825faf1c059910
+commit 7ed9e2fb7f1dff264c5e4fbaa89ee1c4c99df269
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Sep 16 06:56:08 2015 -0700
+Date:   Wed Oct 19 04:45:23 2016 -0700
 
-    Import the latest version of gtest and gmock.
+    Occured -> Occurred.
     
-    Change-Id: I4b686c44bba823cab1dae40efa99e31340d2b52a
-
-commit 0c4647b8f1496c97c6b9376d9c49ddc204aa08dd
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Wed Sep 16 20:01:11 2015 +0100
-
-    Remove FAQ about increasing inlining threshold for Clang.
+    Thanks to Phillip Huebner for reporting this.
     
-    - Changing the inlining threshold for Clang as described has a minimal
-      effect on user performance.
-    - The problem that originally prompted the belief that it did was
-      due to an erroneous CXX flag configuration (in user code).
-    
-    Change-Id: I03017241c0f87b8dcefb8c984ec3b192afd97fc2
+    Change-Id: I9cddfbb373aeb496961d08e434fe661bff4abd29
 
-commit f4b768b69afcf282568f9ab3a3f0eb8078607468
+commit b82f97279682962d8c8ae1b6d9e801ba072a0ab1
+Author: Je Hyeong Hong <jhh37@outlook.com>
+Date:   Tue Oct 18 21:18:32 2016 +0100
+
+    Fix a test error in autodiff_test.cc.
+    
+    Previously, the test for the projective camera model would fail as no
+    tolerance is set in line 144. To resolve this, this commit changes
+    assert_equal to assert_near.
+    
+    Change-Id: I6cd3379083b1a10c7cd0a9cc83fd6962bb993cc9
+
+commit 5690b447de5beed6bdda99b7f30f372283c2fb1a
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Sep 14 13:53:24 2015 -0700
+Date:   Thu Oct 13 09:52:02 2016 -0700
 
-    Lint changes from William Rucklidge
+    Fix documentation source for templated functions in rotation.h
     
-    Change-Id: I0dac2549a8fa2bfd12f745a8d8a0db623b7ec1ac
+    Change-Id: Ic1b2e6f0e6eb9914f419fd0bb5af77b66252e57c
 
-commit 5f2f05c726443e35767d677daba6d25dbc2d7ff8
+commit 2f8f98f7e8940e465de126fb51282396f42bea20
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Sep 11 22:19:38 2015 -0700
+Date:   Thu Oct 13 09:35:18 2016 -0700
 
-    Refactor system_test
+    Prepare for 1.12.0RC1
     
-    1. Move common test infrastructure into test_util.
-    2. system_test now only contains powells function.
-    3. Add bundle_adjustment_test.
-    
-    Instead of a single function which computes everything,
-    there is now a test for each solver configuration which
-    uses the reference solution computed by the fixture.
-    
-    Change-Id: I16a9a9a83a845a7aaf28762bcecf1a8ff5aee805
+    Change-Id: I23eaf0b46117a01440143001b74dacfa5e57cbf0
 
-commit 1936d47e213142b8bf29d3f548905116092b093d
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Tue Sep 8 23:27:42 2015 +0100
+commit 55c12d2e9569fe4aeac3ba688ac36810935a37ba
+Author: Damon Kohler <damonkohler@google.com>
+Date:   Wed Oct 5 16:30:31 2016 +0200
 
-    Revert increased inline threshold (iff Clang) to exported Ceres target.
+    Adds package.xml to support Catkin.
     
-    - Increasing the inline threshold results in very variable performance
-      improvements, and could potentially confuse users if they are trying
-      to set the inline threshold themselves.
-    - As such, we no longer export our inline threshold configuration for
-      Clang, but instead document how to change it in the FAQs.
-    
-    Change-Id: I88e2e0001e4586ba2718535845ed1e4b1a5b72bc
+    Change-Id: I8ad4d36a8b036417604a54644e0bb70dd1615feb
 
-commit a66d89dcda47cefda83758bfb9e7374bec4ce866
+commit 0bcce6565202f5476e40f12afc0a99eb44bd9dfb
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sat Sep 5 16:50:20 2015 -0700
+Date:   Mon Oct 10 23:30:42 2016 -0700
 
-    Get ready for 1.11.0RC1
+    Fix tabs in Android.mk
     
-    Update version numbers.
-    Drop CERES_VERSION_ABI macro.
-    
-    Change-Id: Ib3eadabb318afe206bb196a5221b195d26cbeaa0
+    Change-Id: Ie5ab9a8ba2b727721565e1ded242609b6df5f8f5
 
-commit 1ac3dd223c179fbadaed568ac532af4139c75d84
+commit e6ffe2667170d2fc435443685c0163396fc52d7b
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sat Sep 5 15:30:01 2015 -0700
-
-    Fix a bug in CompressedRowSparseMatrix::AppendRows
-    
-    The test for CompressedRowSparseMatrix::AppendRows tries to add
-    a matrix of size zero, which results in an invalid pointer deferencing
-    even though that pointer is never written to.
-    
-    Change-Id: I97dba37082bd5dad242ae1af0447a9178cd92027
-
-commit 67622b080c8d37b5e932120a53d4ce76b80543e5
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sat Sep 5 13:18:38 2015 -0700
-
-    Fix a pointer access bug in Ridders' algorithm.
-    
-    A pointer to an Eigen matrix was being used as an array.
-    
-    Change-Id: Ifaea14fa3416eda5953de49afb78dc5a6ea816eb
-
-commit 5742b7d0f14d2d170054623ccfee09ea214b8ed9
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Aug 26 09:24:33 2015 -0700
-
-    Improve performance of SPARSE_NORMAL_CHOLESKY + dynamic_sparsity
-    
-    The outer product computation logic in SparseNormalCholeskySolver
-    does not work well with dynamic sparsity. The overhead of computing
-    the sparsity pattern of the normal equations is only amortized if
-    the sparsity is constant. If the sparsity can change from call to call
-    SparseNormalCholeskySolver will actually be more expensive.
-    
-    For Eigen and for CXSparse we now explicitly compute the normal
-    equations using their respective matrix-matrix product routines and solve.
-    Change-Id: Ifbd8ed78987cdf71640e66ed69500442526a23d4
-
-commit d0b6cf657d6ef0dd739e958af9a5768f2eecfd35
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Fri Sep 4 18:43:41 2015 -0700
-
-    Fix incorrect detect structure test
-    
-    Change-Id: I7062f3639147c40b57947790d3b18331a39a366b
-
-commit 0e8264cc47661651a11e2dd8570c210082963545
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sat Aug 22 16:23:05 2015 +0100
-
-    Add increased inline threshold (iff Clang) to exported Ceres target.
-    
-    - When compiled with Clang, Ceres and all of the examples are compiled
-      with an increased inlining-threshold, as the default value can result
-      in poor Eigen performance.
-    - Previously, client code using Ceres would typically not use an
-      increased inlining-threshold (unless the user has specifically added
-      it themselves).  However, increasing the inlining threshold can result
-      in significant performance improvements in auto-diffed CostFunctions.
-    - This patch adds the inlining-threshold flags to the interface flags
-      for the Ceres CMake target s/t any client code using Ceres (via
-      CMake), and compiled with Clang, will now be compiled with the same
-      increased inlining threshold as used by Ceres itself.
-    
-    Change-Id: I31e8f1abfda140d22e85bb48aa57f028a68a415e
-
-commit a1b3fce9e0a4141b973f6b4dd9b08c4c13052d52
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Mon Aug 31 14:14:56 2015 +0100
-
-    Add optional export of Ceres build directory to new features list.
-    
-    Change-Id: I6f1e42b41957ae9cc98fd9dcd1969ef64c4cd96f
-
-commit e46777d8df068866ef80902401a03e29348d11ae
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Mon Aug 31 12:41:54 2015 +0100
-
-    Credit reporters of buildsystem bugs in version history.
-    
-    Change-Id: I16fe7973534cd556d97215e84268ae0b8ec4e11a
-
-commit 01548282cb620e5e3ac79a63a391cd0afd5433e4
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Aug 30 22:29:27 2015 -0700
+Date:   Mon Oct 10 22:47:08 2016 -0700
 
     Update the version history.
     
-    Change-Id: I29873bed31675e0108f1a44f53f7bc68976b7f98
+    Change-Id: I9a57b0541d6cebcb695ecb364a1d4ca04ea4e06c
 
-commit 2701429f770fce69ed0c77523fa43d7bc20ac6dc
+commit 0a4ccb7ee939ab35b22e26758401e039b033b176
+Author: David Gossow <dgossow@google.com>
+Date:   Wed Sep 7 21:38:12 2016 +0200
+
+    Relaxing Jacobian matching in Gradient Checker test.
+    
+    Any result of an arithmetic operation on floating-point matrices
+    should never be checked for strict equality with some expected
+    value, due to limited floating point precision on different machines.
+    This fixes some occurences of exact checks in the gradient checker
+    unit test that were causing problems on some platforms.
+    
+    Change-Id: I48e804c9c705dc485ce74ddfe51037d4957c8fcb
+
+commit ee44fc91b59584921c1d1c8db153fda6d633b092
+Author: Je Hyeong Hong <jhh37@outlook.com>
+Date:   Mon Oct 3 12:19:30 2016 +0100
+
+    Fix an Intel compiler error in covariance_impl.cc.
+    
+    Intel C compiler strictly asks for parallel loops with collapse to be
+    perfectly nested. Otherwise, compiling Ceres with ICC will throw an
+    error at line 348 of covariance_impl.cc.
+    
+    Change-Id: I1ecb68e89b7faf79e4153dfe6675c390d1780db4
+
+commit 9026d69d1ce1e0bcd21debd54a38246d85c7c6e4
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Aug 30 21:33:57 2015 -0700
+Date:   Thu Sep 22 17:20:14 2016 -0700
 
-    Use Eigen::Dynamic instead of ceres::DYNAMIC in numeric_diff.h
+    Allow SubsetParameterization to hold all parameters constant
     
-    Change-Id: Iccb0284a8fb4c2160748dfae24bcd595f1d4cb5c
+    1. SubsetParameterization can now be constructed such that all
+    parameters are constant. This is required for it be used as part
+    of a ProductParameterization to hold a part of parameter block
+    constant. For example, a parameter block consisting of a rotation
+    as a quaternion and a translation vector can now have a local
+    parameterization where the translation part is constant and the
+    quaternion part has a QuaternionParameterization associated with it.
+    
+    2. The check for the tangent space of a parameterization being
+    positive dimensional. We were not doing this check up till now
+    and the user could accidentally create parameterizations like this
+    and create a problem for themselves. This will ensure that even
+    though one can construct a SubsetParameterization where all
+    parameters are constant, you cannot actually use it as a local
+    parameterization for an entire parameter block. Which is how
+    it was before, but the check was inside the SubsetParameterization
+    constructor.
+    
+    3. Added more tests and refactored existing tests to be more
+    granular.
+    
+    Change-Id: Ic0184a1f30e3bd8a416b02341781a9d98e855ff7
 
-commit 4f049db7c2a3ee8cf9910c6eac96be6a28a5999c
-Author: Tal Ben-Nun <tbennun@gmail.com>
-Date:   Wed May 13 15:43:51 2015 +0300
-
-    Adaptive numeric differentiation using Ridders' method.
-    
-    This method numerically computes function derivatives in different
-    scales, extrapolating between intermediate results to conserve function
-    evaluations. Adaptive differentiation is essential to produce accurate
-    results for functions with noisy derivatives.
-    
-    Full changelist:
-    -Created a new type of NumericDiffMethod (RIDDERS).
-    -Implemented EvaluateRiddersJacobianColumn in NumericDiff.
-    -Created unit tests with f(x) = x^2 + [random noise] and
-     f(x) = exp(x).
-    
-    Change-Id: I2d6e924d7ff686650272f29a8c981351e6f72091
-
-commit 070bba4b43b4b7449628bf456a10452fd2b34d28
+commit a36693f83da7a3fd19dce473d060231d4cc97499
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Aug 25 13:37:33 2015 -0700
+Date:   Sat Sep 17 16:31:41 2016 -0700
 
-    Lint fixes from William Rucklidge
+    Update version history
     
-    Change-Id: I719e8852859c970091df842e59c44e02e2c65827
+    Change-Id: Ib2f0138ed7a1879ca3b2173e54092f7ae8dd5c9d
 
-commit 887a20ca7f02a1504e35f7cabbdfb2e0842a0b0b
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Wed Aug 12 21:41:43 2015 +0100
+commit 01e23e3d33178fdd050973666505c1080cfe04c3
+Author: David Gossow <dgossow@google.com>
+Date:   Thu Sep 8 12:22:28 2016 +0200
 
-    Build position independent code when compiling Ceres statically.
+    Removing duplicate include directive.
     
-    - Previously, when Ceres was built as a static library we did not
-      compile position independent code.  This means that the resulting
-      static library could not be linked against shared libraries, but
-      could be used by executables.
-    - To enable the use of a static Ceres library by other shared libraries
-      as reported in [1], the static library must be generated from
-      position independent code (except on Windows, where PIC does not
-      apply).
-    
-    [1] https://github.com/Itseez/opencv_contrib/pull/290#issuecomment-130389471
-    
-    Change-Id: I99388f1784ece688f91b162d009578c5c97ddaf6
+    Change-Id: I729ae6501497746d1bb615cb893ad592e16ddf3f
 
-commit 860bba588b981a5718f6b73e7e840e5b8757fe65
+commit 99b8210cee92cb972267537fb44bebf56f812d52
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Aug 25 09:43:21 2015 -0700
+Date:   Wed Sep 7 15:31:30 2016 -0700
 
-    Fix a bug in DetectStructure
+    Update Android.mk to include new files.
     
-    The logic for determing static/dynamic f-block size in
-    DetectStructure was broken in a corner case, where the very first
-    row block which was used to initialize the f_block_size contained
-    more than one f blocks of varying sizes. The way the if block
-    was structured, no iteration was performed on the remaining
-    f-blocks and the loop failed to detect that the f-block size
-    was actually changing.
-    
-    If in the remaining row blocks, there were no row blocks
-    with varying f-block sizes, the function will erroneously
-    return a static f-block size.
-    
-    Thanks to Johannes Schonberger for providing a reproduction for this
-    rather tricky corner case.
-    
-    Change-Id: Ib442a041d8b7efd29f9653be6a11a69d0eccd1ec
+    Change-Id: Id543ee7d2a65b65c868554a17f593c0a4958e873
 
-commit b0cbc0f0b0a22f01724b7b647a4a94db959cc4e4
-Author: Johannes Schönberger <hannesschoenberger@gmail.com>
-Date:   Thu Aug 20 14:21:30 2015 -0400
-
-    Reduce memory footprint of SubsetParameterization
-    
-    Change-Id: If113cb4696d5aef3e50eed01fba7a3d4143b7ec8
-
-commit ad2a99777786101411a971e59576ca533a297013
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Sat Aug 22 11:18:45 2015 +0200
-
-    Fix for reoder program unit test when built without suitesparse
-    
-    This commit fixes failure of reorder_program_test when Ceres is built without
-    any suitesparse.
-    
-    Change-Id: Ia23ae8dfd20c482cb9cd1301f17edf9a34df3235
-
-commit 4bf3868beca9c17615f72ec03730cddb3676acaa
+commit 195d8d13a6a3962ac39ef7fcdcc6add0216eb8bc
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Aug 9 15:24:45 2015 -0700
+Date:   Tue Sep 6 07:12:23 2016 -0700
 
-    Fix a bug in the Schur eliminator
+    Remove two DCHECKs from CubicHermiteSpline.
     
-    The schur eliminator treats rows with e blocks and row with
-    no e blocks separately. The template specialization logic only
-    applies to the rows with e blocks.
+    They were present as debugging checks but were causing problems
+    with the build on 32bit i386 due to numerical cancellation issues,
+    where x ~ -epsilon.
     
-    So, in cases where the rows with e-blocks have a fixed size f-block
-    but the rows without e-blocks have f-blocks of varying sizes,
-    DetectStructure will return a static f-block size, but we need to be
-    careful that we do not blindly use that static f-block size everywhere.
+    Removing these checks only changes the behaviour in Debug mode.
+    We are already handling such small negative numbers in production
+    if they occur. All that this change does is to remove the crash.
     
-    This patch fixes a bug where such care was not being taken, where
-    it was assumed that the static f-block size could be assumed for all
-    f-block sizes.
+    https://github.com/ceres-solver/ceres-solver/issues/212
     
-    A new test is added, which triggers an exception in debug mode. In
-    release mode this error does not present itself, due to a peculiarity
-    of the way Eigen works.
+    Thanks to @NeroBurner and @debalance for reporting this.
     
-    Thanks to Werner Trobin for reporting this bug.
-    
-    Change-Id: I8ae7aabf8eed8c3f9cf74b6c74d632ba44f82581
+    Change-Id: I66480e86d4fa0a4b621204f2ff44cc3ff8d01c04
 
-commit 1635ce726078f00264b89d7fb6e76fd1c2796e59
+commit 83041ac84f2d67c28559c67515e0e596a3f3aa20
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Aug 19 00:26:02 2015 -0700
+Date:   Fri Sep 2 19:10:35 2016 -0700
 
-    Fix a bug in the reordering code.
+    Fix some compiler warnings.
     
-    When the user provides an ordering which starts at a non-zero group id,
-    or has gaps in the groups, then CAMD, the algorithm used to reorder
-    the program can crash or return garbage results.
+    Reported by Richard Trieu.
     
-    The solution is to map the ordering into grouping constraints, and then
-    to re-number the groups to be contiguous using a call to
-    MapValuesToContiguousRange. This was already done for CAMD based
-    ordering for Schur type solvers, but was not done for SPARSE_NORMAL_CHOLESKY.
-    
-    Thanks to Bernhard Zeisl for not only reporting the bug but also
-    providing a reproduction.
-    
-    Change-Id: I5cfae222d701dfdb8e1bda7f0b4670a30417aa89
+    Change-Id: I202b7a7df09cc19c92582d276ccf171edf88a9fb
 
-commit 4c3f8987e7f0c51fd367cf6d43d7eb879e79589f
-Author: Simon Rutishauser <simon.rutishauser@pix4d.com>
-Date:   Thu Aug 13 11:10:44 2015 +0200
-
-    Add missing CERES_EXPORT to ComposedLoss
-    
-    Change-Id: Id7db388d41bf53e6e5704039040c9d2c6bf4c29c
-
-commit 1a740cc787b85b883a0703403a99fe49662acb79
+commit 8c4623c63a2676e79e7917bb0561f903760f19b9
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Aug 11 18:08:05 2015 -0700
+Date:   Thu Sep 1 00:05:09 2016 -0700
 
-    Add the option to use numeric differentiation to nist and more_garbow_hillstrom
+    Update ExpectArraysClose to use ExpectClose instead of EXPECT_NEAR
     
-    Change-Id: If0a5caef90b524dcf5e2567c5b681987f5459401
-
-commit ea667ede5c038d6bf3d1c9ec3dbdc5072d1beec6
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sun Aug 9 16:56:13 2015 +0100
-
-    Fix EIGENSPARSE option help s/t it displays in CMake ncurses GUI.
+    The documentation for ExpectArraysClose and its implementation
+    did not match.
     
-    - Shorten description for EIGENSPARSE to a single line, as otherwise
-      it is not correctly displayed in the ncurses CMake GUI.
-    - Made explicit in description that this results in an LGPL licensed
-      version of Ceres (this is also made clear in the CMake log output if
-      EIGENSPARSE is enabled).
+    This change makes the polynomial_test not fail on 64bit AMD builds.
     
-    Change-Id: I11678a9cbc7a817133c22128da01055a3cb8a26d
-
-commit a14ec27fb28ab2e8d7f1c9d88e41101dc6c0aab5
-Author: Richard Stebbing <richie.stebbing@gmail.com>
-Date:   Fri Aug 7 08:42:03 2015 -0700
-
-    Fix SparseNormalCholeskySolver with dynamic sparsity.
+    Thanks to Phillip Huebner for reporting this.
     
-    The previous implementation incorrectly cached the outer product matrix
-    pattern even when `dynamic_sparsity = true`.
-    
-    Change-Id: I1e58315a9b44f2f457d07c56b203ab2668bfb8a2
+    Change-Id: I503f2d3317a28d5885a34f8bdbccd49d20ae9ba2
 
-commit 3dd7fced44ff00197fa9fcb1f2081d12be728062
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sun Aug 9 16:38:50 2015 +0100
-
-    Remove legacy dependency detection macros.
-    
-    - Before the new CMake buildsystem in 1.8, Ceres used non-standard
-      HINTS variables for dependencies.  For backwards compatibility CMake
-      macros were added to translate these legacy variables into the new
-      (standard) variables.
-    - As it has now been multiple releases since the legacy variables
-      were used and they no longer appear in any of the documentation
-      support for them has now expired.
-    
-    Change-Id: I2cc72927ed711142ba7943df334ee008181f86a2
-
-commit 8b32e258ccce1eed2a50bb002add16cad13aff1e
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sun Aug 9 15:42:39 2015 +0100
-
-    Fix failed if() condition expansion if gflags is not found.
-    
-    - If a CMake-ified version of gflags is not detected, then
-      gflags_LIBRARIES is not set and the TARGET condition within a
-      multiconditional if() statement prevents configuration.
-    
-    Change-Id: Ia92e97523d7a1478ab36539726b9540d7cfee5d0
-
-commit cc8d47aabb9d63ba4588ba7295058a6191c2df83
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sun Aug 9 15:18:42 2015 +0100
-
-    Update all CMake to lowercase function name style.
-    
-    - Updated to new CMake style where function names are all lowercase,
-      this will be backwards compatible as CMake function names are
-      case insensitive.
-    - Updated using Emacs' M-x unscreamify-cmake-buffer.
-    
-    Change-Id: If7219816f560270e59212813aeb021353a64a0e2
-
-commit 1f106904c1f47460c35ac03258d6506bb2d60838
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sun Aug 9 14:55:02 2015 +0100
-
-    Update minimum iOS version to 7.0 for shared_ptr/unordered_map.
-    
-    - In order to correctly detect shared_ptr (& unordered_map)
-      the iOS version must be >= 7.0 (Xcode 5.0+).  This only affects the
-      SIMULATOR(64) platform builds, as the OS (device) build uses the
-      latest SDK which is now likely 8.0+.
-    
-    Change-Id: Iefec8f03408b8cdc7a495f442ebba081f800adb0
-
-commit 16ecd40523a408e7705c9fdb0e159cef2007b8ab
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sat Aug 8 17:32:31 2015 +0100
-
-    Fix bug in gflags' <= 2.1.2 exported CMake configuration.
-    
-    - gflags <= 2.1.2 has a bug in its exported gflags-config.cmake:
-      https://github.com/gflags/gflags/issues/110 whereby it sets
-      gflags_LIBRARIES to a non-existent 'gflags' target.
-    - This causes linker errors if gflags is installed in a non-standard
-      location (as otherwise CMake resolves gflags to -lgflags which
-      links if gflags is installed somewhere on the current path).
-    - We now check for this case, and search for the correct gflags imported
-      target and update gflags_LIBRARIES to reference it if found, otherwise
-      proceed on to the original manual search to try to find gflags.
-    
-    Change-Id: Iceccc3ee53c7c2010e41cc45255f966e7b13d526
-
-commit 56be8de007dfd65ed5a31c795eb4a08ad765f411
-Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Thu Jun 25 21:31:00 2015 +0100
-
-    Add docs for new CXX11 option & mask option for Windows.
-    
-    - The CXX11 option has no effect on Windows, as there, any new C++11
-      features are enabled by default, as such to avoid confusion we only
-      present the option for non-Windows.
-    
-    Change-Id: I38925ae3bb8c16682d404468ba95c611a519b9b9
-
-commit cf863b6415ac4dbf3626e70adeac1ac0f3d87ee5
+commit 2fd39fcecb47eebce727081c9ffb8edf86c33669
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Aug 6 14:52:18 2015 -0700
+Date:   Thu Sep 1 16:05:06 2016 -0700
 
-    Remove the spec file needed for generating RPMs.
+    FindWithDefault returns by value rather than reference.
     
-    Now that ceres is part of RawHide, there is no need to carry
-    this spec file with the ceres distribution.
+    Returning by reference leads to lifetime issues with the default
+    value which may go out of scope by the time it is used.
     
-    Change-Id: Icc400b9874ba05ba05b353e2658f1de94c72299e
+    Thanks to @Ardavel for reporting this, as this causes graph_test
+    to fail on VS2015x64.
+    
+    https://github.com/ceres-solver/ceres-solver/issues/216
+    
+    Change-Id: I596481219cfbf7622d49a6511ea29193b82c8ba3
 
-commit 560940fa277a469c1ab34f1aa303ff1af9c3cacf
+commit 716f049a7b91a8f3a4632c367d9534d1d9190a81
+Author: Mike Vitus <vitus@google.com>
+Date:   Wed Aug 31 13:38:30 2016 -0700
+
+    Convert pose graph 2D example to glog and gflags.
+    
+    Change-Id: I0ed75a60718ef95199bb36f33d9eb99157d11d40
+
+commit 46c5ce89dda308088a5fdc238d0c126fdd2c2b58
+Author: David Gossow <dgossow@google.com>
+Date:   Wed Aug 31 18:40:57 2016 +0200
+
+    Fix compiler errors on some systems
+    
+    This fixes some signed-unsigned comparisons and a missing header
+    include.
+    
+    Change-Id: Ieb2bf6e905faa74851bc4ac4658d2f1da24b6ecc
+
+commit b102d53e1dd7dab132e58411183b6fffc2090590
+Author: David Gossow <dgossow@google.com>
+Date:   Wed Aug 31 10:21:20 2016 +0200
+
+    Gradient checker multithreading bugfix.
+    
+    This is a follow-up on c/7470. GradientCheckingCostFunction calls
+    callback_->SetGradientErrorDetected() in its Evaluate method,
+    which will run in multiple threads simultaneously when enabling
+    this option in the solver. Thus, the string append operation
+    inside that method has to be protected by a mutex.
+    
+    Change-Id: I314ef1df2be52595370d9af05851bf6da39bb45e
+
+commit 79a28d1e49af53f67af7f3387d07e7c9b7339433
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sat Jul 11 22:21:31 2015 -0700
+Date:   Wed Aug 31 06:47:45 2016 -0700
 
-    A refactor of the cubic interpolation code
+    Rename a confusingly named member of Solver::Options
     
-    1. Push the boundary handling logic into the underlying array
-    object. This has two very significant impacts:
+    Solver::Options::numeric_derivative_relative_step_size to
+    Solver::Options::gradient_check_numeric_derivative_relative_step_size
     
-    a. The interpolation code becomes extremely simple to write
-    and to test.
-    
-    b. The user has more flexibility in implementing how out of bounds
-    values are handled. We provide one default implementation.
-    
-    Change-Id: Ic2f6cf9257ce7110c62e492688e5a6c8be1e7df2
+    Change-Id: Ib89ae3f87e588d4aba2a75361770d2cec26f07aa
 
-commit dfdf19e111c2b0e6daeb6007728ec2f784106d49
+commit 358ae741c8c4545b03d95c91fa546d9a36683677
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Aug 5 15:20:57 2015 -0700
+Date:   Wed Aug 31 06:58:41 2016 -0700
 
-    Lint cleanup from Jim Roseborough
+    Note that Problem::Evaluate cannot be called from an IterationCallback
     
-    Change-Id: Id6845c85644d40e635ed196ca74fc51a387aade4
+    Change-Id: Ieabdc2d40715e6b547ab22156ba32e9c8444b7ed
 
-commit 7444f23ae245476a7ac8421cc2f88d6947fd3e5f
+commit 44044e25b14d7e623baae4505a17c913bdde59f8
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Aug 3 12:22:44 2015 -0700
+Date:   Wed Aug 31 05:50:58 2016 -0700
 
-    Fix a typo in small_blas.h
+    Update the NumTraits for Jets
     
-    The reason this rather serious looking typo has not
-    caused any problems uptil now is because NUM_ROW_B is
-    computed but never actually used.
+    1. Use AVX if EIGEN_VECTORIZE_AVX is defined.
+    2. Make the cost of division same as the cost of multiplication.
     
-    Thanks to Werner Trobin for pointing this out.
+    These are updates to the original numtraits update needed for eigen 3.3
+    that Shaheen Gandhi sent out.
     
-    Change-Id: Id2b4d9326ec21baec8a85423e3270aefbafb611e
+    Change-Id: Ic1e3ed7d05a659c7badc79a894679b2dd61c51b9
 
-commit 5a48b92123b30a437f031eb24b0deaadc8f60d26
+commit 4b6ad5d88e45ce8638c882d3e8f08161089b6dba
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sat Aug 27 23:21:55 2016 -0700
+
+    Use ProductParameterization in bundle_adjuster.cc
+    
+    Previously, when using a quaternion to parameterize the camera
+    orientation, the camera parameter block was split into two
+    parameter blocks. One for the rotation and another for the
+    translation and intrinsics. This was to enable the use of the
+    Quaternion parameterization.
+    
+    Now that we have a ProductParameterization which allows us
+    to compose multiple parameterizations, this is no longer needed
+    and we use a size 10 parameter block instead.
+    
+    This leads to a more than 2x improvements in the linear solver time.
+    
+    Change-Id: I78b8f06696f81fee54cfe1a4ae193ee8a5f8e920
+
+commit bfc916cf1cf753b85c1e2ac037e2019ee891f6f9
+Author: Shaheen Gandhi <visigoth@gmail.com>
+Date:   Thu Aug 4 12:10:14 2016 -0700
+
+    Allow ceres to be used with the latest version of Eigen
+    
+    Change-Id: Ief3b0f6b405484ec04ecd9ab6a1e1e5409a594c2
+
+commit edbd48ab502aa418ad9700ee5c3ada5f9268b90a
 Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sat Jul 4 17:59:52 2015 +0100
+Date:   Sun Jul 10 14:13:51 2016 +0100
 
-    Export Ceres build directory into local CMake package registry.
+    Enable support for OpenMP in Clang if detected.
     
-    - Optionally use CMake's export() functionality to export the Ceres
-      build directory as a package into the local CMake package registry.
-    - This enables the detection & use of Ceres from CMake *without*
-      requiring that Ceres be installed.
+    - Previously we disabled OpenMP if Clang was detected, as it did not
+      support it.  However as of Clang 3.8 (and potentially Xcode 8) OpenMP
+      is supported.
     
-    Change-Id: Ib5a7588446f490e1b405878475b6b1dd13accd1f
+    Change-Id: Ia39dac9fe746f1fc6310e08553f85f3c37349707
 
-commit d9790e77894ea99d38137d359d6118315b2d1601
+commit f6df6c05dd83b19fa90044106ebaca40957998ae
+Author: Mike Vitus <vitus@google.com>
+Date:   Thu Aug 18 19:27:43 2016 -0700
+
+    Add an example for modeling and solving a 3D pose graph SLAM problem.
+    
+    Change-Id: I750ca5f20c495edfee5f60ffedccc5bd8ba2bb37
+
+commit ac3b8e82175122e38bafaaa9cd419ba3cee11087
+Author: David Gossow <dgossow@google.com>
+Date:   Fri Apr 29 16:07:11 2016 +0200
+
+    Gradient checking cleanup and local parameterization bugfix
+    
+    Change the Ceres gradient checking API to make is useful for
+    unit testing, clean up code duplication and fix interaction between
+    gradient checking and local parameterizations.
+    
+    There were two gradient checking implementations, one being used
+    when using the check_gradients flag in the Solver, the other
+    being a standalone class. The standalone version was restricted
+    to cost functions with fixed parameter sizes at compile time, which
+    is being lifted here. This enables it to be used inside the
+    GradientCheckingCostFunction as well.
+    
+    In addition, this installs new hooks in the Solver to ensure
+    that Solve will fail if any incorrect gradients are detected. This
+    way, you can set the check_gradient flags to true and detect
+    errors in an automated way, instead of just printing error information
+    to the log. The error log is now also returned in the Solver summary
+    instead of being printed directly. The user can then decide what to
+    do with it. The existing hooks for user callbacks are used for
+    this purpose to keep the internal API changes minimal and non-invasive.
+    
+    The last and biggest change is the way the the interaction between
+    local parameterizations and the gradient checker works. Before,
+    local parameterizations would be ignored by the checker. However,
+    if a cost function does not compute its Jacobian along the null
+    space of the local parameterization, this wil not have any effect
+    on the solver, but would result in a gradient checker error.
+    With this change, the Jacobians are multiplied by the Jacobians
+    of the respective local parameterization and thus being compared
+    in the tangent space only.
+    
+    The typical use case for this are quaternion parameters, where
+    a cost function will typically assume that the quaternion is
+    always normalized, skipping the correct computation of the Jacobian
+    along the normal to save computation cost.
+    
+    Change-Id: I5e1bb97b8a899436cea25101efe5011b0bb13282
+
+commit d4264ec10d9a270b53b5db86c0245ae8cbd2cf18
+Author: Mike Vitus <vitus@google.com>
+Date:   Wed Aug 17 13:39:05 2016 -0700
+
+    Add a quaternion local parameterization for Eigen's quaternion element convention.
+    
+    Change-Id: I7046e8b24805313c5fb6a767de581d0054fcdb83
+
+commit fd7cab65ef30fbc33612220abed52dd5073413c4
+Author: Mike Vitus <vitus@google.com>
+Date:   Wed Aug 10 09:29:12 2016 -0700
+
+    Fix typos in the pose graph 2D example.
+    
+    Change-Id: Ie024ff6b6cab9f2e8011d21121a91931bd987bd1
+
+commit 375dc348745081f89693607142d8b6744a7fb6b4
+Author: Mike Vitus <vitus@google.com>
+Date:   Wed Aug 3 18:51:16 2016 -0700
+
+    Remove duplicate entry for the NIST example in the docs.
+    
+    Change-Id: Ic4e8f9b68b77b5235b5c96fe588cc56866dab759
+
+commit f554681bf22d769abc12dd6d346ef65f9bb22431
+Author: Mike Vitus <vitus@google.com>
+Date:   Mon Jul 25 18:30:48 2016 -0700
+
+    Add an example for modeling and solving a 2D pose graph SLAM problem.
+    
+    Change-Id: Ia89b12af7afa33e7b1b9a68d69cf2a0b53416737
+
+commit e1bcc6e0f51512f43aa7bfb7b0d62f7ac1d0cd4b
 Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Jul 12 19:39:47 2015 -0700
+Date:   Wed May 18 07:52:48 2016 -0700
 
-    Add ProductParameterization
+    Add additional logging for analyzing orderings
     
-    Often a parameter block is the Cartesian product of a number of
-    manifolds. For example, a rigid transformation SE(3) = SO(3) x R^3
-    In such cases, where you have the local parameterization
-    of the individual manifolds available,
-    ProductParameterization can be used to construct a local
-    parameterization of the cartesian product.
-    
-    Change-Id: I4b5bcbd2407a38739c7725b129789db5c3d65a20
+    Change-Id: Ic68d2959db35254e2895f11294fb25de4d4b8a81
 
-commit 7b4fb69dad49eaefb5d2d47ef0d76f48ad7fef73
+commit 16980b4fec846f86910c18772b8145bcb55f4728
+Author: Mike Vitus <vitus@google.com>
+Date:   Fri Jul 15 13:37:49 2016 -0700
+
+    Delete the remove_definitons command from sampled_functions
+    CMakeLists.txt because it will be inherited from the top level examples
+    CMakeLists.txt.
+    
+    Change-Id: I25593587df0ae84fd8ddddc589bc2a13f3777427
+
+commit a04490be97800e78e59db5eb67fa46226738ffba
+Author: Mike Vitus <vitus@google.com>
+Date:   Thu Jul 14 10:10:13 2016 -0700
+
+    Add readme for the sampled_function example.
+    
+    Change-Id: I9468b6a7b9f2ffdd2bf9f0dd1f4e1d5f894e540c
+
+commit ff11d0e63d4678188e8cabd40a532ba06912fe5a
 Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Sun Jun 28 21:43:46 2015 +0100
+Date:   Wed Jun 29 09:31:45 2016 +0100
 
-    Cleanup FindGflags & use installed gflags CMake config if present.
+    Use _j[0,1,n]() Bessel functions on MSVC to avoid deprecation errors.
     
-    - Split out gflags namespace detection methods:
-      check_cxx_source_compiles() & regex, into separate functions.
-    - Use installed/exported gflags CMake configuration (present for
-      versions >= 2.1) if available, unless user expresses a preference not
-      to, or specifies search directories, in which case fall back to manual
-      search for components.
-    -- Prefer installed gflags CMake configurations over exported gflags
-       build directories on all OSs.
-    - Remove custom version of check_cxx_source_compiles() that attempted
-      to force the build type of the test project.  This only worked for
-      NMake on Windows, not MSVC as msbuild ignored our attempts to force
-      the build type.  Now we always use the regex method on Windows if
-      we cannot find an installed gflags CMake configuration which works
-      even on MSVC by bypassing msbuild.
-    - Add default search paths for gflags on Windows.
+    - Microsoft deprecated the POSIX Bessel functions: j[0,1,n]() in favour
+      of _j[0,1,n](), it appears since at least MSVC 2005:
+      https://msdn.microsoft.com/en-us/library/ms235384(v=vs.100).aspx.
+    - As this occurs in jet.h (templated public header), although Ceres
+      suppresses the warning when it itself is built (to suppress a warning
+      about the insecurity of using std::copy), it will crop up again in
+      client code (without this fix) unless it is explicitly suppressed
+      there also.
+    - Raised as Issue #190:
+      https://github.com/ceres-solver/ceres-solver/issues/190.
     
-    Change-Id: I083b267d97a7a5838a1314f3d41a61ae48d5a2d7
+    Change-Id: If7ac5dbb856748f9900be93ec0452a40c0b00524
 
-commit b3063c047906d4a44503dc0187fdcbbfcdda5f38
+commit 8ea86e1614cf77644ce782e43cde6565a54444f5
+Author: Nicolai Wojke <nwojke@uni-koblenz.de>
+Date:   Mon Apr 25 14:24:41 2016 +0200
+
+    Fix: Copy minimizer option 'is_silent' to LinSearchDirection::Options
+    
+    Change-Id: I23b4c3383cad30033c539ac93883d77c8dd4ba1a
+
+commit 080ca4c5f2ac42620971a07f06d2d13deb7befa8
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun Apr 24 22:46:54 2016 -0700
+
+    Fix typos in users.rst
+    
+    Change-Id: Ifdc67638a39403354bc9589f42a1b42cb9984dd2
+
+commit 21ab397dc55335c147fdd795899b1f8981037b09
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun Apr 24 21:13:00 2016 -0700
+
+    Make some Jet comparisons exact.
+    
+    Change-Id: Ia08c72f3b8779df96f5c0d5a954b2c0a1dd3a061
+
+commit ee40f954cf464087eb8943abf4d9db8917a33fbe
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun Apr 24 07:49:55 2016 -0700
+
+    Add colmap to users.rst
+    
+    Change-Id: I452a8c1dc6a3bc55734b2fc3a4002ff7939ba863
+
+commit 9665e099022bd06e53b0779550e9aebded7f274d
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Apr 18 06:00:58 2016 -0700
+
+    Fix step norm evaluation in LineSearchMinimizer
+    
+    TrustRegionMinimizer evaluates the size of the step
+    taken in the ambient space, where as the LineSearchMinimizer
+    was using the norm in the tangent space. This change fixes
+    this discrepancy.
+    
+    Change-Id: I9fef64cbb5622c9769c0413003cfb1dc6e89cfa3
+
+commit 620ca9d0668cd4a00402264fddca3cf6bd2e7265
 Author: Alex Stewart <alexs.mac@gmail.com>
-Date:   Wed Jul 15 20:56:56 2015 +0100
+Date:   Mon Apr 18 15:14:11 2016 +0100
 
-    Add default glog install location on Windows to search paths.
+    Remove use of -Werror when compiling Ceres.
     
-    Change-Id: I083d368be48986e6780c11460f5a07b2f3b6c900
+    - As noted in Issue #193 (in that case for GCC 6), Ceres' use of -Werror
+      when compiling on *nix can prevent compilation on new compilers that
+      add new warnings and there is an inevitable delay between new compiler
+      versions and Ceres versions.
+    - Removing the explicit use of -Werror, and relying on indirect
+      verification by maintainers should fix build issues for Ceres releases
+      on newer compilers.
+    
+    Change-Id: I38e9ade28d4a90e53dcd918a7d470f1a1debd7b4
+
+commit 0c63bd3efbf1d41151c9fab41d4b77dc64c572c8
+Author: Mike Vitus <vitus@google.com>
+Date:   Thu Apr 14 10:25:52 2016 -0700
+
+    Add floor and ceil functions to the Jet implementation.
+    
+    Change-Id: I72ebfb0e9ade2964dbf3a014225ead345d5ae352
+
+commit 9843f3280356c158d23c06a16085c6c5ba35e053
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Mon Mar 7 21:24:32 2016 +0000
+
+    Report Ceres compile options as components in find_package().
+    
+    - Users can now specify particular components from Ceres, such as
+      SuiteSparse support) that must be present in a detected version of
+      Ceres in order for it to be reported as found by find_package().
+    - This allows users to specify for example that they require a version
+      of Ceres with SuiteSparse support at configure time, rather than
+      finding out only at run time that Ceres was not compiled with the
+      options they require.
+    - The list of available components are built directly from the Ceres
+      compile options.
+    - The meta-module SparseLinearAlgebraLibrary is present if at least
+      one sparse linear algebra backend is available.
+    
+    Change-Id: I65f1ddfd7697e6dd25bb4ac7e54f5097d3ca6266
+
+commit e4d4d88bbe51b9cc0f7450171511abbea0779790
+Author: Timer <linyicx@126.com>
+Date:   Fri Apr 8 15:42:18 2016 +0800
+
+    Fix a spelling error in nnls_modeling.rst
+    
+    Change-Id: I341d901d3df993bc5397ed15e6cb330b0c38fd72
+
+commit 5512f58536e1be0d92010d8325b606e7b4733a08
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Apr 7 12:03:16 2016 -0700
+
+    Only use collapse() directive with OpenMP 3.0 or higher
+    
+    Change-Id: Icba544c0494763c57eb6dc61e98379312ca15972
+
+commit d61e94da5225217cab7b4f93b72f97055094681f
+Author: Thomas Schneider <schneith@ethz.ch>
+Date:   Wed Apr 6 10:40:29 2016 +0200
+
+    Add IsParameterBlockConstant to the ceres::Problem class.
+    
+    Change-Id: I7d0e828e81324443209c17fa54dd1d37605e5bfe
+
+commit 77d94b34741574e958a417561702d6093fba87fb
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Sun Feb 14 16:54:03 2016 +0000
+
+    Fix install path for CeresConfig.cmake to be architecture-aware.
+    
+    - Previously we were auto-detecting a "64" suffix for the install path
+      for the Ceres library on non-Debian/Arch Linux distributions, but
+      we were installing CeresConfig.cmake to an architecture independent
+      location.
+    - We now install CeresConfig.cmake to lib${LIB_SUFFIX}/cmake/Ceres.
+    - Also make LIB_SUFFIX visible to the user in the CMake GUI s/t they can
+      easily override the auto-detected value if desired.
+    - Reported by jpgr87@gmail.com as Issue #194.
+    
+    Change-Id: If126260d7af685779487c01220ae178ac31f7aea

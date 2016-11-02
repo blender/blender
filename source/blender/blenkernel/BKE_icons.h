@@ -114,6 +114,7 @@ struct PreviewImage *BKE_previewimg_cached_thumbnail_read(
         const char *name, const char *path, const int source, bool force_update);
 
 void BKE_previewimg_cached_release(const char *name);
+void BKE_previewimg_cached_release_pointer(struct PreviewImage *prv);
 
 #define ICON_RENDER_DEFAULT_HEIGHT 32
 
