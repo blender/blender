@@ -113,11 +113,6 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob, B
 			node.addMatrix("transform",d_obmat);
 			break;
 		}
-		case BC_TRANSFORMATION_TYPE_BOTH:
-		{
-			node.addMatrix("transform",d_obmat);
-			/* fall-through */
-		}
 		case BC_TRANSFORMATION_TYPE_TRANSROTLOC:
 		{
 			float loc[3], rot[3], scale[3];
