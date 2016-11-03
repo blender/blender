@@ -4023,9 +4023,6 @@ install_OTHER() {
   fi
 
   if [ "$_do_compile_llvm" = true ]; then
-    install_packages_DEB libffi-dev
-    # LLVM can't find the debian ffi header dir
-    _FFI_INCLUDE_DIR=`dpkg -L libffi-dev | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
     PRINT ""
     compile_LLVM
     have_llvm=true
@@ -4044,7 +4041,6 @@ install_OTHER() {
 
   if [ "$_do_compile_osl" = true ]; then
     if [ "$have_llvm" = true ]; then
-      install_packages_DEB flex bison libtbb-dev
       PRINT ""
       compile_OSL
     else
@@ -4063,7 +4059,6 @@ install_OTHER() {
   fi
 
   if [ "$_do_compile_osd" = true ]; then
-    install_packages_DEB flex bison libtbb-dev
     PRINT ""
     compile_OSD
   fi
@@ -4080,10 +4075,6 @@ install_OTHER() {
     fi
 
     if [ "$_do_compile_collada" = true ]; then
-      install_packages_DEB libpcre3-dev
-      # Find path to libxml shared lib...
-      _XML2_LIB=`dpkg -L libxml2-dev | grep -e ".*/libxml2.so"`
-      # No package
       PRINT ""
       compile_OpenCOLLADA
     fi
