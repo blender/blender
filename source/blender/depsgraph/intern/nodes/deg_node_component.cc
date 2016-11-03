@@ -31,7 +31,6 @@
 #include "intern/nodes/deg_node_component.h"
 
 #include <stdio.h>
-#include <string.h>
 
 extern "C" {
 #include "BLI_utildefines.h"

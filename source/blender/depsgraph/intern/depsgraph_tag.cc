@@ -31,7 +31,6 @@
  */
 
 #include <stdio.h>
-#include <cstring>
 #include <queue>
 
 extern "C" {
