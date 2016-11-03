@@ -1778,7 +1778,8 @@ void BKE_library_make_local(
 					it->link = NULL;
 					do_loop = true;
 				}
-				else {  /* Only used by linked data, potential candidate to ugly lib-only dependency cycles... */
+				/* Only used by linked data, potential candidate to ugly lib-only dependency cycles... */
+				else if ((id->tag & LIB_TAG_DOIT) == 0) {  /* Check TAG_DOIT to avoid adding same ID several times... */
 					/* Note that we store the node, not directly ID pointer, that way if it->link is set to NULL
 					 * later we can skip it in lib-dependency cycles search later. */
 					BLI_linklist_prepend_arena(&linked_loop_candidates, it, linklist_mem);
@@ -1821,6 +1822,7 @@ void BKE_library_make_local(
 			BKE_libblock_unlink(bmain, id, false, false);
 			BKE_libblock_free(bmain, id);
 #endif
+			((LinkNode *)it->link)->link = NULL;  /* Not strictly necessary, but safer (see T49903)... */
 			it->link = NULL;
 		}
 	}
