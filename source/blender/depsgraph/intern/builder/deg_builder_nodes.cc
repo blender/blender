@@ -831,7 +831,7 @@ void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *ob)
 
 	/* Rebuild pose if not up to date. */
 	if (ob->pose == NULL || (ob->pose->flag & POSE_RECALC)) {
-		BKE_pose_rebuild(ob, arm);
+		BKE_pose_rebuild_ex(ob, arm, false);
 		/* XXX: Without this animation gets lost in certain circumstances
 		 * after loading file. Need to investigate further since it does
 		 * not happen with simple scenes..
