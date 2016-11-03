@@ -190,11 +190,14 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
         eDepsOperation_Type optype,
         DepsEvalOperationCb op,
         eDepsOperation_Code opcode,
-        const string &name)
+        const string &name,
+        int name_tag)
 {
-	OperationDepsNode *op_node = comp_node->has_operation(opcode, name);
+	OperationDepsNode *op_node = comp_node->has_operation(opcode,
+	                                                      name,
+	                                                      name_tag);
 	if (op_node == NULL) {
-		op_node = comp_node->add_operation(optype, op, opcode, name);
+		op_node = comp_node->add_operation(optype, op, opcode, name, name_tag);
 		m_graph->operations.push_back(op_node);
 	}
 	else {
@@ -215,10 +218,11 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
         eDepsOperation_Type optype,
         DepsEvalOperationCb op,
         eDepsOperation_Code opcode,
-        const string &name)
+        const string &name,
+        int name_tag)
 {
 	ComponentDepsNode *comp_node = add_component_node(id, comp_type, comp_name);
-	return add_operation_node(comp_node, optype, op, opcode, name);
+	return add_operation_node(comp_node, optype, op, opcode, name, name_tag);
 }
 
 OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
@@ -227,22 +231,32 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
         eDepsOperation_Type optype,
         DepsEvalOperationCb op,
         eDepsOperation_Code opcode,
-        const string& name)
+        const string& name,
+        int name_tag)
 {
-	return add_operation_node(id, comp_type, "", optype, op, opcode, name);
+	return add_operation_node(id,
+	                          comp_type,
+	                          "",
+	                          optype,
+	                          op,
+	                          opcode,
+	                          name,
+	                          name_tag);
 }
 
 bool DepsgraphNodeBuilder::has_operation_node(ID *id,
                                               eDepsNode_Type comp_type,
                                               const char *comp_name,
                                               eDepsOperation_Code opcode,
-                                              const string &name)
+                                              const string &name,
+                                              int name_tag)
 {
 	return find_operation_node(id,
 	                           comp_type,
 	                           comp_name,
 	                           opcode,
-	                           name) != NULL;
+	                           name,
+	                           name_tag) != NULL;
 }
 
 OperationDepsNode *DepsgraphNodeBuilder::find_operation_node(
@@ -250,19 +264,21 @@ OperationDepsNode *DepsgraphNodeBuilder::find_operation_node(
         eDepsNode_Type comp_type,
         const char *comp_name,
         eDepsOperation_Code opcode,
-        const string &name)
+        const string &name,
+        int name_tag)
 {
 	ComponentDepsNode *comp_node = add_component_node(id, comp_type, comp_name);
-	return comp_node->has_operation(opcode, name);
+	return comp_node->has_operation(opcode, name, name_tag);
 }
 
 OperationDepsNode *DepsgraphNodeBuilder::find_operation_node(
         ID *id,
         eDepsNode_Type comp_type,
         eDepsOperation_Code opcode,
-        const string& name)
+        const string& name,
+        int name_tag)
 {
-	return find_operation_node(id, comp_type, "", opcode, name);
+	return find_operation_node(id, comp_type, "", opcode, name, name_tag);
 }
 
 /* **** Build functions for entity nodes **** */
@@ -620,12 +636,17 @@ OperationDepsNode *DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcu)
 	OperationDepsNode *driver_op = find_operation_node(id,
 	                                                   DEPSNODE_TYPE_PARAMETERS,
 	                                                   DEG_OPCODE_DRIVER,
-	                                                   deg_fcurve_id_name(fcu));
+	                                                   fcu->rna_path,
+	                                                   fcu->array_index);
 
 	if (driver_op == NULL) {
-		driver_op = add_operation_node(id, DEPSNODE_TYPE_PARAMETERS,
-		                               DEPSOP_TYPE_EXEC, function_bind(BKE_animsys_eval_driver, _1, id, fcu),
-		                               DEG_OPCODE_DRIVER, deg_fcurve_id_name(fcu));
+		driver_op = add_operation_node(id,
+		                               DEPSNODE_TYPE_PARAMETERS,
+		                               DEPSOP_TYPE_EXEC,
+		                               function_bind(BKE_animsys_eval_driver, _1, id, fcu),
+		                               DEG_OPCODE_DRIVER,
+		                               fcu->rna_path,
+		                               fcu->array_index);
 	}
 
 	/* tag "scripted expression" drivers as needing Python (due to GIL issues, etc.) */

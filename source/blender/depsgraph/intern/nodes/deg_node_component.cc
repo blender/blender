@@ -138,9 +138,11 @@ OperationDepsNode *ComponentDepsNode::find_operation(OperationIDKey key) const
 	}
 }
 
-OperationDepsNode *ComponentDepsNode::find_operation(eDepsOperation_Code opcode, const string &name) const
+OperationDepsNode *ComponentDepsNode::find_operation(eDepsOperation_Code opcode,
+                                                     const string &name,
+                                                     int name_tag) const
 {
-	OperationIDKey key(opcode, name);
+	OperationIDKey key(opcode, name, name_tag);
 	return find_operation(key);
 }
 
@@ -150,21 +152,26 @@ OperationDepsNode *ComponentDepsNode::has_operation(OperationIDKey key) const
 }
 
 OperationDepsNode *ComponentDepsNode::has_operation(eDepsOperation_Code opcode,
-                                                    const string &name) const
+                                                    const string &name,
+                                                    int name_tag) const
 {
-	OperationIDKey key(opcode, name);
+	OperationIDKey key(opcode, name, name_tag);
 	return has_operation(key);
 }
 
-OperationDepsNode *ComponentDepsNode::add_operation(eDepsOperation_Type optype, DepsEvalOperationCb op, eDepsOperation_Code opcode, const string &name)
+OperationDepsNode *ComponentDepsNode::add_operation(eDepsOperation_Type optype,
+                                                    DepsEvalOperationCb op,
+                                                    eDepsOperation_Code opcode,
+                                                    const string &name,
+                                                    int name_tag)
 {
-	OperationDepsNode *op_node = has_operation(opcode, name);
+	OperationDepsNode *op_node = has_operation(opcode, name, name_tag);
 	if (!op_node) {
 		DepsNodeFactory *factory = deg_get_node_factory(DEPSNODE_TYPE_OPERATION);
 		op_node = (OperationDepsNode *)factory->create_node(this->owner->id, "", name);
 
 		/* register opnode in this component's operation set */
-		OperationIDKey *key = OBJECT_GUARDED_NEW(OperationIDKey, opcode, name);
+		OperationIDKey *key = OBJECT_GUARDED_NEW(OperationIDKey, opcode, name, name_tag);
 		BLI_ghash_insert(operations_map, key, op_node);
 
 		/* set as entry/exit node of component (if appropriate) */
