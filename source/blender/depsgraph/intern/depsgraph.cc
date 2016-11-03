@@ -32,8 +32,6 @@
 
 #include "intern/depsgraph.h" /* own include */
 
-#include <string.h>
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
@@ -116,7 +114,7 @@ static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
                                                const PropertyRNA *prop,
                                                ID **id,
                                                eDepsNode_Type *type,
-                                               string *subdata)
+                                               const char **subdata)
 {
 	if (!ptr->type)
 		return false;
@@ -232,7 +230,7 @@ DepsNode *Depsgraph::find_node_from_pointer(const PointerRNA *ptr,
 {
 	ID *id;
 	eDepsNode_Type type;
-	string name;
+	const char *name;
 
 	/* Get querying conditions. */
 	if (pointer_to_id_node_criteria(ptr, prop, &id)) {
@@ -240,8 +238,9 @@ DepsNode *Depsgraph::find_node_from_pointer(const PointerRNA *ptr,
 	}
 	else if (pointer_to_component_node_criteria(ptr, prop, &id, &type, &name)) {
 		IDDepsNode *id_node = find_id_node(id);
-		if (id_node)
+		if (id_node != NULL) {
 			return id_node->find_component(type, name);
+		}
 	}
 
 	return NULL;
