@@ -131,8 +131,7 @@ RootDepsNode *DepsgraphNodeBuilder::add_root_node()
 
 IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id)
 {
-	const char *idtype_name = BKE_idcode_to_name(GS(id->name));
-	return m_graph->add_id_node(id, string(id->name + 2) + "[" + idtype_name + "]");
+	return m_graph->add_id_node(id, id->name);
 }
 
 TimeSourceDepsNode *DepsgraphNodeBuilder::add_time_source(ID *id)
