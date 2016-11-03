@@ -190,11 +190,11 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
         eDepsOperation_Type optype,
         DepsEvalOperationCb op,
         eDepsOperation_Code opcode,
-        const string &description)
+        const string &name)
 {
-	OperationDepsNode *op_node = comp_node->has_operation(opcode, description);
+	OperationDepsNode *op_node = comp_node->has_operation(opcode, name);
 	if (op_node == NULL) {
-		op_node = comp_node->add_operation(optype, op, opcode, description);
+		op_node = comp_node->add_operation(optype, op, opcode, name);
 		m_graph->operations.push_back(op_node);
 	}
 	else {
@@ -215,10 +215,10 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
         eDepsOperation_Type optype,
         DepsEvalOperationCb op,
         eDepsOperation_Code opcode,
-        const string &description)
+        const string &name)
 {
 	ComponentDepsNode *comp_node = add_component_node(id, comp_type, comp_name);
-	return add_operation_node(comp_node, optype, op, opcode, description);
+	return add_operation_node(comp_node, optype, op, opcode, name);
 }
 
 OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
@@ -227,22 +227,22 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
         eDepsOperation_Type optype,
         DepsEvalOperationCb op,
         eDepsOperation_Code opcode,
-        const string& description)
+        const string& name)
 {
-	return add_operation_node(id, comp_type, "", optype, op, opcode, description);
+	return add_operation_node(id, comp_type, "", optype, op, opcode, name);
 }
 
 bool DepsgraphNodeBuilder::has_operation_node(ID *id,
                                               eDepsNode_Type comp_type,
                                               const char *comp_name,
                                               eDepsOperation_Code opcode,
-                                              const string &description)
+                                              const string &name)
 {
 	return find_operation_node(id,
 	                           comp_type,
 	                           comp_name,
 	                           opcode,
-	                           description) != NULL;
+	                           name) != NULL;
 }
 
 OperationDepsNode *DepsgraphNodeBuilder::find_operation_node(
@@ -250,19 +250,19 @@ OperationDepsNode *DepsgraphNodeBuilder::find_operation_node(
         eDepsNode_Type comp_type,
         const char *comp_name,
         eDepsOperation_Code opcode,
-        const string &description)
+        const string &name)
 {
 	ComponentDepsNode *comp_node = add_component_node(id, comp_type, comp_name);
-	return comp_node->has_operation(opcode, description);
+	return comp_node->has_operation(opcode, name);
 }
 
 OperationDepsNode *DepsgraphNodeBuilder::find_operation_node(
         ID *id,
         eDepsNode_Type comp_type,
         eDepsOperation_Code opcode,
-        const string& description)
+        const string& name)
 {
-	return find_operation_node(id, comp_type, "", opcode, description);
+	return find_operation_node(id, comp_type, "", opcode, name);
 }
 
 /* **** Build functions for entity nodes **** */
