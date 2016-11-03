@@ -54,16 +54,24 @@ struct ComponentDepsNode : public DepsNode {
 	{
 		eDepsOperation_Code opcode;
 		string name;
+		int name_tag;
 
-
-		OperationIDKey() :
-			opcode(DEG_OPCODE_OPERATION), name("")
+		OperationIDKey()
+		        : opcode(DEG_OPCODE_OPERATION),
+		          name(""),
+		          name_tag(-1)
 		{}
-		OperationIDKey(eDepsOperation_Code opcode) :
-			opcode(opcode), name("")
+		OperationIDKey(eDepsOperation_Code opcode)
+		        : opcode(opcode),
+		          name(""),
+		          name_tag(-1)
 		{}
-		OperationIDKey(eDepsOperation_Code opcode, const string &name) :
-		   opcode(opcode), name(name)
+		OperationIDKey(eDepsOperation_Code opcode,
+		               const string &name,
+		               int name_tag)
+		       : opcode(opcode),
+		         name(name),
+		         name_tag(name_tag)
 		{}
 
 		string identifier() const
@@ -76,7 +84,9 @@ struct ComponentDepsNode : public DepsNode {
 
 		bool operator==(const OperationIDKey &other) const
 		{
-			return (opcode == other.opcode) && (name == other.name);
+			return (opcode == other.opcode) &&
+			       (name == other.name) &&
+			       (name_tag == other.name_tag);
 		}
 	};
 
@@ -91,12 +101,14 @@ struct ComponentDepsNode : public DepsNode {
 	/* Find an existing operation, will throw an assert() if it does not exist. */
 	OperationDepsNode *find_operation(OperationIDKey key) const;
 	OperationDepsNode *find_operation(eDepsOperation_Code opcode,
-	                                  const string &name) const;
+	                                  const string &name,
+	                                  int name_tag) const;
 
 	/* Check operation exists and return it. */
 	OperationDepsNode *has_operation(OperationIDKey key) const;
 	OperationDepsNode *has_operation(eDepsOperation_Code opcode,
-	                                 const string &name) const;
+	                                 const string &name,
+	                                 int name_tag) const;
 
 	/**
 	 * Create a new node for representing an operation and add this to graph
@@ -114,7 +126,8 @@ struct ComponentDepsNode : public DepsNode {
 	OperationDepsNode *add_operation(eDepsOperation_Type optype,
 	                                 DepsEvalOperationCb op,
 	                                 eDepsOperation_Code opcode,
-	                                 const string &name);
+	                                 const string &name,
+	                                 int name_tag);
 
 	void clear_operations();
 

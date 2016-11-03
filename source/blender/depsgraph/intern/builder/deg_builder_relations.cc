@@ -209,7 +209,9 @@ OperationDepsNode *DepsgraphRelationBuilder::find_node(
 		return NULL;
 	}
 
-	OperationDepsNode *op_node = comp_node->find_operation(key.opcode, key.name);
+	OperationDepsNode *op_node = comp_node->find_operation(key.opcode,
+	                                                       key.name,
+	                                                       key.name_tag);
 	if (!op_node) {
 		fprintf(stderr, "find_node_operation: Failed for (%s, '%s')\n",
 		        DEG_OPNAMES[key.opcode], key.name.c_str());
@@ -234,7 +236,7 @@ OperationDepsNode *DepsgraphRelationBuilder::has_node(
 	if (!comp_node) {
 		return NULL;
 	}
-	return comp_node->has_operation(key.opcode, key.name);
+	return comp_node->has_operation(key.opcode, key.name, key.name_tag);
 }
 
 void DepsgraphRelationBuilder::add_time_relation(TimeSourceDepsNode *timesrc,
@@ -835,7 +837,11 @@ void DepsgraphRelationBuilder::build_animdata(ID *id)
 
 	/* drivers */
 	for (FCurve *fcu = (FCurve *)adt->drivers.first; fcu; fcu = fcu->next) {
-		OperationKey driver_key(id, DEPSNODE_TYPE_PARAMETERS, DEG_OPCODE_DRIVER, deg_fcurve_id_name(fcu));
+		OperationKey driver_key(id,
+		                        DEPSNODE_TYPE_PARAMETERS,
+		                        DEG_OPCODE_DRIVER,
+		                        fcu->rna_path,
+		                        fcu->array_index);
 
 		/* create the driver's relations to targets */
 		build_driver(id, fcu);
@@ -877,11 +883,13 @@ void DepsgraphRelationBuilder::build_animdata(ID *id)
 				OperationKey prev_driver_key(id,
 				                             DEPSNODE_TYPE_PARAMETERS,
 				                             DEG_OPCODE_DRIVER,
-				                             deg_fcurve_id_name(fcu_prev));
+				                             fcu_prev->rna_path,
+				                             fcu_prev->array_index);
 				OperationKey driver_key(id,
 				                        DEPSNODE_TYPE_PARAMETERS,
 				                        DEG_OPCODE_DRIVER,
-				                        deg_fcurve_id_name(fcu));
+				                        fcu->rna_path,
+				                        fcu->array_index);
 				add_relation(prev_driver_key,
 				             driver_key,
 				             DEPSREL_TYPE_OPERATION,
@@ -900,7 +908,11 @@ void DepsgraphRelationBuilder::build_animdata(ID *id)
 void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 {
 	ChannelDriver *driver = fcu->driver;
-	OperationKey driver_key(id, DEPSNODE_TYPE_PARAMETERS, DEG_OPCODE_DRIVER, deg_fcurve_id_name(fcu));
+	OperationKey driver_key(id,
+	                        DEPSNODE_TYPE_PARAMETERS,
+	                        DEG_OPCODE_DRIVER,
+	                        fcu->rna_path,
+	                        fcu->array_index);
 	bPoseChannel *pchan = NULL;
 
 	/* create dependency between driver and data affected by it */
