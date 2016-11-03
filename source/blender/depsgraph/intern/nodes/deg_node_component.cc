@@ -52,6 +52,44 @@ namespace DEG {
 
 /* Standard Component Methods ============================= */
 
+ComponentDepsNode::OperationIDKey::OperationIDKey()
+        : opcode(DEG_OPCODE_OPERATION),
+          name(""),
+          name_tag(-1)
+{
+}
+
+ComponentDepsNode::OperationIDKey::OperationIDKey(eDepsOperation_Code opcode)
+        : opcode(opcode),
+          name(""),
+          name_tag(-1)
+{
+}
+
+ComponentDepsNode::OperationIDKey::OperationIDKey(eDepsOperation_Code opcode,
+                                                 const char *name,
+                                                 int name_tag)
+        : opcode(opcode),
+          name(name),
+          name_tag(name_tag)
+{
+}
+
+string ComponentDepsNode::OperationIDKey::identifier() const
+{
+	char codebuf[5];
+	BLI_snprintf(codebuf, sizeof(codebuf), "%d", opcode);
+	return string("OperationIDKey(") + codebuf + ", " + name + ")";
+}
+
+bool ComponentDepsNode::OperationIDKey::operator==(
+        const OperationIDKey &other) const
+{
+	return (opcode == other.opcode) &&
+		(STREQ(name, other.name)) &&
+		(name_tag == other.name_tag);
+}
+
 static unsigned int comp_node_hash_key(const void *key_v)
 {
 	const ComponentDepsNode::OperationIDKey *key =
