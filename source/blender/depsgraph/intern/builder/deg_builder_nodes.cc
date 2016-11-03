@@ -177,7 +177,7 @@ TimeSourceDepsNode *DepsgraphNodeBuilder::add_time_source(ID *id)
 ComponentDepsNode *DepsgraphNodeBuilder::add_component_node(
         ID *id,
         eDepsNode_Type comp_type,
-        const string &comp_name)
+        const char *comp_name)
 {
 	IDDepsNode *id_node = add_id_node(id);
 	ComponentDepsNode *comp_node = id_node->add_component(comp_type, comp_name);
@@ -198,7 +198,8 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
 		m_graph->operations.push_back(op_node);
 	}
 	else {
-		fprintf(stderr, "add_operation: Operation already exists - %s has %s at %p\n",
+		fprintf(stderr,
+		        "add_operation: Operation already exists - %s has %s at %p\n",
 		        comp_node->identifier().c_str(),
 		        op_node->identifier().c_str(),
 		        op_node);
@@ -210,7 +211,7 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
 OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
         ID *id,
         eDepsNode_Type comp_type,
-        const string &comp_name,
+        const char *comp_name,
         eDepsOperation_Type optype,
         DepsEvalOperationCb op,
         eDepsOperation_Code opcode,
@@ -233,17 +234,21 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
 
 bool DepsgraphNodeBuilder::has_operation_node(ID *id,
                                               eDepsNode_Type comp_type,
-                                              const string &comp_name,
+                                              const char *comp_name,
                                               eDepsOperation_Code opcode,
                                               const string &description)
 {
-	return find_operation_node(id, comp_type, comp_name, opcode, description) != NULL;
+	return find_operation_node(id,
+	                           comp_type,
+	                           comp_name,
+	                           opcode,
+	                           description) != NULL;
 }
 
 OperationDepsNode *DepsgraphNodeBuilder::find_operation_node(
         ID *id,
         eDepsNode_Type comp_type,
-        const string &comp_name,
+        const char *comp_name,
         eDepsOperation_Code opcode,
         const string &description)
 {

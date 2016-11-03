@@ -39,7 +39,6 @@
 
 extern "C" {
 #include "BLI_blenlib.h"
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_action_types.h"

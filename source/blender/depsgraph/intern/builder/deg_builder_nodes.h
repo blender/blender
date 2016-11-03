@@ -76,7 +76,7 @@ struct DepsgraphNodeBuilder {
 
 	ComponentDepsNode *add_component_node(ID *id,
 	                                      eDepsNode_Type comp_type,
-	                                      const string& comp_name = "");
+	                                      const char *comp_name = "");
 
 	OperationDepsNode *add_operation_node(ComponentDepsNode *comp_node,
 	                                      eDepsOperation_Type optype,
@@ -85,7 +85,7 @@ struct DepsgraphNodeBuilder {
 	                                      const string& description = "");
 	OperationDepsNode *add_operation_node(ID *id,
 	                                      eDepsNode_Type comp_type,
-	                                      const string& comp_name,
+	                                      const char *comp_name,
 	                                      eDepsOperation_Type optype,
 	                                      DepsEvalOperationCb op,
 	                                      eDepsOperation_Code opcode,
@@ -99,13 +99,13 @@ struct DepsgraphNodeBuilder {
 
 	bool has_operation_node(ID *id,
 	                        eDepsNode_Type comp_type,
-	                        const string& comp_name,
+	                        const char *comp_name,
 	                        eDepsOperation_Code opcode,
 	                        const string& description = "");
 
 	OperationDepsNode *find_operation_node(ID *id,
 	                                       eDepsNode_Type comp_type,
-	                                       const string &comp_name,
+	                                       const char *comp_name,
 	                                       eDepsOperation_Code opcode,
 	                                       const string &description = "");
 
