@@ -57,7 +57,7 @@ static unsigned int comp_node_hash_key(const void *key_v)
 	const ComponentDepsNode::OperationIDKey *key =
 	        reinterpret_cast<const ComponentDepsNode::OperationIDKey *>(key_v);
 	return hash_combine(BLI_ghashutil_uinthash(key->opcode),
-	                    BLI_ghashutil_strhash_p(key->name.c_str()));
+	                    BLI_ghashutil_strhash_p(key->name));
 }
 
 static bool comp_node_hash_key_cmp(const void *a, const void *b)
@@ -94,7 +94,7 @@ ComponentDepsNode::ComponentDepsNode() :
 
 /* Initialize 'component' node - from pointer data given */
 void ComponentDepsNode::init(const ID * /*id*/,
-                             const string & /*subdata*/)
+                             const char * /*subdata*/)
 {
 	/* hook up eval context? */
 	// XXX: maybe this needs a special API?
@@ -113,7 +113,7 @@ ComponentDepsNode::~ComponentDepsNode()
 
 string ComponentDepsNode::identifier() const
 {
-	string &idname = this->owner->name;
+	string idname = this->owner->name;
 
 	char typebuf[16];
 	sprintf(typebuf, "(%d)", type);
@@ -139,7 +139,7 @@ OperationDepsNode *ComponentDepsNode::find_operation(OperationIDKey key) const
 }
 
 OperationDepsNode *ComponentDepsNode::find_operation(eDepsOperation_Code opcode,
-                                                     const string &name,
+                                                     const char *name,
                                                      int name_tag) const
 {
 	OperationIDKey key(opcode, name, name_tag);
@@ -152,7 +152,7 @@ OperationDepsNode *ComponentDepsNode::has_operation(OperationIDKey key) const
 }
 
 OperationDepsNode *ComponentDepsNode::has_operation(eDepsOperation_Code opcode,
-                                                    const string &name,
+                                                    const char *name,
                                                     int name_tag) const
 {
 	OperationIDKey key(opcode, name, name_tag);
@@ -162,7 +162,7 @@ OperationDepsNode *ComponentDepsNode::has_operation(eDepsOperation_Code opcode,
 OperationDepsNode *ComponentDepsNode::add_operation(eDepsOperation_Type optype,
                                                     DepsEvalOperationCb op,
                                                     eDepsOperation_Code opcode,
-                                                    const string &name,
+                                                    const char *name,
                                                     int name_tag)
 {
 	OperationDepsNode *op_node = has_operation(opcode, name, name_tag);
@@ -333,7 +333,7 @@ static DepsNodeFactoryImpl<PoseComponentDepsNode> DNTI_EVAL_POSE;
 /* Bone Component ========================================= */
 
 /* Initialize 'bone component' node - from pointer data given */
-void BoneComponentDepsNode::init(const ID *id, const string &subdata)
+void BoneComponentDepsNode::init(const ID *id, const char *subdata)
 {
 	/* generic component-node... */
 	ComponentDepsNode::init(id, subdata);
@@ -346,7 +346,7 @@ void BoneComponentDepsNode::init(const ID *id, const string &subdata)
 
 	/* bone-specific node data */
 	Object *ob = (Object *)id;
-	this->pchan = BKE_pose_channel_find_name(ob->pose, subdata.c_str());
+	this->pchan = BKE_pose_channel_find_name(ob->pose, subdata);
 }
 
 DEG_DEPSNODE_DEFINE(BoneComponentDepsNode, DEPSNODE_TYPE_BONE, "Bone Component");

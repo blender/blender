@@ -53,7 +53,7 @@ struct ComponentDepsNode : public DepsNode {
 	struct OperationIDKey
 	{
 		eDepsOperation_Code opcode;
-		string name;
+		const char *name;
 		int name_tag;
 
 		OperationIDKey()
@@ -67,7 +67,7 @@ struct ComponentDepsNode : public DepsNode {
 		          name_tag(-1)
 		{}
 		OperationIDKey(eDepsOperation_Code opcode,
-		               const string &name,
+		               const char *name,
 		               int name_tag)
 		       : opcode(opcode),
 		         name(name),
@@ -85,7 +85,7 @@ struct ComponentDepsNode : public DepsNode {
 		bool operator==(const OperationIDKey &other) const
 		{
 			return (opcode == other.opcode) &&
-			       (name == other.name) &&
+			       (STREQ(name, other.name)) &&
 			       (name_tag == other.name_tag);
 		}
 	};
@@ -94,20 +94,20 @@ struct ComponentDepsNode : public DepsNode {
 	ComponentDepsNode();
 	~ComponentDepsNode();
 
-	void init(const ID *id, const string &subdata);
+	void init(const ID *id, const char *subdata);
 
 	string identifier() const;
 
 	/* Find an existing operation, will throw an assert() if it does not exist. */
 	OperationDepsNode *find_operation(OperationIDKey key) const;
 	OperationDepsNode *find_operation(eDepsOperation_Code opcode,
-	                                  const string &name,
+	                                  const char *name,
 	                                  int name_tag) const;
 
 	/* Check operation exists and return it. */
 	OperationDepsNode *has_operation(OperationIDKey key) const;
 	OperationDepsNode *has_operation(eDepsOperation_Code opcode,
-	                                 const string &name,
+	                                 const char *name,
 	                                 int name_tag) const;
 
 	/**
@@ -126,7 +126,7 @@ struct ComponentDepsNode : public DepsNode {
 	OperationDepsNode *add_operation(eDepsOperation_Type optype,
 	                                 DepsEvalOperationCb op,
 	                                 eDepsOperation_Code opcode,
-	                                 const string &name,
+	                                 const char *name,
 	                                 int name_tag);
 
 	void clear_operations();
@@ -206,7 +206,7 @@ struct PoseComponentDepsNode : public ComponentDepsNode {
 
 /* Bone Component */
 struct BoneComponentDepsNode : public ComponentDepsNode {
-	void init(const ID *id, const string &subdata);
+	void init(const ID *id, const char *subdata);
 
 	struct bPoseChannel *pchan;     /* the bone that this component represents */
 

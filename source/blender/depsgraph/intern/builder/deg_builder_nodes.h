@@ -82,7 +82,7 @@ struct DepsgraphNodeBuilder {
 	                                      eDepsOperation_Type optype,
 	                                      DepsEvalOperationCb op,
 	                                      eDepsOperation_Code opcode,
-	                                      const string& name = "",
+	                                      const char *name = "",
 	                                      int name_tag = -1);
 	OperationDepsNode *add_operation_node(ID *id,
 	                                      eDepsNode_Type comp_type,
@@ -90,34 +90,34 @@ struct DepsgraphNodeBuilder {
 	                                      eDepsOperation_Type optype,
 	                                      DepsEvalOperationCb op,
 	                                      eDepsOperation_Code opcode,
-	                                      const string& name = "",
+	                                      const char *name = "",
 	                                      int name_tag = -1);
 	OperationDepsNode *add_operation_node(ID *id,
 	                                      eDepsNode_Type comp_type,
 	                                      eDepsOperation_Type optype,
 	                                      DepsEvalOperationCb op,
 	                                      eDepsOperation_Code opcode,
-	                                      const string& name = "",
+	                                      const char *name = "",
 	                                      int name_tag = -1);
 
 	bool has_operation_node(ID *id,
 	                        eDepsNode_Type comp_type,
 	                        const char *comp_name,
 	                        eDepsOperation_Code opcode,
-	                        const string& name = "",
+	                        const char *name = "",
 	                        int name_tag = -1);
 
 	OperationDepsNode *find_operation_node(ID *id,
 	                                       eDepsNode_Type comp_type,
 	                                       const char *comp_name,
 	                                       eDepsOperation_Code opcode,
-	                                       const string &name = "",
+	                                       const char *name = "",
 	                                       int name_tag = -1);
 
 	OperationDepsNode *find_operation_node(ID *id,
 	                                       eDepsNode_Type comp_type,
 	                                       eDepsOperation_Code opcode,
-	                                       const string &name = "",
+	                                       const char *name = "",
 	                                       int name_tag = -1);
 
 	void build_scene(Main *bmain, Scene *scene);

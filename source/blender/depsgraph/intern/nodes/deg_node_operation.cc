@@ -68,7 +68,7 @@ string OperationDepsNode::full_identifier() const
 {
 	string owner_str = "";
 	if (owner->type == DEPSNODE_TYPE_BONE) {
-		owner_str = owner->owner->name + "." + owner->name;
+		owner_str = string(owner->owner->name) + "." + owner->name;
 	}
 	else {
 		owner_str = owner->owner->name;

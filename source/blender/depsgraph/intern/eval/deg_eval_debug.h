@@ -66,10 +66,10 @@ struct DepsgraphDebug {
 
 	static DepsgraphStatsID *get_id_stats(ID *id, bool create);
 	static DepsgraphStatsComponent *get_component_stats(DepsgraphStatsID *id_stats,
-	                                                    const string &name,
+	                                                    const char *name,
 	                                                    bool create);
 	static DepsgraphStatsComponent *get_component_stats(ID *id,
-	                                                    const string &name,
+	                                                    const char *name,
 	                                                    bool create)
 	{
 		return get_component_stats(get_id_stats(id, create), name, create);
