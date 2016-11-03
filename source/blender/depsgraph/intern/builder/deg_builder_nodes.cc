@@ -1180,6 +1180,9 @@ void DepsgraphNodeBuilder::build_nodetree(DepsNode *owner_node, bNodeTree *ntree
 			else if (id_type == ID_TE) {
 				build_texture(owner_node, (Tex *)id);
 			}
+			else if (id_type == ID_IM) {
+				build_image((Image *)id);
+			}
 			else if (bnode->type == NODE_GROUP) {
 				bNodeTree *group_ntree = (bNodeTree *)id;
 				if ((group_ntree->id.tag & LIB_TAG_DOIT) == 0) {
@@ -1238,10 +1241,33 @@ void DepsgraphNodeBuilder::build_texture(DepsNode *owner_node, Tex *tex)
 		return;
 	}
 	tex_id->tag |= LIB_TAG_DOIT;
-	/* texture itself */
+	/* Texture itself. */
 	build_animdata(tex_id);
-	/* texture's nodetree */
+	/* Texture's nodetree. */
 	build_nodetree(owner_node, tex->nodetree);
+	/* Special cases for different IDs which texture uses. */
+	if (tex->type == TEX_IMAGE) {
+		if (tex->ima != NULL) {
+			build_image(tex->ima);
+		}
+	}
+}
+
+void DepsgraphNodeBuilder::build_image(Image *image) {
+	ID *image_id = &image->id;
+	if (image_id->tag & LIB_TAG_DOIT) {
+		return;
+	}
+	image_id->tag |= LIB_TAG_DOIT;
+	/* Image ID node itself. */
+	add_id_node(image_id);
+	/* Placeholder so we can add relations and tag ID node for update. */
+	add_operation_node(image_id,
+	                   DEPSNODE_TYPE_PARAMETERS,
+	                   DEPSOP_TYPE_EXEC,
+	                   NULL,
+	                   DEG_OPCODE_PLACEHOLDER,
+	                   "Image Eval");
 }
 
 void DepsgraphNodeBuilder::build_compositor(Scene *scene)

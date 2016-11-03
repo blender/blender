@@ -38,6 +38,7 @@ struct bGPdata;
 struct ListBase;
 struct GHash;
 struct ID;
+struct Image;
 struct FCurve;
 struct Group;
 struct Key;
@@ -142,6 +143,7 @@ struct DepsgraphNodeBuilder {
 	void build_material(DepsNode *owner_node, Material *ma);
 	void build_texture(DepsNode *owner_node, Tex *tex);
 	void build_texture_stack(DepsNode *owner_node, MTex **texture_stack);
+	void build_image(Image *image);
 	void build_world(World *world);
 	void build_compositor(Scene *scene);
 	void build_gpencil(bGPdata *gpd);
