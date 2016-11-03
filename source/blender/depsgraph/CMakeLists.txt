@@ -45,6 +45,7 @@ set(SRC
 	intern/builder/deg_builder_nodes.cc
 	intern/builder/deg_builder_pchanmap.cc
 	intern/builder/deg_builder_relations.cc
+	intern/builder/deg_builder_relations_keys.cc
 	intern/builder/deg_builder_transitive.cc
 	intern/debug/deg_debug_graphviz.cc
 	intern/eval/deg_eval.cc

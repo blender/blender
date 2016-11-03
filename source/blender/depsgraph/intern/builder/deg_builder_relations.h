@@ -81,42 +81,26 @@ struct ComponentDepsNode;
 struct OperationDepsNode;
 struct RootPChanMap;
 
-struct RootKey
-{
-	RootKey() {}
+struct RootKey {
+	RootKey();
 };
 
 struct TimeSourceKey
 {
-	TimeSourceKey() : id(NULL) {}
-	TimeSourceKey(ID *id) : id(id) {}
+	TimeSourceKey();
+	TimeSourceKey(ID *id);
 
-	string identifier() const
-	{
-		return string("TimeSourceKey");
-	}
+	string identifier() const;
 
 	ID *id;
 };
 
 struct ComponentKey
 {
-	ComponentKey() :
-	    id(NULL), type(DEPSNODE_TYPE_UNDEFINED), name("")
-	{}
-	ComponentKey(ID *id, eDepsNode_Type type, const char *name = "") :
-	    id(id), type(type), name(name)
-	{}
+	ComponentKey();
+	ComponentKey(ID *id, eDepsNode_Type type, const char *name = "");
 
-	string identifier() const
-	{
-		const char *idname = (id) ? id->name : "<None>";
-
-		char typebuf[5];
-		BLI_snprintf(typebuf, sizeof(typebuf), "%d", type);
-
-		return string("ComponentKey(") + idname + ", " + typebuf + ", '" + name + "')";
-	}
+	string identifier() const;
 
 	ID *id;
 	eDepsNode_Type type;
@@ -125,95 +109,38 @@ struct ComponentKey
 
 struct OperationKey
 {
-	OperationKey()
-	        : id(NULL),
-	          component_type(DEPSNODE_TYPE_UNDEFINED),
-	          component_name(""),
-	          opcode(DEG_OPCODE_OPERATION),
-	          name(""),
-	          name_tag(-1)
-	{}
-
+	OperationKey();
 	OperationKey(ID *id,
 	             eDepsNode_Type component_type,
 	             const char *name,
-	             int name_tag = -1)
-	        : id(id),
-	          component_type(component_type),
-	          component_name(""),
-	          opcode(DEG_OPCODE_OPERATION),
-	          name(name),
-	          name_tag(name_tag)
-	{}
+	             int name_tag = -1);
 	OperationKey(ID *id,
 	             eDepsNode_Type component_type,
 	             const char *component_name,
 	             const char *name,
-	             int name_tag)
-	        : id(id),
-	          component_type(component_type),
-	          component_name(component_name),
-	          opcode(DEG_OPCODE_OPERATION),
-	          name(name),
-	          name_tag(name_tag)
-	{}
+	             int name_tag);
 
 	OperationKey(ID *id,
 	             eDepsNode_Type component_type,
-	             eDepsOperation_Code opcode)
-	        : id(id),
-	          component_type(component_type),
-	          component_name(""),
-	          opcode(opcode),
-	          name(""),
-	          name_tag(-1)
-	{}
+	             eDepsOperation_Code opcode);
 	OperationKey(ID *id,
 	             eDepsNode_Type component_type,
 	             const char *component_name,
-	             eDepsOperation_Code opcode)
-	        : id(id),
-	          component_type(component_type),
-	          component_name(component_name),
-	          opcode(opcode),
-	          name(""),
-	          name_tag(-1)
-	{}
+	             eDepsOperation_Code opcode);
 
 	OperationKey(ID *id,
-	            eDepsNode_Type component_type,
-	            eDepsOperation_Code opcode,
-	            const char *name,
-	            int name_tag = -1)
-	        : id(id),
-	          component_type(component_type),
-	          component_name(""),
-	          opcode(opcode),
-	          name(name),
-	          name_tag(name_tag)
-	{}
+	             eDepsNode_Type component_type,
+	             eDepsOperation_Code opcode,
+	             const char *name,
+	             int name_tag = -1);
 	OperationKey(ID *id,
 	             eDepsNode_Type component_type,
 	             const char *component_name,
 	             eDepsOperation_Code opcode,
 	             const char *name,
-	             int name_tag = -1)
-	        : id(id),
-	          component_type(component_type),
-	          component_name(component_name),
-	          opcode(opcode),
-	          name(name),
-	          name_tag(name_tag)
-	{}
+	             int name_tag = -1);
 
-	string identifier() const
-	{
-		char typebuf[5];
-		BLI_snprintf(typebuf, sizeof(typebuf), "%d", component_type);
-
-		return string("OperationKey(") + "t: " + typebuf + ", cn: '" + component_name + "', c: " + DEG_OPNAMES[opcode] + ", n: '" + name + "')";
-	}
-
+	string identifier() const;
 
 	ID *id;
 	eDepsNode_Type component_type;
@@ -225,21 +152,12 @@ struct OperationKey
 
 struct RNAPathKey
 {
-	// Note: see depsgraph_build.cpp for implementation
+	/* NOTE: see depsgraph_build.cpp for implementation */
 	RNAPathKey(ID *id, const char *path);
 
-	RNAPathKey(ID *id, const PointerRNA &ptr, PropertyRNA *prop) :
-	    id(id), ptr(ptr), prop(prop)
-	{}
+	RNAPathKey(ID *id, const PointerRNA &ptr, PropertyRNA *prop);
 
-	string identifier() const
-	{
-		const char *id_name   = (id) ?  id->name : "<No ID>";
-		const char *prop_name = (prop) ? RNA_property_identifier(prop) : "<No Prop>";
-
-		return string("RnaPathKey(") + "id: " + id_name + ", prop: " + prop_name +  "')";
-	}
-
+	string identifier() const;
 
 	ID *id;
 	PointerRNA ptr;
