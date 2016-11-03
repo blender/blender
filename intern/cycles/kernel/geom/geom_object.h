@@ -161,11 +161,15 @@ ccl_device_inline void object_inverse_position_transform(KernelGlobals *kg, cons
 
 ccl_device_inline void object_inverse_normal_transform(KernelGlobals *kg, const ShaderData *sd, float3 *N)
 {
-#ifdef __OBJECT_MOTION__
-	*N = normalize(transform_direction_transposed_auto(&ccl_fetch(sd, ob_tfm), *N));
+#ifdef __OBJECT_MOTION_
+	if((ccl_fetch(sd, object) != OBJECT_NONE) || (ccl_fetch(sd, type) == PRIMITIVE_LAMP)) {
+		*N = normalize(transform_direction_transposed_auto(&ccl_fetch(sd, ob_tfm), *N));
+	}
 #else
-	Transform tfm = object_fetch_transform(kg, ccl_fetch(sd, object), OBJECT_TRANSFORM);
-	*N = normalize(transform_direction_transposed(&tfm, *N));
+	if(ccl_fetch(sd, object) != OBJECT_NONE) {
+		Transform tfm = object_fetch_transform(kg, ccl_fetch(sd, object), OBJECT_TRANSFORM);
+		*N = normalize(transform_direction_transposed(&tfm, *N));
+	}
 #endif
 }
 

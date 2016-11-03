@@ -241,8 +241,7 @@ ccl_device void svm_node_tex_image_box(KernelGlobals *kg, ShaderData *sd, float 
 	float3 N = ccl_fetch(sd, N);
 
 	N = ccl_fetch(sd, N);
-	if(ccl_fetch(sd, object) != OBJECT_NONE)
-		object_inverse_normal_transform(kg, sd, &N);
+	object_inverse_normal_transform(kg, sd, &N);
 
 	/* project from direction vector to barycentric coordinates in triangles */
 	N.x = fabsf(N.x);
