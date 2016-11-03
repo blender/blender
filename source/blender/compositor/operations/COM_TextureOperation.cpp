@@ -118,7 +118,7 @@ void TextureBaseOperation::executePixelSampled(float output[4], float x, float y
 	 * interpolaiton and (b) in such configuration multitex() sinply floor's the value
 	 * which often produces artifacts.
 	 */
-	if ((m_texture->imaflag & TEX_INTERPOL) == 0) {
+	if (m_texture != NULL && (m_texture->imaflag & TEX_INTERPOL) == 0) {
 		u += 0.5f / cx;
 		v += 0.5f / cy;
 	}
