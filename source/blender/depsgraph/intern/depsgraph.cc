@@ -328,7 +328,7 @@ IDDepsNode *Depsgraph::find_id_node(const ID *id) const
 	return reinterpret_cast<IDDepsNode *>(BLI_ghash_lookup(id_hash, id));
 }
 
-IDDepsNode *Depsgraph::add_id_node(ID *id, const string &name)
+IDDepsNode *Depsgraph::add_id_node(ID *id, const char *name)
 {
 	IDDepsNode *id_node = find_id_node(id);
 	if (!id_node) {
