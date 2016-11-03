@@ -31,7 +31,6 @@
 #include "intern/nodes/deg_node.h"
 
 #include <stdio.h>
-#include <string.h>
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
