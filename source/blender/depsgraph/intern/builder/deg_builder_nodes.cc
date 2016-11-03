@@ -1171,15 +1171,17 @@ void DepsgraphNodeBuilder::build_nodetree(DepsNode *owner_node, bNodeTree *ntree
 
 	/* nodetree's nodes... */
 	for (bNode *bnode = (bNode *)ntree->nodes.first; bnode; bnode = bnode->next) {
-		if (bnode->id) {
-			if (GS(bnode->id->name) == ID_MA) {
-				build_material(owner_node, (Material *)bnode->id);
+		ID *id = bnode->id;
+		if (id != NULL) {
+			short id_type = GS(id->name);
+			if (id_type == ID_MA) {
+				build_material(owner_node, (Material *)id);
 			}
-			else if (bnode->type == ID_TE) {
-				build_texture(owner_node, (Tex *)bnode->id);
+			else if (id_type == ID_TE) {
+				build_texture(owner_node, (Tex *)id);
 			}
 			else if (bnode->type == NODE_GROUP) {
-				bNodeTree *group_ntree = (bNodeTree *)bnode->id;
+				bNodeTree *group_ntree = (bNodeTree *)id;
 				if ((group_ntree->id.tag & LIB_TAG_DOIT) == 0) {
 					build_nodetree(owner_node, group_ntree);
 				}
