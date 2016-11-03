@@ -145,14 +145,8 @@ struct RootDepsNode : public DepsNode {
 /* ID-Block Reference */
 struct IDDepsNode : public DepsNode {
 	struct ComponentIDKey {
-		ComponentIDKey(eDepsNode_Type type, const char *name = "")
-		    : type(type), name(name) {}
-
-		bool operator== (const ComponentIDKey &other) const
-		{
-			return type == other.type &&
-			       STREQ(name, other.name);
-		}
+		ComponentIDKey(eDepsNode_Type type, const char *name = "");
+		bool operator==(const ComponentIDKey &other) const;
 
 		eDepsNode_Type type;
 		const char *name;

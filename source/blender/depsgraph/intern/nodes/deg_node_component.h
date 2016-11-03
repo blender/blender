@@ -56,38 +56,14 @@ struct ComponentDepsNode : public DepsNode {
 		const char *name;
 		int name_tag;
 
-		OperationIDKey()
-		        : opcode(DEG_OPCODE_OPERATION),
-		          name(""),
-		          name_tag(-1)
-		{}
-		OperationIDKey(eDepsOperation_Code opcode)
-		        : opcode(opcode),
-		          name(""),
-		          name_tag(-1)
-		{}
+		OperationIDKey();
+		OperationIDKey(eDepsOperation_Code opcode);
 		OperationIDKey(eDepsOperation_Code opcode,
 		               const char *name,
-		               int name_tag)
-		       : opcode(opcode),
-		         name(name),
-		         name_tag(name_tag)
-		{}
+		               int name_tag);
 
-		string identifier() const
-		{
-			char codebuf[5];
-			BLI_snprintf(codebuf, sizeof(codebuf), "%d", opcode);
-
-			return string("OperationIDKey(") + codebuf + ", " + name + ")";
-		}
-
-		bool operator==(const OperationIDKey &other) const
-		{
-			return (opcode == other.opcode) &&
-			       (STREQ(name, other.name)) &&
-			       (name_tag == other.name_tag);
-		}
+		string identifier() const;
+		bool operator==(const OperationIDKey &other) const;
 	};
 
 	/* Typedef for container of operations */

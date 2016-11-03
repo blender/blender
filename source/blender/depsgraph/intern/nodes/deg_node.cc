@@ -141,6 +141,18 @@ static DepsNodeFactoryImpl<TimeSourceDepsNode> DNTI_TIMESOURCE;
 
 /* ID Node ================================================ */
 
+IDDepsNode::ComponentIDKey::ComponentIDKey(eDepsNode_Type type,
+                                           const char *name)
+        : type(type), name(name)
+{
+}
+
+bool IDDepsNode::ComponentIDKey::operator== (const ComponentIDKey &other) const
+{
+    return type == other.type &&
+           STREQ(name, other.name);
+}
+
 static unsigned int id_deps_node_hash_key(const void *key_v)
 {
 	const IDDepsNode::ComponentIDKey *key =
