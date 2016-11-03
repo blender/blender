@@ -104,7 +104,7 @@ struct ComponentKey
 	ComponentKey() :
 	    id(NULL), type(DEPSNODE_TYPE_UNDEFINED), name("")
 	{}
-	ComponentKey(ID *id, eDepsNode_Type type, const string &name = "") :
+	ComponentKey(ID *id, eDepsNode_Type type, const char *name = "") :
 	    id(id), type(type), name(name)
 	{}
 
@@ -120,7 +120,7 @@ struct ComponentKey
 
 	ID *id;
 	eDepsNode_Type type;
-	string name;
+	const char *name;
 };
 
 struct OperationKey
@@ -136,7 +136,7 @@ struct OperationKey
 
 	OperationKey(ID *id,
 	             eDepsNode_Type component_type,
-	             const string &name,
+	             const char *name,
 	             int name_tag = -1)
 	        : id(id),
 	          component_type(component_type),
@@ -147,8 +147,8 @@ struct OperationKey
 	{}
 	OperationKey(ID *id,
 	             eDepsNode_Type component_type,
-	             const string &component_name,
-	             const string &name,
+	             const char *component_name,
+	             const char *name,
 	             int name_tag)
 	        : id(id),
 	          component_type(component_type),
@@ -170,7 +170,7 @@ struct OperationKey
 	{}
 	OperationKey(ID *id,
 	             eDepsNode_Type component_type,
-	             const string &component_name,
+	             const char *component_name,
 	             eDepsOperation_Code opcode)
 	        : id(id),
 	          component_type(component_type),
@@ -183,7 +183,7 @@ struct OperationKey
 	OperationKey(ID *id,
 	            eDepsNode_Type component_type,
 	            eDepsOperation_Code opcode,
-	            const string &name,
+	            const char *name,
 	            int name_tag = -1)
 	        : id(id),
 	          component_type(component_type),
@@ -194,9 +194,9 @@ struct OperationKey
 	{}
 	OperationKey(ID *id,
 	             eDepsNode_Type component_type,
-	             const string &component_name,
+	             const char *component_name,
 	             eDepsOperation_Code opcode,
-	             const string &name,
+	             const char *name,
 	             int name_tag = -1)
 	        : id(id),
 	          component_type(component_type),
@@ -217,9 +217,9 @@ struct OperationKey
 
 	ID *id;
 	eDepsNode_Type component_type;
-	string component_name;
+	const char *component_name;
 	eDepsOperation_Code opcode;
-	string name;
+	const char *name;
 	int name_tag;
 };
 
@@ -327,7 +327,7 @@ protected:
 
 	template <typename KeyType>
 	DepsNodeHandle create_node_handle(const KeyType& key,
-	                                  const string& default_name = "");
+	                                  const char *default_name = "");
 
 	bool needs_animdata_node(ID *id);
 
@@ -337,7 +337,7 @@ private:
 
 struct DepsNodeHandle
 {
-	DepsNodeHandle(DepsgraphRelationBuilder *builder, OperationDepsNode *node, const string &default_name = "") :
+	DepsNodeHandle(DepsgraphRelationBuilder *builder, OperationDepsNode *node, const char *default_name = "") :
 	    builder(builder),
 	    node(node),
 	    default_name(default_name)
@@ -347,7 +347,7 @@ struct DepsNodeHandle
 
 	DepsgraphRelationBuilder *builder;
 	OperationDepsNode *node;
-	const string &default_name;
+	const char *default_name;
 };
 
 /* Utilities for Builders ----------------------------------------------------- */
@@ -441,7 +441,7 @@ void DepsgraphRelationBuilder::add_node_handle_relation(
 template <typename KeyType>
 DepsNodeHandle DepsgraphRelationBuilder::create_node_handle(
         const KeyType &key,
-        const string &default_name)
+        const char *default_name)
 {
 	return DepsNodeHandle(this, find_node(key), default_name);
 }

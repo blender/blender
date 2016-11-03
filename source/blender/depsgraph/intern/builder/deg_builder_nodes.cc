@@ -190,7 +190,7 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
         eDepsOperation_Type optype,
         DepsEvalOperationCb op,
         eDepsOperation_Code opcode,
-        const string &name,
+        const char *name,
         int name_tag)
 {
 	OperationDepsNode *op_node = comp_node->has_operation(opcode,
@@ -218,7 +218,7 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
         eDepsOperation_Type optype,
         DepsEvalOperationCb op,
         eDepsOperation_Code opcode,
-        const string &name,
+        const char *name,
         int name_tag)
 {
 	ComponentDepsNode *comp_node = add_component_node(id, comp_type, comp_name);
@@ -231,7 +231,7 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
         eDepsOperation_Type optype,
         DepsEvalOperationCb op,
         eDepsOperation_Code opcode,
-        const string& name,
+        const char *name,
         int name_tag)
 {
 	return add_operation_node(id,
@@ -248,7 +248,7 @@ bool DepsgraphNodeBuilder::has_operation_node(ID *id,
                                               eDepsNode_Type comp_type,
                                               const char *comp_name,
                                               eDepsOperation_Code opcode,
-                                              const string &name,
+                                              const char *name,
                                               int name_tag)
 {
 	return find_operation_node(id,
@@ -264,7 +264,7 @@ OperationDepsNode *DepsgraphNodeBuilder::find_operation_node(
         eDepsNode_Type comp_type,
         const char *comp_name,
         eDepsOperation_Code opcode,
-        const string &name,
+        const char *name,
         int name_tag)
 {
 	ComponentDepsNode *comp_node = add_component_node(id, comp_type, comp_name);
@@ -275,7 +275,7 @@ OperationDepsNode *DepsgraphNodeBuilder::find_operation_node(
         ID *id,
         eDepsNode_Type comp_type,
         eDepsOperation_Code opcode,
-        const string& name,
+        const char *name,
         int name_tag)
 {
 	return find_operation_node(id, comp_type, "", opcode, name, name_tag);

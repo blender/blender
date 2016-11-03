@@ -214,7 +214,7 @@ OperationDepsNode *DepsgraphRelationBuilder::find_node(
 	                                                       key.name_tag);
 	if (!op_node) {
 		fprintf(stderr, "find_node_operation: Failed for (%s, '%s')\n",
-		        DEG_OPNAMES[key.opcode], key.name.c_str());
+		        DEG_OPNAMES[key.opcode], key.name);
 	}
 	return op_node;
 }
