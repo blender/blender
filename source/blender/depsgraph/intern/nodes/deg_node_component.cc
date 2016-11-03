@@ -196,16 +196,6 @@ OperationDepsNode *ComponentDepsNode::add_operation(eDepsOperation_Type optype, 
 	return op_node;
 }
 
-void ComponentDepsNode::remove_operation(eDepsOperation_Code opcode, const string &name)
-{
-	/* unregister */
-	OperationIDKey key(opcode, name);
-	BLI_ghash_remove(operations_map,
-	                 &key,
-	                 comp_node_hash_key_free,
-	                 comp_node_hash_key_free);
-}
-
 void ComponentDepsNode::clear_operations()
 {
 	if (operations_map != NULL) {

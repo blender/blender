@@ -116,7 +116,6 @@ struct ComponentDepsNode : public DepsNode {
 	                                 eDepsOperation_Code opcode,
 	                                 const string &name);
 
-	void remove_operation(eDepsOperation_Code opcode, const string &name);
 	void clear_operations();
 
 	void tag_update(Depsgraph *graph);
