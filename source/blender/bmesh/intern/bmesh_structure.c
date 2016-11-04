@@ -264,10 +264,12 @@ bool bmesh_disk_validate(int len, BMEdge *e, BMVert *v)
 {
 	BMEdge *e_iter;
 
-	if (!BM_vert_in_edge(e, v))
+	if (!BM_vert_in_edge(e, v)) {
 		return false;
-	if (bmesh_disk_count_ex(v, len + 1) != len || len == 0)
+	}
+	if (len == 0 || bmesh_disk_count_ex(v, len + 1) != len) {
 		return false;
+	}
 
 	e_iter = e;
 	do {

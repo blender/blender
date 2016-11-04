@@ -1166,7 +1166,11 @@ static int UNUSED_FUNCTION(bm_vert_systag_count_disk)(BMVert *v, const char api_
 	return i;
 }
 
-static bool disk_is_flagged(BMVert *v, const char api_flag)
+/**
+ * Return true when the vertex is manifold,
+ * attached to faces which are all flagged.
+ */
+static bool bm_vert_is_manifold_flagged(BMVert *v, const char api_flag)
 {
 	BMEdge *e = v->e;
 
@@ -1225,7 +1229,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 	BLI_array_staticdeclare(deledges, BM_DEFAULT_NGON_STACK_SIZE);
 	BLI_array_staticdeclare(delverts, BM_DEFAULT_NGON_STACK_SIZE);
 	BMVert *v1 = NULL, *v2 = NULL;
-	int i, tote = 0;
+	int i;
 	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
 
 	if (UNLIKELY(!totface)) {
@@ -1255,13 +1259,10 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 					v1 = l_iter->v;
 					v2 = BM_edge_other_vert(l_iter->e, l_iter->v);
 				}
-				tote++;
 			}
 			else if (rlen == 2) {
-				int d1, d2;
-
-				d1 = disk_is_flagged(l_iter->e->v1, _FLAG_JF);
-				d2 = disk_is_flagged(l_iter->e->v2, _FLAG_JF);
+				const bool d1 = bm_vert_is_manifold_flagged(l_iter->e->v1, _FLAG_JF);
+				const bool d2 = bm_vert_is_manifold_flagged(l_iter->e->v2, _FLAG_JF);
 
 				if (!d1 && !d2 && !BM_ELEM_API_FLAG_TEST(l_iter->e, _FLAG_JF)) {
 					/* don't remove an edge it makes up the side of another face
@@ -1305,7 +1306,8 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 	}
 
 	/* create region face */
-	f_new = tote ? BM_face_create_ngon(bm, v1, v2, edges, tote, faces[0], BM_CREATE_NOP) : NULL;
+	f_new = BLI_array_count(edges) ?
+	        BM_face_create_ngon(bm, v1, v2, edges, BLI_array_count(edges), faces[0], BM_CREATE_NOP) : NULL;
 	if (UNLIKELY(f_new == NULL)) {
 		/* Invalid boundary region to join faces */
 		goto error;
@@ -1323,10 +1325,11 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 		} while (l2 != l_iter);
 
 		if (l2 != l_iter) {
-			/* I think this is correct? */
+			/* loops share an edge, shared vert depends on winding */
 			if (l2->v != l_iter->v) {
 				l2 = l2->next;
 			}
+			BLI_assert(l_iter->v == l2->v);
 
 			BM_elem_attrs_copy(bm, bm, l2, l_iter);
 		}
@@ -1677,7 +1680,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 
 			l_new = bm_loop_create(bm, NULL, NULL, l->f, l, 0);
 			l_new->prev = l;
-			l_new->next = (l->next);
+			l_new->next = l->next;
 			l_new->prev->next = l_new;
 			l_new->next->prev = l_new;
 			l_new->v = v_new;
@@ -1812,7 +1815,6 @@ BMEdge *bmesh_jekv(
 	BMEdge *e_old;
 	BMVert *v_old, *v_target;
 	BMLoop *l_kill;
-	bool halt = false;
 #ifndef NDEBUG
 	int radlen, i;
 	bool edok;
@@ -1833,9 +1835,9 @@ BMEdge *bmesh_jekv(
 		e_old = bmesh_disk_edge_next(e_kill, v_kill);
 		v_target = BM_edge_other_vert(e_kill, v_kill);
 		v_old = BM_edge_other_vert(e_old, v_kill);
-		halt = BM_verts_in_edge(v_kill, v_target, e_old); /* check for double edges */
-		
-		if (halt) {
+
+		/* check for double edges */
+		if (BM_verts_in_edge(v_kill, v_target, e_old)) {
 			return NULL;
 		}
 		else {
