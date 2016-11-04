@@ -1307,7 +1307,9 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 
 	if (use_hierarchy || use_base_parent) {
 		dupli_gh = BLI_ghash_ptr_new(__func__);
-		parent_gh = BLI_ghash_new(dupliobject_hash, dupliobject_cmp, __func__);
+		if (use_hierarchy) {
+			parent_gh = BLI_ghash_new(dupliobject_hash, dupliobject_cmp, __func__);
+		}
 	}
 
 	for (dob = lb->first; dob; dob = dob->next) {
@@ -1344,10 +1346,17 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		copy_m4_m4(ob->obmat, dob->mat);
 		BKE_object_apply_mat4(ob, ob->obmat, false, false);
 
-		if (dupli_gh)
+		if (dupli_gh) {
 			BLI_ghash_insert(dupli_gh, dob, ob);
-		if (parent_gh)
-			BLI_ghash_insert(parent_gh, dob, ob);
+		}
+		if (parent_gh) {
+			void **val;
+			/* Due to nature of hash/comparison of this ghash, a lot of duplis may be considered as 'the same',
+			 * this avoids trying to insert same key several time and raise asserts in debug builds... */
+			if (!BLI_ghash_ensure_p(parent_gh, dob, &val)) {
+				*val = ob;
+			}
+		}
 
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
