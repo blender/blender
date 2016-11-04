@@ -80,8 +80,9 @@ struct DepsNode {
 	/* Nodes which depend on this one. */
 	Relations outlinks;
 
-	/* Generic tag for traversal algorithms */
+	/* Generic tags for traversal algorithms. */
 	int done;
+	int tag;
 
 	/* Methods. */
 
