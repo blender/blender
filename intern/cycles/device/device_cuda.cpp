@@ -214,7 +214,8 @@ public:
 			return;
 
 		int major, minor;
-		cuDeviceComputeCapability(&major, &minor, cuDevId);
+		cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, cuDevId);
+		cuDeviceGetAttribute(&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, cuDevId);
 		cuDevArchitecture = major*100 + minor*10;
 
 		cuda_pop_context();
@@ -234,7 +235,8 @@ public:
 	bool support_device(const DeviceRequestedFeatures& /*requested_features*/)
 	{
 		int major, minor;
-		cuDeviceComputeCapability(&major, &minor, cuDevId);
+		cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, cuDevId);
+		cuDeviceGetAttribute(&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, cuDevId);
 
 		/* We only support sm_20 and above */
 		if(major < 2) {
@@ -316,7 +318,8 @@ public:
 	{
 		/* Compute cubin name. */
 		int major, minor;
-		cuDeviceComputeCapability(&major, &minor, cuDevId);
+		cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, cuDevId);
+		cuDeviceGetAttribute(&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, cuDevId);
 
 		/* Attempt to use kernel provided with Blender. */
 		if(!use_adaptive_compilation()) {
@@ -1395,8 +1398,8 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 		if(cuDeviceGetName(name, 256, num) != CUDA_SUCCESS)
 			continue;
 
-		int major, minor;
-		cuDeviceComputeCapability(&major, &minor, num);
+		int major;
+		cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, num);
 		if(major < 2) {
 			continue;
 		}
