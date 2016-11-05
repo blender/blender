@@ -82,6 +82,10 @@ extern char datatoc_gpu_shader_edges_front_back_persp_vert_glsl[];
 extern char datatoc_gpu_shader_edges_front_back_persp_geom_glsl[];
 extern char datatoc_gpu_shader_edges_front_back_persp_legacy_vert_glsl[];
 extern char datatoc_gpu_shader_edges_front_back_ortho_vert_glsl[];
+extern char datatoc_gpu_shader_edges_overlay_vert_glsl[];
+extern char datatoc_gpu_shader_edges_overlay_geom_glsl[];
+extern char datatoc_gpu_shader_edges_overlay_simple_geom_glsl[];
+extern char datatoc_gpu_shader_edges_overlay_frag_glsl[];
 extern char datatoc_gpu_shader_text_vert_glsl[];
 extern char datatoc_gpu_shader_text_frag_glsl[];
 
@@ -115,6 +119,8 @@ static struct GPUShadersGlobal {
 		GPUShader *text;
 		GPUShader *edges_front_back_persp;
 		GPUShader *edges_front_back_ortho;
+		GPUShader *edges_overlay_simple;
+		GPUShader *edges_overlay;
 		/* for drawing images */
 		GPUShader *image_modulate_alpha_3D;
 		GPUShader *image_rect_modulate_alpha_3D;
@@ -697,6 +703,24 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 				        NULL, NULL, NULL, 0, 0, 0);
 			retval = GG.shaders.edges_front_back_ortho;
 			break;
+		case GPU_SHADER_EDGES_OVERLAY_SIMPLE:
+			if (!GG.shaders.edges_overlay_simple)
+				GG.shaders.edges_overlay_simple = GPU_shader_create(
+				        datatoc_gpu_shader_3D_vert_glsl,
+				        datatoc_gpu_shader_edges_overlay_frag_glsl,
+				        datatoc_gpu_shader_edges_overlay_simple_geom_glsl,
+				        NULL, NULL, 0, 0, 0);
+			retval = GG.shaders.edges_overlay_simple;
+			break;
+		case GPU_SHADER_EDGES_OVERLAY:
+			if (!GG.shaders.edges_overlay)
+				GG.shaders.edges_overlay = GPU_shader_create(
+				        datatoc_gpu_shader_edges_overlay_vert_glsl,
+				        datatoc_gpu_shader_edges_overlay_frag_glsl,
+				        datatoc_gpu_shader_edges_overlay_geom_glsl,
+				        NULL, NULL, 0, 0, 0);
+			retval = GG.shaders.edges_overlay;
+			break;
 		case GPU_SHADER_3D_IMAGE_MODULATE_ALPHA:
 			if (!GG.shaders.image_modulate_alpha_3D)
 				GG.shaders.image_modulate_alpha_3D = GPU_shader_create(
@@ -992,6 +1016,16 @@ void GPU_shader_free_builtin_shaders(void)
 	if (GG.shaders.edges_front_back_ortho) {
 		GPU_shader_free(GG.shaders.edges_front_back_ortho);
 		GG.shaders.edges_front_back_ortho = NULL;
+	}
+
+	if (GG.shaders.edges_overlay_simple) {
+		GPU_shader_free(GG.shaders.edges_overlay_simple);
+		GG.shaders.edges_overlay_simple = NULL;
+	}
+
+	if (GG.shaders.edges_overlay) {
+		GPU_shader_free(GG.shaders.edges_overlay);
+		GG.shaders.edges_overlay = NULL;
 	}
 
 	if (GG.shaders.image_modulate_alpha_3D) {
