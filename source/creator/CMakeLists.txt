@@ -1218,6 +1218,5 @@ if(WIN32 AND NOT WITH_PYTHON_MODULE)
 				DESTINATION "."
 			)
 		endif()
-		Message("KITSPATH = ${KITSPATH}")
 	endif()
 endif()
