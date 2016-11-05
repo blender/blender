@@ -6,73 +6,39 @@
 // After working with this shader a while, convinced we should make
 // separate shaders for perpective & ortho. (Oct 2016)
 
-// This shader is an imperfect stepping stone until all platforms are
-// ready for geometry shaders.
-
 // Due to perspective, the line segment's endpoints might disagree on
-// whether the adjacent faces are front facing. Need to use a geometry
-// shader or pass in an extra position attribute (the other endpoint)
-// to do this properly.
-
-uniform bool drawFront = true;
-uniform bool drawBack = true;
-uniform bool drawSilhouette = true;
-
-uniform vec4 frontColor;
-uniform vec4 backColor;
-uniform vec4 silhouetteColor;
+// whether the adjacent faces are front facing. We use a geometry
+// shader to resolve this properly.
 
 uniform mat4 ModelViewMatrix;
-uniform mat4 ModelViewProjectionMatrix;
 uniform mat3 NormalMatrix;
 
-#if __VERSION__ == 120
-	attribute vec3 pos;
+in vec3 pos;
+in vec3 N1, N2; // normals of faces this edge joins (object coords)
 
-	// normals of faces this edge joins (object coords)
-	attribute vec3 N1;
-	attribute vec3 N2;
-
-	flat varying vec4 finalColor;
-#else
-	in vec3 pos;
-
-	// normals of faces this edge joins (object coords)
-	in vec3 N1;
-	in vec3 N2;
-
-	flat out vec4 finalColor;
-#endif
+out vec4 MV_pos;
+out float edgeClass;
 
 // TODO: in float angle; // [-pi .. +pi], + peak, 0 flat, - valley
 
-// to discard an entire line, set its color to invisible
-// (must have GL_BLEND enabled, or discard in fragment shader)
-const vec4 invisible = vec4(0.0);
-
-bool front(vec3 N)
+bool front(vec3 N, vec3 eye)
 {
-	vec4 xformed = ModelViewMatrix * vec4(pos, 1.0);
-	return dot(NormalMatrix * N, normalize(-xformed.xyz)) > 0.0;
+	return dot(NormalMatrix * N, eye) > 0.0;
 }
 
 void main()
 {
-	bool face_1_front = front(N1);
-	bool face_2_front = front(N2);
+	MV_pos = ModelViewMatrix * vec4(pos, 1.0);
 
-	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+	vec3 eye = normalize(-MV_pos.xyz);
 
-	if (face_1_front && face_2_front) {
-		// front-facing edge
-		finalColor = drawFront ? frontColor : invisible;
-	}
-	else if (face_1_front || face_2_front) {
-		// exactly one face is front-facing, silhouette edge
-		finalColor = drawSilhouette ? silhouetteColor : invisible;
-	}
-	else {
-		// back-facing edge
-		finalColor = drawBack ? backColor : invisible;
-	}
+	bool face_1_front = front(N1, eye);
+	bool face_2_front = front(N2, eye);
+
+	if (face_1_front && face_2_front)
+		edgeClass = 1.0; // front-facing edge
+	else if (face_1_front || face_2_front)
+		edgeClass = 0.0; // exactly one face is front-facing, silhouette edge
+	else
+		edgeClass = -1.0; // back-facing edge
 }

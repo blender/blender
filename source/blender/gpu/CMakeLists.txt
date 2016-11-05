@@ -159,6 +159,8 @@ data_to_c_simple(shaders/gpu_shader_2D_point_uniform_size_outline_smooth_vert.gl
 data_to_c_simple(shaders/gpu_shader_2D_point_uniform_size_varying_color_outline_smooth_vert.glsl SRC)
 
 data_to_c_simple(shaders/gpu_shader_edges_front_back_persp_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_edges_front_back_persp_geom.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_edges_front_back_persp_legacy_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_edges_front_back_ortho_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_text_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_text_frag.glsl SRC)

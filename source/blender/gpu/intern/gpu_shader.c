@@ -79,6 +79,8 @@ extern char datatoc_gpu_shader_2D_point_uniform_size_outline_smooth_vert_glsl[];
 extern char datatoc_gpu_shader_2D_point_uniform_size_varying_color_outline_smooth_vert_glsl[];
 
 extern char datatoc_gpu_shader_edges_front_back_persp_vert_glsl[];
+extern char datatoc_gpu_shader_edges_front_back_persp_geom_glsl[];
+extern char datatoc_gpu_shader_edges_front_back_persp_legacy_vert_glsl[];
 extern char datatoc_gpu_shader_edges_front_back_ortho_vert_glsl[];
 extern char datatoc_gpu_shader_text_vert_glsl[];
 extern char datatoc_gpu_shader_text_frag_glsl[];
@@ -671,10 +673,20 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 			break;
 		case GPU_SHADER_EDGES_FRONT_BACK_PERSP:
 			if (!GG.shaders.edges_front_back_persp)
-				GG.shaders.edges_front_back_persp = GPU_shader_create(
-				        datatoc_gpu_shader_edges_front_back_persp_vert_glsl,
-				        datatoc_gpu_shader_flat_color_alpha_test_0_frag_glsl,
-				        NULL, NULL, NULL, 0, 0, 0);
+				if (GLEW_VERSION_3_2) {
+					/* this version is magical but slooow */
+					GG.shaders.edges_front_back_persp = GPU_shader_create(
+					        datatoc_gpu_shader_edges_front_back_persp_vert_glsl,
+					        datatoc_gpu_shader_flat_color_frag_glsl,
+					        datatoc_gpu_shader_edges_front_back_persp_geom_glsl,
+					        NULL, NULL, 0, 0, 0);
+				}
+				else {
+					GG.shaders.edges_front_back_persp = GPU_shader_create(
+					        datatoc_gpu_shader_edges_front_back_persp_legacy_vert_glsl,
+					        datatoc_gpu_shader_flat_color_alpha_test_0_frag_glsl,
+					        NULL, NULL, NULL, 0, 0, 0);
+				}
 			retval = GG.shaders.edges_front_back_persp;
 			break;
 		case GPU_SHADER_EDGES_FRONT_BACK_ORTHO:
