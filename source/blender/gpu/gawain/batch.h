@@ -46,9 +46,13 @@ void Batch_set_program(Batch*, GLuint program);
 // Entire batch draws with one shader program, but can be redrawn later with another program.
 // Vertex shader's inputs must be compatible with the batch's vertex format.
 
+void Batch_use_program(Batch*); // call before Batch_Uniform (temp hack?)
+void Batch_done_using_program(Batch*);
+
 void Batch_Uniform1b(Batch*, const char* name, bool value);
-// void Batch_Uniform1f(Batch*, float value);
-// void Batch_Uniform4f(Batch*, float x, float y, float z, float w);
+void Batch_Uniform1f(Batch*, const char* name, float value);
+void Batch_Uniform2f(Batch*, const char* name, float x, float y);
+void Batch_Uniform4f(Batch*, const char* name, float x, float y, float z, float w);
 void Batch_Uniform3fv(Batch*, const char* name, const float data[3]);
 void Batch_Uniform4fv(Batch*, const char* name, const float data[4]);
 

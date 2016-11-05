@@ -55,6 +55,8 @@ void Batch_set_program(Batch* batch, GLuint program)
 
 	batch->program = program;
 	batch->program_dirty = true;
+
+	Batch_use_program(batch); // hack! to make Batch_Uniform* simpler
 	}
 
 static void Batch_update_program_bindings(Batch* batch)
@@ -102,8 +104,12 @@ static void Batch_update_program_bindings(Batch* batch)
 	batch->program_dirty = false;
 	}
 
-static void Batch_use_program(Batch* batch)
+void Batch_use_program(Batch* batch)
 	{
+	// NOTE: use_program & done_using_program are fragile, depend on staying in sync with
+	//       the GL context's active program. use_program doesn't mark other programs as "not used".
+	// TODO: make not fragile (somehow)
+
 	if (!batch->program_in_use)
 		{
 		glUseProgram(batch->program);
@@ -111,7 +117,7 @@ static void Batch_use_program(Batch* batch)
 		}
 	}
 
-static void Batch_done_using_program(Batch* batch)
+void Batch_done_using_program(Batch* batch)
 	{
 	if (batch->program_in_use)
 		{
@@ -128,8 +134,40 @@ void Batch_Uniform1b(Batch* batch, const char* name, bool value)
 	assert(loc != -1);
 #endif
 
-	Batch_use_program(batch);
 	glUniform1i(loc, value ? GL_TRUE : GL_FALSE);
+	}
+
+void Batch_Uniform2f(Batch* batch, const char* name, float x, float y)
+	{
+	int loc = glGetUniformLocation(batch->program, name);
+
+#if TRUST_NO_ONE
+	assert(loc != -1);
+#endif
+
+	glUniform2f(loc, x, y);
+	}
+
+void Batch_Uniform4f(Batch* batch, const char* name, float x, float y, float z, float w)
+	{
+	int loc = glGetUniformLocation(batch->program, name);
+
+#if TRUST_NO_ONE
+	assert(loc != -1);
+#endif
+
+	glUniform4f(loc, x, y, z, w);
+	}
+
+void Batch_Uniform1f(Batch* batch, const char* name, float x)
+	{
+	int loc = glGetUniformLocation(batch->program, name);
+
+#if TRUST_NO_ONE
+	assert(loc != -1);
+#endif
+
+	glUniform1f(loc, x);
 	}
 
 void Batch_Uniform3fv(Batch* batch, const char* name, const float data[3])
@@ -140,7 +178,6 @@ void Batch_Uniform3fv(Batch* batch, const char* name, const float data[3])
 	assert(loc != -1);
 #endif
 
-	Batch_use_program(batch);
 	glUniform3fv(loc, 1, data);
 	}
 
@@ -152,7 +189,6 @@ void Batch_Uniform4fv(Batch* batch, const char* name, const float data[4])
 	assert(loc != -1);
 #endif
 
-	Batch_use_program(batch);
 	glUniform4fv(loc, 1, data);
 	}
 
