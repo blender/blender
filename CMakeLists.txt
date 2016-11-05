@@ -333,7 +333,7 @@ option(WITH_ALEMBIC             "Enable Alembic Support" OFF)
 option(WITH_ALEMBIC_HDF5        "Enable Legacy Alembic Support (not officially supported)" OFF)
 
 if(APPLE)
-	option(WITH_CODEC_QUICKTIME     "Enable Quicktime Support" ON)
+	option(WITH_CODEC_QUICKTIME     "Enable Quicktime Support" OFF)
 endif()
 
 # 3D format support
