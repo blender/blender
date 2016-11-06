@@ -215,11 +215,11 @@ typedef struct drawBMSelect_userData {
 typedef struct {
 	VertexBuffer *pos_in_order;
 	ElementList *edges_in_order;
-	ElementList *faces_in_order;
+	ElementList *triangles_in_order;
 
 	Batch *all_verts;
 	Batch *all_edges;
-	Batch *all_faces;
+	Batch *all_triangles;
 
 	Batch *fancy_edges; /* owns its vertex buffer (not shared) */
 } MeshBatchCache;
@@ -239,11 +239,11 @@ static void MBC_discard(MeshBatchCache *cache)
 {
 	if (cache->all_verts) Batch_discard(cache->all_verts);
 	if (cache->all_edges) Batch_discard(cache->all_edges);
-	if (cache->all_faces) Batch_discard(cache->all_faces);
+	if (cache->all_triangles) Batch_discard(cache->all_triangles);
 
 	if (cache->pos_in_order) VertexBuffer_discard(cache->pos_in_order);
 	if (cache->edges_in_order) ElementList_discard(cache->edges_in_order);
-	if (cache->faces_in_order) ElementList_discard(cache->faces_in_order);
+	if (cache->triangles_in_order) ElementList_discard(cache->triangles_in_order);
 
 	if (cache->fancy_edges) {
 		Batch_discard_all(cache->fancy_edges);
@@ -316,6 +316,30 @@ static ElementList *MBC_get_edges_in_order(DerivedMesh *dm)
 	return cache->edges_in_order;
 }
 
+static ElementList *MBC_get_triangles_in_order(DerivedMesh *dm)
+{
+	MeshBatchCache *cache = MBC_get(dm);
+
+	if (cache->triangles_in_order == NULL) {
+		const int vertex_ct = dm->getNumVerts(dm);
+		const int tessface_ct = dm->getNumTessFaces(dm);
+		const MFace *tessfaces = dm->getTessFaceArray(dm);
+		ElementListBuilder elb;
+		ElementListBuilder_init(&elb, GL_TRIANGLES, tessface_ct, vertex_ct);
+		for (int i = 0; i < tessface_ct; ++i) {
+			const MFace *tess = tessfaces + i;
+			add_triangle_vertices(&elb, tess->v1, tess->v2, tess->v3);
+			/* tessface can be triangle or quad */
+			if (tess->v4) {
+				add_triangle_vertices(&elb, tess->v3, tess->v2, tess->v4);
+			}
+		}
+		cache->triangles_in_order = ElementList_build(&elb);
+	}
+
+	return cache->triangles_in_order;
+}
+
 static Batch *MBC_get_all_edges(DerivedMesh *dm)
 {
 	MeshBatchCache *cache = MBC_get(dm);
@@ -328,15 +352,16 @@ static Batch *MBC_get_all_edges(DerivedMesh *dm)
 	return cache->all_edges;
 }
 
-static Batch *MBC_get_all_faces(DerivedMesh *dm)
+static Batch *MBC_get_all_triangles(DerivedMesh *dm)
 {
 	MeshBatchCache *cache = MBC_get(dm);
 
-	if (cache->all_faces == NULL) {
+	if (cache->all_triangles == NULL) {
 		/* create batch from DM */
+		cache->all_triangles = Batch_create(GL_TRIANGLES, MBC_get_pos_in_order(dm), MBC_get_triangles_in_order(dm));
 	}
 
-	return cache->all_faces;
+	return cache->all_triangles;
 }
 
 static Batch *MBC_get_fancy_edges(DerivedMesh *dm)
