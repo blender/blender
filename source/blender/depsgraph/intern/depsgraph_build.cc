@@ -32,7 +32,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#define DEBUG_TIME
+// #define DEBUG_TIME
 
 extern "C" {
 #include "DNA_cachefile_types.h"
