@@ -2822,7 +2822,7 @@ void node_tex_checker(vec3 co, vec4 color1, vec4 color2, float scale, out vec4 c
 }
 
 #ifdef BIT_OPERATIONS
-vec2 calc_brick_texture(vec3 p, float mortar_size, float bias,
+vec2 calc_brick_texture(vec3 p, float mortar_size, float mortar_smooth, float bias,
                         float brick_width, float row_height,
                         float offset_amount, int offset_frequency,
                         float squash_amount, int squash_frequency)
@@ -2843,17 +2843,26 @@ vec2 calc_brick_texture(vec3 p, float mortar_size, float bias,
 	x = (p.x + offset) - brick_width * bricknum;
 	y = p.y - row_height * rownum;
 
-	return vec2(clamp((integer_noise((rownum << 16) + (bricknum & 0xFFFF)) + bias), 0.0, 1.0),
-	            (x < mortar_size || y < mortar_size ||
-	             x > (brick_width - mortar_size) ||
-	             y > (row_height - mortar_size)) ? 1.0 : 0.0);
+	float tint = clamp((integer_noise((rownum << 16) + (bricknum & 0xFFFF)) + bias), 0.0, 1.0);
+
+	float min_dist = min(min(x, y), min(brick_width - x, row_height - y));
+	if(min_dist >= mortar_size) {
+		return vec2(tint, 0.0);
+	}
+	else if(mortar_smooth == 0.0) {
+		return vec2(tint, 1.0);
+	}
+	else {
+		min_dist = 1.0 - min_dist/mortar_size;
+		return vec2(tint, smoothstep(0.0, mortar_smooth, min_dist));
+	}
 }
 #endif
 
 void node_tex_brick(vec3 co,
                     vec4 color1, vec4 color2,
                     vec4 mortar, float scale,
-                    float mortar_size, float bias,
+                    float mortar_size, float mortar_smooth, float bias,
                     float brick_width, float row_height,
                     float offset_amount, float offset_frequency,
                     float squash_amount, float squash_frequency,
@@ -2861,7 +2870,7 @@ void node_tex_brick(vec3 co,
 {
 #ifdef BIT_OPERATIONS
 	vec2 f2 = calc_brick_texture(co * scale,
-	                             mortar_size, bias,
+	                             mortar_size, mortar_smooth, bias,
 	                             brick_width, row_height,
 	                             offset_amount, int(offset_frequency),
 	                             squash_amount, int(squash_frequency));
@@ -2871,7 +2880,7 @@ void node_tex_brick(vec3 co,
 		float facm = 1.0 - tint;
 		color1 = facm * color1 + tint * color2;
 	}
-	color = (f == 1.0) ? mortar : color1;
+	color = mix(color1, mortar, f);
 	fac = f;
 #else
 	color = vec4(1.0);
