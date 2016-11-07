@@ -31,6 +31,7 @@
  */
 
 #include <stdio.h>
+#include <cstring>  /* required for memset */
 #include <queue>
 
 extern "C" {

@@ -51,6 +51,8 @@ extern "C" {
 #include "RNA_access.h"
 }
 
+#include <cstring>
+
 #include "DEG_depsgraph.h"
 
 #include "intern/nodes/deg_node.h"
