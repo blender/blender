@@ -2880,7 +2880,7 @@ void node_tex_brick(vec3 co,
 		float facm = 1.0 - tint;
 		color1 = facm * color1 + tint * color2;
 	}
-	color = (f == 1.0) ? mortar : color1;
+	color = mix(color1, mortar, f);
 	fac = f;
 #else
 	color = vec4(1.0);
