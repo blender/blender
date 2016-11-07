@@ -4755,7 +4755,7 @@ static bool draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3
 	return retval;
 }
 
-static void make_color_variations(const unsigned char base_ubyte[4], float low[4], float med[4], float high[4])
+static void make_color_variations(const unsigned char base_ubyte[4], float low[4], float med[4], float high[4], const bool other_obedit)
 {
 	/* original idea: nice variations (lighter & darker shades) of base color
 	 * current implementation uses input color as high; med & low get closer to background color
@@ -4767,9 +4767,17 @@ static void make_color_variations(const unsigned char base_ubyte[4], float low[4
 	float base[4];
 	rgba_uchar_to_float(base, base_ubyte);
 
-	interp_v3_v3v3(low, bg, base, 0.333f);
-	interp_v3_v3v3(med, bg, base, 0.667f);
-	copy_v3_v3(high, base);
+	if (other_obedit) {
+		/* this object should fade away so user can focus on the object being edited */
+		interp_v3_v3v3(low, bg, base, 0.1f);
+		interp_v3_v3v3(med, bg, base, 0.2f);
+		interp_v3_v3v3(high, bg, base, 0.25f);
+	}
+	else {
+		interp_v3_v3v3(low, bg, base, 0.333f);
+		interp_v3_v3v3(med, bg, base, 0.667f);
+		copy_v3_v3(high, base);
+	}
 
 	/* use original alpha */
 	low[3] = base[3];
@@ -4778,7 +4786,7 @@ static void make_color_variations(const unsigned char base_ubyte[4], float low[4
 }
 
 static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
-                                const char dt, const unsigned char ob_wire_col[4], const short dflag)
+                                const char dt, const unsigned char ob_wire_col[4], const short dflag, const bool other_obedit)
 {
 	if (dflag & (DRAW_PICKING | DRAW_CONSTCOLOR)) {
 		/* too complicated! use existing methods */
@@ -4873,7 +4881,7 @@ static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionVi
 		float frontColor[4];
 		float backColor[4];
 		float outlineColor[4];
-		make_color_variations(ob_wire_col, backColor, frontColor, outlineColor);
+		make_color_variations(ob_wire_col, backColor, frontColor, outlineColor, other_obedit);
 
 		Batch_Uniform4fv(fancy_edges, "frontColor", frontColor);
 		Batch_Uniform4fv(fancy_edges, "backColor", backColor);
@@ -5180,7 +5188,9 @@ static bool draw_mesh_object_new(Scene *scene, ARegion *ar, View3D *v3d, RegionV
 				}
 			}
 
-			draw_mesh_fancy_new(scene, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
+			const bool other_obedit = obedit && (obedit != ob);
+
+			draw_mesh_fancy_new(scene, ar, v3d, rv3d, base, dt, ob_wire_col, dflag, other_obedit);
 
 			GPU_end_object_materials();
 
