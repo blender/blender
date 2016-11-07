@@ -301,7 +301,7 @@ ccl_device_inline void path_branched_rng_2D(KernelGlobals *kg, ccl_addr_space RN
 }
 
 /* Utitility functions to get light termination value, since it might not be needed in many cases. */
-ccl_device_inline float path_state_rng_light_termination(KernelGlobals *kg, ccl_addr_space RNG *rng, const PathState *state)
+ccl_device_inline float path_state_rng_light_termination(KernelGlobals *kg, ccl_addr_space RNG *rng, const ccl_addr_space PathState *state)
 {
 	if(kernel_data.integrator.light_inv_rr_threshold > 0.0f) {
 		return path_state_rng_1D_for_decision(kg, rng, state, PRNG_LIGHT_TERMINATE);

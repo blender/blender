@@ -101,22 +101,6 @@ struct Depsgraph {
 	~Depsgraph();
 
 	/**
-	 * Find node which matches the specified description.
-	 *
-	 * \param id: ID block that is associated with this
-	 * \param subdata: identifier used for sub-ID data (e.g. bone)
-	 * \param type: type of node we're dealing with
-	 * \param name: custom identifier assigned to node
-	 *
-	 * \return A node matching the required characteristics if it exists
-	 * or NULL if no such node exists in the graph.
-	 */
-	DepsNode *find_node(const ID *id,
-	                    eDepsNode_Type type,
-	                    const string &subdata,
-	                    const string &name);
-
-	/**
 	 * Convenience wrapper to find node given just pointer + property.
 	 *
 	 * \param ptr: pointer to the data that node will represent
@@ -136,7 +120,7 @@ struct Depsgraph {
 	void clear_subgraph_nodes();
 
 	IDDepsNode *find_id_node(const ID *id) const;
-	IDDepsNode *add_id_node(ID *id, const string &name = "");
+	IDDepsNode *add_id_node(ID *id, const char *name = "");
 	void remove_id_node(const ID *id);
 	void clear_id_nodes();
 

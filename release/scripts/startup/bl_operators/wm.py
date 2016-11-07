@@ -2163,3 +2163,32 @@ class WM_OT_addon_expand(Operator):
             info["show_expanded"] = not info["show_expanded"]
 
         return {'FINISHED'}
+
+class WM_OT_addon_userpref_show(Operator):
+    "Show add-on user preferences"
+    bl_idname = "wm.addon_userpref_show"
+    bl_label = ""
+    bl_options = {'INTERNAL'}
+
+    module = StringProperty(
+            name="Module",
+            description="Module name of the add-on to expand",
+            )
+
+    def execute(self, context):
+        import addon_utils
+
+        module_name = self.module
+
+        modules = addon_utils.modules(refresh=False)
+        mod = addon_utils.addons_fake_modules.get(module_name)
+        if mod is not None:
+            info = addon_utils.module_bl_info(mod)
+            info["show_expanded"] = True
+
+            bpy.context.user_preferences.active_section = 'ADDONS'
+            context.window_manager.addon_filter = 'All'
+            context.window_manager.addon_search = info["name"]
+            bpy.ops.screen.userpref_show('INVOKE_DEFAULT')
+
+        return {'FINISHED'}

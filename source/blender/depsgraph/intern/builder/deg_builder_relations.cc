@@ -34,13 +34,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <cstring>  /* required for STREQ later on. */
 
 #include "MEM_guardedalloc.h"
 
 extern "C" {
 #include "BLI_blenlib.h"
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_action_types.h"
@@ -209,10 +208,12 @@ OperationDepsNode *DepsgraphRelationBuilder::find_node(
 		return NULL;
 	}
 
-	OperationDepsNode *op_node = comp_node->find_operation(key.opcode, key.name);
+	OperationDepsNode *op_node = comp_node->find_operation(key.opcode,
+	                                                       key.name,
+	                                                       key.name_tag);
 	if (!op_node) {
 		fprintf(stderr, "find_node_operation: Failed for (%s, '%s')\n",
-		        DEG_OPNAMES[key.opcode], key.name.c_str());
+		        DEG_OPNAMES[key.opcode], key.name);
 	}
 	return op_node;
 }
@@ -234,7 +235,7 @@ OperationDepsNode *DepsgraphRelationBuilder::has_node(
 	if (!comp_node) {
 		return NULL;
 	}
-	return comp_node->has_operation(key.opcode, key.name);
+	return comp_node->has_operation(key.opcode, key.name, key.name_tag);
 }
 
 void DepsgraphRelationBuilder::add_time_relation(TimeSourceDepsNode *timesrc,
@@ -483,7 +484,7 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 	build_animdata(&ob->id);
 
 	// XXX: This should be hooked up by the build_animdata code
-	if (ob->adt && (ob->adt->action || ob->adt->nla_tracks.first)) {
+	if (needs_animdata_node(&ob->id)) {
 		ComponentKey adt_key(&ob->id, DEPSNODE_TYPE_ANIMATION);
 		add_relation(adt_key, local_transform_key, DEPSREL_TYPE_OPERATION, "Object Animation");
 	}
@@ -815,10 +816,65 @@ void DepsgraphRelationBuilder::build_animdata(ID *id)
 
 	/* drivers */
 	for (FCurve *fcu = (FCurve *)adt->drivers.first; fcu; fcu = fcu->next) {
-		OperationKey driver_key(id, DEPSNODE_TYPE_PARAMETERS, DEG_OPCODE_DRIVER, deg_fcurve_id_name(fcu));
+		OperationKey driver_key(id,
+		                        DEPSNODE_TYPE_PARAMETERS,
+		                        DEG_OPCODE_DRIVER,
+		                        fcu->rna_path,
+		                        fcu->array_index);
 
 		/* create the driver's relations to targets */
 		build_driver(id, fcu);
+
+		/* Special case for array drivers: we can not multithread them because
+		 * of the way how they work internally: animation system will write the
+		 * whole array back to RNA even when changing individual array value.
+		 *
+		 * Some tricky things here:
+		 * - array_index is -1 for single channel drivers, meaning we only have
+		 *   to do some magic when array_index is not -1.
+		 * - We do relation from next array index to a previous one, so we don't
+		 *   have to deal with array index 0.
+		 *
+		 * TODO(sergey): Avoid liner lookup somehow.
+		 */
+		if (fcu->array_index > 0) {
+			FCurve *fcu_prev = NULL;
+			for (FCurve *fcu_candidate = (FCurve *)adt->drivers.first;
+			     fcu_candidate != NULL;
+			     fcu_candidate = fcu_candidate->next)
+			{
+				/* Writing to different RNA paths is  */
+				if (!STREQ(fcu_candidate->rna_path, fcu->rna_path)) {
+					continue;
+				}
+				/* We only do relation from previous fcurve to previous one. */
+				if (fcu_candidate->array_index >= fcu->array_index) {
+					continue;
+				}
+				/* Choose fcurve with highest possible array index. */
+				if (fcu_prev == NULL ||
+				    fcu_candidate->array_index > fcu_prev->array_index)
+				{
+					fcu_prev = fcu_candidate;
+				}
+			}
+			if (fcu_prev != NULL) {
+				OperationKey prev_driver_key(id,
+				                             DEPSNODE_TYPE_PARAMETERS,
+				                             DEG_OPCODE_DRIVER,
+				                             fcu_prev->rna_path,
+				                             fcu_prev->array_index);
+				OperationKey driver_key(id,
+				                        DEPSNODE_TYPE_PARAMETERS,
+				                        DEG_OPCODE_DRIVER,
+				                        fcu->rna_path,
+				                        fcu->array_index);
+				add_relation(prev_driver_key,
+				             driver_key,
+				             DEPSREL_TYPE_OPERATION,
+				             "[Driver Order]");
+			}
+		}
 
 		/* prevent driver from occurring before own animation... */
 		if (adt->action || adt->nla_tracks.first) {
@@ -831,7 +887,11 @@ void DepsgraphRelationBuilder::build_animdata(ID *id)
 void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 {
 	ChannelDriver *driver = fcu->driver;
-	OperationKey driver_key(id, DEPSNODE_TYPE_PARAMETERS, DEG_OPCODE_DRIVER, deg_fcurve_id_name(fcu));
+	OperationKey driver_key(id,
+	                        DEPSNODE_TYPE_PARAMETERS,
+	                        DEG_OPCODE_DRIVER,
+	                        fcu->rna_path,
+	                        fcu->array_index);
 	bPoseChannel *pchan = NULL;
 
 	/* create dependency between driver and data affected by it */
@@ -1384,7 +1444,7 @@ void DepsgraphRelationBuilder::build_rig(Scene *scene, Object *ob)
 	                          "Armature Eval");
 	add_relation(armature_key, init_key, DEPSREL_TYPE_COMPONENT_ORDER, "Data dependency");
 
-	if (ob->adt && (ob->adt->action || ob->adt->nla_tracks.first)) {
+	if (needs_animdata_node(&ob->id)) {
 		ComponentKey animation_key(&ob->id, DEPSNODE_TYPE_ANIMATION);
 		add_relation(animation_key, init_key, DEPSREL_TYPE_OPERATION, "Rig Animation");
 	}
@@ -1622,7 +1682,7 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 				 * for either the modifier needing time, or that it is animated.
 				 */
 				/* XXX: Remove this hack when these links are added as part of build_animdata() instead */
-				if (modifier_dependsOnTime(md) == false) {
+				if (modifier_dependsOnTime(md) == false && needs_animdata_node(&ob->id)) {
 					ComponentKey animation_key(&ob->id, DEPSNODE_TYPE_ANIMATION);
 					add_relation(animation_key, mod_key, DEPSREL_TYPE_OPERATION, "Modifier Animation");
 				}
@@ -1920,7 +1980,7 @@ bool DepsgraphRelationBuilder::needs_animdata_node(ID *id)
 {
 	AnimData *adt = BKE_animdata_from_id(id);
 	if (adt != NULL) {
-		return adt->action != NULL;
+		return (adt->action != NULL) || (adt->nla_tracks.first != NULL);
 	}
 	return false;
 }

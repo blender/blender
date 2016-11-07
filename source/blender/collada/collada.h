@@ -43,8 +43,7 @@ typedef enum BC_export_mesh_type {
 
 typedef enum BC_export_transformation_type {
 	BC_TRANSFORMATION_TYPE_MATRIX,
-	BC_TRANSFORMATION_TYPE_TRANSROTLOC,
-	BC_TRANSFORMATION_TYPE_BOTH
+	BC_TRANSFORMATION_TYPE_TRANSROTLOC
 } BC_export_transformation_type;
 
 struct bContext;

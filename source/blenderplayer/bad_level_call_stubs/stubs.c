@@ -142,7 +142,6 @@ struct wmWindowManager;
 #  pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
-#include "../../intern/cycles/blender/CCL_api.h"
 #include "../../intern/dualcon/dualcon.h"
 #include "../../intern/elbeem/extern/elbeem.h"
 #include "../blender/blenkernel/BKE_modifier.h"
@@ -766,10 +765,6 @@ void *dualcon(const DualConInput *input_mesh,
               float hermite_num,
               float scale,
               int depth) RET_ZERO
-
-/* intern/cycles */
-struct CCLDeviceInfo;
-struct CCLDeviceInfo *CCL_compute_device_list(int opencl) RET_NULL
 
 /* compositor */
 void COM_execute(RenderData *rd, Scene *scene, bNodeTree *editingtree, int rendering,

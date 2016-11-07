@@ -65,9 +65,9 @@ TEST(ModalSolver, SyntheticCubeSceneMotion) {
                                   NULL);
 
   Mat3 expected_rotation;
-  expected_rotation << 0.98215101299251, 0.17798357184544,  0.06083778292258,
-                      -0.16875286001759, 0.97665299913606, -0.13293378620359,
-                      -0.08307743323957, 0.12029450291547,  0.98925596922871;
+  expected_rotation << 0.98215101743472, 0.17798354937546,  0.06083777694542,
+                      -0.16875283983360, 0.97665300495333, -0.13293376908719,
+                      -0.08307742172243, 0.12029448893171,  0.98925597189636;
 
   Mat3 &first_camera_R = reconstruction.CameraForImage(1)->R;
   Mat3 &second_camera_R = reconstruction.CameraForImage(2)->R;

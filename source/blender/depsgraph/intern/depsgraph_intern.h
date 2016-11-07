@@ -63,8 +63,8 @@ struct DepsNodeFactory {
 	virtual const char *tname() const = 0;
 
 	virtual DepsNode *create_node(const ID *id,
-	                              const string &subdata,
-	                              const string &name) const = 0;
+	                              const char *subdata,
+	                              const char *name) const = 0;
 };
 
 template <class NodeType>
@@ -73,7 +73,7 @@ struct DepsNodeFactoryImpl : public DepsNodeFactory {
 	eDepsNode_Class tclass() const { return NodeType::typeinfo.tclass; }
 	const char *tname() const { return NodeType::typeinfo.tname; }
 
-	DepsNode *create_node(const ID *id, const string &subdata, const string &name) const
+	DepsNode *create_node(const ID *id, const char *subdata, const char *name) const
 	{
 		DepsNode *node = OBJECT_GUARDED_NEW(NodeType);
 
@@ -81,12 +81,14 @@ struct DepsNodeFactoryImpl : public DepsNodeFactory {
 		node->type = type();
 		node->tclass = tclass();
 
-		if (!name.empty())
+		if (name[0] != '\0') {
 			/* set name if provided ... */
 			node->name = name;
-		else
+		}
+		else {
 			/* ... otherwise use default type name */
 			node->name = tname();
+		}
 
 		node->init(id, subdata);
 

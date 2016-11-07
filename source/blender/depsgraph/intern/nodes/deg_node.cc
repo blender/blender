@@ -31,7 +31,7 @@
 #include "intern/nodes/deg_node.h"
 
 #include <stdio.h>
-#include <string.h>
+#include <cstring>  /* required for STREQ later on. */
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
@@ -72,7 +72,7 @@ DepsNode::TypeInfo::TypeInfo(eDepsNode_Type type, const char *tname)
 
 DepsNode::DepsNode()
 {
-	name[0] = '\0';
+	name = "";
 }
 
 DepsNode::~DepsNode()
@@ -122,7 +122,7 @@ RootDepsNode::~RootDepsNode()
 	OBJECT_GUARDED_DELETE(time_source, TimeSourceDepsNode);
 }
 
-TimeSourceDepsNode *RootDepsNode::add_time_source(const string &name)
+TimeSourceDepsNode *RootDepsNode::add_time_source(const char *name)
 {
 	if (!time_source) {
 		DepsNodeFactory *factory = deg_get_node_factory(DEPSNODE_TYPE_TIMESOURCE);
@@ -142,12 +142,24 @@ static DepsNodeFactoryImpl<TimeSourceDepsNode> DNTI_TIMESOURCE;
 
 /* ID Node ================================================ */
 
+IDDepsNode::ComponentIDKey::ComponentIDKey(eDepsNode_Type type,
+                                           const char *name)
+        : type(type), name(name)
+{
+}
+
+bool IDDepsNode::ComponentIDKey::operator== (const ComponentIDKey &other) const
+{
+    return type == other.type &&
+           STREQ(name, other.name);
+}
+
 static unsigned int id_deps_node_hash_key(const void *key_v)
 {
 	const IDDepsNode::ComponentIDKey *key =
 	        reinterpret_cast<const IDDepsNode::ComponentIDKey *>(key_v);
 	return hash_combine(BLI_ghashutil_uinthash(key->type),
-	                    BLI_ghashutil_strhash_p(key->name.c_str()));
+	                    BLI_ghashutil_strhash_p(key->name));
 }
 
 static bool id_deps_node_hash_key_cmp(const void *a, const void *b)
@@ -173,7 +185,7 @@ static void id_deps_node_hash_value_free(void *value_v)
 }
 
 /* Initialize 'id' node - from pointer data given. */
-void IDDepsNode::init(const ID *id, const string &UNUSED(subdata))
+void IDDepsNode::init(const ID *id, const char *UNUSED(subdata))
 {
 	/* Store ID-pointer. */
 	BLI_assert(id != NULL);
@@ -204,14 +216,14 @@ IDDepsNode::~IDDepsNode()
 }
 
 ComponentDepsNode *IDDepsNode::find_component(eDepsNode_Type type,
-                                              const string &name) const
+                                              const char *name) const
 {
 	ComponentIDKey key(type, name);
 	return reinterpret_cast<ComponentDepsNode *>(BLI_ghash_lookup(components, &key));
 }
 
 ComponentDepsNode *IDDepsNode::add_component(eDepsNode_Type type,
-                                             const string &name)
+                                             const char *name)
 {
 	ComponentDepsNode *comp_node = find_component(type, name);
 	if (!comp_node) {
@@ -226,7 +238,7 @@ ComponentDepsNode *IDDepsNode::add_component(eDepsNode_Type type,
 	return comp_node;
 }
 
-void IDDepsNode::remove_component(eDepsNode_Type type, const string &name)
+void IDDepsNode::remove_component(eDepsNode_Type type, const char *name)
 {
 	ComponentDepsNode *comp_node = find_component(type, name);
 	if (comp_node) {
@@ -281,7 +293,7 @@ static DepsNodeFactoryImpl<IDDepsNode> DNTI_ID_REF;
 /* Subgraph Node ========================================== */
 
 /* Initialize 'subgraph' node - from pointer data given. */
-void SubgraphDepsNode::init(const ID *id, const string &UNUSED(subdata))
+void SubgraphDepsNode::init(const ID *id, const char *UNUSED(subdata))
 {
 	/* Store ID-ref if provided. */
 	this->root_id = (ID *)id;

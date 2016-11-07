@@ -53,25 +53,26 @@ class CyclesButtonsPanel:
         return rd.engine in cls.COMPAT_ENGINES
 
 
+def get_device_type(context):
+    return context.user_preferences.addons[__package__].preferences.compute_device_type
+
+
 def use_cpu(context):
     cscene = context.scene.cycles
-    device_type = context.user_preferences.system.compute_device_type
 
-    return (device_type == 'NONE' or cscene.device == 'CPU')
+    return (get_device_type(context) == 'NONE' or cscene.device == 'CPU')
 
 
 def use_opencl(context):
     cscene = context.scene.cycles
-    device_type = context.user_preferences.system.compute_device_type
 
-    return (device_type == 'OPENCL' and cscene.device == 'GPU')
+    return (get_device_type(context) == 'OPENCL' and cscene.device == 'GPU')
 
 
 def use_cuda(context):
     cscene = context.scene.cycles
-    device_type = context.user_preferences.system.compute_device_type
 
-    return (device_type == 'CUDA' and cscene.device == 'GPU')
+    return (get_device_type(context) == 'CUDA' and cscene.device == 'GPU')
 
 
 def use_branched_path(context):
@@ -84,6 +85,14 @@ def use_sample_all_lights(context):
     cscene = context.scene.cycles
 
     return cscene.sample_all_lights_direct or cscene.sample_all_lights_indirect
+
+def show_device_selection(context):
+    type = get_device_type(context)
+    if type == 'NETWORK':
+        return True
+    if not type in {'CUDA', 'OPENCL'}:
+        return False
+    return context.user_preferences.addons[__package__].preferences.has_active_device()
 
 
 def draw_samples_info(layout, context):
@@ -141,7 +150,6 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
 
         scene = context.scene
         cscene = scene.cycles
-        device_type = context.user_preferences.system.compute_device_type
 
         row = layout.row(align=True)
         row.menu("CYCLES_MT_sampling_presets", text=bpy.types.CYCLES_MT_sampling_presets.bl_label)
@@ -150,7 +158,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
 
         row = layout.row()
         sub = row.row()
-        sub.active = device_type != 'OPENCL' or use_cpu(context)
+        sub.active = get_device_type(context) != 'OPENCL' or use_cpu(context)
         sub.prop(cscene, "progressive", text="")
         row.prop(cscene, "use_square_samples")
 
@@ -1542,9 +1550,13 @@ def draw_device(self, context):
 
         layout.prop(cscene, "feature_set")
 
-        device_type = context.user_preferences.system.compute_device_type
-        if device_type in {'CUDA', 'OPENCL', 'NETWORK'}:
-            layout.prop(cscene, "device")
+        split = layout.split(percentage=1/3)
+        split.label("Device:")
+        row = split.row(align=True)
+        sub = row.split(align=True)
+        sub.active = show_device_selection(context)
+        sub.prop(cscene, "device", text="")
+        row.operator("wm.addon_userpref_show", text="Preferences", icon='PREFERENCES').module = __package__
 
         if engine.with_osl() and use_cpu(context):
             layout.prop(cscene, "shading_system")

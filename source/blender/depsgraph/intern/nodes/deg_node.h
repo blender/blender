@@ -32,6 +32,8 @@
 
 #include "intern/depsgraph_types.h"
 
+#include "BLI_utildefines.h"
+
 struct ID;
 struct GHash;
 struct Scene;
@@ -57,7 +59,7 @@ struct DepsNode {
 	};
 
 	/* Identifier - mainly for debugging purposes. */
-	string name;
+	const char *name;
 
 	/* Structural type of node. */
 	eDepsNode_Type type;
@@ -78,8 +80,9 @@ struct DepsNode {
 	/* Nodes which depend on this one. */
 	Relations outlinks;
 
-	/* Generic tag for traversal algorithms */
+	/* Generic tags for traversal algorithms. */
 	int done;
+	int tag;
 
 	/* Methods. */
 
@@ -90,7 +93,7 @@ struct DepsNode {
 	string full_identifier() const;
 
 	virtual void init(const ID * /*id*/,
-	                  const string &/*subdata*/) {}
+	                  const char * /*subdata*/) {}
 
 	virtual void tag_update(Depsgraph * /*graph*/) {}
 
@@ -129,7 +132,7 @@ struct RootDepsNode : public DepsNode {
 	RootDepsNode();
 	~RootDepsNode();
 
-	TimeSourceDepsNode *add_time_source(const string &name = "");
+	TimeSourceDepsNode *add_time_source(const char *name = "");
 
 	/* scene that this corresponds to */
 	Scene *scene;
@@ -143,26 +146,21 @@ struct RootDepsNode : public DepsNode {
 /* ID-Block Reference */
 struct IDDepsNode : public DepsNode {
 	struct ComponentIDKey {
-		ComponentIDKey(eDepsNode_Type type, const string &name = "")
-		    : type(type), name(name) {}
-
-		bool operator== (const ComponentIDKey &other) const
-		{
-			return type == other.type && name == other.name;
-		}
+		ComponentIDKey(eDepsNode_Type type, const char *name = "");
+		bool operator==(const ComponentIDKey &other) const;
 
 		eDepsNode_Type type;
-		string name;
+		const char *name;
 	};
 
-	void init(const ID *id, const string &subdata);
+	void init(const ID *id, const char *subdata);
 	~IDDepsNode();
 
 	ComponentDepsNode *find_component(eDepsNode_Type type,
-	                                  const string &name = "") const;
+	                                  const char *name = "") const;
 	ComponentDepsNode *add_component(eDepsNode_Type type,
-	                                 const string &name = "");
-	void remove_component(eDepsNode_Type type, const string &name = "");
+	                                 const char *name = "");
+	void remove_component(eDepsNode_Type type, const char *name = "");
 	void clear_components();
 
 	void tag_update(Depsgraph *graph);
@@ -189,7 +187,7 @@ struct IDDepsNode : public DepsNode {
 
 /* Subgraph Reference. */
 struct SubgraphDepsNode : public DepsNode {
-	void init(const ID *id, const string &subdata);
+	void init(const ID *id, const char *subdata);
 	~SubgraphDepsNode();
 
 	/* Instanced graph. */

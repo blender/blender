@@ -205,30 +205,60 @@ class PHYSICS_PT_rigid_body_constraint(PHYSICS_PT_rigidbody_constraint_panel, Pa
 
                 row = col.row(align=True)
                 sub = row.row(align=True)
-                sub.scale_x = 0.1
-                sub.prop(rbc, "use_spring_x", toggle=True, text="X")
+                sub.scale_x = 0.5
+                sub.prop(rbc, "use_spring_x", toggle=True, text="X Axis")
                 sub = row.row(align=True)
                 sub.active = rbc.use_spring_x
                 sub.prop(rbc, "spring_stiffness_x", text="Stiffness")
-                sub.prop(rbc, "spring_damping_x")
+                sub.prop(rbc, "spring_damping_x", text="Damping")
 
                 row = col.row(align=True)
                 sub = row.row(align=True)
-                sub.scale_x = 0.1
-                sub.prop(rbc, "use_spring_y", toggle=True, text="Y")
+                sub.scale_x = 0.5
+                sub.prop(rbc, "use_spring_y", toggle=True, text="Y Axis")
                 sub = row.row(align=True)
                 sub.active = rbc.use_spring_y
                 sub.prop(rbc, "spring_stiffness_y", text="Stiffness")
-                sub.prop(rbc, "spring_damping_y")
+                sub.prop(rbc, "spring_damping_y", text="Damping")
 
                 row = col.row(align=True)
                 sub = row.row(align=True)
-                sub.scale_x = 0.1
-                sub.prop(rbc, "use_spring_z", toggle=True, text="Z")
+                sub.scale_x = 0.5
+                sub.prop(rbc, "use_spring_z", toggle=True, text="Z Axis")
                 sub = row.row(align=True)
                 sub.active = rbc.use_spring_z
                 sub.prop(rbc, "spring_stiffness_z", text="Stiffness")
-                sub.prop(rbc, "spring_damping_z")
+                sub.prop(rbc, "spring_damping_z", text="Damping")
+
+                col = layout.column(align=True)
+
+                row = col.row(align=True)
+                sub = row.row(align=True)
+                sub.scale_x = 0.5
+                sub.prop(rbc, "use_spring_ang_x", toggle=True, text="X Angle")
+                sub = row.row(align=True)
+                sub.active = rbc.use_spring_ang_x
+                sub.prop(rbc, "spring_stiffness_ang_x", text="Stiffness")
+                sub.prop(rbc, "spring_damping_ang_x", text="Damping")
+
+                row = col.row(align=True)
+                sub = row.row(align=True)
+                sub.scale_x = 0.5
+                sub.prop(rbc, "use_spring_ang_y", toggle=True, text="Y Angle")
+                sub = row.row(align=True)
+                sub.active = rbc.use_spring_ang_y
+                sub.prop(rbc, "spring_stiffness_ang_y", text="Stiffness")
+                sub.prop(rbc, "spring_damping_ang_y", text="Damping")
+
+                row = col.row(align=True)
+                sub = row.row(align=True)
+                sub.scale_x = 0.5
+                sub.prop(rbc, "use_spring_ang_z", toggle=True, text="Z Angle")
+                sub = row.row(align=True)
+                sub.active = rbc.use_spring_ang_z
+                sub.prop(rbc, "spring_stiffness_ang_z", text="Stiffness")
+                sub.prop(rbc, "spring_damping_ang_z", text="Damping")
+
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

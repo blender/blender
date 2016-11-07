@@ -799,6 +799,18 @@ static void rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, b
 					RB_constraint_set_stiffness_6dof_spring(rbc->physics_constraint, RB_LIMIT_LIN_Z, rbc->spring_stiffness_z);
 					RB_constraint_set_damping_6dof_spring(rbc->physics_constraint, RB_LIMIT_LIN_Z, rbc->spring_damping_z);
 
+					RB_constraint_set_spring_6dof_spring(rbc->physics_constraint, RB_LIMIT_ANG_X, rbc->flag & RBC_FLAG_USE_SPRING_ANG_X);
+					RB_constraint_set_stiffness_6dof_spring(rbc->physics_constraint, RB_LIMIT_ANG_X, rbc->spring_stiffness_ang_x);
+					RB_constraint_set_damping_6dof_spring(rbc->physics_constraint, RB_LIMIT_ANG_X, rbc->spring_damping_ang_x);
+
+					RB_constraint_set_spring_6dof_spring(rbc->physics_constraint, RB_LIMIT_ANG_Y, rbc->flag & RBC_FLAG_USE_SPRING_ANG_Y);
+					RB_constraint_set_stiffness_6dof_spring(rbc->physics_constraint, RB_LIMIT_ANG_Y, rbc->spring_stiffness_ang_y);
+					RB_constraint_set_damping_6dof_spring(rbc->physics_constraint, RB_LIMIT_ANG_Y, rbc->spring_damping_ang_y);
+
+					RB_constraint_set_spring_6dof_spring(rbc->physics_constraint, RB_LIMIT_ANG_Z, rbc->flag & RBC_FLAG_USE_SPRING_ANG_Z);
+					RB_constraint_set_stiffness_6dof_spring(rbc->physics_constraint, RB_LIMIT_ANG_Z, rbc->spring_stiffness_ang_z);
+					RB_constraint_set_damping_6dof_spring(rbc->physics_constraint, RB_LIMIT_ANG_Z, rbc->spring_damping_ang_z);
+
 					RB_constraint_set_equilibrium_6dof_spring(rbc->physics_constraint);
 					/* fall-through */
 				case RBC_TYPE_6DOF:
@@ -1057,9 +1069,15 @@ RigidBodyCon *BKE_rigidbody_create_constraint(Scene *UNUSED(scene), Object *ob, 
 	rbc->spring_damping_x = 0.5f;
 	rbc->spring_damping_y = 0.5f;
 	rbc->spring_damping_z = 0.5f;
+	rbc->spring_damping_ang_x = 0.5f;
+	rbc->spring_damping_ang_y = 0.5f;
+	rbc->spring_damping_ang_z = 0.5f;
 	rbc->spring_stiffness_x = 10.0f;
 	rbc->spring_stiffness_y = 10.0f;
 	rbc->spring_stiffness_z = 10.0f;
+	rbc->spring_stiffness_ang_x = 10.0f;
+	rbc->spring_stiffness_ang_y = 10.0f;
+	rbc->spring_stiffness_ang_z = 10.0f;
 
 	rbc->motor_lin_max_impulse = 1.0f;
 	rbc->motor_lin_target_velocity = 1.0f;

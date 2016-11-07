@@ -30,9 +30,9 @@
  * Implementation of tools for debugging the depsgraph
  */
 
-#include <cstring>
-
 #include "intern/eval/deg_eval_debug.h"
+
+#include <cstring>  /* required for STREQ later on. */
 
 extern "C" {
 #include "BLI_listbase.h"
@@ -53,10 +53,10 @@ namespace DEG {
 
 DepsgraphStats *DepsgraphDebug::stats = NULL;
 
-static string get_component_name(eDepsNode_Type type, const string &name = "")
+static string get_component_name(eDepsNode_Type type, const char *name = "")
 {
 	DepsNodeFactory *factory = deg_get_node_factory(type);
-	if (name.empty()) {
+	if (name[0] != '\0') {
 		return string(factory->tname());
 	}
 	else {
@@ -116,7 +116,7 @@ void DepsgraphDebug::task_started(Depsgraph *graph,
 			 */
 			DepsgraphStatsComponent *comp_stats =
 			        get_component_stats(id, get_component_name(comp->type,
-			                                                   comp->name),
+			                                                   comp->name).c_str(),
 			                            true);
 			times_clear(comp_stats->times);
 		}
@@ -146,7 +146,7 @@ void DepsgraphDebug::task_completed(Depsgraph *graph,
 			DepsgraphStatsComponent *comp_stats =
 			        get_component_stats(id,
 			                            get_component_name(comp->type,
-			                                               comp->name),
+			                                               comp->name).c_str(),
 			                            true);
 			times_add(comp_stats->times, time);
 		}
@@ -226,7 +226,7 @@ DepsgraphStatsID *DepsgraphDebug::get_id_stats(ID *id, bool create)
 
 DepsgraphStatsComponent *DepsgraphDebug::get_component_stats(
         DepsgraphStatsID *id_stats,
-        const string &name,
+        const char *name,
         bool create)
 {
 	DepsgraphStatsComponent *comp_stats;
@@ -234,13 +234,14 @@ DepsgraphStatsComponent *DepsgraphDebug::get_component_stats(
 	     comp_stats != NULL;
 	     comp_stats = comp_stats->next)
 	{
-		if (STREQ(comp_stats->name, name.c_str()))
+		if (STREQ(comp_stats->name, name)) {
 			break;
+		}
 	}
 	if (!comp_stats && create) {
 		comp_stats = (DepsgraphStatsComponent *)MEM_callocN(sizeof(DepsgraphStatsComponent),
 		                                                    "Depsgraph Component Stats");
-		BLI_strncpy(comp_stats->name, name.c_str(), sizeof(comp_stats->name));
+		BLI_strncpy(comp_stats->name, name, sizeof(comp_stats->name));
 		BLI_addtail(&id_stats->components, comp_stats);
 	}
 	return comp_stats;

@@ -56,12 +56,14 @@ struct StackEntry {
 
 void deg_graph_detect_cycles(Depsgraph *graph)
 {
-	/* Not is not visited at all during traversal. */
-	const int NODE_NOT_VISITED = 0;
-	/* Node has been visited during traversal and not in current stack. */
-	const int NODE_VISITED = 1;
-	/* Node has been visited during traversal and is in current stack. */
-	const int NODE_IN_STACK = 2;
+	enum {
+		/* Not is not visited at all during traversal. */
+		NODE_NOT_VISITED = 0,
+		/* Node has been visited during traversal and not in current stack. */
+		NODE_VISITED = 1,
+		/* Node has been visited during traversal and is in current stack. */
+		NODE_IN_STACK = 2,
+	};
 
 	std::stack<StackEntry> traversal_stack;
 	foreach (OperationDepsNode *node, graph->operations) {
@@ -77,21 +79,23 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 			entry.from = NULL;
 			entry.via_relation = NULL;
 			traversal_stack.push(entry);
-			node->done = NODE_IN_STACK;
+			node->tag = NODE_IN_STACK;
 		}
 		else {
-			node->done = NODE_NOT_VISITED;
+			node->tag = NODE_NOT_VISITED;
 		}
+		node->done = 0;
 	}
 
 	while (!traversal_stack.empty()) {
-		StackEntry &entry = traversal_stack.top();
+		StackEntry entry = traversal_stack.top();
 		OperationDepsNode *node = entry.node;
 		bool all_child_traversed = true;
-		foreach (DepsRelation *rel, node->outlinks) {
+		for (int i = node->done; i < node->outlinks.size(); ++i) {
+			DepsRelation *rel = node->outlinks[i];
 			if (rel->to->type == DEPSNODE_TYPE_OPERATION) {
 				OperationDepsNode *to = (OperationDepsNode *)rel->to;
-				if (to->done == NODE_IN_STACK) {
+				if (to->tag == NODE_IN_STACK) {
 					printf("Dependency cycle detected:\n");
 					printf("  '%s' depends on '%s' through '%s'\n",
 					       to->full_identifier().c_str(),
@@ -107,23 +111,24 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 						       current->via_relation->name);
 						current = current->from;
 					}
-					/* TODO(sergey): So called roussian rlette cycle solver. */
+					/* TODO(sergey): So called russian roulette cycle solver. */
 					rel->flag |= DEPSREL_FLAG_CYCLIC;
 				}
-				else if (to->done == NODE_NOT_VISITED) {
+				else if (to->tag == NODE_NOT_VISITED) {
 					StackEntry new_entry;
 					new_entry.node = to;
 					new_entry.from = &entry;
 					new_entry.via_relation = rel;
 					traversal_stack.push(new_entry);
-					to->done = NODE_IN_STACK;
+					to->tag = NODE_IN_STACK;
 					all_child_traversed = false;
+					node->done = i;
 					break;
 				}
 			}
 		}
 		if (all_child_traversed) {
-			node->done = NODE_VISITED;
+			node->tag = NODE_VISITED;
 			traversal_stack.pop();
 		}
 	}

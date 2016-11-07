@@ -34,7 +34,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -129,8 +128,7 @@ RootDepsNode *DepsgraphNodeBuilder::add_root_node()
 
 IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id)
 {
-	const char *idtype_name = BKE_idcode_to_name(GS(id->name));
-	return m_graph->add_id_node(id, string(id->name + 2) + "[" + idtype_name + "]");
+	return m_graph->add_id_node(id, id->name);
 }
 
 TimeSourceDepsNode *DepsgraphNodeBuilder::add_time_source(ID *id)
@@ -177,7 +175,7 @@ TimeSourceDepsNode *DepsgraphNodeBuilder::add_time_source(ID *id)
 ComponentDepsNode *DepsgraphNodeBuilder::add_component_node(
         ID *id,
         eDepsNode_Type comp_type,
-        const string &comp_name)
+        const char *comp_name)
 {
 	IDDepsNode *id_node = add_id_node(id);
 	ComponentDepsNode *comp_node = id_node->add_component(comp_type, comp_name);
@@ -190,15 +188,19 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
         eDepsOperation_Type optype,
         DepsEvalOperationCb op,
         eDepsOperation_Code opcode,
-        const string &description)
+        const char *name,
+        int name_tag)
 {
-	OperationDepsNode *op_node = comp_node->has_operation(opcode, description);
+	OperationDepsNode *op_node = comp_node->has_operation(opcode,
+	                                                      name,
+	                                                      name_tag);
 	if (op_node == NULL) {
-		op_node = comp_node->add_operation(optype, op, opcode, description);
+		op_node = comp_node->add_operation(optype, op, opcode, name, name_tag);
 		m_graph->operations.push_back(op_node);
 	}
 	else {
-		fprintf(stderr, "add_operation: Operation already exists - %s has %s at %p\n",
+		fprintf(stderr,
+		        "add_operation: Operation already exists - %s has %s at %p\n",
 		        comp_node->identifier().c_str(),
 		        op_node->identifier().c_str(),
 		        op_node);
@@ -210,14 +212,15 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
 OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
         ID *id,
         eDepsNode_Type comp_type,
-        const string &comp_name,
+        const char *comp_name,
         eDepsOperation_Type optype,
         DepsEvalOperationCb op,
         eDepsOperation_Code opcode,
-        const string &description)
+        const char *name,
+        int name_tag)
 {
 	ComponentDepsNode *comp_node = add_component_node(id, comp_type, comp_name);
-	return add_operation_node(comp_node, optype, op, opcode, description);
+	return add_operation_node(comp_node, optype, op, opcode, name, name_tag);
 }
 
 OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
@@ -226,38 +229,54 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
         eDepsOperation_Type optype,
         DepsEvalOperationCb op,
         eDepsOperation_Code opcode,
-        const string& description)
+        const char *name,
+        int name_tag)
 {
-	return add_operation_node(id, comp_type, "", optype, op, opcode, description);
+	return add_operation_node(id,
+	                          comp_type,
+	                          "",
+	                          optype,
+	                          op,
+	                          opcode,
+	                          name,
+	                          name_tag);
 }
 
 bool DepsgraphNodeBuilder::has_operation_node(ID *id,
                                               eDepsNode_Type comp_type,
-                                              const string &comp_name,
+                                              const char *comp_name,
                                               eDepsOperation_Code opcode,
-                                              const string &description)
+                                              const char *name,
+                                              int name_tag)
 {
-	return find_operation_node(id, comp_type, comp_name, opcode, description) != NULL;
+	return find_operation_node(id,
+	                           comp_type,
+	                           comp_name,
+	                           opcode,
+	                           name,
+	                           name_tag) != NULL;
 }
 
 OperationDepsNode *DepsgraphNodeBuilder::find_operation_node(
         ID *id,
         eDepsNode_Type comp_type,
-        const string &comp_name,
+        const char *comp_name,
         eDepsOperation_Code opcode,
-        const string &description)
+        const char *name,
+        int name_tag)
 {
 	ComponentDepsNode *comp_node = add_component_node(id, comp_type, comp_name);
-	return comp_node->has_operation(opcode, description);
+	return comp_node->has_operation(opcode, name, name_tag);
 }
 
 OperationDepsNode *DepsgraphNodeBuilder::find_operation_node(
         ID *id,
         eDepsNode_Type comp_type,
         eDepsOperation_Code opcode,
-        const string& description)
+        const char *name,
+        int name_tag)
 {
-	return find_operation_node(id, comp_type, "", opcode, description);
+	return find_operation_node(id, comp_type, "", opcode, name, name_tag);
 }
 
 /* **** Build functions for entity nodes **** */
@@ -610,12 +629,17 @@ OperationDepsNode *DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcu)
 	OperationDepsNode *driver_op = find_operation_node(id,
 	                                                   DEPSNODE_TYPE_PARAMETERS,
 	                                                   DEG_OPCODE_DRIVER,
-	                                                   deg_fcurve_id_name(fcu));
+	                                                   fcu->rna_path,
+	                                                   fcu->array_index);
 
 	if (driver_op == NULL) {
-		driver_op = add_operation_node(id, DEPSNODE_TYPE_PARAMETERS,
-		                               DEPSOP_TYPE_EXEC, function_bind(BKE_animsys_eval_driver, _1, id, fcu),
-		                               DEG_OPCODE_DRIVER, deg_fcurve_id_name(fcu));
+		driver_op = add_operation_node(id,
+		                               DEPSNODE_TYPE_PARAMETERS,
+		                               DEPSOP_TYPE_EXEC,
+		                               function_bind(BKE_animsys_eval_driver, _1, id, fcu),
+		                               DEG_OPCODE_DRIVER,
+		                               fcu->rna_path,
+		                               fcu->array_index);
 	}
 
 	/* tag "scripted expression" drivers as needing Python (due to GIL issues, etc.) */
@@ -760,7 +784,7 @@ void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *ob)
 
 	/* Rebuild pose if not up to date. */
 	if (ob->pose == NULL || (ob->pose->flag & POSE_RECALC)) {
-		BKE_pose_rebuild(ob, arm);
+		BKE_pose_rebuild_ex(ob, arm, false);
 		/* XXX: Without this animation gets lost in certain circumstances
 		 * after loading file. Need to investigate further since it does
 		 * not happen with simple scenes..
@@ -1124,15 +1148,20 @@ void DepsgraphNodeBuilder::build_nodetree(DepsNode *owner_node, bNodeTree *ntree
 
 	/* nodetree's nodes... */
 	for (bNode *bnode = (bNode *)ntree->nodes.first; bnode; bnode = bnode->next) {
-		if (bnode->id) {
-			if (GS(bnode->id->name) == ID_MA) {
-				build_material(owner_node, (Material *)bnode->id);
+		ID *id = bnode->id;
+		if (id != NULL) {
+			short id_type = GS(id->name);
+			if (id_type == ID_MA) {
+				build_material(owner_node, (Material *)id);
 			}
-			else if (bnode->type == ID_TE) {
-				build_texture(owner_node, (Tex *)bnode->id);
+			else if (id_type == ID_TE) {
+				build_texture(owner_node, (Tex *)id);
+			}
+			else if (id_type == ID_IM) {
+				build_image((Image *)id);
 			}
 			else if (bnode->type == NODE_GROUP) {
-				bNodeTree *group_ntree = (bNodeTree *)bnode->id;
+				bNodeTree *group_ntree = (bNodeTree *)id;
 				if ((group_ntree->id.tag & LIB_TAG_DOIT) == 0) {
 					build_nodetree(owner_node, group_ntree);
 				}
@@ -1189,10 +1218,33 @@ void DepsgraphNodeBuilder::build_texture(DepsNode *owner_node, Tex *tex)
 		return;
 	}
 	tex_id->tag |= LIB_TAG_DOIT;
-	/* texture itself */
+	/* Texture itself. */
 	build_animdata(tex_id);
-	/* texture's nodetree */
+	/* Texture's nodetree. */
 	build_nodetree(owner_node, tex->nodetree);
+	/* Special cases for different IDs which texture uses. */
+	if (tex->type == TEX_IMAGE) {
+		if (tex->ima != NULL) {
+			build_image(tex->ima);
+		}
+	}
+}
+
+void DepsgraphNodeBuilder::build_image(Image *image) {
+	ID *image_id = &image->id;
+	if (image_id->tag & LIB_TAG_DOIT) {
+		return;
+	}
+	image_id->tag |= LIB_TAG_DOIT;
+	/* Image ID node itself. */
+	add_id_node(image_id);
+	/* Placeholder so we can add relations and tag ID node for update. */
+	add_operation_node(image_id,
+	                   DEPSNODE_TYPE_PARAMETERS,
+	                   DEPSOP_TYPE_EXEC,
+	                   NULL,
+	                   DEG_OPCODE_PLACEHOLDER,
+	                   "Image Eval");
 }
 
 void DepsgraphNodeBuilder::build_compositor(Scene *scene)

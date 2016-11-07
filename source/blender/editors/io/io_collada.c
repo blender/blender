@@ -305,7 +305,6 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	static EnumPropertyItem prop_bc_export_transformation_type[] = {
 		{BC_TRANSFORMATION_TYPE_MATRIX, "matrix", 0, "Matrix", "Use <matrix> to specify transformations"},
 		{BC_TRANSFORMATION_TYPE_TRANSROTLOC, "transrotloc", 0, "TransRotLoc", "Use <translate>, <rotate>, <scale> to specify transformations"},
-		{BC_TRANSFORMATION_TYPE_BOTH, "both", 0, "Both", "Use <matrix> AND <translate>, <rotate>, <scale> to specify transformations"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

@@ -93,7 +93,9 @@ void BKE_cachefile_free(CacheFile *cache_file)
 	ABC_free_handle(cache_file->handle);
 #endif
 
-	BLI_mutex_free(cache_file->handle_mutex);
+	if (cache_file->handle_mutex) {
+		BLI_mutex_free(cache_file->handle_mutex);
+	}
 	BLI_freelistN(&cache_file->object_paths);
 }
 
