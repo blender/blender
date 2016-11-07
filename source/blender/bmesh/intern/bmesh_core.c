@@ -1669,7 +1669,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 #ifndef NDEBUG
 		int radlen = bmesh_radial_length(l_next);
 #endif
-		int first1 = 0, first2 = 0;
+		bool is_first = true;
 
 		/* Take the next loop. Remove it from radial. Split it. Append to appropriate radials */
 		while (l_next) {
@@ -1691,13 +1691,8 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 				l->e = e_new;
 
 				/* append l into e_new's rad cycle */
-				if (!first1) {
-					first1 = 1;
-					l->radial_next = l->radial_prev = NULL;
-				}
-
-				if (!first2) {
-					first2 = 1;
+				if (is_first) {
+					is_first = false;
 					l->radial_next = l->radial_prev = NULL;
 				}
 				
@@ -1709,13 +1704,8 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 				l->e = e;
 
 				/* append l into e_new's rad cycle */
-				if (!first1) {
-					first1 = 1;
-					l->radial_next = l->radial_prev = NULL;
-				}
-
-				if (!first2) {
-					first2 = 1;
+				if (is_first) {
+					is_first = false;
 					l->radial_next = l->radial_prev = NULL;
 				}
 
