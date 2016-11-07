@@ -661,6 +661,27 @@ bool OpenCLInfo::device_version_check(cl_device_id device,
 	return true;
 }
 
+string OpenCLInfo::get_hardware_id(string platform_name, cl_device_id device_id)
+{
+	if(platform_name == "AMD Accelerated Parallel Processing" || platform_name == "Apple") {
+		/* Use cl_amd_device_topology extension. */
+		cl_char topology[24];
+		if(clGetDeviceInfo(device_id, 0x4037, sizeof(topology), topology, NULL) == CL_SUCCESS && topology[0] == 1) {
+			return string_printf("%02x:%02x.%01x", topology[21], topology[22], topology[23]);
+		}
+	}
+	else if(platform_name == "NVIDIA CUDA") {
+		/* Use two undocumented options of the cl_nv_device_attribute_query extension. */
+		cl_int bus_id, slot_id;
+		if(clGetDeviceInfo(device_id, 0x4008, sizeof(cl_int), &bus_id,  NULL) == CL_SUCCESS &&
+		   clGetDeviceInfo(device_id, 0x4009, sizeof(cl_int), &slot_id, NULL) == CL_SUCCESS) {
+			return string_printf("%02x:%02x.%01x", bus_id, slot_id>>3, slot_id & 0x7);
+		}
+	}
+	/* No general way to get a hardware ID from OpenCL => give up. */
+	return "";
+}
+
 void OpenCLInfo::get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices,
                                     bool force_all)
 {
@@ -773,11 +794,13 @@ void OpenCLInfo::get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices
 					continue;
 				}
 				FIRST_VLOG(2) << "Adding new device " << device_name << ".";
+				string hardware_id = get_hardware_id(platform_name, device_id);
 				usable_devices->push_back(OpenCLPlatformDevice(platform_id,
 				                                               platform_name,
 				                                               device_id,
 				                                               device_type,
-				                                               device_name));
+				                                               device_name,
+				                                               hardware_id));
 			}
 			else {
 				FIRST_VLOG(2) << "Ignoring device " << device_name

@@ -52,15 +52,6 @@
 #include "BLT_lang.h"
 #include "GPU_buffers.h"
 
-#ifdef WITH_CYCLES
-static EnumPropertyItem compute_device_type_items[] = {
-	{USER_COMPUTE_DEVICE_NONE, "NONE", 0, "None", "Don't use compute device"},
-	{USER_COMPUTE_DEVICE_CUDA, "CUDA", 0, "CUDA", "Use CUDA for GPU acceleration"},
-	{USER_COMPUTE_DEVICE_OPENCL, "OPENCL", 0, "OpenCL", "Use OpenCL for GPU acceleration"},
-	{ 0, NULL, 0, NULL, NULL}
-};
-#endif
-
 #ifdef WITH_OPENSUBDIV
 static EnumPropertyItem opensubdiv_compute_type_items[] = {
 	{USER_OPENSUBDIV_COMPUTE_NONE, "NONE", 0, "None", ""},
@@ -123,8 +114,6 @@ static EnumPropertyItem rna_enum_language_default_items[] = {
 #include "MEM_CacheLimiterC-Api.h"
 
 #include "UI_interface.h"
-
-#include "CCL_api.h"
 
 #ifdef WITH_OPENSUBDIV
 #  include "opensubdiv_capi.h"
@@ -475,78 +464,6 @@ static PointerRNA rna_Theme_space_list_generic_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_ThemeSpaceListGeneric, ptr->data);
 }
 
-
-#ifdef WITH_CYCLES
-static EnumPropertyItem *rna_userdef_compute_device_type_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
-                                                               PropertyRNA *UNUSED(prop), bool *r_free)
-{
-	EnumPropertyItem *item = NULL;
-	int totitem = 0;
-
-	/* add supported device types */
-	RNA_enum_items_add_value(&item, &totitem, compute_device_type_items, USER_COMPUTE_DEVICE_NONE);
-	if (CCL_compute_device_list(0))
-		RNA_enum_items_add_value(&item, &totitem, compute_device_type_items, USER_COMPUTE_DEVICE_CUDA);
-	if (CCL_compute_device_list(1))
-		RNA_enum_items_add_value(&item, &totitem, compute_device_type_items, USER_COMPUTE_DEVICE_OPENCL);
-
-	RNA_enum_item_end(&item, &totitem);
-	*r_free = true;
-
-	return item;
-}
-
-static int rna_userdef_compute_device_get(PointerRNA *UNUSED(ptr))
-{
-	if (U.compute_device_type == USER_COMPUTE_DEVICE_NONE)
-		return 0;
-
-	return U.compute_device_id;
-}
-
-static EnumPropertyItem *rna_userdef_compute_device_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
-                                                          PropertyRNA *UNUSED(prop), bool *r_free)
-{
-	EnumPropertyItem tmp = {0, "", 0, "", ""};
-	EnumPropertyItem *item = NULL;
-	int totitem = 0;
-	
-	if (U.compute_device_type == USER_COMPUTE_DEVICE_NONE) {
-		/* only add a single CPU device */
-		tmp.value = 0;
-		tmp.name = "CPU";
-		tmp.identifier = "CPU";
-		RNA_enum_item_add(&item, &totitem, &tmp);
-	}
-	else {
-		/* get device list from cycles. it would be good to make this generic
-		 * once we have more subsystems using opencl, for now this is easiest */
-		int opencl = (U.compute_device_type == USER_COMPUTE_DEVICE_OPENCL);
-		CCLDeviceInfo *devices = CCL_compute_device_list(opencl);
-		int a;
-
-		if (devices) {
-			for (a = 0; devices[a].identifier[0]; a++) {
-				tmp.value = devices[a].value;
-				tmp.identifier = devices[a].identifier;
-				tmp.name = devices[a].name;
-				RNA_enum_item_add(&item, &totitem, &tmp);
-			}
-		}
-		else {
-			tmp.value = 0;
-			tmp.name = "CPU";
-			tmp.identifier = "CPU";
-			RNA_enum_item_add(&item, &totitem, &tmp);
-		}
-	}
-
-	RNA_enum_item_end(&item, &totitem);
-	*r_free = true;
-
-	return item;
-}
-#endif
 
 #ifdef WITH_OPENSUBDIV
 static EnumPropertyItem *rna_userdef_opensubdiv_compute_type_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
@@ -3967,13 +3884,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-#ifdef WITH_CYCLES
-	static EnumPropertyItem compute_device_items[] = {
-		{0, "CPU", 0, "CPU", ""},
-		{ 0, NULL, 0, NULL, NULL}
-	};
-#endif
-
 	static EnumPropertyItem image_draw_methods[] = {
 		{IMAGE_DRAW_METHOD_2DTEXTURE, "2DTEXTURE", 0, "2D Texture", "Use CPU for display transform and draw image with 2D texture"},
 		{IMAGE_DRAW_METHOD_GLSL, "GLSL", 0, "GLSL", "Use GLSL shaders for display transform and draw image with 2D texture"},
@@ -4264,23 +4174,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Region Overlap",
 	                         "Draw tool/property regions over the main region, when using Triple Buffer");
 	RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");	
-
-#ifdef WITH_CYCLES
-	prop = RNA_def_property(srna, "compute_device_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
-	RNA_def_property_enum_sdna(prop, NULL, "compute_device_type");
-	RNA_def_property_enum_items(prop, compute_device_type_items);
-	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_userdef_compute_device_type_itemf");
-	RNA_def_property_ui_text(prop, "Compute Device Type", "Device to use for computation (rendering with Cycles)");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_PROPERTIES, NULL);
-
-	prop = RNA_def_property(srna, "compute_device", PROP_ENUM, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
-	RNA_def_property_enum_sdna(prop, NULL, "compute_device_id");
-	RNA_def_property_enum_items(prop, compute_device_items);
-	RNA_def_property_enum_funcs(prop, "rna_userdef_compute_device_get", NULL, "rna_userdef_compute_device_itemf");
-	RNA_def_property_ui_text(prop, "Compute Device", "Device to use for computation");
-#endif
 
 #ifdef WITH_OPENSUBDIV
 	prop = RNA_def_property(srna, "opensubdiv_compute_type", PROP_ENUM, PROP_NONE);
