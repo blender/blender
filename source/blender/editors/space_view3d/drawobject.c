@@ -4293,7 +4293,7 @@ static void draw_mesh_object_outline_new(View3D *v3d, RegionView3D *rv3d, Object
 		float outline_color[4];
 		UI_GetThemeColor4fv((is_active ? TH_ACTIVE : TH_SELECT), outline_color);
 
-#if 1
+#if 1 /* new version that draws only silhouette edges */
 		Batch *fancy_edges = MBC_get_fancy_edges(dm);
 
 		if (rv3d->persp == RV3D_ORTHO) {
@@ -4313,13 +4313,13 @@ static void draw_mesh_object_outline_new(View3D *v3d, RegionView3D *rv3d, Object
 		Batch_Uniform4fv(fancy_edges, "silhouetteColor", outline_color);
 
 		Batch_draw(fancy_edges);
-
-#else
+#else /* alternate version that matches look of old viewport (but more efficient) */
 		Batch *batch = MBC_get_all_edges(dm);
 		Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
 		Batch_Uniform4fv(batch, "color", outline_color);
 		Batch_draw(batch);
 #endif
+
 		glDepthMask(GL_TRUE);
 	}
 }
@@ -4802,7 +4802,8 @@ static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionVi
 
 		glLineWidth(1.0f);
 
-#if 0
+#if 1 /* fancy wireframes */
+
 		Batch *fancy_edges = MBC_get_fancy_edges(dm);
 
 		if (rv3d->persp == RV3D_ORTHO) {
@@ -4829,15 +4830,18 @@ static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionVi
 
 		Batch_draw(fancy_edges);
 
+		/* extra oomph for the silhouette contours */
 		glLineWidth(2.0f);
-
+		Batch_use_program(fancy_edges); /* hack to make the following uniforms stick */
 		Batch_Uniform1b(fancy_edges, "drawFront", false);
 		Batch_Uniform1b(fancy_edges, "drawBack", false);
 		Batch_Uniform1b(fancy_edges, "drawSilhouette", true);
 		Batch_Uniform4fv(fancy_edges, "silhouetteColor", outlineColor);
 
 		Batch_draw(fancy_edges);
-#else
+
+#else /* simple wireframes */
+
 		Batch *batch = MBC_get_all_edges(dm);
 		Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
 
