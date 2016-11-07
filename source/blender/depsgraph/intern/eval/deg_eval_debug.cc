@@ -32,6 +32,8 @@
 
 #include "intern/eval/deg_eval_debug.h"
 
+#include <cstring>  /* required for STREQ later on. */
+
 extern "C" {
 #include "BLI_listbase.h"
 #include "BLI_ghash.h"

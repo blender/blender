@@ -34,6 +34,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <cstring>  /* required for STREQ later on. */
 
 #include "MEM_guardedalloc.h"
 

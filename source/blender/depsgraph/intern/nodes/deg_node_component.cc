@@ -31,6 +31,7 @@
 #include "intern/nodes/deg_node_component.h"
 
 #include <stdio.h>
+#include <cstring>  /* required for STREQ later on. */
 
 extern "C" {
 #include "BLI_utildefines.h"
