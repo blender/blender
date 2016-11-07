@@ -372,8 +372,6 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         rd = scene.render
         cscene = scene.cycles
 
-        context.user_preferences.addons['cycles'].preferences.draw_impl(layout, context)
-
         split = layout.split()
 
         col = split.column(align=True)
