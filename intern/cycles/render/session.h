@@ -89,8 +89,7 @@ public:
 	}
 
 	bool modified(const SessionParams& params)
-	{ return !(device.type == params.device.type
-		&& device.id == params.device.id
+	{ return !(device == params.device
 		&& background == params.background
 		&& progressive_refine == params.progressive_refine
 		&& output_path == params.output_path

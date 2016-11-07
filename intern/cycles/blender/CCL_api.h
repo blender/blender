@@ -21,17 +21,6 @@
 extern "C" {
 #endif
 
-/* returns a list of devices for selection, array is empty identifier
- * terminated and must not be freed */
-
-typedef struct CCLDeviceInfo {
-	char identifier[128];
-	char name[512];
-	int value;
-} CCLDeviceInfo;
-
-CCLDeviceInfo *CCL_compute_device_list(int device_type);
-
 /* create python module _cycles used by addon */
 
 void *CCL_python_module_init(void);

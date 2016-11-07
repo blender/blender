@@ -40,10 +40,6 @@ CCL_NAMESPACE_BEGIN
 
 namespace {
 
-/* Device list stored static (used by compute_device_list()). */
-static ccl::vector<CCLDeviceInfo> device_list;
-static ccl::DeviceType device_type = DEVICE_NONE;
-
 /* Flag describing whether debug flags were synchronized from scene. */
 bool debug_flags_set = false;
 
@@ -195,7 +191,6 @@ static PyObject *exit_func(PyObject * /*self*/, PyObject * /*args*/)
 	ShaderManager::free_memory();
 	TaskScheduler::free_memory();
 	Device::free_memory();
-	device_list.free_memory();
 	Py_RETURN_NONE;
 }
 
@@ -389,7 +384,12 @@ static PyObject *available_devices_func(PyObject * /*self*/, PyObject * /*args*/
 
 	for(size_t i = 0; i < devices.size(); i++) {
 		DeviceInfo& device = devices[i];
-		PyTuple_SET_ITEM(ret, i, PyUnicode_FromString(device.description.c_str()));
+		string type_name = Device::string_from_type(device.type);
+		PyObject *device_tuple = PyTuple_New(3);
+		PyTuple_SET_ITEM(device_tuple, 0, PyUnicode_FromString(device.description.c_str()));
+		PyTuple_SET_ITEM(device_tuple, 1, PyUnicode_FromString(type_name.c_str()));
+		PyTuple_SET_ITEM(device_tuple, 2, PyUnicode_FromString(device.id.c_str()));
+		PyTuple_SET_ITEM(ret, i, device_tuple);
 	}
 
 	return ret;
@@ -676,6 +676,20 @@ static PyObject *set_resumable_chunks_func(PyObject * /*self*/, PyObject *args)
 	Py_RETURN_NONE;
 }
 
+static PyObject *get_device_types_func(PyObject * /*self*/, PyObject * /*args*/)
+{
+	vector<DeviceInfo>& devices = Device::available_devices();
+	bool has_cuda = false, has_opencl = false;
+	for(int i = 0; i < devices.size(); i++) {
+		has_cuda   |= (devices[i].type == DEVICE_CUDA);
+		has_opencl |= (devices[i].type == DEVICE_OPENCL);
+	}
+	PyObject *list = PyTuple_New(2);
+	PyTuple_SET_ITEM(list, 0, PyBool_FromLong(has_cuda));
+	PyTuple_SET_ITEM(list, 1, PyBool_FromLong(has_opencl));
+	return list;
+}
+
 static PyMethodDef methods[] = {
 	{"init", init_func, METH_VARARGS, ""},
 	{"exit", exit_func, METH_VARARGS, ""},
@@ -703,6 +717,9 @@ static PyMethodDef methods[] = {
 	/* Resumable render */
 	{"set_resumable_chunks", set_resumable_chunks_func, METH_VARARGS, ""},
 
+	/* Compute Device selection */
+	{"get_device_types", get_device_types_func, METH_VARARGS, ""},
+
 	{NULL, NULL, 0, NULL},
 };
 
@@ -714,47 +731,6 @@ static struct PyModuleDef module = {
 	methods,
 	NULL, NULL, NULL, NULL
 };
-
-static CCLDeviceInfo *compute_device_list(DeviceType type)
-{
-	/* create device list if it's not already done */
-	if(type != device_type) {
-		ccl::vector<DeviceInfo>& devices = ccl::Device::available_devices();
-
-		device_type = type;
-		device_list.clear();
-
-		/* add devices */
-		int i = 0;
-
-		foreach(DeviceInfo& info, devices) {
-			if(info.type == type ||
-			   (info.type == DEVICE_MULTI && info.multi_devices[0].type == type))
-			{
-				CCLDeviceInfo cinfo;
-
-				strncpy(cinfo.identifier, info.id.c_str(), sizeof(cinfo.identifier));
-				cinfo.identifier[info.id.length()] = '\0';
-
-				strncpy(cinfo.name, info.description.c_str(), sizeof(cinfo.name));
-				cinfo.name[info.description.length()] = '\0';
-
-				cinfo.value = i++;
-
-				device_list.push_back(cinfo);
-			}
-		}
-
-		/* null terminate */
-		if(!device_list.empty()) {
-			CCLDeviceInfo cinfo = {"", "", 0};
-			device_list.push_back(cinfo);
-		}
-	}
-
-	return (device_list.empty())? NULL: &device_list[0];
-}
-
 
 CCL_NAMESPACE_END
 
@@ -794,24 +770,3 @@ void *CCL_python_module_init()
 
 	return (void*)mod;
 }
-
-CCLDeviceInfo *CCL_compute_device_list(int device_type)
-{
-	ccl::DeviceType type;
-	switch(device_type) {
-		case 0:
-			type = ccl::DEVICE_CUDA;
-			break;
-		case 1:
-			type = ccl::DEVICE_OPENCL;
-			break;
-		case 2:
-			type = ccl::DEVICE_NETWORK;
-			break;
-		default:
-			type = ccl::DEVICE_NONE;
-			break;
-	}
-	return ccl::compute_device_list(type);
-}
-

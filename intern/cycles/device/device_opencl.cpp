@@ -83,17 +83,22 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 		const string& platform_name = platform_device.platform_name;
 		const cl_device_type device_type = platform_device.device_type;
 		const string& device_name = platform_device.device_name;
+		string hardware_id = platform_device.hardware_id;
+		if(hardware_id == "") {
+			hardware_id = string_printf("ID_%d", num_devices);
+		}
+
 		DeviceInfo info;
 		info.type = DEVICE_OPENCL;
 		info.description = string_remove_trademark(string(device_name));
 		info.num = num_devices;
-		info.id = string_printf("OPENCL_%d", info.num);
 		/* We don't know if it's used for display, but assume it is. */
 		info.display_device = true;
 		info.advanced_shading = OpenCLInfo::kernel_use_advanced_shading(platform_name);
 		info.pack_images = true;
 		info.use_split_kernel = OpenCLInfo::kernel_use_split(platform_name,
 		                                                     device_type);
+		info.id = string("OPENCL_") + platform_name + "_" + device_name + "_" + hardware_id;
 		devices.push_back(info);
 		num_devices++;
 	}

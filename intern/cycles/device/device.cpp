@@ -258,33 +258,33 @@ Device *Device::create(DeviceInfo& info, Stats &stats, bool background)
 
 DeviceType Device::type_from_string(const char *name)
 {
-	if(strcmp(name, "cpu") == 0)
+	if(strcmp(name, "CPU") == 0)
 		return DEVICE_CPU;
-	else if(strcmp(name, "cuda") == 0)
+	else if(strcmp(name, "CUDA") == 0)
 		return DEVICE_CUDA;
-	else if(strcmp(name, "opencl") == 0)
+	else if(strcmp(name, "OPENCL") == 0)
 		return DEVICE_OPENCL;
-	else if(strcmp(name, "network") == 0)
+	else if(strcmp(name, "NETWORK") == 0)
 		return DEVICE_NETWORK;
-	else if(strcmp(name, "multi") == 0)
+	else if(strcmp(name, "MULTI") == 0)
 		return DEVICE_MULTI;
-	
+
 	return DEVICE_NONE;
 }
 
 string Device::string_from_type(DeviceType type)
 {
 	if(type == DEVICE_CPU)
-		return "cpu";
+		return "CPU";
 	else if(type == DEVICE_CUDA)
-		return "cuda";
+		return "CUDA";
 	else if(type == DEVICE_OPENCL)
-		return "opencl";
+		return "OPENCL";
 	else if(type == DEVICE_NETWORK)
-		return "network";
+		return "NETWORK";
 	else if(type == DEVICE_MULTI)
-		return "multi";
-	
+		return "MULTI";
+
 	return "";
 }
 
@@ -307,9 +307,6 @@ vector<DeviceType>& Device::available_types()
 #ifdef WITH_NETWORK
 		types.push_back(DEVICE_NETWORK);
 #endif
-#ifdef WITH_MULTI
-		types.push_back(DEVICE_MULTI);
-#endif
 
 		need_types_update = false;
 	}
@@ -329,10 +326,6 @@ vector<DeviceInfo>& Device::available_devices()
 #ifdef WITH_OPENCL
 		if(device_opencl_init())
 			device_opencl_info(devices);
-#endif
-
-#ifdef WITH_MULTI
-		device_multi_info(devices);
 #endif
 
 		device_cpu_info(devices);
@@ -366,6 +359,29 @@ string Device::device_capabilities()
 #endif
 
 	return capabilities;
+}
+
+DeviceInfo Device::get_multi_device(vector<DeviceInfo> subdevices)
+{
+	assert(subdevices.size() > 1);
+
+	DeviceInfo info;
+	info.type = DEVICE_MULTI;
+	info.id = "MULTI";
+	info.description = "Multi Device";
+	info.multi_devices = subdevices;
+	info.num = 0;
+
+	info.has_bindless_textures = true;
+	info.pack_images = false;
+	foreach(DeviceInfo &device, subdevices) {
+		assert(device.type == info.multi_devices[0].type);
+
+		info.pack_images |= device.pack_images;
+		info.has_bindless_textures &= device.has_bindless_textures;
+	}
+
+	return info;
 }
 
 void Device::tag_update()

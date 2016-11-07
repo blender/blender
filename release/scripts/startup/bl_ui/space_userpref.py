@@ -429,13 +429,6 @@ class USERPREF_PT_system(Panel):
 
         col.separator()
 
-        if hasattr(system, "compute_device_type"):
-            col.label(text="Compute Device:")
-            col.row().prop(system, "compute_device_type", expand=True)
-            sub = col.row()
-            sub.active = system.compute_device_type != 'CPU'
-            sub.prop(system, "compute_device", text="")
-
         if hasattr(system, "opensubdiv_compute_type"):
             col.label(text="OpenSubdiv compute:")
             col.row().prop(system, "opensubdiv_compute_type", text="")
