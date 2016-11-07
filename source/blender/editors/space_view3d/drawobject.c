@@ -4253,7 +4253,60 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 static void draw_em_fancy_new(Scene *scene, ARegion *ar, View3D *v3d,
                               Object *ob, BMEditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, const char dt)
 {
-	/* for now... nothing! */
+	/* for now... something simple! */
+
+	Batch *surface = MBC_get_all_triangles(cageDM);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+
+	glEnable(GL_BLEND);
+
+	/* disable depth writes for transparent surface, so it doesn't interfere with itself */
+	glDepthMask(GL_FALSE);
+
+	Batch_set_builtin_program(surface, GPU_SHADER_3D_UNIFORM_COLOR);
+	Batch_Uniform4f(surface, "color", 1.0f, 0.5f, 0.0f, 0.5f);
+	Batch_draw(surface);
+
+#if 0 /* until I understand finalDM better */
+	if (finalDM != cageDM) {
+		puts("finalDM != cageDM");
+		Batch *finalSurface = MBC_get_all_triangles(finalDM);
+		Batch_set_builtin_program(finalSurface, GPU_SHADER_3D_UNIFORM_COLOR);
+		Batch_Uniform4f(finalSurface, "color", 0.0f, 0.0f, 0.0f, 0.05f);
+		Batch_draw(finalSurface);
+	}
+#endif
+
+	glDepthMask(GL_TRUE);
+
+	/* now write surface depth so other objects won't poke through
+	 * NOTE: does not help as much as desired
+	 * TODO: draw edit object last to avoid this mess
+	 */
+	Batch_set_builtin_program(surface, GPU_SHADER_3D_DEPTH_ONLY);
+	Batch_draw(surface);
+
+	Batch *edges = MBC_get_all_edges(cageDM);
+	Batch_set_builtin_program(edges, GPU_SHADER_3D_UNIFORM_COLOR);
+	Batch_Uniform4f(edges, "color", 0.0f, 0.0f, 0.0f, 1.0f);
+	glEnable(GL_LINE_SMOOTH);
+	glLineWidth(1.5f);
+	Batch_draw(edges);
+	glDisable(GL_LINE_SMOOTH);
+
+#if 0 /* looks good even without points */
+	Batch *verts = MBC_get_all_verts(cageDM);
+	glEnable(GL_BLEND);
+
+	Batch_set_builtin_program(verts, GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_SMOOTH);
+	Batch_Uniform4f(verts, "color", 0.0f, 0.0f, 0.0f, 1.0f);
+	Batch_Uniform1f(verts, "size", UI_GetThemeValuef(TH_VERTEX_SIZE) * 1.5f);
+	Batch_draw(verts);
+
+	glDisable(GL_BLEND);
+#endif
 }
 
 /* Mesh drawing routines */
