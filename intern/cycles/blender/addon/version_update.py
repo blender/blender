@@ -278,3 +278,9 @@ def do_versions(self):
                     cscene.pixel_filter_type = cscene.filter_type
                 if cscene.filter_type == 'BLACKMAN_HARRIS':
                     cscene.filter_type = 'GAUSSIAN'
+
+    if bpy.data.version <= (2, 78, 2):
+        for scene in bpy.data.scenes:
+            cscene = scene.cycles
+            if not cscene.is_property_set("light_sampling_threshold"):
+                cscene.light_sampling_threshold = 0.0
