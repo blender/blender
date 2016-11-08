@@ -78,6 +78,7 @@
 
 #include "GPU_draw.h"
 #include "GPU_buffers.h"
+#include "GPU_immediate.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -721,12 +722,28 @@ static void gradient_draw_line(bContext *UNUSED(C), int x, int y, void *customda
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
 
+		VertexFormat* format = immVertexFormat();
+		unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
 		glLineWidth(4.0);
-		glColor4ub(0, 0, 0, 255);
-		sdrawline(x, y, pop->startmouse[0], pop->startmouse[1]);
+		immUniformColor4ub(0, 0, 0, 255);
+
+		immBegin(GL_LINES, 2);
+		immVertex2i(pos, x, y);
+		immVertex2i(pos, pop->startmouse[0], pop->startmouse[1]);
+		immEnd();
+
 		glLineWidth(2.0);
-		glColor4ub(255, 255, 255, 255);
-		sdrawline(x, y, pop->startmouse[0], pop->startmouse[1]);
+		immUniformColor4ub(255, 255, 255, 255);
+
+		immBegin(GL_LINES, 2);
+		immVertex2i(pos, x, y);
+		immVertex2i(pos, pop->startmouse[0], pop->startmouse[1]);
+		immEnd();
+
+		immUnbindProgram();
 
 		glDisable(GL_BLEND);
 		glDisable(GL_LINE_SMOOTH);
