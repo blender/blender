@@ -169,6 +169,16 @@ ATOMIC_INLINE uint32_t atomic_fetch_and_add_uint32(uint32_t *p, uint32_t x)
 	return __sync_fetch_and_add(p, x);
 }
 
+ATOMIC_INLINE uint32_t atomic_fetch_and_or_uint32(uint32_t *p, uint32_t x)
+{
+	return __sync_fetch_and_or(p, x);
+}
+
+ATOMIC_INLINE uint32_t atomic_fetch_and_and_uint32(uint32_t *p, uint32_t x)
+{
+	return __sync_fetch_and_and(p, x);
+}
+
 #else
 #  error "Missing implementation for 32-bit atomic operations"
 #endif
