@@ -4368,13 +4368,33 @@ static void draw_em_fancy_new(Scene *scene, ARegion *ar, View3D *v3d,
 	Batch_set_builtin_program(surface, GPU_SHADER_3D_DEPTH_ONLY);
 	Batch_draw(surface);
 
-	Batch *edges = MBC_get_all_edges(cageDM);
-	Batch_set_builtin_program(edges, GPU_SHADER_3D_UNIFORM_COLOR);
-	Batch_Uniform4f(edges, "color", 0.0f, 0.0f, 0.0f, 1.0f);
-	glEnable(GL_LINE_SMOOTH);
-	glLineWidth(1.5f);
-	Batch_draw(edges);
-	glDisable(GL_LINE_SMOOTH);
+	if (GLEW_VERSION_3_2) {
+		Batch *overlay = MBC_get_overlay_edges(cageDM);
+		Batch_set_builtin_program(overlay, GPU_SHADER_EDGES_OVERLAY);
+		Batch_Uniform2f(overlay, "viewportSize", ar->winx, ar->winy);
+		Batch_draw(overlay);
+
+#if 0 /* TODO: use this SIMPLE variant for pure triangle meshes */
+		Batch_set_builtin_program(surface, GPU_SHADER_EDGES_OVERLAY_SIMPLE);
+		/* use these defaults:
+		 * const float edgeColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+		 * Batch_Uniform4f(surface, "fillColor", edgeColor[0], edgeColor[1], edgeColor[2], 0.0f);
+		 * Batch_Uniform4fv(surface, "outlineColor", edgeColor);
+		 * Batch_Uniform1f(surface, "outlineWidth", 1.0f);
+		 */
+		Batch_Uniform2f(surface, "viewportSize", ar->winx, ar->winy);
+		Batch_draw(surface);
+#endif
+	}
+	else {
+		Batch *edges = MBC_get_all_edges(cageDM);
+		Batch_set_builtin_program(edges, GPU_SHADER_3D_UNIFORM_COLOR);
+		Batch_Uniform4f(edges, "color", 0.0f, 0.0f, 0.0f, 1.0f);
+		glEnable(GL_LINE_SMOOTH);
+		glLineWidth(1.5f);
+		Batch_draw(edges);
+		glDisable(GL_LINE_SMOOTH);
+	}
 
 #if 0 /* looks good even without points */
 	Batch *verts = MBC_get_all_verts(cageDM);
