@@ -55,6 +55,7 @@ extern char datatoc_gpu_shader_2D_flat_color_vert_glsl[];
 extern char datatoc_gpu_shader_2D_smooth_color_vert_glsl[];
 extern char datatoc_gpu_shader_2D_smooth_color_frag_glsl[];
 extern char datatoc_gpu_shader_3D_image_vert_glsl[];
+extern char datatoc_gpu_shader_image_mask_uniform_color_frag_glsl[];
 extern char datatoc_gpu_shader_image_modulate_alpha_frag_glsl[];
 extern char datatoc_gpu_shader_image_rect_modulate_alpha_frag_glsl[];
 extern char datatoc_gpu_shader_image_depth_linear_frag_glsl[];
@@ -122,6 +123,7 @@ static struct GPUShadersGlobal {
 		GPUShader *edges_overlay_simple;
 		GPUShader *edges_overlay;
 		/* for drawing images */
+		GPUShader *image_mask_uniform_color_2D;
 		GPUShader *image_modulate_alpha_3D;
 		GPUShader *image_rect_modulate_alpha_3D;
 		GPUShader *image_depth_3D;
@@ -721,6 +723,14 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 				        NULL, NULL, 0, 0, 0);
 			retval = GG.shaders.edges_overlay;
 			break;
+		case GPU_SHADER_2D_IMAGE_MASK_UNIFORM_COLOR:
+			if (!GG.shaders.image_mask_uniform_color_2D)
+				GG.shaders.image_mask_uniform_color_2D = GPU_shader_create(
+				        datatoc_gpu_shader_3D_image_vert_glsl,
+				        datatoc_gpu_shader_image_mask_uniform_color_frag_glsl,
+				        NULL, NULL, NULL, 0, 0, 0);
+			retval = GG.shaders.image_mask_uniform_color_2D;
+			break;
 		case GPU_SHADER_3D_IMAGE_MODULATE_ALPHA:
 			if (!GG.shaders.image_modulate_alpha_3D)
 				GG.shaders.image_modulate_alpha_3D = GPU_shader_create(
@@ -1026,6 +1036,11 @@ void GPU_shader_free_builtin_shaders(void)
 	if (GG.shaders.edges_overlay) {
 		GPU_shader_free(GG.shaders.edges_overlay);
 		GG.shaders.edges_overlay = NULL;
+	}
+
+	if (GG.shaders.image_mask_uniform_color_2D) {
+		GPU_shader_free(GG.shaders.image_mask_uniform_color_2D);
+		GG.shaders.image_mask_uniform_color_2D = NULL;
 	}
 
 	if (GG.shaders.image_modulate_alpha_3D) {
