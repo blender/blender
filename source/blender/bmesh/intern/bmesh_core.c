@@ -1045,9 +1045,9 @@ static bool bm_loop_reverse_loop(
 #endif
 
 	const int len = f->len;
-	BMLoop *l_iter, *oldprev, *oldnext;
+	BMLoop *l_iter;
 	BMEdge **edar = BLI_array_alloca(edar, len);
-	int i, j, edok;
+	int i;
 
 	for (i = 0, l_iter = l_first; i < len; i++, l_iter = l_iter->next) {
 		bmesh_radial_loop_remove((edar[i] = l_iter->e), l_iter);
@@ -1055,8 +1055,8 @@ static bool bm_loop_reverse_loop(
 
 	/* actually reverse the loop */
 	for (i = 0, l_iter = l_first; i < len; i++) {
-		oldnext = l_iter->next;
-		oldprev = l_iter->prev;
+		BMLoop *oldnext = l_iter->next;
+		BMLoop *oldprev = l_iter->prev;
 		l_iter->next = oldprev;
 		l_iter->prev = oldnext;
 		l_iter = oldnext;
@@ -1067,26 +1067,12 @@ static bool bm_loop_reverse_loop(
 		}
 	}
 
-	if (len == 2) { /* two edged face */
-		/* do some verification here! */
-		l_first->e = edar[1];
-		l_first->next->e = edar[0];
-	}
-	else {
-		for (i = 0, l_iter = l_first; i < len; i++, l_iter = l_iter->next) {
-			edok = 0;
-			for (j = 0; j < len; j++) {
-				edok = BM_verts_in_edge(l_iter->v, l_iter->next->v, edar[j]);
-				if (edok) {
-					l_iter->e = edar[j];
-					break;
-				}
-			}
-		}
-	}
 	/* rebuild radial */
-	for (i = 0, l_iter = l_first; i < len; i++, l_iter = l_iter->next)
+	for (i = 0, l_iter = l_first->prev; i < len; i++, l_iter = l_iter->prev) {
+		BLI_assert(BM_verts_in_edge(l_iter->v, l_iter->next->v, edar[i]));
+		l_iter->e = edar[i];
 		bmesh_radial_loop_append(l_iter->e, l_iter);
+	}
 
 #ifndef NDEBUG
 	/* validate radial */
