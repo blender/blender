@@ -11,7 +11,7 @@
 
 #pragma once
 
-#define TRUST_NO_ONE 1
+#define TRUST_NO_ONE defined(NDEBUG)
 
 #include <GL/glew.h>
 #include <stdbool.h>
