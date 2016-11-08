@@ -56,6 +56,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "GPU_immediate.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -451,25 +453,24 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 /* Helper callback for drawing the cursor itself */
 static void screencast_draw_cursor(bContext *UNUSED(C), int x, int y, void *UNUSED(p_ptr))
 {
-	
-	glPushMatrix();
-	
-	glTranslatef((float)x, (float)y, 0.0f);
-	
-	
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
-	
-	glColor4ub(0, 0, 0, 32);
-	glutil_draw_filled_arc(0.0, M_PI * 2.0, 20, 40);
-	
-	glColor4ub(255, 255, 255, 128);
-	glutil_draw_lined_arc(0.0, M_PI * 2.0, 20, 40);
+
+	VertexFormat* format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	immUniformColor4ub(0, 0, 0, 32);
+	imm_draw_filled_circle(pos, (float)x, (float)y, 20, 40);
+
+	immUniformColor4ub(255, 255, 255, 128);
+	imm_draw_lined_circle(pos, (float)x, (float)y, 20, 40);
+
+	immUnbindProgram();
 	
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
-	
-	glPopMatrix();
 }
 
 /* Turn brush cursor in 3D view on/off */
