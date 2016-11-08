@@ -1657,7 +1657,7 @@ static bool animsys_write_rna_setting(PathResolvedRNA *anim_rna, const float val
 		/* for cases like duplifarmes it's only a temporary so don't
 		 * notify anyone of updates */
 		if (!(id->tag & LIB_TAG_ANIM_NO_RECALC)) {
-			id->tag |= LIB_TAG_ID_RECALC;
+			BKE_id_tag_set_atomic(id, LIB_TAG_ID_RECALC);
 			DAG_id_type_tag(G.main, GS(id->name));
 		}
 	}

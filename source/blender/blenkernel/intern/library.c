@@ -129,6 +129,8 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "atomic_ops.h"
+
 /* GS reads the memory pointed at in a specific ordering. 
  * only use this definition, makes little and big endian systems
  * work fine, in conjunction with MAKE_ID */
@@ -1894,4 +1896,14 @@ void BKE_library_filepath_set(Library *lib, const char *filepath)
 		const char *basepath = lib->parent ? lib->parent->filepath : G.main->name;
 		BLI_path_abs(lib->filepath, basepath);
 	}
+}
+
+void BKE_id_tag_set_atomic(ID *id, int tag)
+{
+	atomic_fetch_and_or_uint32((uint32_t *)&id->tag, tag);
+}
+
+void BKE_id_tag_clear_atomic(ID *id, int tag)
+{
+	atomic_fetch_and_and_uint32((uint32_t *)&id->tag, ~tag);
 }
