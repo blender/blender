@@ -222,6 +222,7 @@ typedef struct {
 	Batch *all_triangles;
 
 	Batch *fancy_edges; /* owns its vertex buffer (not shared) */
+	Batch *overlay_edges; /* owns its vertex buffer */
 } MeshBatchCache;
 
 static MeshBatchCache *MBC_get(DerivedMesh *dm)
@@ -247,6 +248,10 @@ static void MBC_discard(MeshBatchCache *cache)
 
 	if (cache->fancy_edges) {
 		Batch_discard_all(cache->fancy_edges);
+	}
+
+	if (cache->overlay_edges) {
+		Batch_discard_all(cache->overlay_edges);
 	}
 }
 /* need to set this as DM callback:
@@ -435,6 +440,81 @@ static Batch *MBC_get_fancy_edges(DerivedMesh *dm)
 	}
 
 	return cache->fancy_edges;
+}
+
+static bool edge_is_real(const MEdge *edges, int edge_ct, int v1, int v2)
+{
+	/* TODO: same thing, except not ridiculously slow */
+
+	for (int e = 0; e < edge_ct; ++e) {
+		const MEdge *edge = edges + e;
+		if ((edge->v1 == v1 && edge->v2 == v2) || (edge->v1 == v2 && edge->v2 == v1)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static void add_overlay_tri(VertexBuffer *vbo, unsigned pos_id, unsigned edgeMod_id, const MVert *verts, const MEdge *edges, int edge_ct, int v1, int v2, int v3, int base_vert_idx)
+{
+	const float edgeMods[2] = { 0.0f, 1.0f };
+
+	const float *pos = verts[v1].co;
+	setAttrib(vbo, pos_id, base_vert_idx + 0, pos);
+	setAttrib(vbo, edgeMod_id, base_vert_idx + 0, edgeMods + (edge_is_real(edges, edge_ct, v2, v3) ? 1 : 0));
+
+	pos = verts[v2].co;
+	setAttrib(vbo, pos_id, base_vert_idx + 1, pos);
+	setAttrib(vbo, edgeMod_id, base_vert_idx + 1, edgeMods + (edge_is_real(edges, edge_ct, v3, v1) ? 1 : 0));
+
+	pos = verts[v3].co;
+	setAttrib(vbo, pos_id, base_vert_idx + 2, pos);
+	setAttrib(vbo, edgeMod_id, base_vert_idx + 2, edgeMods + (edge_is_real(edges, edge_ct, v1, v2) ? 1 : 0));
+}
+
+static Batch *MBC_get_overlay_edges(DerivedMesh *dm)
+{
+	MeshBatchCache *cache = MBC_get(dm);
+
+	if (cache->overlay_edges == NULL) {
+		/* create batch from DM */
+		static VertexFormat format = { 0 };
+		static unsigned pos_id, edgeMod_id;
+		if (format.attrib_ct == 0) {
+			/* initialize vertex format */
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			edgeMod_id = add_attrib(&format, "edgeWidthModulator", GL_FLOAT, 1, KEEP_FLOAT);
+		}
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+
+		const int vertex_ct = dm->getNumVerts(dm);
+		const int edge_ct = dm->getNumEdges(dm);
+		const int tessface_ct = dm->getNumTessFaces(dm);
+		const MVert *verts = dm->getVertArray(dm);
+		const MEdge *edges = dm->getEdgeArray(dm);
+		const MFace *tessfaces = dm->getTessFaceArray(dm);
+
+		VertexBuffer_allocate_data(vbo, tessface_ct * 6); /* up to 2 triangles per tessface */
+
+		int gpu_vert_idx = 0;
+		for (int i = 0; i < tessface_ct; ++i) {
+			const MFace *tess = tessfaces + i;
+			add_overlay_tri(vbo, pos_id, edgeMod_id, verts, edges, edge_ct, tess->v1, tess->v2, tess->v3, gpu_vert_idx);
+			gpu_vert_idx += 3;
+			/* tessface can be triangle or quad */
+			if (tess->v4) {
+				add_overlay_tri(vbo, pos_id, edgeMod_id, verts, edges, edge_ct, tess->v3, tess->v2, tess->v4, gpu_vert_idx);
+				gpu_vert_idx += 3;
+			}
+		}
+
+		VertexBuffer_resize_data(vbo, gpu_vert_idx);
+
+		cache->overlay_edges = Batch_create(GL_TRIANGLES, vbo, NULL);
+	}
+
+	return cache->overlay_edges;
 }
 
 static void drawcube_size(float size, unsigned pos);
