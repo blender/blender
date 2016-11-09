@@ -598,17 +598,12 @@ BMVert *BM_edge_collapse(
 BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 {
 	BMVert *v_new, *v_other;
+	BMEdge *e_new;
 	BMFace **oldfaces = NULL;
-	BMEdge *e_dummy;
 	BLI_array_staticdeclare(oldfaces, 32);
 	const int cd_loop_mdisp_offset = BM_edge_is_wire(e) ? -1 : CustomData_get_offset(&bm->ldata, CD_MDISPS);
 
 	BLI_assert(BM_vert_in_edge(e, v) == true);
-
-	/* we need this for handling multi-res */
-	if (!r_e) {
-		r_e = &e_dummy;
-	}
 
 	/* do we have a multi-res layer? */
 	if (cd_loop_mdisp_offset != -1) {
@@ -630,17 +625,20 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 	}
 
 	v_other = BM_edge_other_vert(e, v);
-	v_new = bmesh_semv(bm, v, e, r_e);
+	v_new = bmesh_semv(bm, v, e, &e_new);
+	if (r_e != NULL) {
+		*r_e = e_new;
+	}
 
 	BLI_assert(v_new != NULL);
-	BLI_assert(BM_vert_in_edge(*r_e, v) && BM_vert_in_edge(*r_e, v_new));
+	BLI_assert(BM_vert_in_edge(e_new, v) && BM_vert_in_edge(e_new, v_new));
 	BLI_assert(BM_vert_in_edge(e, v_new) && BM_vert_in_edge(e, v_other));
 
 	sub_v3_v3v3(v_new->co, v_other->co, v->co);
 	madd_v3_v3v3fl(v_new->co, v->co, v_new->co, fac);
 
-	(*r_e)->head.hflag = e->head.hflag;
-	BM_elem_attrs_copy(bm, bm, e, *r_e);
+	e_new->head.hflag = e->head.hflag;
+	BM_elem_attrs_copy(bm, bm, e, e_new);
 
 	/* v->v_new->v2 */
 	BM_data_interp_face_vert_edge(bm, v_other, v, v_new, e, fac);
@@ -656,7 +654,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 			BM_face_calc_center_mean(oldfaces[i], f_center_old);
 
 			for (j = 0; j < 2; j++) {
-				BMEdge *e1 = j ? *r_e : e;
+				BMEdge *e1 = j ? e_new : e;
 				BMLoop *l;
 				
 				l = e1->l;
@@ -689,7 +687,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 		/* fix boundaries a bit, doesn't work too well quite yet */
 #if 0
 		for (j = 0; j < 2; j++) {
-			BMEdge *e1 = j ? *r_e : e;
+			BMEdge *e1 = j ? e_new : e;
 			BMLoop *l, *l2;
 			
 			l = e1->l;

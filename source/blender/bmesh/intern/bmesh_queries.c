@@ -910,7 +910,7 @@ bool BM_vert_is_wire(const BMVert *v)
  * A vertex is non-manifold if it meets the following conditions:
  * 1: Loose - (has no edges/faces incident upon it).
  * 2: Joins two distinct regions - (two pyramids joined at the tip).
- * 3: Is part of a an edge with more than 2 faces.
+ * 3: Is part of an edge with more than 2 faces.
  * 4: Is part of a wire edge.
  */
 bool BM_vert_is_manifold(const BMVert *v)

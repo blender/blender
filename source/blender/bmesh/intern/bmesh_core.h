@@ -75,7 +75,7 @@ void    bmesh_vert_separate(
         BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
         const bool copy_select);
 
-bool    bmesh_loop_reverse(
+void    bmesh_loop_reverse(
         BMesh *bm, BMFace *f,
         const int cd_loop_mdisp_offset, const bool use_loop_mdisp_flip);
 

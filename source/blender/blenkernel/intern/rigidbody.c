@@ -64,12 +64,21 @@
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 
-#ifdef WITH_BULLET
-
 /* ************************************** */
 /* Memory Management */
 
 /* Freeing Methods --------------------- */
+
+#ifndef WITH_BULLET
+
+static void RB_dworld_remove_constraint(void *UNUSED(world), void *UNUSED(con)) {}
+static void RB_dworld_remove_body(void *UNUSED(world), void *UNUSED(body)) {}
+static void RB_dworld_delete(void *UNUSED(world)) {}
+static void RB_body_delete(void *UNUSED(body)) {}
+static void RB_shape_delete(void *UNUSED(shape)) {}
+static void RB_constraint_delete(void *UNUSED(con)) {}
+
+#endif
 
 /* Free rigidbody world */
 void BKE_rigidbody_free_world(RigidBodyWorld *rbw)
@@ -159,6 +168,8 @@ void BKE_rigidbody_free_constraint(Object *ob)
 	MEM_freeN(rbc);
 	ob->rigidbody_constraint = NULL;
 }
+
+#ifdef WITH_BULLET
 
 /* Copying Methods --------------------- */
 
@@ -1548,9 +1559,6 @@ void BKE_rigidbody_do_simulation(Scene *scene, float ctime)
 #  pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
-void BKE_rigidbody_free_world(RigidBodyWorld *rbw) {}
-void BKE_rigidbody_free_object(Object *ob) {}
-void BKE_rigidbody_free_constraint(Object *ob) {}
 struct RigidBodyOb *BKE_rigidbody_copy_object(Object *ob) { return NULL; }
 struct RigidBodyCon *BKE_rigidbody_copy_constraint(Object *ob) { return NULL; }
 void BKE_rigidbody_relink_constraint(RigidBodyCon *rbc) {}

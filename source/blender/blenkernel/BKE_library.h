@@ -129,6 +129,8 @@ void BKE_library_make_local(
         struct Main *bmain, const struct Library *lib, struct GHash *old_to_new_ids,
         const bool untagged_only, const bool set_fake);
 
+void BKE_id_tag_set_atomic(struct ID *id, int tag);
+void BKE_id_tag_clear_atomic(struct ID *id, int tag);
 
 /* use when "" is given to new_id() */
 #define ID_FALLBACK_NAME N_("Untitled")

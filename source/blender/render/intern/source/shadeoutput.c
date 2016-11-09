@@ -2064,11 +2064,13 @@ static float lamp_get_data_internal(ShadeInput *shi, GroupObject *go, float col[
 		if (lar->mode & LA_SHAD_TEX)
 			do_lamp_tex(lar, lv, shi, shadow, LA_SHAD_TEX);
 
-		lamp_get_shadow(lar, shi, inp, shadfac, shi->depth);
+		if (R.r.mode & R_SHADOW) {
+			lamp_get_shadow(lar, shi, inp, shadfac, shi->depth);
 
-		shadow[0] = 1.0f - ((1.0f - shadfac[0] * shadfac[3]) * (1.0f - shadow[0]));
-		shadow[1] = 1.0f - ((1.0f - shadfac[1] * shadfac[3]) * (1.0f - shadow[1]));
-		shadow[2] = 1.0f - ((1.0f - shadfac[2] * shadfac[3]) * (1.0f - shadow[2]));
+			shadow[0] = 1.0f - ((1.0f - shadfac[0] * shadfac[3]) * (1.0f - shadow[0]));
+			shadow[1] = 1.0f - ((1.0f - shadfac[1] * shadfac[3]) * (1.0f - shadow[1]));
+			shadow[2] = 1.0f - ((1.0f - shadfac[2] * shadfac[3]) * (1.0f - shadow[2]));
+		}
 	}
 
 	return visifac;

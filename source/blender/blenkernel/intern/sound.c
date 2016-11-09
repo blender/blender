@@ -251,7 +251,8 @@ void BKE_sound_init(struct Main *bmain)
 void BKE_sound_init_main(struct Main *bmain)
 {
 #ifdef WITH_JACK
-	AUD_setSynchronizerCallback(sound_sync_callback, bmain);
+	if (sound_device)
+		AUD_setSynchronizerCallback(sound_sync_callback, bmain);
 #else
 	(void)bmain; /* unused */
 #endif
