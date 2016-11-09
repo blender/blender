@@ -264,9 +264,12 @@ void id_fake_user_clear(ID *id)
 }
 
 static int id_expand_local_callback(
-        void *UNUSED(user_data), struct ID *UNUSED(id_self), struct ID **id_pointer, int UNUSED(cd_flag))
+        void *UNUSED(user_data), struct ID *id_self, struct ID **id_pointer, int UNUSED(cd_flag))
 {
-	if (*id_pointer) {
+	/* Can hapen that we get unlinkable ID here, e.g. with shapekey referring to itself (through drivers)...
+	 * Just skip it, shape key can only be either indirectly linked, or fully local, period.
+	 * And let's curse one more time that stupid useless shapekey ID type! */
+	if (*id_pointer && *id_pointer != id_self && BKE_idcode_is_linkable(GS((*id_pointer)->name))) {
 		id_lib_extern(*id_pointer);
 	}
 
