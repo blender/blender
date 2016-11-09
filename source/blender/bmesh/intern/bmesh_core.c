@@ -1024,19 +1024,11 @@ static int UNUSED_FUNCTION(bm_loop_length)(BMLoop *l)
  * \param use_loop_mdisp_flip: When set, flip the Z-depth of the mdisp,
  * (use when flipping normals, disable when mirroring, eg: symmetrize).
  */
-static void bm_loop_reverse_loop(
+void bmesh_loop_reverse(
         BMesh *bm, BMFace *f,
-#ifdef USE_BMESH_HOLES
-        BMLoopList *lst,
-#endif
         const int cd_loop_mdisp_offset, const bool use_loop_mdisp_flip)
 {
-
-#ifdef USE_BMESH_HOLES
-	BMLoop *l_first = lst->first;
-#else
 	BMLoop *l_first = f->l_first;
-#endif
 
 	/* track previous cycles radial state */
 	BMEdge *e_prev = l_first->prev->e;
@@ -1052,7 +1044,7 @@ static void bm_loop_reverse_loop(
 		bool is_iter_boundary = l_iter_radial_next == l_iter_radial_next->radial_next;
 
 #if 0
-		bmesh_radial_loop_remove(e_curr, l_iter);
+		bmesh_radial_loop_remove(e_iter, l_iter);
 		bmesh_radial_loop_append(e_prev, l_iter);
 #else
 		/* inline loop reversal */
@@ -1105,20 +1097,6 @@ static void bm_loop_reverse_loop(
 
 	/* Loop indices are no more valid! */
 	bm->elem_index_dirty |= BM_LOOP;
-}
-
-/**
- * \brief Flip the faces direction
- */
-void bmesh_loop_reverse(
-        BMesh *bm, BMFace *f,
-        const int cd_loop_mdisp_offset, const bool use_loop_mdisp_flip)
-{
-#ifdef USE_BMESH_HOLES
-	bm_loop_reverse_loop(bm, f, f->loops.first, cd_loop_mdisp_offset, use_loop_mdisp_flip);
-#else
-	bm_loop_reverse_loop(bm, f, cd_loop_mdisp_offset, use_loop_mdisp_flip);
-#endif
 }
 
 static void bm_elements_systag_enable(void *veles, int tot, const char api_flag)
