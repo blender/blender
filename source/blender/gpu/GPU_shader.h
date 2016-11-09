@@ -85,11 +85,11 @@ int GPU_shader_get_attribute(GPUShader *shader, const char *name);
 
 /* Builtin/Non-generated shaders */
 typedef enum GPUBuiltinShader {
-	GPU_SHADER_VSM_STORE         = 0,
-	GPU_SHADER_SEP_GAUSSIAN_BLUR = 1,
-	GPU_SHADER_SMOKE             = 2,
-	GPU_SHADER_SMOKE_FIRE        = 3,
-	GPU_SHADER_SMOKE_COBA        = 4,
+	GPU_SHADER_VSM_STORE,
+	GPU_SHADER_SEP_GAUSSIAN_BLUR,
+	GPU_SHADER_SMOKE,
+	GPU_SHADER_SMOKE_FIRE,
+	GPU_SHADER_SMOKE_COBA,
 
 	/* specialized drawing */
 	GPU_SHADER_TEXT,
@@ -123,6 +123,8 @@ typedef enum GPUBuiltinShader {
 	GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_SMOOTH,
 	GPU_SHADER_3D_POINT_VARYING_SIZE_UNIFORM_COLOR,
 	GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR,
+
+	GPU_NUM_BUILTIN_SHADERS /* (not an actual shader) */
 } GPUBuiltinShader;
 
 GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader);
