@@ -1317,22 +1317,15 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 #ifdef USE_BMESH_HOLES
 	/* add holes */
 	BLI_movelisttolist(&f_new->loops, &holes);
-#endif
 
 	/* update loop face pointer */
-#ifdef USE_BMESH_HOLES
-	for (lst = f_new->loops.first; lst; lst = lst->next)
-#endif
-	{
-#ifdef USE_BMESH_HOLES
+	for (lst = f_new->loops.first; lst; lst = lst->next) {
 		l_iter = l_first = lst->first;
-#else
-		l_iter = l_first = BM_FACE_FIRST_LOOP(f_new);
-#endif
 		do {
 			l_iter->f = f_new;
 		} while ((l_iter = l_iter->next) != l_first);
 	}
+#endif
 
 	bm_elements_systag_disable(faces, totface, _FLAG_JF);
 	BM_ELEM_API_FLAG_DISABLE(f_new, _FLAG_JF);
