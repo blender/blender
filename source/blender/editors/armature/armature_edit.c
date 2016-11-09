@@ -1328,6 +1328,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	
 	ED_armature_sync_selection(arm->edbo);
+	BKE_pose_tag_recalc(CTX_data_main(C), obedit->pose);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
 
