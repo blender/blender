@@ -183,10 +183,8 @@ if 'cmake' in builder:
             print('Condifuration FAILED!')
             sys.exit(retcode)
 
-        if 'win32' in builder:
-            command = ['msbuild', 'INSTALL.vcxproj', '/Property:PlatformToolset=v120_xp', '/p:Configuration=Release']
-        elif 'win64' in builder:
-            command = ['msbuild', 'INSTALL.vcxproj', '/p:Configuration=Release']
+        if 'win32' in builder or 'win64' in builder:
+            command = ['cmake', '--build', '.', '--target', target_name]
         else:
             command = target_chroot_prefix + ['make', '-s', '-j2', target_name]
 
