@@ -1416,7 +1416,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *ob,
 	if (data->poletar != NULL) {
 		if ((data->poletar->type == OB_ARMATURE) && (data->polesubtarget[0])) {
 			// XXX: same armature issues - ready vs done?
-			ComponentKey target_key(&data->poletar->id, DEPSNODE_TYPE_BONE, data->subtarget);
+			ComponentKey target_key(&data->poletar->id, DEPSNODE_TYPE_BONE, data->polesubtarget);
 			add_relation(target_key, solver_key, DEPSREL_TYPE_TRANSFORM, con->name);
 		}
 		else if (ELEM(data->poletar->type, OB_MESH, OB_LATTICE) && (data->subtarget[0])) {
