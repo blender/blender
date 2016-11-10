@@ -184,7 +184,7 @@ if 'cmake' in builder:
             sys.exit(retcode)
 
         if 'win32' in builder or 'win64' in builder:
-            command = ['cmake', '--build', '.', '--target', target_name, '--config']
+            command = ['cmake', '--build', '.', '--target', target_name, '--config', 'Release']
         else:
             command = target_chroot_prefix + ['make', '-s', '-j2', target_name]
 
