@@ -315,6 +315,12 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 			RE_render_result_rect_from_ibuf(rr, &scene->r, out, oglrender->view_id);
 			IMB_freeImBuf(out);
 		}
+		else if (gpd){
+			/* If there are no strips, Grease Pencil still needs a buffer to draw on */
+			ImBuf *out = IMB_allocImBuf(oglrender->sizex, oglrender->sizey, 32, IB_rect);
+			RE_render_result_rect_from_ibuf(rr, &scene->r, out, oglrender->view_id);
+			IMB_freeImBuf(out);
+		}
 
 		if (gpd) {
 			int i;
