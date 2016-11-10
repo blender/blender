@@ -1419,7 +1419,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *ob,
 			ComponentKey target_key(&data->poletar->id, DEPSNODE_TYPE_BONE, data->polesubtarget);
 			add_relation(target_key, solver_key, DEPSREL_TYPE_TRANSFORM, con->name);
 		}
-		else if (ELEM(data->poletar->type, OB_MESH, OB_LATTICE) && (data->subtarget[0])) {
+		else if (ELEM(data->poletar->type, OB_MESH, OB_LATTICE) && (data->polesubtarget[0])) {
 			/* vertex group target */
 			/* NOTE: for now, we don't need to represent vertex groups separately... */
 			ComponentKey target_key(&data->poletar->id, DEPSNODE_TYPE_GEOMETRY);
