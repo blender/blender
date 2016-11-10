@@ -52,7 +52,7 @@ typedef struct wmEventHandler {
 	wmKeyMap *keymap;                   /* pointer to builtin/custom keymaps */
 	const rcti *bblocal, *bbwin;              /* optional local and windowspace bb */
 
-	/* modal operator handler */
+	/* modal operator handler and WM_HANDLER_FILESELECT */
 	wmOperator *op;                     /* for derived/modal handlers */
 	struct ScrArea *op_area;            /* for derived/modal handlers */
 	struct ARegion *op_region;          /* for derived/modal handlers */
