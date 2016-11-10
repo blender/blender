@@ -1672,9 +1672,10 @@ void BKE_library_make_local(
 			/* The check on the second line (LIB_TAG_PRE_EXISTING) is done so its
 			 * possible to tag data you don't want to be made local, used for
 			 * appending data, so any libdata already linked wont become local
-			 * (very nasty to discover all your links are lost after appending)  
-			 * */
+			 * (very nasty to discover all your links are lost after appending).
+			 * Also, never ever make proxified objects local, would not make any sense. */
 			if (!do_skip && id->tag & (LIB_TAG_EXTERN | LIB_TAG_INDIRECT | LIB_TAG_NEW) &&
+			    !(GS(id->name) == ID_OB && ((Object *)id)->proxy_from != NULL) &&
 			    ((untagged_only == false) || !(id->tag & LIB_TAG_PRE_EXISTING)))
 			{
 				if (lib == NULL || id->lib == lib) {
