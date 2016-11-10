@@ -35,6 +35,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_icons.h"
+#include "BKE_object.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -346,6 +347,20 @@ static void rna_ID_user_remap(ID *id, Main *bmain, ID *new_id)
 		BKE_libblock_remap(bmain, id, new_id, ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_NEVER_NULL_USAGE);
 	}
 }
+
+static struct ID *rna_ID_make_local(struct ID *self, Main *bmain, int clear_proxy)
+{
+	/* Special case, as we can't rely on id_make_local(); it clears proxies. */
+	if (!clear_proxy && GS(self->name) == ID_OB) {
+		BKE_object_make_local_ex(bmain, (Object *)self, false, clear_proxy);
+	}
+	else {
+		id_make_local(bmain, self, false, false);
+	}
+
+	return self->newid ? self->newid : self;
+}
+
 
 static AnimData * rna_ID_animation_data_create(ID *id, Main *bmain)
 {
@@ -998,6 +1013,17 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_function_flag(func, FUNC_USE_MAIN);
 	parm = RNA_def_pointer(func, "new_id", "ID", "", "New ID to use");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+
+	func = RNA_def_function(srna, "make_local", "rna_ID_make_local");
+	RNA_def_function_ui_description(func, "Make this datablock local, return local one "
+	                                      "(may be a copy of the original, in case it is also indirectly used)");
+	RNA_def_function_flag(func, FUNC_USE_MAIN);
+	RNA_def_boolean(func, "clear_proxy", true, "",
+	                "Whether to clear proxies (the default behavior); can cause proxies to be duplicated"
+	                " when still referred to from another library");
+	RNA_def_property_flag(parm, PROP_PYFUNC_OPTIONAL);
+	parm = RNA_def_pointer(func, "id", "ID", "", "This ID, or the new ID if it was copied");
+	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "user_of_id", "BKE_library_ID_use_ID");
 	RNA_def_function_ui_description(func, "Count the number of times that ID uses/references given one");
