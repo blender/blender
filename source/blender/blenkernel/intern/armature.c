@@ -1795,6 +1795,7 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			
 			/* copy posechannel to temp, but restore important pointers */
 			pchanw = *pchanp;
+			pchanw.bone = pchan->bone;
 			pchanw.prev = pchan->prev;
 			pchanw.next = pchan->next;
 			pchanw.parent = pchan->parent;
