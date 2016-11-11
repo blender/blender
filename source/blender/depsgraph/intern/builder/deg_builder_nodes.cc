@@ -429,6 +429,7 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 		id_node->layers |= base->lay;
 		return;
 	}
+	ob->id.tag |= LIB_TAG_DOIT;
 
 	IDDepsNode *id_node = add_id_node(&ob->id);
 	id_node->layers |= base->lay;
