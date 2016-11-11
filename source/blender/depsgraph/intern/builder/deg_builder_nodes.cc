@@ -463,7 +463,9 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 {
 	if (ob->id.tag & LIB_TAG_DOIT) {
 		IDDepsNode *id_node = m_graph->find_id_node(&ob->id);
-		id_node->layers |= base->lay;
+		if (base != NULL) {
+			id_node->layers |= base->lay;
+		}
 		return;
 	}
 	ob->id.tag |= LIB_TAG_DOIT;
