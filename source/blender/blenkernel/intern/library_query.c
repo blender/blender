@@ -1232,6 +1232,10 @@ void BKE_library_tag_unused_linked_data(Main *bmain, const bool do_init_tag)
 
 		while (i--) {
 			for (ID *id = lb_array[i]->first; id; id = id->next) {
+				if (id->tag & LIB_TAG_DOIT) {
+					/* Unused ID (so far), no need to check it further. */
+					continue;
+				}
 				BKE_library_foreach_ID_link(id, foreach_libblock_tag_unused_linked_data_callback, &do_loop, IDWALK_NOP);
 			}
 		}
