@@ -51,8 +51,12 @@ extern "C" {
 
 /* Graph Building -------------------------------- */
 
-/* Build depsgraph for the given scene, and dump results in given graph container */
-void DEG_graph_build_from_scene(struct Depsgraph *graph, struct Main *bmain, struct Scene *scene);
+/* Build depsgraph for the given scene, and dump results in given
+ * graph container.
+ */
+void DEG_graph_build_from_scene(struct Depsgraph *graph,
+                                struct Main *bmain,
+                                struct Scene *scene);
 
 /* Tag relations from the given graph for update. */
 void DEG_graph_tag_relations_update(struct Depsgraph *graph);
@@ -85,31 +89,69 @@ struct CacheFile;
 struct Object;
 
 typedef enum eDepsSceneComponentType {
-	DEG_SCENE_COMP_PARAMETERS,     /* Parameters Component - Default when nothing else fits (i.e. just SDNA property setting) */
-	DEG_SCENE_COMP_ANIMATION,      /* Animation Component */                 // XXX: merge in with parameters?
-	DEG_SCENE_COMP_SEQUENCER,      /* Sequencer Component (Scene Only) */
+	/* Parameters Component - Default when nothing else fits
+	 * (i.e. just SDNA property setting).
+	 */
+	DEG_SCENE_COMP_PARAMETERS,
+	/* Animation Component
+	 * TODO(sergey): merge in with parameters?
+	 */
+	DEG_SCENE_COMP_ANIMATION,
+	/* Sequencer Component (Scene Only). */
+	DEG_SCENE_COMP_SEQUENCER,
 } eDepsSceneComponentType;
 
 typedef enum eDepsObjectComponentType {
-	DEG_OB_COMP_PARAMETERS,        /* Parameters Component - Default when nothing else fits (i.e. just SDNA property setting) */
-	DEG_OB_COMP_PROXY,             /* Generic "Proxy-Inherit" Component */   // XXX: Also for instancing of subgraphs?
-	DEG_OB_COMP_ANIMATION,         /* Animation Component */                 // XXX: merge in with parameters?
-	DEG_OB_COMP_TRANSFORM,         /* Transform Component (Parenting/Constraints) */
-	DEG_OB_COMP_GEOMETRY,          /* Geometry Component (DerivedMesh/Displist) */
-	
+	/* Parameters Component - Default when nothing else fits
+	 * (i.e. just SDNA property setting).
+	 */
+	DEG_OB_COMP_PARAMETERS,
+	/* Generic "Proxy-Inherit" Component.
+	 * TODO(sergey): Also for instancing of subgraphs?
+	 */
+	DEG_OB_COMP_PROXY,
+	/* Animation Component.
+	 *
+	 * TODO(sergey): merge in with parameters?
+	 */
+	DEG_OB_COMP_ANIMATION,
+	/* Transform Component (Parenting/Constraints) */
+	DEG_OB_COMP_TRANSFORM,
+	/* Geometry Component (DerivedMesh/Displist) */
+	DEG_OB_COMP_GEOMETRY,
+
 	/* Evaluation-Related Outer Types (with Subdata) */
-	DEG_OB_COMP_EVAL_POSE,         /* Pose Component - Owner/Container of Bones Eval */
-	DEG_OB_COMP_BONE,              /* Bone Component - Child/Subcomponent of Pose */
-	
-	DEG_OB_COMP_EVAL_PARTICLES,    /* Particle Systems Component */
-	DEG_OB_COMP_SHADING,           /* Material Shading Component */
-	DEG_OB_COMP_CACHE,             /* Cache Component */
+
+	/* Pose Component - Owner/Container of Bones Eval */
+	DEG_OB_COMP_EVAL_POSE,
+	/* Bone Component - Child/Subcomponent of Pose */
+	DEG_OB_COMP_BONE,
+
+	/* Particle Systems Component */
+	DEG_OB_COMP_EVAL_PARTICLES,
+	/* Material Shading Component */
+	DEG_OB_COMP_SHADING,
+	/* Cache Component */
+	DEG_OB_COMP_CACHE,
 } eDepsObjectComponentType;
 
-void DEG_add_scene_relation(struct DepsNodeHandle *node, struct Scene *scene, eDepsSceneComponentType component, const char *description);
-void DEG_add_object_relation(struct DepsNodeHandle *node, struct Object *ob, eDepsObjectComponentType component, const char *description);
-void DEG_add_bone_relation(struct DepsNodeHandle *handle, struct Object *ob, const char *bone_name, eDepsObjectComponentType component, const char *description);
-void DEG_add_object_cache_relation(struct DepsNodeHandle *handle, struct CacheFile *cache_file, eDepsObjectComponentType component, const char *description);
+void DEG_add_scene_relation(struct DepsNodeHandle *node,
+                            struct Scene *scene,
+                            eDepsSceneComponentType component,
+                            const char *description);
+void DEG_add_object_relation(struct DepsNodeHandle *node, struct
+                             Object *ob,
+                             eDepsObjectComponentType component,
+                             const char *description);
+void DEG_add_bone_relation(struct DepsNodeHandle *handle,
+                           struct Object *ob,
+                           const char *bone_name,
+                           eDepsObjectComponentType component,
+                           const char *description);
+void DEG_add_object_cache_relation(struct DepsNodeHandle *handle,
+                                   struct CacheFile *cache_file,
+                                   eDepsObjectComponentType component,
+                                   const char *description);
 
 /* TODO(sergey): Remove once all geometry update is granular. */
 void DEG_add_special_eval_flag(struct Depsgraph *graph, struct ID *id, short flag);
@@ -117,8 +159,22 @@ void DEG_add_special_eval_flag(struct Depsgraph *graph, struct ID *id, short fla
 /* Utility functions for physics modifiers */
 typedef bool (*DEG_CollobjFilterFunction)(struct Object *obj, struct ModifierData *md);
 
-void DEG_add_collision_relations(struct DepsNodeHandle *handle, struct Scene *scene, Object *ob, struct Group *group, int layer, unsigned int modifier_type, DEG_CollobjFilterFunction fn, bool dupli, const char *name);
-void DEG_add_forcefield_relations(struct DepsNodeHandle *handle, struct Scene *scene, Object *ob, struct EffectorWeights *eff, bool add_absorption, int skip_forcefield, const char *name);
+void DEG_add_collision_relations(struct DepsNodeHandle *handle,
+                                 struct Scene *scene,
+                                 Object *ob,
+                                 struct Group *group,
+                                 int layer,
+                                 unsigned int modifier_type,
+                                 DEG_CollobjFilterFunction fn,
+                                 bool dupli,
+                                 const char *name);
+void DEG_add_forcefield_relations(struct DepsNodeHandle *handle,
+                                  struct Scene *scene,
+                                  Object *ob,
+                                  struct EffectorWeights *eff,
+                                  bool add_absorption,
+                                  int skip_forcefield,
+                                  const char *name);
 
 /* ************************************************ */
 
