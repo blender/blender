@@ -134,7 +134,7 @@ void constraint_walk(bConstraint * /*con*/,
 	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
 	if (*idpoin) {
 		ID *id = *idpoin;
-		if (GS(id) == ID_OB) {
+		if (GS(id->name) == ID_OB) {
 			data->builder->build_object(data->scene, NULL, (Object *)id);
 		}
 	}
