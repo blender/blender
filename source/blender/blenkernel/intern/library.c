@@ -1822,7 +1822,7 @@ void BKE_library_make_local(
 			 *       directly wipe them out without caring about clearing their usages.
 			 *       However, this is a highly-risky presumption, and nice crasher in case something goes wrong here.
 			 *       So for 2.78a will keep the safe option, and switch to more efficient one in master later. */
-#if 0
+#if 1
 			BKE_libblock_free_ex(bmain, id, false);
 #else
 			BKE_libblock_unlink(bmain, id, false, false);
