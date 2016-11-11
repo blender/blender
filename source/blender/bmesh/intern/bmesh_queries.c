@@ -926,7 +926,8 @@ bool BM_vert_is_manifold(const BMVert *v)
 
 	/* count edges while looking for non-manifold edges */
 	e_first = e_iter = v->e;
-	l_first = e_iter->l ? e_iter->l : NULL;
+	/* may be null */
+	l_first = e_iter->l;
 	do {
 		/* loose edge or edge shared by more than two faces,
 		 * edges with 1 face user are OK, otherwise we could
