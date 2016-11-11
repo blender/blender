@@ -450,6 +450,7 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 	if (ob->id.tag & LIB_TAG_DOIT) {
 		return;
 	}
+	ob->id.tag |= LIB_TAG_DOIT;
 
 	/* Object Transforms */
 	eDepsOperation_Code base_op = (ob->parent) ? DEG_OPCODE_TRANSFORM_PARENT : DEG_OPCODE_TRANSFORM_LOCAL;
