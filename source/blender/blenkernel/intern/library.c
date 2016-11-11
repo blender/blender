@@ -1632,31 +1632,28 @@ void BKE_main_id_clear_newpoins(Main *bmain)
  * \param untagged_only If true, only make local datablocks not tagged with LIB_TAG_PRE_EXISTING.
  * \param set_fake If true, set fake user on all localized datablocks (except group and objects ones).
  */
-/* XXX TODO This function should probably be reworked.
- *
- * Old (2.77) version was simply making (tagging) datablocks as local, without actually making any check whether
+/* Note: Old (2.77) version was simply making (tagging) datablocks as local, without actually making any check whether
  * they were also indirectly used or not...
  *
- * Current version uses regular id_make_local callback, but this is not super-efficient since this ends up
+ * Current version uses regular id_make_local callback, which is not super-efficient since this ends up
  * duplicating some IDs and then removing original ones (due to missing knowledge of which ID uses some other ID).
  *
- * We could first check all IDs and detect those to be made local that are only used by other local or future-local
- * datablocks, and directly tag those as local (instead of going through id_make_local) maybe...
- *
- * We'll probably need at some point a true dependency graph between datablocks, but for now this should work
- * good enough (performances is not a critical point here anyway).
+ * However, we now have a first check that allows us to use 'direct localization' of a lot of IDs, so performances
+ * are now *reasonably* OK.
  */
 void BKE_library_make_local(
         Main *bmain, const Library *lib, GHash *old_to_new_ids, const bool untagged_only, const bool set_fake)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
-	ID *id, *id_next;
+	ID *id;
 	int a;
 
+	LinkNode *todo_ids = NULL;
 	LinkNode *copied_ids = NULL;
 	LinkNode *linked_loop_candidates = NULL;
-	MemArena *linklist_mem = BLI_memarena_new(256 * sizeof(copied_ids), __func__);
+	MemArena *linklist_mem = BLI_memarena_new(512 * sizeof(*todo_ids), __func__);
 
+	/* Step 1: Detect datablocks to make local. */
 	for (a = set_listbasepointers(bmain, lbarray); a--; ) {
 		id = lbarray[a]->first;
 
@@ -1664,55 +1661,80 @@ void BKE_library_make_local(
 		 * by real datablocks responsible of them. */
 		const bool do_skip = (id && !BKE_idcode_is_linkable(GS(id->name)));
 
-		for (; id; id = id_next) {
+		for (; id; id = id->next) {
 			id->newid = NULL;
 			id->tag &= ~LIB_TAG_DOIT;
-			id_next = id->next;  /* id is possibly being inserted again */
 
-			/* The check on the second line (LIB_TAG_PRE_EXISTING) is done so its
+			if (id->lib == NULL) {
+				id->tag &= ~(LIB_TAG_EXTERN | LIB_TAG_INDIRECT | LIB_TAG_NEW);
+			}
+			/* The check on the fourth line (LIB_TAG_PRE_EXISTING) is done so its
 			 * possible to tag data you don't want to be made local, used for
 			 * appending data, so any libdata already linked wont become local
 			 * (very nasty to discover all your links are lost after appending).
 			 * Also, never ever make proxified objects local, would not make any sense. */
-			if (!do_skip && id->tag & (LIB_TAG_EXTERN | LIB_TAG_INDIRECT | LIB_TAG_NEW) &&
-			    !(GS(id->name) == ID_OB && ((Object *)id)->proxy_from != NULL) &&
-			    ((untagged_only == false) || !(id->tag & LIB_TAG_PRE_EXISTING)))
+			else if (!do_skip && id->tag & (LIB_TAG_EXTERN | LIB_TAG_INDIRECT | LIB_TAG_NEW) &&
+			         ELEM(lib, NULL, id->lib) &&
+			         !(GS(id->name) == ID_OB && ((Object *)id)->proxy_from != NULL) &&
+			         ((untagged_only == false) || !(id->tag & LIB_TAG_PRE_EXISTING)))
 			{
-				if (lib == NULL || id->lib == lib) {
-					if (id->lib) {
-						/* In this specific case, we do want to make ID local even if it has no local usage yet... */
-						if (GS(id->name) == ID_OB) {
-							/* Special case for objects because we don't want proxy pointers to be
-							 * cleared yet. This will happen down the road in this function.
-							 */
-							BKE_object_make_local_ex(bmain, (Object*)id, true, false);
-						}
-						else {
-							id_make_local(bmain, id, false, true);
-						}
-
-						if (id->newid) {
-							BLI_linklist_prepend_arena(&copied_ids, id, linklist_mem);
-						}
-					}
-					else {
-						id->tag &= ~(LIB_TAG_EXTERN | LIB_TAG_INDIRECT | LIB_TAG_NEW);
-					}
-				}
-
-				if (set_fake) {
-					if (!ELEM(GS(id->name), ID_OB, ID_GR)) {
-						/* do not set fake user on objects, groups (instancing) */
-						id_fake_user_set(id);
-					}
-				}
+				BLI_linklist_prepend_arena(&todo_ids, id, linklist_mem);
+				id->tag |= LIB_TAG_DOIT;
 			}
 		}
 	}
 
-	/* We have to remap local usages of old (linked) ID to new (local) id in a second loop, as lbarray ordering is not
-	 * enough to ensure us we did catch all dependencies (e.g. if making local a parent object before its child...).
-	 * See T48907. */
+	/* Step 2: Check which datablocks we can directly make local (because they are only used by already, or future,
+	 * local data), others will need to be duplicated and further processed later. */
+	BKE_library_indirectly_used_data_tag_clear(bmain);
+
+	/* Step 3: Make IDs local, either directly (quick and simple), or using generic process,
+	 * which involves more complex checks and might instead create a local copy of original linked ID. */
+	for (LinkNode *it = todo_ids, *it_next; it; it = it_next) {
+		it_next = it->next;
+		id = it->link;
+
+		if (id->tag & LIB_TAG_DOIT) {
+			/* We know all users of this object are local or will be made fully local, even if currently there are
+			 * some indirect usages. So instead of making a copy that se'll likely get rid of later, directly make
+			 * that data block local. Saves a tremendous amount of time with complex scenes... */
+			id_clear_lib_data_ex(bmain, id, true);
+			BKE_id_expand_local(id);
+			id->tag &= ~LIB_TAG_DOIT;
+		}
+		else {
+			/* In this specific case, we do want to make ID local even if it has no local usage yet... */
+			if (GS(id->name) == ID_OB) {
+				/* Special case for objects because we don't want proxy pointers to be
+				 * cleared yet. This will happen down the road in this function.
+				 */
+				BKE_object_make_local_ex(bmain, (Object*)id, true, false);
+			}
+			else {
+				id_make_local(bmain, id, false, true);
+			}
+
+			if (id->newid) {
+				/* Reuse already allocated LinkNode (transferring it from todo_ids to copied_ids). */
+				BLI_linklist_prepend_nlink(&copied_ids, id, it);
+			}
+		}
+
+		if (set_fake) {
+			if (!ELEM(GS(id->name), ID_OB, ID_GR)) {
+				/* do not set fake user on objects, groups (instancing) */
+				id_fake_user_set(id);
+			}
+		}
+	}
+
+	/* At this point, we are done with directly made local IDs. Now we have to handle duplicated ones, since their
+	 * remaining linked original counterpart may not be needed anymore... */
+	todo_ids = NULL;
+
+	/* Step 4: We have to remap local usages of old (linked) ID to new (local) id in a separated loop,
+	 * as lbarray ordering is not enough to ensure us we did catch all dependencies
+	 * (e.g. if making local a parent object before its child...). See T48907. */
 	for (LinkNode *it = copied_ids; it; it = it->next) {
 		id = it->link;
 
@@ -1725,7 +1747,7 @@ void BKE_library_make_local(
 		}
 	}
 
-	/* Third step: remove datablocks that have been copied to be localized and are no more used in the end...
+	/* Step 5: remove datablocks that have been copied to be localized and are no more used in the end...
 	 * Note that we may have to loop more than once here, to tackle dependencies between linked objects... */
 	bool do_loop = true;
 	while (do_loop) {
@@ -1803,7 +1825,7 @@ void BKE_library_make_local(
 		}
 	}
 
-	/* Fourth step: Try to find circle dependencies between indirectly-linked-only datablocks.
+	/* Step 6: Try to find circle dependencies between indirectly-linked-only datablocks.
 	 * Those are fake 'usages' that prevent their deletion. See T49775 for nice ugly case. */
 	BKE_library_tag_unused_linked_data(bmain, false);
 	for (LinkNode *it = linked_loop_candidates; it; it = it->next) {
