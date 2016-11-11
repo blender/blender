@@ -1827,7 +1827,7 @@ void BKE_library_make_local(
 
 	/* Step 6: Try to find circle dependencies between indirectly-linked-only datablocks.
 	 * Those are fake 'usages' that prevent their deletion. See T49775 for nice ugly case. */
-	BKE_library_tag_unused_linked_data(bmain, false);
+	BKE_library_unused_linked_data_tag(bmain, false);
 	for (LinkNode *it = linked_loop_candidates; it; it = it->next) {
 		if (it->link == NULL) {
 			continue;

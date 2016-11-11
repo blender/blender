@@ -88,7 +88,7 @@ bool BKE_library_ID_is_locally_used(struct Main *bmain, void *idv);
 bool BKE_library_ID_is_indirectly_used(struct Main *bmain, void *idv);
 void BKE_library_ID_test_usages(struct Main *bmain, void *idv, bool *is_used_local, bool *is_used_linked);
 
-void BKE_library_tag_unused_linked_data(struct Main *bmain, const bool do_init_tag);
+void BKE_library_unused_linked_data_tag(struct Main *bmain, const bool do_init_tag);
 void BKE_library_indirectly_used_data_tag_clear(struct Main *bmain);
 
 #endif  /* __BKE_LIBRARY_QUERY_H__ */

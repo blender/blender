@@ -1207,7 +1207,7 @@ static int foreach_libblock_used_linked_data_tag_clear_cb(
  * \param do_init_tag if \a true, all linked data are checked, if \a false, only linked datablocks already tagged with
  *                    LIB_TAG_DOIT are checked.
  */
-void BKE_library_tag_unused_linked_data(Main *bmain, const bool do_init_tag)
+void BKE_library_unused_linked_data_set_tag(Main *bmain, const bool do_init_tag)
 {
 	ListBase *lb_array[MAX_LIBARRAY];
 
