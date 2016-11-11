@@ -149,7 +149,7 @@ static void updateDepsgraph(ModifierData *md,
 		DEG_add_object_relation(node, amd->end_cap, DEG_OB_COMP_TRANSFORM, "Hook Modifier End Cap");
 	}
 	if (amd->curve_ob) {
-		DEG_add_object_relation(node, amd->end_cap, DEG_OB_COMP_GEOMETRY, "Hook Modifier Curve");
+		DEG_add_object_relation(node, amd->curve_ob, DEG_OB_COMP_GEOMETRY, "Hook Modifier Curve");
 		DEG_add_special_eval_flag(scene->depsgraph, &amd->curve_ob->id, DAG_EVAL_NEED_CURVE_PATH);
 	}
 	if (amd->offset_ob != NULL) {
