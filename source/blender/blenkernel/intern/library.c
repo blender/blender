@@ -1745,6 +1745,12 @@ void BKE_library_make_local(
 		if (old_to_new_ids) {
 			BLI_ghash_insert(old_to_new_ids, id, id->newid);
 		}
+
+		/* Special hack for groups... Thing is, since we can't instantiate them here, we need to ensure
+		 * they remain 'alive' (only instantiation is a real group 'user'... *sigh* See T49722. */
+		if (GS(id->name) == ID_GR && (id->tag & LIB_TAG_INDIRECT) != 0) {
+			id_us_ensure_real(id->newid);
+		}
 	}
 
 	/* Step 5: remove datablocks that have been copied to be localized and are no more used in the end...
@@ -1793,11 +1799,6 @@ void BKE_library_make_local(
 					ob_new->proxy->proxy_from = ob_new;
 					ob->proxy = ob->proxy_from = ob->proxy_group = NULL;
 				}
-			}
-			/* Special hack for groups... Thing is, since we can't instantiate them here, we need to ensure
-			 * they remain 'alive' (only instantiation is a real group 'user'... *sigh* See T49722. */
-			else if (GS(id->name) == ID_GR && (id->tag & LIB_TAG_INDIRECT) != 0) {
-				id_us_ensure_real(id->newid);
 			}
 
 			if (!is_local) {
@@ -1852,6 +1853,7 @@ void BKE_library_make_local(
 #endif
 			((LinkNode *)it->link)->link = NULL;  /* Not strictly necessary, but safer (see T49903)... */
 			it->link = NULL;
+			id->tag &= ~LIB_TAG_DOIT;
 		}
 	}
 
