@@ -108,6 +108,40 @@ extern "C" {
 
 namespace DEG {
 
+namespace {
+
+struct BuilderWalkUserData {
+	DepsgraphNodeBuilder *builder;
+	Scene *scene;
+};
+
+static void modifier_walk(void *user_data,
+                          struct Object * /*ob*/,
+                          struct Object **obpoin,
+                          int /*cd_flag*/)
+{
+	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
+	if (*obpoin) {
+		data->builder->build_object(data->scene, NULL, *obpoin);
+	}
+}
+
+void constraint_walk(bConstraint * /*con*/,
+                     ID **idpoin,
+                     bool /*is_reference*/,
+                     void *user_data)
+{
+	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
+	if (*idpoin) {
+		ID *id = *idpoin;
+		if (GS(id) == ID_OB) {
+			data->builder->build_object(data->scene, NULL, (Object *)id);
+		}
+	}
+}
+
+}  /* namespace */
+
 /* ************ */
 /* Node Builder */
 
@@ -405,19 +439,22 @@ SubgraphDepsNode *DepsgraphNodeBuilder::build_subgraph(Group *group)
 	{
 		/*Object *ob = go->ob;*/
 
-		/* Each "group object" is effectively a separate instance of the underlying
-		 * object data. When the group is evaluated, the transform results and/or
-		 * some other attributes end up getting overridden by the group
+		/* Each "group object" is effectively a separate instance of the
+		 * underlying object data. When the group is evaluated, the transform
+		 * results and/or some other attributes end up getting overridden by
+		 * the group.
 		 */
 	}
 
-	/* create a node for representing subgraph */
+	/* Create a node for representing subgraph. */
 	SubgraphDepsNode *subgraph_node = m_graph->add_subgraph_node(&group->id);
 	subgraph_node->graph = subgraph;
 
-	/* make a copy of the data this node will need? */
-	// XXX: do we do this now, or later?
-	// TODO: need API function which queries graph's ID's hash, and duplicates those blocks thoroughly with all outside links removed...
+	/* Make a copy of the data this node will need? */
+	/* XXX: do we do this now, or later? */
+	/* TODO: need API function which queries graph's ID's hash, and duplicates
+	 * those blocks thoroughly with all outside links removed.
+	 */
 
 	return subgraph_node;
 }
@@ -432,13 +469,32 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 	ob->id.tag |= LIB_TAG_DOIT;
 
 	IDDepsNode *id_node = add_id_node(&ob->id);
-	id_node->layers |= base->lay;
+	if (base != NULL) {
+		id_node->layers |= base->lay;
+	}
 	ob->customdata_mask = 0;
 
-	/* standard components */
+	/* Standard components. */
 	build_object_transform(scene, ob);
 
-	/* object data */
+	if (ob->parent != NULL) {
+		build_object(scene, NULL, ob->parent);
+	}
+	if (ob->modifiers.first != NULL) {
+		BuilderWalkUserData data;
+		data.builder = this;
+		data.scene = scene;
+		modifiers_foreachObjectLink(ob, modifier_walk, &data);
+	}
+	if (ob->constraints.first != NULL) {
+		BuilderWalkUserData data;
+		data.builder = this;
+		data.scene = scene;
+		modifiers_foreachObjectLink(ob, modifier_walk, &data);
+		BKE_constraints_id_loop(&ob->constraints, constraint_walk, &data);
+	}
+
+	/* Object data. */
 	if (ob->data) {
 		/* type-specific data... */
 		switch (ob->type) {
@@ -1110,9 +1166,10 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 		}
 
 		case OB_CURVE:
+		case OB_SURF:
 		case OB_FONT:
 		{
-			/* Curve evaluation operations. */
+			/* Curve/nurms evaluation operations. */
 			/* - calculate curve geometry (including path) */
 			add_operation_node(obdata,
 			                   DEPSNODE_TYPE_GEOMETRY,
@@ -1124,28 +1181,30 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 			                   "Geometry Eval");
 
 			/* Calculate curve path - this is used by constraints, etc. */
-			add_operation_node(obdata,
-			                   DEPSNODE_TYPE_GEOMETRY,
-			                   DEPSOP_TYPE_EXEC,
-			                   function_bind(BKE_curve_eval_path,
-			                                 _1,
-			                                 (Curve *)obdata),
-			                   DEG_OPCODE_GEOMETRY_PATH,
-			                   "Path");
-			break;
-		}
+			if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
+				add_operation_node(obdata,
+				                   DEPSNODE_TYPE_GEOMETRY,
+				                   DEPSOP_TYPE_EXEC,
+				                   function_bind(BKE_curve_eval_path,
+				                                 _1,
+				                                 (Curve *)obdata),
+				                   DEG_OPCODE_GEOMETRY_PATH,
+				                   "Path");
+			}
 
-		case OB_SURF:
-		{
-			/* Nurbs evaluation operations. */
-			add_operation_node(obdata,
-			                   DEPSNODE_TYPE_GEOMETRY,
-			                   DEPSOP_TYPE_INIT,
-			                   function_bind(BKE_curve_eval_geometry,
-			                                 _1,
-			                                 (Curve *)obdata),
-			                   DEG_OPCODE_PLACEHOLDER,
-			                   "Geometry Eval");
+			/* Make sure objects used for bevel.taper are in the graph.
+			 * NOTE: This objects might be not linked to the scene.
+			 */
+			Curve *cu = (Curve *)obdata;
+			if (cu->bevobj != NULL) {
+				build_object(scene, NULL, cu->bevobj);
+			}
+			if (cu->taperobj != NULL) {
+				build_object(scene, NULL, cu->bevobj);
+			}
+			if (ob->type == OB_FONT && cu->textoncurve != NULL) {
+				build_object(scene, NULL, cu->textoncurve);
+			}
 			break;
 		}
 
