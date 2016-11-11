@@ -485,23 +485,24 @@ static void add_gpencil_renderpass(OGLRender *oglrender, RenderResult *rr, Rende
 		/* copy image data from rectf */
 		// XXX: Needs conversion.
 		unsigned char *src = (unsigned char *)RE_RenderViewGetById(rr, oglrender->view_id)->rect32;
-		float *dest = rp->rect;
+		if (src != NULL) {
+			float *dest = rp->rect;
 
-		int x, y, rectx, recty;
-		rectx = rr->rectx;
-		recty = rr->recty;
-		for (y = 0; y < recty; y++) {
-			for (x = 0; x < rectx; x++) {
-				unsigned char *pixSrc = src + 4 * (rectx * y + x);
-				if (pixSrc[3] > 0) {
-					float *pixDest = dest + 4 * (rectx * y + x);
-					float float_src[4];
-					srgb_to_linearrgb_uchar4(float_src, pixSrc);
-					addAlphaOverFloat(pixDest, float_src);
+			int x, y, rectx, recty;
+			rectx = rr->rectx;
+			recty = rr->recty;
+			for (y = 0; y < recty; y++) {
+				for (x = 0; x < rectx; x++) {
+					unsigned char *pixSrc = src + 4 * (rectx * y + x);
+					if (pixSrc[3] > 0) {
+						float *pixDest = dest + 4 * (rectx * y + x);
+						float float_src[4];
+						srgb_to_linearrgb_uchar4(float_src, pixSrc);
+						addAlphaOverFloat(pixDest, float_src);
+					}
 				}
 			}
 		}
-
 		/* back layer status */
 		i = 0;
 		for (bGPDlayer *gph = gpd->layers.first; gph; gph = gph->next) {
