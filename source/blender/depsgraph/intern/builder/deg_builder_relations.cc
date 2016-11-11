@@ -1916,7 +1916,7 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 			}
 			if (ob->type == OB_FONT) {
 				if (cu->textoncurve) {
-					ComponentKey textoncurve_key(&cu->taperobj->id, DEPSNODE_TYPE_GEOMETRY);
+					ComponentKey textoncurve_key(&cu->textoncurve->id, DEPSNODE_TYPE_GEOMETRY);
 					add_relation(textoncurve_key, geom_key, DEPSREL_TYPE_GEOMETRY_EVAL, "Text on Curve");
 				}
 			}
