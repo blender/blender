@@ -447,15 +447,6 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 			case OB_SURF:
 			case OB_MBALL:
 			case OB_LATTICE:
-			{
-				/* TODO(sergey): This way using this object's
-				 * properties as driver target works fine.
-				 *
-				 * Does this depend on other nodes?
-				 */
-				add_operation_node(&ob->id, DEPSNODE_TYPE_PARAMETERS, DEPSOP_TYPE_POST, NULL,
-				                   DEG_OPCODE_PLACEHOLDER, "Parameters Eval");
-
 				build_obdata_geom(scene, ob);
 				/* TODO(sergey): Only for until we support granular
 				 * update of curves.
@@ -467,7 +458,6 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 					}
 				}
 				break;
-			}
 
 			case OB_ARMATURE: /* Pose */
 				if (ID_IS_LINKED_DATABLOCK(ob) && ob->proxy_from != NULL) {
@@ -996,6 +986,18 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 {
 	ID *obdata = (ID *)ob->data;
 
+	/* TODO(sergey): This way using this object's properties as driver target
+	 * works fine.
+	 *
+	 * Does this depend on other nodes?
+	 */
+	add_operation_node(&ob->id,
+	                   DEPSNODE_TYPE_PARAMETERS,
+	                   DEPSOP_TYPE_POST,
+	                   NULL,
+	                   DEG_OPCODE_PLACEHOLDER,
+	                   "Parameters Eval");
+
 	/* Temporary uber-update node, which does everything.
 	 * It is for the being we're porting old dependencies into the new system.
 	 * We'll get rid of this node as soon as all the granular update functions
@@ -1003,35 +1005,45 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 	 *
 	 * TODO(sergey): Get rid of this node.
 	 */
-	add_operation_node(&ob->id, DEPSNODE_TYPE_GEOMETRY,
-	                   DEPSOP_TYPE_POST, function_bind(BKE_object_eval_uber_data, _1, scene, ob),
+	add_operation_node(&ob->id,
+	                   DEPSNODE_TYPE_GEOMETRY,
+	                   DEPSOP_TYPE_POST,
+	                   function_bind(BKE_object_eval_uber_data, _1, scene, ob),
 	                   DEG_OPCODE_GEOMETRY_UBEREVAL);
 
-	add_operation_node(&ob->id, DEPSNODE_TYPE_GEOMETRY,
-	                   DEPSOP_TYPE_INIT, NULL,
-	                   DEG_OPCODE_PLACEHOLDER, "Eval Init");
+	add_operation_node(&ob->id,
+	                   DEPSNODE_TYPE_GEOMETRY,
+	                   DEPSOP_TYPE_INIT,
+	                   NULL,
+	                   DEG_OPCODE_PLACEHOLDER,
+	                   "Eval Init");
 
 	// TODO: "Done" operation
 
 	/* Modifiers */
 	if (ob->modifiers.first) {
-		ModifierData *md;
-
-		for (md = (ModifierData *)ob->modifiers.first; md; md = md->next) {
-			add_operation_node(&ob->id, DEPSNODE_TYPE_GEOMETRY,
-			                   DEPSOP_TYPE_EXEC, function_bind(BKE_object_eval_modifier, _1, scene, ob, md),
-			                   DEG_OPCODE_GEOMETRY_MODIFIER, md->name);
+		for (ModifierData *md = (ModifierData *)ob->modifiers.first;
+		     md != NULL;
+		     md = md->next)
+		{
+			add_operation_node(&ob->id,
+			                   DEPSNODE_TYPE_GEOMETRY,
+			                   DEPSOP_TYPE_EXEC,
+			                   function_bind(BKE_object_eval_modifier,
+			                                 _1,
+			                                 scene,
+			                                 ob,
+			                                 md),
+			                   DEG_OPCODE_GEOMETRY_MODIFIER,
+			                   md->name);
 		}
 	}
 
 	/* materials */
 	if (ob->totcol) {
-		int a;
-
-		for (a = 1; a <= ob->totcol; a++) {
+		for (int a = 1; a <= ob->totcol; a++) {
 			Material *ma = give_current_material(ob, a);
-
-			if (ma) {
+			if (ma != NULL) {
 				// XXX?!
 				ComponentDepsNode *geom_node = add_component_node(&ob->id, DEPSNODE_TYPE_GEOMETRY);
 				build_material(geom_node, ma);
@@ -1056,16 +1068,23 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 
 	build_animdata(obdata);
 
-	/* nodes for result of obdata's evaluation, and geometry evaluation on object */
+	/* Nodes for result of obdata's evaluation, and geometry
+	 * evaluation on object.
+	 */
 	switch (ob->type) {
 		case OB_MESH:
 		{
 			//Mesh *me = (Mesh *)ob->data;
 
 			/* evaluation operations */
-			add_operation_node(obdata, DEPSNODE_TYPE_GEOMETRY,
-			                   DEPSOP_TYPE_INIT, function_bind(BKE_mesh_eval_geometry, _1, (Mesh *)obdata),
-			                   DEG_OPCODE_PLACEHOLDER, "Geometry Eval");
+			add_operation_node(obdata,
+			                   DEPSNODE_TYPE_GEOMETRY,
+			                   DEPSOP_TYPE_INIT,
+			                   function_bind(BKE_mesh_eval_geometry,
+			                                 _1,
+			                                 (Mesh *)obdata),
+			                   DEG_OPCODE_PLACEHOLDER,
+			                   "Geometry Eval");
 			break;
 		}
 
@@ -1073,13 +1092,18 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 		{
 			Object *mom = BKE_mball_basis_find(scene, ob);
 
-			/* motherball - mom depends on children! */
+			/* Motherball - mom depends on children! */
 			if (mom == ob) {
 				/* metaball evaluation operations */
 				/* NOTE: only the motherball gets evaluated! */
-				add_operation_node(obdata, DEPSNODE_TYPE_GEOMETRY,
-				                   DEPSOP_TYPE_INIT, function_bind(BKE_mball_eval_geometry, _1, (MetaBall *)obdata),
-				                   DEG_OPCODE_PLACEHOLDER, "Geometry Eval");
+				add_operation_node(obdata,
+				                   DEPSNODE_TYPE_GEOMETRY,
+				                   DEPSOP_TYPE_INIT,
+				                   function_bind(BKE_mball_eval_geometry,
+				                                 _1,
+				                                 (MetaBall *)obdata),
+				                   DEG_OPCODE_PLACEHOLDER,
+				                   "Geometry Eval");
 			}
 			break;
 		}
@@ -1087,34 +1111,54 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 		case OB_CURVE:
 		case OB_FONT:
 		{
-			/* curve evaluation operations */
+			/* Curve evaluation operations. */
 			/* - calculate curve geometry (including path) */
-			add_operation_node(obdata, DEPSNODE_TYPE_GEOMETRY,
-			                   DEPSOP_TYPE_INIT, function_bind(BKE_curve_eval_geometry, _1, (Curve *)obdata),
-			                   DEG_OPCODE_PLACEHOLDER, "Geometry Eval");
+			add_operation_node(obdata,
+			                   DEPSNODE_TYPE_GEOMETRY,
+			                   DEPSOP_TYPE_INIT,
+			                   function_bind(BKE_curve_eval_geometry,
+			                                 _1,
+			                                 (Curve *)obdata),
+			                   DEG_OPCODE_PLACEHOLDER,
+			                   "Geometry Eval");
 
-			/* - calculate curve path - this is used by constraints, etc. */
-			add_operation_node(obdata, DEPSNODE_TYPE_GEOMETRY,
-			                   DEPSOP_TYPE_EXEC, function_bind(BKE_curve_eval_path, _1, (Curve *)obdata),
-			                   DEG_OPCODE_GEOMETRY_PATH, "Path");
+			/* Calculate curve path - this is used by constraints, etc. */
+			add_operation_node(obdata,
+			                   DEPSNODE_TYPE_GEOMETRY,
+			                   DEPSOP_TYPE_EXEC,
+			                   function_bind(BKE_curve_eval_path,
+			                                 _1,
+			                                 (Curve *)obdata),
+			                   DEG_OPCODE_GEOMETRY_PATH,
+			                   "Path");
 			break;
 		}
 
-		case OB_SURF: /* Nurbs Surface */
+		case OB_SURF:
 		{
-			/* nurbs evaluation operations */
-			add_operation_node(obdata, DEPSNODE_TYPE_GEOMETRY,
-			                   DEPSOP_TYPE_INIT, function_bind(BKE_curve_eval_geometry, _1, (Curve *)obdata),
-			                   DEG_OPCODE_PLACEHOLDER, "Geometry Eval");
+			/* Nurbs evaluation operations. */
+			add_operation_node(obdata,
+			                   DEPSNODE_TYPE_GEOMETRY,
+			                   DEPSOP_TYPE_INIT,
+			                   function_bind(BKE_curve_eval_geometry,
+			                                 _1,
+			                                 (Curve *)obdata),
+			                   DEG_OPCODE_PLACEHOLDER,
+			                   "Geometry Eval");
 			break;
 		}
 
-		case OB_LATTICE: /* Lattice */
+		case OB_LATTICE:
 		{
-			/* lattice evaluation operations */
-			add_operation_node(obdata, DEPSNODE_TYPE_GEOMETRY,
-			                   DEPSOP_TYPE_INIT, function_bind(BKE_lattice_eval_geometry, _1, (Lattice *)obdata),
-			                   DEG_OPCODE_PLACEHOLDER, "Geometry Eval");
+			/* Lattice evaluation operations. */
+			add_operation_node(obdata,
+			                   DEPSNODE_TYPE_GEOMETRY,
+			                   DEPSOP_TYPE_INIT,
+			                   function_bind(BKE_lattice_eval_geometry,
+			                                 _1,
+			                                 (Lattice *)obdata),
+			                   DEG_OPCODE_PLACEHOLDER,
+			                   "Geometry Eval");
 			break;
 		}
 	}
