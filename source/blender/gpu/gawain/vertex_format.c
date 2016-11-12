@@ -36,7 +36,7 @@ void VertexFormat_copy(VertexFormat* dest, const VertexFormat* src)
 	memcpy(dest, src, sizeof(VertexFormat));
 	}
 
-static unsigned comp_sz(GLenum type)
+static unsigned comp_sz(VertexCompType type)
 	{
 #if TRUST_NO_ONE
 	assert(type >= GL_BYTE && type <= GL_FLOAT);
@@ -48,11 +48,21 @@ static unsigned comp_sz(GLenum type)
 
 static unsigned attrib_sz(const Attrib *a)
 	{
+#if USE_10_10_10
+	if (a->comp_type == COMP_I10)
+		return 4; // always packed as 10_10_10_2
+#endif
+
 	return a->comp_ct * comp_sz(a->comp_type);
 	}
 
 static unsigned attrib_align(const Attrib *a)
 	{
+#if USE_10_10_10
+	if (a->comp_type == COMP_I10)
+		return 4; // always packed as 10_10_10_2
+#endif
+
 	unsigned c = comp_sz(a->comp_type);
 	if (a->comp_ct == 3 && c <= 2)
 		return 4 * c; // AMD HW can't fetch these well, so pad it out (other vendors too?)
@@ -96,7 +106,7 @@ static const char* copy_attrib_name(VertexFormat* format, const char* name)
 	return name_copy;
 	}
 
-unsigned add_attrib(VertexFormat* format, const char* name, GLenum comp_type, unsigned comp_ct, VertexFetchMode fetch_mode)
+unsigned add_attrib(VertexFormat* format, const char* name, VertexCompType comp_type, unsigned comp_ct, VertexFetchMode fetch_mode)
 	{
 #if TRUST_NO_ONE
 	assert(format->attrib_ct < MAX_VERTEX_ATTRIBS); // there's room for more
@@ -104,27 +114,19 @@ unsigned add_attrib(VertexFormat* format, const char* name, GLenum comp_type, un
 	assert(comp_ct >= 1 && comp_ct <= 4);
 	switch (comp_type)
 		{
-		case GL_FLOAT:
+		case COMP_F32:
 			// float type can only kept as float
 			assert(fetch_mode == KEEP_FLOAT);
 			break;
-	#if 0 // enable this after switching to our own enum for comp_type
+ #if USE_10_10_10
+		case COMP_I10:
+			assert(comp_ct == 3); // 10_10_10 format intended for normals (xyz) or colors (rgb)
+			assert(fetch_mode == NORMALIZE_INT_TO_FLOAT);
+			break;
+ #endif
 		default:
 			// integer types can be kept as int or converted/normalized to float
 			assert(fetch_mode != KEEP_FLOAT);
-	#else
-		case GL_BYTE:
-		case GL_UNSIGNED_BYTE:
-		case GL_SHORT:
-		case GL_UNSIGNED_SHORT:
-		case GL_INT:
-		case GL_UNSIGNED_INT:
-			// integer types can be converted, normalized, or kept as int
-			assert(fetch_mode != KEEP_FLOAT);
-			break;
-		default:
-			assert(false); // invalid comp_type
-	#endif
 		}
 #endif
 

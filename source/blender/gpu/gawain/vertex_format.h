@@ -17,6 +17,25 @@
 #define AVG_VERTEX_ATTRIB_NAME_LEN 5
 #define VERTEX_ATTRIB_NAMES_BUFFER_LEN ((AVG_VERTEX_ATTRIB_NAME_LEN + 1) * MAX_VERTEX_ATTRIBS)
 
+#define USE_10_10_10 0
+// (GLEW_VERSION_3_3 || GLEW_ARB_vertex_type_2_10_10_10_rev)
+//   ^-- this is only guaranteed on Windows right now, will be true on all platforms soon
+
+typedef enum {
+	COMP_I8 = GL_BYTE,
+	COMP_U8 = GL_UNSIGNED_BYTE,
+	COMP_I16 = GL_SHORT,
+	COMP_U16 = GL_UNSIGNED_SHORT,
+	COMP_I32 = GL_INT,
+	COMP_U32 = GL_UNSIGNED_INT,
+
+	COMP_F32 = GL_FLOAT, // TODO: drop the GL_ equivalence here, use a private lookup table
+
+#if USE_10_10_10
+	COMP_I10 = GL_INT_2_10_10_10_REV
+#endif
+} VertexCompType;
+
 typedef enum {
 	KEEP_FLOAT,
 	KEEP_INT,
@@ -25,7 +44,7 @@ typedef enum {
 } VertexFetchMode;
 
 typedef struct {
-	GLenum comp_type;
+	VertexCompType comp_type;
 	unsigned comp_ct; // 1 to 4
 	unsigned sz; // size in bytes, 1 to 16
 	unsigned offset; // from beginning of vertex, in bytes
@@ -45,7 +64,7 @@ typedef struct {
 void VertexFormat_clear(VertexFormat*);
 void VertexFormat_copy(VertexFormat* dest, const VertexFormat* src);
 
-unsigned add_attrib(VertexFormat*, const char* name, GLenum comp_type, unsigned comp_ct, VertexFetchMode);
+unsigned add_attrib(VertexFormat*, const char* name, VertexCompType, unsigned comp_ct, VertexFetchMode);
 
 // for internal use
 void VertexFormat_pack(VertexFormat*);
