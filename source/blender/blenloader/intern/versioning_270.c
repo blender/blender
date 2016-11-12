@@ -1427,7 +1427,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	{
+	if (!MAIN_VERSION_ATLEAST(main, 278, 3)) {
 		for (Scene *scene = main->scene.first; scene != NULL; scene = scene->id.next) {
 			if (scene->toolsettings != NULL) {
 				ToolSettings *ts = scene->toolsettings;
@@ -1451,6 +1451,17 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 					rbc->spring_damping_ang_x = 0.5;
 					rbc->spring_damping_ang_y = 0.5;
 					rbc->spring_damping_ang_z = 0.5;
+				}
+			}
+		}
+
+		/* constant detail for sculpting is now a resolution value instead of
+		 * a percentage, we reuse old DNA struct member but convert it */
+		for (Scene *scene = main->scene.first; scene != NULL; scene = scene->id.next) {
+			if (scene->toolsettings != NULL) {
+				ToolSettings *ts = scene->toolsettings;
+				if (ts->sculpt && ts->sculpt->constant_detail != 0.0f) {
+					ts->sculpt->constant_detail = 100.0f / ts->sculpt->constant_detail;
 				}
 			}
 		}

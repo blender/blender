@@ -4688,7 +4688,7 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *UNUSED(st
 	sculpt_restore_mesh(sd, ob);
 
 	if (sd->flags & SCULPT_DYNTOPO_DETAIL_CONSTANT) {
-		BKE_pbvh_bmesh_detail_size_set(ss->pbvh, sd->constant_detail / 100.0f);
+		BKE_pbvh_bmesh_detail_size_set(ss->pbvh, 1.0f / sd->constant_detail);
 	}
 	else if (sd->flags & SCULPT_DYNTOPO_DETAIL_BRUSH) {
 		BKE_pbvh_bmesh_detail_size_set(ss->pbvh, ss->cache->radius * sd->detail_percent / 100.0f);
@@ -5406,7 +5406,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 		if (!ts->sculpt->detail_percent)
 			ts->sculpt->detail_percent = 25;
 		if (ts->sculpt->constant_detail == 0.0f)
-			ts->sculpt->constant_detail = 30.0f;
+			ts->sculpt->constant_detail = 3.0f;
 
 		/* Set sane default tiling offsets */
 		if (!ts->sculpt->paint.tile_offset[0]) ts->sculpt->paint.tile_offset[0] = 1.0f;
@@ -5543,7 +5543,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
 	size = max_fff(bb_max[0], bb_max[1], bb_max[2]);
 
 	/* update topology size */
-	BKE_pbvh_bmesh_detail_size_set(ss->pbvh, sd->constant_detail / 100.0f);
+	BKE_pbvh_bmesh_detail_size_set(ss->pbvh, 1.0f / sd->constant_detail);
 
 	sculpt_undo_push_begin("Dynamic topology flood fill");
 	sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_COORDS);
@@ -5608,7 +5608,8 @@ static void sample_detail(bContext *C, int ss_co[2])
 	                 ray_start, ray_normal, false);
 
 	if (srd.hit) {
-		sd->constant_detail = srd.detail * 100.0f;
+		/* convert edge length to detail resolution */
+		sd->constant_detail = 1.0f / srd.detail;
 	}
 }
 

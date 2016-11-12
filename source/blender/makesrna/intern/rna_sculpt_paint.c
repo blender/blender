@@ -600,10 +600,12 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Detail Percentage", "Maximum edge length for dynamic topology sculpting (in brush percenage)");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
-	prop = RNA_def_property(srna, "constant_detail", PROP_FLOAT, PROP_PERCENTAGE);
-	RNA_def_property_range(prop, 0.001, 10000.0);
-	RNA_def_property_ui_range(prop, 0.1, 100.0, 10, 2);
-	RNA_def_property_ui_text(prop, "Detail Size", "Maximum edge length for dynamic topology sculpting (as percentage of blender unit)");
+	prop = RNA_def_property(srna, "constant_detail_resolution", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "constant_detail");
+	RNA_def_property_range(prop, 0.0001, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.001, 1000.0, 10, 2);
+	RNA_def_property_ui_text(prop, "Resolution", "Maximum edge length for dynamic topology sculpting (as divisor "
+	                         "of blender unit - higher value means smaller edge length)");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
 	prop = RNA_def_property(srna, "use_smooth_shading", PROP_BOOLEAN, PROP_NONE);
