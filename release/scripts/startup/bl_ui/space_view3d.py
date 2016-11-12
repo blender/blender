@@ -2477,6 +2477,10 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
         layout.menu("VIEW3D_MT_vertex_group")
         layout.menu("VIEW3D_MT_hook")
 
+        layout.separator()
+
+        layout.operator("object.vertex_parent_set")
+
 
 class VIEW3D_MT_edit_mesh_edges(Menu):
     bl_label = "Edges"
@@ -2731,6 +2735,10 @@ class VIEW3D_MT_edit_curve_ctrlpoints(Menu):
 
         layout.menu("VIEW3D_MT_hook")
 
+        layout.separator()
+
+        layout.operator("object.vertex_parent_set")
+
 
 class VIEW3D_MT_edit_curve_segments(Menu):
     bl_label = "Segments"
@@ -2890,6 +2898,10 @@ class VIEW3D_MT_edit_lattice(Menu):
         layout.separator()
 
         layout.operator("lattice.make_regular")
+
+        layout.separator()
+
+        layout.operator("object.vertex_parent_set")
 
         layout.separator()
 
