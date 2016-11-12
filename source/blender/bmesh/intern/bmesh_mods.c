@@ -131,9 +131,10 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
 #if 0
 		/* handle specific case for three-valence.  solve it by
 		 * increasing valence to four.  this may be hackish. .  */
-		BMLoop *loop = e->l;
-		if (loop->v == v) loop = loop->next;
-		if (!BM_face_split(bm, loop->f, v, loop->v, NULL, NULL, false))
+		BMLoop *l_a = BM_face_vert_share_loop(e->l->f, v);
+		BMLoop *l_b = (e->l->v == v) ? e->l->next : e->l;
+
+		if (!BM_face_split(bm, e->l->f, l_a, l_b, NULL, NULL, false))
 			return false;
 
 		if (!BM_disk_dissolve(bm, v)) {
@@ -219,15 +220,13 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
  *
  * Joins two adjacent faces together.
  *
- * Because this method calls to #BM_faces_join to do its work, if a pair
- * of faces share multiple edges, the pair of faces will be joined at
- * every edge (not just edge \a e). This part of the functionality might need
- * to be reconsidered.
+ * \note This method calls to #BM_faces_join to do its work.
+ * This means connected edges which also share the two faces will be joined.
  *
  * If the windings do not match the winding of the new face will follow
- * \a f_a's winding (i.e. \a f_b will be reversed before the join).
+ * \a l_a's winding (i.e. \a l_b will be reversed before the join).
  *
- * \return pointer to the combined face
+ * \return The combined face or NULL on failure.
  */
 BMFace *BM_faces_join_pair(BMesh *bm, BMLoop *l_a, BMLoop *l_b, const bool do_del)
 {
@@ -542,7 +541,7 @@ BMEdge *BM_vert_collapse_edge(
 			BMVert *tv2 = BM_edge_other_vert(e2, v_kill);
 			if (tv2) {
 				/* only action, other calls here only get the edge to return */
-				e_new = bmesh_jekv(bm, e_kill, v_kill, do_del);
+				e_new = bmesh_jekv(bm, e_kill, v_kill, do_del, true, kill_degenerate_faces);
 			}
 		}
 	}
