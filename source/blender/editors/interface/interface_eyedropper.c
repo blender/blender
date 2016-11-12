@@ -1083,6 +1083,15 @@ static int depthdropper_poll(bContext *C)
 			return 1;
 		}
 	}
+	else  {
+		RegionView3D *rv3d = CTX_wm_region_view3d(C);
+		if (rv3d && rv3d->persp == RV3D_CAMOB) {
+			View3D *v3d = CTX_wm_view3d(C);
+			if (v3d->camera && v3d->camera->data && !ID_IS_LINKED_DATABLOCK(v3d->camera->data)) {
+				return 1;
+			}
+		}
+	}
 
 	return 0;
 }
