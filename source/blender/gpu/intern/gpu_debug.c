@@ -43,11 +43,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* control whether we use older AMD_debug_output extension, or just the newer extensions
+ * TODO(merwin): determine whether all supported GPU + OS combos have newer extensions */
+#define LEGACY_DEBUG 0
 
-/* Debug callbacks need the same calling convention as OpenGL functions.
- */
-#if defined(_WIN32) && !defined(_WIN32_WCE) && !defined(__SCITECH_SNAP__)
-    /* Win32 but not WinCE */
+/* Debug callbacks need the same calling convention as OpenGL functions. */
+#if defined(_WIN32)
 #   define APIENTRY __stdcall
 #else
 #   define APIENTRY
@@ -81,22 +82,6 @@ static const char* message_type_name(GLenum message)
 	}
 }
 
-static const char* category_name_amd(GLenum category)
-{
-	switch (category) {
-		case GL_DEBUG_CATEGORY_API_ERROR_AMD: return "API error";
-		case GL_DEBUG_CATEGORY_WINDOW_SYSTEM_AMD: return "window system";
-		case GL_DEBUG_CATEGORY_DEPRECATION_AMD: return "deprecated behavior";
-		case GL_DEBUG_CATEGORY_UNDEFINED_BEHAVIOR_AMD: return "undefined behavior";
-		case GL_DEBUG_CATEGORY_PERFORMANCE_AMD: return "performance";
-		case GL_DEBUG_CATEGORY_SHADER_COMPILER_AMD: return "shader compiler";
-		case GL_DEBUG_CATEGORY_APPLICATION_AMD: return "application";
-		case GL_DEBUG_CATEGORY_OTHER_AMD: return "other";
-		default: return "???";
-	}
-}
-
-
 static void APIENTRY gpu_debug_proc(
         GLenum source, GLenum type, GLuint UNUSED(id),
         GLenum severity, GLsizei UNUSED(length),
@@ -120,8 +105,23 @@ static void APIENTRY gpu_debug_proc(
 	}
 }
 
+#if LEGACY_DEBUG
 
-#ifndef GLEW_ES_ONLY
+static const char* category_name_amd(GLenum category)
+{
+	switch (category) {
+		case GL_DEBUG_CATEGORY_API_ERROR_AMD: return "API error";
+		case GL_DEBUG_CATEGORY_WINDOW_SYSTEM_AMD: return "window system";
+		case GL_DEBUG_CATEGORY_DEPRECATION_AMD: return "deprecated behavior";
+		case GL_DEBUG_CATEGORY_UNDEFINED_BEHAVIOR_AMD: return "undefined behavior";
+		case GL_DEBUG_CATEGORY_PERFORMANCE_AMD: return "performance";
+		case GL_DEBUG_CATEGORY_SHADER_COMPILER_AMD: return "shader compiler";
+		case GL_DEBUG_CATEGORY_APPLICATION_AMD: return "application";
+		case GL_DEBUG_CATEGORY_OTHER_AMD: return "other";
+		default: return "???";
+	}
+}
+
 static void APIENTRY gpu_debug_proc_amd(
         GLuint UNUSED(id), GLenum category,
         GLenum severity, GLsizei UNUSED(length),
@@ -143,8 +143,7 @@ static void APIENTRY gpu_debug_proc_amd(
 		fflush(stderr);
 	}
 }
-#endif
-
+#endif /* LEGACY_DEBUG */
 
 #undef APIENTRY
 
@@ -152,137 +151,67 @@ void gpu_debug_init(void)
 {
 	const char success[] = "Successfully hooked OpenGL debug callback.";
 
-#if !defined(WITH_GLEW_ES) && !defined(GLEW_ES_ONLY)
-	if (GLEW_VERSION_4_3) {
-		fprintf(stderr, "Using OpenGL 4.3 debug facilities\n");
+	if (GLEW_VERSION_4_3 || GLEW_KHR_debug) {
+		fprintf(stderr, "Using %s\n", GLEW_VERSION_4_3 ? "OpenGL 4.3 debug facilities" : "KHR_debug extension");
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback((GLDEBUGPROC)gpu_debug_proc, mxGetCurrentContext());
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 		GPU_string_marker(success);
-		return;
 	}
-#endif
-
-	if (GLEW_KHR_debug) {
-#ifndef GLEW_ES_ONLY
-		fprintf(stderr, "Using KHR_debug extension\n");
-		glEnable(GL_DEBUG_OUTPUT);
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-		glDebugMessageCallback((GLDEBUGPROC)gpu_debug_proc, mxGetCurrentContext());
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
-		GPU_string_marker(success);
-#endif
-		return;
-	}
-
-#ifndef GLEW_ES_ONLY
-	if (GLEW_ARB_debug_output) {
+	else if (GLEW_ARB_debug_output) {
 		fprintf(stderr, "Using ARB_debug_output extension\n");
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallbackARB((GLDEBUGPROCARB)gpu_debug_proc, mxGetCurrentContext());
 		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 		GPU_string_marker(success);
-
-		return;
 	}
-
-	if (GLEW_AMD_debug_output) {
+#if LEGACY_DEBUG
+	else if (GLEW_AMD_debug_output) {
 		fprintf(stderr, "Using AMD_debug_output extension\n");
 		glDebugMessageCallbackAMD(gpu_debug_proc_amd, mxGetCurrentContext());
 		glDebugMessageEnableAMD(GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 		GPU_string_marker(success);
-
-		return;
 	}
 #endif
-
-	fprintf(stderr, "Failed to hook OpenGL debug callback.\n");
-
-	return;
+	else {
+		fprintf(stderr, "Failed to hook OpenGL debug callback.\n");
+	}
 }
 
 
 void gpu_debug_exit(void)
 {
-#ifndef WITH_GLEW_ES
-#ifndef GLEW_ES_ONLY
-	if (GLEW_VERSION_4_3) {
+	if (GLEW_VERSION_4_3 || GLEW_KHR_debug) {
 		glDebugMessageCallback(NULL, NULL);
-
-		return;
 	}
-#endif
-#endif
-
-	if (GLEW_KHR_debug) {
-#ifndef GLEW_ES_ONLY
-		glDebugMessageCallback(NULL, NULL);
-#endif
-		return;
-	}
-
-#ifndef GLEW_ES_ONLY
-	if (GLEW_ARB_debug_output) {
+	else if (GLEW_ARB_debug_output) {
 		glDebugMessageCallbackARB(NULL, NULL);
-
-		return;
 	}
-
-	if (GLEW_AMD_debug_output) {
+#if LEGACY_DEBUG
+	else if (GLEW_AMD_debug_output) {
 		glDebugMessageCallbackAMD(NULL, NULL);
-
-		return;
 	}
 #endif
-
-	return;
 }
 
 void GPU_string_marker(const char *buf)
 {
-#ifndef WITH_GLEW_ES
-#ifndef GLEW_ES_ONLY
-	if (GLEW_VERSION_4_3) {
+	if (GLEW_VERSION_4_3 || GLEW_KHR_debug) {
 		glDebugMessageInsert(
 		        GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 0,
 		        GL_DEBUG_SEVERITY_NOTIFICATION, -1, buf);
-
-		return;
 	}
-#endif
-#endif
-
-	if (GLEW_KHR_debug) {
-#ifndef GLEW_ES_ONLY
-		glDebugMessageInsert(
-		        GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 0,
-		        GL_DEBUG_SEVERITY_NOTIFICATION, -1, buf);
-#endif
-		return;
-	}
-
-#ifndef GLEW_ES_ONLY
-	if (GLEW_ARB_debug_output) {
+	else if (GLEW_ARB_debug_output) {
 		glDebugMessageInsertARB(
 		        GL_DEBUG_SOURCE_APPLICATION_ARB, GL_DEBUG_TYPE_OTHER_ARB, 0,
 		        GL_DEBUG_SEVERITY_LOW_ARB, -1, buf);
-
-		return;
 	}
-
-	if (GLEW_AMD_debug_output) {
+#if LEGACY_DEBUG
+	else if (GLEW_AMD_debug_output) {
 		glDebugMessageInsertAMD(
 		        GL_DEBUG_CATEGORY_APPLICATION_AMD, GL_DEBUG_SEVERITY_LOW_AMD, 0,
 		        0, buf);
-
-		return;
-	}
-
-	if (GLEW_GREMEDY_string_marker) {
-		glStringMarkerGREMEDY(0, buf);
-
-		return;
 	}
 #endif
 }
