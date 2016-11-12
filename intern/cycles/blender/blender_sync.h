@@ -123,7 +123,9 @@ private:
 	                    float motion_time,
 	                    bool hide_tris,
 	                    bool use_camera_cull,
+	                    bool use_distance_cull,
 	                    float camera_cull_margin,
+	                    float distance_cull_margin,
 	                    bool *use_portal);
 	void sync_light(BL::Object& b_parent,
 	                int persistent_id[OBJECT_PERSISTENT_ID_SIZE],
