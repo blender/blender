@@ -284,6 +284,31 @@ static bool object_boundbox_clip(Scene *scene,
 	return true;
 }
 
+static bool object_distance_clip(Scene *scene,
+                                 BL::Object& b_ob,
+                                 Transform& tfm,
+                                 float margin)
+{
+	BL::Array<float, 24> boundbox = b_ob.bound_box();
+	float3 camera_position = transform_get_column(&scene->camera->matrix, 3);
+
+	float3 bb_min = make_float3(FLT_MAX, FLT_MAX, FLT_MAX),
+	       bb_max = make_float3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+	/* Find min & max points for x & y & z on bounding box */
+	for(int i = 0; i < 8; ++i) {
+		float3 p = make_float3(boundbox[3 * i + 0],
+		                       boundbox[3 * i + 1],
+		                       boundbox[3 * i + 2]);
+		p = transform_point(&tfm, p);
+		bb_min = min(bb_min, p);
+		bb_max = max(bb_max, p);
+	}
+
+	float3 closest_point = max(min(bb_max,camera_position),bb_min);
+	return (len_squared(camera_position - closest_point) > margin * margin);
+}
+
 Object *BlenderSync::sync_object(BL::Object& b_parent,
                                  int persistent_id[OBJECT_PERSISTENT_ID_SIZE],
                                  BL::DupliObject& b_dupli_ob,
@@ -292,7 +317,9 @@ Object *BlenderSync::sync_object(BL::Object& b_parent,
                                  float motion_time,
                                  bool hide_tris,
                                  bool use_camera_cull,
+                                 bool use_distance_cull,
                                  float camera_cull_margin,
+                                 float distance_cull_margin,
                                  bool *use_portal)
 {
 	BL::Object b_ob = (b_dupli_ob ? b_dupli_ob.object() : b_parent);
@@ -311,8 +338,14 @@ Object *BlenderSync::sync_object(BL::Object& b_parent,
 	if(!object_is_mesh(b_ob))
 		return NULL;
 
-	/* Perform camera space culling. */
-	if(use_camera_cull && object_boundbox_clip(scene, b_ob, tfm, camera_cull_margin)) {
+	/* Perform object culling. */
+	bool camera_culled = use_camera_cull && object_boundbox_clip(scene, b_ob, tfm, camera_cull_margin);
+	bool distance_culled = use_distance_cull && object_distance_clip(scene, b_ob, tfm, distance_cull_margin);
+
+	if ((camera_culled && distance_culled) ||
+	    (camera_culled && !use_distance_cull) ||
+	    (distance_culled && !use_camera_cull))
+	{
 		return NULL;
 	}
 
@@ -549,14 +582,25 @@ void BlenderSync::sync_objects(BL::SpaceView3D& b_v3d, float motion_time)
 	}
 
 	bool allow_camera_cull = false;
+	bool allow_distance_cull = false;
 	float camera_cull_margin = 0.0f;
+	float distance_cull_margin = 0.0f;
 	if(b_scene.render().use_simplify()) {
 		PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 		allow_camera_cull = scene->camera->type != CAMERA_PANORAMA &&
 		                    !b_scene.render().use_multiview() &&
 		                    get_boolean(cscene, "use_camera_cull");
+		allow_distance_cull = scene->camera->type != CAMERA_PANORAMA &&
+		                    !b_scene.render().use_multiview() &&
+		                    get_boolean(cscene, "use_distance_cull");
 		if(allow_camera_cull) {
 			camera_cull_margin = get_float(cscene, "camera_cull_margin");
+		}
+		if(allow_distance_cull) {
+			distance_cull_margin = get_float(cscene, "distance_cull_margin");
+			if (distance_cull_margin == 0.0f) {
+				allow_distance_cull = false;
+			}
 		}
 	}
 
@@ -592,7 +636,8 @@ void BlenderSync::sync_objects(BL::SpaceView3D& b_v3d, float motion_time)
 
 				PointerRNA cobject = RNA_pointer_get(&b_ob.ptr, "cycles");
 				bool use_camera_cull = allow_camera_cull && get_boolean(cobject, "use_camera_cull");
-				if(use_camera_cull) {
+				bool use_distance_cull = allow_distance_cull && get_boolean(cobject, "use_distance_cull");
+				if(use_camera_cull || use_distance_cull) {
 					/* Need to have proper projection matrix. */
 					scene->camera->update();
 				}
@@ -623,7 +668,9 @@ void BlenderSync::sync_objects(BL::SpaceView3D& b_v3d, float motion_time)
 							                             motion_time,
 							                             hide_tris,
 							                             use_camera_cull,
+							                             use_distance_cull,
 							                             camera_cull_margin,
+							                             distance_cull_margin,
 							                             &use_portal);
 
 							/* sync possible particle data, note particle_id
@@ -653,7 +700,9 @@ void BlenderSync::sync_objects(BL::SpaceView3D& b_v3d, float motion_time)
 					            motion_time,
 					            hide_tris,
 					            use_camera_cull,
+					            use_distance_cull,
 					            camera_cull_margin,
+					            distance_cull_margin,
 					            &use_portal);
 				}
 			}

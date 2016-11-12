@@ -769,6 +769,8 @@ class CyclesObject_PT_cycles_settings(CyclesButtonsPanel, Panel):
         row = col.row()
         row.active = scene.render.use_simplify and cscene.use_camera_cull
         row.prop(cob, "use_camera_cull")
+        row.active = scene.render.use_simplify and cscene.use_distance_cull
+        row.prop(cob, "use_distance_cull")
 
 
 class CYCLES_OT_use_shading_nodes(Operator):
@@ -1597,12 +1599,17 @@ class CyclesScene_PT_simplify(CyclesButtonsPanel, Panel):
         col.prop(rd, "simplify_subdivision_render", text="Subdivision")
         col.prop(rd, "simplify_child_particles_render", text="Child Particles")
 
-        col = layout.column()
-        col.prop(cscene, "use_camera_cull")
-        subsub = col.column()
-        subsub.active = cscene.use_camera_cull
-        subsub.prop(cscene, "camera_cull_margin")
+        layout.separator()
 
+        split = layout.split()
+
+        col = split.column()
+        col.prop(cscene, "use_camera_cull")
+        col.prop(cscene, "camera_cull_margin", text="Margin")
+
+        col = split.column()
+        col.prop(cscene, "use_distance_cull")
+        col.prop(cscene, "distance_cull_margin", text="Distance")
 
 def draw_device(self, context):
     scene = context.scene

@@ -566,6 +566,19 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 min=0.0, max=5.0
                 )
 
+        cls.use_distance_cull = BoolProperty(
+                name="Use Distance Cull",
+                description="Allow objects to be culled based on the distance from camera",
+                default=False,
+                )
+
+        cls.distance_cull_margin = FloatProperty(
+                name="Cull Distance",
+                description="Cull objects which are further away from camera then this distance",
+                default=50,
+                min=0.0
+                )
+
         cls.motion_blur_position = EnumProperty(
             name="Motion Blur Position",
             default='CENTER',
@@ -1013,6 +1026,12 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
         cls.use_camera_cull = BoolProperty(
                 name="Use Camera Cull",
                 description="Allow this object and its duplicators to be culled by camera space culling",
+                default=False,
+                )
+
+        cls.use_distance_cull = BoolProperty(
+                name="Use Distance Cull",
+                description="Allow this object and its duplicators to be culled by distance from camera",
                 default=False,
                 )
 
