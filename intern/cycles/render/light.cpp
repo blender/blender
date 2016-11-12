@@ -106,6 +106,7 @@ NODE_DEFINE(Light)
 
 	static NodeEnum type_enum;
 	type_enum.insert("point", LIGHT_POINT);
+	type_enum.insert("distant", LIGHT_DISTANT);
 	type_enum.insert("background", LIGHT_BACKGROUND);
 	type_enum.insert("area", LIGHT_AREA);
 	type_enum.insert("spot", LIGHT_SPOT);
