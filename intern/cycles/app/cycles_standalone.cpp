@@ -337,7 +337,7 @@ static void options_parse(int argc, const char **argv)
 
 	/* device names */
 	string device_names = "";
-	string devicename = "cpu";
+	string devicename = "CPU";
 	bool list = false;
 
 	vector<DeviceType>& types = Device::available_types();
