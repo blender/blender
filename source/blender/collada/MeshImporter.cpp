@@ -317,11 +317,6 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)  // checks if mesh has su
 		}
 	}
 	
-	if (mesh->getPositions().empty()) {
-		fprintf(stderr, "ERROR: Mesh %s has no vertices.\n", name.c_str());
-		return false;
-	}
-
 	return true;
 }
 
@@ -329,11 +324,15 @@ void MeshImporter::read_vertices(COLLADAFW::Mesh *mesh, Mesh *me)
 {
 	// vertices
 	COLLADAFW::MeshVertexData& pos = mesh->getPositions();
+	if (pos.empty()) {
+		return;
+	}
+
 	int stride = pos.getStride(0);
 	if (stride == 0) stride = 3;
-	
-	me->totvert = mesh->getPositions().getFloatValues()->getCount() / stride;
-	me->mvert = (MVert *)CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
+
+	me->totvert = pos.getFloatValues()->getCount() / stride;
+	me->mvert   = (MVert *)CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
 
 	MVert *mvert;
 	int i;
