@@ -119,7 +119,8 @@ static void hull_output_triangles(BMesh *bm, GSet *hull_triangles)
 			};
 			BMFace *f, *example = NULL;
 
-			if (BM_face_exists(t->v, 3, &f)) {
+			f = BM_face_exists(t->v, 3);
+			if (f != NULL) {
 				/* If the operator is run with "use_existing_faces"
 				 * disabled, but an output face in the hull is the
 				 * same as a face in the existing mesh, it should not

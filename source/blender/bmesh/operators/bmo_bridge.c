@@ -398,7 +398,8 @@ static void bridge_loop_pair(
 
 			if (v_b != v_b_next) {
 				BMVert *v_arr[4] = {v_a, v_b, v_b_next, v_a_next};
-				if (BM_face_exists(v_arr, 4, &f) == false) {
+				f = BM_face_exists(v_arr, 4);
+				if (f == NULL) {
 					/* copy if loop data if its is missing on one ring */
 					f = BM_face_create_verts(bm, v_arr, 4, NULL, BM_CREATE_NOP, true);
 
@@ -411,7 +412,8 @@ static void bridge_loop_pair(
 			}
 			else {
 				BMVert *v_arr[3] = {v_a, v_b, v_a_next};
-				if (BM_face_exists(v_arr, 3, &f) == false) {
+				f = BM_face_exists(v_arr, 3);
+				if (f == NULL) {
 					/* fan-fill a triangle */
 					f = BM_face_create_verts(bm, v_arr, 3, NULL, BM_CREATE_NOP, true);
 

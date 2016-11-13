@@ -444,12 +444,9 @@ BMFace *BM_face_create(
 
 	if (create_flag & BM_CREATE_NO_DOUBLE) {
 		/* Check if face already exists */
-		const bool is_overlap = BM_face_exists(verts, len, &f);
-		if (is_overlap) {
+		f = BM_face_exists(verts, len);
+		if (f != NULL) {
 			return f;
-		}
-		else {
-			BLI_assert(f == NULL);
 		}
 	}
 
