@@ -587,6 +587,8 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void *UNUS
 
 		last_category = user->category;
 	}
+
+	UI_block_flag_enable(block, UI_BLOCK_NO_FLIP);
 }
 
 void uiTemplateTextureUser(uiLayout *layout, bContext *C)
