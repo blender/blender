@@ -1841,6 +1841,12 @@ void BKE_library_make_local(
 		/* Note: in theory here we are only handling datablocks forming exclusive linked dependency-cycles-based
 		 * archipelagos, so no need to check again after we have deleted one, as done in previous step. */
 		if (id->tag & LIB_TAG_DOIT) {
+			/* Object's deletion rely on valid ob->data, but ob->data may have already been freed here...
+			 * Setting it to NULL may not be 100% correct, but should be safe and do the work. */
+			if (GS(id->name) == ID_OB) {
+				((Object *)id)->data = NULL;
+			}
+
 			/* Note: *in theory* IDs tagged here are fully *outside* of file scope, totally unused, so we can
 			 *       directly wipe them out without caring about clearing their usages.
 			 *       However, this is a highly-risky presumption, and nice crasher in case something goes wrong here.
@@ -1853,7 +1859,6 @@ void BKE_library_make_local(
 #endif
 			((LinkNode *)it->link)->link = NULL;  /* Not strictly necessary, but safer (see T49903)... */
 			it->link = NULL;
-			id->tag &= ~LIB_TAG_DOIT;
 		}
 	}
 
