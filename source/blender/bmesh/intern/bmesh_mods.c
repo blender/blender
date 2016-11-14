@@ -979,6 +979,7 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
 	BMLoop *l1, *l2;
 	BMFace *f;
 	BMEdge *e_new = NULL;
+	char f_active_prev = 0;
 	char f_hflag_prev_1;
 	char f_hflag_prev_2;
 
@@ -1029,6 +1030,16 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
 	f_hflag_prev_1 = l1->f->head.hflag;
 	f_hflag_prev_2 = l2->f->head.hflag;
 
+	/* maintain active face */
+	if (bm->act_face == l1->f) {
+		f_active_prev = 1;
+	}
+	else if (bm->act_face == l2->f) {
+		f_active_prev = 2;
+	}
+
+	const bool is_flipped = !BM_edge_is_contiguous(e);
+
 	/* don't delete the edge, manually remove the edge after so we can copy its attributes */
 	f = BM_faces_join_pair(bm, BM_face_edge_share_loop(l1->f, e), BM_face_edge_share_loop(l2->f, e), true);
 
@@ -1050,6 +1061,22 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
 		if (BM_edge_face_pair(e_new, &fa, &fb)) {
 			fa->head.hflag = f_hflag_prev_1;
 			fb->head.hflag = f_hflag_prev_2;
+
+			if (f_active_prev == 1) {
+				bm->act_face = fa;
+			}
+			else if (f_active_prev == 2) {
+				bm->act_face = fb;
+			}
+
+			if (is_flipped) {
+				BM_face_normal_flip(bm, fb);
+
+				if (ccw) {
+					/* needed otherwise ccw toggles direction */
+					e_new->l = e_new->l->radial_next;
+				}
+			}
 		}
 	}
 	else {
