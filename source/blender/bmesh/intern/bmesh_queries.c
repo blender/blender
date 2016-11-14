@@ -869,7 +869,16 @@ int BM_vert_face_count_ex(const BMVert *v, int count_max)
  */
 bool BM_vert_face_check(BMVert *v)
 {
-	return v->e && (bmesh_disk_faceedge_find_first(v->e, v) != NULL);
+	if (v->e != NULL) {
+		BMEdge *e_iter, *e_first;
+		e_first = e_iter = v->e;
+		do {
+			if (e_iter->l != NULL) {
+				return true;
+			}
+		} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
+	}
+	return false;
 }
 
 /**
