@@ -338,13 +338,28 @@ int bmesh_disk_facevert_count_ex(const BMVert *v, const int count_max)
  */
 BMEdge *bmesh_disk_faceedge_find_first(const BMEdge *e, const BMVert *v)
 {
-	const BMEdge *e_find = e;
+	const BMEdge *e_iter = e;
 	do {
-		if (e_find->l && bmesh_radial_facevert_check(e_find->l, v)) {
-			return (BMEdge *)e_find;
+		if (e_iter->l != NULL) {
+			return (BMEdge *)((e_iter->l->v == v) ? e_iter : e_iter->l->next->e);
 		}
-	} while ((e_find = bmesh_disk_edge_next(e_find, v)) != e);
+	} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e);
+	return NULL;
+}
 
+/**
+ * Special case for BM_LOOPS_OF_VERT & BM_FACES_OF_VERT, avoids 2x calls.
+ *
+ * The returned BMLoop.e matches the result of #bmesh_disk_faceedge_find_first
+ */
+BMLoop *bmesh_disk_faceloop_find_first(const BMEdge *e, const BMVert *v)
+{
+	const BMEdge *e_iter = e;
+	do {
+		if (e_iter->l != NULL) {
+			return (e_iter->l->v == v) ? e_iter->l : e_iter->l->next;
+		}
+	} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e);
 	return NULL;
 }
 
