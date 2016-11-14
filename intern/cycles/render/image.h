@@ -109,14 +109,12 @@ private:
 
 	bool file_load_image_generic(Image *img, ImageInput **in, int &width, int &height, int &depth, int &components);
 
-	template<typename T>
-	bool file_load_byte_image(Image *img, ImageDataType type, device_vector<T>& tex_img);
-
-	template<typename T>
-	bool file_load_float_image(Image *img, ImageDataType type, device_vector<T>& tex_img);
-
-	template<typename T>
-	bool file_load_half_image(Image *img, ImageDataType type, device_vector<T>& tex_img);
+	template<TypeDesc::BASETYPE FileFormat,
+	         typename StorageType,
+	         typename DeviceType>
+	bool file_load_image(Image *img,
+	                     ImageDataType type,
+	                     device_vector<DeviceType>& tex_img);
 
 	int type_index_to_flattened_slot(int slot, ImageDataType type);
 	int flattened_slot_to_type_index(int flat_slot, ImageDataType *type);
