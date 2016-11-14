@@ -867,10 +867,10 @@ int BM_vert_face_count_ex(const BMVert *v, int count_max)
  *
  * same as ``BM_vert_face_count(v) != 0`` or ``BM_vert_find_first_loop(v) == NULL``
  */
-bool BM_vert_face_check(BMVert *v)
+bool BM_vert_face_check(const BMVert *v)
 {
 	if (v->e != NULL) {
-		BMEdge *e_iter, *e_first;
+		const BMEdge *e_iter, *e_first;
 		e_first = e_iter = v->e;
 		do {
 			if (e_iter->l != NULL) {
