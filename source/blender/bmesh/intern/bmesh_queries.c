@@ -102,16 +102,9 @@ BMLoop *BM_loop_other_edge_loop(BMLoop *l, BMVert *v)
  */
 BMLoop *BM_face_other_vert_loop(BMFace *f, BMVert *v_prev, BMVert *v)
 {
-	BMIter liter;
-	BMLoop *l_iter;
+	BMLoop *l_iter = BM_face_vert_share_loop(f, v);
 
 	BLI_assert(BM_edge_exists(v_prev, v) != NULL);
-
-	BM_ITER_ELEM (l_iter, &liter, v, BM_LOOPS_OF_VERT) {
-		if (l_iter->f == f) {
-			break;
-		}
-	}
 
 	if (l_iter) {
 		if (l_iter->prev->v == v_prev) {
@@ -149,7 +142,6 @@ BMLoop *BM_face_other_vert_loop(BMFace *f, BMVert *v_prev, BMVert *v)
  *                      The faces loop direction is ignored.
  * </pre>
  */
-
 BMLoop *BM_loop_other_vert_loop(BMLoop *l, BMVert *v)
 {
 #if 0 /* works but slow */
@@ -178,9 +170,6 @@ BMLoop *BM_loop_other_vert_loop(BMLoop *l, BMVert *v)
 			return l->next->next;
 		}
 	}
-
-
-
 #endif
 }
 
