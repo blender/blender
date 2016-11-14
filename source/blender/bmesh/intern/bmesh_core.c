@@ -2347,7 +2347,7 @@ void bmesh_vert_separate(
 
 			v_new = BM_vert_create(bm, v->co, v, BM_CREATE_NOP);
 			if (copy_select) {
-				BM_elem_select_copy(bm, bm, v_new, v);
+				BM_elem_select_copy(bm, v_new, v);
 			}
 
 			while ((e = BLI_SMALLSTACK_POP(edges))) {
@@ -2606,7 +2606,7 @@ void bmesh_edge_separate(
 	l_sep->e = e_new;
 
 	if (copy_select) {
-		BM_elem_select_copy(bm, bm, e_new, e);
+		BM_elem_select_copy(bm, e_new, e);
 	}
 
 	BLI_assert(bmesh_radial_length(e->l) == radlen - 1);

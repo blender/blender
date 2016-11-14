@@ -626,7 +626,7 @@ void BM_elem_attrs_copy(BMesh *bm_src, BMesh *bm_dst, const void *ele_src, void 
 	BM_elem_attrs_copy_ex(bm_src, bm_dst, ele_src, ele_dst, BM_ELEM_SELECT);
 }
 
-void BM_elem_select_copy(BMesh *bm_dst, BMesh *UNUSED(bm_src), void *ele_dst_v, const void *ele_src_v)
+void BM_elem_select_copy(BMesh *bm_dst, void *ele_dst_v, const void *ele_src_v)
 {
 	BMHeader *ele_dst = ele_dst_v;
 	const BMHeader *ele_src = ele_src_v;
