@@ -1858,6 +1858,9 @@ compile_OSL() {
     cmake_d="$cmake_d -D OSL_BUILD_PLUGINS=OFF"
     cmake_d="$cmake_d -D OSL_BUILD_TESTS=OFF"
     cmake_d="$cmake_d -D USE_SIMD=sse2"
+    if [ "$USE_CXX11" = true ]; then
+        cmake_d="$cmake_d -D OSL_BUILD_CPP11=1"
+    fi
 
     #~ cmake_d="$cmake_d -D ILMBASE_VERSION=$ILMBASE_VERSION"
 
