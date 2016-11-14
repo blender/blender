@@ -379,9 +379,15 @@ static Batch *MBC_get_fancy_edges(DerivedMesh *dm)
 		static unsigned pos_id, n1_id, n2_id;
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-			n1_id = add_attrib(&format, "N1", GL_FLOAT, 3, KEEP_FLOAT); /* TODO: make N1 and N2 10_10_10 format */
-			n2_id = add_attrib(&format, "N2", GL_FLOAT, 3, KEEP_FLOAT); /*      (takes 1/3 the space)           */
+			pos_id = add_attrib(&format, "pos", COMP_F32, 3, KEEP_FLOAT);
+
+#if USE_10_10_10 /* takes 1/3 the space */
+			n1_id = add_attrib(&format, "N1", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
+			n2_id = add_attrib(&format, "N2", COMP_I10, 3, NORMALIZE_INT_TO_FLOAT);
+#else
+			n1_id = add_attrib(&format, "N1", COMP_F32, 3, KEEP_FLOAT);
+			n2_id = add_attrib(&format, "N2", COMP_F32, 3, KEEP_FLOAT);
+#endif
 		}
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
 
@@ -418,11 +424,26 @@ static Batch *MBC_get_fancy_edges(DerivedMesh *dm)
 		VertexBuffer_allocate_data(vbo, vertex_ct);
 		for (int i = 0; i < edge_ct; ++i) {
 			const MEdge *edge = edges + i;
-			float dummy1[3] = { 0.0f, 0.0f, +1.0f };
-			float dummy2[3] = { 0.0f, 0.0f, -1.0f };
 			const AdjacentFaces *adj = adj_faces + i;
+
+#if USE_10_10_10
+			PackedNormal n1value = { .x = 0, .y = 0, .z = +511 };
+			PackedNormal n2value = { .x = 0, .y = 0, .z = -511 };
+
+			if (adj->count == 2) {
+				n1value = convert_i10_v3(face_normal[adj->face_index[0]]);
+				n2value = convert_i10_v3(face_normal[adj->face_index[1]]);
+			}
+
+			const PackedNormal *n1 = &n1value;
+			const PackedNormal *n2 = &n2value;
+#else
+			const float dummy1[3] = { 0.0f, 0.0f, +1.0f };
+			const float dummy2[3] = { 0.0f, 0.0f, -1.0f };
+
 			const float *n1 = (adj->count == 2) ? face_normal[adj->face_index[0]] : dummy1;
 			const float *n2 = (adj->count == 2) ? face_normal[adj->face_index[1]] : dummy2;
+#endif
 
 			setAttrib(vbo, pos_id, 2 * i, &verts[edge->v1].co);
 			setAttrib(vbo, n1_id, 2 * i, n1);
