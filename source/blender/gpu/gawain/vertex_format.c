@@ -135,7 +135,11 @@ unsigned add_attrib(VertexFormat* format, const char* name, VertexCompType comp_
 
 	attrib->name = copy_attrib_name(format, name);
 	attrib->comp_type = comp_type;
+#if USE_10_10_10
+	attrib->comp_ct = (comp_type == COMP_I10) ? 4 : comp_ct; // system needs 10_10_10_2 to be 4 or BGRA
+#else
 	attrib->comp_ct = comp_ct;
+#endif
 	attrib->sz = attrib_sz(attrib);
 	attrib->offset = 0; // offsets & stride are calculated later (during pack)
 	attrib->fetch_mode = fetch_mode;
@@ -203,3 +207,40 @@ void VertexFormat_pack(VertexFormat* format)
 	format->stride = offset + end_padding;
 	format->packed = true;
 	}
+
+
+#if USE_10_10_10
+
+// OpenGL ES packs in a different order as desktop GL but component conversion is the same.
+// Of the code here, only struct PackedNormal needs to change.
+
+#define SIGNED_INT_10_MAX  511
+#define SIGNED_INT_10_MIN -512
+
+static int clampi(int x, int min_allowed, int max_allowed)
+	{
+#if TRUST_NO_ONE
+	assert(min_allowed <= max_allowed);
+#endif
+
+	if (x < min_allowed)
+		return min_allowed;
+	else if (x > max_allowed)
+		return max_allowed;
+	else
+		return x;
+	}
+
+static int quantize(float x)
+	{
+	int qx = x * 511.0f;
+	return clampi(qx, SIGNED_INT_10_MIN, SIGNED_INT_10_MAX);
+	}
+
+PackedNormal convert_i10_v3(const float data[3])
+	{
+	PackedNormal n = { .x = quantize(data[0]), .y = quantize(data[1]), .z = quantize(data[2]) };
+	return n;
+	}
+
+#endif // USE_10_10_10

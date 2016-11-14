@@ -17,7 +17,7 @@
 #define AVG_VERTEX_ATTRIB_NAME_LEN 5
 #define VERTEX_ATTRIB_NAMES_BUFFER_LEN ((AVG_VERTEX_ATTRIB_NAME_LEN + 1) * MAX_VERTEX_ATTRIBS)
 
-#define USE_10_10_10 0
+#define USE_10_10_10 defined(_WIN32)
 // (GLEW_VERSION_3_3 || GLEW_ARB_vertex_type_2_10_10_10_rev)
 //   ^-- this is only guaranteed on Windows right now, will be true on all platforms soon
 
@@ -65,6 +65,21 @@ void VertexFormat_clear(VertexFormat*);
 void VertexFormat_copy(VertexFormat* dest, const VertexFormat* src);
 
 unsigned add_attrib(VertexFormat*, const char* name, VertexCompType, unsigned comp_ct, VertexFetchMode);
+
+// format conversion
+
+#if USE_10_10_10
+
+typedef struct {
+	int x : 10;
+	int y : 10;
+	int z : 10;
+	int w : 2;	// ignored for our purposes
+} PackedNormal;
+
+PackedNormal convert_i10_v3(const float data[3]);
+
+#endif // USE_10_10_10
 
 // for internal use
 void VertexFormat_pack(VertexFormat*);
