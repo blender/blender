@@ -68,12 +68,22 @@ ATOMIC_INLINE uint64_t atomic_sub_and_fetch_uint64(uint64_t *p, uint64_t x)
 	return __sync_sub_and_fetch(p, x);
 }
 
+ATOMIC_INLINE uint64_t atomic_fetch_and_add_uint64(uint64_t *p, uint64_t x)
+{
+	return __sync_fetch_and_add(p, x);
+}
+
+ATOMIC_INLINE uint64_t atomic_fetch_and_sub_uint64(uint64_t *p, uint64_t x)
+{
+	return __sync_fetch_and_sub(p, x);
+}
+
 ATOMIC_INLINE uint64_t atomic_cas_uint64(uint64_t *v, uint64_t old, uint64_t _new)
 {
 	return __sync_val_compare_and_swap(v, old, _new);
 }
 #  elif (defined(__amd64__) || defined(__x86_64__))
-ATOMIC_INLINE uint64_t atomic_add_and_fetch_uint64(uint64_t *p, uint64_t x)
+ATOMIC_INLINE uint64_t atomic_fetch_and_add_uint64(uint64_t *p, uint64_t x)
 {
 	asm volatile (
 	    "lock; xaddq %0, %1;"
@@ -83,7 +93,7 @@ ATOMIC_INLINE uint64_t atomic_add_and_fetch_uint64(uint64_t *p, uint64_t x)
 	return x;
 }
 
-ATOMIC_INLINE uint64_t atomic_sub_and_fetch_uint64(uint64_t *p, uint64_t x)
+ATOMIC_INLINE uint64_t atomic_fetch_and_sub_uint64(uint64_t *p, uint64_t x)
 {
 	x = (uint64_t)(-(int64_t)x);
 	asm volatile (
@@ -92,6 +102,16 @@ ATOMIC_INLINE uint64_t atomic_sub_and_fetch_uint64(uint64_t *p, uint64_t x)
 	    : "m" (*p) /* Inputs. */
 	    );
 	return x;
+}
+
+ATOMIC_INLINE uint64_t atomic_add_and_fetch_uint64(uint64_t *p, uint64_t x)
+{
+	return atomic_fetch_and_add_uint64(p, x) + x;
+}
+
+ATOMIC_INLINE uint64_t atomic_sub_and_fetch_uint64(uint64_t *p, uint64_t x)
+{
+	return atomic_fetch_and_sub_uint64(p, x) - x;
 }
 
 ATOMIC_INLINE uint64_t atomic_cas_uint64(uint64_t *v, uint64_t old, uint64_t _new)

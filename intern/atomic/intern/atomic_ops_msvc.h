@@ -57,6 +57,16 @@ ATOMIC_INLINE uint64_t atomic_cas_uint64(uint64_t *v, uint64_t old, uint64_t _ne
 {
 	return InterlockedCompareExchange64((int64_t *)v, _new, old);
 }
+
+ATOMIC_INLINE uint64_t atomic_fetch_and_add_uint64(uint64_t *p, uint64_t x)
+{
+	return InterlockedExchangeAdd64((int64_t *)p, (int64_t)x);
+}
+
+ATOMIC_INLINE uint64_t atomic_fetch_and_sub_uint64(uint64_t *p, uint64_t x)
+{
+	return InterlockedExchangeAdd64((int64_t *)p, -((int64_t)x));
+}
 #endif
 
 /******************************************************************************/

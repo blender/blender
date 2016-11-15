@@ -79,6 +79,8 @@
 #if (LG_SIZEOF_PTR == 8 || LG_SIZEOF_INT == 8)
 ATOMIC_INLINE uint64_t atomic_add_and_fetch_uint64(uint64_t *p, uint64_t x);
 ATOMIC_INLINE uint64_t atomic_sub_and_fetch_uint64(uint64_t *p, uint64_t x);
+ATOMIC_INLINE uint64_t atomic_fetch_and_add_uint64(uint64_t *p, uint64_t x);
+ATOMIC_INLINE uint64_t atomic_fetch_and_sub_uint64(uint64_t *p, uint64_t x);
 ATOMIC_INLINE uint64_t atomic_cas_uint64(uint64_t *v, uint64_t old, uint64_t _new);
 #endif
 
@@ -95,10 +97,14 @@ ATOMIC_INLINE uint8_t atomic_fetch_and_and_uint8(uint8_t *p, uint8_t b);
 
 ATOMIC_INLINE size_t atomic_add_and_fetch_z(size_t *p, size_t x);
 ATOMIC_INLINE size_t atomic_sub_and_fetch_z(size_t *p, size_t x);
+ATOMIC_INLINE size_t atomic_fetch_and_add_z(size_t *p, size_t x);
+ATOMIC_INLINE size_t atomic_fetch_and_sub_z(size_t *p, size_t x);
 ATOMIC_INLINE size_t atomic_cas_z(size_t *v, size_t old, size_t _new);
 
 ATOMIC_INLINE unsigned atomic_add_and_fetch_u(unsigned *p, unsigned x);
 ATOMIC_INLINE unsigned atomic_sub_and_fetch_u(unsigned *p, unsigned x);
+ATOMIC_INLINE unsigned atomic_fetch_and_add_u(unsigned *p, unsigned x);
+ATOMIC_INLINE unsigned atomic_fetch_and_sub_u(unsigned *p, unsigned x);
 ATOMIC_INLINE unsigned atomic_cas_u(unsigned *v, unsigned old, unsigned _new);
 
 /* WARNING! Float 'atomics' are really faked ones, those are actually closer to some kind of spinlock-sync'ed operation,
