@@ -43,12 +43,12 @@
 /******************************************************************************/
 /* 64-bit operations. */
 #if (LG_SIZEOF_PTR == 8 || LG_SIZEOF_INT == 8)
-ATOMIC_INLINE uint64_t atomic_add_uint64(uint64_t *p, uint64_t x)
+ATOMIC_INLINE uint64_t atomic_add_and_fetch_uint64(uint64_t *p, uint64_t x)
 {
 	return InterlockedExchangeAdd64((int64_t *)p, (int64_t)x) + x;
 }
 
-ATOMIC_INLINE uint64_t atomic_sub_uint64(uint64_t *p, uint64_t x)
+ATOMIC_INLINE uint64_t atomic_sub_and_fetch_uint64(uint64_t *p, uint64_t x)
 {
 	return InterlockedExchangeAdd64((int64_t *)p, -((int64_t)x)) - x;
 }
@@ -61,12 +61,12 @@ ATOMIC_INLINE uint64_t atomic_cas_uint64(uint64_t *v, uint64_t old, uint64_t _ne
 
 /******************************************************************************/
 /* 32-bit operations. */
-ATOMIC_INLINE uint32_t atomic_add_uint32(uint32_t *p, uint32_t x)
+ATOMIC_INLINE uint32_t atomic_add_and_fetch_uint32(uint32_t *p, uint32_t x)
 {
 	return InterlockedExchangeAdd(p, x) + x;
 }
 
-ATOMIC_INLINE uint32_t atomic_sub_uint32(uint32_t *p, uint32_t x)
+ATOMIC_INLINE uint32_t atomic_sub_and_fetch_uint32(uint32_t *p, uint32_t x)
 {
 	return InterlockedExchangeAdd(p, -((int32_t)x)) - x;
 }

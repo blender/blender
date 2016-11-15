@@ -383,7 +383,7 @@ void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memo
 	if (this->m_chunkExecutionStates[chunkNumber] == COM_ES_SCHEDULED)
 		this->m_chunkExecutionStates[chunkNumber] = COM_ES_EXECUTED;
 	
-	atomic_add_u(&this->m_chunksFinished, 1);
+	atomic_add_and_fetch_u(&this->m_chunksFinished, 1);
 	if (memoryBuffers) {
 		for (unsigned int index = 0; index < this->m_cachedMaxReadBufferOffset; index++) {
 			MemoryBuffer *buffer = memoryBuffers[index];

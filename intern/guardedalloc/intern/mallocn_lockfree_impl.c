@@ -142,11 +142,11 @@ void MEM_lockfree_freeN(void *vmemh)
 		return;
 	}
 
-	atomic_sub_u(&totblock, 1);
-	atomic_sub_z(&mem_in_use, len);
+	atomic_sub_and_fetch_u(&totblock, 1);
+	atomic_sub_and_fetch_z(&mem_in_use, len);
 
 	if (MEMHEAD_IS_MMAP(memh)) {
-		atomic_sub_z(&mmap_in_use, len);
+		atomic_sub_and_fetch_z(&mmap_in_use, len);
 #if defined(WIN32)
 		/* our windows mmap implementation is not thread safe */
 		mem_lock_thread();
@@ -287,8 +287,8 @@ void *MEM_lockfree_callocN(size_t len, const char *str)
 
 	if (LIKELY(memh)) {
 		memh->len = len;
-		atomic_add_u(&totblock, 1);
-		atomic_add_z(&mem_in_use, len);
+		atomic_add_and_fetch_u(&totblock, 1);
+		atomic_add_and_fetch_z(&mem_in_use, len);
 		update_maximum(&peak_mem, mem_in_use);
 
 		return PTR_FROM_MEMHEAD(memh);
@@ -312,8 +312,8 @@ void *MEM_lockfree_mallocN(size_t len, const char *str)
 		}
 
 		memh->len = len;
-		atomic_add_u(&totblock, 1);
-		atomic_add_z(&mem_in_use, len);
+		atomic_add_and_fetch_u(&totblock, 1);
+		atomic_add_and_fetch_z(&mem_in_use, len);
 		update_maximum(&peak_mem, mem_in_use);
 
 		return PTR_FROM_MEMHEAD(memh);
@@ -361,8 +361,8 @@ void *MEM_lockfree_mallocN_aligned(size_t len, size_t alignment, const char *str
 
 		memh->len = len | (size_t) MEMHEAD_ALIGN_FLAG;
 		memh->alignment = (short) alignment;
-		atomic_add_u(&totblock, 1);
-		atomic_add_z(&mem_in_use, len);
+		atomic_add_and_fetch_u(&totblock, 1);
+		atomic_add_and_fetch_z(&mem_in_use, len);
 		update_maximum(&peak_mem, mem_in_use);
 
 		return PTR_FROM_MEMHEAD(memh);
@@ -396,9 +396,9 @@ void *MEM_lockfree_mapallocN(size_t len, const char *str)
 
 	if (memh != (MemHead *)-1) {
 		memh->len = len | (size_t) MEMHEAD_MMAP_FLAG;
-		atomic_add_u(&totblock, 1);
-		atomic_add_z(&mem_in_use, len);
-		atomic_add_z(&mmap_in_use, len);
+		atomic_add_and_fetch_u(&totblock, 1);
+		atomic_add_and_fetch_z(&mem_in_use, len);
+		atomic_add_and_fetch_z(&mmap_in_use, len);
 
 		update_maximum(&peak_mem, mem_in_use);
 		update_maximum(&peak_mem, mmap_in_use);

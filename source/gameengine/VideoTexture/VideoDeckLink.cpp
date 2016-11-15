@@ -544,12 +544,12 @@ HRESULT STDMETHODCALLTYPE	PinnedMemoryAllocator::QueryInterface(REFIID /*iid*/, 
 
 ULONG STDMETHODCALLTYPE		PinnedMemoryAllocator::AddRef(void)
 {
-	return atomic_add_uint32(&mRefCount, 1U);
+	return atomic_add_and_fetch_uint32(&mRefCount, 1U);
 }
 
 ULONG STDMETHODCALLTYPE		PinnedMemoryAllocator::Release(void)
 {
-	uint32_t newCount = atomic_sub_uint32(&mRefCount, 1U);
+	uint32_t newCount = atomic_sub_and_fetch_uint32(&mRefCount, 1U);
 	if (newCount == 0)
 		delete this;
 	return (ULONG)newCount;

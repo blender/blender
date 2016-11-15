@@ -977,7 +977,7 @@ static void pbvh_update_normals_accum_task_cb(void *userdata, const int n)
 					 *       Not exact equivalent though, since atomicity is only ensured for one component
 					 *       of the vector at a time, but here it shall not make any sensible difference. */
 					for (int k = 3; k--; ) {
-						atomic_add_fl(&vnors[v][k], fn[k]);
+						atomic_add_and_fetch_fl(&vnors[v][k], fn[k]);
 					}
 				}
 			}
