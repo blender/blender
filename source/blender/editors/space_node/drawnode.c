@@ -443,13 +443,14 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode,
 	node_draw_shadow(snode, node, BASIS_RAD, alpha);
 	
 	/* body */
-	if (node->flag & NODE_CUSTOM_COLOR)
-		glColor4f(node->color[0], node->color[1], node->color[2], alpha);
+	if (node->flag & NODE_CUSTOM_COLOR) {
+		rgba_float_args_set(color, node->color[0], node->color[1], node->color[2], alpha);
+	}
 	else
-		UI_ThemeColor4(TH_NODE_FRAME);
+		UI_GetThemeColor4fv(TH_NODE_FRAME, color);
 	glEnable(GL_BLEND);
 	UI_draw_roundbox_corner_set(UI_CNR_ALL);
-	UI_draw_roundbox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD);
+	UI_draw_roundbox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD, color);
 	glDisable(GL_BLEND);
 
 	/* outline active and selected emphasis */

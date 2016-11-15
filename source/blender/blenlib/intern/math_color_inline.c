@@ -239,6 +239,14 @@ MINLINE void rgba_char_args_set(char col[4], const char r, const char g, const c
 	col[3] = a;
 }
 
+MINLINE void rgba_float_args_set(float col[4], const float r, const float g, const float b, const float a)
+{
+	col[0] = r;
+	col[1] = g;
+	col[2] = b;
+	col[3] = a;
+}
+
 MINLINE void rgba_char_args_test_set(char col[4], const char r, const char g, const char b, const char a)
 {
 	if (col[3] == 0) {

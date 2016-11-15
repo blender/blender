@@ -429,9 +429,9 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 	//unsigned int color_act = 0x666600;
 	unsigned int color_act = 0xffffff;
 	unsigned int color_base = 0x0;
-	unsigned char color_back[4] = {0xff, 0xff, 0xff, 0x80};
 	unsigned char color_text[3];
 	unsigned char color_wire[3];
+	float color_back[4] = {1.0f, 1.0f, 1.0f, 0.5f};
 
 	/* anti-aliased lines for more consistent appearance */
 	glEnable(GL_LINE_SMOOTH);
@@ -530,12 +530,11 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 				pos[1] = co_ss[1][1] - (numstr_size[1] / 2.0f);
 
 				/* draw text (bg) */
-				glColor4ubv(color_back);
 				UI_draw_roundbox_corner_set(UI_CNR_ALL);
 				UI_draw_roundbox(
 				        pos[0] - bg_margin,                  pos[1] - bg_margin,
 				        pos[0] + bg_margin + numstr_size[0], pos[1] + bg_margin + numstr_size[1],
-				        bg_radius);
+				        bg_radius, color_back);
 				/* draw text */
 				glColor3ubv(color_text);
 				BLF_position(blf_mono_font, pos[0], pos[1], 0.0f);
@@ -620,11 +619,10 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 				pos[1] -= numstr_size[1] / 2.0f;
 
 				/* draw text (bg) */
-				glColor4ubv(color_back);
 				UI_draw_roundbox_corner_set(UI_CNR_ALL);
 				UI_draw_roundbox(pos[0] - bg_margin,                  pos[1] - bg_margin,
 				           pos[0] + bg_margin + numstr_size[0], pos[1] + bg_margin + numstr_size[1],
-				           bg_radius);
+				           bg_radius, color_back);
 				/* draw text */
 				glColor3ubv(color_text);
 				BLF_position(blf_mono_font, pos[0], pos[1], 0.0f);

@@ -419,9 +419,9 @@ void UI_draw_roundbox_unfilled(float minx, float miny, float maxx, float maxy, f
 }
 
 /* (old, used in outliner) plain antialiased filled box */
-void UI_draw_roundbox(float minx, float miny, float maxx, float maxy, float rad)
+void UI_draw_roundbox(float minx, float miny, float maxx, float maxy, float rad, float color[4])
 {
-	ui_draw_anti_roundbox(GL_POLYGON, minx, miny, maxx, maxy, rad, roundboxtype & UI_RB_ALPHA);
+	ui_draw_anti_roundbox(GL_POLYGON, minx, miny, maxx, maxy, rad, roundboxtype & UI_RB_ALPHA, color);
 }
 
 void UI_draw_text_underline(int pos_x, int pos_y, int len, int height)

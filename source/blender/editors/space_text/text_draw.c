@@ -906,7 +906,7 @@ static void draw_textscroll(const SpaceText *st, rcti *scroll, rcti *back)
 {
 	bTheme *btheme = UI_GetTheme();
 	uiWidgetColors wcol = btheme->tui.wcol_scroll;
-	unsigned char col[4];
+	float col[4];
 	float rad;
 	
 	UI_ThemeColor(TH_BACK);
@@ -916,11 +916,10 @@ static void draw_textscroll(const SpaceText *st, rcti *scroll, rcti *back)
 
 	UI_draw_roundbox_corner_set(UI_CNR_ALL);
 	rad = 0.4f * min_ii(BLI_rcti_size_x(&st->txtscroll), BLI_rcti_size_y(&st->txtscroll));
-	UI_GetThemeColor3ubv(TH_HILITE, col);
-	col[3] = 48;
-	glColor4ubv(col);
+	UI_GetThemeColor3fv(TH_HILITE, col);
+	col[3] = 0.18f;
 	glEnable(GL_BLEND);
-	UI_draw_roundbox(st->txtscroll.xmin + 1, st->txtscroll.ymin, st->txtscroll.xmax - 1, st->txtscroll.ymax, rad);
+	UI_draw_roundbox(st->txtscroll.xmin + 1, st->txtscroll.ymin, st->txtscroll.xmax - 1, st->txtscroll.ymax, rad, col);
 	glDisable(GL_BLEND);
 }
 

@@ -142,6 +142,7 @@ MINLINE void float_to_byte_dither_v3(unsigned char b[3], const float f[3], float
 	rgba_char_args_set(col, (r) * 255, (g) * 255, (b) * 255, (a) * 255)
 
 MINLINE void rgba_char_args_set(char col[4], const char r, const char g, const char b, const char a);
+MINLINE void rgba_float_args_set(float col[4], const float r, const float g, const float b, const float a);
 MINLINE void rgba_char_args_test_set(char col[4], const char r, const char g, const char b, const char a);
 MINLINE void cpack_cpy_3ub(unsigned char r_col[3], const unsigned int pack);
 

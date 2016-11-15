@@ -307,7 +307,6 @@ void UI_fontstyle_draw_simple_backdrop(
 		const float margin = height / 4.0f;
 
 		/* backdrop */
-		glColor4ubv(bg);
 
 		UI_draw_roundbox_corner_set(UI_CNR_ALL | UI_RB_ALPHA);
 		UI_draw_roundbox(
@@ -315,7 +314,7 @@ void UI_fontstyle_draw_simple_backdrop(
 		        (y + decent) - margin,
 		        x + width + margin,
 		        (y + decent) + height + margin,
-		        margin);
+		        margin, bg);
 
 		glColor4ubv(fg);
 	}

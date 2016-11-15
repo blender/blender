@@ -1381,13 +1381,14 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Spa
 				float ufac = UI_UNIT_X / 20.0f;
 
 				UI_draw_roundbox_corner_set(UI_CNR_ALL);
-				glColor4ub(255, 255, 255, 100);
+				float color[4] = {1.0f, 1.0f, 1.0f, 0.4f};
 				UI_draw_roundbox(
 				        (float) *offsx - 1.0f * ufac,
 				        (float)ys + 1.0f * ufac,
 				        (float)*offsx + UI_UNIT_X - 2.0f * ufac,
 				        (float)ys + UI_UNIT_Y - ufac,
-				        (float)UI_UNIT_Y / 2.0f - ufac);
+				        (float)UI_UNIT_Y / 2.0f - ufac,
+				         color);
 				glEnable(GL_BLEND); /* roundbox disables */
 			}
 			
@@ -1434,12 +1435,12 @@ static void outliner_draw_tree_element(
 	float ufac = UI_UNIT_X / 20.0f;
 	int offsx = 0;
 	eOLDrawState active = OL_DRAWSEL_NONE;
-	
+	float color[4];
 	tselem = TREESTORE(te);
 
 	if (*starty + 2 * UI_UNIT_Y >= ar->v2d.cur.ymin && *starty <= ar->v2d.cur.ymax) {
 		int xmax = ar->v2d.cur.xmax;
-		unsigned char alpha = 128;
+		float alpha = 0.5f;
 		
 		if ((tselem->flag & TSE_TEXTBUT) && (*te_edit == NULL)) {
 			*te_edit = te;
@@ -1455,7 +1456,7 @@ static void outliner_draw_tree_element(
 		if (tselem->type == 0) {
 			if (te->idcode == ID_SCE) {
 				if (tselem->id == (ID *)scene) {
-					glColor4ub(255, 255, 255, alpha);
+					rgba_float_args_set(color, 1.0f, 1.0f, 1.0f, alpha);
 					active = OL_DRAWSEL_ACTIVE;
 				}
 			}
@@ -1464,8 +1465,7 @@ static void outliner_draw_tree_element(
 				if (group_select_flag(gr)) {
 					char col[4];
 					UI_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
-					col[3] = alpha;
-					glColor4ubv((GLubyte *)col);
+					rgba_float_args_set(color, (float)col[0] / 255, (float)col[1] / 255, (float)col[2] / 255, alpha);
 					
 					active = OL_DRAWSEL_ACTIVE;
 				}
@@ -1491,18 +1491,17 @@ static void outliner_draw_tree_element(
 						UI_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
 						col[3] = alpha;
 					}
-					
-					glColor4ubv((GLubyte *)col);
+					rgba_float_args_set(color, (float)col[0] / 255, (float)col[1] / 255, (float)col[2] / 255, alpha);
 				}
 			
 			}
 			else if (scene->obedit && scene->obedit->data == tselem->id) {
-				glColor4ub(255, 255, 255, alpha);
+				rgba_float_args_set(color, 1.0f, 1.0f, 1.0f, alpha);
 				active = OL_DRAWSEL_ACTIVE;
 			}
 			else {
 				if (tree_element_active(C, scene, soops, te, OL_SETSEL_NONE, false)) {
-					glColor4ub(220, 220, 255, alpha);
+					rgba_float_args_set(color, 0.85f, 0.85f, 1.0f, alpha);
 					active = OL_DRAWSEL_ACTIVE;
 				}
 			}
@@ -1511,7 +1510,7 @@ static void outliner_draw_tree_element(
 			if (tree_element_type_active(NULL, scene, soops, te, tselem, OL_SETSEL_NONE, false) != OL_DRAWSEL_NONE) {
 				active = OL_DRAWSEL_ACTIVE;
 			}
-			glColor4ub(220, 220, 255, alpha);
+			rgba_float_args_set(color, 0.85f, 0.85f, 1.0f, alpha);
 		}
 		
 		/* active circle */
@@ -1522,7 +1521,7 @@ static void outliner_draw_tree_element(
 			        (float)*starty + 1.0f * ufac,
 			        (float)startx + 2.0f * UI_UNIT_X - 2.0f * ufac,
 			        (float)*starty + UI_UNIT_Y - 1.0f * ufac,
-			        UI_UNIT_Y / 2.0f - 1.0f * ufac);
+			        UI_UNIT_Y / 2.0f - 1.0f * ufac, color);
 			glEnable(GL_BLEND); /* roundbox disables it */
 			
 			te->flag |= TE_ACTIVE; // for lookup in display hierarchies
