@@ -42,6 +42,7 @@ using namespace std;
 
 class IK_QSolver {
 public:
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	IK_QSolver() : root(NULL) {
 	}
 

@@ -60,6 +60,7 @@
 class IK_QSegment
 {
 public:
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	virtual ~IK_QSegment();
 
 	// start: a user defined translation
