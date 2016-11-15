@@ -419,6 +419,7 @@ static EnumPropertyItem keymap_modifiers_items[] = {
 static EnumPropertyItem operator_flag_items[] = {
 	{OPTYPE_REGISTER, "REGISTER", 0, "Register", "Display in the info window and support the redo toolbar panel"},
 	{OPTYPE_UNDO, "UNDO", 0, "Undo", "Push an undo event (needed for operator redo)"},
+	{OPTYPE_UNDO_GROUPED, "UNDO_GROUPED", 0, "Grouped Undo", "Push a single undo event for repetead instances of this operator"},
 	{OPTYPE_BLOCKING, "BLOCKING", 0, "Blocking", "Block anything else from using the cursor"},
 	{OPTYPE_MACRO, "MACRO", 0, "Macro", "Use to check if an operator is a macro"},
 	{OPTYPE_GRAB_CURSOR, "GRAB_CURSOR", 0, "Grab Pointer",
@@ -1139,6 +1140,7 @@ static char _operator_idname[OP_MAX_TYPENAME];
 static char _operator_name[OP_MAX_TYPENAME];
 static char _operator_descr[RNA_DYN_DESCR_MAX];
 static char _operator_ctxt[RNA_DYN_DESCR_MAX];
+static char _operator_undo_group[OP_MAX_TYPENAME];
 static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
                                         StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
@@ -1153,10 +1155,11 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 	dummyot.name = _operator_name; /* only assigne the pointer, string is NULL'd */
 	dummyot.description = _operator_descr; /* only assigne the pointer, string is NULL'd */
 	dummyot.translation_context = _operator_ctxt; /* only assigne the pointer, string is NULL'd */
+	dummyot.undo_group = _operator_undo_group; /* only assigne the pointer, string is NULL'd */
 	RNA_pointer_create(NULL, &RNA_Operator, &dummyop, &dummyotr);
 
 	/* clear in case they are left unset */
-	_operator_idname[0] = _operator_name[0] = _operator_descr[0] = '\0';
+	_operator_idname[0] = _operator_name[0] = _operator_descr[0] = _operator_undo_group[0] = '\0';
 	/* We have to set default op context! */
 	strcpy(_operator_ctxt, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
 
@@ -1210,9 +1213,10 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 			int namelen = strlen(_operator_name) + 1;
 			int desclen = strlen(_operator_descr) + 1;
 			int ctxtlen = strlen(_operator_ctxt) + 1;
+			int ugrouplen = strlen(_operator_undo_group) + 1;
 			char *ch;
 			/* 2 terminators and 3 to convert a.b -> A_OT_b */
-			ch = MEM_callocN(sizeof(char) * (idlen + namelen + desclen + ctxtlen), "_operator_idname");
+			ch = MEM_callocN(sizeof(char) * (idlen + namelen + desclen + ctxtlen + ugrouplen), "_operator_idname");
 			WM_operator_bl_idname(ch, _operator_idname); /* convert the idname from python */
 			dummyot.idname = ch;
 			ch += idlen;
@@ -1224,6 +1228,9 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 			ch += desclen;
 			strcpy(ch, _operator_ctxt);
 			dummyot.translation_context = ch;
+			ch += ctxtlen;
+			strcpy(ch, _operator_undo_group);
+			dummyot.undo_group = ch;
 		}
 	}
 
@@ -1280,10 +1287,11 @@ static StructRNA *rna_MacroOperator_register(Main *bmain, ReportList *reports, v
 	dummyot.name = _operator_name; /* only assigne the pointer, string is NULL'd */
 	dummyot.description = _operator_descr; /* only assigne the pointer, string is NULL'd */
 	dummyot.translation_context = _operator_ctxt; /* only assigne the pointer, string is NULL'd */
+	dummyot.undo_group = _operator_undo_group; /* only assigne the pointer, string is NULL'd */
 	RNA_pointer_create(NULL, &RNA_Macro, &dummyop, &dummyotr);
 
 	/* clear in case they are left unset */
-	_operator_idname[0] = _operator_name[0] = _operator_descr[0] = '\0';
+	_operator_idname[0] = _operator_name[0] = _operator_descr[0] = _operator_undo_group[0] = '\0';
 	/* We have to set default op context! */
 	strcpy(_operator_ctxt, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
 
@@ -1297,9 +1305,10 @@ static StructRNA *rna_MacroOperator_register(Main *bmain, ReportList *reports, v
 		int namelen = strlen(_operator_name) + 1;
 		int desclen = strlen(_operator_descr) + 1;
 		int ctxtlen = strlen(_operator_ctxt) + 1;
+		int ugrouplen = strlen(_operator_undo_group) + 1;
 		char *ch;
 		/* 2 terminators and 3 to convert a.b -> A_OT_b */
-		ch = MEM_callocN(sizeof(char) * (idlen + namelen + desclen + ctxtlen), "_operator_idname");
+		ch = MEM_callocN(sizeof(char) * (idlen + namelen + desclen + ctxtlen + ugrouplen), "_operator_idname");
 		WM_operator_bl_idname(ch, _operator_idname); /* convert the idname from python */
 		dummyot.idname = ch;
 		ch += idlen;
@@ -1311,6 +1320,9 @@ static StructRNA *rna_MacroOperator_register(Main *bmain, ReportList *reports, v
 		ch += desclen;
 		strcpy(ch, _operator_ctxt);
 		dummyot.translation_context = ch;
+		ch += ctxtlen;
+		strcpy(ch, _operator_undo_group);
+		dummyot.undo_group = ch;
 	}
 
 	if (strlen(identifier) >= sizeof(dummyop.idname)) {
@@ -1399,6 +1411,16 @@ static void rna_Operator_bl_description_set(PointerRNA *ptr, const char *value)
 		BLI_strncpy(str, value, RNA_DYN_DESCR_MAX);    /* utf8 already ensured */
 	else
 		assert(!"setting the bl_description on a non-builtin operator");
+}
+
+static void rna_Operator_bl_undo_group_set(PointerRNA *ptr, const char *value)
+{
+	wmOperator *data = (wmOperator *)(ptr->data);
+	char *str = (char *)data->type->undo_group;
+	if (!str[0])
+		BLI_strncpy(str, value, OP_MAX_TYPENAME);    /* utf8 already ensured */
+	else
+		assert(!"setting the bl_undo_group on a non-builtin operator");
 }
 
 static void rna_KeyMapItem_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -1509,6 +1531,14 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 	RNA_def_property_clear_flag(prop, PROP_NEVER_NULL); /* check for NULL */
 
+	prop = RNA_def_property(srna, "bl_undo_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->undo_group");
+	RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME); /* else it uses the pointer size! */
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_undo_group_set");
+	/* RNA_def_property_clear_flag(prop, PROP_EDITABLE); */
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	RNA_def_property_clear_flag(prop, PROP_NEVER_NULL); /* check for NULL */
+
 	prop = RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type->flag");
 	RNA_def_property_enum_items(prop, operator_flag_items);
@@ -1583,6 +1613,14 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "type->description");
 	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_description_set");
+	/* RNA_def_property_clear_flag(prop, PROP_EDITABLE); */
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	RNA_def_property_clear_flag(prop, PROP_NEVER_NULL); /* check for NULL */
+
+	prop = RNA_def_property(srna, "bl_undo_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->undo_group");
+	RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME); /* else it uses the pointer size! */
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_undo_group_set");
 	/* RNA_def_property_clear_flag(prop, PROP_EDITABLE); */
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 	RNA_def_property_clear_flag(prop, PROP_NEVER_NULL); /* check for NULL */

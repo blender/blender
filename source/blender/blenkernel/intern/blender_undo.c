@@ -319,6 +319,13 @@ const char *BKE_undo_get_name(int nr, bool *r_active)
 	return NULL;
 }
 
+/* return the name of the last item */
+const char *BKE_undo_get_name_last()
+{
+	UndoElem *uel = undobase.last;
+	return (uel ? uel->name : NULL);
+}
+
 /**
  * Saves .blend using undo buffer.
  *

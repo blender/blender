@@ -42,6 +42,7 @@ extern bool          BKE_undo_is_valid(const char *name);
 extern void          BKE_undo_reset(void);
 extern void          BKE_undo_number(struct bContext *C, int nr);
 extern const char   *BKE_undo_get_name(int nr, bool *r_active);
+extern const char   *BKE_undo_get_name_last(void);
 extern bool          BKE_undo_save_file(const char *filename);
 extern struct Main  *BKE_undo_get_main(struct Scene **r_scene);
 

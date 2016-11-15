@@ -57,6 +57,7 @@
 #include "ED_anim_api.h"
 #include "ED_screen.h"
 #include "ED_sequencer.h"
+#include "ED_util.h"
 
 #include "anim_intern.h"
 
@@ -263,7 +264,8 @@ static void ANIM_OT_change_frame(wmOperatorType *ot)
 	ot->poll = change_frame_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR;
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR | OPTYPE_UNDO_GROUPED;
+	ot->undo_group = "FRAME_CHANGE";
 
 	/* rna */
 	ot->prop = RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
