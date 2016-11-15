@@ -20,7 +20,7 @@ ccl_device_inline void kernel_write_pass_float(ccl_global float *buffer, int sam
 {
 	ccl_global float *buf = buffer;
 #if defined(__SPLIT_KERNEL__) && defined(__WORK_STEALING__)
-	atomic_add_float(buf, value);
+	atomic_add_and_fetch_float(buf, value);
 #else
 	*buf = (sample == 0)? value: *buf + value;
 #endif // __SPLIT_KERNEL__ && __WORK_STEALING__
@@ -33,9 +33,9 @@ ccl_device_inline void kernel_write_pass_float3(ccl_global float *buffer, int sa
 	ccl_global float *buf_y = buffer + 1;
 	ccl_global float *buf_z = buffer + 2;
 
-	atomic_add_float(buf_x, value.x);
-	atomic_add_float(buf_y, value.y);
-	atomic_add_float(buf_z, value.z);
+	atomic_add_and_fetch_float(buf_x, value.x);
+	atomic_add_and_fetch_float(buf_y, value.y);
+	atomic_add_and_fetch_float(buf_z, value.z);
 #else
 	ccl_global float3 *buf = (ccl_global float3*)buffer;
 	*buf = (sample == 0)? value: *buf + value;
@@ -50,10 +50,10 @@ ccl_device_inline void kernel_write_pass_float4(ccl_global float *buffer, int sa
 	ccl_global float *buf_z = buffer + 2;
 	ccl_global float *buf_w = buffer + 3;
 
-	atomic_add_float(buf_x, value.x);
-	atomic_add_float(buf_y, value.y);
-	atomic_add_float(buf_z, value.z);
-	atomic_add_float(buf_w, value.w);
+	atomic_add_and_fetch_float(buf_x, value.x);
+	atomic_add_and_fetch_float(buf_y, value.y);
+	atomic_add_and_fetch_float(buf_z, value.z);
+	atomic_add_and_fetch_float(buf_w, value.w);
 #else
 	ccl_global float4 *buf = (ccl_global float4*)buffer;
 	*buf = (sample == 0)? value: *buf + value;

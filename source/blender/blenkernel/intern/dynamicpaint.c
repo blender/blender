@@ -2264,7 +2264,7 @@ static void dynamic_paint_create_uv_surface_neighbor_cb(void *userdata, const in
 							 * to non--1 *before* its tri_index is set (i.e. that it cannot be used a neighbour).
 							 */
 							tPoint->neighbour_pixel = ind - 1;
-							atomic_add_uint32(&tPoint->neighbour_pixel, 1);
+							atomic_add_and_fetch_uint32(&tPoint->neighbour_pixel, 1);
 							tPoint->tri_index = i;
 
 							/* Now calculate pixel data for this pixel as it was on polygon surface */
@@ -2289,7 +2289,7 @@ static void dynamic_paint_create_uv_surface_neighbor_cb(void *userdata, const in
 
 		/* Increase the final number of active surface points if relevant. */
 		if (tPoint->tri_index != -1)
-			atomic_add_uint32(active_points, 1);
+			atomic_add_and_fetch_uint32(active_points, 1);
 	}
 }
 
