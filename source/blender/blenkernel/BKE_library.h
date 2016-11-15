@@ -68,6 +68,7 @@ void  BKE_libblock_free(struct Main *bmain, void *idv) ATTR_NONNULL();
 void  BKE_libblock_free_ex(struct Main *bmain, void *idv, const bool do_id_user) ATTR_NONNULL();
 void  BKE_libblock_free_us(struct Main *bmain, void *idv) ATTR_NONNULL();
 void  BKE_libblock_free_data(struct Main *bmain, struct ID *id) ATTR_NONNULL();
+void  BKE_libblock_free_data_ex(struct Main *bmain, struct ID *id, const bool do_id_user) ATTR_NONNULL();
 void  BKE_libblock_delete(struct Main *bmain, void *idv) ATTR_NONNULL();
 
 void BKE_id_lib_local_paths(struct Main *bmain, struct Library *lib, struct ID *id);

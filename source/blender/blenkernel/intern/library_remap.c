@@ -691,13 +691,20 @@ static void animdata_dtar_clear_cb(ID *UNUSED(id), AnimData *adt, void *userdata
 
 void BKE_libblock_free_data(Main *bmain, ID *id)
 {
+	BKE_libblock_free_data_ex(bmain, id, true);
+}
+
+void BKE_libblock_free_data_ex(Main *bmain, ID *id, const bool do_id_user)
+{
 	if (id->properties) {
 		IDP_FreeProperty(id->properties);
 		MEM_freeN(id->properties);
 	}
-	
-	/* this ID may be a driver target! */
-	BKE_animdata_main_cb(bmain, animdata_dtar_clear_cb, (void *)id);
+
+	if (do_id_user) {
+		/* this ID may be a driver target! */
+		BKE_animdata_main_cb(bmain, animdata_dtar_clear_cb, (void *)id);
+	}
 }
 
 /**
@@ -840,7 +847,7 @@ void BKE_libblock_free_ex(Main *bmain, void *idv, const bool do_id_user)
 
 	BLI_remlink(lb, id);
 
-	BKE_libblock_free_data(bmain, id);
+	BKE_libblock_free_data_ex(bmain, id, do_id_user);
 	BKE_main_unlock(bmain);
 
 	MEM_freeN(id);
