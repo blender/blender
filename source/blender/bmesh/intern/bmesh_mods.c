@@ -346,7 +346,7 @@ BMFace *BM_face_split_n(
         BMLoop **r_l, BMEdge *example)
 {
 	BMFace *f_new, *f_tmp;
-	BMLoop *l_dummy;
+	BMLoop *l_new;
 	BMEdge *e, *e_new;
 	BMVert *v_new;
 	// BMVert *v_a = l_a->v; /* UNUSED */
@@ -368,24 +368,21 @@ BMFace *BM_face_split_n(
 	}
 
 	f_tmp = BM_face_copy(bm, bm, f, true, true);
-
-	if (!r_l)
-		r_l = &l_dummy;
 	
 #ifdef USE_BMESH_HOLES
-	f_new = bmesh_sfme(bm, f, l_a, l_b, r_l, NULL, example, false);
+	f_new = bmesh_sfme(bm, f, l_a, l_b, &l_new, NULL, example, false);
 #else
-	f_new = bmesh_sfme(bm, f, l_a, l_b, r_l, example, false);
+	f_new = bmesh_sfme(bm, f, l_a, l_b, &l_new, example, false);
 #endif
-	/* bmesh_sfme returns in r_l a Loop for f_new going from v_a to v_b.
-	 * The radial_next is for f and goes from v_b to v_a  */
+	/* bmesh_sfme returns in 'l_new' a Loop for f_new going from 'v_a' to 'v_b'.
+	 * The radial_next is for 'f' and goes from 'v_b' to 'v_a'  */
 
 	if (f_new) {
-		e = (*r_l)->e;
+		e = l_new->e;
 		for (i = 0; i < n; i++) {
 			v_new = bmesh_semv(bm, v_b, e, &e_new);
 			BLI_assert(v_new != NULL);
-			/* bmesh_semv returns in e_new the edge going from v_new to tv */
+			/* bmesh_semv returns in 'e_new' the edge going from 'v_new' to 'v_b' */
 			copy_v3_v3(v_new->co, cos[i]);
 
 			/* interpolate the loop data for the loops with (v == v_new), using orig face */
@@ -404,6 +401,10 @@ BMFace *BM_face_split_n(
 	}
 
 	BM_face_verts_kill(bm, f_tmp);
+
+	if (r_l) {
+		*r_l = l_new;
+	}
 
 	return f_new;
 }
