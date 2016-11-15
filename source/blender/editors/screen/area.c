@@ -2371,11 +2371,16 @@ void ED_region_grid_draw(ARegion *ar, float zoomx, float zoomy)
 	int x1, y1, x2, y2;
 
 	/* the image is located inside (0, 0), (1, 1) as set by view2d */
-	UI_ThemeColorShade(TH_BACK, 20);
-
 	UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &x1, &y1);
 	UI_view2d_view_to_region(&ar->v2d, 1.0f, 1.0f, &x2, &y2);
-	glRectf(x1, y1, x2, y2);
+
+	VertexFormat* format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformThemeColorShade(TH_BACK, 20);
+	immRectf(pos, x1, y1, x2, y2);
+	immUnbindProgram();
 
 	/* gridsize adapted to zoom level */
 	gridsize = 0.5f * (zoomx + zoomy);
@@ -2395,33 +2400,52 @@ void ED_region_grid_draw(ARegion *ar, float zoomx, float zoomy)
 		}
 	}
 
-	/* the fine resolution level */
 	blendfac = 0.25f * gridsize - floorf(0.25f * gridsize);
 	CLAMP(blendfac, 0.0f, 1.0f);
-	UI_ThemeColorShade(TH_BACK, (int)(20.0f * (1.0f - blendfac)));
 
-	fac = 0.0f;
-	glBegin(GL_LINES);
-	while (fac < 1.0f) {
-		glVertex2f(x1, y1 * (1.0f - fac) + y2 * fac);
-		glVertex2f(x2, y1 * (1.0f - fac) + y2 * fac);
-		glVertex2f(x1 * (1.0f - fac) + x2 * fac, y1);
-		glVertex2f(x1 * (1.0f - fac) + x2 * fac, y2);
-		fac += gridstep;
+	int count_fine = 1.0f / gridstep;
+	int count_large = 1.0f / (4.0f * gridstep);
+
+	if (count_fine > 0) {
+		VertexFormat_clear(format);
+		pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned color = add_attrib(format, "color", GL_FLOAT, 3, KEEP_FLOAT);
+		
+		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+		immBegin(GL_LINES, 4 * count_fine + 4 * count_large);
+		
+		float theme_color[3];
+		UI_GetThemeColorShade3fv(TH_BACK, (int)(20.0f * (1.0f - blendfac)), theme_color);
+		immAttrib3fv(color, theme_color);
+		fac = 0.0f;
+		
+		/* the fine resolution level */
+		for (int i = 0; i < count_fine; i++) {
+			immVertex2f(pos, x1, y1 * (1.0f - fac) + y2 * fac);
+			immVertex2f(pos, x2, y1 * (1.0f - fac) + y2 * fac);
+			immVertex2f(pos, x1 * (1.0f - fac) + x2 * fac, y1);
+			immVertex2f(pos, x1 * (1.0f - fac) + x2 * fac, y2);
+			fac += gridstep;
+		}
+
+		if (count_large > 0) {
+			UI_GetThemeColor3fv(TH_BACK, theme_color);
+			immAttrib3fv(color, theme_color);
+			fac = 0.0f;
+			
+			/* the large resolution level */
+			for (int i = 0; i < count_large; i++) {
+				immVertex2f(pos, x1, y1 * (1.0f - fac) + y2 * fac);
+				immVertex2f(pos, x2, y1 * (1.0f - fac) + y2 * fac);
+				immVertex2f(pos, x1 * (1.0f - fac) + x2 * fac, y1);
+				immVertex2f(pos, x1 * (1.0f - fac) + x2 * fac, y2);
+				fac += 4.0f * gridstep;
+			}
+		}
+
+		immEnd();
+		immUnbindProgram();
 	}
-
-	/* the large resolution level */
-	UI_ThemeColor(TH_BACK);
-
-	fac = 0.0f;
-	while (fac < 1.0f) {
-		glVertex2f(x1, y1 * (1.0f - fac) + y2 * fac);
-		glVertex2f(x2, y1 * (1.0f - fac) + y2 * fac);
-		glVertex2f(x1 * (1.0f - fac) + x2 * fac, y1);
-		glVertex2f(x1 * (1.0f - fac) + x2 * fac, y2);
-		fac += 4.0f * gridstep;
-	}
-	glEnd();
 }
 
 /* If the area has overlapping regions, it returns visible rect for Region *ar */
