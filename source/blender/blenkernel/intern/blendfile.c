@@ -407,9 +407,9 @@ bool BKE_blendfile_read_from_memfile(
 	if (bfd) {
 		/* remove the unused screens and wm */
 		while (bfd->main->wm.first)
-			BKE_libblock_free_ex(bfd->main, bfd->main->wm.first, true);
+			BKE_libblock_free_ex(bfd->main, bfd->main->wm.first, true, true);
 		while (bfd->main->screen.first)
-			BKE_libblock_free_ex(bfd->main, bfd->main->screen.first, true);
+			BKE_libblock_free_ex(bfd->main, bfd->main->screen.first, true, true);
 
 		setup_app_data(C, bfd, "<memory1>", reports);
 	}
