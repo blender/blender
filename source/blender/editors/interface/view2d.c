@@ -49,6 +49,7 @@
 #include "BKE_screen.h"
 #include "BKE_global.h"
 
+#include "GPU_immediate.h"
 
 #include "WM_api.h"
 
@@ -1391,32 +1392,65 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 /* Draw a constant grid in given 2d-region */
 void UI_view2d_constant_grid_draw(View2D *v2d)
 {
-	float start, step = 25.0f;
+	float start_x, start_y, step = 25.0f;
+	int count_x, count_y;
+	
+	start_x = v2d->cur.xmin;
+	if (start_x < 0.0)
+		start_x += -(float)fmod(v2d->cur.xmin, step);
+	else
+		start_x += (step - (float)fmod(v2d->cur.xmin, step));
 
-	UI_ThemeColorShade(TH_BACK, -10);
-	
-	start = v2d->cur.xmin - (float)fmod(v2d->cur.xmin, step);
-	
-	glBegin(GL_LINES);
-	for (; start < v2d->cur.xmax; start += step) {
-		glVertex2f(start, v2d->cur.ymin);
-		glVertex2f(start, v2d->cur.ymax);
-	}
+	if (start_x > v2d->cur.xmax)
+		count_x = 0;
+	else
+		count_x = (v2d->cur.xmax - start_x) / step + 1;
 
-	start = v2d->cur.ymin - (float)fmod(v2d->cur.ymin, step);
-	for (; start < v2d->cur.ymax; start += step) {
-		glVertex2f(v2d->cur.xmin, start);
-		glVertex2f(v2d->cur.xmax, start);
+	start_y = v2d->cur.ymin;
+	if (start_y < 0.0)
+		start_y += -(float)fmod(v2d->cur.ymin, step);
+	else
+		start_y += (step - (float)fabs(fmod(v2d->cur.ymin, step)));
+
+	if (start_y > v2d->cur.ymax)
+		count_y = 0;
+	else
+		count_y = (v2d->cur.ymax - start_y) / step + 1;
+	
+	if (count_x > 0 || count_y > 0) {
+		VertexFormat* format = immVertexFormat();
+		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned color = add_attrib(format, "color", GL_FLOAT, 3, KEEP_FLOAT);
+		float theme_color[3];
+
+		UI_GetThemeColorShade3fv(TH_BACK, -10, theme_color);
+		
+		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+		immBegin(GL_LINES, count_x * 2 + count_y * 2 + 4);
+		
+		immAttrib3fv(color, theme_color);
+		for (int i = 0; i < count_x ; start_x += step, i++) {
+			immVertex2f(pos, start_x, v2d->cur.ymin);
+			immVertex2f(pos, start_x, v2d->cur.ymax);
+		}
+
+		for (int i = 0; i < count_y; start_y += step, i++) {
+			immVertex2f(pos, v2d->cur.xmin, start_y);
+			immVertex2f(pos, v2d->cur.xmax, start_y);
+		}
+	
+		/* X and Y axis */
+		UI_GetThemeColorShade3fv(TH_BACK, -18, theme_color);
+		
+		immAttrib3fv(color, theme_color);
+		immVertex2f(pos, 0.0f, v2d->cur.ymin);
+		immVertex2f(pos, 0.0f, v2d->cur.ymax);
+		immVertex2f(pos, v2d->cur.xmin, 0.0f);
+		immVertex2f(pos, v2d->cur.xmax, 0.0f);
+	
+		immEnd();
+		immUnbindProgram();
 	}
-	
-	/* X and Y axis */
-	UI_ThemeColorShade(TH_BACK, -18);
-	glVertex2f(0.0f, v2d->cur.ymin);
-	glVertex2f(0.0f, v2d->cur.ymax);
-	glVertex2f(v2d->cur.xmin, 0.0f);
-	glVertex2f(v2d->cur.xmax, 0.0f);
-	
-	glEnd();
 }
 
 /* Draw a multi-level grid in given 2d-region */
