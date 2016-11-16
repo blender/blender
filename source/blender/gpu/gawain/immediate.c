@@ -539,6 +539,26 @@ void immAttrib2i(unsigned attrib_id, int x, int y)
 	data[1] = y;
 	}
 
+void immAttrib2s(unsigned attrib_id, short x, short y)
+	{
+	Attrib* attrib = imm.vertex_format.attribs + attrib_id;
+
+#if TRUST_NO_ONE
+	assert(attrib_id < imm.vertex_format.attrib_ct);
+	assert(attrib->comp_type == GL_SHORT);
+	assert(attrib->comp_ct == 2);
+	assert(imm.vertex_idx < imm.vertex_ct);
+	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
+#endif
+
+	setAttribValueBit(attrib_id);
+
+	short* data = (short*)(imm.vertex_data + attrib->offset);
+
+	data[0] = x;
+	data[1] = y;
+	}
+
 void immAttrib3fv(unsigned attrib_id, const float data[3])
 	{
 	immAttrib3f(attrib_id, data[0], data[1], data[2]);
@@ -665,6 +685,12 @@ void immVertex3f(unsigned attrib_id, float x, float y, float z)
 void immVertex2i(unsigned attrib_id, int x, int y)
 	{
 	immAttrib2i(attrib_id, x, y);
+	immEndVertex();
+	}
+
+void immVertex2s(unsigned attrib_id, short x, short y)
+	{
+	immAttrib2s(attrib_id, x, y);
 	immEndVertex();
 	}
 

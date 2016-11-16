@@ -45,6 +45,8 @@ void immAttrib4f(unsigned attrib_id, float x, float y, float z, float w);
 
 void immAttrib2i(unsigned attrib_id, int x, int y);
 
+void immAttrib2s(unsigned attrib_id, short x, short y);
+
 void immAttrib3fv(unsigned attrib_id, const float data[3]);
 void immAttrib4fv(unsigned attrib_id, const float data[4]);
 
@@ -65,6 +67,8 @@ void immVertex2f(unsigned attrib_id, float x, float y);
 void immVertex3f(unsigned attrib_id, float x, float y, float z);
 
 void immVertex2i(unsigned attrib_id, int x, int y);
+
+void immVertex2s(unsigned attrib_id, short x, short y);
 
 void immVertex2fv(unsigned attrib_id, const float data[2]);
 void immVertex3fv(unsigned attrib_id, const float data[3]);
