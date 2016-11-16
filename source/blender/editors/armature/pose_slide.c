@@ -685,6 +685,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	switch (event->type) {
 		case LEFTMOUSE: /* confirm */
 		case RETKEY:
+		case PADENTER:
 		{
 			/* return to normal cursor and header status */
 			ED_area_headerprint(pso->sa, NULL);

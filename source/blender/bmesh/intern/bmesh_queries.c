@@ -102,16 +102,9 @@ BMLoop *BM_loop_other_edge_loop(BMLoop *l, BMVert *v)
  */
 BMLoop *BM_face_other_vert_loop(BMFace *f, BMVert *v_prev, BMVert *v)
 {
-	BMIter liter;
-	BMLoop *l_iter;
+	BMLoop *l_iter = BM_face_vert_share_loop(f, v);
 
 	BLI_assert(BM_edge_exists(v_prev, v) != NULL);
-
-	BM_ITER_ELEM (l_iter, &liter, v, BM_LOOPS_OF_VERT) {
-		if (l_iter->f == f) {
-			break;
-		}
-	}
 
 	if (l_iter) {
 		if (l_iter->prev->v == v_prev) {
@@ -149,7 +142,6 @@ BMLoop *BM_face_other_vert_loop(BMFace *f, BMVert *v_prev, BMVert *v)
  *                      The faces loop direction is ignored.
  * </pre>
  */
-
 BMLoop *BM_loop_other_vert_loop(BMLoop *l, BMVert *v)
 {
 #if 0 /* works but slow */
@@ -178,9 +170,6 @@ BMLoop *BM_loop_other_vert_loop(BMLoop *l, BMVert *v)
 			return l->next->next;
 		}
 	}
-
-
-
 #endif
 }
 
@@ -392,17 +381,7 @@ BMFace *BM_vert_pair_share_face_by_angle(
  */
 BMLoop *BM_vert_find_first_loop(BMVert *v)
 {
-	BMEdge *e;
-
-	if (!v->e)
-		return NULL;
-
-	e = bmesh_disk_faceedge_find_first(v->e, v);
-
-	if (!e)
-		return NULL;
-
-	return bmesh_radial_faceloop_find_first(e->l, v);
+	return v->e ? bmesh_disk_faceloop_find_first(v->e, v) : NULL;
 }
 
 /**
@@ -878,9 +857,18 @@ int BM_vert_face_count_ex(const BMVert *v, int count_max)
  *
  * same as ``BM_vert_face_count(v) != 0`` or ``BM_vert_find_first_loop(v) == NULL``
  */
-bool BM_vert_face_check(BMVert *v)
+bool BM_vert_face_check(const BMVert *v)
 {
-	return v->e && (bmesh_disk_faceedge_find_first(v->e, v) != NULL);
+	if (v->e != NULL) {
+		const BMEdge *e_iter, *e_first;
+		e_first = e_iter = v->e;
+		do {
+			if (e_iter->l != NULL) {
+				return true;
+			}
+		} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
+	}
+	return false;
 }
 
 /**
@@ -926,7 +914,8 @@ bool BM_vert_is_manifold(const BMVert *v)
 
 	/* count edges while looking for non-manifold edges */
 	e_first = e_iter = v->e;
-	l_first = e_iter->l ? e_iter->l : NULL;
+	/* may be null */
+	l_first = e_iter->l;
 	do {
 		/* loose edge or edge shared by more than two faces,
 		 * edges with 1 face user are OK, otherwise we could
@@ -1924,7 +1913,7 @@ BMEdge *BM_edge_find_double(BMEdge *e)
  *
  * \note there used to be a BM_face_exists_overlap function that checks for partial overlap.
  */
-bool BM_face_exists(BMVert **varr, int len, BMFace **r_existface)
+BMFace *BM_face_exists(BMVert **varr, int len)
 {
 	if (varr[0]->e) {
 		BMEdge *e_iter, *e_first;
@@ -1963,10 +1952,7 @@ bool BM_face_exists(BMVert **varr, int len, BMFace **r_existface)
 						}
 
 						if (i_walk == len) {
-							if (r_existface) {
-								*r_existface = l_iter_radial->f;
-							}
-							return true;
+							return l_iter_radial->f;
 						}
 					}
 				} while ((l_iter_radial = l_iter_radial->radial_next) != l_first_radial);
@@ -1975,10 +1961,7 @@ bool BM_face_exists(BMVert **varr, int len, BMFace **r_existface)
 		} while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, varr[0])) != e_first);
 	}
 
-	if (r_existface) {
-		*r_existface = NULL;
-	}
-	return false;
+	return NULL;
 }
 
 
@@ -2121,25 +2104,20 @@ bool BM_face_exists_multi_edge(BMEdge **earr, int len)
  * \note The face may contain other verts \b not in \a varr.
  *
  * \note Its possible there are more than one overlapping faces,
- * in this case the first one found will be assigned to \a r_f_overlap.
+ * in this case the first one found will be returned.
  *
  * \param varr  Array of unordered verts.
  * \param len  \a varr array length.
- * \param r_f_overlap  The overlapping face to return.
- * \return Success
+ * \return The face or NULL.
  */
 
-bool BM_face_exists_overlap(BMVert **varr, const int len, BMFace **r_f_overlap)
+BMFace *BM_face_exists_overlap(BMVert **varr, const int len)
 {
 	BMIter viter;
 	BMFace *f;
 	int i;
-	bool is_overlap = false;
+	BMFace *f_overlap = NULL;
 	LinkNode *f_lnk = NULL;
-
-	if (r_f_overlap) {
-		*r_f_overlap = NULL;
-	}
 
 #ifdef DEBUG
 	/* check flag isn't already set */
@@ -2154,10 +2132,7 @@ bool BM_face_exists_overlap(BMVert **varr, const int len, BMFace **r_f_overlap)
 		BM_ITER_ELEM (f, &viter, varr[i], BM_FACES_OF_VERT) {
 			if (BM_ELEM_API_FLAG_TEST(f, _FLAG_OVERLAP) == 0) {
 				if (len <= BM_verts_in_face_count(varr, len, f)) {
-					if (r_f_overlap)
-						*r_f_overlap = f;
-
-					is_overlap = true;
+					f_overlap = f;
 					break;
 				}
 
@@ -2171,7 +2146,7 @@ bool BM_face_exists_overlap(BMVert **varr, const int len, BMFace **r_f_overlap)
 		BM_ELEM_API_FLAG_DISABLE((BMFace *)f_lnk->link, _FLAG_OVERLAP);
 	}
 
-	return is_overlap;
+	return f_overlap;
 }
 
 /**

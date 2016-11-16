@@ -315,6 +315,12 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 			RE_render_result_rect_from_ibuf(rr, &scene->r, out, oglrender->view_id);
 			IMB_freeImBuf(out);
 		}
+		else if (gpd){
+			/* If there are no strips, Grease Pencil still needs a buffer to draw on */
+			ImBuf *out = IMB_allocImBuf(oglrender->sizex, oglrender->sizey, 32, IB_rect);
+			RE_render_result_rect_from_ibuf(rr, &scene->r, out, oglrender->view_id);
+			IMB_freeImBuf(out);
+		}
 
 		if (gpd) {
 			int i;
@@ -479,23 +485,24 @@ static void add_gpencil_renderpass(OGLRender *oglrender, RenderResult *rr, Rende
 		/* copy image data from rectf */
 		// XXX: Needs conversion.
 		unsigned char *src = (unsigned char *)RE_RenderViewGetById(rr, oglrender->view_id)->rect32;
-		float *dest = rp->rect;
+		if (src != NULL) {
+			float *dest = rp->rect;
 
-		int x, y, rectx, recty;
-		rectx = rr->rectx;
-		recty = rr->recty;
-		for (y = 0; y < recty; y++) {
-			for (x = 0; x < rectx; x++) {
-				unsigned char *pixSrc = src + 4 * (rectx * y + x);
-				if (pixSrc[3] > 0) {
-					float *pixDest = dest + 4 * (rectx * y + x);
-					float float_src[4];
-					srgb_to_linearrgb_uchar4(float_src, pixSrc);
-					addAlphaOverFloat(pixDest, float_src);
+			int x, y, rectx, recty;
+			rectx = rr->rectx;
+			recty = rr->recty;
+			for (y = 0; y < recty; y++) {
+				for (x = 0; x < rectx; x++) {
+					unsigned char *pixSrc = src + 4 * (rectx * y + x);
+					if (pixSrc[3] > 0) {
+						float *pixDest = dest + 4 * (rectx * y + x);
+						float float_src[4];
+						srgb_to_linearrgb_uchar4(float_src, pixSrc);
+						addAlphaOverFloat(pixDest, float_src);
+					}
 				}
 			}
 		}
-
 		/* back layer status */
 		i = 0;
 		for (bGPDlayer *gph = gpd->layers.first; gph; gph = gph->next) {

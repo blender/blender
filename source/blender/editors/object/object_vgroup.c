@@ -886,7 +886,7 @@ static float get_vert_def_nr(Object *ob, const int def_nr, const int vertnum)
 			const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 			/* warning, this lookup is _not_ fast */
 
-			if (cd_dvert_offset != -1) {
+			if (cd_dvert_offset != -1 && vertnum < em->bm->totvert) {
 				BMVert *eve;
 				BM_mesh_elem_table_ensure(em->bm, BM_VERT);
 				eve = BM_vert_at_index(em->bm, vertnum);

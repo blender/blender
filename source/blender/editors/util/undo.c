@@ -205,6 +205,19 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 	return OPERATOR_FINISHED;
 }
 
+void ED_undo_grouped_push(bContext *C, const char *str)
+{
+	/* do nothing if previous undo task is the same as this one (or from the same undo group) */
+	const char *last_undo = BKE_undo_get_name_last();
+
+	if (last_undo && STREQ(str, last_undo)) {
+		return;
+	}
+
+	/* push as usual */
+	ED_undo_push(C, str);
+}
+
 void ED_undo_pop(bContext *C)
 {
 	ed_undo_step(C, 1, NULL);
@@ -218,6 +231,16 @@ void ED_undo_push_op(bContext *C, wmOperator *op)
 {
 	/* in future, get undo string info? */
 	ED_undo_push(C, op->type->name);
+}
+
+void ED_undo_grouped_push_op(bContext *C, wmOperator *op)
+{
+	if (op->type->undo_group[0] != '\0') {
+		ED_undo_grouped_push(C, op->type->undo_group);
+	}
+	else {
+		ED_undo_grouped_push(C, op->type->name);
+	}
 }
 
 void ED_undo_pop_op(bContext *C, wmOperator *op)

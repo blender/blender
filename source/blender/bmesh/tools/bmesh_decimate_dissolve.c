@@ -322,9 +322,7 @@ void BM_mesh_decimate_dissolve_ex(
 			i = BM_elem_index_get(e);
 
 			if (BM_edge_is_manifold(e)) {
-				f_new = BM_faces_join_pair(bm, e->l->f,
-				                           e->l->radial_next->f, e,
-				                           false); /* join faces */
+				f_new = BM_faces_join_pair(bm, e->l, e->l->radial_next, false);
 
 				if (f_new) {
 					BMLoop *l_first, *l_iter;

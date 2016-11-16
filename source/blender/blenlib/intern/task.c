@@ -237,7 +237,7 @@ static void task_pool_num_decrease(TaskPool *pool, size_t done)
 	BLI_assert(pool->num >= done);
 
 	pool->num -= done;
-	atomic_sub_z(&pool->currently_running_tasks, done);
+	atomic_sub_and_fetch_z(&pool->currently_running_tasks, done);
 	pool->done += done;
 
 	if (pool->num == 0)
@@ -292,7 +292,7 @@ static bool task_scheduler_thread_wait_pop(TaskScheduler *scheduler, Task **task
 				continue;
 			}
 
-			if (atomic_add_z(&pool->currently_running_tasks, 1) <= pool->num_threads ||
+			if (atomic_add_and_fetch_z(&pool->currently_running_tasks, 1) <= pool->num_threads ||
 			    pool->num_threads == 0)
 			{
 				*task = current_task;
@@ -301,7 +301,7 @@ static bool task_scheduler_thread_wait_pop(TaskScheduler *scheduler, Task **task
 				break;
 			}
 			else {
-				atomic_sub_z(&pool->currently_running_tasks, 1);
+				atomic_sub_and_fetch_z(&pool->currently_running_tasks, 1);
 			}
 		}
 		if (!found_task)
@@ -669,7 +669,7 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 		/* if found task, do it, otherwise wait until other tasks are done */
 		if (found_task) {
 			/* run task */
-			atomic_add_z(&pool->currently_running_tasks, 1);
+			atomic_add_and_fetch_z(&pool->currently_running_tasks, 1);
 			work_task->run(pool, work_task->taskdata, 0);
 
 			/* delete task */

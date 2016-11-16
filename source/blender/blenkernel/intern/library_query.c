@@ -1102,8 +1102,9 @@ void BKE_library_ID_test_usages(Main *bmain, void *idv, bool *is_used_local, boo
 	*is_used_linked = (iter.count_indirect != 0);
 }
 
-
-static int foreach_libblock_tag_unused_linked_data_callback(void *user_data, ID *self_id, ID **id_p, int UNUSED(cb_flag))
+/* ***** IDs usages.checking/tagging. ***** */
+static int foreach_libblock_used_linked_data_tag_clear_cb(
+        void *user_data, ID *self_id, ID **id_p, int UNUSED(cb_flag))
 {
 	bool *is_changed = user_data;
 
@@ -1138,7 +1139,7 @@ static int foreach_libblock_tag_unused_linked_data_callback(void *user_data, ID 
  * \param do_init_tag if \a true, all linked data are checked, if \a false, only linked datablocks already tagged with
  *                    LIB_TAG_DOIT are checked.
  */
-void BKE_library_tag_unused_linked_data(Main *bmain, const bool do_init_tag)
+void BKE_library_unused_linked_data_set_tag(Main *bmain, const bool do_init_tag)
 {
 	ListBase *lb_array[MAX_LIBARRAY];
 
@@ -1164,7 +1165,38 @@ void BKE_library_tag_unused_linked_data(Main *bmain, const bool do_init_tag)
 
 		while (i--) {
 			for (ID *id = lb_array[i]->first; id; id = id->next) {
-				BKE_library_foreach_ID_link(id, foreach_libblock_tag_unused_linked_data_callback, &do_loop, IDWALK_NOP);
+				if (id->tag & LIB_TAG_DOIT) {
+					/* Unused ID (so far), no need to check it further. */
+					continue;
+				}
+				BKE_library_foreach_ID_link(id, foreach_libblock_used_linked_data_tag_clear_cb, &do_loop, IDWALK_NOP);
+			}
+		}
+	}
+}
+
+/**
+ * Untag linked data blocks used by other untagged linked datablocks.
+ * Used to detect datablocks that we can forcefully make local (instead of copying them to later get rid of original):
+ * All datablocks we want to make local are tagged by caller, after this function has ran caller knows datablocks still
+ * tagged can directly be made local, since they are only used by other datablocks that will also be made fully local.
+ */
+void BKE_library_indirectly_used_data_tag_clear(Main *bmain)
+{
+	ListBase *lb_array[MAX_LIBARRAY];
+
+	bool do_loop = true;
+	while (do_loop) {
+		int i = set_listbasepointers(bmain, lb_array);
+		do_loop = false;
+
+		while (i--) {
+			for (ID *id = lb_array[i]->first; id; id = id->next) {
+				if (id->lib == NULL || id->tag & LIB_TAG_DOIT) {
+					/* Local or non-indirectly-used ID (so far), no need to check it further. */
+					continue;
+				}
+				BKE_library_foreach_ID_link(id, foreach_libblock_used_linked_data_tag_clear_cb, &do_loop, IDWALK_NOP);
 			}
 		}
 	}

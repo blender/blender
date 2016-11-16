@@ -142,8 +142,11 @@ def main():
     zip_name = "blender_python_reference_%s" % blenver_zip  # We can't use 'release' postfix here...
     zip_path = os.path.join(args.mirror_dir, zip_name)
     with zipfile.ZipFile(zip_path, 'w') as zf:
-        for de in os.scandir(api_dir):
-            zf.write(de.path, arcname=os.path.join(zip_name, de.name))
+        for dirname, _, filenames in os.walk(api_dir):
+            for filename in filenames:
+                filepath = os.path.join(dirname, filename)
+                zip_filepath = os.path.join(zip_name, os.path.relpath(filepath, api_dir))
+                zf.write(filepath, arcname=zip_filepath)
     os.rename(zip_path, os.path.join(api_dir, "%s.zip" % zip_name))
 
     # VII) Create symlinks and html redirects.

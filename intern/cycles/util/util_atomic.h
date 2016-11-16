@@ -39,7 +39,7 @@ ATOMIC_INLINE void atomic_update_max_z(size_t *maximum_value, size_t value)
 /* Float atomics implementation credits:
  *   http://suhorukov.blogspot.in/2011/12/opencl-11-atomic-operations-on-floating.html
  */
-ccl_device_inline void atomic_add_float(volatile ccl_global float *source,
+ccl_device_inline void atomic_add_and_fetch_float(volatile ccl_global float *source,
                                         const float operand)
 {
 	union {

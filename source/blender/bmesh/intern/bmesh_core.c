@@ -444,12 +444,9 @@ BMFace *BM_face_create(
 
 	if (create_flag & BM_CREATE_NO_DOUBLE) {
 		/* Check if face already exists */
-		const bool is_overlap = BM_face_exists(verts, len, &f);
-		if (is_overlap) {
+		f = BM_face_exists(verts, len);
+		if (f != NULL) {
 			return f;
-		}
-		else {
-			BLI_assert(f == NULL);
 		}
 	}
 
@@ -1024,19 +1021,11 @@ static int UNUSED_FUNCTION(bm_loop_length)(BMLoop *l)
  * \param use_loop_mdisp_flip: When set, flip the Z-depth of the mdisp,
  * (use when flipping normals, disable when mirroring, eg: symmetrize).
  */
-static void bm_loop_reverse_loop(
+void bmesh_loop_reverse(
         BMesh *bm, BMFace *f,
-#ifdef USE_BMESH_HOLES
-        BMLoopList *lst,
-#endif
         const int cd_loop_mdisp_offset, const bool use_loop_mdisp_flip)
 {
-
-#ifdef USE_BMESH_HOLES
-	BMLoop *l_first = lst->first;
-#else
 	BMLoop *l_first = f->l_first;
-#endif
 
 	/* track previous cycles radial state */
 	BMEdge *e_prev = l_first->prev->e;
@@ -1052,7 +1041,7 @@ static void bm_loop_reverse_loop(
 		bool is_iter_boundary = l_iter_radial_next == l_iter_radial_next->radial_next;
 
 #if 0
-		bmesh_radial_loop_remove(e_curr, l_iter);
+		bmesh_radial_loop_remove(e_iter, l_iter);
 		bmesh_radial_loop_append(e_prev, l_iter);
 #else
 		/* inline loop reversal */
@@ -1105,20 +1094,6 @@ static void bm_loop_reverse_loop(
 
 	/* Loop indices are no more valid! */
 	bm->elem_index_dirty |= BM_LOOP;
-}
-
-/**
- * \brief Flip the faces direction
- */
-void bmesh_loop_reverse(
-        BMesh *bm, BMFace *f,
-        const int cd_loop_mdisp_offset, const bool use_loop_mdisp_flip)
-{
-#ifdef USE_BMESH_HOLES
-	bm_loop_reverse_loop(bm, f, f->loops.first, cd_loop_mdisp_offset, use_loop_mdisp_flip);
-#else
-	bm_loop_reverse_loop(bm, f, cd_loop_mdisp_offset, use_loop_mdisp_flip);
-#endif
 }
 
 static void bm_elements_systag_enable(void *veles, int tot, const char api_flag)
@@ -1339,22 +1314,15 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 #ifdef USE_BMESH_HOLES
 	/* add holes */
 	BLI_movelisttolist(&f_new->loops, &holes);
-#endif
 
 	/* update loop face pointer */
-#ifdef USE_BMESH_HOLES
-	for (lst = f_new->loops.first; lst; lst = lst->next)
-#endif
-	{
-#ifdef USE_BMESH_HOLES
+	for (lst = f_new->loops.first; lst; lst = lst->next) {
 		l_iter = l_first = lst->first;
-#else
-		l_iter = l_first = BM_FACE_FIRST_LOOP(f_new);
-#endif
 		do {
 			l_iter->f = f_new;
 		} while ((l_iter = l_iter->next) != l_first);
 	}
+#endif
 
 	bm_elements_systag_disable(faces, totface, _FLAG_JF);
 	BM_ELEM_API_FLAG_DISABLE(f_new, _FLAG_JF);
@@ -2379,7 +2347,7 @@ void bmesh_vert_separate(
 
 			v_new = BM_vert_create(bm, v->co, v, BM_CREATE_NOP);
 			if (copy_select) {
-				BM_elem_select_copy(bm, bm, v_new, v);
+				BM_elem_select_copy(bm, v_new, v);
 			}
 
 			while ((e = BLI_SMALLSTACK_POP(edges))) {
@@ -2437,18 +2405,13 @@ static void bmesh_vert_separate__cleanup(BMesh *bm, LinkNode *edges_separate)
 		do {
 			BMEdge *e_orig = n_orig->link;
 			LinkNode *n_step = n_orig->next;
-			LinkNode *n_prev = n_orig;
 			do {
 				BMEdge *e = n_step->link;
 				BLI_assert(e != e_orig);
 				if ((e->v1 == e_orig->v1) && (e->v2 == e_orig->v2)) {
 					BM_edge_splice(bm, e_orig, e);
-					n_prev->next = n_step->next;
-					n_step = n_prev;
 				}
-			} while ((void)
-			         (n_prev = n_step),
-			         (n_step = n_step->next));
+			} while ((n_step = n_step->next));
 
 		} while ((n_orig = n_orig->next) && n_orig->next);
 	} while ((edges_separate = edges_separate->next));
@@ -2638,7 +2601,7 @@ void bmesh_edge_separate(
 	l_sep->e = e_new;
 
 	if (copy_select) {
-		BM_elem_select_copy(bm, bm, e_new, e);
+		BM_elem_select_copy(bm, e_new, e);
 	}
 
 	BLI_assert(bmesh_radial_length(e->l) == radlen - 1);

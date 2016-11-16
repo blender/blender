@@ -1970,7 +1970,7 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	static EnumPropertyItem other_uv_filter_items[] = {
 		{SI_FILTER_ALL, "ALL", 0, "All", "No filter, show all islands from other objects"},
 		{SI_FILTER_SAME_IMAGE, "SAME_IMAGE", ICON_IMAGE_DATA, "Same Image",
-		 "Only show others' UV islads who's active image matches image of the active face"},
+		 "Only show others' UV islands whose active image matches image of the active face"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

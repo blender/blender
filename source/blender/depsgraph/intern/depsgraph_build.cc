@@ -324,7 +324,15 @@ void DEG_scene_graph_free(Scene *scene)
 	}
 }
 
-void DEG_add_collision_relations(DepsNodeHandle *handle, Scene *scene, Object *ob, Group *group, int layer, unsigned int modifier_type, DEG_CollobjFilterFunction fn, bool dupli, const char *name)
+void DEG_add_collision_relations(DepsNodeHandle *handle,
+                                 Scene *scene,
+                                 Object *ob,
+                                 Group *group,
+                                 int layer,
+                                 unsigned int modifier_type,
+                                 DEG_CollobjFilterFunction fn,
+                                 bool dupli,
+                                 const char *name)
 {
 	unsigned int numcollobj;
 	Object **collobjs = get_collisionobjects_ext(scene, ob, group, layer, &numcollobj, modifier_type, dupli);
@@ -342,7 +350,13 @@ void DEG_add_collision_relations(DepsNodeHandle *handle, Scene *scene, Object *o
 		MEM_freeN(collobjs);
 }
 
-void DEG_add_forcefield_relations(DepsNodeHandle *handle, Scene *scene, Object *ob, EffectorWeights *effector_weights, bool add_absorption, int skip_forcefield, const char *name)
+void DEG_add_forcefield_relations(DepsNodeHandle *handle,
+                                  Scene *scene,
+                                  Object *ob,
+                                  EffectorWeights *effector_weights,
+                                  bool add_absorption,
+                                  int skip_forcefield,
+                                  const char *name)
 {
 	ListBase *effectors = pdInitEffectors(scene, ob, effector_weights, false);
 
@@ -352,12 +366,26 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle, Scene *scene, Object *
 				DEG_add_object_relation(handle, eff->ob, DEG_OB_COMP_TRANSFORM, name);
 
 				if (eff->pd->forcefield == PFIELD_SMOKEFLOW && eff->pd->f_source) {
-					DEG_add_object_relation(handle, eff->pd->f_source, DEG_OB_COMP_TRANSFORM, "Smoke Force Domain");
-					DEG_add_object_relation(handle, eff->pd->f_source, DEG_OB_COMP_GEOMETRY, "Smoke Force Domain");
+					DEG_add_object_relation(handle,
+					                        eff->pd->f_source,
+					                        DEG_OB_COMP_TRANSFORM,
+					                        "Smoke Force Domain");
+					DEG_add_object_relation(handle,
+					                        eff->pd->f_source,
+					                        DEG_OB_COMP_GEOMETRY,
+					                        "Smoke Force Domain");
 				}
 
 				if (add_absorption && (eff->pd->flag & PFIELD_VISIBILITY)) {
-					DEG_add_collision_relations(handle, scene, ob, NULL, eff->ob->lay, eModifierType_Collision, NULL, true, "Force Absorption");
+					DEG_add_collision_relations(handle,
+					                            scene,
+					                            ob,
+					                            NULL,
+					                            eff->ob->lay,
+					                            eModifierType_Collision,
+					                            NULL,
+					                            true,
+					                            "Force Absorption");
 				}
 			}
 		}

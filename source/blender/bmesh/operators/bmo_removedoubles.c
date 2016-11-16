@@ -160,7 +160,7 @@ finally:
 	}
 
 	if (STACK_SIZE(edges) >= 3) {
-		if (!BM_face_exists(verts, STACK_SIZE(edges), NULL)) {
+		if (!BM_face_exists(verts, STACK_SIZE(edges))) {
 			BMFace *f_new = BM_face_create(bm, verts, edges, STACK_SIZE(edges), f, BM_CREATE_NOP);
 			BLI_assert(f_new != f);
 

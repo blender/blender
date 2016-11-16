@@ -3392,7 +3392,9 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3])
 	}
 	
 	protectedTransBits(td->protectflag, vec);
-	add_v3_v3v3(td->loc, td->iloc, vec);
+	if (td->loc) {
+		add_v3_v3v3(td->loc, td->iloc, vec);
+	}
 	
 	constraintTransLim(t, td);
 }

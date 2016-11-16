@@ -1781,7 +1781,6 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 	BLI_duplicatelist(&pose->agroups, &frompose->agroups);
 	pose->active_group = frompose->active_group;
 
-	BKE_pose_channels_hash_make(frompose);
 	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
 		pchanp = BKE_pose_channel_find_name(frompose, pchan->name);
 		
@@ -1795,6 +1794,7 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			
 			/* copy posechannel to temp, but restore important pointers */
 			pchanw = *pchanp;
+			pchanw.bone = pchan->bone;
 			pchanw.prev = pchan->prev;
 			pchanw.next = pchan->next;
 			pchanw.parent = pchan->parent;

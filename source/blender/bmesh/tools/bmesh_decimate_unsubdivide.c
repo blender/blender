@@ -74,7 +74,7 @@ static bool bm_vert_dissolve_fan_test(BMVert *v)
 	    ((tot_edge == 3) && (tot_edge_boundary == 0) && (tot_edge_manifold == 3)) ||
 	    ((tot_edge == 3) && (tot_edge_boundary == 2) && (tot_edge_manifold == 1)))
 	{
-		if (!BM_face_exists(varr, tot_edge, NULL)) {
+		if (!BM_face_exists(varr, tot_edge)) {
 			return true;
 		}
 	}

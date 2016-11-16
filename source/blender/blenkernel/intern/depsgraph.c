@@ -3096,7 +3096,7 @@ void DAG_threaded_update_handle_node_updated(void *node_v,
 	for (itA = node->child; itA; itA = itA->next) {
 		DagNode *child_node = itA->node;
 		if (child_node != node) {
-			atomic_sub_uint32(&child_node->num_pending_parents, 1);
+			atomic_sub_and_fetch_uint32(&child_node->num_pending_parents, 1);
 
 			if (child_node->num_pending_parents == 0) {
 				bool need_schedule;

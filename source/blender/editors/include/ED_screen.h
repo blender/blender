@@ -183,6 +183,7 @@ int     ED_operator_uvmap(struct bContext *C);
 int     ED_operator_posemode_exclusive(struct bContext *C);
 int     ED_operator_posemode_context(struct bContext *C);
 int     ED_operator_posemode(struct bContext *C);
+int     ED_operator_posemode_local(struct bContext *C);
 int     ED_operator_mask(struct bContext *C);
 
 

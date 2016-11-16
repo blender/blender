@@ -152,7 +152,7 @@ static void deg_task_run_func(TaskPool *pool,
 				}
 				if ((rel->flag & DEPSREL_FLAG_CYCLIC) == 0) {
 					BLI_assert(child->num_links_pending > 0);
-					atomic_sub_uint32(&child->num_links_pending, 1);
+					atomic_sub_and_fetch_uint32(&child->num_links_pending, 1);
 				}
 				if (child->num_links_pending == 0) {
 					bool is_scheduled = atomic_fetch_and_or_uint8(
@@ -287,7 +287,7 @@ static void schedule_node(TaskPool *pool, Depsgraph *graph, unsigned int layers,
 	{
 		if (dec_parents) {
 			BLI_assert(node->num_links_pending > 0);
-			atomic_sub_uint32(&node->num_links_pending, 1);
+			atomic_sub_and_fetch_uint32(&node->num_links_pending, 1);
 		}
 
 		if (node->num_links_pending == 0) {

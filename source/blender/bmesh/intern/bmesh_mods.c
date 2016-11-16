@@ -104,7 +104,6 @@ bool BM_vert_dissolve(BMesh *bm, BMVert *v)
  */
 bool BM_disk_dissolve(BMesh *bm, BMVert *v)
 {
-	BMFace *f, *f2;
 	BMEdge *e, *keepedge = NULL, *baseedge = NULL;
 	int len = 0;
 
@@ -132,16 +131,17 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
 #if 0
 		/* handle specific case for three-valence.  solve it by
 		 * increasing valence to four.  this may be hackish. .  */
-		BMLoop *loop = e->l;
-		if (loop->v == v) loop = loop->next;
-		if (!BM_face_split(bm, loop->f, v, loop->v, NULL, NULL, false))
+		BMLoop *l_a = BM_face_vert_share_loop(e->l->f, v);
+		BMLoop *l_b = (e->l->v == v) ? e->l->next : e->l;
+
+		if (!BM_face_split(bm, e->l->f, l_a, l_b, NULL, NULL, false))
 			return false;
 
 		if (!BM_disk_dissolve(bm, v)) {
 			return false;
 		}
 #else
-		if (UNLIKELY(!BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e, true))) {
+		if (UNLIKELY(!BM_faces_join_pair(bm, e->l, e->l->radial_next, true))) {
 			return false;
 		}
 		else if (UNLIKELY(!BM_vert_collapse_faces(bm, v->e, v, 1.0, true, false, true))) {
@@ -159,11 +159,10 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
 		}
 
 		/* handle two-valence */
-		f = e->l->f;
-		f2 = e->l->radial_next->f;
-
-		if (f != f2 && !BM_faces_join_pair(bm, f, f2, e, true)) {
-			return false;
+		if (e->l != e->l->radial_next) {
+			if (!BM_faces_join_pair(bm, e->l, e->l->radial_next, true)) {
+				return false;
+			}
 		}
 
 		return true;
@@ -176,9 +175,9 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
 			done = true;
 			e = v->e;
 			do {
-				f = NULL;
+				BMFace *f = NULL;
 				if (BM_edge_is_manifold(e) && (e != baseedge) && (e != keepedge)) {
-					f = BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e, true);
+					f = BM_faces_join_pair(bm, e->l, e->l->radial_next, true);
 					/* return if couldn't join faces in manifold
 					 * conditions */
 					/* !disabled for testing why bad things happen */
@@ -204,12 +203,9 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
 		
 		if (e->l) {
 			/* get remaining two faces */
-			f = e->l->f;
-			f2 = e->l->radial_next->f;
-
-			if (f != f2) {
+			if (e->l != e->l->radial_next) {
 				/* join two remaining faces */
-				if (!BM_faces_join_pair(bm, f, f2, e, true)) {
+				if (!BM_faces_join_pair(bm, e->l, e->l->radial_next, true)) {
 					return false;
 				}
 			}
@@ -224,30 +220,24 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v)
  *
  * Joins two adjacent faces together.
  *
- * Because this method calls to #BM_faces_join to do its work, if a pair
- * of faces share multiple edges, the pair of faces will be joined at
- * every edge (not just edge \a e). This part of the functionality might need
- * to be reconsidered.
+ * \note This method calls to #BM_faces_join to do its work.
+ * This means connected edges which also share the two faces will be joined.
  *
  * If the windings do not match the winding of the new face will follow
- * \a f_a's winding (i.e. \a f_b will be reversed before the join).
+ * \a l_a's winding (i.e. \a l_b will be reversed before the join).
  *
- * \return pointer to the combined face
+ * \return The combined face or NULL on failure.
  */
-BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f_a, BMFace *f_b, BMEdge *e, const bool do_del)
+BMFace *BM_faces_join_pair(BMesh *bm, BMLoop *l_a, BMLoop *l_b, const bool do_del)
 {
-	BMFace *faces[2] = {f_a, f_b};
-
-	BMLoop *l_a = BM_face_edge_share_loop(f_a, e);
-	BMLoop *l_b = BM_face_edge_share_loop(f_b, e);
-
-	BLI_assert(l_a && l_b);
+	BLI_assert((l_a != l_b) && (l_a->e == l_b->e));
 
 	if (l_a->v == l_b->v) {
 		const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
-		bmesh_loop_reverse(bm, f_b, cd_loop_mdisp_offset, true);
+		bmesh_loop_reverse(bm, l_b->f, cd_loop_mdisp_offset, true);
 	}
-	
+
+	BMFace *faces[2] = {l_a->f, l_b->f};
 	return BM_faces_join(bm, faces, 2, do_del);
 }
 
@@ -551,7 +541,7 @@ BMEdge *BM_vert_collapse_edge(
 			BMVert *tv2 = BM_edge_other_vert(e2, v_kill);
 			if (tv2) {
 				/* only action, other calls here only get the edge to return */
-				e_new = bmesh_jekv(bm, e_kill, v_kill, do_del);
+				e_new = bmesh_jekv(bm, e_kill, v_kill, do_del, true, kill_degenerate_faces);
 			}
 		}
 	}
@@ -989,6 +979,7 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
 	BMLoop *l1, *l2;
 	BMFace *f;
 	BMEdge *e_new = NULL;
+	char f_active_prev = 0;
 	char f_hflag_prev_1;
 	char f_hflag_prev_2;
 
@@ -1039,8 +1030,18 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
 	f_hflag_prev_1 = l1->f->head.hflag;
 	f_hflag_prev_2 = l2->f->head.hflag;
 
+	/* maintain active face */
+	if (bm->act_face == l1->f) {
+		f_active_prev = 1;
+	}
+	else if (bm->act_face == l2->f) {
+		f_active_prev = 2;
+	}
+
+	const bool is_flipped = !BM_edge_is_contiguous(e);
+
 	/* don't delete the edge, manually remove the edge after so we can copy its attributes */
-	f = BM_faces_join_pair(bm, l1->f, l2->f, e, true);
+	f = BM_faces_join_pair(bm, BM_face_edge_share_loop(l1->f, e), BM_face_edge_share_loop(l2->f, e), true);
 
 	if (f == NULL) {
 		return NULL;
@@ -1060,6 +1061,22 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
 		if (BM_edge_face_pair(e_new, &fa, &fb)) {
 			fa->head.hflag = f_hflag_prev_1;
 			fb->head.hflag = f_hflag_prev_2;
+
+			if (f_active_prev == 1) {
+				bm->act_face = fa;
+			}
+			else if (f_active_prev == 2) {
+				bm->act_face = fb;
+			}
+
+			if (is_flipped) {
+				BM_face_normal_flip(bm, fb);
+
+				if (ccw) {
+					/* needed otherwise ccw toggles direction */
+					e_new->l = e_new->l->radial_next;
+				}
+			}
 		}
 	}
 	else {

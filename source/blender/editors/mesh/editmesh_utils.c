@@ -1139,7 +1139,6 @@ BMEdge *EDBM_verts_mirror_get_edge(BMEditMesh *em, BMEdge *e)
 
 BMFace *EDBM_verts_mirror_get_face(BMEditMesh *em, BMFace *f)
 {
-	BMFace *f_mirr = NULL;
 	BMVert **v_mirr_arr = BLI_array_alloca(v_mirr_arr, f->len);
 
 	BMLoop *l_iter, *l_first;
@@ -1152,8 +1151,7 @@ BMFace *EDBM_verts_mirror_get_face(BMEditMesh *em, BMFace *f)
 		}
 	} while ((l_iter = l_iter->next) != l_first);
 
-	BM_face_exists(v_mirr_arr, f->len, &f_mirr);
-	return f_mirr;
+	return BM_face_exists(v_mirr_arr, f->len);
 }
 
 void EDBM_verts_mirror_cache_clear(BMEditMesh *em, BMVert *v)

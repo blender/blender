@@ -725,10 +725,13 @@ static void wm_operator_finished(bContext *C, wmOperator *op, const bool repeat)
 	/* we don't want to do undo pushes for operators that are being
 	 * called from operators that already do an undo push. usually
 	 * this will happen for python operators that call C operators */
-	if (wm->op_undo_depth == 0)
+	if (wm->op_undo_depth == 0) {
 		if (op->type->flag & OPTYPE_UNDO)
 			ED_undo_push_op(C, op);
-	
+		else if (op->type->flag & OPTYPE_UNDO_GROUPED)
+			ED_undo_grouped_push_op(C, op);
+	}
+
 	if (repeat == 0) {
 		if (G.debug & G_DEBUG_WM) {
 			char *buf = WM_operator_pystring(C, op, false, true);
@@ -1860,9 +1863,12 @@ static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHand
 					wm->op_undo_depth--;
 
 				/* XXX check this carefully, CTX_wm_manager(C) == wm is a bit hackish */
-				if (CTX_wm_manager(C) == wm && wm->op_undo_depth == 0)
+				if (CTX_wm_manager(C) == wm && wm->op_undo_depth == 0) {
 					if (handler->op->type->flag & OPTYPE_UNDO)
 						ED_undo_push_op(C, handler->op);
+					else if (handler->op->type->flag & OPTYPE_UNDO_GROUPED)
+						ED_undo_grouped_push_op(C, handler->op);
+				}
 
 				if (handler->op->reports->list.first) {
 

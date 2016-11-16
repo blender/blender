@@ -253,10 +253,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 			if (BMO_edge_flag_test(bm, e, ELE_NEW)) {
 				/* in rare cases the edges face will have already been removed from the edge */
 				if (LIKELY(e->l)) {
-					BMFace *f_new = BM_faces_join_pair(
-					        bm, e->l->f,
-					        e->l->radial_next->f, e,
-					        false); /* join faces */
+					BMFace *f_new = BM_faces_join_pair(bm, e->l, e->l->radial_next, false);
 					if (f_new) {
 						BMO_face_flag_enable(bm, f_new, ELE_NEW);
 						BM_edge_kill(bm, e);

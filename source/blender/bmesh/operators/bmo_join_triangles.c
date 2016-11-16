@@ -361,16 +361,16 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	qsort(jedges, totedge, sizeof(*jedges), BLI_sortutil_cmp_float);
 
 	for (i = 0; i < totedge; i++) {
-		BMFace *f_a, *f_b;
+		BMLoop *l_a, *l_b;
 
 		e = jedges[i].data;
-		f_a = e->l->f;
-		f_b = e->l->radial_next->f;
+		l_a = e->l;
+		l_b = e->l->radial_next;
 
 		/* check if another edge already claimed this face */
-		if ((f_a->len == 3) && (f_b->len == 3)) {
+		if ((l_a->f->len == 3) && (l_b->f->len == 3)) {
 			BMFace *f_new;
-			f_new = BM_faces_join_pair(bm, f_a, f_b, e, true);
+			f_new = BM_faces_join_pair(bm, l_a, l_b, true);
 			if (f_new) {
 				BMO_face_flag_enable(bm, f_new, FACE_OUT);
 			}

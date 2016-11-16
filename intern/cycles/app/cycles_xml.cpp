@@ -210,17 +210,6 @@ static void xml_read_camera(XMLReadState& state, pugi::xml_node node)
 
 /* Shader */
 
-static string xml_socket_name(const char *name)
-{
-	string sname = name;
-	size_t i;
-
-	while((i = sname.find(" ")) != string::npos)
-		sname.replace(i, 1, "");
-	
-	return sname;
-}
-
 static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml_node graph_node)
 {
 	xml_read_node(state, shader, graph_node);
@@ -255,7 +244,7 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 					ShaderNode *fromnode = (ShaderNode*)graph_reader.node_map[from_node_name];
 
 					foreach(ShaderOutput *out, fromnode->outputs)
-						if(string_iequals(xml_socket_name(out->name().c_str()), from_socket_name.c_str()))
+						if(string_iequals(out->socket_type.name.string(), from_socket_name.string()))
 							output = out;
 
 					if(!output)
@@ -268,7 +257,7 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 					ShaderNode *tonode = (ShaderNode*)graph_reader.node_map[to_node_name];
 
 					foreach(ShaderInput *in, tonode->inputs)
-						if(string_iequals(xml_socket_name(in->name().c_str()), to_socket_name.c_str()))
+						if(string_iequals(in->socket_type.name.string(), to_socket_name.string()))
 							input = in;
 
 					if(!input)
@@ -406,7 +395,7 @@ static void xml_read_mesh(const XMLReadState& state, pugi::xml_node node)
 	int shader = 0;
 	bool smooth = state.smooth;
 
-	/* read vertices and polygons, RIB style */
+	/* read vertices and polygons */
 	vector<float3> P;
 	vector<float> UV;
 	vector<int> verts, nverts;
@@ -532,8 +521,12 @@ static void xml_read_mesh(const XMLReadState& state, pugi::xml_node node)
 		sdparams.objecttoworld = state.tfm;
 	}
 
-	/* temporary for test compatibility */
-	mesh->attributes.remove(ATTR_STD_VERTEX_NORMAL);
+	/* we don't yet support arbitrary attributes, for now add vertex
+	 * coordinates as generated coordinates if requested */
+	if (mesh->need_attribute(state.scene, ATTR_STD_GENERATED)) {
+		Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED);
+		memcpy(attr->data_float3(), mesh->verts.data(), sizeof(float3)*mesh->verts.size());
+	}
 }
 
 /* Light */

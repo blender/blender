@@ -485,9 +485,9 @@ void  bmiter__face_of_vert_begin(struct BMIter__face_of_vert *iter)
 {
 	((BMIter *)iter)->count = bmesh_disk_facevert_count(iter->vdata);
 	if (((BMIter *)iter)->count) {
-		iter->e_first = bmesh_disk_faceedge_find_first(iter->vdata->e, iter->vdata);
+		iter->l_first = bmesh_disk_faceloop_find_first(iter->vdata->e, iter->vdata);
+		iter->e_first = iter->l_first->e;
 		iter->e_next = iter->e_first;
-		iter->l_first = bmesh_radial_faceloop_find_first(iter->e_first->l, iter->vdata);
 		iter->l_next = iter->l_first;
 	}
 	else {
@@ -526,9 +526,9 @@ void  bmiter__loop_of_vert_begin(struct BMIter__loop_of_vert *iter)
 {
 	((BMIter *)iter)->count = bmesh_disk_facevert_count(iter->vdata);
 	if (((BMIter *)iter)->count) {
-		iter->e_first = bmesh_disk_faceedge_find_first(iter->vdata->e, iter->vdata);
+		iter->l_first = bmesh_disk_faceloop_find_first(iter->vdata->e, iter->vdata);
+		iter->e_first = iter->l_first->e;
 		iter->e_next = iter->e_first;
-		iter->l_first = bmesh_radial_faceloop_find_first(iter->e_first->l, iter->vdata);
 		iter->l_next = iter->l_first;
 	}
 	else {

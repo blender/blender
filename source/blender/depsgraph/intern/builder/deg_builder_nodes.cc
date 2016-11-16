@@ -106,6 +106,40 @@ extern "C" {
 
 namespace DEG {
 
+namespace {
+
+struct BuilderWalkUserData {
+	DepsgraphNodeBuilder *builder;
+	Scene *scene;
+};
+
+static void modifier_walk(void *user_data,
+                          struct Object * /*ob*/,
+                          struct Object **obpoin,
+                          int /*cd_flag*/)
+{
+	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
+	if (*obpoin) {
+		data->builder->build_object(data->scene, NULL, *obpoin);
+	}
+}
+
+void constraint_walk(bConstraint * /*con*/,
+                     ID **idpoin,
+                     bool /*is_reference*/,
+                     void *user_data)
+{
+	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
+	if (*idpoin) {
+		ID *id = *idpoin;
+		if (GS(id->name) == ID_OB) {
+			data->builder->build_object(data->scene, NULL, (Object *)id);
+		}
+	}
+}
+
+}  /* namespace */
+
 /* ************ */
 /* Node Builder */
 
@@ -403,19 +437,22 @@ SubgraphDepsNode *DepsgraphNodeBuilder::build_subgraph(Group *group)
 	{
 		/*Object *ob = go->ob;*/
 
-		/* Each "group object" is effectively a separate instance of the underlying
-		 * object data. When the group is evaluated, the transform results and/or
-		 * some other attributes end up getting overridden by the group
+		/* Each "group object" is effectively a separate instance of the
+		 * underlying object data. When the group is evaluated, the transform
+		 * results and/or some other attributes end up getting overridden by
+		 * the group.
 		 */
 	}
 
-	/* create a node for representing subgraph */
+	/* Create a node for representing subgraph. */
 	SubgraphDepsNode *subgraph_node = m_graph->add_subgraph_node(&group->id);
 	subgraph_node->graph = subgraph;
 
-	/* make a copy of the data this node will need? */
-	// XXX: do we do this now, or later?
-	// TODO: need API function which queries graph's ID's hash, and duplicates those blocks thoroughly with all outside links removed...
+	/* Make a copy of the data this node will need? */
+	/* XXX: do we do this now, or later? */
+	/* TODO: need API function which queries graph's ID's hash, and duplicates
+	 * those blocks thoroughly with all outside links removed.
+	 */
 
 	return subgraph_node;
 }
@@ -424,18 +461,40 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 {
 	if (ob->id.tag & LIB_TAG_DOIT) {
 		IDDepsNode *id_node = m_graph->find_id_node(&ob->id);
-		id_node->layers |= base->lay;
+		if (base != NULL) {
+			id_node->layers |= base->lay;
+		}
 		return;
 	}
+	ob->id.tag |= LIB_TAG_DOIT;
 
 	IDDepsNode *id_node = add_id_node(&ob->id);
-	id_node->layers |= base->lay;
+	if (base != NULL) {
+		id_node->layers |= base->lay;
+	}
 	ob->customdata_mask = 0;
 
-	/* standard components */
+	/* Standard components. */
 	build_object_transform(scene, ob);
 
-	/* object data */
+	if (ob->parent != NULL) {
+		build_object(scene, NULL, ob->parent);
+	}
+	if (ob->modifiers.first != NULL) {
+		BuilderWalkUserData data;
+		data.builder = this;
+		data.scene = scene;
+		modifiers_foreachObjectLink(ob, modifier_walk, &data);
+	}
+	if (ob->constraints.first != NULL) {
+		BuilderWalkUserData data;
+		data.builder = this;
+		data.scene = scene;
+		modifiers_foreachObjectLink(ob, modifier_walk, &data);
+		BKE_constraints_id_loop(&ob->constraints, constraint_walk, &data);
+	}
+
+	/* Object data. */
 	if (ob->data) {
 		/* type-specific data... */
 		switch (ob->type) {
@@ -445,15 +504,6 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 			case OB_SURF:
 			case OB_MBALL:
 			case OB_LATTICE:
-			{
-				/* TODO(sergey): This way using this object's
-				 * properties as driver target works fine.
-				 *
-				 * Does this depend on other nodes?
-				 */
-				add_operation_node(&ob->id, DEPSNODE_TYPE_PARAMETERS, DEPSOP_TYPE_POST, NULL,
-				                   DEG_OPCODE_PLACEHOLDER, "Parameters Eval");
-
 				build_obdata_geom(scene, ob);
 				/* TODO(sergey): Only for until we support granular
 				 * update of curves.
@@ -465,7 +515,6 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 					}
 				}
 				break;
-			}
 
 			case OB_ARMATURE: /* Pose */
 				if (ID_IS_LINKED_DATABLOCK(ob) && ob->proxy_from != NULL) {
@@ -949,6 +998,18 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 {
 	ID *obdata = (ID *)ob->data;
 
+	/* TODO(sergey): This way using this object's properties as driver target
+	 * works fine.
+	 *
+	 * Does this depend on other nodes?
+	 */
+	add_operation_node(&ob->id,
+	                   DEPSNODE_TYPE_PARAMETERS,
+	                   DEPSOP_TYPE_POST,
+	                   NULL,
+	                   DEG_OPCODE_PLACEHOLDER,
+	                   "Parameters Eval");
+
 	/* Temporary uber-update node, which does everything.
 	 * It is for the being we're porting old dependencies into the new system.
 	 * We'll get rid of this node as soon as all the granular update functions
@@ -956,35 +1017,45 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 	 *
 	 * TODO(sergey): Get rid of this node.
 	 */
-	add_operation_node(&ob->id, DEPSNODE_TYPE_GEOMETRY,
-	                   DEPSOP_TYPE_POST, function_bind(BKE_object_eval_uber_data, _1, scene, ob),
+	add_operation_node(&ob->id,
+	                   DEPSNODE_TYPE_GEOMETRY,
+	                   DEPSOP_TYPE_POST,
+	                   function_bind(BKE_object_eval_uber_data, _1, scene, ob),
 	                   DEG_OPCODE_GEOMETRY_UBEREVAL);
 
-	add_operation_node(&ob->id, DEPSNODE_TYPE_GEOMETRY,
-	                   DEPSOP_TYPE_INIT, NULL,
-	                   DEG_OPCODE_PLACEHOLDER, "Eval Init");
+	add_operation_node(&ob->id,
+	                   DEPSNODE_TYPE_GEOMETRY,
+	                   DEPSOP_TYPE_INIT,
+	                   NULL,
+	                   DEG_OPCODE_PLACEHOLDER,
+	                   "Eval Init");
 
 	// TODO: "Done" operation
 
 	/* Modifiers */
 	if (ob->modifiers.first) {
-		ModifierData *md;
-
-		for (md = (ModifierData *)ob->modifiers.first; md; md = md->next) {
-			add_operation_node(&ob->id, DEPSNODE_TYPE_GEOMETRY,
-			                   DEPSOP_TYPE_EXEC, function_bind(BKE_object_eval_modifier, _1, scene, ob, md),
-			                   DEG_OPCODE_GEOMETRY_MODIFIER, md->name);
+		for (ModifierData *md = (ModifierData *)ob->modifiers.first;
+		     md != NULL;
+		     md = md->next)
+		{
+			add_operation_node(&ob->id,
+			                   DEPSNODE_TYPE_GEOMETRY,
+			                   DEPSOP_TYPE_EXEC,
+			                   function_bind(BKE_object_eval_modifier,
+			                                 _1,
+			                                 scene,
+			                                 ob,
+			                                 md),
+			                   DEG_OPCODE_GEOMETRY_MODIFIER,
+			                   md->name);
 		}
 	}
 
 	/* materials */
 	if (ob->totcol) {
-		int a;
-
-		for (a = 1; a <= ob->totcol; a++) {
+		for (int a = 1; a <= ob->totcol; a++) {
 			Material *ma = give_current_material(ob, a);
-
-			if (ma) {
+			if (ma != NULL) {
 				// XXX?!
 				ComponentDepsNode *geom_node = add_component_node(&ob->id, DEPSNODE_TYPE_GEOMETRY);
 				build_material(geom_node, ma);
@@ -1009,16 +1080,23 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 
 	build_animdata(obdata);
 
-	/* nodes for result of obdata's evaluation, and geometry evaluation on object */
+	/* Nodes for result of obdata's evaluation, and geometry
+	 * evaluation on object.
+	 */
 	switch (ob->type) {
 		case OB_MESH:
 		{
 			//Mesh *me = (Mesh *)ob->data;
 
 			/* evaluation operations */
-			add_operation_node(obdata, DEPSNODE_TYPE_GEOMETRY,
-			                   DEPSOP_TYPE_INIT, function_bind(BKE_mesh_eval_geometry, _1, (Mesh *)obdata),
-			                   DEG_OPCODE_PLACEHOLDER, "Geometry Eval");
+			add_operation_node(obdata,
+			                   DEPSNODE_TYPE_GEOMETRY,
+			                   DEPSOP_TYPE_INIT,
+			                   function_bind(BKE_mesh_eval_geometry,
+			                                 _1,
+			                                 (Mesh *)obdata),
+			                   DEG_OPCODE_PLACEHOLDER,
+			                   "Geometry Eval");
 			break;
 		}
 
@@ -1026,48 +1104,76 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 		{
 			Object *mom = BKE_mball_basis_find(scene, ob);
 
-			/* motherball - mom depends on children! */
+			/* Motherball - mom depends on children! */
 			if (mom == ob) {
 				/* metaball evaluation operations */
 				/* NOTE: only the motherball gets evaluated! */
-				add_operation_node(obdata, DEPSNODE_TYPE_GEOMETRY,
-				                   DEPSOP_TYPE_INIT, function_bind(BKE_mball_eval_geometry, _1, (MetaBall *)obdata),
-				                   DEG_OPCODE_PLACEHOLDER, "Geometry Eval");
+				add_operation_node(obdata,
+				                   DEPSNODE_TYPE_GEOMETRY,
+				                   DEPSOP_TYPE_INIT,
+				                   function_bind(BKE_mball_eval_geometry,
+				                                 _1,
+				                                 (MetaBall *)obdata),
+				                   DEG_OPCODE_PLACEHOLDER,
+				                   "Geometry Eval");
 			}
 			break;
 		}
 
 		case OB_CURVE:
+		case OB_SURF:
 		case OB_FONT:
 		{
-			/* curve evaluation operations */
+			/* Curve/nurms evaluation operations. */
 			/* - calculate curve geometry (including path) */
-			add_operation_node(obdata, DEPSNODE_TYPE_GEOMETRY,
-			                   DEPSOP_TYPE_INIT, function_bind(BKE_curve_eval_geometry, _1, (Curve *)obdata),
-			                   DEG_OPCODE_PLACEHOLDER, "Geometry Eval");
+			add_operation_node(obdata,
+			                   DEPSNODE_TYPE_GEOMETRY,
+			                   DEPSOP_TYPE_INIT,
+			                   function_bind(BKE_curve_eval_geometry,
+			                                 _1,
+			                                 (Curve *)obdata),
+			                   DEG_OPCODE_PLACEHOLDER,
+			                   "Geometry Eval");
 
-			/* - calculate curve path - this is used by constraints, etc. */
-			add_operation_node(obdata, DEPSNODE_TYPE_GEOMETRY,
-			                   DEPSOP_TYPE_EXEC, function_bind(BKE_curve_eval_path, _1, (Curve *)obdata),
-			                   DEG_OPCODE_GEOMETRY_PATH, "Path");
+			/* Calculate curve path - this is used by constraints, etc. */
+			if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
+				add_operation_node(obdata,
+				                   DEPSNODE_TYPE_GEOMETRY,
+				                   DEPSOP_TYPE_EXEC,
+				                   function_bind(BKE_curve_eval_path,
+				                                 _1,
+				                                 (Curve *)obdata),
+				                   DEG_OPCODE_GEOMETRY_PATH,
+				                   "Path");
+			}
+
+			/* Make sure objects used for bevel.taper are in the graph.
+			 * NOTE: This objects might be not linked to the scene.
+			 */
+			Curve *cu = (Curve *)obdata;
+			if (cu->bevobj != NULL) {
+				build_object(scene, NULL, cu->bevobj);
+			}
+			if (cu->taperobj != NULL) {
+				build_object(scene, NULL, cu->bevobj);
+			}
+			if (ob->type == OB_FONT && cu->textoncurve != NULL) {
+				build_object(scene, NULL, cu->textoncurve);
+			}
 			break;
 		}
 
-		case OB_SURF: /* Nurbs Surface */
+		case OB_LATTICE:
 		{
-			/* nurbs evaluation operations */
-			add_operation_node(obdata, DEPSNODE_TYPE_GEOMETRY,
-			                   DEPSOP_TYPE_INIT, function_bind(BKE_curve_eval_geometry, _1, (Curve *)obdata),
-			                   DEG_OPCODE_PLACEHOLDER, "Geometry Eval");
-			break;
-		}
-
-		case OB_LATTICE: /* Lattice */
-		{
-			/* lattice evaluation operations */
-			add_operation_node(obdata, DEPSNODE_TYPE_GEOMETRY,
-			                   DEPSOP_TYPE_INIT, function_bind(BKE_lattice_eval_geometry, _1, (Lattice *)obdata),
-			                   DEG_OPCODE_PLACEHOLDER, "Geometry Eval");
+			/* Lattice evaluation operations. */
+			add_operation_node(obdata,
+			                   DEPSNODE_TYPE_GEOMETRY,
+			                   DEPSOP_TYPE_INIT,
+			                   function_bind(BKE_lattice_eval_geometry,
+			                                 _1,
+			                                 (Lattice *)obdata),
+			                   DEG_OPCODE_PLACEHOLDER,
+			                   "Geometry Eval");
 			break;
 		}
 	}

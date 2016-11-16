@@ -61,6 +61,9 @@ def gpencil_stroke_placement_settings(context, layout):
 
 def gpencil_active_brush_settings_simple(context, layout):
     brush = context.active_gpencil_brush
+    if brush is None:
+        layout.label("No Active Brush")
+        return
 
     col = layout.column()
     col.label("Active Brush:      ")

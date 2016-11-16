@@ -34,6 +34,8 @@
 #include <stack>
 
 #include "DNA_anim_types.h"
+#include "DNA_object_types.h"
+#include "DNA_ID.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
@@ -56,10 +58,46 @@ string deg_fcurve_id_name(const FCurve *fcu)
 	return string(fcu->rna_path) + index_buf;
 }
 
+static bool check_object_needs_evaluation(Object *object)
+{
+	if (object->recalc & OB_RECALC_ALL) {
+		/* Object is tagged for update anyway, no need to re-tag it. */
+		return false;
+	}
+	if (object->type == OB_MESH) {
+		return object->derivedFinal == NULL;
+	}
+	else if (ELEM(object->type,
+	              OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE))
+	{
+		return object->curve_cache == NULL;
+	}
+	return false;
+}
+
 void deg_graph_build_finalize(Depsgraph *graph)
 {
+	/* STEP 1: Make sure new invisible dependencies are ready for use.
+	 *
+	 * TODO(sergey): This might do a bit of extra tagging, but it's kinda nice
+	 * to do it ahead of a time and don't spend time on flushing updates on
+	 * every frame change.
+	 */
+	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, graph->id_hash)
+	{
+		if (id_node->layers == 0 || 1) {
+			ID *id = id_node->id;
+			if (GS(id->name) == ID_OB) {
+				Object *object = (Object *)id;
+				if (check_object_needs_evaluation(object)) {
+					id_node->tag_update(graph);
+				}
+			}
+		}
+	}
+	GHASH_FOREACH_END();
+	/* STEP 2: Flush visibility layers from children to parent. */
 	std::stack<OperationDepsNode *> stack;
-
 	foreach (OperationDepsNode *node, graph->operations) {
 		IDDepsNode *id_node = node->owner->owner;
 		node->done = 0;
@@ -78,7 +116,6 @@ void deg_graph_build_finalize(Depsgraph *graph)
 		node->owner->layers = id_node->layers;
 		id_node->id->tag |= LIB_TAG_DOIT;
 	}
-
 	while (!stack.empty()) {
 		OperationDepsNode *node = stack.top();
 		stack.pop();
@@ -104,8 +141,9 @@ void deg_graph_build_finalize(Depsgraph *graph)
 			}
 		}
 	}
-
-	/* Re-tag IDs for update if it was tagged before the relations update tag. */
+	/* STEP 3: Re-tag IDs for update if it was tagged before the relations
+	 * update tag.
+	 */
 	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, graph->id_hash)
 	{
 		GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp, id_node->components)
@@ -120,6 +158,13 @@ void deg_graph_build_finalize(Depsgraph *graph)
 		{
 			id_node->tag_update(graph);
 			id->tag &= ~LIB_TAG_DOIT;
+		}
+		else if (GS(id->name) == ID_OB) {
+			Object *object = (Object *)id;
+			if (object->recalc & OB_RECALC_ALL) {
+				id_node->tag_update(graph);
+				id->tag &= ~LIB_TAG_DOIT;
+			}
 		}
 		id_node->finalize_build();
 	}

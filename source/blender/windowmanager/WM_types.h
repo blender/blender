@@ -139,6 +139,7 @@ enum {
 	OPTYPE_INTERNAL     = (1 << 6),
 
 	OPTYPE_LOCK_BYPASS  = (1 << 7),  /* Allow operator to run when interface is locked */
+	OPTYPE_UNDO_GROUPED = (1 << 8),  /* Special type of undo which doesn't store itself multiple times */
 };
 
 /* context to call operator in for WM_operator_name_call */
@@ -523,6 +524,7 @@ typedef struct wmOperatorType {
 	const char *idname;		/* unique identifier */
 	const char *translation_context;
 	const char *description;	/* tooltips and python docs */
+	const char *undo_group;	/* identifier to group operators together */
 
 	/* this callback executes the operator without any interactive input,
 	 * parameters may be provided through operator properties. cannot use

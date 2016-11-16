@@ -88,7 +88,7 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 	}
 
 	while (!traversal_stack.empty()) {
-		StackEntry entry = traversal_stack.top();
+		StackEntry& entry = traversal_stack.top();
 		OperationDepsNode *node = entry.node;
 		bool all_child_traversed = true;
 		for (int i = node->done; i < node->outlinks.size(); ++i) {

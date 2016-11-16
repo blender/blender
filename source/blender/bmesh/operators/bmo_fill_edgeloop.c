@@ -136,7 +136,7 @@ void bmo_edgeloop_fill_exec(BMesh *bm, BMOperator *op)
 				i++;
 			} while ((v != f_verts[0]));
 
-			if (BM_face_exists(f_verts, i, NULL) == false) {
+			if (!BM_face_exists(f_verts, i)) {
 				BMFace *f;
 
 				/* don't use calc_edges option because we already have the edges */

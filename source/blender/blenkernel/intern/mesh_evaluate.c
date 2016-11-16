@@ -238,7 +238,7 @@ static void mesh_calc_normals_poly_accum_task_cb(void *userdata, const int pidx)
 
 			/* accumulate */
 			for (int k = 3; k--; ) {
-				atomic_add_fl(&vnors[ml[i].v][k], pnor[k] * fac);
+				atomic_add_and_fetch_fl(&vnors[ml[i].v][k], pnor[k] * fac);
 			}
 			prev_edge = cur_edge;
 		}
