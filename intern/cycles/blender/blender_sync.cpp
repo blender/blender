@@ -257,9 +257,14 @@ void BlenderSync::sync_integrator()
 	integrator->seed = get_int(cscene, "seed");
 	if(get_boolean(cscene, "use_animated_seed")) {
 		integrator->seed = hash_int_2d(b_scene.frame_current(),
-		                               get_int(cscene, "seed")) +
-		                   hash_int_2d((int)(b_scene.frame_subframe() * (float)INT_MAX),
 		                               get_int(cscene, "seed"));
+		if(b_scene.frame_subframe() != 0.0f) {
+			/* TODO(sergey): Ideally should be some sort of hash_merge,
+			 * but this is good enough for now.
+			 */
+			integrator->seed += hash_int_2d((int)(b_scene.frame_subframe() * (float)INT_MAX),
+			                                get_int(cscene, "seed"));
+		}
 	}
 
 	integrator->sampling_pattern = (SamplingPattern)get_enum(
