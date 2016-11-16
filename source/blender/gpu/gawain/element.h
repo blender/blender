@@ -16,7 +16,7 @@
 #define TRACK_INDEX_RANGE 1
 
 typedef enum {
-	INDEX_U8 = GL_UNSIGNED_BYTE,
+	INDEX_U8 = GL_UNSIGNED_BYTE, // GL has this, Vulkan does not
 	INDEX_U16 = GL_UNSIGNED_SHORT,
 	INDEX_U32 = GL_UNSIGNED_INT
 } IndexType;
