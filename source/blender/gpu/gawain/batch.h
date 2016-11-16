@@ -25,7 +25,7 @@ typedef struct {
 	// geometry
 	VertexBuffer* verts;
 	ElementList* elem; // NULL if element list not needed
-	GLenum prim_type;
+	PrimitiveType prim_type;
 
 	// book-keeping
 	GLuint vao_id; // remembers all geometry state (vertex attrib bindings & element buffer)
@@ -37,7 +37,7 @@ typedef struct {
 	GLuint program;
 } Batch;
 
-Batch* Batch_create(GLenum prim_type, VertexBuffer*, ElementList*);
+Batch* Batch_create(PrimitiveType, VertexBuffer*, ElementList*);
 
 void Batch_discard(Batch*); // verts & elem are not discarded
 void Batch_discard_all(Batch*); // including verts & elem
@@ -87,11 +87,11 @@ typedef struct {
 	VertexBuffer verts; // link batch.verts to this
 } BatchWithOwnVertexBufferAndElementList;
 
-Batch* create_BatchWithOwnVertexBuffer(GLenum prim_type, VertexFormat*, unsigned v_ct, ElementList*);
-Batch* create_BatchWithOwnElementList(GLenum prim_type, VertexBuffer*, unsigned prim_ct);
-Batch* create_BatchWithOwnVertexBufferAndElementList(GLenum prim_type, VertexFormat*, unsigned v_ct, unsigned prim_ct);
+Batch* create_BatchWithOwnVertexBuffer(PrimitiveType, VertexFormat*, unsigned v_ct, ElementList*);
+Batch* create_BatchWithOwnElementList(PrimitiveType, VertexBuffer*, unsigned prim_ct);
+Batch* create_BatchWithOwnVertexBufferAndElementList(PrimitiveType, VertexFormat*, unsigned v_ct, unsigned prim_ct);
 // verts: shared, own
 // elem: none, shared, own
-Batch* create_BatchInGeneral(GLenum prim_type, VertexBufferStuff, ElementListStuff);
+Batch* create_BatchInGeneral(PrimitiveType, VertexBufferStuff, ElementListStuff);
 
 #endif // future plans

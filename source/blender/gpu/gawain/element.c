@@ -19,9 +19,9 @@ unsigned ElementList_size(const ElementList* elem)
 #if TRACK_INDEX_RANGE
 	switch (elem->index_type)
 		{
-		case GL_UNSIGNED_BYTE: return elem->index_ct * sizeof(GLubyte);
-		case GL_UNSIGNED_SHORT: return elem->index_ct * sizeof(GLushort);
-		case GL_UNSIGNED_INT: return elem->index_ct * sizeof(GLuint);
+		case INDEX_U8: return elem->index_ct * sizeof(GLubyte);
+		case INDEX_U16: return elem->index_ct * sizeof(GLushort);
+		case INDEX_U32: return elem->index_ct * sizeof(GLuint);
 		default:
 	#if TRUST_NO_ONE
 			assert(false);
@@ -56,18 +56,18 @@ void ElementList_use(ElementList* elem)
 		ElementList_prime(elem);
 	}
 
-void ElementListBuilder_init(ElementListBuilder* builder, GLenum prim_type, unsigned prim_ct, unsigned vertex_ct)
+void ElementListBuilder_init(ElementListBuilder* builder, PrimitiveType prim_type, unsigned prim_ct, unsigned vertex_ct)
 	{
 	unsigned verts_per_prim = 0;
 	switch (prim_type)
 		{
-		case GL_POINTS:
+		case PRIM_POINTS:
 			verts_per_prim = 1;
 			break;
-		case GL_LINES:
+		case PRIM_LINES:
 			verts_per_prim = 2;
 			break;
-		case GL_TRIANGLES:
+		case PRIM_TRIANGLES:
 			verts_per_prim = 3;
 			break;
 		default:
@@ -98,7 +98,7 @@ void add_generic_vertex(ElementListBuilder* builder, unsigned v)
 void add_point_vertex(ElementListBuilder* builder, unsigned v)
 	{
 #if TRUST_NO_ONE
-	assert(builder->prim_type == GL_POINTS);
+	assert(builder->prim_type == PRIM_POINTS);
 #endif
 
 	add_generic_vertex(builder, v);
@@ -107,7 +107,7 @@ void add_point_vertex(ElementListBuilder* builder, unsigned v)
 void add_line_vertices(ElementListBuilder* builder, unsigned v1, unsigned v2)
 	{
 #if TRUST_NO_ONE
-	assert(builder->prim_type == GL_LINES);
+	assert(builder->prim_type == PRIM_LINES);
 	assert(v1 != v2);
 #endif
 
@@ -118,7 +118,7 @@ void add_line_vertices(ElementListBuilder* builder, unsigned v1, unsigned v2)
 void add_triangle_vertices(ElementListBuilder* builder, unsigned v1, unsigned v2, unsigned v3)
 	{
 #if TRUST_NO_ONE
-	assert(builder->prim_type == GL_TRIANGLES);
+	assert(builder->prim_type == PRIM_TRIANGLES);
 	assert(v1 != v2 && v2 != v3 && v3 != v1);
 #endif
 
@@ -224,17 +224,17 @@ void ElementList_build_in_place(ElementListBuilder* builder, ElementList* elem)
 
 	if (range <= 0xFF)
 		{
-		elem->index_type = GL_UNSIGNED_BYTE;
+		elem->index_type = INDEX_U8;
 		squeeze_indices_byte(builder->data, elem);
 		}
 	else if (range <= 0xFFFF)
 		{
-		elem->index_type = GL_UNSIGNED_SHORT;
+		elem->index_type = INDEX_U16;
 		squeeze_indices_short(builder->data, elem);
 		}
 	else
 		{
-		elem->index_type = GL_UNSIGNED_INT;
+		elem->index_type = INDEX_U32;
 		elem->base_index = 0;
 
 		if (builder->index_ct < builder->max_index_ct)

@@ -15,10 +15,16 @@
 
 #define TRACK_INDEX_RANGE 1
 
+typedef enum {
+	INDEX_U8 = GL_UNSIGNED_BYTE,
+	INDEX_U16 = GL_UNSIGNED_SHORT,
+	INDEX_U32 = GL_UNSIGNED_INT
+} IndexType;
+
 typedef struct {
 	unsigned index_ct;
 #if TRACK_INDEX_RANGE
-	GLenum index_type;
+	IndexType index_type;
 	unsigned min_index;
 	unsigned max_index;
 	unsigned base_index;
@@ -34,17 +40,17 @@ typedef struct {
 	unsigned max_allowed_index;
 	unsigned max_index_ct;
 	unsigned index_ct;
-	GLenum prim_type;
+	PrimitiveType prim_type;
 	unsigned* data;
 } ElementListBuilder;
 
 // supported primitives:
-//  GL_POINTS
-//  GL_LINES
-//  GL_TRIANGLES
+//  PRIM_POINTS
+//  PRIM_LINES
+//  PRIM_TRIANGLES
 
-void ElementListBuilder_init(ElementListBuilder*, GLenum prim_type, unsigned prim_ct, unsigned vertex_ct);
-//void ElementListBuilder_init_custom(ElementListBuilder*, GLenum prim_type, unsigned index_ct, unsigned vertex_ct);
+void ElementListBuilder_init(ElementListBuilder*, PrimitiveType, unsigned prim_ct, unsigned vertex_ct);
+//void ElementListBuilder_init_custom(ElementListBuilder*, PrimitiveType, unsigned index_ct, unsigned vertex_ct);
 
 void add_generic_vertex(ElementListBuilder*, unsigned v);
 

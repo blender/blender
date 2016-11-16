@@ -16,11 +16,11 @@
 extern void gpuBindMatrices(GLuint program);
 extern bool gpuMatricesDirty(void); // how best to use this here?
 
-Batch* Batch_create(GLenum prim_type, VertexBuffer* verts, ElementList* elem)
+Batch* Batch_create(PrimitiveType prim_type, VertexBuffer* verts, ElementList* elem)
 	{
 #if TRUST_NO_ONE
 	assert(verts != NULL);
-	assert(prim_type == GL_POINTS || prim_type == GL_LINES || prim_type == GL_TRIANGLES);
+	assert(prim_type == PRIM_POINTS || prim_type == PRIM_LINES || prim_type == PRIM_TRIANGLES);
 	// we will allow other primitive types in a future update
 #endif
 
