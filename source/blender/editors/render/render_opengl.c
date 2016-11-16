@@ -552,8 +552,11 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		BLI_assert(view_id < oglrender->views_len);
 		RE_SetActiveRenderView(oglrender->re, rv->name);
 		oglrender->view_id = view_id;
-		/* add grease pencil passes */
-		add_gpencil_renderpass(oglrender, rr, rv);
+		/* add grease pencil passes. For sequencer, the render does not include renderpasses
+		 * TODO: The sequencer render of grease pencil should be rethought */
+		if (!oglrender->is_sequencer) {
+			add_gpencil_renderpass(oglrender, rr, rv);
+		}
 		/* render composite */
 		screen_opengl_render_doit(oglrender, rr);
 	}
