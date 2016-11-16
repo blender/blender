@@ -666,30 +666,7 @@ void BKE_libblock_relink_ex(
 	}
 }
 
-static void animdata_dtar_clear_cb(ID *UNUSED(id), AnimData *adt, void *userdata)
-{
-	ChannelDriver *driver;
-	FCurve *fcu;
-
-	/* find the driver this belongs to and update it */
-	for (fcu = adt->drivers.first; fcu; fcu = fcu->next) {
-		driver = fcu->driver;
-		
-		if (driver) {
-			DriverVar *dvar;
-			for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
-				DRIVER_TARGETS_USED_LOOPER(dvar) 
-				{
-					if (dtar->id == userdata)
-						dtar->id = NULL;
-				}
-				DRIVER_TARGETS_LOOPER_END
-			}
-		}
-	}
-}
-
-void BKE_libblock_free_data(Main *bmain, ID *id)
+void BKE_libblock_free_data(Main *UNUSED(bmain), ID *id)
 {
 	if (id->properties) {
 		IDP_FreeProperty(id->properties);
