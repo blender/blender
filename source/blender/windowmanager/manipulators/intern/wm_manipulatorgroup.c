@@ -32,6 +32,8 @@
  * attached to modal handlers and have own keymaps.
  */
 
+#include <stdlib.h>
+
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
