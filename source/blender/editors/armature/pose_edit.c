@@ -626,7 +626,7 @@ void POSE_OT_flip_names(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = pose_flip_names_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_local;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

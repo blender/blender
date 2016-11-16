@@ -442,6 +442,17 @@ int ED_operator_posemode(bContext *C)
 	return 0;
 }
 
+int ED_operator_posemode_local(bContext *C)
+{
+	if (ED_operator_posemode(C)) {
+		Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+		bArmature *arm = ob->data;
+		return !(ID_IS_LINKED_DATABLOCK(&ob->id) ||
+		         ID_IS_LINKED_DATABLOCK(&arm->id));
+	}
+	return false;
+}
+
 /* wrapper for ED_space_image_show_uvedit */
 int ED_operator_uvedit(bContext *C)
 {
