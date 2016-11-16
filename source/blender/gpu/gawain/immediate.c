@@ -439,7 +439,7 @@ void immAttrib1f(unsigned attrib_id, float x)
 
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attrib_ct);
-	assert(attrib->comp_type == GL_FLOAT);
+	assert(attrib->comp_type == COMP_F32);
 	assert(attrib->comp_ct == 1);
 	assert(imm.vertex_idx < imm.vertex_ct);
 	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
@@ -459,7 +459,7 @@ void immAttrib2f(unsigned attrib_id, float x, float y)
 
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attrib_ct);
-	assert(attrib->comp_type == GL_FLOAT);
+	assert(attrib->comp_type == COMP_F32);
 	assert(attrib->comp_ct == 2);
 	assert(imm.vertex_idx < imm.vertex_ct);
 	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
@@ -480,7 +480,7 @@ void immAttrib3f(unsigned attrib_id, float x, float y, float z)
 
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attrib_ct);
-	assert(attrib->comp_type == GL_FLOAT);
+	assert(attrib->comp_type == COMP_F32);
 	assert(attrib->comp_ct == 3);
 	assert(imm.vertex_idx < imm.vertex_ct);
 	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
@@ -502,7 +502,7 @@ void immAttrib4f(unsigned attrib_id, float x, float y, float z, float w)
 
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attrib_ct);
-	assert(attrib->comp_type == GL_FLOAT);
+	assert(attrib->comp_type == COMP_F32);
 	assert(attrib->comp_ct == 4);
 	assert(imm.vertex_idx < imm.vertex_ct);
 	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
@@ -525,7 +525,7 @@ void immAttrib2i(unsigned attrib_id, int x, int y)
 
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attrib_ct);
-	assert(attrib->comp_type == GL_INT);
+	assert(attrib->comp_type == COMP_I32);
 	assert(attrib->comp_ct == 2);
 	assert(imm.vertex_idx < imm.vertex_ct);
 	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
@@ -545,7 +545,7 @@ void immAttrib2s(unsigned attrib_id, short x, short y)
 
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attrib_ct);
-	assert(attrib->comp_type == GL_SHORT);
+	assert(attrib->comp_type == COMP_I16);
 	assert(attrib->comp_ct == 2);
 	assert(imm.vertex_idx < imm.vertex_ct);
 	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
@@ -575,7 +575,7 @@ void immAttrib3ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned
 
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attrib_ct);
-	assert(attrib->comp_type == GL_UNSIGNED_BYTE);
+	assert(attrib->comp_type == COMP_U8);
 	assert(attrib->comp_ct == 3);
 	assert(imm.vertex_idx < imm.vertex_ct);
 	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
@@ -597,7 +597,7 @@ void immAttrib4ub(unsigned attrib_id, unsigned char r, unsigned char g, unsigned
 
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attrib_ct);
-	assert(attrib->comp_type == GL_UNSIGNED_BYTE);
+	assert(attrib->comp_type == COMP_U8);
 	assert(attrib->comp_ct == 4);
 	assert(imm.vertex_idx < imm.vertex_ct);
 	assert(imm.primitive != PRIM_NONE); // make sure we're between a Begin/End pair
