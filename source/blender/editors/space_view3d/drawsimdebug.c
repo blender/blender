@@ -40,6 +40,8 @@
 
 #include "BKE_effect.h"
 
+#include "GPU_immediate.h"
+
 #include "view3d_intern.h"
 
 #include "BIF_gl.h"
@@ -47,95 +49,129 @@
 
 static void draw_sim_debug_elements(SimDebugData *debug_data, float imat[4][4])
 {
+	VertexFormat* format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	unsigned color = add_attrib(format, "color", GL_FLOAT, 3, KEEP_FLOAT);
+	
+	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+	
+	/* count element types */
 	GHashIterator iter;
+	int num_dots = 0;
+	int num_circles = 0;
+	int num_lines = 0;
+	int num_vectors = 0;
+	for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
+		SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
+		switch (elem->type) {
+			case SIM_DEBUG_ELEM_DOT: ++num_dots; break;
+			case SIM_DEBUG_ELEM_CIRCLE: ++num_circles; break;
+			case SIM_DEBUG_ELEM_LINE: ++num_lines; break;
+			case SIM_DEBUG_ELEM_VECTOR: ++num_vectors; break;
+		}
+	}
 	
 	/**** dots ****/
 	
 	glPointSize(3.0f);
-	glBegin(GL_POINTS);
+	immBegin(GL_POINTS, num_dots);
 	for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 		SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 		if (elem->type != SIM_DEBUG_ELEM_DOT)
 			continue;
 		
-		glColor3f(elem->color[0], elem->color[1], elem->color[2]);
-		glVertex3f(elem->v1[0], elem->v1[1], elem->v1[2]);
+		immAttrib3fv(color, elem->color);
+		immVertex3fv(pos, elem->v1);
 	}
-	glEnd();
+	immEnd();
 	
 	/**** circles ****/
 	
 	{
-		float circle[16][2] = {
+#define CIRCLERES 16
+		float circle[CIRCLERES][2] = {
 		    {0.000000, 1.000000}, {0.382683, 0.923880}, {0.707107, 0.707107}, {0.923880, 0.382683},
 		    {1.000000, -0.000000}, {0.923880, -0.382683}, {0.707107, -0.707107}, {0.382683, -0.923880},
 		    {-0.000000, -1.000000}, {-0.382683, -0.923880}, {-0.707107, -0.707107}, {-0.923879, -0.382684},
 		    {-1.000000, 0.000000}, {-0.923879, 0.382684}, {-0.707107, 0.707107}, {-0.382683, 0.923880} };
+		
+		immBegin(GL_LINES, num_circles * CIRCLERES * 2);
+		
 		for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 			SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 			float radius = elem->v2[0];
-			float co[3];
+			float co[3], nco[3];
 			int i;
 			
 			if (elem->type != SIM_DEBUG_ELEM_CIRCLE)
 				continue;
 			
-			glColor3f(elem->color[0], elem->color[1], elem->color[2]);
-			glBegin(GL_LINE_LOOP);
-			for (i = 0; i < 16; ++i) {
-				co[0] = radius * circle[i][0];
-				co[1] = radius * circle[i][1];
-				co[2] = 0.0f;
-				mul_mat3_m4_v3(imat, co);
-				add_v3_v3(co, elem->v1);
+			immAttrib3fv(color, elem->color);
+			zero_v3(co);
+			for (i = 0; i <= CIRCLERES; ++i) {
+				int ni = i % CIRCLERES;
+				nco[0] = radius * circle[ni][0];
+				nco[1] = radius * circle[ni][1];
+				nco[2] = 0.0f;
+				mul_mat3_m4_v3(imat, nco);
+				add_v3_v3(nco, elem->v1);
 				
-				glVertex3f(co[0], co[1], co[2]);
+				if (i > 0) {
+					immVertex3fv(pos, co);
+					immVertex3fv(pos, nco);
+				}
+				
+				copy_v3_v3(co, nco);
 			}
-			glEnd();
 		}
+		
+		immEnd();
+#undef CIRCLERES
 	}
 	
 	/**** lines ****/
 	
-	glBegin(GL_LINES);
+	immBegin(GL_LINES, num_lines * 2);
 	for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 		SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 		if (elem->type != SIM_DEBUG_ELEM_LINE)
 			continue;
 		
-		glColor3f(elem->color[0], elem->color[1], elem->color[2]);
-		glVertex3f(elem->v1[0], elem->v1[1], elem->v1[2]);
-		glVertex3f(elem->v2[0], elem->v2[1], elem->v2[2]);
+		immAttrib3fv(color, elem->color);
+		immVertex3fv(pos, elem->v1);
+		immVertex3fv(pos, elem->v2);
 	}
-	glEnd();
+	immEnd();
 	
 	/**** vectors ****/
 	
 	glPointSize(2.0f);
-	glBegin(GL_POINTS);
+	immBegin(GL_POINTS, num_vectors);
 	for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 		SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 		if (elem->type != SIM_DEBUG_ELEM_VECTOR)
 			continue;
 		
-		glColor3f(elem->color[0], elem->color[1], elem->color[2]);
-		glVertex3f(elem->v1[0], elem->v1[1], elem->v1[2]);
+		immAttrib3fv(color, elem->color);
+		immVertex3fv(pos, elem->v1);
 	}
-	glEnd();
+	immEnd();
 	
-	glBegin(GL_LINES);
+	immBegin(GL_LINES, num_vectors * 2);
 	for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 		SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
 		float t[3];
 		if (elem->type != SIM_DEBUG_ELEM_VECTOR)
 			continue;
 		
-		glColor3f(elem->color[0], elem->color[1], elem->color[2]);
-		glVertex3f(elem->v1[0], elem->v1[1], elem->v1[2]);
+		immAttrib3fv(color, elem->color);
+		immVertex3fv(pos, elem->v1);
 		add_v3_v3v3(t, elem->v1, elem->v2);
-		glVertex3f(t[0], t[1], t[2]);
+		immVertex3fv(pos, t);
 	}
-	glEnd();
+	immEnd();
+	
+	immUnbindProgram();
 }
 
 void draw_sim_debug_data(Scene *UNUSED(scene), View3D *UNUSED(v3d), ARegion *ar)
@@ -149,16 +185,10 @@ void draw_sim_debug_data(Scene *UNUSED(scene), View3D *UNUSED(v3d), ARegion *ar)
 	
 	invert_m4_m4(imat, rv3d->viewmatob);
 	
-//	glDepthMask(GL_FALSE);
-//	glEnable(GL_BLEND);
-	
 	glPushMatrix();
 	
 	glLoadMatrixf(rv3d->viewmat);
 	draw_sim_debug_elements(_sim_debug_data, imat);
 	
 	glPopMatrix();
-	
-//	glDepthMask(GL_TRUE);
-//	glDisable(GL_BLEND);
 }
