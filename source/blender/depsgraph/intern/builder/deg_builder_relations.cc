@@ -58,6 +58,7 @@ extern "C" {
 #include "DNA_mask_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_object_types.h"
@@ -337,93 +338,6 @@ void DepsgraphRelationBuilder::add_forcefield_relations(const OperationKey &key,
 }
 
 /* **** Functions to build relations between entities  **** */
-
-void DepsgraphRelationBuilder::build_scene(Main *bmain, Scene *scene)
-{
-	/* LIB_TAG_DOIT is used to indicate whether node for given ID was already
-	 * created or not.
-	 */
-	BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
-	/* XXX nested node trees are not included in tag-clearing above,
-	 * so we need to do this manually.
-	 */
-	FOREACH_NODETREE(bmain, nodetree, id) {
-		if (id != (ID *)nodetree)
-			nodetree->id.tag &= ~LIB_TAG_DOIT;
-	} FOREACH_NODETREE_END
-
-	if (scene->set) {
-		// TODO: link set to scene, especially our timesource...
-	}
-
-	/* scene objects */
-	LINKLIST_FOREACH (Base *, base, &scene->base) {
-		Object *ob = base->object;
-
-		/* object itself */
-		build_object(bmain, scene, ob);
-
-		/* object that this is a proxy for */
-		if (ob->proxy) {
-			ob->proxy->proxy_from = ob;
-			build_object(bmain, scene, ob->proxy);
-			/* TODO(sergey): This is an inverted relation, matches old depsgraph
-			 * behavior and need to be investigated if it still need to be inverted.
-			 */
-			ComponentKey ob_pose_key(&ob->id, DEPSNODE_TYPE_EVAL_POSE);
-			ComponentKey proxy_pose_key(&ob->proxy->id, DEPSNODE_TYPE_EVAL_POSE);
-			add_relation(ob_pose_key, proxy_pose_key, DEPSREL_TYPE_TRANSFORM, "Proxy");
-		}
-
-		/* Object dupligroup. */
-		if (ob->dup_group) {
-			build_group(bmain, scene, ob, ob->dup_group);
-		}
-	}
-
-	/* rigidbody */
-	if (scene->rigidbody_world) {
-		build_rigidbody(scene);
-	}
-
-	/* scene's animation and drivers */
-	if (scene->adt) {
-		build_animdata(&scene->id);
-	}
-
-	/* world */
-	if (scene->world) {
-		build_world(scene->world);
-	}
-
-	/* compo nodes */
-	if (scene->nodetree) {
-		build_compositor(scene);
-	}
-
-	/* grease pencil */
-	if (scene->gpd) {
-		build_gpencil(&scene->id, scene->gpd);
-	}
-
-	/* Masks. */
-	LINKLIST_FOREACH (Mask *, mask, &bmain->mask) {
-		build_mask(mask);
-	}
-
-	for (Depsgraph::OperationNodes::const_iterator it_op = m_graph->operations.begin();
-	     it_op != m_graph->operations.end();
-	     ++it_op)
-	{
-		OperationDepsNode *node = *it_op;
-		IDDepsNode *id_node = node->owner->owner;
-		ID *id = id_node->id;
-		if (GS(id->name) == ID_OB) {
-			Object *object = (Object *)id;
-			object->customdata_mask |= node->customdata_mask;
-		}
-	}
-}
 
 void DepsgraphRelationBuilder::build_group(Main *bmain,
                                            Scene *scene,
@@ -1753,6 +1667,12 @@ void DepsgraphRelationBuilder::build_mask(Mask *mask)
 {
 	/* Animation. */
 	build_animdata(&mask->id);
+}
+
+void DepsgraphRelationBuilder::build_movieclip(MovieClip *clip)
+{
+	/* Animation. */
+	build_animdata(&clip->id);
 }
 
 }  // namespace DEG

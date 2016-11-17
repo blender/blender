@@ -58,6 +58,7 @@ struct Main;
 struct Mask;
 struct Material;
 struct MTex;
+struct MovieClip;
 struct bNodeTree;
 struct Object;
 struct bPoseChannel;
@@ -224,6 +225,7 @@ struct DepsgraphRelationBuilder
 	void build_gpencil(ID *owner, bGPdata *gpd);
 	void build_cachefile(CacheFile *cache_file);
 	void build_mask(Mask *mask);
+	void build_movieclip(MovieClip *clip);
 
 	void add_collision_relations(const OperationKey &key, Scene *scene, Object *ob, Group *group, int layer, bool dupli, const char *name);
 	void add_forcefield_relations(const OperationKey &key, Scene *scene, Object *ob, ParticleSystem *psys, EffectorWeights *eff, bool add_absorption, const char *name);
