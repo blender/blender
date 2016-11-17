@@ -60,6 +60,7 @@ extern "C" {
 #include "intern/nodes/deg_node_operation.h"
 #include "intern/depsgraph_types.h"
 #include "intern/depsgraph_intern.h"
+#include "util/deg_util_foreach.h"
 
 namespace DEG {
 
@@ -178,7 +179,7 @@ void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *ob)
 	                   DEPSOP_TYPE_POST, function_bind(BKE_pose_eval_flush, _1, scene, ob, ob->pose), DEG_OPCODE_POSE_DONE);
 
 	/* bones */
-	for (bPoseChannel *pchan = (bPoseChannel *)ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+	LINKLIST_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
 		/* node for bone eval */
 		add_operation_node(&ob->id, DEPSNODE_TYPE_BONE, pchan->name,
 		                   DEPSOP_TYPE_INIT, NULL, // XXX: BKE_pose_eval_bone_local
@@ -212,7 +213,7 @@ void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *ob)
 		 * - Care is needed to ensure that multi-headed trees work out the same as in ik-tree building
 		 * - Animated chain-lengths are a problem...
 		 */
-		for (bConstraint *con = (bConstraint *)pchan->constraints.first; con; con = con->next) {
+		LINKLIST_FOREACH (bConstraint *, con, &pchan->constraints) {
 			switch (con->type) {
 				case CONSTRAINT_TYPE_KINEMATIC:
 					build_ik_pose(scene, ob, pchan, con);
@@ -248,10 +249,7 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *ob)
 	                   function_bind(BKE_pose_eval_proxy_copy, _1, ob),
 	                   DEG_OPCODE_POSE_INIT);
 
-	for (bPoseChannel *pchan = (bPoseChannel *)ob->pose->chanbase.first;
-	     pchan != NULL;
-	     pchan = pchan->next)
-	{
+	LINKLIST_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
 		add_operation_node(&ob->id, DEPSNODE_TYPE_BONE, pchan->name,
 		                   DEPSOP_TYPE_INIT, NULL,
 		                   DEG_OPCODE_BONE_LOCAL);

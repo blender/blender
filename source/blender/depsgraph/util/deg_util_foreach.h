@@ -66,3 +66,8 @@
 #define GSET_FOREACH_END() \
 		} \
 	} while(0)
+
+#define LINKLIST_FOREACH(type, var, list)          \
+	for (type var = (type)((list)->first);     \
+	     var != NULL;                          \
+	     var = (type)(((Link*)(var))->next))
