@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/intern/builder/deg_builder_relations.cc
+/** \file blender/depsgraph/intern/builder/deg_builder_relations_rig.cc
  *  \ingroup depsgraph
  *
  * Methods for constructing depsgraph
