@@ -129,6 +129,16 @@ enum_device_type = (
     ('OPENCL', "OpenCL", "OpenCL", 2)
     )
 
+enum_texture_limit = (
+    ('OFF', "No Limit", "No texture size limit", 0),
+    ('128', "128", "Limit texture size to 128 pixels", 1),
+    ('256', "256", "Limit texture size to 256 pixels", 2),
+    ('512', "512", "Limit texture size to 512 pixels", 3),
+    ('1024', "1024", "Limit texture size to 1024 pixels", 4),
+    ('2048', "2048", "Limit texture size to 2048 pixels", 5),
+    ('4096', "4096", "Limit texture size to 4096 pixels", 6),
+    ('8192', "8192", "Limit texture size to 8192 pixels", 7),
+    )
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):
     @classmethod
@@ -606,6 +616,20 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
             description="Scanline \"exposure\" time for the rolling shutter effect",
             default=0.1,
             min=0.0, max=1.0,
+            )
+
+        cls.texture_limit = EnumProperty(
+            name="Viewport Texture Limit",
+            default='OFF',
+            description="Limit texture size used by viewport rendering",
+            items=enum_texture_limit
+            )
+
+        cls.texture_limit_render = EnumProperty(
+            name="Render Texture Limit",
+            default='OFF',
+            description="Limit texture size used by final rendering",
+            items=enum_texture_limit
             )
 
         # Various fine-tuning debug flags

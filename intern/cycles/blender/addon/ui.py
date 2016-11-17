@@ -1587,29 +1587,40 @@ class CyclesScene_PT_simplify(CyclesButtonsPanel, Panel):
         cscene = scene.cycles
 
         layout.active = rd.use_simplify
+
+        col = layout.column(align=True)
+        col.label(text="Subdivision")
+        row = col.row(align=True)
+        row.prop(rd, "simplify_subdivision", text="Viewport")
+        row.prop(rd, "simplify_subdivision_render", text="Render")
+
+        col = layout.column(align=True)
+        col.label(text="Child Particles")
+        row = col.row(align=True)
+        row.prop(rd, "simplify_child_particles", text="Viewport")
+        row.prop(rd, "simplify_child_particles_render", text="Render")
+
+        col = layout.column(align=True)
+        split = col.split()
+        sub = split.column()
+        sub.label(text="Texture Limit Viewport")
+        sub.prop(cscene, "texture_limit", text="")
+        sub = split.column()
+        sub.label(text="Texture Limit Render")
+        sub.prop(cscene, "texture_limit_render", text="")
+
         split = layout.split()
-
-        col = split.column()
-        col.label(text="Viewport:")
-        col.prop(rd, "simplify_subdivision", text="Subdivision")
-        col.prop(rd, "simplify_child_particles", text="Child Particles")
-
-        col = split.column()
-        col.label(text="Render:")
-        col.prop(rd, "simplify_subdivision_render", text="Subdivision")
-        col.prop(rd, "simplify_child_particles_render", text="Child Particles")
-
-        layout.separator()
-
-        split = layout.split()
-
         col = split.column()
         col.prop(cscene, "use_camera_cull")
-        col.prop(cscene, "camera_cull_margin", text="Margin")
+        row = col.row()
+        row.active = cscene.use_camera_cull
+        row.prop(cscene, "camera_cull_margin")
 
         col = split.column()
         col.prop(cscene, "use_distance_cull")
-        col.prop(cscene, "distance_cull_margin", text="Distance")
+        row = col.row()
+        row.active = cscene.use_distance_cull
+        row.prop(cscene, "distance_cull_margin", text="Distance")
 
 def draw_device(self, context):
     scene = context.scene

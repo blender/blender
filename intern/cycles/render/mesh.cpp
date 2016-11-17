@@ -1665,6 +1665,7 @@ void MeshManager::device_update_displacement_images(Device *device,
 						 */
 						image_manager->device_update(device,
 						                             dscene,
+						                             scene,
 						                             progress);
 						return;
 					}
@@ -1682,6 +1683,7 @@ void MeshManager::device_update_displacement_images(Device *device,
 		                        image_manager,
 		                        device,
 		                        dscene,
+		                        scene,
 		                        slot,
 		                        &progress));
 	}
