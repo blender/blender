@@ -55,6 +55,7 @@ extern "C" {
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
@@ -403,6 +404,11 @@ void DepsgraphRelationBuilder::build_scene(Main *bmain, Scene *scene)
 	/* grease pencil */
 	if (scene->gpd) {
 		build_gpencil(&scene->id, scene->gpd);
+	}
+
+	/* Masks. */
+	LINKLIST_FOREACH (Mask *, mask, &bmain->mask) {
+		build_mask(mask);
 	}
 
 	for (Depsgraph::OperationNodes::const_iterator it_op = m_graph->operations.begin();
@@ -1736,6 +1742,17 @@ bool DepsgraphRelationBuilder::needs_animdata_node(ID *id)
 		return (adt->action != NULL) || (adt->nla_tracks.first != NULL);
 	}
 	return false;
+}
+
+void DepsgraphRelationBuilder::build_cachefile(CacheFile *cache_file) {
+	/* Animation. */
+	build_animdata(&cache_file->id);
+}
+
+void DepsgraphRelationBuilder::build_mask(Mask *mask)
+{
+	/* Animation. */
+	build_animdata(&mask->id);
 }
 
 }  // namespace DEG
