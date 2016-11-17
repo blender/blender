@@ -61,6 +61,9 @@ if NOT "%1" == "" (
 		set BUILD_ARCH=x86
 	)	else if "%1" == "x64" (
 		set BUILD_ARCH=x64
+	)	else if "%1" == "2017" (
+	set BUILD_VS_VER=15
+	set BUILD_VS_YEAR=2017
 	)	else if "%1" == "2015" (
 	set BUILD_VS_VER=14
 	set BUILD_VS_YEAR=2015
@@ -140,7 +143,7 @@ if "%target%"=="Release" (
 )
 
 :DetectMSVC
-REM Detect MSVC Installation
+REM Detect MSVC Installation for 2013-2015
 if DEFINED VisualStudioVersion goto msvc_detect_finally
 set VALUE_NAME=ProductDir
 REM Check 64 bits
@@ -153,7 +156,18 @@ for /F "usebackq skip=2 tokens=1-2*" %%A IN (`REG QUERY %KEY_NAME% /v %VALUE_NAM
 if DEFINED MSVC_VC_DIR goto msvc_detect_finally
 :msvc_detect_finally
 if DEFINED MSVC_VC_DIR call "%MSVC_VC_DIR%\vcvarsall.bat"
+if DEFINED MSVC_VC_DIR goto sanity_checks
 
+rem MSVC Build environment 2017 and up. 
+for /F "usebackq skip=2 tokens=1-2*" %%A IN (`REG QUERY "HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SXS\VS7" /v %BUILD_VS_VER%.0 2^>nul`) DO set MSVC_VS_DIR=%%C
+if DEFINED MSVC_VS_DIR goto msvc_detect_finally_2017
+REM Check 32 bits
+for /F "usebackq skip=2 tokens=1-2*" %%A IN (`REG QUERY "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\sxs\vs7" /v %BUILD_VS_VER%.0 2^>nul`) DO set MSVC_VS_DIR=%%C
+if DEFINED MSVC_VS_DIR goto msvc_detect_finally_2017
+:msvc_detect_finally_2017
+if DEFINED MSVC_VS_DIR call "%MSVC_VS_DIR%\Common7\Tools\VsDevCmd.bat"
+
+:sanity_checks
 REM Sanity Checks
 where /Q msbuild
 if %ERRORLEVEL% NEQ 0 (
