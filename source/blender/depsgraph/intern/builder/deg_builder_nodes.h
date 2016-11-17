@@ -44,6 +44,7 @@ struct Group;
 struct Key;
 struct Main;
 struct Material;
+struct Mask;
 struct MTex;
 struct bNodeTree;
 struct Object;
@@ -154,6 +155,7 @@ struct DepsgraphNodeBuilder {
 	void build_compositor(Scene *scene);
 	void build_gpencil(bGPdata *gpd);
 	void build_cachefile(CacheFile *cache_file);
+	void build_mask(Mask *mask);
 
 protected:
 	Main *m_bmain;

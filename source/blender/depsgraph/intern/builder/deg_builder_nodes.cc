@@ -55,6 +55,7 @@ extern "C" {
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
@@ -395,9 +396,14 @@ void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene)
 		build_gpencil(scene->gpd);
 	}
 
-	/* cache files */
+	/* Cache file. */
 	LINKLIST_FOREACH (CacheFile *, cachefile, &bmain->cachefiles) {
 		build_cachefile(cachefile);
+	}
+
+	/* Masks. */
+	LINKLIST_FOREACH (Mask *, mask, &bmain->mask) {
+		build_mask(mask);
 	}
 }
 
@@ -1211,13 +1217,19 @@ void DepsgraphNodeBuilder::build_cachefile(CacheFile *cache_file)
 	ID *cache_file_id = &cache_file->id;
 
 	add_component_node(cache_file_id, DEPSNODE_TYPE_CACHE);
-
 	add_operation_node(cache_file_id, DEPSNODE_TYPE_CACHE,
 	                   DEPSOP_TYPE_EXEC, NULL,
 	                   DEG_OPCODE_PLACEHOLDER, "Cache File Update");
 
 	add_id_node(cache_file_id);
 	build_animdata(cache_file_id);
+}
+
+void DepsgraphNodeBuilder::build_mask(Mask *mask)
+{
+	ID *mask_id = &mask->id;
+	add_id_node(mask_id);
+	build_animdata(mask_id);
 }
 
 }  // namespace DEG
