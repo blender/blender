@@ -58,6 +58,7 @@ extern "C" {
 #include "DNA_mask_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_object_types.h"
@@ -1142,6 +1143,12 @@ void DepsgraphNodeBuilder::build_mask(Mask *mask)
 	ID *mask_id = &mask->id;
 	add_id_node(mask_id);
 	build_animdata(mask_id);
+}
+
+void DepsgraphNodeBuilder::build_movieclip(MovieClip *clip) {
+	ID *clip_id = &clip->id;
+	add_id_node(clip_id);
+	build_animdata(clip_id);
 }
 
 }  // namespace DEG

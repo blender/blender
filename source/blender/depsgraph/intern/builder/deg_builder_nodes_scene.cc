@@ -149,6 +149,11 @@ void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene)
 	LINKLIST_FOREACH (Mask *, mask, &bmain->mask) {
 		build_mask(mask);
 	}
+
+	/* Movie clips. */
+	LINKLIST_FOREACH (MovieClip *, clip, &bmain->movieclip) {
+		build_movieclip(clip);
+	}
 }
 
 }  // namespace DEG

@@ -140,6 +140,11 @@ void DepsgraphRelationBuilder::build_scene(Main *bmain, Scene *scene)
 		build_mask(mask);
 	}
 
+	/* Movie clips. */
+	LINKLIST_FOREACH (MovieClip *, clip, &bmain->movieclip) {
+		build_movieclip(clip);
+	}
+
 	for (Depsgraph::OperationNodes::const_iterator it_op = m_graph->operations.begin();
 	     it_op != m_graph->operations.end();
 	     ++it_op)
