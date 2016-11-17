@@ -38,14 +38,23 @@ struct bContext;
 struct ColorManagedViewSettings;
 struct ColorManagedDisplaySettings;
 
-void fdrawline(float x1, float y1, float x2, float y2);
-void fdrawbox(float x1, float y1, float x2, float y2);
-void sdrawline(int x1, int y1, int x2, int y2);
-void sdrawbox(int x1, int y1, int x2, int y2);
+/* Several functions defined here are being DEPRECATED for Blender 2.8
+ *
+ * Do not use them in new code, and you are encouraged to
+ * convert existing code to draw without these.
+ *
+ * These will be deleted before we ship 2.8!
+ * - merwin
+ */
 
-void fdrawXORcirc(float xofs, float yofs, float rad);
+void fdrawline(float x1, float y1, float x2, float y2); /* DEPRECATED */
+void fdrawbox(float x1, float y1, float x2, float y2); /* DEPRECATED */
+void sdrawline(int x1, int y1, int x2, int y2); /* DEPRECATED */
+void sdrawbox(int x1, int y1, int x2, int y2); /* DEPRECATED */
 
-void fdrawcheckerboard(float x1, float y1, float x2, float y2);
+void fdrawXORcirc(float xofs, float yofs, float rad); /* DEPRECATED */
+
+void fdrawcheckerboard(float x1, float y1, float x2, float y2); /* DEPRECATED */
 
 /* OpenGL stipple defines */
 extern const unsigned char stipple_halftone[128];
@@ -65,7 +74,7 @@ extern const unsigned char stipple_checker_8px[128];
  * \param radius The arc radius.
  * \param nsegments The number of segments to use in drawing the arc.
  */
-void glutil_draw_lined_arc(float start, float angle, float radius, int nsegments);
+void glutil_draw_lined_arc(float start, float angle, float radius, int nsegments); /* DEPRECATED */
 
 /**
  * Draw a filled arc with the given \a radius,
@@ -78,7 +87,7 @@ void glutil_draw_lined_arc(float start, float angle, float radius, int nsegments
  * \param radius The arc radius.
  * \param nsegments The number of segments to use in drawing the arc.
  */
-void glutil_draw_filled_arc(float start, float angle, float radius, int nsegments);
+void glutil_draw_filled_arc(float start, float angle, float radius, int nsegments); /* DEPRECATED */
 
 /**
  * Draw a circle outline with the given \a radius.

@@ -54,7 +54,7 @@
 #include "UI_interface.h"
 
 
-void fdrawline(float x1, float y1, float x2, float y2)
+void fdrawline(float x1, float y1, float x2, float y2) /* DEPRECATED */
 {
 	glBegin(GL_LINES);
 	glVertex2f(x1, y1);
@@ -75,7 +75,7 @@ void fdrawbox(float x1, float y1, float x2, float y2)
 	glEnd();
 }
 
-void fdrawcheckerboard(float x1, float y1, float x2, float y2)
+void fdrawcheckerboard(float x1, float y1, float x2, float y2) /* DEPRECATED */
 {
 	unsigned char col1[4] = {40, 40, 40}, col2[4] = {50, 50, 50};
 
@@ -89,7 +89,7 @@ void fdrawcheckerboard(float x1, float y1, float x2, float y2)
 	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 }
 
-void sdrawline(int x1, int y1, int x2, int y2)
+void sdrawline(int x1, int y1, int x2, int y2) /* DEPRECATED */
 {
 	glBegin(GL_LINES);
 	glVertex2i(x1, y1);
