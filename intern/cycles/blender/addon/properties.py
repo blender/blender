@@ -1199,15 +1199,21 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         return cuda_devices, opencl_devices
 
 
-    def has_active_device(self):
+    def get_num_gpu_devices(self):
         import _cycles
         device_list = _cycles.available_devices()
+        num = 0
         for device in device_list:
             if device[1] != self.compute_device_type:
                 continue
-            if any(dev.use and dev.id == device[2] for dev in self.devices):
-                return True
-        return False
+            for dev in self.devices:
+                if dev.use and dev.id == device[2]:
+                    num += 1
+        return num
+
+
+    def has_active_device(self):
+        return self.get_num_gpu_devices() > 0
 
 
     def draw_impl(self, layout, context):
