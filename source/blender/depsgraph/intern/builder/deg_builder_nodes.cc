@@ -105,6 +105,7 @@ extern "C" {
 #include "intern/nodes/deg_node_operation.h"
 #include "intern/depsgraph_types.h"
 #include "intern/depsgraph_intern.h"
+#include "util/deg_util_foreach.h"
 
 namespace DEG {
 
@@ -347,7 +348,7 @@ void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene)
 	}
 
 	/* scene objects */
-	for (Base *base = (Base *)scene->base.first; base; base = base->next) {
+	LINKLIST_FOREACH (Base *, base, &scene->base) {
 		Object *ob = base->object;
 
 		/* object itself */
@@ -395,10 +396,7 @@ void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene)
 	}
 
 	/* cache files */
-	for (CacheFile *cachefile = static_cast<CacheFile *>(bmain->cachefiles.first);
-	     cachefile;
-	     cachefile = static_cast<CacheFile *>(cachefile->id.next))
-	{
+	LINKLIST_FOREACH (CacheFile *, cachefile, &bmain->cachefiles) {
 		build_cachefile(cachefile);
 	}
 }
@@ -413,10 +411,7 @@ void DepsgraphNodeBuilder::build_group(Scene *scene,
 	}
 	group_id->tag |= LIB_TAG_DOIT;
 
-	for (GroupObject *go = (GroupObject *)group->gobject.first;
-	     go != NULL;
-	     go = go->next)
-	{
+	LINKLIST_FOREACH (GroupObject *, go, &group->gobject) {
 		build_object(scene, base, go->ob);
 	}
 }
@@ -433,10 +428,7 @@ SubgraphDepsNode *DepsgraphNodeBuilder::build_subgraph(Group *group)
 	DepsgraphNodeBuilder subgraph_builder(m_bmain, subgraph);
 
 	/* add group objects */
-	for (GroupObject *go = (GroupObject *)group->gobject.first;
-	     go != NULL;
-	     go = go->next)
-	{
+	LINKLIST_FOREACH (GroupObject *, go, &group->gobject) {
 		/*Object *ob = go->ob;*/
 
 		/* Each "group object" is effectively a separate instance of the
@@ -653,7 +645,7 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
 		}
 
 		/* drivers */
-		for (FCurve *fcu = (FCurve *)adt->drivers.first; fcu; fcu = fcu->next) {
+		LINKLIST_FOREACH (FCurve *, fcu, &adt->drivers) {
 			/* create driver */
 			build_driver(id, fcu);
 		}
@@ -766,7 +758,7 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 
 	/* objects - simulation participants */
 	if (rbw->group) {
-		for (GroupObject *go = (GroupObject *)rbw->group->gobject.first; go; go = go->next) {
+		LINKLIST_FOREACH (GroupObject *, go, &rbw->group->gobject) {
 			Object *ob = go->ob;
 
 			if (!ob || (ob->type != OB_MESH))
@@ -802,7 +794,7 @@ void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
 	ComponentDepsNode *psys_comp = add_component_node(&ob->id, DEPSNODE_TYPE_EVAL_PARTICLES);
 
 	/* particle systems */
-	for (ParticleSystem *psys = (ParticleSystem *)ob->particlesystem.first; psys; psys = psys->next) {
+	LINKLIST_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
 		ParticleSettings *part = psys->part;
 
 		/* particle settings */
@@ -812,7 +804,11 @@ void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
 		/* this particle system */
 		// TODO: for now, this will just be a placeholder "ubereval" node
 		add_operation_node(psys_comp,
-		                   DEPSOP_TYPE_EXEC, function_bind(BKE_particle_system_eval, _1, scene, ob, psys),
+		                   DEPSOP_TYPE_EXEC, function_bind(BKE_particle_system_eval,
+		                                                   _1,
+		                                                   scene,
+		                                                   ob,
+		                                                   psys),
 		                   DEG_OPCODE_PSYS_EVAL,
 		                   psys->name);
 	}
@@ -871,33 +867,26 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 	// TODO: "Done" operation
 
 	/* Modifiers */
-	if (ob->modifiers.first) {
-		for (ModifierData *md = (ModifierData *)ob->modifiers.first;
-		     md != NULL;
-		     md = md->next)
-		{
-			add_operation_node(&ob->id,
-			                   DEPSNODE_TYPE_GEOMETRY,
-			                   DEPSOP_TYPE_EXEC,
-			                   function_bind(BKE_object_eval_modifier,
-			                                 _1,
-			                                 scene,
-			                                 ob,
-			                                 md),
-			                   DEG_OPCODE_GEOMETRY_MODIFIER,
-			                   md->name);
-		}
+	LINKLIST_FOREACH (ModifierData *, md, &ob->modifiers) {
+		add_operation_node(&ob->id,
+		                   DEPSNODE_TYPE_GEOMETRY,
+		                   DEPSOP_TYPE_EXEC,
+		                   function_bind(BKE_object_eval_modifier,
+		                                 _1,
+		                                 scene,
+		                                 ob,
+		                                 md),
+		                   DEG_OPCODE_GEOMETRY_MODIFIER,
+		                   md->name);
 	}
 
 	/* materials */
-	if (ob->totcol) {
-		for (int a = 1; a <= ob->totcol; a++) {
-			Material *ma = give_current_material(ob, a);
-			if (ma != NULL) {
-				// XXX?!
-				ComponentDepsNode *geom_node = add_component_node(&ob->id, DEPSNODE_TYPE_GEOMETRY);
-				build_material(geom_node, ma);
-			}
+	for (int a = 1; a <= ob->totcol; a++) {
+		Material *ma = give_current_material(ob, a);
+		if (ma != NULL) {
+			// XXX?!
+			ComponentDepsNode *geom_node = add_component_node(&ob->id, DEPSNODE_TYPE_GEOMETRY);
+			build_material(geom_node, ma);
 		}
 	}
 
@@ -1091,7 +1080,7 @@ void DepsgraphNodeBuilder::build_nodetree(DepsNode *owner_node, bNodeTree *ntree
 	                   DEG_OPCODE_PLACEHOLDER, "Parameters Eval");
 
 	/* nodetree's nodes... */
-	for (bNode *bnode = (bNode *)ntree->nodes.first; bnode; bnode = bnode->next) {
+	LINKLIST_FOREACH (bNode *, bnode, &ntree->nodes) {
 		ID *id = bnode->id;
 		if (id != NULL) {
 			short id_type = GS(id->name);

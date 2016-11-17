@@ -356,7 +356,7 @@ void DepsgraphRelationBuilder::build_scene(Main *bmain, Scene *scene)
 	}
 
 	/* scene objects */
-	for (Base *base = (Base *)scene->base.first; base; base = base->next) {
+	LINKLIST_FOREACH (Base *, base, &scene->base) {
 		Object *ob = base->object;
 
 		/* object itself */
@@ -429,10 +429,7 @@ void DepsgraphRelationBuilder::build_group(Main *bmain,
 	OperationKey object_local_transform_key(&object->id,
 	                                        DEPSNODE_TYPE_TRANSFORM,
 	                                        DEG_OPCODE_TRANSFORM_LOCAL);
-	for (GroupObject *go = (GroupObject *)group->gobject.first;
-	     go != NULL;
-	     go = go->next)
-	{
+	LINKLIST_FOREACH (GroupObject *, go, &group->gobject) {
 		if (!group_done) {
 			build_object(bmain, scene, go->ob);
 		}
@@ -709,9 +706,10 @@ void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id, eDepsNode
 			ListBase targets = {NULL, NULL};
 			cti->get_constraint_targets(con, &targets);
 
-			for (bConstraintTarget *ct = (bConstraintTarget *)targets.first; ct; ct = ct->next) {
-				if (!ct->tar)
+			LINKLIST_FOREACH (bConstraintTarget *, ct, &targets) {
+				if (ct->tar == NULL) {
 					continue;
+				}
 
 				if (ELEM(con->type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK)) {
 					/* ignore IK constraints - these are handled separately (on pose level) */
@@ -838,7 +836,7 @@ void DepsgraphRelationBuilder::build_animdata(ID *id)
 	}
 
 	/* drivers */
-	for (FCurve *fcu = (FCurve *)adt->drivers.first; fcu; fcu = fcu->next) {
+	LINKLIST_FOREACH (FCurve *, fcu, &adt->drivers) {
 		OperationKey driver_key(id,
 		                        DEPSNODE_TYPE_PARAMETERS,
 		                        DEG_OPCODE_DRIVER,
@@ -862,10 +860,7 @@ void DepsgraphRelationBuilder::build_animdata(ID *id)
 		 */
 		if (fcu->array_index > 0) {
 			FCurve *fcu_prev = NULL;
-			for (FCurve *fcu_candidate = (FCurve *)adt->drivers.first;
-			     fcu_candidate != NULL;
-			     fcu_candidate = fcu_candidate->next)
-			{
+			LINKLIST_FOREACH (FCurve *, fcu_candidate, &adt->drivers) {
 				/* Writing to different RNA paths is  */
 				if (!STREQ(fcu_candidate->rna_path, fcu->rna_path)) {
 					continue;
@@ -1029,7 +1024,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 	// XXX: the data itself could also set this, if it were to be truly initialised later?
 
 	/* loop over variables to get the target relationships */
-	for (DriverVar *dvar = (DriverVar *)driver->variables.first; dvar; dvar = dvar->next) {
+	LINKLIST_FOREACH (DriverVar *, dvar, &driver->variables) {
 		/* only used targets */
 		DRIVER_TARGETS_USED_LOOPER(dvar)
 		{
@@ -1149,10 +1144,11 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 
 	/* objects - simulation participants */
 	if (rbw->group) {
-		for (GroupObject *go = (GroupObject *)rbw->group->gobject.first; go; go = go->next) {
+		LINKLIST_FOREACH (GroupObject *, go, &rbw->group->gobject) {
 			Object *ob = go->ob;
-			if (!ob || ob->type != OB_MESH)
+			if (ob == NULL || ob->type != OB_MESH) {
 				continue;
+			}
 
 			/* hook up evaluation order...
 			 * 1) flushing rigidbody results follows base transforms being applied
@@ -1200,10 +1196,11 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 
 	/* constraints */
 	if (rbw->constraints) {
-		for (GroupObject *go = (GroupObject *)rbw->constraints->gobject.first; go; go = go->next) {
+		LINKLIST_FOREACH (GroupObject *, go, &rbw->constraints->gobject) {
 			Object *ob = go->ob;
-			if (!ob || !ob->rigidbody_constraint)
+			if (ob == NULL || !ob->rigidbody_constraint) {
 				continue;
+			}
 
 			RigidBodyCon *rbc = ob->rigidbody_constraint;
 
@@ -1232,7 +1229,7 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 	                                 DEG_OPCODE_GEOMETRY_UBEREVAL);
 
 	/* particle systems */
-	for (ParticleSystem *psys = (ParticleSystem *)ob->particlesystem.first; psys; psys = psys->next) {
+	LINKLIST_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
 		ParticleSettings *part = psys->part;
 
 		/* particle settings */
@@ -1263,9 +1260,7 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 
 #if 0
 		if (ELEM(part->phystype, PART_PHYS_KEYED, PART_PHYS_BOIDS)) {
-			ParticleTarget *pt;
-
-			for (pt = psys->targets.first; pt; pt = pt->next) {
+			LINKLIST_FOREACH (ParticleTarget *, pt, &psys->targets) {
 				if (pt->ob && BLI_findlink(&pt->ob->particlesystem, pt->psys - 1)) {
 					node2 = dag_get_node(dag, pt->ob);
 					dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Particle Targets");
@@ -1284,7 +1279,7 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 		}
 
 		if (part->ren_as == PART_DRAW_GR && part->dup_group) {
-			for (go = part->dup_group->gobject.first; go; go = go->next) {
+			LINKLIST_FOREACH (GroupObject *, go, &part->dup_group->gobject) {
 				node2 = dag_get_node(dag, go->ob);
 				dag_add_relation(dag, node2, node, DAG_RL_OB_OB, "Particle Group Visualization");
 			}
@@ -1301,11 +1296,8 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 
 		/* boids */
 		if (part->boids) {
-			BoidRule *rule = NULL;
-			BoidState *state = NULL;
-
-			for (state = (BoidState *)part->boids->states.first; state; state = state->next) {
-				for (rule = (BoidRule *)state->rules.first; rule; rule = rule->next) {
+			LINKLIST_FOREACH (BoidState *, state, &part->boids->states) {
+				LINKLIST_FOREACH (BoidRule *, rule, &state->rules) {
 					Object *ruleob = NULL;
 					if (rule->type == eBoidRuleType_Avoid)
 						ruleob = ((BoidRuleGoalAvoid *)rule)->ob;
@@ -1405,10 +1397,9 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 
 	/* Modifiers */
 	if (ob->modifiers.first) {
-		ModifierData *md;
 		OperationKey prev_mod_key;
 
-		for (md = (ModifierData *)ob->modifiers.first; md; md = md->next) {
+		LINKLIST_FOREACH (ModifierData *, md, &ob->modifiers) {
 			const ModifierTypeInfo *mti = modifierType_getInfo((ModifierType)md->type);
 			OperationKey mod_key(&ob->id, DEPSNODE_TYPE_GEOMETRY, DEG_OPCODE_GEOMETRY_MODIFIER, md->name);
 
@@ -1643,7 +1634,7 @@ void DepsgraphRelationBuilder::build_nodetree(ID *owner, bNodeTree *ntree)
 	                            "Parameters Eval");
 
 	/* nodetree's nodes... */
-	for (bNode *bnode = (bNode *)ntree->nodes.first; bnode; bnode = bnode->next) {
+	LINKLIST_FOREACH (bNode *, bnode, &ntree->nodes) {
 		if (bnode->id) {
 			if (GS(bnode->id->name) == ID_MA) {
 				build_material(owner, (Material *)bnode->id);
