@@ -718,39 +718,6 @@ void draw_image_sample_line(SpaceImage *sima)
 	}
 }
 
-/* XXX becomes WM paint cursor */
-#if 0
-static void draw_image_view_tool(Scene *scene)
-{
-	ToolSettings *settings = scene->toolsettings;
-	Brush *brush = settings->imapaint.brush;
-	int mval[2];
-	float radius;
-	int draw = 0;
-
-	if (brush) {
-		if (settings->imapaint.flag & IMAGEPAINT_DRAWING) {
-			if (settings->imapaint.flag & IMAGEPAINT_DRAW_TOOL_DRAWING)
-				draw = 1;
-		}
-		else if (settings->imapaint.flag & IMAGEPAINT_DRAW_TOOL)
-			draw = 1;
-		
-		if (draw) {
-			getmouseco_areawin(mval);
-
-			radius = BKE_brush_size_get(brush) * G.sima->zoom;
-			fdrawXORcirc(mval[0], mval[1], radius);
-
-			if (brush->innerradius != 1.0) {
-				radius *= brush->innerradius;
-				fdrawXORcirc(mval[0], mval[1], radius);
-			}
-		}
-	}
-}
-#endif
-
 static unsigned char *get_alpha_clone_image(const bContext *C, Scene *scene, int *width, int *height)
 {
 	Brush *brush = BKE_paint_brush(&scene->toolsettings->imapaint.paint);
