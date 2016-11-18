@@ -64,7 +64,7 @@ bool BM_mesh_validate(BMesh *bm)
 
 	int i, j;
 
-	errtot = -1;
+	errtot = -1; /* 'ERRMSG' next line will set at zero */
 	fprintf(stderr, "\n");
 	ERRMSG("This is a debugging function and not intended for general use, running slow test!");
 
@@ -187,15 +187,22 @@ bool BM_mesh_validate(BMesh *bm)
 		} while ((l_iter = l_iter->next) != l_first);
 
 		if (j != f->len) {
-			ERRMSG("face %d: has length if %d but should be %d", i, f->len, j);
+			ERRMSG("face %d: has length of %d but should be %d", i, f->len, j);
 		}
+
+		/* leave elements un-tagged, not essential but nice to avoid unintended dirty tag use later. */
+		do {
+			BM_elem_flag_disable(l_iter,    BM_ELEM_INTERNAL_TAG);
+			BM_elem_flag_disable(l_iter->v, BM_ELEM_INTERNAL_TAG);
+			BM_elem_flag_disable(l_iter->e, BM_ELEM_INTERNAL_TAG);
+		} while ((l_iter = l_iter->next) != l_first);
 	}
 
 	BLI_edgehash_free(edge_hash, NULL);
 
+	const bool is_valid = (errtot == 0);
 	ERRMSG("Finished - errors %d", errtot);
-
-	return (errtot == 0);
+	return is_valid;
 }
 
 
