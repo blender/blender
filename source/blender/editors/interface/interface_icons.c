@@ -35,6 +35,7 @@
 
 #include "GPU_extensions.h"
 #include "GPU_basic_shader.h"
+#include "GPU_immediate.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -1016,33 +1017,40 @@ static void icon_draw_texture(
 {
 	float x1, x2, y1, y2;
 
-	if (rgb) glColor4f(rgb[0], rgb[1], rgb[2], alpha);
-	else     glColor4f(alpha, alpha, alpha, alpha);
-
 	x1 = ix * icongltex.invw;
 	x2 = (ix + ih) * icongltex.invw;
 	y1 = iy * icongltex.invh;
 	y2 = (iy + ih) * icongltex.invh;
 
-	GPU_basic_shader_bind(GPU_SHADER_TEXTURE_2D | GPU_SHADER_USE_COLOR);
-	glBindTexture(GL_TEXTURE_2D, icongltex.id);
-
 	/* sharper downscaling, has no effect when scale matches with a mip level */
 	glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, -0.5f);
 
-	glBegin(GL_QUADS);
-	glTexCoord2f(x1, y1);
-	glVertex2f(x, y);
+	glBindTexture(GL_TEXTURE_2D, icongltex.id);
+	VertexFormat* format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned texCoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
 
-	glTexCoord2f(x2, y1);
-	glVertex2f(x + w, y);
+	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+	if (rgb) immUniform4f("color", rgb[0], rgb[1], rgb[2], alpha);
+	else     immUniform4f("color", alpha, alpha, alpha, alpha);
 
-	glTexCoord2f(x2, y2);
-	glVertex2f(x + w, y + h);
+	immUniform1i("image", 0);
 
-	glTexCoord2f(x1, y2);
-	glVertex2f(x, y + h);
-	glEnd();
+	immBegin(GL_TRIANGLE_STRIP, 4);
+	immAttrib2f(texCoord, x1, y2);
+	immVertex2f(pos, x, y + h);
+
+	immAttrib2f(texCoord, x1, y1);
+	immVertex2f(pos, x, y);
+
+	immAttrib2f(texCoord, x2, y2);
+	immVertex2f(pos, x + w, y + h);
+
+	immAttrib2f(texCoord, x2, y1);
+	immVertex2f(pos, x + w, y);
+	immEnd();
+
+	immUnbindProgram();
 
 	glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, 0.0f);
 
