@@ -154,14 +154,15 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         original_modules = _sys.modules.values()
 
     if reload_scripts:
-        _bpy_types.TypeMap.clear()
-
         # just unload, don't change user defaults, this means we can sync
         # to reload. note that they will only actually reload of the
         # modification time changes. This `won't` work for packages so...
         # its not perfect.
         for module_name in [ext.module for ext in _user_preferences.addons]:
             _addon_utils.disable(module_name)
+
+        # *AFTER* unregistering all add-ons, otherwise all calls to unregister_module() will silently fail (do nothing).
+        _bpy_types.TypeMap.clear()
 
     def register_module_call(mod):
         register = getattr(mod, "register", None)
