@@ -119,16 +119,14 @@ def brush_texpaint_common(panel, context, layout, brush, settings, projpaint=Fal
                 col.label("Gradient Colors")
                 col.template_color_ramp(brush, "gradient", expand=True)
 
-                if brush.image_tool != 'FILL':
+                if brush.image_tool == 'DRAW':
                     col.label("Background Color")
                     row = col.row(align=True)
                     panel.prop_unified_color(row, context, brush, "secondary_color", text="")
-
-                if brush.image_tool == 'DRAW':
                     col.prop(brush, "gradient_stroke_mode", text="Mode")
                     if brush.gradient_stroke_mode in {'SPACING_REPEAT', 'SPACING_CLAMP'}:
                         col.prop(brush, "grad_spacing")
-                elif brush.image_tool == 'FILL':
+                else: # if brush.image_tool == 'FILL':
                     col.prop(brush, "gradient_fill_mode")
             else:
                 row = col.row(align=True)
@@ -139,6 +137,9 @@ def brush_texpaint_common(panel, context, layout, brush, settings, projpaint=Fal
                     panel.prop_unified_color(row, context, brush, "secondary_color", text="")
                     row.separator()
                     row.operator("paint.brush_colors_flip", icon='FILE_REFRESH', text="")
+        else:
+            if brush.image_tool == 'FILL' and not projpaint:
+                col.prop(brush, "fill_threshold")
 
     elif brush.image_tool == 'SOFTEN':
         col = layout.column(align=True)
