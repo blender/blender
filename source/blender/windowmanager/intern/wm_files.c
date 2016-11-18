@@ -1144,6 +1144,9 @@ void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(w
 		for (handler = win->modalhandlers.first; handler; handler = handler->next) {
 			if (handler->op) {
 				wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, 10.0);
+				if (G.debug) {
+					printf("Skipping auto-save, modal operator running, retrying in ten seconds...\n");
+				}
 				return;
 			}
 		}
@@ -1161,7 +1164,7 @@ void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(w
 
 		ED_editors_flush_edits(C, false);
 
-		/* no error reporting to console */
+		/* Error reporting into console */
 		BLO_write_file(CTX_data_main(C), filepath, fileflags, NULL, NULL);
 	}
 	/* do timer after file write, just in case file write takes a long time */
