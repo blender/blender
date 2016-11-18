@@ -1344,7 +1344,6 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		step = vertical_minor_step;
 		if (step != 0) {
 			UI_GetThemeColor3ubv(TH_GRID, grid_line_color);
-			immAttrib3ubv(color, grid_line_color);
 	
 			for (a = 0; a < step; a++) {
 				immSkipAttrib(color);
@@ -1360,7 +1359,6 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		vec2[0] = vec1[0] -= 0.5f * grid->dx;
 
 		UI_GetThemeColorShade3ubv(TH_GRID, 16, grid_line_color);
-		immAttrib3ubv(color, grid_line_color);
 		
 		step++;
 		for (a = 0; a <= step; a++) {
@@ -1383,7 +1381,6 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		step = horizontal_major_step;
 	
 		UI_GetThemeColor3ubv(TH_GRID, grid_line_color);
-		immAttrib3ubv(color, grid_line_color);
 
 		for (a = 0; a <= step; a++) {
 			immSkipAttrib(color);
@@ -1400,7 +1397,6 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		
 		if (flag & V2D_HORIZONTAL_FINELINES) {
 			UI_GetThemeColorShade3ubv(TH_GRID, 16, grid_line_color);
-			immAttrib3ubv(color, grid_line_color);
 			for (a = 0; a < step; a++) {
 				immSkipAttrib(color);
 				immVertex2fv(pos, vec1);
@@ -1414,7 +1410,6 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 	
 	/* Axes are drawn as darker lines */
 	UI_GetThemeColorShade3ubv(TH_GRID, -50, grid_line_color);
-	immAttrib3ubv(color, grid_line_color);
 	
 	/* horizontal axis */
 	if (flag & V2D_HORIZONTAL_AXIS) {
