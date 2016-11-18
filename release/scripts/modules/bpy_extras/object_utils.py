@@ -189,6 +189,14 @@ def object_data_add(context, obdata, operator=None, use_active_layer=True, name=
         scene.update()  # apply location
         # scene.objects.active = obj_new
 
+        # Match up UV layers, this is needed so adding an object with UV's
+        # doesn't create new layers when there happens to be a naming mis-match.
+        uv_new = obdata.uv_layers.active
+        if uv_new is not None:
+            uv_act = obj_act.data.uv_layers.active
+            if uv_act is not None:
+                uv_new.name = uv_act.name
+
         bpy.ops.object.join()  # join into the active.
         if obdata:
             bpy.data.meshes.remove(obdata)
