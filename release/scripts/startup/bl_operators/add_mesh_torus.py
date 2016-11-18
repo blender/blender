@@ -84,26 +84,27 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg):
 
 def add_uvs(mesh, minor_seg, major_seg):
     mesh.uv_textures.new()
-    uv_layer = mesh.uv_layers.active
-    u_step = 1.0/major_seg
-    v_step = 1.0/minor_seg
+    uv_data = mesh.uv_layers.active.data
+    polygons = mesh.polygons
+    u_step = 1.0 / major_seg
+    v_step = 1.0 / minor_seg
     vertex_index = 0
 
     u = 0.5
     for major_index in range(major_seg):
         v = 0.5
         for minor_index in range(minor_seg):
-            loops = mesh.polygons[vertex_index].loop_indices
-            if minor_index == minor_seg-1 and major_index == 0:
-                uv_layer.data[loops[1]].uv = (u, v)
-                uv_layer.data[loops[2]].uv = (u + u_step, v)
-                uv_layer.data[loops[0]].uv = (u, v + v_step)
-                uv_layer.data[loops[3]].uv = (u + u_step, v + v_step)
+            loops = polygons[vertex_index].loop_indices
+            if minor_index == minor_seg - 1 and major_index == 0:
+                uv_data[loops[1]].uv = (u, v)
+                uv_data[loops[2]].uv = (u + u_step, v)
+                uv_data[loops[0]].uv = (u, v + v_step)
+                uv_data[loops[3]].uv = (u + u_step, v + v_step)
             else:
-                uv_layer.data[loops[0]].uv = (u, v)
-                uv_layer.data[loops[1]].uv = (u + u_step, v)
-                uv_layer.data[loops[3]].uv = (u, v + v_step)
-                uv_layer.data[loops[2]].uv = (u + u_step, v + v_step)
+                uv_data[loops[0]].uv = (u, v)
+                uv_data[loops[1]].uv = (u + u_step, v)
+                uv_data[loops[3]].uv = (u, v + v_step)
+                uv_data[loops[2]].uv = (u + u_step, v + v_step)
             v = (v + v_step) % 1.0
             vertex_index += 1
         u = (u + u_step) % 1.0
