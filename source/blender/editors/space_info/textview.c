@@ -39,6 +39,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_string_utf8.h"
 
+#include "GPU_immediate.h"
+
 #include "BIF_gl.h"
 
 #include "BKE_text.h"
@@ -81,9 +83,15 @@ static void console_draw_sel(const char *str, const int sel[2], const int xy[2],
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glColor4ubv(bg_sel);
 
-		glRecti(xy[0] + (cwidth * sta), xy[1] - 2 + lheight, xy[0] + (cwidth * end), xy[1] - 2);
+		VertexFormat *format = immVertexFormat();
+		unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+		immUniformColor4ubv(bg_sel);
+		immRecti(pos, xy[0] + (cwidth * sta), xy[1] - 2 + lheight, xy[0] + (cwidth * end), xy[1] - 2);
+
+		immUnbindProgram();
 
 		glDisable(GL_BLEND);
 	}
@@ -182,8 +190,14 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 		cdc->sel[1] = str_len - sel_orig[0];
 		
 		if (bg) {
-			glColor3ubv(bg);
-			glRecti(0, cdc->xy[1], cdc->winx, (cdc->xy[1] + (cdc->lheight * tot_lines)));
+			VertexFormat *format = immVertexFormat();
+			unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+			immUniformColor4ubv(bg);
+			immRecti(pos, 0, cdc->xy[1], cdc->winx, (cdc->xy[1] + (cdc->lheight * tot_lines)));
+
+			immUnbindProgram();
 		}
 
 		glColor3ubv(fg);
@@ -230,8 +244,14 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 	else { /* simple, no wrap */
 
 		if (bg) {
-			glColor3ubv(bg);
-			glRecti(0, cdc->xy[1], cdc->winx, cdc->xy[1] + cdc->lheight);
+			VertexFormat *format = immVertexFormat();
+			unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+			immUniformColor4ubv(bg);
+			immRecti(pos, 0, cdc->xy[1], cdc->winx, cdc->xy[1] + cdc->lheight);
+
+			immUnbindProgram();
 		}
 
 		glColor3ubv(fg);
