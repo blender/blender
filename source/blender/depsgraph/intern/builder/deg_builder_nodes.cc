@@ -901,7 +901,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 				build_object(scene, NULL, cu->bevobj);
 			}
 			if (cu->taperobj != NULL) {
-				build_object(scene, NULL, cu->bevobj);
+				build_object(scene, NULL, cu->taperobj);
 			}
 			if (ob->type == OB_FONT && cu->textoncurve != NULL) {
 				build_object(scene, NULL, cu->textoncurve);
