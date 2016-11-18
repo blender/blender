@@ -32,6 +32,7 @@
 #include "util_color.h"
 #include "util_foreach.h"
 #include "util_function.h"
+#include "util_hash.h"
 #include "util_logging.h"
 #include "util_progress.h"
 #include "util_time.h"
@@ -498,7 +499,8 @@ void BlenderSession::render()
 		scene->film->tag_update(scene);
 		scene->integrator->tag_update(scene);
 
-		for(b_rr.views.begin(b_view_iter); b_view_iter != b_rr.views.end(); ++b_view_iter) {
+		int view_index = 0;
+		for(b_rr.views.begin(b_view_iter); b_view_iter != b_rr.views.end(); ++b_view_iter, ++view_index) {
 			b_rview_name = b_view_iter->name();
 
 			/* set the current view */
@@ -513,6 +515,12 @@ void BlenderSession::render()
 			                width, height,
 			                &python_thread_state,
 			                b_rlay_name.c_str());
+
+			/* Make sure all views have different noise patterns. - hardcoded value just to make it random */
+			if(view_index != 0) {
+				scene->integrator->seed += hash_int_2d(scene->integrator->seed, hash_int(view_index * 0xdeadbeef));
+				scene->integrator->tag_update(scene);
+			}
 
 			/* Update number of samples per layer. */
 			int samples = sync->get_layer_samples();
