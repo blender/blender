@@ -1293,12 +1293,45 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 {
 	float vec1[2], vec2[2];
 	int a, step;
+	int vertical_minor_step = (BLI_rcti_size_x(&v2d->mask) + 1) / (U.v2d_min_gridsize * UI_DPI_FAC),
+		horizontal_major_step = (BLI_rcti_size_y(&v2d->mask) + 1) / (U.v2d_min_gridsize * UI_DPI_FAC);
+	unsigned char grid_line_color[3];
 	
 	/* check for grid first, as it may not exist */
 	if (grid == NULL)
 		return;
 
-	glBegin(GL_LINES);
+	/* Count the needed vertices for the gridlines */
+	unsigned vertex_count = 0;
+	if (flag & V2D_VERTICAL_LINES) {
+		/* vertical lines */
+		vertex_count += 2 * vertical_minor_step;		/* minor gridlines */
+		vertex_count += 2 * (vertical_minor_step + 2);	/* major gridlines */
+	}
+	if (flag & V2D_HORIZONTAL_LINES) {
+		/* horizontal lines */
+		vertex_count += 2 * (horizontal_major_step + 1);	/* major gridlines */
+
+		/* fine lines */
+		if (flag & V2D_HORIZONTAL_FINELINES)
+			vertex_count += 2 * (horizontal_major_step + 1);
+	}
+	/* axes */
+	if (flag & V2D_HORIZONTAL_AXIS)
+		vertex_count += 2;
+	if (flag & V2D_VERTICAL_AXIS)
+		vertex_count += 2;
+
+	/* If there is nothing to render, exit early */
+	if (vertex_count == 0)
+		return;
+
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+	immBegin(GL_LINES, vertex_count);
 
 	/* vertical lines */
 	if (flag & V2D_VERTICAL_LINES) {
@@ -1308,24 +1341,33 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		vec2[1] = v2d->cur.ymax;
 		
 		/* minor gridlines */
-		step = (BLI_rcti_size_x(&v2d->mask) + 1) / (U.v2d_min_gridsize * UI_DPI_FAC);
-		UI_ThemeColor(TH_GRID);
-		
-		for (a = 0; a < step; a++) {
-			glVertex2fv(vec1);
-			glVertex2fv(vec2);
-			
-			vec2[0] = vec1[0] += grid->dx;
+		step = vertical_minor_step;
+		if (step != 0) {
+			UI_GetThemeColor3ubv(TH_GRID, grid_line_color);
+			immAttrib3ubv(color, grid_line_color);
+	
+			for (a = 0; a < step; a++) {
+				immSkipAttrib(color);
+				immVertex2fv(pos, vec1);
+				immAttrib3ubv(color, grid_line_color);
+				immVertex2fv(pos, vec2);
+				
+				vec2[0] = vec1[0] += grid->dx;
+			}
 		}
 		
 		/* major gridlines */
 		vec2[0] = vec1[0] -= 0.5f * grid->dx;
-		UI_ThemeColorShade(TH_GRID, 16);
+
+		UI_GetThemeColorShade3ubv(TH_GRID, 16, grid_line_color);
+		immAttrib3ubv(color, grid_line_color);
 		
 		step++;
 		for (a = 0; a <= step; a++) {
-			glVertex2fv(vec1);
-			glVertex2fv(vec2);
+			immSkipAttrib(color);
+			immVertex2fv(pos, vec1);
+			immAttrib3ubv(color, grid_line_color);
+			immVertex2fv(pos, vec2);
 			
 			vec2[0] = vec1[0] -= grid->dx;
 		}
@@ -1338,12 +1380,16 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		vec1[0] = grid->startx;
 		vec2[0] = v2d->cur.xmax;
 		
-		step = (BLI_rcti_size_y(&v2d->mask) + 1) / (U.v2d_min_gridsize * UI_DPI_FAC);
-		
-		UI_ThemeColor(TH_GRID);
+		step = horizontal_major_step;
+	
+		UI_GetThemeColor3ubv(TH_GRID, grid_line_color);
+		immAttrib3ubv(color, grid_line_color);
+
 		for (a = 0; a <= step; a++) {
-			glVertex2fv(vec1);
-			glVertex2fv(vec2);
+			immSkipAttrib(color);
+			immVertex2fv(pos, vec1);
+			immAttrib3ubv(color, grid_line_color);
+			immVertex2fv(pos, vec2);
 			
 			vec2[1] = vec1[1] += grid->dy;
 		}
@@ -1353,10 +1399,13 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		step++;
 		
 		if (flag & V2D_HORIZONTAL_FINELINES) {
-			UI_ThemeColorShade(TH_GRID, 16);
+			UI_GetThemeColorShade3ubv(TH_GRID, 16, grid_line_color);
+			immAttrib3ubv(color, grid_line_color);
 			for (a = 0; a < step; a++) {
-				glVertex2fv(vec1);
-				glVertex2fv(vec2);
+				immSkipAttrib(color);
+				immVertex2fv(pos, vec1);
+				immAttrib3ubv(color, grid_line_color);
+				immVertex2fv(pos, vec2);
 				
 				vec2[1] = vec1[1] -= grid->dy;
 			}
@@ -1364,7 +1413,8 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 	}
 	
 	/* Axes are drawn as darker lines */
-	UI_ThemeColorShade(TH_GRID, -50);
+	UI_GetThemeColorShade3ubv(TH_GRID, -50, grid_line_color);
+	immAttrib3ubv(color, grid_line_color);
 	
 	/* horizontal axis */
 	if (flag & V2D_HORIZONTAL_AXIS) {
@@ -1372,8 +1422,10 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		vec2[0] = v2d->cur.xmax;
 		vec1[1] = vec2[1] = 0.0f;
 		
-		glVertex2fv(vec1);
-		glVertex2fv(vec2);
+		immSkipAttrib(color);
+		immVertex2fv(pos, vec1);
+		immAttrib3ubv(color, grid_line_color);
+		immVertex2fv(pos, vec2);
 	}
 	
 	/* vertical axis */
@@ -1382,11 +1434,14 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		vec2[1] = v2d->cur.ymax;
 		vec1[0] = vec2[0] = 0.0f;
 		
-		glVertex2fv(vec1);
-		glVertex2fv(vec2);
+		immSkipAttrib(color);
+		immVertex2fv(pos, vec1);
+		immAttrib3ubv(color, grid_line_color);
+		immVertex2fv(pos, vec2);
 	}
 
-	glEnd();
+	immEnd();
+	immUnbindProgram();
 }
 
 /* Draw a constant grid in given 2d-region */
