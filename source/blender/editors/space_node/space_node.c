@@ -855,6 +855,42 @@ static void node_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID 
 			id_us_plus(new_id);
 		}
 	}
+	else if (GS(old_id->name) == ID_NT) {
+		bNodeTreePath *path, *path_next;
+
+		for (path = snode->treepath.first; path; path = path->next) {
+			if ((ID *)path->nodetree == old_id) {
+				path->nodetree = (bNodeTree *)new_id;
+				id_us_min(old_id);
+				id_us_plus(new_id);
+			}
+			if (path == snode->treepath.first) {
+				/* first nodetree in path is same as snode->nodetree */
+				snode->nodetree = path->nodetree;
+			}
+			if (path->nodetree == NULL) {
+				break;
+			}
+		}
+
+		/* remaining path entries are invalid, remove */
+		for (; path; path = path_next) {
+			path_next = path->next;
+
+			BLI_remlink(&snode->treepath, path);
+			MEM_freeN(path);
+		}
+
+		/* edittree is just the last in the path,
+		 * set this directly since the path may have been shortened above */
+		if (snode->treepath.last) {
+			path = snode->treepath.last;
+			snode->edittree = path->nodetree;
+		}
+		else {
+			snode->edittree = NULL;
+		}
+	}
 }
 
 /* only called once, from space/spacetypes.c */

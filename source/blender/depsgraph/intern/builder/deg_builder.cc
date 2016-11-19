@@ -85,7 +85,7 @@ void deg_graph_build_finalize(Depsgraph *graph)
 	 */
 	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, graph->id_hash)
 	{
-		if (id_node->layers == 0 || 1) {
+		if (id_node->layers == 0) {
 			ID *id = id_node->id;
 			if (GS(id->name) == ID_OB) {
 				Object *object = (Object *)id;

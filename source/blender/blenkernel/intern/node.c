@@ -736,11 +736,14 @@ void nodeRemoveAllSockets(bNodeTree *ntree, bNode *node)
 		node_socket_free(ntree, sock, node);
 		MEM_freeN(sock);
 	}
+	BLI_listbase_clear(&node->inputs);
+
 	for (sock = node->outputs.first; sock; sock = sock_next) {
 		sock_next = sock->next;
 		node_socket_free(ntree, sock, node);
 		MEM_freeN(sock);
 	}
+	BLI_listbase_clear(&node->outputs);
 	
 	node->update |= NODE_UPDATE;
 }

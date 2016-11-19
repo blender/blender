@@ -972,7 +972,7 @@ void drawaxes(const float viewmat_local[4][4], float size, char drawtype, const 
 
 
 /* Function to draw an Image on an empty Object */
-static void draw_empty_image(Object *ob, const short dflag, const unsigned char ob_wire_col[4])
+static void draw_empty_image(Object *ob, const short dflag, const unsigned char ob_wire_col[4], StereoViews sview)
 {
 	Image *ima = ob->data;
 
@@ -982,13 +982,22 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 	int bindcode = 0;
 
 	if (ima) {
+		ImageUser iuser = *ob->iuser;
+
+		/* Support multi-view */
+		if (ima && (sview == STEREO_RIGHT_ID)) {
+			iuser.multiview_eye = sview;
+			iuser.flag |= IMA_SHOW_STEREO;
+			BKE_image_multiview_index(ima, &iuser);
+		}
+
 		if (ob_alpha > 0.0f) {
-			bindcode = GPU_verify_image(ima, ob->iuser, GL_TEXTURE_2D, 0, false, false, false);
+			bindcode = GPU_verify_image(ima, &iuser, GL_TEXTURE_2D, 0, false, false, false);
 			/* don't bother drawing the image if alpha = 0 */
 		}
 
 		int w, h;
-		BKE_image_get_size(ima, ob->iuser, &w, &h);
+		BKE_image_get_size(ima, &iuser, &w, &h);
 		width = w;
 		height = h;
 	}
@@ -7685,7 +7694,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			case OB_EMPTY:
 				if (!render_override) {
 					if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
-						draw_empty_image(ob, dflag, ob_wire_col);
+						draw_empty_image(ob, dflag, ob_wire_col, v3d->multiview_eye);
 					}
 					else {
 						drawaxes(rv3d->viewmatob, ob->empty_drawsize, ob->empty_drawtype, ob_wire_col);
@@ -8420,7 +8429,7 @@ void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 		case OB_EMPTY:
 			if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
 				/* CONSTCOLOR == no wire outline */
-				draw_empty_image(ob, DRAW_CONSTCOLOR, NULL);
+				draw_empty_image(ob, DRAW_CONSTCOLOR, NULL, v3d->multiview_eye);
 			}
 			else {
 				drawaxes(rv3d->viewmatob, ob->empty_drawsize, ob->empty_drawtype, NULL); /* TODO: use proper color */

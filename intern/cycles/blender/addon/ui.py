@@ -1556,7 +1556,7 @@ def draw_device(self, context):
         sub = row.split(align=True)
         sub.active = show_device_selection(context)
         sub.prop(cscene, "device", text="")
-        row.operator("wm.addon_userpref_show", text="Preferences", icon='PREFERENCES').module = __package__
+        row.operator("wm.addon_userpref_show", text="", icon='PREFERENCES').module = __package__
 
         if engine.with_osl() and use_cpu(context):
             layout.prop(cscene, "shading_system")

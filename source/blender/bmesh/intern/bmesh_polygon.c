@@ -225,24 +225,16 @@ void BM_face_calc_point_in_face(const BMFace *f, float r_co[3])
  */
 float BM_face_calc_area(const BMFace *f)
 {
+	/* inline 'area_poly_v3' logic, avoid creating a temp array */
 	const BMLoop *l_iter, *l_first;
-	float (*verts)[3] = BLI_array_alloca(verts, f->len);
-	float area;
-	unsigned int i = 0;
+	float n[3];
 
+	zero_v3(n);
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
-		copy_v3_v3(verts[i++], l_iter->v->co);
+		add_newell_cross_v3_v3v3(n, l_iter->v->co, l_iter->next->v->co);
 	} while ((l_iter = l_iter->next) != l_first);
-
-	if (f->len == 3) {
-		area = area_tri_v3(verts[0], verts[1], verts[2]);
-	}
-	else {
-		area = area_poly_v3((const float (*)[3])verts, f->len);
-	}
-
-	return area;
+	return len_v3(n) * 0.5f;
 }
 
 /**

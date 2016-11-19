@@ -178,9 +178,14 @@ void node_group_verify(struct bNodeTree *ntree, struct bNode *node, struct ID *i
 {
 	/* check inputs and outputs, and remove or insert them */
 	if (id == node->id) {
-		bNodeTree *ngroup = (bNodeTree *)node->id;
-		group_verify_socket_list(ntree, node, &ngroup->inputs, &node->inputs, SOCK_IN);
-		group_verify_socket_list(ntree, node, &ngroup->outputs, &node->outputs, SOCK_OUT);
+		if (id == NULL) {
+			nodeRemoveAllSockets(ntree, node);
+		}
+		else {
+			bNodeTree *ngroup = (bNodeTree *)node->id;
+			group_verify_socket_list(ntree, node, &ngroup->inputs, &node->inputs, SOCK_IN);
+			group_verify_socket_list(ntree, node, &ngroup->outputs, &node->outputs, SOCK_OUT);
+		}
 	}
 }
 

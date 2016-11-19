@@ -99,6 +99,10 @@ void ui_but_anim_flag(uiBut *but, float cfra)
 	}
 }
 
+/**
+ * \a str can be NULL to only perform check if \a but has an expression at all.
+ * \return if button has an expression.
+ */
 bool ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen)
 {
 	FCurve *fcu;
@@ -111,7 +115,9 @@ bool ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen)
 		driver = fcu->driver;
 
 		if (driver && driver->type == DRIVER_TYPE_PYTHON) {
-			BLI_strncpy(str, driver->expression, maxlen);
+			if (str) {
+				BLI_strncpy(str, driver->expression, maxlen);
+			}
 			return true;
 		}
 	}

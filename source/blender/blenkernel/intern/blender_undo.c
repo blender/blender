@@ -320,7 +320,7 @@ const char *BKE_undo_get_name(int nr, bool *r_active)
 }
 
 /* return the name of the last item */
-const char *BKE_undo_get_name_last()
+const char *BKE_undo_get_name_last(void)
 {
 	UndoElem *uel = undobase.last;
 	return (uel ? uel->name : NULL);

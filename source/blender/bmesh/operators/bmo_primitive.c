@@ -1174,7 +1174,7 @@ void BM_mesh_calc_uvs_sphere(BMesh *bm, const short oflag)
 	}
 
 	BMIter iter2;
-	BMLoop* l;
+	BMLoop *l;
 	int loop_index;
 	float minx = 1.0f;
 
@@ -1236,14 +1236,14 @@ void bmo_create_monkey_exec(BMesh *bm, BMOperator *op)
 	int uvi = 0;
 	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 	for (i = 0; i < monkeynf; i++) {
-		BMFace* temp1 = BM_face_create_quad_tri(bm,
+		BMFace *f_new_a = BM_face_create_quad_tri(bm,
 		                        tv[monkeyf[i][0] + i - monkeyo],
 		                        tv[monkeyf[i][1] + i - monkeyo],
 		                        tv[monkeyf[i][2] + i - monkeyo],
 		                        (monkeyf[i][3] != monkeyf[i][2]) ? tv[monkeyf[i][3] + i - monkeyo] : NULL,
 		                        NULL, BM_CREATE_NOP);
 
-		BMFace* temp2 = BM_face_create_quad_tri(bm,
+		BMFace *f_new_b = BM_face_create_quad_tri(bm,
 		                        tv[monkeynv + monkeyf[i][2] + i - monkeyo],
 		                        tv[monkeynv + monkeyf[i][1] + i - monkeyo],
 		                        tv[monkeynv + monkeyf[i][0] + i - monkeyo],
@@ -1252,20 +1252,19 @@ void bmo_create_monkey_exec(BMesh *bm, BMOperator *op)
 
 		/* Set the UVs here, the iteration order of the faces is not guaranteed,
 		 * so it's best to set the UVs right after the face is created. */
-		if(calc_uvs) {
-			BMLoop* l;
+		if (calc_uvs) {
+			BMLoop *l;
 			BMIter liter;
-			int loop_index;
-			BM_ITER_ELEM_INDEX (l, &liter, temp1, BM_LOOPS_OF_FACE, loop_index) {
+			BM_ITER_ELEM (l, &liter, f_new_a, BM_LOOPS_OF_FACE) {
 				MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-				luv->uv[0] = monkeyuvs[uvi*2 + 0];
-				luv->uv[1] = monkeyuvs[uvi*2 + 1];
+				luv->uv[0] = monkeyuvs[uvi * 2 + 0];
+				luv->uv[1] = monkeyuvs[uvi * 2 + 1];
 				uvi++;
 			}
-			BM_ITER_ELEM_INDEX (l, &liter, temp2, BM_LOOPS_OF_FACE, loop_index) {
+			BM_ITER_ELEM (l, &liter, f_new_b, BM_LOOPS_OF_FACE) {
 				MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-				luv->uv[0] = monkeyuvs[uvi*2 + 0];
-				luv->uv[1] = monkeyuvs[uvi*2 + 1];
+				luv->uv[0] = monkeyuvs[uvi * 2 + 0];
+				luv->uv[1] = monkeyuvs[uvi * 2 + 1];
 				uvi++;
 			}
 
