@@ -399,7 +399,7 @@ void RNA_def_main(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Autopack", "Automatically pack all external data into .blend file");
 
 	prop = RNA_def_int_vector(srna, "version", 3, NULL, 0, INT_MAX,
-	                   "Version", "Version of the blender the .blend was saved with", 0, INT_MAX);
+	                   "Version", "Version of Blender the .blend was saved with", 0, INT_MAX);
 	RNA_def_property_int_funcs(prop, "rna_Main_version_get", NULL, NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_flag(prop, PROP_THICK_WRAP);
