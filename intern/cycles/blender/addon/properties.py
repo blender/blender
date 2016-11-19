@@ -30,7 +30,7 @@ import _cycles
 
 enum_devices = (
     ('CPU', "CPU", "Use CPU for rendering"),
-    ('GPU', "GPU Compute", "Use GPU compute device for rendering, configured in user preferences"),
+    ('GPU', "GPU Compute", "Use GPU compute device for rendering, configured in the system tab in the user preferences"),
     )
 
 if _cycles.with_network:
@@ -1188,7 +1188,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
     def get_devices(self):
         import _cycles
-        # Layout of the device tuples: (Name, Type, Internal ID, Persistent ID)
+        # Layout of the device tuples: (Name, Type, Persistent ID)
         device_list = _cycles.available_devices()
 
         cuda_devices = []
@@ -1236,21 +1236,19 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
 
     def draw_impl(self, layout, context):
-        layout.label(text="Compute Device:")
+        layout.label(text="Cycles Compute Device:")
         layout.row().prop(self, "compute_device_type", expand=True)
 
         cuda_devices, opencl_devices = self.get_devices()
         row = layout.row()
 
-        if cuda_devices:
+        if self.compute_device_type == 'CUDA' and cuda_devices:
             col = row.column(align=True)
-            col.label(text="CUDA devices:")
             for device in cuda_devices:
                 col.prop(device, "use", text=device.name, toggle=True)
 
-        if opencl_devices:
+        if self.compute_device_type == 'OPENCL' and opencl_devices:
             col = row.column(align=True)
-            col.label(text="OpenCL devices:")
             for device in opencl_devices:
                 col.prop(device, "use", text=device.name, toggle=True)
 
