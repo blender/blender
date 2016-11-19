@@ -808,7 +808,7 @@ bool range_tree_uint_retake(RangeTreeUInt *rt, const uint value)
 
 uint range_tree_uint_take_any(RangeTreeUInt *rt)
 {
-	Node *node = node = rt->list.first;
+	Node *node = rt->list.first;
 	uint value = node->min;
 	if (value == node->max) {
 		rt_node_remove(rt, node);
