@@ -185,6 +185,8 @@ int ED_undo_gpencil_step(struct bContext *C, int step, const char *name);
 
 /* get difference matrix using parent */
 void ED_gpencil_parent_location(struct bGPDlayer *gpl, float diff_mat[4][4]);
+/* reset parent matrix for all layers */
+void ED_gpencil_reset_layers_parent(struct bGPdata *gpd);
 
 
 #endif /*  __ED_GPENCIL_H__ */
