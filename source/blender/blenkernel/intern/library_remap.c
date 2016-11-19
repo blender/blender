@@ -378,6 +378,18 @@ static void libblock_remap_data_postprocess_obdata_relink(Main *UNUSED(bmain), O
 	}
 }
 
+static void libblock_remap_data_postprocess_nodetree_update(Main *bmain, ID *new_id)
+{
+	/* Verify all nodetree user nodes. */
+	ntreeVerifyNodes(bmain, new_id);
+
+	/* Update node trees as necessary. */
+	FOREACH_NODETREE(bmain, ntree, id) {
+		/* make an update call for the tree */
+		ntreeUpdateTree(bmain, ntree);
+	} FOREACH_NODETREE_END
+}
+
 /**
  * Execute the 'data' part of the remapping (that is, all ID pointers from other ID datablocks).
  *
@@ -551,6 +563,8 @@ void BKE_libblock_remap_locked(
 		default:
 			break;
 	}
+	/* Node trees may virtually use any kind of data-block... */
+	libblock_remap_data_postprocess_nodetree_update(bmain, new_id);
 
 	/* Full rebuild of DAG! */
 	DAG_relations_tag_update(bmain);
