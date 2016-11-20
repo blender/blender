@@ -584,7 +584,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
         cls.distance_cull_margin = FloatProperty(
                 name="Cull Distance",
-                description="Cull objects which are further away from camera then this distance",
+                description="Cull objects which are further away from camera than this distance",
                 default=50,
                 min=0.0
                 )
