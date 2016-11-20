@@ -1084,7 +1084,7 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 		}
 
 		/* terminator */
-		for(int i = 0; i < ATTR_PRIM_TYPES; i++) {
+		for(int j = 0; j < ATTR_PRIM_TYPES; j++) {
 			attr_map[index].x = ATTR_STD_NONE;
 			attr_map[index].y = 0;
 			attr_map[index].z = 0;
