@@ -153,8 +153,8 @@ void deg_graph_build_finalize(Depsgraph *graph)
 		GHASH_FOREACH_END();
 
 		ID *id = id_node->id;
-		if (id->tag & LIB_TAG_ID_RECALC_ALL &&
-		    id->tag & LIB_TAG_DOIT)
+		if ((id->tag & LIB_TAG_ID_RECALC_ALL) &&
+		    (id->tag & LIB_TAG_DOIT))
 		{
 			id_node->tag_update(graph);
 			id->tag &= ~LIB_TAG_DOIT;
