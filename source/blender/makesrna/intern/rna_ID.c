@@ -348,13 +348,21 @@ static void rna_ID_user_remap(ID *id, Main *bmain, ID *new_id)
 	}
 }
 
-static struct ID *rna_ID_make_local(struct ID *self, Main *bmain, int clear_proxy)
+static struct ID *rna_ID_make_local(struct ID *self, Main *bmain, int UNUSED(clear_proxy))
 {
+	/* XXX This is *very, very bad*, since it may leave Main in invalid state (two objects, one local and one linked,
+	 * proxies of same reference linked object).
+	 * This can be allowed in C code (with extensive warning and documentation),
+	 * but is totally fully forbidden in our RNA API!
+	 * So disabling for now. */
+#if 0
 	/* Special case, as we can't rely on id_make_local(); it clears proxies. */
 	if (!clear_proxy && GS(self->name) == ID_OB) {
 		BKE_object_make_local_ex(bmain, (Object *)self, false, clear_proxy);
 	}
-	else {
+	else
+#endif
+	{
 		id_make_local(bmain, self, false, false);
 	}
 
@@ -1018,9 +1026,7 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Make this datablock local, return local one "
 	                                      "(may be a copy of the original, in case it is also indirectly used)");
 	RNA_def_function_flag(func, FUNC_USE_MAIN);
-	RNA_def_boolean(func, "clear_proxy", true, "",
-	                "Whether to clear proxies (the default behavior); can cause proxies to be duplicated"
-	                " when still referred to from another library");
+	parm = RNA_def_boolean(func, "clear_proxy", true, "", "DO NOT USE! - has no effect at all");
 	RNA_def_property_flag(parm, PROP_PYFUNC_OPTIONAL);
 	parm = RNA_def_pointer(func, "id", "ID", "", "This ID, or the new ID if it was copied");
 	RNA_def_function_return(func, parm);
