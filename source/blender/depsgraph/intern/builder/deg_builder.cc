@@ -48,6 +48,8 @@
 
 #include "util/deg_util_foreach.h"
 
+#include <cstdio>
+
 namespace DEG {
 
 string deg_fcurve_id_name(const FCurve *fcu)
