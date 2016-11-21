@@ -369,7 +369,8 @@ typedef unsigned int cl_GLenum;
 #endif
 
 /* Define basic vector types */
-#if defined( __VEC__ )
+/* WOrkaround for ppc64el platform: conflicts with bool from C++. */
+#if defined( __VEC__ ) && !(defined(__PPC64__) && defined(__LITTLE_ENDIAN__))
    #include <altivec.h>   /* may be omitted depending on compiler. AltiVec spec provides no way to detect whether the header is required. */
    typedef vector unsigned char     __cl_uchar16;
    typedef vector signed char       __cl_char16;
