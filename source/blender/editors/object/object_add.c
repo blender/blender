@@ -1253,10 +1253,10 @@ static void copy_object_set_idnew(bContext *C)
 /********************* Make Duplicates Real ************************/
 
 /**
- * \note regarding hashing dupli-objects, skip the first member of #DupliObject.persistent_id
+ * \note regarding hashing dupli-objects when using OB_DUPLIGROUP, skip the first member of #DupliObject.persistent_id
  * since its a unique index and we only want to know if the group objects are from the same dupli-group instance.
  */
-static unsigned int dupliobject_hash(const void *ptr)
+static unsigned int dupliobject_group_hash(const void *ptr)
 {
 	const DupliObject *dob = ptr;
 	unsigned int hash = BLI_ghashutil_ptrhash(dob->ob);
@@ -1267,7 +1267,20 @@ static unsigned int dupliobject_hash(const void *ptr)
 	return hash;
 }
 
-static bool dupliobject_cmp(const void *a_, const void *b_)
+/**
+ * \note regarding hashing dupli-objects when NOT using OB_DUPLIGROUP, include the first member of #DupliObject.persistent_id
+ * since its the index of the vertex/face the object is instantiated on and we want to identify objects on the same vertex/face.
+ */
+static unsigned int dupliobject_hash(const void *ptr)
+{
+	const DupliObject *dob = ptr;
+	unsigned int hash = BLI_ghashutil_ptrhash(dob->ob);
+	hash ^= (dob->persistent_id[0] ^ 0);
+	return hash;
+}
+
+/* Compare function that matches dupliobject_group_hash */
+static bool dupliobject_group_cmp(const void *a_, const void *b_)
 {
 	const DupliObject *a = a_;
 	const DupliObject *b = b_;
@@ -1284,6 +1297,24 @@ static bool dupliobject_cmp(const void *a_, const void *b_)
 		else if (a->persistent_id[i] == INT_MAX) {
 			break;
 		}
+	}
+
+	/* matching */
+	return false;
+}
+
+/* Compare function that matches dupliobject_hash */
+static bool dupliobject_cmp(const void *a_, const void *b_)
+{
+	const DupliObject *a = a_;
+	const DupliObject *b = b_;
+
+	if (a->ob != b->ob) {
+		return true;
+	}
+
+	if (a->persistent_id[0] != b->persistent_id[0]) {
+		return true;
 	}
 
 	/* matching */
@@ -1308,7 +1339,12 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 	if (use_hierarchy || use_base_parent) {
 		dupli_gh = BLI_ghash_ptr_new(__func__);
 		if (use_hierarchy) {
-			parent_gh = BLI_ghash_new(dupliobject_hash, dupliobject_cmp, __func__);
+			if (base->object->transflag & OB_DUPLIGROUP) {
+				parent_gh = BLI_ghash_new(dupliobject_group_hash, dupliobject_group_cmp, __func__);
+			}
+			else {
+				parent_gh = BLI_ghash_new(dupliobject_hash, dupliobject_cmp, __func__);
+			}
 		}
 	}
 
@@ -1376,9 +1412,14 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 				 * they won't be read, this is simply for a hash lookup. */
 				DupliObject dob_key;
 				dob_key.ob = ob_src_par;
-				memcpy(&dob_key.persistent_id[1],
-				       &dob->persistent_id[1],
-				       sizeof(dob->persistent_id[1]) * (MAX_DUPLI_RECUR - 1));
+				if (base->object->transflag & OB_DUPLIGROUP) {
+					memcpy(&dob_key.persistent_id[1],
+						   &dob->persistent_id[1],
+						   sizeof(dob->persistent_id[1]) * (MAX_DUPLI_RECUR - 1));
+				}
+				else {
+					dob_key.persistent_id[0] = dob->persistent_id[0];
+				}
 				ob_dst_par = BLI_ghash_lookup(parent_gh, &dob_key);
 			}
 
