@@ -39,10 +39,14 @@ typedef DWORD tGetActiveProcessorCount(WORD GroupNumber);
 typedef BOOL tSetThreadGroupAffinity(HANDLE hThread,
                                      const GROUP_AFFINITY  *GroupAffinity,
                                      PGROUP_AFFINITY PreviousGroupAffinity);
+typedef BOOL tGetProcessGroupAffinity(HANDLE  hProcess,
+                                     PUSHORT GroupCount,
+                                     PUSHORT GroupArray);
 
 extern tGetActiveProcessorGroupCount *GetActiveProcessorGroupCount;
 extern tGetActiveProcessorCount *GetActiveProcessorCount;
 extern tSetThreadGroupAffinity *SetThreadGroupAffinity;
+extern tGetProcessGroupAffinity *GetProcessGroupAffinity;
 #endif
 
 /* Make sure NUMA and processor groups API is initialized. */

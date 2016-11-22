@@ -30,6 +30,10 @@ int system_cpu_group_thread_count(int group);
 /* Get total number of threads in all groups. */
 int system_cpu_thread_count();
 
+/* Get current process groups. */
+unsigned short system_cpu_process_groups(unsigned short max_groups,
+                                         unsigned short *grpups);
+
 string system_cpu_brand_string();
 int system_cpu_bits();
 bool system_cpu_support_sse2();

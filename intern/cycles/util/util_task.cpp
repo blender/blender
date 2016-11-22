@@ -195,7 +195,8 @@ void TaskScheduler::init(int num_threads)
 	if(users == 0) {
 		do_exit = false;
 
-		if(num_threads == 0) {
+		const bool use_auto_threads = (num_threads == 0);
+		if(use_auto_threads) {
 			/* automatic number of threads */
 			num_threads = system_cpu_thread_count();
 		}
@@ -204,7 +205,18 @@ void TaskScheduler::init(int num_threads)
 		/* launch threads that will be waiting for work */
 		threads.resize(num_threads);
 
-		int num_groups = system_cpu_group_count();
+		const int num_groups = system_cpu_group_count();
+		unsigned short num_process_groups;
+		vector<unsigned short> process_groups;
+		int current_group_threads;
+		if(num_groups > 1) {
+			process_groups.resize(num_groups);
+			num_process_groups = system_cpu_process_groups(num_groups, 
+			                                               &process_groups[0]);
+			if(num_process_groups == 1) {
+				current_group_threads = system_cpu_group_thread_count(process_groups[0]);
+			}
+		}
 		int thread_index = 0;
 		for(int group = 0; group < num_groups; ++group) {
 			/* NOTE: That's not really efficient from threading point of view,
@@ -218,9 +230,25 @@ void TaskScheduler::init(int num_threads)
 				group_thread < num_group_threads && thread_index < threads.size();
 				++group_thread, ++thread_index)
 			{
+				/* NOTE: Thread group of -1 means we would not force thread affinity. */
+				int thread_group;
+				if(num_groups == 1) {
+					/* Use default affinity if there's only one CPU group in the system. */
+					thread_group = -1;
+				}
+				else if(use_auto_threads &&
+				        num_process_groups == 1 &&
+						num_threads <= current_group_threads)
+				{
+					/* If we fit into curent CPU group we also don't force any affinity. */
+					thread_group = -1;
+				}
+				else {
+					thread_group = group;
+				}
 				threads[thread_index] = new thread(function_bind(&TaskScheduler::thread_run,
 				                                                 thread_index + 1),
-				                                   group);
+				                                   thread_group);
 			}
 		}
 	}

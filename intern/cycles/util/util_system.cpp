@@ -89,6 +89,20 @@ int system_cpu_thread_count()
 	return count;
 }
 
+unsigned short system_cpu_process_groups(unsigned short max_groups,
+                                         unsigned short *grpups)
+{
+#ifdef _WIN32
+	unsigned short group_count = max_groups;
+	if(!GetProcessGroupAffinity(GetCurrentProcess(), &group_count, grpups)) {
+		return 0;
+	}
+	return group_count;
+#else
+	return 0;
+#endif
+}
+
 #if !defined(_WIN32) || defined(FREE_WINDOWS)
 static void __cpuid(int data[4], int selector)
 {
