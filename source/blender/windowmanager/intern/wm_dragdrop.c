@@ -268,10 +268,10 @@ void wm_drags_check_ops(bContext *C, wmEvent *event)
 static void wm_drop_operator_draw(const char *name, int x, int y)
 {
 	const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-	const unsigned char fg[4] = {255, 255, 255, 255};
-	const unsigned char bg[4] = {0, 0, 0, 50};
+	const float col_fg[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+	const float col_bg[4] = {0.0f, 0.0f, 0.0f, 0.2f};
 
-	UI_fontstyle_draw_simple_backdrop(fstyle, x, y, name, fg, bg);
+	UI_fontstyle_draw_simple_backdrop(fstyle, x, y, name, col_fg, col_bg);
 }
 
 static const char *wm_drag_name(wmDrag *drag)

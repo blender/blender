@@ -1052,7 +1052,7 @@ void UI_fontstyle_draw_rotated(const struct uiFontStyle *fs, const struct rcti *
 void UI_fontstyle_draw_simple(const struct uiFontStyle *fs, float x, float y, const char *str);
 void UI_fontstyle_draw_simple_backdrop(
         const struct uiFontStyle *fs, float x, float y, const char *str,
-        const unsigned char fg[4], const unsigned char bg[4]);
+        const float col_fg[4], const float col_bg[4]);
 
 int UI_fontstyle_string_width(const struct uiFontStyle *fs, const char *str);
 int UI_fontstyle_height_max(const struct uiFontStyle *fs);

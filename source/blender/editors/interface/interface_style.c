@@ -293,7 +293,7 @@ void UI_fontstyle_draw_simple(const uiFontStyle *fs, float x, float y, const cha
  */
 void UI_fontstyle_draw_simple_backdrop(
         const uiFontStyle *fs, float x, float y, const char *str,
-        const unsigned char fg[4], const unsigned char bg[4])
+        const float col_fg[4], const float col_bg[4])
 {
 	if (fs->kerning == 1)
 		BLF_enable(fs->uifont_id, BLF_KERNING_DEFAULT);
@@ -314,9 +314,9 @@ void UI_fontstyle_draw_simple_backdrop(
 		        (y + decent) - margin,
 		        x + width + margin,
 		        (y + decent) + height + margin,
-		        margin, bg);
+		        margin, (float *)col_bg);
 
-		glColor4ubv(fg);
+		glColor4fv(col_fg);
 	}
 
 

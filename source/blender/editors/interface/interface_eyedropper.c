@@ -139,8 +139,8 @@ static void eyedropper_draw_cursor_text(const struct bContext *C, ARegion *ar, c
 	wmWindow *win = CTX_wm_window(C);
 	int x = win->eventstate->x;
 	int y = win->eventstate->y;
-	const unsigned char fg[4] = {255, 255, 255, 255};
-	const unsigned char bg[4] = {0, 0, 0, 50};
+	const float col_fg[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+	const float col_bg[4] = {0.0f, 0.0f, 0.0f, 0.2f};
 
 
 	if ((name[0] == '\0') ||
@@ -154,7 +154,7 @@ static void eyedropper_draw_cursor_text(const struct bContext *C, ARegion *ar, c
 
 	y += U.widget_unit;
 
-	UI_fontstyle_draw_simple_backdrop(fstyle, x, y, name, fg, bg);
+	UI_fontstyle_draw_simple_backdrop(fstyle, x, y, name, col_fg, col_bg);
 }
 
 
