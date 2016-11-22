@@ -173,7 +173,10 @@ void gpu_extensions_init(void)
 		GG.device = GPU_DEVICE_INTEL;
 		GG.driver = GPU_DRIVER_OFFICIAL;
 	}
-	else if (strstr(renderer, "Mesa DRI R") || (strstr(renderer, "Gallium ") && strstr(renderer, " on ATI "))) {
+	else if ((strstr(renderer, "Mesa DRI R")) ||
+	         (strstr(renderer, "Gallium ") && strstr(renderer, " on ATI ")) ||
+	         (strstr(renderer, "Gallium ") && strstr(renderer, " on AMD ")))
+	{
 		GG.device = GPU_DEVICE_ATI;
 		GG.driver = GPU_DRIVER_OPENSOURCE;
 	}
