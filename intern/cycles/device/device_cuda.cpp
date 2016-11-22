@@ -1418,7 +1418,11 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 		cuDeviceGetAttribute(&pci_location[0], CU_DEVICE_ATTRIBUTE_PCI_DOMAIN_ID, num);
 		cuDeviceGetAttribute(&pci_location[1], CU_DEVICE_ATTRIBUTE_PCI_BUS_ID, num);
 		cuDeviceGetAttribute(&pci_location[2], CU_DEVICE_ATTRIBUTE_PCI_DEVICE_ID, num);
-		info.id = string_printf("CUDA_%s_%04x:%02x:%02x", name, pci_location[0], pci_location[1], pci_location[2]);
+		info.id = string_printf("CUDA_%s_%04x:%02x:%02x",
+		                        name,
+		                        (unsigned int)pci_location[0],
+		                        (unsigned int)pci_location[1],
+		                        (unsigned int)pci_location[2]);
 
 		/* if device has a kernel timeout, assume it is used for display */
 		if(cuDeviceGetAttribute(&attr, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT, num) == CUDA_SUCCESS && attr == 1) {
