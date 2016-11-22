@@ -142,9 +142,9 @@ void util_image_resize_pixels(const vector<T>& input_pixels,
 	 * We clamp them to be 1 pixel at least so we do not generate degenerate
 	 * image.
 	 */
-	*output_width = max((size_t)((float)input_width * scale_factor), 1);
-	*output_height = max((size_t)((float)input_height * scale_factor), 1);
-	*output_depth = max((size_t)((float)input_depth * scale_factor), 1);
+	*output_width = max((size_t)((float)input_width * scale_factor), (size_t)1);
+	*output_height = max((size_t)((float)input_height * scale_factor), (size_t)1);
+	*output_depth = max((size_t)((float)input_depth * scale_factor), (size_t)1);
 	/* Prepare pixel storage for the result. */
 	const size_t num_output_pixels = ((*output_width) *
 	                                  (*output_height) *
