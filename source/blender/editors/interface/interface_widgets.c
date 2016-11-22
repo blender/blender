@@ -212,19 +212,23 @@ void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y
 	glDisable(GL_BLEND);
 }
 
-void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float maxy, float rad, bool use_alpha, float color[4])
+void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float maxy,
+                           float rad, bool use_alpha, const float color[4])
 {
+	float draw_color[4];
 	int j;
-	
+
+	copy_v4_v4(draw_color, color);
+
 	glEnable(GL_BLEND);
 	if (use_alpha) {
-		color[3] = 0.5f;
+		draw_color[3] = 0.5f;
 	}
-	color[3] *= 0.125f;
+	draw_color[3] *= 0.125f;
 	
 	for (j = 0; j < WIDGET_AA_JITTER; j++) {
 		glTranslate2fv(jit[j]);
-		UI_draw_roundbox_gl_mode(mode, minx, miny, maxx, maxy, rad, color);
+		UI_draw_roundbox_gl_mode(mode, minx, miny, maxx, maxy, rad, draw_color);
 		glTranslatef(-jit[j][0], -jit[j][1], 0.0f);
 	}
 

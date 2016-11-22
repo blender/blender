@@ -314,7 +314,7 @@ void UI_fontstyle_draw_simple_backdrop(
 		        (y + decent) - margin,
 		        x + width + margin,
 		        (y + decent) + height + margin,
-		        margin, (float *)col_bg);
+		        margin, col_bg);
 
 		glColor4fv(col_fg);
 	}

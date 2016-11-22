@@ -682,7 +682,8 @@ struct wmIMEData *ui_but_ime_data_get(uiBut *but);
 
 /* interface_widgets.c */
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);
-void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float maxy, float rad, bool use_alpha, float color[4]);
+void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float maxy,
+                           float rad, bool use_alpha, const float color[4]);
 void ui_draw_menu_back(struct uiStyle *style, uiBlock *block, rcti *rect);
 void ui_draw_pie_center(uiBlock *block);
 uiWidgetColors *ui_tooltip_get_theme(void);
