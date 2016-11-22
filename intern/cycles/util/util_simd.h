@@ -229,7 +229,7 @@ __forceinline int __btr(int v, int i) {
   int r = 0; asm ("btr %1,%0" : "=r"(r) : "r"(i), "0"(v) : "flags"); return r;
 }
 
-#if defined(__KERNEL_64_BIT__) || defined(__APPLE__)
+#if (defined(__KERNEL_64_BIT__) || defined(__APPLE__)) && !(defined(__ILP32__) && defined(__x86_64__))
 __forceinline size_t __bsf(size_t v) {
   size_t r = 0; asm ("bsf %1,%0" : "=r"(r) : "r"(v)); return r;
 }
@@ -271,7 +271,7 @@ __forceinline unsigned int bitscan(unsigned int v) {
 #endif
 }
 
-#if defined(__KERNEL_64_BIT__) || defined(__APPLE__)
+#if (defined(__KERNEL_64_BIT__) || defined(__APPLE__)) && !(defined(__ILP32__) && defined(__x86_64__))
 __forceinline size_t bitscan(size_t v) {
 #if defined(__KERNEL_AVX2__)
 #if defined(__KERNEL_64_BIT__)
@@ -313,7 +313,7 @@ __forceinline unsigned int __bscf(unsigned int& v)
   return i;
 }
 
-#if defined(__KERNEL_64_BIT__) || defined(__APPLE__)
+#if (defined(__KERNEL_64_BIT__) || defined(__APPLE__)) && !(defined(__ILP32__) && defined(__x86_64__))
 __forceinline size_t __bscf(size_t& v) 
 {
   size_t i = bitscan(v);
