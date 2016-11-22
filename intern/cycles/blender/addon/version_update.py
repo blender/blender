@@ -176,12 +176,18 @@ def do_versions(self):
         prop = bpy.context.user_preferences.addons[__package__].preferences
         system = bpy.context.user_preferences.system
         if not prop.is_property_set("compute_device_type"):
-            if system.legacy_compute_device_type == 1:
-                prop.compute_device_type = 'OPENCL'
-            elif system.legacy_compute_device_type == 2:
-                prop.compute_device_type = 'CUDA'
-            else:
-                prop.compute_device_type = 'NONE'
+            # Device might not currently be available so this can fail
+            try:
+                if system.legacy_compute_device_type == 1:
+                    prop.compute_device_type = 'OPENCL'
+                elif system.legacy_compute_device_type == 2:
+                    prop.compute_device_type = 'CUDA'
+                else:
+                    prop.compute_device_type = 'NONE'
+            except:
+                pass
+
+            # Init device list for UI
             prop.get_devices()
 
     # We don't modify startup file because it assumes to
