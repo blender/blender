@@ -621,10 +621,33 @@ static void emDM_recalcTessellation(DerivedMesh *UNUSED(dm))
 	/* do nothing */
 }
 
-static void emDM_recalcLoopTri(DerivedMesh *UNUSED(dm))
+static void emDM_recalcLoopTri(DerivedMesh *dm)
 {
-	/* Nothing to do: emDM tessellation is known,
-	 * allocate and fill in with emDM_getLoopTriArray */
+	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
+	BMLoop *(*looptris)[3] = bmdm->em->looptris;
+	MLoopTri *mlooptri;
+	const int tottri = bmdm->em->tottri;
+	int i;
+
+	DM_ensure_looptri_data(dm);
+	mlooptri = dm->looptris.array;
+
+	BLI_assert(poly_to_tri_count(dm->numPolyData, dm->numLoopData) == dm->looptris.num);
+	BLI_assert(tottri == dm->looptris.num);
+
+	BM_mesh_elem_index_ensure(bmdm->em->bm, BM_FACE | BM_LOOP);
+
+	for (i = 0; i < tottri; i++) {
+		BMLoop **ltri = looptris[i];
+		MLoopTri *lt = &mlooptri[i];
+
+		ARRAY_SET_ITEMS(
+				lt->tri,
+				BM_elem_index_get(ltri[0]),
+				BM_elem_index_get(ltri[1]),
+				BM_elem_index_get(ltri[2]));
+		lt->poly = BM_elem_index_get(ltri[0]->f);
+	}
 }
 
 static const MLoopTri *emDM_getLoopTriArray(DerivedMesh *dm)
@@ -633,32 +656,9 @@ static const MLoopTri *emDM_getLoopTriArray(DerivedMesh *dm)
 		BLI_assert(poly_to_tri_count(dm->numPolyData, dm->numLoopData) == dm->looptris.num);
 	}
 	else {
-		EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
-		BMLoop *(*looptris)[3] = bmdm->em->looptris;
-		MLoopTri *mlooptri;
-		const int tottri = bmdm->em->tottri;
-		int i;
-
-		DM_ensure_looptri_data(dm);
-		mlooptri = dm->looptris.array;
-
-		BLI_assert(poly_to_tri_count(dm->numPolyData, dm->numLoopData) == dm->looptris.num);
-		BLI_assert(tottri == dm->looptris.num);
-
-		BM_mesh_elem_index_ensure(bmdm->em->bm, BM_FACE | BM_LOOP);
-
-		for (i = 0; i < tottri; i++) {
-			BMLoop **ltri = looptris[i];
-			MLoopTri *lt = &mlooptri[i];
-
-			ARRAY_SET_ITEMS(
-			        lt->tri,
-			        BM_elem_index_get(ltri[0]),
-			        BM_elem_index_get(ltri[1]),
-			        BM_elem_index_get(ltri[2]));
-			lt->poly = BM_elem_index_get(ltri[0]->f);
-		}
+		dm->recalcLoopTri(dm);
 	}
+
 	return dm->looptris.array;
 }
 
