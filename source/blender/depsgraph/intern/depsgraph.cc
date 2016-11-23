@@ -189,16 +189,23 @@ static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
 		/* Transforms props? */
 		if (prop) {
 			const char *prop_identifier = RNA_property_identifier((PropertyRNA *)prop);
-
+			/* TODO(sergey): How to optimize this? */
 			if (strstr(prop_identifier, "location") ||
 			    strstr(prop_identifier, "rotation") ||
-			    strstr(prop_identifier, "scale"))
+			    strstr(prop_identifier, "scale") ||
+			    strstr(prop_identifier, "matrix_"))
 			{
 				*type = DEPSNODE_TYPE_TRANSFORM;
 				return true;
 			}
+			else if (strstr(prop_identifier, "data")) {
+				/* We access object.data, most likely a geometry.
+				 * Might be a bone tho..
+				 */
+				*type = DEPSNODE_TYPE_GEOMETRY;
+				return true;
+			}
 		}
-		// ...
 	}
 	else if (ptr->type == &RNA_ShapeKey) {
 		Key *key = (Key *)ptr->id.data;
