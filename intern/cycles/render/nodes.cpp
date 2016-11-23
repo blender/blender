@@ -3993,7 +3993,7 @@ NODE_DEFINE(SeparateRGBNode)
 
 	SOCKET_IN_COLOR(color, "Image", make_float3(0.0f, 0.0f, 0.0f));
 
-	SOCKET_OUT_FLOAT(g, "R");
+	SOCKET_OUT_FLOAT(r, "R");
 	SOCKET_OUT_FLOAT(g, "G");
 	SOCKET_OUT_FLOAT(b, "B");
 
