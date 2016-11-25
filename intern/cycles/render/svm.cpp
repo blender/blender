@@ -71,14 +71,13 @@ void SVMShaderManager::device_update_shader(Scene *scene,
 		scene->light_manager->need_update = true;
 	}
 
-	/* We only calculate offset and do re-allocation from the locked block,
-	 * actual copy we do after the lock is releases to hopefully gain some
-	 * percent of performance.
+	/* The copy needs to be done inside the lock, if another thread resizes the array 
+	 * while memcpy is running, it'll be copying into possibly invalid/freed ram. 
 	 */
 	nodes_lock_.lock();
 	size_t global_nodes_size = global_svm_nodes->size();
 	global_svm_nodes->resize(global_nodes_size + svm_nodes.size());
-	nodes_lock_.unlock();
+	
 	/* Offset local SVM nodes to a global address space. */
 	int4& jump_node = global_svm_nodes->at(shader->id);
 	jump_node.y = svm_nodes[0].y + global_nodes_size - 1;
@@ -88,6 +87,7 @@ void SVMShaderManager::device_update_shader(Scene *scene,
 	memcpy(&global_svm_nodes->at(global_nodes_size),
 	       &svm_nodes[1],
 	       sizeof(int4) * (svm_nodes.size() - 1));
+	nodes_lock_.unlock();
 }
 
 void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
