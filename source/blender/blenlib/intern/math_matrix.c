@@ -1634,39 +1634,33 @@ void translate_m4(float mat[4][4], float Tx, float Ty, float Tz)
  */
 void rotate_m4(float mat[4][4], const char axis, const float angle)
 {
-	int col;
-	float temp[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-	float cosine, sine;
+	const float angle_cos = cosf(angle);
+	const float angle_sin = sinf(angle);
 
 	assert(axis >= 'X' && axis <= 'Z');
 
-	cosine = cosf(angle);
-	sine   = sinf(angle);
 	switch (axis) {
 		case 'X':
-			for (col = 0; col < 4; col++)
-				temp[col] = cosine * mat[1][col] + sine * mat[2][col];
-			for (col = 0; col < 4; col++) {
-				mat[2][col] = -sine * mat[1][col] + cosine * mat[2][col];
-				mat[1][col] = temp[col];
+			for (int col = 0; col < 4; col++) {
+				float temp  =  angle_cos * mat[1][col] + angle_sin * mat[2][col];
+				mat[2][col] = -angle_sin * mat[1][col] + angle_cos * mat[2][col];
+				mat[1][col] =  temp;
 			}
 			break;
 
 		case 'Y':
-			for (col = 0; col < 4; col++)
-				temp[col] = cosine * mat[0][col] - sine * mat[2][col];
-			for (col = 0; col < 4; col++) {
-				mat[2][col] = sine * mat[0][col] + cosine * mat[2][col];
-				mat[0][col] = temp[col];
+			for (int col = 0; col < 4; col++) {
+				float temp  =  angle_cos * mat[0][col] - angle_sin * mat[2][col];
+				mat[2][col] =  angle_sin * mat[0][col] + angle_cos * mat[2][col];
+				mat[0][col] =  temp;
 			}
 			break;
 
 		case 'Z':
-			for (col = 0; col < 4; col++)
-				temp[col] = cosine * mat[0][col] + sine * mat[1][col];
-			for (col = 0; col < 4; col++) {
-				mat[1][col] = -sine * mat[0][col] + cosine * mat[1][col];
-				mat[0][col] = temp[col];
+			for (int col = 0; col < 4; col++) {
+				float temp  =  angle_cos * mat[0][col] + angle_sin * mat[1][col];
+				mat[1][col] = -angle_sin * mat[0][col] + angle_cos * mat[1][col];
+				mat[0][col] =  temp;
 			}
 			break;
 	}
