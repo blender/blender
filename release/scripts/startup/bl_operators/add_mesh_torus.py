@@ -77,31 +77,56 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg):
 
 
 def add_uvs(mesh, minor_seg, major_seg):
+    from math import fmod
+
     mesh.uv_textures.new()
     uv_data = mesh.uv_layers.active.data
     polygons = mesh.polygons
     u_step = 1.0 / major_seg
     v_step = 1.0 / minor_seg
+
+    # Round UV's, needed when segments aren't divisible by 4.
+    u_init = 0.5 + fmod(0.5, u_step)
+    v_init = 0.5 + fmod(0.5, v_step)
+
+    # Calculate wrapping value under 1.0 to prevent
+    # float precision errors wrapping at the wrong step.
+    u_wrap = 1.0 - (u_step / 2.0)
+    v_wrap = 1.0 - (v_step / 2.0)
+
     vertex_index = 0
 
-    u = 0.5
+    u_prev = u_init
+    u_next = u_prev + u_step
     for major_index in range(major_seg):
-        v = 0.5
+        v_prev = v_init
+        v_next = v_prev + v_step
         for minor_index in range(minor_seg):
             loops = polygons[vertex_index].loop_indices
             if minor_index == minor_seg - 1 and major_index == 0:
-                uv_data[loops[1]].uv = (u, v)
-                uv_data[loops[2]].uv = (u + u_step, v)
-                uv_data[loops[0]].uv = (u, v + v_step)
-                uv_data[loops[3]].uv = (u + u_step, v + v_step)
+                uv_data[loops[1]].uv = u_prev, v_prev
+                uv_data[loops[2]].uv = u_next, v_prev
+                uv_data[loops[0]].uv = u_prev, v_next
+                uv_data[loops[3]].uv = u_next, v_next
             else:
-                uv_data[loops[0]].uv = (u, v)
-                uv_data[loops[1]].uv = (u + u_step, v)
-                uv_data[loops[3]].uv = (u, v + v_step)
-                uv_data[loops[2]].uv = (u + u_step, v + v_step)
-            v = (v + v_step) % 1.0
+                uv_data[loops[0]].uv = u_prev, v_prev
+                uv_data[loops[1]].uv = u_next, v_prev
+                uv_data[loops[3]].uv = u_prev, v_next
+                uv_data[loops[2]].uv = u_next, v_next
+
+            if v_next > v_wrap:
+                v_prev = v_next - 1.0
+            else:
+                v_prev = v_next
+            v_next = v_prev + v_step
+
             vertex_index += 1
-        u = (u + u_step) % 1.0
+
+        if u_next > u_wrap:
+            u_prev = u_next - 1.0
+        else:
+            u_prev = u_next
+        u_next = u_prev + u_step
 
 
 class AddTorus(Operator, object_utils.AddObjectHelper):
