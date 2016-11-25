@@ -43,6 +43,8 @@ NODE_DEFINE(Integrator)
 	SOCKET_INT(transparent_max_bounce, "Transparent Max Bounce", 7);
 	SOCKET_BOOLEAN(transparent_shadows, "Transparent Shadows", false);
 
+	SOCKET_INT(ao_bounces, "AO Bounces", 0);
+
 	SOCKET_INT(volume_max_steps, "Volume Max Steps", 1024);
 	SOCKET_FLOAT(volume_step_size, "Volume Step Size", 0.1f);
 
@@ -110,6 +112,13 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 
 	kintegrator->transparent_max_bounce = transparent_max_bounce + 1;
 	kintegrator->transparent_min_bounce = transparent_min_bounce + 1;
+
+	if(ao_bounces == 0) {
+		kintegrator->ao_bounces = INT_MAX;
+	}
+	else {
+		kintegrator->ao_bounces = ao_bounces - 1;
+	}
 
 	/* Transparent Shadows
 	 * We only need to enable transparent shadows, if we actually have 

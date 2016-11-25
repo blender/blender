@@ -109,6 +109,10 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		/* intersect scene */
 		Intersection isect;
 		uint visibility = path_state_ray_visibility(kg, state);
+		if(state->bounce > kernel_data.integrator.ao_bounces) {
+			visibility = PATH_RAY_SHADOW;
+			ray->t = kernel_data.background.ao_distance;
+		}
 		bool hit = scene_intersect(kg,
 		                           *ray,
 		                           visibility,
@@ -290,6 +294,9 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 			                               state->bounce);
 #endif  /* __BACKGROUND__ */
 
+			break;
+		}
+		else if(state->bounce > kernel_data.integrator.ao_bounces) {
 			break;
 		}
 
@@ -627,6 +634,11 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 			lcg_state = lcg_state_init(rng, &state, 0x51633e2d);
 		}
 
+		if(state.bounce > kernel_data.integrator.ao_bounces) {
+			visibility = PATH_RAY_SHADOW;
+			ray.t = kernel_data.background.ao_distance;
+		}
+
 		bool hit = scene_intersect(kg, ray, visibility, &isect, &lcg_state, difl, extmax);
 #else
 		bool hit = scene_intersect(kg, ray, visibility, &isect, NULL, 0.0f, 0.0f);
@@ -767,6 +779,9 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 			path_radiance_accum_background(&L, throughput, L_background, state.bounce);
 #endif  /* __BACKGROUND__ */
 
+			break;
+		}
+		else if(state.bounce > kernel_data.integrator.ao_bounces) {
 			break;
 		}
 

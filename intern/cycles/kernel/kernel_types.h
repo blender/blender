@@ -1143,6 +1143,8 @@ typedef struct KernelIntegrator {
 	int max_transmission_bounce;
 	int max_volume_bounce;
 
+	int ao_bounces;
+
 	/* transparent */
 	int transparent_min_bounce;
 	int transparent_max_bounce;
@@ -1185,8 +1187,6 @@ typedef struct KernelIntegrator {
 	int volume_samples;
 
 	float light_inv_rr_threshold;
-
-	int pad1;
 } KernelIntegrator;
 static_assert_align(KernelIntegrator, 16);
 

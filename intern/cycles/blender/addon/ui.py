@@ -1038,10 +1038,11 @@ class CyclesWorld_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         light = context.world.light_settings
+        scene = context.scene
 
         row = layout.row()
         sub = row.row()
-        sub.active = light.use_ambient_occlusion
+        sub.active = light.use_ambient_occlusion or scene.render.use_simplify
         sub.prop(light, "ao_factor", text="Factor")
         row.prop(light, "distance", text="Distance")
 
@@ -1611,6 +1612,13 @@ class CyclesScene_PT_simplify(CyclesButtonsPanel, Panel):
         row = col.row()
         row.active = cscene.use_distance_cull
         row.prop(cscene, "distance_cull_margin", text="Distance")
+
+        split = layout.split()
+        col = split.column()
+        col.prop(cscene, "ao_bounces")
+
+        col = split.column()
+        col.prop(cscene, "ao_bounces_render")
 
 def draw_device(self, context):
     scene = context.scene

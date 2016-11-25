@@ -638,6 +638,20 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
             items=enum_texture_limit
             )
 
+        cls.ao_bounces = IntProperty(
+            name="AO Bounces",
+            default=0,
+            description="Approximate indirect light with background tinted ambient occlusion at the specified bounce, 0 disables this feature",
+            min=0, max=1024,
+            )
+
+        cls.ao_bounces_render = IntProperty(
+            name="AO Bounces Render",
+            default=0,
+            description="Approximate indirect light with background tinted ambient occlusion at the specified bounce, 0 disables this feature",
+            min=0, max=1024,
+            )
+
         # Various fine-tuning debug flags
 
         def devices_update_callback(self, context):
