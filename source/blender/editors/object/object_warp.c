@@ -53,8 +53,7 @@ static void object_warp_calc_view_matrix(float r_mat_view[4][4], float r_center_
 	float viewmat_roll[4][4];
 
 	/* apply the rotation offset by rolling the view */
-	unit_m4(mat_offset);
-	rotate_m4(mat_offset, 'Z', offset_angle);
+	axis_angle_to_mat4_single(mat_offset, 'Z', offset_angle);
 	mul_m4_m4m4(viewmat_roll, mat_offset, viewmat);
 
 	/* apply the view and the object matrix */

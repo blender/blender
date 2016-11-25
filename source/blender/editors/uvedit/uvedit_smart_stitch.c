@@ -459,7 +459,7 @@ static void stitch_calculate_island_snapping(
 				            island_stitch_data[i].num_rot_elements_neg) / totelem;
 			}
 
-			rotate_m2(rotation_mat, rotation);
+			angle_to_mat2(rotation_mat, rotation);
 			numOfIslandUVs = getNumOfIslandUvs(state->element_map, i);
 			element = &state->element_map->buf[state->element_map->islandIndices[i]];
 			for (j = 0; j < numOfIslandUVs; j++, element++) {

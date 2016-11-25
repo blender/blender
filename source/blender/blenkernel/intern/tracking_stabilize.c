@@ -587,7 +587,7 @@ static void compensate_rotation_center(const int size, float aspect,
 
 	copy_v2_v2(intended_pivot, pivot);
 	copy_v2_v2(rotated_pivot, pivot);
-	rotate_m2(rotation_mat, +angle);
+	angle_to_mat2(rotation_mat, +angle);
 	sub_v2_v2(rotated_pivot, origin);
 	mul_m2v2(rotation_mat, rotated_pivot);
 	mul_v2_fl(rotated_pivot, scale);
@@ -967,7 +967,7 @@ static void initialize_track_for_stabilization(StabContext *ctx,
 
 	pos[0] *= aspect;
 	angle = average_angle - atan2f(pos[1],pos[0]);
-	rotate_m2(local_data->stabilization_rotation_base, angle);
+	angle_to_mat2(local_data->stabilization_rotation_base, angle);
 
 	/* Per track baseline value for zoom. */
 	len = len_v2(pos) + SCALE_ERROR_LIMIT_BIAS;

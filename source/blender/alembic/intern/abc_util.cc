@@ -221,8 +221,7 @@ void convert_matrix(const Imath::M44d &xform, Object *ob,
 
 	if (ob->type == OB_CAMERA) {
 		float cam_to_yup[4][4];
-		unit_m4(cam_to_yup);
-		rotate_m4(cam_to_yup, 'X', M_PI_2);
+		axis_angle_to_mat4_single(cam_to_yup, 'X', M_PI_2);
 		mul_m4_m4m4(r_mat, r_mat, cam_to_yup);
 	}
 

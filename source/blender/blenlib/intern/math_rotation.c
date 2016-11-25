@@ -1009,6 +1009,13 @@ void mat4_to_axis_angle(float axis[3], float *angle, float mat[4][4])
 	quat_to_axis_angle(axis, angle, q);
 }
 
+void axis_angle_to_mat4_single(float mat[4][4], const char axis, const float angle)
+{
+	float mat3[3][3];
+	axis_angle_to_mat3_single(mat3, axis, angle);
+	copy_m4_m3(mat, mat3);
+}
+
 /* rotation matrix from a single axis */
 void axis_angle_to_mat3_single(float mat[3][3], const char axis, const float angle)
 {

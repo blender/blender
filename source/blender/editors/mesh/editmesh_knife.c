@@ -2140,7 +2140,7 @@ static float snap_v2_angle(float r[2], const float v[2], const float v_ref[2], f
 	normalize_v2_v2(v_unit, v);
 	angle = angle_signed_v2v2(v_unit, v_ref);
 	angle_delta = (roundf(angle / angle_snap) * angle_snap) - angle;
-	rotate_m2(m2, angle_delta);
+	angle_to_mat2(m2, angle_delta);
 
 	mul_v2_m2v2(r, m2, v);
 	return angle + angle_delta;

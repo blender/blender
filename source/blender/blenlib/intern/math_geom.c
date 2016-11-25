@@ -3917,10 +3917,9 @@ void lookat_m4(float mat[4][4], float vx, float vy, float vz, float px, float py
 	float sine, cosine, hyp, hyp1, dx, dy, dz;
 	float mat1[4][4];
 
-	unit_m4(mat);
 	unit_m4(mat1);
 
-	rotate_m4(mat, 'Z', -twist);
+	axis_angle_to_mat3_single(mat, 'Z', -twist);
 
 	dx = px - vx;
 	dy = py - vy;

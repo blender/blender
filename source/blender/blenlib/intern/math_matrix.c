@@ -1625,6 +1625,13 @@ void translate_m4(float mat[4][4], float Tx, float Ty, float Tz)
 	mat[3][2] += (Tx * mat[0][2] + Ty * mat[1][2] + Tz * mat[2][2]);
 }
 
+/**
+ * Rotate a matrix in-place.
+ *
+ * \note To create a new rotation matrix see:
+ * #axis_angle_to_mat4_single, #axis_angle_to_mat3_single, #angle_to_mat2
+ * (axis & angle args are compatible).
+ */
 void rotate_m4(float mat[4][4], const char axis, const float angle)
 {
 	int col;
@@ -1663,13 +1670,6 @@ void rotate_m4(float mat[4][4], const char axis, const float angle)
 			}
 			break;
 	}
-}
-
-void rotate_m2(float mat[2][2], const float angle)
-{
-	mat[0][0] = mat[1][1] = cosf(angle);
-	mat[0][1] = sinf(angle);
-	mat[1][0] = -mat[0][1];
 }
 
 /**
