@@ -32,25 +32,24 @@ from bpy_extras import object_utils
 
 def add_torus(major_rad, minor_rad, major_seg, minor_seg):
     from math import cos, sin, pi
-    from mathutils import Vector, Quaternion
+    from mathutils import Vector, Matrix
 
-    PI_2 = pi * 2.0
-    z_axis = 0.0, 0.0, 1.0
+    pi_2 = pi * 2.0
 
     verts = []
     faces = []
     i1 = 0
     tot_verts = major_seg * minor_seg
     for major_index in range(major_seg):
-        quat = Quaternion(z_axis, (major_index / major_seg) * PI_2)
+        matrix = Matrix.Rotation((major_index / major_seg) * pi_2, 3, 'Z')
 
         for minor_index in range(minor_seg):
-            angle = 2 * pi * minor_index / minor_seg
+            angle = pi_2 * minor_index / minor_seg
 
-            vec = quat * Vector((major_rad + (cos(angle) * minor_rad),
-                                 0.0,
-                                 (sin(angle) * minor_rad),
-                                 ))
+            vec = matrix * Vector((major_rad + (cos(angle) * minor_rad),
+                                   0.0,
+                                   sin(angle) * minor_rad,
+                                   ))
 
             verts.extend(vec[:])
 
@@ -58,7 +57,6 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg):
                 i2 = (major_index) * minor_seg
                 i3 = i1 + minor_seg
                 i4 = i2 + minor_seg
-
             else:
                 i2 = i1 + 1
                 i3 = i1 + minor_seg
@@ -71,11 +69,7 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg):
             if i4 >= tot_verts:
                 i4 = i4 - tot_verts
 
-            # stupid eekadoodle
-            if i2:
-                faces.extend([i1, i3, i4, i2])
-            else:
-                faces.extend([i2, i1, i3, i4])
+            faces.extend([i1, i3, i4, i2])
 
             i1 += 1
 
