@@ -135,20 +135,16 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 {
 	size_t num_pixels = bake_data->size();
 
-	progress.reset_sample();
-	this->num_parts = 0;
+	int num_samples = is_aa_pass(shader_type)? scene->integrator->aa_samples : 1;
 
-	/* calculate the total parts for the progress bar */
+	/* calculate the total pixel samples for the progress bar */
+	total_pixel_samples = 0;
 	for(size_t shader_offset = 0; shader_offset < num_pixels; shader_offset += m_shader_limit) {
 		size_t shader_size = (size_t)fminf(num_pixels - shader_offset, m_shader_limit);
-
-		DeviceTask task(DeviceTask::SHADER);
-		task.shader_w = shader_size;
-
-		this->num_parts += device->get_split_task_count(task);
+		total_pixel_samples += shader_size * num_samples;
 	}
-
-	this->num_samples = is_aa_pass(shader_type)? scene->integrator->aa_samples : 1;
+	progress.reset_sample();
+	progress.set_total_pixel_samples(total_pixel_samples);
 
 	for(size_t shader_offset = 0; shader_offset < num_pixels; shader_offset += m_shader_limit) {
 		size_t shader_size = (size_t)fminf(num_pixels - shader_offset, m_shader_limit);
@@ -187,9 +183,9 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 		task.shader_x = 0;
 		task.offset = shader_offset;
 		task.shader_w = d_output.size();
-		task.num_samples = this->num_samples;
+		task.num_samples = num_samples;
 		task.get_cancel = function_bind(&Progress::get_cancel, &progress);
-		task.update_progress_sample = function_bind(&Progress::increment_sample_update, &progress);
+		task.update_progress_sample = function_bind(&Progress::add_samples_update, &progress, _1, _2);
 
 		device->task_add(task);
 		device->task_wait();

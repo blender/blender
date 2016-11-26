@@ -39,6 +39,10 @@ public:
 	{
 	}
 
+	virtual bool show_samples() const {
+		return true;
+	}
+
 	virtual void load_kernels(const DeviceRequestedFeatures& /*requested_features*/,
 	                          vector<OpenCLProgram*> &programs)
 	{
@@ -120,7 +124,7 @@ public:
 
 					tile.sample = sample + 1;
 
-					task->update_progress(&tile);
+					task->update_progress(&tile, tile.w*tile.h);
 				}
 
 				/* Complete kernel execution before release tile */

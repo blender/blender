@@ -89,6 +89,14 @@ public:
 		return error_msg;
 	}
 
+	virtual bool show_samples() const
+	{
+		if(devices.size() > 1) {
+			return false;
+		}
+		return devices.front().device->show_samples();
+	}
+
 	bool load_kernels(const DeviceRequestedFeatures& requested_features)
 	{
 		foreach(SubDevice& sub, devices)

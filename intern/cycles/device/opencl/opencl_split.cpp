@@ -247,6 +247,10 @@ public:
 		}
 	}
 
+	virtual bool show_samples() const {
+		return false;
+	}
+
 	/* Split kernel utility functions. */
 	size_t get_tex_size(const char *tex_name)
 	{

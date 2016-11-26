@@ -145,6 +145,10 @@ public:
 
 	void device_free();
 
+	/* Returns the rendering progress or 0 if no progress can be determined
+	 * (for example, when rendering with unlimited samples). */
+	float get_progress();
+
 protected:
 	struct DelayedReset {
 		thread_mutex mutex;
@@ -173,8 +177,6 @@ protected:
 	void update_tile_sample(RenderTile& tile);
 	void release_tile(RenderTile& tile);
 
-	void update_progress_sample();
-
 	bool device_use_gl;
 
 	thread *session_thread;
@@ -194,10 +196,7 @@ protected:
 
 	bool kernels_loaded;
 
-	double start_time;
 	double reset_time;
-	double preview_time;
-	double paused_time;
 
 	/* progressive refine */
 	double last_update_time;

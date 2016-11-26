@@ -115,6 +115,12 @@ public:
 		return path_exists(cubins_path);
 	}
 
+	virtual bool show_samples() const
+	{
+		/* The CUDADevice only processes one tile at a time, so showing samples is fine. */
+		return true;
+	}
+
 /*#ifdef NDEBUG
 #define cuda_abort()
 #else
@@ -1267,7 +1273,7 @@ public:
 
 					tile.sample = sample + 1;
 
-					task->update_progress(&tile);
+					task->update_progress(&tile, tile.w*tile.h);
 				}
 
 				task->release_tile(tile);
