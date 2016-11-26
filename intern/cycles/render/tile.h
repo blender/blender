@@ -64,6 +64,10 @@ public:
 		int resolution_divider;
 		int num_tiles;
 		int num_rendered_tiles;
+
+		/* Total samples over all pixels: Generally num_samples*num_pixels,
+		 * but can be higher due to the initial resolution division for previews. */
+		uint64_t total_pixel_samples;
 		/* This vector contains a list of tiles for every logical device in the session.
 		 * In each list, the tiles are sorted according to the tile order setting. */
 		vector<list<Tile> > tiles;
@@ -91,7 +95,7 @@ public:
 	/* Number to samples in the rendering range. */
 	int range_num_samples;
 
-	/* get number of actual samples to render. */
+	/* Get number of actual samples to render. */
 	int get_num_effective_samples();
 protected:
 

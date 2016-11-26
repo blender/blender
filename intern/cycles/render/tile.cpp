@@ -108,36 +108,57 @@ TileManager::~TileManager()
 {
 }
 
-void TileManager::reset(BufferParams& params_, int num_samples_)
+static int get_divider(int w, int h, int start_resolution)
 {
-	params = params_;
-
 	int divider = 1;
-	int w = params.width, h = params.height;
-
 	if(start_resolution != INT_MAX) {
 		while(w*h > start_resolution*start_resolution) {
 			w = max(1, w/2);
 			h = max(1, h/2);
 
-			divider *= 2;
+			divider <<= 1;
 		}
 	}
+	return divider;
+}
 
-	num_samples = num_samples_;
+void TileManager::reset(BufferParams& params_, int num_samples_)
+{
+	params = params_;
+
+	set_samples(num_samples_);
 
 	state.buffer = BufferParams();
 	state.sample = range_start_sample - 1;
 	state.num_tiles = 0;
 	state.num_rendered_tiles = 0;
 	state.num_samples = 0;
-	state.resolution_divider = divider;
+	state.resolution_divider = get_divider(params.width, params.height, start_resolution);
 	state.tiles.clear();
 }
 
 void TileManager::set_samples(int num_samples_)
 {
 	num_samples = num_samples_;
+
+	/* No real progress indication is possible when using unlimited samples. */
+	if(num_samples == INT_MAX) {
+		state.total_pixel_samples = 0;
+	}
+	else {
+		uint64_t pixel_samples = 0;
+		/* While rendering in the viewport, the initial preview resolution is increased to the native resolution
+		 * before the actual rendering begins. Therefore, additional pixel samples will be rendered. */
+		int divider = get_divider(params.width, params.height, start_resolution) / 2;
+		while(divider > 1) {
+			int image_w = max(1, params.width/divider);
+			int image_h = max(1, params.height/divider);
+			pixel_samples += image_w * image_h;
+			divider >>= 1;
+		}
+
+		state.total_pixel_samples = pixel_samples + get_num_effective_samples() * params.width*params.height;
+	}
 }
 
 /* If sliced is false, splits image into tiles and assigns equal amount of tiles to every render device.

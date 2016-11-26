@@ -930,38 +930,13 @@ void BlenderSession::get_status(string& status, string& substatus)
 
 void BlenderSession::get_progress(float& progress, double& total_time, double& render_time)
 {
-	double tile_time;
-	int tile, sample, samples_per_tile;
-	int tile_total = session->tile_manager.state.num_tiles;
-	int samples = session->tile_manager.state.sample + 1;
-	int total_samples = session->tile_manager.get_num_effective_samples();
-
-	session->progress.get_tile(tile, total_time, render_time, tile_time);
-
-	sample = session->progress.get_sample();
-	samples_per_tile = session->tile_manager.get_num_effective_samples();
-
-	if(background && samples_per_tile && tile_total)
-		progress = ((float)sample / (float)(tile_total * samples_per_tile));
-	else if(!background && samples > 0 && total_samples != INT_MAX)
-		progress = ((float)samples) / total_samples;
-	else
-		progress = 0.0;
+	session->progress.get_time(total_time, render_time);
+	progress = session->progress.get_progress();
 }
 
 void BlenderSession::update_bake_progress()
 {
-	float progress;
-	int sample, samples_per_task, parts_total;
-
-	sample = session->progress.get_sample();
-	samples_per_task = scene->bake_manager->num_samples;
-	parts_total = scene->bake_manager->num_parts;
-
-	if(samples_per_task)
-		progress = ((float)sample / (float)(parts_total * samples_per_task));
-	else
-		progress = 0.0;
+	float progress = session->progress.get_progress();
 
 	if(progress != last_progress) {
 		b_engine.update_progress(progress);

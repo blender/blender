@@ -220,6 +220,7 @@ public:
 	DeviceInfo info;
 	virtual const string& error_message() { return error_msg; }
 	bool have_error() { return !error_message().empty(); }
+	virtual bool show_samples() const { return false; }
 
 	/* statistics */
 	Stats &stats;
