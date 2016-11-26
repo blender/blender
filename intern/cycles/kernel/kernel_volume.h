@@ -582,17 +582,12 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous_distance(
 ccl_device_noinline VolumeIntegrateResult kernel_volume_integrate(KernelGlobals *kg,
 	PathState *state, ShaderData *sd, Ray *ray, PathRadiance *L, float3 *throughput, RNG *rng, bool heterogeneous)
 {
-	/* workaround to fix correlation bug in T38710, can find better solution
-	 * in random number generator later, for now this is done here to not impact
-	 * performance of rendering without volumes */
-	RNG tmp_rng = cmj_hash(*rng, state->rng_offset);
-
 	shader_setup_from_volume(kg, sd, ray);
 
 	if(heterogeneous)
-		return kernel_volume_integrate_heterogeneous_distance(kg, state, ray, sd, L, throughput, &tmp_rng);
+		return kernel_volume_integrate_heterogeneous_distance(kg, state, ray, sd, L, throughput, rng);
 	else
-		return kernel_volume_integrate_homogeneous(kg, state, ray, sd, L, throughput, &tmp_rng, true);
+		return kernel_volume_integrate_homogeneous(kg, state, ray, sd, L, throughput, rng, true);
 }
 
 /* Decoupled Volume Sampling

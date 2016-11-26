@@ -149,6 +149,15 @@ ccl_device_inline uint cmj_hash(uint i, uint p)
 	return i;
 }
 
+ccl_device_inline uint cmj_hash_simple(uint i, uint p)
+{
+	i = (i ^ 61) ^ p;
+	i += i << 3;
+	i ^= i >> 4;
+	i *= 0x27d4eb2d;
+	return i;
+}
+
 ccl_device_inline float cmj_randfloat(uint i, uint p)
 {
 	return cmj_hash(i, p) * (1.0f / 4294967808.0f);
