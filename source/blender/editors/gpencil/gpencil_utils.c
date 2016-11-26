@@ -915,7 +915,7 @@ void gp_subdivide_stroke(bGPDstroke *gps, const int new_totpoints)
 /**
  * Add randomness to stroke
  * \param gps           Stroke data
- * \param brsuh         Brush data
+ * \param brush         Brush data
  */
 void gp_randomize_stroke(bGPDstroke *gps, bGPDbrush *brush)
 {
