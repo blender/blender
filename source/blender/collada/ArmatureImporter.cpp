@@ -169,6 +169,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 		float angle;
 		mat4_to_loc_rot_size(loc, rot, size, mat);
 		mat3_to_vec_roll(rot, NULL, &angle);
+		bone->roll = angle;
 	}
 	copy_v3_v3(bone->head, mat[3]);
 	add_v3_v3v3(bone->tail, bone->head, tail); //tail must be non zero
