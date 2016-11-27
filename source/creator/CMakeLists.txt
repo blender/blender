@@ -1185,7 +1185,7 @@ if(WIN32 AND NOT WITH_PYTHON_MODULE)
 				message(FATAL_ERROR "Windows 10 SDK directory not found")
 			endif()
 		endif()
-		
+		FILE(TO_CMAKE_PATH  ${KITSPATH} KITSPATH)
 		install(
 			FILES
 				${KITSPATH}/api-ms-win-core-file-l1-2-0.dll
