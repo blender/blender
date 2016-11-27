@@ -1264,7 +1264,11 @@ void BKE_gpencil_palettecolor_changename(bGPdata *gpd, char *oldname, const char
 	bGPDlayer *gpl;
 	bGPDframe *gpf;
 	bGPDstroke *gps;
-
+	
+	/* Sanity checks (gpd may not be set in the RNA pointers sometimes) */
+	if (ELEM(NULL, gpd, oldname, newname))
+		return;
+	
 	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 		for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
 			for (gps = gpf->strokes.first; gps; gps = gps->next) {
@@ -1283,7 +1287,11 @@ void BKE_gpencil_palettecolor_delete_strokes(struct bGPdata *gpd, char *name)
 	bGPDlayer *gpl;
 	bGPDframe *gpf;
 	bGPDstroke *gps, *gpsn;
-
+	
+	/* Sanity checks (gpd may not be set in the RNA pointers sometimes) */
+	if (ELEM(NULL, gpd, name))
+		return;
+	
 	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 		for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
 			for (gps = gpf->strokes.first; gps; gps = gpsn) {
