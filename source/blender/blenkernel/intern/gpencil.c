@@ -382,7 +382,8 @@ bGPDpalette *BKE_gpencil_palette_addnew(bGPdata *gpd, const char *name, bool set
 	               sizeof(palette->info));
 
 	/* make this one the active one */
-	if (setactive) {
+	/* NOTE: Always make this active if there's nothing else yet (T50123) */
+	if ((setactive) || (gpd->palettes.first == gpd->palettes.last)) {
 		BKE_gpencil_palette_setactive(gpd, palette);
 	}
 
