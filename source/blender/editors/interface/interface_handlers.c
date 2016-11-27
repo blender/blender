@@ -184,7 +184,6 @@ typedef struct uiSelectContextStore {
 	uiSelectContextElem *elems;
 	int elems_len;
 	bool do_free;
-	bool is_enabled;
 	/* When set, simply copy values (don't apply difference).
 	 * Rules are:
 	 * - dragging numbers uses delta.
@@ -1159,14 +1158,11 @@ static void ui_multibut_states_apply(bContext *C, uiHandleButtonData *data, uiBl
 				ui_but_execute_begin(C, ar, but, &active_back);
 
 #ifdef USE_ALLSELECT
-				if (data->select_others.is_enabled) {
-					/* init once! */
-					if (mbut_state->select_others.elems_len == 0) {
-						ui_selectcontext_begin(C, but, &mbut_state->select_others);
-					}
-					if (mbut_state->select_others.elems_len == 0) {
-						mbut_state->select_others.elems_len = -1;
-					}
+				if (mbut_state->select_others.elems_len == 0) {
+					ui_selectcontext_begin(C, but, &mbut_state->select_others);
+				}
+				if (mbut_state->select_others.elems_len == 0) {
+					mbut_state->select_others.elems_len = -1;
 				}
 
 				/* needed so we apply the right deltas */
@@ -2054,12 +2050,7 @@ static void ui_apply_but(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 		else
 #  endif
 		if (data->select_others.elems_len == 0) {
-			wmWindow *win = CTX_wm_window(C);
-			/* may have been enabled before activating */
-			if (data->select_others.is_enabled || IS_ALLSELECT_EVENT(win->eventstate)) {
-				ui_selectcontext_begin(C, but, &data->select_others);
-				data->select_others.is_enabled = true;
-			}
+			ui_selectcontext_begin(C, but, &data->select_others);
 		}
 		if (data->select_others.elems_len == 0) {
 			/* dont check again */
@@ -3048,11 +3039,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 #ifdef USE_ALLSELECT
 	if (is_num_but) {
-		if (IS_ALLSELECT_EVENT(win->eventstate)) {
-			data->select_others.is_enabled = true;
-			data->select_others.is_copy = true;
-
-		}
+		data->select_others.is_copy = true;
 	}
 #endif
 
@@ -3651,15 +3638,6 @@ static void ui_block_open_begin(bContext *C, uiBut *but, uiHandleButtonData *dat
 		if (but->block->handle)
 			data->menu->popup = but->block->handle->popup;
 	}
-
-#ifdef USE_ALLSELECT
-	{
-		wmWindow *win = CTX_wm_window(C);
-		if (IS_ALLSELECT_EVENT(win->eventstate)) {
-			data->select_others.is_enabled = true;
-		}
-	}
-#endif
 
 	/* this makes adjacent blocks auto open from now on */
 	//if (but->block->auto_open == 0) but->block->auto_open = 1;
