@@ -748,7 +748,7 @@ static int datadropper_poll(bContext *C)
 	if ((CTX_wm_window(C) != NULL) &&
 	    (but = UI_context_active_but_prop_get(C, &ptr, &prop, &index_dummy)) &&
 	    (but->type == UI_BTYPE_SEARCH_MENU) &&
-	    (but->flag & UI_BUT_SEARCH_UNLINK))
+	    (but->flag & UI_BUT_VALUE_CLEAR))
 	{
 		if (prop && RNA_property_type(prop) == PROP_POINTER) {
 			StructRNA *type = RNA_property_pointer_type(&ptr, prop);

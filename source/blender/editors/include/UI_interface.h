@@ -181,7 +181,7 @@ enum {
 	UI_BUT_HAS_SEP_CHAR    = (1 << 27),  /* but->str contains UI_SEP_CHAR, used for key shortcuts */
 	UI_BUT_UPDATE_DELAY    = (1 << 28),  /* don't run updates while dragging (needed in rare cases). */
 	UI_BUT_TEXTEDIT_UPDATE = (1 << 29),  /* when widget is in textedit mode, update value on each char stroke */
-	UI_BUT_SEARCH_UNLINK   = (1 << 30),  /* show unlink for search button */
+	UI_BUT_VALUE_CLEAR     = (1 << 30),  /* show 'x' icon to clear/unlink value of text or search button */
 };
 
 #define UI_PANEL_WIDTH          340

@@ -119,6 +119,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 			else
 				but = uiDefButR_prop(block, UI_BTYPE_TEXT, 0, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
 
+			UI_but_flag_enable(but, UI_BUT_VALUE_CLEAR); /* might want to make this optional? */
 			if (RNA_property_flag(prop) & PROP_TEXTEDIT_UPDATE) {
 				UI_but_flag_enable(but, UI_BUT_TEXTEDIT_UPDATE);
 			}
