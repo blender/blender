@@ -11,6 +11,7 @@
 
 #include "immediate.h"
 #include "attrib_binding.h"
+#include "buffer_id.h"
 #include <string.h>
 
 // necessary functions from matrix API
@@ -61,7 +62,7 @@ void immInit()
 
 	memset(&imm, 0, sizeof(Immediate));
 
-	glGenBuffers(1, &imm.vbo_id);
+	imm.vbo_id = buffer_id_alloc();
 	glBindBuffer(GL_ARRAY_BUFFER, imm.vbo_id);
 	glBufferData(GL_ARRAY_BUFFER, IMM_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
 
@@ -87,7 +88,7 @@ void immActivate()
 	assert(imm.vao_id == 0);
 #endif
 
-	glGenVertexArrays(1, &imm.vao_id);
+	imm.vao_id = vao_id_alloc();
 	}
 
 void immDeactivate()
@@ -98,7 +99,7 @@ void immDeactivate()
 	assert(imm.vao_id != 0);
 #endif
 
-	glDeleteVertexArrays(1, &imm.vao_id);
+	vao_id_free(imm.vao_id);
 	imm.vao_id = 0;
 	imm.prev_enabled_attrib_bits = 0;
 	}
@@ -106,7 +107,7 @@ void immDeactivate()
 void immDestroy()
 	{
 	immDeactivate();
-	glDeleteBuffers(1, &imm.vbo_id);
+	buffer_id_free(imm.vbo_id);
 	initialized = false;
 	}
 
