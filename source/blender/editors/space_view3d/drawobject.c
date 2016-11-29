@@ -225,17 +225,6 @@ typedef struct {
 	Batch *overlay_edges; /* owns its vertex buffer */
 } MeshBatchCache;
 
-static MeshBatchCache *MBC_get(DerivedMesh *dm)
-{
-	if (dm->batchCache == NULL) {
-		/* create cache */
-		dm->batchCache = MEM_callocN(sizeof(MeshBatchCache), "MeshBatchCache");
-		/* init everything to 0 is ok for now */
-	}
-
-	return dm->batchCache;
-}
-
 static void MBC_discard(MeshBatchCache *cache)
 {
 	if (cache->all_verts) Batch_discard(cache->all_verts);
@@ -253,10 +242,30 @@ static void MBC_discard(MeshBatchCache *cache)
 	if (cache->overlay_edges) {
 		Batch_discard_all(cache->overlay_edges);
 	}
+
+	MEM_freeN(cache);
 }
-/* need to set this as DM callback:
- * DM_set_batch_cleanup_callback((DMCleanupBatchCache)MBC_discard);
- */
+
+static MeshBatchCache *MBC_get(DerivedMesh *dm)
+{
+	if (dm->batchCache == NULL) {
+		/* create cache */
+		dm->batchCache = MEM_callocN(sizeof(MeshBatchCache), "MeshBatchCache");
+		/* init everything to 0 is ok for now */
+
+
+		/* tell DerivedMesh how to clean up these caches (just once) */
+		/* TODO: find a better place for this w/out exposing internals to DM */
+		/* TODO (long term): replace DM with something less messy */
+		static bool first = true;
+		if (first) {
+			DM_set_batch_cleanup_callback((DMCleanupBatchCache)MBC_discard);
+			first = false;
+		}
+	}
+
+	return dm->batchCache;
+}
 
 static VertexBuffer *MBC_get_pos_in_order(DerivedMesh *dm)
 {
