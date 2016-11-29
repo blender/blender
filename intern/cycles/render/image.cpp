@@ -498,6 +498,7 @@ bool ImageManager::file_load_image(Image *img,
 		pixels = (StorageType*)tex_img.resize(width, height, depth);
 	}
 	bool cmyk = false;
+	const size_t num_pixels = ((size_t)width) * height * depth;
 	if(in) {
 		StorageType *readpixels = pixels;
 		vector<StorageType> tmppixels;
@@ -534,12 +535,14 @@ bool ImageManager::file_load_image(Image *img,
 		if(FileFormat == TypeDesc::FLOAT) {
 			builtin_image_float_pixels_cb(img->filename,
 			                              img->builtin_data,
-			                              (float*)&pixels[0]);
+			                              (float*)&pixels[0],
+			                              num_pixels * components);
 		}
 		else if(FileFormat == TypeDesc::UINT8) {
 			builtin_image_pixels_cb(img->filename,
 			                        img->builtin_data,
-			                        (uchar*)&pixels[0]);
+			                        (uchar*)&pixels[0],
+			                        num_pixels * components);
 		}
 		else {
 			/* TODO(dingto): Support half for ImBuf. */
@@ -552,7 +555,6 @@ bool ImageManager::file_load_image(Image *img,
 	                type == IMAGE_DATA_TYPE_HALF4 ||
 	                type == IMAGE_DATA_TYPE_BYTE4);
 	if(is_rgba) {
-		size_t num_pixels = ((size_t)width) * height * depth;
 		if(cmyk) {
 			/* CMYK */
 			for(size_t i = num_pixels-1, pixel = 0; pixel < num_pixels; pixel++, i--) {

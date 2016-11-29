@@ -86,9 +86,25 @@ public:
 
 	bool need_update;
 
-	function<void(const string &filename, void *data, bool &is_float, int &width, int &height, int &depth, int &channels)> builtin_image_info_cb;
-	function<bool(const string &filename, void *data, unsigned char *pixels)> builtin_image_pixels_cb;
-	function<bool(const string &filename, void *data, float *pixels)> builtin_image_float_pixels_cb;
+	/* NOTE: Here pixels_size is a size of storage, which equals to
+	 *       width * height * depth.
+	 *       Use this to avoid some nasty memory corruptions.
+	 */
+	function<void(const string &filename,
+	              void *data,
+	              bool &is_float,
+	              int &width,
+	              int &height,
+	              int &depth,
+	              int &channels)> builtin_image_info_cb;
+	function<bool(const string &filename,
+	              void *data,
+	              unsigned char *pixels,
+	              const size_t pixels_size)> builtin_image_pixels_cb;
+	function<bool(const string &filename,
+	              void *data,
+	              float *pixels,
+	              const size_t pixels_size)> builtin_image_float_pixels_cb;
 
 	struct Image {
 		string filename;
