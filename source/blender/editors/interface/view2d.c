@@ -1506,50 +1506,80 @@ void UI_view2d_constant_grid_draw(View2D *v2d)
 /* Draw a multi-level grid in given 2d-region */
 void UI_view2d_multi_grid_draw(View2D *v2d, int colorid, float step, int level_size, int totlevels)
 {
+	/* Exit if there is nothing to draw */
+	if (totlevels == 0)
+		return;
+
 	int offset = -10;
 	float lstep = step;
-	int level;
+	unsigned char grid_line_color[3];
+
+	/* Make an estimate of at least how many vertices will be needed */
+	unsigned vertex_count = 4;
+	vertex_count += 2 * ((int)((v2d->cur.xmax - v2d->cur.xmin) / lstep) + 1);
+	vertex_count += 2 * ((int)((v2d->cur.ymax - v2d->cur.ymin) / lstep) + 1);
+
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
 
 	glLineWidth(1.0f);
-	for (level = 0; level < totlevels; ++level) {
-		int i;
-		float start;
+
+	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+	immBeginAtMost(GL_LINES, vertex_count);
+
+	for (int level = 0; level < totlevels; ++level) {
+		UI_GetThemeColorShade3ubv(colorid, offset, grid_line_color);
 		
-		UI_ThemeColorShade(colorid, offset);
+		int i = (int)(v2d->cur.xmin / lstep);
+		if (v2d->cur.xmin > 0.0f)
+			i++;
+		float start = i * lstep;
 		
-		i = (v2d->cur.xmin >= 0.0f ? -(int)(-v2d->cur.xmin / lstep) : (int)(v2d->cur.xmin / lstep));
-		start = i * lstep;
-		
-		glBegin(GL_LINES);
 		for (; start < v2d->cur.xmax; start += lstep, ++i) {
 			if (i == 0 || (level < totlevels - 1 && i % level_size == 0))
 				continue;
-			glVertex2f(start, v2d->cur.ymin);
-			glVertex2f(start, v2d->cur.ymax);
+
+			immSkipAttrib(color);
+			immVertex2f(pos, start, v2d->cur.ymin);
+			immAttrib3ubv(color, grid_line_color);
+			immVertex2f(pos, start, v2d->cur.ymax);
 		}
 		
-		i = (v2d->cur.ymin >= 0.0f ? -(int)(-v2d->cur.ymin / lstep) : (int)(v2d->cur.ymin / lstep));
+		i = (int)(v2d->cur.ymin / lstep);
+		if (v2d->cur.ymin > 0.0f)
+			i++;
 		start = i * lstep;
 		
 		for (; start < v2d->cur.ymax; start += lstep, ++i) {
 			if (i == 0 || (level < totlevels - 1 && i % level_size == 0))
 				continue;
-			glVertex2f(v2d->cur.xmin, start);
-			glVertex2f(v2d->cur.xmax, start);
+
+			immSkipAttrib(color);
+			immVertex2f(pos, v2d->cur.xmin, start);
+			immAttrib3ubv(color, grid_line_color);
+			immVertex2f(pos, v2d->cur.xmax, start);
 		}
-		
-		/* X and Y axis */
-		UI_ThemeColorShade(colorid, offset - 8);
-		glVertex2f(0.0f, v2d->cur.ymin);
-		glVertex2f(0.0f, v2d->cur.ymax);
-		glVertex2f(v2d->cur.xmin, 0.0f);
-		glVertex2f(v2d->cur.xmax, 0.0f);
-		
-		glEnd();
 		
 		lstep *= level_size;
 		offset -= 6;
 	}
+
+	/* X and Y axis */
+	UI_GetThemeColorShade3ubv(colorid, -18 + ((totlevels - 1) * -6) , grid_line_color);
+
+	immSkipAttrib(color);
+	immVertex2f(pos, 0.0f, v2d->cur.ymin);
+	immAttrib3ubv(color, grid_line_color);
+	immVertex2f(pos, 0.0f, v2d->cur.ymax);
+
+	immSkipAttrib(color);
+	immVertex2f(pos, v2d->cur.xmin, 0.0f);
+	immAttrib3ubv(color, grid_line_color);
+	immVertex2f(pos, v2d->cur.xmax, 0.0f);
+
+	immEnd();
+	immUnbindProgram();
 }
 
 /* the price we pay for not exposting structs :( */
