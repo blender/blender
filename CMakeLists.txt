@@ -497,11 +497,10 @@ endif()
 # We default options to whatever default standard in the current compiler.
 if(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "6.0") AND (NOT WITH_CXX11))
 	set(_c11_init ON)
-	set(_cxx11_init ON)
 else()
 	set(_c11_init OFF)
-	set(_cxx11_init OFF)
 endif()
+set(_cxx11_init ON)
 
 option(WITH_C11 "Build with C11 standard enabled, for development use only!" ${_c11_init})
 mark_as_advanced(WITH_C11)
