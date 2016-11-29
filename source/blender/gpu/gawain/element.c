@@ -10,6 +10,7 @@
 // the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #include "element.h"
+#include "buffer_id.h"
 #include <stdlib.h>
 
 #define KEEP_SINGLE_COPY 1
@@ -36,7 +37,7 @@ unsigned ElementList_size(const ElementList* elem)
 
 static void ElementList_prime(ElementList* elem)
 	{
-	glGenBuffers(1, &elem->vbo_id);
+	elem->vbo_id = buffer_id_alloc();
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem->vbo_id);
 	// fill with delicious data & send to GPU the first time only
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, ElementList_size(elem), elem->data, GL_STATIC_DRAW);
@@ -270,5 +271,13 @@ void ElementList_build_in_place(ElementListBuilder* builder, ElementList* elem)
 
 void ElementList_discard(ElementList* elem)
 	{
-	// TODO: clean up
+	if (elem->vbo_id)
+		buffer_id_free(elem->vbo_id);
+#if KEEP_SINGLE_COPY
+	else
+#endif
+	if (elem->data)
+		free(elem->data);
+
+	free(elem);
 	}

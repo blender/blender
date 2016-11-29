@@ -10,6 +10,7 @@
 // the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #include "vertex_buffer.h"
+#include "buffer_id.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -49,7 +50,15 @@ void VertexBuffer_init_with_format(VertexBuffer* verts, const VertexFormat* form
 
 void VertexBuffer_discard(VertexBuffer* verts)
 	{
-	// TODO: clean up
+	if (verts->vbo_id)
+		buffer_id_free(verts->vbo_id);
+#if KEEP_SINGLE_COPY
+	else
+#endif
+	if (verts->data)
+		free(verts->data);
+
+	free(verts);
 	}
 
 unsigned VertexBuffer_size(const VertexBuffer* verts)
@@ -140,7 +149,7 @@ static void VertexBuffer_prime(VertexBuffer* verts)
 	{
 	const VertexFormat* format = &verts->format;
 
-	glGenBuffers(1, &verts->vbo_id);
+	verts->vbo_id = buffer_id_alloc();
 	glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
 	// fill with delicious data & send to GPU the first time only
 	glBufferData(GL_ARRAY_BUFFER, vertex_buffer_size(format, verts->vertex_ct), verts->data, GL_STATIC_DRAW);

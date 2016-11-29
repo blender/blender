@@ -10,6 +10,7 @@
 // the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #include "batch.h"
+#include "buffer_id.h"
 #include <stdlib.h>
 
 // necessary functions from matrix API
@@ -36,7 +37,10 @@ Batch* Batch_create(PrimitiveType prim_type, VertexBuffer* verts, ElementList* e
 
 void Batch_discard(Batch* batch)
 	{
-	// TODO: clean up
+	if (batch->vao_id)
+		vao_id_free(batch->vao_id);
+
+	free(batch);
 	}
 
 void Batch_discard_all(Batch* batch)
@@ -194,7 +198,7 @@ void Batch_Uniform4fv(Batch* batch, const char* name, const float data[4])
 
 static void Batch_prime(Batch* batch)
 	{
-	glGenVertexArrays(1, &batch->vao_id);
+	batch->vao_id = vao_id_alloc();
 	glBindVertexArray(batch->vao_id);
 
 	VertexBuffer_use(batch->verts);
