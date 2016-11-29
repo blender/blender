@@ -70,6 +70,8 @@ set(SRC
 	gawain/attrib_binding.h
 	gawain/batch.c
 	gawain/batch.h
+	gawain/buffer_id.h
+	gawain/buffer_id.cpp
 	gawain/common.h
 	gawain/element.c
 	gawain/element.h
