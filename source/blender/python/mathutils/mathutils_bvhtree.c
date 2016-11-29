@@ -817,12 +817,13 @@ static PyObject *C_BVHTree_FromPolygons(PyObject *UNUSED(cls), PyObject *args, P
 					PyErr_Format(PyExc_ValueError,
 					             "%s: index %d must be less than %d",
 					             error_prefix, plink->poly[j], coords_len);
-
-					Py_DECREF(py_tricoords_fast);
+					/* decref below */
 					valid = false;
 					break;
 				}
 			}
+
+			Py_DECREF(py_tricoords_fast);
 
 			if (py_tricoords_len >= 3) {
 				tris_len += (py_tricoords_len - 2);
