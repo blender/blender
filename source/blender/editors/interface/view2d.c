@@ -1801,6 +1801,10 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 	Scene *scene = CTX_data_scene(C);
 	rcti vert, hor;
 	int scroll = view2d_scroll_mapped(v2d->scroll);
+	unsigned char scrollers_back_color[4];
+
+	/* Color for scrollbar backs */
+	UI_GetThemeColor4ubv(TH_BACK, scrollers_back_color);
 	
 	/* make copies of rects for less typing */
 	vert = vs->vert;
@@ -1812,7 +1816,6 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		uiWidgetColors wcol = btheme->tui.wcol_scroll;
 		rcti slider;
 		int state;
-		unsigned char col[4];
 		
 		slider.xmin = vs->hor_min;
 		slider.xmax = vs->hor_max;
@@ -1836,10 +1839,16 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		}
 		
 		/* clean rect behind slider, but not with transparent background */
-		UI_GetThemeColor4ubv(TH_BACK, col);
-		if (col[3] == 255) {
-			glColor3ub(col[0], col[1], col[2]);
-			glRecti(v2d->hor.xmin, v2d->hor.ymin, v2d->hor.xmax, v2d->hor.ymax);
+		if (scrollers_back_color[3] == 255) {
+			VertexFormat *format = immVertexFormat();
+			unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+
+			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+			immUniformColor3ubv(scrollers_back_color);
+			immRecti(pos, v2d->hor.xmin, v2d->hor.ymin, v2d->hor.xmax, v2d->hor.ymax);
+
+			immUnbindProgram();
 		}
 		
 		UI_draw_widget_scroll(&wcol, &hor, &slider, state);
@@ -1913,7 +1922,6 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		uiWidgetColors wcol = btheme->tui.wcol_scroll;
 		rcti slider;
 		int state;
-		unsigned char col[4];
 		
 		slider.xmin = vert.xmin;
 		slider.xmax = vert.xmax;
@@ -1937,10 +1945,16 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		}
 		
 		/* clean rect behind slider, but not with transparent background */
-		UI_GetThemeColor4ubv(TH_BACK, col);
-		if (col[3] == 255) {
-			glColor3ub(col[0], col[1], col[2]);
-			glRecti(v2d->vert.xmin, v2d->vert.ymin, v2d->vert.xmax, v2d->vert.ymax);
+		if (scrollers_back_color[3] == 255) {
+			VertexFormat *format = immVertexFormat();
+			unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+
+			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+			immUniformColor3ubv(scrollers_back_color);
+			immRecti(pos, v2d->vert.xmin, v2d->vert.ymin, v2d->vert.xmax, v2d->vert.ymax);
+
+			immUnbindProgram();
 		}
 		
 		UI_draw_widget_scroll(&wcol, &vert, &slider, state);
