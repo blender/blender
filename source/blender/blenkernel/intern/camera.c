@@ -337,6 +337,8 @@ void BKE_camera_params_compute_viewplane(CameraParams *params, int winx, int win
 	viewplane.ymin *= pixsize;
 	viewplane.ymax *= pixsize;
 
+	/* Used for rendering (offset by near-clip with perspective views), passed to RE_SetPixelSize.
+	 * For viewport drawing 'RegionView3D.pixsize'. */
 	params->viewdx = pixsize;
 	params->viewdy = params->ycor * pixsize;
 	params->viewplane = viewplane;
