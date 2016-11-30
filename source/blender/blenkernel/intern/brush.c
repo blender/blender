@@ -249,6 +249,9 @@ void BKE_brush_make_local(Main *bmain, Brush *brush, const bool lib_local)
 
 			brush_new->id.us = 0;
 
+			/* setting newid is mandatory for complex make_lib_local logic... */
+			ID_NEW_SET(brush, brush_new);
+
 			if (!lib_local) {
 				BKE_libblock_remap(bmain, brush, brush_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 			}

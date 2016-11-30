@@ -263,6 +263,14 @@ void id_fake_user_clear(ID *id)
 	}
 }
 
+void BKE_id_clear_newpoin(ID *id)
+{
+	if (id->newid) {
+		id->newid->tag &= ~LIB_TAG_NEW;
+	}
+	id->newid = NULL;
+}
+
 static int id_expand_local_callback(
         void *UNUSED(user_data), struct ID *id_self, struct ID **id_pointer, int UNUSED(cd_flag))
 {
@@ -326,6 +334,17 @@ void BKE_id_make_local_generic(Main *bmain, ID *id, const bool id_in_mainlist, c
 			if (id_copy(bmain, id, &id_new, false)) {
 				id_new->us = 0;
 
+				/* setting newid is mandatory for complex make_lib_local logic... */
+				ID_NEW_SET(id, id_new);
+				Key *key = BKE_key_from_id(id), *key_new = BKE_key_from_id(id);
+				if (key && key_new) {
+					ID_NEW_SET(key, key_new);
+				}
+				bNodeTree *ntree = ntreeFromID(id), *ntree_new = ntreeFromID(id_new);
+				if (ntree && ntree_new) {
+					ID_NEW_SET(ntree, ntree_new);
+				}
+
 				if (!lib_local) {
 					BKE_libblock_remap(bmain, id, id_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 				}
@@ -336,6 +355,8 @@ void BKE_id_make_local_generic(Main *bmain, ID *id, const bool id_in_mainlist, c
 
 /**
  * Calls the appropriate make_local method for the block, unless test is set.
+ *
+ * \note Always set ID->newid pointer in case it gets duplicated...
  *
  * \param lib_local Special flag used when making a whole library's content local, it needs specific handling.
  *
@@ -561,6 +582,7 @@ bool id_copy(Main *bmain, ID *id, ID **newid, bool test)
 	return false;
 }
 
+/** Does *not* set ID->newid pointer. */
 bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
 {
 	ID *newid = NULL;
@@ -571,11 +593,11 @@ bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
 		if (RNA_property_editable(ptr, prop)) {
 			if (id_copy(CTX_data_main(C), id, &newid, false) && newid) {
 				/* copy animation actions too */
-				BKE_animdata_copy_id_action(id);
+				BKE_animdata_copy_id_action(id, false);
 				/* us is 1 by convention, but RNA_property_pointer_set
 				 * will also increment it, so set it to zero */
 				newid->us = 0;
-				
+
 				/* assign copy */
 				RNA_id_pointer_create(newid, &idptr);
 				RNA_property_pointer_set(ptr, prop, idptr);
@@ -1120,9 +1142,6 @@ void *BKE_libblock_copy(Main *bmain, ID *id)
 
 		memcpy(cpn + sizeof(ID), cp + sizeof(ID), idn_len - sizeof(ID));
 	}
-	
-	id->newid = idn;
-	idn->tag |= LIB_TAG_NEW;
 
 	BKE_libblock_copy_data(idn, id, false);
 	
@@ -1147,8 +1166,6 @@ void *BKE_libblock_copy_nolib(ID *id, const bool do_action)
 		memcpy(cpn + sizeof(ID), cp + sizeof(ID), idn_len - sizeof(ID));
 	}
 
-	id->newid = idn;
-	idn->tag |= LIB_TAG_NEW;
 	idn->us = 1;
 
 	BKE_libblock_copy_data(idn, id, do_action);
@@ -1662,7 +1679,6 @@ void BKE_library_make_local(
 		const bool do_skip = (id && !BKE_idcode_is_linkable(GS(id->name)));
 
 		for (; id; id = id->next) {
-			id->newid = NULL;
 			id->tag &= ~LIB_TAG_DOIT;
 
 			if (id->lib == NULL) {
@@ -1862,6 +1878,7 @@ void BKE_library_make_local(
 		}
 	}
 
+	BKE_main_id_clear_newpoins(bmain);
 	BLI_memarena_free(linklist_mem);
 }
 

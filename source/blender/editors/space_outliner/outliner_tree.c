@@ -1645,11 +1645,6 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	outliner_free_tree(&soops->tree);
 	outliner_storage_cleanup(soops);
 	
-	/* clear ob id.new flags */
-	for (Object *ob = mainvar->object.first; ob; ob = ob->id.next) {
-		ob->id.newid = NULL;
-	}
-	
 	/* options */
 	if (soops->outlinevis == SO_LIBRARIES) {
 		Library *lib;
@@ -1835,6 +1830,8 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 		outliner_sort(&soops->tree);
 	}
 	outliner_filter_tree(soops, &soops->tree);
+
+	BKE_main_id_clear_newpoins(mainvar);
 }
 
 

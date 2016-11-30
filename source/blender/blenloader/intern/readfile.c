@@ -8102,6 +8102,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const short 
 	id->lib = main->curlib;
 	id->us = ID_FAKE_USERS(id);
 	id->icon_id = 0;
+	id->newid = NULL;  /* Needed because .blend may have been saved with crap value here... */
 	
 	/* this case cannot be direct_linked: it's just the ID part */
 	if (bhead->code == ID_ID) {

@@ -225,8 +225,8 @@ RigidBodyCon *BKE_rigidbody_copy_constraint(Object *ob)
 /* preserve relationships between constraints and rigid bodies after duplication */
 void BKE_rigidbody_relink_constraint(RigidBodyCon *rbc)
 {
-	ID_NEW(rbc->ob1);
-	ID_NEW(rbc->ob2);
+	ID_NEW_REMAP(rbc->ob1);
+	ID_NEW_REMAP(rbc->ob2);
 }
 
 /* ************************************** */

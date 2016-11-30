@@ -358,7 +358,9 @@ static struct ID *rna_ID_make_local(struct ID *self, Main *bmain, int clear_prox
 		id_make_local(bmain, self, false, false);
 	}
 
-	return self->newid ? self->newid : self;
+	ID *ret_id = self->newid ? self->newid : self;
+	BKE_id_clear_newpoin(self);
+	return ret_id;
 }
 
 

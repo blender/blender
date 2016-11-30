@@ -290,9 +290,9 @@ typedef enum ID_Type {
 #endif
 #define GS(a)	(CHECK_TYPE_ANY(a, char *, const char *, char [66], const char[66]), (*((const short *)(a))))
 
-#define ID_NEW(a)		if (      (a) && (a)->id.newid ) (a) = (void *)(a)->id.newid
-#define ID_NEW_US(a)	if (      (a)->id.newid)       { (a) = (void *)(a)->id.newid;       (a)->id.us++; }
-#define ID_NEW_US2(a)	if (((ID *)a)->newid)          { (a) = ((ID  *)a)->newid;     ((ID *)a)->us++;    }
+#define ID_NEW_SET(_id, _idn) \
+	(((ID *)(_id))->newid = (ID *)(_idn), ((ID *)(_id))->newid->tag |= LIB_TAG_NEW, (void *)((ID *)(_id))->newid)
+#define ID_NEW_REMAP(a) if ((a) && (a)->id.newid) (a) = (void *)(a)->id.newid
 
 /* id->flag (persitent). */
 enum {
