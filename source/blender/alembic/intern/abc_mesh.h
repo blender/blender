@@ -109,12 +109,6 @@ private:
 	                        const Alembic::AbcGeom::ISampleSelector &sample_sel);
 };
 
-void read_mesh_sample(ImportSettings *settings,
-                      const Alembic::AbcGeom::IPolyMeshSchema &schema,
-                      const Alembic::AbcGeom::ISampleSelector &selector,
-                      CDStreamConfig &config,
-                      bool &do_normals);
-
 /* ************************************************************************** */
 
 class AbcSubDReader : public AbcObjectReader {
@@ -130,11 +124,6 @@ public:
 	void readObjectData(Main *bmain, float time);
 	DerivedMesh *read_derivedmesh(DerivedMesh *dm, const float time, int read_flag, const char **err_str);
 };
-
-void read_subd_sample(ImportSettings *settings,
-                      const Alembic::AbcGeom::ISubDSchema &schema,
-                      const Alembic::AbcGeom::ISampleSelector &selector,
-                      CDStreamConfig &config);
 
 /* ************************************************************************** */
 
