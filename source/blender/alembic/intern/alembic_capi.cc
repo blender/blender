@@ -816,7 +816,7 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 			return NULL;
 		}
 
-		return abc_reader->read_derivedmesh(dm, time, read_flag);
+		return abc_reader->read_derivedmesh(dm, time, read_flag, err_str);
 	}
 	else if (ISubD::matches(header)) {
 		if (ob->type != OB_MESH) {
@@ -824,7 +824,7 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 			return NULL;
 		}
 
-		return abc_reader->read_derivedmesh(dm, time, read_flag);
+		return abc_reader->read_derivedmesh(dm, time, read_flag, err_str);
 	}
 	else if (IPoints::matches(header)) {
 		if (ob->type != OB_MESH) {
@@ -832,7 +832,7 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 			return NULL;
 		}
 
-		return abc_reader->read_derivedmesh(dm, time, read_flag);
+		return abc_reader->read_derivedmesh(dm, time, read_flag, err_str);
 	}
 	else if (ICurves::matches(header)) {
 		if (ob->type != OB_CURVE) {
@@ -840,7 +840,7 @@ DerivedMesh *ABC_read_mesh(CacheReader *reader,
 			return NULL;
 		}
 
-		return abc_reader->read_derivedmesh(dm, time, read_flag);
+		return abc_reader->read_derivedmesh(dm, time, read_flag, err_str);
 	}
 
 	*err_str = "Unsupported object type: verify object path"; // or poke developer

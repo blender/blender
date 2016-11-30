@@ -156,7 +156,7 @@ void AbcPointsReader::readObjectData(Main *bmain, float time)
 	Mesh *mesh = BKE_mesh_add(bmain, m_data_name.c_str());
 
 	DerivedMesh *dm = CDDM_from_mesh(mesh);
-	DerivedMesh *ndm = this->read_derivedmesh(dm, time, 0);
+	DerivedMesh *ndm = this->read_derivedmesh(dm, time, 0, NULL);
 
 	if (ndm != dm) {
 		dm->release(dm);
@@ -199,7 +199,7 @@ void read_points_sample(const IPointsSchema &schema,
 	read_mverts(config.mvert, positions, vnormals);
 }
 
-DerivedMesh *AbcPointsReader::read_derivedmesh(DerivedMesh *dm, const float time, int /*read_flag*/)
+DerivedMesh *AbcPointsReader::read_derivedmesh(DerivedMesh *dm, const float time, int /*read_flag*/, const char **/*err_str*/)
 {
 	ISampleSelector sample_sel(time);
 	const IPointsSchema::Sample sample = m_schema.getValue(sample_sel);

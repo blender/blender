@@ -361,7 +361,7 @@ void read_curve_sample(Curve *cu, const ICurvesSchema &schema, const float time)
  * object directly and create a new DerivedMesh from that. Also we might need to
  * create new or delete existing NURBS in the curve.
  */
-DerivedMesh *AbcCurveReader::read_derivedmesh(DerivedMesh */*dm*/, const float time, int /*read_flag*/)
+DerivedMesh *AbcCurveReader::read_derivedmesh(DerivedMesh */*dm*/, const float time, int /*read_flag*/, const char **/*err_str*/)
 {
 	ISampleSelector sample_sel(time);
 	const ICurvesSchema::Sample sample = m_curves_schema.getValue(sample_sel);

@@ -896,7 +896,7 @@ void AbcMeshReader::readObjectData(Main *bmain, float time)
 	const ISampleSelector sample_sel(time);
 
 	DerivedMesh *dm = CDDM_from_mesh(mesh);
-	DerivedMesh *ndm = this->read_derivedmesh(dm, time, MOD_MESHSEQ_READ_ALL);
+	DerivedMesh *ndm = this->read_derivedmesh(dm, time, MOD_MESHSEQ_READ_ALL, NULL);
 
 	if (ndm != dm) {
 		dm->release(dm);
@@ -978,7 +978,7 @@ CDStreamConfig get_config(DerivedMesh *dm)
 	return config;
 }
 
-DerivedMesh *AbcMeshReader::read_derivedmesh(DerivedMesh *dm, const float time, int read_flag)
+DerivedMesh *AbcMeshReader::read_derivedmesh(DerivedMesh *dm, const float time, int read_flag, const char **err_str)
 {
 	ISampleSelector sample_sel(time);
 	const IPolyMeshSchema::Sample sample = m_schema.getValue(sample_sel);
@@ -1002,6 +1002,21 @@ DerivedMesh *AbcMeshReader::read_derivedmesh(DerivedMesh *dm, const float time, 
 		                            face_counts->size());
 
 		settings.read_flag |= MOD_MESHSEQ_READ_ALL;
+	}
+	else {
+		/* If the face count changed (e.g. by triangulation), only read points.
+		 * This prevents crash from T49813
+		 * TODO(kevin): perhaps find a better way to do this? */
+		if (face_counts->size() != dm->getNumPolys(dm) ||
+		    face_indices->size() != dm->getNumLoops(dm))
+		{
+			settings.read_flag = MOD_MESHSEQ_READ_VERT;
+
+			if (err_str) {
+				*err_str = "Topology has changed, perhaps by triangulating the"
+				           " mesh. Only vertices will be read!";
+			}
+		}
 	}
 
 	CDStreamConfig config = get_config(new_dm ? new_dm : dm);
@@ -1177,7 +1192,7 @@ void AbcSubDReader::readObjectData(Main *bmain, float time)
 	m_object->data = mesh;
 
 	DerivedMesh *dm = CDDM_from_mesh(mesh);
-	DerivedMesh *ndm = this->read_derivedmesh(dm, time, MOD_MESHSEQ_READ_ALL);
+	DerivedMesh *ndm = this->read_derivedmesh(dm, time, MOD_MESHSEQ_READ_ALL, NULL);
 
 	if (ndm != dm) {
 		dm->release(dm);
@@ -1257,7 +1272,7 @@ void read_subd_sample(ImportSettings *settings,
 	/* TODO: face sets */
 }
 
-DerivedMesh *AbcSubDReader::read_derivedmesh(DerivedMesh *dm, const float time, int read_flag)
+DerivedMesh *AbcSubDReader::read_derivedmesh(DerivedMesh *dm, const float time, int read_flag, const char **err_str)
 {
 	ISampleSelector sample_sel(time);
 	const ISubDSchema::Sample sample = m_schema.getValue(sample_sel);
@@ -1280,6 +1295,21 @@ DerivedMesh *AbcSubDReader::read_derivedmesh(DerivedMesh *dm, const float time, 
 		                            face_counts->size());
 
 		settings.read_flag |= MOD_MESHSEQ_READ_ALL;
+	}
+	else {
+		/* If the face count changed (e.g. by triangulation), only read points.
+		 * This prevents crash from T49813
+		 * TODO(kevin): perhaps find a better way to do this? */
+		if (face_counts->size() != dm->getNumPolys(dm) ||
+		    face_indices->size() != dm->getNumLoops(dm))
+		{
+			settings.read_flag = MOD_MESHSEQ_READ_VERT;
+
+			if (err_str) {
+				*err_str = "Topology has changed, perhaps by triangulating the"
+				           " mesh. Only vertices will be read!";
+			}
+		}
 	}
 
 	/* Only read point data when streaming meshes, unless we need to create new ones. */

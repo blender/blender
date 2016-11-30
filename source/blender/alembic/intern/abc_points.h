@@ -61,7 +61,7 @@ public:
 
 	void readObjectData(Main *bmain, float time);
 
-	DerivedMesh *read_derivedmesh(DerivedMesh *dm, const float time, int read_flag);
+	DerivedMesh *read_derivedmesh(DerivedMesh *dm, const float time, int read_flag, const char **err_str);
 };
 
 void read_points_sample(const Alembic::AbcGeom::IPointsSchema &schema,

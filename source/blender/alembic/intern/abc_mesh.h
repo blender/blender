@@ -102,7 +102,7 @@ public:
 
 	void readObjectData(Main *bmain, float time);
 
-	DerivedMesh *read_derivedmesh(DerivedMesh *dm, const float time, int read_flag);
+	DerivedMesh *read_derivedmesh(DerivedMesh *dm, const float time, int read_flag, const char **err_str);
 
 private:
 	void readFaceSetsSample(Main *bmain, Mesh *mesh, size_t poly_start,
@@ -128,7 +128,7 @@ public:
 	bool valid() const;
 
 	void readObjectData(Main *bmain, float time);
-	DerivedMesh *read_derivedmesh(DerivedMesh *dm, const float time, int read_flag);
+	DerivedMesh *read_derivedmesh(DerivedMesh *dm, const float time, int read_flag, const char **err_str);
 };
 
 void read_subd_sample(ImportSettings *settings,
