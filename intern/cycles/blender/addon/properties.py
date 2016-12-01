@@ -288,7 +288,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Probabilistically terminate light samples when the light contribution is below this threshold (more noise but faster rendering). "
                             "Zero disables the test and never ignores lights",
                 min=0.0, max=1.0,
-                default=0.05,
+                default=0.01,
                 )
 
         cls.caustics_reflective = BoolProperty(
