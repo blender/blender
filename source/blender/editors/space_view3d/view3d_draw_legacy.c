@@ -224,7 +224,7 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 		const float f10 = 0.5f * U.widget_unit;
 		const float f20 = U.widget_unit;
 		
-		glLineWidth(1);
+		glLineWidth(1.0f);
 
 		VertexFormat* format = immVertexFormat();
 		unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
@@ -306,7 +306,7 @@ static void draw_view_axis(RegionView3D *rv3d, rcti *rect)
 	}
 
 	/* draw axis lines */
-	glLineWidth(2);
+	glLineWidth(2.0f);
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -355,9 +355,9 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glPointSize(5);
+	glPointSize(5.0f);
 	glEnable(GL_POINT_SMOOTH);
-	glDepthMask(0);  /* don't overwrite zbuf */
+	glDepthMask(GL_FALSE);  /* don't overwrite zbuf */
 
 	VertexFormat *format = immVertexFormat();
 	unsigned pos = add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
@@ -452,7 +452,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 
 	glDisable(GL_BLEND);
 	glDisable(GL_POINT_SMOOTH);
-	glDepthMask(1);
+	glDepthMask(GL_TRUE);
 }
 #endif /* WITH_INPUT_NDOF */
 
@@ -1220,7 +1220,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			}
 
 			if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
-			glDepthMask(0);
+			glDepthMask(GL_FALSE);
 
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
@@ -1261,7 +1261,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 
 			glDisable(GL_BLEND);
 
-			glDepthMask(1);
+			glDepthMask(GL_TRUE);
 			if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 
 			if (freeibuf)
@@ -3149,7 +3149,7 @@ static void bl_debug_draw(void)
 		glEnd();
 		color = _bl_debug_draw_edges_color[0];
 		cpack(color);
-		glPointSize(4.0);
+		glPointSize(4.0f);
 		glBegin(GL_POINTS);
 		for (i = 0; i < _bl_debug_draw_edges_tot; i ++) {
 			if (_bl_debug_draw_edges_color[i] != color) {

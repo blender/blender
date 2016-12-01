@@ -864,7 +864,7 @@ void drawaxes(const float viewmat_local[4][4], float size, char drawtype, const 
 	float v2[3] = {0.0, 0.0, 0.0};
 	float v3[3] = {0.0, 0.0, 0.0};
 
-	glLineWidth(1);
+	glLineWidth(1.0f);
 
 	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
 	if (color) {
@@ -1293,7 +1293,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, flo
 			if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 		}
 		else {
-			glDepthMask(0);
+			glDepthMask(GL_FALSE);
 		}
 		
 		for (vos = g_v3d_strings[g_v3d_string_level]; vos; vos = vos->next) {
@@ -1318,7 +1318,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, flo
 			if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 		}
 		else {
-			glDepthMask(1);
+			glDepthMask(GL_TRUE);
 		}
 		
 		glMatrixMode(GL_PROJECTION);
@@ -1392,7 +1392,7 @@ static void drawshadbuflimits(const Lamp *la, const float mat[4][4], unsigned po
 	immVertex3fv(pos, end);
 	immEnd();
 
-	glPointSize(3.0);
+	glPointSize(3.0f);
 	immBegin(GL_POINTS, 2);
 	immVertex3fv(pos, sta);
 	immVertex3fv(pos, end);
@@ -1492,7 +1492,7 @@ static void draw_transp_spot_volume(Lamp *la, float x, float z, unsigned pos)
 {
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
-	glDepthMask(0);
+	glDepthMask(GL_FALSE);
 
 	/* draw backside darkening */
 	glCullFace(GL_FRONT);
@@ -1513,9 +1513,8 @@ static void draw_transp_spot_volume(Lamp *la, float x, float z, unsigned pos)
 	/* restore state */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_BLEND);
-	glDepthMask(1);
+	glDepthMask(GL_TRUE);
 	glDisable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
 }
 
 #ifdef WITH_GAMEENGINE
@@ -1537,7 +1536,7 @@ static void draw_transp_sun_volume(Lamp *la, unsigned pos)
 	/* draw faces */
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
-	glDepthMask(0);
+	glDepthMask(GL_FALSE);
 
 	/* draw backside darkening */
 	glCullFace(GL_FRONT);
@@ -1558,9 +1557,8 @@ static void draw_transp_sun_volume(Lamp *la, unsigned pos)
 	/* restore state */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_BLEND);
-	glDepthMask(1);
+	glDepthMask(GL_TRUE);
 	glDisable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
 }
 #endif
 
@@ -1631,7 +1629,7 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 		/* TODO: pay attention to GL_BLEND */
 	}
 
-	glLineWidth(1);
+	glLineWidth(1.0f);
 	setlinestyle(3);
 
 	if (lampsize > 0.0f) {
@@ -1950,7 +1948,7 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 	immVertex3fv(pos, vec);
 	immEnd();
 
-	glPointSize(2.0);
+	glPointSize(2.0f);
 	immBegin(GL_POINTS, 1);
 	immVertex3fv(pos, vec);
 	immEnd();
@@ -1969,7 +1967,7 @@ static void draw_limit_line(float sta, float end, const short dflag, const unsig
 	immEnd();
 
 	if (!(dflag & DRAW_PICKING)) {
-		glPointSize(3.0);
+		glPointSize(3.0f);
 		/* would like smooth round points here, but that means binding another shader...
 		 * if it's really desired, pull these points into their own function to be called after */
 		immBegin(GL_POINTS, 2);
@@ -2399,14 +2397,14 @@ static void drawcamera_stereo3d(
 
 		if (v3d->stereo3d_convergence_alpha > 0.0f) {
 			glEnable(GL_BLEND);
-			glDepthMask(0);  /* disable write in zbuffer, needed for nice transp */
+			glDepthMask(GL_FALSE);  /* disable write in zbuffer, needed for nice transp */
 
 			immUniformColor4f(0.0f, 0.0f, 0.0f, v3d->stereo3d_convergence_alpha);
 
 			drawcamera_frame(local_plane, true, pos);
 
 			glDisable(GL_BLEND);
-			glDepthMask(1);  /* restore write in zbuffer */
+			glDepthMask(GL_TRUE);  /* restore write in zbuffer */
 		}
 	}
 
@@ -2437,7 +2435,7 @@ static void drawcamera_stereo3d(
 
 			if (v3d->stereo3d_volume_alpha > 0.0f) {
 				glEnable(GL_BLEND);
-				glDepthMask(0);  /* disable write in zbuffer, needed for nice transp */
+				glDepthMask(GL_FALSE);  /* disable write in zbuffer, needed for nice transp */
 
 				if (i == 0)
 					immUniformColor4f(0.0f, 1.0f, 1.0f, v3d->stereo3d_volume_alpha);
@@ -2447,7 +2445,7 @@ static void drawcamera_stereo3d(
 				drawcamera_volume(near_plane, far_plane, true, pos);
 
 				glDisable(GL_BLEND);
-				glDepthMask(1);  /* restore write in zbuffer */
+				glDepthMask(GL_TRUE);  /* restore write in zbuffer */
 			}
 		}
 	}
@@ -2525,7 +2523,7 @@ void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 	if (ob_wire_col) {
 		immUniformColor3ubv(ob_wire_col);
 	}
-	glLineWidth(1);
+	glLineWidth(1.0f);
 
 	/* camera frame */
 	if (!is_stereo3d_cameras) {
@@ -2639,7 +2637,7 @@ void drawspeaker(const unsigned char ob_wire_col[3])
 		immUniformColor3ubv(ob_wire_col);
 	}
 
-	glLineWidth(1);
+	glLineWidth(1.0f);
 
 	const int segments = 16;
 
@@ -2796,7 +2794,7 @@ static void drawlattice(View3D *v3d, Object *ob)
 		}
 	}
 
-	glLineWidth(1);
+	glLineWidth(1.0f);
 	glBegin(GL_LINES);
 	for (w = 0; w < lt->pntsw; w++) {
 		int wxt = (w == 0 || w == lt->pntsw - 1);
@@ -3514,7 +3512,7 @@ static void draw_dm_creases(BMEditMesh *em, DerivedMesh *dm)
 	data.cd_layer_offset = CustomData_get_offset(&em->bm->edata, CD_CREASE);
 
 	if (data.cd_layer_offset != -1) {
-		glLineWidth(3.0);
+		glLineWidth(3.0f);
 		dm->drawMappedEdges(dm, draw_dm_creases__setDrawOptions, &data);
 	}
 }
@@ -3560,7 +3558,7 @@ static void draw_dm_bweights(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
 		data.cd_layer_offset = CustomData_get_offset(&em->bm->vdata, CD_BWEIGHT);
 
 		if (data.cd_layer_offset != -1) {
-			glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE) + 2);
+			glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE) + 2.0f);
 			glBegin(GL_POINTS);
 			dm->foreachMappedVert(dm, draw_dm_bweights__mapFunc, &data, DM_FOREACH_NOP);
 			glEnd();
@@ -3573,7 +3571,7 @@ static void draw_dm_bweights(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
 		data.cd_layer_offset = CustomData_get_offset(&em->bm->edata, CD_BWEIGHT);
 
 		if (data.cd_layer_offset != -1) {
-			glLineWidth(3.0);
+			glLineWidth(3.0f);
 			dm->drawMappedEdges(dm, draw_dm_bweights__setDrawOptions, &data);
 		}
 	}
@@ -3594,7 +3592,7 @@ static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit,
 {
 	ToolSettings *ts = scene->toolsettings;
 
-	if (v3d->zbuf) glDepthMask(0);  /* disable write in zbuffer, zbuf select */
+	if (v3d->zbuf) glDepthMask(GL_FALSE);  /* disable write in zbuffer, zbuf select */
 
 	for (int sel = 0; sel < 2; sel++) {
 		unsigned char col[4], fcol[4];
@@ -3642,7 +3640,7 @@ static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit,
 		}
 	}
 
-	if (v3d->zbuf) glDepthMask(1);
+	if (v3d->zbuf) glDepthMask(GL_TRUE);
 }
 
 static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
@@ -4126,7 +4124,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 	const bool use_occlude_wire = (dt > OB_WIRE) && (v3d->flag2 & V3D_OCCLUDE_WIRE);
 	bool use_depth_offset = false;
 	
-	glLineWidth(1);
+	glLineWidth(1.0f);
 	
 	BM_mesh_elem_table_ensure(em->bm, BM_VERT | BM_EDGE | BM_FACE);
 
@@ -4135,7 +4133,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 			draw_mesh_paint_weight_faces(finalDM, true, draw_em_fancy__setFaceOpts, me->edit_btmesh);
 
 			ED_view3d_polygon_offset(rv3d, 1.0);
-			glDepthMask(0);
+			glDepthMask(GL_FALSE);
 			use_depth_offset = true;
 		}
 		else {
@@ -4182,7 +4180,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 		UI_ThemeColor(TH_WIRE_EDIT);
 
 		ED_view3d_polygon_offset(rv3d, 1.0);
-		glDepthMask(0);
+		glDepthMask(GL_FALSE);
 		use_depth_offset = true;
 	}
 	else {
@@ -4232,7 +4230,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 #endif
 
 			glEnable(GL_BLEND);
-			glDepthMask(0);  /* disable write in zbuffer, needed for nice transp */
+			glDepthMask(GL_FALSE);  /* disable write in zbuffer, needed for nice transp */
 
 			/* don't draw unselected faces, only selected, this is MUCH nicer when texturing */
 			if (check_object_draw_texture(scene, v3d, dt))
@@ -4248,7 +4246,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 #endif
 
 			glDisable(GL_BLEND);
-			glDepthMask(1);  /* restore write in zbuffer */
+			glDepthMask(GL_TRUE);  /* restore write in zbuffer */
 		}
 		else if (efa_act) {
 			/* even if draw faces is off it would be nice to draw the stipple face
@@ -4263,7 +4261,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 			UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, col3);
 
 			glEnable(GL_BLEND);
-			glDepthMask(0);  /* disable write in zbuffer, needed for nice transp */
+			glDepthMask(GL_FALSE);  /* disable write in zbuffer, needed for nice transp */
 
 #ifdef WITH_FREESTYLE
 			draw_dm_faces_sel(em, cageDM, col1, col2, col3, col4, efa_act);
@@ -4272,7 +4270,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 #endif
 
 			glDisable(GL_BLEND);
-			glDepthMask(1);  /* restore write in zbuffer */
+			glDepthMask(GL_TRUE);  /* restore write in zbuffer */
 		}
 
 		/* here starts all fancy draw-extra over */
@@ -4286,7 +4284,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 		else {
 			if (me->drawflag & ME_DRAWSEAMS) {
 				UI_ThemeColor(TH_EDGE_SEAM);
-				glLineWidth(2);
+				glLineWidth(2.0f);
 
 				draw_dm_edges_seams(em, cageDM);
 
@@ -4295,7 +4293,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 
 			if (me->drawflag & ME_DRAWSHARP) {
 				UI_ThemeColor(TH_EDGE_SHARP);
-				glLineWidth(2);
+				glLineWidth(2.0f);
 
 				draw_dm_edges_sharp(em, cageDM);
 
@@ -4305,7 +4303,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 #ifdef WITH_FREESTYLE
 			if (me->drawflag & ME_DRAW_FREESTYLE_EDGE && CustomData_has_layer(&em->bm->edata, CD_FREESTYLE_EDGE)) {
 				UI_ThemeColor(TH_FREESTYLE_EDGE_MARK);
-				glLineWidth(2);
+				glLineWidth(2.0f);
 
 				draw_dm_edges_freestyle(em, cageDM);
 
@@ -4320,7 +4318,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 				draw_dm_bweights(em, scene, cageDM);
 			}
 
-			glLineWidth(1);
+			glLineWidth(1.0f);
 			draw_em_fancy_edges(em, scene, v3d, me, cageDM, 0, eed_act);
 		}
 
@@ -4358,7 +4356,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 	}
 
 	if (use_depth_offset) {
-		glDepthMask(1);
+		glDepthMask(GL_TRUE);
 		ED_view3d_polygon_offset(rv3d, 0.0);
 		GPU_object_material_unbind();
 	}
@@ -4456,7 +4454,7 @@ void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm) /* LEGAC
 	    (ob->mode & OB_MODE_ALL_PAINT) == false) /* not when painting (its distracting) - campbell */
 	{
 		glLineWidth(UI_GetThemeValuef(TH_OUTLINE_WIDTH) * 2.0f);
-		glDepthMask(0);
+		glDepthMask(GL_FALSE);
 
 		/* if transparent, we cannot draw the edges for solid select... edges
 		 * have no material info. GPU_object_material_visible will skip the
@@ -4470,7 +4468,7 @@ void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm) /* LEGAC
 			dm->drawEdges(dm, 0, 1);
 		}
 
-		glDepthMask(1);
+		glDepthMask(GL_TRUE);
 	}
 }
 
@@ -4575,7 +4573,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	else if ((no_faces && no_edges) ||
 	         ((!is_obact || (ob->mode == OB_MODE_OBJECT)) && object_is_halo(scene, ob)))
 	{
-		glPointSize(1.5);
+		glPointSize(1.5f);
 		dm->drawVerts(dm);
 	}
 	else if ((dt == OB_WIRE) || no_faces) {
@@ -4753,14 +4751,14 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		 */
 		if (dt != OB_WIRE && (draw_wire == OBDRAW_WIRE_ON_DEPTH)) {
 			ED_view3d_polygon_offset(rv3d, 1.0);
-			glDepthMask(0);  /* disable write in zbuffer, selected edge wires show better */
+			glDepthMask(GL_FALSE);  /* disable write in zbuffer, selected edge wires show better */
 		}
 		
 		glLineWidth(1.0f);
 		dm->drawEdges(dm, ((dt == OB_WIRE) || no_faces), (ob->dtx & OB_DRAW_ALL_EDGES) != 0);
 
 		if (dt != OB_WIRE && (draw_wire == OBDRAW_WIRE_ON_DEPTH)) {
-			glDepthMask(1);
+			glDepthMask(GL_TRUE);
 			ED_view3d_polygon_offset(rv3d, 0.0);
 		}
 	}
@@ -4989,7 +4987,7 @@ static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionVi
 	else if ((no_faces && no_edges) ||
 	         ((!is_obact || (ob->mode == OB_MODE_OBJECT)) && object_is_halo(scene, ob)))
 	{
-		glPointSize(1.5);
+		glPointSize(1.5f);
 		// dm->drawVerts(dm);
 		// TODO: draw smooth round points as a batch
 	}
@@ -5990,7 +5988,7 @@ static void drawhandlesN_active(Nurb *nu)
 	if (nu->hide) return;
 
 	UI_ThemeColor(TH_ACTIVE_SPLINE);
-	glLineWidth(2);
+	glLineWidth(2.0f);
 
 	glBegin(GL_LINES);
 
@@ -6108,7 +6106,7 @@ static void drawvertsN(const Nurb *nurb, const bool hide_handles, const void *ve
 static void editnurb_draw_active_poly(Nurb *nu)
 {
 	UI_ThemeColor(TH_ACTIVE_SPLINE);
-	glLineWidth(2);
+	glLineWidth(2.0f);
 
 	BPoint *bp = nu->bp;
 	for (int b = 0; b < nu->pntsv; b++) {
@@ -6128,7 +6126,7 @@ static void editnurb_draw_active_poly(Nurb *nu)
 static void editnurb_draw_active_nurbs(Nurb *nu)
 {
 	UI_ThemeColor(TH_ACTIVE_SPLINE);
-	glLineWidth(2);
+	glLineWidth(2.0f);
 
 	glBegin(GL_LINES);
 	BPoint *bp = nu->bp;
@@ -6183,7 +6181,7 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 						editnurb_draw_active_poly(nu);
 					}
 
-					glLineWidth(1);
+					glLineWidth(1.0f);
 
 					UI_ThemeColor(TH_NURB_ULINE);
 					bp = nu->bp;
@@ -6204,7 +6202,7 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 						editnurb_draw_active_nurbs(nu);
 					}
 
-					glLineWidth(1);
+					glLineWidth(1.0f);
 
 					glBegin(GL_LINES);
 
@@ -7170,7 +7168,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 	RegionView3D *rv3d = ar->regiondata;
 	Object *ob = base->object;
 	
-	glDepthMask(0);
+	glDepthMask(GL_FALSE);
 	
 	if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
 		bool has_faces = false;
@@ -7217,7 +7215,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 		}
 	}
 
-	glDepthMask(1);
+	glDepthMask(GL_TRUE);
 }
 
 static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, const unsigned char ob_wire_col[4])
@@ -7232,8 +7230,8 @@ static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, const 
 		}
 
 		ED_view3d_polygon_offset(rv3d, 1.0);
-		glDepthMask(0);  /* disable write in zbuffer, selected edge wires show better */
-		glLineWidth(1);
+		glDepthMask(GL_FALSE);  /* disable write in zbuffer, selected edge wires show better */
+		glLineWidth(1.0f);
 
 		if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
 			if (ED_view3d_boundbox_clip(rv3d, ob->bb)) {
@@ -7252,7 +7250,7 @@ static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, const 
 			}
 		}
 
-		glDepthMask(1);
+		glDepthMask(GL_TRUE);
 		ED_view3d_polygon_offset(rv3d, 0.0);
 	}
 }
@@ -7276,7 +7274,7 @@ static void draw_hooks(Object *ob)
 				setlinestyle(0);
 			}
 
-			glPointSize(3.0);
+			glPointSize(3.0f);
 			glBegin(GL_POINTS);
 			glVertex3fv(vec);
 			glEnd();
