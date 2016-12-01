@@ -821,10 +821,9 @@ static float calc_overlap(StrokeCache *cache, const char symm, const char axis, 
 	flip_v3_v3(mirror, cache->true_location, symm);
 
 	if (axis != 0) {
-		float mat[4][4];
-		unit_m4(mat);
-		rotate_m4(mat, axis, angle);
-		mul_m4_v3(mat, mirror);
+		float mat[3][3];
+		axis_angle_to_mat3_single(mat, axis, angle);
+		mul_m3_v3(mat, mirror);
 	}
 
 	/* distsq = len_squared_v3v3(mirror, cache->traced_location); */

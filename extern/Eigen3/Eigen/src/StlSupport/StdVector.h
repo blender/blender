@@ -77,7 +77,7 @@ namespace std {
   void resize(size_type new_size)
   { resize(new_size, T()); }
 
-#if defined(_VECTOR_)
+#if defined(_VECTOR_) && (_MSC_VER<1910)
   // workaround MSVC std::vector implementation
   void resize(size_type new_size, const value_type& x)
   {
@@ -110,7 +110,7 @@ namespace std {
       vector_base::insert(vector_base::end(), new_size - vector_base::size(), x);
   }
 #else
-  // either GCC 4.1 or non-GCC
+  // either GCC 4.1, MSVC2017 or non-GCC
   // default implementation which should always work.
   void resize(size_type new_size, const value_type& x)
   {

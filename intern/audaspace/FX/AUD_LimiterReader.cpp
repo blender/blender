@@ -110,10 +110,10 @@ void AUD_LimiterReader::read(int& length, bool& eos, sample_t* buffer)
 			eos = true;
 		}
 
-		if(position < m_start * rate)
+		if(position < int(m_start * rate))
 		{
 			int len2 = length;
-			for(int len = m_start * rate - position;
+			for(int len = int(m_start * rate) - position;
 				len2 == length && !eos;
 				len -= length)
 			{

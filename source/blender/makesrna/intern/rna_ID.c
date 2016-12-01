@@ -346,7 +346,9 @@ static struct ID *rna_ID_make_local(struct ID *self, Main *bmain, int clear_prox
 		id_make_local(bmain, self, false, false);
 	}
 
-	return self->newid ? self->newid : self;
+	ID *ret_id = self->newid ? self->newid : self;
+	BKE_id_clear_newpoin(self);
+	return ret_id;
 }
 
 
@@ -1006,9 +1008,9 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Make this datablock local, return local one "
 	                                      "(may be a copy of the original, in case it is also indirectly used)");
 	RNA_def_function_flag(func, FUNC_USE_MAIN);
-	RNA_def_boolean(func, "clear_proxy", true, "",
-	                "Whether to clear proxies (the default behavior); can cause proxies to be duplicated"
-	                " when still referred to from another library");
+	parm = RNA_def_boolean(func, "clear_proxy", true, "",
+	                       "Whether to clear proxies (the default behavior, "
+	                       "note that if object has to be duplicated to be made local, proxies are always cleared)");
 	RNA_def_property_flag(parm, PROP_PYFUNC_OPTIONAL);
 	parm = RNA_def_pointer(func, "id", "ID", "", "This ID, or the new ID if it was copied");
 	RNA_def_function_return(func, parm);

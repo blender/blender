@@ -428,6 +428,12 @@ class USERPREF_PT_system(Panel):
 
         col.separator()
 
+        if bpy.app.build_options.cycles:
+            addon = userpref.addons.get("cycles")
+            if addon is not None:
+                addon.preferences.draw_impl(col, context)
+            del addon
+
         if hasattr(system, "opensubdiv_compute_type"):
             col.label(text="OpenSubdiv compute:")
             col.row().prop(system, "opensubdiv_compute_type", text="")

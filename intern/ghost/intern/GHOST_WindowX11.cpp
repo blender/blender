@@ -861,24 +861,32 @@ void GHOST_WindowX11::icccmSetState(int state)
 
 int GHOST_WindowX11::icccmGetState(void) const
 {
-	Atom *prop_ret;
+	struct {
+		CARD32 state;
+		XID    icon;
+	} *prop_ret;
 	unsigned long bytes_after, num_ret;
 	Atom type_ret;
-	int format_ret, st;
+	int ret, format_ret;
+	CARD32 st;
 
 	prop_ret = NULL;
-	st = XGetWindowProperty(
+	ret = XGetWindowProperty(
 	        m_display, m_window, m_system->m_atom.WM_STATE, 0, 2,
 	        False, m_system->m_atom.WM_STATE, &type_ret,
 	        &format_ret, &num_ret, &bytes_after, ((unsigned char **)&prop_ret));
-	if ((st == Success) && (prop_ret) && (num_ret == 2))
-		st = prop_ret[0];
-	else
+	if ((ret == Success) && (prop_ret != NULL) && (num_ret == 2)) {
+		st = prop_ret->state;
+	}
+	else {
 		st = NormalState;
+	}
 
-	if (prop_ret)
+	if (prop_ret) {
 		XFree(prop_ret);
-	return (st);
+	}
+
+	return st;
 }
 
 void GHOST_WindowX11::netwmMaximized(bool set)

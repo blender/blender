@@ -21,11 +21,25 @@
 
 #include <OpenImageIO/imageio.h>
 
+#include "util_vector.h"
+
 CCL_NAMESPACE_BEGIN
 
 OIIO_NAMESPACE_USING
+
+template<typename T>
+void util_image_resize_pixels(const vector<T>& input_pixels,
+                              const size_t input_width,
+                              const size_t input_height,
+                              const size_t input_depth,
+                              const size_t components,
+                              vector<T> *output_pixels,
+                              size_t *output_width,
+                              size_t *output_height,
+                              size_t *output_depth);
 
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_IMAGE_H__ */
 
+#include "util_image_impl.h"

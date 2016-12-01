@@ -585,11 +585,11 @@ static bGPDframe *rna_GPencil_frame_copy(bGPDlayer *layer, bGPDframe *src)
 
 static bGPDlayer *rna_GPencil_layer_new(bGPdata *gpd, const char *name, int setactive)
 {
-	bGPDlayer *gl = BKE_gpencil_layer_addnew(gpd, name, setactive != 0);
+	bGPDlayer *gpl = BKE_gpencil_layer_addnew(gpd, name, setactive != 0);
 
 	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
-	return gl;
+	return gpl;
 }
 
 static void rna_GPencil_layer_remove(bGPdata *gpd, ReportList *reports, PointerRNA *layer_ptr)
@@ -1354,7 +1354,7 @@ static void rna_def_gpencil_layers_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a new grease pencil layer");
 	parm = RNA_def_string(func, "name", "GPencilLayer", MAX_NAME, "Name", "Name of the layer");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_boolean(func, "set_active", 0, "Set Active", "Set the newly created layer to the active layer");
+	RNA_def_boolean(func, "set_active", true, "Set Active", "Set the newly created layer to the active layer");
 	parm = RNA_def_pointer(func, "layer", "GPencilLayer", "", "The newly created layer");
 	RNA_def_function_return(func, parm);
 
@@ -1443,7 +1443,7 @@ static void rna_def_gpencil_palettecolor(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "ghost", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PC_COLOR_ONIONSKIN);
 	RNA_def_property_ui_icon(prop, ICON_GHOST_ENABLED, 0);
-	RNA_def_property_ui_text(prop, "Ghost", "Display the color in onion skinning");
+	RNA_def_property_ui_text(prop, "Show in Ghosts", "Display strokes using this color when showing onion skins");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
 	/* Draw Style */
@@ -1557,7 +1557,7 @@ static void rna_def_gpencil_palettes_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a new grease pencil palette");
 	parm = RNA_def_string(func, "name", "GPencilPalette", MAX_NAME, "Name", "Name of the palette");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_boolean(func, "set_active", 0, "Set Active", "Activate the newly created palette");
+	RNA_def_boolean(func, "set_active", true, "Set Active", "Activate the newly created palette");
 	parm = RNA_def_pointer(func, "palette", "GPencilPalette", "", "The newly created palette");
 	RNA_def_function_return(func, parm);
 

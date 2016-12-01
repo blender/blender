@@ -1513,10 +1513,10 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 /* draws text and icons for buttons */
 static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *but, rcti *rect)
 {
+	const uiButExtraIconType extra_icon_type = ui_but_icon_extra_get(but);
 	const bool show_menu_icon = ui_but_draw_menu_icon(but);
 	float alpha = (float)wcol->text[3] / 255.0f;
 	char password_str[UI_MAX_DRAW_STR];
-	uiButExtraIconType extra_icon_type;
 
 	ui_but_text_password_hide(password_str, but, false);
 
@@ -1582,15 +1582,13 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		rect->xmax -= (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
 	}
 
-	/* unlink icon for this button type */
-	if ((but->type == UI_BTYPE_SEARCH_MENU) &&
-	    ((extra_icon_type = ui_but_icon_extra_get(but)) != UI_BUT_ICONEXTRA_NONE))
-	{
+	/* extra icons, e.g. 'x' icon to clear text or icon for eyedropper */
+	if (extra_icon_type != UI_BUT_ICONEXTRA_NONE) {
 		rcti temp = *rect;
 
 		temp.xmin = temp.xmax - (BLI_rcti_size_y(rect) * 1.08f);
 
-		if (extra_icon_type == UI_BUT_ICONEXTRA_UNLINK) {
+		if (extra_icon_type == UI_BUT_ICONEXTRA_CLEAR) {
 			widget_draw_icon(but, ICON_X, alpha, &temp, false);
 		}
 		else if (extra_icon_type == UI_BUT_ICONEXTRA_EYEDROPPER) {

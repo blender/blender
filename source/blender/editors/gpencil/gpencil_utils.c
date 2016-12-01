@@ -915,7 +915,7 @@ void gp_subdivide_stroke(bGPDstroke *gps, const int new_totpoints)
 /**
  * Add randomness to stroke
  * \param gps           Stroke data
- * \param brsuh         Brush data
+ * \param brush         Brush data
  */
 void gp_randomize_stroke(bGPDstroke *gps, bGPDbrush *brush)
 {
@@ -997,6 +997,46 @@ void ED_gpencil_parent_location(bGPDlayer *gpl, float diff_mat[4][4])
 	}
 }
 
+/* reset parent matrix for all layers */
+void ED_gpencil_reset_layers_parent(bGPdata *gpd)
+{
+	bGPDspoint *pt;
+	int i;
+	float diff_mat[4][4];
+	float cur_mat[4][4];
+
+	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+		if (gpl->parent != NULL) {
+			/* calculate new matrix */
+			if ((gpl->partype == PAROBJECT) || (gpl->partype == PARSKEL)) {
+				invert_m4_m4(cur_mat, gpl->parent->obmat);
+			}
+			else if (gpl->partype == PARBONE) {
+				bPoseChannel *pchan = BKE_pose_channel_find_name(gpl->parent->pose, gpl->parsubstr);
+				if (pchan) {
+					float tmp_mat[4][4];
+					mul_m4_m4m4(tmp_mat, gpl->parent->obmat, pchan->pose_mat);
+					invert_m4_m4(cur_mat, tmp_mat);
+				}
+			}
+
+			/* only redo if any change */
+			if (!equals_m4m4(gpl->inverse, cur_mat)) {
+				/* first apply current transformation to all strokes */
+				ED_gpencil_parent_location(gpl, diff_mat);
+				for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+					for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+						for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+							mul_m4_v3(diff_mat, &pt->x);
+						}
+					}
+				}
+				/* set new parent matrix */
+				copy_m4_m4(gpl->inverse, cur_mat);
+			}
+		}
+	}
+}
 /* ******************************************************** */
 bool ED_gpencil_stroke_minmax(
         const bGPDstroke *gps, const bool use_select,

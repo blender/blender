@@ -705,6 +705,21 @@ if [ "$WITH_ALL" = true -a "$OPENCOLLADA_SKIP" = false ]; then
 fi
 
 
+WARNING "****WARNING****"
+PRINT "If you are experiencing issues building Blender, _*TRY A FRESH, CLEAN BUILD FIRST*_!"
+PRINT "The same goes for install_deps itself, if you encounter issues, please first erase everything in $SRC and $INST"
+PRINT "(provided obviously you did not add anything yourself in those dirs!), and run install_deps.sh again!"
+PRINT "Often, changes in the libs built by this script, or in your distro package, cannot be handled simply, so..."
+PRINT ""
+PRINT "You may also try to use the '--build-foo' options to bypass your distribution's packages"
+PRINT "for some troublesome/buggy libraries..."
+PRINT ""
+PRINT ""
+PRINT "Ran with:"
+PRINT "    install_deps.sh $COMMANDLINE"
+PRINT ""
+PRINT ""
+
 
 # This has to be done here, because user might force some versions...
 PYTHON_SOURCE=( "https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz" )
@@ -777,6 +792,8 @@ However, if you are experiencing linking errors (also when building Blender itse
 
 Please note that until the transition to C++11-built libraries if completed in your distribution, situation will
 remain fuzzy and incompatibilities may happen..."
+  PRINT ""
+  PRINT ""
   CXXFLAGS="$CXXFLAGS -std=c++11"
   export CXXFLAGS
 fi
@@ -4154,16 +4171,6 @@ print_info_ffmpeglink() {
 }
 
 print_info() {
-  PRINT ""
-  PRINT ""
-  WARNING "****WARNING****"
-  PRINT "If you are experiencing issues building Blender, _*TRY A FRESH, CLEAN BUILD FIRST*_!"
-  PRINT "The same goes for install_deps itself, if you encounter issues, please first erase everything in $SRC and $INST"
-  PRINT "(provided obviously you did not add anything yourself in those dirs!), and run install_deps.sh again!"
-  PRINT "Often, changes in the libs built by this script, or in your distro package, cannot be handled simply, so..."
-  PRINT ""
-  PRINT "You may also try to use the '--build-foo' options to bypass your distribution's packages"
-  PRINT "for some troublesome/buggy libraries..."
   PRINT ""
   PRINT ""
   PRINT "Ran with:"

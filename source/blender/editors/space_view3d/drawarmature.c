@@ -2719,6 +2719,11 @@ bool draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 	else {
 		/*	Draw Pose */
 		if (ob->pose && ob->pose->chanbase.first) {
+			/* We can't safely draw non-updated pose, might contain NULL bone pointers... */
+			if (ob->pose->flag & POSE_RECALC) {
+				BKE_pose_rebuild(ob, arm);
+			}
+
 			/* drawing posemode selection indices or colors only in these cases */
 			if (!(base->flag & OB_FROMDUPLI)) {
 				if (G.f & G_PICKSEL) {

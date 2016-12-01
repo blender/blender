@@ -16,13 +16,13 @@
 
 #ifdef WITH_OPENCL
 
-#include "clew.h"
-
 #include "device.h"
 
 #include "util_map.h"
 #include "util_param.h"
 #include "util_string.h"
+
+#include "clew.h"
 
 CCL_NAMESPACE_BEGIN
 

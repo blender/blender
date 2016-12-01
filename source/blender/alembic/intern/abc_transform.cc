@@ -92,8 +92,7 @@ void AbcTransformWriter::do_write()
 	/* Only apply rotation to root camera, parenting will propagate it. */
 	if (m_object->type == OB_CAMERA && !has_parent_camera(m_object)) {
 		float rot_mat[4][4];
-		unit_m4(rot_mat);
-		rotate_m4(rot_mat, 'X', -M_PI_2);
+		axis_angle_to_mat4_single(rot_mat, 'X', -M_PI_2);
 		mul_m4_m4m4(mat, mat, rot_mat);
 	}
 

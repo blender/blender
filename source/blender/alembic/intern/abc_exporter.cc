@@ -175,13 +175,13 @@ void AbcExporter::getShutterSamples(double step, bool time_relative,
 
 	/* sample all frame */
 	if (shutter_open == 0.0 && shutter_close == 1.0) {
-		for (double t = 0; t < 1.0; t += step) {
+		for (double t = 0.0; t < 1.0; t += step) {
 			samples.push_back((t + m_settings.frame_start) / time_factor);
 		}
 	}
 	else {
 		/* sample between shutter open & close */
-		const int nsamples = std::max((1.0 / step) - 1.0, 1.0);
+		const int nsamples = static_cast<int>(std::max((1.0 / step) - 1.0, 1.0));
 		const double time_inc = (shutter_close - shutter_open) / nsamples;
 
 		for (double t = shutter_open; t <= shutter_close; t += time_inc) {
@@ -216,7 +216,7 @@ void AbcExporter::getFrameSet(double step, std::set<double> &frames)
 
 	getShutterSamples(step, false, shutter_samples);
 
-	for (int frame = m_settings.frame_start; frame <= m_settings.frame_end; ++frame) {
+	for (double frame = m_settings.frame_start; frame <= m_settings.frame_end; frame += 1.0) {
 		for (int j = 0, e = shutter_samples.size(); j < e; ++j) {
 			frames.insert(frame + shutter_samples[j]);
 		}
@@ -237,9 +237,9 @@ void AbcExporter::operator()(Main *bmain, float &progress, bool &was_canceled)
 	}
 
 	Scene *scene = m_scene;
-	const int fps = FPS;
+	const double fps = FPS;
 	char buf[16];
-	snprintf(buf, 15, "%d", fps);
+	snprintf(buf, 15, "%f", fps);
 	const std::string str_fps = buf;
 
 	Alembic::AbcCoreAbstract::MetaData md;
@@ -561,7 +561,7 @@ AbcTransformWriter *AbcExporter::getXForm(const std::string &name)
 
 void AbcExporter::setCurrentFrame(Main *bmain, double t)
 {
-	m_scene->r.cfra = std::floor(t);
-	m_scene->r.subframe = t - m_scene->r.cfra;
+	m_scene->r.cfra = static_cast<int>(t);
+	m_scene->r.subframe = static_cast<float>(t) - m_scene->r.cfra;
 	BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, m_scene, m_scene->lay);
 }

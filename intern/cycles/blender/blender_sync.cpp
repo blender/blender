@@ -496,6 +496,20 @@ SceneParams BlenderSync::get_scene_params(BL::Scene& b_scene,
 	else
 		params.persistent_data = false;
 
+	int texture_limit;
+	if(background) {
+		texture_limit = RNA_enum_get(&cscene, "texture_limit_render");
+	}
+	else {
+		texture_limit = RNA_enum_get(&cscene, "texture_limit");
+	}
+	if(texture_limit > 0 && b_scene.render().use_simplify()) {
+		params.texture_limit = 1 << (texture_limit + 6);
+	}
+	else {
+		params.texture_limit = 0;
+	}
+
 #if !(defined(__GNUC__) && (defined(i386) || defined(_M_IX86)))
 	if(is_cpu) {
 		params.use_qbvh = DebugFlags().cpu.qbvh && system_cpu_support_sse2();

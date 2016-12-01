@@ -642,8 +642,7 @@ static void make_duplis_font(const DupliContext *ctx)
 				float rmat[4][4];
 
 				zero_v3(obmat[3]);
-				unit_m4(rmat);
-				rotate_m4(rmat, 'Z', -ct->rot);
+				axis_angle_to_mat4_single(rmat, 'Z', -ct->rot);
 				mul_m4_m4m4(obmat, obmat, rmat);
 			}
 

@@ -3076,6 +3076,9 @@ void rna_ShaderNodePointDensity_density_cache(bNode *self,
 		            sizeof(pd->vertex_attribute_name));
 	}
 
+	/* Store resolution, so it can be changed in the UI. */
+	shader_point_density->cached_resolution = shader_point_density->resolution;
+
 	/* Single-threaded sampling of the voxel domain. */
 	RE_point_density_cache(scene,
 	                       pd,
@@ -3090,15 +3093,15 @@ void rna_ShaderNodePointDensity_density_calc(bNode *self,
 {
 	NodeShaderTexPointDensity *shader_point_density = self->storage;
 	PointDensity *pd = &shader_point_density->pd;
+	const int resolution = shader_point_density->cached_resolution;
 
 	if (scene == NULL) {
 		*length = 0;
 		return;
 	}
 
-	*length = 4 * shader_point_density->resolution *
-	              shader_point_density->resolution *
-	              shader_point_density->resolution;
+	/* TODO(sergey): Will likely overflow, but how to pass size_t via RNA? */
+	*length = 4 * resolution * resolution * resolution;
 
 	if (*values == NULL) {
 		*values = MEM_mallocN(sizeof(float) * (*length), "point density dynamic array");
@@ -3106,13 +3109,14 @@ void rna_ShaderNodePointDensity_density_calc(bNode *self,
 
 	/* Single-threaded sampling of the voxel domain. */
 	RE_point_density_sample(scene, pd,
-	                        shader_point_density->resolution,
+	                        resolution,
 	                        settings == 1,
 	                        *values);
 
 	/* We're done, time to clean up. */
 	BKE_texture_pointdensity_free_data(pd);
 	memset(pd, 0, sizeof(*pd));
+	shader_point_density->cached_resolution = 0.0f;
 }
 
 void rna_ShaderNodePointDensity_density_minmax(bNode *self,

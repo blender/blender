@@ -96,7 +96,11 @@ static int gpencil_editmode_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	/* Just toggle editmode flag... */
 	gpd->flag ^= GP_DATA_STROKE_EDITMODE;
-	
+	/* recalculate parent matrix */
+	if (gpd->flag & GP_DATA_STROKE_EDITMODE) {
+		ED_gpencil_reset_layers_parent(gpd);
+	}
+
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | ND_GPENCIL_EDITMODE, NULL);
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, NULL);
 	

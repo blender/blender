@@ -798,13 +798,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		if (ltmd->ob_axis) {
 			axis_angle_normalized_to_mat3(mat3, axis_vec, step_angle);
-			copy_m4_m3(mat, mat3);
 		}
 		else {
-			unit_m4(mat);
-			rotate_m4(mat, axis_char, step_angle);
-			copy_m3_m4(mat3, mat);
+			axis_angle_to_mat3_single(mat3, axis_char, step_angle);
 		}
+		copy_m4_m3(mat, mat3);
 
 		if (screw_ofs)
 			madd_v3_v3fl(mat[3], axis_vec, screw_ofs * ((float)step / (float)(step_tot - 1)));

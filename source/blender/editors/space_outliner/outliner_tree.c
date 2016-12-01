@@ -1099,8 +1099,12 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					tselem->flag &= ~TSE_CLOSED;
 
 			if (TSELEM_OPEN(tselem, soops)) {
-				for (a = 0; a < tot; a++)
-					outliner_add_element(soops, &te->subtree, (void *)ptr, te, TSE_RNA_PROPERTY, a);
+				for (a = 0; a < tot; a++) {
+					RNA_property_collection_lookup_int(ptr, iterprop, a, &propptr);
+					if (!(RNA_property_flag(propptr.data) & PROP_HIDDEN)) {
+						outliner_add_element(soops, &te->subtree, (void *)ptr, te, TSE_RNA_PROPERTY, a);
+					}
+				}
 			}
 			else if (tot)
 				te->flag |= TE_LAZY_CLOSED;
@@ -1632,11 +1636,6 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	outliner_free_tree(&soops->tree);
 	outliner_storage_cleanup(soops);
 	
-	/* clear ob id.new flags */
-	for (Object *ob = mainvar->object.first; ob; ob = ob->id.next) {
-		ob->id.newid = NULL;
-	}
-	
 	/* options */
 	if (soops->outlinevis == SO_LIBRARIES) {
 		Library *lib;
@@ -1822,6 +1821,8 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 		outliner_sort(&soops->tree);
 	}
 	outliner_filter_tree(soops, &soops->tree);
+
+	BKE_main_id_clear_newpoins(mainvar);
 }
 
 

@@ -442,6 +442,9 @@ static void id_local_cb(
 		if (id_make_local(bmain, tselem->id, false, false) == false) {
 			id_clear_lib_data(bmain, tselem->id);
 		}
+		else {
+			BKE_main_id_clear_newpoins(bmain);
+		}
 	}
 }
 

@@ -667,7 +667,10 @@ string OpenCLInfo::get_hardware_id(string platform_name, cl_device_id device_id)
 		/* Use cl_amd_device_topology extension. */
 		cl_char topology[24];
 		if(clGetDeviceInfo(device_id, 0x4037, sizeof(topology), topology, NULL) == CL_SUCCESS && topology[0] == 1) {
-			return string_printf("%02x:%02x.%01x", topology[21], topology[22], topology[23]);
+			return string_printf("%02x:%02x.%01x",
+			                     (unsigned int)topology[21],
+			                     (unsigned int)topology[22],
+			                     (unsigned int)topology[23]);
 		}
 	}
 	else if(platform_name == "NVIDIA CUDA") {
@@ -675,7 +678,10 @@ string OpenCLInfo::get_hardware_id(string platform_name, cl_device_id device_id)
 		cl_int bus_id, slot_id;
 		if(clGetDeviceInfo(device_id, 0x4008, sizeof(cl_int), &bus_id,  NULL) == CL_SUCCESS &&
 		   clGetDeviceInfo(device_id, 0x4009, sizeof(cl_int), &slot_id, NULL) == CL_SUCCESS) {
-			return string_printf("%02x:%02x.%01x", bus_id, slot_id>>3, slot_id & 0x7);
+			return string_printf("%02x:%02x.%01x",
+			                     (unsigned int)(bus_id),
+			                     (unsigned int)(slot_id >> 3),
+			                     (unsigned int)(slot_id & 0x7));
 		}
 	}
 	/* No general way to get a hardware ID from OpenCL => give up. */

@@ -1354,7 +1354,6 @@ static void scene_sort_groups(Main *bmain, Scene *sce)
 	/* test; are group objects all in this scene? */
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		ob->id.tag &= ~LIB_TAG_DOIT;
-		ob->id.newid = NULL; /* newid abuse for GroupObject */
 	}
 	for (base = sce->base.first; base; base = base->next)
 		base->object->id.tag |= LIB_TAG_DOIT;
@@ -1384,6 +1383,11 @@ static void scene_sort_groups(Main *bmain, Scene *sce)
 			/* copy the newly sorted listbase */
 			group->gobject = listb;
 		}
+	}
+
+	/* newid abused for GroupObject, cleanup. */
+	for (ob = bmain->object.first; ob; ob = ob->id.next) {
+		ob->id.newid = NULL;
 	}
 }
 

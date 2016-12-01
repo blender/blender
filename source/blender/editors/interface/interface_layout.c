@@ -1659,7 +1659,7 @@ void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRN
 		but->rnasearchprop = searchprop;
 		but->drawflag |= UI_BUT_ICON_LEFT | UI_BUT_TEXT_LEFT;
 		if (RNA_property_is_unlink(prop)) {
-			but->flag |= UI_BUT_SEARCH_UNLINK;
+			but->flag |= UI_BUT_VALUE_CLEAR;
 		}
 
 		if (RNA_property_type(prop) == PROP_ENUM) {

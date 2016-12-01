@@ -1052,6 +1052,9 @@ void BKE_object_make_local_ex(Main *bmain, Object *ob, const bool lib_local, con
 			ob_new->id.us = 0;
 			ob_new->proxy = ob_new->proxy_from = ob_new->proxy_group = NULL;
 
+			/* setting newid is mandatory for complex make_lib_local logic... */
+			ID_NEW_SET(ob, ob_new);
+
 			if (!lib_local) {
 				BKE_libblock_remap(bmain, ob, ob_new, ID_REMAP_SKIP_INDIRECT_USAGE);
 			}
@@ -1184,7 +1187,10 @@ void BKE_object_make_proxy(Object *ob, Object *target, Object *gob)
 	ob->type = target->type;
 	ob->data = target->data;
 	id_us_plus((ID *)ob->data);     /* ensures lib data becomes LIB_TAG_EXTERN */
-	
+
+	/* copy vertex groups */
+	defgroup_copy_list(&ob->defbase, &target->defbase);
+
 	/* copy material and index information */
 	ob->actcol = ob->totcol = 0;
 	if (ob->mat) MEM_freeN(ob->mat);

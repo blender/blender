@@ -189,16 +189,23 @@ static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
 		/* Transforms props? */
 		if (prop) {
 			const char *prop_identifier = RNA_property_identifier((PropertyRNA *)prop);
-
+			/* TODO(sergey): How to optimize this? */
 			if (strstr(prop_identifier, "location") ||
 			    strstr(prop_identifier, "rotation") ||
-			    strstr(prop_identifier, "scale"))
+			    strstr(prop_identifier, "scale") ||
+			    strstr(prop_identifier, "matrix_"))
 			{
 				*type = DEPSNODE_TYPE_TRANSFORM;
 				return true;
 			}
+			else if (strstr(prop_identifier, "data")) {
+				/* We access object.data, most likely a geometry.
+				 * Might be a bone tho..
+				 */
+				*type = DEPSNODE_TYPE_GEOMETRY;
+				return true;
+			}
 		}
-		// ...
 	}
 	else if (ptr->type == &RNA_ShapeKey) {
 		Key *key = (Key *)ptr->id.data;
@@ -371,8 +378,7 @@ DepsRelation *Depsgraph::add_new_relation(OperationDepsNode *from,
 	if (comp_node->type == DEPSNODE_TYPE_GEOMETRY) {
 		IDDepsNode *id_to = to->owner->owner;
 		IDDepsNode *id_from = from->owner->owner;
-		Object *object_to = (Object *)id_to->id;
-		if (id_to != id_from && (object_to->recalc & OB_RECALC_ALL)) {
+		if (id_to != id_from && (id_to->id->tag & LIB_TAG_ID_RECALC_ALL)) {
 			if ((id_from->eval_flags & DAG_EVAL_NEED_CPU) == 0) {
 				id_from->tag_update(this);
 				id_from->eval_flags |= DAG_EVAL_NEED_CPU;

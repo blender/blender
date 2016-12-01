@@ -170,13 +170,13 @@ static Imath::M44d blend_matrices(const Imath::M44d &m0, const Imath::M44d &m1, 
 
 	for (int i = 0; i < 4; ++i) {
 		for (int j = 0; j < 4; ++j) {
-			mat0[i][j] = m0[i][j];
+			mat0[i][j] = static_cast<float>(m0[i][j]);
 		}
 	}
 
 	for (int i = 0; i < 4; ++i) {
 		for (int j = 0; j < 4; ++j) {
-			mat1[i][j] = m1[i][j];
+			mat1[i][j] = static_cast<float>(m1[i][j]);
 		}
 	}
 

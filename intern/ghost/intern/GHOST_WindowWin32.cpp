@@ -353,7 +353,7 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
 			// Release our reference of the DropTarget and it will delete itself eventually.
 			m_dropTarget->Release();
 		}
-
+		::SetWindowLongPtr(m_hWnd, GWLP_USERDATA, NULL);
 		::DestroyWindow(m_hWnd);
 		m_hWnd = 0;
 	}

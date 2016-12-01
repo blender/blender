@@ -28,6 +28,7 @@ CCL_NAMESPACE_BEGIN
 tGetActiveProcessorGroupCount *GetActiveProcessorGroupCount;
 tGetActiveProcessorCount *GetActiveProcessorCount;
 tSetThreadGroupAffinity *SetThreadGroupAffinity;
+tGetProcessGroupAffinity *GetProcessGroupAffinity;
 #endif
 
 static WORD GetActiveProcessorGroupCount_stub()
@@ -47,6 +48,18 @@ static BOOL SetThreadGroupAffinity_stub(
         const GROUP_AFFINITY  * /*GroupAffinity*/,
         PGROUP_AFFINITY /*PreviousGroupAffinity*/)
 {
+	return TRUE;
+}
+
+static BOOL GetProcessGroupAffinity_stub(HANDLE hProcess,
+                                         PUSHORT GroupCount,
+                                         PUSHORT GroupArray)
+{
+	if(*GroupCount < 1) {
+		return FALSE;
+	}
+	*GroupCount = 1;
+	GroupArray[0] = 0;
 	return TRUE;
 }
 
@@ -72,6 +85,7 @@ void util_windows_init_numa_groups()
 		GetActiveProcessorGroupCount = GetActiveProcessorGroupCount_stub;
 		GetActiveProcessorCount = GetActiveProcessorCount_stub;
 		SetThreadGroupAffinity = SetThreadGroupAffinity_stub;
+		GetProcessGroupAffinity = GetProcessGroupAffinity_stub;
 		return;
 	}
 	HMODULE kernel = GetModuleHandleA("kernel32.dll");
@@ -79,6 +93,7 @@ void util_windows_init_numa_groups()
 	READ_SYMBOL(GetActiveProcessorGroupCount);
 	READ_SYMBOL(GetActiveProcessorCount);
 	READ_SYMBOL(SetThreadGroupAffinity);
+	READ_SYMBOL(GetProcessGroupAffinity);
 #  undef READ_SUMBOL
 #endif
 }

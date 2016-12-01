@@ -769,6 +769,8 @@ class CyclesObject_PT_cycles_settings(CyclesButtonsPanel, Panel):
         row = col.row()
         row.active = scene.render.use_simplify and cscene.use_camera_cull
         row.prop(cob, "use_camera_cull")
+        row.active = scene.render.use_simplify and cscene.use_distance_cull
+        row.prop(cob, "use_distance_cull")
 
 
 class CYCLES_OT_use_shading_nodes(Operator):
@@ -1523,22 +1525,35 @@ class CyclesScene_PT_simplify(CyclesButtonsPanel, Panel):
         cscene = scene.cycles
 
         layout.active = rd.use_simplify
+
+        col = layout.column(align=True)
+        col.label(text="Subdivision")
+        row = col.row(align=True)
+        row.prop(rd, "simplify_subdivision", text="Viewport")
+        row.prop(rd, "simplify_subdivision_render", text="Render")
+
+
+        col = layout.column(align=True)
+        split = col.split()
+        sub = split.column()
+        sub.label(text="Texture Limit Viewport")
+        sub.prop(cscene, "texture_limit", text="")
+        sub = split.column()
+        sub.label(text="Texture Limit Render")
+        sub.prop(cscene, "texture_limit_render", text="")
+
         split = layout.split()
-
         col = split.column()
-        col.label(text="Viewport:")
-        col.prop(rd, "simplify_subdivision", text="Subdivision")
-
-        col = split.column()
-        col.label(text="Render:")
-        col.prop(rd, "simplify_subdivision_render", text="Subdivision")
-
-        col = layout.column()
         col.prop(cscene, "use_camera_cull")
-        subsub = col.column()
-        subsub.active = cscene.use_camera_cull
-        subsub.prop(cscene, "camera_cull_margin")
+        row = col.row()
+        row.active = cscene.use_camera_cull
+        row.prop(cscene, "camera_cull_margin")
 
+        col = split.column()
+        col.prop(cscene, "use_distance_cull")
+        row = col.row()
+        row.active = cscene.use_distance_cull
+        row.prop(cscene, "distance_cull_margin", text="Distance")
 
 def draw_device(self, context):
     scene = context.scene
@@ -1552,11 +1567,9 @@ def draw_device(self, context):
 
         split = layout.split(percentage=1/3)
         split.label("Device:")
-        row = split.row(align=True)
-        sub = row.split(align=True)
-        sub.active = show_device_selection(context)
-        sub.prop(cscene, "device", text="")
-        row.operator("wm.addon_userpref_show", text="", icon='PREFERENCES').module = __package__
+        row = split.row()
+        row.active = show_device_selection(context)
+        row.prop(cscene, "device", text="")
 
         if engine.with_osl() and use_cpu(context):
             layout.prop(cscene, "shading_system")

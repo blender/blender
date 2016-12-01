@@ -76,7 +76,7 @@ private:
 
 /* ************************************************************************** */
 
-class CacheFile;
+struct CacheFile;
 
 struct ImportSettings {
 	bool do_convert_mat;
@@ -165,10 +165,11 @@ public:
 
 	virtual void readObjectData(Main *bmain, float time) = 0;
 
-	virtual DerivedMesh *read_derivedmesh(DerivedMesh *dm, const float time, int read_flag)
+	virtual DerivedMesh *read_derivedmesh(DerivedMesh *dm, const float time, int read_flag, const char **err_str)
 	{
 		(void)time;
 		(void)read_flag;
+		(void)err_str;
 		return dm;
 	}
 

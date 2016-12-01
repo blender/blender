@@ -73,7 +73,7 @@ struct AnimData *BKE_animdata_copy(struct AnimData *adt, const bool do_action);
 bool BKE_animdata_copy_id(struct ID *id_to, struct ID *id_from, const bool do_action);
 
 /* Copy AnimData Actions */
-void BKE_animdata_copy_id_action(struct ID *id);
+void BKE_animdata_copy_id_action(struct ID *id, const bool set_newid);
 
 /* Merge copies of data from source AnimData block */
 typedef enum eAnimData_MergeCopy_Modes {

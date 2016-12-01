@@ -19,6 +19,7 @@
 #include "scene.h"
 
 #include "util_foreach.h"
+#include "util_logging.h"
 #include "util_path.h"
 #include "util_progress.h"
 #include "util_texture.h"
@@ -476,6 +477,7 @@ template<TypeDesc::BASETYPE FileFormat,
          typename DeviceType>
 bool ImageManager::file_load_image(Image *img,
                                    ImageDataType type,
+                                   int texture_limit,
                                    device_vector<DeviceType>& tex_img)
 {
 	const StorageType alpha_one = (FileFormat == TypeDesc::UINT8)? 255 : 1;
@@ -485,11 +487,18 @@ bool ImageManager::file_load_image(Image *img,
 		return false;
 	}
 	/* Read RGBA pixels. */
-	StorageType *pixels = (StorageType*)tex_img.resize(width, height, depth);
-	if(pixels == NULL) {
-		return false;
+	vector<StorageType> pixels_storage;
+	StorageType *pixels;
+	const size_t max_size = max(max(width, height), depth);
+	if(texture_limit > 0 && max_size > texture_limit) {
+		pixels_storage.resize(((size_t)width)*height*depth*4);
+		pixels = &pixels_storage[0];
+	}
+	else {
+		pixels = (StorageType*)tex_img.resize(width, height, depth);
 	}
 	bool cmyk = false;
+	const size_t num_pixels = ((size_t)width) * height * depth;
 	if(in) {
 		StorageType *readpixels = pixels;
 		vector<StorageType> tmppixels;
@@ -526,12 +535,14 @@ bool ImageManager::file_load_image(Image *img,
 		if(FileFormat == TypeDesc::FLOAT) {
 			builtin_image_float_pixels_cb(img->filename,
 			                              img->builtin_data,
-			                              (float*)pixels);
+			                              (float*)&pixels[0],
+			                              num_pixels * components);
 		}
 		else if(FileFormat == TypeDesc::UINT8) {
 			builtin_image_pixels_cb(img->filename,
 			                        img->builtin_data,
-			                        (uchar*)pixels);
+			                        (uchar*)&pixels[0],
+			                        num_pixels * components);
 		}
 		else {
 			/* TODO(dingto): Support half for ImBuf. */
@@ -540,11 +551,10 @@ bool ImageManager::file_load_image(Image *img,
 	/* Check if we actually have a float4 slot, in case components == 1,
 	 * but device doesn't support single channel textures.
 	 */
-	if(type == IMAGE_DATA_TYPE_FLOAT4 ||
-	   type == IMAGE_DATA_TYPE_HALF4 ||
-	   type == IMAGE_DATA_TYPE_BYTE4)
-	{
-		size_t num_pixels = ((size_t)width) * height * depth;
+	bool is_rgba = (type == IMAGE_DATA_TYPE_FLOAT4 ||
+	                type == IMAGE_DATA_TYPE_HALF4 ||
+	                type == IMAGE_DATA_TYPE_BYTE4);
+	if(is_rgba) {
 		if(cmyk) {
 			/* CMYK */
 			for(size_t i = num_pixels-1, pixel = 0; pixel < num_pixels; pixel++, i--) {
@@ -587,14 +597,41 @@ bool ImageManager::file_load_image(Image *img,
 			}
 		}
 	}
+	if(pixels_storage.size() > 0) {
+		float scale_factor = 1.0f;
+		while(max_size * scale_factor > texture_limit) {
+			scale_factor *= 0.5f;
+		}
+		VLOG(1) << "Scaling image " << img->filename
+		        << " by a factor of " << scale_factor << ".";
+		vector<StorageType> scaled_pixels;
+		size_t scaled_width, scaled_height, scaled_depth;
+		util_image_resize_pixels(pixels_storage,
+		                         width, height, depth,
+		                         is_rgba ? 4 : 1,
+		                         scale_factor,
+		                         &scaled_pixels,
+		                         &scaled_width, &scaled_height, &scaled_depth);
+		StorageType *texture_pixels = (StorageType*)tex_img.resize(scaled_width,
+		                                                           scaled_height,
+		                                                           scaled_depth);
+		memcpy(texture_pixels,
+		       &scaled_pixels[0],
+		       scaled_pixels.size() * sizeof(StorageType));
+	}
 	return true;
 }
 
-void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageDataType type, int slot, Progress *progress)
+void ImageManager::device_load_image(Device *device,
+                                     DeviceScene *dscene,
+                                     Scene *scene,
+                                     ImageDataType type,
+                                     int slot,
+                                     Progress *progress)
 {
 	if(progress->get_cancel())
 		return;
-	
+
 	Image *img = images[type][slot];
 
 	if(osl_texture_system && !img->builtin_data)
@@ -602,6 +639,8 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageD
 
 	string filename = path_filename(images[type][slot]->filename);
 	progress->set_status("Updating Images", "Loading " + filename);
+
+	const int texture_limit = scene->params.texture_limit;
 
 	/* Slot assignment */
 	int flat_slot = type_index_to_flattened_slot(slot, type);
@@ -622,7 +661,11 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageD
 			device->tex_free(tex_img);
 		}
 
-		if(!file_load_image<TypeDesc::FLOAT, float>(img, type, tex_img)) {
+		if(!file_load_image<TypeDesc::FLOAT, float>(img,
+		                                            type,
+		                                            texture_limit,
+		                                            tex_img))
+		{
 			/* on failure to load, we set a 1x1 pixels pink image */
 			float *pixels = (float*)tex_img.resize(1, 1);
 
@@ -648,7 +691,11 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageD
 			device->tex_free(tex_img);
 		}
 
-		if(!file_load_image<TypeDesc::FLOAT, float>(img, type, tex_img)) {
+		if(!file_load_image<TypeDesc::FLOAT, float>(img,
+		                                            type,
+		                                            texture_limit,
+		                                            tex_img))
+		{
 			/* on failure to load, we set a 1x1 pixels pink image */
 			float *pixels = (float*)tex_img.resize(1, 1);
 
@@ -671,7 +718,11 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageD
 			device->tex_free(tex_img);
 		}
 
-		if(!file_load_image<TypeDesc::UINT8, uchar>(img, type, tex_img)) {
+		if(!file_load_image<TypeDesc::UINT8, uchar>(img,
+		                                            type,
+		                                            texture_limit,
+		                                            tex_img))
+		{
 			/* on failure to load, we set a 1x1 pixels pink image */
 			uchar *pixels = (uchar*)tex_img.resize(1, 1);
 
@@ -697,7 +748,10 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageD
 			device->tex_free(tex_img);
 		}
 
-		if(!file_load_image<TypeDesc::UINT8, uchar>(img, type, tex_img)) {
+		if(!file_load_image<TypeDesc::UINT8, uchar>(img,
+		                                            type,
+		                                            texture_limit,
+		                                            tex_img)) {
 			/* on failure to load, we set a 1x1 pixels pink image */
 			uchar *pixels = (uchar*)tex_img.resize(1, 1);
 
@@ -720,7 +774,10 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageD
 			device->tex_free(tex_img);
 		}
 
-		if(!file_load_image<TypeDesc::HALF, half>(img, type, tex_img)) {
+		if(!file_load_image<TypeDesc::HALF, half>(img,
+		                                          type,
+		                                          texture_limit,
+		                                          tex_img)) {
 			/* on failure to load, we set a 1x1 pixels pink image */
 			half *pixels = (half*)tex_img.resize(1, 1);
 
@@ -746,7 +803,10 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, ImageD
 			device->tex_free(tex_img);
 		}
 
-		if(!file_load_image<TypeDesc::HALF, half>(img, type, tex_img)) {
+		if(!file_load_image<TypeDesc::HALF, half>(img,
+		                                          type,
+		                                          texture_limit,
+		                                          tex_img)) {
 			/* on failure to load, we set a 1x1 pixels pink image */
 			half *pixels = (half*)tex_img.resize(1, 1);
 
@@ -842,7 +902,10 @@ void ImageManager::device_free_image(Device *device, DeviceScene *dscene, ImageD
 	}
 }
 
-void ImageManager::device_update(Device *device, DeviceScene *dscene, Progress& progress)
+void ImageManager::device_update(Device *device,
+                                 DeviceScene *dscene,
+                                 Scene *scene,
+                                 Progress& progress)
 {
 	if(!need_update)
 		return;
@@ -859,7 +922,14 @@ void ImageManager::device_update(Device *device, DeviceScene *dscene, Progress& 
 			}
 			else if(images[type][slot]->need_load) {
 				if(!osl_texture_system || images[type][slot]->builtin_data)
-					pool.push(function_bind(&ImageManager::device_load_image, this, device, dscene, (ImageDataType)type, slot, &progress));
+					pool.push(function_bind(&ImageManager::device_load_image,
+					                        this,
+					                        device,
+					                        dscene,
+					                        scene,
+					                        (ImageDataType)type,
+					                        slot,
+					                        &progress));
 			}
 		}
 	}
@@ -874,6 +944,7 @@ void ImageManager::device_update(Device *device, DeviceScene *dscene, Progress& 
 
 void ImageManager::device_update_slot(Device *device,
                                       DeviceScene *dscene,
+                                      Scene *scene,
                                       int flat_slot,
                                       Progress *progress)
 {
@@ -890,6 +961,7 @@ void ImageManager::device_update_slot(Device *device,
 		if(!osl_texture_system || image->builtin_data)
 			device_load_image(device,
 			                  dscene,
+			                  scene,
 			                  type,
 			                  slot,
 			                  progress);

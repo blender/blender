@@ -370,19 +370,26 @@ SubgraphDepsNode *DepsgraphNodeBuilder::build_subgraph(Group *group)
 
 void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 {
-	if (ob->id.tag & LIB_TAG_DOIT) {
-		IDDepsNode *id_node = m_graph->find_id_node(&ob->id);
-		if (base != NULL) {
-			id_node->layers |= base->lay;
-		}
-		return;
-	}
-	ob->id.tag |= LIB_TAG_DOIT;
-
-	IDDepsNode *id_node = add_id_node(&ob->id);
+	const bool has_object = (ob->id.tag & LIB_TAG_DOIT);
+	IDDepsNode *id_node = (has_object)
+	        ? m_graph->find_id_node(&ob->id)
+	        : add_id_node(&ob->id);
+	/* Update node layers.
+	 * Do it for both new and existing ID nodes. This is so because several
+	 * bases might be sharing same object.
+	 */
 	if (base != NULL) {
 		id_node->layers |= base->lay;
 	}
+	if (ob == scene->camera) {
+		/* Camera should always be updated, it used directly by viewport. */
+		id_node->layers |= (unsigned int)(-1);
+	}
+	/* Skip rest of components if the ID node was already there. */
+	if (has_object) {
+		return;
+	}
+	ob->id.tag |= LIB_TAG_DOIT;
 	ob->customdata_mask = 0;
 
 	/* Standard components. */

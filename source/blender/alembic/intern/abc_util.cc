@@ -215,14 +215,13 @@ void convert_matrix(const Imath::M44d &xform, Object *ob,
 {
 	for (int i = 0; i < 4; ++i) {
 		for (int j = 0; j < 4; ++j) {
-			r_mat[i][j] = xform[i][j];
+			r_mat[i][j] = static_cast<float>(xform[i][j]);
 		}
 	}
 
 	if (ob->type == OB_CAMERA) {
 		float cam_to_yup[4][4];
-		unit_m4(cam_to_yup);
-		rotate_m4(cam_to_yup, 'X', M_PI_2);
+		axis_angle_to_mat4_single(cam_to_yup, 'X', M_PI_2);
 		mul_m4_m4m4(r_mat, r_mat, cam_to_yup);
 	}
 

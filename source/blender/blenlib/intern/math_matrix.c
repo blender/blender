@@ -1681,51 +1681,45 @@ void translate_m4(float mat[4][4], float Tx, float Ty, float Tz)
 }
 
 /* TODO: enum for axis? */
+/**
+ * Rotate a matrix in-place.
+ *
+ * \note To create a new rotation matrix see:
+ * #axis_angle_to_mat4_single, #axis_angle_to_mat3_single, #angle_to_mat2
+ * (axis & angle args are compatible).
+ */
 void rotate_m4(float mat[4][4], const char axis, const float angle)
 {
-	int col;
-	float temp[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-	float cosine, sine;
+	const float angle_cos = cosf(angle);
+	const float angle_sin = sinf(angle);
 
 	assert(axis >= 'X' && axis <= 'Z');
 
-	cosine = cosf(angle);
-	sine   = sinf(angle);
 	switch (axis) {
 		case 'X':
-			for (col = 0; col < 4; col++)
-				temp[col] = cosine * mat[1][col] + sine * mat[2][col];
-			for (col = 0; col < 4; col++) {
-				mat[2][col] = -sine * mat[1][col] + cosine * mat[2][col];
-				mat[1][col] = temp[col];
+			for (int col = 0; col < 4; col++) {
+				float temp  =  angle_cos * mat[1][col] + angle_sin * mat[2][col];
+				mat[2][col] = -angle_sin * mat[1][col] + angle_cos * mat[2][col];
+				mat[1][col] =  temp;
 			}
 			break;
 
 		case 'Y':
-			for (col = 0; col < 4; col++)
-				temp[col] = cosine * mat[0][col] - sine * mat[2][col];
-			for (col = 0; col < 4; col++) {
-				mat[2][col] = sine * mat[0][col] + cosine * mat[2][col];
-				mat[0][col] = temp[col];
+			for (int col = 0; col < 4; col++) {
+				float temp  =  angle_cos * mat[0][col] - angle_sin * mat[2][col];
+				mat[2][col] =  angle_sin * mat[0][col] + angle_cos * mat[2][col];
+				mat[0][col] =  temp;
 			}
 			break;
 
 		case 'Z':
-			for (col = 0; col < 4; col++)
-				temp[col] = cosine * mat[0][col] + sine * mat[1][col];
-			for (col = 0; col < 4; col++) {
-				mat[1][col] = -sine * mat[0][col] + cosine * mat[1][col];
-				mat[0][col] = temp[col];
+			for (int col = 0; col < 4; col++) {
+				float temp  =  angle_cos * mat[0][col] + angle_sin * mat[1][col];
+				mat[1][col] = -angle_sin * mat[0][col] + angle_cos * mat[1][col];
+				mat[0][col] =  temp;
 			}
 			break;
 	}
-}
-
-void rotate_m2(float mat[2][2], const float angle)
-{
-	mat[0][0] = mat[1][1] = cosf(angle);
-	mat[0][1] = sinf(angle);
-	mat[1][0] = -mat[0][1];
 }
 
 /**

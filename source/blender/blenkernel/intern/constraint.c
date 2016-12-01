@@ -4705,27 +4705,6 @@ bConstraint *BKE_constraint_add_for_object(Object *ob, const char *name, short t
 
 /* ......... */
 
-/* helper for BKE_constraints_relink() - call ID_NEW() on every ID reference the constraint has */
-static void con_relink_id_cb(bConstraint *UNUSED(con), ID **idpoin, bool UNUSED(is_reference), void *UNUSED(userdata))
-{
-	/* ID_NEW() expects a struct with inline "id" member as first
-	 * since we've got the actual ID block, let's just inline this
-	 * code. 
-	 *
-	 * See ID_NEW(a) in DNA_ID.h
-	 */
-	if ((*idpoin) && (*idpoin)->newid)
-		(*idpoin) = (void *)(*idpoin)->newid;
-}
-
-/* Reassign links that constraints have to other data (called during file loading?) */
-void BKE_constraints_relink(ListBase *conlist)
-{
-	/* just a wrapper around ID-loop for just calling ID_NEW() on all ID refs */
-	BKE_constraints_id_loop(conlist, con_relink_id_cb, NULL);
-}
-
-
 /* Run the given callback on all ID-blocks in list of constraints */
 void BKE_constraints_id_loop(ListBase *conlist, ConstraintIDFunc func, void *userdata)
 {
