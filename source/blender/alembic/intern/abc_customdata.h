@@ -26,6 +26,7 @@
 #define __ABC_CUSTOMDATA_H__
 
 #include <Alembic/Abc/All.h>
+#include <Alembic/AbcGeom/All.h>
 
 struct CustomData;
 struct MLoop;
@@ -65,8 +66,8 @@ struct CDStreamConfig {
 
 	float weight;
 	float time;
-	int index;
-	int ceil_index;
+	Alembic::AbcGeom::index_t index;
+	Alembic::AbcGeom::index_t ceil_index;
 
 	CDStreamConfig()
 	    : mloop(NULL)

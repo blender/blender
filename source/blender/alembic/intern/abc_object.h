@@ -76,7 +76,7 @@ private:
 
 /* ************************************************************************** */
 
-class CacheFile;
+struct CacheFile;
 
 struct ImportSettings {
 	bool do_convert_mat;

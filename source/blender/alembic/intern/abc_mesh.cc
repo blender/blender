@@ -952,7 +952,7 @@ static void read_mesh_sample(ImportSettings *settings,
 
 	if (config.weight != 0.0f) {
 		Alembic::AbcGeom::IPolyMeshSchema::Sample ceil_sample;
-		schema.get(ceil_sample, Alembic::Abc::ISampleSelector(static_cast<Alembic::AbcCoreAbstract::index_t>(config.ceil_index)));
+		schema.get(ceil_sample, Alembic::Abc::ISampleSelector(config.ceil_index));
 		abc_mesh_data.ceil_positions = ceil_sample.getPositions();
 	}
 
@@ -1186,7 +1186,7 @@ static void read_subd_sample(ImportSettings *settings,
 
 	if (config.weight != 0.0f) {
 		Alembic::AbcGeom::ISubDSchema::Sample ceil_sample;
-		schema.get(ceil_sample, Alembic::Abc::ISampleSelector(static_cast<Alembic::AbcCoreAbstract::index_t>(config.ceil_index)));
+		schema.get(ceil_sample, Alembic::Abc::ISampleSelector(config.ceil_index));
 		abc_mesh_data.ceil_positions = ceil_sample.getPositions();
 	}
 

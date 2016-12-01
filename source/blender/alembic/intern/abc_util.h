@@ -39,7 +39,7 @@ struct CacheReader {
 using Alembic::Abc::chrono_t;
 
 class AbcObjectReader;
-class ImportSettings;
+struct ImportSettings;
 
 struct ID;
 struct Object;

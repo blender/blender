@@ -215,7 +215,7 @@ void convert_matrix(const Imath::M44d &xform, Object *ob,
 {
 	for (int i = 0; i < 4; ++i) {
 		for (int j = 0; j < 4; ++j) {
-			r_mat[i][j] = xform[i][j];
+			r_mat[i][j] = static_cast<float>(xform[i][j]);
 		}
 	}
 

@@ -189,7 +189,8 @@ void read_points_sample(const IPointsSchema &schema,
 	N3fArraySamplePtr vnormals;
 
 	if (has_property(prop, "N")) {
-		const IN3fArrayProperty &normals_prop = IN3fArrayProperty(prop, "N", time);
+		const Alembic::Util::uint32_t itime = static_cast<Alembic::Util::uint32_t>(time);
+		const IN3fArrayProperty &normals_prop = IN3fArrayProperty(prop, "N", itime);
 
 		if (normals_prop) {
 			vnormals = normals_prop.getValue(selector);

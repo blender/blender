@@ -28,7 +28,7 @@
 #include "abc_object.h"
 #include "abc_customdata.h"
 
-class ParticleSystem;
+struct ParticleSystem;
 
 /* ************************************************************************** */
 
