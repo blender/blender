@@ -40,7 +40,7 @@ class INFO_HT_header(Header):
             layout.operator("screen.back_to_previous", icon='SCREEN_BACK', text="Back to Previous")
             layout.separator()
         else:
-            layout.template_ID(context.window, "screen", new="screen.new", unlink="screen.delete")
+            layout.template_ID_preview(context.window, "screen", new="screen.new", unlink="screen.delete", rows=2, cols=6)
             layout.template_ID(context.screen, "scene", new="scene.new", unlink="scene.delete")
 
         layout.separator()

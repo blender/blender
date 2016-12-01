@@ -851,12 +851,15 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
 				{
 					ID *id = (icon->type != 0) ? icon->obj : NULL;
 					PreviewImage *prv = id ? BKE_previewimg_id_ensure(id) : icon->obj;
+					/* Using jobs for screen previews crashes due to offscreen rendering.
+					 * XXX would be nicer if PreviewImage could store if it supports jobs */
+					const bool use_jobs = !id || (GS(id->name) != ID_SCR);
 
 					if (prv) {
 						const int size = big ? ICON_SIZE_PREVIEW : ICON_SIZE_ICON;
 
 						if (id || (prv->tag & PRV_TAG_DEFFERED) != 0) {
-							ui_id_preview_image_render_size(C, NULL, id, prv, size, true);
+							ui_id_preview_image_render_size(C, NULL, id, prv, size, use_jobs);
 						}
 					}
 					break;
@@ -1169,7 +1172,7 @@ void UI_id_icon_render(const bContext *C, Scene *scene, ID *id, const bool big, 
 	}
 }
 
-static void ui_id_brush_render(const bContext *C, ID *id)
+static void ui_id_icon_render(const bContext *C, ID *id, bool use_jobs)
 {
 	PreviewImage *pi = BKE_previewimg_id_ensure(id);
 	enum eIconSizes i;
@@ -1181,7 +1184,7 @@ static void ui_id_brush_render(const bContext *C, ID *id)
 		/* check if rect needs to be created; changed
 		 * only set by dynamic icons */
 		if (((pi->flag[i] & PRV_CHANGED) || !pi->rect[i])) {
-			icon_set_image(C, NULL, id, pi, i, true);
+			icon_set_image(C, NULL, id, pi, i, use_jobs);
 			pi->flag[i] &= ~PRV_CHANGED;
 		}
 	}
@@ -1194,7 +1197,7 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 
 	if (br->flag & BRUSH_CUSTOM_ICON) {
 		BKE_icon_id_ensure(id);
-		ui_id_brush_render(C, id);
+		ui_id_icon_render(C, id, true);
 	}
 	else {
 		Object *ob = CTX_data_active_object(C);
@@ -1241,6 +1244,15 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 	return id->icon_id;
 }
 
+static int ui_id_screen_get_icon(const bContext *C, ID *id)
+{
+	BKE_icon_id_ensure(id);
+	/* Don't use jobs here, offscreen rendering doesn't like this and crashes. */
+	ui_id_icon_render(C, id, false);
+
+	return id->icon_id;
+}
+
 int ui_id_icon_get(const bContext *C, ID *id, const bool big)
 {
 	int iconid = 0;
@@ -1258,6 +1270,9 @@ int ui_id_icon_get(const bContext *C, ID *id, const bool big)
 			iconid = BKE_icon_id_ensure(id);
 			/* checks if not exists, or changed */
 			UI_id_icon_render(C, NULL, id, big, true);
+			break;
+		case ID_SCR:
+			iconid = ui_id_screen_get_icon(C, id);
 			break;
 		default:
 			break;

@@ -2781,6 +2781,8 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 		writestruct(wd, ID_SCRN, bScreen, 1, sc);
 		write_iddata(wd, &sc->id);
 
+		write_previews(wd, sc->preview);
+
 		/* direct data */
 		for (sv = sc->vertbase.first; sv; sv = sv->next) {
 			writestruct(wd, DATA, ScrVert, 1, sv);

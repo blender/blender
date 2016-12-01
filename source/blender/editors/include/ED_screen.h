@@ -36,6 +36,8 @@
 #include "DNA_view2d_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BLI_compiler_attrs.h"
+
 struct wmWindowManager;
 struct wmWindow;
 struct wmNotifier;
@@ -47,6 +49,7 @@ struct bScreen;
 struct ARegion;
 struct uiBlock;
 struct rcti;
+struct Main;
 
 /* regions */
 void    ED_region_do_listen(struct bScreen *sc, struct ScrArea *sa, struct ARegion *ar, struct wmNotifier *note);
@@ -118,6 +121,7 @@ void    ED_screen_full_restore(struct bContext *C, ScrArea *sa);
 struct ScrArea *ED_screen_state_toggle(struct bContext *C, struct wmWindow *win, struct ScrArea *sa, const short state);
 void    ED_screens_header_tools_menu_create(struct bContext *C, struct uiLayout *layout, void *arg);
 bool    ED_screen_stereo3d_required(struct bScreen *screen);
+void    ED_screen_preview_render(const struct bScreen *screen, int size_x, int size_y, unsigned int *r_rect) ATTR_NONNULL();
 
 /* anim */
 void    ED_update_for_newframe(struct Main *bmain, struct Scene *scene, int mute);

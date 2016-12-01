@@ -76,6 +76,8 @@ typedef struct bScreen {
 
 	struct wmTimer *animtimer;			/* if set, screen has timer handler added in window */
 	void *context;						/* context callback */
+
+	PreviewImage *preview;
 } bScreen;
 
 typedef struct ScrVert {

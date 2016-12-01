@@ -6567,6 +6567,8 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 	sc->mainwin = sc->subwinactive= 0;	/* indices */
 	sc->swap = 0;
 
+	sc->preview = direct_link_preview_image(fd, sc->preview);
+
 	/* edges */
 	for (se = sc->edgebase.first; se; se = se->next) {
 		se->v1 = newdataadr(fd, se->v1);

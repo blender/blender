@@ -42,6 +42,7 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -615,7 +616,9 @@ int screen_area_join(bContext *C, bScreen *scr, ScrArea *sa1, ScrArea *sa2)
 	screen_delarea(C, scr, sa2);
 	removedouble_scrverts(scr);
 	sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
-	
+	/* Update preview thumbnail */
+	BKE_icon_changed(scr->id.icon_id);
+
 	return 1;
 }
 

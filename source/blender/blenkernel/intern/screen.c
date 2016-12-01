@@ -50,6 +50,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_rect.h"
 
+#include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_screen.h"
 
@@ -394,6 +395,8 @@ void BKE_screen_free(bScreen *sc)
 	BLI_freelistN(&sc->vertbase);
 	BLI_freelistN(&sc->edgebase);
 	BLI_freelistN(&sc->areabase);
+
+	BKE_previewimg_free(&sc->preview);
 }
 
 /* for depsgraph */

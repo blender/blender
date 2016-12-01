@@ -94,6 +94,7 @@
 
 #include "ED_datafiles.h"
 #include "ED_render.h"
+#include "ED_screen.h"
 
 #ifndef NDEBUG
 /* Used for database init assert(). */
@@ -1020,6 +1021,12 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 
 			icon_copy_rect(br->icon_imbuf, sp->sizex, sp->sizey, sp->pr_rect);
 
+			*do_update = true;
+		}
+		else if (idtype == ID_SCR) {
+			bScreen *screen = (bScreen *)id;
+
+			ED_screen_preview_render(screen, sp->sizex, sp->sizey, sp->pr_rect);
 			*do_update = true;
 		}
 		else {

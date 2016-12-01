@@ -42,6 +42,7 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 #include "DNA_brush_types.h"
@@ -252,6 +253,7 @@ PreviewImage **BKE_previewimg_id_get_p(ID *id)
 		ID_PRV_CASE(ID_OB, Object);
 		ID_PRV_CASE(ID_GR, Group);
 		ID_PRV_CASE(ID_SCE, Scene);
+		ID_PRV_CASE(ID_SCR, bScreen);
 #undef ID_PRV_CASE
 	}
 

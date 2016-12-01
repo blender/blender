@@ -1059,7 +1059,7 @@ int ui_searchbox_autocomplete(bContext *C, ARegion *ar, uiBut *but, char *str)
 	return match;
 }
 
-static void ui_searchbox_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
+static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *ar)
 {
 	uiSearchboxData *data = ar->regiondata;
 	
@@ -1077,6 +1077,9 @@ static void ui_searchbox_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 		if (data->preview) {
 			/* draw items */
 			for (a = 0; a < data->items.totitem; a++) {
+				/* ensure icon is up-to-date */
+				ui_icon_ensure_deferred(C, data->items.icons[a], data->preview);
+
 				ui_searchbox_butrect(&rect, data, a);
 				
 				/* widget itself */

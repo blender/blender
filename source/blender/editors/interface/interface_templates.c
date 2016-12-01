@@ -415,17 +415,30 @@ static void template_ID(
 		type = idptr.type;
 
 	if (flag & UI_ID_PREVIEWS) {
+		ARegion *region = CTX_wm_region(C);
+		const bool use_big_size = (region->regiontype != RGN_TYPE_HEADER); /* silly check, could be more generic */
+		/* Ugly exception for screens here, drawing their preview in icon size looks ugly/useless */
+		const bool use_preview_icon = use_big_size || (id && (GS(id->name) != ID_SCR));
+		const short width = UI_UNIT_X * (use_big_size ? 6 : 1.6f);
+		const short height = UI_UNIT_Y * (use_big_size ? 6: 1);
+
 		template->preview = true;
 
-		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6,
+		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, width, height,
 		                     TIP_(template_id_browse_tip(type)));
-		ui_def_but_icon(but, id ? ui_id_icon_get(C, id, true) : RNA_struct_ui_icon(type),
-		                UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+		if (use_preview_icon) {
+			ui_def_but_icon(but, ui_id_icon_get(C, id, use_big_size), UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+		}
+		else {
+			ui_def_but_icon(but, RNA_struct_ui_icon(type), UI_HAS_ICON);
+			UI_but_drawflag_enable(but, UI_BUT_ICON_LEFT);
+		}
 
 		if ((idfrom && idfrom->lib) || !editable)
 			UI_but_flag_enable(but, UI_BUT_DISABLED);
-		
-		uiLayoutRow(layout, true);
+		if (use_big_size) {
+			uiLayoutRow(layout, true);
+		}
 	}
 	else if (flag & UI_ID_BROWSE) {
 		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X * 1.6, UI_UNIT_Y,

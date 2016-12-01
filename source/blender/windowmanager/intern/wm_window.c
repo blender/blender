@@ -51,6 +51,7 @@
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
+#include "BKE_icons.h"
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -1105,6 +1106,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 					
 						wm_window_make_drawable(wm, win);
 						wm_draw_window_clear(win);
+						BKE_icon_changed(win->screen->id.icon_id);
 						WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
 						WM_event_add_notifier(C, NC_WINDOW | NA_EDITED, NULL);
 						
@@ -1206,6 +1208,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 
 				if (U.pixelsize != prev_pixelsize) {
 					BKE_blender_userdef_refresh();
+					BKE_icon_changed(win->screen->id.icon_id);
 
 					// close all popups since they are positioned with the pixel
 					// size baked in and it's difficult to correct them
