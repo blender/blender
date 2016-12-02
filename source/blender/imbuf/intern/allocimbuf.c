@@ -89,11 +89,14 @@ void imb_mmap_unlock(void)
 void imb_freemipmapImBuf(ImBuf *ibuf)
 {
 	int a;
-	
-	for (a = 1; a < ibuf->miptot; a++) {
-		if (ibuf->mipmap[a - 1])
-			IMB_freeImBuf(ibuf->mipmap[a - 1]);
-		ibuf->mipmap[a - 1] = NULL;
+
+	/* Do not trust ibuf->miptot, in some cases IMB_remakemipmap can leave unfreed unused levels,
+	 * leading to memory leaks... */
+	for (a = 0; a < IMB_MIPMAP_LEVELS; a++) {
+		if (ibuf->mipmap[a] != NULL) {
+			IMB_freeImBuf(ibuf->mipmap[a]);
+			ibuf->mipmap[a] = NULL;
+		}
 	}
 
 	ibuf->miptot = 0;
