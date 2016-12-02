@@ -596,8 +596,7 @@ ccl_device_inline float len_squared(const float4& a)
 
 ccl_device_inline float3 normalize(const float3& a)
 {
-	/* TODO(sergey): Disabled for now, causes crashes in certain cases. */
-#if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__) && 0
+#if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
 	__m128 norm = _mm_sqrt_ps(_mm_dp_ps(a.m128, a.m128, 0x7F));
 	return _mm_div_ps(a.m128, norm);
 #else
@@ -798,8 +797,7 @@ ccl_device_inline float4 operator-(const float4& a)
 
 ccl_device_inline float4 operator*(const float4& a, const float4& b)
 {
-	/* TODO(sergey): Disabled for now, causes crashes in certain cases. */
-#if defined(__KERNEL_SSE__) && 0
+#ifdef __KERNEL_SSE__
 	return _mm_mul_ps(a.m128, b.m128);
 #else
 	return make_float4(a.x*b.x, a.y*b.y, a.z*b.z, a.w*b.w);
@@ -847,8 +845,7 @@ ccl_device_inline float4 operator/(const float4& a, const float4& b)
 
 ccl_device_inline float4 operator+(const float4& a, const float4& b)
 {
-	/* TODO(sergey): Disabled for now, causes crashes in certain cases. */
-#if defined(__KERNEL_SSE__) && 0
+#ifdef __KERNEL_SSE__
 	return _mm_add_ps(a.m128, b.m128);
 #else
 	return make_float4(a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w);
