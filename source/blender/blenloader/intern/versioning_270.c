@@ -46,6 +46,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
@@ -60,6 +61,7 @@
 #include "BKE_colortools.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_mask.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
@@ -1471,6 +1473,23 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		const float sqrt_3 = (float)M_SQRT3;
 		for (Brush *br = main->brush.first; br; br = br->id.next) {
 			br->fill_threshold /= sqrt_3;
+		}
+	}
+
+	/* To be added to next subversion bump! */
+	{
+		/* Mask primitive adding code was not initializing correctly id_type of its points' parent. */
+		for (Mask *mask = main->mask.first; mask; mask = mask->id.next) {
+			for (MaskLayer *mlayer = mask->masklayers.first; mlayer; mlayer = mlayer->next) {
+				for (MaskSpline *mspline = mlayer->splines.first; mspline; mspline = mspline->next) {
+					int i = 0;
+					for (MaskSplinePoint *mspoint = mspline->points; i < mspline->tot_point; mspoint++, i++) {
+						if (mspoint->parent.id_type == 0) {
+							BKE_mask_parent_init(&mspoint->parent);
+						}
+					}
+				}
+			}
 		}
 	}
 }

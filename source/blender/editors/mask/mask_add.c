@@ -779,6 +779,7 @@ static int create_primitive_from_points(bContext *C, wmOperator *op, const float
 
 	for (i = 0; i < num_points; i++) {
 		MaskSplinePoint *new_point = &new_spline->points[i];
+		BKE_mask_parent_init(&new_point->parent);
 
 		copy_v2_v2(new_point->bezt.vec[1], points[i]);
 		mul_v2_fl(new_point->bezt.vec[1], scale);
