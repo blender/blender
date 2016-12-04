@@ -46,6 +46,8 @@
 
 /**
  * Plot a line from \a p1 to \a p2 (inclusive).
+ *
+ * \note For clipped line drawing, see: http://stackoverflow.com/a/40902741/432509
  */
 void BLI_bitmap_draw_2d_line_v2v2i(
         const int p1[2], const int p2[2],
@@ -57,33 +59,36 @@ void BLI_bitmap_draw_2d_line_v2v2i(
 	int x2 = p2[0];
 	int y2 = p2[1];
 
-	int ix;
-	int iy;
-
-	/* if x1 == x2 or y1 == y2, then it does not matter what we set here */
-	int delta_x = (x2 > x1 ? ((void)(ix = 1), x2 - x1) : ((void)(ix = -1), x1 - x2)) << 1;
-	int delta_y = (y2 > y1 ? ((void)(iy = 1), y2 - y1) : ((void)(iy = -1), y1 - y2)) << 1;
-
 	if (callback(x1, y1, userData) == 0) {
 		return;
 	}
 
+	/* if x1 == x2 or y1 == y2, then it does not matter what we set here */
+	const int sign_x = (x2 > x1) ? 1 : -1;
+	const int sign_y = (y2 > y1) ? 1 : -1;
+
+	const int delta_x = (sign_x == 1) ? (x2 - x1) : (x1 - x2);
+	const int delta_y = (sign_y == 1) ? (y2 - y1) : (y1 - y2);
+
+	const int delta_x_step = delta_x * 2;
+	const int delta_y_step = delta_y * 2;
+
 	if (delta_x >= delta_y) {
 		/* error may go below zero */
-		int error = delta_y - (delta_x >> 1);
+		int error = delta_y_step - delta_x;
 
 		while (x1 != x2) {
 			if (error >= 0) {
-				if (error || (ix > 0)) {
-					y1 += iy;
-					error -= delta_x;
+				if (error || (sign_x == 1)) {
+					y1 += sign_y;
+					error -= delta_x_step;
 				}
 				/* else do nothing */
 			}
 			/* else do nothing */
 
-			x1 += ix;
-			error += delta_y;
+			x1 += sign_x;
+			error += delta_y_step;
 
 			if (callback(x1, y1, userData) == 0) {
 				return;
@@ -92,20 +97,20 @@ void BLI_bitmap_draw_2d_line_v2v2i(
 	}
 	else {
 		/* error may go below zero */
-		int error = delta_x - (delta_y >> 1);
+		int error = delta_x_step - delta_y;
 
 		while (y1 != y2) {
 			if (error >= 0) {
-				if (error || (iy > 0)) {
-					x1 += ix;
-					error -= delta_y;
+				if (error || (sign_y == 1)) {
+					x1 += sign_x;
+					error -= delta_y_step;
 				}
 				/* else do nothing */
 			}
 			/* else do nothing */
 
-			y1 += iy;
-			error += delta_x;
+			y1 += sign_y;
+			error += delta_x_step;
 
 			if (callback(x1, y1, userData) == 0) {
 				return;
