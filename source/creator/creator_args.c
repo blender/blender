@@ -585,14 +585,14 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	BLI_argsPrintArgDoc(ba, "--");
 
 	printf("\n");
-	printf("Other Options:\n");
-	BLI_argsPrintOtherDoc(ba);
-
-	/* keep last args */
-	printf("\n");
 	printf("Experimental Features:\n");
 	BLI_argsPrintArgDoc(ba, "--enable-new-depsgraph");
 	BLI_argsPrintArgDoc(ba, "--enable-new-basic-shader-glsl");
+
+	/* Other options _must_ be last (anything not handled will show here) */
+	printf("\n");
+	printf("Other Options:\n");
+	BLI_argsPrintOtherDoc(ba);
 
 	printf("\n");
 	printf("Argument Parsing:\n");
