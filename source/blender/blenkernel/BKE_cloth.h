@@ -133,11 +133,17 @@ ClothVertex;
 typedef struct ClothSpring {
 	int	ij;		/* Pij from the paper, one end of the spring.	*/
 	int	kl;		/* Pkl from the paper, one end of the spring.	*/
-	int mn;
-	float	restlen;	/* The original length of the spring.	*/
-	int	type;		/* types defined in BKE_cloth.h ("springType") */
-	int	flags; 		/* defined in BKE_cloth.h, e.g. deactivated due to tearing */
-	float 	stiffness;	/* stiffness factor from the vertex groups */
+	int mn;		/* For hair springs: third vertex index; For bending springs: edge index; */
+	int *pa;	/* Array of vert indices for poly a (for bending springs). */
+	int *pb;	/* Array of vert indices for poly b (for bending springs). */
+	int la;		/* Length of *pa. */
+	int lb;		/* Length of *pb. */
+	float restlen;	/* The original length of the spring. */
+	float restang;	/* The original angle of the bending springs. */
+	int	type;		/* Types defined in BKE_cloth.h ("springType"). */
+	int	flags; 		/* Defined in BKE_cloth.h, e.g. deactivated due to tearing. */
+	float lin_stiffness;	/* Linear stiffness factor from the vertex groups. */
+	float ang_stiffness;	/* Angular stiffness factor from the vertex groups. */
 	float editrestlen;
 
 	/* angular bending spring target and derivatives */
@@ -186,12 +192,12 @@ typedef enum {
 
 /* Spring types as defined in the paper.*/
 typedef enum {
-	CLOTH_SPRING_TYPE_STRUCTURAL  = (1 << 1),
-	CLOTH_SPRING_TYPE_SHEAR       = (1 << 2),
-	CLOTH_SPRING_TYPE_BENDING     = (1 << 3),
-	CLOTH_SPRING_TYPE_GOAL        = (1 << 4),
-	CLOTH_SPRING_TYPE_SEWING      = (1 << 5),
-	CLOTH_SPRING_TYPE_BENDING_ANG = (1 << 6),
+	CLOTH_SPRING_TYPE_STRUCTURAL   = (1 << 1),
+	CLOTH_SPRING_TYPE_SHEAR        = (1 << 2),
+	CLOTH_SPRING_TYPE_BENDING      = (1 << 3),
+	CLOTH_SPRING_TYPE_GOAL         = (1 << 4),
+	CLOTH_SPRING_TYPE_SEWING       = (1 << 5),
+	CLOTH_SPRING_TYPE_BENDING_HAIR = (1 << 6),
 } CLOTH_SPRING_TYPES;
 
 /* SPRING FLAGS */
