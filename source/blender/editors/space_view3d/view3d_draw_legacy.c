@@ -167,9 +167,8 @@ void ED_view3d_clipping_set(RegionView3D *rv3d)
 {
 	double plane[4];
 	const unsigned int tot = (rv3d->viewlock & RV3D_BOXCLIP) ? 4 : 6;
-	unsigned int a;
 
-	for (a = 0; a < tot; a++) {
+	for (unsigned a = 0; a < tot; a++) {
 		copy_v4db_v4fl(plane, rv3d->clip[a]);
 		glClipPlane(GL_CLIP_PLANE0 + a, plane);
 		glEnable(GL_CLIP_PLANE0 + a);
@@ -179,17 +178,13 @@ void ED_view3d_clipping_set(RegionView3D *rv3d)
 /* use these to temp disable/enable clipping when 'rv3d->rflag & RV3D_CLIPPING' is set */
 void ED_view3d_clipping_disable(void)
 {
-	unsigned int a;
-
-	for (a = 0; a < 6; a++) {
+	for (unsigned a = 0; a < 6; a++) {
 		glDisable(GL_CLIP_PLANE0 + a);
 	}
 }
 void ED_view3d_clipping_enable(void)
 {
-	unsigned int a;
-
-	for (a = 0; a < 6; a++) {
+	for (unsigned a = 0; a < 6; a++) {
 		glEnable(GL_CLIP_PLANE0 + a);
 	}
 }
@@ -399,8 +394,6 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 
 			const float s = 0.05f * scale;
 			const float step = 2.0f * (float)(M_PI / ROT_AXIS_DETAIL);
-			float angle;
-			int i;
 
 			float q[4];  /* rotate ring so it's perpendicular to axis */
 			const int upright = fabsf(rv3d->rot_axis[2]) >= 0.95f;
@@ -416,7 +409,8 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 			immBegin(GL_LINE_LOOP, ROT_AXIS_DETAIL);
 			color[3] = 63; /* somewhat faint */
 			immAttrib4ubv(col, color);
-			for (i = 0, angle = 0.0f; i < ROT_AXIS_DETAIL; ++i, angle += step) {
+			float angle = 0.0f;
+			for (int i = 0; i < ROT_AXIS_DETAIL; ++i, angle += step) {
 				float p[3] = {s * cosf(angle), s * sinf(angle), 0.0f};
 
 				if (!upright) {
@@ -529,7 +523,6 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 			else {
 				name = (rv3d->persp == RV3D_ORTHO) ? IFACE_("User Ortho") : IFACE_("User Persp");
 			}
-			break;
 	}
 	
 	return name;
@@ -570,7 +563,6 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 	const char *msg_sep = " : ";
 
 	char info[300];
-	const char *markern;
 	char *s = info;
 	short offset = 1.5f * UI_UNIT_X + rect->xmin;
 
@@ -586,7 +578,7 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 	 */
 
 	/* get name of marker on current frame (if available) */
-	markern = BKE_scene_find_marker_name(scene, cfra);
+	const char *markern = BKE_scene_find_marker_name(scene, cfra);
 	
 	/* check if there is an object */
 	if (ob) {
@@ -615,9 +607,6 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 			}
 		}
 		else if (ELEM(ob->type, OB_MESH, OB_LATTICE, OB_CURVE)) {
-			Key *key = NULL;
-			KeyBlock *kb = NULL;
-
 			/* try to display active bone and active shapekey too (if they exist) */
 
 			if (ob->type == OB_MESH && ob->mode & OB_MODE_WEIGHT_PAINT) {
@@ -633,9 +622,9 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 				}
 			}
 
-			key = BKE_key_from_object(ob);
+			Key *key = BKE_key_from_object(ob);
 			if (key) {
-				kb = BLI_findlink(&key->block, ob->shapenr - 1);
+				KeyBlock *kb = BLI_findlink(&key->block, ob->shapenr - 1);
 				if (kb) {
 					s += BLI_strcpy_rlen(s, msg_sep);
 					s += BLI_strcpy_rlen(s, kb->name);
@@ -808,7 +797,6 @@ void view3d_opengl_read_pixels(ARegion *ar, int x, int y, int w, int h, int form
 /* XXX depth reading exception, for code not using gpu offscreen */
 static void view3d_opengl_read_Z_pixels(ARegion *ar, int x, int y, int w, int h, int format, int type, void *data)
 {
-
 	glReadPixels(ar->winrct.xmin + x, ar->winrct.ymin + y, w, h, format, type, data);
 }
 
@@ -830,28 +818,26 @@ int ED_view3d_backbuf_sample_size_clamp(ARegion *ar, const float dist)
 /* samples a single pixel (copied from vpaint) */
 unsigned int ED_view3d_backbuf_sample(ViewContext *vc, int x, int y)
 {
-	unsigned int col;
-	
 	if (x >= vc->ar->winx || y >= vc->ar->winy) {
 		return 0;
 	}
 
 	ED_view3d_backbuf_validate(vc);
 
+	unsigned int col;
 	view3d_opengl_read_pixels(vc->ar, x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &col);
 	glReadBuffer(GL_BACK);
-	
+
 	if (ENDIAN_ORDER == B_ENDIAN) {
 		BLI_endian_switch_uint32(&col);
 	}
-	
+
 	return GPU_select_to_index(col);
 }
 
 /* reads full rect, converts indices */
 ImBuf *ED_view3d_backbuf_read(ViewContext *vc, int xmin, int ymin, int xmax, int ymax)
 {
-	struct ImBuf *ibuf_clip;
 	/* clip */
 	const rcti clip = {
 	    max_ii(xmin, 0), min_ii(xmax, vc->ar->winx - 1),
@@ -866,7 +852,7 @@ ImBuf *ED_view3d_backbuf_read(ViewContext *vc, int xmin, int ymin, int xmax, int
 		return NULL;
 	}
 
-	ibuf_clip = IMB_allocImBuf(size_clip[0], size_clip[1], 32, IB_rect);
+	ImBuf *ibuf_clip = IMB_allocImBuf(size_clip[0], size_clip[1], 32, IB_rect);
 
 	ED_view3d_backbuf_validate(vc);
 
@@ -889,12 +875,11 @@ ImBuf *ED_view3d_backbuf_read(ViewContext *vc, int xmin, int ymin, int xmax, int
 	}
 	else {
 		/* put clipped result into a non-clipped buffer */
-		struct ImBuf *ibuf_full;
 		const int size[2] = {
 		    (xmax - xmin + 1),
 		    (ymax - ymin + 1)};
 
-		ibuf_full = IMB_allocImBuf(size[0], size[1], 32, IB_rect);
+		ImBuf *ibuf_full = IMB_allocImBuf(size[0], size[1], 32, IB_rect);
 
 		IMB_rectcpy(
 		        ibuf_full, ibuf_clip,
@@ -911,35 +896,31 @@ unsigned int ED_view3d_backbuf_sample_rect(
         ViewContext *vc, const int mval[2], int size,
         unsigned int min, unsigned int max, float *r_dist)
 {
-	struct ImBuf *buf;
-	const unsigned int *bufmin, *bufmax, *tbuf;
-	int minx, miny;
-	int a, b, rc, nr, amount, dirvec[4][2];
-	unsigned int index = 0;
+	int dirvec[4][2];
 
-	amount = (size - 1) / 2;
+	const int amount = (size - 1) / 2;
 
-	minx = mval[0] - (amount + 1);
-	miny = mval[1] - (amount + 1);
-	buf = ED_view3d_backbuf_read(vc, minx, miny, minx + size - 1, miny + size - 1);
+	const int minx = mval[0] - (amount + 1);
+	const int miny = mval[1] - (amount + 1);
+	ImBuf *buf = ED_view3d_backbuf_read(vc, minx, miny, minx + size - 1, miny + size - 1);
 	if (!buf) return 0;
 
-	rc = 0;
+	unsigned index = 0;
+	int rc = 0;
 	
 	dirvec[0][0] = 1; dirvec[0][1] = 0;
 	dirvec[1][0] = 0; dirvec[1][1] = -size;
 	dirvec[2][0] = -1; dirvec[2][1] = 0;
 	dirvec[3][0] = 0; dirvec[3][1] = size;
 	
-	bufmin = buf->rect;
-	tbuf = buf->rect;
-	bufmax = buf->rect + size * size;
+	const unsigned *bufmin = buf->rect;
+	const unsigned *tbuf = buf->rect;
+	const unsigned *bufmax = buf->rect + size * size;
 	tbuf += amount * size + amount;
 	
-	for (nr = 1; nr <= size; nr++) {
-		
-		for (a = 0; a < 2; a++) {
-			for (b = 0; b < nr; b++) {
+	for (int nr = 1; nr <= size; nr++) {
+		for (int a = 0; a < 2; a++) {
+			for (int b = 0; b < nr; b++) {
 				if (*tbuf && *tbuf >= min && *tbuf < max) {
 					/* we got a hit */
 
@@ -997,10 +978,9 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
                               const bool do_foreground, const bool do_camera_frame)
 {
 	RegionView3D *rv3d = ar->regiondata;
-	BGpic *bgpic;
 	int fg_flag = do_foreground ? V3D_BGPIC_FOREGROUND : 0;
 
-	for (bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next) {
+	for (BGpic *bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next) {
 		bgpic->iuser.scene = scene;  /* Needed for render results. */
 
 		if ((bgpic->flag & V3D_BGPIC_FOREGROUND) != fg_flag)
@@ -1011,22 +991,19 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 		    (rv3d->persp == RV3D_CAMOB && bgpic->view == (1 << RV3D_VIEW_CAMERA)))
 		{
 			float image_aspect[2];
-			float fac, asp, zoomx, zoomy;
 			float x1, y1, x2, y2, centx, centy;
 
-			ImBuf *ibuf = NULL, *freeibuf, *releaseibuf;
 			void *lock;
-			rctf clip_rect;
 
 			Image *ima = NULL;
-			MovieClip *clip = NULL;
 
 			/* disable individual images */
 			if ((bgpic->flag & V3D_BGPIC_DISABLED))
 				continue;
 
-			freeibuf = NULL;
-			releaseibuf = NULL;
+			ImBuf *ibuf = NULL;
+			ImBuf *freeibuf = NULL;
+			ImBuf *releaseibuf = NULL;
 			if (bgpic->source == V3D_BGPIC_IMAGE) {
 				ima = bgpic->ima;
 				if (ima == NULL)
@@ -1046,6 +1023,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			}
 			else if (bgpic->source == V3D_BGPIC_MOVIE) {
 				/* TODO: skip drawing when out of frame range (as image sequences do above) */
+				MovieClip *clip = NULL;
 
 				if (bgpic->flag & V3D_BGPIC_CAMERACLIP) {
 					if (scene->camera)
@@ -1120,8 +1098,8 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 					y2 += yof_scale;
 				}
 
-				centx = (x1 + x2) / 2.0f;
-				centy = (y1 + y2) / 2.0f;
+				centx = (x1 + x2) * 0.5f;
+				centy = (y1 + y2) * 0.5f;
 
 				/* aspect correction */
 				if (bgpic->flag & V3D_BGPIC_CAMERA_ASPECT) {
@@ -1157,15 +1135,12 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				float sco[2];
 				const float mval_f[2] = {1.0f, 0.0f};
 				const float co_zero[3] = {0};
-				float zfac;
 
 				/* calc window coord */
-				zfac = ED_view3d_calc_zfac(rv3d, co_zero, NULL);
+				float zfac = ED_view3d_calc_zfac(rv3d, co_zero, NULL);
 				ED_view3d_win_to_delta(ar, mval_f, tvec, zfac);
-				fac = max_ff(fabsf(tvec[0]), max_ff(fabsf(tvec[1]), fabsf(tvec[2]))); /* largest abs axis */
-				fac = 1.0f / fac;
-
-				asp = (float)ibuf->y / (float)ibuf->x;
+				float fac = 1.0f / max_ff(fabsf(tvec[0]), max_ff(fabsf(tvec[1]), fabsf(tvec[2]))); /* largest abs axis */
+				float asp = (float)ibuf->y / (float)ibuf->x;
 
 				zero_v3(tvec);
 				ED_view3d_project_float_v2_m4(ar, tvec, sco, rv3d->persmat);
@@ -1180,6 +1155,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			}
 
 			/* complete clip? */
+			rctf clip_rect;
 			BLI_rctf_init(&clip_rect, x1, x2, y1, y2);
 			if (bgpic->rotation) {
 				BLI_rctf_rotate_expand(&clip_rect, &clip_rect, bgpic->rotation);
@@ -1194,8 +1170,8 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				continue;
 			}
 
-			zoomx = (x2 - x1) / ibuf->x;
-			zoomy = (y2 - y1) / ibuf->y;
+			float zoomx = (x2 - x1) / ibuf->x;
+			float zoomy = (y2 - y1) / ibuf->y;
 
 			/* for some reason; zoomlevels down refuses to use GL_ALPHA_SCALE */
 			if (zoomx < 1.0f || zoomy < 1.0f) {
@@ -1336,14 +1312,13 @@ static void view3d_draw_transp(Scene *scene, ARegion *ar, View3D *v3d)
 /* clears zbuffer and draws it over */
 static void view3d_draw_xray(Scene *scene, ARegion *ar, View3D *v3d, bool *clear)
 {
-	View3DAfter *v3da;
-
 	if (*clear && v3d->zbuf) {
 		glClear(GL_DEPTH_BUFFER_BIT);
 		*clear = false;
 	}
 
 	v3d->xray = true;
+	View3DAfter *v3da;
 	while ((v3da = BLI_pophead(&v3d->afterdraw_xray))) {
 		draw_object(scene, ar, v3d, v3da->base, v3da->dflag);
 		MEM_freeN(v3da);
@@ -1355,8 +1330,6 @@ static void view3d_draw_xray(Scene *scene, ARegion *ar, View3D *v3d, bool *clear
 /* clears zbuffer and draws it over */
 static void view3d_draw_xraytransp(Scene *scene, ARegion *ar, View3D *v3d, const bool clear)
 {
-	View3DAfter *v3da;
-
 	if (clear && v3d->zbuf)
 		glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -1365,6 +1338,7 @@ static void view3d_draw_xraytransp(Scene *scene, ARegion *ar, View3D *v3d, const
 	
 	glDepthMask(GL_FALSE);
 
+	View3DAfter *v3da;
 	while ((v3da = BLI_pophead(&v3d->afterdraw_xraytransp))) {
 		draw_object(scene, ar, v3d, v3da->base, v3da->dflag);
 		MEM_freeN(v3da);
@@ -1411,7 +1385,6 @@ static void draw_dupli_objects_color(
 	RegionView3D *rv3d = ar->regiondata;
 	ListBase *lb;
 	LodLevel *savedlod;
-	DupliObject *dob_prev = NULL, *dob, *dob_next = NULL;
 	Base tbase = {NULL};
 	BoundBox bb, *bb_tmp; /* use a copy because draw_object, calls clear_mesh_caches */
 	GLuint displist = 0;
@@ -1439,7 +1412,8 @@ static void draw_dupli_objects_color(
 
 	apply_data = duplilist_apply(base->object, scene, lb);
 
-	dob = dupli_step(lb->first);
+	DupliObject *dob_prev = NULL, *dob_next = NULL;
+	DupliObject *dob = dupli_step(lb->first);
 	if (dob) dob_next = dupli_step(dob->next);
 
 	for (; dob; dob_prev = dob, dob = dob_next, dob_next = dob_next ? dupli_step(dob_next->next) : NULL) {
@@ -1581,24 +1555,23 @@ void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, Base *base)
 /* XXX warning, not using gpu offscreen here */
 void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 {
-	int x, y, w, h;
-	rcti r;
 	/* clamp rect by region */
-
-	r.xmin = 0;
-	r.xmax = ar->winx - 1;
-	r.ymin = 0;
-	r.ymax = ar->winy - 1;
+	rcti r = {
+		.xmin = 0,
+		.xmax = ar->winx - 1,
+		.ymin = 0,
+		.ymax = ar->winy - 1
+	};
 
 	/* Constrain rect to depth bounds */
 	BLI_rcti_isect(&r, rect, rect);
 
 	/* assign values to compare with the ViewDepths */
-	x = rect->xmin;
-	y = rect->ymin;
+	int x = rect->xmin;
+	int y = rect->ymin;
 
-	w = BLI_rcti_size_x(rect);
-	h = BLI_rcti_size_y(rect);
+	int w = BLI_rcti_size_x(rect);
+	int h = BLI_rcti_size_y(rect);
 
 	if (w <= 0 || h <= 0) {
 		if (d->depths)
@@ -1713,7 +1686,6 @@ void ED_view3d_draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 	}
 	
 	v3d->zbuf = zbuf;
-
 }
 
 void ED_view3d_draw_depth(Scene *scene, ARegion *ar, View3D *v3d, bool alphaoverride)
@@ -1850,18 +1822,15 @@ static void gpu_render_lamp_update(Scene *scene, View3D *v3d,
                                    float obmat[4][4], unsigned int lay,
                                    ListBase *shadows, SceneRenderLayer *srl)
 {
-	GPULamp *lamp;
-	Lamp *la = (Lamp *)ob->data;
-	View3DShadow *shadow;
-	unsigned int layers;
-	
-	lamp = GPU_lamp_from_blender(scene, ob, par);
+	GPULamp *lamp = GPU_lamp_from_blender(scene, ob, par);
 	
 	if (lamp) {
+		Lamp *la = (Lamp *)ob->data;
+
 		GPU_lamp_update(lamp, lay, (ob->restrictflag & OB_RESTRICT_RENDER), obmat);
 		GPU_lamp_update_colors(lamp, la->r, la->g, la->b, la->energy);
 		
-		layers = lay & v3d->lay;
+		unsigned int layers = lay & v3d->lay;
 		if (srl)
 			layers &= srl->lay;
 
@@ -1870,7 +1839,7 @@ static void gpu_render_lamp_update(Scene *scene, View3D *v3d,
 		    /* keep last, may do string lookup */
 		    GPU_lamp_override_visible(lamp, srl, NULL))
 		{
-			shadow = MEM_callocN(sizeof(View3DShadow), "View3DShadow");
+			View3DShadow *shadow = MEM_callocN(sizeof(View3DShadow), "View3DShadow");
 			shadow->lamp = lamp;
 			BLI_addtail(shadows, shadow);
 		}
@@ -1880,10 +1849,8 @@ static void gpu_render_lamp_update(Scene *scene, View3D *v3d,
 static void gpu_update_lamps_shadows_world(Scene *scene, View3D *v3d)
 {
 	ListBase shadows;
-	View3DShadow *shadow;
 	Scene *sce_iter;
 	Base *base;
-	Object *ob;
 	World *world = scene->world;
 	SceneRenderLayer *srl = v3d->scenelock ? BLI_findlink(&scene->r.layers, scene->r.actlay) : NULL;
 	
@@ -1891,7 +1858,7 @@ static void gpu_update_lamps_shadows_world(Scene *scene, View3D *v3d)
 	
 	/* update lamp transform and gather shadow lamps */
 	for (SETLOOPER(scene, sce_iter, base)) {
-		ob = base->object;
+		Object *ob = base->object;
 		
 		if (ob->type == OB_LAMP)
 			gpu_render_lamp_update(scene, v3d, ob, NULL, ob->obmat, ob->lay, &shadows, srl);
@@ -1910,21 +1877,22 @@ static void gpu_update_lamps_shadows_world(Scene *scene, View3D *v3d)
 	
 	/* render shadows after updating all lamps, nested object_duplilist
 	 * don't work correct since it's replacing object matrices */
-	for (shadow = shadows.first; shadow; shadow = shadow->next) {
+	for (View3DShadow *shadow = shadows.first; shadow; shadow = shadow->next) {
 		/* this needs to be done better .. */
 		float viewmat[4][4], winmat[4][4];
-		int drawtype, lay, winsize, flag2 = v3d->flag2;
 		ARegion ar = {NULL};
 		RegionView3D rv3d = {{{0}}};
-		
-		drawtype = v3d->drawtype;
-		lay = v3d->lay;
-		
+
+		int drawtype = v3d->drawtype;
+		int lay = v3d->lay;
+		int flag2 = v3d->flag2;
+
 		v3d->drawtype = OB_SOLID;
 		v3d->lay &= GPU_lamp_shadow_layer(shadow->lamp);
 		v3d->flag2 &= ~(V3D_SOLID_TEX | V3D_SHOW_SOLID_MATCAP);
 		v3d->flag2 |= V3D_RENDER_OVERRIDE | V3D_RENDER_SHADOW;
 		
+		int winsize;
 		GPU_lamp_shadow_buffer_bind(shadow->lamp, viewmat, &winsize, winmat);
 
 		ar.regiondata = &rv3d;
@@ -1947,7 +1915,7 @@ static void gpu_update_lamps_shadows_world(Scene *scene, View3D *v3d)
 		v3d->lay = lay;
 		v3d->flag2 = flag2;
 	}
-	
+
 	BLI_freelistN(&shadows);
 
 	/* update world values */
@@ -1993,10 +1961,9 @@ CustomDataMask ED_view3d_screen_datamask(const bScreen *screen)
 {
 	const Scene *scene = screen->scene;
 	CustomDataMask mask = CD_MASK_BAREMESH;
-	const ScrArea *sa;
 	
 	/* check if we need tfaces & mcols due to view mode */
-	for (sa = screen->areabase.first; sa; sa = sa->next) {
+	for (const ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 		if (sa->spacetype == SPACE_VIEW3D) {
 			mask |= ED_view3d_datamask(scene, sa->spacedata.first);
 		}
@@ -2088,7 +2055,6 @@ static void view3d_draw_objects(
 
 		/* Transp and X-ray afterdraw stuff for sets is done later */
 	}
-
 
 	if (draw_offscreen) {
 		for (base = scene->base.first; base; base = base->next) {
@@ -2263,18 +2229,15 @@ void ED_view3d_draw_offscreen(
         GPUFX *fx, GPUFXSettings *fx_settings,
         GPUOffScreen *ofs)
 {
-	struct bThemeState theme_state;
-	int bwinx, bwiny;
-	rcti brect;
 	bool do_compositing = false;
 	RegionView3D *rv3d = ar->regiondata;
 
 	glPushMatrix();
 
 	/* set temporary new size */
-	bwinx = ar->winx;
-	bwiny = ar->winy;
-	brect = ar->winrct;
+	int bwinx = ar->winx;
+	int bwiny = ar->winy;
+	rcti brect = ar->winrct;
 
 	ar->winx = winx;
 	ar->winy = winy;
@@ -2283,6 +2246,7 @@ void ED_view3d_draw_offscreen(
 	ar->winrct.xmax = winx;
 	ar->winrct.ymax = winy;
 
+	struct bThemeState theme_state;
 	UI_Theme_Store(&theme_state);
 	UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
@@ -2375,7 +2339,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
         GPUFX *fx, GPUOffScreen *ofs, char err_out[256])
 {
 	RegionView3D *rv3d = ar->regiondata;
-	ImBuf *ibuf;
 	const bool draw_sky = (alpha_mode == R_ADDSKY);
 
 	/* view state */
@@ -2403,7 +2366,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 	GPU_offscreen_bind(ofs, true);
 
 	/* read in pixels & stamp */
-	ibuf = IMB_allocImBuf(sizex, sizey, 32, flag);
+	ImBuf *ibuf = IMB_allocImBuf(sizex, sizey, 32, flag);
 
 	/* render 3d view */
 	if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
@@ -2459,8 +2422,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 		/* use imbuf as temp storage, before writing into it from accumulation buffer */
 		unsigned char *rect_temp = ibuf->rect ? (void *)ibuf->rect : (void *)ibuf->rect_float;
 		unsigned int *accum_buffer = MEM_mallocN(sizex * sizey * sizeof(int[4]), "accum1");
-		unsigned int i;
-		int j;
 
 		BLI_jitter_init(jit_ofs, samples);
 
@@ -2471,13 +2432,13 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 		        fx, &fx_settings, ofs);
 		GPU_offscreen_read_pixels(ofs, GL_UNSIGNED_BYTE, rect_temp);
 
-		i = sizex * sizey * 4;
+		unsigned i = sizex * sizey * 4;
 		while (i--) {
 			accum_buffer[i] = rect_temp[i];
 		}
 
 		/* skip the first sample */
-		for (j = 1; j < samples; j++) {
+		for (int j = 1; j < samples; j++) {
 			copy_m4_m4(winmat_jitter, winmat);
 			window_translate_m4(
 			        winmat_jitter, rv3d->persmat,
@@ -2603,9 +2564,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 void ED_scene_draw_fps(Scene *scene, const rcti *rect)
 {
 	ScreenFrameRateInfo *fpsi = scene->fps_info;
-	float fps;
 	char printable[16];
-	int i, tot;
 	
 	if (!fpsi || !fpsi->lredrawtime || !fpsi->redrawtime)
 		return;
@@ -2618,7 +2577,9 @@ void ED_scene_draw_fps(Scene *scene, const rcti *rect)
 #else
 	fpsi->redrawtimes_fps[fpsi->redrawtime_index] = (float)(1.0 / (fpsi->lredrawtime - fpsi->redrawtime));
 	
-	for (i = 0, tot = 0, fps = 0.0f; i < REDRAW_FRAME_AVERAGE; i++) {
+	float fps = 0.0f;
+	int tot = 0;
+	for (int i = 0; i < REDRAW_FRAME_AVERAGE; i++) {
 		if (fpsi->redrawtimes_fps[i]) {
 			fps += fpsi->redrawtimes_fps[i];
 			tot++;
@@ -2662,7 +2623,6 @@ static bool view3d_main_region_do_render_draw(Scene *scene)
 bool ED_view3d_calc_render_border(Scene *scene, View3D *v3d, ARegion *ar, rcti *rect)
 {
 	RegionView3D *rv3d = ar->regiondata;
-	rctf viewborder;
 	bool use_border;
 
 	/* test if there is a 3d view rendering */
@@ -2680,6 +2640,7 @@ bool ED_view3d_calc_render_border(Scene *scene, View3D *v3d, ARegion *ar, rcti *
 
 	/* compute border */
 	if (rv3d->persp == RV3D_CAMOB) {
+		rctf viewborder;
 		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &viewborder, false);
 
 		rect->xmin = viewborder.xmin + scene->r.border.xmin * BLI_rctf_size_x(&viewborder);
@@ -2824,10 +2785,9 @@ static void update_lods(Scene *scene, float camera_pos[3])
 {
 	Scene *sce_iter;
 	Base *base;
-	Object *ob;
 
 	for (SETLOOPER(scene, sce_iter, base)) {
-		ob = base->object;
+		Object *ob = base->object;
 		BKE_object_lod_update(ob, camera_pos);
 	}
 }
@@ -2871,9 +2831,8 @@ static void view3d_main_region_draw_objects(const bContext *C, Scene *scene, Vie
 
 	/* framebuffer fx needed, we need to draw offscreen first */
 	if (v3d->fx_settings.fx_flag && v3d->drawtype >= OB_SOLID) {
-		GPUFXSettings fx_settings;
 		BKE_screen_gpu_fx_validate(&v3d->fx_settings);
-		fx_settings = v3d->fx_settings;
+		GPUFXSettings fx_settings = v3d->fx_settings;
 		if (!rv3d->compositor)
 			rv3d->compositor = GPU_fx_compositor_create();
 		
@@ -2979,8 +2938,6 @@ static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
 	}
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
-		Object *ob;
-
 		/* 3d cursor */
 		if (is_cursor_visible(scene)) {
 			drawcursor(scene, ar, v3d);
@@ -2991,9 +2948,10 @@ static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
 		else
 			draw_view_icon(rv3d, &rect);
 
-		ob = OBACT;
-		if (U.uiflag & USER_DRAWVIEWINFO)
+		if (U.uiflag & USER_DRAWVIEWINFO) {
+			Object *ob = OBACT;
 			draw_selected_name(scene, ob, &rect);
+		}
 	}
 
 	if (rv3d->render_engine) {
@@ -3030,12 +2988,11 @@ void view3d_main_region_draw_legacy(const bContext *C, ARegion *ar)
 	View3D *v3d = CTX_wm_view3d(C);
 	const char *grid_unit = NULL;
 	rcti border_rect;
-	bool render_border, clip_border;
 
 	/* if we only redraw render border area, skip opengl draw and also
 	 * don't do scissor because it's already set */
-	render_border = ED_view3d_calc_render_border(scene, v3d, ar, &border_rect);
-	clip_border = (render_border && !BLI_rcti_compare(&ar->drawrct, &border_rect));
+	bool render_border = ED_view3d_calc_render_border(scene, v3d, ar, &border_rect);
+	bool clip_border = (render_border && !BLI_rcti_compare(&ar->drawrct, &border_rect));
 
 	/* draw viewport using opengl */
 	if (v3d->drawtype != OB_RENDER || !view3d_main_region_do_render_draw(scene) || clip_border) {

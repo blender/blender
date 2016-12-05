@@ -190,6 +190,7 @@ static void view3d_main_region_setup_view(Scene *scene, View3D *v3d, ARegion *ar
 	ED_view3d_update_viewmat(scene, v3d, ar, viewmat, winmat);
 
 	/* set for opengl */
+	/* TODO(merwin): transition to GPU_matrix API */
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(rv3d->winmat);
 	glMatrixMode(GL_MODELVIEW);
@@ -1600,7 +1601,6 @@ static void draw_all_objects(const bContext *C, ARegion *ar, const bool only_dep
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	Base *base;
 
 	if (only_depth)
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
@@ -1612,7 +1612,7 @@ static void draw_all_objects(const bContext *C, ARegion *ar, const bool only_dep
 		v3d->zbuf = true;
 	}
 
-	for (base = scene->base.first; base; base = base->next) {
+	for (Base *base = scene->base.first; base; base = base->next) {
 		if (v3d->lay & base->lay) {
 			/* dupli drawing */
 			if (base->object->transflag & OB_DUPLI)
@@ -1658,9 +1658,6 @@ static void view3d_draw_prerender_buffers(const bContext *C, ARegion *ar, DrawDa
  */
 static void view3d_draw_solid_plates(const bContext *C, ARegion *ar, DrawData *draw_data)
 {
-	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
-
 	/* realtime plates */
 	if ((!draw_data->is_render) || draw_data->clip_border) {
 		view3d_draw_background(C);
@@ -1671,6 +1668,9 @@ static void view3d_draw_solid_plates(const bContext *C, ARegion *ar, DrawData *d
 
 	/* offline plates*/
 	if (draw_data->is_render) {
+		Scene *scene = CTX_data_scene(C);
+		View3D *v3d = CTX_wm_view3d(C);
+
 		view3d_draw_render_draw(C, scene, ar, v3d, draw_data->clip_border, &draw_data->border_rect);
 	}
 
@@ -1698,13 +1698,9 @@ static void view3d_draw_non_meshes(const bContext *C, ARegion *ar)
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ar->regiondata;
-	Object *ob_act = CTX_data_active_object(C);
-	Base *base;
 
 	bool is_boundingbox = ((v3d->drawtype == OB_BOUNDBOX) ||
 	                        ((v3d->drawtype == OB_RENDER) && (v3d->prev_drawtype == OB_BOUNDBOX)));
-
-	unsigned char ob_wire_col[4];            /* dont initialize this */
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
@@ -1713,10 +1709,11 @@ static void view3d_draw_non_meshes(const bContext *C, ARegion *ar)
 	 * for now let's avoid writing again to zbuffer to prevent glitches
 	 */
 
-	for (base = scene->base.first; base; base = base->next) {
+	for (Base *base = scene->base.first; base; base = base->next) {
 		if (v3d->lay & base->lay) {
 			Object *ob = base->object;
 
+			unsigned char ob_wire_col[4];
 			draw_object_wire_color(scene, base, ob_wire_col);
 			view3d_draw_non_mesh(scene, ob, base, v3d, rv3d, is_boundingbox, ob_wire_col);
 		}
