@@ -406,12 +406,18 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 		add_relation(ob_ubereval_key, final_transform_key, DEPSREL_TYPE_COMPONENT_ORDER, "Temp Ubereval");
 	}
 	else {
-		/* operation order */
-		add_relation(base_op_key, final_transform_key, DEPSREL_TYPE_COMPONENT_ORDER, "Object Transform");
-
-		// XXX
-		add_relation(base_op_key, ob_ubereval_key, DEPSREL_TYPE_COMPONENT_ORDER, "Temp Ubereval");
-		add_relation(ob_ubereval_key, final_transform_key, DEPSREL_TYPE_COMPONENT_ORDER, "Temp Ubereval");
+		/* NOTE: Keep an eye here, we skip some relations here to "streamline"
+		 * dependencies and avoid transitive relations which causes overhead.
+		 * But once we get rid of uber eval node this will need reconsideration.
+		 */
+		add_relation(base_op_key,
+		             ob_ubereval_key,
+		             DEPSREL_TYPE_COMPONENT_ORDER,
+		             "Temp Ubereval");
+		add_relation(ob_ubereval_key,
+		             final_transform_key,
+		             DEPSREL_TYPE_COMPONENT_ORDER,
+		             "Temp Ubereval");
 	}
 
 
