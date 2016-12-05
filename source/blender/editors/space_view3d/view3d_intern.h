@@ -327,6 +327,8 @@ extern bool view3d_camera_border_hack_test;
 #define IS_VIEWPORT_LEGACY(v3d) ((v3d->tmp_compat_flag & V3D_NEW_VIEWPORT) == 0)
 
 /* temporary for legacy viewport to work */
+void VP_legacy_drawcursor(Scene *scene, ARegion *ar, View3D *v3d);
+void VP_legacy_draw_view_axis(RegionView3D *rv3d, rcti *rect);
 void VP_legacy_drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **grid_unit);
 void VP_legacy_drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool write_depth);
 void VP_legacy_view3d_main_region_setup_view(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[4][4], float winmat[4][4]);
