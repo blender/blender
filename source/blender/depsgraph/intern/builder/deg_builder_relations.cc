@@ -1210,6 +1210,9 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 		if (part->type != PART_HAIR) {
 			add_collision_relations(psys_key, scene, ob, part->collision_group, ob->lay, true, "Particle Collision");
 		}
+		else if ((psys->flag & PSYS_HAIR_DYNAMICS) && psys->clmd && psys->clmd->coll_parms) {
+			add_collision_relations(psys_key, scene, ob, psys->clmd->coll_parms->group, ob->lay | scene->lay, true, "Hair Collision");
+		}
 
 		/* effectors */
 		add_forcefield_relations(psys_key, scene, ob, psys, part->effector_weights, part->type == PART_HAIR, "Particle Field");
