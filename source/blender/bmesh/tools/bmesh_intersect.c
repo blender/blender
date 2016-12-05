@@ -81,12 +81,6 @@
 /* use accelerated overlap check */
 #define USE_BVH
 
-// #define USE_BOOLEAN_RAYCAST_DRAW
-
-#ifdef USE_BOOLEAN_RAYCAST_DRAW
-/* insert bl_debug_draw_quad_clear... here */
-#endif
-
 // #define USE_DUMP
 
 static void tri_v3_scale(
@@ -1006,10 +1000,6 @@ bool BM_mesh_intersect(
 	int i_a, i_b;
 #endif
 
-#ifdef USE_BOOLEAN_RAYCAST_DRAW
-	bl_debug_draw_quad_clear();
-#endif
-
 	s.bm = bm;
 
 	s.edgetri_cache = BLI_ghash_new(BLI_ghashutil_inthash_v4_p, BLI_ghashutil_inthash_v4_cmp, __func__);
@@ -1607,17 +1597,6 @@ bool BM_mesh_intersect(
 						do_flip = (side == 0);
 						break;
 				}
-
-#ifdef USE_BOOLEAN_RAYCAST_DRAW
-				{
-					unsigned int colors[4] = {0x00000000, 0xffffffff, 0xff000000, 0x0000ff};
-					float co_other[3] = {UNPACK3(co)};
-					co_other[0] += 1000.0f;
-					bl_debug_color_set(colors[(hits & 1) == 1]);
-					bl_debug_draw_edge_add(co, co_other);
-				}
-#endif
-
 			}
 
 			if (do_remove) {

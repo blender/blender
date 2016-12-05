@@ -95,20 +95,6 @@ void BLI_scanfill_obj_dump(ScanFillContext *sf_ctx)
 }
 #endif
 
-#if 0
-void BLI_scanfill_view3d_dump(ScanFillContext *sf_ctx)
-{
-	ScanFillEdge *eed;
-
-	bl_debug_draw_quad_clear();
-	bl_debug_color_set(0x0000ff);
-
-	for (eed = sf_ctx->filledgebase.first; eed; eed = eed->next) {
-		bl_debug_draw_edge_add(eed->v1->co, eed->v2->co);
-	}
-}
-#endif
-
 static ListBase *edge_isect_ls_ensure(GHash *isect_hash, ScanFillEdge *eed)
 {
 	ListBase *e_ls;
