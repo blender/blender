@@ -1065,8 +1065,10 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 
 	/* time dependency */
 	TimeSourceKey time_src_key;
-	add_relation(time_src_key, init_key, DEPSREL_TYPE_TIME, "TimeSrc -> Rigidbody Reset/Rebuild (Optional)");
-	add_relation(time_src_key, sim_key, DEPSREL_TYPE_TIME, "TimeSrc -> Rigidbody Sim Step");
+	add_relation(time_src_key,
+	             init_key,
+	             DEPSREL_TYPE_TIME,
+	             "TimeSrc -> Rigidbody Reset/Rebuild (Optional)");
 
 	/* objects - simulation participants */
 	if (rbw->group) {
