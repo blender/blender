@@ -45,6 +45,10 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
+        if not bpy.app.build_options.mod_smoke:
+            layout.label("Built without Smoke modifier")
+            return
+
         md = context.smoke
         ob = context.object
 
