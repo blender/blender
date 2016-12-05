@@ -410,10 +410,15 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 		 * dependencies and avoid transitive relations which causes overhead.
 		 * But once we get rid of uber eval node this will need reconsideration.
 		 */
-		add_relation(base_op_key,
-		             ob_ubereval_key,
-		             DEPSREL_TYPE_COMPONENT_ORDER,
-		             "Temp Ubereval");
+		if (ob->rigidbody_object == NULL) {
+			/* Rigid body will hook up another node inbetween, so skip
+			 * relation here to avoid transitive relation.
+			 */
+			add_relation(base_op_key,
+			             ob_ubereval_key,
+			             DEPSREL_TYPE_COMPONENT_ORDER,
+			             "Temp Ubereval");
+		}
 		add_relation(ob_ubereval_key,
 		             final_transform_key,
 		             DEPSREL_TYPE_COMPONENT_ORDER,
@@ -1091,7 +1096,6 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 			eDepsOperation_Code trans_opcode = ob->parent ? DEG_OPCODE_TRANSFORM_PARENT : DEG_OPCODE_TRANSFORM_LOCAL;
 			OperationKey trans_op(&ob->id, DEPSNODE_TYPE_TRANSFORM, trans_opcode);
 
-			add_relation(trans_op, rbo_key, DEPSREL_TYPE_OPERATION, "Base Ob Transform -> RBO Sync");
 			add_relation(sim_key, rbo_key, DEPSREL_TYPE_COMPONENT_ORDER, "Rigidbody Sim Eval -> RBO Sync");
 
 			/* if constraints exist, those depend on the result of the rigidbody sim
@@ -1103,22 +1107,34 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 			 *   to control whether rigidbody eval gets interleaved into the constraint stack
 			 */
 			if (ob->constraints.first) {
-				OperationKey constraint_key(&ob->id, DEPSNODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_CONSTRAINTS);
-				add_relation(rbo_key, constraint_key, DEPSREL_TYPE_COMPONENT_ORDER, "RBO Sync -> Ob Constraints");
+				OperationKey constraint_key(&ob->id,
+				                            DEPSNODE_TYPE_TRANSFORM,
+				                            DEG_OPCODE_TRANSFORM_CONSTRAINTS);
+				add_relation(rbo_key,
+				             constraint_key,
+				             DEPSREL_TYPE_COMPONENT_ORDER,
+				             "RBO Sync -> Ob Constraints");
 			}
 			else {
-				/* final object transform depends on rigidbody */
-				OperationKey done_key(&ob->id, DEPSNODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_FINAL);
-				add_relation(rbo_key, done_key, DEPSREL_TYPE_COMPONENT_ORDER, "RBO Sync -> Done");
-
-				// XXX: ubereval will be removed eventually, but we still need it in the meantime
-				OperationKey uber_key(&ob->id, DEPSNODE_TYPE_TRANSFORM, DEG_OPCODE_OBJECT_UBEREVAL);
-				add_relation(rbo_key, uber_key, DEPSREL_TYPE_COMPONENT_ORDER, "RBO Sync -> Uber (Temp)");
+				/* Final object transform depends on rigidbody.
+				 *
+				 * NOTE: Currently we consider final here an ubereval node.
+				 * If it is gone we'll need to reconsider relation here.
+				 */
+				OperationKey uber_key(&ob->id,
+				                      DEPSNODE_TYPE_TRANSFORM,
+				                      DEG_OPCODE_OBJECT_UBEREVAL);
+				add_relation(rbo_key,
+				             uber_key,
+				             DEPSREL_TYPE_COMPONENT_ORDER,
+				             "RBO Sync -> Uber (Temp)");
 			}
 
-
-			/* needed to get correct base values */
-			add_relation(trans_op, sim_key, DEPSREL_TYPE_OPERATION, "Base Ob Transform -> Rigidbody Sim Eval");
+			/* Needed to get correct base values. */
+			add_relation(trans_op,
+			             sim_key,
+			             DEPSREL_TYPE_OPERATION,
+			             "Base Ob Transform -> Rigidbody Sim Eval");
 		}
 	}
 
