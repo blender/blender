@@ -800,6 +800,10 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Main *bmain, Sc
 				/* Actual code uses get_collider_cache */
 				dag_add_collision_relations(dag, scene, ob, node, part->collision_group, ob->lay, eModifierType_Collision, NULL, true, "Particle Collision");
 			}
+			else if ((psys->flag & PSYS_HAIR_DYNAMICS) && psys->clmd && psys->clmd->coll_parms) {
+				/* Hair uses cloth simulation, i.e. get_collision_objects */
+				dag_add_collision_relations(dag, scene, ob, node, psys->clmd->coll_parms->group, ob->lay | scene->lay, eModifierType_Collision, NULL, true, "Hair Collision");
+			}
 
 			dag_add_forcefield_relations(dag, scene, ob, node, part->effector_weights, part->type == PART_HAIR, 0, "Particle Force Field");
 
