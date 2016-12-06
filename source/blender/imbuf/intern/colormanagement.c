@@ -1227,7 +1227,12 @@ const char *IMB_colormanagement_get_float_colorspace(ImBuf *ibuf)
 
 const char *IMB_colormanagement_get_rect_colorspace(ImBuf *ibuf)
 {
-	return ibuf->rect_colorspace->name;
+	if (ibuf->rect_colorspace) {
+		return ibuf->rect_colorspace->name;
+	}
+	else {
+		return IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
+	}
 }
 
 /*********************** Threaded display buffer transform routines *************************/
