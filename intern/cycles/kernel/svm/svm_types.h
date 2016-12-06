@@ -188,6 +188,8 @@ typedef enum NodeLightPath {
 	NODE_LP_backfacing,
 	NODE_LP_ray_length,
 	NODE_LP_ray_depth,
+	NODE_LP_ray_diffuse,
+	NODE_LP_ray_glossy,
 	NODE_LP_ray_transparent,
 	NODE_LP_ray_transmission,
 } NodeLightPath;

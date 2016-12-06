@@ -102,6 +102,8 @@ ustring OSLRenderServices::u_curve_tangent_normal("geom:curve_tangent_normal");
 #endif
 ustring OSLRenderServices::u_path_ray_length("path:ray_length");
 ustring OSLRenderServices::u_path_ray_depth("path:ray_depth");
+ustring OSLRenderServices::u_path_diffuse_depth("path:diffuse_depth");
+ustring OSLRenderServices::u_path_glossy_depth("path:glossy_depth");
 ustring OSLRenderServices::u_path_transparent_depth("path:transparent_depth");
 ustring OSLRenderServices::u_path_transmission_depth("path:transmission_depth");
 ustring OSLRenderServices::u_trace("trace");
@@ -757,6 +759,24 @@ bool OSLRenderServices::get_background_attribute(KernelGlobals *kg, ShaderData *
 		/* Ray Depth */
 		PathState *state = sd->osl_path_state;
 		int f = state->bounce;
+		return set_attribute_int(f, type, derivatives, val);
+	}
+	else if(name == u_path_diffuse_depth) {
+		/* Diffuse Ray Depth */
+		PathState *state = sd->osl_path_state;
+		int f = state->diffuse_bounce;
+		return set_attribute_int(f, type, derivatives, val);
+	}
+	else if(name == u_path_glossy_depth) {
+		/* Glossy Ray Depth */
+		PathState *state = sd->osl_path_state;
+		int f = state->glossy_bounce;
+		return set_attribute_int(f, type, derivatives, val);
+	}
+	else if(name == u_path_transmission_depth) {
+		/* Transmission Ray Depth */
+		PathState *state = sd->osl_path_state;
+		int f = state->transmission_bounce;
 		return set_attribute_int(f, type, derivatives, val);
 	}
 	else if(name == u_path_transparent_depth) {
