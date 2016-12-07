@@ -2480,7 +2480,7 @@ compile_FFmpeg() {
         --enable-avfilter --disable-vdpau \
         --disable-bzlib --disable-libgsm --disable-libspeex \
         --enable-pthreads --enable-zlib --enable-stripping --enable-runtime-cpudetect \
-        --disable-vaapi --disable-libfaac --disable-nonfree --enable-gpl \
+        --disable-vaapi --disable-nonfree --enable-gpl \
         --disable-postproc --disable-librtmp --disable-libopencore-amrnb \
         --disable-libopencore-amrwb --disable-libdc1394 --disable-version3 --disable-outdev=sdl \
         --disable-libxcb \
