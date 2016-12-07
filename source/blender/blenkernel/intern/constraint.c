@@ -4404,6 +4404,7 @@ static void transformcache_free(bConstraint *con)
 #ifdef WITH_ALEMBIC
 		CacheReader_free(data->reader);
 #endif
+		data->reader = NULL;
 	}
 }
 
