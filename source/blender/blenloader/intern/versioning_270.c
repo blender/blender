@@ -34,6 +34,7 @@
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
+#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
@@ -58,6 +59,7 @@
 
 #include "DNA_genfile.h"
 
+#include "BKE_animsys.h"
 #include "BKE_colortools.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -75,6 +77,9 @@
 #include "BLI_string.h"
 
 #include "BLO_readfile.h"
+
+#include "NOD_common.h"
+#include "NOD_socket.h"
 
 #include "readfile.h"
 
@@ -193,6 +198,50 @@ static void do_version_bones_super_bbone(ListBase *lb)
 		
 		do_version_bones_super_bbone(&bone->childbase);
 	}
+}
+
+/* TODO(sergey): Consider making it somewhat more generic function in BLI_anim.h. */
+static void anim_change_prop_name(FCurve *fcu,
+                                  const char *prefix,
+                                  const char *old_prop_name,
+                                  const char *new_prop_name)
+{
+	const char *old_path = BLI_sprintfN("%s.%s", prefix, old_prop_name);
+	if (STREQ(fcu->rna_path, old_path)) {
+		MEM_freeN(fcu->rna_path);
+		fcu->rna_path = BLI_sprintfN("%s.%s", prefix, new_prop_name);
+	}
+	MEM_freeN((char *)old_path);
+}
+
+static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
+{
+	/* Make sure new sockets are properly created. */
+	node_verify_socket_templates(ntree, node);
+	/* Convert value from old storage to new sockets. */
+	NodeHueSat *nhs = node->storage;
+	bNodeSocket *hue = nodeFindSocket(node, SOCK_IN, "Hue"),
+	            *saturation = nodeFindSocket(node, SOCK_IN, "Saturation"),
+	            *value = nodeFindSocket(node, SOCK_IN, "Value");
+	((bNodeSocketValueFloat *)hue->default_value)->value = nhs->hue;
+	((bNodeSocketValueFloat *)saturation->default_value)->value = nhs->sat;
+	((bNodeSocketValueFloat *)value->default_value)->value = nhs->val;
+	/* Take care of possible animation. */
+	AnimData *adt = BKE_animdata_from_id(&ntree->id);
+	if (adt != NULL && adt->action != NULL) {
+		const char *prefix = BLI_sprintfN("nodes[\"%s\"]", node->name);
+		for (FCurve *fcu = adt->action->curves.first; fcu != NULL; fcu = fcu->next) {
+			if (STRPREFIX(fcu->rna_path, prefix)) {
+				anim_change_prop_name(fcu, prefix, "color_hue", "inputs[1].default_value");
+				anim_change_prop_name(fcu, prefix, "color_saturation", "inputs[2].default_value");
+				anim_change_prop_name(fcu, prefix, "color_value", "inputs[3].default_value");
+			}
+		}
+		MEM_freeN((char *)prefix);
+	}
+	/* Free storage, it is no longer used. */
+	MEM_freeN(node->storage);
+	node->storage = NULL;
 }
 
 void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
@@ -1521,5 +1570,23 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 		}
+
+	}
+}
+
+void do_versions_after_linking_270(Main *main)
+{
+	/* To be added to next subversion bump! */
+	{
+		FOREACH_NODETREE(main, ntree, id) {
+			if (ntree->type == NTREE_COMPOSIT) {
+				ntreeSetTypes(NULL, ntree);
+				for (bNode *node = ntree->nodes.first; node; node = node->next) {
+					if (node->type == CMP_NODE_HUE_SAT) {
+						do_version_hue_sat_node(ntree, node);
+					}
+				}
+			}
+		} FOREACH_NODETREE_END
 	}
 }

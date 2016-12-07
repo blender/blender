@@ -4443,34 +4443,6 @@ static void def_cmp_alpha_over(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
-static void def_cmp_hue_saturation(StructRNA *srna)
-{
-	PropertyRNA *prop;
-
-	RNA_def_struct_sdna_from(srna, "NodeHueSat", "storage");
-	
-	prop = RNA_def_property(srna, "color_hue", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "hue");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_float_default(prop, 0.5f);
-	RNA_def_property_ui_text(prop, "Hue", "");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-	
-	prop = RNA_def_property(srna, "color_saturation", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "sat");
-	RNA_def_property_range(prop, 0.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Saturation", "");
-	RNA_def_property_float_default(prop, 1.0f);
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-	
-	prop = RNA_def_property(srna, "color_value", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "val");
-	RNA_def_property_range(prop, 0.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Value", "");
-	RNA_def_property_float_default(prop, 1.0f);
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-}
-
 static void def_cmp_blur(StructRNA *srna)
 {
 	PropertyRNA *prop;

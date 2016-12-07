@@ -595,6 +595,7 @@ typedef struct NodeBilateralBlurData {
 	short iter, pad;
 } NodeBilateralBlurData;
 
+/* NOTE: Only for do-version code. */
 typedef struct NodeHueSat {
 	float hue, sat, val;
 } NodeHueSat;
