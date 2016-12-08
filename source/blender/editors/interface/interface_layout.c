@@ -570,8 +570,13 @@ static void ui_item_enum_expand(
 
 	/* we dont want nested rows, cols in menus */
 	if (radial) {
-		layout_radial = uiLayoutRadial(layout);
-		UI_block_layout_set_current(block, layout_radial);
+		if (layout->root->layout == layout) {
+			layout_radial = uiLayoutRadial(layout);
+			UI_block_layout_set_current(block, layout_radial);
+		}
+		else {
+			UI_block_layout_set_current(block, layout);
+		}
 	}
 	else if (layout->root->type != UI_LAYOUT_MENU) {
 		UI_block_layout_set_current(block, ui_item_local_sublayout(layout, layout, 1));
