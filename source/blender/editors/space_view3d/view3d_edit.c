@@ -789,7 +789,7 @@ static void viewops_data_create_ex(bContext *C, wmOperator *op, const wmEvent *e
 				    (float)vod->ar->winx / 2.0f,
 				    (float)vod->ar->winy / 2.0f};
 
-				ED_view3d_win_to_3d(vod->ar, vod->dyn_ofs, mval_ar_mid, rv3d->ofs);
+				ED_view3d_win_to_3d(vod->v3d, vod->ar, vod->dyn_ofs, mval_ar_mid, rv3d->ofs);
 				negate_v3(rv3d->ofs);
 			}
 			negate_v3(vod->dyn_ofs);
@@ -3289,7 +3289,7 @@ static int viewcenter_pick_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 		else {
 			/* fallback to simple pan */
 			negate_v3_v3(new_ofs, rv3d->ofs);
-			ED_view3d_win_to_3d_int(ar, new_ofs, event->mval, new_ofs);
+			ED_view3d_win_to_3d_int(v3d, ar, new_ofs, event->mval, new_ofs);
 		}
 		negate_v3(new_ofs);
 		ED_view3d_smooth_view(
@@ -4708,7 +4708,7 @@ void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 	if (depth_used == false) {
 		float depth_pt[3];
 		copy_v3_v3(depth_pt, fp);
-		ED_view3d_win_to_3d_int(ar, depth_pt, mval, fp);
+		ED_view3d_win_to_3d_int(v3d, ar, depth_pt, mval, fp);
 	}
 }
 
@@ -4957,7 +4957,7 @@ bool ED_view3d_autodist(
 	}
 
 	if (fallback_depth_pt) {
-		ED_view3d_win_to_3d_int(ar, fallback_depth_pt, mval, mouse_worldloc);
+		ED_view3d_win_to_3d_int(v3d, ar, fallback_depth_pt, mval, mouse_worldloc);
 		return true;
 	}
 	else {

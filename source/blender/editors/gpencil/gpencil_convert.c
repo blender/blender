@@ -191,7 +191,7 @@ static void gp_strokepoint_convertcoords(
 			}
 		}
 		
-		ED_view3d_win_to_3d(ar, fp, mvalf, p3d);
+		ED_view3d_win_to_3d(v3d, ar, fp, mvalf, p3d);
 	}
 }
 

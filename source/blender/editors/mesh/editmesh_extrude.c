@@ -584,7 +584,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 		copy_v3_v3(min, cent);
 
 		mul_m4_v3(vc.obedit->obmat, min);  /* view space */
-		ED_view3d_win_to_3d_int(vc.ar, min, event->mval, min);
+		ED_view3d_win_to_3d_int(vc.v3d, vc.ar, min, event->mval, min);
 		mul_m4_v3(vc.obedit->imat, min); // back in object space
 
 		sub_v3_v3(min, cent);
@@ -633,7 +633,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 		BMOIter oiter;
 		
 		copy_v3_v3(min, curs);
-		ED_view3d_win_to_3d_int(vc.ar, min, event->mval, min);
+		ED_view3d_win_to_3d_int(vc.v3d, vc.ar, min, event->mval, min);
 
 		invert_m4_m4(vc.obedit->imat, vc.obedit->obmat);
 		mul_m4_v3(vc.obedit->imat, min); // back in object space

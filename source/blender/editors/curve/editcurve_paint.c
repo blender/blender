@@ -353,7 +353,7 @@ static bool stroke_elem_project_fallback(
 	        surface_offset, radius,
 	        r_location_world, r_normal_world);
 	if (is_depth_found == false) {
-		ED_view3d_win_to_3d(cdd->vc.ar, location_fallback_depth, mval_fl, r_location_world);
+		ED_view3d_win_to_3d(cdd->vc.v3d, cdd->vc.ar, location_fallback_depth, mval_fl, r_location_world);
 		zero_v3(r_normal_local);
 	}
 	mul_v3_m4v3(r_location_local, cdd->vc.obedit->imat, r_location_world);
@@ -1135,7 +1135,7 @@ static int curve_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		const float mval_fl[2] = {UNPACK2(event->mval)};
 		float center[3];
 		negate_v3_v3(center, cdd->vc.rv3d->ofs);
-		ED_view3d_win_to_3d(cdd->vc.ar, center, mval_fl, cdd->prev.location_world);
+		ED_view3d_win_to_3d(cdd->vc.v3d, cdd->vc.ar, center, mval_fl, cdd->prev.location_world);
 		copy_v3_v3(cdd->prev.location_world_valid, cdd->prev.location_world);
 	}
 
