@@ -64,6 +64,8 @@ std::ostream& operator <<(std::ostream &os,
 	   << string_from_bool(requested_features.use_integrator_branched) << std::endl;
 	os << "Use Patch Evaluation: "
 	   << string_from_bool(requested_features.use_patch_evaluation) << std::endl;
+	os << "Use Transparent Shadows: "
+	   << string_from_bool(requested_features.use_transparent) << std::endl;
 	return os;
 }
 

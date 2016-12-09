@@ -636,6 +636,7 @@ DeviceRequestedFeatures Session::get_requested_device_features()
 	BakeManager *bake_manager = scene->bake_manager;
 	requested_features.use_baking = bake_manager->get_baking();
 	requested_features.use_integrator_branched = (scene->integrator->method == Integrator::BRANCHED_PATH);
+	requested_features.use_transparent &= scene->integrator->transparent_shadows;
 
 	return requested_features;
 }

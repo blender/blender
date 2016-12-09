@@ -192,6 +192,9 @@ CCL_NAMESPACE_BEGIN
 #ifdef __NO_PATCH_EVAL__
 #  undef __PATCH_EVAL__
 #endif
+#ifdef __NO_TRANSPARENT__
+#  undef __TRANSPARENT_SHADOWS__
+#endif
 
 /* Random Numbers */
 
