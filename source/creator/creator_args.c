@@ -554,6 +554,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	BLI_argsPrintArgDoc(ba, "--debug-gpumem");
 	BLI_argsPrintArgDoc(ba, "--debug-wm");
 	BLI_argsPrintArgDoc(ba, "--debug-all");
+	BLI_argsPrintArgDoc(ba, "--debug-io");
 
 	printf("\n");
 	BLI_argsPrintArgDoc(ba, "--debug-fpe");
@@ -753,6 +754,14 @@ static const char arg_handle_debug_mode_generic_set_doc_gpumem[] =
 static int arg_handle_debug_mode_generic_set(int UNUSED(argc), const char **UNUSED(argv), void *data)
 {
 	G.debug |= GET_INT_FROM_POINTER(data);
+	return 0;
+}
+
+static const char arg_handle_debug_mode_io_doc[] =
+"\n\tEnable debug messages for I/O (collada, ...)";
+static int arg_handle_debug_mode_io(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+{
+	G.debug |= G_DEBUG_IO;
 	return 0;
 }
 
@@ -1804,6 +1813,8 @@ void main_args_setup(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 1, NULL, "--debug-wm",
 	            CB_EX(arg_handle_debug_mode_generic_set, wm), (void *)G_DEBUG_WM);
 	BLI_argsAdd(ba, 1, NULL, "--debug-all", CB(arg_handle_debug_mode_all), NULL);
+
+	BLI_argsAdd(ba, 1, NULL, "--debug-io", CB(arg_handle_debug_mode_io), NULL);
 
 	BLI_argsAdd(ba, 1, NULL, "--debug-fpe",
 	            CB(arg_handle_debug_fpe_set), NULL);
