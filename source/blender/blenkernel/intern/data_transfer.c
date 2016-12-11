@@ -1205,6 +1205,18 @@ bool BKE_object_data_transfer_dm(
 					           "'Topology' mapping cannot be used in this case");
 					continue;
 				}
+				if ((map_vert_mode & MREMAP_USE_EDGE) && (dm_src->getNumEdges(dm_src) == 0)) {
+					BKE_report(reports, RPT_ERROR,
+					           "Source mesh doesn't have any edges, "
+					           "None of the 'Edge' mappings can be used in this case");
+					continue;
+				}
+				if ((map_vert_mode & MREMAP_USE_POLY) && (dm_src->getNumPolys(dm_src) == 0)) {
+					BKE_report(reports, RPT_ERROR,
+					           "Source mesh doesn't have any faces, "
+					           "None of the 'Face' mappings can be used in this case");
+					continue;
+				}
 				if (ELEM(0, num_verts_dst, num_verts_src)) {
 					BKE_report(reports, RPT_ERROR,
 					           "Source or destination meshes do not have any vertices, cannot transfer vertex data");
@@ -1251,6 +1263,12 @@ bool BKE_object_data_transfer_dm(
 					BKE_report(reports, RPT_ERROR,
 					           "Source and destination meshes do not have the same amount of edges, "
 					           "'Topology' mapping cannot be used in this case");
+					continue;
+				}
+				if ((map_edge_mode & MREMAP_USE_POLY) && (dm_src->getNumPolys(dm_src) == 0)) {
+					BKE_report(reports, RPT_ERROR,
+					           "Source mesh doesn't have any faces, "
+					           "None of the 'Face' mappings can be used in this case");
 					continue;
 				}
 				if (ELEM(0, num_edges_dst, num_edges_src)) {
@@ -1312,9 +1330,15 @@ bool BKE_object_data_transfer_dm(
 					           "'Topology' mapping cannot be used in this case");
 					continue;
 				}
+				if ((map_loop_mode & MREMAP_USE_EDGE) && (dm_src->getNumEdges(dm_src) == 0)) {
+					BKE_report(reports, RPT_ERROR,
+					           "Source mesh doesn't have any edges, "
+					           "None of the 'Edge' mappings can be used in this case");
+					continue;
+				}
 				if (ELEM(0, num_loops_dst, num_loops_src)) {
 					BKE_report(reports, RPT_ERROR,
-					           "Source or destination meshes do not have any polygons, cannot transfer loop data");
+					           "Source or destination meshes do not have any faces, cannot transfer corner data");
 					continue;
 				}
 
@@ -1370,9 +1394,15 @@ bool BKE_object_data_transfer_dm(
 					           "'Topology' mapping cannot be used in this case");
 					continue;
 				}
+				if ((map_poly_mode & MREMAP_USE_EDGE) && (dm_src->getNumEdges(dm_src) == 0)) {
+					BKE_report(reports, RPT_ERROR,
+					           "Source mesh doesn't have any edges, "
+					           "None of the 'Edge' mappings can be used in this case");
+					continue;
+				}
 				if (ELEM(0, num_polys_dst, num_polys_src)) {
 					BKE_report(reports, RPT_ERROR,
-					           "Source or destination meshes do not have any polygons, cannot transfer poly data");
+					           "Source or destination meshes do not have any faces, cannot transfer face data");
 					continue;
 				}
 
