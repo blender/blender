@@ -129,10 +129,10 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 	const avxf AB = tri_ab - avxf_P;
 	const avxf BC = tri_bc - avxf_P;
 
-	const __m256i permuteMask = _mm256_set_epi32(0x3, kz, ky, kx, 0x3, kz, ky, kx);
+	const __m256i permute_mask = _mm256_set_epi32(0x3, kz, ky, kx, 0x3, kz, ky, kx);
 
-	const avxf AB_k = shuffle(AB, permuteMask);
-	const avxf BC_k = shuffle(BC, permuteMask);
+	const avxf AB_k = shuffle(AB, permute_mask);
+	const avxf BC_k = shuffle(BC, permute_mask);
 
 	/* Akz, Akz, Bkz, Bkz, Bkz, Bkz, Ckz, Ckz */
 	const avxf ABBC_kz = shuffle<2>(AB_k, BC_k);
@@ -155,14 +155,14 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 	/* By, Bx, Cy, Cx, By, Bx, Ay, Ax */
 	const avxf BCBA_yx = permute<3,2,7,6,3,2,1,0>(ABBC_xy);
 
-	const avxf negMask(0,0,0,0,0x80000000, 0x80000000, 0x80000000, 0x80000000);
+	const avxf neg_mask(0,0,0,0,0x80000000, 0x80000000, 0x80000000, 0x80000000);
 
 	/* W           U                             V
 	 * (AxBy-AyBx) (BxCy-ByCx) XX XX (BxBy-ByBx) (CxAy-CyAx) XX XX
 	 */
-	const avxf WUxxxxVxx_neg = _mm256_hsub_ps(ABBC_xy * BCBA_yx, negMask /* Dont care */);
+	const avxf WUxxxxVxx_neg = _mm256_hsub_ps(ABBC_xy * BCBA_yx, neg_mask /* Dont care */);
 
-	const avxf WUVWnegWUVW = permute<0,1,5,0,0,1,5,0>(WUxxxxVxx_neg) ^ negMask;
+	const avxf WUVWnegWUVW = permute<0,1,5,0,0,1,5,0>(WUxxxxVxx_neg) ^ neg_mask;
 
 	/* Calculate scaled barycentric coordinates. */
 	float WUVW_array[4];
