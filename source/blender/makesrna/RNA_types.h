@@ -155,7 +155,8 @@ typedef enum PropertySubType {
 } PropertySubType;
 
 /* Make sure enums are updated with these */
-/* HIGHEST FLAG IN USE: 1 << 31 */
+/* HIGHEST FLAG IN USE: 1 << 31
+ * FREE FLAGS: 2, 3, 7, 9, 11, 13, 14, 15, 30 */
 typedef enum PropertyFlag {
 	/* editable means the property is editable in the user
 	 * interface, properties are editable by default except
@@ -184,20 +185,6 @@ typedef enum PropertyFlag {
 	PROP_HIDDEN                  = (1 << 19),
 	/* do not write in presets */
 	PROP_SKIP_SAVE               = (1 << 28),
-
-	/* function parameter flags */
-	PROP_REQUIRED                = (1 << 2),
-	PROP_OUTPUT                  = (1 << 3),
-	PROP_RNAPTR                  = (1 << 11),
-	/* This allows for non-breaking API updates, when adding non-critical new parameter to a callback function.
-	 * This way, old py code defining funcs without that parameter would still work.
-	 * WARNING: any parameter after the first PYFUNC_OPTIONAL one will be considered as optional!
-	 * NOTE: only for input parameters!
-	 */
-	PROP_PYFUNC_OPTIONAL         = (1 << 30),
-	/* registering */
-	PROP_REGISTER                = (1 << 4),
-	PROP_REGISTER_OPTIONAL       = PROP_REGISTER | (1 << 5),
 
 	/* numbers */
 
@@ -229,24 +216,36 @@ typedef enum PropertyFlag {
 
 	/* need context for update function */
 	PROP_CONTEXT_UPDATE          = (1 << 22),
-	PROP_CONTEXT_PROPERTY_UPDATE = (1 << 22) | (1 << 27),
+	PROP_CONTEXT_PROPERTY_UPDATE = PROP_CONTEXT_UPDATE | (1 << 27),
+
+	/* registering */
+	PROP_REGISTER                = (1 << 4),
+	PROP_REGISTER_OPTIONAL       = PROP_REGISTER | (1 << 5),
 
 	/* Use for arrays or for any data that should not have a reference kept
 	 * most common case is functions that return arrays where the array */
 	PROP_THICK_WRAP              = (1 << 23),
 
-	/* internal flags */
-	PROP_BUILTIN                 = (1 << 7),
-	PROP_EXPORT                  = (1 << 8),
-	PROP_RUNTIME                 = (1 << 9),
-	PROP_IDPROPERTY              = (1 << 10),
-	PROP_RAW_ACCESS              = (1 << 13),
-	PROP_RAW_ARRAY               = (1 << 14),
-	PROP_FREE_POINTERS           = (1 << 15),
+	PROP_EXPORT                  = (1 << 8),  /* XXX Is this still used? makesrna.c seems to ignore it currently... */
+	PROP_IDPROPERTY              = (1 << 10), /* This is an IDProperty, not a DNA one. */
 	PROP_DYNAMIC                 = (1 << 17), /* for dynamic arrays, and retvals of type string */
 	PROP_ENUM_NO_CONTEXT         = (1 << 24), /* for enum that shouldn't be contextual */
 	PROP_ENUM_NO_TRANSLATE       = (1 << 29), /* for enums not to be translated (e.g. renderlayers' names in nodes) */
 } PropertyFlag;
+
+/* Function parameters flags.
+ * WARNING: 16bits only. */
+typedef enum ParameterFlag {
+	PARM_REQUIRED                = (1 << 0),
+	PARM_OUTPUT                  = (1 << 1),
+	PARM_RNAPTR                  = (1 << 2),
+	/* This allows for non-breaking API updates, when adding non-critical new parameter to a callback function.
+	 * This way, old py code defining funcs without that parameter would still work.
+	 * WARNING: any parameter after the first PYFUNC_OPTIONAL one will be considered as optional!
+	 * NOTE: only for input parameters!
+	 */
+	PARM_PYFUNC_OPTIONAL         = (1 << 3),
+} ParameterFlag;
 
 struct CollectionPropertyIterator;
 struct Link;

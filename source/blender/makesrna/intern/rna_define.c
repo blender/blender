@@ -618,7 +618,7 @@ void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
 
 		RNA_def_property_free_pointers(prop);
 
-		if (prop->flag & PROP_RUNTIME)
+		if (prop->flag_internal & PROP_INTERN_RUNTIME)
 			rna_freelinkN(&srna->cont.properties, prop);
 	}
 
@@ -630,7 +630,7 @@ void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
 
 			RNA_def_property_free_pointers(parm);
 
-			if (parm->flag & PROP_RUNTIME)
+			if (parm->flag_internal & PROP_INTERN_RUNTIME)
 				rna_freelinkN(&func->cont.properties, parm);
 		}
 
@@ -771,7 +771,7 @@ StructRNA *RNA_def_struct_ptr(BlenderRNA *brna, const char *identifier, StructRN
 	else {
 		/* define some builtin properties */
 		prop = RNA_def_property(&srna->cont, "rna_properties", PROP_COLLECTION, PROP_NONE);
-		RNA_def_property_flag(prop, PROP_BUILTIN);
+		prop->flag_internal |= PROP_INTERN_BUILTIN;
 		RNA_def_property_ui_text(prop, "Properties", "RNA property collection");
 
 		if (DefRNA.preprocess) {
@@ -1097,7 +1097,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 			break;
 		}
 		case PROP_POINTER:
-			prop->flag |= PROP_THICK_WRAP;  /* needed for default behavior when PROP_RNAPTR is set */
+			prop->flag |= PROP_THICK_WRAP;  /* needed for default behavior when PARM_RNAPTR is set */
 			break;
 		case PROP_ENUM:
 		case PROP_COLLECTION:
@@ -1189,7 +1189,8 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 		}
 	}
 	else {
-		prop->flag |= PROP_IDPROPERTY | PROP_RUNTIME;
+		prop->flag |= PROP_IDPROPERTY;
+		prop->flag_internal |= PROP_INTERN_RUNTIME;
 #ifdef RNA_RUNTIME
 		if (cont->prophash)
 			BLI_ghash_insert(cont->prophash, (void *)prop->identifier, prop);
@@ -1201,14 +1202,26 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 	return prop;
 }
 
-void RNA_def_property_flag(PropertyRNA *prop, int flag)
+void RNA_def_property_flag(PropertyRNA *prop, PropertyFlag flag)
 {
 	prop->flag |= flag;
 }
 
-void RNA_def_property_clear_flag(PropertyRNA *prop, int flag)
+void RNA_def_property_clear_flag(PropertyRNA *prop, PropertyFlag flag)
 {
 	prop->flag &= ~flag;
+}
+
+void RNA_def_parameter_flags(PropertyRNA *prop, PropertyFlag flag_property, ParameterFlag flag_parameter)
+{
+	prop->flag |= flag_property;
+	prop->flag_parameter |= flag_parameter;
+}
+
+void RNA_def_parameter_clear_flags(PropertyRNA *prop, PropertyFlag flag_property, ParameterFlag flag_parameter)
+{
+	prop->flag &= ~flag_property;
+	prop->flag_parameter &= ~flag_parameter;
 }
 
 void RNA_def_property_subtype(PropertyRNA *prop, PropertySubType subtype)
@@ -3097,7 +3110,7 @@ void RNA_def_function_return(FunctionRNA *func, PropertyRNA *ret)
 
 void RNA_def_function_output(FunctionRNA *UNUSED(func), PropertyRNA *ret)
 {
-	ret->flag |= PROP_OUTPUT;
+	ret->flag_parameter |= PARM_OUTPUT;
 }
 
 void RNA_def_function_flag(FunctionRNA *func, int flag)
@@ -3149,7 +3162,7 @@ int rna_parameter_size(PropertyRNA *parm)
 			case PROP_POINTER:
 			{
 #ifdef RNA_RUNTIME
-				if (parm->flag & PROP_RNAPTR)
+				if (parm->flag_parameter & PARM_RNAPTR)
 					if (parm->flag & PROP_THICK_WRAP) {
 						return sizeof(PointerRNA);
 					}
@@ -3159,7 +3172,7 @@ int rna_parameter_size(PropertyRNA *parm)
 				else
 					return sizeof(void *);
 #else
-				if (parm->flag & PROP_RNAPTR) {
+				if (parm->flag_parameter & PARM_RNAPTR) {
 					if (parm->flag & PROP_THICK_WRAP) {
 						return sizeof(PointerRNA);
 					}
@@ -3357,12 +3370,12 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 			break;
 	}
 
-	prop->flag |= PROP_FREE_POINTERS;
+	prop->flag_internal |= PROP_INTERN_FREE_POINTERS;
 }
 
 void RNA_def_property_free_pointers(PropertyRNA *prop)
 {
-	if (prop->flag & PROP_FREE_POINTERS) {
+	if (prop->flag_internal & PROP_INTERN_FREE_POINTERS) {
 		int a;
 
 		if (prop->identifier)
@@ -3429,7 +3442,7 @@ static void rna_def_property_free(StructOrFunctionRNA *cont_, PropertyRNA *prop)
 {
 	ContainerRNA *cont = cont_;
 	
-	if (prop->flag & PROP_RUNTIME) {
+	if (prop->flag_internal & PROP_INTERN_RUNTIME) {
 		if (cont->prophash)
 			BLI_ghash_remove(cont->prophash, prop->identifier, NULL, NULL);
 
@@ -3449,7 +3462,7 @@ int RNA_def_property_free_identifier(StructOrFunctionRNA *cont_, const char *ide
 	
 	for (prop = cont->properties.first; prop; prop = prop->next) {
 		if (STREQ(prop->identifier, identifier)) {
-			if (prop->flag & PROP_RUNTIME) {
+			if (prop->flag_internal & PROP_INTERN_RUNTIME) {
 				rna_def_property_free(cont_, prop);
 				return 1;
 			}
@@ -3460,7 +3473,7 @@ int RNA_def_property_free_identifier(StructOrFunctionRNA *cont_, const char *ide
 	}
 	return 0;
 }
-#endif
+#endif  /* RNA_RUNTIME */
 
 const char *RNA_property_typename(PropertyType type)
 {

@@ -93,11 +93,11 @@ void RNA_api_texture(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Evaluate the texture at the coordinates given");
 
 	parm = RNA_def_float_vector(func, "value", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	/* return location and normal */
 	parm = RNA_def_float_vector(func, "result", 4, NULL, -FLT_MAX, FLT_MAX, "Result", NULL, -1e4, 1e4);
-	RNA_def_property_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
 	RNA_def_function_output(func, parm);
 
 }
@@ -119,7 +119,7 @@ void RNA_api_environment_map(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 
 	parm = RNA_def_string_file_name(func, "filepath", NULL, FILE_MAX, "File path", "Location of the output file");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	RNA_def_pointer(func, "scene", "Scene", "", "Overrides the scene from which image parameters are taken");
 

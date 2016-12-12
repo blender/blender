@@ -1636,7 +1636,7 @@ static int pyrna_py_to_prop(
 				/* prefer not to have an exception here
 				 * however so many poll functions return None or a valid Object.
 				 * its a hassle to convert these into a bool before returning, */
-				if (RNA_property_flag(prop) & PROP_OUTPUT) {
+				if (RNA_parameter_flag(prop) & PARM_OUTPUT) {
 					param = PyObject_IsTrue(value);
 				}
 				else {
@@ -1824,6 +1824,7 @@ static int pyrna_py_to_prop(
 
 				StructRNA *ptr_type = RNA_property_pointer_type(ptr, prop);
 				int flag = RNA_property_flag(prop);
+				int flag_parameter = RNA_parameter_flag(prop);
 
 				/* this is really nasty!, so we can fake the operator having direct properties eg:
 				 * layout.prop(self, "filepath")
@@ -1900,7 +1901,7 @@ static int pyrna_py_to_prop(
 					bool raise_error = false;
 					if (data) {
 
-						if (flag & PROP_RNAPTR) {
+						if (flag_parameter & PARM_RNAPTR) {
 							if (flag & PROP_THICK_WRAP) {
 								if (value == Py_None)
 									memset(data, 0, sizeof(PointerRNA));
@@ -5116,6 +5117,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 	PyObject *ret;
 	const int type = RNA_property_type(prop);
 	const int flag = RNA_property_flag(prop);
+	const int flag_parameter = RNA_parameter_flag(prop);
 
 	if (RNA_property_array_check(prop)) {
 		int a, len;
@@ -5233,7 +5235,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 				PointerRNA newptr;
 				StructRNA *ptype = RNA_property_pointer_type(ptr, prop);
 
-				if (flag & PROP_RNAPTR) {
+				if (flag_parameter & PARM_RNAPTR) {
 					/* in this case we get the full ptr */
 					newptr = *(PointerRNA *)data;
 				}
@@ -5315,7 +5317,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 	ParameterIterator iter;
 	PropertyRNA *parm;
 	PyObject *ret, *item;
-	int i, pyargs_len, pykw_len, parms_len, ret_len, flag, err = 0, kw_tot = 0;
+	int i, pyargs_len, pykw_len, parms_len, ret_len, flag_parameter, err = 0, kw_tot = 0;
 	bool kw_arg;
 
 	PropertyRNA *pret_single = NULL;
@@ -5380,10 +5382,10 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 	/* parse function parameters */
 	for (i = 0; iter.valid && err == 0; RNA_parameter_list_next(&iter)) {
 		parm = iter.parm;
-		flag = RNA_property_flag(parm);
+		flag_parameter = RNA_parameter_flag(parm);
 
 		/* only useful for single argument returns, we'll need another list loop for multiple */
-		if (flag & PROP_OUTPUT) {
+		if (flag_parameter & PARM_OUTPUT) {
 			ret_len++;
 			if (pret_single == NULL) {
 				pret_single = parm;
@@ -5414,7 +5416,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 		i++; /* current argument */
 
 		if (item == NULL) {
-			if (flag & PROP_REQUIRED) {
+			if (flag_parameter & PARM_REQUIRED) {
 				PyErr_Format(PyExc_TypeError,
 				             "%.200s.%.200s(): required parameter \"%.200s\" not specified",
 				             RNA_struct_identifier(self_ptr->type),
@@ -5514,7 +5516,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 		RNA_parameter_list_begin(&parms, &iter);
 		for (; iter.valid; RNA_parameter_list_next(&iter)) {
 			parm = iter.parm;
-			if (RNA_property_flag(parm) & PROP_OUTPUT)
+			if (RNA_parameter_flag(parm) & PARM_OUTPUT)
 				continue;
 
 			BLI_dynstr_appendf(good_args, first ? "%s" : ", %s", RNA_property_identifier(parm));
@@ -5561,9 +5563,8 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 
 					for (; iter.valid; RNA_parameter_list_next(&iter)) {
 						parm = iter.parm;
-						flag = RNA_property_flag(parm);
 
-						if (flag & PROP_OUTPUT)
+						if (RNA_parameter_flag(parm) & PARM_OUTPUT)
 							PyTuple_SET_ITEM(ret, i++, pyrna_param_to_py(&funcptr, parm, iter.data));
 					}
 
@@ -7216,8 +7217,8 @@ static int rna_function_arg_count(FunctionRNA *func, int *min_count)
 
 	for (link = lb->first; link; link = link->next) {
 		parm = (PropertyRNA *)link;
-		if (!(RNA_property_flag(parm) & PROP_OUTPUT)) {
-			if (!done_min_count && (RNA_property_flag(parm) & PROP_PYFUNC_OPTIONAL)) {
+		if (!(RNA_parameter_flag(parm) & PARM_OUTPUT)) {
+			if (!done_min_count && (RNA_parameter_flag(parm) & PARM_PYFUNC_OPTIONAL)) {
 				/* From now on, following parameters are optional in py func */
 				if (min_count)
 					*min_count = count;
@@ -7575,10 +7576,9 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 			/* parse function parameters */
 			for (; iter.valid; RNA_parameter_list_next(&iter)) {
 				parm = iter.parm;
-				flag = RNA_property_flag(parm);
 
 				/* only useful for single argument returns, we'll need another list loop for multiple */
-				if (flag & PROP_OUTPUT) {
+				if (RNA_parameter_flag(parm) & PARM_OUTPUT) {
 					ret_len++;
 					if (pret_single == NULL) {
 						pret_single = parm;
@@ -7678,10 +7678,9 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 				/* parse function parameters */
 				for (i = 0; iter.valid; RNA_parameter_list_next(&iter)) {
 					parm = iter.parm;
-					flag = RNA_property_flag(parm);
 
 					/* only useful for single argument returns, we'll need another list loop for multiple */
-					if (flag & PROP_OUTPUT) {
+					if (RNA_parameter_flag(parm) & PARM_OUTPUT) {
 						err = pyrna_py_to_prop(&funcptr, parm, iter.data,
 						                       PyTuple_GET_ITEM(ret, i++),
 						                       "calling class function:");
@@ -7967,7 +7966,7 @@ static int pyrna_srna_contains_pointer_prop_srna(
 
 	for (link = lb->first; link; link = link->next) {
 		prop = (PropertyRNA *)link;
-		if (RNA_property_type(prop) == PROP_POINTER && !(RNA_property_flag(prop) & PROP_BUILTIN)) {
+		if (RNA_property_type(prop) == PROP_POINTER && !RNA_property_builtin(prop)) {
 			PointerRNA tptr;
 			RNA_pointer_create(NULL, &RNA_Struct, srna_props, &tptr);
 
