@@ -97,8 +97,7 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 
 	func = RNA_def_function(srna, "debug_rebuild", "rna_Depsgraph_debug_rebuild");
 	RNA_def_function_flag(func, FUNC_USE_MAIN);
-	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	
+
 	func = RNA_def_function(srna, "debug_stats", "rna_Depsgraph_debug_stats");
 	RNA_def_function_ui_description(func, "Report the number of elements in the Dependency Graph");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);

@@ -575,7 +575,6 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Update memory usage statistics");
 	RNA_def_float(func, "memory_used", 0, 0.0f, FLT_MAX, "", "Current memory usage in megabytes", 0.0f, FLT_MAX);
 	RNA_def_float(func, "memory_peak", 0, 0.0f, FLT_MAX, "", "Peak memory usage in megabytes", 0.0f, FLT_MAX);
-	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	func = RNA_def_function(srna, "report", "RE_engine_report");
 	RNA_def_function_ui_description(func, "Report info, warning or error messages");
