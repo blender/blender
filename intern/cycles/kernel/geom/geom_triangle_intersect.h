@@ -108,7 +108,7 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
                                           float3 P,
                                           uint visibility,
                                           int object,
-                                          int triAddr)
+                                          int prim_addr)
 {
 	const int kx = isect_precalc->kx;
 	const int ky = isect_precalc->ky;
@@ -118,7 +118,7 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 	const float Sz = isect_precalc->Sz;
 
 	/* Calculate vertices relative to ray origin. */
-	const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, triAddr);
+	const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, prim_addr);
 
 #if defined(__KERNEL_AVX2__) && defined(__KERNEL_SSE__)
 	const avxf avxf_P(P.m128, P.m128);
@@ -231,7 +231,7 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 #ifdef __VISIBILITY_FLAG__
 	/* visibility flag test. we do it here under the assumption
 	 * that most triangles are culled by node flags */
-	if(kernel_tex_fetch(__prim_visibility, triAddr) & visibility)
+	if(kernel_tex_fetch(__prim_visibility, prim_addr) & visibility)
 #endif
 	{
 #ifdef __KERNEL_CUDA__
@@ -241,7 +241,7 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 #endif
 		/* Normalize U, V, W, and T. */
 		const float inv_det = 1.0f / det;
-		isect->prim = triAddr;
+		isect->prim = prim_addr;
 		isect->object = object;
 		isect->type = PRIMITIVE_TRIANGLE;
 		isect->u = U * inv_det;
@@ -264,7 +264,7 @@ ccl_device_inline void triangle_intersect_subsurface(
         SubsurfaceIntersection *ss_isect,
         float3 P,
         int object,
-        int triAddr,
+        int prim_addr,
         float tmax,
         uint *lcg_state,
         int max_hits)
@@ -277,7 +277,7 @@ ccl_device_inline void triangle_intersect_subsurface(
 	const float Sz = isect_precalc->Sz;
 
 	/* Calculate vertices relative to ray origin. */
-	const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, triAddr);
+	const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, prim_addr);
 	const float4 tri_a = kernel_tex_fetch(__prim_tri_verts, tri_vindex+0),
 	             tri_b = kernel_tex_fetch(__prim_tri_verts, tri_vindex+1),
 	             tri_c = kernel_tex_fetch(__prim_tri_verts, tri_vindex+2);
@@ -415,7 +415,7 @@ ccl_device_inline void triangle_intersect_subsurface(
 
 	/* record intersection */
 	Intersection *isect = &ss_isect->hits[hit];
-	isect->prim = triAddr;
+	isect->prim = prim_addr;
 	isect->object = object;
 	isect->type = PRIMITIVE_TRIANGLE;
 	isect->u = U * inv_det;
