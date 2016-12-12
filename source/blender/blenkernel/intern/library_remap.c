@@ -680,6 +680,35 @@ void BKE_libblock_relink_ex(
 	}
 }
 
+static int id_relink_to_newid_looper(void *UNUSED(user_data), ID *UNUSED(self_id), ID **id_pointer, const int cd_flag)
+{
+	ID *id = *id_pointer;
+	if (id) {
+		/* See: NEW_ID macro */
+		if (id->newid) {
+			BKE_library_update_ID_link_user(id->newid, id, cd_flag);
+			*id_pointer = id->newid;
+		}
+		else if (id->tag & LIB_TAG_NEW) {
+			id->tag &= ~LIB_TAG_NEW;
+			BKE_libblock_relink_to_newid(id);
+		}
+	}
+	return IDWALK_RET_NOP;
+}
+
+/** Similar to libblock_relink_ex, but is remapping IDs to their newid value if non-NULL, in given \a id.
+ *
+ * Very specific usage, not sure we'll keep it on the long run, currently only used in Object duplication code...
+ */
+void BKE_libblock_relink_to_newid(ID *id)
+{
+	if (ID_IS_LINKED_DATABLOCK(id))
+		return;
+
+	BKE_library_foreach_ID_link(id, id_relink_to_newid_looper, NULL, 0);
+}
+
 void BKE_libblock_free_data(Main *UNUSED(bmain), ID *id)
 {
 	if (id->properties) {
