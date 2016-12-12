@@ -1023,7 +1023,6 @@ static void rna_def_ID(BlenderRNA *brna)
 	parm = RNA_def_boolean(func, "clear_proxy", true, "",
 	                       "Whether to clear proxies (the default behavior, "
 	                       "note that if object has to be duplicated to be made local, proxies are always cleared)");
-	RNA_def_property_flag(parm, PARM_PYFUNC_OPTIONAL);
 	parm = RNA_def_pointer(func, "id", "ID", "", "This ID, or the new ID if it was copied");
 	RNA_def_function_return(func, parm);
 
