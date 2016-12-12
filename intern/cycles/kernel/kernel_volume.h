@@ -582,17 +582,12 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous_distance(
 ccl_device_noinline VolumeIntegrateResult kernel_volume_integrate(KernelGlobals *kg,
 	PathState *state, ShaderData *sd, Ray *ray, PathRadiance *L, float3 *throughput, RNG *rng, bool heterogeneous)
 {
-	/* workaround to fix correlation bug in T38710, can find better solution
-	 * in random number generator later, for now this is done here to not impact
-	 * performance of rendering without volumes */
-	RNG tmp_rng = cmj_hash(*rng, state->rng_offset);
-
 	shader_setup_from_volume(kg, sd, ray);
 
 	if(heterogeneous)
-		return kernel_volume_integrate_heterogeneous_distance(kg, state, ray, sd, L, throughput, &tmp_rng);
+		return kernel_volume_integrate_heterogeneous_distance(kg, state, ray, sd, L, throughput, rng);
 	else
-		return kernel_volume_integrate_homogeneous(kg, state, ray, sd, L, throughput, &tmp_rng, true);
+		return kernel_volume_integrate_homogeneous(kg, state, ray, sd, L, throughput, rng, true);
 }
 
 /* Decoupled Volume Sampling
@@ -1266,5 +1261,31 @@ ccl_device void kernel_volume_stack_update_for_subsurface(KernelGlobals *kg,
 #  endif
 }
 #endif
+
+/* Clean stack after the last bounce.
+ *
+ * It is expected that all volumes are closed manifolds, so at the time when ray
+ * hits nothing (for example, it is a last bounce which goes to environment) the
+ * only expected volume in the stack is the world's one. All the rest volume
+ * entries should have been exited already.
+ *
+ * This isn't always true because of ray intersection precision issues, which
+ * could lead us to an infinite non-world volume in the stack, causing render
+ * artifacts.
+ *
+ * Use this function after the last bounce to get rid of all volumes apart from
+ * the world's one after the last bounce to avoid render artifacts.
+ */
+ccl_device_inline void kernel_volume_clean_stack(KernelGlobals *kg,
+                                                 VolumeStack *volume_stack)
+{
+	if(kernel_data.background.volume_shader != SHADER_NONE) {
+		/* Keep the world's volume in stack. */
+		volume_stack[1].shader = SHADER_NONE;
+	}
+	else {
+		volume_stack[0].shader = SHADER_NONE;
+	}
+}
 
 CCL_NAMESPACE_END

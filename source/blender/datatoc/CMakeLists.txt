@@ -62,4 +62,9 @@ if(NOT WITH_HEADLESS)
 	add_executable(datatoc_icon ${SRC})
 
 	target_link_libraries(datatoc_icon ${PNG_LIBRARIES} ${ZLIB_LIBRARIES})
+	# PNG library uses pow() and floow(), so seems -lm is required for proper
+	# workign binary.
+	if(UNIX AND NOT APPLE)
+		target_link_libraries(datatoc_icon m)
+	endif()
 endif()

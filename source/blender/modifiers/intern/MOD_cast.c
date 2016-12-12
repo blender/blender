@@ -124,12 +124,13 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 static void updateDepsgraph(ModifierData *md,
                             struct Main *UNUSED(bmain),
                             struct Scene *UNUSED(scene),
-                            Object *UNUSED(ob),
+                            Object *object,
                             struct DepsNodeHandle *node)
 {
 	CastModifierData *cmd = (CastModifierData *)md;
 	if (cmd->object != NULL) {
 		DEG_add_object_relation(node, cmd->object, DEG_OB_COMP_TRANSFORM, "Cast Modifier");
+		DEG_add_object_relation(node, object, DEG_OB_COMP_TRANSFORM, "Cast Modifier");
 	}
 }
 

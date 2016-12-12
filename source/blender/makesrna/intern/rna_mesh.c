@@ -2229,7 +2229,6 @@ static void rna_def_mpolygon(BlenderRNA *brna)
 	func = RNA_def_function(srna, "flip", "rna_MeshPolygon_flip");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Invert winding of this polygon (flip its normal)");
-
 }
 
 /* mesh.loop_uvs */
@@ -2878,7 +2877,7 @@ static void rna_def_tessface_vertex_colors(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a vertex color layer to Mesh");
 	RNA_def_string(func, "name", "Col", 0, "", "Vertex color name");
 	parm = RNA_def_pointer(func, "layer", "MeshColorLayer", "", "The newly created layer");
-	RNA_def_property_flag(parm, PROP_RNAPTR);
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 	RNA_def_function_return(func, parm);
 
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
@@ -2912,14 +2911,14 @@ static void rna_def_loop_colors(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a vertex color layer to Mesh");
 	RNA_def_string(func, "name", "Col", 0, "", "Vertex color name");
 	parm = RNA_def_pointer(func, "layer", "MeshLoopColorLayer", "", "The newly created layer");
-	RNA_def_property_flag(parm, PROP_RNAPTR);
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Mesh_vertex_color_remove");
 	RNA_def_function_ui_description(func, "Remove a vertex color layer");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "layer", "MeshLoopColorLayer", "", "The layer to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
@@ -2982,7 +2981,7 @@ static void rna_def_vertex_float_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a float property layer to Mesh");
 	RNA_def_string(func, "name", "Float Prop", 0, "", "Float property name");
 	parm = RNA_def_pointer(func, "layer", "MeshVertexFloatPropertyLayer", "", "The newly created layer");
-	RNA_def_property_flag(parm, PROP_RNAPTR);
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 	RNA_def_function_return(func, parm);
 }
 
@@ -3003,7 +3002,7 @@ static void rna_def_vertex_int_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a integer property layer to Mesh");
 	RNA_def_string(func, "name", "Int Prop", 0, "",  "Int property name");
 	parm = RNA_def_pointer(func, "layer", "MeshVertexIntPropertyLayer", "", "The newly created layer");
-	RNA_def_property_flag(parm, PROP_RNAPTR);
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 	RNA_def_function_return(func, parm);
 }
 
@@ -3024,7 +3023,7 @@ static void rna_def_vertex_string_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a string property layer to Mesh");
 	RNA_def_string(func, "name", "String Prop", 0, "", "String property name");
 	parm = RNA_def_pointer(func, "layer", "MeshVertexStringPropertyLayer", "", "The newly created layer");
-	RNA_def_property_flag(parm, PROP_RNAPTR);
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 	RNA_def_function_return(func, parm);
 }
 
@@ -3045,7 +3044,7 @@ static void rna_def_polygon_float_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a float property layer to Mesh");
 	RNA_def_string(func, "name", "Float Prop", 0, "", "Float property name");
 	parm = RNA_def_pointer(func, "layer", "MeshPolygonFloatPropertyLayer", "", "The newly created layer");
-	RNA_def_property_flag(parm, PROP_RNAPTR);
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 	RNA_def_function_return(func, parm);
 }
 
@@ -3066,7 +3065,7 @@ static void rna_def_polygon_int_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a integer property layer to Mesh");
 	RNA_def_string(func, "name", "Int Prop", 0, "",  "Int property name");
 	parm = RNA_def_pointer(func, "layer", "MeshPolygonIntPropertyLayer", "", "The newly created layer");
-	RNA_def_property_flag(parm, PROP_RNAPTR);
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 	RNA_def_function_return(func, parm);
 }
 
@@ -3087,7 +3086,7 @@ static void rna_def_polygon_string_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a string property layer to Mesh");
 	RNA_def_string(func, "name", "String Prop", 0, "", "String property name");
 	parm = RNA_def_pointer(func, "layer", "MeshPolygonStringPropertyLayer", "", "The newly created layer");
-	RNA_def_property_flag(parm, PROP_RNAPTR);
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 	RNA_def_function_return(func, parm);
 }
 
@@ -3111,7 +3110,7 @@ static void rna_def_tessface_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a UV tessface-texture layer to Mesh (only for meshes with no polygons)");
 	RNA_def_string(func, "name", "UVMap", 0, "", "UV map name");
 	parm = RNA_def_pointer(func, "layer", "MeshTextureFaceLayer", "", "The newly created layer");
-	RNA_def_property_flag(parm, PROP_RNAPTR);
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 	RNA_def_function_return(func, parm);
 
 
@@ -3147,14 +3146,14 @@ static void rna_def_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a UV map layer to Mesh");
 	RNA_def_string(func, "name", "UVMap", 0, "", "UV map name");
 	parm = RNA_def_pointer(func, "layer", "MeshTexturePolyLayer", "", "The newly created layer");
-	RNA_def_property_flag(parm, PROP_RNAPTR);
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Mesh_uv_texture_layers_remove");
 	RNA_def_function_ui_description(func, "Remove a vertex color layer");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "layer", "MeshTexturePolyLayer", "", "The layer to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MeshTexturePolyLayer");

@@ -75,6 +75,7 @@
 #include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
+#include "BKE_library_remap.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -1240,7 +1241,7 @@ static void copy_object_set_idnew(bContext *C)
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
-		BKE_libblock_relink(&ob->id);
+		BKE_libblock_relink_to_newid(&ob->id);
 	}
 	CTX_DATA_END;
 
@@ -1394,7 +1395,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		}
 
 		/* Remap new object to itself, and clear again newid pointer of orig object. */
-		BKE_libblock_relink(&ob->id);
+		BKE_libblock_relink_to_newid(&ob->id);
 		set_sca_new_poins_ob(ob);
 		BKE_id_clear_newpoin(&dob->ob->id);
 
@@ -2200,7 +2201,7 @@ Base *ED_object_add_duplicate(Main *bmain, Scene *scene, Base *base, int dupflag
 	ob = basen->object;
 
 	/* link own references to the newly duplicated data [#26816] */
-	BKE_libblock_relink(&ob->id);
+	BKE_libblock_relink_to_newid(&ob->id);
 	set_sca_new_poins_ob(ob);
 
 	/* DAG_relations_tag_update(bmain); */ /* caller must do */

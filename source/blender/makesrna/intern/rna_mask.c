@@ -778,8 +778,8 @@ static void rna_def_mask_splines(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Remove a spline from a layer");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "spline", "MaskSpline", "", "The spline to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
-	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 
 	/* active spline */
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
@@ -818,8 +818,8 @@ static void rna_def_maskSplinePoints(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Remove a point from a spline");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "point", "MaskSplinePoint", "", "The point to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
-	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 }
 
 static void rna_def_maskSpline(BlenderRNA *brna)
@@ -1014,8 +1014,8 @@ static void rna_def_masklayers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Remove layer from this mask");
 	parm = RNA_def_pointer(func, "layer", "MaskLayer", "", "Shape to be removed");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
-	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 
 	/* clear all layers */
 	func = RNA_def_function(srna, "clear", "rna_Mask_layers_clear");

@@ -221,7 +221,7 @@ void RNA_api_mesh(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Transform mesh vertices by a matrix "
 	                                      "(Warning: inverts normals if matrix is negative)");
 	parm = RNA_def_float_matrix(func, "matrix", 4, 4, NULL, 0.0f, 0.0f, "", "Matrix", 0.0f, 0.0f);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_boolean(func, "shape_keys", 0, "", "Transform Shape Keys");
 
 	func = RNA_def_function(srna, "flip_normals", "rna_Mesh_flip_normals");
@@ -264,9 +264,9 @@ void RNA_api_mesh(StructRNA *srna)
 	RNA_def_boolean(func, "use_bitflags", false, "", "Produce bitflags groups instead of simple numeric values");
 	/* return values */
 	parm = RNA_def_int_array(func, "poly_groups", 1, NULL, 0, 0, "", "Smooth Groups", 0, 0);
-	RNA_def_property_flag(parm, PROP_DYNAMIC | PROP_OUTPUT);
+	RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_OUTPUT);
 	parm = RNA_def_int(func, "groups", 0, 0, INT_MAX, "groups", "Total number of groups", 0, INT_MAX);
-	RNA_def_property_flag(parm, PROP_OUTPUT);
+	RNA_def_parameter_flags(parm, 0, PARM_OUTPUT);
 
 	func = RNA_def_function(srna, "normals_split_custom_set", "rna_Mesh_normals_split_custom_set");
 	RNA_def_function_ui_description(func,
@@ -276,7 +276,7 @@ void RNA_api_mesh(StructRNA *srna)
 	/* TODO, see how array size of 0 works, this shouldnt be used */
 	parm = RNA_def_float_array(func, "normals", 1, NULL, -1.0f, 1.0f, "", "Normals", 0.0f, 0.0f);
 	RNA_def_property_multi_array(parm, 2, normals_array_dim);
-	RNA_def_property_flag(parm, PROP_DYNAMIC | PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
 
 	func = RNA_def_function(srna, "normals_split_custom_set_from_vertices",
 	                        "rna_Mesh_normals_split_custom_set_from_vertices");
@@ -287,7 +287,7 @@ void RNA_api_mesh(StructRNA *srna)
 	/* TODO, see how array size of 0 works, this shouldnt be used */
 	parm = RNA_def_float_array(func, "normals", 1, NULL, -1.0f, 1.0f, "", "Normals", 0.0f, 0.0f);
 	RNA_def_property_multi_array(parm, 2, normals_array_dim);
-	RNA_def_property_flag(parm, PROP_DYNAMIC | PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
 
 	func = RNA_def_function(srna, "update", "ED_mesh_update");
 	RNA_def_boolean(func, "calc_edges", 0, "Calculate Edges", "Force recalculation of edges");

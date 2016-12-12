@@ -580,7 +580,7 @@ static void rna_def_action_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new", "rna_Action_groups_new");
 	RNA_def_function_ui_description(func, "Create a new action group and add it to the action");
 	parm = RNA_def_string(func, "name", "Group", 0, "", "New name for the action group");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	parm = RNA_def_pointer(func, "action_group", "ActionGroup", "", "Newly created action group");
 	RNA_def_function_return(func, parm);
@@ -590,8 +590,8 @@ static void rna_def_action_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove action group");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "action_group", "ActionGroup", "", "Action group to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
-	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 }
 
 static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
@@ -611,7 +611,7 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add an F-Curve to the action");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_string(func, "data_path", NULL, 0, "Data Path", "F-Curve data path to use");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Array index", 0, INT_MAX);
 	RNA_def_string(func, "action_group", NULL, 0, "Action Group", "Acton group to add this F-Curve into");
 
@@ -624,9 +624,8 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 	                                "of all F-Curves in the action.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_string(func, "data_path", NULL, 0, "Data Path", "F-Curve data path");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Array index", 0, INT_MAX);
-
 	parm = RNA_def_pointer(func, "fcurve", "FCurve", "", "The found F-Curve, or None if it doesn't exist");
 	RNA_def_function_return(func, parm);
 
@@ -635,8 +634,8 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove action group");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "fcurve", "FCurve", "", "F-Curve to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
-	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 }
 
 static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
@@ -655,8 +654,7 @@ static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new", "rna_Action_pose_markers_new");
 	RNA_def_function_ui_description(func, "Add a pose marker to the action");
 	parm = RNA_def_string(func, "name", "Marker", 0, NULL, "New name for the marker (not unique)");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "marker", "TimelineMarker", "", "Newly created marker");
 	RNA_def_function_return(func, parm);
 
@@ -664,8 +662,8 @@ static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a timeline marker");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "marker", "TimelineMarker", "", "Timeline marker to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
-	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 	
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "TimelineMarker");

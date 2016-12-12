@@ -230,7 +230,9 @@ static MPoly *dm_dupPolyArray(DerivedMesh *dm)
 
 static int dm_getNumLoopTri(DerivedMesh *dm)
 {
-	return dm->looptris.num;
+	const int numlooptris = poly_to_tri_count(dm->getNumPolys(dm), dm->getNumLoops(dm));
+	BLI_assert(ELEM(dm->looptris.num, 0, numlooptris));
+	return numlooptris;
 }
 
 static CustomData *dm_getVertCData(DerivedMesh *dm)

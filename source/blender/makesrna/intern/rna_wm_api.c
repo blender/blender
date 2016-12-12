@@ -340,11 +340,11 @@ static void rna_generic_op_invoke(FunctionRNA *func, int flag)
 
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "operator", "Operator", "", "Operator to call");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	if (flag & WM_GEN_INVOKE_EVENT) {
 		parm = RNA_def_pointer(func, "event", "Event", "", "Event");
-		RNA_def_property_flag(parm, PROP_REQUIRED);
+		RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	}
 
 	if (flag & WM_GEN_INVOKE_SIZE) {
@@ -365,21 +365,21 @@ void RNA_api_window(StructRNA *srna)
 
 	func = RNA_def_function(srna, "cursor_warp", "WM_cursor_warp");
 	parm = RNA_def_int(func, "x", 0, INT_MIN, INT_MAX, "", "", INT_MIN, INT_MAX);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_int(func, "y", 0, INT_MIN, INT_MAX, "", "", INT_MIN, INT_MAX);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_function_ui_description(func, "Set the cursor position");
 
 	func = RNA_def_function(srna, "cursor_set", "WM_cursor_set");
 	parm = RNA_def_property(func, "cursor", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(parm, rna_enum_window_cursor_items);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_function_ui_description(func, "Set the cursor");
 
 	func = RNA_def_function(srna, "cursor_modal_set", "WM_cursor_modal_set");
 	parm = RNA_def_property(func, "cursor", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(parm, rna_enum_window_cursor_items);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_function_ui_description(func, "Set the cursor, so the previous cursor can be restored");
 
 	RNA_def_function(srna, "cursor_modal_restore", "WM_cursor_modal_restore");
@@ -402,14 +402,14 @@ void RNA_api_wm(StructRNA *srna)
 	                                "(called by invoke() with self, just before returning {'RUNNING_MODAL'})");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "operator", "Operator", "", "Operator to call");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_function_return(func, RNA_def_boolean(func, "handle", 1, "", "Whether adding the handler was successful"));
 
 
 	func = RNA_def_function(srna, "event_timer_add", "rna_event_timer_add");
 	RNA_def_function_ui_description(func, "Add a timer to the given window, to generate periodic 'TIMER' events");
 	parm = RNA_def_property(func, "time_step", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_property_range(parm, 0.0, FLT_MAX);
 	RNA_def_property_ui_text(parm, "Time Step", "Interval in seconds between timer events");
 	RNA_def_pointer(func, "window", "Window", "", "Window to attach the timer to, or None");
@@ -419,22 +419,22 @@ void RNA_api_wm(StructRNA *srna)
 
 	func = RNA_def_function(srna, "event_timer_remove", "rna_event_timer_remove");
 	parm = RNA_def_pointer(func, "timer", "Timer", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
 	/* Progress bar interface */
 	func = RNA_def_function(srna, "progress_begin", "rna_progress_begin");
 	RNA_def_function_ui_description(func, "Start progress report");
 	parm = RNA_def_property(func, "min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_ui_text(parm, "min", "any value in range [0,9999]");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_property(func, "max", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_property_ui_text(parm, "max", "any value in range [min+1,9998]");
 
 	func = RNA_def_function(srna, "progress_update", "rna_progress_update");
 	RNA_def_function_ui_description(func, "Update the progress feedback");
 	parm = RNA_def_property(func, "value", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_property_ui_text(parm, "value", "Any value between min and max as set in progress_begin()");
 
 	func = RNA_def_function(srna, "progress_end", "rna_progress_end");
@@ -474,39 +474,39 @@ void RNA_api_wm(StructRNA *srna)
 	func = RNA_def_function(srna, "pupmenu_begin__internal", "rna_PupMenuBegin");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
 	parm = RNA_def_string(func, "title", NULL, 0, "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(parm, rna_enum_icon_items);
 	/* return */
 	parm = RNA_def_pointer(func, "menu", "UIPopupMenu", "", "");
-	RNA_def_property_flag(parm, PROP_RNAPTR | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
 	RNA_def_function_return(func, parm);
 
 	/* wrap UI_popup_menu_end */
 	func = RNA_def_function(srna, "pupmenu_end__internal", "rna_PupMenuEnd");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "menu", "UIPopupMenu", "", "");
-	RNA_def_property_flag(parm, PROP_RNAPTR | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
 
 	/* wrap uiPieMenuBegin */
 	func = RNA_def_function(srna, "piemenu_begin__internal", "rna_PieMenuBegin");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
 	parm = RNA_def_string(func, "title", NULL, 0, "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(parm, rna_enum_icon_items);
 	parm = RNA_def_pointer(func, "event", "Event", "", "");
-	RNA_def_property_flag(parm, PROP_RNAPTR | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
 	/* return */
 	parm = RNA_def_pointer(func, "menu_pie", "UIPieMenu", "", "");
-	RNA_def_property_flag(parm, PROP_RNAPTR | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
 	RNA_def_function_return(func, parm);
 
 	/* wrap uiPieMenuEnd */
 	func = RNA_def_function(srna, "piemenu_end__internal", "rna_PieMenuEnd");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "menu", "UIPieMenu", "", "");
-	RNA_def_property_flag(parm, PROP_RNAPTR | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
 }
 
 void RNA_api_operator(StructRNA *srna)
@@ -517,9 +517,9 @@ void RNA_api_operator(StructRNA *srna)
 	/* utility, not for registering */
 	func = RNA_def_function(srna, "report", "rna_Operator_report");
 	parm = RNA_def_enum_flag(func, "type", rna_enum_wm_report_items, 0, "Type", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_string(func, "message", NULL, 0, "Report Message", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 
 	/* Registration */
@@ -530,14 +530,14 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
 	/* exec */
 	func = RNA_def_function(srna, "execute", NULL);
 	RNA_def_function_ui_description(func, "Execute the operator");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
 	/* better name? */
 	parm = RNA_def_enum_flag(func, "result", rna_enum_operator_return_items, OPERATOR_CANCELLED, "result", "");
@@ -548,7 +548,7 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Check the operator settings, return True to signal a change to redraw");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
 	parm = RNA_def_boolean(func, "result", 0, "result", ""); /* better name? */
 	RNA_def_function_return(func, parm);
@@ -558,9 +558,9 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Invoke the operator");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "event", "Event", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
 	/* better name? */
 	parm = RNA_def_enum_flag(func, "result", rna_enum_operator_return_items, OPERATOR_CANCELLED, "result", "");
@@ -570,9 +570,9 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Modal operator function");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "event", "Event", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
 	/* better name? */
 	parm = RNA_def_enum_flag(func, "result", rna_enum_operator_return_items, OPERATOR_CANCELLED, "result", "");
@@ -583,14 +583,14 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Draw function for the operator");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
 	/* cancel */
 	func = RNA_def_function(srna, "cancel", NULL);
 	RNA_def_function_ui_description(func, "Called when the operator is canceled");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 }
 
 void RNA_api_macro(StructRNA *srna)
@@ -601,9 +601,9 @@ void RNA_api_macro(StructRNA *srna)
 	/* utility, not for registering */
 	func = RNA_def_function(srna, "report", "rna_Operator_report");
 	parm = RNA_def_enum_flag(func, "type", rna_enum_wm_report_items, 0, "Type", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_string(func, "message", NULL, 0, "Report Message", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 
 	/* Registration */
@@ -614,14 +614,14 @@ void RNA_api_macro(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
 	/* draw */
 	func = RNA_def_function(srna, "draw", NULL);
 	RNA_def_function_ui_description(func, "Draw function for the operator");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 }
 
 void RNA_api_keyconfig(StructRNA *UNUSED(srna))
@@ -646,7 +646,7 @@ void RNA_api_keymap(StructRNA *srna)
 	func = RNA_def_function(srna, "restore_item_to_default", "rna_keymap_restore_item_to_default");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 }
 
 void RNA_api_keymapitem(StructRNA *srna)
@@ -656,7 +656,7 @@ void RNA_api_keymapitem(StructRNA *srna)
 
 	func = RNA_def_function(srna, "compare", "WM_keymap_item_compare");
 	parm = RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_boolean(func, "result", 0, "Comparison result", "");
 	RNA_def_function_return(func, parm);
 }
@@ -669,11 +669,11 @@ void RNA_api_keymapitems(StructRNA *srna)
 	func = RNA_def_function(srna, "new", "rna_KeyMap_item_new");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_string(func, "idname", NULL, 0, "Operator Identifier", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_enum(func, "type", rna_enum_event_type_items, 0, "Type", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_enum(func, "value", rna_enum_event_value_items, 0, "Value", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_boolean(func, "any", 0, "Any", "");
 	RNA_def_boolean(func, "shift", 0, "Shift", "");
 	RNA_def_boolean(func, "ctrl", 0, "Ctrl", "");
@@ -689,11 +689,11 @@ void RNA_api_keymapitems(StructRNA *srna)
 	func = RNA_def_function(srna, "new_modal", "rna_KeyMap_item_new_modal");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_string(func, "propvalue", NULL, 0, "Property Value", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_enum(func, "type", rna_enum_event_type_items, 0, "Type", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_enum(func, "value", rna_enum_event_value_items, 0, "Value", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_boolean(func, "any", 0, "Any", "");
 	RNA_def_boolean(func, "shift", 0, "Shift", "");
 	RNA_def_boolean(func, "ctrl", 0, "Ctrl", "");
@@ -706,12 +706,12 @@ void RNA_api_keymapitems(StructRNA *srna)
 	func = RNA_def_function(srna, "remove", "rna_KeyMap_item_remove");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
-	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 
 	func = RNA_def_function(srna, "from_id", "WM_keymap_item_find_id");
 	parm = RNA_def_property(func, "id", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_property_ui_text(parm, "id", "ID of the item");
 	parm = RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
 	RNA_def_function_return(func, parm);
@@ -724,7 +724,7 @@ void RNA_api_keymaps(StructRNA *srna)
 
 	func = RNA_def_function(srna, "new", "rna_keymap_new"); /* add_keymap */
 	parm = RNA_def_string(func, "name", NULL, 0, "Name", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_enum(func, "space_type", rna_enum_space_type_items, SPACE_EMPTY, "Space Type", "");
 	RNA_def_enum(func, "region_type", rna_enum_region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
 	RNA_def_boolean(func, "modal", 0, "Modal", "");
@@ -734,12 +734,12 @@ void RNA_api_keymaps(StructRNA *srna)
 	func = RNA_def_function(srna, "remove", "rna_KeyMap_remove"); /* remove_keymap */
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Removed key map");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
-	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 
 	func = RNA_def_function(srna, "find", "rna_keymap_find"); /* find_keymap */
 	parm = RNA_def_string(func, "name", NULL, 0, "Name", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_enum(func, "space_type", rna_enum_space_type_items, SPACE_EMPTY, "Space Type", "");
 	RNA_def_enum(func, "region_type", rna_enum_region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
 	parm = RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Corresponding key map");
@@ -747,7 +747,7 @@ void RNA_api_keymaps(StructRNA *srna)
 
 	func = RNA_def_function(srna, "find_modal", "rna_keymap_find_modal"); /* find_keymap_modal */
 	parm = RNA_def_string(func, "name", NULL, 0, "Operator Name", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Corresponding key map");
 	RNA_def_function_return(func, parm);
 }
@@ -759,15 +759,15 @@ void RNA_api_keyconfigs(StructRNA *srna)
 
 	func = RNA_def_function(srna, "new", "WM_keyconfig_new_user"); /* add_keyconfig */
 	parm = RNA_def_string(func, "name", NULL, 0, "Name", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "keyconfig", "KeyConfig", "Key Configuration", "Added key configuration");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_KeyConfig_remove"); /* remove_keyconfig */
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "keyconfig", "KeyConfig", "Key Configuration", "Removed key configuration");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
-	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 }
 
 #endif

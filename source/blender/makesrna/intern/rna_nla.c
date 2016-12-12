@@ -508,7 +508,7 @@ static void rna_def_strip_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 	                                "of all F-Curves in the NLA strip.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_string(func, "data_path", NULL, 0, "Data Path", "F-Curve data path");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Array index", 0, INT_MAX);
 
 	parm = RNA_def_pointer(func, "fcurve", "FCurve", "", "The found F-Curve, or None if it doesn't exist");
@@ -733,12 +733,12 @@ static void rna_api_nlatrack_strips(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add a new Action-Clip strip to the track");
 	parm = RNA_def_string(func, "name", "NlaStrip", 0, "", "Name for the NLA Strips");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_int(func, "start", 0, INT_MIN, INT_MAX, "Start Frame",
 	                   "Start frame for this strip", INT_MIN, INT_MAX);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "action", "Action", "", "Action to assign to this strip");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	/* return type */
 	parm = RNA_def_pointer(func, "strip", "NlaStrip", "", "New NLA Strip");
 	RNA_def_function_return(func, parm);
@@ -747,8 +747,8 @@ static void rna_api_nlatrack_strips(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Remove a NLA Strip");
 	parm = RNA_def_pointer(func, "strip", "NlaStrip", "", "NLA Strip to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
-	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 }
 
 static void rna_def_nlatrack(BlenderRNA *brna)

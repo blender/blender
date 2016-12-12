@@ -267,7 +267,10 @@ ccl_device int bsdf_hair_transmission_sample(const ShaderClosure *sc, float3 Ng,
 
 	*eval = make_float3(*pdf, *pdf, *pdf);
 
-	kernel_assert(dot(locy, *omega_in) < 0.0f);
+	/* TODO(sergey): Should always be negative, but seems some precision issue
+	 * is involved here.
+	 */
+	kernel_assert(dot(locy, *omega_in) < 1e-4f);
 
 	return LABEL_TRANSMIT|LABEL_GLOSSY;
 }

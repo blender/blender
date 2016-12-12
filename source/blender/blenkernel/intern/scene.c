@@ -78,6 +78,7 @@
 #include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
+#include "BKE_library_remap.h"
 #include "BKE_linestyle.h"
 #include "BKE_main.h"
 #include "BKE_mask.h"
@@ -209,7 +210,7 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 		if (sce->nodetree) {
 			/* ID's are managed on both copy and switch */
 			scen->nodetree = ntreeCopyTree(bmain, sce->nodetree);
-			ntreeSwitchID(scen->nodetree, &sce->id, &scen->id);
+			BKE_libblock_relink_ex(bmain, scen->nodetree, &sce->id, &scen->id, false);
 		}
 
 		obase = sce->base.first;

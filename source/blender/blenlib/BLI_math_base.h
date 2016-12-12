@@ -85,63 +85,6 @@ static const int NAN_INT = 0x7FC00000;
 #  define NAN_FLT  (*((float *)(&NAN_INT)))
 #endif
 
-/* do not redefine functions from C99, POSIX.1-2001 or MSVC12 (partial C99) */
-#if !(defined(_ISOC99_SOURCE) || (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L) || defined(_MSC_VER))
-
-#ifndef sqrtf
-#define sqrtf(a) ((float)sqrt(a))
-#endif
-#ifndef powf
-#define powf(a, b) ((float)pow(a, b))
-#endif
-#ifndef cosf
-#define cosf(a) ((float)cos(a))
-#endif
-#ifndef sinf
-#define sinf(a) ((float)sin(a))
-#endif
-#ifndef acosf
-#define acosf(a) ((float)acos(a))
-#endif
-#ifndef asinf
-#define asinf(a) ((float)asin(a))
-#endif
-#ifndef atan2f
-#define atan2f(a, b) ((float)atan2(a, b))
-#endif
-#ifndef tanf
-#define tanf(a) ((float)tan(a))
-#endif
-#ifndef atanf
-#define atanf(a) ((float)atan(a))
-#endif
-#ifndef floorf
-#define floorf(a) ((float)floor(a))
-#endif
-#ifndef ceilf
-#define ceilf(a) ((float)ceil(a))
-#endif
-#ifndef fabsf
-#define fabsf(a) ((float)fabs(a))
-#endif
-#ifndef logf
-#define logf(a) ((float)log(a))
-#endif
-#ifndef expf
-#define expf(a) ((float)exp(a))
-#endif
-#ifndef fmodf
-#define fmodf(a, b) ((float)fmod(a, b))
-#endif
-#ifndef hypotf
-#define hypotf(a, b) ((float)hypot(a, b))
-#endif
-#ifndef copysignf
-#define copysignf(a, b) ((float)copysign(a, b))
-#endif
-
-#endif  /* C99, POSIX.1-2001 or MSVC12 (partial C99) */
-
 #if BLI_MATH_DO_INLINE
 #include "intern/math_base_inline.c"
 #endif

@@ -19,6 +19,8 @@
 
 #include "device_task.h"
 
+#include "buffers.h"
+
 #include "util_algorithm.h"
 #include "util_time.h"
 
@@ -99,14 +101,18 @@ void DeviceTask::split(list<DeviceTask>& tasks, int num, int max_size)
 	}
 }
 
-void DeviceTask::update_progress(RenderTile *rtile)
+void DeviceTask::update_progress(RenderTile *rtile, int pixel_samples)
 {
 	if((type != PATH_TRACE) &&
 	   (type != SHADER))
 		return;
 
-	if(update_progress_sample)
-		update_progress_sample();
+	if(update_progress_sample) {
+		if(pixel_samples == -1) {
+			pixel_samples = shader_w;
+		}
+		update_progress_sample(pixel_samples, rtile? rtile->sample : 0);
+	}
 
 	if(update_tile_sample) {
 		double current_time = time_dt();

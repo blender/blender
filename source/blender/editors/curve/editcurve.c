@@ -4993,7 +4993,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			copy_v3_v3(location, ED_view3d_cursor3d_get(vc.scene, vc.v3d));
 		}
 
-		ED_view3d_win_to_3d_int(vc.ar, location, event->mval, location);
+		ED_view3d_win_to_3d_int(vc.v3d, vc.ar, location, event->mval, location);
 
 		if (use_proj) {
 			const float mval[2] = {UNPACK2(event->mval)};

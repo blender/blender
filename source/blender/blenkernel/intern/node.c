@@ -1307,33 +1307,6 @@ bNodeTree *ntreeCopyTree(Main *bmain, bNodeTree *ntree)
 	return ntreeCopyTree_ex(ntree, bmain, true);
 }
 
-/* use when duplicating scenes */
-void ntreeSwitchID_ex(bNodeTree *ntree, ID *id_from, ID *id_to, const bool do_id_user)
-{
-	bNode *node;
-
-	if (id_from == id_to) {
-		/* should never happen but may as well skip if it does */
-		return;
-	}
-
-	/* for scene duplication only */
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->id == id_from) {
-			if (do_id_user) {
-				id_us_min(id_from);
-				id_us_plus(id_to);
-			}
-
-			node->id = id_to;
-		}
-	}
-}
-void ntreeSwitchID(bNodeTree *ntree, ID *id_from, ID *id_to)
-{
-	ntreeSwitchID_ex(ntree, id_from, id_to, true);
-}
-
 void ntreeUserIncrefID(bNodeTree *ntree)
 {
 	bNode *node;

@@ -216,8 +216,14 @@ bool ED_view3d_win_to_ray_ex(
         const struct ARegion *ar, const struct View3D *v3d, const float mval[2],
         float r_ray_co[3], float r_ray_normal[3], float r_ray_start[3], bool do_clip);
 void ED_view3d_global_to_vector(const struct RegionView3D *rv3d, const float coord[3], float vec[3]);
-void ED_view3d_win_to_3d(const struct ARegion *ar, const float depth_pt[3], const float mval[2], float out[3]);
-void ED_view3d_win_to_3d_int(const struct ARegion *ar, const float depth_pt[3], const int mval[2], float out[3]);
+void ED_view3d_win_to_3d(
+        const struct View3D *v3d, const struct ARegion *ar,
+        const float depth_pt[3], const float mval[2],
+        float r_out[3]);
+void ED_view3d_win_to_3d_int(
+        const struct View3D *v3d, const struct ARegion *ar,
+        const float depth_pt[3], const int mval[2],
+        float r_out[3]);
 void ED_view3d_win_to_delta(const struct ARegion *ar, const float mval[2], float out[3], const float zfac);
 void ED_view3d_win_to_origin(const struct ARegion *ar, const float mval[2], float out[3]);
 void ED_view3d_win_to_vector(const struct ARegion *ar, const float mval[2], float out[3]);

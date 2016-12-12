@@ -2295,7 +2295,7 @@ static void rna_def_gpencil_brushes(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new", "rna_GPencil_brush_new");
 	RNA_def_function_ui_description(func, "Add a new grease pencil brush");
 	parm = RNA_def_string(func, "name", "GPencilBrush", MAX_NAME, "Name", "Name of the brush");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_boolean(func, "set_active", 0, "Set Active", "Set the newly created brush to the active brush");
 	parm = RNA_def_pointer(func, "palette", "GPencilBrush", "", "The newly created brush");
 	RNA_def_function_return(func, parm);
@@ -2304,8 +2304,8 @@ static void rna_def_gpencil_brushes(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a grease pencil brush");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "brush", "GPencilBrush", "", "The brush to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
-	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "GPencilBrush");
@@ -3590,8 +3590,8 @@ static void rna_def_freestyle_modules(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a style module from scene render layer Freestyle settings");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "module", "FreestyleModuleSettings", "", "Style module to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
-	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 }
 
 static void rna_def_freestyle_linesets(BlenderRNA *brna, PropertyRNA *cprop)
@@ -3623,7 +3623,7 @@ static void rna_def_freestyle_linesets(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a line set to scene render layer Freestyle settings");
 	RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_SELF_ID);
 	parm = RNA_def_string(func, "name", "LineSet", 0, "", "New name for the line set (not unique)");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "lineset", "FreestyleLineSet", "", "Newly created line set");
 	RNA_def_function_return(func, parm);
 
@@ -3631,8 +3631,8 @@ static void rna_def_freestyle_linesets(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a line set from scene render layer Freestyle settings");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "lineset", "FreestyleLineSet", "", "Line set to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
-	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 }
 
 static void rna_def_freestyle_settings(BlenderRNA *brna)
@@ -4960,7 +4960,7 @@ static void rna_def_render_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a render layer to scene");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
 	parm = RNA_def_string(func, "name", "RenderLayer", 0, "", "New name for the render layer (not unique)");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "result", "SceneRenderLayer", "", "Newly created render layer");
 	RNA_def_function_return(func, parm);
 
@@ -4968,8 +4968,8 @@ static void rna_def_render_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a render layer");
 	RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
 	parm = RNA_def_pointer(func, "layer", "SceneRenderLayer", "", "Render layer to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
-	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 }
 
 /* Render Views - MultiView */
@@ -5039,7 +5039,7 @@ static void rna_def_render_views(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a render view to scene");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
 	parm = RNA_def_string(func, "name", "RenderView", 0, "", "New name for the marker (not unique)");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "result", "SceneRenderView", "", "Newly created render view");
 	RNA_def_function_return(func, parm);
 
@@ -5047,8 +5047,8 @@ static void rna_def_render_views(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a render view");
 	RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
 	parm = RNA_def_pointer(func, "view", "SceneRenderView", "", "Render view to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
-	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 }
 
 static void rna_def_image_format_stereo3d_format(BlenderRNA *brna)
@@ -6606,7 +6606,7 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Link object to scene, run scene.update() after");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "object", "Object", "", "Object to add to scene");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "base", "ObjectBase", "", "The newly created base");
 	RNA_def_function_return(func, parm);
 
@@ -6614,7 +6614,7 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Unlink object from scene");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "object", "Object", "", "Object to remove from scene");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
@@ -6665,7 +6665,7 @@ static void rna_def_timeline_markers(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new", "rna_TimeLine_add");
 	RNA_def_function_ui_description(func, "Add a keyframe to the curve");
 	parm = RNA_def_string(func, "name", "Marker", 0, "", "New name for the marker (not unique)");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_int(func, "frame", 1, -MAXFRAME, MAXFRAME, "", "The frame for the new marker", -MAXFRAME, MAXFRAME);
 	parm = RNA_def_pointer(func, "marker", "TimelineMarker", "", "Newly created timeline marker");
 	RNA_def_function_return(func, parm);
@@ -6675,8 +6675,8 @@ static void rna_def_timeline_markers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a timeline marker");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "marker", "TimelineMarker", "", "Timeline marker to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
-	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 
 	func = RNA_def_function(srna, "clear", "rna_TimeLine_clear");
 	RNA_def_function_ui_description(func, "Remove all timeline markers");
@@ -6703,7 +6703,6 @@ static void rna_def_scene_keying_sets(BlenderRNA *brna, PropertyRNA *cprop)
 	/* name */
 	RNA_def_string(func, "idname", "KeyingSet", 64, "IDName", "Internal identifier of Keying Set");
 	RNA_def_string(func, "name", "KeyingSet", 64, "Name", "User visible name of Keying Set");
-
 	/* returns the new KeyingSet */
 	parm = RNA_def_pointer(func, "keyingset", "KeyingSet", "", "Newly created Keying Set");
 	RNA_def_function_return(func, parm);
@@ -7185,8 +7184,8 @@ void RNA_def_scene(BlenderRNA *brna)
 
 	/* Statistics */
 	func = RNA_def_function(srna, "statistics", "ED_info_stats_string");
-	prop = RNA_def_string(func, "statistics", NULL, 0, "Statistics", "");
-	RNA_def_function_return(func, prop);
+	parm = RNA_def_string(func, "statistics", NULL, 0, "Statistics", "");
+	RNA_def_function_return(func, parm);
 	
 	/* Grease Pencil */
 	prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);

@@ -3557,7 +3557,7 @@ static void find_bevel_edge_order(BMesh *bm, BevVert *bv, BMEdge *first_bme)
 {
 	BMEdge *bme, *bme2;
 	BMIter iter;
-	BMFace *f;
+	BMFace *f, *bestf;
 	EdgeHalf *e;
 	EdgeHalf *e2;
 	BMLoop *l;
@@ -3595,10 +3595,21 @@ static void find_bevel_edge_order(BMesh *bm, BevVert *bv, BMEdge *first_bme)
 		bme = e->e;
 		bme2 = e2->e;
 		BLI_assert(bme != NULL);
+		if (e->fnext != NULL || e2->fprev != NULL)
+			continue;
+		/* Which faces have successive loops that are for bme and bme2?
+		 * There could be more than one. E.g., in manifold ntot==2 case.
+		 * Prefer one that has loop in same direction as e. */
+		bestf = NULL;
 		BM_ITER_ELEM(l, &iter, bme, BM_LOOPS_OF_EDGE) {
 			f = l->f;
-			if ((l->prev->e == bme2 || l->next->e == bme2) && !e->fnext && !e2->fprev)
-				e->fnext = e2->fprev = f;
+			if ((l->prev->e == bme2 || l->next->e == bme2)) {
+				if (!bestf || l->v == bv->v)
+					bestf = f;
+			}
+			if (bestf) {
+				e->fnext = e2->fprev = bestf;
+			}
 		}
 	}
 }

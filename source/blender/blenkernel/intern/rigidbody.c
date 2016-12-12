@@ -46,6 +46,7 @@
 #  include "RBI_api.h"
 #endif
 
+#include "DNA_ID.h"
 #include "DNA_group_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -215,13 +216,6 @@ RigidBodyCon *BKE_rigidbody_copy_constraint(Object *ob)
 
 	/* return new copy of settings */
 	return rbcN;
-}
-
-/* preserve relationships between constraints and rigid bodies after duplication */
-void BKE_rigidbody_relink_constraint(RigidBodyCon *rbc)
-{
-	ID_NEW_REMAP(rbc->ob1);
-	ID_NEW_REMAP(rbc->ob2);
 }
 
 /* ************************************** */
@@ -963,12 +957,9 @@ RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw)
 
 void BKE_rigidbody_world_groups_relink(RigidBodyWorld *rbw)
 {
-	if (rbw->group && rbw->group->id.newid)
-		rbw->group = (Group *)rbw->group->id.newid;
-	if (rbw->constraints && rbw->constraints->id.newid)
-		rbw->constraints = (Group *)rbw->constraints->id.newid;
-	if (rbw->effector_weights->group && rbw->effector_weights->group->id.newid)
-		rbw->effector_weights->group = (Group *)rbw->effector_weights->group->id.newid;
+	ID_NEW_REMAP(rbw->group);
+	ID_NEW_REMAP(rbw->constraints);
+	ID_NEW_REMAP(rbw->effector_weights->group);
 }
 
 void BKE_rigidbody_world_id_loop(RigidBodyWorld *rbw, RigidbodyWorldIDFunc func, void *userdata)

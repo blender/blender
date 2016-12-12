@@ -627,6 +627,12 @@ if(APPLE)
 			# to silence sdk not found warning, just overrides CMAKE_OSX_SYSROOT
 			set(CMAKE_XCODE_ATTRIBUTE_SDKROOT macosx${OSX_SYSTEM})
 		endif()
+
+		# QuickTime framework is no longer available in SDK 10.12+
+		if(WITH_CODEC_QUICKTIME AND ${OSX_SYSTEM} VERSION_GREATER 10.11)
+			set(WITH_CODEC_QUICKTIME OFF)
+			message(STATUS "QuickTime not supported by SDK ${OSX_SYSTEM}, disabling WITH_CODEC_QUICKTIME")
+		endif()
 	endif()
 
 	if(OSX_SYSTEM MATCHES 10.9)

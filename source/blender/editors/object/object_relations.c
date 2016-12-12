@@ -75,6 +75,7 @@
 #include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
+#include "BKE_library_remap.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
@@ -1805,7 +1806,7 @@ static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, const in
 
 	/* object and group pointers */
 	for (base = FIRSTBASE; base; base = base->next) {
-		BKE_libblock_relink(&base->object->id);
+		BKE_libblock_relink_to_newid(&base->object->id);
 	}
 
 	set_sca_new_poins();

@@ -971,7 +971,7 @@ static void knifetool_draw_angle_snapping(const KnifeTool_OpData *kcd)
 
 			copy_v3_v3(co_depth, kcd->prev.cage);
 			mul_m4_v3(kcd->ob->obmat, co_depth);
-			ED_view3d_win_to_3d(kcd->ar, co_depth, kcd->curr.mval, curr_cage_adjust);
+			ED_view3d_win_to_3d(kcd->vc.v3d, kcd->ar, co_depth, kcd->curr.mval, curr_cage_adjust);
 			mul_m4_v3(kcd->ob->imat, curr_cage_adjust);
 
 			sub_v3_v3v3(ray_dir, curr_cage_adjust, kcd->prev.cage);

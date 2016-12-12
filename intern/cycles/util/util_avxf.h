@@ -180,6 +180,14 @@ __forceinline const avxf nmadd(const avxf& a, const avxf& b, const avxf& c) {
 }
 #endif
 
+#ifndef _mm256_set_m128
+#  define _mm256_set_m128(/* __m128 */ hi, /* __m128 */ lo) \
+    _mm256_insertf128_ps(_mm256_castps128_ps256(lo), (hi), 0x1)
+#endif
+
+#define _mm256_loadu2_m128(/* float const* */ hiaddr, /* float const* */ loaddr) \
+    _mm256_set_m128(_mm_loadu_ps(hiaddr), _mm_loadu_ps(loaddr))
+
 CCL_NAMESPACE_END
 
 #endif

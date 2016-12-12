@@ -255,6 +255,17 @@ ccl_device_forceinline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Inte
 		int ka = max(k0 - 1, v00.x);
 		int kb = min(k1 + 1, v00.x + v00.y - 1);
 
+#ifdef __KERNEL_AVX2__
+		avxf P_curve_0_1, P_curve_2_3;
+		if(type & PRIMITIVE_CURVE) {
+			P_curve_0_1 = _mm256_loadu2_m128(&kg->__curve_keys.data[k0].x, &kg->__curve_keys.data[ka].x);
+			P_curve_2_3 = _mm256_loadu2_m128(&kg->__curve_keys.data[kb].x, &kg->__curve_keys.data[k1].x);
+		}
+		else {
+			int fobject = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, curveAddr) : object;
+			motion_cardinal_curve_keys_avx(kg, fobject, prim, time, ka, k0, k1, kb, &P_curve_0_1,&P_curve_2_3);
+		}
+#else  /* __KERNEL_AVX2__ */
 		ssef P_curve[4];
 
 		if(type & PRIMITIVE_CURVE) {
@@ -267,6 +278,7 @@ ccl_device_forceinline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Inte
 			int fobject = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, curveAddr): object;
 			motion_cardinal_curve_keys(kg, fobject, prim, time, ka, k0, k1, kb, (float4*)&P_curve);
 		}
+#endif  /* __KERNEL_AVX2__ */
 
 		ssef rd_sgn = set_sign_bit<0, 1, 1, 1>(shuffle<0>(rd_ss));
 		ssef mul_zxxy = shuffle<2, 0, 0, 1>(vdir) * rd_sgn;
@@ -278,12 +290,43 @@ ccl_device_forceinline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Inte
 		ssef htfm1 = shuffle<1, 0, 1, 3>(load1f_first(extract<0>(d_ss)), vdir0);
 		ssef htfm2 = shuffle<1, 3, 2, 3>(mul_shuf, vdir0);
 
+#ifdef __KERNEL_AVX2__
+		const avxf vPP = _mm256_broadcast_ps(&P.m128);
+		const avxf htfm00 = avxf(htfm0.m128, htfm0.m128);
+		const avxf htfm11 = avxf(htfm1.m128, htfm1.m128);
+		const avxf htfm22 = avxf(htfm2.m128, htfm2.m128);
+
+		const avxf p01 = madd(shuffle<0>(P_curve_0_1 - vPP),
+		                      htfm00,
+		                      madd(shuffle<1>(P_curve_0_1 - vPP),
+		                           htfm11,
+		                           shuffle<2>(P_curve_0_1 - vPP) * htfm22));
+		const avxf p23 = madd(shuffle<0>(P_curve_2_3 - vPP),
+		                      htfm00,
+		                      madd(shuffle<1>(P_curve_2_3 - vPP),
+		                           htfm11,
+		                           shuffle<2>(P_curve_2_3 - vPP)*htfm22));
+
+		const ssef p0 = _mm256_castps256_ps128(p01);
+		const ssef p1 = _mm256_extractf128_ps(p01, 1);
+		const ssef p2 = _mm256_castps256_ps128(p23);
+		const ssef p3 = _mm256_extractf128_ps(p23, 1);
+
+		const ssef P_curve_1 = _mm256_extractf128_ps(P_curve_0_1, 1);
+		r_st = ((float4 &)P_curve_1).w;
+		const ssef P_curve_2 = _mm256_castps256_ps128(P_curve_2_3);
+		r_en = ((float4 &)P_curve_2).w;
+#else  /* __KERNEL_AVX2__ */
 		ssef htfm[] = { htfm0, htfm1, htfm2 };
 		ssef vP = load4f(P);
 		ssef p0 = transform_point_T3(htfm, P_curve[0] - vP);
 		ssef p1 = transform_point_T3(htfm, P_curve[1] - vP);
 		ssef p2 = transform_point_T3(htfm, P_curve[2] - vP);
 		ssef p3 = transform_point_T3(htfm, P_curve[3] - vP);
+
+		r_st = ((float4 &)P_curve[1]).w;
+		r_en = ((float4 &)P_curve[2]).w;
+#endif  /* __KERNEL_AVX2__ */
 
 		float fc = 0.71f;
 		ssef vfc = ssef(fc);
@@ -294,8 +337,6 @@ ccl_device_forceinline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Inte
 		vcurve_coef[2] = madd(ssef(fc * 2.0f), p0, madd(ssef(fc - 3.0f), p1, msub(ssef(3.0f - 2.0f * fc), p2, vfcxp3)));
 		vcurve_coef[3] = msub(ssef(fc - 2.0f), p2 - p1, msub(vfc, p0, vfcxp3));
 
-		r_st = ((float4 &)P_curve[1]).w;
-		r_en = ((float4 &)P_curve[2]).w;
 	}
 #else
 	float3 curve_coef[4];
@@ -383,8 +424,9 @@ ccl_device_forceinline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Inte
 
 	/* begin loop */
 	while(!(tree >> (depth))) {
-		float i_st = tree * resol;
-		float i_en = i_st + (level * resol);
+		const float i_st = tree * resol;
+		const float i_en = i_st + (level * resol);
+
 #ifdef __KERNEL_SSE2__
 		ssef vi_st = ssef(i_st), vi_en = ssef(i_en);
 		ssef vp_st = madd(madd(madd(vcurve_coef[3], vi_st, vcurve_coef[2]), vi_st, vcurve_coef[1]), vi_st, vcurve_coef[0]);
@@ -458,13 +500,23 @@ ccl_device_forceinline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Inte
 
 			if(flags & CURVE_KN_RIBBONS) {
 				float3 tg = (p_en - p_st);
+#ifdef __KERNEL_SSE__
+				const float3 tg_sq = tg * tg;
+				float w = tg_sq.x + tg_sq.y;
+#else
 				float w = tg.x * tg.x + tg.y * tg.y;
+#endif
 				if(w == 0) {
 					tree++;
 					level = tree & -tree;
 					continue;
 				}
+#ifdef __KERNEL_SSE__
+				const float3 p_sttg = p_st * tg;
+				w = -(p_sttg.x + p_sttg.y) / w;
+#else
 				w = -(p_st.x * tg.x + p_st.y * tg.y) / w;
+#endif
 				w = saturate(w);
 
 				/* compute u on the curve segment */
@@ -496,7 +548,13 @@ ccl_device_forceinline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Inte
 				if(difl != 0.0f) {
 					mw_extension = min(difl * fabsf(bmaxz), extmax);
 					r_ext = mw_extension + r_curr;
+#ifdef __KERNEL_SSE__
+					const float3 p_curr_sq = p_curr * p_curr;
+					const float3 dxxx = _mm_sqrt_ss(_mm_hadd_ps(p_curr_sq.m128, p_curr_sq.m128));
+					float d = dxxx.x;
+#else
 					float d = sqrtf(p_curr.x * p_curr.x + p_curr.y * p_curr.y);
+#endif
 					float d0 = d - r_curr;
 					float d1 = d + r_curr;
 					float inv_mw_extension = 1.0f/mw_extension;

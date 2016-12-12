@@ -103,7 +103,7 @@ static void drawEdgeSlide(TransInfo *t);
 static void drawVertSlide(TransInfo *t);
 static void postInputRotation(TransInfo *t, float values[3]);
 
-static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short around);
+static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], const short around);
 static void initSnapSpatial(TransInfo *t, float r_snap[3]);
 
 
@@ -2880,7 +2880,7 @@ static void initBend(TransInfo *t)
 
 	curs = ED_view3d_cursor3d_get(t->scene, t->view);
 	copy_v3_v3(data->warp_sta, curs);
-	ED_view3d_win_to_3d(t->ar, curs, mval_fl, data->warp_end);
+	ED_view3d_win_to_3d(t->sa->spacedata.first, t->ar, curs, mval_fl, data->warp_end);
 
 	copy_v3_v3(data->warp_nor, t->viewinv[2]);
 	if (t->flag & T_EDIT) {

@@ -571,6 +571,9 @@ void ShaderManager::get_requested_graph_features(ShaderGraph *graph,
 		if(node->has_surface_bssrdf()) {
 			requested_features->use_subsurface = true;
 		}
+		if(node->has_surface_transparent()) {
+			requested_features->use_transparent = true;
+		}
 	}
 }
 

@@ -120,13 +120,11 @@ ccl_device_forceinline float path_rng_1D(KernelGlobals *kg, ccl_addr_space RNG *
 	/* Cranly-Patterson rotation using rng seed */
 	float shift;
 
-	/* using the same *rng value to offset seems to give correlation issues,
-	 * we could hash it with the dimension but this has a performance impact,
-	 * we need to find a solution for this */
-	if(dimension & 1)
-		shift = (*rng >> 16) * (1.0f/(float)0xFFFF);
-	else
-		shift = (*rng & 0xFFFF) * (1.0f/(float)0xFFFF);
+	/* Hash rng with dimension to solve correlation issues.
+	 * See T38710, T50116.
+	 */
+	RNG tmp_rng = cmj_hash_simple(dimension, *rng);
+	shift = tmp_rng * (1.0f/(float)0xFFFFFFFF);
 
 	return r + shift - floorf(r + shift);
 #endif

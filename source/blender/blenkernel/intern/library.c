@@ -1157,31 +1157,6 @@ void *BKE_libblock_copy_nolib(ID *id, const bool do_action)
 	return idn;
 }
 
-static int id_relink_looper(void *UNUSED(user_data), ID *UNUSED(self_id), ID **id_pointer, const int cd_flag)
-{
-	ID *id = *id_pointer;
-	if (id) {
-		/* See: NEW_ID macro */
-		if (id->newid) {
-			BKE_library_update_ID_link_user(id->newid, id, cd_flag);
-			*id_pointer = id->newid;
-		}
-		else if (id->tag & LIB_TAG_NEW) {
-			id->tag &= ~LIB_TAG_NEW;
-			BKE_libblock_relink(id);
-		}
-	}
-	return IDWALK_RET_NOP;
-}
-
-void BKE_libblock_relink(ID *id)
-{
-	if (ID_IS_LINKED_DATABLOCK(id))
-		return;
-
-	BKE_library_foreach_ID_link(id, id_relink_looper, NULL, 0);
-}
-
 void BKE_library_free(Library *lib)
 {
 	if (lib->packedfile)

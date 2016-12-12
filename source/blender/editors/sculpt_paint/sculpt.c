@@ -4187,7 +4187,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 
 		/* compute 3d coordinate at same z from original location + mouse */
 		mul_v3_m4v3(loc, ob->obmat, cache->orig_grab_location);
-		ED_view3d_win_to_3d(cache->vc->ar, loc, mouse, grab_location);
+		ED_view3d_win_to_3d(cache->vc->v3d, cache->vc->ar, loc, mouse, grab_location);
 
 		/* compute delta to move verts by */
 		if (!cache->first_time) {

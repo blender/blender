@@ -1074,29 +1074,31 @@ static void do_sub_effect(const SeqRenderData *context, Sequence *UNUSED(seq), f
 
 static void do_drop_effect_byte(float facf0, float facf1, int x, int y, unsigned char *rect2i, unsigned char *rect1i, unsigned char *outi)
 {
-	int height, width, temp, fac, fac1, fac2;
+	int temp, fac, fac1, fac2;
 	unsigned char *rt1, *rt2, *out;
 	int field = 1;
 
-	width = x;
-	height = y;
+	const int width = x;
+	const int height = y;
+	const int xoff = min_ii(XOFF, width);
+	const int yoff = min_ii(YOFF, height);
 
 	fac1 = (int) (70.0f * facf0);
 	fac2 = (int) (70.0f * facf1);
 
-	rt2 = (unsigned char *) (rect2i + YOFF * width);
-	rt1 = (unsigned char *) rect1i;
-	out = (unsigned char *) outi;
-	for (y = 0; y < height - YOFF; y++) {
+	rt2 = rect2i + yoff * 4 * width;
+	rt1 = rect1i;
+	out = outi;
+	for (y = 0; y < height - yoff; y++) {
 		if (field) fac = fac1;
 		else fac = fac2;
 		field = !field;
 
-		memcpy(out, rt1, sizeof(int) * XOFF);
-		rt1 += XOFF * 4;
-		out += XOFF * 4;
+		memcpy(out, rt1, sizeof(*out) * xoff * 4);
+		rt1 += xoff * 4;
+		out += xoff * 4;
 
-		for (x = XOFF; x < width; x++) {
+		for (x = xoff; x < width; x++) {
 			temp = ((fac * rt2[3]) >> 8);
 
 			*(out++) = MAX2(0, *rt1 - temp); rt1++;
@@ -1105,37 +1107,38 @@ static void do_drop_effect_byte(float facf0, float facf1, int x, int y, unsigned
 			*(out++) = MAX2(0, *rt1 - temp); rt1++;
 			rt2 += 4;
 		}
-		rt2 += XOFF * 4;
+		rt2 += xoff * 4;
 	}
-	memcpy(out, rt1, sizeof(int) * YOFF * width);
+	memcpy(out, rt1, sizeof(*out) * yoff * 4 * width);
 }
 
 static void do_drop_effect_float(float facf0, float facf1, int x, int y, float *rect2i, float *rect1i, float *outi)
 {
-	int height, width;
 	float temp, fac, fac1, fac2;
 	float *rt1, *rt2, *out;
 	int field = 1;
 
-	width = x;
-	height = y;
+	const int width = x;
+	const int height = y;
+	const int xoff = min_ii(XOFF, width);
+	const int yoff = min_ii(YOFF, height);
 
 	fac1 = 70.0f * facf0;
 	fac2 = 70.0f * facf1;
 
-	rt2 =  (rect2i + YOFF * width);
+	rt2 =  rect2i + yoff * 4 * width;
 	rt1 =  rect1i;
 	out =  outi;
-	for (y = 0; y < height - YOFF; y++) {
+	for (y = 0; y < height - yoff; y++) {
 		if (field) fac = fac1;
 		else fac = fac2;
 		field = !field;
 
-		memcpy(out, rt1, 4 * sizeof(float) * XOFF);
-		rt1 += XOFF * 4;
-		out += XOFF * 4;
+		memcpy(out, rt1, sizeof(*out) * xoff * 4);
+		rt1 += xoff * 4;
+		out += xoff * 4;
 
-		for (x = XOFF; x < width; x++) {
+		for (x = xoff; x < width; x++) {
 			temp = fac * rt2[3];
 
 			*(out++) = MAX2(0.0f, *rt1 - temp); rt1++;
@@ -1144,9 +1147,9 @@ static void do_drop_effect_float(float facf0, float facf1, int x, int y, float *
 			*(out++) = MAX2(0.0f, *rt1 - temp); rt1++;
 			rt2 += 4;
 		}
-		rt2 += XOFF * 4;
+		rt2 += xoff * 4;
 	}
-	memcpy(out, rt1, 4 * sizeof(float) * YOFF * width);
+	memcpy(out, rt1, sizeof(*out) * yoff * 4 * width);
 }
 
 /*********************** Mul *************************/

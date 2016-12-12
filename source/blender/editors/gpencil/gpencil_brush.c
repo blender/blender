@@ -1799,6 +1799,12 @@ static int gpsculpt_brush_modal(bContext *C, wmOperator *op, const wmEvent *even
 			case UPARROWKEY:
 			case DOWNARROWKEY:
 				return OPERATOR_PASS_THROUGH;
+				
+			/* Camera/View Manipulations - Allowed */
+			/* (See rationale in gpencil_paint.c -> gpencil_draw_modal()) */
+			case PAD0:  case PAD1:  case PAD2:  case PAD3:  case PAD4:
+			case PAD5:  case PAD6:  case PAD7:  case PAD8:  case PAD9:
+				return OPERATOR_PASS_THROUGH;
 			
 			/* Unhandled event */
 			default:

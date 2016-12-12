@@ -305,7 +305,7 @@ void RNA_api_scene(StructRNA *srna)
 	func = RNA_def_function(srna, "frame_set", "rna_Scene_frame_set");
 	RNA_def_function_ui_description(func, "Set scene frame updating all objects immediately");
 	parm = RNA_def_int(func, "frame", 0, MINAFRAME, MAXFRAME, "", "Frame number to set", MINAFRAME, MAXFRAME);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_float(func, "subframe", 0.0, 0.0, 1.0, "", "Sub-frame time, between 0.0 and 1.0", 0.0, 1.0);
 
 	func = RNA_def_function(srna, "update", "rna_Scene_update_tagged");
@@ -315,34 +315,31 @@ void RNA_api_scene(StructRNA *srna)
 	func = RNA_def_function(srna, "uvedit_aspect", "rna_Scene_uvedit_aspect");
 	RNA_def_function_ui_description(func, "Get uv aspect for current object");
 	parm = RNA_def_pointer(func, "object", "Object", "", "Object");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
-
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_float_vector(func, "result", 2, NULL, 0.0f, FLT_MAX, "", "aspect", 0.0f, FLT_MAX);
-	RNA_def_property_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
 	RNA_def_function_output(func, parm);
 	
 	/* Ray Cast */
 	func = RNA_def_function(srna, "ray_cast", "rna_Scene_ray_cast");
 	RNA_def_function_ui_description(func, "Cast a ray onto in object space");
-
 	/* ray start and end */
 	parm = RNA_def_float_vector(func, "origin", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_float_vector(func, "direction", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_float(func, "distance", BVH_RAYCAST_DIST_MAX, 0.0, BVH_RAYCAST_DIST_MAX,
 	              "", "Maximum distance", 0.0, BVH_RAYCAST_DIST_MAX);
-
 	/* return location and normal */
 	parm = RNA_def_boolean(func, "result", 0, "", "");
 	RNA_def_function_output(func, parm);
 	parm = RNA_def_float_vector(func, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location",
 	                            "The hit location of this ray cast", -1e4, 1e4);
-	RNA_def_property_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
 	RNA_def_function_output(func, parm);
 	parm = RNA_def_float_vector(func, "normal", 3, NULL, -FLT_MAX, FLT_MAX, "Normal",
 	                            "The face normal at the ray cast hit location", -1e4, 1e4);
-	RNA_def_property_flag(parm, PROP_THICK_WRAP);
+	RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
 	RNA_def_function_output(func, parm);
 	parm = RNA_def_int(func, "index", 0, 0, 0, "", "The face index, -1 when original data isn't available", 0, 0);
 	RNA_def_function_output(func, parm);
@@ -355,29 +352,29 @@ void RNA_api_scene(StructRNA *srna)
 	/* don't remove this, as COLLADA exporting cannot be done through operators in render() callback. */
 	func = RNA_def_function(srna, "collada_export", "rna_Scene_collada_export");
 	parm = RNA_def_string(func, "filepath", NULL, FILE_MAX, "File Path", "File path to write Collada file");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_property_subtype(parm, PROP_FILEPATH); /* allow non utf8 */
-	parm = RNA_def_boolean(func, "apply_modifiers", 0, "Apply Modifiers", "Apply modifiers");
-	parm = RNA_def_int(func, "export_mesh_type", 0, INT_MIN, INT_MAX,
+	RNA_def_boolean(func, "apply_modifiers", 0, "Apply Modifiers", "Apply modifiers");
+	RNA_def_int(func, "export_mesh_type", 0, INT_MIN, INT_MAX,
 	            "Resolution", "Modifier resolution for export", INT_MIN, INT_MAX);
-	parm = RNA_def_boolean(func, "selected", 0, "Selection Only", "Export only selected elements");
-	parm = RNA_def_boolean(func, "include_children", 0, "Include Children", "Export all children of selected objects (even if not selected)");
-	parm = RNA_def_boolean(func, "include_armatures", 0, "Include Armatures", "Export related armatures (even if not selected)");
-	parm = RNA_def_boolean(func, "include_shapekeys", 0, "Include Shape Keys", "Export all Shape Keys from Mesh Objects");
-	parm = RNA_def_boolean(func, "deform_bones_only", 0, "Deform Bones only", "Only export deforming bones with armatures");
+	RNA_def_boolean(func, "selected", 0, "Selection Only", "Export only selected elements");
+	RNA_def_boolean(func, "include_children", 0, "Include Children", "Export all children of selected objects (even if not selected)");
+	RNA_def_boolean(func, "include_armatures", 0, "Include Armatures", "Export related armatures (even if not selected)");
+	RNA_def_boolean(func, "include_shapekeys", 0, "Include Shape Keys", "Export all Shape Keys from Mesh Objects");
+	RNA_def_boolean(func, "deform_bones_only", 0, "Deform Bones only", "Only export deforming bones with armatures");
 
-	parm = RNA_def_boolean(func, "active_uv_only", 0, "Active UV Layer only", "Export only the active UV Layer");
-	parm = RNA_def_boolean(func, "include_uv_textures", 0, "Include UV Textures", "Export textures assigned to the object UV maps");
-	parm = RNA_def_boolean(func, "include_material_textures", 0, "Include Material Textures", "Export textures assigned to the object Materials");
-	parm = RNA_def_boolean(func, "use_texture_copies", 0, "copy", "Copy textures to same folder where the .dae file is exported");
+	RNA_def_boolean(func, "active_uv_only", 0, "Active UV Layer only", "Export only the active UV Layer");
+	RNA_def_boolean(func, "include_uv_textures", 0, "Include UV Textures", "Export textures assigned to the object UV maps");
+	RNA_def_boolean(func, "include_material_textures", 0, "Include Material Textures", "Export textures assigned to the object Materials");
+	RNA_def_boolean(func, "use_texture_copies", 0, "copy", "Copy textures to same folder where the .dae file is exported");
 
-	parm = RNA_def_boolean(func, "use_ngons", 1, "Use NGons", "Keep NGons in Export");
-	parm = RNA_def_boolean(func, "use_object_instantiation", 1, "Use Object Instances", "Instantiate multiple Objects from same Data");
-	parm = RNA_def_boolean(func, "use_blender_profile", 1, "Use Blender Profile", "Export additional Blender specific information (for material, shaders, bones, etc.)");
-	parm = RNA_def_boolean(func, "sort_by_name", 0, "Sort by Object name", "Sort exported data by Object name");
-	parm = RNA_def_boolean(func, "open_sim", 0, "Export for SL/OpenSim", "Compatibility mode for SL, OpenSim and similar online worlds");
+	RNA_def_boolean(func, "use_ngons", 1, "Use NGons", "Keep NGons in Export");
+	RNA_def_boolean(func, "use_object_instantiation", 1, "Use Object Instances", "Instantiate multiple Objects from same Data");
+	RNA_def_boolean(func, "use_blender_profile", 1, "Use Blender Profile", "Export additional Blender specific information (for material, shaders, bones, etc.)");
+	RNA_def_boolean(func, "sort_by_name", 0, "Sort by Object name", "Sort exported data by Object name");
+	RNA_def_boolean(func, "open_sim", 0, "Export for SL/OpenSim", "Compatibility mode for SL, OpenSim and similar online worlds");
 
-	parm = RNA_def_int(func, "export_transformation_type", 0, INT_MIN, INT_MAX,
+	RNA_def_int(func, "export_transformation_type", 0, INT_MIN, INT_MAX,
 	            "Transformation", "Transformation type for translation, scale and rotation", INT_MIN, INT_MAX);
 
 	RNA_def_function_ui_description(func, "Export to collada file");
@@ -388,7 +385,7 @@ void RNA_api_scene(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Export to Alembic file");
 
 	parm = RNA_def_string(func, "filepath", NULL, FILE_MAX, "File Path", "File path to write Alembic file");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_property_subtype(parm, PROP_FILEPATH); /* allow non utf8 */
 
 	RNA_def_int(func, "frame_start", 1, INT_MIN, INT_MAX, "Start", "Start Frame", INT_MIN, INT_MAX);
@@ -428,13 +425,12 @@ void RNA_api_scene_render(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Return the absolute path to the filename to be written for a given frame");
 	RNA_def_int(func, "frame", INT_MIN, INT_MIN, INT_MAX, "",
 	            "Frame number to use, if unset the current frame will be used", MINAFRAME, MAXFRAME);
-	parm = RNA_def_boolean(func, "preview", 0, "Preview", "Use preview range");
-	parm = RNA_def_string_file_path(func, "view", NULL, FILE_MAX, "View",
+	RNA_def_boolean(func, "preview", 0, "Preview", "Use preview range");
+	RNA_def_string_file_path(func, "view", NULL, FILE_MAX, "View",
 	                                "The name of the view to use to replace the \"%\" chars");
-
 	parm = RNA_def_string_file_path(func, "filepath", NULL, FILE_MAX, "File Path",
 	                                "The resulting filepath from the scenes render settings");
-	RNA_def_property_flag(parm, PROP_THICK_WRAP); /* needed for string return value */
+	RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0); /* needed for string return value */
 	RNA_def_function_output(func, parm);
 }
 

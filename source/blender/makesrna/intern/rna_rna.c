@@ -178,7 +178,7 @@ static int rna_idproperty_known(CollectionPropertyIterator *iter, void *data)
 	 * for the second loop where we go over unknown id properties */
 	do {
 		for (prop = ptype->cont.properties.first; prop; prop = prop->next)
-			if ((prop->flag & PROP_BUILTIN) == 0 && STREQ(prop->identifier, idprop->name))
+			if ((prop->flag_internal & PROP_INTERN_BUILTIN) == 0 && STREQ(prop->identifier, idprop->name))
 				return 1;
 	} while ((ptype = ptype->base));
 
@@ -191,7 +191,7 @@ static int rna_property_builtin(CollectionPropertyIterator *UNUSED(iter), void *
 
 	/* function to skip builtin rna properties */
 
-	return (prop->flag & PROP_BUILTIN);
+	return (prop->flag_internal & PROP_INTERN_BUILTIN);
 }
 
 static int rna_function_builtin(CollectionPropertyIterator *UNUSED(iter), void *data)
@@ -385,7 +385,7 @@ int rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, Point
 		}
 		else {
 			for (prop = srna->cont.properties.first; prop; prop = prop->next) {
-				if (!(prop->flag & PROP_BUILTIN) && STREQ(prop->identifier, key)) {
+				if (!(prop->flag_internal & PROP_INTERN_BUILTIN) && STREQ(prop->identifier, key)) {
 					propptr.type = &RNA_Property;
 					propptr.data = prop;
 
@@ -557,19 +557,19 @@ static int rna_Property_animatable_get(PointerRNA *ptr)
 static int rna_Property_use_output_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
-	return (prop->flag & PROP_OUTPUT) != 0;
+	return (prop->flag_parameter & PARM_OUTPUT) != 0;
 }
 
 static int rna_Property_is_required_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
-	return (prop->flag & PROP_REQUIRED) != 0;
+	return (prop->flag_parameter & PARM_REQUIRED) != 0;
 }
 
 static int rna_Property_is_argument_optional_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
-	return (prop->flag & PROP_PYFUNC_OPTIONAL) != 0;
+	return (prop->flag_parameter & PARM_PYFUNC_OPTIONAL) != 0;
 }
 
 static int rna_Property_is_never_none_get(PointerRNA *ptr)
@@ -625,7 +625,7 @@ static int rna_Property_is_registered_optional_get(PointerRNA *ptr)
 static int rna_Property_is_runtime_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
-	return (prop->flag & PROP_RUNTIME) != 0;
+	return (prop->flag_internal & PROP_INTERN_RUNTIME) != 0;
 }
 
 

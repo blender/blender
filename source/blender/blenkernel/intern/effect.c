@@ -631,7 +631,7 @@ static void do_texture_effector(EffectorCache *eff, EffectorData *efd, EffectedP
 		force[1] = (0.5f - result->tg) * strength;
 		force[2] = (0.5f - result->tb) * strength;
 	}
-	else {
+	else if (nabla != 0) {
 		strength/=nabla;
 
 		tex_co[0] += nabla;
@@ -670,6 +670,9 @@ static void do_texture_effector(EffectorCache *eff, EffectorData *efd, EffectedP
 			force[1] = (drdz - dbdx) * strength;
 			force[2] = (dgdx - drdy) * strength;
 		}
+	}
+	else {
+		zero_v3(force);
 	}
 
 	if (eff->pd->flag & PFIELD_TEX_2D) {

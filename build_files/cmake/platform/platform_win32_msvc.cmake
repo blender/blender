@@ -238,14 +238,14 @@ if(WITH_CODEC_FFMPEG)
 	windows_find_package(FFMPEG)
 	if(NOT FFMPEG_FOUND)
 		warn_hardcoded_paths(ffmpeg)
-		set(FFMPEG_LIBRARY_VERSION 55)
-		set(FFMPEG_LIBRARY_VERSION_AVU 52)
+		set(FFMPEG_LIBRARY_VERSION 57)
+		set(FFMPEG_LIBRARY_VERSION_AVU 55)
 		set(FFMPEG_LIBRARIES
-			${LIBDIR}/ffmpeg/lib/avcodec-${FFMPEG_LIBRARY_VERSION}.lib
-			${LIBDIR}/ffmpeg/lib/avformat-${FFMPEG_LIBRARY_VERSION}.lib
-			${LIBDIR}/ffmpeg/lib/avdevice-${FFMPEG_LIBRARY_VERSION}.lib
-			${LIBDIR}/ffmpeg/lib/avutil-${FFMPEG_LIBRARY_VERSION_AVU}.lib
-			${LIBDIR}/ffmpeg/lib/swscale-2.lib
+			${LIBDIR}/ffmpeg/lib/avcodec.lib
+			${LIBDIR}/ffmpeg/lib/avformat.lib
+			${LIBDIR}/ffmpeg/lib/avdevice.lib
+			${LIBDIR}/ffmpeg/lib/avutil.lib
+			${LIBDIR}/ffmpeg/lib/swscale.lib
 			)
 	endif()
 endif()
@@ -380,6 +380,7 @@ if(WITH_OPENIMAGEIO)
 	set(OPENCOLORIO_DEFINITIONS "-DOCIO_STATIC_BUILD")
 	set(OPENIMAGEIO_IDIFF "${OPENIMAGEIO}/bin/idiff.exe")
 	add_definitions(-DOIIO_STATIC_BUILD)
+	add_definitions(-DOIIO_NO_SSE=1)
 endif()
 
 if(WITH_LLVM)

@@ -52,6 +52,7 @@
 #include "DNA_node_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -1218,7 +1219,7 @@ static Image *image_open_single(
 static int image_open_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	SpaceImage *sima = CTX_wm_space_image(C); /* XXX other space types can call */
+	ScrArea *sa = CTX_wm_area(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	ImageUser *iuser = NULL;
@@ -1297,9 +1298,20 @@ static int image_open_exec(bContext *C, wmOperator *op)
 	if (iod->iuser) {
 		iuser = iod->iuser;
 	}
-	else if (sima) {
+	else if (sa->spacetype == SPACE_IMAGE) {
+		SpaceImage *sima = sa->spacedata.first;
 		ED_space_image_set(sima, scene, obedit, ima);
 		iuser = &sima->iuser;
+	}
+	else if (sa->spacetype == SPACE_VIEW3D) {
+		View3D *v3d = sa->spacedata.first;
+
+		for (BGpic *bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next) {
+			if (bgpic->ima == ima) {
+				iuser = &bgpic->iuser;
+				break;
+			}
+		}
 	}
 	else {
 		Tex *tex = CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
