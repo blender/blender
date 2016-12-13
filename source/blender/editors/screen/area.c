@@ -58,6 +58,7 @@
 #include "ED_space_api.h"
 
 #include "GPU_immediate.h"
+#include "GPU_draw.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -299,25 +300,28 @@ static void region_draw_azone_icon(AZone *az)
 	VertexFormat* format = immVertexFormat();
 	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
 	/* outlined circle */
+	GPU_enable_program_point_size(); /* TODO: make a fixed-size shader to avoid this */
+	immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_SMOOTH);
 	immUniform4f("color", 1.0f, 1.0f, 1.0f, 0.8f);
-	imm_draw_filled_circle(pos, midx, midy, 4.25f, 12);
-	/* TODO(merwin): replace this --^ with one round point once shader is ready */
-	glEnable(GL_LINE_SMOOTH);
-	immUniform4f("color", 0.2f, 0.2f, 0.2f, 0.9f);
-	imm_draw_lined_circle(pos, midx, midy, 4.25f, 12);
-	glDisable(GL_LINE_SMOOTH);
+	immUniform4f("outlineColor", 0.2f, 0.2f, 0.2f, 0.9f);
+	immUniform1f("outlineWidth", 1.0f);
+	immUniform1f("size", 9.5f);
+	immBegin(GL_POINTS, 1);
+	immVertex2f(pos, midx, midy);
+	immEnd();
+	immUnbindProgram();
+	GPU_disable_program_point_size();
 
 	/* + */
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniform4f("color", 0.2f, 0.2f, 0.2f, 0.9f);
 	immBegin(GL_LINES, 4);
 	immVertex2f(pos, midx, midy - 2);
 	immVertex2f(pos, midx, midy + 3);
 	immVertex2f(pos, midx - 2, midy);
 	immVertex2f(pos, midx + 3, midy);
 	immEnd();
-
 	immUnbindProgram();
 }
 
