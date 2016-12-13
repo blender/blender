@@ -137,7 +137,7 @@ int curve_fit_cubic_to_points_refit_db(
         const double          error_threshold,
         const unsigned int    calc_flag,
         const unsigned int   *corners,
-        unsigned int          corners_len,
+        const unsigned int    corners_len,
         const double          corner_angle,
 
         double **r_cubic_array, unsigned int *r_cubic_array_len,
