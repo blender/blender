@@ -223,7 +223,7 @@ static void area_draw_azone_fullscreen(short x1, short y1, short x2, short y2, f
 
 		VertexFormat* format = immVertexFormat();
 		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-		unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, KEEP_INT);
+		unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
 
 		immAttrib4ub(color, 255, 0, 0, alpha_debug);
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
