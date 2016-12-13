@@ -195,7 +195,7 @@ void libmv_cameraIntrinsicsExtractOptions(
       }
 
     default:
-      assert(!"Uknown distortion model");
+      assert(!"Unknown distortion model");
   }
 }
 
