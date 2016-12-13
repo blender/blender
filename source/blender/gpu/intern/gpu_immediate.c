@@ -64,3 +64,10 @@ void immUniformThemeColorBlendShade(int color_id1, int color_id2, float fac, int
 	UI_GetThemeColorBlendShade4fv(color_id1, color_id2, fac, offset, color);
 	immUniformColor4fv(color);
 }
+
+void immUniformThemeColorBlend(int color_id1, int color_id2, float fac)
+{
+	uint8_t color[3];
+	UI_GetThemeColorBlend3ubv(color_id1, color_id2, fac, color);
+	immUniformColor3ubv(color);
+}
