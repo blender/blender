@@ -656,11 +656,6 @@ doc_id = StringProperty(
         options={'HIDDEN'},
         )
 
-doc_new = StringProperty(
-        name="Edit Description",
-        maxlen=1024,
-        )
-
 data_path_iter = StringProperty(
         description="The data path relative to the context, must point to an iterable")
 
