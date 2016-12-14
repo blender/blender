@@ -492,26 +492,23 @@ void UI_draw_safe_areas(
 	const float size_y_half = (y2 - y1) * 0.5f;
 
 	const float *safe_areas[] = {title_aspect, action_aspect};
-	int safe_len = ARRAY_SIZE(safe_areas);
+	const int safe_len = ARRAY_SIZE(safe_areas);
 	bool is_first = true;
 
 	for (int i = 0; i < safe_len; i++) {
 		if (safe_areas[i][0] || safe_areas[i][1]) {
-			float margin_x, margin_y;
-			float minx, miny, maxx, maxy;
-
 			if (is_first) {
-				UI_ThemeColorBlendShade(TH_VIEW_OVERLAY, TH_BACK, 0.25f, 0);
+				immUniformThemeColorBlend(TH_VIEW_OVERLAY, TH_BACK, 0.25f);
 				is_first = false;
 			}
 
-			margin_x = safe_areas[i][0] * size_x_half;
-			margin_y = safe_areas[i][1] * size_y_half;
+			float margin_x = safe_areas[i][0] * size_x_half;
+			float margin_y = safe_areas[i][1] * size_y_half;
 
-			minx = x1 + margin_x;
-			miny = y1 + margin_y;
-			maxx = x2 - margin_x;
-			maxy = y2 - margin_y;
+			float minx = x1 + margin_x;
+			float miny = y1 + margin_y;
+			float maxx = x2 - margin_x;
+			float maxy = y2 - margin_y;
 
 			imm_draw_line_box(pos, minx, miny, maxx, maxy);
 		}

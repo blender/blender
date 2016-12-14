@@ -333,13 +333,16 @@ static void draw_azone_plus(float x1, float y1, float x2, float y2)
 	VertexFormat* format = immVertexFormat();
 	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
+	glEnable(GL_BLEND);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformColor4f(0.8f, 0.8f, 0.8f, 0.4f);
 
 	immRectf(pos, (x1 + x2 - width) * 0.5f, y1 + pad, (x1 + x2 + width) * 0.5f, y2 - pad);
 	immRectf(pos, x1 + pad, (y1 + y2 - width) * 0.5f, (x1 + x2 - width) * 0.5f, (y1 + y2 + width) * 0.5f);
 	immRectf(pos, (x1 + x2 + width) * 0.5f, (y1 + y2 - width) * 0.5f, x2 - pad, (y1 + y2 + width) * 0.5f);
 
 	immUnbindProgram();
+	glDisable(GL_BLEND);
 }
 
 static void region_draw_azone_tab_plus(AZone *az)
@@ -365,12 +368,7 @@ static void region_draw_azone_tab_plus(AZone *az)
 	float color[4] = {0.05f, 0.05f, 0.05f, 0.4f};
 	UI_draw_roundbox((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, color);
 
-	glEnable(GL_BLEND);
-
-	glColor4f(0.8f, 0.8f, 0.8f, 0.4f);
 	draw_azone_plus((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2);
-
-	glDisable(GL_BLEND);
 }
 
 static void region_draw_azone_tab(AZone *az)
@@ -2155,7 +2153,7 @@ void ED_region_info_draw(ARegion *ar, const char *text, float fill_color[4], con
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	VertexFormat* format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4fv(fill_color);
 	immRecti(pos, rect.xmin, rect.ymin, rect.xmax + 1, rect.ymax + 1);
