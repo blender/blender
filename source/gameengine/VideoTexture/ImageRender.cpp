@@ -734,6 +734,7 @@ ImageRender::ImageRender (KX_Scene *scene, KX_GameObject *observer, KX_GameObjec
     m_done(false),
     m_scene(scene),
     m_offscreen(NULL),
+    m_sync(NULL),
     m_observer(observer),
     m_mirror(mirror),
     m_clip(100.f)
