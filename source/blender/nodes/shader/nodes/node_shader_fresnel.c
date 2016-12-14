@@ -51,17 +51,46 @@ static int node_shader_gpu_fresnel(GPUMaterial *mat, bNode *UNUSED(node), bNodeE
 	return GPU_stack_link(mat, "node_fresnel", in, out, GPU_builtin(GPU_VIEW_POSITION));
 }
 
+float fresnel_dielectric(float incoming[3], float normal[3], float eta)
+{
+	/* compute fresnel reflectance without explicitly computing
+	 * the refracted direction */
+	float c = fabs(dot_v3v3(incoming, normal));
+	float g = eta * eta - 1.0 + c * c;
+	float result;
+
+	if (g > 0.0) {
+		g = sqrtf(g);
+		float A = (g - c) / (g + c);
+		float B = (c * (g + c) - 1.0) / (c * (g - c) + 1.0);
+		result = 0.5 * A * A * (1.0 + B * B);
+	}
+	else {
+		result = 1.0;  /* TIR (no refracted component) */
+	}
+
+	return result;
+}
+
+static void node_shader_exec_fresnel(void *data, int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
+{
+	ShadeInput *shi = ((ShaderCallData *)data)->shi;
+	float eta = max_ff(in[0]->vec[0], 0.00001);
+	out[0]->vec[0] = fresnel_dielectric(shi->view, shi->vn, shi->flippednor ? 1/eta : eta);
+}
+
 /* node type definition */
 void register_node_type_sh_fresnel(void)
 {
 	static bNodeType ntype;
 
 	sh_node_type_base(&ntype, SH_NODE_FRESNEL, "Fresnel", NODE_CLASS_INPUT, 0);
-	node_type_compatibility(&ntype, NODE_NEW_SHADING);
+	node_type_compatibility(&ntype, NODE_NEW_SHADING | NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_fresnel_in, sh_node_fresnel_out);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_fresnel);
+	node_type_exec(&ntype, NULL, NULL, node_shader_exec_fresnel);
 
 	nodeRegisterType(&ntype);
 }
