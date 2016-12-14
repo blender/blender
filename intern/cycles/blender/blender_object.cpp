@@ -148,8 +148,8 @@ public:
 		BL::Array<float, 24> boundbox = b_ob.bound_box();
 		for(int i = 0; i < 8; ++i) {
 			float3 p = make_float3(boundbox[3 * i + 0],
-								   boundbox[3 * i + 1],
-								   boundbox[3 * i + 2]);
+			                       boundbox[3 * i + 1],
+			                       boundbox[3 * i + 2]);
 			bb[i] = transform_point(&tfm, p);
 		}
 
@@ -203,7 +203,7 @@ private:
 	{
 		float3 camera_position = transform_get_column(&scene->camera->matrix, 3);
 		float3 bb_min = make_float3(FLT_MAX, FLT_MAX, FLT_MAX),
-			   bb_max = make_float3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+		       bb_max = make_float3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 
 		/* Find min & max points for x & y & z on bounding box */
 		for(int i = 0; i < 8; ++i) {
