@@ -613,6 +613,9 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals *kg, const ShaderClosure
 			}
 		}
 	}
+	else {
+		label = (m_refractive) ? LABEL_TRANSMIT|LABEL_GLOSSY : LABEL_REFLECT|LABEL_GLOSSY;
+	}
 	return label;
 }
 
@@ -974,6 +977,9 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals *kg, const ShaderCl
 				}
 			}
 		}
+	}
+	else {
+		label = (m_refractive) ? LABEL_TRANSMIT|LABEL_GLOSSY : LABEL_REFLECT|LABEL_GLOSSY;
 	}
 	return label;
 }
