@@ -115,7 +115,7 @@ public:
 			/* Allocate buffer for kernel globals */
 			device_memory kgbuffer;
 			kgbuffer.resize(sizeof(KernelGlobals));
-			mem_alloc(kgbuffer, MEM_READ_WRITE);
+			mem_alloc("kernel_globals", kgbuffer, MEM_READ_WRITE);
 
 			/* Keep rendering tiles until done. */
 			while(task->acquire_tile(this, tile)) {

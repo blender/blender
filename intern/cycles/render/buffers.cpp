@@ -129,13 +129,13 @@ void RenderBuffers::reset(Device *device, BufferParams& params_)
 	
 	/* allocate buffer */
 	buffer.resize(params.width*params.height*params.get_passes_size());
-	device->mem_alloc(buffer, MEM_READ_WRITE);
+	device->mem_alloc("render_buffer", buffer, MEM_READ_WRITE);
 	device->mem_zero(buffer);
 
 	/* allocate rng state */
 	rng_state.resize(params.width, params.height);
 
-	device->mem_alloc(rng_state, MEM_READ_WRITE);
+	device->mem_alloc("rng_state", rng_state, MEM_READ_WRITE);
 }
 
 bool RenderBuffers::copy_from_device()

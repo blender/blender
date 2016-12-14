@@ -121,9 +121,9 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 	/* needs to be up to data for attribute access */
 	device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
 
-	device->mem_alloc(d_input, MEM_READ_ONLY);
+	device->mem_alloc("displace_input", d_input, MEM_READ_ONLY);
 	device->mem_copy_to(d_input);
-	device->mem_alloc(d_output, MEM_WRITE_ONLY);
+	device->mem_alloc("displace_output", d_output, MEM_WRITE_ONLY);
 
 	DeviceTask task(DeviceTask::SHADER);
 	task.shader_input = d_input.device_pointer;

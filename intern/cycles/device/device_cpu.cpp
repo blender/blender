@@ -231,8 +231,14 @@ public:
 		return (TaskScheduler::num_threads() == 1);
 	}
 
-	void mem_alloc(device_memory& mem, MemoryType /*type*/)
+	void mem_alloc(const char *name, device_memory& mem, MemoryType /*type*/)
 	{
+		if(name) {
+			VLOG(1) << "Buffer allocate: " << name << ", "
+				    << string_human_readable_number(mem.memory_size()) << " bytes. ("
+				    << string_human_readable_size(mem.memory_size()) << ")";
+		}
+
 		mem.device_pointer = mem.data_pointer;
 
 		if(!mem.device_pointer) {
@@ -437,7 +443,7 @@ public:
 		/* allocate buffer for kernel globals */
 		device_memory kgbuffer;
 		kgbuffer.resize(sizeof(KernelGlobals));
-		mem_alloc(kgbuffer, MEM_READ_WRITE);
+		mem_alloc("kernel_globals", kgbuffer, MEM_READ_WRITE);
 
 		KernelGlobals *kg = (KernelGlobals*)kgbuffer.device_pointer;
 		*kg = thread_kernel_globals_init();

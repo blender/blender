@@ -131,21 +131,21 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 
 		/* Allocate work_pool_wgs memory. */
 		work_pool_wgs.resize(max_work_groups * sizeof(unsigned int));
-		device->mem_alloc(work_pool_wgs, MEM_READ_WRITE);
+		device->mem_alloc("work_pool_wgs", work_pool_wgs, MEM_READ_WRITE);
 
 		queue_index.resize(NUM_QUEUES * sizeof(int));
-		device->mem_alloc(queue_index, MEM_READ_WRITE);
+		device->mem_alloc("queue_index", queue_index, MEM_READ_WRITE);
 
 		use_queues_flag.resize(sizeof(char));
-		device->mem_alloc(use_queues_flag, MEM_READ_WRITE);
+		device->mem_alloc("use_queues_flag", use_queues_flag, MEM_READ_WRITE);
 
 		ray_state.resize(num_global_elements);
-		device->mem_alloc(ray_state, MEM_READ_WRITE);
+		device->mem_alloc("ray_state", ray_state, MEM_READ_WRITE);
 
 		split_data.resize(split_data_buffer_size(num_global_elements,
 		                                         current_max_closure,
 		                                         per_thread_output_buffer_size));
-		device->mem_alloc(split_data, MEM_READ_WRITE);
+		device->mem_alloc("split_data", split_data, MEM_READ_WRITE);
 	}
 
 #define ENQUEUE_SPLIT_KERNEL(name, global_size, local_size) \

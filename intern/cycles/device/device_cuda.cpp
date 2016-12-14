@@ -505,8 +505,14 @@ public:
 		}
 	}
 
-	void mem_alloc(device_memory& mem, MemoryType /*type*/)
+	void mem_alloc(const char *name, device_memory& mem, MemoryType /*type*/)
 	{
+		if(name) {
+			VLOG(1) << "Buffer allocate: " << name << ", "
+				    << string_human_readable_number(mem.memory_size()) << " bytes. ("
+				    << string_human_readable_size(mem.memory_size()) << ")";
+		}
+
 		cuda_push_context();
 		CUdeviceptr device_pointer;
 		size_t size = mem.memory_size();
@@ -658,7 +664,7 @@ public:
 		/* Data Storage */
 		if(interpolation == INTERPOLATION_NONE) {
 			if(has_bindless_textures) {
-				mem_alloc(mem, MEM_READ_ONLY);
+				mem_alloc(NULL, mem, MEM_READ_ONLY);
 				mem_copy_to(mem);
 
 				cuda_push_context();
@@ -682,7 +688,7 @@ public:
 				cuda_pop_context();
 			}
 			else {
-				mem_alloc(mem, MEM_READ_ONLY);
+				mem_alloc(NULL, mem, MEM_READ_ONLY);
 				mem_copy_to(mem);
 
 				cuda_push_context();

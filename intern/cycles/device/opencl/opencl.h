@@ -269,7 +269,7 @@ public:
 	virtual bool load_kernels(const DeviceRequestedFeatures& requested_features,
 	                          vector<OpenCLProgram*> &programs) = 0;
 
-	void mem_alloc(device_memory& mem, MemoryType type);
+	void mem_alloc(const char *name, device_memory& mem, MemoryType type);
 	void mem_copy_to(device_memory& mem);
 	void mem_copy_from(device_memory& mem, int y, int w, int h, int elem);
 	void mem_zero(device_memory& mem);

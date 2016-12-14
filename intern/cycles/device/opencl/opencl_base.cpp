@@ -245,8 +245,14 @@ bool OpenCLDeviceBase::load_kernels(const DeviceRequestedFeatures& requested_fea
 	return true;
 }
 
-void OpenCLDeviceBase::mem_alloc(device_memory& mem, MemoryType type)
+void OpenCLDeviceBase::mem_alloc(const char *name, device_memory& mem, MemoryType type)
 {
+	if(name) {
+		VLOG(1) << "Buffer allocate: " << name << ", "
+			    << string_human_readable_number(mem.memory_size()) << " bytes. ("
+			    << string_human_readable_size(mem.memory_size()) << ")";
+	}
+
 	size_t size = mem.memory_size();
 
 	cl_mem_flags mem_flag;
@@ -393,7 +399,7 @@ void OpenCLDeviceBase::const_copy_to(const char *name, void *host, size_t size)
 		device_vector<uchar> *data = new device_vector<uchar>();
 		data->copy((uchar*)host, size);
 
-		mem_alloc(*data, MEM_READ_ONLY);
+		mem_alloc(name, *data, MEM_READ_ONLY);
 		i = const_mem_map.insert(ConstMemMap::value_type(name, data)).first;
 	}
 	else {
@@ -412,7 +418,7 @@ void OpenCLDeviceBase::tex_alloc(const char *name,
 	VLOG(1) << "Texture allocate: " << name << ", "
 	        << string_human_readable_number(mem.memory_size()) << " bytes. ("
 	        << string_human_readable_size(mem.memory_size()) << ")";
-	mem_alloc(mem, MEM_READ_ONLY);
+	mem_alloc(NULL, mem, MEM_READ_ONLY);
 	mem_copy_to(mem);
 	assert(mem_map.find(name) == mem_map.end());
 	mem_map.insert(MemMap::value_type(name, mem.device_pointer));
