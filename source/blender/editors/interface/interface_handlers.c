@@ -6706,6 +6706,7 @@ void ui_panel_menu(bContext *C, ARegion *ar, Panel *pa)
 
 static void ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop)
 {
+	const PropertySubType subtype = RNA_property_subtype(prop);
 	wmOperatorType *ot = WM_operatortype_find("WM_OT_path_open", true);
 	char filepath[FILE_MAX];
 	char dir[FILE_MAXDIR];
