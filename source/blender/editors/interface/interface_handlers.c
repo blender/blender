@@ -6714,6 +6714,7 @@ static void ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, Pr
 	PointerRNA props_ptr;
 
 	BLI_assert(ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH));
+	UNUSED_VARS_NDEBUG(subtype);
 
 	RNA_property_string_get(ptr, prop, filepath);
 	BLI_split_dirfile(filepath, dir, file, sizeof(dir), sizeof(file));
