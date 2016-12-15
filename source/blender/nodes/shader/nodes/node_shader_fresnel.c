@@ -51,27 +51,6 @@ static int node_shader_gpu_fresnel(GPUMaterial *mat, bNode *UNUSED(node), bNodeE
 	return GPU_stack_link(mat, "node_fresnel", in, out, GPU_builtin(GPU_VIEW_POSITION));
 }
 
-static float fresnel_dielectric(float incoming[3], float normal[3], float eta)
-{
-	/* compute fresnel reflectance without explicitly computing
-	 * the refracted direction */
-	float c = fabs(dot_v3v3(incoming, normal));
-	float g = eta * eta - 1.0 + c * c;
-	float result;
-
-	if (g > 0.0) {
-		g = sqrtf(g);
-		float A = (g - c) / (g + c);
-		float B = (c * (g + c) - 1.0) / (c * (g - c) + 1.0);
-		result = 0.5 * A * A * (1.0 + B * B);
-	}
-	else {
-		result = 1.0;  /* TIR (no refracted component) */
-	}
-
-	return result;
-}
-
 static void node_shader_exec_fresnel(void *data, int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
 {
 	ShadeInput *shi = ((ShaderCallData *)data)->shi;
@@ -88,7 +67,7 @@ static void node_shader_exec_fresnel(void *data, int UNUSED(thread), bNode *UNUS
 	if(shi->use_world_space_shading)
 		mul_mat3_m4_v3((float (*)[4])RE_render_current_get_matrix(RE_VIEW_MATRIX), n);
 
-	out[0]->vec[0] = fresnel_dielectric(shi->view, n, shi->flippednor ? 1/eta : eta);
+	out[0]->vec[0] = RE_fresnel_dielectric(shi->view, n, shi->flippednor ? 1/eta : eta);
 }
 
 /* node type definition */
