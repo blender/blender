@@ -4782,13 +4782,10 @@ static int manipulator_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	if (!(v3d->twflag & V3D_USE_MANIPULATOR)) return OPERATOR_PASS_THROUGH;
 	if (!(v3d->twflag & V3D_DRAW_MANIPULATOR)) return OPERATOR_PASS_THROUGH;
 
-	/* only no modifier or shift */
-	if (event->keymodifier != 0 && event->keymodifier != KM_SHIFT) return OPERATOR_PASS_THROUGH;
-
 	/* note; otherwise opengl won't work */
 	view3d_operator_needs_opengl(C);
 
-	if (0 == BIF_do_manipulator(C, event, op))
+	if (BIF_do_manipulator(C, event, op) == 0)
 		return OPERATOR_PASS_THROUGH;
 
 	return OPERATOR_FINISHED;
@@ -4809,6 +4806,9 @@ void VIEW3D_OT_manipulator(wmOperatorType *ot)
 
 	/* properties to pass to transform */
 	Transform_Properties(ot, P_CONSTRAINT);
+
+	RNA_def_boolean(ot->srna, "use_planar_constraint", false, "Planar Constraint", "Limit the transformation to the "
+	                "two axes that have not been clicked (translate/scale only)");
 }
 
 static int enable_manipulator_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))

@@ -1835,7 +1835,7 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	int constraint_axis[3] = {0, 0, 0};
 	int val;
-	int shift = event->shift;
+	const bool use_planar = RNA_boolean_get(op->ptr, "use_planar_constraint");
 
 	if (!(v3d->twflag & V3D_USE_MANIPULATOR)) return 0;
 	if (!(v3d->twflag & V3D_DRAW_MANIPULATOR)) return 0;
@@ -1856,7 +1856,7 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 				case MAN_TRANS_C:
 					break;
 				case MAN_TRANS_X:
-					if (shift) {
+					if (use_planar) {
 						constraint_axis[1] = 1;
 						constraint_axis[2] = 1;
 					}
@@ -1864,7 +1864,7 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 						constraint_axis[0] = 1;
 					break;
 				case MAN_TRANS_Y:
-					if (shift) {
+					if (use_planar) {
 						constraint_axis[0] = 1;
 						constraint_axis[2] = 1;
 					}
@@ -1872,7 +1872,7 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 						constraint_axis[1] = 1;
 					break;
 				case MAN_TRANS_Z:
-					if (shift) {
+					if (use_planar) {
 						constraint_axis[0] = 1;
 						constraint_axis[1] = 1;
 					}
@@ -1886,7 +1886,7 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 		else if (drawflags & MAN_SCALE_C) {
 			switch (drawflags) {
 				case MAN_SCALE_X:
-					if (shift) {
+					if (use_planar) {
 						constraint_axis[1] = 1;
 						constraint_axis[2] = 1;
 					}
@@ -1894,7 +1894,7 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 						constraint_axis[0] = 1;
 					break;
 				case MAN_SCALE_Y:
-					if (shift) {
+					if (use_planar) {
 						constraint_axis[0] = 1;
 						constraint_axis[2] = 1;
 					}
@@ -1902,7 +1902,7 @@ int BIF_do_manipulator(bContext *C, const struct wmEvent *event, wmOperator *op)
 						constraint_axis[1] = 1;
 					break;
 				case MAN_SCALE_Z:
-					if (shift) {
+					if (use_planar) {
 						constraint_axis[0] = 1;
 						constraint_axis[1] = 1;
 					}
