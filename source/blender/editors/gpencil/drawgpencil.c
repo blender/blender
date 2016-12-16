@@ -1554,7 +1554,17 @@ static void gp_draw_data_all(Scene *scene, bGPdata *gpd, int offsx, int offsy, i
                              int cfra, int dflag, const char spacetype)
 {
 	bGPdata *gpd_source = NULL;
-	
+	ToolSettings *ts;
+	bGPDbrush *brush;
+	if (scene) {
+		ts = scene->toolsettings;
+		brush = BKE_gpencil_brush_getactive(ts);
+		/* if no brushes, create default set */
+		if (brush == NULL) {
+			BKE_gpencil_brush_init_presets(ts);
+			brush = BKE_gpencil_brush_getactive(ts);
+		}
+	}
 	if (scene) {
 		if (spacetype == SPACE_VIEW3D) {
 			gpd_source = (scene->gpd ? scene->gpd : NULL);
@@ -1565,8 +1575,6 @@ static void gp_draw_data_all(Scene *scene, bGPdata *gpd, int offsx, int offsy, i
 		}
 		
 		if (gpd_source) {
-			ToolSettings *ts = scene->toolsettings;
-			bGPDbrush *brush = BKE_gpencil_brush_getactive(ts);
 			if (brush != NULL) {
 				gp_draw_data(brush, ts->gp_sculpt.alpha, gpd_source,
 				             offsx, offsy, winx, winy, cfra, dflag);
@@ -1578,8 +1586,6 @@ static void gp_draw_data_all(Scene *scene, bGPdata *gpd, int offsx, int offsy, i
 	/* scene/clip data has already been drawn, only object/track data is drawn here
 	 * if gpd_source == gpd, we don't have any object/track data and we can skip */
 	if (gpd_source == NULL || (gpd_source && gpd_source != gpd)) {
-		ToolSettings *ts = scene->toolsettings;
-		bGPDbrush *brush = BKE_gpencil_brush_getactive(ts);
 		if (brush != NULL) {
 			gp_draw_data(brush, ts->gp_sculpt.alpha, gpd,
 			             offsx, offsy, winx, winy, cfra, dflag);
