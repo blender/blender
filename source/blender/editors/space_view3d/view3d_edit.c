@@ -566,22 +566,20 @@ typedef struct ViewOpsData {
 
 static void calctrackballvec(const rcti *rect, int mx, int my, float vec[3])
 {
-	float x, y, radius, d, z, t;
-
-	radius = TRACKBALLSIZE;
+	const float radius = TRACKBALLSIZE;
+	const float t = radius / (float)M_SQRT2;
+	float x, y, z, d;
 
 	/* normalize x and y */
 	x = BLI_rcti_cent_x(rect) - mx;
 	x /= (float)(BLI_rcti_size_x(rect) / 4);
 	y = BLI_rcti_cent_y(rect) - my;
 	y /= (float)(BLI_rcti_size_y(rect) / 2);
-
 	d = sqrtf(x * x + y * y);
-	if (d < radius * (float)M_SQRT1_2) { /* Inside sphere */
+	if (d < t) { /* Inside sphere */
 		z = sqrtf(radius * radius - d * d);
 	}
 	else { /* On hyperbola */
-		t = radius / (float)M_SQRT2;
 		z = t * t / d;
 	}
 
