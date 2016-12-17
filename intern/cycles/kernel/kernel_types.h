@@ -550,27 +550,29 @@ typedef ccl_addr_space struct Intersection {
 /* Primitives */
 
 typedef enum PrimitiveType {
-	PRIMITIVE_NONE = 0,
-	PRIMITIVE_TRIANGLE = 1,
-	PRIMITIVE_MOTION_TRIANGLE = 2,
-	PRIMITIVE_CURVE = 4,
-	PRIMITIVE_MOTION_CURVE = 8,
-	/* Lamp primitive is not included below on purpose, since it is no real traceable primitive */
-	PRIMITIVE_LAMP = 16,
+	PRIMITIVE_NONE            = 0,
+	PRIMITIVE_TRIANGLE        = (1 << 0),
+	PRIMITIVE_MOTION_TRIANGLE = (1 << 1),
+	PRIMITIVE_CURVE           = (1 << 2),
+	PRIMITIVE_MOTION_CURVE    = (1 << 3),
+	/* Lamp primitive is not included below on purpose,
+	 * since it is no real traceable primitive.
+	 */
+	PRIMITIVE_LAMP            = (1 << 4),
 
 	PRIMITIVE_ALL_TRIANGLE = (PRIMITIVE_TRIANGLE|PRIMITIVE_MOTION_TRIANGLE),
 	PRIMITIVE_ALL_CURVE = (PRIMITIVE_CURVE|PRIMITIVE_MOTION_CURVE),
 	PRIMITIVE_ALL_MOTION = (PRIMITIVE_MOTION_TRIANGLE|PRIMITIVE_MOTION_CURVE),
 	PRIMITIVE_ALL = (PRIMITIVE_ALL_TRIANGLE|PRIMITIVE_ALL_CURVE),
 
-	/* Total number of different primitives.
+	/* Total number of different traceable primitives.
 	 * NOTE: This is an actual value, not a bitflag.
 	 */
 	PRIMITIVE_NUM_TOTAL = 4,
 } PrimitiveType;
 
-#define PRIMITIVE_PACK_SEGMENT(type, segment) ((segment << 16) | type)
-#define PRIMITIVE_UNPACK_SEGMENT(type) (type >> 16)
+#define PRIMITIVE_PACK_SEGMENT(type, segment) ((segment << PRIMITIVE_NUM_TOTAL) | (type))
+#define PRIMITIVE_UNPACK_SEGMENT(type) (type >> PRIMITIVE_NUM_TOTAL)
 
 /* Attributes */
 

@@ -169,7 +169,7 @@ void DNA_sdna_free(SDNA *sdna)
 	}
 
 	MEM_freeN((void *)sdna->names);
-	MEM_freeN(sdna->types);
+	MEM_freeN((void *)sdna->types);
 	MEM_freeN(sdna->structs);
 
 #ifdef WITH_DNA_GHASH

@@ -179,7 +179,7 @@ void libmv_cameraIntrinsicsExtractOptions(
         camera_intrinsics_options->polynomial_k2 = polynomial_intrinsics->k2();
         camera_intrinsics_options->polynomial_k3 = polynomial_intrinsics->k3();
         camera_intrinsics_options->polynomial_p1 = polynomial_intrinsics->p1();
-        camera_intrinsics_options->polynomial_p1 = polynomial_intrinsics->p2();
+        camera_intrinsics_options->polynomial_p2 = polynomial_intrinsics->p2();
         break;
       }
 
@@ -195,7 +195,7 @@ void libmv_cameraIntrinsicsExtractOptions(
       }
 
     default:
-      assert(!"Uknown distortion model");
+      assert(!"Unknown distortion model");
   }
 }
 

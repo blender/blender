@@ -48,7 +48,7 @@ TEST(Panography, PrintSomeSharedFocalEstimationValues) {
 
   // Assert we found a valid solution.
   EXPECT_EQ(1, fs.size());
-  EXPECT_NEAR(1.01667, fs[1], 1e-3);
+  EXPECT_NEAR(3.47194, fs[0], 1e-3);
 }
 
 TEST(Panography, GetR_FixedCameraCenterWithIdentity) {

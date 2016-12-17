@@ -369,7 +369,9 @@ struct UMArrayData {
 	UndoMesh *um;
 	const UndoMesh *um_ref;  /* can be NULL */
 };
-static void um_arraystore_compact_cb(TaskPool *UNUSED(pool), void *taskdata, int UNUSED(threadid))
+static void um_arraystore_compact_cb(TaskPool *__restrict UNUSED(pool),
+                                     void *taskdata,
+                                     int UNUSED(threadid))
 {
 	struct UMArrayData *um_data = taskdata;
 	um_arraystore_compact_with_info(um_data->um, um_data->um_ref);

@@ -51,17 +51,37 @@ static int node_shader_gpu_fresnel(GPUMaterial *mat, bNode *UNUSED(node), bNodeE
 	return GPU_stack_link(mat, "node_fresnel", in, out, GPU_builtin(GPU_VIEW_POSITION));
 }
 
+static void node_shader_exec_fresnel(void *data, int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
+{
+	ShadeInput *shi = ((ShaderCallData *)data)->shi;
+	float eta = max_ff(in[0]->vec[0], 0.00001);
+
+	float n[3];
+	if (in[1]->hasinput) {
+		copy_v3_v3(n, in[1]->vec);
+	}
+	else {
+		copy_v3_v3(n, shi->vn);
+	}
+
+	if(shi->use_world_space_shading)
+		mul_mat3_m4_v3((float (*)[4])RE_render_current_get_matrix(RE_VIEW_MATRIX), n);
+
+	out[0]->vec[0] = RE_fresnel_dielectric(shi->view, n, shi->flippednor ? 1/eta : eta);
+}
+
 /* node type definition */
 void register_node_type_sh_fresnel(void)
 {
 	static bNodeType ntype;
 
 	sh_node_type_base(&ntype, SH_NODE_FRESNEL, "Fresnel", NODE_CLASS_INPUT, 0);
-	node_type_compatibility(&ntype, NODE_NEW_SHADING);
+	node_type_compatibility(&ntype, NODE_NEW_SHADING | NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_fresnel_in, sh_node_fresnel_out);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_fresnel);
+	node_type_exec(&ntype, NULL, NULL, node_shader_exec_fresnel);
 
 	nodeRegisterType(&ntype);
 }

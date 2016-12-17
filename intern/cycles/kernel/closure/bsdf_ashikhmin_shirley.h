@@ -143,6 +143,7 @@ ccl_device int bsdf_ashikhmin_shirley_sample(const ShaderClosure *sc, float3 Ng,
 {
 	const MicrofacetBsdf *bsdf = (const MicrofacetBsdf*)sc;
 	float3 N = bsdf->N;
+	int label = LABEL_REFLECT | LABEL_GLOSSY;
 
 	float NdotI = dot(N, I);
 	if(NdotI > 0.0f) {
@@ -211,6 +212,7 @@ ccl_device int bsdf_ashikhmin_shirley_sample(const ShaderClosure *sc, float3 Ng,
 			/* Some high number for MIS. */
 			*pdf = 1e6f;
 			*eval = make_float3(1e6f, 1e6f, 1e6f);
+			label = LABEL_REFLECT | LABEL_SINGULAR;
 		}
 		else {
 			/* leave the rest to eval_reflect */
@@ -224,7 +226,7 @@ ccl_device int bsdf_ashikhmin_shirley_sample(const ShaderClosure *sc, float3 Ng,
 #endif
 	}
 
-	return LABEL_REFLECT|LABEL_GLOSSY;
+	return label;
 }
 
 

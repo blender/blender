@@ -2151,3 +2151,24 @@ const float (*RE_render_current_get_matrix(int matrix_id))[4]
 	}
 	return NULL;
 }
+
+float RE_fresnel_dielectric(float incoming[3], float normal[3], float eta)
+{
+	/* compute fresnel reflectance without explicitly computing
+	 * the refracted direction */
+	float c = fabs(dot_v3v3(incoming, normal));
+	float g = eta * eta - 1.0 + c * c;
+	float result;
+
+	if (g > 0.0) {
+		g = sqrtf(g);
+		float A = (g - c) / (g + c);
+		float B = (c * (g + c) - 1.0) / (c * (g - c) + 1.0);
+		result = 0.5 * A * A * (1.0 + B * B);
+	}
+	else {
+		result = 1.0;  /* TIR (no refracted component) */
+	}
+
+	return result;
+}
