@@ -336,7 +336,8 @@ enum {
 	/* tag datablock has having actually increased usercount for the extra virtual user. */
 	LIB_TAG_EXTRAUSER_SET   = 1 << 7,
 
-	/* RESET_AFTER_USE tag newly duplicated/copied IDs. */
+	/* RESET_AFTER_USE tag newly duplicated/copied IDs.
+	 * Also used internally in readfile.c to mark datablocks needing do_versions. */
 	LIB_TAG_NEW             = 1 << 8,
 	/* RESET_BEFORE_USE free test flag.
      * TODO make it a RESET_AFTER_USE too. */
