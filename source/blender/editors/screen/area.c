@@ -2019,7 +2019,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, const char *context, int c
 		UI_view2d_view_restore(C);
 		glEnable(GL_BLEND);
 		VertexFormat* format = immVertexFormat();
-		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned pos = add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformThemeColor((ar->type->regionid == RGN_TYPE_PREVIEW) ? TH_PREVIEW_BACK : TH_BACK);
 		immRecti(pos, 0, 0, BLI_rcti_size_x(&ar->winrct), BLI_rcti_size_y(&ar->winrct) + 1);
