@@ -136,9 +136,23 @@ static void draw_sim_debug_elements(SimDebugData *debug_data, float imat[4][4])
 		glVertex3f(t[0], t[1], t[2]);
 	}
 	glEnd();
+	
+	/**** strings ****/
+	
+	for (BLI_ghashIterator_init(&iter, debug_data->gh); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
+		SimDebugElement *elem = BLI_ghashIterator_getValue(&iter);
+		if (elem->type != SIM_DEBUG_ELEM_STRING)
+			continue;
+		
+		unsigned char col[4];
+		rgb_float_to_uchar(col, elem->color);
+		col[3] = 255;
+		view3d_cached_text_draw_add(elem->v1, elem->str, strlen(elem->str),
+		                            0, V3D_CACHE_TEXT_GLOBALSPACE, col);
+	}
 }
 
-void draw_sim_debug_data(Scene *UNUSED(scene), View3D *UNUSED(v3d), ARegion *ar)
+void draw_sim_debug_data(Scene *UNUSED(scene), View3D *v3d, ARegion *ar)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	/*Object *ob = base->object;*/
@@ -153,9 +167,11 @@ void draw_sim_debug_data(Scene *UNUSED(scene), View3D *UNUSED(v3d), ARegion *ar)
 //	glEnable(GL_BLEND);
 	
 	glPushMatrix();
-	
 	glLoadMatrixf(rv3d->viewmat);
+	
+	view3d_cached_text_draw_begin();
 	draw_sim_debug_elements(_sim_debug_data, imat);
+	view3d_cached_text_draw_end(v3d, ar, false, NULL);
 	
 	glPopMatrix();
 	

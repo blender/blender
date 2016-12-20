@@ -1130,7 +1130,7 @@ static void debug_data_insert(SimDebugData *debug_data, SimDebugElement *elem)
 		BLI_ghash_insert(debug_data->gh, elem, elem);
 }
 
-void BKE_sim_debug_data_add_element(int type, const float v1[3], const float v2[3], float r, float g, float b, const char *category, unsigned int hash)
+void BKE_sim_debug_data_add_element(int type, const float v1[3], const float v2[3], const char *str, float r, float g, float b, const char *category, unsigned int hash)
 {
 	unsigned int category_hash = BLI_ghashutil_strhash_p(category);
 	SimDebugElement *elem;
@@ -1149,8 +1149,18 @@ void BKE_sim_debug_data_add_element(int type, const float v1[3], const float v2[
 	elem->color[0] = r;
 	elem->color[1] = g;
 	elem->color[2] = b;
-	copy_v3_v3(elem->v1, v1);
-	copy_v3_v3(elem->v2, v2);
+	if (v1)
+		copy_v3_v3(elem->v1, v1);
+	else
+		zero_v3(elem->v1);
+	if (v2)
+		copy_v3_v3(elem->v2, v2);
+	else
+		zero_v3(elem->v2);
+	if (str)
+		BLI_strncpy(elem->str, str, sizeof(elem->str));
+	else
+		elem->str[0] = '\0';
 	
 	debug_data_insert(_sim_debug_data, elem);
 }
