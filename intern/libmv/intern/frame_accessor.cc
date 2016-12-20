@@ -45,6 +45,9 @@ struct LibmvFrameAccessor : public FrameAccessor {
       get_image_callback_(get_image_callback),
       release_image_callback_(release_image_callback) { }
 
+  virtual ~LibmvFrameAccessor() {
+  }
+
   libmv_InputMode get_libmv_input_mode(InputMode input_mode) {
     switch (input_mode) {
 #define CHECK_INPUT_MODE(mode) \
