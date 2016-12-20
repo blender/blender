@@ -117,12 +117,12 @@ protected:
  * is small enough and better to be allocated in stack rather
  * than in heap.
  *
- * TODO(sergey): Check if bare arrays could be sued by CPU evalautor.
+ * TODO(sergey): Check if bare arrays could be used by CPU evalautor.
  */
 template <int element_size, int num_verts>
 class StackAllocatedBuffer {
 public:
-	static PatchCoordBuffer *Create(int size)
+	static PatchCoordBuffer *Create(int /*size*/)
 	{
 		StackAllocatedBuffer<element_size, num_verts> *buffer =
 		        new StackAllocatedBuffer<element_size, num_verts>();
