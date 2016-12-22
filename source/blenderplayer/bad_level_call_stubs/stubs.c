@@ -673,7 +673,7 @@ void RE_point_density_sample(struct Scene *scene, struct PointDensity *pd, int r
 void RE_point_density_free(struct PointDensity *pd) RET_NONE;
 void RE_instance_get_particle_info(struct ObjectInstanceRen *obi, float *index, float *age, float *lifetime, float co[3], float *size, float vel[3], float angvel[3]) RET_NONE
 void RE_FreeAllPersistentData(void) RET_NONE
-float RE_fresnel_dielectric(float incoming[3], float normal[3], float eta) RET_NONE
+float RE_fresnel_dielectric(float incoming[3], float normal[3], float eta) RET_ZERO
 
 /* python */
 struct wmOperatorType *WM_operatortype_find(const char *idname, bool quiet) RET_NULL
