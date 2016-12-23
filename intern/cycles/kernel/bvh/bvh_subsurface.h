@@ -72,7 +72,7 @@ void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	ss_isect->num_hits = 0;
 
 	const int object_flag = kernel_tex_fetch(__object_flag, subsurface_object);
-	if(!(object_flag & SD_TRANSFORM_APPLIED)) {
+	if(!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
 #if BVH_FEATURE(BVH_MOTION)
 		Transform ob_itfm;
 		bvh_instance_motion_push(kg,

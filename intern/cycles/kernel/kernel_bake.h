@@ -320,7 +320,7 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 	                         P, Ng, Ng,
 	                         shader, object, prim,
 	                         u, v, 1.0f, 0.5f,
-	                         !(kernel_tex_fetch(__object_flag, object) & SD_TRANSFORM_APPLIED),
+	                         !(kernel_tex_fetch(__object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED),
 	                         LAMP_NONE);
 	sd.I = sd.N;
 

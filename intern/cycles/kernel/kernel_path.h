@@ -777,11 +777,11 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 
 		/* holdout */
 #ifdef __HOLDOUT__
-		if((sd.flag & (SD_HOLDOUT|SD_HOLDOUT_MASK)) && (state.flag & PATH_RAY_CAMERA)) {
+		if((sd.flag & (SD_HOLDOUT|SD_OBJECT_HOLDOUT_MASK)) && (state.flag & PATH_RAY_CAMERA)) {
 			if(kernel_data.background.transparent) {
 				float3 holdout_weight;
 				
-				if(sd.flag & SD_HOLDOUT_MASK)
+				if(sd.flag & SD_OBJECT_HOLDOUT_MASK)
 					holdout_weight = make_float3(1.0f, 1.0f, 1.0f);
 				else
 					holdout_weight = shader_holdout_eval(kg, &sd);
@@ -790,7 +790,7 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 				L_transparent += average(holdout_weight*throughput);
 			}
 
-			if(sd.flag & SD_HOLDOUT_MASK)
+			if(sd.flag & SD_OBJECT_HOLDOUT_MASK)
 				break;
 		}
 #endif  /* __HOLDOUT__ */

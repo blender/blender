@@ -732,16 +732,16 @@ enum ShaderDataFlag {
 	                   SD_VOLUME_CUBIC|SD_HAS_BUMP|SD_HAS_DISPLACEMENT|SD_HAS_CONSTANT_EMISSION),
 
 	/* object flags */
-	SD_HOLDOUT_MASK             = (1 << 24),  /* holdout for camera rays */
-	SD_OBJECT_MOTION            = (1 << 25),  /* has object motion blur */
-	SD_TRANSFORM_APPLIED        = (1 << 26),  /* vertices have transform applied */
-	SD_NEGATIVE_SCALE_APPLIED   = (1 << 27),  /* vertices have negative scale applied */
-	SD_OBJECT_HAS_VOLUME        = (1 << 28),  /* object has a volume shader */
-	SD_OBJECT_INTERSECTS_VOLUME = (1 << 29),  /* object intersects AABB of an object with volume shader */
-	SD_OBJECT_HAS_VERTEX_MOTION = (1 << 30),  /* has position for motion vertices */
+	SD_OBJECT_HOLDOUT_MASK           = (1 << 24),  /* holdout for camera rays */
+	SD_OBJECT_MOTION                 = (1 << 25),  /* has object motion blur */
+	SD_OBJECT_TRANSFORM_APPLIED      = (1 << 26),  /* vertices have transform applied */
+	SD_OBJECT_NEGATIVE_SCALE_APPLIED = (1 << 27),  /* vertices have negative scale applied */
+	SD_OBJECT_HAS_VOLUME             = (1 << 28),  /* object has a volume shader */
+	SD_OBJECT_INTERSECTS_VOLUME      = (1 << 29),  /* object intersects AABB of an object with volume shader */
+	SD_OBJECT_HAS_VERTEX_MOTION      = (1 << 30),  /* has position for motion vertices */
 
-	SD_OBJECT_FLAGS = (SD_HOLDOUT_MASK|SD_OBJECT_MOTION|SD_TRANSFORM_APPLIED|
-	                   SD_NEGATIVE_SCALE_APPLIED|SD_OBJECT_HAS_VOLUME|
+	SD_OBJECT_FLAGS = (SD_OBJECT_HOLDOUT_MASK|SD_OBJECT_MOTION|SD_OBJECT_TRANSFORM_APPLIED|
+	                   SD_OBJECT_NEGATIVE_SCALE_APPLIED|SD_OBJECT_HAS_VOLUME|
 	                   SD_OBJECT_INTERSECTS_VOLUME)
 };
 

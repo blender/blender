@@ -298,7 +298,7 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals *kg,
 			ccl_fetch(sd, N) = triangle_smooth_normal(kg, ccl_fetch(sd, prim), ccl_fetch(sd, u), ccl_fetch(sd, v));
 
 #ifdef __INSTANCING__
-			if(!(ccl_fetch(sd, flag) & SD_TRANSFORM_APPLIED)) {
+			if(!(ccl_fetch(sd, flag) & SD_OBJECT_TRANSFORM_APPLIED)) {
 				object_normal_transform_auto(kg, sd, &ccl_fetch(sd, N));
 			}
 #endif
@@ -309,7 +309,7 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals *kg,
 		triangle_dPdudv(kg, ccl_fetch(sd, prim), &ccl_fetch(sd, dPdu), &ccl_fetch(sd, dPdv));
 
 #  ifdef __INSTANCING__
-		if(!(ccl_fetch(sd, flag) & SD_TRANSFORM_APPLIED)) {
+		if(!(ccl_fetch(sd, flag) & SD_OBJECT_TRANSFORM_APPLIED)) {
 			object_dir_transform_auto(kg, sd, &ccl_fetch(sd, dPdu));
 			object_dir_transform_auto(kg, sd, &ccl_fetch(sd, dPdv));
 		}
@@ -364,7 +364,7 @@ ccl_device void shader_setup_from_displace(KernelGlobals *kg, ShaderData *sd,
 	                         P, Ng, I,
 	                         shader, object, prim,
 	                         u, v, 0.0f, 0.5f,
-	                         !(kernel_tex_fetch(__object_flag, object) & SD_TRANSFORM_APPLIED),
+	                         !(kernel_tex_fetch(__object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED),
 	                         LAMP_NONE);
 }
 

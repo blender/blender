@@ -157,7 +157,7 @@ ccl_device_inline float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *
 	if(is_curve_primitive) {
 		center = curve_motion_center_location(kg, sd);
 
-		if(!(ccl_fetch(sd, flag) & SD_TRANSFORM_APPLIED))
+		if(!(ccl_fetch(sd, flag) & SD_OBJECT_TRANSFORM_APPLIED))
 			object_position_transform(kg, sd, &center);
 	}
 	else
