@@ -104,7 +104,7 @@ void BKE_gpencil_layer_delete(struct bGPdata *gpd, struct bGPDlayer *gpl);
 
 struct bGPDbrush *BKE_gpencil_brush_getactive(struct ToolSettings *ts);
 void BKE_gpencil_brush_setactive(struct ToolSettings *ts, struct bGPDbrush *active);
-void BKE_gpencil_brush_delete(struct ToolSettings *ts, struct bGPDbrush *palette);
+void BKE_gpencil_brush_delete(struct ToolSettings *ts, struct bGPDbrush *brush);
 
 struct bGPDpalette *BKE_gpencil_palette_getactive(struct bGPdata *gpd);
 void BKE_gpencil_palette_setactive(struct bGPdata *gpd, struct bGPDpalette *active);
