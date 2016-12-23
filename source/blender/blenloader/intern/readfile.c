@@ -531,6 +531,8 @@ void blo_split_main(ListBase *mainlist, Main *main)
 	for (Library *lib = main->library.first; lib; lib = lib->id.next, i++) {
 		Main *libmain = BKE_main_new();
 		libmain->curlib = lib;
+		libmain->versionfile = lib->versionfile;
+		libmain->subversionfile = lib->subversionfile;
 		BLI_addtail(mainlist, libmain);
 		lib->temp_index = i;
 		lib_main_array[i] = libmain;
@@ -561,6 +563,10 @@ static void read_file_version(FileData *fd, Main *main)
 			else if (bhead->code == ENDB)
 				break;
 		}
+	}
+	if (main->curlib) {
+		main->curlib->versionfile = main->versionfile;
+		main->curlib->subversionfile = main->subversionfile;
 	}
 }
 
@@ -8373,14 +8379,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* don't forget to set version number in BKE_blender_version.h! */
 }
 
-#if 0 // XXX: disabled for now... we still don't have this in the right place in the loading code for it to work
-static void do_versions_after_linking(FileData *fd, Library *lib, Main *main)
+static void do_versions_after_linking(Main *main)
 {
-	/* old Animation System (using IPO's) needs to be converted to the new Animato system */
-	if (main->versionfile < 250)
-		do_versions_ipos_to_animato(main);
+//	printf("%s for %s (%s), %d.%d\n", __func__, main->curlib ? main->curlib->name : main->name,
+//	       main->curlib ? "LIB" : "MAIN", main->versionfile, main->subversionfile);
 }
-#endif
 
 static void lib_link_all(FileData *fd, Main *main)
 {
@@ -8582,7 +8585,17 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 	
 	lib_link_all(fd, bfd->main);
 
-	//do_versions_after_linking(fd, NULL, bfd->main); // XXX: not here (or even in this function at all)! this causes crashes on many files - Aligorith (July 04, 2010)
+	/* Skip in undo case. */
+	if (fd->memfile == NULL) {
+		/* Yep, second splitting... but this is a very cheap operation, so no big deal. */
+		blo_split_main(&mainlist, bfd->main);
+		for (Main *mainvar = mainlist.first; mainvar; mainvar = mainvar->next) {
+			BLI_assert(mainvar->versionfile != 0);
+			do_versions_after_linking(mainvar);
+		}
+		blo_join_main(&mainlist);
+	}
+
 	BKE_main_id_tag_all(bfd->main, LIB_TAG_NEW, false);
 
 	lib_verify_nodetree(bfd->main, true);
@@ -10116,6 +10129,32 @@ Main *BLO_library_link_begin(Main *mainvar, BlendHandle **bh, const char *filepa
 	return library_link_begin(mainvar, &fd, filepath);
 }
 
+static void split_main_newid(Main *mainptr, Main *main_newid)
+{
+	/* We only copy the necessary subset of data in this temp main. */
+	main_newid->versionfile = mainptr->versionfile;
+	main_newid->subversionfile = mainptr->subversionfile;
+	BLI_strncpy(main_newid->name, mainptr->name, sizeof(main_newid->name));
+	main_newid->curlib = mainptr->curlib;
+
+	ListBase *lbarray[MAX_LIBARRAY];
+	ListBase *lbarray_newid[MAX_LIBARRAY];
+	int i = set_listbasepointers(mainptr, lbarray);
+	set_listbasepointers(main_newid, lbarray_newid);
+	while (i--) {
+		BLI_listbase_clear(lbarray_newid[i]);
+
+		for (ID *id = lbarray[i]->first, *idnext; id; id = idnext) {
+			idnext = id->next;
+
+			if (id->tag & LIB_TAG_NEW) {
+				BLI_remlink(lbarray[i], id);
+				BLI_addtail(lbarray_newid[i], id);
+			}
+		}
+	}
+}
+
 /* scene and v3d may be NULL. */
 static void library_link_end(Main *mainl, FileData **fd, const short flag, Scene *scene, View3D *v3d)
 {
@@ -10144,10 +10183,25 @@ static void library_link_end(Main *mainl, FileData **fd, const short flag, Scene
 
 	blo_join_main((*fd)->mainlist);
 	mainvar = (*fd)->mainlist->first;
-	MEM_freeN((*fd)->mainlist);
 	mainl = NULL; /* blo_join_main free's mainl, cant use anymore */
 
 	lib_link_all(*fd, mainvar);
+
+	/* Yep, second splitting... but this is a very cheap operation, so no big deal. */
+	blo_split_main((*fd)->mainlist, mainvar);
+	Main main_newid = {0};
+	for (mainvar = ((Main *)(*fd)->mainlist->first)->next; mainvar; mainvar = mainvar->next) {
+		BLI_assert(mainvar->versionfile != 0);
+		/* We need to split out IDs already existing, or they will go again through do_versions - bad, very bad! */
+		split_main_newid(mainvar, &main_newid);
+
+		do_versions_after_linking(&main_newid);
+
+		add_main_to_main(mainvar, &main_newid);
+	}
+	blo_join_main((*fd)->mainlist);
+	mainvar = (*fd)->mainlist->first;
+	MEM_freeN((*fd)->mainlist);
 
 	BKE_main_id_tag_all(mainvar, LIB_TAG_NEW, false);
 
@@ -10219,32 +10273,6 @@ static int mainvar_id_tag_any_check(Main *mainvar, const short tag)
 		}
 	}
 	return false;
-}
-
-static void split_main_newid(Main *mainptr, Main *main_newid)
-{
-	/* We only copy the necessary subset of data in this temp main. */
-	main_newid->versionfile = mainptr->versionfile;
-	main_newid->subversionfile = mainptr->subversionfile;
-	BLI_strncpy(main_newid->name, mainptr->name, sizeof(main_newid->name));
-	main_newid->curlib = mainptr->curlib;
-
-	ListBase *lbarray[MAX_LIBARRAY];
-	ListBase *lbarray_newid[MAX_LIBARRAY];
-	int i = set_listbasepointers(mainptr, lbarray);
-	set_listbasepointers(main_newid, lbarray_newid);
-	while (i--) {
-		BLI_listbase_clear(lbarray_newid[i]);
-
-		for (ID *id = lbarray[i]->first, *idnext; id; id = idnext) {
-			idnext = id->next;
-
-			if (id->tag & LIB_TAG_NEW) {
-				BLI_remlink(lbarray[i], id);
-				BLI_addtail(lbarray_newid[i], id);
-			}
-		}
-	}
 }
 
 static void read_libraries(FileData *basefd, ListBase *mainlist)

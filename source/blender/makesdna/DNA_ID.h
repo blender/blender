@@ -155,8 +155,9 @@ typedef struct Library {
 	
 	struct PackedFile *packedfile;
 
+	/* Temp data needed by read/write code. */
 	int temp_index;
-	int _pad;
+	short versionfile, subversionfile;  /* see BLENDER_VERSION, BLENDER_SUBVERSION, needed for do_versions */
 } Library;
 
 enum eIconSizes {
