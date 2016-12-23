@@ -38,7 +38,7 @@ CCL_NAMESPACE_BEGIN
 #ifdef __OBJECT_MOTION__
 ccl_device void shader_setup_object_transforms(KernelGlobals *kg, ShaderData *sd, float time)
 {
-	if(ccl_fetch(sd, flag) & SD_OBJECT_MOTION) {
+	if(ccl_fetch(sd, object_flag) & SD_OBJECT_MOTION) {
 		ccl_fetch(sd, ob_tfm) = object_fetch_transform_motion(kg, ccl_fetch(sd, object), time);
 		ccl_fetch(sd, ob_itfm) = transform_quick_inverse(ccl_fetch(sd, ob_tfm));
 	}
@@ -59,7 +59,9 @@ ccl_device_noinline void shader_setup_from_ray(KernelGlobals *kg,
 #endif
 
 	ccl_fetch(sd, type) = isect->type;
-	ccl_fetch(sd, flag) = kernel_tex_fetch(__object_flag, ccl_fetch(sd, object));
+	ccl_fetch(sd, flag) = 0;
+	ccl_fetch(sd, object_flag) = kernel_tex_fetch(__object_flag,
+	                                              ccl_fetch(sd, object));
 
 	/* matrices and time */
 #ifdef __OBJECT_MOTION__
@@ -160,10 +162,11 @@ void shader_setup_from_subsurface(
         const Intersection *isect,
         const Ray *ray)
 {
-	bool backfacing = sd->flag & SD_BACKFACING;
+	const bool backfacing = sd->flag & SD_BACKFACING;
 
 	/* object, matrices, time, ray_length stay the same */
-	sd->flag = kernel_tex_fetch(__object_flag, sd->object);
+	sd->flag = 0;
+	sd->object_flag = kernel_tex_fetch(__object_flag, sd->object);
 	sd->prim = kernel_tex_fetch(__prim_index, isect->prim);
 	sd->type = isect->type;
 
@@ -271,8 +274,10 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals *kg,
 	ccl_fetch(sd, ray_length) = t;
 
 	ccl_fetch(sd, flag) = kernel_tex_fetch(__shader_flag, (ccl_fetch(sd, shader) & SHADER_MASK)*SHADER_SIZE);
+	ccl_fetch(sd, object_flag) = 0;
 	if(ccl_fetch(sd, object) != OBJECT_NONE) {
-		ccl_fetch(sd, flag) |= kernel_tex_fetch(__object_flag, ccl_fetch(sd, object));
+		ccl_fetch(sd, object_flag) |= kernel_tex_fetch(__object_flag,
+		                                               ccl_fetch(sd, object));
 
 #ifdef __OBJECT_MOTION__
 		shader_setup_object_transforms(kg, sd, time);
@@ -298,7 +303,7 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals *kg,
 			ccl_fetch(sd, N) = triangle_smooth_normal(kg, ccl_fetch(sd, prim), ccl_fetch(sd, u), ccl_fetch(sd, v));
 
 #ifdef __INSTANCING__
-			if(!(ccl_fetch(sd, flag) & SD_OBJECT_TRANSFORM_APPLIED)) {
+			if(!(ccl_fetch(sd, object_flag) & SD_OBJECT_TRANSFORM_APPLIED)) {
 				object_normal_transform_auto(kg, sd, &ccl_fetch(sd, N));
 			}
 #endif
@@ -309,7 +314,7 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals *kg,
 		triangle_dPdudv(kg, ccl_fetch(sd, prim), &ccl_fetch(sd, dPdu), &ccl_fetch(sd, dPdv));
 
 #  ifdef __INSTANCING__
-		if(!(ccl_fetch(sd, flag) & SD_OBJECT_TRANSFORM_APPLIED)) {
+		if(!(ccl_fetch(sd, object_flag) & SD_OBJECT_TRANSFORM_APPLIED)) {
 			object_dir_transform_auto(kg, sd, &ccl_fetch(sd, dPdu));
 			object_dir_transform_auto(kg, sd, &ccl_fetch(sd, dPdv));
 		}
@@ -379,6 +384,7 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderDat
 	ccl_fetch(sd, I) = -ray->D;
 	ccl_fetch(sd, shader) = kernel_data.background.surface_shader;
 	ccl_fetch(sd, flag) = kernel_tex_fetch(__shader_flag, (ccl_fetch(sd, shader) & SHADER_MASK)*SHADER_SIZE);
+	ccl_fetch(sd, object_flag) = 0;
 #ifdef __OBJECT_MOTION__
 	ccl_fetch(sd, time) = ray->time;
 #endif
@@ -420,6 +426,7 @@ ccl_device_inline void shader_setup_from_volume(KernelGlobals *kg, ShaderData *s
 	sd->I = -ray->D;
 	sd->shader = SHADER_NONE;
 	sd->flag = 0;
+	sd->object_flag = 0;
 #ifdef __OBJECT_MOTION__
 	sd->time = ray->time;
 #endif
@@ -1027,6 +1034,7 @@ ccl_device_inline void shader_eval_volume(KernelGlobals *kg,
 	sd->num_closure = 0;
 	sd->num_closure_extra = 0;
 	sd->flag = 0;
+	sd->object_flag = 0;
 
 	for(int i = 0; stack[i].shader != SHADER_NONE; i++) {
 		/* setup shaderdata from stack. it's mostly setup already in
@@ -1034,11 +1042,12 @@ ccl_device_inline void shader_eval_volume(KernelGlobals *kg,
 		sd->object = stack[i].object;
 		sd->shader = stack[i].shader;
 
-		sd->flag &= ~(SD_SHADER_FLAGS|SD_OBJECT_FLAGS);
+		sd->flag &= ~SD_SHADER_FLAGS;
 		sd->flag |= kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*SHADER_SIZE);
+		sd->object_flag &= ~SD_OBJECT_FLAGS;
 
 		if(sd->object != OBJECT_NONE) {
-			sd->flag |= kernel_tex_fetch(__object_flag, sd->object);
+			sd->object_flag |= kernel_tex_fetch(__object_flag, sd->object);
 
 #ifdef __OBJECT_MOTION__
 			/* todo: this is inefficient for motion blur, we should be

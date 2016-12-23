@@ -32,10 +32,12 @@ ccl_device_inline float3 triangle_normal(KernelGlobals *kg, ShaderData *sd)
 	const float3 v2 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w+2));
 
 	/* return normal */
-	if(ccl_fetch(sd, flag) & SD_OBJECT_NEGATIVE_SCALE_APPLIED)
+	if(ccl_fetch(sd, object_flag) & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {
 		return normalize(cross(v2 - v0, v1 - v0));
-	else
+	}
+	else {
 		return normalize(cross(v1 - v0, v2 - v0));
+	}
 }
 
 /* point and normal on triangle  */
@@ -46,20 +48,18 @@ ccl_device_inline void triangle_point_normal(KernelGlobals *kg, int object, int 
 	float3 v0 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w+0));
 	float3 v1 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w+1));
 	float3 v2 = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w+2));
-
 	/* compute point */
 	float t = 1.0f - u - v;
 	*P = (u*v0 + v*v1 + t*v2);
-
 	/* get object flags */
 	int object_flag = kernel_tex_fetch(__object_flag, object);
-
 	/* compute normal */
-	if(object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED)
+	if(object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {
 		*Ng = normalize(cross(v2 - v0, v1 - v0));
-	else
+	}
+	else {
 		*Ng = normalize(cross(v1 - v0, v2 - v0));
-
+	}
 	/* shader`*/
 	*shader = kernel_tex_fetch(__tri_shader, prim);
 }
