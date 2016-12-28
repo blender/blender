@@ -4064,6 +4064,9 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 
 			mul_qt_qtqt(quat_new, rv3d->viewquat, quat_mul);
 
+			/* avoid precision loss over time */
+			normalize_qt(quat_new);
+
 			if (view_opposite != RV3D_VIEW_USER) {
 				rv3d->view = view_opposite;
 				/* avoid float in-precision, just get a new orientation */
@@ -4130,6 +4133,10 @@ static void view_roll_angle(ARegion *ar, float quat[4], const float orig_quat[4]
 	axis_angle_normalized_to_quat(quat_mul, dvec, angle);
 
 	mul_qt_qtqt(quat, orig_quat, quat_mul);
+
+	/* avoid precision loss over time */
+	normalize_qt(quat);
+
 	rv3d->view = RV3D_VIEW_USER;
 }
 
