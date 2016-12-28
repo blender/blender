@@ -223,9 +223,47 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
 	{
 		return NULL;
 	}
-	else {
-		short result;
+	else if (self->ptr.type == &RNA_NlaStrip) {
+		/* Handle special properties for NLA Strips, whose F-Curves are stored on the
+		 * strips themselves. These are stored separately or else the properties will
+		 * not have any effect.
+		 */
 		ReportList reports;
+		short result = 0;
+		
+		PointerRNA ptr = self->ptr;
+		PropertyRNA *prop = NULL;
+		const char *prop_name;
+		
+		BKE_reports_init(&reports, RPT_STORE);
+		
+		/* Retrieve the property identifier from the full path, since we can't get it any other way */
+		prop_name = strrchr(path_full, '.');
+		if ((prop_name >= path_full) &&
+		    (prop_name + 1 < path_full + strlen(path_full)))
+		{
+			prop = RNA_struct_find_property(&ptr, prop_name + 1);
+		}
+		
+		if (prop) {
+			NlaStrip *strip = (NlaStrip *)ptr.data;
+			FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), index);
+			
+			result = insert_keyframe_direct(&reports, ptr, prop, fcu, cfra, keytype, index);
+		}
+		else {
+			BKE_reportf(&reports, RPT_ERROR, "Could not resolve path (%s)", path_full);
+		}
+		MEM_freeN((void *)path_full);
+		
+		if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1)
+			return NULL;
+		
+		return PyBool_FromLong(result);
+	}
+	else {
+		ReportList reports;
+		short result;
 
 		BKE_reports_init(&reports, RPT_STORE);
 
