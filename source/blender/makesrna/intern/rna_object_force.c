@@ -29,6 +29,7 @@
 #include "DNA_cloth_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
 
@@ -90,15 +91,232 @@ static EnumPropertyItem empty_vortex_shape_items[] = {
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_dynamicpaint_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_texture_types.h"
 
 #include "BKE_context.h"
 #include "BKE_modifier.h"
+#include "BKE_pointcache.h"
 #include "BKE_depsgraph.h"
 
 #include "ED_object.h"
+
+static void rna_Cache_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	Object *ob = (Object *)ptr->id.data;
+	PointCache *cache = (PointCache *)ptr->data;
+	PTCacheID *pid = NULL;
+	ListBase pidlist;
+
+	if (!ob)
+		return;
+
+	cache->flag |= PTCACHE_OUTDATED;
+
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+
+	for (pid = pidlist.first; pid; pid = pid->next) {
+		if (pid->cache == cache)
+			break;
+	}
+
+	if (pid) {
+		/* Just make sure this wasn't changed. */
+		if (pid->type == PTCACHE_TYPE_SMOKE_DOMAIN)
+			cache->step = 1;
+		BKE_ptcache_update_info(pid);
+	}
+
+	BLI_freelistN(&pidlist);
+}
+
+static void rna_Cache_toggle_disk_cache(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	Object *ob = (Object *)ptr->id.data;
+	PointCache *cache = (PointCache *)ptr->data;
+	PTCacheID *pid = NULL;
+	ListBase pidlist;
+
+	if (!ob)
+		return;
+
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+
+	for (pid = pidlist.first; pid; pid = pid->next) {
+		if (pid->cache == cache)
+			break;
+	}
+
+	/* smoke can only use disk cache */
+	if (pid && pid->type != PTCACHE_TYPE_SMOKE_DOMAIN)
+		BKE_ptcache_toggle_disk_cache(pid);
+	else
+		cache->flag ^= PTCACHE_DISK_CACHE;
+
+	BLI_freelistN(&pidlist);
+}
+
+static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	Object *ob = (Object *)ptr->id.data;
+	PointCache *cache = (PointCache *)ptr->data;
+	PTCacheID *pid = NULL, *pid2 = NULL;
+	ListBase pidlist;
+	bool use_new_name = true;
+
+	if (!ob)
+		return;
+
+	/* TODO: check for proper characters */
+
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+
+	if (cache->flag & PTCACHE_EXTERNAL) {
+		for (pid = pidlist.first; pid; pid = pid->next) {
+			if (pid->cache == cache)
+				break;
+		}
+
+		if (!pid)
+			return;
+
+		BKE_ptcache_load_external(pid);
+
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		WM_main_add_notifier(NC_OBJECT | ND_POINTCACHE, ob);
+	}
+	else {
+		for (pid = pidlist.first; pid; pid = pid->next) {
+			if (pid->cache == cache)
+				pid2 = pid;
+			else if (cache->name[0] != '\0' && STREQ(cache->name, pid->cache->name)) {
+				/*TODO: report "name exists" to user */
+				BLI_strncpy(cache->name, cache->prev_name, sizeof(cache->name));
+				use_new_name = false;
+			}
+		}
+
+		if (use_new_name) {
+			BLI_filename_make_safe(cache->name);
+
+			if (pid2 && cache->flag & PTCACHE_DISK_CACHE) {
+				char old_name[80];
+				char new_name[80];
+
+				BLI_strncpy(old_name, cache->prev_name, sizeof(old_name));
+				BLI_strncpy(new_name, cache->name, sizeof(new_name));
+
+				BKE_ptcache_disk_cache_rename(pid2, old_name, new_name);
+			}
+
+			BLI_strncpy(cache->prev_name, cache->name, sizeof(cache->prev_name));
+		}
+	}
+
+	BLI_freelistN(&pidlist);
+}
+
+static void rna_Cache_list_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	PointCache *cache = ptr->data;
+	ListBase lb;
+
+	while (cache->prev)
+		cache = cache->prev;
+
+	lb.first = cache;
+	lb.last = NULL; /* not used by listbase_begin */
+
+	rna_iterator_listbase_begin(iter, &lb, NULL);
+}
+static void rna_Cache_active_point_cache_index_range(PointerRNA *ptr, int *min, int *max,
+                                                     int *UNUSED(softmin), int *UNUSED(softmax))
+{
+	Object *ob = ptr->id.data;
+	PointCache *cache = ptr->data;
+	PTCacheID *pid;
+	ListBase pidlist;
+
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+	
+	*min = 0;
+	*max = 0;
+
+	for (pid = pidlist.first; pid; pid = pid->next) {
+		if (pid->cache == cache) {
+			*max = max_ii(0, BLI_listbase_count(pid->ptcaches) - 1);
+			break;
+		}
+	}
+
+	BLI_freelistN(&pidlist);
+}
+
+static int rna_Cache_active_point_cache_index_get(PointerRNA *ptr)
+{
+	Object *ob = ptr->id.data;
+	PointCache *cache = ptr->data;
+	PTCacheID *pid;
+	ListBase pidlist;
+	int num = 0;
+
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+	
+	for (pid = pidlist.first; pid; pid = pid->next) {
+		if (pid->cache == cache) {
+			num = BLI_findindex(pid->ptcaches, cache);
+			break;
+		}
+	}
+
+	BLI_freelistN(&pidlist);
+
+	return num;
+}
+
+static void rna_Cache_active_point_cache_index_set(struct PointerRNA *ptr, int value)
+{
+	Object *ob = ptr->id.data;
+	PointCache *cache = ptr->data;
+	PTCacheID *pid;
+	ListBase pidlist;
+
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+	
+	for (pid = pidlist.first; pid; pid = pid->next) {
+		if (pid->cache == cache) {
+			*(pid->cache_ptr) = BLI_findlink(pid->ptcaches, value);
+			break;
+		}
+	}
+
+	BLI_freelistN(&pidlist);
+}
+
+static void rna_PointCache_frame_step_range(PointerRNA *ptr, int *min, int *max,
+                                            int *UNUSED(softmin), int *UNUSED(softmax))
+{
+	Object *ob = ptr->id.data;
+	PointCache *cache = ptr->data;
+	PTCacheID *pid;
+	ListBase pidlist;
+
+	*min = 1;
+	*max = 20;
+
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+	
+	for (pid = pidlist.first; pid; pid = pid->next) {
+		if (pid->cache == cache) {
+			*max = pid->max_step;
+			break;
+		}
+	}
+
+	BLI_freelistN(&pidlist);
+}
 
 static char *rna_CollisionSettings_path(PointerRNA *UNUSED(ptr))
 {
@@ -259,25 +477,53 @@ static char *rna_SoftBodySettings_path(PointerRNA *ptr)
 	return BLI_sprintfN("modifiers[\"%s\"].settings", name_esc);
 }
 
+static int particle_id_check(PointerRNA *ptr)
+{
+	ID *id = ptr->id.data;
+
+	return (GS(id->name) == ID_PA);
+}
+
 static void rna_FieldSettings_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	Object *ob = (Object *)ptr->id.data;
+	if (particle_id_check(ptr)) {
+		ParticleSettings *part = (ParticleSettings *)ptr->id.data;
 
-	if (ob->pd->forcefield != PFIELD_TEXTURE && ob->pd->tex) {
-		id_us_min(&ob->pd->tex->id);
-		ob->pd->tex = NULL;
+		if (part->pd->forcefield != PFIELD_TEXTURE && part->pd->tex) {
+			id_us_min(&part->pd->tex->id);
+			part->pd->tex = NULL;
+		}
+
+		if (part->pd2 && part->pd2->forcefield != PFIELD_TEXTURE && part->pd2->tex) {
+			id_us_min(&part->pd2->tex->id);
+			part->pd2->tex = NULL;
+		}
+
+		DAG_id_tag_update(&part->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME | PSYS_RECALC_RESET);
+		WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
+
 	}
+	else {
+		Object *ob = (Object *)ptr->id.data;
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_OB);
-	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
+		if (ob->pd->forcefield != PFIELD_TEXTURE && ob->pd->tex) {
+			id_us_min(&ob->pd->tex->id);
+			ob->pd->tex = NULL;
+		}
+
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+		WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
+	}
 }
 
 static void rna_FieldSettings_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Object *ob = (Object *)ptr->id.data;
-	ED_object_check_force_modifiers(bmain, scene, ob);
-	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
-	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
+	if (!particle_id_check(ptr)) {
+		Object *ob = (Object *)ptr->id.data;
+		ED_object_check_force_modifiers(bmain, scene, ob);
+		WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
+		WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
+	}
 }
 
 static void rna_FieldSettings_type_set(PointerRNA *ptr, int value)
@@ -286,39 +532,46 @@ static void rna_FieldSettings_type_set(PointerRNA *ptr, int value)
 
 	part_deflect->forcefield = value;
 
-	Object *ob = (Object *)ptr->id.data;
-	ob->pd->forcefield = value;
-	if (ELEM(value, PFIELD_WIND, PFIELD_VORTEX)) {
-		ob->empty_drawtype = OB_SINGLE_ARROW;
-	}
-	else {
-		ob->empty_drawtype = OB_PLAINAXES;
+	if (!particle_id_check(ptr)) {
+		Object *ob = (Object *)ptr->id.data;
+		ob->pd->forcefield = value;
+		if (ELEM(value, PFIELD_WIND, PFIELD_VORTEX)) {
+			ob->empty_drawtype = OB_SINGLE_ARROW;
+		}
+		else {
+			ob->empty_drawtype = OB_PLAINAXES;
+		}
 	}
 }
 
 static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Object *ob = (Object *)ptr->id.data;
-
-	/* do this before scene sort, that one checks for CU_PATH */
-#if 0 /* XXX */
-	if (ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE) {
-		Curve *cu = ob->data;
-		cu->flag |= (CU_PATH | CU_3D);
-		do_curvebuts(B_CU3D);  /* all curves too */
+	if (particle_id_check(ptr)) {
+		DAG_id_tag_update((ID *)ptr->id.data, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME | PSYS_RECALC_RESET);
 	}
+	else {
+		Object *ob = (Object *)ptr->id.data;
+
+		/* do this before scene sort, that one checks for CU_PATH */
+#if 0 /* XXX */
+		if (ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE) {
+			Curve *cu = ob->data;
+			cu->flag |= (CU_PATH | CU_3D);
+			do_curvebuts(B_CU3D);  /* all curves too */
+		}
 #endif
 
-	rna_FieldSettings_shape_update(bmain, scene, ptr);
+		rna_FieldSettings_shape_update(bmain, scene, ptr);
 
-	DAG_relations_tag_update(bmain);
+		DAG_relations_tag_update(bmain);
 
-	if (ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE)
-		DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
-	else
-		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+		if (ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE)
+			DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+		else
+			DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 
-	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
+		WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
+	}
 }
 
 static char *rna_FieldSettings_path(PointerRNA *ptr)
@@ -327,12 +580,22 @@ static char *rna_FieldSettings_path(PointerRNA *ptr)
 	
 	/* Check through all possible places the settings can be to find the right one */
 	
-	/* object force field */
-	Object *ob = (Object *)ptr->id.data;
-	
-	if (ob->pd == pd)
-		return BLI_sprintfN("field");
-	
+	if (particle_id_check(ptr)) {
+		/* particle system force field */
+		ParticleSettings *part = (ParticleSettings *)ptr->id.data;
+		
+		if (part->pd == pd)
+			return BLI_sprintfN("force_field_1");
+		else if (part->pd2 == pd)
+			return BLI_sprintfN("force_field_2");
+	}
+	else {
+		/* object force field */
+		Object *ob = (Object *)ptr->id.data;
+		
+		if (ob->pd == pd)
+			return BLI_sprintfN("field");
+	}
 	return NULL;
 }
 
@@ -340,15 +603,25 @@ static void rna_EffectorWeight_update(Main *UNUSED(bmain), Scene *UNUSED(scene),
 {
 	ID *id = ptr->id.data;
 
-	DAG_id_tag_update(id, OB_RECALC_DATA);
-	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
+	if (id && GS(id->name) == ID_SCE) {
+		Scene *scene = (Scene *)id;
+		Base *base;
+
+		for (base = scene->base.first; base; base = base->next) {
+			BKE_ptcache_object_reset(scene, base->object, PTCACHE_RESET_DEPSGRAPH);
+		}
+	}
+	else {
+		DAG_id_tag_update(id, OB_RECALC_DATA | PSYS_RECALC_RESET);
+		WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
+	}
 }
 
 static void rna_EffectorWeight_dependency_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	DAG_relations_tag_update(bmain);
 
-	DAG_id_tag_update((ID *)ptr->id.data, OB_RECALC_DATA);
+	DAG_id_tag_update((ID *)ptr->id.data, OB_RECALC_DATA | PSYS_RECALC_RESET);
 
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 }
@@ -358,59 +631,68 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
 	EffectorWeights *ew = (EffectorWeights *)ptr->data;
 	/* Check through all possible places the settings can be to find the right one */
 	
-	Object *ob = (Object *)ptr->id.data;
-	ModifierData *md;
-
-	/* check softbody modifier */
-	md = (ModifierData *)modifiers_findByType(ob, eModifierType_Softbody);
-	if (md) {
-		/* no pointer from modifier data to actual softbody storage, would be good to add */
-		if (ob->soft->effector_weights == ew) {
-			char name_esc[sizeof(md->name) * 2];
-			BLI_strescape(name_esc, md->name, sizeof(name_esc));
-			return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
-		}
+	if (particle_id_check(ptr)) {
+		/* particle effector weights */
+		ParticleSettings *part = (ParticleSettings *)ptr->id.data;
+		
+		if (part->effector_weights == ew)
+			return BLI_sprintfN("effector_weights");
 	}
-	
-	/* check cloth modifier */
-	md = (ModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-	if (md) {
-		ClothModifierData *cmd = (ClothModifierData *)md;
-		if (cmd->sim_parms->effector_weights == ew) {
-			char name_esc[sizeof(md->name) * 2];
-			BLI_strescape(name_esc, md->name, sizeof(name_esc));
-			return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
+	else {
+		Object *ob = (Object *)ptr->id.data;
+		ModifierData *md;
+
+		/* check softbody modifier */
+		md = (ModifierData *)modifiers_findByType(ob, eModifierType_Softbody);
+		if (md) {
+			/* no pointer from modifier data to actual softbody storage, would be good to add */
+			if (ob->soft->effector_weights == ew) {
+				char name_esc[sizeof(md->name) * 2];
+				BLI_strescape(name_esc, md->name, sizeof(name_esc));
+				return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
+			}
 		}
-	}
-	
-	/* check smoke modifier */
-	md = (ModifierData *)modifiers_findByType(ob, eModifierType_Smoke);
-	if (md) {
-		SmokeModifierData *smd = (SmokeModifierData *)md;
-		if (smd->domain->effector_weights == ew) {
-			char name_esc[sizeof(md->name) * 2];
-			BLI_strescape(name_esc, md->name, sizeof(name_esc));
-			return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
+		
+		/* check cloth modifier */
+		md = (ModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+		if (md) {
+			ClothModifierData *cmd = (ClothModifierData *)md;
+			if (cmd->sim_parms->effector_weights == ew) {
+				char name_esc[sizeof(md->name) * 2];
+				BLI_strescape(name_esc, md->name, sizeof(name_esc));
+				return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
+			}
 		}
-	}
+		
+		/* check smoke modifier */
+		md = (ModifierData *)modifiers_findByType(ob, eModifierType_Smoke);
+		if (md) {
+			SmokeModifierData *smd = (SmokeModifierData *)md;
+			if (smd->domain->effector_weights == ew) {
+				char name_esc[sizeof(md->name) * 2];
+				BLI_strescape(name_esc, md->name, sizeof(name_esc));
+				return BLI_sprintfN("modifiers[\"%s\"].settings.effector_weights", name_esc);
+			}
+		}
 
-	/* check dynamic paint modifier */
-	md = (ModifierData *)modifiers_findByType(ob, eModifierType_DynamicPaint);
-	if (md) {
-		DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+		/* check dynamic paint modifier */
+		md = (ModifierData *)modifiers_findByType(ob, eModifierType_DynamicPaint);
+		if (md) {
+			DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 
-		if (pmd->canvas) {
-			DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
+			if (pmd->canvas) {
+				DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
 
-			for (; surface; surface = surface->next) {
-				if (surface->effector_weights == ew) {
-					char name_esc[sizeof(md->name) * 2];
-					char name_esc_surface[sizeof(surface->name) * 2];
+				for (; surface; surface = surface->next) {
+					if (surface->effector_weights == ew) {
+						char name_esc[sizeof(md->name) * 2];
+						char name_esc_surface[sizeof(surface->name) * 2];
 
-					BLI_strescape(name_esc, md->name, sizeof(name_esc));
-					BLI_strescape(name_esc_surface, surface->name, sizeof(name_esc_surface));
-					return BLI_sprintfN("modifiers[\"%s\"].canvas_settings.canvas_surfaces[\"%s\"]"
-					                    ".effector_weights", name_esc, name_esc_surface);
+						BLI_strescape(name_esc, md->name, sizeof(name_esc));
+						BLI_strescape(name_esc_surface, surface->name, sizeof(name_esc_surface));
+						return BLI_sprintfN("modifiers[\"%s\"].canvas_settings.canvas_surfaces[\"%s\"]"
+						                    ".effector_weights", name_esc, name_esc_surface);
+					}
 				}
 			}
 		}
@@ -459,6 +741,9 @@ static EnumPropertyItem *rna_Effector_shape_itemf(bContext *UNUSED(C), PointerRN
 {
 	Object *ob = NULL;
 
+	if (particle_id_check(ptr))
+		return empty_shape_items;
+	
 	ob = (Object *)ptr->id.data;
 	
 	if (ob->type == OB_CURVE) {
@@ -482,6 +767,140 @@ static EnumPropertyItem *rna_Effector_shape_itemf(bContext *UNUSED(C), PointerRN
 }
 
 #else
+
+/* ptcache.point_caches */
+static void rna_def_ptcache_point_caches(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	/* FunctionRNA *func; */
+	/* PropertyRNA *parm; */
+
+	RNA_def_property_srna(cprop, "PointCaches");
+	srna = RNA_def_struct(brna, "PointCaches", NULL);
+	RNA_def_struct_sdna(srna, "PointCache");
+	RNA_def_struct_ui_text(srna, "Point Caches", "Collection of point caches");
+
+	prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_funcs(prop, "rna_Cache_active_point_cache_index_get",
+	                           "rna_Cache_active_point_cache_index_set",
+	                           "rna_Cache_active_point_cache_index_range");
+	RNA_def_property_ui_text(prop, "Active Point Cache Index", "");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_change");
+}
+
+static void rna_def_pointcache(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem point_cache_compress_items[] = {
+		{PTCACHE_COMPRESS_NO, "NO", 0, "No", "No compression"},
+		{PTCACHE_COMPRESS_LZO, "LIGHT", 0, "Light", "Fast but not so effective compression"},
+		{PTCACHE_COMPRESS_LZMA, "HEAVY", 0, "Heavy", "Effective but slow compression"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	srna = RNA_def_struct(brna, "PointCache", NULL);
+	RNA_def_struct_ui_text(srna, "Point Cache", "Point cache for physics simulations");
+	RNA_def_struct_ui_icon(srna, ICON_PHYSICS);
+	
+	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
+	RNA_def_property_int_sdna(prop, NULL, "startframe");
+	RNA_def_property_range(prop, -MAXFRAME, MAXFRAME);
+	RNA_def_property_ui_range(prop, 1, MAXFRAME, 1, 1);
+	RNA_def_property_ui_text(prop, "Start", "Frame on which the simulation starts");
+	
+	prop = RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);
+	RNA_def_property_int_sdna(prop, NULL, "endframe");
+	RNA_def_property_range(prop, 1, MAXFRAME);
+	RNA_def_property_ui_text(prop, "End", "Frame on which the simulation stops");
+
+	prop = RNA_def_property(srna, "frame_step", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "step");
+	RNA_def_property_range(prop, 1, 20);
+	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_PointCache_frame_step_range");
+	RNA_def_property_ui_text(prop, "Cache Step", "Number of frames between cached frames");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_change");
+
+	prop = RNA_def_property(srna, "index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "index");
+	RNA_def_property_range(prop, -1, 100);
+	RNA_def_property_ui_text(prop, "Cache Index", "Index number of cache files");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
+
+	prop = RNA_def_property(srna, "compression", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, point_cache_compress_items);
+	RNA_def_property_ui_text(prop, "Cache Compression", "Compression method to be used");
+
+	/* flags */
+	prop = RNA_def_property(srna, "is_baked", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_BAKED);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "is_baking", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_BAKING);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "use_disk_cache", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_DISK_CACHE);
+	RNA_def_property_ui_text(prop, "Disk Cache", "Save cache files to disk (.blend file must be saved first)");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_toggle_disk_cache");
+
+	prop = RNA_def_property(srna, "is_outdated", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_OUTDATED);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Cache is outdated", "");
+
+	prop = RNA_def_property(srna, "is_frame_skip", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_FRAMES_SKIPPED);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_property_ui_text(prop, "Name", "Cache name");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
+	RNA_def_struct_name_property(srna, prop);
+
+	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_sdna(prop, NULL, "path");
+	RNA_def_property_ui_text(prop, "File Path", "Cache file path");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
+
+	/* removed, see PTCACHE_QUICK_CACHE */
+#if 0
+	prop = RNA_def_property(srna, "use_quick_cache", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_QUICK_CACHE);
+	RNA_def_property_ui_text(prop, "Quick Cache", "Update simulation with cache steps");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_change");
+#endif
+
+	prop = RNA_def_property(srna, "info", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "info");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Cache Info", "Info on current cache status");
+
+	prop = RNA_def_property(srna, "use_external", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_EXTERNAL);
+	RNA_def_property_ui_text(prop, "External", "Read cache from an external location");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
+
+	prop = RNA_def_property(srna, "use_library_path", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", PTCACHE_IGNORE_LIBPATH);
+	RNA_def_property_ui_text(prop, "Library Path",
+	                         "Use this file's path for the disk cache when library linked into another file "
+	                         "(for local bakes per scene file, disable this option)");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
+
+	prop = RNA_def_property(srna, "point_caches", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_funcs(prop, "rna_Cache_list_begin", "rna_iterator_listbase_next",
+	                                  "rna_iterator_listbase_end", "rna_iterator_listbase_get",
+	                                  NULL, NULL, NULL, NULL);
+	RNA_def_property_struct_type(prop, "PointCache");
+	RNA_def_property_ui_text(prop, "Point Cache List", "Point cache list");
+	rna_def_ptcache_point_caches(brna, prop);
+}
 
 static void rna_def_collision(BlenderRNA *brna)
 {
@@ -1452,6 +1871,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 
 void RNA_def_object_force(BlenderRNA *brna)
 {
+	rna_def_pointcache(brna);
 	rna_def_collision(brna);
 	rna_def_effector_weight(brna);
 	rna_def_field(brna);

@@ -63,7 +63,6 @@ variables on the UI for now
 #include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_object_force.h"
 #include "DNA_group_types.h"
 
 #include "BLI_math.h"
@@ -77,6 +76,7 @@ variables on the UI for now
 #include "BKE_global.h"
 #include "BKE_modifier.h"
 #include "BKE_softbody.h"
+#include "BKE_pointcache.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
 #include "BKE_scene.h"
@@ -1549,7 +1549,7 @@ static void scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow)
 	SoftBody *sb = ob->soft;
 	ListBase *do_effector = NULL;
 
-	do_effector = pdInitEffectors(scene, ob, sb->effector_weights, true);
+	do_effector = pdInitEffectors(scene, ob, NULL, sb->effector_weights, true);
 	_scan_for_ext_spring_forces(scene, ob, timenow, 0, sb->totspring, do_effector);
 	pdEndEffectors(&do_effector);
 }
@@ -1569,7 +1569,7 @@ static void sb_sfesf_threads_run(Scene *scene, struct Object *ob, float timenow,
 	int i, totthread, left, dec;
 	int lowsprings =100; /* wild guess .. may increase with better thread management 'above' or even be UI option sb->spawn_cf_threads_nopts */
 
-	do_effector= pdInitEffectors(scene, ob, ob->soft->effector_weights, true);
+	do_effector= pdInitEffectors(scene, ob, NULL, ob->soft->effector_weights, true);
 
 	/* figure the number of threads while preventing pretty pointless threading overhead */
 	totthread= BKE_scene_num_threads(scene);
@@ -2259,7 +2259,7 @@ static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, fl
 		sb_sfesf_threads_run(scene, ob, timenow, sb->totspring, NULL);
 
 	/* after spring scan because it uses Effoctors too */
-	do_effector= pdInitEffectors(scene, ob, sb->effector_weights, true);
+	do_effector= pdInitEffectors(scene, ob, NULL, sb->effector_weights, true);
 
 	if (do_deflector) {
 		float defforce[3];
@@ -2321,7 +2321,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 
 		if (do_springcollision || do_aero)  scan_for_ext_spring_forces(scene, ob, timenow);
 		/* after spring scan because it uses Effoctors too */
-		do_effector= pdInitEffectors(scene, ob, ob->soft->effector_weights, true);
+		do_effector= pdInitEffectors(scene, ob, NULL, ob->soft->effector_weights, true);
 
 		if (do_deflector) {
 			float defforce[3];
@@ -3323,6 +3323,8 @@ SoftBody *sbNew(Scene *scene)
 	sb->shearstiff = 1.0f;
 	sb->solverflags |= SBSO_OLDERR;
 
+	sb->pointcache = BKE_ptcache_add(&sb->ptcaches);
+
 	if (!sb->effector_weights)
 		sb->effector_weights = BKE_add_effector_weights(NULL);
 
@@ -3335,6 +3337,8 @@ SoftBody *sbNew(Scene *scene)
 void sbFree(SoftBody *sb)
 {
 	free_softbody_intern(sb);
+	BKE_ptcache_free_list(&sb->ptcaches);
+	sb->pointcache = NULL;
 	if (sb->effector_weights)
 		MEM_freeN(sb->effector_weights);
 	MEM_freeN(sb);
@@ -3641,17 +3645,29 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], int numVerts)
 {
 	SoftBody *sb= ob->soft;
-	float dtime, timescale = 1.0f;
-	int framedelta = 1, framenr = (int)cfra, startframe = scene->r.sfra, endframe = scene->r.efra;
+	PointCache *cache;
+	PTCacheID pid;
+	float dtime, timescale;
+	int framedelta, framenr, startframe, endframe;
+	int cache_result;
+	cache= sb->pointcache;
+
+	framenr= (int)cfra;
+	framedelta= framenr - cache->simframe;
+
+	BKE_ptcache_id_from_softbody(&pid, ob, sb);
+	BKE_ptcache_id_time(&pid, scene, framenr, &startframe, &endframe, &timescale);
 
 	/* check for changes in mesh, should only happen in case the mesh
 	 * structure changes during an animation */
 	if (sb->bpoint && numVerts != sb->totpoint) {
+		BKE_ptcache_invalidate(cache);
 		return;
 	}
 
 	/* clamp frame ranges */
 	if (framenr < startframe) {
+		BKE_ptcache_invalidate(cache);
 		return;
 	}
 	else if (framenr > endframe) {
@@ -3688,8 +3704,13 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 		return;
 	}
 	if (framenr == startframe) {
+		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+
 		/* first frame, no simulation to do, just set the positions */
 		softbody_update_positions(ob, sb, vertexCos, numVerts);
+
+		BKE_ptcache_validate(cache, framenr);
+		cache->flag &= ~PTCACHE_REDO_NEEDED;
 
 		sb->last_frame = framenr;
 
@@ -3697,10 +3718,38 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 	}
 
 	/* try to read from cache */
-	bool can_simulate = (framenr == sb->last_frame + 1);
+	bool can_simulate = (framenr == sb->last_frame + 1) && !(cache->flag & PTCACHE_BAKED);
+
+	cache_result = BKE_ptcache_read(&pid, (float)framenr+scene->r.subframe, can_simulate);
+
+	if (cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED ||
+	    (!can_simulate && cache_result == PTCACHE_READ_OLD)) {
+		softbody_to_object(ob, vertexCos, numVerts, sb->local);
+
+		BKE_ptcache_validate(cache, framenr);
+
+		if (cache_result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED)
+			BKE_ptcache_write(&pid, framenr);
+
+		sb->last_frame = framenr;
+
+		return;
+	}
+	else if (cache_result==PTCACHE_READ_OLD) {
+		; /* do nothing */
+	}
+	else if (/*ob->id.lib || */(cache->flag & PTCACHE_BAKED)) { /* "library linking & pointcaches" has to be solved properly at some point */
+		/* if baked and nothing in cache, do nothing */
+		BKE_ptcache_invalidate(cache);
+		return;
+	}
 
 	if (!can_simulate)
 		return;
+
+	/* if on second frame, write cache for first frame */
+	if (cache->simframe == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0))
+		BKE_ptcache_write(&pid, startframe);
 
 	softbody_update_positions(ob, sb, vertexCos, numVerts);
 
@@ -3711,6 +3760,9 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 	softbody_step(scene, ob, sb, dtime);
 
 	softbody_to_object(ob, vertexCos, numVerts, 0);
+
+	BKE_ptcache_validate(cache, framenr);
+	BKE_ptcache_write(&pid, framenr);
 
 	sb->last_frame = framenr;
 }

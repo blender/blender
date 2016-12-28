@@ -53,7 +53,6 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_fluidsim.h" // NT
-#include "DNA_object_force.h"
 #include "DNA_object_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
@@ -79,6 +78,8 @@
 #include "BKE_mesh.h" // for ME_ defines (patching)
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
+#include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
 #include "BKE_texture.h"
@@ -742,6 +743,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 		Curve *cu;
 		Scene *sce;
 		Tex *tx;
+		ParticleSettings *part;
 		Object *ob;
 		//PTCacheID *pid;
 		//ListBase pidlist;
@@ -870,6 +872,25 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 		/* copy standard draw flag to meshes(used to be global, is not available here) */
 		for (me = main->mesh.first; me; me = me->id.next) {
 			me->drawflag = ME_DRAWEDGES|ME_DRAWFACES|ME_DRAWCREASES;
+		}
+
+		/* particle draw and render types */
+		for (part = main->particle.first; part; part = part->id.next) {
+			if (part->draw_as) {
+				if (part->draw_as == PART_DRAW_DOT) {
+					part->ren_as = PART_DRAW_HALO;
+					part->draw_as = PART_DRAW_REND;
+				}
+				else if (part->draw_as <= PART_DRAW_AXIS) {
+					part->ren_as = PART_DRAW_HALO;
+				}
+				else {
+					part->ren_as = part->draw_as;
+					part->draw_as = PART_DRAW_REND;
+				}
+			}
+			part->path_end = 1.0f;
+			part->clength = 1.0f;
 		}
 
 		/* set old pointcaches to have disk cache flag */
@@ -1115,6 +1136,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 		Lamp *la;
 		World *wo;
 		Tex *tex;
+		ParticleSettings *part;
 		bool do_gravity = false;
 
 		for (sce = main->scene.first; sce; sce = sce->id.next)
@@ -1173,6 +1195,12 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 				sce->physics_settings.flag = PHYS_GLOBAL_GRAVITY;
 				do_gravity = true;
 			}
+		}
+
+		/* Assign proper global gravity weights for dynamics (only z-coordinate is taken into account) */
+		if (do_gravity) {
+			for (part = main->particle.first; part; part = part->id.next)
+				part->effector_weights->global_gravity = part->acc[2]/-9.81f;
 		}
 
 		for (ob = main->object.first; ob; ob = ob->id.next) {
@@ -1416,8 +1444,13 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 9)) {
+		Scene *sce;
 		Mesh *me;
 		Object *ob;
+
+		for (sce = main->scene.first; sce; sce = sce->id.next)
+			if (!sce->toolsettings->particle.selectmode)
+				sce->toolsettings->particle.selectmode = SCE_SELECT_PATH;
 
 		if (main->versionfile == 250 && main->subversionfile > 1) {
 			for (me = main->mesh.first; me; me = me->id.next)
@@ -1745,6 +1778,15 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 				seq->volume = 1.0f;
 			}
 			SEQ_END
+		}
+
+		/* particle brush strength factor was changed from int to float */
+		for (sce = main->scene.first; sce; sce = sce->id.next) {
+			ParticleEditSettings *pset = &sce->toolsettings->particle;
+			int a;
+
+			for (a = 0; a < PE_TOT_BRUSH; a++)
+				pset->brush[a].strength /= 100.0f;
 		}
 
 		for (ma = main->mat.first; ma; ma = ma->id.next)
@@ -2153,12 +2195,21 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile < 255 || (main->versionfile == 255 && main->subversionfile < 1)) {
 		Brush *br;
+		ParticleSettings *part;
 		bScreen *sc;
 		Object *ob;
 
 		for (br = main->brush.first; br; br = br->id.next) {
 			if (br->ob_mode == 0)
 				br->ob_mode = OB_MODE_ALL_PAINT;
+		}
+
+		for (part = main->particle.first; part; part = part->id.next) {
+			if (part->boids)
+				part->boids->pitch = 1.0f;
+
+			part->flag &= ~PART_HAIR_REGROW; /* this was a deprecated flag before */
+			part->kink_amp_clump = 1.f; /* keep old files looking similar */
 		}
 
 		for (sc = main->screen.first; sc; sc = sc->id.next) {
@@ -2378,6 +2429,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 		bScreen *sc;
 		Brush *brush;
 		Object *ob;
+		ParticleSettings *part;
 		Material *mat;
 		int tex_nr, transp_tex;
 
@@ -2426,6 +2478,12 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
+		}
+
+		/* particle draw color from material */
+		for (part = main->particle.first; part; part = part->id.next) {
+			if (part->draw & PART_DRAW_MAT_COL)
+				part->draw_col = PART_DRAW_COL_MAT;
 		}
 	}
 
@@ -2517,6 +2575,14 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 						ba->damping = 1.0/32.0;
 					}
 				}
+			}
+		}
+
+		{
+			ParticleSettings *part;
+			for (part = main->particle.first; part; part = part->id.next) {
+				/* Initialize particle billboard scale */
+				part->bb_size[0] = part->bb_size[1] = 1.0f;
 			}
 		}
 	}
@@ -2686,6 +2752,15 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile < 259 || (main->versionfile == 259 && main->subversionfile < 4)) {
+		{
+			/* Adaptive time step for particle systems */
+			ParticleSettings *part;
+			for (part = main->particle.first; part; part = part->id.next) {
+				part->courant_target = 0.2f;
+				part->time_flag &= ~PART_TIME_AUTOSF;
+			}
+		}
+
 		{
 			/* set defaults for obstacle avoidance, recast data */
 			Scene *sce;

@@ -50,8 +50,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_movieclip_types.h"
-#include "DNA_object_force.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
@@ -106,6 +104,8 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
+#include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_property.h"
 #include "BKE_rigidbody.h"
 #include "BKE_sca.h"
@@ -161,6 +161,15 @@ void BKE_object_update_base_layer(struct Scene *scene, Object *ob)
 	}
 }
 
+void BKE_object_free_particlesystems(Object *ob)
+{
+	ParticleSystem *psys;
+
+	while ((psys = BLI_pophead(&ob->particlesystem))) {
+		psys_free(ob, psys);
+	}
+}
+
 void BKE_object_free_softbody(Object *ob)
 {
 	if (ob->soft) {
@@ -198,6 +207,9 @@ void BKE_object_free_modifiers(Object *ob)
 	while ((md = BLI_pophead(&ob->modifiers))) {
 		modifier_free(md);
 	}
+
+	/* particle modifiers were freed, so free the particlesystems as well */
+	BKE_object_free_particlesystems(ob);
 
 	/* same for softbody */
 	BKE_object_free_softbody(ob);
@@ -295,6 +307,8 @@ void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_sr
 		modifier_unique_name(&ob_dst->modifiers, nmd);
 	}
 
+	BKE_object_copy_particlesystems(ob_dst, ob_src);
+
 	/* TODO: smoke?, cloth? */
 }
 
@@ -338,7 +352,39 @@ void BKE_object_free_derived_caches(Object *ob)
 
 void BKE_object_free_caches(Object *object)
 {
+	ModifierData *md;
 	short update_flag = 0;
+
+	/* Free particle system caches holding paths. */
+	if (object->particlesystem.first) {
+		ParticleSystem *psys;
+		for (psys = object->particlesystem.first;
+		     psys != NULL;
+		     psys = psys->next)
+		{
+			psys_free_path_cache(psys, psys->edit);
+			update_flag |= PSYS_RECALC_REDO;
+		}
+	}
+
+	/* Free memory used by cached derived meshes in the particle system modifiers. */
+	for (md = object->modifiers.first; md != NULL; md = md->next) {
+		if (md->type == eModifierType_ParticleSystem) {
+			ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
+			if (psmd->dm_final != NULL) {
+				psmd->dm_final->needsFree = 1;
+				psmd->dm_final->release(psmd->dm_final);
+				psmd->dm_final = NULL;
+				if (psmd->dm_deformed != NULL) {
+					psmd->dm_deformed->needsFree = 1;
+					psmd->dm_deformed->release(psmd->dm_deformed);
+					psmd->dm_deformed = NULL;
+				}
+				psmd->flag |= eParticleSystemFlag_file_loaded;
+				update_flag |= OB_RECALC_DATA;
+			}
+		}
+	}
 
 	/* Tag object for update, so once memory critical operation is over and
 	 * scene update routines are back to it's business the object will be
@@ -818,6 +864,8 @@ SoftBody *copy_softbody(const SoftBody *sb, bool copy_caches)
 	
 	sbn->scratch = NULL;
 
+	sbn->pointcache = BKE_ptcache_copy_list(&sbn->ptcaches, &sb->ptcaches, copy_caches);
+
 	if (sb->effector_weights)
 		sbn->effector_weights = MEM_dupallocN(sb->effector_weights);
 
@@ -833,6 +881,119 @@ BulletSoftBody *copy_bulletsoftbody(BulletSoftBody *bsb)
 	bsbn = MEM_dupallocN(bsb);
 	/* no pointer in this structure yet */
 	return bsbn;
+}
+
+ParticleSystem *BKE_object_copy_particlesystem(ParticleSystem *psys)
+{
+	ParticleSystem *psysn;
+	ParticleData *pa;
+	int p;
+
+	psysn = MEM_dupallocN(psys);
+	psysn->particles = MEM_dupallocN(psys->particles);
+	psysn->child = MEM_dupallocN(psys->child);
+
+	if (psys->part->type == PART_HAIR) {
+		for (p = 0, pa = psysn->particles; p < psysn->totpart; p++, pa++)
+			pa->hair = MEM_dupallocN(pa->hair);
+	}
+
+	if (psysn->particles && (psysn->particles->keys || psysn->particles->boid)) {
+		ParticleKey *key = psysn->particles->keys;
+		BoidParticle *boid = psysn->particles->boid;
+
+		if (key)
+			key = MEM_dupallocN(key);
+		
+		if (boid)
+			boid = MEM_dupallocN(boid);
+		
+		for (p = 0, pa = psysn->particles; p < psysn->totpart; p++, pa++) {
+			if (boid)
+				pa->boid = boid++;
+			if (key) {
+				pa->keys = key;
+				key += pa->totkey;
+			}
+		}
+	}
+
+	if (psys->clmd) {
+		psysn->clmd = (ClothModifierData *)modifier_new(eModifierType_Cloth);
+		modifier_copyData((ModifierData *)psys->clmd, (ModifierData *)psysn->clmd);
+		psys->hair_in_dm = psys->hair_out_dm = NULL;
+	}
+
+	BLI_duplicatelist(&psysn->targets, &psys->targets);
+
+	psysn->pathcache = NULL;
+	psysn->childcache = NULL;
+	psysn->edit = NULL;
+	psysn->pdd = NULL;
+	psysn->effectors = NULL;
+	psysn->tree = NULL;
+	psysn->bvhtree = NULL;
+	
+	BLI_listbase_clear(&psysn->pathcachebufs);
+	BLI_listbase_clear(&psysn->childcachebufs);
+	psysn->renderdata = NULL;
+	
+	psysn->pointcache = BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches, false);
+
+	/* XXX - from reading existing code this seems correct but intended usage of
+	 * pointcache should /w cloth should be added in 'ParticleSystem' - campbell */
+	if (psysn->clmd) {
+		psysn->clmd->point_cache = psysn->pointcache;
+	}
+
+	id_us_plus((ID *)psysn->part);
+
+	return psysn;
+}
+
+void BKE_object_copy_particlesystems(Object *ob_dst, const Object *ob_src)
+{
+	ParticleSystem *psys, *npsys;
+	ModifierData *md;
+
+	if (ob_dst->type != OB_MESH) {
+		/* currently only mesh objects can have soft body */
+		return;
+	}
+
+	BLI_listbase_clear(&ob_dst->particlesystem);
+	for (psys = ob_src->particlesystem.first; psys; psys = psys->next) {
+		npsys = BKE_object_copy_particlesystem(psys);
+
+		BLI_addtail(&ob_dst->particlesystem, npsys);
+
+		/* need to update particle modifiers too */
+		for (md = ob_dst->modifiers.first; md; md = md->next) {
+			if (md->type == eModifierType_ParticleSystem) {
+				ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
+				if (psmd->psys == psys)
+					psmd->psys = npsys;
+			}
+			else if (md->type == eModifierType_DynamicPaint) {
+				DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+				if (pmd->brush) {
+					if (pmd->brush->psys == psys) {
+						pmd->brush->psys = npsys;
+					}
+				}
+			}
+			else if (md->type == eModifierType_Smoke) {
+				SmokeModifierData *smd = (SmokeModifierData *) md;
+				
+				if (smd->type == MOD_SMOKE_TYPE_FLOW) {
+					if (smd->flow) {
+						if (smd->flow->psys == psys)
+							smd->flow->psys = npsys;
+					}
+				}
+			}
+		}
+	}
 }
 
 void BKE_object_copy_softbody(Object *ob_dst, const Object *ob_src)
@@ -991,6 +1152,8 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, bool copy_caches)
 	obn->rigidbody_object = BKE_rigidbody_copy_object(ob);
 	obn->rigidbody_constraint = BKE_rigidbody_copy_constraint(ob);
 
+	BKE_object_copy_particlesystems(obn, ob);
+	
 	obn->derivedDeform = NULL;
 	obn->derivedFinal = NULL;
 
@@ -3515,6 +3678,25 @@ bool BKE_object_modifier_use_time(Object *ob, ModifierData *md)
 	return false;
 }
 
+/* set "ignore cache" flag for all caches on this object */
+static void object_cacheIgnoreClear(Object *ob, int state)
+{
+	ListBase pidlist;
+	PTCacheID *pid;
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+
+	for (pid = pidlist.first; pid; pid = pid->next) {
+		if (pid->cache) {
+			if (state)
+				pid->cache->flag |= PTCACHE_IGNORE_CLEAR;
+			else
+				pid->cache->flag &= ~PTCACHE_IGNORE_CLEAR;
+		}
+	}
+
+	BLI_freelistN(&pidlist);
+}
+
 /* Note: this function should eventually be replaced by depsgraph functionality.
  * Avoid calling this in new code unless there is a very good reason for it!
  */
@@ -3574,7 +3756,11 @@ bool BKE_object_modifier_update_subframe(Scene *scene, Object *ob, bool update_m
 	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
 	BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, frame, ADT_RECALC_ANIM);
 	if (update_mesh) {
+		/* ignore cache clear during subframe updates
+		 *  to not mess up cache validity */
+		object_cacheIgnoreClear(ob, 1);
 		BKE_object_handle_update(G.main->eval_ctx, scene, ob);
+		object_cacheIgnoreClear(ob, 0);
 	}
 	else
 		BKE_object_where_is_calc_time(scene, ob, frame);

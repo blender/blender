@@ -237,6 +237,9 @@ int cloth_uses_vgroup(struct ClothModifierData *clmd);
 void bvhtree_update_from_cloth(struct ClothModifierData *clmd, bool moving);
 void bvhselftree_update_from_cloth(struct ClothModifierData *clmd, bool moving);
 
+// needed for button_object.c
+void cloth_clear_cache (struct Object *ob, struct ClothModifierData *clmd, float framenr );
+
 // needed for cloth.c
 int cloth_add_spring (struct ClothModifierData *clmd, unsigned int indexA, unsigned int indexB, float restlength, int spring_type);
 

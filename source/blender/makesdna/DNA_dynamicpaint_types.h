@@ -108,6 +108,8 @@ typedef struct DynamicPaintSurface {
 	struct EffectorWeights *effector_weights;
 
 	/* cache */
+	struct PointCache *pointcache;
+	struct ListBase ptcaches;
 	int current_frame;
 
 	/* surface */
@@ -228,6 +230,7 @@ enum {
 typedef struct DynamicPaintBrushSettings {
 	struct DynamicPaintModifierData *pmd; /* for fast RNA access */
 	struct DerivedMesh *dm;
+	struct ParticleSystem *psys;
 	struct Material *mat;
 
 	int flags;

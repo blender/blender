@@ -43,6 +43,7 @@
 #include "DNA_object_fluidsim.h"
 #include "DNA_object_force.h" // for pointcache
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_math.h"

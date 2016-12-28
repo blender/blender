@@ -56,6 +56,7 @@ EnumPropertyItem rna_enum_prop_dynamicpaint_type_items[] = {
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_particle.h"
 
 
 static char *rna_DynamicPaintCanvasSettings_path(PointerRNA *ptr)
@@ -98,6 +99,11 @@ static char *rna_DynamicPaintSurface_path(PointerRNA *ptr)
 static void rna_DynamicPaint_redoModifier(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+}
+
+static void rna_DynamicPaintSurfaces_updateFrames(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	dynamicPaint_cacheUpdateFrames((DynamicPaintSurface *)ptr->data);
 }
 
 static void rna_DynamicPaintSurface_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -178,20 +184,20 @@ static void rna_DynamicPaint_surfaces_begin(CollectionPropertyIterator *iter, Po
 	rna_iterator_listbase_begin(iter, &canvas->surfaces, NULL);
 }
 
-static int rna_Surface_active_index_get(PointerRNA *ptr)
+static int rna_Surface_active_point_index_get(PointerRNA *ptr)
 {
 	DynamicPaintCanvasSettings *canvas = (DynamicPaintCanvasSettings *)ptr->data;
 	return canvas->active_sur;
 }
 
-static void rna_Surface_active_index_set(struct PointerRNA *ptr, int value)
+static void rna_Surface_active_point_index_set(struct PointerRNA *ptr, int value)
 {
 	DynamicPaintCanvasSettings *canvas = (DynamicPaintCanvasSettings *)ptr->data;
 	canvas->active_sur = value;
 	return;
 }
 
-static void rna_Surface_active_range(PointerRNA *ptr, int *min, int *max,
+static void rna_Surface_active_point_range(PointerRNA *ptr, int *min, int *max,
                                            int *UNUSED(softmin), int *UNUSED(softmax))
 {
 	DynamicPaintCanvasSettings *canvas = (DynamicPaintCanvasSettings *)ptr->data;
@@ -216,7 +222,7 @@ static void rna_DynamicPaint_uvlayer_set(PointerRNA *ptr, const char *value)
 	}
 }
 
-/* is cache used */
+/* is point cache used */
 static int rna_DynamicPaint_is_cache_user_get(PointerRNA *ptr)
 {
 	DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
@@ -305,9 +311,9 @@ static void rna_def_canvas_surfaces(BlenderRNA *brna, PropertyRNA *cprop)
 
 	prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_int_funcs(prop, "rna_Surface_active_index_get", "rna_Surface_active_index_set",
-	                           "rna_Surface_active_range");
-	RNA_def_property_ui_text(prop, "Active Surface Index", "");
+	RNA_def_property_int_funcs(prop, "rna_Surface_active_point_index_get", "rna_Surface_active_point_index_set",
+	                           "rna_Surface_active_point_range");
+	RNA_def_property_ui_text(prop, "Active Point Cache Index", "");
 
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "DynamicPaintSurface");
@@ -467,7 +473,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1.0, MAXFRAMEF);
 	RNA_def_property_ui_range(prop, 1.0, 9999, 1, -1);
 	RNA_def_property_ui_text(prop, "Start Frame", "Simulation start frame");
-	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaintSurfaces_updateFrames");
 	
 	prop = RNA_def_property(srna, "frame_end", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "end_frame");
@@ -475,7 +481,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1.0, MAXFRAMEF);
 	RNA_def_property_ui_range(prop, 1.0, 9999.0, 1, -1);
 	RNA_def_property_ui_text(prop, "End Frame", "Simulation end frame");
-	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaintSurfaces_updateFrames");
 	
 	prop = RNA_def_property(srna, "frame_substeps", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "substeps");
@@ -716,6 +722,13 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_WAVE_OPEN_BORDERS);
 	RNA_def_property_ui_text(prop, "Open Borders", "Pass waves through mesh edges");
 
+	
+	/* cache */
+	prop = RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "pointcache");
+	RNA_def_property_ui_text(prop, "Point Cache", "");
+
 	/* is cache used */
 	prop = RNA_def_property(srna, "is_cache_user", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_DynamicPaint_is_cache_user_get", NULL);
@@ -942,6 +955,38 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_NEGATE_VOLUME);
 	RNA_def_property_ui_text(prop, "Negate Volume", "Negate influence inside the volume");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_redoModifier");
+	
+
+	/*
+	 *   Particle
+	 */
+	prop = RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "psys");
+	RNA_def_property_struct_type(prop, "ParticleSystem");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Particle Systems", "The particle system to paint with");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_reset_dependency");
+
+	
+	prop = RNA_def_property(srna, "use_particle_radius", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_PART_RAD);
+	RNA_def_property_ui_text(prop, "Use Particle Radius", "Use radius from particle settings");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_redoModifier");
+	
+	prop = RNA_def_property(srna, "solid_radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "particle_radius");
+	RNA_def_property_range(prop, 0.01, 10.0);
+	RNA_def_property_ui_range(prop, 0.01, 2.0, 5, 3);
+	RNA_def_property_ui_text(prop, "Solid Radius", "Radius that will be painted solid");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_redoModifier");
+
+	prop = RNA_def_property(srna, "smooth_radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "particle_smooth");
+	RNA_def_property_range(prop, 0.0, 10.0);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 5, -1);
+	RNA_def_property_ui_text(prop, "Smooth Radius", "Smooth falloff added after solid radius");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_redoModifier");
+	
 
 	/*
 	 * Color ramps

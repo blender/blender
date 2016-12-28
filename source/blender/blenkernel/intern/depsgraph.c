@@ -54,8 +54,6 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
@@ -83,6 +81,8 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
+#include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_tracking.h"
@@ -478,7 +478,7 @@ void dag_add_collision_relations(DagForest *dag, Scene *scene, Object *ob, DagNo
 
 void dag_add_forcefield_relations(DagForest *dag, Scene *scene, Object *ob, DagNode *node, EffectorWeights *effector_weights, bool add_absorption, int skip_forcefield, const char *name)
 {
-	ListBase *effectors = pdInitEffectors(scene, ob, effector_weights, false);
+	ListBase *effectors = pdInitEffectors(scene, ob, NULL, effector_weights, false);
 
 	if (effectors) {
 		for (EffectorCache *eff = effectors->first; eff; eff = eff->next) {
@@ -507,6 +507,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Main *bmain, Sc
 	DagNode *node2;
 	DagNode *node3;
 	Key *key;
+	ParticleSystem *psys;
 	int addtoroot = 1;
 	
 	node = dag_get_node(dag, ob);
@@ -746,6 +747,83 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Main *bmain, Sc
 	}
 	else if (ob->type == OB_LAMP) {
 		dag_add_lamp_driver_relations(dag, node, ob->data);
+	}
+	
+	/* particles */
+	psys = ob->particlesystem.first;
+	if (psys) {
+		GroupObject *go;
+
+		for (; psys; psys = psys->next) {
+			BoidRule *rule = NULL;
+			BoidState *state = NULL;
+			ParticleSettings *part = psys->part;
+
+			if (part->adt) {
+				dag_add_driver_relation(part->adt, dag, node, 1);
+			}
+
+			dag_add_relation(dag, node, node, DAG_RL_OB_DATA, "Particle-Object Relation");
+
+			if (!psys_check_enabled(ob, psys, G.is_rendering))
+				continue;
+
+			if (ELEM(part->phystype, PART_PHYS_KEYED, PART_PHYS_BOIDS)) {
+				ParticleTarget *pt = psys->targets.first;
+
+				for (; pt; pt = pt->next) {
+					if (pt->ob && BLI_findlink(&pt->ob->particlesystem, pt->psys - 1)) {
+						node2 = dag_get_node(dag, pt->ob);
+						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Particle Targets");
+					}
+				}
+			}
+
+			if (part->ren_as == PART_DRAW_OB && part->dup_ob) {
+				node2 = dag_get_node(dag, part->dup_ob);
+				/* note that this relation actually runs in the wrong direction, the problem
+				 * is that dupli system all have this (due to parenting), and the render
+				 * engine instancing assumes particular ordering of objects in list */
+				dag_add_relation(dag, node, node2, DAG_RL_OB_OB, "Particle Object Visualization");
+				if (part->dup_ob->type == OB_MBALL)
+					dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA, "Particle Object Visualization");
+			}
+
+			if (part->ren_as == PART_DRAW_GR && part->dup_group) {
+				for (go = part->dup_group->gobject.first; go; go = go->next) {
+					node2 = dag_get_node(dag, go->ob);
+					dag_add_relation(dag, node2, node, DAG_RL_OB_OB, "Particle Group Visualization");
+				}
+			}
+
+			if (part->type != PART_HAIR) {
+				/* Actual code uses get_collider_cache */
+				dag_add_collision_relations(dag, scene, ob, node, part->collision_group, ob->lay, eModifierType_Collision, NULL, true, "Particle Collision");
+			}
+			else if ((psys->flag & PSYS_HAIR_DYNAMICS) && psys->clmd && psys->clmd->coll_parms) {
+				/* Hair uses cloth simulation, i.e. get_collision_objects */
+				dag_add_collision_relations(dag, scene, ob, node, psys->clmd->coll_parms->group, ob->lay | scene->lay, eModifierType_Collision, NULL, true, "Hair Collision");
+			}
+
+			dag_add_forcefield_relations(dag, scene, ob, node, part->effector_weights, part->type == PART_HAIR, 0, "Particle Force Field");
+
+			if (part->boids) {
+				for (state = part->boids->states.first; state; state = state->next) {
+					for (rule = state->rules.first; rule; rule = rule->next) {
+						Object *ruleob = NULL;
+						if (rule->type == eBoidRuleType_Avoid)
+							ruleob = ((BoidRuleGoalAvoid *)rule)->ob;
+						else if (rule->type == eBoidRuleType_FollowLeader)
+							ruleob = ((BoidRuleFollowLeader *)rule)->ob;
+
+						if (ruleob) {
+							node2 = dag_get_node(dag, ruleob);
+							dag_add_relation(dag, node2, node, DAG_RL_OB_DATA, "Boid Rule");
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	/* object constraints */
@@ -1817,6 +1895,38 @@ static unsigned int flush_layer_node(Scene *sce, DagNode *node, int curtime)
 	return node->lay;
 }
 
+/* node was checked to have lasttime != curtime, and is of type ID_OB */
+static void flush_pointcache_reset(Main *bmain, Scene *scene, DagNode *node,
+                                   int curtime, unsigned int lay, bool reset)
+{
+	DagAdjList *itA;
+	Object *ob;
+	
+	node->lasttime = curtime;
+	
+	for (itA = node->child; itA; itA = itA->next) {
+		if (itA->node->type == ID_OB) {
+			if (itA->node->lasttime != curtime) {
+				ob = (Object *)(itA->node->ob);
+
+				if (reset || (ob->recalc & OB_RECALC_ALL)) {
+					if (BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH)) {
+						/* Don't tag nodes which are on invisible layer. */
+						if (itA->node->lay & lay) {
+							ob->recalc |= OB_RECALC_DATA;
+							lib_id_recalc_data_tag(bmain, &ob->id);
+						}
+					}
+
+					flush_pointcache_reset(bmain, scene, itA->node, curtime, lay, true);
+				}
+				else
+					flush_pointcache_reset(bmain, scene, itA->node, curtime, lay, false);
+			}
+		}
+	}
+}
+
 /* flush layer flags to dependencies */
 static void dag_scene_flush_layers(Scene *sce, int lay)
 {
@@ -1894,6 +2004,7 @@ void DAG_scene_flush_update(Main *bmain, Scene *sce, unsigned int lay, const sho
 {
 	DagNode *firstnode;
 	DagAdjList *itA;
+	Object *ob;
 	int lasttime;
 
 	if (!DEG_depsgraph_use_legacy()) {
@@ -1921,6 +2032,24 @@ void DAG_scene_flush_update(Main *bmain, Scene *sce, unsigned int lay, const sho
 	if (!time) {
 		sce->theDag->time++;  /* so we know which nodes were accessed */
 		lasttime = sce->theDag->time;
+		for (itA = firstnode->child; itA; itA = itA->next) {
+			if (itA->node->lasttime != lasttime && itA->node->type == ID_OB) {
+				ob = (Object *)(itA->node->ob);
+
+				if (ob->recalc & OB_RECALC_ALL) {
+					if (BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH)) {
+						ob->recalc |= OB_RECALC_DATA;
+						lib_id_recalc_data_tag(bmain, &ob->id);
+					}
+
+					flush_pointcache_reset(bmain, sce, itA->node, lasttime,
+					                       lay, true);
+				}
+				else
+					flush_pointcache_reset(bmain, sce, itA->node, lasttime,
+					                       lay, false);
+			}
+		}
 	}
 	
 	dag_tag_renderlayers(sce, lay);
@@ -2113,6 +2242,8 @@ static void dag_object_time_update_flags(Main *bmain, Scene *scene, Object *ob)
 						ob->recalc |= OB_RECALC_DATA;
 					}
 				}
+				if (ob->particlesystem.first)
+					ob->recalc |= OB_RECALC_DATA;
 				break;
 			case OB_CURVE:
 			case OB_SURF:
@@ -2150,6 +2281,17 @@ static void dag_object_time_update_flags(Main *bmain, Scene *scene, Object *ob)
 		if (animdata_use_time(adt)) {
 			ob->recalc |= OB_RECALC_DATA;
 			adt->recalc |= ADT_RECALC_ANIM;
+		}
+
+		if (ob->particlesystem.first) {
+			ParticleSystem *psys = ob->particlesystem.first;
+
+			for (; psys; psys = psys->next) {
+				if (psys_check_enabled(ob, psys, G.is_rendering)) {
+					ob->recalc |= OB_RECALC_DATA;
+					break;
+				}
+			}
 		}
 	}
 
@@ -2442,6 +2584,7 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 	/* set flags & pointcache for object */
 	if (GS(id->name) == ID_OB) {
 		ob = (Object *)id;
+		BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH);
 
 		/* So if someone tagged object recalc directly,
 		 * id_tag_update bit-field stays relevant
@@ -2472,6 +2615,7 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 				if (!(ob && obt == ob) && obt->data == id) {
 					obt->recalc |= OB_RECALC_DATA;
 					lib_id_recalc_data_tag(bmain, &obt->id);
+					BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
 				}
 			}
 		}
@@ -2499,6 +2643,30 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 					obt->recalc |= OB_RECALC_DATA;
 					lib_id_recalc_data_tag(bmain, &obt->id);
 				}
+
+				/* particle settings can use the texture as well */
+				if (obt->particlesystem.first) {
+					ParticleSystem *psys = obt->particlesystem.first;
+					MTex **mtexp, *mtex;
+					int a;
+					for (; psys; psys = psys->next) {
+						mtexp = psys->part->mtex;
+						for (a = 0; a < MAX_MTEX; a++, mtexp++) {
+							mtex = *mtexp;
+							if (mtex && mtex->tex == (Tex *)id) {
+								obt->recalc |= OB_RECALC_DATA;
+								lib_id_recalc_data_tag(bmain, &obt->id);
+
+								if (mtex->mapto & PAMAP_INIT)
+									psys->recalc |= PSYS_RECALC_RESET;
+								if (mtex->mapto & PAMAP_CHILD)
+									psys->recalc |= PSYS_RECALC_CHILD;
+
+								BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
+							}
+						}
+					}
+				}
 			}
 		}
 		
@@ -2510,10 +2678,20 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 					obt->flag |= (OB_RECALC_OB | OB_RECALC_DATA);
 					lib_id_recalc_tag(bmain, &obt->id);
 					lib_id_recalc_data_tag(bmain, &obt->id);
+					BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
 				}
 			}
 		}
 		
+		/* set flags based on particle settings */
+		if (idtype == ID_PA) {
+			ParticleSystem *psys;
+			for (obt = bmain->object.first; obt; obt = obt->id.next)
+				for (psys = obt->particlesystem.first; psys; psys = psys->next)
+					if (&psys->part->id == id)
+						BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
+		}
+
 		if (ELEM(idtype, ID_MA, ID_TE)) {
 			obt = sce->basact ? sce->basact->object : NULL;
 			if (obt && obt->mode & OB_MODE_TEXTURE_PAINT) {
@@ -2783,7 +2961,7 @@ void DAG_id_tag_update_ex(Main *bmain, ID *id, short flag)
 	if (flag) {
 		if (flag & OB_RECALC_OB)
 			lib_id_recalc_tag(bmain, id);
-		if (flag & OB_RECALC_DATA)
+		if (flag & (OB_RECALC_DATA | PSYS_RECALC))
 			lib_id_recalc_data_tag(bmain, id);
 	}
 	else
@@ -2798,6 +2976,20 @@ void DAG_id_tag_update_ex(Main *bmain, ID *id, short flag)
 			/* only quick tag */
 			ob = (Object *)id;
 			ob->recalc |= (flag & OB_RECALC_ALL);
+		}
+		else if (idtype == ID_PA) {
+			ParticleSystem *psys;
+			/* this is weak still, should be done delayed as well */
+			for (ob = bmain->object.first; ob; ob = ob->id.next) {
+				for (psys = ob->particlesystem.first; psys; psys = psys->next) {
+					if (&psys->part->id == id) {
+						ob->recalc |= (flag & OB_RECALC_ALL);
+						psys->recalc |= (flag & PSYS_RECALC);
+						lib_id_recalc_tag(bmain, &ob->id);
+						lib_id_recalc_data_tag(bmain, &ob->id);
+					}
+				}
+			}
 		}
 		else {
 			/* disable because this is called on various ID types automatically.

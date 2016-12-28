@@ -27,6 +27,7 @@ from bpy.types import (
 from rna_prop_ui import PropertyPanel
 
 from bl_ui.properties_physics_common import (
+        point_cache_ui,
         effector_weights_ui,
         )
 
@@ -370,6 +371,24 @@ class SCENE_PT_rigid_body_world(SceneButtonsPanel, Panel):
             col.prop(rbw, "solver_iterations", text="Solver Iterations")
 
 
+class SCENE_PT_rigid_body_cache(SceneButtonsPanel, Panel):
+    bl_label = "Rigid Body Cache"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        rd = context.scene.render
+        scene = context.scene
+        return scene and scene.rigidbody_world and (rd.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        scene = context.scene
+        rbw = scene.rigidbody_world
+
+        point_cache_ui(self, context, rbw.point_cache, rbw.point_cache.is_baked is False and rbw.enabled, 'RIGID_BODY')
+
+
 class SCENE_PT_rigid_body_field_weights(SceneButtonsPanel, Panel):
     bl_label = "Rigid Body Field Weights"
     bl_options = {'DEFAULT_CLOSED'}
@@ -408,10 +427,12 @@ class SCENE_PT_simplify(SceneButtonsPanel, Panel):
         col = split.column()
         col.label(text="Viewport:")
         col.prop(rd, "simplify_subdivision", text="Subdivision")
+        col.prop(rd, "simplify_child_particles", text="Child Particles")
 
         col = split.column()
         col.label(text="Render:")
         col.prop(rd, "simplify_subdivision_render", text="Subdivision")
+        col.prop(rd, "simplify_child_particles_render", text="Child Particles")
         col.prop(rd, "simplify_shadow_samples", text="Shadow Samples")
         col.prop(rd, "simplify_ao_sss", text="AO and SSS")
         col.prop(rd, "use_simplify_triangulate")

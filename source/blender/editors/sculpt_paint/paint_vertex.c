@@ -43,6 +43,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_object_types.h"
@@ -2421,6 +2422,21 @@ static void wpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 	
 	/* frees prev buffer */
 	copy_wpaint_prev(ts->wpaint, NULL, 0);
+	
+	/* and particles too */
+	if (ob->particlesystem.first) {
+		ParticleSystem *psys;
+		int i;
+		
+		for (psys = ob->particlesystem.first; psys; psys = psys->next) {
+			for (i = 0; i < PSYS_TOT_VG; i++) {
+				if (psys->vgroup[i] == ob->actdef) {
+					psys->recalc |= PSYS_RECALC_RESET;
+					break;
+				}
+			}
+		}
+	}
 
 	DAG_id_tag_update(ob->data, 0);
 

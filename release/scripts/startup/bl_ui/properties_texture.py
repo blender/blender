@@ -26,6 +26,7 @@ from bpy.types import (
         Lamp,
         Material,
         Object,
+        ParticleSettings,
         Texture,
         World,
         )
@@ -100,6 +101,9 @@ def context_tex_datablock(context):
     if idblock:
         return idblock
 
+    if context.particle_system:
+        idblock = context.particle_system.settings
+
     return idblock
 
 
@@ -138,6 +142,8 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, Panel):
                  context.lamp or
                  context.texture or
                  context.line_style or
+                 context.particle_system or
+                 isinstance(context.space_data.pin_id, ParticleSettings) or
                  context.texture_user) and
                 (engine in cls.COMPAT_ENGINES))
 
@@ -805,7 +811,18 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        if pd.point_source == 'OBJECT':
+        if pd.point_source == 'PARTICLE_SYSTEM':
+            col.label(text="Object:")
+            col.prop(pd, "object", text="")
+
+            sub = col.column()
+            sub.enabled = bool(pd.object)
+            if pd.object:
+                sub.label(text="System:")
+                sub.prop_search(pd, "particle_system", pd.object, "particle_systems", text="")
+            sub.label(text="Cache:")
+            sub.prop(pd, "particle_cache_space", text="")
+        else:
             col.label(text="Object:")
             col.prop(pd, "object", text="")
             col.label(text="Cache:")
@@ -814,7 +831,13 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel, Panel):
         col.separator()
 
         col.label(text="Color Source:")
-        if pd.point_source == 'OBJECT':
+        if pd.point_source == 'PARTICLE_SYSTEM':
+            col.prop(pd, "particle_color_source", text="")
+            if pd.particle_color_source in {'PARTICLE_SPEED', 'PARTICLE_VELOCITY'}:
+                col.prop(pd, "speed_scale")
+            if pd.particle_color_source in {'PARTICLE_SPEED', 'PARTICLE_AGE'}:
+                layout.template_color_ramp(pd, "color_ramp", expand=True)
+        else:
             col.prop(pd, "vertex_color_source", text="")
             if pd.vertex_color_source == 'VERTEX_COLOR':
                 if pd.object and pd.object.data:
@@ -831,6 +854,8 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel, Panel):
         col.prop(pd, "falloff", text="")
         if pd.falloff == 'SOFT':
             col.prop(pd, "falloff_soft")
+        if pd.falloff == 'PARTICLE_VELOCITY':
+            col.prop(pd, "falloff_speed_scale")
 
         col.prop(pd, "use_falloff_curve")
 
@@ -1122,6 +1147,35 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
             col = split.column()
             factor_but(col, "use_map_zenith_up", "zenith_up_factor", "Zenith Up")
             factor_but(col, "use_map_zenith_down", "zenith_down_factor", "Zenith Down")
+        elif isinstance(idblock, ParticleSettings):
+            split = layout.split()
+
+            col = split.column()
+            col.label(text="General:")
+            factor_but(col, "use_map_time", "time_factor", "Time")
+            factor_but(col, "use_map_life", "life_factor", "Lifetime")
+            factor_but(col, "use_map_density", "density_factor", "Density")
+            factor_but(col, "use_map_size", "size_factor", "Size")
+
+            col = split.column()
+            col.label(text="Physics:")
+            factor_but(col, "use_map_velocity", "velocity_factor", "Velocity")
+            factor_but(col, "use_map_damp", "damp_factor", "Damp")
+            factor_but(col, "use_map_gravity", "gravity_factor", "Gravity")
+            factor_but(col, "use_map_field", "field_factor", "Force Fields")
+
+            layout.label(text="Hair:")
+
+            split = layout.split()
+
+            col = split.column()
+            factor_but(col, "use_map_length", "length_factor", "Length")
+            factor_but(col, "use_map_clump", "clump_factor", "Clump")
+
+            col = split.column()
+            factor_but(col, "use_map_kink_amp", "kink_amp_factor", "Kink Amplitude")
+            factor_but(col, "use_map_kink_freq", "kink_freq_factor", "Kink Frequency")
+            factor_but(col, "use_map_rough", "rough_factor", "Rough")
 
         elif isinstance(idblock, FreestyleLineStyle):
             split = layout.split()
@@ -1133,17 +1187,18 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
 
         layout.separator()
 
-        split = layout.split()
+        if not isinstance(idblock, ParticleSettings):
+            split = layout.split()
 
-        col = split.column()
-        col.prop(tex, "blend_type", text="Blend")
-        col.prop(tex, "use_rgb_to_intensity")
-        # color is used on gray-scale textures even when use_rgb_to_intensity is disabled.
-        col.prop(tex, "color", text="")
+            col = split.column()
+            col.prop(tex, "blend_type", text="Blend")
+            col.prop(tex, "use_rgb_to_intensity")
+            # color is used on gray-scale textures even when use_rgb_to_intensity is disabled.
+            col.prop(tex, "color", text="")
 
-        col = split.column()
-        col.prop(tex, "invert", text="Negative")
-        col.prop(tex, "use_stencil")
+            col = split.column()
+            col.prop(tex, "invert", text="Negative")
+            col.prop(tex, "use_stencil")
 
         if isinstance(idblock, Material) or isinstance(idblock, World):
             col.prop(tex, "default_value", text="DVar", slider=True)

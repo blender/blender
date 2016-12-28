@@ -754,6 +754,33 @@ struct ObjectKey {
 	}
 };
 
+/* Particle System Key */
+
+struct ParticleSystemKey {
+	void *ob;
+	int id[OBJECT_PERSISTENT_ID_SIZE];
+
+	ParticleSystemKey(void *ob_, int id_[OBJECT_PERSISTENT_ID_SIZE])
+	: ob(ob_)
+	{
+		if(id_)
+			memcpy(id, id_, sizeof(id));
+		else
+			memset(id, 0, sizeof(id));
+	}
+
+	bool operator<(const ParticleSystemKey& k) const
+	{
+		/* first id is particle index, we don't compare that */
+		if(ob < k.ob)
+			return true;
+		else if(ob == k.ob)
+			return memcmp(id+1, k.id+1, sizeof(int)*(OBJECT_PERSISTENT_ID_SIZE-1)) < 0;
+
+		return false;
+	}
+};
+
 CCL_NAMESPACE_END
 
 #endif /* __BLENDER_UTIL_H__ */

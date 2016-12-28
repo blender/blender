@@ -418,8 +418,28 @@ static bool object_render_hide(BL::Object& b_ob,
                                bool parent_hide,
                                bool& hide_triangles)
 {
+	/* check if we should render or hide particle emitter */
+	BL::Object::particle_systems_iterator b_psys;
+
+	bool hair_present = false;
+	bool show_emitter = false;
+	bool hide_emitter = false;
 	bool hide_as_dupli_parent = false;
 	bool hide_as_dupli_child_original = false;
+
+	for(b_ob.particle_systems.begin(b_psys); b_psys != b_ob.particle_systems.end(); ++b_psys) {
+		if((b_psys->settings().render_type() == BL::ParticleSettings::render_type_PATH) &&
+		   (b_psys->settings().type()==BL::ParticleSettings::type_HAIR))
+			hair_present = true;
+
+		if(b_psys->settings().use_render_emitter())
+			show_emitter = true;
+		else
+			hide_emitter = true;
+	}
+
+	if(show_emitter)
+		hide_emitter = false;
 
 	/* duplicators hidden by default, except dupliframes which duplicate self */
 	if(b_ob.is_duplicator())
@@ -440,9 +460,17 @@ static bool object_render_hide(BL::Object& b_ob,
 		parent = parent.parent();
 	}
 	
-	hide_triangles = false;
+	hide_triangles = hide_emitter;
 
-	return (hide_as_dupli_parent || hide_as_dupli_child_original);
+	if(show_emitter) {
+		return false;
+	}
+	else if(hair_present) {
+		return hide_as_dupli_child_original;
+	}
+	else {
+		return (hide_as_dupli_parent || hide_as_dupli_child_original);
+	}
 }
 
 static bool object_render_hide_duplis(BL::Object& b_ob)
@@ -465,6 +493,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D& b_v3d, float motion_time)
 		light_map.pre_sync();
 		mesh_map.pre_sync();
 		object_map.pre_sync();
+		particle_system_map.pre_sync();
 		motion_times.clear();
 	}
 	else {
@@ -526,15 +555,22 @@ void BlenderSync::sync_objects(BL::SpaceView3D& b_v3d, float motion_time)
 							BL::Array<int, OBJECT_PERSISTENT_ID_SIZE> persistent_id = b_dup->persistent_id();
 
 							/* sync object and mesh or light data */
-							sync_object(b_ob,
-							            persistent_id.data,
-							            *b_dup,
-							            tfm,
-							            ob_layer,
-							            motion_time,
-							            hide_tris,
-							            culling,
-							            &use_portal);
+							Object *object = sync_object(b_ob,
+							                             persistent_id.data,
+							                             *b_dup,
+							                             tfm,
+							                             ob_layer,
+							                             motion_time,
+							                             hide_tris,
+							                             culling,
+							                             &use_portal);
+
+							/* sync possible particle data, note particle_id
+							 * starts counting at 1, first is dummy particle */
+							if(!motion && object) {
+								sync_dupli_particle(b_ob, *b_dup, object);
+							}
+
 						}
 					}
 
@@ -576,6 +612,8 @@ void BlenderSync::sync_objects(BL::SpaceView3D& b_v3d, float motion_time)
 			scene->mesh_manager->tag_update(scene);
 		if(object_map.post_sync())
 			scene->object_manager->tag_update(scene);
+		if(particle_system_map.post_sync())
+			scene->particle_system_manager->tag_update(scene);
 	}
 
 	if(motion)

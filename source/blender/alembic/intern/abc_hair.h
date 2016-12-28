@@ -26,11 +26,13 @@
 #include "abc_object.h"
 
 struct DerivedMesh;
+struct ParticleSettings;
+struct ParticleSystem;
 
 /* ************************************************************************** */
 
 class AbcHairWriter : public AbcObjectWriter {
-	/*ParticleSystem*/ void *m_psys;
+	ParticleSystem *m_psys;
 
 	Alembic::AbcGeom::OCurvesSchema m_schema;
 	Alembic::AbcGeom::OCurvesSchema::Sample m_sample;
@@ -41,20 +43,20 @@ public:
 	              AbcTransformWriter *parent,
 	              uint32_t time_sampling,
 	              ExportSettings &settings,
-	              /*ParticleSystem*/void *psys);
+	              ParticleSystem *psys);
 
 private:
 	virtual void do_write();
 
 	void write_hair_sample(DerivedMesh *dm,
-	                       /*ParticleSettings*/ void *part,
+	                       ParticleSettings *part,
 	                       std::vector<Imath::V3f> &verts,
 	                       std::vector<Imath::V3f> &norm_values,
 	                       std::vector<Imath::V2f> &uv_values,
 	                       std::vector<int32_t> &hvertices);
 
 	void write_hair_child_sample(DerivedMesh *dm,
-	                             /*ParticleSettings*/ void *part,
+	                             ParticleSettings *part,
 	                             std::vector<Imath::V3f> &verts,
 	                             std::vector<Imath::V3f> &norm_values,
 	                             std::vector<Imath::V2f> &uv_values,

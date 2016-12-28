@@ -36,14 +36,12 @@
 #include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_dynamicpaint_types.h"
 #include "DNA_genfile.h"
 #include "DNA_key_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_fluidsim.h" // NT
-#include "DNA_object_force.h"
 #include "DNA_object_types.h"
 #include "DNA_property_types.h"
 #include "DNA_text_types.h"
@@ -66,6 +64,8 @@
 #include "BKE_main.h" // for Main
 #include "BKE_mesh.h" // for ME_ defines (patching)
 #include "BKE_modifier.h"
+#include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_property.h" // for BKE_bproperty_object_get
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -651,6 +651,20 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 			for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next)
 				do_versions_nodetree_image_default_alpha_output(ntree);
 		}
+
+		{
+			/* support old particle dupliobject rotation settings */
+			ParticleSettings *part;
+
+			for (part = main->particle.first; part; part = part->id.next) {
+				if (ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
+					part->draw |= PART_DRAW_ROTATE_OB;
+
+					if (part->rotmode == 0)
+						part->rotmode = PART_ROT_VEL;
+				}
+			}
+		}
 	}
 
 	if (main->versionfile < 260 || (main->versionfile == 260 && main->subversionfile < 1)) {
@@ -1127,6 +1141,16 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
+
+
+	if (main->versionfile < 263) {
+		/* Default for old files is to save particle rotations to pointcache */
+		ParticleSettings *part;
+		for (part = main->particle.first; part; part = part->id.next) {
+			part->flag |= PART_ROTATIONS;
+		}
+	}
+
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 1)) {
 		/* file output node paths are now stored in the file info struct instead socket name */
 		Scene *sce;
@@ -1420,6 +1444,8 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 	}
 
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 14)) {
+		ParticleSettings *part;
+
 		FOREACH_NODETREE(main, ntree, id) {
 			if (ntree->type == NTREE_COMPOSIT) {
 				bNode *node;
@@ -1434,6 +1460,12 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 		} FOREACH_NODETREE_END
+
+		/* keep compatibility for dupliobject particle size */
+		for (part = main->particle.first; part; part = part->id.next)
+			if (ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR))
+				if ((part->draw & PART_DRAW_ROTATE_OB) == 0)
+					part->draw |= PART_DRAW_NO_SCALE_OB;
 	}
 
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 17)) {

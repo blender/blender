@@ -476,6 +476,12 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_SCENE_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
+	prop = RNA_def_property(srna, "show_particles", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOPART);
+	RNA_def_property_ui_text(prop, "Display Particle", "Include visualization of particle related animation data");
+	RNA_def_property_ui_icon(prop, ICON_PARTICLE_DATA, 0);
+	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+	
 	prop = RNA_def_property(srna, "show_metaballs", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOMBA);
 	RNA_def_property_ui_text(prop, "Display Metaball", "Include visualization of metaball related animation data");

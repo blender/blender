@@ -32,7 +32,6 @@
 #include "DNA_group_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
@@ -54,6 +53,7 @@
 #include "BKE_lattice.h"
 #include "BKE_editmesh.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
 #include "BKE_scene.h"
 #include "BKE_material.h"
 #include "BKE_image.h"
@@ -256,6 +256,53 @@ void BKE_object_handle_data_update(EvaluationContext *eval_ctx,
 	}
 	else if (ob->type == OB_LAMP)
 		lamp_drivers_update(scene, ob->data, ctime);
+
+	/* particles */
+	if (ob != scene->obedit && ob->particlesystem.first) {
+		ParticleSystem *tpsys, *psys;
+		DerivedMesh *dm;
+		ob->transflag &= ~OB_DUPLIPARTS;
+		psys = ob->particlesystem.first;
+		while (psys) {
+			/* ensure this update always happens even if psys is disabled */
+			if (psys->recalc & PSYS_RECALC_TYPE) {
+				psys_changed_type(ob, psys);
+			}
+
+			if (psys_check_enabled(ob, psys, eval_ctx->mode == DAG_EVAL_RENDER)) {
+				/* check use of dupli objects here */
+				if (psys->part && (psys->part->draw_as == PART_DRAW_REND || eval_ctx->mode == DAG_EVAL_RENDER) &&
+				    ((psys->part->ren_as == PART_DRAW_OB && psys->part->dup_ob) ||
+				     (psys->part->ren_as == PART_DRAW_GR && psys->part->dup_group)))
+				{
+					ob->transflag |= OB_DUPLIPARTS;
+				}
+
+				particle_system_update(scene, ob, psys, (eval_ctx->mode == DAG_EVAL_RENDER));
+				psys = psys->next;
+			}
+			else if (psys->flag & PSYS_DELETE) {
+				tpsys = psys->next;
+				BLI_remlink(&ob->particlesystem, psys);
+				psys_free(ob, psys);
+				psys = tpsys;
+			}
+			else
+				psys = psys->next;
+		}
+
+		if (eval_ctx->mode == DAG_EVAL_RENDER && ob->transflag & OB_DUPLIPARTS) {
+			/* this is to make sure we get render level duplis in groups:
+			 * the derivedmesh must be created before init_render_mesh,
+			 * since object_duplilist does dupliparticles before that */
+			CustomDataMask data_mask = CD_MASK_BAREMESH | CD_MASK_MFACE | CD_MASK_MTFACE | CD_MASK_MCOL;
+			dm = mesh_create_derived_render(scene, ob, data_mask);
+			dm->release(dm);
+
+			for (psys = ob->particlesystem.first; psys; psys = psys->next)
+				psys_get_modifier(ob, psys)->flag &= ~eParticleSystemFlag_psys_updated;
+		}
+	}
 
 	/* quick cache removed */
 }

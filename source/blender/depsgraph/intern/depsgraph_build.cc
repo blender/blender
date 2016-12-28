@@ -358,12 +358,21 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
                                   int skip_forcefield,
                                   const char *name)
 {
-	ListBase *effectors = pdInitEffectors(scene, ob, effector_weights, false);
+	ListBase *effectors = pdInitEffectors(scene, ob, NULL, effector_weights, false);
 
 	if (effectors) {
 		for (EffectorCache *eff = (EffectorCache*)effectors->first; eff; eff = eff->next) {
 			if (eff->ob != ob && eff->pd->forcefield != skip_forcefield) {
 				DEG_add_object_relation(handle, eff->ob, DEG_OB_COMP_TRANSFORM, name);
+
+				if (eff->psys) {
+					DEG_add_object_relation(handle, eff->ob, DEG_OB_COMP_EVAL_PARTICLES, name);
+
+					/* TODO: remove this when/if EVAL_PARTICLES is sufficient
+					 * for up to date particles.
+					 */
+					DEG_add_object_relation(handle, eff->ob, DEG_OB_COMP_GEOMETRY, name);
+				}
 
 				if (eff->pd->forcefield == PFIELD_SMOKEFLOW && eff->pd->f_source) {
 					DEG_add_object_relation(handle,

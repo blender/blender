@@ -749,7 +749,7 @@ typedef enum eDupli_ID_Flags {
 	USER_DUP_TEX			= (1 << 8),
 	USER_DUP_ARM			= (1 << 9),
 	USER_DUP_ACT			= (1 << 10),
-	/*USER_DUP_PSYS			= (1 << 11),*/ /* DEPRECATED */
+	USER_DUP_PSYS			= (1 << 11)
 } eDupli_ID_Flags;
 
 /* gameflags */

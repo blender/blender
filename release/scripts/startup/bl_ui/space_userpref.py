@@ -371,6 +371,7 @@ class USERPREF_PT_edit(Panel):
         col.prop(edit, "use_duplicate_texture", text="Texture")
         #col.prop(edit, "use_duplicate_fcurve", text="F-Curve")
         col.prop(edit, "use_duplicate_action", text="Action")
+        col.prop(edit, "use_duplicate_particle", text="Particle")
 
 
 class USERPREF_PT_system(Panel):

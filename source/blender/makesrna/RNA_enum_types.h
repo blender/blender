@@ -59,6 +59,7 @@ extern EnumPropertyItem rna_enum_space_type_items[];
 extern EnumPropertyItem rna_enum_region_type_items[];
 extern EnumPropertyItem rna_enum_object_modifier_type_items[];
 extern EnumPropertyItem rna_enum_constraint_type_items[];
+extern EnumPropertyItem rna_enum_boidrule_type_items[];
 extern EnumPropertyItem rna_enum_sequence_modifier_type_items[];
 
 extern EnumPropertyItem rna_enum_modifier_triangulate_quad_method_items[];

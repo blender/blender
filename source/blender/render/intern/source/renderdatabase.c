@@ -71,6 +71,7 @@
 #include "DNA_meshdata_types.h" 
 #include "DNA_texture_types.h"
 #include "DNA_listBase.h"
+#include "DNA_particle_types.h"
 
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
@@ -1415,7 +1416,7 @@ void RE_updateRenderInstances(Render *re, int flag)
 
 ObjectInstanceRen *RE_addRenderInstance(
         Render *re, ObjectRen *obr, Object *ob, Object *par,
-        int index, int psysindex, float mat[4][4], int lay, const DupliObject *UNUSED(dob))
+        int index, int psysindex, float mat[4][4], int lay, const DupliObject *dob)
 {
 	ObjectInstanceRen *obi;
 	float mat3[3][3];
@@ -1427,6 +1428,35 @@ ObjectInstanceRen *RE_addRenderInstance(
 	obi->index= index;
 	obi->psysindex= psysindex;
 	obi->lay= lay;
+
+	/* Fill particle info */
+	if (par && dob) {
+		const ParticleSystem *psys = dob->particle_system;
+		if (psys) {
+			int part_index;
+			if (obi->index < psys->totpart) {
+				part_index = obi->index;
+			}
+			else if (psys->child) {
+				part_index = psys->child[obi->index - psys->totpart].parent;
+			}
+			else {
+				part_index = -1;
+			}
+
+			if (part_index >= 0) {
+				const ParticleData *p = &psys->particles[part_index];
+				obi->part_index = part_index;
+				obi->part_size = p->size;
+				obi->part_age = RE_GetStats(re)->cfra - p->time;
+				obi->part_lifetime = p->lifetime;
+
+				copy_v3_v3(obi->part_co, p->state.co);
+				copy_v3_v3(obi->part_vel, p->state.vel);
+				copy_v3_v3(obi->part_avel, p->state.ave);
+			}
+		}
+	}
 
 	RE_updateRenderInstance(re, obi, RE_OBJECT_INSTANCES_UPDATE_OBMAT | RE_OBJECT_INSTANCES_UPDATE_VIEW);
 

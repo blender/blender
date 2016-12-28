@@ -56,8 +56,8 @@
 #include "DNA_lamp_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_object_force.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
 
@@ -77,6 +77,8 @@
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_smoke.h"
 #include "BKE_texture.h"
@@ -355,6 +357,9 @@ static void smokeModifier_freeDomain(SmokeModifierData *smd)
 			MEM_freeN(smd->domain->effector_weights);
 		smd->domain->effector_weights = NULL;
 
+		BKE_ptcache_free_list(&(smd->domain->ptcaches[0]));
+		smd->domain->point_cache[0] = NULL;
+
 		if (smd->domain->coba) {
 			MEM_freeN(smd->domain->coba);
 		}
@@ -483,6 +488,13 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 
 			smd->domain->smd = smd;
 
+			smd->domain->point_cache[0] = BKE_ptcache_add(&(smd->domain->ptcaches[0]));
+			smd->domain->point_cache[0]->flag |= PTCACHE_DISK_CACHE;
+			smd->domain->point_cache[0]->step = 1;
+
+			/* Deprecated */
+			smd->domain->point_cache[1] = NULL;
+			BLI_listbase_clear(&smd->domain->ptcaches[1]);
 			/* set some standard values */
 			smd->domain->fluid = NULL;
 			smd->domain->fluid_mutex = BLI_rw_mutex_alloc();
@@ -527,6 +539,7 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->domain->openvdb_comp = VDB_COMPRESSION_ZIP;
 #endif
 			smd->domain->data_depth = 0;
+			smd->domain->cache_file_format = PTCACHE_FILE_PTCACHE;
 
 			smd->domain->display_thickness = 1.0f;
 			smd->domain->slice_method = MOD_SMOKE_SLICE_VIEW_ALIGNED;
@@ -566,6 +579,8 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->flow->color[2] = 0.7f;
 
 			smd->flow->dm = NULL;
+			smd->flow->psys = NULL;
+
 		}
 		else if (smd->type & MOD_SMOKE_TYPE_COLL)
 		{
@@ -644,6 +659,7 @@ void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData 
 		}
 	}
 	else if (tsmd->flow) {
+		tsmd->flow->psys = smd->flow->psys;
 		tsmd->flow->noise_texture = smd->flow->noise_texture;
 
 		tsmd->flow->vel_multi = smd->flow->vel_multi;
@@ -1151,6 +1167,248 @@ static void em_combineMaps(EmissionMap *output, EmissionMap *em2, int hires_mult
 
 	/* free original data */
 	em_freeData(&em1);
+}
+
+typedef struct EmitFromParticlesData {
+	SmokeFlowSettings *sfs;
+	KDTree *tree;
+	int hires_multiplier;
+
+	EmissionMap *em;
+	float *particle_vel;
+	float hr;
+
+	int *min, *max, *res;
+
+	float solid;
+	float smooth;
+	float hr_smooth;
+} EmitFromParticlesData;
+
+static void emit_from_particles_task_cb(void *userdata, const int z)
+{
+	EmitFromParticlesData *data = userdata;
+	SmokeFlowSettings *sfs = data->sfs;
+	EmissionMap *em = data->em;
+	const int hires_multiplier = data->hires_multiplier;
+
+	for (int x = data->min[0]; x < data->max[0]; x++) {
+		for (int y = data->min[1]; y < data->max[1]; y++) {
+			/* take low res samples where possible */
+			if (hires_multiplier <= 1 || !(x % hires_multiplier || y % hires_multiplier || z % hires_multiplier)) {
+				/* get low res space coordinates */
+				const int lx = x / hires_multiplier;
+				const int ly = y / hires_multiplier;
+				const int lz = z / hires_multiplier;
+
+				const int index = smoke_get_index(lx - em->min[0], em->res[0], ly - em->min[1], em->res[1], lz - em->min[2]);
+				const float ray_start[3] = {((float)lx) + 0.5f, ((float)ly) + 0.5f, ((float)lz) + 0.5f};
+
+				/* find particle distance from the kdtree */
+				KDTreeNearest nearest;
+				const float range = data->solid + data->smooth;
+				BLI_kdtree_find_nearest(data->tree, ray_start, &nearest);
+
+				if (nearest.dist < range) {
+					em->influence[index] = (nearest.dist < data->solid) ?
+					                       1.0f : (1.0f - (nearest.dist - data->solid) / data->smooth);
+					/* Uses particle velocity as initial velocity for smoke */
+					if (sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY && (sfs->psys->part->phystype != PART_PHYS_NO)) {
+						VECADDFAC(&em->velocity[index * 3], &em->velocity[index * 3],
+						          &data->particle_vel[nearest.index * 3], sfs->vel_multi);
+					}
+				}
+			}
+
+			/* take high res samples if required */
+			if (hires_multiplier > 1) {
+				/* get low res space coordinates */
+				const float lx = ((float)x) * data->hr;
+				const float ly = ((float)y) * data->hr;
+				const float lz = ((float)z) * data->hr;
+
+				const int index = smoke_get_index(
+				                      x - data->min[0], data->res[0], y - data->min[1], data->res[1], z - data->min[2]);
+				const float ray_start[3] = {lx + 0.5f * data->hr, ly + 0.5f * data->hr, lz + 0.5f * data->hr};
+
+				/* find particle distance from the kdtree */
+				KDTreeNearest nearest;
+				const float range = data->solid + data->hr_smooth;
+				BLI_kdtree_find_nearest(data->tree, ray_start, &nearest);
+
+				if (nearest.dist < range) {
+					em->influence_high[index] = (nearest.dist < data->solid) ?
+					                            1.0f : (1.0f - (nearest.dist - data->solid) / data->smooth);
+				}
+			}
+
+		}
+	}
+}
+
+static void emit_from_particles(
+        Object *flow_ob, SmokeDomainSettings *sds, SmokeFlowSettings *sfs, EmissionMap *em, Scene *scene, float dt)
+{
+	if (sfs && sfs->psys && sfs->psys->part && ELEM(sfs->psys->part->type, PART_EMITTER, PART_FLUID)) // is particle system selected
+	{
+		ParticleSimulationData sim;
+		ParticleSystem *psys = sfs->psys;
+		float *particle_pos;
+		float *particle_vel;
+		int totpart = psys->totpart, totchild;
+		int p = 0;
+		int valid_particles = 0;
+		int bounds_margin = 1;
+
+		/* radius based flow */
+		const float solid = sfs->particle_size * 0.5f;
+		const float smooth = 0.5f; /* add 0.5 cells of linear falloff to reduce aliasing */
+		int hires_multiplier = 1;
+		KDTree *tree = NULL;
+
+		sim.scene = scene;
+		sim.ob = flow_ob;
+		sim.psys = psys;
+
+		/* prepare curvemapping tables */
+		if ((psys->part->child_flag & PART_CHILD_USE_CLUMP_CURVE) && psys->part->clumpcurve)
+			curvemapping_changed_all(psys->part->clumpcurve);
+		if ((psys->part->child_flag & PART_CHILD_USE_ROUGH_CURVE) && psys->part->roughcurve)
+			curvemapping_changed_all(psys->part->roughcurve);
+
+		/* initialize particle cache */
+		if (psys->part->type == PART_HAIR) {
+			// TODO: PART_HAIR not supported whatsoever
+			totchild = 0;
+		}
+		else {
+			totchild = psys->totchild * psys->part->disp / 100;
+		}
+
+		particle_pos = MEM_callocN(sizeof(float) * (totpart + totchild) * 3, "smoke_flow_particles");
+		particle_vel = MEM_callocN(sizeof(float) * (totpart + totchild) * 3, "smoke_flow_particles");
+
+		/* setup particle radius emission if enabled */
+		if (sfs->flags & MOD_SMOKE_FLOW_USE_PART_SIZE) {
+			tree = BLI_kdtree_new(psys->totpart + psys->totchild);
+
+			/* check need for high resolution map */
+			if ((sds->flags & MOD_SMOKE_HIGHRES) && (sds->highres_sampling == SM_HRES_FULLSAMPLE)) {
+				hires_multiplier = sds->amplify + 1;
+			}
+
+			bounds_margin = (int)ceil(solid + smooth);
+		}
+
+		/* calculate local position for each particle */
+		for (p = 0; p < totpart + totchild; p++)
+		{
+			ParticleKey state;
+			float *pos;
+			if (p < totpart) {
+				if (psys->particles[p].flag & (PARS_NO_DISP | PARS_UNEXIST))
+					continue;
+			}
+			else {
+				/* handle child particle */
+				ChildParticle *cpa = &psys->child[p - totpart];
+				if (psys->particles[cpa->parent].flag & (PARS_NO_DISP | PARS_UNEXIST))
+					continue;
+			}
+
+			state.time = BKE_scene_frame_get(scene); /* use scene time */
+			if (psys_get_particle_state(&sim, p, &state, 0) == 0)
+				continue;
+
+			/* location */
+			pos = &particle_pos[valid_particles * 3];
+			copy_v3_v3(pos, state.co);
+			smoke_pos_to_cell(sds, pos);
+
+			/* velocity */
+			copy_v3_v3(&particle_vel[valid_particles * 3], state.vel);
+			mul_mat3_m4_v3(sds->imat, &particle_vel[valid_particles * 3]);
+
+			if (sfs->flags & MOD_SMOKE_FLOW_USE_PART_SIZE) {
+				BLI_kdtree_insert(tree, valid_particles, pos);
+			}
+
+			/* calculate emission map bounds */
+			em_boundInsert(em, pos);
+			valid_particles++;
+		}
+
+		/* set emission map */
+		clampBoundsInDomain(sds, em->min, em->max, NULL, NULL, bounds_margin, dt);
+		em_allocateData(em, sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY, hires_multiplier);
+
+		if (!(sfs->flags & MOD_SMOKE_FLOW_USE_PART_SIZE)) {
+			for (p = 0; p < valid_particles; p++)
+			{
+				int cell[3];
+				size_t i = 0;
+				size_t index = 0;
+				int badcell = 0;
+
+				/* 1. get corresponding cell */
+				cell[0] = floor(particle_pos[p * 3]) - em->min[0];
+				cell[1] = floor(particle_pos[p * 3 + 1]) - em->min[1];
+				cell[2] = floor(particle_pos[p * 3 + 2]) - em->min[2];
+				/* check if cell is valid (in the domain boundary) */
+				for (i = 0; i < 3; i++) {
+					if ((cell[i] > em->res[i] - 1) || (cell[i] < 0)) {
+						badcell = 1;
+						break;
+					}
+				}
+				if (badcell)
+					continue;
+				/* get cell index */
+				index = smoke_get_index(cell[0], em->res[0], cell[1], em->res[1], cell[2]);
+				/* Add influence to emission map */
+				em->influence[index] = 1.0f;
+				/* Uses particle velocity as initial velocity for smoke */
+				if (sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY && (psys->part->phystype != PART_PHYS_NO))
+				{
+					VECADDFAC(&em->velocity[index * 3], &em->velocity[index * 3], &particle_vel[p * 3], sfs->vel_multi);
+				}
+			}   // particles loop
+		}
+		else if (valid_particles > 0) { // MOD_SMOKE_FLOW_USE_PART_SIZE
+			int min[3], max[3], res[3];
+			const float hr = 1.0f / ((float)hires_multiplier);
+			/* slightly adjust high res antialias smoothness based on number of divisions
+			 * to allow smaller details but yet not differing too much from the low res size */
+			const float hr_smooth = smooth * powf(hr, 1.0f / 3.0f);
+
+			/* setup loop bounds */
+			for (int i = 0; i < 3; i++) {
+				min[i] = em->min[i] * hires_multiplier;
+				max[i] = em->max[i] * hires_multiplier;
+				res[i] = em->res[i] * hires_multiplier;
+			}
+
+			BLI_kdtree_balance(tree);
+
+			EmitFromParticlesData data = {
+				.sfs = sfs, .tree = tree, .hires_multiplier = hires_multiplier, .hr = hr,
+			    .em = em, .particle_vel = particle_vel, .min = min, .max = max, .res = res,
+			    .solid = solid, .smooth = smooth, .hr_smooth = hr_smooth,
+			};
+
+			BLI_task_parallel_range(min[2], max[2], &data, emit_from_particles_task_cb, true);
+		}
+
+		if (sfs->flags & MOD_SMOKE_FLOW_USE_PART_SIZE) {
+			BLI_kdtree_free(tree);
+		}
+
+		/* free data */
+		if (particle_pos)
+			MEM_freeN(particle_pos);
+		if (particle_vel)
+			MEM_freeN(particle_vel);
+	}
 }
 
 static void sample_derivedmesh(
@@ -1877,7 +2135,10 @@ static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sd
 
 			/* just sample flow directly to emission map if no subframes */
 			if (!subframes) {
-				if (sfs->source == MOD_SMOKE_FLOW_SOURCE_MESH) {
+				if (sfs->source == MOD_SMOKE_FLOW_SOURCE_PARTICLES) {
+					emit_from_particles(collob, sds, sfs, em, scene, dt);
+				}
+				else {
 					emit_from_derivedmesh(collob, sds, sfs, em, dt);
 				}
 			}
@@ -1908,7 +2169,14 @@ static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sd
 						scene->r.subframe = 0.0f;
 					}
 
-					if (sfs->source == MOD_SMOKE_FLOW_SOURCE_MESH) {
+					if (sfs->source == MOD_SMOKE_FLOW_SOURCE_PARTICLES) {
+						/* emit_from_particles() updates timestep internally */
+						emit_from_particles(collob, sds, sfs, &em_temp, scene, sdt);
+						if (!(sfs->flags & MOD_SMOKE_FLOW_USE_PART_SIZE)) {
+							hires_multiplier = 1;
+						}
+					}
+					else { /* MOD_SMOKE_FLOW_SOURCE_MESH */
 						/* update flow object frame */
 						BLI_mutex_lock(&object_update_lock);
 						BKE_object_modifier_update_subframe(scene, collob, true, 5, BKE_scene_frame_get(scene), eModifierType_Smoke);
@@ -2225,7 +2493,7 @@ static void update_effectors(Scene *scene, Object *ob, SmokeDomainSettings *sds,
 	ListBase *effectors;
 	/* make sure smoke flow influence is 0.0f */
 	sds->effector_weights->weight[PFIELD_SMOKEFLOW] = 0.0f;
-	effectors = pdInitEffectors(scene, ob, sds->effector_weights, true);
+	effectors = pdInitEffectors(scene, ob, NULL, sds->effector_weights, true);
 
 	if (effectors) {
 		// precalculate wind forces
@@ -2460,16 +2728,28 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 	else if (smd->type & MOD_SMOKE_TYPE_DOMAIN)
 	{
 		SmokeDomainSettings *sds = smd->domain;
-		int startframe = scene->r.sfra, endframe = scene->r.efra, framenr = scene->r.cfra;
+		PointCache *cache = NULL;
+		PTCacheID pid;
+		int startframe, endframe, framenr;
+		float timescale;
+
+		framenr = scene->r.cfra;
 
 		//printf("time: %d\n", scene->r.cfra);
 
+		cache = sds->point_cache[0];
+		BKE_ptcache_id_from_smoke(&pid, ob, smd);
+		BKE_ptcache_id_time(&pid, scene, framenr, &startframe, &endframe, &timescale);
+
 		if (!smd->domain->fluid || framenr == startframe)
 		{
+			BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
 			smokeModifier_reset_ex(smd, false);
+			BKE_ptcache_validate(cache, framenr);
+			cache->flag &= ~PTCACHE_REDO_NEEDED;
 		}
 
-		if (!smd->domain->fluid && (framenr != startframe) && (smd->domain->flags & MOD_SMOKE_FILE_LOAD) == 0)
+		if (!smd->domain->fluid && (framenr != startframe) && (smd->domain->flags & MOD_SMOKE_FILE_LOAD) == 0 && (cache->flag & PTCACHE_BAKED) == 0)
 			return;
 
 		smd->domain->flags &= ~MOD_SMOKE_FILE_LOAD;
@@ -2489,12 +2769,24 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 		/* don't simulate if viewing start frame, but scene frame is not real start frame */
 		bool can_simulate = (framenr == (int)smd->time + 1) && (framenr == scene->r.cfra);
 
+		/* try to read from cache */
+		if (BKE_ptcache_read(&pid, (float)framenr, can_simulate) == PTCACHE_READ_EXACT) {
+			BKE_ptcache_validate(cache, framenr);
+			smd->time = framenr;
+			return;
+		}
+
 		if (!can_simulate)
 			return;
 
 #ifdef DEBUG_TIME
 		double start = PIL_check_seconds_timer();
 #endif
+
+		/* if on second frame, write cache for first frame */
+		if ((int)smd->time == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact == 0)) {
+			BKE_ptcache_write(&pid, startframe);
+		}
 
 		// set new time
 		smd->time = scene->r.cfra;
@@ -2524,6 +2816,10 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 		if (sds->wt && sds->total_cells > 1) {
 			smoke_turbulence_step(sds->wt, sds->fluid);
 		}
+
+		BKE_ptcache_validate(cache, framenr);
+		if (framenr != startframe)
+			BKE_ptcache_write(&pid, framenr);
 
 #ifdef DEBUG_TIME
 		double end = PIL_check_seconds_timer();

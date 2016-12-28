@@ -129,6 +129,7 @@
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_packedFile_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_property_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
@@ -169,6 +170,7 @@
 #include "BKE_subsurf.h"
 #include "BKE_modifier.h"
 #include "BKE_fcurve.h"
+#include "BKE_pointcache.h"
 #include "BKE_mesh.h"
 
 #ifdef USE_NODE_COMPAT_CUSTOMNODES
@@ -1186,6 +1188,210 @@ static void write_userdef(WriteData *wd)
 	}
 }
 
+static void write_boid_state(WriteData *wd, BoidState *state)
+{
+	BoidRule *rule = state->rules.first;
+
+	writestruct(wd, DATA, BoidState, 1, state);
+
+	for (; rule; rule = rule->next) {
+		switch (rule->type) {
+			case eBoidRuleType_Goal:
+			case eBoidRuleType_Avoid:
+				writestruct(wd, DATA, BoidRuleGoalAvoid, 1, rule);
+				break;
+			case eBoidRuleType_AvoidCollision:
+				writestruct(wd, DATA, BoidRuleAvoidCollision, 1, rule);
+				break;
+			case eBoidRuleType_FollowLeader:
+				writestruct(wd, DATA, BoidRuleFollowLeader, 1, rule);
+				break;
+			case eBoidRuleType_AverageSpeed:
+				writestruct(wd, DATA, BoidRuleAverageSpeed, 1, rule);
+				break;
+			case eBoidRuleType_Fight:
+				writestruct(wd, DATA, BoidRuleFight, 1, rule);
+				break;
+			default:
+				writestruct(wd, DATA, BoidRule, 1, rule);
+				break;
+		}
+	}
+#if 0
+	BoidCondition *cond = state->conditions.first;
+	for (; cond; cond = cond->next) {
+		writestruct(wd, DATA, BoidCondition, 1, cond);
+	}
+#endif
+}
+
+/* update this also to readfile.c */
+static const char *ptcache_data_struct[] = {
+	"", // BPHYS_DATA_INDEX
+	"", // BPHYS_DATA_LOCATION
+	"", // BPHYS_DATA_VELOCITY
+	"", // BPHYS_DATA_ROTATION
+	"", // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST */
+	"", // BPHYS_DATA_SIZE:
+	"", // BPHYS_DATA_TIMES:
+	"BoidData" // case BPHYS_DATA_BOIDS:
+};
+static const char *ptcache_extra_struct[] = {
+	"",
+	"ParticleSpring"
+};
+static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
+{
+	PointCache *cache = ptcaches->first;
+	int i;
+
+	for (; cache; cache = cache->next) {
+		writestruct(wd, DATA, PointCache, 1, cache);
+
+		if ((cache->flag & PTCACHE_DISK_CACHE) == 0) {
+			PTCacheMem *pm = cache->mem_cache.first;
+
+			for (; pm; pm = pm->next) {
+				PTCacheExtra *extra = pm->extradata.first;
+
+				writestruct(wd, DATA, PTCacheMem, 1, pm);
+
+				for (i = 0; i < BPHYS_TOT_DATA; i++) {
+					if (pm->data[i] && pm->data_types & (1 << i)) {
+						if (ptcache_data_struct[i][0] == '\0') {
+							writedata(wd, DATA, MEM_allocN_len(pm->data[i]), pm->data[i]);
+						}
+						else {
+							writestruct_id(wd, DATA, ptcache_data_struct[i], pm->totpoint, pm->data[i]);
+						}
+					}
+				}
+
+				for (; extra; extra = extra->next) {
+					if (ptcache_extra_struct[extra->type][0] == '\0') {
+						continue;
+					}
+					writestruct(wd, DATA, PTCacheExtra, 1, extra);
+					writestruct_id(wd, DATA, ptcache_extra_struct[extra->type], extra->totdata, extra->data);
+				}
+			}
+		}
+	}
+}
+static void write_particlesettings(WriteData *wd, ListBase *idbase)
+{
+	ParticleSettings *part;
+	ParticleDupliWeight *dw;
+	GroupObject *go;
+	int a;
+
+	part = idbase->first;
+	while (part) {
+		if (part->id.us > 0 || wd->current) {
+			/* write LibData */
+			writestruct(wd, ID_PA, ParticleSettings, 1, part);
+			write_iddata(wd, &part->id);
+
+			if (part->adt) {
+				write_animdata(wd, part->adt);
+			}
+			writestruct(wd, DATA, PartDeflect, 1, part->pd);
+			writestruct(wd, DATA, PartDeflect, 1, part->pd2);
+			writestruct(wd, DATA, EffectorWeights, 1, part->effector_weights);
+
+			if (part->clumpcurve) {
+				write_curvemapping(wd, part->clumpcurve);
+			}
+			if (part->roughcurve) {
+				write_curvemapping(wd, part->roughcurve);
+			}
+
+			dw = part->dupliweights.first;
+			for (; dw; dw = dw->next) {
+				/* update indices, but only if dw->ob is set (can be NULL after loading e.g.) */
+				if (dw->ob != NULL) {
+					dw->index = 0;
+					if (part->dup_group) { /* can be NULL if lining fails or set to None */
+						for (go = part->dup_group->gobject.first; go && go->ob != dw->ob; go = go->next, dw->index++);
+					}
+				}
+				writestruct(wd, DATA, ParticleDupliWeight, 1, dw);
+			}
+
+			if (part->boids && part->phystype == PART_PHYS_BOIDS) {
+				BoidState *state = part->boids->states.first;
+
+				writestruct(wd, DATA, BoidSettings, 1, part->boids);
+
+				for (; state; state = state->next) {
+					write_boid_state(wd, state);
+				}
+			}
+			if (part->fluid && part->phystype == PART_PHYS_FLUID) {
+				writestruct(wd, DATA, SPHFluidSettings, 1, part->fluid);
+			}
+
+			for (a = 0; a < MAX_MTEX; a++) {
+				if (part->mtex[a]) {
+					writestruct(wd, DATA, MTex, 1, part->mtex[a]);
+				}
+			}
+		}
+		part = part->id.next;
+	}
+}
+static void write_particlesystems(WriteData *wd, ListBase *particles)
+{
+	ParticleSystem *psys = particles->first;
+	ParticleTarget *pt;
+	int a;
+
+	for (; psys; psys = psys->next) {
+		writestruct(wd, DATA, ParticleSystem, 1, psys);
+
+		if (psys->particles) {
+			writestruct(wd, DATA, ParticleData, psys->totpart, psys->particles);
+
+			if (psys->particles->hair) {
+				ParticleData *pa = psys->particles;
+
+				for (a = 0; a < psys->totpart; a++, pa++) {
+					writestruct(wd, DATA, HairKey, pa->totkey, pa->hair);
+				}
+			}
+
+			if (psys->particles->boid &&
+			    (psys->part->phystype == PART_PHYS_BOIDS))
+			{
+				writestruct(wd, DATA, BoidParticle, psys->totpart, psys->particles->boid);
+			}
+
+			if (psys->part->fluid &&
+			    (psys->part->phystype == PART_PHYS_FLUID) &&
+			    (psys->part->fluid->flag & SPH_VISCOELASTIC_SPRINGS))
+			{
+				writestruct(wd, DATA, ParticleSpring, psys->tot_fluidsprings, psys->fluid_springs);
+			}
+		}
+		pt = psys->targets.first;
+		for (; pt; pt = pt->next) {
+			writestruct(wd, DATA, ParticleTarget, 1, pt);
+		}
+
+		if (psys->child) {
+			writestruct(wd, DATA, ChildParticle, psys->totchild, psys->child);
+		}
+
+		if (psys->clmd) {
+			writestruct(wd, DATA, ClothModifierData, 1, psys->clmd);
+			writestruct(wd, DATA, ClothSimSettings, 1, psys->clmd->sim_parms);
+			writestruct(wd, DATA, ClothCollSettings, 1, psys->clmd->coll_parms);
+		}
+
+		write_pointcaches(wd, &psys->ptcaches);
+	}
+}
+
 static void write_properties(WriteData *wd, ListBase *lb)
 {
 	bProperty *prop;
@@ -1509,6 +1715,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			writestruct(wd, DATA, ClothSimSettings, 1, clmd->sim_parms);
 			writestruct(wd, DATA, ClothCollSettings, 1, clmd->coll_parms);
 			writestruct(wd, DATA, EffectorWeights, 1, clmd->sim_parms->effector_weights);
+			write_pointcaches(wd, &clmd->ptcaches);
 		}
 		else if (md->type == eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData *)md;
@@ -1517,10 +1724,23 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 				writestruct(wd, DATA, SmokeDomainSettings, 1, smd->domain);
 
 				if (smd->domain) {
+					write_pointcaches(wd, &(smd->domain->ptcaches[0]));
+
+					/* create fake pointcache so that old blender versions can read it */
+					smd->domain->point_cache[1] = BKE_ptcache_add(&smd->domain->ptcaches[1]);
+					smd->domain->point_cache[1]->flag |= PTCACHE_DISK_CACHE | PTCACHE_FAKE_SMOKE;
+					smd->domain->point_cache[1]->step = 1;
+
+					write_pointcaches(wd, &(smd->domain->ptcaches[1]));
 
 					if (smd->domain->coba) {
 						writestruct(wd, DATA, ColorBand, 1, smd->domain->coba);
 					}
+
+
+					/* cleanup the fake pointcache */
+					BKE_ptcache_free_list(&smd->domain->ptcaches[1]);
+					smd->domain->point_cache[1] = NULL;
 
 					writestruct(wd, DATA, EffectorWeights, 1, smd->domain->effector_weights);
 				}
@@ -1550,6 +1770,8 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 				}
 				/* write caches and effector weights */
 				for (surface = pmd->canvas->surfaces.first; surface; surface = surface->next) {
+					write_pointcaches(wd, &(surface->ptcaches));
+
 					writestruct(wd, DATA, EffectorWeights, 1, surface->effector_weights);
 				}
 			}
@@ -1649,6 +1871,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			writestruct(wd, DATA, PartDeflect, 1, ob->pd);
 			writestruct(wd, DATA, SoftBody, 1, ob->soft);
 			if (ob->soft) {
+				write_pointcaches(wd, &ob->soft->ptcaches);
 				writestruct(wd, DATA, EffectorWeights, 1, ob->soft->effector_weights);
 			}
 			writestruct(wd, DATA, BulletSoftBody, 1, ob->bsoft);
@@ -1665,6 +1888,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 				writestruct(wd, DATA, ImageUser, 1, ob->iuser);
 			}
 
+			write_particlesystems(wd, &ob->particlesystem);
 			write_modifiers(wd, &ob->modifiers);
 
 			writelist(wd, DATA, LinkData, &ob->pc_ids);
@@ -2611,6 +2835,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		if (sce->rigidbody_world) {
 			writestruct(wd, DATA, RigidBodyWorld, 1, sce->rigidbody_world);
 			writestruct(wd, DATA, EffectorWeights, 1, sce->rigidbody_world->effector_weights);
+			write_pointcaches(wd, &(sce->rigidbody_world->ptcaches));
 		}
 
 		write_previews(wd, sce->preview);
@@ -3868,6 +4093,7 @@ static bool write_file_handle(
 	write_materials(wd, &mainvar->mat);
 	write_textures(wd, &mainvar->tex);
 	write_meshes(wd, &mainvar->mesh);
+	write_particlesettings(wd, &mainvar->particle);
 	write_nodetrees(wd, &mainvar->nodetree);
 	write_brushes(wd, &mainvar->brush);
 	write_palettes(wd, &mainvar->palettes);

@@ -91,6 +91,7 @@
 #include "ED_markers.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
+#include "ED_particle.h"
 #include "ED_screen_types.h"
 #include "ED_space_api.h"
 #include "ED_uvedit.h"
@@ -708,6 +709,8 @@ static void recalcData_spaceclip(TransInfo *t)
 /* helper for recalcData() - for object transforms, typically in the 3D view */
 static void recalcData_objects(TransInfo *t)
 {
+	Base *base = t->scene->basact;
+
 	if (t->obedit) {
 		if (ELEM(t->obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu = t->obedit->data;
@@ -892,6 +895,12 @@ static void recalcData_objects(TransInfo *t)
 		}
 		else
 			BKE_pose_where_is(t->scene, ob);
+	}
+	else if (base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(t->scene, base->object)) {
+		if (t->state != TRANS_CANCEL) {
+			applyProject(t);
+		}
+		flushTransParticles(t);
 	}
 	else {
 		int i;

@@ -48,7 +48,6 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
@@ -69,6 +68,8 @@
 #include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 
@@ -562,7 +563,7 @@ static bool boundsIntersectDist(Bounds3D *b1, Bounds3D *b2, const float dist)
 }
 
 /* check whether bounds intersects a point with given radius */
-static bool UNUSED_FUNCTION(boundIntersectPoint)(Bounds3D *b, float point[3], const float radius)
+static bool boundIntersectPoint(Bounds3D *b, float point[3], const float radius)
 {
 	if (!b->valid)
 		return false;
@@ -861,7 +862,7 @@ static void surface_freeUnusedData(DynamicPaintSurface *surface)
 		return;
 
 	/* free bakedata if not active or surface is baked */
-	if (!(surface->flags & MOD_DPAINT_ACTIVE)) {
+	if (!(surface->flags & MOD_DPAINT_ACTIVE) || (surface->pointcache && surface->pointcache->flag & PTCACHE_BAKED)) {
 		free_bakeData(surface->data);
 	}
 }
@@ -896,6 +897,10 @@ void dynamicPaint_freeSurfaceData(DynamicPaintSurface *surface)
 
 void dynamicPaint_freeSurface(DynamicPaintSurface *surface)
 {
+	/* point cache */
+	BKE_ptcache_free_list(&(surface->ptcaches));
+	surface->pointcache = NULL;
+
 	if (surface->effector_weights)
 		MEM_freeN(surface->effector_weights);
 	surface->effector_weights = NULL;
@@ -955,6 +960,11 @@ DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSettings *c
 	surface->canvas = canvas;
 	surface->format = MOD_DPAINT_SURFACE_F_VERTEX;
 	surface->type = MOD_DPAINT_SURFACE_T_PAINT;
+
+	/* cache */
+	surface->pointcache = BKE_ptcache_add(&(surface->ptcaches));
+	surface->pointcache->flag |= PTCACHE_DISK_CACHE;
+	surface->pointcache->step = 1;
 
 	/* Set initial values */
 	surface->flags = MOD_DPAINT_ANTIALIAS | MOD_DPAINT_MULALPHA | MOD_DPAINT_DRY_LOG | MOD_DPAINT_DISSOLVE_LOG |
@@ -1045,6 +1055,8 @@ bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, str
 			if (!brush)
 				return false;
 			brush->pmd = pmd;
+
+			brush->psys = NULL;
 
 			brush->flags = MOD_DPAINT_ABS_ALPHA | MOD_DPAINT_RAMP_ALPHA;
 			brush->collision = MOD_DPAINT_COL_VOLUME;
@@ -1199,6 +1211,7 @@ void dynamicPaint_Modifier_copy(struct DynamicPaintModifierData *pmd, struct Dyn
 		t_brush->particle_radius = brush->particle_radius;
 		t_brush->particle_smooth = brush->particle_smooth;
 		t_brush->paint_distance = brush->paint_distance;
+		t_brush->psys = brush->psys;
 
 		if (brush->paint_ramp)
 			memcpy(t_brush->paint_ramp, brush->paint_ramp, sizeof(ColorBand));
@@ -1931,6 +1944,15 @@ static DerivedMesh *dynamicPaint_Modifier_apply(
 	return result;
 }
 
+/* update cache frame range */
+void dynamicPaint_cacheUpdateFrames(DynamicPaintSurface *surface)
+{
+	if (surface->pointcache) {
+		surface->pointcache->startframe = surface->start_frame;
+		surface->pointcache->endframe = surface->end_frame;
+	}
+}
+
 static void canvas_copyDerivedMesh(DynamicPaintCanvasSettings *canvas, DerivedMesh *dm)
 {
 	if (canvas->dm) {
@@ -1979,10 +2001,31 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 			if (no_surface_data || current_frame != surface->current_frame ||
 			    (int)scene->r.cfra == surface->start_frame)
 			{
+				PointCache *cache = surface->pointcache;
+				PTCacheID pid;
 				surface->current_frame = current_frame;
 
-				/* if we're on surface range do recalculate */
-				if ((int)scene->r.cfra == current_frame) {
+				/* read point cache */
+				BKE_ptcache_id_from_dynamicpaint(&pid, ob, surface);
+				pid.cache->startframe = surface->start_frame;
+				pid.cache->endframe = surface->end_frame;
+				BKE_ptcache_id_time(&pid, scene, (float)scene->r.cfra, NULL, NULL, NULL);
+
+				/* reset non-baked cache at first frame */
+				if ((int)scene->r.cfra == surface->start_frame && !(cache->flag & PTCACHE_BAKED)) {
+					cache->flag |= PTCACHE_REDO_NEEDED;
+					BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+					cache->flag &= ~PTCACHE_REDO_NEEDED;
+				}
+
+				/* try to read from cache */
+				bool can_simulate = ((int)scene->r.cfra == current_frame) && !(cache->flag & PTCACHE_BAKED);
+
+				if (BKE_ptcache_read(&pid, (float)scene->r.cfra, can_simulate)) {
+					BKE_ptcache_validate(cache, (int)scene->r.cfra);
+				}
+				/* if read failed and we're on surface range do recalculate */
+				else if (can_simulate) {
 					/* calculate surface frame */
 					canvas->flags |= MOD_DPAINT_BAKING;
 					dynamicPaint_calculateFrame(surface, scene, ob, current_frame);
@@ -1994,6 +2037,9 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 					{
 						canvas_copyDerivedMesh(canvas, dm);
 					}
+
+					BKE_ptcache_validate(cache, surface->current_frame);
+					BKE_ptcache_write(&pid, surface->current_frame);
 				}
 			}
 		}
@@ -3453,6 +3499,7 @@ typedef struct DynamicPaintPaintData {
 	const float *avg_brushNor;
 	const Vec3f *brushVelocity;
 
+	const ParticleSystem *psys;
 	const float solidradius;
 
 	void *treeData;
@@ -3901,6 +3948,283 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 	return 1;
 }
 
+/*
+ *	Paint a particle system to the surface
+ */
+static void dynamic_paint_paint_particle_cell_point_cb_ex(
+        void *userdata, void *UNUSED(userdata_chunk), const int id, const int UNUSED(threadid))
+{
+	const DynamicPaintPaintData *data = userdata;
+
+	const DynamicPaintSurface *surface = data->surface;
+	const PaintSurfaceData *sData = surface->data;
+	const PaintBakeData *bData = sData->bData;
+	VolumeGrid *grid = bData->grid;
+
+	const DynamicPaintBrushSettings *brush = data->brush;
+
+	const ParticleSystem *psys = data->psys;
+
+	const float timescale = data->timescale;
+	const int c_index = data->c_index;
+
+	KDTree *tree = data->treeData;
+
+	const float solidradius = data->solidradius;
+	const float smooth = brush->particle_smooth * surface->radius_scale;
+	const float range = solidradius + smooth;
+	const float particle_timestep = 0.04f * psys->part->timetweak;
+
+	const int index = grid->t_index[grid->s_pos[c_index] + id];
+	float disp_intersect = 0.0f;
+	float radius = 0.0f;
+	float strength = 0.0f;
+	int part_index = -1;
+
+	/*
+	 *	With predefined radius, there is no variation between particles.
+	 *	It's enough to just find the nearest one.
+	 */
+	{
+		KDTreeNearest nearest;
+		float smooth_range, part_solidradius;
+
+		/* Find nearest particle and get distance to it	*/
+		BLI_kdtree_find_nearest(tree, bData->realCoord[bData->s_pos[index]].v, &nearest);
+		/* if outside maximum range, no other particle can influence either */
+		if (nearest.dist > range)
+			return;
+
+		if (brush->flags & MOD_DPAINT_PART_RAD) {
+			/* use particles individual size */
+			ParticleData *pa = psys->particles + nearest.index;
+			part_solidradius = pa->size;
+		}
+		else {
+			part_solidradius = solidradius;
+		}
+		radius = part_solidradius + smooth;
+		if (nearest.dist < radius) {
+			/* distances inside solid radius has maximum influence -> dist = 0	*/
+			smooth_range = max_ff(0.0f, (nearest.dist - part_solidradius));
+			/* do smoothness if enabled	*/
+			if (smooth)
+				smooth_range /= smooth;
+
+			strength = 1.0f - smooth_range;
+			disp_intersect = radius - nearest.dist;
+			part_index = nearest.index;
+		}
+	}
+	/* If using random per particle radius and closest particle didn't give max influence	*/
+	if (brush->flags & MOD_DPAINT_PART_RAD && strength < 1.0f && psys->part->randsize > 0.0f) {
+		/*
+		 *	If we use per particle radius, we have to sample all particles
+		 *	within max radius range
+		 */
+		KDTreeNearest *nearest;
+
+		float smooth_range = smooth * (1.0f - strength), dist;
+		/* calculate max range that can have particles with higher influence than the nearest one */
+		const float max_range = smooth - strength * smooth + solidradius;
+		/* Make gcc happy! */
+		dist = max_range;
+
+		const int particles = BLI_kdtree_range_search(
+		                          tree, bData->realCoord[bData->s_pos[index]].v, &nearest, max_range);
+
+		/* Find particle that produces highest influence */
+		for (int n = 0; n < particles; n++) {
+			ParticleData *pa = &psys->particles[nearest[n].index];
+
+			/* skip if out of range */
+			if (nearest[n].dist > (pa->size + smooth))
+				continue;
+
+			/* update hit data */
+			const float s_range = nearest[n].dist - pa->size;
+			/* skip if higher influence is already found */
+			if (smooth_range < s_range)
+				continue;
+
+			/* update hit data */
+			smooth_range = s_range;
+			dist = nearest[n].dist;
+			part_index = nearest[n].index;
+
+			/* If inside solid range and no disp depth required, no need to seek further */
+			if ((s_range < 0.0f) && !ELEM(surface->type, MOD_DPAINT_SURFACE_T_DISPLACE, MOD_DPAINT_SURFACE_T_WAVE)) {
+				break;
+			}
+		}
+
+		if (nearest)
+			MEM_freeN(nearest);
+
+		/* now calculate influence for this particle */
+		const float rad = radius + smooth;
+		if ((rad - dist) > disp_intersect) {
+			disp_intersect = radius - dist;
+			radius = rad;
+		}
+
+		/* do smoothness if enabled	*/
+		CLAMP_MIN(smooth_range, 0.0f);
+		if (smooth)
+			smooth_range /= smooth;
+
+		const float str = 1.0f - smooth_range;
+		/* if influence is greater, use this one	*/
+		if (str > strength)
+			strength = str;
+	}
+
+	if (strength > 0.001f) {
+		float paintColor[4] = {0.0f};
+		float depth = 0.0f;
+		float velocity_val = 0.0f;
+
+		/* apply velocity */
+		if ((brush->flags & MOD_DPAINT_USES_VELOCITY) && (part_index != -1)) {
+			float velocity[3];
+			ParticleData *pa = psys->particles + part_index;
+			mul_v3_v3fl(velocity, pa->state.vel, particle_timestep);
+
+			/* substract canvas point velocity */
+			if (bData->velocity) {
+				sub_v3_v3(velocity, bData->velocity[index].v);
+			}
+			velocity_val = normalize_v3(velocity);
+
+			/* store brush velocity for smudge */
+			if ((surface->type == MOD_DPAINT_SURFACE_T_PAINT) &&
+			    (brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity))
+			{
+				copy_v3_v3(&bData->brush_velocity[index * 4], velocity);
+				bData->brush_velocity[index * 4 + 3] = velocity_val;
+			}
+		}
+
+		if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
+			copy_v3_v3(paintColor, &brush->r);
+		}
+		else if (ELEM(surface->type, MOD_DPAINT_SURFACE_T_DISPLACE, MOD_DPAINT_SURFACE_T_WAVE)) {
+			/* get displace depth	*/
+			disp_intersect = (1.0f - sqrtf(disp_intersect / radius)) * radius;
+			depth = max_ff(0.0f, (radius - disp_intersect) / bData->bNormal[index].normal_scale);
+		}
+
+		dynamicPaint_updatePointData(surface, index, brush, paintColor, strength, depth, velocity_val, timescale);
+	}
+}
+
+static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
+                                       ParticleSystem *psys,
+                                       DynamicPaintBrushSettings *brush,
+                                       float timescale)
+{
+	ParticleSettings *part = psys->part;
+	PaintSurfaceData *sData = surface->data;
+	PaintBakeData *bData = sData->bData;
+	VolumeGrid *grid = bData->grid;
+
+	KDTree *tree;
+	int particlesAdded = 0;
+	int invalidParticles = 0;
+	int p = 0;
+
+	const float solidradius = surface->radius_scale *
+	                          ((brush->flags & MOD_DPAINT_PART_RAD) ? part->size : brush->particle_radius);
+	const float smooth = brush->particle_smooth * surface->radius_scale;
+
+	const float range = solidradius + smooth;
+
+	Bounds3D part_bb = {{0}};
+
+	if (psys->totpart < 1)
+		return 1;
+
+	/*
+	 *	Build a kd-tree to optimize distance search
+	 */
+	tree = BLI_kdtree_new(psys->totpart);
+
+	/* loop through particles and insert valid ones	to the tree	*/
+	p = 0;
+	for (ParticleData *pa = psys->particles; p < psys->totpart; p++, pa++) {
+		/* Proceed only if particle is active	*/
+		if ((pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN) == 0) ||
+		    (pa->alive == PARS_DEAD && (part->flag & PART_DIED) == 0) ||
+		    (pa->flag & PARS_UNEXIST))
+		{
+			continue;
+		}
+
+		/*	for debug purposes check if any NAN particle proceeds
+		 *	For some reason they get past activity check, this should rule most of them out	*/
+		if (isnan(pa->state.co[0]) || isnan(pa->state.co[1]) || isnan(pa->state.co[2])) {
+			invalidParticles++;
+			continue;
+		}
+
+		/* make sure particle is close enough to canvas */
+		if (!boundIntersectPoint(&grid->grid_bounds, pa->state.co, range))
+			continue;
+
+		BLI_kdtree_insert(tree, p, pa->state.co);
+
+		/* calc particle system bounds */
+		boundInsert(&part_bb, pa->state.co);
+
+		particlesAdded++;
+	}
+	if (invalidParticles)
+		printf("Warning: Invalid particle(s) found!\n");
+
+	/* If no suitable particles were found, exit	*/
+	if (particlesAdded < 1) {
+		BLI_kdtree_free(tree);
+		return 1;
+	}
+
+	/* begin thread safe malloc */
+	BLI_begin_threaded_malloc();
+
+	/* only continue if particle bb is close enough to canvas bb */
+	if (boundsIntersectDist(&grid->grid_bounds, &part_bb, range)) {
+		int c_index;
+		int total_cells = grid->dim[0] * grid->dim[1] * grid->dim[2];
+
+		/* balance tree	*/
+		BLI_kdtree_balance(tree);
+
+		/* loop through space partitioning grid */
+		for (c_index = 0; c_index < total_cells; c_index++) {
+			/* check cell bounding box */
+			if (!grid->s_num[c_index] ||
+			    !boundsIntersectDist(&grid->bounds[c_index], &part_bb, range))
+			{
+				continue;
+			}
+
+			/* loop through cell points */
+			DynamicPaintPaintData data = {
+			    .surface = surface,
+			    .brush = brush, .psys = psys,
+			    .solidradius = solidradius, .timescale = timescale, .c_index = c_index,
+			    .treeData = tree,
+			};
+			BLI_task_parallel_range_ex(0, grid->s_num[c_index], &data, NULL, 0,
+			                           dynamic_paint_paint_particle_cell_point_cb_ex,
+			                           grid->s_num[c_index] > 250, true);
+		}
+	}
+	BLI_end_threaded_malloc();
+	BLI_kdtree_free(tree);
+
+	return 1;
+}
+
 /* paint a single point of defined proximity radius to the surface */
 static void dynamic_paint_paint_single_point_cb_ex(
         void *userdata, void *UNUSED(userdata_chunk), const int index, const int UNUSED(threadid))
@@ -4334,7 +4658,7 @@ static int dynamicPaint_prepareEffectStep(
 
 	/* Init force data if required */
 	if (surface->effect & MOD_DPAINT_EFFECT_DO_DRIP) {
-		ListBase *effectors = pdInitEffectors(scene, ob, surface->effector_weights, true);
+		ListBase *effectors = pdInitEffectors(scene, ob, NULL, surface->effector_weights, true);
 
 		/* allocate memory for force data (dir vector + strength) */
 		*force = MEM_mallocN(sData->total_points * 4 * sizeof(float), "PaintEffectForces");
@@ -5238,6 +5562,15 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 						dynamicPaint_updateBrushMaterials(brushObj, brush->mat, scene, &bMats);
 
 					/* Apply brush on the surface depending on it's collision type */
+						if (brush->psys && brush->psys->part &&
+						    ELEM(brush->psys->part->type, PART_EMITTER, PART_FLUID) &&
+						    psys_check_enabled(brushObj, brush->psys, G.is_rendering))
+						{
+							/* Paint a particle system */
+							BKE_animsys_evaluate_animdata(scene, &brush->psys->part->id, brush->psys->part->adt,
+							                              BKE_scene_frame_get(scene), ADT_RECALC_ANIM);
+							dynamicPaint_paintParticles(surface, brush->psys, brush, timescale);
+						}
 					/* Object center distance: */
 					if (brush->collision == MOD_DPAINT_COL_POINT && brushObj != ob) {
 						dynamicPaint_paintSinglePoint(surface, brushObj->loc, brush, brushObj, &bMats, scene, timescale);

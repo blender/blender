@@ -38,6 +38,7 @@ extern "C" {
 #include "BLI_utildefines.h"
 
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -117,13 +118,40 @@ void lib_id_recalc_tag_flag(Main *bmain, ID *id, int flag)
 
 		if (flag & OB_RECALC_OB)
 			lib_id_recalc_tag(bmain, id);
-		if (flag & OB_RECALC_DATA)
+		if (flag & (OB_RECALC_DATA | PSYS_RECALC))
 			lib_id_recalc_data_tag(bmain, id);
 	}
 	else {
 		lib_id_recalc_tag(bmain, id);
 	}
 }
+
+#ifdef DEPSGRAPH_USE_LEGACY_TAGGING
+void depsgraph_legacy_handle_update_tag(Main *bmain, ID *id, short flag)
+{
+	if (flag) {
+		Object *object;
+		short idtype = GS(id->name);
+		if (idtype == ID_PA) {
+			ParticleSystem *psys;
+			for (object = (Object *)bmain->object.first;
+			     object != NULL;
+			     object = (Object *)object->id.next)
+			{
+				for (psys = (ParticleSystem *)object->particlesystem.first;
+				     psys != NULL;
+				     psys = (ParticleSystem *)psys->next)
+				{
+					if (&psys->part->id == id) {
+						DEG_id_tag_update_ex(bmain, &object->id, flag & OB_RECALC_ALL);
+						psys->recalc |= (flag & PSYS_RECALC);
+					}
+				}
+			}
+		}
+	}
+}
+#endif
 
 }  /* namespace */
 
@@ -214,6 +242,14 @@ void DEG_id_tag_update_ex(Main *bmain, ID *id, short flag)
 			}
 		}
 	}
+
+#ifdef DEPSGRAPH_USE_LEGACY_TAGGING
+	/* Special handling from the legacy depsgraph.
+	 * TODO(sergey): Need to get rid of those once all the areas
+	 * are re-formulated in terms of franular nodes.
+	 */
+	depsgraph_legacy_handle_update_tag(bmain, id, flag);
+#endif
 }
 
 /* Tag given ID type for update. */

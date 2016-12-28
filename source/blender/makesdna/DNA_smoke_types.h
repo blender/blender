@@ -188,6 +188,9 @@ typedef struct SmokeDomainSettings {
 	char data_depth;
 	char pad[2];
 
+	/* Smoke uses only one cache from now on (index [0]), but keeping the array for now for reading old files. */
+	struct PointCache *point_cache[2];	/* definition is in DNA_object_force.h */
+	struct ListBase ptcaches[2];
 	struct EffectorWeights *effector_weights;
 	int border_collisions;	/* How domain border collisions are handled */
 	float time_scale;
@@ -242,6 +245,7 @@ typedef struct SmokeDomainSettings {
 typedef struct SmokeFlowSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
 	struct DerivedMesh *dm;
+	struct ParticleSystem *psys;
 	struct Tex *noise_texture;
 
 	/* initial velocity */

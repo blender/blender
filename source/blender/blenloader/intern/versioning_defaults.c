@@ -143,6 +143,13 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 			ts->gpencil_v2d_align = GP_PROJECT_VIEWSPACE;
 			ts->gpencil_seq_align = GP_PROJECT_VIEWSPACE;
 			ts->gpencil_ima_align = GP_PROJECT_VIEWSPACE;
+
+			ParticleEditSettings *pset = &ts->particle;
+			for (int a = 0; a < PE_TOT_BRUSH; a++) {
+				pset->brush[a].strength = 0.5f;
+				pset->brush[a].count = 10;
+			}
+			pset->brush[PE_BRUSH_CUT].strength = 1.0f;
 		}
 
 		scene->gm.lodflag |= SCE_LOD_USE_HYST;

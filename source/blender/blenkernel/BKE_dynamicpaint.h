@@ -73,6 +73,7 @@ void dynamicPaint_freeCanvas(struct DynamicPaintModifierData *pmd);
 void dynamicPaint_freeBrush(struct DynamicPaintModifierData *pmd);
 void dynamicPaint_freeSurfaceData(struct DynamicPaintSurface *surface);
 
+void dynamicPaint_cacheUpdateFrames(struct DynamicPaintSurface *surface);
 bool  dynamicPaint_surfaceHasColorPreview(struct DynamicPaintSurface *surface);
 bool dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, struct Object *ob, int output);
 void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface);

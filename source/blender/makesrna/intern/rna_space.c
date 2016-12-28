@@ -206,6 +206,7 @@ static EnumPropertyItem buttons_context_items[] = {
 	{BCONTEXT_BONE_CONSTRAINT, "BONE_CONSTRAINT", ICON_CONSTRAINT_BONE, "Bone Constraints", "Bone constraints"},
 	{BCONTEXT_MATERIAL, "MATERIAL", ICON_MATERIAL, "Material", "Material"},
 	{BCONTEXT_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture"},
+	{BCONTEXT_PARTICLE, "PARTICLES", ICON_PARTICLES, "Particles", "Particle"},
 	{BCONTEXT_PHYSICS, "PHYSICS", ICON_PHYSICS, "Physics", "Physics"},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -215,6 +216,7 @@ static EnumPropertyItem buttons_texture_context_items[] = {
 	{SB_TEXC_MATERIAL, "MATERIAL", ICON_MATERIAL, "", "Show material textures"},
 	{SB_TEXC_WORLD, "WORLD", ICON_WORLD, "", "Show world textures"},
 	{SB_TEXC_LAMP, "LAMP", ICON_LAMP, "", "Show lamp textures"},
+	{SB_TEXC_PARTICLES, "PARTICLES", ICON_PARTICLES, "", "Show particles textures"},
 	{SB_TEXC_LINESTYLE, "LINESTYLE", ICON_LINE_DATA, "", "Show linestyle textures"},
 	{SB_TEXC_OTHER, "OTHER", ICON_TEXTURE, "", "Show other data textures"},
 	{0, NULL, 0, NULL, NULL}
@@ -1111,6 +1113,10 @@ static EnumPropertyItem *rna_SpaceProperties_context_itemf(bContext *UNUSED(C), 
 		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_TEXTURE);
 	}
 
+	if (sbuts->pathflag & (1 << BCONTEXT_PARTICLE)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_PARTICLE);
+	}
+
 	if (sbuts->pathflag & (1 << BCONTEXT_PHYSICS)) {
 		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_PHYSICS);
 	}
@@ -1152,6 +1158,10 @@ static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, 
 	}
 	else if (ED_texture_context_check_material(C)) {
 		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_MATERIAL);
+	}
+
+	if (ED_texture_context_check_particles(C)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_texture_context_items, SB_TEXC_PARTICLES);
 	}
 
 	if (ED_texture_context_check_linestyle(C)) {
@@ -3741,6 +3751,11 @@ static void rna_def_space_time(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Softbody", "Show the active object's softbody point cache");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, NULL);
 	
+	prop = RNA_def_property(srna, "cache_particles", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "cache_display", TIME_CACHE_PARTICLES);
+	RNA_def_property_ui_text(prop, "Particles", "Show the active object's particle point cache");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, NULL);
+	
 	prop = RNA_def_property(srna, "cache_cloth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "cache_display", TIME_CACHE_CLOTH);
 	RNA_def_property_ui_text(prop, "Cloth", "Show the active object's cloth point cache");
@@ -3879,6 +3894,8 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 		{FILTER_ID_MSK, "MASK", ICON_MOD_MASK, "Masks", "Show/hide Mask data-blocks"},
 		{FILTER_ID_NT, "NODE_TREE", ICON_NODETREE, "Node Trees", "Show/hide Node Tree data-blocks"},
 		{FILTER_ID_OB, "OBJECT", ICON_OBJECT_DATA, "Objects", "Show/hide Object data-blocks"},
+		{FILTER_ID_PA, "PARTICLE_SETTINGS", ICON_PARTICLE_DATA,
+		               "Particles Settings", "Show/hide Particle Settings data-blocks"},
 		{FILTER_ID_PAL, "PALETTE", ICON_COLOR, "Palettes", "Show/hide Palette data-blocks"},
 		{FILTER_ID_PC, "PAINT_CURVE", ICON_CURVE_BEZCURVE, "Paint Curves", "Show/hide Paint Curve data-blocks"},
 		{FILTER_ID_SCE, "SCENE", ICON_SCENE_DATA, "Scenes", "Show/hide Scene data-blocks"},
@@ -3907,7 +3924,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	     "IMAGE", ICON_IMAGE_DATA, "Images & Sounds", "Show/hide images, movie clips, sounds and masks"},
 		{FILTER_ID_CA | FILTER_ID_LA | FILTER_ID_SPK | FILTER_ID_WO,
 	     "ENVIRONMENT", ICON_WORLD_DATA, "Environment", "Show/hide worlds, lamps, cameras and speakers"},
-		{FILTER_ID_BR | FILTER_ID_GD | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_TXT | FILTER_ID_VF | FILTER_ID_CF,
+		{FILTER_ID_BR | FILTER_ID_GD | FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_TXT | FILTER_ID_VF | FILTER_ID_CF,
 	     "MISC", ICON_GREASEPENCIL, "Miscellaneous", "Show/hide other data types"},
 	    {0, NULL, 0, NULL, NULL}
 	};

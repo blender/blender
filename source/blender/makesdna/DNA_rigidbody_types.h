@@ -58,6 +58,9 @@ typedef struct RigidBodyWorld {
 	int pad;
 	float ltime;				/* last frame world was evaluated for (internal) */
 	
+	/* cache */
+	struct PointCache *pointcache;
+	struct ListBase ptcaches;
 	int numbodies;              /* number of objects in rigid body group */
 	
 	short steps_per_second;		/* number of simulation steps thaken per second */

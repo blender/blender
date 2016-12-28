@@ -247,6 +247,7 @@ typedef enum ID_Type {
 	ID_AC   = MAKE_ID2('A', 'C'), /* bAction */
 	ID_NT   = MAKE_ID2('N', 'T'), /* bNodeTree */
 	ID_BR   = MAKE_ID2('B', 'R'), /* Brush */
+	ID_PA   = MAKE_ID2('P', 'A'), /* ParticleSettings */
 	ID_GD   = MAKE_ID2('G', 'D'), /* bGPdata, (Grease Pencil) */
 	ID_WM   = MAKE_ID2('W', 'M'), /* WindowManager */
 	ID_MC   = MAKE_ID2('M', 'C'), /* MovieClip */
@@ -385,7 +386,8 @@ enum {
 	FILTER_ID_TXT       = (1 << 24),
 	FILTER_ID_VF        = (1 << 25),
 	FILTER_ID_WO        = (1 << 26),
-	FILTER_ID_CF        = (1 << 27),
+	FILTER_ID_PA        = (1 << 27),
+	FILTER_ID_CF        = (1 << 28),
 };
 
 /* IMPORTANT: this enum matches the order currently use in set_lisbasepointers,
@@ -415,6 +417,7 @@ enum {
 	INDEX_ID_PAL,
 	INDEX_ID_PC,
 	INDEX_ID_BR,
+	INDEX_ID_PA,
 	INDEX_ID_SPK,
 	INDEX_ID_WO,
 	INDEX_ID_MC,

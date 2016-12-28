@@ -38,6 +38,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_text_types.h"
 #include "DNA_texture_types.h"
 
@@ -3012,6 +3013,36 @@ static void rna_CompositorNodeScale_update(Main *bmain, Scene *scene, PointerRNA
 	rna_Node_update(bmain, scene, ptr);
 }
 
+static PointerRNA rna_ShaderNodePointDensity_psys_get(PointerRNA *ptr)
+{
+	bNode *node = ptr->data;
+	NodeShaderTexPointDensity *shader_point_density = node->storage;
+	Object *ob = (Object *)node->id;
+	ParticleSystem *psys = NULL;
+	PointerRNA value;
+
+	if (ob && shader_point_density->particle_system) {
+		psys = BLI_findlink(&ob->particlesystem, shader_point_density->particle_system - 1);
+	}
+
+	RNA_pointer_create(&ob->id, &RNA_ParticleSystem, psys, &value);
+	return value;
+}
+
+static void rna_ShaderNodePointDensity_psys_set(PointerRNA *ptr, PointerRNA value)
+{
+	bNode *node = ptr->data;
+	NodeShaderTexPointDensity *shader_point_density = node->storage;
+	Object *ob = (Object *)node->id;
+
+	if (ob && value.id.data == ob) {
+		shader_point_density->particle_system = BLI_findindex(&ob->particlesystem, value.data) + 1;
+	}
+	else {
+		shader_point_density->particle_system = 0;
+	}
+}
+
 static int point_density_particle_color_source_from_shader(NodeShaderTexPointDensity *shader_point_density)
 {
 	switch (shader_point_density->color_source) {
@@ -4059,6 +4090,14 @@ static void def_sh_tex_pointdensity(StructRNA *srna)
 	prop = RNA_def_property(srna, "point_source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, point_source_items);
 	RNA_def_property_ui_text(prop, "Point Source", "Point data to use as renderable point density");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Particle System", "Particle System to render as points");
+	RNA_def_property_struct_type(prop, "ParticleSystem");
+	RNA_def_property_pointer_funcs(prop, "rna_ShaderNodePointDensity_psys_get",
+	                               "rna_ShaderNodePointDensity_psys_set", NULL, NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "resolution", PROP_INT, PROP_NONE);

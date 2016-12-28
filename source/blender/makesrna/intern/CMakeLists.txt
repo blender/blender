@@ -36,6 +36,7 @@ set(DEFSRC
 	rna_animation.c
 	rna_animviz.c
 	rna_armature.c
+	rna_boid.c
 	rna_brush.c
 	rna_cachefile.c
 	rna_camera.c
@@ -69,6 +70,7 @@ set(DEFSRC
 	rna_object_force.c
 	rna_packedfile.c
 	rna_palette.c
+	rna_particle.c
 	rna_pose.c
 	rna_property.c
 	rna_render.c

@@ -33,6 +33,7 @@
 bool ED_texture_context_check_world(const struct bContext *C);
 bool ED_texture_context_check_material(const struct bContext *C);
 bool ED_texture_context_check_lamp(const struct bContext *C);
+bool ED_texture_context_check_particles(const struct bContext *C);
 bool ED_texture_context_check_linestyle(const struct bContext *C);
 bool ED_texture_context_check_others(const struct bContext *C);
 

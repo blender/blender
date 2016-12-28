@@ -55,6 +55,7 @@ extern "C" {
 #include "BKE_idprop.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
+#include "BKE_particle.h"
 #include "BKE_scene.h"
 }
 
@@ -499,6 +500,22 @@ void AbcExporter::createShapeWriter(Object *ob, Object *dupliObParent)
 	if (!xform) {
 		std::cerr << __func__ << ": xform " << name << " is NULL\n";
 		return;
+	}
+
+	ParticleSystem *psys = static_cast<ParticleSystem *>(ob->particlesystem.first);
+
+	for (; psys; psys = psys->next) {
+		if (!psys_check_enabled(ob, psys, G.is_rendering) || !psys->part) {
+			continue;
+		}
+
+		if (psys->part->type == PART_HAIR) {
+			m_settings.export_child_hairs = true;
+			m_shapes.push_back(new AbcHairWriter(m_scene, ob, xform, m_shape_sampling_index, m_settings, psys));
+		}
+		else if (psys->part->type == PART_EMITTER) {
+			m_shapes.push_back(new AbcPointsWriter(m_scene, ob, xform, m_shape_sampling_index, m_settings, psys));
+		}
 	}
 
 	switch(ob->type) {

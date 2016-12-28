@@ -239,6 +239,12 @@ static void rna_Main_brush_begin(CollectionPropertyIterator *iter, PointerRNA *p
 	rna_iterator_listbase_begin(iter, &bmain->brush, NULL);
 }
 
+static void rna_Main_particle_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Main *bmain = (Main *)ptr->data;
+	rna_iterator_listbase_begin(iter, &bmain->particle, NULL);
+}
+
 static void rna_Main_palettes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
@@ -354,6 +360,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"sounds", "Sound", "rna_Main_sound_begin", "Sounds", "Sound data-blocks", RNA_def_main_sounds},
 		{"armatures", "Armature", "rna_Main_armature_begin", "Armatures", "Armature data-blocks", RNA_def_main_armatures},
 		{"actions", "Action", "rna_Main_action_begin", "Actions", "Action data-blocks", RNA_def_main_actions},
+		{"particles", "ParticleSettings", "rna_Main_particle_begin", "Particles", "Particle data-blocks", RNA_def_main_particles},
 		{"palettes", "Palette", "rna_Main_palettes_begin", "Palettes", "Palette data-blocks", RNA_def_main_palettes},
 		{"grease_pencil", "GreasePencil", "rna_Main_gpencil_begin", "Grease Pencil", "Grease Pencil data-blocks", RNA_def_main_gpencil},
 		{"movieclips", "MovieClip", "rna_Main_movieclips_begin", "Movie Clips", "Movie Clip data-blocks", RNA_def_main_movieclips},

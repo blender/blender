@@ -21,13 +21,13 @@ import bpy
 from bpy.types import Panel
 
 from bl_ui.properties_physics_common import (
+        point_cache_ui,
         effector_weights_ui,
         )
 
 
 def softbody_panel_enabled(md):
-    return True
-    #return (md.point_cache.is_baked is False)
+    return (md.point_cache.is_baked is False)
 
 
 class PhysicButtonsPanel:
@@ -69,6 +69,16 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, Panel):
         col.prop(softbody, "speed")
 
         layout.prop(softbody, "collision_group")
+
+
+class PHYSICS_PT_softbody_cache(PhysicButtonsPanel, Panel):
+    bl_label = "Soft Body Cache"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def draw(self, context):
+        md = context.soft_body
+        point_cache_ui(self, context, md.point_cache, softbody_panel_enabled(md), 'SOFTBODY')
 
 
 class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, Panel):

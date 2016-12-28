@@ -139,6 +139,7 @@ bool BLT_lang_is_ime_supported(void);
 #define BLT_I18NCONTEXT_ID_OBJECT               "Object"
 #define BLT_I18NCONTEXT_ID_PAINTCURVE           "PaintCurve"
 #define BLT_I18NCONTEXT_ID_PALETTE              "Palette"
+#define BLT_I18NCONTEXT_ID_PARTICLESETTINGS     "ParticleSettings"
 #define BLT_I18NCONTEXT_ID_SCENE                "Scene"
 #define BLT_I18NCONTEXT_ID_SCREEN               "Screen"
 #define BLT_I18NCONTEXT_ID_SEQUENCE             "Sequence"
@@ -192,6 +193,7 @@ typedef struct {
 	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_OBJECT, "id_object"),                                                     \
 	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_PAINTCURVE, "id_paintcurve"),                                             \
 	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_PALETTE, "id_palette"),                                                   \
+	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_PARTICLESETTINGS, "id_particlesettings"),                                 \
 	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SCENE, "id_scene"),                                                       \
 	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SCREEN, "id_screen"),                                                     \
 	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_SEQUENCE, "id_sequence"),                                                 \

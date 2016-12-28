@@ -42,6 +42,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
@@ -71,6 +72,8 @@ static Lattice *object_defgroup_lattice_get(ID *id)
 void BKE_object_defgroup_remap_update_users(Object *ob, int *map)
 {
 	ModifierData *md;
+	ParticleSystem *psys;
+	int a;
 
 	/* these cases don't use names to refer to vertex groups, so when
 	 * they get removed the numbers get out of sync, this corrects that */
@@ -93,6 +96,12 @@ void BKE_object_defgroup_remap_update_users(Object *ob, int *map)
 				clsim->vgroup_bend = map[clsim->vgroup_bend];
 				clsim->vgroup_struct = map[clsim->vgroup_struct];
 			}
+		}
+	}
+
+	for (psys = ob->particlesystem.first; psys; psys = psys->next) {
+		for (a = 0; a < PSYS_TOT_VG; a++) {
+			psys->vgroup[a] = map[psys->vgroup[a]];
 		}
 	}
 }

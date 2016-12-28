@@ -26,6 +26,7 @@ set(SRC
 	blender_mesh.cpp
 	blender_object.cpp
 	blender_object_cull.cpp
+	blender_particles.cpp
 	blender_curves.cpp
 	blender_logging.cpp
 	blender_python.cpp

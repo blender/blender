@@ -52,8 +52,8 @@ typedef enum ModifierType {
 	eModifierType_Smooth            = 16,
 	eModifierType_Cast              = 17,
 	eModifierType_MeshDeform        = 18,
-	/*eModifierType_ParticleSystem    = 19,*/ /* DEPRECATED */
-	/*eModifierType_ParticleInstance  = 20,*/ /* DEPRECATED */
+	eModifierType_ParticleSystem    = 19,
+	eModifierType_ParticleInstance  = 20,
 	eModifierType_Explode           = 21,
 	eModifierType_Cloth             = 22,
 	eModifierType_Collision         = 23,
@@ -599,6 +599,8 @@ typedef struct ClothModifierData {
 	struct Cloth *clothObject;            /* The internal data structure for cloth. */
 	struct ClothSimSettings *sim_parms;   /* definition is in DNA_cloth_types.h */
 	struct ClothCollSettings *coll_parms; /* definition is in DNA_cloth_types.h */
+	struct PointCache *point_cache;       /* definition is in DNA_object_force.h */
+	struct ListBase ptcaches;
 	/* XXX nasty hack, remove once hair can be separated from cloth modifier data */
 	struct ClothHairData *hairdata;
 	/* grid geometry values of hair continuum */
@@ -718,6 +720,41 @@ enum {
 	MOD_MDEF_SURFACE  = 1,
 };
 
+typedef struct ParticleSystemModifierData {
+	ModifierData modifier;
+
+	struct ParticleSystem *psys;
+	struct DerivedMesh *dm_final;  /* Final DM - its topology may differ from orig mesh. */
+	struct DerivedMesh *dm_deformed;  /* Deformed-onle DM - its topology is same as orig mesh one. */
+	int totdmvert, totdmedge, totdmface;
+	short flag, pad;
+} ParticleSystemModifierData;
+
+typedef enum {
+	eParticleSystemFlag_Pars         = (1 << 0),
+	eParticleSystemFlag_psys_updated = (1 << 1),
+	eParticleSystemFlag_file_loaded  = (1 << 2),
+} ParticleSystemModifierFlag;
+
+typedef enum {
+	eParticleInstanceFlag_Parents   = (1 << 0),
+	eParticleInstanceFlag_Children  = (1 << 1),
+	eParticleInstanceFlag_Path      = (1 << 2),
+	eParticleInstanceFlag_Unborn    = (1 << 3),
+	eParticleInstanceFlag_Alive     = (1 << 4),
+	eParticleInstanceFlag_Dead      = (1 << 5),
+	eParticleInstanceFlag_KeepShape = (1 << 6),
+	eParticleInstanceFlag_UseSize   = (1 << 7),
+} ParticleInstanceModifierFlag;
+
+typedef struct ParticleInstanceModifierData {
+	ModifierData modifier;
+
+	struct Object *ob;
+	short psys, flag, axis, pad;
+	float position, random_position;
+} ParticleInstanceModifierData;
+
 typedef enum {
 	eExplodeFlag_CalcFaces = (1 << 0),
 	eExplodeFlag_PaSize    = (1 << 1),
@@ -752,6 +789,7 @@ typedef struct FluidsimModifierData {
 	ModifierData modifier;
 
 	struct FluidsimSettings *fss;   /* definition is in DNA_object_fluidsim.h */
+	struct PointCache *point_cache; /* definition is in DNA_object_force.h */
 } FluidsimModifierData;
 
 typedef struct ShrinkwrapModifierData {

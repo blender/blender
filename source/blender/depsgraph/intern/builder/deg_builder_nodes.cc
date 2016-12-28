@@ -60,6 +60,7 @@ extern "C" {
 #include "DNA_meta_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
@@ -86,6 +87,7 @@ extern "C" {
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
 #include "BKE_rigidbody.h"
 #include "BKE_sound.h"
 #include "BKE_texture.h"
@@ -470,6 +472,11 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 	 */
 	build_animdata(&ob->id);
 
+	/* particle systems */
+	if (ob->particlesystem.first) {
+		build_particles(scene, ob);
+	}
+
 	/* grease pencil */
 	if (ob->gpd) {
 		build_gpencil(ob->gpd);
@@ -690,6 +697,50 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 			                   DEG_OPCODE_TRANSFORM_RIGIDBODY);
 		}
 	}
+}
+
+void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
+{
+	/**
+	 * Particle Systems Nodes
+	 * ======================
+	 *
+	 * There are two types of nodes associated with representing
+	 * particle systems:
+	 *  1) Component (EVAL_PARTICLES) - This is the particle-system
+	 *     evaluation context for an object. It acts as the container
+	 *     for all the nodes associated with a particular set of particle
+	 *     systems.
+	 *  2) Particle System Eval Operation - This operation node acts as a
+	 *     blackbox evaluation step for one particle system referenced by
+	 *     the particle systems stack. All dependencies link to this operation.
+	 */
+
+	/* component for all particle systems */
+	ComponentDepsNode *psys_comp = add_component_node(&ob->id, DEPSNODE_TYPE_EVAL_PARTICLES);
+
+	/* particle systems */
+	LINKLIST_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
+		ParticleSettings *part = psys->part;
+
+		/* particle settings */
+		// XXX: what if this is used more than once!
+		build_animdata(&part->id);
+
+		/* this particle system */
+		// TODO: for now, this will just be a placeholder "ubereval" node
+		add_operation_node(psys_comp,
+		                   DEPSOP_TYPE_EXEC, function_bind(BKE_particle_system_eval,
+		                                                   _1,
+		                                                   scene,
+		                                                   ob,
+		                                                   psys),
+		                   DEG_OPCODE_PSYS_EVAL,
+		                   psys->name);
+	}
+
+	/* pointcache */
+	// TODO...
 }
 
 /* Shapekeys */

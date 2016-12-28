@@ -43,6 +43,7 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -314,7 +315,7 @@ static short acf_generic_group_offset(bAnimContext *ac, bAnimListElem *ale)
 			offset += U.widget_unit;
 		}
 		/* materials and particles animdata */
-		else if (GS(ale->id->name) == ID_MA)
+		else if (ELEM(GS(ale->id->name), ID_MA, ID_PA))
 			offset += (short)(0.7f * U.widget_unit);
 			
 		/* if not in Action Editor mode, action-groups (and their children) must carry some offset too... */

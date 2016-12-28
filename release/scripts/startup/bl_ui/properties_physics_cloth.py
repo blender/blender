@@ -21,13 +21,13 @@ import bpy
 from bpy.types import Menu, Panel
 
 from bl_ui.properties_physics_common import (
+        point_cache_ui,
         effector_weights_ui,
         )
 
 
 def cloth_panel_enabled(md):
-    return True
-    #return md.point_cache.is_baked is False
+    return md.point_cache.is_baked is False
 
 
 class CLOTH_MT_presets(Menu):
@@ -130,6 +130,16 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
             sub.active = not cloth.use_dynamic_mesh
             sub.label(text="Rest Shape Key:")
             sub.prop_search(cloth, "rest_shape_key", key, "key_blocks", text="")
+
+
+class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):
+    bl_label = "Cloth Cache"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def draw(self, context):
+        md = context.cloth
+        point_cache_ui(self, context, md.point_cache, cloth_panel_enabled(md), 'CLOTH')
 
 
 class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):

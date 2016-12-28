@@ -34,7 +34,6 @@
 
 
 #include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -42,6 +41,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_particle.h"
 #include "BKE_deform.h"
 
 #include "MOD_modifiertypes.h"

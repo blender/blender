@@ -36,6 +36,7 @@ extern "C" {
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
 #include "BKE_scene.h"
 
 #include "BLI_math.h"
@@ -62,15 +63,13 @@ AbcPointsWriter::AbcPointsWriter(Scene *scene,
 	                             AbcTransformWriter *parent,
 	                             uint32_t time_sampling,
 	                             ExportSettings &settings,
-	                             void *UNUSED(psys))
+	                             ParticleSystem *psys)
     : AbcObjectWriter(scene, ob, time_sampling, settings, parent)
 {
-	m_psys = NULL; // = psys;
+	m_psys = psys;
 
-#if 0
 	OPoints points(parent->alembicXform(), psys->name, m_time_sampling);
 	m_schema = points.getSchema();
-#endif
 }
 
 void AbcPointsWriter::do_write()
@@ -78,7 +77,7 @@ void AbcPointsWriter::do_write()
 	if (!m_psys) {
 		return;
 	}
-#if 0
+
 	std::vector<Imath::V3f> points;
 	std::vector<Imath::V3f> velocities;
 	std::vector<float> widths;
@@ -135,7 +134,6 @@ void AbcPointsWriter::do_write()
 	m_sample.setSelfBounds(bounds());
 
 	m_schema.set(m_sample);
-#endif
 }
 
 /* ************************************************************************** */

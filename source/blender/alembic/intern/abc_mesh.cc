@@ -262,7 +262,7 @@ static ModifierData *get_subsurf_modifier(Scene *scene, Object *ob)
 		}
 
 		/* mesh is not a subsurf. break */
-		if ((md->type != eModifierType_Displace) /*&& (md->type != eModifierType_ParticleSystem)*/) {
+		if ((md->type != eModifierType_Displace) && (md->type != eModifierType_ParticleSystem)) {
 			return NULL;
 		}
 	}

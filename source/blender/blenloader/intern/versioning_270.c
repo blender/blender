@@ -49,6 +49,7 @@
 #include "DNA_mask_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_actuator_types.h"
 #include "DNA_view3d_types.h"
@@ -446,6 +447,22 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
+	if (!MAIN_VERSION_ATLEAST(main, 271, 6)) {
+		Object *ob;
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+
+			for (md = ob->modifiers.first; md; md = md->next) {
+				if (md->type == eModifierType_ParticleSystem) {
+					ParticleSystemModifierData *pmd = (ParticleSystemModifierData *)md;
+					if (pmd->psys && pmd->psys->clmd) {
+						pmd->psys->clmd->sim_parms->vel_damping = 1.0f;
+					}
+				}
+			}
+		}
+	}
+
 	if (!MAIN_VERSION_ATLEAST(main, 272, 0)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "RenderData", "int", "preview_start_resolution")) {
 			Scene *scene;
@@ -526,6 +543,16 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 	
+	if (!MAIN_VERSION_ATLEAST(main, 273, 3)) {
+		ParticleSettings *part;
+		for (part = main->particle.first; part; part = part->id.next) {
+			if (part->clumpcurve)
+				part->child_flag |= PART_CHILD_USE_CLUMP_CURVE;
+			if (part->roughcurve)
+				part->child_flag |= PART_CHILD_USE_ROUGH_CURVE;
+		}
+	}
+
 	if (!MAIN_VERSION_ATLEAST(main, 273, 6)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "ClothSimSettings", "float", "bending_damping")) {
 			Object *ob;
@@ -535,6 +562,39 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 					if (md->type == eModifierType_Cloth) {
 						ClothModifierData *clmd = (ClothModifierData *)md;
 						clmd->sim_parms->bending_damping = 0.5f;
+					}
+					else if (md->type == eModifierType_ParticleSystem) {
+						ParticleSystemModifierData *pmd = (ParticleSystemModifierData *)md;
+						if (pmd->psys->clmd) {
+							pmd->psys->clmd->sim_parms->bending_damping = 0.5f;
+						}
+					}
+				}
+			}
+		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "ParticleSettings", "float", "clump_noise_size")) {
+			ParticleSettings *part;
+			for (part = main->particle.first; part; part = part->id.next) {
+				part->clump_noise_size = 1.0f;
+			}
+		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "ParticleSettings", "int", "kink_extra_steps")) {
+			ParticleSettings *part;
+			for (part = main->particle.first; part; part = part->id.next) {
+				part->kink_extra_steps = 4;
+			}
+		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "MTex", "float", "kinkampfac")) {
+			ParticleSettings *part;
+			for (part = main->particle.first; part; part = part->id.next) {
+				int a;
+				for (a = 0; a < MAX_MTEX; a++) {
+					MTex *mtex = part->mtex[a];
+					if (mtex) {
+						mtex->kinkampfac = 1.0f;
 					}
 				}
 			}
@@ -622,6 +682,19 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(main, 274, 1)) {
+		/* particle systems need to be forced to redistribute for jitter mode fix */
+		{
+			Object *ob;
+			ParticleSystem *psys;
+			for (ob = main->object.first; ob; ob = ob->id.next) {
+				for (psys = ob->particlesystem.first; psys; psys = psys->next) {
+					if ((psys->pointcache->flag & PTCACHE_BAKED) == 0) {
+						psys->recalc |= PSYS_RECALC_RESET;
+					}
+				}
+			}
+		}
+
 		/* hysteresis setted to 10% but not actived */
 		if (!DNA_struct_elem_find(fd->filesdna, "LodLevel", "int", "obhysteresis")) {
 			Object *ob;
@@ -1016,6 +1089,15 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(main, 277, 1)) {
+		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+			ParticleEditSettings *pset = &scene->toolsettings->particle;
+			for (int a = 0; a < PE_TOT_BRUSH; a++) {
+				if (pset->brush[a].strength > 1.0f) {
+					pset->brush[a].strength *= 0.01f;
+				}
+			}
+		}
+
 		for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
@@ -1172,6 +1254,12 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 					if (md->type == eModifierType_Cloth) {
 						ClothModifierData *clmd = (ClothModifierData *)md;
 						clmd->sim_parms->time_scale = 1.0f;
+					}
+					else if (md->type == eModifierType_ParticleSystem) {
+						ParticleSystemModifierData *pmd = (ParticleSystemModifierData *)md;
+						if (pmd->psys->clmd) {
+							pmd->psys->clmd->sim_parms->time_scale = 1.0f;
+						}
 					}
 				}
 			}
@@ -1342,6 +1430,18 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(main, 278, 3)) {
+		for (Scene *scene = main->scene.first; scene != NULL; scene = scene->id.next) {
+			if (scene->toolsettings != NULL) {
+				ToolSettings *ts = scene->toolsettings;
+				ParticleEditSettings *pset = &ts->particle;
+				for (int a = 0; a < PE_TOT_BRUSH; a++) {
+					if (pset->brush[a].count == 0) {
+						pset->brush[a].count = 10;
+					}
+				}
+			}
+		}
+
 		if (!DNA_struct_elem_find(fd->filesdna, "RigidBodyCon", "float", "spring_stiffness_ang_x")) {
 			Object *ob;
 			for (ob = main->object.first; ob; ob = ob->id.next) {

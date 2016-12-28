@@ -40,7 +40,6 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
-#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
@@ -55,6 +54,8 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
+#include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"
 #include "BKE_gpencil.h"
@@ -66,6 +67,7 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
+#include "ED_particle.h"
 #include "ED_view3d.h"
 #include "ED_gpencil.h"
 
@@ -557,6 +559,30 @@ static int calc_manipulator_stats(const bContext *C)
 	}
 	else if (ob && (ob->mode & OB_MODE_ALL_PAINT)) {
 		/* pass */
+	}
+	else if (ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
+		PTCacheEdit *edit = PE_get_current(scene, ob);
+		PTCacheEditPoint *point;
+		PTCacheEditKey *ek;
+		int k;
+
+		if (edit) {
+			point = edit->points;
+			for (a = 0; a < edit->totpoint; a++, point++) {
+				if (point->flag & PEP_HIDE) continue;
+
+				for (k = 0, ek = point->keys; k < point->totkey; k++, ek++) {
+					if (ek->flag & PEK_SELECT) {
+						calc_tw_center(scene, (ek->flag & PEK_USE_WCO) ? ek->world_co : ek->co);
+						totsel++;
+					}
+				}
+			}
+
+			/* selection center */
+			if (totsel)
+				mul_v3_fl(scene->twcent, 1.0f / (float)totsel);  // centroid!
+		}
 	}
 	else {
 

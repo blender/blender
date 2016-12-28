@@ -38,8 +38,12 @@ set(INC_SYS
 
 set(SRC
 	dynamicpaint_ops.c
+	particle_boids.c
+	particle_edit.c
+	particle_object.c
 	physics_fluid.c
 	physics_ops.c
+	physics_pointcache.c
 	rigidbody_constraint.c
 	rigidbody_object.c
 	rigidbody_world.c

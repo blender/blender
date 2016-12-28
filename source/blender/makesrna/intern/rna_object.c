@@ -68,6 +68,7 @@ EnumPropertyItem rna_enum_object_mode_items[] = {
 	{OB_MODE_VERTEX_PAINT, "VERTEX_PAINT", ICON_VPAINT_HLT, "Vertex Paint", ""},
 	{OB_MODE_WEIGHT_PAINT, "WEIGHT_PAINT", ICON_WPAINT_HLT, "Weight Paint", ""},
 	{OB_MODE_TEXTURE_PAINT, "TEXTURE_PAINT", ICON_TPAINT_HLT, "Texture Paint", ""},
+	{OB_MODE_PARTICLE_EDIT, "PARTICLE_EDIT", ICON_PARTICLEMODE, "Particle Edit", ""},
 	{OB_MODE_GPENCIL, "GPENCIL_EDIT", ICON_GREASEPENCIL, "Edit Strokes", "Edit Grease Pencil Strokes"},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -187,10 +188,12 @@ EnumPropertyItem rna_enum_object_axis_items[] = {
 #include "BKE_object.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_particle.h"
 #include "BKE_scene.h"
 #include "BKE_deform.h"
 
 #include "ED_object.h"
+#include "ED_particle.h"
 #include "ED_curve.h"
 #include "ED_lattice.h"
 
@@ -724,6 +727,34 @@ static int rna_Object_active_material_editable(PointerRNA *ptr, const char **UNU
 	return is_editable ? PROP_EDITABLE : 0;
 }
 
+
+static void rna_Object_active_particle_system_index_range(PointerRNA *ptr, int *min, int *max,
+                                                          int *UNUSED(softmin), int *UNUSED(softmax))
+{
+	Object *ob = (Object *)ptr->id.data;
+	*min = 0;
+	*max = max_ii(0, BLI_listbase_count(&ob->particlesystem) - 1);
+}
+
+static int rna_Object_active_particle_system_index_get(PointerRNA *ptr)
+{
+	Object *ob = (Object *)ptr->id.data;
+	return psys_get_current_num(ob);
+}
+
+static void rna_Object_active_particle_system_index_set(PointerRNA *ptr, int value)
+{
+	Object *ob = (Object *)ptr->id.data;
+	psys_set_current_num(ob, value);
+}
+
+static void rna_Object_particle_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+{
+	Object *ob = (Object *)ptr->id.data;
+
+	PE_current_changed(scene, ob);
+}
+
 /* rotation - axis-angle */
 static void rna_Object_rotation_axis_angle_get(PointerRNA *ptr, float *value)
 {
@@ -1042,6 +1073,13 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 	}
 
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ptr->id.data);
+}
+
+static PointerRNA rna_Object_active_particle_system_get(PointerRNA *ptr)
+{
+	Object *ob = (Object *)ptr->id.data;
+	ParticleSystem *psys = psys_get_current(ob);
+	return rna_pointer_inherit_refine(ptr, &RNA_ParticleSystem, psys);
 }
 
 static PointerRNA rna_Object_game_settings_get(PointerRNA *ptr)
@@ -1989,6 +2027,37 @@ static void rna_def_object_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove all modifiers from the object");
 }
 
+/* object.particle_systems */
+static void rna_def_object_particle_systems(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	
+	PropertyRNA *prop;
+
+	/* FunctionRNA *func; */
+	/* PropertyRNA *parm; */
+
+	RNA_def_property_srna(cprop, "ParticleSystems");
+	srna = RNA_def_struct(brna, "ParticleSystems", NULL);
+	RNA_def_struct_sdna(srna, "Object");
+	RNA_def_struct_ui_text(srna, "Particle Systems", "Collection of particle systems");
+
+	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ParticleSystem");
+	RNA_def_property_pointer_funcs(prop, "rna_Object_active_particle_system_get", NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Particle System", "Active particle system being displayed");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+	
+	prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_int_funcs(prop, "rna_Object_active_particle_system_index_get",
+	                           "rna_Object_active_particle_system_index_set",
+	                           "rna_Object_active_particle_system_index_range");
+	RNA_def_property_ui_text(prop, "Active Particle System Index", "Index of active particle system slot");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_particle_update");
+}
+
+
 /* object.vertex_groups */
 static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
 {
@@ -2518,6 +2587,13 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "SoftBodySettings");
 	RNA_def_property_ui_text(prop, "Soft Body Settings", "Settings for soft body simulation");
 
+	prop = RNA_def_property(srna, "particle_systems", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "particlesystem", NULL);
+	RNA_def_property_struct_type(prop, "ParticleSystem");
+	RNA_def_property_ui_text(prop, "Particle Systems", "Particle systems emitted from the object");
+	rna_def_object_particle_systems(brna, prop);
+
+	
 	prop = RNA_def_property(srna, "rigid_body", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "rigidbody_object");
 	RNA_def_property_struct_type(prop, "RigidBodyObject");
@@ -2799,6 +2875,10 @@ static void rna_def_dupli_object(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "persistent_id", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Persistent ID", "Persistent identifier for inter-frame matching of objects with motion blur");
+
+	prop = RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Particle System", "Particle system that this dupli object was instanced from");
 
 	prop = RNA_def_property(srna, "orco", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);

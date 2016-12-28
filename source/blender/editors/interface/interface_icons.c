@@ -1360,6 +1360,8 @@ int UI_idcode_icon_get(const int idcode)
 			return ICON_NODETREE;
 		case ID_OB:
 			return ICON_OBJECT_DATA;
+		case ID_PA:
+			return ICON_PARTICLE_DATA;
 		case ID_PAL:
 			return ICON_COLOR;  /* TODO! this would need its own icon! */
 		case ID_PC:

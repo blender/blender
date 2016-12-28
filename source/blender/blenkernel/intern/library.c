@@ -113,6 +113,7 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
+#include "BKE_particle.h"
 #include "BKE_packedFile.h"
 #include "BKE_sound.h"
 #include "BKE_speaker.h"
@@ -435,6 +436,9 @@ bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 		case ID_BR:
 			if (!test) BKE_brush_make_local(bmain, (Brush *)id, lib_local);
 			return true;
+		case ID_PA:
+			if (!test) BKE_particlesettings_make_local(bmain, (ParticleSettings *)id, lib_local);
+			return true;
 		case ID_GD:
 			if (!test) BKE_gpencil_make_local(bmain, (bGPdata *)id, lib_local);
 			return true;
@@ -538,6 +542,9 @@ bool id_copy(Main *bmain, ID *id, ID **newid, bool test)
 			return true;
 		case ID_BR:
 			if (!test) *newid = (ID *)BKE_brush_copy(bmain, (Brush *)id);
+			return true;
+		case ID_PA:
+			if (!test) *newid = (ID *)BKE_particlesettings_copy(bmain, (ParticleSettings *)id);
 			return true;
 		case ID_GD:
 			if (!test) *newid = (ID *)BKE_gpencil_data_duplicate(bmain, (bGPdata *)id, false);
@@ -657,6 +664,8 @@ ListBase *which_libbase(Main *mainlib, short type)
 			return &(mainlib->nodetree);
 		case ID_BR:
 			return &(mainlib->brush);
+		case ID_PA:
+			return &(mainlib->particle);
 		case ID_WM:
 			return &(mainlib->wm);
 		case ID_GD:
@@ -809,6 +818,7 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[INDEX_ID_PAL] = &(main->palettes);
 	lb[INDEX_ID_PC]  = &(main->paintcurves);
 	lb[INDEX_ID_BR]  = &(main->brush);
+	lb[INDEX_ID_PA]  = &(main->particle);
 	lb[INDEX_ID_SPK] = &(main->speaker);
 
 	lb[INDEX_ID_WO]  = &(main->world);
@@ -918,6 +928,9 @@ void *BKE_libblock_alloc_notest(short type)
 			break;
 		case ID_BR:
 			id = MEM_callocN(sizeof(Brush), "brush");
+			break;
+		case ID_PA:
+			id = MEM_callocN(sizeof(ParticleSettings), "ParticleSettings");
 			break;
 		case ID_WM:
 			id = MEM_callocN(sizeof(wmWindowManager), "Window manager");
@@ -1053,6 +1066,9 @@ void BKE_libblock_init_empty(ID *id)
 			break;
 		case ID_BR:
 			BKE_brush_init((Brush *)id);
+			break;
+		case ID_PA:
+			/* Nothing to do. */
 			break;
 		case ID_PC:
 			/* Nothing to do. */

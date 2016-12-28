@@ -50,6 +50,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_node_types.h"
 #include "DNA_color_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_linestyle_types.h"
 
 #include "IMB_imbuf.h"
@@ -1064,6 +1065,10 @@ bool give_active_mtex(ID *id, MTex ***mtex_ar, short *act)
 			*mtex_ar =       ((FreestyleLineStyle *)id)->mtex;
 			if (act) *act =  (((FreestyleLineStyle *)id)->texact);
 			break;
+		case ID_PA:
+			*mtex_ar =       ((ParticleSettings *)id)->mtex;
+			if (act) *act =  (((ParticleSettings *)id)->texact);
+			break;
 		default:
 			*mtex_ar = NULL;
 			if (act) *act =  0;
@@ -1090,6 +1095,9 @@ void set_active_mtex(ID *id, short act)
 			break;
 		case ID_LS:
 			((FreestyleLineStyle *)id)->texact = act;
+			break;
+		case ID_PA:
+			((ParticleSettings *)id)->texact = act;
 			break;
 	}
 }
@@ -1197,6 +1205,42 @@ void set_current_brush_texture(Brush *br, Tex *newtex)
 	if (newtex) {
 		br->mtex.tex = newtex;
 		id_us_plus(&newtex->id);
+	}
+}
+
+Tex *give_current_particle_texture(ParticleSettings *part)
+{
+	MTex *mtex = NULL;
+	Tex *tex = NULL;
+	
+	if (!part) return NULL;
+	
+	mtex = part->mtex[(int)(part->texact)];
+	if (mtex) tex = mtex->tex;
+	
+	return tex;
+}
+
+void set_current_particle_texture(ParticleSettings *part, Tex *newtex)
+{
+	int act = part->texact;
+
+	if (part->mtex[act] && part->mtex[act]->tex)
+		id_us_min(&part->mtex[act]->tex->id);
+
+	if (newtex) {
+		if (!part->mtex[act]) {
+			part->mtex[act] = BKE_texture_mtex_add();
+			part->mtex[act]->texco = TEXCO_ORCO;
+			part->mtex[act]->blendtype = MTEX_MUL;
+		}
+		
+		part->mtex[act]->tex = newtex;
+		id_us_plus(&newtex->id);
+	}
+	else if (part->mtex[act]) {
+		MEM_freeN(part->mtex[act]);
+		part->mtex[act] = NULL;
 	}
 }
 

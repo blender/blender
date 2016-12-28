@@ -40,6 +40,8 @@ class UnifiedPaintPanel:
                 return toolsettings.image_paint
 
             return None
+        elif context.particle_edit_object:
+            return toolsettings.particle_edit
 
         return None
 

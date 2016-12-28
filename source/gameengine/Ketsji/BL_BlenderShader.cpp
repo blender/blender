@@ -169,7 +169,7 @@ void BL_BlenderShader::Update(const RAS_MeshSlot & ms, RAS_IRasterizer* rasty )
 
 	rasty->GetViewMatrix().getValue(&viewmat[0][0]);
 	float auto_bump_scale = ms.m_pDerivedMesh!=0 ? ms.m_pDerivedMesh->auto_bump_scale : 1.0f;
-	GPU_material_bind_uniforms(gpumat, obmat, viewmat, obcol, auto_bump_scale);
+	GPU_material_bind_uniforms(gpumat, obmat, viewmat, obcol, auto_bump_scale, NULL);
 
 	mAlphaBlend = GPU_material_alpha_blend(gpumat, obcol);
 }

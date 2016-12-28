@@ -407,6 +407,45 @@ typedef struct Ipo {
 #define FLUIDSIM_VEL_FORCE_STR 		12
 #define FLUIDSIM_VEL_FORCE_RADIUS 	13
 
+/* ******************** */
+/* particle ipos */
+
+/* ******* Particle (ID_PA) ******** */
+#define PART_TOTIPO		25
+#define PART_TOTNAM		25
+
+#define PART_EMIT_FREQ	1
+/* #define PART_EMIT_LIFE	2 */ /*UNUSED*/
+#define PART_EMIT_VEL	3
+#define PART_EMIT_AVE	4
+/* #define PART_EMIT_SIZE	5 */ /*UNUSED*/
+
+#define PART_AVE		6
+#define PART_SIZE		7
+#define PART_DRAG		8
+#define PART_BROWN		9
+#define PART_DAMP		10
+#define PART_LENGTH		11
+#define PART_CLUMP		12
+
+#define PART_GRAV_X		13
+#define PART_GRAV_Y		14
+#define PART_GRAV_Z		15
+
+#define PART_KINK_AMP	16
+#define PART_KINK_FREQ	17
+#define PART_KINK_SHAPE	18
+
+#define PART_BB_TILT	19
+
+#define PART_PD_FSTR	20
+#define PART_PD_FFALL	21
+#define PART_PD_FMAXD	22
+
+#define PART_PD2_FSTR	23
+#define PART_PD2_FFALL	24
+#define PART_PD2_FMAXD	25
+
 
 /* -------------------- Defines: Flags and Types ------------------ */
 

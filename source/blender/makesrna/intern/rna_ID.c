@@ -73,6 +73,7 @@ EnumPropertyItem rna_enum_id_type_items[] = {
 	{ID_OB, "OBJECT", ICON_OBJECT_DATA, "Object", ""},
 	{ID_PC, "PAINTCURVE", ICON_CURVE_BEZCURVE, "Paint Curve", ""},
 	{ID_PAL, "PALETTE", ICON_COLOR, "Palette", ""},
+	{ID_PA, "PARTICLE", ICON_PARTICLE_DATA, "Particle", ""},
 	{ID_SCE, "SCENE", ICON_SCENE_DATA, "Scene", ""},
 	{ID_SCR, "SCREEN", ICON_SPLITSCREEN, "Screen", ""},
 	{ID_SO, "SOUND", ICON_PLAY_AUDIO, "Sound", ""},
@@ -158,6 +159,7 @@ short RNA_type_to_ID_code(StructRNA *type)
 	if (RNA_struct_is_a(type, &RNA_Mask)) return ID_MSK;
 	if (RNA_struct_is_a(type, &RNA_NodeTree)) return ID_NT;
 	if (RNA_struct_is_a(type, &RNA_Object)) return ID_OB;
+	if (RNA_struct_is_a(type, &RNA_ParticleSettings)) return ID_PA;
 	if (RNA_struct_is_a(type, &RNA_Palette)) return ID_PAL;
 	if (RNA_struct_is_a(type, &RNA_PaintCurve)) return ID_PC;
 	if (RNA_struct_is_a(type, &RNA_Scene)) return ID_SCE;
@@ -197,6 +199,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
 		case ID_MSK: return &RNA_Mask;
 		case ID_NT: return &RNA_NodeTree;
 		case ID_OB: return &RNA_Object;
+		case ID_PA: return &RNA_ParticleSettings;
 		case ID_PAL: return &RNA_Palette;
 		case ID_PC: return &RNA_PaintCurve;
 		case ID_SCE: return &RNA_Scene;
@@ -313,6 +316,15 @@ static void rna_ID_update_tag(ID *id, ReportList *reports, int flag)
 					return;
 				}
 				break;
+				/* Could add particle updates later */
+#if 0
+			case ID_PA:
+				if (flag & ~(OB_RECALC_ALL | PSYS_RECALC)) {
+					BKE_report(reports, RPT_ERROR, "'Refresh' incompatible with ParticleSettings ID type");
+					return;
+				}
+				break;
+#endif
 			default:
 				BKE_report(reports, RPT_ERROR, "This ID type is not compatible with any 'refresh' options");
 				return;

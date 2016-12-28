@@ -59,7 +59,6 @@
 #include "DNA_nla_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_fluidsim.h" // NT
-#include "DNA_object_force.h"
 #include "DNA_object_types.h"
 #include "DNA_property_types.h"
 #include "DNA_view3d_types.h"
@@ -89,6 +88,8 @@
 #include "BKE_main.h" // for Main
 #include "BKE_mesh.h" // for ME_ defines (patching)
 #include "BKE_modifier.h"
+#include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_property.h" // for BKE_bproperty_object_get
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
@@ -491,6 +492,27 @@ static void do_version_ntree_242_2(bNodeTree *ntree)
 				}
 			}
 		}
+	}
+}
+
+static void do_version_free_effect_245(Effect *eff)
+{
+	PartEff *paf;
+
+	if (eff->type == EFF_PARTICLE) {
+		paf = (PartEff *)eff;
+		if (paf->keys)
+			MEM_freeN(paf->keys);
+	}
+	MEM_freeN(eff);
+}
+
+static void do_version_free_effects_245(ListBase *lb)
+{
+	Effect *eff;
+
+	while ((eff = BLI_pophead(lb))) {
+		do_version_free_effect_245(eff);
 	}
 }
 
@@ -2665,10 +2687,13 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		Image *ima;
 		Lamp *la;
 		Material *ma;
+		ParticleSettings *part;
 		World *wrld;
 		Mesh *me;
 		bNodeTree *ntree;
 		Tex *tex;
+		ModifierData *md;
+		ParticleSystem *psys;
 
 		/* unless the file was created 2.44.3 but not 2.45, update the constraints */
 		if (!(main->versionfile == 244 && main->subversionfile == 3) &&
@@ -2749,6 +2774,33 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 			}
 		}
 
+		/* add point caches */
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			if (ob->soft && !ob->soft->pointcache)
+				ob->soft->pointcache = BKE_ptcache_add(&ob->soft->ptcaches);
+
+			for (psys = ob->particlesystem.first; psys; psys = psys->next) {
+				if (psys->pointcache) {
+					if (psys->pointcache->flag & PTCACHE_BAKED && (psys->pointcache->flag & PTCACHE_DISK_CACHE) == 0) {
+						printf("Old memory cache isn't supported for particles, so re-bake the simulation!\n");
+						psys->pointcache->flag &= ~PTCACHE_BAKED;
+					}
+				}
+				else
+					psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
+			}
+
+			for (md = ob->modifiers.first; md; md = md->next) {
+				if (md->type == eModifierType_Cloth) {
+					ClothModifierData *clmd = (ClothModifierData*) md;
+					if (!clmd->point_cache) {
+						clmd->point_cache = BKE_ptcache_add(&clmd->ptcaches);
+						clmd->point_cache->step = 1;
+					}
+				}
+			}
+		}
+
 		/* Copy over old per-level multires vertex data
 		 * into a single vertex array in struct Multires */
 		for (me = main->mesh.first; me; me = me->id.next) {
@@ -2792,6 +2844,18 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 
 			if (ma->strand_min == 0.0f)
 				ma->strand_min = 1.0f;
+		}
+
+		for (part = main->particle.first; part; part = part->id.next) {
+			if (part->ren_child_nbr == 0)
+				part->ren_child_nbr = part->child_nbr;
+
+			if (part->simplify_refsize == 0) {
+				part->simplify_refsize = 1920;
+				part->simplify_rate = 1.0f;
+				part->simplify_transition = 0.1f;
+				part->simplify_viewport = 0.8f;
+			}
 		}
 
 		for (wrld = main->world.first; wrld; wrld = wrld->id.next) {
@@ -2933,7 +2997,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 	}
 
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 8)) {
+		Scene *sce;
 		Object *ob;
+		PartEff *paf = NULL;
 
 		for (ob = main->object.first; ob; ob = ob->id.next) {
 			if (ob->soft && ob->soft->keys) {
@@ -2949,6 +3015,145 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 
 				sb->keys = NULL;
 				sb->totkey = 0;
+			}
+
+			/* convert old particles to new system */
+			if ((paf = blo_do_version_give_parteff_245(ob))) {
+				ParticleSystem *psys;
+				ModifierData *md;
+				ParticleSystemModifierData *psmd;
+				ParticleSettings *part;
+
+				/* create new particle system */
+				psys = MEM_callocN(sizeof(ParticleSystem), "particle_system");
+				psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
+
+				part = psys->part = psys_new_settings("ParticleSettings", main);
+
+				/* needed for proper libdata lookup */
+				blo_do_versions_oldnewmap_insert(fd->libmap, psys->part, psys->part, 0);
+				part->id.lib = ob->id.lib;
+
+				part->id.us--;
+				part->id.tag |= (ob->id.tag & LIB_TAG_NEED_LINK);
+
+				psys->totpart = 0;
+				psys->flag = PSYS_CURRENT;
+
+				BLI_addtail(&ob->particlesystem, psys);
+
+				md = modifier_new(eModifierType_ParticleSystem);
+				BLI_snprintf(md->name, sizeof(md->name), "ParticleSystem %i", BLI_listbase_count(&ob->particlesystem));
+				psmd = (ParticleSystemModifierData*) md;
+				psmd->psys = psys;
+				BLI_addtail(&ob->modifiers, md);
+
+				/* convert settings from old particle system */
+				/* general settings */
+				part->totpart = MIN2(paf->totpart, 100000);
+				part->sta = paf->sta;
+				part->end = paf->end;
+				part->lifetime = paf->lifetime;
+				part->randlife = paf->randlife;
+				psys->seed = paf->seed;
+				part->disp = paf->disp;
+				part->omat = paf->mat[0];
+				part->hair_step = paf->totkey;
+
+				part->eff_group = paf->group;
+
+				/* old system didn't interpolate between keypoints at render time */
+				part->draw_step = part->ren_step = 0;
+
+				/* physics */
+				part->normfac = paf->normfac * 25.0f;
+				part->obfac = paf->obfac;
+				part->randfac = paf->randfac * 25.0f;
+				part->dampfac = paf->damp;
+				copy_v3_v3(part->acc, paf->force);
+
+				/* flags */
+				if (paf->stype & PAF_VECT) {
+					if (paf->flag & PAF_STATIC) {
+						/* new hair lifetime is always 100.0f */
+						float fac = paf->lifetime / 100.0f;
+
+						part->draw_as = PART_DRAW_PATH;
+						part->type = PART_HAIR;
+						psys->recalc |= PSYS_RECALC_REDO;
+
+						part->normfac *= fac;
+						part->randfac *= fac;
+					}
+					else {
+						part->draw_as = PART_DRAW_LINE;
+						part->draw |= PART_DRAW_VEL_LENGTH;
+						part->draw_line[1] = 0.04f;
+					}
+				}
+
+				part->rotmode = PART_ROT_VEL;
+
+				part->flag |= (paf->flag & PAF_BSPLINE) ? PART_HAIR_BSPLINE : 0;
+				part->flag |= (paf->flag & PAF_TRAND) ? PART_TRAND : 0;
+				part->flag |= (paf->flag & PAF_EDISTR) ? PART_EDISTR : 0;
+				part->flag |= (paf->flag & PAF_UNBORN) ? PART_UNBORN : 0;
+				part->flag |= (paf->flag & PAF_DIED) ? PART_DIED : 0;
+				part->from |= (paf->flag & PAF_FACE) ? PART_FROM_FACE : 0;
+				part->draw |= (paf->flag & PAF_SHOWE) ? PART_DRAW_EMITTER : 0;
+
+				psys->vgroup[PSYS_VG_DENSITY] = paf->vertgroup;
+				psys->vgroup[PSYS_VG_VEL] = paf->vertgroup_v;
+				psys->vgroup[PSYS_VG_LENGTH] = paf->vertgroup_v;
+
+				/* dupliobjects */
+				if (ob->transflag & OB_DUPLIVERTS) {
+					Object *dup = main->object.first;
+
+					for (; dup; dup = dup->id.next) {
+						if (ob == blo_do_versions_newlibadr(fd, lib, dup->parent)) {
+							part->dup_ob = dup;
+							ob->transflag |= OB_DUPLIPARTS;
+							ob->transflag &= ~OB_DUPLIVERTS;
+
+							part->draw_as = PART_DRAW_OB;
+
+							/* needed for proper libdata lookup */
+							blo_do_versions_oldnewmap_insert(fd->libmap, dup, dup, 0);
+						}
+					}
+				}
+
+				{
+					FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
+					if (fluidmd && fluidmd->fss && fluidmd->fss->type == OB_FLUIDSIM_PARTICLE)
+						part->type = PART_FLUID;
+				}
+
+				do_version_free_effects_245(&ob->effect);
+
+				printf("Old particle system converted to new system.\n");
+			}
+		}
+
+		for (sce = main->scene.first; sce; sce = sce->id.next) {
+			ParticleEditSettings *pset = &sce->toolsettings->particle;
+			int a;
+
+			if (pset->brush[0].size == 0) {
+				pset->flag = PE_KEEP_LENGTHS|PE_LOCK_FIRST|PE_DEFLECT_EMITTER;
+				pset->emitterdist = 0.25f;
+				pset->totrekey = 5;
+				pset->totaddkey = 5;
+				pset->brushtype = PE_BRUSH_NONE;
+
+				for (a = 0; a < PE_TOT_BRUSH; a++) {
+					pset->brush[a].strength = 50;
+					pset->brush[a].size = 50;
+					pset->brush[a].step = 10;
+				}
+
+				pset->brush[PE_BRUSH_CUT].strength = 100;
 			}
 		}
 	}
@@ -3041,6 +3246,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		idproperties_fix_group_lengths(main->action);
 		idproperties_fix_group_lengths(main->nodetree);
 		idproperties_fix_group_lengths(main->brush);
+		idproperties_fix_group_lengths(main->particle);
 	}
 
 	/* sun/sky */

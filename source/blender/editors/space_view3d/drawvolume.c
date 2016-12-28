@@ -32,7 +32,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_smoke_types.h"
@@ -43,6 +42,7 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_texture.h"
+#include "BKE_particle.h"
 
 #include "smoke_API.h"
 
