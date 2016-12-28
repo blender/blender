@@ -479,7 +479,18 @@ MINLINE void mul_v2_v2_ccw(float r[2], const float mat[2], const float vec[2])
 	r[1] = mat[1] * vec[0] + (+mat[0]) * vec[1];
 }
 
-/* note: could add a matrix inline */
+/**
+ * Convenience function to get the projected depth of a position.
+ * This avoids creating a temporary 4D vector and multiplying it - only for the 4th component.
+ *
+ * Matches logic for:
+ *
+ * \code{.c}
+ * float co_4d[4] = {co[0], co[1], co[2], 1.0};
+ * mul_m4_v4(mat, co_4d);
+ * return co_4d[3];
+ * \endcode
+ */
 MINLINE float mul_project_m4_v3_zfac(float mat[4][4], const float co[3])
 {
 	return (mat[0][3] * co[0]) +
