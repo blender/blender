@@ -1463,8 +1463,9 @@ void uiItemEnumR_string(uiLayout *layout, struct PointerRNA *ptr, const char *pr
 	for (a = 0; item[a].identifier; a++) {
 		if (item[a].value == ivalue) {
 			const char *item_name = name ? name : CTX_IFACE_(RNA_property_translation_context(prop), item[a].name);
+			const int flag = item_name[0] ? 0 : UI_ITEM_R_ICON_ONLY;
 
-			uiItemFullR(layout, ptr, prop, RNA_ENUM_VALUE, ivalue, 0, item_name, icon ? icon : item[a].icon);
+			uiItemFullR(layout, ptr, prop, RNA_ENUM_VALUE, ivalue, flag, item_name, icon ? icon : item[a].icon);
 			break;
 		}
 	}
