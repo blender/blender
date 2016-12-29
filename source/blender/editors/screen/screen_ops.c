@@ -4329,6 +4329,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(ED_OT_undo);
 	WM_operatortype_append(ED_OT_undo_push);
 	WM_operatortype_append(ED_OT_redo);
+	WM_operatortype_append(ED_OT_undo_redo);
 	WM_operatortype_append(ED_OT_undo_history);
 
 	WM_operatortype_append(ED_OT_flush_edits);

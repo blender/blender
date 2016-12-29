@@ -327,6 +327,13 @@ static int ed_redo_exec(bContext *C, wmOperator *UNUSED(op))
 	return ed_undo_step(C, -1, NULL);
 }
 
+static int ed_undo_redo_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	wmOperator *last_op = WM_operator_last_redo(C);
+	const int ret = ED_undo_operator_repeat(C, last_op);
+	return ret ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+}
+
 
 /* ********************** */
 
@@ -369,6 +376,17 @@ void ED_OT_redo(wmOperatorType *ot)
 	ot->poll = ED_operator_screenactive;
 }
 
+void ED_OT_undo_redo(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Undo and Redo";
+	ot->description = "Undo and redo previous action";
+	ot->idname = "ED_OT_undo_redo";
+	
+	/* api callbacks */
+	ot->exec = ed_undo_redo_exec;
+	ot->poll = ED_operator_screenactive;
+}
 
 /* ui callbacks should call this rather than calling WM_operator_repeat() themselves */
 int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
