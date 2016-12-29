@@ -57,6 +57,7 @@
 #define BEVEL_EPSILON_ANG DEG2RADF(2.0f)
 #define BEVEL_SMALL_ANG DEG2RADF(10.0f)
 #define BEVEL_MAX_ADJUST_PCT 10.0f
+#define BEVEL_MAX_AUTO_ADJUST_PCT 300.0f
 
 /* happens far too often, uncomment for development */
 // #define BEVEL_ASSERT_PROJECT
@@ -323,15 +324,33 @@ static bool edge_half_offset_changed(EdgeHalf *e)
 	       e->offset_r != e->offset_r_spec;
 }
 
-static bool any_edge_half_offset_changed(BevVert *bv)
+static float adjusted_rel_change(float val, float spec)
+{
+	float relchg;
+
+	relchg = 0.0f;
+	if (val != spec) {
+		if (spec == 0)
+			relchg = 1000.0f;  /* arbitrary large value */
+		else
+			relchg = fabsf((val - spec) / spec);
+	}
+	return relchg;
+}
+
+static float max_edge_half_offset_rel_change(BevVert *bv)
 {
 	int i;
+	float max_rel_change;
+	EdgeHalf *e;
 
+	max_rel_change = 0.0f;
 	for (i = 0; i < bv->edgecount; i++) {
-		if (edge_half_offset_changed(&bv->edges[i]))
-			return true;
+		e = &bv->edges[i];
+		max_rel_change = max_ff(max_rel_change, adjusted_rel_change(e->offset_l, e->offset_l_spec));
+		max_rel_change = max_ff(max_rel_change, adjusted_rel_change(e->offset_r, e->offset_r_spec));
 	}
-	return false;
+	return max_rel_change;
 }
 
 /* Return the next EdgeHalf after from_e that is beveled.
@@ -1951,6 +1970,7 @@ static void adjust_offsets(BevelParams *bp)
 	GHashIterator giter;
 	EdgeHalf *e, *efirst, *eother;
 	GSQueue *q;
+	float max_rel_adj;
 
 	BLI_assert(!bp->vertex_only);
 	GHASH_ITER(giter, bp->vert_hash) {
@@ -1966,7 +1986,7 @@ static void adjust_offsets(BevelParams *bp)
 		searchi = -1;
 		GHASH_ITER(giter, bp->vert_hash) {
 			bv = BLI_ghashIterator_getValue(&giter);
-			if (!bv->visited && any_edge_half_offset_changed(bv)) {
+			if (!bv->visited && max_edge_half_offset_rel_change(bv) > 0.0f) {
 				i = BM_elem_index_get(bv->v);
 				if (!searchbv || i < searchi) {
 					searchbv = bv;
@@ -1996,6 +2016,24 @@ static void adjust_offsets(BevelParams *bp)
 		}
 	}
 	BLI_gsqueue_free(q);
+
+	/* Should we auto-limit the error accumulation? Typically, spirals can lead to 100x relative adjustments,
+	 * and somewhat hacky mechanism of using bp->limit_offset to indicate "clamp the adjustments" is not
+	 * obvious to users, who almost certainaly want clamping in this situation.
+	 * The reason not to clamp always is that some models work better without it (e.g., Bent_test in regression
+	 * suite, where relative adjust maximum is about .6). */
+	if (!bp->limit_offset) {
+		max_rel_adj = 0.0f;
+		GHASH_ITER(giter, bp->vert_hash) {
+			bv = BLI_ghashIterator_getValue(&giter);
+			max_rel_adj = max_ff(max_rel_adj, max_edge_half_offset_rel_change(bv));
+		}
+		if (max_rel_adj > BEVEL_MAX_AUTO_ADJUST_PCT / 100.0f) {
+			bp->limit_offset = true;
+			adjust_offsets(bp);
+			bp->limit_offset = false;
+		}
+	}
 }
 
 /* Do the edges at bv form a "pipe"?

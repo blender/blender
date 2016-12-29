@@ -309,6 +309,28 @@ static void animchan_sync_fcurve(bAnimContext *ac, bAnimListElem *ale, FCurve **
 	}
 }
 
+/* perform syncing updates for GPencil Layers */
+static void animchan_sync_gplayer(bAnimContext *UNUSED(ac), bAnimListElem *ale)
+{
+	bGPDlayer *gpl = (bGPDlayer *)ale->data;
+	
+	/* Make sure the selection flags agree with the "active" flag.
+	 * The selection flags are used in the Dopesheet only, whereas
+	 * the active flag is used everywhere else. Hence, we try to
+	 * sync these here so that it all seems to be have as the user
+	 * expects - T50184
+	 *
+	 * Assume that we only really do this when the active status changes.
+	 * (NOTE: This may prove annoying if it means selection is always lost)
+	 */
+	if (gpl->flag & GP_LAYER_ACTIVE) {
+		gpl->flag |= GP_LAYER_SELECT;
+	}
+	else {
+		gpl->flag &= ~GP_LAYER_SELECT;
+	}
+}
+
 /* ---------------- */
  
 /* Main call to be exported to animation editors */
@@ -342,6 +364,10 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
 			
 			case ANIMTYPE_FCURVE:
 				animchan_sync_fcurve(&ac, ale, &active_fcurve);
+				break;
+				
+			case ANIMTYPE_GPLAYER:
+				animchan_sync_gplayer(&ac, ale);
 				break;
 		}
 	}

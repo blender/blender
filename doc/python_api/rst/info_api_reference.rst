@@ -204,7 +204,7 @@ Lets say we want to access the texture of a brush via Python, to adjust its ``co
 
 - Start in the default scene and enable 'Sculpt' mode from the 3D-View header.
 - From the toolbar expand the **Texture** panel and add a new texture.
-  *Notice the texture button its self doesn't have very useful links (you can check the tool-tips).*
+  *Notice the texture button its self doesn't have very useful links (you can check the tooltips).*
 - The contrast setting isn't exposed in the sculpt toolbar, so view the texture in the properties panel...
 
   - In the properties button select the Texture context.

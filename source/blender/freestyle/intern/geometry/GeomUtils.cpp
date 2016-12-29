@@ -470,6 +470,8 @@ bool intersectRayTriangle(const Vec3r& orig, const Vec3r& dir, const Vec3r& v0, 
 }
 
 // Intersection between plane and ray, adapted from Graphics Gems, Didier Badouel
+// The plane is represented by a set of points P implicitly defined as dot(norm, P) + d = 0.
+// The ray is represented as r(t) = orig + dir * t.
 intersection_test intersectRayPlane(const Vec3r& orig, const Vec3r& dir, const Vec3r& norm, const real d,
                                     real& t, const real epsilon)
 {

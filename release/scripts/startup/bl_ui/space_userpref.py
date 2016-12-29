@@ -1180,11 +1180,18 @@ class USERPREF_PT_input(Panel):
             col.separator()
             col.label(text="NDOF Device:")
             sub = col.column(align=True)
-            sub.prop(inputs, "ndof_sensitivity", text="NDOF Sensitivity")
-            sub.prop(inputs, "ndof_orbit_sensitivity", text="NDOF Orbit Sensitivity")
-            sub.prop(inputs, "ndof_deadzone", text="NDOF Deadzone")
+            sub.prop(inputs, "ndof_sensitivity", text="Pan Sensitivity")
+            sub.prop(inputs, "ndof_orbit_sensitivity", text="Orbit Sensitivity")
+            sub.prop(inputs, "ndof_deadzone", text="Deadzone")
+
+            sub.separator()
+            col.label(text="Navigation Style:")
             sub = col.column(align=True)
             sub.row().prop(inputs, "ndof_view_navigate_method", expand=True)
+
+            sub.separator()
+            col.label(text="Rotation Style:")
+            sub = col.column(align=True)
             sub.row().prop(inputs, "ndof_view_rotate_method", expand=True)
 
         row.separator()

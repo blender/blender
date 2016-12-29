@@ -8385,6 +8385,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 static void do_versions_after_linking(Main *main)
 {
+	UNUSED_VARS(main);
 //	printf("%s for %s (%s), %d.%d\n", __func__, main->curlib ? main->curlib->name : main->name,
 //	       main->curlib ? "LIB" : "MAIN", main->versionfile, main->subversionfile);
 }
@@ -9811,9 +9812,15 @@ static void give_base_to_objects(Main *mainvar, Scene *scene, View3D *v3d, Libra
 				if (active_lay) {
 					ob->lay = active_lay;
 				}
+				if (flag & FILE_AUTOSELECT) {
+					/* Note that link_object_postprocess() already checks for FILE_AUTOSELECT flag,
+					 * but it will miss objects from non-instanciated groups... */
+					ob->flag |= SELECT;
+					/* do NOT make base active here! screws up GUI stuff, if you want it do it on src/ level */
+				}
 
-				base->lay = ob->lay;
 				base->object = ob;
+				base->lay = ob->lay;
 				base->flag = ob->flag;
 
 				CLAMP_MIN(ob->id.us, 0);

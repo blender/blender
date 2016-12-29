@@ -3287,7 +3287,7 @@ static void rna_def_userdef_walk_navigation(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_mouse_reverse", PROP_BOOLEAN, PROP_BOOLEAN);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_WALK_MOUSE_REVERSE);
-	RNA_def_property_ui_text(prop, "Reverse Mouse", "Reverse the mouse look");
+	RNA_def_property_ui_text(prop, "Reverse Mouse", "Reverse the vertical movement of the mouse");
 }
 
 static void rna_def_userdef_view(BlenderRNA *brna)
@@ -4332,7 +4332,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "ndof_deadzone", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Deadzone", "Deadzone of the 3D Mouse");
+	RNA_def_property_ui_text(prop, "Deadzone", "Threshold of initial movement needed from the device's rest position");
 	RNA_def_property_update(prop, 0, "rna_userdef_ndof_deadzone_update");
 
 	prop = RNA_def_property(srna, "ndof_pan_yz_swap_axis", PROP_BOOLEAN, PROP_NONE);

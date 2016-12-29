@@ -3763,6 +3763,9 @@ void interp_barycentric_tri_v3(float data[3][3], float u, float v, float res[3])
 
 /***************************** View & Projection *****************************/
 
+/**
+ * Matches `glOrtho` result.
+ */
 void orthographic_m4(float matrix[4][4], const float left, const float right, const float bottom, const float top,
                      const float nearClip, const float farClip)
 {
@@ -3783,6 +3786,9 @@ void orthographic_m4(float matrix[4][4], const float left, const float right, co
 	matrix[3][2] = -(farClip + nearClip) / Zdelta;
 }
 
+/**
+ * Matches `glFrustum` result.
+ */
 void perspective_m4(float mat[4][4], const float left, const float right, const float bottom, const float top,
                     const float nearClip, const float farClip)
 {

@@ -167,6 +167,10 @@ static const char *force_device = NULL;
 #ifdef WITH_JACK
 static void sound_sync_callback(void *data, int mode, float time)
 {
+	// Ugly: Blender doesn't like it when the animation is played back during rendering
+	if (G.is_rendering)
+		return;
+
 	struct Main *bmain = (struct Main *)data;
 	struct Scene *scene;
 
@@ -693,6 +697,10 @@ void BKE_sound_seek_scene(struct Main *bmain, struct Scene *scene)
 
 float BKE_sound_sync_scene(struct Scene *scene)
 {
+	// Ugly: Blender doesn't like it when the animation is played back during rendering
+	if (G.is_rendering)
+		return NAN_FLT;
+
 	if (scene->playback_handle) {
 		if (scene->audio.flag & AUDIO_SYNC)
 			return AUD_getSynchronizerPosition(scene->playback_handle);
@@ -704,6 +712,10 @@ float BKE_sound_sync_scene(struct Scene *scene)
 
 int BKE_sound_scene_playing(struct Scene *scene)
 {
+	// Ugly: Blender doesn't like it when the animation is played back during rendering
+	if (G.is_rendering)
+		return -1;
+
 	if (scene->audio.flag & AUDIO_SYNC)
 		return AUD_isSynchronizerPlaying();
 	else
