@@ -433,8 +433,8 @@ static void prepare(Render *re, SceneRenderLayer *srl)
 		cout << "Crease angle : " << controller->getCreaseAngle() << endl;
 		cout << "Sphere radius : " << controller->getSphereRadius() << endl;
 		cout << "Face smoothness : " << (controller->getFaceSmoothness() ? "enabled" : "disabled") << endl;
-		cout << "Redges and valleys : " << (controller->getComputeRidgesAndValleysFlag() ? "enabled" : "disabled") <<
-		        endl;
+		cout << "Ridges and valleys : " <<
+		        (controller->getComputeRidgesAndValleysFlag() ? "enabled" : "disabled") << endl;
 		cout << "Suggestive contours : " <<
 		        (controller->getComputeSuggestiveContoursFlag() ? "enabled" : "disabled") << endl;
 		cout << "Suggestive contour Kr derivative epsilon : " <<
