@@ -950,6 +950,7 @@ static const char *data_mode_strings[] = {
 	"weightpaint",
 	"vertexpaint",
 	"imagepaint",
+	"particlemode",
 	"objectmode",
 	NULL
 };
