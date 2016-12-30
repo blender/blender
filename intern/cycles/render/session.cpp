@@ -654,6 +654,8 @@ void Session::load_kernels()
 	if(!kernels_loaded) {
 		progress.set_status("Loading render kernels (may take a few minutes the first time)");
 
+		scoped_timer timer;
+
 		DeviceRequestedFeatures requested_features = get_requested_device_features();
 		VLOG(2) << "Requested features:\n" << requested_features;
 		if(!device->load_kernels(requested_features)) {
@@ -666,6 +668,9 @@ void Session::load_kernels()
 			progress.set_update();
 			return;
 		}
+
+		progress.add_skip_time(timer, false);
+		VLOG(1) << "Total time spent loading kernels: " << time_dt() - timer.get_start();
 
 		kernels_loaded = true;
 	}
