@@ -946,7 +946,10 @@ class GreasePencilDataPanel:
 
         row = col.row()
         row.prop(gpl, "use_onion_skinning")
-        row.prop(gpl, "use_ghost_custom_colors", text="", icon='COLOR')
+        sub = row.row(align=True)
+        icon = 'RESTRICT_RENDER_OFF' if gpl.use_ghosts_always else 'RESTRICT_RENDER_ON'
+        sub.prop(gpl, "use_ghosts_always", text="", icon=icon)
+        sub.prop(gpl, "use_ghost_custom_colors", text="", icon='COLOR')
 
         split = col.split(percentage=0.5)
         split.active = gpl.use_onion_skinning

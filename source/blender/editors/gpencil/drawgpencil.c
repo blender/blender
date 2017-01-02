@@ -1419,8 +1419,16 @@ static void gp_draw_data_layers(
 
 #undef GP_DRAWFLAG_APPLY
 		
-		/* draw 'onionskins' (frame left + right) */
-		if ((gpl->flag & GP_LAYER_ONIONSKIN) && !(dflag & GP_DRAWDATA_NO_ONIONS)) {
+		/* Draw 'onionskins' (frame left + right)
+		 *   - It is only possible to show these if the option is enabled
+		 *   - The "no onions" flag prevents ghosts from appearing during animation playback/scrubbing
+		 *     and in renders
+		 *   - The per-layer "always show" flag however overrides the playback/render restriction,
+		 *     allowing artists to selectively turn onionskins on/off during playback
+		 */
+		if ((gpl->flag & GP_LAYER_ONIONSKIN) && 
+		    ((dflag & GP_DRAWDATA_NO_ONIONS) == 0 || (gpl->flag & GP_LAYER_GHOST_ALWAYS))) 
+		{
 			/* Drawing method - only immediately surrounding (gstep = 0),
 			 * or within a frame range on either side (gstep > 0)
 			 */
