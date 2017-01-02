@@ -77,7 +77,7 @@ static void wm_method_draw_stereo3d_pageflip(wmWindow *win)
 		else //STEREO_RIGHT_ID
 			glDrawBuffer(GL_BACK_RIGHT);
 
-		wm_triple_draw_textures(win, drawdata->triple, 1.0f);
+		wm_triple_draw_textures(win, drawdata->triple, 1.0f, false);
 	}
 
 	glDrawBuffer(GL_BACK);
@@ -120,7 +120,7 @@ static void wm_method_draw_stereo3d_interlace(wmWindow *win)
 				break;
 		}
 
-		wm_triple_draw_textures(win, drawdata->triple, 1.0f);
+		wm_triple_draw_textures(win, drawdata->triple, 1.0f, true);
 		GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 	}
 	interlace_prev_type = interlace_type;
@@ -157,7 +157,7 @@ static void wm_method_draw_stereo3d_anaglyph(wmWindow *win)
 				break;
 		}
 
-		wm_triple_draw_textures(win, drawdata->triple, 1.0f);
+		wm_triple_draw_textures(win, drawdata->triple, 1.0f, false);
 
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	}
