@@ -1431,13 +1431,17 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
 
 		/* if new name will be too long, truncate it */
 		if (nr > 999 && left_len > (MAX_ID_NAME - 8)) {  /* assumption: won't go beyond 9999 */
-			left[MAX_ID_NAME - 8] = 0;
+			left[MAX_ID_NAME - 8] = '\0';
 			left_len = MAX_ID_NAME - 8;
 		}
 		else if (left_len > (MAX_ID_NAME - 7)) {
-			left[MAX_ID_NAME - 7] = 0;
+			left[MAX_ID_NAME - 7] = '\0';
 			left_len = MAX_ID_NAME - 7;
 		}
+
+		/* Code above may have generated invalid utf-8 string, due to raw truncation.
+		 * Ensure we get a valid one now! */
+		left_len -= BLI_utf8_invalid_strip(left, left_len);
 
 		for (idtest = lb->first; idtest; idtest = idtest->next) {
 			int nrtest;

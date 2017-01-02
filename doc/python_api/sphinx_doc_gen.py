@@ -1565,9 +1565,9 @@ def pyrna2sphinx(basepath):
 
     # operators
     def write_ops():
-        API_BASEURL = "https://developer.blender.org/diffusion/B/browse/master/release/scripts/ "
-        API_BASEURL_ADDON = "https://developer.blender.org/diffusion/BA/"
-        API_BASEURL_ADDON_CONTRIB = "https://developer.blender.org/diffusion/BAC/"
+        API_BASEURL = "https://developer.blender.org/diffusion/B/browse/master/release/scripts "
+        API_BASEURL_ADDON = "https://developer.blender.org/diffusion/BA"
+        API_BASEURL_ADDON_CONTRIB = "https://developer.blender.org/diffusion/BAC"
 
         op_modules = {}
         for op in ops.values():
@@ -1659,8 +1659,11 @@ def write_sphinx_conf_py(basepath):
     fw("\n")
 
     # needed for latex, pdf gen
+    fw("latex_elements = {\n")
+    fw("  'papersize': 'a4paper',\n")
+    fw("}\n\n")
+
     fw("latex_documents = [ ('contents', 'contents.tex', 'Blender Index', 'Blender Foundation', 'manual'), ]\n")
-    fw("latex_paper_size = 'a4paper'\n")
     file.close()
 
 

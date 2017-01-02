@@ -12,7 +12,7 @@ contents: dir(bgl).  A simple search on the web can point to more
 than enough material to teach OpenGL programming, from books to many
 collections of tutorials.
 
-Here is a comprehensive `list of books <https://www.opengl.org/documentation/books/>`__ (non free).
+Here is a comprehensive `list of books <https://www.khronos.org/developers/books/>`__ (non free).
 The `arcsynthesis tutorials <https://web.archive.org/web/20150225192611/http://www.arcsynthesis.org/gltut/index.html>`__
 is one of the best resources to learn modern OpenGL and
 `g-truc <http://www.g-truc.net/post-opengl-samples.html#menu>`__
@@ -2067,7 +2067,7 @@ offers a set of extensive examples, including advanced features.
    :arg length: Returns the length of the string returned in source (excluding the null terminator).
    :type source: :class:`bgl.Buffer` char.
    :arg source: Specifies an array of characters that is used to return the source code string.
-   
+
 
 .. function:: glShaderSource(shader, shader_string):
 
