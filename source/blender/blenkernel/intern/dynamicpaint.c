@@ -215,6 +215,7 @@ typedef struct ImgSeqFormatData {
 
 /* adjacency data flags */
 #define ADJ_ON_MESH_EDGE (1 << 0)
+#define ADJ_BORDER_PIXEL (1 << 1)
 
 typedef struct PaintAdjData {
 	int *n_target;  /* array of neighboring point indexes, for single sample use (n_index + neigh_num) */
@@ -222,6 +223,8 @@ typedef struct PaintAdjData {
 	int *n_num;     /* num of neighs for each point */
 	int *flags;     /* vertex adjacency flags */
 	int total_targets; /* size of n_target */
+	int *border;    /* indices of border pixels (only for texture paint) */
+	int total_border; /* size of border */
 } PaintAdjData;
 
 /***************************** General Utils ******************************/
@@ -822,6 +825,8 @@ static void dynamicPaint_freeAdjData(PaintSurfaceData *data)
 			MEM_freeN(data->adj_data->n_target);
 		if (data->adj_data->flags)
 			MEM_freeN(data->adj_data->flags);
+		if (data->adj_data->border)
+			MEM_freeN(data->adj_data->border);
 		MEM_freeN(data->adj_data);
 		data->adj_data = NULL;
 	}
@@ -1298,6 +1303,8 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, const b
 	ad->n_target = MEM_callocN(sizeof(int) * neigh_points, "Surface Adj Targets");
 	ad->flags = MEM_callocN(sizeof(int) * sData->total_points, "Surface Adj Flags");
 	ad->total_targets = neigh_points;
+	ad->border = NULL;
+	ad->total_border = 0;
 
 	/* in case of allocation error, free memory */
 	if (!ad->n_index || !ad->n_num || !ad->n_target || !temp_data) {
@@ -2520,6 +2527,108 @@ static int dynamic_paint_find_neighbour_pixel(
 	}
 }
 
+static bool dynamicPaint_pointHasNeighbor(PaintAdjData *ed, int index, int neighbor)
+{
+	const int idx = ed->n_index[index];
+
+	for (int i = 0; i < ed->n_num[index]; i++) {
+		if (ed->n_target[idx + i] == neighbor) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/* Makes the adjacency data symmetric, except for border pixels. I.e. if A is neighbor of B, B is neighbor of A. */
+static bool dynamicPaint_symmetrizeAdjData(PaintAdjData *ed, int active_points)
+{
+	int *new_n_index = MEM_callocN(sizeof(int) * active_points, "Surface Adj Index");
+	int *new_n_num = MEM_callocN(sizeof(int) * active_points, "Surface Adj Counts");
+
+	if (new_n_num && new_n_index) {
+		/* Count symmetrized neigbors */
+		int total_targets = 0;
+
+		for (int index = 0; index < active_points; index++) {
+			total_targets += ed->n_num[index];
+			new_n_num[index] = ed->n_num[index];
+		}
+
+		for (int index = 0; index < active_points; index++) {
+			if (ed->flags[index] & ADJ_BORDER_PIXEL) {
+				continue;
+			}
+
+			for (int i = 0, idx = ed->n_index[index]; i < ed->n_num[index]; i++) {
+				const int target = ed->n_target[idx + i];
+
+				assert(!(ed->flags[target] & ADJ_BORDER_PIXEL));
+
+				if (!dynamicPaint_pointHasNeighbor(ed, target, index)) {
+					new_n_num[target]++;
+					total_targets++;
+				}
+			}
+		}
+
+		/* Allocate a new target map */
+		int *new_n_target = MEM_callocN(sizeof(int) * total_targets, "Surface Adj Targets");
+
+		if (new_n_target) {
+			/* Copy existing neighbors to the new map */
+			int n_pos = 0;
+
+			for (int index = 0; index < active_points; index++) {
+				new_n_index[index] = n_pos;
+				memcpy(&new_n_target[n_pos], &ed->n_target[ed->n_index[index]], sizeof(int) * ed->n_num[index]);
+
+				/* Reset count to old, but advance position by new, leaving a gap to fill below. */
+				n_pos += new_n_num[index];
+				new_n_num[index] = ed->n_num[index];
+			}
+
+			assert(n_pos == total_targets);
+
+			/* Add symmetrized - this loop behavior must exactly match the count pass above */
+			for (int index = 0; index < active_points; index++) {
+				if (ed->flags[index] & ADJ_BORDER_PIXEL) {
+					continue;
+				}
+
+				for (int i = 0, idx = ed->n_index[index]; i < ed->n_num[index]; i++) {
+					const int target = ed->n_target[idx + i];
+
+					if (!dynamicPaint_pointHasNeighbor(ed, target, index)) {
+						const int num = new_n_num[target]++;
+						new_n_target[new_n_index[target] + num] = index;
+					}
+				}
+			}
+
+			/* Swap maps */
+			MEM_freeN(ed->n_target);
+			ed->n_target = new_n_target;
+
+			MEM_freeN(ed->n_index);
+			ed->n_index = new_n_index;
+
+			MEM_freeN(ed->n_num);
+			ed->n_num = new_n_num;
+
+			ed->total_targets = total_targets;
+			return true;
+		}
+	}
+
+	if (new_n_index)
+		MEM_freeN(new_n_index);
+	if (new_n_num)
+		MEM_freeN(new_n_num);
+
+	return false;
+}
+
 int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface, float *progress, short *do_update)
 {
 	/* Antialias jitter point relative coords	*/
@@ -2668,14 +2777,20 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface, flo
 				        &vert_to_looptri_map, &vert_to_looptri_map_mem,
 				        dm->getVertArray(dm), dm->getNumVerts(dm), mlooptri, tottri, mloop, dm->getNumLoops(dm));
 
+				int total_border = 0;
+
 				for (int ty = 0; ty < h; ty++) {
 					for (int tx = 0; tx < w; tx++) {
 						const int index = tx + w * ty;
 
 						if (tempPoints[index].tri_index != -1) {
-							int start_pos = n_pos;
 							ed->n_index[final_index[index]] = n_pos;
 							ed->n_num[final_index[index]] = 0;
+
+							if (tempPoints[index].neighbour_pixel != -1) {
+								ed->flags[final_index[index]] |= ADJ_BORDER_PIXEL;
+								total_border++;
+							}
 
 							for (int i = 0; i < 8; i++) {
 								/* Try to find a neighboring pixel in defined direction. If not found, -1 is returned */
@@ -2683,15 +2798,7 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface, flo
 								                         &data, vert_to_looptri_map, w, h, tx, ty, i);
 
 								if (n_target >= 0 && n_target != index) {
-									bool duplicate = false;
-									for (int j = start_pos; j < n_pos; j++) {
-										if (ed->n_target[j] == final_index[n_target]) {
-											duplicate = true;
-											break;
-										}
-									}
-
-									if (!duplicate) {
+									if (!dynamicPaint_pointHasNeighbor(ed, final_index[index], final_index[n_target])) {
 										ed->n_target[n_pos] = final_index[n_target];
 										ed->n_num[final_index[index]]++;
 										n_pos++;
@@ -2707,6 +2814,24 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface, flo
 
 				MEM_freeN(vert_to_looptri_map);
 				MEM_freeN(vert_to_looptri_map_mem);
+
+				/* Make neighbors symmetric */
+				if (!dynamicPaint_symmetrizeAdjData(ed, active_points)) {
+					error = true;
+				}
+
+				/* Create a list of border pixels */
+				ed->border = MEM_callocN(sizeof(int) * total_border, "Border Pixel Index");
+
+				if (ed->border) {
+					ed->total_border = total_border;
+
+					for (int i = 0, next = 0; i < active_points; i++) {
+						if (ed->flags[i] & ADJ_BORDER_PIXEL) {
+							ed->border[next++] = i;
+						}
+					}
+				}
 			}
 		}
 
@@ -4529,6 +4654,10 @@ static void dynamicPaint_doSmudge(DynamicPaintSurface *surface, DynamicPaintBrus
 	for (step = 0; step < steps; step++) {
 		for (index = 0; index < sData->total_points; index++) {
 			int i;
+
+			if (sData->adj_data->flags[index] & ADJ_BORDER_PIXEL)
+				continue;
+
 			PaintPoint *pPoint = &((PaintPoint *)sData->type_data)[index];
 			float smudge_str = bData->brush_velocity[index * 4 + 3];
 
@@ -4708,6 +4837,9 @@ static void dynamic_paint_effect_spread_cb(void *userdata, const int index)
 	const DynamicPaintSurface *surface = data->surface;
 	const PaintSurfaceData *sData = surface->data;
 
+	if (sData->adj_data->flags[index] & ADJ_BORDER_PIXEL)
+		return;
+
 	const int numOfNeighs = sData->adj_data->n_num[index];
 	BakeAdjPoint *bNeighs = sData->bData->bNeighs;
 	PaintPoint *pPoint = &((PaintPoint *)sData->type_data)[index];
@@ -4749,6 +4881,9 @@ static void dynamic_paint_effect_shrink_cb(void *userdata, const int index)
 
 	const DynamicPaintSurface *surface = data->surface;
 	const PaintSurfaceData *sData = surface->data;
+
+	if (sData->adj_data->flags[index] & ADJ_BORDER_PIXEL)
+		return;
 
 	const int numOfNeighs = sData->adj_data->n_num[index];
 	BakeAdjPoint *bNeighs = sData->bData->bNeighs;
@@ -4796,6 +4931,10 @@ static void dynamic_paint_effect_drip_cb(void *userdata, const int index)
 
 	const DynamicPaintSurface *surface = data->surface;
 	const PaintSurfaceData *sData = surface->data;
+
+	if (sData->adj_data->flags[index] & ADJ_BORDER_PIXEL)
+		return;
+
 	BakeAdjPoint *bNeighs = sData->bData->bNeighs;
 	PaintPoint *pPoint = &((PaintPoint *)sData->type_data)[index];
 	const PaintPoint *prevPoint = data->prevPoint;
@@ -4962,6 +5101,80 @@ static void dynamicPaint_doEffectStep(
 
 		MEM_freeN(point_locks);
 	}
+}
+
+static void dynamic_paint_border_cb(void *userdata, const int b_index)
+{
+	const DynamicPaintEffectData *data = userdata;
+
+	const DynamicPaintSurface *surface = data->surface;
+	const PaintSurfaceData *sData = surface->data;
+
+	const int index = sData->adj_data->border[b_index];
+
+	const int numOfNeighs = sData->adj_data->n_num[index];
+	PaintPoint *pPoint = &((PaintPoint *)sData->type_data)[index];
+
+	const int *n_index = sData->adj_data->n_index;
+	const int *n_target = sData->adj_data->n_target;
+
+	/* Average neighboring points. Intermediaries use premultiplied alpha. */
+	float mix_color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	float mix_e_color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	float mix_wetness = 0.0f;
+
+	for (int i = 0; i < numOfNeighs; i++) {
+		const int n_idx = n_index[index] + i;
+		const int target = n_target[n_idx];
+
+		PaintPoint *pPoint2 = &((PaintPoint *)sData->type_data)[target];
+
+		assert(!(sData->adj_data->flags[target] & ADJ_BORDER_PIXEL));
+
+		madd_v3_v3fl(mix_color, pPoint2->color, pPoint2->color[3]);
+		mix_color[3] += pPoint2->color[3];
+
+		madd_v3_v3fl(mix_e_color, pPoint2->e_color, pPoint2->e_color[3]);
+		mix_e_color[3] += pPoint2->e_color[3];
+
+		mix_wetness += pPoint2->wetness;
+	}
+
+	const float divisor = 1.0f / numOfNeighs;
+
+	if (mix_color[3]) {
+		pPoint->color[3] = mix_color[3] * divisor;
+		mul_v3_v3fl(pPoint->color, mix_color, divisor / pPoint->color[3]);
+	}
+	else {
+		pPoint->color[3] = 0.0f;
+	}
+
+	if (mix_e_color[3]) {
+		pPoint->e_color[3] = mix_e_color[3] * divisor;
+		mul_v3_v3fl(pPoint->e_color, mix_e_color, divisor / pPoint->e_color[3]);
+	}
+	else {
+		pPoint->e_color[3] = 0.0f;
+	}
+
+	pPoint->wetness = mix_wetness / numOfNeighs;
+}
+
+static void dynamicPaint_doBorderStep(DynamicPaintSurface *surface)
+{
+	PaintSurfaceData *sData = surface->data;
+
+	if (!sData->adj_data || !sData->adj_data->border)
+		return;
+
+	/* Don't use prevPoint, relying on the condition that neighbors are never border pixels. */
+	DynamicPaintEffectData data = {
+		.surface = surface
+	};
+
+	BLI_task_parallel_range(
+	            0, sData->adj_data->total_border, &data, dynamic_paint_border_cb, sData->adj_data->total_border > 1000);
 }
 
 static void dynamic_paint_wave_step_cb(void *userdata, const int index)
@@ -5635,6 +5848,11 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 				MEM_freeN(prevPoint);
 			if (force)
 				MEM_freeN(force);
+		}
+
+		/* paint island border pixels */
+		if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
+			dynamicPaint_doBorderStep(surface);
 		}
 	}
 
