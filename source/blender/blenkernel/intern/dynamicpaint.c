@@ -2302,6 +2302,24 @@ static void dynamic_paint_create_uv_surface_neighbor_cb(void *userdata, const in
 
 #undef JITTER_SAMPLES
 
+static float dist_squared_to_looptri_uv_edges(const MLoopTri *mlooptri, const MLoopUV *mloopuv, int tri_index, const float point[2])
+{
+	float min_distance = FLT_MAX;
+
+	for (int i = 0; i < 3; i++) {
+		const float dist_squared = dist_squared_to_line_segment_v2(
+			point,
+			mloopuv[mlooptri[tri_index].tri[(i + 0)]].uv,
+			mloopuv[mlooptri[tri_index].tri[(i + 1) % 3]].uv
+		);
+
+		if (dist_squared < min_distance)
+			min_distance = dist_squared;
+	}
+
+	return min_distance;
+}
+
 /* Tries to find the neighboring pixel in given (uv space) direction.
  * Result is used by effect system to move paint on the surface.
  *
@@ -2510,9 +2528,6 @@ static int dynamic_paint_find_neighbour_pixel(
 		/* If we ended up to our origin point ( mesh has smaller than pixel sized faces)	*/
 		if (final_index == (px + w * py))
 			return NOT_FOUND;
-		/* If found pixel still lies on wrong face ( mesh has smaller than pixel sized faces)	*/
-		if (tempPoints[final_index].tri_index != target_tri)
-			return NOT_FOUND;
 
 		/* If final point is an "edge pixel", use it's "real" neighbor instead */
 		if (tempPoints[final_index].neighbour_pixel != -1) {
@@ -2520,6 +2535,17 @@ static int dynamic_paint_find_neighbour_pixel(
 
 			/* If we ended up to our origin point */
 			if (final_index == (px + w * py))
+				return NOT_FOUND;
+		}
+
+		/* If found pixel still lies on wrong face ( mesh has smaller than pixel sized faces)	*/
+		if (tempPoints[final_index].tri_index != target_tri) {
+			/* Check if it's close enough to likely touch the intended triangle. Any triangle
+			 * becomes thinner than a pixel at its vertices, so robustness requires some margin. */
+			const float final_pt[2] = { ((final_index % w) + 0.5f) / w, ((final_index / w) + 0.5f) / h };
+			const float threshold = SQUARE(0.7f) / (w * h);
+
+			if (dist_squared_to_looptri_uv_edges(mlooptri, mloopuv, tempPoints[final_index].tri_index, final_pt) > threshold)
 				return NOT_FOUND;
 		}
 
