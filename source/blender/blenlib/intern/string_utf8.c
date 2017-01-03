@@ -93,7 +93,7 @@ int BLI_utf8_invalid_byte(const char *str, int length)
 		/* Note that since we always increase p (and decrease length) by one byte in main loop, we only add/subtract
 		 * extra utf8 bytes in code below
 		 * (ab number, aka number of bytes remaining in the utf8 sequence after the initial one). */
-		ab = utf8_skip_data[c] - 1;
+		ab = (int)utf8_skip_data[c] - 1;
 		if (length <= ab) {
 			goto utf8_error;
 		}
