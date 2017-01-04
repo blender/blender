@@ -254,6 +254,7 @@ static int text_open_exec(bContext *C, wmOperator *op)
 	}
 	else if (st) {
 		st->text = text;
+		id_us_ensure_real(&text->id);
 		st->left = 0;
 		st->top = 0;
 		st->scroll_accum[0] = 0.0f;
