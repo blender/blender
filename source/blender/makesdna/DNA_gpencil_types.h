@@ -244,6 +244,7 @@ typedef struct bGPDlayer {
 	float inverse[4][4];    /* inverse matrix (only used if parented) */
 	char parsubstr[64];     /* String describing subobject info, MAX_ID_NAME-2 */
 	short partype, pad;
+	
 	float tintcolor[4];     /* Color used to tint layer, alpha value is used as factor */
 	float opacity;          /* Opacity of the layer */
 } bGPDlayer;
@@ -275,7 +276,9 @@ typedef enum eGPDlayer_Flag {
 	/* Use high quality fill (instead of buggy legacy OpenGL Fill) */
 	GP_LAYER_HQ_FILL        = (1 << 11),
 	/* Unlock color */
-	GP_LAYER_UNLOCK_COLOR = (1 << 12)
+	GP_LAYER_UNLOCK_COLOR 	= (1 << 12),
+	/* always show onion skins (i.e. even during renders/animation playback) */
+	GP_LAYER_GHOST_ALWAYS	= (1 << 13),
 } eGPDlayer_Flag;
 
 /* Grease-Pencil Annotations - 'DataBlock' */

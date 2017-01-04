@@ -411,7 +411,9 @@ static void object_delete_cb(
 			BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked object '%s'", base->object->id.name + 2);
 			return;
 		}
-		else if (BKE_library_ID_is_indirectly_used(bmain, base->object) && ID_REAL_USERS(base->object) <= 1) {
+		else if (BKE_library_ID_is_indirectly_used(bmain, base->object) &&
+		         ID_REAL_USERS(base->object) <= 1 && ID_EXTRA_USERS(base->object) == 0)
+		{
 			BKE_reportf(reports, RPT_WARNING,
 			            "Cannot delete object '%s' from scene '%s', indirectly used objects need at least one user",
 			            base->object->id.name + 2, scene->id.name + 2);
@@ -525,7 +527,7 @@ static void group_linkobs2scene_cb(
 		if (!base) {
 			/* link to scene */
 			base = BKE_scene_base_add(scene, gob->ob);
-			id_lib_extern((ID *)gob->ob); /* in case these are from a linked group */
+			id_us_plus(&gob->ob->id);
 		}
 		base->object->flag |= SELECT;
 		base->flag |= SELECT;
@@ -842,7 +844,9 @@ static Base *outline_delete_hierarchy(bContext *C, ReportList *reports, Scene *s
 		BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked object '%s'", base->object->id.name + 2);
 		return base_next;
 	}
-	else if (BKE_library_ID_is_indirectly_used(bmain, base->object) && ID_REAL_USERS(base->object) <= 1) {
+	else if (BKE_library_ID_is_indirectly_used(bmain, base->object) &&
+	         ID_REAL_USERS(base->object) <= 1 && ID_EXTRA_USERS(base->object) == 0)
+	{
 		BKE_reportf(reports, RPT_WARNING,
 		            "Cannot delete object '%s' from scene '%s', indirectly used objects need at least one user",
 		            base->object->id.name + 2, scene->id.name + 2);

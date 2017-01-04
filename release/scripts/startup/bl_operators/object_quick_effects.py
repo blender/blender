@@ -210,8 +210,9 @@ class QuickExplode(Operator):
 
             settings = obj.particle_systems[-1].settings
             settings.count = self.amount
-            settings.frame_start = self.frame_start
+            # first set frame end, to prevent frame start clamping
             settings.frame_end = self.frame_end - self.frame_duration
+            settings.frame_start = self.frame_start
             settings.lifetime = self.frame_duration
             settings.normal_factor = self.velocity
             settings.render_type = 'NONE'

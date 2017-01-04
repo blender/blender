@@ -522,8 +522,7 @@ void BKE_libblock_remap_locked(
 	 * been incremented for that, we have to decrease once more its user count... unless we had to skip
 	 * some 'user_one' cases. */
 	if ((old_id->tag & LIB_TAG_EXTRAUSER_SET) && !(id_remap_data.status & ID_REMAP_IS_USER_ONE_SKIPPED)) {
-		id_us_min(old_id);
-		old_id->tag &= ~LIB_TAG_EXTRAUSER_SET;
+		id_us_clear_real(old_id);
 	}
 
 	BLI_assert(old_id->us - skipped_refcounted >= 0);
@@ -883,9 +882,10 @@ void BKE_libblock_free_us(Main *bmain, void *idv)      /* test users */
 	 *     Since only 'user_one' usage of objects is groups, and only 'real user' usage of objects is scenes,
 	 *     removing that 'user_one' tag when there is no more real (scene) users of an object ensures it gets
 	 *     fully unlinked.
+	 *     But only for local objects, not linked ones!
 	 *     Otherwise, there is no real way to get rid of an object anymore - better handling of this is TODO.
 	 */
-	if ((GS(id->name) == ID_OB) && (id->us == 1)) {
+	if ((GS(id->name) == ID_OB) && (id->us == 1) && (id->lib == NULL)) {
 		id_us_clear_real(id);
 	}
 

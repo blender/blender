@@ -252,7 +252,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
 			NlaStrip *strip = (NlaStrip *)ptr.data;
 			FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), index);
 			
-			result = insert_keyframe_direct(&reports, ptr, prop, fcu, cfra, keytype, index);
+			result = insert_keyframe_direct(&reports, ptr, prop, fcu, cfra, keytype, options);
 		}
 		else {
 			BKE_reportf(&reports, RPT_ERROR, "Could not resolve path (%s)", path_full);
