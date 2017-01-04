@@ -883,9 +883,10 @@ void BKE_libblock_free_us(Main *bmain, void *idv)      /* test users */
 	 *     Since only 'user_one' usage of objects is groups, and only 'real user' usage of objects is scenes,
 	 *     removing that 'user_one' tag when there is no more real (scene) users of an object ensures it gets
 	 *     fully unlinked.
+	 *     But only for local objects, not linked ones!
 	 *     Otherwise, there is no real way to get rid of an object anymore - better handling of this is TODO.
 	 */
-	if ((GS(id->name) == ID_OB) && (id->us == 1)) {
+	if ((GS(id->name) == ID_OB) && (id->us == 1) && (id->lib == NULL)) {
 		id_us_clear_real(id);
 	}
 
