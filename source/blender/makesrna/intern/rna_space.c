@@ -2624,7 +2624,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "use_pivot_point_align", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_ALIGN);
-	RNA_def_property_ui_text(prop, "Align", "Manipulate center points (object and pose mode only)");
+	RNA_def_property_ui_text(prop, "Align", "Manipulate center points (object, pose and weight paint mode only)");
 	RNA_def_property_ui_icon(prop, ICON_ALIGN, 0);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_pivot_update");
 
