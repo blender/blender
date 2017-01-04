@@ -4737,7 +4737,7 @@ static void dynamic_paint_effect_spread_cb(void *userdata, const int index)
 		CLAMP(w_factor, 0.0f, 1.0f);
 
 		/* mix new wetness and color */
-		pPoint->wetness = (1.0f - w_factor) * pPoint->wetness + w_factor * pPoint_prev->wetness;
+		pPoint->wetness = pPoint->wetness + w_factor * (pPoint_prev->wetness - pPoint->wetness);
 		pPoint->e_color[3] = mixColors(pPoint->e_color, pPoint->e_color[3],
 		                               pPoint_prev->e_color, pPoint_prev->e_color[3], w_factor);
 	}
