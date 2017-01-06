@@ -90,6 +90,8 @@ void BKE_sound_create_scene(struct Scene *scene);
 
 void BKE_sound_destroy_scene(struct Scene *scene);
 
+void BKE_sound_reset_scene_specs(struct Scene *scene);
+
 void BKE_sound_mute_scene(struct Scene *scene, int muted);
 
 void BKE_sound_update_fps(struct Scene *scene);
