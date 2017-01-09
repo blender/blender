@@ -20,12 +20,6 @@
 #define STIPPLE_HEXAGON                                3
 #define STIPPLE_DIAG_STRIPES                           4
 #define STIPPLE_DIAG_STRIPES_SWAP                      5
-#define STIPPLE_S3D_INTERLACE_ROW                      6
-#define STIPPLE_S3D_INTERLACE_ROW_SWAP                 7
-#define STIPPLE_S3D_INTERLACE_COLUMN                   8
-#define STIPPLE_S3D_INTERLACE_COLUMN_SWAP              9
-#define STIPPLE_S3D_INTERLACE_CHECKERBOARD             10
-#define STIPPLE_S3D_INTERLACE_CHECKERBOARD_SWAP        11
 
 #if defined(USE_SOLID_LIGHTING) || defined(USE_SCENE_LIGHTING)
 #if defined(USE_FLAT_NORMAL)
@@ -74,14 +68,9 @@ void main()
 	/* We have to use mod function and integer casting.
 	 * This can be optimized further with the bitwise operations
 	 * when GLSL 1.3 is supported. */
-	if (stipple_id == STIPPLE_HALFTONE ||
-	    stipple_id == STIPPLE_S3D_INTERLACE_CHECKERBOARD ||
-	    stipple_id == STIPPLE_S3D_INTERLACE_CHECKERBOARD_SWAP)
-	{
+	if (stipple_id == STIPPLE_HALFTONE) {
 		int result = int(mod(gl_FragCoord.x + gl_FragCoord.y, 2));
 		bool dis = result == 0;
-		if (stipple_id == STIPPLE_S3D_INTERLACE_CHECKERBOARD_SWAP)
-			dis = !dis;
 		if (dis)
 			discard;
 	}
@@ -114,22 +103,6 @@ void main()
 		int mody = int(mod(gl_FragCoord.y, 16));
 		int modx = int(mod(gl_FragCoord.x, 16));
 		if (!((16 - modx > mody && mody > 8 - modx) || mody > 24 - modx))
-			discard;
-	}
-	else if (stipple_id == STIPPLE_S3D_INTERLACE_ROW || stipple_id == STIPPLE_S3D_INTERLACE_ROW_SWAP) {
-		int result = int(mod(gl_FragCoord.y, 2));
-		bool dis = result == 0;
-		if (stipple_id == STIPPLE_S3D_INTERLACE_ROW_SWAP)
-			dis = !dis;
-		if (dis)
-			discard;
-	}
-	else if (stipple_id == STIPPLE_S3D_INTERLACE_COLUMN || stipple_id == STIPPLE_S3D_INTERLACE_COLUMN_SWAP) {
-		int result = int(mod(gl_FragCoord.x, 2));
-		bool dis = result != 0;
-		if (stipple_id == STIPPLE_S3D_INTERLACE_COLUMN_SWAP)
-			dis = !dis;
-		if (dis)
 			discard;
 	}
 	else if (stipple_id == STIPPLE_HEXAGON) {

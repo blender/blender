@@ -112,6 +112,8 @@ typedef enum GPUBuiltinShader {
 	GPU_SHADER_3D_IMAGE_MODULATE_ALPHA,
 	GPU_SHADER_3D_IMAGE_RECT_MODULATE_ALPHA,
 	GPU_SHADER_3D_IMAGE_DEPTH,
+	/* stereo 3d */
+	GPU_SHADER_2D_IMAGE_INTERLACE,
 	/* points */
 	GPU_SHADER_2D_POINT_FIXED_SIZE_UNIFORM_COLOR,
 	GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_SMOOTH,
@@ -127,6 +129,16 @@ typedef enum GPUBuiltinShader {
 
 	GPU_NUM_BUILTIN_SHADERS /* (not an actual shader) */
 } GPUBuiltinShader;
+
+/* Keep these in sync with:
+ *  gpu_shader_image_interlace_frag.glsl
+ *  gpu_shader_image_rect_interlace_frag.glsl
+ **/
+typedef enum GPUInterlaceShader {
+	GPU_SHADER_INTERLACE_ROW               = 0,
+	GPU_SHADER_INTERLACE_COLUMN            = 1,
+	GPU_SHADER_INTERLACE_CHECKER           = 2,
+} GPUInterlaceShader;
 
 GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader);
 GPUShader *GPU_shader_get_builtin_fx_shader(int effects, bool persp);

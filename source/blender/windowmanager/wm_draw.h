@@ -34,6 +34,8 @@
 
 #include "GPU_glew.h"
 
+#define USE_TEXTURE_RECTANGLE 1
+
 typedef struct wmDrawTriple {
 	GLuint bind;
 	int x, y;
@@ -56,7 +58,7 @@ void		wm_draw_region_clear	(struct wmWindow *win, struct ARegion *ar);
 
 void		wm_tag_redraw_overlay	(struct wmWindow *win, struct ARegion *ar);
 
-void		wm_triple_draw_textures	(struct wmWindow *win, struct wmDrawTriple *triple, float alpha, bool is_interlace);
+void		wm_triple_draw_textures	(struct wmWindow *win, struct wmDrawTriple *triple, float alpha);
 
 void		wm_draw_data_free		(struct wmWindow *win);
 

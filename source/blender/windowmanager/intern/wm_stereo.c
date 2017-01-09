@@ -78,54 +78,82 @@ static void wm_method_draw_stereo3d_pageflip(wmWindow *win)
 		else //STEREO_RIGHT_ID
 			glDrawBuffer(GL_BACK_RIGHT);
 
-		wm_triple_draw_textures(win, drawdata->triple, 1.0f, false);
+		wm_triple_draw_textures(win, drawdata->triple, 1.0f);
 	}
 
 	glDrawBuffer(GL_BACK);
 }
 
-static enum eStereo3dInterlaceType interlace_prev_type = -1;
-static char interlace_prev_swap = -1;
+static GPUInterlaceShader interlace_gpu_id_from_type(eStereo3dInterlaceType interlace_type)
+{
+	switch (interlace_type) {
+	    case S3D_INTERLACE_ROW:
+		    return GPU_SHADER_INTERLACE_ROW;
+	    case S3D_INTERLACE_COLUMN:
+		    return GPU_SHADER_INTERLACE_COLUMN;
+	    case S3D_INTERLACE_CHECKERBOARD:
+	    default:
+		    return GPU_SHADER_INTERLACE_CHECKER;
+	}
+}
 
 static void wm_method_draw_stereo3d_interlace(wmWindow *win)
 {
-	wmDrawData *drawdata;
-	int view;
-	bool flag;
 	bool swap = (win->stereo3d_format->flag & S3D_INTERLACE_SWAP) != 0;
 	enum eStereo3dInterlaceType interlace_type = win->stereo3d_format->interlace_type;
 
-	for (view = 0; view < 2; view ++) {
-		flag = swap ? !view : view;
-		drawdata = BLI_findlink(&win->drawdata, (view * 2) + 1);
-		GPU_basic_shader_bind(GPU_SHADER_STIPPLE);
-		switch (interlace_type) {
-			case S3D_INTERLACE_ROW:
-				if (flag)
-					GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_S3D_INTERLACE_ROW_SWAP);
-				else
-					GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_S3D_INTERLACE_ROW);
-				break;
-			case S3D_INTERLACE_COLUMN:
-				if (flag)
-					GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_S3D_INTERLACE_COLUMN_SWAP);
-				else
-					GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_S3D_INTERLACE_COLUMN);
-				break;
-			case S3D_INTERLACE_CHECKERBOARD:
-			default:
-				if (flag)
-					GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_S3D_INTERLACE_CHECKER_SWAP);
-				else
-					GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_S3D_INTERLACE_CHECKER);
-				break;
-		}
-
-		wm_triple_draw_textures(win, drawdata->triple, 1.0f, true);
-		GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
+	wmDrawData *drawdata[2];
+	for (int eye = 0; eye < 2; eye++) {
+		int view = swap ? !eye : eye;
+		drawdata[eye] = BLI_findlink(&win->drawdata, (view * 2) + 1);
 	}
-	interlace_prev_type = interlace_type;
-	interlace_prev_swap = swap;
+
+	const int sizex = WM_window_pixels_x(win);
+	const int sizey = WM_window_pixels_y(win);
+
+	/* wmOrtho for the screen has this same offset */
+	float ratiox = sizex;
+	float ratioy = sizey;
+	float halfx = GLA_PIXEL_OFS;
+	float halfy = GLA_PIXEL_OFS;
+
+	VertexFormat *format = immVertexFormat();
+	unsigned texcoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_INTERLACE);
+
+	/* leave GL_TEXTURE0 as the latest bind texture */
+	for (int eye = 1; eye >= 0; eye--) {
+		glActiveTexture(GL_TEXTURE0 + eye);
+		glBindTexture(drawdata[eye]->triple->target, drawdata[eye]->triple->bind);
+	}
+
+	immUniform1i("image_a", 0);
+	immUniform1i("image_b", 1);
+
+	immUniform1i("interlace_id", interlace_gpu_id_from_type(interlace_type));
+
+	immBegin(GL_QUADS, 4);
+
+	immAttrib2f(texcoord, halfx, halfy);
+	immVertex2f(pos, 0.0f, 0.0f);
+
+	immAttrib2f(texcoord, ratiox + halfx, halfy);
+	immVertex2f(pos, sizex, 0.0f);
+
+	immAttrib2f(texcoord, ratiox + halfx, ratioy + halfy);
+	immVertex2f(pos, sizex, sizey);
+
+	immAttrib2f(texcoord, halfx, ratioy + halfy);
+	immVertex2f(pos, 0.0f, sizey);
+
+	immEnd();
+	immUnbindProgram();
+
+	for (int eye = 0; eye < 2; eye++) {
+		glBindTexture(drawdata[eye]->triple->target, 0);
+	}
 }
 
 static void wm_method_draw_stereo3d_anaglyph(wmWindow *win)
@@ -158,7 +186,7 @@ static void wm_method_draw_stereo3d_anaglyph(wmWindow *win)
 				break;
 		}
 
-		wm_triple_draw_textures(win, drawdata->triple, 1.0f, false);
+		wm_triple_draw_textures(win, drawdata->triple, 1.0f);
 
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	}

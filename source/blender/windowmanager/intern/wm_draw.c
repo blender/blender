@@ -80,8 +80,6 @@
 #define WIN_FRONT_OK    2
 #define WIN_BOTH_OK     3
 
-#define USE_TEXTURE_RECTANGLE 1
-
 /* ******************* drawing, overlays *************** */
 
 
@@ -426,8 +424,7 @@ static bool wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
 	return true;
 }
 
-/* TODO: fix interface - T49861 */
-void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha, bool UNUSED(is_interlace))
+void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)
 {
 	const int sizex = WM_window_pixels_x(win);
 	const int sizey = WM_window_pixels_y(win);
@@ -508,7 +505,7 @@ static void wm_draw_region_blend(wmWindow *win, ARegion *ar, wmDrawTriple *tripl
 		wmSubWindowScissorSet(win, win->screen->mainwin, &ar->winrct, true);
 
 		glEnable(GL_BLEND);
-		wm_triple_draw_textures(win, triple, 1.0f - fac, false);
+		wm_triple_draw_textures(win, triple, 1.0f - fac);
 		glDisable(GL_BLEND);
 	}
 }
@@ -530,7 +527,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 
 		wmSubWindowSet(win, screen->mainwin);
 
-		wm_triple_draw_textures(win, drawdata->triple, 1.0f, false);
+		wm_triple_draw_textures(win, drawdata->triple, 1.0f);
 	}
 	else {
 		/* we run it when we start OR when we turn stereo on */
@@ -671,7 +668,7 @@ static void wm_method_draw_triple_multiview(bContext *C, wmWindow *win, StereoVi
 
 				wmSubWindowSet(win, screen->mainwin);
 
-				wm_triple_draw_textures(win, drawdata->triple, 1.0f, false);
+				wm_triple_draw_textures(win, drawdata->triple, 1.0f);
 			}
 		}
 		else {
