@@ -98,7 +98,7 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 	ModifierData *md = NULL, *new_md = NULL;
 	const ModifierTypeInfo *mti = modifierType_getInfo(type);
 	
-	// check compatibility of modifier [T25291, T50373]
+	/* Check compatibility of modifier [T25291, T50373]. */
 	if (!BKE_object_support_modifier_type_check(ob, type)) {
 		BKE_reportf(reports, RPT_WARNING, "Modifiers cannot be added to object '%s'", ob->id.name + 2);
 		return NULL;
