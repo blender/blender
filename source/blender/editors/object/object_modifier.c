@@ -98,12 +98,12 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 	ModifierData *md = NULL, *new_md = NULL;
 	const ModifierTypeInfo *mti = modifierType_getInfo(type);
 	
-	/* only geometry objects should be able to get modifiers [#25291] */
-	if (!ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
+	// check compatibility of modifier [T25291, T50373]
+	if (!BKE_object_support_modifier_type_check(ob, type)) {
 		BKE_reportf(reports, RPT_WARNING, "Modifiers cannot be added to object '%s'", ob->id.name + 2);
 		return NULL;
 	}
-	
+
 	if (mti->flags & eModifierTypeFlag_Single) {
 		if (modifiers_findByType(ob, type)) {
 			BKE_report(reports, RPT_WARNING, "Only one modifier of this type is allowed");
