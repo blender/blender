@@ -943,14 +943,14 @@ operator<<( std::ostream& os, const BasicVector::Vector3Dim<Scalar>& i )
 {
 #if 0
 	char buf[256];
-#if _WIN32
-  sprintf(buf,globVecFormatStr, (double)i[0],(double)i[1],(double)i[2]);
-#else
-  snprintf(buf,256,globVecFormatStr, (double)i[0],(double)i[1],(double)i[2]);
-#endif
+#  if _WIN32
+	sprintf(buf,globVecFormatStr, (double)i[0],(double)i[1],(double)i[2]);
+#  else
+	snprintf(buf,256,globVecFormatStr, (double)i[0],(double)i[1],(double)i[2]);
+#  endif
 	os << std::string(buf); 
 #endif
-  return os;
+	return os;
 }
 
 
