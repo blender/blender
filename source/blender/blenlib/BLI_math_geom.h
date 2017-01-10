@@ -44,9 +44,6 @@ extern "C" {
 
 /********************************** Polygons *********************************/
 
-void cent_tri_v3(float r[3], const float a[3], const float b[3], const float c[3]);
-void cent_quad_v3(float r[3], const float a[3], const float b[3], const float c[3], const float d[3]);
-
 float normal_tri_v3(float r[3], const float a[3], const float b[3], const float c[3]);
 float normal_quad_v3(float r[3], const float a[3], const float b[3], const float c[3], const float d[3]);
 float normal_poly_v3(float r[3], const float verts[][3], unsigned int nr);

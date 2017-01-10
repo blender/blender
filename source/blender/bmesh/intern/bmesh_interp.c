@@ -339,7 +339,7 @@ static bool mdisp_in_mdispquad(
 	compute_mdisp_quad(l_dst, l_dst_f_center, v1, v2, v3, v4, e1, e2);
 
 	/* expand quad a bit */
-	cent_quad_v3(c, v1, v2, v3, v4);
+	mid_v3_v3v3v3v3(c, v1, v2, v3, v4);
 	
 	sub_v3_v3(v1, c); sub_v3_v3(v2, c);
 	sub_v3_v3(v3, c); sub_v3_v3(v4, c);
