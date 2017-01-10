@@ -285,7 +285,7 @@ static void view3d_stereo3d_setup(Scene *scene, View3D *v3d, ARegion *ar)
 
 #if VIEW3D_DRAW_DEBUG
 
-static void view3d_draw_debug_store_depth(ARegion *ar, DrawData *draw_data)
+static void view3d_draw_debug_store_depth(ARegion *UNUSED(ar), DrawData *draw_data)
 {
 	GPUViewport *viewport = draw_data->viewport;
 	GLint viewport_size[4];
@@ -306,7 +306,7 @@ static void view3d_draw_debug_store_depth(ARegion *ar, DrawData *draw_data)
 
 	if (!GPU_viewport_debug_depth_is_valid(viewport)) {
 		char error[256];
-		if (!GPU_viewport_debug_depth_create(viewport, w, h, 0, error)) {
+		if (!GPU_viewport_debug_depth_create(viewport, w, h, error)) {
 			fprintf(stderr, "Failed to create depth buffer for debug: %s\n", error);
 			return;
 		}
@@ -729,8 +729,8 @@ static void drawrenderborder(ARegion *ar, View3D *v3d)
 /* ******************** offline engine ***************** */
 
 static bool view3d_draw_render_draw(const bContext *C, Scene *scene,
-	ARegion *ar, View3D *v3d,
-	bool clip_border, const rcti *border_rect)
+    ARegion *ar, View3D *UNUSED(v3d),
+    bool clip_border, const rcti *border_rect)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	RenderEngineType *type;
@@ -797,7 +797,7 @@ static bool view3d_draw_render_draw(const bContext *C, Scene *scene,
 
 /* ******************** background plates ***************** */
 
-static void view3d_draw_background_gradient()
+static void view3d_draw_background_gradient(void)
 {
 	gpuMatrixBegin3D(); /* TODO: finish 2D API */
 
@@ -828,7 +828,7 @@ static void view3d_draw_background_gradient()
 	gpuMatrixEnd();
 }
 
-static void view3d_draw_background_none()
+static void view3d_draw_background_none(void)
 {
 	if (UI_GetThemeValue(TH_SHOW_BACK_GRAD)) {
 		view3d_draw_background_gradient();
@@ -908,7 +908,7 @@ static void view3d_draw_background(const bContext *C)
 /**
  *
  */
-static void view3d_draw_render_solid_surfaces(const bContext *C, ARegion *ar, const bool run_screen_shaders)
+static void view3d_draw_render_solid_surfaces(const bContext *C, ARegion *ar, const bool UNUSED(run_screen_shaders))
 {
 	/* TODO viewport */
 	draw_all_objects(C, ar, false, use_depth(C));
@@ -917,7 +917,7 @@ static void view3d_draw_render_solid_surfaces(const bContext *C, ARegion *ar, co
 /**
  *
  */
-static void view3d_draw_render_transparent_surfaces(const bContext *C)
+static void view3d_draw_render_transparent_surfaces(const bContext *UNUSED(C))
 {
 	/* TODO viewport */
 }
@@ -925,7 +925,7 @@ static void view3d_draw_render_transparent_surfaces(const bContext *C)
 /**
  *
  */
-static void view3d_draw_post_draw(const bContext *C)
+static void view3d_draw_post_draw(const bContext *UNUSED(C))
 {
 	/* TODO viewport */
 }
@@ -935,7 +935,7 @@ static void view3d_draw_post_draw(const bContext *C)
 /**
  * Front/back wire frames
  */
-static void view3d_draw_wire_plates(const bContext *C)
+static void view3d_draw_wire_plates(const bContext *UNUSED(C))
 {
 	/* TODO viewport */
 }
@@ -943,7 +943,7 @@ static void view3d_draw_wire_plates(const bContext *C)
 /**
  * Special treatment for selected objects
  */
-static void view3d_draw_outline_plates(const bContext *C)
+static void view3d_draw_outline_plates(const bContext *UNUSED(C))
 {
 	/* TODO viewport */
 }
@@ -1846,7 +1846,7 @@ static void view3d_draw_border(const bContext *C, ARegion *ar)
 /**
 * Grease Pencil
 */
-static void view3d_draw_grease_pencil(const bContext *C)
+static void view3d_draw_grease_pencil(const bContext *UNUSED(C))
 {
 	/* TODO viewport */
 }
@@ -2000,9 +2000,6 @@ static void view3d_draw_non_meshes(const bContext *C, ARegion *ar)
 */
 static void view3d_draw_other_elements(const bContext *C, ARegion *ar)
 {
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = ar->regiondata;
-
 	view3d_draw_grid(C, ar);
 
 #ifdef WITH_INPUT_NDOF
@@ -2015,7 +2012,7 @@ static void view3d_draw_other_elements(const bContext *C, ARegion *ar)
 /**
  * Paint brushes, armatures, ...
  */
-static void view3d_draw_tool_ui(const bContext *C)
+static void view3d_draw_tool_ui(const bContext *UNUSED(C))
 {
 	/* TODO viewport */
 }
@@ -2023,7 +2020,7 @@ static void view3d_draw_tool_ui(const bContext *C)
 /**
  * Blueprint images
  */
-static void view3d_draw_reference_images(const bContext *C)
+static void view3d_draw_reference_images(const bContext *UNUSED(C))
 {
 	/* TODO viewport */
 }

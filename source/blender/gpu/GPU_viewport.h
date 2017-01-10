@@ -41,7 +41,7 @@ GPUViewport *GPU_viewport_create(void);
 void GPU_viewport_free(GPUViewport *viewport);
 
 /* debug */
-bool GPU_viewport_debug_depth_create(GPUViewport *viewport, int width, int height, int samples, char err_out[256]);
+bool GPU_viewport_debug_depth_create(GPUViewport *viewport, int width, int height, char err_out[256]);
 void GPU_viewport_debug_depth_free(GPUViewport *viewport);
 void GPU_viewport_debug_depth_store(GPUViewport *viewport, const int x, const int y);
 void GPU_viewport_debug_depth_draw(GPUViewport *viewport, const float znear, const float zfar);

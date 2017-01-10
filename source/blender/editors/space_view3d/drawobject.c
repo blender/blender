@@ -1134,7 +1134,7 @@ static void imm_drawcircball(const float cent[3], float rad, const float tmat[4]
 }
 
 /* circle for object centers, special_color is for library or ob users */
-static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, const float co[3], int selstate, bool special_color)
+static void drawcentercircle(View3D *v3d, RegionView3D *UNUSED(rv3d), const float co[3], int selstate, bool special_color)
 {
 	const float outlineWidth = 1.0f * U.pixelsize;
 	const float size = U.obcenter_dia * U.pixelsize + outlineWidth;
@@ -4369,8 +4369,8 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 #endif
 }
 
-static void draw_em_fancy_new(Scene *scene, ARegion *ar, View3D *v3d,
-                              Object *ob, BMEditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, const char dt)
+static void draw_em_fancy_new(Scene *UNUSED(scene), ARegion *ar, View3D *UNUSED(v3d),
+                              Object *UNUSED(ob), BMEditMesh *UNUSED(em), DerivedMesh *cageDM, DerivedMesh *UNUSED(finalDM), const char UNUSED(dt))
 {
 	/* for now... something simple! */
 
@@ -4492,7 +4492,7 @@ static void draw_mesh_object_outline_new(View3D *v3d, RegionView3D *rv3d, Object
 			Batch_set_builtin_program(fancy_edges, GPU_SHADER_EDGES_FRONT_BACK_ORTHO);
 			/* set eye vector, transformed to object coords */
 			float eye[3] = { 0.0f, 0.0f, 1.0f }; /* looking into the screen */
-			mul_m3_v3(gpuGetNormalMatrixInverse(NULL), eye);
+			mul_m3_v3((float (*)[3])gpuGetNormalMatrixInverse(NULL), eye);
 			Batch_Uniform3fv(fancy_edges, "eye", eye);
 		}
 		else {
@@ -5015,7 +5015,7 @@ static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionVi
 			Batch_set_builtin_program(fancy_edges, GPU_SHADER_EDGES_FRONT_BACK_ORTHO);
 			/* set eye vector, transformed to object coords */
 			float eye[3] = { 0.0f, 0.0f, 1.0f }; /* looking into the screen */
-			mul_m3_v3(gpuGetNormalMatrixInverse(NULL), eye);
+			mul_m3_v3((float (*)[3])gpuGetNormalMatrixInverse(NULL), eye);
 			Batch_Uniform3fv(fancy_edges, "eye", eye);
 		}
 		else {
