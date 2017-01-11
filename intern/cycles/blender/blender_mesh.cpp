@@ -961,7 +961,13 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 
 		mesh->subdivision_type = object_subdivision_type(b_ob, preview, experimental);
 
-		BL::Mesh b_mesh = object_to_mesh(b_data, b_ob, b_scene, true, !preview, need_undeformed, mesh->subdivision_type);
+		BL::Mesh b_mesh = object_to_mesh(b_data,
+		                                 b_ob,
+		                                 b_scene,
+		                                 true,
+		                                 !preview,
+		                                 need_undeformed,
+		                                 mesh->subdivision_type);
 
 		if(b_mesh) {
 			if(render_layer.use_surfaces && !hide_tris) {
@@ -1086,7 +1092,13 @@ void BlenderSync::sync_mesh_motion(BL::Object& b_ob,
 
 	if(ccl::BKE_object_is_deform_modified(b_ob, b_scene, preview)) {
 		/* get derived mesh */
-		b_mesh = object_to_mesh(b_data, b_ob, b_scene, true, !preview, false, false);
+		b_mesh = object_to_mesh(b_data,
+		                        b_ob,
+		                        b_scene,
+		                        true,
+		                        !preview,
+		                        false,
+		                        Mesh::SUBDIVISION_NONE);
 	}
 
 	if(!b_mesh) {
