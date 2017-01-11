@@ -5569,12 +5569,17 @@ static void calculate_speedvectors(Render *re, ObjectInstanceRen *obi, float *ve
 					/* interpolate speed vectors from strand surface */
 					face= mesh->face[*index];
 
-					co1= mesh->co[face[0]];
-					co2= mesh->co[face[1]];
-					co3= mesh->co[face[2]];
-					co4= (face[3])? mesh->co[face[3]]: NULL;
+					co1 = mesh->co[face[0]];
+					co2 = mesh->co[face[1]];
+					co3 = mesh->co[face[2]];
 
-					interp_weights_face_v3(w, co1, co2, co3, co4, strand->vert->co);
+					if (face[3]) {
+						co4 = mesh->co[face[3]];
+						interp_weights_quad_v3(w, co1, co2, co3, co4, strand->vert->co);
+					}
+					else {
+						interp_weights_tri_v3(w, co1, co2, co3, strand->vert->co);
+					}
 
 					zero_v4(speed);
 					madd_v4_v4fl(speed, winspeed[face[0]], w[0]);

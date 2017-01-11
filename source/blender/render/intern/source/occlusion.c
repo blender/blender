@@ -1190,9 +1190,14 @@ static void sample_occ_surface(ShadeInput *shi)
 		co1 = mesh->co[face[0]];
 		co2 = mesh->co[face[1]];
 		co3 = mesh->co[face[2]];
-		co4 = (face[3]) ? mesh->co[face[3]] : NULL;
 
-		interp_weights_face_v3(w, co1, co2, co3, co4, strand->vert->co);
+		if (face[3]) {
+			co4 = mesh->co[face[3]];
+			interp_weights_quad_v3(w, co1, co2, co3, co4, strand->vert->co);
+		}
+		else {
+			interp_weights_tri_v3(w, co1, co2, co3, strand->vert->co);
+		}
 
 		zero_v3(shi->ao);
 		zero_v3(shi->env);
