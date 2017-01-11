@@ -1157,10 +1157,12 @@ void BlenderSync::sync_mesh_motion(BL::Object& b_ob,
 			{
 				/* no motion, remove attributes again */
 				if(b_mesh.vertices.length() != numverts) {
-					VLOG(1) << "Topology differs, disabling motion blur.";
+					VLOG(1) << "Topology differs, disabling motion blur for object "
+					        << b_ob.name();
 				}
 				else {
-					VLOG(1) << "No actual deformation motion for object " << b_ob.name();
+					VLOG(1) << "No actual deformation motion for object "
+					        << b_ob.name();
 				}
 				mesh->attributes.remove(ATTR_STD_MOTION_VERTEX_POSITION);
 				if(attr_mN)
