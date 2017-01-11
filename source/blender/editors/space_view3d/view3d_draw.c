@@ -2003,6 +2003,8 @@ static void view3d_draw_other_elements(const bContext *C, ARegion *ar)
 	view3d_draw_grid(C, ar);
 
 #ifdef WITH_INPUT_NDOF
+	RegionView3D *rv3d = ar->regiondata;
+
 	if ((U.ndof_flag & NDOF_SHOW_GUIDE) && ((rv3d->viewlock & RV3D_LOCKED) == 0) && (rv3d->persp != RV3D_CAMOB))
 		/* TODO: draw something else (but not this) during fly mode */
 		draw_rotation_guide(rv3d);
