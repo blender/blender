@@ -671,28 +671,10 @@ static void create_mesh(Scene *scene,
 			int shader = clamp(f->material_index(), 0, used_shaders.size()-1);
 			bool smooth = f->use_smooth() || use_loop_normals;
 
-			/* split vertices if normal is different
+			/* Create triangles.
 			 *
-			 * note all vertex attributes must have been set here so we can split
-			 * and copy attributes in split_vertex without remapping later */
-			if(use_loop_normals) {
-				BL::Array<float, 12> loop_normals = f->split_normals();
-
-				for(int i = 0; i < n; i++) {
-					float3 loop_N = make_float3(loop_normals[i * 3], loop_normals[i * 3 + 1], loop_normals[i * 3 + 2]);
-
-					if(N[vi[i]] != loop_N) {
-						int new_vi = mesh->split_vertex(vi[i]);
-
-						/* set new normal and vertex index */
-						N = attr_N->data_float3();
-						N[new_vi] = loop_N;
-						vi[i] = new_vi;
-					}
-				}
-			}
-
-			/* create triangles */
+			 * NOTE: Autosmooth is already taken care about.
+			 */
 			if(n == 4) {
 				if(is_zero(cross(mesh->verts[vi[1]] - mesh->verts[vi[0]], mesh->verts[vi[2]] - mesh->verts[vi[0]])) ||
 				   is_zero(cross(mesh->verts[vi[2]] - mesh->verts[vi[0]], mesh->verts[vi[3]] - mesh->verts[vi[0]])))
@@ -724,24 +706,8 @@ static void create_mesh(Scene *scene,
 
 			vi.reserve(n);
 			for(int i = 0; i < n; i++) {
+				/* NOTE: Autosmooth is already taken care about. */
 				vi[i] = b_mesh.loops[p->loop_start() + i].vertex_index();
-
-				/* split vertices if normal is different
-				 *
-				 * note all vertex attributes must have been set here so we can split
-				 * and copy attributes in split_vertex without remapping later */
-				if(use_loop_normals) {
-					float3 loop_N = get_float3(b_mesh.loops[p->loop_start() + i].normal());
-
-					if(N[vi[i]] != loop_N) {
-						int new_vi = mesh->split_vertex(vi[i]);
-
-						/* set new normal and vertex index */
-						N = attr_N->data_float3();
-						N[new_vi] = loop_N;
-						vi[i] = new_vi;
-					}
-				}
 			}
 
 			/* create subd faces */

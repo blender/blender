@@ -74,7 +74,12 @@ static inline BL::Mesh object_to_mesh(BL::BlendData& data,
 
 	if((bool)me) {
 		if(me.use_auto_smooth()) {
-			me.calc_normals_split();
+			if(subdivision_type == Mesh::SUBDIVISION_CATMULL_CLARK) {
+				me.calc_normals_split();
+			}
+			else {
+				me.split_faces();
+			}
 		}
 		if(subdivision_type == Mesh::SUBDIVISION_NONE) {
 			me.calc_tessface(true);
