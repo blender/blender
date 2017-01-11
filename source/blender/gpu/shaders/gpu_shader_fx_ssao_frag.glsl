@@ -27,8 +27,7 @@ vec3 calculate_view_space_normal(in vec3 viewposition)
 {
 	vec3 normal = cross(normalize(dFdx(viewposition)),
 	                    ssao_params.w * normalize(dFdy(viewposition)));
-	normalize(normal);
-	return normal;
+	return normalize(normal);
 }
 
 float calculate_ssao_factor(float depth)
