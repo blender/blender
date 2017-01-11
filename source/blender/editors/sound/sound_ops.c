@@ -383,6 +383,8 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
 		result = AUD_mixdown(scene->sound_scene, SFRA * specs.rate / FPS, (EFRA - SFRA + 1) * specs.rate / FPS,
 		                     accuracy, filename, specs, container, codec, bitrate);
 
+	BKE_sound_reset_scene_specs(scene);
+
 	if (result) {
 		BKE_report(op->reports, RPT_ERROR, result);
 		return OPERATOR_CANCELLED;

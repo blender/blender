@@ -752,8 +752,8 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
             subsub.operator("particle.target_remove", icon='ZOOMOUT', text="")
             sub = col.row()
             subsub = sub.column(align=True)
-            subsub.operator("particle.target_move_up", icon='MOVE_UP_VEC', text="")
-            subsub.operator("particle.target_move_down", icon='MOVE_DOWN_VEC', text="")
+            subsub.operator("particle.target_move_up", icon='TRIA_UP', text="")
+            subsub.operator("particle.target_move_down", icon='TRIA_DOWN', text="")
 
             key = psys.active_particle_target
             if key:
@@ -816,8 +816,8 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
         #sub.operator("boid.state_add", icon='ZOOMIN', text="")
         #sub.operator("boid.state_del", icon='ZOOMOUT', text="")
         #sub = row.row(align=True)
-        #sub.operator("boid.state_move_up", icon='MOVE_UP_VEC', text="")
-        #sub.operator("boid.state_move_down", icon='MOVE_DOWN_VEC', text="")
+        #sub.operator("boid.state_move_up", icon='TRIA_UP', text="")
+        #sub.operator("boid.state_move_down", icon='TRIA_DOWN', text="")
 
         state = boids.active_boid_state
 
@@ -840,8 +840,8 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
         subsub.operator("boid.rule_del", icon='ZOOMOUT', text="")
         sub = col.row()
         subsub = sub.column(align=True)
-        subsub.operator("boid.rule_move_up", icon='MOVE_UP_VEC', text="")
-        subsub.operator("boid.rule_move_down", icon='MOVE_DOWN_VEC', text="")
+        subsub.operator("boid.rule_move_up", icon='TRIA_UP', text="")
+        subsub.operator("boid.rule_move_down", icon='TRIA_DOWN', text="")
 
         rule = state.active_boid_rule
 
@@ -849,8 +849,8 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
             row = layout.row()
             row.prop(rule, "name", text="")
             #somebody make nice icons for boids here please! -jahka
-            row.prop(rule, "use_in_air", icon='MOVE_UP_VEC', text="")
-            row.prop(rule, "use_on_land", icon='MOVE_DOWN_VEC', text="")
+            row.prop(rule, "use_in_air", icon='TRIA_UP', text="")
+            row.prop(rule, "use_on_land", icon='TRIA_DOWN', text="")
 
             row = layout.row()
 
@@ -1009,8 +1009,8 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
                 subsub = sub.column(align=True)
                 subsub.operator("particle.dupliob_copy", icon='ZOOMIN', text="")
                 subsub.operator("particle.dupliob_remove", icon='ZOOMOUT', text="")
-                subsub.operator("particle.dupliob_move_up", icon='MOVE_UP_VEC', text="")
-                subsub.operator("particle.dupliob_move_down", icon='MOVE_DOWN_VEC', text="")
+                subsub.operator("particle.dupliob_move_up", icon='TRIA_UP', text="")
+                subsub.operator("particle.dupliob_move_down", icon='TRIA_DOWN', text="")
 
                 weight = part.active_dupliweight
                 if weight:

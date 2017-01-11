@@ -246,6 +246,10 @@ bool BKE_object_support_modifier_type_check(Object *ob, int modifier_type)
 
 	mti = modifierType_getInfo(modifier_type);
 
+	/* only geometry objects should be able to get modifiers [#25291] */
+	if (!ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
+		return false;
+	}
 
 	if (ob->type == OB_LATTICE && (mti->flags & eModifierTypeFlag_AcceptsLattice) == 0) {
 		return false;

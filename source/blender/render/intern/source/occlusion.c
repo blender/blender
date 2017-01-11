@@ -329,7 +329,7 @@ static void occ_face(const OccFace *face, float co[3], float normal[3], float *a
 		if (vlr->v4)
 			mid_v3_v3v3(co, vlr->v1->co, vlr->v3->co);
 		else
-			cent_tri_v3(co, vlr->v1->co, vlr->v2->co, vlr->v3->co);
+			mid_v3_v3v3v3(co, vlr->v1->co, vlr->v2->co, vlr->v3->co);
 
 		if (obi->flag & R_TRANSFORMED)
 			mul_m4_v3(obi->mat, co);
@@ -1245,7 +1245,7 @@ static void *exec_strandsurface_sample(void *data)
 			normal_quad_v3(n, co1, co2, co3, co4);
 		}
 		else {
-			cent_tri_v3(co, co1, co2, co3);
+			mid_v3_v3v3v3(co, co1, co2, co3);
 			normal_tri_v3(n, co1, co2, co3);
 		}
 		negate_v3(n);

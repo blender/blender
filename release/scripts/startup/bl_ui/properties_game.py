@@ -289,7 +289,6 @@ class RENDER_PT_embedded(RenderButtonsPanel, Panel):
 
         row = layout.row()
         row.operator("view3d.game_start", text="Start")
-        row.label()
         row = layout.row()
         row.label(text="Resolution:")
         row = layout.row(align=True)
@@ -310,8 +309,6 @@ class RENDER_PT_game_player(RenderButtonsPanel, Panel):
 
         row = layout.row()
         row.operator("wm.blenderplayer_start", text="Start")
-        row.label()
-
         row = layout.row()
         row.label(text="Resolution:")
         row = layout.row(align=True)
