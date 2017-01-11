@@ -597,8 +597,8 @@ static void create_mesh(Scene *scene,
                         Mesh *mesh,
                         BL::Mesh& b_mesh,
                         const vector<Shader*>& used_shaders,
-                        bool subdivision=false,
-                        bool subdivide_uvs=true)
+                        bool subdivision = false,
+                        bool subdivide_uvs = true)
 {
 	/* count vertices and faces */
 	int numverts = b_mesh.vertices.length();
