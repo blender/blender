@@ -48,12 +48,12 @@ static inline BL::Mesh object_to_mesh(BL::BlendData& data,
                                       bool apply_modifiers,
                                       bool render,
                                       bool calc_undeformed,
-                                      bool subdivision)
+                                      Mesh::SubdivisionType subdivision_type)
 {
 	bool subsurf_mod_show_render;
 	bool subsurf_mod_show_viewport;
 
-	if(subdivision) {
+	if(subdivision_type != Mesh::SUBDIVISION_NONE) {
 		BL::Modifier subsurf_mod = object.modifiers[object.modifiers.length()-1];
 
 		subsurf_mod_show_render = subsurf_mod.show_render();
@@ -65,7 +65,7 @@ static inline BL::Mesh object_to_mesh(BL::BlendData& data,
 
 	BL::Mesh me = data.meshes.new_from_object(scene, object, apply_modifiers, (render)? 2: 1, false, calc_undeformed);
 
-	if(subdivision) {
+	if(subdivision_type != Mesh::SUBDIVISION_NONE) {
 		BL::Modifier subsurf_mod = object.modifiers[object.modifiers.length()-1];
 
 		subsurf_mod.show_render(subsurf_mod_show_render);
@@ -76,7 +76,7 @@ static inline BL::Mesh object_to_mesh(BL::BlendData& data,
 		if(me.use_auto_smooth()) {
 			me.calc_normals_split();
 		}
-		if(!subdivision) {
+		if(subdivision_type == Mesh::SUBDIVISION_NONE) {
 			me.calc_tessface(true);
 		}
 	}
