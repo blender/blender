@@ -185,8 +185,9 @@ bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int
 				}
 			}
 #ifdef WITH_CYCLES_DEBUG
-			else if(type == PASS_BVH_TRAVERSAL_STEPS ||
+			else if(type == PASS_BVH_TRAVERSED_NODES ||
 			        type == PASS_BVH_TRAVERSED_INSTANCES ||
+			        type == PASS_BVH_INTERSECTIONS ||
 			        type == PASS_RAY_BOUNCES)
 			{
 				for(int i = 0; i < size; i++, in += pass_stride, pixels++) {
