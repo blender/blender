@@ -345,8 +345,8 @@ static void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData,
 	int numverts = 0, numtris = 0;
 
 	/* compute and reserve size of arrays */
-	for(int sys = 0; sys < CData->psys_firstcurve.size() ; sys++) {
-		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys] ; curve++) {
+	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
+		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys]; curve++) {
 			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
 				continue;
 
@@ -358,8 +358,8 @@ static void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData,
 	mesh->reserve_mesh(mesh->verts.size() + numverts, mesh->num_triangles() + numtris);
 
 	/* actually export */
-	for(int sys = 0; sys < CData->psys_firstcurve.size() ; sys++) {
-		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys] ; curve++) {
+	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
+		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys]; curve++) {
 			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
 				continue;
 
@@ -429,8 +429,8 @@ static void ExportCurveTriangleGeometry(Mesh *mesh,
 	int numverts = 0, numtris = 0;
 
 	/* compute and reserve size of arrays */
-	for(int sys = 0; sys < CData->psys_firstcurve.size() ; sys++) {
-		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys] ; curve++) {
+	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
+		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys]; curve++) {
 			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
 				continue;
 
@@ -442,8 +442,8 @@ static void ExportCurveTriangleGeometry(Mesh *mesh,
 	mesh->reserve_mesh(mesh->verts.size() + numverts, mesh->num_triangles() + numtris);
 
 	/* actually export */
-	for(int sys = 0; sys < CData->psys_firstcurve.size() ; sys++) {
-		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys] ; curve++) {
+	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
+		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys]; curve++) {
 			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
 				continue;
 
@@ -568,8 +568,8 @@ static void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CDa
 		attr_intercept = mesh->curve_attributes.add(ATTR_STD_CURVE_INTERCEPT);
 
 	/* compute and reserve size of arrays */
-	for(int sys = 0; sys < CData->psys_firstcurve.size() ; sys++) {
-		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys] ; curve++) {
+	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
+		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys]; curve++) {
 			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
 				continue;
 
@@ -588,8 +588,8 @@ static void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CDa
 	num_curves = 0;
 
 	/* actually export */
-	for(int sys = 0; sys < CData->psys_firstcurve.size() ; sys++) {
-		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys] ; curve++) {
+	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
+		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys]; curve++) {
 			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
 				continue;
 
@@ -722,8 +722,8 @@ static void ExportCurveTriangleUV(ParticleCurveData *CData,
 
 	int vertexindex = vert_offset;
 
-	for(int sys = 0; sys < CData->psys_firstcurve.size() ; sys++) {
-		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys] ; curve++) {
+	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
+		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys]; curve++) {
 			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
 				continue;
 
@@ -767,8 +767,8 @@ static void ExportCurveTriangleVcol(ParticleCurveData *CData,
 
 	int vertexindex = vert_offset;
 
-	for(int sys = 0; sys < CData->psys_firstcurve.size() ; sys++) {
-		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys] ; curve++) {
+	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
+		for(int curve = CData->psys_firstcurve[sys]; curve < CData->psys_firstcurve[sys] + CData->psys_curvenum[sys]; curve++) {
 			if(CData->curve_keynum[curve] <= 1 || CData->curve_length[curve] == 0.0f)
 				continue;
 
