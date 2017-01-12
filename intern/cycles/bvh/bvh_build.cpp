@@ -449,9 +449,9 @@ bool BVHBuild::range_within_max_leaf_size(const BVHRange& range,
 			num_triangles++;
 	}
 
-	return (num_triangles < params.max_triangle_leaf_size) &&
-	       (num_curves < params.max_curve_leaf_size) &&
-	       (num_motion_curves < params.max_curve_leaf_size);
+	return (num_triangles <= params.max_triangle_leaf_size) &&
+	       (num_curves <= params.max_curve_leaf_size) &&
+	       (num_motion_curves <= params.max_curve_leaf_size);
 }
 
 /* multithreaded binning builder */
