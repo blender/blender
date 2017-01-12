@@ -80,7 +80,7 @@ public:
 
 		min_leaf_size = 1;
 		max_triangle_leaf_size = 8;
-		max_curve_leaf_size = 2;
+		max_curve_leaf_size = 1;
 
 		top_level = false;
 		use_qbvh = false;
