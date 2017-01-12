@@ -155,13 +155,7 @@ void Pass::add(PassType type, array<Pass>& passes)
 			break;
 #ifdef WITH_CYCLES_DEBUG
 		case PASS_BVH_TRAVERSAL_STEPS:
-			pass.components = 1;
-			pass.exposure = false;
-			break;
 		case PASS_BVH_TRAVERSED_INSTANCES:
-			pass.components = 1;
-			pass.exposure = false;
-			break;
 		case PASS_RAY_BOUNCES:
 			pass.components = 1;
 			pass.exposure = false;
