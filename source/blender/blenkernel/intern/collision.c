@@ -1014,7 +1014,7 @@ static bool cloth_points_collision_response_static(ClothModifierData *clmd, Coll
 }
 
 BLI_INLINE bool cloth_point_face_collision_params(const float p1[3], const float p2[3], const float v0[3], const float v1[3], const float v2[3],
-                                                  float r_nor[3], float *r_lambda, float r_w[4])
+                                                  float r_nor[3], float *r_lambda, float r_w[3])
 {
 	float edge1[3], edge2[3], p2face[3], p1p2[3], v0p2[3];
 	float nor_v0p2, nor_p1p2;
@@ -1026,7 +1026,7 @@ BLI_INLINE bool cloth_point_face_collision_params(const float p1[3], const float
 	
 	nor_v0p2 = dot_v3v3(v0p2, r_nor);
 	madd_v3_v3v3fl(p2face, p2, r_nor, -nor_v0p2);
-	interp_weights_face_v3(r_w, v0, v1, v2, NULL, p2face);
+	interp_weights_tri_v3(r_w, v0, v1, v2, p2face);
 	
 	sub_v3_v3v3(p1p2, p2, p1);
 	sub_v3_v3v3(v0p2, p2, v0);
@@ -1085,7 +1085,7 @@ static CollPair *cloth_point_collpair(
 	const float *co1 = mverts[bp1].co, *co2 = mverts[bp2].co, *co3 = mverts[bp3].co;
 	float lambda /*, distance1 */, distance2;
 	float facenor[3], v1p1[3], v1p2[3];
-	float w[4];
+	float w[3];
 
 	if (!cloth_point_face_collision_params(p1, p2, co1, co2, co3, facenor, &lambda, w))
 		return collpair;

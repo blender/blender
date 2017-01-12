@@ -2346,6 +2346,11 @@ Mesh *BKE_mesh_new_from_object(
 
 				tmpmesh = BKE_mesh_add(bmain, "Mesh");
 				DM_to_mesh(dm, tmpmesh, ob, mask, true);
+
+				/* Copy autosmooth settings from original mesh. */
+				Mesh *me = (Mesh *)ob->data;
+				tmpmesh->flag |= (me->flag & ME_AUTOSMOOTH);
+				tmpmesh->smoothresh = me->smoothresh;
 			}
 
 			/* BKE_mesh_add/copy gives us a user count we don't need */

@@ -2950,7 +2950,15 @@ static bool barycentric_weights(const float v1[3], const float v2[3], const floa
 	}
 }
 
-void interp_weights_face_v3(float w[4], const float v1[3], const float v2[3], const float v3[3], const float v4[3], const float co[3])
+void interp_weights_tri_v3(float w[3], const float v1[3], const float v2[3], const float v3[3], const float co[3])
+{
+	float n[3];
+
+	normal_tri_v3(n, v1, v2, v3);
+	barycentric_weights(v1, v2, v3, co, n, w);
+}
+
+void interp_weights_quad_v3(float w[4], const float v1[3], const float v2[3], const float v3[3], const float v4[3], const float co[3])
 {
 	float w2[3];
 
@@ -2963,7 +2971,7 @@ void interp_weights_face_v3(float w[4], const float v1[3], const float v2[3], co
 		w[1] = 1.0f;
 	else if (equals_v3v3(co, v3))
 		w[2] = 1.0f;
-	else if (v4 && equals_v3v3(co, v4))
+	else if (equals_v3v3(co, v4))
 		w[3] = 1.0f;
 	else {
 		/* otherwise compute barycentric interpolation weights */
@@ -2971,34 +2979,23 @@ void interp_weights_face_v3(float w[4], const float v1[3], const float v2[3], co
 		bool degenerate;
 
 		sub_v3_v3v3(n1, v1, v3);
-		if (v4) {
-			sub_v3_v3v3(n2, v2, v4);
-		}
-		else {
-			sub_v3_v3v3(n2, v2, v3);
-		}
+		sub_v3_v3v3(n2, v2, v4);
 		cross_v3_v3v3(n, n1, n2);
 
-		/* OpenGL seems to split this way, so we do too */
-		if (v4) {
-			degenerate = barycentric_weights(v1, v2, v4, co, n, w);
-			SWAP(float, w[2], w[3]);
+		degenerate = barycentric_weights(v1, v2, v4, co, n, w);
+		SWAP(float, w[2], w[3]);
 
-			if (degenerate || (w[0] < 0.0f)) {
-				/* if w[1] is negative, co is on the other side of the v1-v3 edge,
-				 * so we interpolate using the other triangle */
-				degenerate = barycentric_weights(v2, v3, v4, co, n, w2);
+		if (degenerate || (w[0] < 0.0f)) {
+			/* if w[1] is negative, co is on the other side of the v1-v3 edge,
+			 * so we interpolate using the other triangle */
+			degenerate = barycentric_weights(v2, v3, v4, co, n, w2);
 
-				if (!degenerate) {
-					w[0] = 0.0f;
-					w[1] = w2[0];
-					w[2] = w2[1];
-					w[3] = w2[2];
-				}
+			if (!degenerate) {
+				w[0] = 0.0f;
+				w[1] = w2[0];
+				w[2] = w2[1];
+				w[3] = w2[2];
 			}
-		}
-		else {
-			barycentric_weights(v1, v2, v3, co, n, w);
 		}
 	}
 }

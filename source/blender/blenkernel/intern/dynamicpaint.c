@@ -3739,7 +3739,7 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
 
 		/* velocity brush, only do on main sample */
 		if (brush->flags & MOD_DPAINT_USES_VELOCITY && ss == 0 && brushVelocity) {
-			float weights[4];
+			float weights[3];
 			float brushPointVelocity[3];
 			float velocity[3];
 
@@ -3748,7 +3748,7 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
 			const int v3 = mloop[mlooptri[hitTri].tri[2]].v;
 
 			/* calculate barycentric weights for hit point */
-			interp_weights_face_v3(weights, mvert[v1].co, mvert[v2].co, mvert[v3].co, NULL, hitCoord);
+			interp_weights_tri_v3(weights, mvert[v1].co, mvert[v2].co, mvert[v3].co, hitCoord);
 
 			/* simple check based on brush surface velocity,
 			 *  todo: perhaps implement something that handles volume movement as well */

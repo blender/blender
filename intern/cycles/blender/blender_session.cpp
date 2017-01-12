@@ -580,7 +580,7 @@ static void populate_bake_data(BakeData *data, const
 	BL::BakePixel bp = pixel_array;
 
 	int i;
-	for(i=0; i < num_pixels; i++) {
+	for(i = 0; i < num_pixels; i++) {
 		if(bp.object_id() == object_id) {
 			data->set(i, bp.primitive_id(), bp.uv(), bp.du_dx(), bp.du_dy(), bp.dv_dx(), bp.dv_dy());
 		} else {
