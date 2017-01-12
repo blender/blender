@@ -372,7 +372,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 						case PRIMITIVE_MOTION_CURVE: {
 							for(; prim_addr < prim_addr2; prim_addr++) {
 								BVH_DEBUG_NEXT_INTERSECTION();
-								kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
+								kernel_assert((kernel_tex_fetch(__prim_type, prim_addr) & PRIMITIVE_ALL) == (type & PRIMITIVE_ALL));
 								bool hit;
 								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) {
 									hit = bvh_cardinal_curve_intersect(kg,
