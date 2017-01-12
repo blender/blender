@@ -911,7 +911,7 @@ ccl_device_forceinline bool bvh_curve_intersect(KernelGlobals *kg, Intersection 
 #  undef len3_squared
 #  undef len3
 #  undef dot3
-#  endif
+#endif
 }
 
 ccl_device_inline float3 curvetangent(float t, float3 p0, float3 p1, float3 p2, float3 p3)
