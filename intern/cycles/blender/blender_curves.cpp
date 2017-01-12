@@ -677,8 +677,13 @@ static void ExportCurveSegmentsMotion(Mesh *mesh, ParticleCurveData *CData, int 
 	/* in case of new attribute, we verify if there really was any motion */
 	if(new_attribute) {
 		if(i != numkeys || !have_motion) {
-			/* no motion, remove attributes again */
-			VLOG(1) << "No motion, removing attribute";
+			/* No motion or hair "topology" changed, remove attributes again. */
+			if(i != numkeys) {
+				VLOG(1) << "Hair topology changed, removing attribute.";
+			}
+			else {
+				VLOG(1) << "No motion, removing attribute.";
+			}
 			mesh->curve_attributes.remove(ATTR_STD_MOTION_VERTEX_POSITION);
 		}
 		else if(time_index > 0) {
