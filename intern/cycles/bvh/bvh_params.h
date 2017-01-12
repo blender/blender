@@ -84,7 +84,7 @@ public:
 		max_triangle_leaf_size = 8;
 		max_motion_triangle_leaf_size = 8;
 		max_curve_leaf_size = 1;
-		max_motion_curve_leaf_size = 1;
+		max_motion_curve_leaf_size = 4;
 
 		top_level = false;
 		use_qbvh = false;
