@@ -6,7 +6,44 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 import tempfile
+
+
+class COLORS_ANSI:
+    RED = '\033[00;31m'
+    GREEN = '\033[00;32m'
+    ENDC = '\033[0m'
+
+
+class COLORS_DUMMY:
+    RED = ''
+    GREEN = ''
+    ENDC = ''
+
+COLORS = COLORS_DUMMY
+
+
+def printMessage(type, status, message):
+    if type == 'SUCCESS':
+        print(COLORS.GREEN, end="")
+    elif type == 'FAILURE':
+        print(COLORS.RED, end="")
+    status_text = ...
+    if status == 'RUN':
+        status_text = " RUN      "
+    elif status == 'OK':
+        status_text = "       OK "
+    elif status == 'PASSED':
+        status_text = "  PASSED  "
+    elif status == 'FAILED':
+        status_text = "  FAILED  "
+    else:
+        status_text = status
+    print("[{}]" . format(status_text), end="")
+    print(COLORS.ENDC, end="")
+    print(" {}" . format(message))
+    sys.stdout.flush()
 
 
 def render_file(filepath):
@@ -83,16 +120,32 @@ def verify_output(filepath):
 def run_test(filepath):
     testname = test_get_name(filepath)
     spacer = "." * (32 - len(testname))
-    print(testname, spacer, end="")
-    sys.stdout.flush()
+    printMessage('SUCCESS', 'RUN', testname)
+    time_start = time.time()
     error = render_file(filepath)
+    status = "FAIL"
     if not error:
-        if verify_output(filepath):
-            print("PASS")
-        else:
+        if not verify_output(filepath):
             error = "VERIFY"
-    if error:
-        print("FAIL", error)
+    time_end = time.time()
+    elapsed_ms = int((time_end - time_start) * 1000)
+    if not error:
+        printMessage('SUCCESS', 'OK', "{} ({} ms)" .
+                     format(testname, elapsed_ms))
+    else:
+        if error == "NO_CYCLES":
+            print("Can't perform tests because Cycles failed to load!")
+            return False
+        elif error == "NO_START":
+            print('Can not perform tests because blender fails to start.',
+                  'Make sure INSTALL target was run.')
+            return False
+        elif error == 'VERIFY':
+            print("Rendered result is different from reference image")
+        else:
+            print("Unknown error %r" % error)
+        printMessage('FAILURE', 'FAILED', "{} ({} ms)" .
+                     format(testname, elapsed_ms))
     return error
 
 
@@ -105,30 +158,38 @@ def blend_list(path):
 
 
 def run_all_tests(dirpath):
+    passed_tests = []
     failed_tests = []
     all_files = list(blend_list(dirpath))
     all_files.sort()
+    printMessage('SUCCESS', "==========",
+                 "Running {} tests from 1 test case." . format(len(all_files)))
+    time_start = time.time()
     for filepath in all_files:
         error = run_test(filepath)
+        testname = test_get_name(filepath)
         if error:
             if error == "NO_CYCLES":
-                print("Can't perform tests because Cycles failed to load!")
                 return False
             elif error == "NO_START":
-                print('Can not perform tests because blender fails to start.',
-                      'Make sure INSTALL target was run.')
                 return False
-            elif error == 'VERIFY':
-                pass
-            else:
-                print("Unknown error %r" % error)
-            testname = test_get_name(filepath)
             failed_tests.append(testname)
+        else:
+            passed_tests.append(testname)
+    time_end = time.time()
+    elapsed_ms = int((time_end - time_start) * 1000)
+    print("")
+    printMessage('SUCCESS', "==========",
+                 "{} tests from 1 test case ran. ({} ms total)" .
+                 format(len(all_files), elapsed_ms))
+    printMessage('SUCCESS', 'PASSED', "{} tests." .
+                 format(len(passed_tests)))
     if failed_tests:
+        printMessage('FAILURE', 'FAILED', "{} tests, listed below:" .
+                     format(len(failed_tests)))
         failed_tests.sort()
-        print("\n\nFAILED tests:")
         for test in failed_tests:
-            print("   ", test)
+            printMessage('FAILURE', "FAILED", "{}" . format(test))
         return False
     return True
 
@@ -145,9 +206,13 @@ def main():
     parser = create_argparse()
     args = parser.parse_args()
 
+    global COLORS
     global BLENDER, ROOT, IDIFF
     global TEMP_FILE, TEMP_FILE_MASK, TEST_SCRIPT
     global VERBOSE
+
+    if os.environ.get("CYCLESTEST_COLOR") is not None:
+        COLORS = COLORS_ANSI
 
     BLENDER = args.blender[0]
     ROOT = args.testdir[0]
