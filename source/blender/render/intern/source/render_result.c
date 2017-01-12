@@ -550,10 +550,12 @@ RenderPass *gp_add_pass(RenderResult *rr, RenderLayer *rl, int channels, int pas
 const char *RE_debug_pass_name_get(int debug_type)
 {
 	switch (debug_type) {
-		case RENDER_PASS_DEBUG_BVH_TRAVERSAL_STEPS:
-			return "BVH Traversal Steps";
+		case RENDER_PASS_DEBUG_BVH_TRAVERSED_NODES:
+			return "BVH Traversed Nodes";
 		case RENDER_PASS_DEBUG_BVH_TRAVERSED_INSTANCES:
 			return "BVH Traversed Instances";
+		case RENDER_PASS_DEBUG_BVH_INTERSECTIONS:
+			return "BVH Primitive Intersections";
 		case RENDER_PASS_DEBUG_RAY_BOUNCES:
 			return "Ray Bounces";
 	}
