@@ -435,6 +435,7 @@ bool BVHBuild::range_within_max_leaf_size(const BVHRange& range,
 		return false;
 
 	size_t num_triangles = 0;
+	size_t num_motion_triangles = 0;
 	size_t num_curves = 0;
 	size_t num_motion_curves = 0;
 
@@ -445,13 +446,16 @@ bool BVHBuild::range_within_max_leaf_size(const BVHRange& range,
 			num_curves++;
 		if(ref.prim_type() & PRIMITIVE_MOTION_CURVE)
 			num_motion_curves++;
-		else if(ref.prim_type() & PRIMITIVE_ALL_TRIANGLE)
+		else if(ref.prim_type() & PRIMITIVE_TRIANGLE)
 			num_triangles++;
+		else if(ref.prim_type() & PRIMITIVE_MOTION_TRIANGLE)
+			num_motion_triangles++;
 	}
 
 	return (num_triangles <= params.max_triangle_leaf_size) &&
+	       (num_motion_triangles <= params.max_motion_triangle_leaf_size) &&
 	       (num_curves <= params.max_curve_leaf_size) &&
-	       (num_motion_curves <= params.max_curve_leaf_size);
+	       (num_motion_curves <= params.max_motion_curve_leaf_size);
 }
 
 /* multithreaded binning builder */
