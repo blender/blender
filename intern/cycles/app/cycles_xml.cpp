@@ -523,7 +523,7 @@ static void xml_read_mesh(const XMLReadState& state, pugi::xml_node node)
 
 	/* we don't yet support arbitrary attributes, for now add vertex
 	 * coordinates as generated coordinates if requested */
-	if (mesh->need_attribute(state.scene, ATTR_STD_GENERATED)) {
+	if(mesh->need_attribute(state.scene, ATTR_STD_GENERATED)) {
 		Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED);
 		memcpy(attr->data_float3(), mesh->verts.data(), sizeof(float3)*mesh->verts.size());
 	}
