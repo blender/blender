@@ -156,12 +156,13 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 
 		size_t num_curves = mesh->num_curves();
 		for(uint j = 0; j < num_curves; j++) {
-			Mesh::Curve curve = mesh->get_curve(j);
+			const Mesh::Curve curve = mesh->get_curve(j);
 			PrimitiveType type = PRIMITIVE_CURVE;
+			const float *curve_radius = &mesh->curve_radius[0];
 
 			for(int k = 0; k < curve.num_keys - 1; k++) {
 				BoundBox bounds = BoundBox::empty;
-				curve.bounds_grow(k, &mesh->curve_keys[0], &mesh->curve_radius[0], bounds);
+				curve.bounds_grow(k, &mesh->curve_keys[0], curve_radius, bounds);
 
 				/* motion curve */
 				if(curve_attr_mP) {
@@ -170,7 +171,7 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 					const float3 *key_steps = curve_attr_mP->data_float3();
 
 					for(size_t step = 0; step < num_steps; step++) {
-						curve.bounds_grow(k, key_steps + step*mesh_size, &mesh->curve_radius[0], bounds);
+						curve.bounds_grow(k, key_steps + step*mesh_size, curve_radius, bounds);
 					}
 
 					type = PRIMITIVE_MOTION_CURVE;
