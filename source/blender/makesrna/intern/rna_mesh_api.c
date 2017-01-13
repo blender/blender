@@ -241,7 +241,7 @@ void RNA_api_mesh(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Free split vertex normals");
 
 	func = RNA_def_function(srna, "split_faces", "BKE_mesh_split_faces");
-	RNA_def_function_ui_description(func, "Spli faces based on the edge angle");
+	RNA_def_function_ui_description(func, "Split faces based on the edge angle");
 
 	func = RNA_def_function(srna, "calc_tangents", "rna_Mesh_calc_tangents");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
@@ -320,4 +320,3 @@ void RNA_api_mesh(StructRNA *srna)
 }
 
 #endif
-
