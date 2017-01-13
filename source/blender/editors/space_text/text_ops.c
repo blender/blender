@@ -248,6 +248,7 @@ static int text_open_exec(bContext *C, wmOperator *op)
 	pprop = op->customdata;
 
 	if (pprop->prop) {
+		id_us_ensure_real(&text->id);
 		RNA_id_pointer_create(&text->id, &idptr);
 		RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr);
 		RNA_property_update(C, &pprop->ptr, pprop->prop);
