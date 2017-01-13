@@ -165,12 +165,13 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 
 				/* motion curve */
 				if(curve_attr_mP) {
-					size_t mesh_size = mesh->curve_keys.size();
-					size_t steps = mesh->motion_steps - 1;
-					float3 *key_steps = curve_attr_mP->data_float3();
+					const size_t mesh_size = mesh->curve_keys.size();
+					const size_t num_steps = mesh->motion_steps - 1;
+					const float3 *key_steps = curve_attr_mP->data_float3();
 
-					for(size_t i = 0; i < steps; i++)
-						curve.bounds_grow(k, key_steps + i*mesh_size, &mesh->curve_radius[0], bounds);
+					for(size_t step = 0; step < num_steps; step++) {
+						curve.bounds_grow(k, key_steps + step*mesh_size, &mesh->curve_radius[0], bounds);
+					}
 
 					type = PRIMITIVE_MOTION_CURVE;
 				}
