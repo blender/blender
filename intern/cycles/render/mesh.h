@@ -100,6 +100,38 @@ public:
 		                 const float *curve_radius,
 		                 const Transform& aligned_space,
 		                 BoundBox& bounds) const;
+
+		void motion_keys(const float3 *curve_keys,
+		                 const float *curve_radius,
+		                 const float3 *key_steps,
+		                 size_t num_steps,
+		                 float time,
+		                 size_t k0, size_t k1,
+		                 float4 r_keys[2]) const;
+		void cardinal_motion_keys(const float3 *curve_keys,
+		                          const float *curve_radius,
+		                          const float3 *key_steps,
+		                          size_t num_steps,
+		                          float time,
+		                          size_t k0, size_t k1,
+		                          size_t k2, size_t k3,
+		                          float4 r_keys[4]) const;
+
+		void keys_for_step(const float3 *curve_keys,
+		                   const float *curve_radius,
+		                   const float3 *key_steps,
+		                   size_t num_steps,
+		                   size_t step,
+		                   size_t k0, size_t k1,
+		                   float4 r_keys[2]) const;
+		void cardinal_keys_for_step(const float3 *curve_keys,
+		                            const float *curve_radius,
+		                            const float3 *key_steps,
+		                            size_t num_steps,
+		                            size_t step,
+		                            size_t k0, size_t k1,
+		                            size_t k2, size_t k3,
+		                            float4 r_keys[4]) const;
 	};
 
 	Curve get_curve(size_t i) const

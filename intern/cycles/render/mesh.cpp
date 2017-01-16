@@ -162,6 +162,171 @@ void Mesh::Curve::bounds_grow(const int k,
 	bounds.grow(upper, mr);
 }
 
+void Mesh::Curve::motion_keys(const float3 *curve_keys,
+                              const float *curve_radius,
+                              const float3 *key_steps,
+                              size_t num_steps,
+                              float time,
+                              size_t k0, size_t k1,
+                              float4 r_keys[2]) const
+{
+	/* Figure out which steps we need to fetch and their interpolation factor. */
+	const size_t max_step = num_steps - 1;
+	const size_t step = min((int)(time * max_step), max_step - 1);
+	const float t = time*max_step - step;
+	/* Fetch vertex coordinates. */
+	float4 curr_keys[2];
+	float4 next_keys[2];
+	keys_for_step(curve_keys,
+	              curve_radius,
+	              key_steps,
+	              num_steps,
+	              step,
+	              k0, k1,
+	              curr_keys);
+	keys_for_step(curve_keys,
+	              curve_radius,
+	              key_steps,
+	              num_steps,
+	              step + 1,
+	              k0, k1,
+	              next_keys);
+	/* Interpolate between steps. */
+	r_keys[0] = (1.0f - t)*curr_keys[0] + t*next_keys[0];
+	r_keys[1] = (1.0f - t)*curr_keys[1] + t*next_keys[1];
+}
+
+void Mesh::Curve::cardinal_motion_keys(const float3 *curve_keys,
+                                       const float *curve_radius,
+                                       const float3 *key_steps,
+                                       size_t num_steps,
+                                       float time,
+                                       size_t k0, size_t k1,
+                                       size_t k2, size_t k3,
+                                       float4 r_keys[4]) const
+{
+	/* Figure out which steps we need to fetch and their interpolation factor. */
+	const size_t max_step = num_steps - 1;
+	const size_t step = min((int)(time * max_step), max_step - 1);
+	const float t = time*max_step - step;
+	/* Fetch vertex coordinates. */
+	float4 curr_keys[4];
+	float4 next_keys[4];
+	cardinal_keys_for_step(curve_keys,
+	                       curve_radius,
+	                       key_steps,
+	                       num_steps,
+	                       step,
+	                       k0, k1, k2, k3,
+	                       curr_keys);
+	cardinal_keys_for_step(curve_keys,
+	                       curve_radius,
+	                       key_steps,
+	                       num_steps,
+	                       step + 1,
+	                       k0, k1, k2, k3,
+	                       next_keys);
+	/* Interpolate between steps. */
+	r_keys[0] = (1.0f - t)*curr_keys[0] + t*next_keys[0];
+	r_keys[1] = (1.0f - t)*curr_keys[1] + t*next_keys[1];
+	r_keys[2] = (1.0f - t)*curr_keys[2] + t*next_keys[2];
+	r_keys[3] = (1.0f - t)*curr_keys[3] + t*next_keys[3];
+}
+
+void Mesh::Curve::keys_for_step(const float3 *curve_keys,
+                                const float *curve_radius,
+                                const float3 *key_steps,
+                                size_t num_steps,
+                                size_t step,
+                                size_t k0, size_t k1,
+                                float4 r_keys[2]) const
+{
+	const size_t center_step = ((num_steps - 1) / 2);
+	if(step == center_step) {
+		/* Center step: regular key location. */
+		/* TODO(sergey): Consider adding make_float4(float3, float)
+		 * function.
+		 */
+		r_keys[0] = make_float4(curve_keys[first_key + k0].x,
+		                        curve_keys[first_key + k0].y,
+		                        curve_keys[first_key + k0].z,
+		                        curve_radius[k0]);
+		r_keys[1] = make_float4(curve_keys[first_key + k1].x,
+		                        curve_keys[first_key + k1].y,
+		                        curve_keys[first_key + k1].z,
+		                        curve_radius[k1]);
+	}
+	else {
+		/* Center step is not stored in this array. */
+		if(step > center_step) {
+			step--;
+		}
+		const size_t offset = first_key + step * num_keys;
+		r_keys[0] = make_float4(key_steps[offset + k0].x,
+		                        key_steps[offset + k0].y,
+		                        key_steps[offset + k0].z,
+		                        curve_radius[k0]);
+		r_keys[1] = make_float4(key_steps[offset + k1].x,
+		                        key_steps[offset + k1].y,
+		                        key_steps[offset + k1].z,
+		                        curve_radius[k1]);
+	}
+}
+
+void Mesh::Curve::cardinal_keys_for_step(const float3 *curve_keys,
+                                         const float *curve_radius,
+                                         const float3 *key_steps,
+                                         size_t num_steps,
+                                         size_t step,
+                                         size_t k0, size_t k1,
+                                         size_t k2, size_t k3,
+                                         float4 r_keys[4]) const
+{
+	const size_t center_step = ((num_steps - 1) / 2);
+	if(step == center_step) {
+		/* Center step: regular key location. */
+		r_keys[0] = make_float4(curve_keys[first_key + k0].x,
+		                        curve_keys[first_key + k0].y,
+		                        curve_keys[first_key + k0].z,
+		                        curve_radius[k0]);
+		r_keys[1] = make_float4(curve_keys[first_key + k1].x,
+		                        curve_keys[first_key + k1].y,
+		                        curve_keys[first_key + k1].z,
+		                        curve_radius[k1]);
+		r_keys[2] = make_float4(curve_keys[first_key + k2].x,
+		                        curve_keys[first_key + k2].y,
+		                        curve_keys[first_key + k2].z,
+		                        curve_radius[k2]);
+		r_keys[3] = make_float4(curve_keys[first_key + k3].x,
+		                        curve_keys[first_key + k3].y,
+		                        curve_keys[first_key + k3].z,
+		                        curve_radius[k3]);
+	}
+	else {
+		/* Center step is not stored in this array. */
+		if(step > center_step) {
+			step--;
+		}
+		const size_t offset = first_key + step * num_keys;
+		r_keys[0] = make_float4(key_steps[offset + k0].x,
+		                        key_steps[offset + k0].y,
+		                        key_steps[offset + k0].z,
+		                        curve_radius[k0]);
+		r_keys[1] = make_float4(key_steps[offset + k1].x,
+		                        key_steps[offset + k1].y,
+		                        key_steps[offset + k1].z,
+		                        curve_radius[k1]);
+		r_keys[2] = make_float4(key_steps[offset + k2].x,
+		                        key_steps[offset + k2].y,
+		                        key_steps[offset + k2].z,
+		                        curve_radius[k2]);
+		r_keys[3] = make_float4(key_steps[offset + k3].x,
+		                        key_steps[offset + k3].y,
+		                        key_steps[offset + k3].z,
+		                        curve_radius[k3]);
+	}
+}
+
 /* SubdFace */
 
 float3 Mesh::SubdFace::normal(const Mesh *mesh) const
