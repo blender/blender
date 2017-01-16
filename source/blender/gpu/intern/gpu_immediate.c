@@ -28,6 +28,7 @@
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "UI_resources.h"
+#include "BLI_utildefines.h"
 
 #include "gpu_shader_private.h"
 
@@ -70,4 +71,11 @@ void immUniformThemeColorBlend(int color_id1, int color_id2, float fac)
 	uint8_t color[3];
 	UI_GetThemeColorBlend3ubv(color_id1, color_id2, fac, color);
 	immUniformColor3ubv(color);
+}
+
+void immThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset)
+{
+	unsigned char col[4];
+	UI_GetThemeColorShadeAlpha4ubv(colorid, coloffset, alphaoffset, col);
+	immUniformColor4ub(col[0], col[1], col[2], col[3]);
 }

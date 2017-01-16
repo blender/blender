@@ -53,8 +53,8 @@
 
 #include "UI_interface.h"
 
-
-void fdrawline(float x1, float y1, float x2, float y2) /* DEPRECATED */
+/* DEPRECATED: use imm_draw_line instead */
+void fdrawline(float x1, float y1, float x2, float y2)
 {
 	glBegin(GL_LINES);
 	glVertex2f(x1, y1);
@@ -210,6 +210,14 @@ void imm_draw_line_box(unsigned pos, float x1, float y1, float x2, float y2)
 	immVertex2f(pos, x1, y2);
 	immVertex2f(pos, x2, y2);
 	immVertex2f(pos, x2, y1);
+	immEnd();
+}
+
+void imm_draw_line(unsigned pos, float x1, float y1, float x2, float y2)
+{
+	immBegin(PRIM_LINES, 2);
+	immVertex2f(pos, x1, y1);
+	immVertex2f(pos, x2, y2);
 	immEnd();
 }
 

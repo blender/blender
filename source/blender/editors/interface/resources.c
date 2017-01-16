@@ -1307,6 +1307,27 @@ void UI_ThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset)
 	glColor4ub(r, g, b, a);
 }
 
+void UI_GetThemeColorShadeAlpha4ubv(int colorid, int coloffset, int alphaoffset, unsigned char col[4])
+{
+	int r, g, b, a;
+	const unsigned char *cp;
+	
+	cp = UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+	r = coloffset + (int) cp[0];
+	CLAMP(r, 0, 255);
+	g = coloffset + (int) cp[1];
+	CLAMP(g, 0, 255);
+	b = coloffset + (int) cp[2];
+	CLAMP(b, 0, 255);
+	a = alphaoffset + (int) cp[3];
+	CLAMP(a, 0, 255);
+
+	col[0] = r;
+	col[1] = g;
+	col[2] = b;
+	col[3] = a;
+}
+
 void UI_GetThemeColorBlend3ubv(int colorid1, int colorid2, float fac, unsigned char col[3])
 {
 	const unsigned char *cp1, *cp2;

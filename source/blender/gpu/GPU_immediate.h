@@ -46,3 +46,5 @@ void immUniformThemeColorShade(int color_id, int offset);
 void immUniformThemeColorShadeAlpha(int color_id, int color_offset, int alpha_offset);
 void immUniformThemeColorBlendShade(int color_id1, int color_id2, float fac, int offset);
 void immUniformThemeColorBlend(int color_id1, int color_id2, float fac);
+void immThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset);
+

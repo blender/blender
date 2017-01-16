@@ -1681,20 +1681,32 @@ static void outliner_draw_struct_marks(ARegion *ar, SpaceOops *soops, ListBase *
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
-	
+
 	for (te = lb->first; te; te = te->next) {
 		tselem = TREESTORE(te);
 		
 		/* selection status */
 		if (TSELEM_OPEN(tselem, soops))
-			if (tselem->type == TSE_RNA_STRUCT)
-				glRecti(0, *starty + 1, (int)ar->v2d.cur.xmax, *starty + UI_UNIT_Y - 1);
+			if (tselem->type == TSE_RNA_STRUCT) {
+				VertexFormat *format = immVertexFormat();
+				unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+				immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+				immThemeColorShadeAlpha(TH_BACK, -15, -200);
+				immRecti(pos, 0, *starty + 1, (int)ar->v2d.cur.xmax, *starty + UI_UNIT_Y - 1);
+				immUnbindProgram();
+			}
 
 		*starty -= UI_UNIT_Y;
 		if (TSELEM_OPEN(tselem, soops)) {
 			outliner_draw_struct_marks(ar, soops, &te->subtree, starty);
-			if (tselem->type == TSE_RNA_STRUCT)
-				fdrawline(0, (float)*starty + UI_UNIT_Y, ar->v2d.cur.xmax, (float)*starty + UI_UNIT_Y);
+			if (tselem->type == TSE_RNA_STRUCT) {
+				VertexFormat *format = immVertexFormat();
+				unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+				immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+				immThemeColorShadeAlpha(TH_BACK, -15, -200);
+				imm_draw_line(pos, 0, (float)*starty + UI_UNIT_Y, ar->v2d.cur.xmax, (float)*starty + UI_UNIT_Y);
+				immUnbindProgram();
+			}
 		}
 	}
 }
@@ -1768,8 +1780,6 @@ static void outliner_draw_tree(
 
 	if (ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {
 		/* struct marks */
-		UI_ThemeColorShadeAlpha(TH_BACK, -15, -200);
-		//UI_ThemeColorShade(TH_BACK, -20);
 		starty = (int)ar->v2d.tot.ymax - UI_UNIT_Y - OL_Y_OFFSET;
 		outliner_draw_struct_marks(ar, soops, &soops->tree, &starty);
 	}
