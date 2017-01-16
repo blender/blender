@@ -36,6 +36,7 @@
 #include "BLI_array_utils.h"
 #include "BLI_bitmap.h"
 #include "BLI_stack.h"
+#include "BLI_string_utils.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -275,7 +276,7 @@ static int wpaint_mirror_vgroup_ensure(Object *ob, const int vgroup_active)
 		int mirrdef;
 		char name_flip[MAXBONENAME];
 
-		BKE_deform_flip_side_name(name_flip, defgroup->name, false, sizeof(name_flip));
+		BLI_string_flip_side_name(name_flip, defgroup->name, false, sizeof(name_flip));
 		mirrdef = defgroup_name_index(ob, name_flip);
 		if (mirrdef == -1) {
 			if (BKE_defgroup_new(ob, name_flip)) {

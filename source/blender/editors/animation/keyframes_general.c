@@ -37,6 +37,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_string_utils.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
@@ -668,7 +669,7 @@ static void flip_names(tAnimCopybufItem *aci, char **name)
 
 			/* more ninja stuff, temporary substitute with NULL terminator */
 			str_start[length] = 0;
-			BKE_deform_flip_side_name(bname_new, str_start, false, sizeof(bname_new));
+			BLI_string_flip_side_name(bname_new, str_start, false, sizeof(bname_new));
 			str_start[length] = '\"';
 
 			str_iter = *name = MEM_mallocN(sizeof(char) * (prefix_l + postfix_l + length + 1), "flipped_path");

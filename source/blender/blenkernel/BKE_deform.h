@@ -116,12 +116,4 @@ void BKE_defvert_extract_vgroup_to_polyweights(
         struct MDeformVert *dvert, const int defgroup, const int num_verts, struct MLoop *loops, const int num_loops,
         struct MPoly *polys, const int num_polys, float *r_weights, const bool invert_vgroup);
 
-/* utility function, note that MAX_VGROUP_NAME chars is the maximum string length since its only
- * used with defgroups currently */
-
-void BKE_deform_split_suffix(const char *string, char *r_body, char *r_suf, const size_t str_len);
-void BKE_deform_split_prefix(const char *string, char *r_pre, char *r_body, const size_t str_len);
-
-void BKE_deform_flip_side_name(char *r_name, const char *from_name, const bool strip_number, const size_t name_len);
-
 #endif  /* __BKE_DEFORM_H__ */

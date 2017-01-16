@@ -90,6 +90,184 @@ int BLI_split_name_num(char *left, int *nr, const char *name, const char delim)
 	return name_len;
 }
 
+static bool is_char_sep(const char c)
+{
+	return ELEM(c, '.', ' ', '-', '_');
+}
+
+/**
+ * based on `BLI_split_dirfile()` / `os.path.splitext()`,
+ * `"a.b.c"` -> (`"a.b"`, `".c"`).
+ */
+void BLI_string_split_suffix(const char *string, char *r_body, char *r_suf, const size_t str_len)
+{
+	size_t len = BLI_strnlen(string, str_len);
+	size_t i;
+
+	r_body[0] = r_suf[0] = '\0';
+
+	for (i = len; i > 0; i--) {
+		if (is_char_sep(string[i])) {
+			BLI_strncpy(r_body, string, i + 1);
+			BLI_strncpy(r_suf, string + i,  (len + 1) - i);
+			return;
+		}
+	}
+
+	memcpy(r_body, string, len + 1);
+}
+
+/**
+ * `"a.b.c"` -> (`"a."`, `"b.c"`)
+ */
+void BLI_string_split_prefix(const char *string, char *r_pre, char *r_body, const size_t str_len)
+{
+	size_t len = BLI_strnlen(string, str_len);
+	size_t i;
+
+	r_body[0] = r_pre[0] = '\0';
+
+	for (i = 1; i < len; i++) {
+		if (is_char_sep(string[i])) {
+			i++;
+			BLI_strncpy(r_pre, string, i + 1);
+			BLI_strncpy(r_body, string + i, (len + 1) - i);
+			return;
+		}
+	}
+
+	BLI_strncpy(r_body, string, len);
+}
+
+/**
+ * Finds the best possible flipped (left/right) name. For renaming; check for unique names afterwards.
+ *
+ * \param r_name flipped name, assumed to be a pointer to a string of at least \a name_len size.
+ * \param from_name original name, assumed to be a pointer to a string of at least \a name_len size.
+ * \param strip_number If set, remove number extensions.
+ */
+void BLI_string_flip_side_name(char *r_name, const char *from_name, const bool strip_number, const size_t name_len)
+{
+	size_t len;
+	char *prefix  = alloca(name_len);   /* The part before the facing */
+	char *suffix  = alloca(name_len);   /* The part after the facing */
+	char *replace = alloca(name_len);   /* The replacement string */
+	char *number  = alloca(name_len);   /* The number extension string */
+	char *index = NULL;
+	bool is_set = false;
+
+	*prefix = *suffix = *replace = *number = '\0';
+
+	/* always copy the name, since this can be called with an uninitialized string */
+	BLI_strncpy(r_name, from_name, name_len);
+
+	len = BLI_strnlen(from_name, name_len);
+	if (len < 3) {
+		/* we don't do names like .R or .L */
+		return;
+	}
+
+	/* We first check the case with a .### extension, let's find the last period */
+	if (isdigit(r_name[len - 1])) {
+		index = strrchr(r_name, '.'); // last occurrence
+		if (index && isdigit(index[1])) { // doesnt handle case bone.1abc2 correct..., whatever!
+			if (strip_number == false) {
+				BLI_strncpy(number, index, name_len);
+			}
+			*index = 0;
+			len = BLI_strnlen(r_name, name_len);
+		}
+	}
+
+	BLI_strncpy(prefix, r_name, name_len);
+
+	/* first case; separator . - _ with extensions r R l L  */
+	if ((len > 1) && is_char_sep(r_name[len - 2])) {
+		is_set = true;
+		switch (r_name[len - 1]) {
+			case 'l':
+				prefix[len - 1] = 0;
+				strcpy(replace, "r");
+				break;
+			case 'r':
+				prefix[len - 1] = 0;
+				strcpy(replace, "l");
+				break;
+			case 'L':
+				prefix[len - 1] = 0;
+				strcpy(replace, "R");
+				break;
+			case 'R':
+				prefix[len - 1] = 0;
+				strcpy(replace, "L");
+				break;
+			default:
+				is_set = false;
+		}
+	}
+
+	/* case; beginning with r R l L, with separator after it */
+	if (!is_set && is_char_sep(r_name[1])) {
+		is_set = true;
+		switch (r_name[0]) {
+			case 'l':
+				strcpy(replace, "r");
+				BLI_strncpy(suffix, r_name + 1, name_len);
+				prefix[0] = 0;
+				break;
+			case 'r':
+				strcpy(replace, "l");
+				BLI_strncpy(suffix, r_name + 1, name_len);
+				prefix[0] = 0;
+				break;
+			case 'L':
+				strcpy(replace, "R");
+				BLI_strncpy(suffix, r_name + 1, name_len);
+				prefix[0] = 0;
+				break;
+			case 'R':
+				strcpy(replace, "L");
+				BLI_strncpy(suffix, r_name + 1, name_len);
+				prefix[0] = 0;
+				break;
+			default:
+				is_set = false;
+		}
+	}
+
+	if (!is_set && len > 5) {
+		/* hrms, why test for a separator? lets do the rule 'ultimate left or right' */
+		if (((index = BLI_strcasestr(prefix, "right")) == prefix) ||
+		    (index == prefix + len - 5))
+		{
+			is_set = true;
+			if (index[0] == 'r') {
+				strcpy(replace, "left");
+			}
+			else {
+				strcpy(replace, (index[1] == 'I') ? "LEFT" : "Left");
+			}
+			*index = 0;
+			BLI_strncpy(suffix, index + 5, name_len);
+		}
+		else if (((index = BLI_strcasestr(prefix, "left")) == prefix) ||
+		         (index == prefix + len - 4))
+		{
+			is_set = true;
+			if (index[0] == 'l') {
+				strcpy(replace, "right");
+			}
+			else {
+				strcpy(replace, (index[1] == 'E') ? "RIGHT" : "Right");
+			}
+			*index = 0;
+			BLI_strncpy(suffix, index + 4, name_len);
+		}
+	}
+
+	BLI_snprintf(r_name, name_len, "%s%s%s%s", prefix, replace, suffix, number);
+}
+
 
 /* Unique name utils. */
 

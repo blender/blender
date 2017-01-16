@@ -46,6 +46,11 @@ typedef bool (*UniquenameCheckCallback)(void *arg, const char *name);
 
 int BLI_split_name_num(char *left, int *nr, const char *name, const char delim);
 
+void BLI_string_split_suffix(const char *string, char *r_body, char *r_suf, const size_t str_len);
+void BLI_string_split_prefix(const char *string, char *r_pre, char *r_body, const size_t str_len);
+
+void BLI_string_flip_side_name(char *r_name, const char *from_name, const bool strip_number, const size_t name_len);
+
 bool BLI_uniquename_cb(
         UniquenameCheckCallback unique_check, void *arg, const char *defname, char delim, char *name, size_t name_len);
 bool BLI_uniquename(

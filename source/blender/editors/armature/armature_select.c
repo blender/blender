@@ -35,9 +35,10 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_string_utils.h"
 
 #include "BKE_context.h"
-#include "BKE_deform.h"
+//#include "BKE_deform.h"
 #include "BKE_report.h"
 
 #include "BIF_gl.h"
@@ -820,7 +821,7 @@ static void select_similar_prefix(bArmature *arm, EditBone *ebone_act)
 	char body_tmp[MAXBONENAME];
 	char prefix_act[MAXBONENAME];
 
-	BKE_deform_split_prefix(ebone_act->name, prefix_act, body_tmp, sizeof(ebone_act->name));
+	BLI_string_split_prefix(ebone_act->name, prefix_act, body_tmp, sizeof(ebone_act->name));
 
 	if (prefix_act[0] == '\0')
 		return;
@@ -829,7 +830,7 @@ static void select_similar_prefix(bArmature *arm, EditBone *ebone_act)
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		if (EBONE_SELECTABLE(arm, ebone)) {
 			char prefix_other[MAXBONENAME];
-			BKE_deform_split_prefix(ebone->name, prefix_other, body_tmp, sizeof(ebone->name));
+			BLI_string_split_prefix(ebone->name, prefix_other, body_tmp, sizeof(ebone->name));
 			if (STREQ(prefix_act, prefix_other)) {
 				ED_armature_ebone_select_set(ebone, true);
 			}
@@ -844,7 +845,7 @@ static void select_similar_suffix(bArmature *arm, EditBone *ebone_act)
 	char body_tmp[MAXBONENAME];
 	char suffix_act[MAXBONENAME];
 
-	BKE_deform_split_suffix(ebone_act->name, body_tmp, suffix_act, sizeof(ebone_act->name));
+	BLI_string_split_suffix(ebone_act->name, body_tmp, suffix_act, sizeof(ebone_act->name));
 
 	if (suffix_act[0] == '\0')
 		return;
@@ -853,7 +854,7 @@ static void select_similar_suffix(bArmature *arm, EditBone *ebone_act)
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		if (EBONE_SELECTABLE(arm, ebone)) {
 			char suffix_other[MAXBONENAME];
-			BKE_deform_split_suffix(ebone->name, body_tmp, suffix_other, sizeof(ebone->name));
+			BLI_string_split_suffix(ebone->name, body_tmp, suffix_other, sizeof(ebone->name));
 			if (STREQ(suffix_act, suffix_other)) {
 				ED_armature_ebone_select_set(ebone, true);
 			}

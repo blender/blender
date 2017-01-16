@@ -39,6 +39,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_ghash.h"
+#include "BLI_string_utils.h"
 
 #include "BKE_action.h"
 #include "BKE_constraint.h"
@@ -621,7 +622,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 		{
 			char name_flip[MAXBONENAME];
 
-			BKE_deform_flip_side_name(name_flip, ebone_iter->name, false, sizeof(name_flip));
+			BLI_string_flip_side_name(name_flip, ebone_iter->name, false, sizeof(name_flip));
 
 			if (STREQ(name_flip, ebone_iter->name)) {
 				/* if the name matches, we don't have the potential to be mirrored, just skip */
@@ -681,7 +682,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 		{
 			char name_flip[MAXBONENAME];
 
-			BKE_deform_flip_side_name(name_flip, ebone_iter->name, false, sizeof(name_flip));
+			BLI_string_flip_side_name(name_flip, ebone_iter->name, false, sizeof(name_flip));
 
 			/* bones must have a side-suffix */
 			if (!STREQ(name_flip, ebone_iter->name)) {
