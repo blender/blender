@@ -1131,7 +1131,7 @@ static int object_select_mirror_exec(bContext *C, wmOperator *op)
 	{
 		char name_flip[MAXBONENAME];
 
-		BKE_deform_flip_side_name(name_flip, primbase->object->id.name + 2, true);
+		BKE_deform_flip_side_name(name_flip, primbase->object->id.name + 2, true, sizeof(name_flip));
 		
 		if (!STREQ(name_flip, primbase->object->id.name + 2)) {
 			Object *ob = (Object *)BKE_libblock_find_name(ID_OB, name_flip);

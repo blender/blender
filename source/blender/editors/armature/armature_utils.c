@@ -262,7 +262,7 @@ EditBone *ED_armature_bone_get_mirrored(const ListBase *edbo, EditBone *ebo)
 	if (ebo == NULL)
 		return NULL;
 	
-	BKE_deform_flip_side_name(name_flip, ebo->name, false);
+	BKE_deform_flip_side_name(name_flip, ebo->name, false, sizeof(name_flip));
 	
 	if (!STREQ(name_flip, ebo->name)) {
 		return ED_armature_bone_find_name(edbo, name_flip);

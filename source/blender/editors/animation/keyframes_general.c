@@ -668,7 +668,7 @@ static void flip_names(tAnimCopybufItem *aci, char **name)
 
 			/* more ninja stuff, temporary substitute with NULL terminator */
 			str_start[length] = 0;
-			BKE_deform_flip_side_name(bname_new, str_start, false);
+			BKE_deform_flip_side_name(bname_new, str_start, false, sizeof(bname_new));
 			str_start[length] = '\"';
 
 			str_iter = *name = MEM_mallocN(sizeof(char) * (prefix_l + postfix_l + length + 1), "flipped_path");

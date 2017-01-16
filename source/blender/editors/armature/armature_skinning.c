@@ -360,7 +360,7 @@ static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, 
 		if (dgroup && mirror) {
 			char name_flip[MAXBONENAME];
 
-			BKE_deform_flip_side_name(name_flip, dgroup->name, false);
+			BKE_deform_flip_side_name(name_flip, dgroup->name, false, sizeof(name_flip));
 			dgroupflip[j] = defgroup_find_name(ob, name_flip);
 		}
 	}

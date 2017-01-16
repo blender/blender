@@ -623,7 +623,7 @@ void BKE_object_defgroup_mirror_selection(
 		if (dg_selection[i]) {
 			char name_flip[MAXBONENAME];
 
-			BKE_deform_flip_side_name(name_flip, defgroup->name, false);
+			BKE_deform_flip_side_name(name_flip, defgroup->name, false, sizeof(name_flip));
 			i_mirr = STREQ(name_flip, defgroup->name) ? i : defgroup_name_index(ob, name_flip);
 
 			if ((i_mirr >= 0 && i_mirr < defbase_tot) && (dg_flags_sel[i_mirr] == false)) {

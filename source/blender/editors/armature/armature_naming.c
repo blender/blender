@@ -328,7 +328,7 @@ void ED_armature_bones_flip_names(bArmature *arm, ListBase *bones_names)
 
 		/* Do not strip numbers, otherwise we'll end up with completely mismatched names in cases like
 		 * Bone.R, Bone.R.001, Bone.R.002, etc. */
-		BKE_deform_flip_side_name(name_flip, name, false);
+		BKE_deform_flip_side_name(name_flip, name, false, sizeof(name_flip));
 
 		ED_armature_bone_rename(arm, name, name_flip);
 
