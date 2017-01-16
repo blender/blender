@@ -47,8 +47,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
-#include "BLI_path_util.h"
 
 #include "BKE_action.h"
 #include "BKE_context.h"

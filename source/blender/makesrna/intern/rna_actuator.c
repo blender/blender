@@ -32,8 +32,9 @@
 #include "DNA_actuator_types.h"
 #include "DNA_scene_types.h" /* for MAXFRAME */
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_string_utils.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 

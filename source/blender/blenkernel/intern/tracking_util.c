@@ -42,8 +42,8 @@
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_ghash.h"
-#include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 
 #include "BLT_translation.h"
 

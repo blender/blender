@@ -29,6 +29,7 @@
 #include "DNA_object_types.h"
 #include "DNA_controller_types.h"
 
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"

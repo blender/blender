@@ -32,7 +32,7 @@
 
 #include <string.h>
 #include "BLI_utildefines.h"
-#include "BLI_path_util.h"
+#include "BLI_string_utils.h"
 
 #include "BKE_context.h"
 
