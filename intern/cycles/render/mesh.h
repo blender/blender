@@ -31,6 +31,7 @@
 
 CCL_NAMESPACE_BEGIN
 
+class Attribute;
 class BVH;
 class Device;
 class DeviceScene;
@@ -54,11 +55,27 @@ public:
 		int v[3];
 
 		void bounds_grow(const float3 *verts, BoundBox& bounds) const;
+
+		void motion_verts(const float3 *verts,
+		                  const float3 *vert_steps,
+		                  size_t num_verts,
+		                  size_t num_steps,
+		                  float time,
+		                  float3 r_verts[3]) const;
+
+		void verts_for_step(const float3 *verts,
+		                    const float3 *vert_steps,
+		                    size_t num_verts,
+		                    size_t num_steps,
+		                    size_t step,
+		                    float3 r_verts[3]) const;
 	};
 
 	Triangle get_triangle(size_t i) const
 	{
-		Triangle tri = {{triangles[i*3 + 0], triangles[i*3 + 1], triangles[i*3 + 2]}};
+		Triangle tri = {{triangles[i*3 + 0],
+		                 triangles[i*3 + 1],
+		                 triangles[i*3 + 2]}};
 		return tri;
 	}
 

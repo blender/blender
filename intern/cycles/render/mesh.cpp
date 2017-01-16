@@ -49,6 +49,54 @@ void Mesh::Triangle::bounds_grow(const float3 *verts, BoundBox& bounds) const
 	bounds.grow(verts[v[2]]);
 }
 
+void Mesh::Triangle::motion_verts(const float3 *verts,
+                                  const float3 *vert_steps,
+                                  size_t num_verts,
+                                  size_t num_steps,
+                                  float time,
+                                  float3 r_verts[3]) const
+{
+	/* Figure out which steps we need to fetch and their interpolation factor. */
+	const size_t max_step = num_steps - 1;
+	const size_t step = min((int)(time * max_step), max_step - 1);
+	const float t = time*max_step - step;
+	/* Fetch vertex coordinates. */
+	float3 curr_verts[3];
+	float3 next_verts[3];
+	verts_for_step(verts, vert_steps, num_verts, num_steps, step, curr_verts);
+	verts_for_step(verts, vert_steps, num_verts, num_steps, step + 1, next_verts);
+	/* Interpolate between steps. */
+	r_verts[0] = (1.0f - t)*curr_verts[0] + t*next_verts[0];
+	r_verts[1] = (1.0f - t)*curr_verts[1] + t*next_verts[1];
+	r_verts[2] = (1.0f - t)*curr_verts[2] + t*next_verts[2];
+}
+
+void Mesh::Triangle::verts_for_step(const float3 *verts,
+                                    const float3 *vert_steps,
+                                    size_t num_verts,
+                                    size_t num_steps,
+                                    size_t step,
+                                    float3 r_verts[3]) const
+{
+	const size_t center_step = ((num_steps - 1) / 2);
+	if(step == center_step) {
+		/* Center step: regular vertex location. */
+		r_verts[0] = verts[v[0]];
+		r_verts[1] = verts[v[1]];
+		r_verts[2] = verts[v[2]];
+	}
+	else {
+		/* Center step not stored in the attribute array array. */
+		if(step > center_step) {
+			step--;
+		}
+		size_t offset = step * num_verts;
+		r_verts[0] = vert_steps[offset + v[0]];
+		r_verts[1] = vert_steps[offset + v[1]];
+		r_verts[2] = vert_steps[offset + v[2]];
+	}
+}
+
 /* Curve */
 
 void Mesh::Curve::bounds_grow(const int k, const float3 *curve_keys, const float *curve_radius, BoundBox& bounds) const
