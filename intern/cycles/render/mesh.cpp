@@ -394,7 +394,7 @@ void Mesh::compute_bounds()
 		if(use_motion_blur && attr) {
 			size_t steps_size = verts.size() * (motion_steps - 1);
 			float3 *vert_steps = attr->data_float3();
-	
+
 			for(size_t i = 0; i < steps_size; i++)
 				bnds.grow(vert_steps[i]);
 		}
@@ -403,7 +403,7 @@ void Mesh::compute_bounds()
 		if(use_motion_blur && curve_attr) {
 			size_t steps_size = curve_keys.size() * (motion_steps - 1);
 			float3 *key_steps = curve_attr->data_float3();
-	
+
 			for(size_t i = 0; i < steps_size; i++)
 				bnds.grow(key_steps[i]);
 		}
@@ -417,11 +417,11 @@ void Mesh::compute_bounds()
 
 			for(size_t i = 0; i < curve_keys_size; i++)
 				bnds.grow_safe(curve_keys[i], curve_radius[i]);
-			
+
 			if(use_motion_blur && attr) {
 				size_t steps_size = verts.size() * (motion_steps - 1);
 				float3 *vert_steps = attr->data_float3();
-		
+
 				for(size_t i = 0; i < steps_size; i++)
 					bnds.grow_safe(vert_steps[i]);
 			}
@@ -429,7 +429,7 @@ void Mesh::compute_bounds()
 			if(use_motion_blur && curve_attr) {
 				size_t steps_size = curve_keys.size() * (motion_steps - 1);
 				float3 *key_steps = curve_attr->data_float3();
-		
+
 				for(size_t i = 0; i < steps_size; i++)
 					bnds.grow_safe(key_steps[i]);
 			}
@@ -464,7 +464,7 @@ void Mesh::add_face_normals()
 	/* don't compute if already there */
 	if(attributes.find(ATTR_STD_FACE_NORMAL))
 		return;
-	
+
 	/* get attributes */
 	Attribute *attr_fN = attributes.add(ATTR_STD_FACE_NORMAL);
 	float3 *fN = attr_fN->data_float3();
@@ -1002,7 +1002,7 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 
 	if(attr_map_stride == 0)
 		return;
-	
+
 	/* create attribute map */
 	uint4 *attr_map = dscene->attributes_map.resize(attr_map_stride*scene->objects.size());
 	memset(attr_map, 0, dscene->attributes_map.size()*sizeof(uint));
@@ -1946,14 +1946,14 @@ bool Mesh::need_attribute(Scene *scene, AttributeStandard std)
 {
 	if(std == ATTR_STD_NONE)
 		return false;
-	
+
 	if(scene->need_global_attribute(std))
 		return true;
 
 	foreach(Shader *shader, used_shaders)
 		if(shader->attributes.find(std))
 			return true;
-	
+
 	return false;
 }
 
@@ -1965,9 +1965,8 @@ bool Mesh::need_attribute(Scene * /*scene*/, ustring name)
 	foreach(Shader *shader, used_shaders)
 		if(shader->attributes.find(name))
 			return true;
-	
+
 	return false;
 }
 
 CCL_NAMESPACE_END
-
