@@ -130,12 +130,12 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 
 			/* motion triangles */
 			if(attr_mP) {
-				const size_t mesh_size = mesh->verts.size();
+				const size_t num_verts = mesh->verts.size();
 				const size_t num_steps = mesh->motion_steps - 1;
 				const float3 *vert_steps = attr_mP->data_float3();
 
 				for(size_t step = 0; step < num_steps; step++) {
-					t.bounds_grow(vert_steps + step*mesh_size, bounds);
+					t.bounds_grow(vert_steps + step*num_verts, bounds);
 				}
 
 				type = PRIMITIVE_MOTION_TRIANGLE;
@@ -167,12 +167,12 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 
 				/* motion curve */
 				if(curve_attr_mP) {
-					const size_t mesh_size = mesh->curve_keys.size();
+					const size_t num_keys = mesh->curve_keys.size();
 					const size_t num_steps = mesh->motion_steps - 1;
 					const float3 *key_steps = curve_attr_mP->data_float3();
 
 					for(size_t step = 0; step < num_steps; step++) {
-						curve.bounds_grow(k, key_steps + step*mesh_size, curve_radius, bounds);
+						curve.bounds_grow(k, key_steps + step*num_keys, curve_radius, bounds);
 					}
 
 					type = PRIMITIVE_MOTION_CURVE;
