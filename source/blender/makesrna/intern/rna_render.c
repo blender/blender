@@ -78,9 +78,14 @@ EnumPropertyItem rna_enum_render_pass_type_items[] = {
 };
 
 EnumPropertyItem rna_enum_render_pass_debug_type_items[] = {
-	{RENDER_PASS_DEBUG_BVH_TRAVERSAL_STEPS, "BVH_TRAVERSAL_STEPS", 0, "BVH Traversal Steps", ""},
-	{RENDER_PASS_DEBUG_BVH_TRAVERSED_INSTANCES, "BVH_TRAVERSED_INSTANCES", 0, "BVH Traversed Instances", ""},
-	{RENDER_PASS_DEBUG_RAY_BOUNCES, "RAY_BOUNCES", 0, "Ray Steps", ""},
+	{RENDER_PASS_DEBUG_BVH_TRAVERSED_NODES, "BVH_TRAVERSED_NODES", 0, "BVH Traversed Nodes",
+	 "Number of nodes traversed in BVH for the camera rays"},
+	{RENDER_PASS_DEBUG_BVH_TRAVERSED_INSTANCES, "BVH_TRAVERSED_INSTANCES", 0, "BVH Traversed Instances",
+	 "Number of BVH instances traversed by camera rays"},
+	{RENDER_PASS_DEBUG_BVH_INTERSECTIONS, "BVH_INTERSECTIONS", 0, "BVH Intersections",
+	 "Number of primitive intersections performed by the camera rays"},
+	{RENDER_PASS_DEBUG_RAY_BOUNCES, "RAY_BOUNCES", 0, "Ray Steps",
+	 "Number of bounces done by the main integration loop"},
 	{0, NULL, 0, NULL, NULL}
 };
 

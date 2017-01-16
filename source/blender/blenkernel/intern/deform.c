@@ -45,8 +45,8 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -509,7 +509,7 @@ int *defgroup_flip_map(Object *ob, int *flip_map_len, const bool use_default)
 				if (use_default)
 					map[i] = i;
 
-				BKE_deform_flip_side_name(name_flip, dg->name, false);
+				BLI_string_flip_side_name(name_flip, dg->name, false, sizeof(name_flip));
 
 				if (!STREQ(name_flip, dg->name)) {
 					flip_num = defgroup_name_index(ob, name_flip);
@@ -545,7 +545,7 @@ int *defgroup_flip_map_single(Object *ob, int *flip_map_len, const bool use_defa
 
 		dg = BLI_findlink(&ob->defbase, defgroup);
 
-		BKE_deform_flip_side_name(name_flip, dg->name, false);
+		BLI_string_flip_side_name(name_flip, dg->name, false, sizeof(name_flip));
 		if (!STREQ(name_flip, dg->name)) {
 			flip_num = defgroup_name_index(ob, name_flip);
 
@@ -566,7 +566,7 @@ int defgroup_flip_index(Object *ob, int index, const bool use_default)
 
 	if (dg) {
 		char name_flip[sizeof(dg->name)];
-		BKE_deform_flip_side_name(name_flip, dg->name, false);
+		BLI_string_flip_side_name(name_flip, dg->name, false, sizeof(name_flip));
 
 		if (!STREQ(name_flip, dg->name)) {
 			flip_index = defgroup_name_index(ob, name_flip);
@@ -604,185 +604,6 @@ void defgroup_unique_name(bDeformGroup *dg, Object *ob)
 	data.dg = dg;
 
 	BLI_uniquename_cb(defgroup_unique_check, &data, DATA_("Group"), '.', dg->name, sizeof(dg->name));
-}
-
-static bool is_char_sep(const char c)
-{
-	return ELEM(c, '.', ' ', '-', '_');
-}
-
-/**
- * based on `BLI_split_dirfile()` / `os.path.splitext()`,
- * `"a.b.c"` -> (`"a.b"`, `".c"`).
- */
-void BKE_deform_split_suffix(const char string[MAX_VGROUP_NAME], char body[MAX_VGROUP_NAME], char suf[MAX_VGROUP_NAME])
-{
-	size_t len = BLI_strnlen(string, MAX_VGROUP_NAME);
-	size_t i;
-
-	body[0] = suf[0] = '\0';
-
-	for (i = len; i > 0; i--) {
-		if (is_char_sep(string[i])) {
-			BLI_strncpy(body, string, i + 1);
-			BLI_strncpy(suf, string + i,  (len + 1) - i);
-			return;
-		}
-	}
-
-	memcpy(body, string, len + 1);
-}
-
-/**
- * `"a.b.c"` -> (`"a."`, `"b.c"`)
- */
-void BKE_deform_split_prefix(const char string[MAX_VGROUP_NAME], char pre[MAX_VGROUP_NAME], char body[MAX_VGROUP_NAME])
-{
-	size_t len = BLI_strnlen(string, MAX_VGROUP_NAME);
-	size_t i;
-
-	body[0] = pre[0] = '\0';
-
-	for (i = 1; i < len; i++) {
-		if (is_char_sep(string[i])) {
-			i++;
-			BLI_strncpy(pre, string, i + 1);
-			BLI_strncpy(body, string + i, (len + 1) - i);
-			return;
-		}
-	}
-
-	BLI_strncpy(body, string, len);
-}
-
-/**
- * Finds the best possible flipped name. For renaming; check for unique names afterwards.
- *
- * if strip_number: removes number extensions
- *
- * \note don't use sizeof() for 'name' or 'from_name'.
- */
-void BKE_deform_flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_NAME],
-                               const bool strip_number)
-{
-	int     len;
-	char    prefix[MAX_VGROUP_NAME]  = "";   /* The part before the facing */
-	char    suffix[MAX_VGROUP_NAME]  = "";   /* The part after the facing */
-	char    replace[MAX_VGROUP_NAME] = "";   /* The replacement string */
-	char    number[MAX_VGROUP_NAME]  = "";   /* The number extension string */
-	char    *index = NULL;
-	bool is_set = false;
-
-	/* always copy the name, since this can be called with an uninitialized string */
-	BLI_strncpy(name, from_name, MAX_VGROUP_NAME);
-
-	len = BLI_strnlen(from_name, MAX_VGROUP_NAME);
-	if (len < 3) {
-		/* we don't do names like .R or .L */
-		return;
-	}
-
-	/* We first check the case with a .### extension, let's find the last period */
-	if (isdigit(name[len - 1])) {
-		index = strrchr(name, '.'); // last occurrence
-		if (index && isdigit(index[1])) { // doesnt handle case bone.1abc2 correct..., whatever!
-			if (strip_number == false) {
-				BLI_strncpy(number, index, sizeof(number));
-			}
-			*index = 0;
-			len = BLI_strnlen(name, MAX_VGROUP_NAME);
-		}
-	}
-
-	BLI_strncpy(prefix, name, sizeof(prefix));
-
-	/* first case; separator . - _ with extensions r R l L  */
-	if ((len > 1) && is_char_sep(name[len - 2])) {
-		is_set = true;
-		switch (name[len - 1]) {
-			case 'l':
-				prefix[len - 1] = 0;
-				strcpy(replace, "r");
-				break;
-			case 'r':
-				prefix[len - 1] = 0;
-				strcpy(replace, "l");
-				break;
-			case 'L':
-				prefix[len - 1] = 0;
-				strcpy(replace, "R");
-				break;
-			case 'R':
-				prefix[len - 1] = 0;
-				strcpy(replace, "L");
-				break;
-			default:
-				is_set = false;
-		}
-	}
-
-	/* case; beginning with r R l L, with separator after it */
-	if (!is_set && is_char_sep(name[1])) {
-		is_set = true;
-		switch (name[0]) {
-			case 'l':
-				strcpy(replace, "r");
-				BLI_strncpy(suffix, name + 1, sizeof(suffix));
-				prefix[0] = 0;
-				break;
-			case 'r':
-				strcpy(replace, "l");
-				BLI_strncpy(suffix, name + 1, sizeof(suffix));
-				prefix[0] = 0;
-				break;
-			case 'L':
-				strcpy(replace, "R");
-				BLI_strncpy(suffix, name + 1, sizeof(suffix));
-				prefix[0] = 0;
-				break;
-			case 'R':
-				strcpy(replace, "L");
-				BLI_strncpy(suffix, name + 1, sizeof(suffix));
-				prefix[0] = 0;
-				break;
-			default:
-				is_set = false;
-		}
-	}
-
-	if (!is_set && len > 5) {
-		/* hrms, why test for a separator? lets do the rule 'ultimate left or right' */
-		if (((index = BLI_strcasestr(prefix, "right")) == prefix) ||
-		    (index == prefix + len - 5))
-		{
-			is_set = true;
-			if (index[0] == 'r') {
-				strcpy(replace, "left");
-			}
-			else {
-				strcpy(replace, (index[1] == 'I') ? "LEFT" : "Left");
-			}
-			*index = 0;
-			BLI_strncpy(suffix, index + 5, sizeof(suffix));
-		}
-		else if (((index = BLI_strcasestr(prefix, "left")) == prefix) ||
-		         (index == prefix + len - 4))
-		{
-			is_set = true;
-			if (index[0] == 'l') {
-				strcpy(replace, "right");
-			}
-			else {
-				strcpy(replace, (index[1] == 'E') ? "RIGHT" : "Right");
-			}
-			*index = 0;
-			BLI_strncpy(suffix, index + 4, sizeof(suffix));
-		}
-	}
-
-	(void)is_set;  /* quiet warning */
-
-	BLI_snprintf(name, MAX_VGROUP_NAME, "%s%s%s%s", prefix, replace, suffix, number);
 }
 
 float defvert_find_weight(const struct MDeformVert *dvert, const int defgroup)

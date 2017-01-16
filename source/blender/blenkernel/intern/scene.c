@@ -56,6 +56,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_callbacks.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 #include "BLI_threads.h"
 #include "BLI_task.h"
 

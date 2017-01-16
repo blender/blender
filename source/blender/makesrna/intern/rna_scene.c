@@ -40,6 +40,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "BLI_math.h"
+#include "BLI_string_utils.h"
 
 #include "BLT_translation.h"
 

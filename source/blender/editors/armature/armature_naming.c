@@ -37,6 +37,8 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
+#include "BLI_string_utils.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -297,6 +299,55 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 	}
 }
 
+typedef struct BoneFlipNameData {
+	struct BoneFlipNameData *next, *prev;
+	char *name;
+	char name_flip[MAXBONENAME];
+} BoneFlipNameData;
+
+/**
+ * Renames (by flipping) all selected bones at once.
+ *
+ * This way if we are flipping related bones (e.g., Bone.L, Bone.R) at the same time
+ * all the bones are safely renamed, without conflicting with each other.
+ *
+ * \param arm Armature the bones belong to
+ * \param bones ListBase of BoneConflict elems, populated via ED_armature_bones_flip_names_add
+ */
+void ED_armature_bones_flip_names(bArmature *arm, ListBase *bones_names)
+{
+	ListBase bones_names_conflicts = {NULL};
+	BoneFlipNameData *bfn;
+
+	/* First pass: generate flip names, and blindly rename.
+	 * If rename did not yield expected result, store both bone's name and expected flipped one into temp list
+	 * for second pass. */
+	for (LinkData *link = bones_names->first; link; link = link->next) {
+		char name_flip[MAXBONENAME];
+		char *name = link->data;
+
+		/* Do not strip numbers, otherwise we'll end up with completely mismatched names in cases like
+		 * Bone.R, Bone.R.001, Bone.R.002, etc. */
+		BLI_string_flip_side_name(name_flip, name, false, sizeof(name_flip));
+
+		ED_armature_bone_rename(arm, name, name_flip);
+
+		if (!STREQ(name, name_flip)) {
+			bfn = alloca(sizeof(BoneFlipNameData));
+			bfn->name = name;
+			BLI_strncpy(bfn->name_flip, name_flip, sizeof(bfn->name_flip));
+			BLI_addtail(&bones_names_conflicts, bfn);
+		}
+	}
+
+	/* Second pass to handle the bones that have naming conflicts with other bones.
+	 * Note that if the other bone was not selected, its name was not flipped, so conflict remains and that second
+	 * rename simply generates a new numbered alternative name. */
+	for (bfn = bones_names_conflicts.first; bfn; bfn = bfn->next) {
+		ED_armature_bone_rename(arm, bfn->name, bfn->name_flip);
+	}
+}
+
 /* ************************************************** */
 /* Bone Renaming - EditMode */
 
@@ -304,20 +355,24 @@ static int armature_flip_names_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = CTX_data_edit_object(C);
 	bArmature *arm;
-	
+
 	/* paranoia checks */
-	if (ELEM(NULL, ob, ob->pose)) 
+	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
+
 	arm = ob->data;
-	
-	/* loop through selected bones, auto-naming them */
+
+	ListBase bones_names= {NULL};
+
 	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones)
 	{
-		char name_flip[MAXBONENAME];
-		BKE_deform_flip_side_name(name_flip, ebone->name, true);
-		ED_armature_bone_rename(arm, ebone->name, name_flip);
+		BLI_addtail(&bones_names, BLI_genericNodeN(ebone->name));
 	}
 	CTX_DATA_END;
+
+	ED_armature_bones_flip_names(arm, &bones_names);
+
+	BLI_freelistN(&bones_names);
 	
 	/* since we renamed stuff... */
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);

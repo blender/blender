@@ -36,6 +36,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_string_utils.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -286,7 +287,7 @@ static bPoseChannel *pose_bone_do_paste(Object *ob, bPoseChannel *chan, const bo
 	
 	/* get the name - if flipping, we must flip this first */
 	if (flip)
-		BKE_deform_flip_side_name(name, chan->name, false);
+		BLI_string_flip_side_name(name, chan->name, false, sizeof(name));
 	else
 		BLI_strncpy(name, chan->name, sizeof(name));
 	

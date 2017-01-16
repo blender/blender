@@ -39,6 +39,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_string_utils.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -360,7 +361,7 @@ static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, 
 		if (dgroup && mirror) {
 			char name_flip[MAXBONENAME];
 
-			BKE_deform_flip_side_name(name_flip, dgroup->name, false);
+			BLI_string_flip_side_name(name_flip, dgroup->name, false, sizeof(name_flip));
 			dgroupflip[j] = defgroup_find_name(ob, name_flip);
 		}
 	}

@@ -32,6 +32,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_kdtree.h"
+#include "BLI_string_utils.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -215,6 +216,7 @@ typedef struct ImgSeqFormatData {
 
 /* adjacency data flags */
 #define ADJ_ON_MESH_EDGE (1 << 0)
+#define ADJ_BORDER_PIXEL (1 << 1)
 
 typedef struct PaintAdjData {
 	int *n_target;  /* array of neighboring point indexes, for single sample use (n_index + neigh_num) */
@@ -222,6 +224,8 @@ typedef struct PaintAdjData {
 	int *n_num;     /* num of neighs for each point */
 	int *flags;     /* vertex adjacency flags */
 	int total_targets; /* size of n_target */
+	int *border;    /* indices of border pixels (only for texture paint) */
+	int total_border; /* size of border */
 } PaintAdjData;
 
 /***************************** General Utils ******************************/
@@ -822,6 +826,8 @@ static void dynamicPaint_freeAdjData(PaintSurfaceData *data)
 			MEM_freeN(data->adj_data->n_target);
 		if (data->adj_data->flags)
 			MEM_freeN(data->adj_data->flags);
+		if (data->adj_data->border)
+			MEM_freeN(data->adj_data->border);
 		MEM_freeN(data->adj_data);
 		data->adj_data = NULL;
 	}
@@ -1298,6 +1304,8 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, const b
 	ad->n_target = MEM_callocN(sizeof(int) * neigh_points, "Surface Adj Targets");
 	ad->flags = MEM_callocN(sizeof(int) * sData->total_points, "Surface Adj Flags");
 	ad->total_targets = neigh_points;
+	ad->border = NULL;
+	ad->total_border = 0;
 
 	/* in case of allocation error, free memory */
 	if (!ad->n_index || !ad->n_num || !ad->n_target || !temp_data) {
@@ -2295,6 +2303,36 @@ static void dynamic_paint_create_uv_surface_neighbor_cb(void *userdata, const in
 
 #undef JITTER_SAMPLES
 
+static float dist_squared_to_looptri_uv_edges(const MLoopTri *mlooptri, const MLoopUV *mloopuv, int tri_index, const float point[2])
+{
+	float min_distance = FLT_MAX;
+
+	for (int i = 0; i < 3; i++) {
+		const float dist_squared = dist_squared_to_line_segment_v2(
+			point,
+			mloopuv[mlooptri[tri_index].tri[(i + 0)]].uv,
+			mloopuv[mlooptri[tri_index].tri[(i + 1) % 3]].uv
+		);
+
+		if (dist_squared < min_distance)
+			min_distance = dist_squared;
+	}
+
+	return min_distance;
+}
+
+typedef struct DynamicPaintFindIslandBorderData {
+	const MeshElemMap *vert_to_looptri_map;
+	int w, h, px, py;
+
+	int best_index;
+	float best_weight;
+} DynamicPaintFindIslandBorderData;
+
+static void dynamic_paint_find_island_border(
+        const DynamicPaintCreateUVSurfaceData *data, DynamicPaintFindIslandBorderData *bdata,
+        int tri_index, const float pixel[2], int in_edge, int depth);
+
 /* Tries to find the neighboring pixel in given (uv space) direction.
  * Result is used by effect system to move paint on the surface.
  *
@@ -2345,167 +2383,162 @@ static int dynamic_paint_find_neighbour_pixel(
 	 * TODO: Implement something more accurate / optimized?
 	 */
 	{
-		const MLoop *mloop = data->mloop;
-		const MLoopTri *mlooptri = data->mlooptri;
-		const MLoopUV *mloopuv = data->mloopuv;
-
-		/* Get closest edge to that subpixel on UV map	*/
+		DynamicPaintFindIslandBorderData bdata = {
+			.vert_to_looptri_map = vert_to_looptri_map,
+			.w = w, .h = h, .px = px, .py = py,
+			.best_index = NOT_FOUND, .best_weight = 1.0f
+		};
 
 		float pixel[2];
-		/* distances only used for comparison */
-		float dist_squared, t_dist_squared;
-
-		int edge1_index, edge2_index;
-		int e1_index, e2_index, target_tri;
-		float closest_point[2], lambda, dir_vec[2];
-		int target_uv1 = 0, target_uv2 = 0, final_pixel[2], final_index;
-
-		const float *s_uv1, *s_uv2, *t_uv1, *t_uv2;
 
 		pixel[0] = ((float)(px + neighX[n_index]) + 0.5f) / (float)w;
 		pixel[1] = ((float)(py + neighY[n_index]) + 0.5f) / (float)h;
 
-		/*
-		 *	Find closest edge to that pixel
-		 */
+		/* Do a small recursive search for the best island edge. */
+		dynamic_paint_find_island_border(data, &bdata, cPoint->tri_index, pixel, -1, 5);
 
-		/* Dist to first edge */
-		e1_index = cPoint->v1;
-		e2_index = cPoint->v2;
-		edge1_index = 0;
-		edge2_index = 1;
-		dist_squared = dist_squared_to_line_segment_v2(
-		        pixel,
-		        mloopuv[mlooptri[cPoint->tri_index].tri[0]].uv,
-		        mloopuv[mlooptri[cPoint->tri_index].tri[1]].uv);
+		return bdata.best_index;
+	}
+}
 
-		/* Dist to second edge */
-		t_dist_squared = dist_squared_to_line_segment_v2(
-		        pixel,
-		        mloopuv[mlooptri[cPoint->tri_index].tri[1]].uv,
-		        mloopuv[mlooptri[cPoint->tri_index].tri[2]].uv);
-		if (t_dist_squared < dist_squared) {
-			e1_index = cPoint->v2;
-			e2_index = cPoint->v3;
-			edge1_index = 1;
-			edge2_index = 2;
-			dist_squared = t_dist_squared;
-		}
+static void dynamic_paint_find_island_border(
+        const DynamicPaintCreateUVSurfaceData *data, DynamicPaintFindIslandBorderData *bdata,
+        int tri_index, const float pixel[2], int in_edge, int depth)
+{
+	const MLoop *mloop = data->mloop;
+	const MLoopTri *mlooptri = data->mlooptri;
+	const MLoopUV *mloopuv = data->mloopuv;
 
-		/* Dist to third edge */
-		t_dist_squared = dist_squared_to_line_segment_v2(
-		        pixel,
-		        mloopuv[mlooptri[cPoint->tri_index].tri[2]].uv,
-		        mloopuv[mlooptri[cPoint->tri_index].tri[0]].uv);
-		if (t_dist_squared < dist_squared) {
-			e1_index = cPoint->v3;
-			e2_index = cPoint->v1;
-			edge1_index = 2;
-			edge2_index = 0;
-			dist_squared = t_dist_squared;
-		}
+	const unsigned int *loop_idx = mlooptri[tri_index].tri;
 
-		/*
-		 *	Now find another face that is linked to that edge
-		 */
-		target_tri = -1;
+	/* Enumerate all edges of the triangle, rotating the vertex list accordingly. */
+	for (int edge_idx = 0; edge_idx < 3; edge_idx++) {
+		/* but not the edge we have just recursed through */
+		if (edge_idx == in_edge)
+			continue;
+
+		float uv0[2], uv1[2], uv2[2];
+
+		copy_v2_v2(uv0, mloopuv[loop_idx[(edge_idx + 0)]].uv);
+		copy_v2_v2(uv1, mloopuv[loop_idx[(edge_idx + 1) % 3]].uv);
+		copy_v2_v2(uv2, mloopuv[loop_idx[(edge_idx + 2) % 3]].uv);
+
+		/* Verify the target point is on the opposite side of the edge from the third triangle
+		 * vertex, to ensure that we always move closer to the goal point. */
+		const float sidep = line_point_side_v2(uv0, uv1, pixel);
+		const float side2 = line_point_side_v2(uv0, uv1, uv2);
+
+		if (side2 == 0.0f)
+			continue;
+
+		/* Hack: allow all edges of the original triangle */
+		const bool correct_side = (in_edge == -1) || (sidep < 0 && side2 > 0) || (sidep > 0 && side2 < 0);
+
+		/* Allow exactly on edge for the non-recursive case */
+		if (!correct_side && sidep != 0.0f)
+			continue;
+
+		/* Now find another face that is linked to that edge. */
+		const int vert0 = mloop[loop_idx[(edge_idx + 0)]].v;
+		const int vert1 = mloop[loop_idx[(edge_idx + 1) % 3]].v;
 
 		/* Use a pre-computed vert-to-looptri mapping, speeds up things a lot compared to looping over all loopti. */
-		for (int i = 0; i < vert_to_looptri_map[e1_index].count; i++) {
-			const int lt_index = vert_to_looptri_map[e1_index].indices[i];
-			const int v0 = mloop[mlooptri[lt_index].tri[0]].v;
-			const int v1 = mloop[mlooptri[lt_index].tri[1]].v;
-			const int v2 = mloop[mlooptri[lt_index].tri[2]].v;
+		const MeshElemMap *map = &bdata->vert_to_looptri_map[vert0];
 
-			BLI_assert(ELEM(e1_index, v0, v1, v2));
+		bool found_other = false;
+		int target_tri = -1;
+		int target_edge = -1;
 
-			if (ELEM(e2_index, v0, v1, v2)) {
-				if (lt_index == cPoint->tri_index)
-					continue;
+		float ouv0[2], ouv1[2];
 
-				target_tri = lt_index;
+		for (int i = 0; i < map->count && !found_other; i++) {
+			const int lt_index = map->indices[i];
 
-				/* Get edge UV index */
-				target_uv1 = (e1_index == v0) ? 0 : ((e1_index == v1) ? 1 : 2);
-				target_uv2 = (e2_index == v0) ? 0 : ((e2_index == v1) ? 1 : 2);
-				break;
+			if (lt_index == tri_index)
+				continue;
+
+			const unsigned int *other_loop_idx = mlooptri[lt_index].tri;
+
+			/* Check edges for match, looping in the same order as the outer loop. */
+			for (int j = 0; j < 3; j++)
+			{
+				const int overt0 = mloop[other_loop_idx[(j + 0)]].v;
+				const int overt1 = mloop[other_loop_idx[(j + 1) % 3]].v;
+
+				/* Allow for swapped vertex order */
+				if (overt0 == vert0 && overt1 == vert1) {
+					found_other = true;
+					copy_v2_v2(ouv0, mloopuv[other_loop_idx[(j + 0)]].uv);
+					copy_v2_v2(ouv1, mloopuv[other_loop_idx[(j + 1) % 3]].uv);
+				}
+				else if (overt0 == vert1 && overt1 == vert0) {
+					found_other = true;
+					copy_v2_v2(ouv1, mloopuv[other_loop_idx[(j + 0)]].uv);
+					copy_v2_v2(ouv0, mloopuv[other_loop_idx[(j + 1) % 3]].uv);
+				}
+
+				if (found_other) {
+					target_tri = lt_index;
+					target_edge = j;
+					break;
+				}
 			}
 		}
 
-		/* If none found pixel is on mesh edge	*/
-		if (target_tri == -1)
-			return ON_MESH_EDGE;
+		if (!found_other) {
+			if (bdata->best_index < 0)
+				bdata->best_index = ON_MESH_EDGE;
 
-		/*
-		 *	If target face is connected in UV space as well, just use original index
-		 */
-		s_uv1 = mloopuv[mlooptri[cPoint->tri_index].tri[edge1_index]].uv;
-		s_uv2 = mloopuv[mlooptri[cPoint->tri_index].tri[edge2_index]].uv;
-		t_uv1 = mloopuv[mlooptri[target_tri].tri[target_uv1]].uv;
-		t_uv2 = mloopuv[mlooptri[target_tri].tri[target_uv2]].uv;
+			continue;
+		}
 
-		//printf("connected UV : %f,%f & %f,%f - %f,%f & %f,%f\n", s_uv1[0], s_uv1[1], s_uv2[0], s_uv2[1], t_uv1[0], t_uv1[1], t_uv2[0], t_uv2[1]);
-
-		if (((s_uv1[0] == t_uv1[0] && s_uv1[1] == t_uv1[1]) &&
-		     (s_uv2[0] == t_uv2[0] && s_uv2[1] == t_uv2[1])) ||
-		    ((s_uv2[0] == t_uv1[0] && s_uv2[1] == t_uv1[1]) &&
-		     (s_uv1[0] == t_uv2[0] && s_uv1[1] == t_uv2[1])))
-		{
-			final_index = x + w * y;
-
-			/* If not an active pixel, bail out */
-			if (tempPoints[final_index].tri_index == -1)
-				return NOT_FOUND;
-
-			/* If final point is an "edge pixel", use it's "real" neighbor instead */
-			if (tempPoints[final_index].neighbour_pixel != -1) {
-				final_index = tempPoints[final_index].neighbour_pixel;
-
-				/* If we ended up to our origin point */
-				if (final_index == (px + w * py))
-					return NOT_FOUND;
+		/* If this edge is connected in UV space too, recurse */
+		if (equals_v2v2(uv0, ouv0) && equals_v2v2(uv1, ouv1)) {
+			if (depth > 0 && correct_side) {
+				dynamic_paint_find_island_border(data, bdata, target_tri, pixel, target_edge, depth - 1);
 			}
 
-			return final_index;
+			continue;
 		}
+
+		/* Otherwise try to map to the other side of the edge.
+		 * First check if there already is a better solution. */
+		const float dist_squared = dist_squared_to_line_segment_v2(pixel, uv0, uv1);
+
+		if (bdata->best_index >= 0 && dist_squared >= bdata->best_weight)
+			continue;
 
 		/*
 		 *	Find a point that is relatively at same edge position
 		 *	on this other face UV
 		 */
-		lambda = closest_to_line_v2(
-		        closest_point, pixel,
-		        mloopuv[mlooptri[cPoint->tri_index].tri[edge1_index]].uv,
-		        mloopuv[mlooptri[cPoint->tri_index].tri[edge2_index]].uv);
+		float closest_point[2], dir_vec[2], tgt_pixel[2];
+
+		float lambda = closest_to_line_v2(closest_point, pixel, uv0, uv1);
 		CLAMP(lambda, 0.0f, 1.0f);
 
-		sub_v2_v2v2(
-		        dir_vec,
-		        mloopuv[mlooptri[target_tri].tri[target_uv2]].uv,
-		        mloopuv[mlooptri[target_tri].tri[target_uv1]].uv);
+		sub_v2_v2v2(dir_vec, ouv1, ouv0);
+		madd_v2_v2v2fl(tgt_pixel, ouv0, dir_vec, lambda);
 
-		mul_v2_fl(dir_vec, lambda);
+		int w = bdata->w, h = bdata->h, px = bdata->px, py = bdata->py;
 
-		copy_v2_v2(pixel, mloopuv[mlooptri[target_tri].tri[target_uv1]].uv);
-		add_v2_v2(pixel, dir_vec);
-		pixel[0] = (pixel[0] * (float)w);
-		pixel[1] = (pixel[1] * (float)h);
-
-		final_pixel[0] = (int)floorf(pixel[0]);
-		final_pixel[1] = (int)floorf(pixel[1]);
+		int final_pixel[2] = { (int)floorf(tgt_pixel[0] * w), (int)floorf(tgt_pixel[1] * h) };
 
 		/* If current pixel uv is outside of texture	*/
 		if (final_pixel[0] < 0 || final_pixel[0] >= w || final_pixel[1] < 0 || final_pixel[1] >= h)
-			return OUT_OF_TEXTURE;
+		{
+			if (bdata->best_index == NOT_FOUND)
+				bdata->best_index = OUT_OF_TEXTURE;
 
-		final_index = final_pixel[0] + w * final_pixel[1];
+			continue;
+		}
+
+		const PaintUVPoint *tempPoints = data->tempPoints;
+		int final_index = final_pixel[0] + w * final_pixel[1];
 
 		/* If we ended up to our origin point ( mesh has smaller than pixel sized faces)	*/
 		if (final_index == (px + w * py))
-			return NOT_FOUND;
-		/* If found pixel still lies on wrong face ( mesh has smaller than pixel sized faces)	*/
-		if (tempPoints[final_index].tri_index != target_tri)
-			return NOT_FOUND;
+			continue;
 
 		/* If final point is an "edge pixel", use it's "real" neighbor instead */
 		if (tempPoints[final_index].neighbour_pixel != -1) {
@@ -2513,11 +2546,125 @@ static int dynamic_paint_find_neighbour_pixel(
 
 			/* If we ended up to our origin point */
 			if (final_index == (px + w * py))
-				return NOT_FOUND;
+				continue;
 		}
 
-		return final_index;
+		/* If found pixel still lies on wrong face ( mesh has smaller than pixel sized faces)	*/
+		if (tempPoints[final_index].tri_index != target_tri) {
+			/* Check if it's close enough to likely touch the intended triangle. Any triangle
+			 * becomes thinner than a pixel at its vertices, so robustness requires some margin. */
+			const float final_pt[2] = { ((final_index % w) + 0.5f) / w, ((final_index / w) + 0.5f) / h };
+			const float threshold = SQUARE(0.7f) / (w * h);
+
+			if (dist_squared_to_looptri_uv_edges(mlooptri, mloopuv, tempPoints[final_index].tri_index, final_pt) > threshold)
+				continue;
+		}
+
+		bdata->best_index = final_index;
+		bdata->best_weight = dist_squared;
 	}
+}
+
+static bool dynamicPaint_pointHasNeighbor(PaintAdjData *ed, int index, int neighbor)
+{
+	const int idx = ed->n_index[index];
+
+	for (int i = 0; i < ed->n_num[index]; i++) {
+		if (ed->n_target[idx + i] == neighbor) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/* Makes the adjacency data symmetric, except for border pixels. I.e. if A is neighbor of B, B is neighbor of A. */
+static bool dynamicPaint_symmetrizeAdjData(PaintAdjData *ed, int active_points)
+{
+	int *new_n_index = MEM_callocN(sizeof(int) * active_points, "Surface Adj Index");
+	int *new_n_num = MEM_callocN(sizeof(int) * active_points, "Surface Adj Counts");
+
+	if (new_n_num && new_n_index) {
+		/* Count symmetrized neigbors */
+		int total_targets = 0;
+
+		for (int index = 0; index < active_points; index++) {
+			total_targets += ed->n_num[index];
+			new_n_num[index] = ed->n_num[index];
+		}
+
+		for (int index = 0; index < active_points; index++) {
+			if (ed->flags[index] & ADJ_BORDER_PIXEL) {
+				continue;
+			}
+
+			for (int i = 0, idx = ed->n_index[index]; i < ed->n_num[index]; i++) {
+				const int target = ed->n_target[idx + i];
+
+				assert(!(ed->flags[target] & ADJ_BORDER_PIXEL));
+
+				if (!dynamicPaint_pointHasNeighbor(ed, target, index)) {
+					new_n_num[target]++;
+					total_targets++;
+				}
+			}
+		}
+
+		/* Allocate a new target map */
+		int *new_n_target = MEM_callocN(sizeof(int) * total_targets, "Surface Adj Targets");
+
+		if (new_n_target) {
+			/* Copy existing neighbors to the new map */
+			int n_pos = 0;
+
+			for (int index = 0; index < active_points; index++) {
+				new_n_index[index] = n_pos;
+				memcpy(&new_n_target[n_pos], &ed->n_target[ed->n_index[index]], sizeof(int) * ed->n_num[index]);
+
+				/* Reset count to old, but advance position by new, leaving a gap to fill below. */
+				n_pos += new_n_num[index];
+				new_n_num[index] = ed->n_num[index];
+			}
+
+			assert(n_pos == total_targets);
+
+			/* Add symmetrized - this loop behavior must exactly match the count pass above */
+			for (int index = 0; index < active_points; index++) {
+				if (ed->flags[index] & ADJ_BORDER_PIXEL) {
+					continue;
+				}
+
+				for (int i = 0, idx = ed->n_index[index]; i < ed->n_num[index]; i++) {
+					const int target = ed->n_target[idx + i];
+
+					if (!dynamicPaint_pointHasNeighbor(ed, target, index)) {
+						const int num = new_n_num[target]++;
+						new_n_target[new_n_index[target] + num] = index;
+					}
+				}
+			}
+
+			/* Swap maps */
+			MEM_freeN(ed->n_target);
+			ed->n_target = new_n_target;
+
+			MEM_freeN(ed->n_index);
+			ed->n_index = new_n_index;
+
+			MEM_freeN(ed->n_num);
+			ed->n_num = new_n_num;
+
+			ed->total_targets = total_targets;
+			return true;
+		}
+	}
+
+	if (new_n_index)
+		MEM_freeN(new_n_index);
+	if (new_n_num)
+		MEM_freeN(new_n_num);
+
+	return false;
 }
 
 int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface, float *progress, short *do_update)
@@ -2668,14 +2815,20 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface, flo
 				        &vert_to_looptri_map, &vert_to_looptri_map_mem,
 				        dm->getVertArray(dm), dm->getNumVerts(dm), mlooptri, tottri, mloop, dm->getNumLoops(dm));
 
+				int total_border = 0;
+
 				for (int ty = 0; ty < h; ty++) {
 					for (int tx = 0; tx < w; tx++) {
 						const int index = tx + w * ty;
 
 						if (tempPoints[index].tri_index != -1) {
-							int start_pos = n_pos;
 							ed->n_index[final_index[index]] = n_pos;
 							ed->n_num[final_index[index]] = 0;
+
+							if (tempPoints[index].neighbour_pixel != -1) {
+								ed->flags[final_index[index]] |= ADJ_BORDER_PIXEL;
+								total_border++;
+							}
 
 							for (int i = 0; i < 8; i++) {
 								/* Try to find a neighboring pixel in defined direction. If not found, -1 is returned */
@@ -2683,15 +2836,7 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface, flo
 								                         &data, vert_to_looptri_map, w, h, tx, ty, i);
 
 								if (n_target >= 0 && n_target != index) {
-									bool duplicate = false;
-									for (int j = start_pos; j < n_pos; j++) {
-										if (ed->n_target[j] == final_index[n_target]) {
-											duplicate = true;
-											break;
-										}
-									}
-
-									if (!duplicate) {
+									if (!dynamicPaint_pointHasNeighbor(ed, final_index[index], final_index[n_target])) {
 										ed->n_target[n_pos] = final_index[n_target];
 										ed->n_num[final_index[index]]++;
 										n_pos++;
@@ -2707,6 +2852,57 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface, flo
 
 				MEM_freeN(vert_to_looptri_map);
 				MEM_freeN(vert_to_looptri_map_mem);
+
+				/* Make neighbors symmetric */
+				if (!dynamicPaint_symmetrizeAdjData(ed, active_points)) {
+					error = true;
+				}
+
+				/* Create a list of border pixels */
+				ed->border = MEM_callocN(sizeof(int) * total_border, "Border Pixel Index");
+
+				if (ed->border) {
+					ed->total_border = total_border;
+
+					for (int i = 0, next = 0; i < active_points; i++) {
+						if (ed->flags[i] & ADJ_BORDER_PIXEL) {
+							ed->border[next++] = i;
+						}
+					}
+				}
+
+#if 0
+				/*  -----------------------------------------------------------------
+				 *	For debug, write a dump of adjacency data to a file.
+				 *	-----------------------------------------------------------------*/
+				FILE *dump_file = fopen("dynpaint-adj-data.txt", "w");
+				int *tmp = MEM_callocN(sizeof(int) * active_points, "tmp");
+				for (int ty = 0; ty < h; ty++) {
+					for (int tx = 0; tx < w; tx++) {
+						const int index = tx + w * ty;
+						if (tempPoints[index].tri_index != -1)
+							tmp[final_index[index]] = index;
+					}
+				}
+				for (int ty = 0; ty < h; ty++) {
+					for (int tx = 0; tx < w; tx++) {
+						const int index = tx + w * ty;
+						const int fidx = final_index[index];
+
+						if (tempPoints[index].tri_index != -1) {
+							int nidx = tempPoints[index].neighbour_pixel;
+							fprintf(dump_file, "%d\t%d,%d\t%u\t%d,%d\t%d\t", fidx, tx, h-1-ty, tempPoints[index].tri_index, nidx<0?-1:(nidx%w), nidx<0?-1:h-1-(nidx/w), ed->flags[fidx]);
+							for (int i = 0; i < ed->n_num[fidx]; i++) {
+								int tgt = tmp[ed->n_target[ed->n_index[fidx]+i]];
+								fprintf(dump_file, "%s%d,%d", i?" ":"", tgt%w, h-1-tgt/w);
+							}
+							fprintf(dump_file, "\n");
+						}
+					}
+				}
+				MEM_freeN(tmp);
+				fclose(dump_file);
+#endif
 			}
 		}
 
@@ -4529,6 +4725,10 @@ static void dynamicPaint_doSmudge(DynamicPaintSurface *surface, DynamicPaintBrus
 	for (step = 0; step < steps; step++) {
 		for (index = 0; index < sData->total_points; index++) {
 			int i;
+
+			if (sData->adj_data->flags[index] & ADJ_BORDER_PIXEL)
+				continue;
+
 			PaintPoint *pPoint = &((PaintPoint *)sData->type_data)[index];
 			float smudge_str = bData->brush_velocity[index * 4 + 3];
 
@@ -4708,6 +4908,9 @@ static void dynamic_paint_effect_spread_cb(void *userdata, const int index)
 	const DynamicPaintSurface *surface = data->surface;
 	const PaintSurfaceData *sData = surface->data;
 
+	if (sData->adj_data->flags[index] & ADJ_BORDER_PIXEL)
+		return;
+
 	const int numOfNeighs = sData->adj_data->n_num[index];
 	BakeAdjPoint *bNeighs = sData->bData->bNeighs;
 	PaintPoint *pPoint = &((PaintPoint *)sData->type_data)[index];
@@ -4749,6 +4952,9 @@ static void dynamic_paint_effect_shrink_cb(void *userdata, const int index)
 
 	const DynamicPaintSurface *surface = data->surface;
 	const PaintSurfaceData *sData = surface->data;
+
+	if (sData->adj_data->flags[index] & ADJ_BORDER_PIXEL)
+		return;
 
 	const int numOfNeighs = sData->adj_data->n_num[index];
 	BakeAdjPoint *bNeighs = sData->bData->bNeighs;
@@ -4796,6 +5002,10 @@ static void dynamic_paint_effect_drip_cb(void *userdata, const int index)
 
 	const DynamicPaintSurface *surface = data->surface;
 	const PaintSurfaceData *sData = surface->data;
+
+	if (sData->adj_data->flags[index] & ADJ_BORDER_PIXEL)
+		return;
+
 	BakeAdjPoint *bNeighs = sData->bData->bNeighs;
 	PaintPoint *pPoint = &((PaintPoint *)sData->type_data)[index];
 	const PaintPoint *prevPoint = data->prevPoint;
@@ -4962,6 +5172,80 @@ static void dynamicPaint_doEffectStep(
 
 		MEM_freeN(point_locks);
 	}
+}
+
+static void dynamic_paint_border_cb(void *userdata, const int b_index)
+{
+	const DynamicPaintEffectData *data = userdata;
+
+	const DynamicPaintSurface *surface = data->surface;
+	const PaintSurfaceData *sData = surface->data;
+
+	const int index = sData->adj_data->border[b_index];
+
+	const int numOfNeighs = sData->adj_data->n_num[index];
+	PaintPoint *pPoint = &((PaintPoint *)sData->type_data)[index];
+
+	const int *n_index = sData->adj_data->n_index;
+	const int *n_target = sData->adj_data->n_target;
+
+	/* Average neighboring points. Intermediaries use premultiplied alpha. */
+	float mix_color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	float mix_e_color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	float mix_wetness = 0.0f;
+
+	for (int i = 0; i < numOfNeighs; i++) {
+		const int n_idx = n_index[index] + i;
+		const int target = n_target[n_idx];
+
+		PaintPoint *pPoint2 = &((PaintPoint *)sData->type_data)[target];
+
+		assert(!(sData->adj_data->flags[target] & ADJ_BORDER_PIXEL));
+
+		madd_v3_v3fl(mix_color, pPoint2->color, pPoint2->color[3]);
+		mix_color[3] += pPoint2->color[3];
+
+		madd_v3_v3fl(mix_e_color, pPoint2->e_color, pPoint2->e_color[3]);
+		mix_e_color[3] += pPoint2->e_color[3];
+
+		mix_wetness += pPoint2->wetness;
+	}
+
+	const float divisor = 1.0f / numOfNeighs;
+
+	if (mix_color[3]) {
+		pPoint->color[3] = mix_color[3] * divisor;
+		mul_v3_v3fl(pPoint->color, mix_color, divisor / pPoint->color[3]);
+	}
+	else {
+		pPoint->color[3] = 0.0f;
+	}
+
+	if (mix_e_color[3]) {
+		pPoint->e_color[3] = mix_e_color[3] * divisor;
+		mul_v3_v3fl(pPoint->e_color, mix_e_color, divisor / pPoint->e_color[3]);
+	}
+	else {
+		pPoint->e_color[3] = 0.0f;
+	}
+
+	pPoint->wetness = mix_wetness / numOfNeighs;
+}
+
+static void dynamicPaint_doBorderStep(DynamicPaintSurface *surface)
+{
+	PaintSurfaceData *sData = surface->data;
+
+	if (!sData->adj_data || !sData->adj_data->border)
+		return;
+
+	/* Don't use prevPoint, relying on the condition that neighbors are never border pixels. */
+	DynamicPaintEffectData data = {
+		.surface = surface
+	};
+
+	BLI_task_parallel_range(
+	            0, sData->adj_data->total_border, &data, dynamic_paint_border_cb, sData->adj_data->total_border > 1000);
 }
 
 static void dynamic_paint_wave_step_cb(void *userdata, const int index)
@@ -5632,6 +5916,11 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 				MEM_freeN(prevPoint);
 			if (force)
 				MEM_freeN(force);
+		}
+
+		/* paint island border pixels */
+		if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
+			dynamicPaint_doBorderStep(surface);
 		}
 	}
 

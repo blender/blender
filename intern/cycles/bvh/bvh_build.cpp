@@ -130,12 +130,13 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 
 			/* motion triangles */
 			if(attr_mP) {
-				size_t mesh_size = mesh->verts.size();
-				size_t steps = mesh->motion_steps - 1;
-				float3 *vert_steps = attr_mP->data_float3();
+				const size_t mesh_size = mesh->verts.size();
+				const size_t num_steps = mesh->motion_steps - 1;
+				const float3 *vert_steps = attr_mP->data_float3();
 
-				for(size_t i = 0; i < steps; i++)
-					t.bounds_grow(vert_steps + i*mesh_size, bounds);
+				for(size_t step = 0; step < num_steps; step++) {
+					t.bounds_grow(vert_steps + step*mesh_size, bounds);
+				}
 
 				type = PRIMITIVE_MOTION_TRIANGLE;
 			}
@@ -156,21 +157,23 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 
 		size_t num_curves = mesh->num_curves();
 		for(uint j = 0; j < num_curves; j++) {
-			Mesh::Curve curve = mesh->get_curve(j);
+			const Mesh::Curve curve = mesh->get_curve(j);
 			PrimitiveType type = PRIMITIVE_CURVE;
+			const float *curve_radius = &mesh->curve_radius[0];
 
 			for(int k = 0; k < curve.num_keys - 1; k++) {
 				BoundBox bounds = BoundBox::empty;
-				curve.bounds_grow(k, &mesh->curve_keys[0], &mesh->curve_radius[0], bounds);
+				curve.bounds_grow(k, &mesh->curve_keys[0], curve_radius, bounds);
 
 				/* motion curve */
 				if(curve_attr_mP) {
-					size_t mesh_size = mesh->curve_keys.size();
-					size_t steps = mesh->motion_steps - 1;
-					float3 *key_steps = curve_attr_mP->data_float3();
+					const size_t mesh_size = mesh->curve_keys.size();
+					const size_t num_steps = mesh->motion_steps - 1;
+					const float3 *key_steps = curve_attr_mP->data_float3();
 
-					for(size_t i = 0; i < steps; i++)
-						curve.bounds_grow(k, key_steps + i*mesh_size, &mesh->curve_radius[0], bounds);
+					for(size_t step = 0; step < num_steps; step++) {
+						curve.bounds_grow(k, key_steps + step*mesh_size, curve_radius, bounds);
+					}
 
 					type = PRIMITIVE_MOTION_CURVE;
 				}
@@ -435,6 +438,7 @@ bool BVHBuild::range_within_max_leaf_size(const BVHRange& range,
 		return false;
 
 	size_t num_triangles = 0;
+	size_t num_motion_triangles = 0;
 	size_t num_curves = 0;
 	size_t num_motion_curves = 0;
 
@@ -445,13 +449,16 @@ bool BVHBuild::range_within_max_leaf_size(const BVHRange& range,
 			num_curves++;
 		if(ref.prim_type() & PRIMITIVE_MOTION_CURVE)
 			num_motion_curves++;
-		else if(ref.prim_type() & PRIMITIVE_ALL_TRIANGLE)
+		else if(ref.prim_type() & PRIMITIVE_TRIANGLE)
 			num_triangles++;
+		else if(ref.prim_type() & PRIMITIVE_MOTION_TRIANGLE)
+			num_motion_triangles++;
 	}
 
-	return (num_triangles < params.max_triangle_leaf_size) &&
-	       (num_curves < params.max_curve_leaf_size) &&
-	       (num_motion_curves < params.max_curve_leaf_size);
+	return (num_triangles <= params.max_triangle_leaf_size) &&
+	       (num_motion_triangles <= params.max_motion_triangle_leaf_size) &&
+	       (num_curves <= params.max_curve_leaf_size) &&
+	       (num_motion_curves <= params.max_motion_curve_leaf_size);
 }
 
 /* multithreaded binning builder */
@@ -918,7 +925,7 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 		BVHNode *inner = new InnerNode(inner_bounds, leaves[1], leaves[2]);
 		return new InnerNode(range.bounds(), leaves[0], inner);
 	} else {
-		/* Shpuld be doing more branches if more primitive types added. */
+		/* Should be doing more branches if more primitive types added. */
 		assert(num_leaves <= 5);
 		BoundBox inner_bounds_a = merge(leaves[0]->m_bounds, leaves[1]->m_bounds);
 		BoundBox inner_bounds_b = merge(leaves[2]->m_bounds, leaves[3]->m_bounds);

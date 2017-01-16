@@ -45,6 +45,8 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "BLI_string_utils.h"
+
 #include "BLT_translation.h"
 
 #include "rna_internal.h"

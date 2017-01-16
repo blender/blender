@@ -43,7 +43,9 @@ public:
 	/* number of primitives in leaf */
 	int min_leaf_size;
 	int max_triangle_leaf_size;
+	int max_motion_triangle_leaf_size;
 	int max_curve_leaf_size;
+	int max_motion_curve_leaf_size;
 
 	/* object or mesh level bvh */
 	bool top_level;
@@ -80,7 +82,9 @@ public:
 
 		min_leaf_size = 1;
 		max_triangle_leaf_size = 8;
-		max_curve_leaf_size = 2;
+		max_motion_triangle_leaf_size = 8;
+		max_curve_leaf_size = 1;
+		max_motion_curve_leaf_size = 4;
 
 		top_level = false;
 		use_qbvh = false;

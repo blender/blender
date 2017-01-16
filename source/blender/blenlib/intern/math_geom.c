@@ -4048,6 +4048,26 @@ void map_to_sphere(float *r_u, float *r_v, const float x, const float y, const f
 	}
 }
 
+void map_to_plane_v2_v3v3(float r_co[2], const float co[3], const float no[3])
+{
+	float target[3] = {0.0f, 0.0f, 1.0f};
+	float axis[3];
+
+	cross_v3_v3v3(axis, no, target);
+	normalize_v3(axis);
+
+	map_to_plane_axis_angle_v2_v3v3fl(r_co, co, axis, angle_normalized_v3v3(no, target));
+}
+
+void map_to_plane_axis_angle_v2_v3v3fl(float r_co[2], const float co[3], const float axis[3], const float angle)
+{
+	float tmp[3];
+
+	rotate_normalized_v3_v3v3fl(tmp, co, axis, angle);
+
+	copy_v2_v2(r_co, tmp);
+}
+
 /********************************* Normals **********************************/
 
 void accumulate_vertex_normals_tri(

@@ -305,12 +305,16 @@ static PassType get_pass_type(BL::RenderPass& b_pass)
 #ifdef WITH_CYCLES_DEBUG
 		case BL::RenderPass::type_DEBUG:
 		{
-			if(b_pass.debug_type() == BL::RenderPass::debug_type_BVH_TRAVERSAL_STEPS)
-				return PASS_BVH_TRAVERSAL_STEPS;
-			if(b_pass.debug_type() == BL::RenderPass::debug_type_BVH_TRAVERSED_INSTANCES)
-				return PASS_BVH_TRAVERSED_INSTANCES;
-			if(b_pass.debug_type() == BL::RenderPass::debug_type_RAY_BOUNCES)
-				return PASS_RAY_BOUNCES;
+			switch(b_pass.debug_type()) {
+				case BL::RenderPass::debug_type_BVH_TRAVERSED_NODES:
+					return PASS_BVH_TRAVERSED_NODES;
+				case BL::RenderPass::debug_type_BVH_TRAVERSED_INSTANCES:
+					return PASS_BVH_TRAVERSED_INSTANCES;
+				case BL::RenderPass::debug_type_BVH_INTERSECTIONS:
+					return PASS_BVH_INTERSECTIONS;
+				case BL::RenderPass::debug_type_RAY_BOUNCES:
+					return PASS_RAY_BOUNCES;
+			}
 			break;
 		}
 #endif

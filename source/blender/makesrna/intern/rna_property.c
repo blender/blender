@@ -31,6 +31,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_path_util.h"
+#include "BLI_string_utils.h"
 
 #include "BLT_translation.h"
 

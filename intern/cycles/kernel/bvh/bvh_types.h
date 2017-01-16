@@ -50,12 +50,17 @@ CCL_NAMESPACE_BEGIN
 #ifdef __KERNEL_DEBUG__
 #  define BVH_DEBUG_INIT() \
 	do { \
-		isect->num_traversal_steps = 0; \
+		isect->num_traversed_nodes = 0; \
 		isect->num_traversed_instances = 0; \
+		isect->num_intersections = 0; \
 	} while(0)
-#  define BVH_DEBUG_NEXT_STEP() \
+#  define BVH_DEBUG_NEXT_NODE() \
 	do { \
-		++isect->num_traversal_steps; \
+		++isect->num_traversed_nodes; \
+	} while(0)
+#  define BVH_DEBUG_NEXT_INTERSECTION() \
+	do { \
+		++isect->num_intersections; \
 	} while(0)
 #  define BVH_DEBUG_NEXT_INSTANCE() \
 	do { \
@@ -63,7 +68,8 @@ CCL_NAMESPACE_BEGIN
 	} while(0)
 #else  /* __KERNEL_DEBUG__ */
 #  define BVH_DEBUG_INIT()
-#  define BVH_DEBUG_NEXT_STEP()
+#  define BVH_DEBUG_NEXT_NODE()
+#  define BVH_DEBUG_NEXT_INTERSECTION()
 #  define BVH_DEBUG_NEXT_INSTANCE()
 #endif  /* __KERNEL_DEBUG__ */
 

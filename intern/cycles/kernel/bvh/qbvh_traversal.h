@@ -131,7 +131,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 				int child_mask;
 				ssef dist;
 
-				BVH_DEBUG_NEXT_STEP();
+				BVH_DEBUG_NEXT_NODE();
 
 #if BVH_FEATURE(BVH_HAIR_MINIMUM_WIDTH)
 				if(difl != 0.0f) {
@@ -326,7 +326,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					switch(type & PRIMITIVE_ALL) {
 						case PRIMITIVE_TRIANGLE: {
 							for(; prim_addr < prim_addr2; prim_addr++) {
-								BVH_DEBUG_NEXT_STEP();
+								BVH_DEBUG_NEXT_INTERSECTION();
 								kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
 								if(triangle_intersect(kg,
 								                      &isect_precalc,
@@ -347,7 +347,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 #if BVH_FEATURE(BVH_MOTION)
 						case PRIMITIVE_MOTION_TRIANGLE: {
 							for(; prim_addr < prim_addr2; prim_addr++) {
-								BVH_DEBUG_NEXT_STEP();
+								BVH_DEBUG_NEXT_INTERSECTION();
 								kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
 								if(motion_triangle_intersect(kg,
 								                             isect,
@@ -371,8 +371,9 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 						case PRIMITIVE_CURVE:
 						case PRIMITIVE_MOTION_CURVE: {
 							for(; prim_addr < prim_addr2; prim_addr++) {
-								BVH_DEBUG_NEXT_STEP();
-								kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
+								BVH_DEBUG_NEXT_INTERSECTION();
+								const uint curve_type = kernel_tex_fetch(__prim_type, prim_addr);
+								kernel_assert((curve_type & PRIMITIVE_ALL) == (type & PRIMITIVE_ALL));
 								bool hit;
 								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) {
 									hit = bvh_cardinal_curve_intersect(kg,
@@ -383,7 +384,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 									                                   object,
 									                                   prim_addr,
 									                                   ray->time,
-									                                   type,
+									                                   curve_type,
 									                                   lcg_state,
 									                                   difl,
 									                                   extmax);
@@ -397,7 +398,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 									                          object,
 									                          prim_addr,
 									                          ray->time,
-									                          type,
+									                          curve_type,
 									                          lcg_state,
 									                          difl,
 									                          extmax);

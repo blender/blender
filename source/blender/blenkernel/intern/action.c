@@ -44,6 +44,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
@@ -494,7 +495,7 @@ bPoseChannel *BKE_pose_channel_get_mirrored(const bPose *pose, const char *name)
 {
 	char name_flip[MAXBONENAME];
 
-	BKE_deform_flip_side_name(name_flip, name, false);
+	BLI_string_flip_side_name(name_flip, name, false, sizeof(name_flip));
 
 	if (!STREQ(name_flip, name)) {
 		return BKE_pose_channel_find_name(pose, name_flip);

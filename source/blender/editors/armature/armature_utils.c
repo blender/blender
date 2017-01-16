@@ -34,6 +34,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_string_utils.h"
 
 #include "BKE_armature.h"
 #include "BKE_context.h"
@@ -262,7 +263,7 @@ EditBone *ED_armature_bone_get_mirrored(const ListBase *edbo, EditBone *ebo)
 	if (ebo == NULL)
 		return NULL;
 	
-	BKE_deform_flip_side_name(name_flip, ebo->name, false);
+	BLI_string_flip_side_name(name_flip, ebo->name, false, sizeof(name_flip));
 	
 	if (!STREQ(name_flip, ebo->name)) {
 		return ED_armature_bone_find_name(edbo, name_flip);
