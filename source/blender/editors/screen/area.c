@@ -2521,9 +2521,7 @@ void ED_region_visible_rect(ARegion *ar, rcti *rect)
 
 void ED_region_cache_draw_background(const ARegion *ar)
 {
-	VertexFormat* format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-
+	unsigned pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4ub(128, 128, 255, 64);
 	immRecti(pos, 0, 0, ar->winx, 8 * UI_DPI_FAC);
@@ -2543,7 +2541,11 @@ void ED_region_cache_draw_curfra_label(const int framenr, const float x, const f
 
 	BLF_width_and_height(fontid, numstr, sizeof(numstr), &font_dims[0], &font_dims[1]);
 
-	glRecti(x, y, x + font_dims[0] + 6.0f, y + font_dims[1] + 4.0f);
+	unsigned pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformThemeColor(TH_CFRAME);
+	immRecti(pos, x, y, x + font_dims[0] + 6.0f, y + font_dims[1] + 4.0f);
+	immUnbindProgram();
 
 	UI_ThemeColor(TH_TEXT);
 	BLF_position(fontid, x + 2.0f, y + 2.0f, 0.0f);
@@ -2553,17 +2555,18 @@ void ED_region_cache_draw_curfra_label(const int framenr, const float x, const f
 void ED_region_cache_draw_cached_segments(const ARegion *ar, const int num_segments, const int *points, const int sfra, const int efra)
 {
 	if (num_segments) {
-		int a;
+		unsigned pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+		immUniformColor4ub(128, 128, 255, 128);
 
-		glColor4ub(128, 128, 255, 128);
+		for (int a = 0; a < num_segments; a++) {
+			float x1 = (float)(points[a * 2] - sfra) / (efra - sfra + 1) * ar->winx;
+			float x2 = (float)(points[a * 2 + 1] - sfra + 1) / (efra - sfra + 1) * ar->winx;
 
-		for (a = 0; a < num_segments; a++) {
-			float x1, x2;
-
-			x1 = (float)(points[a * 2] - sfra) / (efra - sfra + 1) * ar->winx;
-			x2 = (float)(points[a * 2 + 1] - sfra + 1) / (efra - sfra + 1) * ar->winx;
-
-			glRecti(x1, 0, x2, 8 * UI_DPI_FAC);
+			immRecti(pos, x1, 0, x2, 8 * UI_DPI_FAC);
+			/* TODO(merwin): use primitive restart to draw multiple rects more efficiently */
 		}
+
+		immUnbindProgram();
 	}
 }
