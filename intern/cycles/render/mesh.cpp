@@ -63,8 +63,18 @@ void Mesh::Triangle::motion_verts(const float3 *verts,
 	/* Fetch vertex coordinates. */
 	float3 curr_verts[3];
 	float3 next_verts[3];
-	verts_for_step(verts, vert_steps, num_verts, num_steps, step, curr_verts);
-	verts_for_step(verts, vert_steps, num_verts, num_steps, step + 1, next_verts);
+	verts_for_step(verts,
+	               vert_steps,
+	               num_verts,
+	               num_steps,
+	               step,
+	               curr_verts);
+	verts_for_step(verts,
+	               vert_steps,
+	               num_verts,
+	               num_steps,
+	               step + 1,
+	               next_verts);
 	/* Interpolate between steps. */
 	r_verts[0] = (1.0f - t)*curr_verts[0] + t*next_verts[0];
 	r_verts[1] = (1.0f - t)*curr_verts[1] + t*next_verts[1];

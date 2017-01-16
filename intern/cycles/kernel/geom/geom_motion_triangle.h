@@ -76,7 +76,7 @@ ccl_device_inline void motion_triangle_normals_for_step(KernelGlobals *kg, uint4
 		normals[2] = float4_to_float3(kernel_tex_fetch(__tri_vnormal, tri_vindex.z));
 	}
 	else {
-		/* center step not stored in this array */
+		/* center step is not stored in this array */
 		if(step > numsteps)
 			step--;
 
