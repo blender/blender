@@ -130,12 +130,13 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 
 			/* motion triangles */
 			if(attr_mP) {
-				size_t mesh_size = mesh->verts.size();
-				size_t steps = mesh->motion_steps - 1;
-				float3 *vert_steps = attr_mP->data_float3();
+				const size_t mesh_size = mesh->verts.size();
+				const size_t num_steps = mesh->motion_steps - 1;
+				const float3 *vert_steps = attr_mP->data_float3();
 
-				for(size_t i = 0; i < steps; i++)
-					t.bounds_grow(vert_steps + i*mesh_size, bounds);
+				for(size_t step = 0; step < num_steps; step++) {
+					t.bounds_grow(vert_steps + step*mesh_size, bounds);
+				}
 
 				type = PRIMITIVE_MOTION_TRIANGLE;
 			}
