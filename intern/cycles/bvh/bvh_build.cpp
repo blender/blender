@@ -925,7 +925,7 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 		BVHNode *inner = new InnerNode(inner_bounds, leaves[1], leaves[2]);
 		return new InnerNode(range.bounds(), leaves[0], inner);
 	} else {
-		/* Shpuld be doing more branches if more primitive types added. */
+		/* Should be doing more branches if more primitive types added. */
 		assert(num_leaves <= 5);
 		BoundBox inner_bounds_a = merge(leaves[0]->m_bounds, leaves[1]->m_bounds);
 		BoundBox inner_bounds_b = merge(leaves[2]->m_bounds, leaves[3]->m_bounds);
