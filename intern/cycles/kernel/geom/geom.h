@@ -23,6 +23,7 @@
 #include "geom_subd_triangle.h"
 #include "geom_triangle_intersect.h"
 #include "geom_motion_triangle.h"
+#include "geom_motion_triangle_intersect.h"
 #include "geom_motion_curve.h"
 #include "geom_curve.h"
 #include "geom_volume.h"
