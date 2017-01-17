@@ -1981,6 +1981,7 @@ void GPENCIL_OT_reproject(wmOperatorType *ot)
 }
 
 /* ******************* Stroke subdivide ************************** */
+
 /* helper: Count how many points need to be inserted */
 static int gp_count_subdivision_cuts(bGPDstroke *gps)
 {
