@@ -162,9 +162,32 @@ void Mesh::Curve::bounds_grow(const int k,
 	bounds.grow(upper, mr);
 }
 
+void Mesh::Curve::bounds_grow(float4 keys[4], BoundBox& bounds) const
+{
+	float3 P[4] = {
+		float4_to_float3(keys[0]),
+		float4_to_float3(keys[1]),
+		float4_to_float3(keys[2]),
+		float4_to_float3(keys[3]),
+	};
+
+	float3 lower;
+	float3 upper;
+
+	curvebounds(&lower.x, &upper.x, P, 0);
+	curvebounds(&lower.y, &upper.y, P, 1);
+	curvebounds(&lower.z, &upper.z, P, 2);
+
+	float mr = max(keys[1].w, keys[2].w);
+
+	bounds.grow(lower, mr);
+	bounds.grow(upper, mr);
+}
+
 void Mesh::Curve::motion_keys(const float3 *curve_keys,
                               const float *curve_radius,
                               const float3 *key_steps,
+                              size_t num_curve_keys,
                               size_t num_steps,
                               float time,
                               size_t k0, size_t k1,
@@ -180,6 +203,7 @@ void Mesh::Curve::motion_keys(const float3 *curve_keys,
 	keys_for_step(curve_keys,
 	              curve_radius,
 	              key_steps,
+	              num_curve_keys,
 	              num_steps,
 	              step,
 	              k0, k1,
@@ -187,6 +211,7 @@ void Mesh::Curve::motion_keys(const float3 *curve_keys,
 	keys_for_step(curve_keys,
 	              curve_radius,
 	              key_steps,
+	              num_curve_keys,
 	              num_steps,
 	              step + 1,
 	              k0, k1,
@@ -199,6 +224,7 @@ void Mesh::Curve::motion_keys(const float3 *curve_keys,
 void Mesh::Curve::cardinal_motion_keys(const float3 *curve_keys,
                                        const float *curve_radius,
                                        const float3 *key_steps,
+                                       size_t num_curve_keys,
                                        size_t num_steps,
                                        float time,
                                        size_t k0, size_t k1,
@@ -215,6 +241,7 @@ void Mesh::Curve::cardinal_motion_keys(const float3 *curve_keys,
 	cardinal_keys_for_step(curve_keys,
 	                       curve_radius,
 	                       key_steps,
+	                       num_curve_keys,
 	                       num_steps,
 	                       step,
 	                       k0, k1, k2, k3,
@@ -222,6 +249,7 @@ void Mesh::Curve::cardinal_motion_keys(const float3 *curve_keys,
 	cardinal_keys_for_step(curve_keys,
 	                       curve_radius,
 	                       key_steps,
+	                       num_curve_keys,
 	                       num_steps,
 	                       step + 1,
 	                       k0, k1, k2, k3,
@@ -236,11 +264,14 @@ void Mesh::Curve::cardinal_motion_keys(const float3 *curve_keys,
 void Mesh::Curve::keys_for_step(const float3 *curve_keys,
                                 const float *curve_radius,
                                 const float3 *key_steps,
+                                size_t num_curve_keys,
                                 size_t num_steps,
                                 size_t step,
                                 size_t k0, size_t k1,
                                 float4 r_keys[2]) const
 {
+	k0 = max(k0, 0);
+	k1 = min(k1, num_keys - 1);
 	const size_t center_step = ((num_steps - 1) / 2);
 	if(step == center_step) {
 		/* Center step: regular key location. */
@@ -250,80 +281,83 @@ void Mesh::Curve::keys_for_step(const float3 *curve_keys,
 		r_keys[0] = make_float4(curve_keys[first_key + k0].x,
 		                        curve_keys[first_key + k0].y,
 		                        curve_keys[first_key + k0].z,
-		                        curve_radius[k0]);
+		                        curve_radius[first_key + k0]);
 		r_keys[1] = make_float4(curve_keys[first_key + k1].x,
 		                        curve_keys[first_key + k1].y,
 		                        curve_keys[first_key + k1].z,
-		                        curve_radius[k1]);
+		                        curve_radius[first_key + k1]);
 	}
 	else {
 		/* Center step is not stored in this array. */
 		if(step > center_step) {
 			step--;
 		}
-		const size_t offset = first_key + step * num_keys;
+		const size_t offset = first_key + step * num_curve_keys;
 		r_keys[0] = make_float4(key_steps[offset + k0].x,
 		                        key_steps[offset + k0].y,
 		                        key_steps[offset + k0].z,
-		                        curve_radius[k0]);
+		                        curve_radius[first_key + k0]);
 		r_keys[1] = make_float4(key_steps[offset + k1].x,
 		                        key_steps[offset + k1].y,
 		                        key_steps[offset + k1].z,
-		                        curve_radius[k1]);
+		                        curve_radius[first_key + k1]);
 	}
 }
 
 void Mesh::Curve::cardinal_keys_for_step(const float3 *curve_keys,
                                          const float *curve_radius,
                                          const float3 *key_steps,
+                                         size_t num_curve_keys,
                                          size_t num_steps,
                                          size_t step,
                                          size_t k0, size_t k1,
                                          size_t k2, size_t k3,
                                          float4 r_keys[4]) const
 {
+	k0 = max(k0, 0);
+	k3 = min(k3, num_keys - 1);
 	const size_t center_step = ((num_steps - 1) / 2);
 	if(step == center_step) {
 		/* Center step: regular key location. */
 		r_keys[0] = make_float4(curve_keys[first_key + k0].x,
 		                        curve_keys[first_key + k0].y,
 		                        curve_keys[first_key + k0].z,
-		                        curve_radius[k0]);
+		                        curve_radius[first_key + k0]);
 		r_keys[1] = make_float4(curve_keys[first_key + k1].x,
 		                        curve_keys[first_key + k1].y,
 		                        curve_keys[first_key + k1].z,
-		                        curve_radius[k1]);
+		                        curve_radius[first_key + k1]);
 		r_keys[2] = make_float4(curve_keys[first_key + k2].x,
 		                        curve_keys[first_key + k2].y,
 		                        curve_keys[first_key + k2].z,
-		                        curve_radius[k2]);
+		                        curve_radius[first_key + k2]);
 		r_keys[3] = make_float4(curve_keys[first_key + k3].x,
 		                        curve_keys[first_key + k3].y,
 		                        curve_keys[first_key + k3].z,
-		                        curve_radius[k3]);
+		                        curve_radius[first_key + k3]);
 	}
 	else {
 		/* Center step is not stored in this array. */
 		if(step > center_step) {
 			step--;
 		}
-		const size_t offset = first_key + step * num_keys;
+		const size_t offset = first_key + step * num_curve_keys;
 		r_keys[0] = make_float4(key_steps[offset + k0].x,
 		                        key_steps[offset + k0].y,
 		                        key_steps[offset + k0].z,
-		                        curve_radius[k0]);
+		                        curve_radius[first_key + k0]);
 		r_keys[1] = make_float4(key_steps[offset + k1].x,
 		                        key_steps[offset + k1].y,
 		                        key_steps[offset + k1].z,
-		                        curve_radius[k1]);
+		                        curve_radius[first_key + k1]);
 		r_keys[2] = make_float4(key_steps[offset + k2].x,
 		                        key_steps[offset + k2].y,
 		                        key_steps[offset + k2].z,
-		                        curve_radius[k2]);
+		                        curve_radius[first_key + k2]);
 		r_keys[3] = make_float4(key_steps[offset + k3].x,
 		                        key_steps[offset + k3].y,
 		                        key_steps[offset + k3].z,
-		                        curve_radius[k3]);
+		                        curve_radius[first_key + k3]);
 	}
 }
 
@@ -1019,6 +1053,7 @@ void Mesh::compute_bvh(DeviceScene *dscene,
 			bparams.use_qbvh = params->use_qbvh;
 			bparams.use_unaligned_nodes = dscene->data.bvh.have_curves &&
 			                              params->use_bvh_unaligned_nodes;
+			bparams.num_motion_curve_steps = params->num_bvh_motion_curve_steps;
 
 			delete bvh;
 			bvh = BVH::create(bparams, objects);
@@ -1787,6 +1822,7 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 	bparams.use_spatial_split = scene->params.use_bvh_spatial_split;
 	bparams.use_unaligned_nodes = dscene->data.bvh.have_curves &&
 	                              scene->params.use_bvh_unaligned_nodes;
+	bparams.num_motion_curve_steps = scene->params.num_bvh_motion_curve_steps;
 
 	delete bvh;
 	bvh = BVH::create(bparams, scene->objects);
