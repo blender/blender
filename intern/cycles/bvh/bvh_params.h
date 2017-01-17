@@ -61,6 +61,14 @@ public:
 	 */
 	bool use_unaligned_nodes;
 
+	/* Split time range to this number of steps and create leaf node for each
+	 * of this time steps.
+	 *
+	 * Speeds up rendering of motion curve primitives in the cost of higher
+	 * memory usage.
+	 */
+	int num_motion_curve_steps;
+
 	/* fixed parameters */
 	enum {
 		MAX_DEPTH = 64,
@@ -91,6 +99,8 @@ public:
 		use_unaligned_nodes = false;
 
 		primitive_mask = PRIMITIVE_ALL;
+
+		num_motion_curve_steps = 0;
 	}
 
 	/* SAH costs */

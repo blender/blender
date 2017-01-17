@@ -432,6 +432,10 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         col.prop(cscene, "debug_use_spatial_splits")
         col.prop(cscene, "debug_use_hair_bvh")
 
+        row = col.row()
+        row.active = not cscene.debug_use_spatial_splits
+        row.prop(cscene, "debug_bvh_time_steps")
+
 
 class CyclesRender_PT_layer_options(CyclesButtonsPanel, Panel):
     bl_label = "Layer"
