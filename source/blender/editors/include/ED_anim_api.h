@@ -161,6 +161,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_DSSKEY,
 	ANIMTYPE_DSWOR,
 	ANIMTYPE_DSNTREE,
+	ANIMTYPE_DSPART,
 	ANIMTYPE_DSMBALL,
 	ANIMTYPE_DSARM,
 	ANIMTYPE_DSMESH,
@@ -183,13 +184,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_NLAACTION,
 	
 	/* always as last item, the total number of channel types... */
-	ANIMTYPE_NUM_TYPES,
-
-	/* TODO: WARNING remove this entry or move to the right place when particle system is enabled again. 
-	   This definition was set here only to compile, but it is not used and cannot be in the middle of the list 
-	   or break the editors */
-	ANIMTYPE_DSPART
-
+	ANIMTYPE_NUM_TYPES
 } eAnim_ChannelType;
 
 /* types of keyframe data in bAnimListElem */
