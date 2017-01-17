@@ -158,32 +158,101 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 		size_t num_curves = mesh->num_curves();
 		for(uint j = 0; j < num_curves; j++) {
 			const Mesh::Curve curve = mesh->get_curve(j);
-			PrimitiveType type = PRIMITIVE_CURVE;
 			const float *curve_radius = &mesh->curve_radius[0];
-
 			for(int k = 0; k < curve.num_keys - 1; k++) {
-				BoundBox bounds = BoundBox::empty;
-				curve.bounds_grow(k, &mesh->curve_keys[0], curve_radius, bounds);
-
-				/* motion curve */
-				if(curve_attr_mP) {
-					const size_t num_keys = mesh->curve_keys.size();
-					const size_t num_steps = mesh->motion_steps - 1;
-					const float3 *key_steps = curve_attr_mP->data_float3();
-
-					for(size_t step = 0; step < num_steps; step++) {
-						curve.bounds_grow(k, key_steps + step*num_keys, curve_radius, bounds);
+				if(curve_attr_mP == NULL) {
+					/* Really simple logic for static hair. */
+					BoundBox bounds = BoundBox::empty;
+					curve.bounds_grow(k, &mesh->curve_keys[0], curve_radius, bounds);
+					if(bounds.valid()) {
+						int packed_type = PRIMITIVE_PACK_SEGMENT(PRIMITIVE_CURVE, k);
+						references.push_back(BVHReference(bounds, j, i, packed_type));
+						root.grow(bounds);
+						center.grow(bounds.center2());
 					}
-
-					type = PRIMITIVE_MOTION_CURVE;
 				}
-
-				if(bounds.valid()) {
-					int packed_type = PRIMITIVE_PACK_SEGMENT(type, k);
-
-					references.push_back(BVHReference(bounds, j, i, packed_type));
-					root.grow(bounds);
-					center.grow(bounds.center2());
+				else if(params.num_motion_curve_steps == 0 || params.use_spatial_split) {
+					/* Simple case of motion curves: single node for the while
+					 * shutter time. Lowest memory usage but less optimal
+					 * rendering.
+					 */
+					/* TODO(sergey): Support motion steps for spatially split BVH. */
+					BoundBox bounds = BoundBox::empty;
+					curve.bounds_grow(k, &mesh->curve_keys[0], curve_radius, bounds);
+					const size_t num_keys = mesh->curve_keys.size();
+					const size_t num_steps = mesh->motion_steps;
+					const float3 *key_steps = curve_attr_mP->data_float3();
+					for(size_t step = 0; step < num_steps - 1; step++) {
+						curve.bounds_grow(k,
+						                  key_steps + step*num_keys,
+						                  curve_radius,
+						                  bounds);
+					}
+					if(bounds.valid()) {
+						int packed_type = PRIMITIVE_PACK_SEGMENT(PRIMITIVE_MOTION_CURVE, k);
+						references.push_back(BVHReference(bounds,
+						                                  j,
+						                                  i,
+						                                  packed_type));
+						root.grow(bounds);
+						center.grow(bounds.center2());
+					}
+				}
+				else {
+					/* Motion curves, trace optimized case:  we split curve keys
+					 * primitives into separate nodes for each of the time steps.
+					 * This way we minimize overlap of neighbor curve primitives.
+					 */
+					const int num_bvh_steps = params.num_motion_curve_steps * 2 + 1;
+					const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
+					const size_t num_steps = mesh->motion_steps;
+					const float3 *curve_keys = &mesh->curve_keys[0];
+					const float3 *key_steps = curve_attr_mP->data_float3();
+					const size_t num_keys = mesh->curve_keys.size();
+					/* Calculate bounding box of the previous time step.
+					 * Will be reused later to avoid duplicated work on
+					 * calculating BVH time step boundbox.
+					 */
+					float4 prev_keys[4];
+					curve.cardinal_motion_keys(curve_keys,
+					                           curve_radius,
+					                           key_steps,
+					                           num_keys,
+					                           num_steps,
+					                           0.0f,
+					                           k - 1, k, k + 1, k + 2,
+					                           prev_keys);
+					BoundBox prev_bounds = BoundBox::empty;
+					curve.bounds_grow(prev_keys, prev_bounds);
+					for(int bvh_step = 1; bvh_step < num_bvh_steps; ++bvh_step) {
+						const float curr_time = (float)(bvh_step) * num_bvh_steps_inv_1;
+						float4 curr_keys[4];
+						curve.cardinal_motion_keys(curve_keys,
+						                           curve_radius,
+						                           key_steps,
+						                           num_keys,
+						                           num_steps,
+						                           curr_time,
+						                           k - 1, k, k + 1, k + 2,
+						                           curr_keys);
+						BoundBox curr_bounds = BoundBox::empty;
+						curve.bounds_grow(curr_keys, curr_bounds);
+						BoundBox bounds = prev_bounds;
+						bounds.grow(curr_bounds);
+						if(bounds.valid()) {
+							int packed_type = PRIMITIVE_PACK_SEGMENT(PRIMITIVE_MOTION_CURVE, k);
+							references.push_back(BVHReference(bounds,
+							                                  j,
+							                                  i,
+							                                  packed_type));
+							root.grow(bounds);
+							center.grow(bounds.center2());
+						}
+						/* Current time boundbox becomes previous one for the
+						 * next time step.
+						 */
+						prev_bounds = curr_bounds;
+					}
 				}
 			}
 		}
