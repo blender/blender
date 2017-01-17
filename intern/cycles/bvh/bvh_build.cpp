@@ -203,7 +203,7 @@ static size_t count_curve_segments(Mesh *mesh)
 
 	for(size_t i = 0; i < num_curves; i++)
 		num += mesh->get_curve(i).num_keys - 1;
-	
+
 	return num;
 }
 
@@ -374,7 +374,7 @@ void BVHBuild::progress_update()
 {
 	if(time_dt() - progress_start_time < 0.25)
 		return;
-	
+
 	double progress_start = (double)progress_count/(double)progress_total;
 	double duplicates = (double)(progress_total - progress_original_total)/(double)progress_total;
 
@@ -382,7 +382,7 @@ void BVHBuild::progress_update()
 	                           progress_start * 100.0, duplicates * 100.0);
 
 	progress.set_substatus(msg);
-	progress_start_time = time_dt(); 
+	progress_start_time = time_dt();
 }
 
 void BVHBuild::thread_build_node(InnerNode *inner,
@@ -700,8 +700,8 @@ BVHNode *BVHBuild::create_object_leaf_nodes(const BVHReference *ref, int start, 
 	}
 	else {
 		int mid = num/2;
-		BVHNode *leaf0 = create_object_leaf_nodes(ref, start, mid); 
-		BVHNode *leaf1 = create_object_leaf_nodes(ref+mid, start+mid, num-mid); 
+		BVHNode *leaf0 = create_object_leaf_nodes(ref, start, mid);
+		BVHNode *leaf1 = create_object_leaf_nodes(ref+mid, start+mid, num-mid);
 
 		BoundBox bounds = BoundBox::empty;
 		bounds.grow(leaf0->m_bounds);
@@ -958,7 +958,7 @@ void BVHBuild::rotate(BVHNode *node, int max_depth)
 	/* nothing to rotate if we reached a leaf node. */
 	if(node->is_leaf() || max_depth < 0)
 		return;
-	
+
 	InnerNode *parent = (InnerNode*)node;
 
 	/* rotate all children first */
