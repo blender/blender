@@ -2014,6 +2014,79 @@ static bAnimChannelType ACF_DSWOR =
 	acf_dswor_setting_ptr                   /* pointer for setting */
 };
 
+/* Particle Expander  ------------------------------------------- */
+
+// TODO: just get this from RNA?
+static int acf_dspart_icon(bAnimListElem *UNUSED(ale))
+{
+	return ICON_PARTICLE_DATA;
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_dspart_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
+{
+	/* clear extra return data first */
+	*neg = false;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			return 0;
+			
+		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
+			return ADT_NLA_EVAL_OFF;
+			
+		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+			*neg = true;
+			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
+		
+		default: /* unsupported */
+			return 0;
+	}
+}
+
+/* get pointer to the setting */
+static void *acf_dspart_setting_ptr(bAnimListElem *UNUSED(ale), eAnimChannel_Settings setting, short *type)
+{
+	/* clear extra return data first */
+	*type = 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			return NULL;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
+		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
+			return NULL;
+		
+		default: /* unsupported */
+			return NULL;
+	}
+}
+
+/* particle expander type define */
+static bAnimChannelType ACF_DSPART =
+{
+	"Particle Data Expander",       /* type name */
+	ACHANNEL_ROLE_EXPANDER,         /* role */
+	
+	acf_generic_dataexpand_color,   /* backdrop color */
+	acf_generic_dataexpand_backdrop, /* backdrop */
+	acf_generic_indention_1,        /* indent level */
+	acf_generic_basic_offset,       /* offset */
+
+	acf_generic_idblock_name,       /* name */
+	acf_generic_idblock_name_prop,   /* name prop */
+	acf_dspart_icon,                /* icon */
+
+	acf_generic_dataexpand_setting_valid,   /* has setting */
+	acf_dspart_setting_flag,                /* flag for setting */
+	acf_dspart_setting_ptr                  /* pointer for setting */
+};
+
 /* MetaBall Expander  ------------------------------------------- */
 
 // TODO: just get this from RNA?
@@ -3511,6 +3584,7 @@ static void ANIM_init_channel_typeinfo_data(void)
 		animchannelTypeInfo[type++] = &ACF_DSSKEY;       /* ShapeKey Channel */
 		animchannelTypeInfo[type++] = &ACF_DSWOR;        /* World Channel */
 		animchannelTypeInfo[type++] = &ACF_DSNTREE;      /* NodeTree Channel */
+		animchannelTypeInfo[type++] = &ACF_DSPART;       /* Particle Channel */
 		animchannelTypeInfo[type++] = &ACF_DSMBALL;      /* MetaBall Channel */
 		animchannelTypeInfo[type++] = &ACF_DSARM;        /* Armature Channel */
 		animchannelTypeInfo[type++] = &ACF_DSMESH;       /* Mesh Channel */
