@@ -117,6 +117,10 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 				float4 inodes = kernel_tex_fetch(__bvh_nodes, node_addr+0);
 
 				if(UNLIKELY(node_dist > isect->t)
+#if BVH_FEATURE(BVH_MOTION)
+				   || UNLIKELY(ray->time < inodes.y)
+				   || UNLIKELY(ray->time > inodes.z)
+#endif
 #ifdef __VISIBILITY_FLAG__
 				   || (__float_as_uint(inodes.x) & visibility) == 0)
 #endif

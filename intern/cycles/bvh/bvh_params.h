@@ -130,8 +130,15 @@ class BVHReference
 public:
 	__forceinline BVHReference() {}
 
-	__forceinline BVHReference(const BoundBox& bounds_, int prim_index_, int prim_object_, int prim_type)
-	: rbounds(bounds_)
+	__forceinline BVHReference(const BoundBox& bounds_,
+	                           int prim_index_,
+	                           int prim_object_,
+	                           int prim_type,
+	                           float time_from = 0.0f,
+	                           float time_to = 1.0f)
+	        : rbounds(bounds_),
+	          time_from_(time_from),
+	          time_to_(time_to)
 	{
 		rbounds.min.w = __int_as_float(prim_index_);
 		rbounds.max.w = __int_as_float(prim_object_);
@@ -142,6 +149,9 @@ public:
 	__forceinline int prim_index() const { return __float_as_int(rbounds.min.w); }
 	__forceinline int prim_object() const { return __float_as_int(rbounds.max.w); }
 	__forceinline int prim_type() const { return type; }
+	__forceinline float time_from() const { return time_from_; }
+	__forceinline float time_to() const { return time_to_; }
+
 
 	BVHReference& operator=(const BVHReference &arg) {
 		if(&arg != this) {
@@ -150,9 +160,11 @@ public:
 		return *this;
 	}
 
+
 protected:
 	BoundBox rbounds;
 	uint type;
+	float time_from_, time_to_;
 };
 
 /* BVH Range
