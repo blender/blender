@@ -1053,7 +1053,8 @@ void Mesh::compute_bvh(DeviceScene *dscene,
 			bparams.use_qbvh = params->use_qbvh;
 			bparams.use_unaligned_nodes = dscene->data.bvh.have_curves &&
 			                              params->use_bvh_unaligned_nodes;
-			bparams.num_motion_curve_steps = params->num_bvh_motion_curve_steps;
+			bparams.num_motion_triangle_steps = params->num_bvh_time_steps;
+			bparams.num_motion_curve_steps = params->num_bvh_time_steps;
 
 			delete bvh;
 			bvh = BVH::create(bparams, objects);
@@ -1822,7 +1823,8 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 	bparams.use_spatial_split = scene->params.use_bvh_spatial_split;
 	bparams.use_unaligned_nodes = dscene->data.bvh.have_curves &&
 	                              scene->params.use_bvh_unaligned_nodes;
-	bparams.num_motion_curve_steps = scene->params.num_bvh_motion_curve_steps;
+	bparams.num_motion_triangle_steps = scene->params.num_bvh_time_steps;
+	bparams.num_motion_curve_steps = scene->params.num_bvh_time_steps;
 
 	delete bvh;
 	bvh = BVH::create(bparams, scene->objects);

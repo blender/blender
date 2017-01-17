@@ -69,6 +69,9 @@ public:
 	 */
 	int num_motion_curve_steps;
 
+	/* Same as above, but for triangle primitives. */
+	int num_motion_triangle_steps;
+
 	/* fixed parameters */
 	enum {
 		MAX_DEPTH = 64,
