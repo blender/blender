@@ -162,15 +162,10 @@ static bool gp_interpolate_check_todo(bContext *C, bGPdata *gpd)
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	int flag = ts->gp_sculpt.flag;
 	
-	bGPDlayer *gpl;
-	bGPDlayer *active_gpl = CTX_data_active_gpencil_layer(C);
-	bGPDstroke *gps_from, *gps_to;
-	int fFrame;
-	
 	/* get layers */
-	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 		/* all layers or only active */
-		if (((flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ALL_LAYERS) == 0) && (gpl != active_gpl)) {
+		if (!(flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ALL_LAYERS) && !(gpl->flag & GP_LAYER_ACTIVE)) {
 			continue;
 		}
 		/* only editable and visible layers are considered */
@@ -179,7 +174,10 @@ static bool gp_interpolate_check_todo(bContext *C, bGPdata *gpd)
 		}
 		
 		/* read strokes */
-		for (gps_from = gpl->actframe->strokes.first; gps_from; gps_from = gps_from->next) {
+		for (bGPDstroke *gps_from = gpl->actframe->strokes.first; gps_from; gps_from = gps_from->next) {
+			bGPDstroke *gps_to;
+			int fFrame;
+			
 			/* only selected */
 			if ((flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ONLY_SELECTED) && ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
 				continue;
@@ -200,33 +198,32 @@ static bool gp_interpolate_check_todo(bContext *C, bGPdata *gpd)
 				continue;
 			}
 			
-			return 1;
+			return true;
 		}
 	}
-	return 0;
+	return false;
 }
 
 /* Helper: Create internal strokes interpolated */
 static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
 {
-	bGPDlayer *gpl;
 	bGPdata *gpd = tgpi->gpd;
-	tGPDinterpolate_layer *tgpil;
 	bGPDlayer *active_gpl = CTX_data_active_gpencil_layer(C);
-	bGPDstroke *gps_from, *gps_to, *new_stroke;
-	int fFrame;
+	bGPDframe *actframe = active_gpl->actframe;
 	
 	/* save initial factor for active layer to define shift limits */
-	tgpi->init_factor = (float)(tgpi->cframe - active_gpl->actframe->framenum) / (active_gpl->actframe->next->framenum - active_gpl->actframe->framenum + 1);
+	tgpi->init_factor = (float)(tgpi->cframe - actframe->framenum) / (actframe->next->framenum - actframe->framenum + 1);
 	
 	/* limits are 100% below 0 and 100% over the 100% */
 	tgpi->low_limit = -1.0f - tgpi->init_factor;
 	tgpi->high_limit = 2.0f - tgpi->init_factor;
 	
 	/* set layers */
-	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+		tGPDinterpolate_layer *tgpil;
+		
 		/* all layers or only active */
-		if (((tgpi->flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ALL_LAYERS) == 0) && (gpl != active_gpl)) {
+		if (!(tgpi->flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ALL_LAYERS) && (gpl != active_gpl)) {
 			continue;
 		}
 		/* only editable and visible layers are considered */
@@ -235,7 +232,6 @@ static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
 		}
 		
 		/* create temp data for each layer */
-		tgpil = NULL;
 		tgpil = MEM_callocN(sizeof(tGPDinterpolate_layer), "GPencil Interpolate Layer");
 		
 		tgpil->gpl = gpl;
@@ -252,8 +248,13 @@ static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
 		tgpil->factor = (float)(tgpi->cframe - tgpil->prevFrame->framenum) / (tgpil->nextFrame->framenum - tgpil->prevFrame->framenum + 1);
 		
 		/* create new strokes data with interpolated points reading original stroke */
-		for (gps_from = tgpil->prevFrame->strokes.first; gps_from; gps_from = gps_from->next) {
+		for (bGPDstroke *gps_from = tgpil->prevFrame->strokes.first; gps_from; gps_from = gps_from->next) {
+			bGPDstroke *gps_to;
+			int fFrame;
+			
+			bGPDstroke *new_stroke;
 			bool valid = true;
+			
 			
 			/* only selected */
 			if ((tgpi->flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ONLY_SELECTED) && ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
@@ -357,7 +358,6 @@ static void gpencil_interpolate_status_indicators(tGPDinterpolate *p)
 		char str_offs[NUM_STR_REP_LEN];
 		
 		outputNumInput(&p->num, str_offs, &scene->unit);
-		
 		BLI_snprintf(status_str, sizeof(status_str), "%s: %s", msg_str, str_offs);
 	}
 	else {
@@ -478,23 +478,24 @@ static int gpencil_interpolate_invoke(bContext *C, wmOperator *op, const wmEvent
 	Scene *scene = CTX_data_scene(C);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
+	bGPDframe *actframe = gpl->actframe;
 	tGPDinterpolate *tgpi = NULL;
 
 	/* cannot interpolate if not between 2 frames */
-	if ((gpl->actframe == NULL) || (gpl->actframe->next == NULL)) {
-		BKE_report(op->reports, RPT_ERROR, "Interpolation requires to be between two grease pencil frames in active layer");
+	if (ELEM(NULL, actframe, actframe->next)) {
+		BKE_report(op->reports, RPT_ERROR, "Cannot find a pair of grease pencil frames to interpolate between in active layer");
 		return OPERATOR_CANCELLED;
 	}
 	
 	/* cannot interpolate in extremes */
-	if ((gpl->actframe->framenum == scene->r.cfra) || (gpl->actframe->next->framenum == scene->r.cfra)) {
-		BKE_report(op->reports, RPT_ERROR, "Interpolation requires to be between two grease pencil frames in active layer");
+	if (ELEM(CFRA, actframe->framenum, actframe->next->framenum)) {
+		BKE_report(op->reports, RPT_ERROR, "Cannot interpolate as current frame already has existing grease pencil frames");
 		return OPERATOR_CANCELLED;
 	}
 	
 	/* need editable strokes */
 	if (!gp_interpolate_check_todo(C, gpd)) {
-		BKE_report(op->reports, RPT_ERROR, "Interpolation requires some editable stroke");
+		BKE_report(op->reports, RPT_ERROR, "Interpolation requires some editable strokes");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -682,30 +683,31 @@ void GPENCIL_OT_interpolate(wmOperatorType *ot)
 
 static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
 	bGPdata   *gpd = CTX_data_gpencil_data(C);
 	bGPDlayer *active_gpl = CTX_data_active_gpencil_layer(C);
-	bGPDlayer *gpl;
-	bGPDframe *prevFrame, *nextFrame, *interFrame;
-	bGPDstroke *gps_from, *gps_to, *new_stroke;
-	float factor;
-	int cframe, fFrame;
+	bGPDframe *actframe = active_gpl->actframe;
+	
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	int flag = ts->gp_sculpt.flag;
 	
 	/* cannot interpolate if not between 2 frames */
-	if ((active_gpl->actframe == NULL) || (active_gpl->actframe->next == NULL)) {
-		BKE_report(op->reports, RPT_ERROR, "Could not find a pair of grease pencil frames to interpolate between");
+	if (ELEM(NULL, actframe, actframe->next)) {
+		BKE_report(op->reports, RPT_ERROR, "Cannot find a pair of grease pencil frames to interpolate between in active layer");
 		return OPERATOR_CANCELLED;
 	}
 	/* cannot interpolate in extremes */
-	if ((active_gpl->actframe->framenum == scene->r.cfra) || (active_gpl->actframe->next->framenum == scene->r.cfra)) {
-		BKE_report(op->reports, RPT_ERROR, "Cannot interpolate as current frame already has strokes");
+	if (ELEM(CFRA, actframe->framenum, actframe->next->framenum)) {
+		BKE_report(op->reports, RPT_ERROR, "Cannot interpolate as current frame already has existing grease pencil frames");
 		return OPERATOR_CANCELLED;
 	}
 	
 	/* loop all layer to check if need interpolation */
-	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+		bGPDframe *prevFrame, *nextFrame;
+		bGPDstroke *gps_from, *gps_to;
+		int cframe, fFrame;
+		
 		/* all layers or only active */
 		if (((flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ALL_LAYERS) == 0) && (gpl != active_gpl)) {
 			continue;
@@ -721,13 +723,16 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
 		
 		/* Loop over intermediary frames and create the interpolation */
 		for (cframe = prevFrame->framenum + 1; cframe < nextFrame->framenum; cframe++) {
-			interFrame = NULL;
+			bGPDframe *interFrame = NULL;
+			float factor;
 			
 			/* get interpolation factor */
 			factor = (float)(cframe - prevFrame->framenum) / (nextFrame->framenum - prevFrame->framenum + 1);
 			
 			/* create new strokes data with interpolated points reading original stroke */
 			for (gps_from = prevFrame->strokes.first; gps_from; gps_from = gps_from->next) {
+				bGPDstroke *new_stroke;
+				
 				/* only selected */
 				if ((flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ONLY_SELECTED) && ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
 					continue;
