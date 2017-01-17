@@ -176,6 +176,19 @@ uint BVHNode::update_visibility()
 	return m_visibility;
 }
 
+void BVHNode::update_time()
+{
+	if(!is_leaf()) {
+		InnerNode *inner = (InnerNode*)this;
+		BVHNode *child0 = inner->children[0];
+		BVHNode *child1 = inner->children[1];
+		child0->update_time();
+		child1->update_time();
+		m_time_from = min(child0->m_time_from, child1->m_time_from);
+		m_time_to =  max(child0->m_time_to, child1->m_time_to);
+	}
+}
+
 /* Inner Node */
 
 void InnerNode::print(int depth) const

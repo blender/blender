@@ -202,11 +202,14 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 					BoundBox bounds = prev_bounds;
 					bounds.grow(curr_bounds);
 					if(bounds.valid()) {
+						const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
 						references.push_back(
 						        BVHReference(bounds,
 						                     j,
 						                     i,
-						                     PRIMITIVE_MOTION_TRIANGLE));
+						                     PRIMITIVE_MOTION_TRIANGLE,
+						                     prev_time,
+						                     curr_time));
 						root.grow(bounds);
 						center.grow(bounds.center2());
 					}
@@ -311,11 +314,14 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 						BoundBox bounds = prev_bounds;
 						bounds.grow(curr_bounds);
 						if(bounds.valid()) {
+							const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
 							int packed_type = PRIMITIVE_PACK_SEGMENT(PRIMITIVE_MOTION_CURVE, k);
 							references.push_back(BVHReference(bounds,
 							                                  j,
 							                                  i,
-							                                  packed_type));
+							                                  packed_type,
+							                                  prev_time,
+							                                  curr_time));
 							root.grow(bounds);
 							center.grow(bounds.center2());
 						}
@@ -487,6 +493,7 @@ BVHNode* BVHBuild::run()
 		else {
 			/*rotate(rootnode, 4, 5);*/
 			rootnode->update_visibility();
+			rootnode->update_time();
 		}
 		if(rootnode != NULL) {
 			VLOG(1) << "BVH build statistics:\n"
@@ -836,7 +843,10 @@ BVHNode *BVHBuild::create_object_leaf_nodes(const BVHReference *ref, int start, 
 		prim_object[start] = ref->prim_object();
 
 		uint visibility = objects[ref->prim_object()]->visibility;
-		return new LeafNode(ref->bounds(), visibility, start, start+1);
+		BVHNode *leaf_node =  new LeafNode(ref->bounds(), visibility, start, start+1);
+		leaf_node->m_time_from = ref->time_from();
+		leaf_node->m_time_to = ref->time_to();
+		return leaf_node;
 	}
 	else {
 		int mid = num/2;
@@ -847,7 +857,10 @@ BVHNode *BVHBuild::create_object_leaf_nodes(const BVHReference *ref, int start, 
 		bounds.grow(leaf0->m_bounds);
 		bounds.grow(leaf1->m_bounds);
 
-		return new InnerNode(bounds, leaf0, leaf1);
+		BVHNode *inner_node = new InnerNode(bounds, leaf0, leaf1);
+		inner_node->m_time_from = min(leaf0->m_time_from, leaf1->m_time_from);
+		inner_node->m_time_to = max(leaf0->m_time_to, leaf1->m_time_to);
+		return inner_node;
 	}
 }
 
@@ -951,6 +964,16 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 			                                   visibility[i],
 			                                   start_index,
 			                                   start_index + num);
+			if(true) {
+				float time_from = 1.0f, time_to = 0.0f;
+				for(int j = 0; j < num; ++j) {
+					const BVHReference &ref = p_ref[i][j];
+					time_from = min(time_from, ref.time_from());
+					time_to = max(time_to, ref.time_to());
+				}
+				leaf_node->m_time_from = time_from;
+				leaf_node->m_time_to = time_to;
+			}
 			if(alignment_found) {
 				/* Need to recalculate leaf bounds with new alignment. */
 				leaf_node->m_bounds = BoundBox::empty;
