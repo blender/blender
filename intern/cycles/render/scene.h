@@ -143,7 +143,7 @@ public:
 	} bvh_type;
 	bool use_bvh_spatial_split;
 	bool use_bvh_unaligned_nodes;
-	int num_bvh_motion_curve_steps;
+	int num_bvh_time_steps;
 	bool use_qbvh;
 	bool persistent_data;
 	int texture_limit;
@@ -154,7 +154,7 @@ public:
 		bvh_type = BVH_DYNAMIC;
 		use_bvh_spatial_split = false;
 		use_bvh_unaligned_nodes = true;
-		num_bvh_motion_curve_steps = 0;
+		num_bvh_time_steps = 0;
 		use_qbvh = false;
 		persistent_data = false;
 		texture_limit = 0;
@@ -165,7 +165,7 @@ public:
 		&& bvh_type == params.bvh_type
 		&& use_bvh_spatial_split == params.use_bvh_spatial_split
 		&& use_bvh_unaligned_nodes == params.use_bvh_unaligned_nodes
-		&& num_bvh_motion_curve_steps == params.num_bvh_motion_curve_steps
+		&& num_bvh_time_steps == params.num_bvh_time_steps
 		&& use_qbvh == params.use_qbvh
 		&& persistent_data == params.persistent_data
 		&& texture_limit == params.texture_limit); }
