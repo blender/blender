@@ -160,12 +160,12 @@ static void gp_interpolate_update_strokes(bContext *C, tGPDinterpolate *tgpi)
 static bool gp_interpolate_check_todo(bContext *C, bGPdata *gpd)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
-	int flag = ts->gp_sculpt.flag;
+	eGP_Interpolate_SettingsFlag flag = ts->gp_interpolate.flag;
 	
 	/* get layers */
 	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 		/* all layers or only active */
-		if (!(flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ALL_LAYERS) && !(gpl->flag & GP_LAYER_ACTIVE)) {
+		if (!(flag & GP_TOOLFLAG_INTERPOLATE_ALL_LAYERS) && !(gpl->flag & GP_LAYER_ACTIVE)) {
 			continue;
 		}
 		/* only editable and visible layers are considered */
@@ -179,7 +179,7 @@ static bool gp_interpolate_check_todo(bContext *C, bGPdata *gpd)
 			int fFrame;
 			
 			/* only selected */
-			if ((flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ONLY_SELECTED) && ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
+			if ((flag & GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED) && ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
 				continue;
 			}
 			/* skip strokes that are invalid for current view */
@@ -223,7 +223,7 @@ static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
 		tGPDinterpolate_layer *tgpil;
 		
 		/* all layers or only active */
-		if (!(tgpi->flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ALL_LAYERS) && (gpl != active_gpl)) {
+		if (!(tgpi->flag & GP_TOOLFLAG_INTERPOLATE_ALL_LAYERS) && (gpl != active_gpl)) {
 			continue;
 		}
 		/* only editable and visible layers are considered */
@@ -257,7 +257,7 @@ static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
 			
 			
 			/* only selected */
-			if ((tgpi->flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ONLY_SELECTED) && ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
+			if ((tgpi->flag & GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED) && ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
 				valid = false;
 			}
 			/* skip strokes that are invalid for current view */
@@ -424,7 +424,7 @@ static bool gp_interpolate_set_init_values(bContext *C, wmOperator *op, tGPDinte
 	tgpi->scene = CTX_data_scene(C);
 	tgpi->sa = CTX_wm_area(C);
 	tgpi->ar = CTX_wm_region(C);
-	tgpi->flag = ts->gp_sculpt.flag;
+	tgpi->flag = ts->gp_interpolate.flag;
 	
 	/* set current frame number */
 	tgpi->cframe = tgpi->scene->r.cfra;
@@ -689,7 +689,8 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
 	
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
-	int flag = ts->gp_sculpt.flag;
+	GP_Interpolate_Settings *ipo_settings = &ts->gp_interpolate;
+	eGP_Interpolate_SettingsFlag flag = ipo_settings->flag;
 	
 	/* cannot interpolate if not between 2 frames */
 	if (ELEM(NULL, actframe, actframe->next)) {
@@ -709,7 +710,7 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
 		int cframe, fFrame;
 		
 		/* all layers or only active */
-		if (((flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ALL_LAYERS) == 0) && (gpl != active_gpl)) {
+		if (((flag & GP_TOOLFLAG_INTERPOLATE_ALL_LAYERS) == 0) && (gpl != active_gpl)) {
 			continue;
 		}
 		/* only editable and visible layers are considered */
@@ -734,7 +735,7 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
 				bGPDstroke *new_stroke;
 				
 				/* only selected */
-				if ((flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ONLY_SELECTED) && ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
+				if ((flag & GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED) && ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
 					continue;
 				}
 				/* skip strokes that are invalid for current view */

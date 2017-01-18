@@ -227,12 +227,7 @@ class GreasePencilStrokeEditPanel:
 
         if is_3d_view:
             layout.separator()
-            col = layout.column(align=True)
-            col.operator("gpencil.interpolate", text="Interpolate")
-            col.operator("gpencil.interpolate_sequence", text="Sequence")
-            settings = context.tool_settings.gpencil_sculpt
-            col.prop(settings, "interpolate_all_layers")
-            col.prop(settings, "interpolate_selected_only")
+            
 
         layout.separator()
         col = layout.column(align=True)
@@ -248,6 +243,35 @@ class GreasePencilStrokeEditPanel:
         if is_3d_view:
             layout.separator()
             layout.operator("gpencil.reproject")
+
+class GreasePencilInterpolatePanel:
+    # subclass must set
+    bl_space_type = 'VIEW_3D'
+    bl_label = "Interpolate..."
+    bl_category = "Grease Pencil"
+    bl_region_type = 'TOOLS'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        if context.gpencil_data is None:
+            return False
+        elif context.space_data.type != 'VIEW_3D':
+            return False
+
+        gpd = context.gpencil_data
+        return bool(context.editable_gpencil_strokes) and bool(gpd.use_stroke_edit_mode)
+
+    @staticmethod
+    def draw(self, context):
+        layout = self.layout
+        settings = context.tool_settings.gpencil_interpolate
+
+        col = layout.column(align=True)
+        col.operator("gpencil.interpolate", text="Interpolate")
+        col.operator("gpencil.interpolate_sequence", text="Sequence")
+        col.prop(settings, "interpolate_all_layers")
+        col.prop(settings, "interpolate_selected_only")
 
 
 class GreasePencilBrushPanel:

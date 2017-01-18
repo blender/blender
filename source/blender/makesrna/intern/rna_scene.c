@@ -447,6 +447,12 @@ EnumPropertyItem rna_enum_bake_pass_filter_type_items[] = {
 #include "FRS_freestyle.h"
 #endif
 
+/* Grease Pencil Interpolation settings */
+static char *rna_GPencilInterpolateSettings_path(PointerRNA *UNUSED(ptr))
+{
+	return BLI_strdup("tool_settings.gpencil_interpolate");
+}
+
 /* Grease pencil Drawing Brushes */
 static bGPDbrush *rna_GPencil_brush_new(ToolSettings *ts, const char *name, int setactive)
 {
@@ -2138,6 +2144,30 @@ static int rna_gpu_is_hq_supported_get(PointerRNA *UNUSED(ptr))
 
 #else
 
+/* Grease Pencil Interpolation tool settings */
+static void rna_def_gpencil_interpolate(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna = RNA_def_struct(brna, "GPencilInterpolateSettings", NULL);
+	RNA_def_struct_sdna(srna, "GP_Interpolate_Settings");
+	RNA_def_struct_path_func(srna, "rna_GPencilInterpolateSettings_path");
+	RNA_def_struct_ui_text(srna, "Grease Pencil Interpolate Settings",
+	                       "Settings for Grease Pencil interpolation tools");
+	
+	/* flags */
+	prop = RNA_def_property(srna, "interpolate_all_layers", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_TOOLFLAG_INTERPOLATE_ALL_LAYERS);
+	RNA_def_property_ui_text(prop, "Interpolate All Layers", "Interpolate all layers, not only active");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+	prop = RNA_def_property(srna, "interpolate_selected_only", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED);
+	RNA_def_property_ui_text(prop, "Interpolate Selected Strokes", "Interpolate only selected strokes in the original frame");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+}
+
 /* Grease Pencil Drawing Brushes */
 static void rna_def_gpencil_brush(BlenderRNA *brna)
 {
@@ -2673,7 +2703,14 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	prop = RNA_def_property(srna, "gpencil_sculpt", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "gp_sculpt");
 	RNA_def_property_struct_type(prop, "GPencilSculptSettings");
-	RNA_def_property_ui_text(prop, "Grease Pencil Sculpt", "");
+	RNA_def_property_ui_text(prop, "Grease Pencil Sculpt",
+	                         "Settings for stroke sculpting tools and brushes");
+	
+	prop = RNA_def_property(srna, "gpencil_interpolate", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "gp_interpolate");
+	RNA_def_property_struct_type(prop, "GPencilInterpolateSettings");
+	RNA_def_property_ui_text(prop, "Grease Pencil Interpolate", 
+	                        "Settings for Grease Pencil Interpolation tools");
 
 	/* Grease Pencil - Drawing brushes */
 	prop = RNA_def_property(srna, "gpencil_brushes", PROP_COLLECTION, PROP_NONE);
@@ -7267,6 +7304,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_define_animate_sdna(false);
 	rna_def_tool_settings(brna);
 	rna_def_gpencil_brush(brna);
+	rna_def_gpencil_interpolate(brna);
 	rna_def_unified_paint_settings(brna);
 	rna_def_curve_paint_settings(brna);
 	rna_def_statvis(brna);
