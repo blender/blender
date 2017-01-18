@@ -70,6 +70,7 @@ BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
 	background = true;
 	last_redraw_time = 0.0;
 	start_resize_time = 0.0;
+	last_status_time = 0.0;
 }
 
 BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
@@ -95,6 +96,7 @@ BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
 	background = false;
 	last_redraw_time = 0.0;
 	start_resize_time = 0.0;
+	last_status_time = 0.0;
 }
 
 BlenderSession::~BlenderSession()
@@ -991,10 +993,14 @@ void BlenderSession::update_status_progress()
 	if(substatus.size() > 0)
 		status += " | " + substatus;
 
-	if(status != last_status) {
+	double current_time = time_dt();
+	/* When rendering in a window, redraw the status at least once per second to keep the elapsed and remaining time up-to-date.
+	 * For headless rendering, only report when something significant changes to keep the console output readable. */
+	if(status != last_status || (!headless && (current_time - last_status_time) > 1.0)) {
 		b_engine.update_stats("", (timestatus + scene + status).c_str());
 		b_engine.update_memory_stats(mem_used, mem_peak);
 		last_status = status;
+		last_status_time = current_time;
 	}
 	if(progress != last_progress) {
 		b_engine.update_progress(progress);
