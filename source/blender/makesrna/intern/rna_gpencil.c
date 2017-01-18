@@ -31,8 +31,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_animsys.h"
-
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
@@ -62,6 +60,7 @@ static EnumPropertyItem parent_type_items[] = {
 
 #include "WM_api.h"
 
+#include "BKE_animsys.h"
 #include "BKE_gpencil.h"
 #include "BKE_action.h"
 
