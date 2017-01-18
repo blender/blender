@@ -1623,8 +1623,9 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode)
 		 * 2) Ensure that p->gpf refers to the frame used for the active layer
 		 *    (to avoid problems with other tools which expect it to exist)
 		 */
-		bGPDlayer *gpl;
-		for (gpl = p->gpd->layers.first; gpl; gpl = gpl->next) {
+		bool has_layer_to_erase = false;
+		
+		for (bGPDlayer *gpl = p->gpd->layers.first; gpl; gpl = gpl->next) {
 			/* Skip if layer not editable */
 			if (gpencil_layer_is_editable(gpl) == false)
 				continue;
@@ -1638,6 +1639,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode)
 			 */
 			if (gpl->actframe && gpl->actframe->strokes.first) {
 				gpl->actframe = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_ADD_COPY);
+				has_layer_to_erase = true;
 			}
 			
 			/* XXX: we omit GP_FRAME_PAINT here for now,
@@ -1658,10 +1660,10 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode)
 			}
 		}
 		
-		if (p->gpf == NULL) {
+		if (has_layer_to_erase == false) {
 			p->status = GP_STATUS_ERROR;
 			//if (G.debug & G_DEBUG)
-				printf("Error: No frame created for eraser on active layer (gpencil_paint_init)\n");
+				printf("Error: Eraser will not be affecting anything (gpencil_paint_init)\n");
 			return;
 		}
 	}
