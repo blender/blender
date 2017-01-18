@@ -2432,6 +2432,14 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			/* enable continuous if release D key in mid drawing */
 			p->scene->toolsettings->gpencil_flags |= GP_TOOL_FLAG_PAINTSESSIONS_ON;
 		}
+		else if ((event->type == BKEY) && (event->val == KM_RELEASE)) {
+			/* Add Blank Frame
+			 * - Since this operator is non-modal, we can just call it here, and keep going...
+	         * - This operator is especially useful when animating
+			 */
+			WM_operator_name_call(C, "GPENCIL_OT_blank_frame_add", WM_OP_EXEC_DEFAULT, NULL);
+			estate = OPERATOR_RUNNING_MODAL;
+		}
 		else {
 			estate = OPERATOR_RUNNING_MODAL;
 		}
