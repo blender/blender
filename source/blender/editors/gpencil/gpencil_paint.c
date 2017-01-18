@@ -1631,8 +1631,14 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode)
 			
 			/* Add a new frame if needed (and based off the active frame,
 			 * as we need some existing strokes to erase)
+			 *
+			 * Note: We don't add a new frame if there's nothing there now, so
+			 *       -> If there are no frames at all, don't add one
+			 *       -> If there are no strokes in that frame, don't add a new empty frame
 			 */
-			gpl->actframe = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_ADD_COPY);
+			if (gpl->actframe && gpl->actframe->strokes.first) {
+				gpl->actframe = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_ADD_COPY);
+			}
 			
 			/* XXX: we omit GP_FRAME_PAINT here for now,
 			 * as it is only really useful for doing
@@ -1655,7 +1661,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode)
 		if (p->gpf == NULL) {
 			p->status = GP_STATUS_ERROR;
 			//if (G.debug & G_DEBUG)
-				printf("Error: No frame created (gpencil_paint_init)\n");
+				printf("Error: No frame created for eraser on active layer (gpencil_paint_init)\n");
 			return;
 		}
 	}
@@ -2602,7 +2608,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			}
 			else if (p->status != GP_STATUS_ERROR) {
 				/* User clicked outside bounds of window while idling, so exit paintmode 
-				 * NOTE: Don't eter this case if an error occurred while finding the
+				 * NOTE: Don't enter this case if an error occurred while finding the
 				 *       region (as above)
 				 */
 				/* if drawing polygon and enable on back, must move stroke */
