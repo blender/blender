@@ -38,19 +38,22 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_easing.h"
+#include "BLI_math.h"
 
 #include "BLT_translation.h"
 
+#include "DNA_color_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_gpencil_types.h"
 
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
@@ -681,6 +684,209 @@ void GPENCIL_OT_interpolate(wmOperatorType *ot)
 
 /* ****************** Interpolate Sequence *********************** */
 
+/* Helper: Perform easing equation calculations for GP interpolation operator */
+static float gp_interpolate_seq_easing_calc(GP_Interpolate_Settings *ipo_settings, float time)
+{
+	const float begin  = 0.0f;
+	const float change = 1.0f;
+	const float duration = 1.0f;
+	
+	const float back = ipo_settings->back;
+	const float amplitude = ipo_settings->amplitude;
+	const float period = ipo_settings->period;
+	
+	eBezTriple_Easing easing = ipo_settings->easing;
+	float result = time;
+	
+	switch (ipo_settings->type) {
+		case GP_IPO_BACK:
+			switch (easing) {
+				case BEZT_IPO_EASE_IN:
+					result = BLI_easing_back_ease_in(time, begin, change, duration, back);
+					break;
+				case BEZT_IPO_EASE_OUT:
+					result = BLI_easing_back_ease_out(time, begin, change, duration, back);
+					break;
+				case BEZT_IPO_EASE_IN_OUT:
+					result = BLI_easing_back_ease_in_out(time, begin, change, duration, back);
+					break;
+					
+				default: /* default/auto: same as ease out */
+					result = BLI_easing_back_ease_out(time, begin, change, duration, back);
+					break;
+			}
+			break;
+
+		case GP_IPO_BOUNCE:
+			switch (easing) {
+				case BEZT_IPO_EASE_IN:
+					result = BLI_easing_bounce_ease_in(time, begin, change, duration);
+					break;
+				case BEZT_IPO_EASE_OUT:
+					result = BLI_easing_bounce_ease_out(time, begin, change, duration);
+					break;
+				case BEZT_IPO_EASE_IN_OUT:
+					result = BLI_easing_bounce_ease_in_out(time, begin, change, duration);
+					break;
+					
+				default: /* default/auto: same as ease out */
+					result = BLI_easing_bounce_ease_out(time, begin, change, duration);
+					break;
+			}
+			break;
+			
+		case BEZT_IPO_CIRC:
+			switch (easing) {
+				case BEZT_IPO_EASE_IN:
+					result = BLI_easing_circ_ease_in(time, begin, change, duration);
+					break;
+				case BEZT_IPO_EASE_OUT:
+					result = BLI_easing_circ_ease_out(time, begin, change, duration);
+					break;
+				case BEZT_IPO_EASE_IN_OUT:
+					result = BLI_easing_circ_ease_in_out(time, begin, change, duration);
+					break;
+					
+				default: /* default/auto: same as ease in */
+					result = BLI_easing_circ_ease_in(time, begin, change, duration);
+					break;
+			}
+			break;
+
+		case BEZT_IPO_CUBIC:
+			switch (easing) {
+				case BEZT_IPO_EASE_IN:
+					result = BLI_easing_cubic_ease_in(time, begin, change, duration);
+					break;
+				case BEZT_IPO_EASE_OUT:
+					result = BLI_easing_cubic_ease_out(time, begin, change, duration);
+					break;
+				case BEZT_IPO_EASE_IN_OUT:
+					result = BLI_easing_cubic_ease_in_out(time, begin, change, duration);
+					break;
+					
+				default: /* default/auto: same as ease in */
+					result = BLI_easing_cubic_ease_in(time, begin, change, duration);
+					break;
+			}
+			break;
+		
+		case GP_IPO_ELASTIC:
+			switch (easing) {
+				case BEZT_IPO_EASE_IN:
+					result = BLI_easing_elastic_ease_in(time, begin, change, duration, amplitude, period);
+					break;
+				case BEZT_IPO_EASE_OUT:
+					result = BLI_easing_elastic_ease_out(time, begin, change, duration, amplitude, period);
+					break;
+				case BEZT_IPO_EASE_IN_OUT:
+					result = BLI_easing_elastic_ease_in_out(time, begin, change, duration, amplitude, period);
+					break;
+					
+				default: /* default/auto: same as ease out */
+					result = BLI_easing_elastic_ease_out(time, begin, change, duration, amplitude, period);
+					break;
+			}
+			break;
+		
+		case GP_IPO_EXPO:
+			switch (easing) {
+				case BEZT_IPO_EASE_IN:
+					result = BLI_easing_expo_ease_in(time, begin, change, duration);
+					break;
+				case BEZT_IPO_EASE_OUT:
+					result = BLI_easing_expo_ease_out(time, begin, change, duration);
+					break;
+				case BEZT_IPO_EASE_IN_OUT:
+					result = BLI_easing_expo_ease_in_out(time, begin, change, duration);
+					break;
+					
+				default: /* default/auto: same as ease in */
+					result = BLI_easing_expo_ease_in(time, begin, change, duration);
+					break;
+			}
+			break;
+		
+		case GP_IPO_QUAD:
+			switch (easing) {
+				case BEZT_IPO_EASE_IN:
+					result = BLI_easing_quad_ease_in(time, begin, change, duration);
+					break;
+				case BEZT_IPO_EASE_OUT:
+					result = BLI_easing_quad_ease_out(time, begin, change, duration);
+					break;
+				case BEZT_IPO_EASE_IN_OUT:
+					result = BLI_easing_quad_ease_in_out(time, begin, change, duration);
+					break;
+				
+				default: /* default/auto: same as ease in */
+					result = BLI_easing_quad_ease_in(time, begin, change, duration);
+					break;
+			}
+			break;
+		
+		case GP_IPO_QUART:
+			switch (easing) {
+				case BEZT_IPO_EASE_IN:
+					result = BLI_easing_quart_ease_in(time, begin, change, duration);
+					break;
+				case BEZT_IPO_EASE_OUT:
+					result = BLI_easing_quart_ease_out(time, begin, change, duration);
+					break;
+				case BEZT_IPO_EASE_IN_OUT:
+					result = BLI_easing_quart_ease_in_out(time, begin, change, duration);
+					break;
+					
+				default: /* default/auto: same as ease in */
+					result = BLI_easing_quart_ease_in(time, begin, change, duration);
+					break;
+			}
+			break;
+		
+		case GP_IPO_QUINT:
+			switch (easing) {
+				case BEZT_IPO_EASE_IN:
+					result = BLI_easing_quint_ease_in(time, begin, change, duration);
+					break;
+				case BEZT_IPO_EASE_OUT:
+					result = BLI_easing_quint_ease_out(time, begin, change, duration);
+					break;
+				case BEZT_IPO_EASE_IN_OUT:
+					result = BLI_easing_quint_ease_in_out(time, begin, change, duration);
+					break;
+					
+				default: /* default/auto: same as ease in */
+					result = BLI_easing_quint_ease_in(time, begin, change, duration);
+					break;
+			}
+			break;
+		
+		case GP_IPO_SINE:
+			switch (easing) {
+				case BEZT_IPO_EASE_IN:
+					result = BLI_easing_sine_ease_in(time, begin, change, duration);
+					break;
+				case BEZT_IPO_EASE_OUT:
+					result = BLI_easing_sine_ease_out(time, begin, change, duration);
+					break;
+				case BEZT_IPO_EASE_IN_OUT:
+					result = BLI_easing_sine_ease_in_out(time, begin, change, duration);
+					break;
+					
+				default: /* default/auto: same as ease in */
+					result = BLI_easing_sine_ease_in(time, begin, change, duration);
+					break;
+			}
+			break;
+		
+		default:
+			printf("%s: Unknown interpolation type - %d\n", __func__, ipo_settings->type);
+			break;
+	}
+	
+	return result;
+}
+
 static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
 {
 	bGPdata   *gpd = CTX_data_gpencil_data(C);
@@ -729,6 +935,20 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
 			
 			/* get interpolation factor */
 			factor = (float)(cframe - prevFrame->framenum) / (nextFrame->framenum - prevFrame->framenum + 1);
+			
+			if (ipo_settings->type == GP_IPO_CURVEMAP) {
+				/* custom curvemap */
+				if (ipo_settings->custom_ipo) {
+					factor = curvemapping_evaluateF(ipo_settings->custom_ipo, 0, factor);
+				}
+				else {
+					BKE_report(op->reports, RPT_ERROR, "Custom interpolation curve does not exist");
+				}
+			}
+			else if (ipo_settings->type >= GP_IPO_BACK) {
+				/* easing equation... */
+				factor = gp_interpolate_seq_easing_calc(ipo_settings, factor);
+			}
 			
 			/* create new strokes data with interpolated points reading original stroke */
 			for (gps_from = prevFrame->strokes.first; gps_from; gps_from = gps_from->next) {

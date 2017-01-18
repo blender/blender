@@ -244,8 +244,8 @@ class GreasePencilStrokeEditPanel:
             layout.separator()
             layout.operator("gpencil.reproject")
 
+
 class GreasePencilInterpolatePanel:
-    # subclass must set
     bl_space_type = 'VIEW_3D'
     bl_label = "Interpolate..."
     bl_category = "Grease Pencil"
@@ -272,6 +272,23 @@ class GreasePencilInterpolatePanel:
         col.operator("gpencil.interpolate_sequence", text="Sequence")
         col.prop(settings, "interpolate_all_layers")
         col.prop(settings, "interpolate_selected_only")
+
+        col = layout.column(align=True)
+        col.label(text="Sequence Options:")
+        col.prop(settings, "type")
+        if settings.type == 'CUSTOM':
+            box = layout.box()
+            # TODO: Options for loading/saving curve presets?
+            box.template_curve_mapping(settings, "interpolation_curve", brush=True)
+        elif settings.type != 'LINEAR':
+            col.prop(settings, "easing")
+
+            if settings.type == 'BACK':
+                layout.prop(settings, "back")
+            elif setting.type == 'ELASTIC':
+                sub = layout.column(align=True)
+                sub.prop(settings, "amplitude")
+                sub.prop(settings, "period")
 
 
 class GreasePencilBrushPanel:

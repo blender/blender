@@ -2691,6 +2691,10 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 				write_curvemapping(wd, brush->cur_jitter);
 			}
 		}
+		/* write grease-pencil custom ipo curve to file */
+		if (tos->gp_interpolate.custom_ipo) {
+			write_curvemapping(wd, tos->gp_interpolate.custom_ipo);
+		}
 		
 
 		write_paint(wd, &tos->imapaint.paint);
