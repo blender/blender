@@ -443,6 +443,7 @@ void ED_operatortypes_gpencil(void)
 	/* Interpolation */
 	WM_operatortype_append(GPENCIL_OT_interpolate);
 	WM_operatortype_append(GPENCIL_OT_interpolate_sequence);
+	WM_operatortype_append(GPENCIL_OT_interpolate_reverse);
 }
 
 void ED_operatormacros_gpencil(void)

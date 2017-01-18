@@ -247,7 +247,7 @@ class GreasePencilStrokeEditPanel:
 
 class GreasePencilInterpolatePanel:
     bl_space_type = 'VIEW_3D'
-    bl_label = "Interpolate..."
+    bl_label = "Interpolate"
     bl_category = "Grease Pencil"
     bl_region_type = 'TOOLS'
     bl_options = {'DEFAULT_CLOSED'}
@@ -270,6 +270,10 @@ class GreasePencilInterpolatePanel:
         col = layout.column(align=True)
         col.operator("gpencil.interpolate", text="Interpolate")
         col.operator("gpencil.interpolate_sequence", text="Sequence")
+        col.operator("gpencil.interpolate_reverse", text="Remove Breakdowns")
+
+        col = layout.column(align=True)
+        col.label(text="Options:")
         col.prop(settings, "interpolate_all_layers")
         col.prop(settings, "interpolate_selected_only")
 
