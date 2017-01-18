@@ -1971,6 +1971,13 @@ void GPENCIL_OT_stroke_flip(wmOperatorType *ot)
 
 /* ***************** Reproject Strokes ********************** */
 
+typedef enum eGP_ReprojectModes {
+	/* On same plane, parallel to viewplane */
+	GP_REPROJECT_PLANAR = 0,
+	/* Reprojected on to the scene geometry */
+	GP_REPROJECT_SURFACE,
+} eGP_ReprojectModes;
+
 static int gp_strokes_reproject_poll(bContext *C)
 {
 	/* 2 Requirements:
@@ -1980,13 +1987,22 @@ static int gp_strokes_reproject_poll(bContext *C)
 	return (gp_stroke_edit_poll(C) && ED_operator_view3d_active(C));
 }
 
-static int gp_strokes_reproject_exec(bContext *C, wmOperator *UNUSED(op))
+static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	GP_SpaceConversion gsc = {NULL};
+	eGP_ReprojectModes mode = RNA_boolean_get(op->ptr, "type");
 	
 	/* init space conversion stuff */
 	gp_point_conversion_init(C, &gsc);
+	
+	/* init autodist for geometry projection */
+	if (mode == GP_REPROJECT_SURFACE) {
+		view3d_region_operator_needs_opengl(CTX_wm_window(C), gsc.ar);
+		ED_view3d_autodist_init(scene, gsc.ar, CTX_wm_view3d(C), 0);
+	}
+	
+	// TODO: For deforming geometry workflow, create new frames?
 	
 	/* Go through each editable + selected stroke, adjusting each of its points one by one... */
 	GP_EDITABLE_STROKES_BEGIN(C, gpl, gps)
@@ -2023,7 +2039,27 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *UNUSED(op))
 				/* Project screenspace back to 3D space (from current perspective)
 				 * so that all points have been treated the same way
 				 */
-				gp_point_xy_to_3d(&gsc, scene, xy, &pt->x);
+				if (mode == GP_REPROJECT_PLANAR) {
+					/* Planar - All on same plane parallel to the viewplane */
+					gp_point_xy_to_3d(&gsc, scene, xy, &pt->x);
+				}
+				else {
+					/* Geometry - Snap to surfaces of visible geometry */
+					/* XXX: There will be precision loss (possible stairstep artifacts) from this conversion to satisfy the API's */
+					const int screen_co[2] = {(int)xy[0], (int)xy[1]};
+					
+					int depth_margin = 0; // XXX: 4 for strokes, 0 for normal
+					float depth;
+					
+					/* XXX: The proper procedure computes the depths into an array, to have smooth transitions when all else fails... */
+					if (ED_view3d_autodist_depth(gsc.ar, screen_co, depth_margin, &depth)) {
+						ED_view3d_autodist_simple(gsc.ar, screen_co, &pt->x, 0, &depth);
+					}
+					else {
+						/* Default to planar */
+						gp_point_xy_to_3d(&gsc, scene, xy, &pt->x);
+					}
+				}
 				
 				/* Unapply parent corrections */
 				if (gpl->parent) {
@@ -2040,18 +2076,32 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *UNUSED(op))
 
 void GPENCIL_OT_reproject(wmOperatorType *ot)
 {
+	static EnumPropertyItem reproject_type[] = {
+		{GP_REPROJECT_PLANAR, "PLANAR", 0, "Planar", 
+		 "Reproject the strokes to end up on the same plane, as if drawn from the current viewpoint "
+		 "using 'Cursor' Stroke Placement"},
+		{GP_REPROJECT_SURFACE, "SURFACE", 0, "Surface",
+		 "Reproject the strokes on to the scene geometry, as if drawn using 'Surface' placement"},
+		{0, NULL, 0, NULL, NULL}
+	};
+	
 	/* identifiers */
 	ot->name = "Reproject Strokes";
 	ot->idname = "GPENCIL_OT_reproject";
-	ot->description = "Reproject the selected strokes from the current viewpoint to get all points on the same plane again "
-	                  "(e.g. to fix problems from accidental 3D cursor movement, or viewport changes)";
+	ot->description = "Reproject the selected strokes from the current viewpoint as if they had been newly drawn "
+	                  "(e.g. to fix problems from accidental 3D cursor movement or accidental viewport changes, "
+	                  "or for matching deforming geometry)";
 	
 	/* callbacks */
+	ot->invoke = WM_menu_invoke;
 	ot->exec = gp_strokes_reproject_exec;
 	ot->poll = gp_strokes_reproject_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	ot->prop = RNA_def_enum(ot->srna, "type", reproject_type, GP_REPROJECT_PLANAR, "Projection Type", "");
 }
 
 /* ******************* Stroke subdivide ************************** */

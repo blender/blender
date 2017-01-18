@@ -248,7 +248,7 @@ class GreasePencilStrokeEditPanel:
 
         if is_3d_view:
             layout.separator()
-            layout.operator("gpencil.reproject")
+            layout.operator_menu_enum("gpencil.reproject", text="Reproject Strokes...", property="type")
 
 
 class GreasePencilInterpolatePanel:
