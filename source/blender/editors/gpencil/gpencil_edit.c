@@ -685,7 +685,7 @@ void GPENCIL_OT_move_to_layer(wmOperatorType *ot)
 /* ********************* Add Blank Frame *************************** */
 
 /* Basically the same as the drawing op */
-static int gp_blank_frame_add_poll(bContext *C)
+static int UNUSED_FUNCTION(gp_blank_frame_add_poll)(bContext *C)
 {
 	if (ED_operator_regionactive(C)) {
 		/* check if current context can support GPencil data */
