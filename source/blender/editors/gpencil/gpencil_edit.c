@@ -682,6 +682,80 @@ void GPENCIL_OT_move_to_layer(wmOperatorType *ot)
 	RNA_def_enum_funcs(ot->prop, ED_gpencil_layers_with_new_enum_itemf);
 }
 
+/* ********************* Add Blank Frame *************************** */
+
+/* Basically the same as the drawing op */
+static int gp_blank_frame_add_poll(bContext *C)
+{
+	if (ED_operator_regionactive(C)) {
+		/* check if current context can support GPencil data */
+		if (ED_gpencil_data_get_pointers(C, NULL) != NULL) {
+			return 1;
+		}
+		else {
+			CTX_wm_operator_poll_msg_set(C, "Failed to find Grease Pencil data to draw into");
+		}
+	}
+	else {
+		CTX_wm_operator_poll_msg_set(C, "Active region not set");
+	}
+	
+	return 0;
+}
+
+static int gp_blank_frame_add_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
+	
+	/* Initialise datablock and an active layer if nothing exists yet */
+	if (ELEM(NULL, gpd, gpl)) {
+		/* let's just be lazy, and call the "Add New Layer" operator, which sets everything up as required */
+		WM_operator_name_call(C, "GPENCIL_OT_layer_add", WM_OP_EXEC_DEFAULT, NULL);
+	}
+	
+	/* Go through each layer, adding a frame after the active one 
+	 * and/or shunting all the others out of the way
+	 */
+	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
+	{
+		/* 1) Check for an existing frame on the current frame */
+		bGPDframe *gpf = BKE_gpencil_layer_find_frame(gpl, CFRA);
+		if (gpf) {
+			/* Shunt all frames after (and including) the existing one later by 1-frame */
+			for (; gpf; gpf = gpf->next) {
+				gpf->framenum += 1;
+			}
+		}
+		
+		/* 2) Now add a new frame, with nothing in it */
+		gpl->actframe = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_ADD_NEW);
+	}
+	CTX_DATA_END;
+	
+	/* notifiers */
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_blank_frame_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Add Blank Frame";
+	ot->idname = "GPENCIL_OT_blank_frame_add";
+	ot->description = "Add a new frame with nothing in it on the current frame. "
+	                  "If there is already a frame, all existing frames are shifted one frame later";
+	
+	/* callbacks */
+	ot->exec = gp_blank_frame_add_exec;
+	ot->poll = gp_add_poll;
+	
+	/* properties */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /* ******************* Delete Active Frame ************************ */
 
 static int gp_actframe_delete_poll(bContext *C)

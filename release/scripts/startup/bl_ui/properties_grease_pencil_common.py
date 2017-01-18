@@ -115,6 +115,12 @@ class GreasePencilDrawingToolsPanel:
         row.operator("gpencil.draw", icon='LINE_DATA', text="Line").mode = 'DRAW_STRAIGHT'
         row.operator("gpencil.draw", icon='MESH_DATA', text="Poly").mode = 'DRAW_POLY'
 
+        col.separator()
+
+        sub = col.column(align=True)
+        sub.operator("gpencil.blank_frame_add", icon='NEW')
+        sub.operator("gpencil.active_frames_delete_all", icon='X', text="Delete Frame(s)")
+
         sub = col.column(align=True)
         sub.prop(context.tool_settings, "use_gpencil_additive_drawing", text="Additive Drawing")
         sub.prop(context.tool_settings, "use_gpencil_continuous_drawing", text="Continuous Drawing")
