@@ -458,6 +458,8 @@ void Session::release_tile(RenderTile& rtile)
 {
 	thread_scoped_lock tile_lock(tile_mutex);
 
+	progress.add_finished_tile();
+
 	if(write_render_tile_cb) {
 		if(params.progressive_refine == false) {
 			/* todo: optimize this by making it thread safe and removing lock */
