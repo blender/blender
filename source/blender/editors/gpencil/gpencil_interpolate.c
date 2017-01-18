@@ -1052,7 +1052,7 @@ static int gpencil_interpolate_reverse_poll(bContext *C)
 	return 1;
 }
 
-static int gpencil_interpolate_reverse_exec(bContext *C, wmOperator *op)
+static int gpencil_interpolate_reverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	/* Go through each layer, deleting the breakdowns around the current frame,
 	 * but only if there is a keyframe nearby to stop at
