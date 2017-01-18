@@ -707,10 +707,10 @@ static int gp_blank_frame_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
+	bGPDlayer *active_gpl = BKE_gpencil_layer_getactive(gpd);
 	
 	/* Initialise datablock and an active layer if nothing exists yet */
-	if (ELEM(NULL, gpd, gpl)) {
+	if (ELEM(NULL, gpd, active_gpl)) {
 		/* let's just be lazy, and call the "Add New Layer" operator, which sets everything up as required */
 		WM_operator_name_call(C, "GPENCIL_OT_layer_add", WM_OP_EXEC_DEFAULT, NULL);
 	}
