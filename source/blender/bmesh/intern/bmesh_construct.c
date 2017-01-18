@@ -470,25 +470,7 @@ BMFace *BM_face_create_ngon_vcloud(
 
 	/* now calculate every points angle around the normal (signed) */
 	for (i = 0; i < len; i++) {
-		float co[3];
-		float proj_vec[3];
-		float angle;
-
-		/* center relative vec */
-		sub_v3_v3v3(co, vert_arr[i]->co, cent);
-
-		/* align to plane */
-		project_v3_v3v3(proj_vec, co, nor);
-		sub_v3_v3(co, proj_vec);
-
-		/* now 'co' is valid - we can compare its angle against the far vec */
-		angle = angle_v3v3(far_vec, co);
-
-		if (dot_v3v3(co, sign_vec) < 0.0f) {
-			angle = -angle;
-		}
-
-		vang[i].sort_value = angle;
+		vang[i].sort_value = angle_signed_on_axis_v3v3v3_v3(far, cent, vert_arr[i]->co, nor);
 		vang[i].data = i;
 	}
 
