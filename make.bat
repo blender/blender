@@ -129,9 +129,6 @@ if "%BUILD_ARCH%"=="x64" (
 )
 
 
-set BUILD_DIR=%BUILD_DIR%_%TARGET%_%BUILD_ARCH%_vc%BUILD_VS_VER%_%BUILD_TYPE%
-
-
 if "%target%"=="Release" (
 		rem for vc12 check for both cuda 7.5 and 8 
 		if "%CUDA_PATH%"=="" (
@@ -173,7 +170,7 @@ where /Q msbuild
 if %ERRORLEVEL% NEQ 0 (
 	if "%BUILD_VS_VER%"=="12" (
 		rem vs12 not found, try vs14
-		echo Visual Studio 2012 not found, trying Visual Studio 2015.
+		echo Visual Studio 2013 not found, trying Visual Studio 2015.
 		set BUILD_VS_VER=14
 		set BUILD_VS_YEAR=2015
 		goto DetectMSVC
@@ -184,6 +181,11 @@ if %ERRORLEVEL% NEQ 0 (
 		goto EOF
 	)
 )
+
+
+set BUILD_DIR=%BUILD_DIR%_%TARGET%_%BUILD_ARCH%_vc%BUILD_VS_VER%_%BUILD_TYPE%
+
+
 where /Q cmake
 if %ERRORLEVEL% NEQ 0 (
 	echo Error: "CMake" command not in the PATH.
