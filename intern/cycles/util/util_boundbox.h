@@ -25,8 +25,6 @@
 #include "util_transform.h"
 #include "util_types.h"
 
-using namespace std;
-
 CCL_NAMESPACE_BEGIN
 
 /* 3D BoundBox */
