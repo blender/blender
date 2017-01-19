@@ -1226,14 +1226,20 @@ void BM_mesh_elem_hflag_enable_all(
 
 /***************** Mesh Hiding stuff *********** */
 
-/* Hide unless any connected elements are visible */
-
+/**
+ * Hide unless any connected elements are visible.
+ * Run this after hiding a connected edge or face.
+ */
 static void vert_flush_hide_set(BMVert *v)
 {
 	BM_elem_flag_set(v, BM_ELEM_HIDDEN, !bm_vert_is_edge_visible_any(v));
 }
 
-static void edge_flush_hide(BMEdge *e)
+/**
+ * Hide unless any connected elements are visible.
+ * Run this after hiding a connected face.
+ */
+static void edge_flush_hide_set(BMEdge *e)
 {
 	BM_elem_flag_set(e, BM_ELEM_HIDDEN, !bm_edge_is_face_visible_any(e));
 }
@@ -1242,6 +1248,7 @@ void BM_vert_hide_set(BMVert *v, const bool hide)
 {
 	/* vert hiding: vert + surrounding edges and faces */
 	BLI_assert(v->head.htype == BM_VERT);
+	BLI_assert(!BM_elem_flag_test(v, BM_ELEM_SELECT));
 
 	BM_elem_flag_set(v, BM_ELEM_HIDDEN, hide);
 
@@ -1264,6 +1271,7 @@ void BM_vert_hide_set(BMVert *v, const bool hide)
 void BM_edge_hide_set(BMEdge *e, const bool hide)
 {
 	BLI_assert(e->head.htype == BM_EDGE);
+	BLI_assert(!BM_elem_flag_test(e, BM_ELEM_SELECT));
 
 	/* edge hiding: faces around the edge */
 	if (e->l) {
@@ -1290,6 +1298,7 @@ void BM_edge_hide_set(BMEdge *e, const bool hide)
 void BM_face_hide_set(BMFace *f, const bool hide)
 {
 	BLI_assert(f->head.htype == BM_FACE);
+	BLI_assert(!BM_elem_flag_test(f, BM_ELEM_SELECT));
 
 	BM_elem_flag_set(f, BM_ELEM_HIDDEN, hide);
 
@@ -1299,7 +1308,7 @@ void BM_face_hide_set(BMFace *f, const bool hide)
 
 		l_iter = l_first;
 		do {
-			edge_flush_hide(l_iter->e);
+			edge_flush_hide_set(l_iter->e);
 		} while ((l_iter = l_iter->next) != l_first);
 
 		l_iter = l_first;
