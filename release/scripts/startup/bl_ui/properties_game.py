@@ -714,7 +714,7 @@ class WORLD_PT_game_physics(WorldButtonsPanel, Panel):
 
 
 class WORLD_PT_game_physics_obstacles(WorldButtonsPanel, Panel):
-    bl_label = "Obstacle simulation"
+    bl_label = "Obstacle Simulation"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
     @classmethod
