@@ -1233,6 +1233,20 @@ ccl_device_inline float __uint_as_float(uint i)
 	return u.f;
 }
 
+/* Versions of functions which are safe for fast math. */
+ccl_device_inline bool isnan_safe(float f)
+{
+	unsigned int x = __float_as_uint(f);
+	return (x << 1) > 0xff000000u;
+}
+
+ccl_device_inline bool isfinite_safe(float f)
+{
+	/* By IEEE 754 rule, 2*Inf equals Inf */
+	unsigned int x = __float_as_uint(f);
+	return (f == f) && (x == 0 || (f != 2.0f*f));
+}
+
 /* Interpolation */
 
 template<class A, class B> A lerp(const A& a, const A& b, const B& t)
