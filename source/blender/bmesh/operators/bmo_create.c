@@ -290,7 +290,11 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		BMFace *f;
 
 		BMO_iter_as_array(op->slots_in, "geom", BM_VERT, (void **)vert_arr, totv);
-		f = BM_face_create_ngon_vcloud(bm, vert_arr, totv, NULL, BM_CREATE_NO_DOUBLE);
+
+		BM_verts_sort_radial_plane(vert_arr, totv);
+
+		/* create edges and find the winding (if faces are attached to any existing edges) */
+		f = BM_face_create_ngon_verts(bm, vert_arr, totv, NULL, BM_CREATE_NO_DOUBLE, true, true);
 
 		if (f) {
 			BMO_face_flag_enable(bm, f, ELE_OUT);

@@ -34,6 +34,9 @@ bool BM_verts_from_edges(BMVert **vert_arr, BMEdge **edge_arr, const int len);
 bool BM_edges_from_verts(BMEdge **edge_arr, BMVert **vert_arr, const int len);
 void BM_edges_from_verts_ensure(BMesh *bm, BMEdge **edge_arr, BMVert **vert_arr, const int len);
 
+/* sort before creation */
+void    BM_verts_sort_radial_plane(BMVert **vert_arr, int len);
+
 BMFace *BM_face_create_quad_tri(
         BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
         const BMFace *f_example, const eBMCreateFlag create_flag);
@@ -49,10 +52,6 @@ BMFace *BM_face_create_ngon_verts(
         BMesh *bm, BMVert **vert_arr, const int len,
         const BMFace *f_example, const eBMCreateFlag create_flag,
         const bool calc_winding, const bool create_edges);
-
-BMFace *BM_face_create_ngon_vcloud(
-        BMesh *bm, BMVert **vert_arr, int len,
-        const BMFace *f_example, const eBMCreateFlag create_flag);
 
 void BM_elem_attrs_copy_ex(
         BMesh *bm_src, BMesh *bm_dst, const void *ele_src_v, void *ele_dst_v,
