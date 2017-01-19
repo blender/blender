@@ -1248,7 +1248,9 @@ void BM_vert_hide_set(BMVert *v, const bool hide)
 {
 	/* vert hiding: vert + surrounding edges and faces */
 	BLI_assert(v->head.htype == BM_VERT);
-	BLI_assert(!BM_elem_flag_test(v, BM_ELEM_SELECT));
+	if (hide) {
+		BLI_assert(!BM_elem_flag_test(v, BM_ELEM_SELECT));
+	}
 
 	BM_elem_flag_set(v, BM_ELEM_HIDDEN, hide);
 
@@ -1271,7 +1273,9 @@ void BM_vert_hide_set(BMVert *v, const bool hide)
 void BM_edge_hide_set(BMEdge *e, const bool hide)
 {
 	BLI_assert(e->head.htype == BM_EDGE);
-	BLI_assert(!BM_elem_flag_test(e, BM_ELEM_SELECT));
+	if (hide) {
+		BLI_assert(!BM_elem_flag_test(e, BM_ELEM_SELECT));
+	}
 
 	/* edge hiding: faces around the edge */
 	if (e->l) {
@@ -1298,7 +1302,9 @@ void BM_edge_hide_set(BMEdge *e, const bool hide)
 void BM_face_hide_set(BMFace *f, const bool hide)
 {
 	BLI_assert(f->head.htype == BM_FACE);
-	BLI_assert(!BM_elem_flag_test(f, BM_ELEM_SELECT));
+	if (hide) {
+		BLI_assert(!BM_elem_flag_test(f, BM_ELEM_SELECT));
+	}
 
 	BM_elem_flag_set(f, BM_ELEM_HIDDEN, hide);
 
