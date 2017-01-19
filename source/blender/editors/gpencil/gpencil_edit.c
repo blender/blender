@@ -703,12 +703,14 @@ static int UNUSED_FUNCTION(gp_blank_frame_add_poll)(bContext *C)
 	return 0;
 }
 
-static int gp_blank_frame_add_exec(bContext *C, wmOperator *UNUSED(op))
+static int gp_blank_frame_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	bGPDlayer *active_gpl = BKE_gpencil_layer_getactive(gpd);
-	
+
+	const bool all_layers = RNA_boolean_get(op->ptr, "all_layers");
+
 	/* Initialise datablock and an active layer if nothing exists yet */
 	if (ELEM(NULL, gpd, active_gpl)) {
 		/* let's just be lazy, and call the "Add New Layer" operator, which sets everything up as required */
@@ -720,6 +722,10 @@ static int gp_blank_frame_add_exec(bContext *C, wmOperator *UNUSED(op))
 	 */
 	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
 	{
+		if ((all_layers == false) && (gpl != active_gpl)) {
+			continue;
+		}
+
 		/* 1) Check for an existing frame on the current frame */
 		bGPDframe *gpf = BKE_gpencil_layer_find_frame(gpl, CFRA);
 		if (gpf) {
@@ -754,6 +760,7 @@ void GPENCIL_OT_blank_frame_add(wmOperatorType *ot)
 	
 	/* properties */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	RNA_def_boolean(ot->srna, "all_layers", false, "All Layers", "Create blank frame in all layers, not only active");
 }
 
 /* ******************* Delete Active Frame ************************ */
