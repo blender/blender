@@ -491,7 +491,7 @@ MINLINE void mul_v2_v2_ccw(float r[2], const float mat[2], const float vec[2])
  * return co_4d[3];
  * \endcode
  */
-MINLINE float mul_project_m4_v3_zfac(float mat[4][4], const float co[3])
+MINLINE float mul_project_m4_v3_zfac(const float mat[4][4], const float co[3])
 {
 	return (mat[0][3] * co[0]) +
 	       (mat[1][3] * co[1]) +

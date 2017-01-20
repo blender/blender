@@ -123,7 +123,7 @@ MINLINE void mul_v4_fl(float r[4], float f);
 MINLINE void mul_v4_v4fl(float r[3], const float a[3], float f);
 MINLINE void mul_v2_v2_cw(float r[2], const float mat[2], const float vec[2]);
 MINLINE void mul_v2_v2_ccw(float r[2], const float mat[2], const float vec[2]);
-MINLINE float mul_project_m4_v3_zfac(float mat[4][4], const float co[3]) ATTR_WARN_UNUSED_RESULT;
+MINLINE float mul_project_m4_v3_zfac(const float mat[4][4], const float co[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float dot_m3_v3_row_x(float M[3][3], const float a[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float dot_m3_v3_row_y(float M[3][3], const float a[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float dot_m3_v3_row_z(float M[3][3], const float a[3]) ATTR_WARN_UNUSED_RESULT;
