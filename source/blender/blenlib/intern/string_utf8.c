@@ -74,7 +74,7 @@ static const size_t utf8_skip_data[256] = {
  *
  * \return the offset of the first invalid byte.
  */
-off_t BLI_utf8_invalid_byte(const char *str, size_t length)
+ptrdiff_t BLI_utf8_invalid_byte(const char *str, size_t length)
 {
 	const unsigned char *p, *perr, *pend = (const unsigned char *)str + length;
 	unsigned char c;
@@ -171,7 +171,7 @@ utf8_error:
  */
 int BLI_utf8_invalid_strip(char *str, size_t length)
 {
-	off_t bad_char;
+	ptrdiff_t bad_char;
 	int tot = 0;
 
 	BLI_assert(str[length] == '\0');

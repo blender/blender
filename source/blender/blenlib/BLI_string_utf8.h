@@ -36,7 +36,7 @@ extern "C" {
 char        *BLI_strncpy_utf8(char *__restrict dst, const char *__restrict src, size_t maxncpy) ATTR_NONNULL();
 size_t       BLI_strncpy_utf8_rlen(char *__restrict dst, const char *__restrict src, size_t maxncpy) ATTR_NONNULL();
 char        *BLI_strncat_utf8(char *__restrict dst, const char *__restrict src, size_t maxncpy) ATTR_NONNULL();
-off_t        BLI_utf8_invalid_byte(const char *str, size_t length) ATTR_NONNULL();
+ptrdiff_t    BLI_utf8_invalid_byte(const char *str, size_t length) ATTR_NONNULL();
 int          BLI_utf8_invalid_strip(char *str, size_t length) ATTR_NONNULL();
 
 int          BLI_str_utf8_size(const char *p) ATTR_NONNULL(); /* warning, can return -1 on bad chars */
