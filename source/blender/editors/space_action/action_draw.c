@@ -170,6 +170,8 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	unsigned char col1a[3], col2a[3];
 	unsigned char col1b[3], col2b[3];
 	
+	const bool show_group_colors = !(saction->flag & SACTION_NODRAWGCOLORS);
+	
 	
 	/* get theme colors */
 	UI_GetThemeColor3ubv(TH_BACK, col2);
@@ -247,8 +249,36 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						}
 						case ANIMTYPE_GROUP:
 						{
-							if (sel) glColor4ub(col1a[0], col1a[1], col1a[2], 0x22);
-							else glColor4ub(col2a[0], col2a[1], col2a[2], 0x22);
+							bActionGroup *agrp = ale->data;
+							if (show_group_colors && agrp->customCol) {
+								if (sel) {
+									unsigned char *cp = agrp->cs.select;
+									glColor4ub(cp[0], cp[1], cp[2], 0x45);
+								}
+								else {
+									unsigned char *cp = agrp->cs.solid;
+									glColor4ub(cp[0], cp[1], cp[2], 0x1D);
+								}
+							}
+							else {
+								if (sel) glColor4ub(col1a[0], col1a[1], col1a[2], 0x22);
+								else glColor4ub(col2a[0], col2a[1], col2a[2], 0x22);
+							}
+							break;
+						}
+						case ANIMTYPE_FCURVE:
+						{
+							FCurve *fcu = ale->data;
+							if (show_group_colors && fcu->grp && fcu->grp->customCol) {
+								unsigned char *cp = fcu->grp->cs.active;
+								
+								if (sel) glColor4ub(cp[0], cp[1], cp[2], 0x65);
+								else glColor4ub(cp[0], cp[1], cp[2], 0x0B);
+							}
+							else {
+								if (sel) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+								else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+							}
 							break;
 						}
 						default:
