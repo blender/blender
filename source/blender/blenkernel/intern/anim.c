@@ -201,7 +201,15 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports, Scene *scene, Objec
 		mpath->flag |= MOTIONPATH_FLAG_BHEAD;
 	else
 		mpath->flag &= ~MOTIONPATH_FLAG_BHEAD;
-	
+
+	/* set default custom values */
+	mpath->color[0] = 1.0;    /* Red */
+	mpath->color[1] = 0.0;
+	mpath->color[2] = 0.0;
+
+	mpath->line_thickness = 1;
+	mpath->flag |= MOTIONPATH_FLAG_LINES;  /* draw lines by default */
+
 	/* allocate a cache */
 	mpath->points = MEM_callocN(sizeof(bMotionPathVert) * mpath->length, "bMotionPathVerts");
 	

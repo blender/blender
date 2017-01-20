@@ -153,7 +153,20 @@ static void rna_def_animviz_motion_path(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "length", PROP_INT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Length", "Number of frames cached");
-	
+
+	/* Custom Color */
+	prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Color", "Custom color for motion path");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	/* Line width */
+	prop = RNA_def_property(srna, "line_thickness", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "line_thickness");
+	RNA_def_property_range(prop, 1, 6);
+	RNA_def_property_ui_text(prop, "Line thickness", "Line thickness for drawing path");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
 	/* Settings */
 	prop = RNA_def_property(srna, "use_bone_head", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOTIONPATH_FLAG_BHEAD);
@@ -164,6 +177,19 @@ static void rna_def_animviz_motion_path(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "is_modified", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOTIONPATH_FLAG_EDIT);
 	RNA_def_property_ui_text(prop, "Edit Path", "Path is being edited");
+
+	/* Use custom color */
+	prop = RNA_def_property(srna, "use_custom_color", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOTIONPATH_FLAG_CUSTOM);
+	RNA_def_property_ui_text(prop, "Custom colors", "Use custom color for this motion path");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	/* Draw lines between keyframes */
+	prop = RNA_def_property(srna, "lines", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOTIONPATH_FLAG_LINES);
+	RNA_def_property_ui_text(prop, "Lines", "Draw straight lines between keyframe points");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
 }
 
 /* --- */
@@ -337,6 +363,7 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
 	                         "Number of frames to show after the current frame "
 	                         "(only for 'Around Current Frame' Onion-skinning method)");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
+
 }
 
 /* --- */
