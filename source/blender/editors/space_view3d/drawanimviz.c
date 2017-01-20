@@ -85,7 +85,7 @@ void draw_motion_paths_init(View3D *v3d, ARegion *ar)
 * - 50% Darker color for current frame
 * - User selected color for next frames
 */
-void set_motion_path_color(Scene *scene, bMotionPath *mpath, int i, short sel, int sfra, int efra, 
+static void set_motion_path_color(Scene *scene, bMotionPath *mpath, int i, short sel, int sfra, int efra,
 	float prev_color[3], float frame_color[3], float next_color[3])
 {
 	int frame = sfra + i;
