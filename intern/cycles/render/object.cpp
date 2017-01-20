@@ -166,7 +166,7 @@ void Object::apply_transform(bool apply_to_motion)
 		float3 c0 = transform_get_column(&tfm, 0);
 		float3 c1 = transform_get_column(&tfm, 1);
 		float3 c2 = transform_get_column(&tfm, 2);
-		float scalar = pow(fabsf(dot(cross(c0, c1), c2)), 1.0f/3.0f);
+		float scalar = powf(fabsf(dot(cross(c0, c1), c2)), 1.0f/3.0f);
 
 		/* apply transform to curve keys */
 		for(size_t i = 0; i < mesh->curve_keys.size(); i++) {
