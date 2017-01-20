@@ -114,7 +114,7 @@ BVHBuild::~BVHBuild()
 
 void BVHBuild::add_reference_triangles(BoundBox& root, BoundBox& center, Mesh *mesh, int i)
 {
-	Attribute *attr_mP = NULL;
+	const Attribute *attr_mP = NULL;
 	if(mesh->has_motion_blur()) {
 		attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 	}
@@ -222,11 +222,11 @@ void BVHBuild::add_reference_triangles(BoundBox& root, BoundBox& center, Mesh *m
 
 void BVHBuild::add_reference_curves(BoundBox& root, BoundBox& center, Mesh *mesh, int i)
 {
-	Attribute *curve_attr_mP = NULL;
+	const Attribute *curve_attr_mP = NULL;
 	if(mesh->has_motion_blur()) {
 		curve_attr_mP = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 	}
-	size_t num_curves = mesh->num_curves();
+	const size_t num_curves = mesh->num_curves();
 	for(uint j = 0; j < num_curves; j++) {
 		const Mesh::Curve curve = mesh->get_curve(j);
 		const float *curve_radius = &mesh->curve_radius[0];
