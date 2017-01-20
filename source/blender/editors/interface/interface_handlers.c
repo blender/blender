@@ -2963,7 +2963,7 @@ static bool ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, const in
 
 		if (pbuf) {
 			if (ui_but_is_utf8(but)) {
-				buf_len -= BLI_utf8_invalid_strip(pbuf, buf_len);
+				buf_len -= BLI_utf8_invalid_strip(pbuf, (size_t)buf_len);
 			}
 
 			ui_textedit_insert_buf(but, data, pbuf, buf_len);

@@ -1408,7 +1408,8 @@ static ID *is_dupid(ListBase *lb, ID *id, const char *name)
 static bool check_for_dupid(ListBase *lb, ID *id, char *name)
 {
 	ID *idtest;
-	int nr = 0, a, left_len;
+	int nr = 0, a;
+	size_t left_len;
 #define MAX_IN_USE 64
 	bool in_use[MAX_IN_USE];
 	/* to speed up finding unused numbers within [1 .. MAX_IN_USE - 1] */
@@ -1442,7 +1443,7 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
 
 		/* Code above may have generated invalid utf-8 string, due to raw truncation.
 		 * Ensure we get a valid one now! */
-		left_len -= BLI_utf8_invalid_strip(left, left_len);
+		left_len -= (size_t)BLI_utf8_invalid_strip(left, left_len);
 
 		for (idtest = lb->first; idtest; idtest = idtest->next) {
 			int nrtest;
@@ -1484,7 +1485,7 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
 		 * shave off the end chars until we have a unique name.
 		 * Check the null terminators match as well so we don't get Cube.000 -> Cube.00 */
 		if (nr == 0 && name[left_len] == '\0') {
-			int len;
+			size_t len;
 			/* FIXME: this code will never be executed, because either nr will be
 			 * at least 1, or name will not end at left_len! */
 			BLI_assert(0);

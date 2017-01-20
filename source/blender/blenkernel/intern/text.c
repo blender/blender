@@ -235,8 +235,9 @@ Text *BKE_text_add(Main *bmain, const char *name)
 /* to a valid utf-8 sequences */
 int txt_extended_ascii_as_utf8(char **str)
 {
-	int bad_char, added = 0, i = 0;
-	int length = strlen(*str);
+	size_t bad_char, i = 0;
+	const size_t length = strlen(*str);
+	int added = 0;
 
 	while ((*str)[i]) {
 		if ((bad_char = BLI_utf8_invalid_byte(*str + i, length - i)) == -1)
@@ -248,7 +249,7 @@ int txt_extended_ascii_as_utf8(char **str)
 	
 	if (added != 0) {
 		char *newstr = MEM_mallocN(length + added + 1, "text_line");
-		int mi = 0;
+		size_t mi = 0;
 		i = 0;
 		
 		while ((*str)[i]) {
