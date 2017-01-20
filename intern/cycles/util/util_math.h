@@ -22,6 +22,11 @@
  * Basic math functions on scalar and vector types. This header is used by
  * both the kernel code when compiled as C++, and other C++ non-kernel code. */
 
+#ifndef __KERNEL_GPU__
+#  include <cmath>
+#endif
+
+
 #ifndef __KERNEL_OPENCL__
 
 #include <float.h>
@@ -96,6 +101,9 @@ ccl_device_inline float fminf(float a, float b)
 #endif
 
 #ifndef __KERNEL_GPU__
+
+using std::isfinite;
+using std::isnan;
 
 ccl_device_inline int abs(int x)
 {
