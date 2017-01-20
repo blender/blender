@@ -1993,7 +1993,7 @@ uiBut *ui_but_drag_multi_edit_get(uiBut *but)
 static bool ui_but_icon_extra_is_visible_text_clear(const uiBut *but)
 {
 	BLI_assert(but->type == UI_BTYPE_TEXT);
-	return ((but->flag & UI_BUT_VALUE_CLEAR) && but->drawstr && but->drawstr[0]);
+	return ((but->flag & UI_BUT_VALUE_CLEAR) && but->drawstr[0]);
 }
 
 static bool ui_but_icon_extra_is_visible_search_unlink(const uiBut *but)
