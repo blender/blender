@@ -735,7 +735,7 @@ static float gp_interpolate_seq_easing_calc(GP_Interpolate_Settings *ipo_setting
 			}
 			break;
 			
-		case BEZT_IPO_CIRC:
+		case GP_IPO_CIRC:
 			switch (easing) {
 				case BEZT_IPO_EASE_IN:
 					result = BLI_easing_circ_ease_in(time, begin, change, duration);
@@ -753,7 +753,7 @@ static float gp_interpolate_seq_easing_calc(GP_Interpolate_Settings *ipo_setting
 			}
 			break;
 
-		case BEZT_IPO_CUBIC:
+		case GP_IPO_CUBIC:
 			switch (easing) {
 				case BEZT_IPO_EASE_IN:
 					result = BLI_easing_cubic_ease_in(time, begin, change, duration);
