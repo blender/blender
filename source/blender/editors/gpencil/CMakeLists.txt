@@ -44,6 +44,7 @@ set(SRC
 	gpencil_convert.c
 	gpencil_data.c
 	gpencil_edit.c
+	gpencil_interpolate.c
 	gpencil_ops.c
 	gpencil_paint.c
 	gpencil_select.c

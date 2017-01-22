@@ -112,81 +112,234 @@ BVHBuild::~BVHBuild()
 
 /* Adding References */
 
-void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, int i)
+void BVHBuild::add_reference_triangles(BoundBox& root, BoundBox& center, Mesh *mesh, int i)
 {
-	if(params.primitive_mask & PRIMITIVE_ALL_TRIANGLE) {
-		Attribute *attr_mP = NULL;
-
-		if(mesh->has_motion_blur())
-			attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-
-		size_t num_triangles = mesh->num_triangles();
-		for(uint j = 0; j < num_triangles; j++) {
-			Mesh::Triangle t = mesh->get_triangle(j);
+	const Attribute *attr_mP = NULL;
+	if(mesh->has_motion_blur()) {
+		attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+	}
+	const size_t num_triangles = mesh->num_triangles();
+	for(uint j = 0; j < num_triangles; j++) {
+		Mesh::Triangle t = mesh->get_triangle(j);
+		const float3 *verts = &mesh->verts[0];
+		if(attr_mP == NULL) {
 			BoundBox bounds = BoundBox::empty;
-			PrimitiveType type = PRIMITIVE_TRIANGLE;
-
-			t.bounds_grow(&mesh->verts[0], bounds);
-
-			/* motion triangles */
-			if(attr_mP) {
-				const size_t mesh_size = mesh->verts.size();
-				const size_t num_steps = mesh->motion_steps - 1;
-				const float3 *vert_steps = attr_mP->data_float3();
-
-				for(size_t step = 0; step < num_steps; step++) {
-					t.bounds_grow(vert_steps + step*mesh_size, bounds);
-				}
-
-				type = PRIMITIVE_MOTION_TRIANGLE;
-			}
-
+			t.bounds_grow(verts, bounds);
 			if(bounds.valid()) {
-				references.push_back(BVHReference(bounds, j, i, type));
+				references.push_back(BVHReference(bounds,
+				                                  j,
+				                                  i,
+				                                  PRIMITIVE_TRIANGLE));
 				root.grow(bounds);
 				center.grow(bounds.center2());
 			}
 		}
+		else if(params.num_motion_triangle_steps == 0 || params.use_spatial_split) {
+			/* Motion triangles, simple case: single node for the whole
+			 * primitive. Lowest memory footprint and faster BVH build but
+			 * least optimal ray-tracing.
+			 */
+			/* TODO(sergey): Support motion steps for spatially split BVH. */
+			const size_t num_verts = mesh->verts.size();
+			const size_t num_steps = mesh->motion_steps;
+			const float3 *vert_steps = attr_mP->data_float3();
+			BoundBox bounds = BoundBox::empty;
+			t.bounds_grow(verts, bounds);
+			for(size_t step = 0; step < num_steps - 1; step++) {
+				t.bounds_grow(vert_steps + step*num_verts, bounds);
+			}
+			if(bounds.valid()) {
+				references.push_back(
+				        BVHReference(bounds,
+				                     j,
+				                     i,
+				                     PRIMITIVE_MOTION_TRIANGLE));
+				root.grow(bounds);
+				center.grow(bounds.center2());
+			}
+		}
+		else {
+			/* Motion triangles, trace optimized case:  we split triangle
+			 * primitives into separate nodes for each of the time steps.
+			 * This way we minimize overlap of neighbor curve primitives.
+			 */
+			const int num_bvh_steps = params.num_motion_curve_steps * 2 + 1;
+			const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
+			const size_t num_verts = mesh->verts.size();
+			const size_t num_steps = mesh->motion_steps;
+			const float3 *vert_steps = attr_mP->data_float3();
+			/* Calculate bounding box of the previous time step.
+			 * Will be reused later to avoid duplicated work on
+			 * calculating BVH time step boundbox.
+			 */
+			float3 prev_verts[3];
+			t.motion_verts(verts,
+			               vert_steps,
+			               num_verts,
+			               num_steps,
+			               0.0f,
+			               prev_verts);
+			BoundBox prev_bounds = BoundBox::empty;
+			prev_bounds.grow(prev_verts[0]);
+			prev_bounds.grow(prev_verts[1]);
+			prev_bounds.grow(prev_verts[2]);
+			/* Create all primitive time steps, */
+			for(int bvh_step = 1; bvh_step < num_bvh_steps; ++bvh_step) {
+				const float curr_time = (float)(bvh_step) * num_bvh_steps_inv_1;
+				float3 curr_verts[3];
+				t.motion_verts(verts,
+				               vert_steps,
+				               num_verts,
+				               num_steps,
+				               curr_time,
+				               curr_verts);
+				BoundBox curr_bounds = BoundBox::empty;
+				curr_bounds.grow(curr_verts[0]);
+				curr_bounds.grow(curr_verts[1]);
+				curr_bounds.grow(curr_verts[2]);
+				BoundBox bounds = prev_bounds;
+				bounds.grow(curr_bounds);
+				if(bounds.valid()) {
+					const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
+					references.push_back(
+					        BVHReference(bounds,
+					                     j,
+					                     i,
+					                     PRIMITIVE_MOTION_TRIANGLE,
+					                     prev_time,
+					                     curr_time));
+					root.grow(bounds);
+					center.grow(bounds.center2());
+				}
+				/* Current time boundbox becomes previous one for the
+				 * next time step.
+				 */
+				prev_bounds = curr_bounds;
+			}
+		}
 	}
+}
 
-	if(params.primitive_mask & PRIMITIVE_ALL_CURVE) {
-		Attribute *curve_attr_mP = NULL;
-
-		if(mesh->has_motion_blur())
-			curve_attr_mP = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-
-		size_t num_curves = mesh->num_curves();
-		for(uint j = 0; j < num_curves; j++) {
-			const Mesh::Curve curve = mesh->get_curve(j);
-			PrimitiveType type = PRIMITIVE_CURVE;
-			const float *curve_radius = &mesh->curve_radius[0];
-
-			for(int k = 0; k < curve.num_keys - 1; k++) {
+void BVHBuild::add_reference_curves(BoundBox& root, BoundBox& center, Mesh *mesh, int i)
+{
+	const Attribute *curve_attr_mP = NULL;
+	if(mesh->has_motion_blur()) {
+		curve_attr_mP = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+	}
+	const size_t num_curves = mesh->num_curves();
+	for(uint j = 0; j < num_curves; j++) {
+		const Mesh::Curve curve = mesh->get_curve(j);
+		const float *curve_radius = &mesh->curve_radius[0];
+		for(int k = 0; k < curve.num_keys - 1; k++) {
+			if(curve_attr_mP == NULL) {
+				/* Really simple logic for static hair. */
 				BoundBox bounds = BoundBox::empty;
 				curve.bounds_grow(k, &mesh->curve_keys[0], curve_radius, bounds);
-
-				/* motion curve */
-				if(curve_attr_mP) {
-					const size_t mesh_size = mesh->curve_keys.size();
-					const size_t num_steps = mesh->motion_steps - 1;
-					const float3 *key_steps = curve_attr_mP->data_float3();
-
-					for(size_t step = 0; step < num_steps; step++) {
-						curve.bounds_grow(k, key_steps + step*mesh_size, curve_radius, bounds);
-					}
-
-					type = PRIMITIVE_MOTION_CURVE;
-				}
-
 				if(bounds.valid()) {
-					int packed_type = PRIMITIVE_PACK_SEGMENT(type, k);
-
+					int packed_type = PRIMITIVE_PACK_SEGMENT(PRIMITIVE_CURVE, k);
 					references.push_back(BVHReference(bounds, j, i, packed_type));
 					root.grow(bounds);
 					center.grow(bounds.center2());
 				}
 			}
+			else if(params.num_motion_curve_steps == 0 || params.use_spatial_split) {
+				/* Simple case of motion curves: single node for the while
+				 * shutter time. Lowest memory usage but less optimal
+				 * rendering.
+				 */
+				/* TODO(sergey): Support motion steps for spatially split BVH. */
+				BoundBox bounds = BoundBox::empty;
+				curve.bounds_grow(k, &mesh->curve_keys[0], curve_radius, bounds);
+				const size_t num_keys = mesh->curve_keys.size();
+				const size_t num_steps = mesh->motion_steps;
+				const float3 *key_steps = curve_attr_mP->data_float3();
+				for(size_t step = 0; step < num_steps - 1; step++) {
+					curve.bounds_grow(k,
+					                  key_steps + step*num_keys,
+					                  curve_radius,
+					                  bounds);
+				}
+				if(bounds.valid()) {
+					int packed_type = PRIMITIVE_PACK_SEGMENT(PRIMITIVE_MOTION_CURVE, k);
+					references.push_back(BVHReference(bounds,
+					                                  j,
+					                                  i,
+					                                  packed_type));
+					root.grow(bounds);
+					center.grow(bounds.center2());
+				}
+			}
+			else {
+				/* Motion curves, trace optimized case:  we split curve keys
+				 * primitives into separate nodes for each of the time steps.
+				 * This way we minimize overlap of neighbor curve primitives.
+				 */
+				const int num_bvh_steps = params.num_motion_curve_steps * 2 + 1;
+				const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
+				const size_t num_steps = mesh->motion_steps;
+				const float3 *curve_keys = &mesh->curve_keys[0];
+				const float3 *key_steps = curve_attr_mP->data_float3();
+				const size_t num_keys = mesh->curve_keys.size();
+				/* Calculate bounding box of the previous time step.
+				 * Will be reused later to avoid duplicated work on
+				 * calculating BVH time step boundbox.
+				 */
+				float4 prev_keys[4];
+				curve.cardinal_motion_keys(curve_keys,
+				                           curve_radius,
+				                           key_steps,
+				                           num_keys,
+				                           num_steps,
+				                           0.0f,
+				                           k - 1, k, k + 1, k + 2,
+				                           prev_keys);
+				BoundBox prev_bounds = BoundBox::empty;
+				curve.bounds_grow(prev_keys, prev_bounds);
+				/* Create all primitive time steps, */
+				for(int bvh_step = 1; bvh_step < num_bvh_steps; ++bvh_step) {
+					const float curr_time = (float)(bvh_step) * num_bvh_steps_inv_1;
+					float4 curr_keys[4];
+					curve.cardinal_motion_keys(curve_keys,
+					                           curve_radius,
+					                           key_steps,
+					                           num_keys,
+					                           num_steps,
+					                           curr_time,
+					                           k - 1, k, k + 1, k + 2,
+					                           curr_keys);
+					BoundBox curr_bounds = BoundBox::empty;
+					curve.bounds_grow(curr_keys, curr_bounds);
+					BoundBox bounds = prev_bounds;
+					bounds.grow(curr_bounds);
+					if(bounds.valid()) {
+						const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
+						int packed_type = PRIMITIVE_PACK_SEGMENT(PRIMITIVE_MOTION_CURVE, k);
+						references.push_back(BVHReference(bounds,
+						                                  j,
+						                                  i,
+						                                  packed_type,
+						                                  prev_time,
+						                                  curr_time));
+						root.grow(bounds);
+						center.grow(bounds.center2());
+					}
+					/* Current time boundbox becomes previous one for the
+					 * next time step.
+					 */
+					prev_bounds = curr_bounds;
+				}
+			}
 		}
+	}
+}
+
+void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, int i)
+{
+	if(params.primitive_mask & PRIMITIVE_ALL_TRIANGLE) {
+		add_reference_triangles(root, center, mesh, i);
+	}
+	if(params.primitive_mask & PRIMITIVE_ALL_CURVE) {
+		add_reference_curves(root, center, mesh, i);
 	}
 }
 
@@ -203,7 +356,7 @@ static size_t count_curve_segments(Mesh *mesh)
 
 	for(size_t i = 0; i < num_curves; i++)
 		num += mesh->get_curve(i).num_keys - 1;
-	
+
 	return num;
 }
 
@@ -347,6 +500,7 @@ BVHNode* BVHBuild::run()
 		else {
 			/*rotate(rootnode, 4, 5);*/
 			rootnode->update_visibility();
+			rootnode->update_time();
 		}
 		if(rootnode != NULL) {
 			VLOG(1) << "BVH build statistics:\n"
@@ -374,7 +528,7 @@ void BVHBuild::progress_update()
 {
 	if(time_dt() - progress_start_time < 0.25)
 		return;
-	
+
 	double progress_start = (double)progress_count/(double)progress_total;
 	double duplicates = (double)(progress_total - progress_original_total)/(double)progress_total;
 
@@ -382,7 +536,7 @@ void BVHBuild::progress_update()
 	                           progress_start * 100.0, duplicates * 100.0);
 
 	progress.set_substatus(msg);
-	progress_start_time = time_dt(); 
+	progress_start_time = time_dt();
 }
 
 void BVHBuild::thread_build_node(InnerNode *inner,
@@ -696,18 +850,24 @@ BVHNode *BVHBuild::create_object_leaf_nodes(const BVHReference *ref, int start, 
 		prim_object[start] = ref->prim_object();
 
 		uint visibility = objects[ref->prim_object()]->visibility;
-		return new LeafNode(ref->bounds(), visibility, start, start+1);
+		BVHNode *leaf_node =  new LeafNode(ref->bounds(), visibility, start, start+1);
+		leaf_node->m_time_from = ref->time_from();
+		leaf_node->m_time_to = ref->time_to();
+		return leaf_node;
 	}
 	else {
 		int mid = num/2;
-		BVHNode *leaf0 = create_object_leaf_nodes(ref, start, mid); 
-		BVHNode *leaf1 = create_object_leaf_nodes(ref+mid, start+mid, num-mid); 
+		BVHNode *leaf0 = create_object_leaf_nodes(ref, start, mid);
+		BVHNode *leaf1 = create_object_leaf_nodes(ref+mid, start+mid, num-mid);
 
 		BoundBox bounds = BoundBox::empty;
 		bounds.grow(leaf0->m_bounds);
 		bounds.grow(leaf1->m_bounds);
 
-		return new InnerNode(bounds, leaf0, leaf1);
+		BVHNode *inner_node = new InnerNode(bounds, leaf0, leaf1);
+		inner_node->m_time_from = min(leaf0->m_time_from, leaf1->m_time_from);
+		inner_node->m_time_to = max(leaf0->m_time_to, leaf1->m_time_to);
+		return inner_node;
 	}
 }
 
@@ -811,6 +971,16 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 			                                   visibility[i],
 			                                   start_index,
 			                                   start_index + num);
+			if(true) {
+				float time_from = 1.0f, time_to = 0.0f;
+				for(int j = 0; j < num; ++j) {
+					const BVHReference &ref = p_ref[i][j];
+					time_from = min(time_from, ref.time_from());
+					time_to = max(time_to, ref.time_to());
+				}
+				leaf_node->m_time_from = time_from;
+				leaf_node->m_time_to = time_to;
+			}
 			if(alignment_found) {
 				/* Need to recalculate leaf bounds with new alignment. */
 				leaf_node->m_bounds = BoundBox::empty;
@@ -958,7 +1128,7 @@ void BVHBuild::rotate(BVHNode *node, int max_depth)
 	/* nothing to rotate if we reached a leaf node. */
 	if(node->is_leaf() || max_depth < 0)
 		return;
-	
+
 	InnerNode *parent = (InnerNode*)node;
 
 	/* rotate all children first */

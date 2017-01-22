@@ -50,12 +50,12 @@ ccl_device_inline int find_attribute_curve_motion(KernelGlobals *kg, int object,
 ccl_device_inline void motion_curve_keys_for_step(KernelGlobals *kg, int offset, int numkeys, int numsteps, int step, int k0, int k1, float4 keys[2])
 {
 	if(step == numsteps) {
-		/* center step: regular vertex location */
+		/* center step: regular key location */
 		keys[0] = kernel_tex_fetch(__curve_keys, k0);
 		keys[1] = kernel_tex_fetch(__curve_keys, k1);
 	}
 	else {
-		/* center step not stored in this array */
+		/* center step is not stored in this array */
 		if(step > numsteps)
 			step--;
 
@@ -97,14 +97,14 @@ ccl_device_inline void motion_curve_keys(KernelGlobals *kg, int object, int prim
 ccl_device_inline void motion_cardinal_curve_keys_for_step(KernelGlobals *kg, int offset, int numkeys, int numsteps, int step, int k0, int k1, int k2, int k3, float4 keys[4])
 {
 	if(step == numsteps) {
-		/* center step: regular vertex location */
+		/* center step: regular key location */
 		keys[0] = kernel_tex_fetch(__curve_keys, k0);
 		keys[1] = kernel_tex_fetch(__curve_keys, k1);
 		keys[2] = kernel_tex_fetch(__curve_keys, k2);
 		keys[3] = kernel_tex_fetch(__curve_keys, k3);
 	}
 	else {
-		/* center step not store in this array */
+		/* center step is not stored in this array */
 		if(step > numsteps)
 			step--;
 

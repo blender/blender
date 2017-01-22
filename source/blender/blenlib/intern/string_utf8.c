@@ -74,7 +74,7 @@ static const size_t utf8_skip_data[256] = {
  *
  * \return the offset of the first invalid byte.
  */
-int BLI_utf8_invalid_byte(const char *str, int length)
+ptrdiff_t BLI_utf8_invalid_byte(const char *str, size_t length)
 {
 	const unsigned char *p, *perr, *pend = (const unsigned char *)str + length;
 	unsigned char c;
@@ -161,18 +161,24 @@ int BLI_utf8_invalid_byte(const char *str, int length)
 
 utf8_error:
 
-	return (int)((const char *)perr - (const char *)str);
+	return ((const char *)perr - (const char *)str);
 }
 
-int BLI_utf8_invalid_strip(char *str, int length)
+/**
+ * Remove any invalid utf-8 byte (taking into account multi-bytes sequence of course).
+ *
+ * @return number of stripped bytes.
+ */
+int BLI_utf8_invalid_strip(char *str, size_t length)
 {
-	int bad_char, tot = 0;
+	ptrdiff_t bad_char;
+	int tot = 0;
 
 	BLI_assert(str[length] == '\0');
 
 	while ((bad_char = BLI_utf8_invalid_byte(str, length)) != -1) {
 		str += bad_char;
-		length -= (bad_char + 1);
+		length -= (size_t)(bad_char + 1);
 
 		if (length == 0) {
 			/* last character bad, strip it */
@@ -182,7 +188,7 @@ int BLI_utf8_invalid_strip(char *str, int length)
 		}
 		else {
 			/* strip, keep looking */
-			memmove(str, str + 1, (size_t)length + 1);  /* +1 for NULL char! */
+			memmove(str, str + 1, length + 1);  /* +1 for NULL char! */
 			tot++;
 		}
 	}

@@ -234,10 +234,10 @@ static void InputAngleSpring(TransInfo *t, MouseInput *mi, const double mval[2],
 	output[1] = toutput[0];
 }
 
-void initMouseInput(TransInfo *UNUSED(t), MouseInput *mi, const float center[2], const int mval[2])
+void initMouseInput(TransInfo *UNUSED(t), MouseInput *mi, const float center[2], const int mval[2], const bool precision)
 {
 	mi->factor = 0;
-	mi->precision = 0;
+	mi->precision = precision;
 
 	mi->center[0] = center[0];
 	mi->center[1] = center[1];

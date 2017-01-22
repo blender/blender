@@ -682,6 +682,87 @@ void GPENCIL_OT_move_to_layer(wmOperatorType *ot)
 	RNA_def_enum_funcs(ot->prop, ED_gpencil_layers_with_new_enum_itemf);
 }
 
+/* ********************* Add Blank Frame *************************** */
+
+/* Basically the same as the drawing op */
+static int UNUSED_FUNCTION(gp_blank_frame_add_poll)(bContext *C)
+{
+	if (ED_operator_regionactive(C)) {
+		/* check if current context can support GPencil data */
+		if (ED_gpencil_data_get_pointers(C, NULL) != NULL) {
+			return 1;
+		}
+		else {
+			CTX_wm_operator_poll_msg_set(C, "Failed to find Grease Pencil data to draw into");
+		}
+	}
+	else {
+		CTX_wm_operator_poll_msg_set(C, "Active region not set");
+	}
+	
+	return 0;
+}
+
+static int gp_blank_frame_add_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	bGPDlayer *active_gpl = BKE_gpencil_layer_getactive(gpd);
+
+	const bool all_layers = RNA_boolean_get(op->ptr, "all_layers");
+
+	/* Initialise datablock and an active layer if nothing exists yet */
+	if (ELEM(NULL, gpd, active_gpl)) {
+		/* let's just be lazy, and call the "Add New Layer" operator, which sets everything up as required */
+		WM_operator_name_call(C, "GPENCIL_OT_layer_add", WM_OP_EXEC_DEFAULT, NULL);
+	}
+	
+	/* Go through each layer, adding a frame after the active one 
+	 * and/or shunting all the others out of the way
+	 */
+	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
+	{
+		if ((all_layers == false) && (gpl != active_gpl)) {
+			continue;
+		}
+
+		/* 1) Check for an existing frame on the current frame */
+		bGPDframe *gpf = BKE_gpencil_layer_find_frame(gpl, CFRA);
+		if (gpf) {
+			/* Shunt all frames after (and including) the existing one later by 1-frame */
+			for (; gpf; gpf = gpf->next) {
+				gpf->framenum += 1;
+			}
+		}
+		
+		/* 2) Now add a new frame, with nothing in it */
+		gpl->actframe = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_ADD_NEW);
+	}
+	CTX_DATA_END;
+	
+	/* notifiers */
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_blank_frame_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Add Blank Frame";
+	ot->idname = "GPENCIL_OT_blank_frame_add";
+	ot->description = "Add a new frame with nothing in it on the current frame. "
+	                  "If there is already a frame, all existing frames are shifted one frame later";
+	
+	/* callbacks */
+	ot->exec = gp_blank_frame_add_exec;
+	ot->poll = gp_add_poll;
+	
+	/* properties */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	RNA_def_boolean(ot->srna, "all_layers", false, "All Layers", "Create blank frame in all layers, not only active");
+}
+
 /* ******************* Delete Active Frame ************************ */
 
 static int gp_actframe_delete_poll(bContext *C)
@@ -1897,6 +1978,13 @@ void GPENCIL_OT_stroke_flip(wmOperatorType *ot)
 
 /* ***************** Reproject Strokes ********************** */
 
+typedef enum eGP_ReprojectModes {
+	/* On same plane, parallel to viewplane */
+	GP_REPROJECT_PLANAR = 0,
+	/* Reprojected on to the scene geometry */
+	GP_REPROJECT_SURFACE,
+} eGP_ReprojectModes;
+
 static int gp_strokes_reproject_poll(bContext *C)
 {
 	/* 2 Requirements:
@@ -1906,13 +1994,22 @@ static int gp_strokes_reproject_poll(bContext *C)
 	return (gp_stroke_edit_poll(C) && ED_operator_view3d_active(C));
 }
 
-static int gp_strokes_reproject_exec(bContext *C, wmOperator *UNUSED(op))
+static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	GP_SpaceConversion gsc = {NULL};
+	eGP_ReprojectModes mode = RNA_boolean_get(op->ptr, "type");
 	
 	/* init space conversion stuff */
 	gp_point_conversion_init(C, &gsc);
+	
+	/* init autodist for geometry projection */
+	if (mode == GP_REPROJECT_SURFACE) {
+		view3d_region_operator_needs_opengl(CTX_wm_window(C), gsc.ar);
+		ED_view3d_autodist_init(scene, gsc.ar, CTX_wm_view3d(C), 0);
+	}
+	
+	// TODO: For deforming geometry workflow, create new frames?
 	
 	/* Go through each editable + selected stroke, adjusting each of its points one by one... */
 	GP_EDITABLE_STROKES_BEGIN(C, gpl, gps)
@@ -1949,7 +2046,27 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *UNUSED(op))
 				/* Project screenspace back to 3D space (from current perspective)
 				 * so that all points have been treated the same way
 				 */
-				gp_point_xy_to_3d(&gsc, scene, xy, &pt->x);
+				if (mode == GP_REPROJECT_PLANAR) {
+					/* Planar - All on same plane parallel to the viewplane */
+					gp_point_xy_to_3d(&gsc, scene, xy, &pt->x);
+				}
+				else {
+					/* Geometry - Snap to surfaces of visible geometry */
+					/* XXX: There will be precision loss (possible stairstep artifacts) from this conversion to satisfy the API's */
+					const int screen_co[2] = {(int)xy[0], (int)xy[1]};
+					
+					int depth_margin = 0; // XXX: 4 for strokes, 0 for normal
+					float depth;
+					
+					/* XXX: The proper procedure computes the depths into an array, to have smooth transitions when all else fails... */
+					if (ED_view3d_autodist_depth(gsc.ar, screen_co, depth_margin, &depth)) {
+						ED_view3d_autodist_simple(gsc.ar, screen_co, &pt->x, 0, &depth);
+					}
+					else {
+						/* Default to planar */
+						gp_point_xy_to_3d(&gsc, scene, xy, &pt->x);
+					}
+				}
 				
 				/* Unapply parent corrections */
 				if (gpl->parent) {
@@ -1966,21 +2083,36 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *UNUSED(op))
 
 void GPENCIL_OT_reproject(wmOperatorType *ot)
 {
+	static EnumPropertyItem reproject_type[] = {
+		{GP_REPROJECT_PLANAR, "PLANAR", 0, "Planar", 
+		 "Reproject the strokes to end up on the same plane, as if drawn from the current viewpoint "
+		 "using 'Cursor' Stroke Placement"},
+		{GP_REPROJECT_SURFACE, "SURFACE", 0, "Surface",
+		 "Reproject the strokes on to the scene geometry, as if drawn using 'Surface' placement"},
+		{0, NULL, 0, NULL, NULL}
+	};
+	
 	/* identifiers */
 	ot->name = "Reproject Strokes";
 	ot->idname = "GPENCIL_OT_reproject";
-	ot->description = "Reproject the selected strokes from the current viewpoint to get all points on the same plane again "
-	                  "(e.g. to fix problems from accidental 3D cursor movement, or viewport changes)";
+	ot->description = "Reproject the selected strokes from the current viewpoint as if they had been newly drawn "
+	                  "(e.g. to fix problems from accidental 3D cursor movement or accidental viewport changes, "
+	                  "or for matching deforming geometry)";
 	
 	/* callbacks */
+	ot->invoke = WM_menu_invoke;
 	ot->exec = gp_strokes_reproject_exec;
 	ot->poll = gp_strokes_reproject_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	ot->prop = RNA_def_enum(ot->srna, "type", reproject_type, GP_REPROJECT_PLANAR, "Projection Type", "");
 }
 
 /* ******************* Stroke subdivide ************************** */
+
 /* helper: Count how many points need to be inserted */
 static int gp_count_subdivision_cuts(bGPDstroke *gps)
 {
@@ -2098,673 +2230,3 @@ void GPENCIL_OT_stroke_subdivide(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
 }
-
-/* =========  Interpolation operators ========================== */
-/* Helper: Update point with interpolation */
-static void gp_interpolate_update_points(bGPDstroke *gps_from, bGPDstroke *gps_to, bGPDstroke *new_stroke, float factor)
-{
-	bGPDspoint *prev, *pt, *next;
-
-	/* update points */
-	for (int i = 0; i < new_stroke->totpoints; i++) {
-		prev = &gps_from->points[i];
-		pt = &new_stroke->points[i];
-		next = &gps_to->points[i];
-
-		/* Interpolate all values */
-		interp_v3_v3v3(&pt->x, &prev->x, &next->x, factor);
-		pt->pressure = interpf(prev->pressure, next->pressure, factor);
-		pt->strength = interpf(prev->strength, next->strength, factor);
-		CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
-	}
-}
-
-/* Helper: Update all strokes interpolated */
-static void gp_interpolate_update_strokes(bContext *C, tGPDinterpolate *tgpi)
-{
-	tGPDinterpolate_layer *tgpil;
-	bGPDstroke *new_stroke, *gps_from, *gps_to;
-	int cStroke;
-	float factor;
-	float shift = tgpi->shift;
-
-	for (tgpil = tgpi->ilayers.first; tgpil; tgpil = tgpil->next) {
-		factor = tgpil->factor + shift;
-		for (new_stroke = tgpil->interFrame->strokes.first; new_stroke; new_stroke = new_stroke->next) {
-			if (new_stroke->totpoints == 0) {
-				continue;
-			}
-			/* get strokes to interpolate */
-			cStroke = BLI_findindex(&tgpil->interFrame->strokes, new_stroke);
-			gps_from = BLI_findlink(&tgpil->prevFrame->strokes, cStroke);
-			gps_to = BLI_findlink(&tgpil->nextFrame->strokes, cStroke);
-			/* update points position */
-			if ((gps_from) && (gps_to)) {
-				gp_interpolate_update_points(gps_from, gps_to, new_stroke, factor);
-			}
-		}
-	}
-
-	WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
-}
-
-/* Helper: Verify valid strokes for interpolation */
-static bool gp_interpolate_check_todo(bContext *C, bGPdata *gpd)
-{
-	ToolSettings *ts = CTX_data_tool_settings(C);
-	int flag = ts->gp_sculpt.flag;
-
-	bGPDlayer *gpl;
-	bGPDlayer *active_gpl = CTX_data_active_gpencil_layer(C);
-	bGPDstroke *gps_from, *gps_to;
-	int fFrame;
-
-	/* get layers */
-	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-		/* all layers or only active */
-		if (((flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ALL_LAYERS) == 0) && (gpl != active_gpl)) {
-			continue;
-		}
-		/* only editable and visible layers are considered */
-		if (!gpencil_layer_is_editable(gpl) || (gpl->actframe == NULL)) {
-			continue;
-		}
-		/* read strokes */
-		for (gps_from = gpl->actframe->strokes.first; gps_from; gps_from = gps_from->next) {
-			/* only selected */
-			if ((flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ONLY_SELECTED) && ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
-				continue;
-			}
-			/* skip strokes that are invalid for current view */
-			if (ED_gpencil_stroke_can_use(C, gps_from) == false) {
-				continue;
-			}
-			/* check if the color is editable */
-			if (ED_gpencil_stroke_color_use(gpl, gps_from) == false) {
-				continue;
-			}
-			/* get final stroke to interpolate */
-			fFrame = BLI_findindex(&gpl->actframe->strokes, gps_from);
-			gps_to = BLI_findlink(&gpl->actframe->next->strokes, fFrame);
-			if (gps_to == NULL) {
-				continue;
-			}
-			return 1;
-		}
-	}
-	return 0;
-}
-
-/* Helper: Create internal strokes interpolated */
-static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
-{
-	bGPDlayer *gpl;
-	bGPdata *gpd = tgpi->gpd;
-	tGPDinterpolate_layer *tgpil;
-	bGPDlayer *active_gpl = CTX_data_active_gpencil_layer(C);
-	bGPDstroke *gps_from, *gps_to, *new_stroke;
-	int fFrame;
-
-	/* save initial factor for active layer to define shift limits */
-	tgpi->init_factor = (float)(tgpi->cframe - active_gpl->actframe->framenum) / (active_gpl->actframe->next->framenum - active_gpl->actframe->framenum + 1);
-	/* limits are 100% below 0 and 100% over the 100% */
-	tgpi->low_limit = -1.0f - tgpi->init_factor;
-	tgpi->high_limit = 2.0f - tgpi->init_factor;
-
-	/* set layers */
-	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-		/* all layers or only active */
-		if (((tgpi->flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ALL_LAYERS) == 0) && (gpl != active_gpl)) {
-			continue;
-		}
-		/* only editable and visible layers are considered */
-		if (!gpencil_layer_is_editable(gpl) || (gpl->actframe == NULL)) {
-			continue;
-		}
-		/* create temp data for each layer */
-		tgpil = NULL;
-		tgpil = MEM_callocN(sizeof(tGPDinterpolate_layer), "GPencil Interpolate Layer");
-
-		tgpil->gpl = gpl;
-		tgpil->prevFrame = gpl->actframe;
-		tgpil->nextFrame = gpl->actframe->next;
-
-		BLI_addtail(&tgpi->ilayers, tgpil);
-		/* create a new temporary frame */
-		tgpil->interFrame = MEM_callocN(sizeof(bGPDframe), "bGPDframe");
-		tgpil->interFrame->framenum = tgpi->cframe;
-
-		/* get interpolation factor by layer (usually must be equal for all layers, but not sure) */
-		tgpil->factor = (float)(tgpi->cframe - tgpil->prevFrame->framenum) / (tgpil->nextFrame->framenum - tgpil->prevFrame->framenum + 1);
-		/* create new strokes data with interpolated points reading original stroke */
-		for (gps_from = tgpil->prevFrame->strokes.first; gps_from; gps_from = gps_from->next) {
-			bool valid = true;
-			/* only selected */
-			if ((tgpi->flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ONLY_SELECTED) && ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
-				valid = false;
-			}
-
-			/* skip strokes that are invalid for current view */
-			if (ED_gpencil_stroke_can_use(C, gps_from) == false) {
-				valid = false;
-			}
-			/* check if the color is editable */
-			if (ED_gpencil_stroke_color_use(tgpil->gpl, gps_from) == false) {
-				valid = false;
-			}
-			/* get final stroke to interpolate */
-			fFrame = BLI_findindex(&tgpil->prevFrame->strokes, gps_from);
-			gps_to = BLI_findlink(&tgpil->nextFrame->strokes, fFrame);
-			if (gps_to == NULL) {
-				valid = false;
-			}
-			/* create new stroke */
-			new_stroke = MEM_dupallocN(gps_from);
-			new_stroke->points = MEM_dupallocN(gps_from->points);
-			new_stroke->triangles = MEM_dupallocN(gps_from->triangles);
-			if (valid) {
-				/* if destination stroke is smaller, resize new_stroke to size of gps_to stroke */
-				if (gps_from->totpoints > gps_to->totpoints) {
-					new_stroke->points = MEM_recallocN(new_stroke->points, sizeof(*new_stroke->points) * gps_to->totpoints);
-					new_stroke->totpoints = gps_to->totpoints;
-					new_stroke->tot_triangles = 0;
-					new_stroke->flag |= GP_STROKE_RECALC_CACHES;
-				}
-				/* update points position */
-				gp_interpolate_update_points(gps_from, gps_to, new_stroke, tgpil->factor);
-			}
-			else {
-				/* need an empty stroke to keep index correct for lookup, but resize to smallest size */
-				new_stroke->totpoints = 0;
-				new_stroke->points = MEM_recallocN(new_stroke->points, sizeof(*new_stroke->points));
-				new_stroke->tot_triangles = 0;
-				new_stroke->triangles = MEM_recallocN(new_stroke->triangles, sizeof(*new_stroke->triangles));
-			}
-			/* add to strokes */
-			BLI_addtail(&tgpil->interFrame->strokes, new_stroke);
-		}
-	}
-}
-
-/* Helper: calculate shift based on position of mouse (we only use x-axis for now.
-* since this is more convenient for users to do), and store new shift value
-*/
-static void gpencil_mouse_update_shift(tGPDinterpolate *tgpi, wmOperator *op, const wmEvent *event)
-{
-	float mid = (float)(tgpi->ar->winx - tgpi->ar->winrct.xmin) / 2.0f;
-	float mpos = event->x - tgpi->ar->winrct.xmin;
-	if (mpos >= mid) {
-		tgpi->shift = ((mpos - mid) * tgpi->high_limit) / mid;
-	}
-	else {
-		tgpi->shift = tgpi->low_limit - ((mpos * tgpi->low_limit) / mid);
-	}
-
-	CLAMP(tgpi->shift, tgpi->low_limit, tgpi->high_limit);
-	RNA_float_set(op->ptr, "shift", tgpi->shift);
-}
-
-/* Helper: Draw status message while the user is running the operator */
-static void gpencil_interpolate_status_indicators(tGPDinterpolate *p)
-{
-	Scene *scene = p->scene;
-	char status_str[UI_MAX_DRAW_STR];
-	char msg_str[UI_MAX_DRAW_STR];
-	BLI_strncpy(msg_str, IFACE_("GPencil Interpolation: ESC/RMB to cancel, Enter/LMB to confirm, WHEEL/MOVE to adjust, Factor"), UI_MAX_DRAW_STR);
-
-	if (hasNumInput(&p->num)) {
-		char str_offs[NUM_STR_REP_LEN];
-
-		outputNumInput(&p->num, str_offs, &scene->unit);
-
-		BLI_snprintf(status_str, sizeof(status_str), "%s: %s", msg_str, str_offs);
-	}
-	else {
-		BLI_snprintf(status_str, sizeof(status_str), "%s: %d %%", msg_str, (int)((p->init_factor + p->shift)  * 100.0f));
-	}
-
-	ED_area_headerprint(p->sa, status_str);
-}
-
-/* Helper: Update screen and stroke */
-static void gpencil_interpolate_update(bContext *C, wmOperator *op, tGPDinterpolate *tgpi)
-{
-	/* update shift indicator in header */
-	gpencil_interpolate_status_indicators(tgpi);
-	/* apply... */
-	tgpi->shift = RNA_float_get(op->ptr, "shift");
-	/* update points position */
-	gp_interpolate_update_strokes(C, tgpi);
-}
-
-/* init new temporary interpolation data */
-static bool gp_interpolate_set_init_values(bContext *C, wmOperator *op, tGPDinterpolate *tgpi)
-{
-	ToolSettings *ts = CTX_data_tool_settings(C);
-	bGPdata *gpd = CTX_data_gpencil_data(C);
-
-	/* set current scene and window */
-	tgpi->scene = CTX_data_scene(C);
-	tgpi->sa = CTX_wm_area(C);
-	tgpi->ar = CTX_wm_region(C);
-	tgpi->flag = ts->gp_sculpt.flag;
-
-	/* set current frame number */
-	tgpi->cframe = tgpi->scene->r.cfra;
-
-	/* set GP datablock */
-	tgpi->gpd = gpd;
-
-	/* set interpolation weight */
-	tgpi->shift = RNA_float_get(op->ptr, "shift");
-	/* set layers */
-	gp_interpolate_set_points(C, tgpi);
-
-	return 1;
-}
-
-/* Poll handler: check if context is suitable for interpolation */
-static int gpencil_interpolate_poll(bContext *C)
-{
-	bGPdata * gpd = CTX_data_gpencil_data(C);
-	bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
-	/* only 3D view */
-	if (CTX_wm_area(C)->spacetype != SPACE_VIEW3D) {
-		return 0;
-	}
-	/* need data to interpolate */
-	if (ELEM(NULL, gpd, gpl)) {
-		return 0;
-	}
-
-	return 1;
-}
-
-/* Allocate memory and initialize values */
-static tGPDinterpolate *gp_session_init_interpolation(bContext *C, wmOperator *op)
-{
-	tGPDinterpolate *tgpi = NULL;
-
-	/* create new context data */
-	tgpi = MEM_callocN(sizeof(tGPDinterpolate), "GPencil Interpolate Data");
-
-	/* define initial values */
-	gp_interpolate_set_init_values(C, op, tgpi);
-
-	/* return context data for running operator */
-	return tgpi;
-}
-
-/* Exit and free memory */
-static void gpencil_interpolate_exit(bContext *C, wmOperator *op)
-{
-	tGPDinterpolate *tgpi = op->customdata;
-	tGPDinterpolate_layer *tgpil;
-
-	/* don't assume that operator data exists at all */
-	if (tgpi) {
-		/* remove drawing handler */
-		if (tgpi->draw_handle_screen) {
-			ED_region_draw_cb_exit(tgpi->ar->type, tgpi->draw_handle_screen);
-		}
-		if (tgpi->draw_handle_3d) {
-			ED_region_draw_cb_exit(tgpi->ar->type, tgpi->draw_handle_3d);
-		}
-		/* clear status message area */
-		ED_area_headerprint(tgpi->sa, NULL);
-		/* finally, free memory used by temp data */
-		for (tgpil = tgpi->ilayers.first; tgpil; tgpil = tgpil->next) {
-			BKE_gpencil_free_strokes(tgpil->interFrame);
-			MEM_freeN(tgpil->interFrame);
-		}
-
-		BLI_freelistN(&tgpi->ilayers);
-		MEM_freeN(tgpi);
-	}
-	WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
-
-	/* clear pointer */
-	op->customdata = NULL;
-}
-
-/* Cancel handler */
-static void gpencil_interpolate_cancel(bContext *C, wmOperator *op)
-{
-	/* this is just a wrapper around exit() */
-	gpencil_interpolate_exit(C, op);
-}
-
-/* Init interpolation: Allocate memory and set init values         */
-static int gpencil_interpolate_init(bContext *C, wmOperator *op)
-{
-	tGPDinterpolate *tgpi;
-	/* check context */
-	tgpi = op->customdata = gp_session_init_interpolation(C, op);
-	if (tgpi == NULL) {
-		/* something wasn't set correctly in context */
-		gpencil_interpolate_exit(C, op);
-		return 0;
-	}
-
-	/* everything is now setup ok */
-	return 1;
-}
-
-/* ********************** custom drawcall api ***************** */
-/* Helper: drawing callback for modal operator in screen mode */
-static void gpencil_interpolate_draw_screen(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
-{
-	wmOperator *op = arg;
-	struct tGPDinterpolate *tgpi = op->customdata;
-	ED_gp_draw_interpolation(tgpi, REGION_DRAW_POST_PIXEL);
-}
-
-/* Helper: drawing callback for modal operator in 3d mode */
-static void gpencil_interpolate_draw_3d(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
-{
-	wmOperator *op = arg;
-	struct tGPDinterpolate *tgpi = op->customdata;
-	ED_gp_draw_interpolation(tgpi, REGION_DRAW_POST_VIEW);
-}
-
-/* Invoke handler: Initialize the operator */
-static int gpencil_interpolate_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{
-	wmWindow *win = CTX_wm_window(C);
-	Scene *scene = CTX_data_scene(C);
-	bGPdata * gpd = CTX_data_gpencil_data(C);
-	bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
-	tGPDinterpolate *tgpi = NULL;
-
-	/* cannot interpolate if not between 2 frames */
-	if ((gpl->actframe == NULL) || (gpl->actframe->next == NULL)) {
-		BKE_report(op->reports, RPT_ERROR, "Interpolation requires to be between two grease pencil frames in active layer");
-		return OPERATOR_CANCELLED;
-	}
-
-	/* cannot interpolate in extremes */
-	if ((gpl->actframe->framenum == scene->r.cfra) || (gpl->actframe->next->framenum == scene->r.cfra)) {
-		BKE_report(op->reports, RPT_ERROR, "Interpolation requires to be between two grease pencil frames in active layer");
-		return OPERATOR_CANCELLED;
-	}
-
-	/* need editable strokes */
-	if (!gp_interpolate_check_todo(C, gpd)) {
-		BKE_report(op->reports, RPT_ERROR, "Interpolation requires some editable stroke");
-		return OPERATOR_CANCELLED;
-	}
-
-	/* try to initialize context data needed */
-	if (!gpencil_interpolate_init(C, op)) {
-		if (op->customdata)
-			MEM_freeN(op->customdata);
-		return OPERATOR_CANCELLED;
-	}
-	else
-		tgpi = op->customdata;
-
-	/* enable custom drawing handlers. It needs 2 handlers because can be strokes in 3d space and screen space and each handler use different
-	   coord system */
-	tgpi->draw_handle_screen = ED_region_draw_cb_activate(tgpi->ar->type, gpencil_interpolate_draw_screen, op, REGION_DRAW_POST_PIXEL);
-	tgpi->draw_handle_3d = ED_region_draw_cb_activate(tgpi->ar->type, gpencil_interpolate_draw_3d, op, REGION_DRAW_POST_VIEW);
-	/* set cursor to indicate modal */
-	WM_cursor_modal_set(win, BC_EW_SCROLLCURSOR);
-	/* update shift indicator in header */
-	gpencil_interpolate_status_indicators(tgpi);
-	WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
-
-	/* add a modal handler for this operator */
-	WM_event_add_modal_handler(C, op);
-
-	return OPERATOR_RUNNING_MODAL;
-}
-
-/* Modal handler: Events handling during interactive part */
-static int gpencil_interpolate_modal(bContext *C, wmOperator *op, const wmEvent *event)
-{
-	tGPDinterpolate *tgpi = op->customdata;
-	wmWindow *win = CTX_wm_window(C);
-	bGPDframe *gpf_dst;
-	bGPDstroke *gps_src, *gps_dst;
-	tGPDinterpolate_layer *tgpil;
-	const bool has_numinput = hasNumInput(&tgpi->num);
-
-	switch (event->type) {
-		case LEFTMOUSE: /* confirm */
-		case RETKEY:
-		{
-			/* return to normal cursor and header status */
-			ED_area_headerprint(tgpi->sa, NULL);
-			WM_cursor_modal_restore(win);
-
-			/* insert keyframes as required... */
-			for (tgpil = tgpi->ilayers.first; tgpil; tgpil = tgpil->next) {
-				gpf_dst = BKE_gpencil_layer_getframe(tgpil->gpl, tgpi->cframe, GP_GETFRAME_ADD_NEW);
-				gpf_dst->key_type = BEZT_KEYTYPE_BREAKDOWN;
-				
-				/* copy strokes */
-				BLI_listbase_clear(&gpf_dst->strokes);
-				for (gps_src = tgpil->interFrame->strokes.first; gps_src; gps_src = gps_src->next) {
-					if (gps_src->totpoints == 0) {
-						continue;
-					}
-					/* make copy of source stroke, then adjust pointer to points too */
-					gps_dst = MEM_dupallocN(gps_src);
-					gps_dst->points = MEM_dupallocN(gps_src->points);
-					gps_dst->triangles = MEM_dupallocN(gps_src->triangles);
-					gps_dst->flag |= GP_STROKE_RECALC_CACHES;
-					BLI_addtail(&gpf_dst->strokes, gps_dst);
-				}
-			}
-			/* clean up temp data */
-			gpencil_interpolate_exit(C, op);
-
-			/* done! */
-			return OPERATOR_FINISHED;
-		}
-
-		case ESCKEY:    /* cancel */
-		case RIGHTMOUSE:
-		{
-			/* return to normal cursor and header status */
-			ED_area_headerprint(tgpi->sa, NULL);
-			WM_cursor_modal_restore(win);
-
-			/* clean up temp data */
-			gpencil_interpolate_exit(C, op);
-
-			/* canceled! */
-			return OPERATOR_CANCELLED;
-		}
-		case WHEELUPMOUSE:
-		{
-			tgpi->shift = tgpi->shift + 0.01f;
-			CLAMP(tgpi->shift, tgpi->low_limit, tgpi->high_limit);
-			RNA_float_set(op->ptr, "shift", tgpi->shift);
-			/* update screen */
-			gpencil_interpolate_update(C, op, tgpi);
-			break;
-		}
-		case WHEELDOWNMOUSE:
-		{
-			tgpi->shift = tgpi->shift - 0.01f;
-			CLAMP(tgpi->shift, tgpi->low_limit, tgpi->high_limit);
-			RNA_float_set(op->ptr, "shift", tgpi->shift);
-			/* update screen */
-			gpencil_interpolate_update(C, op, tgpi);
-			break;
-		}
-		case MOUSEMOVE: /* calculate new position */
-		{
-			/* only handle mousemove if not doing numinput */
-			if (has_numinput == false) {
-				/* update shift based on position of mouse */
-				gpencil_mouse_update_shift(tgpi, op, event);
-				/* update screen */
-				gpencil_interpolate_update(C, op, tgpi);
-			}
-			break;
-		}
-		default:
-			if ((event->val == KM_PRESS) && handleNumInput(C, &tgpi->num, event)) {
-				float value;
-				float factor = tgpi->init_factor;
-
-				/* Grab shift from numeric input, and store this new value (the user see an int) */
-				value = (factor + tgpi->shift) * 100.0f;
-				applyNumInput(&tgpi->num, &value);
-				tgpi->shift = value / 100.0f;
-				/* recalculate the shift to get the right value in the frame scale */
-				tgpi->shift = tgpi->shift - factor;
-
-				CLAMP(tgpi->shift, tgpi->low_limit, tgpi->high_limit);
-				RNA_float_set(op->ptr, "shift", tgpi->shift);
-
-				/* update screen */
-				gpencil_interpolate_update(C, op, tgpi);
-
-				break;
-			}
-			else {
-				/* unhandled event - allow to pass through */
-				return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
-			}
-	}
-
-	/* still running... */
-	return OPERATOR_RUNNING_MODAL;
-}
-
-/* Define modal operator for interpolation */
-void GPENCIL_OT_interpolate(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Grease Pencil Interpolation";
-	ot->idname = "GPENCIL_OT_interpolate";
-	ot->description = "Interpolate grease pencil strokes between frames";
-
-	/* api callbacks */
-	ot->invoke = gpencil_interpolate_invoke;
-	ot->modal = gpencil_interpolate_modal;
-	ot->cancel = gpencil_interpolate_cancel;
-	ot->poll = gpencil_interpolate_poll;
-
-	/* flags */
-	ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
-
-	RNA_def_float_percentage(ot->srna, "shift", 0.0f, -1.0f, 1.0f, "Shift", "Displacement factor for the interpolate operation", -0.9f, 0.9f);
-}
-
-/* =============== Interpolate sequence ===============*/
-/* Create Sequence Interpolation */
-static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene = CTX_data_scene(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
-	bGPdata * gpd = CTX_data_gpencil_data(C);
-	bGPDlayer *active_gpl = CTX_data_active_gpencil_layer(C);
-	bGPDlayer *gpl;
-	bGPDframe *prevFrame, *nextFrame, *interFrame;
-	bGPDstroke *gps_from, *gps_to, *new_stroke;
-	float factor;
-	int cframe, fFrame;
-	int flag = ts->gp_sculpt.flag;
-
-	/* cannot interpolate if not between 2 frames */
-	if ((active_gpl->actframe == NULL) || (active_gpl->actframe->next == NULL)) {
-		BKE_report(op->reports, RPT_ERROR, "Interpolation requires to be between two grease pencil frames");
-		return OPERATOR_CANCELLED;
-	}
-	/* cannot interpolate in extremes */
-	if ((active_gpl->actframe->framenum == scene->r.cfra) || (active_gpl->actframe->next->framenum == scene->r.cfra)) {
-		BKE_report(op->reports, RPT_ERROR, "Interpolation requires to be between two grease pencil frames");
-		return OPERATOR_CANCELLED;
-	}
-	
-	/* loop all layer to check if need interpolation */
-	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-		/* all layers or only active */
-		if (((flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ALL_LAYERS) == 0) && (gpl != active_gpl)) {
-			continue;
-		}
-		/* only editable and visible layers are considered */
-		if (!gpencil_layer_is_editable(gpl) || (gpl->actframe == NULL)) {
-			continue;
-		}
-		/* store extremes */
-		prevFrame = gpl->actframe;
-		nextFrame = gpl->actframe->next;
-		/* Loop over intermediary frames and create the interpolation */
-		for (cframe = prevFrame->framenum + 1; cframe < nextFrame->framenum; cframe++) {
-			interFrame = NULL;
-
-			/* get interpolation factor */
-			factor = (float)(cframe - prevFrame->framenum) / (nextFrame->framenum - prevFrame->framenum + 1);
-
-			/* create new strokes data with interpolated points reading original stroke */
-			for (gps_from = prevFrame->strokes.first; gps_from; gps_from = gps_from->next) {
-				/* only selected */
-				if ((flag & GP_BRUSHEDIT_FLAG_INTERPOLATE_ONLY_SELECTED) && ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
-					continue;
-				}
-				/* skip strokes that are invalid for current view */
-				if (ED_gpencil_stroke_can_use(C, gps_from) == false) {
-					continue;
-				}
-				/* check if the color is editable */
-				if (ED_gpencil_stroke_color_use(gpl, gps_from) == false) {
-					continue;
-				}
-				/* get final stroke to interpolate */
-				fFrame = BLI_findindex(&prevFrame->strokes, gps_from);
-				gps_to = BLI_findlink(&nextFrame->strokes, fFrame);
-				if (gps_to == NULL) {
-					continue;
-				}
-				/* create a new frame if needed */
-				if (interFrame == NULL) {
-					interFrame = BKE_gpencil_layer_getframe(gpl, cframe, GP_GETFRAME_ADD_NEW);
-					interFrame->key_type = BEZT_KEYTYPE_BREAKDOWN;
-				}
-				/* create new stroke */
-				new_stroke = MEM_dupallocN(gps_from);
-				new_stroke->points = MEM_dupallocN(gps_from->points);
-				new_stroke->triangles = MEM_dupallocN(gps_from->triangles);
-				/* if destination stroke is smaller, resize new_stroke to size of gps_to stroke */
-				if (gps_from->totpoints > gps_to->totpoints) {
-					new_stroke->points = MEM_recallocN(new_stroke->points, sizeof(*new_stroke->points) * gps_to->totpoints);
-					new_stroke->totpoints = gps_to->totpoints;
-					new_stroke->tot_triangles = 0;
-					new_stroke->flag |= GP_STROKE_RECALC_CACHES;
-				}
-				/* update points position */
-				gp_interpolate_update_points(gps_from, gps_to, new_stroke, factor);
-
-				/* add to strokes */
-				BLI_addtail(&interFrame->strokes, new_stroke);
-			}
-		}
-	}
-
-	/* notifiers */
-	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
-
-	return OPERATOR_FINISHED;
-}
-
-/* Define sequence interpolation               */
-void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Grease Pencil Sequence Interpolation";
-	ot->idname = "GPENCIL_OT_interpolate_sequence";
-	ot->description = "Interpolate full grease pencil strokes sequence between frames";
-
-	/* api callbacks */
-	ot->exec = gpencil_interpolate_seq_exec;
-	ot->poll = gpencil_interpolate_poll;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-/* =========  End Interpolation operators ========================== */

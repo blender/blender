@@ -60,6 +60,7 @@ static EnumPropertyItem parent_type_items[] = {
 
 #include "WM_api.h"
 
+#include "BKE_animsys.h"
 #include "BKE_gpencil.h"
 #include "BKE_action.h"
 
@@ -353,10 +354,16 @@ static void rna_GPencilLayer_info_set(PointerRNA *ptr, const char *value)
 	bGPdata *gpd = ptr->id.data;
 	bGPDlayer *gpl = ptr->data;
 
+	char oldname[128] = "";
+	BLI_strncpy(oldname, gpl->info, sizeof(oldname));
+
 	/* copy the new name into the name slot */
 	BLI_strncpy_utf8(gpl->info, value, sizeof(gpl->info));
 
 	BLI_uniquename(&gpd->layers, gpl, DATA_("GP_Layer"), '.', offsetof(bGPDlayer, info), sizeof(gpl->info));
+
+	/* now fix animation paths */
+	BKE_animdata_fix_paths_rename_all(&gpd->id, "layers", oldname, gpl->info);
 }
 
 static void rna_GPencil_use_onion_skinning_set(PointerRNA *ptr, const int value)
@@ -814,14 +821,20 @@ static void rna_GPencilPaletteColor_info_set(PointerRNA *ptr, const char *value)
 	bGPdata *gpd = ptr->id.data;
 	bGPDpalette *palette = BKE_gpencil_palette_getactive(gpd);
 	bGPDpalettecolor *palcolor = ptr->data;
-
-	/* rename all strokes */
-	BKE_gpencil_palettecolor_changename(gpd, palcolor->info, value);
+	
+	char oldname[64] = "";
+	BLI_strncpy(oldname, palcolor->info, sizeof(oldname));
 
 	/* copy the new name into the name slot */
 	BLI_strncpy_utf8(palcolor->info, value, sizeof(palcolor->info));
 	BLI_uniquename(&palette->colors, palcolor, DATA_("Color"), '.', offsetof(bGPDpalettecolor, info),
 	               sizeof(palcolor->info));
+	
+	/* rename all strokes */
+	BKE_gpencil_palettecolor_changename(gpd, oldname, palcolor->info);
+
+	/* now fix animation paths */
+	BKE_animdata_fix_paths_rename_all(&gpd->id, "colors", oldname, palcolor->info);
 }
 
 static void rna_GPencilStrokeColor_info_set(PointerRNA *ptr, const char *value)

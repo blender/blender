@@ -34,6 +34,8 @@ ccl_device void svm_node_light_path(ShaderData *sd, ccl_addr_space PathState *st
 		case NODE_LP_backfacing: info = (ccl_fetch(sd, flag) & SD_BACKFACING)? 1.0f: 0.0f; break;
 		case NODE_LP_ray_length: info = ccl_fetch(sd, ray_length); break;
 		case NODE_LP_ray_depth: info = (float)state->bounce; break;
+		case NODE_LP_ray_diffuse: info = (float)state->diffuse_bounce; break;
+		case NODE_LP_ray_glossy: info = (float)state->glossy_bounce; break;
 		case NODE_LP_ray_transparent: info = (float)state->transparent_bounce; break;
 		case NODE_LP_ray_transmission: info = (float)state->transmission_bounce; break;
 	}

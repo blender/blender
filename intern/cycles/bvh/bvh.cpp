@@ -845,6 +845,8 @@ void QBVH::pack_aligned_inner(const BVHStackEntry& e,
 	                  bounds,
 	                  child,
 	                  e.node->m_visibility,
+	                  e.node->m_time_from,
+	                  e.node->m_time_to,
 	                  num);
 }
 
@@ -852,12 +854,17 @@ void QBVH::pack_aligned_node(int idx,
                              const BoundBox *bounds,
                              const int *child,
                              const uint visibility,
+                             const float time_from,
+                             const float time_to,
                              const int num)
 {
 	float4 data[BVH_QNODE_SIZE];
 	memset(data, 0, sizeof(data));
 
 	data[0].x = __uint_as_float(visibility & ~PATH_RAY_NODE_UNALIGNED);
+	data[0].y = time_from;
+	data[0].z = time_to;
+
 	for(int i = 0; i < num; i++) {
 		float3 bb_min = bounds[i].min;
 		float3 bb_max = bounds[i].max;
@@ -908,6 +915,8 @@ void QBVH::pack_unaligned_inner(const BVHStackEntry& e,
 	                    bounds,
 	                    child,
 	                    e.node->m_visibility,
+	                    e.node->m_time_from,
+	                    e.node->m_time_to,
 	                    num);
 }
 
@@ -916,12 +925,16 @@ void QBVH::pack_unaligned_node(int idx,
                                const BoundBox *bounds,
                                const int *child,
                                const uint visibility,
+                               const float time_from,
+                               const float time_to,
                                const int num)
 {
 	float4 data[BVH_UNALIGNED_QNODE_SIZE];
 	memset(data, 0, sizeof(data));
 
 	data[0].x = __uint_as_float(visibility | PATH_RAY_NODE_UNALIGNED);
+	data[0].y = time_from;
+	data[0].z = time_to;
 
 	for(int i = 0; i < num; i++) {
 		Transform space = BVHUnaligned::compute_node_transform(
@@ -1207,6 +1220,8 @@ void QBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 			                    child_bbox,
 			                    &c[0],
 			                    visibility,
+			                    0.0f,
+			                    1.0f,
 			                    4);
 		}
 		else {
@@ -1214,6 +1229,8 @@ void QBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 			                  child_bbox,
 			                  &c[0],
 			                  visibility,
+			                  0.0f,
+			                  1.0f,
 			                  4);
 		}
 	}

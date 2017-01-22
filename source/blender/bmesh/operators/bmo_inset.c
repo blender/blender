@@ -647,6 +647,10 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 	} (void)0
 #define VERT_ORIG_GET(_v)  \
 	(const float *)BLI_ghash_lookup_default(vert_coords, (_v), (_v)->co)
+	/* memory for the coords isn't given back to the arena,
+	 * acceptable in this case since it runs a fixed number of times. */
+#define VERT_ORIG_REMOVE(_v)  \
+	BLI_ghash_remove(vert_coords, (_v), NULL, NULL)
 
 
 	for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
@@ -972,7 +976,11 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 								v_glue = v_split;
 							}
 							else {
-								BM_vert_splice(bm, v_glue, v_split);
+								if (BM_vert_splice(bm, v_glue, v_split)) {
+									if (use_vert_coords_orig) {
+										VERT_ORIG_REMOVE(v_split);
+									}
+								}
 							}
 						}
 					}

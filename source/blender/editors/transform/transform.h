@@ -728,7 +728,7 @@ typedef enum {
 	INPUT_CUSTOM_RATIO_FLIP,
 } MouseInputMode;
 
-void initMouseInput(TransInfo *t, MouseInput *mi, const float center[2], const int mval[2]);
+void initMouseInput(TransInfo *t, MouseInput *mi, const float center[2], const int mval[2], const bool precision);
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode);
 eRedrawFlag handleMouseInput(struct TransInfo *t, struct MouseInput *mi, const struct wmEvent *event);
 void applyMouseInput(struct TransInfo *t, struct MouseInput *mi, const int mval[2], float output[3]);

@@ -1655,6 +1655,7 @@ def write_sphinx_conf_py(basepath):
 
     # not helpful since the source is generated, adds to upload size.
     fw("html_copy_source = False\n")
+    fw("html_show_sphinx = False\n")
     fw("html_split_index = True\n")
     fw("\n")
 

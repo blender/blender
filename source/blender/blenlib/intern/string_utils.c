@@ -61,7 +61,7 @@
  * \param delim  Delimiter character
  * \return  Length of \a left
  */
-int BLI_split_name_num(char *left, int *nr, const char *name, const char delim)
+size_t BLI_split_name_num(char *left, int *nr, const char *name, const char delim)
 {
 	const size_t name_len = strlen(name);
 
@@ -70,7 +70,7 @@ int BLI_split_name_num(char *left, int *nr, const char *name, const char delim)
 
 	/* name doesn't end with a delimiter "foo." */
 	if ((name_len > 1 && name[name_len - 1] == delim) == 0) {
-		int a = name_len;
+		size_t a = name_len;
 		while (a--) {
 			if (name[a] == delim) {
 				left[a] = '\0';  /* truncate left part here */
@@ -295,7 +295,7 @@ bool BLI_uniquename_cb(
 		char *tempname = alloca(name_len);
 		char *left = alloca(name_len);
 		int number;
-		int len = BLI_split_name_num(left, &number, name, delim);
+		size_t len = BLI_split_name_num(left, &number, name, delim);
 		do {
 			/* add 1 to account for \0 */
 			const size_t numlen = BLI_snprintf(numstr, sizeof(numstr), "%c%03d", delim, ++number) + 1;

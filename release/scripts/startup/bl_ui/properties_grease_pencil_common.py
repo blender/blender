@@ -115,6 +115,12 @@ class GreasePencilDrawingToolsPanel:
         row.operator("gpencil.draw", icon='LINE_DATA', text="Line").mode = 'DRAW_STRAIGHT'
         row.operator("gpencil.draw", icon='MESH_DATA', text="Poly").mode = 'DRAW_POLY'
 
+        col.separator()
+
+        sub = col.column(align=True)
+        sub.operator("gpencil.blank_frame_add", icon='NEW')
+        sub.operator("gpencil.active_frames_delete_all", icon='X', text="Delete Frame(s)")
+
         sub = col.column(align=True)
         sub.prop(context.tool_settings, "use_gpencil_additive_drawing", text="Additive Drawing")
         sub.prop(context.tool_settings, "use_gpencil_continuous_drawing", text="Continuous Drawing")
@@ -227,12 +233,7 @@ class GreasePencilStrokeEditPanel:
 
         if is_3d_view:
             layout.separator()
-            col = layout.column(align=True)
-            col.operator("gpencil.interpolate", text="Interpolate")
-            col.operator("gpencil.interpolate_sequence", text="Sequence")
-            settings = context.tool_settings.gpencil_sculpt
-            col.prop(settings, "interpolate_all_layers")
-            col.prop(settings, "interpolate_selected_only")
+            
 
         layout.separator()
         col = layout.column(align=True)
@@ -247,7 +248,57 @@ class GreasePencilStrokeEditPanel:
 
         if is_3d_view:
             layout.separator()
-            layout.operator("gpencil.reproject")
+            layout.operator_menu_enum("gpencil.reproject", text="Reproject Strokes...", property="type")
+
+
+class GreasePencilInterpolatePanel:
+    bl_space_type = 'VIEW_3D'
+    bl_label = "Interpolate"
+    bl_category = "Grease Pencil"
+    bl_region_type = 'TOOLS'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        if context.gpencil_data is None:
+            return False
+        elif context.space_data.type != 'VIEW_3D':
+            return False
+
+        gpd = context.gpencil_data
+        return bool(context.editable_gpencil_strokes) and bool(gpd.use_stroke_edit_mode)
+
+    @staticmethod
+    def draw(self, context):
+        layout = self.layout
+        settings = context.tool_settings.gpencil_interpolate
+
+        col = layout.column(align=True)
+        col.operator("gpencil.interpolate", text="Interpolate")
+        col.operator("gpencil.interpolate_sequence", text="Sequence")
+        col.operator("gpencil.interpolate_reverse", text="Remove Breakdowns")
+
+        col = layout.column(align=True)
+        col.label(text="Options:")
+        col.prop(settings, "interpolate_all_layers")
+        col.prop(settings, "interpolate_selected_only")
+
+        col = layout.column(align=True)
+        col.label(text="Sequence Options:")
+        col.prop(settings, "type")
+        if settings.type == 'CUSTOM':
+            box = layout.box()
+            # TODO: Options for loading/saving curve presets?
+            box.template_curve_mapping(settings, "interpolation_curve", brush=True)
+        elif settings.type != 'LINEAR':
+            col.prop(settings, "easing")
+
+            if settings.type == 'BACK':
+                layout.prop(settings, "back")
+            elif setting.type == 'ELASTIC':
+                sub = layout.column(align=True)
+                sub.prop(settings, "amplitude")
+                sub.prop(settings, "period")
 
 
 class GreasePencilBrushPanel:

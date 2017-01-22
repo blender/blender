@@ -1632,7 +1632,7 @@ static void gp_draw_data_all(Scene *scene, bGPdata *gpd, int offsx, int offsy, i
 {
 	bGPdata *gpd_source = NULL;
 	ToolSettings *ts;
-	bGPDbrush *brush;
+	bGPDbrush *brush = NULL;
 	if (scene) {
 		ts = scene->toolsettings;
 		brush = BKE_gpencil_brush_getactive(ts);
@@ -1641,8 +1641,7 @@ static void gp_draw_data_all(Scene *scene, bGPdata *gpd, int offsx, int offsy, i
 			BKE_gpencil_brush_init_presets(ts);
 			brush = BKE_gpencil_brush_getactive(ts);
 		}
-	}
-	if (scene) {
+
 		if (spacetype == SPACE_VIEW3D) {
 			gpd_source = (scene->gpd ? scene->gpd : NULL);
 		}

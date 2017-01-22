@@ -175,6 +175,8 @@ protected:
 	                       const BoundBox *bounds,
 	                       const int *child,
 	                       const uint visibility,
+	                       const float time_from,
+	                       const float time_to,
 	                       const int num);
 
 	void pack_unaligned_inner(const BVHStackEntry& e,
@@ -185,6 +187,8 @@ protected:
 	                         const BoundBox *bounds,
 	                         const int *child,
 	                         const uint visibility,
+	                         const float time_from,
+	                         const float time_to,
 	                         const int num);
 
 	/* refit */

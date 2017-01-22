@@ -287,6 +287,8 @@ void GPENCIL_OT_unlock_all(struct wmOperatorType *ot);
 void GPENCIL_OT_layer_isolate(struct wmOperatorType *ot);
 void GPENCIL_OT_layer_merge(struct wmOperatorType *ot);
 
+void GPENCIL_OT_blank_frame_add(struct wmOperatorType *ot);
+
 void GPENCIL_OT_active_frame_delete(struct wmOperatorType *ot);
 void GPENCIL_OT_active_frames_delete_all(struct wmOperatorType *ot);
 
@@ -340,6 +342,7 @@ void gpencil_undo_finish(void);
 
 void GPENCIL_OT_interpolate(struct wmOperatorType *ot);
 void GPENCIL_OT_interpolate_sequence(struct wmOperatorType *ot);
+void GPENCIL_OT_interpolate_reverse(struct wmOperatorType *ot);
 
 /* ****************************************************** */
 /* FILTERED ACTION DATA - TYPES  ---> XXX DEPRECEATED OLD ANIM SYSTEM CODE! */

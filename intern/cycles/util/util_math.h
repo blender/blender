@@ -22,6 +22,11 @@
  * Basic math functions on scalar and vector types. This header is used by
  * both the kernel code when compiled as C++, and other C++ non-kernel code. */
 
+#ifndef __KERNEL_GPU__
+#  include <cmath>
+#endif
+
+
 #ifndef __KERNEL_OPENCL__
 
 #include <float.h>
@@ -96,6 +101,9 @@ ccl_device_inline float fminf(float a, float b)
 #endif
 
 #ifndef __KERNEL_GPU__
+
+using std::isfinite;
+using std::isnan;
 
 ccl_device_inline int abs(int x)
 {
@@ -1231,6 +1239,20 @@ ccl_device_inline float __uint_as_float(uint i)
 	union { uint i; float f; } u;
 	u.i = i;
 	return u.f;
+}
+
+/* Versions of functions which are safe for fast math. */
+ccl_device_inline bool isnan_safe(float f)
+{
+	unsigned int x = __float_as_uint(f);
+	return (x << 1) > 0xff000000u;
+}
+
+ccl_device_inline bool isfinite_safe(float f)
+{
+	/* By IEEE 754 rule, 2*Inf equals Inf */
+	unsigned int x = __float_as_uint(f);
+	return (f == f) && (x == 0 || (f != 2.0f*f));
 }
 
 /* Interpolation */

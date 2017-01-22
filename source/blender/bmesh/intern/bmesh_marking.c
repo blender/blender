@@ -70,7 +70,7 @@ static void recount_totsels(BMesh *bm)
 	}
 }
 
-/** \name BMesh helper functions for selection flushing.
+/** \name BMesh helper functions for selection & hide flushing.
  * \{ */
 
 static bool bm_vert_is_edge_select_any_other(const BMVert *v, const BMEdge *e_first)
@@ -102,6 +102,20 @@ static bool bm_vert_is_edge_select_any(const BMVert *v)
 }
 #endif
 
+static bool bm_vert_is_edge_visible_any(const BMVert *v)
+{
+	if (v->e) {
+		const BMEdge *e_iter, *e_first;
+		e_iter = e_first = v->e;
+		do {
+			if (!BM_elem_flag_test(e_iter, BM_ELEM_HIDDEN)) {
+				return true;
+			}
+		} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
+	}
+	return false;
+}
+
 static bool bm_edge_is_face_select_any_other(BMLoop *l_first)
 {
 	const BMLoop *l_iter = l_first;
@@ -130,6 +144,20 @@ static bool bm_edge_is_face_select_any(const BMEdge *e)
 	return false;
 }
 #endif
+
+static bool bm_edge_is_face_visible_any(const BMEdge *e)
+{
+	if (e->l) {
+		const BMLoop *l_iter, *l_first;
+		l_iter = l_first = e->l;
+		do {
+			if (!BM_elem_flag_test(l_iter->f, BM_ELEM_HIDDEN)) {
+				return true;
+			}
+		} while ((l_iter = l_iter->radial_next) != l_first);
+	}
+	return false;
+}
 
 /** \} */
 
@@ -1198,87 +1226,111 @@ void BM_mesh_elem_hflag_enable_all(
 
 /***************** Mesh Hiding stuff *********** */
 
+/**
+ * Hide unless any connected elements are visible.
+ * Run this after hiding a connected edge or face.
+ */
 static void vert_flush_hide_set(BMVert *v)
 {
-	BMIter iter;
-	BMEdge *e;
-	bool hide = true;
-
-	BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
-		hide = hide && BM_elem_flag_test(e, BM_ELEM_HIDDEN);
-	}
-
-	BM_elem_flag_set(v, BM_ELEM_HIDDEN, hide);
+	BM_elem_flag_set(v, BM_ELEM_HIDDEN, !bm_vert_is_edge_visible_any(v));
 }
 
-static void edge_flush_hide(BMEdge *e)
+/**
+ * Hide unless any connected elements are visible.
+ * Run this after hiding a connected face.
+ */
+static void edge_flush_hide_set(BMEdge *e)
 {
-	BMIter iter;
-	BMFace *f;
-	bool hide = true;
-
-	BM_ITER_ELEM (f, &iter, e, BM_FACES_OF_EDGE) {
-		hide = hide && BM_elem_flag_test(f, BM_ELEM_HIDDEN);
-	}
-
-	BM_elem_flag_set(e, BM_ELEM_HIDDEN, hide);
+	BM_elem_flag_set(e, BM_ELEM_HIDDEN, !bm_edge_is_face_visible_any(e));
 }
 
 void BM_vert_hide_set(BMVert *v, const bool hide)
 {
 	/* vert hiding: vert + surrounding edges and faces */
-	BMIter iter, fiter;
-	BMEdge *e;
-	BMFace *f;
-
 	BLI_assert(v->head.htype == BM_VERT);
+	if (hide) {
+		BLI_assert(!BM_elem_flag_test(v, BM_ELEM_SELECT));
+	}
 
 	BM_elem_flag_set(v, BM_ELEM_HIDDEN, hide);
 
-	BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
-		BM_elem_flag_set(e, BM_ELEM_HIDDEN, hide);
-
-		BM_ITER_ELEM (f, &fiter, e, BM_FACES_OF_EDGE) {
-			BM_elem_flag_set(f, BM_ELEM_HIDDEN, hide);
-		}
+	if (v->e) {
+		BMEdge *e_iter, *e_first;
+		e_iter = e_first = v->e;
+		do {
+			BM_elem_flag_set(e_iter, BM_ELEM_HIDDEN, hide);
+			if (e_iter->l) {
+				const BMLoop *l_radial_iter, *l_radial_first;
+				l_radial_iter = l_radial_first = e_iter->l;
+				do {
+					BM_elem_flag_set(l_radial_iter->f, BM_ELEM_HIDDEN, hide);
+				} while ((l_radial_iter = l_radial_iter->radial_next) != l_radial_first);
+			}
+		} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
 	}
 }
 
 void BM_edge_hide_set(BMEdge *e, const bool hide)
 {
-	BMIter iter;
-	BMFace *f;
-	/* BMVert *v; */
-
 	BLI_assert(e->head.htype == BM_EDGE);
+	if (hide) {
+		BLI_assert(!BM_elem_flag_test(e, BM_ELEM_SELECT));
+	}
 
 	/* edge hiding: faces around the edge */
-	BM_ITER_ELEM (f, &iter, e, BM_FACES_OF_EDGE) {
-		BM_elem_flag_set(f, BM_ELEM_HIDDEN, hide);
+	if (e->l) {
+		const BMLoop *l_iter, *l_first;
+		l_iter = l_first = e->l;
+		do {
+			BM_elem_flag_set(l_iter->f, BM_ELEM_HIDDEN, hide);
+		} while ((l_iter = l_iter->radial_next) != l_first);
 	}
 	
 	BM_elem_flag_set(e, BM_ELEM_HIDDEN, hide);
 
 	/* hide vertices if necessary */
-	vert_flush_hide_set(e->v1);
-	vert_flush_hide_set(e->v2);
+	if (hide) {
+		vert_flush_hide_set(e->v1);
+		vert_flush_hide_set(e->v2);
+	}
+	else {
+		BM_elem_flag_disable(e->v1, BM_ELEM_HIDDEN);
+		BM_elem_flag_disable(e->v2, BM_ELEM_HIDDEN);
+	}
 }
 
 void BM_face_hide_set(BMFace *f, const bool hide)
 {
-	BMIter iter;
-	BMLoop *l;
-
 	BLI_assert(f->head.htype == BM_FACE);
+	if (hide) {
+		BLI_assert(!BM_elem_flag_test(f, BM_ELEM_SELECT));
+	}
 
 	BM_elem_flag_set(f, BM_ELEM_HIDDEN, hide);
 
-	BM_ITER_ELEM (l, &iter, f, BM_LOOPS_OF_FACE) {
-		edge_flush_hide(l->e);
-	}
+	if (hide) {
+		BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
+		BMLoop *l_iter;
 
-	BM_ITER_ELEM (l, &iter, f, BM_LOOPS_OF_FACE) {
-		vert_flush_hide_set(l->v);
+		l_iter = l_first;
+		do {
+			edge_flush_hide_set(l_iter->e);
+		} while ((l_iter = l_iter->next) != l_first);
+
+		l_iter = l_first;
+		do {
+			vert_flush_hide_set(l_iter->v);
+		} while ((l_iter = l_iter->next) != l_first);
+	}
+	else {
+		BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
+		BMLoop *l_iter;
+
+		l_iter = l_first;
+		do {
+			BM_elem_flag_disable(l_iter->e, BM_ELEM_HIDDEN);
+			BM_elem_flag_disable(l_iter->v, BM_ELEM_HIDDEN);
+		} while ((l_iter = l_iter->next) != l_first);
 	}
 }
 

@@ -387,14 +387,10 @@ BMFace *BM_face_create_ngon_verts(
  *
  * \note Since this is a vcloud there is no direction.
  */
-BMFace *BM_face_create_ngon_vcloud(
-        BMesh *bm, BMVert **vert_arr, int len,
-        const BMFace *f_example, const eBMCreateFlag create_flag)
+void BM_verts_sort_radial_plane(BMVert **vert_arr, int len)
 {
 	struct SortIntByFloat *vang = BLI_array_alloca(vang, len);
 	BMVert **vert_arr_map = BLI_array_alloca(vert_arr_map, len);
-
-	BMFace *f;
 
 	float totv_inv = 1.0f / (float)len;
 	int i = 0;
@@ -470,26 +466,9 @@ BMFace *BM_face_create_ngon_vcloud(
 
 	/* now calculate every points angle around the normal (signed) */
 	for (i = 0; i < len; i++) {
-		float co[3];
-		float proj_vec[3];
-		float angle;
-
-		/* center relative vec */
-		sub_v3_v3v3(co, vert_arr[i]->co, cent);
-
-		/* align to plane */
-		project_v3_v3v3(proj_vec, co, nor);
-		sub_v3_v3(co, proj_vec);
-
-		/* now 'co' is valid - we can compare its angle against the far vec */
-		angle = angle_v3v3(far_vec, co);
-
-		if (dot_v3v3(co, sign_vec) < 0.0f) {
-			angle = -angle;
-		}
-
-		vang[i].sort_value = angle;
+		vang[i].sort_value = angle_signed_on_axis_v3v3v3_v3(far, cent, vert_arr[i]->co, nor);
 		vang[i].data = i;
+		vert_arr_map[i] = vert_arr[i];
 	}
 
 	/* sort by angle and magic! - we have our ngon */
@@ -497,14 +476,9 @@ BMFace *BM_face_create_ngon_vcloud(
 
 	/* --- */
 
-	/* create edges and find the winding (if faces are attached to any existing edges) */
 	for (i = 0; i < len; i++) {
-		vert_arr_map[i] = vert_arr[vang[i].data];
+		vert_arr[i] = vert_arr_map[vang[i].data];
 	}
-
-	f = BM_face_create_ngon_verts(bm, vert_arr_map, len, f_example, create_flag, true, true);
-
-	return f;
 }
 
 /*************************************************************/

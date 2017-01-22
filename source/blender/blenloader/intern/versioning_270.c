@@ -1474,6 +1474,36 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		for (Brush *br = main->brush.first; br; br = br->id.next) {
 			br->fill_threshold /= sqrt_3;
 		}
+
+		/* Custom motion paths */
+		if (!DNA_struct_elem_find(fd->filesdna, "bMotionPath", "int", "line_thickness")) {
+			Object *ob;
+			for (ob = main->object.first; ob; ob = ob->id.next) {
+				bMotionPath *mpath;
+				bPoseChannel *pchan;
+				mpath = ob->mpath;
+				if (mpath) {
+					mpath->color[0] = 1.0f;
+					mpath->color[1] = 0.0f;
+					mpath->color[2] = 0.0f;
+					mpath->line_thickness = 1;
+					mpath->flag |= MOTIONPATH_FLAG_LINES;
+				}
+				/* bones motion path */
+				if (ob->pose) {
+					for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+						mpath = pchan->mpath;
+						if (mpath) {
+							mpath->color[0] = 1.0f;
+							mpath->color[1] = 0.0f;
+							mpath->color[2] = 0.0f;
+							mpath->line_thickness = 1;
+							mpath->flag |= MOTIONPATH_FLAG_LINES;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/* To be added to next subversion bump! */
