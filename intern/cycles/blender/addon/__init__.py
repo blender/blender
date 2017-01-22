@@ -28,6 +28,20 @@ bl_info = {
     "support": 'OFFICIAL',
     "category": "Render"}
 
+# Support 'reload' case.
+if "bpy" in locals():
+    import importlib
+    if "engine" in locals():
+        importlib.reload(engine)
+    if "version_update" in locals():
+        importlib.reload(version_update)
+    if "ui" in locals():
+        importlib.reload(ui)
+    if "properties" in locals():
+        importlib.reload(properties)
+    if "presets" in locals():
+        importlib.reload(presets)
+
 import bpy
 
 from . import (
