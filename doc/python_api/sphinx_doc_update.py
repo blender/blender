@@ -41,9 +41,9 @@ import tempfile
 import zipfile
 
 
-DEFAULT_RSYNC_SERVER = "www.blender.org"
+DEFAULT_RSYNC_SERVER = "docs.blender.org"
 DEFAULT_RSYNC_ROOT = "/api/"
-DEFAULT_SYMLINK_ROOT = "/data/www/vhosts/www.blender.org/api"
+DEFAULT_SYMLINK_ROOT = "/data/www/vhosts/docs.blender.org/api"
 
 
 def argparse_create():
