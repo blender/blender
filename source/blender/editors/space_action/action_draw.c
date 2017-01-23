@@ -252,11 +252,11 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 							bActionGroup *agrp = ale->data;
 							if (show_group_colors && agrp->customCol) {
 								if (sel) {
-									unsigned char *cp = agrp->cs.select;
+									unsigned char *cp = (unsigned char *)agrp->cs.select;
 									glColor4ub(cp[0], cp[1], cp[2], 0x45);
 								}
 								else {
-									unsigned char *cp = agrp->cs.solid;
+									unsigned char *cp = (unsigned char *)agrp->cs.solid;
 									glColor4ub(cp[0], cp[1], cp[2], 0x1D);
 								}
 							}
@@ -270,7 +270,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						{
 							FCurve *fcu = ale->data;
 							if (show_group_colors && fcu->grp && fcu->grp->customCol) {
-								unsigned char *cp = fcu->grp->cs.active;
+								unsigned char *cp = (unsigned char *)fcu->grp->cs.active;
 								
 								if (sel) glColor4ub(cp[0], cp[1], cp[2], 0x65);
 								else glColor4ub(cp[0], cp[1], cp[2], 0x0B);
