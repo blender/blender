@@ -692,56 +692,108 @@ typedef enum ShaderContext {
 /* Shader Data
  *
  * Main shader state at a point on the surface or in a volume. All coordinates
- * are in world space. */
+ * are in world space.
+ */
 
 enum ShaderDataFlag {
-	/* runtime flags */
-	SD_BACKFACING      = (1 << 0),   /* backside of surface? */
-	SD_EMISSION        = (1 << 1),   /* have emissive closure? */
-	SD_BSDF            = (1 << 2),   /* have bsdf closure? */
-	SD_BSDF_HAS_EVAL   = (1 << 3),   /* have non-singular bsdf closure? */
-	SD_BSSRDF          = (1 << 4),   /* have bssrdf */
-	SD_HOLDOUT         = (1 << 5),   /* have holdout closure? */
-	SD_ABSORPTION      = (1 << 6),   /* have volume absorption closure? */
-	SD_SCATTER         = (1 << 7),   /* have volume phase closure? */
-	SD_AO              = (1 << 8),   /* have ao closure? */
-	SD_TRANSPARENT     = (1 << 9),  /* have transparent closure? */
+	/* Runtime flags. */
+
+	/* Set when ray hits backside of surface. */
+	SD_BACKFACING      = (1 << 0),
+	/* Shader has emissive closure. */
+	SD_EMISSION        = (1 << 1),
+	/* Shader has BSDF closure. */
+	SD_BSDF            = (1 << 2),
+	/* Shader has non-singular BSDF closure. */
+	SD_BSDF_HAS_EVAL   = (1 << 3),
+	/* Shader has BSSRDF closure. */
+	SD_BSSRDF          = (1 << 4),
+	/* Shader has holdout closure. */
+	SD_HOLDOUT         = (1 << 5),
+	/* Shader has volume absorption closure. */
+	SD_ABSORPTION      = (1 << 6),
+	/* Shader has have volume phase (scatter) closure. */
+	SD_SCATTER         = (1 << 7),
+	/* Shader has AO closure. */
+	SD_AO              = (1 << 8),
+	/* Shader has transparent closure. */
+	SD_TRANSPARENT     = (1 << 9),
+	/* BSDF requires LCG for evaluation. */
 	SD_BSDF_NEEDS_LCG  = (1 << 10),
 
-	SD_CLOSURE_FLAGS = (SD_EMISSION|SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSSRDF|
-	                    SD_HOLDOUT|SD_ABSORPTION|SD_SCATTER|SD_AO|
+	SD_CLOSURE_FLAGS = (SD_EMISSION |
+	                    SD_BSDF |
+	                    SD_BSDF_HAS_EVAL |
+	                    SD_BSSRDF |
+	                    SD_HOLDOUT |
+	                    SD_ABSORPTION |
+	                    SD_SCATTER |
+	                    SD_AO |
 	                    SD_BSDF_NEEDS_LCG),
 
-	/* shader flags */
-	SD_USE_MIS                = (1 << 12),  /* direct light sample */
-	SD_HAS_TRANSPARENT_SHADOW = (1 << 13),  /* has transparent shadow */
-	SD_HAS_VOLUME             = (1 << 14),  /* has volume shader */
-	SD_HAS_ONLY_VOLUME        = (1 << 15),  /* has only volume shader, no surface */
-	SD_HETEROGENEOUS_VOLUME   = (1 << 16),  /* has heterogeneous volume */
-	SD_HAS_BSSRDF_BUMP        = (1 << 17),  /* bssrdf normal uses bump */
-	SD_VOLUME_EQUIANGULAR     = (1 << 18),  /* use equiangular sampling */
-	SD_VOLUME_MIS             = (1 << 19),  /* use multiple importance sampling */
-	SD_VOLUME_CUBIC           = (1 << 20),  /* use cubic interpolation for voxels */
-	SD_HAS_BUMP               = (1 << 21),  /* has data connected to the displacement input */
-	SD_HAS_DISPLACEMENT       = (1 << 22),  /* has true displacement */
-	SD_HAS_CONSTANT_EMISSION  = (1 << 23),  /* has constant emission (value stored in __shader_flag) */
+	/* Shader flags. */
 
-	SD_SHADER_FLAGS = (SD_USE_MIS|SD_HAS_TRANSPARENT_SHADOW|SD_HAS_VOLUME|
-	                   SD_HAS_ONLY_VOLUME|SD_HETEROGENEOUS_VOLUME|
-	                   SD_HAS_BSSRDF_BUMP|SD_VOLUME_EQUIANGULAR|SD_VOLUME_MIS|
-	                   SD_VOLUME_CUBIC|SD_HAS_BUMP|SD_HAS_DISPLACEMENT|SD_HAS_CONSTANT_EMISSION),
+	/* direct light sample */
+	SD_USE_MIS                = (1 << 16),
+	/* Has transparent shadow. */
+	SD_HAS_TRANSPARENT_SHADOW = (1 << 17),
+	/* Has volume shader. */
+	SD_HAS_VOLUME             = (1 << 18),
+	/* Has only volume shader, no surface. */
+	SD_HAS_ONLY_VOLUME        = (1 << 19),
+	/* Has heterogeneous volume. */
+	SD_HETEROGENEOUS_VOLUME   = (1 << 20),
+	/* BSSRDF normal uses bump. */
+	SD_HAS_BSSRDF_BUMP        = (1 << 21),
+	/* Use equiangular volume sampling */
+	SD_VOLUME_EQUIANGULAR     = (1 << 22),
+	/* Use multiple importance volume sampling. */
+	SD_VOLUME_MIS             = (1 << 23),
+	/* Use cubic interpolation for voxels. */
+	SD_VOLUME_CUBIC           = (1 << 24),
+	/* Has data connected to the displacement input. */
+	SD_HAS_BUMP               = (1 << 25),
+	/* Has true displacement. */
+	SD_HAS_DISPLACEMENT       = (1 << 26),
+	/* Has constant emission (value stored in __shader_flag) */
+	SD_HAS_CONSTANT_EMISSION  = (1 << 27),
 
-	/* object flags */
-	SD_HOLDOUT_MASK             = (1 << 24),  /* holdout for camera rays */
-	SD_OBJECT_MOTION            = (1 << 25),  /* has object motion blur */
-	SD_TRANSFORM_APPLIED        = (1 << 26),  /* vertices have transform applied */
-	SD_NEGATIVE_SCALE_APPLIED   = (1 << 27),  /* vertices have negative scale applied */
-	SD_OBJECT_HAS_VOLUME        = (1 << 28),  /* object has a volume shader */
-	SD_OBJECT_INTERSECTS_VOLUME = (1 << 29),  /* object intersects AABB of an object with volume shader */
-	SD_OBJECT_HAS_VERTEX_MOTION = (1 << 30),  /* has position for motion vertices */
+	SD_SHADER_FLAGS = (SD_USE_MIS |
+	                   SD_HAS_TRANSPARENT_SHADOW |
+	                   SD_HAS_VOLUME |
+	                   SD_HAS_ONLY_VOLUME |
+	                   SD_HETEROGENEOUS_VOLUME|
+	                   SD_HAS_BSSRDF_BUMP |
+	                   SD_VOLUME_EQUIANGULAR |
+	                   SD_VOLUME_MIS |
+	                   SD_VOLUME_CUBIC |
+	                   SD_HAS_BUMP |
+	                   SD_HAS_DISPLACEMENT |
+	                   SD_HAS_CONSTANT_EMISSION)
+};
 
-	SD_OBJECT_FLAGS = (SD_HOLDOUT_MASK|SD_OBJECT_MOTION|SD_TRANSFORM_APPLIED|
-	                   SD_NEGATIVE_SCALE_APPLIED|SD_OBJECT_HAS_VOLUME|
+	/* Object flags. */
+enum ShaderDataObjectFlag {
+	/* Holdout for camera rays. */
+	SD_OBJECT_HOLDOUT_MASK           = (1 << 0),
+	/* Has object motion blur. */
+	SD_OBJECT_MOTION                 = (1 << 1),
+	/* Vertices have transform applied. */
+	SD_OBJECT_TRANSFORM_APPLIED      = (1 << 2),
+	/* Vertices have negative scale applied. */
+	SD_OBJECT_NEGATIVE_SCALE_APPLIED = (1 << 3),
+	/* Object has a volume shader. */
+	SD_OBJECT_HAS_VOLUME             = (1 << 4),
+	/* Object intersects AABB of an object with volume shader. */
+	SD_OBJECT_INTERSECTS_VOLUME      = (1 << 5),
+	/* Has position for motion vertices. */
+	SD_OBJECT_HAS_VERTEX_MOTION      = (1 << 6),
+
+	SD_OBJECT_FLAGS = (SD_OBJECT_HOLDOUT_MASK |
+	                   SD_OBJECT_MOTION |
+	                   SD_OBJECT_TRANSFORM_APPLIED |
+	                   SD_OBJECT_NEGATIVE_SCALE_APPLIED |
+	                   SD_OBJECT_HAS_VOLUME |
 	                   SD_OBJECT_INTERSECTS_VOLUME)
 };
 
@@ -780,6 +832,8 @@ typedef ccl_addr_space struct ShaderData {
 	ccl_soa_member(int, shader);
 	/* booleans describing shader, see ShaderDataFlag */
 	ccl_soa_member(int, flag);
+	/* booleans describing object of the shader, see ShaderDataObjectFlag */
+	ccl_soa_member(int, object_flag);
 
 	/* primitive id if there is one, ~0 otherwise */
 	ccl_soa_member(int, prim);

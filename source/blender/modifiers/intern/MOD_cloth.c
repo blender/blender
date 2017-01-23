@@ -125,9 +125,15 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	
 	if (clmd) {
 		/* Actual code uses get_collisionobjects */
+#ifdef WITH_LEGACY_DEPSGRAPH
 		dag_add_collision_relations(forest, scene, ob, obNode, clmd->coll_parms->group, ob->lay|scene->lay, eModifierType_Collision, NULL, true, "Cloth Collision");
-
 		dag_add_forcefield_relations(forest, scene, ob, obNode, clmd->sim_parms->effector_weights, true, 0, "Cloth Field");
+#else
+	(void)forest;
+	(void)scene;
+	(void)ob;
+	(void)obNode;
+#endif
 	}
 }
 

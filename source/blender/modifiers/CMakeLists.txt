@@ -113,6 +113,10 @@ set(SRC
 	intern/MOD_weightvg_util.h
 )
 
+if(WITH_LEGACY_DEPSGRAPH)
+	add_definitions(-DWITH_LEGACY_DEPSGRAPH)
+endif()
+
 if(WITH_ALEMBIC)
 	add_definitions(-DWITH_ALEMBIC)
 	list(APPEND INC

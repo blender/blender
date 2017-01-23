@@ -137,22 +137,22 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 
 		/* holdout */
 #ifdef __HOLDOUT__
-		if((ccl_fetch(sd, flag) & (SD_HOLDOUT|SD_HOLDOUT_MASK)) &&
+		if(((ccl_fetch(sd, flag) & SD_HOLDOUT) ||
+		    (ccl_fetch(sd, object_flag) & SD_OBJECT_HOLDOUT_MASK)) &&
 		   (state->flag & PATH_RAY_CAMERA))
 		{
 			if(kernel_data.background.transparent) {
 				float3 holdout_weight;
-
-				if(ccl_fetch(sd, flag) & SD_HOLDOUT_MASK)
+				if(ccl_fetch(sd, object_flag) & SD_OBJECT_HOLDOUT_MASK) {
 					holdout_weight = make_float3(1.0f, 1.0f, 1.0f);
-				else
+				}
+				else {
 					holdout_weight = shader_holdout_eval(kg, sd);
-
+				}
 				/* any throughput is ok, should all be identical here */
 				L_transparent_coop[ray_index] += average(holdout_weight*throughput);
 			}
-
-			if(ccl_fetch(sd, flag) & SD_HOLDOUT_MASK) {
+			if(ccl_fetch(sd, object_flag) & SD_OBJECT_HOLDOUT_MASK) {
 				ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
 				*enqueue_flag = 1;
 			}

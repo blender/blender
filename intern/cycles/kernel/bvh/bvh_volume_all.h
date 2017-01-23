@@ -287,7 +287,6 @@ uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 					/* instance push */
 					object = kernel_tex_fetch(__prim_object, -prim_addr-1);
 					int object_flag = kernel_tex_fetch(__object_flag, object);
-
 					if(object_flag & SD_OBJECT_HAS_VOLUME) {
 
 #  if BVH_FEATURE(BVH_MOTION)

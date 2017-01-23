@@ -157,8 +157,9 @@ ccl_device_inline float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *
 	if(is_curve_primitive) {
 		center = curve_motion_center_location(kg, sd);
 
-		if(!(ccl_fetch(sd, flag) & SD_TRANSFORM_APPLIED))
+		if(!(ccl_fetch(sd, object_flag) & SD_OBJECT_TRANSFORM_APPLIED)) {
 			object_position_transform(kg, sd, &center);
+		}
 	}
 	else
 #endif
@@ -181,7 +182,7 @@ ccl_device_inline float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *
 		motion_post = primitive_attribute_float3(kg, sd, desc, NULL, NULL);
 
 #ifdef __HAIR__
-		if(is_curve_primitive && (ccl_fetch(sd, flag) & SD_OBJECT_HAS_VERTEX_MOTION) == 0) {
+		if(is_curve_primitive && (ccl_fetch(sd, object_flag) & SD_OBJECT_HAS_VERTEX_MOTION) == 0) {
 			object_position_transform(kg, sd, &motion_pre);
 			object_position_transform(kg, sd, &motion_post);
 		}

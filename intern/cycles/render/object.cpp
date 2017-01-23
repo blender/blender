@@ -410,7 +410,7 @@ void ObjectManager::device_update_object_transform(UpdateObejctTransformState *s
 
 	/* Object flag. */
 	if(ob->use_holdout) {
-		flag |= SD_HOLDOUT_MASK;
+		flag |= SD_OBJECT_HOLDOUT_MASK;
 	}
 	state->object_flag[object_index] = flag;
 
@@ -716,9 +716,9 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, u
 					if(progress.get_cancel()) return;
 				}
 
-				object_flag[i] |= SD_TRANSFORM_APPLIED;
+				object_flag[i] |= SD_OBJECT_TRANSFORM_APPLIED;
 				if(object->mesh->transform_negative_scaled)
-					object_flag[i] |= SD_NEGATIVE_SCALE_APPLIED;
+					object_flag[i] |= SD_OBJECT_NEGATIVE_SCALE_APPLIED;
 			}
 			else
 				have_instancing = true;

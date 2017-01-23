@@ -167,8 +167,9 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 			                                                  true);
 #ifdef __VOLUME__
 			Ray volume_ray = *ray;
-			bool need_update_volume_stack = kernel_data.integrator.use_volumes &&
-			                                ccl_fetch(sd, flag) & SD_OBJECT_INTERSECTS_VOLUME;
+			bool need_update_volume_stack =
+			        kernel_data.integrator.use_volumes &&
+			        ccl_fetch(sd, object_flag) & SD_OBJECT_INTERSECTS_VOLUME;
 #endif  /* __VOLUME__ */
 
 			/* compute lighting with the BSDF closure */
@@ -473,21 +474,21 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 
 		/* holdout */
 #ifdef __HOLDOUT__
-		if(sd.flag & (SD_HOLDOUT|SD_HOLDOUT_MASK)) {
+		if((sd.flag & SD_HOLDOUT) || (sd.object_flag & SD_OBJECT_HOLDOUT_MASK)) {
 			if(kernel_data.background.transparent) {
 				float3 holdout_weight;
-				
-				if(sd.flag & SD_HOLDOUT_MASK)
+				if(sd.object_flag & SD_OBJECT_HOLDOUT_MASK) {
 					holdout_weight = make_float3(1.0f, 1.0f, 1.0f);
-				else
+				}
+				else {
 					holdout_weight = shader_holdout_eval(kg, &sd);
-
+				}
 				/* any throughput is ok, should all be identical here */
 				L_transparent += average(holdout_weight*throughput);
 			}
-
-			if(sd.flag & SD_HOLDOUT_MASK)
+			if(sd.object_flag & SD_OBJECT_HOLDOUT_MASK) {
 				break;
+			}
 		}
 #endif  /* __HOLDOUT__ */
 
