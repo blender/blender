@@ -218,7 +218,7 @@ class FlagValue {
   bool Equal(const FlagValue& x) const;
   FlagValue* New() const;   // creates a new one with default value
   void CopyFrom(const FlagValue& x);
-  int ValueSize() const;
+  inline int ValueSize() const;
 
   // Calls the given validate-fn on value_buffer_, and returns
   // whatever it returns.  But first casts validate_fn_proto to a
@@ -443,7 +443,7 @@ void FlagValue::CopyFrom(const FlagValue& x) {
   }
 }
 
-int FlagValue::ValueSize() const {
+inline int FlagValue::ValueSize() const {
   if (type_ > FV_MAX_INDEX) {
     assert(false);  // unknown type
     return 0;

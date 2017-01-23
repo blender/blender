@@ -18,6 +18,8 @@ Local modifications:
 - Applied some modifications from fork https://github.com/Nazg-Gul/gflags.git
   (see https://github.com/gflags/gflags/pull/129)
 
-- Avoid attemot of acquiring mutex lock in FlagRegistry::GlobalRegistry when
+- Avoid attempt of acquiring mutex lock in FlagRegistry::GlobalRegistry when
   doing static flags initialization. See d81dd2d in Blender repository.
 
+- Made `google::{anonymous}::FlagValue::ValueSize() const` inlined, so it does
+  not trigger strict compiler warning.
