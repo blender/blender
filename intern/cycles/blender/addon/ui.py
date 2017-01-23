@@ -217,7 +217,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         draw_samples_info(layout, context)
 
 
-class CyclesRender_PT_geometery(CyclesButtonsPanel, Panel):
+class CyclesRender_PT_geometry(CyclesButtonsPanel, Panel):
     bl_label = "Geometry"
     bl_options = {'DEFAULT_CLOSED'}
 
