@@ -67,10 +67,17 @@ static void updateDepgraph(ModifierData *UNUSED(md), DagForest *forest,
                            Scene *scene, Object *ob, DagNode *obNode)
 {
 	if (ob->soft) {
+#ifdef WITH_LEGACY_DEPSGRAPH
 		/* Actual code uses ccd_build_deflector_hash */
 		dag_add_collision_relations(forest, scene, ob, obNode, ob->soft->collision_group, ob->lay, eModifierType_Collision, NULL, false, "Softbody Collision");
 
 		dag_add_forcefield_relations(forest, scene, ob, obNode, ob->soft->effector_weights, true, 0, "Softbody Field");
+#else
+	(void)forest;
+	(void)scene;
+	(void)ob;
+	(void)obNode;
+#endif
 	}
 }
 

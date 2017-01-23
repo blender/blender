@@ -138,10 +138,16 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 
 	if (smd && (smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
 		/* Actual code uses get_collisionobjects */
+#ifdef WITH_LEGACY_DEPSGRAPH
 		dag_add_collision_relations(forest, scene, ob, obNode, smd->domain->fluid_group, ob->lay|scene->lay, eModifierType_Smoke, is_flow_cb, true, "Smoke Flow");
 		dag_add_collision_relations(forest, scene, ob, obNode, smd->domain->coll_group, ob->lay|scene->lay, eModifierType_Smoke, is_coll_cb, true, "Smoke Coll");
-
 		dag_add_forcefield_relations(forest, scene, ob, obNode, smd->domain->effector_weights, true, PFIELD_SMOKEFLOW, "Smoke Force Field");
+#else
+	(void)forest;
+	(void)scene;
+	(void)ob;
+	(void)obNode;
+#endif
 	}
 }
 
