@@ -36,13 +36,7 @@
 #  include <boost/foreach.hpp>
 #  define foreach BOOST_FOREACH
 #else
-#pragma message("No available foreach() implementation. Using stub instead, disabling new depsgraph")
-
-#error "Unable to build new depsgraph and legacy one is disabled."
-
-#define DISABLE_NEW_DEPSGRAPH
-
-#  define foreach(x, y) for (x; false; (void)y)
+#  error "Depsgraph requires either Boost or C++11 for range-based loops."
 #endif
 
 #define GHASH_FOREACH_BEGIN(type, var, what) \
