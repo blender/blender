@@ -937,21 +937,13 @@ static void view3d_main_region_listener(bScreen *sc, ScrArea *sa, ARegion *ar, w
 			switch (wmn->data) {
 				case ND_SHADING:
 				case ND_NODES:
-				{
-#ifdef WITH_LEGACY_DEPSGRAPH
-					Object *ob = OBACT;
-					if ((v3d->drawtype == OB_MATERIAL) ||
-					    (ob && (ob->mode == OB_MODE_TEXTURE_PAINT)) ||
-					    (v3d->drawtype == OB_TEXTURE &&
-					     (scene->gm.matmode == GAME_MAT_GLSL ||
-					      BKE_scene_use_new_shading_nodes(scene))) ||
-					    !DEG_depsgraph_use_legacy())
-#endif
-					{
-						ED_region_tag_redraw(ar);
-					}
+					/* TODO(sergey) This is a bit too much updates, but needed to
+					 * have proper material drivers update in the viewport.
+					 *
+					 * How to solve?
+					 */
+					ED_region_tag_redraw(ar);
 					break;
-				}
 				case ND_SHADING_DRAW:
 				case ND_SHADING_LINKS:
 					ED_region_tag_redraw(ar);
