@@ -784,11 +784,16 @@ static void rna_GPencilPalette_info_set(PointerRNA *ptr, const char *value)
 	bGPdata *gpd = ptr->id.data;
 	bGPDpalette *palette = ptr->data;
 
+	char oldname[64] = "";
+	BLI_strncpy(oldname, palette->info, sizeof(oldname));
+
 	/* copy the new name into the name slot */
 	BLI_strncpy_utf8(palette->info, value, sizeof(palette->info));
 
 	BLI_uniquename(&gpd->palettes, palette, DATA_("GP_Palette"), '.', offsetof(bGPDpalette, info),
 	               sizeof(palette->info));
+	/* now fix animation paths */
+	BKE_animdata_fix_paths_rename_all(&gpd->id, "palettes", oldname, palette->info);
 }
 
 static char *rna_GPencilPalette_path(PointerRNA *ptr)
