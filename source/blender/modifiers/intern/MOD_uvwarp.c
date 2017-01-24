@@ -238,18 +238,6 @@ static void uv_warp_deps_object_bone(DagForest *forest, DagNode *obNode,
 	}
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest,
-                           struct Main *UNUSED(bmain),
-                           struct Scene *UNUSED(scene),
-                           Object *UNUSED(ob),
-                           DagNode *obNode)
-{
-	UVWarpModifierData *umd = (UVWarpModifierData *) md;
-
-	uv_warp_deps_object_bone(forest, obNode, umd->object_src, umd->bone_src);
-	uv_warp_deps_object_bone(forest, obNode, umd->object_dst, umd->bone_dst);
-}
-
 static void uv_warp_deps_object_bone_new(struct DepsNodeHandle *node,
                                          Object *object,
                                          const char *bonename)
@@ -293,7 +281,6 @@ ModifierTypeInfo modifierType_UVWarp = {
 	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          NULL,
 	/* isDisabled */        NULL,
-	/* updateDepgraph */    updateDepgraph,
 	/* updateDepsgraph */   updateDepsgraph,
 	/* dependsOnTime */     NULL,
 	/* dependsOnNormals */  NULL,

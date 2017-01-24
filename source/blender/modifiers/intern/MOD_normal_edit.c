@@ -511,20 +511,6 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 	return !is_valid_target(enmd);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest,
-                           struct Main *UNUSED(bmain),
-                           struct Scene *UNUSED(scene),
-                           Object *UNUSED(ob), DagNode *obNode)
-{
-	NormalEditModifierData *enmd = (NormalEditModifierData *) md;
-
-	if (enmd->target) {
-		DagNode *Node = dag_get_node(forest, enmd->target);
-
-		dag_add_relation(forest, Node, obNode, DAG_RL_OB_DATA, "NormalEdit Modifier");
-	}
-}
-
 static void updateDepsgraph(ModifierData *md,
                             struct Main *UNUSED(bmain),
                             struct Scene *UNUSED(scene),
@@ -562,7 +548,6 @@ ModifierTypeInfo modifierType_NormalEdit = {
 	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          NULL,
 	/* isDisabled */        isDisabled,
-	/* updateDepgraph */    updateDepgraph,
 	/* updateDepsgraph */   updateDepsgraph,
 	/* dependsOnTime */     NULL,
 	/* dependsOnNormals */  dependsOnNormals,

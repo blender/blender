@@ -260,15 +260,6 @@ typedef struct ModifierTypeInfo {
 	 */
 	bool (*isDisabled)(struct ModifierData *md, int userRenderParams);
 
-	/* Add the appropriate relations to the DEP graph depending on the
-	 * modifier data. 
-	 *
-	 * This function is optional.
-	 */
-	void (*updateDepgraph)(struct ModifierData *md, struct DagForest *forest,
-	                       struct Main *bmain, struct Scene *scene,
-	                       struct Object *ob, struct DagNode *obNode);
-
 	/* Add the appropriate relations to the dependency graph.
 	 *
 	 * This function is optional.

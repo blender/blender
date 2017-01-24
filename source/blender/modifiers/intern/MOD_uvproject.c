@@ -105,25 +105,6 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest,
-                           struct Main *UNUSED(bmain),
-                           struct Scene *UNUSED(scene),
-                           Object *UNUSED(ob),
-                           DagNode *obNode)
-{
-	UVProjectModifierData *umd = (UVProjectModifierData *) md;
-	int i;
-
-	for (i = 0; i < umd->num_projectors; ++i) {
-		if (umd->projectors[i]) {
-			DagNode *curNode = dag_get_node(forest, umd->projectors[i]);
-
-			dag_add_relation(forest, curNode, obNode,
-			                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "UV Project Modifier");
-		}
-	}
-}
-
 static void updateDepsgraph(ModifierData *md,
                             struct Main *UNUSED(bmain),
                             struct Scene *UNUSED(scene),
@@ -385,7 +366,6 @@ ModifierTypeInfo modifierType_UVProject = {
 	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          NULL,
 	/* isDisabled */        NULL,
-	/* updateDepgraph */    updateDepgraph,
 	/* updateDepsgraph */   updateDepsgraph,
 	/* dependsOnTime */     NULL,
 	/* dependsOnNormals */	NULL,

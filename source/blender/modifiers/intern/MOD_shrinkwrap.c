@@ -143,23 +143,6 @@ static void deformVertsEM(ModifierData *md, Object *ob, struct BMEditMesh *editD
 		dm->release(dm);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest,
-                           struct Main *UNUSED(bmain),
-                           struct Scene *UNUSED(scene),
-                           Object *UNUSED(ob),
-                           DagNode *obNode)
-{
-	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *) md;
-
-	if (smd->target)
-		dag_add_relation(forest, dag_get_node(forest, smd->target), obNode,
-		                 DAG_RL_OB_DATA | DAG_RL_DATA_DATA, "Shrinkwrap Modifier");
-
-	if (smd->auxTarget)
-		dag_add_relation(forest, dag_get_node(forest, smd->auxTarget), obNode,
-		                 DAG_RL_OB_DATA | DAG_RL_DATA_DATA, "Shrinkwrap Modifier");
-}
-
 static void updateDepsgraph(ModifierData *md,
                             struct Main *UNUSED(bmain),
                             struct Scene *UNUSED(scene),
@@ -209,7 +192,6 @@ ModifierTypeInfo modifierType_Shrinkwrap = {
 	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          NULL,
 	/* isDisabled */        isDisabled,
-	/* updateDepgraph */    updateDepgraph,
 	/* updateDepsgraph */   updateDepsgraph,
 	/* dependsOnTime */     NULL,
 	/* dependsOnNormals */  dependsOnNormals,

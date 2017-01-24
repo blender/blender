@@ -119,34 +119,6 @@ static bool is_brush_cb(Object *UNUSED(ob), ModifierData *pmd)
 	return ((DynamicPaintModifierData*)pmd)->brush != NULL;
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest,
-                           struct Main *UNUSED(bmain),
-                           struct Scene *scene,
-                           Object *ob,
-                           DagNode *obNode)
-{
-	DynamicPaintModifierData *pmd = (DynamicPaintModifierData *) md;
-
-	/* add relation from canvases to all brush objects */
-	if (pmd && pmd->canvas) {
-#ifdef WITH_LEGACY_DEPSGRAPH
-		for (DynamicPaintSurface *surface = pmd->canvas->surfaces.first; surface; surface = surface->next) {
-			if (surface->effect & MOD_DPAINT_EFFECT_DO_DRIP) {
-				dag_add_forcefield_relations(forest, scene, ob, obNode, surface->effector_weights, true, 0, "Dynamic Paint Field");
-			}
-
-			/* Actual code uses custom loop over group/scene without layer checks in dynamicPaint_doStep */
-			dag_add_collision_relations(forest, scene, ob, obNode, surface->brush_group, -1, eModifierType_DynamicPaint, is_brush_cb, false, "Dynamic Paint Brush");
-		}
-#else
-	(void)forest;
-	(void)scene;
-	(void)ob;
-	(void)obNode;
-#endif
-	}
-}
-
 static void updateDepsgraph(ModifierData *md,
                             struct Main *UNUSED(bmain),
                             struct Scene *scene,
@@ -221,7 +193,6 @@ ModifierTypeInfo modifierType_DynamicPaint = {
 	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          freeData,
 	/* isDisabled */        NULL,
-	/* updateDepgraph */    updateDepgraph,
 	/* updateDepsgraph */   updateDepsgraph,
 	/* dependsOnTime */     dependsOnTime,
 	/* dependsOnNormals */  NULL,
