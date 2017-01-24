@@ -113,10 +113,6 @@ else()
 	endif()
 endif()
 
-if(WITH_LEGACY_DEPSGRAPH)
-	add_definitions(-DWITH_LEGACY_DEPSGRAPH)
-endif()
-
 if(WITH_BOOST)
 	list(APPEND INC_SYS
 		${BOOST_INCLUDE_DIR}

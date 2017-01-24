@@ -52,42 +52,8 @@ extern "C" {
 
 #include "intern/depsgraph.h"
 
-#ifdef WITH_LEGACY_DEPSGRAPH
-static bool use_legacy_depsgraph = true;
-#endif
-
 /* Unfinished and unused, and takes quite some pre-processing time. */
 #undef USE_EVAL_PRIORITY
-
-bool DEG_depsgraph_use_legacy(void)
-{
-#ifdef DISABLE_NEW_DEPSGRAPH
-	return true;
-#elif defined(WITH_LEGACY_DEPSGRAPH)
-	return use_legacy_depsgraph;
-#else
-	BLI_assert(!"Should not be used with new depsgraph");
-	return false;
-#endif
-}
-
-void DEG_depsgraph_switch_to_legacy(void)
-{
-#ifdef WITH_LEGACY_DEPSGRAPH
-	use_legacy_depsgraph = true;
-#else
-	BLI_assert(!"Should not be used with new depsgraph");
-#endif
-}
-
-void DEG_depsgraph_switch_to_new(void)
-{
-#ifdef WITH_LEGACY_DEPSGRAPH
-	use_legacy_depsgraph = false;
-#else
-	BLI_assert(!"Should not be used with new depsgraph");
-#endif
-}
 
 /* ****************** */
 /* Evaluation Context */

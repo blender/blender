@@ -38,9 +38,7 @@
 #else
 #pragma message("No available foreach() implementation. Using stub instead, disabling new depsgraph")
 
-#ifndef WITH_LEGACY_DEPSGRAPH
-#  error "Unable to build new depsgraph and legacy one is disabled."
-#endif
+#error "Unable to build new depsgraph and legacy one is disabled."
 
 #define DISABLE_NEW_DEPSGRAPH
 
