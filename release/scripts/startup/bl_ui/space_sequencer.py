@@ -435,14 +435,8 @@ class SEQUENCER_MT_strip(Menu):
                 layout.operator("sequencer.crossfade_sounds")
 
         layout.separator()
-
         layout.operator("sequencer.meta_make")
         layout.operator("sequencer.meta_separate")
-
-        #if (ed && (ed->metastack.first || (ed->act_seq && ed->act_seq->type == SEQ_META))) {
-        #	uiItemS(layout);
-        #	uiItemO(layout, NULL, 0, "sequencer.meta_toggle");
-        #}
 
         layout.separator()
         layout.operator("sequencer.reload", text="Reload Strips")
