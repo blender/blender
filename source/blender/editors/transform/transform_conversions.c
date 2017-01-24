@@ -828,7 +828,6 @@ static void pose_grab_with_ik_clear(Object *ob)
 	bKinematicConstraint *data;
 	bPoseChannel *pchan;
 	bConstraint *con, *next;
-	bool need_dependency_update = false;
 
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		/* clear all temporary lock flags */
@@ -843,7 +842,6 @@ static void pose_grab_with_ik_clear(Object *ob)
 				data = con->data;
 				if (data->flag & CONSTRAINT_IK_TEMP) {
 					/* iTaSC needs clear for removed constraints */
-					need_dependency_update = true;
 					BIK_clear_data(ob->pose);
 
 					BLI_remlink(&pchan->constraints, con);
@@ -858,13 +856,8 @@ static void pose_grab_with_ik_clear(Object *ob)
 		}
 	}
 
-#ifdef WITH_LEGACY_DEPSGRAPH
-	if (!DEG_depsgraph_use_legacy() && need_dependency_update)
-#endif
-	{
-		/* TODO(sergey): Consider doing partial update only. */
-		DAG_relations_tag_update(G.main);
-	}
+	/* TODO(sergey): Consider doing partial update only. */
+	DAG_relations_tag_update(G.main);
 }
 
 /* adds the IK to pchan - returns if added */
@@ -1017,13 +1010,8 @@ static short pose_grab_with_ik(Object *ob)
 	/* iTaSC needs clear for new IK constraints */
 	if (tot_ik) {
 		BIK_clear_data(ob->pose);
-#ifdef WITH_LEGACY_DEPSGRAPH
-		if (!DEG_depsgraph_use_legacy())
-#endif
-		{
-			/* TODO(sergey): Consuder doing partial update only. */
-			DAG_relations_tag_update(G.main);
-		}
+		/* TODO(sergey): Consuder doing partial update only. */
+		DAG_relations_tag_update(G.main);
 	}
 
 	return (tot_ik) ? 1 : 0;
@@ -5421,11 +5409,6 @@ static void set_trans_object_base_flags(TransInfo *t)
 		}
 	}
 
-	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
-#ifdef WITH_LEGACY_DEPSGRAPH
-	DAG_scene_flush_update(G.main, t->scene, -1, 0);
-#endif
-
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
 	for (base = scene->base.first; base; base = base->next) {
@@ -5503,9 +5486,6 @@ static int count_proportional_objects(TransInfo *t)
 
 	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
 	DAG_scene_relations_update(G.main, t->scene);
-#ifdef WITH_LEGACY_DEPSGRAPH
-	DAG_scene_flush_update(G.main, t->scene, -1, 0);
-#endif
 
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
