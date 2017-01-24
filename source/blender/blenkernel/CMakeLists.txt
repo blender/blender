@@ -535,8 +535,4 @@ endif()
 #	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
 #endif()
 
-if(WITH_LEGACY_DEPSGRAPH)
-	add_definitions(-DWITH_LEGACY_DEPSGRAPH)
-endif()
-
 blender_add_lib(bf_blenkernel "${SRC}" "${INC}" "${INC_SYS}")
