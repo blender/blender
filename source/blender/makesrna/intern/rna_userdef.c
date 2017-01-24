@@ -3937,7 +3937,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "dpi", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "dpi");
-	RNA_def_property_range(prop, 48, 144);
+	RNA_def_property_range(prop, 16, 256);
 	RNA_def_property_ui_text(prop, "DPI", "Font size and resolution for display");
 	RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
 

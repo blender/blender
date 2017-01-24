@@ -23,7 +23,7 @@ bl_info = {
     "location": "Info header, render engine menu",
     "description": "Cycles Render Engine integration",
     "warning": "",
-    "wiki_url": "https://www.blender.org/manual/render/cycles/index.html",
+    "wiki_url": "https://docs.blender.org/manual/en/dev/render/cycles/",
     "tracker_url": "",
     "support": 'OFFICIAL',
     "category": "Render"}

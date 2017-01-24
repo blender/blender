@@ -69,7 +69,7 @@ def add_object_button(self, context):
 
 # This allows you to right click on a button and link to the manual
 def add_object_manual_map():
-    url_manual_prefix = "https://www.blender.org/manual/"
+    url_manual_prefix = "https://docs.blender.org/manual/en/dev/"
     url_manual_mapping = (
         ("bpy.ops.mesh.add_object", "editors/3dview/object"),
         )

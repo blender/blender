@@ -436,7 +436,7 @@ static void arg_py_context_restore(
  *   see: `doc/manpage/blender.1.py`
  * - Parsed and extracted for the manual,
  *   which converts our ad-hoc formatting to reStructuredText.
- *   see: http://www.blender.org/manual/advanced/command_line.html
+ *   see: https://docs.blender.org/manual/en/dev/advanced/command_line.html
  *
  * \{ */
 
