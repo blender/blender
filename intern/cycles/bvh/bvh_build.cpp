@@ -26,6 +26,7 @@
 #include "scene.h"
 #include "curves.h"
 
+#include "util_algorithm.h"
 #include "util_debug.h"
 #include "util_foreach.h"
 #include "util_logging.h"
