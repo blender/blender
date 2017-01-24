@@ -960,12 +960,10 @@ static void view3d_main_region_listener(bScreen *sc, ScrArea *sa, ARegion *ar, w
 		case NC_LAMP:
 			switch (wmn->data) {
 				case ND_LIGHTING:
-					if ((v3d->drawtype == OB_MATERIAL) ||
-					    (v3d->drawtype == OB_TEXTURE && (scene->gm.matmode == GAME_MAT_GLSL)) ||
-					    !DEG_depsgraph_use_legacy())
-					{
-						ED_region_tag_redraw(ar);
-					}
+					/* TODO(sergey): This is a bit too much, but needed to
+					 * handle updates from new depsgraph.
+					 */
+					ED_region_tag_redraw(ar);
 					break;
 				case ND_LIGHTING_DRAW:
 					ED_region_tag_redraw(ar);
