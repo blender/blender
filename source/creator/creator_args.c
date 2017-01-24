@@ -55,8 +55,6 @@
 #include "BKE_sound.h"
 #include "BKE_image.h"
 
-#include "DEG_depsgraph.h"
-
 #ifdef WITH_FFMPEG
 #include "IMB_imbuf.h"
 #endif
@@ -587,7 +585,6 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 
 	printf("\n");
 	printf("Experimental Features:\n");
-	BLI_argsPrintArgDoc(ba, "--enable-new-depsgraph");
 	BLI_argsPrintArgDoc(ba, "--enable-new-basic-shader-glsl");
 
 	/* Other options _must_ be last (anything not handled will show here) */
@@ -1183,16 +1180,6 @@ static int arg_handle_threads_set(int argc, const char **argv, void *UNUSED(data
 		printf("\nError: you must specify a number of threads in [%d..%d] '%s'.\n", min, max, arg_id);
 		return 0;
 	}
-}
-
-static const char arg_handle_depsgraph_use_new_doc[] =
-"\n\tUse new dependency graph"
-;
-static int arg_handle_depsgraph_use_new(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
-{
-	printf("Using new dependency graph.\n");
-	DEG_depsgraph_switch_to_new();
-	return 0;
 }
 
 static const char arg_handle_basic_shader_use_legacy_doc[] =
@@ -1840,7 +1827,6 @@ void main_args_setup(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 1, NULL, "--debug-gpumem",
 	            CB_EX(arg_handle_debug_mode_generic_set, gpumem), (void *)G_DEBUG_GPU_MEM);
 
-	BLI_argsAdd(ba, 1, NULL, "--enable-new-depsgraph", CB(arg_handle_depsgraph_use_new), NULL);
 	BLI_argsAdd(ba, 1, NULL, "--enable-legacy-basic-shader", CB(arg_handle_basic_shader_use_legacy), NULL);
 
 	BLI_argsAdd(ba, 1, NULL, "--verbose", CB(arg_handle_verbosity_set), NULL);
