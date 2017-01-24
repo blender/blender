@@ -306,7 +306,7 @@ class INFO_MT_help(Menu):
 
         layout.operator(
                 "wm.url_open", text="Manual", icon='HELP',
-                ).url = "https://www.blender.org/manual"
+                ).url = "https://docs.blender.org/manual/en/dev/"
         layout.operator(
                 "wm.url_open", text="Release Log", icon='URL',
                 ).url = "http://wiki.blender.org/index.php/Dev:Ref/Release_Notes/%d.%d" % bpy.app.version[:2]
