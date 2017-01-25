@@ -3440,7 +3440,7 @@ bool RE_WriteRenderViewsMovie(
 		ok = mh->append_movie(movie_ctx_arr[0], rd, preview ? scene->r.psfra : scene->r.sfra, scene->r.cfra, (int *) ibuf_arr[2]->rect,
 		                      ibuf_arr[2]->x, ibuf_arr[2]->y, "", reports);
 
-		for (i = 0; i < 2; i++) {
+		for (i = 0; i < 3; i++) {
 			/* imbuf knows which rects are not part of ibuf */
 			IMB_freeImBuf(ibuf_arr[i]);
 		}
