@@ -72,6 +72,8 @@ struct DepsgraphNodeBuilder {
 	DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph);
 	~DepsgraphNodeBuilder();
 
+	void begin_build(Main *bmain);
+
 	RootDepsNode *add_root_node();
 	IDDepsNode *add_id_node(ID *id);
 	TimeSourceDepsNode *add_time_source(ID *id);

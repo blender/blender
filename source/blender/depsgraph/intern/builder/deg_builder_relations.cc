@@ -339,6 +339,22 @@ void DepsgraphRelationBuilder::add_forcefield_relations(const OperationKey &key,
 
 /* **** Functions to build relations between entities  **** */
 
+void DepsgraphRelationBuilder::begin_build(Main *bmain)
+{
+	/* LIB_TAG_DOIT is used to indicate whether node for given ID was already
+	 * created or not.
+	 */
+	BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+	/* XXX nested node trees are notr included in tag-clearing above,
+	 * so we need to do this manually.
+	 */
+	FOREACH_NODETREE(bmain, nodetree, id) {
+		if (id != (ID *)nodetree) {
+			nodetree->id.tag &= ~LIB_TAG_DOIT;
+		}
+	} FOREACH_NODETREE_END
+}
+
 void DepsgraphRelationBuilder::build_group(Main *bmain,
                                            Scene *scene,
                                            Object *object,

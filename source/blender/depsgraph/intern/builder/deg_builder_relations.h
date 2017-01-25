@@ -171,6 +171,8 @@ struct DepsgraphRelationBuilder
 {
 	DepsgraphRelationBuilder(Depsgraph *graph);
 
+	void begin_build(Main *bmain);
+
 	template <typename KeyFrom, typename KeyTo>
 	void add_relation(const KeyFrom& key_from,
 	                  const KeyTo& key_to,
