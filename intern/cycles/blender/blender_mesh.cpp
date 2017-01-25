@@ -927,6 +927,13 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 
 		mesh->subdivision_type = object_subdivision_type(b_ob, preview, experimental);
 
+		/* Disable adaptive subdivision while baking as the baking system
+		 * currently doesnt support the topology and will crash.
+		 */
+		if(scene->bake_manager->get_baking()) {
+			mesh->subdivision_type = Mesh::SUBDIVISION_NONE;
+		}
+
 		BL::Mesh b_mesh = object_to_mesh(b_data,
 		                                 b_ob,
 		                                 b_scene,
