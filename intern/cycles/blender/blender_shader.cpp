@@ -640,7 +640,8 @@ static ShaderNode *add_node(Scene *scene,
 				        image->filename.string(),
 				        image->builtin_data,
 				        get_image_interpolation(b_image_node),
-				        get_image_extension(b_image_node));
+				        get_image_extension(b_image_node),
+				        image->use_alpha);
 			}
 		}
 		image->color_space = (NodeImageColorSpace)b_image_node.color_space();
@@ -686,7 +687,8 @@ static ShaderNode *add_node(Scene *scene,
 				        env->filename.string(),
 				        env->builtin_data,
 				        get_image_interpolation(b_env_node),
-				        EXTENSION_REPEAT);
+				        EXTENSION_REPEAT,
+				        env->use_alpha);
 			}
 		}
 		env->color_space = (NodeImageColorSpace)b_env_node.color_space();
@@ -823,7 +825,8 @@ static ShaderNode *add_node(Scene *scene,
 			        point_density->filename.string(),
 			        point_density->builtin_data,
 			        point_density->interpolation,
-			        EXTENSION_CLIP);
+			        EXTENSION_CLIP,
+			        true);
 		}
 		node = point_density;
 

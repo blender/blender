@@ -61,11 +61,13 @@ public:
 	void remove_image(const string& filename,
 	                  void *builtin_data,
 	                  InterpolationType interpolation,
-	                  ExtensionType extension);
+	                  ExtensionType extension,
+	                  bool use_alpha);
 	void tag_reload_image(const string& filename,
 	                      void *builtin_data,
 	                      InterpolationType interpolation,
-	                      ExtensionType extension);
+	                      ExtensionType extension,
+	                      bool use_alpha);
 	ImageDataType get_image_metadata(const string& filename, void *builtin_data, bool& is_linear);
 
 	void device_update(Device *device,
