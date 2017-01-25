@@ -133,6 +133,7 @@ set(SRC
 	intern/mesh_evaluate.c
 	intern/mesh_mapping.c
 	intern/mesh_remap.c
+	intern/mesh_render.c
 	intern/mesh_validate.c
 	intern/modifier.c
 	intern/modifiers_bmesh.c
@@ -257,6 +258,7 @@ set(SRC
 	BKE_mesh.h
 	BKE_mesh_mapping.h
 	BKE_mesh_remap.h
+	BKE_mesh_render.h
 	BKE_modifier.h
 	BKE_movieclip.h
 	BKE_multires.h

@@ -21,7 +21,7 @@ typedef enum {
 	READY_TO_DRAW
 } BatchPhase;
 
-typedef struct {
+typedef struct Batch{
 	// geometry
 	VertexBuffer* verts;
 	ElementList* elem; // NULL if element list not needed

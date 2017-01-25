@@ -48,6 +48,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_render.h"
 #include "BKE_displist.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
@@ -435,6 +436,8 @@ void BKE_mesh_free(Mesh *me)
 {
 	BKE_animdata_free(&me->id, false);
 
+	BKE_mesh_batch_cache_free(me);
+
 	CustomData_free(&me->vdata, me->totvert);
 	CustomData_free(&me->edata, me->totedge);
 	CustomData_free(&me->fdata, me->totface);
@@ -522,6 +525,7 @@ Mesh *BKE_mesh_copy(Main *bmain, Mesh *me)
 	BKE_mesh_update_customdata_pointers(men, do_tessface);
 
 	men->edit_btmesh = NULL;
+	men->batch_cache = NULL;
 
 	men->mselect = MEM_dupallocN(men->mselect);
 	men->bb = MEM_dupallocN(men->bb);
