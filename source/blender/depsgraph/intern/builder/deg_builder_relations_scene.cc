@@ -70,7 +70,7 @@ namespace DEG {
 void DepsgraphRelationBuilder::build_scene(Main *bmain, Scene *scene)
 {
 	if (scene->set) {
-		// TODO: link set to scene, especially our timesource...
+		build_scene(bmain, scene->set);
 	}
 
 	/* scene objects */
