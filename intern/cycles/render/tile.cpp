@@ -157,7 +157,7 @@ void TileManager::set_samples(int num_samples_)
 			divider >>= 1;
 		}
 
-		state.total_pixel_samples = pixel_samples + get_num_effective_samples() * params.width*params.height;
+		state.total_pixel_samples = pixel_samples + (uint64_t)get_num_effective_samples() * params.width*params.height;
 	}
 }
 
