@@ -47,7 +47,4 @@ set(SRC
 	testing.h
 )
 
-add_definitions(${GFLAGS_DEFINES})
-add_definitions(${GLOG_DEFINES})
-
 blender_add_lib(bf_testing_main "${SRC}" "${INC}" "${INC_SYS}")

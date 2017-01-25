@@ -374,7 +374,7 @@ TEST(string, StrFormatIntGrouped)
 	const int word_num = BLI_string_find_split_words( \
 	        word_str_src, word_str_src_len, ' ', word_info, word_cmp_size_input); \
 	EXPECT_EQ(word_num, word_cmp_size - 1); \
-	EXPECT_EQ_ARRAY_ND(word_cmp, word_info, word_cmp_size, 2); \
+	EXPECT_EQ_ARRAY_ND<const int[2]>(word_cmp, word_info, word_cmp_size, 2); \
 } ((void)0)
 
 #define STRING_FIND_SPLIT_WORDS(word_str_src, ...) \
