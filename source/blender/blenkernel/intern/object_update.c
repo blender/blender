@@ -51,6 +51,7 @@
 #include "BKE_key.h"
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
+#include "BKE_mesh_render.h"
 #include "BKE_editmesh.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -347,4 +348,7 @@ void BKE_object_eval_uber_data(EvaluationContext *eval_ctx,
 void BKE_object_eval_shading(EvaluationContext *UNUSED(eval_ctx), Object *ob)
 {
 	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
+	if (ob->type == OB_MESH) {
+		BKE_mesh_batch_cache_dirty(ob->data);
+	}
 }

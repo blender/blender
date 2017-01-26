@@ -234,7 +234,8 @@ typedef struct MeshBatchCache {
 	Batch *fancy_edges; /* owns its vertex buffer (not shared) */
 	Batch *overlay_edges; /* owns its vertex buffer */
 
-	/* TODO: settings, before DEPSGRAPH update */
+	/* settings to determine if cache is invalid */
+	bool is_dirty;
 	int tot_edges;
 	int tot_faces;
 	int tot_polys;
@@ -261,13 +262,17 @@ static bool mesh_batch_cache_valid(Mesh *me)
 		}
 	}
 
-	/* TODO: temporary check, waiting for depsgraph update */
-	if ((cache->tot_edges != mesh_render_get_num_edges(me)) ||
-	    (cache->tot_faces != mesh_render_get_num_faces(me)) ||
-	    (cache->tot_polys != mesh_render_get_num_polys(me)) ||
-	    (cache->tot_verts != mesh_render_get_num_verts(me)))
-	{
-		return false;
+	if (cache->is_dirty == false) {
+		return true;
+	}
+	else {
+		if ((cache->tot_edges != mesh_render_get_num_edges(me)) ||
+		    (cache->tot_faces != mesh_render_get_num_faces(me)) ||
+		    (cache->tot_polys != mesh_render_get_num_polys(me)) ||
+		    (cache->tot_verts != mesh_render_get_num_verts(me)))
+		{
+			return false;
+		}
 	}
 
 	return true;
@@ -287,6 +292,8 @@ static void mesh_batch_cache_init(Mesh *me)
 		DerivedMesh *dm = me->edit_btmesh->derivedFinal;
 		dm->dirty |= DM_MESH_BATCH_CACHE;
 	}
+
+	cache->is_dirty = false;
 }
 
 static MeshBatchCache *mesh_batch_cache_get(Mesh *me)
@@ -376,6 +383,14 @@ static ElementList *mesh_batch_cache_get_triangles_in_order(Mesh *me)
 	 * know the exactly triangle count (like in BKE_mesh_batch_cache_get_overlay_edges) */
 
 	return cache->triangles_in_order;
+}
+
+void BKE_mesh_batch_cache_dirty(struct Mesh *me)
+{
+	MeshBatchCache *cache = me->batch_cache;
+	if (cache) {
+		cache->is_dirty = true;
+	}
 }
 
 void BKE_mesh_batch_cache_free(Mesh *me)
