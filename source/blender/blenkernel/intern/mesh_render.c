@@ -255,18 +255,14 @@ static bool mesh_batch_cache_valid(Mesh *me)
 		return false;
 	}
 
-	if (cache->is_editmode) {
-		DerivedMesh *dm = me->edit_btmesh->derivedFinal;
-		if ((dm->dirty & DM_MESH_BATCH_CACHE) == 0) {
-			return false;
-		}
-	}
-
 	if (cache->is_dirty == false) {
 		return true;
 	}
 	else {
-		if ((cache->tot_edges != mesh_render_get_num_edges(me)) ||
+		if (cache->is_editmode) {
+			return false;
+		}
+		else if ((cache->tot_edges != mesh_render_get_num_edges(me)) ||
 		    (cache->tot_faces != mesh_render_get_num_faces(me)) ||
 		    (cache->tot_polys != mesh_render_get_num_polys(me)) ||
 		    (cache->tot_verts != mesh_render_get_num_verts(me)))
@@ -283,14 +279,11 @@ static void mesh_batch_cache_init(Mesh *me)
 	MeshBatchCache *cache = me->batch_cache;
 	cache->is_editmode = me->edit_btmesh != NULL;
 
-	cache->tot_edges = mesh_render_get_num_edges(me);
-	cache->tot_faces = mesh_render_get_num_faces(me);
-	cache->tot_polys = mesh_render_get_num_polys(me);
-	cache->tot_verts = mesh_render_get_num_verts(me);
-
-	if (cache->is_editmode) {
-		DerivedMesh *dm = me->edit_btmesh->derivedFinal;
-		dm->dirty |= DM_MESH_BATCH_CACHE;
+	if (cache->is_editmode == false) {
+		cache->tot_edges = mesh_render_get_num_edges(me);
+		cache->tot_faces = mesh_render_get_num_faces(me);
+		cache->tot_polys = mesh_render_get_num_polys(me);
+		cache->tot_verts = mesh_render_get_num_verts(me);
 	}
 
 	cache->is_dirty = false;

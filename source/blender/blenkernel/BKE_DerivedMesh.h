@@ -172,8 +172,6 @@ typedef enum DMDirtyFlag {
 
 	/* check this with modifier dependsOnNormals callback to see if normals need recalculation */
 	DM_DIRTY_NORMALS = 1 << 2,
-
-	DM_MESH_BATCH_CACHE = 1 << 3,
 }  DMDirtyFlag;
 
 typedef struct DerivedMesh DerivedMesh;
