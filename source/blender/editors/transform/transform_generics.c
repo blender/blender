@@ -62,8 +62,7 @@
 
 #include "RNA_access.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
+#include "GPU_immediate.h"
 
 #include "BIK_api.h"
 
@@ -1050,14 +1049,19 @@ void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis
 			UI_GetThemeColor3ubv(TH_GRID, col);
 		}
 		UI_make_axis_color(col, col2, axis);
-		glColor3ubv(col2);
-		
-		setlinestyle(0);
-		glBegin(GL_LINES);
-		glVertex3fv(v1);
-		glVertex3fv(v2);
-		glEnd();
-		
+
+		unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+
+		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+		immUniformColor3ubv(col2);
+
+		immBegin(GL_LINES, 2);
+		immVertex3fv(pos, v1);
+		immVertex3fv(pos, v2);
+		immEnd();
+
+		immUnbindProgram();
+
 		glPopMatrix();
 	}
 }
