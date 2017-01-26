@@ -1654,7 +1654,19 @@ void DepsgraphRelationBuilder::build_material(Material *ma)
 	build_texture_stack(ma->mtex);
 
 	/* material's nodetree */
-	build_nodetree(ma->nodetree);
+	if (ma->nodetree != NULL) {
+		build_nodetree(ma->nodetree);
+		OperationKey ntree_key(&ma->nodetree->id,
+		                       DEPSNODE_TYPE_PARAMETERS,
+		                       DEG_OPCODE_PLACEHOLDER,
+		                       "Parameters Eval");
+		OperationKey material_key(&ma->id,
+		                          DEPSNODE_TYPE_SHADING,
+		                          DEG_OPCODE_PLACEHOLDER,
+		                          "Material Update");
+		add_relation(ntree_key, material_key,
+		             DEPSREL_TYPE_UPDATE, "Material's NTree");
+	}
 }
 
 /* Recursively build graph for texture */
