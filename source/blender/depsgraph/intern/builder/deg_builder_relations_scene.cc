@@ -120,7 +120,7 @@ void DepsgraphRelationBuilder::build_scene(Main *bmain, Scene *scene)
 
 	/* grease pencil */
 	if (scene->gpd) {
-		build_gpencil(&scene->id, scene->gpd);
+		build_gpencil(scene->gpd);
 	}
 
 	/* Masks. */

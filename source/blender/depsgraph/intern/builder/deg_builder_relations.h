@@ -219,12 +219,12 @@ struct DepsgraphRelationBuilder
 	void build_obdata_geom(Main *bmain, Scene *scene, Object *ob);
 	void build_camera(Object *ob);
 	void build_lamp(Object *ob);
-	void build_nodetree(ID *owner, bNodeTree *ntree);
-	void build_material(ID *owner, Material *ma);
-	void build_texture(ID *owner, Tex *tex);
-	void build_texture_stack(ID *owner, MTex **texture_stack);
+	void build_nodetree(bNodeTree *ntree);
+	void build_material(Material *ma);
+	void build_texture(Tex *tex);
+	void build_texture_stack(MTex **texture_stack);
 	void build_compositor(Scene *scene);
-	void build_gpencil(ID *owner, bGPdata *gpd);
+	void build_gpencil(bGPdata *gpd);
 	void build_cachefile(CacheFile *cache_file);
 	void build_mask(Mask *mask);
 	void build_movieclip(MovieClip *clip);
