@@ -149,10 +149,10 @@ struct DepsgraphNodeBuilder {
 	void build_obdata_geom(Scene *scene, Object *ob);
 	void build_camera(Object *ob);
 	void build_lamp(Object *ob);
-	void build_nodetree(DepsNode *owner_node, bNodeTree *ntree);
-	void build_material(DepsNode *owner_node, Material *ma);
-	void build_texture(DepsNode *owner_node, Tex *tex);
-	void build_texture_stack(DepsNode *owner_node, MTex **texture_stack);
+	void build_nodetree(bNodeTree *ntree);
+	void build_material(Material *ma);
+	void build_texture(Tex *tex);
+	void build_texture_stack(MTex **texture_stack);
 	void build_image(Image *image);
 	void build_world(World *world);
 	void build_compositor(Scene *scene);
