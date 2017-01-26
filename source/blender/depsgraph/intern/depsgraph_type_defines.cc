@@ -145,7 +145,7 @@ DepsOperationStringifier::DepsOperationStringifier()
 
 const char *DepsOperationStringifier::operator[](eDepsOperation_Code opcode)
 {
-	BLI_assert((opcode > 0) && (opcode < DEG_NUM_OPCODES));
+	BLI_assert((opcode >= 0) && (opcode < DEG_NUM_OPCODES));
 	if (opcode >= 0 && opcode < DEG_NUM_OPCODES) {
 		return names_[opcode];
 	}
