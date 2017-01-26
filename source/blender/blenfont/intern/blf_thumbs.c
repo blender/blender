@@ -98,6 +98,10 @@ void BLF_thumb_preview(
 
 		blf_font_size(font, (unsigned int)MAX2(font_size_min, font_size_curr), dpi);
 
+		/* font->glyph_cache remains NULL if blf_font_size() failed to set font size */
+		if (!font->glyph_cache)
+			break;
+
 		/* decrease font size each time */
 		font_size_curr -= (font_size_curr / font_shrink);
 		font_shrink += 1;
