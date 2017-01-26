@@ -824,11 +824,18 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 	}
 
 	/* materials */
-	for (int a = 1; a <= ob->totcol; a++) {
-		Material *ma = give_current_material(ob, a);
-		if (ma != NULL) {
-			build_material(ma);
+	if (ob->totcol != 0) {
+		for (int a = 1; a <= ob->totcol; a++) {
+			Material *ma = give_current_material(ob, a);
+			if (ma != NULL) {
+				build_material(ma);
+			}
 		}
+		add_operation_node(&ob->id,
+		                   DEPSNODE_TYPE_SHADING,
+		                   DEPSOP_TYPE_EXEC,
+		                   NULL,
+		                   DEG_OPCODE_PLACEHOLDER, "Material Update");
 	}
 
 	/* geometry collision */

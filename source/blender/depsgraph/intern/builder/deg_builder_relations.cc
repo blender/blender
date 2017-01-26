@@ -1418,11 +1418,18 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 	}
 
 	/* materials */
-	if (ob->totcol) {
+	if (ob->totcol != 0) {
+		ComponentKey object_shading_key(&ob->id, DEPSNODE_TYPE_SHADING);
 		for (int a = 1; a <= ob->totcol; a++) {
 			Material *ma = give_current_material(ob, a);
 			if (ma != NULL) {
 				build_material(ma);
+				ComponentKey material_shading_key(&ma->id,
+				                                  DEPSNODE_TYPE_SHADING);
+				add_relation(material_shading_key,
+				             object_shading_key,
+				             DEPSREL_TYPE_UPDATE,
+				             "Object Shading");
 			}
 		}
 	}
