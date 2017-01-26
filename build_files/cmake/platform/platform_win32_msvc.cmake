@@ -446,10 +446,14 @@ if(WITH_MOD_CLOTH_ELTOPO)
 endif()
 
 if(WITH_OPENSUBDIV OR WITH_CYCLES_OPENSUBDIV)
-	set(OPENSUBDIV_INCLUDE_DIR ${LIBDIR}/opensubdiv/include)
-	set(OPENSUBDIV_LIBPATH ${LIBDIR}/opensubdiv/lib)
-	set(OPENSUBDIV_LIBRARIES ${OPENSUBDIV_LIBPATH}/osdCPU.lib ${OPENSUBDIV_LIBPATH}/osdGPU.lib)
-	find_package(OpenSubdiv)
+    set(OPENSUBDIV_INCLUDE_DIR ${LIBDIR}/opensubdiv/include)
+    set(OPENSUBDIV_LIBPATH ${LIBDIR}/opensubdiv/lib)
+    set(OPENSUBDIV_LIBRARIES    optimized ${OPENSUBDIV_LIBPATH}/osdCPU.lib 
+                                optimized ${OPENSUBDIV_LIBPATH}/osdGPU.lib
+                                debug ${OPENSUBDIV_LIBPATH}/osdCPU_d.lib 
+                                debug ${OPENSUBDIV_LIBPATH}/osdGPU_d.lib
+                                )
+    windows_find_package(OpenSubdiv)
 endif()
 
 if(WITH_SDL)

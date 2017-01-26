@@ -263,7 +263,8 @@ ImageTextureNode::~ImageTextureNode()
 		image_manager->remove_image(filename.string(),
 		                            builtin_data,
 		                            interpolation,
-		                            extension);
+		                            extension,
+		                            use_alpha);
 	}
 }
 
@@ -462,7 +463,8 @@ EnvironmentTextureNode::~EnvironmentTextureNode()
 		image_manager->remove_image(filename.string(),
 		                            builtin_data,
 		                            interpolation,
-		                            EXTENSION_REPEAT);
+		                            EXTENSION_REPEAT,
+		                            use_alpha);
 	}
 }
 
@@ -1381,7 +1383,8 @@ PointDensityTextureNode::~PointDensityTextureNode()
 		image_manager->remove_image(filename.string(),
 		                            builtin_data,
 		                            interpolation,
-		                            EXTENSION_CLIP);
+		                            EXTENSION_CLIP,
+		                            true);
 	}
 }
 

@@ -93,7 +93,8 @@ class OUTLINER_MT_view(Menu):
             layout.separator()
             layout.operator("outliner.show_active")
 
-        layout.operator("outliner.show_one_level")
+        layout.operator("outliner.show_one_level", text="Show One Level")
+        layout.operator("outliner.show_one_level", text="Hide One Level").open = False
         layout.operator("outliner.show_hierarchy")
 
         layout.separator()

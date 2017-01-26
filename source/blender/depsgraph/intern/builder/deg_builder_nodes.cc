@@ -320,6 +320,23 @@ OperationDepsNode *DepsgraphNodeBuilder::find_operation_node(
 
 /* **** Build functions for entity nodes **** */
 
+void DepsgraphNodeBuilder::begin_build(Main *bmain) {
+	/* LIB_TAG_DOIT is used to indicate whether node for given ID was already
+	 * created or not. This flag is being set in add_id_node(), so functions
+	 * shouldn't bother with setting it, they only might query this flag when
+	 * needed.
+	 */
+	BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+	/* XXX nested node trees are not included in tag-clearing above,
+	 * so we need to do this manually.
+	 */
+	FOREACH_NODETREE(bmain, nodetree, id) {
+		if (id != (ID *)nodetree) {
+			nodetree->id.tag &= ~LIB_TAG_DOIT;
+		}
+	} FOREACH_NODETREE_END
+}
+
 void DepsgraphNodeBuilder::build_group(Scene *scene,
                                        Base *base,
                                        Group *group)
@@ -626,18 +643,18 @@ void DepsgraphNodeBuilder::build_world(World *world)
 	}
 
 	/* world itself */
-	IDDepsNode *world_node = add_id_node(world_id); /* world shading/params? */
+	add_id_node(world_id); /* world shading/params? */
 
 	build_animdata(world_id);
 
 	/* TODO: other settings? */
 
 	/* textures */
-	build_texture_stack(world_node, world->mtex);
+	build_texture_stack(world->mtex);
 
 	/* world's nodetree */
 	if (world->nodetree) {
-		build_nodetree(world_node, world->nodetree);
+		build_nodetree(world->nodetree);
 	}
 }
 
@@ -807,13 +824,18 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 	}
 
 	/* materials */
-	for (int a = 1; a <= ob->totcol; a++) {
-		Material *ma = give_current_material(ob, a);
-		if (ma != NULL) {
-			// XXX?!
-			ComponentDepsNode *geom_node = add_component_node(&ob->id, DEPSNODE_TYPE_GEOMETRY);
-			build_material(geom_node, ma);
+	if (ob->totcol != 0) {
+		for (int a = 1; a <= ob->totcol; a++) {
+			Material *ma = give_current_material(ob, a);
+			if (ma != NULL) {
+				build_material(ma);
+			}
 		}
+		add_operation_node(&ob->id,
+		                   DEPSNODE_TYPE_SHADING,
+		                   DEPSOP_TYPE_EXEC,
+		                   NULL,
+		                   DEG_OPCODE_PLACEHOLDER, "Material Update");
 	}
 
 	/* geometry collision */
@@ -976,7 +998,7 @@ void DepsgraphNodeBuilder::build_lamp(Object *ob)
 	build_animdata(&la->id);
 
 	/* node for obdata */
-	ComponentDepsNode *param_node = add_component_node(lamp_id, DEPSNODE_TYPE_PARAMETERS);
+	add_component_node(lamp_id, DEPSNODE_TYPE_PARAMETERS);
 
 	/* TODO(sergey): Is it really how we're supposed to work with drivers? */
 	add_operation_node(lamp_id, DEPSNODE_TYPE_PARAMETERS, DEPSOP_TYPE_EXEC, NULL,
@@ -984,14 +1006,14 @@ void DepsgraphNodeBuilder::build_lamp(Object *ob)
 
 	/* lamp's nodetree */
 	if (la->nodetree) {
-		build_nodetree(param_node, la->nodetree);
+		build_nodetree(la->nodetree);
 	}
 
 	/* textures */
-	build_texture_stack(param_node, la->mtex);
+	build_texture_stack(la->mtex);
 }
 
-void DepsgraphNodeBuilder::build_nodetree(DepsNode *owner_node, bNodeTree *ntree)
+void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 {
 	if (!ntree)
 		return;
@@ -1011,10 +1033,10 @@ void DepsgraphNodeBuilder::build_nodetree(DepsNode *owner_node, bNodeTree *ntree
 		if (id != NULL) {
 			short id_type = GS(id->name);
 			if (id_type == ID_MA) {
-				build_material(owner_node, (Material *)id);
+				build_material((Material *)id);
 			}
 			else if (id_type == ID_TE) {
-				build_texture(owner_node, (Tex *)id);
+				build_texture((Tex *)id);
 			}
 			else if (id_type == ID_IM) {
 				build_image((Image *)id);
@@ -1022,7 +1044,7 @@ void DepsgraphNodeBuilder::build_nodetree(DepsNode *owner_node, bNodeTree *ntree
 			else if (bnode->type == NODE_GROUP) {
 				bNodeTree *group_ntree = (bNodeTree *)id;
 				if ((group_ntree->id.tag & LIB_TAG_DOIT) == 0) {
-					build_nodetree(owner_node, group_ntree);
+					build_nodetree(group_ntree);
 				}
 			}
 		}
@@ -1032,7 +1054,7 @@ void DepsgraphNodeBuilder::build_nodetree(DepsNode *owner_node, bNodeTree *ntree
 }
 
 /* Recursively build graph for material */
-void DepsgraphNodeBuilder::build_material(DepsNode *owner_node, Material *ma)
+void DepsgraphNodeBuilder::build_material(Material *ma)
 {
 	ID *ma_id = &ma->id;
 	if (ma_id->tag & LIB_TAG_DOIT) {
@@ -1050,14 +1072,14 @@ void DepsgraphNodeBuilder::build_material(DepsNode *owner_node, Material *ma)
 	build_animdata(ma_id);
 
 	/* textures */
-	build_texture_stack(owner_node, ma->mtex);
+	build_texture_stack(ma->mtex);
 
 	/* material's nodetree */
-	build_nodetree(owner_node, ma->nodetree);
+	build_nodetree(ma->nodetree);
 }
 
 /* Texture-stack attached to some shading datablock */
-void DepsgraphNodeBuilder::build_texture_stack(DepsNode *owner_node, MTex **texture_stack)
+void DepsgraphNodeBuilder::build_texture_stack(MTex **texture_stack)
 {
 	int i;
 
@@ -1065,12 +1087,12 @@ void DepsgraphNodeBuilder::build_texture_stack(DepsNode *owner_node, MTex **text
 	for (i = 0; i < MAX_MTEX; i++) {
 		MTex *mtex = texture_stack[i];
 		if (mtex && mtex->tex)
-			build_texture(owner_node, mtex->tex);
+			build_texture(mtex->tex);
 	}
 }
 
 /* Recursively build graph for texture */
-void DepsgraphNodeBuilder::build_texture(DepsNode *owner_node, Tex *tex)
+void DepsgraphNodeBuilder::build_texture(Tex *tex)
 {
 	ID *tex_id = &tex->id;
 	if (tex_id->tag & LIB_TAG_DOIT) {
@@ -1080,7 +1102,7 @@ void DepsgraphNodeBuilder::build_texture(DepsNode *owner_node, Tex *tex)
 	/* Texture itself. */
 	build_animdata(tex_id);
 	/* Texture's nodetree. */
-	build_nodetree(owner_node, tex->nodetree);
+	build_nodetree(tex->nodetree);
 	/* Special cases for different IDs which texture uses. */
 	if (tex->type == TEX_IMAGE) {
 		if (tex->ima != NULL) {
@@ -1114,8 +1136,8 @@ void DepsgraphNodeBuilder::build_compositor(Scene *scene)
 	//graph->get_node(&scene->id, NULL, DEPSNODE_TYPE_COMPOSITING, NULL);
 
 	/* for now, nodetrees are just parameters; compositing occurs in internals of renderer... */
-	ComponentDepsNode *owner_node = add_component_node(&scene->id, DEPSNODE_TYPE_PARAMETERS);
-	build_nodetree(owner_node, scene->nodetree);
+	add_component_node(&scene->id, DEPSNODE_TYPE_PARAMETERS);
+	build_nodetree(scene->nodetree);
 }
 
 void DepsgraphNodeBuilder::build_gpencil(bGPdata *gpd)

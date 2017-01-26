@@ -339,6 +339,22 @@ void DepsgraphRelationBuilder::add_forcefield_relations(const OperationKey &key,
 
 /* **** Functions to build relations between entities  **** */
 
+void DepsgraphRelationBuilder::begin_build(Main *bmain)
+{
+	/* LIB_TAG_DOIT is used to indicate whether node for given ID was already
+	 * created or not.
+	 */
+	BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+	/* XXX nested node trees are notr included in tag-clearing above,
+	 * so we need to do this manually.
+	 */
+	FOREACH_NODETREE(bmain, nodetree, id) {
+		if (id != (ID *)nodetree) {
+			nodetree->id.tag &= ~LIB_TAG_DOIT;
+		}
+	} FOREACH_NODETREE_END
+}
+
 void DepsgraphRelationBuilder::build_group(Main *bmain,
                                            Scene *scene,
                                            Object *object,
@@ -489,7 +505,7 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 
 	/* grease pencil */
 	if (ob->gpd) {
-		build_gpencil(&ob->id, ob->gpd);
+		build_gpencil(ob->gpd);
 	}
 }
 
@@ -1062,10 +1078,10 @@ void DepsgraphRelationBuilder::build_world(World *world)
 	/* TODO: other settings? */
 
 	/* textures */
-	build_texture_stack(world_id, world->mtex);
+	build_texture_stack(world->mtex);
 
 	/* world's nodetree */
-	build_nodetree(world_id, world->nodetree);
+	build_nodetree(world->nodetree);
 }
 
 void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
@@ -1402,14 +1418,19 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 	}
 
 	/* materials */
-	if (ob->totcol) {
-		int a;
-
-		for (a = 1; a <= ob->totcol; a++) {
+	if (ob->totcol != 0) {
+		ComponentKey object_shading_key(&ob->id, DEPSNODE_TYPE_SHADING);
+		for (int a = 1; a <= ob->totcol; a++) {
 			Material *ma = give_current_material(ob, a);
-
-			if (ma)
-				build_material(&ob->id, ma);
+			if (ma != NULL) {
+				build_material(ma);
+				ComponentKey material_shading_key(&ma->id,
+				                                  DEPSNODE_TYPE_SHADING);
+				add_relation(material_shading_key,
+				             object_shading_key,
+				             DEPSREL_TYPE_UPDATE,
+				             "Object Shading");
+			}
 		}
 	}
 
@@ -1568,17 +1589,17 @@ void DepsgraphRelationBuilder::build_lamp(Object *ob)
 
 	/* lamp's nodetree */
 	if (la->nodetree) {
-		build_nodetree(lamp_id, la->nodetree);
+		build_nodetree(la->nodetree);
 		ComponentKey nodetree_key(&la->nodetree->id, DEPSNODE_TYPE_PARAMETERS);
 		add_relation(nodetree_key, parameters_key,
 		             DEPSREL_TYPE_COMPONENT_ORDER, "NTree->Lamp Parameters");
 	}
 
 	/* textures */
-	build_texture_stack(lamp_id, la->mtex);
+	build_texture_stack(la->mtex);
 }
 
-void DepsgraphRelationBuilder::build_nodetree(ID *owner, bNodeTree *ntree)
+void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 {
 	if (!ntree)
 		return;
@@ -1596,15 +1617,15 @@ void DepsgraphRelationBuilder::build_nodetree(ID *owner, bNodeTree *ntree)
 	LINKLIST_FOREACH (bNode *, bnode, &ntree->nodes) {
 		if (bnode->id) {
 			if (GS(bnode->id->name) == ID_MA) {
-				build_material(owner, (Material *)bnode->id);
+				build_material((Material *)bnode->id);
 			}
 			else if (bnode->type == ID_TE) {
-				build_texture(owner, (Tex *)bnode->id);
+				build_texture((Tex *)bnode->id);
 			}
 			else if (bnode->type == NODE_GROUP) {
 				bNodeTree *group_ntree = (bNodeTree *)bnode->id;
 				if ((group_ntree->id.tag & LIB_TAG_DOIT) == 0) {
-					build_nodetree(owner, group_ntree);
+					build_nodetree(group_ntree);
 					group_ntree->id.tag |= LIB_TAG_DOIT;
 				}
 				OperationKey group_parameters_key(&group_ntree->id,
@@ -1622,12 +1643,10 @@ void DepsgraphRelationBuilder::build_nodetree(ID *owner, bNodeTree *ntree)
 		add_relation(animation_key, parameters_key,
 		             DEPSREL_TYPE_COMPONENT_ORDER, "NTree Parameters");
 	}
-
-	// TODO: link from nodetree to owner_component?
 }
 
 /* Recursively build graph for material */
-void DepsgraphRelationBuilder::build_material(ID *owner, Material *ma)
+void DepsgraphRelationBuilder::build_material(Material *ma)
 {
 	ID *ma_id = &ma->id;
 	if (ma_id->tag & LIB_TAG_DOIT) {
@@ -1639,14 +1658,26 @@ void DepsgraphRelationBuilder::build_material(ID *owner, Material *ma)
 	build_animdata(ma_id);
 
 	/* textures */
-	build_texture_stack(owner, ma->mtex);
+	build_texture_stack(ma->mtex);
 
 	/* material's nodetree */
-	build_nodetree(owner, ma->nodetree);
+	if (ma->nodetree != NULL) {
+		build_nodetree(ma->nodetree);
+		OperationKey ntree_key(&ma->nodetree->id,
+		                       DEPSNODE_TYPE_PARAMETERS,
+		                       DEG_OPCODE_PLACEHOLDER,
+		                       "Parameters Eval");
+		OperationKey material_key(&ma->id,
+		                          DEPSNODE_TYPE_SHADING,
+		                          DEG_OPCODE_PLACEHOLDER,
+		                          "Material Update");
+		add_relation(ntree_key, material_key,
+		             DEPSREL_TYPE_UPDATE, "Material's NTree");
+	}
 }
 
 /* Recursively build graph for texture */
-void DepsgraphRelationBuilder::build_texture(ID *owner, Tex *tex)
+void DepsgraphRelationBuilder::build_texture(Tex *tex)
 {
 	ID *tex_id = &tex->id;
 	if (tex_id->tag & LIB_TAG_DOIT) {
@@ -1658,11 +1689,11 @@ void DepsgraphRelationBuilder::build_texture(ID *owner, Tex *tex)
 	build_animdata(tex_id);
 
 	/* texture's nodetree */
-	build_nodetree(owner, tex->nodetree);
+	build_nodetree(tex->nodetree);
 }
 
 /* Texture-stack attached to some shading datablock */
-void DepsgraphRelationBuilder::build_texture_stack(ID *owner, MTex **texture_stack)
+void DepsgraphRelationBuilder::build_texture_stack(MTex **texture_stack)
 {
 	int i;
 
@@ -1670,17 +1701,17 @@ void DepsgraphRelationBuilder::build_texture_stack(ID *owner, MTex **texture_sta
 	for (i = 0; i < MAX_MTEX; i++) {
 		MTex *mtex = texture_stack[i];
 		if (mtex && mtex->tex)
-			build_texture(owner, mtex->tex);
+			build_texture(mtex->tex);
 	}
 }
 
 void DepsgraphRelationBuilder::build_compositor(Scene *scene)
 {
 	/* For now, just a plain wrapper? */
-	build_nodetree(&scene->id, scene->nodetree);
+	build_nodetree(scene->nodetree);
 }
 
-void DepsgraphRelationBuilder::build_gpencil(ID *UNUSED(owner), bGPdata *gpd)
+void DepsgraphRelationBuilder::build_gpencil(bGPdata *gpd)
 {
 	/* animation */
 	build_animdata(&gpd->id);

@@ -258,12 +258,14 @@ static bool image_equals(ImageManager::Image *image,
                          const string& filename,
                          void *builtin_data,
                          InterpolationType interpolation,
-                         ExtensionType extension)
+                         ExtensionType extension,
+                         bool use_alpha)
 {
 	return image->filename == filename &&
 	       image->builtin_data == builtin_data &&
 	       image->interpolation == interpolation &&
-	       image->extension == extension;
+	       image->extension == extension &&
+	       image->use_alpha == use_alpha;
 }
 
 int ImageManager::add_image(const string& filename,
@@ -305,7 +307,8 @@ int ImageManager::add_image(const string& filename,
 		                       filename,
 		                       builtin_data,
 		                       interpolation,
-		                       extension))
+		                       extension,
+		                       use_alpha))
 		{
 			if(img->frame != frame) {
 				img->frame = frame;
@@ -377,7 +380,8 @@ void ImageManager::remove_image(int flat_slot)
 void ImageManager::remove_image(const string& filename,
                                 void *builtin_data,
                                 InterpolationType interpolation,
-                                ExtensionType extension)
+                                ExtensionType extension,
+                                bool use_alpha)
 {
 	size_t slot;
 
@@ -387,7 +391,8 @@ void ImageManager::remove_image(const string& filename,
 			                                      filename,
 			                                      builtin_data,
 			                                      interpolation,
-			                                      extension))
+			                                      extension,
+			                                      use_alpha))
 			{
 				remove_image(type_index_to_flattened_slot(slot, (ImageDataType)type));
 				return;
@@ -403,7 +408,8 @@ void ImageManager::remove_image(const string& filename,
 void ImageManager::tag_reload_image(const string& filename,
                                     void *builtin_data,
                                     InterpolationType interpolation,
-                                    ExtensionType extension)
+                                    ExtensionType extension,
+                                    bool use_alpha)
 {
 	for(size_t type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
 		for(size_t slot = 0; slot < images[type].size(); slot++) {
@@ -411,7 +417,8 @@ void ImageManager::tag_reload_image(const string& filename,
 			                                      filename,
 			                                      builtin_data,
 			                                      interpolation,
-			                                      extension))
+			                                      extension,
+			                                      use_alpha))
 			{
 				images[type][slot]->need_load = true;
 				break;

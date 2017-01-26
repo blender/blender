@@ -37,8 +37,11 @@ HueSaturationValueNode::HueSaturationValueNode(bNode *editorNode) : Node(editorN
 
 void HueSaturationValueNode::convertToOperations(NodeConverter &converter, const CompositorContext &/*context*/) const
 {
-	NodeInput *valueSocket = this->getInputSocket(0);
-	NodeInput *colorSocket = this->getInputSocket(1);
+	NodeInput *colorSocket = this->getInputSocket(0);
+	NodeInput *hueSocket = this->getInputSocket(1);
+	NodeInput *saturationSocket = this->getInputSocket(2);
+	NodeInput *valueSocket = this->getInputSocket(3);
+	NodeInput *facSocket = this->getInputSocket(4);
 	NodeOutput *outputSocket = this->getOutputSocket(0);
 	bNode *editorsnode = getbNode();
 	NodeHueSat *storage = (NodeHueSat *)editorsnode->storage;
@@ -50,9 +53,9 @@ void HueSaturationValueNode::convertToOperations(NodeConverter &converter, const
 	converter.addOperation(hsvToRGB);
 	
 	ChangeHSVOperation *changeHSV = new ChangeHSVOperation();
-	changeHSV->setHue(storage->hue);
-	changeHSV->setSaturation(storage->sat);
-	changeHSV->setValue(storage->val);
+	converter.mapInputSocket(hueSocket, changeHSV->getInputSocket(1));
+	converter.mapInputSocket(saturationSocket, changeHSV->getInputSocket(2));
+	converter.mapInputSocket(valueSocket, changeHSV->getInputSocket(3));
 	converter.addOperation(changeHSV);
 	
 	MixBlendOperation *blend = new MixBlendOperation();
@@ -64,6 +67,6 @@ void HueSaturationValueNode::convertToOperations(NodeConverter &converter, const
 	converter.addLink(changeHSV->getOutputSocket(), hsvToRGB->getInputSocket(0));
 	converter.addLink(hsvToRGB->getOutputSocket(), blend->getInputSocket(2));
 	converter.mapInputSocket(colorSocket, blend->getInputSocket(1));
-	converter.mapInputSocket(valueSocket, blend->getInputSocket(0));
+	converter.mapInputSocket(facSocket, blend->getInputSocket(0));
 	converter.mapOutputSocket(outputSocket, blend->getOutputSocket());
 }

@@ -209,6 +209,7 @@ void DEG_graph_build_from_scene(Depsgraph *graph, Main *bmain, Scene *scene)
 	 * - this way it should be the first in the graph,
 	 *   reflecting its role as the entrypoint
 	 */
+	node_builder.begin_build(bmain);
 	node_builder.add_root_node();
 	node_builder.build_scene(bmain, scene);
 
@@ -221,6 +222,7 @@ void DEG_graph_build_from_scene(Depsgraph *graph, Main *bmain, Scene *scene)
 	 * it doesnt add any operations anyway and is not clear what part of the
 	 * scene is to be connected.
 	 */
+	relation_builder.begin_build(bmain);
 #if 0
 	relation_builder.add_relation(RootKey(),
 	                              IDKey(scene),

@@ -1483,6 +1483,8 @@ bool BKE_scene_remove_render_layer(Main *bmain, Scene *scene, SceneRenderLayer *
 		return false;
 	}
 
+	BKE_freestyle_config_free(&srl->freestyleConfig);
+
 	BLI_remlink(&scene->r.layers, srl);
 	MEM_freeN(srl);
 

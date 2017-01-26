@@ -1587,17 +1587,6 @@ static void node_composit_buts_zcombine(uiLayout *layout, bContext *UNUSED(C), P
 	uiItemR(col, ptr, "use_antialias_z", 0, NULL, ICON_NONE);
 }
 
-
-static void node_composit_buts_hue_sat(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-	uiLayout *col;
-	
-	col = uiLayoutColumn(layout, false);
-	uiItemR(col, ptr, "color_hue", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(col, ptr, "color_saturation", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(col, ptr, "color_value", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-}
-
 static void node_composit_buts_dilateerode(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
@@ -2555,9 +2544,6 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_ALPHAOVER:
 			ntype->draw_buttons = node_composit_buts_alphaover;
-			break;
-		case CMP_NODE_HUE_SAT:
-			ntype->draw_buttons = node_composit_buts_hue_sat;
 			break;
 		case CMP_NODE_TEXTURE:
 			ntype->draw_buttons = node_buts_texture;
