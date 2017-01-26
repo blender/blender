@@ -194,7 +194,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 			unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-			immUniformColor4ubv(bg);
+			immUniformColor3ubv(bg);
 			immRecti(pos, 0, cdc->xy[1], cdc->winx, (cdc->xy[1] + (cdc->lheight * tot_lines)));
 
 			immUnbindProgram();
@@ -248,7 +248,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 			unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-			immUniformColor4ubv(bg);
+			immUniformColor3ubv(bg);
 			immRecti(pos, 0, cdc->xy[1], cdc->winx, cdc->xy[1] + cdc->lheight);
 
 			immUnbindProgram();
