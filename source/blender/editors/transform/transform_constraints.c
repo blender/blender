@@ -40,8 +40,9 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
+
+#include "GPU_immediate.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -715,7 +716,6 @@ void drawConstraint(TransInfo *t)
 	else {
 		if (tc->mode & CON_SELECT) {
 			float vec[3];
-			char col2[3] = {255, 255, 255};
 			int depth_test_enabled;
 
 			convertViewVec(t, vec, (t->mval[0] - t->con.imval[0]), (t->mval[1] - t->con.imval[1]));
@@ -725,18 +725,25 @@ void drawConstraint(TransInfo *t)
 			drawLine(t, t->center_global, tc->mtx[1], 'Y', 0);
 			drawLine(t, t->center_global, tc->mtx[2], 'Z', 0);
 
-			glColor3ubv((GLubyte *)col2);
-
 			depth_test_enabled = glIsEnabled(GL_DEPTH_TEST);
 			if (depth_test_enabled)
 				glDisable(GL_DEPTH_TEST);
 
+			unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+
+			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+			immUniformColor3ub(255, 255, 255);
+
 			setlinestyle(1);
-			glBegin(GL_LINES);
-			glVertex3fv(t->center_global);
-			glVertex3fv(vec);
-			glEnd();
+
+			immBegin(GL_LINES, 2);
+			immVertex3fv(pos, t->center_global);
+			immVertex3fv(pos, vec);
+			immEnd();
+
 			setlinestyle(0);
+
+			immUnbindProgram();
 
 			if (depth_test_enabled)
 				glEnable(GL_DEPTH_TEST);
