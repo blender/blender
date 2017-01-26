@@ -1432,6 +1432,14 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 				             "Object Shading");
 			}
 		}
+		OperationKey obdata_geom_done_key(obdata,
+		                                  DEPSNODE_TYPE_GEOMETRY,
+		                                  DEG_OPCODE_PLACEHOLDER,
+		                                  "Eval Done");
+		add_relation(geom_key,
+		             object_shading_key,
+		             DEPSREL_TYPE_UPDATE,
+		             "Object Shading");
 	}
 
 	/* geometry collision */
