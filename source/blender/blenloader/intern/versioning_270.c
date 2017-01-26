@@ -1572,23 +1572,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 
 	}
-}
-
-void do_versions_after_linking_270(Main *main)
-{
-	/* To be added to next subversion bump! */
-	{
-		FOREACH_NODETREE(main, ntree, id) {
-			if (ntree->type == NTREE_COMPOSIT) {
-				ntreeSetTypes(NULL, ntree);
-				for (bNode *node = ntree->nodes.first; node; node = node->next) {
-					if (node->type == CMP_NODE_HUE_SAT) {
-						do_version_hue_sat_node(ntree, node);
-					}
-				}
-			}
-		} FOREACH_NODETREE_END
-	}
 
 	{
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DDebug", "char", "background")) {
@@ -1611,5 +1594,22 @@ void do_versions_after_linking_270(Main *main)
 				}
 			}
 		}
+	}
+}
+
+void do_versions_after_linking_270(Main *main)
+{
+	/* To be added to next subversion bump! */
+	{
+		FOREACH_NODETREE(main, ntree, id) {
+			if (ntree->type == NTREE_COMPOSIT) {
+				ntreeSetTypes(NULL, ntree);
+				for (bNode *node = ntree->nodes.first; node; node = node->next) {
+					if (node->type == CMP_NODE_HUE_SAT) {
+						do_version_hue_sat_node(ntree, node);
+					}
+				}
+			}
+		} FOREACH_NODETREE_END
 	}
 }
