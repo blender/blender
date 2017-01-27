@@ -211,6 +211,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	if (BKE_reports_contain(&reports, RPT_ERROR)) {
 		modifier_setError(md, "%s", BKE_reports_string(&reports, RPT_ERROR));
 	}
+	else if ((dtmd->data_types & DT_TYPE_LNOR) && !(me->flag & ME_AUTOSMOOTH)) {
+		modifier_setError((ModifierData *)dtmd, "Enable 'Auto Smooth' option in mesh settings");
+	}
 	else if (dm->getNumVerts(dm) > HIGH_POLY_WARNING || ((Mesh *)(dtmd->ob_source->data))->totvert > HIGH_POLY_WARNING) {
 		modifier_setError(md, "You are using a rather high poly as source or destination, computation might be slow");
 	}
