@@ -254,21 +254,6 @@ static void precalc_project(
 	projectdefs->dist_px_sq = SQUARE(dist_px);
 }
 
-/**
- * From a threshold (maximum distance to snap in pixels) returns:
- *
- * - The *real* distance (3D) if you are in orthographic-view.
- * - The *tangent* (view cone radius at distance 1.0) if you are in perspective-view.
- */
-static float dist_px_to_dist3d_or_tangent(const ARegion *ar, const float dist_px)
-{
-	const RegionView3D *rv3d = ar->regiondata;
-	if (ar->winx >= ar->winy)
-		return 2 * (dist_px / ar->winx) / rv3d->winmat[0][0];
-	else
-		return 2 * (dist_px / ar->winy) / rv3d->winmat[1][1];
-}
-
 static const float *get_vert_co(const BVHTreeFromMeshType *meshdata, const int index)
 {
 	switch (meshdata->type) {
@@ -335,78 +320,6 @@ static void get_edge_verts(
 		}
 	}
 }
-
-#define V3_MUL_ELEM(a, b) \
-	(a)[0] * (b)[0], \
-	(a)[1] * (b)[1], \
-	(a)[2] * (b)[2]
-
-static bool test_vert_dist(
-        const float vco[3], const float ray_co[3], const float ray_dir[3],
-        const float ray_depth_range[2], const float scale[3],
-        /* read/write args */
-        float *ray_depth, float *dist_to_ray_sq,
-        /* return args */
-        float r_co[3])
-{
-	const float vco_sc[3]   = {V3_MUL_ELEM(vco, scale)};
-	const float origin_sc[3]    = {V3_MUL_ELEM(ray_co, scale)};
-	const float dir_sc[3]   = {V3_MUL_ELEM(ray_dir, scale)};
-
-	float depth, dist_sq;
-	dist_sq = dist_squared_to_ray_v3(origin_sc, dir_sc, vco_sc, &depth);
-
-	if (depth < ray_depth_range[0]) {
-		return false;
-	}
-
-	if ((dist_sq < *dist_to_ray_sq) && (depth < *ray_depth)) {
-		*dist_to_ray_sq = dist_sq;
-
-		copy_v3_v3(r_co, vco);
-
-		*ray_depth = depth;
-		return true;
-	}
-	return false;
-}
-
-static bool test_edge_dist(
-        const float v1[3], const float v2[3], const float ray_co[3], const float ray_dir[3],
-        const float ray_depth_range[2], const float scale[3],
-        /* read/write args */
-        float *ray_depth, float *dist_to_ray_sq,
-        /* return args */
-        float r_co[3])
-{
-	const float v1_sc[3]    = {V3_MUL_ELEM(v1, scale)};
-	const float v2_sc[3]    = {V3_MUL_ELEM(v2, scale)};
-	const float co_sc[3]    = {V3_MUL_ELEM(ray_co, scale)};
-	const float dir_sc[3]   = {V3_MUL_ELEM(ray_dir, scale)};
-
-	float tmp_co[3], depth, dist_sq;
-	dist_sq = dist_squared_ray_to_seg_v3(co_sc, dir_sc, v1_sc, v2_sc, tmp_co, &depth);
-
-	if (depth < ray_depth_range[0]) {
-		return false;
-	}
-
-	if ((dist_sq < *dist_to_ray_sq) && (depth < *ray_depth)) {
-		*dist_to_ray_sq = dist_sq;
-
-		tmp_co[0] /= scale[0];
-		tmp_co[1] /= scale[1];
-		tmp_co[2] /= scale[2];
-
-		copy_v3_v3(r_co, tmp_co);
-
-		*ray_depth = depth;
-		return true;
-	}
-	return false;
-}
-
-#undef V3_MUL_ELEM
 
 static bool test_projected_vert_dist(
         PreDefProject *projectdefs,
@@ -543,7 +456,9 @@ static bool cb_walk_parent_snap_project(const BVHTreeAxisRange *bounds, void *us
 		(local_bvmax[1] - data->ray_origin_local[1]) * data->ray_inv_dir[1],
 		(local_bvmax[2] - data->ray_origin_local[2]) * data->ray_inv_dir[2],
 	};
+	/* va[3] and vb[3] are the coordinates of the AABB edge closest to the ray */
 	float va[3], vb[3];
+	/* rtmin and rtmax are the distances of the minimum and maximum ray hits on the AABB */
 	float rtmin, rtmax;
 	int main_axis;
 
@@ -591,9 +506,11 @@ static bool cb_walk_parent_snap_project(const BVHTreeAxisRange *bounds, void *us
 	/* if rtmin < rtmax, ray intersect `AABB` */
 	if (rtmin <= rtmax) {
 #ifdef IGNORE_BEHIND_RAY
-		/* `if rtmax < depth_min`, the whole `AABB` is behind us */
-		if (rtmax < min_depth) {
-			return fallback;
+		/* `if rtmax < depth_min`, the hit is behind us
+		 * TODO: Check if the entire AABB is behind ray
+		 * this will prevent unnecessary leaf testing*/
+		if (rtmax < depth_range[0]) {
+			return false;
 		}
 #endif
 		const float proj = rtmin * data->ray_direction_local[main_axis];
@@ -601,9 +518,10 @@ static bool cb_walk_parent_snap_project(const BVHTreeAxisRange *bounds, void *us
 		return true;
 	}
 #ifdef IGNORE_BEHIND_RAY
-	/* `if rtmin < depth_min`, the whole `AABB` is behing us */
-	else if (rtmin < min_depth) {
-		return fallback;
+	/* `if rtmin < depth_min`, the hit is behing us
+	 * TODO: Check if the entire AABB is behind ray */
+	else if (rtmin < depth_range[0]) {
+		return false;
 	}
 #endif
 	if (data->sign[main_axis]) {
@@ -681,9 +599,9 @@ static bool cb_walk_leaf_snap_vert(const BVHTreeAxisRange *bounds, int index, vo
 		(bounds[2].min + bounds[2].max) / 2,
 	};
 
-	/* Currently the `BLI_bvhtree_walk_dfs` is being used only in the perspective view mode (VIEW_PROJ_PERSP)
-	 * It could be used in orthographic view mode too (VIEW_PROJ_ORTHO),
-	 * but in this case the `BLI_bvhtree_find_nearest_to_ray` is more efficient.*/
+	/* Although this function is also used in the Othogonal view (VIEW_PROJ_ORTHO),
+	 * we put `eViewProj view_proj` as` VIEW_PROJ_PERSP` because it works in both cases
+	 * (with the disadvantage of executing unnecessary calculations) */
 	if (test_projected_vert_dist(
 	        &neasrest_precalc->projectdefs, co, VIEW_PROJ_PERSP,
 	        neasrest_precalc->mval, neasrest_precalc->depth_range,
@@ -702,9 +620,9 @@ static bool cb_walk_leaf_snap_edge(const BVHTreeAxisRange *UNUSED(bounds), int i
 	const float *v_pair[2];
 	get_edge_verts(neasrest_precalc->userdata, index, v_pair);
 
-	/* Currently the `BLI_bvhtree_walk_dfs` is being used only in the perspective view mode (VIEW_PROJ_PERSP)
-	 * It could be used in orthographic view mode too (VIEW_PROJ_ORTHO),
-	 * but in this case the `BLI_bvhtree_find_nearest_to_ray` is more efficient.*/
+	/* Although this function is also used in the Othogonal view (VIEW_PROJ_ORTHO),
+	 * we put `eViewProj view_proj` as` VIEW_PROJ_PERSP` because it works in both cases
+	 * (with the disadvantage of executing unnecessary calculations) */
 	if (test_projected_edge_dist(
 	        &neasrest_precalc->projectdefs, v_pair[0], v_pair[1],
 	        neasrest_precalc->ray_origin_local, neasrest_precalc->ray_direction_local,
@@ -1031,45 +949,6 @@ struct NearestDM_Data {
 	float *ray_depth;
 };
 
-static void test_vert_ray_dist_cb(
-        void *userdata, const float origin[3], const float dir[3],
-        const float scale[3], int index, BVHTreeNearest *nearest)
-{
-	struct NearestDM_Data *ndata = userdata;
-	const struct BVHTreeFromMeshType *data = ndata->bvhdata;
-
-	const float *co = get_vert_co(data, index);
-
-	if (test_vert_dist(
-	        co, origin, dir, ndata->depth_range,
-	        scale, ndata->ray_depth, &nearest->dist_sq,
-	        nearest->co))
-	{
-		copy_vert_no(data, index, nearest->no);
-		nearest->index = index;
-	}
-}
-
-static void test_edge_ray_dist_cb(
-        void *userdata, const float origin[3], const float dir[3],
-        const float scale[3], int index, BVHTreeNearest *nearest)
-{
-	struct NearestDM_Data *ndata = userdata;
-	BVHTreeFromMeshType *data = ndata->bvhdata;
-
-	const float *v_pair[2];
-	get_edge_verts(data, index, v_pair);
-
-	if (test_edge_dist(
-	        v_pair[0], v_pair[1], origin, dir, ndata->depth_range,
-	        scale, ndata->ray_depth, &nearest->dist_sq,
-	        nearest->co))
-	{
-		sub_v3_v3v3(nearest->no, v_pair[0], v_pair[1]);
-		nearest->index = index;
-	}
-}
-
 static bool snapDerivedMesh(
         SnapObjectContext *sctx,
         Object *ob, DerivedMesh *dm, float obmat[4][4], const unsigned int ob_index,
@@ -1312,70 +1191,32 @@ static bool snapDerivedMesh(
 
 			BVHTreeFromMeshType treedata_type = {.userdata = treedata, .type = SNAP_MESH};
 
-			if (view_proj == VIEW_PROJ_PERSP) {
-				Object_Nearest2dPrecalc neasrest_precalc;
-				neasrest_precalc.userdata = &treedata_type;
-				neasrest_precalc.index = -1;
+			Object_Nearest2dPrecalc neasrest_precalc;
+			neasrest_precalc.userdata = &treedata_type;
+			neasrest_precalc.index = -1;
 
-				nearest2d_precalc(&neasrest_precalc, ar, *dist_px, obmat,
-				        ray_org_local, ray_normal_local, mval, depth_range);
+			nearest2d_precalc(&neasrest_precalc, ar, *dist_px, obmat,
+			        ray_org_local, ray_normal_local, mval, depth_range);
 
-				BVHTree_WalkLeafCallback cb_walk_leaf =
-				        (snap_to == SCE_SNAP_MODE_VERTEX) ?
-				        cb_walk_leaf_snap_vert : cb_walk_leaf_snap_edge;
+			BVHTree_WalkLeafCallback cb_walk_leaf =
+			        (snap_to == SCE_SNAP_MODE_VERTEX) ?
+			        cb_walk_leaf_snap_vert : cb_walk_leaf_snap_edge;
 
-				BLI_bvhtree_walk_dfs(
-				        treedata->tree,
-				        cb_walk_parent_snap_project, cb_walk_leaf, cb_nearest_walk_order, &neasrest_precalc);
+			BLI_bvhtree_walk_dfs(
+			        treedata->tree,
+			        cb_walk_parent_snap_project, cb_walk_leaf, cb_nearest_walk_order, &neasrest_precalc);
 
-				if (neasrest_precalc.index != -1) {
-					copy_v3_v3(r_loc, neasrest_precalc.co);
-					mul_m4_v3(obmat, r_loc);
-					if (r_no) {
-						copy_v3_v3(r_no, neasrest_precalc.no);
-						mul_m3_v3(timat, r_no);
-						normalize_v3(r_no);
-					}
-					*dist_px = sqrtf(neasrest_precalc.projectdefs.dist_px_sq);
-
-					retval = true;
+			if (neasrest_precalc.index != -1) {
+				copy_v3_v3(r_loc, neasrest_precalc.co);
+				mul_m4_v3(obmat, r_loc);
+				if (r_no) {
+					copy_v3_v3(r_no, neasrest_precalc.no);
+					mul_m3_v3(timat, r_no);
+					normalize_v3(r_no);
 				}
-			}
-			else {
-				BVHTreeNearest nearest;
+				*dist_px = sqrtf(neasrest_precalc.projectdefs.dist_px_sq);
 
-				nearest.index = -1;
-				float dist_3d = dist_px_to_dist3d_or_tangent(ar, *dist_px);
-				nearest.dist_sq = SQUARE(dist_3d);
-
-
-				float ob_scale[3];
-				mat4_to_size(ob_scale, obmat);
-
-				struct NearestDM_Data userdata;
-				userdata.bvhdata = &treedata_type;
-				userdata.depth_range = depth_range;
-				userdata.ray_depth = ray_depth;
-
-				BVHTree_NearestToRayCallback cb_test_ray_dist =
-				        (snap_to == SCE_SNAP_MODE_VERTEX) ?
-				        test_vert_ray_dist_cb : test_edge_ray_dist_cb;
-
-				if (BLI_bvhtree_find_nearest_to_ray(
-				        treedata->tree, ray_org_local, ray_normal_local,
-				        true, ob_scale, &nearest, cb_test_ray_dist, &userdata) != -1)
-				{
-					copy_v3_v3(r_loc, nearest.co);
-					mul_m4_v3(obmat, r_loc);
-					if (r_no) {
-						copy_v3_v3(r_no, nearest.no);
-						mul_m3_v3(timat, r_no);
-						normalize_v3(r_no);
-					}
-					*dist_px *= sqrtf(nearest.dist_sq) / dist_3d;
-
-					retval = true;
-				}
+				retval = true;
 			}
 		}
 
@@ -1634,70 +1475,32 @@ static bool snapEditMesh(
 
 			BVHTreeFromMeshType treedata_type = {.userdata = treedata, .type = SNAP_EDIT_MESH};
 
-			if (view_proj == VIEW_PROJ_PERSP) {
-				Object_Nearest2dPrecalc neasrest_precalc;
-				neasrest_precalc.userdata = &treedata_type;
-				neasrest_precalc.index = -1;
+			Object_Nearest2dPrecalc neasrest_precalc;
+			neasrest_precalc.userdata = &treedata_type;
+			neasrest_precalc.index = -1;
 
-				nearest2d_precalc(&neasrest_precalc, ar, *dist_px, obmat,
-				        ray_org_local, ray_normal_local, mval, depth_range);
+			nearest2d_precalc(&neasrest_precalc, ar, *dist_px, obmat,
+			        ray_org_local, ray_normal_local, mval, depth_range);
 
-				BVHTree_WalkLeafCallback cb_walk_leaf =
-				        (snap_to == SCE_SNAP_MODE_VERTEX) ?
-				        cb_walk_leaf_snap_vert : cb_walk_leaf_snap_edge;
+			BVHTree_WalkLeafCallback cb_walk_leaf =
+			        (snap_to == SCE_SNAP_MODE_VERTEX) ?
+			        cb_walk_leaf_snap_vert : cb_walk_leaf_snap_edge;
 
-				BLI_bvhtree_walk_dfs(
-				        treedata->tree,
-				        cb_walk_parent_snap_project, cb_walk_leaf, cb_nearest_walk_order, &neasrest_precalc);
+			BLI_bvhtree_walk_dfs(
+			        treedata->tree,
+			        cb_walk_parent_snap_project, cb_walk_leaf, cb_nearest_walk_order, &neasrest_precalc);
 
-				if (neasrest_precalc.index != -1) {
-					copy_v3_v3(r_loc, neasrest_precalc.co);
-					mul_m4_v3(obmat, r_loc);
-					if (r_no) {
-						copy_v3_v3(r_no, neasrest_precalc.no);
-						mul_m3_v3(timat, r_no);
-						normalize_v3(r_no);
-					}
-					*dist_px = sqrtf(neasrest_precalc.projectdefs.dist_px_sq);
-
-					retval = true;
+			if (neasrest_precalc.index != -1) {
+				copy_v3_v3(r_loc, neasrest_precalc.co);
+				mul_m4_v3(obmat, r_loc);
+				if (r_no) {
+					copy_v3_v3(r_no, neasrest_precalc.no);
+					mul_m3_v3(timat, r_no);
+					normalize_v3(r_no);
 				}
-			}
-			else {
-				BVHTreeNearest nearest;
+				*dist_px = sqrtf(neasrest_precalc.projectdefs.dist_px_sq);
 
-				nearest.index = -1;
-				float dist_3d = dist_px_to_dist3d_or_tangent(ar, *dist_px);
-				nearest.dist_sq = SQUARE(dist_3d);
-
-
-				float ob_scale[3];
-				mat4_to_size(ob_scale, obmat);
-
-				struct NearestDM_Data userdata;
-				userdata.bvhdata = &treedata_type;
-				userdata.depth_range = depth_range;
-				userdata.ray_depth = ray_depth;
-
-				BVHTree_NearestToRayCallback cb_test_ray_dist =
-				        (snap_to == SCE_SNAP_MODE_VERTEX) ?
-				        test_vert_ray_dist_cb : test_edge_ray_dist_cb;
-
-				if (BLI_bvhtree_find_nearest_to_ray(
-				        treedata->tree, ray_org_local, ray_normal_local,
-				        false, ob_scale, &nearest, cb_test_ray_dist, &userdata) != -1)
-				{
-					copy_v3_v3(r_loc, nearest.co);
-					mul_m4_v3(obmat, r_loc);
-					if (r_no) {
-						copy_v3_v3(r_no, nearest.no);
-						mul_m3_v3(timat, r_no);
-						normalize_v3(r_no);
-					}
-					*dist_px *= sqrtf(nearest.dist_sq) / dist_3d;
-
-					retval = true;
-				}
+				retval = true;
 			}
 		}
 
