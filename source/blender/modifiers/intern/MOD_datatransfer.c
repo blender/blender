@@ -179,7 +179,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 
 	/* Only used to check wehther we are operating on org data or not... */
 	Mesh *me = ob->data;
-	MVert *mvert;
 
 	const bool invert_vgroup = (dtmd->flags & MOD_DATATRANSFER_INVERT_VGROUP) != 0;
 
@@ -192,8 +191,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		BLI_SPACE_TRANSFORM_SETUP(space_transform, ob, dtmd->ob_source);
 	}
 
-	mvert = dm->getVertArray(dm);
-	if ((me->mvert == mvert) && (dtmd->data_types & DT_TYPES_AFFECT_MESH)) {
+	MVert *mvert = dm->getVertArray(dm);
+	MEdge *medge = dm->getEdgeArray(dm);
+	if (((me->mvert == mvert) || (me->medge == medge)) && (dtmd->data_types & DT_TYPES_AFFECT_MESH)) {
 		/* We need to duplicate data here, otherwise setting custom normals, edges' shaprness, etc., could
 		 * modify org mesh, see T43671. */
 		dm = CDDM_copy(dm);
