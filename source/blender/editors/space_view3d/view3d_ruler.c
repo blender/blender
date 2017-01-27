@@ -43,6 +43,8 @@
 
 #include "BIF_gl.h"
 
+#include "GPU_immediate.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -456,28 +458,38 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 		glEnable(GL_BLEND);
 
-		cpack(is_act ? color_act : color_base);
-
 		if (ruler_item->flag & RULERITEM_USE_ANGLE) {
-			glBegin(GL_LINE_STRIP);
+			unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+			imm_cpack(is_act ? color_act : color_base);
+
+			immBegin(GL_LINE_STRIP, 3);
+
 			for (j = 0; j < 3; j++) {
-				glVertex2fv(co_ss[j]);
+				immVertex2fv(pos, co_ss[j]);
 			}
-			glEnd();
-			cpack(0xaaaaaa);
+
+			immEnd();
+
+			imm_cpack(0xaaaaaa);
 			setlinestyle(3);
-			glBegin(GL_LINE_STRIP);
+
+			immBegin(GL_LINE_STRIP, 3);
+
 			for (j = 0; j < 3; j++) {
-				glVertex2fv(co_ss[j]);
+				immVertex2fv(pos, co_ss[j]);
 			}
-			glEnd();
+
+			immEnd();
+
 			setlinestyle(0);
 
 			/* arc */
 			{
 				float dir_tmp[3];
 				float co_tmp[3];
-				float arc_ss_coords[ARC_STEPS + 1][2];
+				float arc_ss_coord[2];
 
 				float dir_a[3];
 				float dir_b[3];
@@ -501,45 +513,19 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 				copy_v3_v3(dir_tmp, dir_a);
 
-				glColor3ubv(color_wire);
+				immUniformColor3ubv(color_wire);
+
+				immBegin(GL_LINE_STRIP, arc_steps + 1);
 
 				for (j = 0; j <= arc_steps; j++) {
 					madd_v3_v3v3fl(co_tmp, ruler_item->co[1], dir_tmp, px_scale);
-					ED_view3d_project_float_global(ar, co_tmp, arc_ss_coords[j], V3D_PROJ_TEST_NOP);
+					ED_view3d_project_float_global(ar, co_tmp, arc_ss_coord, V3D_PROJ_TEST_NOP);
 					mul_qt_v3(quat, dir_tmp);
+
+					immVertex2fv(pos, arc_ss_coord);
 				}
 
-				glEnableClientState(GL_VERTEX_ARRAY);
-				glVertexPointer(2, GL_FLOAT, 0, arc_ss_coords);
-				glDrawArrays(GL_LINE_STRIP, 0, arc_steps + 1);
-				glDisableClientState(GL_VERTEX_ARRAY);
-			}
-
-			/* text */
-			{
-				char numstr[256];
-				float numstr_size[2];
-				float pos[2];
-				const int prec = 2;  /* XXX, todo, make optional */
-
-				ruler_item_as_string(ruler_item, unit, numstr, sizeof(numstr), prec);
-
-				BLF_width_and_height(blf_mono_font, numstr, sizeof(numstr), &numstr_size[0], &numstr_size[1]);
-
-				pos[0] = co_ss[1][0] + (cap_size * 2.0f);
-				pos[1] = co_ss[1][1] - (numstr_size[1] / 2.0f);
-
-				/* draw text (bg) */
-				UI_draw_roundbox_corner_set(UI_CNR_ALL);
-				UI_draw_roundbox(
-				        pos[0] - bg_margin,                  pos[1] - bg_margin,
-				        pos[0] + bg_margin + numstr_size[0], pos[1] + bg_margin + numstr_size[1],
-				        bg_radius, color_back);
-				/* draw text */
-				glColor3ubv(color_text);
-				BLF_position(blf_mono_font, pos[0], pos[1], 0.0f);
-				BLF_rotation(blf_mono_font, 0.0f);
-				BLF_draw(blf_mono_font, numstr, sizeof(numstr));
+				immEnd();
 			}
 
 			/* capping */
@@ -560,74 +546,88 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 				glEnable(GL_BLEND);
 
-				glColor3ubv(color_wire);
+				immUniformColor3ubv(color_wire);
 
-				glBegin(GL_LINES);
+				immBegin(GL_LINES, 8);
 
 				madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec_a, cap_size);
-				glVertex2fv(cap);
+				immVertex2fv(pos, cap);
 				madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec_a, -cap_size);
-				glVertex2fv(cap);
+				immVertex2fv(pos, cap);
 
 				madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec_b, cap_size);
-				glVertex2fv(cap);
+				immVertex2fv(pos, cap);
 				madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec_b, -cap_size);
-				glVertex2fv(cap);
+				immVertex2fv(pos, cap);
 
 				/* angle vertex */
-				glVertex2f(co_ss[1][0] - cap_size, co_ss[1][1] - cap_size);
-				glVertex2f(co_ss[1][0] + cap_size, co_ss[1][1] + cap_size);
-				glVertex2f(co_ss[1][0] - cap_size, co_ss[1][1] + cap_size);
-				glVertex2f(co_ss[1][0] + cap_size, co_ss[1][1] - cap_size);
-				glEnd();
+				immVertex2f(pos, co_ss[1][0] - cap_size, co_ss[1][1] - cap_size);
+				immVertex2f(pos, co_ss[1][0] + cap_size, co_ss[1][1] + cap_size);
+				immVertex2f(pos, co_ss[1][0] - cap_size, co_ss[1][1] + cap_size);
+				immVertex2f(pos, co_ss[1][0] + cap_size, co_ss[1][1] - cap_size);
+
+				immEnd();
 
 				glDisable(GL_BLEND);
 			}
-		}
-		else {
-			glBegin(GL_LINE_STRIP);
-			for (j = 0; j < 3; j += 2) {
-				glVertex2fv(co_ss[j]);
-			}
-			glEnd();
-			cpack(0xaaaaaa);
-			setlinestyle(3);
-			glBegin(GL_LINE_STRIP);
-			for (j = 0; j < 3; j += 2) {
-				glVertex2fv(co_ss[j]);
-			}
-			glEnd();
-			setlinestyle(0);
 
-			sub_v2_v2v2(dir_ruler, co_ss[0], co_ss[2]);
+			immUnbindProgram();
 
 			/* text */
 			{
 				char numstr[256];
 				float numstr_size[2];
-				const int prec = 6;  /* XXX, todo, make optional */
-				float pos[2];
+				float posit[2];
+				const int prec = 2;  /* XXX, todo, make optional */
 
 				ruler_item_as_string(ruler_item, unit, numstr, sizeof(numstr), prec);
 
 				BLF_width_and_height(blf_mono_font, numstr, sizeof(numstr), &numstr_size[0], &numstr_size[1]);
 
-				mid_v2_v2v2(pos, co_ss[0], co_ss[2]);
-
-				/* center text */
-				pos[0] -= numstr_size[0] / 2.0f;
-				pos[1] -= numstr_size[1] / 2.0f;
+				posit[0] = co_ss[1][0] + (cap_size * 2.0f);
+				posit[1] = co_ss[1][1] - (numstr_size[1] / 2.0f);
 
 				/* draw text (bg) */
 				UI_draw_roundbox_corner_set(UI_CNR_ALL);
-				UI_draw_roundbox(pos[0] - bg_margin,                  pos[1] - bg_margin,
-				           pos[0] + bg_margin + numstr_size[0], pos[1] + bg_margin + numstr_size[1],
-				           bg_radius, color_back);
+				UI_draw_roundbox(
+				        posit[0] - bg_margin,                  posit[1] - bg_margin,
+				        posit[0] + bg_margin + numstr_size[0], posit[1] + bg_margin + numstr_size[1],
+				        bg_radius, color_back);
 				/* draw text */
-				glColor3ubv(color_text);
-				BLF_position(blf_mono_font, pos[0], pos[1], 0.0f);
+				BLF_color3ubv(blf_mono_font, color_text);
+				BLF_position(blf_mono_font, posit[0], posit[1], 0.0f);
+				BLF_rotation(blf_mono_font, 0.0f);
 				BLF_draw(blf_mono_font, numstr, sizeof(numstr));
 			}
+		}
+		else {
+			unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+			imm_cpack(is_act ? color_act : color_base);
+
+			immBegin(GL_LINE_STRIP, 2);
+
+			for (j = 0; j < 3; j += 2) {
+				immVertex2fv(pos, co_ss[j]);
+			}
+
+			immEnd();
+
+			imm_cpack(0xaaaaaa);
+			setlinestyle(3);
+
+			immBegin(GL_LINE_STRIP, 2);
+
+			for (j = 0; j < 3; j += 2) {
+				immVertex2fv(pos, co_ss[j]);
+			}
+
+			immEnd();
+
+			setlinestyle(0);
+
+			sub_v2_v2v2(dir_ruler, co_ss[0], co_ss[2]);
 
 			/* capping */
 			{
@@ -637,21 +637,54 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 				normalize_v2(rot_90_vec);
 
 				glEnable(GL_BLEND);
-				glColor3ubv(color_wire);
 
-				glBegin(GL_LINES);
+				immUniformColor3ubv(color_wire);
+
+				immBegin(GL_LINES, 4);
+
 				madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec, cap_size);
-				glVertex2fv(cap);
+				immVertex2fv(pos, cap);
 				madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec, -cap_size);
-				glVertex2fv(cap);
+				immVertex2fv(pos, cap);
 
 				madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec, cap_size);
-				glVertex2fv(cap);
+				immVertex2fv(pos, cap);
 				madd_v2_v2v2fl(cap, co_ss[2], rot_90_vec, -cap_size);
-				glVertex2fv(cap);
-				glEnd();
+				immVertex2fv(pos, cap);
+
+				immEnd();
 
 				glDisable(GL_BLEND);
+			}
+
+			immUnbindProgram();
+
+			/* text */
+			{
+				char numstr[256];
+				float numstr_size[2];
+				const int prec = 6;  /* XXX, todo, make optional */
+				float posit[2];
+
+				ruler_item_as_string(ruler_item, unit, numstr, sizeof(numstr), prec);
+
+				BLF_width_and_height(blf_mono_font, numstr, sizeof(numstr), &numstr_size[0], &numstr_size[1]);
+
+				mid_v2_v2v2(posit, co_ss[0], co_ss[2]);
+
+				/* center text */
+				posit[0] -= numstr_size[0] / 2.0f;
+				posit[1] -= numstr_size[1] / 2.0f;
+
+				/* draw text (bg) */
+				UI_draw_roundbox_corner_set(UI_CNR_ALL);
+				UI_draw_roundbox(posit[0] - bg_margin,                  posit[1] - bg_margin,
+				           posit[0] + bg_margin + numstr_size[0], posit[1] + bg_margin + numstr_size[1],
+				           bg_radius, color_back);
+				/* draw text */
+				BLF_color3ubv(blf_mono_font, color_text);
+				BLF_position(blf_mono_font, posit[0], posit[1], 0.0f);
+				BLF_draw(blf_mono_font, numstr, sizeof(numstr));
 			}
 		}
 	}
@@ -671,8 +704,14 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 			float co_ss[3];
 			ED_view3d_project_float_global(ar, ruler_item->co[ruler_item->co_index], co_ss, V3D_PROJ_TEST_NOP);
 
-			cpack(color_act);
-			circ(co_ss[0], co_ss[1], size * U.pixelsize);
+			unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+			imm_cpack(color_act);
+
+			imm_draw_lined_circle(pos, co_ss[0], co_ss[1], size * U.pixelsize, 32);
+
+			immUnbindProgram();
 		}
 	}
 
