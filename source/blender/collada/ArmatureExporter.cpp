@@ -74,8 +74,7 @@ void ArmatureExporter::add_armature_bones(Object *ob_arm, Scene *sce,
 	if (!is_edited)
 		ED_armature_to_edit(armature);
 
-	bArmature *arm = (bArmature *)ob_arm->data;
-	for (Bone *bone = (Bone *)arm->bonebase.first; bone; bone = bone->next) {
+	for (Bone *bone = (Bone *)armature->bonebase.first; bone; bone = bone->next) {
 		// start from root bones
 		if (!bone->parent)
 			add_bone_node(bone, ob_arm, sce, se, child_objects);
