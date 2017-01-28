@@ -69,7 +69,10 @@ void ArmatureExporter::add_armature_bones(Object *ob_arm, Scene *sce,
 	// write bone nodes
 
 	bArmature * armature = (bArmature *)ob_arm->data;
-	ED_armature_to_edit(armature);
+	bool is_edited = armature->edbo != NULL;
+
+	if (!is_edited)
+		ED_armature_to_edit(armature);
 
 	bArmature *arm = (bArmature *)ob_arm->data;
 	for (Bone *bone = (Bone *)arm->bonebase.first; bone; bone = bone->next) {
@@ -78,8 +81,10 @@ void ArmatureExporter::add_armature_bones(Object *ob_arm, Scene *sce,
 			add_bone_node(bone, ob_arm, sce, se, child_objects);
 	}
 
-	ED_armature_from_edit(armature);
-	ED_armature_edit_free(armature);
+	if (!is_edited) {
+		ED_armature_from_edit(armature);
+		ED_armature_edit_free(armature);
+	}
 }
 
 void ArmatureExporter::write_bone_URLs(COLLADASW::InstanceController &ins, Object *ob_arm, Bone *bone)
