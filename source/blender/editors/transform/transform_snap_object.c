@@ -1181,19 +1181,25 @@ static bool snapDerivedMesh(
 						len_diff = dot_v3v3(dvec, ray_normal_local);
 					}
 				}
-				float ray_org_local[3];
+				/* You need to make sure that ray_start is really far away,
+				 * because even in the Orthografic view, in some cases,
+				 * the ray can start inside the object (see T50486) */
+				if (len_diff > 400.0f) {
+					float ray_org_local[3];
 
-				copy_v3_v3(ray_org_local, snapdata->ray_origin);
-				mul_m4_v3(imat, ray_org_local);
+					copy_v3_v3(ray_org_local, snapdata->ray_origin);
+					mul_m4_v3(imat, ray_org_local);
 
-				/* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with very far
-				 * away ray_start values (as returned in case of ortho view3d), see T38358.
-				 */
-				len_diff -= local_scale;  /* make temp start point a bit away from bbox hit point. */
-				madd_v3_v3v3fl(
-				        ray_start_local, ray_org_local, ray_normal_local,
-				        len_diff + snapdata->depth_range[0] * local_scale);
-				local_depth -= len_diff;
+					/* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with
+					 * very far away ray_start values (as returned in case of ortho view3d), see T38358.
+					 */
+					len_diff -= local_scale;  /* make temp start point a bit away from bbox hit point. */
+					madd_v3_v3v3fl(
+					        ray_start_local, ray_org_local, ray_normal_local,
+					        len_diff + snapdata->depth_range[0] * local_scale);
+					local_depth -= len_diff;
+				}
+				else len_diff = 0.0f;
 			}
 			else {
 				len_diff = 0.0f;
@@ -1446,8 +1452,8 @@ static bool snapEditMesh(
 				local_depth *= local_scale;
 			}
 
-			/* Only use closer ray_start in case of ortho view! In perspective one, ray_start may already
-			 * been *inside* boundbox, leading to snap failures (see T38409).
+			/* Only use closer ray_start in case of ortho view! In perspective one, ray_start
+			 * may already been *inside* boundbox, leading to snap failures (see T38409).
 			 * Note also ar might be null (see T38435), in this case we assume ray_start is ok!
 			 */
 			float len_diff = 0.0f;
@@ -1465,20 +1471,26 @@ static bool snapEditMesh(
 					float dvec[3];
 					sub_v3_v3v3(dvec, nearest.co, ray_start_local);
 					len_diff = dot_v3v3(dvec, ray_normal_local);
-					float ray_org_local[3];
+					/* You need to make sure that ray_start is really far away,
+					 * because even in the Orthografic view, in some cases,
+					 * the ray can start inside the object (see T50486) */
+					if (len_diff > 400.0f) {
+						float ray_org_local[3];
 
-					copy_v3_v3(ray_org_local, snapdata->ray_origin);
-					mul_m4_v3(imat, ray_org_local);
+						copy_v3_v3(ray_org_local, snapdata->ray_origin);
+						mul_m4_v3(imat, ray_org_local);
 
-					/* We pass a temp ray_start, set from object's boundbox,
-					 * to avoid precision issues with very far away ray_start values
-					 * (as returned in case of ortho view3d), see T38358.
-					 */
-					len_diff -= local_scale;  /* make temp start point a bit away from bbox hit point. */
-					madd_v3_v3v3fl(
-					        ray_start_local, ray_org_local, ray_normal_local,
-					        len_diff + snapdata->depth_range[0] * local_scale);
-					local_depth -= len_diff;
+						/* We pass a temp ray_start, set from object's boundbox,
+						 * to avoid precision issues with very far away ray_start values
+						 * (as returned in case of ortho view3d), see T38358.
+						 */
+						len_diff -= local_scale; /* make temp start point a bit away from bbox hit point. */
+						madd_v3_v3v3fl(
+						        ray_start_local, ray_org_local, ray_normal_local,
+						        len_diff + snapdata->depth_range[0] * local_scale);
+						local_depth -= len_diff;
+					}
+					else len_diff = 0.0f;
 				}
 			}
 			if (r_hit_list) {
