@@ -258,7 +258,7 @@ typedef struct BVHTreeFromMeshType {
  * \param ray_direction: Unit length direction of the ray.
  * \param depth_range: distances of clipe plane min and clip plane max;
  */
-static void set_SnapData(
+static void snap_data_set(
         SnapData *snapdata,
         const ARegion *ar, const unsigned short snap_to, const enum eViewProj view_proj,
         const float mval[2], const float ray_origin[3], const float ray_start[3],
@@ -1894,7 +1894,7 @@ bool ED_transform_snap_object_project_ray_ex(
 	const float depth_range[2] = {0.0f, FLT_MAX};
 
 	SnapData snapdata;
-	set_SnapData(&snapdata, sctx->v3d_data.ar, snap_to, VIEW_PROJ_NONE, NULL, r_loc, r_loc, r_no, depth_range);
+	snap_data_set(&snapdata, sctx->v3d_data.ar, snap_to, VIEW_PROJ_NONE, NULL, r_loc, r_loc, r_no, depth_range);
 
 	return snapObjectsRay(
 	        sctx, &snapdata,
@@ -1928,7 +1928,7 @@ bool ED_transform_snap_object_project_ray_all(
 #endif
 
 	SnapData snapdata;
-	set_SnapData(&snapdata, sctx->v3d_data.ar, snap_to, VIEW_PROJ_NONE, NULL,
+	snap_data_set(&snapdata, sctx->v3d_data.ar, snap_to, VIEW_PROJ_NONE, NULL,
 	        ray_start, ray_start, ray_normal, depth_range);
 
 	bool retval = snapObjectsRay(
@@ -2095,7 +2095,7 @@ bool ED_transform_snap_object_project_view3d_ex(
 
 	SnapData snapdata;
 	const enum eViewProj view_proj = ((RegionView3D *)ar->regiondata)->is_persp ? VIEW_PROJ_PERSP : VIEW_PROJ_ORTHO;
-	set_SnapData(&snapdata, ar, snap_to, view_proj, mval,
+	snap_data_set(&snapdata, ar, snap_to, view_proj, mval,
 	        ray_start, ray_start, ray_normal, depth_range);
 
 	return snapObjectsRay(
