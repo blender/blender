@@ -1087,13 +1087,16 @@ static bool snapDerivedMesh(
 					bb = &bb_temp;
 				}
 
-				/* was local_depth, see: T47838 */
-				len_diff = BVH_RAYCAST_DIST_MAX;
+				float tmin, tmax;
 
-				if (!BKE_boundbox_ray_hit_check(bb, ray_start_local, ray_normal_local, &len_diff)) {
+				/* was BKE_boundbox_ray_hit_check, see: T50486 */
+				if (!isect_ray_aabb_v3_simple(
+					ray_start_local, ray_normal_local, bb->vec[0], bb->vec[6], &tmin, &tmax))
+				{
 					return retval;
 				}
-				need_ray_start_correction_init = false;
+				/* was local_depth, see: T47838 */
+				len_diff = tmin > 0 ? tmin : tmax;
 			}
 		}
 

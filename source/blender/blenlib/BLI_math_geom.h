@@ -293,6 +293,10 @@ void isect_ray_aabb_v3_precalc(
 bool isect_ray_aabb_v3(
         const struct IsectRayAABB_Precalc *data,
         const float bb_min[3], const float bb_max[3], float *tmin);
+bool isect_ray_aabb_v3_simple(
+        const float orig[3], const float dir[3],
+        const float bb_min[3], const float bb_max[3],
+        float *tmin, float *tmax);
 
 struct NearestRayToAABB_Precalc {
 	float ray_origin[3];
