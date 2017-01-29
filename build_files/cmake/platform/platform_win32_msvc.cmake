@@ -451,6 +451,12 @@ if(WITH_OPENSUBDIV OR WITH_CYCLES_OPENSUBDIV)
                                 debug ${OPENSUBDIV_LIBPATH}/osdCPU_d.lib 
                                 debug ${OPENSUBDIV_LIBPATH}/osdGPU_d.lib
                                 )
+    set(OPENSUBDIV_HAS_OPENMP TRUE)
+	set(OPENSUBDIV_HAS_TBB FALSE)
+	set(OPENSUBDIV_HAS_OPENCL TRUE)
+	set(OPENSUBDIV_HAS_CUDA FALSE)
+	set(OPENSUBDIV_HAS_GLSL_TRANSFORM_FEEDBACK TRUE)
+	set(OPENSUBDIV_HAS_GLSL_COMPUTE TRUE)
     windows_find_package(OpenSubdiv)
 endif()
 
