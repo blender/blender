@@ -2816,45 +2816,6 @@ int BKE_object_obdata_texspace_get(Object *ob, short **r_texflag, float **r_loc,
 	return 1;
 }
 
-/*
- * Test a bounding box for ray intersection
- * assumes the ray is already local to the boundbox space
- */
-bool BKE_boundbox_ray_hit_check(
-        const struct BoundBox *bb,
-        const float ray_start[3], const float ray_normal[3],
-        float *r_lambda)
-{
-	const int triangle_indexes[12][3] = {
-	    {0, 1, 2}, {0, 2, 3},
-	    {3, 2, 6}, {3, 6, 7},
-	    {1, 2, 6}, {1, 6, 5},
-	    {5, 6, 7}, {4, 5, 7},
-	    {0, 3, 7}, {0, 4, 7},
-	    {0, 1, 5}, {0, 4, 5}};
-
-	bool result = false;
-	int i;
-
-	for (i = 0; i < 12 && (!result || r_lambda); i++) {
-		float lambda;
-		int v1, v2, v3;
-		v1 = triangle_indexes[i][0];
-		v2 = triangle_indexes[i][1];
-		v3 = triangle_indexes[i][2];
-		if (isect_ray_tri_v3(ray_start, ray_normal, bb->vec[v1], bb->vec[v2], bb->vec[v3], &lambda, NULL) &&
-		    (!r_lambda || *r_lambda > lambda))
-		{
-			result = true;
-			if (r_lambda) {
-				*r_lambda = lambda;
-			}
-		}
-	}
-
-	return result;
-}
-
 static int pc_cmp(const void *a, const void *b)
 {
 	const LinkData *ad = a, *bd = b;

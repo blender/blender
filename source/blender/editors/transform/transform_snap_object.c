@@ -1089,7 +1089,7 @@ static bool snapDerivedMesh(
 
 				float tmin, tmax;
 
-				/* was BKE_boundbox_ray_hit_check, see: T50486 */
+				/* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
 				if (!isect_ray_aabb_v3_simple(
 					ray_start_local, ray_normal_local, bb->vec[0], bb->vec[6], &tmin, &tmax))
 				{
