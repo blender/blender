@@ -3910,8 +3910,12 @@ static void previews_id_ensure(bContext *C, Scene *scene, ID *id)
 	}
 }
 
-static int previews_id_ensure_callback(void *userdata, ID *UNUSED(self_id), ID **idptr, int UNUSED(cd_flag))
+static int previews_id_ensure_callback(void *userdata, ID *UNUSED(self_id), ID **idptr, int cd_flag)
 {
+	if (cd_flag & IDWALK_PRIVATE) {
+		return IDWALK_RET_NOP;
+	}
+
 	PreviewsIDEnsureData *data = userdata;
 	ID *id = *idptr;
 

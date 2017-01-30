@@ -85,6 +85,7 @@
 #define FOREACH_FINALIZE_VOID FOREACH_FINALIZE: (void)0
 
 #define FOREACH_CALLBACK_INVOKE_ID_PP(_data, id_pp, cb_flag) \
+	CHECK_TYPE(id_pp, ID **); \
 	if (!((_data)->status & IDWALK_STOP)) { \
 		const int _flag = (_data)->flag; \
 		ID *old_id = *(id_pp); \
@@ -265,8 +266,13 @@ static void library_foreach_paint(LibraryForeachIDData *data, Paint *paint)
 }
 
 static void library_foreach_ID_as_subdata_link(
-        ID *id, LibraryIDLinkCallback callback, void *user_data, int flag, LibraryForeachIDData *data)
+        ID **id_pp, LibraryIDLinkCallback callback, void *user_data, int flag, LibraryForeachIDData *data)
 {
+	/* Needed e.g. for callbacks handling relationships... This call shall be absolutely readonly. */
+	ID *id = *id_pp;
+	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pp, IDWALK_PRIVATE);
+	BLI_assert(id == *id_pp);
+
 	if (flag & IDWALK_RECURSE) {
 		/* Defer handling into main loop, recursively calling BKE_library_foreach_ID_link in IDWALK_RECURSE case is
 		 * troublesome, see T49553. */
@@ -278,6 +284,8 @@ static void library_foreach_ID_as_subdata_link(
 	else {
 		BKE_library_foreach_ID_link(id, callback, user_data, flag);
 	}
+
+	FOREACH_FINALIZE_VOID;
 }
 
 /**
@@ -342,7 +350,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				CALLBACK_INVOKE(scene->clip, IDWALK_USER);
 				if (scene->nodetree) {
 					/* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-					library_foreach_ID_as_subdata_link((ID *)scene->nodetree, callback, user_data, flag, &data);
+					library_foreach_ID_as_subdata_link((ID **)&scene->nodetree, callback, user_data, flag, &data);
 				}
 				/* DO NOT handle scene->basact here, it's doubling with the loop over whole scene->base later,
 				 * since basact is just a pointer to one of those items. */
@@ -606,7 +614,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				}
 				if (material->nodetree) {
 					/* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-					library_foreach_ID_as_subdata_link((ID *)material->nodetree, callback, user_data, flag, &data);
+					library_foreach_ID_as_subdata_link((ID **)&material->nodetree, callback, user_data, flag, &data);
 				}
 				CALLBACK_INVOKE(material->group, IDWALK_USER);
 				break;
@@ -617,7 +625,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				Tex *texture = (Tex *) id;
 				if (texture->nodetree) {
 					/* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-					library_foreach_ID_as_subdata_link((ID *)texture->nodetree, callback, user_data, flag, &data);
+					library_foreach_ID_as_subdata_link((ID **)&texture->nodetree, callback, user_data, flag, &data);
 				}
 				CALLBACK_INVOKE(texture->ima, IDWALK_USER);
 				if (texture->env) {
@@ -650,7 +658,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				}
 				if (lamp->nodetree) {
 					/* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-					library_foreach_ID_as_subdata_link((ID *)lamp->nodetree, callback, user_data, flag, &data);
+					library_foreach_ID_as_subdata_link((ID **)&lamp->nodetree, callback, user_data, flag, &data);
 				}
 				break;
 			}
@@ -690,7 +698,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				}
 				if (world->nodetree) {
 					/* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-					library_foreach_ID_as_subdata_link((ID *)world->nodetree, callback, user_data, flag, &data);
+					library_foreach_ID_as_subdata_link((ID **)&world->nodetree, callback, user_data, flag, &data);
 				}
 				break;
 			}
@@ -834,7 +842,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				}
 				if (linestyle->nodetree) {
 					/* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
-					library_foreach_ID_as_subdata_link((ID *)linestyle->nodetree, callback, user_data, flag, &data);
+					library_foreach_ID_as_subdata_link((ID **)&linestyle->nodetree, callback, user_data, flag, &data);
 				}
 
 				for (lsm = linestyle->color_modifiers.first; lsm; lsm = lsm->next) {

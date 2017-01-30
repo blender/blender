@@ -274,8 +274,12 @@ void BKE_id_clear_newpoin(ID *id)
 }
 
 static int id_expand_local_callback(
-        void *UNUSED(user_data), struct ID *id_self, struct ID **id_pointer, int UNUSED(cd_flag))
+        void *UNUSED(user_data), struct ID *id_self, struct ID **id_pointer, int cd_flag)
 {
+	if (cd_flag & IDWALK_PRIVATE) {
+		return IDWALK_RET_NOP;
+	}
+
 	/* Can hapen that we get unlinkable ID here, e.g. with shapekey referring to itself (through drivers)...
 	 * Just skip it, shape key can only be either indirectly linked, or fully local, period.
 	 * And let's curse one more time that stupid useless shapekey ID type! */

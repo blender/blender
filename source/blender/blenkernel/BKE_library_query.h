@@ -46,14 +46,17 @@ enum {
 	 */
 	IDWALK_INDIRECT_USAGE = (1 << 2),
 
+	/** That ID is used as mere sub-data by its owner
+	 * (only case currently: those f***ing nodetrees in materials etc.).
+	 * This means callback shall not *do* anything, only use this as informative data if it needs it. */
+	IDWALK_PRIVATE = (1 << 3),
+
 	/**
 	 * Adjusts #ID.us reference-count.
 	 * \note keep in sync with 'newlibadr_us' use in readfile.c
 	 */
 	IDWALK_USER = (1 << 8),
-	/**
-	 * Ensure #ID.us is at least 1 on use.
-	 */
+	/** Ensure #ID.us is at least 1 on use. */
 	IDWALK_USER_ONE = (1 << 9),
 };
 
