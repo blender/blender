@@ -76,6 +76,7 @@
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
+#include "BLI_mempool.h"
 #include "BLI_string_utils.h"
 
 #include "BLI_threads.h"
@@ -1252,6 +1253,10 @@ void BKE_main_free(Main *mainvar)
 		}
 	}
 
+	if (mainvar->relations) {
+		BKE_main_relations_free(mainvar);
+	}
+
 	BLI_spin_end((SpinLock *)mainvar->lock);
 	MEM_freeN(mainvar->lock);
 	DEG_evaluation_context_free(mainvar->eval_ctx);
@@ -1266,6 +1271,78 @@ void BKE_main_lock(struct Main *bmain)
 void BKE_main_unlock(struct Main *bmain)
 {
 	BLI_spin_unlock((SpinLock *) bmain->lock);
+}
+
+
+static int main_relations_create_cb(void *user_data, ID *id_self, ID **id_pointer, int cd_flag)
+{
+	MainIDRelations *rel = user_data;
+
+	if (*id_pointer) {
+		MainIDRelationsEntry *entry, **entry_p;
+
+		entry = BLI_mempool_alloc(rel->entry_pool);
+		if (BLI_ghash_ensure_p(rel->id_user_to_used, id_self, (void ***)&entry_p)) {
+			entry->next = *entry_p;
+		}
+		else {
+			entry->next = NULL;
+		}
+		entry->id_pointer = id_pointer;
+		entry->usage_flag = cd_flag;
+		*entry_p = entry;
+
+		entry = BLI_mempool_alloc(rel->entry_pool);
+		if (BLI_ghash_ensure_p(rel->id_used_to_user, *id_pointer, (void ***)&entry_p)) {
+			entry->next = *entry_p;
+		}
+		else {
+			entry->next = NULL;
+		}
+		entry->id_pointer = (ID **)id_self;
+		entry->usage_flag = cd_flag;
+		*entry_p = entry;
+	}
+
+	return IDWALK_RET_NOP;
+}
+
+/** Generate the mappings between used IDs and their users, and vice-versa. */
+void BKE_main_relations_create(Main *bmain)
+{
+	ListBase *lbarray[MAX_LIBARRAY];
+	ID *id;
+	int a;
+
+	if (bmain->relations != NULL) {
+		BKE_main_relations_free(bmain);
+	}
+
+	bmain->relations = MEM_mallocN(sizeof(*bmain->relations), __func__);
+	bmain->relations->id_used_to_user = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
+	bmain->relations->id_user_to_used = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
+	bmain->relations->entry_pool = BLI_mempool_create(sizeof(MainIDRelationsEntry), 128, 128, BLI_MEMPOOL_NOP);
+
+	for (a = set_listbasepointers(bmain, lbarray); a--; ) {
+		for (id = lbarray[a]->first; id; id = id->next) {
+			BKE_library_foreach_ID_link(id, main_relations_create_cb, bmain->relations, IDWALK_READONLY);
+		}
+	}
+}
+
+void BKE_main_relations_free(Main *bmain)
+{
+	if (bmain->relations) {
+		if (bmain->relations->id_used_to_user) {
+			BLI_ghash_free(bmain->relations->id_used_to_user, NULL, NULL);
+		}
+		if (bmain->relations->id_user_to_used) {
+			BLI_ghash_free(bmain->relations->id_user_to_used, NULL, NULL);
+		}
+		BLI_mempool_destroy(bmain->relations->entry_pool);
+		MEM_freeN(bmain->relations);
+		bmain->relations = NULL;
+	}
 }
 
 /**

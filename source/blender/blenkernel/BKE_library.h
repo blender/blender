@@ -105,6 +105,9 @@ void BKE_main_free(struct Main *mainvar);
 void BKE_main_lock(struct Main *bmain);
 void BKE_main_unlock(struct Main *bmain);
 
+void BKE_main_relations_create(struct Main *bmain);
+void BKE_main_relations_free(struct Main *bmain);
+
 struct BlendThumbnail *BKE_main_thumbnail_from_imbuf(struct Main *bmain, struct ImBuf *img);
 struct ImBuf *BKE_main_thumbnail_to_imbuf(struct Main *bmain, struct BlendThumbnail *data);
 void BKE_main_thumbnail_create(struct Main *bmain);
