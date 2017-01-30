@@ -247,22 +247,21 @@ ccl_device bool shadow_blocked_transparent_all(KernelGlobals *kg,
  * potentially transparent, and only in that case start marching. this gives
  * one extra ray cast for the cases were we do want transparency.
  */
-ccl_device bool shadow_blocked_transparent_stepped(
+
+/* This function is only implementing device-independent traversal logic
+ * which requires some precalculation done.
+ */
+ccl_device bool shadow_blocked_transparent_stepped_loop(
         KernelGlobals *kg,
         ShaderData *shadow_sd,
         ccl_addr_space PathState *state,
         Ray *ray,
         Intersection *isect,
+        const bool blocked,
+        const bool is_transparent_isect,
         float3 *shadow)
 {
-	/* Early check for opaque shadows. */
-	const bool blocked = scene_intersect(kg,
-	                                     *ray,
-	                                     PATH_RAY_SHADOW_OPAQUE,
-	                                     isect,
-	                                     NULL,
-	                                     0.0f, 0.0f);
-	if(blocked && shader_transparent_shadow(kg, isect)) {
+	if(blocked && is_transparent_isect) {
 		float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
 		float3 Pend = ray->P + ray->D*ray->t;
 		int bounce = state->transparent_bounce;
@@ -319,6 +318,34 @@ ccl_device bool shadow_blocked_transparent_stepped(
 #    endif
 	return blocked;
 }
+
+ccl_device bool shadow_blocked_transparent_stepped(
+        KernelGlobals *kg,
+        ShaderData *shadow_sd,
+        ccl_addr_space PathState *state,
+        Ray *ray,
+        Intersection *isect,
+        float3 *shadow)
+{
+	const bool blocked = scene_intersect(kg,
+	                                     *ray,
+	                                     PATH_RAY_SHADOW_OPAQUE,
+	                                     isect,
+	                                     NULL,
+	                                     0.0f, 0.0f);
+	const bool is_transparent_isect = blocked
+	        ? shader_transparent_shadow(kg, isect)
+	        : false;
+	return shadow_blocked_transparent_stepped_loop(kg,
+	                                               shadow_sd,
+	                                               state,
+	                                               ray,
+	                                               isect,
+	                                               blocked,
+	                                               is_transparent_isect,
+	                                               shadow);
+}
+
 #  endif  /* __KERNEL_GPU__ */
 #endif /* __TRANSPARENT_SHADOWS__ */
 
@@ -346,6 +373,9 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
 		return false;
 	}
 	/* Do actual shadow shading. */
+	/* First of all, we check if integrator requires transparent shadows.
+	 * if not, we use simplest and fastest ever way to calculate occlusion.
+	 */
 #ifdef __TRANSPARENT_SHADOWS__
 	if(!kernel_data.integrator.transparent_shadows)
 #endif
@@ -359,6 +389,9 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
 	}
 #ifdef __TRANSPARENT_SHADOWS__
 #  ifdef __SHADOW_RECORD_ALL__
+	/* For the transparent shadows we try to use record-all logic on the
+	 * devices which supports this.
+	 */
 	const int transparent_max_bounce = kernel_data.integrator.transparent_max_bounce;
 	/* Check transparent bounces here, for volume scatter which can do
 	 * lighting before surface path termination is checked.
@@ -368,25 +401,49 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
 	}
 	const uint max_hits = transparent_max_bounce - state->transparent_bounce - 1;
 #    ifdef __KERNEL_GPU__
-	if(max_hits + 1 < SHADOW_STACK_MAX_HITS)
-#    endif
+	/* On GPU we do trickey with tracing opaque ray first, this avoids speed
+	 * regressions in some files.
+	 *
+	 * TODO(sergey): Check why using record-all behavior causes slowdown in such
+	 * cases. Could that be caused by a higher spill pressure?
+	 */
+	const bool blocked = scene_intersect(kg,
+	                                     *ray,
+	                                     PATH_RAY_SHADOW_OPAQUE,
+	                                     isect,
+	                                     NULL,
+	                                     0.0f, 0.0f);
+	const bool is_transparent_isect = blocked
+	        ? shader_transparent_shadow(kg, isect)
+	        : false;
+	if(!blocked || !is_transparent_isect ||
+	   max_hits + 1 >= SHADOW_STACK_MAX_HITS)
 	{
-		return shadow_blocked_transparent_all(kg,
-		                                      shadow_sd,
-		                                      state,
-		                                      ray,
-		                                      max_hits,
-		                                      shadow);
+		return shadow_blocked_transparent_stepped_loop(kg,
+		                                               shadow_sd,
+		                                               state,
+		                                               ray,
+		                                               isect,
+		                                               blocked,
+		                                               is_transparent_isect,
+		                                               shadow);
 	}
-#  endif  /* __SHADOW_RECORD_ALL__ */
-#  ifdef __KERNEL_GPU__
+#    endif  /* __KERNEL_GPU__ */
+	return shadow_blocked_transparent_all(kg,
+	                                      shadow_sd,
+	                                      state,
+	                                      ray,
+	                                      max_hits,
+	                                      shadow);
+#  else  /* __SHADOW_RECORD_ALL__ */
+	/* Fallback to a slowest version which works on all devices. */
 	return shadow_blocked_transparent_stepped(kg,
 	                                          shadow_sd,
 	                                          state,
 	                                          ray,
 	                                          isect,
 	                                          shadow);
-#  endif  /* __KERNEL_GPU__ */
+#  endif  /* __SHADOW_RECORD_ALL__ */
 #endif  /* __TRANSPARENT_SHADOWS__ */
 }
 
