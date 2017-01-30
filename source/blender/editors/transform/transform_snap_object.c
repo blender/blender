@@ -280,25 +280,6 @@ static void snap_data_set(
 	copy_v2_v2(snapdata->depth_range, depth_range);
 }
 
-static const float *get_vert_co(const BVHTreeFromMeshType *meshdata, const int index)
-{
-	switch (meshdata->type) {
-		case SNAP_MESH:
-		{
-			BVHTreeFromMesh *data = meshdata->userdata;
-			const MVert *vert = data->vert;
-			return vert[index].co;
-		}
-		case SNAP_EDIT_MESH:
-		{
-			BVHTreeFromEditMesh *data = meshdata->userdata;
-			BMVert *eve = BM_vert_at_index(data->em->bm, index);
-			return eve->co;
-		}
-	}
-	return NULL;
-}
-
 static void copy_vert_no(const BVHTreeFromMeshType *meshdata, const int index, float r_no[3])
 {
 	switch (meshdata->type) {
@@ -1269,8 +1250,6 @@ static bool snapDerivedMesh(
 		}
 		/* SCE_SNAP_MODE_VERTEX or SCE_SNAP_MODE_EDGE */
 		else {
-			const ARegion *ar = sctx->v3d_data.ar;
-
 			float ray_org_local[3];
 			copy_v3_v3(ray_org_local, snapdata->ray_origin);
 			mul_m4_v3(imat, ray_org_local);
@@ -1557,8 +1536,6 @@ static bool snapEditMesh(
 			}
 		}
 		else {
-			const ARegion *ar = sctx->v3d_data.ar;
-
 			float ray_org_local[3];
 			copy_v3_v3(ray_org_local, snapdata->ray_origin);
 			mul_m4_v3(imat, ray_org_local);
@@ -1898,7 +1875,7 @@ bool ED_transform_snap_object_project_ray_ex(
         SnapObjectContext *sctx,
         const unsigned short snap_to,
         const struct SnapObjectParams *params,
-        const float ray_start[3], const float ray_normal[3],
+        const float UNUSED(ray_start[3]), const float UNUSED(ray_normal[3]),
         float *ray_depth,
         float r_loc[3], float r_no[3], int *r_index,
         Object **r_ob, float r_obmat[4][4])
