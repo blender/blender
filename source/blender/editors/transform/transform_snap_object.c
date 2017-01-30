@@ -2099,7 +2099,7 @@ bool ED_transform_snap_object_project_view3d_ex(
 	SnapData snapdata;
 	const enum eViewProj view_proj = ((RegionView3D *)ar->regiondata)->is_persp ? VIEW_PROJ_PERSP : VIEW_PROJ_ORTHO;
 	snap_data_set(&snapdata, ar, snap_to, view_proj, mval,
-	        ray_start, ray_start, ray_normal, depth_range);
+	        ray_origin, ray_start, ray_normal, depth_range);
 
 	return snapObjectsRay(
 	        sctx, &snapdata,
