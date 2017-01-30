@@ -542,12 +542,16 @@ static bool cb_walk_parent_snap_project(const BVHTreeAxisRange *bounds, void *us
 
 	/* if rtmin < rtmax, ray intersect `AABB` */
 	if (rtmin <= rtmax) {
+#define IGNORE_BEHIND_RAY
 #ifdef IGNORE_BEHIND_RAY
 		/* `if rtmax < depth_min`, the hit is behind us */
 		if (rtmax < data->depth_range[0]) {
-			/* TODO: TODO: Check if the entire AABB is behind ray
-			 * this will prevent unnecessary leaf testing */
-			return false;
+			/* Test if the entire AABB is behind us */
+			float dvec[3];
+			sub_v3_v3v3(dvec, local_bvmax, data->ray_origin_local);
+			if (dot_v3v3(dvec, data->ray_direction_local) < (data->depth_range[0])) {
+				return false;
+			}
 		}
 #endif
 		const float proj = rtmin * data->ray_direction_local[main_axis];
@@ -557,10 +561,15 @@ static bool cb_walk_parent_snap_project(const BVHTreeAxisRange *bounds, void *us
 #ifdef IGNORE_BEHIND_RAY
 	/* `if rtmin < depth_min`, the hit is behing us */
 	else if (rtmin < data->depth_range[0]) {
-		/* TODO: Test if the AABB is totally behind ray */
-		return false;
+		/* Test if the entire AABB is behind us */
+		float dvec[3];
+		sub_v3_v3v3(dvec, local_bvmax, data->ray_origin_local);
+		if (dot_v3v3(dvec, data->ray_direction_local) < (data->depth_range[0])) {
+			return false;
+		}
 	}
 #endif
+#undef IGNORE_BEHIND_RAY
 	if (data->sign[main_axis]) {
 		va[main_axis] = local_bvmax[main_axis];
 		vb[main_axis] = local_bvmin[main_axis];
