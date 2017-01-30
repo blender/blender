@@ -263,7 +263,7 @@ static PyObject *bpy_user_map(PyObject *UNUSED(self), PyObject *args, PyObject *
 			}
 
 			data_cb.id_curr = id;
-			BKE_library_foreach_ID_link(id, foreach_libblock_id_user_map_callback, &data_cb, IDWALK_NOP);
+			BKE_library_foreach_ID_link(NULL, id, foreach_libblock_id_user_map_callback, &data_cb, IDWALK_NOP);
 
 			if (data_cb.py_id_curr) {
 				Py_DECREF(data_cb.py_id_curr);

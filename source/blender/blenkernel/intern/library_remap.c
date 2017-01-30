@@ -438,7 +438,7 @@ ATTR_NONNULL(1) static void libblock_remap_data(
 #endif
 		r_id_remap_data->id = id;
 		libblock_remap_data_preprocess(r_id_remap_data);
-		BKE_library_foreach_ID_link(id, foreach_libblock_remap_callback, (void *)r_id_remap_data, IDWALK_NOP);
+		BKE_library_foreach_ID_link(NULL, id, foreach_libblock_remap_callback, (void *)r_id_remap_data, IDWALK_NOP);
 	}
 	else {
 		i = set_listbasepointers(bmain, lb_array);
@@ -460,7 +460,7 @@ ATTR_NONNULL(1) static void libblock_remap_data(
 				r_id_remap_data->id = id_curr;
 				libblock_remap_data_preprocess(r_id_remap_data);
 				BKE_library_foreach_ID_link(
-				            id_curr, foreach_libblock_remap_callback, (void *)r_id_remap_data, IDWALK_NOP);
+				            NULL, id_curr, foreach_libblock_remap_callback, (void *)r_id_remap_data, IDWALK_NOP);
 			}
 		}
 	}
@@ -719,7 +719,7 @@ void BKE_libblock_relink_to_newid(ID *id)
 	if (ID_IS_LINKED_DATABLOCK(id))
 		return;
 
-	BKE_library_foreach_ID_link(id, id_relink_to_newid_looper, NULL, 0);
+	BKE_library_foreach_ID_link(NULL, id, id_relink_to_newid_looper, NULL, 0);
 }
 
 void BKE_libblock_free_data(Main *UNUSED(bmain), ID *id)

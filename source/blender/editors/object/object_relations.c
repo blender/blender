@@ -2170,12 +2170,12 @@ static void tag_localizable_objects(bContext *C, const int mode)
 	 */
 	for (Object *object = bmain->object.first; object; object = object->id.next) {
 		if ((object->id.tag & LIB_TAG_DOIT) == 0) {
-			BKE_library_foreach_ID_link(&object->id, tag_localizable_looper, NULL, IDWALK_READONLY);
+			BKE_library_foreach_ID_link(NULL, &object->id, tag_localizable_looper, NULL, IDWALK_READONLY);
 		}
 		if (object->data) {
 			ID *data_id = (ID *) object->data;
 			if ((data_id->tag & LIB_TAG_DOIT) == 0) {
-				BKE_library_foreach_ID_link(data_id, tag_localizable_looper, NULL, IDWALK_READONLY);
+				BKE_library_foreach_ID_link(NULL, data_id, tag_localizable_looper, NULL, IDWALK_READONLY);
 			}
 		}
 	}

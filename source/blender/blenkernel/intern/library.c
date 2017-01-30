@@ -293,9 +293,9 @@ static int id_expand_local_callback(
 /**
  * Expand ID usages of given id as 'extern' (and no more indirect) linked data. Used by ID copy/make_local functions.
  */
-void BKE_id_expand_local(ID *id)
+void BKE_id_expand_local(Main *bmain, ID *id)
 {
-	BKE_library_foreach_ID_link(id, id_expand_local_callback, NULL, 0);
+	BKE_library_foreach_ID_link(bmain, id, id_expand_local_callback, NULL, IDWALK_READONLY);
 }
 
 /**
@@ -304,7 +304,7 @@ void BKE_id_expand_local(ID *id)
 void BKE_id_copy_ensure_local(Main *bmain, ID *old_id, ID *new_id)
 {
 	if (ID_IS_LINKED_DATABLOCK(old_id)) {
-		BKE_id_expand_local(new_id);
+		BKE_id_expand_local(bmain, new_id);
 		BKE_id_lib_local_paths(bmain, old_id->lib, new_id);
 	}
 }
@@ -331,7 +331,7 @@ void BKE_id_make_local_generic(Main *bmain, ID *id, const bool id_in_mainlist, c
 	if (lib_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data_ex(bmain, id, id_in_mainlist);
-			BKE_id_expand_local(id);
+			BKE_id_expand_local(bmain, id);
 		}
 		else {
 			ID *id_new;
@@ -1329,7 +1329,7 @@ void BKE_main_relations_create(Main *bmain)
 
 	for (a = set_listbasepointers(bmain, lbarray); a--; ) {
 		for (id = lbarray[a]->first; id; id = id->next) {
-			BKE_library_foreach_ID_link(id, main_relations_create_cb, bmain->relations, IDWALK_READONLY);
+			BKE_library_foreach_ID_link(NULL, id, main_relations_create_cb, bmain->relations, IDWALK_READONLY);
 		}
 	}
 }
@@ -1777,7 +1777,7 @@ void BKE_library_make_local(
 			 * some indirect usages. So instead of making a copy that se'll likely get rid of later, directly make
 			 * that data block local. Saves a tremendous amount of time with complex scenes... */
 			id_clear_lib_data_ex(bmain, id, true);
-			BKE_id_expand_local(id);
+			BKE_id_expand_local(bmain, id);
 			id->tag &= ~LIB_TAG_DOIT;
 		}
 		else {

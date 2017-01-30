@@ -3948,7 +3948,7 @@ static int previews_ensure_exec(bContext *C, wmOperator *UNUSED(op))
 		preview_id_data.scene = scene;
 		id = (ID *)scene;
 
-		BKE_library_foreach_ID_link(id, previews_id_ensure_callback, &preview_id_data, IDWALK_RECURSE);
+		BKE_library_foreach_ID_link(NULL, id, previews_id_ensure_callback, &preview_id_data, IDWALK_RECURSE);
 	}
 
 	/* Check a last time for ID not used (fake users only, in theory), and

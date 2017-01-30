@@ -282,7 +282,7 @@ static void library_foreach_ID_as_subdata_link(
 		}
 	}
 	else {
-		BKE_library_foreach_ID_link(id, callback, user_data, flag);
+		BKE_library_foreach_ID_link(NULL, id, callback, user_data, flag);
 	}
 
 	FOREACH_FINALIZE_VOID;
@@ -293,7 +293,7 @@ static void library_foreach_ID_as_subdata_link(
  *
  * \note: May be extended to be recursive in the future.
  */
-void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *user_data, int flag)
+void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback callback, void *user_data, int flag)
 {
 	LibraryForeachIDData data;
 	int i;
@@ -321,9 +321,21 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 #define CALLBACK_INVOKE(check_id_super, cb_flag) \
 	FOREACH_CALLBACK_INVOKE(&data, check_id_super, cb_flag)
 
-	do {
+	for (; id != NULL; id = (flag & IDWALK_RECURSE) ? BLI_LINKSTACK_POP(data.ids_todo) : NULL) {
 		data.self_id = id;
 		data.cd_flag = ID_IS_LINKED_DATABLOCK(id) ? IDWALK_INDIRECT_USAGE : 0;
+
+		if (bmain != NULL && bmain->relations != NULL && (flag & IDWALK_READONLY)) {
+			/* Note that this is minor optimization, even in worst cases (like id being an object with lots of
+			 * drivers and constraints and modifiers, or material etc. with huge node tree),
+			 * but we might as well use it (Main->relations is always assumed valid, it's responsability of code
+			 * creating it to free it, especially if/when it starts modifying Main database). */
+			MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->id_user_to_used, id);
+			for (; entry != NULL; entry = entry->next) {
+				FOREACH_CALLBACK_INVOKE_ID_PP(&data, entry->id_pointer, entry->usage_flag);
+			}
+			continue;
+		}
 
 		AnimData *adt = BKE_animdata_from_id(id);
 		if (adt) {
@@ -899,7 +911,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				break;
 
 		}
-	} while ((id = (flag & IDWALK_RECURSE) ? BLI_LINKSTACK_POP(data.ids_todo) : NULL));
+	}
 
 FOREACH_FINALIZE:
 	if (data.ids_handled) {
@@ -1088,7 +1100,7 @@ int BKE_library_ID_use_ID(ID *id_user, ID *id_used)
 	iter.curr_id = id_user;
 	iter.count_direct = iter.count_indirect = 0;
 
-	BKE_library_foreach_ID_link(iter.curr_id, foreach_libblock_id_users_callback, (void *)&iter, IDWALK_NOP);
+	BKE_library_foreach_ID_link(NULL, iter.curr_id, foreach_libblock_id_users_callback, (void *)&iter, IDWALK_READONLY);
 
 	return iter.count_direct + iter.count_indirect;
 }
@@ -1117,7 +1129,7 @@ static bool library_ID_is_used(Main *bmain, void *idv, const bool check_linked)
 			}
 			iter.curr_id = id_curr;
 			BKE_library_foreach_ID_link(
-			            id_curr, foreach_libblock_id_users_callback, &iter, IDWALK_NOP);
+			            bmain, id_curr, foreach_libblock_id_users_callback, &iter, IDWALK_READONLY);
 
 			is_defined = ((check_linked ? iter.count_indirect : iter.count_direct) != 0);
 		}
@@ -1168,7 +1180,7 @@ void BKE_library_ID_test_usages(Main *bmain, void *idv, bool *is_used_local, boo
 				continue;
 			}
 			iter.curr_id = id_curr;
-			BKE_library_foreach_ID_link(id_curr, foreach_libblock_id_users_callback, &iter, IDWALK_NOP);
+			BKE_library_foreach_ID_link(bmain, id_curr, foreach_libblock_id_users_callback, &iter, IDWALK_READONLY);
 
 			is_defined = (iter.count_direct != 0 && iter.count_indirect != 0);
 		}
@@ -1245,7 +1257,8 @@ void BKE_library_unused_linked_data_set_tag(Main *bmain, const bool do_init_tag)
 					/* Unused ID (so far), no need to check it further. */
 					continue;
 				}
-				BKE_library_foreach_ID_link(id, foreach_libblock_used_linked_data_tag_clear_cb, &do_loop, IDWALK_NOP);
+				BKE_library_foreach_ID_link(
+				            bmain, id, foreach_libblock_used_linked_data_tag_clear_cb, &do_loop, IDWALK_READONLY);
 			}
 		}
 	}
@@ -1272,7 +1285,8 @@ void BKE_library_indirectly_used_data_tag_clear(Main *bmain)
 					/* Local or non-indirectly-used ID (so far), no need to check it further. */
 					continue;
 				}
-				BKE_library_foreach_ID_link(id, foreach_libblock_used_linked_data_tag_clear_cb, &do_loop, IDWALK_NOP);
+				BKE_library_foreach_ID_link(
+				            bmain, id, foreach_libblock_used_linked_data_tag_clear_cb, &do_loop, IDWALK_READONLY);
 			}
 		}
 	}

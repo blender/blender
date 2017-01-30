@@ -1204,7 +1204,7 @@ void BKE_object_make_local_ex(Main *bmain, Object *ob, const bool lib_local, con
 	if (lib_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &ob->id);
-			BKE_id_expand_local(&ob->id);
+			BKE_id_expand_local(bmain, &ob->id);
 			if (clear_proxy) {
 				if (ob->proxy_from != NULL) {
 					ob->proxy_from->proxy = NULL;
