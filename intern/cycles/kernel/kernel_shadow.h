@@ -22,7 +22,7 @@ CCL_NAMESPACE_BEGIN
 ccl_device_forceinline bool shadow_handle_transparent_isect(
         KernelGlobals *kg,
         ShaderData *shadow_sd,
-        PathState *state,
+        ccl_addr_space PathState *state,
         Intersection *isect,
         Ray *ray,
         float3 *throughput)
@@ -38,7 +38,7 @@ ccl_device_forceinline bool shadow_handle_transparent_isect(
 	/* Setup shader data at surface. */
 	shader_setup_from_ray(kg, shadow_sd, isect, ray);
 	/* Attenuation from transparent surface. */
-	if(!(shadow_sd->flag & SD_HAS_ONLY_VOLUME)) {
+	if(!(ccl_fetch(shadow_sd, flag) & SD_HAS_ONLY_VOLUME)) {
 		path_state_modify_bounce(state, true);
 		shader_eval_surface(kg,
 		                    shadow_sd,
@@ -64,7 +64,7 @@ ccl_device_forceinline bool shadow_handle_transparent_isect(
 /* Special version which only handles opaque shadows. */
 ccl_device bool shadow_blocked_opaque(KernelGlobals *kg,
                                       ShaderData *shadow_sd,
-                                      PathState *state,
+                                      ccl_addr_space PathState *state,
                                       Ray *ray,
                                       Intersection *isect,
                                       float3 *shadow)
@@ -120,7 +120,7 @@ ccl_device bool shadow_blocked_opaque(KernelGlobals *kg,
  */
 ccl_device bool shadow_blocked_transparent_all_loop(KernelGlobals *kg,
                                                     ShaderData *shadow_sd,
-                                                    PathState *state,
+                                                    ccl_addr_space PathState *state,
                                                     Ray *ray,
                                                     Intersection *hits,
                                                     uint max_hits,
@@ -162,7 +162,7 @@ ccl_device bool shadow_blocked_transparent_all_loop(KernelGlobals *kg,
 			/* Attenuate the throughput. */
 			if(shadow_handle_transparent_isect(kg,
 			                                   shadow_sd,
-			                                   &ps,
+			                                   state,
 			                                   isect,
 			                                   ray,
 			                                   &throughput))
@@ -170,7 +170,7 @@ ccl_device bool shadow_blocked_transparent_all_loop(KernelGlobals *kg,
 				return true;
 			}
 			/* Move ray forward. */
-			ray->P = shadow_sd->P;
+			ray->P = ccl_fetch(shadow_sd, P);
 			if(ray->t != FLT_MAX) {
 				ray->D = normalize_len(Pend - ray->P, &ray->t);
 			}
@@ -199,7 +199,7 @@ ccl_device bool shadow_blocked_transparent_all_loop(KernelGlobals *kg,
  */
 ccl_device bool shadow_blocked_transparent_all(KernelGlobals *kg,
                                                ShaderData *shadow_sd,
-                                               PathState *state,
+                                               ccl_addr_space PathState *state,
                                                Ray *ray,
                                                uint max_hits,
                                                float3 *shadow)
@@ -250,7 +250,7 @@ ccl_device bool shadow_blocked_transparent_all(KernelGlobals *kg,
 ccl_device bool shadow_blocked_transparent_stepped(
         KernelGlobals *kg,
         ShaderData *shadow_sd,
-        PathState *state,
+        ccl_addr_space PathState *state,
         Ray *ray,
         Intersection *isect,
         float3 *shadow)
@@ -288,7 +288,7 @@ ccl_device bool shadow_blocked_transparent_stepped(
 			/* Attenuate the throughput. */
 			if(shadow_handle_transparent_isect(kg,
 			                                   shadow_sd,
-			                                   &ps,
+			                                   state,
 			                                   isect,
 			                                   ray,
 			                                   &throughput))
@@ -324,8 +324,8 @@ ccl_device bool shadow_blocked_transparent_stepped(
 
 ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
                                       ShaderData *shadow_sd,
-                                      PathState *state,
-                                      Ray *ray_input,
+                                      ccl_addr_space PathState *state,
+                                      ccl_addr_space Ray *ray_input,
                                       float3 *shadow)
 {
 	/* Special trickery for split kernel: some data is coming from the

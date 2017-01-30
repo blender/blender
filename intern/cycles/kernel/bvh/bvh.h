@@ -357,7 +357,7 @@ ccl_device_inline float3 ray_offset(float3 P, float3 Ng)
 #endif
 }
 
-#if defined(__SHADOW_RECORD_ALL__) || defined(__VOLUME_RECORD_ALL__)
+#if defined(__VOLUME_RECORD_ALL__) || (defined(__SHADOW_RECORD_ALL__) && defined(__KERNEL_CPU__))
 /* ToDo: Move to another file? */
 ccl_device int intersections_compare(const void *a, const void *b)
 {
@@ -371,7 +371,9 @@ ccl_device int intersections_compare(const void *a, const void *b)
 	else
 		return 0;
 }
+#endif
 
+#if defined(__SHADOW_RECORD_ALL__)
 ccl_device_inline void sort_intersections(Intersection *hits, uint num_hits)
 {
 #ifdef __KERNEL_GPU__
@@ -380,7 +382,7 @@ ccl_device_inline void sort_intersections(Intersection *hits, uint num_hits)
 	for(i = 0; i < num_hits; ++i) {
 		for(j = 0; j < num_hits - 1; ++j) {
 			if(hits[j].t < hits[j + 1].t) {
-				Intersection tmp = hits[j];
+				struct Intersection tmp = hits[j];
 				hits[j] = hits[j + 1];
 				hits[j + 1] = tmp;
 			}
