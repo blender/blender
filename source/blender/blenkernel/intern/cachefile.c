@@ -215,7 +215,9 @@ void BKE_cachefile_clean(Scene *scene, CacheFile *cache_file)
 
 			if (cache_file == mcmd->cache_file) {
 #ifdef WITH_ALEMBIC
-				CacheReader_free(mcmd->reader);
+				if (mcmd->reader != NULL) {
+					CacheReader_free(mcmd->reader);
+				}
 #endif
 				mcmd->reader = NULL;
 				mcmd->object_path[0] = '\0';
@@ -231,7 +233,9 @@ void BKE_cachefile_clean(Scene *scene, CacheFile *cache_file)
 
 			if (cache_file == data->cache_file) {
 #ifdef WITH_ALEMBIC
-				CacheReader_free(data->reader);
+				if (data->reader != NULL) {
+					CacheReader_free(data->reader);
+				}
 #endif
 				data->reader = NULL;
 				data->object_path[0] = '\0';
