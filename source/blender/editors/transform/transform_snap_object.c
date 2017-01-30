@@ -59,6 +59,12 @@
 
 #include "transform.h"
 
+enum eViewProj {
+	VIEW_PROJ_NONE = -1,
+	VIEW_PROJ_ORTHO = 0,
+	VIEW_PROJ_PERSP = -1,
+};
+
 typedef struct SnapData {
 	short snap_to;
 	float mval[2];
@@ -120,12 +126,6 @@ struct SnapObjectContext {
 		} edit_mesh;
 	} callbacks;
 
-};
-
-enum eViewProj {
-	VIEW_PROJ_NONE     = -1,
-	VIEW_PROJ_ORTHO    =  0,
-	VIEW_PROJ_PERSP    = -1,
 };
 
 static int dm_looptri_to_poly_index(DerivedMesh *dm, const MLoopTri *lt);
