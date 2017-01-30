@@ -23,16 +23,23 @@ ccl_device_forceinline bool shadow_handle_transparent_isect(
         KernelGlobals *kg,
         ShaderData *shadow_sd,
         ccl_addr_space PathState *state,
+#    ifdef __VOLUME__
+        struct PathState *volume_state,
+#    endif
         Intersection *isect,
         Ray *ray,
         float3 *throughput)
 {
 #ifdef __VOLUME__
 	/* Attenuation between last surface and next surface. */
-	if(state->volume_stack[0].shader != SHADER_NONE) {
+	if(volume_state->volume_stack[0].shader != SHADER_NONE) {
 		Ray segment_ray = *ray;
 		segment_ray.t = isect->t;
-		kernel_volume_shadow(kg, shadow_sd, state, &segment_ray, throughput);
+		kernel_volume_shadow(kg,
+		                     shadow_sd,
+		                     volume_state,
+		                     &segment_ray,
+		                     throughput);
 	}
 #endif
 	/* Setup shader data at surface. */
@@ -56,7 +63,7 @@ ccl_device_forceinline bool shadow_handle_transparent_isect(
 	}
 #ifdef __VOLUME__
 	/* Exit/enter volume. */
-	kernel_volume_stack_enter_exit(kg, shadow_sd, state->volume_stack);
+	kernel_volume_stack_enter_exit(kg, shadow_sd, volume_state->volume_stack);
 #endif
 	return false;
 }
@@ -163,6 +170,9 @@ ccl_device bool shadow_blocked_transparent_all_loop(KernelGlobals *kg,
 			if(shadow_handle_transparent_isect(kg,
 			                                   shadow_sd,
 			                                   state,
+#ifdef __VOLUME__
+			                                   &ps,
+#endif
 			                                   isect,
 			                                   ray,
 			                                   &throughput))
@@ -288,6 +298,9 @@ ccl_device bool shadow_blocked_transparent_stepped_loop(
 			if(shadow_handle_transparent_isect(kg,
 			                                   shadow_sd,
 			                                   state,
+#ifdef __VOLUME__
+			                                   &ps,
+#endif
 			                                   isect,
 			                                   ray,
 			                                   &throughput))
