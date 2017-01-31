@@ -45,9 +45,8 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_unit.h"
 
-#include "BIF_gl.h"
-
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "UI_interface.h"
 
@@ -106,8 +105,8 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		if (v3d && v3d->zbuf)
 			glDisable(GL_DEPTH_TEST);
 
-		glPushMatrix();
-		glMultMatrixf(lcd->ob->obmat);
+		gpuMatrixBegin3D_legacy();
+		gpuMultMatrix3D(lcd->ob->obmat);
 
 		unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
 
@@ -139,7 +138,7 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 		immUnbindProgram();
 
-		glPopMatrix();
+		gpuMatrixEnd();
 
 		if (v3d && v3d->zbuf)
 			glEnable(GL_DEPTH_TEST);
