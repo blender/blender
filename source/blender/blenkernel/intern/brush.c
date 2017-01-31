@@ -239,7 +239,7 @@ void BKE_brush_make_local(Main *bmain, Brush *brush, const bool lib_local)
 	if (lib_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &brush->id);
-			BKE_id_expand_local(&brush->id);
+			BKE_id_expand_local(bmain, &brush->id);
 
 			/* enable fake user by default */
 			id_fake_user_set(&brush->id);

@@ -62,28 +62,66 @@ class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
             m = linestyle.alpha_modifiers[self.name]
         else:
             m = linestyle.thickness_modifiers[self.name]
-        # Find the source object
+        # Find the reference object
         if m.type == 'DISTANCE_FROM_CAMERA':
-            source = scene.camera
+            ref = scene.camera
+            matrix_to_camera = ref.matrix_world.inverted()
         elif m.type == 'DISTANCE_FROM_OBJECT':
             if m.target is None:
                 self.report({'ERROR'}, "Target object not specified")
                 return {'CANCELLED'}
-            source = m.target
+            ref = m.target
+            target_location = ref.location
         else:
             self.report({'ERROR'}, "Unexpected modifier type: " + m.type)
             return {'CANCELLED'}
-        # Find selected mesh objects
-        selection = [ob for ob in scene.objects if ob.select and ob.type == 'MESH' and ob.name != source.name]
-        if selection:
-            # Compute the min/max distance between selected mesh objects and the source
+        # Find selected vertices in editmesh
+        ob = bpy.context.active_object
+        if ob.type == 'MESH' and ob.mode == 'EDIT' and ob.name != ref.name:
+            bpy.ops.object.mode_set(mode='OBJECT')
+            selected_verts = [v for v in bpy.context.active_object.data.vertices if v.select]
+            bpy.ops.object.mode_set(mode='EDIT')
+            # Compute the min/max distance from the reference to mesh vertices
             min_dist = sys.float_info.max
             max_dist = -min_dist
-            for ob in selection:
-                for vert in ob.data.vertices:
-                    dist = (ob.matrix_world * vert.co - source.location).length
+            if m.type == 'DISTANCE_FROM_CAMERA':
+                ob_to_cam = matrix_to_camera * ob.matrix_world
+                for vert in selected_verts:
+                    # dist in the camera space
+                    dist = (ob_to_cam * vert.co).length
                     min_dist = min(dist, min_dist)
                     max_dist = max(dist, max_dist)
+            elif m.type == 'DISTANCE_FROM_OBJECT':
+                for vert in selected_verts:
+                    # dist in the world space
+                    dist = (ob.matrix_world * vert.co - target_location).length
+                    min_dist = min(dist, min_dist)
+                    max_dist = max(dist, max_dist)
+            # Fill the Range Min/Max entries with the computed distances
+            m.range_min = min_dist
+            m.range_max = max_dist
+            return {'FINISHED'}
+        # Find selected mesh objects
+        selection = [ob for ob in scene.objects if ob.select and ob.type == 'MESH' and ob.name != ref.name]
+        if selection:
+            # Compute the min/max distance from the reference to mesh vertices
+            min_dist = sys.float_info.max
+            max_dist = -min_dist
+            if m.type == 'DISTANCE_FROM_CAMERA':
+                for ob in selection:
+                    ob_to_cam = matrix_to_camera * ob.matrix_world
+                    for vert in ob.data.vertices:
+                        # dist in the camera space
+                        dist = (ob_to_cam * vert.co).length
+                        min_dist = min(dist, min_dist)
+                        max_dist = max(dist, max_dist)
+            elif m.type == 'DISTANCE_FROM_OBJECT':
+                for ob in selection:
+                    for vert in ob.data.vertices:
+                        # dist in the world space
+                        dist = (ob.matrix_world * vert.co - target_location).length
+                        min_dist = min(dist, min_dist)
+                        max_dist = max(dist, max_dist)
             # Fill the Range Min/Max entries with the computed distances
             m.range_min = min_dist
             m.range_max = max_dist

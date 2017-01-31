@@ -722,7 +722,7 @@ if(NOT WITH_BOOST)
 	macro(set_and_warn
 		_setting _val)
 		if(${${_setting}})
-			message(STATUS "'WITH_BOOST' is disabled: forceing 'set(${_setting} ${_val})'")
+			message(STATUS "'WITH_BOOST' is disabled: forcing 'set(${_setting} ${_val})'")
 		endif()
 		set(${_setting} ${_val})
 	endmacro()

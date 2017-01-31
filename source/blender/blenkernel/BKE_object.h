@@ -136,14 +136,9 @@ void BKE_object_where_is_calc_mat4(struct Scene *scene, struct Object *ob, float
 /* possibly belong in own moduke? */
 struct BoundBox *BKE_boundbox_alloc_unit(void);
 void BKE_boundbox_init_from_minmax(struct BoundBox *bb, const float min[3], const float max[3]);
-bool BKE_boundbox_ray_hit_check(
-        const struct BoundBox *bb,
-        const float ray_start[3], const float ray_normal[3],
-        float *r_lambda);
 void BKE_boundbox_calc_center_aabb(const struct BoundBox *bb, float r_cent[3]);
 void BKE_boundbox_calc_size_aabb(const struct BoundBox *bb, float r_size[3]);
 void BKE_boundbox_minmax(const struct BoundBox *bb, float obmat[4][4], float r_min[3], float r_max[3]);
-void BKE_boundbox_scale(struct BoundBox *bb_dst, const struct BoundBox *bb_src, float scale);
 struct BoundBox *BKE_boundbox_ensure_minimum_dimensions(
         struct BoundBox *bb, struct BoundBox *bb_temp, const float epsilon);
 

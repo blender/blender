@@ -119,7 +119,7 @@ static void foreachObjectLink(
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *) md;
 
-	walk(userData, ob, &mmd->object, IDWALK_NOP);
+	walk(userData, ob, &mmd->object, IDWALK_CB_NOP);
 }
 
 static void updateDepsgraph(ModifierData *md,

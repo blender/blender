@@ -216,6 +216,10 @@ static void anim_change_prop_name(FCurve *fcu,
 
 static void do_version_hue_sat_node(bNodeTree *ntree, bNode *node)
 {
+	if (node->storage == NULL) {
+		return;
+	}
+
 	/* Make sure new sockets are properly created. */
 	node_verify_socket_templates(ntree, node);
 	/* Convert value from old storage to new sockets. */

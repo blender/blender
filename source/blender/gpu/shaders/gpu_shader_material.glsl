@@ -3536,6 +3536,8 @@ void node_light_path(
 	out float is_transmission_ray,
 	out float ray_length,
 	out float ray_depth,
+	out float diffuse_depth,
+	out float glossy_depth,
 	out float transparent_depth,
 	out float transmission_depth)
 {
@@ -3548,6 +3550,8 @@ void node_light_path(
 	is_transmission_ray = 0.0;
 	ray_length = 1.0;
 	ray_depth = 1.0;
+	diffuse_depth = 1.0;
+	glossy_depth = 1.0;
 	transparent_depth = 1.0;
 	transmission_depth = 1.0;
 }

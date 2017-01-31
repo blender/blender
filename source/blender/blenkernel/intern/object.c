@@ -1204,7 +1204,7 @@ void BKE_object_make_local_ex(Main *bmain, Object *ob, const bool lib_local, con
 	if (lib_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &ob->id);
-			BKE_id_expand_local(&ob->id);
+			BKE_id_expand_local(bmain, &ob->id);
 			if (clear_proxy) {
 				if (ob->proxy_from != NULL) {
 					ob->proxy_from->proxy = NULL;
@@ -2236,18 +2236,6 @@ void BKE_boundbox_minmax(const BoundBox *bb, float obmat[4][4], float r_min[3], 
 	}
 }
 
-void BKE_boundbox_scale(struct BoundBox *bb_dst, const struct BoundBox *bb_src, float scale)
-{
-	float cent[3];
-	BKE_boundbox_calc_center_aabb(bb_src, cent);
-
-	for (int i = 0; i < ARRAY_SIZE(bb_dst->vec); i++) {
-		bb_dst->vec[i][0] = ((bb_src->vec[i][0] - cent[0]) * scale) + cent[0];
-		bb_dst->vec[i][1] = ((bb_src->vec[i][1] - cent[1]) * scale) + cent[1];
-		bb_dst->vec[i][2] = ((bb_src->vec[i][2] - cent[2]) * scale) + cent[2];
-	}
-}
-
 /**
  * Returns a BBox which each dimensions are at least epsilon.
  * \note In case a given dimension needs to be enlarged, its final value will be in [epsilon, 3 * epsilon] range.
@@ -2814,45 +2802,6 @@ int BKE_object_obdata_texspace_get(Object *ob, short **r_texflag, float **r_loc,
 			return 0;
 	}
 	return 1;
-}
-
-/*
- * Test a bounding box for ray intersection
- * assumes the ray is already local to the boundbox space
- */
-bool BKE_boundbox_ray_hit_check(
-        const struct BoundBox *bb,
-        const float ray_start[3], const float ray_normal[3],
-        float *r_lambda)
-{
-	const int triangle_indexes[12][3] = {
-	    {0, 1, 2}, {0, 2, 3},
-	    {3, 2, 6}, {3, 6, 7},
-	    {1, 2, 6}, {1, 6, 5},
-	    {5, 6, 7}, {4, 5, 7},
-	    {0, 3, 7}, {0, 4, 7},
-	    {0, 1, 5}, {0, 4, 5}};
-
-	bool result = false;
-	int i;
-
-	for (i = 0; i < 12 && (!result || r_lambda); i++) {
-		float lambda;
-		int v1, v2, v3;
-		v1 = triangle_indexes[i][0];
-		v2 = triangle_indexes[i][1];
-		v3 = triangle_indexes[i][2];
-		if (isect_ray_tri_v3(ray_start, ray_normal, bb->vec[v1], bb->vec[v2], bb->vec[v3], &lambda, NULL) &&
-		    (!r_lambda || *r_lambda > lambda))
-		{
-			result = true;
-			if (r_lambda) {
-				*r_lambda = lambda;
-			}
-		}
-	}
-
-	return result;
 }
 
 static int pc_cmp(const void *a, const void *b)

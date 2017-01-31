@@ -121,7 +121,7 @@ struct BuilderWalkUserData {
 static void modifier_walk(void *user_data,
                           struct Object * /*ob*/,
                           struct Object **obpoin,
-                          int /*cd_flag*/)
+                          int /*cb_flag*/)
 {
 	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
 	if (*obpoin) {

@@ -74,7 +74,7 @@ static void foreachObjectLink(
         ObjectWalkFunc walk, void *userData)
 {
 	MaskModifierData *mmd = (MaskModifierData *)md;
-	walk(userData, ob, &mmd->ob_arm, IDWALK_NOP);
+	walk(userData, ob, &mmd->ob_arm, IDWALK_CB_NOP);
 }
 
 static void updateDepsgraph(ModifierData *md,

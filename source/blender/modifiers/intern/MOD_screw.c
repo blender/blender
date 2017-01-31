@@ -1075,7 +1075,7 @@ static void foreachObjectLink(
 {
 	ScrewModifierData *ltmd = (ScrewModifierData *) md;
 
-	walk(userData, ob, &ltmd->ob_axis, IDWALK_NOP);
+	walk(userData, ob, &ltmd->ob_axis, IDWALK_CB_NOP);
 }
 
 ModifierTypeInfo modifierType_Screw = {

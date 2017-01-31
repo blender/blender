@@ -151,7 +151,7 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 {
 	MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *) md;
 
-	walk(userData, ob, (ID **)&mcmd->cache_file, IDWALK_USER);
+	walk(userData, ob, (ID **)&mcmd->cache_file, IDWALK_CB_USER);
 }
 
 

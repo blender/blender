@@ -111,8 +111,8 @@ static void foreachObjectLink(
 {
 	WaveModifierData *wmd = (WaveModifierData *) md;
 
-	walk(userData, ob, &wmd->objectcenter, IDWALK_NOP);
-	walk(userData, ob, &wmd->map_object, IDWALK_NOP);
+	walk(userData, ob, &wmd->objectcenter, IDWALK_CB_NOP);
+	walk(userData, ob, &wmd->map_object, IDWALK_CB_NOP);
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob,
@@ -120,7 +120,7 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 {
 	WaveModifierData *wmd = (WaveModifierData *) md;
 
-	walk(userData, ob, (ID **)&wmd->texture, IDWALK_USER);
+	walk(userData, ob, (ID **)&wmd->texture, IDWALK_CB_USER);
 
 	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }

@@ -92,7 +92,7 @@ static void foreachObjectLink(ModifierData *md, Object *ob,
 	int i;
 
 	for (i = 0; i < MOD_UVPROJECT_MAXPROJECTORS; ++i)
-		walk(userData, ob, &umd->projectors[i], IDWALK_NOP);
+		walk(userData, ob, &umd->projectors[i], IDWALK_CB_NOP);
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob,
@@ -100,7 +100,7 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 {
 	UVProjectModifierData *umd = (UVProjectModifierData *) md;
 
-	walk(userData, ob, (ID **)&umd->image, IDWALK_USER);
+	walk(userData, ob, (ID **)&umd->image, IDWALK_CB_USER);
 
 	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }

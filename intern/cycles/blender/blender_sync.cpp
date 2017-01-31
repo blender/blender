@@ -322,6 +322,15 @@ void BlenderSync::sync_integrator()
 		integrator->volume_samples = volume_samples;
 	}
 
+	if(b_scene.render().use_simplify()) {
+		if(preview) {
+			integrator->ao_bounces = get_int(cscene, "ao_bounces");
+		}
+		else {
+			integrator->ao_bounces = get_int(cscene, "ao_bounces_render");
+		}
+	}
+
 	if(integrator->modified(previntegrator))
 		integrator->tag_update(scene);
 }

@@ -2309,6 +2309,34 @@ bool isect_ray_aabb_v3(
 	return true;
 }
 
+/*
+ * Test a bounding box (AABB) for ray intersection
+ * assumes the ray is already local to the boundbox space
+ */
+bool isect_ray_aabb_v3_simple(
+        const float orig[3], const float dir[3],
+        const float bb_min[3], const float bb_max[3],
+        float *tmin, float *tmax)
+{
+	double t[7];
+	float hit_dist[2];
+	t[1] = (double)(bb_min[0] - orig[0]) / dir[0];
+	t[2] = (double)(bb_max[0] - orig[0]) / dir[0];
+	t[3] = (double)(bb_min[1] - orig[1]) / dir[1];
+	t[4] = (double)(bb_max[1] - orig[1]) / dir[1];
+	t[5] = (double)(bb_min[2] - orig[2]) / dir[2];
+	t[6] = (double)(bb_max[2] - orig[2]) / dir[2];
+	hit_dist[0] = (float)fmax(fmax(fmin(t[1], t[2]), fmin(t[3], t[4])), fmin(t[5], t[6]));
+	hit_dist[1] = (float)fmin(fmin(fmax(t[1], t[2]), fmax(t[3], t[4])), fmax(t[5], t[6]));
+	if ((hit_dist[1] < 0 || hit_dist[0] > hit_dist[1]))
+		return false;
+	else {
+		if (tmin) *tmin = hit_dist[0];
+		if (tmax) *tmax = hit_dist[1];
+		return true;
+	}
+}
+
 void dist_squared_ray_to_aabb_v3_precalc(
         struct NearestRayToAABB_Precalc *data,
         const float ray_origin[3], const float ray_direction[3])

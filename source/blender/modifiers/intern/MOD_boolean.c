@@ -101,7 +101,7 @@ static void foreachObjectLink(
 {
 	BooleanModifierData *bmd = (BooleanModifierData *) md;
 
-	walk(userData, ob, &bmd->object, IDWALK_NOP);
+	walk(userData, ob, &bmd->object, IDWALK_CB_NOP);
 }
 
 static void updateDepsgraph(ModifierData *md,

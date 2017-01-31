@@ -88,7 +88,7 @@ static void foreachObjectLink(
 {
 	LatticeModifierData *lmd = (LatticeModifierData *) md;
 
-	walk(userData, ob, &lmd->object, IDWALK_NOP);
+	walk(userData, ob, &lmd->object, IDWALK_CB_NOP);
 }
 
 static void updateDepsgraph(ModifierData *md,

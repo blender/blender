@@ -53,7 +53,7 @@ struct RigidBodyOb *BKE_rigidbody_copy_object(struct Object *ob);
 struct RigidBodyCon *BKE_rigidbody_copy_constraint(struct Object *ob);
 
 /* Callback format for performing operations on ID-pointers for rigidbody world. */
-typedef void (*RigidbodyWorldIDFunc)(struct RigidBodyWorld *rbw, struct ID **idpoin, void *userdata, int cd_flag);
+typedef void (*RigidbodyWorldIDFunc)(struct RigidBodyWorld *rbw, struct ID **idpoin, void *userdata, int cb_flag);
 
 void BKE_rigidbody_world_id_loop(struct RigidBodyWorld *rbw, RigidbodyWorldIDFunc func, void *userdata);
 

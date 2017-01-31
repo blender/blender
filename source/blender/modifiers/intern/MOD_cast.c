@@ -102,7 +102,7 @@ static void foreachObjectLink(
 {
 	CastModifierData *cmd = (CastModifierData *) md;
 
-	walk(userData, ob, &cmd->object, IDWALK_NOP);
+	walk(userData, ob, &cmd->object, IDWALK_CB_NOP);
 }
 
 static void updateDepsgraph(ModifierData *md,

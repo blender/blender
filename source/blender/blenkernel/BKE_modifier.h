@@ -106,8 +106,8 @@ typedef enum {
 } ModifierTypeFlag;
 
 /* IMPORTANT! Keep ObjectWalkFunc and IDWalkFunc signatures compatible. */
-typedef void (*ObjectWalkFunc)(void *userData, struct Object *ob, struct Object **obpoin, int cd_flag);
-typedef void (*IDWalkFunc)(void *userData, struct Object *ob, struct ID **idpoin, int cd_flag);
+typedef void (*ObjectWalkFunc)(void *userData, struct Object *ob, struct Object **obpoin, int cb_flag);
+typedef void (*IDWalkFunc)(void *userData, struct Object *ob, struct ID **idpoin, int cb_flag);
 typedef void (*TexWalkFunc)(void *userData, struct Object *ob, struct ModifierData *md, const char *propname);
 
 typedef enum ModifierApplyFlag {
