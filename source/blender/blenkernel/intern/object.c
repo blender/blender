@@ -1204,7 +1204,7 @@ void BKE_object_make_local_ex(Main *bmain, Object *ob, const bool lib_local, con
 	if (lib_local || is_local) {
 		if (!is_lib) {
 			id_clear_lib_data(bmain, &ob->id);
-			BKE_id_expand_local(bmain, &ob->id);
+			BKE_id_expand_local(&ob->id);
 			if (clear_proxy) {
 				if (ob->proxy_from != NULL) {
 					ob->proxy_from->proxy = NULL;
@@ -2233,18 +2233,6 @@ void BKE_boundbox_minmax(const BoundBox *bb, float obmat[4][4], float r_min[3], 
 		float vec[3];
 		mul_v3_m4v3(vec, obmat, bb->vec[i]);
 		minmax_v3v3_v3(r_min, r_max, vec);
-	}
-}
-
-void BKE_boundbox_scale(struct BoundBox *bb_dst, const struct BoundBox *bb_src, float scale)
-{
-	float cent[3];
-	BKE_boundbox_calc_center_aabb(bb_src, cent);
-
-	for (int i = 0; i < ARRAY_SIZE(bb_dst->vec); i++) {
-		bb_dst->vec[i][0] = ((bb_src->vec[i][0] - cent[0]) * scale) + cent[0];
-		bb_dst->vec[i][1] = ((bb_src->vec[i][1] - cent[1]) * scale) + cent[1];
-		bb_dst->vec[i][2] = ((bb_src->vec[i][2] - cent[2]) * scale) + cent[2];
 	}
 }
 
