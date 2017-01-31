@@ -47,6 +47,8 @@
 
 #include "BIF_gl.h"
 
+#include "GPU_immediate.h"
+
 #include "UI_interface.h"
 
 #include "ED_screen.h"
@@ -107,24 +109,38 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		glPushMatrix();
 		glMultMatrixf(lcd->ob->obmat);
 
-		glColor3ub(255, 0, 255);
+		unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+
+		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+		immUniformColor3ub(255, 0, 255);
+
 		if (lcd->totedge > 0) {
-			glEnableClientState(GL_VERTEX_ARRAY);
-			glVertexPointer(3, GL_FLOAT, 0, lcd->edges);
-			glDrawArrays(GL_LINES, 0, lcd->totedge * 2);
-			glDisableClientState(GL_VERTEX_ARRAY);
+			immBegin(GL_LINES, lcd->totedge * 2);
+
+			for (int i = 0; i < lcd->totedge; i++) {
+				immVertex3fv(pos, lcd->edges[i][0]);
+				immVertex3fv(pos, lcd->edges[i][1]);
+			}
+
+			immEnd();
 		}
 
 		if (lcd->totpoint > 0) {
 			glPointSize(3.0f);
 
-			glEnableClientState(GL_VERTEX_ARRAY);
-			glVertexPointer(3, GL_FLOAT, 0, lcd->points);
-			glDrawArrays(GL_POINTS, 0, lcd->totpoint);
-			glDisableClientState(GL_VERTEX_ARRAY);
+			immBegin(GL_POINTS, lcd->totpoint);
+
+			for (int i = 0; i < lcd->totpoint; i++) {
+				immVertex3fv(pos, lcd->points[i]);
+			}
+
+			immEnd();
 		}
 
+		immUnbindProgram();
+
 		glPopMatrix();
+
 		if (v3d && v3d->zbuf)
 			glEnable(GL_DEPTH_TEST);
 	}
