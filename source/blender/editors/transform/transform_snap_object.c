@@ -1117,11 +1117,12 @@ static bool snapDerivedMesh(
 		float depth_range_local[2];
 		if (ELEM(snapdata->snap_to, SCE_SNAP_MODE_VERTEX, SCE_SNAP_MODE_EDGE)) {
 			mul_m4_m4m4(lpmat, snapdata->pmat, obmat);
-			copy_v3_v3(ray_org_local, snapdata->ray_origin);
-			mul_m4_v3(imat, ray_org_local);
 			depth_range_local[0] = snapdata->depth_range[0] * local_scale;
 			depth_range_local[1] = local_depth + depth_range_local[0];
 		}
+
+		copy_v3_v3(ray_org_local, snapdata->ray_origin);
+		mul_m4_v3(imat, ray_org_local);
 
 		if (do_bb) {
 			BoundBox *bb = BKE_object_boundbox_get(ob);
@@ -1246,11 +1247,6 @@ static bool snapDerivedMesh(
 				 * because even in the Orthografic view, in some cases,
 				 * the ray can start inside the object (see T50486) */
 				if (len_diff > 400.0f) {
-					float ray_org_local[3];
-
-					copy_v3_v3(ray_org_local, snapdata->ray_origin);
-					mul_m4_v3(imat, ray_org_local);
-
 					/* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with
 					 * very far away ray_start values (as returned in case of ortho view3d), see T38358.
 					 */
