@@ -235,6 +235,12 @@ static void raycast_all_cb(void *userdata, int index, const BVHTreeRay *ray, BVH
 /** \Common utilities
  * \{ */
 
+MINLINE float depth_get(const float co[3], const float ray_start[3], const float ray_dir[3])
+{
+	float dvec[3];
+	sub_v3_v3v3(dvec, co, ray_start);
+	return dot_v3v3(dvec, ray_dir);
+}
 
 /**
  * Struct that kepts basic information about a BVHTree build from a editmesh.
@@ -509,9 +515,9 @@ static float dist_squared_to_projected_aabb(
 		/* `if rtmax < depth_min`, the hit is behind us */
 		if (rtmax < data->depth_range[0]) {
 			/* Test if the entire AABB is behind us */
-			float dvec[3];
-			sub_v3_v3v3(dvec, local_bvmax, data->ray_origin_local);
-			if (dot_v3v3(dvec, data->ray_direction_local) < (data->depth_range[0])) {
+			float depth = depth_get(
+			        local_bvmax, data->ray_origin_local, data->ray_direction_local);
+			if (depth < (data->depth_range[0])) {
 				return FLT_MAX;
 			}
 		}
@@ -524,9 +530,9 @@ static float dist_squared_to_projected_aabb(
 	/* `if rtmin < depth_min`, the hit is behing us */
 	else if (rtmin < data->depth_range[0]) {
 		/* Test if the entire AABB is behind us */
-		float dvec[3];
-		sub_v3_v3v3(dvec, local_bvmax, data->ray_origin_local);
-		if (dot_v3v3(dvec, data->ray_direction_local) < (data->depth_range[0])) {
+		float depth = depth_get(
+		        local_bvmax, data->ray_origin_local, data->ray_direction_local);
+		if (depth < (data->depth_range[0])) {
 			return FLT_MAX;
 		}
 	}
@@ -622,9 +628,7 @@ static float dist_aabb_to_plane(
 		(plane_no[1] < 0) ? bbmax[1] : bbmin[1],
 		(plane_no[2] < 0) ? bbmax[2] : bbmin[2],
 	};
-	float dvec[3];
-	sub_v3_v3v3(dvec, local_bvmin, plane_co);
-	return dot_v3v3(dvec, plane_no);
+	return depth_get(local_bvmin, plane_co, plane_no);
 }
 
 /** \} */
@@ -727,7 +731,7 @@ static bool snapArmature(
         SnapData *snapdata,
         Object *ob, bArmature *arm, float obmat[4][4],
         /* read/write args */
-        float *dist_px,
+        float *ray_depth, float *dist_px,
         /* return args */
         float r_loc[3], float *UNUSED(r_no))
 {
@@ -813,6 +817,7 @@ static bool snapArmature(
 	if (retval) {
 		*dist_px = sqrtf(dist_px_sq);
 		mul_m4_v3(obmat, r_loc);
+		*ray_depth = depth_get(r_loc, snapdata->ray_start, snapdata->ray_dir);
 		return true;
 	}
 	return false;
@@ -822,7 +827,7 @@ static bool snapCurve(
         SnapData *snapdata,
         Object *ob, Curve *cu, float obmat[4][4],
         /* read/write args */
-        float *dist_px,
+        float *ray_depth, float *dist_px,
         /* return args */
         float r_loc[3], float *UNUSED(r_no))
 {
@@ -909,6 +914,7 @@ static bool snapCurve(
 	if (retval) {
 		*dist_px = sqrtf(dist_px_sq);
 		mul_m4_v3(obmat, r_loc);
+		*ray_depth = depth_get(r_loc, snapdata->ray_start, snapdata->ray_dir);
 		return true;
 	}
 	return false;
@@ -919,7 +925,7 @@ static bool snapEmpty(
         SnapData *snapdata,
         Object *ob, float obmat[4][4],
         /* read/write args */
-        float *dist_px,
+        float *ray_depth, float *dist_px,
         /* return args */
         float r_loc[3], float *UNUSED(r_no))
 {
@@ -942,6 +948,7 @@ static bool snapEmpty(
 				        snapdata->pmat, snapdata->win_half, is_persp, &dist_px_sq,
 				        r_loc)) {
 				*dist_px = sqrtf(dist_px_sq);
+				*ray_depth = depth_get(r_loc, snapdata->ray_start, snapdata->ray_dir);
 				retval = true;
 			}
 			break;
@@ -957,7 +964,7 @@ static bool snapCamera(
         const SnapObjectContext *sctx, SnapData *snapdata,
         Object *object, float obmat[4][4],
         /* read/write args */
-        float *dist_px,
+        float *ray_depth, float *dist_px,
         /* return args */
         float r_loc[3], float *UNUSED(r_no))
 {
@@ -1039,6 +1046,7 @@ static bool snapCamera(
 
 	if (retval) {
 		*dist_px = sqrtf(dist_px_sq);
+		*ray_depth = depth_get(r_loc, snapdata->ray_start, snapdata->ray_dir);
 		return true;
 	}
 	return false;
@@ -1337,6 +1345,7 @@ static bool snapDerivedMesh(
 					normalize_v3(r_no);
 				}
 				*dist_px = sqrtf(neasrest2d.dist_px_sq);
+				*ray_depth = depth_get(r_loc, snapdata->ray_start, snapdata->ray_dir);
 
 				retval = true;
 			}
@@ -1629,6 +1638,7 @@ static bool snapEditMesh(
 					normalize_v3(r_no);
 				}
 				*dist_px = sqrtf(neasrest2d.dist_px_sq);
+				*ray_depth = depth_get(r_loc, snapdata->ray_start, snapdata->ray_dir);
 
 				retval = true;
 			}
@@ -1698,27 +1708,28 @@ static bool snapObject(
 		if (ob->type == OB_ARMATURE) {
 			retval = snapArmature(
 			        snapdata,
-			        ob, ob->data, obmat, dist_px,
+			        ob, ob->data, obmat,
+			        ray_depth, dist_px,
 			        r_loc, r_no);
 		}
 		else if (ob->type == OB_CURVE) {
 			retval = snapCurve(
 			        snapdata,
 			        ob, ob->data, obmat,
-			        dist_px,
+			        ray_depth, dist_px,
 			        r_loc, r_no);
 		}
 		else if (ob->type == OB_EMPTY) {
 			retval = snapEmpty(
 			        snapdata,
 			        ob, obmat,
-			        dist_px,
+			        ray_depth, dist_px,
 			        r_loc, r_no);
 		}
 		else if (ob->type == OB_CAMERA) {
 			retval = snapCamera(
 			        sctx, snapdata, ob, obmat,
-			        dist_px,
+			        ray_depth, dist_px,
 			        r_loc, r_no);
 		}
 	}
