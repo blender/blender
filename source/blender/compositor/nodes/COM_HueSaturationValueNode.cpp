@@ -43,8 +43,6 @@ void HueSaturationValueNode::convertToOperations(NodeConverter &converter, const
 	NodeInput *valueSocket = this->getInputSocket(3);
 	NodeInput *facSocket = this->getInputSocket(4);
 	NodeOutput *outputSocket = this->getOutputSocket(0);
-	bNode *editorsnode = getbNode();
-	NodeHueSat *storage = (NodeHueSat *)editorsnode->storage;
 
 	ConvertRGBToHSVOperation *rgbToHSV = new ConvertRGBToHSVOperation();
 	converter.addOperation(rgbToHSV);
