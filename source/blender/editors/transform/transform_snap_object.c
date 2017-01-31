@@ -1114,10 +1114,13 @@ static bool snapDerivedMesh(
 
 		float lpmat[4][4];
 		float ray_org_local[3];
+		float depth_range_local[2];
 		if (ELEM(snapdata->snap_to, SCE_SNAP_MODE_VERTEX, SCE_SNAP_MODE_EDGE)) {
 			mul_m4_m4m4(lpmat, snapdata->pmat, obmat);
 			copy_v3_v3(ray_org_local, snapdata->ray_origin);
 			mul_m4_v3(imat, ray_org_local);
+			depth_range_local[0] = snapdata->depth_range[0] * local_scale;
+			depth_range_local[1] = local_depth + depth_range_local[0];
 		}
 
 		if (do_bb) {
@@ -1326,7 +1329,7 @@ static bool snapDerivedMesh(
 
 			dist_squared_to_projected_aabb_precalc(
 			        &neasrest2d.data_precalc, lpmat, snapdata->win_half,
-			        snapdata->depth_range, snapdata->mval, ray_org_local, ray_normal_local);
+			        depth_range_local, snapdata->mval, ray_org_local, ray_normal_local);
 
 			BVHTree_WalkLeafCallback cb_walk_leaf =
 			        (snapdata->snap_to == SCE_SNAP_MODE_VERTEX) ?
@@ -1399,6 +1402,13 @@ static bool snapEditMesh(
 		copy_v3_v3(ray_normal_local, snapdata->ray_dir);
 
 		mul_mat3_m4_v3(imat, ray_normal_local);
+
+		/* local scale in normal direction */
+		float local_scale = normalize_v3(ray_normal_local);
+		float local_depth = *ray_depth;
+		if (local_depth != BVH_RAYCAST_DIST_MAX) {
+			local_depth *= local_scale;
+		}
 
 		SnapObjectData_EditMesh *sod = NULL;
 
@@ -1501,13 +1511,6 @@ static bool snapEditMesh(
 			float ray_start_local[3];
 			copy_v3_v3(ray_start_local, snapdata->ray_start);
 			mul_m4_v3(imat, ray_start_local);
-
-			/* local scale in normal direction */
-			float local_scale = normalize_v3(ray_normal_local);
-			float local_depth = *ray_depth;
-			if (local_depth != BVH_RAYCAST_DIST_MAX) {
-				local_depth *= local_scale;
-			}
 
 			/* Only use closer ray_start in case of ortho view! In perspective one, ray_start
 			 * may already been *inside* boundbox, leading to snap failures (see T38409).
@@ -1615,8 +1618,10 @@ static bool snapEditMesh(
 			    .userdata = &treedata_type,
 			    .index = -1};
 
-			float lpmat[4][4];
+			float lpmat[4][4], depth_range_local[2];
 			mul_m4_m4m4(lpmat, snapdata->pmat, obmat);
+			depth_range_local[0] = snapdata->depth_range[0] * local_scale;
+			depth_range_local[1] = local_depth + depth_range_local[0];
 			dist_squared_to_projected_aabb_precalc(
 			        &neasrest2d.data_precalc, lpmat, snapdata->win_half,
 			        snapdata->depth_range, snapdata->mval, ray_org_local, ray_normal_local);
@@ -2077,9 +2082,6 @@ static bool transform_snap_context_project_view3d_mixed_impl(
 
 	for (int i = 0; i < 3; i++) {
 		if ((snap_to_flag & (1 << i)) && (is_hit == false || use_depth)) {
-			if (use_depth == false) {
-				ray_depth = BVH_RAYCAST_DIST_MAX;
-			}
 
 			if (ED_transform_snap_object_project_view3d(
 			        sctx,
@@ -2088,6 +2090,14 @@ static bool transform_snap_context_project_view3d_mixed_impl(
 			        r_co, r_no))
 			{
 				is_hit = true;
+				if (use_depth == false) {
+					ray_depth = BVH_RAYCAST_DIST_MAX;
+				}
+				else {
+					/* 0.01 is a random but small value to prioritizing
+					 * the first elements of the loop */
+					ray_depth -= 0.01f;
+				}
 			}
 		}
 	}
