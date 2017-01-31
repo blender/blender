@@ -129,8 +129,8 @@ static bool python_driver_depends_on_time(ChannelDriver *driver)
 		/* Function calls are considered dependent on a time. */
 		return true;
 	}
-	if (strstr(driver->expression, "time") != NULL) {
-		/* Variable `time` depends on time. */
+	if (strstr(driver->expression, "frame") != NULL) {
+		/* Variable `frame` depends on time. */
 		/* TODO(sergey): This is a bit weak, but not sure about better way of
 		 * handling this.
 		 */
