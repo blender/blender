@@ -234,11 +234,11 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 	ClothModifierData *clmd = (ClothModifierData *) md;
 
 	if (clmd->coll_parms) {
-		walk(userData, ob, (ID **)&clmd->coll_parms->group, IDWALK_NOP);
+		walk(userData, ob, (ID **)&clmd->coll_parms->group, IDWALK_CB_NOP);
 	}
 
 	if (clmd->sim_parms && clmd->sim_parms->effector_weights) {
-		walk(userData, ob, (ID **)&clmd->sim_parms->effector_weights->group, IDWALK_NOP);
+		walk(userData, ob, (ID **)&clmd->sim_parms->effector_weights->group, IDWALK_CB_NOP);
 	}
 }
 

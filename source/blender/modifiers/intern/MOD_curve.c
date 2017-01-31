@@ -89,7 +89,7 @@ static void foreachObjectLink(
 {
 	CurveModifierData *cmd = (CurveModifierData *) md;
 
-	walk(userData, ob, &cmd->object, IDWALK_NOP);
+	walk(userData, ob, &cmd->object, IDWALK_CB_NOP);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,

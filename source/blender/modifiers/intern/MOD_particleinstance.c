@@ -145,7 +145,7 @@ static void foreachObjectLink(ModifierData *md, Object *ob,
 {
 	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *) md;
 
-	walk(userData, ob, &pimd->ob, IDWALK_NOP);
+	walk(userData, ob, &pimd->ob, IDWALK_CB_NOP);
 }
 
 static int particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *psys, int p)

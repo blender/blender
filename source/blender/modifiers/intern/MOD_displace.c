@@ -132,7 +132,7 @@ static void foreachObjectLink(ModifierData *md, Object *ob,
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *) md;
 
-	walk(userData, ob, &dmd->map_object, IDWALK_NOP);
+	walk(userData, ob, &dmd->map_object, IDWALK_CB_NOP);
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob,
@@ -140,7 +140,7 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *) md;
 
-	walk(userData, ob, (ID **)&dmd->texture, IDWALK_USER);
+	walk(userData, ob, (ID **)&dmd->texture, IDWALK_CB_USER);
 
 	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }

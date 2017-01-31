@@ -501,7 +501,7 @@ static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk,
 {
 	NormalEditModifierData *enmd = (NormalEditModifierData *) md;
 
-	walk(userData, ob, &enmd->target, IDWALK_NOP);
+	walk(userData, ob, &enmd->target, IDWALK_CB_NOP);
 }
 
 static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))

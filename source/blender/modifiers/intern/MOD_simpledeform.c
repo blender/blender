@@ -290,7 +290,7 @@ static void foreachObjectLink(
         ObjectWalkFunc walk, void *userData)
 {
 	SimpleDeformModifierData *smd  = (SimpleDeformModifierData *)md;
-	walk(userData, ob, &smd->origin, IDWALK_NOP);
+	walk(userData, ob, &smd->origin, IDWALK_CB_NOP);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,

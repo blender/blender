@@ -221,8 +221,8 @@ static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk,
 {
 	UVWarpModifierData *umd = (UVWarpModifierData *) md;
 
-	walk(userData, ob, &umd->object_dst, IDWALK_NOP);
-	walk(userData, ob, &umd->object_src, IDWALK_NOP);
+	walk(userData, ob, &umd->object_dst, IDWALK_CB_NOP);
+	walk(userData, ob, &umd->object_src, IDWALK_CB_NOP);
 }
 
 static void uv_warp_deps_object_bone(DagForest *forest, DagNode *obNode,

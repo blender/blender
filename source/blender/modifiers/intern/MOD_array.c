@@ -95,10 +95,10 @@ static void foreachObjectLink(
 {
 	ArrayModifierData *amd = (ArrayModifierData *) md;
 
-	walk(userData, ob, &amd->start_cap, IDWALK_NOP);
-	walk(userData, ob, &amd->end_cap, IDWALK_NOP);
-	walk(userData, ob, &amd->curve_ob, IDWALK_NOP);
-	walk(userData, ob, &amd->offset_ob, IDWALK_NOP);
+	walk(userData, ob, &amd->start_cap, IDWALK_CB_NOP);
+	walk(userData, ob, &amd->end_cap, IDWALK_CB_NOP);
+	walk(userData, ob, &amd->curve_ob, IDWALK_CB_NOP);
+	walk(userData, ob, &amd->offset_ob, IDWALK_CB_NOP);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,

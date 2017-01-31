@@ -115,7 +115,7 @@ static void foreachObjectLink(
 {
 	HookModifierData *hmd = (HookModifierData *) md;
 
-	walk(userData, ob, &hmd->object, IDWALK_NOP);
+	walk(userData, ob, &hmd->object, IDWALK_CB_NOP);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,

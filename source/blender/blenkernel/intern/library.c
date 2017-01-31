@@ -276,7 +276,7 @@ void BKE_id_clear_newpoin(ID *id)
 static int id_expand_local_callback(
         void *UNUSED(user_data), struct ID *id_self, struct ID **id_pointer, int cd_flag)
 {
-	if (cd_flag & IDWALK_PRIVATE) {
+	if (cd_flag & IDWALK_CB_PRIVATE) {
 		return IDWALK_RET_NOP;
 	}
 

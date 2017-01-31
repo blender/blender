@@ -72,7 +72,7 @@ static void foreachObjectLink(
 {
 	MirrorModifierData *mmd = (MirrorModifierData *) md;
 
-	walk(userData, ob, &mmd->mirror_ob, IDWALK_NOP);
+	walk(userData, ob, &mmd->mirror_ob, IDWALK_CB_NOP);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,

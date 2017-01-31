@@ -974,14 +974,14 @@ void BKE_rigidbody_world_groups_relink(RigidBodyWorld *rbw)
 
 void BKE_rigidbody_world_id_loop(RigidBodyWorld *rbw, RigidbodyWorldIDFunc func, void *userdata)
 {
-	func(rbw, (ID **)&rbw->group, userdata, IDWALK_NOP);
-	func(rbw, (ID **)&rbw->constraints, userdata, IDWALK_NOP);
-	func(rbw, (ID **)&rbw->effector_weights->group, userdata, IDWALK_NOP);
+	func(rbw, (ID **)&rbw->group, userdata, IDWALK_CB_NOP);
+	func(rbw, (ID **)&rbw->constraints, userdata, IDWALK_CB_NOP);
+	func(rbw, (ID **)&rbw->effector_weights->group, userdata, IDWALK_CB_NOP);
 
 	if (rbw->objects) {
 		int i;
 		for (i = 0; i < rbw->numbodies; i++) {
-			func(rbw, (ID **)&rbw->objects[i], userdata, IDWALK_NOP);
+			func(rbw, (ID **)&rbw->objects[i], userdata, IDWALK_CB_NOP);
 		}
 	}
 }

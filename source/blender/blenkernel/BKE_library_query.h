@@ -36,28 +36,28 @@ struct Main;
 
 /* Tips for the callback for cases it's gonna to modify the pointer. */
 enum {
-	IDWALK_NOP = 0,
-	IDWALK_NEVER_NULL = (1 << 0),
-	IDWALK_NEVER_SELF = (1 << 1),
+	IDWALK_CB_NOP = 0,
+	IDWALK_CB_NEVER_NULL = (1 << 0),
+	IDWALK_CB_NEVER_SELF = (1 << 1),
 
 	/**
 	 * Indicates whether this is direct (i.e. by local data) or indirect (i.e. by linked data) usage.
 	 * \note Object proxies are half-local, half-linked...
 	 */
-	IDWALK_INDIRECT_USAGE = (1 << 2),
+	IDWALK_CB_INDIRECT_USAGE = (1 << 2),
 
 	/** That ID is used as mere sub-data by its owner
 	 * (only case currently: those f***ing nodetrees in materials etc.).
 	 * This means callback shall not *do* anything, only use this as informative data if it needs it. */
-	IDWALK_PRIVATE = (1 << 3),
+	IDWALK_CB_PRIVATE = (1 << 3),
 
 	/**
 	 * Adjusts #ID.us reference-count.
 	 * \note keep in sync with 'newlibadr_us' use in readfile.c
 	 */
-	IDWALK_USER = (1 << 8),
+	IDWALK_CB_USER = (1 << 8),
 	/** Ensure #ID.us is at least 1 on use. */
-	IDWALK_USER_ONE = (1 << 9),
+	IDWALK_CB_USER_ONE = (1 << 9),
 };
 
 enum {
@@ -75,6 +75,7 @@ typedef int (*LibraryIDLinkCallback) (void *user_data, struct ID *id_self, struc
 
 /* Flags for the foreach function itself. */
 enum {
+	IDWALK_NOP      = 0,
 	IDWALK_READONLY = (1 << 0),
 	IDWALK_RECURSE  = (1 << 1),  /* Also implies IDWALK_READONLY. */
 };

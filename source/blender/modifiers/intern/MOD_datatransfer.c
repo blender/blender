@@ -124,7 +124,7 @@ static void foreachObjectLink(
         ObjectWalkFunc walk, void *userData)
 {
 	DataTransferModifierData *dtmd = (DataTransferModifierData *) md;
-	walk(userData, ob, &dtmd->ob_source, IDWALK_NOP);
+	walk(userData, ob, &dtmd->ob_source, IDWALK_CB_NOP);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,

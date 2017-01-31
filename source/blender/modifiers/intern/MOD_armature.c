@@ -96,7 +96,7 @@ static void foreachObjectLink(
 {
 	ArmatureModifierData *amd = (ArmatureModifierData *) md;
 
-	walk(userData, ob, &amd->object, IDWALK_NOP);
+	walk(userData, ob, &amd->object, IDWALK_CB_NOP);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,

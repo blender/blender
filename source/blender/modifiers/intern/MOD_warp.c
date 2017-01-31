@@ -116,16 +116,16 @@ static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk,
 {
 	WarpModifierData *wmd = (WarpModifierData *) md;
 
-	walk(userData, ob, &wmd->object_from, IDWALK_NOP);
-	walk(userData, ob, &wmd->object_to, IDWALK_NOP);
-	walk(userData, ob, &wmd->map_object, IDWALK_NOP);
+	walk(userData, ob, &wmd->object_from, IDWALK_CB_NOP);
+	walk(userData, ob, &wmd->object_to, IDWALK_CB_NOP);
+	walk(userData, ob, &wmd->map_object, IDWALK_CB_NOP);
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
 	WarpModifierData *wmd = (WarpModifierData *) md;
 
-	walk(userData, ob, (ID **)&wmd->texture, IDWALK_USER);
+	walk(userData, ob, (ID **)&wmd->texture, IDWALK_CB_USER);
 
 	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
