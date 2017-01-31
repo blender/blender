@@ -281,7 +281,7 @@ void gpuScale3fv(const float vec[3])
 void gpuMultMatrix3D(const float m[4][4])
 {
 	BLI_assert(state.mode == MATRIX_MODE_3D);
-	mul_m4_m4_pre(ModelView3D, m);
+	mul_m4_m4_post(ModelView3D, m);
 	CHECKMAT(ModelView3D);
 	state.dirty = true;
 }
@@ -289,7 +289,7 @@ void gpuMultMatrix3D(const float m[4][4])
 void gpuMultMatrix2D(const float m[3][3])
 {
 	BLI_assert(state.mode == MATRIX_MODE_2D);
-	mul_m3_m3_pre(ModelView2D, m);
+	mul_m3_m3_post(ModelView2D, m);
 	CHECKMAT(ModelView2D);
 	state.dirty = true;
 }
