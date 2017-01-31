@@ -62,7 +62,7 @@ def _parse_command_line():
     num_resumable_chunks = None
     current_resumable_chunk = None
 
-    # TODO(sergey): Add some nice error ptins if argument is not used properly.
+    # TODO(sergey): Add some nice error prints if argument is not used properly.
     idx = 0
     while idx < len(argv) - 1:
         arg = argv[idx]
