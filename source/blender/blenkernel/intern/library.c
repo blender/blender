@@ -274,9 +274,9 @@ void BKE_id_clear_newpoin(ID *id)
 }
 
 static int id_expand_local_callback(
-        void *UNUSED(user_data), struct ID *id_self, struct ID **id_pointer, int cd_flag)
+        void *UNUSED(user_data), struct ID *id_self, struct ID **id_pointer, int cb_flag)
 {
-	if (cd_flag & IDWALK_CB_PRIVATE) {
+	if (cb_flag & IDWALK_CB_PRIVATE) {
 		return IDWALK_RET_NOP;
 	}
 
@@ -1278,7 +1278,7 @@ void BKE_main_unlock(struct Main *bmain)
 }
 
 
-static int main_relations_create_cb(void *user_data, ID *id_self, ID **id_pointer, int cd_flag)
+static int main_relations_create_cb(void *user_data, ID *id_self, ID **id_pointer, int cb_flag)
 {
 	MainIDRelations *rel = user_data;
 
@@ -1293,7 +1293,7 @@ static int main_relations_create_cb(void *user_data, ID *id_self, ID **id_pointe
 			entry->next = NULL;
 		}
 		entry->id_pointer = id_pointer;
-		entry->usage_flag = cd_flag;
+		entry->usage_flag = cb_flag;
 		*entry_p = entry;
 
 		entry = BLI_mempool_alloc(rel->entry_pool);
@@ -1304,7 +1304,7 @@ static int main_relations_create_cb(void *user_data, ID *id_self, ID **id_pointe
 			entry->next = NULL;
 		}
 		entry->id_pointer = (ID **)id_self;
-		entry->usage_flag = cd_flag;
+		entry->usage_flag = cb_flag;
 		*entry_p = entry;
 	}
 

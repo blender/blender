@@ -2563,7 +2563,7 @@ void DAG_on_visible_update(Main *bmain, const bool do_time)
 }
 
 static void dag_id_flush_update__isDependentTexture(
-        void *userData, Object *UNUSED(ob), ID **idpoin, int UNUSED(cd_flag))
+        void *userData, Object *UNUSED(ob), ID **idpoin, int UNUSED(cb_flag))
 {
 	struct { ID *id; bool is_dependent; } *data = userData;
 	

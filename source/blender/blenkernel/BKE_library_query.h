@@ -71,7 +71,7 @@ enum {
  *
  * \return a set of flags to control further iteration (0 to keep going).
  */
-typedef int (*LibraryIDLinkCallback) (void *user_data, struct ID *id_self, struct ID **id_pointer, int cd_flag);
+typedef int (*LibraryIDLinkCallback) (void *user_data, struct ID *id_self, struct ID **id_pointer, int cb_flag);
 
 /* Flags for the foreach function itself. */
 enum {
@@ -83,7 +83,7 @@ enum {
 /* Loop over all of the ID's this datablock links to. */
 void BKE_library_foreach_ID_link(
         struct Main *bmain, struct ID *id, LibraryIDLinkCallback callback, void *user_data, int flag);
-void BKE_library_update_ID_link_user(struct ID *id_dst, struct ID *id_src, const int cd_flag);
+void BKE_library_update_ID_link_user(struct ID *id_dst, struct ID *id_src, const int cb_flag);
 
 int BKE_library_ID_use_ID(struct ID *id_user, struct ID *id_used);
 

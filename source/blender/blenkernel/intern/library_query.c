@@ -84,12 +84,12 @@
 #define FOREACH_FINALIZE _finalize
 #define FOREACH_FINALIZE_VOID FOREACH_FINALIZE: (void)0
 
-#define FOREACH_CALLBACK_INVOKE_ID_PP(_data, id_pp, cb_flag) \
+#define FOREACH_CALLBACK_INVOKE_ID_PP(_data, id_pp, _cb_flag) \
 	CHECK_TYPE(id_pp, ID **); \
 	if (!((_data)->status & IDWALK_STOP)) { \
 		const int _flag = (_data)->flag; \
 		ID *old_id = *(id_pp); \
-		const int callback_return = (_data)->callback((_data)->user_data, (_data)->self_id, id_pp, cb_flag | (_data)->cd_flag); \
+		const int callback_return = (_data)->callback((_data)->user_data, (_data)->self_id, id_pp, _cb_flag | (_data)->cb_flag); \
 		if (_flag & IDWALK_READONLY) { \
 			BLI_assert(*(id_pp) == old_id); \
 		} \
@@ -130,7 +130,7 @@ enum {
 typedef struct LibraryForeachIDData {
 	ID *self_id;
 	int flag;
-	int cd_flag;
+	int cb_flag;
 	LibraryIDLinkCallback callback;
 	void *user_data;
 	int status;
@@ -141,19 +141,19 @@ typedef struct LibraryForeachIDData {
 } LibraryForeachIDData;
 
 static void library_foreach_rigidbodyworldSceneLooper(
-        struct RigidBodyWorld *UNUSED(rbw), ID **id_pointer, void *user_data, int cd_flag)
+        struct RigidBodyWorld *UNUSED(rbw), ID **id_pointer, void *user_data, int cb_flag)
 {
 	LibraryForeachIDData *data = (LibraryForeachIDData *) user_data;
-	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cd_flag);
+	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
 
 	FOREACH_FINALIZE_VOID;
 }
 
 static void library_foreach_modifiersForeachIDLink(
-        void *user_data, Object *UNUSED(object), ID **id_pointer, int cd_flag)
+        void *user_data, Object *UNUSED(object), ID **id_pointer, int cb_flag)
 {
 	LibraryForeachIDData *data = (LibraryForeachIDData *) user_data;
-	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cd_flag);
+	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
 
 	FOREACH_FINALIZE_VOID;
 }
@@ -162,44 +162,44 @@ static void library_foreach_constraintObjectLooper(bConstraint *UNUSED(con), ID 
                                                    bool is_reference, void *user_data)
 {
 	LibraryForeachIDData *data = (LibraryForeachIDData *) user_data;
-	const int cd_flag = is_reference ? IDWALK_CB_USER : IDWALK_CB_NOP;
-	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cd_flag);
+	const int cb_flag = is_reference ? IDWALK_CB_USER : IDWALK_CB_NOP;
+	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
 
 	FOREACH_FINALIZE_VOID;
 }
 
 static void library_foreach_particlesystemsObjectLooper(
-        ParticleSystem *UNUSED(psys), ID **id_pointer, void *user_data, int cd_flag)
+        ParticleSystem *UNUSED(psys), ID **id_pointer, void *user_data, int cb_flag)
 {
 	LibraryForeachIDData *data = (LibraryForeachIDData *) user_data;
-	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cd_flag);
+	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
 
 	FOREACH_FINALIZE_VOID;
 }
 
 static void library_foreach_sensorsObjectLooper(
-        bSensor *UNUSED(sensor), ID **id_pointer, void *user_data, int cd_flag)
+        bSensor *UNUSED(sensor), ID **id_pointer, void *user_data, int cb_flag)
 {
 	LibraryForeachIDData *data = (LibraryForeachIDData *) user_data;
-	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cd_flag);
+	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
 
 	FOREACH_FINALIZE_VOID;
 }
 
 static void library_foreach_controllersObjectLooper(
-        bController *UNUSED(controller), ID **id_pointer, void *user_data, int cd_flag)
+        bController *UNUSED(controller), ID **id_pointer, void *user_data, int cb_flag)
 {
 	LibraryForeachIDData *data = (LibraryForeachIDData *) user_data;
-	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cd_flag);
+	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
 
 	FOREACH_FINALIZE_VOID;
 }
 
 static void library_foreach_actuatorsObjectLooper(
-        bActuator *UNUSED(actuator), ID **id_pointer, void *user_data, int cd_flag)
+        bActuator *UNUSED(actuator), ID **id_pointer, void *user_data, int cb_flag)
 {
 	LibraryForeachIDData *data = (LibraryForeachIDData *) user_data;
-	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cd_flag);
+	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
 
 	FOREACH_FINALIZE_VOID;
 }
@@ -323,7 +323,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 
 	for (; id != NULL; id = (flag & IDWALK_RECURSE) ? BLI_LINKSTACK_POP(data.ids_todo) : NULL) {
 		data.self_id = id;
-		data.cd_flag = ID_IS_LINKED_DATABLOCK(id) ? IDWALK_CB_INDIRECT_USAGE : 0;
+		data.cb_flag = ID_IS_LINKED_DATABLOCK(id) ? IDWALK_CB_INDIRECT_USAGE : 0;
 
 		if (bmain != NULL && bmain->relations != NULL && (flag & IDWALK_READONLY)) {
 			/* Note that this is minor optimization, even in worst cases (like id being an object with lots of
@@ -461,11 +461,11 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				ParticleSystem *psys;
 
 				/* Object is special, proxies make things hard... */
-				const int data_cd_flag = data.cd_flag;
-				const int proxy_cd_flag = (object->proxy || object->proxy_group) ? IDWALK_CB_INDIRECT_USAGE : 0;
+				const int data_cb_flag = data.cb_flag;
+				const int proxy_cb_flag = (object->proxy || object->proxy_group) ? IDWALK_CB_INDIRECT_USAGE : 0;
 
 				/* object data special case */
-				data.cd_flag |= proxy_cd_flag;
+				data.cb_flag |= proxy_cb_flag;
 				if (object->type == OB_EMPTY) {
 					/* empty can have NULL or Image */
 					CALLBACK_INVOKE_ID(object->data, IDWALK_CB_USER);
@@ -476,7 +476,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 						CALLBACK_INVOKE_ID(object->data, IDWALK_CB_USER | IDWALK_CB_NEVER_NULL);
 					}
 				}
-				data.cd_flag = data_cd_flag;
+				data.cb_flag = data_cb_flag;
 
 				CALLBACK_INVOKE(object->parent, IDWALK_CB_NOP);
 				CALLBACK_INVOKE(object->track, IDWALK_CB_NOP);
@@ -488,18 +488,18 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				 * Since this field is set/owned by 'user' of this ID (and not ID itself), it is only indirect usage
 				 * if proxy object is linked... Twisted. */
 				if (object->proxy_from) {
-					data.cd_flag = ID_IS_LINKED_DATABLOCK(object->proxy_from) ? IDWALK_CB_INDIRECT_USAGE : 0;
+					data.cb_flag = ID_IS_LINKED_DATABLOCK(object->proxy_from) ? IDWALK_CB_INDIRECT_USAGE : 0;
 				}
 				CALLBACK_INVOKE(object->proxy_from, IDWALK_CB_NOP);
-				data.cd_flag = data_cd_flag;
+				data.cb_flag = data_cb_flag;
 
 				CALLBACK_INVOKE(object->poselib, IDWALK_CB_USER);
 
-				data.cd_flag |= proxy_cd_flag;
+				data.cb_flag |= proxy_cb_flag;
 				for (i = 0; i < object->totcol; i++) {
 					CALLBACK_INVOKE(object->mat[i], IDWALK_CB_USER);
 				}
-				data.cd_flag = data_cd_flag;
+				data.cb_flag = data_cb_flag;
 
 				CALLBACK_INVOKE(object->gpd, IDWALK_CB_USER);
 				CALLBACK_INVOKE(object->dup_group, IDWALK_CB_USER);
@@ -513,12 +513,12 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				if (object->pose) {
 					bPoseChannel *pchan;
 
-					data.cd_flag |= proxy_cd_flag;
+					data.cb_flag |= proxy_cb_flag;
 					for (pchan = object->pose->chanbase.first; pchan; pchan = pchan->next) {
 						CALLBACK_INVOKE(pchan->custom, IDWALK_CB_USER);
 						BKE_constraints_id_loop(&pchan->constraints, library_foreach_constraintObjectLooper, &data);
 					}
-					data.cd_flag = data_cd_flag;
+					data.cb_flag = data_cb_flag;
 				}
 
 				if (object->rigidbody_constraint) {
@@ -929,13 +929,13 @@ FOREACH_FINALIZE:
 /**
  * re-usable function, use when replacing ID's
  */
-void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, const int cd_flag)
+void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, const int cb_flag)
 {
-	if (cd_flag & IDWALK_CB_USER) {
+	if (cb_flag & IDWALK_CB_USER) {
 		id_us_min(id_src);
 		id_us_plus(id_dst);
 	}
-	else if (cd_flag & IDWALK_CB_USER_ONE) {
+	else if (cb_flag & IDWALK_CB_USER_ONE) {
 		id_us_ensure_real(id_dst);
 	}
 }

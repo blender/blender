@@ -4708,12 +4708,12 @@ static void direct_link_latt(FileData *fd, Lattice *lt)
 /* ************ READ OBJECT ***************** */
 
 static void lib_link_modifiers__linkModifiers(
-        void *userData, Object *ob, ID **idpoin, int cd_flag)
+        void *userData, Object *ob, ID **idpoin, int cb_flag)
 {
 	FileData *fd = userData;
 
 	*idpoin = newlibadr(fd, ob->id.lib, *idpoin);
-	if (*idpoin != NULL && (cd_flag & IDWALK_CB_USER) != 0) {
+	if (*idpoin != NULL && (cb_flag & IDWALK_CB_USER) != 0) {
 		id_us_plus_no_lib(*idpoin);
 	}
 }
@@ -9303,7 +9303,7 @@ static void expand_armature(FileData *fd, Main *mainvar, bArmature *arm)
 }
 
 static void expand_object_expandModifiers(
-        void *userData, Object *UNUSED(ob), ID **idpoin, int UNUSED(cd_flag))
+        void *userData, Object *UNUSED(ob), ID **idpoin, int UNUSED(cb_flag))
 {
 	struct { FileData *fd; Main *mainvar; } *data= userData;
 	
