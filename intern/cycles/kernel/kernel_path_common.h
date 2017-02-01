@@ -30,7 +30,7 @@ ccl_device_inline void kernel_path_trace_setup(KernelGlobals *kg,
 
 	int num_samples = kernel_data.integrator.aa_samples;
 
-	if(sample == 0) {
+	if(sample == kernel_data.integrator.start_sample) {
 		*rng_state = hash_int_2d(x, y);
 	}
 

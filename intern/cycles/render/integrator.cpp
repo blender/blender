@@ -64,6 +64,7 @@ NODE_DEFINE(Integrator)
 	SOCKET_INT(mesh_light_samples, "Mesh Light Samples", 1);
 	SOCKET_INT(subsurface_samples, "Subsurface Samples", 1);
 	SOCKET_INT(volume_samples, "Volume Samples", 1);
+	SOCKET_INT(start_sample, "Start Sample", 0);
 
 	SOCKET_BOOLEAN(sample_all_lights_direct, "Sample All Lights Direct", true);
 	SOCKET_BOOLEAN(sample_all_lights_indirect, "Sample All Lights Indirect", true);
@@ -161,6 +162,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	kintegrator->mesh_light_samples = mesh_light_samples;
 	kintegrator->subsurface_samples = subsurface_samples;
 	kintegrator->volume_samples = volume_samples;
+	kintegrator->start_sample = start_sample;
 
 	if(method == BRANCHED_PATH) {
 		kintegrator->sample_all_lights_direct = sample_all_lights_direct;

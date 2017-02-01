@@ -1352,6 +1352,9 @@ void BlenderSession::update_resumable_tile_manager(int num_samples)
 	VLOG(1) << "Samples range start is " << range_start_sample << ", "
 	        << "number of samples to render is " << range_num_samples;
 
+	scene->integrator->start_sample = range_start_sample;
+	scene->integrator->tag_update(scene);
+
 	session->tile_manager.range_start_sample = range_start_sample;
 	session->tile_manager.range_num_samples = range_num_samples;
 }
