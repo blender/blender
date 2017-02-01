@@ -15,6 +15,7 @@ def render_file(filepath):
         "--background",
         "-noaudio",
         "--factory-startup",
+        "--enable-autoexec",
         filepath,
         "-E", "CYCLES",
         # Run with OSL enabled
