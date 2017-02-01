@@ -389,6 +389,7 @@ typedef struct Nearest2dPrecalc {
 
 	float ray_min_dist;
 	float pmat[4][4]; /* perspective matrix multiplied by object matrix */
+	bool is_persp;
 	float win_half[2];
 
 	float mval[2];
@@ -400,11 +401,12 @@ typedef struct Nearest2dPrecalc {
  */
 static void dist_squared_to_projected_aabb_precalc(
         struct Nearest2dPrecalc *neasrest_precalc,
-        float lpmat[4][4], const float win_half[2],
+        float lpmat[4][4], bool is_persp, const float win_half[2],
         const float ray_min_dist, const float mval[2],
         const float ray_origin_local[3], const float ray_direction_local[3])
 {
 	copy_m4_m4(neasrest_precalc->pmat, lpmat);
+	neasrest_precalc->is_persp = is_persp;
 	copy_v2_v2(neasrest_precalc->win_half, win_half);
 	neasrest_precalc->ray_min_dist = ray_min_dist;
 
@@ -549,20 +551,24 @@ static float dist_squared_to_projected_aabb(
 	float scale = fabsf(local_bvmax[main_axis] - local_bvmin[main_axis]);
 
 	float (*pmat)[4] = data->pmat;
-	float depth_a = mul_project_m4_v3_zfac(pmat, va);
-	float depth_b = depth_a + pmat[main_axis][3] * scale;
 
 	float va2d[2] = {
 		(dot_m4_v3_row_x(pmat, va) + pmat[3][0]),
 		(dot_m4_v3_row_y(pmat, va) + pmat[3][1]),
 	};
 	float vb2d[2] = {
-		(va2d[0] + pmat[main_axis][0] * scale) / depth_b,
-		(va2d[1] + pmat[main_axis][1] * scale) / depth_b,
+		(va2d[0] + pmat[main_axis][0] * scale),
+		(va2d[1] + pmat[main_axis][1] * scale),
 	};
 
-	va2d[0] /= depth_a;
-	va2d[1] /= depth_a;
+	if (data->is_persp) {
+		float depth_a = mul_project_m4_v3_zfac(pmat, va);
+		float depth_b = depth_a + pmat[main_axis][3] * scale;
+		va2d[0] /= depth_a;
+		va2d[1] /= depth_a;
+		vb2d[0] /= depth_b;
+		vb2d[1] /= depth_b;
+	}
 
 	va2d[0] += 1.0f;
 	va2d[1] += 1.0f;
@@ -612,7 +618,7 @@ static float dist_squared_to_projected_aabb_simple(
 {
 	struct Nearest2dPrecalc data;
 	dist_squared_to_projected_aabb_precalc(
-	        &data, lpmat, win_half, ray_min_dist,
+	        &data, lpmat, true, win_half, ray_min_dist,
 	        mval, ray_origin_local, ray_direction_local);
 
 	bool dummy[3] = {true, true, true};
@@ -641,7 +647,6 @@ static float dist_aabb_to_plane(
 typedef struct Nearest2dUserData {
 	struct Nearest2dPrecalc data_precalc;
 
-	bool is_persp;
 	float dist_px_sq;
 
 	bool r_axis_closest[3];
@@ -679,7 +684,7 @@ static bool cb_walk_leaf_snap_vert(const BVHTreeAxisRange *bounds, int index, vo
 	        neasrest_precalc->mval, co,
 	        neasrest_precalc->pmat,
 	        neasrest_precalc->win_half,
-	        data->is_persp,
+	        neasrest_precalc->is_persp,
 	        &data->dist_px_sq,
 	        data->co))
 	{
@@ -702,7 +707,7 @@ static bool cb_walk_leaf_snap_edge(const BVHTreeAxisRange *UNUSED(bounds), int i
 	        neasrest_precalc->mval,
 	        neasrest_precalc->pmat,
 	        neasrest_precalc->win_half,
-	        data->is_persp,
+	        neasrest_precalc->is_persp,
 	        neasrest_precalc->ray_origin_local,
 	        neasrest_precalc->ray_direction_local,
 	        v_pair[0], v_pair[1],
@@ -1317,7 +1322,6 @@ static bool snapDerivedMesh(
 			BVHTreeFromMeshType treedata_type = {.userdata = treedata, .type = SNAP_MESH};
 
 			Nearest2dUserData neasrest2d = {
-			    .is_persp = snapdata->view_proj == VIEW_PROJ_PERSP,
 			    .dist_px_sq = SQUARE(*dist_px),
 			    .r_axis_closest = {1.0f, 1.0f, 1.0f},
 			    .depth_range = {snapdata->depth_range[0],  *ray_depth + snapdata->depth_range[0]},
@@ -1325,7 +1329,8 @@ static bool snapDerivedMesh(
 			    .index = -1};
 
 			dist_squared_to_projected_aabb_precalc(
-			        &neasrest2d.data_precalc, lpmat, snapdata->win_half,
+			        &neasrest2d.data_precalc, lpmat,
+			        snapdata->view_proj == VIEW_PROJ_PERSP, snapdata->win_half,
 			        ray_min_dist, snapdata->mval, ray_org_local, ray_normal_local);
 
 			BVHTree_WalkLeafCallback cb_walk_leaf =
@@ -1609,7 +1614,6 @@ static bool snapEditMesh(
 			BVHTreeFromMeshType treedata_type = {.userdata = treedata, .type = SNAP_EDIT_MESH};
 
 			Nearest2dUserData neasrest2d = {
-			    .is_persp = snapdata->view_proj == VIEW_PROJ_PERSP,
 			    .dist_px_sq = SQUARE(*dist_px),
 			    .r_axis_closest = {1.0f, 1.0f, 1.0f},
 			    .depth_range = {snapdata->depth_range[0], *ray_depth + snapdata->depth_range[0]},
@@ -1619,7 +1623,8 @@ static bool snapEditMesh(
 			float lpmat[4][4];
 			mul_m4_m4m4(lpmat, snapdata->pmat, obmat);
 			dist_squared_to_projected_aabb_precalc(
-			        &neasrest2d.data_precalc, lpmat, snapdata->win_half,
+			        &neasrest2d.data_precalc, lpmat,
+			        snapdata->view_proj == VIEW_PROJ_PERSP, snapdata->win_half,
 			        (snapdata->depth_range[0] * local_scale), snapdata->mval,
 			        ray_org_local, ray_normal_local);
 
