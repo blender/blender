@@ -933,8 +933,6 @@ void blf_font_free(FontBLF *font)
 
 static void blf_font_fill(FontBLF *font)
 {
-	unsigned int i;
-
 	font->aspect[0] = 1.0f;
 	font->aspect[1] = 1.0f;
 	font->aspect[2] = 1.0f;
@@ -942,8 +940,14 @@ static void blf_font_fill(FontBLF *font)
 	font->pos[1] = 0.0f;
 	font->angle = 0.0f;
 
-	for (i = 0; i < 16; i++)
+	for (int i = 0; i < 16; i++)
 		font->m[i] = 0;
+
+	/* annoying bright color so we can see where to add BLF_color calls */
+	font->color[0] = 255;
+	font->color[1] = 255;
+	font->color[2] = 0;
+	font->color[3] = 255;
 
 	font->clip_rec.xmin = 0.0f;
 	font->clip_rec.xmax = 0.0f;
