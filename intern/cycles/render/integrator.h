@@ -64,6 +64,7 @@ public:
 	int mesh_light_samples;
 	int subsurface_samples;
 	int volume_samples;
+	int start_sample;
 
 	bool sample_all_lights_direct;
 	bool sample_all_lights_indirect;
