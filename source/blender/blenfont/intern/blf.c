@@ -466,6 +466,70 @@ void BLF_blur(int fontid, int size)
 }
 #endif
 
+void BLF_color4ubv(int fontid, const unsigned char rgba[4])
+{
+	FontBLF *font = blf_get(fontid);
+
+	if (font) {
+		font->color[0] = rgba[0];
+		font->color[1] = rgba[1];
+		font->color[2] = rgba[2];
+		font->color[3] = rgba[3];
+	}
+}
+
+void BLF_color3ubv_alpha(int fontid, const unsigned char rgb[3], unsigned char alpha)
+{
+	FontBLF *font = blf_get(fontid);
+
+	if (font) {
+		font->color[0] = rgb[0];
+		font->color[1] = rgb[1];
+		font->color[2] = rgb[2];
+		font->color[3] = alpha;
+	}
+}
+
+void BLF_color3ubv(int fontid, const unsigned char rgb[3])
+{
+	BLF_color3ubv_alpha(fontid, rgb, 255);
+}
+
+void BLF_color3ub(int fontid, unsigned char r, unsigned char g, unsigned char b)
+{
+	FontBLF *font = blf_get(fontid);
+
+	if (font) {
+		font->color[0] = r;
+		font->color[1] = g;
+		font->color[2] = b;
+		font->color[3] = 255;
+	}
+}
+
+void BLF_color4fv(int fontid, const float rgba[4])
+{
+	FontBLF *font = blf_get(fontid);
+
+	if (font) {
+		rgba_float_to_uchar(font->color, rgba);
+	}
+}
+
+void BLF_color3fv_alpha(int fontid, const float rgb[3], float alpha)
+{
+	float rgba[4];
+	copy_v3_v3(rgba, rgb);
+	rgba[3] = alpha;
+	BLF_color4fv(fontid, rgba);
+}
+
+void BLF_color3f(int fontid, float r, float g, float b)
+{
+	float rgba[4] = { r, g, b, 1.0f };
+	BLF_color4fv(fontid, rgba);
+}
+
 void BLF_draw_default(float x, float y, float z, const char *str, size_t len)
 {
 	ASSERT_DEFAULT_SET;
@@ -516,10 +580,6 @@ static void blf_draw_gl__start(FontBLF *font)
 
 	if (font->flags & BLF_ROTATION)  /* radians -> degrees */
 		gpuRotateAxis(RAD2DEG(font->angle), 'Z');
-
-	float temp_color[4];
-	glGetFloatv(GL_CURRENT_COLOR, temp_color); /* TODO(merwin): new BLF_color function? */
-	rgba_float_to_uchar(font->color, temp_color);
 
 #ifndef BLF_STANDALONE
 	VertexFormat *format = immVertexFormat();
