@@ -50,8 +50,9 @@
 #include "BLI_math.h"
 #include "BLI_threads.h"
 
-#include "BIF_gl.h"
 #include "BLF_api.h"
+
+#include "UI_resources.h"
 
 #include "IMB_colormanagement.h"
 
@@ -465,6 +466,15 @@ void BLF_blur(int fontid, int size)
 	}
 }
 #endif
+
+void BLF_ThemeColor(int fontid, int colorid)
+{
+	FontBLF *font = blf_get(fontid);
+
+	if (font) {
+		UI_GetThemeColor4ubv(colorid, font->color);
+	}
+}
 
 void BLF_color4ubv(int fontid, const unsigned char rgba[4])
 {
