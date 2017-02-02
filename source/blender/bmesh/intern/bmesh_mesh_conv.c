@@ -945,6 +945,10 @@ void BM_mesh_bm_to_me(
 				/* propagate edited basis offsets to other shapes */
 				if (apply_offset) {
 					add_v3_v3(fp, *ofs_pt++);
+					/* Apply back new coordinates of offsetted shapekeys into BMesh.
+					 * Otherwise, in case we call again BM_mesh_bm_to_me on same BMesh, we'll apply diff from previous
+					 * call to BM_mesh_bm_to_me, to shapekey values from *original creation of the BMesh*. See T50524. */
+					copy_v3_v3(BM_ELEM_CD_GET_VOID_P(eve, cd_shape_offset), fp);
 				}
 
 				fp += 3;

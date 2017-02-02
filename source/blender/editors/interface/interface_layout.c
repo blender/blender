@@ -2078,15 +2078,7 @@ static void ui_litem_estimate_row(uiLayout *litem)
 	for (item = litem->items.first; item; item = item->next) {
 		ui_item_size(item, &itemw, &itemh);
 
-		if (item->type == ITEM_BUTTON) {
-			const uiBut *but = ((uiButtonItem *)item)->but;
-			const bool icon_only = (but->flag & UI_HAS_ICON) && (but->str == NULL || but->str[0] == '\0');
-
-			min_size_flag = min_size_flag && icon_only;
-		}
-		else {
-			min_size_flag = min_size_flag && (item->flag & UI_ITEM_MIN);
-		}
+		min_size_flag = min_size_flag && (item->flag & UI_ITEM_MIN);
 
 		litem->w += itemw;
 		litem->h = MAX2(itemh, litem->h);
@@ -2232,15 +2224,7 @@ static void ui_litem_estimate_column(uiLayout *litem)
 	for (item = litem->items.first; item; item = item->next) {
 		ui_item_size(item, &itemw, &itemh);
 
-		if (item->type == ITEM_BUTTON) {
-			const uiBut *but = ((uiButtonItem *)item)->but;
-			const bool icon_only = (but->flag & UI_HAS_ICON) && (but->str == NULL || but->str[0] == '\0');
-			
-			min_size_flag = min_size_flag && icon_only;
-		}
-		else {
-			min_size_flag = min_size_flag && (item->flag & UI_ITEM_MIN);
-		}
+		min_size_flag = min_size_flag && (item->flag & UI_ITEM_MIN);
 
 		litem->w = MAX2(litem->w, itemw);
 		litem->h += itemh;
@@ -3336,6 +3320,14 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
 	bitem = MEM_callocN(sizeof(uiButtonItem), "uiButtonItem");
 	bitem->item.type = ITEM_BUTTON;
 	bitem->but = but;
+
+	int w, h;
+	ui_item_size((uiItem *)bitem, &w, &h);
+	/* XXX uiBut hasn't scaled yet
+	 * we can flag the button as not expandable, depending on its size */
+	if (w <= 2 * UI_UNIT_X)
+		bitem->item.flag |= UI_ITEM_MIN;
+
 	BLI_addtail(&layout->items, bitem);
 
 	if (layout->context) {

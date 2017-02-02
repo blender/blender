@@ -1187,6 +1187,9 @@ typedef struct KernelIntegrator {
 	int volume_samples;
 
 	float light_inv_rr_threshold;
+
+	int start_sample;
+	int pad1, pad2, pad3;
 } KernelIntegrator;
 static_assert_align(KernelIntegrator, 16);
 

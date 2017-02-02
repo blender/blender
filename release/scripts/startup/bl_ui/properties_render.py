@@ -377,7 +377,7 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
         sub.active = rd.use_stamp_note
         sub.prop(rd, "stamp_note_text", text="")
         if rd.use_sequencer:
-            layout.label("Sequencer")
+            layout.label("Sequencer:")
             layout.prop(rd, "use_stamp_strip_meta")
 
 

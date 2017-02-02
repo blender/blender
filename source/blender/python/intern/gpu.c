@@ -138,6 +138,7 @@ static PyObject *PyInit_gpu(void)
 	PY_MODULE_ADD_CONSTANT(m, GPU_DYNAMIC_MAT_EMIT);
 	PY_MODULE_ADD_CONSTANT(m, GPU_DYNAMIC_MAT_AMB);
 	PY_MODULE_ADD_CONSTANT(m, GPU_DYNAMIC_MAT_ALPHA);
+	PY_MODULE_ADD_CONSTANT(m, GPU_DYNAMIC_MAT_MIR);
 
 
 	/* -------------------------------------------------------------------- */
