@@ -379,6 +379,10 @@ void    UI_GetColorPtrShade3ubv(const unsigned char cp1[3], unsigned char col[3]
 // get a 3 byte color, blended and shaded between two other char color pointers
 void    UI_GetColorPtrBlendShade3ubv(const unsigned char cp1[3], const unsigned char cp2[3], unsigned char col[3], float fac, int offset);
 
+// sets the font color
+// (for anything fancy use UI_GetThemeColor[Fancy] then BLF_color)
+void UI_FontThemeColor(int fontid, int colorid);
+
 // clear the openGL ClearColor using the input colorid
 void    UI_ThemeClearColor(int colorid);
 

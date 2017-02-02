@@ -53,6 +53,8 @@
 
 #include "BIF_gl.h"
 
+#include "BLF_api.h"
+
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 
@@ -1393,6 +1395,12 @@ void UI_ThemeColorBlendShadeAlpha(int colorid1, int colorid2, float fac, int off
 	glColor4ub(r, g, b, a);
 }
 
+void UI_FontThemeColor(int fontid, int colorid)
+{
+	unsigned char color[4];
+	UI_GetThemeColor4ubv(colorid, color);
+	BLF_color4ubv(fontid, color);
+}
 
 /* get individual values, not scaled */
 float UI_GetThemeValuef(int colorid)
