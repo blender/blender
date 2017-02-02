@@ -787,7 +787,7 @@ void drawcircball(int mode, const float cent[3], float rad, const float tmat[4][
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-static void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], unsigned pos)
+void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], unsigned pos)
 {
 	float verts[CIRCLE_RESOL][3];
 
