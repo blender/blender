@@ -54,6 +54,8 @@
 
 #include "RNA_access.h"
 
+#include "GPU_immediate.h"
+
 #include "clip_intern.h"  /* own include */
 
 static void track_channel_color(MovieTrackingTrack *track, float default_color[3], float color[3])
@@ -84,32 +86,9 @@ static void draw_keyframe_shape(float x, float y, float xscale, float yscale, bo
 	static GLuint displist1 = 0;
 	static GLuint displist2 = 0;
 	int hsize = STRIP_HEIGHT_HALF;
-
-	/* initialize 2 display lists for diamond shape - one empty, one filled */
-	if (displist1 == 0) {
-		displist1 = glGenLists(1);
-		glNewList(displist1, GL_COMPILE);
-
-		glBegin(GL_LINE_LOOP);
-		glVertex2fv(_unit_diamond_shape[0]);
-		glVertex2fv(_unit_diamond_shape[1]);
-		glVertex2fv(_unit_diamond_shape[2]);
-		glVertex2fv(_unit_diamond_shape[3]);
-		glEnd();
-		glEndList();
-	}
-	if (displist2 == 0) {
-		displist2 = glGenLists(1);
-		glNewList(displist2, GL_COMPILE);
-
-		glBegin(GL_QUADS);
-		glVertex2fv(_unit_diamond_shape[0]);
-		glVertex2fv(_unit_diamond_shape[1]);
-		glVertex2fv(_unit_diamond_shape[2]);
-		glVertex2fv(_unit_diamond_shape[3]);
-		glEnd();
-		glEndList();
-	}
+	
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 	glPushMatrix();
 
@@ -120,16 +99,29 @@ static void draw_keyframe_shape(float x, float y, float xscale, float yscale, bo
 	/* anti-aliased lines for more consistent appearance */
 	glEnable(GL_LINE_SMOOTH);
 
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	/* interior */
 	if (sel)
-		UI_ThemeColorShadeAlpha(TH_STRIP_SELECT, 50, -255 * (1.0f - alpha));
+		immUniformThemeColorShadeAlpha(TH_STRIP_SELECT, 50, -255 * (1.0f - alpha));
 	else
-		glColor4f(0.91f, 0.91f, 0.91f, alpha);
+		immUniformColor4f(0.91f, 0.91f, 0.91f, alpha);
 
-	glCallList(displist2);
+	immBegin(GL_QUADS, 4);
+	immVertex2fv(pos, _unit_diamond_shape[0]);
+	immVertex2fv(pos, _unit_diamond_shape[1]);
+	immVertex2fv(pos, _unit_diamond_shape[2]);
+	immVertex2fv(pos, _unit_diamond_shape[3]);
+	immEnd();
 
 	/* exterior - black frame */
-	glColor4f(0.0f, 0.0f, 0.0f, alpha);
-	glCallList(displist1);
+	immUniformColor4f(0.0f, 0.0f, 0.0f, alpha);
+	immBegin(GL_LINE_LOOP, 4);
+	immVertex2fv(pos, _unit_diamond_shape[0]);
+	immVertex2fv(pos, _unit_diamond_shape[1]);
+	immVertex2fv(pos, _unit_diamond_shape[2]);
+	immVertex2fv(pos, _unit_diamond_shape[3]);
+	immEnd();
+	immUnbindProgram();
 
 	glDisable(GL_LINE_SMOOTH);
 
@@ -143,7 +135,11 @@ static void clip_draw_dopesheet_background(ARegion *ar, MovieClip *clip)
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
 	MovieTrackingDopesheetCoverageSegment *coverage_segment;
+	
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	for (coverage_segment = dopesheet->coverage_segments.first;
 	     coverage_segment;
 	     coverage_segment = coverage_segment->next)
@@ -153,14 +149,15 @@ static void clip_draw_dopesheet_background(ARegion *ar, MovieClip *clip)
 			int end_frame = BKE_movieclip_remap_clip_to_scene_frame(clip, coverage_segment->end_frame);
 
 			if (coverage_segment->coverage == TRACKING_COVERAGE_BAD) {
-				glColor4f(1.0f, 0.0f, 0.0f, 0.07f);
+				immUniformColor4f(1.0f, 0.0f, 0.0f, 0.07f);
 			}
 			else
-				glColor4f(1.0f, 1.0f, 0.0f, 0.07f);
+				immUniformColor4f(1.0f, 1.0f, 0.0f, 0.07f);
 
-			glRectf(start_frame, v2d->cur.ymin, end_frame, v2d->cur.ymax);
+			immRectf(pos, start_frame, v2d->cur.ymin, end_frame, v2d->cur.ymax);
 		}
 	}
+	immUnbindProgram();
 }
 
 void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
@@ -178,6 +175,9 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		float y, xscale, yscale;
 		float strip[4], selected_strip[4];
 		float height = (dopesheet->tot_channel * CHANNEL_STEP) + (CHANNEL_HEIGHT);
+		
+		VertexFormat *format = immVertexFormat();
+		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 		/* don't use totrect set, as the width stays the same
 		 * (NOTE: this is ok here, the configuration is pretty straightforward)
@@ -218,10 +218,12 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 					float default_color[4] = {0.8f, 0.93f, 0.8f, 0.3f};
 
 					track_channel_color(track, default_color, color);
-					glColor4fv(color);
+					immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+					immUniformColor4fv(color);
 
-					glRectf(v2d->cur.xmin, (float) y - CHANNEL_HEIGHT_HALF,
+					immRectf(pos, v2d->cur.xmin, (float) y - CHANNEL_HEIGHT_HALF,
 					        v2d->cur.xmax + EXTRA_SCROLL_PAD, (float) y + CHANNEL_HEIGHT_HALF);
+					immUnbindProgram();
 				}
 
 				alpha = (track->flag & TRACK_LOCKED) ? 0.5f : 1.0f;
@@ -231,18 +233,21 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 					int start_frame = BKE_movieclip_remap_clip_to_scene_frame(clip, channel->segments[2 * i]);
 					int end_frame = BKE_movieclip_remap_clip_to_scene_frame(clip, channel->segments[2 * i + 1]);
 
+					immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 					if (sel)
-						glColor4fv(selected_strip);
+						immUniformColor4fv(selected_strip);
 					else
-						glColor4fv(strip);
+						immUniformColor4fv(strip);
 
 					if (start_frame != end_frame) {
-						glRectf(start_frame, (float) y - STRIP_HEIGHT_HALF,
+						immRectf(pos, start_frame, (float) y - STRIP_HEIGHT_HALF,
 						        end_frame, (float) y + STRIP_HEIGHT_HALF);
+						immUnbindProgram();
 						draw_keyframe_shape(start_frame, y, xscale, yscale, sel, alpha);
 						draw_keyframe_shape(end_frame, y, xscale, yscale, sel, alpha);
 					}
 					else {
+						immUnbindProgram();
 						draw_keyframe_shape(start_frame, y, xscale, yscale, sel, alpha);
 					}
 				}
@@ -288,6 +293,9 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 	int height;
 	float y;
 	PropertyRNA *chan_prop_lock;
+	
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 	if (!clip)
 		return;
@@ -326,15 +334,14 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 			bool sel = (track->flag & TRACK_DOPE_SEL) != 0;
 
 			track_channel_color(track, NULL, color);
-			glColor3fv(color);
+			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+			immUniformColor3fv(color);
 
-			glRectf(v2d->cur.xmin, (float) y - CHANNEL_HEIGHT_HALF,
+			immRectf(pos, v2d->cur.xmin, (float) y - CHANNEL_HEIGHT_HALF,
 			        v2d->cur.xmax + EXTRA_SCROLL_PAD, (float) y + CHANNEL_HEIGHT_HALF);
+			immUnbindProgram();
 
-			if (sel)
-				UI_ThemeColor(TH_TEXT_HI);
-			else
-				UI_ThemeColor(TH_TEXT);
+			UI_ThemeColor(sel ? TH_TEXT_HI : TH_TEXT);
 
 			font_height = BLF_height(fontid, channel->name, sizeof(channel->name));
 			BLF_position(fontid, v2d->cur.xmin + CHANNEL_PAD,
