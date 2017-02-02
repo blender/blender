@@ -2408,36 +2408,46 @@ static DerivedMesh *cddm_copy_ex(DerivedMesh *source, int faces_from_tessfaces)
 	int numLoops = source->numLoopData;
 	int numPolys = source->numPolyData;
 
+	/* NOTE: Don't copy tessellation faces if not requested explicitly. */
+
 	/* ensure these are created if they are made on demand */
 	source->getVertDataArray(source, CD_ORIGINDEX);
 	source->getEdgeDataArray(source, CD_ORIGINDEX);
-	source->getTessFaceDataArray(source, CD_ORIGINDEX);
 	source->getPolyDataArray(source, CD_ORIGINDEX);
 
 	/* this initializes dm, and copies all non mvert/medge/mface layers */
-	DM_from_template(dm, source, DM_TYPE_CDDM, numVerts, numEdges, numTessFaces,
+	DM_from_template(dm, source, DM_TYPE_CDDM, numVerts, numEdges,
+	                 faces_from_tessfaces ? numTessFaces : 0,
 	                 numLoops, numPolys);
 	dm->deformedOnly = source->deformedOnly;
 	dm->cd_flag = source->cd_flag;
 	dm->dirty = source->dirty;
 
+	/* Tessellation data is never copied, so tag it here. */
+	dm->dirty |= DM_DIRTY_TESS_CDLAYERS;
+
 	CustomData_copy_data(&source->vertData, &dm->vertData, 0, 0, numVerts);
 	CustomData_copy_data(&source->edgeData, &dm->edgeData, 0, 0, numEdges);
-	CustomData_copy_data(&source->faceData, &dm->faceData, 0, 0, numTessFaces);
 
 	/* now add mvert/medge/mface layers */
 	cddm->mvert = source->dupVertArray(source);
 	cddm->medge = source->dupEdgeArray(source);
-	cddm->mface = source->dupTessFaceArray(source);
 
 	CustomData_add_layer(&dm->vertData, CD_MVERT, CD_ASSIGN, cddm->mvert, numVerts);
 	CustomData_add_layer(&dm->edgeData, CD_MEDGE, CD_ASSIGN, cddm->medge, numEdges);
-	CustomData_add_layer(&dm->faceData, CD_MFACE, CD_ASSIGN, cddm->mface, numTessFaces);
 	
-	if (!faces_from_tessfaces)
+	if (!faces_from_tessfaces) {
 		DM_DupPolys(source, dm);
-	else
+	}
+	else {
+		source->getTessFaceDataArray(source, CD_ORIGINDEX);
+		CustomData_copy_data(&source->faceData, &dm->faceData, 0, 0, numTessFaces);
+
+		cddm->mface = source->dupTessFaceArray(source);
+		CustomData_add_layer(&dm->faceData, CD_MFACE, CD_ASSIGN, cddm->mface, numTessFaces);
+
 		CDDM_tessfaces_to_faces(dm);
+	}
 
 	cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
 	cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
