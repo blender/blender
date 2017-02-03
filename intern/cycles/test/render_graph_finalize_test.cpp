@@ -92,7 +92,7 @@ public:
 	template<typename T>
 	ShaderGraphBuilder& add_node(const T& node)
 	{
-		EXPECT_EQ(NULL, find_node(node.name()));
+		EXPECT_EQ(find_node(node.name()), (void*)NULL);
 		graph_->add(node.node());
 		node_map_[node.name()] = node.node();
 		return *this;
@@ -104,8 +104,8 @@ public:
 		vector<string> tokens_from, tokens_to;
 		string_split(tokens_from, from, "::");
 		string_split(tokens_to, to, "::");
-		EXPECT_EQ(2, tokens_from.size());
-		EXPECT_EQ(2, tokens_to.size());
+		EXPECT_EQ(tokens_from.size(), 2);
+		EXPECT_EQ(tokens_to.size(), 2);
 		ShaderNode *node_from = find_node(tokens_from[0]),
 		           *node_to = find_node(tokens_to[0]);
 		EXPECT_NE((void*)NULL, node_from);

@@ -25,25 +25,25 @@ CCL_NAMESPACE_BEGIN
 TEST(util_string_printf, no_format)
 {
 	string str = string_printf("foo bar");
-	EXPECT_EQ(str, "foo bar");
+	EXPECT_EQ("foo bar", str);
 }
 
 TEST(util_string_printf, int_number)
 {
 	string str = string_printf("foo %d bar", 314);
-	EXPECT_EQ(str, "foo 314 bar");
+	EXPECT_EQ("foo 314 bar", str);
 }
 
 TEST(util_string_printf, float_number_default_precision)
 {
 	string str = string_printf("foo %f bar", 3.1415);
-	EXPECT_EQ(str, "foo 3.141500 bar");
+	EXPECT_EQ("foo 3.141500 bar", str);
 }
 
 TEST(util_string_printf, float_number_custom_precision)
 {
 	string str = string_printf("foo %.1f bar", 3.1415);
-	EXPECT_EQ(str, "foo 3.1 bar");
+	EXPECT_EQ("foo 3.1 bar", str);
 }
 
 /* ******** Tests for string_printf() ******** */
@@ -78,44 +78,44 @@ TEST(util_string_split, empty)
 {
 	vector<string> tokens;
 	string_split(tokens, "");
-	EXPECT_EQ(0, tokens.size());
+	EXPECT_EQ(tokens.size(), 0);
 }
 
 TEST(util_string_split, only_spaces)
 {
 	vector<string> tokens;
 	string_split(tokens, "   \t\t \t");
-	EXPECT_EQ(0, tokens.size());
+	EXPECT_EQ(tokens.size(), 0);
 }
 
 TEST(util_string_split, single)
 {
 	vector<string> tokens;
 	string_split(tokens, "foo");
-	EXPECT_EQ(1, tokens.size());
-	EXPECT_EQ("foo", tokens[0]);
+	EXPECT_EQ(tokens.size(), 1);
+	EXPECT_EQ(tokens[0], "foo");
 }
 
 TEST(util_string_split, simple)
 {
 	vector<string> tokens;
 	string_split(tokens, "foo a bar b");
-	EXPECT_EQ(4, tokens.size());
-	EXPECT_EQ("foo", tokens[0]);
-	EXPECT_EQ("a", tokens[1]);
-	EXPECT_EQ("bar", tokens[2]);
-	EXPECT_EQ("b", tokens[3]);
+	EXPECT_EQ(tokens.size(), 4);
+	EXPECT_EQ(tokens[0], "foo");
+	EXPECT_EQ(tokens[1], "a");
+	EXPECT_EQ(tokens[2], "bar");
+	EXPECT_EQ(tokens[3], "b");
 }
 
 TEST(util_string_split, multiple_spaces)
 {
 	vector<string> tokens;
 	string_split(tokens, " \t foo \ta bar b\t  ");
-	EXPECT_EQ(4, tokens.size());
-	EXPECT_EQ("foo", tokens[0]);
-	EXPECT_EQ("a", tokens[1]);
-	EXPECT_EQ("bar", tokens[2]);
-	EXPECT_EQ("b", tokens[3]);
+	EXPECT_EQ(tokens.size(), 4);
+	EXPECT_EQ(tokens[0], "foo");
+	EXPECT_EQ(tokens[1], "a");
+	EXPECT_EQ(tokens[2], "bar");
+	EXPECT_EQ(tokens[3], "b");
 }
 
 /* ******** Tests for string_replace() ******** */
@@ -124,35 +124,35 @@ TEST(util_string_replace, empty_haystack_and_other)
 {
 	string str = "";
 	string_replace(str, "x", "");
-	EXPECT_EQ("", str);
+	EXPECT_EQ(str, "");
 }
 
 TEST(util_string_replace, empty_haystack)
 {
 	string str = "";
 	string_replace(str, "x", "y");
-	EXPECT_EQ("", str);
+	EXPECT_EQ(str, "");
 }
 
 TEST(util_string_replace, empty_other)
 {
 	string str = "x";
 	string_replace(str, "x", "");
-	EXPECT_EQ("", str);
+	EXPECT_EQ(str, "");
 }
 
 TEST(util_string_replace, long_haystack_empty_other)
 {
 	string str = "a x b xxc";
 	string_replace(str, "x", "");
-	EXPECT_EQ("a  b c", str);
+	EXPECT_EQ(str, "a  b c");
 }
 
 TEST(util_string_replace, long_haystack)
 {
 	string str = "a x b xxc";
 	string_replace(str, "x", "FOO");
-	EXPECT_EQ("a FOO b FOOFOOc", str);
+	EXPECT_EQ(str, "a FOO b FOOFOOc");
 }
 
 /* ******** Tests for string_endswith() ******** */
@@ -192,25 +192,25 @@ TEST(util_string_endswith, simple_false)
 TEST(util_string_strip, empty)
 {
 	string str = string_strip("");
-	EXPECT_EQ("", str);
+	EXPECT_EQ(str, "");
 }
 
 TEST(util_string_strip, only_spaces)
 {
 	string str = string_strip("      ");
-	EXPECT_EQ("", str);
+	EXPECT_EQ(str, "");
 }
 
 TEST(util_string_strip, no_spaces)
 {
 	string str = string_strip("foo bar");
-	EXPECT_EQ("foo bar", str);
+	EXPECT_EQ(str, "foo bar");
 }
 
 TEST(util_string_strip, with_spaces)
 {
 	string str = string_strip("    foo bar ");
-	EXPECT_EQ("foo bar", str);
+	EXPECT_EQ(str, "foo bar");
 }
 
 /* ******** Tests for string_remove_trademark() ******** */
@@ -218,31 +218,31 @@ TEST(util_string_strip, with_spaces)
 TEST(util_string_remove_trademark, empty)
 {
 	string str = string_remove_trademark("");
-	EXPECT_EQ("", str);
+	EXPECT_EQ(str, "");
 }
 
 TEST(util_string_remove_trademark, no_trademark)
 {
 	string str = string_remove_trademark("foo bar");
-	EXPECT_EQ("foo bar", str);
+	EXPECT_EQ(str, "foo bar");
 }
 
 TEST(util_string_remove_trademark, only_tm)
 {
 	string str = string_remove_trademark("foo bar(TM) zzz");
-	EXPECT_EQ("foo bar zzz", str);
+	EXPECT_EQ(str, "foo bar zzz");
 }
 
 TEST(util_string_remove_trademark, only_r)
 {
 	string str = string_remove_trademark("foo bar(R) zzz");
-	EXPECT_EQ("foo bar zzz", str);
+	EXPECT_EQ(str, "foo bar zzz");
 }
 
 TEST(util_string_remove_trademark, both)
 {
 	string str = string_remove_trademark("foo bar(TM)(R) zzz");
-	EXPECT_EQ("foo bar zzz", str);
+	EXPECT_EQ(str, "foo bar zzz");
 }
 
 CCL_NAMESPACE_END
