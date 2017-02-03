@@ -235,21 +235,6 @@ static void raycast_all_cb(void *userdata, int index, const BVHTreeRay *ray, BVH
 /** \Common utilities
  * \{ */
 
-MINLINE float depth_get(const float co[3], const float ray_start[3], const float ray_dir[3])
-{
-	float dvec[3];
-	sub_v3_v3v3(dvec, co, ray_start);
-	return dot_v3v3(dvec, ray_dir);
-}
-
-/**
- * Struct that kepts basic information about a BVHTree build from a editmesh.
- */
-typedef struct BVHTreeFromMeshType {
-	void *userdata;
-	char type;
-} BVHTreeFromMeshType;
-
 /**
  * Generates a struct with the immutable parameters that will be used on all objects.
  *
@@ -286,52 +271,42 @@ static void snap_data_set(
 	copy_v2_v2(snapdata->depth_range, depth_range);
 }
 
-static void copy_vert_no(const BVHTreeFromMeshType *meshdata, const int index, float r_no[3])
+MINLINE float depth_get(const float co[3], const float ray_start[3], const float ray_dir[3])
 {
-	switch (meshdata->type) {
-		case SNAP_MESH:
-		{
-			BVHTreeFromMesh *data = meshdata->userdata;
-			const MVert *vert = data->vert + index;
-			normal_short_to_float_v3(r_no, vert->no);
-			break;
-		}
-		case SNAP_EDIT_MESH:
-		{
-			BVHTreeFromEditMesh *data = meshdata->userdata;
-			BMVert *eve = BM_vert_at_index(data->em->bm, index);
-			copy_v3_v3(r_no, eve->no);
-			break;
-		}
-	}
+	float dvec[3];
+	sub_v3_v3v3(dvec, co, ray_start);
+	return dot_v3v3(dvec, ray_dir);
 }
 
-static void get_edge_verts(
-        const BVHTreeFromMeshType *meshdata, const int index,
-        const float *v_pair[2])
+static void copy_dm_vert_no(const int index, float r_no[3], const BVHTreeFromMesh *data)
 {
-	switch (meshdata->type) {
-		case SNAP_MESH:
-		{
-			BVHTreeFromMesh *data = meshdata->userdata;
+	const MVert *vert = data->vert + index;
 
-			const MVert *vert = data->vert;
-			const MEdge *edge = data->edge + index;
+	normal_short_to_float_v3(r_no, vert->no);
+}
 
-			v_pair[0] = vert[edge->v1].co;
-			v_pair[1] = vert[edge->v2].co;
-			break;
-		}
-		case SNAP_EDIT_MESH:
-		{
-			BVHTreeFromEditMesh *data = meshdata->userdata;
-			BMEdge *eed = BM_edge_at_index(data->em->bm, index);
+static void copy_bvert_no(const int index, float r_no[3], const BVHTreeFromEditMesh *data)
+{
+	BMVert *eve = BM_vert_at_index(data->em->bm, index);
 
-			v_pair[0] = eed->v1->co;
-			v_pair[1] = eed->v2->co;
-			break;
-		}
-	}
+	copy_v3_v3(r_no, eve->no);
+}
+
+static void get_dm_edge_verts(const int index, const float *v_pair[2], const BVHTreeFromMesh *data)
+{
+	const MVert *vert = data->vert;
+	const MEdge *edge = data->edge + index;
+
+	v_pair[0] = vert[edge->v1].co;
+	v_pair[1] = vert[edge->v2].co;
+}
+
+static void get_bedge_verts(const int index, const float *v_pair[2], const BVHTreeFromEditMesh *data)
+{
+	BMEdge *eed = BM_edge_at_index(data->em->bm, index);
+
+	v_pair[0] = eed->v1->co;
+	v_pair[1] = eed->v2->co;
 }
 
 static bool test_projected_vert_dist(
@@ -422,6 +397,7 @@ static void dist_squared_to_projected_aabb_precalc(
 	}
 }
 
+/* Returns the distance from a 2d coordinate to a BoundBox (Projected) */
 static float dist_squared_to_projected_aabb(
         struct Nearest2dPrecalc *data,
         const float bbmin[3], const float bbmax[3],
@@ -652,7 +628,11 @@ typedef struct Nearest2dUserData {
 	bool r_axis_closest[3];
 
 	float depth_range[2];
+
 	void *userdata;
+	void(*get_edge_verts)(int, const float*[2], void*);
+	void(*copy_vert_no)(int, float[3], void*);
+
 	int index;
 	float co[3];
 	float no[3];
@@ -688,7 +668,7 @@ static bool cb_walk_leaf_snap_vert(const BVHTreeAxisRange *bounds, int index, vo
 	        &data->dist_px_sq,
 	        data->co))
 	{
-		copy_vert_no(data->userdata, index, data->no);
+		data->copy_vert_no(index, data->no, data->userdata);
 		data->index = index;
 	}
 	return true;
@@ -700,7 +680,7 @@ static bool cb_walk_leaf_snap_edge(const BVHTreeAxisRange *UNUSED(bounds), int i
 	struct Nearest2dPrecalc *neasrest_precalc = &data->data_precalc;
 
 	const float *v_pair[2];
-	get_edge_verts(data->userdata, index, v_pair);
+	data->get_edge_verts(index, v_pair, data->userdata);
 
 	if (test_projected_edge_dist(
 	        data->depth_range,
@@ -1311,13 +1291,13 @@ static bool snapDerivedMesh(
 	}
 	/* SCE_SNAP_MODE_VERTEX or SCE_SNAP_MODE_EDGE */
 	else {
-		BVHTreeFromMeshType treedata_type = {.userdata = treedata, .type = SNAP_MESH};
-
 		Nearest2dUserData neasrest2d = {
 		    .dist_px_sq = SQUARE(*dist_px),
 		    .r_axis_closest = {1.0f, 1.0f, 1.0f},
-		    .depth_range = {snapdata->depth_range[0],  *ray_depth + snapdata->depth_range[0]},
-		    .userdata = &treedata_type,
+		    .depth_range = {snapdata->depth_range[0], *ray_depth + snapdata->depth_range[0]},
+		    .userdata = treedata,
+		    .get_edge_verts = get_dm_edge_verts,
+		    .copy_vert_no = copy_dm_vert_no,
 		    .index = -1};
 
 		dist_squared_to_projected_aabb_precalc(
@@ -1581,13 +1561,13 @@ static bool snapEditMesh(
 		copy_v3_v3(ray_org_local, snapdata->ray_origin);
 		mul_m4_v3(imat, ray_org_local);
 
-		BVHTreeFromMeshType treedata_type = {.userdata = treedata, .type = SNAP_EDIT_MESH};
-
 		Nearest2dUserData neasrest2d = {
 		    .dist_px_sq = SQUARE(*dist_px),
 		    .r_axis_closest = {1.0f, 1.0f, 1.0f},
 		    .depth_range = {snapdata->depth_range[0], *ray_depth + snapdata->depth_range[0]},
-		    .userdata = &treedata_type,
+		    .userdata = treedata,
+		    .get_edge_verts = get_bedge_verts,
+		    .copy_vert_no = copy_bvert_no,
 		    .index = -1};
 
 		float lpmat[4][4];
