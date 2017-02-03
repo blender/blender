@@ -98,14 +98,14 @@ static void  test_polyfill_topology(
 			}
 		}
 	}
-	EXPECT_EQ(poly_tot + (poly_tot - 3), BLI_edgehash_size(edgehash));
+	EXPECT_EQ(BLI_edgehash_size(edgehash), poly_tot + (poly_tot - 3));
 
 	for (i = 0; i < poly_tot; i++) {
 		const unsigned int v1 = i;
 		const unsigned int v2 = (i + 1) % poly_tot;
 		void **p = BLI_edgehash_lookup_p(edgehash, v1, v2);
-		EXPECT_EQ(1, (void *)p != NULL);
-		EXPECT_EQ(1, (intptr_t)*p);
+		EXPECT_EQ((void *)p != NULL, 1);
+		EXPECT_EQ((intptr_t)*p, 1);
 	}
 
 	for (ehi = BLI_edgehashIterator_new(edgehash), i = 0;

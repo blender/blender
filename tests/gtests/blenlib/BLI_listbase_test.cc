@@ -74,25 +74,25 @@ TEST(listbase, FindLinkOrIndex)
 
 	/* Empty list */
 	BLI_listbase_clear(&lb);
-	EXPECT_EQ(NULL, BLI_findlink(&lb, -1));
-	EXPECT_EQ(NULL, BLI_findlink(&lb, 0));
-	EXPECT_EQ(NULL, BLI_findlink(&lb, 1));
-	EXPECT_EQ(NULL, BLI_rfindlink(&lb, -1));
-	EXPECT_EQ(NULL, BLI_rfindlink(&lb, 0));
-	EXPECT_EQ(NULL, BLI_rfindlink(&lb, 1));
-	EXPECT_EQ(-1, BLI_findindex(&lb, link1));
+	EXPECT_EQ(BLI_findlink(&lb, -1), (void*)NULL);
+	EXPECT_EQ(BLI_findlink(&lb, 0), (void*)NULL);
+	EXPECT_EQ(BLI_findlink(&lb, 1), (void*)NULL);
+	EXPECT_EQ(BLI_rfindlink(&lb, -1), (void*)NULL);
+	EXPECT_EQ(BLI_rfindlink(&lb, 0), (void*)NULL);
+	EXPECT_EQ(BLI_rfindlink(&lb, 1), (void*)NULL);
+	EXPECT_EQ(BLI_findindex(&lb, link1), -1);
 
 	/* One link */
 	BLI_addtail(&lb, link1);
-	EXPECT_EQ(link1, BLI_findlink(&lb, 0));
-	EXPECT_EQ(link1, BLI_rfindlink(&lb, 0));
-	EXPECT_EQ(0, BLI_findindex(&lb, link1));
+	EXPECT_EQ(BLI_findlink(&lb, 0), link1);
+	EXPECT_EQ(BLI_rfindlink(&lb, 0), link1);
+	EXPECT_EQ(BLI_findindex(&lb, link1), 0);
 
 	/* Two links */
 	BLI_addtail(&lb, link2);
-	EXPECT_EQ(link2, BLI_findlink(&lb, 1));
-	EXPECT_EQ(link2, BLI_rfindlink(&lb, 0));
-	EXPECT_EQ(1, BLI_findindex(&lb, link2));
+	EXPECT_EQ(BLI_findlink(&lb, 1), link2);
+	EXPECT_EQ(BLI_rfindlink(&lb, 0), link2);
+	EXPECT_EQ(BLI_findindex(&lb, link2), 1);
 
 	BLI_freelistN(&lb);
 }

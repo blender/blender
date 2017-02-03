@@ -121,42 +121,42 @@ TEST(path_util, PathUtilFrame)
 	{
 		char path[FILE_MAX] = "";
 		ret = BLI_path_frame(path, 123, 1);
-		EXPECT_EQ(1, ret);
+		EXPECT_EQ(ret, 1);
 		EXPECT_STREQ("123", path);
 	}
 
 	{
 		char path[FILE_MAX] = "";
 		ret = BLI_path_frame(path, 123, 12);
-		EXPECT_EQ(1, ret);
+		EXPECT_EQ(ret, 1);
 		EXPECT_STREQ("000000000123", path);
 	}
 
 	{
 		char path[FILE_MAX] = "test_";
 		ret = BLI_path_frame(path, 123, 1);
-		EXPECT_EQ(1, ret);
+		EXPECT_EQ(ret, 1);
 		EXPECT_STREQ("test_123", path);
 	}
 
 	{
 		char path[FILE_MAX] = "test_";
 		ret = BLI_path_frame(path, 1, 12);
-		EXPECT_EQ(1, ret);
+		EXPECT_EQ(ret, 1);
 		EXPECT_STREQ("test_000000000001", path);
 	}
 
 	{
 		char path[FILE_MAX] = "test_############";
 		ret = BLI_path_frame(path, 1, 0);
-		EXPECT_EQ(1, ret);
+		EXPECT_EQ(ret, 1);
 		EXPECT_STREQ("test_000000000001", path);
 	}
 
 	{
 		char path[FILE_MAX] = "test_#_#_middle";
 		ret = BLI_path_frame(path, 123, 0);
-		EXPECT_EQ(1, ret);
+		EXPECT_EQ(ret, 1);
 		EXPECT_STREQ("test_#_123_middle", path);
 	}
 
@@ -164,14 +164,14 @@ TEST(path_util, PathUtilFrame)
 	{
 		char path[FILE_MAX] = "";
 		ret = BLI_path_frame(path, 123, 0);
-		EXPECT_EQ(0, ret);
+		EXPECT_EQ(ret, 0);
 		EXPECT_STREQ("", path);
 	}
 
 	{
 		char path[FILE_MAX] = "test_middle";
 		ret = BLI_path_frame(path, 123, 0);
-		EXPECT_EQ(0, ret);
+		EXPECT_EQ(ret, 0);
 		EXPECT_STREQ("test_middle", path);
 	}
 }

@@ -19,9 +19,9 @@ TEST(hash_mm2a, MM2ABasic)
 	BLI_hash_mm2a_init(&mm2, 0);
 	BLI_hash_mm2a_add(&mm2, (const unsigned char *)data, strlen(data));
 #ifdef __LITTLE_ENDIAN__
-	EXPECT_EQ(1633988145, BLI_hash_mm2a_end(&mm2));
+	EXPECT_EQ(BLI_hash_mm2a_end(&mm2), 1633988145);
 #else
-	EXPECT_EQ(959283772, BLI_hash_mm2a_end(&mm2));
+	EXPECT_EQ(BLI_hash_mm2a_end(&mm2), 959283772);
 #endif
 }
 
@@ -43,11 +43,11 @@ TEST(hash_mm2a, MM2AConcatenateStrings)
 	BLI_hash_mm2a_init(&mm2, 0);
 	BLI_hash_mm2a_add(&mm2, (const unsigned char *)data123, strlen(data123));
 #ifdef __LITTLE_ENDIAN__
-	EXPECT_EQ(1545105348, hash);
+	EXPECT_EQ(hash, 1545105348);
 #else
-	EXPECT_EQ(2604964730, hash);
+	EXPECT_EQ(hash, 2604964730);
 #endif
-	EXPECT_EQ(hash, BLI_hash_mm2a_end(&mm2));
+	EXPECT_EQ(BLI_hash_mm2a_end(&mm2), hash);
 }
 
 TEST(hash_mm2a, MM2AIntegers)
@@ -67,9 +67,9 @@ TEST(hash_mm2a, MM2AIntegers)
 	BLI_hash_mm2a_add(&mm2, (const unsigned char *)ints, sizeof(ints));
 	/* Yes, same hash here on little and big endian. */
 #ifdef __LITTLE_ENDIAN__
-	EXPECT_EQ(405493096, hash);
+	EXPECT_EQ(hash, 405493096);
 #else
-	EXPECT_EQ(405493096, hash);
+	EXPECT_EQ(hash, 405493096);
 #endif
-	EXPECT_EQ(hash, BLI_hash_mm2a_end(&mm2));
+	EXPECT_EQ(BLI_hash_mm2a_end(&mm2), hash);
 }
