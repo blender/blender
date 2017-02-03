@@ -55,25 +55,112 @@ typedef struct GPUTexture GPUTexture;
  *  - if created with from_blender, will not free the texture
  */
 
-typedef enum GPUHDRType {
-	GPU_HDR_NONE =       0,
-	GPU_HDR_HALF_FLOAT = 1,
-	GPU_HDR_FULL_FLOAT = (1 << 1),
-} GPUHDRType;
+/* Wrapper to supported OpenGL/Vulkan texture internal storage
+ * If you need a type just uncomment it. Be aware that some formats
+ * are not supported by renderbuffers. All of the following formats
+ * are part of the OpenGL 3.3 core
+ * specification. */
+typedef enum GPUTextureFormat {
+	/* Formats texture & renderbuffer */
+	GPU_RGBA16F,
+	GPU_RGBA8,
+	GPU_RG32F,
+	GPU_RG16F,
+	GPU_R8,
+#if 0
+	GPU_RGBA32F,
+	GPU_RGBA32I,
+	GPU_RGBA32UI,
+	GPU_RGBA16,
+	GPU_RGBA16I,
+	GPU_RGBA16UI,
+	GPU_RGBA8I,
+	GPU_RGBA8UI,
+	GPU_RG32I,
+	GPU_RG32UI,
+	GPU_RG16,
+	GPU_RG16I,
+	GPU_RG16UI,
+	GPU_RG8,
+	GPU_RG8I,
+	GPU_RG8UI,
+	GPU_R32F,
+	GPU_R32I,
+	GPU_R32UI,
+	GPU_R16F,
+	GPU_R16I,
+	GPU_R16UI,
+	GPU_R16,
+	GPU_R8I,
+	GPU_R8UI,
+#endif
+
+	/* Special formats texture & renderbuffer */
+#if 0
+	GPU_R11F_G11F_B10F,
+	GPU_RGB10_A2,
+	GPU_RGB10_A2UI,
+	GPU_DEPTH32F_STENCIL8,
+	GPU_DEPTH24_STENCIL8,
+#endif
+
+	/* Texture only format */
+#if 0
+	GPU_RGBA16_SNORM,
+	GPU_RGBA8_SNORM,
+	GPU_RGB32F,
+	GPU_RGB32I,
+	GPU_RGB32UI,
+	GPU_RGB16_SNORM,
+	GPU_RGB16F,
+	GPU_RGB16I,
+	GPU_RGB16UI,
+	GPU_RGB16,
+	GPU_RGB8_SNORM,
+	GPU_RGB8,
+	GPU_RGB8I,
+	GPU_RGB8UI,
+	GPU_RG16_SNORM,
+	GPU_RG8_SNORM,
+	GPU_R16_SNORM,
+	GPU_R8_SNORM,
+#endif
+
+	/* Special formats texture only */
+#if 0
+	GPU_SRGB8_A8,
+	GPU_SRGB8,
+	GPU_RGB9_E5,
+	GPU_COMPRESSED_RG_RGTC2,
+	GPU_COMPRESSED_SIGNED_RG_RGTC2,
+	GPU_COMPRESSED_RED_RGTC1,
+	GPU_COMPRESSED_SIGNED_RED_RGTC1,
+#endif
+
+	/* Depth Formats */
+	GPU_DEPTH_COMPONENT32F,
+	GPU_DEPTH_COMPONENT24,
+	GPU_DEPTH_COMPONENT16,
+} GPUTextureFormat;
 
 GPUTexture *GPU_texture_create_1D(int w, const float *pixels, char err_out[256]);
-GPUTexture *GPU_texture_create_2D(int w, int h, const float *pixels, GPUHDRType hdr, char err_out[256]);
-GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, const float *fpixels);
+GPUTexture *GPU_texture_create_1D_custom(
+        int w, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256]);
+GPUTexture *GPU_texture_create_2D(int w, int h, const float *pixels, char err_out[256]);
+GPUTexture *GPU_texture_create_2D_custom(
+        int w, int h, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256]);
+GPUTexture *GPU_texture_create_2D_multisample(int w, int h, const float *pixels, int samples, char err_out[256]);
+GPUTexture *GPU_texture_create_2D_array(int w, int h, int d, const float *pixels, char err_out[256]);
+GPUTexture *GPU_texture_create_3D(int w, int h, int d, const float *pixels, char err_out[256]);
+GPUTexture *GPU_texture_create_3D_custom(
+        int w, int h, int d, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_depth(int w, int h, char err_out[256]);
-GPUTexture *GPU_texture_create_vsm_shadow_map(int size, char err_out[256]);
-GPUTexture *GPU_texture_create_2D_procedural(int w, int h, const float *pixels, bool repeat, char err_out[256]);
-GPUTexture *GPU_texture_create_1D_procedural(int w, const float *pixels, char err_out[256]);
-GPUTexture *GPU_texture_create_2D_multisample(
-        int w, int h, const float *pixels, GPUHDRType hdr, int samples, char err_out[256]);
 GPUTexture *GPU_texture_create_depth_multisample(int w, int h, int samples, char err_out[256]);
+
 GPUTexture *GPU_texture_from_blender(
         struct Image *ima, struct ImageUser *iuser, int textarget, bool is_data, double time, int mipmap);
 GPUTexture *GPU_texture_from_preview(struct PreviewImage *prv, int mipmap);
+
 void GPU_invalid_tex_init(void);
 void GPU_invalid_tex_bind(int mode);
 void GPU_invalid_tex_free(void);
@@ -81,12 +168,13 @@ void GPU_invalid_tex_free(void);
 void GPU_texture_free(GPUTexture *tex);
 
 void GPU_texture_ref(GPUTexture *tex);
-
 void GPU_texture_bind(GPUTexture *tex, int number);
 void GPU_texture_unbind(GPUTexture *tex);
 int GPU_texture_bound_number(GPUTexture *tex);
 
-void GPU_texture_filter_mode(GPUTexture *tex, bool compare, bool use_filter);
+void GPU_texture_compare_mode(GPUTexture *tex, bool use_compare);
+void GPU_texture_filter_mode(GPUTexture *tex, bool use_filter);
+void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat);
 
 struct GPUFrameBuffer *GPU_texture_framebuffer(GPUTexture *tex);
 int GPU_texture_framebuffer_attachment(GPUTexture *tex);

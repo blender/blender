@@ -54,7 +54,7 @@ struct GPUFrameBuffer {
 
 static void GPU_print_framebuffer_error(GLenum status, char err_out[256])
 {
-	const char *format = "GPUFrameBuffer: framebuffer status %s";
+	const char *format = "GPUFrameBuffer: framebuffer status %s\n";
 	const char *err = "unknown";
 
 #define format_status(X) \
@@ -453,7 +453,7 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, char err_
 		return NULL;
 	}
 
-	ofs->color = GPU_texture_create_2D_multisample(width, height, NULL, GPU_HDR_NONE, samples, err_out);
+	ofs->color = GPU_texture_create_2D_multisample(width, height, NULL, samples, err_out);
 	if (!ofs->color) {
 		GPU_offscreen_free(ofs);
 		return NULL;
