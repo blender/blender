@@ -1346,9 +1346,9 @@ class VIEW3D_MT_object_clear(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.location_clear", text="Location")
-        layout.operator("object.rotation_clear", text="Rotation")
-        layout.operator("object.scale_clear", text="Scale")
+        layout.operator("object.location_clear", text="Location").clear_delta = False
+        layout.operator("object.rotation_clear", text="Rotation").clear_delta = False
+        layout.operator("object.scale_clear", text="Scale").clear_delta = False
         layout.operator("object.origin_clear", text="Origin")
 
 
