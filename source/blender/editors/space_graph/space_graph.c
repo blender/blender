@@ -269,7 +269,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 	if (((sipo->flag & SIPO_NODRAWCURSOR) == 0) || (sipo->mode == SIPO_MODE_DRIVERS)) {
 		unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
-		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		/* horizontal component of value-cursor (value line before the current frame line) */
 		if ((sipo->flag & SIPO_NODRAWCURSOR) == 0) {

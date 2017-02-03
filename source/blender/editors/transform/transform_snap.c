@@ -249,7 +249,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 			
 			unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
-			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 			for (p = t->tsnap.points.first; p; p = p->next) {
 				if (p == t->tsnap.selectedPoint) {

@@ -461,7 +461,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 		if (ruler_item->flag & RULERITEM_USE_ANGLE) {
 			unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
-			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 			imm_cpack(is_act ? color_act : color_base);
 
 			immBegin(GL_LINE_STRIP, 3);
@@ -603,7 +603,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 		else {
 			unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
-			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 			imm_cpack(is_act ? color_act : color_base);
 
 			immBegin(GL_LINE_STRIP, 2);
@@ -706,7 +706,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 			unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
-			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 			imm_cpack(color_act);
 
 			imm_draw_lined_circle(pos, co_ss[0], co_ss[1], size * U.pixelsize, 32);
