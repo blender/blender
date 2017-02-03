@@ -280,8 +280,8 @@ static void testbuffer_run_tests_single(
         BArrayStore *bs, ListBase *lb)
 {
 	testbuffer_list_store_populate(bs, lb);
-	EXPECT_EQ(true, testbuffer_list_validate(lb));
-	EXPECT_EQ(true, BLI_array_store_is_valid(bs));
+	EXPECT_TRUE(testbuffer_list_validate(lb));
+	EXPECT_TRUE(BLI_array_store_is_valid(bs));
 #ifdef DEBUG_PRINT
 	print_mem_saved("data", bs);
 #endif
@@ -423,8 +423,8 @@ TEST(array_store, TextDupeIncreaseDecrease)
 
 	/* forward */
 	testbuffer_list_store_populate(bs, &lb);
-	EXPECT_EQ(true, testbuffer_list_validate(&lb));
-	EXPECT_EQ(true, BLI_array_store_is_valid(bs));
+	EXPECT_TRUE(testbuffer_list_validate(&lb));
+	EXPECT_TRUE(BLI_array_store_is_valid(bs));
 	EXPECT_EQ(strlen(D), BLI_array_store_calc_size_compacted_get(bs));
 
 	testbuffer_list_store_clear(bs, &lb);
@@ -432,8 +432,8 @@ TEST(array_store, TextDupeIncreaseDecrease)
 
 	/* backwards */
 	testbuffer_list_store_populate(bs, &lb);
-	EXPECT_EQ(true, testbuffer_list_validate(&lb));
-	EXPECT_EQ(true, BLI_array_store_is_valid(bs));
+	EXPECT_TRUE(testbuffer_list_validate(&lb));
+	EXPECT_TRUE(BLI_array_store_is_valid(bs));
 	/* larger since first block doesn't de-duplicate */
 	EXPECT_EQ(strlen(D) * 4, BLI_array_store_calc_size_compacted_get(bs));
 
@@ -782,8 +782,8 @@ TEST(array_store, PlainTextFiles)
 
 	/* forwards */
 	testbuffer_list_store_populate(bs, &lb);
-	EXPECT_EQ(true, testbuffer_list_validate(&lb));
-	EXPECT_EQ(true, BLI_array_store_is_valid(bs));
+	EXPECT_TRUE(testbuffer_list_validate(&lb));
+	EXPECT_TRUE(BLI_array_store_is_valid(bs));
 #ifdef DEBUG_PRINT
 	print_mem_saved("source code forward", bs);
 #endif
@@ -793,8 +793,8 @@ TEST(array_store, PlainTextFiles)
 
 	/* backwards */
 	testbuffer_list_store_populate(bs, &lb);
-	EXPECT_EQ(true, testbuffer_list_validate(&lb));
-	EXPECT_EQ(true, BLI_array_store_is_valid(bs));
+	EXPECT_TRUE(testbuffer_list_validate(&lb));
+	EXPECT_TRUE(BLI_array_store_is_valid(bs));
 #ifdef DEBUG_PRINT
 	print_mem_saved("source code backwards", bs);
 #endif

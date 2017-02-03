@@ -179,7 +179,7 @@ TEST(ghash, Pop)
 		void *k, *v;
 		bool success = BLI_ghash_pop(ghash, &pop_state, &k, &v);
 		EXPECT_EQ(k, v);
-		EXPECT_EQ(success, true);
+		EXPECT_TRUE(success);
 
 		if (i % 2) {
 			BLI_ghash_insert(ghash, SET_UINT_IN_POINTER(i * 4), SET_UINT_IN_POINTER(i * 4));
