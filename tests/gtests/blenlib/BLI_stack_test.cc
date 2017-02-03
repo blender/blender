@@ -37,7 +37,7 @@ TEST(stack, One)
 	stack = BLI_stack_new(sizeof(in), __func__);
 
 	BLI_stack_push(stack, (void *)&in);
-	EXPECT_EQ(BLI_stack_is_empty(stack), false);
+	EXPECT_FALSE(BLI_stack_is_empty(stack));
 	EXPECT_EQ(BLI_stack_count(stack), 1);
 	BLI_stack_pop(stack, (void *)&out);
 	EXPECT_EQ(in, out);
@@ -59,7 +59,7 @@ TEST(stack, Range)
 	}
 
 	for (in = tot - 1; in >= 0; in--) {
-		EXPECT_EQ(BLI_stack_is_empty(stack), false);
+		EXPECT_FALSE(BLI_stack_is_empty(stack));
 		BLI_stack_pop(stack, (void *)&out);
 		EXPECT_EQ(in, out);
 
@@ -86,7 +86,7 @@ TEST(stack, String)
 	}
 
 	for (i = tot - 1; i >= 0; i--) {
-		EXPECT_EQ(BLI_stack_is_empty(stack), false);
+		EXPECT_FALSE(BLI_stack_is_empty(stack));
 		*((int *)in) = i;
 		BLI_stack_pop(stack, (void *)&out);
 		EXPECT_STREQ(in, out);
@@ -148,7 +148,7 @@ TEST(stack, Clear)
 		}
 
 		for (in = tot - 1; in >= 0; in--) {
-			EXPECT_EQ(BLI_stack_is_empty(stack), false);
+			EXPECT_FALSE(BLI_stack_is_empty(stack));
 			BLI_stack_pop(stack, (void *)&out);
 			EXPECT_EQ(in, out);
 		}
