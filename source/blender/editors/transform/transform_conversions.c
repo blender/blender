@@ -2393,7 +2393,12 @@ static void createTransEditVerts(TransInfo *t)
 		editmesh_set_connectivity_distance(em->bm, mtx, dists);
 	}
 
-	if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
+	/* Only in case of rotation and resize, we want the elements of the edited
+	 * object to behave as groups whose pivot are the individual origins
+	 *
+	 * TODO: use island_info to detect the closest point when the "Snap Target"
+	 * in Blender UI is "Closest" */
+	if ((t->around == V3D_AROUND_LOCAL_ORIGINS) && (t->mode != TFM_TRANSLATION)) {
 		island_info = editmesh_islands_info_calc(em, &island_info_tot, &island_vert_map);
 	}
 
