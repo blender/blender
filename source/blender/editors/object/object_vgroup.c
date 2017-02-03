@@ -363,8 +363,8 @@ void ED_vgroup_parray_remove_zero(MDeformVert **dvert_array, const int dvert_tot
 /* matching index only */
 bool ED_vgroup_array_copy(Object *ob, Object *ob_from)
 {
-	MDeformVert **dvert_array_from, **dvf;
-	MDeformVert **dvert_array, **dv;
+	MDeformVert **dvert_array_from = NULL, **dvf;
+	MDeformVert **dvert_array = NULL, **dv;
 	int dvert_tot_from;
 	int dvert_tot;
 	int i;
@@ -375,26 +375,30 @@ bool ED_vgroup_array_copy(Object *ob, Object *ob_from)
 	if (ob == ob_from)
 		return true;
 
-	ED_vgroup_parray_alloc(ob_from->data, &dvert_array_from, &dvert_tot_from, false);
-	ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, false);
-
-	if ((dvert_array == NULL) && (dvert_array_from != NULL) && BKE_object_defgroup_data_create(ob->data)) {
+	/* in case we copy vgroup between two objects using same data, we only have to care about object side of things. */
+	if (ob->data != ob_from->data) {
+		ED_vgroup_parray_alloc(ob_from->data, &dvert_array_from, &dvert_tot_from, false);
 		ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, false);
-		new_vgroup = true;
-	}
 
-	if (dvert_tot == 0 || (dvert_tot != dvert_tot_from) || dvert_array_from == NULL || dvert_array == NULL) {
-
-		if (dvert_array) MEM_freeN(dvert_array);
-		if (dvert_array_from) MEM_freeN(dvert_array_from);
-
-		if (new_vgroup == true) {
-			/* free the newly added vgroup since it wasn't compatible */
-			BKE_object_defgroup_remove_all(ob);
+		if ((dvert_array == NULL) && (dvert_array_from != NULL) && BKE_object_defgroup_data_create(ob->data)) {
+			ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, false);
+			new_vgroup = true;
 		}
 
-		/* if true: both are 0 and nothing needs changing, consider this a success */
-		return (dvert_tot == dvert_tot_from);
+		if (dvert_tot == 0 || (dvert_tot != dvert_tot_from) || dvert_array_from == NULL || dvert_array == NULL) {
+			if (dvert_array)
+				MEM_freeN(dvert_array);
+			if (dvert_array_from)
+				MEM_freeN(dvert_array_from);
+
+			if (new_vgroup == true) {
+				/* free the newly added vgroup since it wasn't compatible */
+				BKE_object_defgroup_remove_all(ob);
+			}
+
+			/* if true: both are 0 and nothing needs changing, consider this a success */
+			return (dvert_tot == dvert_tot_from);
+		}
 	}
 
 	/* do the copy */
@@ -412,21 +416,22 @@ bool ED_vgroup_array_copy(Object *ob, Object *ob_from)
 		MEM_freeN(remap);
 	}
 
-	dvf = dvert_array_from;
-	dv = dvert_array;
+	if (dvert_array_from != NULL && dvert_array != NULL) {
+		dvf = dvert_array_from;
+		dv = dvert_array;
 
-	for (i = 0; i < dvert_tot; i++, dvf++, dv++) {
-		if ((*dv)->dw)
-			MEM_freeN((*dv)->dw);
+		for (i = 0; i < dvert_tot; i++, dvf++, dv++) {
+			MEM_SAFE_FREE((*dv)->dw);
+			*(*dv) = *(*dvf);
 
-		*(*dv) = *(*dvf);
+			if ((*dv)->dw) {
+				(*dv)->dw = MEM_dupallocN((*dv)->dw);
+			}
+		}
 
-		if ((*dv)->dw)
-			(*dv)->dw = MEM_dupallocN((*dv)->dw);
+		MEM_freeN(dvert_array);
+		MEM_freeN(dvert_array_from);
 	}
-
-	MEM_freeN(dvert_array);
-	MEM_freeN(dvert_array_from);
 
 	return true;
 }
