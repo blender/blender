@@ -164,7 +164,7 @@ void AbcHairWriter::write_hair_sample(DerivedMesh *dm,
 
 					psys_interpolate_face(mverts, face, tface, NULL, mapfw, vec, normal, NULL, NULL, NULL, NULL);
 
-					copy_zup_yup(tmp_nor.getValue(), normal);
+					copy_yup_from_zup(tmp_nor.getValue(), normal);
 					norm_values.push_back(tmp_nor);
 				}
 			}
@@ -198,7 +198,7 @@ void AbcHairWriter::write_hair_sample(DerivedMesh *dm,
 						MVert *mv = mverts + vtx[o];
 
 						normal_short_to_float_v3(normal, mv->no);
-						copy_zup_yup(tmp_nor.getValue(), normal);
+						copy_yup_from_zup(tmp_nor.getValue(), normal);
 						norm_values.push_back(tmp_nor);
 						found = true;
 						break;

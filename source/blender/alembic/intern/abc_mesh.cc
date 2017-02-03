@@ -112,7 +112,7 @@ static void get_vertices(DerivedMesh *dm, std::vector<Imath::V3f> &points)
 	MVert *verts = dm->getVertArray(dm);
 
 	for (int i = 0, e = dm->getNumVerts(dm); i < e; ++i) {
-		copy_zup_yup(points[i].getValue(), verts[i].co);
+		copy_yup_from_zup(points[i].getValue(), verts[i].co);
 	}
 }
 
@@ -182,7 +182,7 @@ static void get_vertex_normals(DerivedMesh *dm, std::vector<Imath::V3f> &normals
 
 	for (int i = 0, e = dm->getNumVerts(dm); i < e; ++i) {
 		normal_short_to_float_v3(no, verts[i].no);
-		copy_zup_yup(normals[i].getValue(), no);
+		copy_yup_from_zup(normals[i].getValue(), no);
 	}
 }
 
@@ -211,7 +211,7 @@ static void get_loop_normals(DerivedMesh *dm, std::vector<Imath::V3f> &normals)
 
 			for (int j = 0; j < mp->totloop; --ml, ++j, ++loop_index) {
 				const int index = ml->v;
-				copy_zup_yup(normals[loop_index].getValue(), lnors[index]);
+				copy_yup_from_zup(normals[loop_index].getValue(), lnors[index]);
 			}
 		}
 	}
@@ -226,14 +226,14 @@ static void get_loop_normals(DerivedMesh *dm, std::vector<Imath::V3f> &normals)
 				BKE_mesh_calc_poly_normal(mp, ml - (mp->totloop - 1), verts, no);
 
 				for (int j = 0; j < mp->totloop; --ml, ++j, ++loop_index) {
-					copy_zup_yup(normals[loop_index].getValue(), no);
+					copy_yup_from_zup(normals[loop_index].getValue(), no);
 				}
 			}
 			else {
 				/* Smooth shaded, use individual vert normals. */
 				for (int j = 0; j < mp->totloop; --ml, ++j, ++loop_index) {
 					normal_short_to_float_v3(no, verts[ml->v].no);
-					copy_zup_yup(normals[loop_index].getValue(), no);
+					copy_yup_from_zup(normals[loop_index].getValue(), no);
 				}
 			}
 		}
@@ -590,7 +590,7 @@ void AbcMeshWriter::getVelocities(DerivedMesh *dm, std::vector<Imath::V3f> &vels
 		float *mesh_vels = reinterpret_cast<float *>(fss->meshVelocities);
 
 		for (int i = 0; i < totverts; ++i) {
-			copy_zup_yup(vels[i].getValue(), mesh_vels);
+			copy_yup_from_zup(vels[i].getValue(), mesh_vels);
 			mesh_vels += 3;
 		}
 	}
@@ -726,7 +726,7 @@ static void read_mverts_interp(MVert *mverts, const P3fArraySamplePtr &positions
 		const Imath::V3f &ceil_pos = (*ceil_positions)[i];
 
 		interp_v3_v3v3(tmp, floor_pos.getValue(), ceil_pos.getValue(), weight);
-		copy_yup_zup(mvert.co, tmp);
+		copy_zup_from_yup(mvert.co, tmp);
 
 		mvert.bweight = 0;
 	}
@@ -755,7 +755,7 @@ void read_mverts(MVert *mverts, const P3fArraySamplePtr &positions, const N3fArr
 		MVert &mvert = mverts[i];
 		Imath::V3f pos_in = (*positions)[i];
 
-		copy_yup_zup(mvert.co, pos_in.getValue());
+		copy_zup_from_yup(mvert.co, pos_in.getValue());
 
 		mvert.bweight = 0;
 
@@ -765,7 +765,7 @@ void read_mverts(MVert *mverts, const P3fArraySamplePtr &positions, const N3fArr
 			short no[3];
 			normal_float_to_short_v3(no, nor_in.getValue());
 
-			copy_yup_zup(mvert.no, no);
+			copy_zup_from_yup(mvert.no, no);
 		}
 	}
 }
