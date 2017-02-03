@@ -4346,10 +4346,10 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
 	TransData *td = t->data;
 	float tvec[3];
 
-	/* you only need to "apply_snap_align_rotation" when a snap point is found (t->tsnap.status & POINT_INIT)
+	/* The ideal would be "apply_snap_align_rotation" only when a snap point is found
 	 * so, maybe inside this function is not the best place to apply this rotation.
 	 * but you need "handle snapping rotation before doing the translation" (really?) */
-	const bool apply_snap_align_rotation = usingSnappingNormal(t) && (t->tsnap.status & POINT_INIT);
+	const bool apply_snap_align_rotation = usingSnappingNormal(t);// && (t->tsnap.status & POINT_INIT);
 	float pivot[3];
 	if (apply_snap_align_rotation) {
 		copy_v3_v3(pivot, t->tsnap.snapTarget);
