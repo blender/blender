@@ -84,8 +84,8 @@ typedef struct TransSnap {
 	bool	peel;
 	bool	snap_spatial_grid;
 	short  	status;
-	float	snapPoint[3]; /* snapping from this point */
-	float	snapTarget[3]; /* to this point */
+	float	snapPoint[3]; /* snapping from this point (in global-space)*/
+	float	snapTarget[3]; /* to this point (in global-space)*/
 	float	snapNormal[3];
 	char	snapNodeBorder;
 	ListBase points;
