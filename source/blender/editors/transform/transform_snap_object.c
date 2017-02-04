@@ -620,6 +620,10 @@ static float dist_aabb_to_plane(
 
 /** \Walk DFS
  * \{ */
+
+typedef void (*Nearest2DGetEdgeVertsCallback)(const int index, const float *v_pair[2], void *data);
+typedef void (*Nearest2DCopyVertNoCallback)(const int index, float r_no[3], void *data);
+
 typedef struct Nearest2dUserData {
 	struct Nearest2dPrecalc data_precalc;
 
@@ -630,8 +634,8 @@ typedef struct Nearest2dUserData {
 	float depth_range[2];
 
 	void *userdata;
-	void(*get_edge_verts)(int, const float*[2], void*);
-	void(*copy_vert_no)(int, float[3], void*);
+	Nearest2DGetEdgeVertsCallback get_edge_verts;
+	Nearest2DCopyVertNoCallback copy_vert_no;
 
 	int index;
 	float co[3];
@@ -1296,8 +1300,8 @@ static bool snapDerivedMesh(
 		    .r_axis_closest = {1.0f, 1.0f, 1.0f},
 		    .depth_range = {snapdata->depth_range[0], *ray_depth + snapdata->depth_range[0]},
 		    .userdata = treedata,
-		    .get_edge_verts = get_dm_edge_verts,
-		    .copy_vert_no = copy_dm_vert_no,
+		    .get_edge_verts = (Nearest2DGetEdgeVertsCallback)get_dm_edge_verts,
+		    .copy_vert_no = (Nearest2DCopyVertNoCallback)copy_dm_vert_no,
 		    .index = -1};
 
 		dist_squared_to_projected_aabb_precalc(
@@ -1566,8 +1570,8 @@ static bool snapEditMesh(
 		    .r_axis_closest = {1.0f, 1.0f, 1.0f},
 		    .depth_range = {snapdata->depth_range[0], *ray_depth + snapdata->depth_range[0]},
 		    .userdata = treedata,
-		    .get_edge_verts = get_bedge_verts,
-		    .copy_vert_no = copy_bvert_no,
+		    .get_edge_verts = (Nearest2DGetEdgeVertsCallback)get_bedge_verts,
+		    .copy_vert_no = (Nearest2DCopyVertNoCallback)copy_bvert_no,
 		    .index = -1};
 
 		float lpmat[4][4];
@@ -1871,8 +1875,12 @@ static void snap_object_data_free(void *sod_v)
 
 void ED_transform_snap_object_context_destroy(SnapObjectContext *sctx)
 {
-	BLI_ghash_free(sctx->cache.object_map, NULL, snap_object_data_free);
-	BLI_memarena_free(sctx->cache.mem_arena);
+	if (sctx->cache.object_map) {
+		BLI_ghash_free(sctx->cache.object_map, NULL, snap_object_data_free);
+	}
+	if (sctx->cache.mem_arena) {
+		BLI_memarena_free(sctx->cache.mem_arena);
+	}
 
 	MEM_freeN(sctx);
 }
