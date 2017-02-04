@@ -387,7 +387,7 @@ static void mesh_edges_spherecast(void *userdata, int index, const BVHTreeRay *r
 
 /** \name Vertex Builder
  * \{ */
-
+#include "PIL_time.h"
 static BVHTree *bvhtree_from_editmesh_verts_create_tree(
         float epsilon, int tree_type, int axis,
         BMEditMesh *em, const int verts_num,
@@ -403,16 +403,50 @@ static BVHTree *bvhtree_from_editmesh_verts_create_tree(
 		verts_num_active = verts_num;
 	}
 
+	float dummy[3];
+	double t1 = PIL_check_seconds_timer();
+
+	/* loop 1: BM_ITER */
+	BMIter iter;
+	BMVert *eve;
+	BM_ITER_MESH_INDEX(eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+		if (!verts_mask || BLI_BITMAP_TEST_BOOL(verts_mask, i)) {
+			copy_v3_v3(dummy, eve->co);
+		}
+	}
+	double t2 = PIL_check_seconds_timer();
+
+	/* loop 2: BM_vert_at_index */
+	for (int i = 0; i < verts_num_active; i++) {
+		if (!verts_mask || BLI_BITMAP_TEST_BOOL(verts_mask, i)) {
+			BMVert *eve = BM_vert_at_index(em->bm, i);
+			copy_v3_v3(dummy, eve->co);
+		}
+	}
+	double t3 = PIL_check_seconds_timer();
+
+	/* loop 3: vtable */
+	for (int i = 0; i < verts_num_active; i++) {
+		if (!verts_mask || BLI_BITMAP_TEST_BOOL(verts_mask, i)) {
+			BMVert *eve = em->bm->vtable[i];
+			copy_v3_v3(dummy, eve->co);
+		}
+	}
+	double t4 = PIL_check_seconds_timer();
+	printf("loop_bmes = %lf\n", (t2 - t1));
+	printf("loop_mask = %lf\n", (t3 - t2));
+	printf("loop_mvtb = %lf\n", (t4 - t3));
+	printf("factor___ = %lf\n", (t2 - t1) / (t3 - t2));
+
 	tree = BLI_bvhtree_new(verts_num_active, epsilon, tree_type, axis);
 
 	if (tree) {
 		BMIter iter;
-		BMVert *eve;
-		BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
-			if (verts_mask && !BLI_BITMAP_TEST_BOOL(verts_mask, i)) {
-				continue;
+		for (int i = 0; i < verts_num; i++) {
+			if (!verts_mask || BLI_BITMAP_TEST_BOOL(verts_mask, i)) {
+				BMVert *eve = BM_vert_at_index(em->bm, i);
+				BLI_bvhtree_insert(tree, i, eve->co, 1);
 			}
-			BLI_bvhtree_insert(tree, i, eve->co, 1);
 		}
 		BLI_assert(BLI_bvhtree_get_size(tree) == verts_num_active);
 		BLI_bvhtree_balance(tree);
