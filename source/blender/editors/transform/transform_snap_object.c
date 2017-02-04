@@ -1827,6 +1827,9 @@ SnapObjectContext *ED_transform_snap_object_context_create(
 	sctx->bmain = bmain;
 	sctx->scene = scene;
 
+	sctx->cache.object_map = BLI_ghash_ptr_new(__func__);
+	sctx->cache.mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+
 	return sctx;
 }
 
@@ -1840,9 +1843,6 @@ SnapObjectContext *ED_transform_snap_object_context_create_view3d(
 	sctx->use_v3d = true;
 	sctx->v3d_data.ar = ar;
 	sctx->v3d_data.v3d = v3d;
-
-	sctx->cache.object_map = BLI_ghash_ptr_new(__func__);
-	sctx->cache.mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 
 	return sctx;
 }
@@ -1875,12 +1875,8 @@ static void snap_object_data_free(void *sod_v)
 
 void ED_transform_snap_object_context_destroy(SnapObjectContext *sctx)
 {
-	if (sctx->cache.object_map) {
-		BLI_ghash_free(sctx->cache.object_map, NULL, snap_object_data_free);
-	}
-	if (sctx->cache.mem_arena) {
-		BLI_memarena_free(sctx->cache.mem_arena);
-	}
+	BLI_ghash_free(sctx->cache.object_map, NULL, snap_object_data_free);
+	BLI_memarena_free(sctx->cache.mem_arena);
 
 	MEM_freeN(sctx);
 }
@@ -1903,7 +1899,7 @@ bool ED_transform_snap_object_project_ray_ex(
         SnapObjectContext *sctx,
         const unsigned short snap_to,
         const struct SnapObjectParams *params,
-        const float UNUSED(ray_start[3]), const float UNUSED(ray_normal[3]),
+        const float ray_start[3], const float ray_normal[3],
         float *ray_depth,
         float r_loc[3], float r_no[3], int *r_index,
         Object **r_ob, float r_obmat[4][4])
@@ -1911,7 +1907,9 @@ bool ED_transform_snap_object_project_ray_ex(
 	const float depth_range[2] = {0.0f, FLT_MAX};
 
 	SnapData snapdata;
-	snap_data_set(&snapdata, sctx->v3d_data.ar, snap_to, VIEW_PROJ_NONE, NULL, r_loc, r_loc, r_no, depth_range);
+	snap_data_set(
+	        &snapdata, sctx->v3d_data.ar, snap_to, VIEW_PROJ_NONE,
+	        NULL, ray_start, ray_start, ray_normal, depth_range);
 
 	return snapObjectsRay(
 	        sctx, &snapdata,
