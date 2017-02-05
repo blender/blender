@@ -175,6 +175,12 @@ void BLF_default_set(int fontid)
 	}
 }
 
+int BLF_default()
+{
+	ASSERT_DEFAULT_SET;
+	return global_font_default;
+}
+
 int BLF_load(const char *name)
 {
 	FontBLF *font;

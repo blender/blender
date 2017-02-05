@@ -45,6 +45,7 @@ int BLF_init(int points, int dpi);
 void BLF_exit(void);
 void BLF_default_dpi(int dpi);
 void BLF_default_set(int fontid);
+int BLF_default(void); /* get default font ID so we can pass it to other functions */
 
 void BLF_cache_clear(void);
 
