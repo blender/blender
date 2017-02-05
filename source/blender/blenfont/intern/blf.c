@@ -364,24 +364,6 @@ void BLF_disable(int fontid, int option)
 	}
 }
 
-void BLF_enable_default(int option)
-{
-	FontBLF *font = blf_get(global_font_default);
-
-	if (font) {
-		font->flags |= option;
-	}
-}
-
-void BLF_disable_default(int option)
-{
-	FontBLF *font = blf_get(global_font_default);
-
-	if (font) {
-		font->flags &= ~option;
-	}
-}
-
 void BLF_aspect(int fontid, float x, float y, float z)
 {
 	FontBLF *font = blf_get(fontid);
@@ -552,15 +534,6 @@ void BLF_draw_default_ascii(float x, float y, float z, const char *str, size_t l
 	BLF_size(global_font_default, global_font_points, global_font_dpi);
 	BLF_position(global_font_default, x, y, z);
 	BLF_draw_ascii(global_font_default, str, len); /* XXX, use real length */
-}
-
-void BLF_rotation_default(float angle)
-{
-	FontBLF *font = blf_get(global_font_default);
-
-	if (font) {
-		font->angle = angle;
-	}
 }
 
 static void blf_draw_gl__start(FontBLF *font)
@@ -763,14 +736,6 @@ void BLF_width_and_height(int fontid, const char *str, size_t len, float *r_widt
 	}
 }
 
-void BLF_width_and_height_default(const char *str, size_t len, float *r_width, float *r_height)
-{
-	ASSERT_DEFAULT_SET;
-
-	BLF_size(global_font_default, global_font_points, global_font_dpi);
-	BLF_width_and_height(global_font_default, str, len, r_width, r_height);
-}
-
 float BLF_width_ex(
         int fontid, const char *str, size_t len,
         struct ResultBLF *r_info)
@@ -799,14 +764,6 @@ float BLF_fixed_width(int fontid)
 	}
 
 	return 0.0f;
-}
-
-float BLF_width_default(const char *str, size_t len)
-{
-	ASSERT_DEFAULT_SET;
-
-	BLF_size(global_font_default, global_font_points, global_font_dpi);
-	return BLF_width(global_font_default, str, len);
 }
 
 float BLF_height_ex(
@@ -872,15 +829,6 @@ float BLF_ascender(int fontid)
 	return 0.0f;
 }
 
-float BLF_height_default(const char *str, size_t len)
-{
-	ASSERT_DEFAULT_SET;
-
-	BLF_size(global_font_default, global_font_points, global_font_dpi);
-
-	return BLF_height(global_font_default, str, len);
-}
-
 void BLF_rotation(int fontid, float angle)
 {
 	FontBLF *font = blf_get(fontid);
@@ -893,18 +841,6 @@ void BLF_rotation(int fontid, float angle)
 void BLF_clipping(int fontid, float xmin, float ymin, float xmax, float ymax)
 {
 	FontBLF *font = blf_get(fontid);
-
-	if (font) {
-		font->clip_rec.xmin = xmin;
-		font->clip_rec.ymin = ymin;
-		font->clip_rec.xmax = xmax;
-		font->clip_rec.ymax = ymax;
-	}
-}
-
-void BLF_clipping_default(float xmin, float ymin, float xmax, float ymax)
-{
-	FontBLF *font = blf_get(global_font_default);
 
 	if (font) {
 		font->clip_rec.xmin = xmin;

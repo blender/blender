@@ -136,27 +136,11 @@ void BLF_width_and_height(int fontid, const char *str, size_t len, float *r_widt
  */
 float BLF_fixed_width(int fontid) ATTR_WARN_UNUSED_RESULT;
 
-/* and this two function return the width and height
- * of the string, using the default font and both value
- * are multiplied by the aspect of the font.
- */
-void  BLF_width_and_height_default(const char *str, size_t len, float *r_width, float *r_height) ATTR_NONNULL();
-float BLF_width_default(const char *str, size_t len) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-float BLF_height_default(const char *str, size_t len) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-
-/* Set rotation for default font. */
-void BLF_rotation_default(float angle);
-
-/* Enable/disable options to the default font. */
-void BLF_enable_default(int option);
-void BLF_disable_default(int option);
-
 /* By default, rotation and clipping are disable and
  * have to be enable/disable using BLF_enable/disable.
  */
 void BLF_rotation(int fontid, float angle);
 void BLF_clipping(int fontid, float xmin, float ymin, float xmax, float ymax);
-void BLF_clipping_default(float xmin, float ymin, float xmax, float ymax);
 void BLF_wordwrap(int fontid, int wrap_width);
 
 #if BLF_BLUR_ENABLE
