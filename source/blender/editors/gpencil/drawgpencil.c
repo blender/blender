@@ -1563,13 +1563,15 @@ static void gp_draw_status_text(const bGPdata *gpd, ARegion *ar)
 		const char *printable = IFACE_("GPencil Stroke Editing");
 		float       printable_size[2];
 
-		BLF_width_and_height_default(printable, BLF_DRAW_STR_DUMMY_MAX, &printable_size[0], &printable_size[1]);
+		int font_id = BLF_default();
+
+		BLF_width_and_height(font_id, printable, BLF_DRAW_STR_DUMMY_MAX, &printable_size[0], &printable_size[1]);
 		
 		int xco = (rect.xmax - U.widget_unit) - (int)printable_size[0];
 		int yco = (rect.ymax - U.widget_unit);
 
 		/* text label */
-		UI_ThemeColor(TH_TEXT_HI);
+		UI_FontThemeColor(font_id, TH_TEXT_HI);
 #ifdef WITH_INTERNATIONAL
 		BLF_draw_default(xco, yco, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
 #else

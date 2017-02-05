@@ -1852,8 +1852,9 @@ static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *ar)
 	int xco, yco;
 
 	ED_region_visible_rect(ar, &rect);
-	
-	BLF_width_and_height_default(printable, BLF_DRAW_STR_DUMMY_MAX, &printable_size[0], &printable_size[1]);
+
+	const int font_id = BLF_default();
+	BLF_width_and_height(font_id, printable, BLF_DRAW_STR_DUMMY_MAX, &printable_size[0], &printable_size[1]);
 	
 	xco = (rect.xmax - U.widget_unit) - (int)printable_size[0];
 	yco = (rect.ymax - U.widget_unit);
@@ -1861,7 +1862,9 @@ static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *ar)
 	/* warning text (to clarify meaning of overlays)
 	 * - original color was red to match the icon, but that clashes badly with a less nasty border
 	 */
-	UI_ThemeColorShade(TH_TEXT_HI, -50);
+	unsigned char color[3];
+	UI_GetThemeColorShade3ubv(TH_TEXT_HI, -50, color);
+	BLF_color3ubv(font_id, color);
 #ifdef WITH_INTERNATIONAL
 	BLF_draw_default(xco, yco, 0.0f, printable, BLF_DRAW_STR_DUMMY_MAX);
 #else

@@ -698,7 +698,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 
 	/* camera name - draw in highlighted text color */
 	if (ca && (ca->flag & CAM_SHOWNAME)) {
-		UI_ThemeColor(TH_TEXT_HI);
+		UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
 		BLF_draw_default(
 		        x1i, y1i - (0.7f * U.widget_unit), 0.0f,
 		        v3d->camera->id.name + 2, sizeof(v3d->camera->id.name) - 2);
@@ -1644,11 +1644,11 @@ static void draw_view_axis(RegionView3D *rv3d, rcti *rect)
 		int i = axis_order[axis_i];
 
 		const char axis_text[2] = {'x' + i, '\0'};
-		glColor4ubv(axis_col[i]); /* text shader still uses gl_Color */
+		BLF_color4ubv(BLF_default(), axis_col[i]);
 		BLF_draw_default_ascii(axis_pos[i][0] + 2, axis_pos[i][1] + 2, 0.0f, axis_text, 1);
 	}
 
-	/* BLF_draw_default disabled blending for us */
+	/* BLF_draw disabled blending for us */
 }
 
 #ifdef WITH_INPUT_NDOF

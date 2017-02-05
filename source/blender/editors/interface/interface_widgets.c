@@ -1457,7 +1457,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	}
 #endif
 
-	glColor4ubv((unsigned char *)wcol->text);
+	BLF_color4ubv(fstyle->uifont_id, (unsigned char *)wcol->text);
 
 	if (!use_right_only) {
 		/* for underline drawing */
@@ -4125,7 +4125,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 			UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, '\0');
 		}
 
-		glColor4ubv((unsigned char *)wt->wcol.text);
+		BLF_color4ubv(fstyle->uifont_id, (unsigned char *)wt->wcol.text);
 		UI_fontstyle_draw(fstyle, rect, drawstr);
 	}
 
@@ -4192,7 +4192,7 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, const char *name, int
 		BLI_strncpy(drawstr, name, sizeof(drawstr));
 		UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, '\0');
 
-		glColor4ubv((unsigned char *)wt->wcol.text);
+		BLF_color4ubv(fstyle->uifont_id, (unsigned char *)wt->wcol.text);
 		UI_fontstyle_draw(fstyle, &trect, drawstr);
 	}
 }

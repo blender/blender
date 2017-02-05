@@ -1269,7 +1269,7 @@ static void draw_tree_path(SpaceNode *snode)
 	
 	ED_node_tree_path_get_fixedbuf(snode, info, sizeof(info));
 	
-	UI_ThemeColor(TH_TEXT_HI);
+	UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
 	BLF_draw_default(1.5f * UI_UNIT_X, 1.5f * UI_UNIT_Y, 0.0f, info, sizeof(info));
 }
 

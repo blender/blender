@@ -291,7 +291,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect)
 		name = tmpstr;
 	}
 
-	UI_ThemeColor(TH_TEXT_HI);
+	UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
 #ifdef WITH_INTERNATIONAL
 	BLF_draw_default(U.widget_unit + rect->xmin,  rect->ymax - U.widget_unit, 0.0f, name, sizeof(tmpstr));
 #else
@@ -308,6 +308,8 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 	const int cfra = CFRA;
 	const char *msg_pin = " (Pinned)";
 	const char *msg_sep = " : ";
+
+	const int font_id = BLF_default();
 
 	char info[300];
 	char *s = info;
@@ -384,18 +386,18 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 		
 		/* color depends on whether there is a keyframe */
 		if (id_frame_has_keyframe((ID *)ob, /* BKE_scene_frame_get(scene) */ (float)cfra, ANIMFILTER_KEYS_LOCAL))
-			UI_ThemeColor(TH_TIME_KEYFRAME);
+			UI_FontThemeColor(font_id, TH_TIME_KEYFRAME);
 		else if (ED_gpencil_has_keyframe_v3d(scene, ob, cfra))
-			UI_ThemeColor(TH_TIME_GP_KEYFRAME);
+			UI_FontThemeColor(font_id, TH_TIME_GP_KEYFRAME);
 		else
-			UI_ThemeColor(TH_TEXT_HI);
+			UI_FontThemeColor(font_id, TH_TEXT_HI);
 	}
 	else {
 		/* no object */
 		if (ED_gpencil_has_keyframe_v3d(scene, NULL, cfra))
-			UI_ThemeColor(TH_TIME_GP_KEYFRAME);
+			UI_FontThemeColor(font_id, TH_TIME_GP_KEYFRAME);
 		else
-			UI_ThemeColor(TH_TEXT_HI);
+			UI_FontThemeColor(font_id, TH_TEXT_HI);
 	}
 
 	if (markern) {
@@ -2348,13 +2350,15 @@ void ED_scene_draw_fps(Scene *scene, const rcti *rect)
 	}
 #endif
 
+	const int font_id = BLF_default();
+
 	/* is this more than half a frame behind? */
 	if (fps + 0.5f < (float)(FPS)) {
-		UI_ThemeColor(TH_REDALERT);
+		UI_FontThemeColor(font_id, TH_REDALERT);
 		BLI_snprintf(printable, sizeof(printable), IFACE_("fps: %.2f"), fps);
 	}
 	else {
-		UI_ThemeColor(TH_TEXT_HI);
+		UI_FontThemeColor(font_id, TH_TEXT_HI);
 		BLI_snprintf(printable, sizeof(printable), IFACE_("fps: %i"), (int)(fps + 0.5f));
 	}
 
@@ -2683,7 +2687,7 @@ static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
 		if (grid_unit) { /* draw below the viewport name */
 			char numstr[32] = "";
 
-			UI_ThemeColor(TH_TEXT_HI);
+			UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
 			if (v3d->grid != 1.0f) {
 				BLI_snprintf(numstr, sizeof(numstr), "%s x %.4g", grid_unit, v3d->grid);
 			}
