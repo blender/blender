@@ -80,6 +80,11 @@ typedef uint64_t u_int64_t;
 #include <stddef.h>  /* size_t define */
 #include <stdbool.h>
 
+typedef unsigned int uint;
+typedef unsigned short ushort;
+typedef unsigned long ulong;
+typedef unsigned char uchar;
+
 #ifdef __cplusplus 
 }
 #endif
