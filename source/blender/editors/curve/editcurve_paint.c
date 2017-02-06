@@ -48,6 +48,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "GPU_immediate.h"
+
 #include "curve_intern.h"
 
 #include "UI_resources.h"
@@ -514,30 +516,45 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 		}
 
 		{
+			VertexFormat *format = immVertexFormat();
+			unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+
 			glEnable(GL_BLEND);
 			glEnable(GL_LINE_SMOOTH);
 
-			glEnableClientState(GL_VERTEX_ARRAY);
-			glVertexPointer(3, GL_FLOAT, 0, coord_array);
-
-			cpack(0x0);
+			imm_cpack(0x0);
+			immBegin(GL_LINE_STRIP, stroke_len);
 			glLineWidth(3.0f);
-			glDrawArrays(GL_LINE_STRIP, 0, stroke_len);
 
-			if (v3d->zbuf)
+			if (v3d->zbuf) {
 				glDisable(GL_DEPTH_TEST);
+			}
 
-			cpack(0xffffffff);
+			for (int i = 0; i < stroke_len; i++) {
+				immVertex3fv(pos, coord_array[i]);
+			}
+
+			immEnd();
+
+			imm_cpack(0xffffffff);
+			immBegin(GL_LINE_STRIP, stroke_len);
 			glLineWidth(1.0f);
-			glDrawArrays(GL_LINE_STRIP, 0, stroke_len);
 
-			if (v3d->zbuf)
+			for (int i = 0; i < stroke_len; i++) {
+				immVertex3fv(pos, coord_array[i]);
+			}
+
+			immEnd();
+
+			if (v3d->zbuf) {
 				glEnable(GL_DEPTH_TEST);
-
-			glDisableClientState(GL_VERTEX_ARRAY);
+			}
 
 			glDisable(GL_BLEND);
 			glDisable(GL_LINE_SMOOTH);
+
+			immUnbindProgram();
 		}
 
 		MEM_freeN(coord_array);
