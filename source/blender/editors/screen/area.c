@@ -373,41 +373,37 @@ static void region_draw_azone_tab_plus(AZone *az)
 
 static void region_draw_azone_tab(AZone *az)
 {
-	float col[4];
+	float col[4], black[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 	
 	glEnable(GL_BLEND);
 	UI_GetThemeColor3fv(TH_HEADER, col);
 	col[3] = 0.5f;
-	
+
 	/* add code to draw region hidden as 'too small' */
 	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
 			UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT | UI_RB_ALPHA);
 			
 			UI_draw_roundbox_shade_x(GL_TRIANGLE_FAN, (float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, -0.3f, 0.05f, col);
-			glColor4ub(0, 0, 0, 255);
-			UI_draw_roundbox_unfilled((float)az->x1, 0.3f + (float)az->y1, (float)az->x2, 0.3f + (float)az->y2, 4.0f);
+			UI_draw_roundbox_unfilled((float)az->x1, 0.3f + (float)az->y1, (float)az->x2, 0.3f + (float)az->y2, 4.0f, black);
 			break;
 		case AE_BOTTOM_TO_TOPLEFT:
 			UI_draw_roundbox_corner_set(UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT | UI_RB_ALPHA);
 			
 			UI_draw_roundbox_shade_x(GL_TRIANGLE_FAN, (float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, -0.3f, 0.05f, col);
-			glColor4ub(0, 0, 0, 255);
-			UI_draw_roundbox_unfilled((float)az->x1, 0.3f + (float)az->y1, (float)az->x2, 0.3f + (float)az->y2, 4.0f);
+			UI_draw_roundbox_unfilled((float)az->x1, 0.3f + (float)az->y1, (float)az->x2, 0.3f + (float)az->y2, 4.0f, black);
 			break;
 		case AE_LEFT_TO_TOPRIGHT:
 			UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT | UI_RB_ALPHA);
 			
 			UI_draw_roundbox_shade_x(GL_TRIANGLE_FAN, (float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, -0.3f, 0.05f, col);
-			glColor4ub(0, 0, 0, 255);
-			UI_draw_roundbox_unfilled((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f);
+			UI_draw_roundbox_unfilled((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, black);
 			break;
 		case AE_RIGHT_TO_TOPLEFT:
 			UI_draw_roundbox_corner_set(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT | UI_RB_ALPHA);
 			
 			UI_draw_roundbox_shade_x(GL_TRIANGLE_FAN, (float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, -0.3f, 0.05f, col);
-			glColor4ub(0, 0, 0, 255);
-			UI_draw_roundbox_unfilled((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f);
+			UI_draw_roundbox_unfilled((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y2, 4.0f, black);
 			break;
 	}
 	

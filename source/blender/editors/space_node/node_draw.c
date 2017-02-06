@@ -1315,7 +1315,7 @@ static void draw_group_overlay(const bContext *C, ARegion *ar)
 
 	UI_GetThemeColorShadeAlpha4fv(TH_NODE_GROUP, 0, -70, color);
 	UI_draw_roundbox_corner_set(UI_CNR_NONE);
-	UI_draw_roundbox_gl_mode(GL_POLYGON, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 0, color);
+	UI_draw_roundbox_gl_mode(GL_TRIANGLE_FAN, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 0, color);
 	glDisable(GL_BLEND);
 	
 	/* set the block bounds to clip mouse events from underlying nodes */
