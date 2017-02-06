@@ -1037,6 +1037,17 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 			if (use_dverts) {
 				defnrToPC = MEM_callocN(sizeof(*defnrToPC) * defbase_tot, "defnrToBone");
 				defnrToPCIndex = MEM_callocN(sizeof(*defnrToPCIndex) * defbase_tot, "defnrToIndex");
+				/* TODO(sergey): Some considerations here:
+				 *
+				 * - Make it more generic function, maybe even keep together with chanhash.
+				 * - Check whether keeping this consistent across frames gives speedup.
+				 * - Don't use hash for small armatures.
+				 */
+				GHash *idx_hash = BLI_ghash_ptr_new("pose channel index by name");
+				int pchan_index = 0;
+				for (pchan = armOb->pose->chanbase.first; pchan != NULL; pchan = pchan->next, ++pchan_index) {
+					BLI_ghash_insert(idx_hash, pchan, SET_INT_IN_POINTER(pchan_index));
+				}
 				for (i = 0, dg = target->defbase.first; dg; i++, dg = dg->next) {
 					defnrToPC[i] = BKE_pose_channel_find_name(armOb->pose, dg->name);
 					/* exclude non-deforming bones */
@@ -1045,10 +1056,11 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 							defnrToPC[i] = NULL;
 						}
 						else {
-							defnrToPCIndex[i] = BLI_findindex(&armOb->pose->chanbase, defnrToPC[i]);
+							defnrToPCIndex[i] = GET_INT_FROM_POINTER(BLI_ghash_lookup(idx_hash, defnrToPC[i]));
 						}
 					}
 				}
+				BLI_ghash_free(idx_hash, NULL, NULL);
 			}
 		}
 	}
