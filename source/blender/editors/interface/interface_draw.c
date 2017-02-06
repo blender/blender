@@ -449,10 +449,18 @@ void UI_draw_roundbox(float minx, float miny, float maxx, float maxy, float rad,
 	ui_draw_anti_roundbox(GL_TRIANGLE_FAN, minx, miny, maxx, maxy, rad, roundboxtype & UI_RB_ALPHA, color);
 }
 
-void UI_draw_text_underline(int pos_x, int pos_y, int len, int height)
+void UI_draw_text_underline(int pos_x, int pos_y, int len, int height, const float color[4])
 {
 	int ofs_y = 4 * U.pixelsize;
-	glRecti(pos_x, pos_y - ofs_y, pos_x + len, pos_y - ofs_y + (height * U.pixelsize));
+
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformColor4fv(color);
+
+	immRecti(pos, pos_x, pos_y - ofs_y, pos_x + len, pos_y - ofs_y + (height * U.pixelsize));
+	immUnbindProgram();
 }
 
 /* ************** SPECIAL BUTTON DRAWING FUNCTIONS ************* */
@@ -556,45 +564,49 @@ static void draw_scope_end(const rctf *rect, GLint *scissor)
 
 static void histogram_draw_one(
         float r, float g, float b, float alpha,
-        float x, float y, float w, float h, const float *data, int res, const bool is_line)
+        float x, float y, float w, float h, const float *data, int res, const bool is_line,
+        unsigned int pos_attrib)
 {
+	float color[4] = {r, g, b, alpha};
+
 	glEnable(GL_LINE_SMOOTH);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	glColor4f(r, g, b, alpha);
+
+	immUniformColor4fv(color);
 
 	if (is_line) {
 		/* curve outline */
 		glLineWidth(1.5);
 
-		glBegin(GL_LINE_STRIP);
+		immBegin(GL_LINE_STRIP, res);
 		for (int i = 0; i < res; i++) {
 			float x2 = x + i * (w / (float)res);
-			glVertex2f(x2, y + (data[i] * h));
+			immVertex2f(pos_attrib, x2, y + (data[i] * h));
 		}
-		glEnd();
+		immEnd();
 	}
 	else {
 		/* under the curve */
-		glBegin(GL_TRIANGLE_STRIP);
-		glVertex2f(x, y);
-		glVertex2f(x, y + (data[0] * h));
+		immBegin(GL_TRIANGLE_STRIP, res*2);
+		immVertex2f(pos_attrib, x, y);
+		immVertex2f(pos_attrib, x, y + (data[0] * h));
 		for (int i = 1; i < res; i++) {
 			float x2 = x + i * (w / (float)res);
-			glVertex2f(x2, y + (data[i] * h));
-			glVertex2f(x2, y);
+			immVertex2f(pos_attrib, x2, y + (data[i] * h));
+			immVertex2f(pos_attrib, x2, y);
 		}
-		glEnd();
+		immEnd();
 
 		/* curve outline */
-		glColor4f(0.f, 0.f, 0.f, 0.25f);
+		immUniformColor4f(0.f, 0.f, 0.f, 0.25f);
 
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glBegin(GL_LINE_STRIP);
+		immBegin(GL_LINE_STRIP, res);
 		for (int i = 0; i < res; i++) {
 			float x2 = x + i * (w / (float)res);
-			glVertex2f(x2, y + (data[i] * h));
+			immVertex2f(pos_attrib, x2, y + (data[i] * h));
 		}
-		glEnd();
+		immEnd();
 	}
 
 	glDisable(GL_LINE_SMOOTH);
@@ -607,7 +619,7 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 	Histogram *hist = (Histogram *)but->poin;
 	int res = hist->x_resolution;
 	const bool is_line = (hist->flag & HISTO_FLAG_LINE) != 0;
-	
+
 	rctf rect = {
 		.xmin = (float)recti->xmin + 1,
 		.xmax = (float)recti->xmax - 1,
@@ -634,34 +646,41 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 	          (rect.xmax + 1) - (rect.xmin - 1),
 	          (rect.ymax + 1) - (rect.ymin - 1));
 
-	glColor4f(1.f, 1.f, 1.f, 0.08f);
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	immUniformColor4f(1.f, 1.f, 1.f, 0.08f);
 	/* draw grid lines here */
 	for (int i = 1; i <= HISTOGRAM_TOT_GRID_LINES; i++) {
 		const float fac = (float)i / (float)HISTOGRAM_TOT_GRID_LINES;
 
 		/* so we can tell the 1.0 color point */
 		if (i == HISTOGRAM_TOT_GRID_LINES) {
-			glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
+			immUniformColor4f(1.0f, 1.0f, 1.0f, 0.5f);
 		}
 
-		fdrawline(rect.xmin, rect.ymin + fac * h, rect.xmax, rect.ymin + fac * h);
-		fdrawline(rect.xmin + fac * w, rect.ymin, rect.xmin + fac * w, rect.ymax);
+		imm_draw_line(pos, rect.xmin, rect.ymin + fac * h, rect.xmax, rect.ymin + fac * h);
+		imm_draw_line(pos, rect.xmin + fac * w, rect.ymin, rect.xmin + fac * w, rect.ymax);
 	}
-	
+
 	if (hist->mode == HISTO_MODE_LUMA) {
-		histogram_draw_one(1.0, 1.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_luma, res, is_line);
+		histogram_draw_one(1.0, 1.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_luma, res, is_line, pos);
 	}
 	else if (hist->mode == HISTO_MODE_ALPHA) {
-		histogram_draw_one(1.0, 1.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_a, res, is_line);
+		histogram_draw_one(1.0, 1.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_a, res, is_line, pos);
 	}
 	else {
 		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_R)
-			histogram_draw_one(1.0, 0.0, 0.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_r, res, is_line);
+			histogram_draw_one(1.0, 0.0, 0.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_r, res, is_line, pos);
 		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_G)
-			histogram_draw_one(0.0, 1.0, 0.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_g, res, is_line);
+			histogram_draw_one(0.0, 1.0, 0.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_g, res, is_line, pos);
 		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_B)
-			histogram_draw_one(0.0, 0.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_b, res, is_line);
+			histogram_draw_one(0.0, 0.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_b, res, is_line, pos);
 	}
+
+	immUnbindProgram();
 	
 	/* outline */
 	draw_scope_end(&rect, scissor);

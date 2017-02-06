@@ -318,7 +318,7 @@ void UI_draw_roundbox_gl_mode_3fvAlpha(int mode, float minx, float miny, float m
 void UI_draw_roundbox_gl_mode(int mode, float minx, float miny, float maxx, float maxy, float rad, float col[4]);
 void UI_draw_roundbox_shade_x(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown, const float col[4]);
 void UI_draw_roundbox_shade_y(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadeleft, float shaderight, const float col[4]);
-void UI_draw_text_underline(int pos_x, int pos_y, int len, int height);
+void UI_draw_text_underline(int pos_x, int pos_y, int len, int height, const float color[4]);
 
 void UI_draw_safe_areas(
         unsigned pos, float x1, float x2, float y1, float y2,

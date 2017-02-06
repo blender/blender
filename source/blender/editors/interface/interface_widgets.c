@@ -1251,6 +1251,7 @@ static void widget_draw_text_ime_underline(
 	int ofs_x, width;
 	int rect_x = BLI_rcti_size_x(rect);
 	int sel_start = ime_data->sel_start, sel_end = ime_data->sel_end;
+	float fcol[4];
 
 	if (drawstr[0] != 0) {
 		if (but->pos >= but->ofs) {
@@ -1263,8 +1264,8 @@ static void widget_draw_text_ime_underline(
 		width = BLF_width(fstyle->uifont_id, drawstr + but->ofs,
 		                  ime_data->composite_len + but->pos - but->ofs);
 
-		glColor4ubv((unsigned char *)wcol->text);
-		UI_draw_text_underline(rect->xmin + ofs_x, rect->ymin + 6 * U.pixelsize, min_ii(width, rect_x - 2) - ofs_x, 1);
+		rgba_uchar_to_float(fcol, wcol->text);
+		UI_draw_text_underline(rect->xmin + ofs_x, rect->ymin + 6 * U.pixelsize, min_ii(width, rect_x - 2) - ofs_x, 1, fcol);
 
 		/* draw the thick line */
 		if (sel_start != -1 && sel_end != -1) {
@@ -1281,7 +1282,7 @@ static void widget_draw_text_ime_underline(
 			width = BLF_width(fstyle->uifont_id, drawstr + but->ofs,
 			                  sel_end + sel_start - but->ofs);
 
-			UI_draw_text_underline(rect->xmin + ofs_x, rect->ymin + 6 * U.pixelsize, min_ii(width, rect_x - 2) - ofs_x, 2);
+			UI_draw_text_underline(rect->xmin + ofs_x, rect->ymin + 6 * U.pixelsize, min_ii(width, rect_x - 2) - ofs_x, 2, fcol);
 		}
 	}
 }
