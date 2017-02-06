@@ -57,7 +57,9 @@
 
 #include "GPU_draw.h"
 #include "GPU_basic_shader.h"
+#include "GPU_batch.h"
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "UI_interface.h"
 
@@ -688,6 +690,25 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 
 #undef HISTOGRAM_TOT_GRID_LINES
 
+static void waveform_draw_one(float *waveform, int nbr, const float col[3])
+{
+	VertexFormat format = {0};
+	unsigned int pos_id = add_attrib(&format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+	VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+	VertexBuffer_allocate_data(vbo, nbr);
+
+	fillAttrib(vbo, pos_id, waveform);
+
+	/* TODO store the Batch inside the scope */
+	Batch *batch = Batch_create(GL_POINTS, vbo, NULL);
+	Batch_set_builtin_program(batch, GPU_SHADER_2D_UNIFORM_COLOR);
+	Batch_Uniform4f(batch, "color", col[0], col[1], col[2], 1.f);
+	Batch_draw(batch);
+
+	Batch_discard_all(batch);
+}
+
 void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti *recti)
 {
 	Scopes *scopes = (Scopes *)but->poin;
@@ -740,94 +761,84 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 	          (rect.xmax + 1) - (rect.xmin - 1),
 	          (rect.ymax + 1) - (rect.ymin - 1));
 
-	glColor4f(1.f, 1.f, 1.f, 0.08f);
-	/* draw grid lines here */
+	/* draw scale numbers first before binding any shader */
 	for (int i = 0; i < 6; i++) {
 		char str[4];
 		BLI_snprintf(str, sizeof(str), "%-3d", i * 20);
 		str[3] = '\0';
-		fdrawline(rect.xmin + 22, yofs + (i / 5.f) * h, rect.xmax + 1, yofs + (i / 5.f) * h);
 		BLF_draw_default(rect.xmin + 1, yofs - 5 + (i / 5.f) * h, 0, str, sizeof(str) - 1);
-		/* in the loop because blf_draw reset it */
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	immUniformColor4f(1.f, 1.f, 1.f, 0.08f);
+	/* draw grid lines here */
+	for (int i = 0; i < 6; i++) {
+		imm_draw_line(pos, rect.xmin + 22, yofs + (i / 5.f) * h, rect.xmax + 1, yofs + (i / 5.f) * h);
 	}
 	/* 3 vertical separation */
 	if (scopes->wavefrm_mode != SCOPES_WAVEFRM_LUMA) {
 		for (int i = 1; i < 3; i++) {
-			fdrawline(rect.xmin + i * w3, rect.ymin, rect.xmin + i * w3, rect.ymax);
+			imm_draw_line(pos, rect.xmin + i * w3, rect.ymin, rect.xmin + i * w3, rect.ymax);
 		}
 	}
 	
 	/* separate min max zone on the right */
-	fdrawline(rect.xmin + w, rect.ymin, rect.xmin + w, rect.ymax);
+	imm_draw_line(pos, rect.xmin + w, rect.ymin, rect.xmin + w, rect.ymax);
 	/* 16-235-240 level in case of ITU-R BT601/709 */
-	glColor4f(1.f, 0.4f, 0.f, 0.2f);
+	immUniformColor4f(1.f, 0.4f, 0.f, 0.2f);
 	if (ELEM(scopes->wavefrm_mode, SCOPES_WAVEFRM_YCC_601, SCOPES_WAVEFRM_YCC_709)) {
-		fdrawline(rect.xmin + 22, yofs + h * 16.0f / 255.0f, rect.xmax + 1, yofs + h * 16.0f / 255.0f);
-		fdrawline(rect.xmin + 22, yofs + h * 235.0f / 255.0f, rect.xmin + w3, yofs + h * 235.0f / 255.0f);
-		fdrawline(rect.xmin + 3 * w3, yofs + h * 235.0f / 255.0f, rect.xmax + 1, yofs + h * 235.0f / 255.0f);
-		fdrawline(rect.xmin + w3, yofs + h * 240.0f / 255.0f, rect.xmax + 1, yofs + h * 240.0f / 255.0f);
+		imm_draw_line(pos, rect.xmin + 22, yofs + h * 16.0f / 255.0f, rect.xmax + 1, yofs + h * 16.0f / 255.0f);
+		imm_draw_line(pos, rect.xmin + 22, yofs + h * 235.0f / 255.0f, rect.xmin + w3, yofs + h * 235.0f / 255.0f);
+		imm_draw_line(pos, rect.xmin + 3 * w3, yofs + h * 235.0f / 255.0f, rect.xmax + 1, yofs + h * 235.0f / 255.0f);
+		imm_draw_line(pos, rect.xmin + w3, yofs + h * 240.0f / 255.0f, rect.xmax + 1, yofs + h * 240.0f / 255.0f);
 	}
 	/* 7.5 IRE black point level for NTSC */
 	if (scopes->wavefrm_mode == SCOPES_WAVEFRM_LUMA)
-		fdrawline(rect.xmin, yofs + h * 0.075f, rect.xmax + 1, yofs + h * 0.075f);
+		imm_draw_line(pos, rect.xmin, yofs + h * 0.075f, rect.xmax + 1, yofs + h * 0.075f);
 
 	if (scopes->ok && scopes->waveform_1 != NULL) {
-		
-		/* LUMA (1 channel) */
+		gpuMatrixBegin3D_legacy();
 		glBlendFunc(GL_ONE, GL_ONE);
-		glColor3f(alpha, alpha, alpha);
 		glPointSize(1.0);
 
+		/* LUMA (1 channel) */
 		if (scopes->wavefrm_mode == SCOPES_WAVEFRM_LUMA) {
+			float col[3] = {alpha, alpha, alpha};
 
-			glBlendFunc(GL_ONE, GL_ONE);
-			
-			glPushMatrix();
-			glEnableClientState(GL_VERTEX_ARRAY);
-			
-			glTranslatef(rect.xmin, yofs, 0.f);
-			glScalef(w, h, 0.f);
-			glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_1);
-			glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
+			gpuPushMatrix();
+			gpuTranslate3f(rect.xmin, yofs, 0.f);
+			gpuScale3f(w, h, 0.f);
 
-			glDisableClientState(GL_VERTEX_ARRAY);
-			glPopMatrix();
+			waveform_draw_one(scopes->waveform_1, scopes->waveform_tot, col);
+
+			gpuPopMatrix();
 
 			/* min max */
-			glColor3f(0.5f, 0.5f, 0.5f);
+			immUniformColor3f(0.5f, 0.5f, 0.5f);
 			min = yofs + scopes->minmax[0][0] * h;
 			max = yofs + scopes->minmax[0][1] * h;
 			CLAMP(min, rect.ymin, rect.ymax);
 			CLAMP(max, rect.ymin, rect.ymax);
-			fdrawline(rect.xmax - 3, min, rect.xmax - 3, max);
+			imm_draw_line(pos, rect.xmax - 3, min, rect.xmax - 3, max);
 		}
 		/* RGB (3 channel) */
 		else if (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB) {
-			glBlendFunc(GL_ONE, GL_ONE);
+			gpuPushMatrix();
+			gpuTranslate3f(rect.xmin, yofs, 0.f);
+			gpuScale3f(w, h, 0.f);
 
-			glEnableClientState(GL_VERTEX_ARRAY);
+			waveform_draw_one(scopes->waveform_1, scopes->waveform_tot, colors_alpha[0]);
+			waveform_draw_one(scopes->waveform_2, scopes->waveform_tot, colors_alpha[1]);
+			waveform_draw_one(scopes->waveform_3, scopes->waveform_tot, colors_alpha[2]);
 
-			glPushMatrix();
-
-			glTranslatef(rect.xmin, yofs, 0.f);
-			glScalef(w, h, 0.f);
-
-			glColor3fv( colors_alpha[0] );
-			glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_1);
-			glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
-
-			glColor3fv( colors_alpha[1] );
-			glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_2);
-			glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
-
-			glColor3fv( colors_alpha[2] );
-			glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_3);
-			glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
-
-			glDisableClientState(GL_VERTEX_ARRAY);
-			glPopMatrix();
+			gpuPopMatrix();
 		}
 		/* PARADE / YCC (3 channels) */
 		else if (ELEM(scopes->wavefrm_mode,
@@ -839,49 +850,44 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 		{
 			int rgb = (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB_PARADE);
 
-			glBlendFunc(GL_ONE, GL_ONE);
+			gpuPushMatrix();
+			gpuTranslate3f(rect.xmin, yofs, 0.f);
+			gpuScale3f(w3, h, 0.f);
 
-			glPushMatrix();
-			glEnableClientState(GL_VERTEX_ARRAY);
+			waveform_draw_one(scopes->waveform_1, scopes->waveform_tot, (rgb) ? colors_alpha[0] : colorsycc_alpha[0]);
 
-			glTranslatef(rect.xmin, yofs, 0.f);
-			glScalef(w3, h, 0.f);
+			gpuTranslate3f(1.f, 0.f, 0.f);
+			waveform_draw_one(scopes->waveform_2, scopes->waveform_tot, (rgb) ? colors_alpha[1] : colorsycc_alpha[1]);
 
-			glColor3fv((rgb) ? colors_alpha[0] : colorsycc_alpha[0]);
-			glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_1);
-			glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
+			gpuTranslate3f(1.f, 0.f, 0.f);
+			waveform_draw_one(scopes->waveform_3, scopes->waveform_tot, (rgb) ? colors_alpha[2] : colorsycc_alpha[2]);
 
-			glTranslatef(1.f, 0.f, 0.f);
-			glColor3fv((rgb) ? colors_alpha[1] : colorsycc_alpha[1]);
-			glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_2);
-			glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
-
-			glTranslatef(1.f, 0.f, 0.f);
-			glColor3fv((rgb) ? colors_alpha[2] : colorsycc_alpha[2]);
-			glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_3);
-			glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
-
-			glDisableClientState(GL_VERTEX_ARRAY);
-			glPopMatrix();
+			gpuPopMatrix();
 		}
+
 		/* min max */
 		if (scopes->wavefrm_mode != SCOPES_WAVEFRM_LUMA ) {
 			for (int c = 0; c < 3; c++) {
 				if (ELEM(scopes->wavefrm_mode, SCOPES_WAVEFRM_RGB_PARADE, SCOPES_WAVEFRM_RGB))
-					glColor3f(colors[c][0] * 0.75f, colors[c][1] * 0.75f, colors[c][2] * 0.75f);
+					immUniformColor3f(colors[c][0] * 0.75f, colors[c][1] * 0.75f, colors[c][2] * 0.75f);
 				else
-					glColor3f(colorsycc[c][0] * 0.75f, colorsycc[c][1] * 0.75f, colorsycc[c][2] * 0.75f);
+					immUniformColor3f(colorsycc[c][0] * 0.75f, colorsycc[c][1] * 0.75f, colorsycc[c][2] * 0.75f);
 				min = yofs + scopes->minmax[c][0] * h;
 				max = yofs + scopes->minmax[c][1] * h;
 				CLAMP(min, rect.ymin, rect.ymax);
 				CLAMP(max, rect.ymin, rect.ymax);
-				fdrawline(rect.xmin + w + 2 + c * 2, min, rect.xmin + w + 2 + c * 2, max);
+				imm_draw_line(pos, rect.xmin + w + 2 + c * 2, min, rect.xmin + w + 2 + c * 2, max);
 			}
 		}
+		gpuMatrixEnd();
 	}
-	
+
+	immUnbindProgram();
+
 	/* outline */
 	draw_scope_end(&rect, scissor);
+
+	glDisable(GL_BLEND);
 }
 
 static float polar_to_x(float center, float diam, float ampli, float angle)
@@ -894,7 +900,7 @@ static float polar_to_y(float center, float diam, float ampli, float angle)
 	return center + diam * ampli * sinf(angle);
 }
 
-static void vectorscope_draw_target(float centerx, float centery, float diam, const float colf[3])
+static void vectorscope_draw_target(unsigned int pos, float centerx, float centery, float diam, const float colf[3])
 {
 	float y, u, v;
 	float tangle = 0.f, tampli;
@@ -909,41 +915,41 @@ static void vectorscope_draw_target(float centerx, float centery, float diam, co
 	tampli = sqrtf(u * u + v * v);
 
 	/* small target vary by 2.5 degree and 2.5 IRE unit */
-	glColor4f(1.0f, 1.0f, 1.0, 0.12f);
+	immUniformColor4f(1.0f, 1.0f, 1.0f, 0.12f);
 	dangle = DEG2RADF(2.5f);
 	dampli = 2.5f / 200.0f;
-	glBegin(GL_LINE_LOOP);
-	glVertex2f(polar_to_x(centerx, diam, tampli + dampli, tangle + dangle), polar_to_y(centery, diam, tampli + dampli, tangle + dangle));
-	glVertex2f(polar_to_x(centerx, diam, tampli - dampli, tangle + dangle), polar_to_y(centery, diam, tampli - dampli, tangle + dangle));
-	glVertex2f(polar_to_x(centerx, diam, tampli - dampli, tangle - dangle), polar_to_y(centery, diam, tampli - dampli, tangle - dangle));
-	glVertex2f(polar_to_x(centerx, diam, tampli + dampli, tangle - dangle), polar_to_y(centery, diam, tampli + dampli, tangle - dangle));
-	glEnd();
+	immBegin(GL_LINE_LOOP, 4);
+	immVertex2f(pos, polar_to_x(centerx, diam, tampli + dampli, tangle + dangle), polar_to_y(centery, diam, tampli + dampli, tangle + dangle));
+	immVertex2f(pos, polar_to_x(centerx, diam, tampli - dampli, tangle + dangle), polar_to_y(centery, diam, tampli - dampli, tangle + dangle));
+	immVertex2f(pos, polar_to_x(centerx, diam, tampli - dampli, tangle - dangle), polar_to_y(centery, diam, tampli - dampli, tangle - dangle));
+	immVertex2f(pos, polar_to_x(centerx, diam, tampli + dampli, tangle - dangle), polar_to_y(centery, diam, tampli + dampli, tangle - dangle));
+	immEnd();
 	/* big target vary by 10 degree and 20% amplitude */
-	glColor4f(1.0f, 1.0f, 1.0, 0.12f);
+	immUniformColor4f(1.0f, 1.0f, 1.0f, 0.12f);
 	dangle = DEG2RADF(10.0f);
 	dampli = 0.2f * tampli;
 	dangle2 = DEG2RADF(5.0f);
 	dampli2 = 0.5f * dampli;
-	glBegin(GL_LINE_STRIP);
-	glVertex2f(polar_to_x(centerx, diam, tampli + dampli - dampli2, tangle + dangle), polar_to_y(centery, diam, tampli + dampli - dampli2, tangle + dangle));
-	glVertex2f(polar_to_x(centerx, diam, tampli + dampli, tangle + dangle), polar_to_y(centery, diam, tampli + dampli, tangle + dangle));
-	glVertex2f(polar_to_x(centerx, diam, tampli + dampli, tangle + dangle - dangle2), polar_to_y(centery, diam, tampli + dampli, tangle + dangle - dangle2));
-	glEnd();
-	glBegin(GL_LINE_STRIP);
-	glVertex2f(polar_to_x(centerx, diam, tampli - dampli + dampli2, tangle + dangle), polar_to_y(centery, diam, tampli - dampli + dampli2, tangle + dangle));
-	glVertex2f(polar_to_x(centerx, diam, tampli - dampli, tangle + dangle), polar_to_y(centery, diam, tampli - dampli, tangle + dangle));
-	glVertex2f(polar_to_x(centerx, diam, tampli - dampli, tangle + dangle - dangle2), polar_to_y(centery, diam, tampli - dampli, tangle + dangle - dangle2));
-	glEnd();
-	glBegin(GL_LINE_STRIP);
-	glVertex2f(polar_to_x(centerx, diam, tampli - dampli + dampli2, tangle - dangle), polar_to_y(centery, diam, tampli - dampli + dampli2, tangle - dangle));
-	glVertex2f(polar_to_x(centerx, diam, tampli - dampli, tangle - dangle), polar_to_y(centery, diam, tampli - dampli, tangle - dangle));
-	glVertex2f(polar_to_x(centerx, diam, tampli - dampli, tangle - dangle + dangle2), polar_to_y(centery, diam, tampli - dampli, tangle - dangle + dangle2));
-	glEnd();
-	glBegin(GL_LINE_STRIP);
-	glVertex2f(polar_to_x(centerx, diam, tampli + dampli - dampli2, tangle - dangle), polar_to_y(centery, diam, tampli + dampli - dampli2, tangle - dangle));
-	glVertex2f(polar_to_x(centerx, diam, tampli + dampli, tangle - dangle), polar_to_y(centery, diam, tampli + dampli, tangle - dangle));
-	glVertex2f(polar_to_x(centerx, diam, tampli + dampli, tangle - dangle + dangle2), polar_to_y(centery, diam, tampli + dampli, tangle - dangle + dangle2));
-	glEnd();
+	immBegin(GL_LINE_STRIP, 3);
+	immVertex2f(pos, polar_to_x(centerx, diam, tampli + dampli - dampli2, tangle + dangle), polar_to_y(centery, diam, tampli + dampli - dampli2, tangle + dangle));
+	immVertex2f(pos, polar_to_x(centerx, diam, tampli + dampli, tangle + dangle), polar_to_y(centery, diam, tampli + dampli, tangle + dangle));
+	immVertex2f(pos, polar_to_x(centerx, diam, tampli + dampli, tangle + dangle - dangle2), polar_to_y(centery, diam, tampli + dampli, tangle + dangle - dangle2));
+	immEnd();
+	immBegin(GL_LINE_STRIP, 3);
+	immVertex2f(pos, polar_to_x(centerx, diam, tampli - dampli + dampli2, tangle + dangle), polar_to_y(centery, diam, tampli - dampli + dampli2, tangle + dangle));
+	immVertex2f(pos, polar_to_x(centerx, diam, tampli - dampli, tangle + dangle), polar_to_y(centery, diam, tampli - dampli, tangle + dangle));
+	immVertex2f(pos, polar_to_x(centerx, diam, tampli - dampli, tangle + dangle - dangle2), polar_to_y(centery, diam, tampli - dampli, tangle + dangle - dangle2));
+	immEnd();
+	immBegin(GL_LINE_STRIP, 3);
+	immVertex2f(pos, polar_to_x(centerx, diam, tampli - dampli + dampli2, tangle - dangle), polar_to_y(centery, diam, tampli - dampli + dampli2, tangle - dangle));
+	immVertex2f(pos, polar_to_x(centerx, diam, tampli - dampli, tangle - dangle), polar_to_y(centery, diam, tampli - dampli, tangle - dangle));
+	immVertex2f(pos, polar_to_x(centerx, diam, tampli - dampli, tangle - dangle + dangle2), polar_to_y(centery, diam, tampli - dampli, tangle - dangle + dangle2));
+	immEnd();
+	immBegin(GL_LINE_STRIP, 3);
+	immVertex2f(pos, polar_to_x(centerx, diam, tampli + dampli - dampli2, tangle - dangle), polar_to_y(centery, diam, tampli + dampli - dampli2, tangle - dangle));
+	immVertex2f(pos, polar_to_x(centerx, diam, tampli + dampli, tangle - dangle), polar_to_y(centery, diam, tampli + dampli, tangle - dangle));
+	immVertex2f(pos, polar_to_x(centerx, diam, tampli + dampli, tangle - dangle + dangle2), polar_to_y(centery, diam, tampli + dampli, tangle - dangle + dangle2));
+	immEnd();
 }
 
 void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti *recti)
@@ -986,21 +992,26 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 	          (rect.xmax + 1) - (rect.xmin - 1),
 	          (rect.ymax + 1) - (rect.ymin - 1));
 	
-	glColor4f(1.f, 1.f, 1.f, 0.08f);
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	immUniformColor4f(1.f, 1.f, 1.f, 0.08f);
 	/* draw grid elements */
 	/* cross */
-	fdrawline(centerx - (diam / 2) - 5, centery, centerx + (diam / 2) + 5, centery);
-	fdrawline(centerx, centery - (diam / 2) - 5, centerx, centery + (diam / 2) + 5);
+	imm_draw_line(pos, centerx - (diam / 2) - 5, centery, centerx + (diam / 2) + 5, centery);
+	imm_draw_line(pos, centerx, centery - (diam / 2) - 5, centerx, centery + (diam / 2) + 5);
 	/* circles */
 	for (int j = 0; j < 5; j++) {
-		glBegin(GL_LINE_LOOP);
 		const int increment = 15;
+		immBegin(GL_LINE_LOOP, (int)(360 / increment));
 		for (int i = 0; i <= 360 - increment; i += increment) {
 			const float a = DEG2RADF((float)i);
 			const float r = (j + 1) / 10.0f;
-			glVertex2f(polar_to_x(centerx, diam, r, a), polar_to_y(centery, diam, r, a));
+			immVertex2f(pos, polar_to_x(centerx, diam, r, a), polar_to_y(centery, diam, r, a));
 		}
-		glEnd();
+		immEnd();
 	}
 	/* skin tone line */
 	glColor4f(1.f, 0.4f, 0.f, 0.2f);
@@ -1008,26 +1019,27 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 	          polar_to_x(centerx, diam, 0.1f, skin_rad), polar_to_y(centery, diam, 0.1, skin_rad));
 	/* saturation points */
 	for (int i = 0; i < 6; i++)
-		vectorscope_draw_target(centerx, centery, diam, colors[i]);
+		vectorscope_draw_target(pos, centerx, centery, diam, colors[i]);
 	
 	if (scopes->ok && scopes->vecscope != NULL) {
 		/* pixel point cloud */
+		float col[3] = {alpha, alpha, alpha};
+
 		glBlendFunc(GL_ONE, GL_ONE);
-		glColor3f(alpha, alpha, alpha);
-
-		glPushMatrix();
-		glEnableClientState(GL_VERTEX_ARRAY);
-
-		glTranslatef(centerx, centery, 0.f);
-		glScalef(diam, diam, 0.f);
-
-		glVertexPointer(2, GL_FLOAT, 0, scopes->vecscope);
 		glPointSize(1.0);
-		glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
-		
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glPopMatrix();
+
+		gpuMatrixBegin3D_legacy();
+		gpuPushMatrix();
+		gpuTranslate3f(centerx, centery, 0.f);
+		gpuScale3f(diam, diam, 0.f);
+
+		waveform_draw_one(scopes->vecscope, scopes->waveform_tot, col);
+
+		gpuPopMatrix();
+		gpuMatrixEnd();
 	}
+
+	immUnbindProgram();
 
 	/* outline */
 	draw_scope_end(&rect, scissor);
