@@ -2124,6 +2124,14 @@ void BKE_stamp_info_callback(void *data, struct StampData *stamp_data, StampCall
 #undef CALL
 }
 
+void BKE_stamp_data_free(struct StampData *stamp_data)
+{
+	if (stamp_data == NULL) {
+		return;
+	}
+	MEM_freeN(stamp_data);
+}
+
 /* wrap for callback only */
 static void metadata_change_field(void *data, const char *propname, char *propvalue, int UNUSED(len))
 {
