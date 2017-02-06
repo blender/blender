@@ -142,6 +142,7 @@ struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, 
 void RE_engine_update_result(RenderEngine *engine, struct RenderResult *result);
 void RE_engine_add_pass(RenderEngine *engine, const char *name, int channels, const char *chan_id, const char *layername);
 void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result, int cancel, int highlight, int merge_results);
+struct RenderResult *RE_engine_get_result(struct RenderEngine *engine);
 
 const char *RE_engine_active_view_get(RenderEngine *engine);
 void RE_engine_active_view_set(RenderEngine *engine, const char *viewname);

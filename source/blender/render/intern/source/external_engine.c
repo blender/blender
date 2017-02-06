@@ -303,6 +303,11 @@ void RE_engine_end_result(RenderEngine *engine, RenderResult *result, int cancel
 	render_result_free(result);
 }
 
+RenderResult *RE_engine_get_result(RenderEngine *engine)
+{
+	return engine->re->result;
+}
+
 /* Cancel */
 
 int RE_engine_test_break(RenderEngine *engine)
