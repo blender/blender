@@ -382,7 +382,7 @@ static void mesh_edges_spherecast(void *userdata, int index, const BVHTreeRay *r
 	(a)[2] * (b)[2]
 
 /* Callback to bvh tree nearest edge to ray.
- * The tree must have been built using bvhtree_from_mesh_edges or bvhtree_from_loose_edges.
+ * The tree must have been built using bvhtree_from_mesh_edges.
  * userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree. */
 static void mesh_edges_nearest_to_ray(
         void *userdata, const float ray_co[3], const float ray_dir[3],
@@ -675,7 +675,7 @@ static BVHTree *bvhtree_from_mesh_edges_create_tree(
 	BLI_assert(edge != NULL);
 
 	/* Create a bvh-tree of the given target */
-	BVHTree *tree = BLI_bvhtree_new(edge_num, epsilon, tree_type, axis);
+	BVHTree *tree = BLI_bvhtree_new(edges_num_active, epsilon, tree_type, axis);
 	if (tree) {
 		for (int i = 0; i < edge_num; i++) {
 			if (edges_mask && !BLI_BITMAP_TEST_BOOL(edges_mask, i)) {
