@@ -1485,9 +1485,11 @@ bool BKE_texture_dependsOnTime(const struct Tex *texture)
 
 /* ------------------------------------------------------------------------- */
 
-void BKE_texture_get_value(
+void BKE_texture_get_value_ex(
         const Scene *scene, Tex *texture,
-        float *tex_co, TexResult *texres, bool use_color_management)
+        float *tex_co, TexResult *texres,
+        struct ImagePool *pool,
+        bool use_color_management)
 {
 	int result_type;
 	bool do_color_manage = false;
@@ -1497,7 +1499,7 @@ void BKE_texture_get_value(
 	}
 
 	/* no node textures for now */
-	result_type = multitex_ext_safe(texture, tex_co, texres, NULL, do_color_manage, false);
+	result_type = multitex_ext_safe(texture, tex_co, texres, pool, do_color_manage, false);
 
 	/* if the texture gave an RGB value, we assume it didn't give a valid
 	 * intensity, since this is in the context of modifiers don't use perceptual color conversion.
@@ -1509,4 +1511,11 @@ void BKE_texture_get_value(
 	else {
 		copy_v3_fl(&texres->tr, texres->tin);
 	}
+}
+
+void BKE_texture_get_value(
+        const Scene *scene, Tex *texture,
+        float *tex_co, TexResult *texres, bool use_color_management)
+{
+	BKE_texture_get_value_ex(scene, texture, tex_co, texres, NULL, use_color_management);
 }
