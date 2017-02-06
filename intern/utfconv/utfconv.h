@@ -93,7 +93,7 @@ wchar_t *alloc_utf16_from_8(const char *in8, size_t add);
 
 /* Easy allocation and conversion of new utf-16 string. New string has _16 suffix. Must be deallocated with UTF16_UN_ENCODE in right order*/
 #define UTF16_ENCODE(in8str) if (1) { \
-		wchar_t *in8str ## _16 = alloc_utf16_from_8((char *)in8str, 0)
+		wchar_t *in8str ## _16 = alloc_utf16_from_8((const char *)in8str, 0)
 
 #define UTF16_UN_ENCODE(in8str) \
 	free(in8str ## _16); } (void)0
