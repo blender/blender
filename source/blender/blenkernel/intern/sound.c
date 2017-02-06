@@ -147,12 +147,12 @@ void BKE_sound_free(bSound *sound)
 
 	BKE_sound_free_waveform(sound);
 	
+#endif  /* WITH_AUDASPACE */
 	if (sound->spinlock) {
 		BLI_spin_end(sound->spinlock);
 		MEM_freeN(sound->spinlock);
 		sound->spinlock = NULL;
-	}	
-#endif  /* WITH_AUDASPACE */
+	}
 }
 
 void BKE_sound_make_local(Main *bmain, bSound *sound, const bool lib_local)
