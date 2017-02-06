@@ -339,7 +339,7 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc)
 static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
 {
 	const bool non_solo = ((adt && (adt->flag & ADT_NLA_SOLO_TRACK)) && (nlt->flag & NLATRACK_SOLO) == 0);
-	float color[3];
+	float color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 	
 	/* get color of strip */
 	nla_strip_get_color_inside(adt, strip, color);
@@ -404,10 +404,9 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 	/* draw 'inside' of strip itself */
 	if (non_solo == 0) {
 		/* strip is in normal track */
-		glColor3fv(color);
 		UI_draw_roundbox_corner_set(UI_CNR_ALL); /* all corners rounded */
 		
-		UI_draw_roundbox_shade_x(GL_POLYGON, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1);
+		UI_draw_roundbox_shade_x(GL_TRIANGLE_FAN, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1, color);
 	}
 	else {
 		/* strip is in disabled track - make less visible */
@@ -436,10 +435,14 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 	if (strip->flag & NLASTRIP_FLAG_ACTIVE) {
 		/* strip should appear 'sunken', so draw a light border around it */
 		glColor3f(0.9f, 1.0f, 0.9f); // FIXME: hardcoded temp-hack colors
+		color[0] = 0.9f;
+		color[1] = 1.0f;
+		color[2] = 0.9f;
 	}
 	else {
 		/* strip should appear to stand out, so draw a dark border around it */
 		glColor3f(0.0f, 0.0f, 0.0f);
+		color[0] = color[1] = color[2] = 1.0f;
 	}
 	
 	/* - line style: dotted for muted */
@@ -447,7 +450,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 		setlinestyle(4);
 		
 	/* draw outline */
-	UI_draw_roundbox_shade_x(GL_LINE_LOOP, strip->start, yminc, strip->end, ymaxc, 0.0, 0.0, 0.1);
+	UI_draw_roundbox_shade_x(GL_LINE_LOOP, strip->start, yminc, strip->end, ymaxc, 0.0, 0.0, 0.1, color);
 	
 	/* if action-clip strip, draw lines delimiting repeats too (in the same color as outline) */
 	if ((strip->type == NLASTRIP_TYPE_CLIP) && IS_EQF(strip->repeat, 1.0f) == 0) {

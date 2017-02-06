@@ -758,6 +758,7 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 	View2D *v2d = &ar->v2d;
 	float x1, x2, y1, y2;
 	unsigned char col[3], background_col[3], is_single_image;
+	float fcol[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 	const float handsize_clamped = draw_seq_handle_size_get_clamped(seq, pixelx);
 
 	/* we need to know if this is a single image/color or not for drawing */
@@ -855,11 +856,11 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 		glEnable(GL_LINE_STIPPLE);
 		glLineStipple(1, 0x8888);
 	}
-	
-	glColor3ubv((GLubyte *)col);
-	
-	UI_draw_roundbox_shade_x(GL_LINE_LOOP, x1, y1, x2, y2, 0.0, 0.1, 0.0);
-	
+
+	rgb_uchar_to_float(fcol, col);
+
+	UI_draw_roundbox_shade_x(GL_LINE_LOOP, x1, y1, x2, y2, 0.0, 0.1, 0.0, fcol);
+
 	if (seq->flag & SEQ_MUTE) {
 		glDisable(GL_LINE_STIPPLE);
 	}
