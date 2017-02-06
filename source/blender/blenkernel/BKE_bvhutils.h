@@ -133,6 +133,12 @@ BVHTree *bvhtree_from_editmesh_edges_ex(
 BVHTree *bvhtree_from_mesh_edges(
         struct BVHTreeFromMesh *data, struct DerivedMesh *mesh,
         float epsilon, int tree_type, int axis);
+BVHTree *bvhtree_from_mesh_edges_ex(
+        struct BVHTreeFromMesh *data,
+        struct MVert *vert, const bool vert_allocated,
+        struct MEdge *edge, const int edges_num, const bool edge_allocated,
+        const BLI_bitmap *edges_mask, int edges_num_active,
+        float epsilon, int tree_type, int axis);
 
 BVHTree *bvhtree_from_mesh_faces(
         struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon,
