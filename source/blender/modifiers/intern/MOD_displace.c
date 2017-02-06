@@ -38,6 +38,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_task.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_library.h"
@@ -201,23 +202,131 @@ static void updateDepsgraph(ModifierData *md,
 	}
 }
 
+typedef struct DisplaceUserdata {
+	/*const*/ DisplaceModifierData *dmd;
+	struct ImagePool *pool;
+	MDeformVert *dvert;
+	float weight;
+	int defgrp_index;
+	int direction;
+	bool use_global_direction;
+	float (*tex_co)[3];
+	float (*vertexCos)[3];
+	float local_mat[4][4];
+	MVert *mvert;
+	float (*vert_clnors)[3];
+} DisplaceUserdata;
+
+static void displaceModifier_do_task(void *userdata, const int iter)
+{
+	DisplaceUserdata *data = (DisplaceUserdata *)userdata;
+	DisplaceModifierData *dmd = data->dmd;
+	MDeformVert *dvert = data->dvert;
+	float weight = data->weight;
+	int defgrp_index = data->defgrp_index;
+	int direction = data->direction;
+	bool use_global_direction = data->use_global_direction;
+	float (*tex_co)[3] = data->tex_co;
+	float (*vertexCos)[3] = data->vertexCos;
+	MVert *mvert = data->mvert;
+	float (*vert_clnors)[3] = data->vert_clnors;
+
+	const float delta_fixed = 1.0f - dmd->midlevel;  /* when no texture is used, we fallback to white */
+
+	TexResult texres;
+	float strength = dmd->strength;
+	float delta;
+	float local_vec[3];
+
+	if (dvert) {
+		weight = defvert_find_weight(dvert + iter, defgrp_index);
+		if (weight == 0.0f) {
+			return;
+		}
+	}
+
+	if (dmd->texture) {
+		texres.nor = NULL;
+		BKE_texture_get_value_ex(dmd->modifier.scene, dmd->texture, tex_co[iter], &texres, data->pool, false);
+		delta = texres.tin - dmd->midlevel;
+	}
+	else {
+		delta = delta_fixed;  /* (1.0f - dmd->midlevel) */  /* never changes */
+	}
+
+	if (dvert) {
+		strength *= weight;
+	}
+
+	delta *= strength;
+	CLAMP(delta, -10000, 10000);
+
+	switch (direction) {
+		case MOD_DISP_DIR_X:
+			if (use_global_direction) {
+				vertexCos[iter][0] += delta * data->local_mat[0][0];
+				vertexCos[iter][1] += delta * data->local_mat[1][0];
+				vertexCos[iter][2] += delta * data->local_mat[2][0];
+			}
+			else {
+				vertexCos[iter][0] += delta;
+			}
+			break;
+		case MOD_DISP_DIR_Y:
+			if (use_global_direction) {
+				vertexCos[iter][0] += delta * data->local_mat[0][1];
+				vertexCos[iter][1] += delta * data->local_mat[1][1];
+				vertexCos[iter][2] += delta * data->local_mat[2][1];
+			}
+			else {
+				vertexCos[iter][1] += delta;
+			}
+			break;
+		case MOD_DISP_DIR_Z:
+			if (use_global_direction) {
+				vertexCos[iter][0] += delta * data->local_mat[0][2];
+				vertexCos[iter][1] += delta * data->local_mat[1][2];
+				vertexCos[iter][2] += delta * data->local_mat[2][2];
+			}
+			else {
+				vertexCos[iter][2] += delta;
+			}
+			break;
+		case MOD_DISP_DIR_RGB_XYZ:
+			local_vec[0] = texres.tr - dmd->midlevel;
+			local_vec[1] = texres.tg - dmd->midlevel;
+			local_vec[2] = texres.tb - dmd->midlevel;
+			if (use_global_direction) {
+				mul_transposed_mat3_m4_v3(data->local_mat, local_vec);
+			}
+			mul_v3_fl(local_vec, strength);
+			add_v3_v3(vertexCos[iter], local_vec);
+			break;
+		case MOD_DISP_DIR_NOR:
+			vertexCos[iter][0] += delta * (mvert[iter].no[0] / 32767.0f);
+			vertexCos[iter][1] += delta * (mvert[iter].no[1] / 32767.0f);
+			vertexCos[iter][2] += delta * (mvert[iter].no[2] / 32767.0f);
+			break;
+		case MOD_DISP_DIR_CLNOR:
+			madd_v3_v3fl(vertexCos[iter], vert_clnors[iter], delta);
+			break;
+	}
+}
+
 /* dm must be a CDDerivedMesh */
 static void displaceModifier_do(
         DisplaceModifierData *dmd, Object *ob,
         DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
 {
-	int i;
 	MVert *mvert;
 	MDeformVert *dvert;
 	int direction = dmd->direction;
 	int defgrp_index;
 	float (*tex_co)[3];
 	float weight = 1.0f; /* init value unused but some compilers may complain */
-	const float delta_fixed = 1.0f - dmd->midlevel;  /* when no texture is used, we fallback to white */
 	float (*vert_clnors)[3] = NULL;
-	float local_mat[4][4];
+	float local_mat[4][4] = {0};
 	const bool use_global_direction = dmd->space == MOD_DISP_SPACE_GLOBAL;
-	struct ImagePool *pool = NULL;
 
 	if (!dmd->texture && dmd->direction == MOD_DISP_DIR_RGB_XYZ) return;
 	if (dmd->strength == 0.0f) return;
@@ -261,89 +370,25 @@ static void displaceModifier_do(
 		copy_m4_m4(local_mat, ob->obmat);
 	}
 
+	DisplaceUserdata data = {NULL};
+	data.dmd = dmd;
+	data.dvert = dvert;
+	data.weight = weight;
+	data.defgrp_index = defgrp_index;
+	data.direction = direction;
+	data.use_global_direction = use_global_direction;
+	data.tex_co = tex_co;
+	data.vertexCos = vertexCos;
+	copy_m4_m4(data.local_mat, local_mat);
+	data.mvert = mvert;
+	data.vert_clnors = vert_clnors;
 	if (dmd->texture != NULL) {
-		pool = BKE_image_pool_new();
+		data.pool = BKE_image_pool_new();
 	}
+	BLI_task_parallel_range(0, numVerts, &data, displaceModifier_do_task, numVerts > 512);
 
-	for (i = 0; i < numVerts; i++) {
-		TexResult texres;
-		float strength = dmd->strength;
-		float delta;
-		float local_vec[3];
-
-		if (dvert) {
-			weight = defvert_find_weight(dvert + i, defgrp_index);
-			if (weight == 0.0f) continue;
-		}
-
-		if (dmd->texture) {
-			texres.nor = NULL;
-			BKE_texture_get_value_ex(dmd->modifier.scene, dmd->texture, tex_co[i], &texres, pool, false);
-			delta = texres.tin - dmd->midlevel;
-		}
-		else {
-			delta = delta_fixed;  /* (1.0f - dmd->midlevel) */  /* never changes */
-		}
-
-		if (dvert) strength *= weight;
-
-		delta *= strength;
-		CLAMP(delta, -10000, 10000);
-
-		switch (direction) {
-			case MOD_DISP_DIR_X:
-				if (use_global_direction) {
-					vertexCos[i][0] += delta * local_mat[0][0];
-					vertexCos[i][1] += delta * local_mat[1][0];
-					vertexCos[i][2] += delta * local_mat[2][0];
-				}
-				else {
-					vertexCos[i][0] += delta;
-				}
-				break;
-			case MOD_DISP_DIR_Y:
-				if (use_global_direction) {
-					vertexCos[i][0] += delta * local_mat[0][1];
-					vertexCos[i][1] += delta * local_mat[1][1];
-					vertexCos[i][2] += delta * local_mat[2][1];
-				}
-				else {
-					vertexCos[i][1] += delta;
-				}
-				break;
-			case MOD_DISP_DIR_Z:
-				if (use_global_direction) {
-					vertexCos[i][0] += delta * local_mat[0][2];
-					vertexCos[i][1] += delta * local_mat[1][2];
-					vertexCos[i][2] += delta * local_mat[2][2];
-				}
-				else {
-					vertexCos[i][2] += delta;
-				}
-				break;
-			case MOD_DISP_DIR_RGB_XYZ:
-				local_vec[0] = texres.tr - dmd->midlevel;
-				local_vec[1] = texres.tg - dmd->midlevel;
-				local_vec[2] = texres.tb - dmd->midlevel;
-				if (use_global_direction) {
-					mul_transposed_mat3_m4_v3(local_mat, local_vec);
-				}
-				mul_v3_fl(local_vec, strength);
-				add_v3_v3(vertexCos[i], local_vec);
-				break;
-			case MOD_DISP_DIR_NOR:
-				vertexCos[i][0] += delta * (mvert[i].no[0] / 32767.0f);
-				vertexCos[i][1] += delta * (mvert[i].no[1] / 32767.0f);
-				vertexCos[i][2] += delta * (mvert[i].no[2] / 32767.0f);
-				break;
-			case MOD_DISP_DIR_CLNOR:
-				madd_v3_v3fl(vertexCos[i], vert_clnors[i], delta);
-				break;
-		}
-	}
-
-	if (pool != NULL) {
-		BKE_image_pool_free(pool);
+	if (data.pool != NULL) {
+		BKE_image_pool_free(data.pool);
 	}
 
 	if (tex_co) {
