@@ -234,7 +234,7 @@ int BKE_blender_test_break(void)
  * \note Don't use MEM_mallocN so functions can be registered at any time.
  * \{ */
 
-struct AtExitData {
+static struct AtExitData {
 	struct AtExitData *next;
 
 	void (*func)(void *user_data);
