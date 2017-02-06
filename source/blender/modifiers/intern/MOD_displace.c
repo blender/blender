@@ -42,6 +42,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
+#include "BKE_image.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_texture.h"
@@ -216,6 +217,7 @@ static void displaceModifier_do(
 	float (*vert_clnors)[3] = NULL;
 	float local_mat[4][4];
 	const bool use_global_direction = dmd->space == MOD_DISP_SPACE_GLOBAL;
+	struct ImagePool *pool = NULL;
 
 	if (!dmd->texture && dmd->direction == MOD_DISP_DIR_RGB_XYZ) return;
 	if (dmd->strength == 0.0f) return;
@@ -259,6 +261,10 @@ static void displaceModifier_do(
 		copy_m4_m4(local_mat, ob->obmat);
 	}
 
+	if (dmd->texture != NULL) {
+		pool = BKE_image_pool_new();
+	}
+
 	for (i = 0; i < numVerts; i++) {
 		TexResult texres;
 		float strength = dmd->strength;
@@ -272,7 +278,7 @@ static void displaceModifier_do(
 
 		if (dmd->texture) {
 			texres.nor = NULL;
-			BKE_texture_get_value(dmd->modifier.scene, dmd->texture, tex_co[i], &texres, false);
+			BKE_texture_get_value_ex(dmd->modifier.scene, dmd->texture, tex_co[i], &texres, pool, false);
 			delta = texres.tin - dmd->midlevel;
 		}
 		else {
@@ -334,6 +340,10 @@ static void displaceModifier_do(
 				madd_v3_v3fl(vertexCos[i], vert_clnors[i], delta);
 				break;
 		}
+	}
+
+	if (pool != NULL) {
+		BKE_image_pool_free(pool);
 	}
 
 	if (tex_co) {
