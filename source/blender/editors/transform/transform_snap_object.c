@@ -2028,11 +2028,13 @@ static bool transform_snap_context_project_view3d_mixed_impl(
 	BLI_assert((snap_to_flag & ~(1 | 2 | 4)) == 0);
 
 	if (use_depth) {
-		const float dist_px_orig = *dist_px;
+		const float dist_px_orig = dist_px ? *dist_px : 0;
 		for (int i = 2; i >= 0; i--) {
 			if (snap_to_flag & (1 << i)) {
-				if (i == 0)
+				if (i == 0) {
+					BLI_assert(dist_px != NULL);
 					*dist_px = dist_px_orig;
+				}
 				if (ED_transform_snap_object_project_view3d(
 				        sctx,
 				        elem_type[i], params,
