@@ -1555,7 +1555,8 @@ static void colormanage_display_buffer_process(ImBuf *ibuf, unsigned char *displ
 
 typedef struct ProcessorTransformThread {
 	ColormanageProcessor *cm_processor;
-	float *buffer;
+	unsigned char *byte_buffer;
+	float *float_buffer;
 	int width;
 	int start_line;
 	int tot_line;
@@ -1565,7 +1566,8 @@ typedef struct ProcessorTransformThread {
 
 typedef struct ProcessorTransformInit {
 	ColormanageProcessor *cm_processor;
-	float *buffer;
+	unsigned char *byte_buffer;
+	float *float_buffer;
 	int width;
 	int height;
 	int channels;
@@ -1587,7 +1589,13 @@ static void processor_transform_init_handle(void *handle_v, int start_line, int 
 
 	handle->cm_processor = init_data->cm_processor;
 
-	handle->buffer = init_data->buffer + offset;
+	if (init_data->byte_buffer != NULL) {
+		/* TODO(serge): Offset might be different for byte and float buffers. */
+		handle->byte_buffer = init_data->byte_buffer + offset;
+	}
+	if (init_data->float_buffer != NULL) {
+		handle->float_buffer = init_data->float_buffer + offset;
+	}
 
 	handle->width = width;
 
@@ -1601,24 +1609,37 @@ static void processor_transform_init_handle(void *handle_v, int start_line, int 
 static void *do_processor_transform_thread(void *handle_v)
 {
 	ProcessorTransformThread *handle = (ProcessorTransformThread *) handle_v;
-	float *buffer = handle->buffer;
+	unsigned char *byte_buffer = handle->byte_buffer;
+	float *float_buffer = handle->float_buffer;
 	int channels = handle->channels;
 	int width = handle->width;
 	int height = handle->tot_line;
 	bool predivide = handle->predivide;
 
-	IMB_colormanagement_processor_apply(handle->cm_processor, buffer, width, height, channels, predivide);
+	if (byte_buffer != NULL) {
+		IMB_colormanagement_processor_apply_byte(handle->cm_processor,
+		                                         byte_buffer,
+		                                         width, height, channels);
+	}
+	if (float_buffer != NULL) {
+		IMB_colormanagement_processor_apply(handle->cm_processor,
+		                                    float_buffer,
+		                                    width, height, channels,
+		                                    predivide);
+	}
 
 	return NULL;
 }
 
-static void processor_transform_apply_threaded(float *buffer, int width, int height, int channels,
+static void processor_transform_apply_threaded(unsigned char *byte_buffer, float *float_buffer,
+                                               int width, int height, int channels,
                                                ColormanageProcessor *cm_processor, bool predivide)
 {
 	ProcessorTransformInitData init_data;
 
 	init_data.cm_processor = cm_processor;
-	init_data.buffer = buffer;
+	init_data.byte_buffer = byte_buffer;
+	init_data.float_buffer = float_buffer;
 	init_data.width = width;
 	init_data.height = height;
 	init_data.channels = channels;
@@ -1631,8 +1652,10 @@ static void processor_transform_apply_threaded(float *buffer, int width, int hei
 /*********************** Color space transformation functions *************************/
 
 /* convert the whole buffer from specified by name color space to another - internal implementation */
-static void colormanagement_transform_ex(float *buffer, int width, int height, int channels, const char *from_colorspace,
-                                         const char *to_colorspace, bool predivide, bool do_threaded)
+static void colormanagement_transform_ex(unsigned char *byte_buffer, float *float_buffer,
+                                         int width, int height, int channels,
+                                         const char *from_colorspace, const char *to_colorspace,
+                                         bool predivide, bool do_threaded)
 {
 	ColormanageProcessor *cm_processor;
 
@@ -1649,10 +1672,19 @@ static void colormanagement_transform_ex(float *buffer, int width, int height, i
 
 	cm_processor = IMB_colormanagement_colorspace_processor_new(from_colorspace, to_colorspace);
 
-	if (do_threaded)
-		processor_transform_apply_threaded(buffer, width, height, channels, cm_processor, predivide);
-	else
-		IMB_colormanagement_processor_apply(cm_processor, buffer, width, height, channels, predivide);
+	if (do_threaded) {
+		processor_transform_apply_threaded(byte_buffer, float_buffer,
+		                                   width, height, channels,
+		                                   cm_processor, predivide);
+	}
+	else {
+		if (byte_buffer != NULL) {
+			IMB_colormanagement_processor_apply_byte(cm_processor, byte_buffer, width, height, channels);
+		}
+		if (float_buffer != NULL) {
+			IMB_colormanagement_processor_apply(cm_processor, float_buffer, width, height, channels, predivide);
+		}
+	}
 
 	IMB_colormanagement_processor_free(cm_processor);
 }
@@ -1661,7 +1693,7 @@ static void colormanagement_transform_ex(float *buffer, int width, int height, i
 void IMB_colormanagement_transform(float *buffer, int width, int height, int channels,
                                    const char *from_colorspace, const char *to_colorspace, bool predivide)
 {
-	colormanagement_transform_ex(buffer, width, height, channels, from_colorspace, to_colorspace, predivide, false);
+	colormanagement_transform_ex(NULL, buffer, width, height, channels, from_colorspace, to_colorspace, predivide, false);
 }
 
 /* convert the whole buffer from specified by name color space to another
@@ -1670,7 +1702,19 @@ void IMB_colormanagement_transform(float *buffer, int width, int height, int cha
 void IMB_colormanagement_transform_threaded(float *buffer, int width, int height, int channels,
                                             const char *from_colorspace, const char *to_colorspace, bool predivide)
 {
-	colormanagement_transform_ex(buffer, width, height, channels, from_colorspace, to_colorspace, predivide, true);
+	colormanagement_transform_ex(NULL, buffer, width, height, channels, from_colorspace, to_colorspace, predivide, true);
+}
+
+/* Similar to functions above, but operates on byte buffer. */
+void IMB_colormanagement_transform_byte(unsigned char *buffer, int width, int height, int channels,
+                                        const char *from_colorspace, const char *to_colorspace)
+{
+	colormanagement_transform_ex(buffer, NULL, width, height, channels, from_colorspace, to_colorspace, false, false);
+}
+void IMB_colormanagement_transform_byte_threaded(unsigned char *buffer, int width, int height, int channels,
+                                                 const char *from_colorspace, const char *to_colorspace)
+{
+	colormanagement_transform_ex(buffer, NULL, width, height, channels, from_colorspace, to_colorspace, false, true);
 }
 
 void IMB_colormanagement_transform_v4(float pixel[4], const char *from_colorspace, const char *to_colorspace)
@@ -1974,11 +2018,13 @@ void IMB_colormanagement_buffer_make_display_space(float *buffer, unsigned char 
 	size_t float_buffer_size = ((size_t)width) * height * channels * sizeof(float);
 	float *display_buffer_float = MEM_mallocN(float_buffer_size, "byte_buffer_make_display_space");
 
+	/* TODO(sergey): Convert float directly to byte buffer. */
+
 	memcpy(display_buffer_float, buffer, float_buffer_size);
 
 	cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
 
-	processor_transform_apply_threaded(display_buffer_float, width, height, channels,
+	processor_transform_apply_threaded(NULL, display_buffer_float, width, height, channels,
 	                                   cm_processor, true);
 
 	IMB_buffer_byte_from_float(display_buffer, display_buffer_float,
@@ -3097,6 +3143,25 @@ void IMB_colormanagement_processor_apply(ColormanageProcessor *cm_processor, flo
 			OCIO_processorApply(cm_processor->processor, img);
 
 		OCIO_PackedImageDescRelease(img);
+	}
+}
+
+void IMB_colormanagement_processor_apply_byte(ColormanageProcessor *cm_processor,
+                                              unsigned char *buffer,
+                                              int width, int height, int channels)
+{
+	/* TODO(sergey): Would be nice to support arbitrary channels configurations,
+	 * but for now it's not so important.
+	 */
+	BLI_assert(channels == 4);
+	float pixel[4];
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
+			size_t offset = channels * (((size_t)y) * width + x);
+			rgba_uchar_to_float(pixel, buffer + offset);
+			IMB_colormanagement_processor_apply_v4(cm_processor, pixel);
+			rgba_float_to_uchar(buffer + offset, pixel);
+		}
 	}
 }
 
