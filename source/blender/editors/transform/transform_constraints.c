@@ -769,8 +769,6 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 		float tmat[4][4], imat[4][4];
 		int depth_test_enabled;
 
-		UI_ThemeColor(TH_GRID);
-
 		if (t->spacetype == SPACE_VIEW3D && rv3d != NULL) {
 			copy_m4_m4(tmat, rv3d->viewmat);
 			invert_m4_m4(imat, tmat);
@@ -803,9 +801,16 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 		if (depth_test_enabled)
 			glDisable(GL_DEPTH_TEST);
 
+		unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 3, KEEP_FLOAT);
+
+		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+		immUniformThemeColor(TH_GRID);
+
 		set_inverted_drawing(1);
-		drawcircball(GL_LINE_LOOP, t->center_global, t->prop_size, imat);
+		imm_drawcircball(t->center_global, t->prop_size, imat, pos);
 		set_inverted_drawing(0);
+
+		immUnbindProgram();
 
 		if (depth_test_enabled)
 			glEnable(GL_DEPTH_TEST);

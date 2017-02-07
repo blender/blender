@@ -1882,7 +1882,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			}
 			if (vs->xunits == V2D_UNIT_FRAMES)
 				grid->powerx = 1;
-			
+
 			/* draw numbers in the appropriate range */
 			if (dfac > 0.0f) {
 				float h = 0.1f * UI_UNIT_Y + (float)(hor.ymin);

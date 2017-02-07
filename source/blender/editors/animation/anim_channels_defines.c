@@ -3907,6 +3907,7 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 
 		/* set text color */
 		/* XXX: if active, highlight differently? */
+
 		if (selected)
 			UI_GetThemeColor4ubv(TH_TEXT_HI, col);
 		else

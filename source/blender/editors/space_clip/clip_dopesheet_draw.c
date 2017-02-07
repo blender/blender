@@ -340,7 +340,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 			        v2d->cur.xmax + EXTRA_SCROLL_PAD, (float) y + CHANNEL_HEIGHT_HALF);
 			immUnbindProgram();
 
-			UI_ThemeColor(sel ? TH_TEXT_HI : TH_TEXT);
+			UI_FontThemeColor(fontid, sel ? TH_TEXT_HI : TH_TEXT);
 
 			font_height = BLF_height(fontid, channel->name, sizeof(channel->name));
 			BLF_position(fontid, v2d->cur.xmin + CHANNEL_PAD,

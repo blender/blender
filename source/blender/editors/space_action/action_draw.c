@@ -236,7 +236,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						case ANIMTYPE_SUMMARY:
 						{
 							/* reddish color from NLA */
-							UI_ThemeColor4(TH_ANIM_ACTIVE);
+							immUniformThemeColor(TH_ANIM_ACTIVE);
 							break;
 						}
 						case ANIMTYPE_SCENE:
