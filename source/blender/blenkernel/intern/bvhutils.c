@@ -701,7 +701,7 @@ static void bvhtree_from_mesh_edges_setup_data(
 	data->tree = tree;
 
 	if (data->tree) {
-		data->cached = true;
+		data->cached = is_cached;
 
 		data->nearest_callback = mesh_edges_nearest_point;
 		data->raycast_callback = mesh_edges_spherecast;
