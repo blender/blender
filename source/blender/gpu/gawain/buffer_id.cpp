@@ -53,7 +53,7 @@ GLuint buffer_id_alloc()
 		}
 	orphan_mutex.unlock();
 
-	GLuint new_buffer_id;
+	GLuint new_buffer_id = 0;
 	glGenBuffers(1, &new_buffer_id);
 	return new_buffer_id;
 	}
@@ -80,8 +80,6 @@ GLuint vao_id_alloc()
 	assert(thread_is_main());
 #endif
 
-	GLuint new_vao_id;
-
 	// delete orphaned IDs
 	orphan_mutex.lock();
 	if (!orphaned_vao_ids.empty())
@@ -95,6 +93,7 @@ GLuint vao_id_alloc()
 		}
 	orphan_mutex.unlock();
 
+	GLuint new_vao_id = 0;
 	glGenVertexArrays(1, &new_vao_id);
 	return new_vao_id;
 	}
