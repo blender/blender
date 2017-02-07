@@ -265,7 +265,7 @@ void DocumentImporter::finish()
 		for (it = libnode_ob.begin(); it != libnode_ob.end(); it++) {
 			Object *ob = *it;
 
-			BaseLegacy *base = BKE_scene_base_find(sce, ob);
+			BaseLegacy *base = (BaseLegacy *)BKE_scene_base_find(sce, ob);
 			if (base) {
 				BLI_remlink(&sce->base, base);
 				BKE_libblock_free_us(G.main, base->object);
