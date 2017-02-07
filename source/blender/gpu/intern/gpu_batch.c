@@ -25,6 +25,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "BLI_utildefines.h"
+#include "BLI_math.h"
+
 #include "GPU_batch.h"
 #include "gpu_shader_private.h"
 
@@ -32,4 +35,88 @@ void Batch_set_builtin_program(Batch* batch, GPUBuiltinShader shader_id)
 {
 	GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
 	Batch_set_program(batch, shader->program);
+}
+
+static Batch *sphere_high = NULL;
+static Batch *sphere_med = NULL;
+static Batch *sphere_low = NULL;
+
+static VertexBuffer *vbo;
+static VertexFormat format = {0};
+static unsigned int pos_id, nor_id;
+static unsigned int vert;
+
+static void batch_sphere_lat_lon_vert(float lat, float lon)
+{
+	float pos[3];
+	pos[0] = sinf(lat) * cosf(lon);
+	pos[1] = cosf(lat);
+	pos[2] = sinf(lat) * sinf(lon);
+
+	setAttrib(vbo, nor_id, vert, pos);
+	setAttrib(vbo, pos_id, vert++, pos);
+}
+
+/* Replacement for gluSphere */
+static Batch *batch_sphere(int lat_res, int lon_res)
+{
+	const float lon_inc = 2 * M_PI / lon_res;
+	const float lat_inc = M_PI / lat_res;
+	float lon, lat;
+
+	if (format.attrib_ct == 0) {
+		pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		nor_id = add_attrib(&format, "nor", GL_FLOAT, 3, KEEP_FLOAT);
+	}
+
+	vbo = VertexBuffer_create_with_format(&format);
+	VertexBuffer_allocate_data(vbo, (lat_res-1) * lon_res * 6);
+	vert = 0;
+
+	lon = 0.0f;
+	for(int i = 0; i < lon_res; i++, lon += lon_inc) {
+		lat = 0.0f;
+		for(int j = 0; j < lat_res; j++, lat += lat_inc) {
+			if (j != lat_res - 1) { /* Pole */
+				batch_sphere_lat_lon_vert(lat,         lon);
+				batch_sphere_lat_lon_vert(lat+lat_inc, lon);
+				batch_sphere_lat_lon_vert(lat+lat_inc, lon+lon_inc);
+			}
+
+			if (j != 0) { /* Pole */
+				batch_sphere_lat_lon_vert(lat,         lon);
+				batch_sphere_lat_lon_vert(lat+lat_inc, lon+lon_inc);
+				batch_sphere_lat_lon_vert(lat,         lon+lon_inc);
+			}
+		}
+	}
+
+	return Batch_create(GL_TRIANGLES, vbo, NULL);
+}
+
+Batch *Batch_get_sphere(int lod)
+{
+	BLI_assert(lod >= 0 && lod <= 2);
+
+	if (lod == 0)
+		return sphere_low;
+	else if (lod == 1)
+		return sphere_med;
+	else
+		return sphere_high;
+}
+
+void gpu_batch_init(void)
+{
+	/* Hard coded resolution */
+	sphere_low = batch_sphere(8, 8);
+	sphere_med = batch_sphere(16, 10);
+	sphere_high = batch_sphere(32, 24);
+}
+
+void gpu_batch_exit(void)
+{
+	Batch_discard_all(sphere_low);
+	Batch_discard_all(sphere_med);
+	Batch_discard_all(sphere_high);
 }

@@ -1282,63 +1282,6 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 	immUnbindProgram();
 }
 
-#define SPHERE_LAT_RES 24
-#define SPHERE_LON_RES 32
-
-static float sphere_coords[SPHERE_LON_RES][SPHERE_LAT_RES][3] = {{{2.0f}}};
-
-static void ui_draw_lat_lon_vert(unsigned int pos, unsigned int nor, float radius, int lat, int lon)
-{
-	const float x = sphere_coords[lon][lat][0];
-	const float y = sphere_coords[lon][lat][1];
-	const float z = sphere_coords[lon][lat][2];
-
-	immAttrib3f(nor, x, y, z);
-	immVertex3f(pos, x * radius, y * radius, z * radius);
-}
-
-static void ui_draw_unitvec_sphere(unsigned int pos, unsigned int nor, float radius)
-{
-	const float lon_inc = 2 * M_PI / SPHERE_LON_RES;
-	const float lat_inc = M_PI / SPHERE_LAT_RES;
-	float lon, lat;
-
-	/* TODO put that in a batch */
-
-	/* Init coords only once */
-	if (sphere_coords[0][0][0] == 2.0f) {
-		lon = 0.0f;
-		for(int i = 0; i < SPHERE_LON_RES; i++, lon += lon_inc) {
-			lat = 0.0f;
-			for(int j = 0; j < SPHERE_LAT_RES; j++, lat += lat_inc) {
-				sphere_coords[i][j][0] = sinf(lat) * cosf(lon);
-				sphere_coords[i][j][1] = cosf(lat);
-				sphere_coords[i][j][2] = sinf(lat) * sinf(lon);
-			}
-		}
-	}
-
-	immBegin(GL_TRIANGLES, (SPHERE_LAT_RES-1) * SPHERE_LON_RES * 6);
-	for(int i = 0; i < SPHERE_LON_RES; i++) {
-		for(int j = 0; j < SPHERE_LAT_RES; j++) {
-			if (j != SPHERE_LAT_RES - 1) { /* Pole */
-				ui_draw_lat_lon_vert(pos, nor, radius, j,   i);
-				ui_draw_lat_lon_vert(pos, nor, radius, j+1, i);
-				ui_draw_lat_lon_vert(pos, nor, radius, j+1, i+1);
-			}
-
-			if (j != 0) { /* Pole */
-				ui_draw_lat_lon_vert(pos, nor, radius, j,   i);
-				ui_draw_lat_lon_vert(pos, nor, radius, j+1, i+1);
-				ui_draw_lat_lon_vert(pos, nor, radius, j,   i+1);
-			}
-		}
-	}
-	immEnd();
-}
-#undef SPHERE_LAT_RES
-#undef SPHERE_LON_RES
-
 void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 {
 	/* sphere color */
@@ -1357,40 +1300,36 @@ void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 	ui_but_v3_get(but, light);
 	light[2] = -light[2];
 
-	VertexFormat *format = immVertexFormat();
-	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-	unsigned int nor = add_attrib(format, "nor", GL_FLOAT, 3, KEEP_FLOAT);
-	immBindBuiltinProgram(GPU_SHADER_SIMPLE_LIGHTING);
-	immUniformColor3fv(diffuse);
-	immUniform3fv("light", light);
-
 	/* transform to button */
 	gpuMatrixBegin3D_legacy();
 	gpuPushMatrix();
 	
 	if (BLI_rcti_size_x(rect) < BLI_rcti_size_y(rect))
-		size = BLI_rcti_size_x(rect) / 200.f;
+		size = BLI_rcti_size_x(rect) / 2.f;
 	else
-		size = BLI_rcti_size_y(rect) / 200.f;
+		size = BLI_rcti_size_y(rect) / 2.f;
 
 	gpuTranslate3f(rect->xmin + 0.5f * BLI_rcti_size_x(rect), rect->ymin + 0.5f * BLI_rcti_size_y(rect), 0.0f);
-	gpuScale3f(size, size, MIN2(size, 1.0f));
+	gpuScale3f(size, size, size);
 
-	ui_draw_unitvec_sphere(pos, nor, 100.0);
-	immUnbindProgram();
+	Batch *sphere = Batch_get_sphere(2);
+	Batch_set_builtin_program(sphere, GPU_SHADER_SIMPLE_LIGHTING);
+	Batch_Uniform4f(sphere, "color", diffuse[0], diffuse[1], diffuse[2], 1.f);
+	Batch_Uniform3fv(sphere, "light", light);
+	Batch_draw(sphere);
 
 	/* restore */
 	glDisable(GL_CULL_FACE);
 	
 	/* AA circle */
-	format = immVertexFormat();
-	pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor3ubv((unsigned char *)wcol->inner);
 
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
-	imm_draw_lined_circle(pos, 0.0f, 0.0f, 100.0f, 32);
+	imm_draw_lined_circle(pos, 0.0f, 0.0f, 1.0f, 32);
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
 

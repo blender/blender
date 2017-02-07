@@ -35,3 +35,9 @@
 
 /* Extend Batch_set_program to use Blender’s library of built-in shader programs. */
 void Batch_set_builtin_program(Batch*, GPUBuiltinShader);
+
+/* Replacement for gluSphere */
+Batch *Batch_get_sphere(int lod);
+
+void gpu_batch_init(void);
+void gpu_batch_exit(void);
