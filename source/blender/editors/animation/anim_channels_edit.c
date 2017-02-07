@@ -57,6 +57,7 @@
 #include "BKE_context.h"
 #include "BKE_mask.h"
 #include "BKE_global.h"
+#include "BKE_scene.h"
 
 #include "UI_view2d.h"
 
@@ -2682,31 +2683,31 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 		{
 			bDopeSheet *ads = (bDopeSheet *)ac->data;
 			Scene *sce = (Scene *)ads->source;
-			Base *base = (Base *)ale->data;
+			BaseLegacy *base = (BaseLegacy *)ale->data;
 			Object *ob = base->object;
 			AnimData *adt = ob->adt;
 			
 			/* set selection status */
 			if (selectmode == SELECT_INVERT) {
 				/* swap select */
-				base->flag ^= SELECT;
-				ob->flag = base->flag;
+				base->flag_legacy ^= SELECT;
+				BKE_scene_base_flag_sync_from_base(base);
 				
 				if (adt) adt->flag ^= ADT_UI_SELECTED;
 			}
 			else {
-				Base *b;
+				BaseLegacy *b;
 				
 				/* deselect all */
 				/* TODO: should this deselect all other types of channels too? */
 				for (b = sce->base.first; b; b = b->next) {
-					b->flag &= ~SELECT;
-					b->object->flag = b->flag;
+					b->flag_legacy &= ~SELECT;
+					BKE_scene_base_flag_sync_from_base(b);
 					if (b->object->adt) b->object->adt->flag &= ~(ADT_UI_SELECTED | ADT_UI_ACTIVE);
 				}
 				
 				/* select object now */
-				base->flag |= SELECT;
+				base->flag_legacy |= SELECT;
 				ob->flag |= SELECT;
 				if (adt) adt->flag |= ADT_UI_SELECTED;
 			}

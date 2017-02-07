@@ -181,7 +181,8 @@ typedef enum eSpaceButtons_Context {
 	BCONTEXT_CONSTRAINT = 11,
 	BCONTEXT_BONE_CONSTRAINT = 12,
 	BCONTEXT_RENDER_LAYER = 13,
-	
+	BCONTEXT_COLLECTION = 14,
+
 	/* always as last... */
 	BCONTEXT_TOT
 } eSpaceButtons_Context;
@@ -1343,6 +1344,20 @@ typedef enum eSpaceClip_GPencil_Source {
 	SC_GPENCIL_SRC_TRACK = 1,
 } eSpaceClip_GPencil_Source;
 
+/* Collection Manager ======================================= */
+
+typedef struct SpaceCollections {
+	SpaceLink *next, *prev;
+	ListBase regionbase;        /* storage of regions for inactive spaces */
+	int spacetype;
+	int flag; /* eSpaceCollections_Flag */
+} SpaceCollections;
+
+/* SpaceClip->flag */
+typedef enum eSpaceCollections_Flag {
+	SC_COLLECTION_DATA_REFRESH = (1 << 0), /* recreate/update SpaceCollections layer data, needed for undo/read/write */
+} eSpaceCollections_Flag;
+
 /* **************** SPACE DEFINES ********************* */
 
 /* space types, moved from DNA_screen_types.h */
@@ -1372,8 +1387,9 @@ typedef enum eSpace_Type {
 	SPACE_CONSOLE  = 18,
 	SPACE_USERPREF = 19,
 	SPACE_CLIP     = 20,
-	
-	SPACEICONMAX = SPACE_CLIP
+	SPACE_COLLECTIONS   = 21,
+
+	SPACEICONMAX = SPACE_COLLECTIONS
 } eSpace_Type;
 
 /* use for function args */

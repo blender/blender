@@ -155,6 +155,7 @@ set(SRC
 	BLI_hash_md5.h
 	BLI_hash_mm2a.h
 	BLI_heap.h
+	BLI_iterator.h
 	BLI_jitter.h
 	BLI_kdopbvh.h
 	BLI_kdtree.h

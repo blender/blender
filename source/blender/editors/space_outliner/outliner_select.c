@@ -46,6 +46,7 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
+#include "BKE_layer.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 #include "BKE_armature.h"
@@ -99,7 +100,7 @@ static eOLDrawState tree_element_active_renderlayer(
  */
 static void do_outliner_object_select_recursive(Scene *scene, Object *ob_parent, bool select)
 {
-	Base *base;
+	BaseLegacy *base;
 
 	for (base = FIRSTBASE; base; base = base->next) {
 		Object *ob = base->object;
@@ -140,7 +141,7 @@ static eOLDrawState tree_element_set_active_object(
 {
 	TreeStoreElem *tselem = TREESTORE(te);
 	Scene *sce;
-	Base *base;
+	BaseLegacy *base;
 	Object *ob = NULL;
 	
 	/* if id is not object, we search back */
@@ -169,7 +170,7 @@ static eOLDrawState tree_element_set_active_object(
 	if (base) {
 		if (set == OL_SETSEL_EXTEND) {
 			/* swap select */
-			if (base->flag & SELECT)
+			if (base->flag_legacy & SELECT)
 				ED_base_object_select(base, BA_DESELECT);
 			else 
 				ED_base_object_select(base, BA_SELECT);
@@ -655,8 +656,10 @@ static eOLDrawState tree_element_active_text(
 static eOLDrawState tree_element_active_pose(
         bContext *C, Scene *scene, TreeElement *UNUSED(te), TreeStoreElem *tselem, const eOLSetState set)
 {
+	TODO_LAYER_CONTEXT; /* we may need to pass SceneLayer instead of Scene here */
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *ob = (Object *)tselem->id;
-	Base *base = BKE_scene_base_find(scene, ob);
+	Base *base = BKE_scene_layer_base_find(sl, ob);
 	
 	if (set != OL_SETSEL_NONE) {
 		if (scene->obedit)

@@ -329,7 +329,7 @@ static void free_all_fluidobject_channels(ListBase *fobjects)
 static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), FluidsimSettings *domainSettings, FluidAnimChannels *channels, ListBase *fobjects)
 {
 	Scene *scene = CTX_data_scene(C);
-	Base *base;
+	BaseLegacy *base;
 	int i;
 	int length = channels->length;
 	float eval_time;
@@ -572,7 +572,7 @@ static void export_fluid_objects(ListBase *fobjects, Scene *scene, int length)
 
 static int fluid_validate_scene(ReportList *reports, Scene *scene, Object *fsDomain)
 {
-	Base *base;
+	BaseLegacy *base;
 	Object *newdomain = NULL;
 	int channelObjCount = 0;
 	int fluidInputCount = 0;

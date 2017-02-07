@@ -174,116 +174,6 @@ static void restrictbutton_recursive_bone(Bone *bone_parent, int flag, bool set_
 
 }
 
-static void restrictbutton_recursive_child(bContext *C, Scene *scene, Object *ob_parent, char flag,
-                                           bool state, bool deselect, const char *rnapropname)
-{
-	Main *bmain = CTX_data_main(C);
-	Object *ob;
-
-	for (ob = bmain->object.first; ob; ob = ob->id.next) {
-		if (BKE_object_is_child_recursive(ob_parent, ob)) {
-			/* only do if child object is selectable */
-			if ((flag == OB_RESTRICT_SELECT) || (ob->restrictflag & OB_RESTRICT_SELECT) == 0) {
-				if (state) {
-					ob->restrictflag |= flag;
-					if (deselect) {
-						ED_base_object_select(BKE_scene_base_find(scene, ob), BA_DESELECT);
-					}
-				}
-				else {
-					ob->restrictflag &= ~flag;
-				}
-			}
-
-			if (rnapropname) {
-				PointerRNA ptr;
-				PropertyRNA *prop;
-				ID *id;
-				bAction *action;
-				FCurve *fcu;
-				bool driven, special;
-
-				RNA_id_pointer_create(&ob->id, &ptr);
-				prop = RNA_struct_find_property(&ptr, rnapropname);
-				fcu = rna_get_fcurve_context_ui(C, &ptr, prop, 0, NULL, &action, &driven, &special);
-
-				if (fcu && !driven) {
-					id = ptr.id.data;
-					if (autokeyframe_cfra_can_key(scene, id)) {
-						ReportList *reports = CTX_wm_reports(C);
-						ToolSettings *ts = scene->toolsettings;
-						eInsertKeyFlags key_flag = ANIM_get_keyframing_flags(scene, 1);
-
-						fcu->flag &= ~FCURVE_SELECTED;
-						insert_keyframe(reports, id, action, ((fcu->grp) ? (fcu->grp->name) : (NULL)),
-						                fcu->rna_path, fcu->array_index, CFRA, ts->keyframe_type, key_flag);
-						/* Assuming this is not necessary here, since 'ancestor' object button will do it anyway. */
-						/* WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL); */
-					}
-				}
-			}
-		}
-	}
-}
-
-static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
-{
-	Scene *scene = (Scene *)poin;
-	Object *ob = (Object *)poin2;
-	
-	if (!common_restrict_check(C, ob)) return;
-	
-	/* deselect objects that are invisible */
-	if (ob->restrictflag & OB_RESTRICT_VIEW) {
-		/* Ouch! There is no backwards pointer from Object to Base, 
-		 * so have to do loop to find it. */
-		ED_base_object_select(BKE_scene_base_find(scene, ob), BA_DESELECT);
-	}
-
-	if (CTX_wm_window(C)->eventstate->ctrl) {
-		restrictbutton_recursive_child(C, scene, ob, OB_RESTRICT_VIEW,
-		                               (ob->restrictflag & OB_RESTRICT_VIEW) != 0, true, "hide");
-	}
-
-	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
-
-}
-
-static void restrictbutton_sel_cb(bContext *C, void *poin, void *poin2)
-{
-	Scene *scene = (Scene *)poin;
-	Object *ob = (Object *)poin2;
-	
-	if (!common_restrict_check(C, ob)) return;
-	
-	/* if select restriction has just been turned on */
-	if (ob->restrictflag & OB_RESTRICT_SELECT) {
-		/* Ouch! There is no backwards pointer from Object to Base, 
-		 * so have to do loop to find it. */
-		ED_base_object_select(BKE_scene_base_find(scene, ob), BA_DESELECT);
-	}
-
-	if (CTX_wm_window(C)->eventstate->ctrl) {
-		restrictbutton_recursive_child(C, scene, ob, OB_RESTRICT_SELECT,
-		                               (ob->restrictflag & OB_RESTRICT_SELECT) != 0, true, NULL);
-	}
-
-	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
-
-}
-
-static void restrictbutton_rend_cb(bContext *C, void *poin, void *poin2)
-{
-	Object *ob = (Object *)poin2;
-
-	if (CTX_wm_window(C)->eventstate->ctrl) {
-		restrictbutton_recursive_child(C, (Scene *)poin, ob, OB_RESTRICT_RENDER,
-		                               (ob->restrictflag & OB_RESTRICT_RENDER) != 0, false, "hide_render");
-	}
-
-	WM_event_add_notifier(C, NC_SCENE | ND_OB_RENDER, poin);
-}
-
 static void restrictbutton_r_lay_cb(bContext *C, void *poin, void *UNUSED(poin2))
 {
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, poin);
@@ -355,98 +245,6 @@ static void restrictbutton_ebone_visibility_cb(bContext *C, void *UNUSED(poin), 
 static void restrictbutton_gp_layer_flag_cb(bContext *C, void *UNUSED(poin), void *UNUSED(poin2))
 {
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
-}
-
-static int group_restrict_flag(Group *gr, int flag)
-{
-	GroupObject *gob;
-
-#ifdef USE_GROUP_SELECT
-	for (gob = gr->gobject.first; gob; gob = gob->next) {
-		if ((gob->ob->restrictflag & flag) == 0)
-			return 0;
-	}
-	return 1;
-#else
-	/* weak but fast */
-	if ((gob = gr->gobject.first))
-		if ((gob->ob->restrictflag & flag) == 0)
-			return 0;
-	return 1;
-#endif
-}
-
-static int group_select_flag(Group *gr)
-{
-	GroupObject *gob;
-
-#ifdef USE_GROUP_SELECT
-	for (gob = gr->gobject.first; gob; gob = gob->next)
-		if ((gob->ob->flag & SELECT))
-			return 1;
-
-	return 0;
-#else
-	/* weak but fast */
-	if ((gob = gr->gobject.first))
-		if (gob->ob->flag & SELECT)
-			return 1;
-	return 0;
-#endif
-}
-
-void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag)
-{
-	Scene *scene = (Scene *)poin;
-	GroupObject *gob;
-	Group *gr = (Group *)poin2;
-
-	if (group_restrict_flag(gr, flag)) {
-		for (gob = gr->gobject.first; gob; gob = gob->next) {
-			if (ID_IS_LINKED_DATABLOCK(gob->ob))
-				continue;
-
-			gob->ob->restrictflag &= ~flag;
-			
-			if (flag == OB_RESTRICT_VIEW)
-				if (gob->ob->flag & SELECT)
-					ED_base_object_select(BKE_scene_base_find(scene, gob->ob), BA_DESELECT);
-		}
-	}
-	else {
-		for (gob = gr->gobject.first; gob; gob = gob->next) {
-			if (ID_IS_LINKED_DATABLOCK(gob->ob))
-				continue;
-
-			/* not in editmode */
-			if (scene->obedit != gob->ob) {
-				gob->ob->restrictflag |= flag;
-
-				if (ELEM(flag, OB_RESTRICT_SELECT, OB_RESTRICT_VIEW)) {
-					if ((gob->ob->flag & SELECT)) {
-						ED_base_object_select(BKE_scene_base_find(scene, gob->ob), BA_DESELECT);
-					}
-				}
-			}
-		}
-	}
-} 
-
-static void restrictbutton_gr_restrict_view(bContext *C, void *poin, void *poin2)
-{
-	restrictbutton_gr_restrict_flag(poin, poin2, OB_RESTRICT_VIEW);
-	WM_event_add_notifier(C, NC_GROUP, NULL);
-	DAG_id_type_tag(CTX_data_main(C), ID_OB);
-}
-static void restrictbutton_gr_restrict_select(bContext *C, void *poin, void *poin2)
-{
-	restrictbutton_gr_restrict_flag(poin, poin2, OB_RESTRICT_SELECT);
-	WM_event_add_notifier(C, NC_GROUP, NULL);
-}
-static void restrictbutton_gr_restrict_render(bContext *C, void *poin, void *poin2)
-{
-	restrictbutton_gr_restrict_flag(poin, poin2, OB_RESTRICT_RENDER);
-	WM_event_add_notifier(C, NC_GROUP, NULL);
 }
 
 static void restrictbutton_id_user_toggle(bContext *UNUSED(C), void *poin, void *UNUSED(poin2))
@@ -605,7 +403,6 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 	TreeElement *te;
 	TreeStoreElem *tselem;
 	Object *ob = NULL;
-	Group  *gr = NULL;
 
 	PropertyRNA *object_prop_hide, *object_prop_hide_select, *object_prop_hide_render;
 
@@ -619,73 +416,8 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 	for (te = lb->first; te; te = te->next) {
 		tselem = TREESTORE(te);
 		if (te->ys + 2 * UI_UNIT_Y >= ar->v2d.cur.ymin && te->ys <= ar->v2d.cur.ymax) {
-			/* objects have toggle-able restriction flags */
-			if (tselem->type == 0 && te->idcode == ID_OB) {
-				PointerRNA ptr;
-
-				ob = (Object *)tselem->id;
-				RNA_pointer_create((ID *)ob, &RNA_Object, ob, &ptr);
-
-				UI_block_emboss_set(block, UI_EMBOSS_NONE);
-				bt = uiDefIconButR_prop(block, UI_BTYPE_ICON_TOGGLE, 0, ICON_RESTRICT_VIEW_OFF,
-				                        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                        &ptr, object_prop_hide, -1, 0, 0, -1, -1,
-				                        TIP_("Restrict viewport visibility (Ctrl - Recursive)"));
-				UI_but_func_set(bt, restrictbutton_view_cb, scene, ob);
-				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
-				
-				bt = uiDefIconButR_prop(block, UI_BTYPE_ICON_TOGGLE, 0, ICON_RESTRICT_SELECT_OFF,
-				                        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                        &ptr, object_prop_hide_select, -1, 0, 0, -1, -1,
-				                        TIP_("Restrict viewport selection (Ctrl - Recursive)"));
-				UI_but_func_set(bt, restrictbutton_sel_cb, scene, ob);
-				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
-				
-				bt = uiDefIconButR_prop(block, UI_BTYPE_ICON_TOGGLE, 0, ICON_RESTRICT_RENDER_OFF,
-				                        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                        &ptr, object_prop_hide_render, -1, 0, 0, -1, -1,
-				                        TIP_("Restrict rendering (Ctrl - Recursive)"));
-				UI_but_func_set(bt, restrictbutton_rend_cb, scene, ob);
-				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
-				
-				UI_block_emboss_set(block, UI_EMBOSS);
-				
-			}
-			if (tselem->type == 0 && te->idcode == ID_GR) {
-				int restrict_bool;
-				int but_flag = UI_BUT_DRAG_LOCK;
-				gr = (Group *)tselem->id;
-
-				if (ID_IS_LINKED_DATABLOCK(gr))
-					but_flag |= UI_BUT_DISABLED;
-				
-				UI_block_emboss_set(block, UI_EMBOSS_NONE);
-
-				restrict_bool = group_restrict_flag(gr, OB_RESTRICT_VIEW);
-				bt = uiDefIconBut(block, UI_BTYPE_ICON_TOGGLE, 0, restrict_bool ? ICON_RESTRICT_VIEW_ON : ICON_RESTRICT_VIEW_OFF,
-				                  (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                  NULL, 0, 0, 0, 0, TIP_("Restrict/Allow visibility in the 3D View"));
-				UI_but_func_set(bt, restrictbutton_gr_restrict_view, scene, gr);
-				UI_but_flag_enable(bt, but_flag);
-
-				restrict_bool = group_restrict_flag(gr, OB_RESTRICT_SELECT);
-				bt = uiDefIconBut(block, UI_BTYPE_ICON_TOGGLE, 0, restrict_bool ? ICON_RESTRICT_SELECT_ON : ICON_RESTRICT_SELECT_OFF,
-				                  (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                  NULL, 0, 0, 0, 0, TIP_("Restrict/Allow selection in the 3D View"));
-				UI_but_func_set(bt, restrictbutton_gr_restrict_select, scene, gr);
-				UI_but_flag_enable(bt, but_flag);
-
-				restrict_bool = group_restrict_flag(gr, OB_RESTRICT_RENDER);
-				bt = uiDefIconBut(block, UI_BTYPE_ICON_TOGGLE, 0, restrict_bool ? ICON_RESTRICT_RENDER_ON : ICON_RESTRICT_RENDER_OFF,
-				                  (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                  NULL, 0, 0, 0, 0, TIP_("Restrict/Allow renderability"));
-				UI_but_func_set(bt, restrictbutton_gr_restrict_render, scene, gr);
-				UI_but_flag_enable(bt, but_flag);
-
-				UI_block_emboss_set(block, UI_EMBOSS);
-			}
 			/* scene render layers and passes have toggle-able flags too! */
-			else if (tselem->type == TSE_R_LAYER) {
+			if (tselem->type == TSE_R_LAYER) {
 				UI_block_emboss_set(block, UI_EMBOSS_NONE);
 				
 				bt = uiDefIconButBitI(block, UI_BTYPE_ICON_TOGGLE_N, SCE_LAY_DISABLE, 0, ICON_CHECKBOX_HLT - 1,
@@ -1467,16 +1199,6 @@ static void outliner_draw_tree_element(
 					active = OL_DRAWSEL_ACTIVE;
 				}
 			}
-			else if (te->idcode == ID_GR) {
-				Group *gr = (Group *)tselem->id;
-				if (group_select_flag(gr)) {
-					char col[4];
-					UI_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
-					rgba_float_args_set(color, (float)col[0] / 255, (float)col[1] / 255, (float)col[2] / 255, alpha);
-					
-					active = OL_DRAWSEL_ACTIVE;
-				}
-			}
 			else if (te->idcode == ID_OB) {
 				Object *ob = (Object *)tselem->id;
 				
@@ -1882,6 +1604,7 @@ void draw_outliner(const bContext *C)
 {
 	Main *mainvar = CTX_data_main(C); 
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d = &ar->v2d;
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -1890,7 +1613,7 @@ void draw_outliner(const bContext *C)
 	TreeElement *te_edit = NULL;
 	bool has_restrict_icons;
 
-	outliner_build_tree(mainvar, scene, soops); // always
+	outliner_build_tree(mainvar, scene, sl, soops); // always
 	
 	/* get extents of data */
 	outliner_height(soops, &soops->tree, &sizey);

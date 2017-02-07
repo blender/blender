@@ -3776,3 +3776,20 @@ bool BKE_node_tree_iter_step(struct NodeTreeIterStore *ntreeiter,
 
 	return true;
 }
+
+/* -------------------------------------------------------------------- */
+/* NodeTree kernel functions */
+
+void BKE_nodetree_remove_layer_n(bNodeTree *ntree, Scene *scene, const int layer_index)
+{
+	for (bNode *node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == CMP_NODE_R_LAYERS && (Scene *)node->id == scene) {
+			if (node->custom1 == layer_index) {
+				node->custom1 = 0;
+			}
+			else if (node->custom1 > layer_index) {
+				node->custom1--;
+			}
+		}
+	}
+}

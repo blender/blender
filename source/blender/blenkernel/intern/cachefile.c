@@ -205,7 +205,7 @@ float BKE_cachefile_time_offset(CacheFile *cache_file, const float time, const f
 /* TODO(kevin): replace this with some depsgraph mechanism, or something similar. */
 void BKE_cachefile_clean(Scene *scene, CacheFile *cache_file)
 {
-	for (Base *base = scene->base.first; base; base = base->next) {
+	for (BaseLegacy *base = scene->base.first; base; base = base->next) {
 		Object *ob = base->object;
 
 		ModifierData *md = modifiers_findByType(ob, eModifierType_MeshSequenceCache);

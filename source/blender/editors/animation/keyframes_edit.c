@@ -193,7 +193,7 @@ static short ob_keyframes_loop(KeyframeEditData *ked, bDopeSheet *ads, Object *o
 	int ret = 0;
 	
 	bAnimListElem dummychan = {NULL};
-	Base dummybase = {NULL};
+	BaseLegacy dummybase = {NULL};
 	
 	if (ob == NULL)
 		return 0;

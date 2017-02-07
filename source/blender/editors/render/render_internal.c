@@ -784,7 +784,7 @@ static void clean_viewport_memory(Main *bmain, Scene *scene, int renderlay)
 {
 	Object *object;
 	Scene *sce_iter;
-	Base *base;
+	BaseLegacy *base;
 
 	for (object = bmain->object.first; object; object = object->id.next) {
 		object->id.tag |= LIB_TAG_DOIT;

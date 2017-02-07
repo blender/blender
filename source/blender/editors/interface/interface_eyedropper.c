@@ -597,7 +597,7 @@ static void datadropper_id_sample_pt(bContext *C, DataDropper *ddr, int mx, int 
 				const int mval[2] = {
 				    mx - ar->winrct.xmin,
 				    my - ar->winrct.ymin};
-				Base *base;
+				BaseLegacy *base;
 
 				CTX_wm_area_set(C, sa);
 				CTX_wm_region_set(C, ar);

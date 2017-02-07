@@ -47,6 +47,7 @@ extern "C" {
 #include "DNA_ID.h"
 #include "DNA_freestyle_types.h"
 #include "DNA_gpu_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_userdef_types.h"
 
 struct CurveMapping;
@@ -65,18 +66,13 @@ struct bGPdata;
 struct bGPDbrush;
 struct MovieClip;
 struct ColorSpace;
+struct SceneCollection;
 
 /* ************************************************************* */
 /* Scene Data */
 
 /* Base - Wrapper for referencing Objects in a Scene */
-typedef struct Base {
-	struct Base *next, *prev;
-	unsigned int lay, selcol;
-	int flag;
-	short sx, sy;
-	struct Object *object;
-} Base;
+#define BaseLegacy Base
 
 /* ************************************************************* */
 /* Output Format Data */
@@ -1628,7 +1624,7 @@ typedef struct Scene {
 	struct Scene *set;
 	
 	ListBase base;
-	struct Base *basact;		/* active base */
+	struct BaseLegacy *basact;		/* active base */
 	struct Object *obedit;		/* name replaces old G.obedit */
 	
 	float cursor[3];			/* 3d cursor location */
@@ -1706,6 +1702,11 @@ typedef struct Scene {
 	struct RigidBodyWorld *rigidbody_world;
 
 	struct PreviewImage *preview;
+
+	ListBase render_layers;
+	struct SceneCollection *collection;
+	int active_layer;
+	int pad4;
 } Scene;
 
 /* **************** RENDERDATA ********************* */
@@ -1912,16 +1913,16 @@ extern const char *RE_engine_id_CYCLES;
 
 /* depricate this! */
 #define TESTBASE(v3d, base)  (                                                \
-	((base)->flag & SELECT) &&                                                \
+	((base)->flag_legacy & SELECT) &&                                         \
 	((base)->lay & v3d->lay) &&                                               \
 	(((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0))
 #define TESTBASELIB(v3d, base)  (                                             \
-	((base)->flag & SELECT) &&                                                \
+	((base)->flag_legacy & SELECT) &&                                         \
 	((base)->lay & v3d->lay) &&                                               \
 	((base)->object->id.lib == NULL) &&                                       \
 	(((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0))
 #define TESTBASELIB_BGMODE(v3d, scene, base)  (                               \
-	((base)->flag & SELECT) &&                                                \
+	((base)->flag_legacy & SELECT) &&                                         \
 	((base)->lay & (v3d ? v3d->lay : scene->lay)) &&                          \
 	((base)->object->id.lib == NULL) &&                                       \
 	(((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0))
@@ -1930,7 +1931,7 @@ extern const char *RE_engine_id_CYCLES;
 	((base)->object->id.lib == NULL) &&                                       \
 	(((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0))
 #define BASE_SELECTABLE(v3d, base)  (                                         \
-	(base->lay & v3d->lay) &&                                                 \
+	(v3d != NULL) &&                                                          \
 	(base->object->restrictflag & (OB_RESTRICT_SELECT | OB_RESTRICT_VIEW)) == 0)
 #define BASE_VISIBLE(v3d, base)  (                                            \
 	(base->lay & v3d->lay) &&                                                 \
@@ -1943,6 +1944,8 @@ extern const char *RE_engine_id_CYCLES;
 #define LASTBASE		scene->base.last
 #define BASACT			(scene->basact)
 #define OBACT			(BASACT ? BASACT->object: NULL)
+#define BASACT_NEW		(sl->basact)
+#define OBACT_NEW		(BASACT_NEW ? BASACT_NEW->object: NULL)
 
 #define V3D_CAMERA_LOCAL(v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : NULL)
 #define V3D_CAMERA_SCENE(scene, v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : (scene)->camera)
@@ -1958,7 +1961,7 @@ extern const char *RE_engine_id_CYCLES;
 #define TIME2FRA(a)     ((((double) scene->r.frs_sec) * (double)(a)) / (double)scene->r.frs_sec_base)
 #define FPS              (((double) scene->r.frs_sec) / (double)scene->r.frs_sec_base)
 
-/* base->flag is in DNA_object_types.h */
+/* base->legacy_flag is in DNA_object_types.h */
 
 /* toolsettings->snap_flag */
 #define SCE_SNAP				1

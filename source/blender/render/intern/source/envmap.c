@@ -247,7 +247,7 @@ static void envmap_transmatrix(float mat[4][4], int part)
 
 static void env_set_imats(Render *re)
 {
-	Base *base;
+	BaseLegacy *base;
 	float mat[4][4];
 	
 	base = re->scene->base.first;

@@ -120,6 +120,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
@@ -2626,10 +2627,34 @@ static void write_paint(WriteData *wd, Paint *p)
 	}
 }
 
+static void write_scene_collection(WriteData *wd, SceneCollection *sc)
+{
+	writestruct(wd, DATA, SceneCollection, 1, sc);
+
+	writelist(wd, DATA, LinkData, &sc->objects);
+	writelist(wd, DATA, LinkData, &sc->filter_objects);
+
+	for (SceneCollection *nsc = sc->scene_collections.first; nsc; nsc = nsc->next) {
+		write_scene_collection(wd, nsc);
+	}
+}
+
+static void write_layer_collections(WriteData *wd, ListBase *lb)
+{
+	for (LayerCollection *lc = lb->first; lc; lc = lc->next) {
+		writestruct(wd, DATA, LayerCollection, 1, lc);
+
+		writelist(wd, DATA, LinkData, &lc->object_bases);
+		writelist(wd, DATA, CollectionOverride, &lc->overrides);
+
+		write_layer_collections(wd, &lc->layer_collections);
+	}
+}
+
 static void write_scenes(WriteData *wd, ListBase *scebase)
 {
 	Scene *sce;
-	Base *base;
+	BaseLegacy *base;
 	Editing *ed;
 	Sequence *seq;
 	MetaStack *ms;
@@ -2641,6 +2666,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	ToolSettings *tos;
 	FreestyleModuleConfig *fmc;
 	FreestyleLineSet *fls;
+	SceneLayer *sl;
 
 	sce = scebase->first;
 	while (sce) {
@@ -2656,7 +2682,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		/* direct data */
 		base = sce->base.first;
 		while (base) {
-			writestruct(wd, DATA, Base, 1, base);
+			writestruct(wd, DATA, BaseLegacy, 1, base);
 			base = base->next;
 		}
 
@@ -2845,6 +2871,14 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 
 		write_previews(wd, sce->preview);
 		write_curvemapping_curves(wd, &sce->r.mblur_shutter_curve);
+
+		write_scene_collection(wd, sce->collection);
+
+		for (sl = sce->render_layers.first; sl; sl = sl->next) {
+			writestruct(wd, DATA, SceneLayer, 1, sl);
+			writelist(wd, DATA, Base, &sl->object_bases);
+			write_layer_collections(wd, &sl->layer_collections);
+		}
 
 		sce = sce->id.next;
 	}
@@ -3166,6 +3200,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				}
 				else if (sl->spacetype == SPACE_INFO) {
 					writestruct(wd, DATA, SpaceInfo, 1, sl);
+				}
+				else if (sl->spacetype == SPACE_COLLECTIONS) {
+					writestruct(wd, DATA, SpaceCollections, 1, sl);
 				}
 
 				sl = sl->next;

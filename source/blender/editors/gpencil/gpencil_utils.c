@@ -204,7 +204,7 @@ bGPdata *ED_gpencil_data_get_active(const bContext *C)
 // XXX: this should be removed... We really shouldn't duplicate logic like this!
 bGPdata *ED_gpencil_data_get_active_v3d(Scene *scene, View3D *v3d)
 {
-	Base *base = scene->basact;
+	BaseLegacy *base = scene->basact;
 	bGPdata *gpd = NULL;
 	/* We have to make sure active object is actually visible and selected, else we must use default scene gpd,
 	 * to be consistent with ED_gpencil_data_get_active's behavior.

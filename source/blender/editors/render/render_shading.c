@@ -54,6 +54,7 @@
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_linestyle.h"
 #include "BKE_main.h"
@@ -626,11 +627,11 @@ static int render_layer_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 
-	BKE_scene_add_render_layer(scene, NULL);
-	scene->r.actlay = BLI_listbase_count(&scene->r.layers) - 1;
+	BKE_scene_layer_add(scene, NULL);
+	scene->active_layer = BLI_listbase_count(&scene->render_layers) - 1;
 
 	DAG_id_tag_update(&scene->id, 0);
-	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
+	WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -652,10 +653,11 @@ void SCENE_OT_render_layer_add(wmOperatorType *ot)
 static int render_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneRenderLayer *rl = BLI_findlink(&scene->r.layers, scene->r.actlay);
+	SceneLayer *sl = BLI_findlink(&scene->render_layers, scene->active_layer);
 
-	if (!BKE_scene_remove_render_layer(CTX_data_main(C), scene, rl))
+	if (!BKE_scene_layer_remove(CTX_data_main(C), scene, sl)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	DAG_id_tag_update(&scene->id, 0);
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);

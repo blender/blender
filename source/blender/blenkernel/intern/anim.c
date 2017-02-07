@@ -283,7 +283,7 @@ void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
 /* tweak the object ordering to trick depsgraph into making MotionPath calculations run faster */
 static void motionpaths_calc_optimise_depsgraph(Scene *scene, ListBase *targets)
 {
-	Base *base, *baseNext;
+	BaseLegacy *base, *baseNext;
 	MPathTarget *mpt;
 	
 	/* make sure our temp-tag isn't already in use */
@@ -321,7 +321,7 @@ static void motionpaths_calc_update_scene(Scene *scene)
 		BKE_scene_update_for_newframe(G.main->eval_ctx, G.main, scene, scene->lay);
 	}
 	else { /* otherwise we can optimize by restricting updates */
-		Base *base, *last = NULL;
+		BaseLegacy *base, *last = NULL;
 		
 		/* only stuff that moves or needs display still */
 		DAG_scene_update_flags(G.main, scene, scene->lay, true, false);

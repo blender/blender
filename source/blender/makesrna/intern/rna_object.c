@@ -297,23 +297,14 @@ static void rna_Object_dependency_update(Main *bmain, Scene *UNUSED(scene), Poin
 }
 
 /* when changing the selection flag the scene needs updating */
-static void rna_Object_select_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
-{
-	if (scene) {
-		Object *ob = (Object *)ptr->id.data;
-		short mode = (ob->flag & SELECT) ? BA_SELECT : BA_DESELECT;
-		ED_base_object_select(BKE_scene_base_find(scene, ob), mode);
-	}
-}
-
 static void rna_Base_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	Base *base = (Base *)ptr->data;
-	short mode = (base->flag & BA_SELECT) ? BA_SELECT : BA_DESELECT;
+	BaseLegacy *base = (BaseLegacy *)ptr->data;
+	short mode = (base->flag_legacy & BA_SELECT) ? BA_SELECT : BA_DESELECT;
 	ED_base_object_select(base, mode);
 }
 
-static void rna_Object_layer_update__internal(Main *bmain, Scene *scene, Base *base, Object *ob)
+static void rna_Object_layer_update__internal(Main *bmain, Scene *scene, BaseLegacy *base, Object *ob)
 {
 	/* try to avoid scene sort */
 	if (scene == NULL) {
@@ -335,7 +326,7 @@ static void rna_Object_layer_update__internal(Main *bmain, Scene *scene, Base *b
 static void rna_Object_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
-	Base *base;
+	BaseLegacy *base;
 
 	base = scene ? BKE_scene_base_find(scene, ob) : NULL;
 	if (!base)
@@ -351,7 +342,7 @@ static void rna_Object_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Base_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Base *base = (Base *)ptr->data;
+	BaseLegacy *base = (BaseLegacy *)ptr->data;
 	Object *ob = (Object *)base->object;
 
 	rna_Object_layer_update__internal(bmain, scene, base, ob);
@@ -1120,7 +1111,7 @@ static void rna_Object_layer_set(PointerRNA *ptr, const int *values)
 
 static void rna_Base_layer_set(PointerRNA *ptr, const int *values)
 {
-	Base *base = (Base *)ptr->data;
+	BaseLegacy *base = (BaseLegacy *)ptr->data;
 
 	unsigned int lay;
 	lay = rna_Object_layer_validate__internal(values, base->lay);
@@ -2246,11 +2237,6 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Local View Layers", "3D local view layers the object is on");
 
-	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
-	RNA_def_property_ui_text(prop, "Select", "Object selection state");
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_select_update");
-
 	/* for data access */
 	prop = RNA_def_property(srna, "bound_box", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_multi_array(prop, 2, boundbox_dimsize);
@@ -2895,14 +2881,14 @@ static void rna_def_dupli_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Dupli Type", "Duplicator type that generated this dupli object");
 }
 
-static void rna_def_object_base(BlenderRNA *brna)
+static void rna_def_object_base_legacy(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna = RNA_def_struct(brna, "ObjectBase", NULL);
+	srna = RNA_def_struct(brna, "ObjectBaseLegacy", NULL);
 	RNA_def_struct_sdna(srna, "Base");
-	RNA_def_struct_ui_text(srna, "Object Base", "An object instance in a scene");
+	RNA_def_struct_ui_text(srna, "Object Base Legacy", "An object instance in a scene (deprecated)");
 	RNA_def_struct_ui_icon(srna, ICON_OBJECT_DATA);
 
 	prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
@@ -2922,13 +2908,13 @@ static void rna_def_object_base(BlenderRNA *brna)
 	RNA_def_property_array(prop, 8);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Local View Layers", "3D local view layers the object base is on");
-	
+
 	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", BA_SELECT);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag_legacy", BA_SELECT);
 	RNA_def_property_ui_text(prop, "Select", "Object base selection state");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Base_select_update");
-	
-	RNA_api_object_base(srna);
+
+	RNA_api_object_base_legacy(srna);
 }
 
 void RNA_def_object(BlenderRNA *brna)
@@ -2937,7 +2923,7 @@ void RNA_def_object(BlenderRNA *brna)
 
 	RNA_define_animate_sdna(false);
 	rna_def_object_game_settings(brna);
-	rna_def_object_base(brna);
+	rna_def_object_base_legacy(brna);
 	rna_def_vertex_group(brna);
 	rna_def_material_slot(brna);
 	rna_def_dupli_object(brna);

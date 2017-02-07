@@ -1128,7 +1128,7 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 	Object *ob;
 	Curve *cu;
 	Nurb *nu = NULL;
-	Base *base_orig = BASACT, *base_new = NULL;
+	BaseLegacy *base_orig = BASACT, *base_new = NULL;
 	float minmax_weights[2] = {1.0f, 0.0f};
 	
 	/* camera framing */
@@ -1217,7 +1217,8 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 	
 	/* set the layer and select */
 	base_new->lay  = ob->lay  = base_orig ? base_orig->lay : BKE_screen_view3d_layer_active(v3d, scene);
-	base_new->flag = ob->flag = base_new->flag | SELECT;
+	base_new->flag_legacy |= SELECT;
+	BKE_scene_base_flag_sync_from_base(base_new);
 }
 
 /* --- */

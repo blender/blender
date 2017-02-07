@@ -45,7 +45,7 @@
 #include "intern/nodes/deg_node.h"
 #include "intern/nodes/deg_node_operation.h"
 
-struct Base;
+struct BaseLegacy;
 struct bGPdata;
 struct CacheFile;
 struct ListBase;

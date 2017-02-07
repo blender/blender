@@ -40,10 +40,12 @@
 #include "RNA_define.h"
 
 #include "DNA_constraint_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_depsgraph.h"
+#include "BKE_layer.h"
 
 #include "rna_internal.h"  /* own include */
 
@@ -89,6 +91,49 @@ static EnumPropertyItem space_items[] = {
 #include "MEM_guardedalloc.h"
 
 #include "DEG_depsgraph.h"
+
+static void rna_Object_select_set(Object *ob, bContext *C, ReportList *reports, int action)
+{
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	Base *base = BKE_scene_layer_base_find(sl, ob);
+
+	if (!base) {
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in Render Layer '%s'!", ob->id.name + 2, sl->name);
+		return;
+	}
+
+	if (action == 2) { /* TOGGLE */
+		if ((base->flag & BASE_SELECTED) != 0) {
+			action = 1; /* DESELECT */
+		}
+		else {
+			action = 0; /* SELECT */
+		}
+	}
+
+	switch (action) {
+	    case 1: /* DESELECT */
+		    base->flag &= ~BASE_SELECTED;
+		    break;
+	    case 0: /* SELECT */
+	    default:
+		    BKE_scene_layer_base_select(sl, base);
+		    break;
+	}
+}
+
+static int rna_Object_select_get(Object *ob, bContext *C, ReportList *reports)
+{
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	Base *base = BKE_scene_layer_base_find(sl, ob);
+
+	if (!base) {
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in Render Layer '%s'!", ob->id.name + 2, sl->name);
+		return -1;
+	}
+
+	return ((base->flag & BASE_SELECTED) != 0) ? 1 : 0;
+}
 
 /* Convert a given matrix from a space to another (using the object and/or a bone as reference). */
 static void rna_Scene_mat_convert_space(Object *ob, ReportList *reports, bPoseChannel *pchan,
@@ -413,9 +458,9 @@ finally:
 	free_bvhtree_from_mesh(&treeData);
 }
 
-/* ObjectBase */
+/* ObjectBaseLegacy */
 
-static void rna_ObjectBase_layers_from_view(Base *base, View3D *v3d)
+static void rna_ObjectBaseLegacy_layers_from_view(BaseLegacy *base, View3D *v3d)
 {
 	base->lay = base->object->lay = v3d->lay;
 }
@@ -503,6 +548,26 @@ void RNA_api_object(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 #endif
+
+	static EnumPropertyItem object_select_items[] = {
+	    {0, "SELECT", 0, "Select", "Select object from the active render layer"},
+	    {1, "DESELECT", 0, "Deselect", "Deselect object from the active render layer"},
+	    {2, "TOGGLE", 0, "Toggle", "Toggle object selection from the active render layer"},
+	    {0, NULL, 0, NULL, NULL}
+	};
+
+	/* Special wrapper to access the base selection value */
+	func = RNA_def_function(srna, "select_set", "rna_Object_select_set");
+	RNA_def_function_ui_description(func, "Select the object (for the active render layer)");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	parm = RNA_def_enum(func, "action", object_select_items, 0, "Action", "Select mode");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+	func = RNA_def_function(srna, "select_get", "rna_Object_select_get");
+	RNA_def_function_ui_description(func, "Get the object selection for the active render layer");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	parm = RNA_def_boolean(func, "result", 0, "", "Object selected");
+	RNA_def_function_return(func, parm);
 
 	/* Matrix space conversion */
 	func = RNA_def_function(srna, "convert_space", "rna_Scene_mat_convert_space");
@@ -707,12 +772,12 @@ void RNA_api_object(StructRNA *srna)
 }
 
 
-void RNA_api_object_base(StructRNA *srna)
+void RNA_api_object_base_legacy(StructRNA *srna)
 {
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	func = RNA_def_function(srna, "layers_from_view", "rna_ObjectBase_layers_from_view");
+	func = RNA_def_function(srna, "layers_from_view", "rna_ObjectBaseLegacy_layers_from_view");
 	RNA_def_function_ui_description(func,
 	                                "Sets the object layers from a 3D View (use when adding an object in local view)");
 	parm = RNA_def_pointer(func, "view", "SpaceView3D", "", "");

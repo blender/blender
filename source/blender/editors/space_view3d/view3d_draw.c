@@ -1767,7 +1767,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 /* ******************** non-meshes ***************** */
 
 static void view3d_draw_non_mesh(
-Scene *scene, Object *ob, Base *base, View3D *v3d,
+Scene *scene, Object *ob, BaseLegacy *base, View3D *v3d,
 RegionView3D *rv3d, const bool is_boundingbox, const unsigned char color[4])
 {
 	glMatrixMode(GL_PROJECTION);
@@ -1872,6 +1872,7 @@ static void view3d_draw_setup_view(const bContext *C, ARegion *ar)
 static void draw_all_objects(const bContext *C, ARegion *ar, const bool only_depth, const bool use_depth)
 {
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
 
 	if (only_depth)
@@ -1884,8 +1885,8 @@ static void draw_all_objects(const bContext *C, ARegion *ar, const bool only_dep
 		v3d->zbuf = true;
 	}
 
-	for (Base *base = scene->base.first; base; base = base->next) {
-		if (v3d->lay & base->lay) {
+	for (Base *base = sl->object_bases.first; base; base = base->next) {
+		if ((base->flag & BASE_VISIBLED) != 0) {
 			/* dupli drawing */
 			if (base->object->transflag & OB_DUPLI)
 				draw_dupli_objects(scene, ar, v3d, base);
@@ -1968,6 +1969,7 @@ static void view3d_draw_non_meshes(const bContext *C, ARegion *ar)
 	 * we filter them based on the plates/layers
 	 */
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -1981,8 +1983,8 @@ static void view3d_draw_non_meshes(const bContext *C, ARegion *ar)
 	 * for now let's avoid writing again to zbuffer to prevent glitches
 	 */
 
-	for (Base *base = scene->base.first; base; base = base->next) {
-		if (v3d->lay & base->lay) {
+	for (Base *base = sl->object_bases.first; base; base = base->next) {
+		if ((base->flag & BASE_VISIBLED) != 0) {
 			Object *ob = base->object;
 
 			unsigned char ob_wire_col[4];

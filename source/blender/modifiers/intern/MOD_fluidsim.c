@@ -109,7 +109,7 @@ static void updateDepsgraph(ModifierData *md,
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
 	if (fluidmd && fluidmd->fss) {
 		if (fluidmd->fss->type == OB_FLUIDSIM_DOMAIN) {
-			Base *base;
+			BaseLegacy *base;
 			for (base = scene->base.first; base; base = base->next) {
 				Object *ob1 = base->object;
 				if (ob1 != ob) {

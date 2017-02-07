@@ -853,7 +853,7 @@ static Object *camera_multiview_advanced(Scene *scene, Object *camera, const cha
 	}
 
 	if (name[0] != '\0') {
-		Base *base = BKE_scene_base_find_by_name(scene, name);
+		BaseLegacy *base = BKE_scene_base_find_by_name(scene, name);
 		if (base) {
 			return base->object;
 		}

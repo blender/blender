@@ -71,10 +71,6 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_selected_toggle);
 	WM_operatortype_append(OUTLINER_OT_expanded_toggle);
 	
-	WM_operatortype_append(OUTLINER_OT_renderability_toggle);
-	WM_operatortype_append(OUTLINER_OT_selectability_toggle);
-	WM_operatortype_append(OUTLINER_OT_visibility_toggle);
-	
 	WM_operatortype_append(OUTLINER_OT_keyingset_add_selected);
 	WM_operatortype_append(OUTLINER_OT_keyingset_remove_selected);
 	
@@ -142,11 +138,6 @@ void outliner_keymap(wmKeyConfig *keyconf)
 	
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_selected_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_expanded_toggle", AKEY, KM_PRESS, KM_SHIFT, 0);
-	
-	WM_keymap_verify_item(keymap, "OUTLINER_OT_renderability_toggle", RKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "OUTLINER_OT_selectability_toggle", SKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "OUTLINER_OT_visibility_toggle", VKEY, KM_PRESS, 0, 0);
-	
 	
 	/* keying sets - only for databrowse */
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_keyingset_add_selected", KKEY, KM_PRESS, 0, 0);

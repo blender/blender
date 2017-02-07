@@ -70,7 +70,6 @@ void OBJECT_OT_make_local(struct wmOperatorType *ot);
 void OBJECT_OT_make_single_user(struct wmOperatorType *ot);
 void OBJECT_OT_make_links_scene(struct wmOperatorType *ot);
 void OBJECT_OT_make_links_data(struct wmOperatorType *ot);
-void OBJECT_OT_move_to_layer(struct wmOperatorType *ot);
 void OBJECT_OT_drop_named_material(struct wmOperatorType *ot);
 void OBJECT_OT_unlink_data(struct wmOperatorType *ot);
 
@@ -78,10 +77,6 @@ void OBJECT_OT_unlink_data(struct wmOperatorType *ot);
 void OBJECT_OT_mode_set(struct wmOperatorType *ot);
 void OBJECT_OT_editmode_toggle(struct wmOperatorType *ot);
 void OBJECT_OT_posemode_toggle(struct wmOperatorType *ot);
-void OBJECT_OT_hide_view_set(struct wmOperatorType *ot);
-void OBJECT_OT_hide_view_clear(struct wmOperatorType *ot);
-void OBJECT_OT_hide_render_set(struct wmOperatorType *ot);
-void OBJECT_OT_hide_render_clear(struct wmOperatorType *ot);
 void OBJECT_OT_proxy_make(struct wmOperatorType *ot);
 void OBJECT_OT_shade_smooth(struct wmOperatorType *ot);
 void OBJECT_OT_shade_flat(struct wmOperatorType *ot);

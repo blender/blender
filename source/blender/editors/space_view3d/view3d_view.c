@@ -1107,7 +1107,7 @@ static void view3d_select_loop(ViewContext *vc, Scene *scene, View3D *v3d, ARegi
 		}
 	}
 	else {
-		Base *base;
+		BaseLegacy *base;
 
 		v3d->xray = true;  /* otherwise it postpones drawing */
 		for (base = scene->base.first; base; base = base->next) {
@@ -1128,9 +1128,9 @@ static void view3d_select_loop(ViewContext *vc, Scene *scene, View3D *v3d, ARegi
 						if ((base->object->transflag & OB_DUPLI)) {
 							ListBase *lb;
 							DupliObject *dob;
-							Base tbase;
+							BaseLegacy tbase;
 
-							tbase.flag = OB_FROMDUPLI;
+							tbase.flag_legacy = OB_FROMDUPLI;
 							lb = object_duplilist(G.main->eval_ctx, scene, base->object);
 
 							for (dob = lb->first; dob; dob = dob->next) {
@@ -1319,7 +1319,7 @@ static bool view3d_localview_init(
         ReportList *reports)
 {
 	View3D *v3d = sa->spacedata.first;
-	Base *base;
+	BaseLegacy *base;
 	float min[3], max[3], box[3], mid[3];
 	float size = 0.0f;
 	unsigned int locallay;
@@ -1422,7 +1422,7 @@ static bool view3d_localview_init(
 			if (base->lay & locallay) {
 				base->lay -= locallay;
 				if (base->lay == 0) base->lay = v3d->layact;
-				if (base->object != scene->obedit) base->flag |= SELECT;
+				if (base->object != scene->obedit) base->flag_legacy |= SELECT;
 				base->object->lay = base->lay;
 			}
 		}
@@ -1493,7 +1493,7 @@ static bool view3d_localview_exit(
         Main *bmain, Scene *scene, ScrArea *sa, const int smooth_viewtx)
 {
 	View3D *v3d = sa->spacedata.first;
-	struct Base *base;
+	struct BaseLegacy *base;
 	unsigned int locallay;
 	
 	if (v3d->localvd) {
@@ -1510,7 +1510,7 @@ static bool view3d_localview_exit(
 				base->lay -= locallay;
 				if (base->lay == 0) base->lay = v3d->layact;
 				if (base->object != scene->obedit) {
-					base->flag |= SELECT;
+					base->flag_legacy |= SELECT;
 					base->object->flag |= SELECT;
 				}
 				base->object->lay = base->lay;

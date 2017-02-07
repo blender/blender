@@ -1080,7 +1080,7 @@ static void polygonize(PROCESS *process)
 static void init_meta(EvaluationContext *eval_ctx, PROCESS *process, Scene *scene, Object *ob)
 {
 	Scene *sce_iter = scene;
-	Base *base;
+	BaseLegacy *base;
 	Object *bob;
 	MetaBall *mb;
 	const MetaElem *ml;
@@ -1102,7 +1102,7 @@ static void init_meta(EvaluationContext *eval_ctx, PROCESS *process, Scene *scen
 			zero_size = 0;
 			ml = NULL;
 
-			if (bob == ob && (base->flag & OB_FROMDUPLI) == 0) {
+			if (bob == ob && (base->flag_legacy & OB_FROMDUPLI) == 0) {
 				mb = ob->data;
 
 				if (mb->editelems) ml = mb->editelems->first;

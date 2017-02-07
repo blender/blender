@@ -530,7 +530,7 @@ static void ccd_build_deflector_hash(Scene *scene, Group *group, Object *vertexo
 		}
 	}
 	else {
-		for (Base *base = scene->base.first; base; base = base->next) {
+		for (BaseLegacy *base = scene->base.first; base; base = base->next) {
 			/*Only proceed for mesh object in same layer */
 			if (base->object->type == OB_MESH && (base->lay & vertexowner->lay)) {
 				ob= base->object;
@@ -576,7 +576,7 @@ static void ccd_update_deflector_hash(Scene *scene, Group *group, Object *vertex
 		}
 	}
 	else {
-		for (Base *base = scene->base.first; base; base = base->next) {
+		for (BaseLegacy *base = scene->base.first; base; base = base->next) {
 			/*Only proceed for mesh object in same layer */
 			if (base->object->type == OB_MESH && (base->lay & vertexowner->lay)) {
 				ob= base->object;
@@ -986,7 +986,7 @@ static bool are_there_deflectors(Scene *scene, Group *group, unsigned int layer)
 		}
 	}
 	else {
-		for (Base *base = scene->base.first; base; base= base->next) {
+		for (BaseLegacy *base = scene->base.first; base; base= base->next) {
 			if ( (base->lay & layer) && base->object->pd) {
 				if (base->object->pd->deflect)
 					return 1;

@@ -60,6 +60,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
@@ -415,7 +416,7 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 static void backdrawview3d(Scene *scene, wmWindow *win, ARegion *ar, View3D *v3d)
 {
 	RegionView3D *rv3d = ar->regiondata;
-	struct Base *base = scene->basact;
+	struct BaseLegacy *base = scene->basact;
 	int multisample_enabled;
 
 	BLI_assert(ar->regiontype == RGN_TYPE_WINDOW);
@@ -1031,15 +1032,15 @@ static void view3d_draw_bgpic_test(Scene *scene, ARegion *ar, View3D *v3d,
 
 typedef struct View3DAfter {
 	struct View3DAfter *next, *prev;
-	struct Base *base;
+	struct BaseLegacy *base;
 	short dflag;
 } View3DAfter;
 
 /* temp storage of Objects that need to be drawn as last */
-void ED_view3d_after_add(ListBase *lb, Base *base, const short dflag)
+void ED_view3d_after_add(ListBase *lb, BaseLegacy *base, const short dflag)
 {
 	View3DAfter *v3da = MEM_callocN(sizeof(View3DAfter), "View 3d after");
-	BLI_assert((base->flag & OB_FROMDUPLI) == 0);
+	BLI_assert((base->flag_legacy & OB_FROMDUPLI) == 0);
 	BLI_addtail(lb, v3da);
 	v3da->base = base;
 	v3da->dflag = dflag;
@@ -1133,13 +1134,13 @@ static DupliObject *dupli_step(DupliObject *dob)
 }
 
 static void draw_dupli_objects_color(
-        Scene *scene, ARegion *ar, View3D *v3d, Base *base,
+        Scene *scene, ARegion *ar, View3D *v3d, BaseLegacy *base,
         const short dflag, const int color)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	ListBase *lb;
 	LodLevel *savedlod;
-	Base tbase = {NULL};
+	BaseLegacy tbase = {NULL};
 	BoundBox bb, *bb_tmp; /* use a copy because draw_object, calls clear_mesh_caches */
 	GLuint displist = 0;
 	unsigned char color_rgb[3];
@@ -1160,7 +1161,7 @@ static void draw_dupli_objects_color(
 		UI_GetThemeColorBlend3ubv(color, TH_BACK, 0.5f, color_rgb);
 	}
 
-	tbase.flag = OB_FROMDUPLI | base->flag;
+	tbase.flag_legacy = OB_FROMDUPLI | base->flag_legacy;
 	lb = object_duplilist(G.main->eval_ctx, scene, base->object);
 	// BLI_listbase_sort(lb, dupli_ob_sort); /* might be nice to have if we have a dupli list with mixed objects. */
 
@@ -1293,12 +1294,12 @@ static void draw_dupli_objects_color(
 		glDeleteLists(displist, 1);
 }
 
-void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, Base *base)
+void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, BaseLegacy *base)
 {
 	/* define the color here so draw_dupli_objects_color can be called
 	 * from the set loop */
 	
-	int color = (base->flag & SELECT) ? TH_SELECT : TH_WIRE;
+	int color = (base->flag_legacy & SELECT) ? TH_SELECT : TH_WIRE;
 	/* debug */
 	if (base->object->dup_group && base->object->dup_group->id.us < 1)
 		color = TH_REDALERT;
@@ -1445,15 +1446,16 @@ void ED_view3d_draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 void ED_view3d_draw_depth(Scene *scene, ARegion *ar, View3D *v3d, bool alphaoverride)
 {
 	RegionView3D *rv3d = ar->regiondata;
-	Base *base;
+	BaseLegacy *base;
 	short zbuf = v3d->zbuf;
 	short flag = v3d->flag;
 	float glalphaclip = U.glalphaclip;
 	int obcenter_dia = U.obcenter_dia;
+	TODO_LAYER_CONTEXT; /* we should pass context, really */
+	SceneLayer *sl = BLI_findlink(&scene->render_layers, scene->active_layer);
 	/* no need for color when drawing depth buffer */
 	const short dflag_depth = DRAW_CONSTCOLOR;
 	/* temp set drawtype to solid */
-	
 	/* Setting these temporarily is not nice */
 	v3d->flag &= ~V3D_SELECT_OUTLINE;
 	U.glalphaclip = alphaoverride ? 0.5f : glalphaclip; /* not that nice but means we wont zoom into billboards */
@@ -1492,8 +1494,8 @@ void ED_view3d_draw_depth(Scene *scene, ARegion *ar, View3D *v3d, bool alphaover
 		}
 	}
 	
-	for (base = scene->base.first; base; base = base->next) {
-		if (v3d->lay & base->lay) {
+	for (base = sl->object_bases.first; base; base = base->next) {
+		if ((base->flag & BASE_VISIBLED) != 0) {
 			/* dupli drawing */
 			if (base->object->transflag & OB_DUPLI) {
 				draw_dupli_objects_color(scene, ar, v3d, base, dflag_depth, TH_UNDEFINED);
@@ -1604,7 +1606,7 @@ static void gpu_update_lamps_shadows_world(Scene *scene, View3D *v3d)
 {
 	ListBase shadows;
 	Scene *sce_iter;
-	Base *base;
+	BaseLegacy *base;
 	World *world = scene->world;
 	SceneRenderLayer *srl = v3d->scenelock ? BLI_findlink(&scene->r.layers, scene->r.actlay) : NULL;
 	
@@ -1738,8 +1740,9 @@ static void view3d_draw_objects(
         const char **grid_unit,
         const bool do_bgpic, const bool draw_offscreen, GPUFX *fx)
 {
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	RegionView3D *rv3d = ar->regiondata;
-	Base *base;
+	BaseLegacy *base;
 	const bool do_camera_frame = !draw_offscreen;
 	const bool draw_grids = !draw_offscreen && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0;
 	const bool draw_floor = (rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO);
@@ -1811,8 +1814,8 @@ static void view3d_draw_objects(
 	}
 
 	if (draw_offscreen) {
-		for (base = scene->base.first; base; base = base->next) {
-			if (v3d->lay & base->lay) {
+		for (base = sl->object_bases.first; base; base = base->next) {
+			if ((base->flag & BASE_VISIBLED) != 0) {
 				/* dupli drawing */
 				if (base->object->transflag & OB_DUPLI)
 					draw_dupli_objects(scene, ar, v3d, base);
@@ -1825,16 +1828,16 @@ static void view3d_draw_objects(
 		unsigned int lay_used = 0;
 
 		/* then draw not selected and the duplis, but skip editmode object */
-		for (base = scene->base.first; base; base = base->next) {
+		for (base = sl->object_bases.first; base; base = base->next) {
 			lay_used |= base->lay;
 
-			if (v3d->lay & base->lay) {
+			if ((base->flag & BASE_VISIBLED) != 0) {
 
 				/* dupli drawing */
 				if (base->object->transflag & OB_DUPLI) {
 					draw_dupli_objects(scene, ar, v3d, base);
 				}
-				if ((base->flag & SELECT) == 0) {
+				if ((base->flag & BASE_SELECTED) == 0) {
 					if (base->object != scene->obedit)
 						draw_object(scene, ar, v3d, base, 0);
 				}
@@ -1845,9 +1848,9 @@ static void view3d_draw_objects(
 		v3d->lay_used = lay_used & ((1 << 20) - 1);
 
 		/* draw selected and editmode */
-		for (base = scene->base.first; base; base = base->next) {
-			if (v3d->lay & base->lay) {
-				if (base->object == scene->obedit || (base->flag & SELECT)) {
+		for (base = sl->object_bases.first; base; base = base->next) {
+			if ((base->flag & BASE_VISIBLED) != 0) {
+				if (base->object == scene->obedit || (base->flag & BASE_SELECTED)) {
 					draw_object(scene, ar, v3d, base, 0);
 				}
 			}
@@ -2540,7 +2543,7 @@ static void view3d_stereo3d_setup_offscreen(Scene *scene, View3D *v3d, ARegion *
 static void update_lods(Scene *scene, float camera_pos[3])
 {
 	Scene *sce_iter;
-	Base *base;
+	BaseLegacy *base;
 
 	for (SETLOOPER(scene, sce_iter, base)) {
 		Object *ob = base->object;

@@ -425,3 +425,10 @@ if(WITH_CYCLES)
 		MESSAGE(STATUS "Disabling Cycles tests because tests folder does not exist")
 	endif()
 endif()
+
+# ------------------------------------------------------------------------------
+# LAYER SYSTEM TESTS
+add_test(render_layer ${TEST_BLENDER_EXE}
+	--python ${CMAKE_CURRENT_LIST_DIR}/bl_render_layer.py --
+	--testdir="${TEST_SRC_DIR}/layers"
+)

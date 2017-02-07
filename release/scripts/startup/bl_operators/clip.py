@@ -232,7 +232,7 @@ class CLIP_OT_track_to_empty(Operator):
         ob = None
 
         ob = bpy.data.objects.new(name=track.name, object_data=None)
-        ob.select = True
+        ob.select_set(action='SELECT')
         context.scene.objects.link(ob)
         context.scene.objects.active = ob
 
@@ -506,7 +506,7 @@ object's movement caused by this constraint"""
         # XXX, should probably use context.selected_editable_objects
         # since selected objects can be from a lib or in hidden layer!
         for ob in scene.objects:
-            if ob.select:
+            if ob.select_set(action='SELECT'):
                 self._bake_object(scene, ob)
 
         return {'FINISHED'}

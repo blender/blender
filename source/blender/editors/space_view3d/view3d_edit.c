@@ -670,7 +670,7 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 	else if (ob_act == NULL || ob_act->mode == OB_MODE_OBJECT) {
 		/* object mode use boundbox centers */
 		View3D *v3d = CTX_wm_view3d(C);
-		Base *base;
+		BaseLegacy *base;
 		unsigned int tot = 0;
 		float select_center[3];
 
@@ -2940,7 +2940,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
-	Base *base;
+	BaseLegacy *base;
 	float *curs;
 	const bool use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
 	const bool skip_camera = (ED_view3d_camera_lock_check(v3d, ar->regiondata) ||
@@ -3045,7 +3045,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	if (ob && (ob->mode & OB_MODE_WEIGHT_PAINT)) {
 		/* hard-coded exception, we look for the one selected armature */
 		/* this is weak code this way, we should make a generic active/selection callback interface once... */
-		Base *base;
+		BaseLegacy *base;
 		for (base = scene->base.first; base; base = base->next) {
 			if (TESTBASELIB(v3d, base)) {
 				if (base->object->type == OB_ARMATURE)
@@ -3091,7 +3091,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 		ok_dist = 0; /* don't zoom */
 	}
 	else {
-		Base *base;
+		BaseLegacy *base;
 		for (base = FIRSTBASE; base; base = base->next) {
 			if (TESTBASE(v3d, base)) {
 
@@ -3540,6 +3540,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	int gesture_mode;
 	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 

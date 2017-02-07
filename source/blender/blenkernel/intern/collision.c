@@ -514,7 +514,7 @@ static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned 
 // collision object will exclude self 
 Object **get_collisionobjects_ext(Scene *scene, Object *self, Group *group, int layer, unsigned int *numcollobj, unsigned int modifier_type, bool dupli)
 {
-	Base *base;
+	BaseLegacy *base;
 	Object **objs;
 	GroupObject *go;
 	unsigned int numobj= 0, maxobj= 100;
@@ -596,7 +596,7 @@ ListBase *get_collider_cache(Scene *scene, Object *self, Group *group)
 	}
 	else {
 		Scene *sce_iter;
-		Base *base;
+		BaseLegacy *base;
 
 		/* add objects in same layer in scene */
 		for (SETLOOPER(scene, sce_iter, base)) {

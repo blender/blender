@@ -341,7 +341,7 @@ void AbcExporter::operator()(Main *bmain, float &progress, bool &was_canceled)
 
 void AbcExporter::createTransformWritersHierarchy(EvaluationContext *eval_ctx)
 {
-	Base *base = static_cast<Base *>(m_scene->base.first);
+	BaseLegacy *base = static_cast<BaseLegacy *>(m_scene->base.first);
 
 	while (base) {
 		Object *ob = base->object;
@@ -366,7 +366,7 @@ void AbcExporter::createTransformWritersHierarchy(EvaluationContext *eval_ctx)
 
 void AbcExporter::createTransformWritersFlat()
 {
-	Base *base = static_cast<Base *>(m_scene->base.first);
+	BaseLegacy *base = static_cast<BaseLegacy *>(m_scene->base.first);
 
 	while (base) {
 		Object *ob = base->object;
@@ -445,7 +445,7 @@ void AbcExporter::createTransformWriter(Object *ob, Object *parent, Object *dupl
 
 void AbcExporter::createShapeWriters(EvaluationContext *eval_ctx)
 {
-	Base *base = static_cast<Base *>(m_scene->base.first);
+	BaseLegacy *base = static_cast<BaseLegacy *>(m_scene->base.first);
 
 	while (base) {
 		Object *ob = base->object;

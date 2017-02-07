@@ -40,6 +40,7 @@ struct wmOperatorType;
 struct TreeStoreElem;
 struct bContext;
 struct Scene;
+struct SceneLayer;
 struct ID;
 struct Object;
 struct bPoseChannel;
@@ -141,7 +142,7 @@ TreeElement *outliner_find_posechannel(ListBase *lb, const struct bPoseChannel *
 TreeElement *outliner_find_editbone(ListBase *lb, const struct EditBone *ebone);
 struct ID *outliner_search_back(SpaceOops *soops, TreeElement *te, short idcode);
 
-void outliner_build_tree(struct Main *mainvar, struct Scene *scene, struct SpaceOops *soops);
+void outliner_build_tree(struct Main *mainvar, struct Scene *scene, struct SceneLayer *sl, struct SpaceOops *soops);
 
 /* outliner_draw.c ---------------------------------------------- */
 
@@ -238,10 +239,6 @@ void OUTLINER_OT_selected_toggle(struct wmOperatorType *ot);
 void OUTLINER_OT_expanded_toggle(struct wmOperatorType *ot);
 
 void OUTLINER_OT_scroll_page(struct wmOperatorType *ot);
-
-void OUTLINER_OT_renderability_toggle(struct wmOperatorType *ot);
-void OUTLINER_OT_selectability_toggle(struct wmOperatorType *ot);
-void OUTLINER_OT_visibility_toggle(struct wmOperatorType *ot);
 
 void OUTLINER_OT_keyingset_add_selected(struct wmOperatorType *ot);
 void OUTLINER_OT_keyingset_remove_selected(struct wmOperatorType *ot);

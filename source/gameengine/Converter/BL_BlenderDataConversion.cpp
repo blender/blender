@@ -394,7 +394,7 @@ static void SetDefaultLightMode(Scene* scene)
 {
 	default_light_mode = false;
 	Scene *sce_iter;
-	Base *base;
+	BaseLegacy *base;
 
 	for (SETLOOPER(scene, sce_iter, base))
 	{
@@ -1736,11 +1736,11 @@ static void UNUSED_FUNCTION(print_active_constraints2)(Object *ob) //not used, u
 static void blenderSceneSetBackground(Scene *blenderscene)
 {
 	Scene *it;
-	Base *base;
+	BaseLegacy *base;
 
 	for (SETLOOPER(blenderscene, it, base)) {
 		base->object->lay = base->lay;
-		base->object->flag = base->flag;
+		BKE_scene_base_flag_sync_from_base(base);
 	}
 }
 
@@ -1911,7 +1911,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	Scene *blenderscene = kxscene->GetBlenderScene();
 	// for SETLOOPER
 	Scene *sce_iter;
-	Base *base;
+	BaseLegacy *base;
 
 	// Get the frame settings of the canvas.
 	// Get the aspect ratio of the canvas as designed by the user.

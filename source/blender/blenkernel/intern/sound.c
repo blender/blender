@@ -782,7 +782,7 @@ void BKE_sound_read_waveform(bSound *sound, short *stop)
 void BKE_sound_update_scene(Main *bmain, struct Scene *scene)
 {
 	Object *ob;
-	Base *base;
+	BaseLegacy *base;
 	NlaTrack *track;
 	NlaStrip *strip;
 	Speaker *speaker;

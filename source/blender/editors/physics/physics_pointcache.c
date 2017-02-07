@@ -254,7 +254,7 @@ static void ptcache_bake_cancel(bContext *C, wmOperator *op)
 static int ptcache_free_bake_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
-	Base *base;
+	BaseLegacy *base;
 	PTCacheID *pid;
 	ListBase pidlist;
 

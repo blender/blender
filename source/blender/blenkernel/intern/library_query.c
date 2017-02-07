@@ -68,6 +68,7 @@
 #include "BLI_linklist_stack.h"
 
 #include "BKE_animsys.h"
+#include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_fcurve.h"
 #include "BKE_library.h"
@@ -354,7 +355,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				Scene *scene = (Scene *) id;
 				ToolSettings *toolsett = scene->toolsettings;
 				SceneRenderLayer *srl;
-				Base *base;
+				BaseLegacy *legacy_base;
 
 				CALLBACK_INVOKE(scene->camera, IDWALK_CB_NOP);
 				CALLBACK_INVOKE(scene->world, IDWALK_CB_USER);
@@ -411,8 +412,28 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 
 				CALLBACK_INVOKE(scene->gpd, IDWALK_CB_USER);
 
-				for (base = scene->base.first; base; base = base->next) {
-					CALLBACK_INVOKE(base->object, IDWALK_CB_USER);
+				for (legacy_base = scene->base.first; legacy_base; legacy_base = legacy_base->next) {
+					CALLBACK_INVOKE(legacy_base->object, IDWALK_CB_USER);
+				}
+
+				SceneCollection *sc;
+				FOREACH_SCENE_COLLECTION(scene, sc)
+				{
+					for (LinkData *link = sc->objects.first; link; link = link->next) {
+						CALLBACK_INVOKE_ID(link->data, IDWALK_CB_USER);
+					}
+
+					for (LinkData *link = sc->filter_objects.first; link; link = link->next) {
+						CALLBACK_INVOKE_ID(link->data, IDWALK_CB_USER);
+					}
+				}
+				FOREACH_SCENE_COLLECTION_END
+
+				SceneLayer *sl;
+				for (sl = scene->render_layers.first; sl; sl = sl->next) {
+					for (Base *base = sl->object_bases.first; base; base = base->next) {
+						CALLBACK_INVOKE(base->object, IDWALK_NOP);
+					}
 				}
 
 				for (TimeMarker *marker = scene->markers.first; marker; marker = marker->next) {

@@ -223,7 +223,10 @@ typedef struct Object {
 	float jump_speed;
 	float fall_speed;
 	unsigned char max_jumps;
-	char pad2[3];
+	char pad2;
+
+	/* Depsgraph */
+	short base_flag; /* used by depsgraph, flushed from base */
 
 	/** Collision mask settings */
 	unsigned short col_group, col_mask;

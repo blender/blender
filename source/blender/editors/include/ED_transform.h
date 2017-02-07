@@ -109,7 +109,7 @@ enum TfmMode {
 bool calculateTransformCenter(struct bContext *C, int centerMode, float cent3d[3], float cent2d[2]);
 
 struct TransInfo;
-struct Base;
+struct BaseLegacy;
 struct Scene;
 struct Object;
 struct wmOperator;

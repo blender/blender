@@ -81,16 +81,18 @@ class SelectPattern(Operator):
         # Can be pose bones or objects
         for item in items:
             if pattern_match(item.name, self.pattern):
-                item.select = True
 
                 # hrmf, perhaps there should be a utility function for this.
                 if is_ebone:
+                    item.select = True
                     item.select_head = True
                     item.select_tail = True
                     if item.use_connect:
                         item_parent = item.parent
                         if item_parent is not None:
                             item_parent.select_tail = True
+                else:
+                    item.select_set(action='SELECT')
 
         return {'FINISHED'}
 
@@ -136,7 +138,7 @@ class SelectCamera(Operator):
                 bpy.ops.object.select_all(action='DESELECT')
             scene.objects.active = camera
             camera.hide = False
-            camera.select = True
+            camera.select_set(action='SELECT')
             return {'FINISHED'}
 
         return {'CANCELLED'}
@@ -202,7 +204,7 @@ class SelectHierarchy(Operator):
                 bpy.ops.object.select_all(action='DESELECT')
 
             for obj in select_new:
-                obj.select = True
+                obj.select_set(action='SELECT')
 
             scene.objects.active = act_new
             return {'FINISHED'}
@@ -644,8 +646,8 @@ class MakeDupliFace(Operator):
             ob_new.use_dupli_faces_scale = True
             ob_new.dupli_faces_scale = 1.0 / SCALE_FAC
 
-            ob_inst.select = True
-            ob_new.select = True
+            ob_inst.select_set(action='SELECT')
+            ob_new.select_set(action='SELECT')
 
     def execute(self, context):
         self._main(context)
@@ -664,7 +666,7 @@ class IsolateTypeRender(Operator):
 
         for obj in context.visible_objects:
 
-            if obj.select:
+            if obj.select_get():
                 obj.hide_render = False
             else:
                 if obj.type == act_type:
@@ -1029,8 +1031,8 @@ class LodGenerate(Operator):
             for level in ob.lod_levels[1:]:
                 level.object.hide = level.object.hide_render = True
 
-        lod.select = False
-        ob.select = True
+        lod.select_set(action='DESELECT')
+        ob.select_set(action='SELECT')
         scene.objects.active = ob
 
         return {'FINISHED'}

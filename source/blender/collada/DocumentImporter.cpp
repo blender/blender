@@ -57,6 +57,7 @@ extern "C" {
 #include "BLI_fileops.h"
 
 #include "BKE_camera.h"
+#include "BKE_collection.h"
 #include "BKE_main.h"
 #include "BKE_lamp.h"
 #include "BKE_library.h"
@@ -264,7 +265,7 @@ void DocumentImporter::finish()
 		for (it = libnode_ob.begin(); it != libnode_ob.end(); it++) {
 			Object *ob = *it;
 
-			Base *base = BKE_scene_base_find(sce, ob);
+			BaseLegacy *base = BKE_scene_base_find(sce, ob);
 			if (base) {
 				BLI_remlink(&sce->base, base);
 				BKE_libblock_free_us(G.main, base->object);
@@ -418,7 +419,7 @@ Object *DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 
 	Object *obn = BKE_object_copy(G.main, source_ob);
 	DAG_id_tag_update(&obn->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
-	BKE_scene_base_add(sce, obn);
+	BKE_collection_object_add_from(sce, source_ob, obn);
 
 	if (instance_node) {
 		anim_importer.read_node_transform(instance_node, obn);

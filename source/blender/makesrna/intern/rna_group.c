@@ -53,9 +53,9 @@ static PointerRNA rna_Group_objects_get(CollectionPropertyIterator *iter)
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((GroupObject *)internal->link)->ob);
 }
 
-static void rna_Group_objects_link(Group *group, bContext *C, ReportList *reports, Object *object)
+static void rna_Group_objects_link(Group *group, ReportList *reports, Object *object)
 {
-	if (!BKE_group_object_add(group, object, CTX_data_scene(C), NULL)) {
+	if (!BKE_group_object_add(group, object)) {
 		BKE_reportf(reports, RPT_ERROR, "Object '%s' already in group '%s'", object->id.name + 2, group->id.name + 2);
 		return;
 	}
@@ -63,9 +63,9 @@ static void rna_Group_objects_link(Group *group, bContext *C, ReportList *report
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &object->id);
 }
 
-static void rna_Group_objects_unlink(Group *group, bContext *C, ReportList *reports, Object *object)
+static void rna_Group_objects_unlink(Group *group, ReportList *reports, Object *object)
 {
-	if (!BKE_group_object_unlink(group, object, CTX_data_scene(C), NULL)) {
+	if (!BKE_group_object_unlink(group, object)) {
 		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in group '%s'", object->id.name + 2, group->id.name + 2);
 		return;
 	}
@@ -91,7 +91,7 @@ static void rna_def_group_objects(BlenderRNA *brna, PropertyRNA *cprop)
 
 	/* add object */
 	func = RNA_def_function(srna, "link", "rna_Group_objects_link");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add this object to a group");
 	/* object to add */
 	parm = RNA_def_pointer(func, "object", "Object", "", "Object to add");
@@ -100,7 +100,7 @@ static void rna_def_group_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	/* remove object */
 	func = RNA_def_function(srna, "unlink", "rna_Group_objects_unlink");
 	RNA_def_function_ui_description(func, "Remove this object to a group");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	/* object to remove */
 	parm = RNA_def_pointer(func, "object", "Object", "", "Object to remove");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);

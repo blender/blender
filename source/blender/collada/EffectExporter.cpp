@@ -66,7 +66,7 @@ EffectsExporter::EffectsExporter(COLLADASW::StreamWriter *sw, const ExportSettin
 
 bool EffectsExporter::hasEffects(Scene *sce)
 {
-	Base *base = (Base *)sce->base.first;
+	BaseLegacy *base = (BaseLegacy *)sce->base.first;
 	
 	while (base) {
 		Object *ob = base->object;

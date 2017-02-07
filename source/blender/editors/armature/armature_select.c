@@ -74,7 +74,7 @@ Bone *get_indexed_bone(Object *ob, int index)
 
 /* See if there are any selected bones in this buffer */
 /* only bones from base are checked on */
-void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short hits, short findunsel, bool do_nearest)
+void *get_bone_from_selectbuffer(Scene *scene, BaseLegacy *base, unsigned int *buffer, short hits, short findunsel, bool do_nearest)
 {
 	Object *obedit = scene->obedit; // XXX get from context
 	Bone *bone;

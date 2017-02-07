@@ -3296,7 +3296,7 @@ static int vertex_group_copy_to_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_context(C);
-	Base *base;
+	BaseLegacy *base;
 	int retval = OPERATOR_CANCELLED;
 
 	for (base = scene->base.first; base; base = base->next) {

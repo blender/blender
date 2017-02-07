@@ -276,7 +276,7 @@ static Scene *preview_get_scene(Main *pr_main)
 static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_type, ShaderPreview *sp)
 {
 	Scene *sce;
-	Base *base;
+	BaseLegacy *base;
 	Main *pr_main = sp->pr_main;
 
 	memcpy(pr_main->name, bmain->name, sizeof(pr_main->name));

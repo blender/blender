@@ -58,6 +58,7 @@ void ED_spacetype_logic(void);
 void ED_spacetype_console(void);
 void ED_spacetype_userpref(void);
 void ED_spacetype_clip(void);
+void ED_spacetype_collections(void);
 
 /* calls for instancing and freeing spacetype static data 
  * called in WM_init_exit */

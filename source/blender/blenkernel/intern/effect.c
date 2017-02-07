@@ -209,7 +209,7 @@ static void add_particles_to_effectors(ListBase **effectors, Scene *scene, Effec
 ListBase *pdInitEffectors(Scene *scene, Object *ob_src, ParticleSystem *psys_src,
                           EffectorWeights *weights, bool for_simulation)
 {
-	Base *base;
+	BaseLegacy *base;
 	unsigned int layer= ob_src->lay;
 	ListBase *effectors = NULL;
 	

@@ -142,7 +142,7 @@ void BIF_makeListTemplates(const bContext *C)
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
-	Base *base;
+	BaseLegacy *base;
 	int index = 0;
 
 	if (TEMPLATES_HASH != NULL) {

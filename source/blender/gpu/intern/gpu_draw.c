@@ -2159,7 +2159,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[4][
 
 	int count = 0;
 
-	for (Base *base = scene->base.first; base; base = base->next) {
+	for (BaseLegacy *base = scene->base.first; base; base = base->next) {
 		if (base->object->type != OB_LAMP)
 			continue;
 

@@ -35,14 +35,16 @@
 extern "C" {
 #endif
 
-struct Base;
+struct BaseLegacy;
 struct EnumPropertyItem;
 struct ID;
 struct Main;
 struct ModifierData;
 struct Object;
+struct Base;
 struct ReportList;
 struct Scene;
+struct SceneLayer;
 struct bConstraint;
 struct bContext;
 struct bPoseChannel;
@@ -53,6 +55,7 @@ struct wmOperatorType;
 struct PointerRNA;
 struct PropertyRNA;
 struct EnumPropertyItem;
+struct LayerTree;
 
 /* object_edit.c */
 struct Object *ED_object_context(struct bContext *C);               /* context.object */
@@ -89,7 +92,6 @@ bool ED_object_parent_set(struct ReportList *reports, struct Main *bmain, struct
                           struct Object *par, int partype, const bool xmirror, const bool keep_transform,
                           const int vert_par[3]);
 void ED_object_parent_clear(struct Object *ob, const int type);
-struct Base *ED_object_scene_link(struct Scene *scene, struct Object *ob);
 
 void ED_keymap_proportional_cycle(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap);
 void ED_keymap_proportional_obmode(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap);
@@ -98,14 +100,20 @@ void ED_keymap_proportional_editmode(struct wmKeyConfig *keyconf, struct wmKeyMa
                                      const bool do_connected);
 
 /* send your own notifier for select! */
-void ED_base_object_select(struct Base *base, short mode);
+void ED_base_object_select(struct BaseLegacy *base, short mode);
 /* includes notifier */
-void ED_base_object_activate(struct bContext *C, struct Base *base);
+void ED_base_object_activate(struct bContext *C, struct BaseLegacy *base);
 
-void ED_base_object_free_and_unlink(struct Main *bmain, struct Scene *scene, struct Base *base);
+void ED_object_base_select(struct Base *base, short mode);
+void ED_object_base_activate(struct bContext *C, struct Base *base);
+
+void ED_base_object_free_and_unlink(struct Main *bmain, struct Scene *scene, struct Object *ob);
+
+void ED_base_object_sync_from_base(struct BaseLegacy *base, struct Object *ob);
+void ED_base_object_sync_from_object(struct BaseLegacy *base, struct Object *ob);
 
 /* single object duplicate, if (dupflag == 0), fully linked, else it uses the flags given */
-struct Base *ED_object_add_duplicate(struct Main *bmain, struct Scene *scene, struct Base *base, int dupflag);
+struct Base *ED_object_add_duplicate(struct Main *bmain, struct Scene *scene, struct SceneLayer *sl, struct Base *base, int dupflag);
 
 void ED_object_parent(struct Object *ob, struct Object *parent, const int type, const char *substr);
 
@@ -191,7 +199,7 @@ void ED_object_modifier_clear(struct Main *bmain, struct Object *ob);
 int ED_object_modifier_move_down(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_up(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_convert(struct ReportList *reports, struct Main *bmain, struct Scene *scene,
-                               struct Object *ob, struct ModifierData *md);
+                               struct SceneLayer *sl, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_apply(struct ReportList *reports, struct Scene *scene,
                              struct Object *ob, struct ModifierData *md, int mode);
 int ED_object_modifier_copy(struct ReportList *reports, struct Object *ob, struct ModifierData *md);

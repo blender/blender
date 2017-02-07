@@ -384,7 +384,6 @@ kmi = km.keymap_items.new('object.hide_view_clear', 'H', 'PRESS', shift=True, ct
 kmi = km.keymap_items.new('object.hide_view_set', 'H', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('object.hide_view_set', 'H', 'PRESS', alt=True)
 kmi.properties.unselected = True
-kmi = km.keymap_items.new('object.move_to_layer', 'M', 'PRESS')
 kmi = km.keymap_items.new('object.delete', 'BACK_SPACE', 'PRESS')
 kmi = km.keymap_items.new('object.delete', 'DEL', 'PRESS')
 kmi = km.keymap_items.new('wm.call_menu', 'A', 'PRESS', shift=True)

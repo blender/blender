@@ -67,10 +67,6 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_editmode_toggle);
 	WM_operatortype_append(OBJECT_OT_posemode_toggle);
 	WM_operatortype_append(OBJECT_OT_proxy_make);
-	WM_operatortype_append(OBJECT_OT_hide_view_clear);
-	WM_operatortype_append(OBJECT_OT_hide_view_set);
-	WM_operatortype_append(OBJECT_OT_hide_render_clear);
-	WM_operatortype_append(OBJECT_OT_hide_render_set);
 	WM_operatortype_append(OBJECT_OT_shade_smooth);
 	WM_operatortype_append(OBJECT_OT_shade_flat);
 	WM_operatortype_append(OBJECT_OT_paths_calculate);
@@ -90,13 +86,11 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_make_single_user);
 	WM_operatortype_append(OBJECT_OT_make_links_scene);
 	WM_operatortype_append(OBJECT_OT_make_links_data);
-	WM_operatortype_append(OBJECT_OT_move_to_layer);
 
 	WM_operatortype_append(OBJECT_OT_select_random);
 	WM_operatortype_append(OBJECT_OT_select_all);
 	WM_operatortype_append(OBJECT_OT_select_same_group);
 	WM_operatortype_append(OBJECT_OT_select_by_type);
-	WM_operatortype_append(OBJECT_OT_select_by_layer);
 	WM_operatortype_append(OBJECT_OT_select_linked);
 	WM_operatortype_append(OBJECT_OT_select_grouped);
 	WM_operatortype_append(OBJECT_OT_select_mirror);
@@ -381,25 +375,6 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "clear_delta", true);
 	
 	WM_keymap_verify_item(keymap, "OBJECT_OT_origin_clear", OKEY, KM_PRESS, KM_ALT, 0);
-	
-	WM_keymap_add_item(keymap, "OBJECT_OT_hide_view_clear", HKEY, KM_PRESS, KM_ALT, 0);
-	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_view_set", HKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", false);
-
-	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_view_set", HKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", true);
-
-	/* same as above but for rendering */
-	WM_keymap_add_item(keymap, "OBJECT_OT_hide_render_clear", HKEY, KM_PRESS, KM_ALT | KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_hide_render_set", HKEY, KM_PRESS, KM_CTRL, 0);
-
-	/* conflicts, removing */
-#if 0
-	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_render_set", HKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0)
-	      RNA_boolean_set(kmi->ptr, "unselected", true);
-#endif
-
-	WM_keymap_add_item(keymap, "OBJECT_OT_move_to_layer", MKEY, KM_PRESS, 0, 0);
 	
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_delete", XKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "use_global", false);

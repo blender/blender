@@ -532,7 +532,7 @@ static void initSnappingMode(TransInfo *t)
 	ToolSettings *ts = t->settings;
 	Object *obedit = t->obedit;
 	Scene *scene = t->scene;
-	Base *base_act = scene->basact;
+	BaseLegacy *base_act = scene->basact;
 
 	if (t->spacetype == SPACE_NODE) {
 		/* force project off when not supported */

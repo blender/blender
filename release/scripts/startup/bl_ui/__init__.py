@@ -29,6 +29,7 @@ if "bpy" in locals():
 
 _modules = [
     "properties_animviz",
+    "properties_collection",
     "properties_constraint",
     "properties_data_armature",
     "properties_data_bone",
@@ -69,6 +70,7 @@ _modules = [
     "space_graph",
     "space_image",
     "space_info",
+    "space_collections",
     "space_logic",
     "space_nla",
     "space_node",

@@ -32,6 +32,7 @@
  *  \ingroup bli
  */
 
+#include "BLI_blenlib.h"
 #include "BLI_sys_types.h" /* for bool */
 #include "BLI_compiler_attrs.h"
 

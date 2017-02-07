@@ -321,6 +321,10 @@ int ED_operator_info_active(bContext *C)
 	return ed_spacetype_test(C, SPACE_INFO);
 }
 
+int ED_operator_collections_active(bContext *C)
+{
+	return ed_spacetype_test(C, SPACE_COLLECTIONS);
+}
 
 int ED_operator_console_active(bContext *C)
 {

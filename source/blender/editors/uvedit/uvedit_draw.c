@@ -470,14 +470,14 @@ static void draw_uvs_other_mesh(Object *ob, const Image *curimage, const bool ne
 static void draw_uvs_other(Scene *scene, Object *obedit, const Image *curimage, const bool new_shading_nodes,
                            const int other_uv_filter)
 {
-	Base *base;
+	BaseLegacy *base;
 
 	UI_ThemeColor(TH_UV_OTHERS);
 
 	for (base = scene->base.first; base; base = base->next) {
 		Object *ob = base->object;
 
-		if (!(base->flag & SELECT)) continue;
+		if (!(base->flag_legacy & SELECT)) continue;
 		if (!(base->lay & scene->lay)) continue;
 		if (ob->restrictflag & OB_RESTRICT_VIEW) continue;
 

@@ -241,7 +241,7 @@ static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChild
 	else {
 		unsigned int lay = ctx->scene->lay;
 		int baseid = 0;
-		Base *base;
+		BaseLegacy *base;
 		for (base = ctx->scene->base.first; base; base = base->next, baseid++) {
 			Object *ob = base->object;
 

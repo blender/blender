@@ -326,7 +326,7 @@ static bool buildNavMesh(const RecastData *recastParams, int nverts, float *vert
 }
 
 static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, struct recast_polyMeshDetail *dmesh,
-                                  Base *base, unsigned int lay)
+                                  BaseLegacy *base, unsigned int lay)
 {
 	float co[3], rot[3];
 	BMEditMesh *em;
@@ -461,14 +461,15 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 static int navmesh_create_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	LinkNode *obs = NULL;
-	Base *navmeshBase = NULL;
+	BaseLegacy *navmeshBase = NULL;
 
 	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 	{
 		if (base->object->type == OB_MESH) {
 			if (base->object->body_type == OB_BODY_TYPE_NAVMESH) {
-				if (!navmeshBase || base == scene->basact) {
+				if (!navmeshBase || base == sl->basact) {
 					navmeshBase = base;
 				}
 			}

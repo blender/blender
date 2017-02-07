@@ -411,7 +411,7 @@ int ED_object_modifier_move_down(ReportList *reports, Object *ob, ModifierData *
 	return 1;
 }
 
-int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *scene, Object *ob, ModifierData *md)
+int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *scene, SceneLayer *sl, Object *ob, ModifierData *md)
 {
 	Object *obn;
 	ParticleSystem *psys;
@@ -463,7 +463,7 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 	if (totvert == 0) return 0;
 
 	/* add new mesh */
-	obn = BKE_object_add(bmain, scene, OB_MESH, NULL);
+	obn = BKE_object_add(bmain, scene, sl, OB_MESH, NULL);
 	me = obn->data;
 	
 	me->totvert = totvert;
@@ -1048,10 +1048,11 @@ static int modifier_convert_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 	
-	if (!md || !ED_object_modifier_convert(op->reports, bmain, scene, ob, md))
+	if (!md || !ED_object_modifier_convert(op->reports, bmain, scene, sl, ob, md))
 		return OPERATOR_CANCELLED;
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -1683,7 +1684,7 @@ static void skin_armature_bone_create(Object *skin_ob,
 	}
 }
 
-static Object *modifier_skin_armature_create(Main *bmain, Scene *scene, Object *skin_ob)
+static Object *modifier_skin_armature_create(Main *bmain, Scene *scene, SceneLayer *sl, Object *skin_ob)
 {
 	BLI_bitmap *edges_visited;
 	DerivedMesh *deform_dm;
@@ -1706,7 +1707,7 @@ static Object *modifier_skin_armature_create(Main *bmain, Scene *scene, Object *
 	                     NULL,
 	                     me->totvert);
 	
-	arm_ob = BKE_object_add(bmain, scene, OB_ARMATURE, NULL);
+	arm_ob = BKE_object_add(bmain, scene, sl, OB_ARMATURE, NULL);
 	BKE_object_transform_copy(arm_ob, skin_ob);
 	arm = arm_ob->data;
 	arm->layer = 1;
@@ -1765,6 +1766,7 @@ static int skin_armature_create_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *ob = CTX_data_active_object(C), *arm_ob;
 	Mesh *me = ob->data;
 	ModifierData *skin_md;
@@ -1776,7 +1778,7 @@ static int skin_armature_create_exec(bContext *C, wmOperator *op)
 	}
 
 	/* create new armature */
-	arm_ob = modifier_skin_armature_create(bmain, scene, ob);
+	arm_ob = modifier_skin_armature_create(bmain, scene, sl, ob);
 
 	/* add a modifier to connect the new armature to the mesh */
 	arm_md = (ArmatureModifierData *)modifier_new(eModifierType_Armature);

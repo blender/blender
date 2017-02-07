@@ -4977,7 +4977,7 @@ static void add_group_render_dupli_obs(Render *re, Group *group, int nolamps, in
 
 static void database_init_objects(Render *re, unsigned int renderlay, int nolamps, int onlyselected, Object *actob, int timeoffset)
 {
-	Base *base;
+	BaseLegacy *base;
 	Object *ob;
 	Group *group;
 	ObjectInstanceRen *obi;

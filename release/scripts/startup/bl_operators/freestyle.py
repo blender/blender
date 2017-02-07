@@ -102,7 +102,7 @@ class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
             m.range_max = max_dist
             return {'FINISHED'}
         # Find selected mesh objects
-        selection = [ob for ob in scene.objects if ob.select and ob.type == 'MESH' and ob.name != ref.name]
+        selection = [ob for ob in scene.objects if ob.select_get() and ob.type == 'MESH' and ob.name != source.name]
         if selection:
             # Compute the min/max distance from the reference to mesh vertices
             min_dist = sys.float_info.max

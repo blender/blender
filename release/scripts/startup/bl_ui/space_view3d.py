@@ -634,7 +634,6 @@ class VIEW3D_MT_select_object(Menu):
         layout.operator("object.select_all", text="Inverse").action = 'INVERT'
         layout.operator("object.select_random", text="Random")
         layout.operator("object.select_mirror", text="Mirror")
-        layout.operator("object.select_by_layer", text="Select All by Layer")
         layout.operator_menu_enum("object.select_by_type", "type", text="Select All by Type...")
         layout.operator("object.select_camera", text="Select Camera")
 
@@ -1311,15 +1310,6 @@ class VIEW3D_MT_object(Menu):
 
         layout.separator()
 
-        if is_local_view:
-            layout.operator_context = 'EXEC_REGION_WIN'
-            layout.operator("object.move_to_layer", text="Move out of Local View")
-            layout.operator_context = 'INVOKE_REGION_WIN'
-        else:
-            layout.operator("object.move_to_layer", text="Move to Layer...")
-
-        layout.menu("VIEW3D_MT_object_showhide")
-
         layout.operator_menu_enum("object.convert", "target")
 
 
@@ -1595,17 +1585,6 @@ class VIEW3D_MT_object_quick_effects(Menu):
         layout.operator("object.quick_explode")
         layout.operator("object.quick_smoke")
         layout.operator("object.quick_fluid")
-
-
-class VIEW3D_MT_object_showhide(Menu):
-    bl_label = "Show/Hide"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator("object.hide_view_clear", text="Show Hidden")
-        layout.operator("object.hide_view_set", text="Hide Selected").unselected = False
-        layout.operator("object.hide_view_set", text="Hide Unselected").unselected = True
 
 
 class VIEW3D_MT_make_single_user(Menu):
@@ -3165,6 +3144,74 @@ class VIEW3D_PT_viewport_debug(Panel):
 
         col.label(text="Background:")
         col.row(align=True).prop(view, "debug_background", expand=True)
+
+
+class VIEW3D_PT_collections_editor(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Collections"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.space_data
+
+    def draw(self, context):
+        layout = self.layout
+        layer = context.render_layer
+        active_collection = context.layer_collection
+
+        col = layout.column()
+        box = col.box()
+
+        index = -1
+        for collection in layer.collections:
+            index = self._draw_layer_collection(box, index, active_collection, collection, True, True)
+
+        row = layout.row(align=True)
+        row.operator("collections.collection_new", text="", icon='NEW')
+        row.operator("collections.override_new", text="", icon='LINK_AREA')
+        row.operator("collections.collection_link", text="", icon='LINKED')
+        row.operator("collections.collection_unlink", text="", icon='UNLINKED')
+        row.operator("collections.delete", text="", icon='X')
+
+    def _draw_layer_collection(self, box, index, active_collection, collection, is_active, is_draw, depth=0):
+        index += 1
+        nested_collections = collection.collections
+
+        if is_draw:
+            row = box.row()
+            row.active = is_active
+            is_collection_selected = (collection == active_collection)
+
+            if is_collection_selected:
+                sub_box = row.box()
+                row = sub_box.row()
+
+            row.label(text="{0}{1}{2}".format(
+                "  " * depth,
+                u'\u21b3 ' if depth else "",
+                collection.name))
+
+            row.prop(collection, "hide", text="", emboss=False)
+            row.prop(collection, "hide_select", text="", emboss=False)
+
+            row.operator("collections.select", text="", icon='BLANK1' if is_collection_selected else 'HAND', emboss=False).collection_index=index
+
+            if nested_collections:
+                row.prop(collection, "is_unfolded", text="", emboss=False)
+            else:
+                row.label(icon='BLANK1')
+
+            if not collection.is_unfolded:
+                is_draw = False
+
+            is_active &= not collection.hide
+
+        for nested_collection in nested_collections:
+            index = self._draw_layer_collection(box, index, active_collection, nested_collection, is_active, is_draw, depth + 1)
+
+        return index
 
 
 class VIEW3D_PT_grease_pencil(GreasePencilDataPanel, Panel):

@@ -167,6 +167,9 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case SPACE_CLIP:
 					ts = &btheme->tclip;
 					break;
+				case SPACE_COLLECTIONS:
+					ts = &btheme->tcollections;
+					break;
 				default:
 					ts = &btheme->tv3d;
 					break;
@@ -1208,6 +1211,11 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tclip.strip_select, 0xff, 0x8c, 0x00, 0xff);
 	btheme->tclip.handle_vertex_size = 5;
 	ui_theme_space_init_handles_color(&btheme->tclip);
+
+	/* space collection manager */
+	btheme->tcollections = btheme->tv3d;
+	rgba_char_args_set_fl(btheme->tcollections.back,    0.42, 0.42, 0.42, 1.0);
+	rgba_char_args_set(btheme->tcollections.hilite, 255, 140, 25, 255);  /* selected files */
 }
 
 void ui_style_init_default(void)
@@ -2859,7 +2867,11 @@ void init_userdef_do_versions(void)
 	 * (keep this block even if it becomes empty).
 	 */
 	{
-		
+		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
+			btheme->tcollections = btheme->tv3d;
+			rgba_char_args_set_fl(btheme->tcollections.back,    0.42, 0.42, 0.42, 1.0);
+			rgba_char_args_set(btheme->tcollections.hilite, 255, 140, 25, 255);  /* selected files */
+		}
 	}
 
 	if (U.pixelsize == 0.0f)

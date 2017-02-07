@@ -402,7 +402,7 @@ static void time_draw_caches_keyframes(Main *bmain, Scene *scene, View2D *v2d, b
 		cache_file->draw_flag &= ~CACHEFILE_KEYFRAME_DRAWN;
 	}
 
-	for (Base *base = scene->base.first; base; base = base->next) {
+	for (BaseLegacy *base = scene->base.first; base; base = base->next) {
 		Object *ob = base->object;
 
 		ModifierData *md = modifiers_findByType(ob, eModifierType_MeshSequenceCache);

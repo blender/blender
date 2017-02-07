@@ -64,11 +64,13 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
+#include "BKE_layer.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_editmesh.h"
+#include "BKE_scene.h"
 #include "BKE_tracking.h"
 #include "BKE_utildefines.h"
 
@@ -401,7 +403,7 @@ static void do_lasso_select_pose(ViewContext *vc, Object *ob, const int mcords[]
 
 static void object_deselect_all_visible(Scene *scene, View3D *v3d)
 {
-	Base *base;
+	BaseLegacy *base;
 
 	for (base = scene->base.first; base; base = base->next) {
 		if (BASE_SELECTABLE(v3d, base)) {
@@ -413,7 +415,7 @@ static void object_deselect_all_visible(Scene *scene, View3D *v3d)
 static void do_lasso_select_objects(ViewContext *vc, const int mcords[][2], const short moves,
                                     const bool extend, const bool select)
 {
-	Base *base;
+	BaseLegacy *base;
 	
 	if (extend == false && select)
 		object_deselect_all_visible(vc->scene, vc->v3d);
@@ -424,7 +426,6 @@ static void do_lasso_select_objects(ViewContext *vc, const int mcords[][2], cons
 				if (BLI_lasso_is_point_inside(mcords, moves, base->sx, base->sy, IS_CLIPPED)) {
 
 					ED_base_object_select(base, select ? BA_SELECT : BA_DESELECT);
-					base->object->flag = base->flag;
 				}
 			}
 			if (vc->obact == base->object && (base->object->mode & OB_MODE_POSE)) {
@@ -1017,8 +1018,8 @@ static int object_select_menu_exec(bContext *C, wmOperator *op)
 	if (!toggle) {
 		CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 		{
-			if (base->flag & SELECT) {
-				ED_base_object_select(base, BA_DESELECT);
+			if ((base->flag & BASE_SELECTED) != 0) {
+				ED_object_base_select(base, BA_DESELECT);
 				changed = true;
 			}
 		}
@@ -1029,8 +1030,8 @@ static int object_select_menu_exec(bContext *C, wmOperator *op)
 	{
 		/* this is a bit dodjy, there should only be ONE object with this name, but library objects can mess this up */
 		if (STREQ(name, base->object->id.name + 2)) {
-			ED_base_object_activate(C, base);
-			ED_base_object_select(base, BA_SELECT);
+			ED_object_base_activate(C, base);
+			ED_object_base_select(base, BA_SELECT);
 			changed = true;
 		}
 	}
@@ -1074,12 +1075,12 @@ void VIEW3D_OT_select_menu(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "Toggle selection instead of deselecting everything first");
 }
 
-static void deselectall_except(Scene *scene, Base *b)   /* deselect all except b */
+static void deselectall_except(Scene *scene, BaseLegacy *b)   /* deselect all except b */
 {
-	Base *base;
+	BaseLegacy *base;
 	
 	for (base = FIRSTBASE; base; base = base->next) {
-		if (base->flag & SELECT) {
+		if (base->flag_legacy & SELECT) {
 			if (b != base) {
 				ED_base_object_select(base, BA_DESELECT);
 			}
@@ -1087,12 +1088,16 @@ static void deselectall_except(Scene *scene, Base *b)   /* deselect all except b
 	}
 }
 
-static Base *object_mouse_select_menu(bContext *C, ViewContext *vc, unsigned int *buffer, int hits, const int mval[2], short toggle)
+static BaseLegacy *object_mouse_select_menu(bContext *C, ViewContext *vc, unsigned int *buffer, int hits, const int mval[2], short toggle)
 {
 	short baseCount = 0;
 	bool ok;
 	LinkNode *linklist = NULL;
-	
+
+	/* handle base->selcol */
+	TODO_LAYER_BASE;
+#if 0
+
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
 		ok = false;
@@ -1164,6 +1169,19 @@ static Base *object_mouse_select_menu(bContext *C, ViewContext *vc, unsigned int
 		BLI_linklist_free(linklist, NULL);
 		return NULL;
 	}
+#else
+
+	(void)C;
+	(void)vc,
+	(void)buffer;
+	(void)hits;
+	(void)mval;
+	(void)toggle;
+	(void)baseCount;
+	(void)ok;
+	(void)linklist;
+	return NULL;
+#endif
 }
 
 static bool selectbuffer_has_bones(const unsigned int *buffer, const unsigned int hits)
@@ -1275,12 +1293,12 @@ static short mixed_bones_object_selectbuffer(
 }
 
 /* returns basact */
-static Base *mouse_select_eval_buffer(ViewContext *vc, unsigned int *buffer, int hits,
-                                      Base *startbase, bool has_bones, bool do_nearest)
+static BaseLegacy *mouse_select_eval_buffer(ViewContext *vc, unsigned int *buffer, int hits,
+                                      BaseLegacy *startbase, bool has_bones, bool do_nearest)
 {
 	Scene *scene = vc->scene;
 	View3D *v3d = vc->v3d;
-	Base *base, *basact = NULL;
+	BaseLegacy *base, *basact = NULL;
 	int a;
 	
 	if (do_nearest) {
@@ -1299,7 +1317,7 @@ static Base *mouse_select_eval_buffer(ViewContext *vc, unsigned int *buffer, int
 		}
 		else {
 			/* only exclude active object when it is selected... */
-			if (BASACT && (BASACT->flag & SELECT) && hits > 1) notcol = BASACT->selcol;
+			if (BASACT && (BASACT->flag_legacy & SELECT) && hits > 1) notcol = BASACT->selcol;
 			
 			for (a = 0; a < hits; a++) {
 				if (min > buffer[4 * a + 1] && notcol != (buffer[4 * a + 3] & 0xFFFF)) {
@@ -1358,10 +1376,10 @@ static Base *mouse_select_eval_buffer(ViewContext *vc, unsigned int *buffer, int
 }
 
 /* mval comes from event->mval, only use within region handlers */
-Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
+BaseLegacy *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
 {
 	ViewContext vc;
-	Base *basact = NULL;
+	BaseLegacy *basact = NULL;
 	unsigned int buffer[MAXPICKBUF];
 	int hits;
 	bool do_nearest;
@@ -1408,7 +1426,7 @@ static bool ed_object_select_pick(
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
-	Base *base, *startbase = NULL, *basact = NULL, *oldbasact = NULL;
+	BaseLegacy *base, *startbase = NULL, *basact = NULL, *oldbasact = NULL;
 	bool is_obedit;
 	float dist = ED_view3d_select_dist_px() * 1.3333f;
 	bool retval = false;
@@ -1520,8 +1538,8 @@ static bool ed_object_select_pick(
 										changed = true;
 								}
 
-								basact->flag |= SELECT;
-								basact->object->flag = basact->flag;
+								basact->flag_legacy |= SELECT;
+								basact->object->flag = basact->flag_legacy;
 
 								retval = true;
 
@@ -1544,8 +1562,8 @@ static bool ed_object_select_pick(
 				
 					/* we make the armature selected: 
 					 * not-selected active object in posemode won't work well for tools */
-					basact->flag |= SELECT;
-					basact->object->flag = basact->flag;
+					basact->flag_legacy |= SELECT;
+					basact->object->flag = basact->flag_legacy;
 					
 					retval = true;
 					WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, basact->object);
@@ -1586,7 +1604,7 @@ static bool ed_object_select_pick(
 				ED_base_object_select(basact, BA_DESELECT);
 			}
 			else if (toggle) {
-				if (basact->flag & SELECT) {
+				if (basact->flag_legacy & SELECT) {
 					if (basact == oldbasact) {
 						ED_base_object_select(basact, BA_DESELECT);
 					}
@@ -2051,7 +2069,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 	 */
 
 	if (hits > 0) { /* no need to loop if there's no hit */
-		Base *base;
+		BaseLegacy *base;
 		col = vbuffer + 3;
 		
 		for (base = vc->scene->base.first; base && hits; base = base->next) {
@@ -2793,9 +2811,9 @@ static bool object_circle_select(ViewContext *vc, const bool select, const int m
 	const int select_flag = select ? SELECT : 0;
 
 
-	Base *base;
+	BaseLegacy *base;
 	for (base = FIRSTBASE; base; base = base->next) {
-		if (BASE_SELECTABLE(vc->v3d, base) && ((base->flag & SELECT) != select_flag)) {
+		if (BASE_SELECTABLE(vc->v3d, base) && ((base->flag_legacy & SELECT) != select_flag)) {
 			float screen_co[2];
 			if (ED_view3d_project_float_global(vc->ar, base->object->obmat[3], screen_co,
 			                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)

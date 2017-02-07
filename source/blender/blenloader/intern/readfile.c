@@ -72,6 +72,7 @@
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_meta_types.h"
@@ -101,6 +102,8 @@
 #include "DNA_world_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_mask_types.h"
+
+#include "RNA_access.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -5630,11 +5633,29 @@ static bool scene_validate_setscene__liblink(Scene *sce, const int totscene)
 }
 #endif
 
+static void lib_link_scene_collection(FileData *fd, Library *lib, SceneCollection *sc)
+{
+	for (LinkData *link = sc->objects.first; link; link = link->next) {
+		link->data = newlibadr_us(fd, lib, link->data);
+		BLI_assert(link->data);
+	}
+
+	for (LinkData *link = sc->filter_objects.first; link; link = link->next) {
+		link->data = newlibadr_us(fd, lib, link->data);
+		BLI_assert(link->data);
+	}
+
+	for (SceneCollection *nsc = sc->scene_collections.first; nsc; nsc = nsc->next) {
+		lib_link_scene_collection(fd, lib, nsc);
+	}
+}
+
 static void lib_link_scene(FileData *fd, Main *main)
 {
 	Scene *sce;
-	Base *base, *next;
+	BaseLegacy *base_legacy, *base_legacy_next;
 	Sequence *seq;
+	SceneLayer *sl;
 	SceneRenderLayer *srl;
 	FreestyleModuleConfig *fmc;
 	FreestyleLineSet *fls;
@@ -5684,17 +5705,17 @@ static void lib_link_scene(FileData *fd, Main *main)
 			
 			sce->toolsettings->particle.shape_object = newlibadr(fd, sce->id.lib, sce->toolsettings->particle.shape_object);
 			
-			for (base = sce->base.first; base; base = next) {
-				next = base->next;
+			for (base_legacy = sce->base.first; base_legacy; base_legacy = base_legacy_next) {
+				base_legacy_next = base_legacy->next;
 				
-				base->object = newlibadr_us(fd, sce->id.lib, base->object);
+				base_legacy->object = newlibadr_us(fd, sce->id.lib, base_legacy->object);
 				
-				if (base->object == NULL) {
+				if (base_legacy->object == NULL) {
 					blo_reportf_wrap(fd->reports, RPT_WARNING, TIP_("LIB: object lost from scene: '%s'"),
 					                 sce->id.name + 2);
-					BLI_remlink(&sce->base, base);
-					if (base == sce->basact) sce->basact = NULL;
-					MEM_freeN(base);
+					BLI_remlink(&sce->base, base_legacy);
+					if (base_legacy == sce->basact) sce->basact = NULL;
+					MEM_freeN(base_legacy);
 				}
 			}
 			
@@ -5779,6 +5800,15 @@ static void lib_link_scene(FileData *fd, Main *main)
 			
 			/* Motion Tracking */
 			sce->clip = newlibadr_us(fd, sce->id.lib, sce->clip);
+
+			lib_link_scene_collection(fd, sce->id.lib, sce->collection);
+
+			for (sl = sce->render_layers.first; sl; sl = sl->next) {
+				for (Base *base = sl->object_bases.first; base; base = base->next) {
+					/* we only bump the use count for the collection objects */
+					base->object = newlibadr(fd, sce->id.lib, base->object);
+				}
+			}
 
 #ifdef USE_SETSCENE_CHECK
 			if (sce->set != NULL) {
@@ -5883,12 +5913,42 @@ static void direct_link_view_settings(FileData *fd, ColorManagedViewSettings *vi
 		direct_link_curvemapping(fd, view_settings->curve_mapping);
 }
 
+static void direct_link_scene_collection(FileData *fd, SceneCollection *sc)
+{
+	link_list(fd, &sc->objects);
+	link_list(fd, &sc->filter_objects);
+	link_list(fd, &sc->scene_collections);
+
+	for (SceneCollection *nsc = sc->scene_collections.first; nsc; nsc = nsc->next) {
+		direct_link_scene_collection(fd, nsc);
+	}
+}
+
+static void direct_link_layer_collections(FileData *fd, ListBase *lb)
+{
+	link_list(fd, lb);
+	for (LayerCollection *lc = lb->first; lc; lc = lc->next) {
+		lc->scene_collection = newdataadr(fd, lc->scene_collection);
+
+		link_list(fd, &lc->object_bases);
+
+		for (LinkData *link = lc->object_bases.first; link; link = link->next) {
+			link->data = newdataadr(fd, link->data);
+		}
+
+		link_list(fd, &lc->overrides);
+
+		direct_link_layer_collections(fd, &lc->layer_collections);
+	}
+}
+
 static void direct_link_scene(FileData *fd, Scene *sce)
 {
 	Editing *ed;
 	Sequence *seq;
 	MetaStack *ms;
 	RigidBodyWorld *rbw;
+	SceneLayer *sl;
 	SceneRenderLayer *srl;
 	
 	sce->theDag = NULL;
@@ -6139,6 +6199,19 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->preview = direct_link_preview_image(fd, sce->preview);
 
 	direct_link_curvemapping(fd, &sce->r.mblur_shutter_curve);
+
+	/* this runs before the very first doversion */
+	if (sce->collection) {
+		sce->collection = newdataadr(fd, sce->collection);
+		direct_link_scene_collection(fd, sce->collection);
+	}
+
+	link_list(fd, &sce->render_layers);
+	for (sl = sce->render_layers.first; sl; sl = sl->next) {
+		link_list(fd, &sl->object_bases);
+		sl->basact = newdataadr(fd, sl->basact);
+		direct_link_layer_collections(fd, &sl->layer_collections);
+	}
 }
 
 /* ************ READ WM ***************** */
@@ -6481,6 +6554,10 @@ static void lib_link_screen(FileData *fd, Main *main)
 						SpaceLogic *slogic = (SpaceLogic *)sl;
 						
 						slogic->gpd = newlibadr_us(fd, sc->id.lib, slogic->gpd);
+					}
+					else if (sl->spacetype == SPACE_COLLECTIONS) {
+						SpaceCollections *slayer = (SpaceCollections *)sl;
+						slayer->flag |= SC_COLLECTION_DATA_REFRESH;
 					}
 				}
 			}
@@ -6866,6 +6943,10 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 					SpaceLogic *slogic = (SpaceLogic *)sl;
 					
 					slogic->gpd = restore_pointer_by_name(id_map, (ID *)slogic->gpd, USER_REAL);
+				}
+				else if (sl->spacetype == SPACE_COLLECTIONS) {
+					SpaceCollections *slayer = (SpaceCollections *)sl;
+					slayer->flag |= SC_COLLECTION_DATA_REFRESH;
 				}
 			}
 		}
@@ -7261,6 +7342,10 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 				sclip->scopes.track_preview = NULL;
 				sclip->scopes.ok = 0;
 			}
+			else if (sl->spacetype == SPACE_COLLECTIONS) {
+				SpaceCollections *slayer = (SpaceCollections *)sl;
+				slayer->flag |= SC_COLLECTION_DATA_REFRESH;
+			}
 		}
 		
 		BLI_listbase_clear(&sa->actionzones);
@@ -7457,7 +7542,7 @@ static void lib_link_group(FileData *fd, Main *main)
 			if (add_us) {
 				id_us_ensure_real(&group->id);
 			}
-			BKE_group_object_unlink(group, NULL, NULL, NULL);	/* removes NULL entries */
+			BKE_group_object_unlink(group, NULL);	/* removes NULL entries */
 		}
 	}
 }
@@ -8389,6 +8474,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	blo_do_versions_250(fd, lib, main);
 	blo_do_versions_260(fd, lib, main);
 	blo_do_versions_270(fd, lib, main);
+	blo_do_versions_280(fd, lib, main);
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init see do_versions_userdef() above! */
@@ -8400,8 +8486,8 @@ static void do_versions_after_linking(Main *main)
 {
 //	printf("%s for %s (%s), %d.%d\n", __func__, main->curlib ? main->curlib->name : main->name,
 //	       main->curlib ? "LIB" : "MAIN", main->versionfile, main->subversionfile);
-
 	do_versions_after_linking_270(main);
+	do_versions_after_linking_280(main);
 }
 
 static void lib_link_all(FileData *fd, Main *main)
@@ -9484,9 +9570,24 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	}
 }
 
+static void expand_scene_collection(FileData *fd, Main *mainvar, SceneCollection *sc)
+{
+	for (LinkData *link = sc->objects.first; link; link = link->next) {
+		expand_doit(fd, mainvar, link->data);
+	}
+
+	for (LinkData *link = sc->filter_objects.first; link; link = link->next) {
+		expand_doit(fd, mainvar, link->data);
+	}
+
+	for (SceneCollection *nsc= sc->scene_collections.first; nsc; nsc = nsc->next) {
+		expand_scene_collection(fd, mainvar, nsc);
+	}
+}
+
 static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 {
-	Base *base;
+	BaseLegacy *base;
 	SceneRenderLayer *srl;
 	FreestyleModuleConfig *module;
 	FreestyleLineSet *lineset;
@@ -9553,6 +9654,8 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	}
 
 	expand_doit(fd, mainvar, sce->clip);
+
+	expand_scene_collection(fd, mainvar, sce->collection);
 }
 
 static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)
@@ -9799,7 +9902,7 @@ static bool object_in_any_scene(Main *mainvar, Object *ob)
 static void give_base_to_objects(Main *mainvar, Scene *scene, View3D *v3d, Library *lib, const short flag)
 {
 	Object *ob;
-	Base *base;
+	BaseLegacy *base;
 	const unsigned int active_lay = (flag & FILE_ACTIVELAY) ? BKE_screen_view3d_layer_active(v3d, scene) : 0;
 	const bool is_link = (flag & FILE_LINK) != 0;
 
@@ -9820,7 +9923,7 @@ static void give_base_to_objects(Main *mainvar, Scene *scene, View3D *v3d, Libra
 			}
 
 			if (do_it) {
-				base = MEM_callocN(sizeof(Base), __func__);
+				base = MEM_callocN(sizeof(BaseLegacy), __func__);
 				BLI_addtail(&scene->base, base);
 
 				if (active_lay) {
@@ -9835,7 +9938,7 @@ static void give_base_to_objects(Main *mainvar, Scene *scene, View3D *v3d, Libra
 
 				base->object = ob;
 				base->lay = ob->lay;
-				base->flag = ob->flag;
+				BKE_scene_base_flag_sync_from_object(base);
 
 				CLAMP_MIN(ob->id.us, 0);
 				id_us_plus_no_lib((ID *)ob);
@@ -9851,7 +9954,7 @@ static void give_base_to_groups(
         Main *mainvar, Scene *scene, View3D *v3d, Library *UNUSED(lib), const short UNUSED(flag))
 {
 	Group *group;
-	Base *base;
+	BaseLegacy *base;
 	Object *ob;
 	const unsigned int active_lay = BKE_screen_view3d_layer_active(v3d, scene);
 
@@ -9868,8 +9971,8 @@ static void give_base_to_groups(
 
 			/* assign the base */
 			base = BKE_scene_base_add(scene, ob);
-			base->flag |= SELECT;
-			base->object->flag = base->flag;
+			base->flag_legacy |= SELECT;
+			BKE_scene_base_flag_sync_from_base(base);
 			DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 			scene->basact = base;
 
@@ -9951,10 +10054,10 @@ static ID *link_named_part(
 static void link_object_postprocess(ID *id, Scene *scene, View3D *v3d, const short flag)
 {
 	if (scene) {
-		Base *base;
+		BaseLegacy *base;
 		Object *ob;
 
-		base = MEM_callocN(sizeof(Base), "app_nam_part");
+		base = MEM_callocN(sizeof(BaseLegacy), "app_nam_part");
 		BLI_addtail(&scene->base, base);
 
 		ob = (Object *)id;
@@ -9967,12 +10070,12 @@ static void link_object_postprocess(ID *id, Scene *scene, View3D *v3d, const sho
 		ob->mode = OB_MODE_OBJECT;
 		base->lay = ob->lay;
 		base->object = ob;
-		base->flag = ob->flag;
+		base->flag_legacy = ob->flag;
 		id_us_plus_no_lib((ID *)ob);
 
 		if (flag & FILE_AUTOSELECT) {
-			base->flag |= SELECT;
-			base->object->flag = base->flag;
+			base->flag_legacy |= SELECT;
+			BKE_scene_base_flag_sync_from_base(base);
 			/* do NOT make base active here! screws up GUI stuff, if you want it do it on src/ level */
 		}
 	}

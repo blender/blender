@@ -38,7 +38,7 @@
 
 struct GPULamp;
 struct Scene;
-struct Base;
+struct BaseLegacy;
 class KX_Camera;
 class RAS_IRasterizer;
 class RAS_ILightObject;
@@ -51,7 +51,7 @@ protected:
 	RAS_ILightObject*		m_lightobj;
 	class RAS_IRasterizer*	m_rasterizer;	//needed for registering and replication of lightobj
 	Scene*				m_blenderscene;
-	Base*				m_base;
+	BaseLegacy*				m_base;
 
 public:
 	KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,RAS_IRasterizer* rasterizer,RAS_ILightObject*	lightobj, bool glsl);

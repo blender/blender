@@ -56,6 +56,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_group.h"
+#include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_library_remap.h"
@@ -360,15 +361,15 @@ void OUTLINER_OT_scene_operation(wmOperatorType *ot)
 /* ******************************************** */
 
 static void object_select_cb(
-        bContext *UNUSED(C), ReportList *UNUSED(reports), Scene *scene, TreeElement *te,
+        bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *UNUSED(te),
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
-	Base *base = (Base *)te->directdata;
-	
-	if (base == NULL) base = BKE_scene_base_find(scene, (Object *)tselem->id);
-	if (base && ((base->object->restrictflag & OB_RESTRICT_VIEW) == 0)) {
-		base->flag |= SELECT;
-		base->object->flag |= SELECT;
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	Object *ob = (Object *)tselem->id;
+	Base *base = BKE_scene_layer_base_find(sl, ob);
+
+	if (base && ((base->flag & BASE_VISIBLED) != 0)) {
+		base->flag |= BASE_SELECTED;
 	}
 }
 
@@ -385,46 +386,43 @@ static void object_select_hierarchy_cb(
 
 
 static void object_deselect_cb(
-        bContext *UNUSED(C), ReportList *UNUSED(reports), Scene *scene, TreeElement *te,
+        bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *UNUSED(te),
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
-	Base *base = (Base *)te->directdata;
-	
-	if (base == NULL) base = BKE_scene_base_find(scene, (Object *)tselem->id);
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	Object *ob = (Object *)tselem->id;
+	Base *base = BKE_scene_layer_base_find(sl, ob);
+
 	if (base) {
-		base->flag &= ~SELECT;
-		base->object->flag &= ~SELECT;
+		base->flag &= ~BASE_SELECTED;
 	}
 }
 
 static void object_delete_cb(
-        bContext *C, ReportList *reports, Scene *scene, TreeElement *te,
+        bContext *C, ReportList *reports, Scene *scene, TreeElement *UNUSED(te),
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
-	Base *base = (Base *)te->directdata;
-	
-	if (base == NULL)
-		base = BKE_scene_base_find(scene, (Object *)tselem->id);
-	if (base) {
+	Object *ob = (Object *)tselem->id;
+	if (ob) {
 		Main *bmain = CTX_data_main(C);
-		if (base->object->id.tag & LIB_TAG_INDIRECT) {
-			BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked object '%s'", base->object->id.name + 2);
+		if (ob->id.tag & LIB_TAG_INDIRECT) {
+			BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked object '%s'", ob->id.name + 2);
 			return;
 		}
-		else if (BKE_library_ID_is_indirectly_used(bmain, base->object) &&
-		         ID_REAL_USERS(base->object) <= 1 && ID_EXTRA_USERS(base->object) == 0)
+		else if (BKE_library_ID_is_indirectly_used(bmain, ob) &&
+		         ID_REAL_USERS(ob) <= 1 && ID_EXTRA_USERS(ob) == 0)
 		{
 			BKE_reportf(reports, RPT_WARNING,
 			            "Cannot delete object '%s' from scene '%s', indirectly used objects need at least one user",
-			            base->object->id.name + 2, scene->id.name + 2);
+			            ob->id.name + 2, scene->id.name + 2);
 			return;
 		}
 
 		// check also library later
-		if (scene->obedit == base->object)
+		if (scene->obedit == ob)
 			ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
 		
-		ED_base_object_free_and_unlink(CTX_data_main(C), scene, base);
+		ED_base_object_free_and_unlink(CTX_data_main(C), scene, ob);
 		/* leave for ED_outliner_id_unref to handle */
 #if 0
 		te->directdata = NULL;
@@ -520,7 +518,7 @@ static void group_linkobs2scene_cb(
 {
 	Group *group = (Group *)tselem->id;
 	GroupObject *gob;
-	Base *base;
+	BaseLegacy *base;
 
 	for (gob = group->gobject.first; gob; gob = gob->next) {
 		base = BKE_scene_base_find(scene, gob->ob);
@@ -530,7 +528,7 @@ static void group_linkobs2scene_cb(
 			id_us_plus(&gob->ob->id);
 		}
 		base->object->flag |= SELECT;
-		base->flag |= SELECT;
+		base->flag_legacy |= SELECT;
 	}
 }
 
@@ -820,9 +818,9 @@ static void outliner_do_data_operation(SpaceOops *soops, int type, int event, Li
 	}
 }
 
-static Base *outline_delete_hierarchy(bContext *C, ReportList *reports, Scene *scene, Base *base)
+static BaseLegacy *outline_delete_hierarchy(bContext *C, ReportList *reports, Scene *scene, BaseLegacy *base)
 {
-	Base *child_base, *base_next;
+	BaseLegacy *child_base, *base_next;
 	Object *parent;
 
 	if (!base) {
@@ -852,7 +850,7 @@ static Base *outline_delete_hierarchy(bContext *C, ReportList *reports, Scene *s
 		            base->object->id.name + 2, scene->id.name + 2);
 		return base_next;
 	}
-	ED_base_object_free_and_unlink(CTX_data_main(C), scene, base);
+	ED_base_object_free_and_unlink(CTX_data_main(C), scene, base->object);
 	return base_next;
 }
 
@@ -860,6 +858,7 @@ static void object_delete_hierarchy_cb(
         bContext *C, ReportList *reports, Scene *scene,
         TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
+#if 0
 	Base *base = (Base *)te->directdata;
 	Object *obedit = scene->obedit;
 
@@ -882,6 +881,15 @@ static void object_delete_hierarchy_cb(
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+#else
+	(void) C;
+	(void) scene;
+	(void) te;
+	(void) tselem;
+	(void) outline_delete_hierarchy;
+	BKE_reportf(reports, RPT_ERROR, "Delete from outliner not supported at the moment");
+	TODO_LAYER_BASE
+#endif
 }
 
 /* **************************************** */
@@ -985,21 +993,6 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		outliner_do_object_operation(C, op->reports, scene, soops, &soops->tree, id_local_cb);
 		str = "Localized Objects";
 	}
-	else if (event == OL_OP_TOGVIS) {
-		outliner_do_object_operation(C, op->reports, scene, soops, &soops->tree, object_toggle_visibility_cb);
-		str = "Toggle Visibility";
-		WM_event_add_notifier(C, NC_SCENE | ND_OB_VISIBLE, scene);
-	}
-	else if (event == OL_OP_TOGSEL) {
-		outliner_do_object_operation(C, op->reports, scene, soops, &soops->tree, object_toggle_selectability_cb);
-		str = "Toggle Selectability";
-		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
-	}
-	else if (event == OL_OP_TOGREN) {
-		outliner_do_object_operation(C, op->reports, scene, soops, &soops->tree, object_toggle_renderability_cb);
-		str = "Toggle Renderability";
-		WM_event_add_notifier(C, NC_SCENE | ND_OB_RENDER, scene);
-	}
 	else if (event == OL_OP_RENAME) {
 		outliner_do_object_operation(C, op->reports, scene, soops, &soops->tree, item_rename_cb);
 		str = "Rename Object";
@@ -1094,15 +1087,6 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 			break;
 		case OL_GROUPOP_REMAP:
 			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, id_remap_cb, NULL);
-			break;
-		case OL_GROUPOP_TOGVIS:
-			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, group_toggle_visibility_cb, NULL);
-			break;
-		case OL_GROUPOP_TOGSEL:
-			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, group_toggle_selectability_cb, NULL);
-			break;
-		case OL_GROUPOP_TOGREN:
-			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, group_toggle_renderability_cb, NULL);
 			break;
 		case OL_GROUPOP_RENAME:
 			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, item_rename_cb, NULL);

@@ -127,7 +127,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 	BKE_scene_set_background(freestyle_bmain, freestyle_scene);
 
 	// Camera
-	Object *object_camera = BKE_object_add(freestyle_bmain, freestyle_scene, OB_CAMERA, NULL);
+	Object *object_camera = BKE_object_add(freestyle_bmain, freestyle_scene, (SceneLayer *)freestyle_scene->render_layers.first, OB_CAMERA, NULL);
 	DAG_relations_tag_update(freestyle_bmain);
 
 	Camera *camera = (Camera *)object_camera->data;
@@ -166,7 +166,7 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 	// compositor has finished.
 
 	// release objects and data blocks
-	for (Base *b = (Base *)freestyle_scene->base.first; b; b = b->next) {
+	for (BaseLegacy *b = (BaseLegacy *)freestyle_scene->base.first; b; b = b->next) {
 		Object *ob = b->object;
 		void *data = ob->data;
 		char *name = ob->id.name;
@@ -674,7 +674,7 @@ int BlenderStrokeRenderer::get_stroke_count() const
 void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 {
 #if 0
-	Object *object_mesh = BKE_object_add(freestyle_bmain, freestyle_scene, OB_MESH);
+	Object *object_mesh = BKE_object_add(freestyle_bmain, freestyle_scene, (SceneLayer *)freestyle_scene->render_layers.first, OB_MESH);
 	DAG_relations_tag_update(freestyle_bmain);
 #else
 	Object *object_mesh = NewMesh();
@@ -922,7 +922,7 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 Object *BlenderStrokeRenderer::NewMesh() const
 {
 	Object *ob;
-	Base *base;
+	BaseLegacy *base;
 	char name[MAX_ID_NAME];
 	unsigned int mesh_id = get_stroke_mesh_id();
 

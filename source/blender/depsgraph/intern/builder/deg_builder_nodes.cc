@@ -338,7 +338,7 @@ void DepsgraphNodeBuilder::begin_build(Main *bmain) {
 }
 
 void DepsgraphNodeBuilder::build_group(Scene *scene,
-                                       Base *base,
+                                       BaseLegacy *base,
                                        Group *group)
 {
 	ID *group_id = &group->id;
@@ -387,7 +387,7 @@ SubgraphDepsNode *DepsgraphNodeBuilder::build_subgraph(Group *group)
 	return subgraph_node;
 }
 
-void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
+void DepsgraphNodeBuilder::build_object(Scene *scene, BaseLegacy *base, Object *ob)
 {
 	const bool has_object = (ob->id.tag & LIB_TAG_DOIT);
 	IDDepsNode *id_node = (has_object)

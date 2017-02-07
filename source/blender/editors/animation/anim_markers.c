@@ -1124,7 +1124,7 @@ static int ed_marker_select(bContext *C, const wmEvent *event, bool extend, bool
 
 	if (camera) {
 		Scene *scene = CTX_data_scene(C);
-		Base *base;
+		BaseLegacy *base;
 		TimeMarker *marker;
 		int sel = 0;
 		

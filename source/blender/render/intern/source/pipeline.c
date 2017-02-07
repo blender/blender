@@ -2015,7 +2015,7 @@ bool RE_allow_render_generic_object(Object *ob)
 static void tag_dependend_objects_for_render(Scene *scene, int renderlay)
 {
 	Scene *sce_iter;
-	Base *base;
+	BaseLegacy *base;
 	for (SETLOOPER(scene, sce_iter, base)) {
 		Object *object = base->object;
 

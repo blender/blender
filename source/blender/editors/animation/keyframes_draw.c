@@ -938,7 +938,7 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, DLRBT_Tree *bl
 	int filter;
 	
 	bAnimListElem dummychan = {NULL};
-	Base dummybase = {NULL};
+	BaseLegacy dummybase = {NULL};
 	
 	if (ob == NULL)
 		return;

@@ -50,6 +50,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 
@@ -400,7 +401,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 			}
 			
 			/* Free the old object data */
-			ED_base_object_free_and_unlink(bmain, scene, base);
+			ED_base_object_free_and_unlink(bmain, scene, base->object);
 		}
 	}
 	CTX_DATA_END;
@@ -579,6 +580,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Object *oldob, *newob;
 	Base *oldbase, *newbase;
@@ -602,14 +604,18 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 	/* TODO: use context iterators for this? */
 	CTX_DATA_BEGIN(C, Base *, base, visible_bases)
 	{
-		if (base->object == obedit) base->flag |= SELECT;
-		else base->flag &= ~SELECT;
+		if (base->object == obedit) {
+			ED_object_base_select(base, BA_SELECT);
+		}
+		else {
+			ED_object_base_select(base, BA_DESELECT);
+		}
 	}
 	CTX_DATA_END;
 	
 	/* 1) store starting settings and exit editmode */
 	oldob = obedit;
-	oldbase = BASACT;
+	oldbase = sl->basact;
 	oldob->mode &= ~OB_MODE_POSE;
 	//oldbase->flag &= ~OB_POSEMODE;
 	
@@ -617,13 +623,13 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 	ED_armature_edit_free(obedit->data);
 	
 	/* 2) duplicate base */
-	newbase = ED_object_add_duplicate(bmain, scene, oldbase, USER_DUP_ARM); /* only duplicate linked armature */
+	newbase = ED_object_add_duplicate(bmain, scene, sl, oldbase, USER_DUP_ARM); /* only duplicate linked armature */
 	DAG_relations_tag_update(bmain);
 
 	newob = newbase->object;
-	newbase->flag &= ~SELECT;
-	
-	
+	newbase->flag &= ~BASE_SELECTED;
+
+
 	/* 3) remove bones that shouldn't still be around on both armatures */
 	separate_armature_bones(oldob, 1);
 	separate_armature_bones(newob, 0);

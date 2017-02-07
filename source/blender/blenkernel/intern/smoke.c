@@ -698,7 +698,7 @@ static float calc_voxel_transp(float *result, float *input, int res[3], int *pix
 
 static int get_lamp(Scene *scene, float *light)
 {
-	Base *base_tmp = NULL;
+	BaseLegacy *base_tmp = NULL;
 	int found_lamp = 0;
 
 	// try to find a lamp, preferably local

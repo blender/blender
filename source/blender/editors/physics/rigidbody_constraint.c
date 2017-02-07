@@ -89,7 +89,7 @@ bool ED_rigidbody_constraint_add(Main *bmain, Scene *scene, Object *ob, int type
 	ob->rigidbody_constraint->flag |= RBC_FLAG_NEEDS_VALIDATE;
 
 	/* add constraint to rigid body constraint group */
-	BKE_group_object_add(rbw->constraints, ob, scene, NULL);
+	BKE_group_object_add(rbw->constraints, ob);
 
 	DAG_relations_tag_update(bmain);
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB);
@@ -102,7 +102,7 @@ void ED_rigidbody_constraint_remove(Main *bmain, Scene *scene, Object *ob)
 
 	BKE_rigidbody_remove_constraint(scene, ob);
 	if (rbw)
-		BKE_group_object_unlink(rbw->constraints, ob, scene, NULL);
+		BKE_group_object_unlink(rbw->constraints, ob);
 
 	DAG_relations_tag_update(bmain);
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB);

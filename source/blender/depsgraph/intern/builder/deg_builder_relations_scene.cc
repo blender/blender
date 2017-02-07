@@ -74,7 +74,7 @@ void DepsgraphRelationBuilder::build_scene(Main *bmain, Scene *scene)
 	}
 
 	/* scene objects */
-	LINKLIST_FOREACH (Base *, base, &scene->base) {
+	LINKLIST_FOREACH (BaseLegacy *, base, &scene->base) {
 		Object *ob = base->object;
 
 		/* object itself */

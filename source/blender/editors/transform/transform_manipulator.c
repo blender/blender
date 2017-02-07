@@ -274,7 +274,7 @@ static int calc_manipulator_stats(const bContext *C)
 	Object *obedit = CTX_data_edit_object(C);
 	View3D *v3d = sa->spacedata.first;
 	RegionView3D *rv3d = ar->regiondata;
-	Base *base;
+	BaseLegacy *base;
 	Object *ob = OBACT;
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	const bool is_gp_edit = ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE));

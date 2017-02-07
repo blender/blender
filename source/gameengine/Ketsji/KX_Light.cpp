@@ -34,6 +34,7 @@
 #endif
 
 #include <stdio.h>
+#include "DNA_scene_types.h"
 
 #include "KX_Light.h"
 #include "KX_Camera.h"
@@ -44,7 +45,6 @@
 #include "KX_PyMath.h"
 
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_lamp_types.h"
 
 #include "BKE_scene.h"

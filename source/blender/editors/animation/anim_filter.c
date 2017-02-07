@@ -601,7 +601,7 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 			}
 			case ANIMTYPE_OBJECT:
 			{
-				Base *base = (Base *)data;
+				BaseLegacy *base = (BaseLegacy *)data;
 				Object *ob = base->object;
 				
 				ale->flag = ob->flag;
@@ -1683,7 +1683,7 @@ static size_t animdata_filter_gpencil(bAnimContext *ac, ListBase *anim_data, voi
 	
 	if (ads->filterflag & ADS_FILTER_GP_3DONLY) {
 		Scene *scene = (Scene *)ads->source;
-		Base *base;
+		BaseLegacy *base;
 		
 		/* Active scene's GPencil block first - No parent item needed... */
 		if (scene->gpd) {
@@ -1714,7 +1714,7 @@ static size_t animdata_filter_gpencil(bAnimContext *ac, ListBase *anim_data, voi
 				}
 				
 				/* check selection and object type filters */
-				if ( (ads->filterflag & ADS_FILTER_ONLYSEL) && !((base->flag & SELECT) /*|| (base == scene->basact)*/) ) {
+				if ( (ads->filterflag & ADS_FILTER_ONLYSEL) && !((base->flag_legacy & SELECT) /*|| (base == scene->basact)*/) ) {
 					/* only selected should be shown */
 					continue;
 				}
@@ -2573,7 +2573,7 @@ static size_t animdata_filter_ds_obanim(bAnimContext *ac, ListBase *anim_data, b
 }
 
 /* get animation channels from object2 */
-static size_t animdata_filter_dopesheet_ob(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
+static size_t animdata_filter_dopesheet_ob(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, BaseLegacy *base, int filter_mode)
 {
 	ListBase tmp_data = {NULL, NULL};
 	Object *ob = base->object;
@@ -2629,7 +2629,7 @@ static size_t animdata_filter_dopesheet_ob(bAnimContext *ac, ListBase *anim_data
 		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 			/* check if filtering by selection */
 			// XXX: double-check on this - most of the time, a lot of tools need to filter out these channels!
-			if (ANIMCHANNEL_SELOK((base->flag & SELECT))) {
+			if (ANIMCHANNEL_SELOK((base->flag_legacy & SELECT))) {
 				/* check if filtering by active status */
 				if (ANIMCHANNEL_ACTIVEOK(ob)) {
 					ANIMCHANNEL_NEW_CHANNEL(base, ANIMTYPE_OBJECT, ob);
@@ -2853,7 +2853,7 @@ static size_t animdata_filter_dopesheet_movieclips(bAnimContext *ac, ListBase *a
 }
 
 /* Helper for animdata_filter_dopesheet() - For checking if an object should be included or not */
-static bool animdata_filter_base_is_ok(bDopeSheet *ads, Scene *scene, Base *base, int filter_mode)
+static bool animdata_filter_base_is_ok(bDopeSheet *ads, Scene *scene, BaseLegacy *base, int filter_mode)
 {
 	Object *ob = base->object;
 	
@@ -2906,7 +2906,7 @@ static bool animdata_filter_base_is_ok(bDopeSheet *ads, Scene *scene, Base *base
 	}
 
 	/* check selection and object type filters */
-	if ((ads->filterflag & ADS_FILTER_ONLYSEL) && !((base->flag & SELECT) /*|| (base == sce->basact)*/)) {
+	if ((ads->filterflag & ADS_FILTER_ONLYSEL) && !((base->flag_legacy & SELECT) /*|| (base == sce->basact)*/)) {
 		/* only selected should be shown */
 		return false;
 	}
@@ -2927,28 +2927,28 @@ static bool animdata_filter_base_is_ok(bDopeSheet *ads, Scene *scene, Base *base
 /* Helper for animdata_filter_ds_sorted_bases() - Comparison callback for two Base pointers... */
 static int ds_base_sorting_cmp(const void *base1_ptr, const void *base2_ptr)
 {
-	const Base *b1 = *((const Base **)base1_ptr);
-	const Base *b2 = *((const Base **)base2_ptr);
+	const BaseLegacy *b1 = *((const BaseLegacy **)base1_ptr);
+	const BaseLegacy *b2 = *((const BaseLegacy **)base2_ptr);
 	
 	return strcmp(b1->object->id.name + 2, b2->object->id.name + 2);
 }
 
 /* Get a sorted list of all the bases - for inclusion in dopesheet (when drawing channels) */
-static Base **animdata_filter_ds_sorted_bases(bDopeSheet *ads, Scene *scene, int filter_mode, size_t *r_usable_bases)
+static BaseLegacy **animdata_filter_ds_sorted_bases(bDopeSheet *ads, Scene *scene, int filter_mode, size_t *r_usable_bases)
 {
 	/* Create an array with space for all the bases, but only containing the usable ones */
 	size_t tot_bases = BLI_listbase_count(&scene->base);
 	size_t num_bases = 0;
 	
-	Base **sorted_bases = MEM_mallocN(sizeof(Base *) * tot_bases, "Dopesheet Usable Sorted Bases");
-	for (Base *base = scene->base.first; base; base = base->next) {
+	BaseLegacy **sorted_bases = MEM_mallocN(sizeof(BaseLegacy *) * tot_bases, "Dopesheet Usable Sorted Bases");
+	for (BaseLegacy *base = scene->base.first; base; base = base->next) {
 		if (animdata_filter_base_is_ok(ads, scene, base, filter_mode)) {
 			sorted_bases[num_bases++] = base;
 		}
 	}
 	
 	/* Sort this list of pointers (based on the names) */
-	qsort(sorted_bases, num_bases, sizeof(Base *), ds_base_sorting_cmp);
+	qsort(sorted_bases, num_bases, sizeof(BaseLegacy *), ds_base_sorting_cmp);
 	
 	/* Return list of sorted bases */
 	*r_usable_bases = num_bases;
@@ -3002,7 +3002,7 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac, ListBase *anim_data, b
 	{
 		/* Filter list of bases (i.e. objects), sort them, then add their contents normally... */
 		// TODO: Cache the old sorted order - if the set of bases hasn't changed, don't re-sort...
-		Base **sorted_bases;
+		BaseLegacy **sorted_bases;
 		size_t num_bases;
 		
 		sorted_bases = animdata_filter_ds_sorted_bases(ads, scene, filter_mode, &num_bases);
@@ -3022,7 +3022,7 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac, ListBase *anim_data, b
 		/* Filter and add contents of each base (i.e. object) without them sorting first
 		 * NOTE: This saves performance in cases where order doesn't matter
 		 */
-		for (Base *base = scene->base.first; base; base = base->next) {
+		for (BaseLegacy *base = scene->base.first; base; base = base->next) {
 			if (animdata_filter_base_is_ok(ads, scene, base, filter_mode)) {
 				/* since we're still here, this object should be usable */
 				items += animdata_filter_dopesheet_ob(ac, anim_data, ads, base, filter_mode);

@@ -69,7 +69,7 @@ static Object *get_camera_with_movieclip(Scene *scene, MovieClip *clip)
 		return camera;
 	}
 
-	for (Base *base = scene->base.first;
+	for (BaseLegacy *base = scene->base.first;
 	     base != NULL;
 	     base = base->next)
 	{

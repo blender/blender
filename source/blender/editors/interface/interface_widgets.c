@@ -1576,7 +1576,10 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		}
 	}
 
-	if (but->editstr || (but->drawflag & UI_BUT_TEXT_LEFT)) {
+	if (but->drawflag & UI_BUT_TEXT_NO_MARGIN) {
+		/* skip */
+	}
+	else if (but->editstr || (but->drawflag & UI_BUT_TEXT_LEFT)) {
 		rect->xmin += (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
 	}
 	else if ((but->drawflag & UI_BUT_TEXT_RIGHT)) {

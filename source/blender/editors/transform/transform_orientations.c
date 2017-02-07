@@ -588,7 +588,7 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	Base *base;
+	BaseLegacy *base;
 	Object *ob = OBACT;
 	int result = ORIENTATION_NONE;
 	const bool activeOnly = (around == V3D_AROUND_ACTIVE);
