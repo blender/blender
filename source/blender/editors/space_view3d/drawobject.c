@@ -4254,7 +4254,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 		if ((v3d->flag & V3D_SELECT_OUTLINE) &&
 		    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-		    (base->flag_legacy & SELECT) &&
+		    (base->flag & BASE_SELECTED) &&
 		    !(G.f & G_PICKSEL || (draw_flags & DRAW_FACE_SELECT)) &&
 		    (draw_wire == OBDRAW_WIRE_OFF))
 		{
@@ -4325,7 +4325,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				/* draw outline */
 				if ((v3d->flag & V3D_SELECT_OUTLINE) &&
 				    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-				    (base->flag_legacy & SELECT) &&
+				    (base->flag & BASE_SELECTED) &&
 				    (draw_wire == OBDRAW_WIRE_OFF) &&
 				    (ob->sculpt == NULL))
 				{
@@ -4349,7 +4349,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 			if ((v3d->flag & V3D_SELECT_OUTLINE) &&
 			    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-			    (base->flag_legacy & SELECT) &&
+			    (base->flag & BASE_SELECTED) &&
 			    (draw_wire == OBDRAW_WIRE_OFF) &&
 			    (ob->sculpt == NULL))
 			{
@@ -4731,7 +4731,7 @@ static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionVi
 
 		if ((v3d->flag & V3D_SELECT_OUTLINE) &&
 		    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-		    (base->flag_legacy & SELECT) &&
+		    (base->flag & BASE_SELECTED) &&
 		    !(G.f & G_PICKSEL || (draw_flags & DRAW_FACE_SELECT)) &&
 		    (draw_wire == OBDRAW_WIRE_OFF))
 		{
@@ -4798,7 +4798,7 @@ static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionVi
 				/* TODO: move this into a separate pass */
 				if ((v3d->flag & V3D_SELECT_OUTLINE) &&
 				    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-				    (base->flag_legacy & SELECT) &&
+				    (base->flag & BASE_SELECTED) &&
 				    (draw_wire == OBDRAW_WIRE_OFF) &&
 				    (ob->sculpt == NULL))
 				{
@@ -4822,7 +4822,7 @@ static void draw_mesh_fancy_new(Scene *scene, ARegion *ar, View3D *v3d, RegionVi
 
 			if ((v3d->flag & V3D_SELECT_OUTLINE) &&
 			    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-			    (base->flag_legacy & SELECT) &&
+			    (base->flag & BASE_SELECTED) &&
 			    (draw_wire == OBDRAW_WIRE_OFF) &&
 			    (ob->sculpt == NULL))
 			{
@@ -8109,19 +8109,20 @@ void draw_object_wire_color(Scene *scene, BaseLegacy *base, unsigned char r_ob_w
 
 	if ((scene->obedit == NULL) &&
 	    (G.moving & G_TRANSFORM_OBJ) &&
-	    (base->flag_legacy & (SELECT + BA_WAS_SEL)))
+	    (base->flag & BASE_SELECTED) &&
+	    (base->flag_legacy & BA_WAS_SEL))
 	{
 		theme_id = TH_TRANSFORM;
 	}
 	else {
 		/* Sets the 'colindex' */
 		if (ID_IS_LINKED_DATABLOCK(ob)) {
-			colindex = (base->flag_legacy & (SELECT + BA_WAS_SEL)) ? 2 : 1;
+			colindex = ((base->flag & BASE_SELECTED) && (base->flag_legacy & BA_WAS_SEL)) ? 2 : 1;
 		}
 		/* Sets the 'theme_id' or fallback to wire */
 		else {
 			if ((ob->flag & OB_FROMGROUP) != 0) {
-				if (base->flag_legacy & (SELECT + BA_WAS_SEL)) {
+				if ((base->flag & BASE_SELECTED) && (base->flag_legacy & BA_WAS_SEL)) {
 					/* uses darker active color for non-active + selected */
 					theme_id = TH_GROUP_ACTIVE;
 
@@ -8134,7 +8135,7 @@ void draw_object_wire_color(Scene *scene, BaseLegacy *base, unsigned char r_ob_w
 				}
 			}
 			else {
-				if (base->flag_legacy & (SELECT + BA_WAS_SEL)) {
+				if ((base->flag & BASE_SELECTED) && (base->flag_legacy & BA_WAS_SEL)) {
 					theme_id = scene->basact == base ? TH_ACTIVE : TH_SELECT;
 				}
 				else {
@@ -8819,7 +8820,7 @@ afterdraw:
 		}
 		else if (is_obact)
 			do_draw_center = ACTIVE;
-		else if (base->flag_legacy & SELECT)
+		else if (base->flag & BASE_SELECTED)
 			do_draw_center = SELECT;
 		else if (empty_object || (v3d->flag & V3D_DRAW_CENTERS))
 			do_draw_center = DESELECT;

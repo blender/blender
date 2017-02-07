@@ -1989,10 +1989,16 @@ extern const char *RE_engine_id_CYCLES;
 	(base->lay & (v3d ? v3d->lay : scene->lay)) &&                            \
 	(base->object->restrictflag & OB_RESTRICT_VIEW) == 0)
 
+#define BASE_SELECTABLE_NEW(base)                                             \
+	((base->flag & BASE_SELECTABLED) != 0)
+
 #define FIRSTBASE		scene->base.first
 #define LASTBASE		scene->base.last
 #define BASACT			(scene->basact)
 #define OBACT			(BASACT ? BASACT->object: NULL)
+
+#define FIRSTBASE_NEW	sl->object_bases.first
+#define LASTBASE_NEW	sl->object_bases.last
 #define BASACT_NEW		(sl->basact)
 #define OBACT_NEW		(BASACT_NEW ? BASACT_NEW->object: NULL)
 

@@ -138,7 +138,7 @@ void do_versions_after_linking_280(Main *main)
 				/* convert selected bases */
 				for (BaseLegacy *base = scene->base.first; base; base = base->next) {
 					Base *ob_base = BKE_scene_layer_base_find(sl, base->object);
-					if ((base->flag_legacy & SELECT) != 0) {
+					if ((base->flag & SELECT) != 0) {
 						if ((ob_base->flag & BASE_SELECTABLED) != 0) {
 							ob_base->flag |= BASE_SELECTED;
 						}

@@ -1075,14 +1075,12 @@ void VIEW3D_OT_select_menu(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "Toggle selection instead of deselecting everything first");
 }
 
-static void deselectall_except(Scene *scene, BaseLegacy *b)   /* deselect all except b */
+static void deselectall_except(SceneLayer *sl, Base *b)   /* deselect all except b */
 {
-	BaseLegacy *base;
-	
-	for (base = FIRSTBASE; base; base = base->next) {
+	for (Base *base = sl->object_bases.first; base; base = base->next) {
 		if (base->flag_legacy & SELECT) {
 			if (b != base) {
-				ED_base_object_select(base, BA_DESELECT);
+				ED_object_base_select(base, BA_DESELECT);
 			}
 		}
 	}
@@ -1095,9 +1093,6 @@ static BaseLegacy *object_mouse_select_menu(bContext *C, ViewContext *vc, unsign
 	LinkNode *linklist = NULL;
 
 	/* handle base->selcol */
-	TODO_LAYER_BASE;
-#if 0
-
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
 		ok = false;
@@ -1169,19 +1164,6 @@ static BaseLegacy *object_mouse_select_menu(bContext *C, ViewContext *vc, unsign
 		BLI_linklist_free(linklist, NULL);
 		return NULL;
 	}
-#else
-
-	(void)C;
-	(void)vc,
-	(void)buffer;
-	(void)hits;
-	(void)mval;
-	(void)toggle;
-	(void)baseCount;
-	(void)ok;
-	(void)linklist;
-	return NULL;
-#endif
 }
 
 static bool selectbuffer_has_bones(const unsigned int *buffer, const unsigned int hits)
@@ -1424,9 +1406,9 @@ static bool ed_object_select_pick(
 {
 	ViewContext vc;
 	ARegion *ar = CTX_wm_region(C);
-	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
-	BaseLegacy *base, *startbase = NULL, *basact = NULL, *oldbasact = NULL;
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	Base *base, *startbase = NULL, *basact = NULL, *oldbasact = NULL;
 	bool is_obedit;
 	float dist = ED_view3d_select_dist_px() * 1.3333f;
 	bool retval = false;
@@ -1444,8 +1426,8 @@ static bool ed_object_select_pick(
 	}
 	
 	/* always start list from basact in wire mode */
-	startbase =  FIRSTBASE;
-	if (BASACT && BASACT->next) startbase = BASACT->next;
+	startbase =  FIRSTBASE_NEW;
+	if (BASACT_NEW && BASACT_NEW->next) startbase = BASACT_NEW->next;
 	
 	/* This block uses the control key to make the object selected by its center point rather than its contents */
 	/* in editmode do not activate */
@@ -1458,13 +1440,13 @@ static bool ed_object_select_pick(
 		else {
 			base = startbase;
 			while (base) {
-				if (BASE_SELECTABLE(v3d, base)) {
+				if (BASE_SELECTABLE_NEW(base)) {
 					float screen_co[2];
 					if (ED_view3d_project_float_global(ar, base->object->obmat[3], screen_co,
 					                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
 					{
 						float dist_temp = len_manhattan_v2v2(mval_fl, screen_co);
-						if (base == BASACT) dist_temp += 10.0f;
+						if (base == BASACT_NEW) dist_temp += 10.0f;
 						if (dist_temp < dist) {
 							dist = dist_temp;
 							basact = base;
@@ -1473,7 +1455,7 @@ static bool ed_object_select_pick(
 				}
 				base = base->next;
 				
-				if (base == NULL) base = FIRSTBASE;
+				if (base == NULL) base = FIRSTBASE_NEW;
 				if (base == startbase) break;
 			}
 		}
@@ -1500,7 +1482,7 @@ static bool ed_object_select_pick(
 			
 			if (has_bones && basact) {
 				if (basact->object->type == OB_CAMERA) {
-					if (BASACT == basact) {
+					if (BASACT_NEW == basact) {
 						int i, hitresult;
 						bool changed = false;
 
@@ -1538,7 +1520,7 @@ static bool ed_object_select_pick(
 										changed = true;
 								}
 
-								basact->flag_legacy |= SELECT;
+								basact->flag |= BASE_SELECTED;
 								basact->object->flag = basact->flag_legacy;
 
 								retval = true;
@@ -1562,22 +1544,22 @@ static bool ed_object_select_pick(
 				
 					/* we make the armature selected: 
 					 * not-selected active object in posemode won't work well for tools */
-					basact->flag_legacy |= SELECT;
-					basact->object->flag = basact->flag_legacy;
+					basact->flag |= BASE_SELECTED;
+					BKE_scene_base_flag_sync_from_base(basact);
 					
 					retval = true;
 					WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, basact->object);
 					WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, basact->object);
 					
 					/* in weightpaint, we use selected bone to select vertexgroup, so no switch to new active object */
-					if (BASACT && (BASACT->object->mode & OB_MODE_WEIGHT_PAINT)) {
+					if (BASACT_NEW && (BASACT_NEW->object->mode & OB_MODE_WEIGHT_PAINT)) {
 						/* prevent activating */
 						basact = NULL;
 					}
 
 				}
 				/* prevent bone selecting to pass on to object selecting */
-				if (basact == BASACT)
+				if (basact == BASACT_NEW)
 					basact = NULL;
 			}
 		}
@@ -1589,37 +1571,37 @@ static bool ed_object_select_pick(
 		
 		if (vc.obedit) {
 			/* only do select */
-			deselectall_except(scene, basact);
-			ED_base_object_select(basact, BA_SELECT);
+			deselectall_except(sl, basact);
+			ED_object_base_select(basact, BA_SELECT);
 		}
 		/* also prevent making it active on mouse selection */
-		else if (BASE_SELECTABLE(v3d, basact)) {
+		else if (BASE_SELECTABLE_NEW(basact)) {
 
-			oldbasact = BASACT;
+			oldbasact = BASACT_NEW;
 			
 			if (extend) {
-				ED_base_object_select(basact, BA_SELECT);
+				ED_object_base_select(basact, BA_SELECT);
 			}
 			else if (deselect) {
-				ED_base_object_select(basact, BA_DESELECT);
+				ED_object_base_select(basact, BA_DESELECT);
 			}
 			else if (toggle) {
-				if (basact->flag_legacy & SELECT) {
+				if (basact->flag & BASE_SELECTED) {
 					if (basact == oldbasact) {
-						ED_base_object_select(basact, BA_DESELECT);
+						ED_object_base_select(basact, BA_DESELECT);
 					}
 				}
 				else {
-					ED_base_object_select(basact, BA_SELECT);
+					ED_object_base_select(basact, BA_SELECT);
 				}
 			}
 			else {
-				deselectall_except(scene, basact);
-				ED_base_object_select(basact, BA_SELECT);
+				deselectall_except(sl, basact);
+				ED_object_base_select(basact, BA_SELECT);
 			}
 
 			if ((oldbasact != basact) && (is_obedit == false)) {
-				ED_base_object_activate(C, basact); /* adds notifier */
+				ED_object_base_activate(C, basact); /* adds notifier */
 			}
 		}
 

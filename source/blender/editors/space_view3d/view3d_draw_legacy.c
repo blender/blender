@@ -1299,7 +1299,7 @@ void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, BaseLegacy *base
 	/* define the color here so draw_dupli_objects_color can be called
 	 * from the set loop */
 	
-	int color = (base->flag_legacy & SELECT) ? TH_SELECT : TH_WIRE;
+	int color = (base->flag & BASE_SELECTED) ? TH_SELECT : TH_WIRE;
 	/* debug */
 	if (base->object->dup_group && base->object->dup_group->id.us < 1)
 		color = TH_REDALERT;
