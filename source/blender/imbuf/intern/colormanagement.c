@@ -1581,12 +1581,12 @@ static void processor_transform_init_handle(void *handle_v, int start_line, int 
 	ProcessorTransformThread *handle = (ProcessorTransformThread *) handle_v;
 	ProcessorTransformInitData *init_data = (ProcessorTransformInitData *) init_data_v;
 
-	int channels = init_data->channels;
-	int width = init_data->width;
-	bool predivide = init_data->predivide;
-	bool float_from_byte = init_data->float_from_byte;
+	const int channels = init_data->channels;
+	const int width = init_data->width;
+	const bool predivide = init_data->predivide;
+	const bool float_from_byte = init_data->float_from_byte;
 
-	size_t offset = ((size_t)channels) * start_line * width;
+	const size_t offset = ((size_t)channels) * start_line * width;
 
 	memset(handle, 0, sizeof(ProcessorTransformThread));
 
@@ -1615,11 +1615,11 @@ static void *do_processor_transform_thread(void *handle_v)
 	ProcessorTransformThread *handle = (ProcessorTransformThread *) handle_v;
 	unsigned char *byte_buffer = handle->byte_buffer;
 	float *float_buffer = handle->float_buffer;
-	int channels = handle->channels;
-	int width = handle->width;
-	int height = handle->tot_line;
-	bool predivide = handle->predivide;
-	bool float_from_byte = handle->float_from_byte;
+	const int channels = handle->channels;
+	const int width = handle->width;
+	const int height = handle->tot_line;
+	const bool predivide = handle->predivide;
+	const bool float_from_byte = handle->float_from_byte;
 
 	if (float_from_byte) {
 		IMB_buffer_float_from_byte(float_buffer, byte_buffer,
