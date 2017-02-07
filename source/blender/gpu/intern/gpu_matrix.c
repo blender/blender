@@ -699,3 +699,11 @@ bool gpuMatricesDirty()
 {
 	return state.dirty;
 }
+
+#if SUPPORT_LEGACY_MATRIX
+void gpuMatrixUpdate_legacy()
+{
+	BLI_assert(state.mode == MATRIX_MODE_INACTIVE);
+	state.dirty = true;
+}
+#endif
