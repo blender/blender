@@ -19,7 +19,18 @@
  *
  */
 
-#ifndef __DRW_DEFINES_H__
-#define __DRW_DEFINES_H__
+/** \file clay.h
+ *  \ingroup DNA
+ */
 
-#endif  /* __DRW_DEFINES_H__ */
+#ifndef __ENGINE_CLAY_H__
+#define __ENGINE_CLAY_H__
+
+extern RenderEngineType viewport_clay_type;
+
+struct RenderEngineSettings *CLAY_render_settings_create(void);
+struct MaterialEngineSettings *CLAY_material_settings_create(void);
+
+void clay_engine_free(void);
+
+#endif /* __ENGINE_CLAY_H__ */

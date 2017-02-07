@@ -242,6 +242,8 @@ endif()
 option(WITH_PLAYER        "Build Player" OFF)
 option(WITH_OPENCOLORIO   "Enable OpenColorIO color management" ${_init_OPENCOLORIO})
 
+option(WITH_CLAY_ENGINE    "Enable New Clay engine (Breaks Mac and Intel compatibility)" ON)
+
 # Compositor
 option(WITH_COMPOSITOR         "Enable the tile based nodal compositor" ON)
 

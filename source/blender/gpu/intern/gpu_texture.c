@@ -91,6 +91,7 @@ static GLenum GPU_texture_get_format(int components, GPUTextureFormat data_type,
 		/* Formats texture & renderbuffer */
 		case GPU_RGBA16F: return GL_RGBA16F;
 		case GPU_RG32F: return GL_RG32F;
+		case GPU_RG16F: return GL_RG16F;
 		case GPU_RGBA8: return GL_RGBA8;
 		case GPU_R8: return GL_R8;
 		/* Special formats texture & renderbuffer */

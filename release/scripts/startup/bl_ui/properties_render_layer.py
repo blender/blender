@@ -48,7 +48,7 @@ class RENDERLAYER_UL_renderlayers(UIList):
 class RENDERLAYER_PT_layers(RenderLayerButtonsPanel, Panel):
     bl_label = "Layer List"
     bl_options = {'HIDE_HEADER'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY'}
 
     def draw(self, context):
         layout = self.layout

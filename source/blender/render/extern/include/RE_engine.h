@@ -39,6 +39,8 @@
 
 struct bNode;
 struct bNodeTree;
+struct CollectionEngineSettings;
+struct Main;
 struct Object;
 struct Render;
 struct RenderData;
@@ -63,6 +65,7 @@ struct BakePixel;
 #define RE_USE_TEXTURE_PREVIEW		128
 #define RE_USE_SHADING_NODES_CUSTOM 	256
 #define RE_USE_SPHERICAL_STEREO 512
+#define RE_USE_OGL_PIPELINE		1024
 
 /* RenderEngine.flag */
 #define RE_ENGINE_ANIMATION		1
@@ -96,6 +99,8 @@ typedef struct RenderEngineType {
 	void (*view_draw)(struct RenderEngine *engine, const struct bContext *context);
 
 	void (*update_script_node)(struct RenderEngine *engine, struct bNodeTree *ntree, struct bNode *node);
+
+	void (*collection_settings_create)(struct RenderEngine *engine, struct CollectionEngineSettings *ces);
 
 	/* RNA integration */
 	ExtensionRNA ext;
@@ -164,6 +169,7 @@ void RE_engine_frame_set(struct RenderEngine *engine, int frame, float subframe)
 
 void RE_engines_init(void);
 void RE_engines_exit(void);
+void RE_engines_register(struct Main *bmain, RenderEngineType *render_type);
 
 RenderEngineType *RE_engines_find(const char *idname);
 

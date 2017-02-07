@@ -192,6 +192,10 @@ if(WITH_GAMEENGINE)
 	add_definitions(-DWITH_GAMEENGINE)
 endif()
 
+if(WITH_CLAY_ENGINE)
+	add_definitions(-DWITH_CLAY_ENGINE)
+endif()
+
 if(WITH_IMAGE_OPENEXR)
 	add_definitions(-DWITH_OPENEXR)
 endif()
@@ -341,6 +345,7 @@ blender_include_dirs(
 	../../bmesh
 	../../blentranslation
 	../../depsgraph
+	../../draw
 	../../gpu
 	../../imbuf
 	../../ikplugin

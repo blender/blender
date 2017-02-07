@@ -586,6 +586,7 @@ static void view3d_main_region_exit(wmWindowManager *wm, ARegion *ar)
 
 	if (rv3d->viewport) {
 		GPU_viewport_free(rv3d->viewport);
+		MEM_freeN(rv3d->viewport);
 		rv3d->viewport = NULL;
 	}
 }
@@ -747,6 +748,7 @@ static void view3d_main_region_free(ARegion *ar)
 		}
 		if (rv3d->viewport) {
 			GPU_viewport_free(rv3d->viewport);
+			MEM_freeN(rv3d->viewport);
 		}
 
 		MEM_freeN(rv3d);

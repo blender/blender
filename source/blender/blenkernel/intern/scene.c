@@ -109,6 +109,7 @@
 
 const char *RE_engine_id_BLENDER_RENDER = "BLENDER_RENDER";
 const char *RE_engine_id_BLENDER_GAME = "BLENDER_GAME";
+const char *RE_engine_id_BLENDER_CLAY = "BLENDER_CLAY";
 const char *RE_engine_id_CYCLES = "CYCLES";
 
 void free_avicodecdata(AviCodecData *acd)
@@ -566,6 +567,13 @@ void BKE_scene_free(Scene *sce)
 	BKE_collection_master_free(sce);
 	MEM_freeN(sce->collection);
 	sce->collection = NULL;
+
+	/* Runtime Engine Data */
+	for (RenderEngineSettings *res = sce->engines_settings.first; res; res = res->next) {
+		if (res->data)
+			MEM_freeN(res->data);
+	}
+	BLI_freelistN(&sce->engines_settings);
 }
 
 void BKE_scene_init(Scene *sce)

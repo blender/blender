@@ -37,6 +37,7 @@
 #include "GPU_debug.h"
 #include "GPU_extensions.h"
 #include "GPU_shader.h"
+#include "GPU_uniformbuffer.h"
 #include "GPU_texture.h"
 
 #include "gpu_shader_private.h"
@@ -64,9 +65,15 @@ extern char datatoc_gpu_shader_image_modulate_alpha_frag_glsl[];
 extern char datatoc_gpu_shader_image_rect_modulate_alpha_frag_glsl[];
 extern char datatoc_gpu_shader_image_depth_linear_frag_glsl[];
 extern char datatoc_gpu_shader_3D_vert_glsl[];
+extern char datatoc_gpu_shader_3D_instance_vert_glsl[];
 extern char datatoc_gpu_shader_3D_flat_color_vert_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_vert_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
+
+extern char datatoc_gpu_shader_3D_groundpoint_vert_glsl[];
+extern char datatoc_gpu_shader_3D_groundline_vert_glsl[];
+extern char datatoc_gpu_shader_3D_groundline_geom_glsl[];
+extern char datatoc_gpu_shader_3D_lamp_vert_glsl[];
 
 extern char datatoc_gpu_shader_point_uniform_color_frag_glsl[];
 extern char datatoc_gpu_shader_point_uniform_color_smooth_frag_glsl[];
@@ -511,9 +518,22 @@ int GPU_shader_get_uniform(GPUShader *shader, const char *name)
 	return glGetUniformLocation(shader->program, name);
 }
 
+int GPU_shader_get_uniform_block(GPUShader *shader, const char *name)
+{
+	BLI_assert(shader && shader->program);
+
+	return glGetUniformBlockIndex(shader->program, name);
+}
+
 void *GPU_shader_get_interface(GPUShader *shader)
 {
 	return shader->uniform_interface;
+}
+
+/* Clement : Temp */
+int GPU_shader_get_program(GPUShader *shader)
+{
+	return (int)shader->program;
 }
 
 void GPU_shader_set_interface(GPUShader *shader, void *interface)
@@ -561,6 +581,17 @@ void GPU_shader_geometry_stage_primitive_io(GPUShader *shader, int input, int ou
 		glProgramParameteriEXT(shader->program, GL_GEOMETRY_OUTPUT_TYPE_EXT, output);
 		glProgramParameteriEXT(shader->program, GL_GEOMETRY_VERTICES_OUT_EXT, number);
 	}
+}
+
+void GPU_shader_uniform_buffer(GPUShader *shader, int location, GPUUniformBuffer *ubo)
+{
+	int bindpoint = GPU_uniformbuffer_bindpoint(ubo);
+
+	if (location == -1) {
+		return;
+	}
+
+	glUniformBlockBinding(shader->program, location, bindpoint);
 }
 
 void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUTexture *tex)
@@ -645,11 +676,20 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		[GPU_SHADER_2D_IMAGE_COLOR] = { datatoc_gpu_shader_2D_image_vert_glsl,
 		                                datatoc_gpu_shader_image_color_frag_glsl },
 		[GPU_SHADER_3D_UNIFORM_COLOR] = { datatoc_gpu_shader_3D_vert_glsl, datatoc_gpu_shader_uniform_color_frag_glsl },
+		[GPU_SHADER_3D_UNIFORM_COLOR_INSTANCE] = { datatoc_gpu_shader_3D_instance_vert_glsl, datatoc_gpu_shader_uniform_color_frag_glsl },
 		[GPU_SHADER_3D_FLAT_COLOR] = { datatoc_gpu_shader_3D_flat_color_vert_glsl,
 		                               datatoc_gpu_shader_flat_color_frag_glsl },
 		[GPU_SHADER_3D_SMOOTH_COLOR] = { datatoc_gpu_shader_3D_smooth_color_vert_glsl,
 		                                 datatoc_gpu_shader_3D_smooth_color_frag_glsl },
 		[GPU_SHADER_3D_DEPTH_ONLY] = { datatoc_gpu_shader_3D_vert_glsl, datatoc_gpu_shader_depth_only_frag_glsl },
+
+		[GPU_SHADER_3D_GROUNDPOINT] = { datatoc_gpu_shader_3D_groundpoint_vert_glsl, datatoc_gpu_shader_point_uniform_color_frag_glsl },
+		[GPU_SHADER_3D_GROUNDLINE] = { datatoc_gpu_shader_3D_groundline_vert_glsl,
+		                               datatoc_gpu_shader_uniform_color_frag_glsl,
+		                               datatoc_gpu_shader_3D_groundline_geom_glsl },
+
+		[GPU_SHADER_3D_LAMP_COMMON] = { datatoc_gpu_shader_3D_lamp_vert_glsl,
+		                                datatoc_gpu_shader_uniform_color_frag_glsl},
 
 		[GPU_SHADER_2D_POINT_FIXED_SIZE_UNIFORM_COLOR] =
 			{ datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_point_uniform_color_frag_glsl },

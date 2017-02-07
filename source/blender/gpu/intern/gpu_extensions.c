@@ -69,6 +69,8 @@ static struct GPUGlobal {
 	GLint maxtexsize;
 	GLint maxcubemapsize;
 	GLint maxtextures;
+	GLint maxubosize;
+	GLint maxubobinds;
 	bool extdisabled;
 	int colordepth;
 	int samples_color_texture_max;
@@ -121,6 +123,16 @@ int GPU_max_cube_map_size(void)
 	return GG.maxcubemapsize;
 }
 
+int GPU_max_ubo_binds(void)
+{
+	return GG.maxubobinds;
+}
+
+int GPU_max_ubo_size(void)
+{
+	return GG.maxubosize;
+}
+
 void GPU_get_dfdy_factors(float fac[2])
 {
 	copy_v2_v2(fac, GG.dfdyfactors);
@@ -153,6 +165,9 @@ void gpu_extensions_init(void)
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &GG.max_anisotropy);
 	else
 		GG.max_anisotropy = 1.0f;
+
+	glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &GG.maxubobinds);
+	glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &GG.maxubosize);
 
 	GLint r, g, b;
 	glGetIntegerv(GL_RED_BITS, &r);

@@ -45,6 +45,7 @@
 #include "BKE_camera.h"
 #include "BKE_global.h"
 #include "BKE_colortools.h"
+#include "BKE_layer.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
@@ -58,6 +59,8 @@
 #include "RE_pipeline.h"
 #include "RE_bake.h"
 
+#include "DRW_engine.h"
+
 #include "initrender.h"
 #include "renderpipeline.h"
 #include "render_types.h"
@@ -68,7 +71,7 @@
 static RenderEngineType internal_render_type = {
 	NULL, NULL,
 	"BLENDER_RENDER", N_("Blender Render"), RE_INTERNAL,
-	NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 	{NULL, NULL, NULL}
 };
 
@@ -77,7 +80,7 @@ static RenderEngineType internal_render_type = {
 static RenderEngineType internal_game_type = {
 	NULL, NULL,
 	"BLENDER_GAME", N_("Blender Game"), RE_INTERNAL | RE_GAME,
-	NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 	{NULL, NULL, NULL}
 };
 
@@ -87,15 +90,20 @@ ListBase R_engines = {NULL, NULL};
 
 void RE_engines_init(void)
 {
-	BLI_addtail(&R_engines, &internal_render_type);
+	RE_engines_register(NULL, &internal_render_type);
 #ifdef WITH_GAMEENGINE
-	BLI_addtail(&R_engines, &internal_game_type);
+	RE_engines_register(NULL, &internal_game_type);
 #endif
+	DRW_engines_init();
 }
 
 void RE_engines_exit(void)
 {
 	RenderEngineType *type, *next;
+
+	DRW_engines_free();
+
+	BKE_layer_collection_engine_settings_callback_free();
 
 	for (type = R_engines.first; type; type = next) {
 		next = type->next;
@@ -109,6 +117,14 @@ void RE_engines_exit(void)
 			MEM_freeN(type);
 		}
 	}
+}
+
+void RE_engines_register(Main *bmain, RenderEngineType *render_type)
+{
+	if (render_type->collection_settings_create) {
+		BKE_layer_collection_engine_settings_callback_register(bmain, render_type->idname, render_type->collection_settings_create);
+	}
+	BLI_addtail(&R_engines, render_type);
 }
 
 RenderEngineType *RE_engines_find(const char *idname)

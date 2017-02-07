@@ -2098,12 +2098,42 @@ static void view3d_draw_view(const bContext *C, ARegion *ar, DrawData *draw_data
 #endif
 }
 
+static void view3d_render_pass(const bContext *C, ARegion *ar)
+{
+	Scene *scene = CTX_data_scene(C);
+	RenderEngineType *type = RE_engines_find(scene->r.engine); /* In the future we should get that from Layers */
+
+	if (type->flag & RE_USE_OGL_PIPELINE) {
+		type->view_draw(NULL, C);
+	}
+	else {
+		// Offline Render engine
+	}
+}
+
+static void view3d_draw_view_new(const bContext *C, ARegion *ar, DrawData *UNUSED(draw_data))
+{
+
+	view3d_draw_setup_view(C, ar);
+
+	/* Only 100% compliant on new spec goes bellow */
+	view3d_render_pass(C, ar);
+
+	view3d_draw_grid(C, ar);
+	view3d_draw_manipulator(C);
+	view3d_draw_region_info(C, ar);
+}
+
+
 void view3d_main_region_draw(const bContext *C, ARegion *ar)
 {
+	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ar->regiondata;
+	/* TODO layers - In the future we should get RE from Layers */
+	RenderEngineType *type = RE_engines_find(scene->r.engine);
 
-	if (IS_VIEWPORT_LEGACY(v3d)) {
+	if (IS_VIEWPORT_LEGACY(v3d) && ((type->flag & RE_USE_OGL_PIPELINE) == 0)) {
 		view3d_main_region_draw_legacy(C, ar);
 		return;
 	}
@@ -2111,12 +2141,20 @@ void view3d_main_region_draw(const bContext *C, ARegion *ar)
 	if (!rv3d->viewport)
 		rv3d->viewport = GPU_viewport_create();
 
+	GPU_viewport_bind(rv3d->viewport, &ar->winrct);
+
 	/* TODO viewport - there is so much to be done, in fact a lot will need to happen in the space_view3d.c
 	 * before we even call the drawing routine, but let's move on for now (dfelinto)
 	 * but this is a provisory way to start seeing things in the viewport */
 	DrawData draw_data;
 	view3d_draw_data_init(C, ar, rv3d, &draw_data);
-	view3d_draw_view(C, ar, &draw_data);
+
+	if (type->flag & RE_USE_OGL_PIPELINE)
+		view3d_draw_view_new(C, ar, &draw_data);
+	else
+		view3d_draw_view(C, ar, &draw_data);
+
+	GPU_viewport_unbind(rv3d->viewport);
 
 	v3d->flag |= V3D_INVALID_BACKBUF;
 }

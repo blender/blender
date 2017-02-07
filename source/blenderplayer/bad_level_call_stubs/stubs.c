@@ -186,6 +186,7 @@ struct wmWindowManager;
 #include "../blender/render/extern/include/RE_pipeline.h"
 #include "../blender/render/extern/include/RE_render_ext.h"
 #include "../blender/render/extern/include/RE_shader_ext.h"
+#include "../blender/draw/DRW_engine.h"
 #include "../blender/windowmanager/WM_api.h"
 
 
@@ -663,6 +664,7 @@ void RE_ReleaseResultImage(struct Render *re) RET_NONE
 int RE_engine_test_break(struct RenderEngine *engine) RET_ZERO
 void RE_engines_init() RET_NONE
 void RE_engines_exit() RET_NONE
+void RE_engines_register(struct Main *bmain, RenderEngineType *render_type) RET_NONE
 void RE_engine_report(struct RenderEngine *engine, int type, const char *msg) RET_NONE
 ListBase R_engines = {NULL, NULL};
 void RE_engine_free(struct RenderEngine *engine) RET_NONE
@@ -678,6 +680,9 @@ void RE_point_density_free(struct PointDensity *pd) RET_NONE;
 void RE_instance_get_particle_info(struct ObjectInstanceRen *obi, float *index, float *age, float *lifetime, float co[3], float *size, float vel[3], float angvel[3]) RET_NONE
 void RE_FreeAllPersistentData(void) RET_NONE
 float RE_fresnel_dielectric(float incoming[3], float normal[3], float eta) RET_ZERO
+
+/* Draw */
+void *DRW_render_settings_get(struct Scene *scene, const char *engine_name) RET_NULL
 
 /* python */
 struct wmOperatorType *WM_operatortype_find(const char *idname, bool quiet) RET_NULL

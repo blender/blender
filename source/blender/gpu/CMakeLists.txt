@@ -31,6 +31,7 @@ set(INC
 	../imbuf
 	../makesdna
 	../makesrna
+	../draw
 
 	../editors/include
 
@@ -64,6 +65,7 @@ set(SRC
 	intern/gpu_select.c
 	intern/gpu_shader.c
 	intern/gpu_texture.c
+	intern/gpu_uniformbuffer.c
 	intern/gpu_viewport.c
 
 	gawain/attrib_binding.c
@@ -122,6 +124,7 @@ set(SRC
 	GPU_select.h
 	GPU_shader.h
 	GPU_texture.h
+	GPU_uniformbuffer.h
 	GPU_viewport.h
 
 	intern/gpu_codegen.h
@@ -145,9 +148,15 @@ data_to_c_simple(shaders/gpu_shader_image_depth_linear_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_image_interlace_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_image_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_3D_instance_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_flat_color_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_smooth_color_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_smooth_color_frag.glsl SRC)
+
+data_to_c_simple(shaders/gpu_shader_3D_groundpoint_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_3D_groundline_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_3D_groundline_geom.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_3D_lamp_vert.glsl SRC)
 
 data_to_c_simple(shaders/gpu_shader_point_uniform_color_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_point_uniform_color_smooth_frag.glsl SRC)

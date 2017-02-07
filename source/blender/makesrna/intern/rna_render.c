@@ -261,6 +261,24 @@ static void engine_update_script_node(RenderEngine *engine, struct bNodeTree *nt
 	RNA_parameter_list_free(&list);
 }
 
+static void engine_collection_settings_create(RenderEngine *engine, struct CollectionEngineSettings *ces)
+{
+	extern FunctionRNA rna_RenderEngine_collection_settings_create_func;
+	PointerRNA ptr,cesptr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
+	RNA_pointer_create(NULL, &RNA_CollectionEngineSettings, ces, &cesptr);
+	func = &rna_RenderEngine_collection_settings_create_func;
+
+	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "collection_settings", &cesptr);
+	engine->type->ext.call(NULL, &ptr, func, &list);
+
+	RNA_parameter_list_free(&list);
+}
+
 /* RenderEngine registration */
 
 static void rna_RenderEngine_unregister(Main *UNUSED(bmain), StructRNA *type)
@@ -281,7 +299,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, vo
 	RenderEngineType *et, dummyet = {NULL};
 	RenderEngine dummyengine = {NULL};
 	PointerRNA dummyptr;
-	int have_function[6];
+	int have_function[7];
 
 	/* setup dummy engine & engine type to store static properties in */
 	dummyengine.type = &dummyet;
@@ -323,8 +341,9 @@ static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, vo
 	et->view_update = (have_function[3]) ? engine_view_update : NULL;
 	et->view_draw = (have_function[4]) ? engine_view_draw : NULL;
 	et->update_script_node = (have_function[5]) ? engine_update_script_node : NULL;
+	et->collection_settings_create = (have_function[6]) ? engine_collection_settings_create : NULL;
 
-	BLI_addtail(&R_engines, et);
+	RE_engines_register(bmain, et);
 
 	return et->ext.srna;
 }
@@ -487,6 +506,13 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Compile shader script node");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "node", "Node", "", "");
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
+
+	/* per-collection engine settings initialization */
+	func = RNA_def_function(srna, "collection_settings_create", NULL);
+	RNA_def_function_ui_description(func, "Create the per collection settings for the engine");
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
+	parm = RNA_def_pointer(func, "collection_settings", "CollectionEngineSettings", "", "");
 	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 
 	/* tag for redraw */

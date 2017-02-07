@@ -53,6 +53,8 @@ int GPU_max_textures(void);
 float GPU_max_texture_anisotropy(void);
 int GPU_max_color_texture_samples(void);
 int GPU_max_cube_map_size(void);
+int GPU_max_ubo_binds(void);
+int GPU_max_ubo_size(void);
 int GPU_color_depth(void);
 void GPU_get_dfdy_factors(float fac[2]);
 

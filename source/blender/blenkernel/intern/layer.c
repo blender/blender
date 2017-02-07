@@ -45,9 +45,12 @@
 #include "MEM_guardedalloc.h"
 
 /* prototype */
+struct CollectionEngineSettingsCB_Type;
 static void layer_collection_free(SceneLayer *sl, LayerCollection *lc);
 static LayerCollection *layer_collection_add(SceneLayer *sl, ListBase *lb, SceneCollection *sc);
 static LayerCollection *find_layer_collection_by_scene_collection(LayerCollection *lc, const SceneCollection *sc);
+static void collection_engine_settings_create(ListBase *lb, struct CollectionEngineSettingsCB_Type *ces_type);
+static void layer_collection_create_engine_settings(LayerCollection *lc);
 static void object_bases_Iterator_next(Iterator *iter, const int flag);
 
 /* RenderLayer */
@@ -254,6 +257,35 @@ void BKE_scene_layer_base_flag_recalculate(SceneLayer *sl)
 			base->flag &= ~BASE_SELECTED;
 		}
 	}
+
+	BKE_scene_layer_engine_settings_recalculate(sl);
+}
+
+/**
+ * Tag Scene Layer to recalculation
+ *
+ * Temporary function, waiting for real depsgraph
+ */
+void BKE_scene_layer_engine_settings_recalculate(struct SceneLayer *sl)
+{
+	sl->flag |= SCENE_LAYER_ENGINE_DIRTY;
+}
+
+/**
+ * Re-calculate the engine settings for all the objects in SceneLayer
+ *
+ * Temporary function, waiting for real depsgraph
+ */
+void BKE_scene_layer_engine_settings_update(struct SceneLayer *sl)
+{
+	if ((sl->flag & SCENE_LAYER_ENGINE_DIRTY) == 0) {
+		return;
+	}
+
+	/* do the complete settings update */
+	TODO_LAYER_DEPSGRAPH;
+
+	sl->flag &= ~SCENE_LAYER_ENGINE_DIRTY;
 }
 
 /**
@@ -292,10 +324,12 @@ static void layer_collection_free(SceneLayer *sl, LayerCollection *lc)
 
 	BLI_freelistN(&lc->object_bases);
 	BLI_freelistN(&lc->overrides);
+	BKE_layer_collection_engine_settings_free(&lc->engine_settings);
 
 	for (LayerCollection *nlc = lc->layer_collections.first; nlc; nlc = nlc->next) {
 		layer_collection_free(sl, nlc);
 	}
+
 	BLI_freelistN(&lc->layer_collections);
 }
 
@@ -467,6 +501,7 @@ static LayerCollection *layer_collection_add(SceneLayer *sl, ListBase *lb, Scene
 	lc->scene_collection = sc;
 	lc->flag = COLLECTION_VISIBLE + COLLECTION_SELECTABLE + COLLECTION_FOLDED;
 
+	layer_collection_create_engine_settings(lc);
 	layer_collection_populate(sl, lc, sc);
 	return lc;
 }
@@ -576,6 +611,211 @@ void BKE_layer_sync_object_unlink(Scene *scene, SceneCollection *sc, Object *ob)
 void BKE_collection_override_datablock_add(LayerCollection *UNUSED(lc), const char *UNUSED(data_path), ID *UNUSED(id))
 {
 	TODO_LAYER_OVERRIDE;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Engine Settings */
+
+ListBase R_engines_settings_callbacks = {NULL, NULL};
+
+typedef struct CollectionEngineSettingsCB_Type {
+	struct CollectionEngineSettingsCB_Type *next, *prev;
+
+	char name[MAX_NAME]; /* engine name */
+
+	CollectionEngineSettingsCB callback;
+
+} CollectionEngineSettingsCB_Type;
+
+static void create_engine_settings_layer_collection(LayerCollection *lc, CollectionEngineSettingsCB_Type *ces_type)
+{
+	if (BKE_layer_collection_engine_get(lc, ces_type->name)) {
+		return;
+	}
+
+	collection_engine_settings_create(&lc->engine_settings, ces_type);
+
+	for (LayerCollection *lcn = lc->layer_collections.first; lcn; lcn = lcn->next) {
+		create_engine_settings_layer_collection(lcn, ces_type);
+	}
+}
+
+static void create_engines_settings_scene(Scene *scene, CollectionEngineSettingsCB_Type *ces_type)
+{
+	for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
+		for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
+			create_engine_settings_layer_collection(lc, ces_type);
+		}
+	}
+}
+
+void BKE_layer_collection_engine_settings_callback_register(
+        Main *bmain, const char *engine_name, CollectionEngineSettingsCB func)
+{
+	CollectionEngineSettingsCB_Type	*ces_type;
+
+	/* cleanup in case it existed */
+	ces_type = BLI_findstring(&R_engines_settings_callbacks, engine_name, offsetof(CollectionEngineSettingsCB_Type, name));
+
+	if (ces_type) {
+		BLI_remlink(&R_engines_settings_callbacks, ces_type);
+		MEM_freeN(ces_type);
+	}
+
+	ces_type = MEM_callocN(sizeof(CollectionEngineSettingsCB_Type), "collection_engine_type");
+	BLI_strncpy_utf8(ces_type->name, engine_name, sizeof(ces_type->name));
+	ces_type->callback = func;
+	BLI_addtail(&R_engines_settings_callbacks, ces_type);
+
+	if (bmain) {
+		/* populate all of the collections of the scene with those settings */
+		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			create_engines_settings_scene(scene, ces_type);
+		}
+	}
+}
+
+void BKE_layer_collection_engine_settings_callback_free(void)
+{
+	BLI_freelistN(&R_engines_settings_callbacks);
+}
+
+static void collection_engine_settings_create(ListBase *lb, CollectionEngineSettingsCB_Type *ces_type)
+{
+	/* create callback data */
+	CollectionEngineSettings *ces = MEM_callocN(sizeof(CollectionEngineSettings), "Collection Engine Settings");
+	BLI_strncpy_utf8(ces->name, ces_type->name, sizeof(ces->name));
+	BLI_addtail(lb, ces);
+
+	/* call callback */
+	ces_type->callback(NULL, ces);
+}
+
+/**
+ * Initialize a CollectionEngineSettings
+ *
+ * Usually we would pass LayerCollection->engine_settings
+ * But depsgraph uses this for Object->collection_settings
+ */
+void BKE_layer_collection_engine_settings_create(ListBase *lb, const char *engine_name)
+{
+	CollectionEngineSettingsCB_Type *ces_type;
+	ces_type = BLI_findstring(&R_engines_settings_callbacks, engine_name, offsetof(CollectionEngineSettingsCB_Type, name));
+	BLI_assert(ces_type);
+	collection_engine_settings_create(lb, ces_type);
+}
+
+/**
+ * Free the CollectionEngineSettings ListBase
+ *
+ * Usually we would pass LayerCollection->engine_settings
+ * But depsgraph uses this for Object->collection_settings
+ */
+void BKE_layer_collection_engine_settings_free(ListBase *lb)
+{
+	for (CollectionEngineSettings *cse = lb->first; cse; cse = cse->next) {
+		BLI_freelistN(&cse->properties);
+	}
+	BLI_freelistN(lb);
+}
+
+/**
+ * Initialize the render settings for a single LayerCollection
+ */
+static void layer_collection_create_engine_settings(LayerCollection *lc)
+{
+	CollectionEngineSettingsCB_Type *ces_type;
+	for (ces_type = R_engines_settings_callbacks.first; ces_type; ces_type = ces_type->next) {
+		create_engine_settings_layer_collection(lc, ces_type);
+	}
+}
+
+/**
+ * Return layer collection engine settings for specified engine
+ */
+CollectionEngineSettings *BKE_layer_collection_engine_get(LayerCollection *lc, const char *engine_name)
+{
+	CollectionEngineSettings *ces;
+	ces = BLI_findstring(&lc->engine_settings, engine_name, offsetof(CollectionEngineSettings, name));
+	return ces;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Engine Settings Properties */
+
+void BKE_collection_engine_property_add_float(CollectionEngineSettings *ces, const char *name, float value)
+{
+	CollectionEnginePropertyFloat *prop;
+	prop = MEM_callocN(sizeof(CollectionEnginePropertyFloat), "collection engine settings float");
+	prop->data.type = COLLECTION_PROP_TYPE_FLOAT;
+	BLI_strncpy_utf8(prop->data.name, name, sizeof(prop->data.name));
+	prop->value = value;
+	BLI_addtail(&ces->properties, prop);
+}
+
+void BKE_collection_engine_property_add_int(CollectionEngineSettings *ces, const char *name, int value)
+{
+	CollectionEnginePropertyInt *prop;
+	prop = MEM_callocN(sizeof(CollectionEnginePropertyInt), "collection engine settings int");
+	prop->data.type = COLLECTION_PROP_TYPE_INT;
+	BLI_strncpy_utf8(prop->data.name, name, sizeof(prop->data.name));
+	prop->value = value;
+	BLI_addtail(&ces->properties, prop);
+}
+
+CollectionEngineProperty *BKE_collection_engine_property_get(CollectionEngineSettings *ces, const char *name)
+{
+	return BLI_findstring(&ces->properties, name, offsetof(CollectionEngineProperty, name));
+}
+
+int BKE_collection_engine_property_value_get_int(CollectionEngineSettings *ces, const char *name)
+{
+	CollectionEnginePropertyInt *prop;
+	prop = (CollectionEnginePropertyInt *)BLI_findstring(&ces->properties, name, offsetof(CollectionEngineProperty, name));
+	return prop->value;
+}
+
+float BKE_collection_engine_property_value_get_float(CollectionEngineSettings *ces, const char *name)
+{
+	CollectionEnginePropertyFloat *prop;
+	prop = (CollectionEnginePropertyFloat *)BLI_findstring(&ces->properties, name, offsetof(CollectionEngineProperty, name));
+	return prop->value;
+}
+
+void BKE_collection_engine_property_value_set_int(CollectionEngineSettings *ces, const char *name, int value)
+{
+	CollectionEnginePropertyInt *prop;
+	prop = (CollectionEnginePropertyInt *)BLI_findstring(&ces->properties, name, offsetof(CollectionEngineProperty, name));
+	prop->value = value;
+	prop->data.flag |= COLLECTION_PROP_USE;
+}
+
+void BKE_collection_engine_property_value_set_float(CollectionEngineSettings *ces, const char *name, float value)
+{
+	CollectionEnginePropertyFloat *prop;
+	prop = (CollectionEnginePropertyFloat *)BLI_findstring(&ces->properties, name, offsetof(CollectionEngineProperty, name));
+	prop->value = value;
+	prop->data.flag |= COLLECTION_PROP_USE;
+}
+
+bool BKE_collection_engine_property_use_get(CollectionEngineSettings *ces, const char *name)
+{
+	CollectionEngineProperty *prop;
+	prop = (CollectionEngineProperty *)BLI_findstring(&ces->properties, name, offsetof(CollectionEngineProperty, name));
+	return ((prop->flag & COLLECTION_PROP_USE) != 0);
+}
+
+void BKE_collection_engine_property_use_set(CollectionEngineSettings *ces, const char *name, bool value)
+{
+	CollectionEngineProperty *prop;
+	prop = (CollectionEngineProperty *)BLI_findstring(&ces->properties, name, offsetof(CollectionEngineProperty, name));
+
+	if (value) {
+		prop->flag |= COLLECTION_PROP_USE;
+	}
+	else {
+		prop->flag &= ~COLLECTION_PROP_USE;
+	}
 }
 
 /* ---------------------------------------------------------------------- */

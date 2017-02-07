@@ -47,7 +47,7 @@
 /* Mesh Interface */
 
 #define MESH_RENDER_FUNCTION(func_name)     \
-	if (me->edit_btmesh) {                  \
+	if (me->edit_btmesh && me->edit_btmesh->derivedFinal) { \
 	    return mesh_bmesh_##func_name(me);  \
 	}                                       \
 	else {                                  \

@@ -38,6 +38,7 @@ extern "C" {
 
 typedef struct GPUShader GPUShader;
 struct GPUTexture;
+struct GPUUniformBuffer;
 
 /* GPU Shader
  * - only for fragment shaders now
@@ -69,14 +70,17 @@ void GPU_shader_free(GPUShader *shader);
 void GPU_shader_bind(GPUShader *shader);
 void GPU_shader_unbind(void);
 
+int GPU_shader_get_program(GPUShader *shader);
 void *GPU_shader_get_interface(GPUShader *shader);
 void GPU_shader_set_interface(GPUShader *shader, void *interface);
 int GPU_shader_get_uniform(GPUShader *shader, const char *name);
+int GPU_shader_get_uniform_block(GPUShader *shader, const char *name);
 void GPU_shader_uniform_vector(GPUShader *shader, int location, int length,
 	int arraysize, const float *value);
 void GPU_shader_uniform_vector_int(GPUShader *shader, int location, int length,
 	int arraysize, const int *value);
 
+void GPU_shader_uniform_buffer(GPUShader *shader, int location, struct GPUUniformBuffer *ubo);
 void GPU_shader_uniform_texture(GPUShader *shader, int location, struct GPUTexture *tex);
 void GPU_shader_uniform_int(GPUShader *shader, int location, int value);
 void GPU_shader_geometry_stage_primitive_io(GPUShader *shader, int input, int output, int number);
@@ -104,6 +108,7 @@ typedef enum GPUBuiltinShader {
 	GPU_SHADER_2D_IMAGE_COLOR,
 	/* for simple 3D drawing */
 	GPU_SHADER_3D_UNIFORM_COLOR,
+	GPU_SHADER_3D_UNIFORM_COLOR_INSTANCE,
 	GPU_SHADER_3D_FLAT_COLOR,
 	GPU_SHADER_3D_SMOOTH_COLOR,
 	GPU_SHADER_3D_DEPTH_ONLY,
@@ -126,6 +131,10 @@ typedef enum GPUBuiltinShader {
 	GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_SMOOTH,
 	GPU_SHADER_3D_POINT_VARYING_SIZE_UNIFORM_COLOR,
 	GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR,
+	/* lamp drawing */
+	GPU_SHADER_3D_GROUNDPOINT,
+	GPU_SHADER_3D_GROUNDLINE,
+	GPU_SHADER_3D_LAMP_COMMON,
 
 	GPU_NUM_BUILTIN_SHADERS /* (not an actual shader) */
 } GPUBuiltinShader;

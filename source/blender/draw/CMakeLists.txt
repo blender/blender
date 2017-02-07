@@ -26,37 +26,53 @@
 set(INC
 	.
 	intern
-	nodes
-	operations
+	engines/clay
+
 	../blenkernel
 	../blenlib
 	../blentranslation
 	../imbuf
+	../depsgraph
 	../makesdna
 	../makesrna
-	../windowmanager
-	../nodes
-	../nodes/composite
-	../nodes/intern
+	../gpu
+	../editors/include
+	../editors/space_view3d
 	../render/extern/include
 	../render/intern/include
-	../../../extern/clew/include
+
+	../../../intern/glew-mx
 	../../../intern/guardedalloc
-	../../../intern/atomic
 )
 
 set(INC_SYS
-
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
-	DRW_defines.h
+	intern/draw_manager.c
+	intern/draw_mode_pass.c
+	intern/draw_cache.c
+	engines/clay/clay.c
 
+	intern/DRW_render.h
+	intern/draw_mode_pass.h
+	intern/draw_cache.h
+	engines/clay/clay.h
+
+	./DRW_engine.h
 )
+
+if(WITH_CLAY_ENGINE)
+	add_definitions(-DWITH_CLAY_ENGINE)
+endif()
+
+data_to_c_simple(engines/clay/shaders/clay_frag.glsl SRC)
+data_to_c_simple(engines/clay/shaders/clay_vert.glsl SRC)
+data_to_c_simple(engines/clay/shaders/ssao_alchemy.glsl SRC)
+data_to_c_simple(engines/clay/shaders/ssao_groundtruth.glsl SRC)
 
 list(APPEND INC
 )
-
-endif()
 
 blender_add_lib(bf_draw "${SRC}" "${INC}" "${INC_SYS}")

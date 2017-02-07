@@ -39,13 +39,17 @@ extern "C" {
 #define TODO_LAYER_CONTEXT /* get/set current (context) SceneLayer */
 #define TODO_LAYER_BASE /* BaseLegacy to Base related TODO */
 #define TODO_LAYER_OPERATORS /* collection mamanger and property panel operators */
+#define TODO_LAYER_DEPSGRAPH /* placeholder for real Depsgraph fix */
 #define TODO_LAYER /* generic todo */
 
-struct Base;
-struct ID;
+struct CollectionEngineSettings;
 struct LayerCollection;
+struct ID;
+struct ListBase;
 struct Main;
 struct Object;
+struct Base;
+struct RenderEngine;
 struct Scene;
 struct SceneCollection;
 struct SceneLayer;
@@ -65,6 +69,9 @@ struct Base *BKE_scene_layer_base_find(struct SceneLayer *sl, struct Object *ob)
 void BKE_scene_layer_base_deselect_all(struct SceneLayer *sl);
 void BKE_scene_layer_base_select(struct SceneLayer *sl, struct Base *selbase);
 void BKE_scene_layer_base_flag_recalculate(struct SceneLayer *sl);
+
+void BKE_scene_layer_engine_settings_recalculate(struct SceneLayer *sl);
+void BKE_scene_layer_engine_settings_update(struct SceneLayer *sl);
 
 void BKE_layer_collection_free(struct SceneLayer *sl, struct LayerCollection *lc);
 
@@ -90,6 +97,24 @@ void BKE_layer_sync_object_unlink(struct Scene *scene, struct SceneCollection *s
 /* override */
 
 void BKE_collection_override_datablock_add(struct LayerCollection *lc, const char *data_path, struct ID *id);
+
+/* engine settings */
+typedef void (*CollectionEngineSettingsCB)(struct RenderEngine *engine, struct CollectionEngineSettings *ces);
+struct CollectionEngineSettings *BKE_layer_collection_engine_get(struct LayerCollection *lc, const char *engine_name);
+void BKE_layer_collection_engine_settings_callback_register(struct Main *bmain, const char *engine_name, CollectionEngineSettingsCB func);
+void BKE_layer_collection_engine_settings_callback_free(void);
+void BKE_layer_collection_engine_settings_create(struct ListBase *lb, const char *engine_name);
+void BKE_layer_collection_engine_settings_free(struct ListBase *lb);
+
+void BKE_collection_engine_property_add_float(struct CollectionEngineSettings *ces, const char *name, float value);
+void BKE_collection_engine_property_add_int(struct CollectionEngineSettings *ces, const char *name, int value);
+struct CollectionEngineProperty *BKE_collection_engine_property_get(struct CollectionEngineSettings *ces, const char *name);
+int BKE_collection_engine_property_value_get_int(struct CollectionEngineSettings *ces, const char *name);
+float BKE_collection_engine_property_value_get_float(struct CollectionEngineSettings *ces, const char *name);
+void BKE_collection_engine_property_value_set_int(struct CollectionEngineSettings *ces, const char *name, int value);
+void BKE_collection_engine_property_value_set_float(struct CollectionEngineSettings *ces, const char *name, float value);
+bool BKE_collection_engine_property_use_get(struct CollectionEngineSettings *ces, const char *name);
+void BKE_collection_engine_property_use_set(struct CollectionEngineSettings *ces, const char *name, bool value);
 
 /* iterators */
 
@@ -172,6 +197,9 @@ void BKE_visible_bases_Iterator_end(Iterator *iter);
 /* temporary hacky solution waiting for final depsgraph evaluation */
 #define DEG_OBJECT_ITER(sl_, ob_)                                             \
 {                                                                             \
+	/* temporary solution, waiting for depsgraph update */                    \
+	BKE_scene_layer_engine_settings_update(sl);                               \
+	                                                                          \
 	/* flush all the data to objects*/                                        \
 	Base *base_;                                                              \
 	for (base_ = sl->object_bases.first; base_; base_ = base_->next) {        \

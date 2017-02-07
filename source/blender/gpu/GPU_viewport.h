@@ -34,11 +34,51 @@
 
 #include <stdbool.h>
 
+#include "DNA_vec_types.h"
+
+#include "GPU_framebuffer.h"
+#include "GPU_texture.h"
+
 typedef struct GPUViewport GPUViewport;
 
-GPUViewport *GPU_viewport_create(void);
+#define MAX_BUFFERS 8
+#define MAX_TEXTURES 16
+#define MAX_PASSES 16
 
+/* All FramebufferLists are just the same pointers with different names */
+typedef struct FramebufferList {
+	struct GPUFrameBuffer *framebuffers[MAX_BUFFERS];
+} FramebufferList;
+
+typedef struct TextureList {
+	struct GPUTexture *textures[MAX_TEXTURES];
+} TextureList;
+
+typedef struct PassList {
+	struct DRWPass *passes[MAX_TEXTURES];
+} PassList;
+
+/* Buffer and textures used by the viewport by default */
+typedef struct DefaultFramebufferList {
+	struct GPUFrameBuffer *default_fb;
+} DefaultFramebufferList;
+
+typedef struct DefaultTextureList {
+	struct GPUTexture *color;
+	struct GPUTexture *depth;
+} DefaultTextureList;
+
+typedef struct DefaultPassList {
+	struct DRWPass *non_meshes_pass;
+	struct DRWPass *ob_center_pass;
+} DefaultPassList;
+
+GPUViewport *GPU_viewport_create(void);
+void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect);
+void GPU_viewport_unbind(GPUViewport *viewport);
 void GPU_viewport_free(GPUViewport *viewport);
+
+void GPU_viewport_get_engine_data(GPUViewport *viewport, void **fbs, void **txs, void **pss);
 
 /* debug */
 bool GPU_viewport_debug_depth_create(GPUViewport *viewport, int width, int height, char err_out[256]);

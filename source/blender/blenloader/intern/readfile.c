@@ -3970,6 +3970,7 @@ static void lib_link_material(FileData *fd, Main *main)
 static void direct_link_material(FileData *fd, Material *ma)
 {
 	int a;
+	MaterialEngineSettings *mes;
 	
 	ma->adt = newdataadr(fd, ma->adt);
 	direct_link_animdata(fd, ma->adt);
@@ -3990,6 +3991,11 @@ static void direct_link_material(FileData *fd, Material *ma)
 	
 	ma->preview = direct_link_preview_image(fd, ma->preview);
 	BLI_listbase_clear(&ma->gpumaterial);
+
+	link_list(fd, &ma->engines_settings);
+	for (mes = ma->engines_settings.first; mes; mes = mes->next) {
+		mes->data = newdataadr(fd, mes->data);
+	}
 }
 
 /* ************ READ PARTICLE SETTINGS ***************** */
@@ -5552,6 +5558,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->bb = NULL;
 	ob->derivedDeform = NULL;
 	ob->derivedFinal = NULL;
+	ob->collection_settings = NULL;
 	BLI_listbase_clear(&ob->gpulamp);
 	link_list(fd, &ob->pc_ids);
 
@@ -5924,6 +5931,14 @@ static void direct_link_scene_collection(FileData *fd, SceneCollection *sc)
 	}
 }
 
+static void direct_link_engine_settings(FileData *fd, ListBase *lb)
+{
+	link_list(fd, lb);
+	for (CollectionEngineSettings *ces = lb->first; ces; ces = ces->next) {
+		link_list(fd, &ces->properties);
+	}
+}
+
 static void direct_link_layer_collections(FileData *fd, ListBase *lb)
 {
 	link_list(fd, lb);
@@ -5938,6 +5953,8 @@ static void direct_link_layer_collections(FileData *fd, ListBase *lb)
 
 		link_list(fd, &lc->overrides);
 
+		direct_link_engine_settings(fd, &lc->engine_settings);
+
 		direct_link_layer_collections(fd, &lc->layer_collections);
 	}
 }
@@ -5950,6 +5967,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	RigidBodyWorld *rbw;
 	SceneLayer *sl;
 	SceneRenderLayer *srl;
+	RenderEngineSettings *res;
 	
 	sce->theDag = NULL;
 	sce->depsgraph = NULL;
@@ -6211,6 +6229,11 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		link_list(fd, &sl->object_bases);
 		sl->basact = newdataadr(fd, sl->basact);
 		direct_link_layer_collections(fd, &sl->layer_collections);
+	}
+
+	link_list(fd, &sce->engines_settings);
+	for (res = sce->engines_settings.first; res; res = res->next) {
+		res->data = newdataadr(fd, res->data);
 	}
 }
 

@@ -260,6 +260,43 @@ void GPU_framebuffer_slots_bind(GPUFrameBuffer *fb, int slot)
 	glPushMatrix();
 }
 
+void GPU_framebuffer_bind(GPUFrameBuffer *fb)
+{
+	int numslots = 0, i;
+	GLenum attachments[4];
+	GLenum readattachement = 0;
+	GPUTexture *tex;
+
+	for (i = 0; i < 4; i++) {
+		if (fb->colortex[i]) {
+			attachments[numslots] = GL_COLOR_ATTACHMENT0 + i;
+			tex = fb->colortex[i];
+
+			if (!readattachement)
+				readattachement = GL_COLOR_ATTACHMENT0 + i;
+
+			numslots++;
+		}
+	}
+
+	/* bind framebuffer */
+	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
+
+	if (numslots == 0) {
+		glDrawBuffer(GL_NONE);
+		glReadBuffer(GL_NONE);
+		tex = fb->depthtex;
+	}
+	else {
+		/* last bound prevails here, better allow explicit control here too */
+		glDrawBuffers(numslots, attachments);
+		glReadBuffer(readattachement);
+	}
+
+	glViewport(0, 0, GPU_texture_width(tex), GPU_texture_height(tex));
+	GG.currentfb = fb->object;
+}
+
 
 void GPU_framebuffer_texture_unbind(GPUFrameBuffer *UNUSED(fb), GPUTexture *UNUSED(tex))
 {
@@ -282,7 +319,6 @@ void GPU_framebuffer_bind_no_save(GPUFrameBuffer *fb, int slot)
 
 	/* push matrices and set default viewport and matrix */
 	glViewport(0, 0, GPU_texture_width(fb->colortex[slot]), GPU_texture_height(fb->colortex[slot]));
-	GG.currentfb = fb->object;
 	GG.currentfb = fb->object;
 }
 

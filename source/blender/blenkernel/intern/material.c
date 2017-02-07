@@ -111,6 +111,12 @@ void BKE_material_free(Material *ma)
 
 	BKE_icon_id_delete((ID *)ma);
 	BKE_previewimg_free(&ma->preview);
+
+	for (MaterialEngineSettings *mes = ma->engines_settings.first; mes; mes = mes->next) {
+		if (mes->data)
+			MEM_SAFE_FREE(mes->data);
+	}
+	BLI_freelistN(&ma->engines_settings);
 }
 
 void BKE_material_init(Material *ma)
@@ -248,6 +254,8 @@ Material *BKE_material_copy(Main *bmain, Material *ma)
 
 	BLI_listbase_clear(&man->gpumaterial);
 
+	/* TODO Duplicate Engine Settings and set runtime to NULL */
+
 	BKE_id_copy_ensure_local(bmain, &ma->id, &man->id);
 
 	return man;
@@ -279,6 +287,8 @@ Material *localize_material(Material *ma)
 		man->nodetree = ntreeLocalize(ma->nodetree);
 	
 	BLI_listbase_clear(&man->gpumaterial);
+
+	/* TODO Duplicate Engine Settings and set runtime to NULL */
 	
 	return man;
 }
@@ -1698,6 +1708,7 @@ void copy_matcopybuf(Material *ma)
 	matcopybuf.nodetree = ntreeCopyTree_ex(ma->nodetree, G.main, false);
 	matcopybuf.preview = NULL;
 	BLI_listbase_clear(&matcopybuf.gpumaterial);
+	/* TODO Duplicate Engine Settings and set runtime to NULL */
 	matcopied = 1;
 }
 

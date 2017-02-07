@@ -57,6 +57,8 @@ void Batch_Uniform3fv(Batch*, const char* name, const float data[3]);
 void Batch_Uniform4fv(Batch*, const char* name, const float data[4]);
 
 void Batch_draw(Batch*);
+void Batch_draw_stupid(Batch* batch);
+void Batch_draw_stupid_instanced(Batch* batch, unsigned int instance_vbo, int instance_count);
 
 
 
