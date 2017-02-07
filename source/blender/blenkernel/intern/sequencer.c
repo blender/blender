@@ -522,15 +522,10 @@ void BKE_sequencer_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, bool make
 			 * precision loss.
 			 */
 			imb_addrectfloatImBuf(ibuf);
-			/* TODO(sergey): Can convert byte to float from thread as well. */
-			IMB_buffer_float_from_byte(ibuf->rect_float, (unsigned char*)ibuf->rect,
-			                           IB_PROFILE_SRGB, IB_PROFILE_SRGB,
-			                           true,
-			                           ibuf->x, ibuf->y, ibuf->x, ibuf->x);
-			IMB_colormanagement_transform_threaded(ibuf->rect_float,
-			                                       ibuf->x, ibuf->y, ibuf->channels,
-			                                       from_colorspace, to_colorspace,
-			                                       true);
+			IMB_colormanagement_transform_from_byte_threaded(
+			        ibuf->rect_float, (unsigned char*)ibuf->rect,
+			        ibuf->x, ibuf->y, ibuf->channels,
+			        from_colorspace, to_colorspace);
 			/* We don't need byte buffer anymore. */
 			imb_freerectImBuf(ibuf);
 		}
