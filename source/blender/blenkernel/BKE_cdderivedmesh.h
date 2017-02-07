@@ -79,6 +79,7 @@ DerivedMesh *CDDM_from_curve_displist(struct Object *ob, struct ListBase *dispba
  */
 struct DerivedMesh *CDDM_copy(struct DerivedMesh *dm);
 struct DerivedMesh *CDDM_copy_from_tessface(struct DerivedMesh *dm);
+struct DerivedMesh *CDDM_copy_with_tessface(struct DerivedMesh *dm);
 
 /* creates a CDDerivedMesh with the same layer stack configuration as the
  * given DerivedMesh and containing the requested numbers of elements.

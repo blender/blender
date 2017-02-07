@@ -2398,13 +2398,16 @@ DerivedMesh *CDDM_from_editbmesh(BMEditMesh *em, const bool use_mdisps, const bo
 	        use_tessface, em->tottri, (const BMLoop *(*)[3])em->looptris);
 }
 
-static DerivedMesh *cddm_copy_ex(DerivedMesh *source, int faces_from_tessfaces)
+static DerivedMesh *cddm_copy_ex(DerivedMesh *source,
+                                 const bool need_tessface_data,
+                                 const bool faces_from_tessfaces)
 {
+	const bool copy_tessface_data = (faces_from_tessfaces || need_tessface_data);
 	CDDerivedMesh *cddm = cdDM_create("CDDM_copy cddm");
 	DerivedMesh *dm = &cddm->dm;
 	int numVerts = source->numVertData;
 	int numEdges = source->numEdgeData;
-	int numTessFaces = source->numTessFaceData;
+	int numTessFaces = copy_tessface_data ? source->numTessFaceData : 0;
 	int numLoops = source->numLoopData;
 	int numPolys = source->numPolyData;
 
@@ -2414,10 +2417,12 @@ static DerivedMesh *cddm_copy_ex(DerivedMesh *source, int faces_from_tessfaces)
 	source->getVertDataArray(source, CD_ORIGINDEX);
 	source->getEdgeDataArray(source, CD_ORIGINDEX);
 	source->getPolyDataArray(source, CD_ORIGINDEX);
+	if (copy_tessface_data) {
+		source->getTessFaceDataArray(source, CD_ORIGINDEX);
+	}
 
 	/* this initializes dm, and copies all non mvert/medge/mface layers */
-	DM_from_template(dm, source, DM_TYPE_CDDM, numVerts, numEdges,
-	                 faces_from_tessfaces ? numTessFaces : 0,
+	DM_from_template(dm, source, DM_TYPE_CDDM, numVerts, numEdges, numTessFaces,
 	                 numLoops, numPolys);
 	dm->deformedOnly = source->deformedOnly;
 	dm->cd_flag = source->cd_flag;
@@ -2428,6 +2433,9 @@ static DerivedMesh *cddm_copy_ex(DerivedMesh *source, int faces_from_tessfaces)
 
 	CustomData_copy_data(&source->vertData, &dm->vertData, 0, 0, numVerts);
 	CustomData_copy_data(&source->edgeData, &dm->edgeData, 0, 0, numEdges);
+	if (copy_tessface_data) {
+		CustomData_copy_data(&source->faceData, &dm->faceData, 0, 0, numTessFaces);
+	}
 
 	/* now add mvert/medge/mface layers */
 	cddm->mvert = source->dupVertArray(source);
@@ -2435,17 +2443,16 @@ static DerivedMesh *cddm_copy_ex(DerivedMesh *source, int faces_from_tessfaces)
 
 	CustomData_add_layer(&dm->vertData, CD_MVERT, CD_ASSIGN, cddm->mvert, numVerts);
 	CustomData_add_layer(&dm->edgeData, CD_MEDGE, CD_ASSIGN, cddm->medge, numEdges);
-	
+
+	if (faces_from_tessfaces || copy_tessface_data) {
+		cddm->mface = source->dupTessFaceArray(source);
+		CustomData_add_layer(&dm->faceData, CD_MFACE, CD_ASSIGN, cddm->mface, numTessFaces);
+	}
+
 	if (!faces_from_tessfaces) {
 		DM_DupPolys(source, dm);
 	}
 	else {
-		source->getTessFaceDataArray(source, CD_ORIGINDEX);
-		CustomData_copy_data(&source->faceData, &dm->faceData, 0, 0, numTessFaces);
-
-		cddm->mface = source->dupTessFaceArray(source);
-		CustomData_add_layer(&dm->faceData, CD_MFACE, CD_ASSIGN, cddm->mface, numTessFaces);
-
 		CDDM_tessfaces_to_faces(dm);
 	}
 
@@ -2457,12 +2464,17 @@ static DerivedMesh *cddm_copy_ex(DerivedMesh *source, int faces_from_tessfaces)
 
 DerivedMesh *CDDM_copy(DerivedMesh *source)
 {
-	return cddm_copy_ex(source, 0);
+	return cddm_copy_ex(source, false, false);
 }
 
 DerivedMesh *CDDM_copy_from_tessface(DerivedMesh *source)
 {
-	return cddm_copy_ex(source, 1);
+	return cddm_copy_ex(source, false, true);
+}
+
+DerivedMesh *CDDM_copy_with_tessface(DerivedMesh *source)
+{
+	return cddm_copy_ex(source, true, false);
 }
 
 /* note, the CD_ORIGINDEX layers are all 0, so if there is a direct
