@@ -1894,8 +1894,6 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 
 			writelist(wd, DATA, LinkData, &ob->pc_ids);
 			writelist(wd, DATA, LodLevel, &ob->lodlevels);
-
-			ob->collection_settings = NULL;
 		}
 
 		write_previews(wd, ob->preview);

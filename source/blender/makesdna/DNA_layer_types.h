@@ -91,6 +91,7 @@ enum {
 	BASE_VISIBLED         = (1 << 1),
 	BASE_SELECTABLED      = (1 << 2),
 	BASE_FROMDUPLI        = (1 << 3),
+	BASE_DIRTY_ENGINE_SETTINGS = (1 << 4),
 };
 
 /* LayerCollection->flag */

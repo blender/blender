@@ -37,6 +37,8 @@
 #ifdef WITH_CLAY_ENGINE
 /* Shaders */
 
+#define CLAY_ENGINE "BLENDER_CLAY"
+
 extern char datatoc_clay_frag_glsl[];
 extern char datatoc_clay_vert_glsl[];
 extern char datatoc_ssao_alchemy_glsl[];
@@ -569,7 +571,7 @@ static void CLAY_create_cache(CLAY_PassList *passes, const struct bContext *C)
 
 	/* TODO Create hash table of batch based on material id*/
 	Object *ob;
-	DEG_OBJECT_ITER(sl, ob)
+	DEG_OBJECT_ITER(sl, CLAY_ENGINE, ob);
 	{
 		if ((ob->base_flag & BASE_VISIBLED) == 0) {
 			continue;
@@ -715,8 +717,12 @@ void clay_engine_free(void)
 
 RenderEngineType viewport_clay_type = {
 	NULL, NULL,
-	"BLENDER_CLAY", N_("Clay"), RE_INTERNAL | RE_USE_OGL_PIPELINE,
+	CLAY_ENGINE, N_("Clay"), RE_INTERNAL | RE_USE_OGL_PIPELINE,
 	NULL, NULL, NULL, NULL, &CLAY_view_draw, NULL, &CLAY_collection_settings_create,
 	{NULL, NULL, NULL}
 };
+
+
+#undef CLAY_ENGINE
+
 #endif

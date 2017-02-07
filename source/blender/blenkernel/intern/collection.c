@@ -119,6 +119,7 @@ static void layer_collection_remove(SceneLayer *sl, ListBase *lb, const SceneCol
 	LayerCollection *lc = lb->first;
 	while(lc) {
 		if (lc->scene_collection == sc) {
+			BKE_scene_layer_engine_settings_collection_recalculate(sl, lc);
 			BKE_layer_collection_free(sl, lc);
 			BLI_remlink(lb, lc);
 

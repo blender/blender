@@ -49,8 +49,10 @@ struct CollectionEngineSettingsCB_Type;
 static void layer_collection_free(SceneLayer *sl, LayerCollection *lc);
 static LayerCollection *layer_collection_add(SceneLayer *sl, ListBase *lb, SceneCollection *sc);
 static LayerCollection *find_layer_collection_by_scene_collection(LayerCollection *lc, const SceneCollection *sc);
-static void collection_engine_settings_create(ListBase *lb, struct CollectionEngineSettingsCB_Type *ces_type);
+static CollectionEngineSettings *collection_engine_settings_create(struct CollectionEngineSettingsCB_Type *ces_type);
+static void layer_collection_engine_settings_free(LayerCollection *lc);
 static void layer_collection_create_engine_settings(LayerCollection *lc);
+static void scene_layer_engine_settings_update(SceneLayer *sl, Object *ob, const char *engine_name);
 static void object_bases_Iterator_next(Iterator *iter, const int flag);
 
 /* RenderLayer */
@@ -257,8 +259,6 @@ void BKE_scene_layer_base_flag_recalculate(SceneLayer *sl)
 			base->flag &= ~BASE_SELECTED;
 		}
 	}
-
-	BKE_scene_layer_engine_settings_recalculate(sl);
 }
 
 /**
@@ -266,9 +266,45 @@ void BKE_scene_layer_base_flag_recalculate(SceneLayer *sl)
  *
  * Temporary function, waiting for real depsgraph
  */
-void BKE_scene_layer_engine_settings_recalculate(struct SceneLayer *sl)
+void BKE_scene_layer_engine_settings_recalculate(SceneLayer *sl)
 {
 	sl->flag |= SCENE_LAYER_ENGINE_DIRTY;
+	for (Base *base = sl->object_bases.first; base; base = base->next) {
+		base->flag |= BASE_DIRTY_ENGINE_SETTINGS;
+	}
+}
+
+/**
+ * Tag Object in SceneLayer to recalculation
+ *
+ * Temporary function, waiting for real depsgraph
+ */
+void BKE_scene_layer_engine_settings_object_recalculate(SceneLayer *sl, Object *ob)
+{
+	Base *base = BLI_findptr(&sl->object_bases, ob, offsetof(Base, object));
+	if (base) {
+		sl->flag |= SCENE_LAYER_ENGINE_DIRTY;
+		base->flag |= BASE_DIRTY_ENGINE_SETTINGS;
+	}
+}
+
+/**
+ * Tag all Objects in LayerCollection to recalculation
+ *
+ * Temporary function, waiting for real depsgraph
+ */
+void BKE_scene_layer_engine_settings_collection_recalculate(SceneLayer *sl, LayerCollection *lc)
+{
+	sl->flag |= SCENE_LAYER_ENGINE_DIRTY;
+
+	for (LinkData *link = lc->object_bases.first; link; link = link->next) {
+		Base *base = (Base *)link->data;
+		base->flag |= BASE_DIRTY_ENGINE_SETTINGS;
+	}
+
+	for (LayerCollection *lcn = lc->layer_collections.first; lcn; lcn = lcn->next) {
+		BKE_scene_layer_engine_settings_collection_recalculate(sl, lcn);
+	}
 }
 
 /**
@@ -276,14 +312,21 @@ void BKE_scene_layer_engine_settings_recalculate(struct SceneLayer *sl)
  *
  * Temporary function, waiting for real depsgraph
  */
-void BKE_scene_layer_engine_settings_update(struct SceneLayer *sl)
+void BKE_scene_layer_engine_settings_update(struct SceneLayer *sl, const char *engine_name)
 {
 	if ((sl->flag & SCENE_LAYER_ENGINE_DIRTY) == 0) {
 		return;
 	}
 
 	/* do the complete settings update */
-	TODO_LAYER_DEPSGRAPH;
+	for (Base *base = sl->object_bases.first; base; base = base->next) {
+		if (((base->flag & BASE_DIRTY_ENGINE_SETTINGS) != 0) && \
+		    (base->flag & BASE_VISIBLED) != 0)
+		{
+			scene_layer_engine_settings_update(sl, base->object, engine_name);
+			base->flag &= ~BASE_DIRTY_ENGINE_SETTINGS;
+		}
+	}
 
 	sl->flag &= ~SCENE_LAYER_ENGINE_DIRTY;
 }
@@ -324,7 +367,7 @@ static void layer_collection_free(SceneLayer *sl, LayerCollection *lc)
 
 	BLI_freelistN(&lc->object_bases);
 	BLI_freelistN(&lc->overrides);
-	BKE_layer_collection_engine_settings_free(&lc->engine_settings);
+	layer_collection_engine_settings_free(lc);
 
 	for (LayerCollection *nlc = lc->layer_collections.first; nlc; nlc = nlc->next) {
 		layer_collection_free(sl, nlc);
@@ -442,6 +485,7 @@ void BKE_collection_unlink(SceneLayer *sl, LayerCollection *lc)
 {
 	BKE_layer_collection_free(sl, lc);
 	BKE_scene_layer_base_flag_recalculate(sl);
+	BKE_scene_layer_engine_settings_collection_recalculate(sl, lc);
 
 	BLI_remlink(&sl->layer_collections, lc);
 	MEM_freeN(lc);
@@ -462,6 +506,7 @@ static void layer_collection_object_add(SceneLayer *sl, LayerCollection *lc, Obj
 	BLI_addtail(&lc->object_bases, BLI_genericNodeN(base));
 
 	BKE_scene_layer_base_flag_recalculate(sl);
+	BKE_scene_layer_engine_settings_object_recalculate(sl, ob);
 }
 
 static void layer_collection_object_remove(SceneLayer *sl, LayerCollection *lc, Object *ob)
@@ -599,6 +644,7 @@ void BKE_layer_sync_object_unlink(Scene *scene, SceneCollection *sc, Object *ob)
 			}
 		}
 		BKE_scene_layer_base_flag_recalculate(sl);
+		BKE_scene_layer_engine_settings_object_recalculate(sl, ob);
 	}
 }
 
@@ -633,7 +679,8 @@ static void create_engine_settings_layer_collection(LayerCollection *lc, Collect
 		return;
 	}
 
-	collection_engine_settings_create(&lc->engine_settings, ces_type);
+	CollectionEngineSettings *ces = collection_engine_settings_create(ces_type);
+	BLI_addtail(&lc->engine_settings, ces);
 
 	for (LayerCollection *lcn = lc->layer_collections.first; lcn; lcn = lcn->next) {
 		create_engine_settings_layer_collection(lcn, ces_type);
@@ -680,15 +727,16 @@ void BKE_layer_collection_engine_settings_callback_free(void)
 	BLI_freelistN(&R_engines_settings_callbacks);
 }
 
-static void collection_engine_settings_create(ListBase *lb, CollectionEngineSettingsCB_Type *ces_type)
+static CollectionEngineSettings *collection_engine_settings_create(CollectionEngineSettingsCB_Type *ces_type)
 {
 	/* create callback data */
 	CollectionEngineSettings *ces = MEM_callocN(sizeof(CollectionEngineSettings), "Collection Engine Settings");
 	BLI_strncpy_utf8(ces->name, ces_type->name, sizeof(ces->name));
-	BLI_addtail(lb, ces);
 
 	/* call callback */
 	ces_type->callback(NULL, ces);
+
+	return ces;
 }
 
 /**
@@ -697,26 +745,30 @@ static void collection_engine_settings_create(ListBase *lb, CollectionEngineSett
  * Usually we would pass LayerCollection->engine_settings
  * But depsgraph uses this for Object->collection_settings
  */
-void BKE_layer_collection_engine_settings_create(ListBase *lb, const char *engine_name)
+CollectionEngineSettings *BKE_layer_collection_engine_settings_create(const char *engine_name)
 {
 	CollectionEngineSettingsCB_Type *ces_type;
 	ces_type = BLI_findstring(&R_engines_settings_callbacks, engine_name, offsetof(CollectionEngineSettingsCB_Type, name));
 	BLI_assert(ces_type);
-	collection_engine_settings_create(lb, ces_type);
+
+	CollectionEngineSettings *ces = collection_engine_settings_create(ces_type);
+	return ces;
 }
 
 /**
- * Free the CollectionEngineSettings ListBase
- *
- * Usually we would pass LayerCollection->engine_settings
- * But depsgraph uses this for Object->collection_settings
+ * Free the CollectionEngineSettings
  */
-void BKE_layer_collection_engine_settings_free(ListBase *lb)
+void BKE_layer_collection_engine_settings_free(CollectionEngineSettings *ces)
 {
-	for (CollectionEngineSettings *cse = lb->first; cse; cse = cse->next) {
-		BLI_freelistN(&cse->properties);
+	BLI_freelistN(&ces->properties);
+}
+
+static void layer_collection_engine_settings_free(LayerCollection *lc)
+{
+	for (CollectionEngineSettings *ces = lc->engine_settings.first; ces; ces = ces->next) {
+		BKE_layer_collection_engine_settings_free(ces);
 	}
-	BLI_freelistN(lb);
+	BLI_freelistN(&lc->engine_settings);
 }
 
 /**
@@ -816,6 +868,110 @@ void BKE_collection_engine_property_use_set(CollectionEngineSettings *ces, const
 	else {
 		prop->flag &= ~COLLECTION_PROP_USE;
 	}
+}
+
+/* Engine Settings recalculate  */
+
+static void collection_engine_settings_init(CollectionEngineSettings *ces, const char *engine_name)
+{
+	CollectionEngineSettingsCB_Type *ces_type;
+	ces_type = BLI_findstring(&R_engines_settings_callbacks, engine_name, offsetof(CollectionEngineSettingsCB_Type, name));
+
+	BLI_listbase_clear(&ces->properties);
+	BLI_strncpy_utf8(ces->name, ces_type->name, sizeof(ces->name));
+
+	/* call callback */
+	ces_type->callback(NULL, ces);
+}
+
+static void collection_engine_settings_copy(CollectionEngineSettings *ces_dst, CollectionEngineSettings *ces_src)
+{
+	BLI_strncpy_utf8(ces_dst->name, ces_src->name, sizeof(ces_dst->name));
+	BLI_freelistN(&ces_dst->properties);
+
+	for (CollectionEngineProperty *prop = ces_src->properties.first; prop; prop = prop->next) {
+		CollectionEngineProperty *prop_new = MEM_dupallocN(prop);
+		BLI_addtail(&ces_dst->properties, prop_new);
+	}
+}
+
+/**
+ * Set a value from a CollectionProperty to another
+ */
+static void collection_engine_property_set (CollectionEngineProperty *prop_dst, CollectionEngineProperty *prop_src){
+	if ((prop_src->flag & COLLECTION_PROP_USE) != 0) {
+		switch (prop_src->type) {
+		    case COLLECTION_PROP_TYPE_FLOAT:
+			    ((CollectionEnginePropertyFloat *)prop_dst)->value = ((CollectionEnginePropertyFloat *)prop_src)->value;
+			    break;
+		    case COLLECTION_PROP_TYPE_INT:
+			    ((CollectionEnginePropertyInt *)prop_dst)->value = ((CollectionEnginePropertyInt *)prop_src)->value;
+			    break;
+		    default:
+			    BLI_assert(false);
+			    break;
+		}
+	}
+}
+
+static void collection_engine_settings_merge(CollectionEngineSettings *ces_dst, CollectionEngineSettings *ces_src)
+{
+	CollectionEngineProperty *prop_src, *prop_dst;
+
+	prop_dst = ces_dst->properties.first;
+	for (prop_src = ces_src->properties.first; prop_src; prop_src = prop_src->next, prop_dst = prop_dst->next) {
+		collection_engine_property_set(prop_dst, prop_src);
+	}
+}
+
+static void layer_collection_engine_settings_update(
+        LayerCollection *lc, CollectionEngineSettings *ces_parent,
+        Object *ob, CollectionEngineSettings *ces_ob)
+{
+	if ((lc->flag & COLLECTION_VISIBLE) != 0) {
+		return;
+	}
+
+	CollectionEngineSettings ces = {NULL};
+	collection_engine_settings_copy(&ces, ces_parent);
+
+	if (BLI_findptr(&lc->object_bases, ob, offsetof(LinkData, data)) != NULL) {
+		collection_engine_settings_merge(ces_ob, &ces);
+	}
+
+	/* do it recursively */
+	for (LayerCollection *lcn = lc->layer_collections.first; lcn; lcn = lcn->next) {
+		layer_collection_engine_settings_update(lcn, &ces, ob, ces_ob);
+	}
+
+	BKE_layer_collection_engine_settings_free(&ces);
+}
+
+/**
+ * Update the collection settings pointer allocated in the object
+ * This is to be flushed from the Depsgraph
+ */
+static void scene_layer_engine_settings_update(SceneLayer *sl, Object *ob, const char *engine_name)
+{
+	CollectionEngineSettings ces_layer = {NULL}, *ces_ob;
+
+	collection_engine_settings_init(&ces_layer, engine_name);
+
+	if (ob->collection_settings) {
+		BKE_layer_collection_engine_settings_free(ob->collection_settings);
+		MEM_freeN(ob->collection_settings);
+	}
+
+	CollectionEngineSettingsCB_Type *ces_type;
+	ces_type = BLI_findstring(&R_engines_settings_callbacks, engine_name, offsetof(CollectionEngineSettingsCB_Type, name));
+	ces_ob = collection_engine_settings_create(ces_type);
+
+	for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
+		layer_collection_engine_settings_update(lc, &ces_layer, ob, ces_ob);
+	}
+
+	BKE_layer_collection_engine_settings_free(&ces_layer);
+	ob->collection_settings = ces_ob;
 }
 
 /* ---------------------------------------------------------------------- */

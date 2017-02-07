@@ -2424,7 +2424,8 @@ RNA_LAYER_ENGINE_GET_SET_FLOAT(ssao_attenuation)
 static void rna_CollectionEngineSettings_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
 	SceneLayer *sl = CTX_data_scene_layer(C);
-	BKE_scene_layer_engine_settings_recalculate(sl);
+	LayerCollection *lc = CTX_data_layer_collection(C);
+	BKE_scene_layer_engine_settings_collection_recalculate(sl, lc);
 }
 
 /***********************************/
@@ -2485,6 +2486,7 @@ static void rna_LayerCollection_hide_update(bContext *C, PointerRNA *ptr)
 
 	/* hide and deselect bases that are directly influenced by this LayerCollection */
 	BKE_scene_layer_base_flag_recalculate(sl);
+	BKE_scene_layer_engine_settings_collection_recalculate(sl, lc);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 }
 
