@@ -764,8 +764,10 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 	/* draw scale numbers first before binding any shader */
 	for (int i = 0; i < 6; i++) {
 		char str[4];
+		const int font_id = BLF_default();
 		BLI_snprintf(str, sizeof(str), "%-3d", i * 20);
 		str[3] = '\0';
+		BLF_color4f(font_id, 1.f, 1.f, 1.f, 0.08f);
 		BLF_draw_default(rect.xmin + 1, yofs - 5 + (i / 5.f) * h, 0, str, sizeof(str) - 1);
 	}
 
