@@ -411,7 +411,7 @@ void AbcExporter::createTransformWriter(Object *ob, Object *parent, Object *dupl
 	const std::string name = get_object_dag_path_name(ob, dupliObParent);
 
 	/* check if we have already created a transform writer for this object */
-	if (m_xforms.find(name) != m_xforms.end()){
+	if (getXForm(name) != NULL){
 		std::cerr << "xform " << name << " already exists\n";
 		return;
 	}
