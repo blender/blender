@@ -480,55 +480,79 @@ void BKE_sequencer_editing_free(Scene *scene)
 
 static void sequencer_imbuf_assign_spaces(Scene *scene, ImBuf *ibuf)
 {
-	if (ibuf->rect_float) {
+	if (ibuf->rect != NULL) {
+		IMB_colormanagement_assign_rect_colorspace(ibuf, scene->sequencer_colorspace_settings.name);
+	}
+	if (ibuf->rect_float != NULL) {
 		IMB_colormanagement_assign_float_colorspace(ibuf, scene->sequencer_colorspace_settings.name);
 	}
 }
 
 void BKE_sequencer_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, bool make_float)
 {
-	const char *from_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
+	/* Early output check: if both buffers are NULL we have nothing to convert. */
+	if (ibuf->rect_float == NULL && ibuf->rect == NULL) {
+		return;
+	}
+	/* Get common conversion settings. */
 	const char *to_colorspace = scene->sequencer_colorspace_settings.name;
-	const char *float_colorspace = IMB_colormanagement_get_float_colorspace(ibuf);
-
-	if (!ibuf->rect_float) {
-		if (ibuf->rect) {
-			const char *byte_colorspace = IMB_colormanagement_get_rect_colorspace(ibuf);
-			if (make_float || !STREQ(to_colorspace, byte_colorspace)) {
-				/* If byte space is not in sequencer's working space, we deliver float color space,
-				 * this is to to prevent data loss.
-				 */
-
-				/* when converting byte buffer to float in sequencer we need to make float
-				 * buffer be in sequencer's working space, which is currently only doable
-				 * from linear space.
-				 */
-
-				/*
-				 * OCIO_TODO: would be nice to support direct single transform from byte to sequencer's
-				 */
-
-				IMB_float_from_rect(ibuf);
-			}
-			else {
-				return;
-			}
-		}
-		else {
+	/* Perform actual conversion logic. */
+	if (ibuf->rect_float == NULL) {
+		/* We are not requested to give float buffer and byte buffer is already
+		 * in thee required colorspace. Can skip doing anything here.
+		 */
+		const char *from_colorspace = IMB_colormanagement_get_rect_colorspace(ibuf);
+		if (!make_float && STREQ(from_colorspace, to_colorspace)) {
 			return;
 		}
-	}
-
-	if (from_colorspace && from_colorspace[0] != '\0') {
-		if (ibuf->rect)
+		if (false) {
+			/* The idea here is to provide as fast playback as possible and
+			 * enforcing float buffer here (a) uses more cache memory (b) might
+			 * make some other effects slower to apply.
+			 *
+			 * However, this might also have negative effect by adding weird
+			 * artifacts which will then not happen in final render.
+			 */
+			IMB_colormanagement_transform_byte_threaded(
+			        (unsigned char*)ibuf->rect, ibuf->x, ibuf->y, ibuf->channels,
+			        from_colorspace, to_colorspace);
+		}
+		else {
+			/* We perform conversion to a float buffer so we don't worry about
+			 * precision loss.
+			 */
+			imb_addrectfloatImBuf(ibuf);
+			/* TODO(sergey): Can convert byte to float from thread as well. */
+			IMB_buffer_float_from_byte(ibuf->rect_float, (unsigned char*)ibuf->rect,
+			                           IB_PROFILE_SRGB, IB_PROFILE_SRGB,
+			                           true,
+			                           ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+			IMB_colormanagement_transform_threaded(ibuf->rect_float,
+			                                       ibuf->x, ibuf->y, ibuf->channels,
+			                                       from_colorspace, to_colorspace,
+			                                       true);
+			/* We don't need byte buffer anymore. */
 			imb_freerectImBuf(ibuf);
-
-		if (!STREQ(float_colorspace, to_colorspace)) {
-			IMB_colormanagement_transform_threaded(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
-			                                       from_colorspace, to_colorspace, true);
-			sequencer_imbuf_assign_spaces(scene, ibuf);
 		}
 	}
+	else {
+		const char *from_colorspace = IMB_colormanagement_get_float_colorspace(ibuf);
+		/* Unknown input color space, can't perform conversion. */
+		if (from_colorspace == NULL || from_colorspace[0] == '\0') {
+			return;
+		}
+		/* We don't want both byte and float buffers around: they'll either run
+		 * out of sync or conversion of byte buffer will loose precision in there.
+		 */
+		if (ibuf->rect != NULL) {
+			imb_freerectImBuf(ibuf);
+		}
+		IMB_colormanagement_transform_threaded(ibuf->rect_float,
+		                                       ibuf->x, ibuf->y, ibuf->channels,
+		                                       from_colorspace, to_colorspace,
+		                                       true);
+	}
+	sequencer_imbuf_assign_spaces(scene, ibuf);
 }
 
 void BKE_sequencer_imbuf_from_sequencer_space(Scene *scene, ImBuf *ibuf)
