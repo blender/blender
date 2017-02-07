@@ -1435,7 +1435,7 @@ static void outliner_draw_struct_marks(ARegion *ar, SpaceOops *soops, ListBase *
 }
 
 static void outliner_draw_highlights_recursive(
-        const ARegion *ar, const SpaceOops *soops, const ListBase *lb,
+        unsigned pos, const ARegion *ar, const SpaceOops *soops, const ListBase *lb,
         const float col_selection[4], const float col_highlight[4], const float col_searchmatch[4],
         int start_x, int *io_start_y)
 {
@@ -1448,29 +1448,29 @@ static void outliner_draw_highlights_recursive(
 
 		/* selection status */
 		if (tselem->flag & TSE_SELECTED) {
-			glColor4fv(col_selection);
-			glRecti(0, start_y + 1, (int)ar->v2d.cur.xmax, start_y + UI_UNIT_Y - 1);
+			immUniformColor4fv(col_selection);
+			immRecti(pos, 0, start_y + 1, (int)ar->v2d.cur.xmax, start_y + UI_UNIT_Y - 1);
 		}
 
 		/* search match highlights
 		 *   we don't expand items when searching in the datablocks but we
 		 *   still want to highlight any filter matches. */
 		if (is_searching && (tselem->flag & TSE_SEARCHMATCH)) {
-			glColor4fv(col_searchmatch);
-			glRecti(start_x, start_y + 1, ar->v2d.cur.xmax, start_y + UI_UNIT_Y - 1);
+			immUniformColor4fv(col_searchmatch);
+			immRecti(pos, start_x, start_y + 1, ar->v2d.cur.xmax, start_y + UI_UNIT_Y - 1);
 		}
 
 		/* mouse hover highlights */
 		if (tselem->flag & TSE_HIGHLIGHTED) {
-			glColor4fv(col_highlight);
-			glRecti(0, start_y + 1, (int)ar->v2d.cur.xmax, start_y + UI_UNIT_Y - 1);
+			immUniformColor4fv(col_highlight);
+			immRecti(pos, 0, start_y + 1, (int)ar->v2d.cur.xmax, start_y + UI_UNIT_Y - 1);
 		}
 
 		*io_start_y -= UI_UNIT_Y;
 		if (TSELEM_OPEN(tselem, soops)) {
 			outliner_draw_highlights_recursive(
-			            ar, soops, &te->subtree, col_selection, col_highlight, col_searchmatch,
-			            start_x + UI_UNIT_X, io_start_y);
+				pos, ar, soops, &te->subtree, col_selection, col_highlight, col_searchmatch,
+				start_x + UI_UNIT_X, io_start_y);
 		}
 	}
 }
@@ -1486,8 +1486,12 @@ static void outliner_draw_highlights(ARegion *ar, SpaceOops *soops, int startx, 
 	col_searchmatch[3] = 0.5f;
 
 	glEnable(GL_BLEND);
-	outliner_draw_highlights_recursive(ar, soops, &soops->tree, col_selection, col_highlight, col_searchmatch,
-	                                   startx, starty);
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	outliner_draw_highlights_recursive(pos, ar, soops, &soops->tree, col_selection, col_highlight, col_searchmatch,
+						startx, starty);
+	immUnbindProgram();
 	glDisable(GL_BLEND);
 }
 
