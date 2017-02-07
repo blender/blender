@@ -83,8 +83,7 @@ static void draw_keyframe_shape(float x, float y, float xscale, float yscale, bo
 		{0.0f, -1.0f},  /* bottom vert */
 		{-1.0f, 0.0f}   /* mid-left */
 	};
-	static GLuint displist1 = 0;
-	static GLuint displist2 = 0;
+
 	int hsize = STRIP_HEIGHT_HALF;
 	
 	VertexFormat *format = immVertexFormat();
