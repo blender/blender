@@ -77,7 +77,6 @@ void AbcHairWriter::do_write()
 
 	DerivedMesh *dm = mesh_create_derived_view(m_scene, m_object, CD_MASK_MESH);
 	DM_ensure_tessface(dm);
-	DM_update_tessface_data(dm);
 
 	std::vector<Imath::V3f> verts;
 	std::vector<int32_t> hvertices;
