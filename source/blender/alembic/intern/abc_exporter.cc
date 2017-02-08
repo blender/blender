@@ -413,6 +413,10 @@ void AbcExporter::createTransformWriter(Object *ob, Object *parent, Object *dupl
 {
 	const std::string name = get_object_dag_path_name(ob, dupliObParent);
 
+	/* An object should not be its own parent, or we'll get infinite loops. */
+	BLI_assert(ob != parent);
+	BLI_assert(ob != dupliObParent);
+
 	/* check if we have already created a transform writer for this object */
 	if (getXForm(name) != NULL){
 		std::cerr << "xform " << name << " already exists\n";
@@ -428,6 +432,14 @@ void AbcExporter::createTransformWriter(Object *ob, Object *parent, Object *dupl
 		if (!parent_xform) {
 			if (parent->parent) {
 				createTransformWriter(parent, parent->parent, dupliObParent);
+			}
+			else if (parent == dupliObParent) {
+				if (dupliObParent->parent == NULL) {
+					createTransformWriter(parent, NULL, NULL);
+				}
+				else {
+					createTransformWriter(parent, dupliObParent->parent, dupliObParent->parent);
+				}
 			}
 			else {
 				createTransformWriter(parent, dupliObParent, dupliObParent);
