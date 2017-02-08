@@ -1366,14 +1366,14 @@ static void outliner_draw_tree_element(
 	}
 }
 
-static void outliner_draw_hierarchy_lines(SpaceOops *soops, ListBase *lb, int startx, int *starty)
+static void outliner_draw_hierarchy_lines_recursive(unsigned pos, SpaceOops *soops, ListBase *lb, int startx, int *starty)
 {
+	if (BLI_listbase_is_empty(lb)) return;
+
 	TreeElement *te;
 	TreeStoreElem *tselem;
 	int y1, y2;
-	
-	if (BLI_listbase_is_empty(lb)) return;
-	
+
 	y1 = y2 = *starty; /* for vertical lines between objects */
 	for (te = lb->first; te; te = te->next) {
 		y2 = *starty;
@@ -1381,23 +1381,33 @@ static void outliner_draw_hierarchy_lines(SpaceOops *soops, ListBase *lb, int st
 		
 		/* horizontal line? */
 		if (tselem->type == 0 && (te->idcode == ID_OB || te->idcode == ID_SCE))
-			glRecti(startx, *starty, startx + UI_UNIT_X, *starty - 1);
+			immRecti(pos, startx, *starty, startx + UI_UNIT_X, *starty - 1);
 			
 		*starty -= UI_UNIT_Y;
 		
 		if (TSELEM_OPEN(tselem, soops))
-			outliner_draw_hierarchy_lines(soops, &te->subtree, startx + UI_UNIT_X, starty);
+			outliner_draw_hierarchy_lines_recursive(pos, soops, &te->subtree, startx + UI_UNIT_X, starty);
 	}
 	
 	/* vertical line */
 	te = lb->last;
 	if (te->parent || lb->first != lb->last) {
 		tselem = TREESTORE(te);
-		if (tselem->type == 0 && te->idcode == ID_OB) {
-			
-			glRecti(startx, y1 + UI_UNIT_Y, startx + 1, y2);
-		}
+		if (tselem->type == 0 && te->idcode == ID_OB)
+			immRecti(pos, startx, y1 + UI_UNIT_Y, startx + 1, y2);
 	}
+}
+
+static void outliner_draw_hierarchy_lines(SpaceOops *soops, ListBase *lb, int startx, int *starty)
+{
+	VertexFormat *format = immVertexFormat();
+	unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	unsigned char col[3];
+	UI_GetThemeColorBlend3ubv(TH_BACK, TH_TEXT, 0.4f, col);
+	immUniformColor3ubv(col);
+	outliner_draw_hierarchy_lines_recursive(pos, soops, lb, startx, starty);
+	immUnbindProgram();
 }
 
 static void outliner_draw_struct_marks(ARegion *ar, SpaceOops *soops, ListBase *lb, int *starty)
@@ -1527,7 +1537,7 @@ static void outliner_draw_tree(
 	}
 
 	// gray hierarchy lines
-	UI_ThemeColorBlend(TH_BACK, TH_TEXT, 0.4f);
+	
 	starty = (int)ar->v2d.tot.ymax - UI_UNIT_Y / 2 - OL_Y_OFFSET;
 	startx = 6;
 	outliner_draw_hierarchy_lines(soops, &soops->tree, startx, &starty);
