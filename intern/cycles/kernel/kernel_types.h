@@ -84,6 +84,7 @@ CCL_NAMESPACE_BEGIN
 #  define __VOLUME_SCATTER__
 #  define __SUBSURFACE__
 #  define __CMJ__
+#  define __SHADOW_RECORD_ALL__
 #endif  /* __KERNEL_CUDA__ */
 
 #ifdef __KERNEL_OPENCL__
