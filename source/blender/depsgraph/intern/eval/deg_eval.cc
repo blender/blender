@@ -53,6 +53,7 @@ extern "C" {
 #include "intern/nodes/deg_node_component.h"
 #include "intern/nodes/deg_node_operation.h"
 #include "intern/depsgraph.h"
+#include "intern/depsgraph_intern.h"
 #include "util/deg_util_foreach.h"
 
 /* Unfinished and unused, and takes quite some pre-processing time. */
@@ -361,6 +362,11 @@ void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
 	if (BLI_gset_size(graph->entry_tags) == 0) {
 		return;
 	}
+
+	DEG_DEBUG_PRINTF("%s: layers:%u, graph->layers:%u\n",
+	                 __func__,
+	                 layers,
+	                 graph->layers);
 
 	/* Set time for the current graph evaluation context. */
 	TimeSourceDepsNode *time_src = graph->find_time_source();

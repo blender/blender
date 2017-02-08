@@ -12,18 +12,18 @@ TEST(bmesh_core, BMVertCreate) {
 	BMeshCreateParams bm_params;
 	bm_params.use_toolflags = true;
 	bm = BM_mesh_create(&bm_mesh_allocsize_default, &bm_params);
-	EXPECT_EQ(0, bm->totvert);
+	EXPECT_EQ(bm->totvert, 0);
 	/* make a custom layer so we can see if it is copied properly */
 	BM_data_layer_add(bm, &bm->vdata, CD_PROP_FLT);
 	bv1 = BM_vert_create(bm, co1, NULL, BM_CREATE_NOP);
 	ASSERT_TRUE(bv1 != NULL);
-	EXPECT_EQ(1.0f, bv1->co[0]);
-	EXPECT_EQ(2.0f, bv1->co[1]);
-	EXPECT_EQ(0.0f, bv1->co[2]);
+	EXPECT_EQ(bv1->co[0], 1.0f);
+	EXPECT_EQ(bv1->co[1], 2.0f);
+	EXPECT_EQ(bv1->co[2], 0.0f);
 	EXPECT_TRUE(is_zero_v3(bv1->no));
-	EXPECT_EQ((char)BM_VERT, bv1->head.htype);
-	EXPECT_EQ(0, bv1->head.hflag);
-	EXPECT_EQ(0, bv1->head.api_flag);
+	EXPECT_EQ(bv1->head.htype, (char)BM_VERT);
+	EXPECT_EQ(bv1->head.hflag, 0);
+	EXPECT_EQ(bv1->head.api_flag, 0);
 	bv2 = BM_vert_create(bm, NULL, NULL, BM_CREATE_NOP);
 	ASSERT_TRUE(bv2 != NULL);
 	EXPECT_TRUE(is_zero_v3(bv2->co));
@@ -33,7 +33,7 @@ TEST(bmesh_core, BMVertCreate) {
 	bv3 = BM_vert_create(bm, co1, bv2, BM_CREATE_NOP);
 	ASSERT_TRUE(bv3 != NULL);
 	EXPECT_FALSE(BM_elem_flag_test((BMElem *)bv3, BM_ELEM_SELECT));
-	EXPECT_EQ(1.5f, BM_elem_float_data_get(&bm->vdata, bv3, CD_PROP_FLT));
-	EXPECT_EQ(3, BM_mesh_elem_count(bm, BM_VERT));
+	EXPECT_EQ(BM_elem_float_data_get(&bm->vdata, bv3, CD_PROP_FLT), 1.5f);
+	EXPECT_EQ(BM_mesh_elem_count(bm, BM_VERT), 3);
 	BM_mesh_free(bm);
 }

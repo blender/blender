@@ -8,7 +8,7 @@ extern "C" {
 
 #include "MEM_guardedalloc.h"
 
-#define CHECK_ALIGNMENT(ptr, align) EXPECT_EQ(0, (size_t)ptr % align)
+#define CHECK_ALIGNMENT(ptr, align) EXPECT_EQ((size_t)ptr % align, 0)
 
 namespace {
 

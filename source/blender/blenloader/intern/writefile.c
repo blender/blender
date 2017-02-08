@@ -800,22 +800,18 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 
 static void write_actions(WriteData *wd, ListBase *idbase)
 {
-	bAction *act;
-	bActionGroup *grp;
-	TimeMarker *marker;
-
-	for (act = idbase->first; act; act = act->id.next) {
+	for (bAction *act = idbase->first; act; act = act->id.next) {
 		if (act->id.us > 0 || wd->current) {
 			writestruct(wd, ID_AC, bAction, 1, act);
 			write_iddata(wd, &act->id);
 
 			write_fcurves(wd, &act->curves);
 
-			for (grp = act->groups.first; grp; grp = grp->next) {
+			for (bActionGroup *grp = act->groups.first; grp; grp = grp->next) {
 				writestruct(wd, DATA, bActionGroup, 1, grp);
 			}
 
-			for (marker = act->markers.first; marker; marker = marker->next) {
+			for (TimeMarker *marker = act->markers.first; marker; marker = marker->next) {
 				writestruct(wd, DATA, TimeMarker, 1, marker);
 			}
 		}
@@ -1281,13 +1277,7 @@ static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
 }
 static void write_particlesettings(WriteData *wd, ListBase *idbase)
 {
-	ParticleSettings *part;
-	ParticleDupliWeight *dw;
-	GroupObject *go;
-	int a;
-
-	part = idbase->first;
-	while (part) {
+	for (ParticleSettings *part = idbase->first; part; part = part->id.next) {
 		if (part->id.us > 0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_PA, ParticleSettings, 1, part);
@@ -1307,24 +1297,23 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 				write_curvemapping(wd, part->roughcurve);
 			}
 
-			dw = part->dupliweights.first;
-			for (; dw; dw = dw->next) {
+			for (ParticleDupliWeight *dw = part->dupliweights.first; dw; dw = dw->next) {
 				/* update indices, but only if dw->ob is set (can be NULL after loading e.g.) */
 				if (dw->ob != NULL) {
 					dw->index = 0;
 					if (part->dup_group) { /* can be NULL if lining fails or set to None */
-						for (go = part->dup_group->gobject.first; go && go->ob != dw->ob; go = go->next, dw->index++);
+						for (GroupObject *go = part->dup_group->gobject.first;
+						     go && go->ob != dw->ob;
+						     go = go->next, dw->index++);
 					}
 				}
 				writestruct(wd, DATA, ParticleDupliWeight, 1, dw);
 			}
 
 			if (part->boids && part->phystype == PART_PHYS_BOIDS) {
-				BoidState *state = part->boids->states.first;
-
 				writestruct(wd, DATA, BoidSettings, 1, part->boids);
 
-				for (; state; state = state->next) {
+				for (BoidState *state = part->boids->states.first; state; state = state->next) {
 					write_boid_state(wd, state);
 				}
 			}
@@ -1332,13 +1321,12 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 				writestruct(wd, DATA, SPHFluidSettings, 1, part->fluid);
 			}
 
-			for (a = 0; a < MAX_MTEX; a++) {
+			for (int a = 0; a < MAX_MTEX; a++) {
 				if (part->mtex[a]) {
 					writestruct(wd, DATA, MTex, 1, part->mtex[a]);
 				}
 			}
 		}
-		part = part->id.next;
 	}
 }
 static void write_particlesystems(WriteData *wd, ListBase *particles)
@@ -1835,10 +1823,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 
 static void write_objects(WriteData *wd, ListBase *idbase)
 {
-	Object *ob;
-
-	ob = idbase->first;
-	while (ob) {
+	for (Object *ob = idbase->first; ob; ob = ob->id.next) {
 		if (ob->id.us > 0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_OB, Object, 1, ob);
@@ -1894,11 +1879,9 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 
 			writelist(wd, DATA, LinkData, &ob->pc_ids);
 			writelist(wd, DATA, LodLevel, &ob->lodlevels);
+
+			write_previews(wd, ob->preview);
 		}
-
-		write_previews(wd, ob->preview);
-
-		ob = ob->id.next;
 	}
 
 	mywrite_flush(wd);
@@ -1907,26 +1890,19 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 
 static void write_vfonts(WriteData *wd, ListBase *idbase)
 {
-	VFont *vf;
-	PackedFile *pf;
-
-	vf = idbase->first;
-	while (vf) {
+	for (VFont *vf = idbase->first; vf; vf = vf->id.next) {
 		if (vf->id.us > 0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_VF, VFont, 1, vf);
 			write_iddata(wd, &vf->id);
 
 			/* direct data */
-
 			if (vf->packedfile) {
-				pf = vf->packedfile;
+				PackedFile *pf = vf->packedfile;
 				writestruct(wd, DATA, PackedFile, 1, pf);
 				writedata(wd, DATA, pf->size, pf->data);
 			}
 		}
-
-		vf = vf->id.next;
 	}
 
 	mywrite_flush(wd);
@@ -1935,11 +1911,7 @@ static void write_vfonts(WriteData *wd, ListBase *idbase)
 
 static void write_keys(WriteData *wd, ListBase *idbase)
 {
-	Key *key;
-	KeyBlock *kb;
-
-	key = idbase->first;
-	while (key) {
+	for (Key *key = idbase->first; key; key = key->id.next) {
 		if (key->id.us > 0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_KE, Key, 1, key);
@@ -1950,17 +1922,13 @@ static void write_keys(WriteData *wd, ListBase *idbase)
 			}
 
 			/* direct data */
-			kb = key->block.first;
-			while (kb) {
+			for (KeyBlock *kb = key->block.first; kb; kb = kb->next) {
 				writestruct(wd, DATA, KeyBlock, 1, kb);
 				if (kb->data) {
 					writedata(wd, DATA, kb->totelem * key->elemsize, kb->data);
 				}
-				kb = kb->next;
 			}
 		}
-
-		key = key->id.next;
 	}
 
 	mywrite_flush(wd);
@@ -1968,10 +1936,7 @@ static void write_keys(WriteData *wd, ListBase *idbase)
 
 static void write_cameras(WriteData *wd, ListBase *idbase)
 {
-	Camera *cam;
-
-	cam = idbase->first;
-	while (cam) {
+	for (Camera *cam = idbase->first; cam; cam = cam->id.next) {
 		if (cam->id.us > 0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_CA, Camera, 1, cam);
@@ -1981,18 +1946,12 @@ static void write_cameras(WriteData *wd, ListBase *idbase)
 				write_animdata(wd, cam->adt);
 			}
 		}
-
-		cam = cam->id.next;
 	}
 }
 
 static void write_mballs(WriteData *wd, ListBase *idbase)
 {
-	MetaBall *mb;
-	MetaElem *ml;
-
-	mb = idbase->first;
-	while (mb) {
+	for (MetaBall *mb = idbase->first; mb; mb = mb->id.next) {
 		if (mb->id.us > 0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_MB, MetaBall, 1, mb);
@@ -2004,23 +1963,16 @@ static void write_mballs(WriteData *wd, ListBase *idbase)
 				write_animdata(wd, mb->adt);
 			}
 
-			ml = mb->elems.first;
-			while (ml) {
+			for (MetaElem *ml = mb->elems.first; ml; ml = ml->next) {
 				writestruct(wd, DATA, MetaElem, 1, ml);
-				ml = ml->next;
 			}
 		}
-		mb = mb->id.next;
 	}
 }
 
 static void write_curves(WriteData *wd, ListBase *idbase)
 {
-	Curve *cu;
-	Nurb *nu;
-
-	cu = idbase->first;
-	while (cu) {
+	for (Curve *cu = idbase->first; cu; cu = cu->id.next) {
 		if (cu->id.us > 0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_CU, Curve, 1, cu);
@@ -2039,13 +1991,10 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 			}
 			else {
 				/* is also the order of reading */
-				nu = cu->nurb.first;
-				while (nu) {
+				for (Nurb *nu = cu->nurb.first; nu; nu = nu->next) {
 					writestruct(wd, DATA, Nurb, 1, nu);
-					nu = nu->next;
 				}
-				nu = cu->nurb.first;
-				while (nu) {
+				for (Nurb *nu = cu->nurb.first; nu; nu = nu->next) {
 					if (nu->type == CU_BEZIER) {
 						writestruct(wd, DATA, BezTriple, nu->pntsu, nu->bezt);
 					}
@@ -2058,11 +2007,9 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 							writedata(wd, DATA, KNOTSV(nu) * sizeof(float), nu->knotsv);
 						}
 					}
-					nu = nu->next;
 				}
 			}
 		}
-		cu = cu->id.next;
 	}
 
 	mywrite_flush(wd);
@@ -2184,15 +2131,13 @@ static void write_customdata(
 
 static void write_meshes(WriteData *wd, ListBase *idbase)
 {
-	Mesh *mesh;
-	bool save_for_old_blender = false;
-
 #ifdef USE_BMESH_SAVE_AS_COMPAT
-	save_for_old_blender = wd->use_mesh_compat; /* option to save with older mesh format */
+	const bool save_for_old_blender = wd->use_mesh_compat;  /* option to save with older mesh format */
+#else
+	const bool save_for_old_blender = false;
 #endif
 
-	mesh = idbase->first;
-	while (mesh) {
+	for (Mesh *mesh = idbase->first; mesh; mesh = mesh->id.next) {
 		CustomDataLayer *vlayers = NULL, vlayers_buff[CD_TEMP_CHUNK_SIZE];
 		CustomDataLayer *elayers = NULL, elayers_buff[CD_TEMP_CHUNK_SIZE];
 		CustomDataLayer *flayers = NULL, flayers_buff[CD_TEMP_CHUNK_SIZE];
@@ -2337,8 +2282,6 @@ static void write_meshes(WriteData *wd, ListBase *idbase)
 		if (players && players != players_buff) {
 			MEM_freeN(players);
 		}
-
-		mesh = mesh->id.next;
 	}
 
 	mywrite_flush(wd);
@@ -2346,10 +2289,7 @@ static void write_meshes(WriteData *wd, ListBase *idbase)
 
 static void write_lattices(WriteData *wd, ListBase *idbase)
 {
-	Lattice *lt;
-
-	lt = idbase->first;
-	while (lt) {
+	for (Lattice *lt = idbase->first; lt; lt = lt->id.next) {
 		if (lt->id.us > 0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_LT, Lattice, 1, lt);
@@ -2364,9 +2304,7 @@ static void write_lattices(WriteData *wd, ListBase *idbase)
 			writestruct(wd, DATA, BPoint, lt->pntsu * lt->pntsv * lt->pntsw, lt->def);
 
 			write_dverts(wd, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
-
 		}
-		lt = lt->id.next;
 	}
 
 	mywrite_flush(wd);
@@ -2374,14 +2312,10 @@ static void write_lattices(WriteData *wd, ListBase *idbase)
 
 static void write_images(WriteData *wd, ListBase *idbase)
 {
-	Image *ima;
-	PackedFile *pf;
-	ImageView *iv;
-	ImagePackedFile *imapf;
-
-	ima = idbase->first;
-	while (ima) {
+	for (Image *ima = idbase->first; ima; ima = ima->id.next) {
 		if (ima->id.us > 0 || wd->current) {
+			ImagePackedFile *imapf;
+
 			/* Some trickery to keep forward compatibility of packed images. */
 			BLI_assert(ima->packedfile == NULL);
 			if (ima->packedfiles.first != NULL) {
@@ -2396,7 +2330,7 @@ static void write_images(WriteData *wd, ListBase *idbase)
 			for (imapf = ima->packedfiles.first; imapf; imapf = imapf->next) {
 				writestruct(wd, DATA, ImagePackedFile, 1, imapf);
 				if (imapf->packedfile) {
-					pf = imapf->packedfile;
+					PackedFile *pf = imapf->packedfile;
 					writestruct(wd, DATA, PackedFile, 1, pf);
 					writedata(wd, DATA, pf->size, pf->data);
 				}
@@ -2404,14 +2338,13 @@ static void write_images(WriteData *wd, ListBase *idbase)
 
 			write_previews(wd, ima->preview);
 
-			for (iv = ima->views.first; iv; iv = iv->next) {
+			for (ImageView *iv = ima->views.first; iv; iv = iv->next) {
 				writestruct(wd, DATA, ImageView, 1, iv);
 			}
 			writestruct(wd, DATA, Stereo3dFormat, 1, ima->stereo3d_format);
 
 			ima->packedfile = NULL;
 		}
-		ima = ima->id.next;
 	}
 
 	mywrite_flush(wd);
@@ -2419,10 +2352,7 @@ static void write_images(WriteData *wd, ListBase *idbase)
 
 static void write_textures(WriteData *wd, ListBase *idbase)
 {
-	Tex *tex;
-
-	tex = idbase->first;
-	while (tex) {
+	for (Tex *tex = idbase->first; tex; tex = tex->id.next) {
 		if (tex->id.us > 0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_TE, Tex, 1, tex);
@@ -2463,7 +2393,6 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 
 			write_previews(wd, tex->preview);
 		}
-		tex = tex->id.next;
 	}
 
 	mywrite_flush(wd);
@@ -2486,11 +2415,7 @@ static void write_material_engines_settings(WriteData *wd, ListBase *lb)
 
 static void write_materials(WriteData *wd, ListBase *idbase)
 {
-	Material *ma;
-	int a;
-
-	ma = idbase->first;
-	while (ma) {
+	for (Material *ma = idbase->first; ma; ma = ma->id.next) {
 		if (ma->id.us > 0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_MA, Material, 1, ma);
@@ -2500,7 +2425,7 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 				write_animdata(wd, ma->adt);
 			}
 
-			for (a = 0; a < MAX_MTEX; a++) {
+			for (int a = 0; a < MAX_MTEX; a++) {
 				if (ma->mtex[a]) {
 					writestruct(wd, DATA, MTex, 1, ma->mtex[a]);
 				}
@@ -2523,17 +2448,12 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 
 			write_material_engines_settings(wd, &ma->engines_settings);
 		}
-		ma = ma->id.next;
 	}
 }
 
 static void write_worlds(WriteData *wd, ListBase *idbase)
 {
-	World *wrld;
-	int a;
-
-	wrld = idbase->first;
-	while (wrld) {
+	for (World *wrld = idbase->first; wrld; wrld = wrld->id.next) {
 		if (wrld->id.us > 0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_WO, World, 1, wrld);
@@ -2543,7 +2463,7 @@ static void write_worlds(WriteData *wd, ListBase *idbase)
 				write_animdata(wd, wrld->adt);
 			}
 
-			for (a = 0; a < MAX_MTEX; a++) {
+			for (int a = 0; a < MAX_MTEX; a++) {
 				if (wrld->mtex[a]) {
 					writestruct(wd, DATA, MTex, 1, wrld->mtex[a]);
 				}
@@ -2557,17 +2477,12 @@ static void write_worlds(WriteData *wd, ListBase *idbase)
 
 			write_previews(wd, wrld->preview);
 		}
-		wrld = wrld->id.next;
 	}
 }
 
 static void write_lamps(WriteData *wd, ListBase *idbase)
 {
-	Lamp *la;
-	int a;
-
-	la = idbase->first;
-	while (la) {
+	for (Lamp *la = idbase->first; la; la = la->id.next) {
 		if (la->id.us > 0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_LA, Lamp, 1, la);
@@ -2578,7 +2493,7 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 			}
 
 			/* direct data */
-			for (a = 0; a < MAX_MTEX; a++) {
+			for (int a = 0; a < MAX_MTEX; a++) {
 				if (la->mtex[a]) {
 					writestruct(wd, DATA, MTex, 1, la->mtex[a]);
 				}
@@ -2595,9 +2510,7 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 			}
 
 			write_previews(wd, la->preview);
-
 		}
-		la = la->id.next;
 	}
 
 	mywrite_flush(wd);
@@ -2707,23 +2620,7 @@ static void write_render_engines_settings(WriteData *wd, ListBase *lb)
 
 static void write_scenes(WriteData *wd, ListBase *scebase)
 {
-	Scene *sce;
-	BaseLegacy *base;
-	Editing *ed;
-	Sequence *seq;
-	MetaStack *ms;
-	Strip *strip;
-	TimeMarker *marker;
-	TransformOrientation *ts;
-	SceneRenderLayer *srl;
-	SceneRenderView *srv;
-	ToolSettings *tos;
-	FreestyleModuleConfig *fmc;
-	FreestyleLineSet *fls;
-	SceneLayer *sl;
-
-	sce = scebase->first;
-	while (sce) {
+	for (Scene *sce = scebase->first; sce; sce = sce->id.next) {
 		/* write LibData */
 		writestruct(wd, ID_SCE, Scene, 1, sce);
 		write_iddata(wd, &sce->id);
@@ -2734,13 +2631,11 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		write_keyingsets(wd, &sce->keyingsets);
 
 		/* direct data */
-		base = sce->base.first;
-		while (base) {
+		for (BaseLegacy *base = sce->base.first; base; base = base->next) {
 			writestruct(wd, DATA, BaseLegacy, 1, base);
-			base = base->next;
 		}
 
-		tos = sce->toolsettings;
+		ToolSettings *tos = sce->toolsettings;
 		writestruct(wd, DATA, ToolSettings, 1, tos);
 		if (tos->vpaint) {
 			writestruct(wd, DATA, VPaint, 1, tos->vpaint);
@@ -2779,8 +2674,10 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 
 		write_paint(wd, &tos->imapaint.paint);
 
-		ed = sce->ed;
+		Editing *ed = sce->ed;
 		if (ed) {
+			Sequence *seq;
+
 			writestruct(wd, DATA, Editing, 1, ed);
 
 			/* reset write flags too */
@@ -2827,7 +2724,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 
 					writestruct(wd, DATA, Stereo3dFormat, 1, seq->stereo3d_format);
 
-					strip = seq->strip;
+					Strip *strip = seq->strip;
 					writestruct(wd, DATA, Strip, 1, strip);
 					if (seq->flag & SEQ_USE_CROP && strip->crop) {
 						writestruct(wd, DATA, StripCrop, 1, strip->crop);
@@ -2859,7 +2756,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			SEQ_END
 
 			/* new; meta stack too, even when its nasty restore code */
-			for (ms = ed->metastack.first; ms; ms = ms->next) {
+			for (MetaStack *ms = ed->metastack.first; ms; ms = ms->next) {
 				writestruct(wd, DATA, MetaStack, 1, ms);
 			}
 		}
@@ -2885,27 +2782,27 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		}
 
 		/* writing dynamic list of TimeMarkers to the blend file */
-		for (marker = sce->markers.first; marker; marker = marker->next) {
+		for (TimeMarker *marker = sce->markers.first; marker; marker = marker->next) {
 			writestruct(wd, DATA, TimeMarker, 1, marker);
 		}
 
 		/* writing dynamic list of TransformOrientations to the blend file */
-		for (ts = sce->transform_spaces.first; ts; ts = ts->next) {
+		for (TransformOrientation *ts = sce->transform_spaces.first; ts; ts = ts->next) {
 			writestruct(wd, DATA, TransformOrientation, 1, ts);
 		}
 
-		for (srl = sce->r.layers.first; srl; srl = srl->next) {
+		for (SceneRenderLayer *srl = sce->r.layers.first; srl; srl = srl->next) {
 			writestruct(wd, DATA, SceneRenderLayer, 1, srl);
-			for (fmc = srl->freestyleConfig.modules.first; fmc; fmc = fmc->next) {
+			for (FreestyleModuleConfig *fmc = srl->freestyleConfig.modules.first; fmc; fmc = fmc->next) {
 				writestruct(wd, DATA, FreestyleModuleConfig, 1, fmc);
 			}
-			for (fls = srl->freestyleConfig.linesets.first; fls; fls = fls->next) {
+			for (FreestyleLineSet *fls = srl->freestyleConfig.linesets.first; fls; fls = fls->next) {
 				writestruct(wd, DATA, FreestyleLineSet, 1, fls);
 			}
 		}
 
 		/* writing MultiView to the blend file */
-		for (srv = sce->r.views.first; srv; srv = srv->next) {
+		for (SceneRenderView *srv = sce->r.views.first; srv; srv = srv->next) {
 			writestruct(wd, DATA, SceneRenderView, 1, srv);
 		}
 
@@ -2925,10 +2822,9 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 
 		write_previews(wd, sce->preview);
 		write_curvemapping_curves(wd, &sce->r.mblur_shutter_curve);
-
 		write_scene_collection(wd, sce->collection);
 
-		for (sl = sce->render_layers.first; sl; sl = sl->next) {
+		for (SceneLayer *sl = sce->render_layers.first; sl; sl = sl->next) {
 			writestruct(wd, DATA, SceneLayer, 1, sl);
 			writelist(wd, DATA, Base, &sl->object_bases);
 			write_layer_collections(wd, &sl->layer_collections);
@@ -2936,7 +2832,6 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 
 		write_render_engines_settings(wd, &sce->engines_settings);
 
-		sce = sce->id.next;
 	}
 
 	mywrite_flush(wd);
@@ -2944,13 +2839,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 
 static void write_gpencils(WriteData *wd, ListBase *lb)
 {
-	bGPdata *gpd;
-	bGPDlayer *gpl;
-	bGPDframe *gpf;
-	bGPDstroke *gps;
-	bGPDpalette *palette;
-
-	for (gpd = lb->first; gpd; gpd = gpd->id.next) {
+	for (bGPdata *gpd = lb->first; gpd; gpd = gpd->id.next) {
 		if (gpd->id.us > 0 || wd->current) {
 			/* write gpd data block to file */
 			writestruct(wd, ID_GD, bGPdata, 1, gpd);
@@ -2962,22 +2851,21 @@ static void write_gpencils(WriteData *wd, ListBase *lb)
 
 			/* write grease-pencil layers to file */
 			writelist(wd, DATA, bGPDlayer, &gpd->layers);
-			for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-
+			for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 				/* write this layer's frames to file */
 				writelist(wd, DATA, bGPDframe, &gpl->frames);
-				for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-
+				for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
 					/* write strokes */
 					writelist(wd, DATA, bGPDstroke, &gpf->strokes);
-					for (gps = gpf->strokes.first; gps; gps = gps->next) {
+					for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
 						writestruct(wd, DATA, bGPDspoint, gps->totpoints, gps->points);
 					}
 				}
 			}
+
 			/* write grease-pencil palettes */
 			writelist(wd, DATA, bGPDpalette, &gpd->palettes);
-			for (palette = gpd->palettes.first; palette; palette = palette->next) {
+			for (bGPDpalette *palette = gpd->palettes.first; palette; palette = palette->next) {
 				writelist(wd, DATA, bGPDpalettecolor, &palette->colors);
 			}
 		}
@@ -2988,14 +2876,11 @@ static void write_gpencils(WriteData *wd, ListBase *lb)
 
 static void write_windowmanagers(WriteData *wd, ListBase *lb)
 {
-	wmWindowManager *wm;
-	wmWindow *win;
-
-	for (wm = lb->first; wm; wm = wm->id.next) {
+	for (wmWindowManager *wm = lb->first; wm; wm = wm->id.next) {
 		writestruct(wd, ID_WM, wmWindowManager, 1, wm);
 		write_iddata(wd, &wm->id);
 
-		for (win = wm->windows.first; win; win = win->next) {
+		for (wmWindow *win = wm->windows.first; win; win = win->next) {
 			writestruct(wd, DATA, wmWindow, 1, win);
 			writestruct(wd, DATA, Stereo3dFormat, 1, win->stereo3d_format);
 		}
@@ -3088,14 +2973,7 @@ static void write_soops(WriteData *wd, SpaceOops *so)
 
 static void write_screens(WriteData *wd, ListBase *scrbase)
 {
-	bScreen *sc;
-	ScrArea *sa;
-	ScrVert *sv;
-	ScrEdge *se;
-
-	sc = scrbase->first;
-	while (sc) {
-
+	for (bScreen *sc = scrbase->first; sc; sc = sc->id.next) {
 		/* write LibData */
 		/* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
 		writestruct(wd, ID_SCRN, bScreen, 1, sc);
@@ -3104,15 +2982,15 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 		write_previews(wd, sc->preview);
 
 		/* direct data */
-		for (sv = sc->vertbase.first; sv; sv = sv->next) {
+		for (ScrVert *sv = sc->vertbase.first; sv; sv = sv->next) {
 			writestruct(wd, DATA, ScrVert, 1, sv);
 		}
 
-		for (se = sc->edgebase.first; se; se = se->next) {
+		for (ScrEdge *se = sc->edgebase.first; se; se = se->next) {
 			writestruct(wd, DATA, ScrEdge, 1, se);
 		}
 
-		for (sa = sc->areabase.first; sa; sa = sa->next) {
+		for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
 			SpaceLink *sl;
 			Panel *pa;
 			uiList *ui_list;
@@ -3142,8 +3020,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				}
 			}
 
-			sl = sa->spacedata.first;
-			while (sl) {
+			for (sl = sa->spacedata.first; sl; sl = sl->next) {
 				for (ar = sl->regionbase.first; ar; ar = ar->next) {
 					write_region(wd, ar, sl->spacetype);
 				}
@@ -3260,12 +3137,8 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				else if (sl->spacetype == SPACE_COLLECTIONS) {
 					writestruct(wd, DATA, SpaceCollections, 1, sl);
 				}
-
-				sl = sl->next;
 			}
 		}
-
-		sc = sc->id.next;
 	}
 
 	mywrite_flush(wd);
@@ -3293,11 +3166,7 @@ static void write_bone(WriteData *wd, Bone *bone)
 
 static void write_armatures(WriteData *wd, ListBase *idbase)
 {
-	bArmature   *arm;
-	Bone        *bone;
-
-	arm = idbase->first;
-	while (arm) {
+	for (bArmature *arm = idbase->first; arm; arm = arm->id.next) {
 		if (arm->id.us > 0 || wd->current) {
 			writestruct(wd, ID_AR, bArmature, 1, arm);
 			write_iddata(wd, &arm->id);
@@ -3307,13 +3176,10 @@ static void write_armatures(WriteData *wd, ListBase *idbase)
 			}
 
 			/* Direct data */
-			bone = arm->bonebase.first;
-			while (bone) {
+			for (Bone *bone = arm->bonebase.first; bone; bone = bone->next) {
 				write_bone(wd, bone);
-				bone = bone->next;
 			}
 		}
-		arm = arm->id.next;
 	}
 
 	mywrite_flush(wd);
@@ -3321,12 +3187,8 @@ static void write_armatures(WriteData *wd, ListBase *idbase)
 
 static void write_texts(WriteData *wd, ListBase *idbase)
 {
-	Text *text;
-	TextLine *tmp;
-
-	text = idbase->first;
-	while (text) {
-		if ( (text->flags & TXT_ISMEM) && (text->flags & TXT_ISEXT)) {
+	for (Text *text = idbase->first; text; text = text->id.next) {
+		if ((text->flags & TXT_ISMEM) && (text->flags & TXT_ISEXT)) {
 			text->flags &= ~TXT_ISEXT;
 		}
 
@@ -3340,21 +3202,14 @@ static void write_texts(WriteData *wd, ListBase *idbase)
 
 		if (!(text->flags & TXT_ISEXT)) {
 			/* now write the text data, in two steps for optimization in the readfunction */
-			tmp = text->lines.first;
-			while (tmp) {
+			for (TextLine *tmp = text->lines.first; tmp; tmp = tmp->next) {
 				writestruct(wd, DATA, TextLine, 1, tmp);
-				tmp = tmp->next;
 			}
 
-			tmp = text->lines.first;
-			while (tmp) {
+			for (TextLine *tmp = text->lines.first; tmp; tmp = tmp->next) {
 				writedata(wd, DATA, tmp->len + 1, tmp->line);
-				tmp = tmp->next;
 			}
 		}
-
-
-		text = text->id.next;
 	}
 
 	mywrite_flush(wd);
@@ -3362,10 +3217,7 @@ static void write_texts(WriteData *wd, ListBase *idbase)
 
 static void write_speakers(WriteData *wd, ListBase *idbase)
 {
-	Speaker *spk;
-
-	spk = idbase->first;
-	while (spk) {
+	for (Speaker *spk = idbase->first; spk; spk = spk->id.next) {
 		if (spk->id.us > 0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_SPK, Speaker, 1, spk);
@@ -3375,30 +3227,23 @@ static void write_speakers(WriteData *wd, ListBase *idbase)
 				write_animdata(wd, spk->adt);
 			}
 		}
-		spk = spk->id.next;
 	}
 }
 
 static void write_sounds(WriteData *wd, ListBase *idbase)
 {
-	bSound *sound;
-
-	PackedFile *pf;
-
-	sound = idbase->first;
-	while (sound) {
+	for (bSound *sound = idbase->first; sound; sound = sound->id.next) {
 		if (sound->id.us > 0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_SO, bSound, 1, sound);
 			write_iddata(wd, &sound->id);
 
 			if (sound->packedfile) {
-				pf = sound->packedfile;
+				PackedFile *pf = sound->packedfile;
 				writestruct(wd, DATA, PackedFile, 1, pf);
 				writedata(wd, DATA, pf->size, pf->data);
 			}
 		}
-		sound = sound->id.next;
 	}
 
 	mywrite_flush(wd);
@@ -3406,10 +3251,7 @@ static void write_sounds(WriteData *wd, ListBase *idbase)
 
 static void write_groups(WriteData *wd, ListBase *idbase)
 {
-	Group *group;
-	GroupObject *go;
-
-	for (group = idbase->first; group; group = group->id.next) {
+	for (Group *group = idbase->first; group; group = group->id.next) {
 		if (group->id.us > 0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_GR, Group, 1, group);
@@ -3417,10 +3259,8 @@ static void write_groups(WriteData *wd, ListBase *idbase)
 
 			write_previews(wd, group->preview);
 
-			go = group->gobject.first;
-			while (go) {
+			for (GroupObject *go = group->gobject.first; go; go = go->next) {
 				writestruct(wd, DATA, GroupObject, 1, go);
-				go = go->next;
 			}
 		}
 	}
@@ -3430,9 +3270,7 @@ static void write_groups(WriteData *wd, ListBase *idbase)
 
 static void write_nodetrees(WriteData *wd, ListBase *idbase)
 {
-	bNodeTree *ntree;
-
-	for (ntree = idbase->first; ntree; ntree = ntree->id.next) {
+	for (bNodeTree *ntree = idbase->first; ntree; ntree = ntree->id.next) {
 		if (ntree->id.us > 0 || wd->current) {
 			writestruct(wd, ID_NT, bNodeTree, 1, ntree);
 			/* Note that trees directly used by other IDs (materials etc.) are not 'real' ID, they cannot
@@ -3516,9 +3354,7 @@ static void customnodes_free_deprecated_data(Main *mainvar)
 
 static void write_brushes(WriteData *wd, ListBase *idbase)
 {
-	Brush *brush;
-
-	for (brush = idbase->first; brush; brush = brush->id.next) {
+	for (Brush *brush = idbase->first; brush; brush = brush->id.next) {
 		if (brush->id.us > 0 || wd->current) {
 			writestruct(wd, ID_BR, Brush, 1, brush);
 			write_iddata(wd, &brush->id);
@@ -3535,9 +3371,7 @@ static void write_brushes(WriteData *wd, ListBase *idbase)
 
 static void write_palettes(WriteData *wd, ListBase *idbase)
 {
-	Palette *palette;
-
-	for (palette = idbase->first; palette; palette = palette->id.next) {
+	for (Palette *palette = idbase->first; palette; palette = palette->id.next) {
 		if (palette->id.us > 0 || wd->current) {
 			PaletteColor *color;
 			writestruct(wd, ID_PAL, Palette, 1, palette);
@@ -3552,9 +3386,7 @@ static void write_palettes(WriteData *wd, ListBase *idbase)
 
 static void write_paintcurves(WriteData *wd, ListBase *idbase)
 {
-	PaintCurve *pc;
-
-	for (pc = idbase->first; pc; pc = pc->id.next) {
+	for (PaintCurve *pc = idbase->first; pc; pc = pc->id.next) {
 		if (pc->id.us > 0 || wd->current) {
 			writestruct(wd, ID_PC, PaintCurve, 1, pc);
 			write_iddata(wd, &pc->id);
@@ -3604,10 +3436,7 @@ static void write_movieReconstruction(WriteData *wd, MovieTrackingReconstruction
 
 static void write_movieclips(WriteData *wd, ListBase *idbase)
 {
-	MovieClip *clip;
-
-	clip = idbase->first;
-	while (clip) {
+	for (MovieClip *clip = idbase->first; clip; clip = clip->id.next) {
 		if (clip->id.us > 0 || wd->current) {
 			MovieTracking *tracking = &clip->tracking;
 			MovieTrackingObject *object;
@@ -3634,8 +3463,6 @@ static void write_movieclips(WriteData *wd, ListBase *idbase)
 				object = object->next;
 			}
 		}
-
-		clip = clip->id.next;
 	}
 
 	mywrite_flush(wd);
@@ -3643,10 +3470,7 @@ static void write_movieclips(WriteData *wd, ListBase *idbase)
 
 static void write_masks(WriteData *wd, ListBase *idbase)
 {
-	Mask *mask;
-
-	mask = idbase->first;
-	while (mask) {
+	for (Mask *mask = idbase->first; mask; mask = mask->id.next) {
 		if (mask->id.us > 0 || wd->current) {
 			MaskLayer *masklay;
 
@@ -3694,8 +3518,6 @@ static void write_masks(WriteData *wd, ListBase *idbase)
 				}
 			}
 		}
-
-		mask = mask->id.next;
 	}
 
 	mywrite_flush(wd);
@@ -3957,10 +3779,7 @@ static void write_linestyle_geometry_modifiers(WriteData *wd, ListBase *modifier
 
 static void write_linestyles(WriteData *wd, ListBase *idbase)
 {
-	FreestyleLineStyle *linestyle;
-	int a;
-
-	for (linestyle = idbase->first; linestyle; linestyle = linestyle->id.next) {
+	for (FreestyleLineStyle *linestyle = idbase->first; linestyle; linestyle = linestyle->id.next) {
 		if (linestyle->id.us > 0 || wd->current) {
 			writestruct(wd, ID_LS, FreestyleLineStyle, 1, linestyle);
 			write_iddata(wd, &linestyle->id);
@@ -3973,7 +3792,7 @@ static void write_linestyles(WriteData *wd, ListBase *idbase)
 			write_linestyle_alpha_modifiers(wd, &linestyle->alpha_modifiers);
 			write_linestyle_thickness_modifiers(wd, &linestyle->thickness_modifiers);
 			write_linestyle_geometry_modifiers(wd, &linestyle->geometry_modifiers);
-			for (a = 0; a < MAX_MTEX; a++) {
+			for (int a = 0; a < MAX_MTEX; a++) {
 				if (linestyle->mtex[a]) {
 					writestruct(wd, DATA, MTex, 1, linestyle->mtex[a]);
 				}
@@ -3988,9 +3807,7 @@ static void write_linestyles(WriteData *wd, ListBase *idbase)
 
 static void write_cachefiles(WriteData *wd, ListBase *idbase)
 {
-	CacheFile *cache_file;
-
-	for (cache_file = idbase->first; cache_file; cache_file = cache_file->id.next) {
+	for (CacheFile *cache_file = idbase->first; cache_file; cache_file = cache_file->id.next) {
 		if (cache_file->id.us > 0 || wd->current) {
 			writestruct(wd, ID_CF, CacheFile, 1, cache_file);
 
@@ -4010,7 +3827,6 @@ static void write_libraries(WriteData *wd, Main *main)
 	bool found_one;
 
 	for (; main; main = main->next) {
-
 		a = tot = set_listbasepointers(main, lbarray);
 
 		/* test: is lib being used */
@@ -4019,15 +3835,12 @@ static void write_libraries(WriteData *wd, Main *main)
 		}
 		else {
 			found_one = false;
-			while (tot--) {
+			while (!found_one && tot--) {
 				for (id = lbarray[tot]->first; id; id = id->next) {
 					if (id->us > 0 && (id->tag & LIB_TAG_EXTERN)) {
 						found_one = true;
 						break;
 					}
-				}
-				if (found_one) {
-					break;
 				}
 			}
 		}

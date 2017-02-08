@@ -77,6 +77,16 @@ void IMB_colormanagement_transform(float *buffer, int width, int height, int cha
                                    const char *from_colorspace, const char *to_colorspace, bool predivide);
 void IMB_colormanagement_transform_threaded(float *buffer, int width, int height, int channels,
                                             const char *from_colorspace, const char *to_colorspace, bool predivide);
+void IMB_colormanagement_transform_byte(unsigned char *buffer, int width, int height, int channels,
+                                        const char *from_colorspace, const char *to_colorspace);
+void IMB_colormanagement_transform_byte_threaded(unsigned char *buffer, int width, int height, int channels,
+                                                 const char *from_colorspace, const char *to_colorspace);
+void IMB_colormanagement_transform_from_byte(float *float_buffer, unsigned char *byte_buffer,
+                                             int width, int height, int channels,
+                                             const char *from_colorspace, const char *to_colorspace);
+void IMB_colormanagement_transform_from_byte_threaded(float *float_buffer, unsigned char *byte_buffer,
+                                                      int width, int height, int channels,
+                                                      const char *from_colorspace, const char *to_colorspace);
 void IMB_colormanagement_transform_v4(float pixel[4], const char *from_colorspace, const char *to_colorspace);
 
 void IMB_colormanagement_colorspace_to_scene_linear_v3(float pixel[3], struct ColorSpace *colorspace);
@@ -185,6 +195,8 @@ void IMB_colormanagement_processor_apply_v3(struct ColormanageProcessor *cm_proc
 void IMB_colormanagement_processor_apply_pixel(struct ColormanageProcessor *cm_processor, float *pixel, int channels);
 void IMB_colormanagement_processor_apply(struct ColormanageProcessor *cm_processor, float *buffer, int width, int height,
                                          int channels, bool predivide);
+void IMB_colormanagement_processor_apply_byte(struct ColormanageProcessor *cm_processor,
+                                              unsigned char *buffer, int width, int height, int channels);
 void IMB_colormanagement_processor_free(struct ColormanageProcessor *cm_processor);
 
 /* ** OpenGL drawing routines using GLSL for color space transform ** */

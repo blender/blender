@@ -45,50 +45,50 @@ TEST(array_utils, ReverseInt4)
 TEST(array_utils, FindIndexStringEmpty)
 {
 	char data[] = "", find = '0';
-	EXPECT_EQ(-1, BLI_array_findindex(data,  ARRAY_SIZE(data) - 1, &find));
-	EXPECT_EQ(-1, BLI_array_rfindindex(data, ARRAY_SIZE(data) - 1, &find));
+	EXPECT_EQ(BLI_array_findindex(data,  ARRAY_SIZE(data) - 1, &find), -1);
+	EXPECT_EQ(BLI_array_rfindindex(data, ARRAY_SIZE(data) - 1, &find), -1);
 }
 
 TEST(array_utils, FindIndexStringSingle)
 {
 	char data[] = "0", find = '0';
-	EXPECT_EQ(0, BLI_array_findindex(data,  ARRAY_SIZE(data) - 1, &find));
-	EXPECT_EQ(0, BLI_array_rfindindex(data, ARRAY_SIZE(data) - 1, &find));
+	EXPECT_EQ(BLI_array_findindex(data,  ARRAY_SIZE(data) - 1, &find), 0);
+	EXPECT_EQ(BLI_array_rfindindex(data, ARRAY_SIZE(data) - 1, &find), 0);
 }
 
 TEST(array_utils, FindIndexStringSingleMissing)
 {
 	char data[] = "1", find = '0';
-	EXPECT_EQ(-1, BLI_array_findindex(data,  ARRAY_SIZE(data) - 1, &find));
-	EXPECT_EQ(-1, BLI_array_rfindindex(data, ARRAY_SIZE(data) - 1, &find));
+	EXPECT_EQ(BLI_array_findindex(data,  ARRAY_SIZE(data) - 1, &find), -1);
+	EXPECT_EQ(BLI_array_rfindindex(data, ARRAY_SIZE(data) - 1, &find), -1);
 }
 
 TEST(array_utils, FindIndexString4)
 {
 	char data[] = "0123", find = '3';
-	EXPECT_EQ(3, BLI_array_findindex(data,  ARRAY_SIZE(data) - 1, &find));
-	EXPECT_EQ(3, BLI_array_rfindindex(data, ARRAY_SIZE(data) - 1, &find));
+	EXPECT_EQ(BLI_array_findindex(data,  ARRAY_SIZE(data) - 1, &find), 3);
+	EXPECT_EQ(BLI_array_rfindindex(data, ARRAY_SIZE(data) - 1, &find), 3);
 }
 
 TEST(array_utils, FindIndexInt4)
 {
 	int data[] = {0, 1, 2, 3}, find = 3;
-	EXPECT_EQ(3, BLI_array_findindex(data,  ARRAY_SIZE(data), &find));
-	EXPECT_EQ(3, BLI_array_rfindindex(data, ARRAY_SIZE(data), &find));
+	EXPECT_EQ(BLI_array_findindex(data,  ARRAY_SIZE(data), &find), 3);
+	EXPECT_EQ(BLI_array_rfindindex(data, ARRAY_SIZE(data), &find), 3);
 }
 
 TEST(array_utils, FindIndexInt4_DupeEnd)
 {
 	int data[] = {0, 1, 2, 0}, find = 0;
-	EXPECT_EQ(0, BLI_array_findindex(data,  ARRAY_SIZE(data), &find));
-	EXPECT_EQ(3, BLI_array_rfindindex(data, ARRAY_SIZE(data), &find));
+	EXPECT_EQ(BLI_array_findindex(data,  ARRAY_SIZE(data), &find), 0);
+	EXPECT_EQ(BLI_array_rfindindex(data, ARRAY_SIZE(data), &find), 3);
 }
 
 TEST(array_utils, FindIndexInt4_DupeMid)
 {
 	int data[] = {1, 0, 0, 3}, find = 0;
-	EXPECT_EQ(1, BLI_array_findindex(data,  ARRAY_SIZE(data), &find));
-	EXPECT_EQ(2, BLI_array_rfindindex(data, ARRAY_SIZE(data), &find));
+	EXPECT_EQ(BLI_array_findindex(data,  ARRAY_SIZE(data), &find), 1);
+	EXPECT_EQ(BLI_array_rfindindex(data, ARRAY_SIZE(data), &find), 2);
 }
 
 TEST(array_utils, FindIndexPointer)
@@ -102,18 +102,18 @@ TEST(array_utils, FindIndexPointer)
 
 #define STACK_PUSH_AND_CHECK_FORWARD(v, i) { \
 	STACK_PUSH(data, v); \
-	EXPECT_EQ(i, BLI_array_findindex(data,  STACK_SIZE(data), &(v))); \
+	EXPECT_EQ(BLI_array_findindex(data,  STACK_SIZE(data), &(v)), i); \
 } ((void)0)
 
 #define STACK_PUSH_AND_CHECK_BACKWARD(v, i) { \
 	STACK_PUSH(data, v); \
-	EXPECT_EQ(i, BLI_array_rfindindex(data, STACK_SIZE(data), &(v))); \
+	EXPECT_EQ(BLI_array_rfindindex(data, STACK_SIZE(data), &(v)), i); \
 } ((void)0)
 
 #define STACK_PUSH_AND_CHECK_BOTH(v, i) { \
 	STACK_PUSH(data, v); \
-	EXPECT_EQ(i, BLI_array_findindex(data,  STACK_SIZE(data), &(v))); \
-	EXPECT_EQ(i, BLI_array_rfindindex(data, STACK_SIZE(data), &(v))); \
+	EXPECT_EQ(BLI_array_findindex(data,  STACK_SIZE(data), &(v)), i); \
+	EXPECT_EQ(BLI_array_rfindindex(data, STACK_SIZE(data), &(v)), i); \
 } ((void)0)
 
 	STACK_PUSH_AND_CHECK_BOTH(a, 0);

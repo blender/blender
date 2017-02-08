@@ -1935,7 +1935,7 @@ void txt_do_undo(Text *text)
 	int op = text->undo_buf[text->undo_pos];
 	int prev_flags;
 	unsigned int linep;
-	unsigned int uchar;
+	unsigned int uni_char;
 	unsigned int curln, selln;
 	unsigned short curc, selc;
 	unsigned short charp;
@@ -1971,14 +1971,14 @@ void txt_do_undo(Text *text)
 		case UNDO_BS_3:
 		case UNDO_BS_4:
 			charp = op - UNDO_BS_1 + 1;
-			uchar = txt_undo_read_unicode(text->undo_buf, &text->undo_pos, charp);
+			uni_char = txt_undo_read_unicode(text->undo_buf, &text->undo_pos, charp);
 			
 			/* get and restore the cursors */
 			txt_undo_read_cur(text->undo_buf, &text->undo_pos, &curln, &curc);
 			txt_move_to(text, curln, curc, 0);
 			txt_move_to(text, curln, curc, 1);
 			
-			txt_add_char(text, uchar);
+			txt_add_char(text, uni_char);
 
 			text->undo_pos--;
 			break;
@@ -1988,14 +1988,14 @@ void txt_do_undo(Text *text)
 		case UNDO_DEL_3:
 		case UNDO_DEL_4:
 			charp = op - UNDO_DEL_1 + 1;
-			uchar = txt_undo_read_unicode(text->undo_buf, &text->undo_pos, charp);
+			uni_char = txt_undo_read_unicode(text->undo_buf, &text->undo_pos, charp);
 
 			/* get and restore the cursors */
 			txt_undo_read_cur(text->undo_buf, &text->undo_pos, &curln, &curc);
 			txt_move_to(text, curln, curc, 0);
 			txt_move_to(text, curln, curc, 1);
 
-			txt_add_char(text, uchar);
+			txt_add_char(text, uni_char);
 
 			txt_move_left(text, 0);
 
@@ -2163,7 +2163,7 @@ void txt_do_redo(Text *text)
 	char *buf;
 	unsigned int linep;
 	unsigned short charp;
-	unsigned int uchar;
+	unsigned int uni_uchar;
 	unsigned int curln, selln;
 	unsigned short curc, selc;
 	
@@ -2190,9 +2190,9 @@ void txt_do_redo(Text *text)
 			txt_move_to(text, curln, curc, 1);
 			
 			charp = op - UNDO_INSERT_1 + 1;
-			uchar = txt_redo_read_unicode(text->undo_buf, &text->undo_pos, charp);
+			uni_uchar = txt_redo_read_unicode(text->undo_buf, &text->undo_pos, charp);
 
-			txt_add_char(text, uchar);
+			txt_add_char(text, uni_uchar);
 			break;
 
 		case UNDO_BS_1:

@@ -153,7 +153,7 @@ void AbcNurbsWriter::do_write()
 		const BPoint *bp = nu->bp;
 
 		for (int i = 0; i < size; ++i, ++bp) {
-			copy_zup_yup(positions[i].getValue(), bp->vec);
+			copy_yup_from_zup(positions[i].getValue(), bp->vec);
 			weights[i] = bp->vec[3];
 		}
 
@@ -281,7 +281,7 @@ void AbcNurbsReader::readObjectData(Main *bmain, float time)
 				posw_in = (*weights)[i];
 			}
 
-			copy_yup_zup(bp->vec, pos_in.getValue());
+			copy_zup_from_yup(bp->vec, pos_in.getValue());
 			bp->vec[3] = posw_in;
 			bp->f1 = SELECT;
 			bp->radius = 1.0f;

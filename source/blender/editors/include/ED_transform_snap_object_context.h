@@ -65,10 +65,6 @@ struct SnapObjectParams {
 	unsigned int use_object_edit_cage : 1;
 };
 
-enum {
-	SNAP_OBJECT_USE_CACHE = (1 << 0),
-};
-
 typedef struct SnapObjectContext SnapObjectContext;
 SnapObjectContext *ED_transform_snap_object_context_create(
         struct Main *bmain, struct Scene *scene, int flag);

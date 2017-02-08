@@ -102,7 +102,7 @@ void AbcCurveWriter::do_write()
 			const BPoint *point = nurbs->bp;
 
 			for (int i = 0; i < totpoint; ++i, ++point) {
-				copy_zup_yup(temp_vert.getValue(), point->vec);
+				copy_yup_from_zup(temp_vert.getValue(), point->vec);
 				verts.push_back(temp_vert);
 				weights.push_back(point->vec[3]);
 				widths.push_back(point->radius);
@@ -118,7 +118,7 @@ void AbcCurveWriter::do_write()
 
 			/* TODO(kevin): store info about handles, Alembic doesn't have this. */
 			for (int i = 0; i < totpoint; ++i, ++bezier) {
-				copy_zup_yup(temp_vert.getValue(), bezier->vec[1]);
+				copy_yup_from_zup(temp_vert.getValue(), bezier->vec[1]);
 				verts.push_back(temp_vert);
 				widths.push_back(bezier->radius);
 			}
@@ -322,7 +322,7 @@ void read_curve_sample(Curve *cu, const ICurvesSchema &schema, const float time)
 				weight = (*weights)[idx];
 			}
 
-			copy_yup_zup(bp->vec, pos.getValue());
+			copy_zup_from_yup(bp->vec, pos.getValue());
 			bp->vec[3] = weight;
 			bp->f1 = SELECT;
 			bp->radius = radius;
@@ -389,7 +389,7 @@ DerivedMesh *AbcCurveReader::read_derivedmesh(DerivedMesh */*dm*/, const float t
 
 				for (int i = 0; i < totpoint; ++i, ++point, ++vertex_idx) {
 					const Imath::V3f &pos = (*positions)[vertex_idx];
-					copy_yup_zup(point->vec, pos.getValue());
+					copy_zup_from_yup(point->vec, pos.getValue());
 				}
 			}
 			else if (nurbs->bezt) {
@@ -397,7 +397,7 @@ DerivedMesh *AbcCurveReader::read_derivedmesh(DerivedMesh */*dm*/, const float t
 
 				for (int i = 0; i < totpoint; ++i, ++bezier, ++vertex_idx) {
 					const Imath::V3f &pos = (*positions)[vertex_idx];
-					copy_yup_zup(bezier->vec[1], pos.getValue());
+					copy_zup_from_yup(bezier->vec[1], pos.getValue());
 				}
 			}
 		}

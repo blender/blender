@@ -24,7 +24,7 @@ TEST(stack, Empty)
 	BLI_Stack *stack;
 
 	stack = BLI_stack_new(sizeof(int), __func__);
-	EXPECT_EQ(BLI_stack_is_empty(stack), true);
+	EXPECT_TRUE(BLI_stack_is_empty(stack));
 	EXPECT_EQ(BLI_stack_count(stack), 0);
 	BLI_stack_free(stack);
 }
@@ -37,11 +37,11 @@ TEST(stack, One)
 	stack = BLI_stack_new(sizeof(in), __func__);
 
 	BLI_stack_push(stack, (void *)&in);
-	EXPECT_EQ(BLI_stack_is_empty(stack), false);
+	EXPECT_FALSE(BLI_stack_is_empty(stack));
 	EXPECT_EQ(BLI_stack_count(stack), 1);
 	BLI_stack_pop(stack, (void *)&out);
-	EXPECT_EQ(in, out);
-	EXPECT_EQ(BLI_stack_is_empty(stack), true);
+	EXPECT_EQ(out, in);
+	EXPECT_TRUE(BLI_stack_is_empty(stack));
 	EXPECT_EQ(BLI_stack_count(stack), 0);
 	BLI_stack_free(stack);
 }
@@ -59,12 +59,12 @@ TEST(stack, Range)
 	}
 
 	for (in = tot - 1; in >= 0; in--) {
-		EXPECT_EQ(BLI_stack_is_empty(stack), false);
+		EXPECT_FALSE(BLI_stack_is_empty(stack));
 		BLI_stack_pop(stack, (void *)&out);
-		EXPECT_EQ(in, out);
+		EXPECT_EQ(out, in);
 
 	}
-	EXPECT_EQ(BLI_stack_is_empty(stack), true);
+	EXPECT_TRUE(BLI_stack_is_empty(stack));
 
 	BLI_stack_free(stack);
 }
@@ -86,12 +86,12 @@ TEST(stack, String)
 	}
 
 	for (i = tot - 1; i >= 0; i--) {
-		EXPECT_EQ(BLI_stack_is_empty(stack), false);
+		EXPECT_FALSE(BLI_stack_is_empty(stack));
 		*((int *)in) = i;
 		BLI_stack_pop(stack, (void *)&out);
 		EXPECT_STREQ(in, out);
 	}
-	EXPECT_EQ(BLI_stack_is_empty(stack), true);
+	EXPECT_TRUE(BLI_stack_is_empty(stack));
 
 	BLI_stack_free(stack);
 }
@@ -115,7 +115,7 @@ TEST(stack, Peek)
 		EXPECT_EQ(*ret, in[i % ARRAY_SIZE(in)]);
 	}
 
-	EXPECT_EQ(BLI_stack_is_empty(stack), true);
+	EXPECT_TRUE(BLI_stack_is_empty(stack));
 
 	BLI_stack_free(stack);
 }
@@ -140,7 +140,7 @@ TEST(stack, Clear)
 		}
 
 		BLI_stack_clear(stack);
-		EXPECT_EQ(BLI_stack_is_empty(stack), true);
+		EXPECT_TRUE(BLI_stack_is_empty(stack));
 
 		/* and again, this time check its valid */
 		for (in = 0; in < tot; in++) {
@@ -148,12 +148,12 @@ TEST(stack, Clear)
 		}
 
 		for (in = tot - 1; in >= 0; in--) {
-			EXPECT_EQ(BLI_stack_is_empty(stack), false);
+			EXPECT_FALSE(BLI_stack_is_empty(stack));
 			BLI_stack_pop(stack, (void *)&out);
-			EXPECT_EQ(in, out);
+			EXPECT_EQ(out, in);
 		}
 
-		EXPECT_EQ(BLI_stack_is_empty(stack), true);
+		EXPECT_TRUE(BLI_stack_is_empty(stack));
 
 		/* without this, we wont test case when mixed free/used */
 		tot /= 2;
@@ -204,10 +204,10 @@ TEST(stack, Reuse)
 	while (!BLI_stack_is_empty(stack)) {
 		i--;
 		BLI_stack_pop(stack, (void *)&sizes_test[i]);
-		EXPECT_EQ(sizes[i], sizes_test[i]);
+		EXPECT_EQ(sizes_test[i], sizes[i]);
 		EXPECT_GT(i, -1);
 	}
-	EXPECT_EQ(i, 0);
+	EXPECT_EQ(0, i);
 	EXPECT_EQ(memcmp(sizes, sizes_test, sizeof(sizes) - sizeof(int)), 0);
 
 

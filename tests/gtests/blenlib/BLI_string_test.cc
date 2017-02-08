@@ -44,7 +44,7 @@ TEST(string, StrPartition)
 
 		/* "mat.e-r_ial" -> "mat", '.', "e-r_ial", 3 */
 		pre_ln = BLI_str_partition(str, delim, &sep, &suf);
-		EXPECT_EQ(3, pre_ln);
+		EXPECT_EQ(pre_ln, 3);
 		EXPECT_EQ(&str[3], sep);
 		EXPECT_STREQ("e-r_ial", suf);
 	}
@@ -55,7 +55,7 @@ TEST(string, StrPartition)
 
 		/* ".mate-rial--" -> "", '.', "mate-rial--", 0 */
 		pre_ln = BLI_str_partition(str, delim, &sep, &suf);
-		EXPECT_EQ(0, pre_ln);
+		EXPECT_EQ(pre_ln, 0);
 		EXPECT_EQ(&str[0], sep);
 		EXPECT_STREQ("mate-rial--", suf);
 	}
@@ -65,7 +65,7 @@ TEST(string, StrPartition)
 
 		/* ".__.--_" -> "", '.', "__.--_", 0 */
 		pre_ln = BLI_str_partition(str, delim, &sep, &suf);
-		EXPECT_EQ(0, pre_ln);
+		EXPECT_EQ(pre_ln, 0);
 		EXPECT_EQ(&str[0], sep);
 		EXPECT_STREQ("__.--_", suf);
 	}
@@ -75,9 +75,9 @@ TEST(string, StrPartition)
 
 		/* "" -> "", NULL, NULL, 0 */
 		pre_ln = BLI_str_partition(str, delim, &sep, &suf);
-		EXPECT_EQ(0, pre_ln);
-		EXPECT_EQ(NULL, sep);
-		EXPECT_EQ(NULL, suf);
+		EXPECT_EQ(pre_ln, 0);
+		EXPECT_EQ(sep, (void*)NULL);
+		EXPECT_EQ(suf, (void*)NULL);
 	}
 
 	{
@@ -85,9 +85,9 @@ TEST(string, StrPartition)
 
 		/* "material" -> "material", NULL, NULL, 8 */
 		pre_ln = BLI_str_partition(str, delim, &sep, &suf);
-		EXPECT_EQ(8, pre_ln);
-		EXPECT_EQ(NULL, sep);
-		EXPECT_EQ(NULL, suf);
+		EXPECT_EQ(pre_ln, 8);
+		EXPECT_EQ(sep, (void*)NULL);
+		EXPECT_EQ(suf, (void*)NULL);
 	}
 }
 
@@ -103,7 +103,7 @@ TEST(string, StrRPartition)
 
 		/* "mat.e-r_ial" -> "mat.e-r", '_', "ial", 7 */
 		pre_ln = BLI_str_rpartition(str, delim, &sep, &suf);
-		EXPECT_EQ(7, pre_ln);
+		EXPECT_EQ(pre_ln, 7);
 		EXPECT_EQ(&str[7], sep);
 		EXPECT_STREQ("ial", suf);
 	}
@@ -114,7 +114,7 @@ TEST(string, StrRPartition)
 
 		/* ".mate-rial--" -> ".mate-rial-", '-', "", 11 */
 		pre_ln = BLI_str_rpartition(str, delim, &sep, &suf);
-		EXPECT_EQ(11, pre_ln);
+		EXPECT_EQ(pre_ln, 11);
 		EXPECT_EQ(&str[11], sep);
 		EXPECT_STREQ("", suf);
 	}
@@ -124,7 +124,7 @@ TEST(string, StrRPartition)
 
 		/* ".__.--_" -> ".__.--", '_', "", 6 */
 		pre_ln = BLI_str_rpartition(str, delim, &sep, &suf);
-		EXPECT_EQ(6, pre_ln);
+		EXPECT_EQ(pre_ln, 6);
 		EXPECT_EQ(&str[6], sep);
 		EXPECT_STREQ("", suf);
 	}
@@ -134,9 +134,9 @@ TEST(string, StrRPartition)
 
 		/* "" -> "", NULL, NULL, 0 */
 		pre_ln = BLI_str_rpartition(str, delim, &sep, &suf);
-		EXPECT_EQ(0, pre_ln);
-		EXPECT_EQ(NULL, sep);
-		EXPECT_EQ(NULL, suf);
+		EXPECT_EQ(pre_ln, 0);
+		EXPECT_EQ(sep, (void*)NULL);
+		EXPECT_EQ(suf, (void*)NULL);
 	}
 
 	{
@@ -144,9 +144,9 @@ TEST(string, StrRPartition)
 
 		/* "material" -> "material", NULL, NULL, 8 */
 		pre_ln = BLI_str_rpartition(str, delim, &sep, &suf);
-		EXPECT_EQ(8, pre_ln);
-		EXPECT_EQ(NULL, sep);
-		EXPECT_EQ(NULL, suf);
+		EXPECT_EQ(pre_ln, 8);
+		EXPECT_EQ(sep, (void*)NULL);
+		EXPECT_EQ(suf, (void*)NULL);
 	}
 }
 
@@ -164,7 +164,7 @@ TEST(string, StrPartitionEx)
 
 		/* "mat.e-r_ia.l" over "mat.e-r" -> "mat.e", '.', "r_ia.l", 3 */
 		pre_ln = BLI_str_partition_ex(str, str + 6, delim, &sep, &suf, true);
-		EXPECT_EQ(5, pre_ln);
+		EXPECT_EQ(pre_ln, 5);
 		EXPECT_EQ(&str[5], sep);
 		EXPECT_STREQ("r_ia.l", suf);
 	}
@@ -175,9 +175,9 @@ TEST(string, StrPartitionEx)
 
 		/* "mate.rial" over "mate" -> "mate.rial", NULL, NULL, 4 */
 		pre_ln = BLI_str_partition_ex(str, str + 4, delim, &sep, &suf, true);
-		EXPECT_EQ(4, pre_ln);
-		EXPECT_EQ(NULL, sep);
-		EXPECT_EQ(NULL, suf);
+		EXPECT_EQ(pre_ln, 4);
+		EXPECT_EQ(sep, (void*)NULL);
+		EXPECT_EQ(suf, (void*)NULL);
 	}
 }
 
@@ -193,7 +193,7 @@ TEST(string, StrPartitionUtf8)
 
 		/* "ma\xc3\xb1te-r\xe2\x98\xafial" -> "ma", '\xc3\xb1', "te-r\xe2\x98\xafial", 2 */
 		pre_ln = BLI_str_partition_utf8(str, delim, &sep, &suf);
-		EXPECT_EQ(2, pre_ln);
+		EXPECT_EQ(pre_ln, 2);
 		EXPECT_EQ(&str[2], sep);
 		EXPECT_STREQ("te-r\xe2\x98\xafial", suf);
 	}
@@ -204,7 +204,7 @@ TEST(string, StrPartitionUtf8)
 
 		/* "\xe2\x98\xafmate-rial-\xc3\xb1" -> "", '\xe2\x98\xaf', "mate-rial-\xc3\xb1", 0 */
 		pre_ln = BLI_str_partition_utf8(str, delim, &sep, &suf);
-		EXPECT_EQ(0, pre_ln);
+		EXPECT_EQ(pre_ln, 0);
 		EXPECT_EQ(&str[0], sep);
 		EXPECT_STREQ("mate-rial-\xc3\xb1", suf);
 	}
@@ -214,7 +214,7 @@ TEST(string, StrPartitionUtf8)
 
 		/* "\xe2\x98\xaf.\xc3\xb1_.--\xc3\xb1" -> "", '\xe2\x98\xaf', ".\xc3\xb1_.--\xc3\xb1", 0 */
 		pre_ln = BLI_str_partition_utf8(str, delim, &sep, &suf);
-		EXPECT_EQ(0, pre_ln);
+		EXPECT_EQ(pre_ln, 0);
 		EXPECT_EQ(&str[0], sep);
 		EXPECT_STREQ(".\xc3\xb1_.--\xc3\xb1", suf);
 	}
@@ -224,9 +224,9 @@ TEST(string, StrPartitionUtf8)
 
 		/* "" -> "", NULL, NULL, 0 */
 		pre_ln = BLI_str_partition_utf8(str, delim, &sep, &suf);
-		EXPECT_EQ(0, pre_ln);
-		EXPECT_EQ(NULL, sep);
-		EXPECT_EQ(NULL, suf);
+		EXPECT_EQ(pre_ln, 0);
+		EXPECT_EQ(sep, (void*)NULL);
+		EXPECT_EQ(suf, (void*)NULL);
 	}
 
 	{
@@ -234,9 +234,9 @@ TEST(string, StrPartitionUtf8)
 
 		/* "material" -> "material", NULL, NULL, 8 */
 		pre_ln = BLI_str_partition_utf8(str, delim, &sep, &suf);
-		EXPECT_EQ(8, pre_ln);
-		EXPECT_EQ(NULL, sep);
-		EXPECT_EQ(NULL, suf);
+		EXPECT_EQ(pre_ln, 8);
+		EXPECT_EQ(sep, (void*)NULL);
+		EXPECT_EQ(suf, (void*)NULL);
 	}
 }
 
@@ -252,7 +252,7 @@ TEST(string, StrRPartitionUtf8)
 
 		/* "ma\xc3\xb1te-r\xe2\x98\xafial" -> "mat\xc3\xb1te-r", '\xe2\x98\xaf', "ial", 8 */
 		pre_ln = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
-		EXPECT_EQ(8, pre_ln);
+		EXPECT_EQ(pre_ln, 8);
 		EXPECT_EQ(&str[8], sep);
 		EXPECT_STREQ("ial", suf);
 	}
@@ -263,7 +263,7 @@ TEST(string, StrRPartitionUtf8)
 
 		/* "\xe2\x98\xafmate-rial-\xc3\xb1" -> "\xe2\x98\xafmate-rial-", '\xc3\xb1', "", 13 */
 		pre_ln = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
-		EXPECT_EQ(13, pre_ln);
+		EXPECT_EQ(pre_ln, 13);
 		EXPECT_EQ(&str[13], sep);
 		EXPECT_STREQ("", suf);
 	}
@@ -273,7 +273,7 @@ TEST(string, StrRPartitionUtf8)
 
 		/* "\xe2\x98\xaf.\xc3\xb1_.--\xc3\xb1" -> "\xe2\x98\xaf.\xc3\xb1_.--", '\xc3\xb1', "", 10 */
 		pre_ln = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
-		EXPECT_EQ(10, pre_ln);
+		EXPECT_EQ(pre_ln, 10);
 		EXPECT_EQ(&str[10], sep);
 		EXPECT_STREQ("", suf);
 	}
@@ -283,9 +283,9 @@ TEST(string, StrRPartitionUtf8)
 
 		/* "" -> "", NULL, NULL, 0 */
 		pre_ln = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
-		EXPECT_EQ(0, pre_ln);
-		EXPECT_EQ(NULL, sep);
-		EXPECT_EQ(NULL, suf);
+		EXPECT_EQ(pre_ln, 0);
+		EXPECT_EQ(sep, (void*)NULL);
+		EXPECT_EQ(suf, (void*)NULL);
 	}
 
 	{
@@ -293,9 +293,9 @@ TEST(string, StrRPartitionUtf8)
 
 		/* "material" -> "material", NULL, NULL, 8 */
 		pre_ln = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
-		EXPECT_EQ(8, pre_ln);
-		EXPECT_EQ(NULL, sep);
-		EXPECT_EQ(NULL, suf);
+		EXPECT_EQ(pre_ln, 8);
+		EXPECT_EQ(sep, (void*)NULL);
+		EXPECT_EQ(suf, (void*)NULL);
 	}
 }
 
@@ -313,7 +313,7 @@ TEST(string, StrPartitionExUtf8)
 
 		/* "ma\xc3\xb1te-r\xe2\x98\xafial" over "ma\xc3\xb1te" -> "ma", '\xc3\xb1', "te-r\xe2\x98\xafial", 2 */
 		pre_ln = BLI_str_partition_ex_utf8(str, str + 6, delim, &sep, &suf, true);
-		EXPECT_EQ(2, pre_ln);
+		EXPECT_EQ(pre_ln, 2);
 		EXPECT_EQ(&str[2], sep);
 		EXPECT_STREQ("te-r\xe2\x98\xafial", suf);
 	}
@@ -324,9 +324,9 @@ TEST(string, StrPartitionExUtf8)
 
 		/* "mate\xe2\x98\xafrial" over "mate" -> "mate\xe2\x98\xafrial", NULL, NULL, 4 */
 		pre_ln = BLI_str_partition_ex_utf8(str, str + 4, delim, &sep, &suf, true);
-		EXPECT_EQ(4, pre_ln);
-		EXPECT_EQ(NULL, sep);
-		EXPECT_EQ(NULL, suf);
+		EXPECT_EQ(pre_ln, 4);
+		EXPECT_EQ(sep, (void*)NULL);
+		EXPECT_EQ(suf, (void*)NULL);
 	}
 }
 
@@ -373,7 +373,7 @@ TEST(string, StrFormatIntGrouped)
 	const int word_cmp_size = ARRAY_SIZE(word_cmp); \
 	const int word_num = BLI_string_find_split_words( \
 	        word_str_src, word_str_src_len, ' ', word_info, word_cmp_size_input); \
-	EXPECT_EQ(word_num, word_cmp_size - 1); \
+	EXPECT_EQ(word_cmp_size - 1, word_num); \
 	EXPECT_EQ_ARRAY_ND<const int[2]>(word_cmp, word_info, word_cmp_size, 2); \
 } ((void)0)
 
@@ -449,20 +449,20 @@ TEST(string, StringStrncasestr)
 	const char *res;
 
 	res = BLI_strncasestr(str_test0, "", 0);
-	EXPECT_EQ(str_test0, res);
+	EXPECT_EQ(res, str_test0);
 
 	res = BLI_strncasestr(str_test0, " ", 1);
-	EXPECT_EQ(str_test0 + 6, res);
+	EXPECT_EQ(res, str_test0 + 6);
 
 	res = BLI_strncasestr(str_test0, "her", 3);
-	EXPECT_EQ(str_test0 + 7, res);
+	EXPECT_EQ(res, str_test0 + 7);
 
 	res = BLI_strncasestr(str_test0, "ARCh", 4);
-	EXPECT_EQ(str_test0 + 2, res);
+	EXPECT_EQ(res, str_test0 + 2);
 
 	res = BLI_strncasestr(str_test0, "earcq", 4);
-	EXPECT_EQ(str_test0 + 1, res);
+	EXPECT_EQ(res, str_test0 + 1);
 
 	res = BLI_strncasestr(str_test0, "not there", 9);
-	EXPECT_EQ(NULL, res);
+	EXPECT_EQ(res, (void*)NULL);
 }

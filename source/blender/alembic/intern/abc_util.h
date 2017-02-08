@@ -116,14 +116,14 @@ AbcObjectReader *create_reader(const Alembic::AbcGeom::IObject &object, ImportSe
 
 /* Copy from Y-up to Z-up. */
 
-ABC_INLINE void copy_yup_zup(float zup[3], const float yup[3])
+ABC_INLINE void copy_zup_from_yup(float zup[3], const float yup[3])
 {
 	zup[0] = yup[0];
 	zup[1] = -yup[2];
 	zup[2] = yup[1];
 }
 
-ABC_INLINE void copy_yup_zup(short zup[3], const short yup[3])
+ABC_INLINE void copy_zup_from_yup(short zup[3], const short yup[3])
 {
 	zup[0] = yup[0];
 	zup[1] = -yup[2];
@@ -132,14 +132,14 @@ ABC_INLINE void copy_yup_zup(short zup[3], const short yup[3])
 
 /* Copy from Z-up to Y-up. */
 
-ABC_INLINE void copy_zup_yup(float yup[3], const float zup[3])
+ABC_INLINE void copy_yup_from_zup(float yup[3], const float zup[3])
 {
 	yup[0] = zup[0];
 	yup[1] = zup[2];
 	yup[2] = -zup[1];
 }
 
-ABC_INLINE void copy_zup_yup(short yup[3], const short zup[3])
+ABC_INLINE void copy_yup_from_zup(short yup[3], const short zup[3])
 {
 	yup[0] = zup[0];
 	yup[1] = zup[2];

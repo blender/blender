@@ -3736,6 +3736,12 @@ static void initRotation(TransInfo *t)
 	copy_v3_v3(t->axis_orig, t->axis);
 }
 
+/**
+ * Applies values of rotation to `td->loc` and `td->ext->quat`
+ * based on a rotation matrix (mat) and a pivot (center).
+ *
+ * Protected axis and other transform settings are taken into account.
+ */
 static void ElementRotation_ex(TransInfo *t, TransData *td, float mat[3][3], const float *center)
 {
 	float vec[3], totmat[3][3], smat[3][3];
@@ -4353,9 +4359,22 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
 {
 	TransData *td = t->data;
 	float tvec[3];
-	int i;
 
-	for (i = 0; i < t->total; i++, td++) {
+	/* The ideal would be "apply_snap_align_rotation" only when a snap point is found
+	 * so, maybe inside this function is not the best place to apply this rotation.
+	 * but you need "handle snapping rotation before doing the translation" (really?) */
+	const bool apply_snap_align_rotation = usingSnappingNormal(t);// && (t->tsnap.status & POINT_INIT);
+	float pivot[3];
+	if (apply_snap_align_rotation) {
+		copy_v3_v3(pivot, t->tsnap.snapTarget);
+		/* The pivot has to be in local-space (see T49494) */
+		if (t->flag & (T_EDIT | T_POSE)) {
+			Object *ob = t->obedit ? t->obedit : t->poseobj;
+			mul_m4_v3(ob->imat, pivot);
+		}
+	}
+
+	for (int i = 0; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
 			break;
 		
@@ -4366,7 +4385,7 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
 		bool use_rotate_offset = false;
 
 		/* handle snapping rotation before doing the translation */
-		if (usingSnappingNormal(t)) {
+		if (apply_snap_align_rotation) {
 			float mat[3][3];
 
 			if (validSnappingNormal(t)) {
@@ -4384,7 +4403,7 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
 				unit_m3(mat);
 			}
 
-			ElementRotation_ex(t, td, mat, t->tsnap.snapTarget);
+			ElementRotation_ex(t, td, mat, pivot);
 
 			if (td->loc) {
 				use_rotate_offset = true;

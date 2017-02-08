@@ -280,8 +280,8 @@ static void testbuffer_run_tests_single(
         BArrayStore *bs, ListBase *lb)
 {
 	testbuffer_list_store_populate(bs, lb);
-	EXPECT_EQ(true, testbuffer_list_validate(lb));
-	EXPECT_EQ(true, BLI_array_store_is_valid(bs));
+	EXPECT_TRUE(testbuffer_list_validate(lb));
+	EXPECT_TRUE(BLI_array_store_is_valid(bs));
 #ifdef DEBUG_PRINT
 	print_mem_saved("data", bs);
 #endif
@@ -326,7 +326,7 @@ TEST(array_store, NopState)
 	BArrayStore *bs = BLI_array_store_create(1, 32);
 	const unsigned char data[] = "test";
 	BArrayState *state = BLI_array_store_state_add(bs, data, sizeof(data) - 1, NULL);
-	EXPECT_EQ(sizeof(data) - 1, BLI_array_store_state_size_get(state));
+	EXPECT_EQ(BLI_array_store_state_size_get(state), sizeof(data) - 1);
 	BLI_array_store_state_remove(bs, state);
 	BLI_array_store_destroy(bs);
 }
@@ -340,7 +340,7 @@ TEST(array_store, Single)
 	size_t data_dst_len;
 	data_dst = (char *)BLI_array_store_state_data_get_alloc(state, &data_dst_len);
 	EXPECT_STREQ(data_src, data_dst);
-	EXPECT_EQ(sizeof(data_src), data_dst_len);
+	EXPECT_EQ(data_dst_len, sizeof(data_src));
 	BLI_array_store_destroy(bs);
 	MEM_freeN((void *)data_dst);
 }
@@ -354,8 +354,8 @@ TEST(array_store, DoubleNop)
 	BArrayState *state_a = BLI_array_store_state_add(bs, data_src, sizeof(data_src), NULL);
 	BArrayState *state_b = BLI_array_store_state_add(bs, data_src, sizeof(data_src), state_a);
 
-	EXPECT_EQ(sizeof(data_src),     BLI_array_store_calc_size_compacted_get(bs));
-	EXPECT_EQ(sizeof(data_src) * 2, BLI_array_store_calc_size_expanded_get(bs));
+	EXPECT_EQ(BLI_array_store_calc_size_compacted_get(bs), sizeof(data_src));
+	EXPECT_EQ(BLI_array_store_calc_size_expanded_get(bs), sizeof(data_src) * 2);
 
 	size_t data_dst_len;
 
@@ -367,7 +367,7 @@ TEST(array_store, DoubleNop)
 	EXPECT_STREQ(data_src, data_dst);
 	MEM_freeN((void *)data_dst);
 
-	EXPECT_EQ(sizeof(data_src), data_dst_len);
+	EXPECT_EQ(data_dst_len, sizeof(data_src));
 	BLI_array_store_destroy(bs);
 }
 
@@ -382,8 +382,8 @@ TEST(array_store, DoubleDiff)
 	BArrayState *state_b = BLI_array_store_state_add(bs, data_src_b, sizeof(data_src_b), state_a);
 	size_t data_dst_len;
 
-	EXPECT_EQ(sizeof(data_src_a) * 2, BLI_array_store_calc_size_compacted_get(bs));
-	EXPECT_EQ(sizeof(data_src_a) * 2, BLI_array_store_calc_size_expanded_get(bs));
+	EXPECT_EQ(BLI_array_store_calc_size_compacted_get(bs), sizeof(data_src_a) * 2);
+	EXPECT_EQ(BLI_array_store_calc_size_expanded_get(bs), sizeof(data_src_a) * 2);
 
 	data_dst = (char *)BLI_array_store_state_data_get_alloc(state_a, &data_dst_len);
 	EXPECT_STREQ(data_src_a, data_dst);
@@ -423,19 +423,19 @@ TEST(array_store, TextDupeIncreaseDecrease)
 
 	/* forward */
 	testbuffer_list_store_populate(bs, &lb);
-	EXPECT_EQ(true, testbuffer_list_validate(&lb));
-	EXPECT_EQ(true, BLI_array_store_is_valid(bs));
-	EXPECT_EQ(strlen(D), BLI_array_store_calc_size_compacted_get(bs));
+	EXPECT_TRUE(testbuffer_list_validate(&lb));
+	EXPECT_TRUE(BLI_array_store_is_valid(bs));
+	EXPECT_EQ(BLI_array_store_calc_size_compacted_get(bs), strlen(D));
 
 	testbuffer_list_store_clear(bs, &lb);
 	BLI_listbase_reverse(&lb);
 
 	/* backwards */
 	testbuffer_list_store_populate(bs, &lb);
-	EXPECT_EQ(true, testbuffer_list_validate(&lb));
-	EXPECT_EQ(true, BLI_array_store_is_valid(bs));
+	EXPECT_TRUE(testbuffer_list_validate(&lb));
+	EXPECT_TRUE(BLI_array_store_is_valid(bs));
 	/* larger since first block doesn't de-duplicate */
-	EXPECT_EQ(strlen(D) * 4, BLI_array_store_calc_size_compacted_get(bs));
+	EXPECT_EQ(BLI_array_store_calc_size_compacted_get(bs), strlen(D) * 4);
 
 #undef D
 	testbuffer_list_free(&lb); \
@@ -708,7 +708,7 @@ static void random_chunk_mutate_helper(
 	testbuffer_run_tests_single(bs, &lb);
 
 	size_t expected_size = chunks_per_buffer * chunk_count * stride;
-	EXPECT_EQ(expected_size, BLI_array_store_calc_size_compacted_get(bs));
+	EXPECT_EQ(BLI_array_store_calc_size_compacted_get(bs), expected_size);
 
 	BLI_array_store_destroy(bs);
 
@@ -782,8 +782,8 @@ TEST(array_store, PlainTextFiles)
 
 	/* forwards */
 	testbuffer_list_store_populate(bs, &lb);
-	EXPECT_EQ(true, testbuffer_list_validate(&lb));
-	EXPECT_EQ(true, BLI_array_store_is_valid(bs));
+	EXPECT_TRUE(testbuffer_list_validate(&lb));
+	EXPECT_TRUE(BLI_array_store_is_valid(bs));
 #ifdef DEBUG_PRINT
 	print_mem_saved("source code forward", bs);
 #endif
@@ -793,8 +793,8 @@ TEST(array_store, PlainTextFiles)
 
 	/* backwards */
 	testbuffer_list_store_populate(bs, &lb);
-	EXPECT_EQ(true, testbuffer_list_validate(&lb));
-	EXPECT_EQ(true, BLI_array_store_is_valid(bs));
+	EXPECT_TRUE(testbuffer_list_validate(&lb));
+	EXPECT_TRUE(BLI_array_store_is_valid(bs));
 #ifdef DEBUG_PRINT
 	print_mem_saved("source code backwards", bs);
 #endif

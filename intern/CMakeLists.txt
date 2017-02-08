@@ -62,7 +62,7 @@ if(WITH_IK_ITASC)
 	add_subdirectory(itasc)
 endif()
 
-if(WITH_IK_SOLVER OR WITH_GAMEENGINE OR WITH_MOD_BOOLEAN)
+if(WITH_GAMEENGINE)
 	add_subdirectory(moto)
 endif()
 

@@ -80,9 +80,10 @@
 		}                                                                     \
 		const float _delta_##var = TIMEIT_VALUE(var);                         \
 		_sum_##var += _delta_##var;                                           \
+		_num_##var++;                                                         \
 		printf("time end      (" #var "): %.6f" "  " AT "\n", _delta_##var);  \
-		printf("time averaged (" #var "): %.6f" "  " AT "\n",                 \
-		       (_sum_##var / ++_num_##var));                                  \
+		printf("time averaged (" #var "): %.6f (total: %.6f, in %d runs)\n",  \
+		       (_sum_##var / _num_##var), _sum_##var, (int)_num_##var);       \
 		fflush(stdout);                                                       \
 	} (void)0
 

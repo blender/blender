@@ -298,7 +298,7 @@ TEST(string, Utf8InvalidBytes)
 		const int num_errors_found = BLI_utf8_invalid_strip(buff, sizeof(buff) - 1);
 
 		printf("[%02d] -> [%02d] \"%s\"  ->  \"%s\"\n", num_errors, num_errors_found, tst, buff);
-		EXPECT_EQ(num_errors, num_errors_found);
+		EXPECT_EQ(num_errors_found, num_errors);
 		EXPECT_STREQ(buff, tst_stripped);
 	}
 }

@@ -42,6 +42,7 @@ struct Brush;
 struct ColorBand;
 struct EnvMap;
 struct FreestyleLineStyle;
+struct ImagePool;
 struct Lamp;
 struct Main;
 struct Material;
@@ -132,6 +133,12 @@ struct OceanTex *BKE_texture_ocean_copy(struct OceanTex *ot);
 
 bool    BKE_texture_dependsOnTime(const struct Tex *texture);
 bool    BKE_texture_is_image_user(const struct Tex *tex);
+
+void BKE_texture_get_value_ex(
+        const struct Scene *scene, struct Tex *texture,
+        float *tex_co, struct TexResult *texres,
+        struct ImagePool *pool,
+        bool use_color_management);
 
 void BKE_texture_get_value(
         const struct Scene *scene, struct Tex *texture,
