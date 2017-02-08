@@ -914,10 +914,7 @@ SceneLayer *CTX_data_scene_layer(const bContext *C)
 		return sl;
 	}
 	else {
-		Scene *scene = CTX_data_scene(C);
-		sl = BLI_findlink(&scene->render_layers, scene->active_layer);
-		BLI_assert(sl);
-		return sl;
+		return BKE_scene_layer_active(CTX_data_scene(C));
 	}
 }
 

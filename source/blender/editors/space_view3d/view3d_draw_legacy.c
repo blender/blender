@@ -1453,7 +1453,7 @@ void ED_view3d_draw_depth(Scene *scene, ARegion *ar, View3D *v3d, bool alphaover
 	float glalphaclip = U.glalphaclip;
 	int obcenter_dia = U.obcenter_dia;
 	TODO_LAYER_CONTEXT; /* we should pass context, really */
-	SceneLayer *sl = BLI_findlink(&scene->render_layers, scene->active_layer);
+	SceneLayer *sl = BKE_scene_layer_active(scene);
 	/* no need for color when drawing depth buffer */
 	const short dflag_depth = DRAW_CONSTCOLOR;
 	/* temp set drawtype to solid */

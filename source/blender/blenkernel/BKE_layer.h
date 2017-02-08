@@ -54,6 +54,7 @@ struct Scene;
 struct SceneCollection;
 struct SceneLayer;
 
+struct SceneLayer *BKE_scene_layer_active(struct Scene *scene);
 struct SceneLayer *BKE_scene_layer_add(struct Scene *scene, const char *name);
 
 bool BKE_scene_layer_remove(struct Main *bmain, struct Scene *scene, struct SceneLayer *sl);

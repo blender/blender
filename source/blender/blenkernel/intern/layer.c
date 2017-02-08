@@ -58,6 +58,16 @@ static void object_bases_Iterator_next(Iterator *iter, const int flag);
 /* RenderLayer */
 
 /**
+ * Returns the SceneLayer to be used for rendering
+ */
+SceneLayer *BKE_scene_layer_active(struct Scene *scene)
+{
+	SceneLayer *sl = BLI_findlink(&scene->render_layers, scene->active_layer);
+	BLI_assert(sl);
+	return sl;
+}
+
+/**
  * Add a new renderlayer
  * by default, a renderlayer has the master collection
  */

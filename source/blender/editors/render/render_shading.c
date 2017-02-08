@@ -653,7 +653,7 @@ void SCENE_OT_render_layer_add(wmOperatorType *ot)
 static int render_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = BLI_findlink(&scene->render_layers, scene->active_layer);
+	SceneLayer *sl = BKE_scene_layer_active(scene);
 
 	if (!BKE_scene_layer_remove(CTX_data_main(C), scene, sl)) {
 		return OPERATOR_CANCELLED;
