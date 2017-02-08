@@ -1741,7 +1741,7 @@ static void view3d_draw_objects(
         const char **grid_unit,
         const bool do_bgpic, const bool draw_offscreen, GPUFX *fx)
 {
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	SceneLayer *sl = C ? CTX_data_scene_layer(C) : BKE_scene_layer_active(scene);
 	RegionView3D *rv3d = ar->regiondata;
 	BaseLegacy *base;
 	const bool do_camera_frame = !draw_offscreen;
