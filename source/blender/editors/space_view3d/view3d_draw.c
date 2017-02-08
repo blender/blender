@@ -2141,7 +2141,7 @@ void view3d_main_region_draw(const bContext *C, ARegion *ar)
 	if (!rv3d->viewport)
 		rv3d->viewport = GPU_viewport_create();
 
-	GPU_viewport_bind(rv3d->viewport, &ar->winrct);
+	GPU_viewport_bind(rv3d->viewport, &ar->winrct, scene->r.engine);
 
 	/* TODO viewport - there is so much to be done, in fact a lot will need to happen in the space_view3d.c
 	 * before we even call the drawing routine, but let's move on for now (dfelinto)

@@ -58,8 +58,10 @@ typedef struct CLAY_UBO_Material {
 	float pad[2]; /* ensure 16 bytes alignement */
 } CLAY_UBO_Material; /* 48 bytes */
 
+#define MAX_CLAY_MAT 512 /* 512 = 9 bit material id */
+
 typedef struct CLAY_UBO_Storage {
-	CLAY_UBO_Material materials[512]; /* 512 = 9 bit material id */
+	CLAY_UBO_Material materials[MAX_CLAY_MAT];
 } CLAY_UBO_Storage;
 
 static struct CLAY_data {
@@ -67,11 +69,6 @@ static struct CLAY_data {
 	struct GPUShader *depth_sh;
 	/* Shading Pass */
 	struct GPUShader *clay_sh;
-
-	/* Materials Parameter UBO */
-	struct GPUUniformBuffer *mat_ubo;
-	CLAY_UBO_Storage mat_storage;
-	short ubo_flag;
 
 	/* Matcap textures */
 	struct GPUTexture *matcap_array;
@@ -85,11 +82,23 @@ static struct CLAY_data {
 	struct GPUTexture *sampling_tx;
 } data = {NULL};
 
-/* CLAY_data.ubo_flag */
-enum {
-	CLAY_UBO_CLEAR    = (1 << 0),
-	CLAY_UBO_REFRESH  = (1 << 1),
-};
+/* GPUViewport.storage
+ * Is freed everytime the viewport engine changes */
+typedef struct CLAY_Storage {
+	/* Materials Parameter UBO */
+	CLAY_UBO_Storage mat_storage;
+	int ubo_current_id;
+	DRWShadingGroup *shgrps[MAX_CLAY_MAT];
+} CLAY_Storage;
+
+/* Just a serie of int from 0 to MAX_CLAY_MAT-1 */
+static int ubo_mat_idxs[MAX_CLAY_MAT] = {0};
+
+/* keep it under MAX_STORAGE */
+typedef struct CLAY_StorageList {
+	struct CLAY_Storage *storage;
+	struct GPUUniformBuffer *mat_ubo;
+} CLAY_StorageList;
 
 /* keep it under MAX_BUFFERS */
 typedef struct CLAY_FramebufferList{
@@ -274,10 +283,8 @@ MaterialEngineSettings *CLAY_material_settings_create(void)
 	return (MaterialEngineSettings *)settings;
 }
 
-static void CLAY_engine_init(const bContext *C)
+static void CLAY_engine_init(CLAY_StorageList *stl)
 {
-	Main *bmain = CTX_data_main(C);
-
 	/* Create Texture Array */
 	if (!data.matcap_array) {
 		PreviewImage *prv[24]; /* For now use all of the 24 internal matcaps */
@@ -327,10 +334,6 @@ static void CLAY_engine_init(const bContext *C)
 		data.depth_sh = DRW_shader_create_3D_depth_only();
 	}
 
-	if (!data.mat_ubo) {
-		data.mat_ubo = DRW_uniformbuffer_create(sizeof(CLAY_UBO_Storage), NULL);
-	}
-
 	/* Shading pass */
 	if (!data.clay_sh) {
 		DynStr *ds = BLI_dynstr_new();
@@ -356,27 +359,20 @@ static void CLAY_engine_init(const bContext *C)
 		MEM_freeN(matcap_with_ao);
 	}
 
-	/* Cleanup all runtime data loaded from file */
-	for (Scene *sce = bmain->scene.first; sce; sce = sce->id.next) {
-		/* Using render settings as material settings */
-		MaterialEngineSettingsClay *res = DRW_render_settings_get(sce, RE_engine_id_BLENDER_CLAY);
-		res->flag = CLAY_OUTDATED;
-		res->ubo_index = -1;
-
-		/* Update Collections Materials */
-		for (SceneLayer *sl = sce->render_layers.first; sl; sl = sl->next) {
-			for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
-				CollectionEngineSettings *ces;
-				ces = BKE_layer_collection_engine_get(lc, RE_engine_id_BLENDER_CLAY);
-				if (ces) { /* May not exists */
-					BKE_collection_engine_property_value_set_int(ces, "flag", CLAY_OUTDATED);
-					BKE_collection_engine_property_value_set_int(ces, "ubo_index", -1);
-				}
-			}
-		}
+	if (!stl->storage) {
+		stl->storage = MEM_callocN(sizeof(CLAY_Storage), "CLAY_Storage");
 	}
 
-	data.ubo_flag |= CLAY_UBO_REFRESH;
+	if (!stl->mat_ubo) {
+		stl->mat_ubo = DRW_uniformbuffer_create(sizeof(CLAY_UBO_Storage), NULL);
+	}
+
+	if (ubo_mat_idxs[1] == 0) {
+		/* Just int to have pointers to them */
+		for (int i = 0; i < MAX_CLAY_MAT; ++i) {
+			ubo_mat_idxs[i] = i;
+		}
+	}
 }
 
 static void CLAY_ssao_setup(void)
@@ -430,7 +426,7 @@ static void CLAY_ssao_setup(void)
 	}
 }
 
-static DRWShadingGroup *CLAY_shgroup_create(DRWPass *pass, int *UNUSED(material_id))
+static DRWShadingGroup *CLAY_shgroup_create(DRWPass *pass, int *material_id)
 {
 	const int depthloc = 0, matcaploc = 1, jitterloc = 2, sampleloc = 3;
 
@@ -445,7 +441,7 @@ static DRWShadingGroup *CLAY_shgroup_create(DRWPass *pass, int *UNUSED(material_
 	DRW_shgroup_uniform_vec4(grp, "ssao_params", data.ssao_params, 1);
 	DRW_shgroup_uniform_vec3(grp, "matcaps_color", (float *)data.matcap_colors, 24);
 
-	//DRW_shgroup_uniform_int(grp, "material_id", material_id, 1);
+	DRW_shgroup_uniform_int(grp, "mat_id", material_id, 1);
 
 #ifndef GTAO
 	DRW_shgroup_uniform_texture(grp, "ssao_jitter", data.jitter_tx, jitterloc);
@@ -455,11 +451,39 @@ static DRWShadingGroup *CLAY_shgroup_create(DRWPass *pass, int *UNUSED(material_
 	return grp;
 }
 
-static void update_ubo_storage(float matcap_rot, float matcap_hue, float matcap_sat, float matcap_val,
-                               float ssao_distance, float ssao_factor_cavity, float ssao_factor_edge,
-                               float ssao_attenuation, int matcap_icon, unsigned int current_id)
+static int search_mat_to_ubo(CLAY_Storage *storage, float matcap_rot, float matcap_hue, float matcap_sat,
+                             float matcap_val, float ssao_distance, float ssao_factor_cavity,
+                             float ssao_factor_edge, float ssao_attenuation, int matcap_icon)
 {
-	CLAY_UBO_Material *ubo = &data.mat_storage.materials[current_id];
+	/* For now just use a linear search and test all parameters */
+	/* TODO make a hash table */
+	for (int i = 0; i < storage->ubo_current_id; ++i)
+	{
+		CLAY_UBO_Material *ubo = &storage->mat_storage.materials[i];
+
+		if ((ubo->matcap_rot[0] == cosf(matcap_rot * 3.14159f * 2.0f)) &&
+		    (ubo->matcap_hsv[0] == matcap_hue + 0.5f) &&
+		    (ubo->matcap_hsv[1] == matcap_sat * 2.0f) &&
+		    (ubo->matcap_hsv[2] == matcap_val * 2.0f) &&
+		    (ubo->ssao_params_var[0] == ssao_distance) &&
+		    (ubo->ssao_params_var[1] == ssao_factor_cavity) &&
+		    (ubo->ssao_params_var[2] == ssao_factor_edge) &&
+		    (ubo->ssao_params_var[3] == ssao_attenuation) &&
+		    (ubo->matcap_id == matcap_to_index(matcap_icon)))
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+static int push_mat_to_ubo(CLAY_Storage *storage, float matcap_rot, float matcap_hue, float matcap_sat,
+                            float matcap_val, float ssao_distance, float ssao_factor_cavity,
+                            float ssao_factor_edge, float ssao_attenuation, int matcap_icon)
+{
+	int id = storage->ubo_current_id;
+	CLAY_UBO_Material *ubo = &storage->mat_storage.materials[id];
 
 	ubo->matcap_rot[0] = cosf(matcap_rot * 3.14159f * 2.0f);
 	ubo->matcap_rot[1] = sinf(matcap_rot * 3.14159f * 2.0f);
@@ -473,92 +497,115 @@ static void update_ubo_storage(float matcap_rot, float matcap_hue, float matcap_
 	ubo->ssao_params_var[2] = ssao_factor_edge;
 	ubo->ssao_params_var[3] = ssao_attenuation;
 
-
 	ubo->matcap_id = matcap_to_index(matcap_icon);
+
+	storage->ubo_current_id++;
+
+	return id;
 }
 
-static void CLAY_update_material_ubo(const struct bContext *C)
+static int mat_in_ubo(CLAY_Storage *storage, struct GPUUniformBuffer *ubo, DRWPass *pass,
+                      float matcap_rot, float matcap_hue, float matcap_sat,
+                      float matcap_val, float ssao_distance, float ssao_factor_cavity,
+                      float ssao_factor_edge, float ssao_attenuation, int matcap_icon)
 {
-	Main *bmain = CTX_data_main(C);
+	int id;
 
-	/* Update Default materials */
-	for (Scene *sce = bmain->scene.first; sce; sce = sce->id.next) {
-		/* Using render settings as material settings */
-		MaterialEngineSettingsClay *res = DRW_render_settings_get(sce, RE_engine_id_BLENDER_CLAY);
+	/* Search material in UBO */
+	id = search_mat_to_ubo(storage, matcap_rot, matcap_hue, matcap_sat, matcap_val,
+	                       ssao_distance, ssao_factor_cavity, ssao_factor_edge,
+	                       ssao_attenuation, matcap_icon);
 
-		if (res->flag & CLAY_OUTDATED)
-			data.ubo_flag |= CLAY_UBO_REFRESH;
+	/* if not found create it */
+	if (id == -1) {
+		id = push_mat_to_ubo(storage, matcap_rot, matcap_hue, matcap_sat, matcap_val,
+		                     ssao_distance, ssao_factor_cavity, ssao_factor_edge,
+		                     ssao_attenuation, matcap_icon);
 
-		if (res->matcap_icon < ICON_MATCAP_01 ||
-		    res->matcap_icon > ICON_MATCAP_24)
-		{
-			res->matcap_icon = ICON_MATCAP_01;
-		}
+		storage->shgrps[id] = CLAY_shgroup_create(pass, &ubo_mat_idxs[id]);
 
-		res->flag &= ~CLAY_OUTDATED;
-
-
-		/* Update Collections Materials */
-		for (SceneLayer *sl = sce->render_layers.first; sl; sl = sl->next) {
-			for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
-				CollectionEngineSettings *ces;
-				ces = BKE_layer_collection_engine_get(lc, RE_engine_id_BLENDER_CLAY);
-
-				BKE_collection_engine_property_value_set_int(ces, "flag", 0);
-				BKE_collection_engine_property_value_set_int(ces, "ubo_index", 0);
-			}
+		/* if it's the first shgrp, pass bind the material UBO */
+		if (storage->ubo_current_id == 1) {
+			DRW_shgroup_uniform_block(storage->shgrps[0], "material_block", ubo, 0);
 		}
 	}
 
-	if (data.ubo_flag & CLAY_UBO_REFRESH) {
-		int current_id = 0;
-
-
-		/* Default materials */
-		for (Scene *sce = bmain->scene.first; sce; sce = sce->id.next) {
-			MaterialEngineSettingsClay *res = DRW_render_settings_get(sce, RE_engine_id_BLENDER_CLAY);
-
-			update_ubo_storage(res->matcap_rot, res->matcap_hue, res->matcap_sat, res->matcap_val,
-			                   res->ssao_distance, res->ssao_factor_cavity, res->ssao_factor_edge,
-			                   res->ssao_attenuation, res->matcap_icon, current_id);
-			current_id++;
-
-			for (SceneLayer *sl = sce->render_layers.first; sl; sl = sl->next) {
-				for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
-					/* TODO */
-					current_id++;
-				}
-			}
-			current_id++;
-		}
-
-
-		DRW_uniformbuffer_update(data.mat_ubo, &data.mat_storage);
-	}
-
-	data.ubo_flag = 0;
+	return id;
 }
 
-static void CLAY_create_cache(CLAY_PassList *passes, const struct bContext *C)
+/* Safe way to get override values */
+static void override_setting(CollectionEngineSettings *ces, const char *name, void *ret)
+{
+	CollectionEngineProperty *cep = BKE_collection_engine_property_get(ces, name);
+
+	if (!cep) return;
+	if ((cep->flag & COLLECTION_PROP_USE) == 0) return;
+
+	if (cep->type == COLLECTION_PROP_TYPE_INT) {
+		CollectionEnginePropertyInt *prop = (CollectionEnginePropertyInt *)cep;
+		*((int *)ret) = prop->value;
+	}
+	else {
+		CollectionEnginePropertyInt *prop = (CollectionEnginePropertyInt *)cep;
+		*((float *)ret) = prop->value;
+	}
+}
+
+static DRWShadingGroup *CLAY_object_shgrp_get(Object *ob, CLAY_StorageList *stl, DRWPass *pass)
+{
+	MaterialEngineSettingsClay *settings = DRW_render_settings_get(NULL, RE_engine_id_BLENDER_CLAY);
+	CollectionEngineSettings *ces = ob->collection_settings;
+
+	/* Default Settings */
+	float matcap_rot = settings->matcap_rot;
+	float matcap_hue = settings->matcap_hue;
+	float matcap_sat = settings->matcap_sat;
+	float matcap_val = settings->matcap_val;
+	float ssao_distance = settings->ssao_distance;
+	float ssao_factor_cavity = settings->ssao_factor_cavity;
+	float ssao_factor_edge = settings->ssao_factor_edge;
+	float ssao_attenuation = settings->ssao_attenuation;
+	int matcap_icon = settings->matcap_icon;
+
+	/* Override settings */
+	if (ces) {
+		override_setting(ces, "matcap_rotation", &matcap_rot);
+		override_setting(ces, "matcap_hue", &matcap_hue);
+		override_setting(ces, "matcap_saturation", &matcap_sat);
+		override_setting(ces, "matcap_value", &matcap_val);
+		override_setting(ces, "ssao_distance", &ssao_distance);
+		override_setting(ces, "ssao_factor_cavity", &ssao_factor_cavity);
+		override_setting(ces, "ssao_factor_edge", &ssao_factor_edge);
+		override_setting(ces, "ssao_attenuation", &ssao_attenuation);
+		override_setting(ces, "matcap_icon", &matcap_icon);
+	};
+
+
+	int index = mat_in_ubo(stl->storage, stl->mat_ubo, pass,
+	                       matcap_rot, matcap_hue, matcap_sat, matcap_val,
+	                       ssao_distance, ssao_factor_cavity, ssao_factor_edge,
+	                       ssao_attenuation, matcap_icon);
+
+	return stl->storage->shgrps[index];
+}
+
+static void CLAY_create_cache(CLAY_PassList *passes, CLAY_StorageList *stl, const struct bContext *C)
 {
 	SceneLayer *sl = CTX_data_scene_layer(C);
-	DRWShadingGroup *default_shgrp, *depthbatch;
+	DRWShadingGroup *clay_shgrp;
+	DRWShadingGroup *depth_shgrp;
 
 	/* Depth Pass */
 	{
 		passes->depth_pass = DRW_pass_create("Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
 
-		depthbatch = DRW_shgroup_create(data.depth_sh, passes->depth_pass);
+		depth_shgrp = DRW_shgroup_create(data.depth_sh, passes->depth_pass);
 	}
 
 	/* Clay Pass */
 	{
-		MaterialEngineSettingsClay *settings = DRW_render_settings_get(NULL, RE_engine_id_BLENDER_CLAY);
-
-		passes->clay_pass = DRW_pass_create("Clay Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
-
-		default_shgrp = CLAY_shgroup_create(passes->clay_pass, &settings->ubo_index);
-		DRW_shgroup_uniform_block(default_shgrp, "material_block", data.mat_ubo, 0);
+		passes->clay_pass = DRW_pass_create("Clay Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS);
+		stl->storage->ubo_current_id = 0;
 	}
 
 	/* Object Mode */
@@ -582,11 +629,14 @@ static void CLAY_create_cache(CLAY_PassList *passes, const struct bContext *C)
 
 		switch (ob->type) {
 			case OB_MESH:
+				clay_shgrp = CLAY_object_shgrp_get(ob, stl, passes->clay_pass);
 				geom = DRW_cache_surface_get(ob);
 
 				/* Add everything for now */
-				DRW_shgroup_call_add(depthbatch, geom, ob->obmat);
-				DRW_shgroup_call_add(default_shgrp, geom, ob->obmat);
+				DRW_shgroup_call_add(depth_shgrp, geom, ob->obmat);
+
+				if (clay_shgrp)
+					DRW_shgroup_call_add(clay_shgrp, geom, ob->obmat);
 
 				//DRW_shgroup_wire_overlay(passes->wire_overlay_pass, ob);
 
@@ -614,6 +664,8 @@ static void CLAY_create_cache(CLAY_PassList *passes, const struct bContext *C)
 		DRW_shgroup_relationship_lines(passes->non_meshes_pass, ob);
 	}
 	DEG_OBJECT_ITER_END
+
+	DRW_uniformbuffer_update(stl->mat_ubo, &stl->storage->mat_storage);
 }
 
 static void CLAY_view_draw(RenderEngine *UNUSED(engine), const bContext *context)
@@ -623,12 +675,11 @@ static void CLAY_view_draw(RenderEngine *UNUSED(engine), const bContext *context
 	CLAY_FramebufferList *buffers = NULL;
 	CLAY_TextureList *textures = NULL;
 	CLAY_PassList *passes = NULL;
+	CLAY_StorageList *storage = NULL;
 
-	DRW_viewport_init(context, (void **)&buffers, (void **)&textures, (void **)&passes);
+	DRW_viewport_init(context, (void **)&buffers, (void **)&textures, (void **)&passes, (void **)&storage);
 
-	CLAY_engine_init(context);
-
-	CLAY_update_material_ubo(context);
+	CLAY_engine_init(storage);
 
 	/* TODO : tag to refresh by the deps graph */
 	/* ideally only refresh when objects are added/removed */
@@ -644,7 +695,7 @@ static void CLAY_view_draw(RenderEngine *UNUSED(engine), const bContext *context
 #ifdef WITH_VIEWPORT_CACHE_TEST
 		once = true;
 #endif
-		CLAY_create_cache(passes, context);
+		CLAY_create_cache(passes, storage, context);
 	}
 
 	/* Start Drawing */
@@ -685,10 +736,6 @@ static void CLAY_collection_settings_create(RenderEngine *UNUSED(engine), Collec
 	BKE_collection_engine_property_add_float(ces, "ssao_attenuation", 1.0f);
 	BKE_collection_engine_property_add_float(ces, "ssao_factor_cavity", 1.0f);
 	BKE_collection_engine_property_add_float(ces, "ssao_factor_edge", 1.0f);
-
-	/* Runtime data (not display in settings) */
-	BKE_collection_engine_property_add_int(ces, "ubo_index", -1);
-	BKE_collection_engine_property_add_int(ces, "flag", CLAY_OUTDATED);
 }
 
 void clay_engine_free(void)
@@ -708,10 +755,6 @@ void clay_engine_free(void)
 
 	if (data.sampling_tx) {
 		DRW_texture_free(data.sampling_tx);
-	}
-
-	if (data.mat_ubo) {
-		DRW_uniformbuffer_free(data.mat_ubo);
 	}
 }
 

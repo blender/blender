@@ -34,6 +34,7 @@
 #include <string.h>
 
 #include "BLI_rect.h"
+#include "BLI_string.h"
 
 #include "DNA_vec_types.h"
 
@@ -59,10 +60,14 @@ struct GPUViewport {
 	DefaultFramebufferList *fbl;
 	DefaultTextureList *txl;
 	DefaultPassList *psl;
+	StorageList *stl;
+
+	char engine_name[32];
 };
 
 static void GPU_viewport_buffers_free(GPUViewport *viewport);
 static void GPU_viewport_passes_free(GPUViewport *viewport);
+static void GPU_viewport_storage_free(GPUViewport *viewport);
 
 GPUViewport *GPU_viewport_create(void)
 {
@@ -70,19 +75,21 @@ GPUViewport *GPU_viewport_create(void)
 	viewport->fbl = MEM_callocN(sizeof(FramebufferList), "FramebufferList");
 	viewport->txl = MEM_callocN(sizeof(TextureList), "TextureList");
 	viewport->psl = MEM_callocN(sizeof(PassList), "PassList");
+	viewport->stl = MEM_callocN(sizeof(StorageList), "StorageList");
 	viewport->size[0] = viewport->size[1] = -1;
 
 	return viewport;
 }
 
-void GPU_viewport_get_engine_data(GPUViewport *viewport, void **fbs, void **txs, void **pss)
+void GPU_viewport_get_engine_data(GPUViewport *viewport, void **fbs, void **txs, void **pss, void **str)
 {
 	*fbs = viewport->fbl;
 	*txs = viewport->txl;
 	*pss = viewport->psl;
+	*str = viewport->stl;
 }
 
-void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
+void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect, const char *engine)
 {
 	/* add one pixel because of scissor test */
 	int rect_w = BLI_rcti_size_x(rect) + 1, rect_h = BLI_rcti_size_y(rect) + 1;
@@ -91,6 +98,13 @@ void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
 	/* TODO for testing only, we need proper cache invalidation */
 	GPU_viewport_passes_free(viewport);
 #endif
+
+	if (!STREQ(engine, viewport->engine_name)) {
+		GPU_viewport_storage_free(viewport);
+		GPU_viewport_buffers_free(viewport);
+
+		BLI_strncpy(viewport->engine_name, engine, 32);
+	}
 
 	if (viewport->fbl->default_fb) {
 		if (rect_w != viewport->size[0] || rect_h != viewport->size[1]) {
@@ -222,6 +236,19 @@ static void GPU_viewport_buffers_free(GPUViewport *viewport)
 	}
 }
 
+static void GPU_viewport_storage_free(GPUViewport *viewport)
+{
+	StorageList *stl = (StorageList *)viewport->stl;
+
+	for (int i = MAX_STORAGE - 1; i > -1; --i) {
+		void *storage = stl->storage[i];
+		if (storage) {
+			MEM_freeN(storage);
+			stl->storage[i] = NULL;
+		}
+	}
+}
+
 static void GPU_viewport_passes_free(GPUViewport *viewport)
 {
 	PassList *psl = (PassList *)viewport->psl;
@@ -242,10 +269,12 @@ void GPU_viewport_free(GPUViewport *viewport)
 	GPU_viewport_debug_depth_free(viewport);
 	GPU_viewport_buffers_free(viewport);
 	GPU_viewport_passes_free(viewport);
+	GPU_viewport_storage_free(viewport);
 
 	MEM_freeN(viewport->fbl);
 	MEM_freeN(viewport->txl);
 	MEM_freeN(viewport->psl);
+	MEM_freeN(viewport->stl);
 }
 
 /****************** debug ********************/

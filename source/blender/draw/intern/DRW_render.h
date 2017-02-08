@@ -194,7 +194,7 @@ typedef enum {
 	DRW_MAT_WIN,
 } DRWViewportMatrixType;
 
-void DRW_viewport_init(const bContext *C, void **buffers, void **textures, void **passes);
+void DRW_viewport_init(const bContext *C, void **buffers, void **textures, void **passes, void **storage);
 void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type);
 float *DRW_viewport_size_get(void);
 float *DRW_viewport_screenvecs_get(void);

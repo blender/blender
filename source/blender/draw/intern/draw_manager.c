@@ -1071,12 +1071,12 @@ float *DRW_viewport_pixelsize_get(void)
 	return &DST.pixsize;
 }
 
-void DRW_viewport_init(const bContext *C, void **buffers, void **textures, void **passes)
+void DRW_viewport_init(const bContext *C, void **buffers, void **textures, void **passes, void **storage)
 {
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	GPUViewport *viewport = rv3d->viewport;
 
-	GPU_viewport_get_engine_data(viewport, buffers, textures, passes);
+	GPU_viewport_get_engine_data(viewport, buffers, textures, passes, storage);
 
 	/* Refresh DST.size */
 	DefaultTextureList *txl = (DefaultTextureList *)*textures;
