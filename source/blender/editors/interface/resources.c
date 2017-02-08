@@ -1287,18 +1287,11 @@ void UI_ThemeColor4(int colorid)
 /* set the color with offset for shades */
 void UI_ThemeColorShade(int colorid, int offset)
 {
-	int r, g, b;
-	const unsigned char *cp;
-
-	cp = UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
-	r = offset + (int) cp[0];
-	CLAMP(r, 0, 255);
-	g = offset + (int) cp[1];
-	CLAMP(g, 0, 255);
-	b = offset + (int) cp[2];
-	CLAMP(b, 0, 255);
-	glColor4ub(r, g, b, cp[3]);
+	unsigned char col[4];
+	UI_GetThemeColorShade4ubv(colorid, offset, col);
+	glColor4ubv(col);
 }
+
 void UI_ThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset)
 {
 	int r, g, b, a;
@@ -1522,6 +1515,25 @@ void UI_GetThemeColorBlendShade3ubv(int colorid1, int colorid2, float fac, int o
 	CLAMP(col[0], 0, 255);
 	CLAMP(col[1], 0, 255);
 	CLAMP(col[2], 0, 255);
+}
+
+void UI_GetThemeColorShade4ubv(int colorid, int offset, unsigned char col[4])
+{
+	int r, g, b;
+	const unsigned char *cp;
+
+	cp = UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+	r = offset + (int) cp[0];
+	CLAMP(r, 0, 255);
+	g = offset + (int) cp[1];
+	CLAMP(g, 0, 255);
+	b = offset + (int) cp[2];
+	CLAMP(b, 0, 255);
+
+	col[0] = r;
+	col[1] = g;
+	col[2] = b;
+	col[3] = cp[3];
 }
 
 void UI_GetThemeColorShadeAlpha4fv(int colorid, int coloffset, int alphaoffset, float col[4])
