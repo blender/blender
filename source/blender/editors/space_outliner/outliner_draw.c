@@ -1328,12 +1328,19 @@ static void outliner_draw_tree_element(
 					int tempx = startx + offsx;
 					
 					/* divider */
-					UI_ThemeColorShade(TH_BACK, -40);
-					glRecti(tempx   - 10.0f * ufac,
-					        *starty +  4.0f * ufac,
-					        tempx   -  8.0f * ufac,
-					        *starty + UI_UNIT_Y - 4.0f * ufac);
-					
+					{
+						VertexFormat *format = immVertexFormat();
+						unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+						immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+						unsigned char col[4];
+						UI_GetThemeColorShade4ubv(TH_BACK, -40, col);
+						immUniformColor4ubv(col);
+						immRecti(pos, tempx   - 10.0f * ufac,
+								*starty +  4.0f * ufac,
+								tempx   -  8.0f * ufac,
+								*starty + UI_UNIT_Y - 4.0f * ufac);
+						immUnbindProgram();
+					}
 					glEnable(GL_BLEND);
 					glPixelTransferf(GL_ALPHA_SCALE, 0.5);
 					
