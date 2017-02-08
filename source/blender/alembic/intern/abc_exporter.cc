@@ -382,7 +382,10 @@ void AbcExporter::createTransformWritersFlat()
 
 void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Object *ob, Object *parent, Object *dupliObParent)
 {
-	createTransformWriter(ob, parent, dupliObParent);
+
+	if (export_object(&m_settings, ob) && object_is_shape(ob)) {
+		createTransformWriter(ob, parent, dupliObParent);
+	}
 
 	ListBase *lb = object_duplilist(eval_ctx, m_scene, ob);
 
