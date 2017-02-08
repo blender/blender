@@ -1339,35 +1339,39 @@ void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 	immUnbindProgram();
 }
 
-static void ui_draw_but_curve_grid(const rcti *rect, float zoomx, float zoomy, float offsx, float offsy, float step)
+static void ui_draw_but_curve_grid(unsigned int pos, const rcti *rect, float zoomx, float zoomy, float offsx, float offsy, float step)
 {
-	glBegin(GL_LINES);
 	float dx = step * zoomx;
 	float fx = rect->xmin + zoomx * (-offsx);
 	if (fx > rect->xmin) fx -= dx * (floorf(fx - rect->xmin));
-	while (fx < rect->xmax) {
-		glVertex2f(fx, rect->ymin);
-		glVertex2f(fx, rect->ymax);
-		fx += dx;
-	}
 	
 	float dy = step * zoomy;
 	float fy = rect->ymin + zoomy * (-offsy);
 	if (fy > rect->ymin) fy -= dy * (floorf(fy - rect->ymin));
+
+	float line_count = floorf((rect->xmax - fx) / dx) + 1.0f +
+	                   floorf((rect->ymax - fy) / dy) + 1.0f;
+
+	immBegin(GL_LINES, (int)line_count * 2);
+	while (fx < rect->xmax) {
+		immVertex2f(pos, fx, rect->ymin);
+		immVertex2f(pos, fx, rect->ymax);
+		fx += dx;
+	}
 	while (fy < rect->ymax) {
-		glVertex2f(rect->xmin, fy);
-		glVertex2f(rect->xmax, fy);
+		immVertex2f(pos, rect->xmin, fy);
+		immVertex2f(pos, rect->xmax, fy);
 		fy += dy;
 	}
-	glEnd();
+	immEnd();
 	
 }
 
 static void gl_shaded_color(unsigned char *col, int shade)
 {
-	glColor3ub(col[0] - shade > 0 ? col[0] - shade : 0,
-	           col[1] - shade > 0 ? col[1] - shade : 0,
-	           col[2] - shade > 0 ? col[2] - shade : 0);
+	immUniformColor3ub(col[0] - shade > 0 ? col[0] - shade : 0,
+	                   col[1] - shade > 0 ? col[1] - shade : 0,
+	                   col[2] - shade > 0 ? col[2] - shade : 0);
 }
 
 void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti *rect)
@@ -1403,10 +1407,8 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	float zoomy = (BLI_rcti_size_y(rect) - 2.0f) / BLI_rctf_size_y(&cumap->curr);
 	float offsx = cumap->curr.xmin - (1.0f / zoomx);
 	float offsy = cumap->curr.ymin - (1.0f / zoomy);
-	
-	glLineWidth(1.0f);
 
-	/* backdrop */
+	/* Do this first to not mess imm context */
 	if (but->a1 == UI_GRAD_H) {
 		/* magic trigger for curve backgrounds */
 		float col[3] = {0.0f, 0.0f, 0.0f}; /* dummy arg */
@@ -1419,43 +1421,52 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 		};
 
 		ui_draw_gradient(&grid, col, UI_GRAD_H, 1.0f);
+	}
 
+	glLineWidth(1.0f);
+
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	/* backdrop */
+	if (but->a1 == UI_GRAD_H) {
 		/* grid, hsv uses different grid */
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glColor4ub(0, 0, 0, 48);
-		ui_draw_but_curve_grid(rect, zoomx, zoomy, offsx, offsy, 0.1666666f);
+		immUniformColor4ub(0, 0, 0, 48);
+		ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 0.1666666f);
 		glDisable(GL_BLEND);
 	}
 	else {
 		if (cumap->flag & CUMA_DO_CLIP) {
 			gl_shaded_color((unsigned char *)wcol->inner, -20);
-			glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
-			glColor3ubv((unsigned char *)wcol->inner);
-			glRectf(rect->xmin + zoomx * (cumap->clipr.xmin - offsx),
-			        rect->ymin + zoomy * (cumap->clipr.ymin - offsy),
-			        rect->xmin + zoomx * (cumap->clipr.xmax - offsx),
-			        rect->ymin + zoomy * (cumap->clipr.ymax - offsy));
+			immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+			immUniformColor3ubv((unsigned char *)wcol->inner);
+			immRectf(pos, rect->xmin + zoomx * (cumap->clipr.xmin - offsx),
+			              rect->ymin + zoomy * (cumap->clipr.ymin - offsy),
+			              rect->xmin + zoomx * (cumap->clipr.xmax - offsx),
+			              rect->ymin + zoomy * (cumap->clipr.ymax - offsy));
 		}
 		else {
-			glColor3ubv((unsigned char *)wcol->inner);
-			glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+			immUniformColor3ubv((unsigned char *)wcol->inner);
+			immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 		}
 
 		/* grid, every 0.25 step */
 		gl_shaded_color((unsigned char *)wcol->inner, -16);
-		ui_draw_but_curve_grid(rect, zoomx, zoomy, offsx, offsy, 0.25f);
+		ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 0.25f);
 		/* grid, every 1.0 step */
 		gl_shaded_color((unsigned char *)wcol->inner, -24);
-		ui_draw_but_curve_grid(rect, zoomx, zoomy, offsx, offsy, 1.0f);
+		ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 1.0f);
 		/* axes */
 		gl_shaded_color((unsigned char *)wcol->inner, -50);
-		glBegin(GL_LINES);
-		glVertex2f(rect->xmin, rect->ymin + zoomy * (-offsy));
-		glVertex2f(rect->xmax, rect->ymin + zoomy * (-offsy));
-		glVertex2f(rect->xmin + zoomx * (-offsx), rect->ymin);
-		glVertex2f(rect->xmin + zoomx * (-offsx), rect->ymax);
-		glEnd();
+		immBegin(GL_LINES, 4);
+		immVertex2f(pos, rect->xmin, rect->ymin + zoomy * (-offsy));
+		immVertex2f(pos, rect->xmax, rect->ymin + zoomy * (-offsy));
+		immVertex2f(pos, rect->xmin + zoomx * (-offsx), rect->ymin);
+		immVertex2f(pos, rect->xmin + zoomx * (-offsx), rect->ymax);
+		immEnd();
 	}
 
 	/* cfra option */
@@ -1472,43 +1483,43 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	/* sample option */
 
 	if (cumap->flag & CUMA_DRAW_SAMPLE) {
-		glBegin(GL_LINES); /* will draw one of the following 3 lines */
+		immBegin(GL_LINES, 2); /* will draw one of the following 3 lines */
 		if (but->a1 == UI_GRAD_H) {
 			float tsample[3];
 			float hsv[3];
 			linearrgb_to_srgb_v3_v3(tsample, cumap->sample);
 			rgb_to_hsv_v(tsample, hsv);
-			glColor3ub(240, 240, 240);
+			immUniformColor3ub(240, 240, 240);
 
-			glVertex2f(rect->xmin + zoomx * (hsv[0] - offsx), rect->ymin);
-			glVertex2f(rect->xmin + zoomx * (hsv[0] - offsx), rect->ymax);
+			immVertex2f(pos, rect->xmin + zoomx * (hsv[0] - offsx), rect->ymin);
+			immVertex2f(pos, rect->xmin + zoomx * (hsv[0] - offsx), rect->ymax);
 		}
 		else if (cumap->cur == 3) {
 			float lum = IMB_colormanagement_get_luminance(cumap->sample);
-			glColor3ub(240, 240, 240);
+			immUniformColor3ub(240, 240, 240);
 			
-			glVertex2f(rect->xmin + zoomx * (lum - offsx), rect->ymin);
-			glVertex2f(rect->xmin + zoomx * (lum - offsx), rect->ymax);
+			immVertex2f(pos, rect->xmin + zoomx * (lum - offsx), rect->ymin);
+			immVertex2f(pos, rect->xmin + zoomx * (lum - offsx), rect->ymax);
 		}
 		else {
 			if (cumap->cur == 0)
-				glColor3ub(240, 100, 100);
+				immUniformColor3ub(240, 100, 100);
 			else if (cumap->cur == 1)
-				glColor3ub(100, 240, 100);
+				immUniformColor3ub(100, 240, 100);
 			else
-				glColor3ub(100, 100, 240);
+				immUniformColor3ub(100, 100, 240);
 			
-			glVertex2f(rect->xmin + zoomx * (cumap->sample[cumap->cur] - offsx), rect->ymin);
-			glVertex2f(rect->xmin + zoomx * (cumap->sample[cumap->cur] - offsx), rect->ymax);
+			immVertex2f(pos, rect->xmin + zoomx * (cumap->sample[cumap->cur] - offsx), rect->ymin);
+			immVertex2f(pos, rect->xmin + zoomx * (cumap->sample[cumap->cur] - offsx), rect->ymax);
 		}
-		glEnd();
+		immEnd();
 	}
 
 	/* the curve */
-	glColor3ubv((unsigned char *)wcol->item);
+	immUniformColor3ubv((unsigned char *)wcol->item);
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
-	glBegin(GL_LINE_STRIP);
+	immBegin(GL_LINE_STRIP, (CM_TABLE+1) + 2);
 	
 	if (cuma->table == NULL)
 		curvemapping_changed(cumap, false);
@@ -1517,52 +1528,67 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 
 	/* first point */
 	if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE) == 0) {
-		glVertex2f(rect->xmin, rect->ymin + zoomy * (cmp[0].y - offsy));
+		immVertex2f(pos, rect->xmin, rect->ymin + zoomy * (cmp[0].y - offsy));
 	}
 	else {
 		float fx = rect->xmin + zoomx * (cmp[0].x - offsx + cuma->ext_in[0]);
 		float fy = rect->ymin + zoomy * (cmp[0].y - offsy + cuma->ext_in[1]);
-		glVertex2f(fx, fy);
+		immVertex2f(pos, fx, fy);
 	}
 	for (int a = 0; a <= CM_TABLE; a++) {
 		float fx = rect->xmin + zoomx * (cmp[a].x - offsx);
 		float fy = rect->ymin + zoomy * (cmp[a].y - offsy);
-		glVertex2f(fx, fy);
+		immVertex2f(pos, fx, fy);
 	}
 	/* last point */
 	if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE) == 0) {
-		glVertex2f(rect->xmax, rect->ymin + zoomy * (cmp[CM_TABLE].y - offsy));
+		immVertex2f(pos, rect->xmax, rect->ymin + zoomy * (cmp[CM_TABLE].y - offsy));
 	}
 	else {
 		float fx = rect->xmin + zoomx * (cmp[CM_TABLE].x - offsx - cuma->ext_out[0]);
 		float fy = rect->ymin + zoomy * (cmp[CM_TABLE].y - offsy - cuma->ext_out[1]);
-		glVertex2f(fx, fy);
+		immVertex2f(pos, fx, fy);
 	}
-	glEnd();
+	immEnd();
 	glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
+	immUnbindProgram();
 
 	/* the points, use aspect to make them visible on edges */
+	format = immVertexFormat();
+	pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int col = add_attrib(format, "color", GL_FLOAT, 4, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+
 	cmp = cuma->curve;
 	glPointSize(3.0f);
-	glBegin(GL_POINTS);
+	immBegin(GL_POINTS, cuma->totpoint);
 	for (int a = 0; a < cuma->totpoint; a++) {
+		float color[4];
 		if (cmp[a].flag & CUMA_SELECT)
-			UI_ThemeColor(TH_TEXT_HI);
+			UI_GetThemeColor4fv(TH_TEXT_HI, color);
 		else
-			UI_ThemeColor(TH_TEXT);
+			UI_GetThemeColor4fv(TH_TEXT, color);
 		float fx = rect->xmin + zoomx * (cmp[a].x - offsx);
 		float fy = rect->ymin + zoomy * (cmp[a].y - offsy);
-		glVertex2f(fx, fy);
+		immAttrib4fv(col, color);
+		immVertex2f(pos, fx, fy);
 	}
-	glEnd();
+	immEnd();
+	immUnbindProgram();
 	
 	/* restore scissortest */
 	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 
 	/* outline */
-	glColor3ubv((unsigned char *)wcol->outline);
-	fdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+	format = immVertexFormat();
+	pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	immUniformColor3ubv((unsigned char *)wcol->outline);
+	imm_draw_line_box(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+
+	immUnbindProgram();
 }
 
 void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti *recti)
