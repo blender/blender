@@ -389,6 +389,7 @@ void BKE_scene_objects_Iterator_begin(Iterator *iter, void *data_in)
 	if (iter->current == NULL) {
 		BKE_scene_objects_Iterator_next(iter);
 	}
+	iter->valid = true;
 }
 
 /**
