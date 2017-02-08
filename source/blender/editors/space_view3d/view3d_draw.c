@@ -2098,7 +2098,7 @@ static void view3d_draw_view(const bContext *C, ARegion *ar, DrawData *draw_data
 #endif
 }
 
-static void view3d_render_pass(const bContext *C, ARegion *ar)
+static void view3d_render_pass(const bContext *C, ARegion *UNUSED(ar))
 {
 	Scene *scene = CTX_data_scene(C);
 	RenderEngineType *type = RE_engines_find(scene->r.engine); /* In the future we should get that from Layers */

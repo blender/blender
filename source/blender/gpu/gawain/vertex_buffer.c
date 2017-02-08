@@ -16,7 +16,7 @@
 
 #define KEEP_SINGLE_COPY 1
 
-VertexBuffer* VertexBuffer_create()
+VertexBuffer* VertexBuffer_create(void)
 	{
 	VertexBuffer* verts = malloc(sizeof(VertexBuffer));
 	VertexBuffer_init(verts);

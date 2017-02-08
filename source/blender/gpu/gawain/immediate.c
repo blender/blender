@@ -54,7 +54,7 @@ typedef struct {
 static PER_THREAD bool initialized = false;
 static PER_THREAD Immediate imm;
 
-void immInit()
+void immInit(void)
 	{
 #if TRUST_NO_ONE
 	assert(!initialized);
@@ -80,7 +80,7 @@ void immInit()
 	immActivate();
 	}
 
-void immActivate()
+void immActivate(void)
 	{
 #if TRUST_NO_ONE
 	assert(initialized);
@@ -91,7 +91,7 @@ void immActivate()
 	imm.vao_id = vao_id_alloc();
 	}
 
-void immDeactivate()
+void immDeactivate(void)
 	{
 #if TRUST_NO_ONE
 	assert(initialized);
@@ -104,14 +104,14 @@ void immDeactivate()
 	imm.prev_enabled_attrib_bits = 0;
 	}
 
-void immDestroy()
+void immDestroy(void)
 	{
 	immDeactivate();
 	buffer_id_free(imm.vbo_id);
 	initialized = false;
 	}
 
-VertexFormat* immVertexFormat()
+VertexFormat* immVertexFormat(void)
 	{
 	VertexFormat_clear(&imm.vertex_format);
 	return &imm.vertex_format;
@@ -134,7 +134,7 @@ void immBindProgram(GLuint program)
 	gpuBindMatrices(program);
 	}
 
-void immUnbindProgram()
+void immUnbindProgram(void)
 	{
 #if TRUST_NO_ONE
 	assert(imm.bound_program != 0);
@@ -339,7 +339,7 @@ static void immDrawSetup(void)
 		gpuBindMatrices(imm.bound_program);
 	}
 
-void immEnd()
+void immEnd(void)
 	{
 #if TRUST_NO_ONE
 	assert(imm.prim_type != PRIM_NONE); // make sure we're between a Begin/End pair

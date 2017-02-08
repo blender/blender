@@ -70,12 +70,12 @@ static MatrixState state; /* TODO(merwin): make part of GPUContext, alongside im
 #define Projection3D state.ProjectionMatrix3D
 #define Projection2D state.ProjectionMatrix2D
 
-void gpuMatrixInit()
+void gpuMatrixInit(void)
 {
 	memset(&state, 0, sizeof(MatrixState));
 }
 
-void gpuMatrixBegin2D()
+void gpuMatrixBegin2D(void)
 {
 	state.mode = MATRIX_MODE_2D;
 	state.top = 0;
@@ -83,7 +83,7 @@ void gpuMatrixBegin2D()
 	gpuOrtho2D(-1.0f, +1.0f, -1.0f, +1.0f); // or identity?
 }
 
-void gpuMatrixBegin3D()
+void gpuMatrixBegin3D(void)
 {
 	state.mode = MATRIX_MODE_3D;
 	state.top = 0;
@@ -92,7 +92,7 @@ void gpuMatrixBegin3D()
 }
 
 #if SUPPORT_LEGACY_MATRIX
-void gpuMatrixBegin3D_legacy()
+void gpuMatrixBegin3D_legacy(void)
 {
 	/* copy top matrix from each legacy stack into new fresh stack */
 	state.mode = MATRIX_MODE_3D;
@@ -103,7 +103,7 @@ void gpuMatrixBegin3D_legacy()
 }
 #endif
 
-void gpuMatrixEnd()
+void gpuMatrixEnd(void)
 {
 	state.mode = MATRIX_MODE_INACTIVE;
 }
@@ -133,7 +133,7 @@ static void checkmat(cosnt float *m)
 #endif
 
 
-void gpuPushMatrix()
+void gpuPushMatrix(void)
 {
 	BLI_assert(state.mode != MATRIX_MODE_INACTIVE);
 	BLI_assert(state.top < MATRIX_STACK_DEPTH);
@@ -144,7 +144,7 @@ void gpuPushMatrix()
 		copy_m3_m3(ModelView2D, state.ModelViewStack2D[state.top - 1]);
 }
 
-void gpuPopMatrix()
+void gpuPopMatrix(void)
 {
 	BLI_assert(state.mode != MATRIX_MODE_INACTIVE);
 	BLI_assert(state.top > 0);
@@ -168,7 +168,7 @@ void gpuLoadMatrix2D(const float m[3][3])
 	state.dirty = true;
 }
 
-void gpuLoadIdentity()
+void gpuLoadIdentity(void)
 {
 	switch (state.mode) {
 		case MATRIX_MODE_3D:
@@ -622,7 +622,7 @@ const float *gpuGetNormalMatrix(float m[3][3])
 		m = temp3;
 	}
 
-	copy_m3_m4(m, gpuGetModelViewMatrix3D(NULL));
+	copy_m3_m4(m, (const float (*)[4])gpuGetModelViewMatrix3D(NULL));
 
 	invert_m3(m);
 	transpose_m3(m);
@@ -695,13 +695,13 @@ void gpuBindMatrices(GLuint program)
 	state.dirty = false;
 }
 
-bool gpuMatricesDirty()
+bool gpuMatricesDirty(void)
 {
 	return state.dirty;
 }
 
 #if SUPPORT_LEGACY_MATRIX
-void gpuMatrixUpdate_legacy()
+void gpuMatrixUpdate_legacy(void)
 {
 	BLI_assert(state.mode == MATRIX_MODE_INACTIVE);
 	state.dirty = true;

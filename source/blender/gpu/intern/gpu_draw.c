@@ -2318,7 +2318,7 @@ void GPU_state_init(void)
 	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 }
 
-void GPU_enable_program_point_size()
+void GPU_enable_program_point_size(void)
 {
 #ifdef __APPLE__
 	/* TODO: remove this when we switch to core profile */
@@ -2328,7 +2328,7 @@ void GPU_enable_program_point_size()
 #endif
 }
 
-void GPU_disable_program_point_size()
+void GPU_disable_program_point_size(void)
 {
 #ifdef __APPLE__
 	/* TODO: remove this when we switch to core profile */

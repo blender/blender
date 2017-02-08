@@ -175,7 +175,7 @@ void BLF_default_set(int fontid)
 	}
 }
 
-int BLF_default()
+int BLF_default(void)
 {
 	ASSERT_DEFAULT_SET;
 	return global_font_default;
