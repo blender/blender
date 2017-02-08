@@ -143,15 +143,14 @@ static void acf_generic_dataexpand_backdrop(bAnimContext *ac, bAnimListElem *ale
 	short offset = (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
 	float color[3];
 
-	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-	
+	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+
 	/* set backdrop drawing color */
 	acf->get_backdrop_color(ac, ale, color);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor3fv(color);
-	
+
 	/* no rounded corner - just rectangular box */
 	immRectf(pos, offset, yminc,  v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc);
 
@@ -233,8 +232,7 @@ static void acf_generic_channel_backdrop(bAnimContext *ac, bAnimListElem *ale, f
 	short offset = (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
 	float color[3];
 
-	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 	
 	/* set backdrop drawing color */
 	acf->get_backdrop_color(ac, ale, color);
@@ -3864,8 +3862,7 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 			/* for F-Curves, draw color-preview of curve behind checkbox */
 			if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
 				FCurve *fcu = (FCurve *)ale->data;
-				VertexFormat *format = immVertexFormat();
-				unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+				unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 				immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 				
@@ -3921,15 +3918,14 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 		
 		/* draw red underline if channel is disabled */
 		if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE) && (ale->flag & FCURVE_DISABLED)) {
-			VertexFormat *format = immVertexFormat();
-			unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+			unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 			/* FIXME: replace hardcoded color here, and check on extents! */
 			immUniformColor3f(1.0f, 0.0f, 0.0f);
 
-			glLineWidth(2.0);
+			glLineWidth(2.0f);
 
 			immBegin(GL_LINES, 2);
 			immVertex2f(pos, (float)offset, yminc);
@@ -3950,8 +3946,7 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 		short draw_sliders = 0;
 		float ymin_ofs = 0.0f;
 		float color[3];
-		VertexFormat *format = immVertexFormat();
-		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		

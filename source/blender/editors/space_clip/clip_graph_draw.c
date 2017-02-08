@@ -112,12 +112,7 @@ static void tracking_segment_knot_cb(void *userdata, MovieTrackingTrack *track,
 	sel = (marker->flag & sel_flag) ? 1 : 0;
 
 	if (sel == data->sel) {
-		if (sel) {
-			immUniformThemeColor(TH_HANDLE_VERTEX_SELECT);
-		}
-		else {
-			immUniformThemeColor(TH_HANDLE_VERTEX);
-		}
+		immUniformThemeColor(sel ? TH_HANDLE_VERTEX_SELECT : TH_HANDLE_VERTEX);
 
 		glPushMatrix();
 		glTranslatef(scene_framenr, val, 0.0f);
