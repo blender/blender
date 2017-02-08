@@ -72,6 +72,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
+#include "BKE_layer.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
@@ -5352,20 +5353,20 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 static void set_trans_object_base_flags(TransInfo *t)
 {
 	Scene *scene = t->scene;
-	View3D *v3d = t->view;
+	SceneLayer *sl = t->sl;
 
 	/*
 	 * if Base selected and has parent selected:
-	 * base->flag = BA_WAS_SEL
+	 * base->flag_legacy = BA_WAS_SEL
 	 */
-	BaseLegacy *base;
+	Base *base;
 
 	/* don't do it if we're not actually going to recalculate anything */
 	if (t->mode == TFM_DUMMY)
 		return;
 
 	/* makes sure base flags and object flags are identical */
-	BKE_scene_base_flag_to_objects(t->scene);
+	BKE_scene_base_flag_to_objects(t->sl);
 
 	/* Make sure depsgraph is here. */
 	DAG_scene_relations_update(G.main, t->scene);
@@ -5378,19 +5379,19 @@ static void set_trans_object_base_flags(TransInfo *t)
 		}
 	}
 
-	for (base = scene->base.first; base; base = base->next) {
+	for (base = sl->object_bases.first; base; base = base->next) {
 		base->flag_legacy &= ~BA_WAS_SEL;
 
-		if (TESTBASELIB_BGMODE(v3d, scene, base)) {
+		if (TESTBASELIB_BGMODE_NEW(base)) {
 			Object *ob = base->object;
 			Object *parsel = ob->parent;
 
 			/* if parent selected, deselect */
 			while (parsel) {
-				if (parsel->flag & SELECT) {
-					BaseLegacy *parbase = BKE_scene_base_find(scene, parsel);
+				Base *parbase = BKE_scene_layer_base_find(sl, parsel);
+				if (parbase->flag & BASE_SELECTED) {
 					if (parbase) { /* in rare cases this can fail */
-						if (TESTBASELIB_BGMODE(v3d, scene, parbase)) {
+						if (TESTBASELIB_BGMODE_NEW(parbase)) {
 							break;
 						}
 					}
@@ -5406,7 +5407,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 					base->flag_legacy |= BA_TRANSFORM_CHILD;
 				}
 				else {
-					base->flag_legacy &= ~SELECT;
+					base->flag &= ~BASE_SELECTED;
 					base->flag_legacy |= BA_WAS_SEL;
 				}
 			}
@@ -5416,7 +5417,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
-	for (base = scene->base.first; base; base = base->next) {
+	for (base = sl->object_bases.first; base; base = base->next) {
 		if (base->object->recalc & OB_RECALC_OB)
 			base->flag_legacy |= BA_HAS_RECALC_OB;
 		if (base->object->recalc & OB_RECALC_DATA)
@@ -5506,12 +5507,13 @@ static int count_proportional_objects(TransInfo *t)
 
 static void clear_trans_object_base_flags(TransInfo *t)
 {
-	Scene *sce = t->scene;
-	BaseLegacy *base;
+	SceneLayer *sl = t->sl;
+	Base *base;
 
-	for (base = sce->base.first; base; base = base->next) {
-		if (base->flag_legacy & BA_WAS_SEL)
-			base->flag_legacy |= SELECT;
+	for (base = sl->object_bases.first; base; base = base->next) {
+		if (base->flag_legacy & BA_WAS_SEL) {
+			base->flag |= BASE_SELECTED;
+		}
 
 		base->flag_legacy &= ~(BA_WAS_SEL | BA_HAS_RECALC_OB | BA_HAS_RECALC_DATA | BA_TEMP_TAG | BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT);
 	}

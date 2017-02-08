@@ -1767,7 +1767,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 /* ******************** non-meshes ***************** */
 
 static void view3d_draw_non_mesh(
-Scene *scene, Object *ob, BaseLegacy *base, View3D *v3d,
+Scene *scene, SceneLayer *sl, Object *ob, Base *base, View3D *v3d,
 RegionView3D *rv3d, const bool is_boundingbox, const unsigned char color[4])
 {
 	glMatrixMode(GL_PROJECTION);
@@ -1793,7 +1793,7 @@ RegionView3D *rv3d, const bool is_boundingbox, const unsigned char color[4])
 			drawaxes(rv3d->viewmatob, ob->empty_drawsize, ob->empty_drawtype, color);
 			break;
 		case OB_LAMP:
-			drawlamp(v3d, rv3d, base, OB_SOLID, DRAW_CONSTCOLOR, color, ob == OBACT);
+			drawlamp(v3d, rv3d, base, OB_SOLID, DRAW_CONSTCOLOR, color, ob == OBACT_NEW);
 			break;
 		case OB_CAMERA:
 			drawcamera(scene, v3d, rv3d, base, DRAW_CONSTCOLOR, color);
@@ -1889,9 +1889,9 @@ static void draw_all_objects(const bContext *C, ARegion *ar, const bool only_dep
 		if ((base->flag & BASE_VISIBLED) != 0) {
 			/* dupli drawing */
 			if (base->object->transflag & OB_DUPLI)
-				draw_dupli_objects(scene, ar, v3d, base);
+				draw_dupli_objects(scene, sl, ar, v3d, base);
 
-			draw_object(scene, ar, v3d, base, 0);
+			draw_object(scene, sl, ar, v3d, base, 0);
 		}
 	}
 
@@ -1988,8 +1988,8 @@ static void view3d_draw_non_meshes(const bContext *C, ARegion *ar)
 			Object *ob = base->object;
 
 			unsigned char ob_wire_col[4];
-			draw_object_wire_color(scene, base, ob_wire_col);
-			view3d_draw_non_mesh(scene, ob, base, v3d, rv3d, is_boundingbox, ob_wire_col);
+			draw_object_wire_color(scene, sl, base, ob_wire_col);
+			view3d_draw_non_mesh(scene, sl, ob, base, v3d, rv3d, is_boundingbox, ob_wire_col);
 		}
 	}
 

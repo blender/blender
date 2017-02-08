@@ -1231,7 +1231,7 @@ static void draw_transp_sun_volume(Lamp *la, unsigned pos)
 }
 #endif
 
-void drawlamp(View3D *v3d, RegionView3D *rv3d, BaseLegacy *base,
+void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
               const char dt, const short dflag, const unsigned char ob_wire_col[4], const bool is_obact)
 {
 	Object *ob = base->object;
@@ -1309,7 +1309,7 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, BaseLegacy *base,
 		if ((dflag & DRAW_CONSTCOLOR) == 0) {
 			const float *color = curcol;
 			if (ob->id.us > 1) {
-				if (is_obact || (ob->flag & SELECT)) {
+				if (is_obact || ((base->flag & BASE_SELECTED) != 0)) {
 					static const float active_color[4] = {0.533f, 1.0f, 1.0f, 1.0f};
 					color = active_color;
 				}
@@ -2121,7 +2121,7 @@ static void drawcamera_stereo3d(
 }
 
 /* flag similar to draw_object() */
-void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, BaseLegacy *base,
+void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
                 const short dflag, const unsigned char ob_wire_col[4])
 {
 	/* a standing up pyramid with (0,0,0) as top */
@@ -5678,7 +5678,7 @@ static void draw_particle_data(ParticleSystem *psys, RegionView3D *rv3d,
  * 7. clean up
  */
 static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv3d,
-                                     BaseLegacy *base, ParticleSystem *psys,
+                                     Base *base, ParticleSystem *psys,
                                      const char ob_dt, const short dflag)
 {
 	Object *ob = base->object;
@@ -5697,7 +5697,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	float cfra;
 	float ma_col[3] = {0.0f, 0.0f, 0.0f};
 	int a, totpart, totpoint = 0, totve = 0, drawn, draw_as, totchild = 0;
-	bool select = (ob->flag & SELECT) != 0, create_cdata = false, need_v = false;
+	bool select = (base->flag & BASE_SELECTED) != 0, create_cdata = false, need_v = false;
 	GLint polygonmode[2];
 	char numstr[32];
 	unsigned char tcol[4] = {0, 0, 0, 255};
@@ -7942,7 +7942,7 @@ static void drawtexspace(Object *ob)
 }
 
 /* draws wire outline */
-static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, BaseLegacy *base,
+static void drawObjectSelect(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *ar, Base *base,
                              const unsigned char ob_wire_col[4])
 {
 	RegionView3D *rv3d = ar->regiondata;
@@ -7989,7 +7989,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, BaseLegacy 
 		}
 	}
 	else if (ob->type == OB_ARMATURE) {
-		if (!(ob->mode & OB_MODE_POSE && base == scene->basact)) {
+		if (!(ob->mode & OB_MODE_POSE && base == sl->basact)) {
 			glLineWidth(UI_GetThemeValuef(TH_OUTLINE_WIDTH) * 2.0f);
 			draw_armature(scene, v3d, ar, base, OB_WIRE, 0, ob_wire_col, true);
 		}
@@ -8095,7 +8095,7 @@ static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data,
 	setlinestyle(0);
 }
 
-void draw_object_wire_color(Scene *scene, BaseLegacy *base, unsigned char r_ob_wire_col[4])
+void draw_object_wire_color(Scene *scene, SceneLayer *sl, Base *base, unsigned char r_ob_wire_col[4])
 {
 	Object *ob = base->object;
 	int colindex = 0;
@@ -8136,7 +8136,7 @@ void draw_object_wire_color(Scene *scene, BaseLegacy *base, unsigned char r_ob_w
 			}
 			else {
 				if ((base->flag & BASE_SELECTED) && (base->flag_legacy & BA_WAS_SEL)) {
-					theme_id = scene->basact == base ? TH_ACTIVE : TH_SELECT;
+					theme_id = sl->basact == base ? TH_ACTIVE : TH_SELECT;
 				}
 				else {
 					if (ob->type == OB_LAMP) theme_id = TH_LAMP;
@@ -8234,7 +8234,7 @@ void draw_rigidbody_shape(Object *ob)
  * main object drawing function, draws in selection
  * \param dflag (draw flag) can be DRAW_PICKING and/or DRAW_CONSTCOLOR, DRAW_SCENESET
  */
-void draw_object(Scene *scene, ARegion *ar, View3D *v3d, BaseLegacy *base, const short dflag)
+void draw_object(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, Base *base, const short dflag)
 {
 	ModifierData *md = NULL;
 	Object *ob = base->object;
@@ -8244,7 +8244,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, BaseLegacy *base, const
 	unsigned char _ob_wire_col[4];            /* dont initialize this */
 	const unsigned char *ob_wire_col = NULL;  /* dont initialize this, use NULL crashes as a way to find invalid use */
 	bool zbufoff = false, is_paint = false, empty_object = false;
-	const bool is_obact = (ob == OBACT);
+	const bool is_obact = (ob == OBACT_NEW);
 	const bool render_override = (v3d->flag2 & V3D_RENDER_OVERRIDE) != 0;
 	const bool is_picking = (G.f & G_PICKSEL) != 0;
 	const bool has_particles = (ob->particlesystem.first != NULL);
@@ -8361,7 +8361,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, BaseLegacy *base, const
 
 		ED_view3d_project_base(ar, base);
 
-		draw_object_wire_color(scene, base, _ob_wire_col);
+		draw_object_wire_color(scene, sl, base, _ob_wire_col);
 		ob_wire_col = _ob_wire_col;
 
 		glColor3ubv(ob_wire_col);
@@ -8416,8 +8416,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, BaseLegacy *base, const
 		/* draw outline for selected objects, mesh does itself */
 		if ((v3d->flag & V3D_SELECT_OUTLINE) && !render_override && ob->type != OB_MESH) {
 			if (dt > OB_WIRE && (ob->mode & OB_MODE_EDIT) == 0 && (dflag & DRAW_SCENESET) == 0) {
-				if (!(ob->dtx & OB_DRAWWIRE) && (ob->flag & SELECT) && !(dflag & (DRAW_PICKING | DRAW_CONSTCOLOR))) {
-					drawObjectSelect(scene, v3d, ar, base, ob_wire_col);
+				if (!(ob->dtx & OB_DRAWWIRE) && (base->flag & BASE_SELECTED) && !(dflag & (DRAW_PICKING | DRAW_CONSTCOLOR))) {
+					drawObjectSelect(scene, sl, v3d, ar, base, ob_wire_col);
 				}
 			}
 		}
@@ -8599,7 +8599,7 @@ afterdraw:
 
 		if ((dflag & DRAW_CONSTCOLOR) == 0) {
 			/* for visibility, also while wpaint */
-			if (col || (ob->flag & SELECT)) {
+			if (col || (base->flag & BASE_SELECTED)) {
 				cpack(0xFFFFFF);
 			}
 		}

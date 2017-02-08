@@ -1091,26 +1091,26 @@ void view3d_viewmatrix_set(Scene *scene, const View3D *v3d, RegionView3D *rv3d)
 	}
 }
 
-static void view3d_select_loop(ViewContext *vc, Scene *scene, View3D *v3d, ARegion *ar, bool use_obedit_skip)
+static void view3d_select_loop(ViewContext *vc, Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *ar, bool use_obedit_skip)
 {
 	short code = 1;
 	char dt;
 	short dtx;
 
 	if (vc->obedit && vc->obedit->type == OB_MBALL) {
-		draw_object(scene, ar, v3d, BASACT, DRAW_PICKING | DRAW_CONSTCOLOR);
+		draw_object(scene, sl, ar, v3d, BASACT_NEW, DRAW_PICKING | DRAW_CONSTCOLOR);
 	}
 	else if ((vc->obedit && vc->obedit->type == OB_ARMATURE)) {
 		/* if not drawing sketch, draw bones */
 		if (!BDR_drawSketchNames(vc)) {
-			draw_object(scene, ar, v3d, BASACT, DRAW_PICKING | DRAW_CONSTCOLOR);
+			draw_object(scene, sl, ar, v3d, BASACT_NEW, DRAW_PICKING | DRAW_CONSTCOLOR);
 		}
 	}
 	else {
-		BaseLegacy *base;
+		Base *base;
 
 		v3d->xray = true;  /* otherwise it postpones drawing */
-		for (base = scene->base.first; base; base = base->next) {
+		for (base = sl->object_bases.first; base; base = base->next) {
 			if (base->lay & v3d->lay) {
 
 				if ((base->object->restrictflag & OB_RESTRICT_SELECT) ||
@@ -1122,13 +1122,13 @@ static void view3d_select_loop(ViewContext *vc, Scene *scene, View3D *v3d, ARegi
 					base->selcol = code;
 
 					if (GPU_select_load_id(code)) {
-						draw_object(scene, ar, v3d, base, DRAW_PICKING | DRAW_CONSTCOLOR);
+						draw_object(scene, sl, ar, v3d, base, DRAW_PICKING | DRAW_CONSTCOLOR);
 
 						/* we draw duplicators for selection too */
 						if ((base->object->transflag & OB_DUPLI)) {
 							ListBase *lb;
 							DupliObject *dob;
-							BaseLegacy tbase;
+							Base tbase;
 
 							tbase.flag_legacy = OB_FROMDUPLI;
 							lb = object_duplilist(G.main->eval_ctx, scene, base->object);
@@ -1145,7 +1145,7 @@ static void view3d_select_loop(ViewContext *vc, Scene *scene, View3D *v3d, ARegi
 								dt = tbase.object->dt;   tbase.object->dt = MIN2(tbase.object->dt, base->object->dt);
 								dtx = tbase.object->dtx; tbase.object->dtx = base->object->dtx;
 
-								draw_object(scene, ar, v3d, &tbase, DRAW_PICKING | DRAW_CONSTCOLOR);
+								draw_object(scene, sl, ar, v3d, &tbase, DRAW_PICKING | DRAW_CONSTCOLOR);
 
 								tbase.object->dt = dt;
 								tbase.object->dtx = dtx;
@@ -1173,6 +1173,7 @@ static void view3d_select_loop(ViewContext *vc, Scene *scene, View3D *v3d, ARegi
 short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int bufsize, const rcti *input, bool do_nearest)
 {
 	Scene *scene = vc->scene;
+	SceneLayer *sl = vc->sl;
 	View3D *v3d = vc->v3d;
 	ARegion *ar = vc->ar;
 	rctf rect;
@@ -1209,7 +1210,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	else
 		GPU_select_begin(buffer, bufsize, &rect, GPU_SELECT_ALL, 0);
 
-	view3d_select_loop(vc, scene, v3d, ar, use_obedit_skip);
+	view3d_select_loop(vc, scene, sl, v3d, ar, use_obedit_skip);
 
 	hits = GPU_select_end();
 	
@@ -1217,7 +1218,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	if (do_passes) {
 		GPU_select_begin(buffer, bufsize, &rect, GPU_SELECT_NEAREST_SECOND_PASS, hits);
 
-		view3d_select_loop(vc, scene, v3d, ar, use_obedit_skip);
+		view3d_select_loop(vc, scene, sl, v3d, ar, use_obedit_skip);
 
 		GPU_select_end();
 	}

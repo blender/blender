@@ -1746,40 +1746,24 @@ bool BKE_scene_uses_blender_game(const Scene *scene)
 	return STREQ(scene->r.engine, RE_engine_id_BLENDER_GAME);
 }
 
-void BKE_scene_base_flag_to_objects(struct Scene *scene)
+void BKE_scene_base_flag_to_objects(SceneLayer *sl)
 {
-	BaseLegacy *base = scene->base.first;
+	Base *base = sl->object_bases.first;
 
 	while (base) {
-		BKE_scene_base_flag_sync_from_base(base);
-		base = base->next;
-	}
-}
-
-void BKE_scene_base_flag_from_objects(struct Scene *scene)
-{
-	BaseLegacy *base = scene->base.first;
-
-	while (base) {
-		BKE_scene_base_flag_sync_from_object(base);
+		BKE_scene_object_base_flag_sync_from_base(base);
 		base = base->next;
 	}
 }
 
 void BKE_scene_base_flag_sync_from_base(BaseLegacy *base)
 {
-	Object *ob = base->object;
-
-	/* keep the object only flags untouched */
-	int flag = ob->flag & OB_FROMGROUP;
-
-	ob->flag = base->flag_legacy;
-	ob->flag |= flag;
+	BKE_scene_object_base_flag_sync_from_base(base);
 }
 
 void BKE_scene_base_flag_sync_from_object(BaseLegacy *base)
 {
-	base->flag_legacy = base->object->flag;
+	BKE_scene_object_base_flag_sync_from_object(base);
 }
 
 void BKE_scene_object_base_flag_sync_from_base(Base *base)
@@ -1791,11 +1775,27 @@ void BKE_scene_object_base_flag_sync_from_base(Base *base)
 
 	ob->flag = base->flag;
 	ob->flag |= flag;
+
+	if ((base->flag & BASE_SELECTED) != 0) {
+		ob->flag |= SELECT;
+	}
+	else {
+		ob->flag &= ~SELECT;
+	}
 }
 
 void BKE_scene_object_base_flag_sync_from_object(Base *base)
 {
-	base->flag = base->object->flag;
+	Object *ob = base->object;
+	base->flag = ob->flag;
+
+	if ((ob->flag & SELECT) != 0) {
+		base->flag |= BASE_SELECTED;
+		BLI_assert((base->flag & BASE_SELECTABLED) != 0);
+	}
+	else {
+		base->flag &= ~BASE_SELECTED;
+	}
 }
 
 void BKE_scene_disable_color_management(Scene *scene)

@@ -1989,6 +1989,10 @@ extern const char *RE_engine_id_CYCLES;
 	(base->lay & (v3d ? v3d->lay : scene->lay)) &&                            \
 	(base->object->restrictflag & OB_RESTRICT_VIEW) == 0)
 
+#define TESTBASELIB_BGMODE_NEW(base)  (                                       \
+	((base->flag & BASE_SELECTED) != 0) &&                                    \
+	((base->object->id.lib == NULL) &&                                        \
+	((base->flag & BASE_VISIBLED) != 0)))
 #define BASE_SELECTABLE_NEW(base)                                             \
 	((base->flag & BASE_SELECTABLED) != 0)
 

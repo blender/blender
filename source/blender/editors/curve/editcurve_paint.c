@@ -703,6 +703,7 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
 	}
 	else {
 		cdd->vc.scene = CTX_data_scene(C);
+		cdd->vc.sl = CTX_data_scene_layer(C);
 		cdd->vc.obedit = CTX_data_edit_object(C);
 	}
 

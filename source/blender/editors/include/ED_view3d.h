@@ -49,6 +49,7 @@ struct Nurb;
 struct Object;
 struct RegionView3D;
 struct Scene;
+struct SceneLayer;
 struct ScrArea;
 struct View3D;
 struct ViewContext;
@@ -70,6 +71,7 @@ enum eGPUFXFlags;
 /* for derivedmesh drawing callbacks, for view3d_select, .... */
 typedef struct ViewContext {
 	struct Scene *scene;
+	struct SceneLayer *sl;
 	struct Object *obact;
 	struct Object *obedit;
 	struct ARegion *ar;

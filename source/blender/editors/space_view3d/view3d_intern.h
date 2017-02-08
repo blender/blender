@@ -47,6 +47,7 @@ struct bContext;
 struct bMotionPath;
 struct bPoseChannel;
 struct Mesh;
+struct SceneLayer;
 struct wmOperatorType;
 struct wmWindowManager;
 struct wmKeyConfig;
@@ -143,19 +144,19 @@ void draw_motion_paths_cleanup(View3D *v3d);
 
 
 /* drawobject.c */
-void draw_object(Scene *scene, struct ARegion *ar, View3D *v3d, BaseLegacy *base, const short dflag);
+void draw_object(Scene *scene, struct SceneLayer *sl, struct ARegion *ar, View3D *v3d, BaseLegacy *base, const short dflag);
 void draw_mesh_object_outline(View3D *v3d, Object *ob, struct DerivedMesh *dm);
 
 bool draw_glsl_material(Scene *scene, struct Object *ob, View3D *v3d, const char dt);
 void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob, const char dt, int outline);
 void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob);
 
-void draw_object_wire_color(Scene *scene, BaseLegacy *base, unsigned char r_ob_wire_col[4]);
+void draw_object_wire_color(Scene *scene, struct SceneLayer *, Base *base, unsigned char r_ob_wire_col[4]);
 void drawaxes(const float viewmat_local[4][4], float size, char drawtype, const unsigned char color[4]);
-void drawlamp(View3D *v3d, RegionView3D *rv3d, BaseLegacy *base,
+void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
               const char dt, const short dflag, const unsigned char ob_wire_col[4],
               const bool is_obact);
-void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, BaseLegacy *base,
+void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
                 const short dflag, const unsigned char ob_wire_col[4]);
 void drawspeaker(const unsigned char ob_wire_col[3]);
 void draw_bounding_volume(struct Object *ob, char type);
@@ -335,7 +336,7 @@ void VP_legacy_drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool
 void VP_legacy_view3d_main_region_setup_view(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[4][4], float winmat[4][4]);
 bool VP_legacy_view3d_stereo3d_active(const struct bContext *C, Scene *scene, View3D *v3d, RegionView3D *rv3d);
 void VP_legacy_view3d_stereo3d_setup(Scene *scene, View3D *v3d, ARegion *ar);
-void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, BaseLegacy *base);
+void draw_dupli_objects(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, BaseLegacy *base);
 bool VP_legacy_use_depth(Scene *scene, View3D *v3d);
 void VP_drawviewborder(Scene *scene, ARegion *ar, View3D *v3d);
 void VP_drawrenderborder(ARegion *ar, View3D *v3d);

@@ -1108,6 +1108,7 @@ static int initTransInfo_edit_pet_to_flag(const int proportional)
 void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *event)
 {
 	Scene *sce = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	ARegion *ar = CTX_wm_region(C);
 	ScrArea *sa = CTX_wm_area(C);
@@ -1117,6 +1118,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	PropertyRNA *prop;
 	
 	t->scene = sce;
+	t->sl = sl;
 	t->sa = sa;
 	t->ar = ar;
 	t->obedit = obedit;
