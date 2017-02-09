@@ -181,7 +181,9 @@ static int buttons_context_path_object(ButsContextPath *path)
 	/* if we have a scene, use the scene's active object */
 	else if (buttons_context_path_scene(path)) {
 		scene = path->ptr[path->len - 1].data;
-		ob = (scene->basact) ? scene->basact->object : NULL;
+		TODO_LAYER_CONTEXT; /* use context, not active one */
+		SceneLayer *sl = BKE_scene_layer_active(scene);
+		ob = (sl->basact) ? sl->basact->object : NULL;
 
 		if (ob) {
 			RNA_id_pointer_create(&ob->id, &path->ptr[path->len]);
