@@ -44,6 +44,7 @@
 #include "BKE_tracking.h"
 #include "BKE_global.h"
 #include "BKE_depsgraph.h"
+#include "BKE_layer.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 
@@ -69,17 +70,17 @@ static Object *get_camera_with_movieclip(Scene *scene, MovieClip *clip)
 		return camera;
 	}
 
-	for (BaseLegacy *base = scene->base.first;
-	     base != NULL;
-	     base = base->next)
+	Object *ob;
+	FOREACH_SCENE_OBJECT(scene, ob)
 	{
-		if (base->object->type == OB_CAMERA) {
-			if (BKE_object_movieclip_get(scene, base->object, false) == clip) {
-				camera = base->object;
+		if (ob->type == OB_CAMERA) {
+			if (BKE_object_movieclip_get(scene, ob, false) == clip) {
+				camera = ob;
 				break;
 			}
 		}
 	}
+	FOREACH_SCENE_OBJECT_END
 
 	return camera;
 }
