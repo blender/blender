@@ -151,9 +151,9 @@ void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag);
 
 /* outliner_select.c -------------------------------------------- */
 eOLDrawState tree_element_type_active(
-        struct bContext *C, struct Scene *scene, struct SpaceOops *soops,
+        struct bContext *C, struct Scene *scene, struct SceneLayer *sl, struct SpaceOops *soops,
         TreeElement *te, TreeStoreElem *tselem, const eOLSetState set, bool recursive);
-eOLDrawState tree_element_active(struct bContext *C, struct Scene *scene, SpaceOops *soops,
+eOLDrawState tree_element_active(struct bContext *C, struct Scene *scene, struct SceneLayer *sl, SpaceOops *soops,
                                  TreeElement *te, const eOLSetState set, const bool handle_all_types);
 int outliner_item_activate_or_toggle_closed(struct bContext *C, int x, int y, bool extend, bool recursive);
 

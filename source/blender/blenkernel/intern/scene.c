@@ -1287,6 +1287,7 @@ void BKE_scene_base_unlink(Scene *sce, BaseLegacy *base)
 		sce->basact = NULL;
 }
 
+/* deprecated, use BKE_scene_layer_base_deselect_all */
 void BKE_scene_base_deselect_all(Scene *sce)
 {
 	BaseLegacy *b;

@@ -295,6 +295,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 {
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	BLI_mempool *ts = soops->treestore;
 	TreeStoreElem *tselem = tsep;
@@ -356,7 +357,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 						BLI_strncpy(newname, ebone->name, sizeof(ebone->name));
 						BLI_strncpy(ebone->name, oldname, sizeof(ebone->name));
 						ED_armature_bone_rename(obedit->data, oldname, newname);
-						WM_event_add_notifier(C, NC_OBJECT | ND_POSE, OBACT);
+						WM_event_add_notifier(C, NC_OBJECT | ND_POSE, OBACT_NEW);
 					}
 					break;
 				}
@@ -368,8 +369,8 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 					char newname[sizeof(bone->name)];
 					
 					/* always make current object active */
-					tree_element_active(C, scene, soops, te, OL_SETSEL_NORMAL, true);
-					ob = OBACT;
+					tree_element_active(C, scene, sl, soops, te, OL_SETSEL_NORMAL, true);
+					ob = OBACT_NEW;
 					
 					/* restore bone name */
 					BLI_strncpy(newname, bone->name, sizeof(bone->name));
@@ -385,8 +386,8 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 					char newname[sizeof(pchan->name)];
 					
 					/* always make current pose-bone active */
-					tree_element_active(C, scene, soops, te, OL_SETSEL_NORMAL, true);
-					ob = OBACT;
+					tree_element_active(C, scene, sl, soops, te, OL_SETSEL_NORMAL, true);
+					ob = OBACT_NEW;
 
 					BLI_assert(ob->type == OB_ARMATURE);
 					
@@ -1132,7 +1133,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 	}
 }
 
-static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, SpaceOops *soops, ListBase *lb, int level,
+static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, SceneLayer *sl, SpaceOops *soops, ListBase *lb, int level,
                                   int xmax, int *offsx, int ys)
 {
 	TreeElement *te;
@@ -1153,17 +1154,17 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Spa
 			/* active blocks get white circle */
 			if (tselem->type == 0) {
 				if (te->idcode == ID_OB) {
-					active = (OBACT == (Object *)tselem->id) ? OL_DRAWSEL_NORMAL : OL_DRAWSEL_NONE;
+					active = (OBACT_NEW == (Object *)tselem->id) ? OL_DRAWSEL_NORMAL : OL_DRAWSEL_NONE;
 				}
 				else if (scene->obedit && scene->obedit->data == tselem->id) {
 					active = OL_DRAWSEL_NORMAL;
 				}
 				else {
-					active = tree_element_active(C, scene, soops, te, OL_SETSEL_NONE, false);
+					active = tree_element_active(C, scene, sl, soops, te, OL_SETSEL_NONE, false);
 				}
 			}
 			else {
-				active = tree_element_type_active(NULL, scene, soops, te, tselem, OL_SETSEL_NONE, false);
+				active = tree_element_type_active(NULL, scene, sl, soops, te, tselem, OL_SETSEL_NONE, false);
 			}
 
 			if (active != OL_DRAWSEL_NONE) {
@@ -1192,7 +1193,7 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Spa
 		
 		/* this tree element always has same amount of branches, so don't draw */
 		if (tselem->type != TSE_R_LAYER)
-			outliner_draw_iconrow(C, block, scene, soops, &te->subtree, level + 1, xmax, offsx, ys);
+			outliner_draw_iconrow(C, block, scene, sl, soops, &te->subtree, level + 1, xmax, offsx, ys);
 	}
 	
 }
@@ -1216,7 +1217,7 @@ static void outliner_set_coord_tree_element(TreeElement *te, int startx, int sta
 
 
 static void outliner_draw_tree_element(
-        bContext *C, uiBlock *block, const uiFontStyle *fstyle, Scene *scene, ARegion *ar, SpaceOops *soops,
+        bContext *C, uiBlock *block, const uiFontStyle *fstyle, Scene *scene, SceneLayer *sl, ARegion *ar, SpaceOops *soops,
         TreeElement *te, int startx, int *starty, TreeElement **te_edit)
 {
 	TreeElement *ten;
@@ -1252,13 +1253,13 @@ static void outliner_draw_tree_element(
 			else if (te->idcode == ID_OB) {
 				Object *ob = (Object *)tselem->id;
 				
-				if (ob == OBACT || (ob->flag & SELECT)) {
+				if (ob == OBACT_NEW || (ob->flag & SELECT)) {
 					char col[4] = {0, 0, 0, 0};
 					
 					/* outliner active ob: always white text, circle color now similar to view3d */
 					
 					active = OL_DRAWSEL_ACTIVE;
-					if (ob == OBACT) {
+					if (ob == OBACT_NEW) {
 						if (ob->flag & SELECT) {
 							UI_GetThemeColorType4ubv(TH_ACTIVE, SPACE_VIEW3D, col);
 							col[3] = alpha;
@@ -1279,14 +1280,14 @@ static void outliner_draw_tree_element(
 				active = OL_DRAWSEL_ACTIVE;
 			}
 			else {
-				if (tree_element_active(C, scene, soops, te, OL_SETSEL_NONE, false)) {
+				if (tree_element_active(C, scene, sl, soops, te, OL_SETSEL_NONE, false)) {
 					rgba_float_args_set(color, 0.85f, 0.85f, 1.0f, alpha);
 					active = OL_DRAWSEL_ACTIVE;
 				}
 			}
 		}
 		else {
-			if (tree_element_type_active(NULL, scene, soops, te, tselem, OL_SETSEL_NONE, false) != OL_DRAWSEL_NONE) {
+			if (tree_element_type_active(NULL, scene, sl, soops, te, tselem, OL_SETSEL_NONE, false) != OL_DRAWSEL_NONE) {
 				active = OL_DRAWSEL_ACTIVE;
 			}
 			rgba_float_args_set(color, 0.85f, 0.85f, 1.0f, alpha);
@@ -1394,7 +1395,7 @@ static void outliner_draw_tree_element(
 					glEnable(GL_BLEND);
 					glPixelTransferf(GL_ALPHA_SCALE, 0.5);
 					
-					outliner_draw_iconrow(C, block, scene, soops, &te->subtree, 0, xmax, &tempx, *starty);
+					outliner_draw_iconrow(C, block, scene, sl, soops, &te->subtree, 0, xmax, &tempx, *starty);
 					
 					glPixelTransferf(GL_ALPHA_SCALE, 1.0);
 					glDisable(GL_BLEND);
@@ -1411,7 +1412,7 @@ static void outliner_draw_tree_element(
 		*starty -= UI_UNIT_Y;
 
 		for (ten = te->subtree.first; ten; ten = ten->next) {
-			outliner_draw_tree_element(C, block, fstyle, scene, ar, soops, ten, startx + UI_UNIT_X, starty, te_edit);
+			outliner_draw_tree_element(C, block, fstyle, scene, sl, ar, soops, ten, startx + UI_UNIT_X, starty, te_edit);
 		}
 	}
 	else {
@@ -1563,7 +1564,7 @@ static void outliner_draw_highlights(ARegion *ar, SpaceOops *soops, int startx, 
 }
 
 static void outliner_draw_tree(
-        bContext *C, uiBlock *block, Scene *scene, ARegion *ar,
+        bContext *C, uiBlock *block, Scene *scene, SceneLayer *sl, ARegion *ar,
         SpaceOops *soops, const bool has_restrict_icons,
         TreeElement **te_edit)
 {
@@ -1603,7 +1604,7 @@ static void outliner_draw_tree(
 	starty = (int)ar->v2d.tot.ymax - UI_UNIT_Y - OL_Y_OFFSET;
 	startx = 0;
 	for (TreeElement *te = soops->tree.first; te; te = te->next) {
-		outliner_draw_tree_element(C, block, fstyle, scene, ar, soops, te, startx, &starty, te_edit);
+		outliner_draw_tree_element(C, block, fstyle, scene, sl, ar, soops, te, startx, &starty, te_edit);
 	}
 
 	if (has_restrict_icons) {
@@ -1734,7 +1735,7 @@ void draw_outliner(const bContext *C)
 	/* draw outliner stuff (background, hierarchy lines and names) */
 	outliner_back(ar);
 	block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
-	outliner_draw_tree((bContext *)C, block, scene, ar, soops, has_restrict_icons, &te_edit);
+	outliner_draw_tree((bContext *)C, block, scene, sl, ar, soops, has_restrict_icons, &te_edit);
 	
 	if (ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {
 		/* draw rna buttons */

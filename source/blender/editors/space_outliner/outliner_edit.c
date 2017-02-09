@@ -1003,14 +1003,14 @@ static int outliner_open_back(TreeElement *te)
 static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceOops *so = CTX_wm_space_outliner(C);
-	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d = &ar->v2d;
 	
 	TreeElement *te;
 	int xdelta, ytop;
 
-	Object *obact = OBACT;
+	Object *obact = OBACT_NEW;
 
 	if (!obact)
 		return OPERATOR_CANCELLED;
