@@ -2686,7 +2686,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, BaseLegacy 
 
 /* called from drawobject.c, return true if nothing was drawn
  * (ob_wire_col == NULL) when drawing ghost */
-bool draw_armature(Scene *scene, View3D *v3d, ARegion *ar, BaseLegacy *base,
+bool draw_armature(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *ar, Base *base,
                    const short dt, const short dflag, const unsigned char ob_wire_col[4],
                    const bool is_outline)
 {
@@ -2759,10 +2759,10 @@ bool draw_armature(Scene *scene, View3D *v3d, ARegion *ar, BaseLegacy *base,
 							draw_ghost_poses(scene, v3d, ar, base);
 					}
 					if ((dflag & DRAW_SCENESET) == 0) {
-						if (ob == OBACT)
+						if (ob == OBACT_NEW)
 							arm->flag |= ARM_POSEMODE;
-						else if (OBACT && (OBACT->mode & OB_MODE_WEIGHT_PAINT)) {
-							if (ob == modifiers_isDeformedByArmature(OBACT))
+						else if (OBACT_NEW && (OBACT_NEW->mode & OB_MODE_WEIGHT_PAINT)) {
+							if (ob == modifiers_isDeformedByArmature(OBACT_NEW))
 								arm->flag |= ARM_POSEMODE;
 						}
 						draw_pose_paths(scene, v3d, ar, ob);

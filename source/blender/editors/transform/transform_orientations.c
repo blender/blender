@@ -1016,7 +1016,6 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 	}
 	else {
 		/* we need the one selected object, if its not active */
-		View3D *v3d = CTX_wm_view3d(C);
 		base = BASACT_NEW;
 		ob = OBACT_NEW;
 		if (base && ((base->flag & BASE_SELECTED) != 0)) {

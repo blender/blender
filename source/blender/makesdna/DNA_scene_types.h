@@ -2002,6 +2002,8 @@ extern const char *RE_engine_id_CYCLES;
 	((base->flag & BASE_VISIBLED) != 0))
 #define BASE_SELECTABLE_NEW(base)                                             \
 	((base->flag & BASE_SELECTABLED) != 0)
+#define BASE_VISIBLE_NEW(base)  (                                             \
+	(base->flag & BASE_VISIBLED) != 0)
 
 #define FIRSTBASE		scene->base.first
 #define LASTBASE		scene->base.last

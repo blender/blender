@@ -7887,7 +7887,8 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 void createTransData(bContext *C, TransInfo *t)
 {
 	Scene *scene = t->scene;
-	Object *ob = OBACT;
+	SceneLayer *sl = t->sl;
+	Object *ob = OBACT_NEW;
 
 	/* if tests must match recalcData for correct updates */
 	if (t->options & CTX_TEXTURE) {
@@ -8047,10 +8048,9 @@ void createTransData(bContext *C, TransInfo *t)
 		 * lines below just check is also visible */
 		Object *ob_armature = modifiers_isDeformedByArmature(ob);
 		if (ob_armature && ob_armature->mode & OB_MODE_POSE) {
-			BaseLegacy *base_arm = BKE_scene_base_find(t->scene, ob_armature);
+			Base *base_arm = BKE_scene_layer_base_find(t->sl, ob_armature);
 			if (base_arm) {
-				View3D *v3d = t->view;
-				if (BASE_VISIBLE(v3d, base_arm)) {
+				if (BASE_VISIBLE_NEW(base_arm)) {
 					createTransPose(t, ob_armature);
 				}
 			}

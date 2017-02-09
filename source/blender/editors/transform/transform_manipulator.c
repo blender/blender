@@ -1663,6 +1663,7 @@ void BIF_draw_manipulator(const bContext *C)
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	View3D *v3d = sa->spacedata.first;
 	RegionView3D *rv3d = ar->regiondata;
 	int totsel;
@@ -1687,7 +1688,7 @@ void BIF_draw_manipulator(const bContext *C)
 			case V3D_AROUND_ACTIVE:
 			{
 				bGPdata *gpd = CTX_data_gpencil_data(C);
-				Object *ob = OBACT;
+				Object *ob = OBACT_NEW;
 
 				if (((v3d->around == V3D_AROUND_ACTIVE) && (scene->obedit == NULL)) &&
 				    ((gpd == NULL) || !(gpd->flag & GP_DATA_STROKE_EDITMODE)) &&

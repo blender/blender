@@ -314,7 +314,7 @@ static bool fcu_test_selected(FCurve *fcu)
 /* helper for recalcData() - for Action Editor transforms */
 static void recalcData_actedit(TransInfo *t)
 {
-	Scene *scene = t->scene;
+	SceneLayer *sl= t->sl;
 	SpaceAction *saction = (SpaceAction *)t->sa->spacedata.first;
 	
 	bAnimContext ac = {NULL};
@@ -325,7 +325,7 @@ static void recalcData_actedit(TransInfo *t)
 	/* initialize relevant anim-context 'context' data from TransInfo data */
 	/* NOTE: sync this with the code in ANIM_animdata_get_context() */
 	ac.scene = t->scene;
-	ac.obact = OBACT;
+	ac.obact = OBACT_NEW;
 	ac.sa = t->sa;
 	ac.ar = t->ar;
 	ac.sl = (t->sa) ? t->sa->spacedata.first : NULL;
@@ -362,7 +362,7 @@ static void recalcData_actedit(TransInfo *t)
 static void recalcData_graphedit(TransInfo *t)
 {
 	SpaceIpo *sipo = (SpaceIpo *)t->sa->spacedata.first;
-	Scene *scene;
+	SceneLayer *sl = t->sl;
 	
 	ListBase anim_data = {NULL, NULL};
 	bAnimContext ac = {NULL};
@@ -373,8 +373,8 @@ static void recalcData_graphedit(TransInfo *t)
 
 	/* initialize relevant anim-context 'context' data from TransInfo data */
 	/* NOTE: sync this with the code in ANIM_animdata_get_context() */
-	scene = ac.scene = t->scene;
-	ac.obact = OBACT;
+	ac.scene = t->scene;
+	ac.obact = OBACT_NEW;
 	ac.sa = t->sa;
 	ac.ar = t->ar;
 	ac.sl = (t->sa) ? t->sa->spacedata.first : NULL;
@@ -1773,8 +1773,8 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 		}
 	}
 	else if (t->flag & T_POSE) {
-		Scene *scene = t->scene;
-		Object *ob = OBACT;
+		SceneLayer *sl = t->sl;
+		Object *ob = OBACT_NEW;
 		if (ob) {
 			bPoseChannel *pchan = BKE_pose_channel_active(ob);
 			if (pchan && (!select_only || (pchan->bone->flag & BONE_SELECTED))) {
@@ -1793,9 +1793,10 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 	}
 	else {
 		/* object mode */
-		Scene *scene = t->scene;
-		Object *ob = OBACT;
-		if (ob && (!select_only || (ob->flag & SELECT))) {
+		SceneLayer *sl = t->sl;
+		Object *ob = OBACT_NEW;
+		Base *base = BASACT_NEW;
+		if (ob && ((!select_only) || ((base->flag & BASE_SELECTED) != 0))) {
 			copy_v3_v3(r_center, ob->obmat[3]);
 			ok = true;
 		}

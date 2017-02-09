@@ -403,6 +403,7 @@ void ED_object_select_linked_by_id(bContext *C, ID *id)
 static int object_select_linked_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *ob;
 	int nr = RNA_enum_get(op->ptr, "type");
 	bool changed = false, extend;
@@ -417,7 +418,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 	
-	ob = OBACT;
+	ob = OBACT_NEW;
 	if (ob == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No active object");
 		return OPERATOR_CANCELLED;
@@ -814,6 +815,7 @@ static bool select_grouped_keyingset(bContext *C, Object *UNUSED(ob), ReportList
 static int object_select_grouped_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *ob;
 	const int type = RNA_enum_get(op->ptr, "type");
 	bool changed = false, extend;
@@ -829,7 +831,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 
-	ob = OBACT;
+	ob = OBACT_NEW;
 	if (ob == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No active object");
 		return OPERATOR_CANCELLED;

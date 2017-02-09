@@ -7991,7 +7991,7 @@ static void drawObjectSelect(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion 
 	else if (ob->type == OB_ARMATURE) {
 		if (!(ob->mode & OB_MODE_POSE && base == sl->basact)) {
 			glLineWidth(UI_GetThemeValuef(TH_OUTLINE_WIDTH) * 2.0f);
-			draw_armature(scene, v3d, ar, base, OB_WIRE, 0, ob_wire_col, true);
+			draw_armature(scene, sl, v3d, ar, base, OB_WIRE, 0, ob_wire_col, true);
 		}
 	}
 
@@ -8553,7 +8553,7 @@ void draw_object(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, Base *b
 					}
 					else {
 						glLineWidth(1.0f);
-						empty_object = draw_armature(scene, v3d, ar, base, dt, dflag, ob_wire_col, false);
+						empty_object = draw_armature(scene, sl, v3d, ar, base, dt, dflag, ob_wire_col, false);
 					}
 				}
 				break;
