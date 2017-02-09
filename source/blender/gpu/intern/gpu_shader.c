@@ -697,7 +697,7 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		                               datatoc_gpu_shader_3D_groundline_geom_glsl },
 
 		[GPU_SHADER_3D_LAMP_COMMON] = { datatoc_gpu_shader_3D_lamp_vert_glsl,
-		                                datatoc_gpu_shader_uniform_color_frag_glsl},
+		                                datatoc_gpu_shader_flat_color_frag_glsl},
 
 		[GPU_SHADER_2D_POINT_FIXED_SIZE_UNIFORM_COLOR] =
 			{ datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_point_uniform_color_frag_glsl },
