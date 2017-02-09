@@ -754,6 +754,24 @@ static eOLDrawState tree_element_active_keymap_item(
 	return OL_DRAWSEL_NONE;
 }
 
+static eOLDrawState tree_element_active_collection(
+        bContext *C, TreeElement *te, TreeStoreElem *UNUSED(tselem), const eOLSetState set)
+{
+	if (set != OL_SETSEL_NONE) {
+		Scene *scene = CTX_data_scene(C);
+		SceneLayer *slayer = BLI_findlink(&scene->render_layers, scene->active_layer);
+		LayerCollection *collection = te->directdata;
+		const int collection_index = BKE_layer_collection_findindex(slayer, collection);
+
+		BLI_assert(collection_index >= 0);
+		slayer->active_collection = collection_index;
+		WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
+		return OL_DRAWSEL_ACTIVE;
+	}
+
+	return OL_DRAWSEL_NONE;
+}
+
 /* ---------------------------------------------- */
 
 /* generic call for ID data check or make/check active in UI */
@@ -831,7 +849,8 @@ eOLDrawState tree_element_type_active(
 		case TSE_GP_LAYER:
 		    //return tree_element_active_gplayer(C, scene, s, te, tselem, set);
 			break;
-			
+		case TSE_COLLECTION:
+			return tree_element_active_collection(C, te, tselem, set);
 	}
 	return OL_DRAWSEL_NONE;
 }
@@ -849,7 +868,7 @@ static void outliner_item_activate(
 	/* always makes active object, except for some specific types.
 	 * Note about TSE_EBONE: In case of a same ID_AR datablock shared among several objects, we do not want
 	 * to switch out of edit mode (see T48328 for details). */
-	if (!ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP, TSE_EBONE)) {
+	if (!ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP, TSE_EBONE, TSE_COLLECTION)) {
 		tree_element_set_active_object(C, scene, sl, soops, te,
 		                               (extend && tselem->type == 0) ? OL_SETSEL_EXTEND : OL_SETSEL_NORMAL,
 		                               recursive && tselem->type == 0);
