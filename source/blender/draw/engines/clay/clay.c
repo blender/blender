@@ -539,14 +539,14 @@ static void override_setting(CollectionEngineSettings *ces, const char *name, vo
 	CollectionEngineProperty *cep = BKE_collection_engine_property_get(ces, name);
 
 	if (!cep) return;
-	if ((cep->flag & COLLECTION_PROP_USE) == 0) return;
+	//if ((cep->flag & COLLECTION_PROP_USE) == 0) return;
 
 	if (cep->type == COLLECTION_PROP_TYPE_INT) {
 		CollectionEnginePropertyInt *prop = (CollectionEnginePropertyInt *)cep;
 		*((int *)ret) = prop->value;
 	}
 	else {
-		CollectionEnginePropertyInt *prop = (CollectionEnginePropertyInt *)cep;
+		CollectionEnginePropertyFloat *prop = (CollectionEnginePropertyFloat *)cep;
 		*((float *)ret) = prop->value;
 	}
 }
