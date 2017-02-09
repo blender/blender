@@ -334,6 +334,7 @@ static DRWInterface *DRW_interface_create(GPUShader *shader)
 	interface->instance_count = 0;
 	interface->attribs_count = 0;
 	interface->attribs_stride = 0;
+	interface->instance_vbo = 0;
 
 	memset(&interface->vbo_format, 0, sizeof(VertexFormat));
 
@@ -577,7 +578,6 @@ void DRW_shgroup_uniform_mat4(DRWShadingGroup *shgroup, const char *name, const 
 /* Creates a VBO containing OGL primitives for all DRWDynamicCall */
 static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 {
-	int i = 0;
 	DRWInterface *interface = shgroup->interface;
 	int nbr = interface->instance_count;
 
@@ -587,25 +587,28 @@ static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 		return;
 
 	/* Upload Data */
-	for (DRWAttrib *attrib = interface->attribs.first; attrib; attrib = attrib->next) {
-		BLI_assert(attrib->size <= 4); /* matrices have no place here for now */
-		if (attrib->type == DRW_ATTRIB_FLOAT) {
-			attrib->format_id = add_attrib(&interface->vbo_format, attrib->name, GL_FLOAT, attrib->size, KEEP_FLOAT);
-		}
-		else if (attrib->type == DRW_ATTRIB_INT) {
-			attrib->format_id = add_attrib(&interface->vbo_format, attrib->name, GL_BYTE, attrib->size, KEEP_INT);
-		}
-		else {
-			BLI_assert(false);
+	if (interface->vbo_format.attrib_ct == 0) {
+		for (DRWAttrib *attrib = interface->attribs.first; attrib; attrib = attrib->next) {
+			BLI_assert(attrib->size <= 4); /* matrices have no place here for now */
+			if (attrib->type == DRW_ATTRIB_FLOAT) {
+				attrib->format_id = add_attrib(&interface->vbo_format, attrib->name, GL_FLOAT, attrib->size, KEEP_FLOAT);
+			}
+			else if (attrib->type == DRW_ATTRIB_INT) {
+				attrib->format_id = add_attrib(&interface->vbo_format, attrib->name, GL_BYTE, attrib->size, KEEP_INT);
+			}
+			else {
+				BLI_assert(false);
+			}
 		}
 	}
 
 	VertexBuffer *vbo = VertexBuffer_create_with_format(&interface->vbo_format);
 	VertexBuffer_allocate_data(vbo, nbr);
 
-	for (DRWAttrib *attrib = interface->attribs.first; attrib; attrib = attrib->next, i++) {
-		int j = 0;
-		for (DRWDynamicCall *call = shgroup->calls.first; call; call = call->next, j++) {
+	int j = 0;
+	for (DRWDynamicCall *call = shgroup->calls.first; call; call = call->next, j++) {
+		int i = 0;
+		for (DRWAttrib *attrib = interface->attribs.first; attrib; attrib = attrib->next, i++) {
 			setAttrib(vbo, attrib->format_id, j, call->data[i]);
 		}
 	}
