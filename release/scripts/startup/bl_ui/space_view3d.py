@@ -2628,7 +2628,7 @@ class VIEW3D_MT_edit_mesh_clean(Menu):
         layout.operator("mesh.face_make_planar")
         layout.operator("mesh.vert_connect_nonplanar")
         layout.operator("mesh.vert_connect_concave")
-        layout.operator("mesh.remove_doubles", text="Remove Double Vertices")
+        layout.operator("mesh.remove_doubles")
         layout.operator("mesh.fill_holes")
 
 
