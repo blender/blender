@@ -138,7 +138,7 @@ void BKE_visible_bases_Iterator_end(Iterator *iter);
 	ITER_BEGIN(BKE_selected_objects_Iterator_begin,                           \
 	           BKE_selected_objects_Iterator_next,                            \
 	           BKE_selected_objects_Iterator_end,                             \
-	           sl, _ob)
+	           sl, Object, _ob)
 
 #define FOREACH_SELECTED_OBJECT_END                                           \
 	ITER_END
@@ -147,7 +147,7 @@ void BKE_visible_bases_Iterator_end(Iterator *iter);
 	ITER_BEGIN(BKE_visible_objects_Iterator_begin,                            \
 	           BKE_visible_objects_Iterator_next,                             \
 	           BKE_visible_objects_Iterator_end,                              \
-	           sl, _ob)
+	           sl, Object, _ob)
 
 #define FOREACH_VISIBLE_OBJECT_END                                            \
 	ITER_END
@@ -157,7 +157,7 @@ void BKE_visible_bases_Iterator_end(Iterator *iter);
 	ITER_BEGIN(BKE_visible_bases_Iterator_begin,                              \
 	           BKE_visible_bases_Iterator_next,                               \
 	           BKE_visible_bases_Iterator_end,                                \
-	           sl, _object_base)
+	           sl, Base, _object_base)
 
 #define FOREACH_VISIBLE_BASE_END                                              \
 	ITER_END
@@ -191,7 +191,7 @@ void BKE_visible_bases_Iterator_end(Iterator *iter);
 	    func_end = BKE_scene_objects_Iterator_end;                            \
 	    data_in = scene;                                                      \
     }                                                                         \
-	ITER_BEGIN(func_begin, func_next, func_end, data_in, _ob)
+	ITER_BEGIN(func_begin, func_next, func_end, data_in, Object, _ob)
 
 
 #define FOREACH_OBJECT_FLAG_END                                               \

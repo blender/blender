@@ -36,7 +36,7 @@ typedef struct Iterator {
 typedef void (*IteratorCb)(Iterator *iter);
 typedef void (*IteratorBeginCb)(Iterator *iter, void *data_in);
 
-#define ITER_BEGIN(callback_begin, callback_next, callback_end, _data_in, _data_out) \
+#define ITER_BEGIN(callback_begin, callback_next, callback_end, _data_in, _type, _data_out) \
 {                                                                                    \
 	IteratorCb callback_end_func = callback_end;                                     \
 	Iterator iter_macro;                                                             \
@@ -44,7 +44,7 @@ typedef void (*IteratorBeginCb)(Iterator *iter, void *data_in);
 	     iter_macro.valid;                                                           \
 	     callback_next(&iter_macro))                                                 \
     {                                                                                \
-		_data_out = iter_macro.current;
+		_data_out = (_type *) iter_macro.current;
 
 #define ITER_END                                                                     \
 	}                                                                                \
