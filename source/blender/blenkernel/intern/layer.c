@@ -938,22 +938,25 @@ static void collection_engine_settings_merge(CollectionEngineSettings *ces_dst, 
 
 static void layer_collection_engine_settings_update(
         LayerCollection *lc, CollectionEngineSettings *ces_parent,
-        Object *ob, CollectionEngineSettings *ces_ob)
+        Base *base, CollectionEngineSettings *ces_ob)
 {
-	if ((lc->flag & COLLECTION_VISIBLE) != 0) {
+	if ((lc->flag & COLLECTION_VISIBLE) == 0) {
 		return;
 	}
 
 	CollectionEngineSettings ces = {NULL};
 	collection_engine_settings_copy(&ces, ces_parent);
 
-	if (BLI_findptr(&lc->object_bases, ob, offsetof(LinkData, data)) != NULL) {
+	CollectionEngineSettings *ces_lc = BKE_layer_collection_engine_get(lc, ces.name);
+	collection_engine_settings_merge(&ces, ces_lc);
+
+	if (BLI_findptr(&lc->object_bases, base, offsetof(LinkData, data)) != NULL) {
 		collection_engine_settings_merge(ces_ob, &ces);
 	}
 
 	/* do it recursively */
 	for (LayerCollection *lcn = lc->layer_collections.first; lcn; lcn = lcn->next) {
-		layer_collection_engine_settings_update(lcn, &ces, ob, ces_ob);
+		layer_collection_engine_settings_update(lcn, &ces, base, ces_ob);
 	}
 
 	BKE_layer_collection_engine_settings_free(&ces);
@@ -965,6 +968,7 @@ static void layer_collection_engine_settings_update(
  */
 static void scene_layer_engine_settings_update(SceneLayer *sl, Object *ob, const char *engine_name)
 {
+	Base *base = BKE_scene_layer_base_find(sl, ob);
 	CollectionEngineSettings ces_layer = {NULL}, *ces_ob;
 
 	collection_engine_settings_init(&ces_layer, engine_name);
@@ -979,7 +983,7 @@ static void scene_layer_engine_settings_update(SceneLayer *sl, Object *ob, const
 	ces_ob = collection_engine_settings_create(ces_type);
 
 	for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
-		layer_collection_engine_settings_update(lc, &ces_layer, ob, ces_ob);
+		layer_collection_engine_settings_update(lc, &ces_layer, base, ces_ob);
 	}
 
 	BKE_layer_collection_engine_settings_free(&ces_layer);
