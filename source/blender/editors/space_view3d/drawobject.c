@@ -8109,20 +8109,19 @@ void draw_object_wire_color(Scene *scene, SceneLayer *sl, Base *base, unsigned c
 
 	if ((scene->obedit == NULL) &&
 	    (G.moving & G_TRANSFORM_OBJ) &&
-	    (base->flag & BASE_SELECTED) &&
-	    (base->flag_legacy & BA_WAS_SEL))
+	    ((base->flag & BASE_SELECTED) || (base->flag_legacy & BA_WAS_SEL)))
 	{
 		theme_id = TH_TRANSFORM;
 	}
 	else {
 		/* Sets the 'colindex' */
 		if (ID_IS_LINKED_DATABLOCK(ob)) {
-			colindex = ((base->flag & BASE_SELECTED) && (base->flag_legacy & BA_WAS_SEL)) ? 2 : 1;
+			colindex = ((base->flag & BASE_SELECTED) || (base->flag_legacy & BA_WAS_SEL)) ? 2 : 1;
 		}
 		/* Sets the 'theme_id' or fallback to wire */
 		else {
 			if ((ob->flag & OB_FROMGROUP) != 0) {
-				if ((base->flag & BASE_SELECTED) && (base->flag_legacy & BA_WAS_SEL)) {
+				if ((base->flag & BASE_SELECTED) || (base->flag_legacy & BA_WAS_SEL)) {
 					/* uses darker active color for non-active + selected */
 					theme_id = TH_GROUP_ACTIVE;
 
@@ -8135,7 +8134,7 @@ void draw_object_wire_color(Scene *scene, SceneLayer *sl, Base *base, unsigned c
 				}
 			}
 			else {
-				if ((base->flag & BASE_SELECTED) && (base->flag_legacy & BA_WAS_SEL)) {
+				if ((base->flag & BASE_SELECTED) || (base->flag_legacy & BA_WAS_SEL)) {
 					theme_id = sl->basact == base ? TH_ACTIVE : TH_SELECT;
 				}
 				else {
