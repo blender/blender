@@ -42,10 +42,11 @@ class GRAPH_HT_header(Header):
 
         dopesheet_filter(layout, context)
 
-        layout.prop(st, "use_normalization", text="Normalize")
-        row = layout.row()
-        row.active = st.use_normalization
-        row.prop(st, "use_auto_normalization", text="Auto")
+        row = layout.row(align=True)
+        row.prop(st, "use_normalization", icon='ZOOM_ALL', text="Normalize", toggle=True)
+        sub = row.row(align=True)
+        sub.active = st.use_normalization
+        sub.prop(st, "use_auto_normalization", text="Auto", toggle=True)
 
         row = layout.row(align=True)
 
