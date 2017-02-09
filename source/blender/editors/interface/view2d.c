@@ -1855,6 +1855,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		
 		/* scale indicators */
 		if ((scroll & V2D_SCROLL_SCALE_HORIZONTAL) && (vs->grid)) {
+			const int font_id = BLF_default();
 			View2DGrid *grid = vs->grid;
 			float fac, dfac, fac2, val;
 			
@@ -1869,7 +1870,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			dfac = dfac * BLI_rcti_size_x(&hor);
 			
 			/* set starting value, and text color */
-			UI_ThemeColor(TH_TEXT);
+			UI_FontThemeColor(font_id, TH_TEXT);
 			val = grid->startx;
 			
 			/* if we're clamping to whole numbers only, make sure entries won't be repeated */

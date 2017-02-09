@@ -71,6 +71,9 @@
 static void draw_cfra_number(Scene *scene, View2D *v2d, const float cfra, const bool time)
 {
 	const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned char col[4];
 	float xscale, yscale, x, y;
 	char numstr[32] = "    t";  /* t is the character to start replacing from */
 	int slen;
@@ -96,9 +99,6 @@ static void draw_cfra_number(Scene *scene, View2D *v2d, const float cfra, const 
 	/* get starting coordinates for drawing */
 	x = cfra * xscale;
 	y = 0.9f * U.widget_unit;
-	
-	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -107,11 +107,11 @@ static void draw_cfra_number(Scene *scene, View2D *v2d, const float cfra, const 
 
 	immRectf(pos, x, y,  x + slen,  y + 0.75f * U.widget_unit);
 	immUnbindProgram();
-	
+
 	/* draw current frame number - black text */
-	UI_ThemeColor(TH_TEXT);
-	UI_fontstyle_draw_simple(fstyle, x - 0.25f * U.widget_unit, y + 0.15f * U.widget_unit, numstr);
-	
+	UI_GetThemeColor4ubv(TH_TEXT, col);
+	UI_fontstyle_draw_simple(fstyle, x - 0.25f * U.widget_unit, y + 0.15f * U.widget_unit, numstr, col);
+
 	/* restore view transform */
 	glScalef(xscale, 1.0, 1.0);
 }

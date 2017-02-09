@@ -536,29 +536,29 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, const r
 	rcti hrect;
 	int pnl_icons;
 	const char *activename = panel->drawname[0] ? panel->drawname : panel->panelname;
+	unsigned char col_title[4];
 
 	/* + 0.001f to avoid flirting with float inaccuracy */
 	if (panel->control & UI_PNL_CLOSE)
 		pnl_icons = (panel->labelofs + 2 * PNL_ICON + 5) / block->aspect + 0.001f;
 	else
 		pnl_icons = (panel->labelofs + PNL_ICON + 5) / block->aspect + 0.001f;
-	
-	/* active tab */
+
 	/* draw text label */
-	UI_ThemeColor(TH_TITLE);
-	
+	UI_GetThemeColor4ubv(TH_TITLE, col_title);
+
 	hrect = *rect;
 	if (dir == 'h') {
 		hrect.xmin = rect->xmin + pnl_icons;
 		hrect.ymin += 2.0f / block->aspect;
-		UI_fontstyle_draw(&style->paneltitle, &hrect, activename);
+		UI_fontstyle_draw(&style->paneltitle, &hrect, activename, col_title);
 	}
 	else {
 		/* ignore 'pnl_icons', otherwise the text gets offset horizontally 
 		 * + 0.001f to avoid flirting with float inaccuracy
 		 */
 		hrect.xmin = rect->xmin + (PNL_ICON + 5) / block->aspect + 0.001f;
-		UI_fontstyle_draw_rotated(&style->paneltitle, &hrect, activename);
+		UI_fontstyle_draw_rotated(&style->paneltitle, &hrect, activename, col_title);
 	}
 }
 

@@ -1047,12 +1047,14 @@ void UI_context_active_but_prop_get_templateID(
 
 /* Styled text draw */
 void UI_fontstyle_set(const struct uiFontStyle *fs);
-void UI_fontstyle_draw_ex(
-        const struct uiFontStyle *fs, const struct rcti *rect, const char *str,
-        size_t len, float *r_xofs, float *r_yofs);
-void UI_fontstyle_draw(const struct uiFontStyle *fs, const struct rcti *rect, const char *str);
-void UI_fontstyle_draw_rotated(const struct uiFontStyle *fs, const struct rcti *rect, const char *str);
-void UI_fontstyle_draw_simple(const struct uiFontStyle *fs, float x, float y, const char *str);
+void UI_fontstyle_draw_ex(const struct uiFontStyle *fs, const struct rcti *rect, const char *str,
+                          const unsigned char col[4], size_t len, float *r_xofs, float *r_yofs);
+void UI_fontstyle_draw(const struct uiFontStyle *fs, const struct rcti *rect, const char *str,
+                       const unsigned char col[4]);
+void UI_fontstyle_draw_rotated(const struct uiFontStyle *fs, const struct rcti *rect, const char *str,
+                               const unsigned char col[4]);
+void UI_fontstyle_draw_simple(const struct uiFontStyle *fs, float x, float y, const char *str,
+                              const unsigned char col[4]);
 void UI_fontstyle_draw_simple_backdrop(
         const struct uiFontStyle *fs, float x, float y, const char *str,
         const float col_fg[4], const float col_bg[4]);

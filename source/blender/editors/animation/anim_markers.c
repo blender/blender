@@ -36,7 +36,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math_base.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -380,19 +380,20 @@ static void draw_marker(
 	
 	/* and the marker name too, shifted slightly to the top-right */
 	if (marker->name[0]) {
+		unsigned char text_col[4];
 		float x, y;
 
 		/* minimal y coordinate which wouldn't be occluded by scroll */
 		int min_y = 17.0f * UI_DPI_FAC;
 		
 		if (marker->flag & SELECT) {
-			UI_ThemeColor(TH_TEXT_HI);
+			UI_GetThemeColor4ubv(TH_TEXT_HI, text_col);
 			x = xpos + 4.0f * UI_DPI_FAC;
 			y = (ypixels <= 39.0f * UI_DPI_FAC) ? (ypixels - 10.0f * UI_DPI_FAC) : 29.0f * UI_DPI_FAC;
 			y = max_ii(y, min_y);
 		}
 		else {
-			UI_ThemeColor(TH_TEXT);
+			UI_GetThemeColor4ubv(TH_TEXT, text_col);
 			if ((marker->frame <= cfra) && (marker->frame + 5 > cfra)) {
 				x = xpos + 8.0f * UI_DPI_FAC;
 				y = (ypixels <= 39.0f * UI_DPI_FAC) ? (ypixels - 10.0f * UI_DPI_FAC) : 29.0f * UI_DPI_FAC;
@@ -406,14 +407,11 @@ static void draw_marker(
 
 #ifdef DURIAN_CAMERA_SWITCH
 		if (marker->camera && (marker->camera->restrictflag & OB_RESTRICT_RENDER)) {
-			float col[4];
-			glGetFloatv(GL_CURRENT_COLOR, col);
-			col[3] = 0.4;
-			glColor4fv(col);
+			text_col[3] = 100;
 		}
 #endif
 
-		UI_fontstyle_draw_simple(fstyle, x, y, marker->name);
+		UI_fontstyle_draw_simple(fstyle, x, y, marker->name, text_col);
 	}
 }
 

@@ -290,7 +290,8 @@ static void file_draw_icon(uiBlock *block, const char *path, int sx, int sy, int
 }
 
 
-static void file_draw_string(int sx, int sy, const char *string, float width, int height, short align)
+static void file_draw_string(int sx, int sy, const char *string, float width, int height, short align,
+                             unsigned char col[4])
 {
 	uiStyle *style;
 	uiFontStyle fs;
@@ -315,7 +316,7 @@ static void file_draw_string(int sx, int sy, const char *string, float width, in
 	rect.ymin = sy - height;
 	rect.ymax = sy;
 
-	UI_fontstyle_draw(&fs, &rect, fname);
+	UI_fontstyle_draw(&fs, &rect, fname, col);
 }
 
 void file_calc_previews(const bContext *C, ARegion *ar)
@@ -537,6 +538,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	short align;
 	bool do_drag;
 	int column_space = 0.6f * UI_UNIT_X;
+	unsigned char text_col[4];
 	const bool small_size = SMALL_SIZE_CHECK(params->thumbnail_size);
 	const bool update_stat_strings = small_size != SMALL_SIZE_CHECK(layout->curr_size);
 	const float thumb_icon_aspect = sqrtf(64.0f / (float)(params->thumbnail_size));
@@ -645,7 +647,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			sx += ICON_DEFAULT_WIDTH_SCALE + 0.2f * UI_UNIT_X;
 		}
 
-		UI_ThemeColor4(TH_TEXT);
+		UI_GetThemeColor4ubv(TH_TEXT, text_col);
 
 		if (file_selflag & FILE_SEL_EDITING) {
 			uiBut *but;
@@ -676,7 +678,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 		if (!(file_selflag& FILE_SEL_EDITING)) {
 			int tpos = (FILE_IMGDISPLAY == params->display) ? sy - layout->tile_h + layout->textheight : sy;
-			file_draw_string(sx + 1, tpos, file->name, (float)textwidth, textheight, align);
+			file_draw_string(sx + 1, tpos, file->name, (float)textwidth, textheight, align, text_col);
 		}
 
 		sx += (int)layout->column_widths[COLUMN_NAME] + column_space;
@@ -688,7 +690,8 @@ void file_draw_list(const bContext *C, ARegion *ar)
 					BLI_filelist_entry_size_to_string(NULL, file->entry->size, small_size, file->entry->size_str);
 				}
 				file_draw_string(
-				            sx, sy, file->entry->size_str, layout->column_widths[COLUMN_SIZE], layout->tile_h, align);
+				            sx, sy, file->entry->size_str, layout->column_widths[COLUMN_SIZE], layout->tile_h,
+				            align, text_col);
 			}
 			sx += (int)layout->column_widths[COLUMN_SIZE] + column_space;
 		}
@@ -699,10 +702,12 @@ void file_draw_list(const bContext *C, ARegion *ar)
 					            NULL, file->entry->time, small_size, file->entry->time_str, file->entry->date_str);
 				}
 				file_draw_string(
-				            sx, sy, file->entry->date_str, layout->column_widths[COLUMN_DATE], layout->tile_h, align);
+				            sx, sy, file->entry->date_str, layout->column_widths[COLUMN_DATE], layout->tile_h,
+				            align, text_col);
 				sx += (int)layout->column_widths[COLUMN_DATE] + column_space;
 				file_draw_string(
-				            sx, sy, file->entry->time_str, layout->column_widths[COLUMN_TIME], layout->tile_h, align);
+				            sx, sy, file->entry->time_str, layout->column_widths[COLUMN_TIME], layout->tile_h,
+				            align, text_col);
 				sx += (int)layout->column_widths[COLUMN_TIME] + column_space;
 			}
 			else {
@@ -717,7 +722,8 @@ void file_draw_list(const bContext *C, ARegion *ar)
 					BLI_filelist_entry_size_to_string(NULL, file->entry->size, small_size, file->entry->size_str);
 				}
 				file_draw_string(
-				            sx, sy, file->entry->size_str, layout->column_widths[COLUMN_SIZE], layout->tile_h, align);
+				            sx, sy, file->entry->size_str, layout->column_widths[COLUMN_SIZE], layout->tile_h,
+				            align, text_col);
 			}
 			sx += (int)layout->column_widths[COLUMN_SIZE] + column_space;
 		}

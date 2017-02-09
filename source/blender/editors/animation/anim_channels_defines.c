@@ -3903,19 +3903,20 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 	if (acf->name && !achannel_is_being_renamed(ac, acf, channel_index)) {
 		const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 		char name[ANIM_CHAN_NAME_SIZE]; /* hopefully this will be enough! */
-		
+		unsigned char col[4];
+
 		/* set text color */
 		/* XXX: if active, highlight differently? */
 		if (selected)
-			UI_ThemeColor(TH_TEXT_HI);
+			UI_GetThemeColor4ubv(TH_TEXT_HI, col);
 		else
-			UI_ThemeColor(TH_TEXT);
-		
+			UI_GetThemeColor4ubv(TH_TEXT, col);
+
 		/* get name */
 		acf->name(ale, name);
 		
 		offset += 3;
-		UI_fontstyle_draw_simple(fstyle, offset, ytext, name);
+		UI_fontstyle_draw_simple(fstyle, offset, ytext, name, col);
 		
 		/* draw red underline if channel is disabled */
 		if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE) && (ale->flag & FCURVE_DISABLED)) {

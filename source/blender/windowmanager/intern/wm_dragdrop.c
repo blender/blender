@@ -361,8 +361,8 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 			drag_rect_minmax(rect, x, y, x + w, y + iconsize);
 		}
 		else {
-			glColor4ub(255, 255, 255, 255);
-			UI_fontstyle_draw_simple(fstyle, x, y, wm_drag_name(drag));
+			const unsigned char col[] = {255, 255, 255, 255};
+			UI_fontstyle_draw_simple(fstyle, x, y, wm_drag_name(drag), col);
 		}
 		
 		/* operator name with roundbox */

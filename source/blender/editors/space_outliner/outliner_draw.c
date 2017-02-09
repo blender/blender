@@ -1352,17 +1352,20 @@ static void outliner_draw_tree_element(
 		
 		/* name */
 		if ((tselem->flag & TSE_TEXTBUT) == 0) {
+			unsigned char text_col[4];
+
 			if (active == OL_DRAWSEL_NORMAL) {
-				UI_ThemeColor(TH_TEXT_HI);
+				UI_GetThemeColor4ubv(TH_TEXT_HI, text_col);
 			}
 			else if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
-				UI_ThemeColorBlend(TH_BACK, TH_TEXT, 0.75f);
+				UI_GetThemeColorBlend3ubv(TH_BACK, TH_TEXT, 0.75f, text_col);
+				text_col[3] = 255;
 			}
 			else {
-				UI_ThemeColor(TH_TEXT);
+				UI_GetThemeColor4ubv(TH_TEXT, text_col);
 			}
 
-			UI_fontstyle_draw_simple(fstyle, startx + offsx, *starty + 5 * ufac, te->name);
+			UI_fontstyle_draw_simple(fstyle, startx + offsx, *starty + 5 * ufac, te->name, text_col);
 		}
 		
 		offsx += (int)(UI_UNIT_X + UI_fontstyle_string_width(fstyle, te->name));
