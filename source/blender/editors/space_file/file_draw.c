@@ -291,7 +291,7 @@ static void file_draw_icon(uiBlock *block, const char *path, int sx, int sy, int
 
 
 static void file_draw_string(int sx, int sy, const char *string, float width, int height, short align,
-                             unsigned char col[4])
+                             const unsigned char col[4])
 {
 	uiStyle *style;
 	uiFontStyle fs;
