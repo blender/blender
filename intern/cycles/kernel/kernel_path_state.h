@@ -54,6 +54,10 @@ ccl_device_inline void path_state_init(KernelGlobals *kg,
 		state->volume_stack[0].shader = SHADER_NONE;
 	}
 #endif
+
+#ifdef __SHADOW_TRICKS__
+	state->catcher_object = OBJECT_NONE;
+#endif
 }
 
 ccl_device_inline void path_state_next(KernelGlobals *kg, ccl_addr_space PathState *state, int label)

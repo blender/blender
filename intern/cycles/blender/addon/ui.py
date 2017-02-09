@@ -797,6 +797,9 @@ class CyclesObject_PT_cycles_settings(CyclesButtonsPanel, Panel):
         sub.active = scene.render.use_simplify and cscene.use_distance_cull
         sub.prop(cob, "use_distance_cull")
 
+        col = layout.column()
+        col.prop(cob, "is_shadow_catcher")
+
 
 class CYCLES_OT_use_shading_nodes(Operator):
     """Enable nodes on a material, world or lamp"""

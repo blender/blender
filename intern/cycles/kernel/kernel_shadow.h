@@ -128,6 +128,7 @@ ccl_device bool shadow_blocked_opaque(KernelGlobals *kg,
 ccl_device bool shadow_blocked_transparent_all_loop(KernelGlobals *kg,
                                                     ShaderData *shadow_sd,
                                                     ccl_addr_space PathState *state,
+                                                    const int skip_object,
                                                     Ray *ray,
                                                     Intersection *hits,
                                                     uint max_hits,
@@ -140,6 +141,7 @@ ccl_device bool shadow_blocked_transparent_all_loop(KernelGlobals *kg,
 	const bool blocked = scene_intersect_shadow_all(kg,
 	                                                ray,
 	                                                hits,
+	                                                skip_object,
 	                                                max_hits,
 	                                                &num_hits);
 	/* If no opaque surface found but we did find transparent hits,
@@ -216,6 +218,7 @@ ccl_device bool shadow_blocked_transparent_all_loop(KernelGlobals *kg,
 ccl_device bool shadow_blocked_transparent_all(KernelGlobals *kg,
                                                ShaderData *shadow_sd,
                                                ccl_addr_space PathState *state,
+                                               const int skip_object,
                                                Ray *ray,
                                                uint max_hits,
                                                float3 *shadow)
@@ -250,6 +253,7 @@ ccl_device bool shadow_blocked_transparent_all(KernelGlobals *kg,
 	return shadow_blocked_transparent_all_loop(kg,
 	                                           shadow_sd,
 	                                           state,
+	                                           skip_object,
 	                                           ray,
 	                                           hits,
 	                                           max_hits,
@@ -274,13 +278,14 @@ ccl_device bool shadow_blocked_transparent_stepped_loop(
         KernelGlobals *kg,
         ShaderData *shadow_sd,
         ccl_addr_space PathState *state,
+        const int skip_object,
         Ray *ray,
         Intersection *isect,
         const bool blocked,
         const bool is_transparent_isect,
         float3 *shadow)
 {
-	if(blocked && is_transparent_isect) {
+	if((blocked && is_transparent_isect) || skip_object != OBJECT_NONE) {
 		float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
 		float3 Pend = ray->P + ray->D*ray->t;
 		int bounce = state->transparent_bounce;
@@ -306,6 +311,23 @@ ccl_device bool shadow_blocked_transparent_stepped_loop(
 			{
 				break;
 			}
+#ifdef __SHADOW_TRICKS__
+			if(skip_object != OBJECT_NONE) {
+				const int isect_object = (isect->object == PRIM_NONE)
+				        ? kernel_tex_fetch(__prim_object, isect->prim)
+				        : isect->object;
+				if(isect_object == skip_object) {
+					shader_setup_from_ray(kg, shadow_sd, isect, ray);
+					/* Move ray forward. */
+					ray->P = ray_offset(shadow_sd->P, -shadow_sd->Ng);
+					if(ray->t != FLT_MAX) {
+						ray->D = normalize_len(Pend - ray->P, &ray->t);
+					}
+					bounce++;
+					continue;
+				}
+			}
+#endif
 			if(!shader_transparent_shadow(kg, isect)) {
 				return true;
 			}
@@ -351,22 +373,31 @@ ccl_device bool shadow_blocked_transparent_stepped(
         KernelGlobals *kg,
         ShaderData *shadow_sd,
         ccl_addr_space PathState *state,
+        const int skip_object,
         Ray *ray,
         Intersection *isect,
         float3 *shadow)
 {
-	const bool blocked = scene_intersect(kg,
-	                                     *ray,
-	                                     PATH_RAY_SHADOW_OPAQUE,
-	                                     isect,
-	                                     NULL,
-	                                     0.0f, 0.0f);
-	const bool is_transparent_isect = blocked
-	        ? shader_transparent_shadow(kg, isect)
-	        : false;
+	bool blocked, is_transparent_isect;
+	if (skip_object == OBJECT_NONE) {
+		blocked = scene_intersect(kg,
+		                          *ray,
+		                          PATH_RAY_SHADOW_OPAQUE,
+		                          isect,
+		                          NULL,
+		                          0.0f, 0.0f);
+		is_transparent_isect = blocked
+			        ? shader_transparent_shadow(kg, isect)
+			        : false;
+	}
+	else {
+		blocked = false;
+		is_transparent_isect = false;
+	}
 	return shadow_blocked_transparent_stepped_loop(kg,
 	                                               shadow_sd,
 	                                               state,
+	                                               skip_object,
 	                                               ray,
 	                                               isect,
 	                                               blocked,
@@ -390,12 +421,21 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
 	if(ray->t == 0.0f) {
 		return false;
 	}
+#ifdef __SHADOW_TRICKS__
+    const int skip_object = state->catcher_object;
+#else
+    const int skip_object = OBJECT_NONE;
+#endif
 	/* Do actual shadow shading. */
 	/* First of all, we check if integrator requires transparent shadows.
 	 * if not, we use simplest and fastest ever way to calculate occlusion.
+	 *
+	 * NOTE: We can't do quick opaque test here if we are on shadow-catcher
+	 * path because we don't want catcher object to be casting shadow here.
 	 */
 #ifdef __TRANSPARENT_SHADOWS__
-	if(!kernel_data.integrator.transparent_shadows)
+	if(!kernel_data.integrator.transparent_shadows &&
+	   skip_object == OBJECT_NONE)
 #endif
 	{
 		return shadow_blocked_opaque(kg,
@@ -440,6 +480,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
 		return shadow_blocked_transparent_stepped_loop(kg,
 		                                               shadow_sd,
 		                                               state,
+		                                               skip_object,
 		                                               ray,
 		                                               &isect,
 		                                               blocked,
@@ -450,6 +491,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
 	return shadow_blocked_transparent_all(kg,
 	                                      shadow_sd,
 	                                      state,
+	                                      skip_object,
 	                                      ray,
 	                                      max_hits,
 	                                      shadow);
@@ -458,6 +500,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
 	return shadow_blocked_transparent_stepped(kg,
 	                                          shadow_sd,
 	                                          state,
+	                                          skip_object,
 	                                          ray,
 	                                          &isect,
 	                                          shadow);

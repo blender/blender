@@ -516,7 +516,7 @@ ccl_device_inline void _shader_bsdf_multi_eval(KernelGlobals *kg, ShaderData *sd
 			float3 eval = bsdf_eval(kg, sd, sc, omega_in, &bsdf_pdf);
 
 			if(bsdf_pdf != 0.0f) {
-				bsdf_eval_accum(result_eval, sc->type, eval*sc->weight);
+				bsdf_eval_accum(result_eval, sc->type, eval*sc->weight, 1.0f);
 				sum_pdf += bsdf_pdf*sc->sample_weight;
 			}
 
@@ -544,7 +544,8 @@ ccl_device_inline void _shader_bsdf_multi_eval_branched(KernelGlobals *kg,
 				float mis_weight = use_mis? power_heuristic(light_pdf, bsdf_pdf): 1.0f;
 				bsdf_eval_accum(result_eval,
 				                sc->type,
-				                eval * sc->weight * mis_weight);
+				                eval * sc->weight,
+				                mis_weight);
 			}
 		}
 	}
@@ -576,7 +577,7 @@ void shader_bsdf_eval(KernelGlobals *kg,
 		_shader_bsdf_multi_eval(kg, sd, omega_in, &pdf, -1, eval, 0.0f, 0.0f);
 		if(use_mis) {
 			float weight = power_heuristic(light_pdf, pdf);
-			bsdf_eval_mul(eval, weight);
+			bsdf_eval_mis(eval, weight);
 		}
 	}
 }
@@ -944,7 +945,7 @@ ccl_device_inline void _shader_volume_phase_multi_eval(const ShaderData *sd, con
 			float3 eval = volume_phase_eval(sd, sc, omega_in, &phase_pdf);
 
 			if(phase_pdf != 0.0f) {
-				bsdf_eval_accum(result_eval, sc->type, eval);
+				bsdf_eval_accum(result_eval, sc->type, eval, 1.0f);
 				sum_pdf += phase_pdf*sc->sample_weight;
 			}
 

@@ -53,6 +53,7 @@ public:
 	bool use_motion;
 	bool hide_on_missing_motion;
 	bool use_holdout;
+	bool is_shadow_catcher;
 
 	float3 dupli_generated;
 	float2 dupli_uv;

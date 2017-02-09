@@ -156,7 +156,12 @@ ccl_device_noinline bool direct_emission(KernelGlobals *kg,
 	if(bsdf_eval_is_zero(eval))
 		return false;
 
-	if(kernel_data.integrator.light_inv_rr_threshold > 0.0f) {
+	if(kernel_data.integrator.light_inv_rr_threshold > 0.0f
+#ifdef __SHADOW_TRICKS__
+	   && (state->flag & PATH_RAY_SHADOW_CATCHER) == 0
+#endif
+	  )
+	{
 		float probability = max3(fabs(bsdf_eval_sum(eval))) * kernel_data.integrator.light_inv_rr_threshold;
 		if(probability < 1.0f) {
 			if(rand_terminate >= probability) {

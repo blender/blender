@@ -1096,6 +1096,12 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
                 default=1.0,
                 )
 
+        cls.is_shadow_catcher = BoolProperty(
+                name="Shadow Catcher",
+                description="Only render shadows on this object, for compositing renders into real footage",
+                default=False,
+                )
+
     @classmethod
     def unregister(cls):
         del bpy.types.Object.cycles
