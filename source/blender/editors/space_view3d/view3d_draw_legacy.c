@@ -2670,7 +2670,8 @@ static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
 			draw_view_icon(rv3d, &rect);
 
 		if (U.uiflag & USER_DRAWVIEWINFO) {
-			Object *ob = OBACT;
+			SceneLayer *sl = CTX_data_scene_layer(C);
+			Object *ob = OBACT_NEW;
 			draw_selected_name(scene, ob, &rect);
 		}
 	}
