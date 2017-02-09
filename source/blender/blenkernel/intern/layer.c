@@ -910,6 +910,8 @@ static void collection_engine_settings_copy(CollectionEngineSettings *ces_dst, C
  */
 static void collection_engine_property_set (CollectionEngineProperty *prop_dst, CollectionEngineProperty *prop_src){
 	if ((prop_src->flag & COLLECTION_PROP_USE) != 0) {
+		/* mark the property as used, so the engine knows if the value was ever set*/
+		prop_dst->flag |= COLLECTION_PROP_USE;
 		switch (prop_src->type) {
 		    case COLLECTION_PROP_TYPE_FLOAT:
 			    ((CollectionEnginePropertyFloat *)prop_dst)->value = ((CollectionEnginePropertyFloat *)prop_src)->value;
