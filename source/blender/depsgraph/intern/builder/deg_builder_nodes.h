@@ -32,10 +32,6 @@
 
 #include "intern/depsgraph_types.h"
 
-/* XXX: Temporary solution to get proper Baselegacy. */
-#include "DNA_scene_types.h"
-
-struct BaseLegacy;
 struct CacheFile;
 struct bGPdata;
 struct ListBase;
@@ -129,8 +125,8 @@ struct DepsgraphNodeBuilder {
 
 	void build_scene(Main *bmain, Scene *scene);
 	SubgraphDepsNode *build_subgraph(Group *group);
-	void build_group(Scene *scene, BaseLegacy *base, Group *group);
-	void build_object(Scene *scene, BaseLegacy *base, Object *ob);
+	void build_group(Scene *scene, Group *group);
+	void build_object(Scene *scene, Object *ob);
 	void build_object_transform(Scene *scene, Object *ob);
 	void build_object_constraints(Scene *scene, Object *ob);
 	void build_pose_constraints(Object *ob, bPoseChannel *pchan);

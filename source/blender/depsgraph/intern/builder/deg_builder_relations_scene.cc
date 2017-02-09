@@ -46,6 +46,7 @@ extern "C" {
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 
@@ -74,9 +75,9 @@ void DepsgraphRelationBuilder::build_scene(Main *bmain, Scene *scene)
 	}
 
 	/* scene objects */
-	LINKLIST_FOREACH (BaseLegacy *, base, &scene->base) {
-		Object *ob = base->object;
-
+	Object *ob;
+	FOREACH_SCENE_OBJECT(scene, ob)
+	{
 		/* object itself */
 		build_object(bmain, scene, ob);
 
@@ -97,6 +98,7 @@ void DepsgraphRelationBuilder::build_scene(Main *bmain, Scene *scene)
 			build_group(bmain, scene, ob, ob->dup_group);
 		}
 	}
+	FOREACH_SCENE_OBJECT_END
 
 	/* rigidbody */
 	if (scene->rigidbody_world) {

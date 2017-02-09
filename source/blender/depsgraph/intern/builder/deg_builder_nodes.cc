@@ -125,7 +125,7 @@ static void modifier_walk(void *user_data,
 {
 	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
 	if (*obpoin) {
-		data->builder->build_object(data->scene, NULL, *obpoin);
+		data->builder->build_object(data->scene, *obpoin);
 	}
 }
 
@@ -138,7 +138,7 @@ void constraint_walk(bConstraint * /*con*/,
 	if (*idpoin) {
 		ID *id = *idpoin;
 		if (GS(id->name) == ID_OB) {
-			data->builder->build_object(data->scene, NULL, (Object *)id);
+			data->builder->build_object(data->scene, (Object *)id);
 		}
 	}
 }
@@ -337,9 +337,7 @@ void DepsgraphNodeBuilder::begin_build(Main *bmain) {
 	} FOREACH_NODETREE_END
 }
 
-void DepsgraphNodeBuilder::build_group(Scene *scene,
-                                       BaseLegacy *base,
-                                       Group *group)
+void DepsgraphNodeBuilder::build_group(Scene *scene, Group *group)
 {
 	ID *group_id = &group->id;
 	if (group_id->tag & LIB_TAG_DOIT) {
@@ -348,7 +346,7 @@ void DepsgraphNodeBuilder::build_group(Scene *scene,
 	group_id->tag |= LIB_TAG_DOIT;
 
 	LINKLIST_FOREACH (GroupObject *, go, &group->gobject) {
-		build_object(scene, base, go->ob);
+		build_object(scene, go->ob);
 	}
 }
 
@@ -387,7 +385,7 @@ SubgraphDepsNode *DepsgraphNodeBuilder::build_subgraph(Group *group)
 	return subgraph_node;
 }
 
-void DepsgraphNodeBuilder::build_object(Scene *scene, BaseLegacy *base, Object *ob)
+void DepsgraphNodeBuilder::build_object(Scene *scene, Object *ob)
 {
 	const bool has_object = (ob->id.tag & LIB_TAG_DOIT);
 	IDDepsNode *id_node = (has_object)
@@ -397,9 +395,12 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, BaseLegacy *base, Object *
 	 * Do it for both new and existing ID nodes. This is so because several
 	 * bases might be sharing same object.
 	 */
-	if (base != NULL) {
-		id_node->layers |= base->lay;
-	}
+
+	/* Blender 2.8 transition: we don't have bases and do not have
+	 * layer masks, but still want objects to be updated
+	 */
+	id_node->layers |= ((1 << 20) - 1);
+
 	if (ob == scene->camera) {
 		/* Camera should always be updated, it used directly by viewport. */
 		id_node->layers |= (unsigned int)(-1);
@@ -415,7 +416,7 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, BaseLegacy *base, Object *
 	build_object_transform(scene, ob);
 
 	if (ob->parent != NULL) {
-		build_object(scene, NULL, ob->parent);
+		build_object(scene, ob->parent);
 	}
 	if (ob->modifiers.first != NULL) {
 		BuilderWalkUserData data;
@@ -927,13 +928,13 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 			 */
 			Curve *cu = (Curve *)obdata;
 			if (cu->bevobj != NULL) {
-				build_object(scene, NULL, cu->bevobj);
+				build_object(scene, cu->bevobj);
 			}
 			if (cu->taperobj != NULL) {
-				build_object(scene, NULL, cu->taperobj);
+				build_object(scene, cu->taperobj);
 			}
 			if (ob->type == OB_FONT && cu->textoncurve != NULL) {
-				build_object(scene, NULL, cu->textoncurve);
+				build_object(scene, cu->textoncurve);
 			}
 			break;
 		}

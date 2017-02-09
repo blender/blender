@@ -46,6 +46,7 @@ extern "C" {
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 
@@ -79,24 +80,25 @@ void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene)
 	}
 
 	/* scene objects */
-	LINKLIST_FOREACH (BaseLegacy *, base, &scene->base) {
-		Object *ob = base->object;
-
+	Object *ob;
+	FOREACH_SCENE_OBJECT(scene, ob)
+	{
 		/* object itself */
-		build_object(scene, base, ob);
+		build_object(scene, ob);
 
 		/* object that this is a proxy for */
 		// XXX: the way that proxies work needs to be completely reviewed!
 		if (ob->proxy) {
 			ob->proxy->proxy_from = ob;
-			build_object(scene, base, ob->proxy);
+			build_object(scene, ob->proxy);
 		}
 
 		/* Object dupligroup. */
 		if (ob->dup_group) {
-			build_group(scene, base, ob->dup_group);
+			build_group(scene, ob->dup_group);
 		}
 	}
+	FOREACH_SCENE_OBJECT_END
 
 	/* rigidbody */
 	if (scene->rigidbody_world) {
