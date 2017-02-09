@@ -59,6 +59,14 @@ class OUTLINER_HT_header(Header):
                 row.label(text="No Keying Set active")
         elif space.display_mode == 'ORPHAN_DATA':
             layout.operator("outliner.orphans_purge")
+        elif space.display_mode == 'COLLECTIONS':
+            row = layout.row(align=True)
+
+            row.operator("collections.collection_new", text="", icon='NEW')
+            row.operator("collections.override_new", text="", icon='LINK_AREA')
+            row.operator("collections.collection_link", text="", icon='LINKED')
+            row.operator("collections.collection_unlink", text="", icon='UNLINKED')
+            row.operator("collections.delete", text="", icon='X')
 
 
 class OUTLINER_MT_editor_menus(Menu):
