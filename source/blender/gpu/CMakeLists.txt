@@ -150,10 +150,12 @@ data_to_c_simple(shaders/gpu_shader_image_depth_linear_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_image_interlace_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_image_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_vert.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_3D_instance_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_flat_color_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_smooth_color_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_smooth_color_frag.glsl SRC)
+
+data_to_c_simple(shaders/gpu_shader_instance_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_instance_variying_size_variying_color_vert.glsl SRC)
 
 data_to_c_simple(shaders/gpu_shader_3D_groundpoint_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_groundline_vert.glsl SRC)

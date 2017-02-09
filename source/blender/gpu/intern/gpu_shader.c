@@ -67,10 +67,12 @@ extern char datatoc_gpu_shader_image_modulate_alpha_frag_glsl[];
 extern char datatoc_gpu_shader_image_rect_modulate_alpha_frag_glsl[];
 extern char datatoc_gpu_shader_image_depth_linear_frag_glsl[];
 extern char datatoc_gpu_shader_3D_vert_glsl[];
-extern char datatoc_gpu_shader_3D_instance_vert_glsl[];
 extern char datatoc_gpu_shader_3D_flat_color_vert_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_vert_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
+
+extern char datatoc_gpu_shader_instance_vert_glsl[];
+extern char datatoc_gpu_shader_instance_variying_size_variying_color_vert_glsl[];
 
 extern char datatoc_gpu_shader_3D_groundpoint_vert_glsl[];
 extern char datatoc_gpu_shader_3D_groundline_vert_glsl[];
@@ -684,7 +686,6 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		[GPU_SHADER_2D_IMAGE_COLOR] = { datatoc_gpu_shader_2D_image_vert_glsl,
 		                                datatoc_gpu_shader_image_color_frag_glsl },
 		[GPU_SHADER_3D_UNIFORM_COLOR] = { datatoc_gpu_shader_3D_vert_glsl, datatoc_gpu_shader_uniform_color_frag_glsl },
-		[GPU_SHADER_3D_UNIFORM_COLOR_INSTANCE] = { datatoc_gpu_shader_3D_instance_vert_glsl, datatoc_gpu_shader_uniform_color_frag_glsl },
 		[GPU_SHADER_3D_FLAT_COLOR] = { datatoc_gpu_shader_3D_flat_color_vert_glsl,
 		                               datatoc_gpu_shader_flat_color_frag_glsl },
 		[GPU_SHADER_3D_SMOOTH_COLOR] = { datatoc_gpu_shader_3D_smooth_color_vert_glsl,
@@ -728,6 +729,11 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		[GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_SMOOTH] =
 			{ datatoc_gpu_shader_3D_point_uniform_size_outline_smooth_vert_glsl,
 			  datatoc_gpu_shader_point_uniform_color_outline_smooth_frag_glsl },
+
+		[GPU_SHADER_INSTANCE_UNIFORM_COLOR] = { datatoc_gpu_shader_instance_vert_glsl, datatoc_gpu_shader_uniform_color_frag_glsl },
+		[GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE] = 
+		    { datatoc_gpu_shader_instance_variying_size_variying_color_vert_glsl,
+		      datatoc_gpu_shader_flat_color_frag_glsl },
 	};
 
 	if (builtin_shaders[shader] == NULL) {

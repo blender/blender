@@ -38,61 +38,14 @@
 /* Store list of shading group for easy access*/
 
 /* Empties */
-static DRWShadingGroup *plain_axes_wire;
-static DRWShadingGroup *plain_axes_active;
-static DRWShadingGroup *plain_axes_select;
-static DRWShadingGroup *plain_axes_transform;
-static DRWShadingGroup *plain_axes_group;
-static DRWShadingGroup *plain_axes_group_active;
-
-static DRWShadingGroup *cube_wire;
-static DRWShadingGroup *cube_active;
-static DRWShadingGroup *cube_select;
-static DRWShadingGroup *cube_transform;
-static DRWShadingGroup *cube_group;
-static DRWShadingGroup *cube_group_active;
-
-static DRWShadingGroup *circle_wire;
-static DRWShadingGroup *circle_active;
-static DRWShadingGroup *circle_select;
-static DRWShadingGroup *circle_transform;
-static DRWShadingGroup *circle_group;
-static DRWShadingGroup *circle_group_active;
-
-static DRWShadingGroup *sphere_wire;
-static DRWShadingGroup *sphere_active;
-static DRWShadingGroup *sphere_select;
-static DRWShadingGroup *sphere_transform;
-static DRWShadingGroup *sphere_group;
-static DRWShadingGroup *sphere_group_active;
-
-static DRWShadingGroup *cone_wire;
-static DRWShadingGroup *cone_active;
-static DRWShadingGroup *cone_select;
-static DRWShadingGroup *cone_transform;
-static DRWShadingGroup *cone_group;
-static DRWShadingGroup *cone_group_active;
-
-static DRWShadingGroup *single_arrow_wire;
-static DRWShadingGroup *single_arrow_active;
-static DRWShadingGroup *single_arrow_select;
-static DRWShadingGroup *single_arrow_transform;
-static DRWShadingGroup *single_arrow_group;
-static DRWShadingGroup *single_arrow_group_active;
-
-static DRWShadingGroup *single_arrow_line_wire;
-static DRWShadingGroup *single_arrow_line_active;
-static DRWShadingGroup *single_arrow_line_select;
-static DRWShadingGroup *single_arrow_line_transform;
-static DRWShadingGroup *single_arrow_line_group;
-static DRWShadingGroup *single_arrow_line_group_active;
-
-static DRWShadingGroup *arrows_wire;
-static DRWShadingGroup *arrows_active;
-static DRWShadingGroup *arrows_select;
-static DRWShadingGroup *arrows_transform;
-static DRWShadingGroup *arrows_group;
-static DRWShadingGroup *arrows_group_active;
+static DRWShadingGroup *plain_axes;
+static DRWShadingGroup *cube;
+static DRWShadingGroup *circle;
+static DRWShadingGroup *sphere;
+static DRWShadingGroup *cone;
+static DRWShadingGroup *single_arrow;
+static DRWShadingGroup *single_arrow_line;
+static DRWShadingGroup *arrows;
 
 /* Lamps */
 static DRWShadingGroup *lamp_center;
@@ -116,17 +69,6 @@ static float colorWire[4], colorWireEdit[4];
 static float colorActive[4], colorSelect[4], colorTransform[4], colorGroup[4], colorGroupActive[4];
 static float colorEmpty[4], colorLamp[4], colorCamera[4], colorSpeaker[4];
 static float lampCenterSize, lampCircleRad, lampCircleShadowRad, colorLampNoAlpha[4];
-
-static DRWShadingGroup *shgroup_instance_uniform_color(DRWPass *pass, struct Batch *geom, float color[4])
-{
-	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR_INSTANCE);
-
-	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh_inst, pass, geom);
-	DRW_shgroup_attrib_float(grp, "InstanceModelMatrix", 16);
-	DRW_shgroup_uniform_vec4(grp, "color", color, 1);
-
-	return grp;
-}
 
 static DRWShadingGroup *shgroup_dynlines_uniform_color(DRWPass *pass, float color[4])
 {
@@ -186,6 +128,18 @@ static DRWShadingGroup *shgroup_lamp(DRWPass *pass, struct Batch *geom, float *s
 	return grp;
 }
 
+static DRWShadingGroup *shgroup_empty(DRWPass *pass, struct Batch *geom)
+{
+	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE);
+
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh_inst, pass, geom);
+	DRW_shgroup_attrib_float(grp, "color", 3);
+	DRW_shgroup_attrib_float(grp, "size", 1);
+	DRW_shgroup_attrib_float(grp, "InstanceModelMatrix", 16);
+
+	return grp;
+}
+
 /* This Function setup the passes needed for the mode rendering.
  * The passes are populated by the rendering engine using the DRW_shgroup_* functions. */
 void DRW_pass_setup_common(DRWPass **wire_overlay, DRWPass **wire_outline, DRWPass **non_meshes, DRWPass **ob_center)
@@ -235,68 +189,28 @@ void DRW_pass_setup_common(DRWPass **wire_overlay, DRWPass **wire_outline, DRWPa
 
 		/* Empties */
 		geom = DRW_cache_plain_axes_get();
-		plain_axes_wire = shgroup_instance_uniform_color(*non_meshes, geom, colorEmpty);
-		plain_axes_active = shgroup_instance_uniform_color(*non_meshes, geom, colorActive);
-		plain_axes_select = shgroup_instance_uniform_color(*non_meshes, geom, colorSelect);
-		plain_axes_transform = shgroup_instance_uniform_color(*non_meshes, geom, colorTransform);
-		plain_axes_group = shgroup_instance_uniform_color(*non_meshes, geom, colorGroup);
-		plain_axes_group_active = shgroup_instance_uniform_color(*non_meshes, geom, colorGroupActive);
+		plain_axes = shgroup_empty(*non_meshes, geom);
 
 		geom = DRW_cache_cube_get();
-		cube_wire = shgroup_instance_uniform_color(*non_meshes, geom, colorEmpty);
-		cube_active = shgroup_instance_uniform_color(*non_meshes, geom, colorActive);
-		cube_select = shgroup_instance_uniform_color(*non_meshes, geom, colorSelect);
-		cube_transform = shgroup_instance_uniform_color(*non_meshes, geom, colorTransform);
-		cube_group = shgroup_instance_uniform_color(*non_meshes, geom, colorGroup);
-		cube_group_active = shgroup_instance_uniform_color(*non_meshes, geom, colorGroupActive);
+		cube = shgroup_empty(*non_meshes, geom);
 
 		geom = DRW_cache_circle_get();
-		circle_wire = shgroup_instance_uniform_color(*non_meshes, geom, colorEmpty);
-		circle_active = shgroup_instance_uniform_color(*non_meshes, geom, colorActive);
-		circle_select = shgroup_instance_uniform_color(*non_meshes, geom, colorSelect);
-		circle_transform = shgroup_instance_uniform_color(*non_meshes, geom, colorTransform);
-		circle_group = shgroup_instance_uniform_color(*non_meshes, geom, colorGroup);
-		circle_group_active = shgroup_instance_uniform_color(*non_meshes, geom, colorGroupActive);
+		circle = shgroup_empty(*non_meshes, geom);
 
 		geom = DRW_cache_empty_sphere_get();
-		sphere_wire = shgroup_instance_uniform_color(*non_meshes, geom, colorEmpty);
-		sphere_active = shgroup_instance_uniform_color(*non_meshes, geom, colorActive);
-		sphere_select = shgroup_instance_uniform_color(*non_meshes, geom, colorSelect);
-		sphere_transform = shgroup_instance_uniform_color(*non_meshes, geom, colorTransform);
-		sphere_group = shgroup_instance_uniform_color(*non_meshes, geom, colorGroup);
-		sphere_group_active = shgroup_instance_uniform_color(*non_meshes, geom, colorGroupActive);
+		sphere = shgroup_empty(*non_meshes, geom);
 
 		geom = DRW_cache_empty_cone_get();
-		cone_wire = shgroup_instance_uniform_color(*non_meshes, geom, colorEmpty);
-		cone_active = shgroup_instance_uniform_color(*non_meshes, geom, colorActive);
-		cone_select = shgroup_instance_uniform_color(*non_meshes, geom, colorSelect);
-		cone_transform = shgroup_instance_uniform_color(*non_meshes, geom, colorTransform);
-		cone_group = shgroup_instance_uniform_color(*non_meshes, geom, colorGroup);
-		cone_group_active = shgroup_instance_uniform_color(*non_meshes, geom, colorGroupActive);
+		cone = shgroup_empty(*non_meshes, geom);
 
 		geom = DRW_cache_single_arrow_get();
-		single_arrow_wire = shgroup_instance_uniform_color(*non_meshes, geom, colorEmpty);
-		single_arrow_active = shgroup_instance_uniform_color(*non_meshes, geom, colorActive);
-		single_arrow_select = shgroup_instance_uniform_color(*non_meshes, geom, colorSelect);
-		single_arrow_transform = shgroup_instance_uniform_color(*non_meshes, geom, colorTransform);
-		single_arrow_group = shgroup_instance_uniform_color(*non_meshes, geom, colorGroup);
-		single_arrow_group_active = shgroup_instance_uniform_color(*non_meshes, geom, colorGroupActive);
+		single_arrow = shgroup_empty(*non_meshes, geom);
 
 		geom = DRW_cache_single_line_get();
-		single_arrow_line_wire = shgroup_instance_uniform_color(*non_meshes, geom, colorEmpty);
-		single_arrow_line_active = shgroup_instance_uniform_color(*non_meshes, geom, colorActive);
-		single_arrow_line_select = shgroup_instance_uniform_color(*non_meshes, geom, colorSelect);
-		single_arrow_line_transform = shgroup_instance_uniform_color(*non_meshes, geom, colorTransform);
-		single_arrow_line_group = shgroup_instance_uniform_color(*non_meshes, geom, colorGroup);
-		single_arrow_line_group_active = shgroup_instance_uniform_color(*non_meshes, geom, colorGroupActive);
+		single_arrow_line = shgroup_empty(*non_meshes, geom);
 
 		geom = DRW_cache_single_arrow_get();
-		arrows_wire = shgroup_instance_uniform_color(*non_meshes, geom, colorEmpty);
-		arrows_active = shgroup_instance_uniform_color(*non_meshes, geom, colorActive);
-		arrows_select = shgroup_instance_uniform_color(*non_meshes, geom, colorSelect);
-		arrows_transform = shgroup_instance_uniform_color(*non_meshes, geom, colorTransform);
-		arrows_group = shgroup_instance_uniform_color(*non_meshes, geom, colorGroup);
-		arrows_group_active = shgroup_instance_uniform_color(*non_meshes, geom, colorGroupActive);
+		arrows = shgroup_empty(*non_meshes, geom);
 
 		/* Lamps */
 		lampCenterSize = (U.obcenter_dia + 1.5f) * U.pixelsize;
@@ -374,7 +288,9 @@ void DRW_pass_setup_common(DRWPass **wire_overlay, DRWPass **wire_outline, DRWPa
 /* ******************************************** WIRES *********************************************** */
 
 /* TODO FINISH */
-static int draw_object_wire_theme(Object *ob)
+/* Get the wire color theme_id of an object based on it's state
+ * **color is a way to get a pointer to the static color var associated */
+static int draw_object_wire_theme(Object *ob, float **color)
 {
 	const bool is_edit = (ob->mode & OB_MODE_EDIT) != 0;
 	/* confusing logic here, there are 2 methods of setting the color
@@ -416,6 +332,22 @@ static int draw_object_wire_theme(Object *ob)
 				else if (ob->type == OB_EMPTY) theme_id = TH_EMPTY;
 				/* fallback to TH_WIRE */
 			}
+		}
+	}
+
+	if (color != NULL) {
+		switch (theme_id) {
+			case TH_WIRE_EDIT: 		*color = colorTransform; break;
+			case TH_ACTIVE: 		*color = colorActive; break;
+			case TH_SELECT: 		*color = colorSelect; break;
+			case TH_GROUP: 			*color = colorGroup; break;
+			case TH_GROUP_ACTIVE: 	*color = colorGroupActive; break;
+			case TH_TRANSFORM: 		*color = colorTransform; break;
+			case OB_SPEAKER: 		*color = colorSpeaker; break;
+			case OB_CAMERA: 		*color = colorCamera; break;
+			case OB_EMPTY: 			*color = colorEmpty; break;
+			case OB_LAMP: 			*color = colorLamp; break;
+			default: 				*color = colorWire; break;
 		}
 	}
 
@@ -517,35 +449,14 @@ void DRW_shgroup_wire_outline(DRWPass *wire_outline, Object *ob,
 static void DRW_draw_lamp(Object *ob)
 {
 	Lamp *la = ob->data;
-	int theme_id = draw_object_wire_theme(ob);
 	float *color;
+	int theme_id = draw_object_wire_theme(ob, &color);
 
 	/* Don't draw the center if it's selected or active */
 	if (theme_id == TH_GROUP)
 		DRW_shgroup_dynamic_call_add(lamp_center_group, ob->obmat[3]);
 	else if (theme_id == TH_LAMP)
 		DRW_shgroup_dynamic_call_add(lamp_center, ob->obmat[3]);
-
-	switch (theme_id) {
-		case TH_ACTIVE:
-			color = colorActive;
-			break;
-		case TH_SELECT:
-			color = colorSelect;
-			break;
-		case TH_GROUP:
-			color = colorGroup;
-			break;
-		case TH_GROUP_ACTIVE:
-			color = colorGroupActive;
-			break;
-		case TH_TRANSFORM:
-			color = colorTransform;
-			break;
-		default:
-			color = colorLampNoAlpha;
-			break;
-	}
 
 	/* First circle */
 	DRW_shgroup_dynamic_call_add(lamp_circle, ob->obmat[3], color);
@@ -557,7 +468,7 @@ static void DRW_draw_lamp(Object *ob)
 
 	/* Sunrays */
 	if (la->type == LA_SUN) {
-		DRW_shgroup_dynamic_call_add(lamp_sunrays, ob->obmat[3]);
+		DRW_shgroup_dynamic_call_add(lamp_sunrays, ob->obmat[3], color);
 	}
 
 	/* Line and point going to the ground */
@@ -567,133 +478,33 @@ static void DRW_draw_lamp(Object *ob)
 
 static void DRW_draw_empty(Object *ob)
 {
-	DRWShadingGroup *grp, *grp2 = NULL;
-	int theme_id = draw_object_wire_theme(ob);
+	float *color;
+	draw_object_wire_theme(ob, &color);
 
 	switch (ob->empty_drawtype) {
 		case OB_PLAINAXES:
-			if (theme_id == TH_ACTIVE)
-				grp = plain_axes_active;
-			else if (theme_id == TH_SELECT)
-				grp = plain_axes_select;
-			else if (theme_id == TH_GROUP_ACTIVE)
-				grp = plain_axes_group_active;
-			else if (theme_id == TH_GROUP)
-				grp = plain_axes_group;
-			else if (theme_id == TH_TRANSFORM)
-				grp = plain_axes_transform;
-			else
-				grp = plain_axes_wire;
+			DRW_shgroup_dynamic_call_add(plain_axes, color, &ob->empty_drawsize, ob->obmat);
 			break;
-
 		case OB_SINGLE_ARROW:
-			if (theme_id == TH_ACTIVE) {
-				grp = single_arrow_active;
-				grp2 = single_arrow_line_active;
-			}
-			else if (theme_id == TH_SELECT) {
-				grp = single_arrow_select;
-				grp2 = single_arrow_line_select;
-			}
-			else if (theme_id == TH_GROUP_ACTIVE) {
-				grp = single_arrow_group_active;
-				grp2 = single_arrow_line_group_active;
-			}
-			else if (theme_id == TH_GROUP) {
-				grp = single_arrow_group;
-				grp2 = single_arrow_line_group;
-			}
-			else if (theme_id == TH_TRANSFORM) {
-				grp = single_arrow_transform;
-				grp2 = single_arrow_line_transform;
-			}
-			else {
-				grp = single_arrow_wire;
-				grp2 = single_arrow_line_wire;
-			}
+			DRW_shgroup_dynamic_call_add(single_arrow, color, &ob->empty_drawsize, ob->obmat);
+			DRW_shgroup_dynamic_call_add(single_arrow_line, color, &ob->empty_drawsize, ob->obmat);
 			break;
-
 		case OB_CUBE:
-			if (theme_id == TH_ACTIVE)
-				grp = cube_active;
-			else if (theme_id == TH_SELECT)
-				grp = cube_select;
-			else if (theme_id == TH_GROUP_ACTIVE)
-				grp = cube_group_active;
-			else if (theme_id == TH_GROUP)
-				grp = cube_group;
-			else if (theme_id == TH_TRANSFORM)
-				grp = cube_transform;
-			else
-				grp = cube_wire;
+			DRW_shgroup_dynamic_call_add(cube, color, &ob->empty_drawsize, ob->obmat);
 			break;
-
 		case OB_CIRCLE:
-			if (theme_id == TH_ACTIVE)
-				grp = circle_active;
-			else if (theme_id == TH_SELECT)
-				grp = circle_select;
-			else if (theme_id == TH_GROUP_ACTIVE)
-				grp = circle_group_active;
-			else if (theme_id == TH_GROUP)
-				grp = circle_group;
-			else if (theme_id == TH_TRANSFORM)
-				grp = circle_transform;
-			else
-				grp = circle_wire;
+			DRW_shgroup_dynamic_call_add(circle, color, &ob->empty_drawsize, ob->obmat);
 			break;
-
 		case OB_EMPTY_SPHERE:
-			if (theme_id == TH_ACTIVE)
-				grp = sphere_active;
-			else if (theme_id == TH_SELECT)
-				grp = sphere_select;
-			else if (theme_id == TH_GROUP_ACTIVE)
-				grp = sphere_group_active;
-			else if (theme_id == TH_GROUP)
-				grp = sphere_group;
-			else if (theme_id == TH_TRANSFORM)
-				grp = sphere_transform;
-			else
-				grp = sphere_wire;
+			DRW_shgroup_dynamic_call_add(sphere, color, &ob->empty_drawsize, ob->obmat);
 			break;
-
 		case OB_EMPTY_CONE:
-			if (theme_id == TH_ACTIVE)
-				grp = cone_active;
-			else if (theme_id == TH_SELECT)
-				grp = cone_select;
-			else if (theme_id == TH_GROUP_ACTIVE)
-				grp = cone_group_active;
-			else if (theme_id == TH_GROUP)
-				grp = cone_group;
-			else if (theme_id == TH_TRANSFORM)
-				grp = cone_transform;
-			else
-				grp = cone_wire;
+			DRW_shgroup_dynamic_call_add(cone, color, &ob->empty_drawsize, ob->obmat);
 			break;
-
 		case OB_ARROWS:
-		default:
-			if (theme_id == TH_ACTIVE)
-				grp = arrows_active;
-			else if (theme_id == TH_SELECT)
-				grp = arrows_select;
-			else if (theme_id == TH_GROUP_ACTIVE)
-				grp = arrows_group_active;
-			else if (theme_id == TH_GROUP)
-				grp = arrows_group;
-			else if (theme_id == TH_TRANSFORM)
-				grp = arrows_transform;
-			else
-				grp = arrows_wire;
+			DRW_shgroup_dynamic_call_add(arrows, color, &ob->empty_drawsize, ob->obmat);
 			/* TODO Missing axes names */
 			break;
-	}
-
-	DRW_shgroup_dynamic_call_add(grp, ob->obmat);
-	if (grp2 != NULL) {
-		DRW_shgroup_dynamic_call_add(grp2, ob->obmat);
 	}
 }
 
