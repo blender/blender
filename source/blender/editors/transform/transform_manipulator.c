@@ -271,11 +271,12 @@ static int calc_manipulator_stats(const bContext *C)
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	View3D *v3d = sa->spacedata.first;
 	RegionView3D *rv3d = ar->regiondata;
-	BaseLegacy *base;
-	Object *ob = OBACT;
+	Base *base;
+	Object *ob = OBACT_NEW;
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	const bool is_gp_edit = ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE));
 	int a, totsel = 0;
@@ -587,11 +588,12 @@ static int calc_manipulator_stats(const bContext *C)
 	else {
 
 		/* we need the one selected object, if its not active */
-		ob = OBACT;
-		if (ob && !(ob->flag & SELECT)) ob = NULL;
+		base = BASACT_NEW;
+		ob = OBACT_NEW;
+		if (base && ((base->flag & BASE_SELECTED) == 0)) ob = NULL;
 
-		for (base = scene->base.first; base; base = base->next) {
-			if (TESTBASELIB(v3d, base)) {
+		for (base = sl->object_bases.first; base; base = base->next) {
+			if (TESTBASELIB_NEW(base)) {
 				if (ob == NULL)
 					ob = base->object;
 				calc_tw_center(scene, base->object->obmat[3]);

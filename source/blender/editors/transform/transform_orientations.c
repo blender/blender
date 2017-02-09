@@ -586,10 +586,10 @@ static unsigned int bm_mesh_faces_select_get_n(BMesh *bm, BMVert **elems, const 
 
 int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3], const short around)
 {
-	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
-	BaseLegacy *base;
-	Object *ob = OBACT;
+	Base *base;
+	Object *ob = OBACT_NEW;
 	int result = ORIENTATION_NONE;
 	const bool activeOnly = (around == V3D_AROUND_ACTIVE);
 
@@ -1017,15 +1017,16 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 	else {
 		/* we need the one selected object, if its not active */
 		View3D *v3d = CTX_wm_view3d(C);
-		ob = OBACT;
-		if (ob && (ob->flag & SELECT)) {
+		base = BASACT_NEW;
+		ob = OBACT_NEW;
+		if (base && ((base->flag & BASE_SELECTED) != 0)) {
 			/* pass */
 		}
 		else {
 			/* first selected */
 			ob = NULL;
-			for (base = scene->base.first; base; base = base->next) {
-				if (TESTBASELIB(v3d, base)) {
+			for (base = sl->object_bases.first; base; base = base->next) {
+				if (TESTBASELIB_NEW(base)) {
 					ob = base->object;
 					break;
 				}

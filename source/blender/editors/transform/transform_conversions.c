@@ -5352,7 +5352,6 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 /* it deselects Bases, so we have to call the clear function always after */
 static void set_trans_object_base_flags(TransInfo *t)
 {
-	Scene *scene = t->scene;
 	SceneLayer *sl = t->sl;
 
 	/*
@@ -5372,7 +5371,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 	DAG_scene_relations_update(G.main, t->scene);
 
 	/* handle pending update events, otherwise they got copied below */
-	for (base = scene->base.first; base; base = base->next) {
+	for (base = sl->object_bases.first; base; base = base->next) {
 		if (base->object->recalc & OB_RECALC_ALL) {
 			/* TODO(sergey): Ideally, it's not needed. */
 			BKE_object_handle_update(G.main->eval_ctx, t->scene, base->object);
@@ -5443,17 +5442,16 @@ static bool mark_children(Object *ob)
 static int count_proportional_objects(TransInfo *t)
 {
 	int total = 0;
-	Scene *scene = t->scene;
-	View3D *v3d = t->view;
-	BaseLegacy *base;
+	SceneLayer *sl = t->sl;
+	Base *base;
 
 	/* rotations around local centers are allowed to propagate, so we take all objects */
 	if (!((t->around == V3D_AROUND_LOCAL_ORIGINS) &&
 	      (t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)))
 	{
 		/* mark all parents */
-		for (base = scene->base.first; base; base = base->next) {
-			if (TESTBASELIB_BGMODE(v3d, scene, base)) {
+		for (base = sl->object_bases.first; base; base = base->next) {
+			if (TESTBASELIB_BGMODE_NEW(base)) {
 				Object *parent = base->object->parent;
 	
 				/* flag all parents */
@@ -5465,22 +5463,24 @@ static int count_proportional_objects(TransInfo *t)
 		}
 
 		/* mark all children */
-		for (base = scene->base.first; base; base = base->next) {
+		for (base = sl->object_bases.first; base; base = base->next) {
 			/* all base not already selected or marked that is editable */
-			if ((base->object->flag & (SELECT | BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
-			    (BASE_EDITABLE_BGMODE(v3d, scene, base)))
+			if ((base->object->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
+			    (base->flag & BASE_SELECTED) == 0 &&
+			    (BASE_EDITABLE_BGMODE_NEW(base)))
 			{
 				mark_children(base->object);
 			}
 		}
 	}
 	
-	for (base = scene->base.first; base; base = base->next) {
+	for (base = sl->object_bases.first; base; base = base->next) {
 		Object *ob = base->object;
 
 		/* if base is not selected, not a parent of selection or not a child of selection and it is editable */
-		if ((ob->flag & (SELECT | BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
-		    (BASE_EDITABLE_BGMODE(v3d, scene, base)))
+		if ((ob->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
+		    (base->flag & BASE_SELECTED) == 0 &&
+		    (BASE_EDITABLE_BGMODE_NEW(base)))
 		{
 
 			DAG_id_tag_update(&ob->id, OB_RECALC_OB);
@@ -5495,7 +5495,7 @@ static int count_proportional_objects(TransInfo *t)
 
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
-	for (base = scene->base.first; base; base = base->next) {
+	for (base = sl->object_bases.first; base; base = base->next) {
 		if (base->object->recalc & OB_RECALC_OB)
 			base->flag_legacy |= BA_HAS_RECALC_OB;
 		if (base->object->recalc & OB_RECALC_DATA)
