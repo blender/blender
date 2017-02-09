@@ -643,7 +643,7 @@ void draw_shadedstrip(Sequence *seq, unsigned char col[3], float x1, float y1, f
 	}
 }
 
-void draw_sequence_extensions(Scene *scene, ARegion *ar, Sequence *seq)
+static void draw_sequence_extensions(Scene *scene, ARegion *ar, Sequence *seq)
 {
 	float x1, x2, y1, y2, pixely, a;
 	unsigned char col[3], blendcol[3];
