@@ -1584,7 +1584,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		temp.xmin = temp.xmax - (BLI_rcti_size_y(rect) * 1.08f);
 
 		if (extra_icon_type == UI_BUT_ICONEXTRA_CLEAR) {
-			widget_draw_icon(but, ICON_X, alpha, &temp, false);
+			widget_draw_icon(but, ICON_PANEL_CLOSE, alpha, &temp, false);
 		}
 		else if (extra_icon_type == UI_BUT_ICONEXTRA_EYEDROPPER) {
 			widget_draw_icon(but, ICON_EYEDROPPER, alpha, &temp, false);
