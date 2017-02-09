@@ -623,6 +623,7 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 	int offset = 0;
 	DRWInterface *interface = shgroup->interface;
 	int vert_nbr = interface->instance_count;
+	int buffer_size = 0;
 
 	if (vert_nbr == 0) {
 		if (interface->instance_vbo) {
@@ -635,6 +636,7 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 	/* only once */
 	if (interface->attribs_stride == 0) {
 		for (DRWAttrib *attrib = interface->attribs.first; attrib; attrib = attrib->next, i++) {
+			BLI_assert(attrib->type == DRW_ATTRIB_FLOAT); /* Only float for now */
 			interface->attribs_stride += attrib->size;
 			interface->attribs_size[i] = attrib->size;
 			interface->attribs_loc[i] = attrib->location;
@@ -642,15 +644,13 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 	}
 
 	/* Gather Data */
-	float *data = MEM_mallocN(sizeof(float) * interface->attribs_stride * vert_nbr , "Instance VBO data");
+	buffer_size = sizeof(float) * interface->attribs_stride * vert_nbr;
+	float *data = MEM_mallocN(buffer_size, "Instance VBO data");
 
-	i = 0;
-	for (DRWDynamicCall *call = shgroup->calls.first; call; call = call->next, i++) {
-		int j = 0;
-		for (DRWAttrib *attrib = interface->attribs.first; attrib; attrib = attrib->next, j++) {
-			BLI_assert(attrib->type == DRW_ATTRIB_FLOAT); /* Only float for now */
-			memcpy(data + offset, call->data[j], sizeof(float) * attrib->size);
-			offset += attrib->size;
+	for (DRWDynamicCall *call = shgroup->calls.first; call; call = call->next) {
+		for (int j = 0; j < interface->attribs_count; ++j) {
+			memcpy(data + offset, call->data[j], sizeof(float) * interface->attribs_size[j]);
+			offset += interface->attribs_size[j];
 		}
 	}
 
@@ -662,7 +662,7 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 
 	glGenBuffers(1, &interface->instance_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, interface->instance_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * 4 * vert_nbr, data, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, buffer_size, data, GL_STATIC_DRAW);
 
 	MEM_freeN(data);
 }
@@ -785,10 +785,10 @@ typedef struct DRWBoundTexture {
 	GPUTexture *tex;
 } DRWBoundTexture;
 
-static void draw_geometry(DRWShadingGroup *shgroup, DRWInterface *interface, Batch *geom,
-                          unsigned int instance_vbo, int instance_count, const float (*obmat)[4])
+static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*obmat)[4])
 {
 	RegionView3D *rv3d = CTX_wm_region_view3d(DST.context);
+	DRWInterface *interface = shgroup->interface;
 	
 	float mvp[4][4], mv[4][4], n[3][3];
 	float eye[3] = { 0.0f, 0.0f, 1.0f }; /* looking into the screen */
@@ -840,8 +840,8 @@ static void draw_geometry(DRWShadingGroup *shgroup, DRWInterface *interface, Bat
 
 	/* step 2 : bind vertex array & draw */
 	Batch_set_program(geom, GPU_shader_get_program(shgroup->shader));
-	if (instance_vbo) {
-		Batch_draw_stupid_instanced(geom, instance_vbo, instance_count, interface->attribs_count,
+	if (interface->instance_vbo) {
+		Batch_draw_stupid_instanced(geom, interface->instance_vbo, interface->instance_count, interface->attribs_count,
 		                            interface->attribs_stride, interface->attribs_size, interface->attribs_loc);
 	}
 	else {
@@ -918,18 +918,18 @@ static void draw_shgroup(DRWShadingGroup *shgroup)
 		unit_m4(obmat);
 
 		if (shgroup->type == DRW_SHG_INSTANCE && interface->instance_count > 0) {
-			draw_geometry(shgroup, interface, shgroup->instance_geom, interface->instance_vbo, interface->instance_count, obmat);
+			draw_geometry(shgroup, shgroup->instance_geom, obmat);
 		}
 		else {
 			/* Some dynamic batch can have no geom (no call to aggregate) */
 			if (shgroup->batch_geom) {
-				draw_geometry(shgroup, interface, shgroup->batch_geom, 0, 1, obmat);
+				draw_geometry(shgroup, shgroup->batch_geom, obmat);
 			}
 		}
 	}
 	else {
 		for (DRWCall *call = shgroup->calls.first; call; call = call->next) {
-			draw_geometry(shgroup, interface, call->geometry, 0, 1, call->obmat);
+			draw_geometry(shgroup, call->geometry, call->obmat);
 		}
 	}
 }
