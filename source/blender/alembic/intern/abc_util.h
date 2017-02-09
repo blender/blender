@@ -49,7 +49,6 @@ std::string get_id_name(Object *ob);
 std::string get_object_dag_path_name(Object *ob, Object *dupli_parent);
 
 bool object_selected(Object *ob);
-bool parent_selected(Object *ob);
 
 Imath::M44d convert_matrix(float mat[4][4]);
 void create_transform_matrix(float r_mat[4][4]);

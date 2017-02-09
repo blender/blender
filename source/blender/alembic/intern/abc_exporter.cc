@@ -125,7 +125,7 @@ static bool object_is_shape(Object *ob)
 
 static bool export_object(const ExportSettings * const settings, Object *ob)
 {
-	if (settings->selected_only && !parent_selected(ob)) {
+	if (settings->selected_only && !object_selected(ob)) {
 		return false;
 	}
 

@@ -81,28 +81,6 @@ bool object_selected(Object *ob)
 	return ob->flag & SELECT;
 }
 
-bool parent_selected(Object *ob)
-{
-	if (object_selected(ob)) {
-		return true;
-	}
-
-	bool do_export = false;
-
-	Object *parent = ob->parent;
-
-	while (parent != NULL) {
-		if (object_selected(parent)) {
-			do_export = true;
-			break;
-		}
-
-		parent = parent->parent;
-	}
-
-	return do_export;
-}
-
 Imath::M44d convert_matrix(float mat[4][4])
 {
 	Imath::M44d m;
