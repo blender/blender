@@ -1111,8 +1111,7 @@ static void view3d_select_loop(ViewContext *vc, Scene *scene, SceneLayer *sl, Vi
 
 		v3d->xray = true;  /* otherwise it postpones drawing */
 		for (base = sl->object_bases.first; base; base = base->next) {
-			if (base->lay & v3d->lay) {
-
+			if ((base->flag & BASE_VISIBLED) != 0) {
 				if ((base->object->restrictflag & OB_RESTRICT_SELECT) ||
 				    (use_obedit_skip && (scene->obedit->data == base->object->data)))
 				{
