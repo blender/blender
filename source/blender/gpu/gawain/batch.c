@@ -314,9 +314,9 @@ void Batch_draw_stupid_instanced(Batch* batch, unsigned int instance_vbo, int in
 			glVertexAttribPointer(loc + atr_ofs, (size > 4) ? 4 : size, GL_FLOAT, GL_FALSE,
 			                      sizeof(float) * attrib_stride, (GLvoid*)(sizeof(float) * ptr_ofs));
 			glVertexAttribDivisor(loc + atr_ofs, 1);
-			size -= 4;
 			atr_ofs++;
 			ptr_ofs += (size > 4) ? 4 : size;
+			size -= 4;
 		}
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
