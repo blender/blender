@@ -158,16 +158,17 @@ typedef enum {
 	DRW_STATE_BLEND       = (1 << 12),
 } DRWState;
 
-/* Used by DRWShadingGroup.dyntype */
-#define DRW_DYN_POINTS 1
-#define DRW_DYN_LINES 2
-#define DRW_DYN_INSTANCE 3
-
 DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass);
+DRWShadingGroup *DRW_shgroup_instance_create(struct GPUShader *shader, DRWPass *pass, struct Batch *geom);
+DRWShadingGroup *DRW_shgroup_point_batch_create(struct GPUShader *shader, DRWPass *pass);
+DRWShadingGroup *DRW_shgroup_line_batch_create(struct GPUShader *shader, DRWPass *pass);
+
 void DRW_shgroup_free(struct DRWShadingGroup *shgroup);
 void DRW_shgroup_call_add(DRWShadingGroup *shgroup, struct Batch *geom, float (*obmat)[4]);
+void DRW_shgroup_dynamic_call_add(DRWShadingGroup *shgroup, ...);
 void DRW_shgroup_state_set(DRWShadingGroup *shgroup, DRWState state);
-void DRW_shgroup_dyntype_set(DRWShadingGroup *shgroup, int type);
+void DRW_shgroup_attrib_int(DRWShadingGroup *shgroup, const char *name, int size);
+void DRW_shgroup_attrib_float(DRWShadingGroup *shgroup, const char *name, int size);
 
 void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup, const char *name, const struct GPUTexture *tex, int loc);
 void DRW_shgroup_uniform_block(DRWShadingGroup *shgroup, const char *name, const struct GPUUniformBuffer *ubo, int loc);
@@ -185,7 +186,6 @@ void DRW_shgroup_uniform_mat4(DRWShadingGroup *shgroup, const char *name, const 
 
 /* Passes */
 DRWPass *DRW_pass_create(const char *name, DRWState state);
-DRWShadingGroup *DRW_pass_nth_shgroup_get(DRWPass *pass, int n);
 
 /* Viewport */
 typedef enum {

@@ -291,7 +291,8 @@ void Batch_draw_stupid(Batch* batch)
 }
 
 // clement : temp stuff
-void Batch_draw_stupid_instanced(Batch* batch, unsigned int instance_vbo, int instance_count)
+void Batch_draw_stupid_instanced(Batch* batch, unsigned int instance_vbo, int instance_count,
+                                 int attrib_nbr, int attrib_stride, int attrib_size[16], int attrib_loc[16])
 {
 	if (batch->vao_id)
 		glBindVertexArray(batch->vao_id);
@@ -301,27 +302,24 @@ void Batch_draw_stupid_instanced(Batch* batch, unsigned int instance_vbo, int in
 	if (batch->program_dirty)
 		Batch_update_program_bindings(batch);
 
-	const GLint loc = glGetAttribLocation(batch->program, "InstanceModelMatrix");
-
-#if TRUST_NO_ONE
-	assert(loc != -1);
-#endif
-
 	glBindBuffer(GL_ARRAY_BUFFER, instance_vbo);
-	glEnableVertexAttribArray(loc);
-	glVertexAttribPointer(loc + 0, 4, GL_FLOAT, GL_FALSE, sizeof(float)*4*4, (GLvoid*)0);
-	glEnableVertexAttribArray(loc + 1);
-	glVertexAttribPointer(loc + 1, 4, GL_FLOAT, GL_FALSE, sizeof(float)*4*4, (GLvoid*)(sizeof(float)*4));
-	glEnableVertexAttribArray(loc + 2);
-	glVertexAttribPointer(loc + 2, 4, GL_FLOAT, GL_FALSE, sizeof(float)*4*4, (GLvoid*)(2 * sizeof(float)*4));
-	glEnableVertexAttribArray(loc + 3);
-	glVertexAttribPointer(loc + 3, 4, GL_FLOAT, GL_FALSE, sizeof(float)*4*4, (GLvoid*)(3 * sizeof(float)*4));
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	int ptr_ofs = 0;
+	for (int i = 0; i < attrib_nbr; ++i) {
+		int size = attrib_size[i];
+		int loc = attrib_loc[i];
+		int atr_ofs = 0;
 
-	glVertexAttribDivisor(loc + 0, 1);
-	glVertexAttribDivisor(loc + 1, 1);
-	glVertexAttribDivisor(loc + 2, 1);
-	glVertexAttribDivisor(loc + 3, 1);
+		while (size > 0) {
+			glEnableVertexAttribArray(loc + atr_ofs);
+			glVertexAttribPointer(loc + atr_ofs, (size > 4) ? 4 : size, GL_FLOAT, GL_FALSE,
+			                      sizeof(float) * attrib_stride, (GLvoid*)(sizeof(float) * ptr_ofs));
+			glVertexAttribDivisor(loc + atr_ofs, 1);
+			size -= 4;
+			atr_ofs++;
+			ptr_ofs += (size > 4) ? 4 : size;
+		}
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	// Batch_use_program(batch);
 
