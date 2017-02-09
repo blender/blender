@@ -69,7 +69,7 @@ void do_versions_after_linking_280(Main *main)
 					is_visible[i] = (scene->lay & (1 << i));
 				}
 
-				for (BaseLegacy *base = scene->base.first; base; base = base->next) {
+				for (Base *base = scene->base.first; base; base = base->next) {
 					lay_used |= base->lay & ((1 << 20) - 1); /* ignore localview */
 
 					for (int i = 0; i < 20; i++) {
@@ -108,6 +108,11 @@ void do_versions_after_linking_280(Main *main)
 							}
 						}
 
+						/* for convenience set the same active object in all the layers */
+						if (scene->basact) {
+							sl->basact = BKE_scene_layer_base_find(sl, scene->basact->object);
+						}
+
 						/* TODO: passes, samples, mask_layesr, exclude, ... */
 					}
 
@@ -136,7 +141,7 @@ void do_versions_after_linking_280(Main *main)
 				}
 
 				/* convert selected bases */
-				for (BaseLegacy *base = scene->base.first; base; base = base->next) {
+				for (Base *base = scene->base.first; base; base = base->next) {
 					Base *ob_base = BKE_scene_layer_base_find(sl, base->object);
 					if ((base->flag & SELECT) != 0) {
 						if ((ob_base->flag & BASE_SELECTABLED) != 0) {
@@ -158,7 +163,7 @@ void do_versions_after_linking_280(Main *main)
 				}
 
 				/* remove bases once and for all */
-				for (BaseLegacy *base = scene->base.first; base; base = base->next) {
+				for (Base *base = scene->base.first; base; base = base->next) {
 					id_us_min(&base->object->id);
 				}
 				BLI_freelistN(&scene->base);
