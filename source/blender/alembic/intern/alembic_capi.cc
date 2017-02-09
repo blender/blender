@@ -332,21 +332,37 @@ void ABC_export(
 	BLI_strncpy(job->filename, filepath, 1024);
 
 	job->settings.scene = job->scene;
+
+	/* Sybren: for now we only export the active scene layer.
+	 * Later in the 2.8 development process this may be replaced by using
+	 * a specific collection for Alembic I/O, which can then be toggled
+	 * between "real" objects and cached Alembic files. */
+	job->settings.sl = CTX_data_scene_layer(C);
+
 	job->settings.frame_start = params->frame_start;
 	job->settings.frame_end = params->frame_end;
 	job->settings.frame_step_xform = params->frame_step_xform;
 	job->settings.frame_step_shape = params->frame_step_shape;
 	job->settings.shutter_open = params->shutter_open;
 	job->settings.shutter_close = params->shutter_close;
+
+	/* Sybren: For now this is ignored, until we can get selection
+	 * detection working through Base pointers (instead of ob->flags). */
 	job->settings.selected_only = params->selected_only;
+
 	job->settings.export_face_sets = params->face_sets;
 	job->settings.export_normals = params->normals;
 	job->settings.export_uvs = params->uvs;
 	job->settings.export_vcols = params->vcolors;
 	job->settings.apply_subdiv = params->apply_subdiv;
 	job->settings.flatten_hierarchy = params->flatten_hierarchy;
+
+	/* Sybren: visible_layer & renderable only is ignored for now,
+	 * to be replaced with collections later in the 2.8 dev process
+	 * (also see note above). */
 	job->settings.visible_layers_only = params->visible_layers_only;
 	job->settings.renderable_only = params->renderable_only;
+
 	job->settings.use_subdiv_schema = params->use_subdiv_schema;
 	job->settings.export_ogawa = (params->compression_type == ABC_ARCHIVE_OGAWA);
 	job->settings.pack_uv = params->packuv;

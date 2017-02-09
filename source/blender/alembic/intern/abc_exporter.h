@@ -36,11 +36,14 @@ struct EvaluationContext;
 struct Main;
 struct Object;
 struct Scene;
+struct SceneLayer;
+struct Base;
 
 struct ExportSettings {
 	ExportSettings();
 
 	Scene *scene;
+	SceneLayer *sl;  // Scene layer to export; all its objects will be exported, unless selected_only=true
 
 	bool selected_only;
 	bool visible_layers_only;
@@ -105,10 +108,10 @@ private:
 	void createTransformWritersHierarchy(EvaluationContext *eval_ctx);
 	void createTransformWritersFlat();
 	void createTransformWriter(Object *ob,  Object *parent, Object *dupliObParent);
-	void exploreTransform(EvaluationContext *eval_ctx, Object *ob, Object *parent, Object *dupliObParent = NULL);
-	void exploreObject(EvaluationContext *eval_ctx, Object *ob, Object *dupliObParent);
+	void exploreTransform(EvaluationContext *eval_ctx, Base *ob_base, Object *parent, Object *dupliObParent);
+	void exploreObject(EvaluationContext *eval_ctx, Base *ob_base, Object *dupliObParent);
 	void createShapeWriters(EvaluationContext *eval_ctx);
-	void createShapeWriter(Object *ob, Object *dupliObParent);
+	void createShapeWriter(Base *ob_base, Object *dupliObParent);
 
 	AbcTransformWriter *getXForm(const std::string &name);
 

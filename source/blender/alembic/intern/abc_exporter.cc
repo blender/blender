@@ -123,19 +123,19 @@ static bool object_is_shape(Object *ob)
 	}
 }
 
-static bool export_object(const ExportSettings * const settings, Object *ob)
+static bool export_object(const ExportSettings * const settings, const Base * const ob_base)
 {
-	if (settings->selected_only && !object_selected(ob)) {
+	if (settings->selected_only && !object_selected(ob_base)) {
+		return false;
+	}
+	// FIXME Sybren: handle these cleanly (maybe just remove code), now using active scene layer instead.
+	if (settings->visible_layers_only && (ob_base->flag & BASE_VISIBLED) == 0) {
 		return false;
 	}
 
-	if (settings->visible_layers_only && !(settings->scene->lay & ob->lay)) {
-		return false;
-	}
-
-	if (settings->renderable_only && (ob->restrictflag & OB_RESTRICT_RENDER)) {
-		return false;
-	}
+	//	if (settings->renderable_only && (ob->restrictflag & OB_RESTRICT_RENDER)) {
+	//		return false;
+	//	}
 
 	return true;
 }
@@ -341,12 +341,10 @@ void AbcExporter::operator()(Main *bmain, float &progress, bool &was_canceled)
 
 void AbcExporter::createTransformWritersHierarchy(EvaluationContext *eval_ctx)
 {
-	BaseLegacy *base = static_cast<BaseLegacy *>(m_scene->base.first);
-
-	while (base) {
+	for(Base *base = static_cast<Base *>(m_settings.sl->object_bases.first); base; base = base->next) {
 		Object *ob = base->object;
 
-		if (export_object(&m_settings, ob)) {
+		if (export_object(&m_settings, base)) {
 			switch(ob->type) {
 				case OB_LAMP:
 				case OB_LATTICE:
@@ -356,53 +354,49 @@ void AbcExporter::createTransformWritersHierarchy(EvaluationContext *eval_ctx)
 					break;
 
 				default:
-					exploreTransform(eval_ctx, ob, ob->parent, NULL);
+					exploreTransform(eval_ctx, base, ob->parent, NULL);
 			}
 		}
-
-		base = base->next;
 	}
 }
 
 void AbcExporter::createTransformWritersFlat()
 {
-	BaseLegacy *base = static_cast<BaseLegacy *>(m_scene->base.first);
-
-	while (base) {
+	for(Base *base = static_cast<Base *>(m_settings.sl->object_bases.first); base; base = base->next) {
 		Object *ob = base->object;
 
-		if (export_object(&m_settings, ob) && object_is_shape(ob)) {
+		if (!export_object(&m_settings, base)) {
 			std::string name = get_id_name(ob);
 			m_xforms[name] = new AbcTransformWriter(ob, m_writer->archive().getTop(), 0, m_trans_sampling_index, m_settings);
 		}
-
-		base = base->next;
 	}
 }
 
-void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Object *ob, Object *parent, Object *dupliObParent)
+void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Base *ob_base, Object *parent, Object *dupliObParent)
 {
+	Object *ob = ob_base->object;
 
-	if (export_object(&m_settings, ob) && object_is_shape(ob)) {
+	if (export_object(&m_settings, ob_base) && object_is_shape(ob)) {
 		createTransformWriter(ob, parent, dupliObParent);
 	}
 
 	ListBase *lb = object_duplilist(eval_ctx, m_scene, ob);
 
 	if (lb) {
-		DupliObject *link = static_cast<DupliObject *>(lb->first);
-		Object *dupli_ob = NULL;
-		Object *dupli_parent = NULL;
-		
-		while (link) {
+		Base fake_base = *ob_base;  // copy flags (like selection state) from the real object.
+		fake_base.next = fake_base.prev = NULL;
+
+		for (DupliObject *link = static_cast<DupliObject *>(lb->first); link; link = link->next) {
+			Object *dupli_ob = NULL;
+			Object *dupli_parent = NULL;
+
 			if (link->type == OB_DUPLIGROUP) {
 				dupli_ob = link->ob;
 				dupli_parent = (dupli_ob->parent) ? dupli_ob->parent : ob;
 
-				exploreTransform(eval_ctx, dupli_ob, dupli_parent, ob);
+				fake_base.object = dupli_ob;
+				exploreTransform(eval_ctx, &fake_base, dupli_parent, ob);
 			}
-
-			link = link->next;
 		}
 	}
 
@@ -460,44 +454,42 @@ void AbcExporter::createTransformWriter(Object *ob, Object *parent, Object *dupl
 
 void AbcExporter::createShapeWriters(EvaluationContext *eval_ctx)
 {
-	BaseLegacy *base = static_cast<BaseLegacy *>(m_scene->base.first);
-
-	while (base) {
-		Object *ob = base->object;
-		exploreObject(eval_ctx, ob, NULL);
-
-		base = base->next;
+	for(Base *base = static_cast<Base *>(m_settings.sl->object_bases.first); base; base = base->next) {
+		exploreObject(eval_ctx, base, NULL);
 	}
 }
 
-void AbcExporter::exploreObject(EvaluationContext *eval_ctx, Object *ob, Object *dupliObParent)
+void AbcExporter::exploreObject(EvaluationContext *eval_ctx, Base *ob_base, Object *dupliObParent)
 {
+	Object *ob = ob_base->object;
 	ListBase *lb = object_duplilist(eval_ctx, m_scene, ob);
 	
-	createShapeWriter(ob, dupliObParent);
+	createShapeWriter(ob_base, dupliObParent);
 	
 	if (lb) {
-		DupliObject *dupliob = static_cast<DupliObject *>(lb->first);
+		Base fake_base = *ob_base;  // copy flags (like selection state) from the real object.
+		fake_base.next = fake_base.prev = NULL;
 
-		while (dupliob) {
+		for (DupliObject *dupliob = static_cast<DupliObject *>(lb->first); dupliob; dupliob = dupliob->next) {
 			if (dupliob->type == OB_DUPLIGROUP) {
-				exploreObject(eval_ctx, dupliob->ob, ob);
+				fake_base.object = dupliob->ob;
+				exploreObject(eval_ctx, &fake_base, ob);
 			}
-
-			dupliob = dupliob->next;
 		}
 	}
 
 	free_object_duplilist(lb);
 }
 
-void AbcExporter::createShapeWriter(Object *ob, Object *dupliObParent)
+void AbcExporter::createShapeWriter(Base *ob_base, Object *dupliObParent)
 {
+	Object *ob = ob_base->object;
+
 	if (!object_is_shape(ob)) {
 		return;
 	}
 
-	if (!export_object(&m_settings, ob)) {
+	if (!export_object(&m_settings, ob_base)) {
 		return;
 	}
 
