@@ -99,6 +99,7 @@ enum {
 #define TSE_KEYMAP_ITEM     35  /* NO ID */
 #define TSE_ID_BASE         36  /* NO ID */
 #define TSE_GP_LAYER        37  /* NO ID */
+#define TSE_COLLECTION      38  /* NO ID */
 
 
 /* Check whether given TreeStoreElem should have a real ID in its ->id member. */

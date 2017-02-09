@@ -51,6 +51,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
@@ -245,6 +246,34 @@ static void restrictbutton_ebone_visibility_cb(bContext *C, void *UNUSED(poin), 
 static void restrictbutton_gp_layer_flag_cb(bContext *C, void *UNUSED(poin), void *UNUSED(poin2))
 {
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+}
+
+static void restrictbutton_collection_hide_cb(bContext *C, void *poin, void *poin2)
+{
+	Scene *scene = poin;
+	LayerCollection *collection = poin2;
+	SceneLayer *sl = BKE_scene_layer_find_from_collection(scene, collection);
+
+	/* hide and deselect bases that are directly influenced by this LayerCollection */
+	BKE_scene_layer_base_flag_recalculate(sl);
+	BKE_scene_layer_engine_settings_collection_recalculate(sl, collection);
+	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, NULL);
+}
+
+static void restrictbutton_collection_hide_select_cb(bContext *C, void *poin, void *poin2)
+{
+	Scene *scene = poin;
+	LayerCollection *collection = poin2;
+
+	if ((collection->flag & COLLECTION_SELECTABLE) == 0) {
+		SceneLayer *sl = BKE_scene_layer_find_from_collection(scene, collection);
+
+		/* deselect bases that are directly influenced by this LayerCollection */
+		BKE_scene_layer_base_flag_recalculate(sl);
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, CTX_data_scene(C));
+	}
+	WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, NULL);
 }
 
 static void restrictbutton_id_user_toggle(bContext *UNUSED(C), void *poin, void *UNUSED(poin2))
@@ -537,6 +566,27 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				
 				/* TODO: visibility in renders */
 				
+				UI_block_emboss_set(block, UI_EMBOSS);
+			}
+			else if (tselem->type == TSE_COLLECTION) {
+				LayerCollection *collection = te->directdata;
+
+				UI_block_emboss_set(block, UI_EMBOSS_NONE);
+
+				bt = uiDefIconButBitS(block, UI_BTYPE_ICON_TOGGLE_N, COLLECTION_VISIBLE, 0, ICON_RESTRICT_VIEW_OFF,
+				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X,
+				                      UI_UNIT_Y, &collection->flag, 0, 0, 0, 0,
+				                      TIP_("Restrict/Allow 3D View visibility of objects in the collection"));
+				UI_but_func_set(bt, restrictbutton_collection_hide_cb, scene, collection);
+				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+
+				bt = uiDefIconButBitS(block, UI_BTYPE_ICON_TOGGLE_N, COLLECTION_SELECTABLE, 0, ICON_RESTRICT_SELECT_OFF,
+				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, UI_UNIT_X,
+				                      UI_UNIT_Y, &collection->flag, 0, 0, 0, 0,
+				                      TIP_("Restrict/Allow 3D View selection of objects in the collection"));
+				UI_but_func_set(bt, restrictbutton_collection_hide_select_cb, scene, collection);
+				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+
 				UI_block_emboss_set(block, UI_EMBOSS);
 			}
 		}
