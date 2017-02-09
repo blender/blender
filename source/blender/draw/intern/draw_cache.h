@@ -34,10 +34,11 @@ void DRW_shape_cache_free(void);
 /* Common Shapes */
 struct Batch *DRW_cache_fullscreen_quad_get(void);
 struct Batch *DRW_cache_single_vert_get(void);
+struct Batch *DRW_cache_single_line_get(void);
 
 /* Empties */
 struct Batch *DRW_cache_plain_axes_get(void);
-struct Batch *DRW_cache_single_arrow_get(struct Batch **line);
+struct Batch *DRW_cache_single_arrow_get(void);
 struct Batch *DRW_cache_cube_get(void);
 struct Batch *DRW_cache_circle_get(void);
 struct Batch *DRW_cache_empty_sphere_get(void);

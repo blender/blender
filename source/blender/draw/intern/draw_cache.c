@@ -42,9 +42,9 @@ static struct DRWShapeCache{
 	Batch *drw_fullscreen_quad;
 	Batch *drw_plain_axes;
 	Batch *drw_single_arrow;
-	Batch *drw_single_arrow_line;
 	Batch *drw_cube;
 	Batch *drw_circle;
+	Batch *drw_line;
 	Batch *drw_empty_sphere;
 	Batch *drw_empty_cone;
 	Batch *drw_arrows;
@@ -62,12 +62,12 @@ void DRW_shape_cache_free(void)
 		Batch_discard_all(SHC.drw_plain_axes);
 	if (SHC.drw_single_arrow)
 		Batch_discard_all(SHC.drw_single_arrow);
-	if (SHC.drw_single_arrow_line)
-		Batch_discard_all(SHC.drw_single_arrow_line);
 	if (SHC.drw_cube)
 		Batch_discard_all(SHC.drw_cube);
 	if (SHC.drw_circle)
 		Batch_discard_all(SHC.drw_circle);
+	if (SHC.drw_line)
+		Batch_discard_all(SHC.drw_line);
 	if (SHC.drw_empty_sphere)
 		Batch_discard_all(SHC.drw_empty_sphere);
 	if (SHC.drw_empty_cone)
@@ -149,7 +149,6 @@ Batch *DRW_cache_cube_get(void)
 	return SHC.drw_cube;
 }
 
-
 Batch *DRW_cache_circle_get(void)
 {
 #define CIRCLE_RESOL 32
@@ -182,6 +181,31 @@ Batch *DRW_cache_circle_get(void)
 	}
 	return SHC.drw_circle;
 #undef CIRCLE_RESOL
+}
+
+Batch *DRW_cache_single_line_get(void)
+{
+	/* Z axis line */
+	if (!SHC.drw_line) {
+		float v1[3] = {0.0f, 0.0f, 0.0f};
+		float v2[3] = {0.0f, 0.0f, 1.0f};
+
+		/* Position Only 3D format */
+		static VertexFormat format = { 0 };
+		static unsigned pos_id;
+		if (format.attrib_ct == 0) {
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		}
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, 2);
+
+		setAttrib(vbo, pos_id, 0, v1);
+		setAttrib(vbo, pos_id, 1, v2);
+
+		SHC.drw_line = Batch_create(GL_LINES, vbo, NULL);
+	}
+	return SHC.drw_line;
 }
 
 /* Empties */
@@ -218,9 +242,9 @@ Batch *DRW_cache_plain_axes_get(void)
 	return SHC.drw_plain_axes;
 }
 
-Batch *DRW_cache_single_arrow_get(Batch **line)
+Batch *DRW_cache_single_arrow_get(void)
 {
-	if (!SHC.drw_single_arrow_line || !SHC.drw_single_arrow) {
+	if (!SHC.drw_single_arrow) {
 		float v1[3] = {0.0f, 0.0f, 0.0f}, v2[3], v3[3];
 
 		/* Position Only 3D format */
@@ -230,18 +254,8 @@ Batch *DRW_cache_single_arrow_get(Batch **line)
 			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
 		}
 
-		/* Line */
-		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
-		VertexBuffer_allocate_data(vbo, 2);
-
-		setAttrib(vbo, pos_id, 0, v1);
-		v1[2] = 1.0f;
-		setAttrib(vbo, pos_id, 1, v1);
-
-		SHC.drw_single_arrow_line = Batch_create(GL_LINES, vbo, NULL);
-
 		/* Square Pyramid */
-		vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
 		VertexBuffer_allocate_data(vbo, 12);
 
 		v2[0] = 0.035f; v2[1] = 0.035f;
@@ -265,7 +279,6 @@ Batch *DRW_cache_single_arrow_get(Batch **line)
 
 		SHC.drw_single_arrow = Batch_create(GL_TRIANGLES, vbo, NULL);
 	}
-	*line = SHC.drw_single_arrow_line;
 	return SHC.drw_single_arrow;
 }
 
