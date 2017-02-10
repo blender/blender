@@ -524,36 +524,6 @@ static void attr_create_uv_map(Scene *scene,
 	}
 }
 
-/* TODO(sergey): Move this to some better place? */
-class EdgeMap {
-public:
-	EdgeMap() {
-	}
-
-	void clear() {
-		edges_.clear();
-	}
-
-	void insert(int v0, int v1) {
-		get_sorted_verts(v0, v1);
-		edges_.insert(std::pair<int, int>(v0, v1));
-	}
-
-	bool exists(int v0, int v1) {
-		get_sorted_verts(v0, v1);
-		return edges_.find(std::pair<int, int>(v0, v1)) != edges_.end();
-	}
-
-protected:
-	void get_sorted_verts(int& v0, int& v1) {
-		if(v0 > v1) {
-			swap(v0, v1);
-		}
-	}
-
-	set< std::pair<int, int> > edges_;
-};
-
 /* Create vertex pointiness attributes. */
 static void attr_create_pointiness(Scene *scene,
                                    Mesh *mesh,
