@@ -97,14 +97,14 @@ Imath::Box3d AbcObjectWriter::bounds()
 		return Imath::Box3d();
 	}
 
-	/* Convert Z-up to Y-up. */
+	/* Convert Z-up to Y-up. This also changes which vector goes into which min/max property. */
 	this->m_bounds.min.x = bb->vec[0][0];
 	this->m_bounds.min.y = bb->vec[0][2];
-	this->m_bounds.min.z = -bb->vec[0][1];
+	this->m_bounds.min.z = -bb->vec[6][1];
 
 	this->m_bounds.max.x = bb->vec[6][0];
 	this->m_bounds.max.y = bb->vec[6][2];
-	this->m_bounds.max.z = -bb->vec[6][1];
+	this->m_bounds.max.z = -bb->vec[0][1];
 
 	return this->m_bounds;
 }
