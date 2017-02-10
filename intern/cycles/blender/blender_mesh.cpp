@@ -535,14 +535,11 @@ static void attr_create_pointiness(Scene *scene,
 		AttributeSet& attributes = (subdivision)? mesh->subd_attributes: mesh->attributes;
 		Attribute *attr = attributes.add(ATTR_STD_POINTINESS);
 		float *data = attr->data_float();
-		int *counter = new int[numverts];
-		float *raw_data = new float[numverts];
-		float3 *edge_accum = new float3[numverts];
+		vector<int> counter(numverts, 0);
+		vector<float> raw_data(numverts, 0.0f);
+		vector<float3> edge_accum(numverts, make_float3(0.0f, 0.0f, 0.0f));
 
 		/* Calculate pointiness using single ring neighborhood. */
-		memset(counter, 0, sizeof(int) * numverts);
-		memset(raw_data, 0, sizeof(float) * numverts);
-		memset(edge_accum, 0, sizeof(float3) * numverts);
 		BL::Mesh::edges_iterator e;
 		int i = 0;
 		for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++i) {
@@ -570,8 +567,8 @@ static void attr_create_pointiness(Scene *scene,
 		}
 
 		/* Blur vertices to approximate 2 ring neighborhood. */
-		memset(counter, 0, sizeof(int) * numverts);
-		memcpy(data, raw_data, sizeof(float) * numverts);
+		memset(&counter[0], 0, sizeof(int) * counter.size());
+		memcpy(data, &raw_data[0], sizeof(float) * raw_data.size());
 		i = 0;
 		for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++i) {
 			int v0 = b_mesh.edges[i].vertices()[0],
@@ -584,10 +581,6 @@ static void attr_create_pointiness(Scene *scene,
 		for(i = 0; i < numverts; ++i) {
 			data[i] /= counter[i] + 1;
 		}
-
-		delete [] counter;
-		delete [] raw_data;
-		delete [] edge_accum;
 	}
 }
 
