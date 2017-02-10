@@ -524,6 +524,36 @@ static void attr_create_uv_map(Scene *scene,
 	}
 }
 
+/* TODO(sergey): Move this to some better place? */
+class EdgeMap {
+public:
+	EdgeMap() {
+	}
+
+	void clear() {
+		edges_.clear();
+	}
+
+	void insert(int v0, int v1) {
+		get_sorted_verts(v0, v1);
+		edges_.insert(std::pair<int, int>(v0, v1));
+	}
+
+	bool exists(int v0, int v1) {
+		get_sorted_verts(v0, v1);
+		return edges_.find(std::pair<int, int>(v0, v1)) != edges_.end();
+	}
+
+protected:
+	void get_sorted_verts(int& v0, int& v1) {
+		if(v0 > v1) {
+			swap(v0, v1);
+		}
+	}
+
+	set< std::pair<int, int> > edges_;
+};
+
 /* Create vertex pointiness attributes. */
 static void attr_create_pointiness(Scene *scene,
                                    Mesh *mesh,
@@ -593,20 +623,16 @@ static void attr_create_pointiness(Scene *scene,
 	vector<float> raw_data(num_verts, 0.0f);
 	vector<float3> edge_accum(num_verts, make_float3(0.0f, 0.0f, 0.0f));
 	BL::Mesh::edges_iterator e;
-	set< std::pair<int, int> > visited_edges;
+	EdgeMap visited_edges;
 	int edge_index = 0;
 	memset(&counter[0], 0, sizeof(int) * counter.size());
 	for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++edge_index) {
 		const int v0 = vert_orig_index[b_mesh.edges[edge_index].vertices()[0]],
 		          v1 = vert_orig_index[b_mesh.edges[edge_index].vertices()[1]];
-		int sorted_v0 = v0, sorted_v1 = v1;
-		if(sorted_v0 > sorted_v1) {
-			swap(sorted_v0, sorted_v1);
-		}
-		if(visited_edges.find(std::pair<int, int>(sorted_v0, sorted_v1)) != visited_edges.end()) {
+		if(visited_edges.exists(v0, v1)) {
 			continue;
 		}
-		visited_edges.insert(std::pair<int, int>(sorted_v0, sorted_v1));
+		visited_edges.insert(v0, v1);
 		float3 co0 = get_float3(b_mesh.vertices[v0].co()),
 		       co1 = get_float3(b_mesh.vertices[v1].co());
 		float3 edge = normalize(co1 - co0);
@@ -641,14 +667,10 @@ static void attr_create_pointiness(Scene *scene,
 	for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++edge_index) {
 		const int v0 = vert_orig_index[b_mesh.edges[edge_index].vertices()[0]],
 		          v1 = vert_orig_index[b_mesh.edges[edge_index].vertices()[1]];
-		int sorted_v0 = v0, sorted_v1 = v1;
-		if(sorted_v0 > sorted_v1) {
-			swap(sorted_v0, sorted_v1);
-		}
-		if(visited_edges.find(std::pair<int, int>(sorted_v0, sorted_v1)) != visited_edges.end()) {
+		if(visited_edges.exists(v0, v1)) {
 			continue;
 		}
-		visited_edges.insert(std::pair<int, int>(sorted_v0, sorted_v1));
+		visited_edges.insert(v0, v1);
 		data[v0] += raw_data[v1];
 		data[v1] += raw_data[v0];
 		++counter[v0];
