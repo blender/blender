@@ -417,7 +417,7 @@ if(WITH_CYCLES)
 					-idiff "${OPENIMAGEIO_IDIFF}"
 				)
 			endif()
-		endmacro()	
+		endmacro()
 		add_cycles_render_test(reports)
 		add_cycles_render_test(render)
 		add_cycles_render_test(shader)
