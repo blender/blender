@@ -308,6 +308,7 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
 
 	fcu->prev_norm_factor = 1.0f;
 	if (fcu->bezt) {
+		const bool use_preview_only = PRVRANGEON;
 		BezTriple *bezt;
 		int i;
 		float max_coord = -FLT_MAX;
@@ -318,29 +319,20 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
 			return 1.0f;
 		}
 
-		if (PRVRANGEON) {
-			for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
-				if (IN_RANGE_INCL(bezt->vec[1][0], scene->r.psfra, scene->r.pefra)) {
-					max_coord = max_ff(max_coord, bezt->vec[0][1]);
-					max_coord = max_ff(max_coord, bezt->vec[1][1]);
-					max_coord = max_ff(max_coord, bezt->vec[2][1]);
-
-					min_coord = min_ff(min_coord, bezt->vec[0][1]);
-					min_coord = min_ff(min_coord, bezt->vec[1][1]);
-					min_coord = min_ff(min_coord, bezt->vec[2][1]);
-				}
+		for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
+			if (use_preview_only && !IN_RANGE_INCL(bezt->vec[1][0],
+			                                       scene->r.psfra,
+			                                       scene->r.pefra))
+			{
+				continue;
 			}
-		}
-		else {
-			for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
-				max_coord = max_ff(max_coord, bezt->vec[0][1]);
-				max_coord = max_ff(max_coord, bezt->vec[1][1]);
-				max_coord = max_ff(max_coord, bezt->vec[2][1]);
+			max_coord = max_ff(max_coord, bezt->vec[0][1]);
+			max_coord = max_ff(max_coord, bezt->vec[1][1]);
+			max_coord = max_ff(max_coord, bezt->vec[2][1]);
 
-				min_coord = min_ff(min_coord, bezt->vec[0][1]);
-				min_coord = min_ff(min_coord, bezt->vec[1][1]);
-				min_coord = min_ff(min_coord, bezt->vec[2][1]);
-			}
+			min_coord = min_ff(min_coord, bezt->vec[0][1]);
+			min_coord = min_ff(min_coord, bezt->vec[1][1]);
+			min_coord = min_ff(min_coord, bezt->vec[2][1]);
 		}
 
 		if (max_coord > min_coord) {
