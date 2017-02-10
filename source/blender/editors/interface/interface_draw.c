@@ -571,6 +571,10 @@ static void histogram_draw_one(
 {
 	float color[4] = {r, g, b, alpha};
 
+	/* that can happen */
+	if (res == 0)
+		return;
+
 	glEnable(GL_LINE_SMOOTH);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
@@ -1015,9 +1019,9 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 		immEnd();
 	}
 	/* skin tone line */
-	glColor4f(1.0f, 0.4f, 0.0f, 0.2f);
-	fdrawline(polar_to_x(centerx, diam, 0.5f, skin_rad), polar_to_y(centery, diam, 0.5f, skin_rad),
-	          polar_to_x(centerx, diam, 0.1f, skin_rad), polar_to_y(centery, diam, 0.1f, skin_rad));
+	immUniformColor4f(1.0f, 0.4f, 0.0f, 0.2f);
+	imm_draw_line(pos, polar_to_x(centerx, diam, 0.5f, skin_rad), polar_to_y(centery, diam, 0.5f, skin_rad),
+	                   polar_to_x(centerx, diam, 0.1f, skin_rad), polar_to_y(centery, diam, 0.1f, skin_rad));
 	/* saturation points */
 	for (int i = 0; i < 6; i++)
 		vectorscope_draw_target(pos, centerx, centery, diam, colors[i]);
@@ -1473,11 +1477,11 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	/* XXX 2.48 */
 #if 0
 	if (cumap->flag & CUMA_DRAW_CFRA) {
-		glColor3ub(0x60, 0xc0, 0x40);
-		glBegin(GL_LINES);
-		glVertex2f(rect->xmin + zoomx * (cumap->sample[0] - offsx), rect->ymin);
-		glVertex2f(rect->xmin + zoomx * (cumap->sample[0] - offsx), rect->ymax);
-		glEnd();
+		immUniformColor3ub(0x60, 0xc0, 0x40);
+		immBegin(GL_LINES, 2);
+		immVertex2f(pos, rect->xmin + zoomx * (cumap->sample[0] - offsx), rect->ymin);
+		immVertex2f(pos, rect->xmin + zoomx * (cumap->sample[0] - offsx), rect->ymax);
+		immEnd();
 	}
 #endif
 	/* sample option */
@@ -1647,13 +1651,16 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 	}
 
 	if (!ok && scopes->track_preview) {
-		glPushMatrix();
+		gpuMatrixBegin3D_legacy();
+		gpuPushMatrix();
 
 		/* draw content of pattern area */
 		glScissor(ar->winrct.xmin + rect.xmin, ar->winrct.ymin + rect.ymin, scissor[2], scissor[3]);
 
 		if (width > 0 && height > 0) {
 			ImBuf *drawibuf = scopes->track_preview;
+			float img_col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+			float col_sel[4], col_outline[4];
 
 			if (scopes->use_track_mask) {
 				float color[4] = {0.0f, 0.0f, 0.0f, 0.3f};
@@ -1661,40 +1668,49 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 				UI_draw_roundbox_gl_mode(GL_TRIANGLE_FAN, rect.xmin - 1, rect.ymin, rect.xmax + 1, rect.ymax + 1, 3.0f, color);
 			}
 
-			glaDrawPixelsSafe(rect.xmin, rect.ymin + 1, drawibuf->x, drawibuf->y,
-			                  drawibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, drawibuf->rect);
+			immDrawPixelsTex(rect.xmin, rect.ymin + 1, drawibuf->x, drawibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, drawibuf->rect, 1.0f, 1.0f, img_col);
 
 			/* draw cross for pixel position */
-			glTranslatef(rect.xmin + scopes->track_pos[0], rect.ymin + scopes->track_pos[1], 0.0f);
+			gpuTranslate3f(rect.xmin + scopes->track_pos[0], rect.ymin + scopes->track_pos[1], 0.0f);
 			glScissor(ar->winrct.xmin + rect.xmin,
 			          ar->winrct.ymin + rect.ymin,
 			          BLI_rctf_size_x(&rect),
 			          BLI_rctf_size_y(&rect));
 
-			GPU_basic_shader_bind_enable(GPU_SHADER_LINE);
+			VertexFormat *format = immVertexFormat();
+			unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+			unsigned int col = add_attrib(format, "color", GL_FLOAT, 4, KEEP_FLOAT);
+			immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
-			for (int a = 0; a < 2; a++) {
-				if (a == 1) {
-					GPU_basic_shader_bind_enable(GPU_SHADER_STIPPLE);
-					GPU_basic_shader_line_stipple(3, 0xAAAA);
-					UI_ThemeColor(TH_SEL_MARKER);
-				}
-				else {
-					UI_ThemeColor(TH_MARKER_OUTLINE);
-				}
+			UI_GetThemeColor4fv(TH_SEL_MARKER, col_sel);
+			UI_GetThemeColor4fv(TH_MARKER_OUTLINE, col_outline);
 
-				glBegin(GL_LINES);
-				glVertex2f(-10.0f, 0.0f);
-				glVertex2f(10.0f, 0.0f);
-				glVertex2f(0.0f, -10.0f);
-				glVertex2f(0.0f, 10.0f);
-				glEnd();
+			/* Do stipple cross with geometry */
+			immBegin(GL_LINES, 7*2*2);
+			float pos_sel[8] = {-10.0f, -7.0f, -4.0f, -1.0f, 2.0f, 5.0f, 8.0f, 11.0f};
+			for (int axe = 0; axe < 2; ++axe) {
+				for (int i = 0; i < 7; ++i) {
+					float x1 = pos_sel[i] * (1 - axe);
+					float y1 = pos_sel[i] * axe;
+					float x2 = pos_sel[i+1] * (1 - axe);
+					float y2 = pos_sel[i+1] * axe;
+
+					if (i % 2 == 1)
+						immAttrib4fv(col, col_sel);
+					else
+						immAttrib4fv(col, col_outline);
+
+					immVertex2f(pos, x1, y1);
+					immVertex2f(pos, x2, y2);
+				}
 			}
+			immEnd();
 
-			GPU_basic_shader_bind_disable(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
+			immUnbindProgram();
 		}
 
-		glPopMatrix();
+		gpuPopMatrix();
+		gpuMatrixEnd();
 
 		ok = true;
 	}
@@ -1748,26 +1764,31 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol
 	          BLI_rcti_size_x(&scissor_new),
 	          BLI_rcti_size_y(&scissor_new));
 	
-	glColor4ubv(but->col);
-	
 	float x = 0.5f * (recti->xmin + recti->xmax);
 	float y = 0.5f * (recti->ymin + recti->ymax);
-	
+
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformColor4ubv(but->col);
+
 	glEnable(GL_BLEND);
-	glBegin(GL_TRIANGLE_FAN);
+	immBegin(GL_TRIANGLE_FAN, 16);
 	for (int a = 0; a < 16; a++)
-		glVertex2f(x + size * si[a], y + size * co[a]);
-	glEnd();
+		immVertex2f(pos, x + size * si[a], y + size * co[a]);
+	immEnd();
 	
-	glColor4ub(0, 0, 0, 150);
+	immUniformColor4ub(0, 0, 0, 150);
 	glLineWidth(1);
 	glEnable(GL_LINE_SMOOTH);
-	glBegin(GL_LINE_LOOP);
+	immBegin(GL_LINE_LOOP, 16);
 	for (int a = 0; a < 16; a++)
-		glVertex2f(x + size * si[a], y + size * co[a]);
-	glEnd();
+		immVertex2f(pos, x + size * si[a], y + size * co[a]);
+	immEnd();
 	glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
+
+	immUnbindProgram();
 	
 	/* restore scissortest */
 	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
