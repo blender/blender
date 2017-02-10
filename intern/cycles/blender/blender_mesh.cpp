@@ -530,57 +530,56 @@ static void attr_create_pointiness(Scene *scene,
                                    BL::Mesh& b_mesh,
                                    bool subdivision)
 {
-	if(mesh->need_attribute(scene, ATTR_STD_POINTINESS)) {
-		const int numverts = b_mesh.vertices.length();
-		AttributeSet& attributes = (subdivision)? mesh->subd_attributes: mesh->attributes;
-		Attribute *attr = attributes.add(ATTR_STD_POINTINESS);
-		float *data = attr->data_float();
-		vector<int> counter(numverts, 0);
-		vector<float> raw_data(numverts, 0.0f);
-		vector<float3> edge_accum(numverts, make_float3(0.0f, 0.0f, 0.0f));
-
-		/* Calculate pointiness using single ring neighborhood. */
-		BL::Mesh::edges_iterator e;
-		int i = 0;
-		for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++i) {
-			int v0 = b_mesh.edges[i].vertices()[0],
-			    v1 = b_mesh.edges[i].vertices()[1];
-			float3 co0 = get_float3(b_mesh.vertices[v0].co()),
-			       co1 = get_float3(b_mesh.vertices[v1].co());
-			float3 edge = normalize(co1 - co0);
-			edge_accum[v0] += edge;
-			edge_accum[v1] += -edge;
-			++counter[v0];
-			++counter[v1];
+	if(!mesh->need_attribute(scene, ATTR_STD_POINTINESS)) {
+		return;
+	}
+	const int numverts = b_mesh.vertices.length();
+	AttributeSet& attributes = (subdivision)? mesh->subd_attributes: mesh->attributes;
+	Attribute *attr = attributes.add(ATTR_STD_POINTINESS);
+	float *data = attr->data_float();
+	vector<int> counter(numverts, 0);
+	vector<float> raw_data(numverts, 0.0f);
+	vector<float3> edge_accum(numverts, make_float3(0.0f, 0.0f, 0.0f));
+	/* Calculate pointiness using single ring neighborhood. */
+	BL::Mesh::edges_iterator e;
+	int i = 0;
+	for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++i) {
+		int v0 = b_mesh.edges[i].vertices()[0],
+		    v1 = b_mesh.edges[i].vertices()[1];
+		float3 co0 = get_float3(b_mesh.vertices[v0].co()),
+		       co1 = get_float3(b_mesh.vertices[v1].co());
+		float3 edge = normalize(co1 - co0);
+		edge_accum[v0] += edge;
+		edge_accum[v1] += -edge;
+		++counter[v0];
+		++counter[v1];
+	}
+	i = 0;
+	BL::Mesh::vertices_iterator v;
+	for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v, ++i) {
+		if(counter[i] > 0) {
+			float3 normal = get_float3(b_mesh.vertices[i].normal());
+			float angle = safe_acosf(dot(normal, edge_accum[i] / counter[i]));
+			raw_data[i] = angle * M_1_PI_F;
 		}
-		i = 0;
-		BL::Mesh::vertices_iterator v;
-		for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v, ++i) {
-			if(counter[i] > 0) {
-				float3 normal = get_float3(b_mesh.vertices[i].normal());
-				float angle = safe_acosf(dot(normal, edge_accum[i] / counter[i]));
-				raw_data[i] = angle * M_1_PI_F;
-			}
-			else {
-				raw_data[i] = 0.0f;
-			}
+		else {
+			raw_data[i] = 0.0f;
 		}
-
-		/* Blur vertices to approximate 2 ring neighborhood. */
-		memset(&counter[0], 0, sizeof(int) * counter.size());
-		memcpy(data, &raw_data[0], sizeof(float) * raw_data.size());
-		i = 0;
-		for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++i) {
-			int v0 = b_mesh.edges[i].vertices()[0],
-			    v1 = b_mesh.edges[i].vertices()[1];
-			data[v0] += raw_data[v1];
-			data[v1] += raw_data[v0];
-			++counter[v0];
-			++counter[v1];
-		}
-		for(i = 0; i < numverts; ++i) {
-			data[i] /= counter[i] + 1;
-		}
+	}
+	/* Blur vertices to approximate 2 ring neighborhood. */
+	memset(&counter[0], 0, sizeof(int) * counter.size());
+	memcpy(data, &raw_data[0], sizeof(float) * raw_data.size());
+	i = 0;
+	for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++i) {
+		int v0 = b_mesh.edges[i].vertices()[0],
+		    v1 = b_mesh.edges[i].vertices()[1];
+		data[v0] += raw_data[v1];
+		data[v1] += raw_data[v0];
+		++counter[v0];
+		++counter[v1];
+	}
+	for(i = 0; i < numverts; ++i) {
+		data[i] /= counter[i] + 1;
 	}
 }
 
