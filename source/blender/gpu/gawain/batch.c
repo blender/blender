@@ -19,20 +19,25 @@ extern bool gpuMatricesDirty(void); // how best to use this here?
 
 Batch* Batch_create(PrimitiveType prim_type, VertexBuffer* verts, ElementList* elem)
 	{
+	Batch* batch = calloc(1, sizeof(Batch));
+
+	Batch_init(batch, prim_type, verts, elem);
+
+	return batch;
+	}
+
+void Batch_init(Batch* batch, PrimitiveType prim_type, VertexBuffer* verts, ElementList* elem)
+	{
 #if TRUST_NO_ONE
 	assert(verts != NULL);
 	assert(prim_type == PRIM_POINTS || prim_type == PRIM_LINES || prim_type == PRIM_TRIANGLES);
 	// we will allow other primitive types in a future update
 #endif
 
-	Batch* batch = calloc(1, sizeof(Batch));
-
 	batch->verts = verts;
 	batch->elem = elem;
 	batch->prim_type = prim_type;
 	batch->phase = READY_TO_DRAW;
-
-	return batch;
 	}
 
 void Batch_discard(Batch* batch)

@@ -38,6 +38,7 @@ typedef struct Batch{
 } Batch;
 
 Batch* Batch_create(PrimitiveType, VertexBuffer*, ElementList*);
+void Batch_init(Batch* batch, PrimitiveType prim_type, VertexBuffer* verts, ElementList* elem);
 
 void Batch_discard(Batch*); // verts & elem are not discarded
 void Batch_discard_all(Batch*); // including verts & elem
