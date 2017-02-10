@@ -10395,6 +10395,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					else {
 						mainptr->curlib->filedata = NULL;
 						mainptr->curlib->id.tag |= LIB_TAG_MISSING;
+						/* Set lib version to current main one... Makes assert later happy. */
+						mainptr->versionfile = mainptr->curlib->versionfile = mainl->versionfile;
+						mainptr->subversionfile = mainptr->curlib->subversionfile = mainl->subversionfile;
 					}
 					
 					if (fd == NULL) {
