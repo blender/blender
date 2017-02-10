@@ -196,6 +196,24 @@ void glaDrawPixelsTex_clipping(float x, float y, int img_w, int img_h, int forma
                                float clip_min_x, float clip_min_y, float clip_max_x, float clip_max_y);
 
 /**
+ * immDrawPixelsTex - Functions like a limited glDrawPixels, but actually draws the
+ * image using textures, which can be tremendously faster on low-end
+ * cards, and also avoids problems with the raster position being
+ * clipped when offscreen. Pixel unpacking parameters and
+ * the glPixelZoom values are _not_ respected.
+ *
+ * \attention This routine makes many assumptions: the rect data
+ * is expected to be in RGBA byte or float format, and the
+ * modelview and projection matrices are assumed to define a
+ * 1-to-1 mapping to screen space.
+ */
+void immDrawPixelsTex(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect,
+                      float xzoom, float yzoom, float color[4]);
+void immDrawPixelsTex_clipping(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect,
+                               float clip_min_x, float clip_min_y, float clip_max_x, float clip_max_y,
+                               float xzoom, float yzoom, float color[4]);
+
+/**
  * glaDrawPixelsAuto - Switches between texture or pixel drawing using UserDef.
  * only RGBA
  * needs glaDefine2DArea to be set.
@@ -209,6 +227,11 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 void glaDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect, float scaleX, float scaleY,
                                      float clip_min_x, float clip_min_y, float clip_max_x, float clip_max_y);
 
+void immDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect, float scaleX, float scaleY,
+                           float xzoom, float yzoom, float color[4]);
+void immDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect, float scaleX, float scaleY,
+                                     float clip_min_x, float clip_min_y, float clip_max_x, float clip_max_y,
+                                     float xzoom, float yzoom, float color[4]);
 /* 2D Drawing Assistance */
 
 /** Define a 2D area (viewport, scissor, matrices) for OpenGL rendering.

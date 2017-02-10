@@ -306,6 +306,7 @@ static int get_cached_work_texture(int *r_w, int *r_h)
 	return texid;
 }
 
+/* DEPRECATED: use immDrawPixelsTexScaled_clipping instead */
 void glaDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
                                      int format, int type, int zoomfilter, void *rect,
                                      float scaleX, float scaleY,
@@ -441,6 +442,7 @@ void glaDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 }
 
+/* DEPRECATED: use immDrawPixelsTexScaled instead */
 void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h,
                             int format, int type, int zoomfilter, void *rect,
                             float scaleX, float scaleY)
@@ -449,12 +451,14 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h,
 	                                scaleX, scaleY, 0.0f, 0.0f, 0.0f, 0.0f);
 }
 
+/* DEPRECATED: use immDrawPixelsTex instead */
 void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect)
 {
 	glaDrawPixelsTexScaled_clipping(x, y, img_w, img_h, format, type, zoomfilter, rect, 1.0f, 1.0f,
 	                                0.0f, 0.0f, 0.0f, 0.0f);
 }
 
+/* DEPRECATED: use immDrawPixelsTex_clipping instead */
 void glaDrawPixelsTex_clipping(float x, float y, int img_w, int img_h,
                                int format, int type, int zoomfilter, void *rect,
                                float clip_min_x, float clip_min_y, float clip_max_x, float clip_max_y)
@@ -566,6 +570,176 @@ void glaDrawPixelsAuto(float x, float y, int img_w, int img_h, int format, int t
 {
 	glaDrawPixelsAuto_clipping(x, y, img_w, img_h, format, type, zoomfilter, rect,
 	                           0.0f, 0.0f, 0.0f, 0.0f);
+}
+
+/* TODO this is utterly slow and need some love
+ * but in the meantime it's not using deprecated api */
+void immDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
+                                     int format, int type, int zoomfilter, void *rect,
+                                     float scaleX, float scaleY,
+                                     float clip_min_x, float clip_min_y,
+                                     float clip_max_x, float clip_max_y,
+                                     float xzoom, float yzoom, float color[4])
+{
+	unsigned char *uc_rect = (unsigned char *) rect;
+	const float *f_rect = (float *)rect;
+	int subpart_x, subpart_y, tex_w, tex_h;
+	int seamless, offset_x, offset_y, nsubparts_x, nsubparts_y;
+	int texid = get_cached_work_texture(&tex_w, &tex_h);
+	int components;
+	const bool use_clipping = ((clip_min_x < clip_max_x) && (clip_min_y < clip_max_y));
+
+	/* Specify the color outside this function, and tex will modulate it.
+	 * This is useful for changing alpha without using glPixelTransferf()
+	 */
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, img_w);
+	glBindTexture(GL_TEXTURE_2D, texid);
+
+	/* don't want nasty border artifacts */
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, zoomfilter);
+
+	/* setup seamless 2=on, 0=off */
+	seamless = ((tex_w < img_w || tex_h < img_h) && tex_w > 2 && tex_h > 2) ? 2 : 0;
+
+	offset_x = tex_w - seamless;
+	offset_y = tex_h - seamless;
+
+	nsubparts_x = (img_w + (offset_x - 1)) / (offset_x);
+	nsubparts_y = (img_h + (offset_y - 1)) / (offset_y);
+
+	if (format == GL_RGBA)
+		components = 4;
+	else if (format == GL_RGB)
+		components = 3;
+	else if (format == GL_RED)
+		components = 1;
+	else {
+		BLI_assert(!"Incompatible format passed to glaDrawPixelsTexScaled");
+		return;
+	}
+
+	if (type == GL_FLOAT) {
+		/* need to set internal format to higher range float */
+
+		/* NOTE: this could fail on some drivers, like mesa,
+		 *       but currently this code is only used by color
+		 *       management stuff which already checks on whether
+		 *       it's possible to use GL_RGBA16F_ARB
+		 */
+
+		/* TODO viewport : remove extension */
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, tex_w, tex_h, 0, format, GL_FLOAT, NULL);
+	}
+	else {
+		/* switch to 8bit RGBA for byte buffer */
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_w, tex_h, 0, format, GL_UNSIGNED_BYTE, NULL);
+	}
+
+	VertexFormat *vert_format = immVertexFormat();
+	unsigned int pos = add_attrib(vert_format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int texco = add_attrib(vert_format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+	immUniform4fv("color", color);
+	immUniform1i("image", 0);
+
+	for (subpart_y = 0; subpart_y < nsubparts_y; subpart_y++) {
+		for (subpart_x = 0; subpart_x < nsubparts_x; subpart_x++) {
+			int remainder_x = img_w - subpart_x * offset_x;
+			int remainder_y = img_h - subpart_y * offset_y;
+			int subpart_w = (remainder_x < tex_w) ? remainder_x : tex_w;
+			int subpart_h = (remainder_y < tex_h) ? remainder_y : tex_h;
+			int offset_left = (seamless && subpart_x != 0) ? 1 : 0;
+			int offset_bot = (seamless && subpart_y != 0) ? 1 : 0;
+			int offset_right = (seamless && remainder_x > tex_w) ? 1 : 0;
+			int offset_top = (seamless && remainder_y > tex_h) ? 1 : 0;
+			float rast_x = x + subpart_x * offset_x * xzoom;
+			float rast_y = y + subpart_y * offset_y * yzoom;
+			/* check if we already got these because we always get 2 more when doing seamless */
+			if (subpart_w <= seamless || subpart_h <= seamless)
+				continue;
+
+			if (use_clipping) {
+				if (rast_x + (float)(subpart_w - offset_right) * xzoom * scaleX < clip_min_x ||
+				    rast_y + (float)(subpart_h - offset_top) * yzoom * scaleY < clip_min_y)
+				{
+					continue;
+				}
+				if (rast_x + (float)offset_left * xzoom > clip_max_x ||
+				    rast_y + (float)offset_bot * yzoom > clip_max_y)
+				{
+					continue;
+				}
+			}
+
+			if (type == GL_FLOAT) {
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, subpart_w, subpart_h, format, GL_FLOAT, &f_rect[((size_t)subpart_y) * offset_y * img_w * components + subpart_x * offset_x * components]);
+
+				/* add an extra border of pixels so linear looks ok at edges of full image */
+				if (subpart_w < tex_w)
+					glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, 0, 1, subpart_h, format, GL_FLOAT, &f_rect[((size_t)subpart_y) * offset_y * img_w * components + (subpart_x * offset_x + subpart_w - 1) * components]);
+				if (subpart_h < tex_h)
+					glTexSubImage2D(GL_TEXTURE_2D, 0, 0, subpart_h, subpart_w, 1, format, GL_FLOAT, &f_rect[(((size_t)subpart_y) * offset_y + subpart_h - 1) * img_w * components + subpart_x * offset_x * components]);
+				if (subpart_w < tex_w && subpart_h < tex_h)
+					glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, subpart_h, 1, 1, format, GL_FLOAT, &f_rect[(((size_t)subpart_y) * offset_y + subpart_h - 1) * img_w * components + (subpart_x * offset_x + subpart_w - 1) * components]);
+			}
+			else {
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, subpart_w, subpart_h, format, GL_UNSIGNED_BYTE, &uc_rect[((size_t)subpart_y) * offset_y * img_w * components + subpart_x * offset_x * components]);
+
+				if (subpart_w < tex_w)
+					glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, 0, 1, subpart_h, format, GL_UNSIGNED_BYTE, &uc_rect[((size_t)subpart_y) * offset_y * img_w * components + (subpart_x * offset_x + subpart_w - 1) * components]);
+				if (subpart_h < tex_h)
+					glTexSubImage2D(GL_TEXTURE_2D, 0, 0, subpart_h, subpart_w, 1, format, GL_UNSIGNED_BYTE, &uc_rect[(((size_t)subpart_y) * offset_y + subpart_h - 1) * img_w * components + subpart_x * offset_x * components]);
+				if (subpart_w < tex_w && subpart_h < tex_h)
+					glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, subpart_h, 1, 1, format, GL_UNSIGNED_BYTE, &uc_rect[(((size_t)subpart_y) * offset_y + subpart_h - 1) * img_w * components + (subpart_x * offset_x + subpart_w - 1) * components]);
+			}
+
+			immBegin(GL_TRIANGLE_FAN, 4);
+			immAttrib2f(texco, (float)(0 + offset_left) / tex_w, (float)(0 + offset_bot) / tex_h);
+			immVertex2f(pos, rast_x + (float)offset_left * xzoom, rast_y + (float)offset_bot * yzoom);
+
+			immAttrib2f(texco, (float)(subpart_w - offset_right) / tex_w, (float)(0 + offset_bot) / tex_h);
+			immVertex2f(pos, rast_x + (float)(subpart_w - offset_right) * xzoom * scaleX, rast_y + (float)offset_bot * yzoom);
+
+			immAttrib2f(texco, (float)(subpart_w - offset_right) / tex_w, (float)(subpart_h - offset_top) / tex_h);
+			immVertex2f(pos, rast_x + (float)(subpart_w - offset_right) * xzoom * scaleX, rast_y + (float)(subpart_h - offset_top) * yzoom * scaleY);
+
+			immAttrib2f(texco, (float)(0 + offset_left) / tex_w, (float)(subpart_h - offset_top) / tex_h);
+			immVertex2f(pos, rast_x + (float)offset_left * xzoom, rast_y + (float)(subpart_h - offset_top) * yzoom * scaleY);
+			immEnd();
+		}
+	}
+
+	immUnbindProgram();
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+}
+
+void immDrawPixelsTexScaled(float x, float y, int img_w, int img_h,
+                            int format, int type, int zoomfilter, void *rect,
+                            float scaleX, float scaleY, float xzoom, float yzoom, float color[4])
+{
+	immDrawPixelsTexScaled_clipping(x, y, img_w, img_h, format, type, zoomfilter, rect,
+	                                scaleX, scaleY, 0.0f, 0.0f, 0.0f, 0.0f, xzoom, yzoom, color);
+}
+
+void immDrawPixelsTex(float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect,
+                      float xzoom, float yzoom, float color[4])
+{
+	immDrawPixelsTexScaled_clipping(x, y, img_w, img_h, format, type, zoomfilter, rect, 1.0f, 1.0f,
+	                                0.0f, 0.0f, 0.0f, 0.0f, xzoom, yzoom, color);
+}
+
+void immDrawPixelsTex_clipping(float x, float y, int img_w, int img_h,
+                               int format, int type, int zoomfilter, void *rect,
+                               float clip_min_x, float clip_min_y, float clip_max_x, float clip_max_y,
+                               float xzoom, float yzoom, float color[4])
+{
+	immDrawPixelsTexScaled_clipping(x, y, img_w, img_h, format, type, zoomfilter, rect, 1.0f, 1.0f,
+	                                clip_min_x, clip_min_y, clip_max_x, clip_max_y, xzoom, yzoom, color);
 }
 
 /* 2D Drawing Assistance */
