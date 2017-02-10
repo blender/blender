@@ -649,9 +649,6 @@ static void create_mesh(Scene *scene,
 			generated[i++] = get_float3(v->undeformed_co())*size - loc;
 	}
 
-	/* Create needed vertex attributes. */
-	attr_create_pointiness(scene, mesh, b_mesh, subdivision);
-
 	/* create faces */
 	vector<int> nverts(numfaces);
 	vector<int> face_flags(numfaces, FACE_FLAG_NONE);
@@ -711,6 +708,7 @@ static void create_mesh(Scene *scene,
 	/* Create all needed attributes.
 	 * The calculate functions will check whether they're needed or not.
 	 */
+	attr_create_pointiness(scene, mesh, b_mesh, subdivision);
 	attr_create_vertex_color(scene, mesh, b_mesh, nverts, face_flags, subdivision);
 	attr_create_uv_map(scene, mesh, b_mesh, nverts, face_flags, subdivision, subdivide_uvs);
 
