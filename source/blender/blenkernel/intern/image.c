@@ -3159,7 +3159,7 @@ static ImBuf *load_sequence_single(Image *ima, ImageUser *iuser, int frame, cons
 	struct ImBuf *ibuf;
 	char name[FILE_MAX];
 	int flag;
-	ImageUser iuser_t;
+	ImageUser iuser_t = {0};
 
 	/* XXX temp stuff? */
 	if (ima->lastframe != frame)
@@ -3167,8 +3167,12 @@ static ImBuf *load_sequence_single(Image *ima, ImageUser *iuser, int frame, cons
 
 	ima->lastframe = frame;
 
-	if (iuser)
+	if (iuser) {
 		iuser_t = *iuser;
+	}
+	else {
+		/* TODO(sergey): Do we need to initialize something here? */
+	}
 
 	iuser_t.view = view_id;
 	BKE_image_user_file_path(&iuser_t, ima, name);
