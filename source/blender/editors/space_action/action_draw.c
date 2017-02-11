@@ -157,15 +157,12 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
-	int filter;
 	
 	View2D *v2d = &ar->v2d;
 	bDopeSheet *ads = &saction->ads;
 	AnimData *adt = NULL;
 	
 	float act_start, act_end, y;
-	size_t items;
-	int height;
 	
 	unsigned char col1[3], col2[3];
 	unsigned char col1a[3], col2a[3];
@@ -195,10 +192,10 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	}
 	
 	/* build list of channels to draw */
-	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
-	items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+	size_t items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
-	height = ((items * ACHANNEL_STEP(ac)) + (ACHANNEL_HEIGHT(ac)));
+	int height = ((items * ACHANNEL_STEP(ac)) + (ACHANNEL_HEIGHT(ac)));
 	/* don't use totrect set, as the width stays the same 
 	 * (NOTE: this is ok here, the configuration is pretty straightforward) 
 	 */
@@ -332,18 +329,29 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 		y -= ACHANNEL_STEP(ac);
 	}
 	glDisable(GL_BLEND);
-	
-	/* Draw keyframes 
+
+	/* black line marking 'current frame' for Time-Slide transform mode */
+	if (saction->flag & SACTION_MOVING) {
+		immUniformColor3f(0.0f, 0.0f, 0.0f);
+
+		immBegin(GL_LINES, 2);
+		immVertex2f(pos, saction->timeslide, v2d->cur.ymin - EXTRA_SCROLL_PAD);
+		immVertex2f(pos, saction->timeslide, v2d->cur.ymax);
+		immEnd();
+	}
+	immUnbindProgram();
+
+	/* Draw keyframes
 	 *	1) Only channels that are visible in the Action Editor get drawn/evaluated.
 	 *	   This is to try to optimize this for heavier data sets
 	 *	2) Keyframes which are out of view horizontally are disregarded 
 	 */
 	y = (float)(-ACHANNEL_HEIGHT(ac));
-	
+
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		const float yminc = (float)(y - ACHANNEL_HEIGHT_HALF(ac));
 		const float ymaxc = (float)(y + ACHANNEL_HEIGHT_HALF(ac));
-		
+
 		/* check if visible */
 		if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
 		    IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) )
@@ -351,7 +359,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 			/* check if anything to show for this channel */
 			if (ale->datatype != ALE_NONE) {
 				adt = ANIM_nla_mapping_get(ac, ale);
-				
+
 				/* draw 'keyframes' for each specific datatype */
 				switch (ale->datatype) {
 					case ALE_ALL:
@@ -381,21 +389,10 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 				}
 			}
 		}
-		
+
 		y -= ACHANNEL_STEP(ac);
 	}
-	
-	/* free tempolary channels used for drawing */
+
+	/* free temporary channels used for drawing */
 	ANIM_animdata_freelist(&anim_data);
-
-	/* black line marking 'current frame' for Time-Slide transform mode */
-	if (saction->flag & SACTION_MOVING) {
-		immUniformColor3f(0.0f, 0.0f, 0.0f);
-
-		immBegin(GL_LINES, 2);
-		immVertex2f(pos, saction->timeslide, v2d->cur.ymin - EXTRA_SCROLL_PAD);
-		immVertex2f(pos, saction->timeslide, v2d->cur.ymax);
-		immEnd();
-	}
-	immUnbindProgram();
 }

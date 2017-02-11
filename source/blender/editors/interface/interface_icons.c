@@ -225,13 +225,17 @@ static void vicon_small_tri_right_draw(int x, int y, int w, int UNUSED(h), float
 	viconutil_set_point(pts[1], cx - d2, cy - d);
 	viconutil_set_point(pts[2], cx + d2, cy);
 
-	glColor4f(0.2f, 0.2f, 0.2f, alpha);
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformColor4f(0.2f, 0.2f, 0.2f, alpha);
 
-	glBegin(GL_TRIANGLES);
-	glVertex2iv(pts[0]);
-	glVertex2iv(pts[1]);
-	glVertex2iv(pts[2]);
-	glEnd();
+	immBegin(PRIM_TRIANGLES, 3);
+	immVertex2iv(pos, pts[0]);
+	immVertex2iv(pos, pts[1]);
+	immVertex2iv(pos, pts[2]);
+	immEnd();
+
+	immUnbindProgram();
 }
 
 static void vicon_keytype_draw_wrapper(int x, int y, int w, int h, float alpha, short key_type)
@@ -240,7 +244,6 @@ static void vicon_keytype_draw_wrapper(int x, int y, int w, int h, float alpha, 
 	 * (since we're doing this offscreen, free from any particular space_id)
 	 */
 	struct bThemeState theme_state;
-	int xco, yco;
 	
 	UI_Theme_Store(&theme_state);
 	UI_SetTheme(SPACE_ACTION, RGN_TYPE_WINDOW);
@@ -249,16 +252,28 @@ static void vicon_keytype_draw_wrapper(int x, int y, int w, int h, float alpha, 
 	 * while the draw_keyframe_shape() function needs the midpoint for
 	 * the keyframe
 	 */
-	xco = x + w / 2;
-	yco = y + h / 2;
+	int xco = x + w / 2;
+	int yco = y + h / 2;
+
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos_id = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int size_id = add_attrib(format, "size", COMP_F32, 1, KEEP_FLOAT);
+	unsigned int color_id = add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
+	unsigned int outline_color_id = add_attrib(format, "outlineColor", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
+	immBegin(PRIM_POINTS, 1);
 	
 	/* draw keyframe
-	 * - xscale: 1.0 (since there's no timeline scaling to compensate for)
-	 * - yscale: 0.3 * h (found out experimentally... dunno why!)
+	 * - size: 0.3 * h (found out experimentally... dunno why!)
 	 * - sel: true (so that "keyframe" state shows the iconic yellow icon)
 	 */
-	draw_keyframe_shape(xco, yco, 1.0f, 0.3f * h, true, key_type, KEYFRAME_SHAPE_BOTH, alpha);
-	
+	draw_keyframe_shape(xco, yco, 0.3f * h, true, key_type, KEYFRAME_SHAPE_BOTH, alpha,
+	                    pos_id, size_id, color_id, outline_color_id);
+
+	immEnd();
+	immUnbindProgram();
+
 	UI_Theme_Restore(&theme_state);
 }
 
@@ -291,7 +306,7 @@ static void vicon_colorset_draw(int index, int x, int y, int w, int h, float UNU
 {
 	bTheme *btheme = UI_GetTheme();
 	ThemeWireColor *cs = &btheme->tarm[index];
-	
+
 	/* Draw three bands of color: One per color
 	 *    x-----a-----b-----c
 	 *    |  N  |  S  |  A  |
@@ -300,19 +315,24 @@ static void vicon_colorset_draw(int index, int x, int y, int w, int h, float UNU
 	const int a = x + w / 3;
 	const int b = x + w / 3 * 2;
 	const int c = x + w;
-	
+
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
 	/* XXX: Include alpha into this... */
 	/* normal */
-	glColor3ubv((unsigned char *)cs->solid);
-	glRecti(x, y, a, y + h);
-	
+	immUniformColor3ubv((unsigned char *)cs->solid);
+	immRecti(pos, x, y, a, y + h);
+
 	/* selected */
-	glColor3ubv((unsigned char *)cs->select);
-	glRecti(a, y, b, y + h);
-	
+	immUniformColor3ubv((unsigned char *)cs->select);
+	immRecti(pos, a, y, b, y + h);
+
 	/* active */
-	glColor3ubv((unsigned char *)cs->active);
-	glRecti(b, y, c, y + h);
+	immUniformColor3ubv((unsigned char *)cs->active);
+	immRecti(pos, b, y, c, y + h);
+
+	immUnbindProgram();
 }
 
 #define DEF_VICON_COLORSET_DRAW_NTH(prefix, index)                                    \
@@ -1034,8 +1054,8 @@ static void icon_draw_texture(
 	unsigned texCoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
-	if (rgb) immUniform4f("color", rgb[0], rgb[1], rgb[2], alpha);
-	else     immUniform4f("color", alpha, alpha, alpha, alpha);
+	if (rgb) immUniformColor3fvAlpha(rgb, alpha);
+	else     immUniformColor4f(alpha, alpha, alpha, alpha);
 
 	immUniform1i("image", 0);
 

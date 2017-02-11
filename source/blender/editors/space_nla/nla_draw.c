@@ -101,50 +101,66 @@ void nla_action_get_color(AnimData *adt, bAction *act, float color[4])
 }
 
 /* draw the keyframes in the specified Action */
-static void nla_action_draw_keyframes(AnimData *adt, bAction *act, View2D *v2d, float y, float ymin, float ymax)
+static void nla_action_draw_keyframes(AnimData *adt, bAction *act, float y, float ymin, float ymax)
 {
-	DLRBT_Tree keys;
-	ActKeyColumn *ak;
-	float xscale, f1, f2;
-	float color[4];
-	
 	/* get a list of the keyframes with NLA-scaling applied */
+	DLRBT_Tree keys;
 	BLI_dlrbTree_init(&keys);
 	action_to_keylist(adt, act, &keys, NULL);
 	BLI_dlrbTree_linkedlist_sync(&keys);
-	
+
 	if (ELEM(NULL, act, keys.first))
 		return;
-	
+
 	/* draw a darkened region behind the strips 
 	 *	- get and reset the background color, this time without the alpha to stand out better 
 	 *	  (amplified alpha is used instead)
 	 */
+	float color[4];
 	nla_action_get_color(adt, act, color);
 	color[3] *= 2.5f;
-	
-	glColor4fv(color);
+
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos_id = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+
+	immUniformColor4fv(color);
+
 	/*  - draw a rect from the first to the last frame (no extra overlaps for now)
 	 *	  that is slightly stumpier than the track background (hardcoded 2-units here)
 	 */
-	f1 = ((ActKeyColumn *)keys.first)->cfra;
-	f2 = ((ActKeyColumn *)keys.last)->cfra;
-	
-	glRectf(f1, ymin + 2, f2, ymax - 2);
-	
-	
-	/* get View2D scaling factor */
-	UI_view2d_scale_get(v2d, &xscale, NULL);
-	
-	/* for now, color is hardcoded to be black */
-	glColor3f(0.0f, 0.0f, 0.0f);
-	
-	/* just draw each keyframe as a simple dot (regardless of the selection status) 
-	 *	- size is 3.0f which is smaller than the editable keyframes, so that there is a distinction
-	 */
-	for (ak = keys.first; ak; ak = ak->next)
-		draw_keyframe_shape(ak->cfra, y, xscale, 3.0f, 0, ak->key_type, KEYFRAME_SHAPE_FRAME, 1.0f);
-	
+	float f1 = ((ActKeyColumn *)keys.first)->cfra;
+	float f2 = ((ActKeyColumn *)keys.last)->cfra;
+
+	immRectf(pos_id, f1, ymin + 2, f2, ymax - 2);
+	immUnbindProgram();
+
+	/* count keys before drawing */
+	unsigned int key_ct = 0;
+	for (ActKeyColumn *ak = keys.first; ak; ak = ak->next) {
+		key_ct++;
+	}
+
+	if (key_ct > 0) {
+		format = immVertexFormat();
+		pos_id = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		unsigned int size_id = add_attrib(format, "size", COMP_F32, 1, KEEP_FLOAT);
+		unsigned int color_id = add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
+		unsigned int outline_color_id = add_attrib(format, "outlineColor", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
+		immBegin(PRIM_POINTS, key_ct);
+
+		/* - disregard the selection status of keyframes so they draw a certain way
+		 *	- size is 3.0f which is smaller than the editable keyframes, so that there is a distinction
+		 */
+		for (ActKeyColumn *ak = keys.first; ak; ak = ak->next) {
+			draw_keyframe_shape(ak->cfra, y, 3.0f, false, ak->key_type, KEYFRAME_SHAPE_FRAME, 1.0f,
+									  pos_id, size_id, color_id, outline_color_id);
+		}
+
+		immEnd();
+		immUnbindProgram();
+	}
+
 	/* free icons */
 	BLI_dlrbTree_free(&keys);
 }
@@ -174,7 +190,7 @@ static void nla_actionclip_draw_markers(NlaStrip *strip, float yminc, float ymax
 /* Markers inside a NLA-Strip */
 static void nla_strip_draw_markers(NlaStrip *strip, float yminc, float ymaxc)
 {
-	glLineWidth(2.0);
+	glLineWidth(2.0f);
 	
 	if (strip->type == NLASTRIP_TYPE_CLIP) {
 		/* try not to be too conspicuous, while being visible enough when transforming */
@@ -660,7 +676,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					glRectf(v2d->cur.xmin, yminc + NLACHANNEL_SKIP, v2d->cur.xmax, ymaxc - NLACHANNEL_SKIP);
 					
 					/* draw keyframes in the action */
-					nla_action_draw_keyframes(adt, ale->data, v2d, y, yminc + NLACHANNEL_SKIP, ymaxc - NLACHANNEL_SKIP);
+					nla_action_draw_keyframes(adt, ale->data, y, yminc + NLACHANNEL_SKIP, ymaxc - NLACHANNEL_SKIP);
 					
 					/* draw 'embossed' lines above and below the strip for effect */
 					/* white base-lines */
