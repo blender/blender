@@ -356,7 +356,7 @@ static void set_ebone_glColor(const unsigned int boneflag)
 /* *************** Armature drawing, helper calls for parts ******************* */
 
 /* half the cube, in Y */
-static const float cube[8][3] = {
+static const float cube_vert[8][3] = {
 	{-1.0,  0.0, -1.0},
 	{-1.0,  0.0,  1.0},
 	{-1.0,  1.0,  1.0},
@@ -365,6 +365,12 @@ static const float cube[8][3] = {
 	{ 1.0,  0.0,  1.0},
 	{ 1.0,  1.0,  1.0},
 	{ 1.0,  1.0, -1.0},
+};
+
+static const float cube_wire[24] = {
+	0, 1, 1, 2, 2, 3, 3, 0,
+	4, 5, 5, 6, 6, 7, 7, 4,
+	0, 4, 1, 5, 2, 6, 3, 7,
 };
 
 static void drawsolidcube_size(float xsize, float ysize, float zsize)
@@ -381,26 +387,26 @@ static void drawsolidcube_size(float xsize, float ysize, float zsize)
 		glBegin(GL_QUADS);
 		n[0] = -1.0;
 		glNormal3fv(n); 
-		glVertex3fv(cube[0]); glVertex3fv(cube[1]); glVertex3fv(cube[2]); glVertex3fv(cube[3]);
+		glVertex3fv(cube_vert[0]); glVertex3fv(cube_vert[1]); glVertex3fv(cube_vert[2]); glVertex3fv(cube_vert[3]);
 		n[0] = 0;
 		n[1] = -1.0;
 		glNormal3fv(n); 
-		glVertex3fv(cube[0]); glVertex3fv(cube[4]); glVertex3fv(cube[5]); glVertex3fv(cube[1]);
+		glVertex3fv(cube_vert[0]); glVertex3fv(cube_vert[4]); glVertex3fv(cube_vert[5]); glVertex3fv(cube_vert[1]);
 		n[1] = 0;
 		n[0] = 1.0;
 		glNormal3fv(n); 
-		glVertex3fv(cube[4]); glVertex3fv(cube[7]); glVertex3fv(cube[6]); glVertex3fv(cube[5]);
+		glVertex3fv(cube_vert[4]); glVertex3fv(cube_vert[7]); glVertex3fv(cube_vert[6]); glVertex3fv(cube_vert[5]);
 		n[0] = 0;
 		n[1] = 1.0;
 		glNormal3fv(n); 
-		glVertex3fv(cube[7]); glVertex3fv(cube[3]); glVertex3fv(cube[2]); glVertex3fv(cube[6]);
+		glVertex3fv(cube_vert[7]); glVertex3fv(cube_vert[3]); glVertex3fv(cube_vert[2]); glVertex3fv(cube_vert[6]);
 		n[1] = 0;
 		n[2] = 1.0;
 		glNormal3fv(n); 
-		glVertex3fv(cube[1]); glVertex3fv(cube[5]); glVertex3fv(cube[6]); glVertex3fv(cube[2]);
+		glVertex3fv(cube_vert[1]); glVertex3fv(cube_vert[5]); glVertex3fv(cube_vert[6]); glVertex3fv(cube_vert[2]);
 		n[2] = -1.0;
 		glNormal3fv(n); 
-		glVertex3fv(cube[7]); glVertex3fv(cube[4]); glVertex3fv(cube[0]); glVertex3fv(cube[3]);
+		glVertex3fv(cube_vert[7]); glVertex3fv(cube_vert[4]); glVertex3fv(cube_vert[0]); glVertex3fv(cube_vert[3]);
 		glEnd();
 
 		glEndList();
@@ -411,30 +417,42 @@ static void drawsolidcube_size(float xsize, float ysize, float zsize)
 
 static void drawcube_size(float xsize, float ysize, float zsize)
 {
-	static GLuint displist = 0;
-	
-	if (displist == 0) {
-		displist = glGenLists(1);
-		glNewList(displist, GL_COMPILE);
-		
-		glBegin(GL_LINE_STRIP);
-		glVertex3fv(cube[0]); glVertex3fv(cube[1]); glVertex3fv(cube[2]); glVertex3fv(cube[3]);
-		glVertex3fv(cube[0]); glVertex3fv(cube[4]); glVertex3fv(cube[5]); glVertex3fv(cube[6]);
-		glVertex3fv(cube[7]); glVertex3fv(cube[4]);
-		glEnd();
-		
-		glBegin(GL_LINES);
-		glVertex3fv(cube[1]); glVertex3fv(cube[5]);
-		glVertex3fv(cube[2]); glVertex3fv(cube[6]);
-		glVertex3fv(cube[3]); glVertex3fv(cube[7]);
-		glEnd();
-		
-		glEndList();
+	static VertexFormat format = {0};
+	static VertexBuffer vbo = {0};
+	static ElementListBuilder elb = {0};
+	static ElementList el = {0};
+	static Batch batch = {0};
+
+	if (format.attrib_ct == 0) {
+		/* Vertex format */
+		unsigned int pos = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+
+		/* Elements */
+		ElementListBuilder_init(&elb, GL_LINES, 12, 8);
+		for (int i = 0; i < 12; ++i) {
+			add_line_vertices(&elb, cube_wire[i*2], cube_wire[i*2+1]);
+		}
+		ElementList_build_in_place(&elb, &el);
+
+		/* Vertices */
+		VertexBuffer_init_with_format(&vbo, &format);
+		VertexBuffer_allocate_data(&vbo, 8);
+		for (int i = 0; i < 8; ++i) {
+			setAttrib(&vbo, pos, i, cube_vert[i]);
+		}
+
+		Batch_init(&batch, GL_LINES, &vbo, &el);
+		Batch_set_builtin_program(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
 	}
 
-	glScalef(xsize, ysize, zsize);
-	glCallList(displist);
-	
+	gpuMatrixBegin3D_legacy();
+	gpuScale3f(xsize, ysize, zsize);
+
+	Batch_use_program(&batch);
+	Batch_Uniform4fv(&batch, "color", fcolor);
+	Batch_draw(&batch);
+
+	gpuMatrixEnd();
 }
 
 
@@ -561,9 +579,11 @@ static void draw_bone_octahedral(void)
 	}
 
 	gpuMatrixBegin3D_legacy();
+
 	Batch_use_program(&batch);
 	Batch_Uniform4fv(&batch, "color", fcolor);
 	Batch_draw(&batch);
+
 	gpuMatrixEnd();
 }	
 
@@ -1813,6 +1833,10 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, BaseLegacy *
 	bool draw_wire = false;
 	int flag;
 	bool is_cull_enabled;
+
+	/* TODO find a way to overcome this.
+	 * used in case do_const_color is true */
+	glGetFloatv(GL_CURRENT_COLOR, fcolor);
 	
 	/* being set below */
 	arm->layer_used = 0;
@@ -1998,6 +2022,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, BaseLegacy *
 								set_pchan_colorset(ob, pchan);
 							else {
 								glColor3ubv(ob_wire_col);
+								rgba_uchar_to_float(fcolor, ob_wire_col);
 							}
 								
 							/* catch exception for bone with hidden parent */
