@@ -43,15 +43,13 @@
 #include "BKE_tracking.h"
 #include "BKE_depsgraph.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
+#include "GPU_immediate.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_screen.h"
 #include "ED_clip.h"
-
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -237,31 +235,35 @@ void clip_view_center_to_point(SpaceClip *sc, float x, float y)
 
 void clip_draw_cfra(SpaceClip *sc, ARegion *ar, Scene *scene)
 {
-	View2D *v2d = &ar->v2d;
-	float xscale, yscale;
-
 	/* Draw a light green line to indicate current frame */
-	UI_ThemeColor(TH_CFRAME);
-
+	View2D *v2d = &ar->v2d;
 	float x = (float)(sc->user.framenr * scene->r.framelen);
 
-	glLineWidth(2.0);
+	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
-	glBegin(GL_LINES);
-	glVertex2f(x, v2d->cur.ymin);
-	glVertex2f(x, v2d->cur.ymax);
-	glEnd();
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformThemeColor(TH_CFRAME);
+	glLineWidth(2.0f);
+
+	immBegin(GL_LINES, 2);
+	immVertex2f(pos, x, v2d->cur.ymin);
+	immVertex2f(pos, x, v2d->cur.ymax);
+	immEnd();
+
+	immUnbindProgram();
 
 	UI_view2d_view_orthoSpecial(ar, v2d, 1);
 
 	/* because the frame number text is subject to the same scaling as the contents of the view */
+	float xscale, yscale;
 	UI_view2d_scale_get(v2d, &xscale, &yscale);
+	glPushMatrix();
 	glScalef(1.0f / xscale, 1.0f, 1.0f);
 
 	ED_region_cache_draw_curfra_label(sc->user.framenr, (float)sc->user.framenr * xscale, 18);
 
 	/* restore view transform */
-	glScalef(xscale, 1.0, 1.0);
+	glPopMatrix();
 }
 
 void clip_draw_sfra_efra(View2D *v2d, Scene *scene)
@@ -271,15 +273,27 @@ void clip_draw_sfra_efra(View2D *v2d, Scene *scene)
 	/* currently clip editor supposes that editing clip length is equal to scene frame range */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
-	glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
 
-	glRectf(v2d->cur.xmin, v2d->cur.ymin, (float)SFRA, v2d->cur.ymax);
-	glRectf((float)EFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+	unsigned pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	immUniformColor4f(0.0f, 0.0f, 0.0f, 0.4f);
+	immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, (float)SFRA, v2d->cur.ymax);
+	immRectf(pos, (float)EFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+
 	glDisable(GL_BLEND);
 
-	UI_ThemeColorShade(TH_BACK, -60);
+	immUniformThemeColorShade(TH_BACK, -60);
 
 	/* thin lines where the actual frames are */
-	fdrawline((float)SFRA, v2d->cur.ymin, (float)SFRA, v2d->cur.ymax);
-	fdrawline((float)EFRA, v2d->cur.ymin, (float)EFRA, v2d->cur.ymax);
+	glLineWidth(1.0f);
+
+	immBegin(GL_LINES, 4);
+	immVertex2f(pos, (float)SFRA, v2d->cur.ymin);
+	immVertex2f(pos, (float)SFRA, v2d->cur.ymax);
+	immVertex2f(pos, (float)EFRA, v2d->cur.ymin);
+	immVertex2f(pos, (float)EFRA, v2d->cur.ymax);
+	immEnd();
+
+	immUnbindProgram();
 }
