@@ -306,7 +306,7 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc)
 		float cfra;
 		
 		/* plot the curve (over the strip's main region) */
-		immBegin(GL_LINE_STRIP, abs(strip->end - strip->start + 1));
+		immBegin(GL_LINE_STRIP, abs((int)(strip->end - strip->start) + 1));
 
 		/* sample at 1 frame intervals, and draw
 		 *	- min y-val is yminc, max is y-maxc, so clamp in those regions
