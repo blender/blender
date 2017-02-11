@@ -1,5 +1,5 @@
 
-/* Make to be used with dynamic batching so no Model Matrix needed */
+/* Made to be used with dynamic batching so no Model Matrix needed */
 uniform mat4 ViewProjectionMatrix;
 
 in vec3 pos;

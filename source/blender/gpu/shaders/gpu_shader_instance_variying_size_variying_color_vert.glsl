@@ -1,8 +1,10 @@
 
 uniform mat4 ViewProjectionMatrix;
 
+/* ---- Instanciated Attribs ---- */
 in vec3 pos;
-/* Instance attrib */
+
+/* ---- Per instance Attribs ---- */
 in mat4 InstanceModelMatrix;
 in vec3 color;
 in float size;

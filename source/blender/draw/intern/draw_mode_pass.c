@@ -113,12 +113,13 @@ static DRWShadingGroup *shgroup_groundpoints_uniform_color(DRWPass *pass, float 
 	return grp;
 }
 
-static DRWShadingGroup *shgroup_lamp(DRWPass *pass, struct Batch *geom, float *size)
+static DRWShadingGroup *shgroup_instance_screenspace(DRWPass *pass, struct Batch *geom, float *size)
 {
-	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_LAMP_COMMON);
+	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_SCREENSPACE_VARIYING_COLOR
+);
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh, pass, geom);
-	DRW_shgroup_attrib_float(grp, "lamp_pos", 3);
+	DRW_shgroup_attrib_float(grp, "world_pos", 3);
 	DRW_shgroup_attrib_float(grp, "color", 3);
 	DRW_shgroup_uniform_float(grp, "size", size, 1);
 	DRW_shgroup_uniform_float(grp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
@@ -128,7 +129,7 @@ static DRWShadingGroup *shgroup_lamp(DRWPass *pass, struct Batch *geom, float *s
 	return grp;
 }
 
-static DRWShadingGroup *shgroup_empty(DRWPass *pass, struct Batch *geom)
+static DRWShadingGroup *shgroup_instance(DRWPass *pass, struct Batch *geom)
 {
 	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE);
 
@@ -144,9 +145,6 @@ static DRWShadingGroup *shgroup_empty(DRWPass *pass, struct Batch *geom)
  * The passes are populated by the rendering engine using the DRW_shgroup_* functions. */
 void DRW_pass_setup_common(DRWPass **wire_overlay, DRWPass **wire_outline, DRWPass **non_meshes, DRWPass **ob_center)
 {
-	/* Theses are defined for the whole application so make sure they rely on global settings */
-
-
 	UI_GetThemeColor4fv(TH_WIRE, colorWire);
 	UI_GetThemeColor4fv(TH_WIRE_EDIT, colorWireEdit);
 	UI_GetThemeColor4fv(TH_ACTIVE, colorActive);
@@ -189,28 +187,28 @@ void DRW_pass_setup_common(DRWPass **wire_overlay, DRWPass **wire_outline, DRWPa
 
 		/* Empties */
 		geom = DRW_cache_plain_axes_get();
-		plain_axes = shgroup_empty(*non_meshes, geom);
+		plain_axes = shgroup_instance(*non_meshes, geom);
 
 		geom = DRW_cache_cube_get();
-		cube = shgroup_empty(*non_meshes, geom);
+		cube = shgroup_instance(*non_meshes, geom);
 
 		geom = DRW_cache_circle_get();
-		circle = shgroup_empty(*non_meshes, geom);
+		circle = shgroup_instance(*non_meshes, geom);
 
 		geom = DRW_cache_empty_sphere_get();
-		sphere = shgroup_empty(*non_meshes, geom);
+		sphere = shgroup_instance(*non_meshes, geom);
 
 		geom = DRW_cache_empty_cone_get();
-		cone = shgroup_empty(*non_meshes, geom);
+		cone = shgroup_instance(*non_meshes, geom);
 
 		geom = DRW_cache_single_arrow_get();
-		single_arrow = shgroup_empty(*non_meshes, geom);
+		single_arrow = shgroup_instance(*non_meshes, geom);
 
 		geom = DRW_cache_single_line_get();
-		single_arrow_line = shgroup_empty(*non_meshes, geom);
+		single_arrow_line = shgroup_instance(*non_meshes, geom);
 
 		geom = DRW_cache_single_arrow_get();
-		arrows = shgroup_empty(*non_meshes, geom);
+		arrows = shgroup_instance(*non_meshes, geom);
 
 		/* Lamps */
 		lampCenterSize = (U.obcenter_dia + 1.5f) * U.pixelsize;
@@ -223,11 +221,11 @@ void DRW_pass_setup_common(DRWPass **wire_overlay, DRWPass **wire_outline, DRWPa
 		lamp_center_group = shgroup_dynpoints_uniform_color(*non_meshes, colorGroup, &lampCenterSize);
 
 		geom = DRW_cache_lamp_get();
-		lamp_circle = shgroup_lamp(*non_meshes, geom, &lampCircleRad);
-		lamp_circle_shadow = shgroup_lamp(*non_meshes, geom, &lampCircleShadowRad);
+		lamp_circle = shgroup_instance_screenspace(*non_meshes, geom, &lampCircleRad);
+		lamp_circle_shadow = shgroup_instance_screenspace(*non_meshes, geom, &lampCircleShadowRad);
 
 		geom = DRW_cache_lamp_sunrays_get();
-		lamp_sunrays = shgroup_lamp(*non_meshes, geom, &lampCircleRad);
+		lamp_sunrays = shgroup_instance_screenspace(*non_meshes, geom, &lampCircleRad);
 
 		lamp_groundline = shgroup_groundlines_uniform_color(*non_meshes, colorLamp);
 		lamp_groundpoint = shgroup_groundpoints_uniform_color(*non_meshes, colorLamp);

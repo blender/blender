@@ -1,7 +1,10 @@
 
 uniform mat4 ViewProjectionMatrix;
 
+/* ---- Instanciated Attribs ---- */
 in vec3 pos;
+
+/* ---- Per instance Attribs ---- */
 in mat4 InstanceModelMatrix;
 
 void main()
