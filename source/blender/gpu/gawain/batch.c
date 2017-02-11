@@ -253,7 +253,9 @@ void Batch_draw(Batch* batch)
 	glBindVertexArray(0);
 	}
 
-/* clement : temp stuff */
+
+
+// clement : temp stuff
 void Batch_draw_stupid(Batch* batch)
 {
 	if (batch->vao_id)
@@ -288,7 +290,7 @@ void Batch_draw_stupid(Batch* batch)
 	glBindVertexArray(0);
 }
 
-/* clement : temp stuff */
+// clement : temp stuff
 void Batch_draw_stupid_instanced(Batch* batch, unsigned int instance_vbo, int instance_count)
 {
 	if (batch->vao_id)
