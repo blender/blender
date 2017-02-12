@@ -460,10 +460,7 @@ void BKE_object_free(Object *ob)
 
 	BKE_previewimg_free(&ob->preview);
 
-	if (ob->collection_settings) {
-		BKE_layer_collection_engine_settings_free(ob->collection_settings);
-		MEM_freeN(ob->collection_settings);
-	}
+	BKE_layer_collection_engine_settings_list_free(&ob->collection_settings);
 }
 
 /* actual check for internal data, not context or flags */

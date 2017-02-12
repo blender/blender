@@ -559,7 +559,7 @@ static void override_setting(CollectionEngineSettings *ces, const char *name, vo
 static DRWShadingGroup *CLAY_object_shgrp_get(Object *ob, CLAY_StorageList *stl, DRWPass *pass)
 {
 	MaterialEngineSettingsClay *settings = DRW_render_settings_get(NULL, RE_engine_id_BLENDER_CLAY);
-	CollectionEngineSettings *ces = ob->collection_settings;
+	CollectionEngineSettings *ces = BKE_object_collection_engine_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_CLAY);
 
 	/* Default Settings */
 	float matcap_rot = settings->matcap_rot;
@@ -623,7 +623,7 @@ static void CLAY_create_cache(CLAY_PassList *passes, CLAY_StorageList *stl, cons
 
 	/* TODO Create hash table of batch based on material id*/
 	Object *ob;
-	DEG_OBJECT_ITER(sl, CLAY_ENGINE, ob);
+	DEG_OBJECT_ITER(sl, ob);
 	{
 		if ((ob->base_flag & BASE_VISIBLED) == 0) {
 			continue;

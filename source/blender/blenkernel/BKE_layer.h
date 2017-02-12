@@ -74,7 +74,7 @@ void BKE_scene_layer_base_flag_recalculate(struct SceneLayer *sl);
 void BKE_scene_layer_engine_settings_recalculate(struct SceneLayer *sl);
 void BKE_scene_layer_engine_settings_object_recalculate(struct SceneLayer *sl, struct Object *ob);
 void BKE_scene_layer_engine_settings_collection_recalculate(struct SceneLayer *sl, struct LayerCollection *lc);
-void BKE_scene_layer_engine_settings_update(struct SceneLayer *sl, const char *engine_name);
+void BKE_scene_layer_engine_settings_update(struct SceneLayer *sl);
 
 void BKE_layer_collection_free(struct SceneLayer *sl, struct LayerCollection *lc);
 
@@ -104,11 +104,13 @@ void BKE_collection_override_datablock_add(struct LayerCollection *lc, const cha
 /* engine settings */
 typedef void (*CollectionEngineSettingsCB)(struct RenderEngine *engine, struct CollectionEngineSettings *ces);
 struct CollectionEngineSettings *BKE_layer_collection_engine_get(struct LayerCollection *lc, const int type, const char *engine_name);
+struct CollectionEngineSettings *BKE_object_collection_engine_get(struct Object *ob, const int type, const char *engine_name);
 void BKE_layer_collection_engine_settings_callback_register(struct Main *bmain, const char *engine_name, CollectionEngineSettingsCB func);
 void BKE_layer_collection_engine_settings_callback_free(void);
 
 struct CollectionEngineSettings *BKE_layer_collection_engine_settings_create(const char *engine_name);
 void BKE_layer_collection_engine_settings_free(struct CollectionEngineSettings *ces);
+void BKE_layer_collection_engine_settings_list_free(struct ListBase *lb);
 
 void BKE_collection_engine_property_add_float(struct CollectionEngineSettings *ces, const char *name, float value);
 void BKE_collection_engine_property_add_int(struct CollectionEngineSettings *ces, const char *name, int value);
@@ -199,10 +201,10 @@ void BKE_visible_bases_Iterator_end(Iterator *iter);
 }
 
 /* temporary hacky solution waiting for final depsgraph evaluation */
-#define DEG_OBJECT_ITER(sl_, engine_name_, ob_)                               \
+#define DEG_OBJECT_ITER(sl_, ob_)                                             \
 {                                                                             \
 	/* temporary solution, waiting for depsgraph update */                    \
-	BKE_scene_layer_engine_settings_update(sl, engine_name_);                 \
+	BKE_scene_layer_engine_settings_update(sl);                               \
 	                                                                          \
 	/* flush all the data to objects*/                                        \
 	Base *base_;                                                              \
