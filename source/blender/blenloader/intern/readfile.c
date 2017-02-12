@@ -5955,6 +5955,8 @@ static void direct_link_layer_collections(FileData *fd, ListBase *lb)
 
 		direct_link_engine_settings(fd, &lc->engine_settings);
 
+		direct_link_engine_settings(fd, &lc->mode_settings);
+
 		direct_link_layer_collections(fd, &lc->layer_collections);
 	}
 }

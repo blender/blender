@@ -571,6 +571,14 @@ static int buttons_context_path_collection(const bContext *C, ButsContextPath *p
 	if (sc) {
 		RNA_pointer_create(NULL, &RNA_LayerCollection, sc, &path->ptr[path->len]);
 		path->len++;
+
+		/* temporary object in context path to get edit mode */
+		Object *ob = CTX_data_active_object(C);
+		if (ob) {
+			RNA_id_pointer_create(&ob->id, &path->ptr[path->len]);
+			path->len++;
+		}
+
 		return 1;
 	}
 

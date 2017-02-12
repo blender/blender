@@ -52,6 +52,7 @@ static LayerCollection *find_layer_collection_by_scene_collection(LayerCollectio
 static CollectionEngineSettings *collection_engine_settings_create(struct CollectionEngineSettingsCB_Type *ces_type);
 static void layer_collection_engine_settings_free(LayerCollection *lc);
 static void layer_collection_create_engine_settings(LayerCollection *lc);
+static void layer_collection_create_mode_settings(LayerCollection *lc);
 static void scene_layer_engine_settings_update(SceneLayer *sl, Object *ob, const char *engine_name);
 static void object_bases_Iterator_next(Iterator *iter, const int flag);
 
@@ -557,6 +558,7 @@ static LayerCollection *layer_collection_add(SceneLayer *sl, ListBase *lb, Scene
 	lc->flag = COLLECTION_VISIBLE + COLLECTION_SELECTABLE + COLLECTION_FOLDED;
 
 	layer_collection_create_engine_settings(lc);
+	layer_collection_create_mode_settings(lc);
 	layer_collection_populate(sl, lc, sc);
 	return lc;
 }
@@ -685,7 +687,7 @@ typedef struct CollectionEngineSettingsCB_Type {
 
 static void create_engine_settings_layer_collection(LayerCollection *lc, CollectionEngineSettingsCB_Type *ces_type)
 {
-	if (BKE_layer_collection_engine_get(lc, ces_type->name)) {
+	if (BKE_layer_collection_engine_get(lc, COLLECTION_MODE_NONE, ces_type->name)) {
 		return;
 	}
 
@@ -778,6 +780,11 @@ static void layer_collection_engine_settings_free(LayerCollection *lc)
 	for (CollectionEngineSettings *ces = lc->engine_settings.first; ces; ces = ces->next) {
 		BKE_layer_collection_engine_settings_free(ces);
 	}
+
+	for (CollectionEngineSettings *ces = lc->mode_settings.first; ces; ces = ces->next) {
+		BKE_layer_collection_engine_settings_free(ces);
+	}
+
 	BLI_freelistN(&lc->engine_settings);
 }
 
@@ -792,14 +799,54 @@ static void layer_collection_create_engine_settings(LayerCollection *lc)
 	}
 }
 
+static void layer_collection_create_mode_settings_object(LayerCollection *lc)
+{
+	CollectionEngineSettings *ces;
+
+	ces = MEM_callocN(sizeof(CollectionEngineSettings), "Object Mode Settings");
+	BLI_addtail(&lc->mode_settings, ces);
+	ces->type = COLLECTION_MODE_OBJECT;
+
+	/* properties */
+	BKE_collection_engine_property_add_int(ces, "foo", 2);
+}
+
+static void layer_collection_create_mode_settings_edit(LayerCollection *lc)
+{
+	CollectionEngineSettings *ces;
+
+	ces = MEM_callocN(sizeof(CollectionEngineSettings), "Edit Mode Settings");
+	BLI_addtail(&lc->mode_settings, ces);
+	ces->type = COLLECTION_MODE_EDIT;
+
+	/* properties */
+	BKE_collection_engine_property_add_float(ces, "bar", 0.5);
+}
+
+static void layer_collection_create_mode_settings(LayerCollection *lc)
+{
+	layer_collection_create_mode_settings_object(lc);
+	layer_collection_create_mode_settings_edit(lc);
+}
+
 /**
  * Return layer collection engine settings for specified engine
  */
-CollectionEngineSettings *BKE_layer_collection_engine_get(LayerCollection *lc, const char *engine_name)
+CollectionEngineSettings *BKE_layer_collection_engine_get(LayerCollection *lc, const int type, const char *engine_name)
 {
-	CollectionEngineSettings *ces;
-	ces = BLI_findstring(&lc->engine_settings, engine_name, offsetof(CollectionEngineSettings, name));
-	return ces;
+	if (type == COLLECTION_MODE_NONE) {
+		return BLI_findstring(&lc->engine_settings, engine_name, offsetof(CollectionEngineSettings, name));
+	}
+	else {
+		CollectionEngineSettings *ces;
+		for (ces = lc->mode_settings.first; ces; ces = ces->next) {
+			if (ces->type == type) {
+				return ces;
+			}
+		}
+	}
+	BLI_assert(false);
+	return NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -947,7 +994,7 @@ static void layer_collection_engine_settings_update(
 	CollectionEngineSettings ces = {NULL};
 	collection_engine_settings_copy(&ces, ces_parent);
 
-	CollectionEngineSettings *ces_lc = BKE_layer_collection_engine_get(lc, ces.name);
+	CollectionEngineSettings *ces_lc = BKE_layer_collection_engine_get(lc, ces.type, ces.name);
 	collection_engine_settings_merge(&ces, ces_lc);
 
 	if (BLI_findptr(&lc->object_bases, base, offsetof(LinkData, data)) != NULL) {

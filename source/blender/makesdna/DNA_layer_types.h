@@ -60,6 +60,7 @@ typedef struct LayerCollection {
 	ListBase overrides;
 	ListBase layer_collections; /* synced with collection->collections */
 	ListBase engine_settings; /* CollectionEngineSettings */
+	ListBase mode_settings; /* CollectionModeSettings */
 } LayerCollection;
 
 typedef struct SceneLayer {
@@ -136,6 +137,8 @@ typedef struct CollectionEngineSettings {
 	struct CollectionEngineSettings *next, *prev;
 	char name[32]; /* engine name - MAX_NAME */
 	ListBase properties; /* CollectionProperty */
+	int type; /* CollectionEngineSettingsType */
+	int pad;
 } CollectionEngineSettings;
 
 /* CollectionEngineProperty->flag */
@@ -143,11 +146,18 @@ enum {
 	COLLECTION_PROP_USE = (1 << 0),
 };
 
-/* CollectionEntineProperty.type */
+/* CollectionEngineProperty.type */
 typedef enum CollectionEnginePropertyType {
 	COLLECTION_PROP_TYPE_FLOAT = 0,
 	COLLECTION_PROP_TYPE_INT = 1,
 } CollectionEnginePropertyType;
+
+/* CollectionEngineSettings->type */
+typedef enum CollectionEngineSettingsType {
+	COLLECTION_MODE_NONE = 0,
+	COLLECTION_MODE_OBJECT = 1,
+	COLLECTION_MODE_EDIT = 2,
+} CollectionModeSettingsType;
 
 /* *************************************************************** */
 

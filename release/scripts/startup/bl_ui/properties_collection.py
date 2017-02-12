@@ -124,5 +124,41 @@ class COLLECTION_PT_clay_settings(CollectionButtonsPanel, Panel):
         template_engine_settings(col, settings, "ssao_attenuation")
 
 
+class COLLECTION_PT_object_mode_settings(CollectionButtonsPanel, Panel):
+    bl_label = "Object Mode Settings"
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return ob and (ob.mode == 'OBJECT')
+
+    def draw(self, context):
+        layout = self.layout
+
+        collection = context.layer_collection
+        settings = collection.get_mode_settings('OBJECT')
+
+        col = layout.column()
+        template_engine_settings(col, settings, "foo")
+
+
+class COLLECTION_PT_edit_mode_settings(CollectionButtonsPanel, Panel):
+    bl_label = "Edit Mode Settings"
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return ob and (ob.mode == 'EDIT')
+
+    def draw(self, context):
+        layout = self.layout
+
+        collection = context.layer_collection
+        settings = collection.get_mode_settings('EDIT')
+
+        col = layout.column()
+        template_engine_settings(col, settings, "bar")
+
+
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

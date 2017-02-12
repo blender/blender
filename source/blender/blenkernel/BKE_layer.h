@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): Dalai Felinto
+ * Contributor(s): Blender Foundation, Dalai Felinto
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -103,7 +103,7 @@ void BKE_collection_override_datablock_add(struct LayerCollection *lc, const cha
 
 /* engine settings */
 typedef void (*CollectionEngineSettingsCB)(struct RenderEngine *engine, struct CollectionEngineSettings *ces);
-struct CollectionEngineSettings *BKE_layer_collection_engine_get(struct LayerCollection *lc, const char *engine_name);
+struct CollectionEngineSettings *BKE_layer_collection_engine_get(struct LayerCollection *lc, const int type, const char *engine_name);
 void BKE_layer_collection_engine_settings_callback_register(struct Main *bmain, const char *engine_name, CollectionEngineSettingsCB func);
 void BKE_layer_collection_engine_settings_callback_free(void);
 
