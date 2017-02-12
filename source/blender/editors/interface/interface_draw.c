@@ -1301,7 +1301,6 @@ void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 	
 	/* setup lights */
 	ui_but_v3_get(but, light);
-	light[2] = -light[2];
 
 	/* transform to button */
 	gpuMatrixBegin3D_legacy();

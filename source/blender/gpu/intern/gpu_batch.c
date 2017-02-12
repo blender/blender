@@ -78,15 +78,15 @@ static Batch *batch_sphere(int lat_res, int lon_res)
 		lat = 0.0f;
 		for(int j = 0; j < lat_res; j++, lat += lat_inc) {
 			if (j != lat_res - 1) { /* Pole */
-				batch_sphere_lat_lon_vert(lat,         lon);
-				batch_sphere_lat_lon_vert(lat+lat_inc, lon);
 				batch_sphere_lat_lon_vert(lat+lat_inc, lon+lon_inc);
+				batch_sphere_lat_lon_vert(lat+lat_inc, lon);
+				batch_sphere_lat_lon_vert(lat,         lon);
 			}
 
 			if (j != 0) { /* Pole */
-				batch_sphere_lat_lon_vert(lat,         lon);
-				batch_sphere_lat_lon_vert(lat+lat_inc, lon+lon_inc);
 				batch_sphere_lat_lon_vert(lat,         lon+lon_inc);
+				batch_sphere_lat_lon_vert(lat+lat_inc, lon+lon_inc);
+				batch_sphere_lat_lon_vert(lat,         lon);
 			}
 		}
 	}
@@ -109,7 +109,7 @@ Batch *Batch_get_sphere(int lod)
 void gpu_batch_init(void)
 {
 	/* Hard coded resolution */
-	sphere_low = batch_sphere(8, 8);
+	sphere_low = batch_sphere(8, 16);
 	sphere_med = batch_sphere(16, 10);
 	sphere_high = batch_sphere(32, 24);
 }
