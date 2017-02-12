@@ -294,6 +294,12 @@ void gpuMultMatrix2D(const float m[3][3])
 	state.dirty = true;
 }
 
+void gpuRotate3f(float deg, float x, float y, float z)
+{
+	const float axis[3] = {x, y, z};
+	gpuRotate3fv(deg, axis);
+}
+
 void gpuRotate3fv(float deg, const float axis[3])
 {
 	Mat4 m;

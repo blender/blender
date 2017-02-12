@@ -84,6 +84,7 @@ void gpuTranslate3f(float x, float y, float z);
 void gpuTranslate3fv(const float vec[3]);
 void gpuScale3f(float x, float y, float z);
 void gpuScale3fv(const float vec[3]);
+void gpuRotate3f(float deg, float x, float y, float z); /* axis of rotation should be a unit vector */
 void gpuRotate3fv(float deg, const float axis[3]); /* axis of rotation should be a unit vector */
 void gpuRotateAxis(float deg, char axis); /* TODO: enum for axis? */
 
