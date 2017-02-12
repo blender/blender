@@ -138,6 +138,20 @@ void imm_draw_line(unsigned pos, float x1, float y1, float x2, float y2);
 void imm_cpack(unsigned int x);
 
 /**
+* Draw a cylinder. Replacement for gluCylinder.
+* _warning_ : Slow, better use it only if you no other choices.
+*
+* \param pos The vertex attribute number for position.
+* \param nor The vertex attribute number for normal.
+* \param base Specifies the radius of the cylinder at z = 0.
+* \param top Specifies the radius of the cylinder at z = height.
+* \param height Specifies the height of the cylinder.
+* \param slices Specifies the number of subdivisions around the z axis.
+* \param stacks Specifies the number of subdivisions along the z axis.
+*/
+void imm_cylinder(unsigned int pos, unsigned int nor, float base, float top, float height, int slices, int stacks);
+
+/**
  * Returns a float value as obtained by glGetFloatv.
  * The param must cause only one value to be gotten from GL.
  */
