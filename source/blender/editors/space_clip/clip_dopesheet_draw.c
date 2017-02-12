@@ -42,8 +42,6 @@
 #include "ED_screen.h"
 #include "ED_clip.h"
 
-#include "BIF_gl.h"
-
 #include "WM_types.h"
 
 #include "UI_interface.h"
@@ -54,6 +52,7 @@
 
 #include "RNA_access.h"
 
+#include "GPU_draw.h"
 #include "GPU_immediate.h"
 
 #include "clip_intern.h"  /* own include */
@@ -221,7 +220,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 			unsigned int outline_color_id = add_attrib(format, "outlineColor", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
-
+			GPU_enable_program_point_size();
 			immBegin(PRIM_POINTS, keyframe_ct);
 
 			/* all same size with black outline */
@@ -276,6 +275,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 			}
 
 			immEnd();
+			GPU_disable_program_point_size();
 			immUnbindProgram();
 		}
 

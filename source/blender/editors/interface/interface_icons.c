@@ -35,6 +35,7 @@
 
 #include "GPU_extensions.h"
 #include "GPU_basic_shader.h"
+#include "GPU_draw.h"
 #include "GPU_immediate.h"
 
 #include "BLI_blenlib.h"
@@ -60,7 +61,6 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "ED_datafiles.h"
@@ -262,6 +262,7 @@ static void vicon_keytype_draw_wrapper(int x, int y, int w, int h, float alpha, 
 	unsigned int outline_color_id = add_attrib(format, "outlineColor", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
+	GPU_enable_program_point_size();
 	immBegin(PRIM_POINTS, 1);
 	
 	/* draw keyframe
@@ -272,6 +273,7 @@ static void vicon_keytype_draw_wrapper(int x, int y, int w, int h, float alpha, 
 	                    pos_id, size_id, color_id, outline_color_id);
 
 	immEnd();
+	GPU_disable_program_point_size();
 	immUnbindProgram();
 
 	UI_Theme_Restore(&theme_state);

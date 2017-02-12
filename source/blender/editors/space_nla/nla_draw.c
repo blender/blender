@@ -146,6 +146,7 @@ static void nla_action_draw_keyframes(AnimData *adt, bAction *act, float y, floa
 		unsigned int color_id = add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
 		unsigned int outline_color_id = add_attrib(format, "outlineColor", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
+		GPU_enable_program_point_size();
 		immBegin(PRIM_POINTS, key_ct);
 
 		/* - disregard the selection status of keyframes so they draw a certain way
@@ -157,6 +158,7 @@ static void nla_action_draw_keyframes(AnimData *adt, bAction *act, float y, floa
 		}
 
 		immEnd();
+		GPU_disable_program_point_size();
 		immUnbindProgram();
 	}
 

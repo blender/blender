@@ -52,6 +52,7 @@
 
 #include "BKE_fcurve.h"
 
+#include "GPU_draw.h"
 #include "GPU_immediate.h"
 
 #include "UI_resources.h"
@@ -623,6 +624,7 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 			unsigned int color_id = add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
 			unsigned int outline_color_id = add_attrib(format, "outlineColor", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
+			GPU_enable_program_point_size();
 			immBegin(PRIM_POINTS, key_ct);
 
 			for (ActKeyColumn *ak = keys->first; ak; ak = ak->next) {
@@ -633,6 +635,7 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 			}
 
 			immEnd();
+			GPU_disable_program_point_size();
 			immUnbindProgram();
 		}
 	}
