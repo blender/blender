@@ -378,16 +378,19 @@ ccl_device_inline void sort_intersections(Intersection *hits, uint num_hits)
 {
 #ifdef __KERNEL_GPU__
 	/* Use bubble sort which has more friendly memory pattern on GPU. */
-	int i, j;
-	for(i = 0; i < num_hits; ++i) {
-		for(j = 0; j < num_hits - 1; ++j) {
+	bool swapped;
+	do {
+		swapped = false;
+		for(int j = 0; j < num_hits - 1; ++j) {
 			if(hits[j].t > hits[j + 1].t) {
 				struct Intersection tmp = hits[j];
 				hits[j] = hits[j + 1];
 				hits[j + 1] = tmp;
+				swapped = true;
 			}
 		}
-	}
+		--num_hits;
+	} while(swapped);
 #else
 	qsort(hits, num_hits, sizeof(Intersection), intersections_compare);
 #endif
