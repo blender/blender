@@ -46,6 +46,8 @@
 #include "BLI_dlrbTree.h"
 
 #include "BKE_context.h"
+#include "BKE_curve.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_nla.h"
 #include "BKE_mask.h"
@@ -309,7 +311,7 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
 	fcu->prev_norm_factor = 1.0f;
 	if (fcu->bezt) {
 		const bool use_preview_only = PRVRANGEON;
-		BezTriple *bezt;
+		const BezTriple *bezt;
 		int i;
 		float max_coord = -FLT_MAX;
 		float min_coord = FLT_MAX;
@@ -326,13 +328,71 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
 			{
 				continue;
 			}
-			max_coord = max_ff(max_coord, bezt->vec[0][1]);
-			max_coord = max_ff(max_coord, bezt->vec[1][1]);
-			max_coord = max_ff(max_coord, bezt->vec[2][1]);
 
-			min_coord = min_ff(min_coord, bezt->vec[0][1]);
-			min_coord = min_ff(min_coord, bezt->vec[1][1]);
-			min_coord = min_ff(min_coord, bezt->vec[2][1]);
+			if (i == 0) {
+				/* We ignore extrapolation flags and handle here, and use the
+				 * control point position only. so we normalize "interesting"
+				 * part of the curve.
+				 *
+				 * Here we handle left extrapolation.
+				 */
+				max_coord = max_ff(max_coord, bezt->vec[1][1]);
+
+				min_coord = min_ff(min_coord, bezt->vec[1][1]);
+			}
+			else {
+				const BezTriple *prev_bezt = bezt - 1;
+				if (prev_bezt->ipo == BEZT_IPO_CONST) {
+					/* Constant interpolation: previous CV value is used up
+					 * to the current keyframe.
+					 */
+					max_coord = max_ff(max_coord, bezt->vec[1][1]);
+					min_coord = min_ff(min_coord, bezt->vec[1][1]);
+				}
+				else if (prev_bezt->ipo == BEZT_IPO_LIN) {
+					/* Linear interpolation: min/max using both previous and
+					 * and current CV.
+					 */
+					max_coord = max_ff(max_coord, bezt->vec[1][1]);
+					min_coord = min_ff(min_coord, bezt->vec[1][1]);
+					max_coord = max_ff(max_coord, prev_bezt->vec[1][1]);
+					min_coord = min_ff(min_coord, prev_bezt->vec[1][1]);
+				}
+				else if (prev_bezt->ipo == BEZT_IPO_BEZ) {
+					const int resol = fcu->driver
+					        ? 32
+					        : min_ii((int)(5.0f * len_v2v2(bezt->vec[1], prev_bezt->vec[1])), 32);
+					if (resol < 2) {
+						max_coord = max_ff(max_coord, prev_bezt->vec[1][1]);
+						min_coord = min_ff(min_coord, prev_bezt->vec[1][1]);
+					}
+					else {
+						float data[120];
+						float v1[2], v2[2], v3[2], v4[2];
+
+						v1[0] = prev_bezt->vec[1][0];
+						v1[1] = prev_bezt->vec[1][1];
+						v2[0] = prev_bezt->vec[2][0];
+						v2[1] = prev_bezt->vec[2][1];
+
+						v3[0] = bezt->vec[0][0];
+						v3[1] = bezt->vec[0][1];
+						v4[0] = bezt->vec[1][0];
+						v4[1] = bezt->vec[1][1];
+
+						correct_bezpart(v1, v2, v3, v4);
+
+						BKE_curve_forward_diff_bezier(v1[0], v2[0], v3[0], v4[0], data, resol, sizeof(float) * 3);
+						BKE_curve_forward_diff_bezier(v1[1], v2[1], v3[1], v4[1], data + 1, resol, sizeof(float) * 3);
+
+						for (int j = 0; j <= resol; ++j) {
+							const float *fp = &data[j * 3];
+							max_coord = max_ff(max_coord, fp[1]);
+							min_coord = min_ff(min_coord, fp[1]);
+						}
+					}
+				}
+			}
 		}
 
 		if (max_coord > min_coord) {
