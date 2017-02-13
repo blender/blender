@@ -1374,22 +1374,22 @@ static void outliner_add_orphaned_datablocks(Main *mainvar, SpaceOops *soops)
 	}
 }
 
-static void outliner_add_collections_recursive(SpaceOops *soops, ListBase *tree, ListBase *layer_collections,
-                                               TreeElement *parent_ten)
+static void outliner_add_collections_recursive(SpaceOops *soops, ListBase *tree, Scene *scene,
+                                               ListBase *layer_collections, TreeElement *parent_ten)
 {
 	for (LayerCollection *collection = layer_collections->first; collection; collection = collection->next) {
-		TreeElement *ten = outliner_add_element(soops, tree, NULL, parent_ten, TSE_COLLECTION, 0);
+		TreeElement *ten = outliner_add_element(soops, tree, scene, parent_ten, TSE_COLLECTION, 0);
 
 		ten->name = collection->scene_collection->name;
 		ten->directdata = collection;
 
-		outliner_add_collections_recursive(soops, &ten->subtree, &collection->layer_collections, ten);
+		outliner_add_collections_recursive(soops, &ten->subtree, scene, &collection->layer_collections, ten);
 	}
 }
 
-static void outliner_add_collections(SpaceOops *soops, SceneLayer *layer)
+static void outliner_add_collections(SpaceOops *soops, SceneLayer *layer, Scene *scene)
 {
-	outliner_add_collections_recursive(soops, &soops->tree, &layer->layer_collections, NULL);
+	outliner_add_collections_recursive(soops, &soops->tree, scene, &layer->layer_collections, NULL);
 }
 
 /* ======================================================= */
@@ -1854,7 +1854,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 		outliner_add_orphaned_datablocks(mainvar, soops);
 	}
 	else if (soops->outlinevis == SO_COLLECTIONS) {
-		outliner_add_collections(soops, BLI_findlink(&scene->render_layers, scene->active_layer));
+		outliner_add_collections(soops, BLI_findlink(&scene->render_layers, scene->active_layer), scene);
 	}
 	else {
 		ten = outliner_add_element(soops, &soops->tree, OBACT_NEW, NULL, 0, 0);

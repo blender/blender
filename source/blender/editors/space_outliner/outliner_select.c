@@ -758,13 +758,12 @@ static eOLDrawState tree_element_active_collection(
         bContext *C, TreeElement *te, TreeStoreElem *UNUSED(tselem), const eOLSetState set)
 {
 	if (set != OL_SETSEL_NONE) {
-		Scene *scene = CTX_data_scene(C);
-		SceneLayer *slayer = BLI_findlink(&scene->render_layers, scene->active_layer);
-		LayerCollection *collection = te->directdata;
-		const int collection_index = BKE_layer_collection_findindex(slayer, collection);
+		SceneLayer *sl = CTX_data_scene_layer(C);
+		LayerCollection *lc = te->directdata;
+		const int collection_index = BKE_layer_collection_findindex(sl, lc);
 
 		BLI_assert(collection_index >= 0);
-		slayer->active_collection = collection_index;
+		sl->active_collection = collection_index;
 		WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 		return OL_DRAWSEL_ACTIVE;
 	}
