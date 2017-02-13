@@ -48,7 +48,9 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "GPU_batch.h"
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "curve_intern.h"
 
@@ -467,39 +469,48 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 	Object *obedit = cdd->vc.obedit;
 	Curve *cu = obedit->data;
 
-	UI_ThemeColor(TH_WIRE);
-
 	if (cu->ext2 > 0.0f) {
-		GLUquadricObj *qobj = gluNewQuadric();
-
-		gluQuadricDrawStyle(qobj, GLU_FILL);
-
 		BLI_mempool_iter iter;
 		const struct StrokeElem *selem;
 
 		const float  location_zero[3] = {0};
 		const float *location_prev = location_zero;
 
+		float color[3];
+		UI_GetThemeColor3fv(TH_WIRE, color);
+
+		/* silly light-less shader, non-critical task, so it's fine */
+		float light[3] = {0.0f, 0.0f, 0.0f};
+
+		Batch *sphere = Batch_get_sphere(0);
+		Batch_set_builtin_program(sphere, GPU_SHADER_SIMPLE_LIGHTING);
+		Batch_Uniform3fv(sphere, "color", color);
+		Batch_Uniform3fv(sphere, "light", light);
+
 		/* scale to edit-mode space */
-		glPushMatrix();
-		glMultMatrixf(obedit->obmat);
+		gpuMatrixBegin3D_legacy();
+		gpuPushMatrix();
+		gpuMultMatrix3D(obedit->obmat);
 
 		BLI_mempool_iternew(cdd->stroke_elem_pool, &iter);
 		for (selem = BLI_mempool_iterstep(&iter); selem; selem = BLI_mempool_iterstep(&iter)) {
-			glTranslatef(
+			gpuTranslate3f(
 			        selem->location_local[0] - location_prev[0],
 			        selem->location_local[1] - location_prev[1],
 			        selem->location_local[2] - location_prev[2]);
 			location_prev = selem->location_local;
+
 			const float radius = stroke_elem_radius(cdd, selem);
-			gluSphere(qobj, radius, 12, 8);
+
+			gpuScaleUniform(radius);
+			Batch_draw(sphere);
+			gpuScaleUniform(1.0f / radius);
 
 			location_prev = selem->location_local;
 		}
 
-		glPopMatrix();
-
-		gluDeleteQuadric(qobj);
+		gpuPopMatrix();
+		gpuMatrixEnd();
 	}
 
 	if (stroke_len > 1) {
