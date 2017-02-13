@@ -479,13 +479,9 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 		float color[3];
 		UI_GetThemeColor3fv(TH_WIRE, color);
 
-		/* silly light-less shader, non-critical task, so it's fine */
-		float light[3] = {0.0f, 0.0f, 0.0f};
-
 		Batch *sphere = Batch_get_sphere(0);
-		Batch_set_builtin_program(sphere, GPU_SHADER_SIMPLE_LIGHTING);
+		Batch_set_builtin_program(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
 		Batch_Uniform3fv(sphere, "color", color);
-		Batch_Uniform3fv(sphere, "light", light);
 
 		/* scale to edit-mode space */
 		gpuMatrixBegin3D_legacy();
