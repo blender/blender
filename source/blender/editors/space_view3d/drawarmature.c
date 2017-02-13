@@ -64,6 +64,7 @@
 
 #include "GPU_basic_shader.h"
 #include "GPU_batch.h"
+#include "GPU_immediate.h"
 #include "GPU_matrix.h"
 
 #include "UI_resources.h"
@@ -77,6 +78,7 @@
 /* global here is reset before drawing each bone */
 static ThemeWireColor *bcolor = NULL;
 static float fcolor[4] = {0.0f};
+static bool flat_color;
 
 /* values of colCode for set_pchan_glcolor */
 enum {
@@ -355,6 +357,17 @@ static void set_ebone_glColor(const unsigned int boneflag)
 
 /* *************** Armature drawing, helper calls for parts ******************* */
 
+static void add_solid_flat_triangle(VertexBuffer *vbo, unsigned int *vertex, unsigned int pos, unsigned int nor,
+                                    const float p1[3], const float p2[3], const float p3[3], const float n[3])
+{
+	setAttrib(vbo, nor, *vertex, n);
+	setAttrib(vbo, pos, (*vertex)++, p1);
+	setAttrib(vbo, nor, *vertex, n);
+	setAttrib(vbo, pos, (*vertex)++, p2);
+	setAttrib(vbo, nor, *vertex, n);
+	setAttrib(vbo, pos, (*vertex)++, p3);
+}
+
 /* half the cube, in Y */
 static const float cube_vert[8][3] = {
 	{-1.0,  0.0, -1.0},
@@ -375,44 +388,63 @@ static const float cube_wire[24] = {
 
 static void drawsolidcube_size(float xsize, float ysize, float zsize)
 {
-	static GLuint displist = 0;
-	float n[3] = {0.0f};
-	
-	glScalef(xsize, ysize, zsize);
+	static VertexFormat format = {0};
+	static VertexBuffer vbo = {0};
+	static Batch batch = {0};
+	const float light_vec[3] = {0.0f, 0.0f, 1.0f};
 
-	if (displist == 0) {
-		displist = glGenLists(1);
-		glNewList(displist, GL_COMPILE);
+	if (format.attrib_ct == 0) {
+		unsigned int i = 0;
+		float n[3] = {0.0f};
+		/* Vertex format */
+		unsigned int pos = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		unsigned int nor = add_attrib(&format, "nor", GL_FLOAT, 3, KEEP_FLOAT);
 
-		glBegin(GL_QUADS);
+		/* Vertices */
+		VertexBuffer_init_with_format(&vbo, &format);
+		VertexBuffer_allocate_data(&vbo, 36);
+
 		n[0] = -1.0;
-		glNormal3fv(n); 
-		glVertex3fv(cube_vert[0]); glVertex3fv(cube_vert[1]); glVertex3fv(cube_vert[2]); glVertex3fv(cube_vert[3]);
+		add_solid_flat_triangle(&vbo, &i, pos, nor, cube_vert[0], cube_vert[1], cube_vert[2], n);
+		add_solid_flat_triangle(&vbo, &i, pos, nor, cube_vert[2], cube_vert[3], cube_vert[0], n);
 		n[0] = 0;
 		n[1] = -1.0;
-		glNormal3fv(n); 
-		glVertex3fv(cube_vert[0]); glVertex3fv(cube_vert[4]); glVertex3fv(cube_vert[5]); glVertex3fv(cube_vert[1]);
+		add_solid_flat_triangle(&vbo, &i, pos, nor, cube_vert[0], cube_vert[4], cube_vert[5], n);
+		add_solid_flat_triangle(&vbo, &i, pos, nor, cube_vert[5], cube_vert[1], cube_vert[0], n);
 		n[1] = 0;
 		n[0] = 1.0;
-		glNormal3fv(n); 
-		glVertex3fv(cube_vert[4]); glVertex3fv(cube_vert[7]); glVertex3fv(cube_vert[6]); glVertex3fv(cube_vert[5]);
+		add_solid_flat_triangle(&vbo, &i, pos, nor, cube_vert[4], cube_vert[7], cube_vert[6], n);
+		add_solid_flat_triangle(&vbo, &i, pos, nor, cube_vert[6], cube_vert[5], cube_vert[4], n);
 		n[0] = 0;
 		n[1] = 1.0;
-		glNormal3fv(n); 
-		glVertex3fv(cube_vert[7]); glVertex3fv(cube_vert[3]); glVertex3fv(cube_vert[2]); glVertex3fv(cube_vert[6]);
+		add_solid_flat_triangle(&vbo, &i, pos, nor, cube_vert[7], cube_vert[3], cube_vert[2], n);
+		add_solid_flat_triangle(&vbo, &i, pos, nor, cube_vert[2], cube_vert[6], cube_vert[7], n);
 		n[1] = 0;
 		n[2] = 1.0;
-		glNormal3fv(n); 
-		glVertex3fv(cube_vert[1]); glVertex3fv(cube_vert[5]); glVertex3fv(cube_vert[6]); glVertex3fv(cube_vert[2]);
+		add_solid_flat_triangle(&vbo, &i, pos, nor, cube_vert[1], cube_vert[5], cube_vert[6], n);
+		add_solid_flat_triangle(&vbo, &i, pos, nor, cube_vert[6], cube_vert[2], cube_vert[1], n);
 		n[2] = -1.0;
-		glNormal3fv(n); 
-		glVertex3fv(cube_vert[7]); glVertex3fv(cube_vert[4]); glVertex3fv(cube_vert[0]); glVertex3fv(cube_vert[3]);
-		glEnd();
+		add_solid_flat_triangle(&vbo, &i, pos, nor, cube_vert[7], cube_vert[4], cube_vert[0], n);
+		add_solid_flat_triangle(&vbo, &i, pos, nor, cube_vert[0], cube_vert[3], cube_vert[7], n);
 
-		glEndList();
+		Batch_init(&batch, GL_TRIANGLES, &vbo, NULL);
 	}
 
-	glCallList(displist);
+	gpuMatrixBegin3D_legacy();
+	gpuScale3f(xsize, ysize, zsize);
+
+	if (flat_color) {
+		Batch_set_builtin_program(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
+	}
+	else {
+		/* TODO replace with good default lighting shader ? */
+		Batch_set_builtin_program(&batch, GPU_SHADER_SIMPLE_LIGHTING);
+		Batch_Uniform3fv(&batch, "light", light_vec);
+	}
+	Batch_Uniform4fv(&batch, "color", fcolor);
+	Batch_draw(&batch);
+
+	gpuMatrixEnd();
 }
 
 static void drawcube_size(float xsize, float ysize, float zsize)
@@ -458,55 +490,79 @@ static void drawcube_size(float xsize, float ysize, float zsize)
 
 static void draw_bonevert(void)
 {
-	static GLuint displist = 0;
-	
-	if (displist == 0) {
-		GLUquadricObj   *qobj;
-		
-		displist = glGenLists(1);
-		glNewList(displist, GL_COMPILE);
-			
-		glPushMatrix();
-		
-		qobj    = gluNewQuadric();
-		gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
-		gluDisk(qobj, 0.0,  0.05, 16, 1);
-		
-		glRotatef(90, 0, 1, 0);
-		gluDisk(qobj, 0.0,  0.05, 16, 1);
-		
-		glRotatef(90, 1, 0, 0);
-		gluDisk(qobj, 0.0,  0.05, 16, 1);
-		
-		gluDeleteQuadric(qobj);  
-		
-		glPopMatrix();
-		glEndList();
+	static VertexFormat format = {0};
+	static VertexBuffer vbo = {0};
+	static Batch batch = {0};
+
+	if (format.attrib_ct == 0) {
+		/* Vertex format */
+		unsigned int pos = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+
+		/* Vertices */
+		VertexBuffer_init_with_format(&vbo, &format);
+		VertexBuffer_allocate_data(&vbo, 96);
+		for (int i = 0; i < 16; ++i) {
+			float vert[3] = {0.f, 0.f, 0.f};
+			const float r = 0.05f;
+
+			vert[0] = r * cosf(2 * M_PI * i / 16.f);
+			vert[1] = r * sinf(2 * M_PI * i / 16.f);
+			setAttrib(&vbo, pos, i * 6 + 0, vert);
+			vert[0] = r * cosf(2 * M_PI * (i + 1) / 16.f);
+			vert[1] = r * sinf(2 * M_PI * (i + 1) / 16.f);
+			setAttrib(&vbo, pos, i * 6 + 1, vert);
+
+			vert[0] = 0.f;
+			vert[1] = r * cosf(2 * M_PI * i / 16.f);
+			vert[2] = r * sinf(2 * M_PI * i / 16.f);
+			setAttrib(&vbo, pos, i * 6 + 2, vert);
+			vert[1] = r * cosf(2 * M_PI * (i + 1) / 16.f);
+			vert[2] = r * sinf(2 * M_PI * (i + 1) / 16.f);
+			setAttrib(&vbo, pos, i * 6 + 3, vert);
+
+			vert[1] = 0.f;
+			vert[0] = r * cosf(2 * M_PI * i / 16.f);
+			vert[2] = r * sinf(2 * M_PI * i / 16.f);
+			setAttrib(&vbo, pos, i * 6 + 4, vert);
+			vert[0] = r * cosf(2 * M_PI * (i + 1) / 16.f);
+			vert[2] = r * sinf(2 * M_PI * (i + 1) / 16.f);
+			setAttrib(&vbo, pos, i * 6 + 5, vert);
+		}
+
+		Batch_init(&batch, GL_LINES, &vbo, NULL);
+		Batch_set_builtin_program(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
 	}
 
-	glCallList(displist);
+	gpuMatrixBegin3D_legacy();
+
+	Batch_use_program(&batch);
+	Batch_Uniform4fv(&batch, "color", fcolor);
+	Batch_draw(&batch);
+
+	gpuMatrixEnd();
 }
 
 static void draw_bonevert_solid(void)
 {
-	static GLuint displist = 0;
-	
-	if (displist == 0) {
-		GLUquadricObj *qobj;
-		
-		displist = glGenLists(1);
-		glNewList(displist, GL_COMPILE);
-		
-		qobj = gluNewQuadric();
-		gluQuadricDrawStyle(qobj, GLU_FILL);
-		/* Draw tips of a bone */
-		gluSphere(qobj, 0.05, 8, 5);
-		gluDeleteQuadric(qobj);  
-		
-		glEndList();
-	}
+	Batch *batch = Batch_get_sphere(0);
+	const float light_vec[3] = {0.0f, 0.0f, 1.0f};
 
-	glCallList(displist);
+	gpuMatrixBegin3D_legacy();
+
+	gpuScale3f(0.05, 0.05, 0.05);
+
+	if (flat_color) {
+		Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
+	}
+	else {
+		/* TODO replace with good default lighting shader ? */
+		Batch_set_builtin_program(batch, GPU_SHADER_SIMPLE_LIGHTING);
+		Batch_Uniform3fv(batch, "light", light_vec);
+	}
+	Batch_Uniform4fv(batch, "color", fcolor);
+	Batch_draw(batch);
+
+	gpuMatrixEnd();
 }
 
 static const float bone_octahedral_verts[6][3] = {
@@ -589,40 +645,46 @@ static void draw_bone_octahedral(void)
 
 static void draw_bone_solid_octahedral(void)
 {
-	static GLuint displist = 0;
+	static VertexFormat format = {0};
+	static VertexBuffer vbo = {0};
+	static Batch batch = {0};
+	const float light_vec[3] = {0.0f, 0.0f, 1.0f};
 
-	if (displist == 0) {
-		int i;
+	if (format.attrib_ct == 0) {
+		unsigned int v_idx = 0;
+		/* Vertex format */
+		unsigned int pos = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		unsigned int nor = add_attrib(&format, "nor", GL_FLOAT, 3, KEEP_FLOAT);
 
-		displist = glGenLists(1);
-		glNewList(displist, GL_COMPILE);
+		/* Vertices */
+		VertexBuffer_init_with_format(&vbo, &format);
+		VertexBuffer_allocate_data(&vbo, 24);
 
-#if 1
-		glBegin(GL_TRIANGLES);
-		for (i = 0; i < 8; i++) {
-			glNormal3fv(bone_octahedral_solid_normals[i]);
-			glVertex3fv(bone_octahedral_verts[bone_octahedral_solid_tris[i][0]]);
-			glVertex3fv(bone_octahedral_verts[bone_octahedral_solid_tris[i][1]]);
-			glVertex3fv(bone_octahedral_verts[bone_octahedral_solid_tris[i][2]]);
+		for (int i = 0; i < 8; i++) {
+			add_solid_flat_triangle(&vbo, &v_idx, pos, nor,
+			                        bone_octahedral_verts[bone_octahedral_solid_tris[i][0]],
+			                        bone_octahedral_verts[bone_octahedral_solid_tris[i][1]],
+			                        bone_octahedral_verts[bone_octahedral_solid_tris[i][2]],
+			                        bone_octahedral_solid_normals[i]);
 		}
 
-		glEnd();
-
-#else   /* not working because each vert needs a different normal */
-		glEnableClientState(GL_NORMAL_ARRAY);
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glNormalPointer(GL_FLOAT, 0, bone_octahedral_solid_normals);
-		glVertexPointer(3, GL_FLOAT, 0, bone_octahedral_verts);
-		glDrawElements(GL_TRIANGLES, sizeof(bone_octahedral_solid_tris) / sizeof(unsigned int),
-		               GL_UNSIGNED_INT, bone_octahedral_solid_tris);
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glDisableClientState(GL_VERTEX_ARRAY);
-#endif
-
-		glEndList();
+		Batch_init(&batch, GL_TRIANGLES, &vbo, NULL);
 	}
 
-	glCallList(displist);
+	gpuMatrixBegin3D_legacy();
+
+	if (flat_color) {
+		Batch_set_builtin_program(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
+	}
+	else {
+		/* TODO replace with good default lighting shader ? */
+		Batch_set_builtin_program(&batch, GPU_SHADER_SIMPLE_LIGHTING);
+		Batch_Uniform3fv(&batch, "light", light_vec);
+	}
+	Batch_Uniform4fv(&batch, "color", fcolor);
+	Batch_draw(&batch);
+
+	gpuMatrixEnd();
 }	
 
 /* *************** Armature drawing, bones ******************* */
@@ -637,15 +699,23 @@ static void draw_bone_points(const short dt, int armflag, unsigned int boneflag,
 		
 		if (dt <= OB_WIRE) {
 			if (armflag & ARM_EDITMODE) {
-				if (boneflag & BONE_ROOTSEL) UI_ThemeColor(TH_VERTEX_SELECT);
-				else UI_ThemeColor(TH_VERTEX);
+				if (boneflag & BONE_ROOTSEL) {
+					UI_ThemeColor(TH_VERTEX_SELECT);
+					UI_GetThemeColor4fv(TH_VERTEX_SELECT, fcolor);
+				}
+				else {
+					UI_ThemeColor(TH_VERTEX);
+					UI_GetThemeColor4fv(TH_VERTEX, fcolor);
+				}
 			}
 		}
 		else {
 			if (armflag & ARM_POSEMODE) 
 				set_pchan_glColor(PCHAN_COLOR_SOLID, boneflag, 0);
-			else
+			else {
 				UI_ThemeColor(TH_BONE_SOLID);
+				UI_GetThemeColor4fv(TH_BONE_SOLID, fcolor);
+			}
 		}
 		
 		if (dt > OB_WIRE) 
@@ -660,15 +730,23 @@ static void draw_bone_points(const short dt, int armflag, unsigned int boneflag,
 	
 	if (dt <= OB_WIRE) {
 		if (armflag & ARM_EDITMODE) {
-			if (boneflag & BONE_TIPSEL) UI_ThemeColor(TH_VERTEX_SELECT);
-			else UI_ThemeColor(TH_VERTEX);
+			if (boneflag & BONE_TIPSEL) {
+				UI_ThemeColor(TH_VERTEX_SELECT);
+				UI_GetThemeColor4fv(TH_VERTEX_SELECT, fcolor);
+			}
+			else {
+				UI_ThemeColor(TH_VERTEX);
+				UI_GetThemeColor4fv(TH_VERTEX, fcolor);
+			}
 		}
 	}
 	else {
 		if (armflag & ARM_POSEMODE) 
 			set_pchan_glColor(PCHAN_COLOR_SOLID, boneflag, 0);
-		else
+		else {
 			UI_ThemeColor(TH_BONE_SOLID);
+			UI_GetThemeColor4fv(TH_BONE_SOLID, fcolor);
+		}
 	}
 	
 	glTranslatef(0.0f, 1.0f, 0.0f);
@@ -776,8 +854,13 @@ static void draw_sphere_bone_dist(float smat[4][4], float imat[4][4], bPoseChann
 		
 		//mul_v3_fl(dirvec, head);
 		cross_v3_v3v3(norvec, dirvec, imat[2]);
-		
-		glBegin(GL_QUAD_STRIP);
+
+		VertexFormat *format = immVertexFormat();
+		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+
+		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+		immBegin(GL_TRIANGLE_STRIP, 66);
+		immUniformColor4ub(255, 255, 255, 50);
 		
 		for (a = 0; a < 16; a++) {
 			vec[0] = -si[a] * dirvec[0] + co[a] * norvec[0];
@@ -787,10 +870,8 @@ static void draw_sphere_bone_dist(float smat[4][4], float imat[4][4], bPoseChann
 			madd_v3_v3v3fl(vec1, headvec, vec, head);
 			madd_v3_v3v3fl(vec2, headvec, vec, head + dist);
 			
-			glColor4ub(255, 255, 255, 50);
-			glVertex3fv(vec1);
-			//glColor4ub(255, 255, 255, 0);
-			glVertex3fv(vec2);
+			immVertex3fv(pos, vec1);
+			immVertex3fv(pos, vec2);
 		}
 		
 		for (a = 15; a >= 0; a--) {
@@ -801,10 +882,8 @@ static void draw_sphere_bone_dist(float smat[4][4], float imat[4][4], bPoseChann
 			madd_v3_v3v3fl(vec1, tailvec, vec, tail);
 			madd_v3_v3v3fl(vec2, tailvec, vec, tail + dist);
 			
-			//glColor4ub(255, 255, 255, 50);
-			glVertex3fv(vec1);
-			//glColor4ub(255, 255, 255, 0);
-			glVertex3fv(vec2);
+			immVertex3fv(pos, vec1);
+			immVertex3fv(pos, vec2);
 		}
 		/* make it cyclic... */
 		
@@ -815,12 +894,11 @@ static void draw_sphere_bone_dist(float smat[4][4], float imat[4][4], bPoseChann
 		madd_v3_v3v3fl(vec1, headvec, vec, head);
 		madd_v3_v3v3fl(vec2, headvec, vec, head + dist);
 
-		//glColor4ub(255, 255, 255, 50);
-		glVertex3fv(vec1);
-		//glColor4ub(255, 255, 255, 0);
-		glVertex3fv(vec2);
+		immVertex3fv(pos, vec1);
+		immVertex3fv(pos, vec2);
 		
-		glEnd();
+		immEnd();
+		immUnbindProgram();
 	}
 }
 
@@ -832,6 +910,11 @@ static void draw_sphere_bone_wire(float smat[4][4], float imat[4][4],
 {
 	float head, tail /*, length*/;
 	float *headvec, *tailvec, dirvec[3];
+
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 	
 	/* figure out the sizes of spheres */
 	if (ebone) {
@@ -860,35 +943,55 @@ static void draw_sphere_bone_wire(float smat[4][4], float imat[4][4],
 	
 	/* sphere root color */
 	if (armflag & ARM_EDITMODE) {
-		if (boneflag & BONE_ROOTSEL) UI_ThemeColor(TH_VERTEX_SELECT);
-		else UI_ThemeColor(TH_VERTEX);
+		if (boneflag & BONE_ROOTSEL) {
+			UI_ThemeColor(TH_VERTEX_SELECT);
+			UI_GetThemeColor4fv(TH_VERTEX_SELECT, fcolor);
+		}
+		else {
+			UI_ThemeColor(TH_VERTEX);
+			UI_GetThemeColor4fv(TH_VERTEX, fcolor);
+		}
 	}
 	else if (armflag & ARM_POSEMODE)
 		set_pchan_glColor(PCHAN_COLOR_NORMAL, boneflag, constflag);
-	
+
+	immUniformColor4fv(fcolor);
+
 	/*	Draw root point if we are not connected */
 	if ((boneflag & BONE_CONNECTED) == 0) {
 		if (id != -1)
 			GPU_select_load_id(id | BONESEL_ROOT);
 		
-		drawcircball(GL_LINE_LOOP, headvec, head, imat);
+		imm_drawcircball(headvec, head, imat, pos);
 	}
 	
 	/*	Draw tip point */
 	if (armflag & ARM_EDITMODE) {
-		if (boneflag & BONE_TIPSEL) UI_ThemeColor(TH_VERTEX_SELECT);
-		else UI_ThemeColor(TH_VERTEX);
+		if (boneflag & BONE_TIPSEL) {
+			UI_ThemeColor(TH_VERTEX_SELECT);
+			UI_GetThemeColor4fv(TH_VERTEX_SELECT, fcolor);
+		}
+		else {
+			UI_ThemeColor(TH_VERTEX);
+			UI_GetThemeColor4fv(TH_VERTEX, fcolor);
+		}
 	}
 	
 	if (id != -1)
 		GPU_select_load_id(id | BONESEL_TIP);
 	
-	drawcircball(GL_LINE_LOOP, tailvec, tail, imat);
+	imm_drawcircball(tailvec, tail, imat, pos);
 	
 	/* base */
 	if (armflag & ARM_EDITMODE) {
-		if (boneflag & BONE_SELECTED) UI_ThemeColor(TH_SELECT);
-		else UI_ThemeColor(TH_WIRE_EDIT);
+		if (boneflag & BONE_SELECTED){
+			UI_ThemeColor(TH_SELECT);
+			UI_GetThemeColor4fv(TH_SELECT, fcolor);
+		}
+		else {
+			UI_ThemeColor(TH_WIRE_EDIT);
+			UI_GetThemeColor4fv(TH_WIRE_EDIT, fcolor);
+		}
 	}
 	
 	sub_v3_v3v3(dirvec, tailvec, headvec);
@@ -914,34 +1017,41 @@ static void draw_sphere_bone_wire(float smat[4][4], float imat[4][4],
 		if (id != -1)
 			GPU_select_load_id(id | BONESEL_BONE);
 		
-		glBegin(GL_LINES);
+		immBegin(GL_LINES, 4);
 
 		add_v3_v3v3(vec, headvec, norvech);
-		glVertex3fv(vec);
+		immVertex3fv(pos, vec);
 
 		add_v3_v3v3(vec, tailvec, norvect);
-		glVertex3fv(vec);
+		immVertex3fv(pos, vec);
 
 		sub_v3_v3v3(vec, headvec, norvech);
-		glVertex3fv(vec);
+		immVertex3fv(pos, vec);
 
 		sub_v3_v3v3(vec, tailvec, norvect);
-		glVertex3fv(vec);
+		immVertex3fv(pos, vec);
 		
-		glEnd();
+		immEnd();
 	}
+
+	immUnbindProgram();
 }
 
 /* does wire only for outline selecting */
 static void draw_sphere_bone(const short dt, int armflag, int boneflag, short constflag, unsigned int id,
                              bPoseChannel *pchan, EditBone *ebone)
 {
-	GLUquadricObj *qobj;
+	Batch *sphere = Batch_get_sphere(1);
 	float head, tail, length;
-	float fac1, fac2;
-	
-	glPushMatrix();
-	qobj = gluNewQuadric();
+	float fac1, fac2, size1, size2;
+	const float light_vec[3] = {0.0f, 0.0f, 1.0f};
+
+	/* dt is always OB_SOlID */
+	Batch_set_builtin_program(sphere, GPU_SHADER_SIMPLE_LIGHTING);
+	Batch_Uniform3fv(sphere, "light", light_vec);
+
+	gpuMatrixBegin3D_legacy();
+	gpuPushMatrix();
 
 	/* figure out the sizes of spheres */
 	if (ebone) {
@@ -962,95 +1072,120 @@ static void draw_sphere_bone(const short dt, int armflag, int boneflag, short co
 	}
 	
 	/* move to z-axis space */
-	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+	gpuRotate3f(-90.0f, 1.0f, 0.0f, 0.0f);
 
-	if (dt == OB_SOLID) {
-		/* set up solid drawing */
-		GPU_basic_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
-		
-		gluQuadricDrawStyle(qobj, GLU_FILL); 
-	}
-	else {
-		gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
-	}
-	
 	/* sphere root color */
 	if (armflag & ARM_EDITMODE) {
-		if (boneflag & BONE_ROOTSEL) UI_ThemeColor(TH_VERTEX_SELECT);
-		else UI_ThemeColorShade(TH_BONE_SOLID, -30);
+		if (boneflag & BONE_ROOTSEL)
+			UI_GetThemeColor4fv(TH_VERTEX_SELECT, fcolor);
+		else
+			UI_GetThemeColorShade4fv(TH_BONE_SOLID, -30, fcolor);
 	}
 	else if (armflag & ARM_POSEMODE)
 		set_pchan_glColor(PCHAN_COLOR_SPHEREBONE_END, boneflag, constflag);
 	else if (dt == OB_SOLID)
-		UI_ThemeColorShade(TH_BONE_SOLID, -30);
+		UI_GetThemeColorShade4fv(TH_BONE_SOLID, -30, fcolor);
 	
 	/*	Draw root point if we are not connected */
 	if ((boneflag & BONE_CONNECTED) == 0) {
 		if (id != -1)
 			GPU_select_load_id(id | BONESEL_ROOT);
-		gluSphere(qobj, head, 16, 10);
+		gpuPushMatrix();
+		gpuScale3f(head, head, head);
+		Batch_Uniform4fv(sphere, "color", fcolor);
+		Batch_draw(sphere);
+		gpuPopMatrix();
 	}
 	
 	/*	Draw tip point */
 	if (armflag & ARM_EDITMODE) {
-		if (boneflag & BONE_TIPSEL) UI_ThemeColor(TH_VERTEX_SELECT);
-		else UI_ThemeColorShade(TH_BONE_SOLID, -30);
+		if (boneflag & BONE_TIPSEL) UI_GetThemeColor4fv(TH_VERTEX_SELECT, fcolor);
+		else UI_GetThemeColorShade4fv(TH_BONE_SOLID, -30, fcolor);
 	}
 
 	if (id != -1)
 		GPU_select_load_id(id | BONESEL_TIP);
 	
-	glTranslatef(0.0f, 0.0f, length);
-	gluSphere(qobj, tail, 16, 10);
-	glTranslatef(0.0f, 0.0f, -length);
+	gpuTranslate3f(0.0f, 0.0f, length);
+
+	gpuPushMatrix();
+	gpuScale3f(tail, tail, tail);
+	Batch_use_program(sphere); /* hack to make the following uniforms stick */
+	Batch_Uniform4fv(sphere, "color", fcolor);
+	Batch_draw(sphere);
+	gpuPopMatrix();
+
+	gpuTranslate3f(0.0f, 0.0f, -length);
 	
 	/* base */
 	if (armflag & ARM_EDITMODE) {
-		if (boneflag & BONE_SELECTED) UI_ThemeColor(TH_SELECT);
-		else UI_ThemeColor(TH_BONE_SOLID);
+		if (boneflag & BONE_SELECTED) UI_GetThemeColor4fv(TH_SELECT, fcolor);
+		else UI_GetThemeColor4fv(TH_BONE_SOLID, fcolor);
 	}
 	else if (armflag & ARM_POSEMODE)
 		set_pchan_glColor(PCHAN_COLOR_SPHEREBONE_BASE, boneflag, constflag);
 	else if (dt == OB_SOLID)
-		UI_ThemeColor(TH_BONE_SOLID);
+		UI_GetThemeColor4fv(TH_BONE_SOLID, fcolor);
+
+	Batch_use_program(sphere); /* hack to make the following uniforms stick */
+	Batch_Uniform4fv(sphere, "color", fcolor);
 	
 	fac1 = (length - head) / length;
 	fac2 = (length - tail) / length;
 	
 	if (length > (head + tail)) {
+		size1 = fac2 * tail + (1.0f - fac2) * head;
+		size2 = fac1 * head + (1.0f - fac1) * tail;
+
 		if (id != -1)
 			GPU_select_load_id(id | BONESEL_BONE);
 		
+		/* draw sphere on extrema */
+		gpuPushMatrix();
+		gpuTranslate3f(0.0f, 0.0f, length - tail);
+		gpuScale3f(size1, size1, size1);
+
+		Batch_draw(sphere);
+		gpuPopMatrix();
+
+		gpuPushMatrix();
+		gpuTranslate3f(0.0f, 0.0f, head);
+		gpuScale3f(size2, size2, size2);
+
+		Batch_draw(sphere);
+		gpuPopMatrix();
+
+		/* draw cynlinder between spheres */
 		glEnable(GL_POLYGON_OFFSET_FILL);
 		glPolygonOffset(-1.0f, -1.0f);
-		
-		glTranslatef(0.0f, 0.0f, head);
-		gluCylinder(qobj, fac1 * head + (1.0f - fac1) * tail, fac2 * tail + (1.0f - fac2) * head, length - head - tail, 16, 1);
-		glTranslatef(0.0f, 0.0f, -head);
+
+		VertexFormat *format = immVertexFormat();
+		unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		unsigned int nor = add_attrib(format, "nor", GL_FLOAT, 3, KEEP_FLOAT);
+
+		immBindBuiltinProgram(GPU_SHADER_SIMPLE_LIGHTING);
+		immUniformColor4fv(fcolor);
+		immUniform3fv("light", light_vec);
+
+		gpuTranslate3f(0.0f, 0.0f, head);
+		imm_cylinder(pos, nor, size2, size1, length - head - tail, 16, 1);
+
+		immUnbindProgram();
 		
 		glDisable(GL_POLYGON_OFFSET_FILL);
-		
-		/* draw sphere on extrema */
-		glTranslatef(0.0f, 0.0f, length - tail);
-		gluSphere(qobj, fac2 * tail + (1.0f - fac2) * head, 16, 10);
-		glTranslatef(0.0f, 0.0f, -length + tail);
-		
-		glTranslatef(0.0f, 0.0f, head);
-		gluSphere(qobj, fac1 * head + (1.0f - fac1) * tail, 16, 10);
 	}
 	else {
+		size1 = fac1 * head + (1.0f - fac1) * tail;
+
 		/* 1 sphere in center */
-		glTranslatef(0.0f, 0.0f, (head + length - tail) / 2.0f);
-		gluSphere(qobj, fac1 * head + (1.0f - fac1) * tail, 16, 10);
+		gpuTranslate3f(0.0f, 0.0f, (head + length - tail) / 2.0f);
+
+		gpuScale3f(size1, size1, size1);
+		Batch_draw(sphere);
 	}
 	
-	/* restore */
-	if (dt == OB_SOLID) {
-		GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
-	}
-	
-	glPopMatrix();
-	gluDeleteQuadric(qobj);  
+	gpuPopMatrix();
+	gpuMatrixEnd();
 }
 
 static GLubyte bm_dot6[] = {0x0, 0x18, 0x3C, 0x7E, 0x7E, 0x3C, 0x18, 0x0};
@@ -1320,8 +1455,10 @@ static void draw_b_bone(const short dt, int armflag, int boneflag, short constfl
 		if (dt == OB_WIRE) {
 			set_ebone_glColor(boneflag);
 		}
-		else 
+		else {
 			UI_ThemeColor(TH_BONE_SOLID);
+			UI_GetThemeColor4fv(TH_BONE_SOLID, fcolor);
+		}
 	}
 	
 	if (id != -1) {
@@ -1330,17 +1467,15 @@ static void draw_b_bone(const short dt, int armflag, int boneflag, short constfl
 	
 	/* set up solid drawing */
 	if (dt > OB_WIRE) {
-		GPU_basic_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
-		
 		if (armflag & ARM_POSEMODE)
 			set_pchan_glColor(PCHAN_COLOR_SOLID, boneflag, constflag);
-		else
+		else {
 			UI_ThemeColor(TH_BONE_SOLID);
+			UI_GetThemeColor4fv(TH_BONE_SOLID, fcolor);
+		}
 		
+		flat_color = false;
 		draw_b_bone_boxes(OB_SOLID, pchan, ebone, xwidth, length, zwidth);
-		
-		/* disable solid drawing */
-		GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 	}
 	else {
 		/* wire */
@@ -1350,6 +1485,7 @@ static void draw_b_bone(const short dt, int armflag, int boneflag, short constfl
 				if (set_pchan_glColor(PCHAN_COLOR_CONSTS, boneflag, constflag)) {
 					glEnable(GL_BLEND);
 					
+					flat_color = true;
 					draw_b_bone_boxes(OB_SOLID, pchan, ebone, xwidth, length, zwidth);
 					
 					glDisable(GL_BLEND);
@@ -1461,7 +1597,11 @@ static void draw_bone(const short dt, int armflag, int boneflag, short constflag
 	if (dt > OB_WIRE) {
 		GPU_basic_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
 		UI_ThemeColor(TH_BONE_SOLID);
+		UI_GetThemeColor4fv(TH_BONE_SOLID, fcolor);
+		flat_color = false;
 	}
+	else
+		flat_color = true;
 	
 	/* colors for posemode */
 	if (armflag & ARM_POSEMODE) {
@@ -1506,8 +1646,10 @@ static void draw_bone(const short dt, int armflag, int boneflag, short constflag
 		/* solid */
 		if (armflag & ARM_POSEMODE)
 			set_pchan_glColor(PCHAN_COLOR_SOLID, boneflag, constflag);
-		else
+		else {
 			UI_ThemeColor(TH_BONE_SOLID);
+			UI_GetThemeColor4fv(TH_BONE_SOLID, fcolor);
+		}
 		draw_bone_solid_octahedral();
 	}
 

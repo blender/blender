@@ -90,9 +90,7 @@ static void Batch_update_program_bindings(Batch* batch)
 
 		const GLint loc = glGetAttribLocation(batch->program, a->name);
 
-#if TRUST_NO_ONE
-		assert(loc != -1);
-#endif
+		if (loc == -1) continue;
 
 		glEnableVertexAttribArray(loc);
 
