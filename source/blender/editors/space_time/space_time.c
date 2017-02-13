@@ -70,6 +70,7 @@
 #include "ED_markers.h"
 
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "time_intern.h"
 
@@ -118,7 +119,6 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 {
 	PTCacheID *pid;
 	ListBase pidlist;
-	SpaceTimeCache *stc = stime->caches.first;
 	const float cache_draw_height = (4.0f * UI_DPI_FAC * U.pixelsize);
 	float yoffs = 0.f;
 	
@@ -127,12 +127,14 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 
 	BKE_ptcache_ids_from_object(&pidlist, ob, scene, 0);
 
+	gpuMatrixBegin3D_legacy();
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
 	/* iterate over pointcaches on the active object, 
 	 * add spacetimecache and vertex array for each */
 	for (pid = pidlist.first; pid; pid = pid->next) {
-		float col[4], *fp;
-		int i, sta = pid->cache->startframe, end = pid->cache->endframe;
-		int len = (end - sta + 1) * 4;
+		float col[4];
 
 		switch (pid->type) {
 			case PTCACHE_TYPE_SOFTBODY:
@@ -159,43 +161,9 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 		if (pid->cache->cached_frames == NULL)
 			continue;
 
-		/* make sure we have stc with correct array length */
-		if (stc == NULL || MEM_allocN_len(stc->array) != len * 2 * sizeof(float)) {
-			if (stc) {
-				MEM_freeN(stc->array);
-			}
-			else {
-				stc = MEM_callocN(sizeof(SpaceTimeCache), "spacetimecache");
-				BLI_addtail(&stime->caches, stc);
-			}
-
-			stc->array = MEM_callocN(len * 2 * sizeof(float), "SpaceTimeCache array");
-		}
-
-		/* fill the vertex array with a quad for each cached frame */
-		for (i = sta, fp = stc->array; i <= end; i++) {
-			if (pid->cache->cached_frames[i - sta]) {
-				fp[0] = (float)i - 0.5f;
-				fp[1] = 0.0;
-				fp += 2;
-				
-				fp[0] = (float)i - 0.5f;
-				fp[1] = 1.0;
-				fp += 2;
-				
-				fp[0] = (float)i + 0.5f;
-				fp[1] = 1.0;
-				fp += 2;
-				
-				fp[0] = (float)i + 0.5f;
-				fp[1] = 0.0;
-				fp += 2;
-			}
-		}
-		
-		glPushMatrix();
-		glTranslatef(0.0, (float)V2D_SCROLL_HEIGHT + yoffs, 0.0);
-		glScalef(1.0, cache_draw_height, 0.0);
+		gpuPushMatrix();
+		gpuTranslate3f(0.0, (float)V2D_SCROLL_HEIGHT + yoffs, 0.0);
+		gpuScale3f(1.0, cache_draw_height, 0.0);
 		
 		switch (pid->type) {
 			case PTCACHE_TYPE_SOFTBODY:
@@ -229,12 +197,15 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 				BLI_assert(0);
 				break;
 		}
-		glColor4fv(col);
-		
+
+		int sta = pid->cache->startframe, end = pid->cache->endframe;
+		int len = (end - sta + 1) * 4;
+
 		glEnable(GL_BLEND);
-		
-		glRectf((float)sta, 0.0, (float)end, 1.0);
-		
+
+		immUniformColor4fv(col);
+		immRectf(pos, (float)sta, 0.0, (float)end, 1.0);
+
 		col[3] = 0.4f;
 		if (pid->cache->flag & PTCACHE_BAKED) {
 			col[0] -= 0.4f; col[1] -= 0.4f; col[2] -= 0.4f;
@@ -242,52 +213,36 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 		else if (pid->cache->flag & PTCACHE_OUTDATED) {
 			col[0] += 0.4f; col[1] += 0.4f; col[2] += 0.4f;
 		}
-		glColor4fv(col);
-		
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(2, GL_FLOAT, 0, stc->array);
-		glDrawArrays(GL_QUADS, 0, (fp - stc->array) / 2);
-		glDisableClientState(GL_VERTEX_ARRAY);
-		
-		glDisable(GL_BLEND);
-		
-		glPopMatrix();
-		
-		yoffs += cache_draw_height;
 
-		stc = stc->next;
+		immUniformColor4fv(col);
+
+		if (len > 0) {
+			immBeginAtMost(GL_QUADS, len);
+
+			/* draw a quad for each cached frame */
+			for (int i = sta; i <= end; i++) {
+				if (pid->cache->cached_frames[i - sta]) {
+					immVertex2f(pos, (float)i - 0.5f, 0.0f);
+					immVertex2f(pos, (float)i - 0.5f, 1.0f);
+					immVertex2f(pos, (float)i + 0.5f, 1.0f);
+					immVertex2f(pos, (float)i + 0.5f, 0.0f);
+				}
+			}
+
+			immEnd();
+		}
+
+		glDisable(GL_BLEND);
+
+		gpuPopMatrix();
+
+		yoffs += cache_draw_height;
 	}
+
+	immUnbindProgram();
+	gpuMatrixEnd();
 
 	BLI_freelistN(&pidlist);
-
-	/* free excessive caches */
-	while (stc) {
-		SpaceTimeCache *tmp = stc->next;
-		BLI_remlink(&stime->caches, stc);
-		MEM_freeN(stc->array);
-		MEM_freeN(stc);
-		stc = tmp;
-	}
-}
-
-static void time_cache_free(SpaceTime *stime)
-{
-	SpaceTimeCache *stc;
-	
-	for (stc = stime->caches.first; stc; stc = stc->next) {
-		if (stc->array) {
-			MEM_freeN(stc->array);
-			stc->array = NULL;
-		}
-	}
-	
-	BLI_freelistN(&stime->caches);
-}
-
-static void time_cache_refresh(SpaceTime *stime)
-{
-	/* Free previous caches to indicate full refresh */
-	time_cache_free(stime);
 }
 
 /* helper function - find actkeycolumn that occurs on cframe, or the nearest one if not found */
@@ -510,16 +465,6 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 }
 
 /* ---------------- */
-
-static void time_refresh(const bContext *UNUSED(C), ScrArea *sa)
-{
-	/* find the main timeline region and refresh cache display*/
-	ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
-	if (ar) {
-		SpaceTime *stime = (SpaceTime *)sa->spacedata.first;
-		time_cache_refresh(stime);
-	}
-}
 
 /* editor level listener */
 static void time_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
@@ -792,21 +737,12 @@ static SpaceLink *time_new(const bContext *C)
 	return (SpaceLink *)stime;
 }
 
-/* not spacelink itself */
-static void time_free(SpaceLink *sl)
-{
-	SpaceTime *stime = (SpaceTime *)sl;
-	
-	time_cache_free(stime);
-}
 /* spacetype; init callback in ED_area_initialize() */
 /* init is called to (re)initialize an existing editor (file read, screen changes) */
 /* validate spacedata, add own area level handlers */
 static void time_init(wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	SpaceTime *stime = (SpaceTime *)sa->spacedata.first;
-	
-	time_cache_free(stime);
 	
 	/* enable all cache display */
 	stime->cache_display |= TIME_CACHE_DISPLAY;
@@ -836,13 +772,11 @@ void ED_spacetype_time(void)
 	strncpy(st->name, "Timeline", BKE_ST_MAXNAME);
 	
 	st->new = time_new;
-	st->free = time_free;
 	st->init = time_init;
 	st->duplicate = time_duplicate;
 	st->operatortypes = time_operatortypes;
 	st->keymap = NULL;
 	st->listener = time_listener;
-	st->refresh = time_refresh;
 	
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype time region");
