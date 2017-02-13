@@ -544,21 +544,15 @@ static void attr_create_pointiness(Scene *scene,
 	 * index.
 	 */
 	vector<int> vert_orig_index(num_verts);
-	BL::Mesh::vertices_iterator v;
-	int vert_index = 0;
-	for(b_mesh.vertices.begin(v);
-	    v != b_mesh.vertices.end();
-	    ++v, ++vert_index)
-	{
-		const float3 vert_co = get_float3(v->co());
+	for (int vert_index = 0; vert_index < num_verts; ++vert_index) {
+		const float3 &vert_co = mesh->verts[vert_index];
 		bool found = false;
 		int other_vert_index;
 		for(other_vert_index = 0;
 		    other_vert_index < vert_index;
 		    ++other_vert_index)
 		{
-			const float3 other_vert_co =
-			        get_float3(b_mesh.vertices[other_vert_index].co());
+			const float3 &other_vert_co = mesh->verts[other_vert_index];
 			if(other_vert_co == vert_co) {
 				found = true;
 				break;
@@ -576,7 +570,7 @@ static void attr_create_pointiness(Scene *scene,
 	 */
 	vector<float3> vert_normal(num_verts, make_float3(0.0f, 0.0f, 0.0f));
 	/* First we accumulate all vertex normals in the original index. */
-	for(vert_index = 0; vert_index < num_verts; ++vert_index) {
+	for(int vert_index = 0; vert_index < num_verts; ++vert_index) {
 		const float3 normal = get_float3(b_mesh.vertices[vert_index].normal());
 		const int orig_index = vert_orig_index[vert_index];
 		vert_normal[orig_index] += normal;
@@ -584,7 +578,7 @@ static void attr_create_pointiness(Scene *scene,
 	/* Then we normalize the accumulated result and flush it to all duplicates
 	 * as well.
 	 */
-	for(vert_index = 0; vert_index < num_verts; ++vert_index) {
+	for(int vert_index = 0; vert_index < num_verts; ++vert_index) {
 		const int orig_index = vert_orig_index[vert_index];
 		vert_normal[vert_index] = normalize(vert_normal[orig_index]);
 	}
@@ -611,8 +605,7 @@ static void attr_create_pointiness(Scene *scene,
 		++counter[v0];
 		++counter[v1];
 	}
-	vert_index = 0;
-	for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v, ++vert_index) {
+	for(int vert_index = 0; vert_index < num_verts; ++vert_index) {
 		const int orig_index = vert_orig_index[vert_index];
 		if(orig_index != vert_index) {
 			/* Skip duplicates, they'll be overwritten later on. */
@@ -646,11 +639,11 @@ static void attr_create_pointiness(Scene *scene,
 		++counter[v0];
 		++counter[v1];
 	}
-	for(vert_index = 0; vert_index < num_verts; ++vert_index) {
+	for(int vert_index = 0; vert_index < num_verts; ++vert_index) {
 		data[vert_index] /= counter[vert_index] + 1;
 	}
 	/* STEP 4: Copy attribute to the duplicated vertices. */
-	for(vert_index = 0; vert_index < num_verts; ++vert_index) {
+	for(int vert_index = 0; vert_index < num_verts; ++vert_index) {
 		const int orig_index = vert_orig_index[vert_index];
 		data[vert_index] = data[orig_index];
 	}
