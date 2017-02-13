@@ -381,7 +381,7 @@ ccl_device_inline void sort_intersections(Intersection *hits, uint num_hits)
 	int i, j;
 	for(i = 0; i < num_hits; ++i) {
 		for(j = 0; j < num_hits - 1; ++j) {
-			if(hits[j].t < hits[j + 1].t) {
+			if(hits[j].t > hits[j + 1].t) {
 				struct Intersection tmp = hits[j];
 				hits[j] = hits[j + 1];
 				hits[j + 1] = tmp;
