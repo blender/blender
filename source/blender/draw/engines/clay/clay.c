@@ -718,10 +718,15 @@ static void CLAY_view_draw(RenderEngine *UNUSED(engine), const bContext *context
 
 	/* Pass 4 : Overlays */
 	DRW_framebuffer_texture_attach(buffers->default_fb, textures->depth, 0);
+
+	DRW_draw_grid();
 	//DRW_draw_pass(passes->wire_overlay_pass);
 	//DRW_draw_pass(passes->wire_outline_pass);
 	DRW_draw_pass(passes->non_meshes_pass);
 	DRW_draw_pass(passes->ob_center_pass);
+
+	DRW_draw_manipulator();
+	DRW_draw_region_info();
 
 	/* Always finish by this */
 	DRW_state_reset();

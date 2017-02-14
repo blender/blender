@@ -31,6 +31,8 @@
 
 #include "BKE_global.h"
 
+#include "DRW_render.h"
+
 #include "draw_mode_pass.h"
 
 /* ************************** OBJECT MODE ******************************* */
@@ -115,8 +117,7 @@ static DRWShadingGroup *shgroup_groundpoints_uniform_color(DRWPass *pass, float 
 
 static DRWShadingGroup *shgroup_instance_screenspace(DRWPass *pass, struct Batch *geom, float *size)
 {
-	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_SCREENSPACE_VARIYING_COLOR
-);
+	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_SCREENSPACE_VARIYING_COLOR);
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh, pass, geom);
 	DRW_shgroup_attrib_float(grp, "world_pos", 3);

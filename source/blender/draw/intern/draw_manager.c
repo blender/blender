@@ -40,13 +40,10 @@
 
 #include "DNA_view3d_types.h"
 
-#include "GPU_basic_shader.h"
 #include "GPU_batch.h"
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_framebuffer.h"
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 #include "GPU_uniformbuffer.h"
@@ -705,48 +702,6 @@ void DRW_pass_free(DRWPass *pass)
 
 /* ****************************************** DRAW ******************************************/
 
-void DRW_draw_background(void)
-{
-	/* Just to make sure */
-	glDepthMask(GL_TRUE);
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-
-	if (UI_GetThemeValue(TH_SHOW_BACK_GRAD)) {
-		/* Gradient background Color */
-		gpuMatrixBegin3D(); /* TODO: finish 2D API */
-
-		glClear(GL_DEPTH_BUFFER_BIT);
-
-		VertexFormat *format = immVertexFormat();
-		unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-		unsigned color = add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
-		unsigned char col_hi[3], col_lo[3];
-
-		immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
-
-		UI_GetThemeColor3ubv(TH_LOW_GRAD, col_lo);
-		UI_GetThemeColor3ubv(TH_HIGH_GRAD, col_hi);
-
-		immBegin(GL_QUADS, 4);
-		immAttrib3ubv(color, col_lo);
-		immVertex2f(pos, -1.0f, -1.0f);
-		immVertex2f(pos, 1.0f, -1.0f);
-
-		immAttrib3ubv(color, col_hi);
-		immVertex2f(pos, 1.0f, 1.0f);
-		immVertex2f(pos, -1.0f, 1.0f);
-		immEnd();
-
-		immUnbindProgram();
-
-		gpuMatrixEnd();
-	}
-	else {
-		/* Solid background Color */
-		UI_ThemeClearColorAlpha(TH_HIGH_GRAD, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
-}
 #ifdef WITH_CLAY_ENGINE
 /* Only alter the state (does not reset it like set_state() ) */
 static void shgroup_set_state(DRWShadingGroup *shgroup)
@@ -1251,7 +1206,14 @@ bool DRW_viewport_cache_is_dirty(void)
 	return (DST.current_psl->passes[0] == NULL);
 }
 
-/* ****************************************** INIT ******************************************/
+/* ****************************************** OTHER ***************************************** */
+
+const bContext *DRW_get_context(void)
+{
+	return DST.context;
+}
+
+/* ****************************************** INIT ***************************************** */
 
 void DRW_engines_init(void)
 {

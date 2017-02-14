@@ -53,11 +53,13 @@ set(SRC
 	intern/draw_manager.c
 	intern/draw_mode_pass.c
 	intern/draw_cache.c
+	intern/draw_view.c
 	engines/clay/clay.c
 
 	intern/DRW_render.h
 	intern/draw_mode_pass.h
 	intern/draw_cache.h
+	intern/draw_view.h
 	engines/clay/clay.h
 
 	./DRW_engine.h

@@ -46,6 +46,7 @@
 
 #include "draw_mode_pass.h"
 #include "draw_cache.h"
+#include "draw_view.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -53,6 +54,7 @@
 
 //#define WITH_VIEWPORT_CACHE_TEST
 
+struct bContext;
 struct GPUFrameBuffer;
 struct GPUShader;
 struct GPUTexture;
@@ -209,13 +211,12 @@ void *DRW_render_settings_get(Scene *scene, const char *engine_name);
 #endif /* __DRW_ENGINE_H__ */
 
 /* Draw commands */
-void DRW_draw_background(void);
-void DRW_centercircle(const float co[3]);
 void DRW_draw_pass(DRWPass *pass);
 
 void DRW_state_reset(void);
 
 /* Other */
 void DRW_get_dfdy_factors(float dfdyfac[2]);
+const struct bContext *DRW_get_context(void);
 
 #endif /* __DRW_RENDER_H__ */
