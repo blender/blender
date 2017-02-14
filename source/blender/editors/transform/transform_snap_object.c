@@ -1051,7 +1051,6 @@ static int dm_looptri_to_poly_index(DerivedMesh *dm, const MLoopTri *lt)
 static bool snapDerivedMesh(
         SnapObjectContext *sctx, SnapData *snapdata,
         Object *ob, DerivedMesh *dm, float obmat[4][4], const unsigned int ob_index,
-        bool do_bb,
         /* read/write args */
         float *ray_depth, float *dist_px,
         /* return args */
@@ -1112,39 +1111,37 @@ static bool snapDerivedMesh(
 	copy_v3_v3(ray_org_local, snapdata->ray_origin);
 	mul_m4_v3(imat, ray_org_local);
 
-	if (do_bb) {
-		BoundBox *bb = BKE_object_boundbox_get(ob);
+	/* Test BoundBox */
+	BoundBox *bb = BKE_object_boundbox_get(ob);
+	if (bb) {
+		BoundBox bb_temp;
 
-		if (bb) {
-			BoundBox bb_temp;
+		/* We cannot afford a bounding box with some null dimension, which may happen in some cases...
+		 * Threshold is rather high, but seems to be needed to get good behavior, see T46099. */
+		bb = BKE_boundbox_ensure_minimum_dimensions(bb, &bb_temp, 1e-1f);
 
-			/* We cannot afford a bounding box with some null dimension, which may happen in some cases...
-			 * Threshold is rather high, but seems to be needed to get good behavior, see T46099. */
-			bb = BKE_boundbox_ensure_minimum_dimensions(bb, &bb_temp, 1e-1f);
-
-			/* In vertex and edges you need to get the pixel distance from ray to BoundBox, see T46816. */
-			if (ELEM(snapdata->snap_to, SCE_SNAP_MODE_VERTEX, SCE_SNAP_MODE_EDGE)) {
-				float dist_px_sq = dist_squared_to_projected_aabb_simple(
-					    lpmat, snapdata->win_half, ray_min_dist, snapdata->mval,
-					    ray_org_local, ray_normal_local, bb->vec[0], bb->vec[6]);
-				if (dist_px_sq > SQUARE(*dist_px))
-				{
-					return retval;
-				}
+		/* In vertex and edges you need to get the pixel distance from ray to BoundBox, see T46816. */
+		if (ELEM(snapdata->snap_to, SCE_SNAP_MODE_VERTEX, SCE_SNAP_MODE_EDGE)) {
+			float dist_px_sq = dist_squared_to_projected_aabb_simple(
+				    lpmat, snapdata->win_half, ray_min_dist, snapdata->mval,
+				    ray_org_local, ray_normal_local, bb->vec[0], bb->vec[6]);
+			if (dist_px_sq > SQUARE(*dist_px))
+			{
+				return retval;
 			}
-			else {
-				/* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
-				if (!isect_ray_aabb_v3_simple(
-					ray_start_local, ray_normal_local, bb->vec[0], bb->vec[6], NULL, NULL))
-				{
-					return retval;
-				}
-			}
-			/* was local_depth, see: T47838 */
-			len_diff = dist_aabb_to_plane(bb->vec[0], bb->vec[6], ray_start_local, ray_normal_local);
-			if (len_diff < 0) len_diff = 0.0f;
-			need_ray_start_correction_init = false;
 		}
+		else {
+			/* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
+			if (!isect_ray_aabb_v3_simple(
+				ray_start_local, ray_normal_local, bb->vec[0], bb->vec[6], NULL, NULL))
+			{
+				return retval;
+			}
+		}
+		/* was local_depth, see: T47838 */
+		len_diff = dist_aabb_to_plane(bb->vec[0], bb->vec[6], ray_start_local, ray_normal_local);
+		if (len_diff < 0) len_diff = 0.0f;
+		need_ray_start_correction_init = false;
 	}
 
 	SnapObjectData_Mesh *sod = NULL;
@@ -1650,7 +1647,6 @@ static bool snapObject(
 			}
 			retval = snapDerivedMesh(
 			        sctx, snapdata, ob, dm, obmat, ob_index,
-			        true,
 			        ray_depth, dist_px,
 			        r_loc, r_no,
 			        r_index, r_hit_list);
