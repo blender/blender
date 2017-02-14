@@ -934,10 +934,12 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	}
 	
 	/* title */
-	if (node->flag & SELECT) 
-		UI_ThemeColor(TH_SELECT);
-	else
-		UI_ThemeColorBlendShade(TH_TEXT, color_id, 0.4f, 10);
+	if (node->flag & SELECT) {
+		UI_GetThemeColor4fv(TH_SELECT, color);
+	}
+	else {
+		UI_GetThemeColorBlendShade4fv(TH_SELECT, color_id, 0.4f, 10, color);
+	}
 	
 	/* open/close entirely? */
 	{
@@ -952,7 +954,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_block_emboss_set(node->block, UI_EMBOSS);
 		
 		/* custom draw function for this button */
-		UI_draw_icon_tri(rct->xmin + 0.5f * U.widget_unit, rct->ymax - NODE_DY / 2.0f, 'v');
+		UI_draw_icon_tri(rct->xmin + 0.5f * U.widget_unit, rct->ymax - NODE_DY / 2.0f, 'v', color);
 	}
 	
 #if 0 /* this isn't doing anything for the label, so commenting out */
@@ -1077,10 +1079,12 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	}
 
 	/* title */
-	if (node->flag & SELECT) 
-		UI_ThemeColor(TH_SELECT);
-	else
-		UI_ThemeColorBlendShade(TH_TEXT, color_id, 0.4f, 10);
+	if (node->flag & SELECT) {
+		UI_GetThemeColor4fv(TH_SELECT, color);
+	}
+	else {
+		UI_GetThemeColorBlendShade4fv(TH_SELECT, color_id, 0.4f, 10, color);
+	}
 	
 	/* open entirely icon */
 	{
@@ -1095,7 +1099,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		UI_block_emboss_set(node->block, UI_EMBOSS);
 		
 		/* custom draw function for this button */
-		UI_draw_icon_tri(rct->xmin + 10.0f, centy, 'h');
+		UI_draw_icon_tri(rct->xmin + 10.0f, centy, 'h', color);
 	}
 	
 	/* disable lines */

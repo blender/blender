@@ -1062,7 +1062,7 @@ void UI_fontstyle_draw_simple_backdrop(
 int UI_fontstyle_string_width(const struct uiFontStyle *fs, const char *str);
 int UI_fontstyle_height_max(const struct uiFontStyle *fs);
 
-void UI_draw_icon_tri(float x, float y, char dir);
+void UI_draw_icon_tri(float x, float y, char dir, const float[4]);
 
 struct uiStyle *UI_style_get(void);		/* use for fonts etc */
 struct uiStyle *UI_style_get_dpi(void);	/* DPI scaled settings for drawing */

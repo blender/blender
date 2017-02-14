@@ -187,28 +187,35 @@ static const unsigned int check_tria_face[4][3] = {
 
 /* ************************************************* */
 
-void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3)
+void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3,
+                       const float color[4])
 {
 	float tri_arr[3][2] = {{x1, y1}, {x2, y2}, {x3, y3}};
-	float color[4];
-	int j;
-	
-	glEnable(GL_BLEND);
-	glGetFloatv(GL_CURRENT_COLOR, color);
-	color[3] *= 0.125f;
-	glColor4fv(color);
+	float draw_color[4];
 
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, 0, tri_arr);
+	copy_v4_v4(draw_color, color);
+	draw_color[3] *= 0.125f;
+
+	glEnable(GL_BLEND);
+
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	immUniformColor4fv(draw_color);
+	immBegin(GL_TRIANGLES, 3 * WIDGET_AA_JITTER);
 
 	/* for each AA step */
-	for (j = 0; j < WIDGET_AA_JITTER; j++) {
+	for (int j = 0; j < WIDGET_AA_JITTER; j++) {
 		glTranslate2fv(jit[j]);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		immVertex2fv(pos, tri_arr[0]);
+		immVertex2fv(pos, tri_arr[1]);
+		immVertex2fv(pos, tri_arr[2]);
 		glTranslatef(-jit[j][0], -jit[j][1], 0.0f);
 	}
+	immEnd();
 
-	glDisableClientState(GL_VERTEX_ARRAY);
+	immUnbindProgram();
+
 	glDisable(GL_BLEND);
 }
 
@@ -3910,15 +3917,21 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 		wt->draw(&wt->wcol, rect, 0, 0);
 	
 	if (block) {
+		float draw_color[4];
+		unsigned char *color = (unsigned char *)wt->wcol.text;
+
+		draw_color[0] = ((float)color[0]) / 255.0f;
+		draw_color[1] = ((float)color[1]) / 255.0f;
+		draw_color[2] = ((float)color[2]) / 255.0f;
+		draw_color[3] = 1.0f;
+
 		if (block->flag & UI_BLOCK_CLIPTOP) {
 			/* XXX no scaling for UI here yet */
-			glColor3ubv((unsigned char *)wt->wcol.text);
-			UI_draw_icon_tri(BLI_rcti_cent_x(rect), rect->ymax - 8, 't');
+			UI_draw_icon_tri(BLI_rcti_cent_x(rect), rect->ymax - 8, 't', draw_color);
 		}
 		if (block->flag & UI_BLOCK_CLIPBOTTOM) {
 			/* XXX no scaling for UI here yet */
-			glColor3ubv((unsigned char *)wt->wcol.text);
-			UI_draw_icon_tri(BLI_rcti_cent_x(rect), rect->ymin + 10, 'v');
+			UI_draw_icon_tri(BLI_rcti_cent_x(rect), rect->ymin + 10, 'v', draw_color);
 		}
 	}
 }

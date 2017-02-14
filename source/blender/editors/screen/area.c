@@ -74,7 +74,7 @@
 
 #include "screen_intern.h"
 
-extern void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3); /* xxx temp */
+extern void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3, const float color[4]); /* xxx temp */
 
 /* general area and region code */
 
@@ -414,24 +414,24 @@ static void region_draw_azone_tria(AZone *az)
 {
 	glEnable(GL_BLEND);
 	//UI_GetThemeColor3fv(TH_HEADER, col);
-	glColor4f(0.0f, 0.0f, 0.0f, 0.35f);
+	float color[4] = {0.0f, 0.0f, 0.0f, 0.35f};
 	
 	/* add code to draw region hidden as 'too small' */
 	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
-			ui_draw_anti_tria((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y1, (float)(az->x1 + az->x2) / 2, (float)az->y2);
+			ui_draw_anti_tria((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y1, (float)(az->x1 + az->x2) / 2, (float)az->y2, color);
 			break;
 			
 		case AE_BOTTOM_TO_TOPLEFT:
-			ui_draw_anti_tria((float)az->x1, (float)az->y2, (float)az->x2, (float)az->y2, (float)(az->x1 + az->x2) / 2, (float)az->y1);
+			ui_draw_anti_tria((float)az->x1, (float)az->y2, (float)az->x2, (float)az->y2, (float)(az->x1 + az->x2) / 2, (float)az->y1, color);
 			break;
 
 		case AE_LEFT_TO_TOPRIGHT:
-			ui_draw_anti_tria((float)az->x2, (float)az->y1, (float)az->x2, (float)az->y2, (float)az->x1, (float)(az->y1 + az->y2) / 2);
+			ui_draw_anti_tria((float)az->x2, (float)az->y1, (float)az->x2, (float)az->y2, (float)az->x1, (float)(az->y1 + az->y2) / 2, color);
 			break;
 			
 		case AE_RIGHT_TO_TOPLEFT:
-			ui_draw_anti_tria((float)az->x1, (float)az->y1, (float)az->x1, (float)az->y2, (float)az->x2, (float)(az->y1 + az->y2) / 2);
+			ui_draw_anti_tria((float)az->x1, (float)az->y1, (float)az->x1, (float)az->y2, (float)az->x2, (float)(az->y1 + az->y2) / 2, color);
 			break;
 			
 	}

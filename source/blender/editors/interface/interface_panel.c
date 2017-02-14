@@ -412,33 +412,36 @@ static void uiPanelPop(uiBlock *UNUSED(block))
 #endif
 
 /* triangle 'icon' for panel header */
-void UI_draw_icon_tri(float x, float y, char dir)
+void UI_draw_icon_tri(float x, float y, char dir, const float color[4])
 {
 	float f3 = 0.15 * U.widget_unit;
 	float f5 = 0.25 * U.widget_unit;
 	float f7 = 0.35 * U.widget_unit;
 	
 	if (dir == 'h') {
-		ui_draw_anti_tria(x - f3, y - f5, x - f3, y + f5, x + f7, y);
+		ui_draw_anti_tria(x - f3, y - f5, x - f3, y + f5, x + f7, y, color);
 	}
 	else if (dir == 't') {
-		ui_draw_anti_tria(x - f5, y - f7, x + f5, y - f7, x, y + f3);
+		ui_draw_anti_tria(x - f5, y - f7, x + f5, y - f7, x, y + f3, color);
 	}
 	else { /* 'v' = vertical, down */
-		ui_draw_anti_tria(x - f5, y + f3, x + f5, y + f3, x, y - f7);
+		ui_draw_anti_tria(x - f5, y + f3, x + f5, y + f3, x, y - f7, color);
 	}
 }
 
 /* triangle 'icon' inside rect */
 static void ui_draw_tria_rect(const rctf *rect, char dir)
 {
+	float color[4];
+	UI_GetThemeColor4fv(TH_TITLE, color);
+
 	if (dir == 'h') {
 		float half = 0.5f * BLI_rctf_size_y(rect);
-		ui_draw_anti_tria(rect->xmin, rect->ymin, rect->xmin, rect->ymax, rect->xmax, rect->ymin + half);
+		ui_draw_anti_tria(rect->xmin, rect->ymin, rect->xmin, rect->ymax, rect->xmax, rect->ymin + half, color);
 	}
 	else {
 		float half = 0.5f * BLI_rctf_size_x(rect);
-		ui_draw_anti_tria(rect->xmin, rect->ymax, rect->xmax, rect->ymax, rect->xmin + half, rect->ymin);
+		ui_draw_anti_tria(rect->xmin, rect->ymax, rect->xmax, rect->ymax, rect->xmin + half, rect->ymin, color);
 	}
 }
 
