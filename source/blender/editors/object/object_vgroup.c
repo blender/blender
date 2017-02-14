@@ -59,6 +59,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_editmesh.h"
+#include "BKE_layer.h"
 #include "BKE_modifier.h"
 #include "BKE_report.h"
 #include "BKE_DerivedMesh.h"
@@ -3300,25 +3301,26 @@ void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
 static int vertex_group_copy_to_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	Object *ob = ED_object_context(C);
-	BaseLegacy *base;
+	Object *ob_active = ED_object_context(C);
 	int retval = OPERATOR_CANCELLED;
 
-	for (base = scene->base.first; base; base = base->next) {
-		if (base->object->type == ob->type) {
-			if (base->object != ob && base->object->data == ob->data) {
-				BLI_freelistN(&base->object->defbase);
-				BLI_duplicatelist(&base->object->defbase, &ob->defbase);
-				base->object->actdef = ob->actdef;
+	FOREACH_SCENE_OBJECT(scene, ob_iter)
+	{
+		if (ob_iter->type == ob_active->type) {
+			if (ob_iter != ob_active && ob_iter->data == ob_active->data) {
+				BLI_freelistN(&ob_iter->defbase);
+				BLI_duplicatelist(&ob_iter->defbase, &ob_active->defbase);
+				ob_iter->actdef = ob_active->actdef;
 
-				DAG_id_tag_update(&base->object->id, OB_RECALC_DATA);
-				WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, base->object);
-				WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, base->object->data);
+				DAG_id_tag_update(&ob_iter->id, OB_RECALC_DATA);
+				WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob_iter);
+				WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, ob_iter->data);
 
 				retval = OPERATOR_FINISHED;
 			}
 		}
 	}
+	FOREACH_SCENE_OBJECT_END
 
 	return retval;
 }

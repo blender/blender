@@ -41,6 +41,7 @@
 
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_layer.h"
 #include "BKE_modifier.h"
 
 #include "depsgraph_private.h"
@@ -109,9 +110,8 @@ static void updateDepsgraph(ModifierData *md,
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
 	if (fluidmd && fluidmd->fss) {
 		if (fluidmd->fss->type == OB_FLUIDSIM_DOMAIN) {
-			BaseLegacy *base;
-			for (base = scene->base.first; base; base = base->next) {
-				Object *ob1 = base->object;
+			FOREACH_SCENE_OBJECT(scene, ob1)
+			{
 				if (ob1 != ob) {
 					FluidsimModifierData *fluidmdtmp =
 					        (FluidsimModifierData *)modifiers_findByType(ob1, eModifierType_Fluidsim);
@@ -122,6 +122,7 @@ static void updateDepsgraph(ModifierData *md,
 					}
 				}
 			}
+			FOREACH_SCENE_OBJECT_END
 		}
 	}
 }
