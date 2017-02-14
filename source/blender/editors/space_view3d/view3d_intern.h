@@ -207,6 +207,7 @@ void draw_sim_debug_data(Scene *scene, View3D *v3d, ARegion *ar);
 
 /* view3d_draw.c */
 void view3d_main_region_draw(const struct bContext *C, struct ARegion *ar);
+void view3d_draw_region_info(const struct bContext *C, struct ARegion *ar);
 
 /* view3d_draw_legacy.c */
 void view3d_main_region_draw_legacy(const struct bContext *C, struct ARegion *ar);
@@ -331,6 +332,8 @@ extern bool view3d_camera_border_hack_test;
 /* temporary for legacy viewport to work */
 void VP_legacy_drawcursor(Scene *scene, ARegion *ar, View3D *v3d);
 void VP_legacy_draw_view_axis(RegionView3D *rv3d, rcti *rect);
+void VP_legacy_draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect);
+void VP_legacy_draw_selected_name(Scene *scene, Object *ob, rcti *rect);
 void VP_legacy_drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **grid_unit);
 void VP_legacy_drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool write_depth);
 void VP_legacy_view3d_main_region_setup_view(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[4][4], float winmat[4][4]);

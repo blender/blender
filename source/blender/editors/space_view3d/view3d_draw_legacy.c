@@ -218,199 +218,6 @@ static void draw_view_icon(RegionView3D *rv3d, rcti *rect)
 	glDisable(GL_BLEND);
 }
 
-static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
-{
-	const char *name = NULL;
-	
-	switch (rv3d->view) {
-		case RV3D_VIEW_FRONT:
-			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Front Ortho");
-			else name = IFACE_("Front Persp");
-			break;
-		case RV3D_VIEW_BACK:
-			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Back Ortho");
-			else name = IFACE_("Back Persp");
-			break;
-		case RV3D_VIEW_TOP:
-			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Top Ortho");
-			else name = IFACE_("Top Persp");
-			break;
-		case RV3D_VIEW_BOTTOM:
-			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Bottom Ortho");
-			else name = IFACE_("Bottom Persp");
-			break;
-		case RV3D_VIEW_RIGHT:
-			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Right Ortho");
-			else name = IFACE_("Right Persp");
-			break;
-		case RV3D_VIEW_LEFT:
-			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Left Ortho");
-			else name = IFACE_("Left Persp");
-			break;
-			
-		default:
-			if (rv3d->persp == RV3D_CAMOB) {
-				if ((v3d->camera) && (v3d->camera->type == OB_CAMERA)) {
-					Camera *cam;
-					cam = v3d->camera->data;
-					if (cam->type == CAM_PERSP) {
-						name = IFACE_("Camera Persp");
-					}
-					else if (cam->type == CAM_ORTHO) {
-						name = IFACE_("Camera Ortho");
-					}
-					else {
-						BLI_assert(cam->type == CAM_PANO);
-						name = IFACE_("Camera Pano");
-					}
-				}
-				else {
-					name = IFACE_("Object as Camera");
-				}
-			}
-			else {
-				name = (rv3d->persp == RV3D_ORTHO) ? IFACE_("User Ortho") : IFACE_("User Persp");
-			}
-	}
-	
-	return name;
-}
-
-static void draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect)
-{
-	RegionView3D *rv3d = ar->regiondata;
-	const char *name = view3d_get_name(v3d, rv3d);
-	/* increase size for unicode languages (Chinese in utf-8...) */
-#ifdef WITH_INTERNATIONAL
-	char tmpstr[96];
-#else
-	char tmpstr[32];
-#endif
-
-	if (v3d->localvd) {
-		BLI_snprintf(tmpstr, sizeof(tmpstr), IFACE_("%s (Local)"), name);
-		name = tmpstr;
-	}
-
-	UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
-#ifdef WITH_INTERNATIONAL
-	BLF_draw_default(U.widget_unit + rect->xmin,  rect->ymax - U.widget_unit, 0.0f, name, sizeof(tmpstr));
-#else
-	BLF_draw_default_ascii(U.widget_unit + rect->xmin,  rect->ymax - U.widget_unit, 0.0f, name, sizeof(tmpstr));
-#endif
-}
-
-/* draw info beside axes in bottom left-corner: 
- * framenum, object name, bone name (if available), marker name (if available)
- */
-
-static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
-{
-	const int cfra = CFRA;
-	const char *msg_pin = " (Pinned)";
-	const char *msg_sep = " : ";
-
-	const int font_id = BLF_default();
-
-	char info[300];
-	char *s = info;
-	short offset = 1.5f * UI_UNIT_X + rect->xmin;
-
-	s += sprintf(s, "(%d)", cfra);
-
-	/* 
-	 * info can contain:
-	 * - a frame (7 + 2)
-	 * - 3 object names (MAX_NAME)
-	 * - 2 BREAD_CRUMB_SEPARATORs (6)
-	 * - a SHAPE_KEY_PINNED marker and a trailing '\0' (9+1) - translated, so give some room!
-	 * - a marker name (MAX_NAME + 3)
-	 */
-
-	/* get name of marker on current frame (if available) */
-	const char *markern = BKE_scene_find_marker_name(scene, cfra);
-	
-	/* check if there is an object */
-	if (ob) {
-		*s++ = ' ';
-		s += BLI_strcpy_rlen(s, ob->id.name + 2);
-
-		/* name(s) to display depends on type of object */
-		if (ob->type == OB_ARMATURE) {
-			bArmature *arm = ob->data;
-			
-			/* show name of active bone too (if possible) */
-			if (arm->edbo) {
-				if (arm->act_edbone) {
-					s += BLI_strcpy_rlen(s, msg_sep);
-					s += BLI_strcpy_rlen(s, arm->act_edbone->name);
-				}
-			}
-			else if (ob->mode & OB_MODE_POSE) {
-				if (arm->act_bone) {
-
-					if (arm->act_bone->layer & arm->layer) {
-						s += BLI_strcpy_rlen(s, msg_sep);
-						s += BLI_strcpy_rlen(s, arm->act_bone->name);
-					}
-				}
-			}
-		}
-		else if (ELEM(ob->type, OB_MESH, OB_LATTICE, OB_CURVE)) {
-			/* try to display active bone and active shapekey too (if they exist) */
-
-			if (ob->type == OB_MESH && ob->mode & OB_MODE_WEIGHT_PAINT) {
-				Object *armobj = BKE_object_pose_armature_get(ob);
-				if (armobj  && armobj->mode & OB_MODE_POSE) {
-					bArmature *arm = armobj->data;
-					if (arm->act_bone) {
-						if (arm->act_bone->layer & arm->layer) {
-							s += BLI_strcpy_rlen(s, msg_sep);
-							s += BLI_strcpy_rlen(s, arm->act_bone->name);
-						}
-					}
-				}
-			}
-
-			Key *key = BKE_key_from_object(ob);
-			if (key) {
-				KeyBlock *kb = BLI_findlink(&key->block, ob->shapenr - 1);
-				if (kb) {
-					s += BLI_strcpy_rlen(s, msg_sep);
-					s += BLI_strcpy_rlen(s, kb->name);
-					if (ob->shapeflag & OB_SHAPE_LOCK) {
-						s += BLI_strcpy_rlen(s, IFACE_(msg_pin));
-					}
-				}
-			}
-		}
-		
-		/* color depends on whether there is a keyframe */
-		if (id_frame_has_keyframe((ID *)ob, /* BKE_scene_frame_get(scene) */ (float)cfra, ANIMFILTER_KEYS_LOCAL))
-			UI_FontThemeColor(font_id, TH_TIME_KEYFRAME);
-		else if (ED_gpencil_has_keyframe_v3d(scene, ob, cfra))
-			UI_FontThemeColor(font_id, TH_TIME_GP_KEYFRAME);
-		else
-			UI_FontThemeColor(font_id, TH_TEXT_HI);
-	}
-	else {
-		/* no object */
-		if (ED_gpencil_has_keyframe_v3d(scene, NULL, cfra))
-			UI_FontThemeColor(font_id, TH_TIME_GP_KEYFRAME);
-		else
-			UI_FontThemeColor(font_id, TH_TEXT_HI);
-	}
-
-	if (markern) {
-		s += sprintf(s, " <%s>", markern);
-	}
-	
-	if (U.uiflag & USER_SHOW_ROTVIEWICON)
-		offset = U.widget_unit + (U.rvisize * 2) + rect->xmin;
-
-	BLF_draw_default(offset, 0.5f * U.widget_unit, 0.0f, info, sizeof(info));
-}
-
 /* *********************** backdraw for selection *************** */
 
 static void backdrawview3d(Scene *scene, SceneLayer *sl, wmWindow *win, ARegion *ar, View3D *v3d)
@@ -2672,7 +2479,7 @@ static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
 		if (U.uiflag & USER_DRAWVIEWINFO) {
 			SceneLayer *sl = CTX_data_scene_layer(C);
 			Object *ob = OBACT_NEW;
-			draw_selected_name(scene, ob, &rect);
+			VP_legacy_draw_selected_name(scene, ob, &rect);
 		}
 	}
 
@@ -2686,7 +2493,7 @@ static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
 			ED_scene_draw_fps(scene, &rect);
 		}
 		else if (U.uiflag & USER_SHOW_VIEWPORTNAME) {
-			draw_viewport_name(ar, v3d, &rect);
+			VP_legacy_draw_viewport_name(ar, v3d, &rect);
 		}
 
 		if (grid_unit) { /* draw below the viewport name */

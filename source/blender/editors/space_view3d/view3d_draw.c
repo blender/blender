@@ -35,6 +35,7 @@
 
 #include "BKE_camera.h"
 #include "BKE_context.h"
+#include "BKE_key.h"
 #include "BKE_scene.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -42,19 +43,28 @@
 
 #include "BLF_api.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_threads.h"
 
+#include "BLT_translation.h"
+
+#include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "ED_keyframing.h"
+#include "ED_armature.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
+#include "ED_gpencil.h"
 
 #include "GPU_matrix.h"
 #include "GPU_immediate.h"
@@ -1851,6 +1861,204 @@ static void view3d_draw_grease_pencil(const bContext *UNUSED(C))
 	/* TODO viewport */
 }
 
+
+/**
+* Viewport Name
+*/
+static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
+{
+	const char *name = NULL;
+
+	switch (rv3d->view) {
+		case RV3D_VIEW_FRONT:
+			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Front Ortho");
+			else name = IFACE_("Front Persp");
+			break;
+		case RV3D_VIEW_BACK:
+			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Back Ortho");
+			else name = IFACE_("Back Persp");
+			break;
+		case RV3D_VIEW_TOP:
+			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Top Ortho");
+			else name = IFACE_("Top Persp");
+			break;
+		case RV3D_VIEW_BOTTOM:
+			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Bottom Ortho");
+			else name = IFACE_("Bottom Persp");
+			break;
+		case RV3D_VIEW_RIGHT:
+			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Right Ortho");
+			else name = IFACE_("Right Persp");
+			break;
+		case RV3D_VIEW_LEFT:
+			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Left Ortho");
+			else name = IFACE_("Left Persp");
+			break;
+
+		default:
+			if (rv3d->persp == RV3D_CAMOB) {
+				if ((v3d->camera) && (v3d->camera->type == OB_CAMERA)) {
+					Camera *cam;
+					cam = v3d->camera->data;
+					if (cam->type == CAM_PERSP) {
+						name = IFACE_("Camera Persp");
+					}
+					else if (cam->type == CAM_ORTHO) {
+						name = IFACE_("Camera Ortho");
+					}
+					else {
+						BLI_assert(cam->type == CAM_PANO);
+						name = IFACE_("Camera Pano");
+					}
+				}
+				else {
+					name = IFACE_("Object as Camera");
+				}
+			}
+			else {
+				name = (rv3d->persp == RV3D_ORTHO) ? IFACE_("User Ortho") : IFACE_("User Persp");
+			}
+	}
+
+	return name;
+}
+
+static void draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect)
+{
+	RegionView3D *rv3d = ar->regiondata;
+	const char *name = view3d_get_name(v3d, rv3d);
+	/* increase size for unicode languages (Chinese in utf-8...) */
+#ifdef WITH_INTERNATIONAL
+	char tmpstr[96];
+#else
+	char tmpstr[32];
+#endif
+
+	if (v3d->localvd) {
+		BLI_snprintf(tmpstr, sizeof(tmpstr), IFACE_("%s (Local)"), name);
+		name = tmpstr;
+	}
+
+	UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
+#ifdef WITH_INTERNATIONAL
+	BLF_draw_default(U.widget_unit + rect->xmin,  rect->ymax - U.widget_unit, 0.0f, name, sizeof(tmpstr));
+#else
+	BLF_draw_default_ascii(U.widget_unit + rect->xmin,  rect->ymax - U.widget_unit, 0.0f, name, sizeof(tmpstr));
+#endif
+}
+
+/**
+ * draw info beside axes in bottom left-corner:
+ * framenum, object name, bone name (if available), marker name (if available)
+ */
+
+static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
+{
+	const int cfra = CFRA;
+	const char *msg_pin = " (Pinned)";
+	const char *msg_sep = " : ";
+
+	const int font_id = BLF_default();
+
+	char info[300];
+	char *s = info;
+	short offset = 1.5f * UI_UNIT_X + rect->xmin;
+
+	s += sprintf(s, "(%d)", cfra);
+
+	/*
+	 * info can contain:
+	 * - a frame (7 + 2)
+	 * - 3 object names (MAX_NAME)
+	 * - 2 BREAD_CRUMB_SEPARATORs (6)
+	 * - a SHAPE_KEY_PINNED marker and a trailing '\0' (9+1) - translated, so give some room!
+	 * - a marker name (MAX_NAME + 3)
+	 */
+
+	/* get name of marker on current frame (if available) */
+	const char *markern = BKE_scene_find_marker_name(scene, cfra);
+
+	/* check if there is an object */
+	if (ob) {
+		*s++ = ' ';
+		s += BLI_strcpy_rlen(s, ob->id.name + 2);
+
+		/* name(s) to display depends on type of object */
+		if (ob->type == OB_ARMATURE) {
+			bArmature *arm = ob->data;
+
+			/* show name of active bone too (if possible) */
+			if (arm->edbo) {
+				if (arm->act_edbone) {
+					s += BLI_strcpy_rlen(s, msg_sep);
+					s += BLI_strcpy_rlen(s, arm->act_edbone->name);
+				}
+			}
+			else if (ob->mode & OB_MODE_POSE) {
+				if (arm->act_bone) {
+
+					if (arm->act_bone->layer & arm->layer) {
+						s += BLI_strcpy_rlen(s, msg_sep);
+						s += BLI_strcpy_rlen(s, arm->act_bone->name);
+					}
+				}
+			}
+		}
+		else if (ELEM(ob->type, OB_MESH, OB_LATTICE, OB_CURVE)) {
+			/* try to display active bone and active shapekey too (if they exist) */
+
+			if (ob->type == OB_MESH && ob->mode & OB_MODE_WEIGHT_PAINT) {
+				Object *armobj = BKE_object_pose_armature_get(ob);
+				if (armobj  && armobj->mode & OB_MODE_POSE) {
+					bArmature *arm = armobj->data;
+					if (arm->act_bone) {
+						if (arm->act_bone->layer & arm->layer) {
+							s += BLI_strcpy_rlen(s, msg_sep);
+							s += BLI_strcpy_rlen(s, arm->act_bone->name);
+						}
+					}
+				}
+			}
+
+			Key *key = BKE_key_from_object(ob);
+			if (key) {
+				KeyBlock *kb = BLI_findlink(&key->block, ob->shapenr - 1);
+				if (kb) {
+					s += BLI_strcpy_rlen(s, msg_sep);
+					s += BLI_strcpy_rlen(s, kb->name);
+					if (ob->shapeflag & OB_SHAPE_LOCK) {
+						s += BLI_strcpy_rlen(s, IFACE_(msg_pin));
+					}
+				}
+			}
+		}
+
+		/* color depends on whether there is a keyframe */
+		if (id_frame_has_keyframe((ID *)ob, /* BKE_scene_frame_get(scene) */ (float)cfra, ANIMFILTER_KEYS_LOCAL))
+			UI_FontThemeColor(font_id, TH_TIME_KEYFRAME);
+		else if (ED_gpencil_has_keyframe_v3d(scene, ob, cfra))
+			UI_FontThemeColor(font_id, TH_TIME_GP_KEYFRAME);
+		else
+			UI_FontThemeColor(font_id, TH_TEXT_HI);
+	}
+	else {
+		/* no object */
+		if (ED_gpencil_has_keyframe_v3d(scene, NULL, cfra))
+			UI_FontThemeColor(font_id, TH_TIME_GP_KEYFRAME);
+		else
+			UI_FontThemeColor(font_id, TH_TEXT_HI);
+	}
+
+	if (markern) {
+		s += sprintf(s, " <%s>", markern);
+	}
+
+	if (U.uiflag & USER_SHOW_ROTVIEWICON)
+		offset = U.widget_unit + (U.rvisize * 2) + rect->xmin;
+
+	BLF_draw_default(offset, 0.5f * U.widget_unit, 0.0f, info, sizeof(info));
+}
+
 /* ******************** view loop ***************** */
 
 /**
@@ -2042,8 +2250,13 @@ static void view3d_draw_manipulator(const bContext *C)
 /**
 * Information drawn on top of the solid plates and composed data
 */
-static void view3d_draw_region_info(const bContext *C, ARegion *ar)
+void view3d_draw_region_info(const bContext *C, ARegion *ar)
 {
+	RegionView3D *rv3d = ar->regiondata;
+	View3D *v3d = CTX_wm_view3d(C);
+	Scene *scene = CTX_data_scene(C);
+	wmWindowManager *wm = CTX_wm_manager(C);
+
 	/* correct projection matrix */
 	ED_region_pixelspace(ar);
 
@@ -2054,20 +2267,36 @@ static void view3d_draw_region_info(const bContext *C, ARegion *ar)
 	view3d_draw_border(C, ar);
 	view3d_draw_grease_pencil(C);
 
-	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = ar->regiondata;
-
-	/* 3D cursor */
-	if (is_cursor_visible(scene)) {
-		drawcursor(scene, ar, v3d);
-	}
-
 	if (U.uiflag & USER_SHOW_ROTVIEWICON) {
 		draw_view_axis(rv3d, &rect);
 	}
 
-	/* TODO viewport */
+	if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
+		ED_scene_draw_fps(scene, &rect);
+	}
+	else if (U.uiflag & USER_SHOW_VIEWPORTNAME) {
+		draw_viewport_name(ar, v3d, &rect);
+	}
+
+	if (U.uiflag & USER_DRAWVIEWINFO) {
+		SceneLayer *sl = CTX_data_scene_layer(C);
+		Object *ob = OBACT_NEW;
+		draw_selected_name(scene, ob, &rect);
+	}
+#if 0 /* TODO */
+	if (grid_unit) { /* draw below the viewport name */
+		char numstr[32] = "";
+
+		UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
+		if (v3d->grid != 1.0f) {
+			BLI_snprintf(numstr, sizeof(numstr), "%s x %.4g", grid_unit, v3d->grid);
+		}
+
+		BLF_draw_default_ascii(rect.xmin + U.widget_unit,
+		                       rect.ymax - (USER_SHOW_VIEWPORTNAME ? 2 * U.widget_unit : U.widget_unit), 0.0f,
+		                       numstr[0] ? numstr : grid_unit, sizeof(numstr));
+	}
+#endif
 }
 
 /**
@@ -2118,10 +2347,6 @@ static void view3d_draw_view_new(const bContext *C, ARegion *ar, DrawData *UNUSE
 
 	/* Only 100% compliant on new spec goes bellow */
 	view3d_render_pass(C, ar);
-
-	view3d_draw_grid(C, ar);
-	view3d_draw_manipulator(C);
-	view3d_draw_region_info(C, ar);
 }
 
 
@@ -2175,6 +2400,16 @@ void VP_legacy_drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 void VP_legacy_draw_view_axis(RegionView3D *rv3d, rcti *rect)
 {
 	draw_view_axis(rv3d, rect);
+}
+
+void VP_legacy_draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect)
+{
+	draw_viewport_name(ar, v3d, rect);
+}
+
+void VP_legacy_draw_selected_name(Scene *scene, Object *ob, rcti *rect)
+{
+	draw_selected_name(scene, ob, rect);
 }
 
 void VP_legacy_drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **grid_unit)
