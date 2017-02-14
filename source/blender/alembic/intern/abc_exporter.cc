@@ -452,7 +452,6 @@ void AbcExporter::createTransformWriter(Object *ob, Object *parent, Object *dupl
 
 	if (parent_xform) {
 		m_xforms[name] = new AbcTransformWriter(ob, parent_xform->alembicXform(), parent_xform, m_trans_sampling_index, m_settings);
-		m_xforms[name]->setParent(parent);
 	}
 	else {
 		m_xforms[name] = new AbcTransformWriter(ob, m_writer->archive().getTop(), NULL, m_trans_sampling_index, m_settings);

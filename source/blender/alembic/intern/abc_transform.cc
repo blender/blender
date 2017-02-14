@@ -64,7 +64,6 @@ AbcTransformWriter::AbcTransformWriter(Object *ob,
     : AbcObjectWriter(NULL, ob, time_sampling, settings, parent)
 {
 	m_is_animated = hasAnimation(m_object);
-	m_parent = NULL;
 
 	if (!m_is_animated) {
 		time_sampling = 0;
