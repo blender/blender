@@ -1981,38 +1981,38 @@ extern const char *RE_engine_id_CYCLES;
 	(((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0))
 #define BASE_SELECTABLE(v3d, base)  (                                         \
 	(v3d != NULL) &&                                                          \
-	(base->object->restrictflag & (OB_RESTRICT_SELECT | OB_RESTRICT_VIEW)) == 0)
+	((base)->object->restrictflag & (OB_RESTRICT_SELECT | OB_RESTRICT_VIEW)) == 0)
 #define BASE_VISIBLE(v3d, base)  (                                            \
-	(base->lay & v3d->lay) &&                                                 \
-	(base->object->restrictflag & OB_RESTRICT_VIEW) == 0)
+	((base)->lay & v3d->lay) &&                                               \
+	((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0)
 #define BASE_VISIBLE_BGMODE(v3d, scene, base)  (                              \
-	(base->lay & (v3d ? v3d->lay : scene->lay)) &&                            \
-	(base->object->restrictflag & OB_RESTRICT_VIEW) == 0)
+	((base)->lay & (v3d ? v3d->lay : scene->lay)) &&                          \
+	((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0)
 
 #define TESTBASELIB_NEW(base)  (                                              \
-	((base->flag & BASE_SELECTED) != 0) &&                                    \
+	(((base)->flag & BASE_SELECTED) != 0) &&                                  \
 	((base)->object->id.lib == NULL) &&                                       \
-	((base->flag & BASE_VISIBLED) != 0))
+	(((base)->flag & BASE_VISIBLED) != 0))
 #define TESTBASELIB_BGMODE_NEW(base)  (                                       \
-	((base->flag & BASE_SELECTED) != 0) &&                                    \
-	(base->object->id.lib == NULL) &&                                        \
-	((base->flag & BASE_VISIBLED) != 0))
+	(((base)->flag & BASE_SELECTED) != 0) &&                                  \
+	((base)->object->id.lib == NULL) &&                                       \
+	(((base)->flag & BASE_VISIBLED) != 0))
 #define BASE_EDITABLE_BGMODE_NEW(base)  (                                     \
 	((base)->object->id.lib == NULL) &&                                       \
-	((base->flag & BASE_VISIBLED) != 0))
+	(((base)->flag & BASE_VISIBLED) != 0))
 #define BASE_SELECTABLE_NEW(base)                                             \
-	((base->flag & BASE_SELECTABLED) != 0)
+	(((base)->flag & BASE_SELECTABLED) != 0)
 #define BASE_VISIBLE_NEW(base)  (                                             \
-	(base->flag & BASE_VISIBLED) != 0)
+	((base)->flag & BASE_VISIBLED) != 0)
 
 #define FIRSTBASE		scene->base.first
 #define LASTBASE		scene->base.last
 #define BASACT			(scene->basact)
 #define OBACT			(BASACT ? BASACT->object: NULL)
 
-#define FIRSTBASE_NEW	sl->object_bases.first
-#define LASTBASE_NEW	sl->object_bases.last
-#define BASACT_NEW		(sl->basact)
+#define FIRSTBASE_NEW	(sl)->object_bases.first
+#define LASTBASE_NEW	(sl)->object_bases.last
+#define BASACT_NEW		((sl)->basact)
 #define OBACT_NEW		(BASACT_NEW ? BASACT_NEW->object: NULL)
 
 #define V3D_CAMERA_LOCAL(v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : NULL)
