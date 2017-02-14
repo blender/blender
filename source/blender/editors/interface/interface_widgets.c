@@ -206,12 +206,11 @@ void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y
 
 	/* for each AA step */
 	for (int j = 0; j < WIDGET_AA_JITTER; j++) {
-		glTranslate2fv(jit[j]);
-		immVertex2fv(pos, tri_arr[0]);
-		immVertex2fv(pos, tri_arr[1]);
-		immVertex2fv(pos, tri_arr[2]);
-		glTranslatef(-jit[j][0], -jit[j][1], 0.0f);
+		immVertex2f(pos, tri_arr[0][0] + jit[j][0], tri_arr[0][1] + jit[j][1]);
+		immVertex2f(pos, tri_arr[1][0] + jit[j][0], tri_arr[1][1] + jit[j][1]);
+		immVertex2f(pos, tri_arr[2][0] + jit[j][0], tri_arr[2][1] + jit[j][1]);
 	}
+
 	immEnd();
 
 	immUnbindProgram();
