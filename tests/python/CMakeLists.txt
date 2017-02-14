@@ -426,9 +426,4 @@ if(WITH_CYCLES)
 	endif()
 endif()
 
-# ------------------------------------------------------------------------------
-# LAYER SYSTEM TESTS
-add_test(render_layer ${TEST_BLENDER_EXE}
-	--python ${CMAKE_CURRENT_LIST_DIR}/bl_render_layer.py --
-	--testdir="${TEST_SRC_DIR}/layers"
-)
+add_subdirectory(render_layer)
