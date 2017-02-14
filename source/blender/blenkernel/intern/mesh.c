@@ -66,6 +66,11 @@
 
 #include "DEG_depsgraph.h"
 
+/* Define for cases when you want extra validation of mesh
+ * after certain modifications.
+ */
+// #undef VALIDATE_MESH
+
 enum {
 	MESHCMP_DVERT_WEIGHTMISMATCH = 1,
 	MESHCMP_DVERT_GROUPMISMATCH,
@@ -2090,6 +2095,35 @@ void BKE_mesh_calc_normals_split(Mesh *mesh)
 	}
 }
 
+static void mesh_clear_vert_flags(Mesh *mesh)
+{
+	const int num_verts = mesh->totvert;
+	MVert *mvert = mesh->mvert;
+	for (int i = 0; i < num_verts; ++i, ++mvert) {
+		mvert->flag &= ~ME_VERT_TMP_TAG;
+	}
+}
+
+static void mesh_clear_edge_flags(Mesh *mesh)
+{
+	const int num_edge = mesh->totedge;
+	MEdge *medge = mesh->medge;
+	for (int i = 0; i < num_edge; ++i, ++medge) {
+		medge->flag &= ~ME_EDGE_TMP_TAG;
+	}
+}
+
+/* Make edge to point to a new vertex. */
+static void edge_replace_vertex(MEdge *medge, int old_vert, int new_vert)
+{
+	if (medge->v1 == old_vert) {
+		medge->v1 = new_vert;
+	}
+	else if (medge->v2 == old_vert) {
+		medge->v2 = new_vert;
+	}
+}
+
 /* Spli faces based on the edge angle.
  * Matches behavior of face splitting in render engines.
  */
@@ -2103,8 +2137,11 @@ void BKE_mesh_split_faces(Mesh *mesh)
 	MLoop *mloop = mesh->mloop;
 	MPoly *mpoly = mesh->mpoly;
 	float (*lnors)[3];
-	int poly, num_new_verts = 0;
+	int num_new_verts = 0, num_new_edges = 0;
 	if ((mesh->flag & ME_AUTOSMOOTH) == 0) {
+		return;
+	}
+	if (num_polys == 0) {
 		return;
 	}
 	BKE_mesh_tessface_clear(mesh);
@@ -2113,16 +2150,28 @@ void BKE_mesh_split_faces(Mesh *mesh)
 		BKE_mesh_calc_normals_split(mesh);
 	}
 	lnors = CustomData_get_layer(&mesh->ldata, CD_NORMAL);
+	/* Clear runtime flags. */
+	mesh_clear_vert_flags(mesh);
+	mesh_clear_edge_flags(mesh);
 	/* Count number of vertices to be split. */
-	for (poly = 0; poly < num_polys; poly++) {
+	for (int poly = 0; poly < num_polys; poly++) {
 		MPoly *mp = &mpoly[poly];
 		for (int loop = 0; loop < mp->totloop; loop++) {
-			MLoop *ml = &mloop[mp->loopstart + loop];
+			const MLoop *ml = &mloop[mp->loopstart + loop];
 			MVert *mv = &mvert[ml->v];
 			float vn[3];
 			normal_short_to_float_v3(vn, mv->no);
 			if (!equals_v3v3(vn, lnors[mp->loopstart + loop])) {
-				num_new_verts++;
+				/* When vertex is adjacent to two faces and gets split we don't
+				 * want new vertex counted for both faces. We tag it for re-use
+				 * by one of the faces.
+				 */
+				if ((mv->flag & ME_VERT_TMP_TAG) == 0) {
+					mv->flag |= ME_VERT_TMP_TAG;
+				}
+				else {
+					num_new_verts++;
+				}
 			}
 		}
 	}
@@ -2130,64 +2179,125 @@ void BKE_mesh_split_faces(Mesh *mesh)
 		/* No new vertices are to be added, can do early exit. */
 		return;
 	}
+	/* Count number of edges to be added. */
+	int max_num_loops = 0;
+	for (int poly = 0; poly < num_polys; poly++) {
+		MPoly *mp = &mpoly[poly];
+		max_num_loops = max_ii(max_num_loops, mp->totloop);
+		int loop_prev = mp->totloop - 1;
+		for (int loop = 0; loop < mp->totloop; loop++) {
+			const int poly_loop_prev = mp->loopstart + loop_prev;
+			const MLoop *ml = &mloop[mp->loopstart + loop];
+			const MVert *mv = &mvert[ml->v];
+			if (mv->flag & ME_VERT_TMP_TAG) {
+				const MLoop *ml_prev = &mloop[poly_loop_prev];
+				const MVert *mv_prev = &mvert[ml_prev->v];
+				if (mv_prev->flag & ME_VERT_TMP_TAG) {
+					MEdge *me_prev = &medge[ml_prev->e];
+					if ((me_prev->flag & ME_EDGE_TMP_TAG) == 0) {
+						me_prev->flag |= ME_EDGE_TMP_TAG;
+					}
+					else {
+						num_new_edges++;
+					}
+				}
+			}
+			loop_prev = loop;
+		}
+	}
+	/* Clear runtime flags again, they will be reused. */
+	mesh_clear_vert_flags(mesh);
+	mesh_clear_edge_flags(mesh);
 	/* Reallocate all vert and edge related data. */
 	mesh->totvert += num_new_verts;
-	mesh->totedge += 2 * num_new_verts;
+	mesh->totedge += num_new_edges;
 	CustomData_realloc(&mesh->vdata, mesh->totvert);
 	CustomData_realloc(&mesh->edata, mesh->totedge);
 	/* Update pointers to a newly allocated memory. */
 	BKE_mesh_update_customdata_pointers(mesh, false);
 	mvert = mesh->mvert;
 	medge = mesh->medge;
-	/* Perform actual vertex split. */
+	/* Perform actual split of vertices and adjacent edges. */
 	num_new_verts = 0;
-	for (poly = 0; poly < num_polys; poly++) {
+	num_new_edges = 0;
+	/* Mapping from original vertex index to a split one. */
+	int new_vert_index_static[64];
+	int *new_vert_index;
+	if (max_num_loops < ARRAY_SIZE(new_vert_index_static)) {
+		new_vert_index = new_vert_index_static;
+	}
+	else {
+		new_vert_index = MEM_mallocN(sizeof(int) * max_num_loops,
+		                             "new split vert index");
+	}
+	for (int poly = 0; poly < num_polys; poly++) {
 		MPoly *mp = &mpoly[poly];
+		/* First we split all vertices to get proper flag whether they are
+		 * split or not for all of them before handling edges.
+		 */
 		for (int loop = 0; loop < mp->totloop; loop++) {
 			int poly_loop = mp->loopstart + loop;
 			MLoop *ml = &mloop[poly_loop];
 			MVert *mv = &mvert[ml->v];
 			float vn[3];
 			normal_short_to_float_v3(vn, mv->no);
+			new_vert_index[loop] = ml->v;
 			if (!equals_v3v3(vn, lnors[mp->loopstart + loop])) {
-				const int poly_loop_prev = (loop == 0)
-				        ? mp->loopstart + mp->totloop - 1
-				        : mp->loopstart + loop - 1;
-				MLoop *ml_prev = &mloop[poly_loop_prev];
-				int new_edge_prev, new_edge;
+				if ((mv->flag & ME_VERT_TMP_TAG) == 0) {
+					/* Ignore first split on vertex, re-use it instead. */
+					mv->flag |= ME_VERT_TMP_TAG;
+					continue;
+				}
 				/* Cretae new vertex. */
 				int new_vert = num_verts + num_new_verts;
 				CustomData_copy_data(&mesh->vdata, &mesh->vdata,
 				                     ml->v, new_vert, 1);
 				normal_float_to_short_v3(mvert[new_vert].no,
 				                         lnors[poly_loop]);
-				/* Create new edges. */
-				new_edge_prev = num_edges + 2 * num_new_verts;
-				new_edge = num_edges + 2 * num_new_verts + 1;
-				CustomData_copy_data(&mesh->edata, &mesh->edata,
-				                     ml_prev->e, new_edge_prev, 1);
-				CustomData_copy_data(&mesh->edata, &mesh->edata,
-				                     ml->e, new_edge, 1);
-				if (medge[new_edge_prev].v1 == ml->v) {
-					medge[new_edge_prev].v1 = new_vert;
-				}
-				else {
-					medge[new_edge_prev].v2 = new_vert;
-				}
-				if (medge[new_edge].v1 == ml->v) {
-					medge[new_edge].v1 = new_vert;
-				}
-				else {
-					medge[new_edge].v2 = new_vert;
-				}
-
-				ml->v = new_vert;
-				ml_prev->e = new_edge_prev;
-				ml->e = new_edge;
+				new_vert_index[loop] = new_vert;
 				num_new_verts++;
 			}
 		}
+		/* Create edges between all split vertices. */
+		int loop_prev = mp->totloop - 1;
+		for (int loop = 0; loop < mp->totloop; loop++) {
+			const MLoop *ml = &mloop[mp->loopstart + loop];
+			const MVert *mv = &mvert[ml->v];
+			if (mv->flag & ME_VERT_TMP_TAG) {
+				const int poly_loop_prev = mp->loopstart + loop_prev;
+				MLoop *ml_prev = &mloop[poly_loop_prev];
+				const MVert *mv_prev = &mvert[ml_prev->v];
+				if (mv_prev->flag & ME_VERT_TMP_TAG) {
+					MEdge *me_prev = &medge[ml_prev->e];
+					if ((me_prev->flag & ME_EDGE_TMP_TAG) == 0) {
+						me_prev->flag |= ME_EDGE_TMP_TAG;
+						edge_replace_vertex(me_prev, ml_prev->v, new_vert_index[loop_prev]);
+						edge_replace_vertex(me_prev, ml->v, new_vert_index[loop]);
+					}
+					else {
+						const int new_edge = num_edges + num_new_edges;
+						CustomData_copy_data(&mesh->edata, &mesh->edata,
+						                     ml_prev->e, new_edge, 1);
+						medge[new_edge].v1 = new_vert_index[loop_prev];
+						medge[new_edge].v2 = new_vert_index[loop];
+						ml_prev->e = new_edge;
+						num_new_edges++;
+					}
+				}
+			}
+			loop_prev = loop;
+		}
+		for (int loop = 0; loop < mp->totloop; loop++) {
+			MLoop *ml = &mloop[mp->loopstart + loop];
+			ml->v = new_vert_index[loop];
+		}
 	}
+	if (new_vert_index != new_vert_index_static) {
+		MEM_freeN(new_vert_index);
+	}
+#ifdef VALIDATE_MESH
+	BKE_mesh_validate(mesh, true, true);
+#endif
 }
 
 /* settings: 1 - preview, 2 - render */
