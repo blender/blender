@@ -1876,7 +1876,6 @@ static int convert_exec(bContext *C, wmOperator *op)
 
 	if (!keep_original) {
 		if (mballConverted) {
-			Object *ob_mball;
 			FOREACH_SCENE_OBJECT(scene, ob_mball)
 			{
 				if (ob->type == OB_MBALL) {

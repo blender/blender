@@ -622,7 +622,6 @@ static void CLAY_create_cache(CLAY_PassList *passes, CLAY_StorageList *stl, cons
 	}
 
 	/* TODO Create hash table of batch based on material id*/
-	Object *ob;
 	DEG_OBJECT_ITER(sl, ob);
 	{
 		if ((ob->base_flag & BASE_VISIBLED) == 0) {

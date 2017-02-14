@@ -70,7 +70,6 @@ static Object *get_camera_with_movieclip(Scene *scene, MovieClip *clip)
 		return camera;
 	}
 
-	Object *ob;
 	FOREACH_SCENE_OBJECT(scene, ob)
 	{
 		if (ob->type == OB_CAMERA) {

@@ -1724,7 +1724,6 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 			if (sce == scene && show_opened)
 				tselem->flag &= ~TSE_CLOSED;
 
-			Object *ob;
 			FOREACH_SCENE_OBJECT(scene, ob)
 			{
 				ten = outliner_add_element(soops, &te->subtree, ob, te, 0, 0);
@@ -1745,7 +1744,6 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 		
 		outliner_add_scene_contents(soops, &soops->tree, scene, NULL);
 
-		Object *ob;
 		FOREACH_SCENE_OBJECT(scene, ob)
 		{
 			ten = outliner_add_element(soops, &soops->tree, ob, NULL, 0, 0);
@@ -1754,7 +1752,6 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 		outliner_make_hierarchy(&soops->tree);
 	}
 	else if (soops->outlinevis == SO_VISIBLE) {
-		Object *ob;
 		FOREACH_VISIBLE_OBJECT(sl, ob)
 		{
 			outliner_add_element(soops, &soops->tree, ob, NULL, 0, 0);
@@ -1782,7 +1779,6 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 	else if (soops->outlinevis == SO_SAME_TYPE) {
 		Object *ob_active = OBACT_NEW;
 		if (ob_active) {
-			Object *ob;
 			FOREACH_SCENE_OBJECT(scene, ob)
 			{
 				if (ob->type == ob_active->type) {
@@ -1794,10 +1790,9 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 		}
 	}
 	else if (soops->outlinevis == SO_SELECTED) {
-		Object *ob;
 		FOREACH_SELECTED_OBJECT(sl, ob)
 		{
-			    ten = outliner_add_element(soops, &soops->tree, ob, NULL, 0, 0);
+			ten = outliner_add_element(soops, &soops->tree, ob, NULL, 0, 0);
 		}
 		FOREACH_SELECTED_OBJECT_END
 		outliner_make_hierarchy(&soops->tree);

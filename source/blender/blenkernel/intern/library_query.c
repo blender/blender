@@ -416,7 +416,6 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 					CALLBACK_INVOKE(legacy_base->object, IDWALK_CB_USER);
 				}
 
-				SceneCollection *sc;
 				FOREACH_SCENE_COLLECTION(scene, sc)
 				{
 					for (LinkData *link = sc->objects.first; link; link = link->next) {

@@ -289,7 +289,6 @@ static void libblock_remap_data_preprocess(IDRemap *r_id_remap_data)
 				/* In case we are unlinking... */
 				if (!r_id_remap_data->old_id) {
 					/* ... everything from scene. */
-					Object *ob_iter;
 					FOREACH_SCENE_OBJECT(sce, ob_iter)
 					{
 						libblock_remap_data_preprocess_scene_object_unlink(

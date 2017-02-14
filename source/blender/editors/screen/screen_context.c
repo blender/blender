@@ -97,7 +97,6 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		return 1;
 	}
 	else if (CTX_data_equals(member, "visible_objects")) {
-		Object *ob;
 		FOREACH_VISIBLE_OBJECT(sl, ob)
 		{
 			CTX_data_id_list_add(result, &ob->id);
@@ -116,7 +115,6 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		return 1;
 	}
 	else if (CTX_data_equals(member, "selected_objects")) {
-		Object *ob;
 		FOREACH_SELECTED_OBJECT(sl, ob)
 		{
 			CTX_data_id_list_add(result, &ob->id);
@@ -126,7 +124,6 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		return 1;
 	}
 	else if (CTX_data_equals(member, "selected_editable_objects")) {
-		Object *ob;
 		FOREACH_SELECTED_OBJECT(sl, ob)
 		{
 			if (0 == BKE_object_is_libdata(ob)) {
@@ -139,7 +136,6 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	}
 	else if (CTX_data_equals(member, "editable_objects")) {
 		/* Visible + Editable, but not necessarily selected */
-		Object *ob;
 		FOREACH_VISIBLE_OBJECT(sl, ob)
 		{
 			if (0 == BKE_object_is_libdata(ob)) {
@@ -151,7 +147,6 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		return 1;
 	}
 	else if ( CTX_data_equals(member, "visible_bases")) {
-		Base *base;
 		FOREACH_VISIBLE_BASE(sl, base)
 		{
 			CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);

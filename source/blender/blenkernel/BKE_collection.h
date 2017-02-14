@@ -66,20 +66,20 @@ void BKE_scene_objects_Iterator_begin(struct Iterator *iter, void *data_in);
 void BKE_scene_objects_Iterator_next(struct Iterator *iter);
 void BKE_scene_objects_Iterator_end(struct Iterator *iter);
 
-#define FOREACH_SCENE_COLLECTION(scene, _sc)                                  \
+#define FOREACH_SCENE_COLLECTION(scene, _instance)                            \
 	ITER_BEGIN(BKE_scene_collections_Iterator_begin,                          \
 	           BKE_scene_collections_Iterator_next,                           \
 	           BKE_scene_collections_Iterator_end,                            \
-	           scene, SceneCollection, _sc)
+	           scene, SceneCollection *, _instance)
 
 #define FOREACH_SCENE_COLLECTION_END                                          \
 	ITER_END
 
-#define FOREACH_SCENE_OBJECT(scene, _ob)                                      \
+#define FOREACH_SCENE_OBJECT(scene, _instance)                                \
 	ITER_BEGIN(BKE_scene_objects_Iterator_begin,                              \
 	           BKE_scene_objects_Iterator_next,                               \
 	           BKE_scene_objects_Iterator_end,                                \
-	           scene, Object, _ob)
+	           scene, Object *, _instance)
 
 #define FOREACH_SCENE_OBJECT_END                                              \
 	ITER_END

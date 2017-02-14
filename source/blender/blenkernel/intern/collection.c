@@ -214,7 +214,6 @@ void BKE_collection_object_add(Scene *scene, SceneCollection *sc, Object *ob)
  */
 void BKE_collection_object_add_from(Scene *scene, Object *ob_src, Object *ob_dst)
 {
-	SceneCollection *sc;
 	FOREACH_SCENE_COLLECTION(scene, sc)
 	{
 		if (BLI_findptr(&sc->objects, ob_src, offsetof(LinkData, data))) {
@@ -257,7 +256,6 @@ void BKE_collections_object_remove(Main *bmain, Scene *scene, Object *ob, const 
 {
 	BKE_scene_remove_rigidbody_object(scene, ob);
 
-	SceneCollection *sc;
 	FOREACH_SCENE_COLLECTION(scene, sc)
 	{
 		BKE_collection_object_remove(bmain, scene, sc, ob, free_us);

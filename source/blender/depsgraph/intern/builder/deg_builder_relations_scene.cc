@@ -75,7 +75,6 @@ void DepsgraphRelationBuilder::build_scene(Main *bmain, Scene *scene)
 	}
 
 	/* scene objects */
-	Object *ob;
 	FOREACH_SCENE_OBJECT(scene, ob)
 	{
 		/* object itself */

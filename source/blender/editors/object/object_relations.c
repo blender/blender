@@ -1728,7 +1728,6 @@ static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, const in
  * button can be functional.*/
 void ED_object_single_user(Main *bmain, Scene *scene, Object *ob)
 {
-	Object *ob_iter;
 	FOREACH_SCENE_OBJECT(scene, ob_iter)
 	{
 		ob_iter->flag &= ~OB_DONE;
@@ -1855,8 +1854,6 @@ static void single_obdata_users(Main *bmain, Scene *scene, const int flag)
 
 static void single_object_action_users(Scene *scene, SceneLayer *sl, const int flag)
 {
-	Object *ob;
-
 	FOREACH_OBJECT_FLAG(scene, sl, flag, ob)
 	    if (!ID_IS_LINKED_DATABLOCK(ob)) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -1871,7 +1868,6 @@ static void single_mat_users(Main *bmain, Scene *scene, SceneLayer *sl, const in
 	Tex *tex;
 	int a, b;
 
-	Object *ob;
 	FOREACH_OBJECT_FLAG(scene, sl, flag, ob)
 	    if (!ID_IS_LINKED_DATABLOCK(ob)) {
 			for (a = 1; a <= ob->totcol; a++) {
