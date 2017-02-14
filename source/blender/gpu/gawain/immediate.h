@@ -83,8 +83,10 @@ void immUniform2f(const char* name, float x, float y);
 void immUniform2fv(const char* name, const float data[2]);
 void immUniform3f(const char* name, float x, float y, float z);
 void immUniform3fv(const char* name, const float data[3]);
+void immUniformArray3fv(const char* name, const float *data, int count);
 void immUniform4f(const char* name, float x, float y, float z, float w);
 void immUniform4fv(const char* name, const float data[4]);
+void immUniformMatrix4fv(const char* name, const float data[4][4]);
 
 
 // convenience functions for setting "uniform vec4 color"
