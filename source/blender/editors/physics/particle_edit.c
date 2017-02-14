@@ -73,6 +73,8 @@
 #include "ED_particle.h"
 #include "ED_view3d.h"
 
+#include "GPU_immediate.h"
+
 #include "UI_resources.h"
 
 #include "WM_api.h"
@@ -2690,24 +2692,27 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 	ParticleEditSettings *pset= PE_settings(scene);
 	ParticleBrushData *brush;
 
-	if (pset->brushtype < 0)
+	if (pset->brushtype < 0) {
 		return;
+	}
 
-	brush= &pset->brush[pset->brushtype];
+	brush = &pset->brush[pset->brushtype];
 
 	if (brush) {
-		glPushMatrix();
+		unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-		glTranslatef((float)x, (float)y, 0.0f);
+		immUniformColor4ub(255, 255, 255, 128);
 
-		glColor4ub(255, 255, 255, 128);
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
-		glutil_draw_lined_arc(0.0, M_PI*2.0, pe_brush_size_get(scene, brush), 40);
+
+		imm_draw_lined_circle(pos, (float)x, (float)y, pe_brush_size_get(scene, brush), 40);
+
 		glDisable(GL_BLEND);
 		glDisable(GL_LINE_SMOOTH);
-		
-		glPopMatrix();
+
+		immUnbindProgram();
 	}
 }
 
