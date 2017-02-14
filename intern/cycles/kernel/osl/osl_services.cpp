@@ -39,6 +39,7 @@
 #include "util_string.h"
 
 #include "kernel_compat_cpu.h"
+#include "split/kernel_split_data.h"
 #include "kernel_globals.h"
 #include "kernel_random.h"
 #include "kernel_projection.h"

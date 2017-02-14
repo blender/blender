@@ -32,6 +32,11 @@
 #  define ccl_addr_space
 #endif
 
+#if defined(__SPLIT_KERNEL__) && !defined(__COMPUTE_DEVICE_GPU__)
+/* TODO(mai): need to investigate how this effects the kernel, as cpu kernel crashes without this right now */
+#define __COMPUTE_DEVICE_GPU__
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 /* constants */
@@ -65,17 +70,23 @@ CCL_NAMESPACE_BEGIN
 #  endif
 #  define __KERNEL_SHADING__
 #  define __KERNEL_ADV_SHADING__
-#  define __BRANCHED_PATH__
+#  ifndef __SPLIT_KERNEL__
+#    define __BRANCHED_PATH__
+#  endif
 #  ifdef WITH_OSL
 #    define __OSL__
 #  endif
-#  define __SUBSURFACE__
+#  ifndef __SPLIT_KERNEL__
+#    define __SUBSURFACE__
+#  endif
 #  define __CMJ__
-#  define __VOLUME__
-#  define __VOLUME_DECOUPLED__
-#  define __VOLUME_SCATTER__
-#  define __SHADOW_RECORD_ALL__
-#  define __VOLUME_RECORD_ALL__
+#  ifndef __SPLIT_KERNEL__
+#    define __VOLUME__
+#    define __VOLUME_DECOUPLED__
+#    define __VOLUME_SCATTER__
+#    define __SHADOW_RECORD_ALL__
+#    define __VOLUME_RECORD_ALL__
+#  endif
 #endif  /* __KERNEL_CPU__ */
 
 #ifdef __KERNEL_CUDA__

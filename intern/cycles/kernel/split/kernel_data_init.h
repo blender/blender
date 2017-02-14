@@ -51,7 +51,11 @@ CCL_NAMESPACE_BEGIN
  * The number of elements in the queues is initialized to 0;
  */
 
+#ifndef __KERNEL_CPU__
 ccl_device void kernel_data_init(
+#else
+void KERNEL_FUNCTION_FULL_NAME(data_init)(
+#endif
         KernelGlobals *kg,
         ccl_constant KernelData *data,
         ccl_global void *split_data_buffer,

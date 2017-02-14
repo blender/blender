@@ -46,6 +46,9 @@ public:
 
 		/* Whether QBVH usage is allowed or not. */
 		bool qbvh;
+
+		/* Whether split kernel is used */
+		bool split_kernel;
 	};
 
 	/* Descriptor of CUDA feature-set to be used. */

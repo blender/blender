@@ -29,7 +29,8 @@ DebugFlags::CPU::CPU()
     sse41(true),
     sse3(true),
     sse2(true),
-    qbvh(true)
+    qbvh(true),
+    split_kernel(false)
 {
 	reset();
 }
@@ -55,6 +56,7 @@ void DebugFlags::CPU::reset()
 #undef CHECK_CPU_FLAGS
 
 	qbvh = true;
+	split_kernel = false;
 }
 
 DebugFlags::CUDA::CUDA()
@@ -133,7 +135,9 @@ std::ostream& operator <<(std::ostream &os,
 	   << "  AVX    : " << string_from_bool(debug_flags.cpu.avx)   << "\n"
 	   << "  SSE4.1 : " << string_from_bool(debug_flags.cpu.sse41) << "\n"
 	   << "  SSE3   : " << string_from_bool(debug_flags.cpu.sse3)  << "\n"
-	   << "  SSE2   : " << string_from_bool(debug_flags.cpu.sse2)  << "\n";
+	   << "  SSE2   : " << string_from_bool(debug_flags.cpu.sse2)  << "\n"
+	   << "  QBVH   : " << string_from_bool(debug_flags.cpu.qbvh)  << "\n"
+	   << "  Split  : " << string_from_bool(debug_flags.cpu.split_kernel) << "\n";
 
 	os << "CUDA flags:\n"
 	   << " Adaptive Compile: " << string_from_bool(debug_flags.cuda.adaptive_compile) << "\n";

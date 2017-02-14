@@ -42,6 +42,7 @@
 
 #include "kernel_types.h"
 #include "kernel_compat_cpu.h"
+#include "split/kernel_split_data.h"
 #include "kernel_globals.h"
 #include "kernel_montecarlo.h"
 #include "kernel_random.h"

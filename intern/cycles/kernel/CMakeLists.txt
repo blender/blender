@@ -13,6 +13,7 @@ set(INC_SYS
 
 set(SRC
 	kernels/cpu/kernel.cpp
+	kernels/cpu/kernel_split.cpp
 	kernels/opencl/kernel.cl
 	kernels/opencl/kernel_data_init.cl
 	kernels/opencl/kernel_queue_enqueue.cl
@@ -316,25 +317,35 @@ if(CXX_HAS_SSE)
 		kernels/cpu/kernel_sse2.cpp
 		kernels/cpu/kernel_sse3.cpp
 		kernels/cpu/kernel_sse41.cpp
+		kernels/cpu/kernel_split_sse2.cpp
+		kernels/cpu/kernel_split_sse3.cpp
+		kernels/cpu/kernel_split_sse41.cpp
 	)
 
 	set_source_files_properties(kernels/cpu/kernel_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
 	set_source_files_properties(kernels/cpu/kernel_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
 	set_source_files_properties(kernels/cpu/kernel_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/kernel_split_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/kernel_split_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/kernel_split_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")
 endif()
 
 if(CXX_HAS_AVX)
 	list(APPEND SRC
 		kernels/cpu/kernel_avx.cpp
+		kernels/cpu/kernel_split_avx.cpp
 	)
 	set_source_files_properties(kernels/cpu/kernel_avx.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/kernel_split_avx.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
 endif()
 
 if(CXX_HAS_AVX2)
 	list(APPEND SRC
 		kernels/cpu/kernel_avx2.cpp
+		kernels/cpu/kernel_split_avx2.cpp
 	)
 	set_source_files_properties(kernels/cpu/kernel_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
+	set_source_files_properties(kernels/cpu/kernel_split_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
 endif()
 
 add_library(cycles_kernel
