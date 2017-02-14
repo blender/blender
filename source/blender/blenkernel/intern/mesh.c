@@ -2116,8 +2116,7 @@ void BKE_mesh_split_faces(Mesh *mesh)
 	/* Count number of vertices to be split. */
 	for (poly = 0; poly < num_polys; poly++) {
 		MPoly *mp = &mpoly[poly];
-		int loop;
-		for (loop = 0; loop < mp->totloop; loop++) {
+		for (int loop = 0; loop < mp->totloop; loop++) {
 			MLoop *ml = &mloop[mp->loopstart + loop];
 			MVert *mv = &mvert[ml->v];
 			float vn[3];
@@ -2144,8 +2143,7 @@ void BKE_mesh_split_faces(Mesh *mesh)
 	num_new_verts = 0;
 	for (poly = 0; poly < num_polys; poly++) {
 		MPoly *mp = &mpoly[poly];
-		int loop;
-		for (loop = 0; loop < mp->totloop; loop++) {
+		for (int loop = 0; loop < mp->totloop; loop++) {
 			int poly_loop = mp->loopstart + loop;
 			MLoop *ml = &mloop[poly_loop];
 			MVert *mv = &mvert[ml->v];
