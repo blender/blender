@@ -208,7 +208,7 @@ void DRW_pass_setup_common(DRWPass **wire_overlay, DRWPass **wire_outline, DRWPa
 		geom = DRW_cache_single_line_get();
 		single_arrow_line = shgroup_instance(*non_meshes, geom);
 
-		geom = DRW_cache_single_arrow_get();
+		geom = DRW_cache_arrows_get();
 		arrows = shgroup_instance(*non_meshes, geom);
 
 		/* Lamps */

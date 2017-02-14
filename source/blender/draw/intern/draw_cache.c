@@ -167,13 +167,13 @@ Batch *DRW_cache_circle_get(void)
 
 		for (int a = 0; a < CIRCLE_RESOL; a++) {
 			v[0] = sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
-			v[1] = cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
-			v[2] = 0.0f;
+			v[2] = cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			v[1] = 0.0f;
 			setAttrib(vbo, pos_id, a * 2, v);
 
 			v[0] = sinf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
-			v[1] = cosf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
-			v[2] = 0.0f;
+			v[2] = cosf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
+			v[1] = 0.0f;
 			setAttrib(vbo, pos_id, a * 2 + 1, v);
 		}
 
@@ -245,7 +245,7 @@ Batch *DRW_cache_plain_axes_get(void)
 Batch *DRW_cache_single_arrow_get(void)
 {
 	if (!SHC.drw_single_arrow) {
-		float v1[3] = {0.0f, 0.0f, 0.0f}, v2[3], v3[3];
+		float v1[3] = {0.0f, 0.0f, 1.0f}, v2[3], v3[3];
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
