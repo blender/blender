@@ -27,6 +27,7 @@ set(SRC
 	kernels/opencl/kernel_next_iteration_setup.cl
 	kernels/opencl/kernel_sum_all_radiance.cl
 	kernels/cuda/kernel.cu
+	kernels/cuda/kernel_split.cu
 )
 
 set(SRC_BVH_HEADERS
@@ -87,6 +88,10 @@ set(SRC_KERNELS_CPU_HEADERS
 	kernels/cpu/kernel_cpu.h
 	kernels/cpu/kernel_cpu_impl.h
 	kernels/cpu/kernel_cpu_image.h
+)
+
+set(SRC_KERNELS_CUDA_HEADERS
+	kernels/cuda/kernel_config.h
 )
 
 set(SRC_CLOSURE_HEADERS
@@ -230,8 +235,9 @@ if(WITH_CYCLES_CUDA_BINARIES)
 	endif()
 
 	# build for each arch
-	set(cuda_sources kernels/cuda/kernel.cu
+	set(cuda_sources kernels/cuda/kernel.cu kernels/cuda/kernel_split.cu
 		${SRC_HEADERS}
+		${SRC_KERNELS_CUDA_HEADERS}
 		${SRC_BVH_HEADERS}
 		${SRC_SVM_HEADERS}
 		${SRC_GEOM_HEADERS}
@@ -240,14 +246,21 @@ if(WITH_CYCLES_CUDA_BINARIES)
 	)
 	set(cuda_cubins)
 
-	macro(CYCLES_CUDA_KERNEL_ADD arch experimental)
-		if(${experimental})
-			set(cuda_extra_flags "-D__KERNEL_EXPERIMENTAL__")
-			set(cuda_cubin kernel_experimental_${arch}.cubin)
+	macro(CYCLES_CUDA_KERNEL_ADD arch split experimental)
+		if(${split})
+			set(cuda_extra_flags "-D__SPLIT__")
+			set(cuda_cubin kernel_split)
 		else()
 			set(cuda_extra_flags "")
-			set(cuda_cubin kernel_${arch}.cubin)
+			set(cuda_cubin kernel)
 		endif()
+
+		if(${experimental})
+			set(cuda_extra_flags ${cuda_extra_flags} -D__KERNEL_EXPERIMENTAL__)
+			set(cuda_cubin ${cuda_cubin}_experimental)
+		endif()
+
+		set(cuda_cubin ${cuda_cubin}_${arch}.cubin)
 
 		if(WITH_CYCLES_DEBUG)
 			set(cuda_debug_flags "-D__KERNEL_DEBUG__")
@@ -261,13 +274,19 @@ if(WITH_CYCLES_CUDA_BINARIES)
 		set(cuda_version_flags "-D__KERNEL_CUDA_VERSION__=${cuda_nvcc_version}")
 		set(cuda_math_flags "--use_fast_math")
 
+		if(split)
+			set(cuda_kernel_src "/kernels/cuda/kernel_split.cu")
+		else()
+			set(cuda_kernel_src "/kernels/cuda/kernel.cu")
+		endif()
+
 		add_custom_command(
 			OUTPUT ${cuda_cubin}
 			COMMAND ${cuda_nvcc_command}
 					-arch=${arch}
 					${CUDA_NVCC_FLAGS}
 					-m${CUDA_BITS}
-					--cubin ${CMAKE_CURRENT_SOURCE_DIR}/kernels/cuda/kernel.cu
+					--cubin ${CMAKE_CURRENT_SOURCE_DIR}${cuda_kernel_src}
 					-o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_cubin}
 					--ptxas-options="-v"
 					${cuda_arch_flags}
@@ -294,7 +313,12 @@ if(WITH_CYCLES_CUDA_BINARIES)
 
 	foreach(arch ${CYCLES_CUDA_BINARIES_ARCH})
 		# Compile regular kernel
-		CYCLES_CUDA_KERNEL_ADD(${arch} FALSE)
+		CYCLES_CUDA_KERNEL_ADD(${arch} FALSE FALSE)
+
+		if(WITH_CYCLES_CUDA_SPLIT_KERNEL_BINARIES)
+			# Compile split kernel
+			CYCLES_CUDA_KERNEL_ADD(${arch} TRUE FALSE)
+		endif()
 	endforeach()
 
 	add_custom_target(cycles_kernel_cuda ALL DEPENDS ${cuda_cubins})
@@ -352,6 +376,7 @@ add_library(cycles_kernel
 	${SRC}
 	${SRC_HEADERS}
 	${SRC_KERNELS_CPU_HEADERS}
+	${SRC_KERNELS_CUDA_HEADERS}
 	${SRC_BVH_HEADERS}
 	${SRC_CLOSURE_HEADERS}
 	${SRC_SVM_HEADERS}
@@ -386,7 +411,9 @@ delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_shadow_blocke
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_next_iteration_setup.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/opencl/kernel_sum_all_radiance.cl" ${CYCLES_INSTALL_PATH}/kernel/kernels/opencl)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/cuda/kernel.cu" ${CYCLES_INSTALL_PATH}/kernel/kernels/cuda)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernels/cuda/kernel_split.cu" ${CYCLES_INSTALL_PATH}/kernel/kernels/cuda)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_KERNELS_CUDA_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/kernels/cuda)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_BVH_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/bvh)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_CLOSURE_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/closure)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_SVM_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/svm)

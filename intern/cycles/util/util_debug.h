@@ -61,6 +61,9 @@ public:
 		/* Whether adaptive feature based runtime compile is enabled or not.
 		 * Requires the CUDA Toolkit and only works on Linux atm. */
 		bool adaptive_compile;
+
+		/* Whether split kernel is used */
+		bool split_kernel;
 	};
 
 	/* Descriptor of OpenCL feature-set to be used. */

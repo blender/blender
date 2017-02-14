@@ -92,12 +92,14 @@ CCL_NAMESPACE_BEGIN
 #ifdef __KERNEL_CUDA__
 #  define __KERNEL_SHADING__
 #  define __KERNEL_ADV_SHADING__
-#  define __BRANCHED_PATH__
-#  define __VOLUME__
-#  define __VOLUME_SCATTER__
-#  define __SUBSURFACE__
-#  define __CMJ__
-#  define __SHADOW_RECORD_ALL__
+#  ifndef __SPLIT_KERNEL__
+#    define __BRANCHED_PATH__
+#    define __VOLUME__
+#    define __VOLUME_SCATTER__
+#    define __SUBSURFACE__
+#    define __CMJ__
+#    define __SHADOW_RECORD_ALL__
+#  endif
 #endif  /* __KERNEL_CUDA__ */
 
 #ifdef __KERNEL_OPENCL__

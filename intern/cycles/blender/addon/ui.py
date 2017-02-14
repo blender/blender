@@ -1523,6 +1523,7 @@ class CyclesRender_PT_debug(CyclesButtonsPanel, Panel):
         col = layout.column()
         col.label('CUDA Flags:')
         col.prop(cscene, "debug_use_cuda_adaptive_compile")
+        col.prop(cscene, "debug_use_cuda_split_kernel")
 
         col = layout.column()
         col.label('OpenCL Flags:')

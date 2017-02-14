@@ -60,7 +60,8 @@ void DebugFlags::CPU::reset()
 }
 
 DebugFlags::CUDA::CUDA()
-  : adaptive_compile(false)
+  : adaptive_compile(false),
+    split_kernel(false)
 {
 	reset();
 }
@@ -69,6 +70,8 @@ void DebugFlags::CUDA::reset()
 {
 	if(getenv("CYCLES_CUDA_ADAPTIVE_COMPILE") != NULL)
 		adaptive_compile = true;
+
+	split_kernel = false;
 }
 
 DebugFlags::OpenCL::OpenCL()
