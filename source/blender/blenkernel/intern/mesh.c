@@ -2152,7 +2152,9 @@ void BKE_mesh_split_faces(Mesh *mesh)
 			float vn[3];
 			normal_short_to_float_v3(vn, mv->no);
 			if (!equals_v3v3(vn, lnors[mp->loopstart + loop])) {
-				int poly_loop_prev = mp->loopstart + (loop + mp->totloop - 1) % mp->totloop;
+				const int poly_loop_prev = (loop == 0)
+				        ? mp->loopstart + mp->totloop - 1
+				        : mp->loopstart + loop - 1;
 				MLoop *ml_prev = &mloop[poly_loop_prev];
 				int new_edge_prev, new_edge;
 				/* Cretae new vertex. */
