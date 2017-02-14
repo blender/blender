@@ -146,6 +146,6 @@ bool AbcEmptyReader::valid() const
 
 void AbcEmptyReader::readObjectData(Main *bmain, float /*time*/)
 {
-	m_object = BKE_object_add_only_object(bmain, OB_EMPTY, m_object_name.c_str());
+	m_object = BKE_object_add_only_object(bmain, OB_EMPTY, m_data_name.c_str());
 	m_object->data = NULL;
 }
