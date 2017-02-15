@@ -1880,6 +1880,7 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 
 	dscene->data.bvh.root = pack.root_index;
 	dscene->data.bvh.use_qbvh = scene->params.use_qbvh;
+	dscene->data.bvh.use_bvh_steps = (scene->params.num_bvh_time_steps != 0);
 }
 
 void MeshManager::device_update_flags(Device * /*device*/,

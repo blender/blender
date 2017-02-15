@@ -1202,7 +1202,8 @@ typedef struct KernelBVH {
 	int have_curves;
 	int have_instancing;
 	int use_qbvh;
-	int pad1, pad2;
+	int use_bvh_steps;
+	int pad1;
 } KernelBVH;
 static_assert_align(KernelBVH, 16);
 
