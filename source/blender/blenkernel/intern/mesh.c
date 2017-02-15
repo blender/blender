@@ -2228,7 +2228,7 @@ void BKE_mesh_split_faces(Mesh *mesh)
 	/* Perform actual split of vertices and adjacent edges. */
 	num_new_verts = 0;
 	num_new_edges = 0;
-	/* Mapping from original vertex index to a split one. */
+	/* Insert new split vertices. */
 	for (int poly = 0; poly < num_polys; poly++) {
 		MPoly *mp = &mpoly[poly];
 		/* First we split all vertices to get proper flag whether they are
@@ -2256,9 +2256,11 @@ void BKE_mesh_split_faces(Mesh *mesh)
 				num_new_verts++;
 			}
 		}
-		/* Connect new vertices with edges. */
-		int loop_prev = mp->totloop - 1;
-		for (int loop = 0; loop < mp->totloop; loop++) {
+	}
+	/* Connect new vertices with edges. */
+	for (int poly = 0; poly < num_polys; poly++) {
+		MPoly *mp = &mpoly[poly];
+		for (int loop = 0, loop_prev = mp->totloop - 1; loop < mp->totloop; loop++) {
 			const int poly_loop_prev = mp->loopstart + loop_prev;
 			const MLoop *ml = &mloop[mp->loopstart + loop];
 			const MVert *mv = &mvert[ml->v];
