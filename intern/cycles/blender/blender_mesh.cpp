@@ -589,12 +589,12 @@ static void attr_create_pointiness(Scene *scene,
 			const float3 &other_vert_co = mesh->verts[other_vert_index];
 			/* We are too far away now, we wouldn't have duplicate. */
 			if ((other_vert_co.x + other_vert_co.y + other_vert_co.z) -
-			    (vert_co.x + vert_co.y + vert_co.z) > 0.0f)
+			    (vert_co.x + vert_co.y + vert_co.z) > 3 * FLT_EPSILON)
 			{
 				break;
 			}
 			/* Found duplicate. */
-			if(other_vert_co == vert_co) {
+			if(len_squared(other_vert_co - vert_co) < FLT_EPSILON) {
 				found = true;
 				vert_orig_index[vert_index] = other_vert_index;
 				break;
