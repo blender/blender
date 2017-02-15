@@ -2044,6 +2044,10 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 	mul_v3_v3(offset, ss->cache->scale);
 	mul_v3_fl(offset, bstrength);
 
+	/* XXX - this shouldn't be necessary, but sculpting crashes in blender2.8 otherwise
+	 * initialize before threads so they can do curve mapping */
+	curvemapping_initialize(brush->curve);
+
 	/* threaded loop over nodes */
 	SculptThreadedTaskData data = {
 	    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
