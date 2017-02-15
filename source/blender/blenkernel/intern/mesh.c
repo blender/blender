@@ -2172,7 +2172,7 @@ void BKE_mesh_split_faces(Mesh *mesh)
 			MVert *mv = &mvert[ml->v];
 			float vn[3];
 			normal_short_to_float_v3(vn, mv->no);
-			if (!equals_v3v3(vn, lnors[mp->loopstart + loop])) {
+			if (len_squared_v3v3(vn, lnors[mp->loopstart + loop]) > FLT_EPSILON) {
 				/* When vertex is adjacent to two faces and gets split we don't
 				 * want new vertex counted for both faces. We tag it for re-use
 				 * by one of the faces.
@@ -2240,7 +2240,7 @@ void BKE_mesh_split_faces(Mesh *mesh)
 			MVert *mv = &mvert[ml->v];
 			float vn[3];
 			normal_short_to_float_v3(vn, mv->no);
-			if (!equals_v3v3(vn, lnors[mp->loopstart + loop])) {
+			if (len_squared_v3v3(vn, lnors[mp->loopstart + loop]) > FLT_EPSILON) {
 				if ((mv->flag & ME_VERT_TMP_TAG) == 0) {
 					/* Ignore first split on vertex, re-use it instead. */
 					mv->flag |= ME_VERT_TMP_TAG;
