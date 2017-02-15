@@ -239,35 +239,24 @@ void AbcObjectReader::readObjectMatrix(const float time)
 void AbcObjectReader::read_matrix(float mat[4][4], const float time, const float scale, bool &is_constant)
 {
 	IXform ixform;
-	bool has_alembic_parent = false;
+	IObject ixform_parent;
 
 	/* Check that we have an empty object (locator, bone head/tail...).  */
 	if (IXform::matches(m_iobject.getMetaData())) {
 		ixform = IXform(m_iobject, Alembic::AbcGeom::kWrapExisting);
-
-		/* See comment below. */
-		has_alembic_parent = m_iobject.getParent().getParent().valid();
+		ixform_parent = m_iobject.getParent();
 	}
 	/* Check that we have an object with actual data. */
 	else if (IXform::matches(m_iobject.getParent().getMetaData())) {
 		ixform = IXform(m_iobject.getParent(), Alembic::AbcGeom::kWrapExisting);
-
-		/* This is a bit hackish, but we need to make sure that extra
-		 * transformations added to the matrix (rotation/scale) are only applied
-		 * to root objects. The way objects and their hierarchy are created will
-		 * need to be revisited at some point but for now this seems to do the
-		 * trick.
-		 *
-		 * Explanation of the trick:
-		 * The first getParent() will return this object's transformation matrix.
-		 * The second getParent() will get the parent of the transform, but this
-		 * might be the archive root ('/') which is valid, so we go passed it to
-		 * make sure that there is no parent.
-		 */
-		has_alembic_parent = m_iobject.getParent().getParent().getParent().valid();
+		ixform_parent = m_iobject.getParent().getParent();
 	}
 	/* Should not happen. */
 	else {
+		std::cerr << "AbcObjectReader::read_matrix: "
+		          << "unable to find IXform for Alembic object '"
+		          << m_iobject.getFullName() << "'\n";
+		BLI_assert(false);
 		return;
 	}
 
@@ -275,6 +264,16 @@ void AbcObjectReader::read_matrix(float mat[4][4], const float time, const float
 
 	if (!schema.valid()) {
 		return;
+	}
+
+	bool has_alembic_parent;
+	if (!ixform_parent.getParent()) {
+		/* The archive top object certainly is not a transform itself, so handle
+		 * it as "no parent". */
+		has_alembic_parent = false;
+	}
+	else {
+		has_alembic_parent = ixform_parent && schema.getInheritsXforms();
 	}
 
 	const Imath::M44d matrix = get_matrix(schema, time);
