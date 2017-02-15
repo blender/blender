@@ -97,6 +97,9 @@ void AbcTransformWriter::do_write()
 
 	if (!m_object->parent) {
 		/* Only apply scaling to root objects, parenting will propagate it. */
+		/* TODO Sybren: when we're exporting as "flat", i.e. non-hierarchial,
+		 * we should apply the scale even when the object has a parent
+		 * Blender Object. */
 		float scale_mat[4][4];
 		scale_m4_fl(scale_mat, m_settings.global_scale);
 		mul_m4_m4m4(mat, mat, scale_mat);
