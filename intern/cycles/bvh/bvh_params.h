@@ -104,6 +104,7 @@ public:
 		primitive_mask = PRIMITIVE_ALL;
 
 		num_motion_curve_steps = 0;
+		num_motion_triangle_steps = 0;
 	}
 
 	/* SAH costs */
