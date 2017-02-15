@@ -117,7 +117,8 @@ void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag)
 	/* Draw a light green line to indicate current frame */
 	UI_ThemeColor(TH_CFRAME);
 
-	const float x = (float)(scene->r.cfra * scene->r.framelen);
+	const float time = scene->r.cfra + scene->r.subframe;
+	const float x = (float)(time * scene->r.framelen);
 
 	glLineWidth((flag & DRAWCFRA_WIDE) ? 3.0 : 2.0);
 

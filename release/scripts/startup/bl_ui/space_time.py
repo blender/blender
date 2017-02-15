@@ -49,7 +49,10 @@ class TIME_HT_header(Header):
             row.prop(scene, "frame_preview_start", text="Start")
             row.prop(scene, "frame_preview_end", text="End")
 
-        layout.prop(scene, "frame_current", text="")
+        if scene.show_subframe:
+            layout.prop(scene, "frame_float", text="")
+        else:
+            layout.prop(scene, "frame_current", text="")
 
         layout.separator()
 
@@ -135,6 +138,7 @@ class TIME_MT_view(Menu):
 
         layout.prop(st, "show_frame_indicator")
         layout.prop(scene, "show_keys_from_selected_only")
+        layout.prop(scene, "show_subframe")
 
         layout.separator()
 
