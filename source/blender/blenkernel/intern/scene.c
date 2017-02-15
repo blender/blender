@@ -1688,21 +1688,38 @@ float get_render_aosss_error(const RenderData *r, float error)
 		return error;
 }
 
-/* helper function for the SETLOOPER macro */
-BaseLegacy *_setlooper_base_step(Scene **sce_iter, BaseLegacy *base)
+/**
+  * Helper function for the SETLOOPER macro
+  *
+  * It iterates over the bases of the active layer and then the bases
+  * of the active layer of the background (set) scenes recursively.
+  */
+Base *_setlooper_base_step(Scene **sce_iter, Base *base)
 {
 	if (base && base->next) {
 		/* common case, step to the next */
 		return base->next;
 	}
-	else if (base == NULL && (*sce_iter)->base.first) {
+	else if (base == NULL) {
 		/* first time looping, return the scenes first base */
-		return (BaseLegacy *)(*sce_iter)->base.first;
+
+		/* for the first loop we should get the layer from context */
+		TODO_LAYER_CONTEXT;
+		SceneLayer *sl = BKE_scene_layer_active((*sce_iter));
+
+		if (sl->object_bases.first) {
+			return (Base *)sl->object_bases.first;
+		}
+		/* no base on this scene layer */
+		goto next_set;
 	}
 	else {
+next_set:
 		/* reached the end, get the next base in the set */
 		while ((*sce_iter = (*sce_iter)->set)) {
-			base = (BaseLegacy *)(*sce_iter)->base.first;
+			SceneLayer *sl = BKE_scene_layer_active((*sce_iter));
+			base = (Base *)sl->object_bases.first;
+
 			if (base) {
 				return base;
 			}

@@ -63,7 +63,7 @@ struct Main;
 	_base;                                                                    \
 	_base = _setlooper_base_step(&_sce_iter, _base)
 
-struct BaseLegacy *_setlooper_base_step(struct Scene **sce_iter, struct BaseLegacy *base);
+struct Base *_setlooper_base_step(struct Scene **sce_iter, struct Base *base);
 
 void free_avicodecdata(struct AviCodecData *acd);
 void free_qtcodecdata(struct QuicktimeCodecData *acd);
