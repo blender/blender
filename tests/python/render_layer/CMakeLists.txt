@@ -14,17 +14,13 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# Contributor(s): Jacques Beaurain.
+# Contributor(s): Jacques Beaurain, Dalai Felinto.
 #
 # ***** END GPL LICENSE BLOCK *****
 
 # --env-system-scripts allows to run without the install target. 
 
 # Use '--write-blend=/tmp/test.blend' to view output
-
-# Some tests are interesting but take too long to run
-# and don't give deterministic results
-set(USE_EXPERIMENTAL_TESTS FALSE)
 
 set(TEST_SRC_DIR ${CMAKE_SOURCE_DIR}/../lib/tests)
 set(TEST_OUT_DIR ${CMAKE_BINARY_DIR}/tests)
@@ -48,59 +44,25 @@ else()
 endif()
 
 # for testing with valgrind prefix: valgrind --track-origins=yes --error-limit=no 
-set(TEST_BLENDER_EXE_BARE ${TEST_BLENDER_EXE})
 set(TEST_BLENDER_EXE ${TEST_BLENDER_EXE} --background -noaudio --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
 
 
 # ------------------------------------------------------------------------------
 
-add_test(render_layer_scene_write_read ${TEST_BLENDER_EXE}
-	--python ${CMAKE_CURRENT_LIST_DIR}/test_scene_write_read.py --
-	--testdir="${TEST_SRC_DIR}/layers"
-)
+macro(RENDER_LAYER_TEST test_name)
+	add_test(render_layer_${test_name} ${TEST_BLENDER_EXE}
+		--python ${CMAKE_CURRENT_LIST_DIR}/test_${test_name}.py --
+		--testdir="${TEST_SRC_DIR}/layers"
+	)
+endmacro()
 
-add_test(render_layer_scene_copy ${TEST_BLENDER_EXE}
-	--python ${CMAKE_CURRENT_LIST_DIR}/test_scene_copy.py --
-	--testdir="${TEST_SRC_DIR}/layers"
-)
-
-add_test(render_layer_syncing ${TEST_BLENDER_EXE}
-	--python ${CMAKE_CURRENT_LIST_DIR}/test_syncing.py --
-	--testdir="${TEST_SRC_DIR}/layers"
-)
-
-add_test(render_layer_layer_linking ${TEST_BLENDER_EXE}
-	--python ${CMAKE_CURRENT_LIST_DIR}/test_layer_linking.py --
-	--testdir="${TEST_SRC_DIR}/layers"
-)
-
-add_test(render_layer_active_collection ${TEST_BLENDER_EXE}
-	--python ${CMAKE_CURRENT_LIST_DIR}/test_active_collection.py --
-	--testdir="${TEST_SRC_DIR}/layers"
-)
-
-add_test(render_layer_object_delete ${TEST_BLENDER_EXE}
-	--python ${CMAKE_CURRENT_LIST_DIR}/test_object_delete.py --
-	--testdir="${TEST_SRC_DIR}/layers"
-)
-
-add_test(render_layer_link ${TEST_BLENDER_EXE}
-	--python ${CMAKE_CURRENT_LIST_DIR}/test_link.py --
-	--testdir="${TEST_SRC_DIR}/layers"
-)
-
-add_test(render_layer_operator_context ${TEST_BLENDER_EXE}
-	--python ${CMAKE_CURRENT_LIST_DIR}/test_operator_context.py --
-	--testdir="${TEST_SRC_DIR}/layers"
-)
-
-add_test(render_layer_object_add ${TEST_BLENDER_EXE}
-	--python ${CMAKE_CURRENT_LIST_DIR}/test_object_add.py --
-	--testdir="${TEST_SRC_DIR}/layers"
-)
-
-add_test(render_layer_object_copy ${TEST_BLENDER_EXE}
-	--python ${CMAKE_CURRENT_LIST_DIR}/test_object_copy.py --
-	--testdir="${TEST_SRC_DIR}/layers"
-)
-
+RENDER_LAYER_TEST(scene_write_read)
+RENDER_LAYER_TEST(scene_copy)
+RENDER_LAYER_TEST(layer_syncinc)
+RENDER_LAYER_TEST(layer_linking)
+RENDER_LAYER_TEST(active_collection)
+RENDER_LAYER_TEST(object_delete)
+RENDER_LAYER_TEST(link)
+RENDER_LAYER_TEST(operator_context)
+RENDER_LAYER_TEST(object_add)
+RENDER_LAYER_TEST(object_copy)
