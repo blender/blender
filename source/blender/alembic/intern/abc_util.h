@@ -52,7 +52,6 @@ bool object_selected(Object *ob);
 bool parent_selected(Object *ob);
 
 Imath::M44d convert_matrix(float mat[4][4]);
-void create_transform_matrix(float r_mat[4][4]);
 void create_transform_matrix(Object *obj, float transform_mat[4][4]);
 
 void split(const std::string &s, const char delim, std::vector<std::string> &tokens);
@@ -149,6 +148,15 @@ ABC_INLINE void copy_yup_from_zup(short yup[3], const short zup[3])
 	yup[1] = zup[2];
 	yup[2] = -old_zup1;
 }
+
+/* Names are given in (dst, src) order, just like
+ * the parameters of copy_m44_axis_swap() */
+typedef enum {
+	ABC_ZUP_FROM_YUP = 1,
+	ABC_YUP_FROM_ZUP = 2,
+} AbcAxisSwapMode;
+
+void copy_m44_axis_swap(float dst_mat[4][4], float src_mat[4][4], AbcAxisSwapMode mode);
 
 /* *************************** */
 
