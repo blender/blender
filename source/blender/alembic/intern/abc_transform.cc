@@ -85,14 +85,14 @@ void AbcTransformWriter::do_write()
 		return;
 	}
 
-	float mat[4][4];
-	create_transform_matrix(m_object, mat);
+	float yup_mat[4][4];
+	create_transform_matrix(m_object, yup_mat);
 
 	/* Only apply rotation to root camera, parenting will propagate it. */
 	if (m_object->type == OB_CAMERA && !has_parent_camera(m_object)) {
 		float rot_mat[4][4];
 		axis_angle_to_mat4_single(rot_mat, 'X', -M_PI_2);
-		mul_m4_m4m4(mat, mat, rot_mat);
+		mul_m4_m4m4(yup_mat, yup_mat, rot_mat);
 	}
 
 	if (!m_object->parent) {
@@ -102,12 +102,11 @@ void AbcTransformWriter::do_write()
 		 * Blender Object. */
 		float scale_mat[4][4];
 		scale_m4_fl(scale_mat, m_settings.global_scale);
-		mul_m4_m4m4(mat, mat, scale_mat);
-		mul_v3_fl(mat[3], m_settings.global_scale);
+		mul_m4_m4m4(yup_mat, yup_mat, scale_mat);
+		mul_v3_fl(yup_mat[3], m_settings.global_scale);
 	}
 
-	m_matrix = convert_matrix(mat);
-
+	m_matrix = convert_matrix(yup_mat);
 	m_sample.setMatrix(m_matrix);
 	m_schema.set(m_sample);
 }
