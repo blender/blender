@@ -2300,6 +2300,11 @@ void BKE_mesh_split_faces(Mesh *mesh)
 			loop_prev = loop;
 		}
 	}
+	/* Adding new vertices will change loop normals.
+	 * Since we ensured there is CD_NORMAL layer for loops we must bring it
+	 * it back to a consistent state.
+	 */
+	BKE_mesh_calc_normals_split(mesh);
 #ifdef VALIDATE_MESH
 	BKE_mesh_validate(mesh, true, true);
 #endif
