@@ -55,6 +55,8 @@
 #include "ED_image.h"
 #include "ED_mesh.h"
 
+#include "GPU_immediate.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -212,18 +214,17 @@ static void brush_drawcursor_uvsculpt(bContext *C, int x, int y, void *UNUSED(cu
 			alpha *= (size - PX_SIZE_FADE_MIN) / (PX_SIZE_FADE_MAX - PX_SIZE_FADE_MIN);
 		}
 
-		glPushMatrix();
+		unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+		immUniformColor3fvAlpha(brush->add_col, alpha);
 
-		glTranslatef((float)x, (float)y, 0.0f);
-
-		glColor4f(brush->add_col[0], brush->add_col[1], brush->add_col[2], alpha);
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
-		glutil_draw_lined_arc(0, (float)(M_PI * 2.0), size, 40);
+		imm_draw_lined_circle(pos, (float)x, (float)y, size, 40);
 		glDisable(GL_BLEND);
 		glDisable(GL_LINE_SMOOTH);
 
-		glPopMatrix();
+		immUnbindProgram();
 	}
 #undef PX_SIZE_FADE_MAX
 #undef PX_SIZE_FADE_MIN
