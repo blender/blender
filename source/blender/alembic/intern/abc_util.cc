@@ -232,11 +232,7 @@ void convert_matrix(const Imath::M44d &xform, Object *ob,
 
 	create_transform_matrix(r_mat);
 
-	if (ob->parent) {
-		mul_m4_m4m4(r_mat, ob->parent->obmat, r_mat);
-	}
-	/* TODO(kevin) */
-	else if (!has_alembic_parent) {
+	if (!has_alembic_parent) {
 		/* Only apply scaling to root objects, parenting will propagate it. */
 		float scale_mat[4][4];
 		scale_m4_fl(scale_mat, scale);
@@ -263,6 +259,9 @@ void create_transform_matrix(Object *obj, float transform_mat[4][4])
 	unit_m4(mat);
 
 	/* get local matrix. */
+	/* TODO Sybren: when we're exporting as "flat", i.e. non-hierarchial,
+	 * we should export the world matrix even when the object has a parent
+	 * Blender Object. */
 	if (obj->parent) {
 		invert_m4_m4(invmat, obj->parent->obmat);
 		mul_m4_m4m4(mat, invmat, obj->obmat);
