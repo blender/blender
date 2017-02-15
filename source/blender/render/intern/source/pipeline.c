@@ -2012,14 +2012,14 @@ bool RE_allow_render_generic_object(Object *ob)
 #define DEPSGRAPH_WORKAROUND_HACK
 
 #ifdef DEPSGRAPH_WORKAROUND_HACK
-static void tag_dependend_objects_for_render(Scene *scene, int renderlay)
+static void tag_dependend_objects_for_render(Scene *scene, int UNUSED(renderlay))
 {
 	Scene *sce_iter;
-	BaseLegacy *base;
+	Base *base;
 	for (SETLOOPER(scene, sce_iter, base)) {
 		Object *object = base->object;
 
-		if ((base->lay & renderlay) == 0) {
+		if ((base->flag & BASE_VISIBLED) == 0) {
 			continue;
 		}
 

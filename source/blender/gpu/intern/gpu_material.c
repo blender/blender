@@ -1016,7 +1016,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 
 static void material_lights(GPUShadeInput *shi, GPUShadeResult *shr)
 {
-	BaseLegacy *base;
+	Base *base;
 	Scene *sce_iter;
 	
 	for (SETLOOPER(shi->gpumat->scene, sce_iter, base)) {

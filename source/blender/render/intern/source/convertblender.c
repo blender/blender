@@ -4975,14 +4975,13 @@ static void add_group_render_dupli_obs(Render *re, Group *group, int nolamps, in
 	}
 }
 
-static void database_init_objects(Render *re, unsigned int renderlay, int nolamps, int onlyselected, Object *actob, int timeoffset)
+static void database_init_objects(Render *re, unsigned int UNUSED(renderlay), int nolamps, int onlyselected, Object *actob, int timeoffset)
 {
-	BaseLegacy *base;
+	Base *base;
 	Object *ob;
 	Group *group;
 	ObjectInstanceRen *obi;
 	Scene *sce_iter;
-	int lay, vectorlay;
 
 	/* for duplis we need the Object texture mapping to work as if
 	 * untransformed, set_dupli_tex_mat sets the matrix to allow that
@@ -5010,14 +5009,18 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	for (SETLOOPER(re->scene, sce_iter, base)) {
 		ob= base->object;
 
+#if 0
+		TODO_LAYER; /* investigate if this is an issue*/
 		/* in the prev/next pass for making speed vectors, avoid creating
 		 * objects that are not on a renderlayer with a vector pass, can
 		 * save a lot of time in complex scenes */
 		vectorlay= get_vector_renderlayers(re->scene);
-		lay= (timeoffset)? renderlay & vectorlay: renderlay;
+#endif
 
-		/* if the object has been restricted from rendering in the outliner, ignore it */
-		if (is_object_restricted(re, ob)) continue;
+		/* if the object is not visible, ignore it */
+		if ((base->flag & BASE_VISIBLED) == 0) {
+			continue;
+		}
 
 		/* OB_DONE means the object itself got duplicated, so was already converted */
 		if (ob->flag & OB_DONE) {
@@ -5030,7 +5033,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 				}
 			}
 		}
-		else if ((base->lay & lay) || (ob->type==OB_LAMP && (base->lay & re->lay)) ) {
+		else if (((base->flag & BASE_VISIBLED) != 0) || (ob->type==OB_LAMP)) {
 			if ((ob->transflag & OB_DUPLI) && (ob->type!=OB_MBALL)) {
 				DupliObject *dob;
 				ListBase *duplilist;

@@ -3541,7 +3541,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 	Main *bmain = baker->main;
 	Scene *scene = baker->scene;
 	Scene *sce_iter; /* SETLOOPER macro only */
-	BaseLegacy *base;
+	Base *base;
 	ListBase pidlist;
 	PTCacheID *pid = &baker->pid;
 	PointCache *cache = NULL;

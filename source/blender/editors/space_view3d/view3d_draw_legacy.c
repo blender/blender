@@ -1293,7 +1293,7 @@ void ED_view3d_draw_depth(Scene *scene, ARegion *ar, View3D *v3d, bool alphaover
 	if (scene->set) {
 		Scene *sce_iter;
 		for (SETLOOPER(scene->set, sce_iter, base)) {
-			if (v3d->lay & base->lay) {
+			if ((base->flag & BASE_VISIBLED) != 0) {
 				draw_object(scene, sl, ar, v3d, base, 0);
 				if (base->object->transflag & OB_DUPLI) {
 					draw_dupli_objects_color(scene, sl, ar, v3d, base, dflag_depth, TH_UNDEFINED);
@@ -1414,7 +1414,7 @@ static void gpu_update_lamps_shadows_world(Scene *scene, View3D *v3d)
 {
 	ListBase shadows;
 	Scene *sce_iter;
-	BaseLegacy *base;
+	Base *base;
 	World *world = scene->world;
 	SceneRenderLayer *srl = v3d->scenelock ? BLI_findlink(&scene->r.layers, scene->r.actlay) : NULL;
 	
@@ -1550,7 +1550,7 @@ static void view3d_draw_objects(
 {
 	SceneLayer *sl = C ? CTX_data_scene_layer(C) : BKE_scene_layer_active(scene);
 	RegionView3D *rv3d = ar->regiondata;
-	BaseLegacy *base;
+	Base *base;
 	const bool do_camera_frame = !draw_offscreen;
 	const bool draw_grids = !draw_offscreen && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0;
 	const bool draw_floor = (rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO);
@@ -1608,7 +1608,7 @@ static void view3d_draw_objects(
 		const short dflag = DRAW_CONSTCOLOR | DRAW_SCENESET;
 		Scene *sce_iter;
 		for (SETLOOPER(scene->set, sce_iter, base)) {
-			if (v3d->lay & base->lay) {
+			if ((base->flag & BASE_VISIBLED) != 0) {
 				UI_ThemeColorBlend(TH_WIRE, TH_BACK, 0.6f);
 				draw_object(scene, sl, ar, v3d, base, dflag);
 
@@ -2351,7 +2351,7 @@ static void view3d_stereo3d_setup_offscreen(Scene *scene, View3D *v3d, ARegion *
 static void update_lods(Scene *scene, float camera_pos[3])
 {
 	Scene *sce_iter;
-	BaseLegacy *base;
+	Base *base;
 
 	for (SETLOOPER(scene, sce_iter, base)) {
 		Object *ob = base->object;

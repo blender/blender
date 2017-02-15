@@ -512,9 +512,9 @@ static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned 
 
 // return all collision objects in scene
 // collision object will exclude self 
-Object **get_collisionobjects_ext(Scene *scene, Object *self, Group *group, int layer, unsigned int *numcollobj, unsigned int modifier_type, bool dupli)
+Object **get_collisionobjects_ext(Scene *scene, Object *self, Group *group, int UNUSED(layer), unsigned int *numcollobj, unsigned int modifier_type, bool dupli)
 {
-	BaseLegacy *base;
+	Base *base;
 	Object **objs;
 	GroupObject *go;
 	unsigned int numobj= 0, maxobj= 100;
@@ -532,9 +532,9 @@ Object **get_collisionobjects_ext(Scene *scene, Object *self, Group *group, int 
 		Scene *sce_iter;
 		/* add objects in same layer in scene */
 		for (SETLOOPER(scene, sce_iter, base)) {
-			if ( base->lay & layer )
+			if ((base->flag & BASE_VISIBLED) != 0) {
 				add_collision_object(&objs, &numobj, &maxobj, base->object, self, level, modifier_type);
-
+			}
 		}
 	}
 
@@ -596,11 +596,11 @@ ListBase *get_collider_cache(Scene *scene, Object *self, Group *group)
 	}
 	else {
 		Scene *sce_iter;
-		BaseLegacy *base;
+		Base *base;
 
 		/* add objects in same layer in scene */
 		for (SETLOOPER(scene, sce_iter, base)) {
-			if (!self || (base->lay & self->lay))
+			if (!self || ((base->flag & BASE_VISIBLED) != 0))
 				add_collider_cache_object(&objs, base->object, self, 0);
 
 		}

@@ -780,18 +780,18 @@ static void screen_render_cancel(bContext *C, wmOperator *op)
 	WM_jobs_kill_type(wm, scene, WM_JOB_TYPE_RENDER);
 }
 
-static void clean_viewport_memory(Main *bmain, Scene *scene, int renderlay)
+static void clean_viewport_memory(Main *bmain, Scene *scene)
 {
 	Object *object;
 	Scene *sce_iter;
-	BaseLegacy *base;
+	Base *base;
 
 	for (object = bmain->object.first; object; object = object->id.next) {
 		object->id.tag |= LIB_TAG_DOIT;
 	}
 
 	for (SETLOOPER(scene, sce_iter, base)) {
-		if ((base->lay & renderlay) == 0) {
+		if ((base->flag & BASE_VISIBLED) == 0) {
 			continue;
 		}
 		if (RE_allow_render_generic_object(base->object)) {
@@ -927,8 +927,6 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
 	/* Lock the user interface depending on render settings. */
 	if (scene->r.use_lock_interface) {
-		int renderlay = rj->lay_override ? rj->lay_override : scene->lay;
-
 		WM_set_locked_interface(CTX_wm_manager(C), true);
 
 		/* Set flag interface need to be unlocked.
@@ -942,7 +940,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 		rj->interface_locked = true;
 
 		/* Clean memory used by viewport? */
-		clean_viewport_memory(rj->main, scene, renderlay);
+		clean_viewport_memory(rj->main, scene);
 	}
 
 	/* setup job */
