@@ -333,7 +333,7 @@ drawgrid_cleanup:
 #undef GRID_MIN_PX_D
 #undef GRID_MIN_PX_F
 
-static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool write_depth)
+static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 {
 	/* draw only if there is something to draw */
 	if (v3d->gridflag & (V3D_SHOW_FLOOR | V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z)) {
@@ -357,9 +357,6 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool wr
 		glLineWidth(1.0f);
 
 		UI_GetThemeColor3ubv(TH_GRID, col_grid);
-
-		if (!write_depth)
-			glDepthMask(GL_FALSE);
 
 		if (show_floor) {
 			const unsigned vertex_ct = 2 * (gridlines * 4 + 2);
@@ -486,9 +483,6 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool wr
 			immEnd();
 			immUnbindProgram();
 		}
-
-		if (!write_depth)
-			glDepthMask(GL_TRUE);
 	}
 }
 
@@ -527,7 +521,7 @@ void DRW_draw_grid(void)
 	rv3d->gridview = ED_view3d_grid_scale(scene, v3d, &grid_unit);
 
 	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_FALSE); /* read & test depth, but don't alter it. TODO: separate UI depth buffer */
+	glDepthMask(GL_TRUE);
 
 	if (!draw_floor) {
 		ED_region_pixelspace(ar);
@@ -540,10 +534,8 @@ void DRW_draw_grid(void)
 		glLoadMatrixf((float *)rv3d->viewmat);
 	}
 	else {
-		drawfloor(scene, v3d, &grid_unit, false);
+		drawfloor(scene, v3d, &grid_unit);
 	}
-
-	glDisable(GL_DEPTH_TEST);
 }
 
 /* ************************* Background ************************** */
