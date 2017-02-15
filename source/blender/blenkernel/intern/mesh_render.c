@@ -231,6 +231,7 @@ typedef struct MeshBatchCache {
 	Batch *all_edges;
 	Batch *all_triangles;
 
+	Batch *triangles_with_normals; /* owns its vertex buffer */
 	Batch *fancy_edges; /* owns its vertex buffer (not shared) */
 	Batch *overlay_edges; /* owns its vertex buffer */
 
@@ -401,6 +402,10 @@ void BKE_mesh_batch_cache_free(Mesh *me)
 	if (cache->edges_in_order) ElementList_discard(cache->edges_in_order);
 	if (cache->triangles_in_order) ElementList_discard(cache->triangles_in_order);
 
+	if (cache->triangles_with_normals) {
+		Batch_discard_all(cache->triangles_with_normals);
+	}
+
 	if (cache->fancy_edges) {
 		Batch_discard_all(cache->fancy_edges);
 	}
@@ -435,6 +440,57 @@ Batch *BKE_mesh_batch_cache_get_all_triangles(Mesh *me)
 	}
 
 	return cache->all_triangles;
+}
+
+Batch *BKE_mesh_batch_cache_get_triangles_with_normals(Mesh *me)
+{
+	MeshBatchCache *cache = mesh_batch_cache_get(me);
+
+	if (cache->triangles_with_normals == NULL) {
+		static VertexFormat format = { 0 };
+		static unsigned pos_id, nor_id;
+		unsigned int vidx = 0;
+		if (format.attrib_ct == 0) {
+			/* initialize vertex format */
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			nor_id = add_attrib(&format, "nor", GL_SHORT, 3, NORMALIZE_INT_TO_FLOAT);
+		}
+
+		const MVert *verts = mesh_render_get_array_vert(me);
+		const int tessface_ct = mesh_render_get_num_faces(me);
+		MFace *tessfaces = mesh_render_get_array_face(me);
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, tessface_ct * 2 * 3); /* up to 2 triangles per tessface */
+
+		for (int i = 0; i < tessface_ct; ++i) {
+			const MFace *tess = tessfaces + i;
+
+			/* TODO get real face normals */
+
+			setAttrib(vbo, nor_id, vidx, &verts[tess->v1].no);
+			setAttrib(vbo, pos_id, vidx++, &verts[tess->v1].co);
+			setAttrib(vbo, nor_id, vidx, &verts[tess->v2].no);
+			setAttrib(vbo, pos_id, vidx++, &verts[tess->v2].co);
+			setAttrib(vbo, nor_id, vidx, &verts[tess->v3].no);
+			setAttrib(vbo, pos_id, vidx++, &verts[tess->v3].co);
+
+			if (tess->v4) {
+				setAttrib(vbo, nor_id, vidx, &verts[tess->v1].no);
+				setAttrib(vbo, pos_id, vidx++, &verts[tess->v1].co);
+				setAttrib(vbo, nor_id, vidx, &verts[tess->v3].no);
+				setAttrib(vbo, pos_id, vidx++, &verts[tess->v3].co);
+				setAttrib(vbo, nor_id, vidx, &verts[tess->v4].no);
+				setAttrib(vbo, pos_id, vidx++, &verts[tess->v4].co);
+			}
+		}
+
+		VertexBuffer_resize_data(vbo, vidx+1);
+
+		cache->triangles_with_normals = Batch_create(GL_TRIANGLES, vbo, NULL);
+	}
+
+	return cache->triangles_with_normals;
 }
 
 Batch *BKE_mesh_batch_cache_get_all_verts(Mesh *me)

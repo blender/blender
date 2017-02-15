@@ -668,7 +668,7 @@ Batch *DRW_cache_surface_get(Object *ob)
 	BLI_assert(ob->type == OB_MESH);
 
 	Mesh *me = ob->data;
-	surface = BKE_mesh_batch_cache_get_all_triangles(me);
+	surface = BKE_mesh_batch_cache_get_triangles_with_normals(me);
 
 	return surface;
 }

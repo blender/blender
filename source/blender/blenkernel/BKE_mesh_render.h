@@ -36,6 +36,7 @@ void BKE_mesh_batch_cache_dirty(struct Mesh *me);
 void BKE_mesh_batch_cache_free(struct Mesh *me);
 struct Batch *BKE_mesh_batch_cache_get_all_edges(struct Mesh *me);
 struct Batch *BKE_mesh_batch_cache_get_all_triangles(struct Mesh *me);
+struct Batch *BKE_mesh_batch_cache_get_triangles_with_normals(struct Mesh *me);
 struct Batch *BKE_mesh_batch_cache_get_all_verts(struct Mesh *me);
 struct Batch *BKE_mesh_batch_cache_get_fancy_edges(struct Mesh *me);
 struct Batch *BKE_mesh_batch_cache_get_overlay_edges(struct Mesh *me);

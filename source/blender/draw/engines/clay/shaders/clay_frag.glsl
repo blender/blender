@@ -62,13 +62,6 @@ vec3 get_view_space_from_depth(in vec2 uvcoords, in float depth)
 	}
 }
 
-/* TODO remove this when switching to geometric normals */
-vec3 calculate_view_space_normal(in vec3 viewposition)
-{
-	vec3 normal = cross(normalize(dFdx(viewposition)), dfdy_sign * normalize(dFdy(viewposition)));
-	return normalize(normal);
-}
-
 #ifdef USE_HSV
 void rgb_to_hsv(vec3 rgb, out vec3 outcol)
 {
@@ -167,14 +160,11 @@ void main() {
 	vec2 screenco = vec2(gl_FragCoord.xy) / screenres;
 	float depth = texture(depthtex, screenco).r;
 
-	vec3 position = get_view_space_from_depth(screenco, depth);
-	vec3 normal = calculate_view_space_normal(position);
-
 	/* Manual Depth test */
-	/* Doing this test earlier gives problem with dfdx calculations
-	 * TODO move this before when we have proper geometric normals */
 	if (gl_FragCoord.z > depth + 1e-5)
 		discard;
+
+	vec3 position = get_view_space_from_depth(screenco, depth);
 
 #ifdef USE_ROTATION
 	/* Rotate texture coordinates */
