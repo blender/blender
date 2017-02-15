@@ -1849,7 +1849,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 		outliner_add_orphaned_datablocks(mainvar, soops);
 	}
 	else if (soops->outlinevis == SO_COLLECTIONS) {
-		outliner_add_collections(soops, BLI_findlink(&scene->render_layers, scene->active_layer), scene);
+		outliner_add_collections(soops, BKE_scene_layer_context_active(scene), scene);
 	}
 	else {
 		ten = outliner_add_element(soops, &soops->tree, OBACT_NEW, NULL, 0, 0);

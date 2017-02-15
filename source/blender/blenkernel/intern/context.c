@@ -906,7 +906,7 @@ SceneLayer *CTX_data_scene_layer(const bContext *C)
 		return sl;
 	}
 	else {
-		return BKE_scene_layer_active(CTX_data_scene(C));
+		return BKE_scene_layer_context_active(CTX_data_scene(C));
 	}
 }
 

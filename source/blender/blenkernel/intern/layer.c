@@ -60,12 +60,24 @@ static void object_bases_Iterator_next(Iterator *iter, const int flag);
 
 /**
  * Returns the SceneLayer to be used for rendering
+ * Most of the time BKE_scene_layer_context_active should be used instead
  */
-SceneLayer *BKE_scene_layer_active(struct Scene *scene)
+SceneLayer *BKE_scene_layer_render_active(Scene *scene)
 {
 	SceneLayer *sl = BLI_findlink(&scene->render_layers, scene->active_layer);
 	BLI_assert(sl);
 	return sl;
+}
+
+/**
+ * Returns the SceneLayer to be used for drawing, outliner, and
+ * other context related areas.
+ */
+SceneLayer *BKE_scene_layer_context_active(Scene *scene)
+{
+	/* waiting for workspace to get the layer from context*/
+	TODO_LAYER_CONTEXT;
+	return BKE_scene_layer_render_active(scene);
 }
 
 /**
