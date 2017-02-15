@@ -160,10 +160,6 @@ void main() {
 	vec2 screenco = vec2(gl_FragCoord.xy) / screenres;
 	float depth = texture(depthtex, screenco).r;
 
-	/* Manual Depth test */
-	if (gl_FragCoord.z > depth + 1e-5)
-		discard;
-
 	vec3 position = get_view_space_from_depth(screenco, depth);
 
 #ifdef USE_ROTATION

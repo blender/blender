@@ -105,7 +105,7 @@ typedef struct CLAY_FramebufferList{
 	/* default */
 	struct GPUFrameBuffer *default_fb;
 	/* engine specific */
-	struct GPUFrameBuffer *downsample_depth;
+	struct GPUFrameBuffer *dupli_depth;
 } CLAY_FramebufferList;
 
 /* keep it under MAX_TEXTURES */
@@ -114,14 +114,14 @@ typedef struct CLAY_TextureList{
 	struct GPUTexture *color;
 	struct GPUTexture *depth;
 	/* engine specific */
-	struct GPUTexture *depth_low;
+	struct GPUTexture *depth_dup;
 } CLAY_TextureList;
 
 /* for clarity follow the same layout as CLAY_TextureList */
 enum {
 	SCENE_COLOR,
 	SCENE_DEPTH,
-	SCENE_DEPTH_LOW,
+	SCENE_DEPTH_DUP,
 };
 
 /* keep it under MAX_PASSES */
@@ -283,7 +283,7 @@ MaterialEngineSettings *CLAY_material_settings_create(void)
 	return (MaterialEngineSettings *)settings;
 }
 
-static void CLAY_engine_init(CLAY_StorageList *stl)
+static void CLAY_engine_init(CLAY_StorageList *stl, CLAY_TextureList *txl, CLAY_FramebufferList *fbl)
 {
 	/* Create Texture Array */
 	if (!data.matcap_array) {
@@ -373,6 +373,14 @@ static void CLAY_engine_init(CLAY_StorageList *stl)
 			ubo_mat_idxs[i] = i;
 		}
 	}
+
+	{
+		float *viewport_size = DRW_viewport_size_get();
+		DRWFboTexture tex = {&txl->depth_dup, DRW_BUF_DEPTH_24};
+		DRW_framebuffer_init(&fbl->dupli_depth,
+		                     (int)viewport_size[0], (int)viewport_size[1],
+		                     &tex, 1);
+	}
 }
 
 static void CLAY_ssao_setup(void)
@@ -434,7 +442,7 @@ static DRWShadingGroup *CLAY_shgroup_create(DRWPass *pass, int *material_id)
 	DRWShadingGroup *grp = DRW_shgroup_create(data.clay_sh, pass);
 
 	DRW_shgroup_uniform_vec2(grp, "screenres", DRW_viewport_size_get(), 1);
-	DRW_shgroup_uniform_buffer(grp, "depthtex", SCENE_DEPTH, depthloc);
+	DRW_shgroup_uniform_buffer(grp, "depthtex", SCENE_DEPTH_DUP, depthloc);
 	DRW_shgroup_uniform_texture(grp, "matcaps", data.matcap_array, matcaploc);
 	DRW_shgroup_uniform_mat4(grp, "WinMatrix", (float *)data.winmat);
 	DRW_shgroup_uniform_vec4(grp, "viewvecs", (float *)data.viewvecs, 3);
@@ -609,7 +617,7 @@ static void CLAY_create_cache(CLAY_PassList *passes, CLAY_StorageList *stl, cons
 
 	/* Clay Pass */
 	{
-		passes->clay_pass = DRW_pass_create("Clay Pass", DRW_STATE_WRITE_COLOR);
+		passes->clay_pass = DRW_pass_create("Clay Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
 		stl->storage->ubo_current_id = 0;
 	}
 
@@ -629,7 +637,7 @@ static void CLAY_create_cache(CLAY_PassList *passes, CLAY_StorageList *stl, cons
 		}
 
 		struct Batch *geom;
-		//bool do_outlines;
+		bool do_outlines;
 
 		switch (ob->type) {
 			case OB_MESH:
@@ -644,8 +652,8 @@ static void CLAY_create_cache(CLAY_PassList *passes, CLAY_StorageList *stl, cons
 
 				//DRW_shgroup_wire_overlay(passes->wire_overlay_pass, ob);
 
-				//do_outlines  = ((ob->base_flag & BASE_SELECTED) != 0);
-				//DRW_shgroup_wire_outline(passes->wire_outline_pass, ob, false, false, do_outlines);
+				do_outlines  = ((ob->base_flag & BASE_SELECTED) != 0);
+				DRW_shgroup_wire_outline(passes->wire_outline_pass, ob, false, false, do_outlines);
 
 				/* When encountering a new material :
 				 * - Create new Batch
@@ -683,7 +691,8 @@ static void CLAY_view_draw(RenderEngine *UNUSED(engine), const bContext *context
 
 	DRW_viewport_init(context, (void **)&buffers, (void **)&textures, (void **)&passes, (void **)&storage);
 
-	CLAY_engine_init(storage);
+	CLAY_engine_init(storage, textures, buffers);
+
 
 	/* TODO : tag to refresh by the deps graph */
 	/* ideally only refresh when objects are added/removed */
@@ -708,20 +717,18 @@ static void CLAY_view_draw(RenderEngine *UNUSED(engine), const bContext *context
 	/* Pass 1 : Depth pre-pass */
 	DRW_draw_pass(passes->depth_pass);
 
-	/* Pass 2 (Optionnal) : Separated Downsampled AO */
-	DRW_framebuffer_texture_detach(textures->depth);
-	/* TODO */
+	/* Pass 2 : Duplicate depth */
+	/* Unless we go for deferred shading we need this to avoid manual depth test and artifacts */
+	DRW_framebuffer_blit(buffers->default_fb, buffers->dupli_depth, true);
 
 	/* Pass 3 : Shading */
 	CLAY_ssao_setup();
 	DRW_draw_pass(passes->clay_pass);
 
 	/* Pass 4 : Overlays */
-	DRW_framebuffer_texture_attach(buffers->default_fb, textures->depth, 0);
-
 	DRW_draw_grid();
 	//DRW_draw_pass(passes->wire_overlay_pass);
-	//DRW_draw_pass(passes->wire_outline_pass);
+	DRW_draw_pass(passes->wire_outline_pass);
 	DRW_draw_pass(passes->non_meshes_pass);
 	DRW_draw_pass(passes->ob_center_pass);
 

@@ -1133,6 +1133,11 @@ void DRW_framebuffer_texture_detach(GPUTexture *tex)
 	GPU_framebuffer_texture_detach(tex);
 }
 
+void DRW_framebuffer_blit(struct GPUFrameBuffer *fb_read, struct GPUFrameBuffer *fb_write, bool depth)
+{
+	GPU_framebuffer_blit(fb_read, 0, fb_write, 0, depth);
+}
+
 /* ****************************************** Viewport ******************************************/
 
 float *DRW_viewport_size_get(void)
