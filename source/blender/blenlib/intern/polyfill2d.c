@@ -21,8 +21,15 @@
 /** \file blender/blenlib/intern/polyfill2d.c
  *  \ingroup bli
  *
- * A simple implementation of the ear cutting algorithm
- * to triangulate simple polygons without holes.
+ * An ear clipping algorithm to triangulate single boundary polygons.
+ *
+ * Details:
+ *
+ * - The algorithm guarantees all triangles are assigned (number of coords - 2)
+ *   and that triangles will have non-overlapping indices (even for degenerate geometry).
+ * - Self-intersections are considered degenerate (resulting triangles will overlap).
+ * - While multiple polygons aren't supported, holes can still be defined using *key-holes*
+ *   (where the polygon doubles back on its self with *exactly* matching coordinates).
  *
  * \note
  *
@@ -74,6 +81,12 @@ typedef signed char eSign;
 
 #ifdef USE_KDTREE
 /**
+ * Spatial optimization for point-in-triangle intersection checks.
+ * The simple version of this algorithm is ``O(n^2)`` complexity
+ * (every point needing to check the triangle defined by every other point),
+ * Using a binary-tree reduces the complexity to ``O(n log n)``
+ * plus some overhead of creating the tree.
+ *
  * This is a single purpose KDTree based on BLI_kdtree with some modifications
  * to better suit polyfill2d.
  *
