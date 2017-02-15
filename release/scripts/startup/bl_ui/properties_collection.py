@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Panel, UIList
+from bpy.types import Panel
 
 
 class CollectionButtonsPanel:
@@ -41,38 +41,6 @@ class COLLECTION_PT_context_collection(CollectionButtonsPanel, Panel):
             layout.label(text=name, icon='COLLAPSEMENU')
         else:
             layout.prop(collection, "name", text="", icon='COLLAPSEMENU')
-
-
-class COLLECTION_UL_objects(UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        # assert(isinstance(item, bpy.types.Object)
-        ob = item
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(ob.name, icon_value=icon)
-
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.label("", icon_value=icon)
-
-
-class COLLECTION_PT_objects(CollectionButtonsPanel, Panel):
-    bl_label = "Objects"
-
-    def draw(self, context):
-        layout = self.layout
-        scene = context.scene
-        collection = context.scene_collection
-
-        row = layout.row()
-        row.template_list("COLLECTION_UL_objects", "name", collection, "objects", collection.objects, "active_index", rows=2)
-
-        col = row.column(align=True)
-        col.operator("outliner.collections_objects_add", icon='ZOOMIN', text="")
-        col.operator("outliner.collections_objects_remove", icon='ZOOMOUT', text="")
-
-        row = layout.row(align=True)
-        row.operator("outliner.collections_objects_select", text="Select")
-        row.operator("outliner.collections_objects_deselect", text="Deselect")
 
 
 def template_engine_settings(col, settings, name, use_icon_view=False):
