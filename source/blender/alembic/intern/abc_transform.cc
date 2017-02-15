@@ -102,8 +102,8 @@ void AbcTransformWriter::do_write()
 		 * Blender Object. */
 		float scale_mat[4][4];
 		scale_m4_fl(scale_mat, m_settings.global_scale);
+		scale_mat[3][3] = m_settings.global_scale;  /* also scale translation */
 		mul_m4_m4m4(yup_mat, yup_mat, scale_mat);
-		mul_v3_fl(yup_mat[3], m_settings.global_scale);
 	}
 
 	m_matrix = convert_matrix(yup_mat);
