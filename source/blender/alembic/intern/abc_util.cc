@@ -163,7 +163,10 @@ static void create_rotation_matrix(
 }
 
 /* Recompute transform matrix of object in new coordinate system
- * (from Y-Up to Z-Up). */
+ * (from Y-Up to Z-Up).
+ *
+ * Note that r_mat is used as both input and output parameter.
+ */
 void create_transform_matrix(float r_mat[4][4])
 {
 	float rot_mat[3][3], rot[3][3], scale_mat[4][4], invmat[4][4], transform_mat[4][4];
