@@ -564,7 +564,7 @@ static void attr_create_pointiness(Scene *scene,
 	 *         original vertex.
 	 */
 	vector<int> sorted_vert_indeices(num_verts);
-	for (int vert_index = 0; vert_index < num_verts; ++vert_index) {
+	for(int vert_index = 0; vert_index < num_verts; ++vert_index) {
 		sorted_vert_indeices[vert_index] = vert_index;
 	}
 	VertexAverageComparator compare(mesh->verts);
@@ -573,9 +573,9 @@ static void attr_create_pointiness(Scene *scene,
 	 * index.
 	 */
 	vector<int> vert_orig_index(num_verts);
-	for (int sorted_vert_index = 0;
-	     sorted_vert_index < num_verts;
-	     ++sorted_vert_index)
+	for(int sorted_vert_index = 0;
+	    sorted_vert_index < num_verts;
+	    ++sorted_vert_index)
 	{
 		const int vert_index = sorted_vert_indeices[sorted_vert_index];
 		const float3 &vert_co = mesh->verts[vert_index];
