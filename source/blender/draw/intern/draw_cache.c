@@ -48,6 +48,7 @@ static struct DRWShapeCache{
 	Batch *drw_empty_sphere;
 	Batch *drw_empty_cone;
 	Batch *drw_arrows;
+	Batch *drw_axis_names;
 	Batch *drw_lamp;
 	Batch *drw_lamp_sunrays;
 } SHC = {NULL};
@@ -74,6 +75,8 @@ void DRW_shape_cache_free(void)
 		Batch_discard_all(SHC.drw_empty_cone);
 	if (SHC.drw_arrows)
 		Batch_discard_all(SHC.drw_arrows);
+	if (SHC.drw_axis_names)
+		Batch_discard_all(SHC.drw_axis_names);
 	if (SHC.drw_lamp)
 		Batch_discard_all(SHC.drw_lamp);
 	if (SHC.drw_lamp_sunrays)
@@ -418,6 +421,67 @@ Batch *DRW_cache_arrows_get(void)
 		SHC.drw_arrows = Batch_create(GL_LINES, vbo, NULL);
 	}
 	return SHC.drw_arrows;
+}
+
+Batch *DRW_cache_axis_names_get(void)
+{
+	if (!SHC.drw_axis_names) {
+		const float size = 0.1f;
+		float v1[3], v2[3];
+
+		/* Position Only 3D format */
+		static VertexFormat format = { 0 };
+		static unsigned pos_id;
+		if (format.attrib_ct == 0) {
+			/* Using 3rd component as axis indicator */
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		}
+
+		/* Line */
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, 14);
+
+		/* X */
+		copy_v3_fl3(v1, -size,  size, 0.0f);
+		copy_v3_fl3(v2,  size, -size, 0.0f);
+		setAttrib(vbo, pos_id, 0, v1);
+		setAttrib(vbo, pos_id, 1, v2);
+
+		copy_v3_fl3(v1,  size,  size, 0.0f);
+		copy_v3_fl3(v2, -size, -size, 0.0f);
+		setAttrib(vbo, pos_id, 2, v1);
+		setAttrib(vbo, pos_id, 3, v2);
+
+		/* Y */
+		copy_v3_fl3(v1, -size + 0.25f * size,  size, 1.0f);
+		copy_v3_fl3(v2,  0.0f,  0.0f, 1.0f);
+		setAttrib(vbo, pos_id, 4, v1);
+		setAttrib(vbo, pos_id, 5, v2);
+
+		copy_v3_fl3(v1,  size - 0.25f * size,  size, 1.0f);
+		copy_v3_fl3(v2, -size + 0.25f * size, -size, 1.0f);
+		setAttrib(vbo, pos_id, 6, v1);
+		setAttrib(vbo, pos_id, 7, v2);
+
+		/* Z */
+		copy_v3_fl3(v1, -size,  size, 2.0f);
+		copy_v3_fl3(v2,  size,  size, 2.0f);
+		setAttrib(vbo, pos_id, 8, v1);
+		setAttrib(vbo, pos_id, 9, v2);
+
+		copy_v3_fl3(v1,  size,  size, 2.0f);
+		copy_v3_fl3(v2, -size, -size, 2.0f);
+		setAttrib(vbo, pos_id, 10, v1);
+		setAttrib(vbo, pos_id, 11, v2);
+
+		copy_v3_fl3(v1, -size, -size, 2.0f);
+		copy_v3_fl3(v2,  size, -size, 2.0f);
+		setAttrib(vbo, pos_id, 12, v1);
+		setAttrib(vbo, pos_id, 13, v2);
+
+		SHC.drw_axis_names = Batch_create(GL_LINES, vbo, NULL);
+	}
+	return SHC.drw_axis_names;
 }
 
 /* Lamps */
