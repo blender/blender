@@ -84,6 +84,9 @@
 #  include "BLI_math_base.h" /* M_PI */
 #endif
 
+/* prototypes */
+static void outliner_make_hierarchy(ListBase *lb);
+
 /* ********************************************************* */
 /* Persistent Data */
 
@@ -1382,6 +1385,11 @@ static void outliner_add_collections_recursive(SpaceOops *soops, ListBase *tree,
 
 		ten->name = collection->scene_collection->name;
 		ten->directdata = collection;
+
+		for (LinkData *link = collection->object_bases.first; link; link = link->next) {
+			outliner_add_element(soops, &ten->subtree, ((Base *)link->data)->object, NULL, 0, 0);
+		}
+		outliner_make_hierarchy(&ten->subtree);
 
 		outliner_add_collections_recursive(soops, &ten->subtree, scene, &collection->layer_collections, ten);
 	}
