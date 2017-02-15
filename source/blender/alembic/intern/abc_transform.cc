@@ -132,6 +132,10 @@ bool AbcTransformWriter::hasAnimation(Object * /*ob*/) const
 AbcEmptyReader::AbcEmptyReader(const Alembic::Abc::IObject &object, ImportSettings &settings)
     : AbcObjectReader(object, settings)
 {
+	/* Empties have no data. It makes the import of Alembic files easier to
+	 * understand when we name the empty after its name in Alembic. */
+	m_object_name = object.getName();
+
 	Alembic::AbcGeom::IXform xform(object, Alembic::AbcGeom::kWrapExisting);
 	m_schema = xform.getSchema();
 
@@ -145,6 +149,7 @@ bool AbcEmptyReader::valid() const
 
 void AbcEmptyReader::readObjectData(Main *bmain, float /*time*/)
 {
-	m_object = BKE_object_add_only_object(bmain, OB_EMPTY, m_data_name.c_str());
+	const char *empty_name = m_iobject.getName().c_str();
+	m_object = BKE_object_add_only_object(bmain, OB_EMPTY, empty_name);
 	m_object->data = NULL;
 }
