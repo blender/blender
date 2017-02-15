@@ -194,14 +194,11 @@ void DRW_pass_setup_common(DRWPass **wire_overlay, DRWPass **wire_outline, DRWPa
 
 	if (non_meshes) {
 		/* Non Meshes Pass (Camera, empties, lamps ...) */
-		DRWShadingGroup *grp;
 		struct Batch *geom;
 
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
 		state |= DRW_STATE_WIRE;
 		*non_meshes = DRW_pass_create("Non Meshes Pass", state);
-
-		GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
 
 		/* Empties */
 		geom = DRW_cache_plain_axes_get();

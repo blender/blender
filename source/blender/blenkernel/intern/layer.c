@@ -808,7 +808,8 @@ static void layer_collection_create_mode_settings_object(ListBase *lb)
 	ces->type = COLLECTION_MODE_OBJECT;
 
 	/* properties */
-	BKE_collection_engine_property_add_int(ces, "foo", 2);
+	BKE_collection_engine_property_add_int(ces, "show_wire", false);
+	BKE_collection_engine_property_add_int(ces, "show_backface_culling", false);
 }
 
 static void layer_collection_create_mode_settings_edit(ListBase *lb)
@@ -820,7 +821,7 @@ static void layer_collection_create_mode_settings_edit(ListBase *lb)
 	ces->type = COLLECTION_MODE_EDIT;
 
 	/* properties */
-	BKE_collection_engine_property_add_float(ces, "bar", 0.5);
+	BKE_collection_engine_property_add_int(ces, "show_occlude_wire", false);
 }
 
 static void collection_create_mode_settings(ListBase *lb)

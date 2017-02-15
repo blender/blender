@@ -139,7 +139,8 @@ class COLLECTION_PT_object_mode_settings(CollectionButtonsPanel, Panel):
         settings = collection.get_mode_settings('OBJECT')
 
         col = layout.column()
-        template_engine_settings(col, settings, "foo")
+        template_engine_settings(col, settings, "show_wire")
+        template_engine_settings(col, settings, "show_backface_culling")
 
 
 class COLLECTION_PT_edit_mode_settings(CollectionButtonsPanel, Panel):
@@ -157,7 +158,7 @@ class COLLECTION_PT_edit_mode_settings(CollectionButtonsPanel, Panel):
         settings = collection.get_mode_settings('EDIT')
 
         col = layout.column()
-        template_engine_settings(col, settings, "bar")
+        template_engine_settings(col, settings, "show_occlude_wire")
 
 
 if __name__ == "__main__":  # only for live edit.

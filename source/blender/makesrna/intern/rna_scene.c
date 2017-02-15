@@ -2427,7 +2427,7 @@ static void rna_LayerEngineSettings_##_ENGINE_##_##_NAME_##_set(PointerRNA *ptr,
 	RNA_LAYER_ENGINE_GET_SET(int, Clay, COLLECTION_MODE_NONE, _NAME_)
 
 #define RNA_LAYER_ENGINE_CLAY_GET_SET_BOOL(_NAME_) \
-	RNA_LAYER_ENGINE_GET_SET(int, Clay, COLLECTION_MODE_NONE, _NAME_)
+	RNA_LAYER_ENGINE_GET_SET(bool, Clay, COLLECTION_MODE_NONE, _NAME_)
 
 /* mode engines */
 
@@ -2450,7 +2450,6 @@ static void rna_LayerEngineSettings_##_ENGINE_##_##_NAME_##_set(PointerRNA *ptr,
 	RNA_LAYER_ENGINE_GET_SET(bool, EditMode, COLLECTION_MODE_EDIT, _NAME_)
 
 /* clay engine */
-
 RNA_LAYER_ENGINE_CLAY_GET_SET_INT(type)
 RNA_LAYER_ENGINE_CLAY_GET_SET_INT(matcap_icon)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(matcap_rotation)
@@ -2461,12 +2460,13 @@ RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_factor_cavity)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_factor_edge)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_distance)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_attenuation)
-/* object engine */
 
-RNA_LAYER_MODE_OBJECT_GET_SET_INT(foo)
+/* object engine */
+RNA_LAYER_MODE_OBJECT_GET_SET_BOOL(show_wire)
+RNA_LAYER_MODE_OBJECT_GET_SET_BOOL(show_backface_culling)
 
 /* mesh engine */
-RNA_LAYER_MODE_EDIT_GET_SET_FLOAT(bar)
+RNA_LAYER_MODE_EDIT_GET_SET_BOOL(show_occlude_wire)
 
 #undef RNA_LAYER_ENGINE_GET_SET
 #undef RNA_LAYER_ENGINE_USE_GET_SET
@@ -5995,13 +5995,19 @@ static void rna_def_layer_collection_mode_settings_object(BlenderRNA *brna)
 
 	/* see RNA_LAYER_ENGINE_GET_SET macro */
 
-	prop = RNA_def_property(srna, "foo", PROP_INT, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Foo", "");
-	RNA_def_property_int_funcs(prop, "rna_LayerEngineSettings_ObjectMode_foo_get", "rna_LayerEngineSettings_ObjectMode_foo_set", NULL);
-	RNA_def_property_ui_text(prop, "Foo Object Setting", "Temporary settings");
+	prop = RNA_def_property(srna, "show_wire", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Wire", "Add the object's wireframe over solid drawing");
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_ObjectMode_show_wire_get", "rna_LayerEngineSettings_ObjectMode_show_wire_set");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_CollectionEngineSettings_update");
-	RNA_LAYER_MODE_OBJECT_USE(foo)
+	RNA_LAYER_MODE_OBJECT_USE(show_wire)
+
+	prop = RNA_def_property(srna, "show_backface_culling", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Backface Culling", "");
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_ObjectMode_show_backface_culling_get", "rna_LayerEngineSettings_ObjectMode_show_backface_culling_set");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_CollectionEngineSettings_update");
+	RNA_LAYER_MODE_OBJECT_USE(show_backface_culling)
 }
 
 static void rna_def_layer_collection_mode_settings_edit(BlenderRNA *brna)
@@ -6015,12 +6021,12 @@ static void rna_def_layer_collection_mode_settings_edit(BlenderRNA *brna)
 
 	/* see RNA_LAYER_ENGINE_GET_SET macro */
 
-	prop = RNA_def_property(srna, "bar", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Bar Object Setting", "Temporary settings");
-	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_EditMode_bar_get", "rna_LayerEngineSettings_EditMode_bar_set", NULL);
+	prop = RNA_def_property(srna, "show_occlude_wire", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Hidden Wire", "");
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_EditMode_show_occlude_wire_get", "rna_LayerEngineSettings_EditMode_show_occlude_wire_set");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_CollectionEngineSettings_update");
-	RNA_LAYER_MODE_EDIT_USE(bar)
+	RNA_LAYER_MODE_EDIT_USE(show_occlude_wire)
 }
 
 static void rna_def_layer_collection_mode_settings(BlenderRNA *brna)

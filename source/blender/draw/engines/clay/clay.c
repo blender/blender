@@ -558,7 +558,7 @@ static void override_setting(CollectionEngineSettings *ces, const char *name, vo
 		CollectionEnginePropertyInt *prop = (CollectionEnginePropertyInt *)cep;
 		*((int *)ret) = prop->value;
 	}
-	else {
+	else if (cep->type == COLLECTION_PROP_TYPE_FLOAT) {
 		CollectionEnginePropertyFloat *prop = (CollectionEnginePropertyFloat *)cep;
 		*((float *)ret) = prop->value;
 	}
@@ -635,6 +635,9 @@ static void CLAY_create_cache(CLAY_PassList *passes, CLAY_StorageList *stl, cons
 		if ((ob->base_flag & BASE_VISIBLED) == 0) {
 			continue;
 		}
+
+		// CollectionEngineSettings *ces_mode_ob = BKE_object_collection_engine_get(ob, COLLECTION_MODE_OBJECT, "");
+		// CollectionEngineSettings *ces_mode_ed = BKE_object_collection_engine_get(ob, COLLECTION_MODE_EDIT, "");
 
 		struct Batch *geom;
 		bool do_outlines;
