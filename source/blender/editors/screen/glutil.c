@@ -75,18 +75,6 @@ void fdrawbox(float x1, float y1, float x2, float y2)
 	glEnd();
 }
 
-void fdrawbox_filled(float x1, float y1, float x2, float y2)
-{
-	glBegin(GL_POLYGON);
-
-	glVertex2f(x1, y1);
-	glVertex2f(x1, y2);
-	glVertex2f(x2, y2);
-	glVertex2f(x2, y1);
-
-	glEnd();
-}
-
 void fdrawcheckerboard(float x1, float y1, float x2, float y2) /* DEPRECATED */
 {
 	unsigned char col1[4] = {40, 40, 40}, col2[4] = {50, 50, 50};

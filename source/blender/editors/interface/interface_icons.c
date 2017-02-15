@@ -1407,14 +1407,6 @@ int UI_idcode_icon_get(const int idcode)
 	}
 }
 
-/**
- * \param set_idx: A value from #rna_enum_color_sets_items.
- */
-int UI_colorset_icon_get(const int set_idx)
-{
-	return (set_idx < 1) ? ICON_NONE : VICO_COLORSET_01_VEC - 1 + set_idx;
-}
-
 static void icon_draw_at_size(
         float x, float y, int icon_id, float aspect, float alpha,
         enum eIconSizes size, const bool nocreate)

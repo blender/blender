@@ -212,9 +212,6 @@ enum {
 	UI_BUT_ALIGN_STITCH_TOP  = (1 << 18),
 	UI_BUT_ALIGN_STITCH_LEFT = (1 << 19),
 	UI_BUT_ALIGN_ALL         = (UI_BUT_ALIGN | UI_BUT_ALIGN_STITCH_TOP | UI_BUT_ALIGN_STITCH_LEFT),
-
-	/* Another hack, in some rare cases we don't want any text margin */
-	UI_BUT_TEXT_NO_MARGIN    = (1 << 20),
 };
 
 /* scale fixed button widths by this to account for DPI */

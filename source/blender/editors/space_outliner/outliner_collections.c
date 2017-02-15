@@ -15,11 +15,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
+ * Contributor(s): Blender Foundation, Dalai Felinto
+ *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/space_collections/collections_ops.c
- *  \ingroup spcollections
+/** \file blender/editors/space_outliner/outliner_collections.c
+ *  \ingroup spoutliner
  */
 
 #include "BKE_context.h"
@@ -34,7 +36,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "collections_intern.h" /* own include */
+#include "outliner_intern.h" /* own include */
 
 /* -------------------------------------------------------------------- */
 /* polls */
@@ -80,15 +82,15 @@ static int operator_collection_active(bContext *C)
 static int collection_link_invoke(bContext *UNUSED(C), wmOperator *op, const wmEvent *UNUSED(event))
 {
 	TODO_LAYER_OPERATORS;
-	BKE_report(op->reports, RPT_ERROR, "COLLECTIONS_OT_collection_link not implemented yet");
+	BKE_report(op->reports, RPT_ERROR, "OUTLINER_OT_collections_link not implemented yet");
 	return OPERATOR_CANCELLED;
 }
 
-static void COLLECTIONS_OT_collection_link(wmOperatorType *ot)
+void OUTLINER_OT_collections_link(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Collection";
-	ot->idname = "COLLECTIONS_OT_collection_link";
+	ot->idname = "OUTLINER_OT_collections_link";
 	ot->description = "Link a new collection to the active layer";
 
 	/* api callbacks */
@@ -101,15 +103,15 @@ static void COLLECTIONS_OT_collection_link(wmOperatorType *ot)
 static int collection_unlink_invoke(bContext *UNUSED(C), wmOperator *op, const wmEvent *UNUSED(event))
 {
 	TODO_LAYER_OPERATORS;
-	BKE_report(op->reports, RPT_ERROR, "COLLECTIONS_OT_collection_unlink not implemented yet");
+	BKE_report(op->reports, RPT_ERROR, "OUTLINER_OT_collections_unlink not implemented yet");
 	return OPERATOR_CANCELLED;
 }
 
-static void COLLECTIONS_OT_collection_unlink(wmOperatorType *ot)
+void OUTLINER_OT_collections_unlink(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Collection";
-	ot->idname = "COLLECTIONS_OT_collection_unlink";
+	ot->idname = "OUTLINER_OT_collections_unlink";
 	ot->description = "Link a new collection to the active layer";
 
 	/* api callbacks */
@@ -132,11 +134,11 @@ static int collection_new_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static void COLLECTIONS_OT_collection_new(wmOperatorType *ot)
+void OUTLINER_OT_collections_new(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "New Collection";
-	ot->idname = "COLLECTIONS_OT_collection_new";
+	ot->idname = "OUTLINER_OT_collections_new";
 	ot->description = "Add a new collection to the scene, and link it to the active layer";
 
 	/* api callbacks */
@@ -150,15 +152,15 @@ static int override_new_invoke(bContext *UNUSED(C), wmOperator *op, const wmEven
 {
 	TODO_LAYER_OPERATORS;
 	TODO_LAYER_OVERRIDE;
-	BKE_report(op->reports, RPT_ERROR, "COLLECTIONS_OT_override_new not implemented yet");
+	BKE_report(op->reports, RPT_ERROR, "OUTLINER_OT_collections_override_new not implemented yet");
 	return OPERATOR_CANCELLED;
 }
 
-static void COLLECTIONS_OT_override_new(wmOperatorType *ot)
+void OUTLINER_OT_collections_override_new(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "New Override";
-	ot->idname = "COLLECTIONS_OT_override_new";
+	ot->idname = "OUTLINER_OT_collections_override_new";
 	ot->description = "Add a new override to the active collection";
 
 	/* api callbacks */
@@ -172,15 +174,15 @@ static void COLLECTIONS_OT_override_new(wmOperatorType *ot)
 static int delete_invoke(bContext *UNUSED(C), wmOperator *op, const wmEvent *UNUSED(event))
 {
 	TODO_LAYER_OPERATORS;
-	BKE_report(op->reports, RPT_ERROR, "COLLECTIONS_OT_delete not implemented yet");
+	BKE_report(op->reports, RPT_ERROR, "OUTLINER_OT_collections_delete not implemented yet");
 	return OPERATOR_CANCELLED;
 }
 
-static void COLLECTIONS_OT_delete(wmOperatorType *ot)
+void OUTLINER_OT_collections_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Delete";
-	ot->idname = "COLLECTIONS_OT_delete";
+	ot->idname = "OUTLINER_OT_collections_delete";
 	ot->description = "Delete active  override or collection";
 
 	/* api callbacks */
@@ -200,11 +202,11 @@ static int select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static void COLLECTIONS_OT_select(wmOperatorType *ot)
+void OUTLINER_OT_collections_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select";
-	ot->idname = "COLLECTIONS_OT_select";
+	ot->idname = "OUTLINER_OT_collections_select";
 	ot->description = "Change active collection or override";
 
 	/* api callbacks */
@@ -224,11 +226,11 @@ static int rename_invoke(bContext *UNUSED(C), wmOperator *op, const wmEvent *UNU
 	return OPERATOR_CANCELLED;
 }
 
-static void COLLECTIONS_OT_rename(wmOperatorType *ot)
+void OUTLINER_OT_collections_rename(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Rename";
-	ot->idname = "COLLECTIONS_OT_rename";
+	ot->idname = "OUTLINER_OT_collections_rename";
 	ot->description = "Rename active collection or override";
 
 	/* api callbacks */
@@ -240,7 +242,6 @@ static void COLLECTIONS_OT_rename(wmOperatorType *ot)
 }
 
 /* -------------------------------------------------------------------- */
-/* property editor operators */
 
 static int stubs_invoke(bContext *UNUSED(C), wmOperator *op, const wmEvent *UNUSED(event))
 {
@@ -249,11 +250,11 @@ static int stubs_invoke(bContext *UNUSED(C), wmOperator *op, const wmEvent *UNUS
 	return OPERATOR_CANCELLED;
 }
 
-static void COLLECTIONS_OT_objects_add(wmOperatorType *ot)
+void OUTLINER_OT_collections_objects_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Objects";
-	ot->idname = "COLLECTIONS_OT_objects_add";
+	ot->idname = "OUTLINER_OT_collections_objects_add";
 	ot->description = "Add selected objects to collection";
 
 	/* api callbacks */
@@ -263,11 +264,11 @@ static void COLLECTIONS_OT_objects_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static void COLLECTIONS_OT_objects_remove(wmOperatorType *ot)
+void OUTLINER_OT_collections_objects_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Remove Object";
-	ot->idname = "COLLECTIONS_OT_objects_remove";
+	ot->idname = "OUTLINER_OT_collections_objects_remove";
 	ot->description = "Remove object from collection";
 
 	/* api callbacks */
@@ -277,11 +278,11 @@ static void COLLECTIONS_OT_objects_remove(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static void COLLECTIONS_OT_objects_select(wmOperatorType *ot)
+void OUTLINER_OT_collections_objects_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Objects";
-	ot->idname = "COLLECTIONS_OT_objects_select";
+	ot->idname = "OUTLINER_OT_collections_objects_select";
 	ot->description = "Selected collection objects";
 
 	/* api callbacks */
@@ -291,11 +292,11 @@ static void COLLECTIONS_OT_objects_select(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static void COLLECTIONS_OT_objects_deselect(wmOperatorType *ot)
+void OUTLINER_OT_collections_objects_deselect(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Deselect Objects";
-	ot->idname = "COLLECTIONS_OT_objects_deselect";
+	ot->idname = "OUTLINER_OT_collections_objects_deselect";
 	ot->description = "Deselected collection objects";
 
 	/* api callbacks */
@@ -305,36 +306,3 @@ static void COLLECTIONS_OT_objects_deselect(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ************************** registration - operator types **********************************/
-
-void collections_operatortypes(void)
-{
-	WM_operatortype_append(COLLECTIONS_OT_delete);
-	WM_operatortype_append(COLLECTIONS_OT_select);
-	WM_operatortype_append(COLLECTIONS_OT_rename);
-	WM_operatortype_append(COLLECTIONS_OT_collection_link);
-	WM_operatortype_append(COLLECTIONS_OT_collection_unlink);
-	WM_operatortype_append(COLLECTIONS_OT_collection_new);
-	WM_operatortype_append(COLLECTIONS_OT_override_new);
-
-	WM_operatortype_append(COLLECTIONS_OT_objects_add);
-	WM_operatortype_append(COLLECTIONS_OT_objects_remove);
-	WM_operatortype_append(COLLECTIONS_OT_objects_select);
-	WM_operatortype_append(COLLECTIONS_OT_objects_deselect);
-}
-
-void collections_keymap(wmKeyConfig *keyconf)
-{
-	wmKeyMap *keymap = WM_keymap_find(keyconf, "Collections Manager", SPACE_COLLECTIONS, 0);
-
-	/* selection */
-	WM_keymap_add_item(keymap, "COLLECTIONS_OT_select", LEFTMOUSE, KM_CLICK, 0, 0);
-
-	WM_keymap_add_item(keymap, "COLLECTIONS_OT_rename", LEFTMOUSE, KM_DBL_CLICK, 0, 0);
-	WM_keymap_add_item(keymap, "COLLECTIONS_OT_rename", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
-
-	WM_keymap_add_item(keymap, "COLLECTIONS_OT_collection_new", NKEY, KM_PRESS, KM_CTRL, 0);
-
-	WM_keymap_add_item(keymap, "COLLECTIONS_OT_delete", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "COLLECTIONS_OT_delete", DELKEY, KM_PRESS, 0, 0);
-}

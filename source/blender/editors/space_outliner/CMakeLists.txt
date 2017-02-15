@@ -37,6 +37,7 @@ set(INC_SYS
 )
 
 set(SRC
+	outliner_collections.c
 	outliner_draw.c
 	outliner_edit.c
 	outliner_ops.c

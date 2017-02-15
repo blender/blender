@@ -274,4 +274,19 @@ void OUTLINER_OT_modifier_operation(struct wmOperatorType *ot);
 void outliner_operatortypes(void);
 void outliner_keymap(struct wmKeyConfig *keyconf);
 
+/* outliner_collections.c */
+
+void OUTLINER_OT_collections_delete(struct wmOperatorType *ot);
+void OUTLINER_OT_collections_select(struct wmOperatorType *ot);
+void OUTLINER_OT_collections_rename(struct wmOperatorType *ot);
+void OUTLINER_OT_collections_link(struct wmOperatorType *ot);
+void OUTLINER_OT_collections_unlink(struct wmOperatorType *ot);
+void OUTLINER_OT_collections_new(struct wmOperatorType *ot);
+void OUTLINER_OT_collections_override_new(struct wmOperatorType *ot);
+void OUTLINER_OT_collections_objects_add(struct wmOperatorType *ot);
+void OUTLINER_OT_collections_objects_remove(struct wmOperatorType *ot);
+void OUTLINER_OT_collections_objects_select(struct wmOperatorType *ot);
+void OUTLINER_OT_collections_objects_deselect(struct wmOperatorType *ot);
+
+
 #endif /* __OUTLINER_INTERN_H__ */

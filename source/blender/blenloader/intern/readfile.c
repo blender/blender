@@ -103,8 +103,6 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_mask_types.h"
 
-#include "RNA_access.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_endian_switch.h"
@@ -6580,10 +6578,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 						
 						slogic->gpd = newlibadr_us(fd, sc->id.lib, slogic->gpd);
 					}
-					else if (sl->spacetype == SPACE_COLLECTIONS) {
-						SpaceCollections *slayer = (SpaceCollections *)sl;
-						slayer->flag |= SC_COLLECTION_DATA_REFRESH;
-					}
 				}
 			}
 			sc->id.tag &= ~LIB_TAG_NEED_LINK;
@@ -6968,10 +6962,6 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 					SpaceLogic *slogic = (SpaceLogic *)sl;
 					
 					slogic->gpd = restore_pointer_by_name(id_map, (ID *)slogic->gpd, USER_REAL);
-				}
-				else if (sl->spacetype == SPACE_COLLECTIONS) {
-					SpaceCollections *slayer = (SpaceCollections *)sl;
-					slayer->flag |= SC_COLLECTION_DATA_REFRESH;
 				}
 			}
 		}
@@ -7366,10 +7356,6 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 				sclip->scopes.track_search = NULL;
 				sclip->scopes.track_preview = NULL;
 				sclip->scopes.ok = 0;
-			}
-			else if (sl->spacetype == SPACE_COLLECTIONS) {
-				SpaceCollections *slayer = (SpaceCollections *)sl;
-				slayer->flag |= SC_COLLECTION_DATA_REFRESH;
 			}
 		}
 		

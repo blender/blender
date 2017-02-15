@@ -67,12 +67,12 @@ class COLLECTION_PT_objects(CollectionButtonsPanel, Panel):
         row.template_list("COLLECTION_UL_objects", "name", collection, "objects", collection.objects, "active_index", rows=2)
 
         col = row.column(align=True)
-        col.operator("collections.objects_add", icon='ZOOMIN', text="")
-        col.operator("collections.objects_remove", icon='ZOOMOUT', text="")
+        col.operator("outliner.collections_objects_add", icon='ZOOMIN', text="")
+        col.operator("outliner.collections_objects_remove", icon='ZOOMOUT', text="")
 
         row = layout.row(align=True)
-        row.operator("collections.objects_select", text="Select")
-        row.operator("collections.objects_deselect", text="Deselect")
+        row.operator("outliner.collections_objects_select", text="Select")
+        row.operator("outliner.collections_objects_deselect", text="Deselect")
 
 
 def template_engine_settings(col, settings, name, use_icon_view=False):
