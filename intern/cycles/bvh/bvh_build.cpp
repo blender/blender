@@ -467,6 +467,9 @@ BVHNode* BVHBuild::run()
 	}
 	spatial_free_index = 0;
 
+	need_prim_time = params.num_motion_curve_steps > 0 ||
+	                 params.num_motion_triangle_steps > 0;
+
 	/* init progress updates */
 	double build_start_time;
 	build_start_time = progress_start_time = time_dt();
@@ -477,7 +480,12 @@ BVHNode* BVHBuild::run()
 	prim_type.resize(references.size());
 	prim_index.resize(references.size());
 	prim_object.resize(references.size());
-	prim_time.resize(references.size());
+	if(need_prim_time) {
+		prim_time.resize(references.size());
+	}
+	else {
+		prim_time.resize(0);
+	}
 
 	/* build recursively */
 	BVHNode *rootnode;
@@ -852,7 +860,9 @@ BVHNode *BVHBuild::create_object_leaf_nodes(const BVHReference *ref, int start, 
 		prim_type[start] = ref->prim_type();
 		prim_index[start] = ref->prim_index();
 		prim_object[start] = ref->prim_object();
-		prim_time[start] = make_float2(ref->time_from(), ref->time_to());
+		if(need_prim_time) {
+			prim_time[start] = make_float2(ref->time_from(), ref->time_to());
+		}
 
 		uint visibility = objects[ref->prim_object()]->visibility;
 		BVHNode *leaf_node =  new LeafNode(ref->bounds(), visibility, start, start+1);
@@ -958,7 +968,9 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 	local_prim_type.resize(num_new_prims);
 	local_prim_index.resize(num_new_prims);
 	local_prim_object.resize(num_new_prims);
-	local_prim_time.resize(num_new_prims);
+	if(need_prim_time) {
+		local_prim_time.resize(num_new_prims);
+	}
 	for(int i = 0; i < PRIMITIVE_NUM_TOTAL; ++i) {
 		int num = (int)p_type[i].size();
 		if(num != 0) {
@@ -971,7 +983,9 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 				local_prim_type[index] = p_type[i][j];
 				local_prim_index[index] = p_index[i][j];
 				local_prim_object[index] = p_object[i][j];
-				local_prim_time[index] = p_time[i][j];
+				if(need_prim_time) {
+					local_prim_time[index] = p_time[i][j];
+				}
 				if(params.use_unaligned_nodes && !alignment_found) {
 					alignment_found =
 						unaligned_heuristic.compute_aligned_space(p_ref[i][j],
@@ -1038,13 +1052,17 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 				prim_type.reserve(reserve);
 				prim_index.reserve(reserve);
 				prim_object.reserve(reserve);
-				prim_time.reserve(reserve);
+				if(need_prim_time) {
+					prim_time.reserve(reserve);
+				}
 			}
 
 			prim_type.resize(range_end);
 			prim_index.resize(range_end);
 			prim_object.resize(range_end);
-			prim_time.resize(range_end);
+			if(need_prim_time) {
+				prim_time.resize(range_end);
+			}
 		}
 		spatial_spin_lock.unlock();
 
@@ -1053,7 +1071,9 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 			memcpy(&prim_type[start_index], &local_prim_type[0], new_leaf_data_size);
 			memcpy(&prim_index[start_index], &local_prim_index[0], new_leaf_data_size);
 			memcpy(&prim_object[start_index], &local_prim_object[0], new_leaf_data_size);
-			memcpy(&prim_time[start_index], &local_prim_time[0], sizeof(float2)*num_new_leaf_data);
+			if(need_prim_time) {
+				memcpy(&prim_time[start_index], &local_prim_time[0], sizeof(float2)*num_new_leaf_data);
+			}
 		}
 	}
 	else {
@@ -1066,7 +1086,9 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 			memcpy(&prim_type[start_index], &local_prim_type[0], new_leaf_data_size);
 			memcpy(&prim_index[start_index], &local_prim_index[0], new_leaf_data_size);
 			memcpy(&prim_object[start_index], &local_prim_object[0], new_leaf_data_size);
-			memcpy(&prim_time[start_index], &local_prim_time[0], sizeof(float2)*num_new_leaf_data);
+			if(need_prim_time) {
+				memcpy(&prim_time[start_index], &local_prim_time[0], sizeof(float2)*num_new_leaf_data);
+			}
 		}
 	}
 

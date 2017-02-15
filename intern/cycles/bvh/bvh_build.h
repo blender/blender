@@ -115,6 +115,8 @@ protected:
 	array<int>& prim_object;
 	array<float2>& prim_time;
 
+	bool need_prim_time;
+
 	/* Build parameters. */
 	BVHParams params;
 

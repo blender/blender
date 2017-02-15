@@ -231,7 +231,7 @@ ccl_device_forceinline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Inte
 {
 	const bool is_curve_primitive = (type & PRIMITIVE_CURVE);
 
-	if(!is_curve_primitive) {
+	if(!is_curve_primitive && kernel_data.bvh.use_bvh_steps) {
 		const float2 prim_time = kernel_tex_fetch(__prim_time, curveAddr);
 		if(time < prim_time.x || time > prim_time.y) {
 			return false;
@@ -700,7 +700,7 @@ ccl_device_forceinline bool bvh_curve_intersect(KernelGlobals *kg, Intersection 
 
 	const bool is_curve_primitive = (type & PRIMITIVE_CURVE);
 
-	if(!is_curve_primitive) {
+	if(!is_curve_primitive && kernel_data.bvh.use_bvh_steps) {
 		const float2 prim_time = kernel_tex_fetch(__prim_time, curveAddr);
 		if(time < prim_time.x || time > prim_time.y) {
 			return false;
