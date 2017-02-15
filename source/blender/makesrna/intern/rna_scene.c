@@ -5984,6 +5984,8 @@ static void rna_def_layer_collection_mode_settings_object(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "CollectionEngineSettings");
 	RNA_def_struct_ui_text(srna, "Collections Object Mode Settings", "Object Mode specific settings for this collection");
 
+	/* see RNA_LAYER_ENGINE_GET_SET macro */
+
 	prop = RNA_def_property(srna, "foo", PROP_INT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Foo", "");
 	RNA_def_property_int_funcs(prop, "rna_LayerEngineSettings_ObjectMode_foo_get", "rna_LayerEngineSettings_ObjectMode_foo_set", NULL);
@@ -6001,6 +6003,8 @@ static void rna_def_layer_collection_mode_settings_edit(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "CollectionModeSettingsEdit", NULL);
 	RNA_def_struct_sdna(srna, "CollectionEngineSettings");
 	RNA_def_struct_ui_text(srna, "Collections Edit Mode Settings", "Edit Mode specific settings for this collection");
+
+	/* see RNA_LAYER_ENGINE_GET_SET macro */
 
 	prop = RNA_def_property(srna, "bar", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Bar Object Setting", "Temporary settings");
