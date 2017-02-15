@@ -32,6 +32,7 @@ KERNEL_TEX(uint, texture_uint, __prim_visibility)
 KERNEL_TEX(uint, texture_uint, __prim_index)
 KERNEL_TEX(uint, texture_uint, __prim_object)
 KERNEL_TEX(uint, texture_uint, __object_node)
+KERNEL_TEX(float2, texture_float2, __prim_time)
 
 /* objects */
 KERNEL_TEX(float4, texture_float4, __objects)
@@ -177,7 +178,6 @@ KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_byte4_085)
 KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_byte4_086)
 KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_byte4_087)
 KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_byte4_088)
-KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_byte4_089)
 
 #  else
 /* bindless textures */

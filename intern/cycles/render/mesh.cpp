@@ -1873,6 +1873,10 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 		dscene->prim_object.reference((uint*)&pack.prim_object[0], pack.prim_object.size());
 		device->tex_alloc("__prim_object", dscene->prim_object);
 	}
+	if(pack.prim_time.size()) {
+		dscene->prim_time.reference((float2*)&pack.prim_time[0], pack.prim_time.size());
+		device->tex_alloc("__prim_time", dscene->prim_time);
+	}
 
 	dscene->data.bvh.root = pack.root_index;
 	dscene->data.bvh.use_qbvh = scene->params.use_qbvh;
@@ -2152,6 +2156,7 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	device->tex_free(dscene->prim_visibility);
 	device->tex_free(dscene->prim_index);
 	device->tex_free(dscene->prim_object);
+	device->tex_free(dscene->prim_time);
 	device->tex_free(dscene->tri_shader);
 	device->tex_free(dscene->tri_vnormal);
 	device->tex_free(dscene->tri_vindex);
@@ -2173,6 +2178,7 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	dscene->prim_visibility.clear();
 	dscene->prim_index.clear();
 	dscene->prim_object.clear();
+	dscene->prim_time.clear();
 	dscene->tri_shader.clear();
 	dscene->tri_vnormal.clear();
 	dscene->tri_vindex.clear();
