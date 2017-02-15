@@ -2582,6 +2582,9 @@ static void write_collection_engine_settings(WriteData *wd, ListBase *lb)
 			    case COLLECTION_PROP_TYPE_INT:
 				    writestruct(wd, DATA, CollectionEnginePropertyInt, 1, prop);
 				    break;
+			    case COLLECTION_PROP_TYPE_BOOL:
+				    writestruct(wd, DATA, CollectionEnginePropertyBool, 1, prop);
+				    break;
 			    default:
 				    ; /* error: don't know how to write this file */
 			}

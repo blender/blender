@@ -127,6 +127,12 @@ typedef struct CollectionEnginePropertyInt {
   int pad;
 } CollectionEnginePropertyInt;
 
+typedef struct CollectionEnginePropertyBool {
+  struct CollectionEngineProperty data;
+  int value;
+  int pad;
+} CollectionEnginePropertyBool;
+
 typedef struct CollectionEnginePropertyFloat {
   struct CollectionEngineProperty data;
   float value;
@@ -150,6 +156,7 @@ enum {
 typedef enum CollectionEnginePropertyType {
 	COLLECTION_PROP_TYPE_FLOAT = 0,
 	COLLECTION_PROP_TYPE_INT = 1,
+	COLLECTION_PROP_TYPE_BOOL = 2,
 } CollectionEnginePropertyType;
 
 /* CollectionEngineSettings->type */

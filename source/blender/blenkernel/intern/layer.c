@@ -892,6 +892,16 @@ void BKE_collection_engine_property_add_int(CollectionEngineSettings *ces, const
 	BLI_addtail(&ces->properties, prop);
 }
 
+void BKE_collection_engine_property_add_bool(CollectionEngineSettings *ces, const char *name, bool value)
+{
+	CollectionEnginePropertyBool *prop;
+	prop = MEM_callocN(sizeof(CollectionEnginePropertyBool), "collection engine settings bool");
+	prop->data.type = COLLECTION_PROP_TYPE_BOOL;
+	BLI_strncpy_utf8(prop->data.name, name, sizeof(prop->data.name));
+	prop->value = value;
+	BLI_addtail(&ces->properties, prop);
+}
+
 CollectionEngineProperty *BKE_collection_engine_property_get(CollectionEngineSettings *ces, const char *name)
 {
 	return BLI_findstring(&ces->properties, name, offsetof(CollectionEngineProperty, name));
@@ -911,6 +921,13 @@ float BKE_collection_engine_property_value_get_float(CollectionEngineSettings *c
 	return prop->value;
 }
 
+bool BKE_collection_engine_property_value_get_bool(CollectionEngineSettings *ces, const char *name)
+{
+	CollectionEnginePropertyBool *prop;
+	prop = (CollectionEnginePropertyBool *)BLI_findstring(&ces->properties, name, offsetof(CollectionEngineProperty, name));
+	return prop->value;
+}
+
 void BKE_collection_engine_property_value_set_int(CollectionEngineSettings *ces, const char *name, int value)
 {
 	CollectionEnginePropertyInt *prop;
@@ -923,6 +940,14 @@ void BKE_collection_engine_property_value_set_float(CollectionEngineSettings *ce
 {
 	CollectionEnginePropertyFloat *prop;
 	prop = (CollectionEnginePropertyFloat *)BLI_findstring(&ces->properties, name, offsetof(CollectionEngineProperty, name));
+	prop->value = value;
+	prop->data.flag |= COLLECTION_PROP_USE;
+}
+
+void BKE_collection_engine_property_value_set_bool(CollectionEngineSettings *ces, const char *name, bool value)
+{
+	CollectionEnginePropertyBool *prop;
+	prop = (CollectionEnginePropertyBool *)BLI_findstring(&ces->properties, name, offsetof(CollectionEngineProperty, name));
 	prop->value = value;
 	prop->data.flag |= COLLECTION_PROP_USE;
 }
@@ -994,6 +1019,9 @@ static void collection_engine_property_set (CollectionEngineProperty *prop_dst, 
 			    break;
 		    case COLLECTION_PROP_TYPE_INT:
 			    ((CollectionEnginePropertyInt *)prop_dst)->value = ((CollectionEnginePropertyInt *)prop_src)->value;
+			    break;
+		    case COLLECTION_PROP_TYPE_BOOL:
+			    ((CollectionEnginePropertyBool *)prop_dst)->value = ((CollectionEnginePropertyBool *)prop_src)->value;
 			    break;
 		    default:
 			    BLI_assert(false);
