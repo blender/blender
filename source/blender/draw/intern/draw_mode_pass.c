@@ -50,6 +50,9 @@ static DRWShadingGroup *single_arrow_line;
 static DRWShadingGroup *arrows;
 static DRWShadingGroup *axis_names;
 
+/* Speaker */
+static DRWShadingGroup *speaker;
+
 /* Lamps */
 static DRWShadingGroup *lamp_center;
 static DRWShadingGroup *lamp_center_group;
@@ -227,6 +230,10 @@ void DRW_pass_setup_common(DRWPass **wire_overlay, DRWPass **wire_outline, DRWPa
 
 		geom = DRW_cache_axis_names_get();
 		axis_names = shgroup_instance_axis_names(*non_meshes, geom);
+
+		/* Speaker */
+		geom = DRW_cache_speaker_get();
+		speaker = shgroup_instance(*non_meshes, geom);
 
 		/* Lamps */
 		lampCenterSize = (U.obcenter_dia + 1.5f) * U.pixelsize;
@@ -515,6 +522,15 @@ static void DRW_draw_empty(Object *ob)
 	}
 }
 
+static void DRW_draw_speaker(Object *ob)
+{
+	float *color;
+	static float one = 1.0f;
+	draw_object_wire_theme(ob, &color);
+
+	DRW_shgroup_dynamic_call_add(speaker, color, &one, ob->obmat);
+}
+
 void DRW_shgroup_non_meshes(DRWPass *UNUSED(non_meshes), Object *ob)
 {
 	switch (ob->type) {
@@ -524,6 +540,10 @@ void DRW_shgroup_non_meshes(DRWPass *UNUSED(non_meshes), Object *ob)
 		case OB_CAMERA:
 		case OB_EMPTY:
 			DRW_draw_empty(ob);
+			break;
+		case OB_SPEAKER:
+			DRW_draw_speaker(ob);
+			break;
 		default:
 			break;
 	}

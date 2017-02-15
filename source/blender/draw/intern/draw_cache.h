@@ -50,6 +50,9 @@ struct Batch *DRW_cache_axis_names_get(void);
 struct Batch *DRW_cache_lamp_get(void);
 struct Batch *DRW_cache_lamp_sunrays_get(void);
 
+/* Speaker */
+struct Batch *DRW_cache_speaker_get(void);
+
 /* Meshes */
 struct Batch *DRW_cache_wire_overlay_get(struct Object *ob);
 struct Batch *DRW_cache_wire_outline_get(struct Object *ob);

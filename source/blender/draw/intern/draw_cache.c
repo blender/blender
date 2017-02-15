@@ -51,6 +51,7 @@ static struct DRWShapeCache{
 	Batch *drw_axis_names;
 	Batch *drw_lamp;
 	Batch *drw_lamp_sunrays;
+	Batch *drw_speaker;
 } SHC = {NULL};
 
 void DRW_shape_cache_free(void)
@@ -81,6 +82,8 @@ void DRW_shape_cache_free(void)
 		Batch_discard_all(SHC.drw_lamp);
 	if (SHC.drw_lamp_sunrays)
 		Batch_discard_all(SHC.drw_lamp_sunrays);
+	if (SHC.drw_speaker)
+		Batch_discard_all(SHC.drw_speaker);
 }
 
 /* Quads */
@@ -546,6 +549,64 @@ Batch *DRW_cache_lamp_sunrays_get(void)
 		SHC.drw_lamp_sunrays = Batch_create(GL_LINES, vbo, NULL);
 	}
 	return SHC.drw_lamp_sunrays;
+}
+
+/* Speaker */
+Batch *DRW_cache_speaker_get(void)
+{
+	if (!SHC.drw_speaker) {
+		float v[3];
+		const int segments = 16;
+		int vidx = 0;
+
+		/* Position Only 3D format */
+		static VertexFormat format = { 0 };
+		static unsigned pos_id;
+		if (format.attrib_ct == 0) {
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+		}
+
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, 3 * segments * 2 + 4 * 4);
+
+		for (int j = 0; j < 3; j++) {
+			float z = 0.25f * j - 0.125f;
+			float r = (j == 0 ? 0.5f : 0.25f);
+
+			copy_v3_fl3(v, r, 0.0f, z);
+			setAttrib(vbo, pos_id, vidx++, v);
+			for (int i = 1; i < segments; i++) {
+				float x = cosf(2.f * (float)M_PI * i / segments) * r;
+				float y = sinf(2.f * (float)M_PI * i / segments) * r;
+				copy_v3_fl3(v, x, y, z);
+				setAttrib(vbo, pos_id, vidx++, v);
+				setAttrib(vbo, pos_id, vidx++, v);
+			}
+			copy_v3_fl3(v, r, 0.0f, z);
+			setAttrib(vbo, pos_id, vidx++, v);
+		}
+
+		for (int j = 0; j < 4; j++) {
+			float x = (((j + 1) % 2) * (j - 1)) * 0.5f;
+			float y = ((j % 2) * (j - 2)) * 0.5f;
+			for (int i = 0; i < 3; i++) {
+				if (i == 1) {
+					x *= 0.5f;
+					y *= 0.5f;
+				}
+
+				float z = 0.25f * i - 0.125f;
+				copy_v3_fl3(v, x, y, z);
+				setAttrib(vbo, pos_id, vidx++, v);
+				if (i == 1) {
+					setAttrib(vbo, pos_id, vidx++, v);
+				}
+			}
+		}
+
+		SHC.drw_speaker = Batch_create(GL_LINES, vbo, NULL);
+	}
+	return SHC.drw_speaker;
 }
 
 
