@@ -587,9 +587,11 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		imm_cpack(0x4040FF);
 		imm_draw_line_box(pos, x3, y3, x4, y4);
 	}
+	immUnbindProgram();
 
 	/* safety border */
 	if (ca) {
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		if (ca->dtx & CAM_DTX_CENTER) {
 			float x3, y3;
 
@@ -665,6 +667,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 				        scene->safe_areas.action_center);
 			}
 		}
+		immUnbindProgram();
 
 		if (ca->flag & CAM_SHOWSENSOR) {
 			/* determine sensor fit, and get sensor x/y, for auto fit we
@@ -714,7 +717,6 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		        v3d->camera->id.name + 2, sizeof(v3d->camera->id.name) - 2);
 	}
 
-	immUnbindProgram();
 }
 
 static void drawrenderborder(ARegion *ar, View3D *v3d)
