@@ -66,7 +66,6 @@
 #include "paint_intern.h"
 #include "uvedit_intern.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "UI_view2d.h"
