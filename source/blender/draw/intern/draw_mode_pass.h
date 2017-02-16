@@ -30,7 +30,8 @@ struct DRWPass;
 struct Batch;
 struct Object;
 
-void DRW_pass_setup_common(struct DRWPass **wire_overlay, struct DRWPass **wire_outline, struct DRWPass **non_meshes, struct DRWPass **ob_center);
+void DRW_pass_setup_common(struct DRWPass **wire_overlay, struct DRWPass **wire_outline, struct DRWPass **wire_outline_pass_hidden_wire,
+                           struct DRWPass **non_meshes, struct DRWPass **ob_center);
 
 void DRW_shgroup_wire_overlay(struct DRWPass *wire_overlay, struct Object *ob);
 void DRW_shgroup_wire_outline(

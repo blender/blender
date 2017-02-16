@@ -161,7 +161,8 @@ static DRWShadingGroup *shgroup_instance(DRWPass *pass, struct Batch *geom)
 
 /* This Function setup the passes needed for the mode rendering.
  * The passes are populated by the rendering engine using the DRW_shgroup_* functions. */
-void DRW_pass_setup_common(DRWPass **wire_overlay, DRWPass **wire_outline, DRWPass **non_meshes, DRWPass **ob_center)
+void DRW_pass_setup_common(DRWPass **wire_overlay, DRWPass **wire_outline, DRWPass **wire_outline_pass_hidden_wire,
+                           DRWPass **non_meshes, DRWPass **ob_center)
 {
 	UI_GetThemeColor4fv(TH_WIRE, colorWire);
 	UI_GetThemeColor4fv(TH_WIRE_EDIT, colorWireEdit);
@@ -190,6 +191,14 @@ void DRW_pass_setup_common(DRWPass **wire_overlay, DRWPass **wire_outline, DRWPa
 		/* Outlines and Fancy Wires use the same VBO */
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
 		*wire_outline = DRW_pass_create("Wire + Outlines Pass", state);
+	}
+
+	if (wire_outline_pass_hidden_wire) {
+		/* This pass can draw mesh outlines and/or fancy wireframe */
+		/* Fancy wireframes are not meant to be occluded (without Z offset) */
+		/* Outlines and Fancy Wires use the same VBO */
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
+		*wire_outline_pass_hidden_wire = DRW_pass_create("Wire + Outlines Pass", state);
 	}
 
 	if (non_meshes) {

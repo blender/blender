@@ -132,9 +132,11 @@ typedef struct CLAY_PassList{
 	/* engine specific */
 	struct DRWPass *depth_pass;
 	struct DRWPass *depth_pass_cull;
+	struct DRWPass *depth_pass_hidden_wire;
 	struct DRWPass *clay_pass;
 	struct DRWPass *wire_overlay_pass;
 	struct DRWPass *wire_outline_pass;
+	struct DRWPass *wire_outline_pass_hidden_wire;
 } CLAY_PassList;
 
 //#define GTAO
@@ -609,6 +611,7 @@ static void CLAY_create_cache(CLAY_PassList *passes, CLAY_StorageList *stl, cons
 	DRWShadingGroup *clay_shgrp;
 	DRWShadingGroup *depth_shgrp;
 	DRWShadingGroup *depth_shgrp_cull;
+	DRWShadingGroup *depth_shgrp_hidden_wire;
 
 	/* Depth Pass */
 	{
@@ -616,6 +619,8 @@ static void CLAY_create_cache(CLAY_PassList *passes, CLAY_StorageList *stl, cons
 		depth_shgrp_cull = DRW_shgroup_create(data.depth_sh, passes->depth_pass_cull);
 		passes->depth_pass = DRW_pass_create("Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
 		depth_shgrp = DRW_shgroup_create(data.depth_sh, passes->depth_pass);
+		passes->depth_pass_hidden_wire = DRW_pass_create("Depth Pass Hidden Wire", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK);
+		depth_shgrp_hidden_wire = DRW_shgroup_create(data.depth_sh, passes->depth_pass_hidden_wire);
 	}
 
 	/* Clay Pass */
@@ -629,6 +634,7 @@ static void CLAY_create_cache(CLAY_PassList *passes, CLAY_StorageList *stl, cons
 	{
 		DRW_pass_setup_common(&passes->wire_overlay_pass,
 			                  &passes->wire_outline_pass,
+			                  &passes->wire_outline_pass_hidden_wire,
 			                  &passes->non_meshes_pass,
 			                  &passes->ob_center_pass);
 	}
@@ -641,11 +647,12 @@ static void CLAY_create_cache(CLAY_PassList *passes, CLAY_StorageList *stl, cons
 		}
 
 		CollectionEngineSettings *ces_mode_ob = BKE_object_collection_engine_get(ob, COLLECTION_MODE_OBJECT, "");
-		//CollectionEngineSettings *ces_mode_ed = BKE_object_collection_engine_get(ob, COLLECTION_MODE_EDIT, "");
+		CollectionEngineSettings *ces_mode_ed = BKE_object_collection_engine_get(ob, COLLECTION_MODE_EDIT, "");
 
 		struct Batch *geom;
 		bool do_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_wire");
 		bool do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");
+		bool do_occlude_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ed, "show_occlude_wire");
 		bool do_outlines = ((ob->base_flag & BASE_SELECTED) != 0) || do_wire;
 
 		switch (ob->type) {
@@ -653,16 +660,26 @@ static void CLAY_create_cache(CLAY_PassList *passes, CLAY_StorageList *stl, cons
 				geom = DRW_cache_surface_get(ob);
 
 				/* Depth Prepass */
-				DRW_shgroup_call_add((do_cull) ? depth_shgrp_cull : depth_shgrp, geom, ob->obmat);
+				if (do_occlude_wire)
+					DRW_shgroup_call_add(depth_shgrp_hidden_wire, geom, ob->obmat);
+				else
+					DRW_shgroup_call_add((do_cull) ? depth_shgrp_cull : depth_shgrp, geom, ob->obmat);
 
 				/* Shading */
-				clay_shgrp = CLAY_object_shgrp_get(ob, stl, passes);
-				DRW_shgroup_call_add(clay_shgrp, geom, ob->obmat);
+				if (!do_occlude_wire) {
+					clay_shgrp = CLAY_object_shgrp_get(ob, stl, passes);
+					DRW_shgroup_call_add(clay_shgrp, geom, ob->obmat);
+				}
 
 				//DRW_shgroup_wire_overlay(passes->wire_overlay_pass, ob);
 
 				/* Wires / Outlines */
-				DRW_shgroup_wire_outline(passes->wire_outline_pass, ob, do_wire, false, do_outlines);
+				if (do_occlude_wire) {
+					DRW_shgroup_wire_outline(passes->wire_outline_pass_hidden_wire, ob, true, false, true);
+				}
+				else {
+					DRW_shgroup_wire_outline(passes->wire_outline_pass, ob, do_wire, false, do_outlines);
+				}
 
 				break;
 			case OB_LAMP:
@@ -732,6 +749,11 @@ static void CLAY_view_draw(RenderEngine *UNUSED(engine), const bContext *context
 	//DRW_draw_pass(passes->wire_overlay_pass);
 	DRW_draw_pass(passes->wire_outline_pass);
 	DRW_draw_pass(passes->non_meshes_pass);
+
+	/* Hidden Wires */
+	DRW_draw_pass(passes->depth_pass_hidden_wire);
+	DRW_draw_pass(passes->wire_outline_pass_hidden_wire);
+
 	DRW_draw_pass(passes->ob_center_pass);
 
 	DRW_draw_manipulator();
