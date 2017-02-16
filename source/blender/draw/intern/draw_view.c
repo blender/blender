@@ -521,6 +521,7 @@ void DRW_draw_grid(void)
 	rv3d->gridview = ED_view3d_grid_scale(scene, v3d, &grid_unit);
 
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 	glDepthMask(GL_TRUE);
 
 	if (!draw_floor) {
