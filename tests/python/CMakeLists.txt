@@ -95,6 +95,11 @@ add_test(bevel ${TEST_BLENDER_EXE}
 	--python-text run_tests
 )
 
+add_test(split_faces ${TEST_BLENDER_EXE}
+    ${TEST_SRC_DIR}/modeling/split_faces_test.blend
+    --python-text run_tests
+)
+
 # ------------------------------------------------------------------------------
 # IO TESTS
 
