@@ -75,18 +75,18 @@ ccl_device_inline void kernel_write_data_passes(KernelGlobals *kg, ccl_global fl
 		return;
 	
 	if(!(path_flag & PATH_RAY_SINGLE_PASS_DONE)) {
-		if(!(ccl_fetch(sd, flag) & SD_TRANSPARENT) ||
+		if(!(sd->flag & SD_TRANSPARENT) ||
 		   kernel_data.film.pass_alpha_threshold == 0.0f ||
 		   average(shader_bsdf_alpha(kg, sd)) >= kernel_data.film.pass_alpha_threshold)
 		{
 
 			if(sample == 0) {
 				if(flag & PASS_DEPTH) {
-					float depth = camera_distance(kg, ccl_fetch(sd, P));
+					float depth = camera_distance(kg, sd->P);
 					kernel_write_pass_float(buffer + kernel_data.film.pass_depth, sample, depth);
 				}
 				if(flag & PASS_OBJECT_ID) {
-					float id = object_pass_id(kg, ccl_fetch(sd, object));
+					float id = object_pass_id(kg, sd->object);
 					kernel_write_pass_float(buffer + kernel_data.film.pass_object_id, sample, id);
 				}
 				if(flag & PASS_MATERIAL_ID) {
@@ -96,7 +96,7 @@ ccl_device_inline void kernel_write_data_passes(KernelGlobals *kg, ccl_global fl
 			}
 
 			if(flag & PASS_NORMAL) {
-				float3 normal = ccl_fetch(sd, N);
+				float3 normal = sd->N;
 				kernel_write_pass_float3(buffer + kernel_data.film.pass_normal, sample, normal);
 			}
 			if(flag & PASS_UV) {
@@ -127,7 +127,7 @@ ccl_device_inline void kernel_write_data_passes(KernelGlobals *kg, ccl_global fl
 		float mist_start = kernel_data.film.mist_start;
 		float mist_inv_depth = kernel_data.film.mist_inv_depth;
 
-		float depth = camera_distance(kg, ccl_fetch(sd, P));
+		float depth = camera_distance(kg, sd->P);
 		float mist = saturate((depth - mist_start)*mist_inv_depth);
 
 		/* falloff */

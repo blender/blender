@@ -85,7 +85,7 @@ ccl_device void kernel_lamp_emission(KernelGlobals *kg)
 			/* intersect with lamp */
 			float3 emission;
 
-			if(indirect_lamp_emission(kg, kernel_split_state.sd_DL_shadow, state, &light_ray, &emission)) {
+			if(indirect_lamp_emission(kg, &kernel_split_state.sd_DL_shadow[ray_index], state, &light_ray, &emission)) {
 				path_radiance_accum_emission(L, throughput, emission, state->bounce);
 			}
 		}

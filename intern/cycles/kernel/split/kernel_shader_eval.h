@@ -82,11 +82,11 @@ ccl_device void kernel_shader_eval(KernelGlobals *kg)
 		Ray ray = kernel_split_state.ray[ray_index];
 
 		shader_setup_from_ray(kg,
-		                      kernel_split_state.sd,
+		                      &kernel_split_state.sd[ray_index],
 		                      isect,
 		                      &ray);
 		float rbsdf = path_state_rng_1D_for_decision(kg, rng, state, PRNG_BSDF);
-		shader_eval_surface(kg, kernel_split_state.sd, rng, state, rbsdf, state->flag, SHADER_CONTEXT_MAIN);
+		shader_eval_surface(kg, &kernel_split_state.sd[ray_index], rng, state, rbsdf, state->flag, SHADER_CONTEXT_MAIN);
 	}
 }
 

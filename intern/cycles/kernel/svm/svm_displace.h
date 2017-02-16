@@ -25,10 +25,10 @@ ccl_device void svm_node_set_bump(KernelGlobals *kg, ShaderData *sd, float *stac
 	uint normal_offset, distance_offset, invert, use_object_space;
 	decode_node_uchar4(node.y, &normal_offset, &distance_offset, &invert, &use_object_space);
 
-	float3 normal_in = stack_valid(normal_offset)? stack_load_float3(stack, normal_offset): ccl_fetch(sd, N);
+	float3 normal_in = stack_valid(normal_offset)? stack_load_float3(stack, normal_offset): sd->N;
 
-	float3 dPdx = ccl_fetch(sd, dP).dx;
-	float3 dPdy = ccl_fetch(sd, dP).dy;
+	float3 dPdx = sd->dP.dx;
+	float3 dPdy = sd->dP.dy;
 
 	if(use_object_space) {
 		object_inverse_normal_transform(kg, sd, &normal_in);
@@ -80,14 +80,14 @@ ccl_device void svm_node_set_displacement(KernelGlobals *kg, ShaderData *sd, flo
 {
 	float d = stack_load_float(stack, fac_offset);
 
-	float3 dP = ccl_fetch(sd, N);
+	float3 dP = sd->N;
 	object_inverse_normal_transform(kg, sd, &dP);
 
 	dP *= d*0.1f; /* todo: get rid of this factor */
 
 	object_dir_transform(kg, sd, &dP);
 
-	ccl_fetch(sd, P) += dP;
+	sd->P += dP;
 }
 
 CCL_NAMESPACE_END

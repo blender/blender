@@ -800,99 +800,77 @@ enum ShaderDataObjectFlag {
 	                   SD_OBJECT_INTERSECTS_VOLUME)
 };
 
-#ifdef __SPLIT_KERNEL__
-#  define SD_THREAD (ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0))
-#  if !defined(__SPLIT_KERNEL_SOA__)
-     /* ShaderData is stored as an Array-of-Structures */
-#    define ccl_soa_member(type, name) type soa_##name
-#    define ccl_fetch(s, t) (s[SD_THREAD].soa_##t)
-#    define ccl_fetch_array(s, t, index) (&s[SD_THREAD].soa_##t[index])
-#  else
-     /* ShaderData is stored as an Structure-of-Arrays */
-#    define SD_GLOBAL_SIZE (ccl_global_size(0) * ccl_global_size(1))
-#    define SD_FIELD_SIZE(t) sizeof(((struct ShaderData*)0)->t)
-#    define SD_OFFSETOF(t) ((char*)(&((struct ShaderData*)0)->t) - (char*)0)
-#    define ccl_soa_member(type, name) type soa_##name
-#    define ccl_fetch(s, t) (((ShaderData*)((ccl_addr_space char*)s + SD_GLOBAL_SIZE * SD_OFFSETOF(soa_##t) +  SD_FIELD_SIZE(soa_##t) * SD_THREAD - SD_OFFSETOF(soa_##t)))->soa_##t)
-#    define ccl_fetch_array(s, t, index) (&ccl_fetch(s, t)[index])
-#  endif
-#else
-#  define ccl_soa_member(type, name) type name
-#  define ccl_fetch(s, t) (s->t)
-#  define ccl_fetch_array(s, t, index) (&s->t[index])
-#endif
-
 typedef ccl_addr_space struct ShaderData {
 	/* position */
-	ccl_soa_member(float3, P);
+	float3 P;
 	/* smooth normal for shading */
-	ccl_soa_member(float3, N);
+	float3 N;
 	/* true geometric normal */
-	ccl_soa_member(float3, Ng);
+	float3 Ng;
 	/* view/incoming direction */
-	ccl_soa_member(float3, I);
+	float3 I;
 	/* shader id */
-	ccl_soa_member(int, shader);
+	int shader;
 	/* booleans describing shader, see ShaderDataFlag */
-	ccl_soa_member(int, flag);
+	int flag;
 	/* booleans describing object of the shader, see ShaderDataObjectFlag */
-	ccl_soa_member(int, object_flag);
+	int object_flag;
 
 	/* primitive id if there is one, ~0 otherwise */
-	ccl_soa_member(int, prim);
+	int prim;
 
 	/* combined type and curve segment for hair */
-	ccl_soa_member(int, type);
+	int type;
 
 	/* parametric coordinates
 	 * - barycentric weights for triangles */
-	ccl_soa_member(float, u);
-	ccl_soa_member(float, v);
+	float u;
+	float v;
 	/* object id if there is one, ~0 otherwise */
-	ccl_soa_member(int, object);
+	int object;
 
 	/* motion blur sample time */
-	ccl_soa_member(float, time);
+	float time;
 
 	/* length of the ray being shaded */
-	ccl_soa_member(float, ray_length);
+	float ray_length;
 
 #ifdef __RAY_DIFFERENTIALS__
 	/* differential of P. these are orthogonal to Ng, not N */
-	ccl_soa_member(differential3, dP);
+	differential3 dP;
 	/* differential of I */
-	ccl_soa_member(differential3, dI);
+	differential3 dI;
 	/* differential of u, v */
-	ccl_soa_member(differential, du);
-	ccl_soa_member(differential, dv);
+	differential du;
+	differential dv;
 #endif
 #ifdef __DPDU__
 	/* differential of P w.r.t. parametric coordinates. note that dPdu is
 	 * not readily suitable as a tangent for shading on triangles. */
-	ccl_soa_member(float3, dPdu);
-	ccl_soa_member(float3, dPdv);
+	float3 dPdu;
+	float3 dPdv;
 #endif
 
 #ifdef __OBJECT_MOTION__
 	/* object <-> world space transformations, cached to avoid
 	 * re-interpolating them constantly for shading */
-	ccl_soa_member(Transform, ob_tfm);
-	ccl_soa_member(Transform, ob_itfm);
+	Transform ob_tfm;
+	Transform ob_itfm;
 #endif
 
 	/* Closure data, we store a fixed array of closures */
-	ccl_soa_member(struct ShaderClosure, closure[MAX_CLOSURE]);
-	ccl_soa_member(int, num_closure);
-	ccl_soa_member(int, num_closure_extra);
-	ccl_soa_member(float, randb_closure);
-	ccl_soa_member(float3, svm_closure_weight);
+	struct ShaderClosure closure[MAX_CLOSURE];
+	int num_closure;
+	int num_closure_extra;
+	float randb_closure;
+	float3 svm_closure_weight;
 
 	/* LCG state for closures that require additional random numbers. */
-	ccl_soa_member(uint, lcg_state);
+	uint lcg_state;
 
 	/* ray start position, only set for backgrounds */
-	ccl_soa_member(float3, ray_P);
-	ccl_soa_member(differential3, ray_dP);
+	float3 ray_P;
+	differential3 ray_dP;
 
 #ifdef __OSL__
 	struct KernelGlobals *osl_globals;

@@ -122,7 +122,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(KernelGlobal
 	float3 throughput;
 
 	ccl_global char *ray_state = kernel_split_state.ray_state;
-	ShaderData *sd = kernel_split_state.sd;
+	ShaderData *sd = &kernel_split_state.sd[ray_index];
 	ccl_global float *per_sample_output_buffers = kernel_split_state.per_sample_output_buffers;
 
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
@@ -145,13 +145,13 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(KernelGlobal
 
 		/* holdout */
 #ifdef __HOLDOUT__
-		if(((ccl_fetch(sd, flag) & SD_HOLDOUT) ||
-		    (ccl_fetch(sd, object_flag) & SD_OBJECT_HOLDOUT_MASK)) &&
+		if(((sd->flag & SD_HOLDOUT) ||
+		    (sd->object_flag & SD_OBJECT_HOLDOUT_MASK)) &&
 		   (state->flag & PATH_RAY_CAMERA))
 		{
 			if(kernel_data.background.transparent) {
 				float3 holdout_weight;
-				if(ccl_fetch(sd, object_flag) & SD_OBJECT_HOLDOUT_MASK) {
+				if(sd->object_flag & SD_OBJECT_HOLDOUT_MASK) {
 					holdout_weight = make_float3(1.0f, 1.0f, 1.0f);
 				}
 				else {
@@ -160,7 +160,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(KernelGlobal
 				/* any throughput is ok, should all be identical here */
 				kernel_split_state.L_transparent[ray_index] += average(holdout_weight*throughput);
 			}
-			if(ccl_fetch(sd, object_flag) & SD_OBJECT_HOLDOUT_MASK) {
+			if(sd->object_flag & SD_OBJECT_HOLDOUT_MASK) {
 				ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
 				enqueue_flag = 1;
 			}
@@ -191,7 +191,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(KernelGlobal
 
 #ifdef __EMISSION__
 		/* emission */
-		if(ccl_fetch(sd, flag) & SD_EMISSION) {
+		if(sd->flag & SD_EMISSION) {
 			/* TODO(sergey): is isect.t wrong here for transparent surfaces? */
 			float3 emission = indirect_primitive_emission(
 			        kg,
@@ -232,7 +232,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(KernelGlobal
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
 		/* ambient occlusion */
 		if(kernel_data.integrator.use_ambient_occlusion ||
-		   (ccl_fetch(sd, flag) & SD_AO))
+		   (sd->flag & SD_AO))
 		{
 			/* todo: solve correlation */
 			float bsdf_u, bsdf_v;
@@ -247,15 +247,15 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(KernelGlobal
 			float ao_pdf;
 			sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
 
-			if(dot(ccl_fetch(sd, Ng), ao_D) > 0.0f && ao_pdf != 0.0f) {
+			if(dot(sd->Ng, ao_D) > 0.0f && ao_pdf != 0.0f) {
 				Ray _ray;
-				_ray.P = ray_offset(ccl_fetch(sd, P), ccl_fetch(sd, Ng));
+				_ray.P = ray_offset(sd->P, sd->Ng);
 				_ray.D = ao_D;
 				_ray.t = kernel_data.background.ao_distance;
 #ifdef __OBJECT_MOTION__
-				_ray.time = ccl_fetch(sd, time);
+				_ray.time = sd->time;
 #endif
-				_ray.dP = ccl_fetch(sd, dP);
+				_ray.dP = sd->dP;
 				_ray.dD = differential3_zero();
 				kernel_split_state.ao_light_ray[ray_index] = _ray;
 

@@ -23,7 +23,7 @@ ccl_device void svm_node_camera(KernelGlobals *kg, ShaderData *sd, float *stack,
 	float3 vector;
 
 	Transform tfm = kernel_data.cam.worldtocamera;
-	vector = transform_point(&tfm, ccl_fetch(sd, P));
+	vector = transform_point(&tfm, sd->P);
 	zdepth = vector.z;
 	distance = len(vector);
 

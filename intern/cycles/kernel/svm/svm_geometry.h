@@ -27,15 +27,15 @@ ccl_device_inline void svm_node_geometry(KernelGlobals *kg,
 	float3 data;
 
 	switch(type) {
-		case NODE_GEOM_P: data = ccl_fetch(sd, P); break;
-		case NODE_GEOM_N: data = ccl_fetch(sd, N); break;
+		case NODE_GEOM_P: data = sd->P; break;
+		case NODE_GEOM_N: data = sd->N; break;
 #ifdef __DPDU__
 		case NODE_GEOM_T: data = primitive_tangent(kg, sd); break;
 #endif
-		case NODE_GEOM_I: data = ccl_fetch(sd, I); break;
-		case NODE_GEOM_Ng: data = ccl_fetch(sd, Ng); break;
+		case NODE_GEOM_I: data = sd->I; break;
+		case NODE_GEOM_Ng: data = sd->Ng; break;
 #ifdef __UV__
-		case NODE_GEOM_uv: data = make_float3(ccl_fetch(sd, u), ccl_fetch(sd, v), 0.0f); break;
+		case NODE_GEOM_uv: data = make_float3(sd->u, sd->v, 0.0f); break;
 #endif
 	}
 
@@ -48,8 +48,8 @@ ccl_device void svm_node_geometry_bump_dx(KernelGlobals *kg, ShaderData *sd, flo
 	float3 data;
 
 	switch(type) {
-		case NODE_GEOM_P: data = ccl_fetch(sd, P) + ccl_fetch(sd, dP).dx; break;
-		case NODE_GEOM_uv: data = make_float3(ccl_fetch(sd, u) + ccl_fetch(sd, du).dx, ccl_fetch(sd, v) + ccl_fetch(sd, dv).dx, 0.0f); break;
+		case NODE_GEOM_P: data = sd->P + sd->dP.dx; break;
+		case NODE_GEOM_uv: data = make_float3(sd->u + sd->du.dx, sd->v + sd->dv.dx, 0.0f); break;
 		default: svm_node_geometry(kg, sd, stack, type, out_offset); return;
 	}
 
@@ -65,8 +65,8 @@ ccl_device void svm_node_geometry_bump_dy(KernelGlobals *kg, ShaderData *sd, flo
 	float3 data;
 
 	switch(type) {
-		case NODE_GEOM_P: data = ccl_fetch(sd, P) + ccl_fetch(sd, dP).dy; break;
-		case NODE_GEOM_uv: data = make_float3(ccl_fetch(sd, u) + ccl_fetch(sd, du).dy, ccl_fetch(sd, v) + ccl_fetch(sd, dv).dy, 0.0f); break;
+		case NODE_GEOM_P: data = sd->P + sd->dP.dy; break;
+		case NODE_GEOM_uv: data = make_float3(sd->u + sd->du.dy, sd->v + sd->dv.dy, 0.0f); break;
 		default: svm_node_geometry(kg, sd, stack, type, out_offset); return;
 	}
 
@@ -87,9 +87,9 @@ ccl_device void svm_node_object_info(KernelGlobals *kg, ShaderData *sd, float *s
 			stack_store_float3(stack, out_offset, object_location(kg, sd));
 			return;
 		}
-		case NODE_INFO_OB_INDEX: data = object_pass_id(kg, ccl_fetch(sd, object)); break;
+		case NODE_INFO_OB_INDEX: data = object_pass_id(kg, sd->object); break;
 		case NODE_INFO_MAT_INDEX: data = shader_pass_id(kg, sd); break;
-		case NODE_INFO_OB_RANDOM: data = object_random_number(kg, ccl_fetch(sd, object)); break;
+		case NODE_INFO_OB_RANDOM: data = object_random_number(kg, sd->object); break;
 		default: data = 0.0f; break;
 	}
 
@@ -106,44 +106,44 @@ ccl_device void svm_node_particle_info(KernelGlobals *kg,
 {
 	switch(type) {
 		case NODE_INFO_PAR_INDEX: {
-			int particle_id = object_particle_id(kg, ccl_fetch(sd, object));
+			int particle_id = object_particle_id(kg, sd->object);
 			stack_store_float(stack, out_offset, particle_index(kg, particle_id));
 			break;
 		}
 		case NODE_INFO_PAR_AGE: {
-			int particle_id = object_particle_id(kg, ccl_fetch(sd, object));
+			int particle_id = object_particle_id(kg, sd->object);
 			stack_store_float(stack, out_offset, particle_age(kg, particle_id));
 			break;
 		}
 		case NODE_INFO_PAR_LIFETIME: {
-			int particle_id = object_particle_id(kg, ccl_fetch(sd, object));
+			int particle_id = object_particle_id(kg, sd->object);
 			stack_store_float(stack, out_offset, particle_lifetime(kg, particle_id));
 			break;
 		}
 		case NODE_INFO_PAR_LOCATION: {
-			int particle_id = object_particle_id(kg, ccl_fetch(sd, object));
+			int particle_id = object_particle_id(kg, sd->object);
 			stack_store_float3(stack, out_offset, particle_location(kg, particle_id));
 			break;
 		}
 #if 0	/* XXX float4 currently not supported in SVM stack */
 		case NODE_INFO_PAR_ROTATION: {
-			int particle_id = object_particle_id(kg, ccl_fetch(sd, object));
+			int particle_id = object_particle_id(kg, sd->object);
 			stack_store_float4(stack, out_offset, particle_rotation(kg, particle_id));
 			break;
 		}
 #endif
 		case NODE_INFO_PAR_SIZE: {
-			int particle_id = object_particle_id(kg, ccl_fetch(sd, object));
+			int particle_id = object_particle_id(kg, sd->object);
 			stack_store_float(stack, out_offset, particle_size(kg, particle_id));
 			break;
 		}
 		case NODE_INFO_PAR_VELOCITY: {
-			int particle_id = object_particle_id(kg, ccl_fetch(sd, object));
+			int particle_id = object_particle_id(kg, sd->object);
 			stack_store_float3(stack, out_offset, particle_velocity(kg, particle_id));
 			break;
 		}
 		case NODE_INFO_PAR_ANGULAR_VELOCITY: {
-			int particle_id = object_particle_id(kg, ccl_fetch(sd, object));
+			int particle_id = object_particle_id(kg, sd->object);
 			stack_store_float3(stack, out_offset, particle_angular_velocity(kg, particle_id));
 			break;
 		}
@@ -165,7 +165,7 @@ ccl_device void svm_node_hair_info(KernelGlobals *kg,
 
 	switch(type) {
 		case NODE_INFO_CURVE_IS_STRAND: {
-			data = (ccl_fetch(sd, type) & PRIMITIVE_ALL_CURVE) != 0;
+			data = (sd->type & PRIMITIVE_ALL_CURVE) != 0;
 			stack_store_float(stack, out_offset, data);
 			break;
 		}
@@ -177,7 +177,7 @@ ccl_device void svm_node_hair_info(KernelGlobals *kg,
 			break;
 		}
 		/*case NODE_INFO_CURVE_FADE: {
-			data = ccl_fetch(sd, curve_transparency);
+			data = sd->curve_transparency;
 			stack_store_float(stack, out_offset, data);
 			break;
 		}*/

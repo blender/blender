@@ -41,9 +41,9 @@ ccl_device_inline float wireframe(KernelGlobals *kg,
                                   float3 *P)
 {
 #ifdef __HAIR__
-	if(ccl_fetch(sd, prim) != PRIM_NONE && ccl_fetch(sd, type) & PRIMITIVE_ALL_TRIANGLE)
+	if(sd->prim != PRIM_NONE && sd->type & PRIMITIVE_ALL_TRIANGLE)
 #else
-	if(ccl_fetch(sd, prim) != PRIM_NONE)
+	if(sd->prim != PRIM_NONE)
 #endif
 	{
 		float3 Co[3];
@@ -52,12 +52,12 @@ ccl_device_inline float wireframe(KernelGlobals *kg,
 		/* Triangles */
 		int np = 3;
 
-		if(ccl_fetch(sd, type) & PRIMITIVE_TRIANGLE)
-			triangle_vertices(kg, ccl_fetch(sd, prim), Co);
+		if(sd->type & PRIMITIVE_TRIANGLE)
+			triangle_vertices(kg, sd->prim, Co);
 		else
-			motion_triangle_vertices(kg, ccl_fetch(sd, object), ccl_fetch(sd, prim), ccl_fetch(sd, time), Co);
+			motion_triangle_vertices(kg, sd->object, sd->prim, sd->time, Co);
 
-		if(!(ccl_fetch(sd, object_flag) & SD_OBJECT_TRANSFORM_APPLIED)) {
+		if(!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
 			object_position_transform(kg, sd, &Co[0]);
 			object_position_transform(kg, sd, &Co[1]);
 			object_position_transform(kg, sd, &Co[2]);
@@ -66,8 +66,8 @@ ccl_device_inline float wireframe(KernelGlobals *kg,
 		if(pixel_size) {
 			// Project the derivatives of P to the viewing plane defined
 			// by I so we have a measure of how big is a pixel at this point
-			float pixelwidth_x = len(ccl_fetch(sd, dP).dx - dot(ccl_fetch(sd, dP).dx, ccl_fetch(sd, I)) * ccl_fetch(sd, I));
-			float pixelwidth_y = len(ccl_fetch(sd, dP).dy - dot(ccl_fetch(sd, dP).dy, ccl_fetch(sd, I)) * ccl_fetch(sd, I));
+			float pixelwidth_x = len(sd->dP.dx - dot(sd->dP.dx, sd->I) * sd->I);
+			float pixelwidth_y = len(sd->dP.dy - dot(sd->dP.dy, sd->I) * sd->I);
 			// Take the average of both axis' length
 			pixelwidth = (pixelwidth_x + pixelwidth_y) * 0.5f;
 		}
@@ -113,20 +113,20 @@ ccl_device void svm_node_wireframe(KernelGlobals *kg,
 	 * With OpenCL 2.0 it's possible to avoid this change, but for until
 	 * then we'll be living with such an exception.
 	 */
-	float3 P = ccl_fetch(sd, P);
+	float3 P = sd->P;
 	float f = wireframe(kg, sd, size, pixel_size, &P);
 #else
-	float f = wireframe(kg, sd, size, pixel_size, &ccl_fetch(sd, P));
+	float f = wireframe(kg, sd, size, pixel_size, &sd->P);
 #endif
 
 	/* TODO(sergey): Think of faster way to calculate derivatives. */
 	if(bump_offset == NODE_BUMP_OFFSET_DX) {
-		float3 Px = ccl_fetch(sd, P) - ccl_fetch(sd, dP).dx;
-		f += (f - wireframe(kg, sd, size, pixel_size, &Px)) / len(ccl_fetch(sd, dP).dx);
+		float3 Px = sd->P - sd->dP.dx;
+		f += (f - wireframe(kg, sd, size, pixel_size, &Px)) / len(sd->dP.dx);
 	}
 	else if(bump_offset == NODE_BUMP_OFFSET_DY) {
-		float3 Py = ccl_fetch(sd, P) - ccl_fetch(sd, dP).dy;
-		f += (f - wireframe(kg, sd, size, pixel_size, &Py)) / len(ccl_fetch(sd, dP).dy);
+		float3 Py = sd->P - sd->dP.dy;
+		f += (f - wireframe(kg, sd, size, pixel_size, &Py)) / len(sd->dP.dy);
 	}
 
 	if(stack_valid(out_fac))
