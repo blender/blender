@@ -38,6 +38,9 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
+
+#include "UI_resources.h"
 
 #include "outliner_intern.h" /* own include */
 
@@ -61,25 +64,112 @@ static CollectionOverride *outliner_override_active(bContext *UNUSED(C))
 /* -------------------------------------------------------------------- */
 /* collection manager operators */
 
-static int collection_link_invoke(bContext *UNUSED(C), wmOperator *op, const wmEvent *UNUSED(event))
+/**
+ * Recursively get the collection for a given index
+ */
+static SceneCollection *scene_collection_from_index(ListBase *lb, const int number, int *i)
 {
-	TODO_LAYER_OPERATORS;
-	BKE_report(op->reports, RPT_ERROR, "OUTLINER_OT_collections_link not implemented yet");
-	return OPERATOR_CANCELLED;
+	for (SceneCollection *sc = lb->first; sc; sc = sc->next) {
+		if (*i == number) {
+			return sc;
+		}
+
+		(*i)++;
+
+		SceneCollection *sc_nested = scene_collection_from_index(&sc->scene_collections, number, i);
+		if (sc_nested) {
+			return sc_nested;
+		}
+	}
+	return NULL;
+}
+
+static int collection_link_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	SceneCollection *sc_master = BKE_collection_master(scene);
+	SceneCollection *sc;
+
+	int scene_collection_index = RNA_enum_get(op->ptr, "scene_collection");
+	if (scene_collection_index == 0) {
+		sc = sc_master;
+	}
+	else {
+		int index = 1;
+		sc = scene_collection_from_index(&sc_master->scene_collections, scene_collection_index, &index);
+		BLI_assert(sc);
+	}
+
+	BKE_collection_link(sl, sc);
+
+	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
+	return OPERATOR_FINISHED;
+}
+
+static int collection_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	if (BKE_collection_master(CTX_data_scene(C))->scene_collections.first == NULL) {
+		RNA_enum_set(op->ptr, "scene_collection", 0);
+		return collection_link_exec(C, op);
+	}
+	else {
+		return WM_enum_search_invoke(C, op, event);
+	}
+}
+
+static void collection_scene_collection_itemf_recursive(
+        EnumPropertyItem *tmp, EnumPropertyItem **item, int *totitem, int *value, SceneCollection *sc)
+{
+	tmp->value = *value;
+	tmp->icon = ICON_COLLAPSEMENU;
+	tmp->identifier = sc->name;
+	tmp->name = sc->name;
+	RNA_enum_item_add(item, totitem, tmp);
+
+	(*value)++;
+
+	for (SceneCollection *ncs = sc->scene_collections.first; ncs; ncs = ncs->next) {
+		collection_scene_collection_itemf_recursive(tmp, item, totitem, value, ncs);
+	}
+}
+
+static EnumPropertyItem *collection_scene_collection_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	EnumPropertyItem *item = NULL;
+	int value = 0, totitem = 0;
+
+	Scene *scene = CTX_data_scene(C);
+	SceneCollection *sc = BKE_collection_master(scene);
+
+	collection_scene_collection_itemf_recursive(&tmp, &item, &totitem, &value, sc);
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+
+	return item;
 }
 
 void OUTLINER_OT_collection_link(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Add Collection";
 	ot->idname = "OUTLINER_OT_collection_link";
 	ot->description = "Link a new collection to the active layer";
 
 	/* api callbacks */
+	ot->exec = collection_link_exec;
 	ot->invoke = collection_link_invoke;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	prop = RNA_def_enum(ot->srna, "scene_collection", DummyRNA_NULL_items, 0, "Scene Collection", "");
+	RNA_def_enum_funcs(prop, collection_scene_collection_itemf);
+	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
+	ot->prop = prop;
 }
 
 /**
