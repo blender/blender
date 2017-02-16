@@ -75,8 +75,9 @@ void fdrawbox(float x1, float y1, float x2, float y2)
 	glEnd();
 }
 
-void fdrawcheckerboard(float x1, float y1, float x2, float y2) /* DEPRECATED */
+void fdrawcheckerboard(float x1, float y1, float x2, float y2)
 {
+	/* DEPRECATED: use imm_draw_checker_box instead */
 	unsigned char col1[4] = {40, 40, 40}, col2[4] = {50, 50, 50};
 
 	glColor3ubv(col1);
@@ -230,6 +231,20 @@ void imm_draw_line_box_3D(unsigned pos, float x1, float y1, float x2, float y2)
 	immVertex3f(pos, x2, y2, 0.0f);
 	immVertex3f(pos, x2, y1, 0.0f);
 	immEnd();
+}
+
+void imm_draw_checker_box(float x1, float y1, float x2, float y2)
+{
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_CHECKER);
+
+	immUniform4f("color1", 0.15f, 0.15f, 0.15f, 1.0f);
+	immUniform4f("color2", 0.2f, 0.2f, 0.2f, 1.0f);
+	immUniform1i("size", 8);
+
+	immRectf(pos, x1, y1, x2, y2);
+
+	immUnbindProgram();
 }
 
 void imm_cpack(unsigned int x)
