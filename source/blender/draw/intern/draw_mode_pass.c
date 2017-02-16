@@ -392,14 +392,8 @@ void DRW_shgroup_wire_outline(DRWPass *wire_outline, Object *ob,
 	GPUShader *sh;
 	struct Batch *geom = DRW_cache_wire_outline_get(ob);
 
-	/* Get color */
-	/* TODO get the right color depending on ob state (Groups, overides etc..) */
-	static float frontcol[4], backcol[4], color[4];
-	UI_GetThemeColor4fv(TH_ACTIVE, color);
-	copy_v4_v4(frontcol, color);
-	copy_v4_v4(backcol, color);
-	backcol[3] = 0.333f;
-	frontcol[3] = 0.667f;
+	float *color;
+	draw_object_wire_theme(ob, &color);
 
 #if 1 /* New wire */
 
@@ -423,8 +417,8 @@ void DRW_shgroup_wire_outline(DRWPass *wire_outline, Object *ob,
 
 		DRWShadingGroup *grp = DRW_shgroup_create(sh, wire_outline);
 		DRW_shgroup_state_set(grp, DRW_STATE_WIRE);
-		DRW_shgroup_uniform_vec4(grp, "frontColor", frontcol, 1);
-		DRW_shgroup_uniform_vec4(grp, "backColor", backcol, 1);
+		DRW_shgroup_uniform_vec4(grp, "frontColor", color, 1);
+		DRW_shgroup_uniform_vec4(grp, "backColor", color, 1);
 		DRW_shgroup_uniform_bool(grp, "drawFront", bFront, 1);
 		DRW_shgroup_uniform_bool(grp, "drawBack", bBack, 1);
 		DRW_shgroup_uniform_bool(grp, "drawSilhouette", &bFalse, 1);

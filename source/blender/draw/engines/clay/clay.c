@@ -131,6 +131,7 @@ typedef struct CLAY_PassList{
 	struct DRWPass *ob_center_pass;
 	/* engine specific */
 	struct DRWPass *depth_pass;
+	struct DRWPass *depth_pass_cull;
 	struct DRWPass *clay_pass;
 	struct DRWPass *wire_overlay_pass;
 	struct DRWPass *wire_outline_pass;
@@ -438,7 +439,6 @@ static DRWShadingGroup *CLAY_shgroup_create(DRWPass *pass, int *material_id)
 {
 	const int depthloc = 0, matcaploc = 1, jitterloc = 2, sampleloc = 3;
 
-	//CLAY_UBO_Material *mat = &data.mat_storage.materials[0];
 	DRWShadingGroup *grp = DRW_shgroup_create(data.clay_sh, pass);
 
 	DRW_shgroup_uniform_vec2(grp, "screenres", DRW_viewport_size_get(), 1);
@@ -512,30 +512,20 @@ static int push_mat_to_ubo(CLAY_Storage *storage, float matcap_rot, float matcap
 	return id;
 }
 
-static int mat_in_ubo(CLAY_Storage *storage, struct GPUUniformBuffer *ubo, DRWPass *pass,
-                      float matcap_rot, float matcap_hue, float matcap_sat,
+static int mat_in_ubo(CLAY_Storage *storage, float matcap_rot, float matcap_hue, float matcap_sat,
                       float matcap_val, float ssao_distance, float ssao_factor_cavity,
                       float ssao_factor_edge, float ssao_attenuation, int matcap_icon)
 {
-	int id;
-
 	/* Search material in UBO */
-	id = search_mat_to_ubo(storage, matcap_rot, matcap_hue, matcap_sat, matcap_val,
-	                       ssao_distance, ssao_factor_cavity, ssao_factor_edge,
-	                       ssao_attenuation, matcap_icon);
+	int id = search_mat_to_ubo(storage, matcap_rot, matcap_hue, matcap_sat, matcap_val,
+	                           ssao_distance, ssao_factor_cavity, ssao_factor_edge,
+	                           ssao_attenuation, matcap_icon);
 
 	/* if not found create it */
 	if (id == -1) {
 		id = push_mat_to_ubo(storage, matcap_rot, matcap_hue, matcap_sat, matcap_val,
 		                     ssao_distance, ssao_factor_cavity, ssao_factor_edge,
 		                     ssao_attenuation, matcap_icon);
-
-		storage->shgrps[id] = CLAY_shgroup_create(pass, &ubo_mat_idxs[id]);
-
-		/* if it's the first shgrp, pass bind the material UBO */
-		if (storage->ubo_current_id == 1) {
-			DRW_shgroup_uniform_block(storage->shgrps[0], "material_block", ubo, 0);
-		}
 	}
 
 	return id;
@@ -562,10 +552,15 @@ static void override_setting(CollectionEngineSettings *ces, const char *name, vo
 		CollectionEnginePropertyFloat *prop = (CollectionEnginePropertyFloat *)cep;
 		*((float *)ret) = prop->value;
 	}
+	else if (cep->type == COLLECTION_PROP_TYPE_BOOL) {
+		CollectionEnginePropertyBool *prop = (CollectionEnginePropertyBool *)cep;
+		*((bool *)ret) = prop->value;
+	}
 }
 
-static DRWShadingGroup *CLAY_object_shgrp_get(Object *ob, CLAY_StorageList *stl, DRWPass *pass)
+static DRWShadingGroup *CLAY_object_shgrp_get(Object *ob, CLAY_StorageList *stl, CLAY_PassList *psl)
 {
+	DRWShadingGroup **shgrps = stl->storage->shgrps;
 	MaterialEngineSettingsClay *settings = DRW_render_settings_get(NULL, RE_engine_id_BLENDER_CLAY);
 	CollectionEngineSettings *ces = BKE_object_collection_engine_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_CLAY);
 
@@ -593,13 +588,19 @@ static DRWShadingGroup *CLAY_object_shgrp_get(Object *ob, CLAY_StorageList *stl,
 		override_setting(ces, "matcap_icon", &matcap_icon);
 	};
 
+	int id = mat_in_ubo(stl->storage, matcap_rot, matcap_hue, matcap_sat, matcap_val,
+	                    ssao_distance, ssao_factor_cavity, ssao_factor_edge,
+	                    ssao_attenuation, matcap_icon);
 
-	int index = mat_in_ubo(stl->storage, stl->mat_ubo, pass,
-	                       matcap_rot, matcap_hue, matcap_sat, matcap_val,
-	                       ssao_distance, ssao_factor_cavity, ssao_factor_edge,
-	                       ssao_attenuation, matcap_icon);
+	if (shgrps[id] == NULL) {
+		shgrps[id] = CLAY_shgroup_create(psl->clay_pass, &ubo_mat_idxs[id]);
+		/* if it's the first shgrp, pass bind the material UBO */
+		if (stl->storage->ubo_current_id == 1) {
+			DRW_shgroup_uniform_block(shgrps[0], "material_block", stl->mat_ubo, 0);
+		}
+	}
 
-	return stl->storage->shgrps[index];
+	return shgrps[id];
 }
 
 static void CLAY_create_cache(CLAY_PassList *passes, CLAY_StorageList *stl, const struct bContext *C)
@@ -607,11 +608,13 @@ static void CLAY_create_cache(CLAY_PassList *passes, CLAY_StorageList *stl, cons
 	SceneLayer *sl = CTX_data_scene_layer(C);
 	DRWShadingGroup *clay_shgrp;
 	DRWShadingGroup *depth_shgrp;
+	DRWShadingGroup *depth_shgrp_cull;
 
 	/* Depth Pass */
 	{
+		passes->depth_pass_cull = DRW_pass_create("Depth Pass Cull", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK);
+		depth_shgrp_cull = DRW_shgroup_create(data.depth_sh, passes->depth_pass_cull);
 		passes->depth_pass = DRW_pass_create("Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
-
 		depth_shgrp = DRW_shgroup_create(data.depth_sh, passes->depth_pass);
 	}
 
@@ -619,6 +622,7 @@ static void CLAY_create_cache(CLAY_PassList *passes, CLAY_StorageList *stl, cons
 	{
 		passes->clay_pass = DRW_pass_create("Clay Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
 		stl->storage->ubo_current_id = 0;
+		memset(stl->storage->shgrps, 0, sizeof(DRWShadingGroup *) * MAX_CLAY_MAT);
 	}
 
 	/* Object Mode */
@@ -636,36 +640,30 @@ static void CLAY_create_cache(CLAY_PassList *passes, CLAY_StorageList *stl, cons
 			continue;
 		}
 
-		// CollectionEngineSettings *ces_mode_ob = BKE_object_collection_engine_get(ob, COLLECTION_MODE_OBJECT, "");
-		// CollectionEngineSettings *ces_mode_ed = BKE_object_collection_engine_get(ob, COLLECTION_MODE_EDIT, "");
+		CollectionEngineSettings *ces_mode_ob = BKE_object_collection_engine_get(ob, COLLECTION_MODE_OBJECT, "");
+		//CollectionEngineSettings *ces_mode_ed = BKE_object_collection_engine_get(ob, COLLECTION_MODE_EDIT, "");
 
 		struct Batch *geom;
-		bool do_outlines;
+		bool do_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_wire");
+		bool do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");
+		bool do_outlines = ((ob->base_flag & BASE_SELECTED) != 0) || do_wire;
 
 		switch (ob->type) {
 			case OB_MESH:
-				clay_shgrp = CLAY_object_shgrp_get(ob, stl, passes->clay_pass);
 				geom = DRW_cache_surface_get(ob);
 
-				/* Add everything for now */
-				DRW_shgroup_call_add(depth_shgrp, geom, ob->obmat);
+				/* Depth Prepass */
+				DRW_shgroup_call_add((do_cull) ? depth_shgrp_cull : depth_shgrp, geom, ob->obmat);
 
-				if (clay_shgrp)
-					DRW_shgroup_call_add(clay_shgrp, geom, ob->obmat);
+				/* Shading */
+				clay_shgrp = CLAY_object_shgrp_get(ob, stl, passes);
+				DRW_shgroup_call_add(clay_shgrp, geom, ob->obmat);
 
 				//DRW_shgroup_wire_overlay(passes->wire_overlay_pass, ob);
 
-				do_outlines  = ((ob->base_flag & BASE_SELECTED) != 0);
-				DRW_shgroup_wire_outline(passes->wire_outline_pass, ob, false, false, do_outlines);
+				/* Wires / Outlines */
+				DRW_shgroup_wire_outline(passes->wire_outline_pass, ob, do_wire, false, do_outlines);
 
-				/* When encountering a new material :
-				 * - Create new Batch
-				 * - Initialize Batch
-				 * - Push it to the hash table
-				 * - The pass takes care of inserting it
-				 * next to the same shader calls */
-
-				/* Free hash table */
 				break;
 			case OB_LAMP:
 			case OB_CAMERA:
@@ -719,6 +717,7 @@ static void CLAY_view_draw(RenderEngine *UNUSED(engine), const bContext *context
 
 	/* Pass 1 : Depth pre-pass */
 	DRW_draw_pass(passes->depth_pass);
+	DRW_draw_pass(passes->depth_pass_cull);
 
 	/* Pass 2 : Duplicate depth */
 	/* Unless we go for deferred shading we need this to avoid manual depth test and artifacts */
