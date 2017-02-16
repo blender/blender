@@ -222,6 +222,9 @@ void BKE_visible_bases_Iterator_end(Iterator *iter);
     }                                                                         \
 }
 
+/* temporary doversion functions */
+void BKE_scene_layer_doversion_update(struct Main *bmain);
+
 #ifdef __cplusplus
 }
 #endif

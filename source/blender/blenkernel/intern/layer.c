@@ -24,6 +24,8 @@
  *  \ingroup bke
  */
 
+#include <string.h>
+
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -1224,4 +1226,137 @@ void BKE_visible_bases_Iterator_next(Iterator *iter)
 void BKE_visible_bases_Iterator_end(Iterator *UNUSED(iter))
 {
 	/* do nothing */
+}
+
+
+/* ---------------------------------------------------------------------- */
+/* Doversion routine */
+
+/**
+ * Remove all the CollectionEngineSettings for a set of LayerCollection
+ * and create new ones with all the required CollectionEngineProperty
+ *
+ * \param lb Listbase of LayerCollection
+ */
+static void scene_layer_doversion_update_collections(ListBase *lb)
+{
+	for (LayerCollection *lc = lb->first; lc; lc = lc->next) {
+		layer_collection_engine_settings_free(lc);
+		layer_collection_create_engine_settings(lc);
+		layer_collection_create_mode_settings(lc);
+
+		/* continue recursively */
+		scene_layer_doversion_update_collections(&lc->layer_collections);
+	}
+}
+
+/**
+ * Updates all the CollectionEngineSettings of all
+ * LayerCollection elements in Scene
+ */
+static void scene_layer_doversion_update(Scene *scene)
+{
+	for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
+		scene_layer_doversion_update_collections(&sl->layer_collections);
+	}
+}
+
+/**
+ * Return true at the first indicative that the listbases don't match
+ *
+ * It's fine if the individual properties values are different, as long
+ * as we have the same properties across them
+ *
+ * \param lb_ces ListBase of CollectionEngineSettings
+ * \param lb_ces_ref ListBase of CollectionEngineSettings
+ */
+static bool scene_layer_doversion_is_outdated_engines(ListBase *lb_ces, ListBase *lb_ces_ref)
+{
+	if (BLI_listbase_count(lb_ces) != BLI_listbase_count(lb_ces_ref)) {
+		return true;
+	}
+
+	CollectionEngineSettings *ces, *ces_ref;
+	for (ces = lb_ces->first, ces_ref = lb_ces_ref->first; ces; ces = ces->next, ces_ref = ces_ref->next) {
+		if (BLI_listbase_count(&ces->properties) != BLI_listbase_count(&ces_ref->properties)) {
+			return true;
+		}
+
+		CollectionEngineProperty *cep, *cep_ref;
+		for (cep = ces->properties.first, cep_ref = ces_ref->properties.first; cep; cep = cep->next, cep_ref = cep_ref->next) {
+			if (cep->type != cep_ref->type) {
+				return true;
+			}
+
+			if (STREQ(cep->name, cep_ref->name) == false) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Get the first available LayerCollection
+ */
+static LayerCollection *scene_layer_doversion_collection_get(Main *bmain)
+{
+	for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
+			for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
+				return lc;
+			}
+		}
+	}
+	return NULL;
+}
+
+/**
+ * See if a new LayerCollection have the same CollectionEngineSettings
+ * and properties of the saved LayerCollection
+ */
+static bool scene_layer_doversion_is_outdated(Main *bmain)
+{
+	LayerCollection *lc, lc_ref = {NULL};
+	bool is_outdated = false;
+
+	lc = scene_layer_doversion_collection_get(bmain);
+
+	if (lc == NULL) {
+		return false;
+	}
+
+	layer_collection_create_engine_settings(&lc_ref);
+	layer_collection_create_mode_settings(&lc_ref);
+
+	if (scene_layer_doversion_is_outdated_engines(&lc->engine_settings, &lc_ref.engine_settings)) {
+		is_outdated = true;
+	}
+
+	if (scene_layer_doversion_is_outdated_engines(&lc->mode_settings, &lc_ref.mode_settings)) {
+		is_outdated = true;
+	}
+
+	layer_collection_engine_settings_free(&lc_ref);
+	return is_outdated;
+}
+
+/**
+ * Handle doversion of files during the viewport development
+ *
+ * This is intended to prevent subversion bumping every time a new property
+ * is added to an engine, but it may be relevant in the future as a generic doversion
+ */
+void BKE_scene_layer_doversion_update(Main *bmain)
+{
+	/* if file not outdated, don't bother with the slow merging */
+	if (scene_layer_doversion_is_outdated(bmain) == false) {
+		return;
+	}
+
+	/* bring all the missing properties for the LayerCollections */
+	for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		scene_layer_doversion_update(scene);
+	}
 }
