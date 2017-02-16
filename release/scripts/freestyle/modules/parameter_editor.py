@@ -1170,6 +1170,7 @@ class Seed:
 
 _seed = Seed()
 
+
 def get_dashed_pattern(linestyle):
     """Extracts the dashed pattern from the various UI options """
     pattern = []
@@ -1183,6 +1184,15 @@ def get_dashed_pattern(linestyle):
         pattern.append(linestyle.dash3)
         pattern.append(linestyle.gap3)
     return pattern
+
+
+def get_grouped_objects(group):
+    for ob in group.objects:
+        if ob.dupli_type == 'GROUP' and ob.dupli_group is not None:
+            for dupli in get_grouped_objects(ob.dupli_group):
+                yield dupli
+        else:
+            yield ob
 
 
 integration_types = {
@@ -1267,7 +1277,7 @@ def process(layer_name, lineset_name):
     # prepare selection criteria by group of objects
     if lineset.select_by_group:
         if lineset.group is not None:
-            names = {getQualifiedObjectName(ob): True for ob in lineset.group.objects}
+            names = {getQualifiedObjectName(ob): True for ob in get_grouped_objects(lineset.group)}
             upred = ObjectNamesUP1D(names, lineset.group_negation == 'EXCLUSIVE')
             selection_criteria.append(upred)
     # prepare selection criteria by image border
