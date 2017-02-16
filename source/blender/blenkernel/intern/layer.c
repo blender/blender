@@ -1055,10 +1055,10 @@ static void collection_engine_settings_merge(ListBase *lb_dst, ListBase *lb_src)
 		CollectionEngineSettings *ces_dst = collection_engine_get(lb_dst, lb_dst, ces_src->type, ces_src->name);
 		BLI_assert(ces_dst);
 
-		CollectionEngineProperty *prop_src, *prop_dst;
-
-		prop_dst = ces_dst->properties.first;
-		for (prop_src = ces_src->properties.first; prop_src; prop_src = prop_src->next, prop_dst = prop_dst->next) {
+		CollectionEngineProperty *prop_dst, *prop_src;
+		for (prop_dst = ces_dst->properties.first; prop_dst; prop_dst = prop_dst->next) {
+			prop_src = BLI_findstring(&ces_src->properties, prop_dst->name, offsetof(CollectionEngineProperty, name));
+			BLI_assert(prop_src);
 			collection_engine_property_set(prop_dst, prop_src);
 		}
 	}
@@ -1233,31 +1233,89 @@ void BKE_visible_bases_Iterator_end(Iterator *UNUSED(iter))
 /* Doversion routine */
 
 /**
- * Remove all the CollectionEngineSettings for a set of LayerCollection
- * and create new ones with all the required CollectionEngineProperty
+ * Merge CollectionEngineSettings
  *
- * \param lb Listbase of LayerCollection
+ * \param ces_ref CollectionEngineSettings to use as reference
+ * \param ces CollectionEngineSettings to merge into
  */
-static void scene_layer_doversion_update_collections(ListBase *lb)
+static void scene_layer_doversion_merge_setings(const CollectionEngineSettings *ces_ref, CollectionEngineSettings *ces)
+{
+	CollectionEngineProperty *cep = ces->properties.first, *cep_ref;
+
+	for (cep_ref = ces_ref->properties.first; cep_ref; cep_ref = cep_ref->next) {
+		cep = BLI_findstring(&ces->properties, cep_ref->name, offsetof(CollectionEngineProperty, name));
+
+		if (cep == NULL) {
+			cep = MEM_dupallocN(cep_ref);
+			BLI_addtail(&ces->properties, cep);
+		}
+		else if (cep->type != cep_ref->type) {
+			CollectionEngineProperty *prev = cep->prev, *next = cep->next;
+			MEM_freeN(cep);
+			cep = MEM_dupallocN(cep_ref);
+
+			cep->prev = prev;
+			cep->next = next;
+		}
+		else {
+			/* keep the property as it is */
+		}
+	}
+}
+
+/**
+ * Merge ListBases of LayerCollections
+ *
+ * \param lb_ref ListBase of CollectionEngineSettings to use as reference
+ * \param lb ListBase of CollectionEngineSettings
+ */
+static void scene_layer_doversion_merge_layer_collection(const ListBase *lb_ref, ListBase *lb)
+{
+	CollectionEngineSettings *ces = lb->first, *ces_ref;
+
+	for (ces_ref = lb_ref->first; ces_ref; ces_ref = ces_ref->next) {
+		ces = BLI_findstring(lb, ces_ref->name, offsetof(CollectionEngineSettings, name));
+
+		if (ces == NULL) {
+			ces = MEM_dupallocN(ces_ref);
+			BLI_duplicatelist(&ces->properties, &ces_ref->properties);
+			BLI_addtail(lb, ces);
+		}
+		else {
+			scene_layer_doversion_merge_setings(ces_ref, ces);
+		}
+	}
+}
+
+/**
+ * Create or remove CollectionEngineSettings and CollectionEngineProperty
+ * based on reference LayerCollection
+ *
+ * \param lc_ref reference LayerCollection to merge missing settings from
+ * \param lb ListBase of LayerCollection
+ */
+static void scene_layer_doversion_update_collections(const LayerCollection *lc_ref, ListBase *lb)
 {
 	for (LayerCollection *lc = lb->first; lc; lc = lc->next) {
-		layer_collection_engine_settings_free(lc);
-		layer_collection_create_engine_settings(lc);
-		layer_collection_create_mode_settings(lc);
+
+		scene_layer_doversion_merge_layer_collection(&lc_ref->engine_settings, &lc->engine_settings);
+		scene_layer_doversion_merge_layer_collection(&lc_ref->mode_settings, &lc->mode_settings);
 
 		/* continue recursively */
-		scene_layer_doversion_update_collections(&lc->layer_collections);
+		scene_layer_doversion_update_collections(lc_ref, &lc->layer_collections);
 	}
 }
 
 /**
  * Updates all the CollectionEngineSettings of all
  * LayerCollection elements in Scene
+ *
+ * \param lc_ref reference LayerCollection to merge missing settings from
  */
-static void scene_layer_doversion_update(Scene *scene)
+static void scene_layer_doversion_update(const LayerCollection *lc_ref, Scene *scene)
 {
 	for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
-		scene_layer_doversion_update_collections(&sl->layer_collections);
+		scene_layer_doversion_update_collections(lc_ref, &sl->layer_collections);
 	}
 }
 
@@ -1355,8 +1413,15 @@ void BKE_scene_layer_doversion_update(Main *bmain)
 		return;
 	}
 
+	/* create a reference LayerCollection to merge missing settings from */
+	LayerCollection lc_ref = {NULL};
+	layer_collection_create_engine_settings(&lc_ref);
+	layer_collection_create_mode_settings(&lc_ref);
+
 	/* bring all the missing properties for the LayerCollections */
 	for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
-		scene_layer_doversion_update(scene);
+		scene_layer_doversion_update(&lc_ref, scene);
 	}
+
+	layer_collection_engine_settings_free(&lc_ref);
 }
