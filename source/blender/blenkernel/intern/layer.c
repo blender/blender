@@ -816,12 +816,14 @@ static void layer_collection_create_mode_settings_object(ListBase *lb)
 	CollectionEngineSettings *ces;
 
 	ces = MEM_callocN(sizeof(CollectionEngineSettings), "Object Mode Settings");
-	BLI_addtail(lb, ces);
+	BLI_strncpy_utf8(ces->name, "Object Mode", sizeof(ces->name));
 	ces->type = COLLECTION_MODE_OBJECT;
 
 	/* properties */
 	BKE_collection_engine_property_add_int(ces, "show_wire", false);
 	BKE_collection_engine_property_add_int(ces, "show_backface_culling", false);
+
+	BLI_addtail(lb, ces);
 }
 
 static void layer_collection_create_mode_settings_edit(ListBase *lb)
@@ -829,11 +831,13 @@ static void layer_collection_create_mode_settings_edit(ListBase *lb)
 	CollectionEngineSettings *ces;
 
 	ces = MEM_callocN(sizeof(CollectionEngineSettings), "Edit Mode Settings");
-	BLI_addtail(lb, ces);
+	BLI_strncpy_utf8(ces->name, "Edit Mode", sizeof(ces->name));
 	ces->type = COLLECTION_MODE_EDIT;
 
 	/* properties */
 	BKE_collection_engine_property_add_int(ces, "show_occlude_wire", false);
+
+	BLI_addtail(lb, ces);
 }
 
 static void collection_create_mode_settings(ListBase *lb)
