@@ -1030,8 +1030,7 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 	/* border */
 	setlinestyle(3);
 
-	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColor(TH_BACK);
@@ -1070,16 +1069,7 @@ static void sequencer_draw_background(
 	/* only draw alpha for main buffer */
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
 		if ((sseq->flag & SEQ_USE_ALPHA) && !draw_overlay) {
-			unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
-			immBindBuiltinProgram(GPU_SHADER_2D_CHECKER);
-
-			immUniform4f("color1", 0.15f, 0.15f, 0.15f, 1.0f);
-			immUniform4f("color2", 0.2f, 0.2f, 0.2f, 1.0f);
-			immUniform1i("size", 8);
-
-			immRectf(pos, v2d->tot.xmin, v2d->tot.ymin, v2d->tot.xmax, v2d->tot.ymax);
-
-			immUnbindProgram();
+			imm_draw_checker_box(v2d->tot.xmin, v2d->tot.ymin, v2d->tot.xmax, v2d->tot.ymax);
 		}
 	}
 }
