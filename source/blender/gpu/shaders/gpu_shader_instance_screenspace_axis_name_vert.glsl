@@ -24,6 +24,6 @@ void main()
 		offset = vec3(0.0, 0.0, 1.125);
 
 	vec3 screen_pos = screen_vecs[0].xyz * pos.x + screen_vecs[1].xyz * pos.y;
-	gl_Position = ViewProjectionMatrix * InstanceModelMatrix * vec4((screen_pos + offset) * size, 1.0);
+	gl_Position = ViewProjectionMatrix * (InstanceModelMatrix * vec4(offset * size, 1.0) + vec4(screen_pos * size, 0.0));
 	finalColor = vec4(color, 1.0);
 }
