@@ -2376,11 +2376,10 @@ void BKE_mesh_split_faces(Mesh *mesh)
 	/* Perform actual split of vertices and adjacent edges. */
 	split_faces_split_verts(mesh, num_new_verts, vert_flags);
 	split_faces_split_edges(mesh, num_new_edges, edge_flags);
-	/* Adding new vertices will change loop normals.
-	 * Since we ensured there is CD_NORMAL layer for loops we must bring it
-	 * it back to a consistent state.
+	/* CD_NORMAL is expected to be temporary only, and it's invalid at
+	 * this point anyway.
 	 */
-	BKE_mesh_calc_normals_split(mesh);
+	CustomData_free_layers(&mesh->ldata, CD_NORMAL, mesh->totloop);
 	MEM_freeN(vert_flags);
 	MEM_freeN(edge_flags);
 #ifdef VALIDATE_MESH

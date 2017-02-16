@@ -80,6 +80,7 @@ static inline BL::Mesh object_to_mesh(BL::BlendData& data,
 			}
 			else {
 				me.split_faces();
+				me.calc_normals_split();
 			}
 		}
 		if(subdivision_type == Mesh::SUBDIVISION_NONE) {
