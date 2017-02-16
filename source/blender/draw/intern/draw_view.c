@@ -626,6 +626,7 @@ void DRW_draw_cursor(void)
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
+	glLineWidth(1.0f);
 
 	if (is_cursor_visible(scene)) {
 		float *co = ED_view3d_cursor3d_get(scene, v3d);
@@ -643,7 +644,7 @@ void DRW_draw_cursor(void)
 		/* XXX Using instance shader without instance */
 		immBindBuiltinProgram(GPU_SHADER_3D_SCREENSPACE_VARIYING_COLOR);
 		immUniform1f("size", U.widget_unit);
-		immUniform2fv("pixel_size", DRW_viewport_pixelsize_get());
+		immUniform1f("pixel_size", *DRW_viewport_pixelsize_get());
 		immUniformArray3fv("screen_vecs", DRW_viewport_screenvecs_get(), 2);
 		immUniformMatrix4fv("ViewProjectionMatrix", rv3d->persmat);
 
