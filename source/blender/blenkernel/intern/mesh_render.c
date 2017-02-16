@@ -31,6 +31,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_vector.h"
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
@@ -76,6 +78,11 @@ static int mesh_struct_get_num_faces(Mesh *me)
 static int mesh_struct_get_num_polys(Mesh *me)
 {
 	return me->totpoly;
+}
+
+static int mesh_struct_get_num_loops(Mesh *me)
+{
+	return me->totloop;
 }
 
 static MEdge *mesh_struct_get_array_edge(Mesh *me)
@@ -137,6 +144,13 @@ static int mesh_bmesh_get_num_polys(Mesh *me)
 	return dm->getNumPolys(dm);
 }
 
+static int mesh_bmesh_get_num_loops(Mesh *me)
+{
+	BMEditMesh *bm = me->edit_btmesh;
+	DerivedMesh *dm = bm->derivedFinal;
+	return dm->getNumLoops(dm);
+}
+
 static MEdge *mesh_bmesh_get_array_edge(Mesh *me)
 {
 	BMEditMesh *bm = me->edit_btmesh;
@@ -182,6 +196,11 @@ static int mesh_render_get_num_edges(Mesh *me)
 static int mesh_render_get_num_faces(Mesh *me)
 {
 	MESH_RENDER_FUNCTION(get_num_faces);
+}
+
+static int mesh_render_get_num_loops(Mesh *me)
+{
+	MESH_RENDER_FUNCTION(get_num_loops);
 }
 
 static int mesh_render_get_num_polys(Mesh *me)
@@ -447,47 +466,62 @@ Batch *BKE_mesh_batch_cache_get_triangles_with_normals(Mesh *me)
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
 	if (cache->triangles_with_normals == NULL) {
+		unsigned int vidx = 0, nidx = 0;
+		float face_no[3];
+		short face_no_short[3];
+		unsigned int mpoly_prev = UINT_MAX;
+
 		static VertexFormat format = { 0 };
 		static unsigned pos_id, nor_id;
-		unsigned int vidx = 0;
 		if (format.attrib_ct == 0) {
 			/* initialize vertex format */
 			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
 			nor_id = add_attrib(&format, "nor", GL_SHORT, 3, NORMALIZE_INT_TO_FLOAT);
 		}
-
 		const MVert *verts = mesh_render_get_array_vert(me);
-		const int tessface_ct = mesh_render_get_num_faces(me);
-		MFace *tessfaces = mesh_render_get_array_face(me);
+		const MLoop *loops = mesh_render_get_array_loop(me);
+		const MPoly *polys = mesh_render_get_array_poly(me);
+		const int totpoly = mesh_render_get_num_polys(me);
+		const int totloop = mesh_render_get_num_loops(me);
+
+		const int tottri = poly_to_tri_count(totpoly,totloop);
+		MLoopTri *looptri = MEM_mallocN(sizeof(*looptri) * tottri, __func__);
+
+		BKE_mesh_recalc_looptri(loops, polys, verts, totloop, totpoly, looptri);
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
-		VertexBuffer_allocate_data(vbo, tessface_ct * 2 * 3); /* up to 2 triangles per tessface */
+		VertexBuffer_allocate_data(vbo, tottri * 3);
 
-		for (int i = 0; i < tessface_ct; ++i) {
-			const MFace *tess = tessfaces + i;
+		for (int i = 0; i < tottri; i++) {
+			const MLoopTri *lt = &looptri[i];
+			const MPoly *mp = &polys[lt->poly];
 
-			/* TODO get real face normals */
-
-			setAttrib(vbo, nor_id, vidx, &verts[tess->v1].no);
-			setAttrib(vbo, pos_id, vidx++, &verts[tess->v1].co);
-			setAttrib(vbo, nor_id, vidx, &verts[tess->v2].no);
-			setAttrib(vbo, pos_id, vidx++, &verts[tess->v2].co);
-			setAttrib(vbo, nor_id, vidx, &verts[tess->v3].no);
-			setAttrib(vbo, pos_id, vidx++, &verts[tess->v3].co);
-
-			if (tess->v4) {
-				setAttrib(vbo, nor_id, vidx, &verts[tess->v1].no);
-				setAttrib(vbo, pos_id, vidx++, &verts[tess->v1].co);
-				setAttrib(vbo, nor_id, vidx, &verts[tess->v3].no);
-				setAttrib(vbo, pos_id, vidx++, &verts[tess->v3].co);
-				setAttrib(vbo, nor_id, vidx, &verts[tess->v4].no);
-				setAttrib(vbo, pos_id, vidx++, &verts[tess->v4].co);
+			/* Calc Normal */
+			if (lt->poly != mpoly_prev) {
+				BKE_mesh_calc_poly_normal(mp, &loops[mp->loopstart], verts, face_no);
+				mpoly_prev = lt->poly;
 			}
+
+			if ((mp->flag & ME_SMOOTH) == 0) {
+				normal_float_to_short_v3(face_no_short, face_no);
+				setAttrib(vbo, nor_id, nidx++, face_no_short);
+				setAttrib(vbo, nor_id, nidx++, face_no_short);
+				setAttrib(vbo, nor_id, nidx++, face_no_short);
+			}
+			else {
+				setAttrib(vbo, nor_id, nidx++, &verts[loops[lt->tri[0]].v].no);
+				setAttrib(vbo, nor_id, nidx++, &verts[loops[lt->tri[1]].v].no);
+				setAttrib(vbo, nor_id, nidx++, &verts[loops[lt->tri[2]].v].no);
+			}
+
+			setAttrib(vbo, pos_id, vidx++, &verts[loops[lt->tri[0]].v].co);
+			setAttrib(vbo, pos_id, vidx++, &verts[loops[lt->tri[1]].v].co);
+			setAttrib(vbo, pos_id, vidx++, &verts[loops[lt->tri[2]].v].co);
 		}
 
-		VertexBuffer_resize_data(vbo, vidx+1);
-
 		cache->triangles_with_normals = Batch_create(GL_TRIANGLES, vbo, NULL);
+
+		MEM_freeN(looptri);
 	}
 
 	return cache->triangles_with_normals;
