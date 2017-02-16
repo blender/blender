@@ -86,17 +86,16 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_group_link);
 
 	/* collections */
-	WM_operatortype_append(OUTLINER_OT_collections_delete);
-	WM_operatortype_append(OUTLINER_OT_collections_select);
-	WM_operatortype_append(OUTLINER_OT_collections_rename);
-	WM_operatortype_append(OUTLINER_OT_collections_link);
-	WM_operatortype_append(OUTLINER_OT_collections_unlink);
-	WM_operatortype_append(OUTLINER_OT_collections_new);
-	WM_operatortype_append(OUTLINER_OT_collections_override_new);
-	WM_operatortype_append(OUTLINER_OT_collections_objects_add);
-	WM_operatortype_append(OUTLINER_OT_collections_objects_remove);
-	WM_operatortype_append(OUTLINER_OT_collections_objects_select);
-	WM_operatortype_append(OUTLINER_OT_collections_objects_deselect);
+	WM_operatortype_append(OUTLINER_OT_collection_delete);
+	WM_operatortype_append(OUTLINER_OT_collection_select);
+	WM_operatortype_append(OUTLINER_OT_collection_link);
+	WM_operatortype_append(OUTLINER_OT_collection_unlink);
+	WM_operatortype_append(OUTLINER_OT_collection_new);
+	WM_operatortype_append(OUTLINER_OT_collection_override_new);
+	WM_operatortype_append(OUTLINER_OT_collection_objects_add);
+	WM_operatortype_append(OUTLINER_OT_collection_objects_remove);
+	WM_operatortype_append(OUTLINER_OT_collection_objects_select);
+	WM_operatortype_append(OUTLINER_OT_collection_objects_deselect);
 }
 
 void outliner_keymap(wmKeyConfig *keyconf)

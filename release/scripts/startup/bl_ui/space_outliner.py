@@ -63,11 +63,11 @@ class OUTLINER_HT_header(Header):
         elif space.display_mode == 'COLLECTIONS':
             row = layout.row(align=True)
 
-            row.operator("outliner.collections_new", text="", icon='NEW')
-            row.operator("outliner.collections_override_new", text="", icon='LINK_AREA')
-            row.operator("outliner.collections_link", text="", icon='LINKED')
-            row.operator("outliner.collections_unlink", text="", icon='UNLINKED')
-            row.operator("outliner.collections_delete", text="", icon='X')
+            row.operator("outliner.collection_new", text="", icon='NEW')
+            row.operator("outliner.collection_override_new", text="", icon='LINK_AREA')
+            row.operator("outliner.collection_link", text="", icon='LINKED')
+            row.operator("outliner.collection_unlink", text="", icon='UNLINKED')
+            row.operator("outliner.collection_delete", text="", icon='X')
 
 
 class OUTLINER_MT_editor_menus(Menu):
