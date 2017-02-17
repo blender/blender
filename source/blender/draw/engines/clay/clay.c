@@ -639,9 +639,6 @@ static void CLAY_cache_populate(Object *ob)
 	bool do_cull = false;
 	CollectionEngineSettings *ces_mode_ed, *ces_mode_ob;
 
-	if ((ob->base_flag & BASE_VISIBLED) == 0)
-		return;
-
 	switch (mode) {
 		case CTX_MODE_EDIT_MESH:
 		case CTX_MODE_EDIT_CURVE:
