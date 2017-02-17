@@ -252,15 +252,9 @@ static void layer_collection_base_flag_recalculate(LayerCollection *lc, const bo
 		if (is_visible) {
 			base->flag |= BASE_VISIBLED;
 		}
-		else {
-			base->flag &= ~BASE_VISIBLED;
-		}
 
 		if (is_selectable) {
 			base->flag |= BASE_SELECTABLED;
-		}
-		else {
-			base->flag &= ~BASE_SELECTABLED;
 		}
 	}
 
@@ -274,6 +268,10 @@ static void layer_collection_base_flag_recalculate(LayerCollection *lc, const bo
  */
 void BKE_scene_layer_base_flag_recalculate(SceneLayer *sl)
 {
+	for (Base *base = sl->object_bases.first; base; base = base->next) {
+		base->flag &= ~(BASE_VISIBLED | BASE_SELECTABLED);
+	}
+
 	for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
 		layer_collection_base_flag_recalculate(lc, true, true);
 	}
