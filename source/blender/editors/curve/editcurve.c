@@ -1195,6 +1195,11 @@ void ED_curve_editnurb_load(Object *obedit)
 
 		remap_hooks_and_vertex_parents(obedit);
 
+		/* We have to apply shapekeys *before* copying nurbs into newnurb, otherwise the reset to
+		 * refkey/original curve data that has to be done when editing non-refkey shapekey would be useless,
+		 * only affecting editnurb and not ob->data. */
+		calc_shapeKeys(obedit);
+
 		for (nu = editnurb->first; nu; nu = nu->next) {
 			newnu = BKE_nurb_duplicate(nu);
 			BLI_addtail(&newnurb, newnu);
@@ -1206,7 +1211,6 @@ void ED_curve_editnurb_load(Object *obedit)
 
 		cu->nurb = newnurb;
 
-		calc_shapeKeys(obedit);
 		ED_curve_updateAnimPaths(obedit->data);
 
 		BKE_nurbList_free(&oldnurb);
@@ -1227,7 +1231,6 @@ void ED_curve_editnurb_make(Object *obedit)
 		if (actkey) {
 			// XXX strcpy(G.editModeTitleExtra, "(Key) ");
 			undo_editmode_clear();
-			BKE_keyblock_convert_to_curve(actkey, cu, &cu->nurb);
 		}
 
 		if (editnurb) {
@@ -1248,12 +1251,16 @@ void ED_curve_editnurb_make(Object *obedit)
 			nu = nu->next;
 		}
 
-		if (actkey)
-			editnurb->shapenr = obedit->shapenr;
-
 		/* animation could be added in editmode even if there was no animdata in
 		 * object mode hence we always need CVs index be created */
 		init_editNurb_keyIndex(editnurb, &cu->nurb);
+
+		if (actkey) {
+			editnurb->shapenr = obedit->shapenr;
+			/* Apply shapekey to new nurbs of editnurb, not those of original curve (and *after* we generated keyIndex),
+			 * else we do not have valid 'original' data to properly restore curve when leaving editmode. */
+			BKE_keyblock_convert_to_curve(actkey, cu, &editnurb->nurbs);
+		}
 	}
 }
 
