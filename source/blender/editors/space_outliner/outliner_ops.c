@@ -62,6 +62,7 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_action_set);
 	WM_operatortype_append(OUTLINER_OT_constraint_operation);
 	WM_operatortype_append(OUTLINER_OT_modifier_operation);
+	WM_operatortype_append(OUTLINER_OT_collection_operation);
 
 	WM_operatortype_append(OUTLINER_OT_show_one_level);
 	WM_operatortype_append(OUTLINER_OT_show_active);

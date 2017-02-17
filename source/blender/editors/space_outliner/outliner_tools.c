@@ -648,6 +648,14 @@ typedef enum eOutliner_PropModifierOps {
 	OL_MODIFIER_OP_DELETE
 } eOutliner_PropModifierOps;
 
+typedef enum eOutliner_PropCollectionOps {
+	OL_COLLECTION_OP_OBJECTS_ADD = 1,
+	OL_COLLECTION_OP_OBJECTS_REMOVE,
+	OL_COLLECTION_OP_COLLECTION_NEW,
+	OL_COLLECTION_OP_COLLECTION_DEL,
+	OL_COLLECTION_OP_COLLECTION_UNLINK,
+} eOutliner_PropCollectionOps;
+
 static void pchan_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
 {
 	bPoseChannel *pchan = (bPoseChannel *)te->directdata;
@@ -795,6 +803,61 @@ static void modifier_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem
 		ED_object_modifier_remove(NULL, bmain, ob, md);
 		WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER | NA_REMOVED, ob);
 		te->store_elem->flag &= ~TSE_SELECTED;
+	}
+}
+
+static void collection_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *Carg)
+{
+	bContext *C = (bContext *)Carg;
+	Scene *scene= CTX_data_scene(C);
+	LayerCollection *lc = te->directdata;
+	SceneCollection *sc = lc->scene_collection;
+
+	if (event == OL_COLLECTION_OP_OBJECTS_ADD) {
+		CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
+		{
+			BKE_collection_object_add(scene, sc, ob);
+		}
+		CTX_DATA_END;
+
+		WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
+	}
+	else if (event == OL_COLLECTION_OP_OBJECTS_REMOVE) {
+		Main *bmain = CTX_data_main(C);
+
+		CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
+		{
+			BKE_collection_object_remove(bmain, scene, sc, ob, true);
+		}
+		CTX_DATA_END;
+
+		WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
+		te->store_elem->flag &= ~TSE_SELECTED;
+	}
+	else if (event == OL_COLLECTION_OP_COLLECTION_NEW) {
+		BKE_collection_add(scene, sc, NULL);
+		WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
+	}
+	else if (event == OL_COLLECTION_OP_COLLECTION_UNLINK) {
+		SceneLayer *sl = CTX_data_scene_layer(C);
+
+		if (BLI_findindex(&sl->layer_collections, lc) == -1) {
+			/* we can't unlink if the layer collection wasn't directly linked */
+			TODO_LAYER_OPERATORS; /* this shouldn't be in the menu in those cases */
+		}
+		else {
+			BKE_collection_unlink(sl, lc);
+			WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
+		}
+	}
+	else if (event == OL_COLLECTION_OP_COLLECTION_DEL) {
+		if (BKE_collection_remove(scene, sc)) {
+			WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
+		}
+		else {
+			/* we can't remove the master collection */
+			TODO_LAYER_OPERATORS; /* this shouldn't be in the menu in those cases */
+		}
 	}
 }
 
@@ -1723,6 +1786,52 @@ void OUTLINER_OT_modifier_operation(wmOperatorType *ot)
 
 /* ******************** */
 
+static EnumPropertyItem prop_collection_op_types[] = {
+    {OL_COLLECTION_OP_OBJECTS_ADD, "OBJECTS_ADD", ICON_ZOOMIN, "Add Selected", "Add selected objects to collection"},
+    {OL_COLLECTION_OP_OBJECTS_REMOVE, "OBJECTS_REMOVE", ICON_X, "Remove Selected", "Remove selected objects from collection"},
+    {OL_COLLECTION_OP_COLLECTION_NEW, "COLLECTION_NEW", ICON_NEW, "New Collection", "Add a new nested collection"},
+    {OL_COLLECTION_OP_COLLECTION_UNLINK, "COLLECTION_UNLINK", ICON_UNLINKED, "Unlink", "Unlink collection"},
+    {OL_COLLECTION_OP_COLLECTION_DEL, "COLLECTION_NEW", ICON_X, "Delete Collection", "Delete the collection"},
+    {0, NULL, 0, NULL, NULL}
+};
+
+static int outliner_collection_operation_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
+	eOutliner_PropCollectionOps event;
+
+	event = RNA_enum_get(op->ptr, "type");
+	set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
+
+	outliner_do_data_operation(soops, datalevel, event, &soops->tree, collection_cb, C);
+
+	outliner_cleanup_tree(soops);
+
+	ED_undo_push(C, "Collection operation");
+
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_collection_operation(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Outliner Collection Operation";
+	ot->idname = "OUTLINER_OT_collection_operation";
+	ot->description = "";
+
+	/* callbacks */
+	ot->invoke = WM_menu_invoke;
+	ot->exec = outliner_collection_operation_exec;
+	ot->poll = ED_operator_outliner_active;
+
+	ot->flag = 0;
+
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_collection_op_types, 0, "Collection Operation", "");
+}
+
+/* ******************** */
+
 // XXX: select linked is for RNA structs only
 static EnumPropertyItem prop_data_op_types[] = {
 	{OL_DOP_SELECT, "SELECT", 0, "Select", ""},
@@ -1896,6 +2005,9 @@ static int do_outliner_operation_event(bContext *C, ARegion *ar, SpaceOops *soop
 				}
 				else if (datalevel == TSE_MODIFIER) {
 					WM_operator_name_call(C, "OUTLINER_OT_modifier_operation", WM_OP_INVOKE_REGION_WIN, NULL);
+				}
+				else if (datalevel == TSE_COLLECTION) {
+					WM_operator_name_call(C, "OUTLINER_OT_collection_operation", WM_OP_INVOKE_REGION_WIN, NULL);
 				}
 				else {
 					WM_operator_name_call(C, "OUTLINER_OT_data_operation", WM_OP_INVOKE_REGION_WIN, NULL);
