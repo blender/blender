@@ -1036,6 +1036,11 @@ void DRW_draw_mode_overlays(void)
 	DRW_draw_manipulator();
 	DRW_draw_region_info();
 }
+#else
+void DRW_draw_pass(DRWPass *UNUSED(pass))
+{
+}
+
 #endif
 
 /* ******************************************* Mode Engine Cache ****************************************** */
