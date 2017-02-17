@@ -23,6 +23,7 @@
  *  \ingroup draw
  */
 
+#include "DRW_engine.h"
 #include "DRW_render.h"
 
 #include "draw_mode_pass.h"
@@ -88,4 +89,11 @@ void OBJECT_draw(void)
 	DRW_draw_pass(psl->wire_outline_pass);
 	DRW_draw_pass(psl->non_meshes_pass);
 	DRW_draw_pass(psl->ob_center_pass);
+}
+
+void OBJECT_collection_settings_create(CollectionEngineSettings *ces)
+{
+	BLI_assert(ces);
+	BKE_collection_engine_property_add_int(ces, "show_wire", false);
+	BKE_collection_engine_property_add_int(ces, "show_backface_culling", false);
 }

@@ -26,8 +26,10 @@
 #ifndef __OBJECT_MODE_H__
 #define __OBJECT_MODE_H__
 
+struct Object;
+
 void OBJECT_cache_init(void);
-void OBJECT_cache_populate(Object *ob);
+void OBJECT_cache_populate(struct Object *ob);
 void OBJECT_cache_finish(void);
 
 void OBJECT_draw(void);

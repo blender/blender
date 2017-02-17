@@ -26,8 +26,10 @@
 #ifndef __EDIT_MODE_H__
 #define __EDIT_MODE_H__
 
+struct Object;
+
 void EDIT_cache_init(void);
-void EDIT_cache_populate(Object *ob);
+void EDIT_cache_populate(struct Object *ob);
 void EDIT_cache_finish(void);
 
 void EDIT_draw(void);

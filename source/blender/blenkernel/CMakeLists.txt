@@ -30,6 +30,7 @@ set(INC
 	../blenloader
 	../blentranslation
 	../depsgraph
+	../draw
 	../gpu
 	../ikplugin
 	../imbuf

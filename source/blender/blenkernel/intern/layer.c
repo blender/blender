@@ -44,6 +44,8 @@
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
+#include "DRW_engine.h"
+
 #include "MEM_guardedalloc.h"
 
 /* prototype */
@@ -820,8 +822,7 @@ static void layer_collection_create_mode_settings_object(ListBase *lb)
 	ces->type = COLLECTION_MODE_OBJECT;
 
 	/* properties */
-	BKE_collection_engine_property_add_int(ces, "show_wire", false);
-	BKE_collection_engine_property_add_int(ces, "show_backface_culling", false);
+	OBJECT_collection_settings_create(ces);
 
 	BLI_addtail(lb, ces);
 }
@@ -835,7 +836,7 @@ static void layer_collection_create_mode_settings_edit(ListBase *lb)
 	ces->type = COLLECTION_MODE_EDIT;
 
 	/* properties */
-	BKE_collection_engine_property_add_int(ces, "show_occlude_wire", false);
+	EDIT_collection_settings_create(ces);
 
 	BLI_addtail(lb, ces);
 }
