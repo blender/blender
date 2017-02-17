@@ -773,32 +773,39 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 
 	/* draw lock */
 	if (seq->flag & SEQ_LOCK) {
-		GPU_basic_shader_bind(GPU_SHADER_STIPPLE | GPU_SHADER_USE_COLOR);
 		glEnable(GL_BLEND);
 
-		/* light stripes */
-		glColor4ub(255, 255, 255, 32);
-		GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_DIAG_STRIPES);
-		glRectf(x1, y1, x2, y2);
+		pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_2D_DIAG_STRIPES);
 
-		/* dark stripes */
-		glColor4ub(0, 0, 0, 32);
-		GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_DIAG_STRIPES_SWAP);
-		glRectf(x1, y1, x2, y2);
+		immUniform4f("color1", 1.0f, 1.0f, 1.0f, 0.125f);
+		immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.125f);
+		immUniform1i("size1", 8);
+		immUniform1i("size2", 8);
 
-		GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
+		immRectf(pos, x1, y1, x2, y2);
+
+		immUnbindProgram();
+
 		glDisable(GL_BLEND);
 	}
 
 	if (!BKE_sequence_is_valid_check(seq)) {
-		GPU_basic_shader_bind(GPU_SHADER_STIPPLE | GPU_SHADER_USE_COLOR);
+		glEnable(GL_BLEND);
 
-		/* panic! */
-		glColor4ub(255, 0, 0, 255);
-		GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_DIAG_STRIPES);
-		glRectf(x1, y1, x2, y2);
+		pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_2D_DIAG_STRIPES);
 
-		GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
+		immUniform4f("color1", 1.0f, 0.0f, 0.0f, 1.0f);
+		immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
+		immUniform1i("size1", 8);
+		immUniform1i("size2", 8);
+
+		immRectf(pos, x1, y1, x2, y2);
+
+		immUnbindProgram();
+
+		glDisable(GL_BLEND);
 	}
 
 	color3ubv_from_seq(scene, seq, col);
