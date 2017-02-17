@@ -92,10 +92,10 @@ class UnitTesting(RenderLayerTesting):
 
         scene = bpy.context.scene
         scene.render_layers.active_index = len(scene.render_layers) - 2
-        self.assertEqual(scene.render_layers.active.name, "Render Layer")
+        self.assertEqual(scene.render_layers.active.name, "Viewport")
 
         # old layer
-        self.assertEqual(bpy.ops.testing.sample(render_layer='Render Layer', use_verbose=True), {'FINISHED'})
+        self.assertEqual(bpy.ops.testing.sample(render_layer='Viewport', use_verbose=True), {'FINISHED'})
 
         # expected to fail
         self.assertTrue(bpy.ops.testing.sample(render_layer=layer.name), {'CANCELLED'})
