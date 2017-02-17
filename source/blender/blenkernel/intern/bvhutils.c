@@ -376,45 +376,6 @@ static void mesh_edges_spherecast(void *userdata, int index, const BVHTreeRay *r
 	}
 }
 
-#define V3_MUL_ELEM(a, b) \
-	(a)[0] * (b)[0], \
-	(a)[1] * (b)[1], \
-	(a)[2] * (b)[2]
-
-/* Callback to bvh tree nearest edge to ray.
- * The tree must have been built using bvhtree_from_mesh_edges.
- * userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree. */
-static void mesh_edges_nearest_to_ray(
-        void *userdata, const float ray_co[3], const float ray_dir[3],
-        const float scale[3], int index, BVHTreeNearest *nearest)
-{
-	struct BVHTreeFromMesh *data = userdata;
-	const MVert *vert = data->vert;
-	const MEdge *e = &data->edge[index];
-
-	const float t0[3]        = {V3_MUL_ELEM(vert[e->v1].co, scale)};
-	const float t1[3]        = {V3_MUL_ELEM(vert[e->v2].co, scale)};
-	const float origin_sc[3] = {V3_MUL_ELEM(ray_co, scale)};
-	const float dir_sc[3]    = {V3_MUL_ELEM(ray_dir, scale)};
-
-	float depth, point[3];
-	const float dist_sq = dist_squared_ray_to_seg_v3(origin_sc, dir_sc, t0, t1, point, &depth);
-
-	if (dist_sq < nearest->dist_sq) {
-		nearest->dist_sq = dist_sq;
-		nearest->index = index;
-
-		point[0] /= scale[0];
-		point[1] /= scale[1];
-		point[2] /= scale[2];
-
-		copy_v3_v3(nearest->co, point);
-		sub_v3_v3v3(nearest->no, t0, t1);
-	}
-}
-
-#undef V3_MUL_ELEM
-
 /** \} */
 
 /*
@@ -499,7 +460,6 @@ static void bvhtree_from_mesh_verts_setup_data(
 	 * remember the min distance to point is the same as the min distance to BV of point */
 	data->nearest_callback = NULL;
 	data->raycast_callback = mesh_verts_spherecast;
-	data->nearest_to_ray_callback = NULL;
 
 	data->vert = vert;
 	data->vert_allocated = vert_allocated;
@@ -524,7 +484,6 @@ BVHTree *bvhtree_from_editmesh_verts_ex(
 		data->em = em;
 		data->nearest_callback = NULL;
 		data->raycast_callback = editmesh_verts_spherecast;
-		data->nearest_to_ray_callback = NULL;
 	}
 
 	return tree;
@@ -707,7 +666,6 @@ static void bvhtree_from_mesh_edges_setup_data(
 
 	data->nearest_callback = mesh_edges_nearest_point;
 	data->raycast_callback = mesh_edges_spherecast;
-	data->nearest_to_ray_callback = mesh_edges_nearest_to_ray;
 
 	data->vert = vert;
 	data->vert_allocated = vert_allocated;
@@ -735,8 +693,6 @@ BVHTree *bvhtree_from_editmesh_edges_ex(
 		data->em = em;
 		data->nearest_callback = NULL;  /* TODO */
 		data->raycast_callback = NULL;  /* TODO */
-		/* TODO: not urgent however since users currently define own callbacks */
-		data->nearest_to_ray_callback = NULL;
 	}
 
 	return tree;
@@ -893,7 +849,6 @@ static void bvhtree_from_mesh_faces_setup_data(
 
 	data->nearest_callback = mesh_faces_nearest_point;
 	data->raycast_callback = mesh_faces_spherecast;
-	data->nearest_to_ray_callback = NULL;
 
 	data->vert = vert;
 	data->vert_allocated = vert_allocated;
@@ -1098,7 +1053,6 @@ static void bvhtree_from_mesh_looptri_setup_data(
 
 	data->nearest_callback = mesh_looptri_nearest_point;
 	data->raycast_callback = mesh_looptri_spherecast;
-	data->nearest_to_ray_callback = NULL;
 
 	data->vert = vert;
 	data->vert_allocated = vert_allocated;
@@ -1152,7 +1106,6 @@ BVHTree *bvhtree_from_editmesh_looptri_ex(
 		data->tree = tree;
 		data->nearest_callback = editmesh_looptri_nearest_point;
 		data->raycast_callback = editmesh_looptri_spherecast;
-		data->nearest_to_ray_callback = NULL;
 		data->sphere_radius = 0.0f;
 		data->em = em;
 		data->cached = bvhCache != NULL;

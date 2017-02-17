@@ -54,7 +54,6 @@ typedef struct BVHTreeFromEditMesh {
 	/* default callbacks to bvh nearest and raycast */
 	BVHTree_NearestPointCallback nearest_callback;
 	BVHTree_RayCastCallback raycast_callback;
-	BVHTree_NearestToRayCallback nearest_to_ray_callback;
 
 	struct BMEditMesh *em;
 
@@ -75,7 +74,6 @@ typedef struct BVHTreeFromMesh {
 	/* default callbacks to bvh nearest and raycast */
 	BVHTree_NearestPointCallback nearest_callback;
 	BVHTree_RayCastCallback raycast_callback;
-	BVHTree_NearestToRayCallback nearest_to_ray_callback;
 
 	/* Vertex array, so that callbacks have instante access to data */
 	const struct MVert *vert;
