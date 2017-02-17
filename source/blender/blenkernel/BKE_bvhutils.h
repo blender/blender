@@ -104,7 +104,7 @@ typedef struct BVHTreeFromMesh {
  * The tree is build in mesh space coordinates, this means special care must be made on queries
  * so that the coordinates and rays are first translated on the mesh local coordinates.
  * Reason for this is that bvh_from_mesh_* can use a cache in some cases and so it becomes possible to reuse a BVHTree.
- * 
+ *
  * free_bvhtree_from_mesh should be called when the tree is no longer needed.
  */
 BVHTree *bvhtree_from_editmesh_verts(
@@ -118,7 +118,7 @@ BVHTree *bvhtree_from_editmesh_verts_ex(
 BVHTree *bvhtree_from_mesh_verts(
         struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon, int tree_type, int axis);
 BVHTree *bvhtree_from_mesh_verts_ex(
-        struct BVHTreeFromMesh *data, struct MVert *vert, const int numVerts,
+        struct BVHTreeFromMesh *data, const struct MVert *vert, const int numVerts,
         const bool vert_allocated, const BLI_bitmap *mask, int verts_num_active,
         float epsilon, int tree_type, int axis);
 
@@ -135,8 +135,8 @@ BVHTree *bvhtree_from_mesh_edges(
         float epsilon, int tree_type, int axis);
 BVHTree *bvhtree_from_mesh_edges_ex(
         struct BVHTreeFromMesh *data,
-        struct MVert *vert, const bool vert_allocated,
-        struct MEdge *edge, const int edges_num, const bool edge_allocated,
+        const struct MVert *vert, const bool vert_allocated,
+        const struct MEdge *edge, const int edges_num, const bool edge_allocated,
         const BLI_bitmap *edges_mask, int edges_num_active,
         float epsilon, int tree_type, int axis);
 
@@ -145,8 +145,8 @@ BVHTree *bvhtree_from_mesh_faces(
         int tree_type, int axis);
 BVHTree *bvhtree_from_mesh_faces_ex(
         struct BVHTreeFromMesh *data,
-        struct MVert *vert, const bool vert_allocated,
-        struct MFace *face, const int numFaces, const bool face_allocated,
+        const struct MVert *vert, const bool vert_allocated,
+        const struct MFace *face, const int numFaces, const bool face_allocated,
         const BLI_bitmap *mask, int numFaces_active,
         float epsilon, int tree_type, int axis);
 
