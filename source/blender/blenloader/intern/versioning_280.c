@@ -173,7 +173,7 @@ void do_versions_after_linking_280(Main *main)
 	}
 }
 
-void blo_do_version_temporary(Main *main)
+static void blo_do_version_temporary(Main *main)
 {
 	BKE_scene_layer_doversion_update(main);
 }
