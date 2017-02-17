@@ -135,6 +135,19 @@ static int rna_Object_select_get(Object *ob, bContext *C, ReportList *reports)
 	return ((base->flag & BASE_SELECTED) != 0) ? 1 : 0;
 }
 
+static int rna_Object_visible_get(Object *ob, bContext *C, ReportList *reports)
+{
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	Base *base = BKE_scene_layer_base_find(sl, ob);
+
+	if (!base) {
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in Render Layer '%s'!", ob->id.name + 2, sl->name);
+		return -1;
+	}
+
+	return ((base->flag & BASE_VISIBLED) != 0) ? 1 : 0;
+}
+
 /* Convert a given matrix from a space to another (using the object and/or a bone as reference). */
 static void rna_Scene_mat_convert_space(Object *ob, ReportList *reports, bPoseChannel *pchan,
                                         float *mat, float *mat_ret, int from, int to)
@@ -567,6 +580,12 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Get the object selection for the active render layer");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	parm = RNA_def_boolean(func, "result", 0, "", "Object selected");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "visible_get", "rna_Object_visible_get");
+	RNA_def_function_ui_description(func, "Get the object visibility for the active render layer");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	parm = RNA_def_boolean(func, "result", 0, "", "Object visible");
 	RNA_def_function_return(func, parm);
 
 	/* Matrix space conversion */
