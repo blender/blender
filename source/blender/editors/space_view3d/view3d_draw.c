@@ -2356,6 +2356,7 @@ void view3d_main_region_draw(const bContext *C, ARegion *ar)
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
+	int mode = CTX_data_mode_enum(C);
 	RegionView3D *rv3d = ar->regiondata;
 	/* TODO layers - In the future we should get RE from Layers */
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
@@ -2368,7 +2369,7 @@ void view3d_main_region_draw(const bContext *C, ARegion *ar)
 	if (!rv3d->viewport)
 		rv3d->viewport = GPU_viewport_create();
 
-	GPU_viewport_bind(rv3d->viewport, &ar->winrct, scene->r.engine);
+	GPU_viewport_bind(rv3d->viewport, &ar->winrct, scene->r.engine, mode);
 
 	/* TODO viewport - there is so much to be done, in fact a lot will need to happen in the space_view3d.c
 	 * before we even call the drawing routine, but let's move on for now (dfelinto)

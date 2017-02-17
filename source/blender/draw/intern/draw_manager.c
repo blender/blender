@@ -53,6 +53,8 @@
 
 #include "UI_resources.h"
 
+#include "object_mode.h"
+#include "edit_mode.h"
 #include "clay.h"
 
 #define MAX_ATTRIB_NAME 32
@@ -159,9 +161,10 @@ enum {
 static struct DRWGlobalState{
 	GPUShader *shader;
 	struct GPUFrameBuffer *default_framebuffer;
-	FramebufferList *current_fbl;
-	TextureList *current_txl;
-	PassList *current_psl;
+	FramebufferList *fbl, *fbl_mode;
+	TextureList *txl, *txl_mode;
+	PassList *psl, *psl_mode;
+	StorageList *stl, *stl_mode;
 	ListBase bound_texs;
 	int tex_bind_id;
 	float size[2];
@@ -852,15 +855,15 @@ static void draw_shgroup(DRWShadingGroup *shgroup)
 				break;
 			case DRW_UNIFORM_BUFFER:
 				/* restore index from lenght we abused */
-				GPU_texture_bind(DST.current_txl->textures[uni->length], uni->bindloc);
-				GPU_texture_compare_mode(DST.current_txl->textures[uni->length], false);
-				GPU_texture_filter_mode(DST.current_txl->textures[uni->length], false);
+				GPU_texture_bind(DST.txl->textures[uni->length], uni->bindloc);
+				GPU_texture_compare_mode(DST.txl->textures[uni->length], false);
+				GPU_texture_filter_mode(DST.txl->textures[uni->length], false);
 				
 				bound_tex = MEM_callocN(sizeof(DRWBoundTexture), "DRWBoundTexture");
-				bound_tex->tex = DST.current_txl->textures[uni->length];
+				bound_tex->tex = DST.txl->textures[uni->length];
 				BLI_addtail(&DST.bound_texs, bound_tex);
 
-				GPU_shader_uniform_texture(shgroup->shader, uni->location, DST.current_txl->textures[uni->length]);
+				GPU_shader_uniform_texture(shgroup->shader, uni->location, DST.txl->textures[uni->length]);
 				break;
 			case DRW_UNIFORM_BLOCK:
 				GPU_uniformbuffer_bind((GPUUniformBuffer *)uni->value, uni->bindloc);
@@ -1013,7 +1016,74 @@ void DRW_state_reset(void)
 	state |= DRW_STATE_DEPTH_LESS;
 	set_state(state);
 }
+
+void DRW_draw_mode_overlays(void)
+{
+	const bContext *C = DRW_get_context();
+	int mode = CTX_data_mode_enum(C);
+
+	DRW_draw_grid();
+
+	switch (mode) {
+		case CTX_MODE_EDIT_MESH:
+			EDIT_draw();
+			break;
+		case CTX_MODE_OBJECT:
+			OBJECT_draw();
+			break;
+	}
+
+	DRW_draw_manipulator();
+	DRW_draw_region_info();
+}
 #endif
+
+/* ******************************************* Mode Engine Cache ****************************************** */
+void DRW_mode_cache_init(void)
+{
+	const bContext *C = DRW_get_context();
+	int mode = CTX_data_mode_enum(C);
+
+	switch (mode) {
+		case CTX_MODE_EDIT_MESH:
+			EDIT_cache_init();
+			break;
+		case CTX_MODE_OBJECT:
+			OBJECT_cache_init();
+			break;
+	}
+}
+
+void DRW_mode_cache_populate(Object *ob)
+{
+	const bContext *C = DRW_get_context();
+	int mode = CTX_data_mode_enum(C);
+
+	switch (mode) {
+		case CTX_MODE_EDIT_MESH:
+			EDIT_cache_populate(ob);
+			break;
+		case CTX_MODE_OBJECT:
+			OBJECT_cache_populate(ob);
+			break;
+	}
+}
+
+void DRW_mode_cache_finish(void)
+{
+	const bContext *C = DRW_get_context();
+	int mode = CTX_data_mode_enum(C);
+
+	switch (mode) {
+		case CTX_MODE_EDIT_MESH:
+			EDIT_cache_finish();
+			break;
+		case CTX_MODE_OBJECT:
+			OBJECT_cache_finish();
+			break;
+	}
+}
+
 /* ****************************************** Settings ******************************************/
 void *DRW_material_settings_get(Material *ma, const char *engine_name)
 {
@@ -1155,24 +1225,21 @@ float *DRW_viewport_pixelsize_get(void)
 	return &DST.pixsize;
 }
 
-void DRW_viewport_init(const bContext *C, void **buffers, void **textures, void **passes, void **storage)
+void DRW_viewport_init(const bContext *C)
 {
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	GPUViewport *viewport = rv3d->viewport;
 
-	GPU_viewport_get_engine_data(viewport, buffers, textures, passes, storage);
+	GPU_viewport_get_engine_data(viewport, &DST.fbl, &DST.txl, &DST.psl, &DST.stl);
+	GPU_viewport_get_mode_data(viewport, &DST.fbl_mode, &DST.txl_mode, &DST.psl_mode, &DST.stl_mode);
 
 	/* Refresh DST.size */
-	DefaultTextureList *txl = (DefaultTextureList *)*textures;
+	DefaultTextureList *txl = (DefaultTextureList *)DST.txl;
 	DST.size[0] = (float)GPU_texture_width(txl->color);
 	DST.size[1] = (float)GPU_texture_height(txl->color);
 
-	DefaultFramebufferList *fbl = (DefaultFramebufferList *)*buffers;
+	DefaultFramebufferList *fbl = (DefaultFramebufferList *)DST.fbl;
 	DST.default_framebuffer = fbl->default_fb;
-
-	DST.current_txl = (TextureList *)*textures;
-	DST.current_fbl = (FramebufferList *)*buffers;
-	DST.current_psl = (PassList *)*passes;
 
 	/* Refresh DST.screenvecs */
 	copy_v3_v3(DST.screenvecs[0], rv3d->viewinv[0]);
@@ -1208,7 +1275,7 @@ bool DRW_viewport_is_persp_get(void)
 bool DRW_viewport_cache_is_dirty(void)
 {
 	/* TODO Use a dirty flag */
-	return (DST.current_psl->passes[0] == NULL);
+	return (DST.psl->passes[0] == NULL);
 }
 
 /* ****************************************** OTHER ***************************************** */
@@ -1216,6 +1283,46 @@ bool DRW_viewport_cache_is_dirty(void)
 const bContext *DRW_get_context(void)
 {
 	return DST.context;
+}
+
+void *DRW_engine_pass_list_get(void)
+{
+	return DST.psl;
+}
+
+void *DRW_engine_storage_list_get(void)
+{
+	return DST.stl;
+}
+
+void *DRW_engine_texture_list_get(void)
+{
+	return DST.txl;
+}
+
+void *DRW_engine_framebuffer_list_get(void)
+{
+	return DST.fbl;
+}
+
+void *DRW_mode_pass_list_get(void)
+{
+	return DST.psl_mode;
+}
+
+void *DRW_mode_storage_list_get(void)
+{
+	return DST.stl_mode;
+}
+
+void *DRW_mode_texture_list_get(void)
+{
+	return DST.txl_mode;
+}
+
+void *DRW_mode_framebuffer_list_get(void)
+{
+	return DST.fbl_mode;
 }
 
 /* ****************************************** INIT ***************************************** */

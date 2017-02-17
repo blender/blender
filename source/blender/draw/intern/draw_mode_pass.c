@@ -76,6 +76,13 @@ static float colorActive[4], colorSelect[4], colorTransform[4], colorGroup[4], c
 static float colorEmpty[4], colorLamp[4], colorCamera[4], colorSpeaker[4];
 static float lampCenterSize, lampCircleRad, lampCircleShadowRad, colorLampNoAlpha[4];
 
+/* Store list of passes for easy access */
+static DRWPass *wire_overlay;
+static DRWPass *wire_overlay_hidden_wire;
+static DRWPass *wire_outline;
+static DRWPass *non_meshes;
+static DRWPass *ob_center;
+
 static DRWShadingGroup *shgroup_dynlines_uniform_color(DRWPass *pass, float color[4])
 {
 	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -160,9 +167,13 @@ static DRWShadingGroup *shgroup_instance(DRWPass *pass, struct Batch *geom)
 }
 
 /* This Function setup the passes needed for the mode rendering.
- * The passes are populated by the rendering engine using the DRW_shgroup_* functions. */
-void DRW_pass_setup_common(DRWPass **wire_overlay, DRWPass **wire_outline, DRWPass **wire_outline_pass_hidden_wire,
-                           DRWPass **non_meshes, DRWPass **ob_center)
+ * The passes are populated by the rendering engines using the DRW_shgroup_* functions.
+ * If a pass is not needed use NULL instead of the pass pointer */
+void DRW_mode_passes_setup(DRWPass **psl_wire_overlay,
+                           DRWPass **psl_wire_overlay_hidden_wire,
+                           DRWPass **psl_wire_outline,
+                           DRWPass **psl_non_meshes,
+                           DRWPass **psl_ob_center)
 {
 	UI_GetThemeColor4fv(TH_WIRE, colorWire);
 	UI_GetThemeColor4fv(TH_WIRE_EDIT, colorWireEdit);
@@ -179,67 +190,65 @@ void DRW_pass_setup_common(DRWPass **wire_overlay, DRWPass **wire_outline, DRWPa
 
 	colorLampNoAlpha[3] = 1.0f;
 
-	if (wire_overlay) {
+	if (psl_wire_overlay) {
 		/* This pass can draw mesh edges top of Shaded Meshes without any Z fighting */
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_BLEND;
-		*wire_overlay = DRW_pass_create("Wire Overlays Pass", state);
+		*psl_wire_overlay = DRW_pass_create("Wire Overlays Pass", state);
 	}
 
-	if (wire_outline) {
+	if (psl_wire_overlay_hidden_wire) {
+		/* This pass can draw mesh edges top of Shaded Meshes without any Z fighting */
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
+		*psl_wire_overlay_hidden_wire = DRW_pass_create("Wire Overlays Pass", state);
+	}
+
+	if (psl_wire_outline) {
 		/* This pass can draw mesh outlines and/or fancy wireframe */
 		/* Fancy wireframes are not meant to be occluded (without Z offset) */
 		/* Outlines and Fancy Wires use the same VBO */
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
-		*wire_outline = DRW_pass_create("Wire + Outlines Pass", state);
+		*psl_wire_outline = DRW_pass_create("Wire + Outlines Pass", state);
 	}
 
-	if (wire_outline_pass_hidden_wire) {
-		/* This pass can draw mesh outlines and/or fancy wireframe */
-		/* Fancy wireframes are not meant to be occluded (without Z offset) */
-		/* Outlines and Fancy Wires use the same VBO */
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
-		*wire_outline_pass_hidden_wire = DRW_pass_create("Wire + Outlines Pass", state);
-	}
-
-	if (non_meshes) {
+	if (psl_non_meshes) {
 		/* Non Meshes Pass (Camera, empties, lamps ...) */
 		struct Batch *geom;
 
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
 		state |= DRW_STATE_WIRE;
-		*non_meshes = DRW_pass_create("Non Meshes Pass", state);
+		*psl_non_meshes = DRW_pass_create("Non Meshes Pass", state);
 
 		/* Empties */
 		geom = DRW_cache_plain_axes_get();
-		plain_axes = shgroup_instance(*non_meshes, geom);
+		plain_axes = shgroup_instance(*psl_non_meshes, geom);
 
 		geom = DRW_cache_cube_get();
-		cube = shgroup_instance(*non_meshes, geom);
+		cube = shgroup_instance(*psl_non_meshes, geom);
 
 		geom = DRW_cache_circle_get();
-		circle = shgroup_instance(*non_meshes, geom);
+		circle = shgroup_instance(*psl_non_meshes, geom);
 
 		geom = DRW_cache_empty_sphere_get();
-		sphere = shgroup_instance(*non_meshes, geom);
+		sphere = shgroup_instance(*psl_non_meshes, geom);
 
 		geom = DRW_cache_empty_cone_get();
-		cone = shgroup_instance(*non_meshes, geom);
+		cone = shgroup_instance(*psl_non_meshes, geom);
 
 		geom = DRW_cache_single_arrow_get();
-		single_arrow = shgroup_instance(*non_meshes, geom);
+		single_arrow = shgroup_instance(*psl_non_meshes, geom);
 
 		geom = DRW_cache_single_line_get();
-		single_arrow_line = shgroup_instance(*non_meshes, geom);
+		single_arrow_line = shgroup_instance(*psl_non_meshes, geom);
 
 		geom = DRW_cache_arrows_get();
-		arrows = shgroup_instance(*non_meshes, geom);
+		arrows = shgroup_instance(*psl_non_meshes, geom);
 
 		geom = DRW_cache_axis_names_get();
-		axis_names = shgroup_instance_axis_names(*non_meshes, geom);
+		axis_names = shgroup_instance_axis_names(*psl_non_meshes, geom);
 
 		/* Speaker */
 		geom = DRW_cache_speaker_get();
-		speaker = shgroup_instance(*non_meshes, geom);
+		speaker = shgroup_instance(*psl_non_meshes, geom);
 
 		/* Lamps */
 		lampCenterSize = (U.obcenter_dia + 1.5f) * U.pixelsize;
@@ -248,32 +257,32 @@ void DRW_pass_setup_common(DRWPass **wire_overlay, DRWPass **wire_outline, DRWPa
 		/* TODO
 		 * for now we create 3 times the same VBO with only lamp center coordinates
 		 * but ideally we would only create it once */
-		lamp_center = shgroup_dynpoints_uniform_color(*non_meshes, colorLampNoAlpha, &lampCenterSize);
-		lamp_center_group = shgroup_dynpoints_uniform_color(*non_meshes, colorGroup, &lampCenterSize);
+		lamp_center = shgroup_dynpoints_uniform_color(*psl_non_meshes, colorLampNoAlpha, &lampCenterSize);
+		lamp_center_group = shgroup_dynpoints_uniform_color(*psl_non_meshes, colorGroup, &lampCenterSize);
 
 		geom = DRW_cache_lamp_get();
-		lamp_circle = shgroup_instance_screenspace(*non_meshes, geom, &lampCircleRad);
-		lamp_circle_shadow = shgroup_instance_screenspace(*non_meshes, geom, &lampCircleShadowRad);
+		lamp_circle = shgroup_instance_screenspace(*psl_non_meshes, geom, &lampCircleRad);
+		lamp_circle_shadow = shgroup_instance_screenspace(*psl_non_meshes, geom, &lampCircleShadowRad);
 
 		geom = DRW_cache_lamp_sunrays_get();
-		lamp_sunrays = shgroup_instance_screenspace(*non_meshes, geom, &lampCircleRad);
+		lamp_sunrays = shgroup_instance_screenspace(*psl_non_meshes, geom, &lampCircleRad);
 
-		lamp_groundline = shgroup_groundlines_uniform_color(*non_meshes, colorLamp);
-		lamp_groundpoint = shgroup_groundpoints_uniform_color(*non_meshes, colorLamp);
+		lamp_groundline = shgroup_groundlines_uniform_color(*psl_non_meshes, colorLamp);
+		lamp_groundpoint = shgroup_groundpoints_uniform_color(*psl_non_meshes, colorLamp);
 
 		/* Relationship Lines */
-		relationship_lines = shgroup_dynlines_uniform_color(*non_meshes, colorWire);
+		relationship_lines = shgroup_dynlines_uniform_color(*psl_non_meshes, colorWire);
 		DRW_shgroup_state_set(relationship_lines, DRW_STATE_STIPPLE_3);
 	}
 
-	if (ob_center) {
+	if (psl_ob_center) {
 		/* Object Center pass grouped by State */
 		DRWShadingGroup *grp;
 		static float colorDeselect[4], outlineColor[4];
 		static float outlineWidth, size;
 
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND | DRW_STATE_POINT;
-		*ob_center = DRW_pass_create("Obj Center Pass", state);
+		*psl_ob_center = DRW_pass_create("Obj Center Pass", state);
 
 		outlineWidth = 1.0f * U.pixelsize;
 		size = U.obcenter_dia * U.pixelsize + outlineWidth;
@@ -285,7 +294,7 @@ void DRW_pass_setup_common(DRWPass **wire_overlay, DRWPass **wire_outline, DRWPa
 		GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_SMOOTH);
 
 		/* Active */
-		grp = DRW_shgroup_point_batch_create(sh, *ob_center);
+		grp = DRW_shgroup_point_batch_create(sh, *psl_ob_center);
 		DRW_shgroup_uniform_float(grp, "size", &size, 1);
 		DRW_shgroup_uniform_float(grp, "outlineWidth", &outlineWidth, 1);
 		DRW_shgroup_uniform_vec4(grp, "color", colorActive, 1);
@@ -293,15 +302,22 @@ void DRW_pass_setup_common(DRWPass **wire_overlay, DRWPass **wire_outline, DRWPa
 		center_active = grp;
 
 		/* Select */
-		grp = DRW_shgroup_point_batch_create(sh, *ob_center);
+		grp = DRW_shgroup_point_batch_create(sh, *psl_ob_center);
 		DRW_shgroup_uniform_vec4(grp, "color", colorSelect, 1);
 		center_selected = grp;
 
 		/* Deselect */
-		grp = DRW_shgroup_point_batch_create(sh, *ob_center);
+		grp = DRW_shgroup_point_batch_create(sh, *psl_ob_center);
 		DRW_shgroup_uniform_vec4(grp, "color", colorDeselect, 1);
 		center_deselected = grp;
 	}
+
+	/* Save passes refs */
+	wire_overlay = (psl_wire_overlay) ? *psl_wire_overlay : NULL;
+	wire_overlay_hidden_wire = (psl_wire_overlay_hidden_wire) ? *psl_wire_overlay_hidden_wire : NULL;
+	wire_outline = (psl_wire_outline) ? *psl_wire_outline : NULL;
+	non_meshes = (psl_non_meshes) ? *psl_non_meshes : NULL;
+	ob_center = (psl_ob_center) ? *psl_ob_center : NULL;
 }
 
 /* ******************************************** WIRES *********************************************** */
@@ -373,7 +389,7 @@ static int draw_object_wire_theme(Object *ob, float **color)
 	return theme_id;
 }
 
-void DRW_shgroup_wire_overlay(DRWPass *wire_overlay, Object *ob)
+void DRW_shgroup_wire_overlay(Object *ob)
 {
 #if 1
 	struct Batch *geom = DRW_cache_wire_overlay_get(ob);
@@ -395,8 +411,7 @@ void DRW_shgroup_wire_overlay(DRWPass *wire_overlay, Object *ob)
 #endif
 }
 
-void DRW_shgroup_wire_outline(DRWPass *wire_outline, Object *ob,
-                              const bool do_front, const bool do_back, const bool do_outline)
+void DRW_shgroup_wire_outline(Object *ob, const bool do_front, const bool do_back, const bool do_outline)
 {
 	GPUShader *sh;
 	struct Batch *geom = DRW_cache_wire_outline_get(ob);
@@ -459,7 +474,7 @@ void DRW_shgroup_wire_outline(DRWPass *wire_outline, Object *ob,
 
 /* ***************************** NON MESHES ********************** */
 
-static void DRW_draw_lamp(Object *ob)
+void DRW_shgroup_lamp(Object *ob)
 {
 	Lamp *la = ob->data;
 	float *color;
@@ -489,7 +504,7 @@ static void DRW_draw_lamp(Object *ob)
 	DRW_shgroup_dynamic_call_add(lamp_groundpoint, ob->obmat[3]);
 }
 
-static void DRW_draw_empty(Object *ob)
+void DRW_shgroup_empty(Object *ob)
 {
 	float *color;
 	draw_object_wire_theme(ob, &color);
@@ -517,12 +532,11 @@ static void DRW_draw_empty(Object *ob)
 		case OB_ARROWS:
 			DRW_shgroup_dynamic_call_add(arrows, color, &ob->empty_drawsize, ob->obmat);
 			DRW_shgroup_dynamic_call_add(axis_names, color, &ob->empty_drawsize, ob->obmat);
-			/* TODO Missing axes names */
 			break;
 	}
 }
 
-static void DRW_draw_speaker(Object *ob)
+void DRW_shgroup_speaker(Object *ob)
 {
 	float *color;
 	static float one = 1.0f;
@@ -531,25 +545,7 @@ static void DRW_draw_speaker(Object *ob)
 	DRW_shgroup_dynamic_call_add(speaker, color, &one, ob->obmat);
 }
 
-void DRW_shgroup_non_meshes(DRWPass *UNUSED(non_meshes), Object *ob)
-{
-	switch (ob->type) {
-		case OB_LAMP:
-			DRW_draw_lamp(ob);
-			break;
-		case OB_CAMERA:
-		case OB_EMPTY:
-			DRW_draw_empty(ob);
-			break;
-		case OB_SPEAKER:
-			DRW_draw_speaker(ob);
-			break;
-		default:
-			break;
-	}
-}
-
-void DRW_shgroup_relationship_lines(DRWPass *UNUSED(non_meshes), Object *ob)
+void DRW_shgroup_relationship_lines(Object *ob)
 {
 	if (ob->parent) {
 		DRW_shgroup_dynamic_call_add(relationship_lines, ob->obmat[3]);
@@ -559,7 +555,7 @@ void DRW_shgroup_relationship_lines(DRWPass *UNUSED(non_meshes), Object *ob)
 
 /* ***************************** COMMON **************************** */
 
-void DRW_shgroup_object_center(DRWPass *UNUSED(ob_center), Object *ob)
+void DRW_shgroup_object_center(Object *ob)
 {
 	if ((ob->base_flag & BASE_SELECTED) != 0) {
 		DRW_shgroup_dynamic_call_add(center_selected, ob->obmat[3]);

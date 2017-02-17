@@ -27,6 +27,7 @@ set(INC
 	.
 	intern
 	engines/clay
+	modes/
 
 	../blenkernel
 	../blenlib
@@ -55,12 +56,16 @@ set(SRC
 	intern/draw_cache.c
 	intern/draw_view.c
 	engines/clay/clay.c
+	modes/edit_mode.c
+	modes/object_mode.c
 
 	intern/DRW_render.h
 	intern/draw_mode_pass.h
 	intern/draw_cache.h
 	intern/draw_view.h
 	engines/clay/clay.h
+	modes/edit_mode.h
+	modes/object_mode.h
 
 	./DRW_engine.h
 )

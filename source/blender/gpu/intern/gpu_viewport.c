@@ -56,18 +56,24 @@ struct GPUViewport {
 	int size[2];
 
 	/* Viewport Buffer Storage */
-	/* TODO indentify to what engine conf are theses buffers */
-	DefaultFramebufferList *fbl;
-	DefaultTextureList *txl;
-	DefaultPassList *psl;
+	FramebufferList *fbl;
+	TextureList *txl;
+	PassList *psl;
 	StorageList *stl;
 
 	char engine_name[32];
+
+	/* Mode storage */
+	FramebufferList *fbl_mode;
+	TextureList *txl_mode;
+	PassList *psl_mode;
+	StorageList *stl_mode;
+	int mode;
 };
 
-static void GPU_viewport_buffers_free(GPUViewport *viewport);
-static void GPU_viewport_passes_free(GPUViewport *viewport);
-static void GPU_viewport_storage_free(GPUViewport *viewport);
+static void GPU_viewport_buffers_free(FramebufferList *fbl, TextureList *txl);
+static void GPU_viewport_storage_free(StorageList *stl);
+static void GPU_viewport_passes_free(PassList *psl);
 
 GPUViewport *GPU_viewport_create(void)
 {
@@ -76,12 +82,16 @@ GPUViewport *GPU_viewport_create(void)
 	viewport->txl = MEM_callocN(sizeof(TextureList), "TextureList");
 	viewport->psl = MEM_callocN(sizeof(PassList), "PassList");
 	viewport->stl = MEM_callocN(sizeof(StorageList), "StorageList");
+	viewport->fbl_mode = MEM_callocN(sizeof(FramebufferList), "FramebufferList");
+	viewport->txl_mode = MEM_callocN(sizeof(TextureList), "TextureList");
+	viewport->psl_mode = MEM_callocN(sizeof(PassList), "PassList");
+	viewport->stl_mode = MEM_callocN(sizeof(StorageList), "StorageList");
 	viewport->size[0] = viewport->size[1] = -1;
 
 	return viewport;
 }
 
-void GPU_viewport_get_engine_data(GPUViewport *viewport, void **fbs, void **txs, void **pss, void **str)
+void GPU_viewport_get_engine_data(GPUViewport *viewport, FramebufferList **fbs, TextureList **txs, PassList **pss, StorageList **str)
 {
 	*fbs = viewport->fbl;
 	*txs = viewport->txl;
@@ -89,64 +99,85 @@ void GPU_viewport_get_engine_data(GPUViewport *viewport, void **fbs, void **txs,
 	*str = viewport->stl;
 }
 
-void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect, const char *engine)
+void GPU_viewport_get_mode_data(GPUViewport *viewport, FramebufferList **fbs, TextureList **txs, PassList **pss, StorageList **str)
 {
+	*fbs = viewport->fbl_mode;
+	*txs = viewport->txl_mode;
+	*pss = viewport->psl_mode;
+	*str = viewport->stl_mode;
+}
+
+void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect, const char *engine, int mode)
+{
+	DefaultFramebufferList *dfbl = (DefaultFramebufferList *)viewport->fbl;
+	DefaultTextureList *dtxl = (DefaultTextureList *)viewport->txl;
+
 	/* add one pixel because of scissor test */
 	int rect_w = BLI_rcti_size_x(rect) + 1, rect_h = BLI_rcti_size_y(rect) + 1;
 
 #ifndef WITH_VIEWPORT_CACHE_TEST
 	/* TODO for testing only, we need proper cache invalidation */
-	GPU_viewport_passes_free(viewport);
+	GPU_viewport_passes_free(viewport->psl);
+	GPU_viewport_passes_free(viewport->psl_mode);
 #endif
 
 	if (!STREQ(engine, viewport->engine_name)) {
-		GPU_viewport_storage_free(viewport);
-		GPU_viewport_buffers_free(viewport);
+		GPU_viewport_storage_free(viewport->stl);
+		GPU_viewport_buffers_free(viewport->fbl, viewport->txl);
 
 		BLI_strncpy(viewport->engine_name, engine, 32);
 	}
 
-	if (viewport->fbl->default_fb) {
+	if (mode != viewport->mode) {
+		GPU_viewport_buffers_free(viewport->fbl_mode, viewport->txl_mode);
+		GPU_viewport_passes_free(viewport->psl_mode);
+		GPU_viewport_storage_free(viewport->stl_mode);
+
+		viewport->mode = mode;
+	}
+
+	if (dfbl->default_fb) {
 		if (rect_w != viewport->size[0] || rect_h != viewport->size[1]) {
-			GPU_viewport_buffers_free(viewport);
+			GPU_viewport_buffers_free(viewport->fbl, viewport->txl);
+			GPU_viewport_buffers_free(viewport->fbl_mode, viewport->txl_mode);
 		}
 	}
 
-	if (!viewport->fbl->default_fb) {
+	if (!dfbl->default_fb) {
 		bool ok = true;
 		viewport->size[0] = rect_w;
 		viewport->size[1] = rect_h;
 
-		viewport->fbl->default_fb = GPU_framebuffer_create();
-		if (!viewport->fbl->default_fb) {
+		dfbl->default_fb = GPU_framebuffer_create();
+		if (!dfbl->default_fb) {
 			ok = false;
 			goto cleanup;
 		}
 
 		/* Color */
 		/* No multi samples for now */
-		viewport->txl->color = GPU_texture_create_2D(rect_w, rect_h, NULL, NULL);
-		if (!viewport->txl->color) {
+		dtxl->color = GPU_texture_create_2D(rect_w, rect_h, NULL, NULL);
+		if (!dtxl->color) {
 			ok = false;
 			goto cleanup;
 		}
 
-		if (!GPU_framebuffer_texture_attach(viewport->fbl->default_fb, viewport->txl->color, 0)) {
+		if (!GPU_framebuffer_texture_attach(dfbl->default_fb, dtxl->color, 0)) {
 			ok = false;
 			goto cleanup;
 		}
 
 		/* Depth */
-		viewport->txl->depth = GPU_texture_create_depth(rect_w, rect_h, NULL);
-		if (!viewport->txl->depth) {
+		dtxl->depth = GPU_texture_create_depth(rect_w, rect_h, NULL);
+		if (!dtxl->depth) {
 			ok = false;
 			goto cleanup;
 		}
-		else if (!GPU_framebuffer_texture_attach(viewport->fbl->default_fb, viewport->txl->depth, 0)) {
+		else if (!GPU_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0)) {
 			ok = false;
 			goto cleanup;
 		}
-		else if (!GPU_framebuffer_check_valid(viewport->fbl->default_fb, NULL)) {
+		else if (!GPU_framebuffer_check_valid(dfbl->default_fb, NULL)) {
 			ok = false;
 			goto cleanup;
 		}
@@ -161,12 +192,14 @@ cleanup:
 		GPU_framebuffer_restore();
 	}
 
-	GPU_framebuffer_slots_bind(viewport->fbl->default_fb, 0);
+	GPU_framebuffer_slots_bind(dfbl->default_fb, 0);
 }
 
 static void draw_ofs_to_screen(GPUViewport *viewport)
 {
-	GPUTexture *color = viewport->txl->color;
+	DefaultTextureList *dtxl = (DefaultTextureList *)viewport->txl;
+
+	GPUTexture *color = dtxl->color;
 
 	const float w = (float)GPU_texture_width(color);
 	const float h = (float)GPU_texture_height(color);
@@ -204,7 +237,9 @@ static void draw_ofs_to_screen(GPUViewport *viewport)
 
 void GPU_viewport_unbind(GPUViewport *viewport)
 {
-	if (viewport->fbl->default_fb) {
+	DefaultFramebufferList *dfbl = (DefaultFramebufferList *)viewport->fbl;
+
+	if (dfbl->default_fb) {
 		GPU_framebuffer_texture_unbind(NULL, NULL);
 		GPU_framebuffer_restore();
 
@@ -215,10 +250,8 @@ void GPU_viewport_unbind(GPUViewport *viewport)
 	}
 }
 
-static void GPU_viewport_buffers_free(GPUViewport *viewport)
+static void GPU_viewport_buffers_free(FramebufferList *fbl, TextureList *txl)
 {
-	FramebufferList *fbl = (FramebufferList *)viewport->fbl;
-	TextureList *txl = (TextureList *)viewport->txl;
 	int i;
 	for (i = MAX_BUFFERS - 1; i > -1; --i) {
 		GPUFrameBuffer *fb = fbl->framebuffers[i];
@@ -236,10 +269,8 @@ static void GPU_viewport_buffers_free(GPUViewport *viewport)
 	}
 }
 
-static void GPU_viewport_storage_free(GPUViewport *viewport)
+static void GPU_viewport_storage_free(StorageList *stl)
 {
-	StorageList *stl = (StorageList *)viewport->stl;
-
 	for (int i = MAX_STORAGE - 1; i > -1; --i) {
 		void *storage = stl->storage[i];
 		if (storage) {
@@ -249,12 +280,9 @@ static void GPU_viewport_storage_free(GPUViewport *viewport)
 	}
 }
 
-static void GPU_viewport_passes_free(GPUViewport *viewport)
+static void GPU_viewport_passes_free(PassList *psl)
 {
-	PassList *psl = (PassList *)viewport->psl;
-	int i;
-
-	for (i = MAX_PASSES - 1; i > -1; --i) {
+	for (int i = MAX_PASSES - 1; i > -1; --i) {
 		struct DRWPass *pass = psl->passes[i];
 		if (pass) {
 			DRW_pass_free(pass);
@@ -267,14 +295,24 @@ static void GPU_viewport_passes_free(GPUViewport *viewport)
 void GPU_viewport_free(GPUViewport *viewport)
 {
 	GPU_viewport_debug_depth_free(viewport);
-	GPU_viewport_buffers_free(viewport);
-	GPU_viewport_passes_free(viewport);
-	GPU_viewport_storage_free(viewport);
+
+	GPU_viewport_buffers_free(viewport->fbl, viewport->txl);
+	GPU_viewport_passes_free(viewport->psl);
+	GPU_viewport_storage_free(viewport->stl);
+
+	GPU_viewport_buffers_free(viewport->fbl_mode, viewport->txl_mode);
+	GPU_viewport_passes_free(viewport->psl_mode);
+	GPU_viewport_storage_free(viewport->stl_mode);
 
 	MEM_freeN(viewport->fbl);
 	MEM_freeN(viewport->txl);
 	MEM_freeN(viewport->psl);
 	MEM_freeN(viewport->stl);
+
+	MEM_freeN(viewport->fbl_mode);
+	MEM_freeN(viewport->txl_mode);
+	MEM_freeN(viewport->psl_mode);
+	MEM_freeN(viewport->stl_mode);
 }
 
 /****************** debug ********************/

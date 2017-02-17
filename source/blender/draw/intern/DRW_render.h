@@ -197,7 +197,7 @@ typedef enum {
 	DRW_MAT_WIN,
 } DRWViewportMatrixType;
 
-void DRW_viewport_init(const bContext *C, void **buffers, void **textures, void **passes, void **storage);
+void DRW_viewport_init(const bContext *C);
 void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type);
 float *DRW_viewport_size_get(void);
 float *DRW_viewport_screenvecs_get(void);
@@ -211,13 +211,26 @@ void *DRW_material_settings_get(Material *ma, const char *engine_name);
 void *DRW_render_settings_get(Scene *scene, const char *engine_name);
 #endif /* __DRW_ENGINE_H__ */
 
+/* Cache */
+void DRW_mode_cache_init(void);
+void DRW_mode_cache_populate(struct Object *ob);
+void DRW_mode_cache_finish(void);
+
 /* Draw commands */
 void DRW_draw_pass(DRWPass *pass);
+void DRW_draw_mode_overlays(void);
 
 void DRW_state_reset(void);
 
 /* Other */
 void DRW_get_dfdy_factors(float dfdyfac[2]);
 const struct bContext *DRW_get_context(void);
-
+void *DRW_engine_pass_list_get(void);
+void *DRW_engine_storage_list_get(void);
+void *DRW_engine_texture_list_get(void);
+void *DRW_engine_framebuffer_list_get(void);
+void *DRW_mode_pass_list_get(void);
+void *DRW_mode_storage_list_get(void);
+void *DRW_mode_texture_list_get(void);
+void *DRW_mode_framebuffer_list_get(void);
 #endif /* __DRW_RENDER_H__ */

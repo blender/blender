@@ -56,7 +56,7 @@ typedef struct TextureList {
 } TextureList;
 
 typedef struct PassList {
-	struct DRWPass *passes[MAX_TEXTURES];
+	struct DRWPass *passes[MAX_PASSES];
 } PassList;
 
 typedef struct StorageList {
@@ -79,11 +79,12 @@ typedef struct DefaultPassList {
 } DefaultPassList;
 
 GPUViewport *GPU_viewport_create(void);
-void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect, const char *engine);
+void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect, const char *engine, int mode);
 void GPU_viewport_unbind(GPUViewport *viewport);
 void GPU_viewport_free(GPUViewport *viewport);
 
-void GPU_viewport_get_engine_data(GPUViewport *viewport, void **fbs, void **txs, void **pss, void **str);
+void GPU_viewport_get_engine_data(GPUViewport *viewport, FramebufferList **fbs, TextureList **txs, PassList **pss, StorageList **str);
+void GPU_viewport_get_mode_data(GPUViewport *viewport, FramebufferList **fbs, TextureList **txs, PassList **pss, StorageList **str);
 
 /* debug */
 bool GPU_viewport_debug_depth_create(GPUViewport *viewport, int width, int height, char err_out[256]);

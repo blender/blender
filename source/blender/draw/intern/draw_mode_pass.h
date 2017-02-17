@@ -30,15 +30,18 @@ struct DRWPass;
 struct Batch;
 struct Object;
 
-void DRW_pass_setup_common(struct DRWPass **wire_overlay, struct DRWPass **wire_outline, struct DRWPass **wire_outline_pass_hidden_wire,
-                           struct DRWPass **non_meshes, struct DRWPass **ob_center);
+void DRW_mode_passes_setup(struct DRWPass **psl_wire_overlay,
+                           struct DRWPass **psl_wire_overlay_hidden_wire,
+                           struct DRWPass **psl_wire_outline,
+                           struct DRWPass **psl_non_meshes,
+                           struct DRWPass **psl_ob_center);
 
-void DRW_shgroup_wire_overlay(struct DRWPass *wire_overlay, struct Object *ob);
-void DRW_shgroup_wire_outline(
-        struct DRWPass *wire_outline, struct Object *ob, const bool do_front, const bool do_back, const bool do_outline);
-
-void DRW_shgroup_non_meshes(struct DRWPass *non_meshes, struct Object *ob);
-void DRW_shgroup_relationship_lines(struct DRWPass *non_meshes, struct Object *ob);
-void DRW_shgroup_object_center(struct DRWPass *ob_center, struct Object *ob);
+void DRW_shgroup_wire_overlay(struct Object *ob);
+void DRW_shgroup_wire_outline(struct Object *ob, const bool do_front, const bool do_back, const bool do_outline);
+void DRW_shgroup_lamp(struct Object *ob);
+void DRW_shgroup_empty(struct Object *ob);
+void DRW_shgroup_speaker(struct Object *ob);
+void DRW_shgroup_relationship_lines(struct Object *ob);
+void DRW_shgroup_object_center(struct Object *ob);
 
 #endif /* __DRAW_MODE_PASS_H__ */
