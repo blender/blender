@@ -587,7 +587,9 @@ BVHTree *bvhtree_from_mesh_verts(
 		        data, tree, true, epsilon, vert, vert_allocated);
 	}
 	else {
-		MEM_freeN(vert);
+		if (vert_allocated) {
+			MEM_freeN(vert);
+		}
 		memset(data, 0, sizeof(*data));
 	}
 	return tree;
@@ -792,8 +794,12 @@ BVHTree *bvhtree_from_mesh_edges(
 		        data, tree, true, epsilon, vert, vert_allocated, edge, edge_allocated);
 	}
 	else {
-		MEM_freeN(vert);
-		MEM_freeN(edge);
+		if (vert_allocated) {
+			MEM_freeN(vert);
+		}
+		if (edge_allocated) {
+			MEM_freeN(edge);
+		}
 		memset(data, 0, sizeof(*data));
 	}
 	return tree;
@@ -943,8 +949,12 @@ BVHTree *bvhtree_from_mesh_faces(
 		        data, tree, true, epsilon, vert, vert_allocated, face, face_allocated);
 	}
 	else {
-		MEM_freeN(vert);
-		MEM_freeN(face);
+		if (vert_allocated) {
+			MEM_freeN(vert);
+		}
+		if (face_allocated) {
+			MEM_freeN(face);
+		}
 		memset(data, 0, sizeof(*data));
 	}
 	return tree;
