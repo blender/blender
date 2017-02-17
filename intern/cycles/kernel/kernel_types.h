@@ -84,6 +84,7 @@ CCL_NAMESPACE_BEGIN
 #  define __VOLUME_SCATTER__
 #  define __SUBSURFACE__
 #  define __CMJ__
+#  define __SHADOW_RECORD_ALL__
 #endif  /* __KERNEL_CUDA__ */
 
 #ifdef __KERNEL_OPENCL__
@@ -1201,7 +1202,8 @@ typedef struct KernelBVH {
 	int have_curves;
 	int have_instancing;
 	int use_qbvh;
-	int pad1, pad2;
+	int use_bvh_steps;
+	int pad1;
 } KernelBVH;
 static_assert_align(KernelBVH, 16);
 

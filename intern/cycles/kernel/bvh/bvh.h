@@ -357,7 +357,7 @@ ccl_device_inline float3 ray_offset(float3 P, float3 Ng)
 #endif
 }
 
-#if defined(__SHADOW_RECORD_ALL__) || defined (__VOLUME_RECORD_ALL__)
+#if defined(__VOLUME_RECORD_ALL__) || (defined(__SHADOW_RECORD_ALL__) && defined(__KERNEL_CPU__))
 /* ToDo: Move to another file? */
 ccl_device int intersections_compare(const void *a, const void *b)
 {
@@ -373,5 +373,28 @@ ccl_device int intersections_compare(const void *a, const void *b)
 }
 #endif
 
-CCL_NAMESPACE_END
+#if defined(__SHADOW_RECORD_ALL__)
+ccl_device_inline void sort_intersections(Intersection *hits, uint num_hits)
+{
+#ifdef __KERNEL_GPU__
+	/* Use bubble sort which has more friendly memory pattern on GPU. */
+	bool swapped;
+	do {
+		swapped = false;
+		for(int j = 0; j < num_hits - 1; ++j) {
+			if(hits[j].t > hits[j + 1].t) {
+				struct Intersection tmp = hits[j];
+				hits[j] = hits[j + 1];
+				hits[j + 1] = tmp;
+				swapped = true;
+			}
+		}
+		--num_hits;
+	} while(swapped);
+#else
+	qsort(hits, num_hits, sizeof(Intersection), intersections_compare);
+#endif
+}
+#endif  /* __SHADOW_RECORD_ALL__ | __VOLUME_RECORD_ALL__ */
 
+CCL_NAMESPACE_END

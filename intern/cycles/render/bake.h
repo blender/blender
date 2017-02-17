@@ -73,7 +73,7 @@ public:
 
 	bool need_update;
 
-	int total_pixel_samples;
+	size_t total_pixel_samples;
 
 private:
 	BakeData *m_bake_data;

@@ -229,6 +229,15 @@ ccl_device_forceinline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Inte
 	float3 P, float3 dir, uint visibility, int object, int curveAddr, float time,int type, uint *lcg_state, float difl, float extmax)
 #endif
 {
+	const bool is_curve_primitive = (type & PRIMITIVE_CURVE);
+
+	if(!is_curve_primitive && kernel_data.bvh.use_bvh_steps) {
+		const float2 prim_time = kernel_tex_fetch(__prim_time, curveAddr);
+		if(time < prim_time.x || time > prim_time.y) {
+			return false;
+		}
+	}
+
 	int segment = PRIMITIVE_UNPACK_SEGMENT(type);
 	float epsilon = 0.0f;
 	float r_st, r_en;
@@ -257,7 +266,7 @@ ccl_device_forceinline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Inte
 
 #ifdef __KERNEL_AVX2__
 		avxf P_curve_0_1, P_curve_2_3;
-		if(type & PRIMITIVE_CURVE) {
+		if(is_curve_primitive) {
 			P_curve_0_1 = _mm256_loadu2_m128(&kg->__curve_keys.data[k0].x, &kg->__curve_keys.data[ka].x);
 			P_curve_2_3 = _mm256_loadu2_m128(&kg->__curve_keys.data[kb].x, &kg->__curve_keys.data[k1].x);
 		}
@@ -268,7 +277,7 @@ ccl_device_forceinline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Inte
 #else  /* __KERNEL_AVX2__ */
 		ssef P_curve[4];
 
-		if(type & PRIMITIVE_CURVE) {
+		if(is_curve_primitive) {
 			P_curve[0] = load4f(&kg->__curve_keys.data[ka].x);
 			P_curve[1] = load4f(&kg->__curve_keys.data[k0].x);
 			P_curve[2] = load4f(&kg->__curve_keys.data[k1].x);
@@ -363,7 +372,7 @@ ccl_device_forceinline bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Inte
 
 		float4 P_curve[4];
 
-		if(type & PRIMITIVE_CURVE) {
+		if(is_curve_primitive) {
 			P_curve[0] = kernel_tex_fetch(__curve_keys, ka);
 			P_curve[1] = kernel_tex_fetch(__curve_keys, k0);
 			P_curve[2] = kernel_tex_fetch(__curve_keys, k1);
@@ -689,6 +698,15 @@ ccl_device_forceinline bool bvh_curve_intersect(KernelGlobals *kg, Intersection 
 #  define dot3(x, y) dot(x, y)
 #endif
 
+	const bool is_curve_primitive = (type & PRIMITIVE_CURVE);
+
+	if(!is_curve_primitive && kernel_data.bvh.use_bvh_steps) {
+		const float2 prim_time = kernel_tex_fetch(__prim_time, curveAddr);
+		if(time < prim_time.x || time > prim_time.y) {
+			return false;
+		}
+	}
+
 	int segment = PRIMITIVE_UNPACK_SEGMENT(type);
 	/* curve Intersection check */
 	int flags = kernel_data.curve.curveflags;
@@ -703,7 +721,7 @@ ccl_device_forceinline bool bvh_curve_intersect(KernelGlobals *kg, Intersection 
 #ifndef __KERNEL_SSE2__
 	float4 P_curve[2];
 
-	if(type & PRIMITIVE_CURVE) {
+	if(is_curve_primitive) {
 		P_curve[0] = kernel_tex_fetch(__curve_keys, k0);
 		P_curve[1] = kernel_tex_fetch(__curve_keys, k1);
 	}
@@ -738,7 +756,7 @@ ccl_device_forceinline bool bvh_curve_intersect(KernelGlobals *kg, Intersection 
 #else
 	ssef P_curve[2];
 	
-	if(type & PRIMITIVE_CURVE) {
+	if(is_curve_primitive) {
 		P_curve[0] = load4f(&kg->__curve_keys.data[k0].x);
 		P_curve[1] = load4f(&kg->__curve_keys.data[k1].x);
 	}

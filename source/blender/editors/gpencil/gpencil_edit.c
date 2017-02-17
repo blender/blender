@@ -953,6 +953,9 @@ static int gp_dissolve_selected_points(bContext *C)
 			/* skip strokes that are invalid for current view */
 			if (ED_gpencil_stroke_can_use(C, gps) == false)
 				continue;
+			/* check if the color is editable */
+			if (ED_gpencil_stroke_color_use(gpl, gps) == false)
+				continue;
 			
 			if (gps->flag & GP_STROKE_SELECT) {
 				bGPDspoint *pt;
@@ -1165,6 +1168,9 @@ static int gp_delete_selected_points(bContext *C)
 			/* skip strokes that are invalid for current view */
 			if (ED_gpencil_stroke_can_use(C, gps) == false)
 				continue;
+			/* check if the color is editable */
+			if (ED_gpencil_stroke_color_use(gpl, gps) == false)
+				continue;
 			
 			
 			if (gps->flag & GP_STROKE_SELECT) {
@@ -1204,7 +1210,7 @@ static int gp_delete_exec(bContext *C, wmOperator *op)
 		case GP_DELETEOP_POINTS:	/* selected points (breaks the stroke into segments) */
 			result = gp_delete_selected_points(C);
 			break;
-
+		
 		case GP_DELETEOP_FRAME:		/* active frame */
 			result = gp_actframe_delete_exec(C, op);
 			break;

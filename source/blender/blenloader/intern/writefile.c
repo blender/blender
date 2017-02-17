@@ -78,7 +78,7 @@
  * - write #TEST (#RenderInfo struct. 128x128 blend file preview is optional).
  * - write #GLOB (#FileGlobal struct) (some global vars).
  * - write #DNA1 (#SDNA struct)
- * - write #USER (#UserDef struct) if filename is ``~/X.XX/config/startup.blend``.
+ * - write #USER (#UserDef struct) if filename is ``~/.config/blender/X.XX/config/startup.blend``.
  */
 
 

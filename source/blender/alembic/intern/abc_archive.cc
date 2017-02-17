@@ -113,25 +113,25 @@ static OArchive create_archive(std::ostream *ostream,
                                Alembic::Abc::MetaData &md,
                                bool ogawa)
 {
-    md.set(Alembic::Abc::kApplicationNameKey, "Blender");
+	md.set(Alembic::Abc::kApplicationNameKey, "Blender");
 	md.set(Alembic::Abc::kUserDescriptionKey, scene_name);
 
-    time_t raw_time;
-    time(&raw_time);
-    char buffer[128];
+	time_t raw_time;
+	time(&raw_time);
+	char buffer[128];
 
 #if defined _WIN32 || defined _WIN64
-    ctime_s(buffer, 128, &raw_time);
+	ctime_s(buffer, 128, &raw_time);
 #else
-    ctime_r(&raw_time, buffer);
+	ctime_r(&raw_time, buffer);
 #endif
 
-    const std::size_t buffer_len = strlen(buffer);
-    if (buffer_len > 0 && buffer[buffer_len - 1] == '\n') {
-        buffer[buffer_len - 1] = '\0';
-    }
+	const std::size_t buffer_len = strlen(buffer);
+	if (buffer_len > 0 && buffer[buffer_len - 1] == '\n') {
+		buffer[buffer_len - 1] = '\0';
+	}
 
-    md.set(Alembic::Abc::kDateWrittenKey, buffer);
+	md.set(Alembic::Abc::kDateWrittenKey, buffer);
 
 	ErrorHandler::Policy policy = ErrorHandler::kThrowPolicy;
 

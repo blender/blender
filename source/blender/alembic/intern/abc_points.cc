@@ -200,7 +200,7 @@ void read_points_sample(const IPointsSchema &schema,
 	read_mverts(config.mvert, positions, vnormals);
 }
 
-DerivedMesh *AbcPointsReader::read_derivedmesh(DerivedMesh *dm, const float time, int /*read_flag*/, const char **/*err_str*/)
+DerivedMesh *AbcPointsReader::read_derivedmesh(DerivedMesh *dm, const float time, int /*read_flag*/, const char ** /*err_str*/)
 {
 	ISampleSelector sample_sel(time);
 	const IPointsSchema::Sample sample = m_schema.getValue(sample_sel);

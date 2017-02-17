@@ -47,20 +47,41 @@ def printMessage(type, status, message):
 
 
 def render_file(filepath):
-    command = (
-        BLENDER,
-        "--background",
-        "-noaudio",
-        "--factory-startup",
-        "--enable-autoexec",
-        filepath,
-        "-E", "CYCLES",
-        # Run with OSL enabled
-        # "--python-expr", "import bpy; bpy.context.scene.cycles.shading_system = True",
-        "-o", TEMP_FILE_MASK,
-        "-F", "PNG",
-        "-f", "1",
+    dirname = os.path.dirname(filepath)
+    basedir = os.path.dirname(dirname)
+    subject = os.path.basename(dirname)
+    if subject == 'opengl':
+        command = (
+            BLENDER,
+            "--window-geometry", "0", "0", "1", "1",
+            "-noaudio",
+            "--factory-startup",
+            "--enable-autoexec",
+            filepath,
+            "-E", "CYCLES",
+            # Run with OSL enabled
+            # "--python-expr", "import bpy; bpy.context.scene.cycles.shading_system = True",
+            "-o", TEMP_FILE_MASK,
+            "-F", "PNG",
+            '--python', os.path.join(basedir,
+                                     "util",
+                                     "render_opengl.py")
         )
+    else:
+        command = (
+            BLENDER,
+            "--background",
+            "-noaudio",
+            "--factory-startup",
+            "--enable-autoexec",
+            filepath,
+            "-E", "CYCLES",
+            # Run with OSL enabled
+            # "--python-expr", "import bpy; bpy.context.scene.cycles.shading_system = True",
+            "-o", TEMP_FILE_MASK,
+            "-F", "PNG",
+            "-f", "1",
+            )
     try:
         output = subprocess.check_output(command)
         if VERBOSE:

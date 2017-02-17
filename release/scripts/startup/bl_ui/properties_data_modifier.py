@@ -1320,7 +1320,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "thickness_vertex_group", text="Factor")
 
         col.prop(md, "use_crease", text="Crease Edges")
-        col.prop(md, "crease_weight", text="Crease Weight")
+        row = col.row()
+        row.active = md.use_crease
+        row.prop(md, "crease_weight", text="Crease Weight")
 
         col = split.column()
 

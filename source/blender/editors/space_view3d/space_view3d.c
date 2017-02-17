@@ -1258,21 +1258,6 @@ static void space_view3d_listener(bScreen *UNUSED(sc), ScrArea *sa, struct wmNot
 			}
 			break;
 	}
-
-	/* removed since BKE_image_user_frame_calc is now called in view3d_draw_bgpic because screen_ops doesnt call the notifier. */
-#if 0
-	if (wmn->category == NC_SCENE && wmn->data == ND_FRAME) {
-		View3D *v3d = area->spacedata.first;
-		BGpic *bgpic = v3d->bgpicbase.first;
-
-		for (; bgpic; bgpic = bgpic->next) {
-			if (bgpic->ima) {
-				Scene *scene = wmn->reference;
-				BKE_image_user_frame_calc(&bgpic->iuser, scene->r.cfra, 0);
-			}
-		}
-	}
-#endif
 }
 
 const char *view3d_context_dir[] = {

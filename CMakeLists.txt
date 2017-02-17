@@ -447,6 +447,7 @@ option(WITH_BOOST					"Enable features depending on boost" ON)
 
 # Unit testsing
 option(WITH_GTESTS "Enable GTest unit testing" OFF)
+option(WITH_OPENGL_TESTS "Enable OpenGL related unit testing (Experimental)" OFF)
 
 
 # Documentation

@@ -152,6 +152,33 @@ class OBJECT_PT_relations(ObjectButtonsPanel, Panel):
         sub.active = (parent is not None)
 
 
+class OBJECT_PT_relations_extras(ObjectButtonsPanel, Panel):
+    bl_label = "Relations Extras"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        ob = context.object
+
+        split = layout.split()
+
+        if context.scene.render.engine != 'BLENDER_GAME':
+            col = split.column()
+            col.label(text="Tracking Axes:")
+            col.prop(ob, "track_axis", text="Axis")
+            col.prop(ob, "up_axis", text="Up Axis")
+
+        col = split.column()
+        col.prop(ob, "use_slow_parent")
+        row = col.row()
+        row.active = ((ob.parent is not None) and (ob.use_slow_parent))
+        row.prop(ob, "slow_parent_offset", text="Offset")
+
+        layout.prop(ob, "use_extra_recalc_object")
+        layout.prop(ob, "use_extra_recalc_data")
+
+
 class GROUP_MT_specials(Menu):
     bl_label = "Group Specials"
 
@@ -294,33 +321,6 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
 
         elif ob.dupli_type == 'GROUP':
             layout.prop(ob, "dupli_group", text="Group")
-
-
-class OBJECT_PT_relations_extras(ObjectButtonsPanel, Panel):
-    bl_label = "Relations Extras"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        ob = context.object
-
-        split = layout.split()
-
-        if context.scene.render.engine != 'BLENDER_GAME':
-            col = split.column()
-            col.label(text="Tracking Axes:")
-            col.prop(ob, "track_axis", text="Axis")
-            col.prop(ob, "up_axis", text="Up Axis")
-
-        col = split.column()
-        col.prop(ob, "use_slow_parent")
-        row = col.row()
-        row.active = ((ob.parent is not None) and (ob.use_slow_parent))
-        row.prop(ob, "slow_parent_offset", text="Offset")
-
-        layout.prop(ob, "use_extra_recalc_object")
-        layout.prop(ob, "use_extra_recalc_data")
 
 
 from bl_ui.properties_animviz import (

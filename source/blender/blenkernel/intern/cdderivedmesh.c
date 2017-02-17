@@ -2428,8 +2428,12 @@ static DerivedMesh *cddm_copy_ex(DerivedMesh *source,
 	dm->cd_flag = source->cd_flag;
 	dm->dirty = source->dirty;
 
-	/* Tessellation data is never copied, so tag it here. */
-	dm->dirty |= DM_DIRTY_TESS_CDLAYERS;
+	/* Tessellation data is never copied, so tag it here.
+	 * Only tag dirty layers if we really ignored tessellation faces.
+	 */
+	if (!copy_tessface_data) {
+		dm->dirty |= DM_DIRTY_TESS_CDLAYERS;
+	}
 
 	CustomData_copy_data(&source->vertData, &dm->vertData, 0, 0, numVerts);
 	CustomData_copy_data(&source->edgeData, &dm->edgeData, 0, 0, numEdges);

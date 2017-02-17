@@ -652,17 +652,39 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             col.prop(strip, "rotation_start", text="Rotation")
 
         elif strip.type == 'MULTICAM':
-            layout.prop(strip, "multicam_source")
+            col = layout.column(align=True)
+            strip_channel = strip.channel
 
-            row = layout.row(align=True)
-            sub = row.row(align=True)
-            sub.scale_x = 2.0
+            col.prop(strip, "multicam_source", text="Source Channel")
 
-            sub.operator("screen.animation_play", text="", icon='PAUSE' if context.screen.is_animation_playing else 'PLAY')
+            # The multicam strip needs at least 2 strips to be useful
+            if strip_channel > 2:
+                BT_ROW = 4
 
-            row.label("Cut To")
-            for i in range(1, strip.channel):
-                row.operator("sequencer.cut_multicam", text="%d" % i).camera = i
+                col.label("Cut To:")
+                row = col.row()
+
+                for i in range(1, strip_channel):
+                    if (i % BT_ROW) == 1:
+                        row = col.row(align=True)
+
+                    # Workaround - .active has to have a separate UI block to work
+                    if i == strip.multicam_source:
+                        sub = row.row(align=True)
+                        sub.active = False
+                        sub.operator("sequencer.cut_multicam", text="%d" % i).camera = i
+                    else:
+                        sub_1 = row.row(align=True)
+                        sub_1.active = True
+                        sub_1.operator("sequencer.cut_multicam", text="%d" % i).camera = i
+
+                if strip.channel > BT_ROW and (strip_channel - 1) % BT_ROW:
+                    for i in range(strip.channel, strip_channel + ((BT_ROW + 1 - strip_channel) % BT_ROW)):
+                        row.label("")
+            else:
+                col.separator()
+                col.label(text="Two or more channels are needed below this strip.", icon="INFO")
+
 
         elif strip.type == 'TEXT':
             col = layout.column()

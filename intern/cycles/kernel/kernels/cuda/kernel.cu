@@ -130,8 +130,10 @@ kernel_cuda_path_trace(float *buffer, uint *rng_state, int sample, int sx, int s
 	int x = sx + blockDim.x*blockIdx.x + threadIdx.x;
 	int y = sy + blockDim.y*blockIdx.y + threadIdx.y;
 
-	if(x < sx + sw && y < sy + sh)
-		kernel_path_trace(NULL, buffer, rng_state, sample, x, y, offset, stride);
+	if(x < sx + sw && y < sy + sh) {
+		KernelGlobals kg;
+		kernel_path_trace(&kg, buffer, rng_state, sample, x, y, offset, stride);
+	}
 }
 
 #ifdef __BRANCHED_PATH__
@@ -142,8 +144,10 @@ kernel_cuda_branched_path_trace(float *buffer, uint *rng_state, int sample, int 
 	int x = sx + blockDim.x*blockIdx.x + threadIdx.x;
 	int y = sy + blockDim.y*blockIdx.y + threadIdx.y;
 
-	if(x < sx + sw && y < sy + sh)
-		kernel_branched_path_trace(NULL, buffer, rng_state, sample, x, y, offset, stride);
+	if(x < sx + sw && y < sy + sh) {
+		KernelGlobals kg;
+		kernel_branched_path_trace(&kg, buffer, rng_state, sample, x, y, offset, stride);
+	}
 }
 #endif
 
@@ -154,8 +158,9 @@ kernel_cuda_convert_to_byte(uchar4 *rgba, float *buffer, float sample_scale, int
 	int x = sx + blockDim.x*blockIdx.x + threadIdx.x;
 	int y = sy + blockDim.y*blockIdx.y + threadIdx.y;
 
-	if(x < sx + sw && y < sy + sh)
+	if(x < sx + sw && y < sy + sh) {
 		kernel_film_convert_to_byte(NULL, rgba, buffer, sample_scale, x, y, offset, stride);
+	}
 }
 
 extern "C" __global__ void
@@ -165,8 +170,9 @@ kernel_cuda_convert_to_half_float(uchar4 *rgba, float *buffer, float sample_scal
 	int x = sx + blockDim.x*blockIdx.x + threadIdx.x;
 	int y = sy + blockDim.y*blockIdx.y + threadIdx.y;
 
-	if(x < sx + sw && y < sy + sh)
+	if(x < sx + sw && y < sy + sh) {
 		kernel_film_convert_to_half_float(NULL, rgba, buffer, sample_scale, x, y, offset, stride);
+	}
 }
 
 extern "C" __global__ void
@@ -183,7 +189,8 @@ kernel_cuda_shader(uint4 *input,
 	int x = sx + blockDim.x*blockIdx.x + threadIdx.x;
 
 	if(x < sx + sw) {
-		kernel_shader_evaluate(NULL,
+		KernelGlobals kg;
+		kernel_shader_evaluate(&kg,
 		                       input,
 		                       output,
 		                       output_luma,
@@ -200,8 +207,10 @@ kernel_cuda_bake(uint4 *input, float4 *output, int type, int filter, int sx, int
 {
 	int x = sx + blockDim.x*blockIdx.x + threadIdx.x;
 
-	if(x < sx + sw)
-		kernel_bake_evaluate(NULL, input, output, (ShaderEvalType)type, filter, x, offset, sample);
+	if(x < sx + sw) {
+		KernelGlobals kg;
+		kernel_bake_evaluate(&kg, input, output, (ShaderEvalType)type, filter, x, offset, sample);
+	}
 }
 #endif
 

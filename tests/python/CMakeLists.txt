@@ -95,6 +95,11 @@ add_test(bevel ${TEST_BLENDER_EXE}
 	--python-text run_tests
 )
 
+add_test(split_faces ${TEST_BLENDER_EXE}
+    ${TEST_SRC_DIR}/modeling/split_faces_test.blend
+    --python-text run_tests
+)
+
 # ------------------------------------------------------------------------------
 # IO TESTS
 
@@ -417,7 +422,12 @@ if(WITH_CYCLES)
 					-idiff "${OPENIMAGEIO_IDIFF}"
 				)
 			endif()
-		endmacro()	
+		endmacro()
+		if(WITH_OPENGL_TESTS)
+			add_cycles_render_test(opengl)
+		endif()
+		add_cycles_render_test(image)
+		add_cycles_render_test(mblur)
 		add_cycles_render_test(reports)
 		add_cycles_render_test(render)
 		add_cycles_render_test(shader)

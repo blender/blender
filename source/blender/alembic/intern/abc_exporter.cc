@@ -47,7 +47,7 @@ extern "C" {
 
 #ifdef WIN32
 /* needed for MSCV because of snprintf from BLI_string */
-#	include "BLI_winstuff.h"
+#  include "BLI_winstuff.h"
 #endif
 
 #include "BKE_anim.h"
