@@ -210,7 +210,7 @@ void BKE_visible_bases_Iterator_end(Iterator *iter);
 {                                                                             \
 	Object *instance_;                                                        \
 	/* temporary solution, waiting for depsgraph update */                    \
-	BKE_scene_layer_engine_settings_update(sl);                               \
+	BKE_scene_layer_engine_settings_update(sl_);                              \
 	                                                                          \
 	/* flush all the data to objects*/                                        \
 	Base *base_;                                                              \
