@@ -121,7 +121,7 @@ void do_versions_after_linking_280(Main *main)
 					}
 				}
 
-				SceneLayer *sl = BKE_scene_layer_add(scene, "Render Layer");
+				SceneLayer *sl = BKE_scene_layer_add(scene, "Viewport");
 
 				/* In this particular case we can safely assume the data struct */
 				LayerCollection *lc = ((LayerCollection *)sl->layer_collections.first)->layer_collections.first;
