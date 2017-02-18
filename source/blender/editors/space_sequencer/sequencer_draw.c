@@ -1513,7 +1513,7 @@ static void draw_seq_backdrop(View2D *v2d)
 	i = max_ii(1, ((int)v2d->cur.ymin) - 1);
 
 	while (i < v2d->cur.ymax) {
-		if (((int)i) & 1) {
+		if (i & 1) {
 			immUniformThemeColorShade(TH_BACK, -15);
 		}
 		else {
@@ -1527,14 +1527,12 @@ static void draw_seq_backdrop(View2D *v2d)
 
 	/* Darker lines separating the horizontal bands */
 	i = max_ii(1, ((int)v2d->cur.ymin) - 1);
+	int line_ct = (int)v2d->cur.ymax - i + 1;
 	immUniformThemeColor(TH_GRID);
-	
-	immBegin(GL_LINES, ((int)v2d->cur.ymax - i + 1) * 2);
-	while (i < v2d->cur.ymax) {
+	immBegin(GL_LINES, line_ct * 2);
+	while (line_ct--) {
 		immVertex2f(pos, v2d->cur.xmax, i);
 		immVertex2f(pos, v2d->cur.xmin, i);
-			
-		i++;
 	}
 	immEnd();
 
