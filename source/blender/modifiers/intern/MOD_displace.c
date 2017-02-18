@@ -325,7 +325,7 @@ static void displaceModifier_do(
 	float (*tex_co)[3];
 	float weight = 1.0f; /* init value unused but some compilers may complain */
 	float (*vert_clnors)[3] = NULL;
-	float local_mat[4][4] = {0};
+	float local_mat[4][4] = {{0}};
 	const bool use_global_direction = dmd->space == MOD_DISP_SPACE_GLOBAL;
 
 	if (!dmd->texture && dmd->direction == MOD_DISP_DIR_RGB_XYZ) return;

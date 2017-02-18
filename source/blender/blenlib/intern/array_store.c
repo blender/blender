@@ -217,9 +217,6 @@
 /** \name Internal Structs
  * \{ */
 
-typedef unsigned int  uint;
-typedef unsigned char ubyte;
-
 typedef uint64_t hash_key;
 
 
@@ -291,7 +288,7 @@ typedef struct BChunkList {
 
 /* a chunk of an array */
 typedef struct BChunk {
-	const ubyte *data;
+	const uchar *data;
 	size_t       data_len;
 	/** number of #BChunkList using this. */
 	int          users;
@@ -332,7 +329,7 @@ static size_t bchunk_list_size(const BChunkList *chunk_list);
  * \{ */
 
 static BChunk *bchunk_new(
-        BArrayMemory *bs_mem, const ubyte *data, const size_t data_len)
+        BArrayMemory *bs_mem, const uchar *data, const size_t data_len)
 {
 	BChunk *chunk = BLI_mempool_alloc(bs_mem->chunk);
 	chunk->data     = data;
@@ -345,9 +342,9 @@ static BChunk *bchunk_new(
 }
 
 static BChunk *bchunk_new_copydata(
-        BArrayMemory *bs_mem, const ubyte *data, const size_t data_len)
+        BArrayMemory *bs_mem, const uchar *data, const size_t data_len)
 {
-	ubyte *data_copy = MEM_mallocN(data_len, __func__);
+	uchar *data_copy = MEM_mallocN(data_len, __func__);
 	memcpy(data_copy, data, data_len);
 	return bchunk_new(bs_mem, data_copy, data_len);
 }
@@ -367,7 +364,7 @@ static void bchunk_decref(
 
 static bool bchunk_data_compare(
         const BChunk *chunk,
-        const ubyte *data_base, const size_t data_base_len,
+        const uchar *data_base, const size_t data_base_len,
         const size_t offset)
 {
 	if (offset + (size_t)chunk->data_len <= data_base_len) {
@@ -426,7 +423,7 @@ static void bchunk_list_decref(
 
 #ifdef USE_VALIDATE_LIST_DATA_PARTIAL
 static size_t bchunk_list_data_check(
-        const BChunkList *chunk_list, const ubyte *data)
+        const BChunkList *chunk_list, const uchar *data)
 {
 	size_t total_size = 0;
 	for (BChunkRef *cref = chunk_list->chunk_refs.first; cref; cref = cref->next) {
@@ -466,7 +463,7 @@ static void bchunk_list_ensure_min_size_last(
 				chunk_list->chunk_refs.last = cref->prev;
 				chunk_list->chunk_refs_len -= 1;
 
-				ubyte *data_merge   = MEM_mallocN(data_merge_len, __func__);
+				uchar *data_merge   = MEM_mallocN(data_merge_len, __func__);
 				memcpy(data_merge,                        chunk_prev->data, chunk_prev->data_len);
 				memcpy(&data_merge[chunk_prev->data_len], chunk_curr->data, chunk_curr->data_len);
 
@@ -487,8 +484,8 @@ static void bchunk_list_ensure_min_size_last(
 				/* merge and split */
 				const size_t data_prev_len = split;
 				const size_t data_curr_len = data_merge_len - split;
-				ubyte *data_prev = MEM_mallocN(data_prev_len, __func__);
-				ubyte *data_curr = MEM_mallocN(data_curr_len, __func__);
+				uchar *data_prev = MEM_mallocN(data_prev_len, __func__);
+				uchar *data_curr = MEM_mallocN(data_curr_len, __func__);
 
 				if (data_prev_len <= chunk_prev->data_len) {
 					const size_t data_curr_shrink_len = chunk_prev->data_len - data_prev_len;
@@ -597,7 +594,7 @@ static void bchunk_list_append_only(
 static void bchunk_list_append_data(
         const BArrayInfo *info, BArrayMemory *bs_mem,
         BChunkList *chunk_list,
-        const ubyte *data, const size_t data_len)
+        const uchar *data, const size_t data_len)
 {
 	BLI_assert(data_len != 0);
 
@@ -613,13 +610,13 @@ static void bchunk_list_append_data(
 			const size_t data_merge_len = chunk_prev->data_len + data_len;
 			/* realloc for single user */
 			if (cref->link->users == 1) {
-				ubyte *data_merge = MEM_reallocN((void *)cref->link->data, data_merge_len);
+				uchar *data_merge = MEM_reallocN((void *)cref->link->data, data_merge_len);
 				memcpy(&data_merge[chunk_prev->data_len], data, data_len);
 				cref->link->data     = data_merge;
 				cref->link->data_len = data_merge_len;
 			}
 			else {
-				ubyte *data_merge = MEM_mallocN(data_merge_len, __func__);
+				uchar *data_merge = MEM_mallocN(data_merge_len, __func__);
 				memcpy(data_merge, chunk_prev->data, chunk_prev->data_len);
 				memcpy(&data_merge[chunk_prev->data_len], data, data_len);
 				cref->link = bchunk_new(bs_mem, data_merge, data_merge_len);
@@ -654,7 +651,7 @@ static void bchunk_list_append_data(
 static void bchunk_list_append_data_n(
         const BArrayInfo *info, BArrayMemory *bs_mem,
         BChunkList *chunk_list,
-        const ubyte *data, size_t data_len)
+        const uchar *data, size_t data_len)
 {
 	size_t data_trim_len, data_last_chunk_len;
 	bchunk_list_calc_trim_len(info, data_len, &data_trim_len, &data_last_chunk_len);
@@ -714,7 +711,7 @@ static void bchunk_list_append(
 static void bchunk_list_fill_from_array(
         const BArrayInfo *info, BArrayMemory *bs_mem,
         BChunkList *chunk_list,
-        const ubyte *data,
+        const uchar *data,
         const size_t data_len)
 {
 	BLI_assert(BLI_listbase_is_empty(&chunk_list->chunk_refs));
@@ -765,13 +762,13 @@ static void bchunk_list_fill_from_array(
 
 #define HASH_INIT (5381)
 
-BLI_INLINE uint hash_data_single(const ubyte p)
+BLI_INLINE uint hash_data_single(const uchar p)
 {
 	return (HASH_INIT << 5) + HASH_INIT + (unsigned int)p;
 }
 
 /* hash bytes, from BLI_ghashutil_strhash_n */
-static uint hash_data(const ubyte *key, size_t n)
+static uint hash_data(const uchar *key, size_t n)
 {
 	const signed char *p;
 	unsigned int h = HASH_INIT;
@@ -788,7 +785,7 @@ static uint hash_data(const ubyte *key, size_t n)
 
 #ifdef USE_HASH_TABLE_ACCUMULATE
 static void hash_array_from_data(
-        const BArrayInfo *info, const ubyte *data_slice, const size_t data_slice_len,
+        const BArrayInfo *info, const uchar *data_slice, const size_t data_slice_len,
         hash_key *hash_array)
 {
 	if (info->chunk_stride != 1) {
@@ -929,7 +926,7 @@ static hash_key key_from_chunk_ref(
 
 static const BChunkRef *table_lookup(
         const BArrayInfo *info, BTableRef **table, const size_t table_len, const size_t i_table_start,
-        const ubyte *data, const size_t data_len, const size_t offset, const hash_key *table_hash_array)
+        const uchar *data, const size_t data_len, const size_t offset, const hash_key *table_hash_array)
 {
 	size_t size_left = data_len - offset;
 	hash_key key = table_hash_array[((offset - i_table_start) / info->chunk_stride)];
@@ -985,7 +982,7 @@ static hash_key key_from_chunk_ref(const BArrayInfo *info, const BChunkRef *cref
 
 static const BChunkRef *table_lookup(
         const BArrayInfo *info, BTableRef **table, const size_t table_len, const uint UNUSED(i_table_start),
-        const ubyte *data, const size_t data_len, const size_t offset, const hash_key *UNUSED(table_hash_array))
+        const uchar *data, const size_t data_len, const size_t offset, const hash_key *UNUSED(table_hash_array))
 {
 	const size_t data_hash_len = BCHUNK_HASH_LEN * info->chunk_stride;  /* TODO, cache */
 
@@ -1025,7 +1022,7 @@ static const BChunkRef *table_lookup(
  */
 static BChunkList *bchunk_list_from_data_merge(
         const BArrayInfo *info, BArrayMemory *bs_mem,
-        const ubyte *data, const size_t data_len_original,
+        const uchar *data, const size_t data_len_original,
         const BChunkList *chunk_list_reference)
 {
 	ASSERT_CHUNKLIST_SIZE(chunk_list_reference, chunk_list_reference->total_size);
@@ -1579,7 +1576,7 @@ BArrayState *BLI_array_store_state_add(
 	if (state_reference) {
 		chunk_list = bchunk_list_from_data_merge(
 		        &bs->info, &bs->memory,
-		        (const ubyte *)data, data_len,
+		        (const uchar *)data, data_len,
 		        /* re-use reference chunks */
 		        state_reference->chunk_list);
 	}
@@ -1588,7 +1585,7 @@ BArrayState *BLI_array_store_state_add(
 		bchunk_list_fill_from_array(
 		        &bs->info, &bs->memory,
 		        chunk_list,
-		        (const ubyte *)data, data_len);
+		        (const uchar *)data, data_len);
 	}
 
 	chunk_list->users += 1;
@@ -1655,7 +1652,7 @@ void BLI_array_store_state_data_get(
 	BLI_assert(data_test_len == state->chunk_list->total_size);
 #endif
 
-	ubyte *data_step = (ubyte *)data;
+	uchar *data_step = (uchar *)data;
 	for (BChunkRef *cref = state->chunk_list->chunk_refs.first; cref; cref = cref->next) {
 		BLI_assert(cref->link->users > 0);
 		memcpy(data_step, cref->link->data, cref->link->data_len);
