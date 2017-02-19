@@ -595,27 +595,22 @@ const float *gpuGetProjectionMatrix3D(float m[4][4])
 
 const float *gpuGetModelViewProjectionMatrix3D(float m[4][4])
 {
+	if (m == NULL) {
+		static Mat4 temp;
+		m = temp;
+	}
+
 #if SUPPORT_LEGACY_MATRIX
 	if (state.mode == MATRIX_MODE_INACTIVE) {
-		if (m == NULL) {
-			static Mat4 temp;
-			m = temp;
-		}
-
 		Mat4 proj;
-		glGetFloatv(GL_MODELVIEW_MATRIX, (float*)proj);
-		glGetFloatv(GL_PROJECTION_MATRIX, (float*)m);
-		mul_m4_m4_post(m, proj);
+		glGetFloatv(GL_MODELVIEW_MATRIX, (float*)m);
+		glGetFloatv(GL_PROJECTION_MATRIX, (float*)proj);
+		mul_m4_m4_pre(m, proj);
 		return (const float*)m;
 	}
 #endif
 
 	BLI_assert(state.mode == MATRIX_MODE_3D);
-
-	if (m == NULL) {
-		static Mat4 temp;
-		m = temp;
-	}
 
 	mul_m4_m4m4(m, Projection3D, ModelView3D);
 	return (const float*)m;
