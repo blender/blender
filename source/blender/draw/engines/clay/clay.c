@@ -700,17 +700,8 @@ static void CLAY_view_draw(RenderEngine *UNUSED(engine), const bContext *context
 	/* TODO : tag to refresh by the deps graph */
 	/* ideally only refresh when objects are added/removed */
 	/* or render properties / materials change */
-#ifdef WITH_VIEWPORT_CACHE_TEST
-	static bool once = false;
-#endif
-	if (DRW_viewport_cache_is_dirty()
-#ifdef WITH_VIEWPORT_CACHE_TEST
-		&& !once
-#endif
-		) {
-#ifdef WITH_VIEWPORT_CACHE_TEST
-		once = true;
-#endif
+	if (DRW_viewport_cache_is_dirty()) {
+
 		SceneLayer *sl = CTX_data_scene_layer(context);
 
 		CLAY_cache_init();

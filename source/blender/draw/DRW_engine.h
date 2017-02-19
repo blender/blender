@@ -26,8 +26,6 @@
 #ifndef __DRW_ENGINE_H__
 #define __DRW_ENGINE_H__
 
-//#define WITH_VIEWPORT_CACHE_TEST
-
 struct CollectionEngineSettings;
 struct DRWPass;
 struct Material;

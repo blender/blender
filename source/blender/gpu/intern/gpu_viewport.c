@@ -38,6 +38,8 @@
 
 #include "DNA_vec_types.h"
 
+#include "BKE_global.h"
+
 #include "GPU_framebuffer.h"
 #include "GPU_glew.h"
 #include "GPU_immediate.h"
@@ -115,11 +117,11 @@ void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect, const char *engi
 	/* add one pixel because of scissor test */
 	int rect_w = BLI_rcti_size_x(rect) + 1, rect_h = BLI_rcti_size_y(rect) + 1;
 
-#ifndef WITH_VIEWPORT_CACHE_TEST
-	/* TODO for testing only, we need proper cache invalidation */
-	GPU_viewport_passes_free(viewport->psl);
-	GPU_viewport_passes_free(viewport->psl_mode);
-#endif
+	if (G.debug_value != 666 && G.debug_value != 667) {
+		/* TODO for testing only, we need proper cache invalidation */
+		GPU_viewport_passes_free(viewport->psl);
+		GPU_viewport_passes_free(viewport->psl_mode);
+	}
 
 	if (!STREQ(engine, viewport->engine_name)) {
 		GPU_viewport_storage_free(viewport->stl);

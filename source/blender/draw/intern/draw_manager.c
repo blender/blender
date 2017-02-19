@@ -672,9 +672,10 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 
 static void shgroup_dynamic_batch_from_calls(DRWShadingGroup *shgroup)
 {
-#ifdef WITH_VIEWPORT_CACHE_TEST
-	if (shgroup->interface->instance_vbo || shgroup->batch_geom) return;
-#endif
+	if ((shgroup->interface->instance_vbo || shgroup->batch_geom) &&
+		(G.debug_value == 667))
+		return;
+
 	if (shgroup->type == DRW_SHG_INSTANCE) {
 		shgroup_dynamic_instance(shgroup);
 	}
