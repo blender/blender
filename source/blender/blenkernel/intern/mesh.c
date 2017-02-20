@@ -2269,6 +2269,7 @@ static void split_faces_split_verts(Mesh *mesh,
 				if ((vert_flags[ml->v] & SPLIT_VERT_REUSED) == 0) {
 					/* Ignore first split on vertex, re-use it instead. */
 					vert_flags[ml->v] |= SPLIT_VERT_REUSED;
+					normal_float_to_short_v3(mvert[ml->v].no, lnors[poly_loop]);
 					continue;
 				}
 				/* Create new vertex. */
