@@ -2334,6 +2334,9 @@ static void split_faces_split_edges(Mesh *mesh,
 
 /* Split faces based on the edge angle.
  * Matches behavior of face splitting in render engines.
+ *
+ * NOTE: Will leave CD_NORMAL loop data layer which is
+ * used by render engines to set shading up.
  */
 void BKE_mesh_split_faces(Mesh *mesh)
 {
@@ -2377,10 +2380,6 @@ void BKE_mesh_split_faces(Mesh *mesh)
 	/* Perform actual split of vertices and adjacent edges. */
 	split_faces_split_verts(mesh, num_new_verts, vert_flags);
 	split_faces_split_edges(mesh, num_new_edges, edge_flags);
-	/* CD_NORMAL is expected to be temporary only, and it's invalid at
-	 * this point anyway.
-	 */
-	CustomData_free_layers(&mesh->ldata, CD_NORMAL, mesh->totloop);
 	MEM_freeN(vert_flags);
 	MEM_freeN(edge_flags);
 #ifdef VALIDATE_MESH
