@@ -445,7 +445,7 @@ static void ui_draw_tria_rect(const rctf *rect, char dir)
 	}
 }
 
-static void ui_draw_anti_x(float x1, float y1, float x2, float y2)
+static void ui_draw_anti_x(unsigned int pos, float x1, float y1, float x2, float y2)
 {
 
 	/* set antialias line */
@@ -454,8 +454,8 @@ static void ui_draw_anti_x(float x1, float y1, float x2, float y2)
 
 	glLineWidth(2.0);
 	
-	fdrawline(x1, y1, x2, y2);
-	fdrawline(x1, y2, x2, y1);
+	imm_draw_line(pos, x1, y1, x2, y2);
+	imm_draw_line(pos, x1, y2, x2, y1);
 	
 	glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
@@ -463,16 +463,16 @@ static void ui_draw_anti_x(float x1, float y1, float x2, float y2)
 }
 
 /* x 'icon' for panel header */
-static void ui_draw_x_icon(float x, float y)
+static void ui_draw_x_icon(unsigned int pos, float x, float y)
 {
 
-	ui_draw_anti_x(x, y, x + 9.375f, y + 9.375f);
+	ui_draw_anti_x(pos, x, y, x + 9.375f, y + 9.375f);
 
 }
 
 #define PNL_ICON    UI_UNIT_X  /* could be UI_UNIT_Y too */
 
-static void ui_draw_panel_scalewidget(const rcti *rect)
+static void ui_draw_panel_scalewidget(unsigned int pos, const rcti *rect)
 {
 	float xmin, xmax, dx;
 	float ymin, ymax, dy;
@@ -486,16 +486,16 @@ static void ui_draw_panel_scalewidget(const rcti *rect)
 	dy = 0.5f * (ymax - ymin);
 	
 	glEnable(GL_BLEND);
-	glColor4ub(255, 255, 255, 50);
-	fdrawline(xmin, ymin, xmax, ymax);
-	fdrawline(xmin + dx, ymin, xmax, ymax - dy);
+	immUniformColor4ub(255, 255, 255, 50);
+	imm_draw_line(pos, xmin, ymin, xmax, ymax);
+	imm_draw_line(pos, xmin + dx, ymin, xmax, ymax - dy);
 	
-	glColor4ub(0, 0, 0, 50);
-	fdrawline(xmin, ymin + 1, xmax, ymax + 1);
-	fdrawline(xmin + dx, ymin + 1, xmax, ymax - dy + 1);
+	immUniformColor4ub(0, 0, 0, 50);
+	imm_draw_line(pos, xmin, ymin + 1, xmax, ymax + 1);
+	imm_draw_line(pos, xmin + dx, ymin + 1, xmax, ymax - dy + 1);
 	glDisable(GL_BLEND);
 }
-static void ui_draw_panel_dragwidget(const rctf *rect)
+static void ui_draw_panel_dragwidget(unsigned int pos, const rctf *rect)
 {
 	unsigned char col_back[3], col_high[3], col_dark[3];
 	const int col_tint = 84;
@@ -524,10 +524,10 @@ static void ui_draw_panel_dragwidget(const rctf *rect)
 			const int x_co = (x_min + x_ofs) + (i_x * (box_size + box_margin));
 			const int y_co = (y_min + y_ofs) + (i_y * (box_size + box_margin));
 
-			glColor3ubv(col_dark);
-			glRectf(x_co - box_size, y_co - px_zoom, x_co, (y_co + box_size) - px_zoom);
-			glColor3ubv(col_high);
-			glRectf(x_co - box_size, y_co, x_co, y_co + box_size);
+			immUniformColor3ubv(col_dark);
+			immRectf(pos, x_co - box_size, y_co - px_zoom, x_co, (y_co + box_size) - px_zoom);
+			immUniformColor3ubv(col_high);
+			immRectf(pos, x_co - box_size, y_co, x_co, y_co + box_size);
 		}
 	}
 }
@@ -585,6 +585,9 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 	headrect.ymin = headrect.ymax;
 	headrect.ymax = headrect.ymin + floor(PNL_HEADER / block->aspect + 0.001f);
 
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
 	{
 		float minx = rect->xmin;
 		float maxx = is_closed_x ? (minx + PNL_HEADER / block->aspect) : rect->xmax;
@@ -594,11 +597,11 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 
 		if (UI_GetThemeValue(TH_PANEL_SHOW_HEADER)) {
 			/* draw with background color */
-			UI_ThemeColor4(TH_PANEL_HEADER);
-			glRectf(minx, headrect.ymin + 1, maxx, y);
+			immUniformThemeColor(TH_PANEL_HEADER);
+			immRectf(pos, minx, headrect.ymin + 1, maxx, y);
 
-			fdrawline(minx, y, maxx, y);
-			fdrawline(minx, y, maxx, y);
+			imm_draw_line(pos, minx, y, maxx, y);
+			imm_draw_line(pos, minx, y, maxx, y);
 		}
 		else if (!(panel->runtime_flag & PNL_FIRST)) {
 			/* draw embossed separator */
@@ -608,14 +611,16 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 				maxx -= 5.0f / block->aspect;
 			}
 
-			glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
-			fdrawline(minx, y, maxx, y);
-			glColor4f(1.0f, 1.0f, 1.0f, 0.25f);
-			fdrawline(minx, y - 1, maxx, y - 1);
+			immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
+			imm_draw_line(pos, minx, y, maxx, y);
+			immUniformColor4f(1.0f, 1.0f, 1.0f, 0.25f);
+			imm_draw_line(pos, minx, y - 1, maxx, y - 1);
 		}
 
 		glDisable(GL_BLEND);
 	}
+
+	immUnbindProgram();
 
 	/* draw optional pin icon */
 
@@ -632,9 +637,11 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 		glDisable(GL_BLEND);
 	}
 
+
 	/* horizontal title */
 	if (is_closed_x == false) {
 		ui_draw_aligned_panel_header(style, block, &headrect, 'h');
+		pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 		/* itemrect smaller */
 		itemrect.xmax = headrect.xmax - 5.0f / block->aspect;
@@ -643,7 +650,9 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 		itemrect.ymax = headrect.ymax;
 
 		BLI_rctf_scale(&itemrect, 0.7f);
-		ui_draw_panel_dragwidget(&itemrect);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+		ui_draw_panel_dragwidget(pos, &itemrect);
+		immUnbindProgram();
 	}
 
 	/* if the panel is minimized vertically:
@@ -655,6 +664,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 	else if (is_closed_x) {
 		/* draw vertical title */
 		ui_draw_aligned_panel_header(style, block, &headrect, 'v');
+		pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 	}
 	/* an open panel */
 	else {
@@ -667,29 +677,34 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 			UI_draw_roundbox_unfilled(0.5f + rect->xmin, 0.5f + rect->ymin, 0.5f + rect->xmax, 0.5f + headrect.ymax + 1, 8, color);
 		}
 
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
 		/* panel backdrop */
 		if (UI_GetThemeValue(TH_PANEL_SHOW_BACK)) {
 			/* draw with background color */
 			glEnable(GL_BLEND);
-			UI_ThemeColor4(TH_PANEL_BACK);
-			glRecti(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+			immUniformThemeColor(TH_PANEL_BACK);
+			immRecti(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 		}
 
 		if (panel->control & UI_PNL_SCALE)
-			ui_draw_panel_scalewidget(rect);
+			ui_draw_panel_scalewidget(pos, rect);
+
+		immUnbindProgram();
 	}
 
 	/* draw optional close icon */
 
 	ofsx = 6;
 	if (panel->control & UI_PNL_CLOSE) {
-		UI_ThemeColor(TH_TITLE);
-		ui_draw_x_icon(rect->xmin + 2 + ofsx, rect->ymax + 2);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+		immUniformThemeColor(TH_TITLE);
+		ui_draw_x_icon(pos, rect->xmin + 2 + ofsx, rect->ymax + 2);
 		ofsx = 22;
+		immUnbindProgram();
 	}
 
 	/* draw collapse icon */
-	UI_ThemeColor(TH_TITLE);
 
 	/* itemrect smaller */
 	itemrect.xmin = headrect.xmin + 5.0f / block->aspect;
@@ -705,6 +720,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 		ui_draw_tria_rect(&itemrect, 'h');
 	else
 		ui_draw_tria_rect(&itemrect, 'v');
+
 
 	(void)ofsx;
 }
@@ -1543,10 +1559,6 @@ static void ui_panel_category_draw_tab(
 		mul_v2_fl(vec[a], rad);
 	}
 
-	if (mode == GL_POLYGON) {
-		mode = GL_TRIANGLE_FAN;
-	}
-
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
 	immBeginAtMost(mode, 24);
@@ -1738,20 +1750,25 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	/* begin drawing */
 	glEnable(GL_LINE_SMOOTH);
 
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
 	/* draw the background */
 	if (is_alpha) {
 		glEnable(GL_BLEND);
-		glColor4ubv(theme_col_tab_bg);
+		immUniformColor4ubv(theme_col_tab_bg);
 	}
 	else {
-		glColor3ubv(theme_col_tab_bg);
+		immUniformColor3ubv(theme_col_tab_bg);
 	}
 
-	glRecti(v2d->mask.xmin, v2d->mask.ymin, v2d->mask.xmin + category_tabs_width, v2d->mask.ymax);
+	immRecti(pos, v2d->mask.xmin, v2d->mask.ymin, v2d->mask.xmin + category_tabs_width, v2d->mask.ymax);
 
 	if (is_alpha) {
 		glDisable(GL_BLEND);
 	}
+
+	immUnbindProgram();
 
 	for (pc_dyn = ar->panels_category.first; pc_dyn; pc_dyn = pc_dyn->next) {
 		const rcti *rct = &pc_dyn->rect;
@@ -1775,7 +1792,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 		if (is_active)
 #endif
 		{
-			ui_panel_category_draw_tab(GL_POLYGON, rct->xmin, rct->ymin, rct->xmax, rct->ymax,
+			ui_panel_category_draw_tab(GL_TRIANGLE_FAN, rct->xmin, rct->ymin, rct->xmax, rct->ymax,
 			                           tab_curve_radius - px, roundboxtype, true, true, NULL,
 			                           is_active ? theme_col_tab_active : theme_col_tab_inactive);
 
@@ -1792,11 +1809,16 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 
 		/* tab blackline */
 		if (!is_active) {
-			glColor3ubv(theme_col_tab_divider);
-			glRecti(v2d->mask.xmin + category_tabs_width - px,
-			        rct->ymin - tab_v_pad,
-			        v2d->mask.xmin + category_tabs_width,
-			        rct->ymax + tab_v_pad);
+			pos = add_attrib(immVertexFormat(), "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+			immUniformColor3ubv(theme_col_tab_divider);
+			immRecti(pos, v2d->mask.xmin + category_tabs_width - px,
+			         rct->ymin - tab_v_pad,
+			         v2d->mask.xmin + category_tabs_width,
+			         rct->ymax + tab_v_pad);
+
+			immUnbindProgram();
 		}
 
 		if (do_scaletabs) {
@@ -1817,33 +1839,36 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 		glDisable(GL_BLEND);
 
 		/* tab blackline remaining (last tab) */
+		pos = add_attrib(immVertexFormat(), "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		if (pc_dyn->prev == NULL) {
-			glColor3ubv(theme_col_tab_divider);
-			glRecti(v2d->mask.xmin + category_tabs_width - px,
-			        rct->ymax + px,
-			        v2d->mask.xmin + category_tabs_width,
-			        v2d->mask.ymax);
+			immUniformColor3ubv(theme_col_tab_divider);
+			immRecti(pos, v2d->mask.xmin + category_tabs_width - px,
+			         rct->ymax + px,
+			         v2d->mask.xmin + category_tabs_width,
+			         v2d->mask.ymax);
 		}
 		if (pc_dyn->next == NULL) {
-			glColor3ubv(theme_col_tab_divider);
-			glRecti(v2d->mask.xmin + category_tabs_width - px,
-			        0,
-			        v2d->mask.xmin + category_tabs_width,
-			        rct->ymin);
+			immUniformColor3ubv(theme_col_tab_divider);
+			immRecti(pos, v2d->mask.xmin + category_tabs_width - px,
+			         0,
+			         v2d->mask.xmin + category_tabs_width,
+			         rct->ymin);
 		}
 
 #ifdef USE_FLAT_INACTIVE
 		/* draw line between inactive tabs */
 		if (is_active == false && is_active_prev == false && pc_dyn->prev) {
-			glColor3ubv(theme_col_tab_divider);
-			glRecti(v2d->mask.xmin + (category_tabs_width / 5),
-			        rct->ymax + px,
-			        (v2d->mask.xmin + category_tabs_width) - (category_tabs_width / 5),
-			        rct->ymax + (px * 3));
+			immUniformColor3ubv(theme_col_tab_divider);
+			immRecti(pos, v2d->mask.xmin + (category_tabs_width / 5),
+			         rct->ymax + px,
+			         (v2d->mask.xmin + category_tabs_width) - (category_tabs_width / 5),
+			         rct->ymax + (px * 3));
 		}
 
 		is_active_prev = is_active;
 #endif
+		immUnbindProgram();
 
 		/* not essential, but allows events to be handled right up until the region edge [#38171] */
 		pc_dyn->rect.xmin = v2d->mask.xmin;
