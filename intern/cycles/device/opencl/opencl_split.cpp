@@ -302,9 +302,13 @@ public:
 	{
 		size_t max_buffer_size;
 		clGetDeviceInfo(device->cdDevice, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(size_t), &max_buffer_size, NULL);
+		VLOG(1) << "Maximum device allocation side: "
+		        << string_human_readable_number(max_buffer_size) << " bytes. ("
+		        << string_human_readable_size(max_buffer_size) << ").";
 
 		size_t num_elements = max_elements_for_max_buffer_size(max_buffer_size / 2, task->passes_size);
 		int2 global_size = make_int2(round_down((int)sqrt(num_elements), 64), (int)sqrt(num_elements));
+		VLOG(1) << "Global size: " << global_size << ".";
 		return global_size;
 	}
 };
