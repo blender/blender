@@ -141,6 +141,9 @@ MINLINE void float_to_byte_dither_v3(unsigned char b[3], const float f[3], float
 #define rgba_char_args_set_fl(col, r, g, b, a) \
 	rgba_char_args_set(col, (r) * 255, (g) * 255, (b) * 255, (a) * 255)
 
+#define rgba_float_args_set_ch(col, r, g, b, a) \
+	rgba_float_args_set(col, (r) / 255.0f, (g) / 255.0f, (b) / 255.0f, (a) / 255.0f)
+
 MINLINE void rgba_char_args_set(char col[4], const char r, const char g, const char b, const char a);
 MINLINE void rgba_float_args_set(float col[4], const float r, const float g, const float b, const float a);
 MINLINE void rgba_char_args_test_set(char col[4], const char r, const char g, const char b, const char a);

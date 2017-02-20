@@ -499,6 +499,7 @@ static int ui_but_calc_float_precision(uiBut *but, double value)
 static void ui_draw_linkline(uiLinkLine *line, int highlightActiveLines, int dashInactiveLines)
 {
 	rcti rect;
+	float color[4] = {1.0f};
 
 	if (line->from == NULL || line->to == NULL) return;
 	
@@ -508,15 +509,15 @@ static void ui_draw_linkline(uiLinkLine *line, int highlightActiveLines, int das
 	rect.ymax = BLI_rctf_cent_y(&line->to->rect);
 	
 	if (dashInactiveLines)
-		UI_ThemeColor(TH_GRID);
+		UI_GetThemeColor4fv(TH_GRID, color);
 	else if (line->flag & UI_SELECT)
-		glColor3ub(100, 100, 100);
+		rgba_float_args_set_ch(color, 100, 100, 100, 255);
 	else if (highlightActiveLines && ((line->from->flag & UI_ACTIVE) || (line->to->flag & UI_ACTIVE)))
-		UI_ThemeColor(TH_TEXT_HI);
+		UI_GetThemeColor4fv(TH_TEXT_HI, color);
 	else
-		glColor3ub(0, 0, 0);
+		rgba_float_args_set_ch(color, 0, 0, 0, 255);
 
-	ui_draw_link_bezier(&rect);
+	ui_draw_link_bezier(&rect, color);
 }
 
 static void ui_draw_links(uiBlock *block)
