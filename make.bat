@@ -90,7 +90,7 @@ if NOT "%1" == "" (
 	) else if "%1" == "update" (
 		svn up ../lib/*
 		git pull --rebase
-		git submodule foreach git pull --rebase origin master
+		git submodule update --remote
 		goto EOF
 	) else if "%1" == "clean" (
 		set MUST_CLEAN=1
