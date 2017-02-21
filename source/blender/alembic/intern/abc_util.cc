@@ -41,7 +41,7 @@ extern "C" {
 #include "PIL_time.h"
 }
 
-std::string get_id_name(Object *ob)
+std::string get_id_name(const Object * const ob)
 {
 	if (!ob) {
 		return "";
@@ -50,7 +50,7 @@ std::string get_id_name(Object *ob)
 	return get_id_name(&ob->id);
 }
 
-std::string get_id_name(ID *id)
+std::string get_id_name(const ID * const id)
 {
 	std::string name(id->name + 2);
 	std::replace(name.begin(), name.end(), ' ', '_');
@@ -60,7 +60,7 @@ std::string get_id_name(ID *id)
 	return name;
 }
 
-std::string get_object_dag_path_name(Object *ob, Object *dupli_parent)
+std::string get_object_dag_path_name(const Object * const ob, Object *dupli_parent)
 {
 	std::string name = get_id_name(ob);
 

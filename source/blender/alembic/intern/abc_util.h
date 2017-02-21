@@ -44,9 +44,9 @@ struct ImportSettings;
 struct ID;
 struct Object;
 
-std::string get_id_name(ID *id);
-std::string get_id_name(Object *ob);
-std::string get_object_dag_path_name(Object *ob, Object *dupli_parent);
+std::string get_id_name(const ID * const id);
+std::string get_id_name(const Object * const ob);
+std::string get_object_dag_path_name(const Object * const ob, Object *dupli_parent);
 
 bool object_selected(Object *ob);
 bool parent_selected(Object *ob);
