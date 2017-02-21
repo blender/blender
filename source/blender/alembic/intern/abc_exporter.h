@@ -89,8 +89,12 @@ class AbcExporter {
 
 	ArchiveWriter *m_writer;
 
-	std::map<std::string, AbcTransformWriter *> m_xforms;
-	std::vector<AbcObjectWriter *> m_shapes;
+	/* mapping from name to transform writer */
+	typedef std::map<std::string, AbcTransformWriter *> m_xforms_type;
+	m_xforms_type m_xforms;
+
+	typedef std::vector<AbcObjectWriter *> m_shapes_type;
+	m_shapes_type m_shapes;
 
 public:
 	AbcExporter(Scene *scene, const char *filename, ExportSettings &settings);

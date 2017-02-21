@@ -154,13 +154,16 @@ AbcExporter::AbcExporter(Scene *scene, const char *filename, ExportSettings &set
 
 AbcExporter::~AbcExporter()
 {
-	std::map<std::string, AbcTransformWriter*>::iterator it, e;
-	for (it = m_xforms.begin(), e = m_xforms.end(); it != e; ++it) {
-		delete it->second;
+	/* Free xforms map */
+	m_xforms_type::iterator it_x, e_x;
+	for (it_x = m_xforms.begin(), e_x = m_xforms.end(); it_x != e_x; ++it_x) {
+		delete it_x->second;
 	}
 
-	for (int i = 0, e = m_shapes.size(); i != e; ++i) {
-		delete m_shapes[i];
+	/* Free shapes vector */
+	m_shapes_type::iterator it_s, e_s;
+	for (it_s = m_shapes.begin(), e_s = m_shapes.end(); it_s != e_s; ++it_s) {
+		delete *it_s;
 	}
 
 	delete m_writer;
@@ -314,8 +317,9 @@ void AbcExporter::operator()(Main *bmain, float &progress, bool &was_canceled)
 		setCurrentFrame(bmain, frame - m_settings.frame_start);
 
 		if (shape_frames.count(frame) != 0) {
-			for (int i = 0, e = m_shapes.size(); i != e; ++i) {
-				m_shapes[i]->write();
+			m_shapes_type::iterator xit, xe;
+			for (xit = m_shapes.begin(), xe = m_shapes.end(); xit != xe; ++xit) {
+				(*xit)->write();
 			}
 		}
 
@@ -323,7 +327,7 @@ void AbcExporter::operator()(Main *bmain, float &progress, bool &was_canceled)
 			continue;
 		}
 
-		std::map<std::string, AbcTransformWriter *>::iterator xit, xe;
+		m_xforms_type::iterator xit, xe;
 		for (xit = m_xforms.begin(), xe = m_xforms.end(); xit != xe; ++xit) {
 			xit->second->write();
 		}
