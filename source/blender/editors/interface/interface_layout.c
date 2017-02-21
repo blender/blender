@@ -3134,8 +3134,6 @@ static void ui_item_align(uiLayout *litem, short nr)
 		else if (item->type == ITEM_LAYOUT_BOX) {
 			box = (uiLayoutItemBx *)item;
 			box->roundbox->alignnr = nr;
-			BLI_remlink(&litem->root->block->buttons, box->roundbox);
-			BLI_addhead(&litem->root->block->buttons, box->roundbox);
 		}
 		else if (((uiLayout *)item)->align) {
 			ui_item_align((uiLayout *)item, nr);
