@@ -304,7 +304,8 @@ void OUTLINER_OT_item_openclose(wmOperatorType *ot)
 
 /* Rename --------------------------------------------------- */
 
-static void do_item_rename(ARegion *ar, TreeElement *te, TreeStoreElem *tselem, ReportList *reports)
+static void do_item_rename(const Scene *scene, ARegion *ar, TreeElement *te, TreeStoreElem *tselem,
+                           ReportList *reports)
 {
 	/* can't rename rna datablocks entries or listbases */
 	if (ELEM(tselem->type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM, TSE_ID_BASE)) {
@@ -317,6 +318,11 @@ static void do_item_rename(ARegion *ar, TreeElement *te, TreeStoreElem *tselem, 
 	}
 	else if (ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
 		BKE_report(reports, RPT_WARNING, "Cannot edit sequence name");
+	}
+	else if ((tselem->type == TSE_COLLECTION) &&
+	         (((LayerCollection *)te->directdata)->scene_collection == BKE_collection_master(scene)))
+	{
+		BKE_report(reports, RPT_WARNING, "Cannot edit name of master collection");
 	}
 	else if (ID_IS_LINKED_DATABLOCK(tselem->id)) {
 		BKE_report(reports, RPT_WARNING, "Cannot edit external libdata");
@@ -331,28 +337,29 @@ static void do_item_rename(ARegion *ar, TreeElement *te, TreeStoreElem *tselem, 
 }
 
 void item_rename_cb(
-        bContext *C, ReportList *reports, Scene *UNUSED(scene), TreeElement *te,
+        bContext *C, ReportList *reports, Scene *scene, TreeElement *te,
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	ARegion *ar = CTX_wm_region(C);
-	do_item_rename(ar, te, tselem, reports);
+	do_item_rename(scene, ar, te, tselem, reports);
 }
 
-static int do_outliner_item_rename(ReportList *reports, ARegion *ar, TreeElement *te, const float mval[2])
+static int do_outliner_item_rename(const Scene *scene, ReportList *reports, ARegion *ar, TreeElement *te,
+                                   const float mval[2])
 {
 	if (mval[1] > te->ys && mval[1] < te->ys + UI_UNIT_Y) {
 		TreeStoreElem *tselem = TREESTORE(te);
 		
 		/* click on name */
 		if (mval[0] > te->xs + UI_UNIT_X * 2 && mval[0] < te->xend) {
-			do_item_rename(ar, te, tselem, reports);
+			do_item_rename(scene, ar, te, tselem, reports);
 			return 1;
 		}
 		return 0;
 	}
 	
 	for (te = te->subtree.first; te; te = te->next) {
-		if (do_outliner_item_rename(reports, ar, te, mval)) return 1;
+		if (do_outliner_item_rename(scene, reports, ar, te, mval)) return 1;
 	}
 	return 0;
 }
@@ -368,7 +375,7 @@ static int outliner_item_rename(bContext *C, wmOperator *op, const wmEvent *even
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 	
 	for (te = soops->tree.first; te; te = te->next) {
-		if (do_outliner_item_rename(op->reports, ar, te, fmval)) {
+		if (do_outliner_item_rename(CTX_data_scene(C), op->reports, ar, te, fmval)) {
 			changed = true;
 			break;
 		}
