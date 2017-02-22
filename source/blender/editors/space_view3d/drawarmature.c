@@ -80,7 +80,7 @@ static ThemeWireColor *bcolor = NULL;
 static float fcolor[4] = {0.0f};
 static bool flat_color;
 
-/* values of colCode for set_pchan_glcolor */
+/* values of colCode for set_pchan_color */
 enum {
 	PCHAN_COLOR_NORMAL  = 0,        /* normal drawing */
 	PCHAN_COLOR_SOLID,              /* specific case where "solid" color is needed */
@@ -151,7 +151,7 @@ static void cp_shade_color3ub(unsigned char cp[3], const int offset)
 }
 
 /* This function sets the gl-color for coloring a certain bone (based on bcolor) */
-static bool set_pchan_glColor(short colCode, int boneflag, short constflag)
+static bool set_pchan_color(short colCode, int boneflag, short constflag)
 {
 	switch (colCode) {
 		case PCHAN_COLOR_NORMAL:
@@ -314,7 +314,7 @@ static bool set_pchan_glColor(short colCode, int boneflag, short constflag)
 	return false;
 }
 
-static void set_ebone_glColor(const unsigned int boneflag)
+static void set_ebone_color(const unsigned int boneflag)
 {
 	if ((boneflag & BONE_DRAW_ACTIVE) && (boneflag & BONE_SELECTED)) {
 		UI_GetThemeColor4fv(TH_EDGE_SELECT, fcolor);
@@ -684,7 +684,7 @@ static void draw_bone_points(const short dt, int armflag, unsigned int boneflag,
 		}
 		else {
 			if (armflag & ARM_POSEMODE) 
-				set_pchan_glColor(PCHAN_COLOR_SOLID, boneflag, 0);
+				set_pchan_color(PCHAN_COLOR_SOLID, boneflag, 0);
 			else {
 				UI_GetThemeColor4fv(TH_BONE_SOLID, fcolor);
 			}
@@ -712,7 +712,7 @@ static void draw_bone_points(const short dt, int armflag, unsigned int boneflag,
 	}
 	else {
 		if (armflag & ARM_POSEMODE) 
-			set_pchan_glColor(PCHAN_COLOR_SOLID, boneflag, 0);
+			set_pchan_color(PCHAN_COLOR_SOLID, boneflag, 0);
 		else {
 			UI_GetThemeColor4fv(TH_BONE_SOLID, fcolor);
 		}
@@ -920,7 +920,7 @@ static void draw_sphere_bone_wire(float smat[4][4], float imat[4][4],
 		}
 	}
 	else if (armflag & ARM_POSEMODE)
-		set_pchan_glColor(PCHAN_COLOR_NORMAL, boneflag, constflag);
+		set_pchan_color(PCHAN_COLOR_NORMAL, boneflag, constflag);
 
 	immUniformColor4fv(fcolor);
 
@@ -1045,7 +1045,7 @@ static void draw_sphere_bone(const short dt, int armflag, int boneflag, short co
 			UI_GetThemeColorShade4fv(TH_BONE_SOLID, -30, fcolor);
 	}
 	else if (armflag & ARM_POSEMODE)
-		set_pchan_glColor(PCHAN_COLOR_SPHEREBONE_END, boneflag, constflag);
+		set_pchan_color(PCHAN_COLOR_SPHEREBONE_END, boneflag, constflag);
 	else if (dt == OB_SOLID)
 		UI_GetThemeColorShade4fv(TH_BONE_SOLID, -30, fcolor);
 	
@@ -1086,7 +1086,7 @@ static void draw_sphere_bone(const short dt, int armflag, int boneflag, short co
 		else UI_GetThemeColor4fv(TH_BONE_SOLID, fcolor);
 	}
 	else if (armflag & ARM_POSEMODE)
-		set_pchan_glColor(PCHAN_COLOR_SPHEREBONE_BASE, boneflag, constflag);
+		set_pchan_color(PCHAN_COLOR_SPHEREBONE_BASE, boneflag, constflag);
 	else if (dt == OB_SOLID)
 		UI_GetThemeColor4fv(TH_BONE_SOLID, fcolor);
 
@@ -1174,7 +1174,7 @@ static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned 
 		glPointSize(8.0f);
 
 		if (armflag & ARM_POSEMODE)
-			set_pchan_glColor(PCHAN_COLOR_NORMAL, boneflag, constflag);
+			set_pchan_color(PCHAN_COLOR_NORMAL, boneflag, constflag);
 		else if (armflag & ARM_EDITMODE) {
 			UI_GetThemeColor4fv(TH_WIRE_EDIT, fcolor);
 		}
@@ -1222,7 +1222,7 @@ static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned 
 			GPU_select_load_id(id & 0xFFFF);  /* object tag, for bordersel optim */
 		
 		if (armflag & ARM_POSEMODE)
-			set_pchan_glColor(PCHAN_COLOR_LINEBONE, boneflag, constflag);
+			set_pchan_color(PCHAN_COLOR_LINEBONE, boneflag, constflag);
 	}
 
 	/* Now draw the inner color */
@@ -1418,13 +1418,13 @@ static void draw_b_bone(const short dt, int armflag, int boneflag, short constfl
 	/* colors for modes */
 	if (armflag & ARM_POSEMODE) {
 		if (dt <= OB_WIRE)
-			set_pchan_glColor(PCHAN_COLOR_NORMAL, boneflag, constflag);
+			set_pchan_color(PCHAN_COLOR_NORMAL, boneflag, constflag);
 		else 
-			set_pchan_glColor(PCHAN_COLOR_SOLID, boneflag, constflag);
+			set_pchan_color(PCHAN_COLOR_SOLID, boneflag, constflag);
 	}
 	else if (armflag & ARM_EDITMODE) {
 		if (dt == OB_WIRE) {
-			set_ebone_glColor(boneflag);
+			set_ebone_color(boneflag);
 		}
 		else {
 			UI_GetThemeColor4fv(TH_BONE_SOLID, fcolor);
@@ -1438,7 +1438,7 @@ static void draw_b_bone(const short dt, int armflag, int boneflag, short constfl
 	/* set up solid drawing */
 	if (dt > OB_WIRE) {
 		if (armflag & ARM_POSEMODE)
-			set_pchan_glColor(PCHAN_COLOR_SOLID, boneflag, constflag);
+			set_pchan_color(PCHAN_COLOR_SOLID, boneflag, constflag);
 		else {
 			UI_GetThemeColor4fv(TH_BONE_SOLID, fcolor);
 		}
@@ -1451,7 +1451,7 @@ static void draw_b_bone(const short dt, int armflag, int boneflag, short constfl
 		if (armflag & ARM_POSEMODE) {
 			if (constflag) {
 				/* set constraint colors */
-				if (set_pchan_glColor(PCHAN_COLOR_CONSTS, boneflag, constflag)) {
+				if (set_pchan_color(PCHAN_COLOR_CONSTS, boneflag, constflag)) {
 					glEnable(GL_BLEND);
 					
 					flat_color = true;
@@ -1461,7 +1461,7 @@ static void draw_b_bone(const short dt, int armflag, int boneflag, short constfl
 				}
 				
 				/* restore colors */
-				set_pchan_glColor(PCHAN_COLOR_NORMAL, boneflag, constflag);
+				set_pchan_color(PCHAN_COLOR_NORMAL, boneflag, constflag);
 			}
 		}
 		
@@ -1557,10 +1557,10 @@ static void draw_wire_bone(const short dt, int armflag, int boneflag, short cons
 	
 	/* colors for modes */
 	if (armflag & ARM_POSEMODE) {
-		set_pchan_glColor(PCHAN_COLOR_NORMAL, boneflag, constflag);
+		set_pchan_color(PCHAN_COLOR_NORMAL, boneflag, constflag);
 	}
 	else if (armflag & ARM_EDITMODE) {
-		set_ebone_glColor(boneflag);
+		set_ebone_color(boneflag);
 	}
 	
 	/* draw normal */
@@ -1584,9 +1584,9 @@ static void draw_bone(const short dt, int armflag, int boneflag, short constflag
 	/* colors for posemode */
 	if (armflag & ARM_POSEMODE) {
 		if (dt <= OB_WIRE)
-			set_pchan_glColor(PCHAN_COLOR_NORMAL, boneflag, constflag);
+			set_pchan_color(PCHAN_COLOR_NORMAL, boneflag, constflag);
 		else 
-			set_pchan_glColor(PCHAN_COLOR_SOLID, boneflag, constflag);
+			set_pchan_color(PCHAN_COLOR_SOLID, boneflag, constflag);
 	}
 	
 	
@@ -1601,12 +1601,12 @@ static void draw_bone(const short dt, int armflag, int boneflag, short constflag
 	if (dt <= OB_WIRE) {
 		/* colors */
 		if (armflag & ARM_EDITMODE) {
-			set_ebone_glColor(boneflag);
+			set_ebone_color(boneflag);
 		}
 		else if (armflag & ARM_POSEMODE) {
 			if (constflag) {
 				/* draw constraint colors */
-				if (set_pchan_glColor(PCHAN_COLOR_CONSTS, boneflag, constflag)) {
+				if (set_pchan_color(PCHAN_COLOR_CONSTS, boneflag, constflag)) {
 					glEnable(GL_BLEND);
 					
 					draw_bone_solid_octahedral();
@@ -1615,7 +1615,7 @@ static void draw_bone(const short dt, int armflag, int boneflag, short constflag
 				}
 				
 				/* restore colors */
-				set_pchan_glColor(PCHAN_COLOR_NORMAL, boneflag, constflag);
+				set_pchan_color(PCHAN_COLOR_NORMAL, boneflag, constflag);
 			}
 		}
 		draw_bone_octahedral();
@@ -1623,7 +1623,7 @@ static void draw_bone(const short dt, int armflag, int boneflag, short constflag
 	else {
 		/* solid */
 		if (armflag & ARM_POSEMODE)
-			set_pchan_glColor(PCHAN_COLOR_SOLID, boneflag, constflag);
+			set_pchan_color(PCHAN_COLOR_SOLID, boneflag, constflag);
 		else
 			UI_GetThemeColor4fv(TH_BONE_SOLID, fcolor);
 
@@ -1640,7 +1640,7 @@ static void draw_custom_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obje
 	
 	/* colors for posemode */
 	if (armflag & ARM_POSEMODE) {
-		set_pchan_glColor(PCHAN_COLOR_NORMAL, boneflag, 0);
+		set_pchan_color(PCHAN_COLOR_NORMAL, boneflag, 0);
 	}
 	
 	if (id != -1) {
@@ -2991,10 +2991,6 @@ bool draw_armature(Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *ar, Base 
 			}
 			draw_pose_bones(scene, v3d, ar, base, dt, ob_wire_col, (dflag & DRAW_CONSTCOLOR), is_outline);
 			arm->flag &= ~ARM_POSEMODE; 
-#if 0
-			if (ob->mode & OB_MODE_POSE)
-				UI_ThemeColor(TH_WIRE);  /* restore, for extra draw stuff */
-#endif
 		}
 		else {
 			retval = true;
