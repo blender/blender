@@ -17,7 +17,7 @@ set MUST_CLEAN=
 set NOBUILD=
 set TARGET=
 set WINDOWS_ARCH=
-
+set TESTS_CMAKE_ARGS=
 :argv_loop
 if NOT "%1" == "" (
 
@@ -30,6 +30,8 @@ if NOT "%1" == "" (
 	if "%1" == "debug" (
 		set BUILD_TYPE=Debug
 	REM Build Configurations
+	) else if "%1" == "with_tests" (
+		set TESTS_CMAKE_ARGS=-DWITH_GTESTS=On
 	) else if "%1" == "full" (
 		set TARGET=Full
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
@@ -183,7 +185,7 @@ if "%TARGET%"=="" (
 	goto HELP
 )
 
-set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -G "Visual Studio %BUILD_VS_VER% %BUILD_VS_YEAR%%WINDOWS_ARCH%"
+set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -G "Visual Studio %BUILD_VS_VER% %BUILD_VS_YEAR%%WINDOWS_ARCH%" %TESTS_CMAKE_ARGS%
 if NOT EXIST %BUILD_DIR%\nul (
 	mkdir %BUILD_DIR%
 )
@@ -262,6 +264,7 @@ goto EOF
 		echo - showhash ^(Show git hashes of source tree^)
 		echo.
 		echo Configuration options
+		echo - with_tests ^(enable building unit tests^)
 		echo - debug ^(Build an unoptimized debuggable build^)
 		echo - packagename [newname] ^(override default cpack package name^)
 		echo - x86 ^(override host autodetect and build 32 bit code^)

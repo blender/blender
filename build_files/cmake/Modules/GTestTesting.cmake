@@ -45,7 +45,7 @@ macro(BLENDER_SRC_GTEST_EX NAME SRC EXTRA_LIBS DO_ADD_TEST)
 		                      RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${TESTS_OUTPUT_DIR}"
 		                      INCLUDE_DIRECTORIES              "${TEST_INC}")
 		if(${DO_ADD_TEST})
-			add_test(${NAME}_test ${TESTS_OUTPUT_DIR}/${NAME}_test)
+			add_test(NAME ${NAME}_test COMMAND ${TESTS_OUTPUT_DIR}/${NAME}_test WORKING_DIRECTORY $<TARGET_FILE_DIR:blender>)
 		endif()
 	endif()
 endmacro()

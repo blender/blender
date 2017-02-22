@@ -95,6 +95,11 @@ add_test(bevel ${TEST_BLENDER_EXE}
 	--python-text run_tests
 )
 
+add_test(split_faces ${TEST_BLENDER_EXE}
+    ${TEST_SRC_DIR}/modeling/split_faces_test.blend
+    --python-text run_tests
+)
+
 # ------------------------------------------------------------------------------
 # IO TESTS
 
@@ -399,24 +404,33 @@ endif()
 
 if(WITH_CYCLES)
 	if(OPENIMAGEIO_IDIFF AND EXISTS "${TEST_SRC_DIR}/cycles/ctests/shader")
-		add_test(cycles_reports_test
-			${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
-			-blender "${TEST_BLENDER_EXE_BARE}"
-			-testdir "${TEST_SRC_DIR}/cycles/ctests/reports"
-			-idiff "${OPENIMAGEIO_IDIFF}"
-		)
-		add_test(cycles_render_test
-			${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
-			-blender "${TEST_BLENDER_EXE_BARE}"
-			-testdir "${TEST_SRC_DIR}/cycles/ctests/render"
-			-idiff "${OPENIMAGEIO_IDIFF}"
-		)
-		add_test(cycles_shaders_test
-			${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
-			-blender "${TEST_BLENDER_EXE_BARE}"
-			-testdir "${TEST_SRC_DIR}/cycles/ctests/shader"
-			-idiff "${OPENIMAGEIO_IDIFF}"
-		)
+		macro(add_cycles_render_test subject)
+			if(MSVC)
+				add_test(NAME cycles_${subject}_test
+					COMMAND
+						"$<TARGET_FILE_DIR:blender>/${BLENDER_VERSION_MAJOR}.${BLENDER_VERSION_MINOR}/python/bin/python$<$<CONFIG:Debug>:_d>"
+						${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
+					-blender "$<TARGET_FILE:blender>"
+					-testdir "${TEST_SRC_DIR}/cycles/ctests/${subject}"
+					-idiff "${OPENIMAGEIO_IDIFF}"
+				)
+			else()
+				add_test(cycles_${subject}_test
+					 ${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
+					-blender "${TEST_BLENDER_EXE_BARE}"
+					-testdir "${TEST_SRC_DIR}/cycles/ctests/${subject}"
+					-idiff "${OPENIMAGEIO_IDIFF}"
+				)
+			endif()
+		endmacro()
+		if(WITH_OPENGL_TESTS)
+			add_cycles_render_test(opengl)
+		endif()
+		add_cycles_render_test(image)
+		add_cycles_render_test(mblur)
+		add_cycles_render_test(reports)
+		add_cycles_render_test(render)
+		add_cycles_render_test(shader)
 	else()
 		MESSAGE(STATUS "Disabling Cycles tests because tests folder does not exist")
 	endif()
