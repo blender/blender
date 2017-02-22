@@ -14,25 +14,13 @@
  * limitations under the License.
  */
 
+#include "kernel_compat_opencl.h"
+#include "split/kernel_split_common.h"
 #include "split/kernel_sum_all_radiance.h"
 
 __kernel void kernel_ocl_path_trace_sum_all_radiance(
-        ccl_constant KernelData *data,               /* To get pass_stride to offet into buffer */
-        ccl_global float *buffer,                    /* Output buffer of RenderTile */
-        ccl_global float *per_sample_output_buffer,  /* Radiance contributed by all samples */
-        int parallel_samples, int sw, int sh, int stride,
-        int buffer_offset_x,
-        int buffer_offset_y,
-        int buffer_stride,
-        int start_sample)
+        KernelGlobals *kg,
+        ccl_constant KernelData *data)
 {
-	kernel_sum_all_radiance(data,
-	                        buffer,
-	                        per_sample_output_buffer,
-	                        parallel_samples,
-	                        sw, sh, stride,
-	                        buffer_offset_x,
-	                        buffer_offset_y,
-	                        buffer_stride,
-	                        start_sample);
+	kernel_sum_all_radiance(kg);
 }

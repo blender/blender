@@ -195,10 +195,12 @@ set(SRC_SPLIT_HEADERS
 	split/kernel_holdout_emission_blurring_pathtermination_ao.h
 	split/kernel_lamp_emission.h
 	split/kernel_next_iteration_setup.h
+	split/kernel_queue_enqueue.h
 	split/kernel_scene_intersect.h
 	split/kernel_shader_eval.h
 	split/kernel_shadow_blocked.h
 	split/kernel_split_common.h
+	split/kernel_split_data.h
 	split/kernel_sum_all_radiance.h
 )
 

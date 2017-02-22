@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "kernel_split_common.h"
+CCL_NAMESPACE_BEGIN
 
 /* Note on kernel_shader_eval kernel
  * This kernel is the 5th kernel in the ray tracing logic. This is
@@ -44,27 +44,51 @@
  * QUEUE_ACTIVE_AND_REGENERATED_RAYS will be filled with RAY_ACTIVE and RAY_REGENERATED rays
  * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be filled with RAY_TO_REGENERATE rays
  */
-ccl_device void kernel_shader_eval(
-        KernelGlobals *kg,
-        ShaderData *sd,                        /* Output ShaderData structure to be filled */
-        ccl_global uint *rng_coop,             /* Required for rbsdf calculation */
-        ccl_global Ray *Ray_coop,              /* Required for setting up shader from ray */
-        ccl_global PathState *PathState_coop,  /* Required for all functions in this kernel */
-        Intersection *Intersection_coop,       /* Required for setting up shader from ray */
-        ccl_global char *ray_state,            /* Denotes the state of each ray */
-        int ray_index)
+
+ccl_device void kernel_shader_eval(KernelGlobals *kg)
 {
-	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
-		Intersection *isect = &Intersection_coop[ray_index];
-		ccl_global uint *rng = &rng_coop[ray_index];
-		ccl_global PathState *state = &PathState_coop[ray_index];
-		Ray ray = Ray_coop[ray_index];
+	/* Enqeueue RAY_TO_REGENERATE rays into QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS queue. */
+	ccl_local unsigned int local_queue_atomics;
+	if(ccl_local_id(0) == 0 && ccl_local_id(1) == 0) {
+		local_queue_atomics = 0;
+	}
+	ccl_barrier(CCL_LOCAL_MEM_FENCE);
+
+	int ray_index = ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0);
+	ray_index = get_ray_index(kg, ray_index,
+	                          QUEUE_ACTIVE_AND_REGENERATED_RAYS,
+	                          kernel_split_state.queue_data,
+	                          kernel_split_params.queue_size,
+	                          0);
+
+	if(ray_index == QUEUE_EMPTY_SLOT) {
+		return;
+	}
+
+	char enqueue_flag = (IS_STATE(kernel_split_state.ray_state, ray_index, RAY_TO_REGENERATE)) ? 1 : 0;
+	enqueue_ray_index_local(ray_index,
+	                        QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS,
+	                        enqueue_flag,
+	                        kernel_split_params.queue_size,
+	                        &local_queue_atomics,
+	                        kernel_split_state.queue_data,
+	                        kernel_split_params.queue_index);
+
+	/* Continue on with shader evaluation. */
+	if(IS_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE)) {
+		Intersection *isect = &kernel_split_state.isect[ray_index];
+		ccl_global uint *rng = &kernel_split_state.rng[ray_index];
+		ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
+		Ray ray = kernel_split_state.ray[ray_index];
 
 		shader_setup_from_ray(kg,
-		                      sd,
+		                      kernel_split_state.sd,
 		                      isect,
 		                      &ray);
 		float rbsdf = path_state_rng_1D_for_decision(kg, rng, state, PRNG_BSDF);
-		shader_eval_surface(kg, sd, rng, state, rbsdf, state->flag, SHADER_CONTEXT_MAIN);
+		shader_eval_surface(kg, kernel_split_state.sd, rng, state, rbsdf, state->flag, SHADER_CONTEXT_MAIN);
 	}
 }
+
+CCL_NAMESPACE_END
+

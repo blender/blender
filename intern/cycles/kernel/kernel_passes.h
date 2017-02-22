@@ -19,16 +19,16 @@ CCL_NAMESPACE_BEGIN
 ccl_device_inline void kernel_write_pass_float(ccl_global float *buffer, int sample, float value)
 {
 	ccl_global float *buf = buffer;
-#if defined(__SPLIT_KERNEL__) && defined(__WORK_STEALING__)
+#if defined(__SPLIT_KERNEL__)
 	atomic_add_and_fetch_float(buf, value);
 #else
 	*buf = (sample == 0)? value: *buf + value;
-#endif // __SPLIT_KERNEL__ && __WORK_STEALING__
+#endif  /* __SPLIT_KERNEL__ */
 }
 
 ccl_device_inline void kernel_write_pass_float3(ccl_global float *buffer, int sample, float3 value)
 {
-#if defined(__SPLIT_KERNEL__) && defined(__WORK_STEALING__)
+#if defined(__SPLIT_KERNEL__)
 	ccl_global float *buf_x = buffer + 0;
 	ccl_global float *buf_y = buffer + 1;
 	ccl_global float *buf_z = buffer + 2;
@@ -39,12 +39,12 @@ ccl_device_inline void kernel_write_pass_float3(ccl_global float *buffer, int sa
 #else
 	ccl_global float3 *buf = (ccl_global float3*)buffer;
 	*buf = (sample == 0)? value: *buf + value;
-#endif // __SPLIT_KERNEL__ && __WORK_STEALING__
+#endif  /* __SPLIT_KERNEL__ */
 }
 
 ccl_device_inline void kernel_write_pass_float4(ccl_global float *buffer, int sample, float4 value)
 {
-#if defined(__SPLIT_KERNEL__) && defined(__WORK_STEALING__)
+#if defined(__SPLIT_KERNEL__)
 	ccl_global float *buf_x = buffer + 0;
 	ccl_global float *buf_y = buffer + 1;
 	ccl_global float *buf_z = buffer + 2;
@@ -57,7 +57,7 @@ ccl_device_inline void kernel_write_pass_float4(ccl_global float *buffer, int sa
 #else
 	ccl_global float4 *buf = (ccl_global float4*)buffer;
 	*buf = (sample == 0)? value: *buf + value;
-#endif // __SPLIT_KERNEL__ && __WORK_STEALING__
+#endif  /* __SPLIT_KERNEL__ */
 }
 
 ccl_device_inline void kernel_write_data_passes(KernelGlobals *kg, ccl_global float *buffer, PathRadiance *L,

@@ -17,9 +17,11 @@
 #ifndef  __KERNEL_SPLIT_H__
 #define  __KERNEL_SPLIT_H__
 
-#include "kernel_compat_opencl.h"
 #include "kernel_math.h"
 #include "kernel_types.h"
+
+#include "kernel_split_data.h"
+
 #include "kernel_globals.h"
 #include "kernel_image_opencl.h"
 

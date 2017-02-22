@@ -211,7 +211,9 @@ bool OpenCLDeviceBase::load_kernels(const DeviceRequestedFeatures& requested_fea
 	vector<OpenCLProgram*> programs;
 	programs.push_back(&base_program);
 	/* Call actual class to fill the vector with its programs. */
-	load_kernels(requested_features, programs);
+	if(!load_kernels(requested_features, programs)) {
+		return false;
+	}
 
 	/* Parallel compilation is supported by Cycles, but currently all OpenCL frameworks
 	 * serialize the calls internally, so it's not much use right now.

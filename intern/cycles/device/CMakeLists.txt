@@ -3,6 +3,7 @@ set(INC
 	.
 	../graph
 	../kernel
+	../kernel/split
 	../kernel/svm
 	../kernel/osl
 	../util
@@ -33,6 +34,7 @@ set(SRC
 	device_cuda.cpp
 	device_multi.cpp
 	device_opencl.cpp
+	device_split_kernel.cpp
 	device_task.cpp
 )
 
@@ -56,6 +58,7 @@ set(SRC_HEADERS
 	device_memory.h
 	device_intern.h
 	device_network.h
+	device_split_kernel.h
 	device_task.h
 )
 

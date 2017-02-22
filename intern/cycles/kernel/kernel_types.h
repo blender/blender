@@ -56,6 +56,8 @@ CCL_NAMESPACE_BEGIN
 
 #define VOLUME_STACK_SIZE		16
 
+#define WORK_POOL_SIZE 64
+
 /* device capabilities */
 #ifdef __KERNEL_CPU__
 #  ifdef __KERNEL_SSE2__
@@ -799,7 +801,7 @@ enum ShaderDataObjectFlag {
 };
 
 #ifdef __SPLIT_KERNEL__
-#  define SD_THREAD (get_global_id(1) * get_global_size(0) + get_global_id(0))
+#  define SD_THREAD (ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0))
 #  if !defined(__SPLIT_KERNEL_SOA__)
      /* ShaderData is stored as an Array-of-Structures */
 #    define ccl_soa_member(type, name) type soa_##name
@@ -807,7 +809,7 @@ enum ShaderDataObjectFlag {
 #    define ccl_fetch_array(s, t, index) (&s[SD_THREAD].soa_##t[index])
 #  else
      /* ShaderData is stored as an Structure-of-Arrays */
-#    define SD_GLOBAL_SIZE (get_global_size(0) * get_global_size(1))
+#    define SD_GLOBAL_SIZE (ccl_global_size(0) * ccl_global_size(1))
 #    define SD_FIELD_SIZE(t) sizeof(((struct ShaderData*)0)->t)
 #    define SD_OFFSETOF(t) ((char*)(&((struct ShaderData*)0)->t) - (char*)0)
 #    define ccl_soa_member(type, name) type soa_##name

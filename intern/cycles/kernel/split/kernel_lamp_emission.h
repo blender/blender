@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "kernel_split_common.h"
+CCL_NAMESPACE_BEGIN
 
 /* Note on kernel_lamp_emission
  * This is the 3rd kernel in the ray-tracing logic. This is the second of the
@@ -36,28 +36,39 @@
  * sw -------------------------------------------------|                           |
  * sh -------------------------------------------------|                           |
  */
-ccl_device void kernel_lamp_emission(
-        KernelGlobals *kg,
-        ccl_global float3 *throughput_coop,    /* Required for lamp emission */
-        PathRadiance *PathRadiance_coop,       /* Required for lamp emission */
-        ccl_global Ray *Ray_coop,              /* Required for lamp emission */
-        ccl_global PathState *PathState_coop,  /* Required for lamp emission */
-        Intersection *Intersection_coop,       /* Required for lamp emission */
-        ccl_global char *ray_state,            /* Denotes the state of each ray */
-        int sw, int sh,
-        ccl_global char *use_queues_flag,      /* Used to decide if this kernel should use
-                                                * queues to fetch ray index
-                                                */
-        int ray_index)
+ccl_device void kernel_lamp_emission(KernelGlobals *kg)
 {
-	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE) ||
-	   IS_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND))
-	{
-		PathRadiance *L = &PathRadiance_coop[ray_index];
-		ccl_global PathState *state = &PathState_coop[ray_index];
+	/* We will empty this queue in this kernel. */
+	if(ccl_global_id(0) == 0 && ccl_global_id(1) == 0) {
+		kernel_split_params.queue_index[QUEUE_ACTIVE_AND_REGENERATED_RAYS] = 0;
+	}
+	/* Fetch use_queues_flag. */
+	ccl_local char local_use_queues_flag;
+	if(ccl_local_id(0) == 0 && ccl_local_id(1) == 0) {
+		local_use_queues_flag = *kernel_split_params.use_queues_flag;
+	}
+	ccl_barrier(CCL_LOCAL_MEM_FENCE);
 
-		float3 throughput = throughput_coop[ray_index];
-		Ray ray = Ray_coop[ray_index];
+	int ray_index = ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0);
+	if(local_use_queues_flag) {
+		ray_index = get_ray_index(kg, ray_index,
+		                          QUEUE_ACTIVE_AND_REGENERATED_RAYS,
+		                          kernel_split_state.queue_data,
+		                          kernel_split_params.queue_size,
+		                          1);
+		if(ray_index == QUEUE_EMPTY_SLOT) {
+			return;
+		}
+	}
+
+	if(IS_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE) ||
+	   IS_STATE(kernel_split_state.ray_state, ray_index, RAY_HIT_BACKGROUND))
+	{
+		PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
+		ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
+
+		float3 throughput = kernel_split_state.throughput[ray_index];
+		Ray ray = kernel_split_state.ray[ray_index];
 
 #ifdef __LAMP_MIS__
 		if(kernel_data.integrator.use_lamp_mis && !(state->flag & PATH_RAY_CAMERA)) {
@@ -65,7 +76,7 @@ ccl_device void kernel_lamp_emission(
 			Ray light_ray;
 
 			light_ray.P = ray.P - state->ray_t*ray.D;
-			state->ray_t += Intersection_coop[ray_index].t;
+			state->ray_t += kernel_split_state.isect[ray_index].t;
 			light_ray.D = ray.D;
 			light_ray.t = state->ray_t;
 			light_ray.time = ray.time;
@@ -74,10 +85,13 @@ ccl_device void kernel_lamp_emission(
 			/* intersect with lamp */
 			float3 emission;
 
-			if(indirect_lamp_emission(kg, kg->sd_input, state, &light_ray, &emission)) {
+			if(indirect_lamp_emission(kg, kernel_split_state.sd_DL_shadow, state, &light_ray, &emission)) {
 				path_radiance_accum_emission(L, throughput, emission, state->bounce);
 			}
 		}
 #endif  /* __LAMP_MIS__ */
 	}
 }
+
+CCL_NAMESPACE_END
+

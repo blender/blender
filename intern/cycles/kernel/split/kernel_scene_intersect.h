@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "kernel_split_common.h"
+CCL_NAMESPACE_BEGIN
 
 /* Note on kernel_scene_intersect kernel.
  * This is the second kernel in the ray tracing logic. This is the first
@@ -61,34 +61,41 @@
  * QUEUE_HITBF_BUFF_UPDATE_TOREGEN_RAYS - no change
  */
 
-ccl_device void kernel_scene_intersect(
-        KernelGlobals *kg,
-        ccl_global uint *rng_coop,
-        ccl_global Ray *Ray_coop,              /* Required for scene_intersect */
-        ccl_global PathState *PathState_coop,  /* Required for scene_intersect */
-        Intersection *Intersection_coop,       /* Required for scene_intersect */
-        ccl_global char *ray_state,            /* Denotes the state of each ray */
-        int sw, int sh,
-        ccl_global char *use_queues_flag,      /* used to decide if this kernel should use
-                                                * queues to fetch ray index */
-#ifdef __KERNEL_DEBUG__
-        DebugData *debugdata_coop,
-#endif
-        int ray_index)
+ccl_device void kernel_scene_intersect(KernelGlobals *kg)
 {
-	/* All regenerated rays become active here */
-	if(IS_STATE(ray_state, ray_index, RAY_REGENERATED))
-		ASSIGN_RAY_STATE(ray_state, ray_index, RAY_ACTIVE);
+	/* Fetch use_queues_flag */
+	ccl_local char local_use_queues_flag;
+	if(ccl_local_id(0) == 0 && ccl_local_id(1) == 0) {
+		local_use_queues_flag = *kernel_split_params.use_queues_flag;
+	}
+	ccl_barrier(CCL_LOCAL_MEM_FENCE);
 
-	if(!IS_STATE(ray_state, ray_index, RAY_ACTIVE))
+	int ray_index = ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0);
+	if(local_use_queues_flag) {
+		ray_index = get_ray_index(kg, ray_index,
+		                          QUEUE_ACTIVE_AND_REGENERATED_RAYS,
+		                          kernel_split_state.queue_data,
+		                          kernel_split_params.queue_size,
+		                          0);
+
+		if(ray_index == QUEUE_EMPTY_SLOT) {
+			return;
+		}
+	}
+
+	/* All regenerated rays become active here */
+	if(IS_STATE(kernel_split_state.ray_state, ray_index, RAY_REGENERATED))
+		ASSIGN_RAY_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE);
+
+	if(!IS_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE))
 		return;
 
 #ifdef __KERNEL_DEBUG__
-	DebugData *debug_data = &debugdata_coop[ray_index];
+	DebugData *debug_data = &kernel_split_state.debug_data[ray_index];
 #endif
-	Intersection *isect = &Intersection_coop[ray_index];
-	PathState state = PathState_coop[ray_index];
-	Ray ray = Ray_coop[ray_index];
+	Intersection *isect = &kernel_split_state.isect[ray_index];
+	PathState state = kernel_split_state.path_state[ray_index];
+	Ray ray = kernel_split_state.ray[ray_index];
 
 	/* intersect scene */
 	uint visibility = path_state_ray_visibility(kg, &state);
@@ -96,7 +103,7 @@ ccl_device void kernel_scene_intersect(
 #ifdef __HAIR__
 	float difl = 0.0f, extmax = 0.0f;
 	uint lcg_state = 0;
-	RNG rng = rng_coop[ray_index];
+	RNG rng = kernel_split_state.rng[ray_index];
 
 	if(kernel_data.bvh.have_curves) {
 		if((kernel_data.cam.resolution == 1) && (state.flag & PATH_RAY_CAMERA)) {
@@ -128,6 +135,9 @@ ccl_device void kernel_scene_intersect(
 		 * These rays undergo special processing in the
 		 * background_bufferUpdate kernel.
 		 */
-		ASSIGN_RAY_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND);
+		ASSIGN_RAY_STATE(kernel_split_state.ray_state, ray_index, RAY_HIT_BACKGROUND);
 	}
 }
+
+CCL_NAMESPACE_END
+

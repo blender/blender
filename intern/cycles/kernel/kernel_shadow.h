@@ -248,7 +248,7 @@ ccl_device bool shadow_blocked_transparent_all(KernelGlobals *kg,
 }
 #  endif  /* __SHADOW_RECORD_ALL__ */
 
-#  ifdef __KERNEL_GPU__
+#  if defined(__KERNEL_GPU__) || !defined(__SHADOW_RECORD_ALL__)
 /* Shadow function to compute how much light is blocked,
  *
  * Here we raytrace from one transparent surface to the next step by step.
@@ -359,7 +359,7 @@ ccl_device bool shadow_blocked_transparent_stepped(
 	                                               shadow);
 }
 
-#  endif  /* __KERNEL_GPU__ */
+#  endif  /* __KERNEL_GPU__ || !__SHADOW_RECORD_ALL__ */
 #endif /* __TRANSPARENT_SHADOWS__ */
 
 ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
@@ -374,7 +374,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
 #ifdef __SPLIT_KERNEL__
 	Ray private_ray = *ray_input;
 	Ray *ray = &private_ray;
-	Intersection *isect = &kg->isect_shadow[SD_THREAD];
+	Intersection *isect = &kernel_split_state.isect_shadow[SD_THREAD];
 #else  /* __SPLIT_KERNEL__ */
 	Ray *ray = ray_input;
 	Intersection isect_object;

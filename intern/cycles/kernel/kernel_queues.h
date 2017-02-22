@@ -17,6 +17,8 @@
 #ifndef __KERNEL_QUEUE_H__
 #define __KERNEL_QUEUE_H__
 
+CCL_NAMESPACE_BEGIN
+
 /*
  * Queue utility functions for split kernel
  */
@@ -35,7 +37,8 @@ ccl_device void enqueue_ray_index(
         ccl_global int *queue_index) /* Array of size num_queues; Used for atomic increment. */
 {
 	/* This thread's queue index. */
-	int my_queue_index = atomic_inc(&queue_index[queue_number]) + (queue_number * queue_size);
+	int my_queue_index = atomic_fetch_and_inc_uint32((ccl_global uint*)&queue_index[queue_number])
+	                   + (queue_number * queue_size);
 	queues[my_queue_index] = ray_index;
 }
 
@@ -47,6 +50,7 @@ ccl_device void enqueue_ray_index(
  * is no more ray to allocate to other threads.
  */
 ccl_device int get_ray_index(
+        KernelGlobals *kg,
         int thread_index,       /* Global thread index. */
         int queue_number,       /* Queue to operate on. */
         ccl_global int *queues, /* Buffer of all queues. */
@@ -68,24 +72,25 @@ ccl_device void enqueue_ray_index_local(
         int queue_number,                            /* Queue in which to enqueue ray index. */
         char enqueue_flag,                           /* True for threads whose ray index has to be enqueued. */
         int queuesize,                               /* queue size. */
-        ccl_local unsigned int *local_queue_atomics,   /* To to local queue atomics. */
+        ccl_local_param unsigned int *local_queue_atomics,   /* To to local queue atomics. */
         ccl_global int *Queue_data,                  /* Queues. */
         ccl_global int *Queue_index)                 /* To do global queue atomics. */
 {
-	int lidx = get_local_id(1) * get_local_size(0) + get_local_id(0);
+	int lidx = ccl_local_id(1) * ccl_local_size(0) + ccl_local_id(0);
 
 	/* Get local queue id .*/
 	unsigned int lqidx;
 	if(enqueue_flag) {
-		lqidx = atomic_inc(local_queue_atomics);
+		lqidx = atomic_fetch_and_inc_uint32(local_queue_atomics);
 	}
-	barrier(CLK_LOCAL_MEM_FENCE);
+	ccl_barrier(CCL_LOCAL_MEM_FENCE);
 
 	/* Get global queue offset. */
 	if(lidx == 0) {
-		*local_queue_atomics = atomic_add(&Queue_index[queue_number], *local_queue_atomics);
+		*local_queue_atomics = atomic_fetch_and_add_uint32((ccl_global uint*)&Queue_index[queue_number],
+		                                                   *local_queue_atomics);
 	}
-	barrier(CLK_LOCAL_MEM_FENCE);
+	ccl_barrier(CCL_LOCAL_MEM_FENCE);
 
 	/* Get global queue index and enqueue ray. */
 	if(enqueue_flag) {
@@ -96,19 +101,19 @@ ccl_device void enqueue_ray_index_local(
 
 ccl_device unsigned int get_local_queue_index(
         int queue_number, /* Queue in which to enqueue the ray; -1 if no queue */
-        ccl_local unsigned int *local_queue_atomics)
+        ccl_local_param unsigned int *local_queue_atomics)
 {
-	int my_lqidx = atomic_inc(&local_queue_atomics[queue_number]);
+	int my_lqidx = atomic_fetch_and_inc_uint32(&local_queue_atomics[queue_number]);
 	return my_lqidx;
 }
 
 ccl_device unsigned int get_global_per_queue_offset(
         int queue_number,
-        ccl_local unsigned int *local_queue_atomics,
+        ccl_local_param unsigned int *local_queue_atomics,
         ccl_global int* global_queue_atomics)
 {
-	unsigned int queue_offset = atomic_add(&global_queue_atomics[queue_number],
-	                                       local_queue_atomics[queue_number]);
+	unsigned int queue_offset = atomic_fetch_and_add_uint32((ccl_global uint*)&global_queue_atomics[queue_number],
+	                                                        local_queue_atomics[queue_number]);
 	return queue_offset;
 }
 
@@ -116,10 +121,12 @@ ccl_device unsigned int get_global_queue_index(
     int queue_number,
     int queuesize,
     unsigned int lqidx,
-    ccl_local unsigned int * global_per_queue_offset)
+    ccl_local_param unsigned int * global_per_queue_offset)
 {
 	int my_gqidx = queuesize * queue_number + lqidx + global_per_queue_offset[queue_number];
 	return my_gqidx;
 }
+
+CCL_NAMESPACE_END
 
 #endif // __KERNEL_QUEUE_H__
