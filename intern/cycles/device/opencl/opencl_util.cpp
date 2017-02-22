@@ -309,6 +309,8 @@ bool OpenCLDeviceBase::OpenCLProgram::build_kernel(const string *debug_src)
 	string build_options;
 	build_options = device->kernel_build_options(debug_src) + kernel_build_options;
 
+	VLOG(1) << "Build options passed to clBuildProgram: '"
+	        << build_options << "'.";
 	cl_int ciErr = clBuildProgram(program, 0, NULL, build_options.c_str(), NULL, NULL);
 
 	/* show warnings even if build is successful */
