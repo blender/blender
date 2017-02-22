@@ -457,7 +457,11 @@ void DRW_shgroup_free(struct DRWShadingGroup *shgroup)
 	BLI_freelistN(&shgroup->calls);
 	BLI_freelistN(&shgroup->interface->uniforms);
 	BLI_freelistN(&shgroup->interface->attribs);
-	/* TODO free instance vbo */
+
+	if (shgroup->interface->instance_vbo) {
+		glDeleteBuffers(1, &shgroup->interface->instance_vbo);
+	}
+
 	MEM_freeN(shgroup->interface);
 
 	if (shgroup->batch_geom) {
