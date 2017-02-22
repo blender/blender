@@ -96,7 +96,6 @@ typedef struct {
 	void *orig_cv;
 	int key_index, nu_index, pt_index, vertex_index;
 	bool switched;
-	Nurb *orig_nu;
 } CVKeyIndex;
 
 void selectend_nurb(Object *obedit, enum eEndPoint_Types selfirst, bool doswap, bool selstatus);
@@ -138,7 +137,7 @@ void printknots(Object *obedit)
 
 /* ********************* Shape keys *************** */
 
-static CVKeyIndex *init_cvKeyIndex(void *cv, int key_index, int nu_index, int pt_index, int vertex_index, Nurb *orig_nu)
+static CVKeyIndex *init_cvKeyIndex(void *cv, int key_index, int nu_index, int pt_index, int vertex_index)
 {
 	CVKeyIndex *cvIndex = MEM_callocN(sizeof(CVKeyIndex), "init_cvKeyIndex");
 
@@ -148,7 +147,6 @@ static CVKeyIndex *init_cvKeyIndex(void *cv, int key_index, int nu_index, int pt
 	cvIndex->pt_index = pt_index;
 	cvIndex->vertex_index = vertex_index;
 	cvIndex->switched = false;
-	cvIndex->orig_nu = orig_nu;
 
 	return cvIndex;
 }
@@ -174,7 +172,7 @@ static void init_editNurb_keyIndex(EditNurb *editnurb, ListBase *origBase)
 			origbezt = orignu->bezt;
 			pt_index = 0;
 			while (a--) {
-				keyIndex = init_cvKeyIndex(origbezt, key_index, nu_index, pt_index, vertex_index, orignu);
+				keyIndex = init_cvKeyIndex(origbezt, key_index, nu_index, pt_index, vertex_index);
 				BLI_ghash_insert(gh, bezt, keyIndex);
 				key_index += 12;
 				vertex_index += 3;
@@ -189,7 +187,7 @@ static void init_editNurb_keyIndex(EditNurb *editnurb, ListBase *origBase)
 			origbp = orignu->bp;
 			pt_index = 0;
 			while (a--) {
-				keyIndex = init_cvKeyIndex(origbp, key_index, nu_index, pt_index, vertex_index, orignu);
+				keyIndex = init_cvKeyIndex(origbp, key_index, nu_index, pt_index, vertex_index);
 				BLI_ghash_insert(gh, bp, keyIndex);
 				key_index += 4;
 				bp++;
