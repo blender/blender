@@ -133,7 +133,7 @@ static void set_pchan_colorset(Object *ob, bPoseChannel *pchan)
 	}
 }
 
-/* This function is for brightening/darkening a given color (like UI_ThemeColorShade()) */
+/* This function is for brightening/darkening a given color (like UI_GetThemeColorShade3ubv()) */
 static void cp_shade_color3ub(unsigned char cp[3], const int offset)
 {
 	int r, g, b;
