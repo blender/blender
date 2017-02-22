@@ -229,11 +229,11 @@ Batch *DRW_cache_fullscreen_quad_get(void)
 		float v3[2] = {-1.0f,  1.0f};
 		float v4[2] = { 1.0f,  1.0f};
 
-		/* Position Only 3D format */
+		/* Position Only 2D format */
 		static VertexFormat format = { 0 };
 		static unsigned pos_id;
 		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 		}
 
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
