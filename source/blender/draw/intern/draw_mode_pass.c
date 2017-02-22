@@ -143,7 +143,7 @@ static DRWShadingGroup *shgroup_instance_screenspace(DRWPass *pass, struct Batch
 
 static DRWShadingGroup *shgroup_instance_axis_names(DRWPass *pass, struct Batch *geom)
 {
-	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_SCREENSPACE_AXIS);
+	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_INSTANCE_SCREEN_ALIGNED_AXIS);
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh, pass, geom);
 	DRW_shgroup_attrib_float(grp, "color", 3);
