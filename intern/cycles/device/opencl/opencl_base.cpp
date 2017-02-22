@@ -311,7 +311,9 @@ void OpenCLDeviceBase::mem_copy_from(device_memory& mem, int y, int w, int h, in
 void OpenCLDeviceBase::mem_zero(device_memory& mem)
 {
 	if(mem.device_pointer) {
-		memset((void*)mem.data_pointer, 0, mem.memory_size());
+		if(mem.data_pointer) {
+			memset((void*)mem.data_pointer, 0, mem.memory_size());
+		}
 		mem_copy_to(mem);
 	}
 }

@@ -505,7 +505,9 @@ public:
 
 	void mem_zero(device_memory& mem)
 	{
-		memset((void*)mem.data_pointer, 0, mem.memory_size());
+		if(mem.data_pointer) {
+			memset((void*)mem.data_pointer, 0, mem.memory_size());
+		}
 
 		cuda_push_context();
 		if(mem.device_pointer)
