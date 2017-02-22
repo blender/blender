@@ -1355,7 +1355,7 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
 
 			re = RE_NewRender(scene->id.name);
 			BLI_begin_threaded_malloc();
-			BKE_reports_init(&reports, RPT_PRINT);
+			BKE_reports_init(&reports, RPT_STORE);
 
 			RE_SetReports(re, &reports);
 			for (int i = 0; i < frames_range_len; i++) {
@@ -1370,6 +1370,7 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
 				}
 			}
 			RE_SetReports(re, NULL);
+			BKE_reports_clear(&reports);
 			BLI_end_threaded_malloc();
 			MEM_freeN(frame_range_arr);
 			return 1;
