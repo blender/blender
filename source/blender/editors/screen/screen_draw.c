@@ -34,15 +34,16 @@
 
 
 /**
- * Draw vertical shape visualizing future joining (left as well right direction of future joining).
+ * Draw horizontal shape visualizing future joining (left as well right direction of future joining).
  */
-static void draw_horizontal_join_shape(ScrArea *sa, char dir)
+static void draw_horizontal_join_shape(ScrArea *sa, char dir, unsigned int pos)
 {
 	vec2f points[10];
 	short i;
 	float w, h;
 	float width = sa->v3->vec.x - sa->v1->vec.x;
 	float height = sa->v3->vec.y - sa->v1->vec.y;
+	return;
 
 	if (height < width) {
 		h = height / 8;
@@ -93,24 +94,24 @@ static void draw_horizontal_join_shape(ScrArea *sa, char dir)
 		}
 	}
 
-	glBegin(GL_POLYGON);
+	immBegin(GL_TRIANGLE_FAN, 5);
 	for (i = 0; i < 5; i++)
-		glVertex2f(points[i].x, points[i].y);
-	glEnd();
-	glBegin(GL_POLYGON);
+		immVertex2f(pos, points[i].x, points[i].y);
+	immEnd();
+	immBegin(GL_TRIANGLE_FAN, 5);
 	for (i = 4; i < 8; i++)
-		glVertex2f(points[i].x, points[i].y);
-	glVertex2f(points[0].x, points[0].y);
-	glEnd();
+		immVertex2f(pos, points[i].x, points[i].y);
+	immVertex2f(pos, points[0].x, points[0].y);
+	immEnd();
 
-	glRectf(points[2].x, points[2].y, points[8].x, points[8].y);
-	glRectf(points[6].x, points[6].y, points[9].x, points[9].y);
+	immRectf(pos, points[2].x, points[2].y, points[8].x, points[8].y);
+	immRectf(pos, points[6].x, points[6].y, points[9].x, points[9].y);
 }
 
 /**
  * Draw vertical shape visualizing future joining (up/down direction).
  */
-static void draw_vertical_join_shape(ScrArea *sa, char dir)
+static void draw_vertical_join_shape(ScrArea *sa, char dir, unsigned int pos)
 {
 	vec2f points[10];
 	short i;
@@ -167,91 +168,91 @@ static void draw_vertical_join_shape(ScrArea *sa, char dir)
 		}
 	}
 
-	glBegin(GL_POLYGON);
+	immBegin(GL_TRIANGLE_FAN, 5);
 	for (i = 0; i < 5; i++)
-		glVertex2f(points[i].x, points[i].y);
-	glEnd();
-	glBegin(GL_POLYGON);
+		immVertex2f(pos, points[i].x, points[i].y);
+	immEnd();
+	immBegin(GL_TRIANGLE_FAN, 5);
 	for (i = 4; i < 8; i++)
-		glVertex2f(points[i].x, points[i].y);
-	glVertex2f(points[0].x, points[0].y);
-	glEnd();
+		immVertex2f(pos, points[i].x, points[i].y);
+	immVertex2f(pos, points[0].x, points[0].y);
+	immEnd();
 
-	glRectf(points[2].x, points[2].y, points[8].x, points[8].y);
-	glRectf(points[6].x, points[6].y, points[9].x, points[9].y);
+	immRectf(pos, points[2].x, points[2].y, points[8].x, points[8].y);
+	immRectf(pos, points[6].x, points[6].y, points[9].x, points[9].y);
 }
 
 /**
  * Draw join shape due to direction of joining.
  */
-static void draw_join_shape(ScrArea *sa, char dir)
+static void draw_join_shape(ScrArea *sa, char dir, unsigned int pos)
 {
 	if (dir == 'u' || dir == 'd')
-		draw_vertical_join_shape(sa, dir);
+		draw_vertical_join_shape(sa, dir, pos);
 	else
-		draw_horizontal_join_shape(sa, dir);
+		draw_horizontal_join_shape(sa, dir, pos);
 }
 
 /**
  * Draw screen area darker with arrow (visualization of future joining).
  */
-static void scrarea_draw_shape_dark(ScrArea *sa, char dir)
+static void scrarea_draw_shape_dark(ScrArea *sa, char dir, unsigned int pos)
 {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glColor4ub(0, 0, 0, 50);
-	draw_join_shape(sa, dir);
+	immUniformColor4ub(0, 0, 0, 50);
+	draw_join_shape(sa, dir, pos);
 }
 
 /**
  * Draw screen area ligher with arrow shape ("eraser" of previous dark shape).
  */
-static void scrarea_draw_shape_light(ScrArea *sa, char UNUSED(dir))
+static void scrarea_draw_shape_light(ScrArea *sa, char UNUSED(dir), unsigned int pos)
 {
 	glBlendFunc(GL_DST_COLOR, GL_SRC_ALPHA);
 	/* value 181 was hardly computed: 181~105 */
-	glColor4ub(255, 255, 255, 50);
+	immUniformColor4ub(255, 255, 255, 50);
 	/* draw_join_shape(sa, dir); */
-	glRecti(sa->v1->vec.x, sa->v1->vec.y, sa->v3->vec.x, sa->v3->vec.y);
+	immRectf(pos, sa->v1->vec.x / 255.f, sa->v1->vec.y / 255.f, sa->v3->vec.x / 255.f, sa->v3->vec.y / 255.f);
 }
 
-static void drawscredge_area_draw(int sizex, int sizey, short x1, short y1, short x2, short y2)
+static void drawscredge_area_draw(int sizex, int sizey, short x1, short y1, short x2, short y2, unsigned int pos)
 {
 	/* right border area */
 	if (x2 < sizex - 1) {
-		glVertex2s(x2, y1);
-		glVertex2s(x2, y2);
+		immVertex2s(pos, x2, y1);
+		immVertex2s(pos, x2, y2);
 	}
 
 	/* left border area */
 	if (x1 > 0) { /* otherwise it draws the emboss of window over */
-		glVertex2s(x1, y1);
-		glVertex2s(x1, y2);
+		immVertex2s(pos, x1, y1);
+		immVertex2s(pos, x1, y2);
 	}
 
 	/* top border area */
 	if (y2 < sizey - 1) {
-		glVertex2s(x1, y2);
-		glVertex2s(x2, y2);
+		immVertex2s(pos, x1, y2);
+		immVertex2s(pos, x2, y2);
 	}
 
 	/* bottom border area */
 	if (y1 > 0) {
-		glVertex2s(x1, y1);
-		glVertex2s(x2, y1);
+		immVertex2s(pos, x1, y1);
+		immVertex2s(pos, x2, y1);
 	}
 }
 
 /**
  * \brief Screen edges drawing.
  */
-static void drawscredge_area(ScrArea *sa, int sizex, int sizey)
+static void drawscredge_area(ScrArea *sa, int sizex, int sizey, unsigned int pos)
 {
 	short x1 = sa->v1->vec.x;
 	short y1 = sa->v1->vec.y;
 	short x2 = sa->v3->vec.x;
 	short y2 = sa->v3->vec.y;
 
-	drawscredge_area_draw(sizex, sizey, x1, y1, x2, y2);
+	drawscredge_area_draw(sizex, sizey, x1, y1, x2, y2, pos);
 }
 
 /**
@@ -269,32 +270,39 @@ void ED_screen_draw(wmWindow *win)
 
 	wmSubWindowSet(win, win->screen->mainwin);
 
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_SHORT, 2, NORMALIZE_INT_TO_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
 	/* Note: first loop only draws if U.pixelsize > 1, skip otherwise */
 	if (U.pixelsize > 1.0f) {
 		/* FIXME: doesn't our glLineWidth already scale by U.pixelsize? */
 		glLineWidth((2.0f * U.pixelsize) - 1);
-		glColor3ub(0x50, 0x50, 0x50);
-		glBegin(GL_LINES);
+		immUniformColor3ub(0x50, 0x50, 0x50);
+		immBeginAtMost(GL_LINES, 8);
 		for (sa = win->screen->areabase.first; sa; sa = sa->next)
-			drawscredge_area(sa, winsize_x, winsize_y);
-		glEnd();
+			drawscredge_area(sa, winsize_x, winsize_y, pos);
+		immEnd();
 	}
 
 	glLineWidth(1);
-	glColor3ub(0, 0, 0);
-	glBegin(GL_LINES);
+	immUniformColor3ub(0, 0, 0);
 	for (sa = win->screen->areabase.first; sa; sa = sa->next) {
-		drawscredge_area(sa, winsize_x, winsize_y);
+		immBeginAtMost(GL_LINES, 8);
+		drawscredge_area(sa, winsize_x, winsize_y, pos);
 
 		/* gather area split/join info */
 		if (sa->flag & AREA_FLAG_DRAWJOINFROM) sa1 = sa;
 		if (sa->flag & AREA_FLAG_DRAWJOINTO) sa2 = sa;
 		if (sa->flag & (AREA_FLAG_DRAWSPLIT_H | AREA_FLAG_DRAWSPLIT_V)) sa3 = sa;
+		immEnd();
 	}
-	glEnd();
+	immUnbindProgram();
 
 	/* blended join arrow */
 	if (sa1 && sa2) {
+		pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
 		int dir = area_getorientation(sa1, sa2);
 		int dira = -1;
 		if (dir != -1) {
@@ -318,33 +326,41 @@ void ED_screen_draw(wmWindow *win)
 			}
 		}
 		glEnable(GL_BLEND);
-		scrarea_draw_shape_dark(sa2, dir);
-		scrarea_draw_shape_light(sa1, dira);
+		scrarea_draw_shape_dark(sa2, dir, pos);
+		scrarea_draw_shape_light(sa1, dira, pos);
 		glDisable(GL_BLEND);
+		
+		immUnbindProgram();
 	}
 
 	/* splitpoint */
 	if (sa3) {
+		pos = add_attrib(immVertexFormat(), "pos", GL_SHORT, 2, NORMALIZE_INT_TO_FLOAT);
+		unsigned int col = add_attrib(immVertexFormat(), "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+
 		glEnable(GL_BLEND);
-		glBegin(GL_LINES);
-		glColor4ub(255, 255, 255, 100);
+		immBegin(GL_LINES, 4);
+		immAttrib4ub(col, 255, 255, 255, 100);
 
 		if (sa3->flag & AREA_FLAG_DRAWSPLIT_H) {
-			glVertex2s(sa3->totrct.xmin, win->eventstate->y);
-			glVertex2s(sa3->totrct.xmax, win->eventstate->y);
-			glColor4ub(0, 0, 0, 100);
-			glVertex2s(sa3->totrct.xmin, win->eventstate->y + 1);
-			glVertex2s(sa3->totrct.xmax, win->eventstate->y + 1);
+			immVertex2s(pos, sa3->totrct.xmin, win->eventstate->y);
+			immVertex2s(pos, sa3->totrct.xmax, win->eventstate->y);
+			immAttrib4ub(col, 0, 0, 0, 100);
+			immVertex2s(pos, sa3->totrct.xmin, win->eventstate->y + 1);
+			immVertex2s(pos, sa3->totrct.xmax, win->eventstate->y + 1);
 		}
 		else {
-			glVertex2s(win->eventstate->x, sa3->totrct.ymin);
-			glVertex2s(win->eventstate->x, sa3->totrct.ymax);
-			glColor4ub(0, 0, 0, 100);
-			glVertex2s(win->eventstate->x + 1, sa3->totrct.ymin);
-			glVertex2s(win->eventstate->x + 1, sa3->totrct.ymax);
+			immVertex2s(pos, win->eventstate->x, sa3->totrct.ymin);
+			immVertex2s(pos, win->eventstate->x, sa3->totrct.ymax);
+			immAttrib4ub(col, 0, 0, 0, 100);
+			immVertex2s(pos, win->eventstate->x + 1, sa3->totrct.ymin);
+			immVertex2s(pos, win->eventstate->x + 1, sa3->totrct.ymax);
 		}
-		glEnd();
+		immEnd();
 		glDisable(GL_BLEND);
+		
+		immUnbindProgram();
 	}
 
 	win->screen->do_draw = false;
