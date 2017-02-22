@@ -619,7 +619,7 @@ static Mesh *bake_mesh_new_from_object(Main *bmain, Scene *scene, Object *ob)
 		ED_object_editmode_load(ob);
 
 	Mesh *me = BKE_mesh_new_from_object(bmain, scene, ob, 1, 2, 0, 0);
-	BKE_mesh_split_faces(me);
+	BKE_mesh_split_faces(me, true);
 
 	return me;
 }

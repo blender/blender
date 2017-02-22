@@ -2338,7 +2338,7 @@ static void split_faces_split_new_edges(
  * NOTE: Will leave CD_NORMAL loop data layer which is
  * used by render engines to set shading up.
  */
-void BKE_mesh_split_faces(Mesh *mesh)
+void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
 {
 	const int num_polys = mesh->totpoly;
 
@@ -2392,7 +2392,9 @@ void BKE_mesh_split_faces(Mesh *mesh)
 	/* Note: after this point mesh is expected to be valid again. */
 
 	/* CD_NORMAL is expected to be temporary only. */
-	CustomData_free_layers(&mesh->ldata, CD_NORMAL, mesh->totloop);
+	if (free_loop_normals) {
+		CustomData_free_layers(&mesh->ldata, CD_NORMAL, mesh->totloop);
+	}
 
 	if (lnors_spacearr) {
 		/* Also frees new_verts/edges temp data, since we used its memarena to allocate them. */
