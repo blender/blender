@@ -83,6 +83,12 @@ typedef struct EditBone {
 	
 	short segments;
 
+	/* Used for display */
+	float disp_mat[4][4];  /*  in Armature space, rest pos matrix */
+	float disp_tail_mat[4][4];  /*  in Armature space, rest pos matrix */
+	/* 32 == MAX_BBONE_SUBDIV */
+	float disp_bbone_mat[32][4][4]; /*  in Armature space, rest pos matrix */
+
 	/* Used to store temporary data */
 	union {
 		struct EditBone *ebone;
