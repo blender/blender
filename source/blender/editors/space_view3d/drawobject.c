@@ -8753,7 +8753,13 @@ afterdraw:
 		if (dtx && (G.f & G_RENDER_OGL) == 0) {
 
 			if (dtx & OB_AXIS) {
-				drawaxes(rv3d->viewmatob, 1.0f, OB_ARROWS, NULL);
+				if ((dflag & DRAW_CONSTCOLOR) == 0) {
+					/* prevent random colors being used */
+					drawaxes(rv3d->viewmatob, 1.0f, OB_ARROWS, ob_wire_col);
+				}
+				else {
+					drawaxes(rv3d->viewmatob, 1.0f, OB_ARROWS, NULL);
+				}
 			}
 			if (dtx & OB_DRAWBOUNDOX) {
 				draw_bounding_volume(ob, ob->boundtype);
