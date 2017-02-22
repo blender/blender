@@ -63,6 +63,8 @@
 #include "ED_screen.h"
 #include "ED_space_api.h"
 
+#include "GPU_batch.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -1538,63 +1540,118 @@ static void stitch_calculate_edge_normal(BMEditMesh *em, UvEdge *edge, float *no
 	normalize_v2(normal);
 }
 
+static void stitch_draw_vbo(VertexBuffer *vbo, int type, const float col[4])
+{
+	Batch *batch = Batch_create(type, vbo, NULL);
+	Batch_set_builtin_program(batch, GPU_SHADER_2D_UNIFORM_COLOR);
+	Batch_Uniform4fv(batch, "color", col);
+	Batch_draw(batch);
+	Batch_discard_all(batch);
+}
+
+/* TODO make things pretier : store batches inside StitchPreviewer instead of the bare verts pos */
 static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
 {
-	int i, index = 0;
+	int j, index = 0;
+	unsigned int num_line = 0, num_tri, tri_idx = 0, line_idx = 0;
 	StitchState *state = (StitchState *)arg;
 	StitchPreviewer *stitch_preview = state->stitch_preview;
+	VertexBuffer *vbo, *vbo_line;
+	float col[4];
 
-	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-	glEnableClientState(GL_VERTEX_ARRAY);
+	static VertexFormat format = { 0 };
+	static unsigned pos_id;
+	if (format.attrib_ct == 0) {
+		pos_id = add_attrib(&format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	}
 
 	glEnable(GL_BLEND);
 
-	UI_ThemeColor4(TH_STITCH_PREVIEW_ACTIVE);
-	glVertexPointer(2, GL_FLOAT, 0, stitch_preview->static_tris);
-	glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_static_tris * 3);
+	/* Static Tris */
+	UI_GetThemeColor4fv(TH_STITCH_PREVIEW_ACTIVE, col);
+	vbo = VertexBuffer_create_with_format(&format);
+	VertexBuffer_allocate_data(vbo, stitch_preview->num_static_tris * 3);
+	for (int i = 0; i < stitch_preview->num_static_tris * 3; i++)
+		setAttrib(vbo, pos_id, i, &stitch_preview->static_tris[i*2]);
+	stitch_draw_vbo(vbo, GL_TRIANGLES, col);
 
-	glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_polys);
-	for (i = 0; i < stitch_preview->num_polys; i++) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		UI_ThemeColor4(TH_STITCH_PREVIEW_FACE);
-		glDrawArrays(GL_POLYGON, index, stitch_preview->uvs_per_polygon[i]);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		UI_ThemeColor4(TH_STITCH_PREVIEW_EDGE);
-		glDrawArrays(GL_POLYGON, index, stitch_preview->uvs_per_polygon[i]);
-#if 0
-		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-		UI_ThemeColor4(TH_STITCH_PREVIEW_VERT);
-		glDrawArrays(GL_POLYGON, index, stitch_preview->uvs_per_polygon[i]);
-#endif
 
-		index += stitch_preview->uvs_per_polygon[i];
+	/* Preview Polys */
+	for (int i = 0; i < stitch_preview->num_polys; i++)
+		num_line += stitch_preview->uvs_per_polygon[i];
+
+	num_tri = num_line - 2 * stitch_preview->num_polys;
+
+	/* we need to convert the polys into triangles / lines */
+	vbo = VertexBuffer_create_with_format(&format);
+	vbo_line = VertexBuffer_create_with_format(&format);
+
+	VertexBuffer_allocate_data(vbo, num_tri * 3);
+	VertexBuffer_allocate_data(vbo_line, num_line * 2);
+
+	for (int i = 0; i < stitch_preview->num_polys; i++) {
+		BLI_assert(stitch_preview->uvs_per_polygon[i] >= 3);
+
+		/* Start line */
+		setAttrib(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index]);
+		setAttrib(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + 2]);
+
+		for (j = 1; j < stitch_preview->uvs_per_polygon[i] - 1; ++j) {
+			setAttrib(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index]);
+			setAttrib(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index + (j+0)*2]);
+			setAttrib(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index + (j+1)*2]);
+
+			setAttrib(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + (j+0)*2]);
+			setAttrib(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + (j+1)*2]);
+		}
+
+		/* Closing line */
+		setAttrib(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index]);
+		setAttrib(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + j*2]); /* j = uvs_per_polygon[i] - 1*/
+
+		index += stitch_preview->uvs_per_polygon[i] * 2;
 	}
+	UI_GetThemeColor4fv(TH_STITCH_PREVIEW_FACE, col);
+	stitch_draw_vbo(vbo, GL_TRIANGLES, col);
+	UI_GetThemeColor4fv(TH_STITCH_PREVIEW_EDGE, col);
+	stitch_draw_vbo(vbo_line, GL_LINES, col);
+
 	glDisable(GL_BLEND);
 
-	/* draw vert preview */
+
+	/* draw stitch vert/lines preview */
 	if (state->mode == STITCH_VERT) {
 		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE) * 2.0f);
 
-		UI_ThemeColor4(TH_STITCH_PREVIEW_STITCHABLE);
-		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_stitchable);
-		glDrawArrays(GL_POINTS, 0, stitch_preview->num_stitchable);
+		UI_GetThemeColor4fv(TH_STITCH_PREVIEW_STITCHABLE, col);
+		vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, stitch_preview->num_stitchable);
+		for (int i = 0; i < stitch_preview->num_stitchable; i++)
+			setAttrib(vbo, pos_id, i, &stitch_preview->preview_stitchable[i*2]);
+		stitch_draw_vbo(vbo, GL_POINTS, col);
 
-		UI_ThemeColor4(TH_STITCH_PREVIEW_UNSTITCHABLE);
-		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_unstitchable);
-		glDrawArrays(GL_POINTS, 0, stitch_preview->num_unstitchable);
+		UI_GetThemeColor4fv(TH_STITCH_PREVIEW_UNSTITCHABLE, col);
+		vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, stitch_preview->num_unstitchable);
+		for (int i = 0; i < stitch_preview->num_unstitchable; i++)
+			setAttrib(vbo, pos_id, i, &stitch_preview->preview_unstitchable[i*2]);
+		stitch_draw_vbo(vbo, GL_POINTS, col);
 	}
 	else {
-		UI_ThemeColor4(TH_STITCH_PREVIEW_STITCHABLE);
-		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_stitchable);
-		glDrawArrays(GL_LINES, 0, 2 * stitch_preview->num_stitchable);
+		UI_GetThemeColor4fv(TH_STITCH_PREVIEW_STITCHABLE, col);
+		vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, stitch_preview->num_stitchable * 2);
+		for (int i = 0; i < stitch_preview->num_stitchable * 2; i++)
+			setAttrib(vbo, pos_id, i, &stitch_preview->preview_stitchable[i*2]);
+		stitch_draw_vbo(vbo, GL_LINES, col);
 
-		UI_ThemeColor4(TH_STITCH_PREVIEW_UNSTITCHABLE);
-		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_unstitchable);
-		glDrawArrays(GL_LINES, 0, 2 * stitch_preview->num_unstitchable);
+		UI_GetThemeColor4fv(TH_STITCH_PREVIEW_UNSTITCHABLE, col);
+		vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, stitch_preview->num_unstitchable * 2);
+		for (int i = 0; i < stitch_preview->num_unstitchable * 2; i++)
+			setAttrib(vbo, pos_id, i, &stitch_preview->preview_unstitchable[i*2]);
+		stitch_draw_vbo(vbo, GL_LINES, col);
 	}
-
-	glPopClientAttrib();
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 static UvEdge *uv_edge_get(BMLoop *l, StitchState *state)
