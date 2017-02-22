@@ -69,6 +69,7 @@ public:
 	device_vector<uint> prim_visibility;
 	device_vector<uint> prim_index;
 	device_vector<uint> prim_object;
+	device_vector<float2> prim_time;
 
 	/* mesh */
 	device_vector<uint> tri_shader;

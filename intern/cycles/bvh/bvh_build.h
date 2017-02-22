@@ -48,6 +48,7 @@ public:
 	         array<int>& prim_type,
 	         array<int>& prim_index,
 	         array<int>& prim_object,
+	         array<float2>& prim_time,
 	         const BVHParams& params,
 	         Progress& progress);
 	~BVHBuild();
@@ -112,6 +113,9 @@ protected:
 	array<int>& prim_type;
 	array<int>& prim_index;
 	array<int>& prim_object;
+	array<float2>& prim_time;
+
+	bool need_prim_time;
 
 	/* Build parameters. */
 	BVHParams params;
