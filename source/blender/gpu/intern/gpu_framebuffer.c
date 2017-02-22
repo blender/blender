@@ -32,9 +32,11 @@
 
 #include "BKE_global.h"
 
+#include "GPU_batch.h"
 #include "GPU_debug.h"
 #include "GPU_glew.h"
 #include "GPU_framebuffer.h"
+#include "GPU_matrix.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
@@ -379,20 +381,48 @@ void GPU_framebuffer_blur(
         GPUFrameBuffer *fb, GPUTexture *tex,
         GPUFrameBuffer *blurfb, GPUTexture *blurtex)
 {
+	const float fullscreencos[4][2] = {{-1.0f, -1.0f}, {1.0f, -1.0f}, {-1.0f, 1.0f}, {1.0f, 1.0f}};
+	const float fullscreenuvs[4][2] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f}};
+
+	static VertexFormat format = {0};
+	static VertexBuffer vbo = {0};
+	static Batch batch = {0};
+
 	const float scaleh[2] = {1.0f / GPU_texture_width(blurtex), 0.0f};
 	const float scalev[2] = {0.0f, 1.0f / GPU_texture_height(tex)};
 
 	GPUShader *blur_shader = GPU_shader_get_builtin_shader(GPU_SHADER_SEP_GAUSSIAN_BLUR);
-	int scale_uniform, texture_source_uniform;
 
 	if (!blur_shader)
 		return;
 
-	scale_uniform = GPU_shader_get_uniform(blur_shader, "ScaleU");
-	texture_source_uniform = GPU_shader_get_uniform(blur_shader, "textureSource");
-		
-	/* Blurring horizontally */
+	/* Preparing to draw quad */
+	if (format.attrib_ct == 0) {
+		unsigned int i = 0;
+		/* Vertex format */
+		unsigned int pos = add_attrib(&format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int uvs = add_attrib(&format, "uvs", GL_FLOAT, 2, KEEP_FLOAT);
 
+		/* Vertices */
+		VertexBuffer_init_with_format(&vbo, &format);
+		VertexBuffer_allocate_data(&vbo, 36);
+
+		for (int j = 0; j < 3; ++j) {
+			setAttrib(&vbo, uvs, i, fullscreenuvs[j]); setAttrib(&vbo, pos, i++, fullscreencos[j]);
+		}
+		for (int j = 1; j < 4; ++j) {
+			setAttrib(&vbo, uvs, i, fullscreenuvs[j]); setAttrib(&vbo, pos, i++, fullscreencos[j]);
+		}
+
+		Batch_init(&batch, GL_TRIANGLES, &vbo, NULL);
+	}
+		
+	glDisable(GL_DEPTH_TEST);
+	
+	/* Load fresh matrices */
+	gpuMatrixBegin3D(); /* TODO: finish 2D API */
+
+	/* Blurring horizontally */
 	/* We do the bind ourselves rather than using GPU_framebuffer_texture_bind() to avoid
 	 * pushing unnecessary matrices onto the OpenGL stack. */
 	glBindFramebuffer(GL_FRAMEBUFFER, blurfb->object);
@@ -401,51 +431,32 @@ void GPU_framebuffer_blur(
 	/* avoid warnings from texture binding */
 	GG.currentfb = blurfb->object;
 
-	GPU_shader_bind(blur_shader);
-	GPU_shader_uniform_vector(blur_shader, scale_uniform, 2, 1, scaleh);
-	GPU_shader_uniform_texture(blur_shader, texture_source_uniform, tex);
 	glViewport(0, 0, GPU_texture_width(blurtex), GPU_texture_height(blurtex));
-
-	/* Preparing to draw quad */
-	glMatrixMode(GL_TEXTURE);
-	glLoadIdentity();
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	glDisable(GL_DEPTH_TEST);
 
 	GPU_texture_bind(tex, 0);
 
-	/* Drawing quad */
-	glBegin(GL_QUADS);
-	glTexCoord2d(0, 0); glVertex2f(1, 1);
-	glTexCoord2d(1, 0); glVertex2f(-1, 1);
-	glTexCoord2d(1, 1); glVertex2f(-1, -1);
-	glTexCoord2d(0, 1); glVertex2f(1, -1);
-	glEnd();
+	Batch_set_builtin_program(&batch, GPU_SHADER_SEP_GAUSSIAN_BLUR);
+	Batch_Uniform2f(&batch, "ScaleU", scaleh[0], scaleh[1]);
+	Batch_Uniform1i(&batch, "textureSource", GL_TEXTURE0);
+	Batch_draw(&batch);
 
 	/* Blurring vertically */
-
 	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 	
 	GG.currentfb = fb->object;
 	
 	glViewport(0, 0, GPU_texture_width(tex), GPU_texture_height(tex));
-	GPU_shader_uniform_vector(blur_shader, scale_uniform, 2, 1, scalev);
-	GPU_shader_uniform_texture(blur_shader, texture_source_uniform, blurtex);
+
 	GPU_texture_bind(blurtex, 0);
 
-	glBegin(GL_QUADS);
-	glTexCoord2d(0, 0); glVertex2f(1, 1);
-	glTexCoord2d(1, 0); glVertex2f(-1, 1);
-	glTexCoord2d(1, 1); glVertex2f(-1, -1);
-	glTexCoord2d(0, 1); glVertex2f(1, -1);
-	glEnd();
+	/* Hack to make the following uniform stick */
+	Batch_set_builtin_program(&batch, GPU_SHADER_SEP_GAUSSIAN_BLUR);
+	Batch_Uniform2f(&batch, "ScaleU", scalev[0], scalev[1]);
+	Batch_Uniform1i(&batch, "textureSource", GL_TEXTURE0);
+	Batch_draw(&batch);
 
-	GPU_shader_unbind();
+	gpuMatrixEnd();
 }
 
 void GPU_framebuffer_blit(GPUFrameBuffer *fb_read, int read_slot, GPUFrameBuffer *fb_write, int write_slot, bool use_depth)

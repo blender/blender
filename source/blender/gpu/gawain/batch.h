@@ -50,6 +50,7 @@ void Batch_set_program(Batch*, GLuint program);
 void Batch_use_program(Batch*); // call before Batch_Uniform (temp hack?)
 void Batch_done_using_program(Batch*);
 
+void Batch_Uniform1i(Batch*, const char* name, int value);
 void Batch_Uniform1b(Batch*, const char* name, bool value);
 void Batch_Uniform1f(Batch*, const char* name, float value);
 void Batch_Uniform2f(Batch*, const char* name, float x, float y);

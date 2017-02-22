@@ -133,6 +133,17 @@ void Batch_done_using_program(Batch* batch)
 		}
 	}
 
+void Batch_Uniform1i(Batch* batch, const char* name, int value)
+	{
+	int loc = glGetUniformLocation(batch->program, name);
+
+#if TRUST_NO_ONE
+	assert(loc != -1);
+#endif
+
+	glUniform1i(loc, value);
+	}
+
 void Batch_Uniform1b(Batch* batch, const char* name, bool value)
 	{
 	int loc = glGetUniformLocation(batch->program, name);
