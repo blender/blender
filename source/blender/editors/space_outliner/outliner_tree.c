@@ -1377,6 +1377,15 @@ static void outliner_add_orphaned_datablocks(Main *mainvar, SpaceOops *soops)
 	}
 }
 
+static void outliner_collections_reorder(const Scene *scene, TreeElement *insert_element, TreeElement *insert_after)
+{
+	SceneLayer *sl = BKE_scene_layer_render_active(scene);
+	LayerCollection *insert_coll = insert_element->directdata;
+	LayerCollection *insert_after_coll = insert_after ? insert_after->directdata : NULL;
+
+	BKE_layer_collection_reinsert_after(scene, sl, insert_coll, insert_after_coll);
+}
+
 static void outliner_add_collections_recursive(SpaceOops *soops, ListBase *tree, Scene *scene,
                                                ListBase *layer_collections, TreeElement *parent_ten)
 {
@@ -1385,6 +1394,7 @@ static void outliner_add_collections_recursive(SpaceOops *soops, ListBase *tree,
 
 		ten->name = collection->scene_collection->name;
 		ten->directdata = collection;
+		ten->reinsert = outliner_collections_reorder;
 
 		for (LinkData *link = collection->object_bases.first; link; link = link->next) {
 			outliner_add_element(soops, &ten->subtree, ((Base *)link->data)->object, NULL, 0, 0);
@@ -1513,18 +1523,15 @@ static void outliner_sort(ListBase *lb)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
-	int totelem = 0;
 
 	te = lb->last;
 	if (te == NULL) return;
 	tselem = TREESTORE(te);
-	
+
 	/* sorting rules; only object lists, ID lists, or deformgroups */
-	if ( ELEM(tselem->type, TSE_DEFGROUP, TSE_ID_BASE) || (tselem->type == 0 && te->idcode == ID_OB)) {
-		
-		/* count first */
-		for (te = lb->first; te; te = te->next) totelem++;
-		
+	if (ELEM(tselem->type, TSE_DEFGROUP, TSE_ID_BASE) || (tselem->type == 0 && te->idcode == ID_OB)) {
+		int totelem = BLI_listbase_count(lb);
+
 		if (totelem > 1) {
 			tTreeSort *tear = MEM_mallocN(totelem * sizeof(tTreeSort), "tree sort array");
 			tTreeSort *tp = tear;
@@ -1863,9 +1870,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 		ten = outliner_add_element(soops, &soops->tree, OBACT_NEW, NULL, 0, 0);
 	}
 
-	if ((soops->flag & SO_SKIP_SORT_ALPHA) == 0) {
-		outliner_sort(&soops->tree);
-	}
+	outliner_sort(&soops->tree);
 	outliner_filter_tree(soops, &soops->tree);
 
 	BKE_main_id_clear_newpoins(mainvar);

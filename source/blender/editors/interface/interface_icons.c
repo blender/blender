@@ -1432,6 +1432,11 @@ void UI_icon_draw(float x, float y, int icon_id)
 	UI_icon_draw_aspect(x, y, icon_id, 1.0f / UI_DPI_FAC, 1.0f);
 }
 
+void UI_icon_draw_alpha(float x, float y, int icon_id, float alpha)
+{
+	UI_icon_draw_aspect(x, y, icon_id, 1.0f / UI_DPI_FAC, alpha);
+}
+
 void UI_icon_draw_size(float x, float y, int size, int icon_id, float alpha)
 {
 	icon_draw_size(x, y, icon_id, 1.0f, alpha, NULL, ICON_SIZE_ICON, size, true, false);

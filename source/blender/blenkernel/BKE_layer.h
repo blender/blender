@@ -54,7 +54,7 @@ struct Scene;
 struct SceneCollection;
 struct SceneLayer;
 
-struct SceneLayer *BKE_scene_layer_render_active(struct Scene *scene);
+struct SceneLayer *BKE_scene_layer_render_active(const struct Scene *scene);
 struct SceneLayer *BKE_scene_layer_context_active(struct Scene *scene);
 struct SceneLayer *BKE_scene_layer_add(struct Scene *scene, const char *name);
 
@@ -84,6 +84,8 @@ struct LayerCollection *BKE_layer_collection_active(struct SceneLayer *sl);
 int BKE_layer_collection_count(struct SceneLayer *sl);
 
 int BKE_layer_collection_findindex(struct SceneLayer *sl, struct LayerCollection *lc);
+void BKE_layer_collection_reinsert_after(const struct Scene *scene, struct SceneLayer *sl,
+                                         struct LayerCollection *lc_reinsert, struct LayerCollection *lc_after);
 
 struct LayerCollection *BKE_collection_link(struct SceneLayer *sl, struct SceneCollection *sc);
 

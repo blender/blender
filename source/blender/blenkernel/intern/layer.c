@@ -66,7 +66,7 @@ static void object_bases_Iterator_next(Iterator *iter, const int flag);
  * Returns the SceneLayer to be used for rendering
  * Most of the time BKE_scene_layer_context_active should be used instead
  */
-SceneLayer *BKE_scene_layer_render_active(Scene *scene)
+SceneLayer *BKE_scene_layer_render_active(const Scene *scene)
 {
 	SceneLayer *sl = BLI_findlink(&scene->render_layers, scene->active_layer);
 	BLI_assert(sl);
@@ -489,6 +489,71 @@ int BKE_layer_collection_findindex(SceneLayer *sl, LayerCollection *lc)
 {
 	int i = 0;
 	return index_from_collection(&sl->layer_collections, lc, &i);
+}
+
+/**
+ * \param lc_after: Can be NULL to insert \a lc_after as first collection in \a lb.
+ */
+static bool layer_collection_insert_after(ListBase *lb, LayerCollection *lc_insert, LayerCollection *lc_after)
+{
+	if (lc_after == NULL) {
+		BLI_addhead(lb, lc_insert);
+		return true;
+	}
+
+	for (LayerCollection *lc = lb->first; lc; lc = lc->next) {
+		if (lc == lc_after) {
+			BLI_insertlinkafter(lb, lc_after, lc_insert);
+			return true;
+		}
+
+		if (layer_collection_insert_after(&lc->layer_collections, lc_insert, lc_after)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static bool layer_collection_remlink(ListBase *lb, LayerCollection *lc)
+{
+	for (LayerCollection *lc_iter = lb->first; lc_iter; lc_iter = lc_iter->next) {
+		if (lc_iter == lc) {
+			BLI_remlink(lb, lc);
+			return true;
+		}
+
+		if (layer_collection_remlink(&lc_iter->layer_collections, lc)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Move \a lc_reinsert so that it follows \a lc_after. After this, both \a lc_reinsert
+ * and \a lc_after should be stored in the same list.
+ *
+ * \param lc_after: Can be NULL to insert \a lc_after as first collection in \a sl.
+ */
+void BKE_layer_collection_reinsert_after(
+        const Scene *scene, SceneLayer *sl, LayerCollection *lc_reinsert, LayerCollection *lc_after)
+{
+	/* XXX maybe worth having a BKE internal header file for this? */
+	extern bool collection_remlink(SceneCollection *, SceneCollection *);
+	extern bool collection_insert_after(SceneCollection *, SceneCollection *, SceneCollection *);
+
+	SceneCollection *sc_master = BKE_collection_master(scene);
+
+	layer_collection_remlink(&sl->layer_collections, lc_reinsert);
+	collection_remlink(sc_master, lc_reinsert->scene_collection);
+
+	layer_collection_insert_after(&sl->layer_collections, lc_reinsert, lc_after);
+	collection_insert_after(sc_master, lc_reinsert->scene_collection, lc_after ? lc_after->scene_collection : NULL);
+
+	BKE_scene_layer_base_flag_recalculate(sl);
+	BKE_scene_layer_engine_settings_collection_recalculate(sl, lc_reinsert);
 }
 
 /**

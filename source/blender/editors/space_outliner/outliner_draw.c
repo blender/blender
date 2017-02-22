@@ -663,6 +663,7 @@ static void outliner_draw_rnacols(ARegion *ar, int sizex)
 	float miny = v2d->cur.ymin;
 	if (miny < v2d->tot.ymin) miny = v2d->tot.ymin;
 
+	glLineWidth(1.0f);
 	UI_ThemeColorShadeAlpha(TH_BACK, -15, -200);
 
 	/* draw column separator lines */
@@ -772,7 +773,7 @@ static void tselem_draw_icon_uibut(struct DrawIconArg *arg, int icon)
 	/* restrict column clip... it has been coded by simply overdrawing, doesnt work for buttons */
 	if (arg->x >= arg->xmax) {
 		glEnable(GL_BLEND);
-		UI_icon_draw_aspect(arg->x, arg->y, icon, 1.0f / UI_DPI_FAC, arg->alpha);
+		UI_icon_draw_alpha(arg->x, arg->y, icon, arg->alpha);
 		glDisable(GL_BLEND);
 	}
 	else {
@@ -835,189 +836,258 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 	arg.xb = x;	/* for ui buttons */
 	arg.yb = y;
 	arg.alpha = alpha;
-	
+
 	/* placement of icons, copied from interface_widgets.c */
 	aspect = (0.8f * UI_UNIT_Y) / ICON_DEFAULT_HEIGHT;
 	arg.x = x = x + 4.0f * aspect;
 	arg.y = y = y + 0.1f * UI_UNIT_Y;
 
+#define ICON_DRAW(_icon) UI_icon_draw_alpha(x, y, _icon, alpha)
+
 	if (tselem->type) {
 		switch (tselem->type) {
 			case TSE_ANIM_DATA:
-				UI_icon_draw(x, y, ICON_ANIM_DATA); break; // xxx
+				ICON_DRAW(ICON_ANIM_DATA); /* XXX */
+				break;
 			case TSE_NLA:
-				UI_icon_draw(x, y, ICON_NLA); break;
+				ICON_DRAW(ICON_NLA);
+				break;
 			case TSE_NLA_TRACK:
-				UI_icon_draw(x, y, ICON_NLA); break; // XXX
+				ICON_DRAW(ICON_NLA); /* XXX */
+				break;
 			case TSE_NLA_ACTION:
-				UI_icon_draw(x, y, ICON_ACTION); break;
+				ICON_DRAW(ICON_ACTION);
+				break;
 			case TSE_DRIVER_BASE:
-				UI_icon_draw(x, y, ICON_DRIVER); break;
+				ICON_DRAW(ICON_DRIVER);
+				break;
 			case TSE_DEFGROUP_BASE:
-				UI_icon_draw(x, y, ICON_GROUP_VERTEX); break;
+				ICON_DRAW(ICON_GROUP_VERTEX);
+				break;
 			case TSE_BONE:
 			case TSE_EBONE:
-				UI_icon_draw(x, y, ICON_BONE_DATA); break;
+				ICON_DRAW(ICON_BONE_DATA);
+				break;
 			case TSE_CONSTRAINT_BASE:
-				UI_icon_draw(x, y, ICON_CONSTRAINT); break;
+				ICON_DRAW(ICON_CONSTRAINT);
+				break;
 			case TSE_MODIFIER_BASE:
-				UI_icon_draw(x, y, ICON_MODIFIER); break;
+				ICON_DRAW(ICON_MODIFIER);
+				break;
 			case TSE_LINKED_OB:
-				UI_icon_draw(x, y, ICON_OBJECT_DATA); break;
+				ICON_DRAW(ICON_OBJECT_DATA);
+				break;
 			case TSE_LINKED_PSYS:
-				UI_icon_draw(x, y, ICON_PARTICLES); break;
+				ICON_DRAW(ICON_PARTICLES);
+				break;
 			case TSE_MODIFIER:
 			{
 				Object *ob = (Object *)tselem->id;
 				ModifierData *md = BLI_findlink(&ob->modifiers, tselem->nr);
 				switch ((ModifierType)md->type) {
-					case eModifierType_Subsurf: 
-						UI_icon_draw(x, y, ICON_MOD_SUBSURF); break;
-					case eModifierType_Armature: 
-						UI_icon_draw(x, y, ICON_MOD_ARMATURE); break;
-					case eModifierType_Lattice: 
-						UI_icon_draw(x, y, ICON_MOD_LATTICE); break;
-					case eModifierType_Curve: 
-						UI_icon_draw(x, y, ICON_MOD_CURVE); break;
-					case eModifierType_Build: 
-						UI_icon_draw(x, y, ICON_MOD_BUILD); break;
-					case eModifierType_Mirror: 
-						UI_icon_draw(x, y, ICON_MOD_MIRROR); break;
-					case eModifierType_Decimate: 
-						UI_icon_draw(x, y, ICON_MOD_DECIM); break;
-					case eModifierType_Wave: 
-						UI_icon_draw(x, y, ICON_MOD_WAVE); break;
-					case eModifierType_Hook: 
-						UI_icon_draw(x, y, ICON_HOOK); break;
-					case eModifierType_Softbody: 
-						UI_icon_draw(x, y, ICON_MOD_SOFT); break;
-					case eModifierType_Boolean: 
-						UI_icon_draw(x, y, ICON_MOD_BOOLEAN); break;
-					case eModifierType_ParticleSystem: 
-						UI_icon_draw(x, y, ICON_MOD_PARTICLES); break;
+					case eModifierType_Subsurf:
+						ICON_DRAW(ICON_MOD_SUBSURF);
+						break;
+					case eModifierType_Armature:
+						ICON_DRAW(ICON_MOD_ARMATURE);
+						break;
+					case eModifierType_Lattice:
+						ICON_DRAW(ICON_MOD_LATTICE);
+						break;
+					case eModifierType_Curve:
+						ICON_DRAW(ICON_MOD_CURVE);
+						break;
+					case eModifierType_Build:
+						ICON_DRAW(ICON_MOD_BUILD);
+						break;
+					case eModifierType_Mirror:
+						ICON_DRAW(ICON_MOD_MIRROR);
+						break;
+					case eModifierType_Decimate:
+						ICON_DRAW(ICON_MOD_DECIM);
+						break;
+					case eModifierType_Wave:
+						ICON_DRAW(ICON_MOD_WAVE);
+						break;
+					case eModifierType_Hook:
+						ICON_DRAW(ICON_HOOK);
+						break;
+					case eModifierType_Softbody:
+						ICON_DRAW(ICON_MOD_SOFT);
+						break;
+					case eModifierType_Boolean:
+						ICON_DRAW(ICON_MOD_BOOLEAN);
+						break;
+					case eModifierType_ParticleSystem:
+						ICON_DRAW(ICON_MOD_PARTICLES);
+						break;
 					case eModifierType_ParticleInstance:
-						UI_icon_draw(x, y, ICON_MOD_PARTICLES); break;
+						ICON_DRAW(ICON_MOD_PARTICLES);
+						break;
 					case eModifierType_EdgeSplit:
-						UI_icon_draw(x, y, ICON_MOD_EDGESPLIT); break;
+						ICON_DRAW(ICON_MOD_EDGESPLIT);
+						break;
 					case eModifierType_Array:
-						UI_icon_draw(x, y, ICON_MOD_ARRAY); break;
+						ICON_DRAW(ICON_MOD_ARRAY);
+						break;
 					case eModifierType_UVProject:
 					case eModifierType_UVWarp:  /* TODO, get own icon */
-						UI_icon_draw(x, y, ICON_MOD_UVPROJECT); break;
+						ICON_DRAW(ICON_MOD_UVPROJECT);
+						break;
 					case eModifierType_Displace:
-						UI_icon_draw(x, y, ICON_MOD_DISPLACE); break;
+						ICON_DRAW(ICON_MOD_DISPLACE);
+						break;
 					case eModifierType_Shrinkwrap:
-						UI_icon_draw(x, y, ICON_MOD_SHRINKWRAP); break;
+						ICON_DRAW(ICON_MOD_SHRINKWRAP);
+						break;
 					case eModifierType_Cast:
-						UI_icon_draw(x, y, ICON_MOD_CAST); break;
+						ICON_DRAW(ICON_MOD_CAST);
+						break;
 					case eModifierType_MeshDeform:
-						UI_icon_draw(x, y, ICON_MOD_MESHDEFORM); break;
+						ICON_DRAW(ICON_MOD_MESHDEFORM);
+						break;
 					case eModifierType_Bevel:
-						UI_icon_draw(x, y, ICON_MOD_BEVEL); break;
+						ICON_DRAW(ICON_MOD_BEVEL);
+						break;
 					case eModifierType_Smooth:
 					case eModifierType_LaplacianSmooth:
 					case eModifierType_CorrectiveSmooth:
-						UI_icon_draw(x, y, ICON_MOD_SMOOTH); break;
+						ICON_DRAW(ICON_MOD_SMOOTH);
+						break;
 					case eModifierType_SimpleDeform:
-						UI_icon_draw(x, y, ICON_MOD_SIMPLEDEFORM); break;
+						ICON_DRAW(ICON_MOD_SIMPLEDEFORM);
+						break;
 					case eModifierType_Mask:
-						UI_icon_draw(x, y, ICON_MOD_MASK); break;
+						ICON_DRAW(ICON_MOD_MASK);
+						break;
 					case eModifierType_Cloth:
-						UI_icon_draw(x, y, ICON_MOD_CLOTH); break;
+						ICON_DRAW(ICON_MOD_CLOTH);
+						break;
 					case eModifierType_Explode:
-						UI_icon_draw(x, y, ICON_MOD_EXPLODE); break;
+						ICON_DRAW(ICON_MOD_EXPLODE);
+						break;
 					case eModifierType_Collision:
 					case eModifierType_Surface:
-						UI_icon_draw(x, y, ICON_MOD_PHYSICS); break;
+						ICON_DRAW(ICON_MOD_PHYSICS);
+						break;
 					case eModifierType_Fluidsim:
-						UI_icon_draw(x, y, ICON_MOD_FLUIDSIM); break;
+						ICON_DRAW(ICON_MOD_FLUIDSIM);
+						break;
 					case eModifierType_Multires:
-						UI_icon_draw(x, y, ICON_MOD_MULTIRES); break;
+						ICON_DRAW(ICON_MOD_MULTIRES);
+						break;
 					case eModifierType_Smoke:
-						UI_icon_draw(x, y, ICON_MOD_SMOKE); break;
+						ICON_DRAW(ICON_MOD_SMOKE);
+						break;
 					case eModifierType_Solidify:
-						UI_icon_draw(x, y, ICON_MOD_SOLIDIFY); break;
+						ICON_DRAW(ICON_MOD_SOLIDIFY);
+						break;
 					case eModifierType_Screw:
-						UI_icon_draw(x, y, ICON_MOD_SCREW); break;
+						ICON_DRAW(ICON_MOD_SCREW);
+						break;
 					case eModifierType_Remesh:
-						UI_icon_draw(x, y, ICON_MOD_REMESH); break;
+						ICON_DRAW(ICON_MOD_REMESH);
+						break;
 					case eModifierType_WeightVGEdit:
 					case eModifierType_WeightVGMix:
 					case eModifierType_WeightVGProximity:
-						UI_icon_draw(x, y, ICON_MOD_VERTEX_WEIGHT); break;
+						ICON_DRAW(ICON_MOD_VERTEX_WEIGHT);
+						break;
 					case eModifierType_DynamicPaint:
-						UI_icon_draw(x, y, ICON_MOD_DYNAMICPAINT); break;
+						ICON_DRAW(ICON_MOD_DYNAMICPAINT);
+						break;
 					case eModifierType_Ocean:
-						UI_icon_draw(x, y, ICON_MOD_OCEAN); break;
+						ICON_DRAW(ICON_MOD_OCEAN);
+						break;
 					case eModifierType_Warp:
-						UI_icon_draw(x, y, ICON_MOD_WARP); break;
+						ICON_DRAW(ICON_MOD_WARP);
+						break;
 					case eModifierType_Skin:
-						UI_icon_draw(x, y, ICON_MOD_SKIN); break;
+						ICON_DRAW(ICON_MOD_SKIN);
+						break;
 					case eModifierType_Triangulate:
-						UI_icon_draw(x, y, ICON_MOD_TRIANGULATE); break;
+						ICON_DRAW(ICON_MOD_TRIANGULATE);
+						break;
 					case eModifierType_MeshCache:
-						UI_icon_draw(x, y, ICON_MOD_MESHDEFORM); break;  /* XXX, needs own icon */
+						ICON_DRAW(ICON_MOD_MESHDEFORM); /* XXX, needs own icon */
+						break;
 					case eModifierType_MeshSequenceCache:
-						UI_icon_draw(x, y, ICON_MOD_MESHDEFORM); break;  /* XXX, needs own icon */
+						ICON_DRAW(ICON_MOD_MESHDEFORM); /* XXX, needs own icon */
+						break;
 					case eModifierType_Wireframe:
-						UI_icon_draw(x, y, ICON_MOD_WIREFRAME); break;
+						ICON_DRAW(ICON_MOD_WIREFRAME);
+						break;
 					case eModifierType_LaplacianDeform:
-						UI_icon_draw(x, y, ICON_MOD_MESHDEFORM); break;  /* XXX, needs own icon */
+						ICON_DRAW(ICON_MOD_MESHDEFORM); /* XXX, needs own icon */
+						break;
 					case eModifierType_DataTransfer:
-						UI_icon_draw(x, y, ICON_MOD_DATA_TRANSFER); break;
+						ICON_DRAW(ICON_MOD_DATA_TRANSFER);
+						break;
 					case eModifierType_NormalEdit:
-						UI_icon_draw(x, y, ICON_MOD_NORMALEDIT); break;
+						ICON_DRAW(ICON_MOD_NORMALEDIT);
+						break;
 					/* Default */
 					case eModifierType_None:
 					case eModifierType_ShapeKey:
 					case NUM_MODIFIER_TYPES:
-						UI_icon_draw(x, y, ICON_DOT); break;
+						ICON_DRAW(ICON_DOT);
+						break;
 				}
 				break;
 			}
 			case TSE_POSE_BASE:
-				UI_icon_draw(x, y, ICON_ARMATURE_DATA); break;
+				ICON_DRAW(ICON_ARMATURE_DATA);
+				break;
 			case TSE_POSE_CHANNEL:
-				UI_icon_draw(x, y, ICON_BONE_DATA); break;
+				ICON_DRAW(ICON_BONE_DATA);
+				break;
 			case TSE_PROXY:
-				UI_icon_draw(x, y, ICON_GHOST); break;
+				ICON_DRAW(ICON_GHOST);
+				break;
 			case TSE_R_LAYER_BASE:
-				UI_icon_draw(x, y, ICON_RENDERLAYERS); break;
+				ICON_DRAW(ICON_RENDERLAYERS);
+				break;
 			case TSE_R_LAYER:
-				UI_icon_draw(x, y, ICON_RENDERLAYERS); break;
+				ICON_DRAW(ICON_RENDERLAYERS);
+				break;
 			case TSE_LINKED_LAMP:
-				UI_icon_draw(x, y, ICON_LAMP_DATA); break;
+				ICON_DRAW(ICON_LAMP_DATA);
+				break;
 			case TSE_LINKED_MAT:
-				UI_icon_draw(x, y, ICON_MATERIAL_DATA); break;
+				ICON_DRAW(ICON_MATERIAL_DATA);
+				break;
 			case TSE_POSEGRP_BASE:
-				UI_icon_draw(x, y, ICON_GROUP_BONE); break;
+				ICON_DRAW(ICON_GROUP_BONE);
+				break;
 			case TSE_SEQUENCE:
 				if (te->idcode == SEQ_TYPE_MOVIE)
-					UI_icon_draw(x, y, ICON_SEQUENCE);
+					ICON_DRAW(ICON_SEQUENCE);
 				else if (te->idcode == SEQ_TYPE_META)
-					UI_icon_draw(x, y, ICON_DOT);
+					ICON_DRAW(ICON_DOT);
 				else if (te->idcode == SEQ_TYPE_SCENE)
-					UI_icon_draw(x, y, ICON_SCENE);
+					ICON_DRAW(ICON_SCENE);
 				else if (te->idcode == SEQ_TYPE_SOUND_RAM)
-					UI_icon_draw(x, y, ICON_SOUND);
+					ICON_DRAW(ICON_SOUND);
 				else if (te->idcode == SEQ_TYPE_IMAGE)
-					UI_icon_draw(x, y, ICON_IMAGE_COL);
+					ICON_DRAW(ICON_IMAGE_COL);
 				else
-					UI_icon_draw(x, y, ICON_PARTICLES);
+					ICON_DRAW(ICON_PARTICLES);
 				break;
 			case TSE_SEQ_STRIP:
-				UI_icon_draw(x, y, ICON_LIBRARY_DATA_DIRECT);
+				ICON_DRAW(ICON_LIBRARY_DATA_DIRECT);
 				break;
 			case TSE_SEQUENCE_DUP:
-				UI_icon_draw(x, y, ICON_OBJECT_DATA);
+				ICON_DRAW(ICON_OBJECT_DATA);
 				break;
 			case TSE_RNA_STRUCT:
 				if (RNA_struct_is_ID(te->rnaptr.type)) {
 					arg.id = (ID *)te->rnaptr.data;
 					tselem_draw_icon_uibut(&arg, RNA_struct_ui_icon(te->rnaptr.type));
 				}
-				else
-					UI_icon_draw(x, y, RNA_struct_ui_icon(te->rnaptr.type));
+				else {
+					int icon = RNA_struct_ui_icon(te->rnaptr.type);
+					ICON_DRAW(icon);
+				}
 				break;
 			/* Removed the icons from outliner. Need a better structure with Layers, Palettes and Colors */
 #if 0
@@ -1026,7 +1096,8 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 				break;
 #endif
 			default:
-				UI_icon_draw(x, y, ICON_DOT); break;
+				ICON_DRAW(ICON_DOT);
+				break;
 		}
 	}
 	else if (tselem->id) {
@@ -1131,17 +1202,18 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 			}
 		}
 	}
+
+#undef ICON_DRAW
 }
 
-static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, SceneLayer *sl, SpaceOops *soops, ListBase *lb, int level,
-                                  int xmax, int *offsx, int ys)
+static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, SceneLayer *sl, SpaceOops *soops,
+                                  ListBase *lb, int level, int xmax, int *offsx, int ys, float alpha_fac)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
 	eOLDrawState active;
 
 	for (te = lb->first; te; te = te->next) {
-		
 		/* exit drawing early */
 		if ((*offsx) - UI_UNIT_X > xmax)
 			break;
@@ -1169,9 +1241,11 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Sce
 
 			if (active != OL_DRAWSEL_NONE) {
 				float ufac = UI_UNIT_X / 20.0f;
+				float color[4] = {1.0f, 1.0f, 1.0f, 0.4f};
 
 				UI_draw_roundbox_corner_set(UI_CNR_ALL);
-				float color[4] = {1.0f, 1.0f, 1.0f, 0.4f};
+				color[3] *= alpha_fac;
+
 				UI_draw_roundbox(
 				        (float) *offsx - 1.0f * ufac,
 				        (float)ys + 1.0f * ufac,
@@ -1182,7 +1256,7 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Sce
 				glEnable(GL_BLEND); /* roundbox disables */
 			}
 			
-			tselem_draw_icon(block, xmax, (float)*offsx, (float)ys, tselem, te, 0.5f);
+			tselem_draw_icon(block, xmax, (float)*offsx, (float)ys, tselem, te, 0.5f * alpha_fac);
 			te->xs = *offsx;
 			te->ys = ys;
 			te->xend = (short)*offsx + UI_UNIT_X;
@@ -1193,7 +1267,7 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Sce
 		
 		/* this tree element always has same amount of branches, so don't draw */
 		if (tselem->type != TSE_R_LAYER)
-			outliner_draw_iconrow(C, block, scene, sl, soops, &te->subtree, level + 1, xmax, offsx, ys);
+			outliner_draw_iconrow(C, block, scene, sl, soops, &te->subtree, level + 1, xmax, offsx, ys, alpha_fac);
 	}
 	
 }
@@ -1217,10 +1291,10 @@ static void outliner_set_coord_tree_element(TreeElement *te, int startx, int sta
 
 
 static void outliner_draw_tree_element(
-        bContext *C, uiBlock *block, const uiFontStyle *fstyle, Scene *scene, SceneLayer *sl, ARegion *ar, SpaceOops *soops,
-        TreeElement *te, int startx, int *starty, TreeElement **te_edit)
+        bContext *C, uiBlock *block, const uiFontStyle *fstyle, Scene *scene, SceneLayer *sl,
+        ARegion *ar, SpaceOops *soops, TreeElement *te, bool draw_grayed_out,
+        int startx, int *starty, TreeElement **te_edit, TreeElement **te_floating)
 {
-	TreeElement *ten;
 	TreeStoreElem *tselem;
 	float ufac = UI_UNIT_X / 20.0f;
 	int offsx = 0;
@@ -1229,11 +1303,15 @@ static void outliner_draw_tree_element(
 	tselem = TREESTORE(te);
 
 	if (*starty + 2 * UI_UNIT_Y >= ar->v2d.cur.ymin && *starty <= ar->v2d.cur.ymax) {
+		const float alpha_fac = draw_grayed_out ? 0.5f : 1.0f;
+		const float alpha = 0.5f * alpha_fac;
 		int xmax = ar->v2d.cur.xmax;
-		float alpha = 0.5f;
-		
+
 		if ((tselem->flag & TSE_TEXTBUT) && (*te_edit == NULL)) {
 			*te_edit = te;
+		}
+		if ((te->drag_data != NULL) && (*te_floating == NULL)) {
+			*te_floating = te;
 		}
 
 		/* icons can be ui buts, we don't want it to overlap with restrict */
@@ -1314,38 +1392,39 @@ static void outliner_draw_tree_element(
 				icon_x = startx;
 			else
 				icon_x = startx + 5 * ufac;
-			
+
 			// icons a bit higher
 			if (TSELEM_OPEN(tselem, soops))
-				UI_icon_draw((float)icon_x, (float)*starty + 2 * ufac, ICON_DISCLOSURE_TRI_DOWN);
+				UI_icon_draw_alpha((float)icon_x, (float)*starty + 2 * ufac, ICON_DISCLOSURE_TRI_DOWN,
+				                   alpha_fac);
 			else
-				UI_icon_draw((float)icon_x, (float)*starty + 2 * ufac, ICON_DISCLOSURE_TRI_RIGHT);
+				UI_icon_draw_alpha((float)icon_x, (float)*starty + 2 * ufac, ICON_DISCLOSURE_TRI_RIGHT,
+				                   alpha_fac);
 		}
 		offsx += UI_UNIT_X;
 		
 		/* datatype icon */
 		
 		if (!(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM))) {
-			
-			tselem_draw_icon(block, xmax, (float)startx + offsx, (float)*starty, tselem, te, 1.0f);
-			
+			tselem_draw_icon(block, xmax, (float)startx + offsx, (float)*starty, tselem, te, alpha_fac);
 			offsx += UI_UNIT_X;
 		}
 		else
 			offsx += 2 * ufac;
 		
 		if (tselem->type == 0 && ID_IS_LINKED_DATABLOCK(tselem->id)) {
-			glPixelTransferf(GL_ALPHA_SCALE, 0.5f);
 			if (tselem->id->tag & LIB_TAG_MISSING) {
-				UI_icon_draw((float)startx + offsx, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_BROKEN);
+				UI_icon_draw_alpha((float)startx + offsx, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_BROKEN,
+				                   alpha_fac);
 			}
 			else if (tselem->id->tag & LIB_TAG_INDIRECT) {
-				UI_icon_draw((float)startx + offsx, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_INDIRECT);
+				UI_icon_draw_alpha((float)startx + offsx, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_INDIRECT,
+				                   alpha_fac);
 			}
 			else {
-				UI_icon_draw((float)startx + offsx, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_DIRECT);
+				UI_icon_draw_alpha((float)startx + offsx, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_DIRECT,
+				                   alpha_fac);
 			}
-			glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 			offsx += UI_UNIT_X;
 		}
 		glDisable(GL_BLEND);
@@ -1364,6 +1443,7 @@ static void outliner_draw_tree_element(
 			else {
 				UI_GetThemeColor4ubv(TH_TEXT, text_col);
 			}
+			text_col[3] *= alpha_fac;
 
 			UI_fontstyle_draw_simple(fstyle, startx + offsx, *starty + 5 * ufac, te->name, text_col);
 		}
@@ -1376,31 +1456,33 @@ static void outliner_draw_tree_element(
 				if (tselem->type == 0 && te->idcode == ID_SCE) {
 					/* pass */
 				}
+				/* this tree element always has same amount of branches, so don't draw */
 				else if (tselem->type != TSE_R_LAYER) {
-					/* this tree element always has same amount of branches, so don't draw */
-
 					int tempx = startx + offsx;
-					
+
+					glEnable(GL_BLEND);
+
 					/* divider */
 					{
 						VertexFormat *format = immVertexFormat();
-						unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
-						immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+						unsigned int pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
 						unsigned char col[4];
+
+						immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 						UI_GetThemeColorShade4ubv(TH_BACK, -40, col);
+						col[3] *= alpha_fac;
+
 						immUniformColor4ubv(col);
 						immRecti(pos, tempx   - 10.0f * ufac,
-								*starty +  4.0f * ufac,
-								tempx   -  8.0f * ufac,
-								*starty + UI_UNIT_Y - 4.0f * ufac);
+						         *starty +  4.0f * ufac,
+						         tempx   -  8.0f * ufac,
+						         *starty + UI_UNIT_Y - 4.0f * ufac);
 						immUnbindProgram();
 					}
-					glEnable(GL_BLEND);
-					glPixelTransferf(GL_ALPHA_SCALE, 0.5);
-					
-					outliner_draw_iconrow(C, block, scene, sl, soops, &te->subtree, 0, xmax, &tempx, *starty);
-					
-					glPixelTransferf(GL_ALPHA_SCALE, 1.0);
+
+					outliner_draw_iconrow(C, block, scene, sl, soops, &te->subtree, 0, xmax, &tempx,
+					                      *starty, alpha_fac);
+
 					glDisable(GL_BLEND);
 				}
 			}
@@ -1410,16 +1492,20 @@ static void outliner_draw_tree_element(
 	te->xs = startx;
 	te->ys = *starty;
 	te->xend = startx + offsx;
-		
+
 	if (TSELEM_OPEN(tselem, soops)) {
 		*starty -= UI_UNIT_Y;
 
-		for (ten = te->subtree.first; ten; ten = ten->next) {
-			outliner_draw_tree_element(C, block, fstyle, scene, sl, ar, soops, ten, startx + UI_UNIT_X, starty, te_edit);
+		for (TreeElement *ten = te->subtree.first; ten; ten = ten->next) {
+			/* check if element needs to be drawn grayed out, but also gray out
+			 * childs of a grayed out parent (pass on draw_grayed_out to childs) */
+			bool draw_childs_grayed_out = draw_grayed_out || (ten->drag_data != NULL);
+			outliner_draw_tree_element(C, block, fstyle, scene, sl, ar, soops, ten, draw_childs_grayed_out,
+			                           startx + UI_UNIT_X, starty, te_edit, te_floating);
 		}
 	}
 	else {
-		for (ten = te->subtree.first; ten; ten = ten->next) {
+		for (TreeElement *ten = te->subtree.first; ten; ten = ten->next) {
 			outliner_set_coord_tree_element(ten, startx, *starty);
 		}
 		
@@ -1427,19 +1513,76 @@ static void outliner_draw_tree_element(
 	}
 }
 
-static void outliner_draw_hierarchy_lines_recursive(unsigned pos, SpaceOops *soops, ListBase *lb, int startx, int *starty)
+/**
+ * Count how many visible childs (and open grandchilds, great-grandchilds, ...) \a te has.
+ */
+static int outliner_count_visible_childs(const SpaceOops *soops, const TreeElement *te)
 {
-	if (BLI_listbase_is_empty(lb)) return;
+	TreeStoreElem *tselem = TREESTORE(te);
+	int current_count = 0;
 
+	if (TSELEM_OPEN(tselem, soops)) {
+		for (TreeElement *te_child = te->subtree.first; te_child; te_child = te_child->next) {
+			current_count += outliner_count_visible_childs(soops, te_child);
+			current_count++;
+		}
+	}
+
+	return current_count;
+}
+
+static void outliner_draw_tree_element_floating(const SpaceOops *soops, const ARegion *ar,
+                                                const TreeElement *te_floating)
+{
+	const TreeElement *te_insert = te_floating->drag_data->insert_te;
+	const int line_width = 2;
+
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	int coord_y = (te_insert ? te_insert->ys : ((int)ar->v2d.tot.ymax - OL_Y_OFFSET)) - (int)(line_width * 0.5f);
+	unsigned char col[4];
+
+	if (te_insert == te_floating) {
+		/* don't draw anything */
+		return;
+	}
+
+	if (te_insert) {
+		coord_y -= UI_UNIT_Y * outliner_count_visible_childs(soops, te_insert);
+	}
+
+	UI_GetThemeColorShade4ubv(TH_BACK, -40, col);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformColor4ubv(col);
+	glLineWidth(line_width);
+
+	immBegin(PRIM_LINE_STRIP, 2);
+	immVertex2f(pos, 0, coord_y);
+	immVertex2f(pos, ar->v2d.cur.xmax, coord_y);
+	immEnd();
+
+	immUnbindProgram();
+}
+
+static void outliner_draw_hierarchy_lines_recursive(unsigned pos, SpaceOops *soops, ListBase *lb, int startx,
+                                                    const unsigned char col[4], bool draw_grayed_out,
+                                                    int *starty)
+{
 	TreeElement *te;
 	TreeStoreElem *tselem;
 	int y1, y2;
 
+	if (BLI_listbase_is_empty(lb)) {
+		return;
+	}
+
 	y1 = y2 = *starty; /* for vertical lines between objects */
 	for (te = lb->first; te; te = te->next) {
+		bool draw_childs_grayed_out = draw_grayed_out || (te->drag_data != NULL);
 		y2 = *starty;
 		tselem = TREESTORE(te);
-		
+
+		immUniformColor4ub(UNPACK3(col), col[3] * (draw_childs_grayed_out ? 0.5f : 1.0f));
+
 		/* horizontal line? */
 		if (tselem->type == 0 && (te->idcode == ID_OB || te->idcode == ID_SCE))
 			immRecti(pos, startx, *starty, startx + UI_UNIT_X, *starty - 1);
@@ -1447,9 +1590,12 @@ static void outliner_draw_hierarchy_lines_recursive(unsigned pos, SpaceOops *soo
 		*starty -= UI_UNIT_Y;
 		
 		if (TSELEM_OPEN(tselem, soops))
-			outliner_draw_hierarchy_lines_recursive(pos, soops, &te->subtree, startx + UI_UNIT_X, starty);
+			outliner_draw_hierarchy_lines_recursive(pos, soops, &te->subtree, startx + UI_UNIT_X,
+			                                        col, draw_childs_grayed_out, starty);
 	}
-	
+
+	immUniformColor4ub(UNPACK3(col), col[3] * (draw_grayed_out ? 0.5f : 1.0f));
+
 	/* vertical line */
 	te = lb->last;
 	if (te->parent || lb->first != lb->last) {
@@ -1462,12 +1608,17 @@ static void outliner_draw_hierarchy_lines_recursive(unsigned pos, SpaceOops *soo
 static void outliner_draw_hierarchy_lines(SpaceOops *soops, ListBase *lb, int startx, int *starty)
 {
 	VertexFormat *format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+	unsigned int pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+	unsigned char col[4];
+
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-	unsigned char col[3];
 	UI_GetThemeColorBlend3ubv(TH_BACK, TH_TEXT, 0.4f, col);
-	immUniformColor3ubv(col);
-	outliner_draw_hierarchy_lines_recursive(pos, soops, lb, startx, starty);
+	col[3] = 255;
+
+	glEnable(GL_BLEND);
+	outliner_draw_hierarchy_lines_recursive(pos, soops, lb, startx, col, false, starty);
+	glDisable(GL_BLEND);
+
 	immUnbindProgram();
 }
 
@@ -1532,7 +1683,7 @@ static void outliner_draw_highlights_recursive(
 		}
 
 		/* mouse hover highlights */
-		if (tselem->flag & TSE_HIGHLIGHTED) {
+		if ((tselem->flag & TSE_HIGHLIGHTED) || (te->drag_data != NULL)) {
 			immUniformColor4fv(col_highlight);
 			immRecti(pos, 0, start_y + 1, (int)ar->v2d.cur.xmax, start_y + UI_UNIT_Y - 1);
 		}
@@ -1540,8 +1691,8 @@ static void outliner_draw_highlights_recursive(
 		*io_start_y -= UI_UNIT_Y;
 		if (TSELEM_OPEN(tselem, soops)) {
 			outliner_draw_highlights_recursive(
-				pos, ar, soops, &te->subtree, col_selection, col_highlight, col_searchmatch,
-				start_x + UI_UNIT_X, io_start_y);
+			        pos, ar, soops, &te->subtree, col_selection, col_highlight, col_searchmatch,
+			        start_x + UI_UNIT_X, io_start_y);
 		}
 	}
 }
@@ -1561,7 +1712,7 @@ static void outliner_draw_highlights(ARegion *ar, SpaceOops *soops, int startx, 
 	unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	outliner_draw_highlights_recursive(pos, ar, soops, &soops->tree, col_selection, col_highlight, col_searchmatch,
-						startx, starty);
+	                                   startx, starty);
 	immUnbindProgram();
 	glDisable(GL_BLEND);
 }
@@ -1572,6 +1723,7 @@ static void outliner_draw_tree(
         TreeElement **te_edit)
 {
 	const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
+	TreeElement *te_floating = NULL;
 	int starty, startx;
 
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); // only once
@@ -1607,7 +1759,11 @@ static void outliner_draw_tree(
 	starty = (int)ar->v2d.tot.ymax - UI_UNIT_Y - OL_Y_OFFSET;
 	startx = 0;
 	for (TreeElement *te = soops->tree.first; te; te = te->next) {
-		outliner_draw_tree_element(C, block, fstyle, scene, sl, ar, soops, te, startx, &starty, te_edit);
+		outliner_draw_tree_element(C, block, fstyle, scene, sl, ar, soops, te, te->drag_data != NULL,
+		                           startx, &starty, te_edit, &te_floating);
+	}
+	if (te_floating) {
+		outliner_draw_tree_element_floating(soops, ar, te_floating);
 	}
 
 	if (has_restrict_icons) {
@@ -1651,6 +1807,7 @@ static void outliner_back(ARegion *ar)
 
 static void outliner_draw_restrictcols(ARegion *ar)
 {
+	glLineWidth(1.0f);
 	UI_ThemeColorShadeAlpha(TH_BACK, -15, -200);
 
 	/* view */

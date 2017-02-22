@@ -37,6 +37,7 @@
 /* internal exports only */
 
 struct wmOperatorType;
+struct TreeElement;
 struct TreeStoreElem;
 struct bContext;
 struct Scene;
@@ -45,6 +46,13 @@ struct ID;
 struct Object;
 struct bPoseChannel;
 struct EditBone;
+
+/**
+ * Callback type for reinserting elements at a different position, used to allow user customizable element order.
+ * Passing scene right now, may be better to allow some custom data.
+ */
+typedef void (*TreeElementReinsertFunc)(const struct Scene *scene, struct TreeElement *insert_element,
+                                        struct TreeElement *insert_after);
 
 typedef struct TreeElement {
 	struct TreeElement *next, *prev, *parent;
@@ -58,7 +66,15 @@ typedef struct TreeElement {
 	const char *name;
 	void *directdata;          // Armature Bones, Base, Sequence, Strip...
 	PointerRNA rnaptr;         // RNA Pointer
-}  TreeElement;
+
+	/* callbacks */
+	TreeElementReinsertFunc reinsert;
+
+	struct {
+		/* the element after which we may insert the dragged one (NULL to insert at top) */
+		struct TreeElement *insert_te;
+	} *drag_data;
+} TreeElement;
 
 #define TREESTORE_ID_TYPE(_id) \
 	(ELEM(GS((_id)->name), ID_SCE, ID_LI, ID_OB, ID_ME, ID_CU, ID_MB, ID_NT, ID_MA, ID_TE, ID_IM, ID_LT, ID_LA, ID_CA) || \
