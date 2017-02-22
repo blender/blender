@@ -809,7 +809,7 @@ static void modifier_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem
 static void collection_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *Carg)
 {
 	bContext *C = (bContext *)Carg;
-	Scene *scene= CTX_data_scene(C);
+	Scene *scene = CTX_data_scene(C);
 	LayerCollection *lc = te->directdata;
 	SceneCollection *sc = lc->scene_collection;
 

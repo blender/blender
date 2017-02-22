@@ -33,7 +33,7 @@
 #include "edit_armature_mode.h"
 
 /* keep it under MAX_PASSES */
-typedef struct EDIT_ARMATURE_PassList{
+typedef struct EDIT_ARMATURE_PassList {
 	struct DRWPass *non_meshes_pass;
 	struct DRWPass *ob_center_pass;
 	struct DRWPass *wire_outline_pass;

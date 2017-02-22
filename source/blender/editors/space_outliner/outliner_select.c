@@ -199,7 +199,7 @@ static eOLDrawState tree_element_set_active_object(
 }
 
 static eOLDrawState tree_element_active_material(
-        bContext *C, Scene* UNUSED(scene), SceneLayer *sl, SpaceOops *soops,
+        bContext *C, Scene *UNUSED(scene), SceneLayer *sl, SpaceOops *soops,
         TreeElement *te, const eOLSetState set)
 {
 	TreeElement *tes;
@@ -786,17 +786,17 @@ eOLDrawState tree_element_active(bContext *C, Scene *scene, SceneLayer *sl, Spac
 			}
 			break;
 		case ID_MA:
-		    return tree_element_active_material(C, scene, sl, soops, te, set);
+			return tree_element_active_material(C, scene, sl, soops, te, set);
 		case ID_WO:
-		    return tree_element_active_world(C, scene, sl, soops, te, set);
+			return tree_element_active_world(C, scene, sl, soops, te, set);
 		case ID_LA:
-		    return tree_element_active_lamp(C, scene, sl, soops, te, set);
+			return tree_element_active_lamp(C, scene, sl, soops, te, set);
 		case ID_TE:
-		    return tree_element_active_texture(C, scene, sl, soops, te, set);
+			return tree_element_active_texture(C, scene, sl, soops, te, set);
 		case ID_TXT:
-		    return tree_element_active_text(C, scene, sl, soops, te, set);
+			return tree_element_active_text(C, scene, sl, soops, te, set);
 		case ID_CA:
-		    return tree_element_active_camera(C, scene, sl, soops, te, set);
+			return tree_element_active_camera(C, scene, sl, soops, te, set);
 	}
 	return OL_DRAWSEL_NONE;
 }
@@ -818,7 +818,7 @@ eOLDrawState tree_element_type_active(
 		case TSE_EBONE:
 			return tree_element_active_ebone(C, scene, te, tselem, set, recursive);
 		case TSE_MODIFIER:
-		    return tree_element_active_modifier(C, scene, sl, te, tselem, set);
+			return tree_element_active_modifier(C, scene, sl, te, tselem, set);
 		case TSE_LINKED_OB:
 			if (set != OL_SETSEL_NONE) {
 				tree_element_set_active_object(C, scene, sl, soops, te, set, false);
@@ -832,21 +832,21 @@ eOLDrawState tree_element_type_active(
 		case TSE_POSE_BASE:
 			return tree_element_active_pose(C, scene, sl, te, tselem, set);
 		case TSE_POSE_CHANNEL:
-		    return tree_element_active_posechannel(C, scene, sl, te, tselem, set, recursive);
+			return tree_element_active_posechannel(C, scene, sl, te, tselem, set, recursive);
 		case TSE_CONSTRAINT:
-		    return tree_element_active_constraint(C, scene, sl, te, tselem, set);
+			return tree_element_active_constraint(C, scene, sl, te, tselem, set);
 		case TSE_R_LAYER:
-		    return tree_element_active_renderlayer(C, scene, sl, te, tselem, set);
+			return tree_element_active_renderlayer(C, scene, sl, te, tselem, set);
 		case TSE_POSEGRP:
-		    return tree_element_active_posegroup(C, scene, sl, te, tselem, set);
+			return tree_element_active_posegroup(C, scene, sl, te, tselem, set);
 		case TSE_SEQUENCE:
 			return tree_element_active_sequence(C, scene, te, tselem, set);
 		case TSE_SEQUENCE_DUP:
 			return tree_element_active_sequence_dup(scene, te, tselem, set);
 		case TSE_KEYMAP_ITEM:
-		    return tree_element_active_keymap_item(C, scene, sl, te, tselem, set);
+			return tree_element_active_keymap_item(C, scene, sl, te, tselem, set);
 		case TSE_GP_LAYER:
-		    //return tree_element_active_gplayer(C, scene, s, te, tselem, set);
+			//return tree_element_active_gplayer(C, scene, s, te, tselem, set);
 			break;
 		case TSE_COLLECTION:
 			return tree_element_active_collection(C, te, tselem, set);

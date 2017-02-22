@@ -204,8 +204,8 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	/* first backdrop strips */
 	y = (float)(-ACHANNEL_HEIGHT(ac));
 
-	VertexFormat* format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 

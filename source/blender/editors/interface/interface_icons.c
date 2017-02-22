@@ -1051,9 +1051,9 @@ static void icon_draw_texture(
 	glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, -0.5f);
 
 	glBindTexture(GL_TEXTURE_2D, icongltex.id);
-	VertexFormat* format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-	unsigned texCoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int texCoord = add_attrib(format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 	if (rgb) immUniformColor3fvAlpha(rgb, alpha);

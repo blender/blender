@@ -2176,8 +2176,8 @@ static void node_composit_backdrop_viewer(SpaceNode *snode, ImBuf *backdrop, bNo
 		const float cx  = x + snode->zoom * backdropWidth * node->custom3;
 		const float cy = y + snode->zoom * backdropHeight * node->custom4;
 
-		VertexFormat* format = immVertexFormat();
-		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		VertexFormat *format = immVertexFormat();
+		unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -2221,8 +2221,8 @@ static void node_composit_backdrop_boxmask(SpaceNode *snode, ImBuf *backdrop, bN
 	y3 = cy - (-sine * -halveBoxWidth + cosine * -halveBoxHeight) * snode->zoom;
 	y4 = cy - (-sine * halveBoxWidth + cosine * -halveBoxHeight) * snode->zoom;
 
-	VertexFormat* format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -2265,8 +2265,8 @@ static void node_composit_backdrop_ellipsemask(SpaceNode *snode, ImBuf *backdrop
 	y3 = cy - (-sine * -halveBoxWidth + cosine * -halveBoxHeight) * snode->zoom;
 	y4 = cy - (-sine * halveBoxWidth + cosine * -halveBoxHeight) * snode->zoom;
 
-	VertexFormat* format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 

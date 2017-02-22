@@ -1468,9 +1468,9 @@ void UI_view2d_constant_grid_draw(View2D *v2d)
 		count_y = (v2d->cur.ymax - start_y) / step + 1;
 	
 	if (count_x > 0 || count_y > 0) {
-		VertexFormat* format = immVertexFormat();
-		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-		unsigned color = add_attrib(format, "color", GL_FLOAT, 3, KEEP_FLOAT);
+		VertexFormat *format = immVertexFormat();
+		unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int color = add_attrib(format, "color", GL_FLOAT, 3, KEEP_FLOAT);
 		float theme_color[3];
 
 		UI_GetThemeColorShade3fv(TH_BACK, -10, theme_color);

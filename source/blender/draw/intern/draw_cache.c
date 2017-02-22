@@ -37,7 +37,7 @@
 
 #include "draw_cache.h"
 
-static struct DRWShapeCache{
+static struct DRWShapeCache {
 	Batch *drw_single_vertice;
 	Batch *drw_fullscreen_quad;
 	Batch *drw_plain_axes;
@@ -201,8 +201,8 @@ static VertexBuffer *sphere_wire_vbo(const float rad)
 			for (int j = 0; j < 2; ++j) {
 				float cv[2], v[3];
 
-				cv[0] = p[(i+j) % NSEGMENTS][0];
-				cv[1] = p[(i+j) % NSEGMENTS][1];
+				cv[0] = p[(i + j) % NSEGMENTS][0];
+				cv[1] = p[(i + j) % NSEGMENTS][1];
 
 				if (axis == 0)
 					v[0] = cv[0], v[1] = cv[1], v[2] = 0.0f;
@@ -211,7 +211,7 @@ static VertexBuffer *sphere_wire_vbo(const float rad)
 				else
 					v[0] = 0.0f,  v[1] = cv[0], v[2] = cv[1];
 
-				setAttrib(vbo, pos_id, i*2 + j + (NSEGMENTS * 2 * axis), v);
+				setAttrib(vbo, pos_id, i * 2 + j + (NSEGMENTS * 2 * axis), v);
 			}
 		}
 	}
@@ -268,7 +268,7 @@ Batch *DRW_cache_cube_get(void)
 			{ 1.0f,  1.0f,  1.0f}
 		};
 
-		const GLubyte indices[24] = {0,1,1,3,3,2,2,0,0,4,4,5,5,7,7,6,6,4,1,5,3,7,2,6};
+		const GLubyte indices[24] = {0, 1, 1, 3, 3, 2, 2, 0, 0, 4, 4, 5, 5, 7, 7, 6, 6, 4, 1, 5, 3, 7, 2, 6};
 
 		/* Position Only 3D format */
 		static VertexFormat format = { 0 };
@@ -460,17 +460,17 @@ Batch *DRW_cache_empty_cone_get(void)
 
 			/* cone sides */
 			v[0] = cv[0], v[1] = 0.0f, v[2] = cv[1];
-			setAttrib(vbo, pos_id, i*4, v);
+			setAttrib(vbo, pos_id, i * 4, v);
 			v[0] = 0.0f, v[1] = 2.0f, v[2] = 0.0f;
-			setAttrib(vbo, pos_id, i*4 + 1, v);
+			setAttrib(vbo, pos_id, i * 4 + 1, v);
 
 			/* end ring */
 			v[0] = cv[0], v[1] = 0.0f, v[2] = cv[1];
-			setAttrib(vbo, pos_id, i*4 + 2, v);
-			cv[0] = p[(i+1) % NSEGMENTS][0];
-			cv[1] = p[(i+1) % NSEGMENTS][1];
+			setAttrib(vbo, pos_id, i * 4 + 2, v);
+			cv[0] = p[(i + 1) % NSEGMENTS][0];
+			cv[1] = p[(i + 1) % NSEGMENTS][1];
 			v[0] = cv[0], v[1] = 0.0f, v[2] = cv[1];
-			setAttrib(vbo, pos_id, i*4 + 3, v);
+			setAttrib(vbo, pos_id, i * 4 + 3, v);
 		}
 
 		SHC.drw_empty_cone = Batch_create(GL_LINES, vbo, NULL);
@@ -768,10 +768,10 @@ Batch *DRW_cache_bone_octahedral_wire_outline_get(void)
 		VertexBuffer_allocate_data(vbo, 12 * 2);
 
 		for (int i = 0; i < 12; i++) {
-			const float *co1 = bone_octahedral_verts[bone_octahedral_wire[i*2]];
-			const float *co2 = bone_octahedral_verts[bone_octahedral_wire[i*2+1]];
-			const float *n1 = bone_octahedral_solid_normals[bone_octahedral_wire_adjacent_face[i*2]];
-			const float *n2 = bone_octahedral_solid_normals[bone_octahedral_wire_adjacent_face[i*2+1]];
+			const float *co1 = bone_octahedral_verts[bone_octahedral_wire[i * 2]];
+			const float *co2 = bone_octahedral_verts[bone_octahedral_wire[i * 2 + 1]];
+			const float *n1 = bone_octahedral_solid_normals[bone_octahedral_wire_adjacent_face[i * 2]];
+			const float *n2 = bone_octahedral_solid_normals[bone_octahedral_wire_adjacent_face[i * 2 + 1]];
 			add_fancy_edge(vbo, pos_id, n1_id, n2_id, &v_idx, co1, co2, n1, n2);
 		}
 
@@ -799,22 +799,22 @@ Batch *DRW_cache_bone_point_get(void)
 
 		/* Vertices */
 		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
-		VertexBuffer_allocate_data(vbo, (lat_res-1) * lon_res * 6);
+		VertexBuffer_allocate_data(vbo, (lat_res - 1) * lon_res * 6);
 
 		float lon = 0.0f;
-		for(int i = 0; i < lon_res; i++, lon += lon_inc) {
+		for (int i = 0; i < lon_res; i++, lon += lon_inc) {
 			float lat = 0.0f;
-			for(int j = 0; j < lat_res; j++, lat += lat_inc) {
+			for (int j = 0; j < lat_res; j++, lat += lat_inc) {
 				if (j != lat_res - 1) { /* Pole */
-					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat+lat_inc, lon+lon_inc);
-					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat+lat_inc, lon);
-					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat,         lon);
+					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat + lat_inc, lon + lon_inc);
+					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat + lat_inc, lon);
+					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat,           lon);
 				}
 
 				if (j != 0) { /* Pole */
-					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat,         lon+lon_inc);
-					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat+lat_inc, lon+lon_inc);
-					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat,         lon);
+					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat,           lon + lon_inc);
+					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat + lat_inc, lon + lon_inc);
+					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat,           lon);
 				}
 			}
 		}

@@ -31,7 +31,7 @@
 #include "edit_mesh_mode.h"
 
 /* keep it under MAX_PASSES */
-typedef struct EDIT_MESH_PassList{
+typedef struct EDIT_MESH_PassList {
 	struct DRWPass *non_meshes_pass;
 	struct DRWPass *ob_center_pass;
 	struct DRWPass *wire_outline_pass;

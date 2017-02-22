@@ -340,8 +340,8 @@ static void drawWalkPixel(const struct bContext *UNUSED(C), ARegion *ar, void *a
 		yoff = walk->ar->winy / 2;
 	}
 
-	VertexFormat* format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 

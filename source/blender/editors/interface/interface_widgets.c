@@ -2351,9 +2351,9 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	
 	ui_color_picker_to_rgb(0.0f, 0.0f, hsv[2], colcent, colcent + 1, colcent + 2);
 
-	VertexFormat* format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-	unsigned color = add_attrib(format, "color", GL_FLOAT, 3, KEEP_FLOAT);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int color = add_attrib(format, "color", GL_FLOAT, 3, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 

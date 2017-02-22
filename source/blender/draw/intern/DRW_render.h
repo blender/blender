@@ -92,11 +92,11 @@ typedef enum {
 } DRWTextureFlag;
 
 struct GPUTexture *DRW_texture_create_1D(
-		int w, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels);
+        int w, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels);
 struct GPUTexture *DRW_texture_create_2D(
-		int w, int h, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels);
+        int w, int h, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels);
 struct GPUTexture *DRW_texture_create_2D_array(
-		int w, int h, int d, DRWTextureFormat UNUSED(format), DRWTextureFlag flags, const float *fpixels);
+        int w, int h, int d, DRWTextureFormat UNUSED(format), DRWTextureFlag flags, const float *fpixels);
 void DRW_texture_free(struct GPUTexture *tex);
 
 /* UBOs */

@@ -92,9 +92,9 @@ static void region_draw_emboss(const ARegion *ar, const rcti *scirct)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
-	VertexFormat* format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-	unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 	immBegin(GL_LINE_STRIP, 5);
@@ -222,9 +222,9 @@ static void area_draw_azone_fullscreen(short x1, short y1, short x2, short y2, f
 
 		BLI_rcti_init(&click_rect, x, x + icon_size, y, y + icon_size);
 
-		VertexFormat* format = immVertexFormat();
-		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-		unsigned color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
+		VertexFormat *format = immVertexFormat();
+		unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		unsigned int color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
 
 		immAttrib4ub(color, 255, 0, 0, alpha_debug);
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
@@ -255,9 +255,9 @@ static void area_draw_azone(short x1, short y1, short x2, short y2)
 
 	glEnable(GL_LINE_SMOOTH);
 
-	VertexFormat* format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
-	unsigned col = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	unsigned int col = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 	immBegin(GL_LINES, 12);
@@ -297,8 +297,8 @@ static void region_draw_azone_icon(AZone *az)
 	float midx = az->x1 + (az->x2 - az->x1) * 0.5f;
 	float midy = az->y1 + (az->y2 - az->y1) * 0.5f;
 
-	VertexFormat* format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 	/* outlined circle */
 	GPU_enable_program_point_size(); /* TODO: make a fixed-size shader to avoid this */
@@ -330,8 +330,8 @@ static void draw_azone_plus(float x1, float y1, float x2, float y2)
 	float width = 0.1f * U.widget_unit;
 	float pad = 0.2f * U.widget_unit;
 
-	VertexFormat* format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 	glEnable(GL_BLEND);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -570,8 +570,8 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	/* for debugging unneeded area redraws and partial redraw */
 #if 0
 	glEnable(GL_BLEND);
-	VertexFormat* format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4f(drand48(), drand48(), drand48(), 0.1f);
 	immRectf(pos, ar->drawrct.xmin - ar->winrct.xmin, ar->drawrct.ymin - ar->winrct.ymin,
@@ -2014,8 +2014,8 @@ void ED_region_panels(const bContext *C, ARegion *ar, const char *context, int c
 		/* view should be in pixelspace */
 		UI_view2d_view_restore(C);
 		glEnable(GL_BLEND);
-		VertexFormat* format = immVertexFormat();
-		unsigned pos = add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
+		VertexFormat *format = immVertexFormat();
+		unsigned int pos = add_attrib(format, "pos", COMP_I32, 2, CONVERT_INT_TO_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformThemeColor((ar->type->regionid == RGN_TYPE_PREVIEW) ? TH_PREVIEW_BACK : TH_BACK);
 		immRecti(pos, 0, 0, BLI_rcti_size_x(&ar->winrct), BLI_rcti_size_y(&ar->winrct) + 1);
@@ -2148,8 +2148,8 @@ void ED_region_info_draw(ARegion *ar, const char *text, float fill_color[4], con
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	VertexFormat* format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_INT, 2, CONVERT_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4fv(fill_color);
 	immRecti(pos, rect.xmin, rect.ymin, rect.xmax + 1, rect.ymax + 1);
@@ -2355,8 +2355,8 @@ void ED_region_image_metadata_draw(int x, int y, ImBuf *ibuf, const rctf *frame,
 		/* set up rect */
 		BLI_rctf_init(&rect, frame->xmin, frame->xmax, frame->ymax, frame->ymax + box_y);
 		/* draw top box */
-		VertexFormat* format = immVertexFormat();
-		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		VertexFormat *format = immVertexFormat();
+		unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformThemeColor(TH_METADATA_BG);
 		immRectf(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
@@ -2380,8 +2380,8 @@ void ED_region_image_metadata_draw(int x, int y, ImBuf *ibuf, const rctf *frame,
 		/* set up box rect */
 		BLI_rctf_init(&rect, frame->xmin, frame->xmax, frame->ymin - box_y, frame->ymin);
 		/* draw top box */
-		VertexFormat* format = immVertexFormat();
-		unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		VertexFormat *format = immVertexFormat();
+		unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformThemeColor(TH_METADATA_BG);
 		immRectf(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
@@ -2409,8 +2409,8 @@ void ED_region_grid_draw(ARegion *ar, float zoomx, float zoomy)
 	UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &x1, &y1);
 	UI_view2d_view_to_region(&ar->v2d, 1.0f, 1.0f, &x2, &y2);
 
-	VertexFormat* format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 	
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColorShade(TH_BACK, 20);

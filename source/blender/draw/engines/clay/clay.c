@@ -101,7 +101,7 @@ typedef struct CLAY_StorageList {
 } CLAY_StorageList;
 
 /* keep it under MAX_BUFFERS */
-typedef struct CLAY_FramebufferList{
+typedef struct CLAY_FramebufferList {
 	/* default */
 	struct GPUFrameBuffer *default_fb;
 	/* engine specific */
@@ -109,7 +109,7 @@ typedef struct CLAY_FramebufferList{
 } CLAY_FramebufferList;
 
 /* keep it under MAX_TEXTURES */
-typedef struct CLAY_TextureList{
+typedef struct CLAY_TextureList {
 	/* default */
 	struct GPUTexture *color;
 	struct GPUTexture *depth;
@@ -125,7 +125,7 @@ enum {
 };
 
 /* keep it under MAX_PASSES */
-typedef struct CLAY_PassList{
+typedef struct CLAY_PassList {
 	struct DRWPass *depth_pass;
 	struct DRWPass *depth_pass_cull;
 	struct DRWPass *clay_pass;
@@ -463,8 +463,7 @@ static int search_mat_to_ubo(CLAY_Storage *storage, float matcap_rot, float matc
 {
 	/* For now just use a linear search and test all parameters */
 	/* TODO make a hash table */
-	for (int i = 0; i < storage->ubo_current_id; ++i)
-	{
+	for (int i = 0; i < storage->ubo_current_id; ++i) {
 		CLAY_UBO_Material *ubo = &storage->mat_storage.materials[i];
 
 		if ((ubo->matcap_rot[0] == cosf(matcap_rot * 3.14159f * 2.0f)) &&
@@ -584,7 +583,7 @@ static DRWShadingGroup *CLAY_object_shgrp_get(Object *ob, CLAY_StorageList *stl,
 		override_setting(ces, "ssao_factor_edge", &ssao_factor_edge);
 		override_setting(ces, "ssao_attenuation", &ssao_attenuation);
 		override_setting(ces, "matcap_icon", &matcap_icon);
-	};
+	}
 
 	int id = mat_in_ubo(stl->storage, matcap_rot, matcap_hue, matcap_sat, matcap_val,
 	                    ssao_distance, ssao_factor_cavity, ssao_factor_edge,

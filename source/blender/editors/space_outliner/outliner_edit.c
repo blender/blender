@@ -855,7 +855,7 @@ bool outliner_set_flag(ListBase *lb, short flag, short set)
 				changed = true;
 			}
 		}
-		else if (!has_flag){
+		else if (!has_flag) {
 			tselem->flag |= flag;
 			changed = true;
 		}

@@ -100,8 +100,7 @@ static void collection_free(SceneCollection *sc)
  */
 bool collection_remlink(SceneCollection *sc_parent, SceneCollection *sc_gone)
 {
-	for (SceneCollection *sc = sc_parent->scene_collections.first; sc; sc = sc->next)
-	{
+	for (SceneCollection *sc = sc_parent->scene_collections.first; sc; sc = sc->next) {
 		if (sc == sc_gone) {
 			BLI_remlink(&sc_parent->scene_collections, sc_gone);
 			return true;
@@ -120,7 +119,7 @@ bool collection_remlink(SceneCollection *sc_parent, SceneCollection *sc_gone)
 static void layer_collection_remove(SceneLayer *sl, ListBase *lb, const SceneCollection *sc)
 {
 	LayerCollection *lc = lb->first;
-	while(lc) {
+	while (lc) {
 		if (lc->scene_collection == sc) {
 			BKE_scene_layer_engine_settings_collection_recalculate(sl, lc);
 			BKE_layer_collection_free(sl, lc);
@@ -214,7 +213,8 @@ SceneCollection *BKE_collection_master(const Scene *scene)
  * Free (or release) any data used by the master collection (does not free the master collection itself).
  * Used only to clear the entire scene data since it's not doing re-syncing of the LayerCollection tree
  */
-void BKE_collection_master_free(Scene *scene){
+void BKE_collection_master_free(Scene *scene)
+{
 	collection_free(BKE_collection_master(scene));
 }
 
@@ -300,7 +300,7 @@ typedef struct SceneCollectionsIteratorData {
 	Scene *scene;
 	void **array;
 	int tot, cur;
- } SceneCollectionsIteratorData;
+} SceneCollectionsIteratorData;
 
 static void scene_collection_callback(SceneCollection *sc, BKE_scene_collections_Cb callback, void *data)
 {

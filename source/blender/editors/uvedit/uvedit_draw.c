@@ -332,7 +332,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 
 			col[3] = 0.5f; /* hard coded alpha, not that nice */
 
-			VertexFormat* format = immVertexFormat();
+			VertexFormat *format = immVertexFormat();
 			unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 			unsigned int color = add_attrib(format, "color", GL_FLOAT, 3, KEEP_FLOAT);
 
@@ -902,7 +902,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 				int sel;
 				UI_GetThemeColor4ubv(TH_EDGE_SELECT, col1);
 
-				VertexFormat* format = immVertexFormat();
+				VertexFormat *format = immVertexFormat();
 				pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 				unsigned int color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
 
@@ -989,7 +989,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obe
 		float cent[2];
 		bool col_set = false;
 
-		VertexFormat* format = immVertexFormat();
+		VertexFormat *format = immVertexFormat();
 		pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 		unsigned int color = add_attrib(format, "color", GL_UNSIGNED_BYTE, 3, NORMALIZE_INT_TO_FLOAT);
 

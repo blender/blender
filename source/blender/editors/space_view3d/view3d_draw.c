@@ -308,7 +308,7 @@ static void view3d_draw_debug_store_depth(ARegion *UNUSED(ar), DrawData *draw_da
 
 	if (GPU_viewport_debug_depth_is_valid(viewport)) {
 		if ((GPU_viewport_debug_depth_width(viewport) != w) ||
-			(GPU_viewport_debug_depth_height(viewport) != h))
+		    (GPU_viewport_debug_depth_height(viewport) != h))
 		{
 			GPU_viewport_debug_depth_free(viewport);
 		}
@@ -344,7 +344,7 @@ static void view3d_draw_debug(const bContext *C, ARegion *ar, DrawData *draw_dat
 	}
 
 	if (((v3d->tmp_compat_flag & V3D_DEBUG_SHOW_SCENE_DEPTH) != 0) ||
-		((v3d->tmp_compat_flag & V3D_DEBUG_SHOW_COMBINED_DEPTH) != 0))
+	    ((v3d->tmp_compat_flag & V3D_DEBUG_SHOW_COMBINED_DEPTH) != 0))
 	{
 		/* draw */
 		if (GPU_viewport_debug_depth_is_valid(draw_data->viewport)) {
@@ -965,7 +965,7 @@ static void view3d_draw_outline_plates(const bContext *UNUSED(C))
 
 #define DEBUG_GRID 0
 
-static void gridline_range(double x0, double dx, double max, int* first_out, int* count_out)
+static void gridline_range(double x0, double dx, double max, int *r_first, int *r_count)
 {
 	/* determine range of gridlines that appear in this Area -- similar calc but separate ranges for x & y
 	* x0 is gridline 0, the axis in screen space
@@ -975,12 +975,12 @@ static void gridline_range(double x0, double dx, double max, int* first_out, int
 	int last = (int)floor((max - x0) / dx);
 
 	if (first <= last) {
-		*first_out = first;
-		*count_out = last - first + 1;
+		*r_first = first;
+		*r_count = last - first + 1;
 	}
 	else {
-		*first_out = 0;
-		*count_out = 0;
+		*r_first = 0;
+		*r_count = 0;
 	}
 
 #if DEBUG_GRID
@@ -1125,9 +1125,9 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	glDepthMask(GL_FALSE);  /* disable write in zbuffer */
 #endif
 
-	VertexFormat* format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-	unsigned color = add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+	unsigned int color = add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
@@ -1207,7 +1207,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 			}
 		}
 		else {
-			if (dx >(GRID_MIN_PX_D * 10.0)) {  /* start blending in */
+			if (dx > (GRID_MIN_PX_D * 10.0)) {  /* start blending in */
 				rv3d->gridview /= sublines_fl;
 				dx /= sublines;
 				if (dx > (GRID_MIN_PX_D * 10.0)) {  /* start blending in */
@@ -1301,9 +1301,9 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool wr
 
 			unsigned char col_bg[3], col_grid_emphasise[3], col_grid_light[3];
 
-			VertexFormat* format = immVertexFormat();
-			unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-			unsigned color = add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+			VertexFormat *format = immVertexFormat();
+			unsigned int pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+			unsigned int color = add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
@@ -1389,9 +1389,9 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool wr
 		if (show_axis_x || show_axis_y || show_axis_z) {
 			/* draw axis lines -- sometimes grid floor is off, other times we still need to draw the Z axis */
 
-			VertexFormat* format = immVertexFormat();
-			unsigned pos = add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
-			unsigned color = add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+			VertexFormat *format = immVertexFormat();
+			unsigned int pos = add_attrib(format, "pos", COMP_F32, 3, KEEP_FLOAT);
+			unsigned int color = add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 			immBegin(GL_LINES, (show_axis_x + show_axis_y + show_axis_z) * 2);
@@ -1547,9 +1547,9 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 		
 		glLineWidth(1.0f);
 
-		VertexFormat* format = immVertexFormat();
-		unsigned pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
-		unsigned color = add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
+		VertexFormat *format = immVertexFormat();
+		unsigned int pos = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
+		unsigned int color = add_attrib(format, "color", COMP_U8, 3, NORMALIZE_INT_TO_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 

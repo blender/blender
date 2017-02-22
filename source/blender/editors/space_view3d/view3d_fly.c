@@ -259,8 +259,8 @@ static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), 
 	x2 = xoff + 0.55f * fly->width;
 	y2 = yoff + 0.55f * fly->height;
 
-	VertexFormat* format = immVertexFormat();
-	unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
+	VertexFormat *format = immVertexFormat();
+	unsigned int pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 

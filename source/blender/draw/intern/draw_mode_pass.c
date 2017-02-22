@@ -19,7 +19,7 @@
  *
  */
 
-/** \file blender/draw/draw_mode_pass.c
+/** \file blender/draw/intern/draw_mode_pass.c
  *  \ingroup draw
  */
 

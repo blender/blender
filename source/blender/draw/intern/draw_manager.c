@@ -19,7 +19,7 @@
  *
  */
 
-/** \file blender/draw/draw_manager.c
+/** \file blender/draw/intern/draw_manager.c
  *  \ingroup draw
  */
 
@@ -160,7 +160,7 @@ enum {
 };
 
 /* Render State */
-static struct DRWGlobalState{
+static struct DRWGlobalState {
 	GPUShader *shader;
 	struct GPUFrameBuffer *default_framebuffer;
 	FramebufferList *fbl, *fbl_mode;
@@ -680,8 +680,10 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 static void shgroup_dynamic_batch_from_calls(DRWShadingGroup *shgroup)
 {
 	if ((shgroup->interface->instance_vbo || shgroup->batch_geom) &&
-		(G.debug_value == 667))
+	    (G.debug_value == 667))
+	{
 		return;
+	}
 
 	if (shgroup->type == DRW_SHG_INSTANCE) {
 		shgroup_dynamic_instance(shgroup);
@@ -924,7 +926,8 @@ static void set_state(short flag)
 
 	/* Backface Culling */
 	if (flag & DRW_STATE_CULL_BACK ||
-	    flag & DRW_STATE_CULL_FRONT) {
+	    flag & DRW_STATE_CULL_FRONT)
+	{
 
 		glEnable(GL_CULL_FACE);
 
@@ -939,7 +942,8 @@ static void set_state(short flag)
 
 	/* Depht Test */
 	if (flag & DRW_STATE_DEPTH_LESS ||
-	    flag & DRW_STATE_DEPTH_EQUAL) {
+	    flag & DRW_STATE_DEPTH_EQUAL)
+	{
 
 		glEnable(GL_DEPTH_TEST);
 
@@ -1187,14 +1191,14 @@ void DRW_framebuffer_init(struct GPUFrameBuffer **fb, int width, int height, DRW
 		int color_attachment = -1;
 		*fb = GPU_framebuffer_create();
 
-		for (int i = 0; i < texnbr; ++i)
-		{
+		for (int i = 0; i < texnbr; ++i) {
 			DRWFboTexture fbotex = textures[i];
 			
 			if (!*fbotex.tex) {
 				/* TODO refine to opengl formats */
 				if (fbotex.format == DRW_BUF_DEPTH_16 ||
-					fbotex.format == DRW_BUF_DEPTH_24) {
+				    fbotex.format == DRW_BUF_DEPTH_24)
+				{
 					*fbotex.tex = GPU_texture_create_depth(width, height, NULL);
 					GPU_texture_compare_mode(*fbotex.tex, false);
 					GPU_texture_filter_mode(*fbotex.tex, false);

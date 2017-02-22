@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/space_view3d/view3d_draw.c
+/** \file blender/editors/space_view3d/view3d_draw_legacy.c
  *  \ingroup spview3d
  */
 
