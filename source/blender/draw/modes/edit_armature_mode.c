@@ -19,60 +19,59 @@
  *
  */
 
-/** \file blender/draw/modes/EDIT_mode.c
+/** \file blender/draw/modes/edit_armature_mode.c
  *  \ingroup draw
  */
 
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
+#include "DNA_armature_types.h"
+
 #include "draw_mode_pass.h"
 
-#include "edit_mode.h"
+#include "edit_armature_mode.h"
 
 /* keep it under MAX_PASSES */
-typedef struct EDIT_PassList{
+typedef struct EDIT_ARMATURE_PassList{
 	struct DRWPass *non_meshes_pass;
 	struct DRWPass *ob_center_pass;
 	struct DRWPass *wire_outline_pass;
-	struct DRWPass *depth_pass_hidden_wire;
-} EDIT_PassList;
+	struct DRWPass *bone_solid_pass;
+	struct DRWPass *bone_wire_pass;
+} EDIT_ARMATURE_PassList;
 
-static DRWShadingGroup *depth_shgrp_hidden_wire;
-
-void EDIT_cache_init(void)
+void EDIT_ARMATURE_cache_init(void)
 {
-	EDIT_PassList *psl = DRW_mode_pass_list_get();
+	EDIT_ARMATURE_PassList *psl = DRW_mode_pass_list_get();
 	static struct GPUShader *depth_sh;
 
 	if (!depth_sh) {
 		depth_sh = DRW_shader_create_3D_depth_only();
 	}
 
-	psl->depth_pass_hidden_wire = DRW_pass_create("Depth Pass Hidden Wire", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK);
-	depth_shgrp_hidden_wire = DRW_shgroup_create(depth_sh, psl->depth_pass_hidden_wire);
-
 	DRW_mode_passes_setup(NULL,
 	                      NULL,
 	                      &psl->wire_outline_pass,
 	                      &psl->non_meshes_pass,
-	                      &psl->ob_center_pass);
+	                      &psl->ob_center_pass,
+	                      &psl->bone_solid_pass,
+	                      &psl->bone_wire_pass);
 }
 
-void EDIT_cache_populate(Object *ob)
+void EDIT_ARMATURE_cache_populate(Object *ob)
 {
-	struct Batch *geom;
-
-	CollectionEngineSettings *ces_mode_ed = BKE_object_collection_engine_get(ob, COLLECTION_MODE_EDIT, "");
-	bool do_occlude_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ed, "show_occlude_wire");
+	bArmature *arm = ob->data;
 
 	switch (ob->type) {
+		case OB_ARMATURE:
+			/* detect Edit Armature mode */
+			if (arm->edbo)
+				DRW_shgroup_armature_edit(ob);
+			else
+				DRW_shgroup_armature_object(ob);
+			break;
 		case OB_MESH:
-			geom = DRW_cache_surface_get(ob);
-			if (do_occlude_wire) {
-				DRW_shgroup_call_add(depth_shgrp_hidden_wire, geom, ob->obmat);
-				DRW_shgroup_wire_outline(ob, true, false, true);
-			}
 			break;
 		case OB_LAMP:
 			DRW_shgroup_lamp(ob);
@@ -92,23 +91,24 @@ void EDIT_cache_populate(Object *ob)
 	DRW_shgroup_relationship_lines(ob);
 }
 
-void EDIT_cache_finish(void)
+void EDIT_ARMATURE_cache_finish(void)
 {
 	/* Do nothing */
 }
 
-void EDIT_draw(void)
+void EDIT_ARMATURE_draw(void)
 {
-	EDIT_PassList *psl = DRW_mode_pass_list_get();
+	EDIT_ARMATURE_PassList *psl = DRW_mode_pass_list_get();
 
-	DRW_draw_pass(psl->depth_pass_hidden_wire);
+	DRW_draw_pass(psl->bone_solid_pass);
+	DRW_draw_pass(psl->bone_wire_pass);
 	DRW_draw_pass(psl->wire_outline_pass);
 	DRW_draw_pass(psl->non_meshes_pass);
 	DRW_draw_pass(psl->ob_center_pass);
 }
 
-void EDIT_collection_settings_create(CollectionEngineSettings *ces)
+void EDIT_ARMATURE_collection_settings_create(CollectionEngineSettings *ces)
 {
 	BLI_assert(ces);
-	BKE_collection_engine_property_add_int(ces, "show_occlude_wire", false);
+	//BKE_collection_engine_property_add_int(ces, "show_occlude_wire", false);
 }

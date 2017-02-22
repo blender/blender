@@ -685,7 +685,8 @@ float RE_fresnel_dielectric(float incoming[3], float normal[3], float eta) RET_Z
 void *DRW_render_settings_get(struct Scene *scene, const char *engine_name) RET_NULL
 
 void OBJECT_collection_settings_create(struct CollectionEngineSettings *ces) RET_NONE
-void EDIT_collection_settings_create(struct CollectionEngineSettings *ces) RET_NONE
+void EDIT_MESH_collection_settings_create(struct CollectionEngineSettings *ces) RET_NONE
+void EDIT_ARMATURE_collection_settings_create(struct CollectionEngineSettings *ces) RET_NONE
 
 /* python */
 struct wmOperatorType *WM_operatortype_find(const char *idname, bool quiet) RET_NULL

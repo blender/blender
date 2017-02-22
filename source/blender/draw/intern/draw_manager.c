@@ -54,7 +54,8 @@
 #include "UI_resources.h"
 
 #include "object_mode.h"
-#include "edit_mode.h"
+#include "edit_armature_mode.h"
+#include "edit_mesh_mode.h"
 #include "clay.h"
 
 #define MAX_ATTRIB_NAME 32
@@ -109,6 +110,7 @@ struct DRWInterface {
 	/* matrices locations */
 	int modelview;
 	int projection;
+	int view;
 	int modelviewprojection;
 	int viewprojection;
 	int normal;
@@ -327,6 +329,7 @@ static DRWInterface *DRW_interface_create(GPUShader *shader)
 
 	interface->modelview = GPU_shader_get_uniform(shader, "ModelViewMatrix");
 	interface->projection = GPU_shader_get_uniform(shader, "ProjectionMatrix");
+	interface->view = GPU_shader_get_uniform(shader, "ViewMatrix");
 	interface->viewprojection = GPU_shader_get_uniform(shader, "ViewProjectionMatrix");
 	interface->modelviewprojection = GPU_shader_get_uniform(shader, "ModelViewProjectionMatrix");
 	interface->normal = GPU_shader_get_uniform(shader, "NormalMatrix");
@@ -794,6 +797,9 @@ static void draw_geometry(DRWShadingGroup *shgroup, Batch *geom, const float (*o
 	if (interface->projection != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->projection, 16, 1, (float *)rv3d->winmat);
 	}
+	if (interface->view != -1) {
+		GPU_shader_uniform_vector(shgroup->shader, interface->view, 16, 1, (float *)rv3d->viewmat);
+	}
 	if (interface->modelview != -1) {
 		GPU_shader_uniform_vector(shgroup->shader, interface->modelview, 16, 1, (float *)mv);
 	}
@@ -1031,7 +1037,10 @@ void DRW_draw_mode_overlays(void)
 
 	switch (mode) {
 		case CTX_MODE_EDIT_MESH:
-			EDIT_draw();
+			EDIT_MESH_draw();
+			break;
+		case CTX_MODE_EDIT_ARMATURE:
+			EDIT_ARMATURE_draw();
 			break;
 		case CTX_MODE_OBJECT:
 			OBJECT_draw();
@@ -1056,7 +1065,10 @@ void DRW_mode_cache_init(void)
 
 	switch (mode) {
 		case CTX_MODE_EDIT_MESH:
-			EDIT_cache_init();
+			EDIT_MESH_cache_init();
+			break;
+		case CTX_MODE_EDIT_ARMATURE:
+			EDIT_ARMATURE_cache_init();
 			break;
 		case CTX_MODE_OBJECT:
 			OBJECT_cache_init();
@@ -1071,7 +1083,10 @@ void DRW_mode_cache_populate(Object *ob)
 
 	switch (mode) {
 		case CTX_MODE_EDIT_MESH:
-			EDIT_cache_populate(ob);
+			EDIT_MESH_cache_populate(ob);
+			break;
+		case CTX_MODE_EDIT_ARMATURE:
+			EDIT_ARMATURE_cache_populate(ob);
 			break;
 		case CTX_MODE_OBJECT:
 			OBJECT_cache_populate(ob);
@@ -1086,7 +1101,10 @@ void DRW_mode_cache_finish(void)
 
 	switch (mode) {
 		case CTX_MODE_EDIT_MESH:
-			EDIT_cache_finish();
+			EDIT_MESH_cache_finish();
+			break;
+		case CTX_MODE_EDIT_ARMATURE:
+			EDIT_ARMATURE_cache_finish();
 			break;
 		case CTX_MODE_OBJECT:
 			OBJECT_cache_finish();

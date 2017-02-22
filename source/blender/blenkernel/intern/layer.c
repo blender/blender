@@ -836,7 +836,7 @@ static void layer_collection_create_mode_settings_edit(ListBase *lb)
 	ces->type = COLLECTION_MODE_EDIT;
 
 	/* properties */
-	EDIT_collection_settings_create(ces);
+	EDIT_MESH_collection_settings_create(ces);
 
 	BLI_addtail(lb, ces);
 }

@@ -19,31 +19,19 @@
  *
  */
 
-/** \file DRW_engine.h
+/** \file blender/draw/modes/edit_mesh_mode.h
  *  \ingroup draw
  */
 
-#ifndef __DRW_ENGINE_H__
-#define __DRW_ENGINE_H__
+#ifndef __EDIT_MESH_MODE_H__
+#define __EDIT_MESH_MODE_H__
 
-struct CollectionEngineSettings;
-struct DRWPass;
-struct Material;
-struct Scene;
+struct Object;
 
-void DRW_engines_init(void);
-void DRW_engines_free(void);
+void EDIT_MESH_cache_init(void);
+void EDIT_MESH_cache_populate(struct Object *ob);
+void EDIT_MESH_cache_finish(void);
 
-/* This is here because GPUViewport needs it */
-void DRW_pass_free(struct DRWPass *pass);
+void EDIT_MESH_draw(void);
 
-/* Settings */
-void *DRW_material_settings_get(struct Material *ma, const char *engine_name);
-void *DRW_render_settings_get(struct Scene *scene, const char *engine_name);
-
-/* Mode engines initialization */
-void OBJECT_collection_settings_create(struct CollectionEngineSettings *ces);
-void EDIT_MESH_collection_settings_create(struct CollectionEngineSettings *ces);
-void EDIT_ARMATURE_collection_settings_create(struct CollectionEngineSettings *ces);
-
-#endif /* __DRW_ENGINE_H__ */
+#endif /* __EDIT_MESH_MODE_H__ */

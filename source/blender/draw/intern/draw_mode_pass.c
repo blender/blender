@@ -82,6 +82,8 @@ static DRWPass *wire_overlay_hidden_wire;
 static DRWPass *wire_outline;
 static DRWPass *non_meshes;
 static DRWPass *ob_center;
+static DRWPass *bone_solid;
+static DRWPass *bone_wire;
 
 static DRWShadingGroup *shgroup_dynlines_uniform_color(DRWPass *pass, float color[4])
 {
@@ -141,6 +143,32 @@ static DRWShadingGroup *shgroup_instance_screenspace(DRWPass *pass, struct Batch
 	return grp;
 }
 
+static DRWShadingGroup *shgroup_instance_objspace_solid(DRWPass *pass, struct Batch *geom, float (*obmat)[4])
+{
+	static float light[3] = {0.0f, 0.0f, 1.0f};
+	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_OBJECTSPACE_SIMPLE_LIGHTING_VARIYING_COLOR);
+
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh, pass, geom);
+	DRW_shgroup_attrib_float(grp, "InstanceModelMatrix", 16);
+	DRW_shgroup_attrib_float(grp, "color", 4);
+	DRW_shgroup_uniform_mat4(grp, "ModelMatrix", (float *)obmat);
+	DRW_shgroup_uniform_vec3(grp, "light", light, 1);
+
+	return grp;
+}
+
+static DRWShadingGroup *shgroup_instance_objspace_wire(DRWPass *pass, struct Batch *geom, float (*obmat)[4])
+{
+	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_OBJECTSPACE_VARIYING_COLOR);
+
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh, pass, geom);
+	DRW_shgroup_attrib_float(grp, "InstanceModelMatrix", 16);
+	DRW_shgroup_attrib_float(grp, "color", 4);
+	DRW_shgroup_uniform_mat4(grp, "ModelMatrix", (float *)obmat);
+
+	return grp;
+}
+
 static DRWShadingGroup *shgroup_instance_axis_names(DRWPass *pass, struct Batch *geom)
 {
 	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_INSTANCE_SCREEN_ALIGNED_AXIS);
@@ -173,7 +201,9 @@ void DRW_mode_passes_setup(DRWPass **psl_wire_overlay,
                            DRWPass **psl_wire_overlay_hidden_wire,
                            DRWPass **psl_wire_outline,
                            DRWPass **psl_non_meshes,
-                           DRWPass **psl_ob_center)
+                           DRWPass **psl_ob_center,
+                           DRWPass **psl_bone_solid,
+                           DRWPass **psl_bone_wire)
 {
 	UI_GetThemeColor4fv(TH_WIRE, colorWire);
 	UI_GetThemeColor4fv(TH_WIRE_EDIT, colorWireEdit);
@@ -198,7 +228,7 @@ void DRW_mode_passes_setup(DRWPass **psl_wire_overlay,
 
 	if (psl_wire_overlay_hidden_wire) {
 		/* This pass can draw mesh edges top of Shaded Meshes without any Z fighting */
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND;
 		*psl_wire_overlay_hidden_wire = DRW_pass_create("Wire Overlays Pass", state);
 	}
 
@@ -208,6 +238,18 @@ void DRW_mode_passes_setup(DRWPass **psl_wire_overlay,
 		/* Outlines and Fancy Wires use the same VBO */
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
 		*psl_wire_outline = DRW_pass_create("Wire + Outlines Pass", state);
+	}
+
+	if (psl_bone_solid) {
+		/* Solid bones */
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		*psl_bone_solid = DRW_pass_create("Bone Solid Pass", state);
+	}
+
+	if (psl_bone_wire) {
+		/* Wire bones */
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
+		*psl_bone_wire = DRW_pass_create("Bone Wire Pass", state);
 	}
 
 	if (psl_non_meshes) {
@@ -318,6 +360,8 @@ void DRW_mode_passes_setup(DRWPass **psl_wire_overlay,
 	wire_outline = (psl_wire_outline) ? *psl_wire_outline : NULL;
 	non_meshes = (psl_non_meshes) ? *psl_non_meshes : NULL;
 	ob_center = (psl_ob_center) ? *psl_ob_center : NULL;
+	bone_solid = (psl_bone_solid) ? *psl_bone_solid : NULL;
+	bone_wire = (psl_bone_wire) ? *psl_bone_wire : NULL;
 }
 
 /* ******************************************** WIRES *********************************************** */
@@ -563,4 +607,107 @@ void DRW_shgroup_object_center(Object *ob)
 	else if (0) {
 		DRW_shgroup_dynamic_call_add(center_deselected, ob->obmat[3]);
 	}
+}
+
+/* *************************** ARMATURES ***************************** */
+
+static Object *current_armature;
+/* Reset when changing current_armature */
+static DRWShadingGroup *bone_octahedral_solid;
+static DRWShadingGroup *bone_octahedral_wire;
+static DRWShadingGroup *bone_point_solid;
+static DRWShadingGroup *bone_point_wire;
+static DRWShadingGroup *bone_axes;
+
+/* this function set the object space to use
+ * for all subsequent DRW_shgroup_bone_*** calls */
+static void DRW_shgroup_armature(Object *ob)
+{
+	current_armature = ob;
+	bone_octahedral_solid = NULL;
+	bone_octahedral_wire = NULL;
+	bone_point_solid = NULL;
+	bone_point_wire = NULL;
+	bone_axes = NULL;
+}
+
+void DRW_shgroup_armature_object(Object *ob)
+{
+	float *color;
+	draw_object_wire_theme(ob, &color);
+
+	DRW_shgroup_armature(ob);
+	draw_armature_pose(ob, color);
+}
+
+void DRW_shgroup_armature_pose(Object *ob)
+{
+	DRW_shgroup_armature(ob);
+	draw_armature_pose(ob, NULL);
+}
+
+void DRW_shgroup_armature_edit(Object *ob)
+{
+	DRW_shgroup_armature(ob);
+	draw_armature_edit(ob);
+}
+
+/* Octahedral */
+void DRW_shgroup_bone_octahedral_solid(const float (*bone_mat)[4], const float color[4])
+{
+	if (bone_octahedral_solid == NULL) {
+		struct Batch *geom = DRW_cache_bone_octahedral_get();
+		bone_octahedral_solid = shgroup_instance_objspace_solid(bone_solid, geom, current_armature->obmat);
+	}
+
+	DRW_shgroup_dynamic_call_add(bone_octahedral_solid, bone_mat, color);
+}
+
+void DRW_shgroup_bone_octahedral_wire(const float (*bone_mat)[4], const float color[4])
+{
+	if (bone_octahedral_wire == NULL) {
+		struct Batch *geom = DRW_cache_bone_octahedral_wire_outline_get();
+		bone_octahedral_wire = shgroup_instance_objspace_wire(bone_wire, geom, current_armature->obmat);
+	}
+
+	DRW_shgroup_dynamic_call_add(bone_octahedral_wire, bone_mat, color);
+}
+
+/* Head and tail sphere */
+void DRW_shgroup_bone_point_solid(const float (*bone_mat)[4], const float color[4])
+{
+	if (bone_point_solid == NULL) {
+		struct Batch *geom = DRW_cache_bone_point_get();
+		bone_point_solid = shgroup_instance_objspace_solid(bone_solid, geom, current_armature->obmat);
+	}
+
+	DRW_shgroup_dynamic_call_add(bone_point_solid, bone_mat, color);
+}
+
+void DRW_shgroup_bone_point_wire(const float (*bone_mat)[4], const float color[4])
+{
+	if (bone_point_wire == NULL) {
+		struct Batch *geom = DRW_cache_bone_point_wire_outline_get();
+		bone_point_wire = shgroup_instance_objspace_wire(bone_wire, geom, current_armature->obmat);
+	}
+
+	DRW_shgroup_dynamic_call_add(bone_point_wire, bone_mat, color);
+}
+
+/* Axes */
+void DRW_shgroup_bone_axes(const float (*bone_mat)[4], const float color[4])
+{
+	if (bone_axes == NULL) {
+		struct Batch *geom = DRW_cache_bone_arrows_get();
+		bone_axes = shgroup_instance_objspace_wire(bone_wire, geom, current_armature->obmat);
+	}
+
+	DRW_shgroup_dynamic_call_add(bone_axes, bone_mat, color);
+}
+
+
+void DRW_shgroup_bone_relationship_lines(const float head[3], const float tail[3])
+{
+	DRW_shgroup_dynamic_call_add(relationship_lines, head);
+	DRW_shgroup_dynamic_call_add(relationship_lines, tail);
 }

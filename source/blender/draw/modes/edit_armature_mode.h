@@ -19,19 +19,19 @@
  *
  */
 
-/** \file blender/draw/modes/edit_mode.c
+/** \file blender/draw/modes/edit_armature_mode.h
  *  \ingroup draw
  */
 
-#ifndef __EDIT_MODE_H__
-#define __EDIT_MODE_H__
+#ifndef __EDIT_ARMATURE_MODE_H__
+#define __EDIT_ARMATURE_MODE_H__
 
 struct Object;
 
-void EDIT_cache_init(void);
-void EDIT_cache_populate(struct Object *ob);
-void EDIT_cache_finish(void);
+void EDIT_ARMATURE_cache_init(void);
+void EDIT_ARMATURE_cache_populate(struct Object *ob);
+void EDIT_ARMATURE_cache_finish(void);
 
-void EDIT_draw(void);
+void EDIT_ARMATURE_draw(void);
 
-#endif /* __EDIT_MODE_H__ */
+#endif /* __EDIT_ARMATURE_MODE_H__ */

@@ -52,6 +52,11 @@ static struct DRWShapeCache{
 	Batch *drw_lamp;
 	Batch *drw_lamp_sunrays;
 	Batch *drw_speaker;
+	Batch *drw_bone_octahedral;
+	Batch *drw_bone_octahedral_wire;
+	Batch *drw_bone_point;
+	Batch *drw_bone_point_wire;
+	Batch *drw_bone_arrows;
 } SHC = {NULL};
 
 void DRW_shape_cache_free(void)
@@ -84,6 +89,135 @@ void DRW_shape_cache_free(void)
 		Batch_discard_all(SHC.drw_lamp_sunrays);
 	if (SHC.drw_speaker)
 		Batch_discard_all(SHC.drw_speaker);
+	if (SHC.drw_bone_octahedral)
+		Batch_discard_all(SHC.drw_bone_octahedral);
+	if (SHC.drw_bone_octahedral_wire)
+		Batch_discard_all(SHC.drw_bone_octahedral_wire);
+	if (SHC.drw_bone_point)
+		Batch_discard_all(SHC.drw_bone_point);
+	if (SHC.drw_bone_point_wire)
+		Batch_discard_all(SHC.drw_bone_point_wire);
+	if (SHC.drw_bone_arrows)
+		Batch_discard_all(SHC.drw_bone_arrows);
+}
+
+/* Helper functions */
+
+static void add_fancy_edge(VertexBuffer *vbo, unsigned int pos_id, unsigned int n1_id, unsigned int n2_id,
+                           unsigned int *v_idx, const float co1[3], const float co2[3],
+                           const float n1[3], const float n2[3])
+{
+	setAttrib(vbo, n1_id, *v_idx, n1);
+	setAttrib(vbo, n2_id, *v_idx, n2);
+	setAttrib(vbo, pos_id, (*v_idx)++, co1);
+
+	setAttrib(vbo, n1_id, *v_idx, n1);
+	setAttrib(vbo, n2_id, *v_idx, n2);
+	setAttrib(vbo, pos_id, (*v_idx)++, co2);
+}
+
+static void add_lat_lon_vert(VertexBuffer *vbo, unsigned int pos_id, unsigned int nor_id,
+                             unsigned int *v_idx, const float rad, const float lat, const float lon)
+{
+	float pos[3], nor[3];
+	nor[0] = sinf(lat) * cosf(lon);
+	nor[1] = cosf(lat);
+	nor[2] = sinf(lat) * sinf(lon);
+	mul_v3_v3fl(pos, nor, rad);
+
+	setAttrib(vbo, nor_id, *v_idx, nor);
+	setAttrib(vbo, pos_id, (*v_idx)++, pos);
+}
+
+static VertexBuffer *fill_arrows_vbo(const float scale)
+{
+	/* Position Only 3D format */
+	static VertexFormat format = { 0 };
+	static unsigned pos_id;
+	if (format.attrib_ct == 0) {
+		pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	}
+
+	/* Line */
+	VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+	VertexBuffer_allocate_data(vbo, 6 * 3);
+
+	float v1[3] = {0.0, 0.0, 0.0};
+	float v2[3] = {0.0, 0.0, 0.0};
+	float vtmp1[3], vtmp2[3];
+
+	for (int axis = 0; axis < 3; axis++) {
+		const int arrow_axis = (axis == 0) ? 1 : 0;
+
+		v2[axis] = 1.0f;
+		mul_v3_v3fl(vtmp1, v1, scale);
+		mul_v3_v3fl(vtmp2, v2, scale);
+		setAttrib(vbo, pos_id, axis * 6 + 0, vtmp1);
+		setAttrib(vbo, pos_id, axis * 6 + 1, vtmp2);
+
+		v1[axis] = 0.85f;
+		v1[arrow_axis] = -0.08f;
+		mul_v3_v3fl(vtmp1, v1, scale);
+		mul_v3_v3fl(vtmp2, v2, scale);
+		setAttrib(vbo, pos_id, axis * 6 + 2, vtmp1);
+		setAttrib(vbo, pos_id, axis * 6 + 3, vtmp2);
+
+		v1[arrow_axis] = 0.08f;
+		mul_v3_v3fl(vtmp1, v1, scale);
+		mul_v3_v3fl(vtmp2, v2, scale);
+		setAttrib(vbo, pos_id, axis * 6 + 4, vtmp1);
+		setAttrib(vbo, pos_id, axis * 6 + 5, vtmp2);
+
+		/* reset v1 & v2 to zero */
+		v1[arrow_axis] = v1[axis] = v2[axis] = 0.0f;
+	}
+
+	return vbo;
+}
+
+static VertexBuffer *sphere_wire_vbo(const float rad)
+{
+#define NSEGMENTS 16
+	/* Position Only 3D format */
+	static VertexFormat format = { 0 };
+	static unsigned pos_id;
+	if (format.attrib_ct == 0) {
+		pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+	}
+
+	VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+	VertexBuffer_allocate_data(vbo, NSEGMENTS * 2 * 3);
+
+	/* a single ring of vertices */
+	float p[NSEGMENTS][2];
+	for (int i = 0; i < NSEGMENTS; ++i) {
+		float angle = 2 * M_PI * ((float)i / (float)NSEGMENTS);
+		p[i][0] = rad * cosf(angle);
+		p[i][1] = rad * sinf(angle);
+	}
+
+	for (int axis = 0; axis < 3; ++axis) {
+		for (int i = 0; i < NSEGMENTS; ++i) {
+			for (int j = 0; j < 2; ++j) {
+				float cv[2], v[3];
+
+				cv[0] = p[(i+j) % NSEGMENTS][0];
+				cv[1] = p[(i+j) % NSEGMENTS][1];
+
+				if (axis == 0)
+					v[0] = cv[0], v[1] = cv[1], v[2] = 0.0f;
+				else if (axis == 1)
+					v[0] = cv[0], v[1] = 0.0f,  v[2] = cv[1];
+				else
+					v[0] = 0.0f,  v[1] = cv[0], v[2] = cv[1];
+
+				setAttrib(vbo, pos_id, i*2 + j + (NSEGMENTS * 2 * axis), v);
+			}
+		}
+	}
+
+	return vbo;
+#undef NSEGMENTS
 }
 
 /* Quads */
@@ -290,50 +424,11 @@ Batch *DRW_cache_single_arrow_get(void)
 
 Batch *DRW_cache_empty_sphere_get(void)
 {
-#define NSEGMENTS 16
 	if (!SHC.drw_empty_sphere) {
-		/* a single ring of vertices */
-		float p[NSEGMENTS][2];
-		for (int i = 0; i < NSEGMENTS; ++i) {
-			float angle = 2 * M_PI * ((float)i / (float)NSEGMENTS);
-			p[i][0] = cosf(angle);
-			p[i][1] = sinf(angle);
-		}
-
-		/* Position Only 3D format */
-		static VertexFormat format = { 0 };
-		static unsigned pos_id;
-		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-		}
-
-		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
-		VertexBuffer_allocate_data(vbo, NSEGMENTS * 2 * 3);
-
-		for (int axis = 0; axis < 3; ++axis) {
-			for (int i = 0; i < NSEGMENTS; ++i) {
-				for (int j = 0; j < 2; ++j) {
-					float cv[2], v[3];
-
-					cv[0] = p[(i+j) % NSEGMENTS][0];
-					cv[1] = p[(i+j) % NSEGMENTS][1];
-
-					if (axis == 0)
-						v[0] = cv[0], v[1] = cv[1], v[2] = 0.0f;
-					else if (axis == 1)
-						v[0] = cv[0], v[1] = 0.0f,  v[2] = cv[1];
-					else
-						v[0] = 0.0f,  v[1] = cv[0], v[2] = cv[1];
-
-					setAttrib(vbo, pos_id, i*2 + j + (NSEGMENTS * 2 * axis), v);
-				}
-			}
-		}
-
+		VertexBuffer *vbo = sphere_wire_vbo(1.0f);
 		SHC.drw_empty_sphere = Batch_create(GL_LINES, vbo, NULL);
 	}
 	return SHC.drw_empty_sphere;
-#undef NSEGMENTS
 }
 
 Batch *DRW_cache_empty_cone_get(void)
@@ -387,39 +482,7 @@ Batch *DRW_cache_empty_cone_get(void)
 Batch *DRW_cache_arrows_get(void)
 {
 	if (!SHC.drw_arrows) {
-		float v1[3] = {0.0, 0.0, 0.0};
-		float v2[3] = {0.0, 0.0, 0.0};
-
-		/* Position Only 3D format */
-		static VertexFormat format = { 0 };
-		static unsigned pos_id;
-		if (format.attrib_ct == 0) {
-			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
-		}
-
-		/* Line */
-		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
-		VertexBuffer_allocate_data(vbo, 6 * 3);
-
-		for (int axis = 0; axis < 3; axis++) {
-			const int arrow_axis = (axis == 0) ? 1 : 0;
-
-			v2[axis] = 1.0f;
-			setAttrib(vbo, pos_id, axis * 6 + 0, v1);
-			setAttrib(vbo, pos_id, axis * 6 + 1, v2);
-
-			v1[axis] = 0.85f;
-			v1[arrow_axis] = -0.08f;
-			setAttrib(vbo, pos_id, axis * 6 + 2, v1);
-			setAttrib(vbo, pos_id, axis * 6 + 3, v2);
-
-			v1[arrow_axis] = 0.08f;
-			setAttrib(vbo, pos_id, axis * 6 + 4, v1);
-			setAttrib(vbo, pos_id, axis * 6 + 5, v2);
-
-			/* reset v1 & v2 to zero */
-			v1[arrow_axis] = v1[axis] = v2[axis] = 0.0f;
-		}
+		VertexBuffer *vbo = fill_arrows_vbo(1.0f);
 
 		SHC.drw_arrows = Batch_create(GL_LINES, vbo, NULL);
 	}
@@ -609,6 +672,175 @@ Batch *DRW_cache_speaker_get(void)
 	return SHC.drw_speaker;
 }
 
+/* Armature bones */
+static const float bone_octahedral_verts[6][3] = {
+	{ 0.0f, 0.0f,  0.0f},
+	{ 0.1f, 0.1f,  0.1f},
+	{ 0.1f, 0.1f, -0.1f},
+	{-0.1f, 0.1f, -0.1f},
+	{-0.1f, 0.1f,  0.1f},
+	{ 0.0f, 1.0f,  0.0f}
+};
+
+static const unsigned int bone_octahedral_wire[24] = {
+	0, 1,  1, 5,  5, 3,  3, 0,
+	0, 4,  4, 5,  5, 2,  2, 0,
+	1, 2,  2, 3,  3, 4,  4, 1,
+};
+
+/* aligned with bone_octahedral_wire
+ * Contains adjacent normal index */
+static const unsigned int bone_octahedral_wire_adjacent_face[24] = {
+	0, 3,  4, 7,  5, 6,  1, 2,
+	2, 3,  6, 7,  4, 5,  0, 1,
+	0, 4,  1, 5,  2, 6,  3, 7,
+};
+
+static const unsigned int bone_octahedral_solid_tris[8][3] = {
+	{2, 1, 0}, /* bottom */
+	{3, 2, 0},
+	{4, 3, 0},
+	{1, 4, 0},
+
+	{5, 1, 2}, /* top */
+	{5, 2, 3},
+	{5, 3, 4},
+	{5, 4, 1}
+};
+
+/* aligned with bone_octahedral_solid_tris */
+static const float bone_octahedral_solid_normals[8][3] = {
+	{ M_SQRT1_2,   -M_SQRT1_2,    0.00000000f},
+	{-0.00000000f, -M_SQRT1_2,   -M_SQRT1_2},
+	{-M_SQRT1_2,   -M_SQRT1_2,    0.00000000f},
+	{ 0.00000000f, -M_SQRT1_2,    M_SQRT1_2},
+	{ 0.99388373f,  0.11043154f, -0.00000000f},
+	{ 0.00000000f,  0.11043154f, -0.99388373f},
+	{-0.99388373f,  0.11043154f,  0.00000000f},
+	{ 0.00000000f,  0.11043154f,  0.99388373f}
+};
+
+Batch *DRW_cache_bone_octahedral_get(void)
+{
+	if (!SHC.drw_bone_octahedral) {
+		unsigned int v_idx = 0;
+
+		static VertexFormat format = { 0 };
+		static unsigned pos_id, nor_id;
+		if (format.attrib_ct == 0) {
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			nor_id = add_attrib(&format, "nor", GL_FLOAT, 3, KEEP_FLOAT);
+		}
+
+		/* Vertices */
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, 24);
+
+		for (int i = 0; i < 8; i++) {
+			setAttrib(vbo, nor_id, v_idx, bone_octahedral_solid_normals[i]);
+			setAttrib(vbo, pos_id, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][0]]);
+			setAttrib(vbo, nor_id, v_idx, bone_octahedral_solid_normals[i]);
+			setAttrib(vbo, pos_id, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][1]]);
+			setAttrib(vbo, nor_id, v_idx, bone_octahedral_solid_normals[i]);
+			setAttrib(vbo, pos_id, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][2]]);
+		}
+
+		SHC.drw_bone_octahedral = Batch_create(GL_TRIANGLES, vbo, NULL);
+	}
+	return SHC.drw_bone_octahedral;
+}
+
+Batch *DRW_cache_bone_octahedral_wire_outline_get(void)
+{
+	if (!SHC.drw_bone_octahedral_wire) {
+		unsigned int v_idx = 0;
+
+		static VertexFormat format = { 0 };
+		static unsigned pos_id, n1_id, n2_id;
+		if (format.attrib_ct == 0) {
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			n1_id = add_attrib(&format, "N1", COMP_F32, 3, KEEP_FLOAT);
+			n2_id = add_attrib(&format, "N2", COMP_F32, 3, KEEP_FLOAT);
+		}
+
+		/* Vertices */
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, 12 * 2);
+
+		for (int i = 0; i < 12; i++) {
+			const float *co1 = bone_octahedral_verts[bone_octahedral_wire[i*2]];
+			const float *co2 = bone_octahedral_verts[bone_octahedral_wire[i*2+1]];
+			const float *n1 = bone_octahedral_solid_normals[bone_octahedral_wire_adjacent_face[i*2]];
+			const float *n2 = bone_octahedral_solid_normals[bone_octahedral_wire_adjacent_face[i*2+1]];
+			add_fancy_edge(vbo, pos_id, n1_id, n2_id, &v_idx, co1, co2, n1, n2);
+		}
+
+		SHC.drw_bone_octahedral_wire = Batch_create(GL_LINES, vbo, NULL);
+	}
+	return SHC.drw_bone_octahedral_wire;
+}
+
+Batch *DRW_cache_bone_point_get(void)
+{
+	if (!SHC.drw_bone_point) {
+		const int lon_res = 16;
+		const int lat_res = 8;
+		const float rad = 0.05f;
+		const float lon_inc = 2 * M_PI / lon_res;
+		const float lat_inc = M_PI / lat_res;
+		unsigned int v_idx = 0;
+
+		static VertexFormat format = { 0 };
+		static unsigned pos_id, nor_id;
+		if (format.attrib_ct == 0) {
+			pos_id = add_attrib(&format, "pos", GL_FLOAT, 3, KEEP_FLOAT);
+			nor_id = add_attrib(&format, "nor", GL_FLOAT, 3, KEEP_FLOAT);
+		}
+
+		/* Vertices */
+		VertexBuffer *vbo = VertexBuffer_create_with_format(&format);
+		VertexBuffer_allocate_data(vbo, (lat_res-1) * lon_res * 6);
+
+		float lon = 0.0f;
+		for(int i = 0; i < lon_res; i++, lon += lon_inc) {
+			float lat = 0.0f;
+			for(int j = 0; j < lat_res; j++, lat += lat_inc) {
+				if (j != lat_res - 1) { /* Pole */
+					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat+lat_inc, lon+lon_inc);
+					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat+lat_inc, lon);
+					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat,         lon);
+				}
+
+				if (j != 0) { /* Pole */
+					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat,         lon+lon_inc);
+					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat+lat_inc, lon+lon_inc);
+					add_lat_lon_vert(vbo, pos_id, nor_id, &v_idx, rad, lat,         lon);
+				}
+			}
+		}
+
+		SHC.drw_bone_point = Batch_create(GL_TRIANGLES, vbo, NULL);
+	}
+	return SHC.drw_bone_point;
+}
+
+Batch *DRW_cache_bone_point_wire_outline_get(void)
+{
+	if (!SHC.drw_bone_point_wire) {
+		VertexBuffer *vbo = sphere_wire_vbo(0.05f);
+		SHC.drw_bone_point_wire = Batch_create(GL_LINES, vbo, NULL);
+	}
+	return SHC.drw_bone_point_wire;
+}
+
+Batch *DRW_cache_bone_arrows_get(void)
+{
+	if (!SHC.drw_bone_arrows) {
+		VertexBuffer *vbo = fill_arrows_vbo(0.25f);
+		SHC.drw_bone_arrows = Batch_create(GL_LINES, vbo, NULL);
+	}
+	return SHC.drw_bone_arrows;
+}
 
 /* Object Center */
 Batch *DRW_cache_single_vert_get(void)

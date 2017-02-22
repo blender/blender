@@ -53,6 +53,13 @@ struct Batch *DRW_cache_lamp_sunrays_get(void);
 /* Speaker */
 struct Batch *DRW_cache_speaker_get(void);
 
+/* Bones */
+struct Batch *DRW_cache_bone_octahedral_get(void);
+struct Batch *DRW_cache_bone_octahedral_wire_outline_get(void);
+struct Batch *DRW_cache_bone_point_get(void);
+struct Batch *DRW_cache_bone_point_wire_outline_get(void);
+struct Batch *DRW_cache_bone_arrows_get(void);
+
 /* Meshes */
 struct Batch *DRW_cache_wire_overlay_get(struct Object *ob);
 struct Batch *DRW_cache_wire_outline_get(struct Object *ob);
