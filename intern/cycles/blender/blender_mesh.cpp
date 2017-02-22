@@ -525,69 +525,177 @@ static void attr_create_uv_map(Scene *scene,
 }
 
 /* Create vertex pointiness attributes. */
+
+/* Compare vertices by sum of their coordinates. */
+class VertexAverageComparator {
+public:
+	VertexAverageComparator(const array<float3>& verts)
+	        : verts_(verts) {
+	}
+
+	bool operator()(const int& vert_idx_a, const int& vert_idx_b)
+	{
+		const float3 &vert_a = verts_[vert_idx_a];
+		const float3 &vert_b = verts_[vert_idx_b];
+		if(vert_a == vert_b) {
+			/* Special case for doubles, so we ensure ordering. */
+			return vert_idx_a > vert_idx_b;
+		}
+		const float x1 = vert_a.x + vert_a.y + vert_a.z;
+		const float x2 = vert_b.x + vert_b.y + vert_b.z;
+		return x1 < x2;
+	}
+
+protected:
+	const array<float3>& verts_;
+};
+
 static void attr_create_pointiness(Scene *scene,
                                    Mesh *mesh,
                                    BL::Mesh& b_mesh,
                                    bool subdivision)
 {
-	if(mesh->need_attribute(scene, ATTR_STD_POINTINESS)) {
-		const int numverts = b_mesh.vertices.length();
-		AttributeSet& attributes = (subdivision)? mesh->subd_attributes: mesh->attributes;
-		Attribute *attr = attributes.add(ATTR_STD_POINTINESS);
-		float *data = attr->data_float();
-		int *counter = new int[numverts];
-		float *raw_data = new float[numverts];
-		float3 *edge_accum = new float3[numverts];
-
-		/* Calculate pointiness using single ring neighborhood. */
-		memset(counter, 0, sizeof(int) * numverts);
-		memset(raw_data, 0, sizeof(float) * numverts);
-		memset(edge_accum, 0, sizeof(float3) * numverts);
-		BL::Mesh::edges_iterator e;
-		int i = 0;
-		for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++i) {
-			int v0 = b_mesh.edges[i].vertices()[0],
-			    v1 = b_mesh.edges[i].vertices()[1];
-			float3 co0 = get_float3(b_mesh.vertices[v0].co()),
-			       co1 = get_float3(b_mesh.vertices[v1].co());
-			float3 edge = normalize(co1 - co0);
-			edge_accum[v0] += edge;
-			edge_accum[v1] += -edge;
-			++counter[v0];
-			++counter[v1];
-		}
-		i = 0;
-		BL::Mesh::vertices_iterator v;
-		for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v, ++i) {
-			if(counter[i] > 0) {
-				float3 normal = get_float3(b_mesh.vertices[i].normal());
-				float angle = safe_acosf(dot(normal, edge_accum[i] / counter[i]));
-				raw_data[i] = angle * M_1_PI_F;
+	if(!mesh->need_attribute(scene, ATTR_STD_POINTINESS)) {
+		return;
+	}
+	const int num_verts = b_mesh.vertices.length();
+	/* STEP 1: Find out duplicated vertices and point duplicates to a single
+	 *         original vertex.
+	 */
+	vector<int> sorted_vert_indeices(num_verts);
+	for(int vert_index = 0; vert_index < num_verts; ++vert_index) {
+		sorted_vert_indeices[vert_index] = vert_index;
+	}
+	VertexAverageComparator compare(mesh->verts);
+	sort(sorted_vert_indeices.begin(), sorted_vert_indeices.end(), compare);
+	/* This array stores index of the original vertex for the given vertex
+	 * index.
+	 */
+	vector<int> vert_orig_index(num_verts);
+	for(int sorted_vert_index = 0;
+	    sorted_vert_index < num_verts;
+	    ++sorted_vert_index)
+	{
+		const int vert_index = sorted_vert_indeices[sorted_vert_index];
+		const float3 &vert_co = mesh->verts[vert_index];
+		bool found = false;
+		for(int other_sorted_vert_index = sorted_vert_index + 1;
+		    other_sorted_vert_index < num_verts;
+		    ++other_sorted_vert_index)
+		{
+			const int other_vert_index =
+			        sorted_vert_indeices[other_sorted_vert_index];
+			const float3 &other_vert_co = mesh->verts[other_vert_index];
+			/* We are too far away now, we wouldn't have duplicate. */
+			if ((other_vert_co.x + other_vert_co.y + other_vert_co.z) -
+			    (vert_co.x + vert_co.y + vert_co.z) > 3 * FLT_EPSILON)
+			{
+				break;
 			}
-			else {
-				raw_data[i] = 0.0f;
+			/* Found duplicate. */
+			if(len_squared(other_vert_co - vert_co) < FLT_EPSILON) {
+				found = true;
+				vert_orig_index[vert_index] = other_vert_index;
+				break;
 			}
 		}
-
-		/* Blur vertices to approximate 2 ring neighborhood. */
-		memset(counter, 0, sizeof(int) * numverts);
-		memcpy(data, raw_data, sizeof(float) * numverts);
-		i = 0;
-		for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++i) {
-			int v0 = b_mesh.edges[i].vertices()[0],
-			    v1 = b_mesh.edges[i].vertices()[1];
-			data[v0] += raw_data[v1];
-			data[v1] += raw_data[v0];
-			++counter[v0];
-			++counter[v1];
+		if(!found) {
+			vert_orig_index[vert_index] = vert_index;
 		}
-		for(i = 0; i < numverts; ++i) {
-			data[i] /= counter[i] + 1;
+	}
+	/* Make sure we always points to the very first orig vertex. */
+	for(int vert_index = 0; vert_index < num_verts; ++vert_index) {
+		int orig_index = vert_orig_index[vert_index];
+		while(orig_index != vert_orig_index[orig_index]) {
+			orig_index = vert_orig_index[orig_index];
 		}
-
-		delete [] counter;
-		delete [] raw_data;
-		delete [] edge_accum;
+		vert_orig_index[vert_index] = orig_index;
+	}
+	sorted_vert_indeices.free_memory();
+	/* STEP 2: Calculate vertex normals taking into account their possible
+	 *         duplicates which gets "welded" together.
+	 */
+	vector<float3> vert_normal(num_verts, make_float3(0.0f, 0.0f, 0.0f));
+	/* First we accumulate all vertex normals in the original index. */
+	for(int vert_index = 0; vert_index < num_verts; ++vert_index) {
+		const float3 normal = get_float3(b_mesh.vertices[vert_index].normal());
+		const int orig_index = vert_orig_index[vert_index];
+		vert_normal[orig_index] += normal;
+	}
+	/* Then we normalize the accumulated result and flush it to all duplicates
+	 * as well.
+	 */
+	for(int vert_index = 0; vert_index < num_verts; ++vert_index) {
+		const int orig_index = vert_orig_index[vert_index];
+		vert_normal[vert_index] = normalize(vert_normal[orig_index]);
+	}
+	/* STEP 3: Calculate pointiness using single ring neighborhood. */
+	vector<int> counter(num_verts, 0);
+	vector<float> raw_data(num_verts, 0.0f);
+	vector<float3> edge_accum(num_verts, make_float3(0.0f, 0.0f, 0.0f));
+	BL::Mesh::edges_iterator e;
+	EdgeMap visited_edges;
+	int edge_index = 0;
+	memset(&counter[0], 0, sizeof(int) * counter.size());
+	for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++edge_index) {
+		const int v0 = vert_orig_index[b_mesh.edges[edge_index].vertices()[0]],
+		          v1 = vert_orig_index[b_mesh.edges[edge_index].vertices()[1]];
+		if(visited_edges.exists(v0, v1)) {
+			continue;
+		}
+		visited_edges.insert(v0, v1);
+		float3 co0 = get_float3(b_mesh.vertices[v0].co()),
+		       co1 = get_float3(b_mesh.vertices[v1].co());
+		float3 edge = normalize(co1 - co0);
+		edge_accum[v0] += edge;
+		edge_accum[v1] += -edge;
+		++counter[v0];
+		++counter[v1];
+	}
+	for(int vert_index = 0; vert_index < num_verts; ++vert_index) {
+		const int orig_index = vert_orig_index[vert_index];
+		if(orig_index != vert_index) {
+			/* Skip duplicates, they'll be overwritten later on. */
+			continue;
+		}
+		if(counter[vert_index] > 0) {
+			const float3 normal = vert_normal[vert_index];
+			const float angle =
+			        safe_acosf(dot(normal,
+			                       edge_accum[vert_index] / counter[vert_index]));
+			raw_data[vert_index] = angle * M_1_PI_F;
+		}
+		else {
+			raw_data[vert_index] = 0.0f;
+		}
+	}
+	/* STEP 3: Blur vertices to approximate 2 ring neighborhood. */
+	AttributeSet& attributes = (subdivision)? mesh->subd_attributes: mesh->attributes;
+	Attribute *attr = attributes.add(ATTR_STD_POINTINESS);
+	float *data = attr->data_float();
+	memcpy(data, &raw_data[0], sizeof(float) * raw_data.size());
+	memset(&counter[0], 0, sizeof(int) * counter.size());
+	edge_index = 0;
+	visited_edges.clear();
+	for(b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++edge_index) {
+		const int v0 = vert_orig_index[b_mesh.edges[edge_index].vertices()[0]],
+		          v1 = vert_orig_index[b_mesh.edges[edge_index].vertices()[1]];
+		if(visited_edges.exists(v0, v1)) {
+			continue;
+		}
+		visited_edges.insert(v0, v1);
+		data[v0] += raw_data[v1];
+		data[v1] += raw_data[v0];
+		++counter[v0];
+		++counter[v1];
+	}
+	for(int vert_index = 0; vert_index < num_verts; ++vert_index) {
+		data[vert_index] /= counter[vert_index] + 1;
+	}
+	/* STEP 4: Copy attribute to the duplicated vertices. */
+	for(int vert_index = 0; vert_index < num_verts; ++vert_index) {
+		const int orig_index = vert_orig_index[vert_index];
+		data[vert_index] = data[orig_index];
 	}
 }
 
