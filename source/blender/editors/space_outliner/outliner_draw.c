@@ -1535,10 +1535,12 @@ static void outliner_draw_tree_element_floating(const SpaceOops *soops, const AR
                                                 const TreeElement *te_floating)
 {
 	const TreeElement *te_insert = te_floating->drag_data->insert_te;
+	const ListBase *lb_parent = te_floating->parent ? &te_floating->parent->subtree : &soops->tree;
+	const TreeElement *te_insert_fallback = te_insert ? te_insert : lb_parent->first;
 	const int line_width = 2;
 
 	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
-	int coord_y = (te_insert ? te_insert->ys : ((int)ar->v2d.tot.ymax - OL_Y_OFFSET)) - (int)(line_width * 0.5f);
+	int coord_y = (te_insert ? te_insert->ys : (te_insert_fallback->ys + UI_UNIT_Y)) - (int)(line_width * 0.5f);
 	unsigned char col[4];
 
 	if (te_insert == te_floating) {

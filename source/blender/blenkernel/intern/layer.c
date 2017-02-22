@@ -492,65 +492,73 @@ int BKE_layer_collection_findindex(SceneLayer *sl, LayerCollection *lc)
 }
 
 /**
- * \param lc_after: Can be NULL to insert \a lc_after as first collection in \a lb.
+ * Lookup the listbase that contains \a lc.
  */
-static bool layer_collection_insert_after(ListBase *lb, LayerCollection *lc_insert, LayerCollection *lc_after)
-{
-	if (lc_after == NULL) {
-		BLI_addhead(lb, lc_insert);
-		return true;
-	}
-
-	for (LayerCollection *lc = lb->first; lc; lc = lc->next) {
-		if (lc == lc_after) {
-			BLI_insertlinkafter(lb, lc_after, lc_insert);
-			return true;
-		}
-
-		if (layer_collection_insert_after(&lc->layer_collections, lc_insert, lc_after)) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-static bool layer_collection_remlink(ListBase *lb, LayerCollection *lc)
+static ListBase *layer_collection_listbase_find(ListBase *lb, LayerCollection *lc)
 {
 	for (LayerCollection *lc_iter = lb->first; lc_iter; lc_iter = lc_iter->next) {
 		if (lc_iter == lc) {
-			BLI_remlink(lb, lc);
-			return true;
+			return lb;
 		}
 
-		if (layer_collection_remlink(&lc_iter->layer_collections, lc)) {
-			return true;
+		ListBase *lb_child_result;
+		if ((lb_child_result = layer_collection_listbase_find(&lc_iter->layer_collections, lc))) {
+			return lb_child_result;
 		}
 	}
 
-	return false;
+	return NULL;
 }
 
 /**
- * Move \a lc_reinsert so that it follows \a lc_after. After this, both \a lc_reinsert
- * and \a lc_after should be stored in the same list.
- *
- * \param lc_after: Can be NULL to insert \a lc_after as first collection in \a sl.
+ * Lookup the listbase that contains \a sc.
+ */
+static ListBase *scene_collection_listbase_find(ListBase *lb, SceneCollection *sc)
+{
+	for (SceneCollection *sc_iter = lb->first; sc_iter; sc_iter = sc_iter->next) {
+		if (sc_iter == sc) {
+			return lb;
+		}
+
+		ListBase *lb_child_result;
+		if ((lb_child_result = scene_collection_listbase_find(&sc_iter->scene_collections, sc))) {
+			return lb_child_result;
+		}
+	}
+
+	return NULL;
+}
+
+/**
+ * Move \a lc_reinsert so that it follows \a lc_after. Both have to be stored in \a sl.
+ * \param lc_after: Can be NULL to reinsert \a lc_after as first collection of its own list.
  */
 void BKE_layer_collection_reinsert_after(
         const Scene *scene, SceneLayer *sl, LayerCollection *lc_reinsert, LayerCollection *lc_after)
 {
-	/* XXX maybe worth having a BKE internal header file for this? */
-	extern bool collection_remlink(SceneCollection *, SceneCollection *);
-	extern bool collection_insert_after(SceneCollection *, SceneCollection *, SceneCollection *);
-
 	SceneCollection *sc_master = BKE_collection_master(scene);
+	SceneCollection *sc_reinsert = lc_reinsert->scene_collection;
+	ListBase *lc_reinsert_lb = layer_collection_listbase_find(&sl->layer_collections, lc_reinsert);
+	ListBase *sc_reinsert_lb = scene_collection_listbase_find(&sc_master->scene_collections, sc_reinsert);
 
-	layer_collection_remlink(&sl->layer_collections, lc_reinsert);
-	collection_remlink(sc_master, lc_reinsert->scene_collection);
+	BLI_assert(BLI_findindex(lc_reinsert_lb, lc_reinsert) > -1);
+	BLI_assert(BLI_findindex(sc_reinsert_lb, sc_reinsert) > -1);
+	BLI_remlink(lc_reinsert_lb, lc_reinsert);
+	BLI_remlink(sc_reinsert_lb, sc_reinsert);
 
-	layer_collection_insert_after(&sl->layer_collections, lc_reinsert, lc_after);
-	collection_insert_after(sc_master, lc_reinsert->scene_collection, lc_after ? lc_after->scene_collection : NULL);
+	/* insert after lc_after or */
+	if (lc_after == NULL) {
+		BLI_addhead(lc_reinsert_lb, lc_reinsert);
+		BLI_addhead(sc_reinsert_lb, sc_reinsert);
+	}
+	else {
+		SceneCollection *sc_after = lc_after->scene_collection;
+		ListBase *lc_after_lb = layer_collection_listbase_find(&sl->layer_collections, lc_after);
+		ListBase *sc_after_lb = scene_collection_listbase_find(&sc_master->scene_collections, sc_after);
+
+		BLI_insertlinkafter(lc_after_lb, lc_after, lc_reinsert);
+		BLI_insertlinkafter(sc_after_lb, sc_after, sc_reinsert);
+	}
 
 	BKE_scene_layer_base_flag_recalculate(sl);
 	BKE_scene_layer_engine_settings_collection_recalculate(sl, lc_reinsert);

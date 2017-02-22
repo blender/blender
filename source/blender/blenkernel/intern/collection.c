@@ -44,8 +44,6 @@
 
 #include "MEM_guardedalloc.h"
 
-bool collection_remlink(SceneCollection *, SceneCollection *);
-bool collection_insert_after(SceneCollection *, SceneCollection *, SceneCollection *);
 
 /**
  * Add a collection to a collection ListBase and syncronize all render layers
@@ -96,9 +94,9 @@ static void collection_free(SceneCollection *sc)
 
 /**
  * Unlink the collection recursively
- * return true if unlinked
+ * \return true if unlinked.
  */
-bool collection_remlink(SceneCollection *sc_parent, SceneCollection *sc_gone)
+static bool collection_remlink(SceneCollection *sc_parent, SceneCollection *sc_gone)
 {
 	for (SceneCollection *sc = sc_parent->scene_collections.first; sc; sc = sc->next) {
 		if (sc == sc_gone) {
@@ -173,32 +171,6 @@ bool BKE_collection_remove(Scene *scene, SceneCollection *sc)
 
 	MEM_freeN(sc);
 	return true;
-}
-
-/**
- * Lookup the parent listbase of \a sc_insert_after and insert \a sc_insert after it.
- * \param sc_after: If this is NULL, \a sc_insert will be inserted as first collection in \a parent.
- */
-bool collection_insert_after(
-        SceneCollection *parent, SceneCollection *sc_insert, SceneCollection *sc_after)
-{
-	if (sc_after == NULL) {
-		BLI_addhead(&parent->scene_collections, sc_insert);
-		return true;
-	}
-
-	for (SceneCollection *sc = parent->scene_collections.first; sc; sc = sc->next) {
-		if (sc == sc_after) {
-			BLI_insertlinkafter(&parent->scene_collections, sc_after, sc_insert);
-			return true;
-		}
-
-		if (collection_insert_after(sc, sc_insert, sc_after)) {
-			return true;
-		}
-	}
-
-	return false;
 }
 
 /**
