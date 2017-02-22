@@ -819,7 +819,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, ListBase *nurb,
 	if (editmode)
 		required_mode |= eModifierMode_Editmode;
 
-	if (cu->editnurb == NULL) {
+	if (!editmode) {
 		keyVerts = BKE_key_evaluate_object(ob, &numVerts);
 
 		if (keyVerts) {
