@@ -1152,7 +1152,6 @@ void BKE_mesh_normals_loop_split(
         const bool use_split_normals, float split_angle,
         MLoopNorSpaceArray *r_lnors_spacearr, short (*clnors_data)[2], int *r_loop_to_poly)
 {
-
 	/* For now this is not supported. If we do not use split normals, we do not generate anything fancy! */
 	BLI_assert(use_split_normals || !(r_lnors_spacearr));
 
