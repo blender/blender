@@ -366,7 +366,10 @@ AbcObjectReader *create_reader(const Alembic::AbcGeom::IObject &object, ImportSe
 		reader = new AbcCurveReader(object, settings);
 	}
 	else {
-		assert(false);
+		std::cerr << "Alembic: unknown how to handle objects of schema "
+		          << md.get("schemaObjTitle")
+		          << ", skipping object "
+		          << object.getFullName() << std::endl;
 	}
 
 	return reader;
