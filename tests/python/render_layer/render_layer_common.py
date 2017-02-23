@@ -200,18 +200,6 @@ class RenderLayerTesting(unittest.TestCase):
         cls.pretest_parsing()
 
     @classmethod
-    def setUp(cls):
-        """Runs once per test"""
-        import bpy
-        bpy.ops.wm.read_factory_settings()
-
-    def path_exists(self, filepath):
-        import os
-        self.assertTrue(
-                os.path.exists(filepath),
-                "Test file \"{0}\" not found".format(filepath))
-
-    @classmethod
     def get_root(cls):
         """
         return the folder with the test files
@@ -242,4 +230,82 @@ class RenderLayerTesting(unittest.TestCase):
         """
         import_blendfile()
         import blendfile
+
+    def setUp(self):
+        """Runs once per test"""
+        import bpy
+        bpy.ops.wm.read_factory_settings()
+
+    def path_exists(self, filepath):
+        import os
+        self.assertTrue(
+                os.path.exists(filepath),
+                "Test file \"{0}\" not found".format(filepath))
+
+    def do_object_add(self, filepath_json, add_mode):
+        """
+        Testing for adding objects and see if they
+        go to the right collection
+        """
+        import bpy
+        import os
+        import tempfile
+        import filecmp
+
+        ROOT = self.get_root()
+        with tempfile.TemporaryDirectory() as dirpath:
+            filepath_layers = os.path.join(ROOT, 'layers.blend')
+
+            # open file
+            bpy.ops.wm.open_mainfile('EXEC_DEFAULT', filepath=filepath_layers)
+
+            # create sub-collections
+            three_b = bpy.data.objects.get('T.3b')
+            three_c = bpy.data.objects.get('T.3c')
+
+            scene = bpy.context.scene
+            subzero = scene.master_collection.collections['1'].collections.new('sub-zero')
+            scorpion = subzero.collections.new('scorpion')
+            subzero.objects.link(three_b)
+            scorpion.objects.link(three_c)
+            layer = scene.render_layers.new('Fresh new Layer')
+            layer.collections.link(subzero)
+
+            # change active collection
+            layer.collections.active_index = 3
+            self.assertEqual(layer.collections.active.name, 'scorpion', "Run: test_syncing_object_add")
+
+            # change active layer
+            override = bpy.context.copy()
+            override["render_layer"] = layer
+            override["scene_collection"] = layer.collections.active.collection
+
+            # add new objects
+            if add_mode == 'EMPTY':
+                bpy.ops.object.add(override) # 'Empty'
+
+            elif add_mode == 'CYLINDER':
+                bpy.ops.mesh.primitive_cylinder_add(override) # 'Cylinder'
+
+            elif add_mode == 'TORUS':
+                bpy.ops.mesh.primitive_torus_add(override) # 'Torus'
+
+            # save file
+            filepath_objects = os.path.join(dirpath, 'objects.blend')
+            bpy.ops.wm.save_mainfile('EXEC_DEFAULT', filepath=filepath_objects)
+
+            # get the generated json
+            datas = query_scene(filepath_objects, 'Main', (get_scene_collections, get_layers))
+            self.assertTrue(datas, "Data is not valid")
+
+            filepath_objects_json = os.path.join(dirpath, "objects.json")
+            with open(filepath_objects_json, "w") as f:
+                for data in datas:
+                    f.write(dump(data))
+
+            self.assertTrue(compare_files(
+                filepath_objects_json,
+                filepath_json,
+                ),
+                "Scene dump files differ")
 
