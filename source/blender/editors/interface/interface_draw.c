@@ -1735,6 +1735,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 				UI_draw_roundbox_gl_mode(GL_TRIANGLE_FAN, rect.xmin - 1, rect.ymin, rect.xmax + 1, rect.ymax + 1, 3.0f, color);
 			}
 
+			GPU_shader_unbind(); /* make sure there is no program bound */
 			immDrawPixelsTex(rect.xmin, rect.ymin + 1, drawibuf->x, drawibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, drawibuf->rect, 1.0f, 1.0f, img_col);
 
 			/* draw cross for pixel position */

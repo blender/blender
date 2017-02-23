@@ -618,8 +618,7 @@ void glaDrawPixelsAuto(float x, float y, int img_w, int img_h, int format, int t
 	                           0.0f, 0.0f, 0.0f, 0.0f);
 }
 
-/* TODO this is utterly slow and need some love
- * but in the meantime it's not using deprecated api */
+/* Use the currently bound shader if there is one */
 void immDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
                                      int format, int type, int zoomfilter, void *rect,
                                      float scaleX, float scaleY,
@@ -687,9 +686,15 @@ void immDrawPixelsTexScaled_clipping(float x, float y, int img_w, int img_h,
 	unsigned int pos = add_attrib(vert_format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 	unsigned int texco = add_attrib(vert_format, "texCoord", GL_FLOAT, 2, KEEP_FLOAT);
 
-	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
-	immUniform4fv("color", color);
-	immUniform1i("image", 0);
+	unsigned int program = glaGetOneInt(GL_CURRENT_PROGRAM);
+
+	if (program)
+		immBindProgram(program);
+	else {
+		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+		immUniform1i("image", 0);
+		immUniform4fv("color", color);
+	}
 
 	for (subpart_y = 0; subpart_y < nsubparts_y; subpart_y++) {
 		for (subpart_x = 0; subpart_x < nsubparts_x; subpart_x++) {
