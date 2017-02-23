@@ -225,7 +225,7 @@ static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk,
 	walk(userData, ob, &umd->object_src, IDWALK_CB_NOP);
 }
 
-static void uv_warp_deps_object_bone(DagForest *forest, DagNode *obNode,
+static void UNUSED_FUNCTION(uv_warp_deps_object_bone)(DagForest *forest, DagNode *obNode,
                                 Object *obj, const char *bonename)
 {
 	if (obj) {

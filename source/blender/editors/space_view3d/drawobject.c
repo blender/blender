@@ -7459,7 +7459,7 @@ static void drawtube(const float vec[3], float radius, float height, float tmat[
 }
 
 /* needs fixing if non-identity matrix used */
-static void imm_drawtube(const float vec[3], float radius, float height, float tmat[4][4], unsigned pos)
+static void UNUSED_FUNCTION(imm_drawtube)(const float vec[3], float radius, float height, float tmat[4][4], unsigned pos)
 {
 	float cur[3];
 	imm_drawcircball(vec, radius, tmat, pos);
@@ -7505,7 +7505,7 @@ static void drawcone(const float vec[3], float radius, float height, float tmat[
 }
 
 /* needs fixing if non-identity matrix used */
-static void imm_drawcone(const float vec[3], float radius, float height, float tmat[4][4], unsigned pos)
+static void UNUSED_FUNCTION(imm_drawcone)(const float vec[3], float radius, float height, float tmat[4][4], unsigned pos)
 {
 	float cur[3];
 
