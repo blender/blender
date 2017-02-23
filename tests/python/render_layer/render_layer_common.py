@@ -309,3 +309,30 @@ class RenderLayerTesting(unittest.TestCase):
                 ),
                 "Scene dump files differ")
 
+    def do_object_add_no_collection(self, add_mode):
+        """
+        Test for adding objects when no collection
+        exists in render layer
+        """
+        import bpy
+
+        # empty layer of collections
+
+        layer = bpy.context.render_layer
+        while layer.collections:
+            layer.collections.unlink(layer.collections[0])
+
+        # add new objects
+        if add_mode == 'EMPTY':
+            bpy.ops.object.add() # 'Empty'
+
+        elif add_mode == 'CYLINDER':
+            bpy.ops.mesh.primitive_cylinder_add() # 'Cylinder'
+
+        elif add_mode == 'TORUS':
+            bpy.ops.mesh.primitive_torus_add() # 'Torus'
+
+        self.assertEqual(len(layer.collections), 1, "New collection not created")
+        collection = layer.collections[0]
+        self.assertEqual(len(collection.objects), 1, "New collection is empty")
+

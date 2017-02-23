@@ -121,7 +121,14 @@ def object_data_add(context, obdata, operator=None, name=None):
     """
     scene = context.scene
     layer = context.render_layer
-    scene_collection = context.scene_collection
+    layer_collection = context.layer_collection
+
+    if not layer_collection:
+        # when there is no collection linked to this render_layer create one
+        scene_collection = scene.master_collection.collections.new("")
+        layer_collection = layer.collections.link(scene_collection)
+    else:
+        scene_collection = layer_collection.collection
 
     bpy.ops.object.select_all(action='DESELECT')
 
