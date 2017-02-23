@@ -117,15 +117,7 @@ struct ImportSettings {
 template <typename Schema>
 static bool has_animations(Schema &schema, ImportSettings *settings)
 {
-	if (settings->is_sequence) {
-		return true;
-	}
-
-	if (!schema.isConstant()) {
-		return true;
-	}
-
-	return false;
+	return settings->is_sequence || !schema.isConstant();
 }
 
 /* ************************************************************************** */
