@@ -28,7 +28,7 @@ void GlareStreaksOperation::generateGlare(float *data, MemoryBuffer *inputTile, 
 	int x, y, n;
 	unsigned int nump = 0;
 	float c1[4], c2[4], c3[4], c4[4];
-	float a, ang = DEG2RADF(360.0f) / (float)settings->angle;
+	float a, ang = DEG2RADF(360.0f) / (float)settings->streaks;
 
 	int size = inputTile->getWidth() * inputTile->getHeight();
 	int size4 = size * 4;
