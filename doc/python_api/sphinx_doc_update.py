@@ -121,7 +121,7 @@ def main():
             "    f.write('%d\\n' % is_release)\n"
             "    f.write('%d.%d%s\\n' % (bpy.app.version[0], bpy.app.version[1], bpy.app.version_char)\n"
             "            if is_release else '%s\\n' % branch)\n"
-            "    f.write('%d_%d%s_release\\n' % (bpy.app.version[0], bpy.app.version[1], bpy.app.version_char)\n"
+            "    f.write('%d_%d%s_release' % (bpy.app.version[0], bpy.app.version[1], bpy.app.version_char)\n"
             "            if is_release else '%d_%d_%d' % bpy.app.version)\n")
         get_ver_cmd = (args.blender, "--background", "-noaudio", "--factory-startup", "--python-exit-code", "1",
                        "--python-expr", getver_script, "--", getver_file)
