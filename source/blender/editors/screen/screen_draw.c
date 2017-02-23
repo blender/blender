@@ -43,7 +43,6 @@ static void draw_horizontal_join_shape(ScrArea *sa, char dir, unsigned int pos)
 	float w, h;
 	float width = sa->v3->vec.x - sa->v1->vec.x;
 	float height = sa->v3->vec.y - sa->v1->vec.y;
-	return;
 
 	if (height < width) {
 		h = height / 8;
@@ -95,12 +94,19 @@ static void draw_horizontal_join_shape(ScrArea *sa, char dir, unsigned int pos)
 	}
 
 	immBegin(GL_TRIANGLE_FAN, 5);
-	for (i = 0; i < 5; i++)
+
+	for (i = 0; i < 5; i++) {
 		immVertex2f(pos, points[i].x, points[i].y);
+	}
+
 	immEnd();
+
 	immBegin(GL_TRIANGLE_FAN, 5);
-	for (i = 4; i < 8; i++)
+
+	for (i = 4; i < 8; i++) {
 		immVertex2f(pos, points[i].x, points[i].y);
+	}
+
 	immVertex2f(pos, points[0].x, points[0].y);
 	immEnd();
 
@@ -169,12 +175,19 @@ static void draw_vertical_join_shape(ScrArea *sa, char dir, unsigned int pos)
 	}
 
 	immBegin(GL_TRIANGLE_FAN, 5);
-	for (i = 0; i < 5; i++)
+
+	for (i = 0; i < 5; i++) {
 		immVertex2f(pos, points[i].x, points[i].y);
+	}
+
 	immEnd();
+
 	immBegin(GL_TRIANGLE_FAN, 5);
-	for (i = 4; i < 8; i++)
+
+	for (i = 4; i < 8; i++) {
 		immVertex2f(pos, points[i].x, points[i].y);
+	}
+
 	immVertex2f(pos, points[0].x, points[0].y);
 	immEnd();
 
@@ -187,10 +200,12 @@ static void draw_vertical_join_shape(ScrArea *sa, char dir, unsigned int pos)
  */
 static void draw_join_shape(ScrArea *sa, char dir, unsigned int pos)
 {
-	if (dir == 'u' || dir == 'd')
+	if (dir == 'u' || dir == 'd') {
 		draw_vertical_join_shape(sa, dir, pos);
-	else
+	}
+	else {
 		draw_horizontal_join_shape(sa, dir, pos);
+	}
 }
 
 /**
@@ -200,6 +215,7 @@ static void scrarea_draw_shape_dark(ScrArea *sa, char dir, unsigned int pos)
 {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	immUniformColor4ub(0, 0, 0, 50);
+
 	draw_join_shape(sa, dir, pos);
 }
 
@@ -212,34 +228,46 @@ static void scrarea_draw_shape_light(ScrArea *sa, char UNUSED(dir), unsigned int
 	/* value 181 was hardly computed: 181~105 */
 	immUniformColor4ub(255, 255, 255, 50);
 	/* draw_join_shape(sa, dir); */
-	immRectf(pos, sa->v1->vec.x / 255.f, sa->v1->vec.y / 255.f, sa->v3->vec.x / 255.f, sa->v3->vec.y / 255.f);
+
+	immRectf(pos, sa->v1->vec.x, sa->v1->vec.y, sa->v3->vec.x, sa->v3->vec.y);
 }
 
 static void drawscredge_area_draw(int sizex, int sizey, short x1, short y1, short x2, short y2, unsigned int pos)
 {
+	int count = 0;
+
+	if (x2 < sizex - 1) count += 2;
+	if (x1 > 0) count += 2;
+	if (y2 < sizey - 1) count += 2;
+	if (y1 > 0) count += 2;
+
+	immBegin(GL_LINES, count);
+
 	/* right border area */
 	if (x2 < sizex - 1) {
-		immVertex2s(pos, x2, y1);
-		immVertex2s(pos, x2, y2);
+		immVertex2f(pos, x2, y1);
+		immVertex2f(pos, x2, y2);
 	}
 
 	/* left border area */
 	if (x1 > 0) { /* otherwise it draws the emboss of window over */
-		immVertex2s(pos, x1, y1);
-		immVertex2s(pos, x1, y2);
+		immVertex2f(pos, x1, y1);
+		immVertex2f(pos, x1, y2);
 	}
 
 	/* top border area */
 	if (y2 < sizey - 1) {
-		immVertex2s(pos, x1, y2);
-		immVertex2s(pos, x2, y2);
+		immVertex2f(pos, x1, y2);
+		immVertex2f(pos, x2, y2);
 	}
 
 	/* bottom border area */
 	if (y1 > 0) {
-		immVertex2s(pos, x1, y1);
-		immVertex2s(pos, x2, y1);
+		immVertex2f(pos, x1, y1);
+		immVertex2f(pos, x2, y1);
 	}
+
+	immEnd();
 }
 
 /**
@@ -270,7 +298,7 @@ void ED_screen_draw(wmWindow *win)
 
 	wmSubWindowSet(win, win->screen->mainwin);
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_SHORT, 2, NORMALIZE_INT_TO_FLOAT);
+	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* Note: first loop only draws if U.pixelsize > 1, skip otherwise */
@@ -278,31 +306,26 @@ void ED_screen_draw(wmWindow *win)
 		/* FIXME: doesn't our glLineWidth already scale by U.pixelsize? */
 		glLineWidth((2.0f * U.pixelsize) - 1);
 		immUniformColor3ub(0x50, 0x50, 0x50);
-		immBeginAtMost(GL_LINES, 8);
-		for (sa = win->screen->areabase.first; sa; sa = sa->next)
+
+		for (sa = win->screen->areabase.first; sa; sa = sa->next) {
 			drawscredge_area(sa, winsize_x, winsize_y, pos);
-		immEnd();
+		}
 	}
 
 	glLineWidth(1);
 	immUniformColor3ub(0, 0, 0);
+
 	for (sa = win->screen->areabase.first; sa; sa = sa->next) {
-		immBeginAtMost(GL_LINES, 8);
 		drawscredge_area(sa, winsize_x, winsize_y, pos);
 
 		/* gather area split/join info */
 		if (sa->flag & AREA_FLAG_DRAWJOINFROM) sa1 = sa;
 		if (sa->flag & AREA_FLAG_DRAWJOINTO) sa2 = sa;
 		if (sa->flag & (AREA_FLAG_DRAWSPLIT_H | AREA_FLAG_DRAWSPLIT_V)) sa3 = sa;
-		immEnd();
 	}
-	immUnbindProgram();
 
 	/* blended join arrow */
 	if (sa1 && sa2) {
-		pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
-		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
 		int dir = area_getorientation(sa1, sa2);
 		int dira = -1;
 		if (dir != -1) {
@@ -325,43 +348,55 @@ void ED_screen_draw(wmWindow *win)
 					break;
 			}
 		}
+
 		glEnable(GL_BLEND);
+
 		scrarea_draw_shape_dark(sa2, dir, pos);
 		scrarea_draw_shape_light(sa1, dira, pos);
+
 		glDisable(GL_BLEND);
-		
-		immUnbindProgram();
 	}
 
 	/* splitpoint */
 	if (sa3) {
-		pos = add_attrib(immVertexFormat(), "pos", GL_SHORT, 2, NORMALIZE_INT_TO_FLOAT);
-		unsigned int col = add_attrib(immVertexFormat(), "color", GL_UNSIGNED_BYTE, 4, NORMALIZE_INT_TO_FLOAT);
-		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-
 		glEnable(GL_BLEND);
-		immBegin(GL_LINES, 4);
-		immAttrib4ub(col, 255, 255, 255, 100);
+		immUniformColor4ub(255, 255, 255, 100);
+
+		immBegin(GL_LINES, 2);
 
 		if (sa3->flag & AREA_FLAG_DRAWSPLIT_H) {
-			immVertex2s(pos, sa3->totrct.xmin, win->eventstate->y);
-			immVertex2s(pos, sa3->totrct.xmax, win->eventstate->y);
-			immAttrib4ub(col, 0, 0, 0, 100);
-			immVertex2s(pos, sa3->totrct.xmin, win->eventstate->y + 1);
-			immVertex2s(pos, sa3->totrct.xmax, win->eventstate->y + 1);
+			immVertex2f(pos, sa3->totrct.xmin, win->eventstate->y);
+			immVertex2f(pos, sa3->totrct.xmax, win->eventstate->y);
+
+			immEnd();
+
+			immUniformColor4ub(0, 0, 0, 100);
+
+			immBegin(GL_LINES, 2);
+
+			immVertex2f(pos, sa3->totrct.xmin, win->eventstate->y + 1);
+			immVertex2f(pos, sa3->totrct.xmax, win->eventstate->y + 1);
 		}
 		else {
-			immVertex2s(pos, win->eventstate->x, sa3->totrct.ymin);
-			immVertex2s(pos, win->eventstate->x, sa3->totrct.ymax);
-			immAttrib4ub(col, 0, 0, 0, 100);
-			immVertex2s(pos, win->eventstate->x + 1, sa3->totrct.ymin);
-			immVertex2s(pos, win->eventstate->x + 1, sa3->totrct.ymax);
+			immVertex2f(pos, win->eventstate->x, sa3->totrct.ymin);
+			immVertex2f(pos, win->eventstate->x, sa3->totrct.ymax);
+
+			immEnd();
+
+			immUniformColor4ub(0, 0, 0, 100);
+
+			immBegin(GL_LINES, 2);
+
+			immVertex2f(pos, win->eventstate->x + 1, sa3->totrct.ymin);
+			immVertex2f(pos, win->eventstate->x + 1, sa3->totrct.ymax);
 		}
+
 		immEnd();
+
 		glDisable(GL_BLEND);
-		
-		immUnbindProgram();
 	}
+
+	immUnbindProgram();
 
 	win->screen->do_draw = false;
 }
