@@ -416,8 +416,10 @@ static bool visit_object(const IObject &object,
                          GHash *readers_map,
                          ImportSettings &settings)
 {
+	const char *full_name = object.getFullName().c_str();
+
 	if (!object.valid()) {
-		std::cerr << "  - " << object.getFullName() << ": object is invalid, skipping it and all its children.\n";
+		std::cerr << "  - " << full_name << ": object is invalid, skipping it and all its children.\n";
 		return false;
 	}
 
@@ -513,15 +515,10 @@ static bool visit_object(const IObject &object,
 
 		AlembicObjectPath *abc_path = static_cast<AlembicObjectPath *>(
 		                                  MEM_callocN(sizeof(AlembicObjectPath), "AlembicObjectPath"));
-
-		BLI_strncpy(abc_path->path, object.getFullName().c_str(), PATH_MAX);
-
+		BLI_strncpy(abc_path->path, full_name, PATH_MAX);
 		BLI_addtail(&settings.cache_file->object_paths, abc_path);
 
-		/* Cast to `void *` explicitly to avoid compiler errors because it
-		 * is a `const char *` which the compiler cast to `const void *`
-		 * instead of the expected `void *`. */
-		BLI_ghash_insert(readers_map, (void *)object.getFullName().c_str(), reader);
+		BLI_ghash_insert(readers_map, const_cast<char *>(full_name), reader);
 	}
 
 	return parent_is_part_of_this_object;
