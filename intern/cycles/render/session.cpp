@@ -230,7 +230,9 @@ void Session::run_gpu()
 				while(1) {
 					scoped_timer pause_timer;
 					pause_cond.wait(pause_lock);
-					progress.add_skip_time(pause_timer, params.background);
+					if(pause) {
+						progress.add_skip_time(pause_timer, params.background);
+					}
 
 					update_status_time(pause, no_tiles);
 					progress.set_update();
@@ -520,7 +522,9 @@ void Session::run_cpu()
 				while(1) {
 					scoped_timer pause_timer;
 					pause_cond.wait(pause_lock);
-					progress.add_skip_time(pause_timer, params.background);
+					if(pause) {
+						progress.add_skip_time(pause_timer, params.background);
+					}
 
 					update_status_time(pause, no_tiles);
 					progress.set_update();

@@ -683,7 +683,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
                         row.label("")
             else:
                 col.separator()
-                col.label(text="Two or more channels are needed below this strip.", icon="INFO")
+                col.label(text="Two or more channels are needed below this strip", icon="INFO")
 
 
         elif strip.type == 'TEXT':
