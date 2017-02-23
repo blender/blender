@@ -131,7 +131,6 @@ void imm_draw_line_box_3D(unsigned pos, float x1, float y1, float x2, float y2);
 /* Draw a standard checkerboard to indicate transparent backgrounds */
 void imm_draw_checker_box(float x1, float y1, float x2, float y2);
 
-void imm_draw_line(unsigned pos, float x1, float y1, float x2, float y2);
 /**
 * Pack color into 3 bytes
 *

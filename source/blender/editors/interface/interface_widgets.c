@@ -2702,7 +2702,12 @@ static void ui_draw_separator(const rcti *rect,  uiWidgetColors *wcol)
 	glEnable(GL_BLEND);
 	immUniformColor4ubv(col);
 	glLineWidth(1.0f);
-	imm_draw_line(pos, rect->xmin, y, rect->xmax, y);
+
+	immBegin(GL_LINES, 2);
+	immVertex2f(pos, rect->xmin, y);
+	immVertex2f(pos, rect->xmax, y);
+	immEnd();
+
 	glDisable(GL_BLEND);
 
 	immUnbindProgram();

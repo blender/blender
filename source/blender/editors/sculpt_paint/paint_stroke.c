@@ -151,9 +151,10 @@ static void paint_draw_smooth_cursor(bContext *C, int x, int y, void *customdata
 		immUniformColor4ubv(paint->paint_cursor_col);
 
 		immBegin(GL_LINES, 2);
-		imm_draw_line(pos, x, y, stroke->last_mouse_position[0],
-		              stroke->last_mouse_position[1]);
+		immVertex2f(pos, x, y);
+		immVertex2f(pos, stroke->last_mouse_position[0], stroke->last_mouse_position[1]);
 		immEnd();
+
 		immUnbindProgram();
 
 		glDisable(GL_BLEND);
@@ -176,25 +177,36 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	
 	immUniformColor4ub(0, 0, 0, paint->paint_cursor_col[3]);
+
+	immBegin(GL_LINES, 2);
+
 	if (stroke->constrain_line) {
-		imm_draw_line(pos, stroke->last_mouse_position[0], stroke->last_mouse_position[1],
-		        stroke->constrained_pos[0], stroke->constrained_pos[1]);
+		immVertex2f(pos, stroke->last_mouse_position[0], stroke->last_mouse_position[1]);
+		immVertex2f(pos, stroke->constrained_pos[0], stroke->constrained_pos[1]);
 	}
 	else {
-		imm_draw_line(pos, stroke->last_mouse_position[0], stroke->last_mouse_position[1],
-		        x, y);
+		immVertex2f(pos, stroke->last_mouse_position[0], stroke->last_mouse_position[1]);
+		immVertex2f(pos, x, y);
 	}
+
+	immEnd();
 
 	glLineWidth(1.0f);
 	immUniformColor4ub(255, 255, 255, paint->paint_cursor_col[3]);
+
+	immBegin(GL_LINES, 2);
+
 	if (stroke->constrain_line) {
-		imm_draw_line(pos, stroke->last_mouse_position[0], stroke->last_mouse_position[1],
-		        stroke->constrained_pos[0], stroke->constrained_pos[1]);
+		immVertex2f(pos, stroke->last_mouse_position[0], stroke->last_mouse_position[1]);
+		immVertex2f(pos, stroke->constrained_pos[0], stroke->constrained_pos[1]);
 	}
 	else {
-		imm_draw_line(pos, stroke->last_mouse_position[0], stroke->last_mouse_position[1],
-		        x, y);
+		immVertex2f(pos, stroke->last_mouse_position[0], stroke->last_mouse_position[1]);
+		immVertex2f(pos, x, y);
 	}
+
+	immEnd();
+
 	immUnbindProgram();
 
 	setlinestyle(0);

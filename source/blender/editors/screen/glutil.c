@@ -214,14 +214,6 @@ void imm_draw_line_box(unsigned pos, float x1, float y1, float x2, float y2)
 	immEnd();
 }
 
-void imm_draw_line(unsigned pos, float x1, float y1, float x2, float y2)
-{
-	immBegin(PRIM_LINES, 2);
-	immVertex2f(pos, x1, y1);
-	immVertex2f(pos, x2, y2);
-	immEnd();
-}
-
 void imm_draw_line_box_3D(unsigned pos, float x1, float y1, float x2, float y2)
 {
 	/* use this version when VertexFormat has a vec3 position */

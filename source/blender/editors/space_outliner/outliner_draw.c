@@ -1651,7 +1651,12 @@ static void outliner_draw_struct_marks(ARegion *ar, SpaceOops *soops, ListBase *
 				unsigned pos = add_attrib(format, "pos", GL_FLOAT, 2, KEEP_FLOAT);
 				immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 				immThemeColorShadeAlpha(TH_BACK, -15, -200);
-				imm_draw_line(pos, 0, (float)*starty + UI_UNIT_Y, ar->v2d.cur.xmax, (float)*starty + UI_UNIT_Y);
+
+				immBegin(GL_LINES, 2);
+				immVertex2f(pos, 0, (float)*starty + UI_UNIT_Y);
+				immVertex2f(pos, ar->v2d.cur.xmax, (float)*starty + UI_UNIT_Y);
+				immEnd();
+
 				immUnbindProgram();
 			}
 		}

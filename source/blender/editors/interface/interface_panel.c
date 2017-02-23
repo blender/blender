@@ -453,9 +453,16 @@ static void ui_draw_anti_x(unsigned int pos, float x1, float y1, float x2, float
 	glEnable(GL_BLEND);
 
 	glLineWidth(2.0);
-	
-	imm_draw_line(pos, x1, y1, x2, y2);
-	imm_draw_line(pos, x1, y2, x2, y1);
+
+	immBegin(GL_LINES, 4);
+
+	immVertex2f(pos, x1, y1);
+	immVertex2f(pos, x2, y2);
+
+	immVertex2f(pos, x1, y2);
+	immVertex2f(pos, x2, y1);
+
+	immEnd();
 	
 	glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
@@ -487,12 +494,29 @@ static void ui_draw_panel_scalewidget(unsigned int pos, const rcti *rect)
 	
 	glEnable(GL_BLEND);
 	immUniformColor4ub(255, 255, 255, 50);
-	imm_draw_line(pos, xmin, ymin, xmax, ymax);
-	imm_draw_line(pos, xmin + dx, ymin, xmax, ymax - dy);
+
+	immBegin(GL_LINES, 4);
+
+	immVertex2f(pos, xmin, ymin);
+	immVertex2f(pos, xmax, ymax);
+
+	immVertex2f(pos, xmin + dx, ymin);
+	immVertex2f(pos, xmax, ymax - dy);
+
+	immEnd();
 	
 	immUniformColor4ub(0, 0, 0, 50);
-	imm_draw_line(pos, xmin, ymin + 1, xmax, ymax + 1);
-	imm_draw_line(pos, xmin + dx, ymin + 1, xmax, ymax - dy + 1);
+
+	immBegin(GL_LINES, 4);
+
+	immVertex2f(pos, xmin, ymin + 1);
+	immVertex2f(pos, xmax, ymax + 1);
+
+	immVertex2f(pos, xmin + dx, ymin + 1);
+	immVertex2f(pos, xmax, ymax - dy + 1);
+
+	immEnd();
+
 	glDisable(GL_BLEND);
 }
 static void ui_draw_panel_dragwidget(unsigned int pos, const rctf *rect)
@@ -600,8 +624,15 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 			immUniformThemeColor(TH_PANEL_HEADER);
 			immRectf(pos, minx, headrect.ymin + 1, maxx, y);
 
-			imm_draw_line(pos, minx, y, maxx, y);
-			imm_draw_line(pos, minx, y, maxx, y);
+			immBegin(GL_LINES, 4);
+
+			immVertex2f(pos, minx, y);
+			immVertex2f(pos, maxx, y);
+
+			immVertex2f(pos, minx, y);
+			immVertex2f(pos, maxx, y);
+
+			immEnd();
 		}
 		else if (!(panel->runtime_flag & PNL_FIRST)) {
 			/* draw embossed separator */
@@ -612,9 +643,18 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 			}
 
 			immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
-			imm_draw_line(pos, minx, y, maxx, y);
+
+			immBegin(GL_LINES, 2);
+			immVertex2f(pos, minx, y);
+			immVertex2f(pos, maxx, y);
+			immEnd();
+
 			immUniformColor4f(1.0f, 1.0f, 1.0f, 0.25f);
-			imm_draw_line(pos, minx, y - 1, maxx, y - 1);
+
+			immBegin(GL_LINES, 2);
+			immVertex2f(pos, minx, y - 1);
+			immVertex2f(pos, maxx, y - 1);
+			immEnd();
 		}
 
 		glDisable(GL_BLEND);
