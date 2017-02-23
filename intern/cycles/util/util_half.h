@@ -110,6 +110,28 @@ ccl_device_inline float4 half4_to_float4(half4 h)
 	return f;
 }
 
+ccl_device_inline half float_to_half(float f)
+{
+	const uint u = __float_as_uint(f);
+	/* Sign bit, shifted to it's position. */
+	uint sign_bit = u & 0x80000000;
+	sign_bit >>= 16;
+	/* Exponent. */
+	uint exponent_bits = u & 0x7f800000;
+	/* Non-sign bits. */
+	uint value_bits = u & 0x7fffffff;
+	value_bits >>= 13;  /* Align mantissa on MSB. */
+	value_bits -= 0x1c000;  /* Adjust bias. */
+	/* Flush-to-zero. */
+	value_bits = (exponent_bits < 0x38800000) ? 0 : value_bits;
+	/* Clamp-to-max. */
+	value_bits = (exponent_bits > 0x47000000) ? 0x7bff : value_bits;
+	/* Denormals-as-zero. */
+	value_bits = (exponent_bits == 0 ? 0 : value_bits);
+	/* Re-insert sign bit and return. */
+	return (value_bits | sign_bit);
+}
+
 #endif
 
 #endif
