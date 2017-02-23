@@ -67,8 +67,6 @@
 #  define BIG_LONG SWAP_LONG
 #endif
 
-typedef unsigned char uchar;
-
 #define IMB_DPI_DEFAULT 72.0f
 
 #endif	/* __IMBUF_H__ */

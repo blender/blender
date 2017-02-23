@@ -36,6 +36,7 @@
 struct BezTriple;
 struct Curve;
 struct EditNurb;
+struct GHash;
 struct ListBase;
 struct Main;
 struct Nurb;
@@ -51,6 +52,13 @@ typedef struct CurveCache {
 	ListBase deformed_nurbs;
 	struct Path *path;
 } CurveCache;
+
+/* Definitions needed for shape keys */
+typedef struct CVKeyIndex {
+	void *orig_cv;
+	int key_index, nu_index, pt_index, vertex_index;
+	bool switched;
+} CVKeyIndex;
 
 #define KNOTSU(nu)      ( (nu)->orderu + (nu)->pntsu + (((nu)->flagu & CU_NURB_CYCLIC) ? ((nu)->orderu - 1) : 0) )
 #define KNOTSV(nu)      ( (nu)->orderv + (nu)->pntsv + (((nu)->flagv & CU_NURB_CYCLIC) ? ((nu)->orderv - 1) : 0) )
@@ -108,7 +116,8 @@ void BK_curve_nurbs_vertexCos_apply(struct ListBase *lb, float (*vertexCos)[3]);
 float (*BKE_curve_nurbs_keyVertexCos_get(struct ListBase *lb, float *key))[3];
 void BKE_curve_nurbs_keyVertexTilts_apply(struct ListBase *lb, float *key);
 
-void BKE_curve_editNurb_keyIndex_free(struct EditNurb *editnurb);
+void BKE_curve_editNurb_keyIndex_delCV(struct GHash *keyindex, const void *cv);
+void BKE_curve_editNurb_keyIndex_free(struct GHash **keyindex);
 void BKE_curve_editNurb_free(struct Curve *cu);
 struct ListBase *BKE_curve_editNurbs_get(struct Curve *cu);
 

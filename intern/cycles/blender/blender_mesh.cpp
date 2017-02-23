@@ -777,6 +777,15 @@ static void create_mesh(Scene *scene,
 			int shader = clamp(f->material_index(), 0, used_shaders.size()-1);
 			bool smooth = f->use_smooth() || use_loop_normals;
 
+			if(use_loop_normals) {
+				BL::Array<float, 12> loop_normals = f->split_normals();
+				for(int i = 0; i < n; i++) {
+					N[vi[i]] = make_float3(loop_normals[i * 3],
+					                       loop_normals[i * 3 + 1],
+					                       loop_normals[i * 3 + 2]);
+				}
+			}
+
 			/* Create triangles.
 			 *
 			 * NOTE: Autosmooth is already taken care about.

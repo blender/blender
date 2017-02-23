@@ -50,7 +50,8 @@ static void node_composit_init_glare(bNodeTree *UNUSED(ntree), bNode *node)
 	ndg->colmod = 0.25;
 	ndg->mix = 0;
 	ndg->threshold = 1;
-	ndg->angle = 4;
+	ndg->star_45 = true;
+	ndg->streaks = 4;
 	ndg->angle_ofs = 0.0f;
 	ndg->fade = 0.9;
 	ndg->size = 8;

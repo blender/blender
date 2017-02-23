@@ -44,18 +44,18 @@ void GlareSimpleStarOperation::generateGlare(float *data, MemoryBuffer *inputTil
 				xp = x + i;
 				tbuf1->read(c, x, y);
 				mul_v3_fl(c, f1);
-				tbuf1->read(tc, (settings->angle ? xm : x), ym);
+				tbuf1->read(tc, (settings->star_45 ? xm : x), ym);
 				madd_v3_v3fl(c, tc, f2);
-				tbuf1->read(tc, (settings->angle ? xp : x), yp);
+				tbuf1->read(tc, (settings->star_45 ? xp : x), yp);
 				madd_v3_v3fl(c, tc, f2);
 				c[3] = 1.0f;
 				tbuf1->writePixel(x, y, c);
 
 				tbuf2->read(c, x, y);
 				mul_v3_fl(c, f1);
-				tbuf2->read(tc, xm, (settings->angle ? yp : y));
+				tbuf2->read(tc, xm, (settings->star_45 ? yp : y));
 				madd_v3_v3fl(c, tc, f2);
-				tbuf2->read(tc, xp, (settings->angle ? ym : y));
+				tbuf2->read(tc, xp, (settings->star_45 ? ym : y));
 				madd_v3_v3fl(c, tc, f2);
 				c[3] = 1.0f;
 				tbuf2->writePixel(x, y, c);
@@ -73,18 +73,18 @@ void GlareSimpleStarOperation::generateGlare(float *data, MemoryBuffer *inputTil
 				xp = x + i;
 				tbuf1->read(c, x, y);
 				mul_v3_fl(c, f1);
-				tbuf1->read(tc, (settings->angle ? xm : x), ym);
+				tbuf1->read(tc, (settings->star_45 ? xm : x), ym);
 				madd_v3_v3fl(c, tc, f2);
-				tbuf1->read(tc, (settings->angle ? xp : x), yp);
+				tbuf1->read(tc, (settings->star_45 ? xp : x), yp);
 				madd_v3_v3fl(c, tc, f2);
 				c[3] = 1.0f;
 				tbuf1->writePixel(x, y, c);
 
 				tbuf2->read(c, x, y);
 				mul_v3_fl(c, f1);
-				tbuf2->read(tc, xm, (settings->angle ? yp : y));
+				tbuf2->read(tc, xm, (settings->star_45 ? yp : y));
 				madd_v3_v3fl(c, tc, f2);
-				tbuf2->read(tc, xp, (settings->angle ? ym : y));
+				tbuf2->read(tc, xp, (settings->star_45 ? ym : y));
 				madd_v3_v3fl(c, tc, f2);
 				c[3] = 1.0f;
 				tbuf2->writePixel(x, y, c);

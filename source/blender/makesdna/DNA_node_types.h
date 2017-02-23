@@ -668,7 +668,8 @@ typedef struct NodeScriptDict {
 /* qdn: glare node */
 typedef struct NodeGlare {
 	char quality, type, iter;
-	char angle, pad_c1, size, pad[2];
+	/* XXX angle is only kept for backward/forward compatibility, was used for two different things, see T50736. */
+	char angle DNA_DEPRECATED, pad_c1, size, star_45, streaks;
 	float colmod, mix, threshold, fade;
 	float angle_ofs, pad_f1;
 } NodeGlare;

@@ -18,8 +18,19 @@ CCL_NAMESPACE_BEGIN
 
 /* Noise */
 
-ccl_device_inline void svm_noise(float3 p, float detail, float distortion, float *fac, float3 *color)
+ccl_device void svm_node_tex_noise(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
 {
+	uint co_offset, scale_offset, detail_offset, distortion_offset, fac_offset, color_offset;
+
+	decode_node_uchar4(node.y, &co_offset, &scale_offset, &detail_offset, &distortion_offset);
+	decode_node_uchar4(node.z, &color_offset, &fac_offset, NULL, NULL);
+
+	uint4 node2 = read_node(kg, offset);
+
+	float scale = stack_load_float_default(stack, scale_offset, node2.x);
+	float detail = stack_load_float_default(stack, detail_offset, node2.y);
+	float distortion = stack_load_float_default(stack, distortion_offset, node2.z);
+	float3 p = stack_load_float3(stack, co_offset) * scale;
 	int hard = 0;
 
 	if(distortion != 0.0f) {
@@ -32,36 +43,17 @@ ccl_device_inline void svm_noise(float3 p, float detail, float distortion, float
 		p += r;
 	}
 
-	*fac = noise_turbulence(p, detail, hard);
-	*color = make_float3(*fac,
-		noise_turbulence(make_float3(p.y, p.x, p.z), detail, hard),
-		noise_turbulence(make_float3(p.y, p.z, p.x), detail, hard));
-}
+	float f = noise_turbulence(p, detail, hard);
 
-ccl_device void svm_node_tex_noise(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
-{
-	uint co_offset, scale_offset, detail_offset, distortion_offset, fac_offset, color_offset;
-
-	decode_node_uchar4(node.y, &co_offset, &scale_offset, &detail_offset, &distortion_offset);
-
-	uint4 node2 = read_node(kg, offset);
-
-	float scale = stack_load_float_default(stack, scale_offset, node2.x);
-	float detail = stack_load_float_default(stack, detail_offset, node2.y);
-	float distortion = stack_load_float_default(stack, distortion_offset, node2.z);
-	float3 co = stack_load_float3(stack, co_offset);
-
-	float3 color;
-	float f;
-
-	svm_noise(co*scale, detail, distortion, &f, &color);
-
-	decode_node_uchar4(node.z, &color_offset, &fac_offset, NULL, NULL);
-
-	if(stack_valid(fac_offset))
+	if(stack_valid(fac_offset)) {
 		stack_store_float(stack, fac_offset, f);
-	if(stack_valid(color_offset))
+	}
+	if(stack_valid(color_offset)) {
+		float3 color = make_float3(f,
+			noise_turbulence(make_float3(p.y, p.x, p.z), detail, hard),
+			noise_turbulence(make_float3(p.y, p.z, p.x), detail, hard));
 		stack_store_float3(stack, color_offset, color);
+	}
 }
 
 CCL_NAMESPACE_END

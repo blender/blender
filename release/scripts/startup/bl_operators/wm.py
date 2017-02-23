@@ -1008,11 +1008,9 @@ class WM_OT_doc_view(Operator):
 
     doc_id = doc_id
     if bpy.app.version_cycle == "release":
-        _prefix = ("https://www.blender.org/api/blender_python_api_%s%s_release" %
-                   ("_".join(str(v) for v in bpy.app.version[:2]), bpy.app.version_char))
+        _prefix = ("https://docs.blender.org/api/blender_python_api_current")
     else:
-        _prefix = ("https://www.blender.org/api/blender_python_api_%s" %
-                   "_".join(str(v) for v in bpy.app.version))
+        _prefix = ("https://docs.blender.org/api/blender_python_api_master")
 
     def execute(self, context):
         url = _wm_doc_get_id(self.doc_id, do_url=True, url_prefix=self._prefix)

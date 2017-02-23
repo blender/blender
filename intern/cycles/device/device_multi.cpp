@@ -162,6 +162,7 @@ public:
 	void mem_free(device_memory& mem)
 	{
 		device_ptr tmp = mem.device_pointer;
+		stats.mem_free(mem.device_size);
 
 		foreach(SubDevice& sub, devices) {
 			mem.device_pointer = sub.ptr_map[tmp];
@@ -170,7 +171,6 @@ public:
 		}
 
 		mem.device_pointer = 0;
-		stats.mem_free(mem.device_size);
 	}
 
 	void const_copy_to(const char *name, void *host, size_t size)
@@ -202,6 +202,7 @@ public:
 	void tex_free(device_memory& mem)
 	{
 		device_ptr tmp = mem.device_pointer;
+		stats.mem_free(mem.device_size);
 
 		foreach(SubDevice& sub, devices) {
 			mem.device_pointer = sub.ptr_map[tmp];
@@ -210,7 +211,6 @@ public:
 		}
 
 		mem.device_pointer = 0;
-		stats.mem_free(mem.device_size);
 	}
 
 	void pixels_alloc(device_memory& mem)

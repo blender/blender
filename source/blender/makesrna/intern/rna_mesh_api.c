@@ -209,6 +209,11 @@ static void rna_Mesh_flip_normals(Mesh *mesh)
 	DAG_id_tag_update(&mesh->id, 0);
 }
 
+static void rna_Mesh_split_faces(Mesh *mesh, int free_loop_normals)
+{
+	BKE_mesh_split_faces(mesh, free_loop_normals != 0);
+}
+
 #else
 
 void RNA_api_mesh(StructRNA *srna)
@@ -240,8 +245,10 @@ void RNA_api_mesh(StructRNA *srna)
 	func = RNA_def_function(srna, "free_normals_split", "rna_Mesh_free_normals_split");
 	RNA_def_function_ui_description(func, "Free split vertex normals");
 
-	func = RNA_def_function(srna, "split_faces", "BKE_mesh_split_faces");
+	func = RNA_def_function(srna, "split_faces", "rna_Mesh_split_faces");
 	RNA_def_function_ui_description(func, "Split faces based on the edge angle");
+	RNA_def_boolean(func, "free_loop_normals", 1, "Free Loop Notmals",
+	                "Free loop normals custom data layer");
 
 	func = RNA_def_function(srna, "calc_tangents", "rna_Mesh_calc_tangents");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);

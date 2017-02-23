@@ -1122,7 +1122,7 @@ static void bm_mesh_calc_uvs_sphere_face(BMFace *f, const int cd_loop_uv_offset)
 		}
 
 		/* Shift borderline coordinates to the left. */
-		if (fabsf(theta - M_PI) < 0.0001f) {
+		if (fabsf(theta - (float)M_PI) < 0.0001f) {
 			theta = -M_PI;
 		}
 

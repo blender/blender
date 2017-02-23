@@ -1027,6 +1027,25 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 			{
 				/* pass */
 			}
+			else if ((ntree->type == NTREE_COMPOSIT) && (node->type == CMP_NODE_GLARE)) {
+				/* Simple forward compat for fix for T50736.
+				 * Not ideal (there is no ideal solution here), but should do for now. */
+				NodeGlare *ndg = node->storage;
+				/* Not in undo case. */
+				if (!wd->current) {
+					switch (ndg->type) {
+						case 2:  /* Grrrr! magic numbers :( */
+							ndg->angle = ndg->streaks;
+							break;
+						case 0:
+							ndg->angle = ndg->star_45;
+							break;
+						default:
+							break;
+					}
+				}
+				writestruct_id(wd, DATA, node->typeinfo->storagename, 1, node->storage);
+			}
 			else {
 				writestruct_id(wd, DATA, node->typeinfo->storagename, 1, node->storage);
 			}
