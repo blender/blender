@@ -216,7 +216,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 			format = immVertexFormat();
 			pos_id = add_attrib(format, "pos", COMP_F32, 2, KEEP_FLOAT);
 			unsigned int size_id = add_attrib(format, "size", COMP_F32, 1, KEEP_FLOAT);
-			unsigned int color_id = add_attrib(format, "color", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
+			unsigned int color_id = add_attrib(format, "color", COMP_F32, 4, KEEP_FLOAT);
 			unsigned int outline_color_id = add_attrib(format, "outlineColor", COMP_U8, 4, NORMALIZE_INT_TO_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
@@ -225,7 +225,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 			/* all same size with black outline */
 			immAttrib1f(size_id, 2.0f * STRIP_HEIGHT_HALF);
-			immAttrib3ub(outline_color_id, 0, 0, 0);
+			immAttrib4ub(outline_color_id, 0, 0, 0, 255);
 
 			y = (float) CHANNEL_FIRST; /* start again at the top */
 			for (channel = dopesheet->channels.first; channel; channel = channel->next) {
