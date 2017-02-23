@@ -236,37 +236,50 @@ void AbcObjectReader::readObjectMatrix(const float time)
 	}
 }
 
-void AbcObjectReader::read_matrix(float mat[4][4], const float time, const float scale, bool &is_constant)
-{
-	IXform ixform;
-	IObject ixform_parent;
 
+Alembic::AbcGeom::IXform AbcObjectReader::xform()
+{
 	/* Check that we have an empty object (locator, bone head/tail...).  */
 	if (IXform::matches(m_iobject.getMetaData())) {
-		ixform = IXform(m_iobject, Alembic::AbcGeom::kWrapExisting);
-		ixform_parent = m_iobject.getParent();
+		return IXform(m_iobject, Alembic::AbcGeom::kWrapExisting);
 	}
-	/* Check that we have an object with actual data. */
-	else if (IXform::matches(m_iobject.getParent().getMetaData())) {
-		ixform = IXform(m_iobject.getParent(), Alembic::AbcGeom::kWrapExisting);
-		ixform_parent = m_iobject.getParent().getParent();
+
+	/* Check that we have an object with actual data, in which case the
+	 * parent Alembic object should contain the transform. */
+	IObject abc_parent = m_iobject.getParent();
+
+	/* The archive's top object can be recognised by not having a parent. */
+	if (abc_parent.getParent()
+	        && IXform::matches(abc_parent.getMetaData())) {
+		return IXform(abc_parent, Alembic::AbcGeom::kWrapExisting);
 	}
+
 	/* Should not happen. */
-	else {
-		std::cerr << "AbcObjectReader::read_matrix: "
-		          << "unable to find IXform for Alembic object '"
-		          << m_iobject.getFullName() << "'\n";
-		BLI_assert(false);
+	std::cerr << "AbcObjectReader::xform(): "
+	          << "unable to find IXform for Alembic object '"
+	          << m_iobject.getFullName() << "'\n";
+	BLI_assert(false);
+
+	return IXform();
+}
+
+
+void AbcObjectReader::read_matrix(float mat[4][4], const float time, const float scale, bool &is_constant)
+{
+	IXform ixform = xform();
+	if (!ixform) {
 		return;
 	}
 
-	const IXformSchema &schema(ixform.getSchema());
-
+	const IXformSchema & schema(ixform.getSchema());
 	if (!schema.valid()) {
+		std::cerr << "Alembic object " << ixform.getFullName()
+		          << " has an invalid schema." << std::endl;
 		return;
 	}
 
 	bool has_alembic_parent;
+	IObject ixform_parent = ixform.getParent();
 	if (!ixform_parent.getParent()) {
 		/* The archive top object certainly is not a transform itself, so handle
 		 * it as "no parent". */

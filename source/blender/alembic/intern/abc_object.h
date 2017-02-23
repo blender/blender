@@ -158,6 +158,12 @@ public:
 
 	const Alembic::Abc::IObject &iobject() const;
 
+	/**
+	 * Returns the transform of this object. This can be the Alembic object
+	 * itself (in case of an Empty) or it can be the parent Alembic object.
+	 */
+	virtual Alembic::AbcGeom::IXform xform();
+
 	Object *object() const;
 	void object(Object *ob);
 
