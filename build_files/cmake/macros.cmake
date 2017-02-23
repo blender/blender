@@ -1198,7 +1198,7 @@ function(get_blender_version)
 	string(LENGTH "${_out_version_char}" _out_version_char_len)
 	if(NOT _out_version_char_len EQUAL 1)
 		set(_out_version_char "")
-	elseif(NOT ${_out_version_char} MATCHES "[a-z]+")
+	elseif(NOT ${_out_version_char} MATCHES "[a-z]?")
 		message(FATAL_ERROR "Version parsing failed for BLENDER_VERSION_CHAR")
 	endif()
 

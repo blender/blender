@@ -35,7 +35,7 @@
 
 /* used by packaging tools */
 /* can be left blank, otherwise a,b,c... etc with no quotes */
-#define BLENDER_VERSION_CHAR    b
+#define BLENDER_VERSION_CHAR    c
 /* alpha/beta/rc/release, docs use this */
 #define BLENDER_VERSION_CYCLE   release
 
