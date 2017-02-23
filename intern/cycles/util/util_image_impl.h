@@ -19,6 +19,7 @@
 
 #include "util_algorithm.h"
 #include "util_debug.h"
+#include "util_half.h"
 #include "util_image.h"
 
 CCL_NAMESPACE_BEGIN
@@ -36,6 +37,52 @@ const T *util_image_read(const vector<T>& pixels,
 	                      (size_t)y * width +
 	                      (size_t)x) * components;
 	return &pixels[index];
+}
+
+/* Cast input pixel from unknown storage to float. */
+template<typename T>
+inline float cast_to_float(T value);
+
+template<>
+inline float cast_to_float(float value)
+{
+	return value;
+}
+template<>
+inline float cast_to_float(uchar value)
+{
+	return (float)value / 255.0f;
+}
+template<>
+inline float cast_to_float(half value)
+{
+	return half_to_float(value);
+}
+
+/* Cast float value to output pixel type. */
+template<typename T>
+inline T cast_from_float(float value);
+
+template<>
+inline float cast_from_float(float value)
+{
+	return value;
+}
+template<>
+inline uchar cast_from_float(float value)
+{
+	if(value < 0.0f) {
+		return 0;
+	}
+	else if(value > (1.0f - 0.5f / 255.0f)) {
+		return 255;
+	}
+	return (uchar)((255.0f * value) + 0.5f);
+}
+template<>
+inline half cast_from_float(float value)
+{
+	return float_to_half(value);
 }
 
 template<typename T>
@@ -71,15 +118,22 @@ void util_image_downscale_sample(const vector<T>& pixels,
 				                                 components,
 				                                 nx, ny, nz);
 				for(size_t k = 0; k < components; ++k) {
-					accum[k] += pixel[k];
+					accum[k] += cast_to_float(pixel[k]);
 				}
 				++count;
 			}
 		}
 	}
-	const float inv_count = 1.0f / (float)count;
-	for(size_t k = 0; k < components; ++k) {
-		result[k] = T(accum[k] * inv_count);
+	if(count != 0) {
+		const float inv_count = 1.0f / (float)count;
+		for(size_t k = 0; k < components; ++k) {
+			result[k] = cast_from_float<T>(accum[k] * inv_count);
+		}
+	}
+	else {
+		for(size_t k = 0; k < components; ++k) {
+			result[k] = T(0.0f);
+		}
 	}
 }
 
