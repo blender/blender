@@ -72,7 +72,7 @@ static void tracking_segment_point_cb(void *userdata, MovieTrackingTrack *UNUSED
 	immVertex2f(data->pos, scene_framenr, val);
 }
 
-static void tracking_segment_start_cb(void *userdata, MovieTrackingTrack *track, int coord)
+static void tracking_segment_start_cb(void *userdata, MovieTrackingTrack *track, int coord, bool is_point)
 {
 	TrackMotionCurveUserData *data = (TrackMotionCurveUserData *) userdata;
 	float col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -90,8 +90,13 @@ static void tracking_segment_start_cb(void *userdata, MovieTrackingTrack *track,
 
 	immUniformColor4fv(col);
 
-	/* Graph can be composed of smaller segments, if any marker is disabled */
-	immBeginAtMost(GL_LINE_STRIP, track->markersnr);
+	if (is_point) {
+		immBeginAtMost(GL_POINTS, 1);
+	}
+	else {
+		/* Graph can be composed of smaller segments, if any marker is disabled */
+		immBeginAtMost(GL_LINE_STRIP, track->markersnr);
+	}
 }
 
 static void tracking_segment_end_cb(void *UNUSED(userdata), int UNUSED(coord))
@@ -220,7 +225,7 @@ static void tracking_error_segment_point_cb(void *userdata,
 	}
 }
 
-static void tracking_error_segment_start_cb(void *userdata, MovieTrackingTrack *track, int coord)
+static void tracking_error_segment_start_cb(void *userdata, MovieTrackingTrack *track, int coord, bool is_point)
 {
 	if (coord == 1) {
 		TrackErrorCurveUserData *data = (TrackErrorCurveUserData *) userdata;
@@ -237,8 +242,13 @@ static void tracking_error_segment_start_cb(void *userdata, MovieTrackingTrack *
 
 		immUniformColor4fv(col);
 
-		/* Graph can be composed of smaller segments, if any marker is disabled */
-		immBeginAtMost(GL_LINE_STRIP, track->markersnr);
+		if (is_point) { /* This probably never happens here, but just in case... */
+			immBeginAtMost(GL_POINTS, 1);
+		}
+		else {
+			/* Graph can be composed of smaller segments, if any marker is disabled */
+			immBeginAtMost(GL_LINE_STRIP, track->markersnr);
+		}
 	}
 }
 
@@ -323,11 +333,12 @@ void clip_draw_graph(SpaceClip *sc, ARegion *ar, Scene *scene)
 	UI_view2d_grid_draw(v2d, grid, V2D_GRIDLINES_ALL);
 	UI_view2d_grid_free(grid);
 
-	unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
-
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
 	if (clip) {
+		unsigned int pos = add_attrib(immVertexFormat(), "pos", GL_FLOAT, 2, KEEP_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+		glPointSize(3.0f);
+
 		if (sc->flag & SC_SHOW_GRAPH_TRACKS_MOTION) {
 			draw_tracks_motion_curves(v2d, sc, pos);
 		}
@@ -339,9 +350,9 @@ void clip_draw_graph(SpaceClip *sc, ARegion *ar, Scene *scene)
 		if (sc->flag & SC_SHOW_GRAPH_FRAMES) {
 			draw_frame_curves(sc, pos);
 		}
-	}
 
-	immUnbindProgram();
+		immUnbindProgram();
+	}
 
 	/* frame range */
 	clip_draw_sfra_efra(v2d, scene);

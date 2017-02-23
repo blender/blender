@@ -61,7 +61,7 @@ void clip_graph_tracking_values_iterate_track(
         SpaceClip *sc, MovieTrackingTrack *track, void *userdata,
         void (*func)(void *userdata, MovieTrackingTrack *track, MovieTrackingMarker *marker, int coord,
                      int scene_framenr, float val),
-        void (*segment_start)(void *userdata, MovieTrackingTrack *track, int coord),
+        void (*segment_start)(void *userdata, MovieTrackingTrack *track, int coord, bool is_point),
         void (*segment_end)(void *userdata, int coord))
 {
 	MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -90,8 +90,14 @@ void clip_graph_tracking_values_iterate_track(
 			}
 
 			if (!open) {
-				if (segment_start)
-					segment_start(userdata, track, coord);
+				if (segment_start) {
+					if ((i + 1) == track->markersnr) {
+						segment_start(userdata, track, coord, true);
+					}
+					else {
+						segment_start(userdata, track, coord, (track->markers[i + 1].flag & MARKER_DISABLED));
+					}
+				}
 
 				open = true;
 				prevval = marker->pos[coord];
@@ -122,7 +128,7 @@ void clip_graph_tracking_values_iterate(
         SpaceClip *sc, bool selected_only, bool include_hidden, void *userdata,
         void (*func)(void *userdata, MovieTrackingTrack *track, MovieTrackingMarker *marker,
                      int coord, int scene_framenr, float val),
-        void (*segment_start)(void *userdata, MovieTrackingTrack *track, int coord),
+        void (*segment_start)(void *userdata, MovieTrackingTrack *track, int coord, bool is_point),
         void (*segment_end)(void *userdata, int coord))
 {
 	MovieClip *clip = ED_space_clip_get_clip(sc);

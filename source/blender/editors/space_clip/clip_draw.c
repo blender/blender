@@ -889,7 +889,7 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 		float tilt_ctrl[2];
 
 		if (!outline) {
-			immUniformColor3fv((track->search_flag & SELECT) ? scol : col);
+			immUniformColor3fv((track->pat_flag & SELECT) ? scol : col);
 		}
 
 		/* pattern's corners sliding squares */
