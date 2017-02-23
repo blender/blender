@@ -413,7 +413,7 @@ void ABC_export(
  */
 static bool visit_object(const IObject &object,
                          std::vector<AbcObjectReader *> &readers,
-                         GHash *parent_map,
+                         GHash *readers_map,
                          ImportSettings &settings)
 {
 	if (!object.valid()) {
@@ -427,7 +427,7 @@ static bool visit_object(const IObject &object,
 	size_t children_claiming_this_object = 0;
 	size_t num_children = object.getNumChildren();
 	for (size_t i = 0; i < num_children; ++i) {
-		bool child_claims_this_object = visit_object(object.getChild(i), readers, parent_map, settings);
+		bool child_claims_this_object = visit_object(object.getChild(i), readers, readers_map, settings);
 		children_claiming_this_object += child_claims_this_object ? 1 : 0;
 	}
 
@@ -521,7 +521,7 @@ static bool visit_object(const IObject &object,
 		/* Cast to `void *` explicitly to avoid compiler errors because it
 		 * is a `const char *` which the compiler cast to `const void *`
 		 * instead of the expected `void *`. */
-		BLI_ghash_insert(parent_map, (void *)object.getFullName().c_str(), reader);
+		BLI_ghash_insert(readers_map, (void *)object.getFullName().c_str(), reader);
 	}
 
 	return parent_is_part_of_this_object;
@@ -539,7 +539,7 @@ struct ImportJobData {
 	char filename[1024];
 	ImportSettings settings;
 
-	GHash *parent_map;
+	GHash *reader_map;
 	std::vector<AbcObjectReader *> readers;
 
 	short *stop;
@@ -616,10 +616,10 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 	*data->do_update = true;
 	*data->progress = 0.05f;
 
-	data->parent_map = BLI_ghash_str_new("alembic parent ghash");
+	data->reader_map = BLI_ghash_str_new("alembic parent ghash");
 
 	/* Parse Alembic Archive. */
-	visit_object(archive->getTop(), data->readers, data->parent_map, data->settings);
+	visit_object(archive->getTop(), data->readers, data->reader_map, data->settings);
 
 	if (G.is_break) {
 		data->was_cancelled = true;
@@ -691,7 +691,7 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 
 		while (alembic_parent) {
 			parent_reader = reinterpret_cast<AbcObjectReader *>(
-			                    BLI_ghash_lookup(data->parent_map, alembic_parent.getFullName().c_str()));
+			                    BLI_ghash_lookup(data->reader_map, alembic_parent.getFullName().c_str()));
 			if (parent_reader != NULL) {
 				break;  // found the parent reader.
 			}
@@ -764,8 +764,8 @@ static void import_endjob(void *user_data)
 		}
 	}
 
-	if (data->parent_map) {
-		BLI_ghash_free(data->parent_map, NULL, NULL);
+	if (data->reader_map) {
+		BLI_ghash_free(data->reader_map, NULL, NULL);
 	}
 
 	switch (data->error_code) {
@@ -801,7 +801,7 @@ void ABC_import(bContext *C, const char *filepath, float scale, bool is_sequence
 	job->settings.sequence_len = sequence_len;
 	job->settings.offset = offset;
 	job->settings.validate_meshes = validate_meshes;
-	job->parent_map = NULL;
+	job->reader_map = NULL;
 	job->error_code = ABC_NO_ERROR;
 	job->was_cancelled = false;
 
