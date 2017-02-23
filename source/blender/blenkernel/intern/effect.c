@@ -848,6 +848,14 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 			break;
 		case PFIELD_FORCE:
 			normalize_v3(force);
+			if (pd->flag & PFIELD_GRAVITATION){ /* Option: Multiply by 1/distance^2 */
+				if (efd->distance < FLT_EPSILON){
+					strength = 0.0f;
+				}
+				else {
+					strength *= powf(efd->distance, -2.0f);
+				}
+			}
 			mul_v3_fl(force, strength * efd->falloff);
 			break;
 		case PFIELD_VORTEX:

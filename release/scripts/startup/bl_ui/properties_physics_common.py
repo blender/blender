@@ -274,6 +274,8 @@ def basic_force_field_settings_ui(self, context, field):
         col.prop(field, "use_global_coords", text="Global")
     elif field.type == 'HARMONIC':
         col.prop(field, "use_multiple_springs")
+    if field.type == 'FORCE':
+        col.prop(field, "use_gravity_falloff",  text="Gravitation")
 
     split = layout.split()
 
