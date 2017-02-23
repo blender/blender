@@ -98,6 +98,7 @@ def main():
 
     blenver = blenver_zip = ""
     api_name = ""
+    branch = ""
     is_release = False
 
     # I) Update local mirror using rsync.
@@ -119,6 +120,7 @@ def main():
             "    is_release = bpy.app.version_cycle in {'rc', 'release'}\n"
             "    branch = bpy.app.build_branch.split()[0].decode()\n"
             "    f.write('%d\\n' % is_release)\n"
+            "    f.write('%s\\n' % branch)\n"
             "    f.write('%d.%d%s\\n' % (bpy.app.version[0], bpy.app.version[1], bpy.app.version_char)\n"
             "            if is_release else '%s\\n' % branch)\n"
             "    f.write('%d_%d%s_release' % (bpy.app.version[0], bpy.app.version[1], bpy.app.version_char)\n"
@@ -127,7 +129,7 @@ def main():
                        "--python-expr", getver_script, "--", getver_file)
         subprocess.run(get_ver_cmd)
         with open(getver_file) as f:
-            is_release, blenver, blenver_zip = f.read().split("\n")
+            is_release, branch, blenver, blenver_zip = f.read().split("\n")
             is_release = bool(int(is_release))
         os.remove(getver_file)
 
@@ -166,7 +168,7 @@ def main():
         with open(os.path.join(args.mirror_dir, "250PythonDoc/index.html"), 'w') as f:
             f.write("<html><head><title>Redirecting...</title><meta http-equiv=\"REFRESH\""
                     "content=\"0;url=../%s/\"></head><body>Redirecting...</body></html>" % api_name)
-    else:
+    elif branch == "master":
         with open(os.path.join(args.mirror_dir, "blender_python_api/index.html"), 'w') as f:
             f.write("<html><head><title>Redirecting...</title><meta http-equiv=\"REFRESH\""
                     "content=\"0;url=../%s/\"></head><body>Redirecting...</body></html>" % api_name)
