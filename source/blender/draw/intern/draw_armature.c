@@ -82,7 +82,7 @@ static void update_color(const float const_color[4])
 	UI_GetThemeColor4fv(TH_VERTEX, colorVertex);
 }
 
-static const float *get_bone_solid_color(EditBone *eBone, bPoseChannel *pchan, bArmature *arm)
+static const float *get_bone_solid_color(EditBone *eBone, bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm))
 {
 	if (constColor)
 		return colorBoneSolid;
@@ -96,7 +96,7 @@ static const float *get_bone_solid_color(EditBone *eBone, bPoseChannel *pchan, b
 	return colorBoneSolid;
 }
 
-static const float *get_bone_wire_color(EditBone *eBone, bPoseChannel *pchan, bArmature *arm)
+static const float *get_bone_wire_color(EditBone *eBone, bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm))
 {
 	if (constColor)
 		return constColor;
@@ -210,24 +210,29 @@ static void draw_points(EditBone *eBone, bPoseChannel *pchan, bArmature *arm)
 	DRW_shgroup_bone_point_wire(BONE_VAR(eBone, pchan, disp_tail_mat), col_wire_tail);
 }
 
-static void draw_bone_custom_shape(EditBone *eBone, bPoseChannel *pchan, bArmature *arm)
+static void draw_bone_custom_shape(EditBone *UNUSED(eBone), bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm))
 {
+	/* work in progress  -- fclem */
 }
 
-static void draw_bone_envelope(EditBone *eBone, bPoseChannel *pchan, bArmature *arm)
+static void draw_bone_envelope(EditBone *UNUSED(eBone), bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm))
 {
+	/* work in progress  -- fclem */
 }
 
-static void draw_bone_line(EditBone *eBone, bPoseChannel *pchan, bArmature *arm)
+static void draw_bone_line(EditBone *UNUSED(eBone), bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm))
 {
+	/* work in progress  -- fclem */
 }
 
-static void draw_bone_wire(EditBone *eBone, bPoseChannel *pchan, bArmature *arm)
+static void draw_bone_wire(EditBone *UNUSED(eBone), bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm))
 {
+	/* work in progress  -- fclem */
 }
 
-static void draw_bone_box(EditBone *eBone, bPoseChannel *pchan, bArmature *arm)
+static void draw_bone_box(EditBone *UNUSED(eBone), bPoseChannel *UNUSED(pchan), bArmature *UNUSED(arm))
 {
+	/* work in progress  -- fclem */
 }
 
 static void draw_bone_octahedral(EditBone *eBone, bPoseChannel *pchan, bArmature *arm)
