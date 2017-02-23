@@ -411,7 +411,7 @@ EnumPropertyItem rna_enum_gpencil_interpolation_mode_items[] = {
 	/* interpolation */
 	{0, "", 0, N_("Interpolation"), "Standard transitions between keyframes"},
 	{GP_IPO_LINEAR,   "LINEAR", ICON_IPO_LINEAR, "Linear", "Straight-line interpolation between A and B (i.e. no ease in/out)"},
-	{GP_IPO_CURVEMAP, "CUSTOM", ICON_IPO_BEZIER, "Custom", "Custom interpolation defined using a curvemap"},
+	{GP_IPO_CURVEMAP, "CUSTOM", ICON_IPO_BEZIER, "Custom", "Custom interpolation defined using a curve map"},
 	
 	/* easing */
 	{0, "", 0, N_("Easing (by strength)"), "Predefined inertial transitions, useful for motion graphics (from least to most ''dramatic'')"},
