@@ -639,7 +639,6 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 
 		if (reader->valid()) {
 			reader->readObjectData(data->bmain, 0.0f);
-			reader->readObjectMatrix(0.0f);
 
 			min_time = std::min(min_time, reader->minTime());
 			max_time = std::max(max_time, reader->maxTime());
@@ -711,6 +710,12 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 			data->was_cancelled = true;
 			return;
 		}
+	}
+
+	/* Setup transformations and constraints. */
+	for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
+		AbcObjectReader *reader = *iter;
+		reader->setupObjectTransform(0.0f);
 	}
 }
 

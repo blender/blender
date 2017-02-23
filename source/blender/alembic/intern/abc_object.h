@@ -183,7 +183,8 @@ public:
 		return dm;
 	}
 
-	void readObjectMatrix(const float time);
+	/** Reads the object matrix and sets up an object transform if animated. */
+	void setupObjectTransform(const float time);
 
 	void addCacheModifier();
 

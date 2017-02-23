@@ -214,7 +214,7 @@ Imath::M44d get_matrix(const IXformSchema &schema, const float time)
 	return s0.getMatrix();
 }
 
-void AbcObjectReader::readObjectMatrix(const float time)
+void AbcObjectReader::setupObjectTransform(const float time)
 {
 	bool is_constant = false;
 
@@ -291,6 +291,16 @@ void AbcObjectReader::read_matrix(float mat[4][4], const float time, const float
 
 	const Imath::M44d matrix = get_matrix(schema, time);
 	convert_matrix(matrix, m_object, mat, scale, has_alembic_parent);
+
+	if (has_alembic_parent) {
+		/* In this case, the matrix in Alembic is in local coordinates, so
+		 * convert to world matrix. To prevent us from reading and accumulating
+		 * all parent matrices in the Alembic file, we assume that the Blender
+		 * parent object is already updated for the current timekey, and use its
+		 * world matrix. */
+		BLI_assert(m_object->parent);
+		mul_m4_m4m4(mat, m_object->parent->obmat, mat);
+	}
 
 	is_constant = schema.isConstant();
 }
