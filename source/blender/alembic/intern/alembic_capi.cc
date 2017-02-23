@@ -647,7 +647,7 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 			std::cerr << "Object " << reader->name() << " in Alembic file " << data->filename << " is invalid.\n";
 		}
 
-		*data->progress = 0.1f + 0.6f * (++i / size);
+		*data->progress = 0.1f + 0.3f * (++i / size);
 		*data->do_update = true;
 
 		if (G.is_break) {
@@ -703,7 +703,7 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 			}
 		}
 
-		*data->progress = 0.7f + 0.3f * (++i / size);
+		*data->progress = 0.4f + 0.3f * (++i / size);
 		*data->do_update = true;
 
 		if (G.is_break) {
@@ -713,9 +713,18 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
 	}
 
 	/* Setup transformations and constraints. */
+	i = 0;
 	for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
 		AbcObjectReader *reader = *iter;
 		reader->setupObjectTransform(0.0f);
+
+		*data->progress = 0.7f + 0.3f * (++i / size);
+		*data->do_update = true;
+
+		if (G.is_break) {
+			data->was_cancelled = true;
+			return;
+		}
 	}
 }
 
