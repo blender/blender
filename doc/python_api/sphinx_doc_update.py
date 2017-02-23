@@ -96,6 +96,10 @@ def main():
 
     rsync_base = "rsync://%s@%s:%s" % (args.user, args.rsync_server, args.rsync_root)
 
+    blenver = blenver_zip = ""
+    api_name = ""
+    is_release = False
+
     # I) Update local mirror using rsync.
     rsync_mirror_cmd = ("rsync", "--delete-after", "-avzz", rsync_base, args.mirror_dir)
     subprocess.run(rsync_mirror_cmd, env=dict(os.environ, RSYNC_PASSWORD=args.password))
@@ -108,19 +112,23 @@ def main():
         subprocess.run(doc_gen_cmd)
 
         # III) Get Blender version info.
-        blenver = blenver_zip = ""
         getver_file = os.path.join(tmp_dir, "blendver.txt")
         getver_script = (""
             "import sys, bpy\n"
             "with open(sys.argv[-1], 'w') as f:\n"
+            "    is_release = bpy.app.version_cycle in {'rc', 'release'}\n"
+            "    branch = bpy.app.build_branch.split()[0].decode()\n"
+            "    f.write('%d\\n' % is_release)\n"
+            "    f.write('%d.%d%s\\n' % (bpy.app.version[0], bpy.app.version[1], bpy.app.version_char)\n"
+            "            if is_release else '%s\\n' % branch)\n"
             "    f.write('%d_%d%s_release\\n' % (bpy.app.version[0], bpy.app.version[1], bpy.app.version_char)\n"
-            "            if bpy.app.version_cycle in {'rc', 'release'} else '%d_%d_%d\\n' % bpy.app.version)\n"
-            "    f.write('%d_%d_%d' % bpy.app.version)\n")
+            "            if is_release else '%d_%d_%d' % bpy.app.version)\n")
         get_ver_cmd = (args.blender, "--background", "-noaudio", "--factory-startup", "--python-exit-code", "1",
                        "--python-expr", getver_script, "--", getver_file)
         subprocess.run(get_ver_cmd)
         with open(getver_file) as f:
-            blenver, blenver_zip = f.read().split("\n")
+            is_release, blenver, blenver_zip = f.read().split("\n")
+            is_release = bool(int(is_release))
         os.remove(getver_file)
 
         # IV) Build doc.
@@ -132,7 +140,7 @@ def main():
         os.chdir(curr_dir)
 
         # V) Cleanup existing matching dir in server mirror (if any), and copy new doc.
-        api_name = "blender_python_api_%s" % blenver
+        api_name = blenver
         api_dir = os.path.join(args.mirror_dir, api_name)
         if os.path.exists(api_dir):
             shutil.rmtree(api_dir)
@@ -150,19 +158,15 @@ def main():
     os.rename(zip_path, os.path.join(api_dir, "%s.zip" % zip_name))
 
     # VII) Create symlinks and html redirects.
-    #~ os.symlink(os.path.join(DEFAULT_SYMLINK_ROOT, api_name, "contents.html"), os.path.join(api_dir, "index.html"))
     os.symlink("./contents.html", os.path.join(api_dir, "index.html"))
-    if blenver.endswith("release"):
-        symlink = os.path.join(args.mirror_dir, "blender_python_api_current")
+    if is_release:
+        symlink = os.path.join(args.mirror_dir, "current")
         os.remove(symlink)
         os.symlink("./%s" % api_name, symlink)
         with open(os.path.join(args.mirror_dir, "250PythonDoc/index.html"), 'w') as f:
             f.write("<html><head><title>Redirecting...</title><meta http-equiv=\"REFRESH\""
                     "content=\"0;url=../%s/\"></head><body>Redirecting...</body></html>" % api_name)
     else:
-        symlink = os.path.join(args.mirror_dir, "blender_python_api_master")
-        os.remove(symlink)
-        os.symlink("./%s" % api_name, symlink)
         with open(os.path.join(args.mirror_dir, "blender_python_api/index.html"), 'w') as f:
             f.write("<html><head><title>Redirecting...</title><meta http-equiv=\"REFRESH\""
                     "content=\"0;url=../%s/\"></head><body>Redirecting...</body></html>" % api_name)
