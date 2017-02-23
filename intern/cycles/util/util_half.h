@@ -18,6 +18,7 @@
 #define __UTIL_HALF_H__
 
 #include "util_types.h"
+#include "util_math.h"
 
 #ifdef __KERNEL_SSE2__
 #include "util_simd.h"
