@@ -1172,6 +1172,7 @@ void cpack(unsigned int x)
 
 void glaDrawBorderCorners(const rcti *border, float zoomx, float zoomy)
 {
+	/* DEPRECATED: use immDrawBorderCorners */
 	float delta_x = 4.0f * UI_DPI_FAC / zoomx;
 	float delta_y = 4.0f * UI_DPI_FAC / zoomy;
 
@@ -1205,4 +1206,41 @@ void glaDrawBorderCorners(const rcti *border, float zoomx, float zoomy)
 	glVertex2f(border->xmax, border->ymax);
 	glVertex2f(border->xmax, border->ymax - delta_y);
 	glEnd();
+}
+
+void immDrawBorderCorners(unsigned int pos, const rcti *border, float zoomx, float zoomy)
+{
+	float delta_x = 4.0f * UI_DPI_FAC / zoomx;
+	float delta_y = 4.0f * UI_DPI_FAC / zoomy;
+
+	delta_x = min_ff(delta_x, border->xmax - border->xmin);
+	delta_y = min_ff(delta_y, border->ymax - border->ymin);
+
+	/* left bottom corner */
+	immBegin(GL_LINE_STRIP, 3);
+	immVertex2f(pos, border->xmin, border->ymin + delta_y);
+	immVertex2f(pos, border->xmin, border->ymin);
+	immVertex2f(pos, border->xmin + delta_x, border->ymin);
+	immEnd();
+
+	/* left top corner */
+	immBegin(GL_LINE_STRIP, 3);
+	immVertex2f(pos, border->xmin, border->ymax - delta_y);
+	immVertex2f(pos, border->xmin, border->ymax);
+	immVertex2f(pos, border->xmin + delta_x, border->ymax);
+	immEnd();
+
+	/* right bottom corner */
+	immBegin(GL_LINE_STRIP, 3);
+	immVertex2f(pos, border->xmax - delta_x, border->ymin);
+	immVertex2f(pos, border->xmax, border->ymin);
+	immVertex2f(pos, border->xmax, border->ymin + delta_y);
+	immEnd();
+
+	/* right top corner */
+	immBegin(GL_LINE_STRIP, 3);
+	immVertex2f(pos, border->xmax - delta_x, border->ymax);
+	immVertex2f(pos, border->xmax, border->ymax);
+	immVertex2f(pos, border->xmax, border->ymax - delta_y);
+	immEnd();
 }
