@@ -3178,6 +3178,7 @@ void ED_init_node_socket_type_virtual(bNodeSocketType *stype)
 void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeInstanceKey parent_key)
 {
 	bNodeInstanceKey active_viewer_key = (snode->nodetree ? snode->nodetree->active_viewer_key : NODE_INSTANCE_KEY_NONE);
+	float shuffle[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	Image *ima;
 	void *lock;
 	ImBuf *ibuf;
@@ -3210,43 +3211,27 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 			unsigned char *display_buffer = NULL;
 			void *cache_handle = NULL;
 			
-			if (snode->flag & (SNODE_SHOW_R | SNODE_SHOW_G | SNODE_SHOW_B)) {
-				int ofs;
+			if (snode->flag & (SNODE_SHOW_R | SNODE_SHOW_G | SNODE_SHOW_B | SNODE_SHOW_ALPHA)) {
 				
 				display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
-				
-#ifdef __BIG_ENDIAN__
-				if      (snode->flag & SNODE_SHOW_R) ofs = 0;
-				else if (snode->flag & SNODE_SHOW_G) ofs = 1;
-				else                                 ofs = 2;
-#else
-				if      (snode->flag & SNODE_SHOW_R) ofs = 1;
-				else if (snode->flag & SNODE_SHOW_G) ofs = 2;
-				else                                 ofs = 3;
-#endif
-				
-				glPixelZoom(snode->zoom, snode->zoom);
-				/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
-				
-				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_LUMINANCE, GL_UNSIGNED_INT,
-				                  display_buffer - (4 - ofs));
-				
-				glPixelZoom(1.0f, 1.0f);
-			}
-			else if (snode->flag & SNODE_SHOW_ALPHA) {
-				display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
-				
-				glPixelZoom(snode->zoom, snode->zoom);
-				/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
-#ifdef __BIG_ENDIAN__
-				glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
-#endif
-				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_LUMINANCE, GL_UNSIGNED_INT, display_buffer);
-				
-#ifdef __BIG_ENDIAN__
-				glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
-#endif
-				glPixelZoom(1.0f, 1.0f);
+
+				if (snode->flag & SNODE_SHOW_R)
+					shuffle[0] = 1.0f;
+				else if (snode->flag & SNODE_SHOW_G)
+					shuffle[1] = 1.0f;
+				else if (snode->flag & SNODE_SHOW_B)
+					shuffle[2] = 1.0f;
+				else
+					shuffle[3] = 1.0f;
+
+				GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
+				GPU_shader_bind(shader);
+				GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "shuffle"), 4, 1, shuffle);
+
+				immDrawPixelsTex(x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST,
+				                 display_buffer, snode->zoom, snode->zoom, NULL);
+
+				GPU_shader_unbind();
 			}
 			else if (snode->flag & SNODE_USE_ALPHA) {
 				glEnable(GL_BLEND);

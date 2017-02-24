@@ -341,6 +341,7 @@ static void file_draw_preview(
 	float scale;
 	int ex, ey;
 	bool use_dropshadow = !is_icon && (typeflags & FILE_TYPE_IMAGE);
+	float col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 	BLI_assert(imb != NULL);
 
@@ -387,12 +388,11 @@ static void file_draw_preview(
 
 	/* the image */
 	if (!is_icon && typeflags & FILE_TYPE_FTFONT) {
-		UI_ThemeColor(TH_TEXT);
+		UI_GetThemeColor4fv(TH_TEXT, col);
 	}
-	else {
-		glColor4f(1.0, 1.0, 1.0, 1.0);
-	}
-	glaDrawPixelsTexScaled((float)xco, (float)yco, imb->x, imb->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, imb->rect, scale, scale);
+
+	immDrawPixelsTexScaled((float)xco, (float)yco, imb->x, imb->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, imb->rect,
+	                       scale, scale, 1.0f, 1.0f, col);
 
 	if (icon) {
 		UI_icon_draw_aspect((float)xco, (float)yco, icon, icon_aspect, 1.0f);

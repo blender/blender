@@ -780,16 +780,12 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				zoomy *= -1.0f;
 				y1 = y2;
 			}
-			glPixelZoom(zoomx, zoomy);
-			glColor4f(1.0f, 1.0f, 1.0f, 1.0f - bgpic->blend);
 
-			/* could not use glaDrawPixelsAuto because it could fallback to
-			 * glaDrawPixelsSafe in some cases, which will end up in missing
-			 * alpha transparency for the background image (sergey)
-			 */
-			glaDrawPixelsTex(x1 - centx, y1 - centy, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, ibuf->rect);
+			float col[4] = {1.0f, 1.0f, 1.0f, 1.0f - bgpic->blend};
+			glUseProgram(0); /* immDrawPixelsTex use it's own shader */
+			immDrawPixelsTex(x1 - centx, y1 - centy, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, ibuf->rect,
+			                 zoomx, zoomy, col);
 
-			glPixelZoom(1.0, 1.0);
 			glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 
 			glMatrixMode(GL_PROJECTION);
