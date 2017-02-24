@@ -187,6 +187,9 @@ static void rna_Bone_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 	}
 	
 	WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+
+	/* spaces that show animation data of the selected bone need updating */
+	WM_main_add_notifier(NC_ANIMATION | ND_ANIMCHAN, id);
 }
 
 static char *rna_Bone_path(PointerRNA *ptr)
