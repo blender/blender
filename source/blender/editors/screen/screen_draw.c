@@ -241,6 +241,10 @@ static void drawscredge_area_draw(int sizex, int sizey, short x1, short y1, shor
 	if (y2 < sizey - 1) count += 2;
 	if (y1 > 0) count += 2;
 
+	if (count == 0) {
+		return;
+	}
+
 	immBegin(GL_LINES, count);
 
 	/* right border area */
