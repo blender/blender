@@ -1398,10 +1398,11 @@ static int arg_handle_render_animation(int UNUSED(argc), const char **UNUSED(arg
 		Render *re = RE_NewRender(scene->id.name);
 		ReportList reports;
 		BLI_begin_threaded_malloc();
-		BKE_reports_init(&reports, RPT_PRINT);
+		BKE_reports_init(&reports, RPT_STORE);
 		RE_SetReports(re, &reports);
 		RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, scene->r.sfra, scene->r.efra, scene->r.frame_step);
 		RE_SetReports(re, NULL);
+		BKE_reports_clear(&reports);
 		BLI_end_threaded_malloc();
 	}
 	else {
