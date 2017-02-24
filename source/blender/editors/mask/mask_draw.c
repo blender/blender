@@ -54,6 +54,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_draw.h"
+#include "GPU_shader.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -753,17 +754,11 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 
 	if (draw_flag & MASK_DRAWFLAG_OVERLAY) {
 		float *buffer = threaded_mask_rasterize(mask, width, height);
-		int format;
 
-		if (overlay_mode == MASK_OVERLAY_ALPHACHANNEL) {
-			glColor3f(1.0f, 1.0f, 1.0f);
-			format = GL_LUMINANCE;
-		}
-		else {
+		if (overlay_mode != MASK_OVERLAY_ALPHACHANNEL) {
 			/* More blending types could be supported in the future. */
 			glEnable(GL_BLEND);
-			glBlendFunc(GL_DST_COLOR, GL_SRC_ALPHA);
-			format = GL_ALPHA;
+			glBlendFunc(GL_DST_COLOR, GL_ZERO);
 		}
 
 		glPushMatrix();
@@ -772,7 +767,12 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 		if (stabmat) {
 			glMultMatrixf((const float *) stabmat);
 		}
-		glaDrawPixelsTex(0.0f, 0.0f, width, height, format, GL_FLOAT, GL_NEAREST, buffer);
+		GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
+		GPU_shader_bind(shader);
+		float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+		GPU_shader_uniform_vector(shader, GPU_shader_get_uniform(shader, "shuffle"), 4, 1, red);
+		immDrawPixelsTex(0.0f, 0.0f, width, height, GL_RED, GL_FLOAT, GL_NEAREST, buffer, 1.0f, 1.0f, NULL);
+		GPU_shader_unbind();
 		glPopMatrix();
 
 		if (overlay_mode != MASK_OVERLAY_ALPHACHANNEL) {
